@@ -4,8 +4,8 @@ milestone: v1.4
 milestone_name: Coverage
 status: completed
 stopped_at: Completed 138-18-PLAN.md (GAP-02 closed; Phase 138 18/18 plans complete)
-last_updated: "2026-08-24T08:41:21.013Z"
-last_activity: 2026-08-24
+last_updated: "2026-08-24T13:48:30.374Z"
+last_activity: "2026-08-24 - Completed quick task 260824-ek3: Rollen und Capabilities zu einem Rollen-Arbeitsbereich zusammengefuehrt (GAP-04/GAP-05)"
 progress:
   total_phases: 7
   completed_phases: 3
@@ -185,6 +185,7 @@ Last activity: 2026-08-24 - Completed quick task 260824-ek3: Rollen und Capabili
 - [Phase Quick 260823-wrz]: UAT-138-G fixed: EmptyState gained a real chrome-free variant="inline" (single <p>, no icon/card); UserGlobalRolesTab.tsx dropped its standalone 'Aktive Rollen' SectionHeader block; GroupSection.tsx dropped its <Card> wrapper for a plain <section> (data-group-section preserved). New height to first real rights row estimated ~519px (engineering estimate, not live-measured) - above the 400px soft target but all three named causes are fully closed; UAT-138-A grid-template-columns fix confirmed untouched; live UAT spot-check at 1280x900 recommended as follow-up.
 - [Phase 138]: 138-17: GAP-01 formatRelativeDate clamps its ms diff to >= 0 before computing days, so a last_activity_at at or after Date.now() (clock skew or exact-now) always resolves to 'Heute'; GAP-03's WR-01 branch order (isNonDeniable && !isRemoveMode) was already correct in production code -- a new 7th regression test pins non_deniable+user_deny reaching the confirm step, closing 138-VERIFICATION.md's sole human_needed gap with automated coverage, no production code change needed.
 - [Phase 138]: 138-18 closed GAP-02: RoleCapabilityImpactPreviewModal's metrics row column-stacks (.metricsRow, <=759px) so all 5 D-19 metrics stay visible, per-user vorher/nachher/Grund renders as a Card list below 759px (mirrors RoleHoldersTable.tsx's useIsMobile()/matchMedia precedent, D-32), and a new opt-in Modal panelClassName prop lets only this modal override the shared mobile 100dvh height rule (.narrowHeightFix, doubled-selector specificity) -- ui.module.css and all 30 other <Modal> call sites remain byte-unchanged. Phase 138 (18/18 plans) is now complete.
+- [Phase Quick 260824-ike]: Task 1's handler unit test used fansub_lead/founder instead of the plan's co_leader/encoder example pair because the internal/handlers package's shared TestMain catalog stub predates migration 0112's assignable=true promotion of co_leader; verified the real running app's DB-loaded catalog has co_leader assignable=true with fansub_group context, so production behavior matches the plan's intent -- pure test-selection fix, zero production logic change.
 
 ### Pending Todos
 
@@ -214,6 +215,7 @@ Last activity: 2026-08-24 - Completed quick task 260824-ek3: Rollen und Capabili
 | 260823-w9y | Fix UAT-138-C: rohe technische Codes (Rollencodes, Capability-Actioncodes, "Benutzer #<id>") durch bestehende deutsche Labels aus RoleCapabilityMatrix/app_users.display_name ersetzt - Rechteeditor, Entzug-Dialog, Aenderungen-Uebersetzung, plus additive actor_display_name/target_display_name-Vertragserweiterung fuer GET /admin/changes (D-33) | 2026-08-23 | 66164839 | [260823-w9y-fix-uat-138-c-rohe-technische-codes-in-u](./quick/260823-w9y-fix-uat-138-c-rohe-technische-codes-in-u/) |
 | 260823-wrz | Fix UAT-138-G: Informationsdichte im Benutzer-Rechte-Tab - EmptyState bekam echte chrome-freie variant="inline"; UserGlobalRolesTab.tsx verlor den separaten "Aktive Rollen"-Block; GroupSection.tsx verlor die Card-Chrome (jetzt <section>, data-group-section erhalten); neue Hoehe bis zur ersten Rechtezeile auf ~519px geschaetzt (Engineering-Schaetzung, kein Live-Messwert); UAT-138-A-Fix quellcode-bestaetigt unangetastet | 2026-08-23 | e33de150 | [260823-wrz-informationsdichte-im-benutzer-rechte-ta](./quick/260823-wrz-informationsdichte-im-benutzer-rechte-ta/) |
 | 260824-ek3 | GAP-04/GAP-05 (138-HUMAN-UAT.md): Rollen und Capabilities zu einem Rollen-Arbeitsbereich unter /admin/roles zusammengefuehrt (Sketch 005, Nutzerentscheidung) - RoleRail.tsx (vollflaechig klickbare, registry-getriebene Liste, aria-current), RolesClient.tsx/RoleDetailPanel.tsx (Tabs Inhaber/Standardrechte, Deep-Link-Scroll), /admin/role-capabilities als serverseitige Weiterleitung, AdminMainNav/admin-page/resolveRoleLink umgestellt, D-01/D-08-Nachtrag datiert in 138-CONTEXT.md/138-HUMAN-UAT.md dokumentiert | 2026-08-24 | ec512897 | [260824-ek3-rollen-und-capabilities-zu-einem-rollen-](./quick/260824-ek3-rollen-und-capabilities-zu-einem-rollen-/) |
+| 260824-ike | Drei Live-Defekte im Rollen-Arbeitsbereich (Nachtrag zu 260824-ek3) behoben: RoleRail.tsx verlor das redundante Pro-Zeile-roleKindLabel-Badge (Ellipse bei 6/18 Namen); neue CountGroupRoleHolders-Bulk-Query + additives group_holder_count-Feld (Go/YAML/TS) beheben den Rail-vs-Detail-Panel-Widerspruch bei Gruppenrollen-Inhaberzahlen; resolveRoleLink()/GroupRolesSection.tsx/RolesClient.tsx/role-capabilities-Weiterleitung wurden um einen optionalen tab-Parameter erweitert, damit "Was darf diese Rolle?" immer den Standardrechte-Tab oeffnet statt des rollenart-abhaengigen Defaults | 2026-08-24 | 787df9f3 | [260824-ike-drei-live-defekte-im-rollen-arbeitsberei](./quick/260824-ike-drei-live-defekte-im-rollen-arbeitsberei/) |
 
 ### Verification Baseline
 
@@ -427,7 +429,7 @@ untruncated list lives in `.planning/todos/pending/`.
 
 ## Session Continuity
 
-Last session: 2026-08-24T08:41:20.997Z
+Last session: 2026-08-24T13:48:04.532Z
 Stopped at: Completed 138-18-PLAN.md (GAP-02 closed; Phase 138 18/18 plans complete)
 Last activity: 2026-08-20 - Completed Phase 134 Plan 06: live UAT evidence capture, two gap-closure fix rounds, and the user's explicit live-browser sign-off for both reference profiles (PMQA-05)
 Resume file: None
