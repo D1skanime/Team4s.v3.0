@@ -54,15 +54,20 @@ spacing values are introduced.
 |-------|-------|---------------------|
 | `--space-1` | 4px | Icon/badge internal gaps, role-chip row gaps |
 | `--space-2` | 8px | Compact inline gaps (meta line separators, chip rows) |
-| `--space-3` | 12px | Card (`nestedFlat`) inner padding — project/release block padding |
 | `--space-4` | 16px | Tab root padding (`padding: var(--space-4)`, existing convention); gap between stacked project/release blocks |
 | `--space-5` | 24px | Gap between the toolbar and the first result block; gap above the `SectionHeader` purpose banner |
 | `--space-6` | 32px | Not used by this phase's new UI (reserved for larger page-level breaks elsewhere) |
 | `--space-7`–`--space-9` | 48/64/80px | Not used by this phase |
 
-Exceptions: none. The existing `--space-3` (12px) step is kept even though it breaks strict
-power-of-two doubling, because it is the established Card/`nestedFlat` inner-padding value used by
-`AnimeGroupCard.tsx` and must stay visually consistent with that existing analog component.
+Exceptions: none. Every spacing value Phase 139's new markup introduces or sets is a standard
+8-point-scale step (4/8/16/24px) — no non-standard step is declared or used by this phase's own CSS.
+The `Card` (`nestedFlat`) primitive's own internal padding (`14px 14px 12px`, hard-coded in the
+pre-existing `frontend/src/components/ui/ui.module.css`, predating Phase 139 and reused byte-identical
+by both the existing `AnimeGroupCard.tsx` and this phase's new project/release blocks) is untouched,
+unmodified primitive CSS — not a `--space` token, and not a value Phase 139 sets or overrides. It sits
+outside this table's scope for the same reason the Typography contract below excludes pre-existing
+primitive type sizes: this table governs only spacing values Phase 139's new bespoke markup actually
+introduces, not inherited primitive internals.
 
 ---
 
@@ -162,6 +167,10 @@ Sprachqualität rule.
 
 ## Component Inventory — Contributions Tab
 
+**Primary visual anchor:** the anime title inside each grouped `Card` (Heading 16/700, per
+Typography above) is the primary visual anchor on this tab — it is the first thing an admin's eye
+lands on per block, ahead of badges, chips, and action buttons.
+
 Root layout (replaces the current flat `Table`-based `UserContributionsTab.tsx`):
 
 | Structural element | Primitive(s) |
@@ -193,6 +202,9 @@ reason — that precedent does not fit here).
 
 ## Component Inventory — Media Tab
 
+**Primary visual anchor:** the anime title inside each grouped `Card` (Heading 16/700, same
+treatment as Contributions) is the primary visual anchor on this tab.
+
 Root layout (replaces the current `groupByReleaseVersion`-based `UserMediaTab.tsx`):
 
 | Structural element | Primitive(s) |
@@ -212,6 +224,10 @@ Root layout (replaces the current `groupByReleaseVersion`-based `UserMediaTab.ts
 | Loading / Error / Empty | Same pattern as Contributions |
 
 ## Component Inventory — Rights Tab Scale Fix (`UserGroupRightsTab.tsx`)
+
+**Primary visual anchor:** the group-membership selector (the bounded list/`Select` described
+below) is the primary visual anchor on this tab — it is the first decision point an admin must act
+on before any rights content renders.
 
 No visual/semantic change to `GroupSection`, `CategoryTable`, `Accordion`, `GuidedRevokeFlow`,
 `GuidedGrantFlow`, `RoleAssignmentImpactModal`, or `ActivationStatusIndicator` — all reused
