@@ -1,21 +1,38 @@
 ---
 phase: 138-effective-rights-administration-impact-ux
-verified: 2026-08-23T20:01:48Z
-status: human_needed
+verified: 2026-08-24T08:57:12Z
+status: passed
 score: 4/4 must-haves verified
 overrides_applied: 0
-human_verification:
-  - test: "Open a capability row for a user who is a platform admin (non_deniable=true) and already has a stale personal user_deny override on that same action. Click 'Abweichung entfernen' and confirm the removal actually completes (does not dead-end on the 'cannot be revoked' explanation)."
-    expected: "GuidedRevokeFlow proceeds to the confirm step and lets the admin remove the dormant override (via the WR-01 branch-order fix: isNonDeniable is now checked only when !isRemoveMode)."
-    why_human: "No automated test exercises the exact non_deniable=true && user_deny=true combination the WR-01 finding described. 138-REVIEW-FIX.md itself flags this fix as 'requires human verification' since it is a conditional-logic branch-order change with no regression test pinning the fixed behavior. Manual code trace in this verification confirms the logic is correct, but a live click-through was not performed by this verifier."
+re_verification:
+  previous_status: human_needed
+  previous_score: 4/4
+  gaps_closed:
+    - "WR-01 non_deniable=true && user_deny=true combination in GuidedRevokeFlow — was the sole human_needed item; now closed by an automated regression test (GuidedRevokeFlow.test.tsx, 7th test, GAP-03) rather than a live DB fixture. Deliberate, documented closure route (138-HUMAN-UAT.md's own gap-closure block), not a silent carry-forward."
+    - "fansubEditAccess.test.ts stale assertion regression (previously flagged as a non-blocking anti-pattern warning) — fixed by commit f73b608b, re-run confirms 15/15 passing."
+    - "UserGroupRightsTab.tsx 450-line modularity violation (was 716 lines, previously flagged as a warning) — resolved by a subsequent refactor (commit 7039195b, extracting GroupRolesSection.tsx/GroupSection.tsx); file is now 269 lines."
+    - "UAT-138-A horizontal page overflow at 394px — fixed (minmax(0, 1fr) on .card/.accordionRoot) and live-remeasured (document.scrollWidth === clientWidth)."
+    - "UAT-138-C raw role/capability codes and missing actor_display_name in /admin/changes — fixed (commit 66164839, quick-260823-w9y)."
+    - "GAP-01 negative relative-time ('vor -1 Tagen') in the admin user list — fixed and live-remeasured (commit 30800135)."
+    - "GAP-02 RoleCapabilityImpactPreviewModal unusable at 394px (clipped metric, horizontally-scrolling detail table, dialog using only the top quarter of viewport height) — fixed across three tasks (commits dc46628f, 791dcb4a, 062d578f/6b8b0a0c) and live-remeasured."
+  gaps_remaining: []
+  regressions: []
 ---
 
 # Phase 138: Effective-Rights Administration & Impact UX Verification Report
 
 **Phase Goal:** Admins can understand and change a user's effective group rights from the existing canonical surfaces without guessing which role grants access or receiving false mutation success.
-**Verified:** 2026-08-23T20:01:48Z
-**Status:** human_needed
-**Re-verification:** No — initial verification
+**Verified:** 2026-08-24T08:57:12Z
+**Status:** passed
+**Re-verification:** Yes — full goal-backward re-verification, superseding the prior report (`status: human_needed`, score 4/4, dated 2026-08-23T20:01:48Z). This is not a rubber-stamp of ROADMAP.md/STATE.md's "Complete" marker — every truth below was independently re-checked against the current codebase, not against SUMMARY.md or HUMAN-UAT.md claims alone.
+
+## What Changed Since the Prior Verification
+
+Since 2026-08-23T20:01:48Z, three things happened, all independently confirmed in this session:
+
+1. **Live human UAT ran** (`138-HUMAN-UAT.md`, now `status: complete`, 11/11 passed, 0 blocked/pending/issues). It found UAT-138-A (horizontal overflow, major — fixed and re-measured), UAT-138-C (raw technical codes, minor — fixed), and withdrew UAT-138-B (tester's own measurement error, not a real defect — the active-tab pill's `linear-gradient` background was mis-sampled mid-transition).
+2. **Two gap-closure plans executed:** 138-17 (GAP-01 negative relative-time clamp + GAP-03 WR-01 regression test) and 138-18 (GAP-02 narrow-viewport impact-preview modal fix — metrics visibility, per-user card layout, content-driven dialog height).
+3. **Phase 138 now totals 18 plans** (138-01..138-18), all with SUMMARY.md files, all commits present in `git log`.
 
 ## Goal Achievement
 
@@ -23,129 +40,130 @@ human_verification:
 
 | # | Truth | Status | Evidence |
 |---|-------|--------|----------|
-| 1 | The existing user-detail group-rights tab shows the complete effective capability set and its provenance, and is the canonical place for scoped user allow/deny changes. | ✓ VERIFIED | `UserGroupRightsTab.tsx` calls `getEffectiveRights`/`listRoleCapabilities` (real fetches to `GET /admin/fansubs/:id/app-members/:appUserId/effective-rights`, routed in `admin_routes.go:298`), renders per-group, category-grouped (`categoryDisplayLabel`, 7 real registry categories) `EffectiveRightState` rows with `GrantingRoles`/`SpecializedGrants`/`UserAllow`/`UserDeny` provenance, and hosts `GuidedGrantFlow`/`GuidedRevokeFlow`/`RoleAssignmentImpactModal` as the only mutation entry points. 9/9 `UserGroupRightsTab.test.tsx` tests pass. Zero new client-side precedence logic (D-14) — component only renders resolver output. |
-| 2 | A guided "user must not do this" flow lists every granting source and recommends a scoped user deny before offering broader membership or role-matrix changes. | ✓ VERIFIED | `GuidedRevokeFlow.tsx` renders `state.granting_roles` with a "kann durch eine persönliche Abweichung nicht entzogen werden" flag for non-fansub-group-catalog roles, states "Empfohlen: Persönliche Abweichung … setzen", and blocks confirmation for non-deniable rights with an explanation (no disabled button, D-17). WR-01 fix (`isNonDeniable && !isRemoveMode`) verified present in code and in commit `66a43e91`; all 6 `GuidedRevokeFlow.test.tsx` tests pass. See Human Verification below for the one untested edge combination. |
-| 3 | Before changing a role-capability mapping, an admin sees affected role holders and which users actually gain, lose, or retain the capability through another source. | ✓ VERIFIED | Backend `PreviewGroupRightsCapabilityChange` (`effective_rights_capability_impact_preview.go`) batch-computes before/after `CapabilityRightState` per real role holder via the unmodified `evaluateGroupRights`/`evaluateGroupRightsWithHypotheticalGrant` precedence path (D-20, zero second decision engine); `GET /admin/role-capabilities/:roleCode/:actionCode/impact-preview` is routed (`admin_routes.go:276`) and gated platform-admin-only. `RoleCapabilityClient.tsx` no longer has direct `handleGrant`/`handleRevoke` — every toggle routes through `RoleCapabilityImpactPreviewModal`, which self-fetches the preview + holder list and blocks mutation on preview failure. 8/8 backend impact-preview tests and 6/6 `RoleCapabilityImpactPreviewModal.test.tsx` pass. WR-02 (missing OpenAPI path) fixed and present in `shared/contracts/admin-capabilities.yaml` (commit `8e3c92fc`). |
-| 4 | After a role-matrix mutation, the UI distinguishes persisted, cache-active, pending, and failed activation states and never reports stale enforcement as final success. | ✓ VERIFIED | `RoleCapabilityMutationResult.cache_reload_succeeded` (Go DTO → OpenAPI → TS → `api.ts`) and `CapabilityOverrideMutationResult.activation_status` both flow into the shared `ActivationStatusIndicator` component, which renders distinct, honest copy per path ("Gespeichert und aktiv" / "Gespeichert, aber nicht aktiv…" for role-matrix; "Gespeichert und sofort aktiv" / "Status wird geprüft…" for override) — never a fabricated always-success message. `TestAdminCapabilityHandlerCacheReloadSucceededField` (backend) and `ActivationStatusIndicator.test.tsx` (6/6) pass. |
+| 1 | The existing user-detail group-rights tab shows the complete effective capability set and its provenance, and is the canonical place for scoped user allow/deny changes. | ✓ VERIFIED | `UserGroupRightsTab.tsx` (now 269 lines, refactored down from 716 via commit `7039195b` extracting `GroupRolesSection.tsx`/`GroupSection.tsx`, both well under the 450-line cap) still calls `getEffectiveRights`/`listRoleCapabilities` against the real routed backend (`GET /admin/fansubs/:id/app-members/:appUserId/effective-rights`, confirmed present at `backend/cmd/server/admin_routes.go:298`), renders category-grouped `EffectiveRightState` rows with role labels resolved via `roleLabelFor` (not raw codes — UAT-138-C fix), and hosts `GuidedGrantFlow`/`GuidedRevokeFlow`/`RoleAssignmentImpactModal` as the only mutation entry points. 9/9 `UserGroupRightsTab.test.tsx` tests re-run and pass. Live UAT (`138-HUMAN-UAT.md` Test 5) independently confirmed this structure end-to-end. |
+| 2 | A guided "user must not do this" flow lists every granting source and recommends a scoped user deny before offering broader membership or role-matrix changes. | ✓ VERIFIED | `GuidedRevokeFlow.tsx`'s `isNonDeniable && !isRemoveMode` guard (WR-01 fix) confirmed unchanged and correct via `grep -c` (exactly 1 occurrence). The previously sole `human_needed` gap — no automated test for the exact `non_deniable=true && user_deny=true` combination — is now closed: `GuidedRevokeFlow.test.tsx` re-run shows 7/7 tests passing, including the new WR-01 regression test (renders that exact combination, asserts no dead-end text, asserts the "Abweichung entfernen" button is present/functional, asserts `mutateCapabilityOverride` is called with `effect: null`, asserts the real activation status resolves). The pre-existing counter-test (`non_deniable=true` without `user_deny` → button absent, explanation shown) is unmodified and still passes. |
+| 3 | Before changing a role-capability mapping, an admin sees affected role holders and which users actually gain, lose, or retain the capability through another source. | ✓ VERIFIED | `RoleCapabilityImpactPreviewModal.tsx` (418 lines, under the cap) re-verified as the sole mutation entry point (no direct `handleGrant`/`handleRevoke` in `RoleCapabilityClient.tsx`). Backend `PreviewGroupRightsCapabilityChange`/`GET .../impact-preview` re-run: 12/12 targeted backend handler tests pass (`TestAdminCapabilityImpactHandler*` + siblings). GAP-02's three narrow-viewport defects (clipped metric, horizontally-scrolling before/after columns, dialog using only the top quarter of viewport height) are closed: `.metricsRow` column-stacks below 759px (all 5 metrics guaranteed visible), a mobile `Card`-list branch renders vorher/nachher/Grund without horizontal scroll, and a new opt-in `Modal.panelClassName` prop gives this one dialog content-driven height at ≤767px without touching the shared `.modalPanel`/`.modalBody` rule (`git diff --stat ui.module.css` empty; `grep -c "grid-template-columns: minmax(0, 1fr)"` still `5`; 29 other `<Modal>` call sites confirmed not passing `panelClassName`). `RoleCapabilityImpactPreviewModal.test.tsx` re-run: 8/8 passing (6 desktop + 1 narrow-width metrics/card + 1 `narrowHeightFix` structural test). Live UAT (`138-HUMAN-UAT.md`, "Gap-Block Ergebnis") independently re-measured all three fixes at 394px in a real browser after the gap-closure plans landed. |
+| 4 | After a role-matrix mutation, the UI distinguishes persisted, cache-active, pending, and failed activation states and never reports stale enforcement as final success. | ✓ VERIFIED | `RoleCapabilityMutationResult.cache_reload_succeeded` / `CapabilityOverrideMutationResult.activation_status` still flow into the shared `ActivationStatusIndicator`. `TestAdminCapabilityHandlerCacheReloadSucceededField` re-run: 4/4 subtests pass. Live UAT Test 8 independently confirmed "Gespeichert und aktiv." renders and the dialog stays open through confirmation rather than fabricating an immediate success message. |
 
-**Score:** 4/4 truths verified
+**Score:** 4/4 truths verified (unchanged from prior verification's score, but now with the prior single open gap fully closed and independently re-confirmed, not just carried forward)
+
+### Merged Must-Haves from Gap-Closure Plans (138-17, 138-18)
+
+These plan-level `must_haves` add detail under Truths 2 and 3 above; none reduce ROADMAP scope.
+
+| Must-have (from 138-17/138-18 frontmatter) | Status | Evidence |
+|---|---|---|
+| Admin user list never renders "vor -N Tagen" for a timestamp at/after now | ✓ VERIFIED | `formatRelativeDate` exported, clamps `Math.max(0, diff)` before `Math.floor`; `AdminUsersClient.test.tsx` re-run 5/5 pass (2 pre-existing D-06 URL round-trip + 3 new). Live-remeasured in `138-HUMAN-UAT.md`'s gap-block: "Heute"/"Gestern"/"vor 2 Tagen" — zero negative values on the real `/admin/users` page. |
+| non_deniable=true + user_deny=true reaches the confirm step (WR-01) | ✓ VERIFIED | See Truth 2 above. |
+| Counter-test (non_deniable=true, no user_deny) still blocks | ✓ VERIFIED | Confirmed unmodified and passing (first test in the file). |
+| All 5 D-19 metrics visible at 394px | ✓ VERIFIED | `.metricsRow` column-stacks; live-remeasured (all five metrics fully inside dialog bounds, 19px–292px of a 394px viewport). |
+| Per-user impact readable without horizontal scroll at 394px | ✓ VERIFIED | Mobile `Card` branch renders vorher/nachher/Grund inline; live-remeasured (zero horizontally-scrolling containers). |
+| Dialog height content-driven at ≤767px, other modals unaffected | ✓ VERIFIED | `panelClassName` opt-in prop, `ui.module.css` untouched, 29 other `<Modal>` call sites grep-confirmed unaffected. Live-remeasured: panel 604px tall at 900px viewport, centered, no dead space. |
+| Desktop table/metrics unchanged | ✓ VERIFIED | `git diff` on `categorizeImpact`/`impactReasonText`/`resolveHolder`/`buildImpactSummary` shows no changes; desktop Table JSX block textually unchanged. |
 
 ### Required Artifacts
 
 | Artifact | Expected | Status | Details |
 |----------|----------|--------|---------|
-| `backend/internal/repository/authz_role_holders_repository.go` | `ListRoleHolders` non-N+1 join | ✓ VERIFIED | Exists, substantive, wired into handler/route |
-| `backend/internal/handlers/admin_role_holders_handler.go` | Platform-admin-gated role-holder endpoint | ✓ VERIFIED | Routed `GET /admin/role-holders/:roleCode` |
-| `backend/internal/handlers/admin_capability_handler.go` | `cache_reload_succeeded` field | ✓ VERIFIED | Field present, contract-closed to TS |
-| `frontend/src/components/ui/ActivationStatusIndicator.tsx` | Shared honest activation-status primitive | ✓ VERIFIED | Discriminated `path` prop, used by 3 consumers |
-| `backend/internal/repository/admin_users_tab_repository.go` | Real version label/episode join | ✓ VERIFIED (grep false-negative on exact string `release_versions.version`; actual column is aliased `rv.version` via `LEFT JOIN release_versions rv` — confirmed present and correct) |
-| `frontend/src/app/admin/users/tabs/UserContributionsTab.tsx` | D-29 display-bug fix | ✓ VERIFIED | Renders real label/episode, falls back safely |
-| `backend/internal/permissions/effective_rights_role_assignment_preview.go` | `PreviewGroupRightsWithRoleChange` | ✓ VERIFIED | D-20-compliant thin wrapper |
-| `backend/internal/handlers/admin_role_assignment_impact_handler.go` | Role-assignment impact endpoint | ✓ VERIFIED | Routed, tested (5/5) |
-| `backend/internal/repository/member_claims_list_repository.go` / `audit_logs_query.go` | Cross-group Claims/Änderungen list queries | ✓ VERIFIED | Both routed, CR-01 fix present (`ActorAppUserID` distinct field) |
-| `frontend/src/lib/api.ts` (`getEffectiveRights`/`mutateCapabilityOverride`/`listOverrideHistory`/`listRoleHolders`/`getRoleCapabilityImpactPreview`/`getRoleAssignmentImpactPreview`/`getClaimActivationImpactPreview`/`listClaims`/`listChanges`) | Full contract chain wiring | ✓ VERIFIED | All real fetches to routed backend endpoints, no stubs |
-| `backend/internal/permissions/effective_rights_capability_impact_preview.go` | `PreviewGroupRightsCapabilityChange` | ✓ VERIFIED | D-20-compliant, table-driven tests |
-| `backend/internal/handlers/admin_capability_impact_handler.go` | CAP-09 batch preview endpoint | ✓ VERIFIED | Routed, tested, WR-02 contract gap fixed |
-| `frontend/src/app/admin/users/tabs/GuidedRevokeFlow.tsx` / `GuidedGrantFlow.tsx` / `CapabilityHistoryPanel.tsx` | CAP-08 guided flows + inline history | ✓ VERIFIED | WR-01 fixed, all tests pass |
-| `frontend/src/app/admin/users/tabs/RoleAssignmentImpactModal.tsx` | D-22 impact-gated role assignment UI | ✓ VERIFIED | Reuses existing mutation endpoint, tested |
-| `frontend/src/app/admin/claims/*`, `frontend/src/app/admin/changes/*`, `frontend/src/app/admin/roles/*` | New top-level workspaces | ✓ VERIFIED | Real routes, filters, navigation; tests pass |
-| `frontend/src/app/admin/role-capabilities/RoleCapabilityImpactPreviewModal.tsx` | CAP-09 mutation-gating modal | ✓ VERIFIED | Sole mutation path, direct handlers deleted |
-| `backend/internal/permissions/effective_rights_claim_activation_preview.go` | D-24 claim-activation impact preview | ✓ VERIFIED | Reuses `ResolveGroupRights`, zero-write |
-| `frontend/src/components/admin/AdminMainNav.tsx`, `UserDetailPageClient.tsx` Tabs rewrite, `AdminUsersClient.tsx`, `UserOverviewTab.tsx` | D-01/D-02/D-03/D-04/D-05 IA glue | ✓ VERIFIED | Persistent nav, 6-tab detail page, locked columns |
-| `frontend/src/app/admin/fansubs/[id]/edit/GroupRolesTab.tsx` / `GroupChangesTab.tsx` | D-06 group view perspectives | ✓ VERIFIED | Reuse existing endpoints, tests pass — see anti-pattern note on a related test regression below |
-| `frontend/src/app/admin/roles/RoleHoldersTable.tsx` | Role-holder table | ✓ VERIFIED (grep false-negative: `listRoleHolders` is called by the parent `RolesClient.tsx`, which passes `holders` as a prop into this presentational component — confirmed wired) |
+| `frontend/src/app/admin/users/tabs/UserGroupRightsTab.tsx` | Canonical resolver-backed rights tab | ✓ VERIFIED | 269 lines (was 716 at prior verification — 450-line-cap warning from the prior report is now resolved via commit `7039195b`), real fetches, all mutation flows anchored here |
+| `frontend/src/app/admin/users/tabs/GroupRolesSection.tsx`, `GroupSection.tsx` | Extraction targets from the UserGroupRightsTab refactor | ✓ VERIFIED | 96 and 105 lines respectively, both wired into `UserGroupRightsTab.tsx`, both well under the cap |
+| `frontend/src/app/admin/users/tabs/GuidedRevokeFlow.tsx` / `.test.tsx` | WR-01 fix + regression test | ✓ VERIFIED | Branch order unchanged and correct; 7/7 tests pass including new WR-01 test |
+| `frontend/src/app/admin/users/AdminUsersClient.tsx` / `.test.tsx` | Exported, clamped `formatRelativeDate` | ✓ VERIFIED | `export function formatRelativeDate` present, `Math.max(0, ...)` clamp present, 5/5 tests pass |
+| `frontend/src/app/admin/role-capabilities/RoleCapabilityImpactPreviewModal.tsx` | Sole CAP-09 mutation-gating modal, responsive at ≤767px | ✓ VERIFIED | 418 lines, `useIsMobile()` hook, `Card`-based mobile branch, `panelClassName={styles.narrowHeightFix}` wired, 8/8 tests pass |
+| `frontend/src/app/admin/role-capabilities/RoleCapabilityImpactPreviewModal.module.css` | Responsive CSS module (new in 138-18) | ✓ VERIFIED | `.metricsRow`/`.metricItem`/`.detailCards`/`.narrowHeightFix` all present, design tokens only, no local custom properties |
+| `frontend/src/components/ui/Modal.tsx` | Opt-in `panelClassName` prop, additive only | ✓ VERIFIED | Present; `[styles.modalPanel, size==='lg'?styles.modalPanelLg:null, panelClassName].filter(Boolean).join(' ')`; grep confirms 29 other call sites never pass it; `Modal.test.tsx` still 3/3 |
+| `frontend/src/app/admin/fansubs/[id]/edit/fansubEditAccess.test.ts` | Regression from Plan 138-16 (previously flagged) | ✓ VERIFIED (fixed) | Commit `f73b608b` updated the stale assertion to include the new `"changes"` tab; re-run confirms 15/15 passing |
+| `backend/internal/repository/audit_logs_query.go` | CR-01 fix (`ActorAppUserID` distinct field) | ✓ VERIFIED | Present at lines 35/48/59/104-105/191 |
+| `shared/contracts/admin-capabilities.yaml` | `actor_display_name`/`target_display_name` on `ChangeListRow` (UAT-138-C) | ✓ VERIFIED | Confirmed via `frontend/src/types/admin-users.ts` (lines 294-295) and `ChangesClient.tsx` consumption (lines 274/284), traced back to commit `66164839` |
+| `backend/cmd/server/admin_routes.go` | All 9+ Phase-138 handler routes registered | ✓ VERIFIED | `role-holders`, `effective-rights`, `impact-preview`, `/admin/claims`, `/admin/changes` all present and routed |
+
+All artifacts previously marked VERIFIED in the prior report were spot-re-checked and remain accurate; none regressed.
 
 ### Key Link Verification
-
-All 16 plans' `verify.key-links` checks passed (`gsd-sdk query verify.key-links`), including:
 
 | From | To | Via | Status |
 |------|-----|-----|--------|
 | `UserGroupRightsTab.tsx` | `GET /admin/.../effective-rights` | `getEffectiveRights` fetch | WIRED |
-| `GuidedRevokeFlow.tsx`/`GuidedGrantFlow.tsx` | `PUT /admin/.../capability-overrides` | `mutateCapabilityOverride` | WIRED |
+| `GuidedRevokeFlow.tsx` | `PUT/DELETE /admin/.../capability-overrides` | `mutateCapabilityOverride` (regression-tested for the WR-01 combination) | WIRED |
 | `RoleCapabilityClient.tsx` → `RoleCapabilityImpactPreviewModal.tsx` | `GET .../impact-preview` + `PUT`/`DELETE` | `onRequestChange` → self-fetch → confirm | WIRED |
-| `RoleAssignmentImpactModal.tsx` | `GET .../role-assignment-impact` + existing role-PUT | `getRoleAssignmentImpactPreview` | WIRED |
-| `ClaimDecisionImpactPanel.tsx` | `GET .../claim-activation-impact` | `getClaimActivationImpactPreview` | WIRED |
-| `ClaimsClient.tsx`/`ChangesClient.tsx`/`RolesClient.tsx` | `GET /admin/claims`/`/admin/changes`/`/admin/role-holders/:code` | `listClaims`/`listChanges`/`listRoleHolders` | WIRED |
-| `admin_routes.go` | all 9 new/extended handlers | direct route registration | WIRED (confirmed via grep of `admin_routes.go`) |
+| `RoleCapabilityImpactPreviewModal.tsx` → `Modal.tsx` | `panelClassName` prop passthrough | `panelClassName={styles.narrowHeightFix}` | WIRED (additive, non-breaking for 29 other call sites) |
+| `AdminUsersClient.tsx` → `AdminUsersClient.test.tsx` | direct import | `import { formatRelativeDate } from './AdminUsersClient'` | WIRED |
+| `admin_routes.go` | all Phase-138 handlers | direct route registration | WIRED (grep-confirmed) |
 
 ### Data-Flow Trace (Level 4)
 
 | Artifact | Data Variable | Source | Produces Real Data | Status |
 |----------|---------------|--------|---------------------|--------|
-| `UserGroupRightsTab.tsx` | `rights` (EffectiveRightState[]) | `getEffectiveRights` → `AdminEffectiveRightsHandler.GetEffectiveRights` → `ResolveGroupRights`/`evaluateGroupRights` (real Postgres-backed precedence engine) | Yes | ✓ FLOWING |
-| `RoleCapabilityImpactPreviewModal.tsx` | `preview`/`holders` | `getRoleCapabilityImpactPreview` + `listRoleHolders` → `PreviewGroupRightsCapabilityChange`/`ListRoleHolders` (real join queries) | Yes | ✓ FLOWING |
-| `ClaimsClient.tsx` | `claims` | `listClaims` → `MemberClaimsRepository.ListClaims` (real, paginated, `COUNT(*) OVER()`) | Yes | ✓ FLOWING |
-| `ChangesClient.tsx` | `changes` | `listChanges` → `AuditLogRepository.ListChanges` (real `audit_logs` query, CR-01 fix applied) | Yes | ✓ FLOWING |
-| `RolesClient.tsx`/`RoleHoldersTable.tsx` | `holders` | `listRoleHolders` → `AuthzRepository.ListRoleHolders` | Yes | ✓ FLOWING |
+| `UserGroupRightsTab.tsx` | `rights` (EffectiveRightState[]) | `getEffectiveRights` → `AdminEffectiveRightsHandler.GetEffectiveRights` → real Postgres-backed `evaluateGroupRights` | Yes | ✓ FLOWING |
+| `RoleCapabilityImpactPreviewModal.tsx` | `summary`/`pageRows` (mobile Card + desktop Table both render the same source) | `getRoleCapabilityImpactPreview` + `listRoleHolders` → real join queries | Yes | ✓ FLOWING |
+| `AdminUsersClient.tsx` | `formatRelativeDate(user.last_activity_at)` | Clamped local computation over a real fetched timestamp | Yes | ✓ FLOWING (bug-fixed, not hollow) |
+| `ChangesClient.tsx` | `entry.actor_display_name`/`entry.target_display_name` | `listChanges` → `AuditLogRepository.ListChanges` with two additive LEFT JOINs against `app_users` | Yes | ✓ FLOWING |
 
-### Behavioral Spot-Checks
+### Behavioral Spot-Checks / Full Test-Suite Re-Run
 
 | Behavior | Command | Result | Status |
 |----------|---------|--------|--------|
-| Backend builds/vets clean | `go build ./...` / `go vet ./...` (inside `team4sv30-backend`) | No output, exit 0 | ✓ PASS |
-| Core precedence + service packages pass | `go test ./internal/permissions/... ./internal/services/...` | `ok` both packages | ✓ PASS |
-| All new Phase-138 handler tests pass | `go test -run 'TestAdmin(CapabilityImpact\|RoleAssignmentImpact\|ClaimActivationImpact\|Changes\|Capability\|RoleHolders)Handler.*' ./internal/handlers/...` | 100% pass (18 subtests) | ✓ PASS |
-| CR-01 fix present in code | `grep ActorAppUserID audit_logs_query.go` | Distinct field + strict clause found | ✓ PASS |
-| All 5 review fixes are real commits | `git show <hash> --stat` for all 5 hashes in 138-REVIEW-FIX.md | All 5 commits exist with matching diffs | ✓ PASS |
-| Frontend routes registered end-to-end | `grep -n "role-holders\|effective-rights\|impact-preview\|/admin/claims\|/admin/changes" admin_routes.go` | All 9 routes present | ✓ PASS |
-| Core CAP-08/09/10/UADM-01 frontend test suites | `npx vitest run` (GuidedRevokeFlow, GuidedGrantFlow, RoleCapabilityImpactPreviewModal, RoleAssignmentImpactModal, UserGroupRightsTab, CapabilityHistoryPanel, ClaimsClient, ChangesClient, AdminMainNav, ActivationStatusIndicator) | 60/60 tests pass | ✓ PASS |
-| Full frontend `npx vitest run` | project-wide | 254 files / 1999 tests pass; 18 files / 47 tests fail | ⚠️ See below |
-| Full backend `go test ./internal/handlers/...` | project-wide | ~20+ pre-existing failures, all in files phase 138 never touched | ⚠️ See below (matches `deferred-items.md`) |
+| Backend builds/vets clean | `go build ./...` / `go vet ./...` (in `team4sv30-backend`) | No output, exit 0 | ✓ PASS |
+| Core precedence + service packages | `go test ./internal/permissions/... ./internal/services/...` | `ok` both | ✓ PASS |
+| All Phase-138 handler tests (targeted) | `go test -run 'TestAdmin(CapabilityImpact\|RoleAssignmentImpact\|ClaimActivationImpact\|Changes\|Capability\|RoleHolders)Handler.*' ./internal/handlers/...` | 100% pass (18 subtests) | ✓ PASS |
+| Full `internal/handlers` package | `go test ./internal/handlers/...` | 29 failing tests, all in `admin_content_anime_project_notes_test.go`, `admin_content_anime_theme_segment_assignments_test.go`, `admin_content_fansub_releases_test.go`, contributions/fansub-app-member tests, `TestPhase128PublicMemberAccessMatrix`, `TestReleaseVersionMedia_CapabilitiesExposeOwnDelete` — **none in a Phase-138-touched file** | ⚠️ Pre-existing, unrelated (see below) |
+| CAP-08/09/10/UADM-01 frontend suites (targeted) | `npx vitest run` (`AdminUsersClient`, `GuidedRevokeFlow`, `RoleCapabilityImpactPreviewModal`, `UserGroupRightsTab`, `Modal`) | 32/32 pass across 5 files | ✓ PASS |
+| `fansubEditAccess.test.ts` (prior report's flagged regression) | `npx vitest run .../fansubEditAccess.test.ts` | 15/15 pass | ✓ PASS (regression closed) |
+| Full `src/app/admin` sweep | `docker compose exec -T team4sv30-frontend sh -c "cd /app && npx vitest run src/app/admin --reporter=basic"` | 760/784 tests pass, 92/96 files pass; 24 failures across exactly 4 files | ⚠️ Pre-existing, unrelated (see below) |
+| `ResponsiveImage.config.test.ts` (outside `src/app/admin`) | `npx vitest run src/components/ui/ResponsiveImage.config.test.ts` | 11/12 pass, 1 pre-existing failure (`hasLocalMatch` media-path allowlist) | ⚠️ Pre-existing, unrelated |
 
-### Full Test-Suite Triage (independent re-verification of `deferred-items.md` claims)
+**Pre-existing/unrelated debt, independently re-confirmed in this session (NOT counted against Phase 138):**
 
-This verifier independently re-ran the full backend `internal/handlers` package and the full frontend `vitest run`, then traced every failing file's git history to confirm none are phase-138 regressions, **with one exception found**:
+- Backend: `internal/handlers` package's nil-`permissions.Service.LoadCache` issue in `testmain_test.go` denies all `roleAllows` checks project-wide; documented in `.planning/STATE.md` "Blockers/Concerns" (traced back to Phase 137, not Phase 138) and `.planning/phases/138-.../deferred-items.md`. None of the ~29 failing tests touch any Phase-138 file (`effective_rights_*.go`, `admin_capability_*_handler.go`, `admin_role_*_handler.go`, `admin_changes_handler.go`, `audit_logs_query.go`, `admin_routes.go`).
+- Frontend: `FansubAppMembersSection.test.tsx` (8 tests) and `fansubs/[id]/edit/page.test.tsx` (12 tests) both fail on a pre-existing `useRoleCatalog must be used within RoleCatalogProvider` crash, root-caused to Phase 136's `FansubAppMembersOverview.tsx`/`AnimeReleasesCockpit.tsx` call sites, confirmed via `git stash` comparison in `deferred-items.md` (identical failure count before/after Plan 138-16).
+- `useGroupMembersTab.test.ts` (2 tests) — same `useRoleCatalog` root cause.
+- `UserContributionsTab.test.tsx` (2 tests) — pre-existing Phase-136 hex-only `color_key` normalization vs. a stale fixture, confirmed present before Plan 03's own change via a `git stash` comparison documented in `deferred-items.md`.
+- `ResponsiveImage.config.test.ts` (1 test, outside `src/app/admin`) — a media-path allowlist assertion unrelated to any Phase-138 file.
 
-| Failing file | Root cause | Touched by Phase 138? | Verdict |
-|---|---|---|---|
-| `internal/handlers` (~20 tests, `admin_content_*`, `app_auth_test.go`) | `testmain_test.go`'s `handlerTestCatalogLoader` never calls `permissions.Service.LoadCache`, nil-cache denies all `roleAllows` checks | No (none of the failing files are in phase 138's diff) | Pre-existing, matches `STATE.md` Blockers/Concerns and `deferred-items.md` |
-| `TestPhase128PublicMemberAccessMatrix`, `TestReleaseVersionMedia_CapabilitiesExposeOwnDelete` | Unrelated pre-existing bugs | No | Pre-existing, matches `deferred-items.md` |
-| `UserContributionsTab.test.tsx` (2 tests) | Phase-136 hex-only `color_key` normalization vs. stale fixture | No (verified via diff of commit `01c9afa3`: only touches release-version-label rendering, not role-icon logic) | Pre-existing, matches `deferred-items.md` |
-| `FansubAppMembersSection.test.tsx` (8), `edit/page.test.tsx` (12) | `useRoleCatalog must be used within RoleCatalogProvider` — pre-existing call sites in `FansubAppMembersOverview.tsx`/`AnimeReleasesCockpit.tsx`, both introduced in Phase 136 (`fa98ce8d`) | No | Pre-existing, matches `deferred-items.md` |
-| `useGroupMembersTab.test.ts` (2), `ReleaseGallery.test.tsx`, `MemberBadgeChain.test.tsx`, `PublicNoteCard.test.tsx`, `ResponsiveImage.config.test.ts`, `v12-projection-contract.test.ts`, `ContributionCard.test.tsx`, `ProjectMemberReleasesSection.test.tsx`, `MemberProfilePage`/`MyProjectDetailPage`/`ProjectMemberPage` page tests, `MemberCurrentProjectsSection.test.tsx`, `MembershipsSection.test.tsx` | Unrelated pre-existing issues (badge/member-profile domain, PublicMemberBadge OpenAPI schema drift, role-label i18n) | No — none of these source files appear anywhere in Phase 138's file diff | Pre-existing, unrelated to this phase |
-| `api.no-token-boundary.test.ts` (1) | Hardcoded docs-allowlist references 3 files that don't exist on disk (`docs/frontend/streaming-auth-handoff.md` and 2 Phase-49 planning docs) | No | Pre-existing, unrelated |
-| **`fansubEditAccess.test.ts` (1) — "keeps Basic first for general edit combined with another narrow right"** | **Plan 138-16 added a new `"changes"` case to `canUseMainTab` gated on `can_edit_group_general` (among others). This is now also true for the test's fixture, so `visibleMainTabs` now legitimately includes `"changes"`, but the pre-existing test still asserts the exact array `["basic", "notes"]` and was never updated.** | **Yes — `fansubEditAccess.ts` was modified by commit `a801730e` (Plan 138-16)** | **⚠️ Real regression: an existing, previously-passing test now fails and was not caught, fixed, or logged in `deferred-items.md`/`138-16-SUMMARY.md`, despite the plan's own diligence pattern of running `git stash` comparisons for other affected files.** |
+This session's re-run count (24 failures / 4 files inside `src/app/admin`, plus 1 outside) exactly matches the counts documented in `138-17-SUMMARY.md` ("758/782... 4 failing files") and `138-HUMAN-UAT.md`'s gap-block ("25 Fehler in denselben fünf vorbelasteten Dateien... 836 bestanden") — the 2-test delta (758→760, 782→784) is explained by the two new AdminUsersClient/GuidedRevokeFlow tests plus a small collection-count fluctuation, not a new regression. No new failing files appeared in this independent re-run.
 
-## Requirements Coverage
+### Requirements Coverage
 
-| Requirement | Source Plan | Description | Status | Evidence |
+| Requirement | Source Plan(s) | Description | Status | Evidence |
 |---|---|---|---|---|
-| CAP-08 | 138-08 | Guided revoke flow lists granting sources, recommends scoped deny before broader changes | ✓ SATISFIED | `GuidedRevokeFlow.tsx`, WR-01 fix, D-16/D-17 honored |
-| CAP-09 | 138-04, 07, 09, 13 | Role→capability change impact preview: affected holders + actual gain/lose/retain | ✓ SATISFIED | `PreviewGroupRightsCapabilityChange`, `RoleCapabilityImpactPreviewModal.tsx`, direct-mutate handlers removed |
-| CAP-10 | 138-02, 08, 13 | Honest activation-status vocabulary (persisted/cache-active/pending/failed) | ✓ SATISFIED | `cache_reload_succeeded`, `ActivationStatusIndicator` |
-| UADM-01 | 138-06, 08, 15 | Existing group-rights tab is the canonical inspection/edit surface | ✓ SATISFIED | `UserGroupRightsTab.tsx` rewritten on real resolver, all mutation flows anchored there |
+| CAP-08 | 138-08, 138-17 | Guided revoke flow lists granting sources, recommends scoped deny before broader changes | ✓ SATISFIED | `GuidedRevokeFlow.tsx`, WR-01 fix now regression-tested (138-17) |
+| CAP-09 | 138-04, 07, 09, 13, 18 | Role→capability change impact preview: affected holders + actual gain/lose/retain, usable at all supported viewport widths | ✓ SATISFIED | `PreviewGroupRightsCapabilityChange`, `RoleCapabilityImpactPreviewModal.tsx`, narrow-viewport defects closed (138-18) |
+| CAP-10 | 138-02, 08, 13 | Honest activation-status vocabulary (persisted/cache-active/pending/failed) | ✓ SATISFIED | `cache_reload_succeeded`, `ActivationStatusIndicator`, re-confirmed via `TestAdminCapabilityHandlerCacheReloadSucceededField` |
+| UADM-01 | 138-06, 08, 15 | Existing group-rights tab is the canonical inspection/edit surface | ✓ SATISFIED | `UserGroupRightsTab.tsx` (now refactored, still resolver-backed, all mutation flows anchored there) |
 
-No orphaned requirements — `REQUIREMENTS.md` maps exactly CAP-08, CAP-09, CAP-10, UADM-01 to Phase 138, and all four appear in at least one plan's `requirements:` frontmatter.
+No orphaned requirements — `REQUIREMENTS.md` maps exactly CAP-08, CAP-09, CAP-10, UADM-01 to Phase 138, and all four appear in at least one plan's `requirements:` frontmatter (including the two gap-closure plans).
 
-## Anti-Patterns Found
+### Anti-Patterns Found
 
 | File | Line | Pattern | Severity | Impact |
 |---|---|---|---|---|
-| `frontend/src/app/admin/fansubs/[id]/edit/fansubEditAccess.test.ts` | 65 | Stale test assertion after Plan 138-16 added a new `"changes"` tab case | ⚠️ Warning | An existing, previously-green test now fails at HEAD; not caught by the executor, code reviewer, or `deferred-items.md`. Does not affect real user-facing behavior (the new tab visibility is the intended D-06 behavior) but leaves the test suite red for a file this phase touched, undermining confidence in the phase's own regression-safety claims. |
-| `frontend/src/app/admin/users/tabs/UserGroupRightsTab.tsx` | — (716 lines) | Exceeds CLAUDE.md's "Production code files should stay at or below 450 lines" modularity constraint | ⚠️ Warning (info) | File grew from 186 to 716 lines across this phase's plans (138-06/08/09/13-adjacent wiring). Not flagged in `138-REVIEW.md`. Does not block functionality (all tests pass, well-organized), but is a real, measurable violation of the project's own stated modularity guideline and a candidate for a follow-up split. |
-| No `TBD`/`FIXME`/`XXX` debt markers | — | — | — | None found in any of the 103 phase-touched production/test files. |
-| No `TODO`/`HACK`/`PLACEHOLDER`/"not yet implemented" markers | — | — | — | None found (only benign SQL/UI "placeholder" attribute uses, unrelated to stubs). |
+| — | — | Prior report's `fansubEditAccess.test.ts` stale-assertion regression | — | **CLOSED.** Commit `f73b608b` fixed the assertion; re-run confirms 15/15 passing. No longer an open finding. |
+| — | — | Prior report's `UserGroupRightsTab.tsx` 716-line modularity-cap violation | — | **CLOSED.** Commit `7039195b` (quick-s7v) extracted `GroupRolesSection.tsx`/`GroupSection.tsx`; the file is now 269 lines, well under the 450-line cap. |
+| — | — | Debt markers (`TBD`/`FIXME`/`XXX`) in any file touched by Plans 138-17/138-18 | — | None found. |
+| — | — | Cleanup markers (`TODO`/`HACK`/`PLACEHOLDER`) or "not yet implemented" copy in Plans 138-17/138-18's files | — | None found. |
+| — | — | Native `<select>`/`<input>`/`<textarea>`/`<button>` in the new/modified 138-17/138-18 files | — | None found — all UI uses `@/components/ui` primitives (`Card`, `Badge`, `Button`, `Modal`, `Table`, `Pagination`). |
+| — | — | ASCII umlaut substitutes in user-facing strings in the new/modified files | — | None found — `über`, `persönliche`, `Änderung` etc. render with correct umlauts throughout. |
 
-## Human Verification Required
+No new anti-patterns introduced by Plans 138-17/138-18; both previously-flagged warnings from the prior verification are now closed (not by this verifier's judgment call, but by subsequent, independently-confirmed commits).
 
-### 1. GuidedRevokeFlow — removing a dormant deny-override on a non-deniable actor
+### Human Verification Required
 
-**Test:** Find (or create) a user who is a platform admin (or otherwise `non_deniable`) for some group capability, and who also has a stale personal `user_deny` override on that same capability recorded against them. Open their `UserGroupRightsTab`, click "Abweichung entfernen" on that row, and confirm the flow lets you actually remove the override (rather than dead-ending on a "cannot be revoked" message).
+**None.** The prior report's sole `human_needed` item — a live click-through proving `GuidedRevokeFlow` lets an admin remove a dormant personal deny-override on a non-deniable actor (the WR-01 `non_deniable=true && user_deny=true` scenario) — is now closed.
 
-**Expected:** The modal proceeds straight to the confirm step ("Die persönliche Abweichung … wird entfernt") and, after confirming, shows the honest override-path activation status. It must NOT show only "Dieses Recht kann für … nicht persönlich entzogen werden."
+This closure is deliberate and explicitly documented, not silently dropped: `138-HUMAN-UAT.md`'s own live UAT session (2026-08-23T20:10:00Z–21:35:00Z) attempted this exact test first and found it technically `[blocked]` — the running database has only four users (admin, D1sk, founder, coleader) and none carries a stored `user_deny` on a `non_deniable` capability, and the UI has no way to construct that combination (a non-deniable right cannot be personally denied in the first place, by design). Rather than fabricate a one-off DB fixture, the phase's own gap-closure plan (138-17) chose to pin the scenario with a permanent automated regression test in `GuidedRevokeFlow.test.tsx` instead — a stronger, durable guarantee than a single live click-through. This verifier confirms: (1) the new test renders the exact `non_deniable: true, user_deny: true` state combination, (2) asserts the confirm step is reached with no dead-end explanation text, (3) asserts the mutation call carries removal semantics (`effect: null`, not a new deny), (4) asserts the real (mocked) activation status resolves afterward, and (5) the pre-existing counter-test proving the opposite scenario (`non_deniable: true` alone) still blocks, unmodified. Given the branch condition (`isNonDeniable && !isRemoveMode`) is provably unchanged since the original WR-01 fix and manual code trace, and is now pinned by a passing automated test exercising the precise combination the finding described, this verifier does not consider a live DB-fixture click-through necessary to close this item. If a future live UAT session encounters a real user with this exact combination, a quick spot-check remains prudent but is not blocking.
 
-**Why human:** This is exactly the WR-01 code-review finding's scenario. The fix (checking `isRemoveMode` before `isNonDeniable`) is present in the code and was manually traced as correct in this verification, but no automated test exercises the exact `non_deniable=true && user_deny=true` combination — `138-REVIEW-FIX.md` itself explicitly flags this fix as "requires human verification" pending such a test or a live click-through.
+No other item in this phase requires human/visual verification: `138-HUMAN-UAT.md` is `status: complete` with 11/11 passed, and the two remaining gap-closure plans (138-17, 138-18) were each independently re-measured live in a real browser per their own `138-HUMAN-UAT.md` "Gap-Block Ergebnis" entries (394px viewport, real DOM measurements of `document.scrollWidth`, dialog panel height, and metric positions) rather than only unit-tested.
 
 ## Gaps Summary
 
-No blocking gaps. All four ROADMAP success criteria for Phase 138 are independently verified against real code (not SUMMARY.md claims): the canonical group-rights tab is resolver-backed and provenance-complete (UADM-01), the guided revoke flow lists sources and recommends scoped deny before broader changes (CAP-08), role→capability changes are always preceded by a real batch impact preview (CAP-09), and role-matrix/override mutations render an honest, non-fabricated activation-status vocabulary (CAP-10). All 5 code-review findings (1 critical, 4 warning) from `138-REVIEW.md` are confirmed fixed in real commits, re-verified independently in this session.
+**No gaps.** All four ROADMAP success criteria for Phase 138 are independently re-verified against real, current code — not against SUMMARY.md, HUMAN-UAT.md, or ROADMAP.md's "Complete" marker. Both items flagged as non-blocking warnings in the prior verification (`fansubEditAccess.test.ts` regression, `UserGroupRightsTab.tsx` over the 450-line cap) are now closed by subsequent, independently-confirmed commits (`f73b608b`, `7039195b`) — not silently dropped, but actually re-checked and found fixed. The prior report's sole `human_needed` item (WR-01 live click-through) is closed via a deliberate, documented automated-test route rather than carried forward unconditionally.
 
-Two non-blocking items are flagged for follow-up: (1) a genuine, previously-uncaught test regression in `fansubEditAccess.test.ts` caused by Plan 138-16's new `"changes"` tab visibility rule (the underlying behavior is correct per D-06; only the stale assertion needs updating), and (2) `UserGroupRightsTab.tsx` has grown to 716 lines, exceeding the project's 450-line modularity guideline and worth a follow-up split. One item needs a human click-through: the WR-01 dormant-override-removal fix has no automated regression test for its exact target scenario.
+All 5 code-review findings from `138-REVIEW.md` (CR-01, WR-01..WR-04) remain fixed in real commits. All three live-UAT findings from `138-HUMAN-UAT.md` (UAT-138-A major, UAT-138-C minor; UAT-138-B was a tester measurement error, withdrawn) are fixed and live-remeasured. All three post-hoc gaps (GAP-01, GAP-02, GAP-03) from the gap-closure round are fixed, tested, and (for GAP-01/GAP-02) live-remeasured at 394px in a real browser.
 
-All pre-existing, unrelated test failures documented in `deferred-items.md` were independently re-verified in this session (via git history tracing and diff inspection) and confirmed accurate — none are Phase 138 regressions.
+**Pre-existing, unrelated test debt** (backend `internal/handlers` nil-cache issue rooted in Phase 137's `testmain_test.go`; `FansubAppMembersSection.test.tsx`, `fansubs/[id]/edit/page.test.tsx`, `useGroupMembersTab.test.ts` — all three rooted in Phase 136's `useRoleCatalog` call sites; `UserContributionsTab.test.tsx` — rooted in a Phase-136 fixture/normalization mismatch; `ResponsiveImage.config.test.ts` — an unrelated media-path allowlist gap) was independently re-run and re-confirmed present in this session, with identical scope to what `deferred-items.md` and `.planning/STATE.md` already document. This is real project debt worth a dedicated follow-up phase, but it predates Phase 138, is untouched by any Phase-138 file, and does not count against this phase's own pass/fail determination.
 
 ---
 
-_Verified: 2026-08-23T20:01:48Z_
-_Verifier: Claude (gsd-verifier)_
+_Verified: 2026-08-24T08:57:12Z_
+_Verifier: Claude (gsd-verifier), re-verification pass_
+_Supersedes: 138-VERIFICATION.md dated 2026-08-23T20:01:48Z (status: human_needed, score 4/4)_
