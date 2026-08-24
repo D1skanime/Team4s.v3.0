@@ -13,9 +13,9 @@ const projectStyles = readFileSync('src/components/profile/MemberCurrentProjects
 const { getMemberProjectsMock } = vi.hoisted(() => ({ getMemberProjectsMock: vi.fn() }))
 const { catalogRoles } = vi.hoisted(() => ({
   catalogRoles: [
-    { code: 'typesetter', label_de: 'Typesetting', contexts: ['anime_contribution'], sort_order: 20, color_key: 'technical', icon_key: 'wrench' },
-    { code: 'karaoke_fx', label_de: 'Karaoke-FX', contexts: ['anime_contribution'], sort_order: 30, color_key: 'creative', icon_key: 'image' },
-    { code: 'translator', label_de: 'Übersetzung', contexts: ['anime_contribution'], sort_order: 40, color_key: 'language', icon_key: 'languages' },
+    { code: 'typesetter', label_de: 'Typesetting', contexts: ['anime_contribution'], sort_order: 20, color_key: '#0f766e', icon_key: 'wrench' },
+    { code: 'karaoke_fx', label_de: 'Karaoke-FX', contexts: ['anime_contribution'], sort_order: 30, color_key: '#7e22ce', icon_key: 'image' },
+    { code: 'translator', label_de: 'Übersetzung', contexts: ['anime_contribution'], sort_order: 40, color_key: '#0369a1', icon_key: 'languages' },
   ],
 }))
 
@@ -95,9 +95,9 @@ describe('MemberCurrentProjectsSection', () => {
 
     const chips = container.querySelectorAll('[class*="roleChip"]')
     expect(Array.from(chips).map((chip) => chip.textContent)).toEqual(['Typesetting', 'Karaoke-FX', 'Future Role'])
-    expect(screen.getByText('Typesetting').getAttribute('data-role-code')).toBe('technical')
-    expect(screen.getByText('Karaoke-FX').getAttribute('data-role-code')).toBe('creative')
-    expect(screen.getByText('Future Role').getAttribute('data-role-code')).toBe('other')
+    expect(screen.getByText('Typesetting').getAttribute('data-role-code')).toBe('#0f766e')
+    expect(screen.getByText('Karaoke-FX').getAttribute('data-role-code')).toBe('#7e22ce')
+    expect(screen.getByText('Future Role').getAttribute('data-role-code')).toBe('neutral')
     expect(screen.getByText('Projektweit').className).toContain('badgeNeutral')
     expect(projectStyles).toContain('var(--role-accent-other)')
     expect(container.querySelector('[class*="projectArrow"]')).toBeNull()
