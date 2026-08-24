@@ -183,6 +183,7 @@ func registerAdminRoutes(v1 *gin.RouterGroup, auth gin.HandlerFunc, deps adminRo
 		v1.GET("/admin/users/:userId/member-claims", auth, deps.adminUsersHandler.GetUserMemberClaims)
 		v1.GET("/admin/users/:userId/group-memberships", auth, deps.adminUsersHandler.GetUserGroupMemberships)
 		v1.GET("/admin/users/:userId/group-rights", auth, deps.adminUsersHandler.GetUserGroupRights)
+		v1.GET("/admin/users/:userId/rights-summary", auth, deps.adminUsersHandler.GetUserRightsSummary)
 		v1.GET("/admin/users/:userId/contributions", auth, deps.adminUsersHandler.GetUserContributions)
 		v1.GET("/admin/users/:userId/media", auth, deps.adminUsersHandler.GetUserMedia)
 		v1.GET("/admin/users/:userId/audit", auth, deps.adminUsersHandler.GetUserAudit)

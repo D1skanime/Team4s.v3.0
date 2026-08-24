@@ -216,3 +216,58 @@ func TestCapabilityOverrideSchemasUnchangedContract(t *testing.T) {
 		}
 	}
 }
+
+// TestAdminUserRightsSummarySchemaContract proves the new F-01/UADM-06 batched
+// rights-summary Go DTOs (models.AdminUserRightsSummaryPage/
+// AdminUserGroupRightsSummaryItem/AdminHeadlineCapabilityState, Plan 139-05 Task 3) match the
+// admin-capabilities.yaml schema field-for-field, following this file's existing
+// contract-test pattern (it already proves two other schemas this way). Per F-02 Option B,
+// this new endpoint lives ONLY in admin-capabilities.yaml (the real, contract-tested OpenAPI
+// file), not in the root openapi.yaml umbrella -- matching the existing, unmirrored
+// /admin/users/* convention documented in 139-RESEARCH.md (never a regression, since that
+// convention was never followed for this endpoint family).
+func TestAdminUserRightsSummarySchemaContract(t *testing.T) {
+	focused := loadPhase137Document(t, "shared/contracts/admin-capabilities.yaml")
+
+	headline, ok := focused.Components.Schemas["AdminHeadlineCapabilityState"]
+	if !ok {
+		t.Fatal("admin-capabilities.yaml missing AdminHeadlineCapabilityState schema")
+	}
+	if !sameStrings(headline.Required, []string{"action_code", "label", "allowed"}) {
+		t.Errorf("AdminHeadlineCapabilityState required = %v, want [action_code label allowed]", headline.Required)
+	}
+
+	item, ok := focused.Components.Schemas["AdminUserGroupRightsSummaryItem"]
+	if !ok {
+		t.Fatal("admin-capabilities.yaml missing AdminUserGroupRightsSummaryItem schema")
+	}
+	expectedItemFields := []string{
+		"fansub_group_id", "fansub_group_name", "role_label",
+		"headline_states", "has_deviation", "open_claims_count",
+	}
+	if !sameStrings(item.Required, expectedItemFields) {
+		t.Errorf("AdminUserGroupRightsSummaryItem required = %v, want %v", item.Required, expectedItemFields)
+	}
+	if headlineStates, ok := item.Properties["headline_states"]; !ok || headlineStates.Type != "array" {
+		t.Errorf("AdminUserGroupRightsSummaryItem.headline_states missing or not an array, got %+v", headlineStates)
+	}
+
+	page, ok := focused.Components.Schemas["AdminUserRightsSummaryPage"]
+	if !ok {
+		t.Fatal("admin-capabilities.yaml missing AdminUserRightsSummaryPage schema")
+	}
+	if !sameStrings(page.Required, []string{"data", "meta"}) {
+		t.Errorf("AdminUserRightsSummaryPage required = %v, want [data meta]", page.Required)
+	}
+	if data, ok := page.Properties["data"]; !ok || data.Type != "array" {
+		t.Errorf("AdminUserRightsSummaryPage.data missing or not an array, got %+v", data)
+	}
+
+	source := loadPhase137Source(t, "shared/contracts/admin-capabilities.yaml")
+	if !strings.Contains(source, "/api/v1/admin/users/{userId}/rights-summary:") {
+		t.Error("admin-capabilities.yaml missing the /api/v1/admin/users/{userId}/rights-summary path")
+	}
+	if !strings.Contains(source, "operationId: getUserRightsSummary") {
+		t.Error("admin-capabilities.yaml rights-summary path missing operationId: getUserRightsSummary")
+	}
+}

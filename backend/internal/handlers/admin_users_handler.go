@@ -8,6 +8,7 @@ import (
 	"strings"
 
 	"team4s.v3/backend/internal/models"
+	"team4s.v3/backend/internal/permissions"
 	"team4s.v3/backend/internal/repository"
 
 	"github.com/gin-gonic/gin"
@@ -21,12 +22,29 @@ type AdminUsersRepository interface {
 	GetUserOverview(ctx context.Context, appUserID int64) (*models.AdminUserOverview, error)
 	GetUserGlobalRoles(ctx context.Context, appUserID int64) (*models.AdminUserGlobalRolesResult, error)
 	GetUserMemberClaims(ctx context.Context, appUserID int64) (*models.AdminUserMemberClaimsResult, error)
-	GetUserGroupMemberships(ctx context.Context, appUserID int64) (*models.AdminUserGroupMembershipsResult, error)
+	GetUserGroupMemberships(ctx context.Context, appUserID int64, limit int, offset int) (*models.AdminUserGroupMembershipsResult, error)
 	GetUserGroupRights(ctx context.Context, appUserID int64) (*models.AdminUserGroupRightsResult, error)
 	ListUserContributions(ctx context.Context, filter repository.AdminUserContributionsFilter) (*models.AdminUserContributionsPage, error)
 	GetUserMedia(ctx context.Context, filter repository.AdminUserMediaFilter) (*models.AdminUserMediaPage, error)
 	GetUserAudit(ctx context.Context, appUserID int64) (*models.AdminUserAuditResult, error)
 	UpdateAppUserStatus(ctx context.Context, appUserID int64, status string) error
+	// GetUserRightsSummary answers F-01/UADM-06's batched rights summary (Plan 139-05):
+	// every (bounded) group membership's compact rights summary in one call, never one
+	// ResolveGroupRights call looped per group.
+	GetUserRightsSummary(
+		ctx context.Context, appUserID int64, limit int, offset int, resolver repository.AdminUsersRightsBatchResolver,
+	) (*models.AdminUserRightsSummaryPage, error)
+}
+
+// adminUsersRightsResolver is the minimal batched-rights-resolution surface the
+// GetUserRightsSummary handler needs from *permissions.Service's façade (Plan 139-05 Task 1)
+// -- declared as a narrow interface (not the concrete *permissions.Service type) purely so
+// handler tests can substitute a fake, mirroring admin_effective_rights_handler.go's existing
+// effectiveRightsPermissionService narrow-interface convention.
+type adminUsersRightsResolver interface {
+	ResolveGroupRightsBatch(
+		ctx context.Context, actor permissions.Actor, fansubGroupIDs []int64, rolesByGroup map[int64][]string,
+	) (map[int64]*permissions.GroupRightsResolution, error)
 }
 
 // adminUsersAuthzRepo abstrahiert die Rollen-Checker- und Mutations-Operationen für den Handler.
@@ -45,21 +63,27 @@ type adminUsersAuthzRepo interface {
 // Mutations (AssignGlobalRole, RevokeGlobalRole, UpdateUserStatus) sind in
 // admin_users_mutations_handler.go ausgelagert (Datei-Limit <= 450 Zeilen).
 type AdminUsersHandler struct {
-	repo         AdminUsersRepository
-	authzRepo    adminUsersAuthzRepo
-	auditLogRepo auditLogWriter
+	repo           AdminUsersRepository
+	authzRepo      adminUsersAuthzRepo
+	auditLogRepo   auditLogWriter
+	rightsResolver adminUsersRightsResolver
 }
 
 // NewAdminUsersHandler erstellt einen AdminUsersHandler mit allen erforderlichen Abhängigkeiten.
+// rightsResolver ist Plan 139-05's neue vierte Abhängigkeit (F-01/UADM-06's gebündelter
+// Rechte-Übersicht-Endpunkt) -- BEIDE bestehenden Aufrufstellen (main.go, buildAdminUsersHandler
+// in admin_users_handler_test.go) müssen sie mitliefern.
 func NewAdminUsersHandler(
 	repo AdminUsersRepository,
 	authzRepo adminUsersAuthzRepo,
 	auditLogRepo auditLogWriter,
+	rightsResolver adminUsersRightsResolver,
 ) *AdminUsersHandler {
 	return &AdminUsersHandler{
-		repo:         repo,
-		authzRepo:    authzRepo,
-		auditLogRepo: auditLogRepo,
+		repo:           repo,
+		authzRepo:      authzRepo,
+		auditLogRepo:   auditLogRepo,
+		rightsResolver: rightsResolver,
 	}
 }
 
@@ -189,7 +213,9 @@ func (h *AdminUsersHandler) GetUserMemberClaims(c *gin.Context) {
 
 // --- GET /admin/users/:userId/group-memberships ---
 
-// GetUserGroupMemberships gibt die Gruppenmitgliedschaften eines Users zurück.
+// GetUserGroupMemberships gibt die serverseitig paginierten Gruppenmitgliedschaften eines
+// Users zurück (Plan 139-05, F-01 finding #1: zuvor vollständig unbegrenzt). Limit/Offset
+// folgen exakt dem ListUsers-Muster (c.Query + strconv, nie String-Konkatenation in SQL).
 func (h *AdminUsersHandler) GetUserGroupMemberships(c *gin.Context) {
 	identity, ok := requirePlatformAdminIdentity(c, h.authzRepo, "")
 	if !ok {
@@ -202,7 +228,10 @@ func (h *AdminUsersHandler) GetUserGroupMemberships(c *gin.Context) {
 		return
 	}
 
-	result, err := h.repo.GetUserGroupMemberships(c.Request.Context(), userID)
+	limit := parseOptionalInt(c.Query("limit"))
+	offset := parseOptionalInt(c.Query("offset"))
+
+	result, err := h.repo.GetUserGroupMemberships(c.Request.Context(), userID, limit, offset)
 	if err != nil {
 		log.Printf("admin users: GetUserGroupMemberships error: %v", err)
 		internalError(c, "Gruppenmitgliedschaften konnten nicht geladen werden.")
@@ -357,6 +386,36 @@ func (h *AdminUsersHandler) GetUserAudit(c *gin.Context) {
 	if err != nil {
 		log.Printf("admin users: GetUserAudit error: %v", err)
 		internalError(c, "Audit-Daten konnten nicht geladen werden.")
+		return
+	}
+	c.JSON(http.StatusOK, result)
+}
+
+// --- GET /admin/users/:userId/rights-summary ---
+
+// GetUserRightsSummary gibt F-01/UADM-06's neue gebündelte Rechte-Übersicht zurück: die
+// kompakte Rechte-Zusammenfassung JEDER (paginierten) Gruppenmitgliedschaft eines Users, in
+// konstant vielen SQL-Roundtrips -- niemals einen ResolveGroupRights-Aufruf pro Gruppe in
+// einer Schleife (das würde den N+1 nur von HTTP nach Postgres verschieben).
+func (h *AdminUsersHandler) GetUserRightsSummary(c *gin.Context) {
+	identity, ok := requirePlatformAdminIdentity(c, h.authzRepo, "")
+	if !ok {
+		return
+	}
+	_ = identity
+
+	userID, ok := parseUserID(c)
+	if !ok {
+		return
+	}
+
+	limit := parseOptionalInt(c.Query("limit"))
+	offset := parseOptionalInt(c.Query("offset"))
+
+	result, err := h.repo.GetUserRightsSummary(c.Request.Context(), userID, limit, offset, h.rightsResolver)
+	if err != nil {
+		log.Printf("admin users: GetUserRightsSummary error: %v", err)
+		internalError(c, "Rechteübersicht konnte nicht geladen werden.")
 		return
 	}
 	c.JSON(http.StatusOK, result)

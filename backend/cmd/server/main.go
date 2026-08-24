@@ -502,7 +502,7 @@ func main() {
 	fansubMediaReviewHandler := handlers.NewFansubMediaReviewHandler(mediaRepo, permissionSvc, auditLogRepo)
 	// Phase 80: Globale User-Verwaltung + Rechte-Zentrale
 	adminUsersRepo := repository.NewAdminUsersRepository(dbPool, cfg.MediaStorageDir)
-	adminUsersHandler := handlers.NewAdminUsersHandler(adminUsersRepo, authzRepo, auditLogRepo)
+	adminUsersHandler := handlers.NewAdminUsersHandler(adminUsersRepo, authzRepo, auditLogRepo, permissionSvc)
 	// Phase 87: Capability-Matrix CRUD (requirePlatformAdminIdentity im Handler — D-08)
 	adminCapabilityHandler := handlers.NewAdminCapabilityHandler(authzRepo, authzRepo, permissionSvc, auditLogRepo)
 	// Phase 138-07: Role-to-Capability Change Impact Preview (CAP-09) -- reuses the same

@@ -642,6 +642,68 @@ paths:
           content:
             application/json:
               schema: { $ref: "#/components/schemas/ErrorResponse" }
+  /api/v1/admin/users/{userId}/rights-summary:
+    get:
+      tags: [AdminCapabilities]
+      summary: Gebündelte, paginierte Rechte-Übersicht eines Users über alle Gruppen
+      description: |
+        Phase 139 (F-01/UADM-06): beantwortet die kompakte Rechte-Zusammenfassung JEDER
+        (paginierten) Gruppenmitgliedschaft eines Users in konstant vielen SQL-Roundtrips --
+        niemals einen ResolveGroupRights-Aufruf pro Gruppe in einer Schleife. Speist den
+        Übersicht-Tab (UserOverviewTab.tsx), der -- anders als der Rechte-Tab -- jede Gruppe
+        gleichzeitig beim Laden rendern muss (Phase 138 D-05) und sich daher nicht auf
+        Lazy-Fetch-pro-Gruppe verlassen kann. Nutzt exakt denselben unveränderten
+        Präzedenz-Evaluator wie ResolveGroupRights (D21, bindend) -- keine zweite,
+        unabhängig berechnete Entscheidung. Hinweis: fehlt für eine spezialisierte
+        Grant-Quelle (z. B. Review-Delegation) eine Batch-Variante, trägt diese Quelle
+        keine Grants zu headline_states bei -- eine Gruppe, deren einzige
+        Erlaubnis-Quelle ein spezialisierter Grant wäre, kann in dieser gebündelten
+        Übersicht allowed=false zeigen, während der vollständige Einzel-Gruppen-Rechte-Tab
+        (ResolveGroupRights unverändert) immer die volle Genauigkeit zeigt.
+      operationId: getUserRightsSummary
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: userId
+          in: path
+          required: true
+          description: app_users.id des Ziel-Users
+          schema: { type: integer, format: int64, minimum: 1 }
+        - name: limit
+          in: query
+          required: false
+          schema: { type: integer, minimum: 1, maximum: 100, default: 25 }
+        - name: offset
+          in: query
+          required: false
+          schema: { type: integer, minimum: 0, default: 0 }
+      responses:
+        "200":
+          description: Gebündelte Rechte-Übersicht (eine Zeile pro Gruppenmitgliedschaft)
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/AdminUserRightsSummaryPage"
+        "400":
+          description: Ungültige Benutzer-ID
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/ErrorResponse" }
+        "401":
+          description: Nicht authentifiziert
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/ErrorResponse" }
+        "403":
+          description: Keine Platform-Admin-Berechtigung
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/ErrorResponse" }
+        "500":
+          description: Interner Serverfehler
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/ErrorResponse" }
   /api/v1/admin/fansubs/{id}/app-members/{appUserId}/role-assignment-impact:
     get:
       tags: [AdminCapabilities]
@@ -1125,6 +1187,59 @@ components:
         reason_code:
           type: string
           description: Maschinenlesbarer Grund-Code für das Ergebnis; enthält bewusst keinen deutschsprachigen Erklärtext (Phase 137 Scope).
+    AdminHeadlineCapabilityState:
+      type: object
+      description: |
+        Phase 139 (F-01): die kompakte Kopfzeilen-Fähigkeit einer Gruppe, bewusst
+        NICHT das vollständige EffectiveRightState-Schema -- nur die 3 (nach
+        Action-Code sortierten) höchstrangigen Zustände, mit server-seitig
+        aufgelöstem Label (statt Roh-Action-Code, den das Frontend selbst
+        auflösen müsste).
+      required: [action_code, label, allowed]
+      properties:
+        action_code: { type: string }
+        label: { type: string }
+        allowed: { type: boolean }
+    AdminUserGroupRightsSummaryItem:
+      type: object
+      description: |
+        Phase 139 (F-01): ein Seiten-Element -- eine Gruppe mit kompakter
+        Rechte-Zusammenfassung für den Übersicht-Tab (Phase 138 D-05 Beispiel-Format).
+      required: [fansub_group_id, fansub_group_name, role_label, headline_states, has_deviation, open_claims_count]
+      properties:
+        fansub_group_id: { type: integer, format: int64 }
+        fansub_group_name: { type: string }
+        role_label: { type: string }
+        headline_states:
+          type: array
+          items: { $ref: "#/components/schemas/AdminHeadlineCapabilityState" }
+        has_deviation:
+          type: boolean
+          description: Über ALLE ausgewerteten Aktionen berechnet, nicht nur über headline_states (D-05-Parität).
+        open_claims_count:
+          type: integer
+          minimum: 0
+          description: Gleiche Quelle wie AdminUserOverview.open_claims_count (nie zweifach berechnet).
+    AdminUserRightsSummaryPage:
+      type: object
+      description: |
+        Phase 139 (F-01/UADM-06): die neue paginierte, gebündelte Response-Hülle für
+        den gebündelten Rechte-Übersicht-Endpunkt.
+      required: [data, meta]
+      properties:
+        data:
+          type: array
+          items: { $ref: "#/components/schemas/AdminUserGroupRightsSummaryItem" }
+        meta:
+          type: object
+          required: [total, limit, offset]
+          properties:
+            total:
+              type: integer
+            limit:
+              type: integer
+            offset:
+              type: integer
     RoleAssignmentImpactPreview:
       type: object
       description: |

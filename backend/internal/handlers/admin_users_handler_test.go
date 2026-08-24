@@ -15,6 +15,7 @@ import (
 
 	"team4s.v3/backend/internal/middleware"
 	"team4s.v3/backend/internal/models"
+	"team4s.v3/backend/internal/permissions"
 	"team4s.v3/backend/internal/repository"
 
 	"github.com/gin-gonic/gin"
@@ -44,6 +45,8 @@ type adminUsersRepoStub struct {
 	auditResult         *models.AdminUserAuditResult
 	auditErr            error
 	updateStatusErr     error
+	rightsSummaryResult *models.AdminUserRightsSummaryPage
+	rightsSummaryErr    error
 }
 
 // Die folgenden Methoden entsprechen dem noch-nicht-existierenden AdminUsersRepository-Interface.
@@ -66,8 +69,14 @@ func (s *adminUsersRepoStub) GetUserMemberClaims(ctx context.Context, appUserID 
 	return s.claimsResult, s.claimsErr
 }
 
-func (s *adminUsersRepoStub) GetUserGroupMemberships(ctx context.Context, appUserID int64) (*models.AdminUserGroupMembershipsResult, error) {
+func (s *adminUsersRepoStub) GetUserGroupMemberships(ctx context.Context, appUserID int64, limit int, offset int) (*models.AdminUserGroupMembershipsResult, error) {
 	return s.membershipsResult, s.membershipsErr
+}
+
+func (s *adminUsersRepoStub) GetUserRightsSummary(
+	ctx context.Context, appUserID int64, limit int, offset int, resolver repository.AdminUsersRightsBatchResolver,
+) (*models.AdminUserRightsSummaryPage, error) {
+	return s.rightsSummaryResult, s.rightsSummaryErr
 }
 
 func (s *adminUsersRepoStub) GetUserGroupRights(ctx context.Context, appUserID int64) (*models.AdminUserGroupRightsResult, error) {
@@ -143,6 +152,17 @@ func (s *adminAuditStub) lastOutcome() string {
 	return s.entries[len(s.entries)-1].Outcome
 }
 
+// adminUsersRightsResolverStub ist eine minimale, nil-sichere Fake-Implementierung von
+// adminUsersRightsResolver (Plan 139-05) -- keiner der bestehenden Tests in dieser Datei
+// übt GetUserRightsSummary tatsächlich aus, daher genügt ein leerer Stub.
+type adminUsersRightsResolverStub struct{}
+
+func (s *adminUsersRightsResolverStub) ResolveGroupRightsBatch(
+	ctx context.Context, actor permissions.Actor, fansubGroupIDs []int64, rolesByGroup map[int64][]string,
+) (map[int64]*permissions.GroupRightsResolution, error) {
+	return map[int64]*permissions.GroupRightsResolution{}, nil
+}
+
 // setAdminTestAuth setzt eine gültige AuthIdentity im Gin-Kontext (AppUserID > 0, Status active).
 func setAdminTestAuth(c *gin.Context, appUserID int64) {
 	c.Set("auth_identity", middleware.AuthIdentity{
@@ -160,7 +180,7 @@ func buildAdminUsersHandler(
 	authz *adminAuthzRepoStub,
 	audit *adminAuditStub,
 ) *AdminUsersHandler { // AdminUsersHandler ist noch nicht definiert → RED
-	return NewAdminUsersHandler(repo, authz, audit) // NewAdminUsersHandler → RED
+	return NewAdminUsersHandler(repo, authz, audit, &adminUsersRightsResolverStub{}) // NewAdminUsersHandler → RED
 }
 
 // --- RED: TestAdminUsersHandler_ListUsers_NonPlatformAdmin_Returns403 ---
