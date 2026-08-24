@@ -1804,12 +1804,24 @@ types:
     auth:
       required: true
       role: platform_admin
+    query_params:
+      anime_id: int64 (optional, filtert auf ein Anime)
+      fansub_group_id: int64 (optional, filtert auf eine Fansub-Gruppe)
+      role_code: string (optional, filtert auf Beiträge mit dieser Rolle)
+      only_deviations: boolean (optional, nur Projekt-Blöcke mit mindestens einer echten Abweichung vom Projektstandard)
+      from: string (optional, format date-time, unterer Zeitbereich)
+      to: string (optional, format date-time, oberer Zeitbereich)
+      limit: int (optional, default 25, max 100)
+      offset: int (optional, default 0)
     response:
       status: 200
-      type: AdminUserContributionsResult
+      type: AdminUserContributionsPage
     description: >
       Contributions-Tab (D-12/D-13). member_id als kanonischer Anker (Migration 0105).
-      Vier Gruppen: project_defaults, release_overrides, open_disputes, legacy_historical.
+      Phase 139 (D02-D10): serverseitig gruppiert nach Anime+Projekt, standardgleiche
+      Episoden-Bereiche zu einem Eintrag zusammengefasst, nur echte semantische
+      Abweichungen vom Projektstandard als Override markiert; paginiert auf ganzer
+      Projekt-Block-Ebene, serverseitig gefiltert.
 
   - name: admin-user-media
     method: GET
