@@ -333,6 +333,9 @@ skipped: 0
 
 ## GAP-04 — Rollen-Cards und inkonsistente Klickflächen (D-08 nicht eingelöst)
 
+> **Nachtrag 2026-08-24:** Geschlossen durch Zusammenlegung von Rollen und Capabilities zu einem
+> Arbeitsbereich, siehe 138-CONTEXT.md Abschnitt 8 und 260824-ek3-SUMMARY.md.
+
 Vom Nutzer im Live-Betrieb gemeldet, danach gemessen. Betrifft zwei Oberflächen:
 `/admin/roles` und die linke Rollenliste in `/admin/role-capabilities`.
 
@@ -410,6 +413,12 @@ zurueckdrehen, Verifikation im Container, die fuenf vorbelasteten Testdateien ni
 ---
 
 ## GAP-05 — Deep-Link von einer Rolle verliert den Rollenkontext
+
+> **Nachtrag 2026-08-24:** Geschlossen durch Zusammenlegung von Rollen und Capabilities zu einem
+> Arbeitsbereich (nicht durch die urspruenglich vorgesehene reine Darstellungs-/
+> Navigations-Aenderung bei getrennten Bereichen) -- der "Umfang"-Absatz unten ("Die Trennung ...
+> bleibt bestehen ... darf die beiden Bereiche NICHT zusammenlegen") ist damit durch eine bewusste,
+> dokumentierte Nutzerentscheidung ueberholt, siehe 138-CONTEXT.md Abschnitt 8.
 
 Vom Nutzer gemeldet: "wenn man auf Rolle klickt kommt man auf Capability, welches noch mal die
 Rollen zeigt, obwohl ich eine spezifische Rolle angeklickt habe."

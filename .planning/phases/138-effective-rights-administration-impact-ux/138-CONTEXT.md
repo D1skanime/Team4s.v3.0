@@ -115,6 +115,8 @@ schneiden — aber CAP-08/09/10 und UADM-01 müssen in dieser Phase vollständig
 
 ### D-01 — Hauptnavigation
 
+> **Nachtrag 2026-08-24:** Der Eintrag "Capabilities" entfällt, siehe Abschnitt 8 am Dateiende.
+
 Verbindlich:
 
 ```text
@@ -190,6 +192,9 @@ Benutzer-in-Gruppe-Editor. Die Standard-Capabilities der Rolle sind erreichbar, 
 erste Information.
 
 ### D-08 — Capabilities-Hauptansicht als Split-View
+
+> **Nachtrag 2026-08-24:** Präzisiert -- der Split-View lebt jetzt als Standardrechte-Tab im
+> Rollen-Arbeitsbereich, siehe Abschnitt 8 am Dateiende.
 
 Desktop: links kompakte Rollenliste (gegliedert nach globalen Rollen und Gruppenrollen), rechts die
 Capability-Matrix der ausgewählten Rolle. Die heutigen grossen Rollen-Cards werden **ersetzt**, nicht
@@ -716,3 +721,38 @@ bleiben nur:
    (z. B. Aktivierungsstatus nicht ehrlich abbildbar, Impact nur mit zweiter Engine berechenbar),
    ist der Konflikt **explizit zu melden** statt ein abweichendes Verhalten zu wählen.
 6. Keine Implementierung während Research.
+
+---
+
+# 8. Nachtrag 2026-08-24 — Rollen-Arbeitsbereich (Sketch 005)
+
+Nach Live-Betrieb wurden GAP-04 (inkonsistente Klickflaechen der Rollenliste, D-08 nicht eingeloest)
+und GAP-05 (Deep-Link von einer Rolle verliert den Rollenkontext) gemeldet und in `138-HUMAN-UAT.md`
+dokumentiert. Der Nutzer hat daraufhin `.planning/sketches/005-rollen-arbeitsbereich/index.html`
+(klickbarer Prototyp, echte Registry-Daten) gesichtet und sich bewusst FUER die Zusammenlegung von
+Rollen und Capabilities zu einem Arbeitsbereich entschieden -- nicht fuer die im Sketch genannte
+Alternative, beide Bereiche getrennt zu lassen und nur GAP-04/GAP-05 punktuell zu fixen.
+
+**Begruendung:** Rollen (D-07, "wer besitzt diese Rolle?") und Capabilities (D-08, "was darf diese
+Rolle?") beantworten zwei Fragen zur selben Sache. Der bisherige Doppelweg (zwei Top-Level-Bereiche,
+ein Klick von der Rolle zur Capability-Seite) hat beim Wechsel den Rollenkontext verloren (GAP-05) und
+die Rollenliste zweimal separat, aber inkonsistent kompakt implementiert (GAP-04).
+
+**Konkrete Aenderung:**
+
+- **D-01 aendert sich:** Die Hauptnavigation verliert den eigenstaendigen Eintrag `Capabilities`. Sie
+  lautet ab sofort verbindlich `Benutzer | Gruppen | Rollen | Claims | Änderungen` (fuenf statt sechs
+  Bereiche).
+- **D-08 wird praezisiert:** Der Split-View (kompakte Rollenliste links, Capability-Matrix rechts)
+  bleibt bestehen, lebt aber nicht mehr als eigener Top-Level-Bereich, sondern als zweiter Tab
+  ("Standardrechte") im Rollen-Arbeitsbereich (`/admin/roles`). Die Rollenliste wird zur einen
+  gemeinsamen Rail fuer beide Perspektiven (D-07 "Inhaber"-Tab, D-08 "Standardrechte"-Tab).
+- **`/admin/role-capabilities` bleibt als Weiterleitung erhalten** (auf `/admin/roles`, `?role=<code>`
+  wird erhalten) -- bestehende Links/Bookmarks brechen nicht.
+- **D-07, D-09, D-10 bleiben unveraendert gueltig:** Die D-07-Inhaber-Tabelle, der kanonische
+  Benutzer-in-Gruppe-Editor und der kanonische Rollen-Capability-Editor (Impact-Preview-Dialog,
+  CAP-09/CAP-10) aendern sich inhaltlich nicht -- sie werden nur an einer anderen Stelle der UI
+  eingebettet.
+
+Umgesetzt in `.planning/quick/260824-ek3-rollen-und-capabilities-zu-einem-rollen-/260824-ek3-PLAN.md`
+(SUMMARY: `260824-ek3-SUMMARY.md` im selben Verzeichnis).
