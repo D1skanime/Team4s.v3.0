@@ -103,6 +103,14 @@ export default function RolesClient() {
     const exists = matrix.roles.some((r) => r.role_code === roleParam)
     if (!exists) return
     handleSelectRole(roleParam)
+    // 260824-ike Task 3 (Defekt 3): ein expliziter ?tab=-Parameter überschreibt EINMALIG,
+    // nur bei dieser initialen Deep-Link-Anwendung, den rollenart-abhängigen Default aus
+    // handleSelectRole -- exakt wie der role-Parameter selbst, gated über dieselbe
+    // appliedUrlRoleRef. handleSelectRole bleibt für manuelle Klicks unverändert.
+    const tabParam = searchParams.get('tab')
+    if (tabParam === 'holders' || tabParam === 'caps') {
+      setActiveTabId(tabParam)
+    }
     requestAnimationFrame(() => {
       const target = railRef.current?.querySelector<HTMLElement>(
         `[data-role-code="${CSS.escape(roleParam)}"]`,

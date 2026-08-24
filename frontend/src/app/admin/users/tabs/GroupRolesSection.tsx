@@ -35,7 +35,7 @@ export function GroupRolesSection({
           <Badge variant="muted">–</Badge>
         ) : (
           membership.roles.map((role) => {
-            const link = resolveRoleLink(role, matrix)
+            const link = resolveRoleLink(role, matrix, 'caps')
             return (
               <div key={role} style={{ display: 'flex', gap: 4, alignItems: 'center' }}>
                 <Badge variant="info">{roleLabelFor(role, matrix)}</Badge>
