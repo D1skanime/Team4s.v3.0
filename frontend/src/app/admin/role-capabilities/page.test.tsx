@@ -21,4 +21,16 @@ describe('RoleCapabilitiesRedirectPage (D-01/D-08 Nachtrag 2026-08-24)', () => {
     await RoleCapabilitiesRedirectPage({ searchParams: Promise.resolve({ role: 'a b' }) })
     expect(redirectMock).toHaveBeenCalledWith('/admin/roles?role=a%20b')
   })
+
+  it('reicht einen vorhandenen tab-Parameter zusammen mit role unverändert an /admin/roles weiter (260824-ike Task 3)', async () => {
+    await RoleCapabilitiesRedirectPage({
+      searchParams: Promise.resolve({ role: 'co_leader', tab: 'caps' }),
+    })
+    expect(redirectMock).toHaveBeenCalledWith('/admin/roles?role=co_leader&tab=caps')
+  })
+
+  it('haengt ausschließlich ?tab= an, wenn role fehlt', async () => {
+    await RoleCapabilitiesRedirectPage({ searchParams: Promise.resolve({ tab: 'caps' }) })
+    expect(redirectMock).toHaveBeenCalledWith('/admin/roles?tab=caps')
+  })
 })

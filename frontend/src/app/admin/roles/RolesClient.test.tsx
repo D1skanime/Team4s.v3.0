@@ -240,4 +240,32 @@ describe('RolesClient', () => {
       expect(screen.getByRole('tab', { name: 'Standardrechte' }).getAttribute('aria-selected')).toBe('true')
     })
   })
+
+  // Test F (260824-ike Task 3, Defekt 3): ein expliziter ?tab=-Deep-Link-Parameter gewinnt
+  // gegen den rollenart-abhängigen Default; ohne tab-Parameter bleibt der bisherige Default
+  // (co_leader -> Inhaber) unverändert -- Regressionsschutz für die bestehende GAP-05-Zusicherung.
+  it('Test F: ?role=co_leader&tab=caps überschreibt den rollenart-abhängigen Default (Inhaber) mit Standardrechte', async () => {
+    vi.mocked(useSearchParams).mockReturnValue(
+      new URLSearchParams('role=co_leader&tab=caps') as ReturnType<typeof useSearchParams>,
+    )
+
+    render(<RolesClient />)
+
+    await waitFor(() => {
+      expect(screen.getByRole('tab', { name: 'Standardrechte' }).getAttribute('aria-selected')).toBe('true')
+    })
+  })
+
+  it('Test F (Regression): ?role=co_leader ohne tab-Parameter behält den bisherigen Default (Inhaber)', async () => {
+    vi.mocked(useSearchParams).mockReturnValue(
+      new URLSearchParams('role=co_leader') as ReturnType<typeof useSearchParams>,
+    )
+
+    render(<RolesClient />)
+
+    await waitFor(() => {
+      expect(screen.getByText('Mira')).toBeTruthy()
+    })
+    expect(screen.getByRole('tab', { name: 'Inhaber' }).getAttribute('aria-selected')).toBe('true')
+  })
 })
