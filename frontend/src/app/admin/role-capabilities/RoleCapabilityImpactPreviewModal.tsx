@@ -333,6 +333,36 @@ export function RoleCapabilityImpactPreviewModal({
 
           {summary.rows.length === 0 ? (
             <p>Keine Rolleninhaber betroffen.</p>
+          ) : isMobile ? (
+            <>
+              <div className={styles.detailCards}>
+                {pageRows.map((row, index) => (
+                  <Card key={`${row.targetUserId}-${row.groupName}-${index}`} variant="compact">
+                    <div className={styles.detailCardHeader}>
+                      <span>{row.displayName}</span>
+                      <span>{row.groupName}</span>
+                    </div>
+                    <div className={styles.detailCardRow}>
+                      <span className={styles.detailCardLabel}>vorher</span>
+                      <Badge variant={row.beforeAllowed ? 'success' : 'muted'}>
+                        {allowedLabel(row.beforeAllowed)}
+                      </Badge>
+                    </div>
+                    <div className={styles.detailCardRow}>
+                      <span className={styles.detailCardLabel}>nachher</span>
+                      <Badge variant={row.afterAllowed ? 'success' : 'muted'}>
+                        {allowedLabel(row.afterAllowed)}
+                      </Badge>
+                    </div>
+                    <div className={styles.detailCardRow}>
+                      <span className={styles.detailCardLabel}>Grund</span>
+                      <span>{row.reason}</span>
+                    </div>
+                  </Card>
+                ))}
+              </div>
+              <Pagination currentPage={page} totalPages={pageCount} onPageChange={setPage} />
+            </>
           ) : (
             <>
               <Table variant="compact">
