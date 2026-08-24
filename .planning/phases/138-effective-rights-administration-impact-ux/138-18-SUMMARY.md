@@ -101,3 +101,7 @@ Real-browser visual confirmation at 394px (dialog height tracking content, no em
 ---
 *Phase: 138-effective-rights-administration-impact-ux*
 *Completed: 2026-08-24*
+
+## Self-Check: PASSED
+
+All created/modified files exist on disk; all 6 commits (dc46628f, 0946a4aa, 791dcb4a, 062d578f, 6b8b0a0c, f0f7b694) found in git log.
