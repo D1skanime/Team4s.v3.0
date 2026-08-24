@@ -1829,9 +1829,26 @@ types:
     auth:
       required: true
       role: platform_admin
+    query_params:
+      anime_id: int64 (optional, filtert auf ein Anime)
+      fansub_group_id: int64 (optional, filtert auf eine Fansub-Gruppe)
+      release_version_id: int64 (optional, filtert auf einen Release-/Episoden-Block)
+      media_type: string (optional, filtert auf einen Medientyp)
+      from: string (optional, format date-time, unterer Zeitbereich)
+      to: string (optional, format date-time, oberer Zeitbereich)
+      limit: int (optional, default 25, max 100)
+      offset: int (optional, default 0)
     response:
       status: 200
-      type: AdminUserMediaResult
+      type: AdminUserMediaPage
+    description: >
+      Phase 139 (D11-D17/D19): gruppiert nach Anime -> Projekt/Fansubgruppe ->
+      Release/Episode, paginiert auf ganzer Release-/Episoden-Block-Ebene, echte
+      PublicURL-/FileSizeBytes-Ableitung (kein hartcodiertes ''/0 mehr), kein
+      owner_context oder Berechtigung-aktiv/fehlt-Flag, keine tiefen
+      Storage-Diagnosen (D18, physischer Pfad/Storage-ID/Derivat-Inventar/
+      Bildgrößen-Analyse bleiben einer späteren, separaten
+      Metabase-/Reporting-Idee vorbehalten).
 
   - name: admin-user-audit
     method: GET
