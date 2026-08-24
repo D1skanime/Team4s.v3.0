@@ -146,3 +146,47 @@ Safe to re-run; a second run creates no duplicates. Techniques used:
   `scripts/README-manifest.md` "Story-image URL shape"), **not**
   `/media/story-images/{id}` (a separate resolve-by-ID endpoint used only for
   editor-side preview).
+
+## Phase-139 contribution-override demo data (`seed-phase139-contribution-fixtures.mjs`)
+
+Purpose: Phase 139 (Scalable User-Admin Projections) requires live UAT of the user-detail
+Contributions tab's "Nur Abweichungen" (only-deviations) filter (UADM-03/F-03). As of the
+139-RESEARCH.md investigation, the live database had 13 `release_crew_snapshots` rows, all
+`snapshot_mode='inherited'`, zero `independent` — meaning the override-detection UI had nothing
+real to show. This script closes that gap by driving the REAL
+`PUT /api/v1/admin/release-versions/:versionId/contributions/effective` endpoint (the same
+crew-override editor drawer an admin uses) to produce:
+
+1. An **`independent`-but-identical** row on one release version (crew set-equal to the project
+   standard — must NOT be flagged as a deviation).
+2. An **`independent`-and-different** row on a second release version (crew genuinely differs from
+   the project standard — MUST be flagged as a deviation, the case the "Nur Abweichungen" filter
+   needs to have something real to show).
+
+Unlike `seed-member-profile-fixtures.mjs`, this script performs **read-only discovery** first: it
+scans real fansub groups' attached anime (preferring `seed129-group-a` if that fixture data exists
+in this environment, otherwise the first suitable anime+group pair found anywhere) for an anime
+that already has a project-standard `anime_contributions` row and at least 2 release versions, then
+targets exactly one of those release versions for the identical case and a second for the different
+case. It is safe to re-run: it re-reads the current effective crew before writing and skips the PUT
+call entirely when the current state already matches the desired target (idempotent, no
+duplicate-conflict failures).
+
+Run the same way as the other seed scripts in this directory (the Linux VM has no host-level Node;
+run inside the `team4sv30-frontend` container):
+
+```bash
+docker cp scripts/seed-phase139-contribution-fixtures.mjs team4sv30-frontend:/tmp/seed-phase139-contribution-fixtures.mjs
+docker exec team4sv30-frontend node /tmp/seed-phase139-contribution-fixtures.mjs
+```
+
+Prints a `RESULT: PASS` / `RESULT: FAIL` summary plus the exact group/anime/release-version
+identifiers it touched — the live-UAT step (139-10) uses those printed identifiers to know exactly
+which user/anime/project to open and which release version to expect under "Nur Abweichungen".
+
+Environment variables (all optional): `SEED_API_BASE` (default
+`http://192.168.235.196:18092`), `SEED_KC_BASE` (default `http://192.168.235.196:18081`),
+`SEED_ADMIN_USER` (default `admin@team4s.de` — this environment's actual platform_admin account;
+deliberately differs from the sibling script's `csubs-leader@team4s.local` default, since that
+fixture profile does not exist in every environment this script may run against), `SEED_ADMIN_PW`
+(default `123`).
