@@ -597,7 +597,7 @@ Plans:
 
 **Wave 6** *(blocked on Wave 5 completion)*
 - [x] 139-08-PLAN.md — Contributions tab UI rewrite: grouped-card projection + container-query CSS
-- [ ] 139-09-PLAN.md — Media tab UI rewrite: grouped release/episode-block projection + container-query CSS
+- [x] 139-09-PLAN.md — Media tab UI rewrite: grouped release/episode-block projection + container-query CSS
 
 **Wave 7** *(blocked on Wave 6 completion)*
 - [ ] 139-10-PLAN.md — Full regression gate + D01/D27 scope check + live UAT checkpoint
