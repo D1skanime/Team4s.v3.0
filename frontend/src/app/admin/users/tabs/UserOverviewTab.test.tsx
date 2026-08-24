@@ -5,23 +5,29 @@
 // stattdessen kompakte Pro-Gruppen-Zusammenfassungen ("New-Subs — Rolle:
 // Co-Leitung / ✓ Gruppe bearbeiten ... / Keine persönlichen
 // Rechteabweichungen · Keine offenen Claims").
+//
+// Plan 139-07 (F-01/UADM-06): GroupRightsSummarySection ruft die neue gebündelte
+// getAdminUserRightsSummary EINMAL auf statt getAdminUserGroupMemberships +
+// Promise.all(getEffectiveRights pro Gruppe) -- dieselben gerenderten Strings (Phase 138
+// D-05 Parität) müssen mit der neuen, bereits vorberechneten Datenquelle erhalten bleiben.
 
 import { afterEach, describe, expect, it, vi } from 'vitest'
 import { cleanup, render, screen, waitFor } from '@testing-library/react'
-import type { AdminGroupMembershipSummary, AdminUserOverviewResponse } from '@/types/admin-users'
-import type { EffectiveRightState, RoleCapabilityMatrix } from '@/types/admin-capability'
+import type {
+  AdminUserGroupRightsSummaryItem,
+  AdminUserOverviewResponse,
+  AdminUserRightsSummaryPage,
+} from '@/types/admin-users'
 
 const mockGetAdminUserOverview = vi.fn()
-const mockGetAdminUserGroupMemberships = vi.fn()
+const mockGetAdminUserRightsSummary = vi.fn()
 const mockGetEffectiveRights = vi.fn()
-const mockListRoleCapabilities = vi.fn()
 const mockUpdateAdminUserStatus = vi.fn()
 
 vi.mock('@/lib/api', () => ({
   getAdminUserOverview: (...args: unknown[]) => mockGetAdminUserOverview(...args),
-  getAdminUserGroupMemberships: (...args: unknown[]) => mockGetAdminUserGroupMemberships(...args),
+  getAdminUserRightsSummary: (...args: unknown[]) => mockGetAdminUserRightsSummary(...args),
   getEffectiveRights: (...args: unknown[]) => mockGetEffectiveRights(...args),
-  listRoleCapabilities: (...args: unknown[]) => mockListRoleCapabilities(...args),
   updateAdminUserStatus: (...args: unknown[]) => mockUpdateAdminUserStatus(...args),
   ApiError: class ApiError extends Error {
     constructor(public status: number, message: string) {
@@ -54,43 +60,24 @@ function makeOverview(overrides: Partial<AdminUserOverviewResponse> = {}): Admin
   }
 }
 
-function makeMembership(overrides: Partial<AdminGroupMembershipSummary> = {}): AdminGroupMembershipSummary {
+function makeSummaryItem(
+  overrides: Partial<AdminUserGroupRightsSummaryItem> = {},
+): AdminUserGroupRightsSummaryItem {
   return {
     fansub_group_id: 1,
     fansub_group_name: 'New-Subs',
-    member_status: 'active',
-    roles: ['co_leader'],
-    joined_at: '2026-01-01T00:00:00Z',
+    role_label: 'Co-Leitung',
+    headline_states: [{ action_code: 'fansub_group.edit', label: 'Gruppe bearbeiten', allowed: true }],
+    has_deviation: false,
+    open_claims_count: 0,
     ...overrides,
   }
 }
 
-function makeState(overrides: Partial<EffectiveRightState> = {}): EffectiveRightState {
-  return {
-    action_code: 'fansub_group.edit',
-    allowed: true,
-    provenance: 'group_role',
-    decisive: true,
-    non_deniable: false,
-    granting_roles: ['co_leader'],
-    user_allow: false,
-    user_deny: false,
-    specialized_grants: [],
-    decisive_source: 'group_role',
-    reason_code: 'group_role_grant',
-    ...overrides,
-  }
-}
-
-function makeMatrix(): RoleCapabilityMatrix {
-  return {
-    roles: [
-      { role_code: 'co_leader', label_de: 'Co-Leitung', actions: [], assignable: true, role_kind: 'fansub_group_role', contexts: ['fansub_group'] },
-    ],
-    all_actions: [
-      { code: 'fansub_group.edit', label_de: 'Gruppe bearbeiten', category: 'gruppe', sort_order: 1 },
-    ],
-  }
+function makeSummaryResponse(
+  items: AdminUserGroupRightsSummaryItem[],
+): AdminUserRightsSummaryPage {
+  return { data: items, meta: { total: items.length, limit: 25, offset: 0 } }
 }
 
 afterEach(() => {
@@ -101,9 +88,7 @@ afterEach(() => {
 describe('UserOverviewTab (D-05)', () => {
   it('rendert keine bare Statistik-Kacheln mehr (kein "Globale Rollen"/"Mediauploads"-Zahlengitter)', async () => {
     mockGetAdminUserOverview.mockResolvedValue(makeOverview())
-    mockGetAdminUserGroupMemberships.mockResolvedValue({ memberships: [makeMembership()] })
-    mockGetEffectiveRights.mockResolvedValue([makeState()])
-    mockListRoleCapabilities.mockResolvedValue(makeMatrix())
+    mockGetAdminUserRightsSummary.mockResolvedValue(makeSummaryResponse([makeSummaryItem()]))
 
     render(<UserOverviewTab userId={1} />)
 
@@ -115,9 +100,7 @@ describe('UserOverviewTab (D-05)', () => {
 
   it('rendert eine kompakte Pro-Gruppen-Zeile mit Rolle, Capability-Checks und Abweichungs-/Claims-Zusammenfassung', async () => {
     mockGetAdminUserOverview.mockResolvedValue(makeOverview({ open_claims_count: 0 }))
-    mockGetAdminUserGroupMemberships.mockResolvedValue({ memberships: [makeMembership()] })
-    mockGetEffectiveRights.mockResolvedValue([makeState()])
-    mockListRoleCapabilities.mockResolvedValue(makeMatrix())
+    mockGetAdminUserRightsSummary.mockResolvedValue(makeSummaryResponse([makeSummaryItem()]))
 
     render(<UserOverviewTab userId={1} />)
 
@@ -131,9 +114,15 @@ describe('UserOverviewTab (D-05)', () => {
 
   it('zeigt eine Abweichungsmarkierung, wenn ein persönlicher Override existiert', async () => {
     mockGetAdminUserOverview.mockResolvedValue(makeOverview({ open_claims_count: 2 }))
-    mockGetAdminUserGroupMemberships.mockResolvedValue({ memberships: [makeMembership()] })
-    mockGetEffectiveRights.mockResolvedValue([makeState({ user_deny: true, allowed: false })])
-    mockListRoleCapabilities.mockResolvedValue(makeMatrix())
+    mockGetAdminUserRightsSummary.mockResolvedValue(
+      makeSummaryResponse([
+        makeSummaryItem({
+          has_deviation: true,
+          open_claims_count: 2,
+          headline_states: [{ action_code: 'fansub_group.edit', label: 'Gruppe bearbeiten', allowed: false }],
+        }),
+      ]),
+    )
 
     render(<UserOverviewTab userId={1} />)
 
@@ -141,5 +130,23 @@ describe('UserOverviewTab (D-05)', () => {
       expect(screen.getByText(/Persönliche Rechteabweichungen vorhanden/)).not.toBeNull()
     })
     expect(screen.getByText(/2 offene Claims/)).not.toBeNull()
+  })
+
+  it('ruft die gebündelte Rechte-Übersicht genau einmal auf und niemals getEffectiveRights (F-01 Overview-Tab-Fan-out-Regressionsschutz)', async () => {
+    mockGetAdminUserOverview.mockResolvedValue(makeOverview())
+    mockGetAdminUserRightsSummary.mockResolvedValue(
+      makeSummaryResponse([
+        makeSummaryItem({ fansub_group_id: 1, fansub_group_name: 'New-Subs' }),
+        makeSummaryItem({ fansub_group_id: 2, fansub_group_name: 'Sakura-Fansub' }),
+      ]),
+    )
+
+    render(<UserOverviewTab userId={1} />)
+
+    await screen.findByText('New-Subs')
+    await screen.findByText('Sakura-Fansub')
+
+    expect(mockGetAdminUserRightsSummary).toHaveBeenCalledTimes(1)
+    expect(mockGetEffectiveRights).not.toHaveBeenCalled()
   })
 })

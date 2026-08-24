@@ -1,6 +1,6 @@
 'use client'
 
-import { useCallback, useEffect, useMemo, useState } from 'react'
+import { useCallback, useEffect, useState } from 'react'
 
 import {
   Badge,
@@ -10,18 +10,22 @@ import {
   ErrorState,
   LoadingState,
   Modal,
+  Pagination,
   SectionHeader,
 } from '@/components/ui'
 import {
   ApiError,
-  getAdminUserGroupMemberships,
   getAdminUserOverview,
-  getEffectiveRights,
-  listRoleCapabilities,
+  getAdminUserRightsSummary,
   updateAdminUserStatus,
 } from '@/lib/api'
-import type { AdminConflictDetail, AdminGroupMembershipSummary, AdminUserOverviewResponse } from '@/types/admin-users'
-import type { EffectiveRightState, RoleCapabilityMatrix } from '@/types/admin-capability'
+import type {
+  AdminConflictDetail,
+  AdminHeadlineCapabilityState,
+  AdminListMeta,
+  AdminUserGroupRightsSummaryItem,
+  AdminUserOverviewResponse,
+} from '@/types/admin-users'
 
 interface Props {
   userId: number
@@ -68,39 +72,36 @@ function statusLabel(status: string): string {
 // Rechteabweichungen · Keine offenen Claims" -- niemals große bare
 // Statistik-Kacheln ("18 effektive Rechte", "13 Beiträge").
 //
-// Lädt Mitgliedschaften + effektive Rechte pro Gruppe genau wie
-// UserGroupRightsTab.tsx (gleiche Endpunkte, keine zweite Entscheidungslogik) --
-// zeigt hier aber nur eine kompakte Zeile pro Gruppe statt der vollständigen,
-// aufklappbaren Kategorie-Ansicht.
+// F-01/UADM-06/Plan 139-07: lädt die gebündelte Rechte-Übersicht über EINEN Aufruf von
+// getAdminUserRightsSummary (139-05) statt des alten getAdminUserGroupMemberships +
+// Promise.all(getEffectiveRights pro Gruppe)-Fan-outs. role_label/headline_states/
+// has_deviation/open_claims_count kommen bereits fertig berechnet vom Backend --
+// GroupSummaryCard leitet sie nicht mehr selbst aus einem rohen EffectiveRightState[] ab
+// (Phase 138 D-05: das gerenderte Ergebnis bleibt dabei byte-identisch, nur die
+// Datenquelle wechselt).
 
-const HEADLINE_CAPABILITY_LIMIT = 3
-
-function roleLabelFor(roleCode: string, matrix: RoleCapabilityMatrix | null): string {
-  return matrix?.roles.find((entry) => entry.role_code === roleCode)?.label_de ?? roleCode
-}
+const SUMMARY_PAGE_LIMIT = 25
 
 interface GroupSummaryCardProps {
-  membership: AdminGroupMembershipSummary
-  states: EffectiveRightState[]
-  actionLabels: Map<string, string>
-  matrix: RoleCapabilityMatrix | null
+  fansubGroupName: string
+  roleLabel: string
+  headlineStates: AdminHeadlineCapabilityState[]
+  hasDeviation: boolean
   openClaimsCount: number
 }
 
-function GroupSummaryCard({ membership, states, actionLabels, matrix, openClaimsCount }: GroupSummaryCardProps) {
-  const roleLabel =
-    membership.roles.length > 0
-      ? membership.roles.map((role) => roleLabelFor(role, matrix)).join(' + ')
-      : '–'
-
-  const headlineStates = states.slice(0, HEADLINE_CAPABILITY_LIMIT)
-  const hasDeviation = states.some((state) => state.user_allow || state.user_deny)
-
+function GroupSummaryCard({
+  fansubGroupName,
+  roleLabel,
+  headlineStates,
+  hasDeviation,
+  openClaimsCount,
+}: GroupSummaryCardProps) {
   return (
     <Card variant="nested" style={{ marginBottom: 'var(--space-2)' }}>
       <div style={{ padding: 'var(--space-3)', display: 'grid', gap: 'var(--space-1)' }}>
         <div style={{ display: 'flex', alignItems: 'center', gap: 'var(--space-2)', flexWrap: 'wrap' }}>
-          <strong>{membership.fansub_group_name}</strong>
+          <strong>{fansubGroupName}</strong>
           <span style={{ color: 'var(--color-text-muted)', fontSize: '0.85rem' }}>
             Rolle: {roleLabel}
           </span>
@@ -109,7 +110,7 @@ function GroupSummaryCard({ membership, states, actionLabels, matrix, openClaims
           <div style={{ display: 'flex', gap: 'var(--space-3)', flexWrap: 'wrap', fontSize: '0.85rem' }}>
             {headlineStates.map((state) => (
               <span key={state.action_code}>
-                {state.allowed ? '✓' : '✕'} {actionLabels.get(state.action_code) ?? state.action_code}
+                {state.allowed ? '✓' : '✕'} {state.label}
               </span>
             ))}
           </div>
@@ -124,15 +125,10 @@ function GroupSummaryCard({ membership, states, actionLabels, matrix, openClaims
   )
 }
 
-interface GroupRightsSummarySectionProps {
-  userId: number
-  openClaimsCount: number
-}
-
-function GroupRightsSummarySection({ userId, openClaimsCount }: GroupRightsSummarySectionProps) {
-  const [memberships, setMemberships] = useState<AdminGroupMembershipSummary[]>([])
-  const [rightsByGroup, setRightsByGroup] = useState<Record<number, EffectiveRightState[]>>({})
-  const [matrix, setMatrix] = useState<RoleCapabilityMatrix | null>(null)
+function GroupRightsSummarySection({ userId }: { userId: number }) {
+  const [items, setItems] = useState<AdminUserGroupRightsSummaryItem[]>([])
+  const [meta, setMeta] = useState<AdminListMeta | null>(null)
+  const [offset, setOffset] = useState(0)
   const [isLoading, setIsLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
 
@@ -140,20 +136,9 @@ function GroupRightsSummarySection({ userId, openClaimsCount }: GroupRightsSumma
     try {
       setIsLoading(true)
       setError(null)
-      const [membershipsResp, matrixResult] = await Promise.all([
-        getAdminUserGroupMemberships(userId),
-        listRoleCapabilities().catch(() => null),
-      ])
-      const rightsList = await Promise.all(
-        membershipsResp.memberships.map((membership) => getEffectiveRights(membership.fansub_group_id, userId)),
-      )
-      const byGroup: Record<number, EffectiveRightState[]> = {}
-      membershipsResp.memberships.forEach((membership, index) => {
-        byGroup[membership.fansub_group_id] = rightsList[index]
-      })
-      setMemberships(membershipsResp.memberships)
-      setRightsByGroup(byGroup)
-      setMatrix(matrixResult)
+      const resp = await getAdminUserRightsSummary(userId, SUMMARY_PAGE_LIMIT, offset)
+      setItems(resp.data)
+      setMeta(resp.meta)
     } catch (err) {
       setError(
         err instanceof ApiError
@@ -163,21 +148,11 @@ function GroupRightsSummarySection({ userId, openClaimsCount }: GroupRightsSumma
     } finally {
       setIsLoading(false)
     }
-  }, [userId])
+  }, [userId, offset])
 
   useEffect(() => {
     void loadSummary()
   }, [loadSummary])
-
-  const actionLabels = useMemo(() => {
-    const map = new Map<string, string>()
-    if (matrix) {
-      for (const action of matrix.all_actions) {
-        map.set(action.code, action.label_de)
-      }
-    }
-    return map
-  }, [matrix])
 
   if (isLoading) {
     return <LoadingState title="Gruppenrechte werden geladen …" description="" />
@@ -185,7 +160,7 @@ function GroupRightsSummarySection({ userId, openClaimsCount }: GroupRightsSumma
   if (error) {
     return <ErrorState title="Fehler beim Laden" description={error} />
   }
-  if (memberships.length === 0) {
+  if (items.length === 0) {
     return (
       <div style={{ marginBottom: 'var(--space-5)' }}>
         <SectionHeader title="Gruppen" />
@@ -194,19 +169,28 @@ function GroupRightsSummarySection({ userId, openClaimsCount }: GroupRightsSumma
     )
   }
 
+  const totalPages = meta ? Math.max(1, Math.ceil(meta.total / SUMMARY_PAGE_LIMIT)) : 1
+
   return (
     <div style={{ marginBottom: 'var(--space-5)' }}>
       <SectionHeader title="Gruppen" />
-      {memberships.map((membership) => (
+      {items.map((item) => (
         <GroupSummaryCard
-          key={membership.fansub_group_id}
-          membership={membership}
-          states={rightsByGroup[membership.fansub_group_id] ?? []}
-          actionLabels={actionLabels}
-          matrix={matrix}
-          openClaimsCount={openClaimsCount}
+          key={item.fansub_group_id}
+          fansubGroupName={item.fansub_group_name}
+          roleLabel={item.role_label}
+          headlineStates={item.headline_states}
+          hasDeviation={item.has_deviation}
+          openClaimsCount={item.open_claims_count}
         />
       ))}
+      {totalPages > 1 && (
+        <Pagination
+          currentPage={Math.floor(offset / SUMMARY_PAGE_LIMIT) + 1}
+          totalPages={totalPages}
+          onPageChange={(page) => setOffset((page - 1) * SUMMARY_PAGE_LIMIT)}
+        />
+      )}
     </div>
   )
 }
@@ -432,7 +416,7 @@ export function UserOverviewTab({ userId, displayName: _displayName }: Props) {
   return (
     <div style={{ padding: 'var(--space-4)' }}>
       <SectionHeader title="Übersicht" />
-      <GroupRightsSummarySection userId={userId} openClaimsCount={data.open_claims_count} />
+      <GroupRightsSummarySection userId={userId} />
       <ConflictsSection conflicts={data.conflict_details} />
       <AccountStatusSection data={data} onStatusChanged={() => void loadData()} />
     </div>
