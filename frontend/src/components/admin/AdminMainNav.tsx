@@ -8,9 +8,13 @@ import styles from './AdminMainNav.module.css'
 
 /**
  * D-01: die eine persistente Hauptnavigation für den gesamten Admin-Bereich.
- * Verlinkt jeden von Phase 138 gebauten und bestehenden Top-Level-Bereich —
- * Benutzer | Gruppen | Rollen | Capabilities | Claims | Änderungen (D-01,
- * exakte Reihenfolge/Beschriftung locked).
+ * Verlinkt jeden Top-Level-Bereich — Benutzer | Gruppen | Rollen | Claims |
+ * Änderungen (fünf statt sechs Bereiche, exakte Reihenfolge/Beschriftung locked).
+ *
+ * Nachtrag 2026-08-24 (D-01, Quick 260824-ek3, Sketch 005): der eigenständige
+ * "Capabilities"-Eintrag entfällt -- die Standardrechte-Matrix lebt jetzt als
+ * zweiter Tab im Rollen-Arbeitsbereich (/admin/roles). Siehe 138-CONTEXT.md
+ * Abschnitt 8 für die vollständige Begründung.
  *
  * Nutzt bewusst `Button`-Primitives statt eines selbstgebauten `<nav>`/`<ul>`
  * (138-15-PLAN.md Interfaces-Block) — `Tabs` (@/components/ui) unterstützt
@@ -27,7 +31,6 @@ const ADMIN_NAV_LINKS: AdminNavLink[] = [
   { label: 'Benutzer', href: '/admin/users' },
   { label: 'Gruppen', href: '/admin/fansubs' },
   { label: 'Rollen', href: '/admin/roles' },
-  { label: 'Capabilities', href: '/admin/role-capabilities' },
   { label: 'Claims', href: '/admin/claims' },
   { label: 'Änderungen', href: '/admin/changes' },
 ]

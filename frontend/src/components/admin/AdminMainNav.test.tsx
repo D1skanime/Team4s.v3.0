@@ -21,15 +21,12 @@ afterEach(() => {
 })
 
 describe('AdminMainNav (D-01/D-02)', () => {
-  it('rendert alle sechs locked Bereiche mit den korrekten Ziel-Routen', () => {
+  it('rendert alle fuenf locked Bereiche mit den korrekten Ziel-Routen', () => {
     render(<AdminMainNav />)
 
     expect(screen.getByRole('link', { name: 'Benutzer' }).getAttribute('href')).toBe('/admin/users')
     expect(screen.getByRole('link', { name: 'Gruppen' }).getAttribute('href')).toBe('/admin/fansubs')
     expect(screen.getByRole('link', { name: 'Rollen' }).getAttribute('href')).toBe('/admin/roles')
-    expect(screen.getByRole('link', { name: 'Capabilities' }).getAttribute('href')).toBe(
-      '/admin/role-capabilities',
-    )
     expect(screen.getByRole('link', { name: 'Claims' }).getAttribute('href')).toBe('/admin/claims')
     expect(screen.getByRole('link', { name: 'Änderungen' }).getAttribute('href')).toBe(
       '/admin/changes',

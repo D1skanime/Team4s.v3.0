@@ -8,6 +8,10 @@
  * in einem zu role_definitions disjunkten Namensraum leben
  * (111-RESEARCH.md Pitfall 1) — resolveRoleLink liefert fuer sie automatisch
  * null, ohne Sonderbehandlung.
+ *
+ * Nachtrag 2026-08-24 (D-01/D-08, Quick 260824-ek3): der Zielort ist der
+ * Rollen-Arbeitsbereich (/admin/roles, Standardrechte-Tab), nicht mehr die
+ * eigenständige Capability-Verwaltung (siehe 138-CONTEXT.md Abschnitt 8).
  */
 
 import type { RoleCapabilityMatrix } from '@/types/admin-capability'
@@ -18,5 +22,5 @@ export function resolveRoleLink(
 ): string | null {
   const entry = matrix?.roles.find((r) => r.role_code === roleCode)
   if (!entry) return null
-  return `/admin/role-capabilities?role=${encodeURIComponent(roleCode)}`
+  return `/admin/roles?role=${encodeURIComponent(roleCode)}`
 }

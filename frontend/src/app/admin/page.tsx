@@ -45,9 +45,6 @@ export default function AdminOverviewPage() {
             <Link href="/admin/roles" className={styles.button}>
               Rollen
             </Link>
-            <Link href="/admin/role-capabilities" className={styles.button}>
-              Capability-Verwaltung
-            </Link>
             <Link href="/admin/claims" className={styles.button}>
               Claims
             </Link>
