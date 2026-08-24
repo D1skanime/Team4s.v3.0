@@ -1,4 +1,14 @@
-package migrations
+// Package migrations_test (external test package, not internal `package
+// migrations`): fresh_proof_test.go is deliberately isolated here, not in the
+// internal `package migrations` test files alongside it, because Phase 139
+// added `testsupport.OpenPhase139Postgres`, which imports the `migrations`
+// package directly (calls migrations.NewRunner(...).Up(...)). If this file
+// stayed `package migrations` and kept importing `testsupport`, that would
+// create a real import cycle: migrations(test) -> testsupport -> migrations.
+// Moving only this file to the external test package breaks the cycle with
+// zero behavior change (every symbol it calls, NewRunner/ResolveMigrationsDir,
+// was already exported) — the standard Go idiom for this exact situation.
+package migrations_test
 
 import (
 	"context"
@@ -8,6 +18,7 @@ import (
 	"github.com/jackc/pgx/v5/pgxpool"
 	"github.com/stretchr/testify/require"
 
+	"team4s.v3/backend/internal/migrations"
 	"team4s.v3/backend/internal/testsupport"
 )
 
@@ -47,10 +58,10 @@ func TestPhase134MigrationFreshUpDownProof(t *testing.T) {
 	require.NoError(t, err, "open fresh-proof database pool")
 	defer freshPool.Close()
 
-	migrationsDir, err := ResolveMigrationsDir("")
+	migrationsDir, err := migrations.ResolveMigrationsDir("")
 	require.NoError(t, err, "resolve migrations dir")
 
-	runner := NewRunner(freshPool, migrationsDir)
+	runner := migrations.NewRunner(freshPool, migrationsDir)
 	ctx := context.Background()
 
 	applied, err := runner.Up(ctx)

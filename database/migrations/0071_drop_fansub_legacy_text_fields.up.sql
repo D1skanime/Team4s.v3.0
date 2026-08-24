@@ -4,19 +4,19 @@ BEGIN
   IF NOT EXISTS (
     SELECT 1
     FROM information_schema.columns
-    WHERE table_schema = 'public'
+    WHERE table_schema = ANY (current_schemas(false))
       AND table_name = 'fansub_groups'
       AND column_name = 'description'
   ) OR NOT EXISTS (
     SELECT 1
     FROM information_schema.columns
-    WHERE table_schema = 'public'
+    WHERE table_schema = ANY (current_schemas(false))
       AND table_name = 'fansub_groups'
       AND column_name = 'history'
   ) OR NOT EXISTS (
     SELECT 1
     FROM information_schema.columns
-    WHERE table_schema = 'public'
+    WHERE table_schema = ANY (current_schemas(false))
       AND table_name = 'fansub_groups'
       AND column_name = 'history_description'
   ) THEN

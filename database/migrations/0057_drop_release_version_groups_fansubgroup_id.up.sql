@@ -8,12 +8,12 @@ BEGIN
     IF EXISTS (
         SELECT 1
         FROM information_schema.columns
-        WHERE table_schema = 'public'
+        WHERE table_schema = ANY (current_schemas(false))
           AND table_name = 'release_version_groups'
           AND column_name = 'fansubgroup_id'
     ) THEN
         SELECT COUNT(*) INTO mismatched_rows
-        FROM public.release_version_groups
+        FROM release_version_groups
         WHERE fansubgroup_id IS NOT NULL
           AND fansubgroup_id <> fansub_group_id;
 
@@ -25,11 +25,11 @@ BEGIN
     END IF;
 END $$;
 
-ALTER TABLE public.release_version_groups
+ALTER TABLE release_version_groups
     DROP CONSTRAINT IF EXISTS release_version_groups_fansubgroup_id_fkey;
 
-DROP INDEX IF EXISTS public.idx_release_version_group_group;
-DROP INDEX IF EXISTS public.idx_release_version_group_version;
+DROP INDEX IF EXISTS idx_release_version_group_group;
+DROP INDEX IF EXISTS idx_release_version_group_version;
 
-ALTER TABLE public.release_version_groups
+ALTER TABLE release_version_groups
     DROP COLUMN IF EXISTS fansubgroup_id;
