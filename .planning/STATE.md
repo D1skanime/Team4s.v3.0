@@ -2,16 +2,16 @@
 gsd_state_version: 1.0
 milestone: v1.4
 milestone_name: Coverage
-status: planning
-stopped_at: "Completed quick task 260823-wrz: Informationsdichte im Benutzer-Rechte-Tab (UAT-138-G) - EmptyState inline-Variante, UserGlobalRolesTab/GroupSection kompaktiert"
-last_updated: "2026-08-23T23:56:13.908Z"
-last_activity: "2026-08-23 - Completed quick task 260823-w9y: Fix UAT-138-C - rohe technische Codes durch bestehende deutsche Labels ersetzt (Rechteeditor, Entzug-Dialog, Aenderungen, plus actor/target display_name)"
+status: executing
+stopped_at: "Completed plan 138-17: GAP-01 (negative relative-time clamp) and GAP-03 (WR-01 non_deniable+user_deny regression test)"
+last_updated: "2026-08-24T08:31:59.868Z"
+last_activity: 2026-08-24
 progress:
   total_phases: 7
-  completed_phases: 3
-  total_plans: 61
-  completed_plans: 61
-  percent: 43
+  completed_phases: 2
+  total_plans: 63
+  completed_plans: 62
+  percent: 29
 ---
 
 # Project State
@@ -29,14 +29,14 @@ Phase 135 and any future roadmap entries continue from here.
 See: .planning/PROJECT.md (updated 2026-08-13)
 
 **Core value:** Team4s presents fansub history and collaboration credibly while keeping identity, visibility, ownership, and permissions correct.
-**Current focus:** Phase 139 — scalable user admin projections
+**Current focus:** Phase 138 — effective-rights-administration-impact-ux
 
 ## Current Position
 
-Phase: 139
-Plan: Not started
-Status: Ready to plan
-Last activity: 2026-08-23 - Completed quick task 260823-wrz: Fix UAT-138-G - Informationsdichte im Benutzer-Rechte-Tab erhoeht (EmptyState variant="inline", UserGlobalRolesTab/GroupSection Card-Chrome entfernt, height-Schaetzung ~519px)
+Phase: 138 (effective-rights-administration-impact-ux) — EXECUTING
+Plan: 2 of 18
+Status: Ready to execute
+Last activity: 2026-08-24
 
 ## Accumulated Context
 
@@ -183,6 +183,7 @@ Last activity: 2026-08-23 - Completed quick task 260823-wrz: Fix UAT-138-G - Inf
 - [Phase 138]: 138-15 (D-01..D-05/D-25/D-30): AdminMainNav is the one persistent D-01 admin nav (Button-row + shared admin/layout.tsx, since Tabs has no Link-based nav mode); AdminUsersClient reduced to D-04's exact 9-field column set; UserDetailPageClient rewritten from a 9-item Accordion to D-03's real 6-tab structure with ?tab= URL sync, requiring Tabs (@/components/ui) to gain optional controlled activeId/onActiveIdChange + keepMountedIds (backward compatible with its 4 pre-existing consumers) to preserve lazy-load-once without a refetch-on-reopen regression; UserOverviewTab's D-05-violating bare stat-tile grid replaced with a compact per-group summary. UserGroupMembershipsTab.tsx left in place, unimported/orphaned, rather than deleted.
 - [Phase 138]: 138-16 closed D-06's Gruppenansicht: GroupRolesTab regroups already-fetched listFansubAppMembers client-side by role (no new backend endpoint); GroupChangesTab reuses listChanges (real filter param is gruppe, not fansub_group_id as the plan sketched) plus 138-11's translateChangeEntry; FansubAppMembersOverview.tsx (the plan named a non-existent GroupMembersTable.tsx) gained a Rechteabweichungen indicator and user navigation; a platform-admin-gated Claims link-out replaces a second claims editor per D-09/D-34.
 - [Phase Quick 260823-wrz]: UAT-138-G fixed: EmptyState gained a real chrome-free variant="inline" (single <p>, no icon/card); UserGlobalRolesTab.tsx dropped its standalone 'Aktive Rollen' SectionHeader block; GroupSection.tsx dropped its <Card> wrapper for a plain <section> (data-group-section preserved). New height to first real rights row estimated ~519px (engineering estimate, not live-measured) - above the 400px soft target but all three named causes are fully closed; UAT-138-A grid-template-columns fix confirmed untouched; live UAT spot-check at 1280x900 recommended as follow-up.
+- [Phase 138]: 138-17: GAP-01 formatRelativeDate clamps its ms diff to >= 0 before computing days, so a last_activity_at at or after Date.now() (clock skew or exact-now) always resolves to 'Heute'; GAP-03's WR-01 branch order (isNonDeniable && !isRemoveMode) was already correct in production code -- a new 7th regression test pins non_deniable+user_deny reaching the confirm step, closing 138-VERIFICATION.md's sole human_needed gap with automated coverage, no production code change needed.
 
 ### Pending Todos
 
@@ -419,10 +420,11 @@ untruncated list lives in `.planning/todos/pending/`.
 | Phase 138 P14 | 20min | 2 tasks | 14 files |
 | Phase 138 P15 | 45min | 2 tasks | 12 files |
 | Phase 138 P16 | 35min | 2 tasks | 13 files |
+| Phase 138 P17 | ~10m | 2 tasks | 3 files |
 
 ## Session Continuity
 
-Last session: 2026-08-23T23:56:13.902Z
-Stopped at: Completed quick task 260823-wrz: Informationsdichte im Benutzer-Rechte-Tab (UAT-138-G) - EmptyState inline-Variante, UserGlobalRolesTab/GroupSection kompaktiert
+Last session: 2026-08-24T08:31:59.857Z
+Stopped at: Completed plan 138-17: GAP-01 (negative relative-time clamp) and GAP-03 (WR-01 non_deniable+user_deny regression test)
 Last activity: 2026-08-20 - Completed Phase 134 Plan 06: live UAT evidence capture, two gap-closure fix rounds, and the user's explicit live-browser sign-off for both reference profiles (PMQA-05)
 Resume file: None
