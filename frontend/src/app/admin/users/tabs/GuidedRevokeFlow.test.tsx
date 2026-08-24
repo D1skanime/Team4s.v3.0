@@ -181,4 +181,39 @@ describe('GuidedRevokeFlow', () => {
       reason: { category: 'task_delegation', text: null },
     })
   })
+
+  it('WR-01: non_deniable=true UND user_deny=true erreicht den Bestätigungsschritt statt der Sackgasse-Erklärung', async () => {
+    const result = makeMutationResult({ activation_status: 'active' })
+    mockMutateCapabilityOverride.mockResolvedValueOnce(result)
+
+    render(
+      <GuidedRevokeFlow
+        {...defaultProps}
+        state={makeState({
+          allowed: true,
+          non_deniable: true,
+          user_deny: true,
+          decisive_source: 'platform_admin',
+          granting_roles: [],
+        })}
+      />,
+    )
+
+    expect(screen.queryByText(/nicht persönlich entzogen werden/)).toBeNull()
+
+    const confirmButton = screen.getByRole('button', { name: 'Abweichung entfernen' })
+    expect((confirmButton as HTMLButtonElement).disabled).toBe(false)
+
+    fireEvent.click(confirmButton)
+
+    expect(mockMutateCapabilityOverride).toHaveBeenCalledWith(1, 42, {
+      group_id: 1,
+      target_user_id: 42,
+      action_code: 'fansub_group.members.manage',
+      effect: null,
+      reason: { category: 'task_delegation', text: null },
+    })
+
+    await screen.findByText('Gespeichert und sofort aktiv.')
+  })
 })
