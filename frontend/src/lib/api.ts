@@ -3848,13 +3848,37 @@ export async function getClaimActivationImpactPreview(
 }
 
 /**
+ * Phase 139 Review CR-01/WR-04: `DatePicker.tsx` (`toIsoDate`) only ever emits a plain
+ * `YYYY-MM-DD` string, but the backend's `parseOptionalRFC3339`
+ * (`admin_claims_list_handler.go`) requires a full RFC3339 timestamp -- `time.Parse` fails on
+ * a bare date and the filter is silently treated as absent. Converting here (once, shared by
+ * both `from`/`to` call sites below) turns a selected date into a UTC day boundary before it
+ * ever reaches the query string. `to` deliberately does NOT mirror `from`'s start-of-day
+ * transform (WR-04): using `T00:00:00Z` for both would exclude every row created later on the
+ * selected end day, an off-by-one that would only become observable once CR-01 itself is
+ * fixed. Values that are not a bare `YYYY-MM-DD` (e.g. already a full timestamp) pass through
+ * unchanged.
+ */
+const ISO_DATE_ONLY_PATTERN = /^\d{4}-\d{2}-\d{2}$/;
+
+function toRangeStartRFC3339(value: string): string {
+  return ISO_DATE_ONLY_PATTERN.test(value) ? `${value}T00:00:00Z` : value;
+}
+
+function toRangeEndRFC3339(value: string): string {
+  return ISO_DATE_ONLY_PATTERN.test(value) ? `${value}T23:59:59.999Z` : value;
+}
+
+/**
  * Contributions-Tab (D-12/D-13, member_id-Anker). Phase 139 (139-03/139-07): serverseitig
  * gruppierte/paginierte/gefilterte Beitragsprojektion -- `params` folgt exakt listClaims'
  * Query-Building-Konvention (nur setzen, wenn nicht undefined/null/leer). `only_deviations`
  * wird hier als literales `"true"` an das Backend gesendet (nicht `'1'`), da
  * GetUserContributions's Handler exakt `c.Query("only_deviations") == "true"` prüft -- das ist
  * unabhängig von der URL-Bar-Kodierung `'1'`/abwesend, die useUserContributionsFilters.ts fürs
- * Browser-URL-Sync verwendet.
+ * Browser-URL-Sync verwendet. `from`/`to` durchlaufen `toRangeStartRFC3339`/`toRangeEndRFC3339`
+ * (CR-01/WR-04), da `useUserContributionsFilters` sie unverändert aus der `DatePicker`-URL
+ * übernimmt.
  */
 export async function getAdminUserContributions(
   userId: number,
@@ -3865,8 +3889,8 @@ export async function getAdminUserContributions(
   if (params.fansub_group_id != null) query.set("fansub_group_id", String(params.fansub_group_id));
   if (params.role_code) query.set("role_code", params.role_code);
   if (params.only_deviations) query.set("only_deviations", "true");
-  if (params.from) query.set("from", params.from);
-  if (params.to) query.set("to", params.to);
+  if (params.from) query.set("from", toRangeStartRFC3339(params.from));
+  if (params.to) query.set("to", toRangeEndRFC3339(params.to));
   if (params.limit != null) query.set("limit", String(params.limit));
   if (params.offset != null) query.set("offset", String(params.offset));
   const response = await apiClientFetch(
@@ -3886,7 +3910,8 @@ export async function getAdminUserContributions(
 /**
  * Medien-Tab: Medien-Uploads eines Users. Phase 139 (139-04/139-07): serverseitig
  * gruppierte/paginierte/gefilterte Medienprojektion -- `params` folgt exakt listClaims's
- * Query-Building-Konvention.
+ * Query-Building-Konvention. `from`/`to` durchlaufen `toRangeStartRFC3339`/`toRangeEndRFC3339`
+ * (CR-01/WR-04), siehe `getAdminUserContributions` oben.
  */
 export async function getAdminUserMedia(
   userId: number,
@@ -3899,8 +3924,8 @@ export async function getAdminUserMedia(
     query.set("release_version_id", String(params.release_version_id));
   }
   if (params.media_type) query.set("media_type", params.media_type);
-  if (params.from) query.set("from", params.from);
-  if (params.to) query.set("to", params.to);
+  if (params.from) query.set("from", toRangeStartRFC3339(params.from));
+  if (params.to) query.set("to", toRangeEndRFC3339(params.to));
   if (params.limit != null) query.set("limit", String(params.limit));
   if (params.offset != null) query.set("offset", String(params.offset));
   const response = await apiClientFetch(

@@ -12,6 +12,8 @@ import type { AdminUserListParams, AdminUserOverviewResponse } from '@/types/adm
 import {
   listAdminUsersPage,
   getAdminUserOverview,
+  getAdminUserContributions,
+  getAdminUserMedia,
   ApiError,
 } from '@/lib/api'
 
@@ -105,5 +107,55 @@ describe('getAdminUserOverview', () => {
     expect(result.id).toBe(42)
     expect(result.email).toBe('test@example.com')
     expect(Array.isArray(result.conflict_details)).toBe(true)
+  })
+})
+
+// Phase 139 Code-Review CR-01/WR-04: DatePicker.tsx's toIsoDate() emits only a bare
+// "YYYY-MM-DD" string, but the backend's parseOptionalRFC3339 (admin_claims_list_handler.go)
+// requires a full RFC3339 timestamp and silently drops anything else as "no filter". These
+// tests pin the exact wire format getAdminUserContributions/getAdminUserMedia must produce
+// from that bare-date input so a regression here is caught immediately.
+describe('getAdminUserContributions date-range filters (CR-01/WR-04)', () => {
+  it('getAdminUserContributions_converts_bare_DatePicker_date_to_RFC3339_day_boundaries', async () => {
+    const mockPage = {
+      data: [],
+      meta: { total: 0, limit: 25, offset: 0 },
+      filter_options: { animes: [], groups: [] },
+    }
+    vi.spyOn(global, 'fetch').mockResolvedValueOnce(
+      new Response(JSON.stringify(mockPage), { status: 200 }),
+    )
+
+    // "2026-08-24" is exactly what DatePicker.tsx's toIsoDate() produces -- never a full
+    // RFC3339 timestamp.
+    await getAdminUserContributions(1, { from: '2026-08-24', to: '2026-08-24' })
+
+    const calledUrl = (global.fetch as ReturnType<typeof vi.fn>).mock.calls[0][0] as string
+    const query = new URL(calledUrl, 'http://localhost').searchParams
+    expect(query.get('from')).toBe('2026-08-24T00:00:00Z')
+    // WR-04: "to" must be end-of-day inclusive, not a naive mirror of "from"'s start-of-day
+    // transform -- otherwise rows created later that same day would be excluded once CR-01
+    // is fixed.
+    expect(query.get('to')).toBe('2026-08-24T23:59:59.999Z')
+  })
+})
+
+describe('getAdminUserMedia date-range filters (CR-01/WR-04)', () => {
+  it('getAdminUserMedia_converts_bare_DatePicker_date_to_RFC3339_day_boundaries', async () => {
+    const mockPage = {
+      data: [],
+      meta: { total: 0, limit: 25, offset: 0 },
+      filter_options: { animes: [], groups: [], releases_or_episodes: [], media_types: [] },
+    }
+    vi.spyOn(global, 'fetch').mockResolvedValueOnce(
+      new Response(JSON.stringify(mockPage), { status: 200 }),
+    )
+
+    await getAdminUserMedia(1, { from: '2026-08-24', to: '2026-08-24' })
+
+    const calledUrl = (global.fetch as ReturnType<typeof vi.fn>).mock.calls[0][0] as string
+    const query = new URL(calledUrl, 'http://localhost').searchParams
+    expect(query.get('from')).toBe('2026-08-24T00:00:00Z')
+    expect(query.get('to')).toBe('2026-08-24T23:59:59.999Z')
   })
 })
