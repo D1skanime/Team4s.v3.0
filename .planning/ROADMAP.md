@@ -579,7 +579,7 @@ Plans:
 
 Plans:
 **Wave 1**
-- [ ] 139-01-PLAN.md — Backend DTO foundation (grouped contributions/media/rights-summary shapes) + disposable Phase-139 Postgres test harness
+- [x] 139-01-PLAN.md — Backend DTO foundation (grouped contributions/media/rights-summary shapes) + disposable Phase-139 Postgres test harness
 - [ ] 139-02-PLAN.md — Frontend TS type mirrors + URL-synced contributions/media filter hooks
 
 **Wave 2** *(blocked on Wave 1 completion)*

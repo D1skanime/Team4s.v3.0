@@ -3,14 +3,14 @@ gsd_state_version: 1.0
 milestone: v1.4
 milestone_name: Coverage
 status: executing
-stopped_at: Phase 139 UI-SPEC approved
-last_updated: "2026-08-24T16:16:01.626Z"
-last_activity: 2026-08-24 -- Phase 139 planning complete
+stopped_at: Completed 139-01-PLAN.md
+last_updated: "2026-08-24T17:29:18.051Z"
+last_activity: 2026-08-24
 progress:
   total_phases: 7
   completed_phases: 3
   total_plans: 73
-  completed_plans: 63
+  completed_plans: 64
   percent: 43
 ---
 
@@ -29,14 +29,14 @@ Phase 135 and any future roadmap entries continue from here.
 See: .planning/PROJECT.md (updated 2026-08-13)
 
 **Core value:** Team4s presents fansub history and collaboration credibly while keeping identity, visibility, ownership, and permissions correct.
-**Current focus:** Phase 138 — effective-rights-administration-impact-ux (complete); next phase 139 pending
+**Current focus:** Phase 139 — scalable-user-admin-projections
 
 ## Current Position
 
-Phase: 138 (effective-rights-administration-impact-ux) — COMPLETE (18/18 plans)
-Plan: 18 of 18
+Phase: 139 (scalable-user-admin-projections) — EXECUTING
+Plan: 2 of 10
 Status: Ready to execute
-Last activity: 2026-08-24 - Completed quick task 260824-nmt: Veraltete Rollen-Fixtures in den Profil-Tests reparieren (Registry-Umstellung Altlast)
+Last activity: 2026-08-24
 
 ## Accumulated Context
 
@@ -186,6 +186,7 @@ Last activity: 2026-08-24 - Completed quick task 260824-nmt: Veraltete Rollen-Fi
 - [Phase 138]: 138-17: GAP-01 formatRelativeDate clamps its ms diff to >= 0 before computing days, so a last_activity_at at or after Date.now() (clock skew or exact-now) always resolves to 'Heute'; GAP-03's WR-01 branch order (isNonDeniable && !isRemoveMode) was already correct in production code -- a new 7th regression test pins non_deniable+user_deny reaching the confirm step, closing 138-VERIFICATION.md's sole human_needed gap with automated coverage, no production code change needed.
 - [Phase 138]: 138-18 closed GAP-02: RoleCapabilityImpactPreviewModal's metrics row column-stacks (.metricsRow, <=759px) so all 5 D-19 metrics stay visible, per-user vorher/nachher/Grund renders as a Card list below 759px (mirrors RoleHoldersTable.tsx's useIsMobile()/matchMedia precedent, D-32), and a new opt-in Modal panelClassName prop lets only this modal override the shared mobile 100dvh height rule (.narrowHeightFix, doubled-selector specificity) -- ui.module.css and all 30 other <Modal> call sites remain byte-unchanged. Phase 138 (18/18 plans) is now complete.
 - [Phase Quick 260824-ike]: Task 1's handler unit test used fansub_lead/founder instead of the plan's co_leader/encoder example pair because the internal/handlers package's shared TestMain catalog stub predates migration 0112's assignable=true promotion of co_leader; verified the real running app's DB-loaded catalog has co_leader assignable=true with fansub_group context, so production behavior matches the plan's intent -- pure test-selection fix, zero production logic change.
+- [Phase 139]: 139-01: Phase-139 DTOs (AdminUserContributionsPage/AdminUserMediaPage/AdminUserRightsSummaryPage) added additively to admin_users.go alongside untouched existing AdminUserContributionsResult/AdminUserMediaResult/AdminContributionItem/AdminMediaItemSummary; testsupport.OpenPhase139Postgres(t) applies the full real 151-pair migration chain (not hand-assembled stand-in tables) inside an isolated per-test schema. — Fixed two dormant bugs this exposed: migrations 0057/0071 hardcoded public.-qualified references (only 2 of 151 pairs, now schema-portable via current_schemas(false)), and a genuine import cycle from testsupport now importing migrations (resolved by moving 14 internal migrations-package test files to the external migrations_test package, mechanical rename, go test FAIL count unchanged at 65).
 
 ### Pending Todos
 
@@ -427,10 +428,11 @@ untruncated list lives in `.planning/todos/pending/`.
 | Phase 138 P16 | 35min | 2 tasks | 13 files |
 | Phase 138 P17 | ~10m | 2 tasks | 3 files |
 | Phase 138 P18 | 6min | 3 tasks | 4 files |
+| Phase 139 P01 | 55min | 2 tasks | 18 files |
 
 ## Session Continuity
 
-Last session: 2026-08-24T15:18:37.916Z
-Stopped at: Phase 139 UI-SPEC approved
+Last session: 2026-08-24T17:29:18.036Z
+Stopped at: Completed 139-01-PLAN.md
 Last activity: 2026-08-20 - Completed Phase 134 Plan 06: live UAT evidence capture, two gap-closure fix rounds, and the user's explicit live-browser sign-off for both reference profiles (PMQA-05)
-Resume file: .planning/phases/139-scalable-user-admin-projections/139-UI-SPEC.md
+Resume file: None
