@@ -235,6 +235,11 @@ import type {
   AdminClaimsListResponse,
   AdminChangesListParams,
   AdminChangesListResponse,
+  AdminUserContributionsParams,
+  AdminUserContributionsPage,
+  AdminUserMediaParams,
+  AdminUserMediaPage,
+  AdminUserRightsSummaryPage,
 } from "@/types/admin-users";
 import type {
   GroupContributorsResponse,
@@ -3720,12 +3725,21 @@ export async function getAdminUserMemberClaims(
   return response.json() as Promise<AdminUserMemberClaimsResponse>;
 }
 
-/** Gruppenmitgliedschaften-Tab. */
+/**
+ * Gruppenmitgliedschaften-Tab. Phase 139 (139-05): `limit`/`offset` sind additiv optional --
+ * bestehende Aufrufstellen ohne Paginierungs-Parameter funktionieren unverändert weiter.
+ */
 export async function getAdminUserGroupMemberships(
   userId: number,
+  limit?: number,
+  offset?: number,
 ): Promise<AdminUserGroupMembershipsResponse> {
+  const query = new URLSearchParams();
+  if (limit != null) query.set("limit", String(limit));
+  if (offset != null) query.set("offset", String(offset));
+  const queryString = query.toString();
   const response = await apiClientFetch(
-    `/api/v1/admin/users/${userId}/group-memberships`,
+    `/api/v1/admin/users/${userId}/group-memberships${queryString ? `?${queryString}` : ""}`,
     { cache: "no-store" },
   );
   if (!response.ok) {
@@ -3736,6 +3750,34 @@ export async function getAdminUserGroupMemberships(
     throw new ApiError(response.status, parsed.message, null, parsed.code, parsed.details);
   }
   return response.json() as Promise<AdminUserGroupMembershipsResponse>;
+}
+
+/**
+ * F-01/UADM-06: gebündelte Rechte-Übersicht für den Overview-Tab (Plan 139-05's neuer
+ * Endpunkt) -- ersetzt den alten `getAdminUserGroupMemberships` +
+ * `Promise.all(getEffectiveRights per group)`-Fan-out mit EINEM Aufruf.
+ */
+export async function getAdminUserRightsSummary(
+  userId: number,
+  limit?: number,
+  offset?: number,
+): Promise<AdminUserRightsSummaryPage> {
+  const query = new URLSearchParams();
+  if (limit != null) query.set("limit", String(limit));
+  if (offset != null) query.set("offset", String(offset));
+  const queryString = query.toString();
+  const response = await apiClientFetch(
+    `/api/v1/admin/users/${userId}/rights-summary${queryString ? `?${queryString}` : ""}`,
+    { cache: "no-store" },
+  );
+  if (!response.ok) {
+    const parsed = await parseApiErrorPayload(
+      response,
+      `API request failed: ${response.status}`,
+    );
+    throw new ApiError(response.status, parsed.message, null, parsed.code, parsed.details);
+  }
+  return response.json() as Promise<AdminUserRightsSummaryPage>;
 }
 
 /** Gruppenrechte-Tab (scoped, read-only, D-03). */
@@ -3807,12 +3849,30 @@ export async function getClaimActivationImpactPreview(
   return payload.data;
 }
 
-/** Contributions-Tab (D-12/D-13, member_id-Anker). */
+/**
+ * Contributions-Tab (D-12/D-13, member_id-Anker). Phase 139 (139-03/139-07): serverseitig
+ * gruppierte/paginierte/gefilterte Beitragsprojektion -- `params` folgt exakt listClaims'
+ * Query-Building-Konvention (nur setzen, wenn nicht undefined/null/leer). `only_deviations`
+ * wird hier als literales `"true"` an das Backend gesendet (nicht `'1'`), da
+ * GetUserContributions's Handler exakt `c.Query("only_deviations") == "true"` prüft -- das ist
+ * unabhängig von der URL-Bar-Kodierung `'1'`/abwesend, die useUserContributionsFilters.ts fürs
+ * Browser-URL-Sync verwendet.
+ */
 export async function getAdminUserContributions(
   userId: number,
-): Promise<AdminUserContributionsResponse> {
+  params: AdminUserContributionsParams = {},
+): Promise<AdminUserContributionsPage> {
+  const query = new URLSearchParams();
+  if (params.anime_id != null) query.set("anime_id", String(params.anime_id));
+  if (params.fansub_group_id != null) query.set("fansub_group_id", String(params.fansub_group_id));
+  if (params.role_code) query.set("role_code", params.role_code);
+  if (params.only_deviations) query.set("only_deviations", "true");
+  if (params.from) query.set("from", params.from);
+  if (params.to) query.set("to", params.to);
+  if (params.limit != null) query.set("limit", String(params.limit));
+  if (params.offset != null) query.set("offset", String(params.offset));
   const response = await apiClientFetch(
-    `/api/v1/admin/users/${userId}/contributions`,
+    `/api/v1/admin/users/${userId}/contributions?${query.toString()}`,
     { cache: "no-store" },
   );
   if (!response.ok) {
@@ -3822,15 +3882,31 @@ export async function getAdminUserContributions(
     );
     throw new ApiError(response.status, parsed.message, null, parsed.code, parsed.details);
   }
-  return response.json() as Promise<AdminUserContributionsResponse>;
+  return response.json() as Promise<AdminUserContributionsPage>;
 }
 
-/** Medien-Tab: Medien-Uploads eines Users. */
+/**
+ * Medien-Tab: Medien-Uploads eines Users. Phase 139 (139-04/139-07): serverseitig
+ * gruppierte/paginierte/gefilterte Medienprojektion -- `params` folgt exakt listClaims's
+ * Query-Building-Konvention.
+ */
 export async function getAdminUserMedia(
   userId: number,
-): Promise<AdminUserMediaResponse> {
+  params: AdminUserMediaParams = {},
+): Promise<AdminUserMediaPage> {
+  const query = new URLSearchParams();
+  if (params.anime_id != null) query.set("anime_id", String(params.anime_id));
+  if (params.fansub_group_id != null) query.set("fansub_group_id", String(params.fansub_group_id));
+  if (params.release_version_id != null) {
+    query.set("release_version_id", String(params.release_version_id));
+  }
+  if (params.media_type) query.set("media_type", params.media_type);
+  if (params.from) query.set("from", params.from);
+  if (params.to) query.set("to", params.to);
+  if (params.limit != null) query.set("limit", String(params.limit));
+  if (params.offset != null) query.set("offset", String(params.offset));
   const response = await apiClientFetch(
-    `/api/v1/admin/users/${userId}/media`,
+    `/api/v1/admin/users/${userId}/media?${query.toString()}`,
     { cache: "no-store" },
   );
   if (!response.ok) {
@@ -3840,7 +3916,7 @@ export async function getAdminUserMedia(
     );
     throw new ApiError(response.status, parsed.message, null, parsed.code, parsed.details);
   }
-  return response.json() as Promise<AdminUserMediaResponse>;
+  return response.json() as Promise<AdminUserMediaPage>;
 }
 
 /** Audit-Tab: Audit-Timeline (actor oder target = userId). */
