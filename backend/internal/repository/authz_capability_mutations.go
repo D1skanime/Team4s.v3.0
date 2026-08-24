@@ -51,6 +51,15 @@ type CapabilityMatrixRoleEntry struct {
 	// müssen: shared/contracts/admin-capabilities.yaml (RoleEntry.global_assignment_count) und
 	// frontend/src/types/admin-capability.ts (RoleEntry.global_assignment_count).
 	GlobalAssignmentCount *int `json:"global_assignment_count,omitempty"`
+	// GroupHolderCount zählt aktive Zuweisungen aus fansub_group_member_roles. NUR für
+	// role_definitions-Zeilen gesetzt, die permissions.IsKnownFansubGroupRole erfüllen (echte
+	// Gruppenrollen) — für die drei synthetischen globalen Zeilen und für Rollen außerhalb dieses
+	// Katalogs bleibt der Pointer nil → JSON "null"/fehlend. Grund: 260824-ike Defekt 2 (Rail
+	// zeigte für Gruppenrollen durchgehend "-", obwohl das Detail-Panel echte Zahlen zeigt).
+	// Gegenstücke, die synchron gehalten werden müssen: shared/contracts/admin-capabilities.yaml
+	// (RoleEntry.group_holder_count) und frontend/src/types/admin-capability.ts
+	// (RoleEntry.group_holder_count).
+	GroupHolderCount *int `json:"group_holder_count,omitempty"`
 	// RoleKind ist "global_app_role" nur für die drei synthetischen globalen App-Rollen-Zeilen
 	// (Handler-Merge in admin_capability_handler.go), sonst leer für alle bestehenden
 	// role_definitions-Zeilen. Gegenstücke: admin-capabilities.yaml RoleEntry.role_kind,
@@ -266,6 +275,40 @@ func (r *AuthzRepository) CountGlobalRoleAssignments(ctx context.Context) (map[s
 	}
 	if err := rows.Err(); err != nil {
 		return nil, fmt.Errorf("count global role assignments: iterate: %w", err)
+	}
+
+	return counts, nil
+}
+
+// CountGroupRoleHolders aggregiert die aktiven Zuweisungen aus fansub_group_member_roles ("wer
+// besitzt diese Gruppenrolle, wie oft?" — D-05-analog für Gruppenrollen). Wird vom Handler
+// genutzt, um role_definitions-Zeilen mit permissions.IsKnownFansubGroupRole einen korrekten
+// group_holder_count zuzuweisen (260824-ike Defekt 2). Rollen ohne Zuweisung fehlen im Ergebnis
+// (Go-Zero-Value 0 im Handler beim Map-Zugriff). ListRoleHolders bleibt die einzige Quelle für
+// die vollen Pro-Rolle-Inhaberdetails (Name/Gruppe/Status/Overrides) — diese Methode liefert
+// bewusst nur Zahlen, keine Zeilen.
+func (r *AuthzRepository) CountGroupRoleHolders(ctx context.Context) (map[string]int, error) {
+	rows, err := r.db.Query(ctx, `
+		SELECT fgmr.role, COUNT(*) AS cnt
+		FROM fansub_group_member_roles fgmr
+		GROUP BY fgmr.role
+	`)
+	if err != nil {
+		return nil, fmt.Errorf("count group role holders: query: %w", err)
+	}
+	defer rows.Close()
+
+	counts := make(map[string]int)
+	for rows.Next() {
+		var role string
+		var count int
+		if err := rows.Scan(&role, &count); err != nil {
+			return nil, fmt.Errorf("count group role holders: scan: %w", err)
+		}
+		counts[role] = count
+	}
+	if err := rows.Err(); err != nil {
+		return nil, fmt.Errorf("count group role holders: iterate: %w", err)
 	}
 
 	return counts, nil

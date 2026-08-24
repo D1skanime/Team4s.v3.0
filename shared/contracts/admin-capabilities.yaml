@@ -1313,6 +1313,14 @@ components:
             Anzahl aktiver Zuweisungen aus app_user_global_roles — nur für die drei
             synthetischen globalen App-Rollen-Zeilen (platform_admin/content_admin/user)
             gesetzt; für alle role_definitions-Zeilen null/fehlend (111-RESEARCH.md Pitfall 1).
+        group_holder_count:
+          type: integer
+          nullable: true
+          description: >
+            Anzahl aktiver Zuweisungen aus fansub_group_member_roles — nur für
+            role_definitions-Zeilen gesetzt, die permissions.IsKnownFansubGroupRole erfüllen
+            (echte Gruppenrollen); für die drei synthetischen globalen Zeilen und für Rollen
+            außerhalb dieses Katalogs null/fehlend (260824-ike Defekt 2).
         role_kind:
           type: string
           description: >

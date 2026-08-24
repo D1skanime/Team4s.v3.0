@@ -45,6 +45,14 @@ export interface RoleEntry {
    */
   global_assignment_count?: number | null;
   /**
+   * Anzahl aktiver Zuweisungen aus fansub_group_member_roles -- nur fuer role_definitions-Zeilen
+   * gesetzt, die permissions.IsKnownFansubGroupRole erfuellen (echte Gruppenrollen); fuer die drei
+   * synthetischen globalen Zeilen und fuer contribution-only-Rollen null/fehlend. Gegenstuecke:
+   * backend/internal/repository/authz_capability_mutations.go CapabilityMatrixRoleEntry.GroupHolderCount,
+   * shared/contracts/admin-capabilities.yaml RoleEntry.group_holder_count.
+   */
+  group_holder_count?: number | null;
+  /**
    * "global_app_role" für die drei synthetischen globalen App-Rollen-Zeilen, sonst
    * leer/fehlend für role_definitions-Zeilen (111-RESEARCH.md Pitfall 1/2).
    */

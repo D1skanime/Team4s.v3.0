@@ -28,6 +28,9 @@ type capabilityMutationRepo interface {
 	// CountGlobalRoleAssignments aggregiert app_user_global_roles für die synthetischen
 	// globalen App-Rollen-Zeilen in ListCapabilityMatrix (D-05, 111-RESEARCH.md Pitfall 1).
 	CountGlobalRoleAssignments(ctx context.Context) (map[string]int, error)
+	// CountGroupRoleHolders aggregiert fansub_group_member_roles für permissions.IsKnownFansubGroupRole-
+	// Zeilen in ListCapabilityMatrix (260824-ike Defekt 2).
+	CountGroupRoleHolders(ctx context.Context) (map[string]int, error)
 }
 
 // globalAppRoleCodes ist die feste Reihenfolge der drei globalen App-Rollen, die als
@@ -121,6 +124,24 @@ func (h *AdminCapabilityHandler) ListCapabilityMatrix(c *gin.Context) {
 		})
 	}
 	matrix.Roles = append(syntheticRoles, matrix.Roles...)
+
+	// 260824-ike Defekt 2: Gruppenrollen-Inhaberzahl fail-open aus CountGroupRoleHolders
+	// ergänzen, ausschließlich für permissions.IsKnownFansubGroupRole-Rollen — NICHT für die
+	// gerade vorangestellten synthetischen globalen Zeilen (die haben bereits
+	// GlobalAssignmentCount) und NICHT für role_definitions-Zeilen außerhalb dieses Katalogs
+	// (fansub_group_member_roles enthält für diese ohnehin nie eine Zeile).
+	groupHolderCounts, err := h.mutationRepo.CountGroupRoleHolders(c.Request.Context())
+	if err != nil {
+		log.Printf("capability matrix: CountGroupRoleHolders fehlgeschlagen: %v — Zählwerte fallen auf 0 zurück", err)
+		groupHolderCounts = map[string]int{}
+	}
+	for i := range matrix.Roles {
+		if !permissions.IsKnownFansubGroupRole(matrix.Roles[i].RoleCode) {
+			continue
+		}
+		count := groupHolderCounts[matrix.Roles[i].RoleCode]
+		matrix.Roles[i].GroupHolderCount = &count
+	}
 
 	c.JSON(http.StatusOK, matrix)
 }
