@@ -3,14 +3,14 @@ gsd_state_version: 1.0
 milestone: v1.4
 milestone_name: Coverage
 status: executing
-stopped_at: Completed 139-03-PLAN.md
-last_updated: "2026-08-24T19:04:45.259Z"
+stopped_at: Completed 139-05-PLAN.md
+last_updated: "2026-08-24T19:23:23.350Z"
 last_activity: 2026-08-24
 progress:
   total_phases: 7
   completed_phases: 3
   total_plans: 73
-  completed_plans: 67
+  completed_plans: 68
   percent: 43
 ---
 
@@ -34,7 +34,7 @@ See: .planning/PROJECT.md (updated 2026-08-13)
 ## Current Position
 
 Phase: 139 (scalable-user-admin-projections) — EXECUTING
-Plan: 5 of 10
+Plan: 6 of 10
 Status: Ready to execute
 Last activity: 2026-08-24
 
@@ -190,6 +190,7 @@ Last activity: 2026-08-24
 - [Phase 139]: 139-02: New Phase-139 TS DTOs (AdminUserContributionsPage/AdminUserMediaPage/AdminUserRightsSummaryPage) verified field-for-field against 139-01's Go structs; two new URL-synced filter hooks (useUserContributionsFilters/useUserMediaFilters) mirror useClaimsListFilters.ts exactly, only_deviations encoded as '1'/absent per the has_conflicts convention. Zero file overlap with sibling plan 139-01.
 - [Phase 139]: 139-03: ListUserContributions is fully rewritten to return server-side grouped/paginated AdminUserContributionsPage (anime+project grouping, sort_index range-collapse, semantic override-diff never trusting release_crew_snapshots.snapshot_mode alone); fixed a real ARRAY_AGG(array_col)[1]-typed-as-scalar cardinality(text) SQL bug found via the 9-test D02-D10 integration suite, corrected to MIN() aggregates over the invariant per-range-group role arrays.
 - [Phase 139]: 139-04: GetUserMedia is fully rewritten to return server-side grouped/paginated AdminUserMediaPage (anime+project+release/episode grouping, real PublicURL/FileSizeBytes derivation via a ported buildRVMPublicURL convention + media_files join); AdminUsersRepository's constructor now threads cfg.MediaStorageDir (mirrors NewFansubRepository/NewMediaRepository), requiring 4 call-site updates outside the plan's stated file list.
+- [Phase 139]: Plan 139-05: GroupRightsSourcesInput.Roles is []string (role codes) not []Action as the plan text stated; AuthzRepository implements the three new batch-resolver interfaces (membership/overrides/review-grant) via a new authz_permissions_batch.go file, not by growing the already-over-450-line authz_permissions.go.
 
 ### Pending Todos
 
@@ -435,10 +436,11 @@ untruncated list lives in `.planning/todos/pending/`.
 | Phase 139 P02 | 35min | 2 tasks | 3 files |
 | Phase 139 P03 | 35min | 3 tasks | 7 files |
 | Phase 139 P04 | 40min | 3 tasks | 9 files |
+| Phase 139 P05 | 20min | 3 tasks | 15 files |
 
 ## Session Continuity
 
-Last session: 2026-08-24T19:04:45.245Z
-Stopped at: Completed 139-03-PLAN.md
+Last session: 2026-08-24T19:23:23.336Z
+Stopped at: Completed 139-05-PLAN.md
 Last activity: 2026-08-20 - Completed Phase 134 Plan 06: live UAT evidence capture, two gap-closure fix rounds, and the user's explicit live-browser sign-off for both reference profiles (PMQA-05)
 Resume file: None

@@ -589,7 +589,7 @@ Plans:
 - [x] 139-04-PLAN.md — Media grouping query + real PublicURL/FileSizeBytes derivation (D11-D14/D17-D19)
 
 **Wave 4** *(blocked on Wave 3 completion)*
-- [ ] 139-05-PLAN.md — F-01 batched rights-summary endpoint (Overview-tab fan-out fix) + GetUserGroupMemberships pagination (D21/D22)
+- [x] 139-05-PLAN.md — F-01 batched rights-summary endpoint (Overview-tab fan-out fix) + GetUserGroupMemberships pagination (D21/D22)
 
 **Wave 5** *(blocked on Wave 4 completion)*
 - [ ] 139-06-PLAN.md — QUAL-06 query-budget + pagination-drift gate + F-03 live seed-data script
