@@ -101,12 +101,6 @@
   color: var(--text-body);
 }
 
-.roleRowMeta {
-  font-size: 0.72rem;
-  color: var(--text-faint);
-  white-space: nowrap;
-}
-
 .roleRowCount {
   font-size: 0.78rem;
   color: var(--text-soft);

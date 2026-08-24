@@ -27,14 +27,17 @@ export function roleKindLabel(role: RoleEntry): string {
 }
 
 /**
- * Inhaberzahl-Text je Rolle (D-05). Dash für Gruppen-/Contribution-Rollen, da ohne neues
- * Backend-Feld kein günstiger Pro-Zeile-Count existiert; echte Zahl nur für die drei
- * synthetischen globalen Zeilen. Reiner Text -- KEIN Link (die "Benutzer anzeigen"-Aktion
- * wandert für globale Rollen ins Detail-Panel, siehe RoleDetailPanel.tsx, GAP-04-Befund-1).
+ * Inhaberzahl-Text je Rolle (D-05, erweitert 260824-ike Defekt 2). Vorrang:
+ * global_assignment_count (die drei synthetischen globalen Zeilen) vor group_holder_count
+ * (echte Fansub-Gruppenrollen, permissions.IsKnownFansubGroupRole) vor '–' (kein Backend-Feld
+ * gesetzt -- contribution-only/historische Rollen). Reiner Text -- KEIN Link (die "Benutzer
+ * anzeigen"-Aktion wandert für globale Rollen ins Detail-Panel, siehe RoleDetailPanel.tsx,
+ * GAP-04-Befund-1).
  */
 export function rowCountText(role: RoleEntry): string {
-  if (role.global_assignment_count == null) return '–'
-  return `${role.global_assignment_count}×`
+  if (role.global_assignment_count != null) return `${role.global_assignment_count}×`
+  if (role.group_holder_count != null) return `${role.group_holder_count}×`
+  return '–'
 }
 
 interface RoleRowProps {
@@ -55,7 +58,6 @@ function RoleRow({ role, isSelected, onSelectRole }: RoleRowProps) {
         onClick={() => onSelectRole(role.role_code)}
       >
         <span className={styles.roleRowName}>{role.label_de}</span>
-        <span className={styles.roleRowMeta}>{roleKindLabel(role)}</span>
         <span className={styles.roleRowCount}>{rowCountText(role)}</span>
       </Button>
     </div>
