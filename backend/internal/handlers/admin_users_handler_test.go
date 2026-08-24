@@ -12,6 +12,7 @@ import (
 	"net/http"
 	"net/http/httptest"
 	"testing"
+	"time"
 
 	"team4s.v3/backend/internal/middleware"
 	"team4s.v3/backend/internal/models"
@@ -47,6 +48,15 @@ type adminUsersRepoStub struct {
 	updateStatusErr     error
 	rightsSummaryResult *models.AdminUserRightsSummaryPage
 	rightsSummaryErr    error
+
+	// WR-02: capture the filter/params the handler actually built from the query string, so
+	// tests can assert on the exact HTTP-query -> typed-filter translation (this is also the
+	// regression test that proves CR-01 stays fixed -- a from/to value in the exact RFC3339
+	// wire format api.ts now sends must turn into non-nil *time.Time fields here).
+	receivedContributionsFilter repository.AdminUserContributionsFilter
+	receivedMediaFilter         repository.AdminUserMediaFilter
+	receivedRightsSummaryLimit  int
+	receivedRightsSummaryOffset int
 }
 
 // Die folgenden Methoden entsprechen dem noch-nicht-existierenden AdminUsersRepository-Interface.
@@ -76,6 +86,8 @@ func (s *adminUsersRepoStub) GetUserGroupMemberships(ctx context.Context, appUse
 func (s *adminUsersRepoStub) GetUserRightsSummary(
 	ctx context.Context, appUserID int64, limit int, offset int, resolver repository.AdminUsersRightsBatchResolver,
 ) (*models.AdminUserRightsSummaryPage, error) {
+	s.receivedRightsSummaryLimit = limit
+	s.receivedRightsSummaryOffset = offset
 	return s.rightsSummaryResult, s.rightsSummaryErr
 }
 
@@ -84,10 +96,12 @@ func (s *adminUsersRepoStub) GetUserGroupRights(ctx context.Context, appUserID i
 }
 
 func (s *adminUsersRepoStub) ListUserContributions(ctx context.Context, filter repository.AdminUserContributionsFilter) (*models.AdminUserContributionsPage, error) {
+	s.receivedContributionsFilter = filter
 	return s.contributionsResult, s.contributionsErr
 }
 
 func (s *adminUsersRepoStub) GetUserMedia(ctx context.Context, filter repository.AdminUserMediaFilter) (*models.AdminUserMediaPage, error) {
+	s.receivedMediaFilter = filter
 	return s.mediaResult, s.mediaErr
 }
 
@@ -340,5 +354,195 @@ func TestAdminUsersHandler_UpdateUserStatus_Disable_LastAdminGuard_Returns409(t 
 	}
 	if audit.writeCount() != 0 {
 		t.Fatalf("erwartet keinen Audit-Eintrag bei Ablehnung, aber %d Einträge vorhanden", audit.writeCount())
+	}
+}
+
+// --- WR-02: GetUserContributions/GetUserMedia/GetUserRightsSummary query-param parsing ---
+//
+// Code-Review 139-REVIEW.md WR-02: keiner der bisherigen Tests in dieser Datei ruft
+// handler.GetUserContributions/.GetUserMedia/.GetUserRightsSummary tatsächlich auf -- die
+// Query-String -> typed-Filter-Übersetzung dieser drei Endpunkte (parseOptionalPositiveID,
+// parseOptionalRFC3339, only_deviations == "true", limit/offset) war strukturell ungetestet.
+// Dieser Test ist zugleich der Regressionstest für CR-01: ein from/to-Wert im exakten
+// RFC3339-Format, das api.ts nach der CR-01-Korrektur an das Backend sendet, muss hier als
+// nicht-nil *time.Time in der Filter-Struktur ankommen.
+
+func TestAdminUsersHandler_GetUserContributions_ParsesQueryParams(t *testing.T) {
+	gin.SetMode(gin.TestMode)
+
+	authz := &adminAuthzRepoStub{isAdmin: true}
+	audit := &adminAuditStub{}
+	repoStub := &adminUsersRepoStub{
+		contributionsResult: &models.AdminUserContributionsPage{
+			Data:          []models.AdminContributionProjectBlock{},
+			FilterOptions: models.AdminContributionFilterOptions{Animes: []models.AdminFilterOption{}, Groups: []models.AdminFilterOption{}},
+		},
+	}
+	handler := buildAdminUsersHandler(repoStub, authz, audit)
+
+	rec := httptest.NewRecorder()
+	c, _ := gin.CreateTestContext(rec)
+	// "from"/"to" sind exakt das Format, das getAdminUserContributions (frontend/src/lib/api.ts)
+	// nach der CR-01/WR-04-Korrektur sendet: volle RFC3339-Tagesgrenzen, "to" end-of-day-inklusiv.
+	c.Request = httptest.NewRequest(
+		http.MethodGet,
+		"/api/v1/admin/users/42/contributions?anime_id=7&fansub_group_id=3&role_code=encoder&only_deviations=true&from=2026-08-01T00:00:00Z&to=2026-08-24T23:59:59.999Z",
+		nil,
+	)
+	c.Params = gin.Params{{Key: "userId", Value: "42"}}
+	setAdminTestAuth(c, 1)
+
+	handler.GetUserContributions(c)
+
+	if rec.Code != http.StatusOK {
+		t.Fatalf("erwartet HTTP 200, erhalten %d (body=%s)", rec.Code, rec.Body.String())
+	}
+
+	filter := repoStub.receivedContributionsFilter
+	if filter.AppUserID != 42 {
+		t.Fatalf("erwartet AppUserID=42, erhalten %d", filter.AppUserID)
+	}
+	if filter.AnimeID == nil || *filter.AnimeID != 7 {
+		t.Fatalf("erwartet AnimeID=7, erhalten %v", filter.AnimeID)
+	}
+	if filter.FansubGroupID == nil || *filter.FansubGroupID != 3 {
+		t.Fatalf("erwartet FansubGroupID=3, erhalten %v", filter.FansubGroupID)
+	}
+	if filter.RoleCode == nil || *filter.RoleCode != "encoder" {
+		t.Fatalf("erwartet RoleCode=encoder, erhalten %v", filter.RoleCode)
+	}
+	if !filter.OnlyDeviations {
+		t.Fatal("erwartet OnlyDeviations=true")
+	}
+	wantFrom := time.Date(2026, 8, 1, 0, 0, 0, 0, time.UTC)
+	if filter.From == nil || !filter.From.Equal(wantFrom) {
+		t.Fatalf("erwartet From=%v, erhalten %v (CR-01: RFC3339 'from' muss geparst werden)", wantFrom, filter.From)
+	}
+	wantTo := time.Date(2026, 8, 24, 23, 59, 59, 999000000, time.UTC)
+	if filter.To == nil || !filter.To.Equal(wantTo) {
+		t.Fatalf("erwartet To=%v, erhalten %v (CR-01/WR-04: RFC3339 'to' muss end-of-day-inklusiv geparst werden)", wantTo, filter.To)
+	}
+}
+
+func TestAdminUsersHandler_GetUserMedia_ParsesQueryParams(t *testing.T) {
+	gin.SetMode(gin.TestMode)
+
+	authz := &adminAuthzRepoStub{isAdmin: true}
+	audit := &adminAuditStub{}
+	repoStub := &adminUsersRepoStub{
+		mediaResult: &models.AdminUserMediaPage{
+			Data: []models.AdminMediaReleaseBlock{},
+			FilterOptions: models.AdminMediaFilterOptions{
+				Animes:             []models.AdminFilterOption{},
+				Groups:             []models.AdminFilterOption{},
+				ReleasesOrEpisodes: []models.AdminFilterOption{},
+				MediaTypes:         []string{},
+			},
+		},
+	}
+	handler := buildAdminUsersHandler(repoStub, authz, audit)
+
+	rec := httptest.NewRecorder()
+	c, _ := gin.CreateTestContext(rec)
+	c.Request = httptest.NewRequest(
+		http.MethodGet,
+		"/api/v1/admin/users/42/media?anime_id=7&fansub_group_id=3&release_version_id=9&media_type=cover&from=2026-08-01T00:00:00Z&to=2026-08-24T23:59:59.999Z",
+		nil,
+	)
+	c.Params = gin.Params{{Key: "userId", Value: "42"}}
+	setAdminTestAuth(c, 1)
+
+	handler.GetUserMedia(c)
+
+	if rec.Code != http.StatusOK {
+		t.Fatalf("erwartet HTTP 200, erhalten %d (body=%s)", rec.Code, rec.Body.String())
+	}
+
+	filter := repoStub.receivedMediaFilter
+	if filter.AppUserID != 42 {
+		t.Fatalf("erwartet AppUserID=42, erhalten %d", filter.AppUserID)
+	}
+	if filter.AnimeID == nil || *filter.AnimeID != 7 {
+		t.Fatalf("erwartet AnimeID=7, erhalten %v", filter.AnimeID)
+	}
+	if filter.FansubGroupID == nil || *filter.FansubGroupID != 3 {
+		t.Fatalf("erwartet FansubGroupID=3, erhalten %v", filter.FansubGroupID)
+	}
+	if filter.ReleaseVersionID == nil || *filter.ReleaseVersionID != 9 {
+		t.Fatalf("erwartet ReleaseVersionID=9, erhalten %v", filter.ReleaseVersionID)
+	}
+	if filter.MediaType == nil || *filter.MediaType != "cover" {
+		t.Fatalf("erwartet MediaType=cover, erhalten %v", filter.MediaType)
+	}
+	wantFrom := time.Date(2026, 8, 1, 0, 0, 0, 0, time.UTC)
+	if filter.From == nil || !filter.From.Equal(wantFrom) {
+		t.Fatalf("erwartet From=%v, erhalten %v (CR-01: RFC3339 'from' muss geparst werden)", wantFrom, filter.From)
+	}
+	wantTo := time.Date(2026, 8, 24, 23, 59, 59, 999000000, time.UTC)
+	if filter.To == nil || !filter.To.Equal(wantTo) {
+		t.Fatalf("erwartet To=%v, erhalten %v (CR-01/WR-04: RFC3339 'to' muss end-of-day-inklusiv geparst werden)", wantTo, filter.To)
+	}
+}
+
+func TestAdminUsersHandler_GetUserContributions_BareDateOnlyIsIgnored(t *testing.T) {
+	gin.SetMode(gin.TestMode)
+
+	// CR-01-Regressionsschutz: der VORHERIGE Fehlerzustand -- ein blankes "YYYY-MM-DD" (das,
+	// was DatePicker.tsx vor der frontend-seitigen CR-01-Korrektur unverändert weiterreichte)
+	// erfüllt time.RFC3339 nicht und muss weiterhin klar als "kein Filter" (nil) ankommen, statt
+	// eine Panik oder einen falschen Wert zu erzeugen.
+	authz := &adminAuthzRepoStub{isAdmin: true}
+	audit := &adminAuditStub{}
+	repoStub := &adminUsersRepoStub{
+		contributionsResult: &models.AdminUserContributionsPage{
+			Data:          []models.AdminContributionProjectBlock{},
+			FilterOptions: models.AdminContributionFilterOptions{Animes: []models.AdminFilterOption{}, Groups: []models.AdminFilterOption{}},
+		},
+	}
+	handler := buildAdminUsersHandler(repoStub, authz, audit)
+
+	rec := httptest.NewRecorder()
+	c, _ := gin.CreateTestContext(rec)
+	c.Request = httptest.NewRequest(http.MethodGet, "/api/v1/admin/users/42/contributions?from=2026-08-24&to=2026-08-24", nil)
+	c.Params = gin.Params{{Key: "userId", Value: "42"}}
+	setAdminTestAuth(c, 1)
+
+	handler.GetUserContributions(c)
+
+	if rec.Code != http.StatusOK {
+		t.Fatalf("erwartet HTTP 200, erhalten %d (body=%s)", rec.Code, rec.Body.String())
+	}
+	filter := repoStub.receivedContributionsFilter
+	if filter.From != nil || filter.To != nil {
+		t.Fatalf("ein bloßes 'YYYY-MM-DD' darf am Handler weiterhin nicht als RFC3339 geparst werden, erhalten From=%v To=%v", filter.From, filter.To)
+	}
+}
+
+func TestAdminUsersHandler_GetUserRightsSummary_ParsesLimitAndOffset(t *testing.T) {
+	gin.SetMode(gin.TestMode)
+
+	authz := &adminAuthzRepoStub{isAdmin: true}
+	audit := &adminAuditStub{}
+	repoStub := &adminUsersRepoStub{
+		rightsSummaryResult: &models.AdminUserRightsSummaryPage{Data: []models.AdminUserGroupRightsSummaryItem{}},
+	}
+	handler := buildAdminUsersHandler(repoStub, authz, audit)
+
+	rec := httptest.NewRecorder()
+	c, _ := gin.CreateTestContext(rec)
+	c.Request = httptest.NewRequest(http.MethodGet, "/api/v1/admin/users/42/rights-summary?limit=10&offset=20", nil)
+	c.Params = gin.Params{{Key: "userId", Value: "42"}}
+	setAdminTestAuth(c, 1)
+
+	handler.GetUserRightsSummary(c)
+
+	if rec.Code != http.StatusOK {
+		t.Fatalf("erwartet HTTP 200, erhalten %d (body=%s)", rec.Code, rec.Body.String())
+	}
+	if repoStub.receivedRightsSummaryLimit != 10 {
+		t.Fatalf("erwartet limit=10, erhalten %d", repoStub.receivedRightsSummaryLimit)
+	}
+	if repoStub.receivedRightsSummaryOffset != 20 {
+		t.Fatalf("erwartet offset=20, erhalten %d", repoStub.receivedRightsSummaryOffset)
 	}
 }
