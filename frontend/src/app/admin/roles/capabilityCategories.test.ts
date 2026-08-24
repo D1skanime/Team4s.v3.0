@@ -8,7 +8,7 @@
  * Test 4: Unbekannte Kategorie → Default-Fallback (kein Crash)
  */
 import { describe, it, expect } from 'vitest'
-import { categoryDisplayLabel } from './capabilityCategories'
+import { categoryDisplayLabel, sortCategories } from './capabilityCategories'
 
 describe('categoryDisplayLabel', () => {
   it('mappt "gruppe" auf "Gruppe"', () => {
@@ -45,5 +45,43 @@ describe('categoryDisplayLabel', () => {
 
   it('mappt "review" auf "Review"', () => {
     expect(categoryDisplayLabel('review')).toBe('Review')
+  })
+})
+
+describe('sortCategories', () => {
+  it('sortiert alle sieben bekannten Kategorien in zufaelliger Eingabereihenfolge in die feste CATEGORY_ORDER', () => {
+    const shuffled = [
+      'review',
+      'gruppenseite',
+      'release',
+      'gruppe',
+      'rechteverwaltung',
+      'projekt',
+      'gruppenmedien',
+    ]
+    expect(sortCategories(shuffled)).toEqual([
+      'gruppe',
+      'gruppenmedien',
+      'gruppenseite',
+      'projekt',
+      'rechteverwaltung',
+      'release',
+      'review',
+    ])
+  })
+
+  it('haengt eine unbekannte Kategorie alphabetisch hinter alle bekannten Kategorien', () => {
+    expect(sortCategories(['release', 'unbekannt_xyz', 'gruppe'])).toEqual([
+      'gruppe',
+      'release',
+      'unbekannt_xyz',
+    ])
+  })
+
+  it('sortiert zwei unbekannte Kategorien untereinander alphabetisch', () => {
+    expect(sortCategories(['zeta_unbekannt', 'alpha_unbekannt'])).toEqual([
+      'alpha_unbekannt',
+      'zeta_unbekannt',
+    ])
   })
 })

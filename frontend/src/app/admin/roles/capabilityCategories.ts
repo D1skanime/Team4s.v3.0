@@ -33,3 +33,32 @@ function capitalizeFirst(s: string): string {
   if (!s) return 'Sonstige'
   return s.charAt(0).toUpperCase() + s.slice(1)
 }
+
+// Deliberate Reihenfolge der 7 realen Kategorien (138-RESEARCH.md Pitfall 2, Plan 138-13);
+// unbekannte Kategorien fallen alphabetisch ans Ende (siehe sortCategories unten). Einzige
+// kanonische Kopie -- RoleCapabilityDetail.tsx und RolesClient.tsx (Quick 260824-ek3) importieren
+// beide sortCategories von hier statt eine zweite, potenziell divergente Sortierlogik zu pflegen.
+const CATEGORY_ORDER = [
+  'gruppe',
+  'gruppenmedien',
+  'gruppenseite',
+  'projekt',
+  'rechteverwaltung',
+  'release',
+  'review',
+]
+
+/**
+ * Sortiert Kategorien deterministisch: CATEGORY_ORDER zuerst, unbekannte Kategorien
+ * alphabetisch ans Ende.
+ */
+export function sortCategories(categories: string[]): string[] {
+  return [...categories].sort((a, b) => {
+    const ai = CATEGORY_ORDER.indexOf(a)
+    const bi = CATEGORY_ORDER.indexOf(b)
+    if (ai === -1 && bi === -1) return a.localeCompare(b)
+    if (ai === -1) return 1
+    if (bi === -1) return -1
+    return ai - bi
+  })
+}

@@ -1,6 +1,6 @@
 import { Accordion, Button, EmptyState, SectionHeader } from '@/components/ui'
 import type { AccordionItemDef } from '@/components/ui'
-import { categoryDisplayLabel } from '../../role-capabilities/capabilityCategories'
+import { categoryDisplayLabel } from '../../roles/capabilityCategories'
 import { groupStatesByCategory, sortCategories } from './userGroupRightsHelpers'
 import { CategoryTable } from './CategoryTable'
 import { GroupRolesSection } from './GroupRolesSection'

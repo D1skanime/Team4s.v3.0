@@ -4,19 +4,7 @@ import { useMemo } from 'react'
 import { Accordion } from '@/components/ui/Accordion'
 import { Switch } from '@/components/ui/Switch'
 import type { RoleEntry } from '@/types/admin-capability'
-import { categoryDisplayLabel } from './capabilityCategories'
-
-// Deliberate Reihenfolge der 7 realen Kategorien (138-RESEARCH.md Pitfall 2, Plan 138-13);
-// unbekannte Kategorien fallen alphabetisch ans Ende (siehe sortedCats unten).
-const CATEGORY_ORDER = [
-  'gruppe',
-  'gruppenmedien',
-  'gruppenseite',
-  'projekt',
-  'rechteverwaltung',
-  'release',
-  'review',
-]
+import { categoryDisplayLabel, sortCategories } from './capabilityCategories'
 
 export interface RoleCapabilityDetailProps {
   role: RoleEntry
@@ -64,15 +52,8 @@ export function RoleCapabilityDetail({
       byCategory.set(action.category, existing)
     }
 
-    // Deterministische Reihenfolge: CATEGORY_ORDER zuerst, unbekannte Kategorien alphabetisch ans Ende
-    const sortedCats = [...byCategory.keys()].sort((a, b) => {
-      const ai = CATEGORY_ORDER.indexOf(a)
-      const bi = CATEGORY_ORDER.indexOf(b)
-      if (ai === -1 && bi === -1) return a.localeCompare(b)
-      if (ai === -1) return 1
-      if (bi === -1) return -1
-      return ai - bi
-    })
+    // Deterministische Reihenfolge (kanonische Kopie in capabilityCategories.ts, Quick 260824-ek3)
+    const sortedCats = sortCategories([...byCategory.keys()])
 
     return sortedCats.map((cat) => {
       const actions = byCategory.get(cat) ?? []
