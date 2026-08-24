@@ -3,14 +3,14 @@ gsd_state_version: 1.0
 milestone: v1.4
 milestone_name: Coverage
 status: executing
-stopped_at: Completed 139-01-PLAN.md
-last_updated: "2026-08-24T17:29:18.051Z"
+stopped_at: Completed 139-02-PLAN.md
+last_updated: "2026-08-24T17:34:17.937Z"
 last_activity: 2026-08-24
 progress:
   total_phases: 7
   completed_phases: 3
   total_plans: 73
-  completed_plans: 64
+  completed_plans: 65
   percent: 43
 ---
 
@@ -34,7 +34,7 @@ See: .planning/PROJECT.md (updated 2026-08-13)
 ## Current Position
 
 Phase: 139 (scalable-user-admin-projections) — EXECUTING
-Plan: 2 of 10
+Plan: 3 of 10
 Status: Ready to execute
 Last activity: 2026-08-24
 
@@ -187,6 +187,7 @@ Last activity: 2026-08-24
 - [Phase 138]: 138-18 closed GAP-02: RoleCapabilityImpactPreviewModal's metrics row column-stacks (.metricsRow, <=759px) so all 5 D-19 metrics stay visible, per-user vorher/nachher/Grund renders as a Card list below 759px (mirrors RoleHoldersTable.tsx's useIsMobile()/matchMedia precedent, D-32), and a new opt-in Modal panelClassName prop lets only this modal override the shared mobile 100dvh height rule (.narrowHeightFix, doubled-selector specificity) -- ui.module.css and all 30 other <Modal> call sites remain byte-unchanged. Phase 138 (18/18 plans) is now complete.
 - [Phase Quick 260824-ike]: Task 1's handler unit test used fansub_lead/founder instead of the plan's co_leader/encoder example pair because the internal/handlers package's shared TestMain catalog stub predates migration 0112's assignable=true promotion of co_leader; verified the real running app's DB-loaded catalog has co_leader assignable=true with fansub_group context, so production behavior matches the plan's intent -- pure test-selection fix, zero production logic change.
 - [Phase 139]: 139-01: Phase-139 DTOs (AdminUserContributionsPage/AdminUserMediaPage/AdminUserRightsSummaryPage) added additively to admin_users.go alongside untouched existing AdminUserContributionsResult/AdminUserMediaResult/AdminContributionItem/AdminMediaItemSummary; testsupport.OpenPhase139Postgres(t) applies the full real 151-pair migration chain (not hand-assembled stand-in tables) inside an isolated per-test schema. — Fixed two dormant bugs this exposed: migrations 0057/0071 hardcoded public.-qualified references (only 2 of 151 pairs, now schema-portable via current_schemas(false)), and a genuine import cycle from testsupport now importing migrations (resolved by moving 14 internal migrations-package test files to the external migrations_test package, mechanical rename, go test FAIL count unchanged at 65).
+- [Phase 139]: 139-02: New Phase-139 TS DTOs (AdminUserContributionsPage/AdminUserMediaPage/AdminUserRightsSummaryPage) verified field-for-field against 139-01's Go structs; two new URL-synced filter hooks (useUserContributionsFilters/useUserMediaFilters) mirror useClaimsListFilters.ts exactly, only_deviations encoded as '1'/absent per the has_conflicts convention. Zero file overlap with sibling plan 139-01.
 
 ### Pending Todos
 
@@ -429,10 +430,11 @@ untruncated list lives in `.planning/todos/pending/`.
 | Phase 138 P17 | ~10m | 2 tasks | 3 files |
 | Phase 138 P18 | 6min | 3 tasks | 4 files |
 | Phase 139 P01 | 55min | 2 tasks | 18 files |
+| Phase 139 P02 | 35min | 2 tasks | 3 files |
 
 ## Session Continuity
 
-Last session: 2026-08-24T17:29:18.036Z
-Stopped at: Completed 139-01-PLAN.md
+Last session: 2026-08-24T17:34:17.923Z
+Stopped at: Completed 139-02-PLAN.md
 Last activity: 2026-08-20 - Completed Phase 134 Plan 06: live UAT evidence capture, two gap-closure fix rounds, and the user's explicit live-browser sign-off for both reference profiles (PMQA-05)
 Resume file: None
