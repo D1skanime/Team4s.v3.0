@@ -616,7 +616,16 @@ Plans:
   3. Delegation controls remain visibly and technically separate from roles and generic user overrides, so granting review authority does not grant broader leader capabilities.
   4. Every mutation reuses the existing transactional review service and audit seam, is idempotent, and rejects foreign, inactive, disabled, pending, or otherwise ineligible targets server-side.
 
-**Plans**: TBD
+**Plans**: 3 plans
+
+Plans:
+**Wave 1**
+- [ ] 140-01-PLAN.md — Non-locking delegation-state read + AdminReviewDelegationHandler (GET/PUT), stub-tested
+- [ ] 140-03-PLAN.md — ReviewDelegationSection UI + asymmetric grant-removal in the generic override view
+
+**Wave 2** *(blocked on Wave 1 completion)*
+- [ ] 140-02-PLAN.md — Route registration, main.go wiring, OpenAPI contract sync
+
 **UI hint**: yes
 
 ### Phase 141: Actor-Decidable Review Queue

@@ -2,15 +2,15 @@
 gsd_state_version: 1.0
 milestone: v1.4
 milestone_name: Coverage
-status: ready_to_plan
-stopped_at: Phase 139 complete (10/10) — ready to discuss Phase 140
-last_updated: 2026-08-24T21:36:47.940Z
+status: planning
+stopped_at: Phase 140 planned (3 plans, 2 waves) -- ready to execute
+last_updated: "2026-08-25T05:26:16.629Z"
 last_activity: 2026-08-24
 progress:
   total_phases: 7
   completed_phases: 4
   total_plans: 73
-  completed_plans: 127
+  completed_plans: 73
   percent: 57
 ---
 
@@ -35,7 +35,7 @@ See: .planning/PROJECT.md (updated 2026-08-13)
 
 Phase: 140
 Plan: Not started
-Status: Ready to plan
+Status: planning
 Last activity: 2026-08-24
 
 ## Accumulated Context
@@ -450,7 +450,7 @@ untruncated list lives in `.planning/todos/pending/`.
 
 ## Session Continuity
 
-Last session: 2026-08-24T21:08:23.601Z
-Stopped at: Completed 139-10-PLAN.md (Phase 139 complete)
+Last session: 2026-08-25T05:00:46.125Z
+Stopped at: Phase 140 planned (3 plans, 2 waves) -- ready to execute
 Last activity: 2026-08-20 - Completed Phase 134 Plan 06: live UAT evidence capture, two gap-closure fix rounds, and the user's explicit live-browser sign-off for both reference profiles (PMQA-05)
-Resume file: None
+Resume file: .planning/phases/140-review-delegation-management/140-UI-SPEC.md
