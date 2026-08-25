@@ -42,18 +42,6 @@ export default function AdminOverviewPage() {
             <Link href="/admin/users" className={styles.button}>
               Benutzer &amp; Rechte
             </Link>
-            <Link href="/admin/groups" className={styles.button}>
-              Gruppen
-            </Link>
-            <Link href="/admin/roles" className={styles.button}>
-              Rollen
-            </Link>
-            <Link href="/admin/claims" className={styles.button}>
-              Claims
-            </Link>
-            <Link href="/admin/changes" className={styles.button}>
-              Änderungen
-            </Link>
             <Link href="/me/profile" className={styles.buttonSecondary}>
               Mein Profil
             </Link>

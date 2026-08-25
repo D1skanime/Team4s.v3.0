@@ -36,7 +36,7 @@ See: .planning/PROJECT.md (updated 2026-08-13)
 Phase: 140
 Plan: Not started
 Status: Ready to execute
-Last activity: 2026-08-25 -- Phase 140 planning complete
+Last activity: 2026-08-25 -- Completed quick task 260825-jc0: Admin start page navigation cleanup
 
 ## Accumulated Context
 
@@ -228,6 +228,7 @@ Last activity: 2026-08-25 -- Phase 140 planning complete
 | 260824-ike | Drei Live-Defekte im Rollen-Arbeitsbereich (Nachtrag zu 260824-ek3) behoben: RoleRail.tsx verlor das redundante Pro-Zeile-roleKindLabel-Badge (Ellipse bei 6/18 Namen); neue CountGroupRoleHolders-Bulk-Query + additives group_holder_count-Feld (Go/YAML/TS) beheben den Rail-vs-Detail-Panel-Widerspruch bei Gruppenrollen-Inhaberzahlen; resolveRoleLink()/GroupRolesSection.tsx/RolesClient.tsx/role-capabilities-Weiterleitung wurden um einen optionalen tab-Parameter erweitert, damit "Was darf diese Rolle?" immer den Standardrechte-Tab oeffnet statt des rollenart-abhaengigen Defaults | 2026-08-24 | 787df9f3 | [260824-ike-drei-live-defekte-im-rollen-arbeitsberei](./quick/260824-ike-drei-live-defekte-im-rollen-arbeitsberei/) |
 | 260824-nmt | Veraltete Rollen-Fixture in MemberCurrentProjectsSection.test.tsx repariert (Registry-Umstellung Altlast): color_key nutzte erfundene Kategorienamen ('technical'/'creative'/'language') statt echter ROLE_COLOR_KEYS-Hexwerte aus roleCatalog.ts; roleCatalog.ts unveraendert. Befund-Korrektur: von den 6 urspruenglich gemeldeten Testfehlern hatte nur 1 diese Ursache - die uebrigen 5 (MemberBadgeChain.test.tsx x4, MembershipsSection.test.tsx x1) sind unrelated (Badge-Special-Gruppe, CSS-Grid) und bleiben bewusst unangetastet | 2026-08-24 | 848f4bb8 | [260824-nmt-veraltete-rollen-fixtures-in-den-profil-](./quick/260824-nmt-veraltete-rollen-fixtures-in-den-profil-/) |
 
+| 260825-jc0 | Admin start page navigation cleanup | 2026-08-25 | pending | [260825-jc0-admin-startseite-von-redundanten-benutze](./quick/260825-jc0-admin-startseite-von-redundanten-benutze/) |
 ### Verification Baseline
 
 - Requirements: 65 defined, 65 uniquely mapped, 0 orphaned, 0 duplicated.
