@@ -20,6 +20,16 @@ const CATEGORY_ORDER = [
   'review',
 ]
 
+const REVIEW_DELEGATION_ACTION_CODES = new Set([
+  'review.image.decide',
+  'review.text.decide',
+  'review.contribution.decide',
+])
+
+export function isReviewDelegationAction(actionCode: string): boolean {
+  return REVIEW_DELEGATION_ACTION_CODES.has(actionCode)
+}
+
 const UNKNOWN_CATEGORY = 'sonstige'
 
 export function sortCategories(categories: string[]): string[] {

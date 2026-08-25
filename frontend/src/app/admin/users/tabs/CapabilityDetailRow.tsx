@@ -1,7 +1,7 @@
 import { Button, TableCell, TableRow } from '@/components/ui'
 import type { EffectiveRightState, RoleCapabilityMatrix } from '@/types/admin-capability'
 import { CapabilityHistoryPanel } from './CapabilityHistoryPanel'
-import { roleLabelFor } from './userGroupRightsHelpers'
+import { isReviewDelegationAction, roleLabelFor } from './userGroupRightsHelpers'
 
 export function CapabilityDetailRow({
   groupId,
@@ -22,7 +22,7 @@ export function CapabilityDetailRow({
 }) {
   // D-15/D-16: nur die vier gesperrten Business-Verben, nie ein rohes Allow/Deny-Switch.
   const showRevoke = state.allowed && !state.non_deniable
-  const showGrant = !state.allowed
+  const showGrant = !state.allowed && !isReviewDelegationAction(state.action_code)
   const showRemoveOverride = state.user_allow || state.user_deny
 
   return (
@@ -71,6 +71,18 @@ export function CapabilityDetailRow({
               <Button variant="secondary" size="sm" onClick={() => onOpenGrant(state, label)}>
                 Recht zusätzlich erlauben
               </Button>
+            )}
+            {!state.allowed && isReviewDelegationAction(state.action_code) && (
+              <div style={{ fontSize: '0.8125rem', color: 'var(--color-text-secondary)' }}>
+                Gewähren nur über „Prüf-/Freigabe-Rechte" oben.
+                <Button
+                  variant="ghost"
+                  size="sm"
+                  onClick={() => document.getElementById('review-delegation-section')?.scrollIntoView({ behavior: 'smooth' })}
+                >
+                  Zu Prüf-/Freigabe-Rechte springen
+                </Button>
+              </div>
             )}
             {showRemoveOverride &&
               (state.user_deny ? (

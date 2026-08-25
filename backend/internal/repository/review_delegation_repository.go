@@ -22,6 +22,19 @@ type ReviewDelegationMembership struct {
 	HasVerifiedMemberClaim bool
 }
 
+// ReviewDelegationSnapshot is the non-locking read model for a member's
+// current review delegation state.
+type ReviewDelegationSnapshot struct {
+	MembershipID           int64
+	FansubGroupID          int64
+	AppUserID              int64
+	MemberID               *int64
+	MembershipStatus       string
+	AppUserStatus          string
+	HasVerifiedMemberClaim bool
+	GrantedActionCodes     []string
+}
+
 // ReviewDelegationRepository mutates direct review actions through a
 // caller-owned DB or transaction. It never owns transaction lifecycle.
 type ReviewDelegationRepository struct {
@@ -83,6 +96,59 @@ func (r *ReviewDelegationRepository) LockMembership(
 		return nil, fmt.Errorf("lock review delegation membership %d: %w", fansubGroupMemberID, err)
 	}
 	return &membership, nil
+}
+
+// LoadDelegationSnapshot reads a member's current delegation state without
+// taking a row lock. Mutation callers must continue to use LockMembership.
+func (r *ReviewDelegationRepository) LoadDelegationSnapshot(
+	ctx context.Context,
+	fansubGroupMemberID int64,
+) (*ReviewDelegationSnapshot, error) {
+	if r == nil || r.db == nil || fansubGroupMemberID <= 0 {
+		return nil, fmt.Errorf("load review delegation snapshot: %w", ErrValidation)
+	}
+
+	var snapshot ReviewDelegationSnapshot
+	err := r.db.QueryRow(ctx, `
+		SELECT
+			fgm.id,
+			fgm.fansub_group_id,
+			fgm.app_user_id,
+			fgm.member_id,
+			fgm.status,
+			au.status,
+			EXISTS (
+				SELECT 1
+				FROM member_claims mc
+				WHERE mc.app_user_id = fgm.app_user_id
+				  AND mc.member_id = fgm.member_id
+				  AND mc.claim_status = 'verified'
+			),
+			ARRAY(
+				SELECT rc.action_code
+				FROM fansub_group_member_review_capabilities rc
+				WHERE rc.fansub_group_member_id = fgm.id
+			)
+		FROM fansub_group_members fgm
+		JOIN app_users au ON au.id = fgm.app_user_id
+		WHERE fgm.id = $1
+	`, fansubGroupMemberID).Scan(
+		&snapshot.MembershipID,
+		&snapshot.FansubGroupID,
+		&snapshot.AppUserID,
+		&snapshot.MemberID,
+		&snapshot.MembershipStatus,
+		&snapshot.AppUserStatus,
+		&snapshot.HasVerifiedMemberClaim,
+		&snapshot.GrantedActionCodes,
+	)
+	if errors.Is(err, pgx.ErrNoRows) {
+		return nil, fmt.Errorf("review delegation snapshot %d: %w", fansubGroupMemberID, ErrNotFound)
+	}
+	if err != nil {
+		return nil, fmt.Errorf("load review delegation snapshot %d: %w", fansubGroupMemberID, err)
+	}
+	return &snapshot, nil
 }
 
 // GrantAction adds one exact direct review action. The active grant table uses

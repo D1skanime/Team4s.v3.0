@@ -528,6 +528,9 @@ func main() {
 	adminEffectiveRightsHandler := handlers.NewAdminEffectiveRightsHandler(
 		permissionSvc, effectiveRightsService, effectiveRightsOverrideRepo, authzRepo, auditLogRepo,
 	)
+	adminReviewDelegationHandler := handlers.NewAdminReviewDelegationHandler(
+		permissionSvc, releaseReviewService, effectiveRightsOverrideRepo, repository.NewReviewDelegationRepository(dbPool), auditLogRepo,
+	)
 	// Phase 138-04: Role-Assignment Impact Preview (D-22) -- reuses the same permissionSvc
 	// (PreviewGroupRightsWithRoleChange) and target-repo/authz-repo dependencies already
 	// constructed above for adminEffectiveRightsHandler; no new repository.
@@ -565,6 +568,7 @@ func main() {
 		adminGroupRolesHandler:        adminGroupRolesHandler,
 		releaseReviewHandler:          releaseReviewHandler,
 		adminEffectiveRightsHandler:   adminEffectiveRightsHandler,
+		adminReviewDelegationHandler: adminReviewDelegationHandler,
 		adminRoleHoldersHandler:          adminRoleHoldersHandler,
 		adminRoleAssignmentImpactHandler: adminRoleAssignmentImpactHandler,
 		adminClaimsListHandler:           adminClaimsListHandler,

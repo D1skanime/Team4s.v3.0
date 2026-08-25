@@ -17,7 +17,7 @@ interface RoleCapabilitiesRedirectPageProps {
  */
 export default async function RoleCapabilitiesRedirectPage({
   searchParams,
-}: RoleCapabilitiesRedirectPageProps = {}) {
+}: RoleCapabilitiesRedirectPageProps) {
   const resolved = searchParams ? await searchParams : undefined
   const parts: string[] = []
   if (resolved?.role) parts.push(`role=${encodeURIComponent(resolved.role)}`)

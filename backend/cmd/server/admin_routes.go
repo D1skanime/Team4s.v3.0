@@ -37,6 +37,7 @@ type adminRouteHandlers struct {
 	releaseReviewHandler *handlers.ReleaseReviewHandler
 	// Phase 137-07: Effective-Rights Inspection/Mutation/History-API
 	adminEffectiveRightsHandler *handlers.AdminEffectiveRightsHandler
+	adminReviewDelegationHandler *handlers.AdminReviewDelegationHandler
 	// Phase 138-01: "wer besitzt diese Rolle?" — real fansub-group role-holder lookup (D-07)
 	adminRoleHoldersHandler *handlers.AdminRoleHoldersHandler
 	// Phase 138-04: Role-Assignment Impact Preview (D-22) -- read-only before/after diff
@@ -303,6 +304,10 @@ func registerAdminRoutes(v1 *gin.RouterGroup, auth gin.HandlerFunc, deps adminRo
 	// Phase 138-04: Role-Assignment Impact Preview (D-22) -- read-only, group-scoped
 	// before/after effective-rights diff ahead of setFansubGroupMemberRole's existing
 	// mutation. Same authorization action (ActionFansubGroupMembersManage) as that mutation.
+	if deps.adminReviewDelegationHandler != nil {
+		v1.GET("/admin/fansubs/:id/app-members/:appUserId/review-delegations", auth, deps.adminReviewDelegationHandler.GetReviewDelegations)
+		v1.PUT("/admin/fansubs/:id/app-members/:appUserId/review-delegations", auth, deps.adminReviewDelegationHandler.MutateReviewDelegation)
+	}
 	if deps.adminRoleAssignmentImpactHandler != nil {
 		v1.GET("/admin/fansubs/:id/app-members/:appUserId/role-assignment-impact", auth, deps.adminRoleAssignmentImpactHandler.PreviewRoleAssignment)
 	}

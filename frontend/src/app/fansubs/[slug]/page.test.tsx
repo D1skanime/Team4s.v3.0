@@ -101,7 +101,7 @@ async function renderFansubProfilePage(profile = makeProfileResponse()) {
     historical: [],
     contributors: [],
   })
-  const result = await FansubProfilePage({ params: { slug: 'c-subs' } })
+  const result = await FansubProfilePage({ params: Promise.resolve({ slug: 'c-subs' }) })
   return render(result)
 }
 

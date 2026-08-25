@@ -1032,6 +1032,60 @@ paths:
             application/json:
               schema:
                 $ref: "#/components/schemas/ErrorResponse"
+  /api/v1/admin/fansubs/{id}/app-members/{appUserId}/review-delegations:
+    get:
+      tags: [AdminCapabilities]
+      summary: Prüf-/Freigabe-Rechte einer Gruppenmitgliedschaft abrufen
+      operationId: getReviewDelegations
+      security: [{ bearerAuth: [] }]
+      parameters:
+        - { name: id, in: path, required: true, schema: { type: integer, format: int64, minimum: 1 } }
+        - { name: appUserId, in: path, required: true, schema: { type: integer, format: int64, minimum: 1 } }
+      responses:
+        "200":
+          description: Delegationsstatus erfolgreich abgerufen
+          content:
+            application/json:
+              schema:
+                type: object
+                required: [data]
+                properties:
+                  data:
+                    type: array
+                    items: { $ref: "#/components/schemas/ReviewDelegationRow" }
+        "400": { description: Ungültige Pfadparameter }
+        "403": { description: Keine Berechtigung }
+        "404": { description: Mitgliedschaft nicht gefunden }
+        "500": { description: Interner Serverfehler }
+    put:
+      tags: [AdminCapabilities]
+      summary: Prüf-/Freigabe-Recht gewähren oder entziehen
+      operationId: mutateReviewDelegation
+      security: [{ bearerAuth: [] }]
+      parameters:
+        - { name: id, in: path, required: true, schema: { type: integer, format: int64, minimum: 1 } }
+        - { name: appUserId, in: path, required: true, schema: { type: integer, format: int64, minimum: 1 } }
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: { $ref: "#/components/schemas/ReviewDelegationMutationRequest" }
+      responses:
+        "200":
+          description: Delegation erfolgreich aktualisiert
+          content:
+            application/json:
+              schema:
+                type: object
+                required: [data]
+                properties:
+                  data: { $ref: "#/components/schemas/ReviewDelegationMutationResult" }
+        "400": { description: Ungültige Aktion oder Anfrage }
+        "403": { description: Keine Berechtigung }
+        "404": { description: Mitgliedschaft nicht gefunden }
+        "422": { description: Zielmitglied ist nicht berechtigungsfähig }
+        "500": { description: Interner Serverfehler }
+
 components:
   securitySchemes:
     bearerAuth:
@@ -1149,6 +1203,29 @@ components:
     CapabilityMutationStatus:
       type: string
       enum: [changed, no_op]
+    ReviewDelegationRow:
+      type: object
+      required: [action_code, granted, membership_active, app_user_active, has_verified_claim, eligible_for_grant]
+      properties:
+        action_code: { type: string, enum: [review.image.decide, review.text.decide, review.contribution.decide] }
+        granted: { type: boolean }
+        membership_active: { type: boolean }
+        app_user_active: { type: boolean }
+        has_verified_claim: { type: boolean }
+        eligible_for_grant: { type: boolean }
+    ReviewDelegationMutationRequest:
+      type: object
+      required: [action_code, grant]
+      properties:
+        action_code: { type: string, enum: [review.image.decide, review.text.decide, review.contribution.decide] }
+        grant: { type: boolean }
+    ReviewDelegationMutationResult:
+      type: object
+      required: [action_code, granted]
+      properties:
+        action_code: { type: string, enum: [review.image.decide, review.text.decide, review.contribution.decide] }
+        granted: { type: boolean }
+
     EffectiveRightState:
       type: object
       description: |

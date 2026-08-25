@@ -253,6 +253,7 @@ import type {
   PublicReleaseNote,
 } from "@/types/releaseDetail";
 import type { CapabilityOverrideAuditItem, CapabilityOverrideImpactPreview, CapabilityOverrideMutationRequest, CapabilityOverrideMutationResult, ClaimActivationImpactPreview, EffectiveRightState, PublicRoleDefinitionOption, RoleAssignmentImpactPreview, RoleCapabilityMatrix, RoleCapabilityMutationResult, RoleDefinitionContext, RoleDefinitionOption, RoleHolderEntry } from "@/types/admin-capability";
+import type { ReviewDelegationMutationRequest, ReviewDelegationMutationResult, ReviewDelegationRow } from "@/types/admin-review-delegation";
 import type {
   ReleaseReviewCountParams,
   ReleaseReviewCountsResponse,
@@ -10167,6 +10168,43 @@ export async function getEffectiveRights(
   const resp = (await response.json()) as { data: EffectiveRightState[] }
   return resp.data
 }
+
+/** Lädt die drei spezialisierten Prüf-/Freigabe-Rechte einer Gruppenmitgliedschaft. */
+export async function getReviewDelegations(
+  fansubGroupId: number,
+  appUserId: number,
+): Promise<ReviewDelegationRow[]> {
+  const response = await apiClientFetch(
+    `/api/v1/admin/fansubs/${fansubGroupId}/app-members/${appUserId}/review-delegations`,
+    { cache: "no-store" },
+  )
+  if (!response.ok) {
+    const parsed = await parseApiErrorPayload(response, `API request failed: ${response.status}`)
+    throw new ApiError(response.status, parsed.message, null, parsed.code, parsed.details)
+  }
+  const resp = (await response.json()) as { data: ReviewDelegationRow[] }
+  return resp.data
+}
+
+/** Setzt den gewünschten Grant-Status für ein spezialisiertes Prüf-/Freigabe-Recht. */
+export async function mutateReviewDelegation(
+  fansubGroupId: number,
+  appUserId: number,
+  body: ReviewDelegationMutationRequest,
+): Promise<ReviewDelegationMutationResult> {
+  const API_BASE_URL = getApiBaseUrl()
+  const response = await authorizedFetch(
+    `${API_BASE_URL}/api/v1/admin/fansubs/${fansubGroupId}/app-members/${appUserId}/review-delegations`,
+    { method: 'PUT', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(body) },
+  )
+  if (!response.ok) {
+    const parsed = await parseApiErrorPayload(response, `API request failed: ${response.status}`)
+    throw new ApiError(response.status, parsed.message, null, parsed.code, parsed.details)
+  }
+  const resp = (await response.json()) as { data: ReviewDelegationMutationResult }
+  return resp.data
+}
+
 
 /**
  * Setzt/entfernt einen persönlichen Capability-Override für einen Nutzer in einer Fansub-

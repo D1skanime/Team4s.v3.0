@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest'
 
-import { hasStoriesContent } from '../[slug]/page'
+import { hasStoriesContent } from '../[slug]/pageHelpers'
 import type { PublicFansubStory } from '@/types/fansub'
 
 describe('hasStoriesContent', () => {

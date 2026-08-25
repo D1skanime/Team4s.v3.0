@@ -28,6 +28,8 @@ function makeEntry(overrides: Partial<AdminChangeEntry>): AdminChangeEntry {
     scope_type: 'none',
     scope_id: null,
     payload: {},
+    actor_display_name: null,
+    target_display_name: null,
     ...overrides,
   }
 }

@@ -6,6 +6,7 @@ import { FansubMediaSection } from '@/components/fansubs/FansubMediaSection'
 import { FansubProjectsSection } from '@/components/fansubs/FansubProjectsSection'
 import { FansubStorySection } from '@/components/fansubs/FansubStorySection'
 import { countVisibleTeamMembers, FansubTeamSection } from '@/components/fansubs/FansubTeamSection'
+import { hasStoriesContent } from './pageHelpers'
 import type { DomainProjectionResponse } from '@/types/domain-projection'
 import {
   ApiError,
@@ -17,19 +18,7 @@ import {
 import styles from './page.module.css'
 
 interface FansubProfilePageProps {
-  params:
-    | {
-        slug: string
-      }
-    | Promise<{
-        slug: string
-      }>
-}
-
-export function hasStoriesContent(
-  stories: Awaited<ReturnType<typeof getPublicFansubProfileBySlug>>['data']['stories'],
-): boolean {
-  return stories.some((story) => Boolean(story.title?.trim() || story.body_html?.trim() || story.body_text?.trim()))
+  params: Promise<{ slug: string }>
 }
 
 export default async function FansubProfilePage({ params }: FansubProfilePageProps) {

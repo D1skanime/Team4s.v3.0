@@ -4,6 +4,7 @@ import { categoryDisplayLabel } from '../../roles/capabilityCategories'
 import { groupStatesByCategory, sortCategories } from './userGroupRightsHelpers'
 import { CategoryTable } from './CategoryTable'
 import { GroupRolesSection } from './GroupRolesSection'
+import { ReviewDelegationSection } from './ReviewDelegationSection'
 import type { AdminGroupMembershipSummary } from '@/types/admin-users'
 import type { ActionEntry, EffectiveRightState, RoleCapabilityMatrix } from '@/types/admin-capability'
 
@@ -90,6 +91,7 @@ export function GroupSection({
           onOpenRoleAssignment(membership.fansub_group_id, membership.fansub_group_name, roleCode, roleLabel, change)
         }
       />
+      <ReviewDelegationSection fansubGroupId={membership.fansub_group_id} appUserId={appUserId} />
       {accordionItems.length === 0 ? (
         <EmptyState variant="inline" title="Keine Rechte in dieser Gruppe." />
       ) : (
