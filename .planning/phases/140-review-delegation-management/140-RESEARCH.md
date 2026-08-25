@@ -301,22 +301,26 @@ func isDelegableReviewAction(action permissions.Action) bool {
 | A2 | A new `testsupport.OpenPhase140Postgres` combining the 0134 + 0108/0146/0150 migration chains is the right test-fixture strategy, rather than extending `OpenPhase107Postgres` or `OpenPhase137Postgres` in place | Pitfall 1 | If wrong (e.g. team prefers extending one of the two existing harnesses additively instead of adding a third), only test-infrastructure organization changes, not production code |
 | A3 | Read response for RDEL-01 should include eligibility flags (e.g., `eligible_for_grant: bool`) computed from the same logic as `eligibleDelegationTarget`, not just the three granted-action booleans | Recommended read DTO, Architecture Patterns | If wrong/unwanted, the frontend would only learn ineligibility reactively from a 422 on attempted grant, which is a materially worse UX but not incorrect per the literal requirements text |
 
-## Open Questions
+## Open Questions (RESOLVED)
 
-1. **Should the pre-existing generic-override path for `review.*.decide` be restricted as part of this phase?**
+All three questions below were resolved by the user in `140-CONTEXT.md` ("Binding decision: asymmetric separation (Option d)" and "Two smaller decisions") before planning began, and the resolutions are implemented as specified in `140-01`/`140-02`/`140-03`-PLAN.md. Retained here unedited for audit-trail context.
+
+1. **RESOLVED — see 140-CONTEXT.md.** Should the pre-existing generic-override path for `review.*.decide` be restricted as part of this phase?
    - What we know: migration 0150 already made these three actions `user_overridable = true`, and the Phase 138 UI already renders/mutates them via the generic mechanism, in production, today.
    - What's unclear: whether RDEL-03's "technically separate from generic user overrides" success criterion is meant to be satisfied purely by adding a new, additional dedicated surface (leaving the old path alone) or whether it requires closing/hiding the old path too.
    - Recommendation: Surface this explicitly to the user/planner as a DECISION REQUIRED item (see "Contradiction Found") before locking Phase 140's task list — this is a product/security decision, not something to resolve unilaterally during planning.
 
-2. **Exact shape of the RDEL-01 read response.**
+2. **RESOLVED — see 140-CONTEXT.md ("Two smaller decisions", item 1).** Exact shape of the RDEL-01 read response.
    - What we know: the three delegable actions are fixed (`review.text.decide`, `review.image.decide`, `review.contribution.decide`); `fansub_group_member_review_capabilities` stores exactly which are currently granted for a membership.
    - What's unclear: whether the read response should also carry eligibility context (target's membership/app-user status, verified-claim flag) so the UI can pre-emptively grey out grant controls, or stay minimal (just the three booleans) and let a grant attempt's 422 communicate ineligibility.
    - Recommendation: Given the project's explicit "UX quality" constraint (CLAUDE.md), lean toward including eligibility context in the read response — but this is a planner-level DTO design choice, not a blocking unknown.
+   - **Resolution adopted:** eligibility context is included (140-01's `LoadDelegationSnapshot` + handler projection).
 
-3. **Route naming/shape for the mutation endpoint.**
+3. **RESOLVED — see 140-CONTEXT.md ("Two smaller decisions", item 2).** Route naming/shape for the mutation endpoint.
    - What we know: existing precedent uses one PUT endpoint per concern (`.../capability-overrides`) with a body describing the desired effect, not separate grant/revoke endpoints.
    - What's unclear: whether the new endpoint should be a single `PUT .../review-delegations` with `{action_code, grant: bool}` (mirrors the override-endpoint shape) or two endpoints/verbs (`POST`.../grant, `POST .../revoke`) mirroring the service's own two distinct methods.
    - Recommendation: A single PUT with an explicit boolean intent field most closely matches the existing `capability-overrides` precedent and keeps the route count minimal; either is workable, this is a planner-level API design choice.
+   - **Resolution adopted:** single `PUT .../review-delegations` with `{action_code, grant: bool}` (140-02 Task 2's OpenAPI contract).
 
 ## Environment Availability
 

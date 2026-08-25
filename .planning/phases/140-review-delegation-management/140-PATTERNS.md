@@ -15,7 +15,7 @@ mapping pass — no drift found. All quoted line numbers below are current as of
 | `backend/internal/handlers/admin_review_delegation_handler.go` (NEW) | controller/handler | request-response | `backend/internal/handlers/admin_effective_rights_handler.go` | exact (same pair-scoped GET/PUT shape, same D08 target-resolution pattern) |
 | `backend/internal/handlers/review_delegation_contract.go` (NEW) | model (wire DTOs) | transform | `backend/internal/handlers/capability_policy_contract.go` | role-match (transport-only DTO file, no domain behavior) |
 | `backend/internal/repository/review_delegation_repository.go` (EXTEND — add read method) | repository | CRUD | itself (extend in place) — non-locking read shape mirrors `backend/internal/repository/authz_user_overrides.go`'s `LockTargetMembership`/history queries | exact |
-| `backend/internal/testsupport/phase140_postgres.go` (NEW) | test fixture/utility | batch | `backend/internal/testsupport/phase137_postgres.go` (composes 0085/0100/0108/0112/0146/0150) | exact (structural template; must additionally splice in 0134) |
+| `backend/internal/testsupport/phase140_postgres.go` (NOT BUILT — see note below) | test fixture/utility | batch | `backend/internal/testsupport/phase137_postgres.go` (composes 0085/0100/0108/0112/0146/0150) | superseded — 140-01-PLAN.md deliberately reuses the existing `openPhase107ReviewRepositoryPool` helper instead; see 140-VALIDATION.md Wave 0 note |
 | `backend/internal/handlers/admin_review_delegation_handler_test.go` (NEW) | test | request-response | `backend/internal/handlers/admin_effective_rights_handler_test.go` (if present) else `contribution_review_handler_test.go` | role-match |
 | `backend/cmd/server/admin_routes.go` (EXTEND) | route | request-response | itself — existing `adminEffectiveRightsHandler` block (lines 295-302) | exact |
 | `backend/cmd/server/main.go` (EXTEND — construct new handler) | config/wiring | request-response | itself — existing `adminEffectiveRightsHandler := handlers.NewAdminEffectiveRightsHandler(...)` construction (line 528) reusing `releaseReviewService` (line 517) | exact |
@@ -274,7 +274,17 @@ func (r *AuthzUserOverridesRepository) LockTargetMembership(
 
 ---
 
-### `backend/internal/testsupport/phase140_postgres.go` (test fixture, batch — NEW)
+### `backend/internal/testsupport/phase140_postgres.go` (test fixture, batch — NOT BUILT)
+
+**Superseded:** `140-01-PLAN.md` deliberately does not build this file. The handler layer
+(140-01 Task 2) is stub-tested, not real-Postgres-integration-tested, mirroring
+`admin_effective_rights_handler_test.go`'s established convention — and the one new
+repository read method (140-01 Task 1) is fully coverable by the existing
+`openPhase107ReviewRepositoryPool` helper already present in
+`review_delegation_repository_test.go` (which already composes `OpenPhase107Postgres` +
+a manual migration-0134 apply). This entry is retained below for its analog/structural
+research value, not as an instruction to build a new file — see `140-VALIDATION.md`'s
+Wave 0 section for the decision record.
 
 **Analog:** `backend/internal/testsupport/phase137_postgres.go` (confirmed current: composes
 0085/0100/0108/0112/0146/0150 plus hand-rolled `members`/`app_users` stand-in tables)
