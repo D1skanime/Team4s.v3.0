@@ -11,6 +11,8 @@ import type { AdminGroupMembershipSummary, AdminUserGroupMembershipsResponse } f
 import type { EffectiveRightState, RoleCapabilityMatrix } from '@/types/admin-capability'
 
 const mockGetAdminUserGroupMemberships = vi.fn()
+const mockGetReviewDelegations = vi.fn()
+const mockMutateReviewDelegation = vi.fn()
 const mockGetEffectiveRights = vi.fn()
 const mockListRoleCapabilities = vi.fn()
 const mockListOverrideHistory = vi.fn()
@@ -20,6 +22,8 @@ const mockUpdateFansubAppMemberRole = vi.fn()
 
 vi.mock('@/lib/api', () => ({
   getAdminUserGroupMemberships: (...args: unknown[]) => mockGetAdminUserGroupMemberships(...args),
+  getReviewDelegations: (...args: unknown[]) => mockGetReviewDelegations(...args),
+  mutateReviewDelegation: (...args: unknown[]) => mockMutateReviewDelegation(...args),
   getEffectiveRights: (...args: unknown[]) => mockGetEffectiveRights(...args),
   listRoleCapabilities: (...args: unknown[]) => mockListRoleCapabilities(...args),
   listOverrideHistory: (...args: unknown[]) => mockListOverrideHistory(...args),
@@ -39,6 +43,9 @@ beforeEach(() => {
   // Default: leere Historie -- CapabilityHistoryPanel wird bei jeder aufgeklappten Zeile
   // gemountet und ruft listOverrideHistory selbstständig auf (D-13b, Plan 138-08).
   mockListOverrideHistory.mockResolvedValue([])
+  // Default: keine Review-Delegationen -- ReviewDelegationSection wird bei jeder
+  // GroupSection gemountet und ruft getReviewDelegations selbstständig auf (Phase 140).
+  mockGetReviewDelegations.mockResolvedValue([])
 })
 
 afterEach(() => {
