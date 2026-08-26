@@ -4,9 +4,11 @@ import (
 	"context"
 	"path/filepath"
 	"runtime"
+	"sync"
 	"testing"
 	"time"
 
+	"team4s.v3/backend/internal/permissions"
 	"team4s.v3/backend/internal/testsupport"
 
 	"github.com/jackc/pgx/v5/pgxpool"
@@ -304,4 +306,448 @@ func openReleaseReviewQueryFixture(t *testing.T) *pgxpool.Pool {
 	`)
 	require.NoError(t, err)
 	return pool
+}
+
+// releaseReviewItemIDs projects a page's opaque item IDs for containment assertions.
+func releaseReviewItemIDs(items []ReleaseReviewQueueItem) []string {
+	ids := make([]string, 0, len(items))
+	for _, item := range items {
+		ids = append(ids, item.ID)
+	}
+	return ids
+}
+
+// TestReleaseReviewQueueRepositoryExcludesActorsOwnSubmissionFromListAndCounts proves the
+// RQUE-02 gap closure: List/Counts exclude an actor's own submissions using BOTH identity
+// signals (direct app_user_id match, and a verified-member-claim match even under a
+// different app_user_id), mirroring review_service.go's decision-time definition exactly.
+func TestReleaseReviewQueueRepositoryExcludesActorsOwnSubmissionFromListAndCounts(t *testing.T) {
+	pool := openReleaseReviewQueryFixture(t)
+	ctx := context.Background()
+
+	// Second-signal fixture row: submitted by a third, distinct app_user (13) but on
+	// behalf of member 101 -- the same member the acting app_user (11) is themselves
+	// verified as (ActorMemberIDs=[101] below). Proves the member-claim signal excludes
+	// this row even though its submitter_app_user_id (13) never equals the actor's own
+	// app_user_id (11).
+	_, err := pool.Exec(ctx, `
+		INSERT INTO users(id) VALUES (1003);
+		INSERT INTO app_users(id, status, legacy_user_id) VALUES (13, 'active', 1003);
+		INSERT INTO media_assets(id) VALUES (704);
+		INSERT INTO media_files(id, media_id, variant, path, status) VALUES
+			(805, 704, 'original', '/app/media/review/704/original.png', 'ready');
+		INSERT INTO release_version_media(
+			id, release_version_id, fansub_group_id, media_asset_id, category, caption, uploaded_by_user_id
+		) VALUES (604, 41, 21, 704, 'other', 'Bild Drei', 1003);
+		INSERT INTO release_version_media_review_lifecycle(
+			release_version_media_id, source_revision, review_state, category,
+			submitter_app_user_id, submitter_member_id, submitted_at, last_activity_at, decided_at
+		) VALUES (604, 1, 'pending', 'other', 13, 101, '2026-07-23T09:00:00Z', '2026-07-23T09:00:00Z', NULL);
+	`)
+	require.NoError(t, err)
+
+	repo := NewReleaseReviewQueryRepository(pool)
+	scope := ReleaseReviewQueueScope{FansubGroupID: 21, View: ReleaseReviewQueueViewOpen}
+	allowed := []string{string(ReviewKindText), string(ReviewKindImage)}
+
+	// Actor is app_user 11 (the fixture's own submitter for rows 501/601/602), also
+	// verified as member 101 (matching row 604's submitter_member_id via the second
+	// signal). Every pending row in group 21 must be excluded.
+	ownPage, err := repo.List(ctx, ReleaseReviewQueueOptions{
+		Scope: scope, AllowedKinds: allowed, Limit: 50,
+		ActorAppUserID: 11, ActorMemberIDs: []int64{101},
+	})
+	require.NoError(t, err)
+	assert.Empty(t, ownPage.Items, "actor's own submissions (both identity signals) must be fully excluded")
+
+	ownCounts, err := repo.Counts(ctx, ReleaseReviewQueueOptions{
+		Scope: scope, AllowedKinds: allowed, Limit: 50,
+		ActorAppUserID: 11, ActorMemberIDs: []int64{101},
+	})
+	require.NoError(t, err)
+	assert.Zero(t, ownCounts.Text)
+	assert.Zero(t, ownCounts.Image)
+
+	// A non-submitter, non-member-matching actor (app_user 12) sees the full set
+	// unchanged: 501 (text), 601/602/604 (image).
+	foreignPage, err := repo.List(ctx, ReleaseReviewQueueOptions{
+		Scope: scope, AllowedKinds: allowed, Limit: 50, ActorAppUserID: 12,
+	})
+	require.NoError(t, err)
+	assert.Len(t, foreignPage.Items, 4)
+
+	foreignCounts, err := repo.Counts(ctx, ReleaseReviewQueueOptions{
+		Scope: scope, AllowedKinds: allowed, Limit: 50, ActorAppUserID: 12,
+	})
+	require.NoError(t, err)
+	assert.EqualValues(t, 1, foreignCounts.Text)
+	assert.EqualValues(t, 3, foreignCounts.Image)
+}
+
+// TestReleaseReviewQueueOwnViewReturnsOnlyActorsOwnPendingSubmissions proves RQUE-03/D01/
+// D03/D14: view=own returns only the actor's own currently-pending rows across BOTH review
+// kinds -- the value AllowedKinds carries here (text+image) is exactly what the real
+// handler's D10 capability bypass unconditionally computes for view=own (Plan 141-02 Task
+// 2), never derived from a capability check -- and a decided row from the same actor is
+// never included (D14: own-pending only ever shows currently-pending submissions).
+func TestReleaseReviewQueueOwnViewReturnsOnlyActorsOwnPendingSubmissions(t *testing.T) {
+	pool := openReleaseReviewQueryFixture(t)
+	ctx := context.Background()
+
+	_, err := pool.Exec(ctx, `
+		INSERT INTO media_assets(id) VALUES (705);
+		INSERT INTO media_files(id, media_id, variant, path, status) VALUES
+			(806, 705, 'original', '/app/media/review/705/original.png', 'ready');
+		INSERT INTO release_version_media(
+			id, release_version_id, fansub_group_id, media_asset_id, category, caption, uploaded_by_user_id
+		) VALUES (605, 41, 21, 705, 'other', 'Bild Vier', 1001);
+		INSERT INTO release_version_media_review_lifecycle(
+			release_version_media_id, source_revision, review_state, category,
+			submitter_app_user_id, submitter_member_id, submitted_at, last_activity_at, decided_at
+		) VALUES (605, 1, 'confirmed', 'other', 11, 101, '2026-07-23T09:00:00Z', '2026-07-23T09:00:00Z', '2026-07-23T10:00:00Z');
+	`)
+	require.NoError(t, err)
+
+	repo := NewReleaseReviewQueryRepository(pool)
+	scope := ReleaseReviewQueueScope{FansubGroupID: 21, View: ReleaseReviewQueueViewOwn}
+	allowed := []string{string(ReviewKindText), string(ReviewKindImage)}
+
+	page, err := repo.List(ctx, ReleaseReviewQueueOptions{
+		Scope: scope, AllowedKinds: allowed, Limit: 50, ActorAppUserID: 11,
+	})
+	require.NoError(t, err)
+	require.Len(t, page.Items, 3, "own view must return the actor's text + image pending rows, and only those")
+	decidedID, err := EncodeReleaseReviewID(ReleaseVersionMediaReviewSourceType, 605)
+	require.NoError(t, err)
+	ids := releaseReviewItemIDs(page.Items)
+	assert.NotContains(t, ids, decidedID, "decided rows must never appear in view=own (D14)")
+	hasText, hasImage := false, false
+	for _, item := range page.Items {
+		assert.Equal(t, ReleaseReviewStatePending, item.Status)
+		if item.ReviewKind == ReviewKindText {
+			hasText = true
+		}
+		if item.ReviewKind == ReviewKindImage {
+			hasImage = true
+		}
+	}
+	assert.True(t, hasText, "own view must include the actor's pending text submission")
+	assert.True(t, hasImage, "own view must include the actor's pending image submissions")
+
+	counts, err := repo.Counts(ctx, ReleaseReviewQueueOptions{
+		Scope: scope, AllowedKinds: allowed, Limit: 50, ActorAppUserID: 11,
+	})
+	require.NoError(t, err)
+	assert.EqualValues(t, 1, counts.Text)
+	assert.EqualValues(t, 2, counts.Image)
+}
+
+// TestReleaseReviewQueueRepositorySortsNewestFirst proves the D15 sort-direction
+// correction: List returns pending rows newest-first (descending by submitted_at), and
+// cursor-based pagination remains duplicate-free and correctly ordered under the new
+// direction.
+func TestReleaseReviewQueueRepositorySortsNewestFirst(t *testing.T) {
+	pool := openReleaseReviewQueryFixture(t)
+	ctx := context.Background()
+
+	_, err := pool.Exec(ctx, `
+		UPDATE release_version_note_review_lifecycle
+		SET submitted_at = '2026-07-23T09:00:00Z', last_activity_at = '2026-07-23T09:00:00Z'
+		WHERE release_version_note_id = 501;
+		UPDATE release_version_media_review_lifecycle
+		SET submitted_at = '2026-07-23T09:05:00Z', last_activity_at = '2026-07-23T09:05:00Z'
+		WHERE release_version_media_id = 601;
+		UPDATE release_version_media_review_lifecycle
+		SET submitted_at = '2026-07-23T09:10:00Z', last_activity_at = '2026-07-23T09:10:00Z'
+		WHERE release_version_media_id = 602;
+	`)
+	require.NoError(t, err)
+
+	repo := NewReleaseReviewQueryRepository(pool)
+	scope := ReleaseReviewQueueScope{FansubGroupID: 21, View: ReleaseReviewQueueViewOpen}
+	allowed := []string{string(ReviewKindText), string(ReviewKindImage)}
+
+	full, err := repo.List(ctx, ReleaseReviewQueueOptions{Scope: scope, AllowedKinds: allowed, Limit: 50})
+	require.NoError(t, err)
+	require.Len(t, full.Items, 3)
+	assert.True(t, full.Items[0].SubmittedAt.After(full.Items[1].SubmittedAt), "item 0 must be newer than item 1")
+	assert.True(t, full.Items[1].SubmittedAt.After(full.Items[2].SubmittedAt), "item 1 must be newer than item 2")
+
+	first, err := repo.List(ctx, ReleaseReviewQueueOptions{Scope: scope, AllowedKinds: allowed, Limit: 2})
+	require.NoError(t, err)
+	require.Len(t, first.Items, 2)
+	require.NotEmpty(t, first.NextCursor)
+
+	second, err := repo.List(ctx, ReleaseReviewQueueOptions{
+		Scope: scope, AllowedKinds: allowed, Limit: 2, Cursor: first.NextCursor,
+	})
+	require.NoError(t, err)
+	require.Len(t, second.Items, 1)
+
+	combined := append(append([]ReleaseReviewQueueItem{}, first.Items...), second.Items...)
+	seen := map[string]bool{}
+	for index, item := range combined {
+		assert.False(t, seen[item.ID], "cursor pages must be duplicate-free")
+		seen[item.ID] = true
+		if index > 0 {
+			assert.True(t, combined[index-1].SubmittedAt.After(item.SubmittedAt),
+				"pagination must remain strictly newest-to-oldest across pages")
+		}
+	}
+}
+
+// releaseReviewDelegationCacheOnce loads permissions' package-level role-capability cache
+// exactly once for this file's real-Postgres RDEL-05 test. ResolveGroupRights' roleAllows
+// lookup reads a package-level cache that starts nil; without loading it, ListActorGroupRoles
+// results could never grant anything via role (mirrors review_service_test.go's identical
+// precedent in package services, and authz_permissions_group_rights_test.go's real-Postgres
+// pattern in this same package -- this is the first test in package repository to touch
+// role-based Can() results, hence its own independent sync.Once).
+var releaseReviewDelegationCacheOnce sync.Once
+
+// releaseReviewDelegationCacheLoader satisfies LoadCache's D-10 "every known action appears
+// in >=1 role" catalog check while granting exactly what this test needs:
+// "fansub_image_reviewer" -> ActionReviewImageDecide only (no role-based text-review
+// capability), so the specialized review.text.decide grant this test exercises is the ONLY
+// source of that action's Allowed=true. Every other canonical action is parked under an
+// unused role, matching review_service_test.go's precedent.
+type releaseReviewDelegationCacheLoader struct{}
+
+func (releaseReviewDelegationCacheLoader) LoadRoleCapabilities(
+	context.Context,
+) (map[string][]permissions.Action, error) {
+	return map[string][]permissions.Action{
+		"fansub_image_reviewer": {permissions.ActionReviewImageDecide},
+		"_release_review_test_unused_role": {
+			permissions.ActionFansubGroupEdit,
+			permissions.ActionFansubGroupLinksManage,
+			permissions.ActionFansubGroupMembersView,
+			permissions.ActionFansubGroupHistoricalMembersManage,
+			permissions.ActionFansubGroupHistoricalRolesManage,
+			permissions.ActionFansubGroupHistoricalMembersLink,
+			permissions.ActionFansubGroupInvitationsView,
+			permissions.ActionFansubGroupInvitationsCreate,
+			permissions.ActionFansubGroupInvitationsCancel,
+			permissions.ActionFansubGroupNotesWrite,
+			permissions.ActionFansubGroupMediaView,
+			permissions.ActionFansubGroupMediaUpload,
+			permissions.ActionFansubGroupMediaUpdate,
+			permissions.ActionFansubGroupMediaReorder,
+			permissions.ActionFansubGroupMediaDelete,
+			permissions.ActionFansubGroupMembersManage,
+			permissions.ActionFansubGroupPageGeneralEdit,
+			permissions.ActionFansubGroupPageTechnicalLinksEdit,
+			permissions.ActionFansubGroupPageFoundingHistoryEdit,
+			permissions.ActionFansubGroupLinksUpdate,
+			permissions.ActionAnimeFansubProjectNotesWrite,
+			permissions.ActionReleaseView,
+			permissions.ActionReleaseVersionView,
+			permissions.ActionReleaseVersionMediaView,
+			permissions.ActionReleaseVersionMediaUpload,
+			permissions.ActionReleaseVersionMediaUpdate,
+			permissions.ActionReleaseVersionMediaDelete,
+			permissions.ActionReleaseVersionMediaDeleteOwn,
+			permissions.ActionReleaseVersionNotesWrite,
+			permissions.ActionReleaseVersionSegmentsManage,
+			permissions.ActionReviewTextDecide,
+			permissions.ActionReviewContributionDecide,
+			permissions.ActionUserGroupCapabilityOverrideManage,
+		},
+	}, nil
+}
+
+func ensureReleaseReviewDelegationCacheLoaded(t *testing.T) {
+	t.Helper()
+	releaseReviewDelegationCacheOnce.Do(func() {
+		if err := permissions.NewService(nil).LoadCache(
+			context.Background(), releaseReviewDelegationCacheLoader{},
+		); err != nil {
+			t.Fatalf("load permissions cache for release review delegation test: %v", err)
+		}
+	})
+}
+
+// TestPhase141RevokedDelegationImmediateEffect proves RDEL-05 end to end: granting a
+// specialized review.text.decide delegation to a member with no role-based text-review
+// capability makes their text submission appear in List/Counts immediately, and revoking it
+// makes the item disappear immediately -- in the SAME test, no restart or cache clear. The
+// AllowedKinds passed to List/Counts is computed from the just-resolved
+// permissions.Service.ResolveGroupRights result at each step, exactly mirroring what the
+// real handler's queueOptions/authorizedKinds would compute from the SAME resolution
+// (Plan 141-02 Task 2) -- this test deliberately spans the permissions and repository
+// packages within one package repository test file.
+func TestPhase141RevokedDelegationImmediateEffect(t *testing.T) {
+	ensureReleaseReviewDelegationCacheLoaded(t)
+	pool := openReleaseReviewQueryFixture(t)
+	ctx := context.Background()
+
+	_, err := pool.Exec(ctx, `
+		CREATE TABLE fansub_group_member_roles (
+			fansub_group_member_id BIGINT NOT NULL REFERENCES fansub_group_members(id) ON DELETE CASCADE,
+			role TEXT NOT NULL,
+			PRIMARY KEY (fansub_group_member_id, role)
+		);
+		CREATE TABLE user_group_capability_overrides (
+			app_user_id BIGINT NOT NULL REFERENCES app_users(id) ON DELETE CASCADE,
+			fansub_group_id BIGINT NOT NULL REFERENCES fansub_groups(id) ON DELETE CASCADE,
+			action_code TEXT NOT NULL,
+			effect TEXT NOT NULL CHECK (effect IN ('allow', 'deny')),
+			PRIMARY KEY (app_user_id, fansub_group_id, action_code)
+		);
+		INSERT INTO users(id) VALUES (1003);
+		INSERT INTO app_users(id, status, legacy_user_id) VALUES (13, 'active', 1003);
+		INSERT INTO members(id, nickname, display_name) VALUES (103, 'Delegierte', 'Delegierte Drei');
+		INSERT INTO member_claims(id, member_id, app_user_id, claim_status, verified_at)
+			VALUES (301, 103, 13, 'verified', NOW());
+		INSERT INTO fansub_group_members(id, fansub_group_id, app_user_id, member_id, status)
+			VALUES (33, 21, 13, 103, 'active');
+		INSERT INTO fansub_group_member_roles(fansub_group_member_id, role)
+			VALUES (33, 'fansub_image_reviewer');
+	`)
+	require.NoError(t, err)
+
+	repo := NewReleaseReviewQueryRepository(pool)
+	delegationRepo := NewReviewDelegationRepository(pool)
+	authzRepo := NewAuthzRepository(pool)
+	permissionSvc := permissions.NewService(authzRepo)
+	delegate := permissions.Actor{AppUserID: 13, Status: "active"}
+	scope := ReleaseReviewQueueScope{FansubGroupID: 21, View: ReleaseReviewQueueViewOpen}
+	textID, err := EncodeReleaseReviewID(ReleaseVersionNoteReviewSourceType, 501)
+	require.NoError(t, err)
+
+	allowedKindsFor := func(res *permissions.GroupRightsResolution) []string {
+		var kinds []string
+		if res.Can(permissions.ActionReviewTextDecide).Allowed {
+			kinds = append(kinds, string(ReviewKindText))
+		}
+		if res.Can(permissions.ActionReviewImageDecide).Allowed {
+			kinds = append(kinds, string(ReviewKindImage))
+		}
+		return kinds
+	}
+
+	// Before any specialized grant: the delegate can only decide image (role-based via
+	// fansub_image_reviewer), never text.
+	before, err := permissionSvc.ResolveGroupRights(ctx, delegate, 21)
+	require.NoError(t, err)
+	require.False(t, before.Can(permissions.ActionReviewTextDecide).Allowed)
+	require.True(t, before.Can(permissions.ActionReviewImageDecide).Allowed)
+
+	beforeList, err := repo.List(ctx, ReleaseReviewQueueOptions{
+		Scope: scope, AllowedKinds: allowedKindsFor(before), Limit: 50,
+	})
+	require.NoError(t, err)
+	assert.NotContains(t, releaseReviewItemIDs(beforeList.Items), textID,
+		"text item must not be visible before the specialized text delegation is granted")
+
+	beforeCounts, err := repo.Counts(ctx, ReleaseReviewQueueOptions{
+		Scope: scope, AllowedKinds: allowedKindsFor(before), Limit: 50,
+	})
+	require.NoError(t, err)
+	assert.Zero(t, beforeCounts.Text)
+	assert.EqualValues(t, 2, beforeCounts.Image)
+
+	// Grant the specialized review.text.decide delegation.
+	granted, err := delegationRepo.GrantAction(ctx, 33, string(permissions.ActionReviewTextDecide))
+	require.NoError(t, err)
+	require.True(t, granted)
+
+	afterGrant, err := permissionSvc.ResolveGroupRights(ctx, delegate, 21)
+	require.NoError(t, err)
+	require.True(t, afterGrant.Can(permissions.ActionReviewTextDecide).Allowed)
+	assert.Equal(t, permissions.ProvenanceSpecializedGrant, afterGrant.Can(permissions.ActionReviewTextDecide).DecisiveSource)
+
+	afterGrantList, err := repo.List(ctx, ReleaseReviewQueueOptions{
+		Scope: scope, AllowedKinds: allowedKindsFor(afterGrant), Limit: 50,
+	})
+	require.NoError(t, err)
+	assert.Contains(t, releaseReviewItemIDs(afterGrantList.Items), textID,
+		"text item must appear immediately after the specialized text delegation is granted, no restart")
+
+	afterGrantCounts, err := repo.Counts(ctx, ReleaseReviewQueueOptions{
+		Scope: scope, AllowedKinds: allowedKindsFor(afterGrant), Limit: 50,
+	})
+	require.NoError(t, err)
+	assert.EqualValues(t, 1, afterGrantCounts.Text)
+	assert.EqualValues(t, 2, afterGrantCounts.Image)
+
+	// Revoke the specialized delegation.
+	revoked, err := delegationRepo.RevokeAction(ctx, 33, string(permissions.ActionReviewTextDecide))
+	require.NoError(t, err)
+	require.True(t, revoked)
+
+	afterRevoke, err := permissionSvc.ResolveGroupRights(ctx, delegate, 21)
+	require.NoError(t, err)
+	require.False(t, afterRevoke.Can(permissions.ActionReviewTextDecide).Allowed)
+
+	afterRevokeList, err := repo.List(ctx, ReleaseReviewQueueOptions{
+		Scope: scope, AllowedKinds: allowedKindsFor(afterRevoke), Limit: 50,
+	})
+	require.NoError(t, err)
+	assert.NotContains(t, releaseReviewItemIDs(afterRevokeList.Items), textID,
+		"text item must disappear immediately after revoke, no restart or cache clear")
+
+	afterRevokeCounts, err := repo.Counts(ctx, ReleaseReviewQueueOptions{
+		Scope: scope, AllowedKinds: allowedKindsFor(afterRevoke), Limit: 50,
+	})
+	require.NoError(t, err)
+	assert.Zero(t, afterRevokeCounts.Text)
+	assert.EqualValues(t, 2, afterRevokeCounts.Image)
+}
+
+// TestReleaseReviewQueueNeverIncludesContributionSourceType is an explicit RQUE-06
+// regression guard: even with a real anime_contributions proposal row present in the
+// database, the shared release_review_lifecycle_sources view (a UNION ALL hardcoding only
+// 'text' and 'image') never emits review_kind='contribution', and no List/Counts call, for
+// any AllowedKinds combination, ever returns such a row.
+func TestReleaseReviewQueueNeverIncludesContributionSourceType(t *testing.T) {
+	pool := openReleaseReviewQueryFixture(t)
+	ctx := context.Background()
+
+	_, err := pool.Exec(ctx, `
+		CREATE TABLE hist_fansub_group_members (
+			id BIGSERIAL PRIMARY KEY,
+			fansub_group_id BIGINT NOT NULL REFERENCES fansub_groups(id),
+			member_id BIGINT NOT NULL REFERENCES members(id),
+			status VARCHAR(20) NOT NULL DEFAULT 'historical'
+		);
+		CREATE TABLE anime_contributions (
+			id BIGSERIAL PRIMARY KEY,
+			fansub_group_id BIGINT NOT NULL REFERENCES fansub_groups(id),
+			anime_id BIGINT NOT NULL REFERENCES anime(id),
+			fansub_group_member_id BIGINT NOT NULL REFERENCES hist_fansub_group_members(id),
+			status VARCHAR(20) NOT NULL DEFAULT 'draft'
+		);
+		INSERT INTO hist_fansub_group_members(id, fansub_group_id, member_id, status)
+			VALUES (901, 21, 101, 'active');
+		INSERT INTO anime_contributions(id, fansub_group_id, anime_id, fansub_group_member_id, status)
+			VALUES (9001, 21, 81, 901, 'proposed');
+	`)
+	require.NoError(t, err)
+
+	var contributionRows int
+	require.NoError(t, pool.QueryRow(ctx,
+		`SELECT COUNT(*) FROM release_review_lifecycle_sources WHERE review_kind = 'contribution'`,
+	).Scan(&contributionRows))
+	assert.Zero(t, contributionRows, "release_review_lifecycle_sources must never emit review_kind='contribution'")
+
+	repo := NewReleaseReviewQueryRepository(pool)
+	scope := ReleaseReviewQueueScope{FansubGroupID: 21, View: ReleaseReviewQueueViewOpen}
+	for _, allowed := range [][]string{
+		{string(ReviewKindText)},
+		{string(ReviewKindImage)},
+		{string(ReviewKindText), string(ReviewKindImage)},
+	} {
+		page, err := repo.List(ctx, ReleaseReviewQueueOptions{Scope: scope, AllowedKinds: allowed, Limit: 50})
+		require.NoError(t, err)
+		for _, item := range page.Items {
+			assert.NotEqual(t, ReviewKind("contribution"), item.ReviewKind)
+		}
+	}
+
+	// Defense in depth beyond the view's own guarantee: the options layer itself rejects
+	// "contribution" as an invalid AllowedKinds entry before any query runs.
+	assert.ErrorIs(t, ValidateReleaseReviewQueueOptions(ReleaseReviewQueueOptions{
+		Scope: scope, AllowedKinds: []string{"contribution"}, Limit: 50,
+	}), ErrValidation)
 }

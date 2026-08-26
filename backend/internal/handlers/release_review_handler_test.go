@@ -225,6 +225,34 @@ func TestReleaseReviewQueueRejectsUnknownTypeBeforePermissionOrRepositoryAccess(
 	assert.Empty(t, repo.listOptions.AllowedKinds)
 }
 
+// TestReleaseReviewQueueOwnViewBypassesCapabilityGate proves the D10 capability bypass
+// (Plan 141-02 Task 2) structurally: with view=own, queueOptions must skip authorizedKinds
+// entirely -- never calling ResolveReviewGroupAuthorization -- and unconditionally use
+// [text, image] as AllowedKinds, even when the actor is authorized for NEITHER review kind.
+func TestReleaseReviewQueueOwnViewBypassesCapabilityGate(t *testing.T) {
+	gin.SetMode(gin.TestMode)
+	repo := &releaseReviewQueryStub{page: repository.ReleaseReviewQueuePage{
+		Items: []repository.ReleaseReviewQueueItem{},
+	}}
+	permission := &releaseReviewPermissionStub{allowed: map[permissions.Action]bool{}}
+	handler := NewReleaseReviewHandler(repo, permission, nil, &releaseReviewIdentityStub{})
+
+	c, rec := releaseReviewTestContext(
+		http.MethodGet,
+		"/api/v1/admin/fansubs/21/release-reviews?view=own",
+		"21",
+	)
+	handler.List(c)
+
+	require.Equal(t, http.StatusOK, rec.Code, rec.Body.String())
+	assert.Equal(t, 0, permission.resolveCalls, "view=own must never call ResolveReviewGroupAuthorization")
+	assert.ElementsMatch(t,
+		[]string{string(repository.ReviewKindText), string(repository.ReviewKindImage)},
+		repo.listOptions.AllowedKinds,
+	)
+	assert.Equal(t, repository.ReleaseReviewQueueViewOwn, repo.listOptions.Scope.View)
+}
+
 func TestReleaseReviewQueueCapsLimitAndRejectsInvalidCursor(t *testing.T) {
 	gin.SetMode(gin.TestMode)
 	repo := &releaseReviewQueryStub{}
