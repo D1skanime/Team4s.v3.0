@@ -88,3 +88,7 @@ The "Zu prüfen" tab's D06/D10/D13 honesty contract is now fully closed on the f
 ---
 *Phase: 141-actor-decidable-review-queue*
 *Completed: 2026-08-26*
+
+## Self-Check: PASSED
+
+All modified files (`ReleaseReviewsSection.tsx`, `releaseReviews.test.tsx`) and referenced task commit hashes (`f6902f8c`, `ec910a59`, `2acd9450`) verified present on disk / in `git log --oneline --all`.
