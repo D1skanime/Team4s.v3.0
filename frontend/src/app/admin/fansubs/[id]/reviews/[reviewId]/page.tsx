@@ -8,6 +8,7 @@ import { RichTextRenderer } from '@/components/editor/RichTextRenderer'
 import {
   Badge,
   Button,
+  ErrorState,
   FormField,
   LoadingState,
   Modal,
@@ -34,6 +35,7 @@ import {
 } from '../../../releaseReviewPresentation'
 import styles from '../../../releaseReviews.module.css'
 import { useReleaseReviewMobileGate } from '../../../useReleaseReviewMobileGate'
+import { NextReviewControl } from './NextReviewControl'
 import { ReleaseReviewMediaPreview } from './ReleaseReviewMediaPreview'
 
 const REJECTION_OPTIONS: Array<{
@@ -65,7 +67,7 @@ export default function ReleaseReviewPage() {
   const [currentAppUserId, setCurrentAppUserId] = useState<number | null>(null)
   const [isPlatformAdmin, setIsPlatformAdmin] = useState(false)
   const [isLoading, setIsLoading] = useState(true)
-  const [loadError, setLoadError] = useState(false)
+  const [loadError, setLoadError] = useState<unknown>(null)
   const [decisionState, setDecisionState] = useState<DecisionState>({ kind: 'idle' })
   const [rejectOpen, setRejectOpen] = useState(false)
   const [rejectionCategory, setRejectionCategory] = useState<ReleaseReviewRejectionCategory | ''>('')
@@ -89,7 +91,7 @@ export default function ReleaseReviewPage() {
     const controller = new AbortController()
     detailAbortRef.current = controller
     setIsLoading(true)
-    setLoadError(false)
+    setLoadError(null)
     try {
       const [detailResponse, userResponse] = await Promise.all([
         getReleaseReview(fansubId, reviewId, controller.signal),
@@ -100,8 +102,8 @@ export default function ReleaseReviewPage() {
       setCurrentAppUserId(userResponse.data.app_user_id)
       setIsPlatformAdmin(Boolean(userResponse.data.is_platform_admin))
       setDecisionState({ kind: 'idle' })
-    } catch {
-      if (!controller.signal.aborted) setLoadError(true)
+    } catch (error: unknown) {
+      if (!controller.signal.aborted) setLoadError(error)
     } finally {
       if (detailAbortRef.current === controller) detailAbortRef.current = null
       if (!controller.signal.aborted) setIsLoading(false)
@@ -205,6 +207,13 @@ export default function ReleaseReviewPage() {
     )
   }
   if (isLoading) return <LoadingState title="Prüfung wird geladen" />
+  if (loadError instanceof ApiError && loadError.status === 403) {
+    return (
+      <main className={styles.detailPage}>
+        <ErrorState title="Nicht entscheidbar für dich" description="Diese Prüfung ist entweder dein eigener Beitrag oder du hast aktuell keine Berechtigung dafür." action={<Button href={returnHref} variant="secondary">Zurück zur Prüfliste</Button>} />
+      </main>
+    )
+  }
   if (loadError || !detail) {
     return (
       <main className={styles.detailPage}>
@@ -351,18 +360,13 @@ export default function ReleaseReviewPage() {
             >
               Ablehnen
             </Button>
+            <NextReviewControl mode="standalone" fansubId={fansubId} reviewId={reviewId} />
           </div>
         ) : null}
 
         {decisionState.kind === 'success' ? (
           <div className={styles.successActions}>
-            {decisionState.response.data.next ? (
-              <Button
-                href={`/admin/fansubs/${fansubId}/reviews/${encodeURIComponent(decisionState.response.data.next.id)}`}
-              >
-                Nächste offene Prüfung
-              </Button>
-            ) : null}
+            <NextReviewControl mode="post-decision" fansubId={fansubId} next={decisionState.response.data.next ?? null} />
             <Button href={returnHref} variant="secondary">Zurück zur Prüfliste</Button>
           </div>
         ) : null}
