@@ -11,6 +11,7 @@ export const EMPTY_RELEASE_REVIEW_COUNTS: ReleaseReviewCounts = {
   text: 0,
   image: 0,
   contribution: 0,
+  allowed_types: [],
   image_categories: {
     screenshot: 0,
     typesetting_karaoke: 0,

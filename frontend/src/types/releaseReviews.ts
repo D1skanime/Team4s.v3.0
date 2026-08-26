@@ -1,4 +1,4 @@
-export type ReleaseReviewView = 'open' | 'history'
+export type ReleaseReviewView = 'open' | 'history' | 'own'
 export type ReleaseReviewType = 'text' | 'image'
 export type ReleaseReviewStatus = 'pending' | 'confirmed' | 'rejected' | 'tombstoned'
 export type ReleaseReviewImageCategory =
@@ -47,6 +47,7 @@ export interface ReleaseReviewCounts {
   text: number
   image: number
   contribution: number
+  allowed_types: ReleaseReviewType[]
   image_categories: Record<ReleaseReviewImageCategory, number>
 }
 
