@@ -42,19 +42,29 @@ type releaseReviewDecisionService interface {
 	Decide(context.Context, services.ReviewDecisionCommand) (*repository.ReviewDecisionRow, error)
 }
 
+// releaseReviewActorIdentityResolver resolves the requesting actor's verified member IDs
+// once per request (Plan 141-02), the second signal releaseReviewQueuePredicates' self-
+// exclusion/self-inclusion clause needs alongside AppUserID.
+type releaseReviewActorIdentityResolver interface {
+	ResolveVerifiedActorMemberIDs(context.Context, int64) ([]int64, error)
+}
+
 type ReleaseReviewHandler struct {
 	query       releaseReviewQueryRepository
 	permissions releaseReviewPermissionService
 	decisions   releaseReviewDecisionService
+	identity    releaseReviewActorIdentityResolver
 }
 
 func NewReleaseReviewHandler(
 	query releaseReviewQueryRepository,
 	permissionService releaseReviewPermissionService,
 	decisionService releaseReviewDecisionService,
+	identityResolver releaseReviewActorIdentityResolver,
 ) *ReleaseReviewHandler {
 	return &ReleaseReviewHandler{
 		query: query, permissions: permissionService, decisions: decisionService,
+		identity: identityResolver,
 	}
 }
 
@@ -89,6 +99,7 @@ func (h *ReleaseReviewHandler) Counts(c *gin.Context) {
 		h.writeReadError(c, err)
 		return
 	}
+	counts.AllowedTypes = options.AllowedKinds
 	c.JSON(http.StatusOK, gin.H{"data": counts})
 }
 
@@ -256,8 +267,28 @@ func (h *ReleaseReviewHandler) queueOptions(
 		c.JSON(http.StatusBadRequest, reviewError("REVIEW_BAD_REQUEST", "Ungültiger Prüfungsfilter."))
 		return repository.ReleaseReviewQueueOptions{}, false
 	}
-	allowedKinds, ok := h.authorizedKinds(c, actor, groupID, kind)
-	if !ok {
+	view := strings.TrimSpace(c.Query("view"))
+	var allowedKinds []string
+	if view == repository.ReleaseReviewQueueViewOwn {
+		// D10 capability bypass: an actor always sees their own pending submissions,
+		// regardless of whether they are authorized to DECIDE that review kind. `type=`
+		// still narrows via scope.ReviewKind below -- only the capability GATE is
+		// bypassed here.
+		allowedKinds = []string{string(repository.ReviewKindText), string(repository.ReviewKindImage)}
+	} else {
+		var ok bool
+		allowedKinds, ok = h.authorizedKinds(c, actor, groupID, kind)
+		if !ok {
+			return repository.ReleaseReviewQueueOptions{}, false
+		}
+	}
+	if h.identity == nil {
+		writeInternalErrorResponse(c, "interner serverfehler", errors.New("release review identity resolver missing"), "")
+		return repository.ReleaseReviewQueueOptions{}, false
+	}
+	actorMemberIDs, err := h.identity.ResolveVerifiedActorMemberIDs(c.Request.Context(), actor.AppUserID)
+	if err != nil {
+		writePermissionInternalError(c, err, "Aktorenidentität konnte nicht geprüft werden.")
 		return repository.ReleaseReviewQueueOptions{}, false
 	}
 	animeID, valid := optionalPositiveInt64(c.Query("anime_id"))
@@ -281,12 +312,13 @@ func (h *ReleaseReviewHandler) queueOptions(
 	}
 	options := repository.ReleaseReviewQueueOptions{
 		Scope: repository.ReleaseReviewQueueScope{
-			FansubGroupID: groupID, View: c.Query("view"),
+			FansubGroupID: groupID, View: view,
 			AnimeID: animeID, ReleaseVersionID: releaseVersionID,
 			ReviewKind: kind, Category: c.Query("category"), Search: c.Query("search"),
 		},
 		AllowedKinds: allowedKinds, Cursor: c.Query("cursor"),
-		Limit: repository.NormalizeReleaseReviewQueueLimit(limit),
+		Limit:          repository.NormalizeReleaseReviewQueueLimit(limit),
+		ActorAppUserID: actor.AppUserID, ActorMemberIDs: actorMemberIDs,
 	}
 	if err := repository.ValidateReleaseReviewQueueOptions(options); err != nil {
 		c.JSON(http.StatusBadRequest, reviewError("REVIEW_BAD_REQUEST", "Ungültige Filter- oder Cursor-Angabe."))

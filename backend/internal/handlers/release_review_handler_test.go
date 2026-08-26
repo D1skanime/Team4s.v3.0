@@ -86,6 +86,20 @@ type releaseReviewDecisionStub struct {
 	command services.ReviewDecisionCommand
 }
 
+// releaseReviewIdentityStub satisfies releaseReviewActorIdentityResolver for tests that do
+// not exercise self-exclusion (Plan 141-02) -- an empty memberIDs slice is correct for every
+// pre-existing test.
+type releaseReviewIdentityStub struct {
+	memberIDs []int64
+	err       error
+}
+
+func (s *releaseReviewIdentityStub) ResolveVerifiedActorMemberIDs(
+	context.Context, int64,
+) ([]int64, error) {
+	return s.memberIDs, s.err
+}
+
 func (s *releaseReviewDecisionStub) Decide(
 	_ context.Context,
 	command services.ReviewDecisionCommand,
@@ -155,7 +169,7 @@ func TestReleaseReviewQueueUsesOnlyAuthorizedTypedKindsAndDoesNotAuditViews(t *t
 		permissions.ActionReviewTextDecide: true,
 	}}
 	audit := &auditReviewStub{}
-	handler := NewReleaseReviewHandler(repo, permission, nil)
+	handler := NewReleaseReviewHandler(repo, permission, nil, &releaseReviewIdentityStub{})
 
 	c, rec := releaseReviewTestContext(
 		http.MethodGet,
@@ -177,7 +191,7 @@ func TestReleaseReviewQueueRejectsWrongTypedCapabilityWithoutRepositoryAccess(t 
 	permission := &releaseReviewPermissionStub{allowed: map[permissions.Action]bool{
 		permissions.ActionReviewTextDecide: true,
 	}}
-	handler := NewReleaseReviewHandler(repo, permission, nil)
+	handler := NewReleaseReviewHandler(repo, permission, nil, &releaseReviewIdentityStub{})
 
 	c, rec := releaseReviewTestContext(
 		http.MethodGet,
@@ -198,7 +212,7 @@ func TestReleaseReviewQueueRejectsUnknownTypeBeforePermissionOrRepositoryAccess(
 	permission := &releaseReviewPermissionStub{allowed: map[permissions.Action]bool{
 		permissions.ActionReviewTextDecide: true,
 	}}
-	handler := NewReleaseReviewHandler(repo, permission, nil)
+	handler := NewReleaseReviewHandler(repo, permission, nil, &releaseReviewIdentityStub{})
 
 	c, rec := releaseReviewTestContext(
 		http.MethodGet,
@@ -218,7 +232,7 @@ func TestReleaseReviewQueueCapsLimitAndRejectsInvalidCursor(t *testing.T) {
 		permissions.ActionReviewTextDecide:  true,
 		permissions.ActionReviewImageDecide: true,
 	}}
-	handler := NewReleaseReviewHandler(repo, permission, nil)
+	handler := NewReleaseReviewHandler(repo, permission, nil, &releaseReviewIdentityStub{})
 
 	c, rec := releaseReviewTestContext(
 		http.MethodGet,
@@ -249,7 +263,7 @@ func TestReleaseReviewDetailIsNarrowAndEditPermissionIsIndependent(t *testing.T)
 	permission := &releaseReviewPermissionStub{allowed: map[permissions.Action]bool{
 		permissions.ActionReviewTextDecide: true,
 	}}
-	handler := NewReleaseReviewHandler(repo, permission, nil)
+	handler := NewReleaseReviewHandler(repo, permission, nil, &releaseReviewIdentityStub{})
 
 	c, rec := releaseReviewTestContext(http.MethodGet, "/api/v1/admin/fansubs/21/release-reviews/"+reviewID, "21")
 	c.Params = append(c.Params, gin.Param{Key: "reviewId", Value: reviewID})
@@ -273,7 +287,7 @@ func TestReleaseReviewDetailCrossGroupIsScopedNotFound(t *testing.T) {
 	permission := &releaseReviewPermissionStub{allowed: map[permissions.Action]bool{
 		permissions.ActionReviewImageDecide: true,
 	}}
-	handler := NewReleaseReviewHandler(repo, permission, nil)
+	handler := NewReleaseReviewHandler(repo, permission, nil, &releaseReviewIdentityStub{})
 	reviewID, err := repository.EncodeReleaseReviewID(repository.ReleaseVersionMediaReviewSourceType, 601)
 	require.NoError(t, err)
 
@@ -292,7 +306,7 @@ func TestReleaseReviewNextCrossGroupIsScopedNotFound(t *testing.T) {
 	permission := &releaseReviewPermissionStub{allowed: map[permissions.Action]bool{
 		permissions.ActionReviewTextDecide: true,
 	}}
-	handler := NewReleaseReviewHandler(repo, permission, nil)
+	handler := NewReleaseReviewHandler(repo, permission, nil, &releaseReviewIdentityStub{})
 	reviewID, err := repository.EncodeReleaseReviewID(repository.ReleaseVersionNoteReviewSourceType, 602)
 	require.NoError(t, err)
 
@@ -316,7 +330,7 @@ func TestReleaseReviewDetailPlatformAdminReceivesBothTypedScopes(t *testing.T) {
 		permissions.ActionReviewTextDecide:  true,
 		permissions.ActionReviewImageDecide: true,
 	}}
-	handler := NewReleaseReviewHandler(repo, permission, nil)
+	handler := NewReleaseReviewHandler(repo, permission, nil, &releaseReviewIdentityStub{})
 	reviewID, err := repository.EncodeReleaseReviewID(repository.ReleaseVersionMediaReviewSourceType, 601)
 	require.NoError(t, err)
 
@@ -348,7 +362,7 @@ func TestReleaseReviewDecisionMapsStableConflictWithoutRetry(t *testing.T) {
 		permissions.ActionReviewTextDecide: true,
 	}}
 	decision := &releaseReviewDecisionStub{err: services.ErrReviewAlreadyDecided}
-	handler := NewReleaseReviewHandler(repo, permission, decision)
+	handler := NewReleaseReviewHandler(repo, permission, decision, &releaseReviewIdentityStub{})
 	body := `{"decision":"confirm","expected_revision":3}`
 
 	c, rec := releaseReviewTestContext(
@@ -382,7 +396,7 @@ func TestReleaseReviewDecisionPlatformAdminUsesOverrideOnlyWhenReasonProvided(t 
 	decision := &releaseReviewDecisionStub{result: &repository.ReviewDecisionRow{
 		Decision: repository.ReviewDecisionConfirm,
 	}}
-	handler := NewReleaseReviewHandler(repo, permission, decision)
+	handler := NewReleaseReviewHandler(repo, permission, decision, &releaseReviewIdentityStub{})
 	c, rec := releaseReviewTestContext(
 		http.MethodPost,
 		"/api/v1/admin/fansubs/21/release-reviews/"+reviewID+"/decision",
@@ -509,7 +523,7 @@ func TestReleaseReviewHandlerResolvesGroupRightsOnceForListAndCounts(t *testing.
 			Items: []repository.ReleaseReviewQueueItem{},
 		}}
 		permission := newAllowedStub()
-		handler := NewReleaseReviewHandler(repo, permission, nil)
+		handler := NewReleaseReviewHandler(repo, permission, nil, &releaseReviewIdentityStub{})
 
 		c, rec := releaseReviewTestContext(
 			http.MethodGet, "/api/v1/admin/fansubs/21/release-reviews", "21",
@@ -523,7 +537,7 @@ func TestReleaseReviewHandlerResolvesGroupRightsOnceForListAndCounts(t *testing.
 	t.Run("Counts", func(t *testing.T) {
 		repo := &releaseReviewQueryStub{}
 		permission := newAllowedStub()
-		handler := NewReleaseReviewHandler(repo, permission, nil)
+		handler := NewReleaseReviewHandler(repo, permission, nil, &releaseReviewIdentityStub{})
 
 		c, rec := releaseReviewTestContext(
 			http.MethodGet, "/api/v1/admin/fansubs/21/release-reviews/counts", "21",
@@ -543,7 +557,7 @@ func TestReleaseReviewHandlerResolvesGroupRightsOnceForListAndCounts(t *testing.
 			Text: &repository.ReleaseReviewTextContent{Title: "Dialog", BodyHTML: "<p>Text</p>"},
 		}}
 		permission := newAllowedStub()
-		handler := NewReleaseReviewHandler(repo, permission, nil)
+		handler := NewReleaseReviewHandler(repo, permission, nil, &releaseReviewIdentityStub{})
 
 		c, rec := releaseReviewTestContext(
 			http.MethodGet, "/api/v1/admin/fansubs/21/release-reviews/"+reviewID, "21",
@@ -560,7 +574,7 @@ func TestReleaseReviewHandlerResolvesGroupRightsOnceForListAndCounts(t *testing.
 			ID: reviewID, ReviewKind: repository.ReviewKindText, FansubGroupID: 21,
 		}}
 		permission := newAllowedStub()
-		handler := NewReleaseReviewHandler(repo, permission, nil)
+		handler := NewReleaseReviewHandler(repo, permission, nil, &releaseReviewIdentityStub{})
 
 		c, rec := releaseReviewTestContext(
 			http.MethodGet, "/api/v1/admin/fansubs/21/release-reviews/"+reviewID+"/next", "21",

@@ -519,6 +519,7 @@ func main() {
 		releaseReviewQueryRepo,
 		permissionSvc,
 		releaseReviewService,
+		authzRepo,
 	)
 	// Phase 137-07: Effective-Rights Inspection/Mutation/History-API -- thin
 	// HTTP projection of the central resolver (permissionSvc) and the
