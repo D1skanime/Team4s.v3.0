@@ -36,7 +36,7 @@ See: .planning/PROJECT.md (updated 2026-08-13)
 Phase: 140
 Plan: Not started
 Status: Ready to execute
-Last activity: 2026-08-25 -- Completed quick task 260825-svs: Fix Phase 140 regression - completed @/lib/api mock in UserGroupRightsTab.test.tsx
+Last activity: 2026-08-26 -- Completed quick task 260826-6vu: closed Phase 140's 3 test-coverage gaps (handler/repository/frontend regression tests); Phase 140 re-verified with 0 gaps remaining, status human_needed pending one manual UX check
 
 ## Accumulated Context
 
@@ -230,6 +230,7 @@ Last activity: 2026-08-25 -- Completed quick task 260825-svs: Fix Phase 140 regr
 
 | 260825-jc0 | Admin start page navigation cleanup | 2026-08-25 | pending | [260825-jc0-admin-startseite-von-redundanten-benutze](./quick/260825-jc0-admin-startseite-von-redundanten-benutze/) |
 | 260825-svs | Regression aus Phase 140 beheben: fehlende getReviewDelegations Export im api-Mock von UserGroupRightsTab.test.tsx nachgeruestet (test-only, keine Verhaltensaenderung) | 2026-08-25 | 6cddcb75 | [260825-svs-regression-aus-phase-140-beheben-fehlend](./quick/260825-svs-regression-aus-phase-140-beheben-fehlend/) |
+| 260826-6vu | Phase-140-Nachtrag: drei Testluecken aus 140-VERIFICATION.md geschlossen (AdminReviewDelegationHandler HTTP-Tests, LoadDelegationSnapshot-Repository-Tests, CapabilityDetailRow-Regressionstest fuer die Option-(d)-Grant/Deny-Asymmetrie) - reine Testarbeit, kein Produktionscode geaendert; Re-Verifikation: 0/3 Luecken offen, Status human_needed (ein vorbestehender manueller UX-Check aus 140-VALIDATION.md) | 2026-08-26 | 5545e05d | [260826-6vu-die-drei-testluecken-aus-140-verificatio](./quick/260826-6vu-die-drei-testluecken-aus-140-verificatio/) |
 
 ### Verification Baseline
 
