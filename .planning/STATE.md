@@ -3,14 +3,14 @@ gsd_state_version: 1.0
 milestone: v1.4
 milestone_name: Coverage
 status: executing
-stopped_at: Completed 141-03-PLAN.md
-last_updated: "2026-08-26T09:31:41.638Z"
+stopped_at: Completed 141-04-PLAN.md
+last_updated: "2026-08-26T09:39:35.410Z"
 last_activity: 2026-08-26
 progress:
   total_phases: 7
   completed_phases: 5
   total_plans: 83
-  completed_plans: 79
+  completed_plans: 80
   percent: 71
 ---
 
@@ -34,7 +34,7 @@ See: .planning/PROJECT.md (updated 2026-08-13)
 ## Current Position
 
 Phase: 141 (actor-decidable-review-queue) — EXECUTING
-Plan: 4 of 7
+Plan: 5 of 7
 Status: Ready to execute
 Last activity: 2026-08-26
 
@@ -201,6 +201,8 @@ Last activity: 2026-08-26
 - [Phase 141]: 141-02: A nil ActorMemberIDs slice encodes as SQL NULL via pgx and must be normalized to an empty slice before binding, or the self-exclusion clause silently excludes every row instead of no-op'ing for unset call sites.
 - [Phase 141]: 141-02: The view=own D10 capability bypass lives entirely in the handler (queueOptions), never the repository -- releaseReviewQueuePredicates always honors whatever AllowedKinds it is given literally.
 - [Phase 141]: Next's internal r.List(...) call must thread ActorAppUserID/ActorMemberIDs, not just check the current item's identity, so the resolved 'next' item itself is guaranteed excluded from the actor's own submissions — D05 requires the resolved next item to never be the actor's own submission; the pre-existing code only checked the current item, letting an adjacent own-item leak through as next
+- [Phase 141]: useReleaseReviewLane's loadMore is a synchronous void function wrapping its async body in an internal IIFE, matching UseReleaseReviewLaneResult's documented () => void contract
+- [Phase 141]: reload() re-exposes loadInitial for the retry button and future re-derive-after-decision use (D08), backing later plans without new fetch logic
 
 ### Pending Todos
 
@@ -459,10 +461,11 @@ untruncated list lives in `.planning/todos/pending/`.
 | Phase 141 P01 | 11min | 2 tasks | 5 files |
 | Phase 141 P02 | 40min | 3 tasks | 7 files |
 | Phase 141 P03 | ~15min | 3 tasks | 7 files |
+| Phase 141 P04 | ~20min | 2 tasks | 5 files |
 
 ## Session Continuity
 
-Last session: 2026-08-26T09:31:41.624Z
-Stopped at: Completed 141-03-PLAN.md
+Last session: 2026-08-26T09:39:35.395Z
+Stopped at: Completed 141-04-PLAN.md
 Last activity: 2026-08-20 - Completed Phase 134 Plan 06: live UAT evidence capture, two gap-closure fix rounds, and the user's explicit live-browser sign-off for both reference profiles (PMQA-05)
 Resume file: None

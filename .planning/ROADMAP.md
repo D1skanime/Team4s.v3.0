@@ -654,7 +654,7 @@ Plans:
 - [x] 141-03-PLAN.md — Detail/Next existence-then-authorize (D04 403, Pitfall 3 shared predicate builder)
 
 **Wave 4** *(blocked on Wave 3 completion)*
-- [ ] 141-04-PLAN.md — Frontend type/hook contracts (useReleaseReviewLane extraction)
+- [x] 141-04-PLAN.md — Frontend type/hook contracts (useReleaseReviewLane extraction)
 
 **Wave 5** *(blocked on Wave 4 completion)*
 - [ ] 141-05-PLAN.md — Own-pending lane + Tabs wrapper (Component Contract 1)
