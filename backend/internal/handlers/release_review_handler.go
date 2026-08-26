@@ -20,8 +20,8 @@ import (
 type releaseReviewQueryRepository interface {
 	List(context.Context, repository.ReleaseReviewQueueOptions) (*repository.ReleaseReviewQueuePage, error)
 	Counts(context.Context, repository.ReleaseReviewQueueOptions) (*repository.ReleaseReviewQueueCounts, error)
-	Detail(context.Context, int64, string, []string) (*repository.ReleaseReviewDetail, error)
-	Next(context.Context, int64, string, []string) (*repository.ReleaseReviewQueueItem, error)
+	Detail(context.Context, int64, string, []string, int64, []int64) (*repository.ReleaseReviewDetail, error)
+	Next(context.Context, int64, string, []string, int64, []int64) (*repository.ReleaseReviewQueueItem, error)
 }
 
 type releaseReviewPermissionService interface {
@@ -112,8 +112,12 @@ func (h *ReleaseReviewHandler) Detail(c *gin.Context) {
 	if !ok {
 		return
 	}
+	actorMemberIDs, ok := h.resolveActorMemberIDs(c, actor)
+	if !ok {
+		return
+	}
 	detail, err := h.query.Detail(
-		c.Request.Context(), groupID, c.Param("reviewId"), allowedKinds,
+		c.Request.Context(), groupID, c.Param("reviewId"), allowedKinds, actor.AppUserID, actorMemberIDs,
 	)
 	if err != nil {
 		h.writeReadError(c, err)
@@ -143,8 +147,12 @@ func (h *ReleaseReviewHandler) Next(c *gin.Context) {
 	if !ok {
 		return
 	}
+	actorMemberIDs, ok := h.resolveActorMemberIDs(c, actor)
+	if !ok {
+		return
+	}
 	next, err := h.query.Next(
-		c.Request.Context(), groupID, c.Param("reviewId"), allowedKinds,
+		c.Request.Context(), groupID, c.Param("reviewId"), allowedKinds, actor.AppUserID, actorMemberIDs,
 	)
 	if err == nil && next == nil {
 		c.JSON(http.StatusOK, gin.H{"data": nil})
@@ -178,6 +186,10 @@ func (h *ReleaseReviewHandler) Decide(c *gin.Context) {
 	if !ok {
 		return
 	}
+	actorMemberIDs, ok := h.resolveActorMemberIDs(c, actor)
+	if !ok {
+		return
+	}
 	var request releaseReviewDecisionRequest
 	if err := decodeStrictReleaseReviewJSON(c, &request); err != nil {
 		c.JSON(http.StatusBadRequest, reviewError("REVIEW_BAD_REQUEST", "Ungültiger Request-Body."))
@@ -188,7 +200,7 @@ func (h *ReleaseReviewHandler) Decide(c *gin.Context) {
 		return
 	}
 	detail, err := h.query.Detail(
-		c.Request.Context(), groupID, c.Param("reviewId"), allowedKinds,
+		c.Request.Context(), groupID, c.Param("reviewId"), allowedKinds, actor.AppUserID, actorMemberIDs,
 	)
 	if err != nil {
 		h.writeReadError(c, err)
@@ -224,7 +236,7 @@ func (h *ReleaseReviewHandler) Decide(c *gin.Context) {
 		return
 	}
 	next, nextErr := h.query.Next(
-		c.Request.Context(), groupID, c.Param("reviewId"), allowedKinds,
+		c.Request.Context(), groupID, c.Param("reviewId"), allowedKinds, actor.AppUserID, actorMemberIDs,
 	)
 	if nextErr != nil && !errors.Is(nextErr, repository.ErrNotFound) {
 		next = nil
@@ -282,13 +294,8 @@ func (h *ReleaseReviewHandler) queueOptions(
 			return repository.ReleaseReviewQueueOptions{}, false
 		}
 	}
-	if h.identity == nil {
-		writeInternalErrorResponse(c, "interner serverfehler", errors.New("release review identity resolver missing"), "")
-		return repository.ReleaseReviewQueueOptions{}, false
-	}
-	actorMemberIDs, err := h.identity.ResolveVerifiedActorMemberIDs(c.Request.Context(), actor.AppUserID)
-	if err != nil {
-		writePermissionInternalError(c, err, "Aktorenidentität konnte nicht geprüft werden.")
+	actorMemberIDs, ok := h.resolveActorMemberIDs(c, actor)
+	if !ok {
 		return repository.ReleaseReviewQueueOptions{}, false
 	}
 	animeID, valid := optionalPositiveInt64(c.Query("anime_id"))
@@ -333,6 +340,8 @@ func (h *ReleaseReviewHandler) writeReadError(c *gin.Context, err error) {
 		c.JSON(http.StatusBadRequest, reviewError("REVIEW_BAD_REQUEST", "Ungültige Prüfungsanfrage."))
 	case errors.Is(err, repository.ErrNotFound):
 		c.JSON(http.StatusNotFound, reviewError("REVIEW_NOT_FOUND", "Prüfung nicht gefunden."))
+	case errors.Is(err, repository.ErrForbidden):
+		c.JSON(http.StatusForbidden, reviewError("REVIEW_FORBIDDEN", "Keine Berechtigung für diese Prüfung."))
 	default:
 		writeInternalErrorResponse(c, "interner serverfehler", err, "Prüfung konnte nicht geladen werden.")
 	}

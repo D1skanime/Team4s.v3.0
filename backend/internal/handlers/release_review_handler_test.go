@@ -23,15 +23,17 @@ import (
 )
 
 type releaseReviewQueryStub struct {
-	page        repository.ReleaseReviewQueuePage
-	counts      repository.ReleaseReviewQueueCounts
-	detail      *repository.ReleaseReviewDetail
-	next        *repository.ReleaseReviewQueueItem
-	err         error
-	listOptions repository.ReleaseReviewQueueOptions
-	detailKinds []string
-	detailGroup int64
-	detailID    string
+	page                  repository.ReleaseReviewQueuePage
+	counts                repository.ReleaseReviewQueueCounts
+	detail                *repository.ReleaseReviewDetail
+	next                  *repository.ReleaseReviewQueueItem
+	err                   error
+	listOptions           repository.ReleaseReviewQueueOptions
+	detailKinds           []string
+	detailGroup           int64
+	detailID              string
+	detailActorAppUserID  int64
+	detailActorMemberIDs  []int64
 }
 
 func (s *releaseReviewQueryStub) List(
@@ -55,10 +57,14 @@ func (s *releaseReviewQueryStub) Detail(
 	fansubGroupID int64,
 	reviewID string,
 	allowedKinds []string,
+	actorAppUserID int64,
+	actorMemberIDs []int64,
 ) (*repository.ReleaseReviewDetail, error) {
 	s.detailGroup = fansubGroupID
 	s.detailID = reviewID
 	s.detailKinds = append([]string(nil), allowedKinds...)
+	s.detailActorAppUserID = actorAppUserID
+	s.detailActorMemberIDs = append([]int64(nil), actorMemberIDs...)
 	return s.detail, s.err
 }
 
@@ -67,10 +73,14 @@ func (s *releaseReviewQueryStub) Next(
 	fansubGroupID int64,
 	reviewID string,
 	allowedKinds []string,
+	actorAppUserID int64,
+	actorMemberIDs []int64,
 ) (*repository.ReleaseReviewQueueItem, error) {
 	s.detailGroup = fansubGroupID
 	s.detailID = reviewID
 	s.detailKinds = append([]string(nil), allowedKinds...)
+	s.detailActorAppUserID = actorAppUserID
+	s.detailActorMemberIDs = append([]int64(nil), actorMemberIDs...)
 	return s.next, s.err
 }
 
