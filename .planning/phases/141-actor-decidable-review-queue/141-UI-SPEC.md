@@ -83,7 +83,9 @@ hex values.
 
 Accent reserved for: active-tab indicator, primary decision/navigation buttons, and the
 actionable-count badge only. Never used for the own-pending count, static labels, or section
-chrome — this asymmetry is intentional and load-bearing for Priority 1 (see below).
+chrome — this asymmetry is intentional and load-bearing for **Component Contract 1 — Two
+Tracks, Unmistakably Separated** (see below): color is the primary visual signal that the
+actionable queue and the own-pending lane are different in kind, not just in label.
 
 ---
 
