@@ -224,9 +224,8 @@ export function OwnPendingReviewsSection({ fansubId }: { fansubId: number }) {
               <TableHead>
                 <TableRow>
                   <TableHeaderCell>Eingereicht</TableHeaderCell>
-                  <TableHeaderCell className={styles.desktopOnly}>Projekt</TableHeaderCell>
-                  <TableHeaderCell className={styles.desktopOnly}>Episode / Release</TableHeaderCell>
-                  <TableHeaderCell className={styles.tabletOnly}>Projekt / Release</TableHeaderCell>
+                  <TableHeaderCell>Projekt</TableHeaderCell>
+                  <TableHeaderCell>Episode / Release</TableHeaderCell>
                   <TableHeaderCell>Typ</TableHeaderCell>
                   <TableHeaderCell>Status</TableHeaderCell>
                 </TableRow>
@@ -243,21 +242,15 @@ export function OwnPendingReviewsSection({ fansubId }: { fansubId: number }) {
                   return (
                     <TableRow key={item.id}>
                       <TableCell>{formatReleaseReviewDateTime(item.submitted_at)}</TableCell>
-                      <TableCell className={styles.desktopOnly}>{item.anime_title}</TableCell>
-                      <TableCell className={styles.desktopOnly}>
+                      <TableCell>{item.anime_title}</TableCell>
+                      <TableCell>
                         Episode {item.episode_number} · {item.release_version}
-                      </TableCell>
-                      <TableCell className={`${styles.tabletOnly} ${styles.contextCell}`}>
-                        <strong className={styles.contextPrimary}>{item.anime_title}</strong>
-                        <span className={styles.contextSecondary}>
-                          Episode {item.episode_number} · {item.release_version}
-                        </span>
                       </TableCell>
                       <TableCell>
                         <div className={styles.typeStack}>
                           <span>{item.type === 'text' ? 'Text' : 'Bild'}</span>
                           {item.category ? (
-                            <Badge className={styles.tabletOnly} variant="muted">
+                            <Badge variant="muted">
                               {RELEASE_REVIEW_CATEGORY_LABELS[item.category]}
                             </Badge>
                           ) : null}
