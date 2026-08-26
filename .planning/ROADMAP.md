@@ -414,7 +414,7 @@ Milestone v1.4 closes Live-UAT Findings #29-#32 by making effective group rights
 - [x] **Phase 137: Central Effective-Rights Resolver & Overrides** - Make canonical enforcement and inspection resolve the same provenance-aware effective rights and safe per-user overrides. (completed 2026-08-21)
 - [x] **Phase 138: Effective-Rights Administration & Impact UX** - Turn the existing user rights and role-capability surfaces into explainable revoke, impact, and cache-state workflows. (completed 2026-08-23)
 - [x] **Phase 139: Scalable User-Admin Projections** - Replace noisy flat contribution and media data with meaningful grouped, filtered, and stable projections. (completed 2026-08-24)
-- [ ] **Phase 140: Review Delegation Management** - Expose the existing specialized delegation service through documented APIs and the canonical group-member editor.
+- [x] **Phase 140: Review Delegation Management** - Expose the existing specialized delegation service through documented APIs and the canonical group-member editor.
 - [ ] **Phase 141: Actor-Decidable Review Queue** - Make every queue lane, count, detail, and next action reflect what the current reviewer may actually decide.
 - [ ] **Phase 142: Integrated Security, Fixtures & Live Release Gate** - Prove the complete milestone across contracts, auth refresh, fixtures, security, responsive UI, and canonical ownership.
 
