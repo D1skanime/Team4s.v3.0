@@ -44,11 +44,11 @@
 ### Entscheidbare Review-Arbeit
 
 - [x] **RQUE-01**: Die offene Review-Liste enthält serverseitig nur Einträge, deren Review-Art der aktuelle Benutzer in der betreffenden Fansubgruppe entscheiden darf.
-- [ ] **RQUE-02**: Eigene Einreichungen erscheinen nicht in der entscheidbaren Review-Liste und erhöhen deren Actionable-Zähler nicht.
-- [ ] **RQUE-03**: Eigene offene Einreichungen können getrennt als „wartet auf Fremdprüfung“ angezeigt werden und besitzen dort keine Entscheidungsaktion.
+- [x] **RQUE-02**: Eigene Einreichungen erscheinen nicht in der entscheidbaren Review-Liste und erhöhen deren Actionable-Zähler nicht.
+- [x] **RQUE-03**: Eigene offene Einreichungen können getrennt als „wartet auf Fremdprüfung“ angezeigt werden und besitzen dort keine Entscheidungsaktion.
 - [x] **RQUE-04**: Review-Liste, Typ-Zähler, Detailzugriff und „Nächster Eintrag“ verwenden dieselben Actor-, Capability-, Gruppen- und Self-Review-Prädikate.
 - [x] **RQUE-05**: Direkter Zugriff und Entscheidungsversuche bleiben serverseitig geschützt, selbst wenn ein Eintrag durch manipulierte URL oder veralteten Clientzustand geöffnet wird.
-- [ ] **RQUE-06**: Mitwirkungsprüfungen verwenden ihren bestehenden kanonischen Review-Workflow und werden nicht künstlich in die Text-/Bild-Release-Queue verschoben.
+- [x] **RQUE-06**: Mitwirkungsprüfungen verwenden ihren bestehenden kanonischen Review-Workflow und werden nicht künstlich in die Text-/Bild-Release-Queue verschoben.
 
 ### Verträge, Sicherheit und Rollout
 
@@ -122,11 +122,11 @@
 | RDEL-04 | Phase 140 | Pending |
 | RDEL-05 | Phase 141 | Complete |
 | RQUE-01 | Phase 141 | Complete |
-| RQUE-02 | Phase 141 | Pending |
-| RQUE-03 | Phase 141 | Pending |
+| RQUE-02 | Phase 141 | Complete |
+| RQUE-03 | Phase 141 | Complete |
 | RQUE-04 | Phase 141 | Complete |
 | RQUE-05 | Phase 141 | Complete |
-| RQUE-06 | Phase 141 | Pending |
+| RQUE-06 | Phase 141 | Complete |
 | QUAL-01 | Phase 136 | Complete |
 | QUAL-02 | Phase 142 | Pending |
 | QUAL-03 | Phase 137 | Complete |

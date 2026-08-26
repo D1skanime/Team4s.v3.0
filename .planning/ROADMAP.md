@@ -648,7 +648,7 @@ Plans:
 - [x] 141-01-PLAN.md — Single-resolution review authorization (Pattern 1) + decision-guard concurrency regression
 
 **Wave 2** *(blocked on Wave 1 completion)*
-- [ ] 141-02-PLAN.md — Self-exclusion predicate, own-view scope, D15 sort direction fix, allowed_types field, RDEL-05/RQUE-06 tests
+- [x] 141-02-PLAN.md — Self-exclusion predicate, own-view scope, D15 sort direction fix, allowed_types field, RDEL-05/RQUE-06 tests
 
 **Wave 3** *(blocked on Wave 2 completion)*
 - [ ] 141-03-PLAN.md — Detail/Next existence-then-authorize (D04 403, Pitfall 3 shared predicate builder)
