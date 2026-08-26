@@ -2,15 +2,15 @@
 gsd_state_version: 1.0
 milestone: v1.4
 milestone_name: Coverage
-status: verifying
-stopped_at: Completed 141-06-PLAN.md
-last_updated: "2026-08-26T10:00:44.456Z"
+status: ready_to_plan
+stopped_at: Phase 141 complete (7/7) — ready to discuss Phase 142
+last_updated: 2026-08-26T10:20:31.197Z
 last_activity: 2026-08-26
 progress:
   total_phases: 7
   completed_phases: 6
   total_plans: 83
-  completed_plans: 83
+  completed_plans: 137
   percent: 86
 ---
 
@@ -29,13 +29,13 @@ Phase 135 and any future roadmap entries continue from here.
 See: .planning/PROJECT.md (updated 2026-08-13)
 
 **Core value:** Team4s presents fansub history and collaboration credibly while keeping identity, visibility, ownership, and permissions correct.
-**Current focus:** Phase 141 — actor-decidable-review-queue
+**Current focus:** Phase 142 — integrated security, fixtures & live release gate
 
 ## Current Position
 
-Phase: 141 (actor-decidable-review-queue) — EXECUTING
-Plan: 7 of 7
-Status: Phase complete — ready for verification
+Phase: 142
+Plan: Not started
+Status: Ready to plan
 Last activity: 2026-08-26
 
 ## Accumulated Context
