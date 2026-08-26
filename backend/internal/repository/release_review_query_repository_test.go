@@ -174,7 +174,7 @@ func TestReleaseReviewQueueRepositoryFiltersCountsDetailAndStablePages(t *testin
 	require.Len(t, imagePage.Items, 1)
 	assert.Equal(t, "screenshot", imagePage.Items[0].Category)
 
-	detail, err := repo.Detail(ctx, 21, first.Items[0].ID, allowed)
+	detail, err := repo.Detail(ctx, 21, first.Items[0].ID, allowed, 0, nil)
 	require.NoError(t, err)
 	if detail.ReviewKind == ReviewKindText {
 		require.NotNil(t, detail.Text)
@@ -186,7 +186,7 @@ func TestReleaseReviewQueueRepositoryFiltersCountsDetailAndStablePages(t *testin
 		assert.Contains(t, detail.Image.OriginalURL, "/media/")
 	}
 
-	_, err = repo.Detail(ctx, 22, first.Items[0].ID, allowed)
+	_, err = repo.Detail(ctx, 22, first.Items[0].ID, allowed, 0, nil)
 	assert.ErrorIs(t, err, ErrNotFound)
 
 	history, err := repo.List(ctx, ReleaseReviewQueueOptions{
@@ -197,7 +197,7 @@ func TestReleaseReviewQueueRepositoryFiltersCountsDetailAndStablePages(t *testin
 	require.Len(t, history.Items, 1)
 	assert.Equal(t, ReleaseReviewStateRejected, history.Items[0].Status)
 
-	next, err := repo.Next(ctx, 21, first.Items[0].ID, allowed)
+	next, err := repo.Next(ctx, 21, first.Items[0].ID, allowed, 0, nil)
 	require.NoError(t, err)
 	require.NotNil(t, next)
 	assert.NotEqual(t, first.Items[0].ID, next.ID)
@@ -494,6 +494,83 @@ func TestReleaseReviewQueueRepositorySortsNewestFirst(t *testing.T) {
 				"pagination must remain strictly newest-to-oldest across pages")
 		}
 	}
+}
+
+// TestReleaseReviewDetailNextShareListPredicateBuilder proves RQUE-04/D04's Pitfall-3
+// closure: an item excluded from List by the two-signal self-exclusion predicate (Plan
+// 141-02) is ALSO forbidden (not silently 200, not 404) from Detail, and never appears as
+// the result of Next when resolving from an adjacent allowed item -- proving List, Detail,
+// and Next all agree on the same actor-decidable set, not just each independently "looking
+// right" in isolation.
+func TestReleaseReviewDetailNextShareListPredicateBuilder(t *testing.T) {
+	pool := openReleaseReviewQueryFixture(t)
+	ctx := context.Background()
+	repo := NewReleaseReviewQueryRepository(pool)
+	scope := ReleaseReviewQueueScope{FansubGroupID: 21, View: ReleaseReviewQueueViewOpen}
+	allowed := []string{string(ReviewKindText), string(ReviewKindImage)}
+	actorAppUserID := int64(11)
+	var actorMemberIDs []int64
+
+	// Every pending row in fixture group 21 (501 text, 601/602 image) is submitted by
+	// app_user 11 -- List already excludes all of them for this actor (Plan 141-02).
+	ownPage, err := repo.List(ctx, ReleaseReviewQueueOptions{
+		Scope: scope, AllowedKinds: allowed, Limit: 50,
+		ActorAppUserID: actorAppUserID, ActorMemberIDs: actorMemberIDs,
+	})
+	require.NoError(t, err)
+	require.Empty(t, ownPage.Items, "fixture setup: every pending row must be the actor's own submission")
+
+	textID, err := EncodeReleaseReviewID(ReleaseVersionNoteReviewSourceType, 501)
+	require.NoError(t, err)
+	imageID, err := EncodeReleaseReviewID(ReleaseVersionMediaReviewSourceType, 601)
+	require.NoError(t, err)
+
+	// Detail must agree with List: an item List would exclude is ErrForbidden, never a
+	// silent 200 and never ErrNotFound (the item genuinely exists in this group).
+	_, err = repo.Detail(ctx, 21, textID, allowed, actorAppUserID, actorMemberIDs)
+	assert.ErrorIs(t, err, ErrForbidden, "Detail must agree with List's self-exclusion for the actor's own text submission")
+
+	_, err = repo.Detail(ctx, 21, imageID, allowed, actorAppUserID, actorMemberIDs)
+	assert.ErrorIs(t, err, ErrForbidden, "Detail must agree with List's self-exclusion for the actor's own image submission")
+
+	// Next resolving FROM the actor's own text item must also be forbidden (the current
+	// item itself is not actor-decidable) ...
+	_, err = repo.Next(ctx, 21, textID, allowed, actorAppUserID, actorMemberIDs)
+	assert.ErrorIs(t, err, ErrForbidden, "Next must agree with List/Detail's self-exclusion for the current item")
+
+	// ... and to prove List's exclusion clause is genuinely threaded through Next's internal
+	// r.List(...) call -- not just checked against the CURRENT item -- add a third-party
+	// submission (app_user 13) that sorts immediately after 501 (same submitted_at, higher
+	// source_id than 601/602 so it is the first candidate "next" item). An actor viewing
+	// FROM 501 who IS app_user 13 must skip 604 (their own) and land on 602, the next
+	// non-owned item -- never silently receiving their own submission as "next" (D05).
+	_, err = pool.Exec(ctx, `
+		INSERT INTO users(id) VALUES (1003);
+		INSERT INTO app_users(id, status, legacy_user_id) VALUES (13, 'active', 1003);
+		INSERT INTO members(id, nickname, display_name) VALUES (103, 'Dritter', 'Dritter Reviewer');
+		INSERT INTO media_assets(id) VALUES (704);
+		INSERT INTO media_files(id, media_id, variant, path, status) VALUES
+			(805, 704, 'original', '/app/media/review/704/original.png', 'ready');
+		INSERT INTO release_version_media(
+			id, release_version_id, fansub_group_id, media_asset_id, category, caption, uploaded_by_user_id
+		) VALUES (604, 41, 21, 704, 'other', 'Bild Fuenf', 1003);
+		INSERT INTO release_version_media_review_lifecycle(
+			release_version_media_id, source_revision, review_state, category,
+			submitter_app_user_id, submitter_member_id, submitted_at, last_activity_at, decided_at
+		) VALUES (604, 1, 'pending', 'other', 13, 103, '2026-07-23T09:00:00Z', '2026-07-23T09:00:00Z', NULL);
+	`)
+	require.NoError(t, err)
+
+	thirdPartyID, err := EncodeReleaseReviewID(ReleaseVersionMediaReviewSourceType, 604)
+	require.NoError(t, err)
+	expectedNextID, err := EncodeReleaseReviewID(ReleaseVersionMediaReviewSourceType, 602)
+	require.NoError(t, err)
+
+	next, err := repo.Next(ctx, 21, textID, allowed, 13, nil)
+	require.NoError(t, err)
+	require.NotNil(t, next)
+	assert.NotEqual(t, thirdPartyID, next.ID, "Next must never resolve to the actor's own submission (D05)")
+	assert.Equal(t, expectedNextID, next.ID, "Next must skip the actor's own item and land on the next non-owned item")
 }
 
 // releaseReviewDelegationCacheOnce loads permissions' package-level role-capability cache

@@ -361,6 +361,55 @@ func TestReleaseReviewNextCrossGroupIsScopedNotFound(t *testing.T) {
 	assert.NotContains(t, rec.Body.String(), "release_version_notes")
 }
 
+// TestReleaseReviewDetailOwnSubmissionReturns403 proves RQUE-02/D04: a review that exists
+// in the actor's fansub group but is either the actor's own submission or a kind the actor
+// cannot review returns 403 REVIEW_FORBIDDEN, not 404 and not 200. Mirrors
+// TestReleaseReviewDetailCrossGroupIsScopedNotFound's stub-based style, using
+// repository.ErrForbidden instead of repository.ErrNotFound.
+func TestReleaseReviewDetailOwnSubmissionReturns403(t *testing.T) {
+	gin.SetMode(gin.TestMode)
+	repo := &releaseReviewQueryStub{err: repository.ErrForbidden}
+	permission := &releaseReviewPermissionStub{allowed: map[permissions.Action]bool{
+		permissions.ActionReviewTextDecide: true,
+	}}
+	handler := NewReleaseReviewHandler(repo, permission, nil, &releaseReviewIdentityStub{})
+	reviewID, err := repository.EncodeReleaseReviewID(repository.ReleaseVersionNoteReviewSourceType, 501)
+	require.NoError(t, err)
+
+	c, rec := releaseReviewTestContext(http.MethodGet, "/api/v1/admin/fansubs/21/release-reviews/"+reviewID, "21")
+	c.Params = append(c.Params, gin.Param{Key: "reviewId", Value: reviewID})
+	handler.Detail(c)
+
+	assert.Equal(t, http.StatusForbidden, rec.Code)
+	assert.Contains(t, rec.Body.String(), "REVIEW_FORBIDDEN")
+}
+
+// TestReleaseReviewNextNeverReturnsActorsOwnSubmission proves RQUE-02/D05: when the shared
+// existence-and-identity lookup determines the current item is not actor-decidable, Next
+// responds 403 -- never silently returning {"data": null} (which would be indistinguishable
+// from "no more items," violating D05's "never silent" requirement) and never a 200 with the
+// actor's own item.
+func TestReleaseReviewNextNeverReturnsActorsOwnSubmission(t *testing.T) {
+	gin.SetMode(gin.TestMode)
+	repo := &releaseReviewQueryStub{err: repository.ErrForbidden}
+	permission := &releaseReviewPermissionStub{allowed: map[permissions.Action]bool{
+		permissions.ActionReviewTextDecide: true,
+	}}
+	handler := NewReleaseReviewHandler(repo, permission, nil, &releaseReviewIdentityStub{})
+	reviewID, err := repository.EncodeReleaseReviewID(repository.ReleaseVersionNoteReviewSourceType, 501)
+	require.NoError(t, err)
+
+	c, rec := releaseReviewTestContext(
+		http.MethodGet, "/api/v1/admin/fansubs/21/release-reviews/"+reviewID+"/next", "21",
+	)
+	c.Params = append(c.Params, gin.Param{Key: "reviewId", Value: reviewID})
+	handler.Next(c)
+
+	assert.Equal(t, http.StatusForbidden, rec.Code)
+	assert.NotContains(t, rec.Body.String(), `"data":null`)
+	assert.Contains(t, rec.Body.String(), "REVIEW_FORBIDDEN")
+}
+
 func TestReleaseReviewDetailPlatformAdminReceivesBothTypedScopes(t *testing.T) {
 	gin.SetMode(gin.TestMode)
 	repo := &releaseReviewQueryStub{err: repository.ErrNotFound}
