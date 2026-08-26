@@ -651,7 +651,7 @@ Plans:
 - [x] 141-02-PLAN.md — Self-exclusion predicate, own-view scope, D15 sort direction fix, allowed_types field, RDEL-05/RQUE-06 tests
 
 **Wave 3** *(blocked on Wave 2 completion)*
-- [ ] 141-03-PLAN.md — Detail/Next existence-then-authorize (D04 403, Pitfall 3 shared predicate builder)
+- [x] 141-03-PLAN.md — Detail/Next existence-then-authorize (D04 403, Pitfall 3 shared predicate builder)
 
 **Wave 4** *(blocked on Wave 3 completion)*
 - [ ] 141-04-PLAN.md — Frontend type/hook contracts (useReleaseReviewLane extraction)
