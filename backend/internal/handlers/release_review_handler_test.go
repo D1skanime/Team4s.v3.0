@@ -75,7 +75,8 @@ func (s *releaseReviewQueryStub) Next(
 }
 
 type releaseReviewPermissionStub struct {
-	allowed map[permissions.Action]bool
+	allowed      map[permissions.Action]bool
+	resolveCalls int
 }
 
 type releaseReviewDecisionStub struct {
@@ -94,21 +95,29 @@ func (s *releaseReviewDecisionStub) Decide(
 	return s.result, s.err
 }
 
-func (s *releaseReviewPermissionStub) CanReviewForFansubGroup(
+func (s *releaseReviewPermissionStub) ResolveReviewGroupAuthorization(
 	_ context.Context,
 	_ permissions.Actor,
-	action permissions.Action,
 	_ int64,
-) (permissions.ReviewAuthorizationResult, error) {
-	if s.allowed[action] {
-		return permissions.ReviewAuthorizationResult{
-			Result:   permissions.Result{Allowed: true, ReasonCode: permissions.ReasonAllowed},
-			MemberID: 901,
-		}, nil
+) (map[permissions.Action]permissions.ReviewAuthorizationResult, error) {
+	s.resolveCalls++
+	results := make(map[permissions.Action]permissions.ReviewAuthorizationResult, 2)
+	for _, action := range []permissions.Action{
+		permissions.ActionReviewTextDecide,
+		permissions.ActionReviewImageDecide,
+	} {
+		if s.allowed[action] {
+			results[action] = permissions.ReviewAuthorizationResult{
+				Result:   permissions.Result{Allowed: true, ReasonCode: permissions.ReasonAllowed},
+				MemberID: 901,
+			}
+			continue
+		}
+		results[action] = permissions.ReviewAuthorizationResult{
+			Result: permissions.Result{Allowed: false, ReasonCode: permissions.ReasonInsufficientRole},
+		}
 	}
-	return permissions.ReviewAuthorizationResult{
-		Result: permissions.Result{Allowed: false, ReasonCode: permissions.ReasonInsufficientRole},
-	}, nil
+	return results, nil
 }
 
 func (s *releaseReviewPermissionStub) CanForReleaseVersion(
@@ -477,4 +486,89 @@ func TestReleaseReviewQueueContractsMatchRuntimeAndExcludeSensitiveFields(t *tes
 			assert.NotContains(t, reviewContract, forbidden, path)
 		}
 	}
+}
+
+// TestReleaseReviewHandlerResolvesGroupRightsOnceForListAndCounts proves the Phase 141
+// Plan 01 fix for 141-RESEARCH.md Pitfall 1: List, Counts, Detail, and Next each resolve
+// group review rights exactly ONCE per independent HTTP handler invocation, not once per
+// review kind (the historical two-call behavior).
+func TestReleaseReviewHandlerResolvesGroupRightsOnceForListAndCounts(t *testing.T) {
+	gin.SetMode(gin.TestMode)
+	reviewID, err := repository.EncodeReleaseReviewID(repository.ReleaseVersionNoteReviewSourceType, 501)
+	require.NoError(t, err)
+
+	newAllowedStub := func() *releaseReviewPermissionStub {
+		return &releaseReviewPermissionStub{allowed: map[permissions.Action]bool{
+			permissions.ActionReviewTextDecide:  true,
+			permissions.ActionReviewImageDecide: true,
+		}}
+	}
+
+	t.Run("List", func(t *testing.T) {
+		repo := &releaseReviewQueryStub{page: repository.ReleaseReviewQueuePage{
+			Items: []repository.ReleaseReviewQueueItem{},
+		}}
+		permission := newAllowedStub()
+		handler := NewReleaseReviewHandler(repo, permission, nil)
+
+		c, rec := releaseReviewTestContext(
+			http.MethodGet, "/api/v1/admin/fansubs/21/release-reviews", "21",
+		)
+		handler.List(c)
+
+		require.Equal(t, http.StatusOK, rec.Code, rec.Body.String())
+		assert.Equal(t, 1, permission.resolveCalls)
+	})
+
+	t.Run("Counts", func(t *testing.T) {
+		repo := &releaseReviewQueryStub{}
+		permission := newAllowedStub()
+		handler := NewReleaseReviewHandler(repo, permission, nil)
+
+		c, rec := releaseReviewTestContext(
+			http.MethodGet, "/api/v1/admin/fansubs/21/release-reviews/counts", "21",
+		)
+		handler.Counts(c)
+
+		require.Equal(t, http.StatusOK, rec.Code, rec.Body.String())
+		assert.Equal(t, 1, permission.resolveCalls)
+	})
+
+	t.Run("Detail", func(t *testing.T) {
+		repo := &releaseReviewQueryStub{detail: &repository.ReleaseReviewDetail{
+			ReleaseReviewQueueItem: repository.ReleaseReviewQueueItem{
+				ID: reviewID, SourceRevision: 3, ReviewKind: repository.ReviewKindText,
+				FansubGroupID: 21, ReleaseVersionID: 41,
+			},
+			Text: &repository.ReleaseReviewTextContent{Title: "Dialog", BodyHTML: "<p>Text</p>"},
+		}}
+		permission := newAllowedStub()
+		handler := NewReleaseReviewHandler(repo, permission, nil)
+
+		c, rec := releaseReviewTestContext(
+			http.MethodGet, "/api/v1/admin/fansubs/21/release-reviews/"+reviewID, "21",
+		)
+		c.Params = append(c.Params, gin.Param{Key: "reviewId", Value: reviewID})
+		handler.Detail(c)
+
+		require.Equal(t, http.StatusOK, rec.Code, rec.Body.String())
+		assert.Equal(t, 1, permission.resolveCalls)
+	})
+
+	t.Run("Next", func(t *testing.T) {
+		repo := &releaseReviewQueryStub{next: &repository.ReleaseReviewQueueItem{
+			ID: reviewID, ReviewKind: repository.ReviewKindText, FansubGroupID: 21,
+		}}
+		permission := newAllowedStub()
+		handler := NewReleaseReviewHandler(repo, permission, nil)
+
+		c, rec := releaseReviewTestContext(
+			http.MethodGet, "/api/v1/admin/fansubs/21/release-reviews/"+reviewID+"/next", "21",
+		)
+		c.Params = append(c.Params, gin.Param{Key: "reviewId", Value: reviewID})
+		handler.Next(c)
+
+		require.Equal(t, http.StatusOK, rec.Code, rec.Body.String())
+		assert.Equal(t, 1, permission.resolveCalls)
+	})
 }

@@ -25,12 +25,11 @@ type releaseReviewQueryRepository interface {
 }
 
 type releaseReviewPermissionService interface {
-	CanReviewForFansubGroup(
+	ResolveReviewGroupAuthorization(
 		context.Context,
 		permissions.Actor,
-		permissions.Action,
 		int64,
-	) (permissions.ReviewAuthorizationResult, error)
+	) (map[permissions.Action]permissions.ReviewAuthorizationResult, error)
 	CanForReleaseVersion(
 		context.Context,
 		permissions.Actor,
@@ -294,47 +293,6 @@ func (h *ReleaseReviewHandler) queueOptions(
 		return repository.ReleaseReviewQueueOptions{}, false
 	}
 	return options, true
-}
-
-func (h *ReleaseReviewHandler) authorizedKinds(
-	c *gin.Context,
-	actor permissions.Actor,
-	groupID int64,
-	requested string,
-) ([]string, bool) {
-	actions := []struct {
-		action permissions.Action
-		kind   string
-	}{
-		{permissions.ActionReviewTextDecide, string(repository.ReviewKindText)},
-		{permissions.ActionReviewImageDecide, string(repository.ReviewKindImage)},
-	}
-	allowed := make([]string, 0, len(actions))
-	var denied permissions.Result
-	for _, candidate := range actions {
-		result, err := h.permissions.CanReviewForFansubGroup(
-			c.Request.Context(), actor, candidate.action, groupID,
-		)
-		if err != nil {
-			writePermissionInternalError(c, err, "Review-Berechtigung konnte nicht geprüft werden.")
-			return nil, false
-		}
-		if result.Allowed {
-			if requested == "" || requested == candidate.kind {
-				allowed = append(allowed, candidate.kind)
-			}
-		} else {
-			denied = result.Result
-		}
-	}
-	if len(allowed) == 0 {
-		if denied.ReasonCode == "" {
-			denied = permissions.Result{ReasonCode: permissions.ReasonInsufficientRole}
-		}
-		writePermissionDenied(c, denied)
-		return nil, false
-	}
-	return allowed, true
 }
 
 func (h *ReleaseReviewHandler) writeReadError(c *gin.Context, err error) {
