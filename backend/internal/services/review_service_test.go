@@ -43,6 +43,20 @@ func openPhase107ReviewServicePostgres(t *testing.T) *reviewServicePostgresFixtu
 			decision TEXT NOT NULL,
 			PRIMARY KEY (source_type, stable_key, source_revision)
 		);
+		-- Minimal Phase-137 user-override table (migration 0146's runtime shape):
+		-- permissions.Service.ResolveGroupRights' GroupRightsOverridesResolver path
+		-- (AuthzRepository.ResolveActorUserOverrides -> LoadCurrentOverrides) queries
+		-- this table unconditionally; it predates this fixture and was missing here,
+		-- which made every real-Postgres GrantDelegation/RevokeDelegation call in this
+		-- file fail with "relation \"user_group_capability_overrides\" does not exist"
+		-- (found while adding Plan 141-01's real-Postgres concurrency test).
+		CREATE TABLE user_group_capability_overrides (
+			app_user_id BIGINT NOT NULL REFERENCES app_users(id) ON DELETE CASCADE,
+			fansub_group_id BIGINT NOT NULL REFERENCES fansub_groups(id) ON DELETE CASCADE,
+			action_code TEXT NOT NULL,
+			effect TEXT NOT NULL CHECK (effect IN ('allow', 'deny')),
+			PRIMARY KEY (app_user_id, fansub_group_id, action_code)
+		);
 		INSERT INTO members(id) VALUES (101), (102), (103), (104), (105);
 		INSERT INTO app_users(id, status) VALUES
 			(11, 'active'), (12, 'active'), (13, 'active'), (14, 'active'), (15, 'active'),
@@ -696,6 +710,169 @@ func TestPhase107ReviewServiceGrantRevokeDecisionLockOrder(t *testing.T) {
 	}
 	if got := fx.count(t, `SELECT COUNT(*) FROM review_decisions`); got > 1 {
 		t.Fatalf("historical decisions=%d", got)
+	}
+}
+
+// reviewServicePermissionsCacheLoadOnce loads permissions' package-level role-capability
+// cache exactly once for this file's real-Postgres tests that exercise GrantDelegation/
+// RevokeDelegation. changeDelegation's authorize step (review_service.go:105-108) checks
+// ActionFansubGroupMembersManage via a fresh permissions.Service, whose roleAllows lookup
+// reads a package-level cache that starts nil -- without loading it here, the group-lead
+// actor's fansub_lead role would never grant ActionFansubGroupMembersManage regardless of
+// what fansub_group_member_roles actually seeded, so GrantDelegation/RevokeDelegation would
+// always fail authorization (found while adding Plan 141-01's real-Postgres concurrency
+// test). Mirrors effective_rights_service_test.go's identical precedent in this same
+// package, with its own independent sync.Once and role map scoped to what this file's
+// delegation-changing tests need.
+var reviewServicePermissionsCacheLoadOnce sync.Once
+
+func ensureReviewServicePermissionsCacheLoaded(t *testing.T) {
+	t.Helper()
+	reviewServicePermissionsCacheLoadOnce.Do(func() {
+		if err := permissions.NewService(nil).LoadCache(context.Background(), reviewServiceCacheLoaderStub{}); err != nil {
+			t.Fatalf("load permissions cache for review service tests: %v", err)
+		}
+	})
+}
+
+// reviewServiceCacheLoaderStub satisfies LoadCache's D-10 "every known action appears in
+// >=1 role" catalog check while granting exactly what this file's delegation-changing tests
+// need: RoleFansubLead -> ActionFansubGroupMembersManage. Every other canonical action is
+// parked under an unused role, matching effective_rights_service_test.go's precedent.
+type reviewServiceCacheLoaderStub struct{}
+
+func (reviewServiceCacheLoaderStub) LoadRoleCapabilities(context.Context) (map[string][]permissions.Action, error) {
+	return map[string][]permissions.Action{
+		permissions.RoleFansubLead: {
+			permissions.ActionFansubGroupMembersManage,
+		},
+		"_review_service_test_unused_role": {
+			permissions.ActionFansubGroupEdit,
+			permissions.ActionFansubGroupLinksManage,
+			permissions.ActionFansubGroupMembersView,
+			permissions.ActionFansubGroupHistoricalMembersManage,
+			permissions.ActionFansubGroupHistoricalRolesManage,
+			permissions.ActionFansubGroupHistoricalMembersLink,
+			permissions.ActionFansubGroupInvitationsView,
+			permissions.ActionFansubGroupInvitationsCreate,
+			permissions.ActionFansubGroupInvitationsCancel,
+			permissions.ActionFansubGroupNotesWrite,
+			permissions.ActionFansubGroupMediaView,
+			permissions.ActionFansubGroupMediaUpload,
+			permissions.ActionFansubGroupMediaUpdate,
+			permissions.ActionFansubGroupMediaReorder,
+			permissions.ActionFansubGroupMediaDelete,
+			permissions.ActionFansubGroupPageGeneralEdit,
+			permissions.ActionFansubGroupPageTechnicalLinksEdit,
+			permissions.ActionFansubGroupPageFoundingHistoryEdit,
+			permissions.ActionFansubGroupLinksUpdate,
+			permissions.ActionAnimeFansubProjectNotesWrite,
+			permissions.ActionReleaseView,
+			permissions.ActionReleaseVersionView,
+			permissions.ActionReleaseVersionMediaView,
+			permissions.ActionReleaseVersionMediaUpload,
+			permissions.ActionReleaseVersionMediaUpdate,
+			permissions.ActionReleaseVersionMediaDelete,
+			permissions.ActionReleaseVersionMediaDeleteOwn,
+			permissions.ActionReleaseVersionNotesWrite,
+			permissions.ActionReleaseVersionSegmentsManage,
+			permissions.ActionReviewTextDecide,
+			permissions.ActionReviewImageDecide,
+			permissions.ActionReviewContributionDecide,
+			permissions.ActionUserGroupCapabilityOverrideManage,
+		},
+	}, nil
+}
+
+// TestPhase141ReviewDecisionRemainsAuthoritativeUnderConcurrentRevoke extends
+// TestPhase107ReviewServiceGrantRevokeDecisionLockOrder's exact fixture/goroutine-race
+// shape with an explicit D08/D11 "authoritative guard" regression: Decide's own,
+// transaction-scoped authorization check (review_service.go:180-182, untouched by Plan
+// 141-01) must survive a specialized delegation being revoked mid-flight, producing
+// deterministically either a successful decision or ErrReviewCapabilityDenied -- never a
+// double-applied decision -- and any decision attempt strictly after a completed revoke
+// must always be denied.
+func TestPhase141ReviewDecisionRemainsAuthoritativeUnderConcurrentRevoke(t *testing.T) {
+	ensureReviewServicePermissionsCacheLoaded(t)
+	fx := openPhase107ReviewServicePostgres(t)
+	ctx := context.Background()
+	submitter := int64(12)
+	beneficiary := int64(102)
+	ref := ReviewTargetRef{SourceType: "fixture", StableKey: "concurrent-revoke-141"}
+	adapter := &reviewFixtureAdapter{targets: map[string]ReviewTarget{
+		ref.StableKey: reviewFixtureTarget(ref, 1, &submitter, &beneficiary),
+	}}
+	service := NewReviewService(fx.pool, map[string]ReviewTargetAdapter{"fixture": adapter})
+	lead := permissions.Actor{AppUserID: 11, Status: "active"}
+	delegate := permissions.Actor{AppUserID: 14, Status: "active"}
+	delegation := ReviewDelegationCommand{
+		Actor: lead, TargetMembershipID: 34, Action: permissions.ActionReviewTextDecide,
+	}
+	if err := service.GrantDelegation(ctx, delegation); err != nil {
+		t.Fatal(err)
+	}
+
+	start := make(chan struct{})
+	var ready sync.WaitGroup
+	ready.Add(2)
+	decisionResult := make(chan error, 1)
+	revokeResult := make(chan error, 1)
+	go func() {
+		ready.Done()
+		<-start
+		_, err := service.Decide(context.Background(), ReviewDecisionCommand{
+			Actor: delegate, Target: ref, Decision: ReviewDecisionConfirm,
+		})
+		decisionResult <- err
+	}()
+	go func() {
+		ready.Done()
+		<-start
+		revokeResult <- service.RevokeDelegation(context.Background(), delegation)
+	}()
+	ready.Wait()
+	close(start)
+	decisionErr := <-decisionResult
+	if decisionErr != nil && !errors.Is(decisionErr, ErrReviewCapabilityDenied) {
+		t.Fatalf("decision outcome must be success or ErrReviewCapabilityDenied, got=%v", decisionErr)
+	}
+	if err := <-revokeResult; err != nil {
+		t.Fatalf("revoke result=%v", err)
+	}
+
+	// No double-apply: the decision count for this target reflects exactly the raced
+	// Decide call's real outcome -- 1 row if it won and succeeded, 0 rows if it was
+	// denied. Either way it is never more than 1 (the property review_service.go's row
+	// lock + InsertDecision unique-conflict + ApplyDecision CAS is meant to guarantee).
+	decisionCount := fx.count(t, `
+		SELECT COUNT(*) FROM review_decisions WHERE source_type=$1 AND source_key=$2
+	`, ref.SourceType, ref.StableKey)
+	if decisionErr == nil {
+		if decisionCount != 1 {
+			t.Fatalf("decision succeeded but review_decisions count=%d, want exactly 1", decisionCount)
+		}
+	} else if decisionCount != 0 {
+		t.Fatalf("decision was denied but review_decisions count=%d, want exactly 0", decisionCount)
+	}
+	if got := fx.count(t, `
+		SELECT COUNT(*) FROM fansub_group_member_review_capabilities
+		WHERE fansub_group_member_id=34 AND action_code='review.text.decide'
+	`); got != 0 {
+		t.Fatalf("revoked grant rows=%d", got)
+	}
+
+	// Any decision attempt strictly after the completed revoke must be denied,
+	// regardless of whether the raced attempt won or lost.
+	adapter.setTarget(reviewFixtureTarget(ref, 2, &submitter, &beneficiary))
+	if _, err := service.Decide(ctx, ReviewDecisionCommand{
+		Actor: delegate, Target: ref, Decision: ReviewDecisionConfirm,
+	}); !errors.Is(err, ErrReviewCapabilityDenied) {
+		t.Fatalf("post-revoke decision=%v, want ErrReviewCapabilityDenied", err)
+	}
+	if got := fx.count(t, `
+		SELECT COUNT(*) FROM review_decisions WHERE source_type=$1 AND source_key=$2
+	`, ref.SourceType, ref.StableKey); got != decisionCount {
+		t.Fatalf("post-revoke decision count changed: before=%d after=%d", decisionCount, got)
 	}
 }
 
