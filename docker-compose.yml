@@ -42,7 +42,7 @@ services:
       retries: 5
 
   keycloak:
-    image: quay.io/keycloak/keycloak:26.0
+    image: quay.io/keycloak/keycloak:26.7.2
     container_name: team4sv30-keycloak
     command:
       - start-dev
@@ -83,7 +83,7 @@ services:
       retries: 10
 
   keycloak-profile-config:
-    image: quay.io/keycloak/keycloak:26.0
+    image: quay.io/keycloak/keycloak:26.7.2
     container_name: team4sv30-keycloak-profile-config
     entrypoint: ["/bin/sh", "/opt/keycloak/data/import/apply-team4s-user-profile.sh"]
     environment:
