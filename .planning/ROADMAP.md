@@ -657,7 +657,7 @@ Plans:
 - [x] 141-04-PLAN.md — Frontend type/hook contracts (useReleaseReviewLane extraction)
 
 **Wave 5** *(blocked on Wave 4 completion)*
-- [ ] 141-05-PLAN.md — Own-pending lane + Tabs wrapper (Component Contract 1)
+- [x] 141-05-PLAN.md — Own-pending lane + Tabs wrapper (Component Contract 1)
 - [ ] 141-06-PLAN.md — Queue tab D10/D13/D06 filter, empty-state, and badge honesty
 - [ ] 141-07-PLAN.md — Review-detail page 403/409/Next handling (Component Contract 3)
 
