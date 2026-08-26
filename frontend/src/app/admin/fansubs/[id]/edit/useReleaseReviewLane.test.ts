@@ -136,7 +136,7 @@ describe('useReleaseReviewLane', () => {
 
     const { result, rerender } = renderHook(
       (props: { animeId: number | null }) => useReleaseReviewLane(baseOptions({ animeId: props.animeId })),
-      { initialProps: { animeId: null } },
+      { initialProps: { animeId: null as number | null } },
     )
 
     rerender({ animeId: 42 })

@@ -1,7 +1,7 @@
 'use client'
 import Link from 'next/link'
 import { usePathname, useRouter, useSearchParams } from 'next/navigation'
-import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
+import { useEffect, useMemo, useState } from 'react'
 import {
   Badge,
   Button,
@@ -19,18 +19,13 @@ import {
   TableRow,
   Toolbar,
 } from '@/components/ui'
-import { getReleaseReviewCounts, listReleaseReviews } from '@/lib/api'
 import { useAuthSession } from '@/lib/useAuthSession'
 import type {
-  ReleaseReviewCounts,
   ReleaseReviewImageCategory,
-  ReleaseReviewQueueItem,
   ReleaseReviewType,
   ReleaseReviewView,
 } from '@/types/releaseReviews'
 import {
-  dedupeReleaseReviews,
-  EMPTY_RELEASE_REVIEW_COUNTS,
   formatReleaseReviewDateTime,
   readPositiveReviewNumber,
   readReviewCategory,
@@ -41,6 +36,7 @@ import {
 } from '../../releaseReviewPresentation'
 import styles from '../../releaseReviews.module.css'
 import { useReleaseReviewMobileGate } from '../../useReleaseReviewMobileGate'
+import { useReleaseReviewLane } from './useReleaseReviewLane'
 export function ReleaseReviewsSection({ fansubId }: { fansubId: number }) {
   const router = useRouter()
   const pathname = usePathname()
@@ -59,17 +55,6 @@ export function ReleaseReviewsSection({ fansubId }: { fansubId: number }) {
   )
   const [searchInput, setSearchInput] = useState(searchParams.get('search') ?? '')
   const [search, setSearch] = useState(searchParams.get('search')?.trim() ?? '')
-  const [items, setItems] = useState<ReleaseReviewQueueItem[]>([])
-  const [counts, setCounts] = useState<ReleaseReviewCounts>(EMPTY_RELEASE_REVIEW_COUNTS)
-  const [nextCursor, setNextCursor] = useState<string | null>(null)
-  const [isLoading, setIsLoading] = useState(true)
-  const [isLoadingMore, setIsLoadingMore] = useState(false)
-  const [error, setError] = useState<string | null>(null)
-  const [pageError, setPageError] = useState<string | null>(null)
-  const requestSequence = useRef(0)
-  const initialAbortRef = useRef<AbortController | null>(null)
-  const loadMoreAbortRef = useRef<AbortController | null>(null)
-  const currentKey = `${fansubId}:${view}:${animeId ?? ''}:${releaseVersionId ?? ''}:${type ?? ''}:${category ?? ''}:${search}`
   useEffect(() => {
     const timer = window.setTimeout(() => setSearch(searchInput.trim()), 300)
     return () => window.clearTimeout(timer)
@@ -100,100 +85,26 @@ export function ReleaseReviewsSection({ fansubId }: { fansubId: number }) {
     view,
   ])
 
-  const loadInitial = useCallback(async () => {
-    if (!isClientInitialized || !hasActiveSession || isMobile) return
-    const sequence = ++requestSequence.current
-    initialAbortRef.current?.abort()
-    loadMoreAbortRef.current?.abort()
-    const controller = new AbortController()
-    initialAbortRef.current = controller
-    setIsLoading(true)
-    setError(null)
-    setPageError(null)
-    try {
-      const params = {
-        view,
-        animeId,
-        releaseVersionId,
-        type,
-        category,
-        search,
-        limit: 50,
-        signal: controller.signal,
-      }
-      const [page, countResponse] = await Promise.all([
-        listReleaseReviews(fansubId, params),
-        getReleaseReviewCounts(fansubId, {
-          view,
-          animeId,
-          releaseVersionId,
-          search,
-          signal: controller.signal,
-        }),
-      ])
-      if (sequence !== requestSequence.current) return
-      setItems(dedupeReleaseReviews(page.data.items))
-      setNextCursor(page.data.next_cursor ?? null)
-      setCounts(countResponse.data)
-    } catch {
-      if (controller.signal.aborted || sequence !== requestSequence.current) return
-      setError('Die Prüfungen konnten nicht geladen werden. Bitte versuche es erneut.')
-    } finally {
-      if (initialAbortRef.current === controller) initialAbortRef.current = null
-      if (!controller.signal.aborted && sequence === requestSequence.current) setIsLoading(false)
-    }
-  }, [
-    animeId,
-    category,
+  const {
+    items,
+    counts,
+    nextCursor,
+    isLoading,
+    isLoadingMore,
+    error,
+    pageError,
+    reload,
+    loadMore,
+  } = useReleaseReviewLane({
     fansubId,
-    hasActiveSession,
-    isClientInitialized,
-    isMobile,
-    releaseVersionId,
-    search,
-    type,
     view,
-  ])
-  useEffect(() => {
-    void loadInitial()
-    return () => {
-      requestSequence.current += 1
-      initialAbortRef.current?.abort()
-      loadMoreAbortRef.current?.abort()
-    }
-  }, [currentKey, loadInitial])
-  async function loadMore() {
-    if (!nextCursor || isLoadingMore) return
-    const sequence = requestSequence.current
-    loadMoreAbortRef.current?.abort()
-    const controller = new AbortController()
-    loadMoreAbortRef.current = controller
-    setIsLoadingMore(true)
-    setPageError(null)
-    try {
-      const page = await listReleaseReviews(fansubId, {
-        view,
-        animeId,
-        releaseVersionId,
-        type,
-        category,
-        search,
-        cursor: nextCursor,
-        limit: 50,
-        signal: controller.signal,
-      })
-      if (controller.signal.aborted || sequence !== requestSequence.current) return
-      setItems((current) => dedupeReleaseReviews([...current, ...page.data.items]))
-      setNextCursor(page.data.next_cursor ?? null)
-    } catch {
-      if (!controller.signal.aborted && sequence === requestSequence.current) {
-        setPageError('Weitere Prüfungen konnten nicht geladen werden.')
-      }
-    } finally {
-      if (loadMoreAbortRef.current === controller) loadMoreAbortRef.current = null
-      if (!controller.signal.aborted && sequence === requestSequence.current) setIsLoadingMore(false)
-    }
-  }
+    animeId,
+    releaseVersionId,
+    type,
+    category,
+    search,
+    enabled: isClientInitialized && hasActiveSession && !isMobile,
+  })
 
   function resetFilters() {
     setAnimeId(null)
@@ -355,7 +266,7 @@ export function ReleaseReviewsSection({ fansubId }: { fansubId: number }) {
       {error ? (
         <div className={styles.inlineError} role="alert">
           <p>{error}</p>
-          <Button variant="secondary" onClick={() => void loadInitial()}>Erneut versuchen</Button>
+          <Button variant="secondary" onClick={() => reload()}>Erneut versuchen</Button>
         </div>
       ) : isLoading ? (
         <LoadingState title="Prüfungen werden geladen" description="Die Prüfliste wird abgerufen." />
@@ -430,13 +341,13 @@ export function ReleaseReviewsSection({ fansubId }: { fansubId: number }) {
               {pageError ? (
                 <div>
                   <p className={styles.fieldError}>{pageError}</p>
-                  <Button variant="secondary" onClick={() => void loadMore()}>Erneut versuchen</Button>
+                  <Button variant="secondary" onClick={() => loadMore()}>Erneut versuchen</Button>
                 </div>
               ) : (
                 <Button
                   variant="secondary"
                   loading={isLoadingMore}
-                  onClick={() => void loadMore()}
+                  onClick={() => loadMore()}
                 >
                   Weitere Prüfungen laden
                 </Button>
