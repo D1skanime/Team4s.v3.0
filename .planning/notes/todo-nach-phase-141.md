@@ -7,6 +7,8 @@
 
 ## 1. Keycloak-Versionssprung (26.0.8 → 26.7.2)
 
+**Status: ERLEDIGT 2026-08-26.** Auf 26.7.2 angehoben, Modell-Migration fehlerfrei, Realm und vier Konten intakt. Die Keycloak-DB wurde bewusst nicht geleert. Belege in [2026-08-26-keycloak-upgrade-und-voll-reset.md](2026-08-26-keycloak-upgrade-und-voll-reset.md).
+
 **Anlass:** CVE-2026-18963, CVSS 9.1 — fehlerhafte Zustandsprüfung im `reset-credentials`-Ablauf,
 unauthentifizierte Übernahme beliebiger Konten inklusive Administratoren. Behoben in Keycloak
 26.7.2 (19.08.2026); Red-Hat-Build entsprechend 26.4.15 / 26.6.6.
@@ -25,6 +27,8 @@ Instanz übernehmen — offener Reset-Flow, `0.0.0.0`-Binding und fehlende Firew
 ---
 
 ## 2. Frischer Datenbestand für Phase 142
+
+**Status: ERLEDIGT 2026-08-26.** Umgesetzt als DROP DATABASE + 151 Migrationen frisch statt TRUNCATE — pauschales TRUNCATE hätte die geseedeten Referenzdaten (role_capabilities, action_definitions, role_definitions) mitgenommen. Zwei Befunde dabei: Backups sind mit pg_restore derzeit nicht wiederherstellbar (f_unaccent/search_path), und drei Rechte auf fansub_lead waren Laufzeit-Drift. Belege in [2026-08-26-keycloak-upgrade-und-voll-reset.md](2026-08-26-keycloak-upgrade-und-voll-reset.md).
 
 **Motiv:** Phase 142 ist das Fixtures- und Release-Gate; frische, bewusst konstruierte Testdaten
 sind dort ohnehin nötig (siehe `uat-fixture-plan-v14-close.md`).
