@@ -415,7 +415,7 @@ Milestone v1.4 closes Live-UAT Findings #29-#32 by making effective group rights
 - [x] **Phase 138: Effective-Rights Administration & Impact UX** - Turn the existing user rights and role-capability surfaces into explainable revoke, impact, and cache-state workflows. (completed 2026-08-23)
 - [x] **Phase 139: Scalable User-Admin Projections** - Replace noisy flat contribution and media data with meaningful grouped, filtered, and stable projections. (completed 2026-08-24)
 - [x] **Phase 140: Review Delegation Management** - Expose the existing specialized delegation service through documented APIs and the canonical group-member editor.
-- [ ] **Phase 141: Actor-Decidable Review Queue** - Make every queue lane, count, detail, and next action reflect what the current reviewer may actually decide.
+- [x] **Phase 141: Actor-Decidable Review Queue** - Make every queue lane, count, detail, and next action reflect what the current reviewer may actually decide. (completed 2026-08-26)
 - [ ] **Phase 142: Integrated Security, Fixtures & Live Release Gate** - Prove the complete milestone across contracts, auth refresh, fixtures, security, responsive UI, and canonical ownership.
 
 ## Phase Details
@@ -659,7 +659,7 @@ Plans:
 **Wave 5** *(blocked on Wave 4 completion)*
 - [x] 141-05-PLAN.md — Own-pending lane + Tabs wrapper (Component Contract 1)
 - [x] 141-06-PLAN.md — Queue tab D10/D13/D06 filter, empty-state, and badge honesty
-- [ ] 141-07-PLAN.md — Review-detail page 403/409/Next handling (Component Contract 3)
+- [x] 141-07-PLAN.md — Review-detail page 403/409/Next handling (Component Contract 3)
 
 **UI hint**: yes
 

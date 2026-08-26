@@ -2,16 +2,16 @@
 gsd_state_version: 1.0
 milestone: v1.4
 milestone_name: Coverage
-status: executing
+status: verifying
 stopped_at: Completed 141-06-PLAN.md
-last_updated: "2026-08-26T09:53:52.379Z"
+last_updated: "2026-08-26T10:00:44.456Z"
 last_activity: 2026-08-26
 progress:
   total_phases: 7
-  completed_phases: 5
+  completed_phases: 6
   total_plans: 83
-  completed_plans: 82
-  percent: 71
+  completed_plans: 83
+  percent: 86
 ---
 
 # Project State
@@ -35,7 +35,7 @@ See: .planning/PROJECT.md (updated 2026-08-13)
 
 Phase: 141 (actor-decidable-review-queue) — EXECUTING
 Plan: 7 of 7
-Status: Ready to execute
+Status: Phase complete — ready for verification
 Last activity: 2026-08-26
 
 ## Accumulated Context
@@ -208,6 +208,7 @@ Last activity: 2026-08-26
 - [Phase 141]: PruefungenTabs's URL-sync effect rebuilds the querystring from scratch (tab + optional lane only) rather than merging into live searchParams, avoiding a render loop from a fresh-identity searchParams dependency.
 - [Phase 141-06]: SectionHeader description locked copy mixes „ opening guillemet with ASCII closing quote; used single-quote JSX attribute delimiters instead of escaping or paraphrasing the locked string. — Preserves the verbatim locked copy while staying syntactically valid JSX.
 - [Phase 141-06]: Typ FormField gating uses allowed_types.length > 1 (not === 0) as the omission predicate, per plan's exact rule that a single-entry allowed_types must also omit the whole FormField. — A one-option dropdown would still leak which single kind the actor can review via its shape.
+- [Phase 141]: Plan 141-07: NextReviewControl shares post-decision/standalone Next states so the 'Next' affordance never silently disappears; 403 loads render a distinct locked ErrorState instead of the generic 404/network message — Closes RQUE-02/D04 and RQUE-05/D05 without new 409 branching, since the backend already maps both already-decided and not-pending outcomes to REVIEW_ALREADY_DECIDED
 
 ### Pending Todos
 
@@ -469,10 +470,11 @@ untruncated list lives in `.planning/todos/pending/`.
 | Phase 141 P04 | ~20min | 2 tasks | 5 files |
 | Phase 141 P05 | ~30min | 3 tasks | 3 files |
 | Phase 141 P06 | 15min | 2 tasks | 2 files |
+| Phase 141 P07 | 25min | 3 tasks | 3 files |
 
 ## Session Continuity
 
-Last session: 2026-08-26T09:53:52.366Z
+Last session: 2026-08-26T10:00:08.703Z
 Stopped at: Completed 141-06-PLAN.md
 Last activity: 2026-08-20 - Completed Phase 134 Plan 06: live UAT evidence capture, two gap-closure fix rounds, and the user's explicit live-browser sign-off for both reference profiles (PMQA-05)
 Resume file: None
