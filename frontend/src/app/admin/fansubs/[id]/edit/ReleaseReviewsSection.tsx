@@ -140,6 +140,11 @@ export function ReleaseReviewsSection({ fansubId }: { fansubId: number }) {
   const caption = view === 'open'
     ? 'Offene Prüfungen der Fansubgruppe'
     : 'Prüfverlauf der Fansubgruppe'
+  const emptyStateDescription = view === 'history'
+    ? 'Für die gewählten Filter liegen keine vergangenen Entscheidungen vor.'
+    : hasFilters
+      ? 'Für die gewählten Filter sind aktuell keine Prüfungen offen. Passe die Filter an oder setze sie zurück.'
+      : 'Aktuell keine Prüfungen für dich offen.'
 
   if (isMobile) {
     return (
@@ -163,13 +168,12 @@ export function ReleaseReviewsSection({ fansubId }: { fansubId: number }) {
       <div className={styles.headerStack}>
         <SectionHeader
           title="Prüfungen"
-          description="Release-Texte und Release-Bilder einzeln prüfen und sicher entscheiden."
+          description='Release-Texte und Release-Bilder einzeln prüfen und sicher entscheiden. Eigene Einreichungen zählen nicht mit — sie erscheinen unter „Wartet auf Fremdprüfung".'
           underline
         />
-        <div className={styles.counters} aria-label="Offene Prüfungen nach Typ">
+        <div className={styles.counters} aria-label="Prüfungen, die du entscheiden kannst, nach Typ">
           <Badge variant="info">Texte {counts.text}</Badge>
           <Badge variant="info">Bilder {counts.image}</Badge>
-          <Badge variant="muted">Mitwirkungen {counts.contribution}</Badge>
         </div>
         <div className={styles.viewSwitch} aria-label="Prüfungsansicht">
           <Button
@@ -218,34 +222,42 @@ export function ReleaseReviewsSection({ fansubId }: { fansubId: number }) {
               ))}
             </Select>
           </FormField>
-          <FormField label="Typ" htmlFor="release-review-type">
-            <Select
-              id="release-review-type"
-              value={type ?? ''}
-              onChange={(event) => {
-                const nextType = readReviewType(event.target.value)
-                setType(nextType)
-                if (nextType !== 'image') setCategory(null)
-              }}
-            >
-              <option value="">Alle Typen</option>
-              <option value="text">Texte</option>
-              <option value="image">Bilder</option>
-            </Select>
-          </FormField>
-          <FormField label="Bildkategorie" htmlFor="release-review-category" disabled={type !== 'image'}>
-            <Select
-              id="release-review-category"
-              value={category ?? ''}
-              disabled={type !== 'image'}
-              onChange={(event) => setCategory(readReviewCategory(event.target.value))}
-            >
-              <option value="">Alle Kategorien</option>
-              {Object.entries(RELEASE_REVIEW_CATEGORY_LABELS).map(([value, label]) => (
-                <option key={value} value={value}>{label}</option>
-              ))}
-            </Select>
-          </FormField>
+          {counts.allowed_types.length > 1 ? (
+            <FormField label="Typ" htmlFor="release-review-type">
+              <Select
+                id="release-review-type"
+                value={type ?? ''}
+                onChange={(event) => {
+                  const nextType = readReviewType(event.target.value)
+                  setType(nextType)
+                  if (nextType !== 'image') setCategory(null)
+                }}
+              >
+                <option value="">Alle Typen</option>
+                {counts.allowed_types.includes('text') ? (
+                  <option value="text">Texte</option>
+                ) : null}
+                {counts.allowed_types.includes('image') ? (
+                  <option value="image">Bilder</option>
+                ) : null}
+              </Select>
+            </FormField>
+          ) : null}
+          {counts.allowed_types.includes('image') ? (
+            <FormField label="Bildkategorie" htmlFor="release-review-category" disabled={type !== 'image'}>
+              <Select
+                id="release-review-category"
+                value={category ?? ''}
+                disabled={type !== 'image'}
+                onChange={(event) => setCategory(readReviewCategory(event.target.value))}
+              >
+                <option value="">Alle Kategorien</option>
+                {Object.entries(RELEASE_REVIEW_CATEGORY_LABELS).map(([value, label]) => (
+                  <option key={value} value={value}>{label}</option>
+                ))}
+              </Select>
+            </FormField>
+          ) : null}
           <FormField label="Suche" htmlFor="release-review-search">
             <Input
               id="release-review-search"
@@ -291,7 +303,7 @@ export function ReleaseReviewsSection({ fansubId }: { fansubId: number }) {
                   <TableEmptyState
                     colSpan={7}
                     title={view === 'open' ? 'Keine offenen Prüfungen' : 'Kein Prüfverlauf'}
-                    description="Für die gewählten Filter liegen derzeit keine offenen Beiträge vor."
+                    description={emptyStateDescription}
                   />
                 ) : items.map((item) => {
                   const status = releaseReviewQueueStatus(item.status)
