@@ -13,9 +13,10 @@ afterEach(() => { cleanup(); vi.clearAllMocks(); mockUsePathname.mockReturnValue
 describe('AdminMainNav', () => {
   it('renders the complete rights module navigation on rights routes', () => {
     render(<AdminMainNav />)
-    for (const [name, href] of [['Benutzer', '/admin/users'], ['Gruppen', '/admin/groups'], ['Rollen', '/admin/roles'], ['Capabilities', '/admin/role-capabilities'], ['Claims', '/admin/claims'], ['Änderungen', '/admin/changes']]) {
+    for (const [name, href] of [['Benutzer', '/admin/users'], ['Gruppen', '/admin/groups'], ['Rollen', '/admin/roles'], ['Claims', '/admin/claims'], ['Änderungen', '/admin/changes']]) {
       expect(screen.getByRole('link', { name }).getAttribute('href')).toBe(href)
     }
+    expect(screen.queryByRole('link', { name: 'Capabilities' })).toBeNull()
   })
 
   it('keeps the navigation visible on nested rights routes', () => {

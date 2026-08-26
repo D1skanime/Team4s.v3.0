@@ -8,7 +8,6 @@ const ADMIN_NAV_LINKS = [
   { label: 'Benutzer', href: '/admin/users' },
   { label: 'Gruppen', href: '/admin/groups' },
   { label: 'Rollen', href: '/admin/roles' },
-  { label: 'Capabilities', href: '/admin/role-capabilities' },
   { label: 'Claims', href: '/admin/claims' },
   { label: 'Änderungen', href: '/admin/changes' },
 ]
