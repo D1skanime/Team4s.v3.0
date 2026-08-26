@@ -39,15 +39,15 @@
 - [ ] **RDEL-02**: Ein autorisierter Gruppenleiter kann die delegierbaren Rechte für Medien/Bilder, Notizen/Texte und Mitwirkungen einzeln gewähren und entziehen.
 - [ ] **RDEL-03**: Die Review-Delegation wird im vorhandenen Mitglieder-Editor unter „Prüf-/Freigabe-Rechte“ bedient und bleibt fachlich von Rollen und allgemeinen Benutzer-Overrides getrennt.
 - [ ] **RDEL-04**: Delegationsmutationen verwenden die vorhandenen transaktionalen Review-Service- und Audit-Seams und sind idempotent.
-- [ ] **RDEL-05**: Eine entzogene Delegation verliert unmittelbar und konsistent ihre Wirkung auf Entscheidung, Review-Liste und Zähler, ohne dem Mitglied eine breitere Leiterrolle zu entziehen.
+- [x] **RDEL-05**: Eine entzogene Delegation verliert unmittelbar und konsistent ihre Wirkung auf Entscheidung, Review-Liste und Zähler, ohne dem Mitglied eine breitere Leiterrolle zu entziehen.
 
 ### Entscheidbare Review-Arbeit
 
-- [ ] **RQUE-01**: Die offene Review-Liste enthält serverseitig nur Einträge, deren Review-Art der aktuelle Benutzer in der betreffenden Fansubgruppe entscheiden darf.
+- [x] **RQUE-01**: Die offene Review-Liste enthält serverseitig nur Einträge, deren Review-Art der aktuelle Benutzer in der betreffenden Fansubgruppe entscheiden darf.
 - [ ] **RQUE-02**: Eigene Einreichungen erscheinen nicht in der entscheidbaren Review-Liste und erhöhen deren Actionable-Zähler nicht.
 - [ ] **RQUE-03**: Eigene offene Einreichungen können getrennt als „wartet auf Fremdprüfung“ angezeigt werden und besitzen dort keine Entscheidungsaktion.
-- [ ] **RQUE-04**: Review-Liste, Typ-Zähler, Detailzugriff und „Nächster Eintrag“ verwenden dieselben Actor-, Capability-, Gruppen- und Self-Review-Prädikate.
-- [ ] **RQUE-05**: Direkter Zugriff und Entscheidungsversuche bleiben serverseitig geschützt, selbst wenn ein Eintrag durch manipulierte URL oder veralteten Clientzustand geöffnet wird.
+- [x] **RQUE-04**: Review-Liste, Typ-Zähler, Detailzugriff und „Nächster Eintrag“ verwenden dieselben Actor-, Capability-, Gruppen- und Self-Review-Prädikate.
+- [x] **RQUE-05**: Direkter Zugriff und Entscheidungsversuche bleiben serverseitig geschützt, selbst wenn ein Eintrag durch manipulierte URL oder veralteten Clientzustand geöffnet wird.
 - [ ] **RQUE-06**: Mitwirkungsprüfungen verwenden ihren bestehenden kanonischen Review-Workflow und werden nicht künstlich in die Text-/Bild-Release-Queue verschoben.
 
 ### Verträge, Sicherheit und Rollout
@@ -120,12 +120,12 @@
 | RDEL-02 | Phase 140 | Pending |
 | RDEL-03 | Phase 140 | Pending |
 | RDEL-04 | Phase 140 | Pending |
-| RDEL-05 | Phase 141 | Pending |
-| RQUE-01 | Phase 141 | Pending |
+| RDEL-05 | Phase 141 | Complete |
+| RQUE-01 | Phase 141 | Complete |
 | RQUE-02 | Phase 141 | Pending |
 | RQUE-03 | Phase 141 | Pending |
-| RQUE-04 | Phase 141 | Pending |
-| RQUE-05 | Phase 141 | Pending |
+| RQUE-04 | Phase 141 | Complete |
+| RQUE-05 | Phase 141 | Complete |
 | RQUE-06 | Phase 141 | Pending |
 | QUAL-01 | Phase 136 | Complete |
 | QUAL-02 | Phase 142 | Pending |

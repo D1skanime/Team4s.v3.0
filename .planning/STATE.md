@@ -3,14 +3,14 @@ gsd_state_version: 1.0
 milestone: v1.4
 milestone_name: Coverage
 status: executing
-stopped_at: Phase 141 UI-SPEC approved
-last_updated: "2026-08-26T08:38:25.768Z"
-last_activity: 2026-08-26 -- Phase 141 planning complete
+stopped_at: Completed 141-01-PLAN.md
+last_updated: "2026-08-26T09:04:33.267Z"
+last_activity: 2026-08-26
 progress:
   total_phases: 7
   completed_phases: 5
   total_plans: 83
-  completed_plans: 76
+  completed_plans: 77
   percent: 71
 ---
 
@@ -29,14 +29,14 @@ Phase 135 and any future roadmap entries continue from here.
 See: .planning/PROJECT.md (updated 2026-08-13)
 
 **Core value:** Team4s presents fansub history and collaboration credibly while keeping identity, visibility, ownership, and permissions correct.
-**Current focus:** Phase 140 — review delegation management
+**Current focus:** Phase 141 — actor-decidable-review-queue
 
 ## Current Position
 
-Phase: 141
-Plan: Not started
+Phase: 141 (actor-decidable-review-queue) — EXECUTING
+Plan: 2 of 7
 Status: Ready to execute
-Last activity: 2026-08-26 -- Phase 141 planning complete
+Last activity: 2026-08-26
 
 ## Accumulated Context
 
@@ -196,6 +196,8 @@ Last activity: 2026-08-26 -- Phase 141 planning complete
 - [Phase 139]: 139-08: UserContributionsTab.tsx rewritten as grouped-card projection (UI-SPEC-locked); a thin file-local URL-reset wrapper deletes only the seven filter-owned query keys instead of calling each per-field setter in sequence (stale-closure race) or blanket-clearing the pathname (would drop ?tab=); rewrote pre-existing role-catalog test fixtures to use real hex color_key/icon_key values, closing a genuine Phase-136 fixture bug rather than reproducing it.
 - [Phase 139]: 139-09 closed UADM-05: UserMediaTab.tsx fully rewritten as the grouped release/episode-block projection (Card variant=nestedFlat, ResponsiveImage lazy thumbnails, five server-side filters via useUserMediaFilters), deleting hasScopePermission() and groupByReleaseVersion() outright with no replacement. — ResponsiveImage is imported from its real @/components/ui/ResponsiveImage module path (not the barrel index, which does not re-export it), matching every other production consumer in the codebase; mediaTab.module.css mirrors 139-08's container-query convention exactly plus the 96px->64px thumbnail breakpoint.
 - [Phase 139]: 139-10 closed the phase with a full backend+frontend regression triage against the confirmed 139-RESEARCH.md baseline (zero Phase-139 regressions, 139-VALIDATION.md's Per-Task Verification Map fully filled in, nyquist_compliant: true) and human-verified live UAT (all six checks PASSED, see 139-HUMAN-UAT.md). The check-4 (Rights-tab lazy fetch) live verification carries a documented residual scope note -- the D1sk test account has only one group membership so lazy-vs-eager-of-one-group cannot be visually distinguished; the multi-group property is separately proven by 139-07's UserGroupRightsTab.test.tsx/UserOverviewTab.test.tsx regression tests -- this is a scope note, not a failed or skipped check. Phase 139 (10/10 plans) is complete; all of UADM-02 through UADM-08 and QUAL-06 are fully verified.
+- [Phase 141-01]: ResolveReviewGroupAuthorization replicates CanReviewForFansubGroup's guard chain exactly (including the ReviewContextResolver verified-membership gate) rather than substituting ResolveGroupRights' looser ActiveMembership signal, preventing an elevation-of-privilege regression.
+- [Phase 141-01]: review_service.go's own Decide authorization call is left untouched per 141-CONTEXT.md D11; only the handler-layer read path was consolidated onto the new single-resolution entry point.
 
 ### Pending Todos
 
@@ -451,10 +453,11 @@ untruncated list lives in `.planning/todos/pending/`.
 | Phase 139 P08 | 70min | 2 tasks | 3 files |
 | Phase 139 P09 | 55min | 2 tasks | 3 files |
 | Phase 139 P10 | multi-session | 2 tasks | 3 files |
+| Phase 141 P01 | 11min | 2 tasks | 5 files |
 
 ## Session Continuity
 
-Last session: 2026-08-26T07:50:38.323Z
-Stopped at: Phase 141 UI-SPEC approved
+Last session: 2026-08-26T09:04:33.252Z
+Stopped at: Completed 141-01-PLAN.md
 Last activity: 2026-08-20 - Completed Phase 134 Plan 06: live UAT evidence capture, two gap-closure fix rounds, and the user's explicit live-browser sign-off for both reference profiles (PMQA-05)
-Resume file: .planning/phases/141-actor-decidable-review-queue/141-UI-SPEC.md
+Resume file: None

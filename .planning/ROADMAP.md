@@ -645,7 +645,7 @@ Plans:
 
 Plans:
 **Wave 1**
-- [ ] 141-01-PLAN.md — Single-resolution review authorization (Pattern 1) + decision-guard concurrency regression
+- [x] 141-01-PLAN.md — Single-resolution review authorization (Pattern 1) + decision-guard concurrency regression
 
 **Wave 2** *(blocked on Wave 1 completion)*
 - [ ] 141-02-PLAN.md — Self-exclusion predicate, own-view scope, D15 sort direction fix, allowed_types field, RDEL-05/RQUE-06 tests
