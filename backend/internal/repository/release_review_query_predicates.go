@@ -1,6 +1,12 @@
 package repository
 
-import "fmt"
+import (
+	"context"
+	"errors"
+	"fmt"
+
+	"github.com/jackc/pgx/v5"
+)
 
 // releaseReviewQueuePredicates builds the shared WHERE clause used by both List and Counts
 // (Task 1, Plan 141-02). It combines the fansub-group/allowed-kind scope, the pending/
@@ -73,4 +79,45 @@ func releaseReviewQueuePredicates(options ReleaseReviewQueueOptions, includeCurs
 		))
 	}
 	return where, args, nil
+}
+
+// releaseReviewExistenceAndIdentity resolves whether a review exists in the given fansub
+// group -- independent of review kind, capability, or submitter identity -- and, if found,
+// its kind and submitter identity. Detail and Next both call this SAME function as their
+// "resolve current item" step (Plan 141-03, closing 141-RESEARCH.md Pitfall 3), so a
+// manipulated reviewId for a genuinely missing or cross-group item always resolves to
+// ErrNotFound (unchanged 404), while an in-group-but-not-actor-decidable item resolves to
+// ErrForbidden (403), never a silent 200 (RQUE-02/D04).
+func releaseReviewExistenceAndIdentity(
+	ctx context.Context,
+	db releaseReviewQueryDB,
+	fansubGroupID int64,
+	sourceType string,
+	sourceID int64,
+) (found bool, reviewKind string, submitterAppUserID int64, submitterMemberID int64, err error) {
+	err = db.QueryRow(ctx, releaseReviewQueueBaseSQL+`
+		SELECT source.review_kind, source.submitter_app_user_id, source.submitter_member_id
+		FROM review_sources source
+		WHERE source.fansub_group_id = $1
+		  AND source.source_type = $2
+		  AND source.source_id = $3
+	`, fansubGroupID, sourceType, sourceID).Scan(&reviewKind, &submitterAppUserID, &submitterMemberID)
+	if errors.Is(err, pgx.ErrNoRows) {
+		return false, "", 0, 0, nil
+	}
+	if err != nil {
+		return false, "", 0, 0, fmt.Errorf("resolve release review existence and identity: %w", err)
+	}
+	return true, reviewKind, submitterAppUserID, submitterMemberID, nil
+}
+
+// containsReleaseReviewMemberID mirrors containsReleaseReviewKind's shape for the actor's
+// verified member IDs.
+func containsReleaseReviewMemberID(values []int64, target int64) bool {
+	for _, value := range values {
+		if value == target {
+			return true
+		}
+	}
+	return false
 }

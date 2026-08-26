@@ -184,10 +184,26 @@ func (r *ReleaseReviewQueryRepository) Detail(
 	fansubGroupID int64,
 	reviewID string,
 	allowedKinds []string,
+	actorAppUserID int64,
+	actorMemberIDs []int64,
 ) (*ReleaseReviewDetail, error) {
 	sourceType, sourceID, err := DecodeReleaseReviewID(reviewID)
 	if err != nil || fansubGroupID <= 0 || len(allowedKinds) == 0 {
 		return nil, ErrValidation
+	}
+	found, reviewKind, submitterAppUserID, submitterMemberID, err := releaseReviewExistenceAndIdentity(
+		ctx, r.db, fansubGroupID, sourceType, sourceID,
+	)
+	if err != nil {
+		return nil, err
+	}
+	if !found {
+		return nil, ErrNotFound
+	}
+	if !containsReleaseReviewKind(allowedKinds, reviewKind) ||
+		submitterAppUserID == actorAppUserID ||
+		containsReleaseReviewMemberID(actorMemberIDs, submitterMemberID) {
+		return nil, ErrForbidden
 	}
 	var detail ReleaseReviewDetail
 	var key ReleaseReviewSortKey
@@ -231,10 +247,26 @@ func (r *ReleaseReviewQueryRepository) Next(
 	fansubGroupID int64,
 	reviewID string,
 	allowedKinds []string,
+	actorAppUserID int64,
+	actorMemberIDs []int64,
 ) (*ReleaseReviewQueueItem, error) {
 	sourceType, sourceID, err := DecodeReleaseReviewID(reviewID)
 	if err != nil {
 		return nil, ErrValidation
+	}
+	found, reviewKind, submitterAppUserID, submitterMemberID, err := releaseReviewExistenceAndIdentity(
+		ctx, r.db, fansubGroupID, sourceType, sourceID,
+	)
+	if err != nil {
+		return nil, err
+	}
+	if !found {
+		return nil, ErrNotFound
+	}
+	if !containsReleaseReviewKind(allowedKinds, reviewKind) ||
+		submitterAppUserID == actorAppUserID ||
+		containsReleaseReviewMemberID(actorMemberIDs, submitterMemberID) {
+		return nil, ErrForbidden
 	}
 	var key ReleaseReviewSortKey
 	err = r.db.QueryRow(ctx, releaseReviewQueueBaseSQL+`
@@ -256,8 +288,13 @@ func (r *ReleaseReviewQueryRepository) Next(
 	if err != nil {
 		return nil, err
 	}
+	// List's own two-signal self-exclusion predicate (Plan 141-02) is the only thing that
+	// can guarantee the resolved "next" item is never the actor's own submission (RQUE-02/
+	// D05) -- ActorAppUserID/ActorMemberIDs must flow through, not just be checked against
+	// the CURRENT item above.
 	page, err := r.List(ctx, ReleaseReviewQueueOptions{
 		Scope: scope, AllowedKinds: allowedKinds, Cursor: cursor, Limit: 1,
+		ActorAppUserID: actorAppUserID, ActorMemberIDs: actorMemberIDs,
 	})
 	if err != nil || len(page.Items) == 0 {
 		return nil, err
