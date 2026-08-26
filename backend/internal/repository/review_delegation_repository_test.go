@@ -249,6 +249,108 @@ func openPhase107ReviewRepositoryPool(t *testing.T) *pgxpool.Pool {
 	return pool
 }
 
+// 260826-6vu -- LoadDelegationSnapshot tests, closing 140-VERIFICATION.md
+// Gap 2 (no fake-DBTX unit test and no real-Postgres integration test for the
+// non-locking read model).
+
+func TestLoadDelegationSnapshotReturnsPolicySnapshot(t *testing.T) {
+	memberID := int64(101)
+	db := &phase107DelegationDB{
+		row: phase107DelegationRow(func(dest ...any) error {
+			*dest[0].(*int64) = 31
+			*dest[1].(*int64) = 21
+			*dest[2].(*int64) = 11
+			*dest[3].(**int64) = &memberID
+			*dest[4].(*string) = "active"
+			*dest[5].(*string) = "active"
+			*dest[6].(*bool) = true
+			*dest[7].(*[]string) = []string{"review.image.decide", "review.text.decide"}
+			return nil
+		}),
+	}
+
+	got, err := NewReviewDelegationRepository(db).LoadDelegationSnapshot(context.Background(), 31)
+
+	require.NoError(t, err)
+	require.NotNil(t, got)
+	assert.EqualValues(t, 31, got.MembershipID)
+	assert.EqualValues(t, 21, got.FansubGroupID)
+	assert.EqualValues(t, 11, got.AppUserID)
+	require.NotNil(t, got.MemberID)
+	assert.EqualValues(t, 101, *got.MemberID)
+	assert.Equal(t, "active", got.MembershipStatus)
+	assert.Equal(t, "active", got.AppUserStatus)
+	assert.True(t, got.HasVerifiedMemberClaim)
+	assert.ElementsMatch(t, []string{"review.image.decide", "review.text.decide"}, got.GrantedActionCodes)
+	assert.NotContains(t, strings.ToUpper(db.query), "FOR UPDATE")
+	assert.Equal(t, []any{int64(31)}, db.queryArgs)
+}
+
+func TestLoadDelegationSnapshotValidationAndNotFound(t *testing.T) {
+	for name, repo := range map[string]*ReviewDelegationRepository{
+		"nil repository": nil,
+		"nil database":   NewReviewDelegationRepository(nil),
+	} {
+		t.Run(name, func(t *testing.T) {
+			_, err := repo.LoadDelegationSnapshot(context.Background(), 1)
+			assert.ErrorIs(t, err, ErrValidation)
+		})
+	}
+
+	db := &phase107DelegationDB{
+		row: phase107DelegationRow(func(...any) error { return pgx.ErrNoRows }),
+	}
+	repo := NewReviewDelegationRepository(db)
+
+	_, err := repo.LoadDelegationSnapshot(context.Background(), 0)
+	assert.ErrorIs(t, err, ErrValidation)
+
+	_, err = repo.LoadDelegationSnapshot(context.Background(), -1)
+	assert.ErrorIs(t, err, ErrValidation)
+}
+
+func TestLoadDelegationSnapshotWrapsNotFound(t *testing.T) {
+	db := &phase107DelegationDB{
+		row: phase107DelegationRow(func(...any) error { return pgx.ErrNoRows }),
+	}
+	_, err := NewReviewDelegationRepository(db).LoadDelegationSnapshot(context.Background(), 31)
+	assert.ErrorIs(t, err, ErrNotFound)
+}
+
+func TestPhase107LoadDelegationSnapshotAgainstRealPostgres(t *testing.T) {
+	pool := openPhase107ReviewRepositoryPool(t)
+	ctx := context.Background()
+	_, err := pool.Exec(ctx, `
+		INSERT INTO members(id) VALUES (101);
+		INSERT INTO app_users(id, status) VALUES (11, 'active');
+		INSERT INTO fansub_groups(id) VALUES (21);
+		INSERT INTO fansub_group_members(id, fansub_group_id, app_user_id, member_id, status)
+		VALUES (31, 21, 11, 101, 'active');
+		INSERT INTO member_claims(id, member_id, app_user_id, claim_status, verified_at)
+		VALUES (41, 101, 11, 'verified', NOW());
+	`)
+	require.NoError(t, err)
+
+	repo := NewReviewDelegationRepository(pool)
+	_, err = repo.GrantAction(ctx, 31, "review.text.decide")
+	require.NoError(t, err)
+	_, err = repo.GrantAction(ctx, 31, "review.image.decide")
+	require.NoError(t, err)
+
+	snapshot, err := repo.LoadDelegationSnapshot(ctx, 31)
+	require.NoError(t, err)
+	require.NotNil(t, snapshot)
+	assert.ElementsMatch(t, []string{"review.text.decide", "review.image.decide"}, snapshot.GrantedActionCodes)
+	assert.Equal(t, "active", snapshot.MembershipStatus)
+	assert.Equal(t, "active", snapshot.AppUserStatus)
+	assert.True(t, snapshot.HasVerifiedMemberClaim)
+	require.NotNil(t, snapshot.MemberID)
+	assert.EqualValues(t, 101, *snapshot.MemberID)
+
+	_, err = repo.LoadDelegationSnapshot(ctx, 9999)
+	assert.ErrorIs(t, err, ErrNotFound)
+}
+
 func TestPhase107ReviewDelegationSourceBoundary(t *testing.T) {
 	content, err := os.ReadFile("review_delegation_repository.go")
 	if errors.Is(err, os.ErrNotExist) {
