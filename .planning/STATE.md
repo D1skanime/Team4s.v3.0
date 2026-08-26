@@ -36,7 +36,7 @@ See: .planning/PROJECT.md (updated 2026-08-13)
 Phase: 142
 Plan: Not started
 Status: Ready to plan
-Last activity: 2026-08-26 -- Completed quick task 260826-k66: removed redundant "Capabilities" nav entry from AdminMainNav.tsx (Phase-138-Nachtrag, /admin/role-capabilities is now redirect-only)
+Last activity: 2026-08-26 -- Completed quick task 260826-l5l: fixed f_unaccent pg_restore defect via migration 0152 (Befund 1), verified with a real pg_dump/pg_restore round-trip (0 errors, previously 89)
 
 ## Accumulated Context
 
@@ -245,6 +245,7 @@ Last activity: 2026-08-26 -- Completed quick task 260826-k66: removed redundant 
 | 260825-svs | Regression aus Phase 140 beheben: fehlende getReviewDelegations Export im api-Mock von UserGroupRightsTab.test.tsx nachgeruestet (test-only, keine Verhaltensaenderung) | 2026-08-25 | 6cddcb75 | [260825-svs-regression-aus-phase-140-beheben-fehlend](./quick/260825-svs-regression-aus-phase-140-beheben-fehlend/) |
 | 260826-6vu | Phase-140-Nachtrag: drei Testluecken aus 140-VERIFICATION.md geschlossen (AdminReviewDelegationHandler HTTP-Tests, LoadDelegationSnapshot-Repository-Tests, CapabilityDetailRow-Regressionstest fuer die Option-(d)-Grant/Deny-Asymmetrie) - reine Testarbeit, kein Produktionscode geaendert; Re-Verifikation: 0/3 Luecken offen, Status human_needed (ein vorbestehender manueller UX-Check aus 140-VALIDATION.md) | 2026-08-26 | 5545e05d | [260826-6vu-die-drei-testluecken-aus-140-verificatio](./quick/260826-6vu-die-drei-testluecken-aus-140-verificatio/) |
 | 260826-k66 | Redundanten "Capabilities"-Nav-Eintrag aus AdminMainNav.tsx entfernt (Phase-138-Nachtrag, Sketch 005 D-01/D-08): /admin/role-capabilities ist seit 2026-08-24 nur noch serverseitige Weiterleitung auf /admin/roles (Standardrechte-Tab), Hauptnav zeigte zwei Eintraege auf dasselbe Ziel; Redirect-Route unangetastet, Test aktualisiert (Abwesenheit statt Anwesenheit) | 2026-08-26 | 615365b2 | [260826-k66-entferne-den-ueberfluessigen-nav-eintrag](./quick/260826-k66-entferne-den-ueberfluessigen-nav-eintrag/) |
+| 260826-l5l | Restore-Defekt in f_unaccent behoben (Befund 1, 2026-08-26-keycloak-upgrade-und-voll-reset.md): Migration 0152 qualifiziert Funktionsaufruf+Dictionary mit public., ohne SET search_path (Planner-Inlining bleibt erhalten); reales pg_dump/pg_restore-Roundtrip von team4s_v2 lief mit 0 Fehlern (vorher 89), alle 5 unaccent_trgm-Indizes weiterhin gueltig, kein Rebuild noetig | 2026-08-26 | 7990f19d | [260826-l5l-behebe-den-restore-defekt-in-f-unaccent-](./quick/260826-l5l-behebe-den-restore-defekt-in-f-unaccent-/) |
 
 ### Verification Baseline
 
