@@ -641,7 +641,26 @@ Plans:
   4. Manipulated URLs and stale clients cannot enumerate or decide forbidden entries, and the final transactional decision guard remains authoritative.
   5. Contribution reviews remain in their existing canonical workflow rather than being moved into the text/image release queue.
 
-**Plans**: TBD
+**Plans**: 7 plans
+
+Plans:
+**Wave 1**
+- [ ] 141-01-PLAN.md — Single-resolution review authorization (Pattern 1) + decision-guard concurrency regression
+
+**Wave 2** *(blocked on Wave 1 completion)*
+- [ ] 141-02-PLAN.md — Self-exclusion predicate, own-view scope, D15 sort direction fix, allowed_types field, RDEL-05/RQUE-06 tests
+
+**Wave 3** *(blocked on Wave 2 completion)*
+- [ ] 141-03-PLAN.md — Detail/Next existence-then-authorize (D04 403, Pitfall 3 shared predicate builder)
+
+**Wave 4** *(blocked on Wave 3 completion)*
+- [ ] 141-04-PLAN.md — Frontend type/hook contracts (useReleaseReviewLane extraction)
+
+**Wave 5** *(blocked on Wave 4 completion)*
+- [ ] 141-05-PLAN.md — Own-pending lane + Tabs wrapper (Component Contract 1)
+- [ ] 141-06-PLAN.md — Queue tab D10/D13/D06 filter, empty-state, and badge honesty
+- [ ] 141-07-PLAN.md — Review-detail page 403/409/Next handling (Component Contract 3)
+
 **UI hint**: yes
 
 ### Phase 142: Integrated Security, Fixtures & Live Release Gate
