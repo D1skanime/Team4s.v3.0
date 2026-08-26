@@ -1,10 +1,17 @@
 "use client";
 
+import { useEffect, useState } from "react";
+import { usePathname, useRouter, useSearchParams } from "next/navigation";
+
+import { Badge, Tabs } from "@/components/ui";
+import type { TabItem } from "@/components/ui";
+import { getReleaseReviewCounts } from "@/lib/api";
 import type { FansubGroup, FansubGroupCapabilities } from "@/types/fansub";
 import { NotesTab } from "./NotesTab";
 import { GroupHistorySection } from "@/components/groups/GroupHistorySection";
 import { GroupChangesTab } from "./GroupChangesTab";
 import { GroupRolesTab } from "./GroupRolesTab";
+import { OwnPendingReviewsSection } from "./OwnPendingReviewsSection";
 import { ReadinessTab } from "./ReadinessTab";
 import { ReleaseReviewsSection } from "./ReleaseReviewsSection";
 import type { MainTab } from "./fansubEditTypes";
@@ -24,6 +31,77 @@ function hasWebsiteCommunityLink(group: FansubGroup | null): boolean {
     group.links?.some(
       (link) => link.link_type === "website" && link.url.trim() !== "",
     ),
+  );
+}
+
+type ReviewLane = "queue" | "own-pending";
+
+function readLane(value: string | null): ReviewLane {
+  return value === "own" ? "own-pending" : "queue";
+}
+
+/**
+ * Wraps the actionable review queue and the actor's own-pending lane in the global
+ * Tabs primitive (UI-SPEC Component Contract 1) with independently-fetched, never
+ * combined badge counts and `?lane=queue|own` URL sync nested inside `?tab=pruefungen`.
+ */
+function PruefungenTabs({ fansubId }: { fansubId: number }) {
+  const router = useRouter();
+  const pathname = usePathname();
+  const searchParams = useSearchParams();
+  const [lane, setLane] = useState<ReviewLane>(() => readLane(searchParams.get("lane")));
+  const [actionableCount, setActionableCount] = useState(0);
+  const [ownPendingCount, setOwnPendingCount] = useState(0);
+
+  useEffect(() => {
+    let cancelled = false;
+    void (async () => {
+      try {
+        const [queueCounts, ownCounts] = await Promise.all([
+          getReleaseReviewCounts(fansubId, { view: "open" }),
+          getReleaseReviewCounts(fansubId, { view: "own" }),
+        ]);
+        if (cancelled) return;
+        setActionableCount(queueCounts.data.text + queueCounts.data.image);
+        setOwnPendingCount(ownCounts.data.text + ownCounts.data.image);
+      } catch {
+        // Badge counts are advisory tab chrome; each lane surfaces its own load errors.
+      }
+    })();
+    return () => {
+      cancelled = true;
+    };
+  }, [fansubId]);
+
+  useEffect(() => {
+    const params = new URLSearchParams();
+    params.set("tab", "pruefungen");
+    if (lane === "own-pending") params.set("lane", "own");
+    router.replace(`${pathname}?${params.toString()}`, { scroll: false });
+  }, [lane, pathname, router]);
+
+  const items: TabItem[] = [
+    {
+      id: "queue",
+      label: "Zu prüfen",
+      badge: <Badge variant="info">{actionableCount}</Badge>,
+      content: <ReleaseReviewsSection fansubId={fansubId} />,
+    },
+    {
+      id: "own-pending",
+      label: "Wartet auf Fremdprüfung",
+      badge: <Badge variant="muted">{ownPendingCount}</Badge>,
+      content: <OwnPendingReviewsSection fansubId={fansubId} />,
+    },
+  ];
+
+  return (
+    <Tabs
+      items={items}
+      activeId={lane}
+      onActiveIdChange={(id) => setLane(id === "own-pending" ? "own-pending" : "queue")}
+      keepMountedIds={new Set(["queue", "own-pending"])}
+    />
   );
 }
 
@@ -64,7 +142,7 @@ export function FansubEditSecondaryTabs({
         </>
       ) : null}
       {activeMainTab === "pruefungen" ? (
-        <ReleaseReviewsSection fansubId={fansubID} />
+        <PruefungenTabs fansubId={fansubID} />
       ) : null}
       {activeMainTab === "readiness" && group ? (
         <ReadinessTab fansubId={fansubID} group={group} />
