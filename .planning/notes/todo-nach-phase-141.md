@@ -48,7 +48,7 @@ sind dort ohnehin nötig (siehe `uat-fixture-plan-v14-close.md`).
 - `TRUNCATE members CASCADE` zieht über `media_assets`/`anime` die gesamte Content-Datenbank mit —
   das ist beim Voll-Reset erwünscht, darf aber nicht versehentlich passieren.
 - **Vorher Backup**, beide Datenbanken (`team4s_v2` und die Keycloak-DB).
-- Dateien unter `media/` mit aufräumen, sonst bleiben verwaiste Dateien ohne DB-Zeilen zurück.
+-  kann komplett geleert werden (Nutzer bestaetigt 2026-08-26: nur Testbilder, 11 MB in 28 Dateien). Kein selektives Aufraeumen noetig.
 - Nach dem Keycloak-Reset: vier Konten neu anlegen, Realm-Rolle für `platform_admin` und den
   JIT-Sync wieder herstellen.
 
