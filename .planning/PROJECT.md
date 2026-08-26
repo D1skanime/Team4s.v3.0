@@ -29,11 +29,12 @@ Team4s presents fansub history and collaboration credibly while keeping identity
 - [x] Let authorized admins apply targeted per-user capability allow/deny overrides without changing unrelated users or broad role assignments. - Phase 138, validated 2026-08-23
 - [x] Turn the existing user-detail rights view into the canonical guided surface for inspecting and safely revoking effective capabilities. - Phase 138, validated 2026-08-23
 - [x] Make user-detail contribution, media, and rights data compact and actionable by grouping related release-version rows and showing real deviations. - Phase 139, validated 2026-08-24
+- [x] Expose the existing per-member review-delegation model through documented APIs and the established group-member editor. - Phase 140, validated 2026-08-26
+- [x] Show reviewers only queue entries they can actually decide, while keeping self-submissions clearly separated from actionable work. - Phase 141, validated 2026-08-26
 
 ### Active
 
-- [ ] Expose the existing per-member review-delegation model through documented APIs and the established group-member editor.
-- [ ] Show reviewers only queue entries they can actually decide, while keeping self-submissions clearly separated from actionable work.
+_(none — v1.4's remaining phases are not yet planned/executed)_
 
 ### Out Of Scope
 
