@@ -3,14 +3,14 @@ gsd_state_version: 1.0
 milestone: v1.4
 milestone_name: Coverage
 status: executing
-stopped_at: Completed 141-05-PLAN.md
-last_updated: "2026-08-26T09:48:59.775Z"
+stopped_at: Completed 141-06-PLAN.md
+last_updated: "2026-08-26T09:53:52.379Z"
 last_activity: 2026-08-26
 progress:
   total_phases: 7
   completed_phases: 5
   total_plans: 83
-  completed_plans: 81
+  completed_plans: 82
   percent: 71
 ---
 
@@ -34,7 +34,7 @@ See: .planning/PROJECT.md (updated 2026-08-13)
 ## Current Position
 
 Phase: 141 (actor-decidable-review-queue) — EXECUTING
-Plan: 6 of 7
+Plan: 7 of 7
 Status: Ready to execute
 Last activity: 2026-08-26
 
@@ -206,6 +206,8 @@ Last activity: 2026-08-26
 - [Phase 141]: OwnPendingReviewsSection renders 5 always-visible table columns (no desktop/tablet duplicate-column split), keeping colSpan=5 unambiguous and matching the plan's literal 5-column requirement.
 - [Phase 141]: ?lane= URL param uses short values queue/own (per 141-UI-SPEC's locked contract) while Tabs item ids stay queue/own-pending; readLane()/setLane() map between the two.
 - [Phase 141]: PruefungenTabs's URL-sync effect rebuilds the querystring from scratch (tab + optional lane only) rather than merging into live searchParams, avoiding a render loop from a fresh-identity searchParams dependency.
+- [Phase 141-06]: SectionHeader description locked copy mixes „ opening guillemet with ASCII closing quote; used single-quote JSX attribute delimiters instead of escaping or paraphrasing the locked string. — Preserves the verbatim locked copy while staying syntactically valid JSX.
+- [Phase 141-06]: Typ FormField gating uses allowed_types.length > 1 (not === 0) as the omission predicate, per plan's exact rule that a single-entry allowed_types must also omit the whole FormField. — A one-option dropdown would still leak which single kind the actor can review via its shape.
 
 ### Pending Todos
 
@@ -466,10 +468,11 @@ untruncated list lives in `.planning/todos/pending/`.
 | Phase 141 P03 | ~15min | 3 tasks | 7 files |
 | Phase 141 P04 | ~20min | 2 tasks | 5 files |
 | Phase 141 P05 | ~30min | 3 tasks | 3 files |
+| Phase 141 P06 | 15min | 2 tasks | 2 files |
 
 ## Session Continuity
 
-Last session: 2026-08-26T09:48:59.766Z
-Stopped at: Completed 141-05-PLAN.md
+Last session: 2026-08-26T09:53:52.366Z
+Stopped at: Completed 141-06-PLAN.md
 Last activity: 2026-08-20 - Completed Phase 134 Plan 06: live UAT evidence capture, two gap-closure fix rounds, and the user's explicit live-browser sign-off for both reference profiles (PMQA-05)
 Resume file: None
