@@ -92,6 +92,7 @@ const counts = {
     text: 1,
     image: 4,
     contribution: 0,
+    allowed_types: ['text', 'image'] as const,
     image_categories: {
       screenshot: 1,
       typesetting_karaoke: 1,
@@ -157,7 +158,7 @@ describe('canonical release review routing and queue', () => {
     expect(await screen.findByRole('heading', { name: 'Prüfungen' })).toBeTruthy()
     expect(screen.getByText('Texte 1')).toBeTruthy()
     expect(screen.getByText('Bilder 4')).toBeTruthy()
-    expect(screen.getByText('Mitwirkungen 0')).toBeTruthy()
+    expect(screen.queryByText(/Mitwirkungen/)).toBeNull()
     expect(screen.getByRole('table', { name: 'Offene Prüfungen der Fansubgruppe' })).toBeTruthy()
     expect(screen.getByRole('option', { name: 'Screenshot' })).toBeTruthy()
     expect(screen.getByRole('option', { name: 'Typesetting / Karaoke' })).toBeTruthy()
@@ -207,6 +208,47 @@ describe('canonical release review routing and queue', () => {
     expect(screen.queryByRole('table')).toBeNull()
     expect(screen.queryByRole('button', { name: /Bestätigen|Ablehnen/ })).toBeNull()
     expect(api.listReleaseReviews).not.toHaveBeenCalled()
+  })
+
+  it('omits the Typ FormField entirely when allowed_types has exactly one entry (D10)', async () => {
+    api.getReleaseReviewCounts.mockResolvedValue({
+      data: { ...counts.data, allowed_types: ['image'] as const },
+    })
+    render(<ReleaseReviewsSection fansubId={88} />)
+
+    await screen.findByRole('heading', { name: 'Prüfungen' })
+    expect(screen.queryByLabelText('Typ')).toBeNull()
+    expect(screen.queryByRole('option', { name: 'Texte' })).toBeNull()
+    expect(screen.getByLabelText('Bildkategorie')).toBeTruthy()
+  })
+
+  it('renders both Typ options when allowed_types has both entries', async () => {
+    render(<ReleaseReviewsSection fansubId={88} />)
+
+    await screen.findByRole('heading', { name: 'Prüfungen' })
+    const typeSelect = screen.getByLabelText('Typ')
+    expect(typeSelect).toBeTruthy()
+    expect(screen.getByRole('option', { name: 'Texte' })).toBeTruthy()
+    expect(screen.getByRole('option', { name: 'Bilder' })).toBeTruthy()
+  })
+
+  it('shows the neutral no-filter empty-state copy when the queue is genuinely empty (D13)', async () => {
+    api.listReleaseReviews.mockResolvedValue({ data: { items: [], next_cursor: null } })
+    render(<ReleaseReviewsSection fansubId={88} />)
+
+    expect(await screen.findByText('Aktuell keine Prüfungen für dich offen.')).toBeTruthy()
+    expect(screen.queryByText(/Passe die Filter an/)).toBeNull()
+  })
+
+  it('shows the filters-active empty-state copy when a filter narrows an otherwise non-empty set (D13)', async () => {
+    window.history.replaceState({}, '', '/admin/fansubs/88/edit?tab=pruefungen&type=text')
+    api.listReleaseReviews.mockResolvedValue({ data: { items: [], next_cursor: null } })
+    render(<ReleaseReviewsSection fansubId={88} />)
+
+    expect(await screen.findByText(
+      'Für die gewählten Filter sind aktuell keine Prüfungen offen. Passe die Filter an oder setze sie zurück.',
+    )).toBeTruthy()
+    expect(screen.queryByText('Aktuell keine Prüfungen für dich offen.')).toBeNull()
   })
 })
 
