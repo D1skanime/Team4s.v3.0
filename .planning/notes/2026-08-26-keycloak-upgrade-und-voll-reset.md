@@ -95,9 +95,25 @@ docker exec -i team4sv30-db psql -U team4s -d <zieldb> -q < team4s_v2_fixed.sql
 Deshalb liegt im Backup **beides**: `.dump` (custom) und `.sql` (plain). Nur der `.sql`-Weg
 funktioniert derzeit.
 
-**Offener Fix:** `f_unaccent` per neuer Migration auf `SET search_path = public` bzw.
-`public.unaccent('public.unaccent'::regdictionary, $1)` umstellen. Solange das offen ist, ist
-jedes Backup dieser Datenbank nur mit dem Workaround nutzbar. Gehört in Phase 142 (Release-Gate).
+**Fix erledigt (2026-08-26, Quick-Task 260826-l5l):** Migration
+`database/migrations/0152_f_unaccent_search_path_fix.up.sql` ersetzt den Funktionskörper durch
+`SELECT public.unaccent('public.unaccent'::regdictionary, $1)` -- schema-qualifiziert sowohl den
+Funktionsaufruf als auch den Dictionary-Namen, sodass die Auflösung auch bei leerem `search_path`
+gelingt. Bewusst kein `SET search_path = public` auf der Funktion selbst (das würde Planner-Inlining
+verhindern und alle fünf `*_unaccent_trgm`-Indizes plus die zwei generierten `search_tsv`-Spalten
+verteuern). Angewandt gegen `team4sv30-db` (Migration 152), alle fünf `*_unaccent_trgm`-GIN-Indizes
+weiterhin `indisvalid = t` (kein Rebuild nötig), `f_unaccent` liefert weiterhin akzentfreie Ergebnisse.
+Mit einem frischen `pg_dump --format=custom` nach 0152 und einem `pg_restore` in eine leere
+Wegwerf-Datenbank erneut getestet: **0 Fehler** (vorher 89), 114 Tabellen und alle fünf Indizes nach
+dem Restore vorhanden und valide. Wegwerf-Datenbank und Dump-Datei danach wieder entfernt.
+
+**Wichtig -- Unterscheidung Alt- vs. Neu-Backup:** Nur `pg_dump`/`pg_restore`-Roundtrips, die
+**nach** Anwendung von 0152 gezogen werden, brauchen den sed-Workaround nicht mehr. Das bestehende
+Backup unter `/home/d1sk/backups/2026-08-26-kc-upgrade-reset/team4s_v2.dump` (und jedes andere
+Backup, das **vor** 0152 gezogen wurde) trägt den defekten Funktionskörper fest in seiner eigenen
+DDL -- der Defekt steckte im Dump-Inhalt, nicht im Restore-Tooling. Für dieses und alle älteren
+Backups bleibt der dokumentierte sed-Workaround (Ersetzen des leeren `search_path` durch `public`
+in der `.sql`-Datei vor dem Einspielen) weiterhin nötig.
 
 ---
 
