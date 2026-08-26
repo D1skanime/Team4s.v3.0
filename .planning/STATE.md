@@ -3,14 +3,14 @@ gsd_state_version: 1.0
 milestone: v1.4
 milestone_name: Coverage
 status: executing
-stopped_at: Phase 140 planned (3 plans, 2 waves) -- ready to execute
-last_updated: "2026-08-25T05:32:49.774Z"
-last_activity: 2026-08-25 -- Phase 140 planning complete
+stopped_at: Phase 141 UI-SPEC approved
+last_updated: "2026-08-26T07:50:38.339Z"
+last_activity: "2026-08-26 -- Completed quick task 260826-6vu: closed Phase 140's 3 test-coverage gaps (handler/repository/frontend regression tests); Phase 140 re-verified with 0 gaps remaining, status human_needed pending one manual UX check"
 progress:
   total_phases: 7
   completed_phases: 5
   total_plans: 76
-  completed_plans: 73
+  completed_plans: 76
   percent: 71
 ---
 
@@ -454,7 +454,7 @@ untruncated list lives in `.planning/todos/pending/`.
 
 ## Session Continuity
 
-Last session: 2026-08-25T05:00:46.125Z
-Stopped at: Phase 140 planned (3 plans, 2 waves) -- ready to execute
+Last session: 2026-08-26T07:50:38.323Z
+Stopped at: Phase 141 UI-SPEC approved
 Last activity: 2026-08-20 - Completed Phase 134 Plan 06: live UAT evidence capture, two gap-closure fix rounds, and the user's explicit live-browser sign-off for both reference profiles (PMQA-05)
-Resume file: .planning/phases/140-review-delegation-management/140-UI-SPEC.md
+Resume file: .planning/phases/141-actor-decidable-review-queue/141-UI-SPEC.md
