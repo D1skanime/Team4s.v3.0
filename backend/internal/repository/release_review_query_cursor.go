@@ -13,6 +13,7 @@ import (
 const (
 	ReleaseReviewQueueViewOpen    = "open"
 	ReleaseReviewQueueViewHistory = "history"
+	ReleaseReviewQueueViewOwn     = "own"
 	releaseReviewCursorVersion    = 1
 )
 
@@ -31,6 +32,13 @@ type ReleaseReviewQueueOptions struct {
 	AllowedKinds []string
 	Cursor       string
 	Limit        int
+	// ActorAppUserID/ActorMemberIDs are the requesting actor's own identity, resolved
+	// server-side once per request (never from client input). They drive
+	// releaseReviewQueuePredicates' two-signal self-exclusion (view=open/history) /
+	// self-inclusion (view=own) clause. Zero-value (unset) safely no-ops the exclusion
+	// branch for pre-existing call sites that never populate these fields.
+	ActorAppUserID int64
+	ActorMemberIDs []int64
 }
 
 type ReleaseReviewSortKey struct {
@@ -153,7 +161,8 @@ func normalizeReleaseReviewScope(scope ReleaseReviewQueueScope) ReleaseReviewQue
 
 func validateReleaseReviewScope(scope ReleaseReviewQueueScope) error {
 	if scope.FansubGroupID <= 0 ||
-		(scope.View != ReleaseReviewQueueViewOpen && scope.View != ReleaseReviewQueueViewHistory) ||
+		(scope.View != ReleaseReviewQueueViewOpen && scope.View != ReleaseReviewQueueViewHistory &&
+			scope.View != ReleaseReviewQueueViewOwn) ||
 		(scope.ReviewKind != "" && scope.ReviewKind != string(ReviewKindText) && scope.ReviewKind != string(ReviewKindImage)) ||
 		(scope.Category != "" && !isReleaseReviewMediaCategory(scope.Category)) ||
 		(scope.Category != "" && scope.ReviewKind != "" && scope.ReviewKind != string(ReviewKindImage)) ||

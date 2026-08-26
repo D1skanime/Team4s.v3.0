@@ -56,6 +56,10 @@ type ReleaseReviewQueueCounts struct {
 	Image        int64                       `json:"image"`
 	Contribution int64                       `json:"contribution"`
 	Categories   ReleaseReviewCategoryCounts `json:"image_categories"`
+	// AllowedTypes echoes the request's already-resolved AllowedKinds (set by the
+	// handler, never computed here) so the frontend has an honest, capability-derived
+	// signal distinct from a zero count (D10, Plan 141-02).
+	AllowedTypes []string `json:"allowed_types"`
 }
 
 type ReleaseReviewTextContent struct {
@@ -102,7 +106,7 @@ func (r *ReleaseReviewQueryRepository) List(
 		SELECT `+releaseReviewQueueColumns+`
 		FROM review_sources source
 		WHERE `+strings.Join(where, " AND ")+`
-		ORDER BY source.submitted_at ASC, source.source_type ASC, source.source_id ASC
+		ORDER BY source.submitted_at DESC, source.source_type DESC, source.source_id DESC
 		LIMIT $`+strconv.Itoa(len(args)), args...)
 	if err != nil {
 		return nil, fmt.Errorf("list release review queue: %w", err)
@@ -153,7 +157,7 @@ func (r *ReleaseReviewQueryRepository) Counts(
 	if err != nil {
 		return nil, err
 	}
-	var result ReleaseReviewQueueCounts
+	result := ReleaseReviewQueueCounts{AllowedTypes: []string{}}
 	err = r.db.QueryRow(ctx, releaseReviewQueueBaseSQL+`
 		SELECT
 			COUNT(*) FILTER (WHERE review_kind = 'text'),
@@ -259,48 +263,6 @@ func (r *ReleaseReviewQueryRepository) Next(
 		return nil, err
 	}
 	return &page.Items[0], nil
-}
-
-func releaseReviewQueuePredicates(options ReleaseReviewQueueOptions, includeCursor bool) ([]string, []any, error) {
-	scope := options.Scope
-	args := []any{scope.FansubGroupID, options.AllowedKinds}
-	where := []string{"source.fansub_group_id = $1", "source.review_kind = ANY($2::text[])"}
-	if scope.View == ReleaseReviewQueueViewOpen {
-		where = append(where, "source.review_state = 'pending'")
-	} else {
-		where = append(where, "source.review_state <> 'pending'")
-	}
-	add := func(value any, expression string) {
-		args = append(args, value)
-		where = append(where, fmt.Sprintf(expression, len(args)))
-	}
-	if scope.AnimeID > 0 {
-		add(scope.AnimeID, "source.anime_id = $%d")
-	}
-	if scope.ReleaseVersionID > 0 {
-		add(scope.ReleaseVersionID, "source.release_version_id = $%d")
-	}
-	if scope.ReviewKind != "" {
-		add(scope.ReviewKind, "source.review_kind = $%d")
-	}
-	if scope.Category != "" {
-		add(scope.Category, "source.category = $%d")
-	}
-	if scope.Search != "" {
-		add("%"+scope.Search+"%", "source.search_text ILIKE $%d")
-	}
-	if includeCursor && options.Cursor != "" {
-		key, err := DecodeReleaseReviewQueueCursor(scope, options.Cursor)
-		if err != nil {
-			return nil, nil, err
-		}
-		args = append(args, key.SubmittedAt, key.SourceType, key.SourceID)
-		where = append(where, fmt.Sprintf(
-			"(source.submitted_at, source.source_type, source.source_id) > ($%d, $%d, $%d)",
-			len(args)-2, len(args)-1, len(args),
-		))
-	}
-	return where, args, nil
 }
 
 func stringValue(value *string) string {
