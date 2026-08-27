@@ -193,7 +193,7 @@ export function useEpisodeManager(
     setCreateFormValues,
   })
 
-  const { applyBulkStatus, removeEpisode, removeSelected } = useEpisodeManagerBulkMutations({
+  const { applyBulkStatus, applyBulkFansubGroup, removeEpisode, removeSelected } = useEpisodeManagerBulkMutations({
     hasAccessToken,
     selectedID,
     selectedIDs,
@@ -254,6 +254,7 @@ export function useEpisodeManager(
     setCreateField,
     submitCreate,
     applyBulkStatus,
+    applyBulkFansubGroup,
     removeSelected,
     removeEpisode,
   }

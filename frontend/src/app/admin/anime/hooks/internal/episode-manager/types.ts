@@ -1,6 +1,7 @@
 import { EpisodeListItem, EpisodeStatus } from '@/types/anime'
 
 import { EpisodeManagerState } from '../../../types/admin-anime'
+import { BulkFansubGroupAssignment } from '../../../utils/episode-bulk-fansub-group'
 
 export interface EpisodeManagerActions {
   setQuery: (q: string) => void
@@ -21,6 +22,7 @@ export interface EpisodeManagerActions {
   submitCreate: (animeID: number) => Promise<void>
   applyBulkStatus: (status: EpisodeStatus) => Promise<void>
   removeSelected: (animeID: number) => Promise<void>
+  applyBulkFansubGroup: (assignments: BulkFansubGroupAssignment[], skippedEpisodeCount: number) => Promise<void>
   removeEpisode: (episode: EpisodeListItem, animeID: number) => Promise<void>
 }
 

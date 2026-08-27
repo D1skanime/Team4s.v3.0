@@ -1,10 +1,11 @@
 import { Dispatch, SetStateAction, useCallback } from "react";
 
-import { deleteAdminEpisode, updateAdminEpisode } from "@/lib/api";
+import { deleteAdminEpisode, updateAdminEpisode, updateEpisodeVersion } from "@/lib/api";
 import { EpisodeListItem, EpisodeStatus } from "@/types/anime";
 
 import { EpisodeManagerState } from "../../../types/admin-anime";
 import { parsePositiveInt } from "../../../utils/anime-helpers";
+import { BulkFansubGroupAssignment } from "../../../utils/episode-bulk-fansub-group";
 import { UseEpisodeManagerOptions } from "./shared";
 
 interface UseEpisodeManagerBulkMutationsParams {
@@ -116,6 +117,52 @@ export function useEpisodeManagerBulkMutations({
       setBulkProgress,
       setIsApplyingBulk,
     ],
+  );
+
+  const applyBulkFansubGroup = useCallback(
+    async (assignments: BulkFansubGroupAssignment[], skippedEpisodeCount: number) => {
+      if (!hasAccessToken) {
+        onError("Anmeldung erforderlich. Bitte zuerst anmelden.");
+        return;
+      }
+      if (assignments.length === 0) {
+        onError("Keine Release-Versionen für die ausgewählten Folgen gefunden.");
+        return;
+      }
+
+      try {
+        setIsApplyingBulk(true);
+        setBulkProgress({ done: 0, total: assignments.length });
+        options.onRequest?.(JSON.stringify({ release_version_assignments: assignments }, null, 2));
+        const failed: number[] = [];
+        for (let i = 0; i < assignments.length; i += 1) {
+          const assignment = assignments[i];
+          try {
+            await updateEpisodeVersion(assignment.versionID, { fansub_groups: assignment.fansubGroups });
+          } catch {
+            failed.push(assignment.versionID);
+          } finally {
+            setBulkProgress({ done: i + 1, total: assignments.length });
+          }
+        }
+        await onRefresh();
+
+        if (failed.length > 0) {
+          options.onResponse?.(JSON.stringify({ failed_release_version_ids: failed }, null, 2));
+          onError(`Fansub-Gruppenzuweisung teilweise fehlgeschlagen (${failed.length}/${assignments.length}).`);
+        } else {
+          options.onResponse?.(JSON.stringify({ updated_release_versions: assignments.length }, null, 2));
+          const skippedMessage = skippedEpisodeCount > 0
+            ? ` ${skippedEpisodeCount} ${skippedEpisodeCount === 1 ? 'Folge' : 'Folgen'} ohne Release-Version übersprungen.`
+            : '';
+          onSuccess(`Fansub-Gruppe für ${assignments.length} Release-Versionen ergänzt.${skippedMessage}`);
+        }
+      } finally {
+        setIsApplyingBulk(false);
+        setBulkProgress(null);
+      }
+    },
+    [hasAccessToken, onError, onRefresh, onSuccess, options, setBulkProgress, setIsApplyingBulk],
   );
 
   const removeEpisode = useCallback(
@@ -307,6 +354,7 @@ export function useEpisodeManagerBulkMutations({
 
   return {
     applyBulkStatus,
+    applyBulkFansubGroup,
     removeEpisode,
     removeSelected,
   };

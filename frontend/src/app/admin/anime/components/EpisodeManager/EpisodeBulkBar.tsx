@@ -1,4 +1,6 @@
+import { Select } from '@/components/ui/Select'
 import { EpisodeStatus } from '@/types/anime'
+import { FansubGroup } from '@/types/fansub'
 
 import { formatEpisodeStatusLabel } from '../../utils/anime-helpers'
 import sharedStyles from '../../../admin.module.css'
@@ -8,27 +10,35 @@ const styles = { ...sharedStyles, ...episodeStyles }
 
 interface EpisodeBulkBarProps {
   statuses: EpisodeStatus[]
+  fansubs: Array<Pick<FansubGroup, 'id' | 'name'>>
   selectedCount: number
   bulkStatus: EpisodeStatus | ''
+  bulkFansubGroupID: number | ''
   isApplyingBulk: boolean
   isUpdating: boolean
   bulkProgress: { done: number; total: number } | null
   onClearSelection: () => void
   onBulkStatusChange: (status: EpisodeStatus | '') => void
   onApplyBulkStatus: () => void
+  onBulkFansubGroupChange: (fansubGroupID: number | '') => void
+  onApplyBulkFansubGroup: () => void
   onRemoveSelected: () => void
 }
 
 export function EpisodeBulkBar({
   statuses,
+  fansubs,
   selectedCount,
   bulkStatus,
+  bulkFansubGroupID,
   isApplyingBulk,
   isUpdating,
   bulkProgress,
   onClearSelection,
   onBulkStatusChange,
   onApplyBulkStatus,
+  onBulkFansubGroupChange,
+  onApplyBulkFansubGroup,
   onRemoveSelected,
 }: EpisodeBulkBarProps) {
   return (
@@ -39,7 +49,7 @@ export function EpisodeBulkBar({
       </div>
 
       <div className={styles.bulkActions}>
-        <select
+        <Select
           className={styles.bulkSelect}
           value={bulkStatus}
           onChange={(event) => onBulkStatusChange(event.target.value as EpisodeStatus | '')}
@@ -52,14 +62,36 @@ export function EpisodeBulkBar({
               {formatEpisodeStatusLabel(value)}
             </option>
           ))}
-        </select>
+        </Select>
         <button
           className={styles.buttonSecondary}
           type="button"
           disabled={isApplyingBulk || isUpdating || bulkStatus === '' || selectedCount === 0}
           onClick={onApplyBulkStatus}
         >
-          Status aendern
+          Status ändern
+        </button>
+        <Select
+          className={styles.bulkSelect}
+          value={bulkFansubGroupID}
+          onChange={(event) => onBulkFansubGroupChange(event.target.value ? Number.parseInt(event.target.value, 10) : '')}
+          disabled={isApplyingBulk || isUpdating}
+          aria-label="Fansub-Gruppe für Auswahl"
+        >
+          <option value="">Gruppe wählen</option>
+          {fansubs.map((fansub) => (
+            <option key={fansub.id} value={fansub.id}>
+              {fansub.name}
+            </option>
+          ))}
+        </Select>
+        <button
+          className={styles.buttonSecondary}
+          type="button"
+          disabled={isApplyingBulk || isUpdating || bulkFansubGroupID === '' || selectedCount === 0}
+          onClick={onApplyBulkFansubGroup}
+        >
+          Gruppe ergänzen
         </button>
         <button
           className={styles.buttonSecondary}

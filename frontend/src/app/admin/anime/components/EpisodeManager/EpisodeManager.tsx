@@ -8,6 +8,7 @@ import { FansubGroup } from '@/types/fansub'
 import { useEpisodeManager } from '../../hooks/useEpisodeManager'
 import { parsePositiveInt } from '../../utils/anime-helpers'
 import { suggestNextEpisodeNumber } from '../../utils/episode-helpers'
+import { buildBulkFansubGroupAssignments } from '../../utils/episode-bulk-fansub-group'
 import { EpisodeFilters } from './EpisodeFilters'
 import { EpisodeBulkBar } from './EpisodeBulkBar'
 import { EpisodeList } from './EpisodeList'
@@ -61,6 +62,7 @@ export function EpisodeManager({
   onRegisterSaveAction,
 }: EpisodeManagerProps) {
   const [bulkStatus, setBulkStatus] = useState<EpisodeStatus | ''>('')
+  const [bulkFansubGroupID, setBulkFansubGroupID] = useState<number | ''>('')
   const [groupedEpisodes, setGroupedEpisodes] = useState<GroupedEpisode[]>([])
   const [isLoadingGroupedEpisodes, setIsLoadingGroupedEpisodes] = useState(false)
   const [groupedEpisodesError, setGroupedEpisodesError] = useState<string | null>(null)
@@ -220,6 +222,18 @@ export function EpisodeManager({
     void manager.applyBulkStatus(bulkStatus)
   }
 
+  const handleBulkFansubGroupApply = () => {
+    if (!bulkFansubGroupID) return
+
+    const { assignments, skippedEpisodeIDs } = buildBulkFansubGroupAssignments({
+      selectedEpisodeIDs: manager.selectedIDs,
+      episodes: anime.episodes,
+      groupedEpisodes,
+      fansubGroupID: bulkFansubGroupID,
+    })
+    resetPayloadPreview()
+    void manager.applyBulkFansubGroup(assignments, skippedEpisodeIDs.length)
+  }
   const handleSelectEpisode = (episode: EpisodeListItem) => {
     if (manager.selectedID && manager.selectedID !== episode.id && manager.hasEditChanges && typeof window !== 'undefined') {
       const confirmed = window.confirm(
@@ -268,14 +282,18 @@ export function EpisodeManager({
           {manager.selectedCount > 0 ? (
             <EpisodeBulkBar
               statuses={EPISODE_STATUSES}
+              fansubs={fansubs}
               selectedCount={manager.selectedCount}
               bulkStatus={bulkStatus}
+              bulkFansubGroupID={bulkFansubGroupID}
               isApplyingBulk={manager.isApplyingBulk}
               isUpdating={manager.isUpdating}
               bulkProgress={manager.bulkProgress}
               onClearSelection={manager.clearSelection}
               onBulkStatusChange={setBulkStatus}
               onApplyBulkStatus={handleBulkStatusApply}
+              onBulkFansubGroupChange={setBulkFansubGroupID}
+              onApplyBulkFansubGroup={handleBulkFansubGroupApply}
               onRemoveSelected={handleRemoveSelected}
             />
           ) : null}
