@@ -420,6 +420,7 @@ type AdminAnimePersistedAssetState struct {
 	MediaID   *string `json:"media_id,omitempty"`
 	URL       string  `json:"url"`
 	Ownership string  `json:"ownership"`
+	Provider  *string `json:"provider,omitempty"`
 }
 
 type AdminAnimePersistedBackgroundState struct {
@@ -427,6 +428,7 @@ type AdminAnimePersistedBackgroundState struct {
 	MediaID   *string `json:"media_id,omitempty"`
 	URL       string  `json:"url"`
 	Ownership string  `json:"ownership"`
+	Provider  *string `json:"provider,omitempty"`
 	SortOrder int32   `json:"sort_order"`
 }
 

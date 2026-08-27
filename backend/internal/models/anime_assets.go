@@ -20,6 +20,7 @@ type AnimeResolvedAsset struct {
 	URL         string              `json:"url"`
 	Ownership   AnimeAssetOwnership `json:"ownership"`
 	ProviderKey *string             `json:"provider_key,omitempty"`
+	Provider    *string             `json:"provider,omitempty"`
 }
 
 // AnimeBackgroundAsset repräsentiert ein Hintergrundbild eines Anime mit Sortierreihenfolge
@@ -30,6 +31,7 @@ type AnimeBackgroundAsset struct {
 	URL         string              `json:"url"`
 	Ownership   AnimeAssetOwnership `json:"ownership"`
 	ProviderKey *string             `json:"provider_key,omitempty"`
+	Provider    *string             `json:"provider,omitempty"`
 	SortOrder   int32               `json:"sort_order"`
 	CreatedAt   time.Time           `json:"created_at"`
 	UpdatedAt   time.Time           `json:"updated_at"`

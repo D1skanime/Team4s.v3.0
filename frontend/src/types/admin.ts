@@ -554,6 +554,7 @@ export interface AdminAnimePersistedAssetState {
   media_id?: string;
   url: string;
   ownership: "manual" | "provider";
+  provider?: string;
 }
 
 export interface AdminAnimePersistedBackgroundState extends AdminAnimePersistedAssetState {

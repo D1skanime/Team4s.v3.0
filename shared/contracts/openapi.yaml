@@ -10724,6 +10724,9 @@ components:
         provider_key:
           type: string
           nullable: true
+        provider:
+          type: string
+          nullable: true
     AdminAnimeBackgroundAsset:
       type: object
       required: [id, url, ownership, sort_order, created_at, updated_at]
@@ -10739,6 +10742,9 @@ components:
         ownership:
           $ref: "#/components/schemas/AdminAnimeAssetOwnership"
         provider_key:
+          type: string
+          nullable: true
+        provider:
           type: string
           nullable: true
         sort_order:

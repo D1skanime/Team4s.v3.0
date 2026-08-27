@@ -101,7 +101,8 @@ function resolveAssetSource(
   asset?: AdminAnimePersistedAssetState | AdminAnimePersistedBackgroundState,
 ): AssetSource | null {
   if (!asset) return null;
-  return asset.ownership === "provider" ? "Jellyfin" : "Manuell";
+  if (asset.ownership !== "provider") return "Manuell";
+  return asset.provider ? asset.provider.toUpperCase() : "Provider";
 }
 
 function resolvePersistedAssetUrl(

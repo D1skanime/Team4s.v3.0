@@ -538,6 +538,7 @@ func mapPersistedAnimeAssets(value *models.AnimeResolvedAssets) models.AdminAnim
 			MediaID:   value.Cover.MediaID,
 			URL:       value.Cover.URL,
 			Ownership: string(value.Cover.Ownership),
+			Provider:  value.Cover.Provider,
 		}
 	}
 
@@ -546,6 +547,7 @@ func mapPersistedAnimeAssets(value *models.AnimeResolvedAssets) models.AdminAnim
 			MediaID:   value.Banner.MediaID,
 			URL:       value.Banner.URL,
 			Ownership: string(value.Banner.Ownership),
+			Provider:  value.Banner.Provider,
 		}
 	}
 
@@ -554,6 +556,7 @@ func mapPersistedAnimeAssets(value *models.AnimeResolvedAssets) models.AdminAnim
 			MediaID:   value.Logo.MediaID,
 			URL:       value.Logo.URL,
 			Ownership: string(value.Logo.Ownership),
+			Provider:  value.Logo.Provider,
 		}
 	}
 
@@ -562,6 +565,7 @@ func mapPersistedAnimeAssets(value *models.AnimeResolvedAssets) models.AdminAnim
 			MediaID:   value.BackgroundVideo.MediaID,
 			URL:       value.BackgroundVideo.URL,
 			Ownership: string(value.BackgroundVideo.Ownership),
+			Provider:  value.BackgroundVideo.Provider,
 		}
 	}
 
@@ -571,6 +575,7 @@ func mapPersistedAnimeAssets(value *models.AnimeResolvedAssets) models.AdminAnim
 			MediaID:   item.MediaID,
 			URL:       item.URL,
 			Ownership: string(item.Ownership),
+			Provider:  item.Provider,
 			SortOrder: item.SortOrder,
 		})
 	}

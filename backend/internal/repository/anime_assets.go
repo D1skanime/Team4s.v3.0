@@ -270,6 +270,7 @@ func (r *AnimeAssetRepository) getResolvedAssetsV2(ctx context.Context, animeID 
 			URL:         resolvedURL,
 			Ownership:   ownership,
 			ProviderKey: providerKey,
+			Provider:    normalizeNullableTrimmedString(provider),
 		}
 
 		switch strings.TrimSpace(strings.ToLower(mediaType)) {
@@ -297,6 +298,7 @@ func (r *AnimeAssetRepository) getResolvedAssetsV2(ctx context.Context, animeID 
 				URL:         asset.URL,
 				Ownership:   asset.Ownership,
 				ProviderKey: asset.ProviderKey,
+				Provider:    asset.Provider,
 				SortOrder:   sortOrder,
 			}
 			item.CreatedAt = createdAt
