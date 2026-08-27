@@ -261,7 +261,7 @@ func resolveImportFansubSelection(
 	mapping models.EpisodeImportMappingRow,
 	media models.EpisodeImportMediaCandidate,
 ) ([]resolvedImportFansubGroup, error) {
-	if len(mapping.FansubGroups) > 0 {
+	if mapping.FansubGroups != nil {
 		return resolveImportFansubSelectionFromInputs(ctx, tx, mapping.FansubGroups)
 	}
 
