@@ -46,3 +46,74 @@
     transform: rotate(360deg);
   }
 }
+
+.selectionToolbar,
+.bulkActionBar {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  flex-wrap: wrap;
+}
+
+.selectionToolbar {
+  justify-content: flex-end;
+}
+
+.selectAllLabel {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.45rem;
+  color: var(--text-secondary);
+  font-size: 0.9rem;
+  font-weight: 600;
+}
+
+.bulkActionBar {
+  padding: 0.75rem;
+  border: 1px solid color-mix(in srgb, var(--accent-primary) 28%, transparent);
+  border-radius: var(--radius-sm);
+  background: color-mix(in srgb, var(--accent-primary) 7%, var(--bg-secondary));
+}
+
+.bulkSelect {
+  min-width: min(100%, 15rem);
+}
+
+.bulkApplyButton,
+.clearSelectionButton {
+  border: 1px solid color-mix(in srgb, var(--accent-primary) 42%, transparent);
+  border-radius: var(--radius-sm);
+  padding: 0.5rem 0.7rem;
+  color: var(--text-primary);
+  cursor: pointer;
+  font: inherit;
+}
+
+.bulkApplyButton {
+  background: var(--accent-primary);
+  color: var(--button-primary-text, #fff);
+}
+
+.clearSelectionButton {
+  background: transparent;
+}
+
+.bulkApplyButton:disabled,
+.clearSelectionButton:disabled {
+  cursor: not-allowed;
+  opacity: 0.6;
+}
+
+.bulkMessage,
+.bulkError {
+  margin: 0;
+  font-size: 0.9rem;
+}
+
+.bulkMessage {
+  color: var(--color-success);
+}
+
+.bulkError {
+  color: var(--color-error);
+}

@@ -7,11 +7,13 @@ import { useParams } from "next/navigation";
 import {
   createAdminEpisode,
   getAnimeByID,
+  getFansubs,
   getGroupedEpisodes,
 } from "@/lib/api";
 import { PlatformAdminGate } from "@/components/auth/PlatformAdminGate";
 import { useAuthSession } from "@/lib/useAuthSession";
 import { AnimeDetail, EpisodeStatus } from "@/types/anime";
+import { FansubGroup } from "@/types/fansub";
 import { GroupedEpisode } from "@/types/episodeVersion";
 import { EpisodesOverview } from "@/components/episodes/EpisodesOverview";
 
@@ -34,9 +36,10 @@ function AdminAnimeEpisodesContent() {
     [params.id],
   );
 
-  const { hasAccessToken } = useAuthSession();
+  const { hasAccessToken, hasRefreshToken } = useAuthSession();
   const [anime, setAnime] = useState<AnimeDetail | null>(null);
   const [groupedEpisodes, setGroupedEpisodes] = useState<GroupedEpisode[]>([]);
+  const [fansubs, setFansubs] = useState<FansubGroup[]>([]);
   const [isLoadingAnime, setIsLoadingAnime] = useState(true);
   const [isLoadingVersions, setIsLoadingVersions] = useState(false);
   const [isCreating, setIsCreating] = useState(false);
@@ -45,6 +48,9 @@ function AdminAnimeEpisodesContent() {
   const [versionsErrorMessage, setVersionsErrorMessage] = useState<
     string | null
   >(null);
+  const [fansubsErrorMessage, setFansubsErrorMessage] = useState<string | null>(
+    null,
+  );
   const [successMessage, setSuccessMessage] = useState<string | null>(null);
   const [formState, setFormState] = useState({
     number: "",
@@ -106,6 +112,24 @@ function AdminAnimeEpisodesContent() {
     void loadGroupedEpisodes();
   }, [animeID]);
 
+  useEffect(() => {
+    async function loadFansubs() {
+      setFansubsErrorMessage(null);
+
+      try {
+        const response = await getFansubs();
+        setFansubs(response.data);
+      } catch (error) {
+        setFansubs([]);
+        setFansubsErrorMessage(
+          formatAdminError(error, "Fansub-Gruppen konnten nicht geladen werden."),
+        );
+      }
+    }
+
+    void loadFansubs();
+  }, []);
+
   const episodeCount = useMemo(
     () => groupedEpisodes.length,
     [groupedEpisodes],
@@ -121,7 +145,7 @@ function AdminAnimeEpisodesContent() {
       return;
     }
 
-    if (!hasAccessToken) {
+    if (!hasAccessToken && !hasRefreshToken) {
       setErrorMessage(
         "Anmeldung erforderlich. Bitte zuerst anmelden.",
       );
@@ -347,10 +371,21 @@ function AdminAnimeEpisodesContent() {
               <div className={styles.errorBox}>{versionsErrorMessage}</div>
             ) : null}
 
+            {fansubsErrorMessage ? (
+              <div className={styles.errorBox}>{fansubsErrorMessage}</div>
+            ) : null}
+
             <EpisodesOverview
               episodes={groupedEpisodes}
+              episodeItems={anime.episodes}
+              fansubs={fansubs}
               isLoading={isLoadingVersions}
               error={versionsErrorMessage}
+              onRefresh={async () => {
+                if (!animeID) return;
+                const response = await getGroupedEpisodes(animeID);
+                setGroupedEpisodes(response.data.episodes);
+              }}
             />
           </section>
         </>

@@ -2,18 +2,23 @@
 
 import { GroupedEpisode } from '@/types/episodeVersion'
 import { VersionRow } from './VersionRow'
+import { Input } from '@/components/ui/Input'
 import styles from './EpisodeAccordion.module.css'
 
 interface EpisodeAccordionProps {
   episode: GroupedEpisode
   isExpanded: boolean
   onToggle: () => void
+  isSelected?: boolean
+  onSelectionChange?: () => void
 }
 
 export function EpisodeAccordion({
   episode,
   isExpanded,
   onToggle,
+  isSelected = false,
+  onSelectionChange,
 }: EpisodeAccordionProps) {
   const episodeId = `episode-${episode.episode_number}`
   const contentId = `${episodeId}-content`
@@ -22,6 +27,16 @@ export function EpisodeAccordion({
   return (
     <div className={styles.accordionItem}>
       <div className={styles.accordionHeaderWrapper}>
+        {onSelectionChange ? (
+          <label className={styles.selectionControl}>
+            <Input
+              type="checkbox"
+              checked={isSelected}
+              onChange={onSelectionChange}
+              aria-label={`Episode ${episode.episode_number} auswählen`}
+            />
+          </label>
+        ) : null}
         <button
           id={episodeId}
           type="button"
@@ -37,32 +52,20 @@ export function EpisodeAccordion({
           <span className={styles.versionCountBadge}>
             {episode.version_count} {episode.version_count === 1 ? 'Version' : 'Versionen'}
           </span>
-          <span
-            className={`${styles.expandIcon} ${isExpanded ? styles.expandIconRotated : ''}`}
-            aria-hidden="true"
-          >
+          <span className={`${styles.expandIcon} ${isExpanded ? styles.expandIconRotated : ''}`} aria-hidden="true">
             v
           </span>
         </button>
       </div>
 
       {isExpanded && (
-        <div
-          id={contentId}
-          className={styles.accordionContent}
-          role="region"
-          aria-labelledby={episodeId}
-        >
+        <div id={contentId} className={styles.accordionContent} role="region" aria-labelledby={episodeId}>
           {episode.versions.length === 0 ? (
             <p className={styles.noVersions}>Keine Versionen verfügbar.</p>
           ) : (
             <div className={styles.versionList}>
               {episode.versions.map((version) => (
-                <VersionRow
-                  key={version.id}
-                  version={version}
-                  isDefault={version.id === episode.default_version_id}
-                />
+                <VersionRow key={version.id} version={version} isDefault={version.id === episode.default_version_id} />
               ))}
             </div>
           )}
