@@ -102,7 +102,25 @@ function resolveAssetSource(
 ): AssetSource | null {
   if (!asset) return null;
   if (asset.ownership !== "provider") return "Manuell";
-  return asset.provider ? asset.provider.toUpperCase() : "Provider";
+
+  switch (asset.provider?.toLowerCase()) {
+    case "jellyfin":
+      return "Jellyfin";
+    case "tmdb":
+      return "TMDB";
+    case "zerochan":
+      return "Zerochan";
+    case "fanart.tv":
+      return "Fanart.tv";
+    case "anilist":
+      return "AniList";
+    case "konachan":
+      return "Konachan";
+    case "safebooru":
+      return "Safebooru";
+    default:
+      return "Online";
+  }
 }
 
 function resolvePersistedAssetUrl(
