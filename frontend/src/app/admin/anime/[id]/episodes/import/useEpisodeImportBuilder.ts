@@ -348,12 +348,19 @@ export function buildEpisodeImportApplyInput(
   }
 }
 
-function normalizePreviewResult(preview: EpisodeImportPreviewResult): EpisodeImportPreviewResult {
+export function normalizePreviewResult(preview: EpisodeImportPreviewResult): EpisodeImportPreviewResult {
   return {
     ...preview,
     canonical_episodes: preview.canonical_episodes ?? [],
     media_candidates: preview.media_candidates ?? [],
-    mappings: preview.mappings ?? [],
+    mappings: (preview.mappings ?? []).map((row) => {
+      const detectedGroupName = row.fansub_group_name?.trim()
+      if ((row.fansub_groups?.length ?? 0) > 0 || !detectedGroupName) return row
+      return serializeEpisodeImportMappingRow({
+        ...row,
+        fansub_groups: [{ name: detectedGroupName }],
+      })
+    }),
     unmapped_episodes: preview.unmapped_episodes ?? [],
     unmapped_media_item_ids: preview.unmapped_media_item_ids ?? [],
   }

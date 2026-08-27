@@ -327,9 +327,13 @@ function applyFansubGroupsToRow(
   row: EpisodeImportMappingRow,
   fansubGroups: EpisodeImportSelectedFansubGroup[],
 ): EpisodeImportMappingRow {
+  const normalizedGroups = normalizeFansubGroups(fansubGroups)
   return serializeEpisodeImportMappingRow({
     ...row,
-    fansub_groups: fansubGroups,
+    fansub_groups: normalizedGroups,
+    ...(normalizedGroups.length === 0
+      ? { fansub_group_id: null, fansub_group_name: null }
+      : {}),
   })
 }
 

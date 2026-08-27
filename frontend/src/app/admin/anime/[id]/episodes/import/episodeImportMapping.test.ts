@@ -2,6 +2,7 @@ import { describe, expect, it } from 'vitest'
 
 import type { EpisodeImportMappingRow, EpisodeImportPreviewResult } from '../../../../../../types/episodeImport'
 import {
+  setMappingFansubGroups,
   applyFansubGroupFromEpisodeDown,
   applyFansubGroupToEpisodeRows,
   confirmEpisodeMappingRows,
@@ -17,7 +18,7 @@ import {
   summarizeImportPreview,
   toggleMappingSkipped,
 } from './episodeImportMapping'
-import { buildEpisodeImportApplyInput } from './useEpisodeImportBuilder'
+import { buildEpisodeImportApplyInput, normalizePreviewResult } from './useEpisodeImportBuilder'
 
 describe('episodeImportMapping', () => {
   it('confirms one media candidate for multiple canonical episodes without duplicating the row', () => {
@@ -609,4 +610,37 @@ describe('episodeImportMapping', () => {
     expect(payload.mappings[0].release_version).toBe('v3')
   })
 
+  it('clears an automatically detected group when the operator removes its chip', () => {
+    const rows: EpisodeImportMappingRow[] = [{
+      media_item_id: 'episode-2',
+      target_episode_numbers: [2],
+      suggested_episode_numbers: [2],
+      status: 'suggested',
+      fansub_groups: [{ name: 'New-Subs' }],
+      fansub_group_name: 'New-Subs',
+    }]
+
+    const result = setMappingFansubGroups(rows, 'episode-2', [])
+
+    expect(result[0].fansub_groups).toEqual([])
+    expect(result[0].fansub_group_name).toBeNull()
+  })
+
+  it('shows a backend-detected group as an editable chip before confirmation', () => {
+    const result = normalizePreviewResult({
+      anime_id: 1,
+      anime_title: 'Buddy Complex',
+      canonical_episodes: [],
+      media_candidates: [],
+      mappings: [{
+        media_item_id: 'episode-2',
+        target_episode_numbers: [2],
+        suggested_episode_numbers: [2],
+        status: 'suggested',
+        fansub_group_name: 'New-Subs',
+      }],
+    })
+
+    expect(result.mappings[0].fansub_groups).toEqual([{ name: 'New-Subs', slug: null }])
+})
 })

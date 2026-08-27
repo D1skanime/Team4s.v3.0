@@ -257,6 +257,13 @@ export function EpisodeImportMappingRowCard({
                 Ab hier
               </button>
             </div>
+              <button
+                className={styles.releaseScopeButton}
+                disabled={isSkipped || episodeNumber <= 0}
+                onClick={() => onApplyFansubGroupFromEpisode(episodeNumber, [])}
+              >
+                Ab hier entfernen
+              </button>
           </label>
           <label className={styles.releaseMeta}>
             <span className={styles.releaseMetaLabel}>Version</span>
