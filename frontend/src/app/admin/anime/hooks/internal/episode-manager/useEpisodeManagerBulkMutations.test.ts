@@ -32,7 +32,7 @@ describe('useEpisodeManagerBulkMutations', () => {
     function Harness() {
       // eslint-disable-next-line react-hooks/globals
       captured = useEpisodeManagerBulkMutations({
-        hasAccessToken: true,
+        hasAuthSession: true,
         selectedID: null,
         selectedIDs: { 10: true },
         editFormValues: { id: '', number: '', title: '', status: '', streamLink: '' },

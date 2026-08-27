@@ -47,7 +47,8 @@ export function useEpisodeManager(
   const [bulkProgress, setBulkProgress] = useState<{ done: number; total: number } | null>(null)
   const [removingIDs, setRemovingIDs] = useState<Record<number, true>>({})
 
-  const { hasAccessToken } = useAuthSession()
+  const { hasAccessToken, hasRefreshToken } = useAuthSession()
+  const hasAuthSession = hasAccessToken || hasRefreshToken
 
   const visibleEpisodes = useMemo(() => {
     const needle = query.trim().toLowerCase()
@@ -173,7 +174,7 @@ export function useEpisodeManager(
   }
 
   const { saveInlineEdit, submitEdit, submitCreate, cancelInlineEdit } = useEpisodeManagerEditMutations({
-    hasAccessToken,
+    hasAccessToken: hasAuthSession,
     selectedEpisode,
     inlineEditID,
     inlineEditValues,
@@ -194,7 +195,7 @@ export function useEpisodeManager(
   })
 
   const { applyBulkStatus, applyBulkFansubGroup, removeEpisode, removeSelected } = useEpisodeManagerBulkMutations({
-    hasAccessToken,
+    hasAuthSession,
     selectedID,
     selectedIDs,
     editFormValues,

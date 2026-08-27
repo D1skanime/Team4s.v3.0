@@ -9,7 +9,7 @@ import { BulkFansubGroupAssignment } from "../../../utils/episode-bulk-fansub-gr
 import { UseEpisodeManagerOptions } from "./shared";
 
 interface UseEpisodeManagerBulkMutationsParams {
-  hasAccessToken: boolean;
+  hasAuthSession: boolean;
   selectedID: number | null;
   selectedIDs: Record<number, true>;
   editFormValues: EpisodeManagerState["editFormValues"];
@@ -35,7 +35,7 @@ interface UseEpisodeManagerBulkMutationsParams {
 }
 
 export function useEpisodeManagerBulkMutations({
-  hasAccessToken,
+  hasAuthSession,
   selectedID,
   selectedIDs,
   editFormValues,
@@ -55,7 +55,7 @@ export function useEpisodeManagerBulkMutations({
 }: UseEpisodeManagerBulkMutationsParams) {
   const applyBulkStatus = useCallback(
     async (status: EpisodeStatus) => {
-      if (!hasAccessToken) {
+      if (!hasAuthSession) {
         onError(
           "Anmeldung erforderlich. Bitte zuerst anmelden.",
         );
@@ -108,7 +108,7 @@ export function useEpisodeManagerBulkMutations({
       }
     },
     [
-      hasAccessToken,
+      hasAuthSession,
       onError,
       onRefresh,
       onSuccess,
@@ -121,7 +121,7 @@ export function useEpisodeManagerBulkMutations({
 
   const applyBulkFansubGroup = useCallback(
     async (assignments: BulkFansubGroupAssignment[], skippedEpisodeCount: number) => {
-      if (!hasAccessToken) {
+      if (!hasAuthSession) {
         onError("Anmeldung erforderlich. Bitte zuerst anmelden.");
         return;
       }
@@ -162,13 +162,13 @@ export function useEpisodeManagerBulkMutations({
         setBulkProgress(null);
       }
     },
-    [hasAccessToken, onError, onRefresh, onSuccess, options, setBulkProgress, setIsApplyingBulk],
+    [hasAuthSession, onError, onRefresh, onSuccess, options, setBulkProgress, setIsApplyingBulk],
   );
 
   const removeEpisode = useCallback(
     async (episode: EpisodeListItem, animeID: number) => {
       void animeID;
-      if (!hasAccessToken) {
+      if (!hasAuthSession) {
         onError(
           "Anmeldung erforderlich. Bitte zuerst anmelden.",
         );
@@ -225,7 +225,7 @@ export function useEpisodeManagerBulkMutations({
     },
     [
       editFormValues.id,
-      hasAccessToken,
+      hasAuthSession,
       isApplyingBulk,
       isUpdating,
       onError,
@@ -244,7 +244,7 @@ export function useEpisodeManagerBulkMutations({
   const removeSelected = useCallback(
     async (animeID: number) => {
       void animeID;
-      if (!hasAccessToken) {
+      if (!hasAuthSession) {
         onError(
           "Anmeldung erforderlich. Bitte zuerst anmelden.",
         );
@@ -336,7 +336,7 @@ export function useEpisodeManagerBulkMutations({
       }
     },
     [
-      hasAccessToken,
+      hasAuthSession,
       onError,
       onRefresh,
       onSuccess,
