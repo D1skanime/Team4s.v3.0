@@ -266,6 +266,7 @@ type MemberContributionWithProposalRow struct {
 	EpisodeSortIndex          *int    `json:"episode_sort_index"`
 	TotalReleaseVersionCount  int32   `json:"total_release_version_count"`
 	WorkedReleaseVersionCount int32   `json:"worked_release_version_count"`
+	HasOwnReleaseWork         bool    `json:"has_own_release_work"`
 }
 
 // ListByMemberIDWithProposalFields gibt Contributions für einen Member zurück,
@@ -292,6 +293,19 @@ func (r *AnimeContributionsRepository) ListByMemberIDWithProposalFields(ctx cont
 			COALESCE(ac.created_by = $2, false) AS is_own_proposal,
 			ep.episode_number,
 			ep.sort_index AS episode_sort_index,
+			CASE WHEN ac.release_version_id IS NULL THEN false ELSE (
+				EXISTS (
+					SELECT 1 FROM release_version_notes n
+					WHERE n.release_version_id = ac.release_version_id
+					  AND n.member_id = $1
+					  AND n.deleted_at IS NULL
+				) OR EXISTS (
+					SELECT 1 FROM release_version_media m
+					WHERE m.release_version_id = ac.release_version_id
+					  AND m.uploaded_by_user_id = $2
+					  AND m.deleted_at IS NULL
+				)
+			) END AS has_own_release_work,
 			(SELECT COUNT(DISTINCT rv.id) FROM release_versions rv
 			 JOIN release_version_groups rvg ON rvg.release_version_id = rv.id
 			 JOIN fansub_releases fr2 ON fr2.id = rv.release_id
@@ -371,6 +385,7 @@ func (r *AnimeContributionsRepository) ListByMemberIDWithProposalFields(ctx cont
 			&row.IsOwnProposal,
 			&row.EpisodeNumber,
 			&row.EpisodeSortIndex,
+			&row.HasOwnReleaseWork,
 			&row.TotalReleaseVersionCount,
 			&row.WorkedReleaseVersionCount,
 		); err != nil {

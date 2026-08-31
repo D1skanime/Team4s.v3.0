@@ -25,7 +25,7 @@
   visibility: visible;
 }
 
-.projectSkeleton[data-visible="false"] {
+.projectSkeleton[data-visible='false'] {
   opacity: 0;
   visibility: hidden;
 }
@@ -92,9 +92,7 @@
   align-items: stretch;
   justify-content: center;
   overflow: hidden;
-  background:
-    linear-gradient(135deg, rgba(47, 95, 227, 0.16), rgba(47, 155, 121, 0.12)),
-    rgba(248, 250, 252, 0.94);
+  background: linear-gradient(135deg, rgba(47, 95, 227, 0.16), rgba(47, 155, 121, 0.12)), rgba(248, 250, 252, 0.94);
   color: var(--color-primary, #2f5fe3);
   font-size: 1.2rem;
   font-weight: 900;
@@ -148,6 +146,20 @@
   gap: 5px;
 }
 
+.releaseException {
+  display: grid;
+  gap: 6px;
+  min-width: 0;
+  padding-top: 10px;
+  border-top: 1px solid var(--border-subtle);
+}
+
+.releaseExceptionLabel {
+  color: var(--text-secondary, #64748b);
+  font-size: 0.82rem;
+  font-weight: 800;
+}
+
 .roleChip {
   --project-role-accent: var(--role-accent-default);
   border-color: color-mix(in srgb, var(--project-role-accent) 32%, transparent);
@@ -156,18 +168,42 @@
   box-shadow: 0 4px 10px color-mix(in srgb, var(--project-role-accent) 10%, transparent);
 }
 
-.roleChip[data-role-code="fansub_lead"] { --project-role-accent: var(--role-accent-fansub-lead); }
-.roleChip[data-role-code="project_lead"] { --project-role-accent: var(--role-accent-project-lead); }
-.roleChip[data-role-code="editor"] { --project-role-accent: var(--role-accent-editor); }
-.roleChip[data-role-code="translator"] { --project-role-accent: var(--role-accent-translator); }
-.roleChip[data-role-code="timer"] { --project-role-accent: var(--role-accent-timer); }
-.roleChip[data-role-code="typesetter"] { --project-role-accent: var(--role-accent-typesetter); }
-.roleChip[data-role-code="quality_checker"] { --project-role-accent: var(--role-accent-quality-checker); }
-.roleChip[data-role-code="encoder"] { --project-role-accent: var(--role-accent-encoder); }
-.roleChip[data-role-code="raw_provider"] { --project-role-accent: var(--role-accent-raw-provider); }
-.roleChip[data-role-code="designer"] { --project-role-accent: var(--role-accent-designer); }
-.roleChip[data-role-code="admin"] { --project-role-accent: var(--role-accent-admin); }
-.roleChip[data-role-code="other"] { --project-role-accent: var(--role-accent-other); }
+.roleChip[data-role-code='fansub_lead'] {
+  --project-role-accent: var(--role-accent-fansub-lead);
+}
+.roleChip[data-role-code='project_lead'] {
+  --project-role-accent: var(--role-accent-project-lead);
+}
+.roleChip[data-role-code='editor'] {
+  --project-role-accent: var(--role-accent-editor);
+}
+.roleChip[data-role-code='translator'] {
+  --project-role-accent: var(--role-accent-translator);
+}
+.roleChip[data-role-code='timer'] {
+  --project-role-accent: var(--role-accent-timer);
+}
+.roleChip[data-role-code='typesetter'] {
+  --project-role-accent: var(--role-accent-typesetter);
+}
+.roleChip[data-role-code='quality_checker'] {
+  --project-role-accent: var(--role-accent-quality-checker);
+}
+.roleChip[data-role-code='encoder'] {
+  --project-role-accent: var(--role-accent-encoder);
+}
+.roleChip[data-role-code='raw_provider'] {
+  --project-role-accent: var(--role-accent-raw-provider);
+}
+.roleChip[data-role-code='designer'] {
+  --project-role-accent: var(--role-accent-designer);
+}
+.roleChip[data-role-code='admin'] {
+  --project-role-accent: var(--role-accent-admin);
+}
+.roleChip[data-role-code='other'] {
+  --project-role-accent: var(--role-accent-other);
+}
 
 .projectFooter {
   grid-column: 1;

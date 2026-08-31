@@ -13,10 +13,11 @@ import (
 type EffectiveRightProvenance string
 
 const (
-	EffectiveRightProvenanceIDPGlobalRole EffectiveRightProvenance = "idp_global_role"
-	EffectiveRightProvenanceGroupRole     EffectiveRightProvenance = "group_role"
-	EffectiveRightProvenanceUserAllow     EffectiveRightProvenance = "user_allow"
-	EffectiveRightProvenanceUserDeny      EffectiveRightProvenance = "user_deny"
+	EffectiveRightProvenanceIDPGlobalRole      EffectiveRightProvenance = "idp_global_role"
+	EffectiveRightProvenanceGroupRole          EffectiveRightProvenance = "group_role"
+	EffectiveRightProvenanceUserAllow          EffectiveRightProvenance = "user_allow"
+	EffectiveRightProvenanceUserDeny           EffectiveRightProvenance = "user_deny"
+	EffectiveRightProvenanceMembershipBaseline EffectiveRightProvenance = "membership_baseline"
 	// Phase 137 (D04, 137-02) additive values: mirror the resolver's own
 	// permissions.Provenance* constants (effective_rights.go) so the HTTP DTO
 	// vocabulary never drifts from the central resolver's vocabulary.
@@ -116,11 +117,11 @@ func (reason *CapabilityOverrideReason) UnmarshalJSON(data []byte) error {
 // computed decision engine. Before/After reuse the exact same EffectiveRightState shape and
 // effectiveRightStatesFromResolution projection helper GetEffectiveRights already uses.
 type RoleAssignmentImpactPreview struct {
-	TargetUserID int64                  `json:"target_user_id"`
-	RoleCode     string                 `json:"role_code"`
-	Change       string                 `json:"change"` // "assign" | "revoke"
-	Before       []EffectiveRightState  `json:"before"`
-	After        []EffectiveRightState  `json:"after"`
+	TargetUserID int64                 `json:"target_user_id"`
+	RoleCode     string                `json:"role_code"`
+	Change       string                `json:"change"` // "assign" | "revoke"
+	Before       []EffectiveRightState `json:"before"`
+	After        []EffectiveRightState `json:"after"`
 }
 
 // ClaimActivationImpactPreview is the response DTO for Plan 138-14's read-only

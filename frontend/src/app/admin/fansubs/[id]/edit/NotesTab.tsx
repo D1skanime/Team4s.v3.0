@@ -62,7 +62,8 @@ interface NotesTabProps {
 }
 
 export function NotesTab({ fansubId }: NotesTabProps) {
-  const { hasAccessToken, isClientInitialized } = useAuthSession()
+  const { hasAccessToken, hasRefreshToken, isClientInitialized } = useAuthSession()
+  const hasActiveSession = hasAccessToken || hasRefreshToken
   const [loadingNotes, setLoadingNotes] = useState(true)
   const [loadError, setLoadError] = useState<string | null>(null)
   const [groupNotes, setGroupNotes] = useState<GroupNoteDraft[]>([])
@@ -73,7 +74,7 @@ export function NotesTab({ fansubId }: NotesTabProps) {
     setLoadingNotes(true)
     void (async () => {
       if (!isClientInitialized) return
-      if (!hasAccessToken) {
+      if (!hasActiveSession) {
         setGroupNotes([])
         setLoadingNotes(false)
         return
@@ -88,7 +89,7 @@ export function NotesTab({ fansubId }: NotesTabProps) {
       }
     })()
     return () => { cancelled = true }
-  }, [hasAccessToken, fansubId, isClientInitialized])
+  }, [fansubId, hasActiveSession, isClientInitialized])
 
   function updateGroupNote(key: string, partial: Partial<GroupNoteDraft>) {
     setGroupNotes((prev) => prev.map((note) => note.key === key ? { ...note, ...partial } : note))

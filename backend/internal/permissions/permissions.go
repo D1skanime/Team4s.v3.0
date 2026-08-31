@@ -33,6 +33,7 @@ const (
 	ActionFansubGroupMediaView               Action = "fansub_group_media.view"
 	ActionFansubGroupMediaUpload             Action = "fansub_group_media.upload"
 	ActionFansubGroupMediaUpdate             Action = "fansub_group_media.update"
+	ActionFansubGroupMediaUpdateOwn          Action = "fansub_group_media.update_own"
 	ActionFansubGroupMediaReorder            Action = "fansub_group_media.reorder"
 	ActionFansubGroupMediaDelete             Action = "fansub_group_media.delete"
 	ActionFansubGroupPageGeneralEdit         Action = "fansub_group_page.general_edit"
@@ -40,6 +41,7 @@ const (
 	ActionFansubGroupPageFoundingHistoryEdit Action = "fansub_group_page.founding_history_edit"
 	ActionFansubGroupLinksUpdate             Action = "fansub_group_links.update"
 	ActionAnimeFansubProjectNotesWrite       Action = "anime_fansub_project.notes.write"
+	ActionAnimeFansubProjectTimelineUpdate   Action = "anime_fansub_project.timeline.update"
 	ActionReleaseView                        Action = "release.view"
 	ActionReleaseVersionView                 Action = "release_version.view"
 	ActionReleaseVersionMediaView            Action = "release_version_media.view"
@@ -49,6 +51,7 @@ const (
 	ActionReleaseVersionMediaDeleteOwn       Action = "release_version_media.delete_own"
 	ActionReleaseVersionNotesWrite           Action = "release_version.notes.write"
 	ActionReleaseVersionSegmentsManage       Action = "release_version.segments.manage"
+	ActionReleaseVersionMetadataUpdate       Action = "release_version.metadata.update"
 	ActionReviewTextDecide                   Action = "review.text.decide"
 	ActionReviewImageDecide                  Action = "review.image.decide"
 	ActionReviewContributionDecide           Action = "review.contribution.decide"
@@ -227,6 +230,7 @@ var allKnownActions = []Action{
 	ActionFansubGroupMediaView,
 	ActionFansubGroupMediaUpload,
 	ActionFansubGroupMediaUpdate,
+	ActionFansubGroupMediaUpdateOwn,
 	ActionFansubGroupMediaReorder,
 	ActionFansubGroupMediaDelete,
 	ActionFansubGroupPageGeneralEdit,
@@ -234,6 +238,7 @@ var allKnownActions = []Action{
 	ActionFansubGroupPageFoundingHistoryEdit,
 	ActionFansubGroupLinksUpdate,
 	ActionAnimeFansubProjectNotesWrite,
+	ActionAnimeFansubProjectTimelineUpdate,
 	ActionReleaseView,
 	ActionReleaseVersionView,
 	ActionReleaseVersionMediaView,
@@ -243,6 +248,7 @@ var allKnownActions = []Action{
 	ActionReleaseVersionMediaDeleteOwn,
 	ActionReleaseVersionNotesWrite,
 	ActionReleaseVersionSegmentsManage,
+	ActionReleaseVersionMetadataUpdate,
 	ActionReviewTextDecide,
 	ActionReviewImageDecide,
 	ActionReviewContributionDecide,
@@ -454,9 +460,9 @@ func IsKnownFansubGroupRole(role string) bool {
 	return slices.Contains(fansubGroupRoleCatalog, strings.TrimSpace(role))
 }
 
-// IsCapabilityBearingRole prüft, ob die Rolle in einem aktiven Kontext (fansub_group ODER
-// anime_contribution) Rechte tragen kann und daher in der Capability-Matrix editierbar sein
-// soll. Rein historische Rollen (nur group_history) liefern false und bleiben gesperrt (G4).
+// IsCapabilityBearingRole prüft, ob die Rolle in einem Fansub-Gruppen-Kontext (fansub_group) Standardrechte tragen kann und daher in der
+// Capability-Matrix editierbar sein soll. Beitrags- und historische Rollen liefern false,
+// weil sie Credits/Dokumentation sind und Zusatzrechte individuell vergeben werden.
 func IsCapabilityBearingRole(role string) bool {
 	catalogMu.RLock()
 	defer catalogMu.RUnlock()

@@ -8,6 +8,7 @@ export interface FormState {
   mediaItemID: string
   videoQuality: string
   subtitleType: '' | SubtitleType
+  productionStartedOn: string
   releaseDate: string
   crc32: string
   streamURL: string
@@ -106,13 +107,24 @@ export function padEpisodeNumber(value: number): string {
   return String(value).padStart(3, '0')
 }
 
+export function defaultReleaseTitle(context: EpisodeVersionEditorContext): string {
+  const groupName = context.selected_groups[0]?.name || 'Fansub'
+  const version = context.version.release_version || 'v1'
+  return 'Episode ' + padEpisodeNumber(context.version.episode_number) + ' ' + String.fromCharCode(0x00B7) + ' ' + groupName + ' ' + String.fromCharCode(0x00B7) + ' ' + version
+}
+
+function isTechnicalReleaseFilename(value?: string | null): boolean {
+  return Boolean(value && /\.[a-z0-9]{2,5}$/i.test(value.trim()))
+}
+
 export function buildInitialFormState(context: EpisodeVersionEditorContext): FormState {
   return {
-    title: context.version.title || '',
+    title: isTechnicalReleaseFilename(context.version.title) ? '': context.version.title || '',
     mediaProvider: context.version.media_provider || '',
     mediaItemID: context.version.media_item_id || '',
     videoQuality: context.version.video_quality || '',
     subtitleType: context.version.subtitle_type || '',
+    productionStartedOn: toDateInputValue(context.version.production_started_on),
     releaseDate: toDateInputValue(context.version.release_date),
     crc32: context.version.crc32 || '',
     streamURL: context.version.stream_url || '',
@@ -142,6 +154,7 @@ export function buildSnapshot(formState: FormState, selectedGroups: FansubGroupS
     mediaItemID: formState.mediaItemID.trim(),
     videoQuality: normalizeOptional(formState.videoQuality),
     subtitleType: formState.subtitleType || null,
+    productionStartedOn: fromDateInputValue(formState.productionStartedOn),
     releaseDate: fromDateInputValue(formState.releaseDate),
     crc32: normalizeOptional(formState.crc32),
     streamURL: normalizeOptional(formState.streamURL),

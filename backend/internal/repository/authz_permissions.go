@@ -460,14 +460,12 @@ func (r *AuthzRepository) LoadFansubGroupRoles(ctx context.Context) ([]string, e
 	return result, nil
 }
 
-// LoadCapabilityRoles lädt alle Rollen mit aktivem Kontext (fansub_group ODER
-// anime_contribution) aus role_definitions — also auch Contribution-/Projekt-Rollen wie
-// encoder/editor, deren Capabilities editierbar sein sollen (Gap G4). Rein historische
-// Rollen (nur group_history) werden ausgeschlossen.
+// LoadCapabilityRoles lädt ausschließlich Rollen mit fansub_group-Kontext. Beitrags- und historische Rollen sind Credits beziehungsweise Dokumentation, keine Standardberechtigungsträger.
 func (r *AuthzRepository) LoadCapabilityRoles(ctx context.Context) ([]string, error) {
 	rows, err := r.db.Query(ctx, `
 		SELECT code FROM role_definitions
-		WHERE 'fansub_group' = ANY(contexts) OR 'anime_contribution' = ANY(contexts)
+		WHERE 'fansub_group' = ANY(contexts)
+		  AND code <> 'founder'
 		ORDER BY sort_order, code
 	`)
 	if err != nil {
@@ -526,8 +524,13 @@ func (r *AuthzRepository) ListActorContributionRolesForVersion(ctx context.Conte
 	if err := rows.Err(); err != nil {
 		return nil, fmt.Errorf("list actor contribution roles version=%d user=%d step=%d: iterate: %w", releaseVersionID, appUserID, 1, err)
 	}
+	if len(roleCodes) > 0 {
+		// A release-specific assignment replaces the project-wide role set for
+		// this exact version. Do not leak a replaced project role into the
+		// contributor's capabilities.
+		return roleCodes, nil
+	}
 
-	// Schritt 1 lieferte Ergebnisse → versions-spezifischer Satz gilt (D-02/D-03).
 	// Schritt 2 (Fallback anime-weit): role_codes aus anime_contributions mit
 	// release_version_id IS NULL, wenn Schritt 1 kein Ergebnis lieferte.
 	// anime_id wird über release_versions → fansub_releases → episodes ermittelt.

@@ -1112,6 +1112,7 @@
 }
 
 .fansubEditCommunityCard {
+  grid-column: 1 / -1;
   min-width: 0;
 }
 
@@ -3471,8 +3472,11 @@
 
 .fansubEditMembersCompactList {
   display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(min(100%, 280px), 360px));
+  justify-content: start;
   gap: 10px;
   min-width: 0;
+  align-items: start;
 }
 
 .fansubEditMemberCompactCard {
@@ -3483,6 +3487,8 @@
   border: 1px solid rgba(72, 58, 48, 0.1);
   border-radius: 6px;
   background: color-mix(in srgb, #ffffff 78%, #f7f1eb);
+  align-self: start;
+  container-type: inline-size;
   box-shadow: 0 1px 2px rgba(42, 30, 21, 0.08);
 }
 
@@ -3591,6 +3597,12 @@
   flex-wrap: wrap;
   min-width: 0;
   padding-left: 50px;
+}
+
+.fansubEditMemberCompactActionBody {
+  width: 100%;
+  padding-left: 0;
+  align-items: stretch;
 }
 
 .fansubEditMemberExtraRightsChip {
@@ -4421,7 +4433,7 @@
   width: 100%;
 }
 
-@media (min-width: 640px) {
+@container (min-width: 480px) {
   .fansubEditClaimRequest {
     flex-direction: row;
     align-items: center;
@@ -4486,7 +4498,7 @@
   width: 100%;
 }
 
-@media (min-width: 640px) {
+@container (min-width: 480px) {
   .fansubEditLinkedAccount {
     flex-direction: row;
     align-items: center;

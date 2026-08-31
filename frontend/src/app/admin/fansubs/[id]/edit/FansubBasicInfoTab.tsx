@@ -71,7 +71,6 @@ export function FansubBasicInfoTab({
     foundedError,
     dissolvedError,
     dissolvedAfterFoundedError,
-    technicalLinkErrors,
     slugConflict,
     slugChecking,
     handleLogoMediaBusyChange,
@@ -83,7 +82,6 @@ export function FansubBasicInfoTab({
   const canEditBroad = isPlatformAdmin || Boolean(capabilities?.can_edit_group);
   const canEditGeneral = canEditBroad || Boolean(capabilities?.can_edit_group_general);
   const canEditFounding = canEditBroad || Boolean(capabilities?.can_edit_founding_history);
-  const canEditTechnicalLinks = canEditBroad || Boolean(capabilities?.can_edit_technical_links);
   const canEditBranding = canEditFansubBranding(isPlatformAdmin, capabilities);
   const canManageLinks = canEditBroad || Boolean(capabilities?.can_manage_links);
 
@@ -353,44 +351,6 @@ export function FansubBasicInfoTab({
                   ))}
                 </div>
               </div>
-            </div>
-            <div className={`${styles.field} ${styles.fansubEditBasicField}`}>
-              <label htmlFor="fansub-group-website-url">Website</label>
-              <Input
-                id="fansub-group-website-url"
-                type="url"
-                disabled={!canEditTechnicalLinks}
-                value={form.websiteURL}
-                invalid={Boolean(technicalLinkErrors.website)}
-                onChange={(event) => setForm((current) => ({ ...current, websiteURL: event.target.value }))}
-                placeholder="https://example.org"
-              />
-              {technicalLinkErrors.website ? <p className={styles.fansubEditInlineError}>{technicalLinkErrors.website}</p> : null}
-            </div>
-            <div className={`${styles.field} ${styles.fansubEditBasicField}`}>
-              <label htmlFor="fansub-group-discord-url">Discord</label>
-              <Input
-                id="fansub-group-discord-url"
-                type="url"
-                disabled={!canEditTechnicalLinks}
-                value={form.discordURL}
-                invalid={Boolean(technicalLinkErrors.discord)}
-                onChange={(event) => setForm((current) => ({ ...current, discordURL: event.target.value }))}
-                placeholder="https://discord.gg/..."
-              />
-              {technicalLinkErrors.discord ? <p className={styles.fansubEditInlineError}>{technicalLinkErrors.discord}</p> : null}
-            </div>
-            <div className={`${styles.field} ${styles.fansubEditBasicField}`}>
-              <label htmlFor="fansub-group-irc-url">IRC</label>
-              <Input
-                id="fansub-group-irc-url"
-                disabled={!canEditTechnicalLinks}
-                value={form.ircURL}
-                invalid={Boolean(technicalLinkErrors.irc)}
-                onChange={(event) => setForm((current) => ({ ...current, ircURL: event.target.value }))}
-                placeholder="ircs://irc.example.org/channel"
-              />
-              {technicalLinkErrors.irc ? <p className={styles.fansubEditInlineError}>{technicalLinkErrors.irc}</p> : null}
             </div>
           </div>
         </Card>

@@ -73,6 +73,8 @@ export function decisiveSourceLabel(
       return 'persönliche Abweichung (zusätzlich erlaubt)'
     case 'user_deny':
       return 'persönliche Abweichung (entzogen)'
+    case 'membership_baseline':
+      return 'Mitglieds-Grundrecht'
     case 'specialized_grant':
       return state.specialized_grants.length > 0 ? state.specialized_grants.join(' + ') : '–'
     case 'no_grant':

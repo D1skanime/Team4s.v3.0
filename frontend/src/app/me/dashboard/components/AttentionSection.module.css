@@ -40,3 +40,22 @@
   align-items: center;
   color: var(--color-primary, #2f5fe3);
 }
+
+.taskList {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+  margin-top: 8px;
+}
+
+.taskChip {
+  display: inline-flex;
+  max-width: 100%;
+  padding: 3px 8px;
+  border: 1px solid color-mix(in srgb, var(--color-primary, #2f5fe3) 24%, transparent);
+  border-radius: 999px;
+  color: var(--color-primary, #2f5fe3);
+  background: color-mix(in srgb, var(--color-primary, #2f5fe3) 8%, white);
+  font-size: 0.8rem;
+  font-weight: 600;
+}

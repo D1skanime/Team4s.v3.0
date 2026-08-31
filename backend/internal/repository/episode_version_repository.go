@@ -84,6 +84,7 @@ func (r *EpisodeVersionRepository) GetByID(ctx context.Context, versionID int64)
 			COALESCE(rv.video_quality, rv.resolution) AS video_quality,
 			rv.subtitle_type,
 			rv.crc32,
+			rev.production_started_on,
 			COALESCE(rev.release_date, fr.release_date) AS release_date,
 			ss.url AS stream_url,
 			COALESCE(seg.segment_count, 0) AS segment_count,
@@ -142,6 +143,7 @@ func (r *EpisodeVersionRepository) GetByID(ctx context.Context, versionID int64)
 			rv.resolution,
 			rv.subtitle_type,
 			rv.crc32,
+			rev.production_started_on,
 			rev.release_date,
 			fr.release_date,
 			ss.url,
@@ -201,7 +203,7 @@ func (r *EpisodeVersionRepository) Create(
 		}
 		return nil, err
 	}
-	if err := applyEpisodeVersionReleaseMetadata(ctx, tx, releaseVersionID, input.Title, input.ReleaseDate); err != nil {
+	if err := applyEpisodeVersionReleaseMetadata(ctx, tx, releaseVersionID, input.Title, nil, input.ReleaseDate); err != nil {
 		return nil, err
 	}
 
@@ -266,12 +268,16 @@ func (r *EpisodeVersionRepository) Update(
 	if input.Title.Set {
 		title = input.Title.Value
 	}
+	productionStartedOn := state.ProductionStartedOn
+	if input.ProductionStartedOn.Set {
+		productionStartedOn = input.ProductionStartedOn.Value
+	}
 	releaseDate := state.ReleaseDate
 	if input.ReleaseDate.Set {
 		releaseDate = input.ReleaseDate.Value
 	}
-	if input.Title.Set || input.ReleaseDate.Set {
-		if err := applyEpisodeVersionReleaseMetadata(ctx, tx, state.ReleaseVersionID, title, releaseDate); err != nil {
+	if input.Title.Set || input.ProductionStartedOn.Set || input.ReleaseDate.Set {
+		if err := applyEpisodeVersionReleaseMetadata(ctx, tx, state.ReleaseVersionID, title, productionStartedOn, releaseDate); err != nil {
 			return nil, err
 		}
 	}

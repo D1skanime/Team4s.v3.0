@@ -69,6 +69,7 @@ const sampleClaim = {
   claim_type: 'claim',
   fansub_group_id: 5,
   fansub_group_name: 'New-Subs',
+  is_active_member: false,
   note: '',
   created_at: '2026-08-20T10:00:00Z',
   verified_at: null,
@@ -160,5 +161,19 @@ describe('ClaimsClient — Pagination', () => {
     })
     const calledWith = mockReplace.mock.calls.map((call) => String(call[0])).join(' | ')
     expect(calledWith).toContain('offset=25')
+  })
+})
+
+describe('ClaimsClient — bereits aktive Mitglieder', () => {
+  it('zeigt für einen bereits übernommenen Claim keinen zweiten Übernahme-Button', async () => {
+    mockListClaims.mockResolvedValue({
+      data: [{ ...sampleClaim, claim_status: 'verified', is_active_member: true }],
+      meta: { total: 1, limit: 25, offset: 0 },
+    })
+
+    render(<ClaimsClient />)
+
+    expect(await screen.findByText('Bereits aktives Mitglied')).not.toBeNull()
+    expect(screen.queryByRole('button', { name: 'Als aktives Mitglied übernehmen' })).toBeNull()
   })
 })

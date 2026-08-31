@@ -41,6 +41,7 @@ export function useEpisodeVersionEditor() {
     mediaItemID: '',
     videoQuality: '',
     subtitleType: '',
+    productionStartedOn: '',
     releaseDate: '',
     crc32: '',
     streamURL: '',
@@ -206,7 +207,7 @@ export function useEpisodeVersionEditor() {
     setSelectedGroups((current) => current.filter((group) => group.id !== groupID))
   }
 
-  async function handleSave(event: FormEvent<HTMLFormElement>) {
+  async function handleSave(event: FormEvent<HTMLFormElement>, metadataOnly = false) {
     event.preventDefault()
     setErrorMessage(null)
     setSuccessMessage(null)
@@ -215,7 +216,7 @@ export function useEpisodeVersionEditor() {
       setErrorMessage('Anmeldung erforderlich. Bitte zuerst anmelden.')
       return
     }
-    if (!formState.mediaProvider.trim() || !formState.mediaItemID.trim()) {
+    if (!metadataOnly && (!formState.mediaProvider.trim() || !formState.mediaItemID.trim())) {
       setErrorMessage('Bitte zuerst eine Mediendatei aus dem Ordner wählen oder den Advanced-Bereich ausfuellen.')
       return
     }
@@ -228,21 +229,30 @@ export function useEpisodeVersionEditor() {
 
     setIsSaving(true)
     try {
-      const response = await updateEpisodeVersion(
-        versionID,
-        {
-          title: normalizeOptional(formState.title),
-          fansub_groups: selectedGroups.map((group) => ({ id: group.id })),
-          media_provider: formState.mediaProvider.trim(),
-          media_item_id: formState.mediaItemID.trim(),
-          video_quality: normalizeOptional(formState.videoQuality),
-          subtitle_type: formState.subtitleType || null,
-          release_date: fromDateInputValue(formState.releaseDate),
-          crc32: normalizeOptional(normalizeCRC32Draft(formState.crc32)),
-          stream_url: normalizeOptional(formState.streamURL),
-          duration_seconds: parsedDurationSeconds,
-        },
-      )
+      const patch = metadataOnly
+        ? {
+            title: normalizeOptional(formState.title),
+            video_quality: normalizeOptional(formState.videoQuality),
+            subtitle_type: formState.subtitleType || null,
+            production_started_on: fromDateInputValue(formState.productionStartedOn),
+            release_date: fromDateInputValue(formState.releaseDate),
+            crc32: normalizeOptional(normalizeCRC32Draft(formState.crc32)),
+            duration_seconds: parsedDurationSeconds,
+          }
+        : {
+            title: normalizeOptional(formState.title),
+            fansub_groups: selectedGroups.map((group) => ({ id: group.id })),
+            media_provider: formState.mediaProvider.trim(),
+            media_item_id: formState.mediaItemID.trim(),
+            video_quality: normalizeOptional(formState.videoQuality),
+            subtitle_type: formState.subtitleType || null,
+            production_started_on: fromDateInputValue(formState.productionStartedOn),
+            release_date: fromDateInputValue(formState.releaseDate),
+            crc32: normalizeOptional(normalizeCRC32Draft(formState.crc32)),
+            stream_url: normalizeOptional(formState.streamURL),
+            duration_seconds: parsedDurationSeconds,
+          }
+      const response = await updateEpisodeVersion(versionID, patch)
 
       if (contextData) {
         setContextData({

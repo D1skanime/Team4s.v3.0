@@ -40,15 +40,22 @@ function getProfileReturnPath(raw: string | null): string | null {
 }
 
 function releaseLabel(release: MeProjectReleaseVersion, groupName: string): string {
-  const episode = release.episode_title?.trim()
-    || (release.episode_number.trim() ? `Folge ${release.episode_number}` : 'Folge')
+  const episodeNumber = release.episode_number.trim()
+  const episodeTitle = release.episode_title?.trim()
+  const episode = episodeNumber
+    ? 'Folge ' + episodeNumber + (episodeTitle ? ' · ' + episodeTitle : '')
+    : episodeTitle || 'Folge'
   const group = groupName.trim() || 'Fansubgruppe'
-  const version = release.version.trim() || `Version #${release.release_version_id}`
-  return `${episode} · ${group} · ${version}`
+  const version = release.version.trim() || 'Version #' + release.release_version_id
+  return episode + ' · ' + group + ' · ' + version
 }
 
 function isDone(release: MeProjectReleaseVersion): boolean {
   return release.has_own_notes || release.has_own_media
+}
+
+function normalizeEpisodeNumber(value: string): string {
+  return value.trim().toLowerCase().replace(/^0+(?=\d)/, '')
 }
 
 function filterReleases(
@@ -69,10 +76,10 @@ function filterReleases(
     base = [...assigned].sort((a, b) => Number(isDone(a)) - Number(isDone(b)))
   }
 
-  const query = episodeQuery.trim().toLowerCase()
+  const query = normalizeEpisodeNumber(episodeQuery)
   if (query === '') return base
 
-  return base.filter((release) => release.episode_number.toLowerCase().includes(query))
+  return base.filter((release) => normalizeEpisodeNumber(release.episode_number) === query)
 }
 
 export function MyProjectDetailPage() {
@@ -312,14 +319,15 @@ export function MyProjectDetailPage() {
           </div>
 
           <label className={styles.searchField}>
-            <Search size={16} aria-hidden="true" />
+            <Search className={styles.searchIcon} size={16} aria-hidden="true" />
             <Input
+              className={styles.searchInput}
               value={episodeQuery}
               onChange={(event) => {
                 setEpisodeQuery(event.target.value)
                 setVisibleCount(20)
               }}
-              placeholder="Folgen-Nummer suchen"
+              placeholder="Folgen-Nummer suchen, z. B. 5"
               aria-label="Folgen-Nummer suchen"
             />
           </label>

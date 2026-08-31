@@ -56,6 +56,7 @@ func (r *AnimeContributionsRepository) GetMemberProjectDetail(
 			  AND ac.anime_id = $2
 			  AND ac.fansub_group_id = $3
 			  AND ac.status = 'confirmed'
+			  AND ac.release_version_id IS NULL
 		),
 		background AS (
 			SELECT COALESCE(mf.path, ma.file_path) AS path

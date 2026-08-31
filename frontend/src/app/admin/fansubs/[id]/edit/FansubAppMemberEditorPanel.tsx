@@ -285,6 +285,7 @@ export function FansubAppMemberEditorPanel({
                       maxYear={yearMax}
                       minDate={role.startedDate || undefined}
                       disabled={!canManageHistoricalRoles || !hasMemberAnchor}
+                      panelAlign="end"
                     />
                   </FormField>
                   <Button

@@ -42,8 +42,13 @@ func TestPermissionCatalogFailsClosedBeforeLoad(t *testing.T) {
 }
 
 type failingCatalogLoader struct{ stubCacheLoader }
-func (f failingCatalogLoader) LoadFansubGroupRoles(context.Context) ([]string, error) { return []string{"karaoke_fx"}, nil }
-func (f failingCatalogLoader) LoadCapabilityRoles(context.Context) ([]string, error) { return nil, errors.New("catalog unavailable") }
+
+func (f failingCatalogLoader) LoadFansubGroupRoles(context.Context) ([]string, error) {
+	return []string{"karaoke_fx"}, nil
+}
+func (f failingCatalogLoader) LoadCapabilityRoles(context.Context) ([]string, error) {
+	return nil, errors.New("catalog unavailable")
+}
 
 func TestPermissionCatalogFailureDoesNotPartiallySwap(t *testing.T) {
 	beforeRoles := FansubGroupRoles()
@@ -89,6 +94,7 @@ var allActionCodesWave0 = []string{
 	"fansub_group_media.update",
 	"fansub_group_media.delete",
 	"anime_fansub_project.notes.write",
+	"anime_fansub_project.timeline.update",
 	"release.view",
 	"release_version.view",
 	"release_version_media.view",
@@ -98,6 +104,7 @@ var allActionCodesWave0 = []string{
 	"release_version_media.delete_own",
 	"release_version.notes.write",
 	"release_version.segments.manage",
+	"release_version.metadata.update",
 	"review.text.decide",
 	"review.image.decide",
 	"review.contribution.decide",
@@ -122,6 +129,7 @@ func roleMatrixStubData() map[string][]Action {
 			ActionFansubGroupMediaView,
 			ActionFansubGroupMediaUpload,
 			ActionFansubGroupMediaUpdate,
+			ActionFansubGroupMediaUpdateOwn,
 			ActionFansubGroupMediaDelete,
 			ActionAnimeFansubProjectNotesWrite,
 			ActionReleaseView,
@@ -146,8 +154,10 @@ func roleMatrixStubData() map[string][]Action {
 			ActionFansubGroupMediaView,
 			ActionFansubGroupMediaUpload,
 			ActionFansubGroupMediaUpdate,
+			ActionFansubGroupMediaUpdateOwn,
 			ActionFansubGroupMediaDelete,
 			ActionAnimeFansubProjectNotesWrite,
+			ActionAnimeFansubProjectTimelineUpdate,
 			ActionReleaseView,
 			ActionReleaseVersionView,
 			ActionReleaseVersionMediaView,
@@ -156,6 +166,7 @@ func roleMatrixStubData() map[string][]Action {
 			ActionReleaseVersionMediaDelete,
 			ActionReleaseVersionNotesWrite,
 			ActionReleaseVersionSegmentsManage,
+			ActionReleaseVersionMetadataUpdate,
 		},
 		RoleDesigner: {
 			ActionReleaseView,
@@ -216,23 +227,27 @@ func roleMatrixStubData() map[string][]Action {
 		RoleGfxler: {
 			ActionFansubGroupMediaUpload,
 			ActionFansubGroupMediaUpdate,
+			ActionFansubGroupMediaUpdateOwn,
 			ActionFansubGroupMediaReorder,
 		},
 		RoleTechadmin: {
 			ActionFansubGroupMediaUpload,
 			ActionFansubGroupMediaUpdate,
+			ActionFansubGroupMediaUpdateOwn,
 			ActionFansubGroupMediaReorder,
 			ActionFansubGroupPageTechnicalLinksEdit,
 		},
 		"founder": {
 			ActionFansubGroupMediaUpload,
 			ActionFansubGroupMediaUpdate,
+			ActionFansubGroupMediaUpdateOwn,
 			ActionFansubGroupMediaReorder,
 			ActionFansubGroupPageFoundingHistoryEdit,
 		},
 		"co_leader": {
 			ActionFansubGroupMediaUpload,
 			ActionFansubGroupMediaUpdate,
+			ActionFansubGroupMediaUpdateOwn,
 			ActionFansubGroupMediaReorder,
 			ActionFansubGroupPageGeneralEdit,
 			ActionFansubGroupLinksUpdate,

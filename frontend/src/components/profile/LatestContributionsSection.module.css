@@ -161,25 +161,6 @@
   object-fit: cover;
 }
 
-.mediaTypePill {
-  position: absolute;
-  top: 10px;
-  left: 10px;
-  display: inline-flex;
-  align-items: center;
-  gap: 6px;
-  max-width: calc(100% - 20px);
-  padding: 5px 8px;
-  border: 1px solid color-mix(in srgb, var(--surface-card) 72%, transparent);
-  border-radius: 999px;
-  background: color-mix(in srgb, var(--color-primary) 34%, var(--surface-card));
-  color: var(--surface-card);
-  font-size: 0.78rem;
-  font-weight: 700;
-  line-height: 1;
-  box-shadow: var(--shadow-sm);
-  overflow-wrap: anywhere;
-}
 
 .mediaBody {
   padding: 16px;

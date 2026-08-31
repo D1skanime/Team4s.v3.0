@@ -66,6 +66,7 @@ const fullCapabilities: FansubGroupCapabilities = {
   can_manage_historical_roles: true,
   can_link_historical_members: true,
   can_edit_notes: true,
+  can_edit_project_timeline: false,
   can_view_invitations: true,
   can_create_invitation: true,
   can_cancel_invitation: true,
@@ -76,6 +77,8 @@ const fullCapabilities: FansubGroupCapabilities = {
   can_view_group_media: true,
   can_upload_group_media: true,
   can_update_group_media: true,
+  can_update_own_group_media: true,
+  can_review_group_media: true,
   can_delete_own_group_media: true,
   can_delete_group_media: true,
   can_reorder_group_media: true,
@@ -87,6 +90,8 @@ const noMediaCapabilities: FansubGroupCapabilities = {
   can_view_group_media: false,
   can_upload_group_media: false,
   can_update_group_media: false,
+  can_update_own_group_media: false,
+  can_review_group_media: false,
   can_delete_own_group_media: false,
   can_delete_group_media: false,
   can_reorder_group_media: false,
@@ -116,10 +121,9 @@ function mediaItem(overrides: Partial<FansubGroupMediaItem> = {}): FansubGroupMe
     ...overrides,
   }
 }
-
-function renderSection(items: FansubGroupMediaItem[] = [mediaItem()]) {
+function renderSection(items: FansubGroupMediaItem[] = [mediaItem()], capabilities: FansubGroupCapabilities = fullCapabilities) {
   listFansubGroupMedia.mockResolvedValue(items)
-  return render(<GroupMediaReviewSection fansubId={88} capabilities={fullCapabilities} />)
+  return render(<GroupMediaReviewSection fansubId={88} capabilities={capabilities} />)
 }
 
 function findSummaryText(expected: string) {
@@ -143,6 +147,7 @@ describe('GroupMediaReviewSection', () => {
       ...noMediaCapabilities,
       can_upload_group_media: true,
       can_update_group_media: true,
+  can_update_own_group_media: true,
       can_reorder_group_media: true,
     }
 
@@ -402,6 +407,23 @@ describe('GroupMediaReviewSection', () => {
     expect(screen.getByRole('button', { name: 'Schon frei bearbeiten' })).toBeTruthy()
   })
 
+  it('hides review decisions but keeps editing when only group media updates are allowed', async () => {
+    renderSection(
+      [mediaItem({ id: 101, title: 'Nur bearbeiten', review_status: 'in_pruefung' })],
+      { ...fullCapabilities, can_review_group_media: false },
+    )
+
+    await screen.findByText('Nur bearbeiten')
+
+    expect(screen.queryByRole('button', { name: 'Nur bearbeiten freigeben' })).toBeNull()
+    expect(screen.queryByRole('button', { name: 'Nur bearbeiten ablehnen' })).toBeNull()
+    expect(screen.getByRole('button', { name: 'Nur bearbeiten bearbeiten' })).toBeTruthy()
+
+    fireEvent.click(screen.getByRole('button', { name: 'Nur bearbeiten bearbeiten' }))
+    const reviewStatusSelect = screen.getAllByRole('combobox').find((element) => (element as HTMLSelectElement).value === 'in_pruefung')
+    expect((reviewStatusSelect as HTMLSelectElement).disabled).toBe(true)
+  })
+
   it('setzt Bulk-Prüfstatus nur für aktuell gefilterte Treffer und leert die Auswahl', async () => {
     renderSection([
       mediaItem({ id: 101, title: 'Galerie Bild', category: 'gallery' }),
@@ -518,3 +540,41 @@ describe('GroupMediaReviewSection', () => {
     })
   })
 })
+
+  it('erlaubt Mitgliedern nur Textangaben des eigenen Uploads', async () => {
+    const ownMediaCapabilities: FansubGroupCapabilities = {
+      ...noMediaCapabilities,
+      can_view_group_media: true,
+      can_update_own_group_media: true,
+    }
+    const ownItem = mediaItem({ uploaded_by_current_user: true })
+    listFansubGroupMedia.mockResolvedValue([ownItem])
+
+    render(<GroupMediaReviewSection fansubId={88} capabilities={ownMediaCapabilities} />)
+
+    await screen.findByText('Medium 101')
+    fireEvent.click(screen.getByLabelText('Medium 101 bearbeiten'))
+
+    const textboxes = screen.getAllByRole('textbox')
+    const titleInput = textboxes.find((element) => (element as HTMLInputElement).value === 'Medium 101') as HTMLInputElement
+    const altTextInput = textboxes.find((element) => (element as HTMLInputElement).value === 'Alt 101') as HTMLInputElement
+    const descriptionInput = textboxes.find((element) => (element as HTMLTextAreaElement).value === 'Beschreibung 101') as HTMLTextAreaElement
+    const drawerSelects = screen.getAllByRole('combobox').filter((element) => ['gallery', 'intern', 'in_pruefung'].includes((element as HTMLSelectElement).value))
+
+    expect(titleInput.disabled).toBe(false)
+    expect(altTextInput.disabled).toBe(false)
+    expect(descriptionInput.disabled).toBe(false)
+    expect(drawerSelects).toHaveLength(3)
+    drawerSelects.forEach((select) => expect((select as HTMLSelectElement).disabled).toBe(true))
+
+    fireEvent.change(titleInput, { target: { value: 'Mein Bild' } })
+    fireEvent.click(screen.getByRole('button', { name: 'Änderungen speichern' }))
+
+    await waitFor(() => {
+      expect(patchFansubMediaReview).toHaveBeenCalledWith(88, 101, {
+        title: 'Mein Bild',
+        description: 'Beschreibung 101',
+        alt_text: 'Alt 101',
+      }, undefined)
+    })
+  })

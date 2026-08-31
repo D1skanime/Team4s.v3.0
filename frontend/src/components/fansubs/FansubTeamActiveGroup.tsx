@@ -12,6 +12,7 @@ interface FansubTeamActiveGroupProps {
 
 function MemberRowInner({ member }: { member: DomainProjectionMemberRow }) {
   const roles = member.role_labels.join(' · ') || 'Rolle nicht hinterlegt'
+  const historicalRoles = (member.historical_role_labels ?? []).join(' - ')
   const isLinked = member.member_slug !== null
 
   return (
@@ -22,6 +23,7 @@ function MemberRowInner({ member }: { member: DomainProjectionMemberRow }) {
           {member.member_display_name}
         </span>
         <span className={styles.memberRoles}>{roles}</span>
+        {historicalRoles ? <span className={styles.memberRoles}>Früher: {historicalRoles}</span> : null}
         {member.member_slogan ? <span className={styles.memberSlogan}>„{member.member_slogan}“</span> : null}
       </span>
       {isLinked ? <ChevronRight size={16} className={styles.chevron} aria-hidden="true" /> : null}

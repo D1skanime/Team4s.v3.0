@@ -204,10 +204,12 @@ func (appAuthCapabilityCacheLoader) LoadRoleCapabilities(_ context.Context) (map
 		permissions.ActionFansubGroupInvitationsCreate, permissions.ActionFansubGroupInvitationsCancel,
 		permissions.ActionFansubGroupNotesWrite, permissions.ActionFansubGroupMediaView,
 		permissions.ActionFansubGroupMediaUpload, permissions.ActionFansubGroupMediaUpdate,
+		permissions.ActionFansubGroupMediaUpdateOwn,
 		permissions.ActionFansubGroupMediaReorder, permissions.ActionFansubGroupMediaDelete,
 		permissions.ActionFansubGroupPageGeneralEdit, permissions.ActionFansubGroupPageTechnicalLinksEdit,
 		permissions.ActionFansubGroupPageFoundingHistoryEdit, permissions.ActionFansubGroupLinksUpdate,
-		permissions.ActionAnimeFansubProjectNotesWrite, permissions.ActionReleaseView,
+		permissions.ActionAnimeFansubProjectNotesWrite, permissions.ActionAnimeFansubProjectTimelineUpdate,
+		permissions.ActionReleaseVersionMetadataUpdate, permissions.ActionReleaseView,
 		permissions.ActionReleaseVersionView, permissions.ActionReleaseVersionMediaView,
 		permissions.ActionReleaseVersionMediaUpload, permissions.ActionReleaseVersionMediaUpdate,
 		permissions.ActionReleaseVersionMediaDelete, permissions.ActionReleaseVersionMediaDeleteOwn,
@@ -219,15 +221,16 @@ func (appAuthCapabilityCacheLoader) LoadRoleCapabilities(_ context.Context) (map
 		permissions.ActionUserGroupCapabilityOverrideManage,
 	}
 	return map[string][]permissions.Action{
-		"catalog_test_owner": allActions,
-		permissions.RoleFansubLead: allActions,
-		permissions.RoleProjectLead: {permissions.ActionFansubGroupMembersView, permissions.ActionReleaseView, permissions.ActionReleaseVersionMediaView, permissions.ActionReleaseVersionMediaUpload, permissions.ActionReleaseVersionNotesWrite},
-		permissions.RoleEncoder: {permissions.ActionReleaseView, permissions.ActionReleaseVersionMediaView, permissions.ActionReleaseVersionMediaUpload, permissions.ActionReleaseVersionNotesWrite},
+		"catalog_test_owner":        allActions,
+		permissions.RoleFansubLead:  allActions,
+		permissions.RoleProjectLead: {permissions.ActionFansubGroupMembersView, permissions.ActionAnimeFansubProjectTimelineUpdate, permissions.ActionReleaseView, permissions.ActionReleaseVersionMediaView, permissions.ActionReleaseVersionMediaUpload, permissions.ActionReleaseVersionNotesWrite},
+		permissions.RoleEncoder:     {permissions.ActionReleaseView, permissions.ActionReleaseVersionMediaView, permissions.ActionReleaseVersionMediaUpload, permissions.ActionReleaseVersionNotesWrite},
 		permissions.RoleRawProvider: {permissions.ActionReleaseView},
-		"gfxler": {permissions.ActionFansubGroupMediaUpdate},
-		"techadmin": {permissions.ActionFansubGroupMediaUpdate, permissions.ActionFansubGroupPageTechnicalLinksEdit},
-		"founder": {permissions.ActionFansubGroupMediaUpdate, permissions.ActionFansubGroupPageFoundingHistoryEdit},
-		"co_leader": {permissions.ActionFansubGroupMediaUpdate, permissions.ActionFansubGroupPageGeneralEdit, permissions.ActionFansubGroupLinksUpdate},
+		"gfxler":                    {permissions.ActionFansubGroupMediaUpdate},
+		"techadmin":                 {permissions.ActionFansubGroupMediaUpdate, permissions.ActionFansubGroupPageTechnicalLinksEdit},
+		"founder":                   {permissions.ActionFansubGroupMediaUpdate, permissions.ActionFansubGroupPageFoundingHistoryEdit},
+		"co_leader":                 {permissions.ActionFansubGroupMediaUpdate, permissions.ActionFansubGroupPageGeneralEdit, permissions.ActionFansubGroupLinksUpdate},
+		"media_sorter":              {permissions.ActionFansubGroupMediaView, permissions.ActionFansubGroupMediaReorder},
 	}, nil
 }
 
@@ -1441,6 +1444,31 @@ func TestGetFansubGroupCapabilitiesReturnsViewWithoutManageForProjectLead(t *tes
 	if data["can_edit_release_notes"] != true {
 		t.Fatalf("expected can_edit_release_notes=true, got %#v", data["can_edit_release_notes"])
 	}
+	if data["can_edit_project_timeline"] != true {
+		t.Fatalf("expected project lead to edit the project timeline, got %#v", data["can_edit_project_timeline"])
+	}
+}
+
+func TestGetFansubGroupCapabilitiesDeniesProjectTimelineForQualityChecker(t *testing.T) {
+	gin.SetMode(gin.TestMode)
+	loadAppAuthCapabilityTestCache(t)
+
+	handler := &AppAuthHandler{permissionSvc: permissions.NewService(permissionResolverStub{
+		context: &permissions.Context{ScopeType: permissions.ScopeTypeGroup, FansubGroupIDs: []int64{88}},
+		roles:   map[int64][]string{88: {permissions.RoleQualityChecker}},
+	})}
+	c, recorder := makeAppAuthTestContext(http.MethodGet, "/api/v1/admin/fansubs/88/capabilities", nil, middleware.AuthIdentity{
+		UserID: 111, AppUserID: 54, DisplayName: "Quality Checker", AppUserStatus: models.AppUserStatusActive,
+	}, gin.Param{Key: "id", Value: "88"})
+
+	handler.GetFansubGroupCapabilities(c)
+
+	if recorder.Code != http.StatusOK {
+		t.Fatalf("expected 200, got %d with body %s", recorder.Code, recorder.Body.String())
+	}
+	if got := decodeBody(t, recorder)["data"].(map[string]any)["can_edit_project_timeline"]; got != false {
+		t.Fatalf("quality checker must not edit the project timeline, got %#v", got)
+	}
 }
 
 func TestGetFansubGroupCapabilitiesAllowsEncoderMediaAndNotesWorkspace(t *testing.T) {
@@ -1555,7 +1583,7 @@ func TestGetFansubGroupCapabilitiesProjectsNarrowRoleDefaults(t *testing.T) {
 	gin.SetMode(gin.TestMode)
 	loadAppAuthCapabilityTestCache(t)
 	testCases := []struct {
-		role string
+		role         string
 		expectedTrue []string
 	}{
 		{"gfxler", []string{"can_update_group_media"}},
@@ -1567,7 +1595,7 @@ func TestGetFansubGroupCapabilitiesProjectsNarrowRoleDefaults(t *testing.T) {
 		t.Run(testCase.role, func(t *testing.T) {
 			handler := &AppAuthHandler{permissionSvc: permissions.NewService(permissionResolverStub{
 				context: &permissions.Context{ScopeType: permissions.ScopeTypeGroup, FansubGroupIDs: []int64{88}},
-				roles: map[int64][]string{88: {testCase.role}},
+				roles:   map[int64][]string{88: {testCase.role}},
 			})}
 			c, recorder := makeAppAuthTestContext(http.MethodGet, "/api/v1/admin/fansubs/88/capabilities", nil, middleware.AuthIdentity{
 				UserID: 108, AppUserID: 51, DisplayName: testCase.role, AppUserStatus: models.AppUserStatusActive,
@@ -1595,6 +1623,32 @@ func TestGetFansubGroupCapabilitiesProjectsNarrowRoleDefaults(t *testing.T) {
 				t.Errorf("narrow role must not synthesize broad can_edit_group: %#v", data)
 			}
 		})
+	}
+}
+
+func TestGetFansubGroupCapabilitiesExposesDedicatedMediaReorderPermission(t *testing.T) {
+	gin.SetMode(gin.TestMode)
+	loadAppAuthCapabilityTestCache(t)
+
+	handler := &AppAuthHandler{permissionSvc: permissions.NewService(permissionResolverStub{
+		context: &permissions.Context{ScopeType: permissions.ScopeTypeGroup, FansubGroupIDs: []int64{88}},
+		roles:   map[int64][]string{88: {"media_sorter"}},
+	})}
+	c, recorder := makeAppAuthTestContext(http.MethodGet, "/api/v1/admin/fansubs/88/capabilities", nil, middleware.AuthIdentity{
+		UserID: 110, AppUserID: 53, DisplayName: "Media Sorter", AppUserStatus: models.AppUserStatusActive,
+	}, gin.Param{Key: "id", Value: "88"})
+
+	handler.GetFansubGroupCapabilities(c)
+
+	if recorder.Code != http.StatusOK {
+		t.Fatalf("expected 200, got %d with body %s", recorder.Code, recorder.Body.String())
+	}
+	data := decodeBody(t, recorder)["data"].(map[string]any)
+	if data["can_reorder_group_media"] != true {
+		t.Fatalf("expected dedicated reorder permission, got %#v", data["can_reorder_group_media"])
+	}
+	if data["can_update_group_media"] != false {
+		t.Fatalf("reorder permission must not grant media editing, got %#v", data["can_update_group_media"])
 	}
 }
 

@@ -69,10 +69,10 @@ func (f *effectiveRightsFakeResolver) ResolveActorReviewGrantContext(_ context.C
 }
 
 var (
-	_ Resolver                       = (*effectiveRightsFakeResolver)(nil)
-	_ GroupRightsMembershipResolver  = (*effectiveRightsFakeResolver)(nil)
-	_ GroupRightsOverridesResolver   = (*effectiveRightsFakeResolver)(nil)
-	_ ReviewContextResolver          = (*effectiveRightsFakeResolver)(nil)
+	_ Resolver                      = (*effectiveRightsFakeResolver)(nil)
+	_ GroupRightsMembershipResolver = (*effectiveRightsFakeResolver)(nil)
+	_ GroupRightsOverridesResolver  = (*effectiveRightsFakeResolver)(nil)
+	_ ReviewContextResolver         = (*effectiveRightsFakeResolver)(nil)
 )
 
 const effectiveRightsTestGroupID int64 = 88
@@ -191,7 +191,7 @@ func TestResolveGroupRightsMultipleRoleGrantsAreORCombinedAndVisible(t *testing.
 	res, err := service.ResolveGroupRights(context.Background(), actor, effectiveRightsTestGroupID)
 	require.NoError(t, err)
 
-	state := res.Can(ActionFansubGroupMediaUpload)
+	state := res.Can(ActionFansubGroupEdit)
 	assert.True(t, state.Allowed)
 	assert.Equal(t, ProvenanceGroupRole, state.DecisiveSource)
 	assert.ElementsMatch(t, []string{RoleFansubLead, RoleProjectLead}, state.GrantingRoles)
@@ -300,7 +300,7 @@ func TestResolveGroupRightsAmbiguousUserAllowAndDenyResolvesDenyDeterministicall
 }
 
 func TestResolveGroupRightsNegativeSecurityMatrix(t *testing.T) {
-	action := ActionFansubGroupMediaUpload // user_overridable=true pilot action (migration 0150)
+	action := ActionFansubGroupEdit // user_overridable=true pilot action (migration 0150)
 
 	tests := []struct {
 		name             string
@@ -434,4 +434,19 @@ func TestReviewGrantProviderSourceIsReviewDelegation(t *testing.T) {
 
 func TestReviewGrantProviderNilResolverReturnsNilProvider(t *testing.T) {
 	assert.Nil(t, newReviewGrantProvider(nil))
+}
+
+func TestResolveGroupRightsActiveMemberGetsMembershipBaselineRights(t *testing.T) {
+	resolver := &effectiveRightsFakeResolver{activeMembership: true}
+	service := NewService(resolver)
+	actor := Actor{AppUserID: 10, Status: "active"}
+
+	res, err := service.ResolveGroupRights(context.Background(), actor, effectiveRightsTestGroupID)
+	require.NoError(t, err)
+
+	for _, action := range []Action{ActionFansubGroupMembersView, ActionFansubGroupMediaView, ActionFansubGroupMediaUpload} {
+		state := res.Can(action)
+		assert.True(t, state.Allowed, "active members need %s", action)
+		assert.Equal(t, "membership_baseline", state.DecisiveSource)
+	}
 }

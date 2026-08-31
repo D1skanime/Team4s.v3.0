@@ -283,6 +283,8 @@ function decisiveSourceFallback(state: EffectiveRightState): string {
   switch (state.decisive_source) {
     case 'platform_admin':
       return 'Plattform-Admin'
+    case 'membership_baseline':
+      return 'dem Mitglieds-Grundrecht'
     case 'specialized_grant':
       return state.specialized_grants.join(', ') || 'einer spezialisierten Vergabe'
     default:

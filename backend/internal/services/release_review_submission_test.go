@@ -66,8 +66,18 @@ func openReleaseReviewSubmissionFixture(t *testing.T) *releaseReviewSubmissionFi
 			status TEXT NOT NULL,
 			deleted_at TIMESTAMPTZ NULL
 		);
+		CREATE TABLE visibilities (
+			id BIGINT PRIMARY KEY,
+			name TEXT NOT NULL UNIQUE
+		);
+		CREATE TABLE review_statuses (
+			id BIGINT PRIMARY KEY,
+			code TEXT NOT NULL UNIQUE
+		);
 		CREATE TABLE media_assets (
-			id BIGINT PRIMARY KEY
+			id BIGINT PRIMARY KEY,
+			visibility_id BIGINT NOT NULL REFERENCES visibilities(id),
+			review_status_id BIGINT NOT NULL REFERENCES review_statuses(id)
 		);
 		CREATE TABLE release_version_media (
 			id BIGINT PRIMARY KEY,
@@ -108,7 +118,10 @@ func openReleaseReviewSubmissionFixture(t *testing.T) *releaseReviewSubmissionFi
 			(501, 41, 21, 101, 71, 'public', 'published'),
 			(502, 42, 22, 101, 71, 'internal', 'draft');
 
-		INSERT INTO media_assets(id) VALUES (701), (702), (703), (704), (705);
+		INSERT INTO visibilities(id, name) VALUES (1, 'private'), (2, 'public');
+		INSERT INTO review_statuses(id, code) VALUES (1, 'in_review'), (2, 'approved'), (3, 'rejected');
+		INSERT INTO media_assets(id, visibility_id, review_status_id) VALUES
+			(701, 1, 1), (702, 1, 1), (703, 1, 1), (704, 1, 1), (705, 1, 1);
 		INSERT INTO release_version_media(
 			id, release_version_id, fansub_group_id, media_asset_id, category, uploaded_by_user_id
 		) VALUES

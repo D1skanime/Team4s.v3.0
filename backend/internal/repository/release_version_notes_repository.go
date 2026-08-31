@@ -257,23 +257,25 @@ func (r *ReleaseVersionNotesRepository) ResolveContributorRoleID(
 // GetMemberRolesForVersion returns the member+role pairs for a release version via
 // the two-step resolution from anime_contributions (D-13, D-02):
 //  1. versions-spezifisch: anime_contributions WHERE release_version_id = $1
-//  2. Fallback anime-weit: anime_contributions WHERE release_version_id IS NULL (nur wenn Schritt 1 leer)
-//  3. Projektleitung aus dem anime-weiten Satz bleibt zusätzlich schreibberechtigt,
-//     auch wenn für die Version eine eigene Besetzung gepflegt wurde.
+//  2. Fallback anime-weit: anime_contributions WHERE release_version_id IS NULL
+//     only when the release has no own assignment set.
+//
+// A release-specific assignment is an explicit complete crew override. It must not
+// be combined with project-wide roles, otherwise a member could act with a role
+// that was intentionally replaced for this release.
 func (r *ReleaseVersionNotesRepository) GetMemberRolesForVersion(
 	ctx context.Context,
 	releaseVersionID int64,
 ) ([]MemberRoleForVersion, error) {
-	// Schritt 1: versions-spezifische Contributions
 	items, err := r.getMemberRolesForVersionStep(ctx, releaseVersionID, true)
 	if err != nil {
 		return nil, err
 	}
-	projectRoles, err := r.getMemberRolesForVersionStep(ctx, releaseVersionID, false)
-	if err != nil {
-		return nil, err
+	if len(items) > 0 {
+		return items, nil
 	}
-	return mergeMemberRolesForVersion(items, projectRoles), nil
+
+	return r.getMemberRolesForVersionStep(ctx, releaseVersionID, false)
 }
 
 // getMemberRolesForVersionStep führt einen der zwei Auflösungsschritte aus.

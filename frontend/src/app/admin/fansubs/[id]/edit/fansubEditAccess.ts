@@ -37,8 +37,9 @@ export function canUseMainTab(
         capabilities.can_cancel_invitation
       );
     case "vorschlaege":
-    case "pruefungen":
       return capabilities.can_manage_members;
+    case "pruefungen":
+      return Boolean(capabilities.can_review_group_media || capabilities.can_review_text);
     case "releases":
       return Boolean(capabilities.can_view_releases);
     case "notes":
@@ -46,15 +47,8 @@ export function canUseMainTab(
     case "readiness":
       return capabilities.can_edit_group || capabilities.can_edit_notes;
     case "roles":
-      // D-06: Rollen-Sichtbarkeit ist eine Teilmenge der Mitglieder-Sichtbarkeit — dieselbe
-      // Bedingung wie "collaboration" (Interfaces-Block, Plan 138-16).
-      return (
-        capabilities.can_view_members ||
-        capabilities.can_manage_members ||
-        capabilities.can_view_invitations ||
-        capabilities.can_create_invitation ||
-        capabilities.can_cancel_invitation
-      );
+      // Group-wide role assignments belong to member management, not read-only member access.
+      return capabilities.can_manage_members;
     case "changes":
       // D-06: Änderungshistorie ist an bearbeitungsnahe Fähigkeiten gekoppelt, analog zu
       // "basic" (Interfaces-Block, Plan 138-16) — mirrors this codebase's existing pattern of
@@ -112,6 +106,8 @@ export function hasFansubWorkspaceAccess(
     capabilities.can_view_release_media ||
     capabilities.can_upload_release_media ||
     capabilities.can_edit_release_notes ||
+    capabilities.can_review_group_media ||
+    capabilities.can_review_text ||
     capabilities.can_view_group_media
   );
 }
@@ -156,6 +152,19 @@ export function canEditFansubBranding(
   capabilities: FansubGroupCapabilities | null,
 ): boolean {
   return isPlatformAdmin || Boolean(capabilities?.can_edit_group);
+}
+
+export function hasReleaseWorkspaceAssignment(
+  canOpenWithoutProjectAssignment: boolean,
+  ownProjectAssignmentKeys: readonly string[],
+  animeID: number,
+  releaseVersionID: number,
+): boolean {
+  return (
+    canOpenWithoutProjectAssignment ||
+    ownProjectAssignmentKeys.includes(`${animeID}:all`) ||
+    ownProjectAssignmentKeys.includes(`${animeID}:${releaseVersionID}`)
+  );
 }
 
 export function releaseVersionToolsTarget(

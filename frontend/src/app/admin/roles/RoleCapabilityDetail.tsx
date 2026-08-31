@@ -6,6 +6,12 @@ import { Switch } from '@/components/ui/Switch'
 import type { RoleEntry } from '@/types/admin-capability'
 import { categoryDisplayLabel, sortCategories } from './capabilityCategories'
 
+const membershipBaselineCodes = new Set([
+  "fansub_group.members.view",
+  "fansub_group_media.view",
+  "fansub_group_media.upload",
+])
+
 export interface RoleCapabilityDetailProps {
   role: RoleEntry
   /**
@@ -32,7 +38,7 @@ export interface RoleCapabilityDetailProps {
  *
  * - Gruppiert actions nach category → je Kategorie ein Accordion-Item.
  * - Pro Capability eine Row mit Switch (checked = granted).
- * - Bei role.capability_editable === false (rein historische Rolle) alle Switches disabled.
+ * - Die historische Gründerrolle erhält keine konfigurierbaren Standardrechte.
  */
 export function RoleCapabilityDetail({
   role,
@@ -42,11 +48,12 @@ export function RoleCapabilityDetail({
   onOpenCategoriesChange,
 }: RoleCapabilityDetailProps) {
   const isEditable = role.capability_editable !== false
+  const configurableActions = role.actions.filter((action) => !membershipBaselineCodes.has(action.code))
 
   const accordionItems = useMemo(() => {
     // Aktionen nach Kategorie gruppieren
     const byCategory = new Map<string, typeof role.actions>()
-    for (const action of role.actions) {
+    for (const action of configurableActions) {
       const existing = byCategory.get(action.category) ?? []
       existing.push(action)
       byCategory.set(action.category, existing)
@@ -114,7 +121,7 @@ export function RoleCapabilityDetail({
         ),
       }
     })
-  }, [role, isEditable, onRequestChange])
+  }, [configurableActions, isEditable, onRequestChange])
 
   return (
     <div>
@@ -144,10 +151,16 @@ export function RoleCapabilityDetail({
               marginTop: 'var(--space-1)',
             }}
           >
-            Historische Rolle — Capabilities können nicht bearbeitet werden.
+            Keine Standardrechte: Beitrags- und historische Rollen sind Credits/Dokumentation. Zusatzrechte werden individuell je Mitglied vergeben.
           </p>
         )}
       </div>
+
+      {isEditable && (
+        <p style={{ color: 'var(--color-text-secondary)', fontSize: '0.8125rem', margin: '0 0 var(--space-3)' }}>
+          Grundrechte aller aktiven Mitglieder: Mitglieder anzeigen sowie Gruppenmedien ansehen und hochladen.
+        </p>
+      )}
 
       {/* Inline-Fehler */}
       {inlineError && (
@@ -167,7 +180,11 @@ export function RoleCapabilityDetail({
         </div>
       )}
 
-      {accordionItems.length === 0 ? (
+      {!isEditable ? (
+        <p style={{ color: 'var(--color-text-secondary)', fontSize: '0.875rem' }}>
+          Für diese Rolle gibt es keine konfigurierbaren Standardrechte.
+        </p>
+      ) : accordionItems.length === 0 ? (
         <p style={{ color: 'var(--color-text-secondary)', fontSize: '0.875rem' }}>
           Keine Capabilities für diese Rolle.
         </p>

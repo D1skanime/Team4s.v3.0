@@ -22,6 +22,9 @@ type MembershipsSectionProps = {
 function membershipRoles(membership: MemberProfileMembership): PublicMemberRole[] {
   return membership.roles ?? []
 }
+function historicalRoleLabel(role: PublicMemberRole): string {
+  return `${role.label_de} ${String.fromCharCode(183)} ${role.started_year ?? '?'} - ${role.ended_year}`
+}
 
 // membershipStatusLabel trennt current (is_current) von historical (PMDA-02) und
 // haelt die bestehenden Historien-Status-Texte fuer nicht-laufende Eintraege bei.
@@ -66,6 +69,8 @@ export function MembershipsSection({
             const statusLabel = membershipStatusLabel(membership)
             const periodLabel = membershipPeriodLabel(membership)
             const roles = membershipRoles(membership)
+            const currentRoles = roles.filter((role) => !role.ended_year)
+            const historicalRoles = roles.filter((role) => role.ended_year)
 
             return (
               <li key={membership.fansub_group_id}>
@@ -92,14 +97,19 @@ export function MembershipsSection({
                           {statusLabel}
                         </span>
                       ) : null}
-                      {roles.length > 0 ? (
+                      {currentRoles.length > 0 ? (
                         <span>
-                          {roles.map((role, index) => (
+                          {currentRoles.map((role, index) => (
                             <Fragment key={role.code}>
-                              {index > 0 ? <span aria-hidden="true"> · </span> : null}
+                              {index > 0 ? <span aria-hidden="true"> {String.fromCharCode(183)} </span> : null}
                               <span data-role-code={role.code}>{role.label_de}</span>
                             </Fragment>
                           ))}
+                        </span>
+                      ) : null}
+                      {historicalRoles.length > 0 ? (
+                        <span>
+                          {`Fr${String.fromCharCode(252)}her: ${historicalRoles.map(historicalRoleLabel).join(' / ')}`}
                         </span>
                       ) : null}
                       {periodLabel ? <span>{periodLabel}</span> : null}

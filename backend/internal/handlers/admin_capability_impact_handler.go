@@ -76,13 +76,13 @@ func (h *AdminCapabilityImpactHandler) PreviewCapabilityChange(c *gin.Context) {
 		return
 	}
 
-	// G4: mirrors GrantCapability/RevokeCapability's exact guard -- only rein historische
-	// Rollen ohne aktiven Kontext sind gesperrt.
+	// Wie GrantCapability/RevokeCapability: Nur Fansub-Gruppenrollen tragen
+	// konfigurierbare Standardrechte.
 	if !permissions.IsCapabilityBearingRole(roleCode) {
 		c.JSON(http.StatusUnprocessableEntity, gin.H{
 			"error": gin.H{
 				"code":    "role_not_capability_bearing",
-				"message": "Diese Rolle ist eine rein historische Rolle und kann keine Berechtigungen erhalten.",
+				"message": "Diese Beitrags- oder historische Rolle kann keine Standardrechte erhalten.",
 			},
 		})
 		return

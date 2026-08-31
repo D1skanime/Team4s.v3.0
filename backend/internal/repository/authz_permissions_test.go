@@ -73,6 +73,13 @@ func TestListActorContributionRolesForVersion(t *testing.T) {
 	})
 }
 
+func TestListActorContributionRolesForVersion_ReleaseAssignmentsOverrideProjectRoles(t *testing.T) {
+	src := readAuthzPermissionsSource(t)
+
+	assert.Contains(t, src, "if len(roleCodes) > 0 {\n\t\t// A release-specific assignment replaces the project-wide role set",
+		"the release assignment must stop before project fallback")
+}
+
 func TestPhase107AuthzRepositoryReviewCapabilityResolutionFromDatabase(t *testing.T) {
 	pool := openPhase107AuthzRepositoryPool(t)
 	_, err := pool.Exec(context.Background(), `

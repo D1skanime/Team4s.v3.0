@@ -15,6 +15,7 @@ import { OwnPendingReviewsSection } from "./OwnPendingReviewsSection";
 import { ReadinessTab } from "./ReadinessTab";
 import { ReleaseReviewsSection } from "./ReleaseReviewsSection";
 import type { MainTab } from "./fansubEditTypes";
+import { canUseMainTab } from "./fansubEditAccess";
 import {
   countQualifiedCompletedProjects,
   countQualifiedReleases,
@@ -147,7 +148,10 @@ export function FansubEditSecondaryTabs({
       {activeMainTab === "readiness" && group ? (
         <ReadinessTab fansubId={fansubID} group={group} />
       ) : null}
-      {activeMainTab === "roles" ? <GroupRolesTab fansubId={fansubID} /> : null}
+      {activeMainTab === "roles" &&
+      canUseMainTab("roles", isPlatformAdmin, capabilities) ? (
+        <GroupRolesTab fansubId={fansubID} />
+      ) : null}
       {activeMainTab === "changes" ? <GroupChangesTab fansubId={fansubID} /> : null}
     </>
   );

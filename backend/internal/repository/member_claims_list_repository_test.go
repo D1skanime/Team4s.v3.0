@@ -76,6 +76,19 @@ func TestListClaims(t *testing.T) {
 	seedPhase138Claim(t, pool, 601, 701, 801, 901, "Pending Person", "Chocolate Subs", "pending")
 	seedPhase138Claim(t, pool, 602, 702, 801, 902, "Verified Person", "Chocolate Subs", "verified")
 	seedPhase138Claim(t, pool, 603, 703, 802, 0, "Other Group Person", "Vanilla Subs", "pending")
+	_, err := pool.Exec(ctx, `
+		INSERT INTO fansub_group_members (id, fansub_group_id, app_user_id, member_id, status)
+		VALUES (1001, 801, 902, 702, 'active')
+	`)
+	require.NoError(t, err)
+
+	t.Run("reports an existing active group membership", func(t *testing.T) {
+		status := "verified"
+		rows, _, err := repo.ListClaims(ctx, ClaimListFilter{Status: &status})
+		require.NoError(t, err)
+		require.Len(t, rows, 1)
+		assert.True(t, rows[0].IsActiveMember)
+	})
 
 	t.Run("status filter returns only matching rows", func(t *testing.T) {
 		status := "verified"

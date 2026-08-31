@@ -285,6 +285,7 @@ func main() {
 			ReleaseGrantTTLSeconds: cfg.ReleaseStreamGrantTTLSeconds,
 		},
 	).WithMedia(mediaRepo, mediaService).
+		WithReleaseMetadataCreditService(services.NewReleaseMetadataCreditService(dbPool)).
 		WithPermissionDeps(permissionSvc, auditLogRepo).
 		WithReleasePlaybackEntitlements(repository.NewReleasePlaybackEntitlementRepository(dbPool, authzRepo))
 	groupRepo := repository.NewGroupRepository(dbPool)
@@ -587,7 +588,8 @@ func main() {
 	memberPointTotalsRepo := repository.NewMemberPointTotalsRepository(dbPool)
 	memberPointRankingHandler := handlers.NewMemberPointRankingHandler(memberPointTotalsRepo)
 	contributionsMeHandler := handlers.NewContributionsMeHandler(animeContributionsRepo, histGroupMemberRolesRepo, dbPool).WithReleaseCrewService(releaseCrewService)
-	dashboardMeHandler := handlers.NewDashboardMeHandler(memberProfileRepo, dbPool)
+	dashboardMeHandler := handlers.NewDashboardMeHandler(memberProfileRepo, dbPool).
+		WithClaimAttention(memberClaimsRepo, permissionSvc)
 	memberSuggestionsRepo := repository.NewMemberSuggestionsRepository(dbPool)
 	suggestionsMeHandler := handlers.NewSuggestionsMeHandler(memberSuggestionsRepo, auditLogRepo)
 	// Archiv-Suche: oeffentliche Route ohne Auth-Gate (Pitfall 6 aus RESEARCH.md)

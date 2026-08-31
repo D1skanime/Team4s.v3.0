@@ -47,6 +47,7 @@ func fullValidCacheData() map[string][]Action {
 			ActionFansubGroupMediaView,
 			ActionFansubGroupMediaUpload,
 			ActionFansubGroupMediaUpdate,
+			ActionFansubGroupMediaUpdateOwn,
 			ActionFansubGroupMediaReorder,
 			ActionFansubGroupMediaDelete,
 			ActionFansubGroupPageGeneralEdit,

@@ -104,16 +104,11 @@ export function formToPayload(
   form: FormState,
   logo: EditableMediaValue | null,
   banner: EditableMediaValue | null,
-  options: { includeSlug: boolean; includeGeneral?: boolean; includeLifecycle?: boolean; includeTechnicalLinks?: boolean; includeFounding?: boolean; includeMedia?: boolean },
+  options: { includeSlug: boolean; includeGeneral?: boolean; includeLifecycle?: boolean; includeFounding?: boolean; includeMedia?: boolean },
 ): FansubGroupPatchRequest {
   const payload: FansubGroupPatchRequest = {};
   if (options.includeGeneral !== false) { payload.name = form.name.trim(); payload.country = toOptional(form.country); }
   if (options.includeLifecycle !== false) { payload.status = form.status; payload.group_type = form.groupType; }
-  if (options.includeTechnicalLinks) {
-    payload.website_url = toOptional(form.websiteURL);
-    payload.discord_url = toOptional(form.discordURL);
-    payload.irc_url = toOptional(form.ircURL);
-  }
   if (options.includeFounding !== false) {
     const founded = parseYear(form.foundedYear); const dissolved = parseYear(form.dissolvedYear);
     payload.founded_year = founded === null ? null : founded; payload.dissolved_year = dissolved === null ? null : dissolved;

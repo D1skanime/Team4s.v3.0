@@ -28,10 +28,10 @@ func TestPreviewGroupRightsWithRoleChangeAddGrantsNewAction(t *testing.T) {
 	before, after, err := service.PreviewGroupRightsWithRoleChange(context.Background(), actor, previewTestGroupID, RoleFansubLead, true)
 	require.NoError(t, err)
 
-	beforeState := before.Can(ActionFansubGroupMediaUpload)
+	beforeState := before.Can(ActionFansubGroupEdit)
 	assert.False(t, beforeState.Allowed, "before: no role assigned yet, action must be denied")
 
-	afterState := after.Can(ActionFansubGroupMediaUpload)
+	afterState := after.Can(ActionFansubGroupEdit)
 	assert.True(t, afterState.Allowed, "after: adding a granting role must flip Allowed to true")
 	assert.Equal(t, ProvenanceGroupRole, afterState.DecisiveSource)
 	assert.Contains(t, afterState.GrantingRoles, RoleFansubLead)
@@ -52,11 +52,11 @@ func TestPreviewGroupRightsWithRoleChangeAddRedundantRoleKeepsExistingGrantingRo
 	before, after, err := service.PreviewGroupRightsWithRoleChange(context.Background(), actor, previewTestGroupID, RoleFansubLead, true)
 	require.NoError(t, err)
 
-	beforeState := before.Can(ActionFansubGroupMediaUpload)
+	beforeState := before.Can(ActionFansubGroupEdit)
 	assert.True(t, beforeState.Allowed, "before: RoleProjectLead already grants this action")
 	assert.Contains(t, beforeState.GrantingRoles, RoleProjectLead)
 
-	afterState := after.Can(ActionFansubGroupMediaUpload)
+	afterState := after.Can(ActionFansubGroupEdit)
 	assert.True(t, afterState.Allowed, "after: still allowed, retained via the other role")
 	assert.Contains(t, afterState.GrantingRoles, RoleProjectLead, "the pre-existing granting role must remain visible")
 	assert.Contains(t, afterState.GrantingRoles, RoleFansubLead, "the newly added role also grants and must be visible")
@@ -75,10 +75,10 @@ func TestPreviewGroupRightsWithRoleChangeRemoveOnlyGrantingRoleDenies(t *testing
 	before, after, err := service.PreviewGroupRightsWithRoleChange(context.Background(), actor, previewTestGroupID, RoleFansubLead, false)
 	require.NoError(t, err)
 
-	beforeState := before.Can(ActionFansubGroupMediaUpload)
+	beforeState := before.Can(ActionFansubGroupEdit)
 	assert.True(t, beforeState.Allowed)
 
-	afterState := after.Can(ActionFansubGroupMediaUpload)
+	afterState := after.Can(ActionFansubGroupEdit)
 	assert.False(t, afterState.Allowed, "after: removing the only granting role must deny")
 	assert.Equal(t, ProvenanceNoGrant, afterState.DecisiveSource)
 	assert.Empty(t, afterState.GrantingRoles)
@@ -98,11 +98,11 @@ func TestPreviewGroupRightsWithRoleChangeRemoveOneOfTwoGrantingRolesRetainsAcces
 	before, after, err := service.PreviewGroupRightsWithRoleChange(context.Background(), actor, previewTestGroupID, RoleFansubLead, false)
 	require.NoError(t, err)
 
-	beforeState := before.Can(ActionFansubGroupMediaUpload)
+	beforeState := before.Can(ActionFansubGroupEdit)
 	assert.True(t, beforeState.Allowed)
 	assert.ElementsMatch(t, []string{RoleFansubLead, RoleProjectLead}, beforeState.GrantingRoles)
 
-	afterState := after.Can(ActionFansubGroupMediaUpload)
+	afterState := after.Can(ActionFansubGroupEdit)
 	assert.True(t, afterState.Allowed, "after: still allowed via the remaining role, this is the honest 'no full removal' case")
 	assert.NotContains(t, afterState.GrantingRoles, RoleFansubLead)
 	assert.Contains(t, afterState.GrantingRoles, RoleProjectLead)
@@ -121,8 +121,8 @@ func TestPreviewGroupRightsWithRoleChangePlatformAdminReturnsUnchanged(t *testin
 	before, after, err := service.PreviewGroupRightsWithRoleChange(context.Background(), actor, previewTestGroupID, RoleFansubLead, true)
 	require.NoError(t, err)
 
-	beforeState := before.Can(ActionFansubGroupMediaUpload)
-	afterState := after.Can(ActionFansubGroupMediaUpload)
+	beforeState := before.Can(ActionFansubGroupEdit)
+	afterState := after.Can(ActionFansubGroupEdit)
 	assert.Equal(t, beforeState, afterState, "platform admin: role change must be a no-op, before and after identical")
 	assert.True(t, afterState.Allowed)
 	assert.Equal(t, ProvenancePlatformAdmin, afterState.DecisiveSource)
@@ -141,8 +141,8 @@ func TestPreviewGroupRightsWithRoleChangeDisabledActorReturnsUnchanged(t *testin
 	before, after, err := service.PreviewGroupRightsWithRoleChange(context.Background(), actor, previewTestGroupID, RoleProjectLead, true)
 	require.NoError(t, err)
 
-	beforeState := before.Can(ActionFansubGroupMediaUpload)
-	afterState := after.Can(ActionFansubGroupMediaUpload)
+	beforeState := before.Can(ActionFansubGroupEdit)
+	afterState := after.Can(ActionFansubGroupEdit)
 	assert.Equal(t, beforeState, afterState, "disabled actor: role change must be a no-op, before and after identical")
 	assert.False(t, afterState.Allowed)
 }

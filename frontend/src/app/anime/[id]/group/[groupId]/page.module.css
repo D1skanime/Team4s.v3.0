@@ -326,7 +326,6 @@
 .projectStoryArticle {
   display: grid;
   gap: 14px;
-  max-width: 68ch;
   color: var(--text-primary);
   font-size: 16px;
   line-height: 1.6;
@@ -365,7 +364,6 @@
 
 .sectionEmptyState {
   margin: 0;
-  max-width: 68ch;
   color: var(--text-muted);
   font-size: 15px;
   line-height: 1.6;

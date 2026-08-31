@@ -104,7 +104,7 @@ export type RoleDefinitionContext = 'fansub_group' | 'anime_contribution' | 'gro
 
 /**
  * Herkunfts-/Entscheidungsquellen-Vokabular für ein EffectiveRightState.
- * platform_admin, specialized_grant und no_grant wurden additiv in Phase 137
+ * platform_admin, membership_baseline, specialized_grant und no_grant wurden additiv ergänzt
  * ergänzt (D04); die ursprünglichen vier Phase-136-Werte bleiben unverändert
  * gültig und werden nicht entfernt.
  */
@@ -114,6 +114,7 @@ export type EffectiveRightProvenance =
   | 'user_allow'
   | 'user_deny'
   | 'platform_admin'
+  | 'membership_baseline'
   | 'specialized_grant'
   | 'no_grant';
 export type CapabilityOverrideEffect = 'allow' | 'deny';

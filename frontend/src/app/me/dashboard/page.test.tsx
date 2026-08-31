@@ -103,6 +103,7 @@ function makeDashboardResponse(overrides: Record<string, unknown> = {}) {
       contributions_count: 0,
       role_volume: [],
       category_progress: [],
+    pending_claims: [],
       ...overrides,
     },
   }

@@ -110,6 +110,7 @@ func validateEpisodeVersionPatchRequest(req models.EpisodeVersionPatchInput) (mo
 		!req.MediaItemID.Set &&
 		!req.VideoQuality.Set &&
 		!req.SubtitleType.Set &&
+		!req.ProductionStartedOn.Set &&
 		!req.ReleaseDate.Set &&
 		!req.CRC32.Set &&
 		!req.StreamURL.Set &&
@@ -160,6 +161,9 @@ func validateEpisodeVersionPatchRequest(req models.EpisodeVersionPatchInput) (mo
 				return models.EpisodeVersionPatchInput{}, "ungültiger subtitle_type parameter"
 			}
 		}
+	}
+	if req.ProductionStartedOn.Set && req.ProductionStartedOn.Value != nil && req.ReleaseDate.Set && req.ReleaseDate.Value != nil && req.ReleaseDate.Value.Before(*req.ProductionStartedOn.Value) {
+		return models.EpisodeVersionPatchInput{}, "release-datum darf nicht vor dem bearbeitungsbeginn liegen"
 	}
 	if req.CRC32.Set {
 		crc32, crcMessage := normalizeCRC32(req.CRC32.Value)

@@ -19,7 +19,8 @@ type episodeVersionWriteState struct {
 	ReleaseID        int64
 	AnimeID          int64
 	Title            *string
-	ReleaseDate      *time.Time
+	ProductionStartedOn *time.Time
+	ReleaseDate           *time.Time
 	VideoQuality     *string
 	SubtitleType     *string
 	CRC32            *string
@@ -38,6 +39,7 @@ func loadEpisodeVersionStateForUpdate(ctx context.Context, tx pgx.Tx, versionID 
 			fr.id,
 			e.anime_id,
 			rev.title,
+			rev.production_started_on,
 			COALESCE(rev.release_date, fr.release_date) AS release_date,
 			COALESCE(rv.video_quality, rv.resolution) AS video_quality,
 			rv.subtitle_type,
@@ -62,6 +64,7 @@ func loadEpisodeVersionStateForUpdate(ctx context.Context, tx pgx.Tx, versionID 
 		&state.ReleaseID,
 		&state.AnimeID,
 		&state.Title,
+		&state.ProductionStartedOn,
 		&state.ReleaseDate,
 		&state.VideoQuality,
 		&state.SubtitleType,
@@ -83,16 +86,18 @@ func applyEpisodeVersionReleaseMetadata(
 	tx pgx.Tx,
 	releaseVersionID int64,
 	title *string,
+	productionStartedOn *time.Time,
 	releaseDate *time.Time,
 ) error {
 	if _, err := tx.Exec(ctx, `
 		UPDATE release_versions
 		SET title = $1,
-		    release_date = $2,
+		    production_started_on = $2,
+		    release_date = $3,
 		    updated_at = NOW(),
 		    modified_at = NOW()
-		WHERE id = $3
-	`, title, releaseDate, releaseVersionID); err != nil {
+		WHERE id = $4
+	`, title, productionStartedOn, releaseDate, releaseVersionID); err != nil {
 		return fmt.Errorf("update release version metadata version=%d: %w", releaseVersionID, err)
 	}
 	if _, err := tx.Exec(ctx, `

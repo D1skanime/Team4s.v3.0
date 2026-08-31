@@ -47,4 +47,5 @@ describe("FansubCommunityLinksList", () => {
       "https://discord.gg/",
     );
   });
+  it("zeigt URL-Feld und Löschaktion gemeinsam", () => { render(<Harness />); expect(screen.getByLabelText("URL")).toBeTruthy(); expect(screen.getByRole("button", { name: "Link entfernen" })).toBeTruthy(); });
 });

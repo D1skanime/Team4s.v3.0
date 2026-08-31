@@ -21,14 +21,14 @@ import (
 // stubCapabilityAuthzRepo implementiert die für requirePlatformAdminIdentity nötigen Methoden
 // sowie die Capability-Mutation-Methoden.
 type stubCapabilityAuthzRepo struct {
-	isPlatformAdmin       bool
-	countRolesWithAction  int64
-	countErr              error
-	grantErr              error
-	revokeErr             error
-	matrixRoles           []repository.CapabilityMatrixRoleEntry
-	globalRoleCounts      map[string]int
-	groupHolderCounts     map[string]int
+	isPlatformAdmin      bool
+	countRolesWithAction int64
+	countErr             error
+	grantErr             error
+	revokeErr            error
+	matrixRoles          []repository.CapabilityMatrixRoleEntry
+	globalRoleCounts     map[string]int
+	groupHolderCounts    map[string]int
 }
 
 func (s *stubCapabilityAuthzRepo) AppUserHasGlobalRole(_ context.Context, _ int64, _ string) (bool, error) {
@@ -363,8 +363,8 @@ func TestListCapabilityMatrixAssignableEnrichment(t *testing.T) {
 	if len(appRoles) == 0 {
 		t.Fatal("FansubGroupRoles() ist leer — Testvorbedingung verletzt")
 	}
-	appRole := appRoles[0]     // z.B. "fansub_lead" — assignable=true erwartet
-	histRole := "founder"      // nicht im Katalog — assignable=false erwartet
+	appRole := appRoles[0] // z.B. "fansub_lead" — assignable=true erwartet
+	histRole := "founder"  // nicht im Katalog — assignable=false erwartet
 
 	if permissions.IsKnownFansubGroupRole(histRole) {
 		t.Fatalf("Testvorbedingung verletzt: %q sollte keine bekannte Fansub-Gruppenrolle sein", histRole)
@@ -577,8 +577,8 @@ func TestListCapabilityMatrixIncludesGroupHolderCount(t *testing.T) {
 
 	var response struct {
 		Roles []struct {
-			RoleCode        string `json:"role_code"`
-			GroupHolderCount *int  `json:"group_holder_count"`
+			RoleCode         string `json:"role_code"`
+			GroupHolderCount *int   `json:"group_holder_count"`
 		} `json:"roles"`
 	}
 	if err := json.Unmarshal(rec.Body.Bytes(), &response); err != nil {

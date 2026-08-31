@@ -214,6 +214,8 @@ func registerAdminRoutes(v1 *gin.RouterGroup, auth gin.HandlerFunc, deps adminRo
 	v1.DELETE("/admin/fansubs/:id/member-stories/:storyId", auth, deps.adminContentHandler.DeleteMemberGroupStory)
 	v1.GET("/admin/fansubs/:id/anime/:animeId/notes", auth, deps.adminContentHandler.GetAnimeFansubProjectNote)
 	v1.PUT("/admin/fansubs/:id/anime/:animeId/notes", auth, deps.adminContentHandler.UpsertAnimeFansubProjectNote)
+	v1.GET("/admin/fansubs/:id/anime/:animeId/timeline", auth, deps.adminContentHandler.GetAnimeFansubProjectTimeline)
+	v1.PUT("/admin/fansubs/:id/anime/:animeId/timeline", auth, deps.adminContentHandler.UpdateAnimeFansubProjectTimeline)
 	v1.DELETE("/admin/fansubs/:id/anime/:animeId/notes/:noteId", auth, deps.adminContentHandler.DeleteAnimeFansubProjectNote)
 	// Phase 62: Fansub Contributions Admin-API
 	v1.GET("/admin/fansubs/:id/group-members", auth, deps.histGroupMembersHandler.ListHistGroupMembers)

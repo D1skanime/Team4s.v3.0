@@ -58,10 +58,11 @@ type histGroupMemberCreateRequest struct {
 }
 
 type histGroupMemberPatchRequest struct {
-	JoinedDate **string `json:"joined_date"`
-	LeftDate   **string `json:"left_date"`
-	Status     *string  `json:"status"`
-	Visibility *string  `json:"visibility"`
+	DisplayName *string  `json:"display_name"`
+	JoinedDate  **string `json:"joined_date"`
+	LeftDate    **string `json:"left_date"`
+	Status      *string  `json:"status"`
+	Visibility  *string  `json:"visibility"`
 }
 
 func confirmedActorForStatus(status string, actorAppUserID int64) *int64 {
@@ -212,6 +213,14 @@ func (h *FansubHistGroupMembersHandler) CreateHistGroupMember(c *gin.Context) {
 		})
 		return
 	}
+	if errors.Is(err, repository.ErrValidation) {
+		c.JSON(http.StatusUnprocessableEntity, gin.H{
+			"error": gin.H{
+				"message": "Der Anzeigename erzeugt eine reservierte Profil-URL. Bitte einen anderen Namen verwenden.",
+			},
+		})
+		return
+	}
 	if err != nil {
 		log.Printf("hist group members create: repo error (fansub_id=%d, display_name=%q): %v", fansubID, displayName, err)
 		internalError(c, "interner serverfehler")
@@ -298,11 +307,21 @@ func (h *FansubHistGroupMembersHandler) UpdateHistGroupMember(c *gin.Context) {
 		badRequest(c, "Ungültiges Datum - Format JJJJ-MM-TT erwartet.")
 		return
 	}
+	var displayName *string
+	if req.DisplayName != nil {
+		trimmedDisplayName := strings.TrimSpace(*req.DisplayName)
+		if trimmedDisplayName == "" {
+			badRequest(c, "Anzeigename darf nicht leer sein.")
+			return
+		}
+		displayName = &trimmedDisplayName
+	}
 
 	input := repository.HistGroupMemberPatchInput{
 		JoinedDate:  joinedDate,
 		LeftDate:    leftDate,
 		Status:      req.Status,
+		DisplayName: displayName,
 		Visibility:  req.Visibility,
 		ConfirmedBy: &identity.AppUserID,
 	}

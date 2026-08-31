@@ -29,6 +29,17 @@
   margin: 0 0 0.75em;
 }
 
+
+/* Match editor lists in every rendered public and internal rich-text surface. */
+.richTextOutput li {
+  display: list-item;
+  min-width: 0;
+}
+
+.richTextOutput li > p {
+  margin: 0;
+  min-width: 0;
+}
 .richTextOutput li + li {
   margin-top: 0.25em;
 }

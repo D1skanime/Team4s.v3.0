@@ -21,6 +21,7 @@ export function roleKindLabel(role: RoleEntry): string {
   const isEditable = role.capability_editable !== false
   const isAssignable = role.assignable === true
   if (role.role_kind === 'global_app_role') return 'Globale App-Rolle'
+  if (!isEditable && role.contexts?.includes('anime_contribution')) return 'Beitragsrolle'
   if (!isEditable) return 'Historische Rolle'
   if (isAssignable) return 'Aktive App-Rolle'
   return 'Projekt-/Release-Rolle'

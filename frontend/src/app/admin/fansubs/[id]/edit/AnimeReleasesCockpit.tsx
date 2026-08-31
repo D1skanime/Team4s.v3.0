@@ -11,6 +11,7 @@ import { useRoleCatalog } from "@/providers/RoleCatalogProvider";
 import { AnimeReleasesFilterBar } from "./AnimeReleasesFilterBar";
 import { ProjectCockpitBadges } from "./ProjectCockpitBadges";
 import { AnimeProjectNoteWorkspace } from "./AnimeProjectNoteWorkspace";
+import { AnimeProjectTimelineSection } from "./AnimeProjectTimelineSection";
 import { ReleaseContributionDrawer } from "./ReleaseContributionDrawer";
 import { ReleaseRowDetails } from "./ReleaseRowDetails";
 import {
@@ -32,8 +33,10 @@ type AnimeReleasesCockpitProps = {
   fansubID: number;
   releaseData: FansubReleaseData;
   contributions: ReleaseContributions;
+  ownProjectAssignmentKeys: string[];
   canViewProjectNotes: boolean;
   canEditProjectNotes: boolean;
+  canEditProjectTimeline: boolean;
   canViewReleaseContributors: boolean;
   canEditReleaseContributors: boolean;
   canUseReleaseMedia: boolean;
@@ -55,13 +58,16 @@ export function AnimeReleasesCockpit({
   fansubID,
   releaseData,
   contributions,
+  ownProjectAssignmentKeys,
   canViewProjectNotes,
   canEditProjectNotes,
+  canEditProjectTimeline,
   canViewReleaseContributors,
   canEditReleaseContributors,
   canUseReleaseMedia,
   canUseReleaseNotes,
   canOpenReleaseDrawer,
+  canUseAdminReleaseDetails,
   isSectionOpen,
   onSectionToggle,
   onToggleAnime,
@@ -289,6 +295,16 @@ export function AnimeReleasesCockpit({
                   </div>
                   {animeExpanded && canViewProjectNotes ? (
                     <section className={styles.fansubEditProjectInsightPanel}>
+                      <AnimeProjectTimelineSection
+                        fansubId={fansubID}
+                        animeId={releaseGroup.anime.id}
+                        expanded={animeExpanded}
+                        canEdit={canEditProjectTimeline}
+                      />
+                    </section>
+                  ) : null}
+                  {animeExpanded && canViewProjectNotes ? (
+                    <section className={styles.fansubEditProjectInsightPanel}>
                       <AnimeProjectNoteWorkspace
                         fansubId={fansubID}
                         animeId={releaseGroup.anime.id}
@@ -416,6 +432,7 @@ export function AnimeReleasesCockpit({
                       releasePagination={releasePagination}
                       releasesLoading={releasesLoading}
                       hasMoreReleases={hasMoreReleases}
+                      ownProjectAssignmentKeys={ownProjectAssignmentKeys}
                       expandedReleaseIds={expandedReleaseIds}
                       contributionRows={animeContributionRows}
                       releaseSegmentCards={releaseSegmentCards}
@@ -424,6 +441,7 @@ export function AnimeReleasesCockpit({
                       selectedReleaseSegment={selectedReleaseSegment}
                       canUseReleaseMedia={canUseReleaseMedia}
                       canUseReleaseNotes={canUseReleaseNotes}
+                      canOpenWithoutProjectAssignment={canUseAdminReleaseDetails}
                       canOpenReleaseDrawer={canOpenReleaseDrawer}
                       canOpenReleaseContributors={canEditReleaseContributors}
                       releaseWorkspaceReturnHref={releaseWorkspaceReturnHref}

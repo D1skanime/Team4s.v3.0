@@ -727,6 +727,11 @@
     0 3px 10px rgba(20, 30, 52, 0.14);
 }
 
+.datePickerPanelEnd {
+  left: auto;
+  right: 0;
+}
+
 .datePickerPanelAbove {
   top: auto;
   bottom: calc(100% + 8px);

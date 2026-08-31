@@ -245,6 +245,7 @@ export function GroupMemberFormModals({
                     minYear={yearMin}
                     maxYear={yearMax}
                     minDate={role.startedDate || undefined}
+                    panelAlign="end"
                   />
                 </FormField>
                 <Button

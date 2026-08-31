@@ -32,6 +32,7 @@ type fansubGroupCapabilitiesResponse struct {
 	CanManageHistoricalRoles   bool `json:"can_manage_historical_roles"`
 	CanLinkHistoricalMembers   bool `json:"can_link_historical_members"`
 	CanEditNotes               bool `json:"can_edit_notes"`
+	CanEditProjectTimeline     bool `json:"can_edit_project_timeline"`
 	CanViewInvitations         bool `json:"can_view_invitations"`
 	CanCreateInvitation        bool `json:"can_create_invitation"`
 	CanCancelInvitation        bool `json:"can_cancel_invitation"`
@@ -42,6 +43,9 @@ type fansubGroupCapabilitiesResponse struct {
 	CanViewGroupMedia          bool `json:"can_view_group_media"`
 	CanUploadGroupMedia        bool `json:"can_upload_group_media"`
 	CanUpdateGroupMedia        bool `json:"can_update_group_media"`
+	CanReviewGroupMedia        bool `json:"can_review_group_media"`
+	CanReviewText              bool `json:"can_review_text"`
+	CanUpdateOwnGroupMedia     bool `json:"can_update_own_group_media"`
 	CanDeleteOwnGroupMedia     bool `json:"can_delete_own_group_media"`
 	CanDeleteGroupMedia        bool `json:"can_delete_group_media"`
 	CanReorderGroupMedia       bool `json:"can_reorder_group_media"`
@@ -1125,6 +1129,11 @@ func (h *AppAuthHandler) GetFansubGroupCapabilities(c *gin.Context) {
 		writePermissionInternalError(c, err, "Capabilities konnten nicht geladen werden.")
 		return
 	}
+	canEditProjectTimeline, err := h.permissionSvc.CanForFansubGroup(c.Request.Context(), actor, permissions.ActionAnimeFansubProjectTimelineUpdate, fansubID)
+	if err != nil {
+		writePermissionInternalError(c, err, "Berechtigung für den Projektzeitraum konnte nicht geprüft werden.")
+		return
+	}
 	canViewInvitations, err := h.permissionSvc.CanForFansubGroup(c.Request.Context(), actor, permissions.ActionFansubGroupInvitationsView, fansubID)
 	if err != nil {
 		writePermissionInternalError(c, err, "Capabilities konnten nicht geladen werden.")
@@ -1175,6 +1184,16 @@ func (h *AppAuthHandler) GetFansubGroupCapabilities(c *gin.Context) {
 		writePermissionInternalError(c, err, "Capabilities konnten nicht geladen werden.")
 		return
 	}
+	canReviewText, err := h.permissionSvc.CanForFansubGroup(c.Request.Context(), actor, permissions.ActionReviewTextDecide, fansubID)
+	if err != nil {
+		writePermissionInternalError(c, err, "Berechtigung für Textprüfung konnte nicht geprüft werden.")
+		return
+	}
+	canUpdateOwnGroupMedia, err := h.permissionSvc.CanForFansubGroup(c.Request.Context(), actor, permissions.ActionFansubGroupMediaUpdateOwn, fansubID)
+	if err != nil {
+		writePermissionInternalError(c, err, "Capabilities konnten nicht geladen werden.")
+		return
+	}
 	canDeleteGroupMedia, err := h.permissionSvc.CanForFansubGroup(c.Request.Context(), actor, permissions.ActionFansubGroupMediaDelete, fansubID)
 	if err != nil {
 		writePermissionInternalError(c, err, "Capabilities konnten nicht geladen werden.")
@@ -1195,11 +1214,42 @@ func (h *AppAuthHandler) GetFansubGroupCapabilities(c *gin.Context) {
 		customMediaPermissions.CanReorder
 	canViewGroupMediaAllowed := canViewGroupMedia.Allowed || hasAnyCustomMediaPermission
 	canUploadGroupMediaAllowed := canUploadGroupMedia.Allowed || customMediaPermissions.CanUpload
+	canReorderGroupMedia, err := h.permissionSvc.CanForFansubGroup(c.Request.Context(), actor, permissions.ActionFansubGroupMediaReorder, fansubID)
+	if err != nil {
+		writePermissionInternalError(c, err, "Berechtigung f\u00fcr Medien-Reihenfolge konnte nicht gepr\u00fcft werden.")
+		return
+	}
+	canReorderGroupMediaAllowed := canReorderGroupMedia.Allowed || customMediaPermissions.CanReorder
 	canDeleteOwnGroupMediaAllowed := canDeleteGroupMedia.Allowed || customMediaPermissions.CanDeleteAll || customMediaPermissions.CanDeleteOwn
 	canDeleteGroupMediaAllowed := canDeleteGroupMedia.Allowed || customMediaPermissions.CanDeleteAll
-	canReorderGroupMediaAllowed := canUpdateGroupMedia.Allowed || customMediaPermissions.CanReorder
 
-	if !canEditGroup.Allowed && !canEditGroupGeneral.Allowed && !canEditTechnicalLinks.Allowed && !canEditFoundingHistory.Allowed && !canUpdateGroupLinks.Allowed && !canViewMembers.Allowed && !canManageMembers.Allowed && !canManageHistoricalMembers.Allowed && !canManageHistoricalRoles.Allowed && !canLinkHistoricalMembers.Allowed && !canManageLinks.Allowed && !canEditNotes.Allowed && !canViewInvitations.Allowed && !canCreateInvitation.Allowed && !canCancelInvitation.Allowed && !canViewReleases.Allowed && !canViewReleaseMedia.Allowed && !canUploadReleaseMedia.Allowed && !canEditReleaseNotes.Allowed && !canViewGroupMediaAllowed && !canUploadGroupMediaAllowed && !canUpdateGroupMedia.Allowed && !canDeleteOwnGroupMediaAllowed && !canDeleteGroupMediaAllowed && !canReorderGroupMediaAllowed {
+	if !canEditGroup.Allowed &&
+		!canEditGroupGeneral.Allowed &&
+		!canEditTechnicalLinks.Allowed &&
+		!canEditFoundingHistory.Allowed &&
+		!canUpdateGroupLinks.Allowed &&
+		!canViewMembers.Allowed &&
+		!canManageMembers.Allowed &&
+		!canManageHistoricalMembers.Allowed &&
+		!canManageHistoricalRoles.Allowed &&
+		!canLinkHistoricalMembers.Allowed &&
+		!canManageLinks.Allowed &&
+		!canEditNotes.Allowed &&
+		!canEditProjectTimeline.Allowed &&
+		!canViewInvitations.Allowed &&
+		!canCreateInvitation.Allowed &&
+		!canCancelInvitation.Allowed &&
+		!canViewReleases.Allowed &&
+		!canViewReleaseMedia.Allowed &&
+		!canUploadReleaseMedia.Allowed &&
+		!canEditReleaseNotes.Allowed &&
+		!canViewGroupMediaAllowed &&
+		!canUploadGroupMediaAllowed &&
+		!canReviewText.Allowed &&
+		!canUpdateOwnGroupMedia.Allowed &&
+		!canDeleteOwnGroupMediaAllowed &&
+		!canDeleteGroupMediaAllowed &&
+		!canReorderGroupMediaAllowed {
 		writePermissionDenied(c, canViewMembers)
 		return
 	}
@@ -1217,16 +1267,20 @@ func (h *AppAuthHandler) GetFansubGroupCapabilities(c *gin.Context) {
 		CanManageHistoricalRoles:   canManageHistoricalRoles.Allowed,
 		CanLinkHistoricalMembers:   canLinkHistoricalMembers.Allowed,
 		CanEditNotes:               canEditNotes.Allowed,
+		CanEditProjectTimeline:     canEditProjectTimeline.Allowed,
 		CanViewInvitations:         canViewInvitations.Allowed,
 		CanCreateInvitation:        canCreateInvitation.Allowed,
 		CanCancelInvitation:        canCancelInvitation.Allowed,
 		CanViewReleases:            canViewReleases.Allowed,
+		CanReviewGroupMedia:        canEditGroup.Allowed,
+		CanReviewText:              canReviewText.Allowed,
 		CanViewReleaseMedia:        canViewReleaseMedia.Allowed,
 		CanUploadReleaseMedia:      canUploadReleaseMedia.Allowed,
 		CanEditReleaseNotes:        canEditReleaseNotes.Allowed,
 		CanViewGroupMedia:          canViewGroupMediaAllowed,
 		CanUploadGroupMedia:        canUploadGroupMediaAllowed,
 		CanUpdateGroupMedia:        canUpdateGroupMedia.Allowed,
+		CanUpdateOwnGroupMedia:     canUpdateOwnGroupMedia.Allowed,
 		CanDeleteOwnGroupMedia:     canDeleteOwnGroupMediaAllowed,
 		CanDeleteGroupMedia:        canDeleteGroupMediaAllowed,
 		CanReorderGroupMedia:       canReorderGroupMediaAllowed,

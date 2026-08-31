@@ -93,10 +93,11 @@ func TestPhase136ContractParity(t *testing.T) {
 			string(EffectiveRightProvenanceIDPGlobalRole), string(EffectiveRightProvenanceGroupRole),
 			string(EffectiveRightProvenanceUserAllow), string(EffectiveRightProvenanceUserDeny),
 			string(EffectiveRightProvenancePlatformAdmin), string(EffectiveRightProvenanceSpecializedGrant),
+			string(EffectiveRightProvenanceMembershipBaseline),
 			string(EffectiveRightProvenanceNoGrant),
 		}, []string{
 			"idp_global_role", "group_role", "user_allow", "user_deny",
-			"platform_admin", "specialized_grant", "no_grant",
+			"platform_admin", "membership_baseline", "specialized_grant", "no_grant",
 		})
 		assertPolicyEnum(t, []string{string(CapabilityOverrideEffectAllow), string(CapabilityOverrideEffectDeny)}, []string{"allow", "deny"})
 		assertPolicyEnum(t, []string{

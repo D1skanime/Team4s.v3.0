@@ -4,7 +4,10 @@ import { ChevronDown, ChevronRight, ExternalLink, Users } from "lucide-react";
 
 import { Badge, Button } from "@/components/ui";
 import type { AdminFansubRelease, AnimeContribution } from "@/types/fansub";
-import { releaseVersionToolsTarget } from "./fansubEditAccess";
+import {
+  hasReleaseWorkspaceAssignment,
+  releaseVersionToolsTarget,
+} from "./fansubEditAccess";
 import {
   releaseFansubDisplayName,
   timelineLabelFor,
@@ -31,9 +34,11 @@ type ReleaseRowDetailsProps = {
   releaseSegmentLoading: Record<number, boolean>;
   releaseSegmentErrors: Record<number, string | null>;
   selectedReleaseSegment: SelectedReleaseSegment | null;
+  ownProjectAssignmentKeys: string[];
   canUseReleaseMedia: boolean;
   canUseReleaseNotes: boolean;
   canOpenReleaseDrawer: boolean;
+  canOpenWithoutProjectAssignment: boolean;
   canOpenReleaseContributors: boolean;
   releaseWorkspaceReturnHref: string;
   onToggleRelease: (release: AdminFansubRelease) => void;
@@ -75,9 +80,11 @@ export function ReleaseRowDetails({
   releaseSegmentLoading,
   releaseSegmentErrors,
   selectedReleaseSegment,
+  ownProjectAssignmentKeys,
   canUseReleaseMedia,
   canUseReleaseNotes,
   canOpenReleaseDrawer,
+  canOpenWithoutProjectAssignment,
   canOpenReleaseContributors,
   releaseWorkspaceReturnHref,
   onToggleRelease,
@@ -96,14 +103,22 @@ export function ReleaseRowDetails({
           );
           const peopleCount = people.length;
           const expanded = expandedReleaseIds.has(release.release_id);
-          const releaseVersionTools = releaseVersionToolsTarget(
+          const hasOwnProjectAssignment = hasReleaseWorkspaceAssignment(
+            canOpenWithoutProjectAssignment,
+            ownProjectAssignmentKeys,
+            releaseGroup.anime.id,
             release.release_version_id,
-            {
-              canViewMedia: canUseReleaseMedia,
-              canEditNotes: canUseReleaseNotes,
-            },
-            releaseWorkspaceReturnHref,
           );
+          const releaseVersionTools = hasOwnProjectAssignment
+            ? releaseVersionToolsTarget(
+                release.release_version_id,
+                {
+                  canViewMedia: canUseReleaseMedia,
+                  canEditNotes: canUseReleaseNotes,
+                },
+                releaseWorkspaceReturnHref,
+              )
+            : null;
           const cards = releaseSegmentCards[release.release_id] ?? [];
           const cardsLoading = releaseSegmentLoading[release.release_id];
           const cardsError = releaseSegmentErrors[release.release_id];
@@ -260,7 +275,7 @@ export function ReleaseRowDetails({
                       >
                         {releaseVersionTools.label} öffnen
                       </Button>
-                    ) : canOpenReleaseDrawer ? (
+                    ) : hasOwnProjectAssignment && canOpenReleaseDrawer ? (
                       <Button
                         type="button"
                         variant="ghost"

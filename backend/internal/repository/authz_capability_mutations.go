@@ -3,46 +3,47 @@ package repository
 import (
 	"context"
 	"fmt"
+	"slices"
 )
 
 // CapabilityMatrixRoleRow repräsentiert eine Zeile in der Capability-Matrix (Rolle × Action).
 type CapabilityMatrixRoleRow struct {
 	RoleCode, RoleLabel, RoleColorKey, RoleIconKey string
-	RoleContexts []string
-	RoleSortOrder, OperativeCapabilityCount int
-	RoleAssignable bool
-	ActionCode, ActionLabel, Category string
-	ActionSortOrder int
-	ActionDescription, ActionHelpText *string
-	UserOverridable, Granted, Standalone bool
+	RoleContexts                                   []string
+	RoleSortOrder, OperativeCapabilityCount        int
+	RoleAssignable                                 bool
+	ActionCode, ActionLabel, Category              string
+	ActionSortOrder                                int
+	ActionDescription, ActionHelpText              *string
+	UserOverridable, Granted, Standalone           bool
 }
 
 // CapabilityMatrixActionState ist der serialisierbare Zustand einer Action in einer Rolle.
 type CapabilityMatrixActionState struct {
-	Code       string `json:"code"`
-	LabelDE    string `json:"label_de"`
-	Category   string `json:"category"`
-	SortOrder int `json:"sort_order"`
-	DescriptionDE *string `json:"description_de"`
-	HelpTextDE *string `json:"help_text_de"`
-	UserOverridable bool `json:"user_overridable"`
-	Granted    bool   `json:"granted"`
-	Standalone bool   `json:"standalone"`
+	Code            string  `json:"code"`
+	LabelDE         string  `json:"label_de"`
+	Category        string  `json:"category"`
+	SortOrder       int     `json:"sort_order"`
+	DescriptionDE   *string `json:"description_de"`
+	HelpTextDE      *string `json:"help_text_de"`
+	UserOverridable bool    `json:"user_overridable"`
+	Granted         bool    `json:"granted"`
+	Standalone      bool    `json:"standalone"`
 }
 
 // CapabilityMatrixRoleEntry ist eine Rolle mit ihren Action-Zuständen.
 type CapabilityMatrixRoleEntry struct {
-	RoleCode           string                        `json:"role_code"`
-	LabelDE            string                        `json:"label_de"`
-	Actions            []CapabilityMatrixActionState `json:"actions"`
-	Assignable         bool                          `json:"assignable"`          // Im Gruppen-Add-Picker zuweisbar (permissions.IsKnownFansubGroupRole)
-	CapabilityEditable bool                          `json:"capability_editable"` // Capabilities editierbar (permissions.IsCapabilityBearingRole) — G4
-	Contexts           []string                      `json:"contexts,omitempty"`  // Aus role_definitions.contexts
-	SortOrder int `json:"sort_order"`
-	ColorKey string `json:"color_key"`
-	IconKey string `json:"icon_key"`
-	OperativeCapabilityCount int `json:"operative_capability_count"`
-	HasOperativeCapabilities bool `json:"has_operative_capabilities"`
+	RoleCode                 string                        `json:"role_code"`
+	LabelDE                  string                        `json:"label_de"`
+	Actions                  []CapabilityMatrixActionState `json:"actions"`
+	Assignable               bool                          `json:"assignable"`          // Im Gruppen-Add-Picker zuweisbar (permissions.IsKnownFansubGroupRole)
+	CapabilityEditable       bool                          `json:"capability_editable"` // Capabilities editierbar (permissions.IsCapabilityBearingRole) — G4
+	Contexts                 []string                      `json:"contexts,omitempty"`  // Aus role_definitions.contexts
+	SortOrder                int                           `json:"sort_order"`
+	ColorKey                 string                        `json:"color_key"`
+	IconKey                  string                        `json:"icon_key"`
+	OperativeCapabilityCount int                           `json:"operative_capability_count"`
+	HasOperativeCapabilities bool                          `json:"has_operative_capabilities"`
 	// GlobalAssignmentCount zählt aktive Zuweisungen aus app_user_global_roles.
 	// NUR für die drei synthetischen globalen App-Rollen-Zeilen (platform_admin/content_admin/
 	// user) gesetzt — role_definitions-Zeilen bekommen dieses Feld NIE gesetzt (Pointer bleibt
@@ -69,13 +70,13 @@ type CapabilityMatrixRoleEntry struct {
 
 // CapabilityMatrixActionEntry ist eine Action-Definition (für all_actions-Liste).
 type CapabilityMatrixActionEntry struct {
-	Code      string `json:"code"`
-	LabelDE   string `json:"label_de"`
-	Category  string `json:"category"`
-	SortOrder int    `json:"sort_order"`
-	DescriptionDE *string `json:"description_de"`
-	HelpTextDE *string `json:"help_text_de"`
-	UserOverridable bool `json:"user_overridable"`
+	Code            string  `json:"code"`
+	LabelDE         string  `json:"label_de"`
+	Category        string  `json:"category"`
+	SortOrder       int     `json:"sort_order"`
+	DescriptionDE   *string `json:"description_de"`
+	HelpTextDE      *string `json:"help_text_de"`
+	UserOverridable bool    `json:"user_overridable"`
 }
 
 // CapabilityMatrix ist die vollständige Capability-Matrix (Antwort-DTO).
@@ -168,9 +169,9 @@ func (r *AuthzRepository) ListCapabilityMatrix(ctx context.Context) (*Capability
 
 		// Action-Zustand für Rolle
 		roleActions[row.RoleCode] = append(roleActions[row.RoleCode], CapabilityMatrixActionState{
-			Code:       row.ActionCode,
-			LabelDE:    row.ActionLabel,
-			Category:   row.Category,
+			Code:      row.ActionCode,
+			LabelDE:   row.ActionLabel,
+			Category:  row.Category,
 			SortOrder: row.ActionSortOrder, DescriptionDE: row.ActionDescription,
 			HelpTextDE: row.ActionHelpText, UserOverridable: row.UserOverridable,
 			Granted:    row.Granted,
@@ -190,7 +191,7 @@ func (r *AuthzRepository) ListCapabilityMatrix(ctx context.Context) (*Capability
 			LabelDE:  roleLabels[roleCode],
 			Actions:  roleActions[roleCode],
 			Contexts: row.RoleContexts, SortOrder: row.RoleSortOrder, Assignable: row.RoleAssignable,
-			CapabilityEditable: len(row.RoleContexts) > 0, ColorKey: row.RoleColorKey, IconKey: row.RoleIconKey,
+			CapabilityEditable: slices.Contains(row.RoleContexts, "fansub_group") && row.RoleCode != "founder", ColorKey: row.RoleColorKey, IconKey: row.RoleIconKey,
 			OperativeCapabilityCount: row.OperativeCapabilityCount,
 			HasOperativeCapabilities: row.OperativeCapabilityCount > 0,
 		})

@@ -738,8 +738,50 @@ endpoints:
       - Read-only release viewers may load the project insight.
       - Creating, updating, and deleting project insights still require note write access.
 
+  - name: admin-fansub-anime-project-timeline-get
+    method: GET
+    path: /api/v1/admin/fansubs/{id}/anime/{animeId}/timeline
+    auth:
+      required: true
+      permission: release.view for the addressed fansub group
+      unauthenticated_status: 401
+      forbidden_status: 403
+    path_params:
+      - name: id
+        type: int64
+        minimum: 1
+      - name: animeId
+        type: int64
+        minimum: 1
+    response:
+      status: 200
+      type: AnimeFansubProjectTimelineResponse
+    notes:
+      - The dates belong to anime_fansub_groups, not to the neutral anime.
+
+  - name: admin-fansub-anime-project-timeline-update
+    method: PUT
+    path: /api/v1/admin/fansubs/{id}/anime/{animeId}/timeline
+    auth:
+      required: true
+      permission: fansub_group.notes.write for the addressed fansub group
+      unauthenticated_status: 401
+      forbidden_status: 403
+    request_body:
+      required: true
+      type: UpdateAnimeFansubProjectTimelineRequest
+    response:
+      status: 200
+      type: AnimeFansubProjectTimelineResponse
+    error_responses:
+      - status: 404
+        description: Anime/fansub assignment not found.
+      - status: 422
+        description: End date is before start date or before an existing release completion.
+
   - name: admin-fansub-anime-contributions-create
     method: POST
+
     path: /api/v1/admin/fansubs/{id}/anime/{animeId}/contributions
     auth:
       required: true

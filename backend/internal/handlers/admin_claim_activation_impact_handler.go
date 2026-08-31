@@ -115,7 +115,7 @@ func (h *AdminClaimActivationImpactHandler) PreviewClaimActivation(c *gin.Contex
 		// must refuse it too rather than rendering a hollow zero-role diff.
 		mutationErr := &repository.ClaimMutationError{
 			Code:       "no_activatable_roles",
-			Message:    "Keine übernehmbaren Rollen dokumentiert (nur Leitungsrollen) — bitte manuell zuweisen.",
+			Message:    "Keine übernehmbaren Rollen dokumentiert — bitte manuell zuweisen.",
 			HTTPStatus: http.StatusUnprocessableEntity,
 		}
 		c.JSON(mutationErr.HTTPStatus, gin.H{"error": gin.H{"message": mutationErr.Message, "reason_code": mutationErr.Code}})

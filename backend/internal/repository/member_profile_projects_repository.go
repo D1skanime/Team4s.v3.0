@@ -31,7 +31,7 @@ func (r *MemberProfileRepository) loadCurrentProjects(ctx context.Context, membe
 			COALESCE(fg.name, ''),
 			COALESCE(
 				jsonb_agg(DISTINCT jsonb_build_object('code', acr.role_code, 'label_de', COALESCE(rd.label_de, acr.role_code)))
-					FILTER (WHERE acr.role_code IS NOT NULL),
+					FILTER (WHERE acr.role_code IS NOT NULL AND ac.release_version_id IS NULL),
 				'[]'::jsonb
 			) AS roles,
 			BOOL_OR(ac.release_version_id IS NULL) AS is_project_level,
@@ -142,6 +142,9 @@ func (r *MemberProfileRepository) loadCurrentProjects(ctx context.Context, membe
 		for i := range items {
 			key := memberProjectKey{animeID: items[i].AnimeID, fansubGroupID: items[i].FansubGroupID}
 			if versions := byProject[key]; versions != nil {
+				for versionIndex := range versions {
+					versions[versionIndex].IsReleaseSpecific = !sameMemberRoleSets(items[i].Roles, versions[versionIndex].Roles)
+				}
 				items[i].ReleaseVersions = versions
 			} else {
 				items[i].ReleaseVersions = make([]models.PublicMemberProjectReleaseVersion, 0)
@@ -200,6 +203,21 @@ func (r *MemberProfileRepository) loadKnownFor(ctx context.Context, memberID int
 		  AND ac.status = 'confirmed'
 		  AND ac.is_public_on_member_profile = true
 		  AND ac.ended_year IS NULL
+		  AND (
+			ac.release_version_id IS NULL
+			OR NOT EXISTS (
+				SELECT 1
+				FROM anime_contributions project_ac
+				LEFT JOIN hist_fansub_group_members project_hfgm ON project_hfgm.id = project_ac.fansub_group_member_id
+				WHERE COALESCE(project_ac.member_id, project_hfgm.member_id) = $1
+				  AND project_ac.anime_id = ac.anime_id
+				  AND project_ac.fansub_group_id = ac.fansub_group_id
+				  AND project_ac.release_version_id IS NULL
+				  AND project_ac.status = 'confirmed'
+				  AND project_ac.is_public_on_member_profile = true
+				  AND project_ac.ended_year IS NULL
+			)
+		  )
 		ORDER BY ac.started_year DESC NULLS LAST, fg.name ASC, ac.id DESC
 	`, memberID)
 	if err != nil {
@@ -341,7 +359,8 @@ func (r *MemberProfileRepository) loadCurrentProjectReleaseVersionsBatch(
 		JOIN fansub_releases fr ON fr.id = rv.release_id
 		JOIN episodes ep ON ep.id = fr.episode_id AND ep.anime_id = p.anime_id
 		LEFT JOIN LATERAL (
-			SELECT COALESCE(jsonb_agg(DISTINCT jsonb_build_object('code', acr.role_code, 'label_de', COALESCE(rd.label_de, acr.role_code))) FILTER (WHERE acr.role_code IS NOT NULL), '[]'::jsonb) AS roles
+			SELECT
+				COALESCE(jsonb_agg(DISTINCT jsonb_build_object('code', acr.role_code, 'label_de', COALESCE(rd.label_de, acr.role_code))) FILTER (WHERE acr.role_code IS NOT NULL), '[]'::jsonb) AS roles
 			FROM anime_contributions ac
 			LEFT JOIN hist_fansub_group_members hfgm ON hfgm.id = ac.fansub_group_member_id
 			JOIN anime_contribution_roles acr ON acr.anime_contribution_id = ac.id
@@ -352,7 +371,24 @@ func (r *MemberProfileRepository) loadCurrentProjectReleaseVersionsBatch(
 			  AND ac.status = 'confirmed'
 			  AND ac.is_public_on_member_profile = true
 			  AND ac.ended_year IS NULL
-			  AND (ac.release_version_id = rv.id OR ac.release_version_id IS NULL)
+			  AND (
+				ac.release_version_id = rv.id
+				OR (
+					ac.release_version_id IS NULL
+					AND NOT EXISTS (
+						SELECT 1
+						FROM anime_contributions specific_ac
+						LEFT JOIN hist_fansub_group_members specific_hfgm ON specific_hfgm.id = specific_ac.fansub_group_member_id
+						WHERE COALESCE(specific_ac.member_id, specific_hfgm.member_id) = $1
+						  AND specific_ac.anime_id = p.anime_id
+						  AND specific_ac.fansub_group_id = p.fansub_group_id
+						  AND specific_ac.release_version_id = rv.id
+						  AND specific_ac.status = 'confirmed'
+						  AND specific_ac.is_public_on_member_profile = true
+						  AND specific_ac.ended_year IS NULL
+					)
+				)
+			  )
 		) own ON true
 		WHERE COALESCE(jsonb_array_length(own.roles), 0) > 0
 		ORDER BY p.anime_id, p.fansub_group_id, COALESCE(ep.sort_index, 2147483647), ep.id, rv.version, rv.id
@@ -386,6 +422,24 @@ func (r *MemberProfileRepository) loadCurrentProjectReleaseVersionsBatch(
 		return nil, fmt.Errorf("iterate current project release versions batch member=%d: %w", memberID, err)
 	}
 	return result, nil
+}
+
+// sameMemberRoleSets compares role codes as sets because the database JSON aggregate has no
+// semantic ordering. A copied project role is not a release-specific exception.
+func sameMemberRoleSets(left []models.PublicMemberRole, right []models.PublicMemberRole) bool {
+	if len(left) != len(right) {
+		return false
+	}
+	leftCodes := make(map[string]struct{}, len(left))
+	for _, role := range left {
+		leftCodes[role.Code] = struct{}{}
+	}
+	for _, role := range right {
+		if _, exists := leftCodes[role.Code]; !exists {
+			return false
+		}
+	}
+	return true
 }
 
 // decodeMemberRoles wandelt eine serverseitig aggregierte jsonb-Rollenliste

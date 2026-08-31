@@ -187,6 +187,8 @@ import {
   MemberStoryContextMember,
   MemberStoryContextRole,
   AnimeFansubProjectNote,
+  AnimeFansubProjectTimeline,
+  UpdateAnimeFansubProjectTimelineRequest,
   CreateFansubGroupNoteRequest,
   UpdateFansubGroupNoteRequest,
   CreateMemberGroupStoryRequest,
@@ -10648,4 +10650,60 @@ export async function getProjectMemberReleases(
     throw new ApiError(response.status, message);
   }
   return response.json() as Promise<CursorPage<ProjectMemberRelease>>;
+}
+
+
+type RawAnimeFansubProjectTimeline = {
+  anime_id: number;
+  fansub_group_id: number;
+  production_started_on: string | null;
+  production_completed_on: string | null;
+};
+
+function mapAnimeFansubProjectTimeline(raw: RawAnimeFansubProjectTimeline): AnimeFansubProjectTimeline {
+  return {
+    animeId: raw.anime_id,
+    fansubGroupId: raw.fansub_group_id,
+    productionStartedOn: raw.production_started_on,
+    productionCompletedOn: raw.production_completed_on,
+  };
+}
+
+export async function getAnimeFansubProjectTimeline(
+  fansubId: number,
+  animeId: number,
+): Promise<AnimeFansubProjectTimeline> {
+  const response = await apiClientFetch(
+    `/api/v1/admin/fansubs/${fansubId}/anime/${animeId}/timeline`,
+  );
+  if (!response.ok) {
+    const parsed = await parseApiErrorPayload(response, `API request failed: ${response.status}`);
+    throw new ApiError(response.status, parsed.message, null, parsed.code, parsed.details);
+  }
+  const json = (await response.json()) as { data: RawAnimeFansubProjectTimeline };
+  return mapAnimeFansubProjectTimeline(json.data);
+}
+
+export async function updateAnimeFansubProjectTimeline(
+  fansubId: number,
+  animeId: number,
+  data: UpdateAnimeFansubProjectTimelineRequest,
+): Promise<AnimeFansubProjectTimeline> {
+  const response = await apiClientFetch(
+    `/api/v1/admin/fansubs/${fansubId}/anime/${animeId}/timeline`,
+    {
+      method: "PUT",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({
+        production_started_on: data.productionStartedOn,
+        production_completed_on: data.productionCompletedOn,
+      }),
+    },
+  );
+  if (!response.ok) {
+    const parsed = await parseApiErrorPayload(response, `API request failed: ${response.status}`);
+    throw new ApiError(response.status, parsed.message, null, parsed.code, parsed.details);
+  }
+  const json = (await response.json()) as { data: RawAnimeFansubProjectTimeline };
+  return mapAnimeFansubProjectTimeline(json.data);
 }

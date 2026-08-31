@@ -704,6 +704,9 @@ components:
           type: integer
           format: int64
           nullable: true
+        has_own_release_work:
+          type: boolean
+          description: True after the current member created a non-deleted note or image in this release version. Always false for project-wide contributions.
         fansub_group_name:
           type: string
           nullable: true
@@ -820,10 +823,12 @@ components:
           type: string
           nullable: true
         role_codes:
+          description: Rollen, die für das gesamte Projekt gelten; release-spezifische Rollen stehen nur bei release_versions.
           type: array
           items:
             type: string
         role_labels:
+          description: Beschriftungen der projektweiten Rollen in role_codes.
           type: array
           items:
             type: string

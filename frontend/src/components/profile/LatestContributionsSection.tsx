@@ -40,7 +40,7 @@ function mediaURL(item: PublicMemberLatestContribution): string {
 }
 
 function contributionTitle(item: PublicMemberLatestContribution): string {
-  return item.title?.trim() || item.anime_title
+  return item.title?.trim() || (item.type === 'text' ? item.anime_title : '')
 }
 
 const MEDIA_CATEGORY_ICONS: Record<ReleaseVersionMediaCategory, LucideIcon> = {
@@ -102,7 +102,6 @@ function ContextLine({ item, referenceNow }: { item: PublicMemberLatestContribut
   return (
     <div className={styles.contextLine}>
       <span className={styles.projectChip}>{item.anime_title}</span>
-      <span>{item.release_version_label}</span>
       {timeLabel ? <span>{timeLabel}</span> : null}
     </div>
   )
@@ -203,12 +202,6 @@ export function LatestContributionsSection({
                       loading="lazy"
                       style={{ objectFit: 'cover' }}
                     />
-                    {category && CategoryIcon ? (
-                      <span className={styles.mediaTypePill}>
-                        <CategoryIcon size={13} aria-hidden="true" />
-                        {category.label}
-                      </span>
-                    ) : null}
                   </div>
                   <div className={styles.mediaBody}>
                     <ContextLine item={item} referenceNow={referenceNow} />
@@ -216,7 +209,13 @@ export function LatestContributionsSection({
                       <ImageIcon size={14} aria-hidden="true" />
                       Medienbeitrag
                     </Badge>
-                    <strong>{contributionTitle(item)}</strong>
+                    {category && CategoryIcon ? (
+                      <Badge variant="muted">
+                        <CategoryIcon size={14} aria-hidden="true" />
+                        {category.label}
+                      </Badge>
+                    ) : null}
+                    {contributionTitle(item) ? <strong>{contributionTitle(item)}</strong> : null}
                     {description ? <p>{description}</p> : null}
                   </div>
                 </Card>

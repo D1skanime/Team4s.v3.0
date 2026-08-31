@@ -13,7 +13,7 @@ package permissions
 // Precedence (D01), evaluated per action:
 //
 //	platform_admin > disabled_actor > no_active_membership > user_deny > user_allow >
-//	role_grant > specialized_grant > no_grant
+//	membership_baseline > role_grant > specialized_grant > no_grant
 //
 // Dormant overrides (D02): a stored user_allow/user_deny row always remains visible on the
 // resulting CapabilityRightState even when a higher-precedence source (disabled actor, no
@@ -36,6 +36,7 @@ package permissions
 
 import (
 	"context"
+	"slices"
 	"sort"
 	"strings"
 )
@@ -45,12 +46,13 @@ import (
 // 137-02 (shared/contracts/admin-capabilities.yaml, openapi.yaml, admin-capability.ts):
 // idp_global_role is not produced by this group-scoped resolver.
 const (
-	ProvenancePlatformAdmin    = "platform_admin"
-	ProvenanceGroupRole        = "group_role"
-	ProvenanceUserAllow        = "user_allow"
-	ProvenanceUserDeny         = "user_deny"
-	ProvenanceSpecializedGrant = "specialized_grant"
-	ProvenanceNoGrant          = "no_grant"
+	ProvenancePlatformAdmin      = "platform_admin"
+	ProvenanceGroupRole          = "group_role"
+	ProvenanceMembershipBaseline = "membership_baseline"
+	ProvenanceUserAllow          = "user_allow"
+	ProvenanceUserDeny           = "user_deny"
+	ProvenanceSpecializedGrant   = "specialized_grant"
+	ProvenanceNoGrant            = "no_grant"
 )
 
 // Fine-grained machine reason codes (D04: "reason_code must be machine-readable"). The
@@ -59,12 +61,26 @@ const (
 // ReasonCode stays consistent with the legacy Result.ReasonCode vocabulary wherever the
 // two concepts coincide; the remaining values are new and specific to this resolver.
 const (
-	ReasonCodeGroupRole        = "group_role"
-	ReasonCodeUserAllow        = "user_allow"
-	ReasonCodeUserDeny         = "user_deny"
-	ReasonCodeSpecializedGrant = "specialized_grant"
-	ReasonCodeNoGrant          = "no_grant"
+	ReasonCodeGroupRole          = "group_role"
+	ReasonCodeMembershipBaseline = "membership_baseline"
+	ReasonCodeUserAllow          = "user_allow"
+	ReasonCodeUserDeny           = "user_deny"
+	ReasonCodeSpecializedGrant   = "specialized_grant"
+	ReasonCodeNoGrant            = "no_grant"
 )
+
+// membershipBaselineActions are the fixed rights every active group member receives.
+// A stored user_deny remains able to revoke one of these defaults for an exception.
+var membershipBaselineActions = []Action{
+	ActionFansubGroupMembersView,
+	ActionFansubGroupMediaView,
+	ActionFansubGroupMediaUpload,
+}
+
+// IsMembershipBaselineAction reports whether an action belongs to the active-membership baseline.
+func IsMembershipBaselineAction(action Action) bool {
+	return slices.Contains(membershipBaselineActions, action)
+}
 
 // UserCapabilityOverride is one stored personal allow/deny row for one (actor,
 // fansubGroupID) pair, mirroring AuthzUserOverridesRepository.UserGroupCapabilityOverride's
@@ -274,8 +290,8 @@ func (s *Service) specializedGrantProviders() []SpecializedGrantProvider {
 }
 
 // evaluateGroupRights is the pure D01 precedence engine: platform_admin > disabled_actor >
-// no_active_membership > user_deny > user_allow > role_grant > specialized_grant >
-// no_grant. It never issues I/O and is exercised directly by effective_rights_test.go's
+// no_active_membership > user_deny > user_allow > membership_baseline > role_grant >
+// specialized_grant > no_grant. It never issues I/O and is exercised directly by effective_rights_test.go's
 // fixture matrix.
 func evaluateGroupRights(actor Actor, fansubGroupID int64, sources groupRightsSources, actions []Action) *GroupRightsResolution {
 	res := &GroupRightsResolution{
@@ -337,6 +353,10 @@ func evaluateGroupRights(actor Actor, fansubGroupID int64, sources groupRightsSo
 			state.Allowed = true
 			state.DecisiveSource = ProvenanceUserAllow
 			state.ReasonCode = ReasonCodeUserAllow
+		case IsMembershipBaselineAction(action):
+			state.Allowed = true
+			state.DecisiveSource = ProvenanceMembershipBaseline
+			state.ReasonCode = ReasonCodeMembershipBaseline
 		case len(state.GrantingRoles) > 0:
 			state.Allowed = true
 			state.DecisiveSource = ProvenanceGroupRole

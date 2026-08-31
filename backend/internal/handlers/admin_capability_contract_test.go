@@ -69,7 +69,7 @@ func TestEffectiveRightStateProvenanceContract(t *testing.T) {
 
 	expectedProvenance := []string{
 		"idp_global_role", "group_role", "user_allow", "user_deny",
-		"platform_admin", "specialized_grant", "no_grant",
+		"platform_admin", "membership_baseline", "specialized_grant", "no_grant",
 	}
 	expectedRequired := []string{
 		"action_code", "allowed", "provenance", "decisive", "non_deniable",

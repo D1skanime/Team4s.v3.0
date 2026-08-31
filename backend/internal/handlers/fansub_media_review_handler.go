@@ -59,6 +59,7 @@ type FansubMediaReviewRepository interface {
 
 	// GetFansubMediaOwner gibt zurück, welcher Gruppe das Medium gehört (Cross-Group-Prüfung T-78-03).
 	GetFansubMediaOwner(ctx context.Context, mediaID int64) (int64, error)
+	FansubGroupMediaUploadedByAppUser(ctx context.Context, fansubGroupID, mediaID, appUserID int64) (bool, error)
 	UpdateFansubGroupMediaMetadata(ctx context.Context, fansubGroupID, mediaID int64, patch repository.FansubGroupMediaMetadataPatch) error
 	ReorderFansubGroupMedia(ctx context.Context, fansubGroupID int64, mediaIDs []int64) error
 	GetFansubGroupMediaPermissionsForAppUser(ctx context.Context, fansubGroupID int64, appUserID int64) (models.FansubGroupMediaPermissions, error)
@@ -323,14 +324,9 @@ func (h *FansubMediaReviewHandler) PatchFansubMediaReview(c *gin.Context) {
 		return
 	}
 
-	result, err := h.permissionSvc.CanForFansubGroup(c.Request.Context(), actor, permissions.ActionFansubGroupMediaUpdate, fansubID)
+	canUpdateAll, err := h.permissionSvc.CanForFansubGroup(c.Request.Context(), actor, permissions.ActionFansubGroupMediaUpdate, fansubID)
 	if err != nil {
 		writePermissionInternalError(c, err, "Berechtigung für Medien-Review konnte nicht geprüft werden.")
-		return
-	}
-	if !result.Allowed {
-		auditPermissionDenied(c, h.auditLogRepo, identity, "fansub_group_media.review.denied", &fansubID, "fansub_group_media", &mediaID, permissions.ActionFansubGroupMediaUpdate, result)
-		writePermissionDenied(c, result)
 		return
 	}
 
@@ -372,10 +368,6 @@ func (h *FansubMediaReviewHandler) PatchFansubMediaReview(c *gin.Context) {
 		}
 		patch.ReviewStatus = &status
 	}
-
-	// Leerer Patch (CR-02): weder visibility noch review_status vorhanden → 400 vor
-	// Owner-Prüfung/Mutation/Audit. Verhindert Phantom-Erfolgsaudits für No-op-Writes
-	// und Cross-Group-Probe-Spuren über einen leeren Body.
 	metadataPatch, err := parseFansubGroupMediaMetadataPatch(body)
 	if err != nil {
 		badRequest(c, err.Error())
@@ -384,6 +376,43 @@ func (h *FansubMediaReviewHandler) PatchFansubMediaReview(c *gin.Context) {
 	if patch.Visibility == nil && patch.ReviewStatus == nil && metadataPatch.IsEmpty() {
 		badRequest(c, "kein Feld zum Aktualisieren")
 		return
+	}
+
+	if patch.ReviewStatus != nil {
+		canReviewImage, permissionErr := h.permissionSvc.CanForFansubGroup(c.Request.Context(), actor, permissions.ActionFansubGroupEdit, fansubID)
+		if permissionErr != nil {
+			writePermissionInternalError(c, permissionErr, "Berechtigung für Medienprüfung konnte nicht geprüft werden.")
+			return
+		}
+		if !canReviewImage.Allowed {
+			auditPermissionDenied(c, h.auditLogRepo, identity, "fansub_group_media.review.denied", &fansubID, "fansub_group_media", &mediaID, permissions.ActionFansubGroupEdit, canReviewImage)
+			writePermissionDenied(c, canReviewImage)
+			return
+		}
+	}
+
+	authorizationAction := permissions.ActionFansubGroupMediaUpdate
+	requiresMediaUpdate := patch.Visibility != nil || !metadataPatch.IsEmpty()
+	if patch.ReviewStatus != nil && !requiresMediaUpdate {
+		authorizationAction = permissions.ActionFansubGroupEdit
+	}
+	if requiresMediaUpdate && !canUpdateAll.Allowed {
+		if patch.Visibility != nil || metadataPatch.Category != nil || metadataPatch.SortOrder != nil {
+			auditPermissionDenied(c, h.auditLogRepo, identity, "fansub_group_media.review.denied", &fansubID, "fansub_group_media", &mediaID, permissions.ActionFansubGroupMediaUpdate, canUpdateAll)
+			writePermissionDenied(c, canUpdateAll)
+			return
+		}
+		canUpdateOwn, permissionErr := h.permissionSvc.CanForFansubGroup(c.Request.Context(), actor, permissions.ActionFansubGroupMediaUpdateOwn, fansubID)
+		if permissionErr != nil {
+			writePermissionInternalError(c, permissionErr, "Berechtigung für eigene Medien konnte nicht geprüft werden.")
+			return
+		}
+		if !canUpdateOwn.Allowed {
+			auditPermissionDenied(c, h.auditLogRepo, identity, "fansub_group_media.review.denied", &fansubID, "fansub_group_media", &mediaID, permissions.ActionFansubGroupMediaUpdateOwn, canUpdateOwn)
+			writePermissionDenied(c, canUpdateOwn)
+			return
+		}
+		authorizationAction = permissions.ActionFansubGroupMediaUpdateOwn
 	}
 
 	// Owner-Mismatch-Prüfung (T-78-03): Medium muss zur angegebenen Gruppe gehören
@@ -401,6 +430,19 @@ func (h *FansubMediaReviewHandler) PatchFansubMediaReview(c *gin.Context) {
 		// Tampering-Mitigation: Medium gehört einer anderen Gruppe → 403
 		c.JSON(http.StatusForbidden, gin.H{"error": gin.H{"message": "medium gehört nicht zu dieser gruppe"}})
 		return
+	}
+
+	if authorizationAction == permissions.ActionFansubGroupMediaUpdateOwn {
+		uploadedByActor, ownershipErr := h.repo.FansubGroupMediaUploadedByAppUser(c.Request.Context(), fansubID, mediaID, identity.AppUserID)
+		if ownershipErr != nil {
+			log.Printf("fansub media review: FansubGroupMediaUploadedByAppUser error (fansub_id=%d, media_id=%d): %v", fansubID, mediaID, ownershipErr)
+			internalError(c, "interner serverfehler")
+			return
+		}
+		if !uploadedByActor {
+			c.JSON(http.StatusForbidden, gin.H{"error": gin.H{"message": "du darfst nur Textangaben deiner eigenen Gruppenmedien ändern"}})
+			return
+		}
 	}
 
 	// Mutation ausführen (schreibt nur visibility/review_status — NIEMALS owner_type/owner_id)
@@ -435,7 +477,7 @@ func (h *FansubMediaReviewHandler) PatchFansubMediaReview(c *gin.Context) {
 		ScopeID:        &fansubID,
 		TargetType:     "fansub_group_media",
 		TargetID:       &mediaID,
-		Action:         string(permissions.ActionFansubGroupMediaUpdate),
+		Action:         string(authorizationAction),
 		Outcome:        "allowed",
 	})
 

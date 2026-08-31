@@ -28,6 +28,7 @@ type FansubEditWorkspaceSectionProps = {
   capabilities: FansubGroupCapabilities | null;
   isPlatformAdmin: boolean;
   hasAuthSession: boolean;
+  ownProjectAssignmentKeys: string[];
   isClientInitialized: boolean;
   activeMainTab: MainTab;
   availableMainTabs: ReturnType<typeof visibleMainTabs>;
@@ -40,6 +41,7 @@ type FansubEditWorkspaceSectionProps = {
   contributions: ReleaseContributions;
   canViewProjectNotes: boolean;
   canEditProjectNotes: boolean;
+  canEditProjectTimeline: boolean;
   canViewReleaseContributors: boolean;
   canEditReleaseContributors: boolean;
   canUseReleaseMedia: boolean;
@@ -65,6 +67,7 @@ export function FansubEditWorkspaceSection({
   capabilities,
   isPlatformAdmin,
   hasAuthSession,
+  ownProjectAssignmentKeys,
   isClientInitialized,
   activeMainTab,
   availableMainTabs,
@@ -77,6 +80,7 @@ export function FansubEditWorkspaceSection({
   contributions,
   canViewProjectNotes,
   canEditProjectNotes,
+  canEditProjectTimeline,
   canViewReleaseContributors,
   canEditReleaseContributors,
   canUseReleaseMedia,
@@ -139,10 +143,12 @@ export function FansubEditWorkspaceSection({
           contributions={contributions}
           canViewProjectNotes={canViewProjectNotes}
           canEditProjectNotes={canEditProjectNotes}
+          canEditProjectTimeline={canEditProjectTimeline}
           canViewReleaseContributors={canViewReleaseContributors}
           canEditReleaseContributors={canEditReleaseContributors}
           canUseReleaseMedia={canUseReleaseMedia}
           canUseReleaseNotes={canUseReleaseNotes}
+          ownProjectAssignmentKeys={ownProjectAssignmentKeys}
           canUseAdminReleaseDetails={canUseAdminReleaseDetails}
           canOpenReleaseDrawer={canOpenReleaseDrawer}
           isSectionOpen={isSectionOpen}

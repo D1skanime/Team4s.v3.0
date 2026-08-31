@@ -48,6 +48,16 @@ function cloneRichTextValue(value: unknown | null): object {
   return JSON.parse(JSON.stringify(value)) as object
 }
 
+export function areRichTextValuesEqual(left: unknown | null, right: unknown | null): boolean {
+  if (left === right) return true
+
+  try {
+    return JSON.stringify(left) === JSON.stringify(right)
+  } catch {
+    return false
+  }
+}
+
 // ---------- Toolbar ----------
 
 type ToolbarProps = {
@@ -461,7 +471,8 @@ export function RichTextEditor({
   // Sync external value changes (e.g. loading saved data)
   useEffect(() => {
     if (!editor) return
-    if (value === prevValue.current) return
+    // Consumers may clone JSON on each render. Only genuinely changed content may reset TipTap.
+    if (areRichTextValuesEqual(value, prevValue.current)) return
     prevValue.current = value
     editor.commands.setContent(cloneRichTextValue(value))
   }, [editor, value])

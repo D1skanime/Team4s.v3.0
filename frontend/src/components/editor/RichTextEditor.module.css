@@ -308,6 +308,17 @@
   margin: 0 0 0.75em;
 }
 
+
+/* Keep TipTap list items as full-width blocks while typing. */
+.editorContent :global(.ProseMirror li) {
+  display: list-item;
+  min-width: 0;
+}
+
+.editorContent :global(.ProseMirror li > p) {
+  margin: 0;
+  min-width: 0;
+}
 .editorContent :global(.ProseMirror blockquote) {
   border-left: 3px solid color-mix(in srgb, #82122c 42%, transparent);
   margin: 0 0 0.75em;

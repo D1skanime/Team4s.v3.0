@@ -1,7 +1,7 @@
 'use client'
 
 import { Fragment, useEffect, useState } from 'react'
-import { Plus, Pencil, Trash2, Clock, MoreHorizontal, RefreshCw } from 'lucide-react'
+import { Plus, Pencil, Trash2, Clock, RefreshCw } from 'lucide-react'
 
 import { useReleaseSegments } from './useReleaseSegments'
 import {
@@ -164,7 +164,6 @@ export function SegmenteTab({ animeId, groupId, version, episodeNumber, duration
   const hasAuthSession = hasAccessToken || hasRefreshToken
   const [suggestions, setSuggestions] = useState<AdminThemeSegment[]>([])
   const [suggestionsLoading, setSuggestionsLoading] = useState(false)
-  const [dropdownOpenId, setDropdownOpenId] = useState<number | null>(null)
   const [openAssignmentsFor, setOpenAssignmentsFor] = useState<number | null>(null)
   const [assignmentBusySegmentId, setAssignmentBusySegmentId] = useState<number | null>(null)
 
@@ -705,31 +704,15 @@ export function SegmenteTab({ animeId, groupId, version, episodeNumber, duration
                           >
                             <Pencil size={14} />
                           </button>
-                          <div style={{ position: 'relative' }}>
-                            <button
-                              type="button"
-                              className={styles.actionButton}
-                              title="Mehr Aktionen"
-                              onClick={() => setDropdownOpenId(dropdownOpenId === segment.id ? null : segment.id)}
-                            >
-                              <MoreHorizontal size={14} />
-                            </button>
-                            {dropdownOpenId === segment.id ? (
-                              <div className={styles.dropdown}>
-                                <button
-                                  type="button"
-                                  className={styles.dropdownItem}
-                                  onClick={() => {
-                                    setDropdownOpenId(null)
-                                    void handleDelete(segment)
-                                  }}
-                                >
-                                  <Trash2 size={13} />
-                                  Löschen
-                                </button>
-                              </div>
-                            ) : null}
-                          </div>
+                          <button
+                            type="button"
+                            className={`${styles.actionButton} ${styles.actionButtonDanger}`}
+                            title="Segment löschen"
+                            aria-label="Segment löschen"
+                            onClick={() => { void handleDelete(segment) }}
+                          >
+                            <Trash2 size={14} />
+                          </button>
                         </div>
                       </TableCell>
                     </TableRow>

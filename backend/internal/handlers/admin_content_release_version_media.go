@@ -1069,6 +1069,7 @@ type releaseVersionCapabilitiesResponse struct {
 	CanDeleteOwnMedia bool `json:"can_delete_own_media"`
 	CanEditNotes      bool `json:"can_edit_notes"`
 	CanManageSegments bool `json:"can_manage_segments"`
+	CanEditMetadata bool `json:"can_edit_metadata"`
 }
 
 func (h *AdminContentHandler) GetReleaseVersionCapabilities(c *gin.Context) {
@@ -1123,7 +1124,13 @@ func (h *AdminContentHandler) GetReleaseVersionCapabilities(c *gin.Context) {
 		return
 	}
 
-	if !canViewVersion.Allowed && !canViewMedia.Allowed && !canUploadMedia.Allowed && !canUpdateMedia.Allowed && !canDeleteMedia.Allowed && !canEditNotes.Allowed && !canManageSegments.Allowed {
+	canEditMetadata, err := h.permissionSvc.CanForReleaseVersion(c.Request.Context(), actor, permissions.ActionReleaseVersionMetadataUpdate, versionID)
+	if err != nil {
+		writePermissionInternalError(c, err, "Capabilities konnten nicht geladen werden.")
+		return
+	}
+
+	if !canViewVersion.Allowed && !canViewMedia.Allowed && !canUploadMedia.Allowed && !canUpdateMedia.Allowed && !canDeleteMedia.Allowed && !canEditNotes.Allowed && !canManageSegments.Allowed && !canEditMetadata.Allowed {
 		writePermissionDenied(c, canViewVersion)
 		return
 	}
@@ -1136,5 +1143,6 @@ func (h *AdminContentHandler) GetReleaseVersionCapabilities(c *gin.Context) {
 		CanDeleteOwnMedia: releaseVersionMediaCanDeleteOwn(canViewMedia, canUploadMedia, canUpdateMedia, canDeleteMedia),
 		CanEditNotes:      canEditNotes.Allowed,
 		CanManageSegments: canManageSegments.Allowed,
+		CanEditMetadata: canEditMetadata.Allowed,
 	}})
 }

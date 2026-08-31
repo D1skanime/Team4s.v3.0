@@ -49,6 +49,7 @@ type HistGroupMemberPatchInput struct {
 	JoinedDate  **time.Time
 	LeftDate    **time.Time
 	Status      *string
+	DisplayName *string
 	Visibility  *string
 	ConfirmedBy *int64
 }
@@ -341,7 +342,7 @@ func (r *HistGroupMembersRepository) Update(ctx context.Context, fansubGroupID i
 	}
 	if input.Status != nil {
 		statusArgIdx := argIdx
-		setClauses = append(setClauses, fmt.Sprintf("status = $%d", statusArgIdx))
+		setClauses = append(setClauses, fmt.Sprintf("status = $%d::text", statusArgIdx))
 		args = append(args, *input.Status)
 		argIdx++
 		if input.ConfirmedBy != nil {
@@ -349,13 +350,13 @@ func (r *HistGroupMembersRepository) Update(ctx context.Context, fansubGroupID i
 			args = append(args, *input.ConfirmedBy)
 			argIdx++
 			setClauses = append(setClauses,
-				fmt.Sprintf("confirmed_by = CASE WHEN $%d = 'confirmed' AND (status <> 'confirmed' OR confirmed_by IS NULL) THEN $%d WHEN $%d <> 'confirmed' THEN NULL ELSE confirmed_by END", statusArgIdx, actorArgIdx, statusArgIdx),
-				fmt.Sprintf("confirmed_at = CASE WHEN $%d = 'confirmed' AND (status <> 'confirmed' OR confirmed_at IS NULL) THEN NOW() WHEN $%d <> 'confirmed' THEN NULL ELSE confirmed_at END", statusArgIdx, statusArgIdx),
+				fmt.Sprintf("confirmed_by = CASE WHEN $%d::text = 'confirmed' AND (status <> 'confirmed' OR confirmed_by IS NULL) THEN $%d WHEN $%d::text <> 'confirmed' THEN NULL ELSE confirmed_by END", statusArgIdx, actorArgIdx, statusArgIdx),
+				fmt.Sprintf("confirmed_at = CASE WHEN $%d::text = 'confirmed' AND (status <> 'confirmed' OR confirmed_at IS NULL) THEN NOW() WHEN $%d::text <> 'confirmed' THEN NULL ELSE confirmed_at END", statusArgIdx, statusArgIdx),
 			)
 		} else {
 			setClauses = append(setClauses,
-				fmt.Sprintf("confirmed_by = CASE WHEN $%d <> 'confirmed' THEN NULL ELSE confirmed_by END", statusArgIdx),
-				fmt.Sprintf("confirmed_at = CASE WHEN $%d <> 'confirmed' THEN NULL ELSE confirmed_at END", statusArgIdx),
+				fmt.Sprintf("confirmed_by = CASE WHEN $%d::text <> 'confirmed' THEN NULL ELSE confirmed_by END", statusArgIdx),
+				fmt.Sprintf("confirmed_at = CASE WHEN $%d::text <> 'confirmed' THEN NULL ELSE confirmed_at END", statusArgIdx),
 			)
 		}
 	}
@@ -365,7 +366,7 @@ func (r *HistGroupMembersRepository) Update(ctx context.Context, fansubGroupID i
 		argIdx++
 	}
 
-	if len(setClauses) == 0 {
+	if len(setClauses) == 0 && input.DisplayName == nil {
 		return r.GetByIDForFansub(ctx, fansubGroupID, id)
 	}
 
@@ -374,13 +375,33 @@ func (r *HistGroupMembersRepository) Update(ctx context.Context, fansubGroupID i
 	idxID := argIdx
 	argIdx++
 	args = append(args, fansubGroupID)
+	idxFansubGroupID := argIdx
+	argIdx++
+
+	memberUpdateCTE := ""
+	if input.DisplayName != nil {
+		displayNameArgIdx := argIdx
+		args = append(args, *input.DisplayName)
+		memberUpdateCTE = fmt.Sprintf(`,
+		updated_member AS (
+			UPDATE members
+			SET nickname = $%d
+			FROM updated
+			WHERE members.id = updated.member_id
+		)`, displayNameArgIdx)
+	}
 
 	query := fmt.Sprintf(`
-		UPDATE hist_fansub_group_members
-		SET %s
-		WHERE id = $%d AND fansub_group_id = $%d
-		RETURNING id, fansub_group_id, member_id, joined_date, left_date, status, visibility, confirmed_by, confirmed_at, created_by, created_at, updated_at
-	`, strings.Join(setClauses, ", "), idxID, argIdx)
+		WITH updated AS (
+			UPDATE hist_fansub_group_members
+			SET %s
+			WHERE id = $%d AND fansub_group_id = $%d
+			RETURNING id, fansub_group_id, member_id, joined_date, left_date, status, visibility, confirmed_by, confirmed_at, created_by, created_at, updated_at
+		)
+		%s
+		SELECT id, fansub_group_id, member_id, joined_date, left_date, status, visibility, confirmed_by, confirmed_at, created_by, created_at, updated_at
+		FROM updated
+	`, strings.Join(setClauses, ", "), idxID, idxFansubGroupID, memberUpdateCTE)
 
 	var row HistGroupMemberRow
 	err := r.db.QueryRow(ctx, query, args...).Scan(

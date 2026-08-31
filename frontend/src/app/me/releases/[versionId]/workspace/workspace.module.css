@@ -63,3 +63,31 @@
     justify-content: flex-start;
   }
 }
+
+.metadataDescription {
+  margin: 0 0 16px;
+  color: var(--text-soft, #6b7280);
+}
+
+.metadataForm {
+  display: grid;
+  gap: 16px;
+}
+
+.metadataError,
+.metadataSuccess {
+  margin: 0;
+  padding: 10px 12px;
+  border-radius: 8px;
+  font-size: 0.9rem;
+}
+
+.metadataError {
+  color: #a4262c;
+  background: #fff1f0;
+}
+
+.metadataSuccess {
+  color: #176b44;
+  background: #edfbf2;
+}

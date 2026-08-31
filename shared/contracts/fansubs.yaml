@@ -1121,6 +1121,9 @@ types_append:
     can_view_group_media: bool
     can_upload_group_media: bool
     can_update_group_media: bool
+    can_review_group_media: bool
+    can_review_text: bool
+    can_update_own_group_media: bool
     can_delete_own_group_media: bool
     can_delete_group_media: bool
     can_reorder_group_media: bool

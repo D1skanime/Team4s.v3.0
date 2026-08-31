@@ -3,10 +3,12 @@
 import { cleanup, fireEvent, render, screen, waitFor } from '@testing-library/react'
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
 
+const getAnimeFansubProjectTimelineMock = vi.fn()
 const getEpisodeVersionEditorContextMock = vi.fn()
 const getMyProjectDetailMock = vi.fn()
 const getOwnProfileMock = vi.fn()
 const getReleaseVersionCapabilitiesMock = vi.fn()
+const updateEpisodeVersionMock = vi.fn()
 const segmenteTabMock = vi.fn()
 const searchParamsMock = vi.hoisted(() => vi.fn())
 const useAuthSessionMock = vi.hoisted(() => vi.fn())
@@ -28,10 +30,12 @@ vi.mock('@/lib/api', () => ({
       this.status = status
     }
   },
+  getAnimeFansubProjectTimeline: (...args: unknown[]) => getAnimeFansubProjectTimelineMock(...args),
   getEpisodeVersionEditorContext: (...args: unknown[]) => getEpisodeVersionEditorContextMock(...args),
   getMyProjectDetail: (...args: unknown[]) => getMyProjectDetailMock(...args),
   getOwnProfile: (...args: unknown[]) => getOwnProfileMock(...args),
   getReleaseVersionCapabilities: (...args: unknown[]) => getReleaseVersionCapabilitiesMock(...args),
+  updateEpisodeVersion: (...args: unknown[]) => updateEpisodeVersionMock(...args),
   getAuthSessionSnapshot: () => ({
     hasAccessToken: true,
     hasRefreshToken: true,
@@ -76,6 +80,7 @@ function mockWorkspaceData(capabilityOverrides: Partial<{
   can_delete_media: boolean
   can_edit_notes: boolean
   can_manage_segments: boolean
+  can_edit_metadata: boolean
 }> = {}) {
   getEpisodeVersionEditorContextMock.mockResolvedValue({
     data: {
@@ -108,6 +113,12 @@ function mockWorkspaceData(capabilityOverrides: Partial<{
   })
   getOwnProfileMock.mockResolvedValue({
     data: { member_id: 77 },
+  })
+  getAnimeFansubProjectTimelineMock.mockResolvedValue({
+    animeId: 10,
+    fansubGroupId: 1,
+    productionStartedOn: '2026-01-01',
+    productionCompletedOn: '2026-12-31',
   })
   getMyProjectDetailMock.mockResolvedValue({
     data: {
@@ -189,6 +200,16 @@ describe('MeReleaseWorkspacePage', () => {
     expect(screen.getByTestId('media-section').textContent).toContain('Media 42')
   })
 
+  it('opens segments directly from a release-specific dashboard link', async () => {
+    searchParamsMock.mockReturnValue(new URLSearchParams('tab=segments&return_to=/me/projects/10/group/1'))
+    mockWorkspaceData({ can_manage_segments: true })
+
+    render(<MeReleaseWorkspacePage />)
+
+    expect(await screen.findByRole('tab', { name: 'Segmente', selected: true })).toBeTruthy()
+    expect(screen.getByTestId('segments-tab')).toBeTruthy()
+  })
+
   it('passes the own member id to the notes tab', async () => {
     render(<MeReleaseWorkspacePage />)
 
@@ -196,6 +217,32 @@ describe('MeReleaseWorkspacePage', () => {
     fireEvent.click(notesTab)
 
     expect(screen.getByTestId('notes-tab').textContent).toContain('Notes 42 member 77')
+  })
+
+  it('shows editable release basis data only with the metadata capability', async () => {
+    mockWorkspaceData({ can_edit_metadata: true })
+    updateEpisodeVersionMock.mockResolvedValue({
+      data: {
+        ...(await getEpisodeVersionEditorContextMock()).data.version,
+        title: 'Mein Release',
+      },
+    })
+
+    render(<MeReleaseWorkspacePage />)
+
+    expect(await screen.findByRole('tab', { name: 'Basisdaten', selected: true })).toBeTruthy()
+    fireEvent.change(screen.getByLabelText('Release-Name'), { target: { value: 'Mein Release' } })
+    fireEvent.click(screen.getByRole('button', { name: 'Basisdaten speichern' }))
+
+    await waitFor(() => expect(updateEpisodeVersionMock).toHaveBeenCalledWith(42, expect.objectContaining({ title: 'Mein Release' })))
+    expect(await screen.findByText('Basisdaten gespeichert.')).toBeTruthy()
+  })
+
+  it('hides basis data without the metadata capability', async () => {
+    render(<MeReleaseWorkspacePage />)
+
+    await screen.findByRole('heading', { name: 'Naruto' })
+    expect(screen.queryByRole('tab', { name: 'Basisdaten' })).toBeNull()
   })
 
   it('hides the project return action when the workspace was opened without a project return path', async () => {

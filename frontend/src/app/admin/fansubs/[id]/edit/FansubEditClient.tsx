@@ -6,6 +6,7 @@ import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { buildMediaPreviewURL } from "@/components/admin/MediaUpload";
 import { Button } from "@/components/ui";
 import { useAuthSession } from "@/lib/useAuthSession";
+import { getMyAnimeContributions } from "@/lib/api";
 import type { FansubGroup, FansubGroupCapabilities } from "@/types/fansub";
 import {
   canEditReleaseNotes,
@@ -44,6 +45,7 @@ export function FansubEditClient({
   const [group, setGroup] = useState<FansubGroup | null>(null);
   const [error, setError] = useState<string | null>(null);
   const [toast, setToast] = useState<string | null>(null);
+  const [ownProjectAssignmentKeys, setOwnProjectAssignmentKeys] = useState<string[]>([]);
   const { hasAccessToken, hasRefreshToken, isClientInitialized } =
     useAuthSession();
   const hasAuthSession = hasAccessToken || hasRefreshToken;
@@ -86,6 +88,38 @@ export function FansubEditClient({
     isPlatformAdmin,
     capabilities,
   });
+  useEffect(() => {
+    if (isPlatformAdmin || !hasAuthSession || activeMainTab !== "releases") {
+      setOwnProjectAssignmentKeys([]);
+      return;
+    }
+
+    let cancelled = false;
+    void getMyAnimeContributions()
+      .then(({ data }) => {
+        if (cancelled) return;
+        const keys = new Set<string>();
+        for (const contribution of data) {
+          if (
+            contribution.status !== "confirmed" ||
+            contribution.fansub_group_id !== fansubID
+          ) {
+            continue;
+          }
+          keys.add(
+            `${contribution.anime_id}:${contribution.release_version_id ?? "all"}`,
+          );
+        }
+        setOwnProjectAssignmentKeys([...keys]);
+      })
+      .catch(() => {
+        if (!cancelled) setOwnProjectAssignmentKeys([]);
+      });
+
+    return () => {
+      cancelled = true;
+    };
+  }, [activeMainTab, fansubID, hasAuthSession, isPlatformAdmin]);
   const { isSectionOpen, onSectionToggle } = useFansubEditMobileSections();
 
   // D-06/D-09/D-34: Claims-Link-out zur zentralen /admin/claims-Fläche (Plan 138-10, bereits
@@ -123,6 +157,8 @@ export function FansubEditClient({
     isPlatformAdmin,
     capabilities,
   );
+  const canEditProjectTimeline =
+    isPlatformAdmin || Boolean(capabilities?.can_edit_project_timeline);
   const canUseAdminReleaseDetails = isPlatformAdmin;
   const canOpenReleaseDrawer = canUseAdminReleaseDetails || canUseReleaseMedia;
 
@@ -262,6 +298,7 @@ export function FansubEditClient({
         isPlatformAdmin={isPlatformAdmin}
         hasAuthSession={hasAuthSession}
         isClientInitialized={isClientInitialized}
+        ownProjectAssignmentKeys={ownProjectAssignmentKeys}
         activeMainTab={activeMainTab}
         availableMainTabs={availableMainTabs}
         onMainTabChange={handleMainTabChange}
@@ -273,6 +310,7 @@ export function FansubEditClient({
         contributions={contributions}
         canViewProjectNotes={canViewProjectNotes}
         canEditProjectNotes={canEditProjectNotes}
+        canEditProjectTimeline={canEditProjectTimeline}
         canViewReleaseContributors={canSeeReleaseContributors}
         canEditReleaseContributors={canEditReleaseContributors}
         canUseReleaseMedia={canUseReleaseMedia}

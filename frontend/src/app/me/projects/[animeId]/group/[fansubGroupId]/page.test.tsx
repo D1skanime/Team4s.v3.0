@@ -149,22 +149,21 @@ describe('MyProjectDetailPage', () => {
     expect(screen.getByRole('link', { name: 'Zurück zum Profil' }).getAttribute('href')).toBe('/me/profile')
   })
 
-  it('shows all release versions with search available in all mode', async () => {
+  it('matches episode numbers exactly while accepting leading zeros', async () => {
     getMyProjectDetailMock.mockResolvedValue({
       data: makeProject([
-        makeRelease({ release_version_id: 41, episode_number: '01' }),
-        makeRelease({ release_version_id: 43, episode_number: '03', has_own_contribution: false, role_codes: [], role_labels: [] }),
+        makeRelease({ release_version_id: 41, episode_number: '03' }),
+        makeRelease({ release_version_id: 43, episode_number: '13' }),
       ]),
     })
 
     render(<MyProjectDetailPage />)
 
     await screen.findByRole('heading', { name: 'Naruto', level: 1 })
-    fireEvent.click(screen.getByRole('button', { name: 'Alle' }))
-    fireEvent.change(screen.getByLabelText('Folgen-Nummer suchen'), { target: { value: '03' } })
+    fireEvent.change(screen.getByLabelText('Folgen-Nummer suchen'), { target: { value: '3' } })
 
-    expect(screen.queryByText('Folge 03 · AnimeOwnage · v1')).toBeNull()
-    expect(screen.queryByRole('link', { name: /Notizen & Medien/i })).toBeNull()
+    expect(screen.getByText('Folge 03 · AnimeOwnage · v1')).toBeTruthy()
+    expect(screen.queryByText('Folge 13 · AnimeOwnage · v1')).toBeNull()
   })
 
   it('uses the episode title before group and version in release labels', async () => {
@@ -177,7 +176,7 @@ describe('MyProjectDetailPage', () => {
     render(<MyProjectDetailPage />)
 
     await screen.findByRole('heading', { name: 'Naruto', level: 1 })
-    expect(screen.getByText('Der Anfang · AnimeOwnage · v1')).toBeTruthy()
+    expect(screen.getByText('Folge 01 · Der Anfang · AnimeOwnage · v1')).toBeTruthy()
     expect(screen.queryByText('Der Anfang')).toBeNull()
   })
 

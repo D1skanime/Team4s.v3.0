@@ -66,6 +66,53 @@ type MemberClaimRow struct {
 	CreatedAt      time.Time `json:"created_at"`
 }
 
+// PendingClaimAttentionRow is one pending self-service claim with the group context
+// required for a leader's dashboard task. Authorization is intentionally not decided here.
+type PendingClaimAttentionRow struct {
+	ClaimID         int64     `json:"claim_id"`
+	FansubGroupID   int64     `json:"fansub_group_id"`
+	FansubGroupName string    `json:"fansub_group_name"`
+	MemberNickname  string    `json:"member_nickname"`
+	CreatedAt       time.Time `json:"created_at"`
+}
+
+// ListPendingClaimAttentionCandidates returns all open claims together with their
+// group context. The dashboard handler filters this list through the central permission
+// service so personal overrides and platform-admin access are respected.
+func (r *MemberClaimsRepository) ListPendingClaimAttentionCandidates(ctx context.Context) ([]PendingClaimAttentionRow, error) {
+	rows, err := r.db.Query(ctx, `
+		SELECT DISTINCT
+			mc.id,
+			hgm.fansub_group_id,
+			fg.name,
+			COALESCE(NULLIF(m.nickname, ''), 'Mitglied') AS member_nickname,
+			mc.created_at
+		FROM member_claims mc
+		JOIN members m ON m.id = mc.member_id
+		JOIN hist_fansub_group_members hgm ON hgm.member_id = mc.member_id
+		JOIN fansub_groups fg ON fg.id = hgm.fansub_group_id
+		WHERE mc.claim_status = 'pending'
+		ORDER BY mc.created_at ASC, mc.id ASC
+	`)
+	if err != nil {
+		return nil, fmt.Errorf("list pending claim attention candidates: %w", err)
+	}
+	defer rows.Close()
+
+	items := make([]PendingClaimAttentionRow, 0)
+	for rows.Next() {
+		var item PendingClaimAttentionRow
+		if err := rows.Scan(&item.ClaimID, &item.FansubGroupID, &item.FansubGroupName, &item.MemberNickname, &item.CreatedAt); err != nil {
+			return nil, fmt.Errorf("scan pending claim attention candidate: %w", err)
+		}
+		items = append(items, item)
+	}
+	if err := rows.Err(); err != nil {
+		return nil, fmt.Errorf("iterate pending claim attention candidates: %w", err)
+	}
+	return items, nil
+}
+
 type SubmitClaimInput struct {
 	MemberID  int64
 	AppUserID int64
@@ -85,6 +132,7 @@ func (r *MemberClaimsRepository) SearchHistoricalMembers(ctx context.Context, qu
 			COALESCE(NULLIF(m.display_name, ''), '') AS display_name
 		FROM members m
 		WHERE m.nickname ILIKE $1
+		  AND m.user_id IS NULL
 		  AND NOT EXISTS (
 			SELECT 1
 			FROM member_claims mc
@@ -118,13 +166,32 @@ func (r *MemberClaimsRepository) SubmitClaim(ctx context.Context, input SubmitCl
 		return nil, fmt.Errorf("submit member claim: invalid ids")
 	}
 
-	// Memorial-Guard: profile_status prüfen — Gedenkprofile können nicht beansprucht werden
-	// (D-17/Fallstrick 3). Ablehnung mit Code "memorial_not_claimable" und HTTP 409.
+	// Gedenkprofile und bereits mit einem Team4s-Konto verknüpfte Mitglieder
+	// können keinen neuen Identitätsanspruch erhalten.
 	var profileStatus string
+	var linkedUserID sql.NullInt64
+	var hasVerifiedClaim bool
 	if err := r.db.QueryRow(ctx, `
-		SELECT COALESCE(profile_status, 'active') FROM members WHERE id = $1
-	`, input.MemberID).Scan(&profileStatus); err != nil {
+		SELECT
+			COALESCE(m.profile_status, 'active'),
+			m.user_id,
+			EXISTS (
+				SELECT 1
+				FROM member_claims mc
+				WHERE mc.member_id = m.id
+				  AND mc.claim_status = 'verified'
+			)
+		FROM members m
+		WHERE m.id = $1
+	`, input.MemberID).Scan(&profileStatus, &linkedUserID, &hasVerifiedClaim); err != nil {
 		return nil, fmt.Errorf("submit member claim: check profile_status: %w", err)
+	}
+	if linkedUserID.Valid || hasVerifiedClaim {
+		return nil, &ClaimMutationError{
+			Code:       "member_already_assigned",
+			Message:    "Dieser Member-Eintrag ist bereits einem Team4s-Konto zugeordnet.",
+			HTTPStatus: 409,
+		}
 	}
 	if profileStatus == "memorial" {
 		// denied-Audit schreiben (D-15). Fehlertolerant via _ = (blockiert den Fehler-Return nicht).

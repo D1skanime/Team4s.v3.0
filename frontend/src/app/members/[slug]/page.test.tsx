@@ -30,8 +30,22 @@ const { getMemberProfileMock, getMemberContributionsMock, notFoundMock, reactCac
 }))
 const { catalogRoles } = vi.hoisted(() => ({
   catalogRoles: [
-    { code: 'typesetter', label_de: 'Typesetting', contexts: ['anime_contribution'], sort_order: 10, color_key: 'technical', icon_key: 'wrench' },
-    { code: 'karaoke_fx', label_de: 'Karaoke-FX', contexts: ['anime_contribution'], sort_order: 20, color_key: 'creative', icon_key: 'image' },
+    {
+      code: 'typesetter',
+      label_de: 'Typesetting',
+      contexts: ['anime_contribution'],
+      sort_order: 10,
+      color_key: 'technical',
+      icon_key: 'wrench',
+    },
+    {
+      code: 'karaoke_fx',
+      label_de: 'Karaoke-FX',
+      contexts: ['anime_contribution'],
+      sort_order: 20,
+      color_key: 'creative',
+      icon_key: 'image',
+    },
   ],
 }))
 
@@ -43,16 +57,18 @@ vi.mock('react', async (importOriginal) => {
   const actual = await importOriginal<typeof import('react')>()
   return {
     ...actual,
-    cache: <T extends (...args: never[]) => unknown>(fn: T): T => ((...args: Parameters<T>) => {
-      const cached = reactCacheEntries.find((entry) => (
-        entry.args.length === args.length && entry.args.every((value, index) => Object.is(value, args[index]))
-      ))
-      if (cached) return cached.value
+    cache: <T extends (...args: never[]) => unknown>(fn: T): T =>
+      ((...args: Parameters<T>) => {
+        const cached = reactCacheEntries.find(
+          (entry) =>
+            entry.args.length === args.length && entry.args.every((value, index) => Object.is(value, args[index])),
+        )
+        if (cached) return cached.value
 
-      const value = fn(...args)
-      reactCacheEntries.push({ args, value })
-      return value
-    }) as T,
+        const value = fn(...args)
+        reactCacheEntries.push({ args, value })
+        return value
+      }) as T,
   }
 })
 
@@ -94,13 +110,12 @@ vi.mock('@/lib/api', () => {
 })
 
 vi.mock('./OwnProfileEditLink', () => ({
-  OwnProfileEditLink: ({
-    initialViewer,
-  }: {
-    initialViewer: { is_owner: boolean }
-  }) => initialViewer.is_owner
-    ? <a href="/me/profile">Profil bearbeiten</a>
-    : <button type="button">Korrektur melden</button>,
+  OwnProfileEditLink: ({ initialViewer }: { initialViewer: { is_owner: boolean } }) =>
+    initialViewer.is_owner ? (
+      <a href="/me/profile">Profil bearbeiten</a>
+    ) : (
+      <button type="button">Korrektur melden</button>
+    ),
 }))
 
 vi.mock('@/components/profile/CorrectionReportModal', () => ({
@@ -138,16 +153,67 @@ function makePublicProfile(overrides: Partial<PublicMemberProfileData> = {}): Pu
       },
     ],
     public_badges: [
-      { id: 1, badge_code: 'historical_leader', badge_category: 'historical_achievement' },
-      { id: 2, badge_code: 'role_entry_timer', badge_category: 'role_entry', current_count: 1 },
+      {
+        id: 1,
+        badge_code: 'historical_leader',
+        badge_category: 'historical_achievement',
+      },
+      {
+        id: 2,
+        badge_code: 'role_entry_timer',
+        badge_category: 'role_entry',
+        current_count: 1,
+      },
     ],
     badge_progress: [
-      { family: 'progress', current_count: 10, next_threshold: 25, remaining_count: 15, next_tier: '25 Projekte', complete: false },
-      { family: 'points', current_count: 50, next_threshold: 200, remaining_count: 150, next_tier: '200 Punkte', complete: false },
-      { family: 'contribution_projects', current_count: 1, next_threshold: 5, remaining_count: 4, next_tier: 'Silber', complete: false },
-      { family: 'contribution_chronicle', current_count: 5, next_threshold: 25, remaining_count: 20, next_tier: 'Silber', complete: false },
-      { family: 'contribution_archivist', current_count: 25, next_threshold: null, remaining_count: null, next_tier: null, complete: true },
-      { family: 'membership', current_count: 7, next_threshold: 10, remaining_count: 3, next_tier: '10 Jahre', complete: false },
+      {
+        family: 'progress',
+        current_count: 10,
+        next_threshold: 25,
+        remaining_count: 15,
+        next_tier: '25 Projekte',
+        complete: false,
+      },
+      {
+        family: 'points',
+        current_count: 50,
+        next_threshold: 200,
+        remaining_count: 150,
+        next_tier: '200 Punkte',
+        complete: false,
+      },
+      {
+        family: 'contribution_projects',
+        current_count: 1,
+        next_threshold: 5,
+        remaining_count: 4,
+        next_tier: 'Silber',
+        complete: false,
+      },
+      {
+        family: 'contribution_chronicle',
+        current_count: 5,
+        next_threshold: 25,
+        remaining_count: 20,
+        next_tier: 'Silber',
+        complete: false,
+      },
+      {
+        family: 'contribution_archivist',
+        current_count: 25,
+        next_threshold: null,
+        remaining_count: null,
+        next_tier: null,
+        complete: true,
+      },
+      {
+        family: 'membership',
+        current_count: 7,
+        next_threshold: 10,
+        remaining_count: 3,
+        next_tier: '10 Jahre',
+        complete: false,
+      },
     ],
     total_points: 0,
     known_for: { active_years: '', top_roles: [], known_groups: [] },
@@ -172,6 +238,7 @@ function makePublicProfile(overrides: Partial<PublicMemberProfileData> = {}): Pu
             episode_number: '01',
             episode_title: 'Start',
             roles: [{ code: 'timer', label_de: 'Timing' }],
+            is_release_specific: false,
           },
         ],
         is_project_level: false,
@@ -218,17 +285,22 @@ async function renderMemberPage(
     viewer,
   })
   getMemberContributionsMock.mockResolvedValue({ role_timeline: [] })
-  const result = await MemberProfilePage({ params: Promise.resolve({ slug: 'ballelboy' }) })
+  const result = await MemberProfilePage({
+    params: Promise.resolve({ slug: 'ballelboy' }),
+  })
   return render(result)
 }
 
 beforeEach(() => {
   vi.clearAllMocks()
   reactCacheEntries.splice(0)
-  vi.stubGlobal('IntersectionObserver', class {
-    observe = vi.fn()
-    disconnect = vi.fn()
-  })
+  vi.stubGlobal(
+    'IntersectionObserver',
+    class {
+      observe = vi.fn()
+      disconnect = vi.fn()
+    },
+  )
 })
 
 afterEach(() => {
@@ -237,7 +309,9 @@ afterEach(() => {
 
 describe('MemberProfilePage Phase 99 route composition', () => {
   it('lets every visible profile section consume the shared 1480px shell', () => {
-    expect(memberPageStyles).toContain('width: min(var(--public-page-max-width), calc(100% - var(--public-page-gutter)));')
+    expect(memberPageStyles).toContain(
+      'width: min(var(--public-page-max-width), calc(100% - var(--public-page-gutter)));',
+    )
     expect(memberPageStyles).not.toContain('min(1280px')
     const sectionRule = memberPageStyles.match(/^\.section\s*\{[\s\S]*?^\}/m)?.[0] ?? ''
     expect(sectionRule).toContain('width: 100%;')
@@ -246,13 +320,21 @@ describe('MemberProfilePage Phase 99 route composition', () => {
 
   it('encodes Rhythm C geometry for 390, 768 and 1440 pixel layouts without overflow repairs', () => {
     expect(memberPageStyles).toMatch(/\.rhythmBand\s*\{[\s\S]*?padding:\s*var\(--space-5\);/)
-    expect(memberPageStyles).toMatch(/\.profilePair\s*\{[\s\S]*?grid-template-columns:\s*minmax\(0, 8fr\) minmax\(0, 5fr\)/)
+    expect(memberPageStyles).toMatch(
+      /\.profilePair\s*\{[\s\S]*?grid-template-columns:\s*minmax\(0, 8fr\) minmax\(0, 5fr\)/,
+    )
     expect(memberPageStyles).toContain('min-width: 0;')
     expect(memberPageStyles).not.toMatch(/\.page\s*\{[^}]*overflow-wrap:\s*anywhere/s)
-    expect(memberPageStyles).toMatch(/@media \(max-width:\s*1099px\)[\s\S]*?\.rhythmBand\s*\{[\s\S]*?padding:\s*var\(--space-5\);/)
-    expect(memberPageStyles).toMatch(/@media \(max-width:\s*760px\)[\s\S]*?\.rhythmBand\s*\{[\s\S]*?padding:\s*var\(--space-4\);/)
+    expect(memberPageStyles).toMatch(
+      /@media \(max-width:\s*1099px\)[\s\S]*?\.rhythmBand\s*\{[\s\S]*?padding:\s*var\(--space-5\);/,
+    )
+    expect(memberPageStyles).toMatch(
+      /@media \(max-width:\s*760px\)[\s\S]*?\.rhythmBand\s*\{[\s\S]*?padding:\s*var\(--space-4\);/,
+    )
     expect(memberPageStyles).toMatch(/\.projectsBand h2\s*\{[\s\S]*?border-bottom:\s*2px solid var\(--ui-line\)/)
-    expect(memberPageStyles).toMatch(/@media \(max-width:\s*760px\)[\s\S]*?\.profilePair,[\s\S]*?grid-template-columns:\s*minmax\(0,\s*1fr\)/)
+    expect(memberPageStyles).toMatch(
+      /@media \(max-width:\s*760px\)[\s\S]*?\.profilePair,[\s\S]*?grid-template-columns:\s*minmax\(0,\s*1fr\)/,
+    )
     const pageRule = memberPageStyles.match(/^\.page\s*\{[\s\S]*?^\}/m)?.[0] ?? ''
     expect(pageRule).not.toContain('100vw')
     expect(memberPageStyles).not.toMatch(/margin-(?:left|right):\s*-/)
@@ -274,33 +356,57 @@ describe('MemberProfilePage Phase 99 route composition', () => {
     expect(rhythmBandRule).toContain('gap: var(--space-4);')
     expect(rhythmBandRule).toContain('min-width: 0;')
     expect(rhythmBandRule).toContain('padding: var(--space-5);')
-    expect(memberPageStyles).toMatch(/@media \(max-width:\s*1099px\)[\s\S]*?\.rhythmBand\s*\{[\s\S]*?padding:\s*var\(--space-5\);/)
-    expect(memberPageStyles).toMatch(/@media \(max-width:\s*760px\)[\s\S]*?\.rhythmBand\s*\{[\s\S]*?padding:\s*var\(--space-4\);/)
-    expect(memberPageStyles).toMatch(/\.profilePair\s*\{[\s\S]*?grid-template-columns:\s*minmax\(0, 8fr\) minmax\(0, 5fr\)/)
-    expect(memberPageStyles).toMatch(/\.contributionPairPresent\s*\{[\s\S]*?grid-template-columns:\s*minmax\(0, 3fr\) minmax\(20rem, 2fr\)/)
-    expect(memberPageStyles).toMatch(/\.contributionPairEmpty\s*\{[\s\S]*?grid-template-columns:\s*minmax\(0, 3fr\) minmax\(14rem, 1fr\)/)
+    expect(memberPageStyles).toMatch(
+      /@media \(max-width:\s*1099px\)[\s\S]*?\.rhythmBand\s*\{[\s\S]*?padding:\s*var\(--space-5\);/,
+    )
+    expect(memberPageStyles).toMatch(
+      /@media \(max-width:\s*760px\)[\s\S]*?\.rhythmBand\s*\{[\s\S]*?padding:\s*var\(--space-4\);/,
+    )
+    expect(memberPageStyles).toMatch(
+      /\.profilePair\s*\{[\s\S]*?grid-template-columns:\s*minmax\(0, 8fr\) minmax\(0, 5fr\)/,
+    )
+    expect(memberPageStyles).toMatch(
+      /\.contributionPairPresent\s*\{[\s\S]*?grid-template-columns:\s*minmax\(0, 3fr\) minmax\(20rem, 2fr\)/,
+    )
+    expect(memberPageStyles).toMatch(
+      /\.contributionPairEmpty\s*\{[\s\S]*?grid-template-columns:\s*minmax\(0, 3fr\) minmax\(14rem, 1fr\)/,
+    )
     expect(memberPageStyles).toMatch(/\.projectsBand h2\s*\{[\s\S]*?border-bottom:\s*2px solid var\(--ui-line\)/)
-    expect(memberProfileContentSource).toContain('className={`${styles.section} ${styles.rhythmBand} ${styles.profileBand}`}')
-    expect(memberProfileContentSource).toContain('className={`${styles.section} ${styles.rhythmBand} ${styles.projectsBand}`}')
-    expect(memberProfileContentSource).toContain('className={`${styles.section} ${styles.rhythmBand} ${styles.badgesBand} ${styles.badgesVisualBand}`}')
-    expect(memberProfileContentSource).toContain('className={`${styles.section} ${styles.rhythmBand} ${styles.contributionsBand}`}')
+    expect(memberProfileContentSource).toContain(
+      'className={`${styles.section} ${styles.rhythmBand} ${styles.profileBand}`}',
+    )
+    expect(memberProfileContentSource).toContain(
+      'className={`${styles.section} ${styles.rhythmBand} ${styles.projectsBand}`}',
+    )
+    expect(memberProfileContentSource).toContain(
+      'className={`${styles.section} ${styles.rhythmBand} ${styles.badgesBand} ${styles.badgesVisualBand}`}',
+    )
+    expect(memberProfileContentSource).toContain(
+      'className={`${styles.section} ${styles.rhythmBand} ${styles.contributionsBand}`}',
+    )
     expect(memberProfileContentSource).toContain('<MemberStorySection')
     expect(memberProfileContentSource).toContain('<MembershipsSection')
     expect(memberStorySource).toContain('<Card variant="section" className={styles.storyCard}>')
     expect(membershipsSource).toContain('<Card variant="interactive" className={styles.membershipCard}>')
     expect(currentProjectsSource).toContain('<Card variant="interactive" className={styles.projectCard}>')
-    expect(memberBadgeChainSource).toContain('<Card className={badgeFamilyCardStyles.familyCard} data-family={family.key}>')
+    expect(memberBadgeChainSource).toContain(
+      '<Card className={badgeFamilyCardStyles.familyCard} data-family={family.key}>',
+    )
     expect(memberBadgeChainSource).toContain('<FocalCarousel')
     expect(focalCarouselSource).toContain('onKeyDown={interactionEnabled ? handleKeyDown : undefined}')
     expect(focalCarouselSource).toContain('onPointerDown={interactionEnabled ? handlePointerDown : undefined}')
-    expect(profileStyles).toMatch(/\.membershipCard\s*\{[\s\S]*?border:\s*1px solid var\(--border-subtle\);[\s\S]*?border-radius:\s*var\(--radius-lg\);[\s\S]*?background:\s*var\(--surface-card\);[\s\S]*?box-shadow:\s*var\(--shadow-sm\);/)
+    expect(profileStyles).toMatch(
+      /\.membershipCard\s*\{[\s\S]*?border:\s*1px solid var\(--border-subtle\);[\s\S]*?border-radius:\s*var\(--radius-lg\);[\s\S]*?background:\s*var\(--surface-card\);[\s\S]*?box-shadow:\s*var\(--shadow-sm\);/,
+    )
   })
 
   it('keeps the role badge band on the same shared section edges', () => {
     expect(memberPageStyles).toMatch(/\.badgesVisualBand\s*\{[^}]*width:\s*100%;/s)
     expect(memberPageStyles).not.toMatch(/\.badgesVisualBand\s*\{[^}]*(?:100vw|left:\s*50%|translateX)/s)
     expect(memberPageStyles).not.toMatch(/@media \(max-width:\s*1599px\)[\s\S]*?\.badgesVisualBand/s)
-    expect(memberPageStyles).not.toMatch(/\.(?:profileBand|projectsBand|contributionsBand)\s*\{[^}]*(?:content-width-visual|content-width-visual-cap)/s)
+    expect(memberPageStyles).not.toMatch(
+      /\.(?:profileBand|projectsBand|contributionsBand)\s*\{[^}]*(?:content-width-visual|content-width-visual-cap)/s,
+    )
   })
 
   it('renders the locked Hero B and Rhythm C heading hierarchy in DOM order', async () => {
@@ -320,17 +426,25 @@ describe('MemberProfilePage Phase 99 route composition', () => {
     // Quick 260812-pmu: the page outline owns each achievement section title once.
     const pointsGroup = document.querySelector('[data-badge-group="points"]') as HTMLElement
     const membershipGroup = document.querySelector('[data-badge-group="membership"]') as HTMLElement
-    expect(within(pointsGroup).getAllByRole('heading', { name: 'Punkte-Meilensteine' })).toHaveLength(1)
-    expect(within(membershipGroup).getAllByRole('heading', { name: 'Mitgliedschaft' })).toHaveLength(1)
-    expect(within(membershipGroup).getByRole('heading', { level: 3, name: 'Mitgliedsdauer' })).not.toBeNull()
+    expect(
+      within(pointsGroup).getAllByRole('heading', {
+        name: 'Punkte-Meilensteine',
+      }),
+    ).toHaveLength(1)
+    expect(
+      within(membershipGroup).getAllByRole('heading', {
+        name: 'Mitgliedschaft',
+      }),
+    ).toHaveLength(1)
+    expect(
+      within(membershipGroup).getByRole('heading', {
+        level: 3,
+        name: 'Mitgliedsdauer',
+      }),
+    ).not.toBeNull()
     expect(within(membershipGroup).queryByRole('heading', { level: 4 })).toBeNull()
     expect(screen.getAllByRole('heading', { level: 3 }).map((heading) => heading.textContent)).toEqual(
-      expect.arrayContaining([
-        'Fansub-Geschichte',
-        'Gruppenzugehörigkeit',
-        'Letzte Beiträge',
-        'Frühere Mitwirkungen',
-      ]),
+      expect.arrayContaining(['Fansub-Geschichte', 'Gruppenzugehörigkeit', 'Letzte Beiträge', 'Frühere Mitwirkungen']),
     )
     expect(screen.queryByRole('heading', { name: 'Auszeichnungen' })).toBeNull()
 
@@ -341,20 +455,22 @@ describe('MemberProfilePage Phase 99 route composition', () => {
     await renderMemberPage(makePublicProfile())
 
     const projects = screen.getByRole('list', { name: 'Fansub-Projekte' })
-    expect(within(projects).getAllByText(/Typesetting|Karaoke-FX|Future Role/).map((item) => item.textContent)).toEqual([
-      'Typesetting',
-      'Karaoke-FX',
-      'Future Role',
-    ])
+    expect(
+      within(projects)
+        .getAllByText(/Typesetting|Karaoke-FX|Future Role/)
+        .map((item) => item.textContent),
+    ).toEqual(['Typesetting', 'Karaoke-FX', 'Future Role'])
     expect(within(projects).getByText('Future Role').getAttribute('data-role-code')).toBe('other')
   })
   it('keeps empty earned-only and contribution sections out of the public outline', async () => {
-    await renderMemberPage(makePublicProfile({
-      public_badges: [],
-      latest_contributions: [],
-      previous_contributions: [],
-      previous_contributions_count: 0,
-    }))
+    await renderMemberPage(
+      makePublicProfile({
+        public_badges: [],
+        latest_contributions: [],
+        previous_contributions: [],
+        previous_contributions_count: 0,
+      }),
+    )
 
     expect(screen.queryByRole('heading', { name: 'Besondere Auszeichnungen' })).toBeNull()
     expect(screen.queryByRole('heading', { name: 'Letzte Beiträge' })).toBeNull()
@@ -362,21 +478,29 @@ describe('MemberProfilePage Phase 99 route composition', () => {
     expect(screen.getAllByRole('heading', { name: 'Beiträge', level: 2 })).toHaveLength(1)
   })
 
-
   it('composes member-specific title/description/OG metadata for a visible profile from publicly-permissible known_for facts', async () => {
     getMemberProfileMock.mockResolvedValue({
       data: makePublicProfile({
         fansub_name: 'Ballelboy',
-        known_for: { active_years: '2016–2024', top_roles: ['Timing', 'Typesetting'], known_groups: ['AnimeOwnage'] },
+        known_for: {
+          active_years: '2016–2024',
+          top_roles: ['Timing', 'Typesetting'],
+          known_groups: ['AnimeOwnage'],
+        },
       }),
       viewer: { is_owner: false, is_private_preview: false },
     })
 
-    const metadata = await generateMetadata({ params: Promise.resolve({ slug: 'ballelboy' }) })
+    const metadata = await generateMetadata({
+      params: Promise.resolve({ slug: 'ballelboy' }),
+    })
 
     expect(metadata.title).toContain('Ballelboy')
     expect(metadata.description).toContain('Timing')
-    expect(metadata.openGraph).toEqual({ title: metadata.title, description: metadata.description })
+    expect(metadata.openGraph).toEqual({
+      title: metadata.title,
+      description: metadata.description,
+    })
     expect(metadata.robots).toBeUndefined()
   })
 
@@ -389,7 +513,9 @@ describe('MemberProfilePage Phase 99 route composition', () => {
       viewer: { is_owner: false, is_private_preview: false },
     })
 
-    const metadata = await generateMetadata({ params: Promise.resolve({ slug: 'ballelboy' }) })
+    const metadata = await generateMetadata({
+      params: Promise.resolve({ slug: 'ballelboy' }),
+    })
 
     expect(metadata.title).toContain('Ballelboy')
     expect(metadata.description).toBe('Ballelboy bei Team4s.')
@@ -401,8 +527,12 @@ describe('MemberProfilePage Phase 99 route composition', () => {
       viewer: { is_owner: true, is_private_preview: false },
     })
 
-    const metadata = await generateMetadata({ params: Promise.resolve({ slug: 'ballelboy' }) })
-    const page = await MemberProfilePage({ params: Promise.resolve({ slug: 'ballelboy' }) })
+    const metadata = await generateMetadata({
+      params: Promise.resolve({ slug: 'ballelboy' }),
+    })
+    const page = await MemberProfilePage({
+      params: Promise.resolve({ slug: 'ballelboy' }),
+    })
     render(page)
 
     expect(metadata).toEqual({ robots: { index: false, follow: false } })
@@ -413,10 +543,10 @@ describe('MemberProfilePage Phase 99 route composition', () => {
 
   it('keeps owner edit and viewer correction actions mutually exclusive', async () => {
     const profile = makePublicProfile()
-    const ownerView = await renderMemberPage(
-      profile,
-      { is_owner: true, is_private_preview: false },
-    )
+    const ownerView = await renderMemberPage(profile, {
+      is_owner: true,
+      is_private_preview: false,
+    })
     expect(screen.getByRole('link', { name: 'Profil bearbeiten' })).toBeTruthy()
     expect(screen.queryByRole('button', { name: 'Korrektur melden' })).toBeNull()
     ownerView.unmount()
@@ -438,12 +568,23 @@ describe('MemberProfilePage Phase 99 route composition', () => {
   })
 
   it('passes badge progress through the existing route', async () => {
-    await renderMemberPage(makePublicProfile({ badge_progress: [{ family: 'progress', current_count: 9, next_threshold: 10, remaining_count: 1, next_tier: '10 Projekte', complete: false }] }))
+    await renderMemberPage(
+      makePublicProfile({
+        badge_progress: [
+          {
+            family: 'progress',
+            current_count: 9,
+            next_threshold: 10,
+            remaining_count: 1,
+            next_tier: '10 Projekte',
+            complete: false,
+          },
+        ],
+      }),
+    )
     expect(screen.getByRole('heading', { name: 'Fortschritt' })).toBeTruthy()
   })
-
 })
-
 
 describe('Phase 124 deterministic points SSR projection', () => {
   it.each([
@@ -451,44 +592,66 @@ describe('Phase 124 deterministic points SSR projection', () => {
     [734, 'point_milestone_engaged', 1000, 266, false],
     [2500, 'point_milestone_legend', null, null, true],
     [5000, 'point_milestone_legend', null, null, true],
-  ])('derives only the highest badge at %i and forwards authoritative progress unchanged', async (totalPoints, expectedCode, nextThreshold, remainingCount, complete) => {
-    const profile = makePublicProfile({
-      total_points: totalPoints,
-      public_badges: [{ id: 1, badge_code: 'historical_leader', badge_category: 'historical_achievement' }],
-      badge_progress: [{
-        family: 'points',
-        current_count: totalPoints,
-        next_threshold: nextThreshold,
-        remaining_count: remainingCount,
-        next_tier: nextThreshold == null ? null : `${nextThreshold} Punkte`,
-        complete,
-      }],
-    })
-    const { container } = await renderMemberPage(profile)
-    const stage = container.querySelector('[data-points-achievement-stage]') as HTMLElement
-    expect(stage).not.toBeNull()
+  ])(
+    'derives only the highest badge at %i and forwards authoritative progress unchanged',
+    async (totalPoints, expectedCode, nextThreshold, remainingCount, complete) => {
+      const profile = makePublicProfile({
+        total_points: totalPoints,
+        public_badges: [
+          {
+            id: 1,
+            badge_code: 'historical_leader',
+            badge_category: 'historical_achievement',
+          },
+        ],
+        badge_progress: [
+          {
+            family: 'points',
+            current_count: totalPoints,
+            next_threshold: nextThreshold,
+            remaining_count: remainingCount,
+            next_tier: nextThreshold == null ? null : `${nextThreshold} Punkte`,
+            complete,
+          },
+        ],
+      })
+      const { container } = await renderMemberPage(profile)
+      const stage = container.querySelector('[data-points-achievement-stage]') as HTMLElement
+      expect(stage).not.toBeNull()
 
-    const current = stage.querySelector('[aria-current="step"]')
-    if (expectedCode == null) {
-      expect(current).toBeNull()
-      expect(stage.querySelector('[data-achievement-art^="point_milestone_"]')).toBeNull()
-    } else {
-      expect(current?.getAttribute('data-badge-code')).toBe(expectedCode)
-      expect(stage.querySelector(`[data-achievement-art="${expectedCode}"]`)).not.toBeNull()
-    }
+      const current = stage.querySelector('[aria-current="step"]')
+      if (expectedCode == null) {
+        expect(current).toBeNull()
+        expect(stage.querySelector('[data-achievement-art^="point_milestone_"]')).toBeNull()
+      } else {
+        expect(current?.getAttribute('data-badge-code')).toBe(expectedCode)
+        expect(stage.querySelector(`[data-achievement-art="${expectedCode}"]`)).not.toBeNull()
+      }
 
-    const progress = within(stage).getByRole('progressbar', { name: /Punkte/ })
-    const boundedMax = nextThreshold ?? 2500
-    expect(progress.getAttribute('aria-valuenow')).toBe(String(Math.min(totalPoints, boundedMax)))
-    expect(progress.getAttribute('aria-valuemax')).toBe(String(boundedMax))
-    expect(stage.textContent).toContain(`${totalPoints.toLocaleString('de-CH')} Punkte`)
-    expect(stage.textContent?.includes('Noch ')).toBe(!complete)
-  })
+      const progress = within(stage).getByRole('progressbar', {
+        name: /Punkte/,
+      })
+      const boundedMax = nextThreshold ?? 2500
+      expect(progress.getAttribute('aria-valuenow')).toBe(String(Math.min(totalPoints, boundedMax)))
+      expect(progress.getAttribute('aria-valuemax')).toBe(String(boundedMax))
+      expect(stage.textContent).toContain(`${totalPoints.toLocaleString('de-CH')} Punkte`)
+      expect(stage.textContent?.includes('Noch ')).toBe(!complete)
+    },
+  )
 
   it('keeps initial point selection props-only during repeat server renders', async () => {
     const profile = makePublicProfile({
       total_points: 734,
-      badge_progress: [{ family: 'points', current_count: 734, next_threshold: 1000, remaining_count: 266, next_tier: '1000 Punkte', complete: false }],
+      badge_progress: [
+        {
+          family: 'points',
+          current_count: 734,
+          next_threshold: 1000,
+          remaining_count: 266,
+          next_tier: '1000 Punkte',
+          complete: false,
+        },
+      ],
     })
     const first = await renderMemberPage(profile)
     const firstMarkup = first.container.querySelector('[data-points-achievement-stage]')?.outerHTML
@@ -506,13 +669,21 @@ describe('Phase 124 deterministic points SSR projection', () => {
 describe('Phase 126 membership SSR projection', () => {
   it('keeps membership visible at zero and below five', async () => {
     for (const currentCount of [0, 1, 4]) {
-      const view = await renderMemberPage(makePublicProfile({
-        public_badges: [],
-        badge_progress: [{
-          family: 'membership', current_count: currentCount, next_threshold: 5,
-          remaining_count: 5 - currentCount, next_tier: '5 Jahre', complete: false,
-        }],
-      }))
+      const view = await renderMemberPage(
+        makePublicProfile({
+          public_badges: [],
+          badge_progress: [
+            {
+              family: 'membership',
+              current_count: currentCount,
+              next_threshold: 5,
+              remaining_count: 5 - currentCount,
+              next_tier: '5 Jahre',
+              complete: false,
+            },
+          ],
+        }),
+      )
       expect(view.container.textContent).toContain('Mitgliedschaft')
       expect(view.container.textContent).toContain('5+ Jahre Mitglied')
       expect(view.container.textContent).not.toContain('Gründungsmitglied')
@@ -528,22 +699,46 @@ describe('Phase 127 RED SSR hero composition', () => {
       data: makePublicProfile({
         is_verified: true,
         public_badges: [
-        { id: 1, badge_code: 'historical_leader', badge_category: 'historical_achievement' },
-        { id: 2, badge_code: 'all_rounder', badge_category: 'historical_achievement' },
-        { id: 3, badge_code: 'verified', badge_category: 'historical_achievement' },
-        { id: 4, badge_code: 'founding_member', badge_category: 'historical_achievement' },
-      ],
+          {
+            id: 1,
+            badge_code: 'historical_leader',
+            badge_category: 'historical_achievement',
+          },
+          {
+            id: 2,
+            badge_code: 'all_rounder',
+            badge_category: 'historical_achievement',
+          },
+          {
+            id: 3,
+            badge_code: 'verified',
+            badge_category: 'historical_achievement',
+          },
+          {
+            id: 4,
+            badge_code: 'founding_member',
+            badge_category: 'historical_achievement',
+          },
+        ],
       }),
       viewer: { is_owner: false, is_private_preview: false },
     })
     await generateMetadata({ params: Promise.resolve({ slug: 'ballelboy' }) })
-    const page = await MemberProfilePage({ params: Promise.resolve({ slug: 'ballelboy' }) })
+    const page = await MemberProfilePage({
+      params: Promise.resolve({ slug: 'ballelboy' }),
+    })
     const { container } = render(page)
     expect(getMemberProfileMock).toHaveBeenCalledTimes(1)
     expect(getMemberProfileMock).toHaveBeenCalledWith('ballelboy')
     const hero = screen.getByTestId('member-profile-hero-panel')
-    const list = within(hero).getByRole('list', { name: 'Besondere Auszeichnungen' })
-    expect(within(list).getAllByRole('listitem').map((item) => item.textContent)).toEqual(['Historische Leitung', 'Allrounder'])
+    const list = within(hero).getByRole('list', {
+      name: 'Besondere Auszeichnungen',
+    })
+    expect(
+      within(list)
+        .getAllByRole('listitem')
+        .map((item) => item.textContent),
+    ).toEqual(['Historische Leitung', 'Allrounder'])
     expect(within(hero).getAllByText('Verifiziert')).toHaveLength(1)
     expect(within(hero).queryByText('Gründungsmitglied')).toBeNull()
     expect(container.querySelector('[data-badge-group="special"]')).toBeNull()
@@ -551,14 +746,21 @@ describe('Phase 127 RED SSR hero composition', () => {
   })
 })
 
-
 describe('Quick 260811-pqe responsive profile composition', () => {
   it('pins distinct profile and history-aware contribution grids without global word breaking', () => {
-    expect(memberPageStyles).toMatch(/\.profilePair\s*\{[\s\S]*?grid-template-columns:\s*minmax\(0, 8fr\) minmax\(0, 5fr\)/)
-    expect(memberPageStyles).toMatch(/\.contributionPairPresent\s*\{[\s\S]*?grid-template-columns:\s*minmax\(0, 3fr\) minmax\(20rem, 2fr\)/)
-    expect(memberPageStyles).toMatch(/\.contributionPairEmpty\s*\{[\s\S]*?grid-template-columns:\s*minmax\(0, 3fr\) minmax\(14rem, 1fr\)/)
+    expect(memberPageStyles).toMatch(
+      /\.profilePair\s*\{[\s\S]*?grid-template-columns:\s*minmax\(0, 8fr\) minmax\(0, 5fr\)/,
+    )
+    expect(memberPageStyles).toMatch(
+      /\.contributionPairPresent\s*\{[\s\S]*?grid-template-columns:\s*minmax\(0, 3fr\) minmax\(20rem, 2fr\)/,
+    )
+    expect(memberPageStyles).toMatch(
+      /\.contributionPairEmpty\s*\{[\s\S]*?grid-template-columns:\s*minmax\(0, 3fr\) minmax\(14rem, 1fr\)/,
+    )
     expect(memberPageStyles).not.toMatch(/\.sectionPair\s*>\s*\*\s*\{[^}]*overflow-wrap:\s*anywhere/s)
-    expect(memberPageStyles).toMatch(/@media \(max-width: 760px\)[\s\S]*?\.profilePair,[\s\S]*?\.contributionPairPresent,[\s\S]*?\.contributionPairEmpty\s*\{[\s\S]*?grid-template-columns:\s*minmax\(0, 1fr\)/)
+    expect(memberPageStyles).toMatch(
+      /@media \(max-width: 760px\)[\s\S]*?\.profilePair,[\s\S]*?\.contributionPairPresent,[\s\S]*?\.contributionPairEmpty\s*\{[\s\S]*?grid-template-columns:\s*minmax\(0, 1fr\)/,
+    )
   })
 })
 
@@ -571,8 +773,12 @@ describe('Quick 260811-rms widescreen profile balance', () => {
     expect(profileChildrenRule).toContain('min-width: 0;')
     expect(profileChildrenRule).not.toContain('overflow-wrap: anywhere')
 
-    expect(memberPageStyles).toMatch(/@media \(max-width: 1399px\)[\s\S]*?\.profilePair\s*\{[\s\S]*?grid-template-columns:\s*minmax\(0, 1fr\)/)
-    expect(memberPageStyles).toMatch(/@media \(max-width: 760px\)[\s\S]*?\.profilePair,[\s\S]*?grid-template-columns:\s*minmax\(0, 1fr\)/)
+    expect(memberPageStyles).toMatch(
+      /@media \(max-width: 1399px\)[\s\S]*?\.profilePair\s*\{[\s\S]*?grid-template-columns:\s*minmax\(0, 1fr\)/,
+    )
+    expect(memberPageStyles).toMatch(
+      /@media \(max-width: 760px\)[\s\S]*?\.profilePair,[\s\S]*?grid-template-columns:\s*minmax\(0, 1fr\)/,
+    )
 
     expect(profileRule).not.toMatch(/(?:width:\s*\d|100vw|overflow-x:\s*hidden|margin-(?:left|right):\s*-)/)
     expect(memberPageStyles).not.toMatch(/\.profilePair\s*\{[^}]*overflow-wrap:\s*anywhere/s)
@@ -582,8 +788,12 @@ describe('Quick 260811-rms widescreen profile balance', () => {
 describe('Quick 260812-rps full-page responsive contract', () => {
   it('stacks constrained pairs before tablet portrait geometry fails without clipping the page', () => {
     const pageRule = memberPageStyles.match(/^\.page\s*\{[\s\S]*?^\}/m)?.[0] ?? ''
-    expect(pageRule).not.toMatch(/(?:overflow-wrap:\s*anywhere|overflow-x:\s*hidden|width:\s*100vw|margin-(?:left|right):\s*-)/)
-    expect(memberPageStyles).toMatch(/@media \(max-width:\s*1099px\)[\s\S]*?\.contributionPairPresent,[\s\S]*?\.contributionPairEmpty\s*\{[^}]*grid-template-columns:\s*minmax\(0,\s*1fr\)/s)
+    expect(pageRule).not.toMatch(
+      /(?:overflow-wrap:\s*anywhere|overflow-x:\s*hidden|width:\s*100vw|margin-(?:left|right):\s*-)/,
+    )
+    expect(memberPageStyles).toMatch(
+      /@media \(max-width:\s*1099px\)[\s\S]*?\.contributionPairPresent,[\s\S]*?\.contributionPairEmpty\s*\{[^}]*grid-template-columns:\s*minmax\(0,\s*1fr\)/s,
+    )
     expect(memberPageStyles).toMatch(/\.sectionPair\s*>\s*\*\s*\{[^}]*min-width:\s*0;/s)
     expect(memberPageStyles).not.toMatch(/word-break:\s*break-all/)
   })
@@ -591,7 +801,9 @@ describe('Quick 260812-rps full-page responsive contract', () => {
 
 describe('Quick 260812-rps widescreen UAT regression', () => {
   it('keeps the shared section edges aligned and the profile pair near 60/40', () => {
-    expect(memberPageStyles).toMatch(/\.profilePair\s*\{[^}]*grid-template-columns:\s*minmax\(0,\s*8fr\) minmax\(0,\s*5fr\)/s)
+    expect(memberPageStyles).toMatch(
+      /\.profilePair\s*\{[^}]*grid-template-columns:\s*minmax\(0,\s*8fr\) minmax\(0,\s*5fr\)/s,
+    )
     const visualBand = memberPageStyles.match(/\.badgesVisualBand\s*\{[^}]*\}/s)?.[0] ?? ''
     expect(visualBand).toContain('width: 100%;')
     expect(visualBand).not.toMatch(/(?:100vw|left:\s*50%|translateX)/)
@@ -604,14 +816,18 @@ describe('Quick 260812-jtp owner-scoped vertical rhythm', () => {
     expect(memberPageStyles).toMatch(/\.section\s*\{[^}]*margin:\s*0 auto var\(--space-4\);/s)
     expect(memberPageStyles).toMatch(/\.rhythmBand\s*\{[^}]*gap:\s*var\(--space-4\);[^}]*padding:\s*var\(--space-5\);/s)
     expect(memberPageStyles).toMatch(/\.sectionPair\s*\{[^}]*gap:\s*var\(--space-4\);/s)
-    expect(memberPageStyles).toMatch(/@media \(max-width:\s*760px\)[\s\S]*?\.rhythmBand\s*\{[^}]*padding:\s*var\(--space-4\);/s)
+    expect(memberPageStyles).toMatch(
+      /@media \(max-width:\s*760px\)[\s\S]*?\.rhythmBand\s*\{[^}]*padding:\s*var\(--space-4\);/s,
+    )
   })
 })
 
 it('Quick 260812-lql reserves two columns only for populated previous contributions', () => {
   const emptyRules = [...memberPageStyles.matchAll(/\.contributionPairEmpty\s*\{([^}]*)\}/g)]
   expect(emptyRules.at(-1)?.[1]).toMatch(/grid-template-columns:\s*minmax\(0,\s*1fr\)/)
-  expect(memberPageStyles).toMatch(/\.contributionPairPresent\s*\{[^}]*grid-template-columns:\s*minmax\(0,\s*3fr\) minmax\(20rem,\s*2fr\)/s)
+  expect(memberPageStyles).toMatch(
+    /\.contributionPairPresent\s*\{[^}]*grid-template-columns:\s*minmax\(0,\s*3fr\) minmax\(20rem,\s*2fr\)/s,
+  )
 })
 
 describe('Phase 128 authoritative profile composition', () => {
@@ -628,17 +844,11 @@ describe('Phase 128 authoritative profile composition', () => {
 
     expect({
       routeLocalComponentExists: memberProfileContentSource.length > 0,
-      exportsReusableComposition: memberProfileContentSource.includes(
-        'export function MemberProfileContent',
-      ),
-      acceptsAuthoritativeProfile: memberProfileContentSource.includes(
-        'profile: PublicMemberProfileData',
-      ),
+      exportsReusableComposition: memberProfileContentSource.includes('export function MemberProfileContent'),
+      acceptsAuthoritativeProfile: memberProfileContentSource.includes('profile: PublicMemberProfileData'),
       acceptsStoredSlug: memberProfileContentSource.includes('storedSlug: string'),
       acceptsViewerAccess: memberProfileContentSource.includes('viewer: PublicMemberViewer'),
-      preservesEverySection: requiredComposition.every((name) => (
-        memberProfileContentSource.includes(name)
-      )),
+      preservesEverySection: requiredComposition.every((name) => memberProfileContentSource.includes(name)),
       pageDelegatesComposition: memberPageSource.includes('<MemberProfileContent'),
       pageDoesNotOwnHero: !memberPageSource.includes('<MemberProfileHero'),
     }).toEqual({
@@ -688,7 +898,9 @@ describe('Phase 128 neutral public-member route contract', () => {
     reactCacheEntries.splice(0)
     getMemberProfileMock.mockReset()
     getMemberProfileMock.mockRejectedValue(Object.assign(new Error('not-found'), { status: 404 }))
-    const metadata = await generateMetadata({ params: Promise.resolve({ slug: 'metadata-missing-member' }) })
+    const metadata = await generateMetadata({
+      params: Promise.resolve({ slug: 'metadata-missing-member' }),
+    })
 
     expect({ missing, privateDenied, numeric, invalid, metadata }).toEqual({
       missing: { invoked: true, profileRequests: 1 },
@@ -727,23 +939,25 @@ describe('Phase 128 neutral public-member route contract', () => {
     getMemberProfileMock.mockReset()
     getMemberProfileMock.mockRejectedValue(new Error('sensitive backend detail'))
 
-    const page = await MemberProfilePage({ params: Promise.resolve({ slug: 'transport-failure' }) })
+    const page = await MemberProfilePage({
+      params: Promise.resolve({ slug: 'transport-failure' }),
+    })
     render(page)
 
-    expect(screen.getByRole('heading', { name: 'Profil konnte nicht geladen werden' })).toBeTruthy()
+    expect(
+      screen.getByRole('heading', {
+        name: 'Profil konnte nicht geladen werden',
+      }),
+    ).toBeTruthy()
     expect(screen.getByText('Bitte versuche es später erneut.')).toBeTruthy()
     expect(screen.queryByText('sensitive backend detail')).toBeNull()
   })
 
   it('keeps route-owned client-gate geometry without the reduced legacy grid', () => {
     expect(memberPageStyles).toContain('container-type: inline-size;')
-    expect(memberPageStyles).toMatch(
-      /@container owner-preview-notice \(min-width:\s*36rem\)/,
-    )
+    expect(memberPageStyles).toMatch(/@container owner-preview-notice \(min-width:\s*36rem\)/)
     expect(memberPageStyles).toContain('min-width: 0;')
     expect(memberPageStyles).not.toContain('overflow-wrap: anywhere')
-    expect(memberPageStyles).not.toMatch(
-      /\.(?:profileGrid|storySection|fullWidthSection|contentSection)\b/,
-    )
+    expect(memberPageStyles).not.toMatch(/\.(?:profileGrid|storySection|fullWidthSection|contentSection)\b/)
   })
 })

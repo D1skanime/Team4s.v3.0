@@ -129,7 +129,7 @@ describe('AdminGroupsClient', () => {
     expect(mockPush).toHaveBeenCalledWith('/admin/users/42?tab=roles-rights&group=5')
   })
 
-  it('schreibt die Gruppenauswahl in die URL statt /admin/fansubs zu �ffnen', async () => {
+  it('schreibt die Gruppenauswahl in die URL statt /admin/fansubs zu Ã¶ffnen', async () => {
     render(<AdminGroupsClient />)
 
     const moonlightButton = await screen.findByRole('button', { name: 'Moonlight Subs' })
@@ -143,3 +143,12 @@ describe('AdminGroupsClient', () => {
     expect(calls).not.toContain('/admin/fansubs')
   })
 })
+
+  it('rendert deutsche Gruppentexte ohne Ersatzzeichen', async () => {
+    mockUseSearchParams.mockReturnValue(new URLSearchParams('group=5&tab=changes'))
+
+    const { container } = render(<AdminGroupsClient />)
+
+    expect(await screen.findByRole('link', { name: 'Änderungen im Kontext öffnen' })).not.toBeNull()
+    expect(container.textContent).not.toContain('�')
+  })

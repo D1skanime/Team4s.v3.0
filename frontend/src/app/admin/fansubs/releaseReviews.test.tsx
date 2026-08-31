@@ -105,7 +105,7 @@ const counts = {
 function setViewport(width: number) {
   Object.defineProperty(window, 'innerWidth', { configurable: true, value: width })
   vi.stubGlobal('matchMedia', vi.fn((query: string) => ({
-    matches: query.includes('max-width: 767px') ? width < 768 : false,
+    matches: query.includes('max-width: 639px') ? width < 640 : false,
     media: query,
     onchange: null,
     addEventListener: vi.fn(),
@@ -199,8 +199,8 @@ describe('canonical release review routing and queue', () => {
     await waitFor(() => expect(screen.getAllByRole('link', { name: 'Öffnen' })).toHaveLength(2))
   })
 
-  it('shows only the larger-workspace message below 768px', async () => {
-    setViewport(767)
+  it('shows only the larger-workspace message below 640px', async () => {
+    setViewport(639)
     render(<ReleaseReviewsSection fansubId={88} />)
 
     expect(screen.getByRole('heading', { name: 'Prüfungen benötigen mehr Platz' })).toBeTruthy()
@@ -209,6 +209,13 @@ describe('canonical release review routing and queue', () => {
     expect(screen.queryByRole('button', { name: /Bestätigen|Ablehnen/ })).toBeNull()
     expect(api.listReleaseReviews).not.toHaveBeenCalled()
   })
+	it('shows the review workspace at the 745px tablet browser width', async () => {
+		setViewport(745)
+		render(<ReleaseReviewsSection fansubId={88} />)
+
+		await screen.findByRole('heading', { name: 'Pr\u00fcfungen' })
+		expect(screen.queryByText('Pr\u00fcfungen ben\u00f6tigen mehr Platz')).toBeNull()
+	})
 
   it('omits the Typ FormField entirely when allowed_types has exactly one entry (D10)', async () => {
     api.getReleaseReviewCounts.mockResolvedValue({

@@ -85,7 +85,7 @@ export const EMPTY_MEMBER_FORM: MemberFormFields = {
   displayName: '',
   joinedDate: '',
   leftDate: '',
-  visibility: 'internal',
+  visibility: 'public',
 }
 
 export const EMPTY_ROLE_FORM: RoleFormFields = {
@@ -124,7 +124,7 @@ export function memberToForm(m: HistFansubGroupMember): MemberFormFields {
     displayName: m.display_name,
     joinedDate: normalizeDateValue(m.joined_date),
     leftDate: normalizeDateValue(m.left_date),
-    visibility: m.visibility ?? 'internal',
+    visibility: m.visibility ?? 'public',
   }
 }
 
@@ -329,7 +329,7 @@ export function useGroupMembersTab({ fansubId, onActionsChange, onActiveAppMembe
               started_date: draft.startedDate || null,
               ended_date: draft.endedDate || null,
               status: 'historical',
-              visibility: 'internal',
+              visibility: 'public',
             })
           } else {
             await createMemberRole(fansubId, {
@@ -339,7 +339,7 @@ export function useGroupMembersTab({ fansubId, onActionsChange, onActiveAppMembe
               ended_date: draft.endedDate || null,
               source_note: null,
               status: 'historical',
-              visibility: 'internal',
+              visibility: 'public',
             })
           }
         }
@@ -357,7 +357,7 @@ export function useGroupMembersTab({ fansubId, onActionsChange, onActiveAppMembe
             ended_date: draft.endedDate || null,
             source_note: null,
             status: 'historical',
-            visibility: 'internal',
+            visibility: 'public',
           })
         }
       }
@@ -419,13 +419,13 @@ export function useGroupMembersTab({ fansubId, onActionsChange, onActiveAppMembe
       if (roleEditTarget) {
         await updateMemberRole(fansubId, roleEditTarget.id, {
           role_code: roleForm.roleCode.trim(), started_date: startedDate, ended_date: endedDate,
-          source_note: roleForm.note.trim() || null, status: roleEditTarget.status, visibility: 'internal',
+          source_note: roleForm.note.trim() || null, status: roleEditTarget.status, visibility: 'public',
         })
       } else {
         const body: CreateMemberRoleRequest = {
           hist_fansub_group_member_id: Number(roleForm.memberId),
           role_code: roleForm.roleCode.trim(), started_date: startedDate, ended_date: endedDate,
-          source_note: roleForm.note.trim() || null, status: 'historical', visibility: 'internal',
+          source_note: roleForm.note.trim() || null, status: 'historical', visibility: 'public',
         }
         await createMemberRole(fansubId, body)
       }

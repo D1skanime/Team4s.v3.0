@@ -402,37 +402,6 @@
   background: #f0fdf4 !important;
 }
 
-/* Dropdown menu */
-.dropdown {
-  position: absolute;
-  right: 0;
-  top: calc(100% + 4px);
-  z-index: 50;
-  background: #ffffff;
-  border: 1px solid #e1e1e6;
-  border-radius: 8px;
-  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
-  min-width: 140px;
-  overflow: hidden;
-}
-
-.dropdownItem {
-  display: flex;
-  align-items: center;
-  gap: 8px;
-  width: 100%;
-  padding: 8px 12px;
-  border: none;
-  background: transparent;
-  color: #dc3545;
-  font-size: 14px;
-  text-align: left;
-  cursor: pointer;
-}
-
-.dropdownItem:hover {
-  background: #fff0f0;
-}
 
 /* Source help text */
 .sourceHelpText {

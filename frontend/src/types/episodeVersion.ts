@@ -14,6 +14,7 @@ export interface EpisodeVersion {
   media_item_id: string
   video_quality?: string | null
   subtitle_type?: SubtitleType | null
+  production_started_on?: string | null
   release_date?: string | null
   crc32?: string | null
   stream_url?: string | null
@@ -87,6 +88,7 @@ export interface EpisodeVersionCreateRequest {
   media_item_id: string
   video_quality?: string | null
   subtitle_type?: SubtitleType | null
+  production_started_on?: string | null
   release_date?: string | null
   crc32?: string | null
   stream_url?: string | null
@@ -100,6 +102,7 @@ export interface EpisodeVersionPatchRequest {
   media_item_id?: string | null
   video_quality?: string | null
   subtitle_type?: SubtitleType | null
+  production_started_on?: string | null
   release_date?: string | null
   crc32?: string | null
   stream_url?: string | null

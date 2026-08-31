@@ -21,6 +21,7 @@ export interface DomainProjectionMemberRow {
   member_slogan: string | null;
   roles: string[];
   role_labels: string[];
+  historical_role_labels: string[];
   status: string;
   profile_status: DomainProjectionProfileStatus;
   claimed: boolean;

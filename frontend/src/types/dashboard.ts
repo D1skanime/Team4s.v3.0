@@ -13,31 +13,59 @@
 
 /** Einzelne Rollen-Volumen-Zeile (Anzahl gewährter Credits je Rollencode). */
 export interface OwnDashboardRoleVolumeEntry {
-  role_code: string
-  count: number
+  role_code: string;
+  count: number;
 }
 
 /** Fortschritts-Zeile je Contribution-Familie (D-04, Phase 113 Tier-Schwellen). */
 export interface OwnDashboardCategoryProgress {
-  family: 'contribution_projects' | 'contribution_chronicle' | 'contribution_archivist'
-  current_tier: string
-  current_count: number
-  next_threshold: number | null
+  family:
+    | "contribution_projects"
+    | "contribution_chronicle"
+    | "contribution_archivist";
+  current_tier: string;
+  current_count: number;
+  next_threshold: number | null;
 }
 
 /** Aggregierte Kennzahlen des eingeloggten Members für /me/dashboard (D-03). */
+export interface OwnDashboardPendingClaim {
+  claim_id: number;
+  fansub_group_id: number;
+  fansub_group_name: string;
+  member_nickname: string;
+  created_at: string;
+}
+
+export interface OwnDashboardPendingGroupMediaReview {
+  fansub_group_id: number;
+  fansub_group_name: string;
+  count: number;
+}
+
+export interface OwnDashboardPendingReleaseReview {
+  fansub_group_id: number;
+  anime_id: number;
+  anime_title: string;
+  image_count: number;
+  text_count: number;
+}
+
 export interface OwnDashboardData {
-  has_member_profile: boolean
-  total_points: number
-  badges_count: number
-  projects_count: number
-  images_count: number
-  contributions_count: number
-  role_volume: OwnDashboardRoleVolumeEntry[]
-  category_progress: OwnDashboardCategoryProgress[]
+  has_member_profile: boolean;
+  total_points: number;
+  badges_count: number;
+  projects_count: number;
+  images_count: number;
+  contributions_count: number;
+  role_volume: OwnDashboardRoleVolumeEntry[];
+  category_progress: OwnDashboardCategoryProgress[];
+  pending_claims: OwnDashboardPendingClaim[];
+  pending_group_media_reviews: OwnDashboardPendingGroupMediaReview[];
+  pending_release_reviews: OwnDashboardPendingReleaseReview[];
 }
 
 /** Response-Envelope für GET /api/v1/me/dashboard. */
 export interface OwnDashboardResponse {
-  data: OwnDashboardData
+  data: OwnDashboardData;
 }

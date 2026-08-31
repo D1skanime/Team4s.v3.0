@@ -75,6 +75,31 @@ func TestListByMemberIDWithProposalFields_SelectsWorkedTotalSubqueries(t *testin
 	}
 }
 
+func TestMemberContributionWithProposalRow_HasOwnReleaseWorkField(t *testing.T) {
+	var row MemberContributionWithProposalRow
+	if row.HasOwnReleaseWork {
+		t.Fatalf("HasOwnReleaseWork must default to false")
+	}
+	row.HasOwnReleaseWork = true
+	if !row.HasOwnReleaseWork {
+		t.Fatalf("HasOwnReleaseWork must retain true")
+	}
+}
+
+func TestListByMemberIDWithProposalFields_SelectsOwnReleaseWork(t *testing.T) {
+	source := readProposalRepositorySource(t, "anime_contributions_proposal_repository.go")
+	for _, fragment := range []string{
+		"has_own_release_work",
+		"n.release_version_id = ac.release_version_id",
+		"m.release_version_id = ac.release_version_id",
+		"m.uploaded_by_user_id = $2",
+	} {
+		if !strings.Contains(source, fragment) {
+			t.Fatalf("release completion query fragment missing: %q", fragment)
+		}
+	}
+}
+
 func TestCreateProposal_IsRoleScopedAndSerialized(t *testing.T) {
 	source := readProposalRepositorySource(t, "anime_contributions_proposal_repository.go") +
 		readProposalRepositorySource(t, "anime_contributions_proposal_merge_repository.go")

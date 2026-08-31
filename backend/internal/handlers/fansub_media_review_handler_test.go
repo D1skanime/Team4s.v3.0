@@ -34,6 +34,7 @@ type fansubMediaRepoStub struct {
 	reorderMediaIDs  []int64
 	reorderErr       error
 	mediaPermissions models.FansubGroupMediaPermissions
+	uploadedByActor  bool
 }
 
 func (s *fansubMediaRepoStub) UpdateFansubMediaReview(
@@ -67,6 +68,10 @@ func (s *fansubMediaRepoStub) GetFansubMediaOwner(ctx context.Context, mediaID i
 	return 0, repository.ErrNotFound
 }
 
+func (s *fansubMediaRepoStub) FansubGroupMediaUploadedByAppUser(ctx context.Context, fansubGroupID, mediaID, appUserID int64) (bool, error) {
+	return s.uploadedByActor, nil
+}
+
 func (s *fansubMediaRepoStub) ListFansubGroupMediaForReview(ctx context.Context, fansubGroupID int64, actorAppUserID *int64) ([]repository.FansubGroupMediaReviewRow, error) {
 	return s.listRows, s.listErr
 }
@@ -82,7 +87,8 @@ func (s *fansubMediaRepoStub) GetFansubGroupMediaPermissionsForAppUser(ctx conte
 
 // mediaReviewPermissionSvcStub steuert das Ergebnis von CanForFansubGroup.
 type mediaReviewPermissionSvcStub struct {
-	allowed bool
+	allowed        bool
+	allowedActions map[permissions.Action]bool
 }
 
 func (s *mediaReviewPermissionSvcStub) CanForFansubGroup(
@@ -91,7 +97,7 @@ func (s *mediaReviewPermissionSvcStub) CanForFansubGroup(
 	action permissions.Action,
 	fansubID int64,
 ) (permissions.Result, error) {
-	if s.allowed {
+	if s.allowed || s.allowedActions[action] {
 		return permissions.Result{Allowed: true, ReasonCode: permissions.ReasonAllowed}, nil
 	}
 	return permissions.Result{Allowed: false, ReasonCode: permissions.ReasonInsufficientRole}, nil
@@ -306,6 +312,35 @@ func TestFansubMediaReview_PermissionDeny(t *testing.T) {
 	}
 }
 
+func TestFansubMediaReviewRequiresGroupEditPermission(t *testing.T) {
+	gin.SetMode(gin.TestMode)
+
+	audit := &auditMediaReviewStub{}
+	handler := buildMediaReviewHandler(
+		&mediaReviewPermissionSvcStub{allowedActions: map[permissions.Action]bool{
+			permissions.ActionFansubGroupMediaUpdate: true,
+		}},
+		&fansubMediaRepoStub{},
+		audit,
+	)
+
+	rec := httptest.NewRecorder()
+	c, _ := gin.CreateTestContext(rec)
+	c.Request = httptest.NewRequest(http.MethodPatch, "/api/v1/admin/fansubs/1/media/101", strings.NewReader(`{"review_status":"freigegeben"}`))
+	c.Request.Header.Set("Content-Type", "application/json")
+	c.Params = gin.Params{{Key: "id", Value: "1"}, {Key: "mediaId", Value: "101"}}
+	setMediaReviewTestAuth(c, 42)
+
+	handler.PatchFansubMediaReview(c)
+
+	if rec.Code != http.StatusForbidden {
+		t.Fatalf("erwartet 403 ohne Medienprüfrecht, erhalten %d", rec.Code)
+	}
+	if audit.count() == 0 || audit.entries[len(audit.entries)-1].Action != string(permissions.ActionFansubGroupEdit) {
+		t.Fatal("die Ablehnung muss das fehlende Medienprüfrecht auditieren")
+	}
+}
+
 // --- TestFansubMediaReview_Success_AuditRequired (D-09 + T-78-02) ---
 
 func TestFansubMediaReview_Success_AuditRequired(t *testing.T) {
@@ -511,5 +546,71 @@ func TestFansubMediaReview_ValidEnumValues_Accepted(t *testing.T) {
 					tc.visibility, tc.reviewStatus, rec.Code, rec.Body.String())
 			}
 		})
+	}
+}
+
+func TestFansubMediaReview_OwnMetadataUpdate_AllowsOnlyOwnUpload(t *testing.T) {
+	gin.SetMode(gin.TestMode)
+
+	ownerID := int64(1)
+	updatedMediaID := int64(0)
+	repo := &fansubMediaRepoStub{
+		ownerID:         &ownerID,
+		uploadedByActor: true,
+		updatedMediaID:  &updatedMediaID,
+	}
+	audit := &auditMediaReviewStub{}
+	handler := buildMediaReviewHandler(
+		&mediaReviewPermissionSvcStub{allowedActions: map[permissions.Action]bool{
+			permissions.ActionFansubGroupMediaUpdateOwn: true,
+		}},
+		repo,
+		audit,
+	)
+
+	rec := httptest.NewRecorder()
+	c, _ := gin.CreateTestContext(rec)
+	c.Request = httptest.NewRequest(http.MethodPatch, "/api/v1/admin/fansubs/1/media/101", strings.NewReader(`{"title":"Timer-Bild","description":"Eigener Upload","alt_text":"Timer"}`))
+	c.Request.Header.Set("Content-Type", "application/json")
+	c.Params = gin.Params{{Key: "id", Value: "1"}, {Key: "mediaId", Value: "101"}}
+	setMediaReviewTestAuth(c, 42)
+
+	handler.PatchFansubMediaReview(c)
+
+	if rec.Code != http.StatusOK {
+		t.Fatalf("expected own metadata update to succeed, got %d: %s", rec.Code, rec.Body.String())
+	}
+	if updatedMediaID != 101 {
+		t.Fatalf("expected media metadata to be updated, got %d", updatedMediaID)
+	}
+	if got := audit.entries[len(audit.entries)-1].Action; got != string(permissions.ActionFansubGroupMediaUpdateOwn) {
+		t.Fatalf("expected own-update audit action, got %q", got)
+	}
+}
+
+func TestFansubMediaReview_OwnMetadataUpdate_RejectsReviewFields(t *testing.T) {
+	gin.SetMode(gin.TestMode)
+
+	ownerID := int64(1)
+	repo := &fansubMediaRepoStub{ownerID: &ownerID, uploadedByActor: true}
+	handler := buildMediaReviewHandler(
+		&mediaReviewPermissionSvcStub{allowedActions: map[permissions.Action]bool{
+			permissions.ActionFansubGroupMediaUpdateOwn: true,
+		}},
+		repo,
+		&auditMediaReviewStub{},
+	)
+
+	rec := httptest.NewRecorder()
+	c, _ := gin.CreateTestContext(rec)
+	c.Request = httptest.NewRequest(http.MethodPatch, "/api/v1/admin/fansubs/1/media/101", strings.NewReader(`{"visibility":"oeffentlich"}`))
+	c.Request.Header.Set("Content-Type", "application/json")
+	c.Params = gin.Params{{Key: "id", Value: "1"}, {Key: "mediaId", Value: "101"}}
+	setMediaReviewTestAuth(c, 42)
+
+	handler.PatchFansubMediaReview(c)
+
+	if rec.Code != http.StatusForbidden {
+		t.Fatalf("expected own metadata action to reject review fields, got %d: %s", rec.Code, rec.Body.String())
 	}
 }

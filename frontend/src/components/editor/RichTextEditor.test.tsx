@@ -28,7 +28,7 @@ vi.mock('./ColorTokenExtension', () => ({
 }))
 
 // RichTextEditor ist 'use client' — wir importieren nach den Mocks
-import { RichTextEditor } from './RichTextEditor'
+import { areRichTextValuesEqual, RichTextEditor } from './RichTextEditor'
 
 describe('RichTextEditor', () => {
   it('rendert ohne Crash (Smoke Test)', () => {
@@ -74,6 +74,17 @@ describe('RichTextEditor', () => {
     expect(firstConfig?.content).toEqual(secondConfig?.content)
     expect(firstConfig?.content).not.toBe(secondConfig?.content)
   })
+  it('erhält eine gleichwertige Rich-Text-Liste ohne Editor-Reset', () => {
+    const original = {
+      type: 'doc',
+      content: [{
+        type: 'bulletList',
+        content: [{ type: 'listItem', content: [{ type: 'paragraph', content: [{ type: 'text', text: 'Feuer' }] }] }],
+      }],
+    }
+
+    expect(areRichTextValuesEqual(original, JSON.parse(JSON.stringify(original)))).toBe(true)
+  })
 })
 
 describe('RichTextRenderer', () => {
@@ -91,5 +102,13 @@ describe('RichTextRenderer', () => {
     const html = renderToStaticMarkup(<RichTextRenderer bodyHtml="<p>Test</p>" />)
     expect(html).toContain('<p>Test</p>')
     expect(html).toMatch(/^<div/)
+  })
+
+  it('erhält Listen-Markup für die öffentliche Ausgabe', () => {
+    const html = renderToStaticMarkup(
+      <RichTextRenderer bodyHtml="<ul><li><p>Feuer</p></li><li><p>Wasser</p></li></ul>" />,
+    )
+
+    expect(html).toContain('<ul><li><p>Feuer</p></li><li><p>Wasser</p></li></ul>')
   })
 })

@@ -214,8 +214,10 @@ type PublicMemberBadgeProgress struct {
 // clientseitiges Styling, label_de traegt die serverseitige, autoritative Anzeige.
 // Analog zu role_codes+role_labels in anime_contributions_public_repository.go.
 type PublicMemberRole struct {
-	Code    string `json:"code"`
-	LabelDe string `json:"label_de"`
+	Code        string `json:"code"`
+	LabelDe     string `json:"label_de"`
+	StartedYear *int32 `json:"started_year,omitempty"`
+	EndedYear   *int32 `json:"ended_year,omitempty"`
 }
 
 type PublicMemberProjectReleaseVersion struct {
@@ -226,6 +228,9 @@ type PublicMemberProjectReleaseVersion struct {
 	EpisodeNumber       string             `json:"episode_number"`
 	EpisodeTitle        *string            `json:"episode_title,omitempty"`
 	Roles               []PublicMemberRole `json:"roles"`
+	// IsReleaseSpecific marks a release-only role assignment which overrides the
+	// project-wide assignment for this release version.
+	IsReleaseSpecific bool `json:"is_release_specific"`
 }
 
 type PublicMemberCurrentProject struct {

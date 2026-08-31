@@ -158,6 +158,7 @@ export function GroupHistRoleDialog({
               minYear={yearMin}
               maxYear={yearMax}
               minDate={roleForm.startedDate || undefined}
+              panelAlign="end"
             />
           </FormField>
         </div>

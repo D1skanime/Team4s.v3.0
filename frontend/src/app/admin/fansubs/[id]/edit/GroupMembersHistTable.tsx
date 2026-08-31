@@ -238,7 +238,7 @@ function HistoricalMemberCard({
 
       {canManageClaims
         ? (pendingClaimsByMember.get(member.member_id) ?? []).map((claim) => (
-            <div key={`pending-claim-${claim.id}`} className={styles.fansubEditMemberCompactBody}>
+            <div key={`pending-claim-${claim.id}`} className={styleNames(styles.fansubEditMemberCompactBody, styles.fansubEditMemberCompactActionBody)}>
               <div className={styles.fansubEditClaimRequest}>
                 <div className={styles.fansubEditClaimRequestInfo}>
                   <span className={styles.fansubEditClaimRequestLabel}>
@@ -275,7 +275,7 @@ function HistoricalMemberCard({
           ))
         : null}
       {canManageClaims && member.app_username ? (
-        <div className={styles.fansubEditMemberCompactBody}>
+        <div className={styleNames(styles.fansubEditMemberCompactBody, styles.fansubEditMemberCompactActionBody)}>
           <div className={styles.fansubEditLinkedAccount}>
             <div className={styles.fansubEditLinkedAccountInfo}>
               <span className={styles.fansubEditLinkedAccountLabel}>
@@ -300,7 +300,7 @@ function HistoricalMemberCard({
         </div>
       ) : null}
       {canCreateClaimInvitation && !member.app_username ? (
-        <div className={styles.fansubEditMemberCompactBody}>
+        <div className={styleNames(styles.fansubEditMemberCompactBody, styles.fansubEditMemberCompactActionBody)}>
           <Toolbar
             leading={<span className={styles.fansubEditHint}>Noch kein Team4s-Account verknüpft</span>}
             trailing={(

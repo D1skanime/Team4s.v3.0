@@ -64,6 +64,16 @@ func TestReleaseReviewAtomicDecisionSourceMatrix(t *testing.T) {
 		WHERE review_state = 'confirmed'
 		  AND category IN ('screenshot', 'typesetting_karaoke', 'fun_outtake', 'other')
 	`))
+	assert.Equal(t, 4, countReleaseReviewRows(t, fx, `
+		SELECT COUNT(*)
+		FROM release_version_media media
+		JOIN media_assets asset ON asset.id = media.media_asset_id
+		JOIN visibilities visibility ON visibility.id = asset.visibility_id
+		JOIN review_statuses status ON status.id = asset.review_status_id
+		WHERE media.id BETWEEN 601 AND 604
+		  AND visibility.name = 'public'
+		  AND status.code = 'approved'
+	`))
 	assert.Equal(t, 1, countReleaseReviewRows(t, fx, `
 		SELECT COUNT(*) FROM release_version_notes
 		WHERE id = 501 AND visibility = 'public' AND status = 'published'

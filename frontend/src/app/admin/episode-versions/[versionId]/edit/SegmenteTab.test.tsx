@@ -1194,3 +1194,16 @@ describe('formatAssignmentChipLabel', () => {
     expect(formatAssignmentChipLabel('3', false)).not.toBe('Folge 481')
   })
 })
+
+describe('SegmenteTab deletion action', () => {
+  it('zeigt den Löschvorgang als direkten Papierkorb statt in einem Mehr-Menü', async () => {
+    mockedGetAnimeSegments.mockResolvedValue({
+      data: [makeSegment({ id: 44, theme_title: 'Direkt löschbares Segment' })],
+    })
+
+    render(<SegmenteTab animeId={1} groupId={2} version="v1" episodeNumber={1} releaseVariantId={9} />)
+
+    expect(await screen.findByTitle('Segment löschen')).toBeTruthy()
+    expect(screen.queryByTitle('Mehr Aktionen')).toBeNull()
+  })
+})

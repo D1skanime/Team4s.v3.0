@@ -352,6 +352,9 @@ function ClaimActionButtons({ claim, onDecide }: ClaimActionButtonsProps) {
     )
   }
   if (claim.claim_status === 'verified') {
+    if (claim.is_active_member) {
+      return <Badge variant="success">Bereits aktives Mitglied</Badge>
+    }
     return (
       <Button variant="primary" onClick={() => onDecide('activate')}>
         Als aktives Mitglied übernehmen

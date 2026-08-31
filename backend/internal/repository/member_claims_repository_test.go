@@ -51,3 +51,20 @@ func TestMemberClaimsRepositoryVerifyLinksUserID(t *testing.T) {
 	assert.True(t, strings.Contains(verifyBody, "m.user_id IS NULL"),
 		"linking must not overwrite an existing (legacy) members.user_id")
 }
+
+func TestMemberClaimsRepositoryBlocksAlreadyAssignedMembers(t *testing.T) {
+	repoSrc, err := os.ReadFile("member_claims_repository.go")
+	require.NoError(t, err)
+	content := string(repoSrc)
+
+	searchStart := strings.Index(content, "func (r *MemberClaimsRepository) SearchHistoricalMembers")
+	submitStart := strings.Index(content, "func (r *MemberClaimsRepository) SubmitClaim")
+	require.NotEqual(t, -1, searchStart)
+	require.NotEqual(t, -1, submitStart)
+
+	searchBody := content[searchStart:submitStart]
+	submitBody := content[submitStart:]
+	assert.Contains(t, searchBody, "AND m.user_id IS NULL")
+	assert.Contains(t, submitBody, "Code:       \"member_already_assigned\"")
+	assert.Contains(t, submitBody, "AND mc.claim_status = 'verified'")
+}

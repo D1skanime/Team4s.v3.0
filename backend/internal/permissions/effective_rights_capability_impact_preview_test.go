@@ -96,7 +96,7 @@ func TestPreviewGroupRightsCapabilityChangeGrantsNewActionForHolderWithNoOtherSo
 	service := NewService(resolver)
 
 	results, err := service.PreviewGroupRightsCapabilityChange(
-		context.Background(), RoleEditor, ActionFansubGroupMediaUpload, true,
+		context.Background(), RoleEditor, ActionFansubGroupEdit, true,
 		[]RoleHolderTarget{{AppUserID: 10, FansubGroupID: 5}},
 	)
 	require.NoError(t, err)
@@ -124,7 +124,7 @@ func TestPreviewGroupRightsCapabilityChangeRevokeRetainsAccessViaSecondRole(t *t
 	service := NewService(resolver)
 
 	results, err := service.PreviewGroupRightsCapabilityChange(
-		context.Background(), RoleFansubLead, ActionFansubGroupMediaUpload, false,
+		context.Background(), RoleFansubLead, ActionFansubGroupEdit, false,
 		[]RoleHolderTarget{{AppUserID: 20, FansubGroupID: 6}},
 	)
 	require.NoError(t, err)
@@ -149,7 +149,7 @@ func TestPreviewGroupRightsCapabilityChangeUserDenyWinsOverHypotheticalGrant(t *
 				roles:            []string{RoleEditor},
 				activeMembership: true,
 				overrides: []UserCapabilityOverride{
-					{ActionCode: ActionFansubGroupMediaUpload, Effect: "deny"},
+					{ActionCode: ActionFansubGroupEdit, Effect: "deny"},
 				},
 			},
 		},
@@ -157,7 +157,7 @@ func TestPreviewGroupRightsCapabilityChangeUserDenyWinsOverHypotheticalGrant(t *
 	service := NewService(resolver)
 
 	results, err := service.PreviewGroupRightsCapabilityChange(
-		context.Background(), RoleEditor, ActionFansubGroupMediaUpload, true,
+		context.Background(), RoleEditor, ActionFansubGroupEdit, true,
 		[]RoleHolderTarget{{AppUserID: 30, FansubGroupID: 7}},
 	)
 	require.NoError(t, err)
@@ -186,7 +186,7 @@ func TestPreviewGroupRightsCapabilityChangeProcessesMultipleHoldersIndependently
 	service := NewService(resolver)
 
 	results, err := service.PreviewGroupRightsCapabilityChange(
-		context.Background(), RoleEditor, ActionFansubGroupMediaUpload, true,
+		context.Background(), RoleEditor, ActionFansubGroupEdit, true,
 		[]RoleHolderTarget{
 			{AppUserID: 101, FansubGroupID: 5},
 			{AppUserID: 102, FansubGroupID: 6},
@@ -216,7 +216,7 @@ func TestPreviewGroupRightsCapabilityChangeServiceUnavailableReturnsError(t *tes
 	service := NewService(nil)
 
 	_, err := service.PreviewGroupRightsCapabilityChange(
-		context.Background(), RoleEditor, ActionFansubGroupMediaUpload, true,
+		context.Background(), RoleEditor, ActionFansubGroupEdit, true,
 		[]RoleHolderTarget{{AppUserID: 1, FansubGroupID: 1}},
 	)
 	require.Error(t, err)

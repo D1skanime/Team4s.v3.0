@@ -10,12 +10,43 @@ import type { PublicMemberCurrentProject } from '@/types/profile'
 import { MemberCurrentProjectsSection } from './MemberCurrentProjectsSection'
 
 const projectStyles = readFileSync('src/components/profile/MemberCurrentProjectsSection.module.css', 'utf8')
-const { getMemberProjectsMock } = vi.hoisted(() => ({ getMemberProjectsMock: vi.fn() }))
+const { getMemberProjectsMock } = vi.hoisted(() => ({
+  getMemberProjectsMock: vi.fn(),
+}))
 const { catalogRoles } = vi.hoisted(() => ({
   catalogRoles: [
-    { code: 'typesetter', label_de: 'Typesetting', contexts: ['anime_contribution'], sort_order: 20, color_key: '#0f766e', icon_key: 'wrench' },
-    { code: 'karaoke_fx', label_de: 'Karaoke-FX', contexts: ['anime_contribution'], sort_order: 30, color_key: '#7e22ce', icon_key: 'image' },
-    { code: 'translator', label_de: 'Übersetzung', contexts: ['anime_contribution'], sort_order: 40, color_key: '#0369a1', icon_key: 'languages' },
+    {
+      code: 'typesetter',
+      label_de: 'Typesetting',
+      contexts: ['anime_contribution'],
+      sort_order: 20,
+      color_key: '#0f766e',
+      icon_key: 'wrench',
+    },
+    {
+      code: 'karaoke_fx',
+      label_de: 'Karaoke-FX',
+      contexts: ['anime_contribution'],
+      sort_order: 30,
+      color_key: '#7e22ce',
+      icon_key: 'image',
+    },
+    {
+      code: 'translator',
+      label_de: 'Übersetzung',
+      contexts: ['anime_contribution'],
+      sort_order: 40,
+      color_key: '#0369a1',
+      icon_key: 'languages',
+    },
+    {
+      code: 'timer',
+      label_de: 'Timing',
+      contexts: ['anime_contribution'],
+      sort_order: 50,
+      color_key: '#ea580c',
+      icon_key: 'clock',
+    },
   ],
 }))
 
@@ -25,7 +56,9 @@ vi.mock('@/providers/RoleCatalogProvider', () => ({
 
 vi.mock('next/link', () => ({
   default: ({ href, children, className, ...props }: { href: string; children: ReactNode; className?: string }) => (
-    <a href={href} className={className} {...props}>{children}</a>
+    <a href={href} className={className} {...props}>
+      {children}
+    </a>
   ),
 }))
 
@@ -86,11 +119,7 @@ describe('MemberCurrentProjectsSection', () => {
       { code: 'typesetter', label_de: 'stale typesetting label' },
     ]
     const { container } = render(
-      <MemberCurrentProjectsSection
-        memberSlug="subaru"
-        projects={[makeProject(1, { roles })]}
-        totalCount={1}
-      />,
+      <MemberCurrentProjectsSection memberSlug="subaru" projects={[makeProject(1, { roles })]} totalCount={1} />,
     )
 
     const chips = container.querySelectorAll('[class*="roleChip"]')
@@ -115,17 +144,57 @@ describe('MemberCurrentProjectsSection', () => {
     expect(container.querySelector('[class*="projectArrow"]')).toBeNull()
   })
 
+  it('separates release-specific exceptions from project-wide roles', () => {
+    render(
+      <MemberCurrentProjectsSection
+        memberSlug="qc"
+        projects={[
+          makeProject(1, {
+            roles: [{ code: 'translator', label_de: '\u00dcbersetzung' }],
+            release_versions: [
+              {
+                release_version_id: 41,
+                release_version_label: 'v1',
+                version: 'v1',
+                episode_number: '5',
+                episode_title: 'Zeit f\u00fcr Entschlossenheit',
+                roles: [
+                  { code: 'typesetter', label_de: 'Typesetting' },
+                  { code: 'timer', label_de: 'Timing' },
+                ],
+                is_release_specific: true,
+              },
+            ],
+          }),
+        ]}
+        totalCount={1}
+      />,
+    )
+
+    expect(screen.getByText('Projektweit')).not.toBeNull()
+    expect(screen.getByText('Folge 5: Zeit f\u00fcr Entschlossenheit')).not.toBeNull()
+    expect(screen.getByText('\u00dcbersetzung')).not.toBeNull()
+    expect(screen.getByText('Timing')).not.toBeNull()
+    expect(screen.getByText('Typesetting')).not.toBeNull()
+  })
+
   it('loads exactly the next six once while preserving the initial six and guarding in-flight clicks', async () => {
     const initial = Array.from({ length: 6 }, (_, index) => makeProject(index + 1))
     const next = Array.from({ length: 6 }, (_, index) => makeProject(index + 7))
     let resolveRequest!: (value: { data: { items: PublicMemberCurrentProject[]; total: number } }) => void
-    getMemberProjectsMock.mockReturnValue(new Promise((resolve) => { resolveRequest = resolve }))
+    getMemberProjectsMock.mockReturnValue(
+      new Promise((resolve) => {
+        resolveRequest = resolve
+      }),
+    )
 
     render(<MemberCurrentProjectsSection memberSlug="subaru" projects={initial} totalCount={50} />)
 
     expect(screen.getByText('6 von 50 Projekten sichtbar')).not.toBeNull()
     expect(getMemberProjectsMock).not.toHaveBeenCalled()
-    const button = screen.getByRole('button', { name: 'Weitere Projekte laden' })
+    const button = screen.getByRole('button', {
+      name: 'Weitere Projekte laden',
+    })
     fireEvent.click(button)
     fireEvent.click(button)
     expect(getMemberProjectsMock).toHaveBeenCalledTimes(1)
@@ -146,22 +215,26 @@ describe('MemberCurrentProjectsSection', () => {
     const initial = Array.from({ length: 6 }, (_, index) => makeProject(index + 1))
     const next = Array.from({ length: 6 }, (_, index) => makeProject(index + 7))
     getMemberProjectsMock.mockRejectedValueOnce(new Error('network down'))
-    getMemberProjectsMock.mockResolvedValueOnce({ data: { items: next, total: 50 } })
+    getMemberProjectsMock.mockResolvedValueOnce({
+      data: { items: next, total: 50 },
+    })
 
     render(<MemberCurrentProjectsSection memberSlug="subaru" projects={initial} totalCount={50} />)
 
-    const button = screen.getByRole('button', { name: 'Weitere Projekte laden' })
+    const button = screen.getByRole('button', {
+      name: 'Weitere Projekte laden',
+    })
     fireEvent.click(button)
 
-    await waitFor(() =>
-      expect(screen.getByText('Weitere Projekte konnten nicht geladen werden')).not.toBeNull(),
-    )
+    await waitFor(() => expect(screen.getByText('Weitere Projekte konnten nicht geladen werden')).not.toBeNull())
     expect(screen.getByText('Bitte versuche es erneut.')).not.toBeNull()
     // The already-rendered initial six stay in the document while the error is shown.
     expect(screen.getAllByRole('link')).toHaveLength(6)
     expect(getMemberProjectsMock).toHaveBeenCalledTimes(1)
 
-    const retryButton = screen.getByRole('button', { name: 'Erneut versuchen' })
+    const retryButton = screen.getByRole('button', {
+      name: 'Erneut versuchen',
+    })
     fireEvent.click(retryButton)
 
     await waitFor(() => expect(screen.getByText('12 von 50 Projekten sichtbar')).not.toBeNull())
@@ -176,29 +249,30 @@ describe('MemberCurrentProjectsSection', () => {
     let observerCallback: IntersectionObserverCallback | undefined
     const disconnect = vi.fn()
     const observe = vi.fn()
-    vi.stubGlobal('IntersectionObserver', class {
-      constructor(callback: IntersectionObserverCallback) {
-        observerCallback = callback
-      }
+    vi.stubGlobal(
+      'IntersectionObserver',
+      class {
+        constructor(callback: IntersectionObserverCallback) {
+          observerCallback = callback
+        }
 
-      observe = observe
-      disconnect = disconnect
-      unobserve = vi.fn()
-      takeRecords = vi.fn(() => [])
-      root = null
-      rootMargin = '600px 0px'
-      thresholds = [0]
-    })
-
-    const rendered = render(
-      <MemberCurrentProjectsSection
-        memberSlug="subaru"
-        projects={[makeProject(1)]}
-        totalCount={2}
-      />,
+        observe = observe
+        disconnect = disconnect
+        unobserve = vi.fn()
+        takeRecords = vi.fn(() => [])
+        root = null
+        rootMargin = '600px 0px'
+        thresholds = [0]
+      },
     )
 
-    const button = screen.getByRole('button', { name: 'Weitere Projekte laden' })
+    const rendered = render(
+      <MemberCurrentProjectsSection memberSlug="subaru" projects={[makeProject(1)]} totalCount={2} />,
+    )
+
+    const button = screen.getByRole('button', {
+      name: 'Weitere Projekte laden',
+    })
     const shell = rendered.container.querySelector(':scope > section > [aria-hidden="true"]')
     expect(observe).toHaveBeenCalledTimes(1)
     expect(button.hasAttribute('disabled')).toBe(true)
@@ -216,37 +290,31 @@ describe('MemberCurrentProjectsSection', () => {
 })
 
 it('Phase 120 RED: reserves project geometry while SSR cards remain readable', () => {
-    const rendered = render(
-      <MemberCurrentProjectsSection
-        memberSlug="subaru"
-        projects={[makeProject(1), makeProject(2)]}
-        totalCount={2}
-      />,
-    )
+  const rendered = render(
+    <MemberCurrentProjectsSection memberSlug="subaru" projects={[makeProject(1), makeProject(2)]} totalCount={2} />,
+  )
 
-    const list = screen.getByRole('list', { name: 'Fansub-Projekte' })
-    expect(within(list).getAllByRole('listitem')).toHaveLength(2)
-    expect(screen.getByRole('link', { name: 'Projekt 1 öffnen' })).not.toBeNull()
-    expect(screen.getByRole('link', { name: 'Projekt 2 öffnen' })).not.toBeNull()
-    for (const image of screen.getAllByRole('img')) {
-      expect(image.getAttribute('sizes')).toBe('(max-width: 720px) 68px, 90px')
-      expect(image.getAttribute('loading')).toBe('lazy')
-    }
+  const list = screen.getByRole('list', { name: 'Fansub-Projekte' })
+  expect(within(list).getAllByRole('listitem')).toHaveLength(2)
+  expect(screen.getByRole('link', { name: 'Projekt 1 öffnen' })).not.toBeNull()
+  expect(screen.getByRole('link', { name: 'Projekt 2 öffnen' })).not.toBeNull()
+  for (const image of screen.getAllByRole('img')) {
+    expect(image.getAttribute('sizes')).toBe('(max-width: 720px) 68px, 90px')
+    expect(image.getAttribute('loading')).toBe('lazy')
+  }
 
-    const shell = rendered.container.querySelector(':scope > section > [aria-hidden="true"]')
-    expect(shell).not.toBeNull()
-    expect(shell?.textContent).not.toContain('Projekt 1')
-    expect(projectStyles).toMatch(/\.cover\s*\{[^}]*width:\s*90px;[^}]*aspect-ratio:\s*2 \/ 3;/s)
-    expect(projectStyles).toMatch(/@media \(max-width: 720px\)[\s\S]*?\.cover\s*\{[^}]*width:\s*68px;/)
-    expect(projectStyles).toMatch(/opacity:\s*[01](?:\.\d+)?;/)
-    expect(projectStyles).toMatch(/visibility:\s*(?:visible|hidden);/)
-    expect(projectStyles).not.toMatch(/transition:[^;]*(?:width|height|min-height|padding|margin|transform)/)
+  const shell = rendered.container.querySelector(':scope > section > [aria-hidden="true"]')
+  expect(shell).not.toBeNull()
+  expect(shell?.textContent).not.toContain('Projekt 1')
+  expect(projectStyles).toMatch(/\.cover\s*\{[^}]*width:\s*90px;[^}]*aspect-ratio:\s*2 \/ 3;/s)
+  expect(projectStyles).toMatch(/@media \(max-width: 720px\)[\s\S]*?\.cover\s*\{[^}]*width:\s*68px;/)
+  expect(projectStyles).toMatch(/opacity:\s*[01](?:\.\d+)?;/)
+  expect(projectStyles).toMatch(/visibility:\s*(?:visible|hidden);/)
+  expect(projectStyles).not.toMatch(/transition:[^;]*(?:width|height|min-height|padding|margin|transform)/)
 
-    rendered.rerender(
-      <MemberCurrentProjectsSection memberSlug="subaru" projects={[]} totalCount={0} />,
-    )
-    expect(screen.getByText('Keine aktuellen Projekte sichtbar.')).not.toBeNull()
-    expect(rendered.container.querySelector(':scope > section > [aria-hidden="true"]')).toBeNull()
+  rendered.rerender(<MemberCurrentProjectsSection memberSlug="subaru" projects={[]} totalCount={0} />)
+  expect(screen.getByText('Keine aktuellen Projekte sichtbar.')).not.toBeNull()
+  expect(rendered.container.querySelector(':scope > section > [aria-hidden="true"]')).toBeNull()
 })
 
 describe('Quick 260812-rps widescreen project alignment', () => {

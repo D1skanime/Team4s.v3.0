@@ -21,6 +21,7 @@ function activeMember(overrides: Partial<DomainProjectionMemberRow> = {}): Domai
     roles: ['translation'],
     role_labels: ['Übersetzung'],
     status: 'active',
+    historical_role_labels: [],
     profile_status: 'active',
     claimed: true,
     ...overrides,

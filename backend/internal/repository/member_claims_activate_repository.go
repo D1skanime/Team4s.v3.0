@@ -11,8 +11,8 @@ import (
 // ActivateClaimedMember uebernimmt ein verifiziert-geclaimtes historisches Mitglied als
 // AKTIVES Gruppenmitglied (fansub_group_members + Rollen). Leader-Override (#26/D-16): funktioniert
 // auch fuer BEENDETE historische Rollen -- anders als die automatische Aktivierung beim Claim
-// (ResolvePendingRolesToActive), die nur offene Rollen (ended_date IS NULL) uebernimmt. Governance-
-// Rollen (fansub_lead/founder) werden NICHT automatisch uebernommen (bewusst manuell zuweisen).
+// (ResolvePendingRolesToActive), die nur offene Rollen (ended_date IS NULL) uebernimmt.
+// Diese explizite Leader-Aktion uebernimmt fansub_lead; founder bleibt eine manuelle Governance-Zuweisung.
 func (r *MemberClaimsRepository) ActivateClaimedMember(ctx context.Context, fansubGroupID int64, memberID int64, actorAppUserID int64) error {
 	if fansubGroupID <= 0 || memberID <= 0 || actorAppUserID <= 0 {
 		return fmt.Errorf("activate claimed member: invalid ids")
@@ -36,7 +36,7 @@ func (r *MemberClaimsRepository) ActivateClaimedMember(ctx context.Context, fans
 		return fmt.Errorf("activate claimed member: find claim app user: %w", err)
 	}
 
-	// 2) Uebernehmbare Rollen aus der Historie (auch beendete), ohne Governance-Rollen.
+	// 2) Uebernehmbare Rollen aus der Historie (auch beendete), ausser founder.
 	roleCodes, err := r.collectActivatableHistoricalRoles(ctx, memberID, fansubGroupID)
 	if err != nil {
 		return err
@@ -44,7 +44,7 @@ func (r *MemberClaimsRepository) ActivateClaimedMember(ctx context.Context, fans
 	if len(roleCodes) == 0 {
 		return &ClaimMutationError{
 			Code:       "no_activatable_roles",
-			Message:    "Keine übernehmbaren Rollen dokumentiert (nur Leitungsrollen) — bitte manuell zuweisen.",
+			Message:    "Keine übernehmbaren Rollen dokumentiert — bitte manuell zuweisen.",
 			HTTPStatus: 422,
 		}
 	}
@@ -101,7 +101,7 @@ func (r *MemberClaimsRepository) collectActivatableHistoricalRoles(ctx context.C
 		JOIN hist_fansub_group_members hgm ON hgm.id = r.hist_fansub_group_member_id
 		WHERE hgm.member_id = $1
 		  AND hgm.fansub_group_id = $2
-		  AND r.role_code NOT IN ('fansub_lead', 'founder')
+		  AND r.role_code <> 'founder'
 		ORDER BY r.role_code
 	`, memberID, fansubGroupID)
 	if err != nil {

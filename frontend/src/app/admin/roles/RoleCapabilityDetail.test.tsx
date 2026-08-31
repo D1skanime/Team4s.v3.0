@@ -51,15 +51,15 @@ const assignableRole: RoleEntry = {
   contexts: ['app_group'],
   actions: [
     {
-      code: 'fansub_group.members.view',
-      label_de: 'Mitglieder anzeigen',
+      code: 'fansub_group.edit',
+      label_de: 'Gruppe bearbeiten',
       category: 'gruppe',
       granted: true,
       standalone: false,
     },
     {
-      code: 'fansub_group.edit',
-      label_de: 'Gruppe bearbeiten',
+      code: 'fansub_group.links.manage',
+      label_de: 'Links verwalten',
       category: 'gruppe',
       granted: false,
       standalone: false,
@@ -105,16 +105,10 @@ describe('RoleCapabilityDetail', () => {
     expect(checkedSwitches.length).toBeGreaterThan(0)
   })
 
-  it('deaktiviert alle Switches für nicht-assignable Rollen (nach Accordion öffnen)', () => {
+  it("zeigt für Beitragsrollen keine Schalter und erklärt die individuelle Rechtevergabe", () => {
     render(<DetailHarness role={historicalRole} />)
-    // Accordion öffnen
-    const header = screen.getByText('Gruppe')
-    fireEvent.click(header)
-
-    const switches = screen.getAllByRole('switch')
-    switches.forEach((s) => {
-      expect(s.getAttribute('aria-disabled')).toBe('true')
-    })
+    expect(screen.getByText(/Keine Standardrechte: Beitrags- und historische Rollen/)).toBeTruthy()
+    expect(screen.queryAllByRole("switch")).toHaveLength(0)
   })
 
   it('ruft onRequestChange auf (statt sofort zu mutieren) wenn Switch von false→true gewechselt wird (nach Accordion öffnen)', () => {
@@ -132,7 +126,7 @@ describe('RoleCapabilityDetail', () => {
     )
     expect(uncheckedSwitch).toBeTruthy()
     fireEvent.click(uncheckedSwitch!)
-    expect(onRequestChange).toHaveBeenCalledWith('fansub_group.edit', true)
+    expect(onRequestChange).toHaveBeenCalledWith('fansub_group.links.manage', true)
     // Kein optimistisches Umschalten -- der Switch selbst bleibt bis zu einem echten
     // Matrix-Refresh unverändert (T-138-24).
     expect(uncheckedSwitch!.getAttribute('aria-checked')).toBe('false')

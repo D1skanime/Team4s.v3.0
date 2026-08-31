@@ -234,6 +234,8 @@ function GroupMediaReviewSectionInner({
 
   const canUpdate =
     isPlatformAdmin || Boolean(capabilities?.can_update_group_media || capabilities?.can_edit_group)
+  const canUpdateOwn = Boolean(capabilities?.can_update_own_group_media)
+  const canReview = isPlatformAdmin || Boolean(capabilities?.can_review_group_media)
   const canUpload =
     isPlatformAdmin || Boolean(capabilities?.can_upload_group_media || capabilities?.can_edit_group)
   const canDeleteAll =
@@ -462,19 +464,25 @@ function GroupMediaReviewSectionInner({
 
   async function handleSave(item: FansubGroupMediaItem) {
     const draft = drafts[item.id]
-    if (!draft || !canUpdate) return
+    if (!draft || !(canUpdate || (canUpdateOwn && item.uploaded_by_current_user))) return
     setSaveErrors((prev) => ({ ...prev, [item.id]: '' }))
     setSaving((prev) => ({ ...prev, [item.id]: true }))
 
     try {
-      await patchFansubMediaReview(fansubId, item.id, {
-        visibility: draft.visibility,
-        review_status: draft.review_status,
+      const textMetadata = {
         title: draft.title.trim() || null,
         description: draft.description.trim() || null,
         alt_text: draft.alt_text.trim() || null,
-        category: draft.category,
-      }, undefined)
+      }
+      const patch = canUpdate
+        ? {
+            visibility: draft.visibility,
+            category: draft.category,
+            ...textMetadata,
+            ...(canReview ? { review_status: draft.review_status } : {}),
+          }
+        : textMetadata
+      await patchFansubMediaReview(fansubId, item.id, patch, undefined)
       setToast('Änderungen gespeichert.')
       setEditingMediaId(null)
       await loadMedia()
@@ -490,7 +498,7 @@ function GroupMediaReviewSectionInner({
   }
 
   async function handleQuickReview(item: FansubGroupMediaItem, reviewStatus: FansubMediaReviewStatus) {
-    if (!canUpdate) return
+    if (!canReview) return
     setSaveErrors((prev) => ({ ...prev, [item.id]: '' }))
     setSaving((prev) => ({ ...prev, [item.id]: true }))
 
@@ -510,7 +518,7 @@ function GroupMediaReviewSectionInner({
   }
 
   async function handleBulkReview(reviewStatus: FansubMediaReviewStatus) {
-    if (!canUpdate || selectedMediaIds.size === 0) return
+    if (!canReview || selectedMediaIds.size === 0) return
     const targetIds = Array.from(selectedMediaIds).filter((id) => filteredMediaIdSet.has(id))
     if (targetIds.length === 0) return
 
@@ -822,7 +830,7 @@ function GroupMediaReviewSectionInner({
                 Filter zurücksetzen ({activeFilterCount})
               </Button>
             ) : null}
-            {canUpdate ? (
+            {canReview ? (
               <Button
                 variant="ghost"
                 size="sm"
@@ -913,6 +921,7 @@ function GroupMediaReviewSectionInner({
               const isEditing = editingMediaId === item.id
               const isSelected = selectedMediaIds.has(item.id)
               const isSavingItem = saving[item.id] ?? false
+              const canEditItem = canUpdate || (canUpdateOwn && item.uploaded_by_current_user)
               const isDragging = draggedMediaId === item.id
               const isDropTarget = dragOverMediaId === item.id && draggedMediaId !== null && draggedMediaId !== item.id
               const overviewImageURL = getOverviewImageURL(item)
@@ -950,7 +959,7 @@ function GroupMediaReviewSectionInner({
                   }}
                 >
                   <div className={styles.selectionRow}>
-                    {canUpdate ? (
+                    {canReview ? (
                       <label className={styles.selectionControl}>
                         <Input
                           type="checkbox"
@@ -965,7 +974,7 @@ function GroupMediaReviewSectionInner({
                     ) : (
                       <span />
                     )}
-                    {canUpdate ? (
+                    {canReorder ? (
                       <button
                         type="button"
                         draggable={canReorderMedia}
@@ -1032,7 +1041,7 @@ function GroupMediaReviewSectionInner({
                     </div>
 
                     <div className={styles.compactActions}>
-                      {canUpdate ? (
+                      {canReview ? (
                         <>
                           {persisted.review_status !== 'freigegeben' ? (
                             <Button
@@ -1056,17 +1065,19 @@ function GroupMediaReviewSectionInner({
                             disabled={isSavingItem || isBulkSaving}
                             onClick={() => void handleQuickReview(item, 'abgelehnt')}
                           />
-                          <Button
-                            variant={isEditing ? 'secondary' : 'primary'}
-                            size="sm"
-                            iconOnly
-                            leftIcon={isEditing ? <X size={16} /> : <Edit3 size={16} />}
-                            aria-label={`${displayTitle} bearbeiten`}
-                            title={isEditing ? 'Schließen' : 'Bearbeiten'}
-                            disabled={isBulkSaving}
-                            onClick={() => (isEditing ? cancelEditing(item) : startEditing(item))}
-                          />
                         </>
+                      ) : null}
+                      {canEditItem ? (
+                        <Button
+                          variant={isEditing ? 'secondary' : 'primary'}
+                          size="sm"
+                          iconOnly
+                          leftIcon={isEditing ? <X size={16} /> : <Edit3 size={16} />}
+                          aria-label={`${displayTitle} bearbeiten`}
+                          title={isEditing ? 'Schließen' : 'Bearbeiten'}
+                          disabled={isBulkSaving}
+                          onClick={() => (isEditing ? cancelEditing(item) : startEditing(item))}
+                        />
                       ) : null}
                     </div>
                   </div>
@@ -1150,9 +1161,9 @@ function GroupMediaReviewSectionInner({
                 disabled={saving[editingItem.id] ?? false}
                 onClick={() => cancelEditing(editingItem)}
               >
-                {canUpdate ? 'Abbrechen' : 'Schließen'}
+                {canUpdate || (canUpdateOwn && editingItem.uploaded_by_current_user) ? 'Abbrechen' : 'Schließen'}
               </Button>
-              {canUpdate ? (
+              {canUpdate || (canUpdateOwn && editingItem.uploaded_by_current_user) ? (
                 <Button
                   variant="success"
                   size="sm"
@@ -1197,7 +1208,7 @@ function GroupMediaReviewSectionInner({
                     <FormField label="Titel">
                       <Input
                         value={draft.title}
-                        disabled={!canUpdate}
+                        disabled={!(canUpdate || (canUpdateOwn && editingItem.uploaded_by_current_user))}
                         onChange={(event) => updateDraft(editingItem.id, 'title', event.target.value)}
                       />
                     </FormField>
@@ -1205,7 +1216,7 @@ function GroupMediaReviewSectionInner({
                     <FormField label="Alternativtext">
                       <Input
                         value={draft.alt_text}
-                        disabled={!canUpdate}
+                        disabled={!(canUpdate || (canUpdateOwn && editingItem.uploaded_by_current_user))}
                         onChange={(event) => updateDraft(editingItem.id, 'alt_text', event.target.value)}
                       />
                     </FormField>
@@ -1215,7 +1226,7 @@ function GroupMediaReviewSectionInner({
                     <Textarea
                       className={styles.descriptionTextarea}
                       value={draft.description}
-                      disabled={!canUpdate}
+                      disabled={!(canUpdate || (canUpdateOwn && editingItem.uploaded_by_current_user))}
                       rows={4}
                       onChange={(event) => updateDraft(editingItem.id, 'description', event.target.value)}
                     />
@@ -1251,7 +1262,7 @@ function GroupMediaReviewSectionInner({
                     <FormField label="Prüfstatus">
                       <Select
                         value={draft.review_status}
-                        disabled={!canUpdate}
+                        disabled={!canReview}
                         onChange={(event) => updateDraft(editingItem.id, 'review_status', event.target.value as FansubMediaReviewStatus)}
                       >
                         {REVIEW_STATUS_OPTIONS.map((option) => (

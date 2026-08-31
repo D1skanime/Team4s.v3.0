@@ -4,18 +4,20 @@ import { useEffect, useMemo, useState } from "react";
 import Link from "next/link";
 import { usePathname, useRouter, useSearchParams } from "next/navigation";
 
-import { getCurrentUser, getReleaseVersionCapabilities } from "@/lib/api";
+import {
+  getAnimeFansubProjectTimeline,
+  getCurrentUser,
+  getReleaseVersionCapabilities,
+} from "@/lib/api";
 import { useAuthSession } from "@/lib/useAuthSession";
 import type { CurrentUserData } from "@/types/auth";
 import type { ReleaseVersionCapabilities } from "@/types/releaseVersionMedia";
+import type { AnimeFansubProjectTimeline } from "@/types/fansubNotes";
 
 import {
   formatBytes,
   formatDateTime,
-  formatDurationInput,
-  normalizeCRC32Draft,
   padEpisodeNumber,
-  parseDurationInput,
 } from "./episodeVersionEditorUtils";
 import { EpisodeNavigationControls } from "./EpisodeNavigationControls";
 import { ReleaseVersionMediaSection } from "./ReleaseVersionMediaSection";
@@ -25,8 +27,7 @@ import { useEpisodeVersionEditor } from "./useEpisodeVersionEditor";
 import { SegmenteTab } from "./SegmenteTab";
 import styles from "./EpisodeVersionEditor.module.css";
 import { Button } from "@/components/ui/Button";
-import { DatePicker } from "@/components/ui/DatePicker";
-import { Input } from "@/components/ui/Input";
+import { ReleaseVersionMetadataFields } from "./ReleaseVersionMetadataFields";
 
 type ActiveTab =
   | "uebersicht"
@@ -98,6 +99,8 @@ export function EpisodeVersionEditorPage() {
   const [currentUser, setCurrentUser] = useState<CurrentUserData | null>(null);
   const [releaseCapabilities, setReleaseCapabilities] =
     useState<ReleaseVersionCapabilities | null>(null);
+  const [projectTimeline, setProjectTimeline] =
+    useState<AnimeFansubProjectTimeline | null>(null);
   const [scopeError, setScopeError] = useState<string | null>(null);
   const animeIDFromQuery = parsePositiveInt(searchParams.get("animeId"));
   const episodeIDFromQuery = parsePositiveInt(searchParams.get("episodeId"));
@@ -142,6 +145,28 @@ export function EpisodeVersionEditorPage() {
     };
   }, [hasAuthSession, isClientInitialized, version?.id]);
 
+  useEffect(() => {
+    const fansubId = editor.selectedGroups[0]?.id;
+    const animeId = editor.contextData?.version.anime_id;
+    if (!fansubId || !animeId) {
+      setProjectTimeline(null);
+      return;
+    }
+
+    let cancelled = false;
+    void getAnimeFansubProjectTimeline(fansubId, animeId)
+      .then((timeline) => {
+        if (!cancelled) setProjectTimeline(timeline);
+      })
+      .catch(() => {
+        if (!cancelled) setProjectTimeline(null);
+      });
+
+    return () => {
+      cancelled = true;
+    };
+  }, [editor.contextData?.version.anime_id, editor.selectedGroups]);
+
   const segmentAnimeId = editor.contextData?.version.anime_id ?? null;
   const selectedGroups = editor.selectedGroups;
   const primaryGroup = selectedGroups[0] ?? null;
@@ -165,6 +190,7 @@ export function EpisodeVersionEditorPage() {
   const canUseContributorMedia = releaseCapabilities?.can_view_media === true;
   const canUseContributorNotes = releaseCapabilities?.can_edit_notes === true;
   const canManageSegments = releaseCapabilities?.can_manage_segments === true;
+  const canEditMetadata = releaseCapabilities?.can_edit_metadata === true;
   const isCapabilityScopeReady =
     currentUser != null && releaseCapabilities != null;
   const isCapabilityScopeLoading =
@@ -172,7 +198,7 @@ export function EpisodeVersionEditorPage() {
   const isContributorScopedEditor =
     isCapabilityScopeReady &&
     !isPlatformAdmin &&
-    (canUseContributorMedia || canUseContributorNotes || canManageSegments);
+    (canUseContributorMedia || canUseContributorNotes || canManageSegments || canEditMetadata);
   const shouldRenderAdminTabs = isCapabilityScopeReady && isPlatformAdmin;
   const shouldRenderContributorTabs =
     isCapabilityScopeReady && isContributorScopedEditor;
@@ -194,12 +220,14 @@ export function EpisodeVersionEditorPage() {
       ]);
     }
     const tabs: ActiveTab[] = [];
+    if (canEditMetadata) tabs.push("informationen");
     if (canManageSegments) tabs.push("segmente");
     if (canUseContributorMedia) tabs.push("media");
     if (canUseContributorNotes) tabs.push("notizen");
     return new Set<ActiveTab>(tabs);
   }, [
     canManageSegments,
+    canEditMetadata,
     canUseContributorMedia,
     canUseContributorNotes,
     isCapabilityScopeReady,
@@ -346,11 +374,11 @@ export function EpisodeVersionEditorPage() {
           <form
             className={styles.form}
             onSubmit={(event) => {
-              if (!isPlatformAdmin) {
+              if (!isPlatformAdmin && !canEditMetadata) {
                 event.preventDefault();
                 return;
               }
-              void editor.handleSave(event);
+              void editor.handleSave(event, !isPlatformAdmin && canEditMetadata);
             }}
           >
             {/* 5-Tab navigation */}
@@ -358,6 +386,19 @@ export function EpisodeVersionEditorPage() {
               <div className={styles.tabNav}>
                 {shouldRenderContributorTabs ? (
                 <>
+                  {allowedTabs.has("informationen") ? (
+                    <button
+                      type="button"
+                      className={
+                        visibleActiveTab === "informationen"
+                          ? styles.tabActive
+                          : styles.tab
+                      }
+                      onClick={() => handleTabChange("informationen")}
+                    >
+                      Informationen
+                    </button>
+                  ) : null}
                   {allowedTabs.has("segmente") ? (
                     <button
                       type="button"
@@ -673,108 +714,16 @@ export function EpisodeVersionEditorPage() {
                       </p>
                     </div>
                   </div>
-                  <div className={styles.grid}>
-                    <label className={styles.field}>
-                      <span>Release-Name</span>
-                      <input
-                        value={editor.formState.title}
-                        onChange={(event) =>
-                          editor.setFormState((current) => ({
-                            ...current,
-                            title: event.target.value,
-                          }))
-                        }
-                      />
-                    </label>
-                    <div className={styles.field}>
-                      <span>Release-Datum</span>
-                      <DatePicker
-                        id="release-date"
-                        label="Release-Datum"
-                        value={editor.formState.releaseDate}
-                        minYear={1900}
-                        maxYear={2100}
-                        onChange={(value) =>
-                          editor.setFormState((current) => ({
-                            ...current,
-                            releaseDate: value,
-                          }))
-                        }
-                      />
-                    </div>
-                    <label className={styles.field}>
-                      <span>Untertitel-Typ</span>
-                      <select
-                        value={editor.formState.subtitleType}
-                        onChange={(event) =>
-                          editor.setFormState((current) => ({
-                            ...current,
-                            subtitleType: event.target
-                              .value as typeof current.subtitleType,
-                          }))
-                        }
-                      >
-                        <option value="">keiner</option>
-                        <option value="softsub">softsub</option>
-                        <option value="hardsub">hardsub</option>
-                      </select>
-                    </label>
-                    <label className={styles.field}>
-                      <span>Auflösung</span>
-                      <input
-                        value={editor.formState.videoQuality}
-                        onChange={(event) =>
-                          editor.setFormState((current) => ({
-                            ...current,
-                            videoQuality: event.target.value,
-                          }))
-                        }
-                      />
-                    </label>
-                    <label className={styles.field}>
-                      <span>CRC32</span>
-                      <Input
-                        value={editor.formState.crc32}
-                        maxLength={13}
-                        placeholder="1CC0A2E3"
-                        onChange={(event) =>
-                          editor.setFormState((current) => ({
-                            ...current,
-                            crc32: normalizeCRC32Draft(event.target.value),
-                          }))
-                        }
-                      />
-                    </label>
-                    <label className={styles.field}>
-                      <span>Gesamtdauer</span>
-                      <input
-                        value={editor.formState.durationSeconds}
-                        placeholder="z. B. 24:10 oder 1450"
-                        onChange={(event) =>
-                          editor.setFormState((current) => ({
-                            ...current,
-                            durationSeconds: event.target.value,
-                          }))
-                        }
-                        onBlur={(event) => {
-                          const parsed = parseDurationInput(event.target.value);
-                          if (parsed != null) {
-                            editor.setFormState((current) => ({
-                              ...current,
-                              durationSeconds: formatDurationInput(parsed),
-                            }));
-                          }
-                        }}
-                      />
-                    </label>
-                  </div>
-                  <p className={styles.helperText}>
-                    Akzeptiert `m:ss`, `hh:mm:ss`, rohe Sekunden sowie
-                    Kurzformen wie `2m` oder `1m30s`. Wird als Grenze für
-                    Segment-Endzeiten verwendet.
-                  </p>
+                  <ReleaseVersionMetadataFields
+                    context={editor.contextData}
+                    formState={editor.formState}
+                    setFormState={editor.setFormState}
+                    projectTimeline={projectTimeline}
+                  />
                 </section>
 
+{isPlatformAdmin ? (
+                  <>
                 <section className={styles.card}>
                   <div className={styles.sectionHeader}>
                     <div>
@@ -860,6 +809,8 @@ export function EpisodeVersionEditorPage() {
                     )}
                   </div>
                 </section>
+                  </>
+                ) : null}
               </>
             ) : null}
 
@@ -946,7 +897,7 @@ export function EpisodeVersionEditorPage() {
                   Zur Fansubgruppe
                 </Button>
               ) : null}
-              {isPlatformAdmin ? (
+              {isPlatformAdmin || (canEditMetadata && visibleActiveTab === "informationen") ? (
                 <>
                   <button
                     className={`${styles.primaryButton} ${styles.successButton}`}
@@ -958,6 +909,7 @@ export function EpisodeVersionEditorPage() {
                     ) : null}
                     {editor.isSaving ? "Speichert..." : "Speichern"}
                   </button>
+                  {isPlatformAdmin ? (
                   <button
                     className={styles.dangerButton}
                     type="button"
@@ -966,6 +918,7 @@ export function EpisodeVersionEditorPage() {
                   >
                     {editor.isDeleting ? "Löscht..." : "Löschen"}
                   </button>
+                  ) : null}
                 </>
               ) : null}
             </section>

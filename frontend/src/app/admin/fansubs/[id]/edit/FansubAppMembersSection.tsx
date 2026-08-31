@@ -418,7 +418,7 @@ export function FansubAppMembersSection({ hasAccessToken = false, fansubId, clai
         joined_date: null,
         left_date: null,
         status: 'historical',
-        visibility: 'internal',
+        visibility: 'public',
       })
       historicalMember = created.data
     }
@@ -438,7 +438,7 @@ export function FansubAppMembersSection({ hasAccessToken = false, fansubId, clai
           started_date: draft.startedDate || null,
           ended_date: draft.endedDate || null,
           status: 'historical',
-          visibility: 'internal',
+          visibility: 'public',
         })
       } else {
         await createMemberRole(fansubId, {
@@ -448,7 +448,7 @@ export function FansubAppMembersSection({ hasAccessToken = false, fansubId, clai
           ended_date: draft.endedDate || null,
           source_note: null,
           status: 'historical',
-          visibility: 'internal',
+          visibility: 'public',
         })
       }
     }
@@ -555,6 +555,8 @@ export function FansubAppMembersSection({ hasAccessToken = false, fansubId, clai
         <>
           <FansubAppMembersOverview
             members={members}
+            historicalMembers={historicalActions?.historicalMembers ?? []}
+            historicalRolesByMember={historicalActions?.historicalRolesByMember ?? new Map()}
             invitations={invitations}
             claimsLinkOut={claimsLinkOut}
             afterMembers={(

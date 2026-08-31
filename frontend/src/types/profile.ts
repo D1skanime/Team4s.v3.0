@@ -169,8 +169,9 @@ export interface PublicMemberBadgeProgress {
 export interface PublicMemberRole {
   code: string
   label_de: string
+  started_year?: number | null
+  ended_year?: number | null
 }
-
 export interface PublicMemberProjectReleaseVersion {
   release_version_id: number
   release_version_label: string
@@ -179,6 +180,7 @@ export interface PublicMemberProjectReleaseVersion {
   episode_number: string
   episode_title?: string | null
   roles: PublicMemberRole[]
+  is_release_specific: boolean
 }
 
 export interface PublicMemberCurrentProject {

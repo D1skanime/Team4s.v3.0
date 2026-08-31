@@ -24,6 +24,7 @@ type ClaimListRow struct {
 	Note               string     `json:"note"`
 	CreatedAt          time.Time  `json:"created_at"`
 	VerifiedAt         *time.Time `json:"verified_at"`
+	IsActiveMember     bool       `json:"is_active_member"`
 }
 
 // ClaimListFilter carries the optional, UND-verknuepften filters for
@@ -141,6 +142,13 @@ func (r *MemberClaimsRepository) ListClaims(ctx context.Context, filter ClaimLis
 			COALESCE(mc.note, ''),
 			mc.created_at,
 			mc.verified_at,
+			EXISTS (
+				SELECT 1
+				FROM fansub_group_members fgm
+				WHERE fgm.fansub_group_id = hgm.fansub_group_id
+					AND fgm.app_user_id = mc.app_user_id
+					AND fgm.status = 'active'
+			) AS is_active_member,
 			COUNT(*) OVER() AS total_count
 		FROM member_claims mc
 		JOIN members m ON m.id = mc.member_id
@@ -176,6 +184,7 @@ func (r *MemberClaimsRepository) ListClaims(ctx context.Context, filter ClaimLis
 			&row.Note,
 			&row.CreatedAt,
 			&row.VerifiedAt,
+			&row.IsActiveMember,
 			&total,
 		); err != nil {
 			return nil, 0, fmt.Errorf("list claims: scan: %w", err)

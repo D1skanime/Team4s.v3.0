@@ -38,6 +38,7 @@ var allowedFansubLinkTypes = map[string]struct{}{
 type FansubHandler struct {
 	fansubRepo                  *repository.FansubRepository
 	episodeVersionRepo          *repository.EpisodeVersionRepository
+	releaseMetadataCreditSvc    *services.ReleaseMetadataCreditService
 	authzRepo                   *repository.AuthzRepository
 	mediaRepo                   *repository.MediaRepository
 	mediaService                *services.MediaService
@@ -104,6 +105,11 @@ func NewFansubHandler(
 	h.writeAuditLog = func(ctx context.Context, entry repository.AuditLogEntry) error {
 		return h.auditLogRepo.Write(ctx, entry)
 	}
+	return h
+}
+
+func (h *FansubHandler) WithReleaseMetadataCreditService(service *services.ReleaseMetadataCreditService) *FansubHandler {
+	h.releaseMetadataCreditSvc = service
 	return h
 }
 

@@ -250,6 +250,7 @@ export interface AdminClaimListRow {
   claim_type: string
   fansub_group_id: number
   fansub_group_name: string
+  is_active_member: boolean
   note: string
   created_at: string
   verified_at: string | null

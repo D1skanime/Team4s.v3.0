@@ -1108,6 +1108,7 @@ components:
         - can_manage_historical_roles
         - can_link_historical_members
         - can_edit_notes
+        - can_edit_project_timeline
         - can_view_invitations
         - can_create_invitation
         - can_cancel_invitation
@@ -1118,6 +1119,7 @@ components:
         - can_view_group_media
         - can_upload_group_media
         - can_update_group_media
+        - can_update_own_group_media
         - can_delete_own_group_media
         - can_delete_group_media
         - can_reorder_group_media
@@ -1146,6 +1148,8 @@ components:
           type: boolean
         can_edit_notes:
           type: boolean
+        can_edit_project_timeline:
+          type: boolean
         can_view_invitations:
           type: boolean
         can_create_invitation:
@@ -1166,7 +1170,13 @@ components:
           type: boolean
         can_update_group_media:
           type: boolean
+        can_update_own_group_media:
+          type: boolean
         can_delete_own_group_media:
+          type: boolean
+        can_review_group_media:
+          type: boolean
+        can_review_text:
           type: boolean
         can_delete_group_media:
           type: boolean
@@ -1182,10 +1192,10 @@ components:
       type: string
       description: |
         Herkunfts-/Entscheidungsquellen-Vokabular für ein EffectiveRightState.
-        platform_admin, specialized_grant und no_grant wurden additiv in Phase 137
+        platform_admin, membership_baseline, specialized_grant und no_grant wurden additiv ergänzt
         ergänzt (D04); die ursprünglichen vier Phase-136-Werte bleiben unverändert
         gültig und werden nicht entfernt.
-      enum: [idp_global_role, group_role, user_allow, user_deny, platform_admin, specialized_grant, no_grant]
+      enum: [idp_global_role, group_role, user_allow, user_deny, platform_admin, membership_baseline, specialized_grant, no_grant]
     CapabilityOverrideEffect:
       type: string
       enum: [allow, deny]
@@ -1571,6 +1581,7 @@ components:
           claim_type,
           fansub_group_id,
           fansub_group_name,
+          is_active_member,
           note,
           created_at,
         ]
@@ -1610,6 +1621,9 @@ components:
           description: fansub_groups.id des Gruppenkontexts des Claims
         fansub_group_name:
           type: string
+        is_active_member:
+          type: boolean
+          description: Ob der verknuepfte App-User bereits ein aktives Mitglied dieser Claims-Gruppe ist
         note:
           type: string
         created_at:

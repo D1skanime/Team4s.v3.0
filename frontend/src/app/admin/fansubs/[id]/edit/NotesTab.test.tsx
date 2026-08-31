@@ -108,6 +108,16 @@ describe('NotesTab', () => {
     expect(listFansubGroupNotesMock).toHaveBeenCalledWith(8)
   })
 
+  it('loads group notes with a refresh session after access-token expiry', async () => {
+    getAuthSessionSnapshotMock.mockReturnValue({ hasAccessToken: false, hasRefreshToken: true, displayName: 'Jeahn45' })
+    listFansubGroupNotesMock.mockResolvedValue([makeGroupNote()])
+
+    render(<NotesTab fansubId={8} />)
+
+    expect(await screen.findByText('Wie alles begann')).not.toBeNull()
+    expect(listFansubGroupNotesMock).toHaveBeenCalledWith(8)
+  })
+
   it('legt eine neue Gruppennotiz über den bestehenden Save-Flow an', async () => {
     getAuthSessionSnapshotMock.mockReturnValue({ hasAccessToken: true, hasRefreshToken: true, displayName: 'LocalAdmin' })
     listFansubGroupNotesMock.mockResolvedValue([])

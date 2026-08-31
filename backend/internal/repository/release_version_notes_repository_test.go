@@ -99,6 +99,17 @@ func TestGetMemberRolesForVersion(t *testing.T) {
 	})
 }
 
+func TestGetMemberRolesForVersion_ReleaseAssignmentsOverrideProjectRoles(t *testing.T) {
+	repoSrc, err := os.ReadFile("release_version_notes_repository.go")
+	require.NoError(t, err)
+	content := string(repoSrc)
+
+	assert.Contains(t, content, "if len(items) > 0 {\n\t\treturn items, nil\n\t}",
+		"a release assignment must fully replace the project-wide set")
+	assert.NotContains(t, content, "mergeMemberRolesForVersion(items, projectRoles)",
+		"release and project roles must not be merged")
+}
+
 func TestReleaseVersionNotesKaraokeRoleUsesCanonicalCatalog(t *testing.T) {
 	repoSrc, err := os.ReadFile("release_version_notes_repository.go")
 	require.NoError(t, err)

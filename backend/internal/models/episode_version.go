@@ -20,6 +20,7 @@ type EpisodeVersion struct {
 	CoveredEpisodeNumbers []int32              `json:"covered_episode_numbers,omitempty"`
 	VideoQuality          *string              `json:"video_quality,omitempty"`
 	SubtitleType          *string              `json:"subtitle_type,omitempty"`
+	ProductionStartedOn   *time.Time           `json:"production_started_on,omitempty"`
 	ReleaseDate           *time.Time           `json:"release_date,omitempty"`
 	CRC32                 *string              `json:"crc32,omitempty"`
 	StreamURL             *string              `json:"stream_url,omitempty"`
@@ -75,7 +76,8 @@ type EpisodeVersionPatchInput struct {
 	MediaItemID     OptionalString               `json:"media_item_id"`
 	VideoQuality    OptionalString               `json:"video_quality"`
 	SubtitleType    OptionalString               `json:"subtitle_type"`
-	ReleaseDate     OptionalTime                 `json:"release_date"`
+	ProductionStartedOn OptionalTime                 `json:"production_started_on"`
+	ReleaseDate           OptionalTime                 `json:"release_date"`
 	CRC32           OptionalString               `json:"crc32"`
 	StreamURL       OptionalString               `json:"stream_url"`
 	DurationSeconds OptionalInt32                `json:"duration_seconds"`

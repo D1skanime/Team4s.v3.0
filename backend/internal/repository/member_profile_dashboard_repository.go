@@ -25,9 +25,9 @@ type OwnDashboardRoleVolumeEntry struct {
 // eine Contribution-Familie ("noch X bis naechste Stufe"). NextThreshold ist nil,
 // sobald die hoechste Stufe (Gold) bereits erreicht ist.
 type OwnDashboardCategoryProgress struct {
-	Family        string `json:"family"`
-	CurrentTier   string `json:"current_tier"`
-	CurrentCount  int64  `json:"current_count"`
+	Family         string  `json:"family"`
+	CurrentTier    string  `json:"current_tier"`
+	CurrentCount   int64   `json:"current_count"`
 	NextThreshold  *int64  `json:"next_threshold"`
 	RemainingCount *int64  `json:"remaining_count"`
 	NextTier       *string `json:"next_tier"`
@@ -37,15 +37,43 @@ type OwnDashboardCategoryProgress struct {
 // (D-08). HasMemberProfile=false signalisiert den D-09-Leerzustand (kein verifiziertes
 // Member-Profil) -- der Handler baut diesen Zweig selbst, ohne GetOwnDashboard
 // aufzurufen (kein memberID=0-Aufruf gegen die DB).
+// OwnDashboardPendingClaim is a leader task that survived server-side authorization.
+type OwnDashboardPendingClaim struct {
+	ClaimID         int64  `json:"claim_id"`
+	FansubGroupID   int64  `json:"fansub_group_id"`
+	FansubGroupName string `json:"fansub_group_name"`
+	MemberNickname  string `json:"member_nickname"`
+	CreatedAt       string `json:"created_at"`
+}
+
+type OwnDashboardPendingGroupMediaReview struct {
+	FansubGroupID   int64  `json:"fansub_group_id"`
+	FansubGroupName string `json:"fansub_group_name"`
+	Count           int64  `json:"count"`
+}
+
+// OwnDashboardPendingReleaseReview aggregates actionable pending release reviews by
+// fansub group and anime. Text and image counts are separately authorization-scoped.
+type OwnDashboardPendingReleaseReview struct {
+	FansubGroupID int64  `json:"fansub_group_id"`
+	AnimeID       int64  `json:"anime_id"`
+	AnimeTitle    string `json:"anime_title"`
+	ImageCount    int64  `json:"image_count"`
+	TextCount     int64  `json:"text_count"`
+}
+
 type OwnDashboardData struct {
-	HasMemberProfile   bool                           `json:"has_member_profile"`
-	TotalPoints        int64                          `json:"total_points"`
-	BadgesCount        int                            `json:"badges_count"`
-	ProjectsCount      int64                          `json:"projects_count"`
-	ImagesCount        int64                          `json:"images_count"`
-	ContributionsCount int64                          `json:"contributions_count"`
-	RoleVolume         []OwnDashboardRoleVolumeEntry  `json:"role_volume"`
-	CategoryProgress   []OwnDashboardCategoryProgress `json:"category_progress"`
+	HasMemberProfile         bool                                  `json:"has_member_profile"`
+	TotalPoints              int64                                 `json:"total_points"`
+	BadgesCount              int                                   `json:"badges_count"`
+	ProjectsCount            int64                                 `json:"projects_count"`
+	ImagesCount              int64                                 `json:"images_count"`
+	ContributionsCount       int64                                 `json:"contributions_count"`
+	RoleVolume               []OwnDashboardRoleVolumeEntry         `json:"role_volume"`
+	CategoryProgress         []OwnDashboardCategoryProgress        `json:"category_progress"`
+	PendingClaims            []OwnDashboardPendingClaim            `json:"pending_claims"`
+	PendingGroupMediaReviews []OwnDashboardPendingGroupMediaReview `json:"pending_group_media_reviews"`
+	PendingReleaseReviews    []OwnDashboardPendingReleaseReview    `json:"pending_release_reviews"`
 }
 
 // contribFamilyAscendingThresholds spiegelt die Bronze/Silber/Gold-Schwellen der
@@ -89,9 +117,9 @@ func buildContribCategoryProgress(family string, count int64) OwnDashboardCatego
 		}
 	}
 	return OwnDashboardCategoryProgress{
-		Family:        family,
-		CurrentTier:   tier,
-		CurrentCount:  count,
+		Family:         family,
+		CurrentTier:    tier,
+		CurrentCount:   count,
 		NextThreshold:  nextThreshold,
 		RemainingCount: remainingCount,
 		NextTier:       nextTier,
@@ -211,5 +239,7 @@ func (r *MemberProfileRepository) GetOwnDashboard(ctx context.Context, memberID 
 		ContributionsCount: chronicleCount,
 		RoleVolume:         roleVolume,
 		CategoryProgress:   categoryProgress,
+		PendingClaims:        []OwnDashboardPendingClaim{},
+		PendingReleaseReviews: []OwnDashboardPendingReleaseReview{},
 	}, nil
 }

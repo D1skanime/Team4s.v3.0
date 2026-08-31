@@ -51,7 +51,7 @@ function displayNameForMember(member: FansubAppMember): string {
 }
 
 function formatRelativeDate(isoDate: string | null): string {
-  if (!isoDate) return '�'
+  if (!isoDate) return '-'
   const diff = Math.max(0, Date.now() - new Date(isoDate).getTime())
   const days = Math.floor(diff / (1000 * 60 * 60 * 24))
   if (days === 0) return 'Heute'
@@ -63,9 +63,9 @@ function formatRelativeDate(isoDate: string | null): string {
 
 function formatChange(entry: AdminChangeEntry): string {
   const actor = entry.actor_display_name?.trim() || 'Jemand'
-  const action = entry.action?.trim() || 'hat eine �nderung vorgenommen'
+  const action = entry.action?.trim() || 'hat eine Änderung vorgenommen'
   const target = entry.target_display_name?.trim()
-  return target ? `${actor} � ${action} � ${target}` : `${actor} � ${action}`
+  return target ? `${actor} -> ${action} -> ${target}` : `${actor} -> ${action}`
 }
 
 interface GroupMembersSummaryProps {
@@ -117,7 +117,7 @@ function GroupMembersSummary({ fansubGroupId }: GroupMembersSummaryProps) {
   }, [claims])
 
   if (isLoading) {
-    return <LoadingState title="Benutzer werden geladen �" description="" />
+    return <LoadingState title="Benutzer werden geladen ..." description="" />
   }
 
   if (error) {
@@ -137,7 +137,7 @@ function GroupMembersSummary({ fansubGroupId }: GroupMembersSummaryProps) {
           <TableHeaderCell>Status</TableHeaderCell>
           <TableHeaderCell>Rechte-Abweichungen</TableHeaderCell>
           <TableHeaderCell>Offene Claims</TableHeaderCell>
-          <TableHeaderCell>Letzte Aktivit�t</TableHeaderCell>
+          <TableHeaderCell>Letzte Aktivität</TableHeaderCell>
         </TableRow>
       </TableHead>
       <TableBody>
@@ -172,7 +172,7 @@ function GroupMembersSummary({ fansubGroupId }: GroupMembersSummaryProps) {
                   {member.status === 'active' ? 'Aktiv' : 'Deaktiviert'}
                 </Badge>
               </TableCell>
-              <TableCell>�</TableCell>
+              <TableCell>-</TableCell>
               <TableCell>{openClaims > 0 ? `${openClaims} offen` : 'Keine'}</TableCell>
               <TableCell>{formatRelativeDate(member.app_user?.last_login_at ?? null)}</TableCell>
             </TableRow>
@@ -227,7 +227,7 @@ function GroupRolesSummary({ fansubGroupId }: GroupMembersSummaryProps) {
   }, [members])
 
   if (isLoading) {
-    return <LoadingState title="Rollen werden geladen �" description="" />
+    return <LoadingState title="Rollen werden geladen ..." description="" />
   }
 
   if (error) {
@@ -298,7 +298,7 @@ function GroupClaimsSummary({ fansubGroupId }: GroupMembersSummaryProps) {
   }, [fansubGroupId])
 
   if (isLoading) {
-    return <LoadingState title="Claims werden geladen �" description="" />
+    return <LoadingState title="Claims werden geladen ..." description="" />
   }
 
   if (error) {
@@ -331,7 +331,7 @@ function GroupClaimsSummary({ fansubGroupId }: GroupMembersSummaryProps) {
             <TableCell>{claim.claim_status}</TableCell>
             <TableCell>
               <Button variant="ghost" href={`/admin/claims?fansub_group_id=${fansubGroupId}`}>
-                Claim-Workflow �ffnen
+                Claim-Workflow öffnen
               </Button>
             </TableCell>
           </TableRow>
@@ -358,7 +358,7 @@ function GroupChangesSummary({ fansubGroupId }: GroupMembersSummaryProps) {
       })
       .catch((err) => {
         if (!cancelled) {
-          setError(readErrorMessage(err, '�nderungen konnten nicht geladen werden.'))
+          setError(readErrorMessage(err, 'Änderungen konnten nicht geladen werden.'))
         }
       })
       .finally(() => {
@@ -372,17 +372,17 @@ function GroupChangesSummary({ fansubGroupId }: GroupMembersSummaryProps) {
   }, [fansubGroupId])
 
   if (isLoading) {
-    return <LoadingState title="�nderungen werden geladen �" description="" />
+    return <LoadingState title="Änderungen werden geladen ..." description="" />
   }
 
   if (error) {
-    return <ErrorState title="�nderungen konnten nicht geladen werden" description={error} />
+    return <ErrorState title="Änderungen konnten nicht geladen werden" description={error} />
   }
 
   return (
     <div style={{ display: 'grid', gap: 'var(--space-3)' }}>
       {entries.length === 0 ? (
-        <EmptyState title="Keine �nderungen f�r diese Gruppe" description="" />
+        <EmptyState title="Keine Änderungen für diese Gruppe" description="" />
       ) : entries.map((entry) => (
         <Card key={entry.event_id} variant="flat">
           <p style={{ margin: 0 }}>{formatChange(entry)}</p>
@@ -390,7 +390,7 @@ function GroupChangesSummary({ fansubGroupId }: GroupMembersSummaryProps) {
       ))}
       <div>
         <Button variant="secondary" href={`/admin/changes?gruppe=${fansubGroupId}`}>
-          �nderungen im Kontext �ffnen
+          Änderungen im Kontext öffnen
         </Button>
       </div>
     </div>
@@ -468,17 +468,17 @@ export function AdminGroupsClient() {
     { id: 'users', label: 'Benutzer', content: <GroupMembersSummary fansubGroupId={selectedGroup.id} /> },
     { id: 'roles', label: 'Rollen', content: <GroupRolesSummary fansubGroupId={selectedGroup.id} /> },
     { id: 'claims', label: 'Claims', content: <GroupClaimsSummary fansubGroupId={selectedGroup.id} /> },
-    { id: 'changes', label: '�nderungen', content: <GroupChangesSummary fansubGroupId={selectedGroup.id} /> },
+    { id: 'changes', label: 'Änderungen', content: <GroupChangesSummary fansubGroupId={selectedGroup.id} /> },
   ] : []
 
   return (
     <div style={{ padding: 'var(--space-4)', display: 'grid', gap: 'var(--space-4)' }}>
       <SectionHeader
         title="Gruppen"
-        description="Gruppen als Kontext f�r Benutzer, Rollen, Claims und �nderungen."
+        description="Gruppen als Kontext für Benutzer, Rollen, Claims und Änderungen."
       />
 
-      {isLoading ? <LoadingState title="Gruppen werden geladen �" description="" /> : null}
+      {isLoading ? <LoadingState title="Gruppen werden geladen ..." description="" /> : null}
       {error ? <ErrorState title="Gruppen konnten nicht geladen werden" description={error} /> : null}
 
       {!isLoading && !error ? (
@@ -488,7 +488,7 @@ export function AdminGroupsClient() {
             <div style={{ marginBottom: 'var(--space-3)' }}>
               <Input
                 type="search"
-                placeholder="Gruppe suchen �"
+                placeholder="Gruppe suchen ..."
                 aria-label="Gruppen suchen"
                 value={searchValue}
                 onChange={(event) => {
@@ -536,8 +536,8 @@ export function AdminGroupsClient() {
               </>
             ) : (
               <EmptyState
-                title="Gruppe ausw�hlen"
-                description="W�hlen Sie links eine Fansub-Gruppe, um Benutzer, Rollen, Claims und �nderungen im Gruppenkontext zu sehen."
+                title="Gruppe auswählen"
+                description="Wählen Sie links eine Fansub-Gruppe, um Benutzer, Rollen, Claims und Änderungen im Gruppenkontext zu sehen."
               />
             )}
           </Card>

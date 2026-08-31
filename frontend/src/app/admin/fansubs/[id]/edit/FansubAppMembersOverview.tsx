@@ -98,10 +98,29 @@ function invitationStatusVariant(status: FansubGroupInvitation['status']): 'info
   return 'muted'
 }
 
+type HistoricalRoleSummary = {
+  role_code: string
+  started_date: string | null
+  ended_date: string | null
+}
+
+type HistoricalMemberSummary = {
+  id: number
+  member_id: number | null
+}
+
+function formatHistoricalPeriod(role: HistoricalRoleSummary): string {
+  const from = role.started_date?.slice(0, 4) ?? '?'
+  const until = role.ended_date?.slice(0, 4) ?? '?'
+  return `${String.fromCharCode(183)} ${from} - ${until}`
+}
+
 export type FansubAppMembersOverviewProps = {
   members: FansubAppMember[]
   invitations: FansubGroupInvitation[]
   afterMembers?: ReactNode
+  historicalMembers?: HistoricalMemberSummary[]
+  historicalRolesByMember?: Map<number, HistoricalRoleSummary[]>
   /** D-06/D-09/D-34: Link-out zur zentralen /admin/claims-Fläche (Plan 138-16), gerendert
    *  neben der bestehenden Einladungen-Karte statt eines zweiten Claims-Editors. */
   claimsLinkOut?: ReactNode
@@ -119,6 +138,8 @@ export function FansubAppMembersOverview({
   members,
   invitations,
   afterMembers,
+  historicalMembers = [],
+  historicalRolesByMember = new Map(),
   claimsLinkOut,
   canViewMembers,
   canViewInvitations,
@@ -156,6 +177,10 @@ export function FansubAppMembersOverview({
               const fansubName = formatAppMemberName(member)
               const avatarUrl = member.member?.avatar_url?.trim()
               const mediaPermissionCount = getMediaPermissionCount(member)
+              const historicalMember = historicalMembers.find((item) => item.member_id === member.member?.member_id)
+              const completedHistoricalRoles = historicalMember
+                ? (historicalRolesByMember.get(historicalMember.id) ?? []).filter((role) => role.started_date && role.ended_date)
+                : []
 
               return (
                 <div className={styles.fansubEditMemberCompactCard} key={member.id}>
@@ -169,13 +194,7 @@ export function FansubAppMembersOverview({
                         )}
                       </div>
                       <div>
-                        <Button
-                          href={`/admin/users/${member.app_user_id}`}
-                          variant="ghost"
-                          aria-label={`${fansubName} im Benutzer-Editor öffnen`}
-                        >
-                          <strong>{fansubName}</strong>
-                        </Button>
+                        <strong>{fansubName}</strong>
                         <span className={styles.fansubEditMemberCompactMeta}>
                           <span
                             className={styleNames(
@@ -217,15 +236,16 @@ export function FansubAppMembersOverview({
                         : <span className={styles.fansubEditHint}>Keine Rollen</span>
                       }
                     </div>
+                    {completedHistoricalRoles.length > 0 ? (
+                      <p className={styles.fansubEditHint}>
+                        {`Fr${String.fromCharCode(252)}her: ${completedHistoricalRoles.map((role) => `${labelForRole(roles, role.role_code)} ${formatHistoricalPeriod(role)}`).join(' / ')}`}
+                      </p>
+                    ) : null}
                     {mediaPermissionCount > 0 ? (
                       <Badge variant="muted" className={styles.fansubEditMemberExtraRightsChip}>
                         {mediaPermissionCount} Zusatzrecht{mediaPermissionCount === 1 ? '' : 'e'}
                       </Badge>
                     ) : null}
-                    {/* D-06: Rechteabweichungen-Indikator. FansubAppMember trägt (anders als
-                        Plan 138-01s cross-group RoleHolderEntry.has_overrides) kein
-                        Override-Signal — ehrlich "–" statt eines erfundenen Werts. */}
-                    <Badge variant="muted">Rechteabweichungen: –</Badge>
                   </div>
                 </div>
               )

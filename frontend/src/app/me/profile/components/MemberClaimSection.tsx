@@ -80,6 +80,12 @@ export function MemberClaimSection({ currentClaim, disabled = false }: MemberCla
         setErrorMessage(
           'Dieses Gedenkprofil kann nicht verknüpft werden.',
         )
+      } else if (
+        error instanceof ApiError &&
+        error.status === 409 &&
+        error.code === 'member_already_assigned'
+      ) {
+        setErrorMessage('Dieser Member-Eintrag ist bereits einem Team4s-Konto zugeordnet.')
       } else {
         setErrorMessage(readClaimError(error, 'Die Identität konnte nicht verknüpft werden.'))
       }

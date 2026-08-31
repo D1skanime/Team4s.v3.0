@@ -118,6 +118,7 @@ export interface ReleaseVersionCapabilities {
   can_delete_own_media?: boolean
   can_edit_notes: boolean
   can_manage_segments: boolean
+  can_edit_metadata?: boolean
 }
 
 export interface ReleaseVersionCapabilitiesResponse {

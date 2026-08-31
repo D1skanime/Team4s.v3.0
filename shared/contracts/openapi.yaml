@@ -8953,10 +8953,10 @@ components:
       type: string
       description: |
         Herkunfts-/Entscheidungsquellen-Vokabular für ein EffectiveRightState.
-        platform_admin, specialized_grant und no_grant wurden additiv in Phase 137
+        platform_admin, membership_baseline, specialized_grant und no_grant wurden additiv ergänzt
         ergänzt (D04); die ursprünglichen vier Phase-136-Werte bleiben unverändert
         gültig und werden nicht entfernt.
-      enum: [idp_global_role, group_role, user_allow, user_deny, platform_admin, specialized_grant, no_grant]
+      enum: [idp_global_role, group_role, user_allow, user_deny, platform_admin, membership_baseline, specialized_grant, no_grant]
     CapabilityOverrideEffect:
       type: string
       enum: [allow, deny]
@@ -9551,6 +9551,7 @@ components:
         - member_slogan
         - roles
         - role_labels
+        - historical_role_labels
         - status
         - profile_status
         - claimed
@@ -9578,6 +9579,10 @@ components:
           items:
             type: string
         role_labels:
+          type: array
+          items:
+            type: string
+        historical_role_labels:
           type: array
           items:
             type: string
@@ -11209,6 +11214,66 @@ components:
           format: int64
           nullable: true
           description: Null once the highest (gold) tier has already been reached.
+    OwnDashboardPendingClaim:
+      type: object
+      required:
+        - claim_id
+        - fansub_group_id
+        - fansub_group_name
+        - member_nickname
+        - created_at
+      properties:
+        claim_id:
+          type: integer
+          format: int64
+        fansub_group_id:
+          type: integer
+          format: int64
+        fansub_group_name:
+          type: string
+        member_nickname:
+          type: string
+        created_at:
+          type: string
+          format: date-time
+    OwnDashboardPendingGroupMediaReview:
+      type: object
+      required:
+        - fansub_group_id
+        - fansub_group_name
+        - count
+      properties:
+        fansub_group_id:
+          type: integer
+          format: int64
+        fansub_group_name:
+          type: string
+        count:
+          type: integer
+          format: int64
+    OwnDashboardPendingReleaseReview:
+      type: object
+      required:
+        - fansub_group_id
+        - anime_id
+        - anime_title
+        - image_count
+        - text_count
+      properties:
+        fansub_group_id:
+          type: integer
+          format: int64
+        anime_id:
+          type: integer
+          format: int64
+        anime_title:
+          type: string
+        image_count:
+          type: integer
+          format: int64
+        text_count:
+          type: integer
+          format: int64
     OwnDashboardData:
       type: object
       required:
@@ -11220,6 +11285,9 @@ components:
         - contributions_count
         - role_volume
         - category_progress
+        - pending_claims
+        - pending_group_media_reviews
+        - pending_release_reviews
       properties:
         has_member_profile:
           type: boolean
@@ -11246,6 +11314,18 @@ components:
           type: array
           items:
             $ref: "#/components/schemas/OwnDashboardCategoryProgress"
+        pending_claims:
+          type: array
+          items:
+            $ref: "#/components/schemas/OwnDashboardPendingClaim"
+        pending_group_media_reviews:
+          type: array
+          items:
+            $ref: "#/components/schemas/OwnDashboardPendingGroupMediaReview"
+        pending_release_reviews:
+          type: array
+          items:
+            $ref: "#/components/schemas/OwnDashboardPendingReleaseReview"
     OwnDashboardResponse:
       type: object
       required:
@@ -11384,6 +11464,14 @@ components:
         label_de:
           type: string
           description: Serverautoritatives deutsches Rollen-Label (role_definitions.label_de).
+        started_year:
+          type: integer
+          format: int32
+          nullable: true
+        ended_year:
+          type: integer
+          format: int32
+          nullable: true
     PublicMemberProjectReleaseVersion:
       type: object
       required:
@@ -11392,6 +11480,7 @@ components:
         - version
         - episode_number
         - roles
+        - is_release_specific
       properties:
         release_version_id:
           type: integer
@@ -11412,6 +11501,9 @@ components:
           type: array
           items:
             $ref: "#/components/schemas/PublicMemberRole"
+        is_release_specific:
+          type: boolean
+          description: True when release-specific roles override the project-wide assignment for this version.
     PublicMemberCurrentProject:
       type: object
       required:
@@ -11987,10 +12079,12 @@ components:
           type: string
           nullable: true
         role_codes:
+          description: Rollen, die für das gesamte Projekt gelten; release-spezifische Rollen stehen nur bei release_versions.
           type: array
           items:
             type: string
         role_labels:
+          description: Beschriftungen der projektweiten Rollen in role_codes.
           type: array
           items:
             type: string
@@ -15223,6 +15317,7 @@ components:
         - can_manage_historical_roles
         - can_link_historical_members
         - can_edit_notes
+        - can_edit_project_timeline
         - can_view_invitations
         - can_create_invitation
         - can_cancel_invitation
@@ -15233,6 +15328,7 @@ components:
         - can_view_group_media
         - can_upload_group_media
         - can_update_group_media
+        - can_update_own_group_media
         - can_delete_own_group_media
         - can_delete_group_media
         - can_reorder_group_media
@@ -15261,6 +15357,8 @@ components:
           type: boolean
         can_edit_notes:
           type: boolean
+        can_edit_project_timeline:
+          type: boolean
         can_view_invitations:
           type: boolean
         can_create_invitation:
@@ -15281,7 +15379,13 @@ components:
           type: boolean
         can_update_group_media:
           type: boolean
+        can_update_own_group_media:
+          type: boolean
         can_delete_own_group_media:
+          type: boolean
+        can_review_group_media:
+          type: boolean
+        can_review_text:
           type: boolean
         can_delete_group_media:
           type: boolean

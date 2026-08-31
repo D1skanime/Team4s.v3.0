@@ -1,6 +1,6 @@
 'use client'
 
-import { useEffect, useState } from 'react'
+import { useEffect, useState, type FormEvent } from 'react'
 import Link from 'next/link'
 import { useParams, useSearchParams } from 'next/navigation'
 import { ArrowLeft } from 'lucide-react'
@@ -9,18 +9,30 @@ import { AdjacentNavigation, Badge, Button, Card, ErrorState, LoadingState, Page
 import type { TabItem } from '@/components/ui'
 import {
   ApiError,
+  getAnimeFansubProjectTimeline,
   getEpisodeVersionEditorContext,
   getMyProjectDetail,
   getOwnProfile,
   getReleaseVersionCapabilities,
+  updateEpisodeVersion,
 } from '@/lib/api'
 import { useAuthSession } from '@/lib/useAuthSession'
 import type { MeProjectReleaseVersion } from '@/types/contributions'
 import type { EpisodeVersionEditorContext } from '@/types/episodeVersion'
+import type { AnimeFansubProjectTimeline } from '@/types/fansubNotes'
 import type { ReleaseVersionCapabilities } from '@/types/releaseVersionMedia'
 import { ReleaseVersionMediaSection } from '@/app/admin/episode-versions/[versionId]/edit/ReleaseVersionMediaSection'
 import { ReleaseVersionNotesTab } from '@/app/admin/episode-versions/[versionId]/edit/ReleaseVersionNotesTab'
 import { SegmenteTab } from '@/app/admin/episode-versions/[versionId]/edit/SegmenteTab'
+import { ReleaseVersionMetadataFields } from '@/app/admin/episode-versions/[versionId]/edit/ReleaseVersionMetadataFields'
+import {
+  buildInitialFormState,
+  fromDateInputValue,
+  normalizeCRC32Draft,
+  normalizeOptional,
+  parseDurationInput,
+  type FormState,
+} from '@/app/admin/episode-versions/[versionId]/edit/episodeVersionEditorUtils'
 
 import styles from './workspace.module.css'
 
@@ -56,12 +68,20 @@ function formatAdjacentReleaseLabel(release: MeProjectReleaseVersion): string {
   return release.episode_title?.trim() || release.title?.trim() || `Episode ${release.episode_number}`
 }
 
+function parseWorkspaceTab(value: string | null): WorkspaceTab | null {
+  return value === 'metadata' || value === 'media' || value === 'segments' || value === 'notes'
+    ? value
+    : null
+}
+
 function buildWorkspaceHref(releaseVersionId: number, projectReturnHref: string | null): string {
   const path = `/me/releases/${releaseVersionId}/workspace`
   if (!projectReturnHref) return path
   const query = new URLSearchParams({ return_to: projectReturnHref })
   return `${path}?${query.toString()}`
 }
+
+type WorkspaceTab = 'metadata' | 'media' | 'segments' | 'notes'
 
 type AdjacentReleases = { previous: MeProjectReleaseVersion | null; next: MeProjectReleaseVersion | null }
 
@@ -77,6 +97,7 @@ export function MeReleaseWorkspacePage() {
   const versionId = parsePositiveInt(params.versionId)
   const { hasAccessToken, hasRefreshToken, isClientInitialized } = useAuthSession()
   const hasAuthSession = hasAccessToken || hasRefreshToken
+  const requestedTab = searchParams.get('tab')
   const routeErrorMessage = !versionId
     ? 'Ungültige Release-Version.'
     : !hasAuthSession
@@ -89,6 +110,16 @@ export function MeReleaseWorkspacePage() {
   const [isLoading, setIsLoading] = useState(true)
   const [errorMessage, setErrorMessage] = useState<string | null>(null)
   const [navigationState, setNavigationState] = useState<NavigationState | null>(null)
+  const [metadataForm, setMetadataForm] = useState<FormState | null>(null)
+  const [projectTimeline, setProjectTimeline] = useState<AnimeFansubProjectTimeline | null>(null)
+  const [metadataError, setMetadataError] = useState<string | null>(null)
+  const [metadataSuccess, setMetadataSuccess] = useState<string | null>(null)
+  const [isSavingMetadata, setIsSavingMetadata] = useState(false)
+  const [activeTab, setActiveTab] = useState<WorkspaceTab | null>(() => parseWorkspaceTab(requestedTab))
+
+  useEffect(() => {
+    setActiveTab(parseWorkspaceTab(requestedTab))
+  }, [requestedTab])
 
   useEffect(() => {
     if (!isClientInitialized) return
@@ -105,6 +136,7 @@ export function MeReleaseWorkspacePage() {
         if (cancelled) return
         const nextCapabilities = capabilitiesResponse.data
         setContext(contextResponse.data)
+        setMetadataForm(buildInitialFormState(contextResponse.data))
         setCapabilities(nextCapabilities)
         setMemberId(profileResponse.data.member_id > 0 ? profileResponse.data.member_id : null)
       })
@@ -121,6 +153,61 @@ export function MeReleaseWorkspacePage() {
       cancelled = true
     }
   }, [isClientInitialized, routeErrorMessage, versionId])
+
+  useEffect(() => {
+    const selectedGroupId = context?.selected_groups[0]?.id
+    const animeId = context?.version.anime_id
+    if (!selectedGroupId || !animeId) {
+      setProjectTimeline(null)
+      return
+    }
+
+    let cancelled = false
+    void getAnimeFansubProjectTimeline(selectedGroupId, animeId)
+      .then((timeline) => {
+        if (!cancelled) setProjectTimeline(timeline)
+      })
+      .catch(() => {
+        if (!cancelled) setProjectTimeline(null)
+      })
+
+    return () => {
+      cancelled = true
+    }
+  }, [context?.selected_groups, context?.version.anime_id])
+
+  async function saveMetadata(event: FormEvent<HTMLFormElement>) {
+    event.preventDefault()
+    if (!versionId || !metadataForm) return
+
+    const durationSeconds = parseDurationInput(metadataForm.durationSeconds)
+    if (metadataForm.durationSeconds.trim() && durationSeconds == null) {
+      setMetadataError('Gesamtdauer ist ungültig. Erlaubt sind Sekunden, m:ss, hh:mm:ss sowie Kurzformen wie 2m oder 1m30s.')
+      setMetadataSuccess(null)
+      return
+    }
+
+    setIsSavingMetadata(true)
+    setMetadataError(null)
+    setMetadataSuccess(null)
+    try {
+      const response = await updateEpisodeVersion(versionId, {
+        title: normalizeOptional(metadataForm.title),
+        video_quality: normalizeOptional(metadataForm.videoQuality),
+        subtitle_type: metadataForm.subtitleType || null,
+        production_started_on: fromDateInputValue(metadataForm.productionStartedOn),
+        release_date: fromDateInputValue(metadataForm.releaseDate),
+        crc32: normalizeOptional(normalizeCRC32Draft(metadataForm.crc32)),
+        duration_seconds: durationSeconds,
+      })
+      setContext((current) => current ? { ...current, version: response.data } : current)
+      setMetadataSuccess('Basisdaten gespeichert.')
+    } catch (error) {
+      setMetadataError(readErrorMessage(error, 'Basisdaten konnten nicht gespeichert werden.'))
+    } finally {
+      setIsSavingMetadata(false)
+    }
+  }
 
   useEffect(() => {
     const selectedGroupId = context?.selected_groups[0]?.id
@@ -206,13 +293,44 @@ export function MeReleaseWorkspacePage() {
   const canUseMedia = capabilities.can_view_media
   const canUseNotes = capabilities.can_edit_notes && memberId != null
   const canUseSegments = capabilities.can_manage_segments
-  const hasAnyWorkspaceAccess = canUseMedia || capabilities.can_edit_notes || canUseSegments
+  const canEditMetadata = capabilities.can_edit_metadata === true
+  const hasAnyWorkspaceAccess = canUseMedia || capabilities.can_edit_notes || canUseSegments || canEditMetadata
   const navigationKey = selectedGroup?.id ? `${version.anime_id}:${selectedGroup.id}:${version.id}` : null
   const isNavigationLoading = navigationKey != null && navigationState?.key !== navigationKey
   const navigationError = navigationState?.key === navigationKey && navigationState.status === 'error'
   const adjacentReleases =
     navigationState?.key === navigationKey && navigationState.status === 'ready' ? navigationState.adjacent : null
   const tabItems: TabItem[] = []
+
+  if (canEditMetadata && metadataForm) {
+    tabItems.push({
+      id: 'metadata',
+      label: 'Basisdaten',
+      content: (
+        <Card title="Basisdaten">
+          <p className={styles.metadataDescription}>Release-Metadaten für diese Version.</p>
+          <form className={styles.metadataForm} onSubmit={(event) => void saveMetadata(event)}>
+            <ReleaseVersionMetadataFields
+              context={context}
+              formState={metadataForm}
+              setFormState={(next) =>
+                setMetadataForm((current) => {
+                  if (current == null) return current
+                  return typeof next === 'function' ? next(current) : next
+                })
+              }
+              projectTimeline={projectTimeline}
+            />
+            {metadataError ? <p className={styles.metadataError} role="alert">{metadataError}</p> : null}
+            {metadataSuccess ? <p className={styles.metadataSuccess} role="status">{metadataSuccess}</p> : null}
+            <Button type="submit" variant="success" loading={isSavingMetadata}>
+              Basisdaten speichern
+            </Button>
+          </form>
+        </Card>
+      ),
+    })
+  }
 
   if (canUseMedia) {
     tabItems.push({
@@ -326,7 +444,12 @@ export function MeReleaseWorkspacePage() {
               />
             ) : null}
 
-            <Tabs items={tabItems} defaultTabId={canUseMedia ? 'media' : canUseSegments ? 'segments' : 'notes'} />
+            <Tabs
+              items={tabItems}
+              defaultTabId={canEditMetadata ? 'metadata' : canUseMedia ? 'media' : canUseSegments ? 'segments' : 'notes'}
+              activeId={tabItems.some((item) => item.id === activeTab) ? activeTab ?? undefined : undefined}
+              onActiveIdChange={(tab) => setActiveTab(tab as WorkspaceTab)}
+            />
 
             {capabilities.can_edit_notes && memberId == null ? (
               <ErrorState

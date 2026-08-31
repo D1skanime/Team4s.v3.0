@@ -67,10 +67,10 @@ type AdminCapabilityHandler struct {
 
 // NewAdminCapabilityHandler erstellt einen neuen AdminCapabilityHandler.
 func NewAdminCapabilityHandler(
-	authzRepo     capabilityAuthzRepo,
-	mutationRepo  capabilityMutationRepo,
+	authzRepo capabilityAuthzRepo,
+	mutationRepo capabilityMutationRepo,
 	permissionSvc capabilityPermissionSvc,
-	auditLogRepo  capabilityAuditRepo,
+	auditLogRepo capabilityAuditRepo,
 ) *AdminCapabilityHandler {
 	return &AdminCapabilityHandler{
 		authzRepo:     authzRepo,
@@ -165,14 +165,13 @@ func (h *AdminCapabilityHandler) GrantCapability(c *gin.Context) {
 		return
 	}
 
-	// G4: Nur rein historische Rollen dürfen keine Capabilities erhalten. Aktive Rollen mit
-	// Kontext fansub_group ODER anime_contribution (auch Contribution-/Projekt-Rollen wie
-	// encoder) sind editierbar — entkoppelt von der Gruppen-Zuweisbarkeit (T-94-01 verfeinert).
+	// Nur echte Fansub-Gruppenrollen (fansub_group) können Standardrechte tragen.
+	// Beitrags- und historische Rollen sind Credits/Dokumentation; Zusatzrechte sind individuell.
 	if !permissions.IsCapabilityBearingRole(roleCode) {
 		c.JSON(http.StatusUnprocessableEntity, gin.H{
 			"error": gin.H{
 				"code":    "role_not_capability_bearing",
-				"message": "Diese Rolle ist eine rein historische Rolle und kann keine Berechtigungen erhalten.",
+				"message": "Diese Beitrags- oder historische Rolle kann keine Standardrechte erhalten.",
 			},
 		})
 		return
@@ -231,13 +230,13 @@ func (h *AdminCapabilityHandler) RevokeCapability(c *gin.Context) {
 		return
 	}
 
-	// G4: Nur rein historische Rollen sind gesperrt — Guard in BEIDEN Mutationspfaden (Pitfall 4).
-	// Aktive Rollen (Kontext fansub_group ODER anime_contribution) sind editierbar.
+	// Derselbe Guard gilt für beide Mutationspfade: Nur Fansub-Gruppenrollen tragen
+	// konfigurierbare Standardrechte.
 	if !permissions.IsCapabilityBearingRole(roleCode) {
 		c.JSON(http.StatusUnprocessableEntity, gin.H{
 			"error": gin.H{
 				"code":    "role_not_capability_bearing",
-				"message": "Diese Rolle ist eine rein historische Rolle und kann keine Berechtigungen erhalten.",
+				"message": "Diese Beitrags- oder historische Rolle kann keine Standardrechte erhalten.",
 			},
 		})
 		return

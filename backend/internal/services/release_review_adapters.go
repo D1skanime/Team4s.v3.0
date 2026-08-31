@@ -205,6 +205,25 @@ func (a *releaseVersionMediaReviewAdapter) ApplyDecision(
 	); err != nil {
 		return err
 	}
+	visibility, reviewStatus := "private", "rejected"
+	if decision == ReviewDecisionConfirm {
+		visibility, reviewStatus = "public", "approved"
+	}
+	tag, err := db.Exec(ctx, `
+		UPDATE media_assets asset
+		SET visibility_id = (SELECT id FROM visibilities WHERE name = $2),
+		    review_status_id = (SELECT id FROM review_statuses WHERE code = $3)
+		FROM release_version_media media
+		WHERE media.id = $1
+		  AND media.deleted_at IS NULL
+		  AND asset.id = media.media_asset_id
+	`, sourceID, visibility, reviewStatus)
+	if err != nil {
+		return fmt.Errorf("apply release media review source %d: %w", sourceID, err)
+	}
+	if tag.RowsAffected() != 1 {
+		return repository.ErrConflict
+	}
 	if decision == ReviewDecisionConfirm {
 		if err := creditReleaseReviewContribution(ctx, db, target, decidedAt); err != nil {
 			return err

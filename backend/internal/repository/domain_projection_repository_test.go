@@ -128,6 +128,9 @@ func TestProjectionHistoricalRowsUseMembershipVisibilityForListing(t *testing.T)
 	if strings.Contains(historicalBlock, "and m.profile_visibility = 'public'") {
 		t.Fatalf("expected historical group membership not to be hidden behind member profile visibility")
 	}
+	if !strings.Contains(historicalBlockCompact, "and not exists ( select 1 from fansub_group_members active_member") {
+		t.Fatalf("expected historical projection to exclude members that are currently active in the same fansub group")
+	}
 
 	requiredSlugFragments := []string{
 		"when m.profile_visibility = 'public'",

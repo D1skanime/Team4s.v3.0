@@ -149,7 +149,10 @@
                 <#-- 135-10 (D-15): "username" is only ever rendered once, as the
                      hidden field above -- skip its normal labeled field-group
                      entirely so no visible/duplicate "username" input exists. -->
-                <#if attribute.name != "username">
+                <#-- Keycloak injects the optional technical locale attribute although the
+                     Team4s profile contract does not expose it. The realm's default locale
+                     is already de, so it must not appear as a registration input. -->
+                <#if attribute.name != "username" && attribute.name != "locale">
                 <#-- A duplicate lowercase(fansubName)-derived username collides
                      server-side with the hidden "username" attribute, not the
                      visible "fansubName" one -- surface that error under the
@@ -191,7 +194,7 @@
                                  (above) is kept as lowercase(this value) via JS. -->
                             <input type="text" id="fansubName" name="fansubName" value="${(attribute.value!'')}"
                                 class="${properties.kcInputClass!}"
-                                aria-invalid="<#if team4sFansubNameError != ''>true</#if>"
+                                aria-invalid="<#if team4sFansubNameError?has_content>true</#if>"
                                 autocomplete="username" autofocus
                             />
                             <#if attribute.annotations.inputHelperTextAfter??>

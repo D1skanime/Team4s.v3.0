@@ -230,19 +230,6 @@ export function useFansubDetailsForm({
       : null,
   );
   const canEditBroad = isPlatformAdmin || Boolean(capabilities?.can_edit_group);
-  const canEditTechnicalLinks =
-    canEditBroad || Boolean(capabilities?.can_edit_technical_links);
-  const technicalLinkErrors = {
-    website: form.websiteURL.trim() && !isAllowedCommunityLinkURL("website", form.websiteURL)
-      ? communityLinkURLError("website")
-      : null,
-    discord: form.discordURL.trim() && !isAllowedCommunityLinkURL("discord", form.discordURL)
-      ? communityLinkURLError("discord")
-      : null,
-    irc: form.ircURL.trim() && !isAllowedCommunityLinkURL("irc", form.ircURL)
-      ? communityLinkURLError("irc")
-      : null,
-  };
   const anyMediaBusy = mediaBusy.logo || mediaBusy.banner;
   const invalid =
     !hasAuthSession ||
@@ -253,7 +240,6 @@ export function useFansubDetailsForm({
     Boolean(dissolvedError) ||
     Boolean(dissolvedAfterFoundedError) ||
     linkErrors.some(Boolean) ||
-    (canEditTechnicalLinks && Object.values(technicalLinkErrors).some(Boolean)) ||
     (isPlatformAdmin && slugChecking) ||
     anyMediaBusy;
 
@@ -311,7 +297,6 @@ export function useFansubDetailsForm({
           includeSlug: isPlatformAdmin,
           includeGeneral: canEditBroad || Boolean(capabilities?.can_edit_group_general),
           includeLifecycle: canEditBroad,
-          includeTechnicalLinks: canEditBroad || Boolean(capabilities?.can_edit_technical_links),
           includeFounding: canEditBroad || Boolean(capabilities?.can_edit_founding_history),
           includeMedia: canEditBroad || Boolean(capabilities?.can_update_group_media),
         });
@@ -393,7 +378,6 @@ export function useFansubDetailsForm({
     dissolvedError,
     dissolvedAfterFoundedError,
     linkErrors,
-    technicalLinkErrors,
     invalid,
     // setters used by parent loader
     applyGroup,

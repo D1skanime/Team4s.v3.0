@@ -6,6 +6,7 @@ import {
   canUseMainTab,
   hasFansubWorkspaceAccess,
   resolveMainTabForAccess,
+  hasReleaseWorkspaceAssignment,
   visibleMainTabs,
 } from "./fansubEditAccess";
 
@@ -25,6 +26,7 @@ function capabilities(
     can_manage_historical_roles: false,
     can_link_historical_members: false,
     can_edit_notes: false,
+  can_edit_project_timeline: false,
     can_view_invitations: false,
     can_create_invitation: false,
     can_cancel_invitation: false,
@@ -35,6 +37,7 @@ function capabilities(
     can_view_group_media: false,
     can_upload_group_media: false,
     can_update_group_media: false,
+  can_update_own_group_media: false,
     can_delete_own_group_media: false,
     can_delete_group_media: false,
     can_reorder_group_media: false,
@@ -84,6 +87,29 @@ describe("fansub edit access", () => {
     expect(resolveMainTabForAccess("collaboration", false, access)).toBe("notes");
   });
 
+  it("hides group roles from members who may only view the member list", () => {
+    const access = capabilities({ can_view_members: true });
+    expect(canUseMainTab("collaboration", false, access)).toBe(true);
+    expect(canUseMainTab("roles", false, access)).toBe(false);
+    expect(resolveMainTabForAccess("roles", false, access)).toBe(
+      "collaboration",
+    );
+  });
+
+  it("shows Prüfungen to a release text reviewer without member-management rights", () => {
+    const access = capabilities({ can_review_text: true });
+    expect(canUseMainTab("pruefungen", false, access)).toBe(true);
+    expect(hasFansubWorkspaceAccess(access)).toBe(true);
+    expect(canUseMainTab("roles", false, access)).toBe(false);
+  });
+
+  it("keeps group roles available to member managers and Platform-Admins", () => {
+    expect(
+      canUseMainTab("roles", false, capabilities({ can_manage_members: true })),
+    ).toBe(true);
+    expect(canUseMainTab("roles", true, null)).toBe(true);
+  });
+
   it("admits narrow group-link updates only to the existing links surface", () => {
     const access = capabilities({ can_update_group_links: true });
     expect(hasFansubWorkspaceAccess(access)).toBe(true);
@@ -108,6 +134,7 @@ describe("fansub edit access", () => {
       can_view_group_media: true,
       can_upload_group_media: true,
       can_update_group_media: true,
+  can_update_own_group_media: true,
       can_reorder_group_media: true,
       can_edit_group_general: true,
       can_update_group_links: true,
@@ -124,6 +151,14 @@ describe("fansub edit access", () => {
     const access = capabilities({ can_edit_group: true });
     expect(canEditFansubBranding(false, access)).toBe(true);
   });
+  it("requires an own confirmed project assignment for release workspace tools", () => {
+    expect(hasReleaseWorkspaceAssignment(false, [], 13, 6201)).toBe(false);
+    expect(hasReleaseWorkspaceAssignment(false, ["13:all"], 13, 6201)).toBe(true);
+    expect(hasReleaseWorkspaceAssignment(false, ["13:6201"], 13, 6201)).toBe(true);
+    expect(hasReleaseWorkspaceAssignment(false, ["13:6202"], 13, 6201)).toBe(false);
+    expect(hasReleaseWorkspaceAssignment(true, [], 13, 6201)).toBe(true);
+  });
+
 
   it("denies branding access for a can_update_group_media-only (co_leader-shaped) capability set", () => {
     const access = capabilities({ can_update_group_media: true });

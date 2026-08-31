@@ -16,6 +16,7 @@ type DatePickerProps = {
   minDate?: string
   maxDate?: string
   disabled?: boolean
+  panelAlign?: 'start' | 'end'
   invalid?: boolean
   onChange: (value: string) => void
 }
@@ -116,6 +117,7 @@ export function DatePicker({
   maxDate,
   disabled = false,
   invalid = false,
+  panelAlign = 'start',
   onChange,
 }: DatePickerProps) {
   const rootRef = useRef<HTMLDivElement | null>(null)
@@ -192,7 +194,7 @@ export function DatePicker({
 
   function openPicker() {
     if (disabled) return
-    const date = selectedDate ?? new Date(clampYear(today.getFullYear(), minYear, maxYear), today.getMonth(), today.getDate())
+    const date = selectedDate ?? minSelectableDate ?? maxSelectableDate ?? new Date(clampYear(today.getFullYear(), minYear, maxYear), today.getMonth(), today.getDate())
     setVisibleMonth(new Date(date.getFullYear(), date.getMonth(), 1))
     setYearPageStart(pageStartForYear(date.getFullYear()))
     setView('year')
@@ -268,7 +270,11 @@ export function DatePicker({
       {isOpen ? (
         <div
           ref={panelRef}
-          className={classNames(styles.datePickerPanel, openAbove && styles.datePickerPanelAbove)}
+          className={classNames(
+            styles.datePickerPanel,
+            openAbove && styles.datePickerPanelAbove,
+            panelAlign === 'end' && styles.datePickerPanelEnd,
+          )}
           role="dialog"
           aria-label={`${label} Kalender`}
         >
@@ -332,7 +338,7 @@ export function DatePicker({
                   const isSelected = selectedDate ? sameDate(date, selectedDate) : false
                   const isToday = sameDate(date, today)
                   const isWeekend = date.getDay() === 0 || date.getDay() === 6
-                  const isOutOfRange = date.getFullYear() < minYear || date.getFullYear() > maxYear
+                  const isSelectable = isSelectableDate(date)
                   return (
                     <button
                       key={toIsoDate(date)}
@@ -344,7 +350,7 @@ export function DatePicker({
                         isToday && styles.datePickerDayToday,
                         isSelected && styles.datePickerDaySelected,
                       )}
-                      disabled={isOutOfRange}
+                      disabled={!isSelectable}
                       onClick={() => selectDay(date)}
                     >
                       {date.getDate()}

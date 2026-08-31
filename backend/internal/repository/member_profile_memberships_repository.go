@@ -49,7 +49,9 @@ func (r *MemberProfileRepository) loadMemberships(
 					(
 						SELECT jsonb_agg(DISTINCT jsonb_build_object(
 							'code', hgmr.role_code,
-							'label_de', COALESCE(rd.label_de, hgmr.role_code)
+							'label_de', COALESCE(rd.label_de, hgmr.role_code),
+							'started_year', EXTRACT(YEAR FROM hgmr.started_date)::int,
+							'ended_year', EXTRACT(YEAR FROM hgmr.ended_date)::int
 						))
 						FROM hist_group_member_roles hgmr
 						LEFT JOIN role_definitions rd ON rd.code = hgmr.role_code
@@ -80,7 +82,7 @@ func (r *MemberProfileRepository) loadMemberships(
 				ON fgm.fansub_group_id = fg.id
 			   AND (
 			       fgm.app_user_id = $2
-			       OR ($2 = 0 AND fgm.status = 'active' AND fgm.app_user_id = (SELECT m2.user_id FROM members m2 WHERE m2.id = $1))
+			       OR ($2 = 0 AND fgm.status = 'active' AND (fgm.member_id = $1 OR fgm.app_user_id = (SELECT m2.user_id FROM members m2 WHERE m2.id = $1)))
 			   )
 			WHERE hgm.id IS NOT NULL
 			   OR fgm.id IS NOT NULL

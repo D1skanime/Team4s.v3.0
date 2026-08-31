@@ -118,3 +118,15 @@ export interface UpsertAnimeFansubProjectNoteRequest {
   status: 'draft' | 'published' | 'archived' | 'deleted';
   sortOrder?: number;
 }
+
+export interface AnimeFansubProjectTimeline {
+  animeId: number;
+  fansubGroupId: number;
+  productionStartedOn: string | null;
+  productionCompletedOn: string | null;
+}
+
+export interface UpdateAnimeFansubProjectTimelineRequest {
+  productionStartedOn: string | null;
+  productionCompletedOn: string | null;
+}

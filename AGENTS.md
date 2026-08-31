@@ -18,6 +18,12 @@ Shared operating notes for human + AI agents working in `Team4sV3`.
 - The live `.env`, `media/`, Docker volumes, and database contents are host-local runtime data. Do not overwrite, reset, or regenerate them as part of ordinary coding work.
 - Windows browser testing currently uses an SSH tunnel at `http://127.0.0.1:3300`; the Linux frontend itself listens at `http://192.168.235.196:3000`.
 - Disk layout (two virtual disks): root `/` (40 GB, sda/LVM) is for CODE/checkouts ONLY. The 80 GB disk `sdb1` (mounted at `/var/lib/docker`) holds ALL Docker, image, build, and containerd data. This is enforced at OS level: `/var/lib/containerd` is bind-mounted onto `sdb1` (`/var/lib/docker/_containerd`, persisted in `/etc/fstab`), so every `docker build`/image write lands on the big disk automatically -- do NOT change or undo this. Never write large build artifacts, caches, or temp data onto `/` or `/home`. Clean up your own scratch/temp directories in the repo (e.g. throwaway `.codex-*` / `*-tmp*` folders) instead of letting them accumulate on the small root disk.
+
+### Remote Agent Tool Boundary
+- In a Windows-hosted agent session, local file-editing tools, including `apply_patch`, target the retired Windows working copy. Do not use them to modify Team4s repository files.
+- All repository edits must be executed on `team4s-linux` in `/home/d1sk/team4s` through a remote-capable tool or an SSH command, then reviewed with `git diff` on that host.
+- Do not assume that `apply_patch` is an executable installed on Linux. It is a client-provided tool when available; otherwise use a standard remote editing mechanism that preserves the Linux working tree as the only source of truth.
+- Never work around a missing remote editing tool by writing changes into `C:\\Users\\admin\\Documents\\Team4s`.
 - If `/` fills up: first run `findmnt /var/lib/containerd` (must show `/dev/sdb1[/_containerd]`). Reclaim with `docker builder prune -af` / `docker image prune -af`. NEVER use `--volumes` or `docker system prune -a` (kills DB + node_modules volumes).
 
 ## Current Workflow
@@ -125,6 +131,31 @@ Use `docs/frontend/auth-api-client.md` as the source of truth for browser auth/A
 
 ## UI Rules
 
+### Team4s UI Implementation Contract
+For any non-trivial UI redesign or new public/admin surface:
+
+1. A visual sketch alone is NOT an implementation specification.
+2. Required sequence: visual sketch, executable HTML/CSS prototype when appropriate, explicit UI implementation spec, GSD plan, implementation, then live visual verification.
+3. If a visual reference or approved mockup exists, reproduce its information hierarchy, proportions, spacing, and responsive behavior as closely as the existing Team4s design system permits.
+4. Do not reinterpret an approved mockup merely because another layout is easier to implement.
+5. Before coding, extract and document:
+   - section order
+   - desktop, tablet, and mobile layouts
+   - max content width and grid columns
+   - card proportions and image aspect ratios
+   - spacing and typography hierarchy
+   - click targets, empty states, and conditional sections
+   - existing components to reuse
+   - existing APIs and domain objects supplying each area
+6. For substantial pages, prefer a browser-runnable HTML/CSS prototype before implementation when the approved design cannot be specified precisely by existing components alone.
+7. Intentionally design responsive behavior at minimum for 390x844, 768x1024, and 1440x900. Do not simply shrink desktop layouts onto mobile or tablet.
+8. Do not invent data, APIs, rights, domain objects, or placeholder features solely to make a mockup look complete.
+9. Missing optional data must use an intentional empty state or collapse unused space. Never preserve giant empty areas merely because the old page had them.
+10. After implementation, perform a live visual comparison against the approved reference or prototype. A material visual difference is a UI gap, not an acceptable interpretation.
+11. A UI task is not complete merely because tests, typecheck, or build pass; it must also pass the agreed live visual and responsive verification.
+12. Reuse existing Team4s components, tokens, APIs, authorization, and domain logic where appropriate. A prototype defines the desired UX, not permission to build parallel architecture.
+
+When a ChatGPT/GSD Discuss phase creates a visual sketch, the agent must verify before Execute that an HTML prototype and a UI specification also exist. For a larger visual change, if either is missing, do not interpret the image autonomously; record the missing UI Contract as a planning gap.
 ### Responsive UI Standard
 - All new UI is mobile-first. `docs/frontend/ui-system.md` is the canonical detailed responsive standard; `docs/agent-guidelines-ui.md` defines the implementation and verification workflow.
 - Viewport media queries are reserved for full-page and app-shell composition. Reusable or embedded components, including cards, stages, and carousels, must establish a suitable containment boundary and respond to available inline size with container queries (`container-type: inline-size`).
