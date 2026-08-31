@@ -212,7 +212,7 @@ Last activity: 2026-08-26 -- Completed quick task 260826-l5l: fixed f_unaccent p
 
 ### Pending Todos
 
-- Ten existing pending todo files remain unchanged because none maps completely and unambiguously to exactly one v1.3 phase.
+- Eleven pending todo files include the future project-wide member media gallery; it is explicitly outside Phase 142.
 - The public-member params/UI todo spans contract and visual work and must be reconsidered during Phase 130 and Phase 133 planning rather than tagged misleadingly to one phase.
 
 ### Blockers/Concerns
