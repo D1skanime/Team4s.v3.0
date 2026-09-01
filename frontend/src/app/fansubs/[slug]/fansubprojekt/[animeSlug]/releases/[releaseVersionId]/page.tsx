@@ -5,8 +5,8 @@ import { ApiError, getPublicFansubProfileBySlug } from '@/lib/api'
 import { buildPublicFansubProjectPath } from '@/lib/fansubProjectRoutes'
 
 interface Props {
-  params: { slug: string; animeSlug: string; releaseVersionId: string } | Promise<{ slug: string; animeSlug: string; releaseVersionId: string }>
-  searchParams?: Record<string, string | string[] | undefined> | Promise<Record<string, string | string[] | undefined>>
+  params: Promise<{ slug: string; animeSlug: string; releaseVersionId: string }>
+  searchParams?: Promise<Record<string, string | string[] | undefined>>
 }
 
 export default async function PrettyReleaseDetailPage({ params, searchParams }: Props) {

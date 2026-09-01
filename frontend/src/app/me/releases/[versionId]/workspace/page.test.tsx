@@ -71,7 +71,7 @@ vi.mock('@/app/admin/episode-versions/[versionId]/edit/SegmenteTab', () => ({
   },
 }))
 
-import { MeReleaseWorkspacePage } from './page'
+import MeReleaseWorkspacePage from './page'
 
 function mockWorkspaceData(capabilityOverrides: Partial<{
   can_view_media: boolean

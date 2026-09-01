@@ -14,7 +14,7 @@ const RANKING_PAGE_SIZE = 50
 export const dynamic = 'force-dynamic'
 
 interface RankingPageProps {
-  searchParams: Promise<{ page?: string | string[] }> | { page?: string | string[] } | undefined
+  searchParams?: Promise<{ page?: string | string[] }>
 }
 
 interface ResolvedRankingSearchParams {

@@ -7,9 +7,7 @@ import { loadPublicFansubProjectPageData } from "@/app/anime/[id]/group/[groupId
 import { ApiError, getPublicFansubProfileBySlug } from "@/lib/api";
 
 interface PrettyFansubProjectPageProps {
-  params:
-    | { slug: string; animeSlug: string }
-    | Promise<{ slug: string; animeSlug: string }>;
+  params: Promise<{ slug: string; animeSlug: string }>;
 }
 
 export default async function PrettyFansubProjectPage({ params }: PrettyFansubProjectPageProps) {

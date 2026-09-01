@@ -3,13 +3,7 @@ import { NextRequest, NextResponse } from 'next/server'
 import { resolvePublicSegmentRelayTarget } from '@/lib/server/streamRelayAuth'
 
 interface RouteContext {
-  params:
-    | {
-        id: string
-      }
-    | Promise<{
-        id: string
-      }>
+  params: Promise<{ id: string }>
 }
 
 function getApiBaseURL(): string {

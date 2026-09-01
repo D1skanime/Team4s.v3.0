@@ -41,7 +41,7 @@ afterEach(() => {
 })
 
 async function renderRankingPage(searchParams: { page?: string } = {}) {
-  const result = await MemberRankingPage({ searchParams })
+  const result = await MemberRankingPage({ searchParams: Promise.resolve(searchParams) })
   return render(result)
 }
 

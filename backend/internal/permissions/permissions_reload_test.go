@@ -55,6 +55,8 @@ func fullValidCacheData() map[string][]Action {
 			ActionFansubGroupPageFoundingHistoryEdit,
 			ActionFansubGroupLinksUpdate,
 			ActionAnimeFansubProjectNotesWrite,
+			ActionAnimeFansubProjectTimelineUpdate,
+			ActionReleaseVersionMetadataUpdate,
 			ActionReleaseView,
 			ActionReleaseVersionView,
 			ActionReleaseVersionMediaView,
@@ -67,6 +69,10 @@ func fullValidCacheData() map[string][]Action {
 			ActionReviewImageDecide,
 			ActionReviewContributionDecide,
 			ActionUserGroupCapabilityOverrideManage,
+		},
+		RoleProjectLead: {
+			ActionAnimeFansubProjectTimelineUpdate,
+			ActionReleaseVersionMetadataUpdate,
 		},
 		RoleDesigner: {
 			ActionReleaseVersionMediaDeleteOwn,

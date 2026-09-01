@@ -44,6 +44,7 @@ func (s *projectNoteCreditStub) Delete(_ context.Context, _, _, _ int64, actorAp
 
 func TestAnimeProjectNoteUpsertDelegatesOnceAndKeepsResponseShape(t *testing.T) {
 	gin.SetMode(gin.TestMode)
+	loadAppAuthCapabilityTestCache(t)
 	created := time.Date(2026, 7, 24, 12, 0, 0, 0, time.UTC)
 	stub := &projectNoteCreditStub{note: &repository.AnimeFansubProjectNote{
 		ID: 91, AnimeID: 61, FansubGroupID: 41, Title: "Projekt",
@@ -87,6 +88,7 @@ func TestAnimeProjectNoteAuthorizationFailsBeforeServiceMutation(t *testing.T) {
 
 func TestAnimeProjectNoteContextFailurePrecedesServiceMutation(t *testing.T) {
 	gin.SetMode(gin.TestMode)
+	loadAppAuthCapabilityTestCache(t)
 	stub := &projectNoteCreditStub{}
 	handler := &AdminContentHandler{
 		permissionSvc:        permissions.NewService(contributionsPermissionResolverAllowed{}),
@@ -105,6 +107,7 @@ func TestAnimeProjectNoteContextFailurePrecedesServiceMutation(t *testing.T) {
 
 func TestAnimeProjectNoteDeleteDelegatesOnce(t *testing.T) {
 	gin.SetMode(gin.TestMode)
+	loadAppAuthCapabilityTestCache(t)
 	stub := &projectNoteCreditStub{}
 	handler := &AdminContentHandler{
 		permissionSvc:        permissions.NewService(contributionsPermissionResolverAllowed{}),

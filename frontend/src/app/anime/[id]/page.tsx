@@ -34,22 +34,8 @@ import styles from './page.module.css'
 
 /** Props für die Anime-Detailseite mit URL-Parametern und optionalen Such-Parametern. */
 interface AnimeDetailPageProps {
-  params:
-    | {
-        id: string
-      }
-    | Promise<{
-        id: string
-      }>
-  searchParams?:
-    | {
-        from?: string | string[]
-        grid_query?: string | string[]
-      }
-    | Promise<{
-        from?: string | string[]
-        grid_query?: string | string[]
-      }>
+  params: Promise<{ id: string }>
+  searchParams?: Promise<{ from?: string | string[]; grid_query?: string | string[] }>
 }
 
 /**

@@ -91,7 +91,7 @@ type NavigationState = {
   adjacent: AdjacentReleases | null
 }
 
-export function MeReleaseWorkspacePage() {
+function MeReleaseWorkspacePage() {
   const params = useParams<{ versionId: string }>()
   const searchParams = useSearchParams()
   const versionId = parsePositiveInt(params.versionId)

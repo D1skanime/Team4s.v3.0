@@ -224,7 +224,7 @@ func (appAuthCapabilityCacheLoader) LoadRoleCapabilities(_ context.Context) (map
 		"catalog_test_owner":        allActions,
 		permissions.RoleFansubLead:  allActions,
 		permissions.RoleProjectLead: {permissions.ActionFansubGroupMembersView, permissions.ActionAnimeFansubProjectTimelineUpdate, permissions.ActionReleaseView, permissions.ActionReleaseVersionMediaView, permissions.ActionReleaseVersionMediaUpload, permissions.ActionReleaseVersionNotesWrite},
-		permissions.RoleEncoder:     {permissions.ActionReleaseView, permissions.ActionReleaseVersionMediaView, permissions.ActionReleaseVersionMediaUpload, permissions.ActionReleaseVersionNotesWrite},
+		permissions.RoleEncoder:     {permissions.ActionFansubGroupMembersView, permissions.ActionFansubGroupMediaView, permissions.ActionFansubGroupMediaUpload, permissions.ActionFansubGroupMediaUpdateOwn, permissions.ActionReleaseView, permissions.ActionReleaseVersionMediaView, permissions.ActionReleaseVersionMediaUpload, permissions.ActionReleaseVersionNotesWrite},
 		permissions.RoleRawProvider: {permissions.ActionReleaseView},
 		"gfxler":                    {permissions.ActionFansubGroupMediaUpdate},
 		"techadmin":                 {permissions.ActionFansubGroupMediaUpdate, permissions.ActionFansubGroupPageTechnicalLinksEdit},
@@ -1499,8 +1499,8 @@ func TestGetFansubGroupCapabilitiesAllowsEncoderMediaAndNotesWorkspace(t *testin
 	if data["can_view_releases"] != true {
 		t.Fatalf("expected can_view_releases=true, got %#v", data["can_view_releases"])
 	}
-	if data["can_edit_group"] != false || data["can_view_members"] != false {
-		t.Fatalf("expected encoder to skip group/member permissions, got %#v", data)
+	if data["can_edit_group"] != false || data["can_view_members"] != true {
+		t.Fatalf("expected encoder to retain the active-member overview without group administration, got %#v", data)
 	}
 	if data["can_view_release_media"] != true {
 		t.Fatalf("expected encoder to view release media, got %#v", data["can_view_release_media"])
@@ -1538,8 +1538,8 @@ func TestGetFansubGroupCapabilitiesAllowsReleaseOnlyRolesIntoWorkspace(t *testin
 	if data["can_view_releases"] != true {
 		t.Fatalf("expected can_view_releases=true, got %#v", data["can_view_releases"])
 	}
-	if data["can_edit_group"] != false || data["can_view_members"] != false {
-		t.Fatalf("expected release-only role to skip group/member permissions, got %#v", data)
+	if data["can_edit_group"] != false || data["can_view_members"] != true {
+		t.Fatalf("expected active raw provider to retain the member overview without group administration, got %#v", data)
 	}
 	if data["can_view_release_media"] != false {
 		t.Fatalf("expected raw provider to skip release media view, got %#v", data["can_view_release_media"])

@@ -56,6 +56,7 @@ const memberKeys = [
   "member_slogan",
   "roles",
   "role_labels",
+  "historical_role_labels",
   "status",
   "profile_status",
   "claimed",

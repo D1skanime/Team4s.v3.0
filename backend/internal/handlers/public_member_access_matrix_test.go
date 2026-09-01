@@ -96,7 +96,6 @@ func TestPhase128PublicMemberAccessMatrix(t *testing.T) {
 
 	for _, file := range []string{
 		"app_public_profile.go",
-		"contributions_public_handler.go",
 		"project_member_public_handler.go",
 	} {
 		source, readErr := os.ReadFile(file)
@@ -113,7 +112,6 @@ func TestPhase128PublicMemberAccessMatrix(t *testing.T) {
 	for _, route := range []string{
 		`/members/:slug", authoptionalmiddleware`,
 		`/members/:slug/projects", authoptionalmiddleware`,
-		`/members/:slug/contributions", authoptionalmiddleware`,
 		`/anime/:id/group/:groupid/members/:memberslug", authoptionalmiddleware`,
 		`/members/:memberslug/notes", authoptionalmiddleware`,
 		`/members/:memberslug/media", authoptionalmiddleware`,
@@ -128,7 +126,6 @@ func TestPhase128PublicMemberAccessMatrixReference(t *testing.T) {
 	routes := []phase128HandlerRoute{
 		{name: "profile", path: "/members/:slug", endpoint: "profile", memberSlug: "slug"},
 		{name: "projects", path: "/members/:slug/projects", endpoint: "projects", memberSlug: "slug"},
-		{name: "contributions", path: "/members/:slug/contributions", endpoint: "contributions", memberSlug: "slug"},
 		{name: "project summary", path: "/anime/:id/group/:groupId/members/:memberSlug", endpoint: "summary", memberSlug: "memberSlug"},
 		{name: "project notes", path: "/anime/:id/group/:groupId/members/:memberSlug/notes", endpoint: "notes", memberSlug: "memberSlug"},
 		{name: "project media", path: "/anime/:id/group/:groupId/members/:memberSlug/media", endpoint: "media", memberSlug: "memberSlug"},
@@ -144,7 +141,7 @@ func TestPhase128PublicMemberAccessMatrixReference(t *testing.T) {
 		{name: "numeric", slug: "2", viewerAppUserID: 301},
 		{name: "guessed post-nickname slug", slug: "renamed-private", viewerAppUserID: 301},
 	}
-	require.Len(t, routes, 7)
+	require.Len(t, routes, 6)
 	require.Len(t, cases, 8)
 
 	var neutralBody []byte

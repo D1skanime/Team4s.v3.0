@@ -20,7 +20,7 @@ import PrettyReleaseDetailPage from './page'
 describe('PrettyReleaseDetailPage', () => {
   it('resolves slugs to the numeric release ownership context', async () => {
     mocks.getProfile.mockResolvedValue({ data: { group: { id: 4, slug: 'c-subs' }, projects: [{ id: 9, anime_slug: 'vipers-creed' }] } })
-    const result = await PrettyReleaseDetailPage({ params: { slug: 'c-subs', animeSlug: 'vipers-creed', releaseVersionId: '88' } })
+    const result = await PrettyReleaseDetailPage({ params: Promise.resolve({ slug: 'c-subs', animeSlug: 'vipers-creed', releaseVersionId: '88' }) })
     expect(result.props).toMatchObject({ animeID: 9, groupID: 4, releaseVersionID: 88, canonicalProjectPath: '/fansubs/c-subs/fansubprojekt/vipers-creed' })
   })
 
@@ -30,8 +30,8 @@ describe('PrettyReleaseDetailPage', () => {
 
     const searchParams = { kara: '7', autoplay: '1' }
     const result = await PrettyReleaseDetailPage({
-      params: { slug: 'c-subs', animeSlug: 'vipers-creed', releaseVersionId: '88' },
-      searchParams,
+      params: Promise.resolve({ slug: 'c-subs', animeSlug: 'vipers-creed', releaseVersionId: '88' }),
+      searchParams: Promise.resolve(searchParams),
     })
 
     expect(mocks.parseSearchParams).toHaveBeenCalledWith(searchParams)
@@ -47,6 +47,6 @@ describe('PrettyReleaseDetailPage', () => {
 
   it('rejects a mismatched project slug before rendering release detail', async () => {
     mocks.getProfile.mockResolvedValue({ data: { group: { id: 4, slug: 'c-subs' }, projects: [{ id: 9, anime_slug: 'other' }] } })
-    await expect(PrettyReleaseDetailPage({ params: { slug: 'c-subs', animeSlug: 'vipers-creed', releaseVersionId: '88' } })).rejects.toThrow('NOT_FOUND')
+    await expect(PrettyReleaseDetailPage({ params: Promise.resolve({ slug: 'c-subs', animeSlug: 'vipers-creed', releaseVersionId: '88' }) })).rejects.toThrow('NOT_FOUND')
   })
 })

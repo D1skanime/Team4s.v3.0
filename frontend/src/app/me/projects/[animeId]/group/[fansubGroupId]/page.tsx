@@ -82,7 +82,7 @@ function filterReleases(
   return base.filter((release) => normalizeEpisodeNumber(release.episode_number) === query)
 }
 
-export function MyProjectDetailPage() {
+function MyProjectDetailPage() {
   const params = useParams<{ animeId: string; fansubGroupId: string }>()
   const searchParams = useSearchParams()
   const animeId = parsePositiveInt(params.animeId)

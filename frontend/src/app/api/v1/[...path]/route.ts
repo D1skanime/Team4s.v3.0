@@ -3,13 +3,7 @@ import { proxyBackendApiRequest } from '@/lib/server/apiProxy'
 export const dynamic = 'force-dynamic'
 
 interface RouteContext {
-  params:
-    | {
-        path?: string[]
-      }
-    | Promise<{
-        path?: string[]
-      }>
+  params: Promise<{ path?: string[] }>
 }
 
 async function handler(request: Request, context: RouteContext): Promise<Response> {

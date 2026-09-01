@@ -37,7 +37,7 @@ vi.mock('@/lib/api', () => ({
   getMyProjectDetail: (...args: unknown[]) => getMyProjectDetailMock(...args),
 }))
 
-import { MyProjectDetailPage } from './page'
+import MyProjectDetailPage from './page'
 import type { MeProjectDetail, MeProjectReleaseVersion } from '@/types/contributions'
 
 function makeRelease(overrides: Partial<MeProjectReleaseVersion> = {}): MeProjectReleaseVersion {

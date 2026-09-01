@@ -684,8 +684,11 @@ func TestReleaseVersionMedia_CapabilitiesExposeOwnDelete(t *testing.T) {
 	assert.Contains(t, string(src), "CanDeleteOwnMedia")
 	assert.Contains(t, string(src), `json:"can_delete_own_media"`)
 	assert.True(t,
+		releaseVersionMediaCanDeleteOwn(permissions.Result{Allowed: true, MatchedRole: permissions.RoleFansubLead}),
+		"designer must retain own-delete capability for own uploads")
+	assert.False(t,
 		releaseVersionMediaCanDeleteOwn(permissions.Result{Allowed: true, MatchedRole: permissions.RoleEncoder}),
-		"encoder must retain own-delete capability for own uploads")
+		"encoder must not receive own-delete capability without the explicit action")
 }
 
 func TestReleaseVersionMedia_HandlerUsesContributorGroupMutationGuard(t *testing.T) {
