@@ -178,10 +178,36 @@ support a literal before/after full-package diff.
 
 ### Criterion 6 — Design-System statt nativer Elemente / Inline-Styles / roher Hex-Werte
 
-- **Measurement:** `docker compose exec team4sv30-frontend npx eslint .` with `no-restricted-syntax`
-  raised from `warn` to `error` in `frontend/eslint.config.mjs` — must exit 0 (currently the repo
-  has 11 pre-existing errors and 333 warnings from other rules; this criterion is specifically
-  about the `no-restricted-syntax` rule reaching zero violations, not the whole lint budget).
+**CORRECTED 2026-09-01 (Plan 143-12, Task 3, post-checkpoint):** the original strategy below
+assumed only "~17 Altfaelle ausserhalb components/ui" existed, based on a stale code comment in
+`frontend/eslint.config.mjs`. A real repo-wide measurement
+(`docker compose exec team4sv30-frontend npx eslint . --rule '{"no-restricted-syntax":"error"}'
+--quiet`, run 2026-09-01) found **264 violations across 67 files** (60 production files + 7 test
+files, `src/components/ui/**` excluded via its own existing carve-out) still using native
+`<input>`/`<select>`/`<textarea>` outside this plan's two target files. Naively flipping the base
+rule to `'error'` repo-wide would have broken the lint gate for all 67 of those pre-existing files,
+none of which this plan touches.
+
+Per user decision (checkpoint, 2026-09-01, Option A): `no-restricted-syntax`'s base severity is
+`'error'`, with a new **frozen, explicit, shrink-only exemption list**
+(`LEGACY_NO_RESTRICTED_SYNTAX_FILES` in `frontend/eslint.config.mjs`) pinning exactly those 67
+files back to `'warn'`. The list uses literal file paths, not directory globs, so a new or renamed
+file is never silently exempted — only a deliberate deletion from the list (when a file is
+migrated) shrinks it; nothing is ever added back. Full migration of the remaining 67 files is
+tracked as a backlog item:
+`.planning/todos/pending/2026-09-01-no-restricted-syntax-legacy-datei-migration.md`.
+
+- **Measurement:** `docker compose exec team4sv30-frontend npx eslint .` (project config, respects
+  the scoped ratchet override) — must report zero `no-restricted-syntax` **errors** (warnings from
+  the frozen legacy list are expected and out of scope; currently the repo has 11 pre-existing
+  errors from other rules, unaffected by this criterion).
+  Note: the plan's originally-specified acceptance command
+  (`npx eslint . --rule '{"no-restricted-syntax":"error"}' --quiet`) is **not** a valid measurement
+  of the final scoped state — the `--rule` CLI flag forces a rule's severity globally and bypasses
+  all `files`-scoped config overrides (including both the pre-existing `src/components/ui/**`
+  carve-out and the new ratchet override), so it will always report all 264 legacy violations
+  regardless of the ratchet's `'warn'` downgrade. Use `npx eslint .` (no `--rule` override) to
+  observe the real, scoped-config severity.
 - **Grep proof (belt-and-suspenders on top of eslint):**
   `grep -nE "<input|<select|<textarea|<button" frontend/src/app/admin/episode-versions/[versionId]/edit/ReleaseVersionMetadataFields.tsx frontend/src/app/admin/fansubs/[id]/edit/AnimeProjectTimelineSection.tsx`
   must return no matches (both files must use `Input`/`Select`/`Textarea`/`Button` from
@@ -189,6 +215,9 @@ support a literal before/after full-package diff.
 - **Hex/inline-style proof:** `grep -nE "#[0-9a-fA-F]{3,6}|style=\{\{" frontend/src/app/me/releases/[versionId]/workspace/workspace.module.css frontend/src/app/admin/fansubs/[id]/edit/AnimeProjectTimelineSection.tsx`
   must return no matches (`.metadataError`/`.metadataSuccess` must use design tokens; the three
   inline-`style` blocks in `AnimeProjectTimelineSection.tsx` must move to CSS module classes).
+- **Ratchet-scope proof:** the two files this plan retrofitted must NOT appear in
+  `LEGACY_NO_RESTRICTED_SYNTAX_FILES` and must pass `npx eslint` individually with zero
+  `no-restricted-syntax` findings at `'error'` severity.
 - **Automated command:** `docker compose exec team4sv30-frontend npx eslint .`
 
 ### Criterion 7 — Dashboard-Lane für abgelehnte Notizen
