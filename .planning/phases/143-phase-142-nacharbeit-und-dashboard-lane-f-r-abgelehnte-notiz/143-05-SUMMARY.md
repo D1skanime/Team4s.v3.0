@@ -157,3 +157,8 @@ None - no external service configuration required.
 ---
 *Phase: 143-phase-142-nacharbeit-und-dashboard-lane-f-r-abgelehnte-notiz*
 *Completed: 2026-09-01*
+
+## Self-Check: PASSED
+
+All 6 modified files and the SUMMARY.md itself verified present on disk; all 4 commits
+(`f2775e79`, `039d28d5`, `73587955`, `9697e2e9`) verified present in `git log --oneline --all`.
