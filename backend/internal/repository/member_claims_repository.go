@@ -113,12 +113,6 @@ func (r *MemberClaimsRepository) ListPendingClaimAttentionCandidates(ctx context
 	return items, nil
 }
 
-type SubmitClaimInput struct {
-	MemberID  int64
-	AppUserID int64
-	Note      string
-}
-
 func (r *MemberClaimsRepository) SearchHistoricalMembers(ctx context.Context, query string) ([]MemberSearchResult, error) {
 	search := strings.TrimSpace(query)
 	if len(search) < 2 {
@@ -159,85 +153,6 @@ func (r *MemberClaimsRepository) SearchHistoricalMembers(ctx context.Context, qu
 		return nil, fmt.Errorf("search historical members: iterate: %w", err)
 	}
 	return results, nil
-}
-
-func (r *MemberClaimsRepository) SubmitClaim(ctx context.Context, input SubmitClaimInput) (*MemberClaimRow, error) {
-	if input.MemberID <= 0 || input.AppUserID <= 0 {
-		return nil, fmt.Errorf("submit member claim: invalid ids")
-	}
-
-	// Gedenkprofile und bereits mit einem Team4s-Konto verknüpfte Mitglieder
-	// können keinen neuen Identitätsanspruch erhalten.
-	var profileStatus string
-	var linkedUserID sql.NullInt64
-	var hasVerifiedClaim bool
-	if err := r.db.QueryRow(ctx, `
-		SELECT
-			COALESCE(m.profile_status, 'active'),
-			m.user_id,
-			EXISTS (
-				SELECT 1
-				FROM member_claims mc
-				WHERE mc.member_id = m.id
-				  AND mc.claim_status = 'verified'
-			)
-		FROM members m
-		WHERE m.id = $1
-	`, input.MemberID).Scan(&profileStatus, &linkedUserID, &hasVerifiedClaim); err != nil {
-		return nil, fmt.Errorf("submit member claim: check profile_status: %w", err)
-	}
-	if linkedUserID.Valid || hasVerifiedClaim {
-		return nil, &ClaimMutationError{
-			Code:       "member_already_assigned",
-			Message:    "Dieser Member-Eintrag ist bereits einem Team4s-Konto zugeordnet.",
-			HTTPStatus: 409,
-		}
-	}
-	if profileStatus == "memorial" {
-		// denied-Audit schreiben (D-15). Fehlertolerant via _ = (blockiert den Fehler-Return nicht).
-		// Action-Key "member_claim.memorial_blocked" als String-Literal (D-15-Stub-Erzwingung).
-		_ = func() error {
-			if r.auditLogRepo == nil {
-				return nil
-			}
-			return r.auditLogRepo.Write(ctx, AuditLogEntry{
-				ActorAppUserID: &input.AppUserID,
-				EventType:      "member_claim.memorial_blocked",
-				TargetType:     "member",
-				TargetID:       &input.MemberID,
-				Action:         "submit_claim",
-				Outcome:        "denied",
-			})
-		}()
-		return nil, &ClaimMutationError{
-			Code:       "memorial_not_claimable",
-			Message:    "Dieses Profil wird als Gedenkprofil geführt und kann nicht beansprucht werden.",
-			HTTPStatus: 409,
-		}
-	}
-
-	row := r.db.QueryRow(ctx, `
-		INSERT INTO member_claims (app_user_id, member_id, claim_status, note, created_at, updated_at)
-		VALUES ($1, $2, 'pending', NULLIF($3, ''), NOW(), NOW())
-		ON CONFLICT (member_id, app_user_id)
-		DO UPDATE SET
-			note = NULLIF(EXCLUDED.note, ''),
-			claim_status = 'pending',
-			updated_at = NOW()
-		RETURNING id, app_user_id, member_id, claim_status, note, created_at
-	`, input.AppUserID, input.MemberID, strings.TrimSpace(input.Note))
-
-	claim, err := scanMemberClaim(row)
-	if err != nil {
-		if isUniqueViolation(err) {
-			return nil, ErrConflict
-		}
-		if isForeignKeyViolation(err) {
-			return nil, ErrNotFound
-		}
-		return nil, fmt.Errorf("submit member claim: %w", err)
-	}
-	return &claim, nil
 }
 
 func (r *MemberClaimsRepository) VerifyClaim(ctx context.Context, fansubGroupID int64, claimID int64, verifiedByAppUserID int64) error {
@@ -354,93 +269,6 @@ func (r *MemberClaimsRepository) RejectClaim(ctx context.Context, fansubGroupID 
 	`, claimID, verifiedByAppUserID, fansubGroupID)
 	if err != nil {
 		return fmt.Errorf("reject member claim: %w", err)
-	}
-	if tag.RowsAffected() == 0 {
-		return ErrNotFound
-	}
-	return nil
-}
-
-func (r *MemberClaimsRepository) ListPendingClaimsForGroup(ctx context.Context, fansubGroupID int64) ([]MemberClaimRow, error) {
-	if fansubGroupID <= 0 {
-		return nil, fmt.Errorf("list pending member claims: invalid fansub group id")
-	}
-
-	rows, err := r.db.Query(ctx, `
-		SELECT
-			mc.id,
-			COALESCE(mc.app_user_id, 0) AS app_user_id,
-			mc.member_id,
-			COALESCE(NULLIF(m.nickname, ''), 'Mitglied') AS member_nickname,
-			mc.claim_status,
-			mc.note,
-			mc.created_at
-		FROM member_claims mc
-		JOIN members m ON m.id = mc.member_id
-		JOIN hist_fansub_group_members hgm ON hgm.member_id = mc.member_id
-		WHERE hgm.fansub_group_id = $1
-		  AND mc.claim_status = 'pending'
-		ORDER BY mc.created_at ASC, mc.id ASC
-	`, fansubGroupID)
-	if err != nil {
-		return nil, fmt.Errorf("list pending member claims: %w", err)
-	}
-	defer rows.Close()
-
-	return scanMemberClaims(rows, "list pending member claims")
-}
-
-func (r *MemberClaimsRepository) GetMyClaim(ctx context.Context, appUserID int64) (*MemberClaimRow, error) {
-	if appUserID <= 0 {
-		return nil, ErrNotFound
-	}
-
-	row := r.db.QueryRow(ctx, `
-		SELECT
-			mc.id,
-			COALESCE(mc.app_user_id, 0) AS app_user_id,
-			mc.member_id,
-			COALESCE(NULLIF(m.nickname, ''), 'Mitglied') AS member_nickname,
-			mc.claim_status,
-			mc.note,
-			mc.created_at
-		FROM member_claims mc
-		JOIN members m ON m.id = mc.member_id
-		WHERE mc.app_user_id = $1
-		ORDER BY mc.created_at DESC, mc.id DESC
-		LIMIT 1
-	`, appUserID)
-
-	claim, err := scanMemberClaimWithMember(row)
-	if err != nil {
-		if errors.Is(err, pgx.ErrNoRows) {
-			return nil, ErrNotFound
-		}
-		return nil, fmt.Errorf("get my member claim: %w", err)
-	}
-	return &claim, nil
-}
-
-func (r *MemberClaimsRepository) UpdateNoindex(ctx context.Context, appUserID int64, noindex bool) error {
-	if appUserID <= 0 {
-		return ErrNotFound
-	}
-
-	tag, err := r.db.Exec(ctx, `
-		UPDATE members
-		SET noindex = $1,
-			updated_at = NOW()
-		WHERE id = (
-			SELECT member_id
-			FROM member_claims
-			WHERE app_user_id = $2
-			  AND claim_status = 'verified'
-			ORDER BY verified_at DESC
-			LIMIT 1
-		)
-	`, noindex, appUserID)
-	if err != nil {
-		return fmt.Errorf("update member profile noindex: %w", err)
 	}
 	if tag.RowsAffected() == 0 {
 		return ErrNotFound
