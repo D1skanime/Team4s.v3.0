@@ -1,8 +1,8 @@
 ---
 phase: 142-integrated-security-fixtures-live-release-gate
-nyquist_compliant: false
+nyquist_compliant: true
 wave_0_complete: true
-status: partial
+status: passed
 ---
 
 # Phase 142 Validation
@@ -13,6 +13,6 @@ status: partial
 - Refresh: `frontend/src/lib/api.auth-refresh.test.ts` covers missing and expired access tokens with a valid refresh token, proactive refresh, retry behavior, mutation handling, and upload preflight behavior through the central client.
 - Fixtures: existing API-driven seed scripts are the only fixture transport; no direct SQL fixture seam is introduced.
 
-## Pending human coverage
+## Recorded live coverage
 
-The exact responsive, keyboard, 400-percent-zoom, and combined grant/revoke evidence is listed in `142-UAT.md`. Until it is recorded, the phase remains non-compliant by design.
+The shared-browser UAT covered the responsive routes at 390x844, 768x1024, and 1440x900, keyboard operation, 400-percent zoom, refresh-session continuity, delegation revoke, self-review, and canonical ownership. The user confirmed the recorded checklist passed on 2026-09-01.

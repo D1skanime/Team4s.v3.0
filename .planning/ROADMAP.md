@@ -416,7 +416,7 @@ Milestone v1.4 closes Live-UAT Findings #29-#32 by making effective group rights
 - [x] **Phase 139: Scalable User-Admin Projections** - Replace noisy flat contribution and media data with meaningful grouped, filtered, and stable projections. (completed 2026-08-24)
 - [x] **Phase 140: Review Delegation Management** - Expose the existing specialized delegation service through documented APIs and the canonical group-member editor. (completed 2026-08-26)
 - [x] **Phase 141: Actor-Decidable Review Queue** - Make every queue lane, count, detail, and next action reflect what the current reviewer may actually decide. (completed 2026-08-26)
-- [ ] **Phase 142: Integrated Security, Fixtures & Live Release Gate** - Prove the complete milestone across contracts, auth refresh, fixtures, security, responsive UI, and canonical ownership. (technical gate completed 2026-09-01; recorded human UAT pending)
+- [x] **Phase 142: Integrated Security, Fixtures & Live Release Gate** - Prove the complete milestone across contracts, auth refresh, fixtures, security, responsive UI, and canonical ownership. (completed 2026-09-01)
 
 ## Phase Details
 
@@ -675,7 +675,7 @@ Plans:
   3. Live UAT passes on the real user-detail, group-member, capability, and review routes at 390×844, 768×1024, and 1440×900, plus keyboard operation and 400% zoom.
   4. The final gate proves Keycloak-owned global roles, platform-admin bypass, canonical media/contribution ownership, specialized review audit, contracts, migrations, tests, lint/typecheck/build, and protected badge assets remain intact without parallel systems.
 
-**Plans**: TBD
+**Plans**: 1/1 complete
 **UI hint**: yes
 
 ## v1.4 Coverage
@@ -703,4 +703,4 @@ Plans:
 | 139. Scalable User-Admin Projections | 10/10 | Complete | 2026-08-24 |
 | 140. Review Delegation Management | 3/3 | Complete | 2026-08-26 |
 | 141. Actor-Decidable Review Queue | 7/7 | Complete | 2026-08-26 |
-| 142. Integrated Security, Fixtures & Live Release Gate | 1/1 | In progress | 2026-09-01 |
+| 142. Integrated Security, Fixtures & Live Release Gate | 1/1 | Complete | 2026-09-01 |

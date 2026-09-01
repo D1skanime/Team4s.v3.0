@@ -53,13 +53,13 @@
 ### Verträge, Sicherheit und Rollout
 
 - [x] **QUAL-01**: Neue oder geänderte Permission-, Override-, Delegations- und Queue-Verträge sind in OpenAPI, Backend-DTOs, Frontend-Typen und zentralen API-Helfern synchron.
-- [ ] **QUAL-02**: Geschützte v1.4-Ansichten und Aktionen funktionieren bei fehlendem oder abgelaufenem Access Token mit gültiger Refresh-Session über den zentralen API-Client.
+- [x] **QUAL-02**: Geschützte v1.4-Ansichten und Aktionen funktionieren bei fehlendem oder abgelaufenem Access Token mit gültiger Refresh-Session über den zentralen API-Client.
 - [x] **QUAL-03**: Automatisierte Negativtests decken Deny-Präzedenz, gruppenfremde Overrides, unzulässige Capability-Codes, BOLA/IDOR, Self-Review und Direktzugriffe ab.
 - [x] **QUAL-04**: Erforderliche Schemaänderungen verwenden neue reversible Migrationen mit Fresh-Up/Down-Nachweis und ohne Kompatibilitäts- oder Backfill-Code für disposable Testdaten.
-- [ ] **QUAL-05**: Reproduzierbare v1.4-Fixtures decken Mehrrollen-OR, Allow, Deny, Plattform-Admin, Cache-Fehler, Review-Grant/Revoke, Self-Review und große Benutzer-Projektionen ab.
+- [x] **QUAL-05**: Reproduzierbare v1.4-Fixtures decken Mehrrollen-OR, Allow, Deny, Plattform-Admin, Cache-Fehler, Review-Grant/Revoke, Self-Review und große Benutzer-Projektionen ab.
 - [x] **QUAL-06**: Query- und UI-Gates verhindern N+1-Abfragen, ungebundene Flachlisten, inkonsistente Pagination sowie Client-only-Sicherheitsfilter.
-- [ ] **QUAL-07**: Live-UAT prüft die echten Benutzer-, Gruppenmitglieder-, Capability- und Review-Routen bei 390×844, 768×1024 und 1440×900 sowie Tastaturbedienung und 400-%-Zoom.
-- [ ] **QUAL-08**: Die Implementierung bewahrt Keycloak-verwaltete globale Rollen, den Plattform-Admin-Bypass, kanonische Medien-/Mitwirkungs-Eigentümer und das bestehende Review-Audit ohne parallele Systeme.
+- [x] **QUAL-07**: Live-UAT prüft die echten Benutzer-, Gruppenmitglieder-, Capability- und Review-Routen bei 390×844, 768×1024 und 1440×900 sowie Tastaturbedienung und 400-%-Zoom.
+- [x] **QUAL-08**: Die Implementierung bewahrt Keycloak-verwaltete globale Rollen, den Plattform-Admin-Bypass, kanonische Medien-/Mitwirkungs-Eigentümer und das bestehende Review-Audit ohne parallele Systeme.
 
 ## Future Requirements
 
@@ -128,13 +128,13 @@
 | RQUE-05 | Phase 141 | Complete |
 | RQUE-06 | Phase 141 | Complete |
 | QUAL-01 | Phase 136 | Complete |
-| QUAL-02 | Phase 142 | Pending |
+| QUAL-02 | Phase 142 | Complete |
 | QUAL-03 | Phase 137 | Complete |
 | QUAL-04 | Phase 136 | Complete |
-| QUAL-05 | Phase 142 | Pending |
+| QUAL-05 | Phase 142 | Complete |
 | QUAL-06 | Phase 139 | Complete |
-| QUAL-07 | Phase 142 | Pending |
-| QUAL-08 | Phase 142 | Pending |
+| QUAL-07 | Phase 142 | Complete |
+| QUAL-08 | Phase 142 | Complete |
 
 **Coverage:**
 - v1.4 requirements: 41 total

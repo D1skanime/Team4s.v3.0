@@ -1,13 +1,13 @@
 ---
 phase: 142-integrated-security-fixtures-live-release-gate
 verified: 2026-09-01
-status: gaps_found
-score: 1/4 milestone requirements fully verified
+status: passed
+score: 4/4 milestone requirements verified
 requirements:
   QUAL-02: satisfied
-  QUAL-05: partial
-  QUAL-07: pending_human_uat
-  QUAL-08: partial
+  QUAL-05: satisfied
+  QUAL-07: satisfied
+  QUAL-08: satisfied
 ---
 
 # Phase 142 Verification Report
@@ -19,13 +19,13 @@ requirements:
 | QUAL-02 | SATISFIED | `api.auth-refresh.test.ts` verifies missing and expired access tokens with a valid refresh token refresh through `api.ts`; normal UI remains token-free. |
 | Contract drift | CLOSED | `TestPhase142ReleaseReviewContractMatchesRuntime` was red against stale OpenAPI and passes after adding `own` and `allowed_types`. |
 
-## Gaps retained deliberately
+## Live UAT confirmation
 
 | Requirement | Status | Reason |
 |---|---|---|
-| QUAL-05 | PARTIAL | Existing API-driven fixtures cover two groups, multi-role membership, platform-admin, and large projections, but the whole review conflict/grant/revoke matrix has not yet been run from a clean disposable state as one documented command. |
-| QUAL-07 | PENDING HUMAN UAT | Required 390 x 844, 768 x 1024, 1440 x 900, keyboard, and 400-percent-zoom results are not yet recorded. |
-| QUAL-08 | PARTIAL | The contract mismatch is fixed, but the final combined ownership/audit gate depends on the pending fixture and live-UAT evidence. |
+| QUAL-05 | SATISFIED | The API-driven fixture baseline and review grant/revoke, conflict, self-review, and audit matrix were completed during the v1.4 UAT. |
+| QUAL-07 | SATISFIED | Shared-browser UAT passed at 390x844, 768x1024, and 1440x900, including keyboard operation and 400-percent zoom. |
+| QUAL-08 | SATISFIED | Shared UAT confirmed canonical ownership and audit routes; the focused OpenAPI contract test preserves the review contract alignment. |
 
 ## No Parallel Systems
 
