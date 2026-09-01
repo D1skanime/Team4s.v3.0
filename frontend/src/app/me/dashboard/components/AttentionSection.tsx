@@ -6,6 +6,7 @@ import type { MeAnimeContribution } from "@/types/contributions";
 import type {
   OwnDashboardPendingClaim,
   OwnDashboardPendingGroupMediaReview,
+  OwnDashboardPendingOwnNoteRevisionGroup,
   OwnDashboardPendingReleaseReview,
 } from "@/types/dashboard";
 
@@ -23,6 +24,7 @@ export interface AttentionSectionProps {
   pendingClaims: OwnDashboardPendingClaim[];
   pendingGroupMediaReviews?: OwnDashboardPendingGroupMediaReview[];
   pendingReleaseReviews?: OwnDashboardPendingReleaseReview[];
+  pendingOwnNoteRevisions?: OwnDashboardPendingOwnNoteRevisionGroup[];
 }
 
 /**
@@ -36,6 +38,7 @@ export function AttentionSection({
   pendingClaims,
   pendingGroupMediaReviews = [],
   pendingReleaseReviews = [],
+  pendingOwnNoteRevisions = [],
 }: AttentionSectionProps) {
   const contributionProjects = groupAttentionContributions(contributions);
 
@@ -45,7 +48,8 @@ export function AttentionSection({
       {contributionProjects.length === 0 &&
       pendingClaims.length === 0 &&
       pendingGroupMediaReviews.length === 0 &&
-      pendingReleaseReviews.length === 0 ? (
+      pendingReleaseReviews.length === 0 &&
+      pendingOwnNoteRevisions.length === 0 ? (
         <EmptyState
           variant="compact"
           title="Nichts Neues im Moment"
@@ -129,6 +133,53 @@ export function AttentionSection({
                     <ArrowRight size={15} aria-hidden="true" />
                   </span>
                 </Link>
+              </Card>
+            </li>
+          ))}
+          {pendingOwnNoteRevisions.map((group) => (
+            <li
+              key={
+                "own-note-revision-" +
+                group.anime_id +
+                "-" +
+                group.fansub_group_id
+              }
+            >
+              <Card variant="default" className={styles.itemCard}>
+                <div className={styles.noteGroupHeader}>
+                  <span className={styles.itemTitle}>
+                    <strong>{group.anime_title}</strong>
+                    <span> · {group.fansub_group_name}</span>
+                  </span>
+                  <Badge variant="danger">Abgelehnt</Badge>
+                </div>
+                <ul className={styles.noteRevisionList}>
+                  {group.items.map((item) => {
+                    const episode = item.episode_number
+                      ? `Folge ${item.episode_number}`
+                      : "Release-Version";
+                    const title = item.note_title || "Ohne Titel";
+                    return (
+                      <li key={item.release_version_id}>
+                        <Link
+                          className={styles.noteRevisionRow}
+                          href={`/me/releases/${item.release_version_id}/workspace?tab=notes`}
+                          aria-label={`${episode} · ${title} überarbeiten öffnen`}
+                        >
+                          <span className={styles.noteRevisionEpisode}>
+                            {episode}
+                          </span>
+                          <span className={styles.noteRevisionTitle}>
+                            {title}
+                          </span>
+                          <span className={styles.itemAction}>
+                            <ArrowRight size={15} aria-hidden="true" />
+                          </span>
+                        </Link>
+                      </li>
+                    );
+                  })}
+                </ul>
               </Card>
             </li>
           ))}

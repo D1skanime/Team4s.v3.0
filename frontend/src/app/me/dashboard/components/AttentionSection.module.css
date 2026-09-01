@@ -59,3 +59,51 @@
   font-size: 0.8rem;
   font-weight: 600;
 }
+
+.noteGroupHeader {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: var(--space-3);
+  flex-wrap: wrap;
+}
+
+.noteRevisionList {
+  display: grid;
+  gap: var(--space-1);
+  margin: var(--space-3) 0 0;
+  padding: 0;
+  list-style: none;
+}
+
+.noteRevisionRow {
+  display: flex;
+  align-items: center;
+  gap: var(--space-3);
+  padding: var(--space-2) var(--space-3);
+  border-radius: var(--radius-sm);
+  color: inherit;
+  text-decoration: none;
+}
+
+.noteRevisionRow:hover,
+.noteRevisionRow:focus-visible {
+  background: color-mix(in srgb, var(--color-primary, #2f5fe3) 8%, transparent);
+}
+
+.noteRevisionRow:hover .noteRevisionTitle,
+.noteRevisionRow:focus-visible .noteRevisionTitle {
+  text-decoration: underline;
+}
+
+.noteRevisionEpisode {
+  flex: 0 0 auto;
+  font-weight: 600;
+  color: var(--text-soft, #6b6b70);
+}
+
+.noteRevisionTitle {
+  flex: 1 1 auto;
+  min-width: 0;
+  overflow-wrap: anywhere;
+}

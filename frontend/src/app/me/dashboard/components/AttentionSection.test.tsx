@@ -13,12 +13,14 @@ vi.mock("next/link", () => ({
     href,
     children,
     className,
+    "aria-label": ariaLabel,
   }: {
     href: string;
     children: ReactNode;
     className?: string;
+    "aria-label"?: string;
   }) => (
-    <a href={href} className={className}>
+    <a href={href} className={className} aria-label={ariaLabel}>
       {children}
     </a>
   ),
@@ -298,5 +300,94 @@ describe("AttentionSection (Phase 116, D-02)", () => {
 
     const icon = container.querySelector('svg[aria-hidden="true"]');
     expect(icon).not.toBeNull();
+  });
+
+  it("gruppiert abgelehnte eigene Notizen pro Anime+Gruppe mit 'Abgelehnt'-Badge und einer Zeile je Notiz", () => {
+    render(
+      <AttentionSection
+        contributions={[]}
+        pendingClaims={[]}
+        pendingOwnNoteRevisions={[
+          {
+            anime_id: 5,
+            anime_title: "Testanime",
+            fansub_group_id: 9,
+            fansub_group_name: "New-Subs",
+            items: [
+              {
+                release_version_id: 61,
+                episode_number: "05",
+                note_title: "Timing-Hinweis",
+              },
+              {
+                release_version_id: 62,
+                episode_number: null,
+                note_title: "",
+              },
+            ],
+          },
+        ]}
+      />,
+    );
+
+    expect(screen.getByText("Testanime")).not.toBeNull();
+    expect(screen.getByText("· New-Subs")).not.toBeNull();
+    expect(screen.getByText("Abgelehnt")).not.toBeNull();
+
+    const withEpisode = screen.getByRole("link", {
+      name: "Folge 05 · Timing-Hinweis überarbeiten öffnen",
+    });
+    expect(withEpisode.getAttribute("href")).toBe(
+      "/me/releases/61/workspace?tab=notes",
+    );
+    expect(withEpisode.textContent).toContain("Folge 05");
+    expect(withEpisode.textContent).toContain("Timing-Hinweis");
+
+    const withoutEpisode = screen.getByRole("link", {
+      name: "Release-Version · Ohne Titel überarbeiten öffnen",
+    });
+    expect(withoutEpisode.getAttribute("href")).toBe(
+      "/me/releases/62/workspace?tab=notes",
+    );
+    expect(withoutEpisode.textContent).toContain("Release-Version");
+    expect(withoutEpisode.textContent).toContain("Ohne Titel");
+  });
+
+  it("blendet die Empty-State-Copy aus, solange abgelehnte eigene Notizen vorhanden sind", () => {
+    render(
+      <AttentionSection
+        contributions={[]}
+        pendingClaims={[]}
+        pendingOwnNoteRevisions={[
+          {
+            anime_id: 5,
+            anime_title: "Testanime",
+            fansub_group_id: 9,
+            fansub_group_name: "New-Subs",
+            items: [
+              {
+                release_version_id: 61,
+                episode_number: "05",
+                note_title: "Timing-Hinweis",
+              },
+            ],
+          },
+        ]}
+      />,
+    );
+
+    expect(screen.queryByText("Nichts Neues im Moment")).toBeNull();
+  });
+
+  it("zeigt weiterhin den Empty State, wenn pendingOwnNoteRevisions leer ist und alle anderen Quellen leer sind", () => {
+    render(
+      <AttentionSection
+        contributions={[]}
+        pendingClaims={[]}
+        pendingOwnNoteRevisions={[]}
+      />,
+    );
+
+    expect(screen.getByText("Nichts Neues im Moment")).not.toBeNull();
   });
 });
