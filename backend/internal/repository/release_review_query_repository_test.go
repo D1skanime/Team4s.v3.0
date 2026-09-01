@@ -958,3 +958,88 @@ func TestPendingGroupMediaReviewAttentionExcludesLogoBannerAndNonReviewItems(t *
 	assert.Equal(t, "Alpha", items[0].FansubGroupName)
 	assert.EqualValues(t, 1, items[0].Count)
 }
+
+// openDashboardOwnNoteRevisionAttentionFixture extends the shared
+// openReleaseReviewQueryFixture (anime 81/82, episodes 31/32, fansub groups 21/22,
+// members 101/102, app_users 11/12, notes 501/502) with the two columns
+// PendingOwnNoteRevisionAttention's query needs that the base fixture doesn't carry:
+// fansub_groups.name and episodes.sort_index.
+func openDashboardOwnNoteRevisionAttentionFixture(t *testing.T) *pgxpool.Pool {
+	t.Helper()
+	pool := openReleaseReviewQueryFixture(t)
+	ctx := context.Background()
+	_, err := pool.Exec(ctx, `
+		ALTER TABLE fansub_groups ADD COLUMN name TEXT NOT NULL DEFAULT '';
+		ALTER TABLE episodes ADD COLUMN sort_index INTEGER;
+		UPDATE fansub_groups SET name = 'Alpha' WHERE id = 21;
+		UPDATE fansub_groups SET name = 'Beta' WHERE id = 22;
+	`)
+	require.NoError(t, err)
+	return pool
+}
+
+// TestPendingOwnNoteRevisionAttentionOnlyRejectedOwnNotes proves Criterion 7's
+// aggregation: only the queried member's own release-version notes whose review
+// lifecycle is 'rejected' come back -- a pending note (the base fixture's 501),
+// a tombstoned/soft-deleted note, and a genuinely foreign member's rejected note all
+// stay excluded (T-143-13, Information Disclosure).
+func TestPendingOwnNoteRevisionAttentionOnlyRejectedOwnNotes(t *testing.T) {
+	pool := openDashboardOwnNoteRevisionAttentionFixture(t)
+	ctx := context.Background()
+
+	_, err := pool.Exec(ctx, `
+		INSERT INTO release_version_notes(
+			id, release_version_id, fansub_group_id, member_id, role_id, title, body_html
+		) VALUES
+			(503, 41, 21, 101, 71, 'Ueberarbeiten Eins', '<p>Text</p>'),
+			(504, 42, 22, 101, 71, 'Ueberarbeiten Zwei', '<p>Text</p>'),
+			(505, 41, 21, 101, 71, 'Getilgt', '<p>Text</p>'),
+			(506, 41, 21, 102, 71, 'Fremde Notiz', '<p>Text</p>');
+		UPDATE release_version_notes SET deleted_at = NOW() WHERE id = 505;
+		INSERT INTO release_version_note_review_lifecycle(
+			release_version_note_id, source_revision, review_state,
+			submitter_app_user_id, submitter_member_id, submitted_at, last_activity_at, tombstoned_at
+		) VALUES
+			(503, 1, 'rejected', 11, 101, '2026-07-24T09:00:00Z', '2026-07-24T09:00:00Z', NULL),
+			(504, 1, 'rejected', 11, 101, '2026-07-24T09:00:00Z', '2026-07-24T09:00:00Z', NULL),
+			(505, 1, 'tombstoned', 11, 101, '2026-07-24T09:00:00Z', '2026-07-24T09:00:00Z', '2026-07-24T10:00:00Z'),
+			(506, 1, 'rejected', 12, 102, '2026-07-24T09:00:00Z', '2026-07-24T09:00:00Z', NULL);
+	`)
+	require.NoError(t, err)
+
+	repo := NewReleaseReviewQueryRepository(pool)
+
+	items, err := repo.PendingOwnNoteRevisionAttention(ctx, 101)
+	require.NoError(t, err)
+	require.Len(t, items, 2, "only member 101's two rejected, non-deleted notes must appear -- the pending note (501), the tombstoned note (505), and member 102's rejected note (506) must all be excluded")
+
+	byAnime := map[int64]PendingOwnNoteRevisionRow{}
+	for _, item := range items {
+		byAnime[item.AnimeID] = item
+	}
+	require.Contains(t, byAnime, int64(81))
+	first := byAnime[81]
+	assert.EqualValues(t, 21, first.FansubGroupID)
+	assert.Equal(t, "Alpha", first.FansubGroupName)
+	assert.Equal(t, "Anime Eins", first.AnimeTitle)
+	assert.EqualValues(t, 41, first.ReleaseVersionID)
+	assert.Equal(t, "01", first.EpisodeNumber)
+	assert.Equal(t, "Ueberarbeiten Eins", first.NoteTitle)
+
+	require.Contains(t, byAnime, int64(82))
+	second := byAnime[82]
+	assert.EqualValues(t, 22, second.FansubGroupID)
+	assert.Equal(t, "Beta", second.FansubGroupName)
+	assert.EqualValues(t, 42, second.ReleaseVersionID)
+	assert.Equal(t, "02", second.EpisodeNumber)
+	assert.Equal(t, "Ueberarbeiten Zwei", second.NoteTitle)
+
+	// Member 102's own rejected note (506) must appear for member 102 -- proving the
+	// query is genuinely member-scoped, not just "any rejected note".
+	foreignItems, err := repo.PendingOwnNoteRevisionAttention(ctx, 102)
+	require.NoError(t, err)
+	require.Len(t, foreignItems, 1)
+	assert.EqualValues(t, 81, foreignItems[0].AnimeID)
+	assert.EqualValues(t, 21, foreignItems[0].FansubGroupID)
+	assert.Equal(t, "Fremde Notiz", foreignItems[0].NoteTitle)
+}
