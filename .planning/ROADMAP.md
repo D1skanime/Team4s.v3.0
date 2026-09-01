@@ -694,10 +694,23 @@ Plans:
 
 **Randbedingungen:** Keine parallelen Systeme, keine neuen Auth- oder Fixture-Wege, atomare Commits pro Task, Produktionsdateien bleiben bei maximal 450 Zeilen. Reihenfolge der Kriterien 1-7 ist verbindlich (Kriterium 7 baut auf der Repository-Aggregation aus Kriterium 3 auf). Vier Dateien haben die 450-Zeilen-Grenze im Phase-142-Zeitraum überschritten und werden in dieser Phase darunter zurückgeführt: `backend/internal/repository/member_claims_repository.go` (516), `frontend/src/app/me/releases/[versionId]/workspace/page.tsx` (469), `backend/internal/repository/anime_contributions_proposal_repository.go` (461), `backend/internal/repository/member_profile_projects_repository.go` (458). Kriterium 7 darf `workspace/page.tsx` nicht weiter wachsen lassen. Zusätzlich wird `backend/internal/handlers/app_auth.go` (1308 Zeilen, im Zeitraum von 1254 gewachsen) in vier Dateien desselben Pakets aufgeteilt — reine Dateiverschiebung ohne Signatur-, Routen- oder Verhaltensänderung, `app_auth_test.go` bleibt unverändert lauffähig: `app_auth.go` behält Handler-Struct, Konstruktor, Store-Interfaces, `GetCurrentUser`, `ListAppUsers` und `HandleKeycloakBackchannelLogout` (~220 Zeilen); `app_auth_invitations.go` bekommt die Invitation-Request-Typen sowie `ListFansubGroupInvitations`, `CreateFansubGroupInvitation`, `CancelFansubGroupInvitation` und `AcceptFansubInvitation` (~455); `app_auth_group_members.go` die Member-Request-Typen sowie `ListFansubGroupAppMembers`, `SearchFansubGroupAppMemberCandidates`, `CreateFansubGroupAppMember`, `SetFansubGroupMemberRole`, `SetFansubLead`, `setFansubGroupMemberRole`, `UpdateFansubGroupMemberStatus`, `SetFansubGroupMemberMediaPermissions` und `normalizeRequestedFansubRoles` (~400); `app_auth_capabilities.go` den Response-Typ und `GetFansubGroupCapabilities` (~230). Die beiden überlangen Funktionen `GetFansubGroupCapabilities` (229 Zeilen) und `CreateFansubGroupInvitation` (185) werden dabei nicht zerlegt — das ist eine eigene Entscheidung ausserhalb dieser Phase.
 
-**Plans:** 0 plans
+**Plans:** 14 plans
 
 Plans:
-- [ ] TBD (run /gsd-plan-phase 143 to break down)
+- [ ] 143-01-PLAN.md — Split backend/internal/handlers/app_auth.go into four files (450-line remediation)
+- [ ] 143-02-PLAN.md — Split backend/internal/repository/member_claims_repository.go (450-line remediation)
+- [ ] 143-03-PLAN.md — Split anime_contributions_proposal_repository.go + member_profile_projects_repository.go (450-line remediation)
+- [ ] 143-04-PLAN.md — Extract workspace/page.tsx helpers into workspaceHelpers.ts (450-line remediation, pre-Criterion-7)
+- [ ] 143-05-PLAN.md — Criterion 1: contract drift, RoleCatalogProvider mocks, episode-versions api mock fix (5 files)
+- [ ] 143-06-PLAN.md — Criterion 1: role-color/role-label regression cluster (6 files)
+- [ ] 143-07-PLAN.md — Criterion 1: remaining individually-triaged red test files (6 files)
+- [ ] 143-08-PLAN.md — Criterion 2: migration 0159 replaces 0154's reset pattern (idempotent + reversible)
+- [ ] 143-09-PLAN.md — Criterion 3: move raw SQL from dashboard_me_handler.go into ReleaseReviewQueryRepository
+- [ ] 143-10-PLAN.md — Criterion 4: focus tests for ReleaseMetadataCreditService and project-timeline date validation
+- [ ] 143-11-PLAN.md — Criterion 5: has_own_notes excludes rejected notes
+- [ ] 143-12-PLAN.md — Criterion 6: design-system retrofit + no-restricted-syntax to error
+- [ ] 143-13-PLAN.md — Criterion 7: backend aggregation for rejected-own-notes dashboard lane
+- [ ] 143-14-PLAN.md — Criterion 7: frontend AttentionSection lane + dashboard wiring
 
 ## v1.4 Coverage
 
