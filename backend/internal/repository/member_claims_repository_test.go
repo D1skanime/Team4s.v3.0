@@ -1,6 +1,7 @@
 package repository
 
 import (
+	"context"
 	"os"
 	"strings"
 	"testing"
@@ -67,4 +68,40 @@ func TestMemberClaimsRepositoryBlocksAlreadyAssignedMembers(t *testing.T) {
 	assert.Contains(t, searchBody, "AND m.user_id IS NULL")
 	assert.Contains(t, submitBody, "Code:       \"member_already_assigned\"")
 	assert.Contains(t, submitBody, "AND mc.claim_status = 'verified'")
+}
+
+// TestMemberClaimsRepositoryListPendingClaimAttentionCandidates is the first-ever test for
+// ListPendingClaimAttentionCandidates (Plan 143-09, Task 3 -- attachPendingClaimAttention's
+// already-correct thin-handler-loop-with-memoization shape had zero repository-level
+// coverage before this). Reuses member_claims_list_repository_test.go's fixture helpers
+// (same package) rather than inventing a second seeding style.
+func TestMemberClaimsRepositoryListPendingClaimAttentionCandidates(t *testing.T) {
+	pool := openPhase138ClaimsListPool(t)
+	ctx := context.Background()
+	repo := NewMemberClaimsRepository(pool)
+
+	seedPhase138Claim(t, pool, 611, 711, 811, 911, "Pending Person", "Chocolate Subs", "pending")
+	seedPhase138Claim(t, pool, 612, 712, 811, 912, "Verified Person", "Chocolate Subs", "verified")
+	seedPhase138Claim(t, pool, 613, 713, 812, 0, "Rejected Person", "Vanilla Subs", "rejected")
+	seedPhase138Claim(t, pool, 614, 714, 812, 0, "Other Pending Person", "Vanilla Subs", "pending")
+
+	candidates, err := repo.ListPendingClaimAttentionCandidates(ctx)
+	require.NoError(t, err)
+
+	byClaimID := make(map[int64]PendingClaimAttentionRow, len(candidates))
+	for _, candidate := range candidates {
+		byClaimID[candidate.ClaimID] = candidate
+	}
+
+	require.Contains(t, byClaimID, int64(611))
+	assert.EqualValues(t, 811, byClaimID[611].FansubGroupID)
+	assert.Equal(t, "Chocolate Subs", byClaimID[611].FansubGroupName)
+	assert.Equal(t, "Pending Person", byClaimID[611].MemberNickname)
+
+	require.Contains(t, byClaimID, int64(614))
+	assert.EqualValues(t, 812, byClaimID[614].FansubGroupID)
+	assert.Equal(t, "Other Pending Person", byClaimID[614].MemberNickname)
+
+	assert.NotContains(t, byClaimID, int64(612), "verified claims must not be returned as pending attention candidates")
+	assert.NotContains(t, byClaimID, int64(613), "rejected claims must not be returned as pending attention candidates")
 }
