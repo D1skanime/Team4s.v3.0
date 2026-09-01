@@ -79,8 +79,54 @@ findings:
   warning: 4
   info: 1
   total: 7
-status: issues_found
+status: fixed
 ---
+
+## Post-Review Fix Status
+
+CR-01 fixed (`37961c60`): `CreateFansubGroupInvitation`'s `bodyHTML` now wraps every
+`inviterName`/`groupName` interpolation in `html.EscapeString(...)`; `roleSuffixHTML` and
+`bodyText` were left untouched (role codes are validated against a fixed catalog via
+`permissions.IsKnownFansubGroupRole`, and HTML-escaping the plain-text body would have
+incorrectly injected entities into it).
+
+CR-02 fixed (`00218f58`): removed the unqualified `DELETE FROM role_capabilities;` from
+`0159_role_capability_defaults_reset.up.sql`, making the migration purely additive
+(`INSERT ... ON CONFLICT (role_code, action_code) DO NOTHING`) so it can no longer discard
+rows outside its 232-tuple catalog. Rewrote the header comment to state the additive-only
+rationale directly instead of drawing a false distinction from 0154. Verified against the
+live `team4s_v2` dev database (which has not yet applied 0159) that a real, migration-granted
+techadmin row (`fansub_group_media.update_own`, granted by migration 0155's broad
+fansub_group-context role grant) exists today and would have been silently destroyed by the
+old unconditional `DELETE` -- confirming the exact class of data loss CR-02 described. Updated
+`phase143_role_capability_defaults_reset_test.go`'s techadmin-row-count assertions from 12 to
+13 to match this now-correctly-preserved row, with a comment explaining both contributing
+migrations.
+
+WR-01 fixed (`251a00b1`): corrected all 15 double-encoded UTF-8 ("mojibake") German string
+literals across `app_auth_group_member_roles.go` (9), `app_auth_group_members.go` (2), and
+`app_auth_invitations.go` (4); re-grepped all three files for `Ã` afterward and confirmed zero
+remaining occurrences.
+
+WR-04 fixed (`20564956`): corrected the mojibake literal in
+`page.test.tsx`'s "shows only segments..." test from `"Notizen / BeitrÃ¤ge"` to
+`"Notizen / Beiträge"`, so the `queryByRole(...).toBeNull()` assertion now genuinely exercises
+the capability-gating regression guard instead of being vacuously true. All 15 tests in the
+file pass.
+
+WR-02 open: not included in user's fix scope for this pass.
+
+WR-03 open: documented and intentionally deferred per 143-VALIDATION.md; tracked in
+143-10-SUMMARY.md.
+
+IN-01 fixed (`c431531f`): removed the dead `"errors"` import and the `var _ = errors.New`
+keeper line (two total line removals, no other changes) from
+`contribution_proposals_me_test.go`.
+
+Final verification: `go build ./...` clean; `npx vitest run` shows 288 files passed / 1
+skipped (289), 2150 tests passed / 1 skipped / 3 todo (2154) -- matching the pre-fix baseline
+with 0 unexpected failures; the CR-02 DSN-gated migration test
+(`TestPhase143RoleCapabilityDefaultsResetIdempotentAndReversible`) passes.
 
 # Phase 143: Code Review Report
 
