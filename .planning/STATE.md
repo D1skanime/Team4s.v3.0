@@ -3,15 +3,15 @@ gsd_state_version: 1.0
 milestone: v1.4
 milestone_name: Coverage
 status: executing
-stopped_at: Completed 143-01-PLAN.md
-last_updated: "2026-09-01T20:38:36.351Z"
+stopped_at: Completed 143-02-PLAN.md
+last_updated: "2026-09-01T20:42:00.798Z"
 last_activity: 2026-09-01
 progress:
   total_phases: 8
   completed_phases: 7
   total_plans: 98
-  completed_plans: 85
-  percent: 87
+  completed_plans: 86
+  percent: 88
 ---
 
 # Project State
@@ -34,7 +34,7 @@ See: .planning/PROJECT.md (updated 2026-08-13)
 ## Current Position
 
 Phase: 143 (phase-142-nacharbeit-und-dashboard-lane-f-r-abgelehnte-notiz) — EXECUTING
-Plan: 2 of 14
+Plan: 3 of 14
 Status: Ready to execute
 Last activity: 2026-09-01
 
@@ -211,6 +211,7 @@ Last activity: 2026-09-01
 - [Phase 141-06]: Typ FormField gating uses allowed_types.length > 1 (not === 0) as the omission predicate, per plan's exact rule that a single-entry allowed_types must also omit the whole FormField. — A one-option dropdown would still leak which single kind the actor can review via its shape.
 - [Phase 141]: Plan 141-07: NextReviewControl shares post-decision/standalone Next states so the 'Next' affordance never silently disappears; 403 loads render a distinct locked ErrorState instead of the generic 404/network message — Closes RQUE-02/D04 and RQUE-05/D05 without new 409 branching, since the backend already maps both already-decided and not-pending outcomes to REVIEW_ALREADY_DECIDED
 - [Phase 143]: Plan 143-01: Split app_auth_group_members.go into two files (app_auth_group_members.go + app_auth_group_member_roles.go) instead of the plan's mandated single file — The plan's own exact function assignment for that bucket produces ~500 lines, exceeding the 450-line CLAUDE.md cap the plan itself sets as an acceptance criterion. No identifier renamed; zero behavior change.
+- [Phase 143]: Plan 143-02: SubmitClaimInput moved alongside SubmitClaim into member_claims_submit_repository.go rather than staying behind, since it is used nowhere else in production code except as SubmitClaim's own parameter type — Same-package visibility means the one external caller (handlers/member_claims_handler.go, referencing repository.SubmitClaimInput) is unaffected by which file in the repository package declares the type
 
 ### Pending Todos
 
@@ -482,10 +483,11 @@ untruncated list lives in `.planning/todos/pending/`.
 | Phase 141 P06 | 15min | 2 tasks | 2 files |
 | Phase 141 P07 | 25min | 3 tasks | 3 files |
 | Phase 143 P01 | 7min | 2 tasks | 5 files |
+| Phase 143 P02 | 8min | 2 tasks | 3 files |
 
 ## Session Continuity
 
-Last session: 2026-09-01T20:38:36.337Z
-Stopped at: Completed 143-01-PLAN.md
+Last session: 2026-09-01T20:42:00.783Z
+Stopped at: Completed 143-02-PLAN.md
 Last activity: 2026-09-01 - Milestone v1.4 audit passed (41/41 requirements, 7/7 phases, .planning/v1.4-MILESTONE-AUDIT.md); Phase 143 added to roadmap, not yet planned
 Resume file: None
