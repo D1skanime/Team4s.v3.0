@@ -151,6 +151,9 @@ export default function DashboardPage() {
             state.dashboardData.pending_group_media_reviews
           }
           pendingReleaseReviews={state.dashboardData.pending_release_reviews}
+          pendingOwnNoteRevisions={
+            state.dashboardData.pending_own_note_revisions
+          }
         />
         <DashboardMetrics data={state.dashboardData} />
         <CategoryProgressTable data={state.dashboardData} />
