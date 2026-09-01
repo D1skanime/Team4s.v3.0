@@ -1,16 +1,25 @@
 -- Migration 0159: Phase 143 Kriterium 2 remediation.
--- Supersedes migration 0154's reset pattern with an idempotent, reversible one:
--- migrations are append-only, so 0154 itself stays untouched (it remains applied
--- and its 232-row target catalog is unchanged), but 0154's unconditional table
--- wipe + reinsert with no `ON CONFLICT` clause and an empty no-op `down.sql`
--- cannot be relied on to converge or reverse safely. This migration establishes
--- the exact same approved 232-row role_capabilities catalog (byte-identical
--- tuples, same order as 0154) through a pattern that is provably idempotent
--- (a second `up` application is a true no-op via `ON CONFLICT DO NOTHING`) and
--- reversible without wiping the 12 techadmin rows migration 0153 established.
+-- Migrations are append-only in this project, so 0154 itself stays untouched
+-- (it remains applied and its 232-row target catalog is unchanged) — but
+-- 0154's `up.sql` performed an unconditional table wipe + reinsert with no
+-- `ON CONFLICT` clause and an empty no-op `down.sql`, so re-applying it is not
+-- provably idempotent and it cannot be reversed. This migration is
+-- additive-only (`INSERT ... ON CONFLICT (role_code, action_code) DO NOTHING`,
+-- no `DELETE`) specifically because deleting first would silently discard any
+-- `role_capabilities` row an admin has since configured via the
+-- Capability-Matrix UI (Phase 87, `AdminCapabilityHandler`) that deviates from
+-- this exact 232-row baseline catalog. A future "converge exactly to the
+-- catalog, discard everything else" operation, if ever genuinely needed,
+-- belongs in a documented, backup-first operator script — never inside an
+-- unattended append-only migration. This migration establishes the same
+-- approved 232-row role_capabilities catalog (byte-identical tuples, same
+-- order as 0154) additively: a second `up` application is now a true no-op
+-- (the `INSERT ... ON CONFLICT DO NOTHING` has nothing left to insert), and it
+-- is reversible without wiping the 12 techadmin rows migration 0153
+-- established. `down.sql` deletes exactly the 220 non-techadmin
+-- (role_code, action_code) tuples this file's `up.sql` inserts, making the
+-- pair a genuinely matched, symmetric additive-insert/scoped-delete unit.
 BEGIN;
-
-DELETE FROM role_capabilities;
 
 INSERT INTO role_capabilities (role_code, action_code)
 VALUES

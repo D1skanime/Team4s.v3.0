@@ -61,8 +61,20 @@ func TestPhase143RoleCapabilityDefaultsResetIdempotentAndReversible(t *testing.T
 	firstCount := countRoleCapabilities(t, ctx, freshPool)
 	require.Positive(t, firstCount, "expected role_capabilities to be populated after the full chain applies")
 
+	// 13, not 12: migration 0153 grants techadmin its 12 baseline actions, and
+	// migration 0155 separately grants 'fansub_group_media.update_own' to every
+	// assignable role with a 'fansub_group' context (a broad, role-agnostic
+	// SELECT ... FROM role_definitions grant, not a techadmin-specific one) --
+	// techadmin qualifies, so it picks up that 13th action too. Migration 0159's
+	// up.sql is additive-only (INSERT ... ON CONFLICT DO NOTHING, no DELETE,
+	// per CR-02's fix) and its own 232-tuple catalog does not list
+	// 'fansub_group_media.update_own' for techadmin, so it neither adds nor
+	// removes that row -- it simply survives. (Before the CR-02 fix, 0159's
+	// unconditional DELETE FROM role_capabilities silently destroyed this
+	// legitimately-migrated 13th row on every application, which is exactly
+	// the class of data loss CR-02 flagged.)
 	techadminCountAfterFirstUp := countTechadminCapabilities(t, ctx, freshPool)
-	require.Equal(t, int64(12), techadminCountAfterFirstUp, "expected the 12 techadmin rows from migration 0153 to survive migration 0159's up.sql")
+	require.Equal(t, int64(13), techadminCountAfterFirstUp, "expected the 12 techadmin rows from migration 0153 plus the 1 broad grant from migration 0155 to survive migration 0159's additive-only up.sql")
 
 	// Force a genuine re-execution of 0159's raw .up.sql: remove only its own
 	// tracking row, not any other migration's.
@@ -83,8 +95,12 @@ func TestPhase143RoleCapabilityDefaultsResetIdempotentAndReversible(t *testing.T
 	require.NoError(t, err, "revert migration 0159")
 	require.Equal(t, 1, rolledBack, "expected exactly one migration to be rolled back")
 
+	// Still 13 (see the comment above techadminCountAfterFirstUp): 0159's
+	// down.sql only deletes the 220 non-techadmin tuples its own up.sql
+	// inserted -- it never touches any techadmin row, so the 13th row from
+	// migration 0155 is untouched by the rollback either.
 	techadminCountAfterDown := countTechadminCapabilities(t, ctx, freshPool)
-	require.Equal(t, int64(12), techadminCountAfterDown, "expected the 12 techadmin rows from migration 0153 to survive migration 0159's down.sql")
+	require.Equal(t, int64(13), techadminCountAfterDown, "expected all 13 techadmin rows (12 from migration 0153 plus 1 from migration 0155) to survive migration 0159's down.sql")
 }
 
 func countRoleCapabilities(t *testing.T, ctx context.Context, pool *pgxpool.Pool) int64 {
