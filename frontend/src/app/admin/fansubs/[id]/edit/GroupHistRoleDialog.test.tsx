@@ -61,9 +61,17 @@ describe('GroupHistRoleDialog', () => {
     expect(screen.queryByText('Statischer Altwert')).toBeNull()
   })
 
-  it('shows karaoke_fx only when the catalog declares group_history', () => {
-    renderDialog(loads([{ code: 'karaoke_fx', label_de: 'Karaoke-FX', contexts: ['group_history'], sort_order: 45, assignable: true, color_key: 'other', icon_key: 'other', operative_capability_count: 0, has_operative_capabilities: false }]))
-    expect(screen.getByRole('option', { name: 'Karaoke-FX' })).toBeDefined()
+  it('shows every assignable role that the history catalog declares', () => {
+    renderDialog(loads([
+      { code: 'techadmin', label_de: 'Technik-Admin', contexts: ['group_history'], sort_order: 5, assignable: true, color_key: 'other', icon_key: 'other', operative_capability_count: 0, has_operative_capabilities: false },
+      { code: 'gfxler', label_de: 'GFX', contexts: ['group_history'], sort_order: 6, assignable: true, color_key: 'other', icon_key: 'other', operative_capability_count: 0, has_operative_capabilities: false },
+      { code: 'karaoke_fx', label_de: 'Karaoke-FX', contexts: ['group_history'], sort_order: 45, assignable: true, color_key: 'other', icon_key: 'other', operative_capability_count: 0, has_operative_capabilities: false },
+      { code: 'admin', label_de: 'Administration', contexts: ['group_history'], sort_order: 100, assignable: false, color_key: 'other', icon_key: 'other', operative_capability_count: 0, has_operative_capabilities: false },
+    ]))
+
+    for (const label of ['Technik-Admin', 'GFX', 'Karaoke-FX', 'Administration']) {
+      expect(screen.getByRole('option', { name: label })).toBeDefined()
+    }
   })
 
   it('keeps an unknown persisted code readable and neutral', () => {

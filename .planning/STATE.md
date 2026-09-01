@@ -249,6 +249,8 @@ Last activity: 2026-08-26 -- Completed quick task 260826-l5l: fixed f_unaccent p
 | 260827-de4 | Visible bulk fansub-group assignment verified; refresh-only episode actions now proceed through the central API refresh seam. | 2026-08-27 | 735d35cd | [260827-de4-visible-bulk-fansub-group-assignment](./quick/260827-de4-visible-bulk-fansub-group-assignment/) |
 | 260827-bhp | Additive Bulk-Fansub-Gruppenzuweisung fuer vorhandene Release-Versionen ausgewaehlter Folgen; Folgen ohne Release-Version werden uebersprungen und gemeldet. | 2026-08-27 | d3bd1c2b | [260827-bhp-add-bulk-fansub-group-assignment-for-sel](./quick/260827-bhp-add-bulk-fansub-group-assignment-for-sel/) |
 
+| 260901-historical-role-catalog | Historische Rollen-Auswahl vervollständigt: Technik-Admin, GFX, Karaoke-FX und Administration werden über den zentralen `group_history`-Katalog dokumentiert; reversible Migration und Regressionstests ergänzt. | 2026-09-01 | pending | [260901-historical-role-catalog](./quick/260901-historical-role-catalog/) |
+
 ### Verification Baseline
 
 - Requirements: 65 defined, 65 uniquely mapped, 0 orphaned, 0 duplicated.
