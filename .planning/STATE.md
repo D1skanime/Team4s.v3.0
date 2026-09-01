@@ -2,10 +2,10 @@
 gsd_state_version: 1.0
 milestone: v1.4
 milestone_name: Coverage
-status: ready_to_plan
-stopped_at: "Milestone v1.4 complete (7/7 phases passed) — Phase 143 ready to plan"
-last_updated: 2026-09-01T15:25:29.000Z
-last_activity: 2026-09-01
+status: planning
+stopped_at: Phase 143 UI-SPEC approved
+last_updated: "2026-09-01T16:17:11.356Z"
+last_activity: "2026-09-01 - Completed quick task 260901-la2: Fix phase136 test repo-root helper and correct stale STATE.md frontmatter"
 progress:
   total_phases: 8
   completed_phases: 7
@@ -483,7 +483,7 @@ untruncated list lives in `.planning/todos/pending/`.
 
 ## Session Continuity
 
-Last session: 2026-09-01T15:25:29.000Z
-Stopped at: Milestone v1.4 complete (7/7 phases passed) — Phase 143 ready to plan
+Last session: 2026-09-01T16:17:11.341Z
+Stopped at: Phase 143 UI-SPEC approved
 Last activity: 2026-09-01 - Milestone v1.4 audit passed (41/41 requirements, 7/7 phases, .planning/v1.4-MILESTONE-AUDIT.md); Phase 143 added to roadmap, not yet planned
-Resume file: None
+Resume file: .planning/phases/143-phase-142-nacharbeit-und-dashboard-lane-f-r-abgelehnte-notiz/143-UI-SPEC.md
