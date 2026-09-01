@@ -139,9 +139,12 @@ func (r *AnimeContributionsRepository) listMemberProjectReleaseVersions(
 			EXISTS (
 				SELECT 1
 				FROM release_version_notes rvn
+				LEFT JOIN release_version_note_review_lifecycle lifecycle
+				  ON lifecycle.release_version_note_id = rvn.id
 				WHERE rvn.release_version_id = rv.id
 				  AND rvn.member_id = $1
 				  AND rvn.deleted_at IS NULL
+				  AND (lifecycle.review_state IS NULL OR lifecycle.review_state <> 'rejected')
 			) AS has_own_notes,
 			EXISTS (
 				SELECT 1
