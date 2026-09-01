@@ -58,7 +58,8 @@ func TestMemberContributionWithProposalRow_HasWorkedTotalFields(t *testing.T) {
 // korrelierten worked/total Subqueries auf ac.anime_id/ac.fansub_group_id enthaelt
 // (analog member_profile_repository.go loadRecentContributions, siehe PLAN <interfaces>).
 func TestListByMemberIDWithProposalFields_SelectsWorkedTotalSubqueries(t *testing.T) {
-	source := readProposalRepositorySource(t, "anime_contributions_proposal_repository.go")
+	source := readProposalRepositorySource(t, "anime_contributions_proposal_repository.go") +
+		readProposalRepositorySource(t, "anime_contributions_proposal_member_repository.go")
 
 	required := []string{
 		"total_release_version_count",
@@ -87,7 +88,8 @@ func TestMemberContributionWithProposalRow_HasOwnReleaseWorkField(t *testing.T) 
 }
 
 func TestListByMemberIDWithProposalFields_SelectsOwnReleaseWork(t *testing.T) {
-	source := readProposalRepositorySource(t, "anime_contributions_proposal_repository.go")
+	source := readProposalRepositorySource(t, "anime_contributions_proposal_repository.go") +
+		readProposalRepositorySource(t, "anime_contributions_proposal_member_repository.go")
 	for _, fragment := range []string{
 		"has_own_release_work",
 		"n.release_version_id = ac.release_version_id",

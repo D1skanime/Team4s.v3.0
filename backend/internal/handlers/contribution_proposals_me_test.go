@@ -655,7 +655,7 @@ var _ ReleaseVersionParticipationChecker = (*releaseVersionCheckerStub)(nil)
 // Sicherheitsinvariant: SelfPublish darf status nicht auf 'confirmed' setzen.
 // Dieser Test prüft die Repository-Datei direkt, weil SelfPublish dort das DB-Gate ist.
 func TestSelfPublish_StatusBleibtProposed(t *testing.T) {
-	repoPath := filepath.Join("..", "repository", "anime_contributions_proposal_repository.go")
+	repoPath := filepath.Join("..", "repository", "anime_contributions_proposal_member_repository.go")
 	content, err := os.ReadFile(repoPath)
 	if err != nil {
 		t.Fatalf("repository-Datei lesen: %v", err)

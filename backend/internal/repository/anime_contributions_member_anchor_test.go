@@ -15,10 +15,14 @@ func TestAnimeContributionsMeQueriesUseMemberIDAnchorFallback(t *testing.T) {
 	if err != nil {
 		t.Fatalf("read proposal repository: %v", err)
 	}
+	proposalMemberSrc, err := os.ReadFile("anime_contributions_proposal_member_repository.go")
+	if err != nil {
+		t.Fatalf("read proposal member repository: %v", err)
+	}
 
 	for name, src := range map[string]string{
 		"member":   strings.ToLower(string(memberSrc)),
-		"proposal": strings.ToLower(string(proposalSrc)),
+		"proposal": strings.ToLower(string(proposalSrc)) + strings.ToLower(string(proposalMemberSrc)),
 	} {
 		if !strings.Contains(src, "left join hist_fansub_group_members hfgm on hfgm.id = ac.fansub_group_member_id") {
 			t.Fatalf("%s query must keep member_id-only anime_contributions visible with a LEFT JOIN", name)
