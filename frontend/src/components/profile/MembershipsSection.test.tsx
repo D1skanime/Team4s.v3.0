@@ -66,8 +66,7 @@ describe('MembershipsSection', () => {
     const listRule = profileStyles.match(/\.membershipsList\s*\{[\s\S]*?\n\}/)?.[0] ?? ''
     const cardRule = profileStyles.match(/\.membershipCard\s*\{[\s\S]*?\n\}/)?.[0] ?? ''
 
-    expect(listRule).toContain('grid-template-columns: repeat(3, minmax(0, 360px));')
-    expect(listRule).not.toContain('auto-fit')
+    expect(listRule).toContain('grid-template-columns: repeat(auto-fit, minmax(min(100%, 18rem), 1fr));')
     expect(profileStyles).toMatch(
       /@media \(max-width: 1100px\)[\s\S]*?\.membershipsList\s*\{[\s\S]*?grid-template-columns: repeat\(2, minmax\(0, 360px\)\);/,
     )

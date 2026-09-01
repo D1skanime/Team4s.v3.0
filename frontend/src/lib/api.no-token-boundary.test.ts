@@ -46,8 +46,8 @@ const publicNoAuthFetchAllowlist = new Set([
 const docsAllowlist = new Set([
   '../docs/frontend/auth-api-client.md',
   '../docs/frontend/streaming-auth-handoff.md',
-  '../.planning/phases/49-zentraler-auth-api-client-und-token-lifecycle-h-rtung/49-auth-api-client-boundaries.md',
-  '../.planning/phases/49-zentraler-auth-api-client-und-token-lifecycle-h-rtung/49-auth-api-client-inventory.md',
+  '../.planning/milestones/pre-v1.3-recovery-2026-08-13/phases/49-zentraler-auth-api-client-und-token-lifecycle-h-rtung/49-auth-api-client-boundaries.md',
+  '../.planning/milestones/pre-v1.3-recovery-2026-08-13/phases/49-zentraler-auth-api-client-und-token-lifecycle-h-rtung/49-auth-api-client-inventory.md',
 ])
 
 type SourceMatch = {

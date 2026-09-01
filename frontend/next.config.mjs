@@ -28,7 +28,14 @@ const nextConfig = {
       { pathname: '/__phase120-image-probe/alpha-badge.png', search: '' },
       { pathname: '/member-achievement-badges/**', search: '' },
       { pathname: '/covers/**', search: '' },
-      { pathname: '/media/**', search: '' },
+      // T-143-07-01: narrowed from a blanket /media/** wildcard to the explicit set of
+      // legitimate namespaces the app actually serves (confirmed via a repo-wide grep of
+      // backend PublicURL construction, 143-07-PLAN.md Task 2) -- /media/admin/** (or any
+      // other future namespace) is deliberately excluded so it can never be optimized/served
+      // through the public image endpoint.
+      { pathname: '/media/anime/**', search: '' },
+      { pathname: '/media/profile/**', search: '' },
+      { pathname: '/media/release-version/**', search: '' },
     ],
     remotePatterns: [
       new URL('http://127.0.0.1:3101/api/v1/media/phase120-project-cover.png'),
