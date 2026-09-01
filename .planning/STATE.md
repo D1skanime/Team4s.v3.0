@@ -2,16 +2,16 @@
 gsd_state_version: 1.0
 milestone: v1.4
 milestone_name: Coverage
-status: executing
-stopped_at: Completed 143-13-PLAN.md
-last_updated: "2026-09-01T22:55:28.265Z"
+status: verifying
+stopped_at: Completed 143-14-PLAN.md
+last_updated: "2026-09-01T23:00:16.993Z"
 last_activity: 2026-09-01
 progress:
   total_phases: 8
-  completed_phases: 7
+  completed_phases: 8
   total_plans: 98
-  completed_plans: 97
-  percent: 88
+  completed_plans: 98
+  percent: 100
 ---
 
 # Project State
@@ -35,7 +35,7 @@ See: .planning/PROJECT.md (updated 2026-08-13)
 
 Phase: 143 (phase-142-nacharbeit-und-dashboard-lane-f-r-abgelehnte-notiz) — EXECUTING
 Plan: 14 of 14
-Status: Ready to execute
+Status: Phase complete — ready for verification
 Last activity: 2026-09-01
 
 ## Accumulated Context
@@ -225,6 +225,7 @@ Last activity: 2026-09-01
 - [Phase 143]: 143-11 fixed has_own_notes to exclude rejected release_version_notes via a LEFT JOIN to release_version_note_review_lifecycle (review_state IS NULL OR <> 'rejected'); no tombstoned special-casing needed since deleted_at IS NULL already excludes tombstoned notes. testsupport.OpenPhase139Postgres's full migration chain was found unusable for this test (migration 0152 hardcodes public.unaccent, unresolvable inside the harness's isolated non-public per-test schema) -- used testsupport.OpenPhase107Postgres + hand-assembled schema instead, matching release_review_query_repository_test.go's precedent.
 - [Phase 143]: 143-12's Task 3 checkpoint (2026-09-01, Option A user decision): no-restricted-syntax's base severity is 'error' with a new LEGACY_NO_RESTRICTED_SYNTAX_FILES frozen, explicit, shrink-only exemption list in frontend/eslint.config.mjs (264 violations, 67 files measured 2026-09-01, not the ~17 the plan's stale premise assumed) -- migration of remaining files tracked at .planning/todos/pending/2026-09-01-no-restricted-syntax-legacy-datei-migration.md. ESLint's --rule CLI flag cannot validate scoped overrides (bypasses files-scoped config); use plain 'npx eslint .' for verification going forward.
 - [Phase 143]: 143-13 closed Criterion-7's backend half -- ReleaseReviewQueryRepository.PendingOwnNoteRevisionAttention is the inverse of the review-queue self-exclusion predicate (explicitly returns the actor's own rejected release-version notes); OwnDashboardData.PendingOwnNoteRevisions groups the flat rows by anime+fansub-group via a single linear pass relying on the query's own ORDER BY; dashboard_me_handler.go stays at zero raw h.db.Query calls.
+- [Phase 143]: Phase 143 Plan 14 executed: rejected own release notes now render as a fifth Attention-lane in AttentionSection.tsx, grouped per anime-project + fansub-group, closing Criterion-7 end to end (backend half shipped in 143-13).
 
 ### Pending Todos
 
@@ -508,10 +509,11 @@ untruncated list lives in `.planning/todos/pending/`.
 | Phase 143 P11 | 30min | 2 tasks | 3 files |
 | Phase 143 P12 | 19min | 3 tasks | 8 files |
 | Phase 143 P13 | 50min | 3 tasks | 6 files |
+| Phase 143 P14 | 35min | 3 tasks | 8 files |
 
 ## Session Continuity
 
-Last session: 2026-09-01T22:55:28.250Z
-Stopped at: Completed 143-13-PLAN.md
+Last session: 2026-09-01T23:00:16.979Z
+Stopped at: Completed 143-14-PLAN.md
 Last activity: 2026-09-01 - Milestone v1.4 audit passed (41/41 requirements, 7/7 phases, .planning/v1.4-MILESTONE-AUDIT.md); Phase 143 added to roadmap, not yet planned
 Resume file: None

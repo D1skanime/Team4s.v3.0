@@ -415,7 +415,7 @@ Milestone v1.4 closes Live-UAT Findings #29-#32 by making effective group rights
 - [x] **Phase 140: Review Delegation Management** - Expose the existing specialized delegation service through documented APIs and the canonical group-member editor. (completed 2026-08-26)
 - [x] **Phase 141: Actor-Decidable Review Queue** - Make every queue lane, count, detail, and next action reflect what the current reviewer may actually decide. (completed 2026-08-26)
 - [x] **Phase 142: Integrated Security, Fixtures & Live Release Gate** - Prove the complete milestone across contracts, auth refresh, fixtures, security, responsive UI, and canonical ownership. (completed 2026-09-01)
-- [ ] **Phase 143: Phase-142-Nacharbeit und Dashboard-Lane für abgelehnte Notizen** - Die in der externen Codeprüfung vom 2026-09-01 belegten Defekte schließen und abgelehnte eigene Release-Notizen im persönlichen Dashboard sichtbar machen.
+- [x] **Phase 143: Phase-142-Nacharbeit und Dashboard-Lane für abgelehnte Notizen** - Die in der externen Codeprüfung vom 2026-09-01 belegten Defekte schließen und abgelehnte eigene Release-Notizen im persönlichen Dashboard sichtbar machen. (completed 2026-09-01)
 
 ## Phase Details
 
@@ -731,7 +731,7 @@ Plans:
 
 **Randbedingungen:** Keine parallelen Systeme, keine neuen Auth- oder Fixture-Wege, atomare Commits pro Task, Produktionsdateien bleiben bei maximal 450 Zeilen. Reihenfolge der Kriterien 1-7 ist verbindlich (Kriterium 7 baut auf der Repository-Aggregation aus Kriterium 3 auf). Vier Dateien haben die 450-Zeilen-Grenze im Phase-142-Zeitraum überschritten und werden in dieser Phase darunter zurückgeführt: `backend/internal/repository/member_claims_repository.go` (516), `frontend/src/app/me/releases/[versionId]/workspace/page.tsx` (469), `backend/internal/repository/anime_contributions_proposal_repository.go` (461), `backend/internal/repository/member_profile_projects_repository.go` (458). Kriterium 7 darf `workspace/page.tsx` nicht weiter wachsen lassen. Zusätzlich wird `backend/internal/handlers/app_auth.go` (1308 Zeilen, im Zeitraum von 1254 gewachsen) in vier Dateien desselben Pakets aufgeteilt — reine Dateiverschiebung ohne Signatur-, Routen- oder Verhaltensänderung, `app_auth_test.go` bleibt unverändert lauffähig: `app_auth.go` behält Handler-Struct, Konstruktor, Store-Interfaces, `GetCurrentUser`, `ListAppUsers` und `HandleKeycloakBackchannelLogout` (~220 Zeilen); `app_auth_invitations.go` bekommt die Invitation-Request-Typen sowie `ListFansubGroupInvitations`, `CreateFansubGroupInvitation`, `CancelFansubGroupInvitation` und `AcceptFansubInvitation` (~455); `app_auth_group_members.go` die Member-Request-Typen sowie `ListFansubGroupAppMembers`, `SearchFansubGroupAppMemberCandidates`, `CreateFansubGroupAppMember`, `SetFansubGroupMemberRole`, `SetFansubLead`, `setFansubGroupMemberRole`, `UpdateFansubGroupMemberStatus`, `SetFansubGroupMemberMediaPermissions` und `normalizeRequestedFansubRoles` (~400); `app_auth_capabilities.go` den Response-Typ und `GetFansubGroupCapabilities` (~230). Die beiden überlangen Funktionen `GetFansubGroupCapabilities` (229 Zeilen) und `CreateFansubGroupInvitation` (185) werden dabei nicht zerlegt — das ist eine eigene Entscheidung ausserhalb dieser Phase.
 
-**Plans:** 13/14 plans executed
+**Plans:** 14/14 plans complete
 
 Plans:
 **Wave 1**
@@ -770,7 +770,7 @@ Plans:
 
 **Wave 8** *(blocked on Wave 7 completion)*
 
-- [ ] 143-14-PLAN.md — Criterion 7: frontend AttentionSection lane + dashboard wiring
+- [x] 143-14-PLAN.md — Criterion 7: frontend AttentionSection lane + dashboard wiring
 
 ## v1.4 Coverage
 
