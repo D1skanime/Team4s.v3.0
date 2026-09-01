@@ -8,7 +8,6 @@ import { ArrowLeft } from 'lucide-react'
 import { AdjacentNavigation, Badge, Button, Card, ErrorState, LoadingState, PageHeader, Tabs } from '@/components/ui'
 import type { TabItem } from '@/components/ui'
 import {
-  ApiError,
   getAnimeFansubProjectTimeline,
   getEpisodeVersionEditorContext,
   getMyProjectDetail,
@@ -17,7 +16,6 @@ import {
   updateEpisodeVersion,
 } from '@/lib/api'
 import { useAuthSession } from '@/lib/useAuthSession'
-import type { MeProjectReleaseVersion } from '@/types/contributions'
 import type { EpisodeVersionEditorContext } from '@/types/episodeVersion'
 import type { AnimeFansubProjectTimeline } from '@/types/fansubNotes'
 import type { ReleaseVersionCapabilities } from '@/types/releaseVersionMedia'
@@ -33,63 +31,21 @@ import {
   parseDurationInput,
   type FormState,
 } from '@/app/admin/episode-versions/[versionId]/edit/episodeVersionEditorUtils'
+import {
+  AdjacentReleases,
+  NavigationState,
+  WorkspaceTab,
+  buildWorkspaceHref,
+  formatAdjacentReleaseLabel,
+  formatEpisodeLabel,
+  formatEpisodeNumber,
+  getProjectReturnPath,
+  parsePositiveInt,
+  parseWorkspaceTab,
+  readErrorMessage,
+} from './workspaceHelpers'
 
 import styles from './workspace.module.css'
-
-function parsePositiveInt(value: string | string[] | undefined): number | null {
-  const raw = Array.isArray(value) ? value[0] : value
-  if (!raw) return null
-  const parsed = Number.parseInt(raw, 10)
-  return Number.isFinite(parsed) && parsed > 0 ? parsed : null
-}
-
-function readErrorMessage(error: unknown, fallback: string): string {
-  if (error instanceof ApiError) return error.message
-  if (error instanceof Error) return error.message
-  return fallback
-}
-
-function formatEpisodeNumber(value?: number | null): string {
-  if (value == null) return 'Episode'
-  return `Episode ${String(value).padStart(2, '0')}`
-}
-
-function formatEpisodeLabel(value?: number | null, title?: string | null): string {
-  return title?.trim() || formatEpisodeNumber(value)
-}
-
-function getProjectReturnPath(raw: string | null, animeId: number, fansubGroupId?: number | null): string | null {
-  if (!raw || !fansubGroupId) return null
-  const expected = `/me/projects/${animeId}/group/${fansubGroupId}`
-  return raw === expected ? raw : null
-}
-
-function formatAdjacentReleaseLabel(release: MeProjectReleaseVersion): string {
-  return release.episode_title?.trim() || release.title?.trim() || `Episode ${release.episode_number}`
-}
-
-function parseWorkspaceTab(value: string | null): WorkspaceTab | null {
-  return value === 'metadata' || value === 'media' || value === 'segments' || value === 'notes'
-    ? value
-    : null
-}
-
-function buildWorkspaceHref(releaseVersionId: number, projectReturnHref: string | null): string {
-  const path = `/me/releases/${releaseVersionId}/workspace`
-  if (!projectReturnHref) return path
-  const query = new URLSearchParams({ return_to: projectReturnHref })
-  return `${path}?${query.toString()}`
-}
-
-type WorkspaceTab = 'metadata' | 'media' | 'segments' | 'notes'
-
-type AdjacentReleases = { previous: MeProjectReleaseVersion | null; next: MeProjectReleaseVersion | null }
-
-type NavigationState = {
-  key: string
-  status: 'ready' | 'error'
-  adjacent: AdjacentReleases | null
-}
 
 function MeReleaseWorkspacePage() {
   const params = useParams<{ versionId: string }>()
