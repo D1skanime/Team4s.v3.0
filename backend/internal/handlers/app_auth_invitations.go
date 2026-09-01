@@ -3,6 +3,7 @@ package handlers
 import (
 	"context"
 	"fmt"
+	"html"
 	"net/http"
 	"net/url"
 	"strings"
@@ -178,12 +179,12 @@ func (h *AppAuthHandler) CreateFansubGroupInvitation(c *gin.Context) {
 				`<p><a href="%s">Einladung annehmen</a></p>`+
 				`<p>Der Link ist 7 Tage gültig (bis %s).</p>`+
 				`<p>Du kennst "%s" nicht oder hast das nicht erwartet? Dann ignoriere diese Mail einfach.</p>`,
-			inviterName, groupName, roleSuffixHTML,
-			groupName,
-			created.Invitation.Email,
-			mailURL,
+			html.EscapeString(inviterName), html.EscapeString(groupName), roleSuffixHTML,
+			html.EscapeString(groupName),
+			created.Invitation.Email, // bereits validiert via net/mail.ParseAddress
+			mailURL,                  // builder-kontrolliert, kein Freitext
 			expiresLabel,
-			groupName,
+			html.EscapeString(groupName),
 		)
 
 		mailErr := h.mailer.Send(mailCtx, services.MailMessage{
