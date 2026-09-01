@@ -273,7 +273,7 @@ describe("v12 projection contract parity", () => {
 
     const block = getOpenApiBlock("    PublicMemberBadge:\n", /\n    [A-Za-z][A-Za-z0-9]+:\n/);
     expect(block).toContain("enum: [entry, bronze, silver, gold, platinum]");
-    expect(block).toContain("enum: [bronze, silver, gold]");
+    expect(block).toContain("enum: [bronze, silver, gold, platinum]");
   });
 
   it("documents the pinned paths as direct no-envelope responses", () => {
