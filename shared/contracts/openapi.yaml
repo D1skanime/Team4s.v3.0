@@ -11277,6 +11277,44 @@ components:
         text_count:
           type: integer
           format: int64
+    OwnDashboardPendingOwnNoteRevisionItem:
+      type: object
+      required:
+        - release_version_id
+        - episode_number
+        - note_title
+      properties:
+        release_version_id:
+          type: integer
+          format: int64
+        episode_number:
+          type: string
+          nullable: true
+        note_title:
+          type: string
+    OwnDashboardPendingOwnNoteRevisionGroup:
+      type: object
+      required:
+        - anime_id
+        - anime_title
+        - fansub_group_id
+        - fansub_group_name
+        - items
+      properties:
+        anime_id:
+          type: integer
+          format: int64
+        anime_title:
+          type: string
+        fansub_group_id:
+          type: integer
+          format: int64
+        fansub_group_name:
+          type: string
+        items:
+          type: array
+          items:
+            $ref: "#/components/schemas/OwnDashboardPendingOwnNoteRevisionItem"
     OwnDashboardData:
       type: object
       required:
@@ -11291,6 +11329,7 @@ components:
         - pending_claims
         - pending_group_media_reviews
         - pending_release_reviews
+        - pending_own_note_revisions
       properties:
         has_member_profile:
           type: boolean
@@ -11329,6 +11368,10 @@ components:
           type: array
           items:
             $ref: "#/components/schemas/OwnDashboardPendingReleaseReview"
+        pending_own_note_revisions:
+          type: array
+          items:
+            $ref: "#/components/schemas/OwnDashboardPendingOwnNoteRevisionGroup"
     OwnDashboardResponse:
       type: object
       required:
