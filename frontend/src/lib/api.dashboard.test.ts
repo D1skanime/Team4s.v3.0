@@ -33,6 +33,7 @@ const dashboardData: OwnDashboardResponse = {
     pending_claims: [],
     pending_group_media_reviews: [],
     pending_release_reviews: [],
+    pending_own_note_revisions: [],
   },
 };
 

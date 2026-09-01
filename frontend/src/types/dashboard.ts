@@ -51,6 +51,22 @@ export interface OwnDashboardPendingReleaseReview {
   text_count: number;
 }
 
+/** Einzelne abgelehnte eigene Notiz innerhalb einer Anime+Gruppe-Gruppierung (Phase 143, Criterion 7). */
+export interface OwnDashboardPendingOwnNoteRevisionItem {
+  release_version_id: number;
+  episode_number: string | null;
+  note_title: string;
+}
+
+/** Gruppierung abgelehnter eigener Notizen je Anime-Projekt + Fansub-Gruppe (Phase 143, Criterion 7). */
+export interface OwnDashboardPendingOwnNoteRevisionGroup {
+  anime_id: number;
+  anime_title: string;
+  fansub_group_id: number;
+  fansub_group_name: string;
+  items: OwnDashboardPendingOwnNoteRevisionItem[];
+}
+
 export interface OwnDashboardData {
   has_member_profile: boolean;
   total_points: number;
@@ -63,6 +79,7 @@ export interface OwnDashboardData {
   pending_claims: OwnDashboardPendingClaim[];
   pending_group_media_reviews: OwnDashboardPendingGroupMediaReview[];
   pending_release_reviews: OwnDashboardPendingReleaseReview[];
+  pending_own_note_revisions: OwnDashboardPendingOwnNoteRevisionGroup[];
 }
 
 /** Response-Envelope für GET /api/v1/me/dashboard. */
