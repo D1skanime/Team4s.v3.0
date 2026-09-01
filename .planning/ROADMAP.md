@@ -390,8 +390,6 @@ Plans:
 - [x] 135-09-PLAN.md — Keycloak-Registrierung auf Fansubname umbauen; First/Last optional; KC autoritativ + JIT-Sync (D-14).
 - [x] 135-10-PLAN.md — Case-preserved Fansubname (Anzeige, KC) + Historisch-Selbst-Claim Approval-Render (D-15, D-16, Finding #25).
 
----
-
 # Milestone v1.4: Capability-, Review- und Benutzerverwaltung
 
 ## Overview
@@ -417,6 +415,7 @@ Milestone v1.4 closes Live-UAT Findings #29-#32 by making effective group rights
 - [x] **Phase 140: Review Delegation Management** - Expose the existing specialized delegation service through documented APIs and the canonical group-member editor. (completed 2026-08-26)
 - [x] **Phase 141: Actor-Decidable Review Queue** - Make every queue lane, count, detail, and next action reflect what the current reviewer may actually decide. (completed 2026-08-26)
 - [x] **Phase 142: Integrated Security, Fixtures & Live Release Gate** - Prove the complete milestone across contracts, auth refresh, fixtures, security, responsive UI, and canonical ownership. (completed 2026-09-01)
+- [ ] **Phase 143: Phase-142-Nacharbeit und Dashboard-Lane für abgelehnte Notizen** - Die in der externen Codeprüfung vom 2026-09-01 belegten Defekte schließen und abgelehnte eigene Release-Notizen im persönlichen Dashboard sichtbar machen.
 
 ## Phase Details
 
@@ -677,6 +676,28 @@ Plans:
 
 **Plans**: 1/1 complete
 **UI hint**: yes
+
+### Phase 143: Phase-142-Nacharbeit und Dashboard-Lane für abgelehnte Notizen
+
+**Goal:** Die in der externen Codeprüfung vom 2026-09-01 belegten Defekte der Phase-142-Nacharbeit sind geschlossen, und abgelehnte eigene Release-Notizen sind gruppiert im persönlichen Dashboard sichtbar.
+**Requirements**: TBD (Remediation-Phase, keine v1.4-Requirement-IDs)
+**Depends on:** Phase 142
+**Success Criteria** (what must be TRUE):
+
+  1. Alle 17 roten Frontend-Testdateien aus `npx vitest run` (59 Tests, 11 Errors) sind grün oder als benannte Schuld dokumentiert — inklusive Fix der Contract-Drift PublicMemberBadge.next_tier (openapi.yaml `[bronze, silver, gold, platinum]` vs. v12-projection-contract.test.ts `[bronze, silver, gold]`) und des fehlenden RoleCatalogProvider im Fansub-Editor-Testbaum.
+  2. Migration 0154 ist durch eine neue idempotente Migration mit funktionierendem down ersetzt (statt `DELETE FROM role_capabilities`), die Migration 0153 auflöst statt deren techadmin-Rechte sofort wieder zu löschen.
+  3. Die drei Roh-SQL-Methoden aus `dashboard_me_handler.go` sind in den Repository-Layer gezogen (bevorzugt als Methoden auf `ReleaseReviewQueryRepository`, sodass die Selbstausschluss-Regel aus Phase 141 nur einmal existiert), die Permission-Prüfung für Gruppenmedien-Review ist von `fansub_group.edit` auf eine Review-Action korrigiert, und N+1-Permission-Calls sind memoisiert.
+  4. Fokus-Tests decken `ReleaseMetadataCreditService.AwardIfCompleted` (inkl. mehrdeutiger ID-Auflösung `WHERE rv.id = $1 OR rev.id = $1`) und die Datumsvalidierung in `FansubNotesRepository.UpdateAnimeFansubProjectTimeline` ab.
+  5. `has_own_notes` in `anime_contributions_member_project_repository.go` filtert nach Review-State, sodass eine abgelehnte Notiz nicht mehr als erledigt zählt; `isDone()` im Frontend zeigt den korrigierten Zustand.
+  6. `ReleaseVersionMetadataFields.tsx`, `AnimeProjectTimelineSection.tsx` und `workspace.module.css` nutzen Design-System-Primitives/CSS-Module/Design-Tokens statt nativer Elemente/Inline-Styles/roher Hex-Werte; ESLint `no-restricted-syntax` steht auf `error`.
+  7. Abgelehnte eigene Release-Notizen erscheinen unter „Braucht deine Aufmerksamkeit" im persönlichen Dashboard, gruppiert pro Anime-Projekt und Fansubgruppe (statt als Einzelkarten) mit erkennbarer Folge, Notiztitel und Direktlink auf `/me/releases/{versionId}/workspace?tab=notes` — nur `review_state = rejected` gilt als überarbeitbar, nie `tombstoned`; diese Welle nutzt die Repository-Aggregation aus Kriterium 3 ohne eigene Handler-Query, mit synchronisiertem Backend-DTO, Frontend-Type und `shared/contracts/openapi.yaml`.
+
+**Randbedingungen:** Keine parallelen Systeme, keine neuen Auth- oder Fixture-Wege, atomare Commits pro Task, Produktionsdateien bleiben bei maximal 450 Zeilen. Reihenfolge der Kriterien 1-7 ist verbindlich (Kriterium 7 baut auf der Repository-Aggregation aus Kriterium 3 auf).
+
+**Plans:** 0 plans
+
+Plans:
+- [ ] TBD (run /gsd-plan-phase 143 to break down)
 
 ## v1.4 Coverage
 
