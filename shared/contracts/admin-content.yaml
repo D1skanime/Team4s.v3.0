@@ -781,7 +781,6 @@ endpoints:
 
   - name: admin-fansub-anime-contributions-create
     method: POST
-
     path: /api/v1/admin/fansubs/{id}/anime/{animeId}/contributions
     auth:
       required: true
