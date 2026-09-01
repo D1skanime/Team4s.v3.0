@@ -36,7 +36,7 @@ func (h *AppAuthHandler) ListFansubGroupAppMembers(c *gin.Context) {
 
 	result, err := h.permissionSvc.CanForFansubGroup(c.Request.Context(), actor, permissions.ActionFansubGroupMembersView, fansubID)
 	if err != nil {
-		writePermissionInternalError(c, err, "Mitgliederberechtigung konnte nicht geprÃ¼ft werden.")
+		writePermissionInternalError(c, err, "Mitgliederberechtigung konnte nicht geprüft werden.")
 		return
 	}
 	if !result.Allowed {
@@ -66,7 +66,7 @@ func (h *AppAuthHandler) SearchFansubGroupAppMemberCandidates(c *gin.Context) {
 
 	fansubID, err := parseFansubID(c.Param("id"))
 	if err != nil {
-		c.JSON(http.StatusBadRequest, gin.H{"error": gin.H{"message": "ungÃ¼ltige fansub-id"}})
+		c.JSON(http.StatusBadRequest, gin.H{"error": gin.H{"message": "ungültige fansub-id"}})
 		return
 	}
 

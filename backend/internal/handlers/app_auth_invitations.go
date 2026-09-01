@@ -44,7 +44,7 @@ func (h *AppAuthHandler) ListFansubGroupInvitations(c *gin.Context) {
 
 	result, err := h.permissionSvc.CanForFansubGroup(c.Request.Context(), actor, permissions.ActionFansubGroupInvitationsView, fansubID)
 	if err != nil {
-		writePermissionInternalError(c, err, "Einladungsberechtigung konnte nicht geprÃ¼ft werden.")
+		writePermissionInternalError(c, err, "Einladungsberechtigung konnte nicht geprüft werden.")
 		return
 	}
 	if !result.Allowed {
@@ -80,7 +80,7 @@ func (h *AppAuthHandler) CreateFansubGroupInvitation(c *gin.Context) {
 
 	result, err := h.permissionSvc.CanForFansubGroup(c.Request.Context(), actor, permissions.ActionFansubGroupInvitationsCreate, fansubID)
 	if err != nil {
-		writePermissionInternalError(c, err, "Einladungsberechtigung konnte nicht geprÃ¼ft werden.")
+		writePermissionInternalError(c, err, "Einladungsberechtigung konnte nicht geprüft werden.")
 		return
 	}
 	if !result.Allowed {
@@ -213,7 +213,7 @@ func (h *AppAuthHandler) CreateFansubGroupInvitation(c *gin.Context) {
 				},
 			})
 			c.JSON(http.StatusBadGateway, gin.H{"error": gin.H{
-				"message":     "Einladung konnte nicht gesendet werden. Bitte prÃ¼fe die SMTP-Konfiguration.",
+				"message":     "Einladung konnte nicht gesendet werden. Bitte prüfe die SMTP-Konfiguration.",
 				"reason_code": "mail_delivery_failed",
 			}})
 			return
@@ -271,7 +271,7 @@ func (h *AppAuthHandler) CancelFansubGroupInvitation(c *gin.Context) {
 
 	result, err := h.permissionSvc.CanForFansubGroup(c.Request.Context(), actor, permissions.ActionFansubGroupInvitationsCancel, fansubID)
 	if err != nil {
-		writePermissionInternalError(c, err, "Einladungsberechtigung konnte nicht geprÃ¼ft werden.")
+		writePermissionInternalError(c, err, "Einladungsberechtigung konnte nicht geprüft werden.")
 		return
 	}
 	if !result.Allowed {

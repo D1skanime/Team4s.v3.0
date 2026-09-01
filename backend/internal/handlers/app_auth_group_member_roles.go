@@ -53,7 +53,7 @@ func (h *AppAuthHandler) setFansubGroupMemberRole(c *gin.Context, forcedRole str
 
 	result, err := h.permissionSvc.CanForFansubGroup(c.Request.Context(), actor, permissions.ActionFansubGroupMembersManage, fansubID)
 	if err != nil {
-		writePermissionInternalError(c, err, "Mitgliederberechtigung konnte nicht geprÃ¼ft werden.")
+		writePermissionInternalError(c, err, "Mitgliederberechtigung konnte nicht geprüft werden.")
 		return
 	}
 	if !result.Allowed {
@@ -147,13 +147,13 @@ func (h *AppAuthHandler) UpdateFansubGroupMemberStatus(c *gin.Context) {
 
 	fansubID, err := parseFansubID(c.Param("id"))
 	if err != nil {
-		c.JSON(http.StatusBadRequest, gin.H{"error": gin.H{"message": "ungÃ¼ltige fansub-id"}})
+		c.JSON(http.StatusBadRequest, gin.H{"error": gin.H{"message": "ungültige fansub-id"}})
 		return
 	}
 
 	result, err := h.permissionSvc.CanForFansubGroup(c.Request.Context(), actor, permissions.ActionFansubGroupMembersManage, fansubID)
 	if err != nil {
-		writePermissionInternalError(c, err, "Mitgliederberechtigung konnte nicht geprÃ¼ft werden.")
+		writePermissionInternalError(c, err, "Mitgliederberechtigung konnte nicht geprüft werden.")
 		return
 	}
 	if !result.Allowed {
@@ -164,13 +164,13 @@ func (h *AppAuthHandler) UpdateFansubGroupMemberStatus(c *gin.Context) {
 
 	appUserID, err := parseFansubID(c.Param("appUserId"))
 	if err != nil {
-		c.JSON(http.StatusBadRequest, gin.H{"error": gin.H{"message": "ungÃ¼ltige app-user-id"}})
+		c.JSON(http.StatusBadRequest, gin.H{"error": gin.H{"message": "ungültige app-user-id"}})
 		return
 	}
 
 	var req setFansubGroupMemberStatusRequest
 	if err := c.ShouldBindJSON(&req); err != nil {
-		c.JSON(http.StatusBadRequest, gin.H{"error": gin.H{"message": "ungÃ¼ltige anfrage"}})
+		c.JSON(http.StatusBadRequest, gin.H{"error": gin.H{"message": "ungültige anfrage"}})
 		return
 	}
 	status := strings.TrimSpace(req.Status)
@@ -240,13 +240,13 @@ func (h *AppAuthHandler) SetFansubGroupMemberMediaPermissions(c *gin.Context) {
 
 	fansubID, err := parseFansubID(c.Param("id"))
 	if err != nil {
-		c.JSON(http.StatusBadRequest, gin.H{"error": gin.H{"message": "ungÃ¼ltige fansub-id"}})
+		c.JSON(http.StatusBadRequest, gin.H{"error": gin.H{"message": "ungültige fansub-id"}})
 		return
 	}
 
 	result, err := h.permissionSvc.CanForFansubGroup(c.Request.Context(), actor, permissions.ActionFansubGroupMembersManage, fansubID)
 	if err != nil {
-		writePermissionInternalError(c, err, "Mitgliederberechtigung konnte nicht geprÃ¼ft werden.")
+		writePermissionInternalError(c, err, "Mitgliederberechtigung konnte nicht geprüft werden.")
 		return
 	}
 	if !result.Allowed {
@@ -257,13 +257,13 @@ func (h *AppAuthHandler) SetFansubGroupMemberMediaPermissions(c *gin.Context) {
 
 	appUserID, err := parseFansubID(c.Param("appUserId"))
 	if err != nil {
-		c.JSON(http.StatusBadRequest, gin.H{"error": gin.H{"message": "ungÃ¼ltige app-user-id"}})
+		c.JSON(http.StatusBadRequest, gin.H{"error": gin.H{"message": "ungültige app-user-id"}})
 		return
 	}
 
 	var req setFansubGroupMemberMediaPermissionsRequest
 	if err := c.ShouldBindJSON(&req); err != nil {
-		c.JSON(http.StatusBadRequest, gin.H{"error": gin.H{"message": "ungÃ¼ltige anfrage"}})
+		c.JSON(http.StatusBadRequest, gin.H{"error": gin.H{"message": "ungültige anfrage"}})
 		return
 	}
 
