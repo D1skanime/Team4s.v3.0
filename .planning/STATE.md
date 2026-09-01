@@ -36,7 +36,7 @@ See: .planning/PROJECT.md (updated 2026-08-13)
 Phase: 142
 Plan: Not started
 Status: Ready to plan
-Last activity: 2026-08-26 -- Completed quick task 260826-l5l: fixed f_unaccent pg_restore defect via migration 0152 (Befund 1), verified with a real pg_dump/pg_restore round-trip (0 errors, previously 89)
+Last activity: 2026-09-01 - Completed quick task 260901-jk5: Hygiene-Nacharbeit zu Phase 142 (gofmt, zwei set-state-in-effect-Fixes, Contract-Permission-Korrektur, Contract-Leerzeile entfernt, v1.4-MILESTONE-AUDIT.md korrigiert)
 
 ## Accumulated Context
 
@@ -251,6 +251,7 @@ Last activity: 2026-08-26 -- Completed quick task 260826-l5l: fixed f_unaccent p
 | 260827-bhp | Additive Bulk-Fansub-Gruppenzuweisung fuer vorhandene Release-Versionen ausgewaehlter Folgen; Folgen ohne Release-Version werden uebersprungen und gemeldet. | 2026-08-27 | d3bd1c2b | [260827-bhp-add-bulk-fansub-group-assignment-for-sel](./quick/260827-bhp-add-bulk-fansub-group-assignment-for-sel/) |
 
 | 260901-historical-role-catalog | Historische Rollen-Auswahl vervollständigt: Technik-Admin, GFX, Karaoke-FX und Administration werden über den zentralen `group_history`-Katalog dokumentiert; reversible Migration und Regressionstests ergänzt. | 2026-09-01 | pending | [260901-historical-role-catalog](./quick/260901-historical-role-catalog/) |
+| 260901-jk5 | Hygiene-Nacharbeit zu Phase 142 (mechanisch, keine Verhaltensaenderung): gofmt fuer 15 im Bereich 4891109a..HEAD verdriftete Go-Dateien, zwei React-Compiler set-state-in-effect-Fehler per queueMicrotask entschaerft (FansubEditClient.tsx, EpisodeVersionEditorPage.tsx), Contract-Permission-Korrektur (admin-fansub-anime-project-timeline-update: anime_fansub_project.timeline.update statt fansub_group.notes.write), Leerzeile in admin-fansub-anime-contributions-create entfernt, v1.4-MILESTONE-AUDIT.md korrigiert (11 statt 13 Lint-Fehler, 2 davon aus Commit 0481b671 Phase-142-implicated, vitest-Suite nie am Gate ausgefuehrt - 16 failed Testdateien/58 failed Tests, als Phase-143-Schuld dokumentiert) | 2026-09-01 | 77d767ab | [260901-jk5-hygiene-nacharbeit-zu-phase-142-gofmt-fo](./quick/260901-jk5-hygiene-nacharbeit-zu-phase-142-gofmt-fo/) |
 
 ### Verification Baseline
 
