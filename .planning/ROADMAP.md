@@ -435,70 +435,88 @@ Milestone v1.4 closes Live-UAT Findings #29-#32 by making effective group rights
 
 Plans:
 **Wave 1**
+
 - [x] 136-01-PLAN.md — Reversible capability-policy catalog, scoped override/audit schema, confirmed role defaults and indexes
 
 **Wave 2** *(blocked on Wave 1 completion)*
+
 - [x] 136-09-PLAN.md — Exact narrow media/page/history handler enforcement for confirmed role defaults
 - [x] 136-10-PLAN.md — Public presentation-only role catalog repository, handler and exact unauthenticated router contract
 
 **Wave 3** *(blocked on Wave 2 completion)*
+
 - [x] 136-02-PLAN.md — Protected admin/member catalog projections and fail-closed permission cache
 
 **Wave 4** *(blocked on Wave 3 completion)*
+
 - [x] 136-03-PLAN.md — Synchronized contracts and pure catalog-backed frontend role adapter
 
 **Wave 5** *(blocked on Wave 4 completion)*
+
 - [x] 136-11-PLAN.md — Root-loaded role catalog provider and app-layout integration proof
 
 **Wave 6** *(blocked on Wave 5 completion)*
+
 - [x] 136-04-PLAN.md — Catalog-driven group-member selectors and shared label/color compatibility
 - [x] 136-05-PLAN.md — Pure catalog-driven contribution-role transforms
 - [x] 136-06-PLAN.md — Catalog-context historical roles and archive/search filters
 - [x] 136-07-PLAN.md — Catalog-driven member profile and project/release presentation
 
 **Wave 7** *(blocked on Wave 6 completion)*
+
 - [x] 136-12-PLAN.md — Catalog-driven contribution and release-credit cards
 - [x] 136-13-PLAN.md — Catalog-driven admin contribution selector and user projection
 
 **Wave 8** *(blocked on Wave 7 completion)*
+
 - [x] 136-08-PLAN.md — Generic role badges/points and whole-inventory hardcode gate
 
 **Gap closure — Wave 9**
+
 - [x] 136-14-PLAN.md — Event-type-aware founder history and lifecycle-safe co-leader patch authorization
 - [x] 136-15-PLAN.md — Successful-transition-only link audit ordering
 - [x] 136-16-PLAN.md — Complete capability metadata, aligned Karaoke-FX semantics and fresh migration proof
 - [x] 136-19-PLAN.md — Runtime-valid public catalog responses with compact provider errors
 
 **Gap closure — Wave 10**
+
 - [x] 136-17-PLAN.md — Complete focused/root OpenAPI and TypeScript policy contract family
 - [x] 136-20-PLAN.md — Catalog-metadata-driven role artwork registry without a role-code allowlist
 
 **Gap closure — Wave 11**
+
 - [x] 136-18-PLAN.md — Go policy DTOs and semantic cross-layer parity gate
 
 **UAT gap closure — Wave 12**
+
 - [x] 136-21-PLAN.md — Assignable work-role catalog and Karaoke-FX notes-source correction
 - [x] 136-22-PLAN.md — Catalog-ordered semantic role presentation on active project surfaces
 - [x] 136-24-PLAN.md — Contributor segment tab and project-scoped adjacent release navigation
 - [x] 136-25-PLAN.md — Narrow group-capability API and cross-layer contract projection
 
 **UAT gap closure — Wave 13**
+
 - [x] 136-23-PLAN.md — Catalog-driven release-note role presentation
 - [x] 136-26-PLAN.md — Narrow-role workspace and media-list admission
 
 **UAT gap closure — Wave 14**
+
 - [x] 136-27-PLAN.md — Founder/Co-Leader field- and event-scoped workspace controls
 
 **UAT gap closure — Wave 15**
+
 - [x] 136-28-PLAN.md — Focused live UAT and approval evidence for all repaired gaps
 
 **Residual UAT gap closure — Wave 16**
+
 - [x] 136-29-PLAN.md — Reversible canonical Typesetting label and exact catalog-backed 15-role palette
 
 **Residual UAT gap closure — Wave 17**
+
 - [x] 136-30-PLAN.md — Shared semantic presentation on the four failed active role surfaces
 
 **Residual UAT gap closure — Wave 18**
+
 - [x] 136-31-PLAN.md — Focused live role-presentation proof and resumption of the 136-28 checkpoint
 
 ### Phase 137: Central Effective-Rights Resolver & Overrides
@@ -532,6 +550,7 @@ Plans:
 
 Plans:
 **Wave 1**
+
 - [x] 138-01-PLAN.md — Role-holder query + handler (D-07/R-03)
 - [x] 138-02-PLAN.md — CAP-10 activation-status contract extension + ActivationStatusIndicator primitive
 - [x] 138-03-PLAN.md — D-29 release-version-label display-bug fix
@@ -540,6 +559,7 @@ Plans:
 - [x] 138-06-PLAN.md — UADM-01 foundation: api.ts wiring + canonical multi-group effective-rights inspection tab
 
 **Wave 2** *(blocked on Wave 1 completion)*
+
 - [x] 138-07-PLAN.md — CAP-09 batch impact-preview endpoint for role-capability changes
 - [x] 138-08-PLAN.md — CAP-08 guided revoke/grant flows + inline capability history
 - [x] 138-09-PLAN.md — D-22 role-assignment impact preview UI
@@ -548,14 +568,17 @@ Plans:
 - [x] 138-12-PLAN.md — Rollen top-level workspace (D-07)
 
 **Wave 3** *(blocked on Wave 2 completion)*
+
 - [x] 138-13-PLAN.md — Impact-preview-gated role-capability matrix mutation (CAP-09 frontend)
 - [x] 138-14-PLAN.md — D-24 claim-activation impact preview
 
 **Wave 4** *(blocked on Wave 3 completion)*
+
 - [x] 138-15-PLAN.md — Admin main navigation (D-01/D-02) + user-detail Tabs rewrite (D-03) + user list/overview cleanup (D-04/D-05)
 - [x] 138-16-PLAN.md — Gruppenansicht Rollen/Änderungen tabs (D-06)
 
 **Post-hoc UAT gap-closure**
+
 - [x] 138-17-PLAN.md — GAP-01 (negative relative-time clamp) + GAP-03 (WR-01 non_deniable+user_deny regression test)
 - [x] 138-18-PLAN.md — GAP-02 (RoleCapabilityImpactPreviewModal narrow-viewport metrics/table/height fix, CAP-09)
 
@@ -578,27 +601,34 @@ Plans:
 
 Plans:
 **Wave 1**
+
 - [x] 139-01-PLAN.md — Backend DTO foundation (grouped contributions/media/rights-summary shapes) + disposable Phase-139 Postgres test harness
 - [x] 139-02-PLAN.md — Frontend TS type mirrors + URL-synced contributions/media filter hooks
 
 **Wave 2** *(blocked on Wave 1 completion)*
+
 - [x] 139-03-PLAN.md — Contributions grouping/range-collapse/override-diff query (TDD, D02-D10)
 
 **Wave 3** *(blocked on Wave 2 completion)*
+
 - [x] 139-04-PLAN.md — Media grouping query + real PublicURL/FileSizeBytes derivation (D11-D14/D17-D19)
 
 **Wave 4** *(blocked on Wave 3 completion)*
+
 - [x] 139-05-PLAN.md — F-01 batched rights-summary endpoint (Overview-tab fan-out fix) + GetUserGroupMemberships pagination (D21/D22)
 
 **Wave 5** *(blocked on Wave 4 completion)*
+
 - [x] 139-06-PLAN.md — QUAL-06 query-budget + pagination-drift gate + F-03 live seed-data script
 - [x] 139-07-PLAN.md — api.ts wiring + Rights-tab lazy-fetch fix (D22) + Overview-tab batched-summary consumption (F-01)
 
 **Wave 6** *(blocked on Wave 5 completion)*
+
 - [x] 139-08-PLAN.md — Contributions tab UI rewrite: grouped-card projection + container-query CSS
 - [x] 139-09-PLAN.md — Media tab UI rewrite: grouped release/episode-block projection + container-query CSS
 
 **Wave 7** *(blocked on Wave 6 completion)*
+
 - [x] 139-10-PLAN.md — Full regression gate + D01/D27 scope check + live UAT checkpoint
 
 **UI hint**: yes
@@ -619,10 +649,12 @@ Plans:
 
 Plans:
 **Wave 1**
+
 - [ ] 140-01-PLAN.md — Non-locking delegation-state read + AdminReviewDelegationHandler (GET/PUT), stub-tested
 - [ ] 140-03-PLAN.md — ReviewDelegationSection UI + asymmetric grant-removal in the generic override view
 
 **Wave 2** *(blocked on Wave 1 completion)*
+
 - [ ] 140-02-PLAN.md — Route registration, main.go wiring, OpenAPI contract sync
 
 **UI hint**: yes
@@ -644,18 +676,23 @@ Plans:
 
 Plans:
 **Wave 1**
+
 - [x] 141-01-PLAN.md — Single-resolution review authorization (Pattern 1) + decision-guard concurrency regression
 
 **Wave 2** *(blocked on Wave 1 completion)*
+
 - [x] 141-02-PLAN.md — Self-exclusion predicate, own-view scope, D15 sort direction fix, allowed_types field, RDEL-05/RQUE-06 tests
 
 **Wave 3** *(blocked on Wave 2 completion)*
+
 - [x] 141-03-PLAN.md — Detail/Next existence-then-authorize (D04 403, Pitfall 3 shared predicate builder)
 
 **Wave 4** *(blocked on Wave 3 completion)*
+
 - [x] 141-04-PLAN.md — Frontend type/hook contracts (useReleaseReviewLane extraction)
 
 **Wave 5** *(blocked on Wave 4 completion)*
+
 - [x] 141-05-PLAN.md — Own-pending lane + Tabs wrapper (Component Contract 1)
 - [x] 141-06-PLAN.md — Queue tab D10/D13/D06 filter, empty-state, and badge honesty
 - [x] 141-07-PLAN.md — Review-detail page 403/409/Next handling (Component Contract 3)
@@ -697,6 +734,8 @@ Plans:
 **Plans:** 14 plans
 
 Plans:
+**Wave 1**
+
 - [ ] 143-01-PLAN.md — Split backend/internal/handlers/app_auth.go into four files (450-line remediation)
 - [ ] 143-02-PLAN.md — Split backend/internal/repository/member_claims_repository.go (450-line remediation)
 - [ ] 143-03-PLAN.md — Split anime_contributions_proposal_repository.go + member_profile_projects_repository.go (450-line remediation)
@@ -704,12 +743,33 @@ Plans:
 - [ ] 143-05-PLAN.md — Criterion 1: contract drift, RoleCatalogProvider mocks, episode-versions api mock fix (5 files)
 - [ ] 143-06-PLAN.md — Criterion 1: role-color/role-label regression cluster (6 files)
 - [ ] 143-07-PLAN.md — Criterion 1: remaining individually-triaged red test files (6 files)
+
+**Wave 2** *(blocked on Wave 1 completion)*
+
 - [ ] 143-08-PLAN.md — Criterion 2: migration 0159 replaces 0154's reset pattern (idempotent + reversible)
+
+**Wave 3** *(blocked on Wave 2 completion)*
+
 - [ ] 143-09-PLAN.md — Criterion 3: move raw SQL from dashboard_me_handler.go into ReleaseReviewQueryRepository
+
+**Wave 4** *(blocked on Wave 3 completion)*
+
 - [ ] 143-10-PLAN.md — Criterion 4: focus tests for ReleaseMetadataCreditService and project-timeline date validation
+
+**Wave 5** *(blocked on Wave 4 completion)*
+
 - [ ] 143-11-PLAN.md — Criterion 5: has_own_notes excludes rejected notes
+
+**Wave 6** *(blocked on Wave 5 completion)*
+
 - [ ] 143-12-PLAN.md — Criterion 6: design-system retrofit + no-restricted-syntax to error
+
+**Wave 7** *(blocked on Wave 6 completion)*
+
 - [ ] 143-13-PLAN.md — Criterion 7: backend aggregation for rejected-own-notes dashboard lane
+
+**Wave 8** *(blocked on Wave 7 completion)*
+
 - [ ] 143-14-PLAN.md — Criterion 7: frontend AttentionSection lane + dashboard wiring
 
 ## v1.4 Coverage
