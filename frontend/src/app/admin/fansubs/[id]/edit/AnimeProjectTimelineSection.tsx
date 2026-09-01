@@ -2,13 +2,15 @@
 
 import { useEffect, useState } from 'react'
 
-import { Button, DatePicker } from '@/components/ui'
+import { Button, DatePicker, FormField } from '@/components/ui'
 import {
   ApiError,
   getAnimeFansubProjectTimeline,
   updateAnimeFansubProjectTimeline,
 } from '@/lib/api'
 import type { AnimeFansubProjectTimeline } from '@/types/fansubNotes'
+
+import styles from './AnimeProjectTimelineSection.module.css'
 
 type Props = {
   fansubId: number
@@ -83,9 +85,8 @@ export function AnimeProjectTimelineSection({ fansubId, animeId, expanded, canEd
       <p>Zeitraum, in dem diese Fansubgruppe an diesem Anime-Projekt gearbeitet hat.</p>
       {loading ? <p>Projektzeitraum wird geladen...</p> : null}
       {!loading ? (
-        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(13rem, 1fr))', gap: 'var(--space-3)' }}>
-          <div>
-            <label htmlFor={`project-start-${animeId}`}>Projekt begonnen am</label>
+        <div className={styles.timelineGrid}>
+          <FormField label="Projekt begonnen am" htmlFor={`project-start-${animeId}`}>
             <DatePicker
               id={`project-start-${animeId}`}
               label="Projekt begonnen am"
@@ -95,9 +96,8 @@ export function AnimeProjectTimelineSection({ fansubId, animeId, expanded, canEd
               disabled={!canEdit || saving}
               onChange={setStartedOn}
             />
-          </div>
-          <div>
-            <label htmlFor={`project-completed-${animeId}`}>Projekt abgeschlossen am</label>
+          </FormField>
+          <FormField label="Projekt abgeschlossen am" htmlFor={`project-completed-${animeId}`}>
             <DatePicker
               id={`project-completed-${animeId}`}
               label="Projekt abgeschlossen am"
@@ -109,12 +109,12 @@ export function AnimeProjectTimelineSection({ fansubId, animeId, expanded, canEd
               panelAlign="end"
               onChange={setCompletedOn}
             />
-          </div>
+          </FormField>
         </div>
       ) : null}
-      {error ? <p style={{ color: 'var(--color-error)', marginTop: 'var(--space-2)' }}>{error}</p> : null}
+      {error ? <p className={styles.errorText}>{error}</p> : null}
       {canEdit ? (
-        <div style={{ marginTop: 'var(--space-3)' }}>
+        <div className={styles.saveRow}>
           <Button variant="primary" size="sm" onClick={() => void handleSave()} disabled={loading || saving || !changed}>
             {saving ? 'Speichern...' : 'Projektzeitraum speichern'}
           </Button>

@@ -77,17 +77,17 @@
 .metadataError,
 .metadataSuccess {
   margin: 0;
-  padding: 10px 12px;
-  border-radius: 8px;
+  padding: var(--space-2) var(--space-3);
+  border-radius: var(--radius-sm);
   font-size: 0.9rem;
 }
 
 .metadataError {
-  color: #a4262c;
-  background: #fff1f0;
+  color: var(--color-error);
+  background: color-mix(in srgb, var(--color-error) 12%, var(--bg-card));
 }
 
 .metadataSuccess {
-  color: #176b44;
-  background: #edfbf2;
+  color: var(--color-success);
+  background: color-mix(in srgb, var(--color-success) 12%, var(--bg-card));
 }
