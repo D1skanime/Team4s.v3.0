@@ -2,7 +2,7 @@ import Image from 'next/image'
 
 import { Button } from '@/components/ui'
 import { resolveApiUrl } from '@/lib/api'
-import { presentationForRole } from '@/lib/roleCatalog'
+import { categoryForRole } from '@/lib/roleCatalog'
 import { useRoleCatalog } from '@/providers/RoleCatalogProvider'
 import type { ProjectMemberSummary } from '@/types/projectMember'
 
@@ -65,7 +65,7 @@ export function ProjectMemberHero({
               <span
                 key={role.code}
                 className={styles.roleChip}
-                data-role-code={presentationForRole(roles, role.code).colorKey}
+                data-role-code={categoryForRole(roles, role.code)}
               >
                 {role.label}
               </span>

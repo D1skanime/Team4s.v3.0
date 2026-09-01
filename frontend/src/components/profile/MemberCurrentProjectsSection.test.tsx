@@ -126,7 +126,7 @@ describe('MemberCurrentProjectsSection', () => {
     expect(Array.from(chips).map((chip) => chip.textContent)).toEqual(['Typesetting', 'Karaoke-FX', 'Future Role'])
     expect(screen.getByText('Typesetting').getAttribute('data-role-code')).toBe('#0f766e')
     expect(screen.getByText('Karaoke-FX').getAttribute('data-role-code')).toBe('#7e22ce')
-    expect(screen.getByText('Future Role').getAttribute('data-role-code')).toBe('neutral')
+    expect(screen.getByText('Future Role').getAttribute('data-role-code')).toBe('other')
     expect(screen.getByText('Projektweit').className).toContain('badgeNeutral')
     expect(projectStyles).toContain('var(--role-accent-other)')
     expect(container.querySelector('[class*="projectArrow"]')).toBeNull()

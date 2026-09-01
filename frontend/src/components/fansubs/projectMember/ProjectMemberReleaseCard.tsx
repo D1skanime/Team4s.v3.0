@@ -2,7 +2,7 @@
 
 import Link from 'next/link'
 
-import { presentationForRole } from '@/lib/roleCatalog'
+import { categoryForRole } from '@/lib/roleCatalog'
 import { useRoleCatalog } from '@/providers/RoleCatalogProvider'
 import type { ProjectMemberRelease } from '@/types/projectMember'
 
@@ -42,7 +42,7 @@ export function ProjectMemberReleaseCard({
       <span className={styles.rowVersion}>{release.version_label}</span>
       <span className={styles.rowRoles}>
         {presentedRoles.map((role) => (
-          <span key={role.code} className={styles.roleTag} data-role-code={presentationForRole(roles, role.code).colorKey}>
+          <span key={role.code} className={styles.roleTag} data-role-code={categoryForRole(roles, role.code)}>
             {role.label}
           </span>
         ))}
