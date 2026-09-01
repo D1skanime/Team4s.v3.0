@@ -414,9 +414,9 @@ Milestone v1.4 closes Live-UAT Findings #29-#32 by making effective group rights
 - [x] **Phase 137: Central Effective-Rights Resolver & Overrides** - Make canonical enforcement and inspection resolve the same provenance-aware effective rights and safe per-user overrides. (completed 2026-08-21)
 - [x] **Phase 138: Effective-Rights Administration & Impact UX** - Turn the existing user rights and role-capability surfaces into explainable revoke, impact, and cache-state workflows. (completed 2026-08-23)
 - [x] **Phase 139: Scalable User-Admin Projections** - Replace noisy flat contribution and media data with meaningful grouped, filtered, and stable projections. (completed 2026-08-24)
-- [x] **Phase 140: Review Delegation Management** - Expose the existing specialized delegation service through documented APIs and the canonical group-member editor.
+- [x] **Phase 140: Review Delegation Management** - Expose the existing specialized delegation service through documented APIs and the canonical group-member editor. (completed 2026-08-26)
 - [x] **Phase 141: Actor-Decidable Review Queue** - Make every queue lane, count, detail, and next action reflect what the current reviewer may actually decide. (completed 2026-08-26)
-- [ ] **Phase 142: Integrated Security, Fixtures & Live Release Gate** - Prove the complete milestone across contracts, auth refresh, fixtures, security, responsive UI, and canonical ownership.
+- [ ] **Phase 142: Integrated Security, Fixtures & Live Release Gate** - Prove the complete milestone across contracts, auth refresh, fixtures, security, responsive UI, and canonical ownership. (technical gate completed 2026-09-01; recorded human UAT pending)
 
 ## Phase Details
 
@@ -697,10 +697,10 @@ Plans:
 
 | Phase | Plans Complete | Status | Completed |
 |-------|----------------|--------|-----------|
-| 136. Capability Policy, Catalog & Schema Contract | 0/TBD | Not started | - |
-| 137. Central Effective-Rights Resolver & Overrides | 13/13 | Complete   | 2026-08-21 |
-| 138. Effective-Rights Administration & Impact UX | 0/TBD | Not started | - |
-| 139. Scalable User-Admin Projections | 0/10 | Not started | - |
-| 140. Review Delegation Management | 0/TBD | Not started | - |
-| 141. Actor-Decidable Review Queue | 0/TBD | Not started | - |
-| 142. Integrated Security, Fixtures & Live Release Gate | 0/TBD | Not started | - |
+| 136. Capability Policy, Catalog & Schema Contract | 31/31 | Complete | 2026-08-21 |
+| 137. Central Effective-Rights Resolver & Overrides | 14/14 | Complete | 2026-08-21 |
+| 138. Effective-Rights Administration & Impact UX | 18/18 | Complete | 2026-08-24 |
+| 139. Scalable User-Admin Projections | 10/10 | Complete | 2026-08-24 |
+| 140. Review Delegation Management | 3/3 | Complete | 2026-08-26 |
+| 141. Actor-Decidable Review Queue | 7/7 | Complete | 2026-08-26 |
+| 142. Integrated Security, Fixtures & Live Release Gate | 1/1 | In progress | 2026-09-01 |

@@ -8939,7 +8939,7 @@ components:
     ReleaseReviewView:
       name: view
       in: query
-      schema: {type: string, enum: [open, history], default: open}
+      schema: {type: string, enum: [open, history, own], default: open}
     AdminAnimeId:
       name: id
       in: path
@@ -9199,11 +9199,14 @@ components:
             next_cursor: {type: string}
     ReleaseReviewCounts:
       type: object
-      required: [text, image, contribution, image_categories]
+      required: [text, image, contribution, allowed_types, image_categories]
       properties:
         text: {type: integer, format: int64, minimum: 0}
         image: {type: integer, format: int64, minimum: 0}
         contribution: {type: integer, format: int64, minimum: 0, description: Reserved Phase-108 counter; zero in Phase 107.1.}
+        allowed_types:
+          type: array
+          items: {type: string, enum: [text, image]}
         image_categories:
           type: object
           required: [screenshot, typesetting_karaoke, fun_outtake, other]

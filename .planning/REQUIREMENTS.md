@@ -35,10 +35,10 @@
 
 ### Review-Delegation
 
-- [ ] **RDEL-01**: Ein autorisierter Gruppenleiter kann die bestehenden Review-Delegationen eines realen Fansubgruppen-Mitglieds über eine dokumentierte API lesen.
-- [ ] **RDEL-02**: Ein autorisierter Gruppenleiter kann die delegierbaren Rechte für Medien/Bilder, Notizen/Texte und Mitwirkungen einzeln gewähren und entziehen.
-- [ ] **RDEL-03**: Die Review-Delegation wird im vorhandenen Mitglieder-Editor unter „Prüf-/Freigabe-Rechte“ bedient und bleibt fachlich von Rollen und allgemeinen Benutzer-Overrides getrennt.
-- [ ] **RDEL-04**: Delegationsmutationen verwenden die vorhandenen transaktionalen Review-Service- und Audit-Seams und sind idempotent.
+- [x] **RDEL-01**: Ein autorisierter Gruppenleiter kann die bestehenden Review-Delegationen eines realen Fansubgruppen-Mitglieds über eine dokumentierte API lesen.
+- [x] **RDEL-02**: Ein autorisierter Gruppenleiter kann die delegierbaren Rechte für Medien/Bilder, Notizen/Texte und Mitwirkungen einzeln gewähren und entziehen.
+- [x] **RDEL-03**: Die Review-Delegation wird im vorhandenen Mitglieder-Editor unter „Prüf-/Freigabe-Rechte“ bedient und bleibt fachlich von Rollen und allgemeinen Benutzer-Overrides getrennt.
+- [x] **RDEL-04**: Delegationsmutationen verwenden die vorhandenen transaktionalen Review-Service- und Audit-Seams und sind idempotent.
 - [x] **RDEL-05**: Eine entzogene Delegation verliert unmittelbar und konsistent ihre Wirkung auf Entscheidung, Review-Liste und Zähler, ohne dem Mitglied eine breitere Leiterrolle zu entziehen.
 
 ### Entscheidbare Review-Arbeit
@@ -116,10 +116,10 @@
 | UADM-06 | Phase 139 | Complete |
 | UADM-07 | Phase 139 | Complete |
 | UADM-08 | Phase 139 | Complete |
-| RDEL-01 | Phase 140 | Pending |
-| RDEL-02 | Phase 140 | Pending |
-| RDEL-03 | Phase 140 | Pending |
-| RDEL-04 | Phase 140 | Pending |
+| RDEL-01 | Phase 140 | Complete |
+| RDEL-02 | Phase 140 | Complete |
+| RDEL-03 | Phase 140 | Complete |
+| RDEL-04 | Phase 140 | Complete |
 | RDEL-05 | Phase 141 | Complete |
 | RQUE-01 | Phase 141 | Complete |
 | RQUE-02 | Phase 141 | Complete |
@@ -144,4 +144,4 @@
 
 ---
 *Requirements defined: 2026-08-20*
-*Last updated: 2026-08-20 after v1.4 research and scope confirmation*
+*Last updated: 2026-09-01 after Phase 142 final-gate reconciliation*
