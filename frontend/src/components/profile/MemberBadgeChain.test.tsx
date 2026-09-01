@@ -1118,8 +1118,10 @@ describe('MemberBadgeChain Phase 119 collection cards', () => {
     expect(projects.getAttribute('aria-valuenow')).toBe('10')
     expect(projects.getAttribute('aria-valuemax')).toBe('25')
     expect(screen.getByText('Noch 15 Anime-Projekte bis Silber')).not.toBeNull()
-    expect(screen.getByText('1 mitgetragenes Projekt · Noch 4 bis Silber')).not.toBeNull()
-    expect(screen.getByText('25 Bildarchivbeiträge · Höchste Stufe erreicht')).not.toBeNull()
+    expect(screen.getByText('1 mitgetragenes Projekt')).not.toBeNull()
+    expect(screen.getByText('Noch 4 mitgetragene Projekte bis Silber')).not.toBeNull()
+    expect(screen.getByText('25 Medienbeiträge')).not.toBeNull()
+    expect(screen.getByText('Höchste Stufe erreicht')).not.toBeNull()
     const heroFrame = container.querySelector<HTMLImageElement>('img[data-achievement-art="productive_bronze"]')
     expect(heroFrame?.parentElement?.className).toContain('badgeArtworkLayered')
     const projectCard = container.querySelector('[data-family="progress"]')
@@ -1167,13 +1169,13 @@ describe('MemberBadgeChain Phase 119 collection cards', () => {
     expect(screen.getAllByText('Aktuell').length).toBeGreaterThan(0)
   })
 
-  it('keeps category order, a non-founder founding stage locked and the next year target reachable', async () => {
+  it('keeps category order, no founding panel for a non-founder and the next year target reachable', async () => {
     await renderCollections()
     const headings = screen.getAllByRole('heading', { level: 2 }).map((heading) => heading.textContent)
     expect(headings).toEqual(['Fortschritt', 'Punkte-Meilensteine', 'Beiträge', 'Mitgliedschaft'])
-    expect(screen.getByLabelText('Gründungsmitglied · Gesperrt')).not.toBeNull()
-    expect(screen.getByRole('button', { name: /7\+ Jahre Mitglied auswählen, Aktuell/ })).not.toBeNull()
-    expect(screen.getByLabelText('10+ Jahre Mitglied · Gesperrt')).not.toBeNull()
+    expect(screen.queryByLabelText('Gründungsmitglied · Gesperrt')).toBeNull()
+    expect(screen.getByRole('button', { name: /7 Jahre Mitgliedschaft auswählen, Aktuell/ })).not.toBeNull()
+    expect(screen.getByLabelText('10 Jahre Mitgliedschaft · Gesperrt')).not.toBeNull()
   })
 
   it('Phase 127 RED chain suppresses legacy Special while preserving five retained groups', async () => {
@@ -1193,9 +1195,9 @@ describe('MemberBadgeChain Phase 119 collection cards', () => {
     expect(screen.queryByRole('region', { name: 'Besondere Auszeichnungen-Karussell' })).toBeNull()
     expect(container.querySelector('[data-anime-project-stage]')).not.toBeNull()
     expect(container.querySelector('[data-points-achievement-stage]')).not.toBeNull()
-    expect(container.querySelector('[data-contribution-family-stage="contribution_projects"]')).not.toBeNull()
-    expect(container.querySelector('[data-contribution-family-stage="contribution_chronicle"]')).not.toBeNull()
-    expect(container.querySelector('[data-contribution-family-stage="contribution_archivist"]')).not.toBeNull()
+    expect(container.querySelector('[data-family="contribution_projects"][data-contribution-achievement-stage]')).not.toBeNull()
+    expect(container.querySelector('[data-family="contribution_chronicle"][data-contribution-achievement-stage]')).not.toBeNull()
+    expect(container.querySelector('[data-family="contribution_archivist"][data-contribution-achievement-stage]')).not.toBeNull()
     expect(container.querySelector('[data-membership-stage]')).not.toBeNull()
   })
 })
@@ -1388,7 +1390,6 @@ it('Phase 120 Task 2: keeps SSR carousel content while expensive listeners remai
         'Punkte-Meilensteine',
         'Beiträge',
         'Mitgliedschaft',
-        'Besondere Auszeichnungen',
       ])
       expect(screen.getAllByRole('heading', { level: 2 }).every((heading) => (
         heading.parentElement?.parentElement?.className.includes('sectionHeaderUnderline')
@@ -1396,17 +1397,17 @@ it('Phase 120 Task 2: keeps SSR carousel content while expensive listeners remai
       expect(screen.getByRole('heading', { level: 3, name: 'Übersetzung:' })).not.toBeNull()
       expect(screen.getByRole('heading', { level: 3, name: 'Anime-Projekte' })).not.toBeNull()
       expect(screen.getByRole('heading', { level: 3, name: 'Mitgetragene Projekte' })).not.toBeNull()
-      expect(screen.getByRole('heading', { level: 3, name: 'Historische Leitung' })).not.toBeNull()
       expect(screen.getByText('1 von 2 Rollen')).not.toBeNull()
       expect(screen.getByText('Noch 15 Anime-Projekte bis Silber')).not.toBeNull()
-      expect(screen.getByText('25 Bildarchivbeiträge · Höchste Stufe erreicht')).not.toBeNull()
+      expect(screen.getByText('25 Medienbeiträge')).not.toBeNull()
+      expect(screen.getByText('Höchste Stufe erreicht')).not.toBeNull()
       expect(screen.queryByRole('tab')).toBeNull()
       expect(screen.queryByRole('tablist')).toBeNull()
       expect(resizeObserve.mock.calls.every(([element]) => (
         element instanceof HTMLElement && element.hasAttribute('data-badge-stage-strip')
       ))).toBe(true)
       expect(mediaAdd).toHaveBeenCalledTimes(resizeObserve.mock.calls.length)
-      expect(memberBadgeChainCss).toMatch(/\.roleHeroArtwork\s*\{[^}]*width:\s*320px;[^}]*height:\s*320px;/s)
+      expect(roleBadgeCardCss).toMatch(/\.roleHeroArtwork\s*\{[^}]*width:\s*320px;[^}]*aspect-ratio:\s*1;[^}]*height:\s*auto;/s)
       expect(memberBadgeChainCss).not.toMatch(/transition:[^;]*(?:width|height)/)
     } finally {
       vi.unstubAllGlobals()

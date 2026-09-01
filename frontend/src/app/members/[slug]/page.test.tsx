@@ -39,6 +39,14 @@ const { catalogRoles } = vi.hoisted(() => ({
       icon_key: 'wrench',
     },
     {
+      code: 'timer',
+      label_de: 'Timing',
+      contexts: ['anime_contribution'],
+      sort_order: 15,
+      color_key: 'technical',
+      icon_key: 'clock',
+    },
+    {
       code: 'karaoke_fx',
       label_de: 'Karaoke-FX',
       contexts: ['anime_contribution'],
