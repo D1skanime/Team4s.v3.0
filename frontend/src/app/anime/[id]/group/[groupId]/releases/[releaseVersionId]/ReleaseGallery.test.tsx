@@ -42,7 +42,7 @@ describe('ReleaseGallery', () => {
     expect(document.querySelector('#galerie')?.getAttribute('data-release-atmosphere-band')).toBe('true')
     expect(screen.getByTestId('release-image-grid').children).toHaveLength(6)
     expect(screen.queryByRole('button', { name: /Weitere/ })).toBeNull()
-    expect(screen.getAllByText('Release-Screenshot')).toHaveLength(6)
+    expect(screen.getAllByText('Fansub Screenshot')).toHaveLength(6)
     expect(screen.getByText('Hochgeladen von Uploader 1')).toBeTruthy()
   })
 
@@ -136,6 +136,6 @@ describe('ReleaseGallery', () => {
     expect(await screen.findByText('Weitere Bilder konnten nicht geladen werden. Bitte versuche es erneut.')).toBeTruthy()
     expect(screen.getByTestId('release-image-grid').children).toHaveLength(6)
     fireEvent.click(screen.getByRole('button', { name: 'Vollständige Beschreibung 1 öffnen' }))
-    expect(within(screen.getByRole('dialog')).getByAltText('Release-Screenshot').getAttribute('src')).toContain('/original-1.jpg')
+    expect(within(screen.getByRole('dialog')).getByAltText('Fansub Screenshot').getAttribute('src')).toContain('/original-1.jpg')
   })
 })
