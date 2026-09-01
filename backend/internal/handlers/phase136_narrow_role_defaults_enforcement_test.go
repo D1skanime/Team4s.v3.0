@@ -19,14 +19,16 @@ import (
 )
 
 func TestPhase136NarrowRoleDefaultsSeedToHandlerContract(t *testing.T) {
-	root := phase136RepositoryRoot(t)
+	root := phase136BackendRoot(t)
 	read := func(path string) string {
 		content, err := os.ReadFile(filepath.Join(root, path))
 		require.NoError(t, err)
 		return string(content)
 	}
 
-	migration := read("database/migrations/0146_capability_policy_catalog.up.sql")
+	migrationContent, err := os.ReadFile(filepath.Join(phase136RepoRoot(t), "database/migrations/0146_capability_policy_catalog.up.sql"))
+	require.NoError(t, err)
+	migration := string(migrationContent)
 	permissionsSource := read("internal/permissions/permissions.go")
 	cases := []struct {
 		role, action, handler string
@@ -65,7 +67,7 @@ func TestPhase136NarrowRoleDefaultsSeedToHandlerContract(t *testing.T) {
 }
 
 func TestPhase136NarrowRoleDefaultsPatchClasses(t *testing.T) {
-	source, err := os.ReadFile(filepath.Join(phase136RepositoryRoot(t), "internal/handlers/fansub_groups.go"))
+	source, err := os.ReadFile(filepath.Join(phase136BackendRoot(t), "internal/handlers/fansub_groups.go"))
 	require.NoError(t, err)
 	text := string(source)
 	require.Contains(t, text, "requiredFansubGroupPatchActions")
@@ -88,7 +90,7 @@ func TestPhase136NarrowRoleDefaultsHistoryEventActions(t *testing.T) {
 }
 
 func TestPhase136HistoryPatchAuthorizesBeforeEventSpecificProbes(t *testing.T) {
-	source, err := os.ReadFile(filepath.Join(phase136RepositoryRoot(t), "internal/handlers/fansub_group_history_handler.go"))
+	source, err := os.ReadFile(filepath.Join(phase136BackendRoot(t), "internal/handlers/fansub_group_history_handler.go"))
 	require.NoError(t, err)
 	text := string(source)
 	start := strings.Index(text, "func (h *FansubGroupHistoryHandler) UpdateGroupHistory")
@@ -127,11 +129,16 @@ func phase136ActionConstant(action string) string {
 	return out.String()
 }
 
-func phase136RepositoryRoot(t testing.TB) string {
+func phase136BackendRoot(t testing.TB) string {
 	t.Helper()
 	_, filename, _, ok := runtime.Caller(0)
 	require.True(t, ok)
 	return filepath.Clean(filepath.Join(filepath.Dir(filename), "..", ".."))
+}
+
+func phase136RepoRoot(t testing.TB) string {
+	t.Helper()
+	return filepath.Clean(filepath.Join(phase136BackendRoot(t), ".."))
 }
 
 func phase136ForbiddenContext(method, target, body string, params ...gin.Param) (*gin.Context, *httptest.ResponseRecorder) {
