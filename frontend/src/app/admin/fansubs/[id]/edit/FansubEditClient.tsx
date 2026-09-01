@@ -90,7 +90,7 @@ export function FansubEditClient({
   });
   useEffect(() => {
     if (isPlatformAdmin || !hasAuthSession || activeMainTab !== "releases") {
-      setOwnProjectAssignmentKeys([]);
+      queueMicrotask(() => setOwnProjectAssignmentKeys([]));
       return;
     }
 
