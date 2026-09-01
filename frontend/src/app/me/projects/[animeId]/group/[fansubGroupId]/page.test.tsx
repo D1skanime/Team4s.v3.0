@@ -325,6 +325,32 @@ describe('MyProjectDetailPage', () => {
     expect(screen.queryByText(/Versionen sichtbar/)).toBeNull()
   })
 
+  it('treats a release whose only note was rejected as open, not done (Kriterium 5)', async () => {
+    // has_own_notes: false / has_own_media: false is exactly the corrected backend
+    // projection for a release whose only release_version_note has review_state
+    // 'rejected' (anime_contributions_member_project_repository.go's has_own_notes
+    // EXISTS subquery now excludes it). isDone() needs no source change -- it
+    // already trusts has_own_notes as an opaque boolean -- so this test proves the
+    // frontend consequence end to end: such a release must count as "offen", both
+    // in the counter and in the Offen/Erledigt filters.
+    getMyProjectDetailMock.mockResolvedValue({
+      data: makeProject([
+        makeRelease({ release_version_id: 41, episode_number: '01', has_own_contribution: true, has_own_notes: false, has_own_media: false }),
+      ]),
+    })
+
+    render(<MyProjectDetailPage />)
+
+    await screen.findByRole('heading', { name: 'Naruto', level: 1 })
+    expect(screen.getByText('1 offen · 0 erledigt')).toBeTruthy()
+
+    fireEvent.click(screen.getByRole('button', { name: 'Erledigt' }))
+    expect(screen.queryByText('Folge 01 · AnimeOwnage · v1')).toBeNull()
+
+    fireEvent.click(screen.getByRole('button', { name: 'Offen' }))
+    expect(screen.getByText('Folge 01 · AnimeOwnage · v1')).toBeTruthy()
+  })
+
   it('shows a motivating empty state when the user has no assigned releases at all', async () => {
     getMyProjectDetailMock.mockResolvedValue({
       data: makeProject([
