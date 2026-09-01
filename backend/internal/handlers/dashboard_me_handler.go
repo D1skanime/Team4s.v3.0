@@ -213,7 +213,6 @@ func (h *DashboardMeHandler) attachPendingGroupMediaReviewAttention(c *gin.Conte
 	return rows.Err()
 }
 
-
 // attachPendingReleaseReviewAttention groups only actionable, still-pending release
 // reviews. The lifecycle view is the same source used by the release review queue; the
 // dashboard merely summarizes it per anime instead of creating a second review workflow.

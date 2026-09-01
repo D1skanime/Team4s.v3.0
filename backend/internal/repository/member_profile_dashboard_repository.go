@@ -231,15 +231,15 @@ func (r *MemberProfileRepository) GetOwnDashboard(ctx context.Context, memberID 
 	}
 
 	return &OwnDashboardData{
-		HasMemberProfile:   true,
-		TotalPoints:        totalPoints,
-		BadgesCount:        badgesCount,
-		ProjectsCount:      projectsCount,
-		ImagesCount:        archivistCount,
-		ContributionsCount: chronicleCount,
-		RoleVolume:         roleVolume,
-		CategoryProgress:   categoryProgress,
-		PendingClaims:        []OwnDashboardPendingClaim{},
+		HasMemberProfile:      true,
+		TotalPoints:           totalPoints,
+		BadgesCount:           badgesCount,
+		ProjectsCount:         projectsCount,
+		ImagesCount:           archivistCount,
+		ContributionsCount:    chronicleCount,
+		RoleVolume:            roleVolume,
+		CategoryProgress:      categoryProgress,
+		PendingClaims:         []OwnDashboardPendingClaim{},
 		PendingReleaseReviews: []OwnDashboardPendingReleaseReview{},
 	}, nil
 }

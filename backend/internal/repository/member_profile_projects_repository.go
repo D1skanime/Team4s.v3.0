@@ -318,6 +318,7 @@ func (r *MemberProfileRepository) GetPublicMemberProjectsByID(ctx context.Contex
 		Items: items, Total: total, Limit: limit, Offset: offset,
 	}, nil
 }
+
 // memberProjectKey identifies a current project by its (anime, fansub group) pair, the
 // grouping key used to attach batch-loaded release versions back to their project card.
 type memberProjectKey struct {

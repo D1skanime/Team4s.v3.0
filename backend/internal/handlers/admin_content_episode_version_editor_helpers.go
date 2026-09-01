@@ -59,20 +59,20 @@ func (h *AdminContentHandler) loadEpisodeVersionContributorContext(
 	}
 
 	safeVersion := models.EpisodeVersion{
-		ID:              version.ID,
-		AnimeID:         version.AnimeID,
-		EpisodeNumber:   version.EpisodeNumber,
-		Title:           version.Title,
-		ReleaseVersion:  version.ReleaseVersion,
-		FansubGroups:    version.FansubGroups,
+		ID:                  version.ID,
+		AnimeID:             version.AnimeID,
+		EpisodeNumber:       version.EpisodeNumber,
+		Title:               version.Title,
+		ReleaseVersion:      version.ReleaseVersion,
+		FansubGroups:        version.FansubGroups,
 		ProductionStartedOn: version.ProductionStartedOn,
-		ReleaseDate: version.ReleaseDate,
-		VideoQuality: version.VideoQuality,
-		SubtitleType: version.SubtitleType,
-		CRC32: version.CRC32,
-		DurationSeconds: version.DurationSeconds,
-		CreatedAt:       version.CreatedAt,
-		UpdatedAt:       version.UpdatedAt,
+		ReleaseDate:         version.ReleaseDate,
+		VideoQuality:        version.VideoQuality,
+		SubtitleType:        version.SubtitleType,
+		CRC32:               version.CRC32,
+		DurationSeconds:     version.DurationSeconds,
+		CreatedAt:           version.CreatedAt,
+		UpdatedAt:           version.UpdatedAt,
 	}
 
 	selectedGroups, err := h.resolveEpisodeVersionSelectedGroups(ctx, version)

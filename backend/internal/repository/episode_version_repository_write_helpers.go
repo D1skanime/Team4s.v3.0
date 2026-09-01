@@ -14,20 +14,20 @@ import (
 )
 
 type episodeVersionWriteState struct {
-	VariantID        int64
-	ReleaseVersionID int64
-	ReleaseID        int64
-	AnimeID          int64
-	Title            *string
+	VariantID           int64
+	ReleaseVersionID    int64
+	ReleaseID           int64
+	AnimeID             int64
+	Title               *string
 	ProductionStartedOn *time.Time
-	ReleaseDate           *time.Time
-	VideoQuality     *string
-	SubtitleType     *string
-	CRC32            *string
-	DurationSeconds  *int32
-	MediaProvider    string
-	MediaItemID      string
-	StreamURL        *string
+	ReleaseDate         *time.Time
+	VideoQuality        *string
+	SubtitleType        *string
+	CRC32               *string
+	DurationSeconds     *int32
+	MediaProvider       string
+	MediaItemID         string
+	StreamURL           *string
 }
 
 func loadEpisodeVersionStateForUpdate(ctx context.Context, tx pgx.Tx, versionID int64) (*episodeVersionWriteState, error) {

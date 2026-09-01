@@ -69,18 +69,18 @@ type EpisodeVersionCreateInput struct {
 // EpisodeVersionPatchInput enthält die patch-fähigen Felder einer Episodenversion,
 // wobei nur gesetzte Felder (Set=true) in der Datenbankaktualisierung berücksichtigt werden.
 type EpisodeVersionPatchInput struct {
-	Title           OptionalString               `json:"title"`
-	FansubGroups    OptionalSelectedFansubGroups `json:"fansub_groups"`
-	FansubGroupID   OptionalInt64                `json:"fansub_group_id"`
-	MediaProvider   OptionalString               `json:"media_provider"`
-	MediaItemID     OptionalString               `json:"media_item_id"`
-	VideoQuality    OptionalString               `json:"video_quality"`
-	SubtitleType    OptionalString               `json:"subtitle_type"`
+	Title               OptionalString               `json:"title"`
+	FansubGroups        OptionalSelectedFansubGroups `json:"fansub_groups"`
+	FansubGroupID       OptionalInt64                `json:"fansub_group_id"`
+	MediaProvider       OptionalString               `json:"media_provider"`
+	MediaItemID         OptionalString               `json:"media_item_id"`
+	VideoQuality        OptionalString               `json:"video_quality"`
+	SubtitleType        OptionalString               `json:"subtitle_type"`
 	ProductionStartedOn OptionalTime                 `json:"production_started_on"`
-	ReleaseDate           OptionalTime                 `json:"release_date"`
-	CRC32           OptionalString               `json:"crc32"`
-	StreamURL       OptionalString               `json:"stream_url"`
-	DurationSeconds OptionalInt32                `json:"duration_seconds"`
+	ReleaseDate         OptionalTime                 `json:"release_date"`
+	CRC32               OptionalString               `json:"crc32"`
+	StreamURL           OptionalString               `json:"stream_url"`
+	DurationSeconds     OptionalInt32                `json:"duration_seconds"`
 }
 
 type OptionalSelectedFansubGroups struct {

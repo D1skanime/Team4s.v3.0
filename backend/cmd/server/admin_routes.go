@@ -36,7 +36,7 @@ type adminRouteHandlers struct {
 	// Phase 107.1: gruppengebundene Release-Prüfqueue und schmale Detailansicht
 	releaseReviewHandler *handlers.ReleaseReviewHandler
 	// Phase 137-07: Effective-Rights Inspection/Mutation/History-API
-	adminEffectiveRightsHandler *handlers.AdminEffectiveRightsHandler
+	adminEffectiveRightsHandler  *handlers.AdminEffectiveRightsHandler
 	adminReviewDelegationHandler *handlers.AdminReviewDelegationHandler
 	// Phase 138-01: "wer besitzt diese Rolle?" — real fansub-group role-holder lookup (D-07)
 	adminRoleHoldersHandler *handlers.AdminRoleHoldersHandler

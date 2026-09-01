@@ -68,7 +68,7 @@ func (effectiveRightsCacheLoaderStub) LoadRoleCapabilities(context.Context) (map
 			permissions.ActionFansubGroupNotesWrite,
 			permissions.ActionFansubGroupMediaView,
 			permissions.ActionFansubGroupMediaUpdate,
-            permissions.ActionFansubGroupMediaUpdateOwn,
+			permissions.ActionFansubGroupMediaUpdateOwn,
 			permissions.ActionFansubGroupMediaReorder,
 			permissions.ActionFansubGroupMediaDelete,
 			permissions.ActionFansubGroupPageGeneralEdit,
@@ -76,8 +76,8 @@ func (effectiveRightsCacheLoaderStub) LoadRoleCapabilities(context.Context) (map
 			permissions.ActionFansubGroupPageFoundingHistoryEdit,
 			permissions.ActionFansubGroupLinksUpdate,
 			permissions.ActionAnimeFansubProjectNotesWrite,
-            permissions.ActionAnimeFansubProjectTimelineUpdate,
-            permissions.ActionReleaseVersionMetadataUpdate,
+			permissions.ActionAnimeFansubProjectTimelineUpdate,
+			permissions.ActionReleaseVersionMetadataUpdate,
 			permissions.ActionReleaseView,
 			permissions.ActionReleaseVersionView,
 			permissions.ActionReleaseVersionMediaView,
@@ -415,7 +415,7 @@ func TestPhase137EffectiveRightsOverrideMutationAuthorization(t *testing.T) {
 		fx.setMembershipStatus(t, 13, 21, "active")
 		defer fx.setMembershipStatus(t, 13, 21, "disabled")
 		_, err := service.MutateOverride(ctx, EffectiveRightsOverrideMutationCommand{
-			Actor:          permissions.Actor{AppUserID: 12, Status: "active"},
+			Actor:           permissions.Actor{AppUserID: 12, Status: "active"},
 			TargetAppUserID: 13, FansubGroupID: 21,
 			ActionCode: permissions.Action(effectiveRightsFixtureAction), Kind: OverrideMutationSetAllow,
 			ReasonCategory: OverrideReasonCategoryTaskDelegation,
@@ -427,7 +427,7 @@ func TestPhase137EffectiveRightsOverrideMutationAuthorization(t *testing.T) {
 	t.Run("management_capability_does_not_cross_groups", func(t *testing.T) {
 		fx.resetOverrideState(t, 14, 22, effectiveRightsFixtureAction)
 		_, err := service.MutateOverride(ctx, EffectiveRightsOverrideMutationCommand{
-			Actor: leadActor(), // fansub_lead only in group 21
+			Actor:           leadActor(), // fansub_lead only in group 21
 			TargetAppUserID: 14, FansubGroupID: 22,
 			ActionCode: permissions.Action(effectiveRightsFixtureAction), Kind: OverrideMutationSetAllow,
 			ReasonCategory: OverrideReasonCategoryTaskDelegation,

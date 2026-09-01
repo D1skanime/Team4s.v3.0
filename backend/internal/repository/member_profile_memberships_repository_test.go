@@ -74,10 +74,10 @@ func TestLoadMembershipsIncludesActiveMembershipLinkedByMemberID(t *testing.T) {
 	pool := openPhase129Postgres(t)
 	repo := NewMemberProfileRepository(pool, "")
 
-	mustExecPhase129(t, pool,		"INSERT INTO members (id, nickname, public_slug) VALUES (1293001, 'member-id-link', 'member-id-link');" +
-			"INSERT INTO app_users (id, keycloak_subject, email, display_name, status) VALUES (1293002, 'phase129-member-id-link', 'member-id-link@example.test', 'member-id-link', 'active');" +
-			"INSERT INTO fansub_groups (id, slug, name, status) VALUES (1293003, 'phase129-member-id-link', 'Phase129 Member ID Group', 'active');" +
-			"INSERT INTO fansub_group_members (fansub_group_id, app_user_id, member_id, status) VALUES (1293003, 1293002, 1293001, 'active');",
+	mustExecPhase129(t, pool, "INSERT INTO members (id, nickname, public_slug) VALUES (1293001, 'member-id-link', 'member-id-link');"+
+		"INSERT INTO app_users (id, keycloak_subject, email, display_name, status) VALUES (1293002, 'phase129-member-id-link', 'member-id-link@example.test', 'member-id-link', 'active');"+
+		"INSERT INTO fansub_groups (id, slug, name, status) VALUES (1293003, 'phase129-member-id-link', 'Phase129 Member ID Group', 'active');"+
+		"INSERT INTO fansub_group_members (fansub_group_id, app_user_id, member_id, status) VALUES (1293003, 1293002, 1293001, 'active');",
 	)
 
 	memberships, err := repo.loadMemberships(context.Background(), 1293001, 0, false, false)
