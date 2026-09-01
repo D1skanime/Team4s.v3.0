@@ -27,17 +27,49 @@ created: 2026-09-01
 | **Frontend lint** | `docker compose exec team4sv30-frontend npx eslint .` |
 | **Backend framework** | `go test`, no separate config file |
 | **Backend quick run** | `docker compose exec team4sv30-backend go test ./internal/<pkg>/... -run <Test>` |
-| **Backend full suite** | `docker compose exec team4sv30-backend go test ./...` |
-| **Measured baseline (2026-09-01, HEAD)** | Frontend: 58 failed, 2088 passed, 1 skipped, 3 todo, 11 uncaught errors (2150 total) across the 17 files named in CONTEXT.md Kriterium 1. Backend: `./internal/repository/...` currently FAILs (pre-existing, unrelated to this phase's new work — baseline to preserve/improve, not regress). |
-| **Estimated runtime** | ~90s frontend full suite; backend package-scoped runs are faster, full `./...` not yet timed |
+| **Backend full suite** | **UNATTAINABLE as an unqualified gate — see "Backend Gate Qualification" below.** There is no single `go test ./...` (or bare `./internal/repository/...`) invocation that returns green, with or without a DSN. |
+| **Backend DSN-gated run** | `docker run --rm --network team4s_default -v /home/d1sk/team4s:/workspace -v team4s-phase143-go-mod:/go/pkg/mod -v team4s-phase143-go-build:/root/.cache/go-build -w /workspace/backend -e TEAM4S_PHASE128_TEST_DSN='postgres://team4s:team4s_dev_password@team4sv30-db:5432/team4s_phase128_test?sslmode=disable' golang:1.25-alpine go test <package(s)> -run <Test> -count=1` — documented project pattern (see `.planning/phases/130-.../130-02-PLAN.md`, `129-VERIFICATION.md`, `142-UAT.md`): ephemeral `golang:1.25-alpine` container joined to the `team4s_default` compose network, DSN derived from the backend container's own `DATABASE_URL` (`postgres://team4s:team4s_dev_password@team4sv30-db:5432/team4s_v2?sslmode=disable`) with the database name swapped for the throwaway fixture `team4s_phase128_test`. |
+| **Measured baseline (2026-09-01, HEAD)** | Frontend: 58 failed, 2088 passed, 1 skipped, 3 todo, 11 uncaught errors (2150 total) across the 17 files named in CONTEXT.md Kriterium 1. Backend `./internal/repository/...`: 36 failures without any DSN — 35 of them are `t.Fatalf("%s is required for Phase-128 PostgreSQL tests", ...)` from `backend/internal/testsupport/phase128_postgres.go:27` (the DSN-gate calls `t.Fatal`, not `t.Skip`, so it fails hard rather than skipping), the 36th (`TestEvaluateMemberMutationConflictBlocksLastActiveManager`) is an unrelated pre-existing logic failure. Supplying `TEAM4S_PHASE128_TEST_DSN` clears the 35 Fatal-DSN failures but does not turn the package green — 20 further pre-existing failures remain, unrelated to this phase: `TestEvaluateMemberMutationConflictBlocksLastActiveManager` (1), `TestLoadContributionBadgesPostgres*` (4), `TestGetOwnDashboardPostgres*` (5), `TestLoadRoleVolumeBadgesPostgres*` (2), `TestPhase134Matrix*` (8, require a live server + Keycloak reachable at the tunnel address, unreachable from an isolated test container). `backend/internal/migrations/...` has its own, separate DSN-Fatal set (`TEAM4S_PHASE134_MIGRATION_DSN` for `TestPhase134MigrationFreshUpDownProof`, which additionally must point at the `postgres` maintenance database, not the throwaway DB itself; plus 4 more `TestPhase128Migration*` tests gated on `TEAM4S_PHASE128_TEST_DSN`). None of this baseline is Phase-143 regression — all measured directly against HEAD before this phase's execution. |
+| **Estimated runtime** | ~90s frontend full suite; backend package-scoped/`-run`-filtered commands are seconds each |
+
+---
+
+## Backend Gate Qualification (replaces "full backend suite")
+
+A bare `go test ./...` or bare `go test ./internal/repository/...` can never be used as a wave/pre-verify
+gate for this phase, for two independent reasons, both measured against HEAD before any Phase-143 change:
+
+1. **DSN-Fatal, not DSN-Skip.** `backend/internal/testsupport/phase128_postgres.go` calls `t.Fatalf`
+   when `TEAM4S_PHASE128_TEST_DSN` is unset (35 tests in `internal/repository`, 4 more in
+   `internal/migrations`), and `backend/internal/migrations/fresh_proof_test.go` does the same for
+   `TEAM4S_PHASE134_MIGRATION_DSN`. Rewriting these to `t.Skip` is out of scope for this phase — the
+   fix here is procedural: supply the DSN via the **Backend DSN-gated run** command above wherever a
+   gate specifically needs to exercise that test set.
+2. **DSN alone does not turn the package green.** Even with `TEAM4S_PHASE128_TEST_DSN` supplied,
+   `internal/repository` still has 20 further pre-existing failures unrelated to Phase 143 (listed in
+   the Measured Baseline row above), and `internal/migrations` needs a second, differently-shaped DSN
+   pointed at a maintenance database. These are knowingly excluded from this phase's gates — not chased,
+   not waived as "phase debt," simply pre-existing and out of scope.
+
+**Backend pass condition for this phase (replaces "full suite green"):** for every backend criterion
+(2, 3, 4, 5, 7), the gate is `go build ./...` succeeds AND a `-run`-filtered `go test` invocation naming
+only this phase's own new/changed tests passes (exact filters are already present in each plan's
+task-level `<automated>` commands and restated at each plan's wave-end `<verification>` block). This is
+the same idiom Plans 143-01/143-02 already use for their own non-DSN-affected packages ("passes with the
+same pass/fail set as before this plan") — applied here explicitly because the DSN-gated package cannot
+support a literal before/after full-package diff.
 
 ---
 
 ## Sampling Rate
 
 - **After every task commit:** run the vitest/go test scope touching the changed file(s) only
-- **After every plan wave:** full frontend suite (`npx vitest run`) + full backend suite (`go test ./...`) + `npx eslint .`
-- **Before `/gsd:verify-work`:** both full suites green, per the exceptions named in Criterion 1 below; `no-restricted-syntax` at `error` with zero violations
+- **After every plan wave:** full frontend suite (`npx vitest run`) + `go build ./...` + the wave's own
+  `-run`-filtered backend test set (see "Backend Gate Qualification" — no bare full-package backend run)
+  + `npx eslint .`
+- **Before `/gsd:verify-work`:** frontend full suite green per the Criterion 1 pass condition below;
+  backend: `go build ./...` succeeds and every criterion's named `-run` filter passes; `no-restricted-syntax`
+  at `error` with zero violations
 - **Max feedback latency:** ~90s (frontend full suite dominates)
 
 ---
@@ -49,9 +81,13 @@ created: 2026-09-01
 - **Measurement:** full `npx vitest run`. Record exact before/after counts (failed files, failed tests,
   uncaught errors, total). Measured baseline above is the "before."
 - **Pass condition:** every one of the 17 files from CONTEXT.md Kriterium 1 is green, OR is named
-  explicitly in the phase SUMMARY.md with a stated reason it stays red (e.g. the pre-existing
-  `TestPhase136NarrowRoleDefaultsSeedToHandlerContract` migration-path mismatch, which CONTEXT.md
-  already flags as out-of-scope). No file may go from green to red as a side effect.
+  explicitly in the phase SUMMARY.md with a stated reason it stays red. No file may go from green to
+  red as a side effect. Note: `TestPhase136NarrowRoleDefaultsSeedToHandlerContract` was flagged in
+  CONTEXT.md as an allowed pre-existing exception (migration-path mismatch); that is stale — it was
+  fixed same-day in commit `fa023325` (quick task 260901-la2, renamed `phase136RepositoryRoot` to
+  `phase136BackendRoot` and added `phase136RepoRoot` for the migration read) and is confirmed green
+  as of this validation strategy. It is no longer an allowed exception; nothing in this phase may
+  regress it.
 - **Specific sub-checks:**
   - Contract-drift: `shared/contracts/openapi.yaml` `PublicMemberBadge.next_tier` enum and
     `frontend/src/types/__tests__/v12-projection-contract.test.ts:276` expectation must agree
@@ -71,9 +107,12 @@ created: 2026-09-01
   (they must NOT be deleted by the down, unlike current 0154 behavior which wipes and
   re-inserts everything including techadmin rows).
 - **Concrete baseline:** live DB is at migration 158, `role_capabilities` has 259 rows.
-- **Automated command:** run via `backend database/migrations` test harness (`testsupport` package
-  already applies the full migration chain per-test-schema — reuse that path) or a targeted
-  `go test` against the new migration pair.
+- **Automated command:** `docker compose exec team4sv30-backend go test ./internal/migrations/... -run TestPhase143RoleCapabilityDefaultsResetIdempotentAndReversible -v`
+  — not a bare `./internal/migrations/...` (see "Backend Gate Qualification" above: that package
+  Fatal-errors without `TEAM4S_PHASE134_MIGRATION_DSN`/`TEAM4S_PHASE128_TEST_DSN` on tests unrelated
+  to this criterion). The test itself forces real re-execution of 0159's raw SQL by deleting its
+  `schema_migrations` tracking row between the two `Up()` calls (a bare second `Runner.Up()` call is
+  a guaranteed no-op regardless of SQL content, since the runner skips already-tracked versions).
 
 ### Criterion 3 — Roh-SQL im Handler → Repository-Layer
 
@@ -93,7 +132,12 @@ created: 2026-09-01
   without group-edit rights still sees the attention item.
 - **Memoization check:** test asserts the permission lookup is called once per distinct group/user
   pair, not once per row (N+1 check — e.g. via a call-counting fake/spy on the permission checker).
-- **Automated command:** `docker compose exec team4sv30-backend go test ./internal/repository/... ./internal/handlers/...`
+- **Automated command:** `go build ./...` succeeds, plus
+  `docker compose exec team4sv30-backend go test ./internal/repository/... -run "TestReleaseReviewQueryRepository|TestMemberClaimsRepositoryListPendingClaimAttentionCandidates"`
+  and `docker compose exec team4sv30-backend go test ./internal/handlers/... -run "TestDashboardMeHandler|TestGetOwnDashboard"`
+  — not a bare `./internal/repository/...` (see "Backend Gate Qualification" above: that package
+  Fatal-errors on 35 unrelated pre-existing tests without `TEAM4S_PHASE128_TEST_DSN`, and has 20 more
+  pre-existing failures unrelated to this phase even with the DSN supplied).
 
 ### Criterion 4 — Fokus-Tests für ungetestete neue Logik
 
@@ -107,7 +151,12 @@ created: 2026-09-01
   vor einem bereits abgeschlossenen Release" rule directly (not just the existing 403-only test
   `TestUpdateAnimeFansubProjectTimelineDeniesQualityChecker`, which also hits the wrong route
   `/project-timeline` instead of `/timeline` — fix the route in that test too).
-- **Automated command:** `docker compose exec team4sv30-backend go test ./internal/services/... ./internal/repository/...`
+- **Automated command:** `go build ./...` succeeds, plus
+  `docker compose exec team4sv30-backend go test ./internal/services/... -run TestReleaseMetadataCreditServiceAwardIfCompleted -v`,
+  `docker compose exec team4sv30-backend go test ./internal/repository/... -run TestUpdateAnimeFansubProjectTimelineRejectsEndBeforeCompletedRelease -v`,
+  and `docker compose exec team4sv30-backend go test ./internal/handlers/... -run TestUpdateAnimeFansubProjectTimelineDeniesQualityChecker -v`
+  — the `internal/repository` filter avoids the same DSN-Fatal/pre-existing-failure set noted under
+  Criterion 3.
 
 ### Criterion 5 — `has_own_notes` zählt abgelehnte Notiz nicht als erledigt
 
@@ -122,8 +171,10 @@ created: 2026-09-01
 - **No special-casing needed for `tombstoned`:** confirm via existing cleanup repository behavior
   (`release_review_cleanup_repository.go` sets `deleted_at`) that a tombstoned note is already
   excluded by the `deleted_at IS NULL` clause — add a test asserting this stays true, not new logic.
-- **Automated command:** `docker compose exec team4sv30-backend go test ./internal/repository/...` +
-  `docker compose exec team4sv30-frontend npx vitest run src/app/me/projects`
+- **Automated command:** `go build ./...` succeeds, plus
+  `docker compose exec team4sv30-backend go test ./internal/repository/... -run "TestAnimeContributionsMemberProject|TestGetMemberProjectDetail" -v` +
+  `docker compose exec team4sv30-frontend npx vitest run src/app/me/projects` — not a bare
+  `./internal/repository/...` (see "Backend Gate Qualification" above).
 
 ### Criterion 6 — Design-System statt nativer Elemente / Inline-Styles / roher Hex-Werte
 
@@ -158,8 +209,11 @@ created: 2026-09-01
   `review_state = 'rejected'` renders, never `tombstoned`.
 - **Contract sync check:** backend DTO, frontend TypeScript type, and `shared/contracts/openapi.yaml`
   must describe the same shape — no field present in one but not the others.
-- **Automated command:** `docker compose exec team4sv30-backend go test ./internal/repository/... ./internal/handlers/...` +
-  `docker compose exec team4sv30-frontend npx vitest run src/app/me/dashboard`
+- **Automated command:** `go build ./...` succeeds, plus
+  `docker compose exec team4sv30-backend go test ./internal/repository/... -run TestReleaseReviewQueryRepositoryPendingOwnNoteRevisionAttention -v`,
+  `docker compose exec team4sv30-backend go test ./internal/handlers/... -run "TestDashboardMeHandler|TestGetOwnDashboard"`, and
+  `docker compose exec team4sv30-frontend npx vitest run src/app/me/dashboard` — not a bare
+  `./internal/repository/...` (see "Backend Gate Qualification" above).
 
 ---
 
