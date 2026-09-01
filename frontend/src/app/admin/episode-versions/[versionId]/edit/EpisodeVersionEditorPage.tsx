@@ -149,7 +149,7 @@ export function EpisodeVersionEditorPage() {
     const fansubId = editor.selectedGroups[0]?.id;
     const animeId = editor.contextData?.version.anime_id;
     if (!fansubId || !animeId) {
-      setProjectTimeline(null);
+      queueMicrotask(() => setProjectTimeline(null));
       return;
     }
 
