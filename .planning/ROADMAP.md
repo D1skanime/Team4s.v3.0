@@ -731,7 +731,7 @@ Plans:
 
 **Randbedingungen:** Keine parallelen Systeme, keine neuen Auth- oder Fixture-Wege, atomare Commits pro Task, Produktionsdateien bleiben bei maximal 450 Zeilen. Reihenfolge der Kriterien 1-7 ist verbindlich (Kriterium 7 baut auf der Repository-Aggregation aus Kriterium 3 auf). Vier Dateien haben die 450-Zeilen-Grenze im Phase-142-Zeitraum überschritten und werden in dieser Phase darunter zurückgeführt: `backend/internal/repository/member_claims_repository.go` (516), `frontend/src/app/me/releases/[versionId]/workspace/page.tsx` (469), `backend/internal/repository/anime_contributions_proposal_repository.go` (461), `backend/internal/repository/member_profile_projects_repository.go` (458). Kriterium 7 darf `workspace/page.tsx` nicht weiter wachsen lassen. Zusätzlich wird `backend/internal/handlers/app_auth.go` (1308 Zeilen, im Zeitraum von 1254 gewachsen) in vier Dateien desselben Pakets aufgeteilt — reine Dateiverschiebung ohne Signatur-, Routen- oder Verhaltensänderung, `app_auth_test.go` bleibt unverändert lauffähig: `app_auth.go` behält Handler-Struct, Konstruktor, Store-Interfaces, `GetCurrentUser`, `ListAppUsers` und `HandleKeycloakBackchannelLogout` (~220 Zeilen); `app_auth_invitations.go` bekommt die Invitation-Request-Typen sowie `ListFansubGroupInvitations`, `CreateFansubGroupInvitation`, `CancelFansubGroupInvitation` und `AcceptFansubInvitation` (~455); `app_auth_group_members.go` die Member-Request-Typen sowie `ListFansubGroupAppMembers`, `SearchFansubGroupAppMemberCandidates`, `CreateFansubGroupAppMember`, `SetFansubGroupMemberRole`, `SetFansubLead`, `setFansubGroupMemberRole`, `UpdateFansubGroupMemberStatus`, `SetFansubGroupMemberMediaPermissions` und `normalizeRequestedFansubRoles` (~400); `app_auth_capabilities.go` den Response-Typ und `GetFansubGroupCapabilities` (~230). Die beiden überlangen Funktionen `GetFansubGroupCapabilities` (229 Zeilen) und `CreateFansubGroupInvitation` (185) werden dabei nicht zerlegt — das ist eine eigene Entscheidung ausserhalb dieser Phase.
 
-**Plans:** 6/14 plans executed
+**Plans:** 7/14 plans executed
 
 Plans:
 **Wave 1**
@@ -742,7 +742,7 @@ Plans:
 - [x] 143-04-PLAN.md — Extract workspace/page.tsx helpers into workspaceHelpers.ts (450-line remediation, pre-Criterion-7)
 - [x] 143-05-PLAN.md — Criterion 1: contract drift, RoleCatalogProvider mocks, episode-versions api mock fix (5 files)
 - [x] 143-06-PLAN.md — Criterion 1: role-color/role-label regression cluster (6 files)
-- [ ] 143-07-PLAN.md — Criterion 1: remaining individually-triaged red test files (6 files)
+- [x] 143-07-PLAN.md — Criterion 1: remaining individually-triaged red test files (6 files)
 
 **Wave 2** *(blocked on Wave 1 completion)*
 

@@ -3,14 +3,14 @@ gsd_state_version: 1.0
 milestone: v1.4
 milestone_name: Coverage
 status: executing
-stopped_at: Completed 143-06-PLAN.md
-last_updated: "2026-09-01T21:21:01.997Z"
+stopped_at: Completed 143-07-PLAN.md
+last_updated: "2026-09-01T21:42:26.147Z"
 last_activity: 2026-09-01
 progress:
   total_phases: 8
   completed_phases: 7
   total_plans: 98
-  completed_plans: 90
+  completed_plans: 91
   percent: 88
 ---
 
@@ -34,7 +34,7 @@ See: .planning/PROJECT.md (updated 2026-08-13)
 ## Current Position
 
 Phase: 143 (phase-142-nacharbeit-und-dashboard-lane-f-r-abgelehnte-notiz) — EXECUTING
-Plan: 7 of 14
+Plan: 8 of 14
 Status: Ready to execute
 Last activity: 2026-09-01
 
@@ -217,6 +217,8 @@ Last activity: 2026-09-01
 - [Phase 143]: Plan 05: PublicMemberBadge.next_tier enum stays [bronze, silver, gold, platinum] in openapi.yaml (already correct); stale test assertions were updated instead of the contract. — The contract side was already correct; only the test was stale.
 - [Phase 143]: Plan 05: fixed 5 of 17 Kriterium-1 red frontend test files via RoleCatalogProvider mocks plus 6 chained phase-142 test-drift fixes (stale visibility default, renamed DatePicker label, missing api mock exports, missing form fixture field) that surfaced only once the provider crash stopped masking them. — Each secondary fix was verified via git show/git log -p to be genuine phase-142 app-code drift, not unrelated pre-existing defects; full unscoped test run confirms zero regressions against CONTEXT.md's documented 17-file inventory.
 - [Phase 143]: 143-06: added roleCatalog.ts's categoryForRole(rows, code) as the dedicated semantic-category data-role-code helper, decoupled from presentationForRole()'s bounded-hex-swatch contract (Phase 136-30); migrated ContributionCard.tsx/ProjectMemberReleaseCard.tsx/ProjectMemberHero.tsx (undocumented sixth call site, same regression)/me-projects-group-page.tsx/MemberCurrentProjectsSection.tsx to it, and reverted roleColorCode (roleColors.ts) and roleLabelForCode (useGroupMembersTab.ts) to their git-proven pre-regression label-lookup implementations -- FANSUB_GROUP_ROLE_OPTIONS no longer exists (removed in fa98ce8d, Phase 136-08), so roleColorCode's label->code map was rebuilt as a local Map instead of an import.
+- [Phase ?]: [Phase 143, 2026-09-01]: 143-07 closed Kriterium 1's last 6 red frontend test files. MemberBadgeChain.tsx itself needed zero production changes -- members/[slug]/page.test.tsx's missing Rollenfortschritt heading was a stale RoleCatalogProvider mock fixture (catalogRoles lacked a 'timer' entry despite the profile fixture earning role_entry_timer), tripping Phase 136 CR-02's intentional catalog-trust gate as designed; MemberBadgeChain.test.tsx's other 4 failures were pre-existing Phase-119-era test debt (file unchanged since 2026-08-20, before Phase 142's commit range) superseded by currently-passing Phase 125/126/127 tests, corrected to match adopted behavior.
+- [Phase ?]: [Phase 143, 2026-09-01]: 143-07 narrowed next.config.mjs images.localPatterns from a blanket /media/** wildcard to /media/anime/**, /media/profile/**, /media/release-version/** -- the three namespaces a repo-wide grep of backend PublicURL construction proved real; no /media/group/** namespace exists (group logos route through the already-allow-listed /api/v1/media/image proxy) and /media/admin/** is deliberately never allow-listed (T-143-07-01). Full unscoped npx vitest run at 0 unexpected red files (288 files / 2146 tests) closes CONTEXT.md Kriterium 1 across the whole 143-05/06/07 wave.
 
 ### Pending Todos
 
@@ -493,10 +495,11 @@ untruncated list lives in `.planning/todos/pending/`.
 | Phase 143 P04 | 4min | 2 tasks | 2 files |
 | Phase 143 P05 | 15min | 3 tasks | 6 files |
 | Phase 143 P06 | 15min | 3 tasks | 9 files |
+| Phase 143 P07 | 20min | 3 tasks | 6 files |
 
 ## Session Continuity
 
-Last session: 2026-09-01T21:21:01.982Z
-Stopped at: Completed 143-06-PLAN.md
+Last session: 2026-09-01T21:42:26.132Z
+Stopped at: Completed 143-07-PLAN.md
 Last activity: 2026-09-01 - Milestone v1.4 audit passed (41/41 requirements, 7/7 phases, .planning/v1.4-MILESTONE-AUDIT.md); Phase 143 added to roadmap, not yet planned
 Resume file: None
