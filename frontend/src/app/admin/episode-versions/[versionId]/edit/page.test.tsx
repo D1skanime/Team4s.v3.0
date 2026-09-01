@@ -43,6 +43,7 @@ const useEpisodeNeighborNavigationMock = vi.fn();
 const getAuthSessionSnapshotMock = vi.fn();
 const getCurrentUserMock = vi.fn();
 const getReleaseVersionCapabilitiesMock = vi.fn();
+const getAnimeFansubProjectTimelineMock = vi.fn();
 
 vi.mock("./useEpisodeVersionEditor", () => ({
   useEpisodeVersionEditor: () => useEpisodeVersionEditorMock(),
@@ -78,6 +79,7 @@ vi.mock("@/lib/api", () => ({
   getCurrentUser: () => getCurrentUserMock(),
   getReleaseVersionCapabilities: (...args: unknown[]) =>
     getReleaseVersionCapabilitiesMock(...args),
+  getAnimeFansubProjectTimeline: () => getAnimeFansubProjectTimelineMock(),
 }));
 
 import { EpisodeVersionEditorPage } from "./EpisodeVersionEditorPage";
@@ -106,6 +108,7 @@ beforeEach(() => {
     hasRefreshToken: true,
     displayName: "Admin",
   });
+  getAnimeFansubProjectTimelineMock.mockResolvedValue(null);
 });
 
 function deferred<T>() {
@@ -176,6 +179,7 @@ function makeEditorState() {
       mediaItemID: "",
       videoQuality: "",
       subtitleType: "",
+      productionStartedOn: "",
       releaseDate: "",
       crc32: "1CC0A2E3",
       streamURL: "",
@@ -536,7 +540,7 @@ describe("EpisodeVersionEditorPage media tab", () => {
     await screen.findByRole("button", { name: "Informationen" });
 
     expect(
-      screen.getByRole("button", { name: "Release-Datum auswählen" }),
+      screen.getByRole("button", { name: "Bearbeitung abgeschlossen am auswählen" }),
     ).not.toBeNull();
     expect(screen.getByText("24.12.2009")).not.toBeNull();
   });
