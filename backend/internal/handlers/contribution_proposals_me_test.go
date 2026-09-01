@@ -3,7 +3,6 @@ package handlers
 import (
 	"context"
 	"encoding/json"
-	"errors"
 	"net/http"
 	"net/http/httptest"
 	"os"
@@ -680,4 +679,3 @@ func TestSelfPublish_StatusBleibtProposed(t *testing.T) {
 
 // Sicherheitsinvariant: Korrekte Umlaute in Fehlermeldungen.
 // Wird beim Code-Review manuell geprüft — D-19.
-var _ = errors.New // Sicherstellt dass errors-Paket importiert bleibt
