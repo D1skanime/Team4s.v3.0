@@ -4,7 +4,6 @@ import (
 	"context"
 	"errors"
 	"fmt"
-	"path/filepath"
 	"strconv"
 	"strings"
 	"time"
@@ -302,107 +301,108 @@ func (r *ReleaseReviewQueryRepository) Next(
 	return &page.Items[0], nil
 }
 
-func stringValue(value *string) string {
-	if value == nil {
-		return ""
-	}
-	return *value
-}
-
-func releaseReviewMediaURL(path *string) string {
-	if path == nil || strings.TrimSpace(*path) == "" {
-		return ""
-	}
-	normalized := filepath.ToSlash(strings.TrimSpace(*path))
-	if index := strings.LastIndex(normalized, "/media/"); index >= 0 {
-		return normalized[index:]
-	}
-	if strings.HasPrefix(normalized, "media/") {
-		return "/" + normalized
-	}
-	return ""
-}
-
-func scanReleaseReviewQueueItem(
-	scanner interface{ Scan(...any) error },
-	item *ReleaseReviewQueueItem,
-	key *ReleaseReviewSortKey,
-) error {
-	if err := scanner.Scan(releaseReviewQueueScanTargets(item, key)...); err != nil {
-		return err
-	}
-	item.SubmittedAt = key.SubmittedAt
-	id, err := EncodeReleaseReviewID(key.SourceType, key.SourceID)
+// PendingGroupMediaReviewAttention lists fansub-group-owned media (excluding the group's
+// own logo/banner, which have their own dedicated review surface) currently awaiting
+// review, grouped by fansub group. Moved verbatim from
+// dashboard_me_handler.go's attachPendingGroupMediaReviewAttention (Plan 143-09,
+// Criterion 3) -- zero SQL change. Permission filtering (and its correct action,
+// permissions.ActionReviewImageDecide) stays the handler's responsibility.
+func (r *ReleaseReviewQueryRepository) PendingGroupMediaReviewAttention(
+	ctx context.Context,
+) ([]OwnDashboardPendingGroupMediaReview, error) {
+	rows, err := r.db.Query(ctx, `
+		SELECT fgm.group_id, fg.name, COUNT(*)
+		FROM fansub_group_media fgm
+		JOIN media_assets ma ON ma.id = fgm.media_id
+		JOIN fansub_groups fg ON fg.id = fgm.group_id
+		JOIN review_statuses rs ON rs.id = ma.review_status_id
+		WHERE fgm.deleted_at IS NULL AND rs.code = 'in_review'
+		AND (fg.logo_id IS NULL OR ma.id <> fg.logo_id) AND (fg.banner_id IS NULL OR ma.id <> fg.banner_id)
+		GROUP BY fgm.group_id, fg.name
+	`)
 	if err != nil {
-		return err
+		return nil, fmt.Errorf("list pending group media review attention: %w", err)
 	}
-	item.ID = id
-	return nil
+	defer rows.Close()
+
+	items := make([]OwnDashboardPendingGroupMediaReview, 0)
+	for rows.Next() {
+		var item OwnDashboardPendingGroupMediaReview
+		if err := rows.Scan(&item.FansubGroupID, &item.FansubGroupName, &item.Count); err != nil {
+			return nil, fmt.Errorf("scan pending group media review attention: %w", err)
+		}
+		items = append(items, item)
+	}
+	if err := rows.Err(); err != nil {
+		return nil, fmt.Errorf("iterate pending group media review attention: %w", err)
+	}
+	return items, nil
 }
 
-func releaseReviewQueueScanTargets(item *ReleaseReviewQueueItem, key *ReleaseReviewSortKey) []any {
-	return []any{
-		&key.SourceType, &key.SourceID, &item.SourceRevision, &item.ReviewKind, &item.Category,
-		&item.Status, &item.FansubGroupID, &item.AnimeID, &item.AnimeTitle,
-		&item.EpisodeID, &item.EpisodeNumber, &item.ReleaseID, &item.ReleaseVersionID,
-		&item.ReleaseVersion, &item.SubmitterAppUserID, &item.SubmitterMemberID,
-		&item.SubmitterDisplayName, &key.SubmittedAt, &item.LastActivityAt, &item.DecidedAt,
-	}
-}
-
-const releaseReviewQueueColumns = `
-	source.source_type, source.source_id, source.source_revision, source.review_kind,
-	COALESCE(source.category, ''), source.review_state, source.fansub_group_id,
-	source.anime_id, source.anime_title, source.episode_id, source.episode_number,
-	source.release_id, source.release_version_id, source.release_version,
-	source.submitter_app_user_id, source.submitter_member_id, source.submitter_display_name,
-	source.submitted_at, source.last_activity_at, source.decided_at`
-
-const releaseReviewQueueBaseSQL = `
-	WITH review_sources AS (
-		SELECT lifecycle.source_type, lifecycle.source_id, lifecycle.source_revision,
-		       lifecycle.review_kind, lifecycle.category, lifecycle.review_state,
-		       COALESCE(note.fansub_group_id, media.fansub_group_id) AS fansub_group_id,
-		       anime.id AS anime_id, COALESCE(anime.title_de, anime.title_en, anime.title, '') AS anime_title,
-		       episode.id AS episode_id, COALESCE(episode.episode_number, '')::text AS episode_number,
-		       release.id AS release_id, version.id AS release_version_id, version.version AS release_version,
-		       lifecycle.submitter_app_user_id, lifecycle.submitter_member_id,
-		       COALESCE(NULLIF(TRIM(member.display_name), ''), member.nickname, '') AS submitter_display_name,
-		       lifecycle.submitted_at, lifecycle.last_activity_at, lifecycle.decided_at,
-		       note.title AS note_title, note.body_html AS note_html, media.caption,
-		       thumb.path AS thumbnail_path, original.path AS original_path,
-		       CONCAT_WS(' ', COALESCE(anime.title_de, anime.title_en, anime.title, ''),
-		           episode.episode_number::text, version.version,
-		           COALESCE(NULLIF(TRIM(member.display_name), ''), member.nickname, '')) AS search_text
+// PendingReleaseReviewAttention lists actionable, still-pending release reviews grouped by
+// fansub group and anime, for one actor. Moved verbatim from
+// dashboard_me_handler.go's attachPendingReleaseReviewAttention (Plan 143-09, Criterion 3).
+//
+// The self-exclusion predicate below is intentionally the ONLY copy of this rule left in
+// the codebase after this move (RQUE-02/D15, Phase 141) -- it excludes the actor's own
+// submissions via BOTH identity signals: a direct submitter_app_user_id match, and a
+// verified member_claims match (the actor is verified as the same member the row's
+// submitter_member_id names, even under a different app_user_id).
+func (r *ReleaseReviewQueryRepository) PendingReleaseReviewAttention(
+	ctx context.Context,
+	actorAppUserID int64,
+) ([]OwnDashboardPendingReleaseReview, error) {
+	rows, err := r.db.Query(ctx, `
+		SELECT
+			version_group.fansub_group_id,
+			anime.id,
+			COALESCE(anime.title_de, anime.title_en, anime.title, ''),
+			COUNT(*) FILTER (WHERE lifecycle.review_kind = 'image'),
+			COUNT(*) FILTER (WHERE lifecycle.review_kind = 'text')
 		FROM release_review_lifecycle_sources lifecycle
 		LEFT JOIN release_version_notes note
-		  ON lifecycle.source_type = 'release_version_note' AND note.id = lifecycle.source_id AND note.deleted_at IS NULL
+		  ON lifecycle.source_type = 'release_version_note'
+		 AND note.id = lifecycle.source_id
+		 AND note.deleted_at IS NULL
 		LEFT JOIN release_version_media media
-		  ON lifecycle.source_type = 'release_version_media' AND media.id = lifecycle.source_id AND media.deleted_at IS NULL
-		JOIN release_versions version ON version.id = COALESCE(note.release_version_id, media.release_version_id)
+		  ON lifecycle.source_type = 'release_version_media'
+		 AND media.id = lifecycle.source_id
+		 AND media.deleted_at IS NULL
+		JOIN release_versions version
+		  ON version.id = COALESCE(note.release_version_id, media.release_version_id)
 		JOIN release_version_groups version_group
 		  ON version_group.release_version_id = version.id
 		 AND version_group.fansub_group_id = COALESCE(note.fansub_group_id, media.fansub_group_id)
 		JOIN fansub_releases release ON release.id = version.release_id
 		JOIN episodes episode ON episode.id = release.episode_id
-		JOIN anime anime ON anime.id = episode.anime_id
-		JOIN members member ON member.id = lifecycle.submitter_member_id
-		LEFT JOIN LATERAL (
-			SELECT media_file.path
-			FROM media_files media_file
-			WHERE media_file.media_id = media.media_asset_id
-			  AND media_file.variant = 'thumb'
-			  AND media_file.status = 'ready'
-			ORDER BY media_file.id
-			LIMIT 1
-		) thumb ON TRUE
-		LEFT JOIN LATERAL (
-			SELECT media_file.path
-			FROM media_files media_file
-			WHERE media_file.media_id = media.media_asset_id
-			  AND media_file.variant = 'original'
-			  AND media_file.status = 'ready'
-			ORDER BY media_file.id
-			LIMIT 1
-		) original ON TRUE
-	)`
+		JOIN anime ON anime.id = episode.anime_id
+		WHERE lifecycle.review_state = 'pending'
+		  AND lifecycle.submitter_app_user_id <> $1
+		  AND NOT EXISTS (
+			SELECT 1
+			FROM member_claims own_claim
+			WHERE own_claim.app_user_id = $1
+			  AND own_claim.claim_status = 'verified'
+			  AND own_claim.member_id = lifecycle.submitter_member_id
+		  )
+		GROUP BY version_group.fansub_group_id, anime.id, anime.title_de, anime.title_en, anime.title
+		ORDER BY anime.id, version_group.fansub_group_id
+	`, actorAppUserID)
+	if err != nil {
+		return nil, fmt.Errorf("list pending release review attention: %w", err)
+	}
+	defer rows.Close()
+
+	items := make([]OwnDashboardPendingReleaseReview, 0)
+	for rows.Next() {
+		var item OwnDashboardPendingReleaseReview
+		if err := rows.Scan(&item.FansubGroupID, &item.AnimeID, &item.AnimeTitle, &item.ImageCount, &item.TextCount); err != nil {
+			return nil, fmt.Errorf("scan pending release review attention: %w", err)
+		}
+		items = append(items, item)
+	}
+	if err := rows.Err(); err != nil {
+		return nil, fmt.Errorf("iterate pending release review attention: %w", err)
+	}
+	return items, nil
+}

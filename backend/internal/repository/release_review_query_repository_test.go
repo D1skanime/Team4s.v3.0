@@ -831,3 +831,130 @@ func TestReleaseReviewQueueNeverIncludesContributionSourceType(t *testing.T) {
 		Scope: scope, AllowedKinds: []string{"contribution"}, Limit: 50,
 	}), ErrValidation)
 }
+
+// TestPendingReleaseReviewAttentionExcludesActorsOwnSubmissionsViaBothSignals proves the
+// PendingReleaseReviewAttention method (moved from dashboard_me_handler.go, Plan 143-09
+// Criterion 3) keeps RQUE-02/D15's two-signal self-exclusion intact: a direct
+// submitter_app_user_id match AND a verified member_claims match (a different submitting
+// app_user acting on behalf of a member the actor is themselves verified as) are both
+// excluded, while a genuinely foreign submission remains visible.
+func TestPendingReleaseReviewAttentionExcludesActorsOwnSubmissionsViaBothSignals(t *testing.T) {
+	pool := openReleaseReviewQueryFixture(t)
+	ctx := context.Background()
+
+	// Second-signal fixture row: submitted by a distinct app_user (13) on behalf of
+	// member 101 -- the same member actor app_user 11 is verified as via a new
+	// member_claims row below.
+	_, err := pool.Exec(ctx, `
+		INSERT INTO users(id) VALUES (1003);
+		INSERT INTO app_users(id, status, legacy_user_id) VALUES (13, 'active', 1003);
+		INSERT INTO member_claims(id, member_id, app_user_id, claim_status) VALUES (901, 101, 11, 'verified');
+		INSERT INTO media_assets(id) VALUES (704);
+		INSERT INTO media_files(id, media_id, variant, path, status) VALUES
+			(805, 704, 'original', '/app/media/review/704/original.png', 'ready');
+		INSERT INTO release_version_media(
+			id, release_version_id, fansub_group_id, media_asset_id, category, caption, uploaded_by_user_id
+		) VALUES (604, 41, 21, 704, 'other', 'Bild Drei', 1003);
+		INSERT INTO release_version_media_review_lifecycle(
+			release_version_media_id, source_revision, review_state, category,
+			submitter_app_user_id, submitter_member_id, submitted_at, last_activity_at, decided_at
+		) VALUES (604, 1, 'pending', 'other', 13, 101, '2026-07-23T09:00:00Z', '2026-07-23T09:00:00Z', NULL);
+	`)
+	require.NoError(t, err)
+
+	repo := NewReleaseReviewQueryRepository(pool)
+
+	// Actor 11 is the direct submitter of 501/601/602 AND (via the new member_claims row)
+	// verified as member 101, the submitter of 604 -- every pending row in group 21 must
+	// be excluded via one of the two identity signals.
+	ownItems, err := repo.PendingReleaseReviewAttention(ctx, 11)
+	require.NoError(t, err)
+	assert.Empty(t, ownItems, "actor's own submissions via both identity signals must be excluded")
+
+	// Actor 12 is neither the submitter nor verified as member 101 -- sees the full set.
+	foreignItems, err := repo.PendingReleaseReviewAttention(ctx, 12)
+	require.NoError(t, err)
+	require.Len(t, foreignItems, 2)
+	byAnime := map[int64]OwnDashboardPendingReleaseReview{}
+	for _, item := range foreignItems {
+		byAnime[item.AnimeID] = item
+	}
+	require.Contains(t, byAnime, int64(81))
+	group21 := byAnime[81]
+	assert.EqualValues(t, 21, group21.FansubGroupID)
+	assert.EqualValues(t, 3, group21.ImageCount, "601, 602, 604 are all pending image rows in group 21/anime 81")
+	assert.EqualValues(t, 1, group21.TextCount)
+	require.Contains(t, byAnime, int64(82))
+	group22 := byAnime[82]
+	assert.EqualValues(t, 22, group22.FansubGroupID)
+	assert.EqualValues(t, 0, group22.ImageCount)
+	assert.EqualValues(t, 1, group22.TextCount)
+}
+
+// openDashboardGroupMediaAttentionFixture seeds the fansub_group_media/media_assets/
+// review_statuses/fansub_groups shape PendingGroupMediaReviewAttention queries. Deliberately
+// separate from openReleaseReviewQueryFixture (which already owns a media_assets/fansub_groups
+// shape without a review_status_id/name/logo_id/banner_id, used by unrelated release-review-
+// queue tests) rather than risk a regression by widening a shared fixture many other tests
+// depend on.
+func openDashboardGroupMediaAttentionFixture(t *testing.T) *pgxpool.Pool {
+	t.Helper()
+	pool := testsupport.OpenPhase107Postgres(t)
+	ctx := context.Background()
+	_, err := pool.Exec(ctx, `
+		CREATE TABLE review_statuses (
+			id BIGINT PRIMARY KEY, code TEXT NOT NULL
+		);
+		CREATE TABLE media_assets (
+			id BIGINT PRIMARY KEY,
+			review_status_id BIGINT REFERENCES review_statuses(id)
+		);
+		ALTER TABLE fansub_groups
+			ADD COLUMN name TEXT NOT NULL DEFAULT '',
+			ADD COLUMN logo_id BIGINT REFERENCES media_assets(id) ON DELETE SET NULL,
+			ADD COLUMN banner_id BIGINT REFERENCES media_assets(id) ON DELETE SET NULL;
+		CREATE TABLE fansub_group_media (
+			id BIGINT PRIMARY KEY,
+			group_id BIGINT NOT NULL REFERENCES fansub_groups(id),
+			media_id BIGINT NOT NULL REFERENCES media_assets(id),
+			deleted_at TIMESTAMPTZ
+		);
+	`)
+	require.NoError(t, err)
+	return pool
+}
+
+// TestPendingGroupMediaReviewAttentionExcludesLogoBannerAndNonReviewItems proves
+// PendingGroupMediaReviewAttention (moved from dashboard_me_handler.go, Plan 143-09
+// Criterion 3) preserves its exact prior filtering: only fansub_group_media rows that are
+// (a) not soft-deleted, (b) in review_statuses.code = 'in_review', and (c) neither the
+// group's own logo_id nor banner_id are counted, grouped per fansub group.
+func TestPendingGroupMediaReviewAttentionExcludesLogoBannerAndNonReviewItems(t *testing.T) {
+	pool := openDashboardGroupMediaAttentionFixture(t)
+	ctx := context.Background()
+
+	_, err := pool.Exec(ctx, `
+		INSERT INTO review_statuses(id, code) VALUES (1, 'in_review'), (2, 'approved');
+		INSERT INTO fansub_groups(id, name) VALUES (21, 'Alpha'), (22, 'Beta');
+		INSERT INTO media_assets(id, review_status_id) VALUES
+			(701, 1), -- ordinary in-review group media -> counted
+			(702, 1), -- group 21's own logo, in-review -> excluded
+			(703, 2), -- approved, not in review -> excluded
+			(704, 1); -- in-review but soft-deleted link -> excluded
+		UPDATE fansub_groups SET logo_id = 702 WHERE id = 21;
+		INSERT INTO fansub_group_media(id, group_id, media_id, deleted_at) VALUES
+			(1, 21, 701, NULL),
+			(2, 21, 702, NULL),
+			(3, 21, 703, NULL),
+			(4, 21, 704, NOW());
+	`)
+	require.NoError(t, err)
+
+	repo := NewReleaseReviewQueryRepository(pool)
+	items, err := repo.PendingGroupMediaReviewAttention(ctx)
+	require.NoError(t, err)
+	require.Len(t, items, 1, "only the one ordinary in-review, non-logo/banner, non-deleted item must be counted; group 22 has zero and must not appear")
+	assert.EqualValues(t, 21, items[0].FansubGroupID)
+	assert.Equal(t, "Alpha", items[0].FansubGroupName)
+	assert.EqualValues(t, 1, items[0].Count)
+}
