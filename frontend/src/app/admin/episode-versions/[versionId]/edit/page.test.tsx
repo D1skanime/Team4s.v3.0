@@ -414,7 +414,7 @@ describe("EpisodeVersionEditorPage media tab", () => {
       screen.queryByRole("button", { name: "Media / Assets" }),
     ).toBeNull();
     expect(
-      screen.queryByRole("button", { name: "Notizen / BeitrÃ¤ge" }),
+      screen.queryByRole("button", { name: "Notizen / Beiträge" }),
     ).toBeNull();
     expect(
       screen.queryByRole("button", { name: "Informationen" }),
