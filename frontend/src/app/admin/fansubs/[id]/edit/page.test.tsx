@@ -26,6 +26,20 @@ vi.mock('next/navigation', () => ({
   useSearchParams: () => new URLSearchParams(),
 }))
 
+const { catalogRoles } = vi.hoisted(() => ({
+  catalogRoles: [
+    { code: 'fansub_lead', label_de: 'Gruppenleitung', contexts: ['fansub_group', 'group_history'], sort_order: 10, color_key: '#183b7c', icon_key: 'crown' },
+    { code: 'editor', label_de: 'Editing', contexts: ['fansub_group', 'anime_contribution'], sort_order: 20, color_key: '#0f766e', icon_key: 'languages' },
+    { code: 'timer', label_de: 'Timing', contexts: ['fansub_group', 'anime_contribution'], sort_order: 30, color_key: '#c26a2e', icon_key: 'film' },
+    { code: 'quality_checker', label_de: 'Qualitätsprüfung', contexts: ['fansub_group', 'anime_contribution'], sort_order: 40, color_key: '#6b7f2a', icon_key: 'check' },
+    { code: 'raw_provider', label_de: 'Raw-Bereitstellung', contexts: ['fansub_group', 'anime_contribution'], sort_order: 50, color_key: '#a04444', icon_key: 'image' },
+  ],
+}))
+
+vi.mock('@/providers/RoleCatalogProvider', () => ({
+  useRoleCatalog: () => ({ roles: catalogRoles, error: null }),
+}))
+
 const mockedUseReleaseVersionMedia = vi.fn<(versionId: number | null) => UseReleaseVersionMediaResult>()
 const mockedUseAuthSession = vi.hoisted(() => vi.fn(() => ({ hasAccessToken: true, isClientInitialized: true })))
 const mediaUploadProps = vi.hoisted(() => [] as Array<Record<string, unknown>>)
@@ -48,6 +62,13 @@ const apiMocks = vi.hoisted(() => ({
   getAdminReleaseThemeAssets: vi.fn(),
   getAnimeCoverage: vi.fn().mockResolvedValue({ data: [] }),
   getAnimeFansubProjectNote: vi.fn().mockResolvedValue(null),
+  getAnimeFansubProjectTimeline: vi.fn().mockResolvedValue({
+    animeId: 0,
+    fansubGroupId: 0,
+    productionStartedOn: null,
+    productionCompletedOn: null,
+  }),
+  updateAnimeFansubProjectTimeline: vi.fn(),
   getCurrentUser: vi.fn(),
   getMyAnimeContributions: vi.fn().mockResolvedValue({ data: [] }),
   getFansubAliases: vi.fn(),
@@ -298,7 +319,7 @@ describe('ReleaseVersionMediaDrawerSummary', () => {
     )
 
     expect(screen.getByRole('link', { name: 'Media verwalten' })).not.toBeNull()
-    expect(screen.getByText(/Release-Screenshot:/i)).not.toBeNull()
+    expect(screen.getByText(/Fansub Screenshot:/i)).not.toBeNull()
   })
 })
 
@@ -497,6 +518,25 @@ describe('AdminFansubEditPage token-free wiring', () => {
       ],
     })
     apiMocks.getAdminFansubAnimeReleases.mockResolvedValue(releaseListResponse([release]))
+    apiMocks.getMyAnimeContributions.mockResolvedValue({
+      data: [
+        {
+          id: 1,
+          anime_id: 13,
+          fansub_group_id: 88,
+          fansub_group_member_id: 1,
+          status: 'confirmed',
+          role_codes: ['editor'],
+          started_year: null,
+          ended_year: null,
+          is_public_on_anime_page: true,
+          is_public_on_member_profile: true,
+          note: null,
+          release_version_id: 41,
+          is_own_proposal: true,
+        },
+      ],
+    })
 
     render(<AdminFansubEditPage />)
 

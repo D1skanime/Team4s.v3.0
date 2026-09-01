@@ -43,7 +43,7 @@ export function canUseMainTab(
     case "releases":
       return Boolean(capabilities.can_view_releases);
     case "notes":
-      return capabilities.can_edit_notes || capabilities.can_edit_founding_history;
+      return Boolean(capabilities.can_edit_notes || capabilities.can_edit_founding_history);
     case "readiness":
       return capabilities.can_edit_group || capabilities.can_edit_notes;
     case "roles":

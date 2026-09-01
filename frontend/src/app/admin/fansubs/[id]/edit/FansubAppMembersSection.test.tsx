@@ -3,6 +3,20 @@
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import { cleanup, fireEvent, render, screen, waitFor } from "@testing-library/react";
 
+const { catalogRoles } = vi.hoisted(() => ({
+  catalogRoles: [
+    { code: "fansub_lead", label_de: "Gruppenleitung", contexts: ["fansub_group", "group_history"], sort_order: 10, color_key: "#183b7c", icon_key: "crown" },
+    { code: "editor", label_de: "Editing", contexts: ["fansub_group", "anime_contribution"], sort_order: 20, color_key: "#0f766e", icon_key: "languages" },
+    { code: "timer", label_de: "Timing", contexts: ["fansub_group", "anime_contribution"], sort_order: 30, color_key: "#c26a2e", icon_key: "film" },
+    { code: "quality_checker", label_de: "Qualitätsprüfung", contexts: ["fansub_group", "anime_contribution"], sort_order: 40, color_key: "#6b7f2a", icon_key: "check" },
+    { code: "raw_provider", label_de: "Raw-Bereitstellung", contexts: ["fansub_group", "anime_contribution"], sort_order: 50, color_key: "#a04444", icon_key: "image" },
+  ],
+}));
+
+vi.mock("@/providers/RoleCatalogProvider", () => ({
+  useRoleCatalog: () => ({ roles: catalogRoles, error: null }),
+}));
+
 const listFansubGroupRoleDefinitions = vi.fn();
 const listGroupHistoryRoleDefinitions = vi.fn();
 const listFansubAppMembers = vi.fn();
@@ -76,7 +90,7 @@ vi.mock("@/lib/api", () => ({
 import { FansubAppMembersSection } from "./FansubAppMembersSection";
 
 beforeEach(() => {
-  listFansubGroupRoleDefinitions.mockResolvedValue([]);
+  listFansubGroupRoleDefinitions.mockResolvedValue(catalogRoles.map((role) => ({ ...role, assignable: true })));
   listGroupHistoryRoleDefinitions.mockResolvedValue([]);
   listGroupMembers.mockResolvedValue({ data: [] });
   listMemberRoles.mockResolvedValue({ data: [] });
@@ -173,7 +187,7 @@ describe("FansubAppMembersSection", () => {
           joined_date: null,
           left_date: null,
           status: "historical",
-          visibility: "internal",
+          visibility: "public",
         },
       );
       expect(createMemberRole).toHaveBeenCalledWith(
@@ -185,7 +199,7 @@ describe("FansubAppMembersSection", () => {
           ended_date: null,
           source_note: null,
           status: "historical",
-          visibility: "internal",
+          visibility: "public",
         },
       );
     });
