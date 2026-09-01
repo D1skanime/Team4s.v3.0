@@ -446,3 +446,154 @@ func TestAttachPendingReleaseReviewAttentionMemoizesPermissionCheckPerGroup(t *t
 	assert.Equal(t, 1, resolver.groupRolesCalls[21], "group 21 (2 candidate rows) must be resolved exactly once, not once per row")
 	assert.Equal(t, 1, resolver.groupRolesCalls[22], "group 22 (1 candidate row) must be resolved exactly once")
 }
+
+// openDashboardOwnNoteRevisionAttentionHandlerFixture is a trimmed duplicate of
+// release_review_query_repository_test.go's openDashboardOwnNoteRevisionAttentionFixture
+// (same schema and migrations; duplicated here since it lives in a different package).
+func openDashboardOwnNoteRevisionAttentionHandlerFixture(t *testing.T) *pgxpool.Pool {
+	t.Helper()
+	pool := testsupport.OpenPhase107Postgres(t)
+	ctx := context.Background()
+	_, err := pool.Exec(ctx, `
+		CREATE TABLE users (id BIGINT PRIMARY KEY);
+		ALTER TABLE app_users ADD COLUMN legacy_user_id BIGINT NULL REFERENCES users(id);
+		ALTER TABLE members ADD COLUMN nickname TEXT, ADD COLUMN display_name TEXT;
+		ALTER TABLE fansub_groups ADD COLUMN name TEXT NOT NULL DEFAULT '';
+		CREATE TABLE anime (
+			id BIGINT PRIMARY KEY, title TEXT, title_de TEXT, title_en TEXT
+		);
+		CREATE TABLE episodes (
+			id BIGINT PRIMARY KEY, anime_id BIGINT NOT NULL REFERENCES anime(id),
+			episode_number TEXT NOT NULL, sort_index INTEGER
+		);
+		CREATE TABLE fansub_releases (
+			id BIGINT PRIMARY KEY, episode_id BIGINT NOT NULL REFERENCES episodes(id)
+		);
+		ALTER TABLE release_versions
+			ADD COLUMN release_id BIGINT REFERENCES fansub_releases(id),
+			ADD COLUMN version TEXT NOT NULL DEFAULT 'v1';
+		CREATE TABLE release_version_groups (
+			release_version_id BIGINT NOT NULL REFERENCES release_versions(id),
+			fansub_group_id BIGINT NOT NULL REFERENCES fansub_groups(id),
+			PRIMARY KEY (release_version_id, fansub_group_id)
+		);
+		CREATE TABLE contributor_roles (id BIGINT PRIMARY KEY, name TEXT NOT NULL);
+		CREATE TABLE release_version_notes (
+			id BIGINT PRIMARY KEY,
+			release_version_id BIGINT NOT NULL REFERENCES release_versions(id),
+			fansub_group_id BIGINT REFERENCES fansub_groups(id),
+			member_id BIGINT NOT NULL REFERENCES members(id),
+			role_id BIGINT NOT NULL REFERENCES contributor_roles(id),
+			title TEXT, body_html TEXT NOT NULL, deleted_at TIMESTAMPTZ
+		);
+		CREATE TABLE media_assets (id BIGINT PRIMARY KEY);
+		CREATE TABLE media_files (
+			id BIGINT PRIMARY KEY, media_id BIGINT NOT NULL REFERENCES media_assets(id),
+			variant TEXT NOT NULL, path TEXT NOT NULL, status TEXT NOT NULL
+		);
+		CREATE TABLE release_version_media (
+			id BIGINT PRIMARY KEY,
+			release_version_id BIGINT NOT NULL REFERENCES release_versions(id),
+			fansub_group_id BIGINT REFERENCES fansub_groups(id),
+			media_asset_id BIGINT NOT NULL REFERENCES media_assets(id),
+			category TEXT NOT NULL, caption TEXT, uploaded_by_user_id BIGINT REFERENCES users(id),
+			deleted_at TIMESTAMPTZ
+		);
+	`)
+	require.NoError(t, err)
+
+	_, file, _, ok := runtime.Caller(0)
+	require.True(t, ok)
+	migrations := filepath.Join(filepath.Dir(file), "..", "..", "..", "database", "migrations")
+	testsupport.ApplySQLFile(t, pool, filepath.Join(migrations, "0134_review_foundation.up.sql"))
+	testsupport.ApplySQLFile(t, pool, filepath.Join(migrations, "0135_release_review_lifecycle.up.sql"))
+
+	_, err = pool.Exec(ctx, `
+		INSERT INTO users(id) VALUES (1001);
+		INSERT INTO members(id, nickname, display_name) VALUES (101, 'Einreicher', 'Einreicher Eins');
+		INSERT INTO app_users(id, status, legacy_user_id) VALUES (11, 'active', 1001);
+		INSERT INTO fansub_groups(id, name) VALUES (21, 'Alpha'), (22, 'Beta');
+		INSERT INTO anime(id, title, title_de) VALUES (81, 'Anime One', 'Anime Eins'), (82, 'Anime Two', 'Anime Zwei');
+		INSERT INTO episodes(id, anime_id, episode_number, sort_index) VALUES
+			(31, 81, '01', 1), (32, 81, '02', 2), (33, 82, '01', 1);
+		INSERT INTO fansub_releases(id, episode_id) VALUES (51, 31), (52, 32), (53, 33);
+		INSERT INTO release_versions(id, release_id, version) VALUES (41, 51, 'v1'), (42, 52, 'v1'), (43, 53, 'v1');
+		INSERT INTO release_version_groups(release_version_id, fansub_group_id) VALUES (41, 21), (42, 21), (43, 22);
+		INSERT INTO contributor_roles(id, name) VALUES (71, 'translator');
+		INSERT INTO release_version_notes(
+			id, release_version_id, fansub_group_id, member_id, role_id, title, body_html
+		) VALUES
+			(501, 41, 21, 101, 71, 'Ueberarbeiten Eins', '<p>Text</p>'),
+			(502, 42, 21, 101, 71, 'Ueberarbeiten Zwei', '<p>Text</p>'),
+			(503, 43, 22, 101, 71, 'Ueberarbeiten Drei', '<p>Text</p>');
+		INSERT INTO release_version_note_review_lifecycle(
+			release_version_note_id, source_revision, review_state,
+			submitter_app_user_id, submitter_member_id, submitted_at, last_activity_at
+		) VALUES
+			(501, 1, 'rejected', 11, 101, '2026-07-24T09:00:00Z', '2026-07-24T09:00:00Z'),
+			(502, 1, 'rejected', 11, 101, '2026-07-24T09:00:00Z', '2026-07-24T09:00:00Z'),
+			(503, 1, 'rejected', 11, 101, '2026-07-24T09:00:00Z', '2026-07-24T09:00:00Z');
+	`)
+	require.NoError(t, err)
+	return pool
+}
+
+// TestAttachPendingOwnNoteRevisionAttentionGroupsByAnimeAndFansubGroup proves Criterion
+// 7's grouping: two rejected notes belonging to the same (anime, fansub group) pair
+// collapse into one group with two nested items, while a third rejected note under a
+// different anime/group pair produces its own separate group.
+func TestAttachPendingOwnNoteRevisionAttentionGroupsByAnimeAndFansubGroup(t *testing.T) {
+	gin.SetMode(gin.TestMode)
+
+	pool := openDashboardOwnNoteRevisionAttentionHandlerFixture(t)
+	h := &DashboardMeHandler{reviewQueryRepo: repository.NewReleaseReviewQueryRepository(pool)}
+	data := &repository.OwnDashboardData{}
+	c, _ := gin.CreateTestContext(httptest.NewRecorder())
+	c.Request = httptest.NewRequest(http.MethodGet, "/api/v1/me/dashboard", nil)
+	identity := middleware.AuthIdentity{AppUserID: 11, AppUserStatus: models.AppUserStatusActive}
+
+	require.NoError(t, h.attachPendingOwnNoteRevisionAttention(c, identity, 101, data))
+	require.Len(t, data.PendingOwnNoteRevisions, 2, "anime 81/group 21 (2 notes) and anime 82/group 22 (1 note) must each produce exactly one group")
+
+	byAnime := map[int64]repository.OwnDashboardPendingOwnNoteRevisionGroup{}
+	for _, group := range data.PendingOwnNoteRevisions {
+		byAnime[group.AnimeID] = group
+	}
+	require.Contains(t, byAnime, int64(81))
+	first := byAnime[81]
+	assert.EqualValues(t, 21, first.FansubGroupID)
+	assert.Equal(t, "Alpha", first.FansubGroupName)
+	require.Len(t, first.Items, 2, "both notes under anime 81/group 21 must nest inside the same group")
+	assert.Equal(t, "Ueberarbeiten Eins", first.Items[0].NoteTitle)
+	assert.Equal(t, "Ueberarbeiten Zwei", first.Items[1].NoteTitle)
+
+	require.Contains(t, byAnime, int64(82))
+	second := byAnime[82]
+	assert.EqualValues(t, 22, second.FansubGroupID)
+	require.Len(t, second.Items, 1)
+	assert.Equal(t, "Ueberarbeiten Drei", second.Items[0].NoteTitle)
+}
+
+// TestAttachPendingOwnNoteRevisionAttentionSkipsQueryWithoutVerifiedMemberProfile proves
+// the D-09 empty-state contract: when GetOwnDashboard's ownership-gate resolution finds
+// no verified member profile, this attach method must short-circuit to an empty slice
+// without running any query (a user with no verified member profile cannot have
+// submitted notes).
+func TestAttachPendingOwnNoteRevisionAttentionSkipsQueryWithoutVerifiedMemberProfile(t *testing.T) {
+	gin.SetMode(gin.TestMode)
+
+	h := &DashboardMeHandler{reviewQueryRepo: repository.NewReleaseReviewQueryRepository(nil)}
+	data := &repository.OwnDashboardData{}
+	c, _ := gin.CreateTestContext(httptest.NewRecorder())
+	c.Request = httptest.NewRequest(http.MethodGet, "/api/v1/me/dashboard", nil)
+	identity := middleware.AuthIdentity{AppUserID: 11, AppUserStatus: models.AppUserStatusActive}
+
+	require.NoError(t, h.attachPendingOwnNoteRevisionAttention(c, identity, 0, data),
+		"memberID<=0 must short-circuit before ever touching h.reviewQueryRepo's nil db")
+	require.NotNil(t, data.PendingOwnNoteRevisions)
+	assert.Empty(t, data.PendingOwnNoteRevisions)
+
+	encoded, err := json.Marshal(data)
+	require.NoError(t, err)
+	assert.Contains(t, string(encoded), `"pending_own_note_revisions":[]`)
+}

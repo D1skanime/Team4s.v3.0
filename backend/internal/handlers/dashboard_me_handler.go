@@ -76,6 +76,7 @@ func emptyOwnDashboardData() repository.OwnDashboardData {
 		PendingClaims:            []repository.OwnDashboardPendingClaim{},
 		PendingGroupMediaReviews: []repository.OwnDashboardPendingGroupMediaReview{},
 		PendingReleaseReviews:    []repository.OwnDashboardPendingReleaseReview{},
+		PendingOwnNoteRevisions:  []repository.OwnDashboardPendingOwnNoteRevisionGroup{},
 	}
 }
 
@@ -111,6 +112,10 @@ func (h *DashboardMeHandler) GetOwnDashboard(c *gin.Context) {
 			internalError(c, "interner serverfehler")
 			return
 		}
+		if err := h.attachPendingOwnNoteRevisionAttention(c, identity, 0, &data); err != nil {
+			internalError(c, "interner serverfehler")
+			return
+		}
 		c.JSON(http.StatusOK, gin.H{"data": data})
 		return
 	}
@@ -136,6 +141,11 @@ func (h *DashboardMeHandler) GetOwnDashboard(c *gin.Context) {
 	}
 
 	if err := h.attachPendingClaimAttention(c, identity, data); err != nil {
+		internalError(c, "interner serverfehler")
+		return
+	}
+
+	if err := h.attachPendingOwnNoteRevisionAttention(c, identity, memberID, data); err != nil {
 		internalError(c, "interner serverfehler")
 		return
 	}
@@ -267,4 +277,61 @@ func (h *DashboardMeHandler) attachPendingReleaseReviewAttention(c *gin.Context,
 		}
 	}
 	return nil
+}
+
+// attachPendingOwnNoteRevisionAttention surfaces the actor's OWN rejected release-
+// version notes, grouped by (anime, fansub group), for ROADMAP Success Criterion 7's
+// dashboard lane. Unlike the three sibling attach* methods above, this one is
+// permission-check-free -- it is the actor's own data, gated only by the verified
+// memberID the caller resolved via resolveVerifiedMemberIDForAppUser (D-08). When no
+// verified member profile exists (the empty-state branch of GetOwnDashboard calls this
+// with memberID <= 0), no query runs at all -- a user with no verified member profile
+// cannot have submitted notes.
+func (h *DashboardMeHandler) attachPendingOwnNoteRevisionAttention(
+	c *gin.Context,
+	identity middleware.AuthIdentity,
+	memberID int64,
+	data *repository.OwnDashboardData,
+) error {
+	if data == nil {
+		return nil
+	}
+	if h.reviewQueryRepo == nil || memberID <= 0 {
+		data.PendingOwnNoteRevisions = []repository.OwnDashboardPendingOwnNoteRevisionGroup{}
+		return nil
+	}
+
+	rows, err := h.reviewQueryRepo.PendingOwnNoteRevisionAttention(c.Request.Context(), memberID)
+	if err != nil {
+		return err
+	}
+	data.PendingOwnNoteRevisions = groupPendingOwnNoteRevisions(rows)
+	return nil
+}
+
+// groupPendingOwnNoteRevisions groups PendingOwnNoteRevisionAttention's flat rows by
+// (AnimeID, FansubGroupID), relying on the repository query's own
+// ORDER BY anime.id, fg.id, ... so both the resulting groups and each group's nested
+// items come out in stable, sorted order without a second sort pass here.
+func groupPendingOwnNoteRevisions(rows []repository.PendingOwnNoteRevisionRow) []repository.OwnDashboardPendingOwnNoteRevisionGroup {
+	groups := make([]repository.OwnDashboardPendingOwnNoteRevisionGroup, 0)
+	var current *repository.OwnDashboardPendingOwnNoteRevisionGroup
+	for _, row := range rows {
+		if current == nil || current.AnimeID != row.AnimeID || current.FansubGroupID != row.FansubGroupID {
+			groups = append(groups, repository.OwnDashboardPendingOwnNoteRevisionGroup{
+				AnimeID:         row.AnimeID,
+				AnimeTitle:      row.AnimeTitle,
+				FansubGroupID:   row.FansubGroupID,
+				FansubGroupName: row.FansubGroupName,
+				Items:           []repository.OwnDashboardPendingOwnNoteRevisionItem{},
+			})
+			current = &groups[len(groups)-1]
+		}
+		current.Items = append(current.Items, repository.OwnDashboardPendingOwnNoteRevisionItem{
+			ReleaseVersionID: row.ReleaseVersionID,
+			EpisodeNumber:    row.EpisodeNumber,
+			NoteTitle:        row.NoteTitle,
+		})
+	}
+	return groups
 }

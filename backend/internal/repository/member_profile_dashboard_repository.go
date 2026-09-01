@@ -62,18 +62,38 @@ type OwnDashboardPendingReleaseReview struct {
 	TextCount     int64  `json:"text_count"`
 }
 
+// OwnDashboardPendingOwnNoteRevisionItem is one of the actor's own release-version
+// notes whose review lifecycle is currently 'rejected' (Criterion 7).
+type OwnDashboardPendingOwnNoteRevisionItem struct {
+	ReleaseVersionID int64  `json:"release_version_id"`
+	EpisodeNumber    string `json:"episode_number"`
+	NoteTitle        string `json:"note_title"`
+}
+
+// OwnDashboardPendingOwnNoteRevisionGroup aggregates the actor's own rejected release-
+// version notes by anime-project + fansub-group, mirroring
+// PendingOwnNoteRevisionAttention's grouping key (Criterion 7).
+type OwnDashboardPendingOwnNoteRevisionGroup struct {
+	AnimeID         int64                                    `json:"anime_id"`
+	AnimeTitle      string                                   `json:"anime_title"`
+	FansubGroupID   int64                                    `json:"fansub_group_id"`
+	FansubGroupName string                                   `json:"fansub_group_name"`
+	Items           []OwnDashboardPendingOwnNoteRevisionItem `json:"items"`
+}
+
 type OwnDashboardData struct {
-	HasMemberProfile         bool                                  `json:"has_member_profile"`
-	TotalPoints              int64                                 `json:"total_points"`
-	BadgesCount              int                                   `json:"badges_count"`
-	ProjectsCount            int64                                 `json:"projects_count"`
-	ImagesCount              int64                                 `json:"images_count"`
-	ContributionsCount       int64                                 `json:"contributions_count"`
-	RoleVolume               []OwnDashboardRoleVolumeEntry         `json:"role_volume"`
-	CategoryProgress         []OwnDashboardCategoryProgress        `json:"category_progress"`
-	PendingClaims            []OwnDashboardPendingClaim            `json:"pending_claims"`
-	PendingGroupMediaReviews []OwnDashboardPendingGroupMediaReview `json:"pending_group_media_reviews"`
-	PendingReleaseReviews    []OwnDashboardPendingReleaseReview    `json:"pending_release_reviews"`
+	HasMemberProfile         bool                                      `json:"has_member_profile"`
+	TotalPoints              int64                                     `json:"total_points"`
+	BadgesCount              int                                       `json:"badges_count"`
+	ProjectsCount            int64                                     `json:"projects_count"`
+	ImagesCount              int64                                     `json:"images_count"`
+	ContributionsCount       int64                                     `json:"contributions_count"`
+	RoleVolume               []OwnDashboardRoleVolumeEntry             `json:"role_volume"`
+	CategoryProgress         []OwnDashboardCategoryProgress            `json:"category_progress"`
+	PendingClaims            []OwnDashboardPendingClaim                `json:"pending_claims"`
+	PendingGroupMediaReviews []OwnDashboardPendingGroupMediaReview     `json:"pending_group_media_reviews"`
+	PendingReleaseReviews    []OwnDashboardPendingReleaseReview        `json:"pending_release_reviews"`
+	PendingOwnNoteRevisions  []OwnDashboardPendingOwnNoteRevisionGroup `json:"pending_own_note_revisions"`
 }
 
 // contribFamilyAscendingThresholds spiegelt die Bronze/Silber/Gold-Schwellen der
@@ -231,15 +251,16 @@ func (r *MemberProfileRepository) GetOwnDashboard(ctx context.Context, memberID 
 	}
 
 	return &OwnDashboardData{
-		HasMemberProfile:      true,
-		TotalPoints:           totalPoints,
-		BadgesCount:           badgesCount,
-		ProjectsCount:         projectsCount,
-		ImagesCount:           archivistCount,
-		ContributionsCount:    chronicleCount,
-		RoleVolume:            roleVolume,
-		CategoryProgress:      categoryProgress,
-		PendingClaims:         []OwnDashboardPendingClaim{},
-		PendingReleaseReviews: []OwnDashboardPendingReleaseReview{},
+		HasMemberProfile:        true,
+		TotalPoints:             totalPoints,
+		BadgesCount:             badgesCount,
+		ProjectsCount:           projectsCount,
+		ImagesCount:             archivistCount,
+		ContributionsCount:      chronicleCount,
+		RoleVolume:              roleVolume,
+		CategoryProgress:        categoryProgress,
+		PendingClaims:           []OwnDashboardPendingClaim{},
+		PendingReleaseReviews:   []OwnDashboardPendingReleaseReview{},
+		PendingOwnNoteRevisions: []OwnDashboardPendingOwnNoteRevisionGroup{},
 	}, nil
 }
