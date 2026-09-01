@@ -764,7 +764,7 @@ endpoints:
     path: /api/v1/admin/fansubs/{id}/anime/{animeId}/timeline
     auth:
       required: true
-      permission: fansub_group.notes.write for the addressed fansub group
+      permission: anime_fansub_project.timeline.update for the addressed fansub group
       unauthenticated_status: 401
       forbidden_status: 403
     request_body:
