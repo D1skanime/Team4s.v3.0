@@ -3,14 +3,14 @@ gsd_state_version: 1.0
 milestone: v1.4
 milestone_name: Coverage
 status: executing
-stopped_at: Completed 143-09-PLAN.md
-last_updated: "2026-09-01T22:12:03.251Z"
+stopped_at: Completed 143-11-PLAN.md
+last_updated: "2026-09-01T22:22:31.835Z"
 last_activity: 2026-09-01
 progress:
   total_phases: 8
   completed_phases: 7
   total_plans: 98
-  completed_plans: 94
+  completed_plans: 95
   percent: 88
 ---
 
@@ -34,7 +34,7 @@ See: .planning/PROJECT.md (updated 2026-08-13)
 ## Current Position
 
 Phase: 143 (phase-142-nacharbeit-und-dashboard-lane-f-r-abgelehnte-notiz) — EXECUTING
-Plan: 11 of 14
+Plan: 12 of 14
 Status: Ready to execute
 Last activity: 2026-09-01
 
@@ -222,6 +222,7 @@ Last activity: 2026-09-01
 - [Phase 143]: Plan 143-08 executed: migration 0159 supersedes 0154's role_capabilities reset pattern (unconditional DELETE, no-op down.sql) with an idempotent (ON CONFLICT DO NOTHING) up.sql and a techadmin-preserving down.sql; new ephemeral-DB test forces a real second execution of 0159's raw SQL by deleting only its own schema_migrations tracking row (a bare second Runner.Up() call is always a no-op regardless of SQL content) and proves the 12 migration-0153 techadmin rows survive Down(ctx, 1).
 - [Phase 143]: 143-09 executed (Criterion 3): PendingGroupMediaReviewAttention/PendingReleaseReviewAttention moved into ReleaseReviewQueryRepository reusing the existing OwnDashboardPendingGroupMediaReview/OwnDashboardPendingReleaseReview row types; dashboard_me_handler.go has zero inline h.db.Query SQL left; group-media review now gates on permissions.ActionReviewImageDecide (was the too-broad ActionFansubGroupEdit); both moved handler loops are per-group memoized. — This is the explicit prerequisite ROADMAP Criterion 7 (rejected-note dashboard lane) depends on -- no later plan may add a new h.db.Query call to dashboard_me_handler.go. release_review_query_repository.go was split (scan/URL helpers + SQL constants moved to release_review_query_scan_helpers.go) to stay under CLAUDE.md's 450-line cap after the two new methods.
 - [Phase 143]: Plan 143-10 executed: first-ever tests for ReleaseMetadataCreditService.AwardIfCompleted (documenting that its ambiguous rv.id/rev.id lookup can silently credit the wrong release version on a real ID collision) and for UpdateAnimeFansubProjectTimeline's end-before-completed-release date rule; fixed the stale /project-timeline route string in the one pre-existing handler test. — Closes ROADMAP Success Criterion 4 (untested new logic). No code change to release_metadata_credit_service.go was made -- the query's ambiguity is documented in the test and SUMMARY per VALIDATION.md's explicit test-only phase scoping, left for a future phase/quick-task to decide whether to fix.
+- [Phase 143]: 143-11 fixed has_own_notes to exclude rejected release_version_notes via a LEFT JOIN to release_version_note_review_lifecycle (review_state IS NULL OR <> 'rejected'); no tombstoned special-casing needed since deleted_at IS NULL already excludes tombstoned notes. testsupport.OpenPhase139Postgres's full migration chain was found unusable for this test (migration 0152 hardcodes public.unaccent, unresolvable inside the harness's isolated non-public per-test schema) -- used testsupport.OpenPhase107Postgres + hand-assembled schema instead, matching release_review_query_repository_test.go's precedent.
 
 ### Pending Todos
 
@@ -502,10 +503,11 @@ untruncated list lives in `.planning/todos/pending/`.
 | Phase 143 P08 | 20min | 2 tasks | 3 files |
 | Phase 143 P09 | 55min | 3 tasks | 7 files |
 | Phase 143 P10 | 45min | 3 tasks | 3 files |
+| Phase 143 P11 | 30min | 2 tasks | 3 files |
 
 ## Session Continuity
 
-Last session: 2026-09-01T22:12:03.237Z
-Stopped at: Completed 143-09-PLAN.md
+Last session: 2026-09-01T22:22:31.822Z
+Stopped at: Completed 143-11-PLAN.md
 Last activity: 2026-09-01 - Milestone v1.4 audit passed (41/41 requirements, 7/7 phases, .planning/v1.4-MILESTONE-AUDIT.md); Phase 143 added to roadmap, not yet planned
 Resume file: None
