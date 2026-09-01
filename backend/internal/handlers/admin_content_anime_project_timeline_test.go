@@ -21,7 +21,7 @@ func TestUpdateAnimeFansubProjectTimelineDeniesQualityChecker(t *testing.T) {
 			roles:   map[int64][]string{88: {permissions.RoleQualityChecker}},
 		}),
 	}
-	c, recorder := makeAppAuthTestContext(http.MethodPut, "/api/v1/admin/fansubs/88/anime/9/project-timeline", []byte(`{}`), middleware.AuthIdentity{
+	c, recorder := makeAppAuthTestContext(http.MethodPut, "/api/v1/admin/fansubs/88/anime/9/timeline", []byte(`{}`), middleware.AuthIdentity{
 		UserID: 112, AppUserID: 55, DisplayName: "Quality Checker", AppUserStatus: models.AppUserStatusActive,
 	}, gin.Param{Key: "id", Value: "88"}, gin.Param{Key: "animeId", Value: "9"})
 
