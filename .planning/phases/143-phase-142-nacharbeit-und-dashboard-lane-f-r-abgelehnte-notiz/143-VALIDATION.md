@@ -1,9 +1,9 @@
 ---
 phase: 143
 slug: phase-142-nacharbeit-und-dashboard-lane-f-r-abgelehnte-notiz
-status: draft
-nyquist_compliant: false
-wave_0_complete: false
+status: approved
+nyquist_compliant: true
+wave_0_complete: true
 created: 2026-09-01
 ---
 
@@ -184,7 +184,8 @@ assertion) as detailed above.*
 - [x] Wave 0: none required — existing infrastructure suffices
 - [x] No watch-mode flags used anywhere above (`vitest run`, not `vitest watch`)
 - [x] Feedback latency ~90s, within budget
-- [ ] `nyquist_compliant: true` — left `false` until the planner's Wave 0 / task breakdown confirms
-      per-task coverage against this strategy
+- [x] `nyquist_compliant: true` — confirmed by gsd-plan-checker's re-verification pass: every task
+      in all 14 plans carries an automated verify command, no watch-mode flags, no Wave-0 MISSING
+      markers
 
-**Approval:** pending
+**Approval:** approved 2026-09-01
