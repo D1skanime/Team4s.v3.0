@@ -589,7 +589,8 @@ func main() {
 	memberPointRankingHandler := handlers.NewMemberPointRankingHandler(memberPointTotalsRepo)
 	contributionsMeHandler := handlers.NewContributionsMeHandler(animeContributionsRepo, histGroupMemberRolesRepo, dbPool).WithReleaseCrewService(releaseCrewService)
 	dashboardMeHandler := handlers.NewDashboardMeHandler(memberProfileRepo, dbPool).
-		WithClaimAttention(memberClaimsRepo, permissionSvc)
+		WithClaimAttention(memberClaimsRepo, permissionSvc).
+		WithReviewQueryRepo(releaseReviewQueryRepo)
 	memberSuggestionsRepo := repository.NewMemberSuggestionsRepository(dbPool)
 	suggestionsMeHandler := handlers.NewSuggestionsMeHandler(memberSuggestionsRepo, auditLogRepo)
 	// Archiv-Suche: oeffentliche Route ohne Auth-Gate (Pitfall 6 aus RESEARCH.md)
