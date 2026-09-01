@@ -3,14 +3,14 @@ gsd_state_version: 1.0
 milestone: v1.4
 milestone_name: Coverage
 status: executing
-stopped_at: Completed 143-03-PLAN.md
-last_updated: "2026-09-01T20:49:46.268Z"
+stopped_at: Completed 143-04-PLAN.md
+last_updated: "2026-09-01T20:53:12.322Z"
 last_activity: 2026-09-01
 progress:
   total_phases: 8
   completed_phases: 7
   total_plans: 98
-  completed_plans: 87
+  completed_plans: 88
   percent: 88
 ---
 
@@ -34,7 +34,7 @@ See: .planning/PROJECT.md (updated 2026-08-13)
 ## Current Position
 
 Phase: 143 (phase-142-nacharbeit-und-dashboard-lane-f-r-abgelehnte-notiz) — EXECUTING
-Plan: 4 of 14
+Plan: 5 of 14
 Status: Ready to execute
 Last activity: 2026-09-01
 
@@ -213,6 +213,7 @@ Last activity: 2026-09-01
 - [Phase 143]: Plan 143-01: Split app_auth_group_members.go into two files (app_auth_group_members.go + app_auth_group_member_roles.go) instead of the plan's mandated single file — The plan's own exact function assignment for that bucket produces ~500 lines, exceeding the 450-line CLAUDE.md cap the plan itself sets as an acceptance criterion. No identifier renamed; zero behavior change.
 - [Phase 143]: Plan 143-02: SubmitClaimInput moved alongside SubmitClaim into member_claims_submit_repository.go rather than staying behind, since it is used nowhere else in production code except as SubmitClaim's own parameter type — Same-package visibility means the one external caller (handlers/member_claims_handler.go, referencing repository.SubmitClaimInput) is unaffected by which file in the repository package declares the type
 - [Phase 143]: Split anime_contributions_proposal_repository.go and member_profile_projects_repository.go by responsibility (pure relocation, zero SQL/logic change) — Completes the Phase 143 450-line-cap remediation for the two files not covered by the dashboard/claims plans; fixed 3 pre-existing source-inspection tests broken by the file move
+- [Phase 143]: Plan 143-04: kept the plan's literal workspaceHelpers.ts import list verbatim (incl. AdjacentReleases), accepting a harmless ESLint no-unused-vars warning rather than pruning it — AdjacentReleases is only referenced transitively inside NavigationState's type in workspaceHelpers.ts, not directly in page.tsx; ESLint still exits 0 (warning, not error), so no auto-fix was required
 
 ### Pending Todos
 
@@ -486,10 +487,11 @@ untruncated list lives in `.planning/todos/pending/`.
 | Phase 143 P01 | 7min | 2 tasks | 5 files |
 | Phase 143 P02 | 8min | 2 tasks | 3 files |
 | Phase 143 P03 | 8min | 2 tasks | 7 files |
+| Phase 143 P04 | 4min | 2 tasks | 2 files |
 
 ## Session Continuity
 
-Last session: 2026-09-01T20:49:46.251Z
-Stopped at: Completed 143-03-PLAN.md
+Last session: 2026-09-01T20:53:12.307Z
+Stopped at: Completed 143-04-PLAN.md
 Last activity: 2026-09-01 - Milestone v1.4 audit passed (41/41 requirements, 7/7 phases, .planning/v1.4-MILESTONE-AUDIT.md); Phase 143 added to roadmap, not yet planned
 Resume file: None

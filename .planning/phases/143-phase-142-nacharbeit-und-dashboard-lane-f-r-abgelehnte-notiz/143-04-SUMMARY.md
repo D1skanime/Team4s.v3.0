@@ -89,3 +89,10 @@ None - no external service configuration required.
 ---
 *Phase: 143-phase-142-nacharbeit-und-dashboard-lane-f-r-abgelehnte-notiz*
 *Completed: 2026-09-01*
+
+## Self-Check: PASSED
+
+- FOUND: `frontend/src/app/me/releases/[versionId]/workspace/workspaceHelpers.ts`
+- FOUND: `.planning/phases/143-phase-142-nacharbeit-und-dashboard-lane-f-r-abgelehnte-notiz/143-04-SUMMARY.md`
+- FOUND commit: `e9f6b79d`
+- FOUND commit: `90638758`
