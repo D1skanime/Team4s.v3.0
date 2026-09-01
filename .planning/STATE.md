@@ -3,15 +3,15 @@ gsd_state_version: 1.0
 milestone: v1.4
 milestone_name: Coverage
 status: ready_to_plan
-stopped_at: Phase 141 complete (7/7) — ready to discuss Phase 142
-last_updated: 2026-08-26T10:20:31.197Z
-last_activity: 2026-08-26
+stopped_at: "Milestone v1.4 complete (7/7 phases passed) — Phase 143 ready to plan"
+last_updated: 2026-09-01T15:25:29.000Z
+last_activity: 2026-09-01
 progress:
-  total_phases: 7
-  completed_phases: 6
-  total_plans: 83
-  completed_plans: 137
-  percent: 86
+  total_phases: 8
+  completed_phases: 7
+  total_plans: 84
+  completed_plans: 84
+  percent: 88
 ---
 
 # Project State
@@ -29,14 +29,14 @@ Phase 135 and any future roadmap entries continue from here.
 See: .planning/PROJECT.md (updated 2026-08-13)
 
 **Core value:** Team4s presents fansub history and collaboration credibly while keeping identity, visibility, ownership, and permissions correct.
-**Current focus:** Phase 142 — integrated security, fixtures & live release gate
+**Current focus:** Phase 143 — Phase-142-Nacharbeit und Dashboard-Lane für abgelehnte Notizen (not yet planned)
 
 ## Current Position
 
-Phase: 142
+Phase: 143
 Plan: Not started
 Status: Ready to plan
-Last activity: 2026-09-01 - Completed quick task 260901-jk5: Hygiene-Nacharbeit zu Phase 142 (gofmt, zwei set-state-in-effect-Fixes, Contract-Permission-Korrektur, Contract-Leerzeile entfernt, v1.4-MILESTONE-AUDIT.md korrigiert)
+Last activity: 2026-09-01 - Milestone v1.4 audited and passed (41/41 requirements, 7/7 phases, see .planning/v1.4-MILESTONE-AUDIT.md); Phase 143 (Phase-142-Nacharbeit und Dashboard-Lane für abgelehnte Notizen) added to ROADMAP.md, not yet planned
 
 ## Accumulated Context
 
@@ -482,7 +482,7 @@ untruncated list lives in `.planning/todos/pending/`.
 
 ## Session Continuity
 
-Last session: 2026-08-26T10:00:08.703Z
-Stopped at: Completed 141-06-PLAN.md
-Last activity: 2026-08-20 - Completed Phase 134 Plan 06: live UAT evidence capture, two gap-closure fix rounds, and the user's explicit live-browser sign-off for both reference profiles (PMQA-05)
+Last session: 2026-09-01T15:25:29.000Z
+Stopped at: Milestone v1.4 complete (7/7 phases passed) — Phase 143 ready to plan
+Last activity: 2026-09-01 - Milestone v1.4 audit passed (41/41 requirements, 7/7 phases, .planning/v1.4-MILESTONE-AUDIT.md); Phase 143 added to roadmap, not yet planned
 Resume file: None
