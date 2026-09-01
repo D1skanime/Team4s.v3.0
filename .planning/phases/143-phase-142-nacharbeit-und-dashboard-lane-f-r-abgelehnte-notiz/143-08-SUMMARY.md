@@ -95,3 +95,13 @@ None - no external service configuration required.
 ---
 *Phase: 143-phase-142-nacharbeit-und-dashboard-lane-f-r-abgelehnte-notiz*
 *Completed: 2026-09-01*
+
+## Self-Check: PASSED
+
+All created files and commit hashes verified present:
+- `database/migrations/0159_role_capability_defaults_reset.up.sql` - FOUND
+- `database/migrations/0159_role_capability_defaults_reset.down.sql` - FOUND
+- `backend/internal/migrations/phase143_role_capability_defaults_reset_test.go` - FOUND
+- Commit `651546c2` (Task 1) - FOUND
+- Commit `1df5db39` (Task 2) - FOUND
+- Commit `d5d834ee` (plan metadata) - FOUND
