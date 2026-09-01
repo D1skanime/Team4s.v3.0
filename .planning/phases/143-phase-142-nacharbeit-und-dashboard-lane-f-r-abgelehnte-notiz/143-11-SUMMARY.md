@@ -114,3 +114,9 @@ None - no external service configuration required.
 ---
 *Phase: 143-phase-142-nacharbeit-und-dashboard-lane-f-r-abgelehnte-notiz*
 *Completed: 2026-09-01*
+
+## Self-Check: PASSED
+
+All modified/created files (repository fix, new repository test, frontend test, this SUMMARY.md)
+verified present on disk; all 3 commits (`8d9695ba`, `562c135a`, `66f1664b`) verified present in
+`git log --oneline --all`.
