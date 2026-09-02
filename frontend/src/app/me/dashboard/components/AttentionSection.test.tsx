@@ -353,6 +353,67 @@ describe("AttentionSection (Phase 116, D-02)", () => {
     expect(withoutEpisode.textContent).toContain("Ohne Titel");
   });
 
+  it("reduziert den Abstand nur bei genau einer abgelehnten Notiz pro Gruppe (noteRevisionListSingle)", () => {
+    const { container: singleContainer } = render(
+      <AttentionSection
+        contributions={[]}
+        pendingClaims={[]}
+        pendingOwnNoteRevisions={[
+          {
+            anime_id: 5,
+            anime_title: "Testanime",
+            fansub_group_id: 9,
+            fansub_group_name: "New-Subs",
+            items: [
+              {
+                release_version_id: 61,
+                episode_number: "05",
+                note_title: "Timing-Hinweis",
+              },
+            ],
+          },
+        ]}
+      />,
+    );
+
+    const singleList = singleContainer.querySelector(
+      'ul[class*="noteRevisionList"]',
+    );
+    expect(singleList?.className).toContain("noteRevisionListSingle");
+
+    const { container: multiContainer } = render(
+      <AttentionSection
+        contributions={[]}
+        pendingClaims={[]}
+        pendingOwnNoteRevisions={[
+          {
+            anime_id: 5,
+            anime_title: "Testanime",
+            fansub_group_id: 9,
+            fansub_group_name: "New-Subs",
+            items: [
+              {
+                release_version_id: 61,
+                episode_number: "05",
+                note_title: "Timing-Hinweis",
+              },
+              {
+                release_version_id: 62,
+                episode_number: null,
+                note_title: "",
+              },
+            ],
+          },
+        ]}
+      />,
+    );
+
+    const multiList = multiContainer.querySelector(
+      'ul[class*="noteRevisionList"]',
+    );
+    expect(multiList?.className).not.toContain("noteRevisionListSingle");
+  });
+
   it("blendet die Empty-State-Copy aus, solange abgelehnte eigene Notizen vorhanden sind", () => {
     render(
       <AttentionSection

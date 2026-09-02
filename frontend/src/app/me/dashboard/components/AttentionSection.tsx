@@ -153,7 +153,13 @@ export function AttentionSection({
                   </span>
                   <Badge variant="danger">Abgelehnt</Badge>
                 </div>
-                <ul className={styles.noteRevisionList}>
+                <ul
+                  className={
+                    group.items.length === 1
+                      ? `${styles.noteRevisionList} ${styles.noteRevisionListSingle}`
+                      : styles.noteRevisionList
+                  }
+                >
                   {group.items.map((item) => {
                     const episode = item.episode_number
                       ? `Folge ${item.episode_number}`

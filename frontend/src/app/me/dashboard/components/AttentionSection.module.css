@@ -76,6 +76,15 @@
   list-style: none;
 }
 
+.noteRevisionListSingle {
+  margin-top: var(--space-1);
+}
+
+.noteRevisionListSingle .noteRevisionRow {
+  padding-top: 0;
+  padding-bottom: 0;
+}
+
 .noteRevisionRow {
   display: flex;
   align-items: center;
