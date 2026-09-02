@@ -3,14 +3,14 @@ gsd_state_version: 1.0
 milestone: v1.4
 milestone_name: Coverage
 status: executing
-stopped_at: Completed 144-05-PLAN.md
-last_updated: "2026-09-02T14:48:17.796Z"
+stopped_at: Completed 144-06-PLAN.md
+last_updated: "2026-09-02T15:10:23.079Z"
 last_activity: 2026-09-02
 progress:
   total_phases: 9
   completed_phases: 8
   total_plans: 110
-  completed_plans: 108
+  completed_plans: 109
   percent: 89
 ---
 
@@ -34,7 +34,7 @@ See: .planning/PROJECT.md (updated 2026-08-13)
 ## Current Position
 
 Phase: 144 (berarbeitungs-kreislauf-f-r-release-medien-vervollst-ndigen) — EXECUTING
-Plan: 6 of 7
+Plan: 7 of 7
 Status: Ready to execute
 Last activity: 2026-09-02
 
@@ -237,6 +237,7 @@ Last activity: 2026-09-02
 - [Phase 144]: 144-03 executed (Zielbild 3, backend half): ReleaseReviewDetail.PriorRejection is populated via a LEFT JOIN LATERAL against review_decisions/review_reason_texts/members scoped by exact source_type/source_key match and source_revision - 1; OpenAPI and frontend types mirror it field-for-field. — Fixture rows needing extra data must be inserted test-locally, not appended to the shared openReleaseReviewQueryFixture, since a pending row added there silently inflates other tests' List/Counts pending-row-count assertions.
 - [Phase 144]: Plan 144-04 executed (Zielbild 1 HTTP surface): PUT /admin/release-versions/:versionId/media/:relationId/file composes 144-02's ReplaceReleaseVersionMediaFile/EnqueueReleaseVersionMediaFileDeleteJob repository methods with the existing SubmitMedia lifecycle call inside one transaction. — Permission reuse (ActionReleaseVersionMediaUpdate + canMutateReleaseVersionMediaRelation) proven by source-inspection test, no new permission action introduced. Preview-candidate guard reordered ahead of file I/O (vs the plan's literal step numbering) to avoid orphaned-file cleanup on an unrelated-to-the-file rejection.
 - [Phase 144]: [Phase 144] Plan 144-05 executed: added replaceReleaseVersionMediaFile() (PUT client for 144-04's replace-file endpoint) and RELEASE_REVIEW_REJECTION_CATEGORY_LABELS/releaseReviewResubmissionBadge() to releaseReviewPresentation.ts, giving Wave-5 plans (144-06, 144-07) one shared API/label surface instead of inventing duplicates. No UI changes in this plan.
+- [Phase 144]: Plan 144-06 executed (Zielbild 1/2, UI-SPEC file-replace contract) -- useReleaseVersionMedia.ts gained replaceItem/replaceError mirroring patchItem's revision-binding shape (buildReplaceMediaFileRequest extracted to helpers.tsx to stay under the 450-line cap); new ReleaseVersionMediaReplaceControls.tsx hosts the category Select (global primitives only); the file-replace drop-zone's native input stays inline in ReleaseVersionMediaSection.tsx per the ESLint LEGACY_NO_RESTRICTED_SYNTAX_FILES ratchet, since a brand-new file can never join that exemption. The primary submit button now reflects three UI-SPEC states and is disabled for a rejected item until a real change is staged, closing the no-op-resubmit gap. 20/20 tests pass in the touched test file, full suite 289/289 files green, tsc clean, 0 new eslint violation categories.
 
 ### Pending Todos
 
@@ -531,10 +532,11 @@ untruncated list lives in `.planning/todos/pending/`.
 | Phase 144 P03 | ~30min | 3 tasks | 5 files |
 | Phase 144 P04 | ~10min | 3 tasks | 4 files |
 | Phase 144 P05 | ~15min | 2 tasks | 2 files |
+| Phase 144 P06 | 45min | 3 tasks | 6 files |
 
 ## Session Continuity
 
-Last session: 2026-09-02T14:48:17.781Z
-Stopped at: Completed 144-05-PLAN.md
+Last session: 2026-09-02T15:10:23.065Z
+Stopped at: Completed 144-06-PLAN.md
 Last activity: 2026-09-01 - Milestone v1.4 audit passed (41/41 requirements, 7/7 phases, .planning/v1.4-MILESTONE-AUDIT.md); Phase 143 added to roadmap, not yet planned
 Resume file: None
