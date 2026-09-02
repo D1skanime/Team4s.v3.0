@@ -66,10 +66,19 @@ export interface ReleaseReviewImageContent {
   original_url: string
 }
 
+export interface ReleaseReviewPriorRejection {
+  rejected_at: string
+  rejection_category: ReleaseReviewRejectionCategory
+  rejection_reason: string
+  reviewer_display_name: string
+  rejected_by_current_actor: boolean
+}
+
 export interface ReleaseReviewDetail extends ReleaseReviewQueueItem {
   text?: ReleaseReviewTextContent | null
   image?: ReleaseReviewImageContent | null
   can_edit_release: boolean
+  prior_rejection?: ReleaseReviewPriorRejection | null
 }
 
 export interface ReleaseReviewDetailResponse {

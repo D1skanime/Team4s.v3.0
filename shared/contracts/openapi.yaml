@@ -9233,6 +9233,18 @@ components:
         caption: {type: string}
         thumbnail_url: {type: string}
         original_url: {type: string}
+    ReleaseReviewPriorRejection:
+      type: object
+      nullable: true
+      required: [rejected_at, rejection_category, rejection_reason, reviewer_display_name, rejected_by_current_actor]
+      properties:
+        rejected_at: {type: string, format: date-time}
+        rejection_category:
+          allOf:
+            - $ref: "#/components/schemas/ReleaseReviewRejectionCategory"
+        rejection_reason: {type: string}
+        reviewer_display_name: {type: string}
+        rejected_by_current_actor: {type: boolean}
     ReleaseReviewDetail:
       allOf:
         - $ref: "#/components/schemas/ReleaseReviewQueueItem"
@@ -9246,6 +9258,9 @@ components:
               allOf:
                 - $ref: "#/components/schemas/ReleaseReviewImageContent"
             can_edit_release: {type: boolean}
+            prior_rejection:
+              allOf:
+                - $ref: "#/components/schemas/ReleaseReviewPriorRejection"
     ReleaseReviewDetailResponse:
       type: object
       required: [data]
