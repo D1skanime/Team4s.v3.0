@@ -35,3 +35,21 @@ func rvmCategoryAllowsPreview(currentCategory string, newCategory *string) bool 
 	}
 	return rvmPreviewAllowedCategories[effective]
 }
+
+// rvmPreviewGuardBlocked decides whether PREVIEW_NOT_ALLOWED_FOR_CATEGORY must fire.
+// The row's current is_preview_candidate (currentPreview) is the fallback ONLY when the
+// request omits the field (requestPreview == nil) — closing 144-VERIFICATION.md's gap where
+// a request that only patches category silently skipped the guard because it never checked
+// the row's actual current state. An explicit request value (true or false) always wins over
+// the row's current state, so existing behavior for every request that DOES set
+// is_preview_candidate is unchanged.
+func rvmPreviewGuardBlocked(requestPreview *bool, currentPreview bool, currentCategory string, newCategory *string) bool {
+	effectivePreview := currentPreview
+	if requestPreview != nil {
+		effectivePreview = *requestPreview
+	}
+	if !effectivePreview {
+		return false
+	}
+	return !rvmCategoryAllowsPreview(currentCategory, newCategory)
+}

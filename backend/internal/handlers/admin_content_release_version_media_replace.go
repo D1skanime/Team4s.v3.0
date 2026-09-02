@@ -169,14 +169,12 @@ func (h *AdminContentHandler) ReplaceReleaseVersionMediaFile(c *gin.Context) {
 
 	// Preview-guard checked before any file I/O so a rejection never leaves orphaned files
 	// on disk — same effective-category check PatchReleaseVersionMedia already uses.
-	if isPreviewCandidate != nil && *isPreviewCandidate {
-		if !rvmCategoryAllowsPreview(relationMeta.Category, categoryField) {
-			c.JSON(http.StatusUnprocessableEntity, gin.H{"error": gin.H{
-				"message":    "vorschaubild nicht erlaubt für diese kategorie",
-				"error_code": "PREVIEW_NOT_ALLOWED_FOR_CATEGORY",
-			}})
-			return
-		}
+	if rvmPreviewGuardBlocked(isPreviewCandidate, relationMeta.IsPreviewCandidate, relationMeta.Category, categoryField) {
+		c.JSON(http.StatusUnprocessableEntity, gin.H{"error": gin.H{
+			"message":    "vorschaubild nicht erlaubt für diese kategorie",
+			"error_code": "PREVIEW_NOT_ALLOWED_FOR_CATEGORY",
+		}})
+		return
 	}
 
 	// Multipart file-intake guards — exact size/MIME/dimension/decompression-bomb sequence
@@ -195,7 +193,7 @@ func (h *AdminContentHandler) ReplaceReleaseVersionMediaFile(c *gin.Context) {
 	}
 	if len(data) > rvmMaxFileSizeBytes {
 		c.JSON(http.StatusUnprocessableEntity, gin.H{"error": gin.H{
-			"message":    fmt.Sprintf("datei zu gross: max %d MB", rvmMaxFileSizeBytes/1024/1024),
+			"message":    fmt.Sprintf("datei zu groß: max %d MB", rvmMaxFileSizeBytes/1024/1024),
 			"error_code": "FILE_TOO_LARGE",
 		}})
 		return
@@ -221,7 +219,7 @@ func (h *AdminContentHandler) ReplaceReleaseVersionMediaFile(c *gin.Context) {
 	}
 	if meta.Width > rvmMaxImageWidth || meta.Height > rvmMaxImageHeight {
 		c.JSON(http.StatusUnprocessableEntity, gin.H{"error": gin.H{
-			"message":    fmt.Sprintf("bild zu gross: max %dx%d px", rvmMaxImageWidth, rvmMaxImageHeight),
+			"message":    fmt.Sprintf("bild zu groß: max %dx%d px", rvmMaxImageWidth, rvmMaxImageHeight),
 			"error_code": "IMAGE_DIMENSIONS_TOO_LARGE",
 		}})
 		return

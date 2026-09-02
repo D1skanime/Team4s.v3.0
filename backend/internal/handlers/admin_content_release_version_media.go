@@ -190,7 +190,7 @@ func (h *AdminContentHandler) UploadReleaseVersionMedia(c *gin.Context) {
 
 	exists, err := h.mediaRepo.ReleaseVersionExistsForRVM(c.Request.Context(), versionID)
 	if err != nil {
-		writeInternalErrorResponse(c, "interner serverfehler", err, "Release-Version konnte nicht geprueft werden.")
+		writeInternalErrorResponse(c, "interner serverfehler", err, "Release-Version konnte nicht geprüft werden.")
 		return
 	}
 	if !exists {
@@ -333,7 +333,7 @@ func (h *AdminContentHandler) processOneRVMFile(
 	if len(data) > rvmMaxFileSizeBytes {
 		return rvmFileResult{ClientFileName: clientName, Status: "failed",
 			ErrorCode: "FILE_TOO_LARGE",
-			Message:   fmt.Sprintf("datei zu gross: max %d MB", rvmMaxFileSizeBytes/1024/1024)}
+			Message:   fmt.Sprintf("datei zu groß: max %d MB", rvmMaxFileSizeBytes/1024/1024)}
 	}
 
 	detected := mimetype.Detect(data)
@@ -356,7 +356,7 @@ func (h *AdminContentHandler) processOneRVMFile(
 	if meta.Width > rvmMaxImageWidth || meta.Height > rvmMaxImageHeight {
 		return rvmFileResult{ClientFileName: clientName, Status: "failed",
 			ErrorCode: "IMAGE_DIMENSIONS_TOO_LARGE",
-			Message:   fmt.Sprintf("bild zu gross: max %dx%d px", rvmMaxImageWidth, rvmMaxImageHeight)}
+			Message:   fmt.Sprintf("bild zu groß: max %dx%d px", rvmMaxImageWidth, rvmMaxImageHeight)}
 	}
 	// Dekompression-Bomb-Schutz: Pixelzahl-Limit 40 MP.
 	// meta ist bereits bekannt (aus inspectRVMImage), kein zweites Decode noetig.
@@ -882,14 +882,12 @@ func (h *AdminContentHandler) PatchReleaseVersionMedia(c *gin.Context) {
 		expectedRevision = &revision
 	}
 
-	if isPreviewCandidate != nil && *isPreviewCandidate {
-		if !rvmCategoryAllowsPreview(relationMeta.Category, categoryPatch.Category) {
-			c.JSON(http.StatusUnprocessableEntity, gin.H{"error": gin.H{
-				"message":    "vorschaubild nicht erlaubt für diese kategorie",
-				"error_code": "PREVIEW_NOT_ALLOWED_FOR_CATEGORY",
-			}})
-			return
-		}
+	if rvmPreviewGuardBlocked(isPreviewCandidate, relationMeta.IsPreviewCandidate, relationMeta.Category, categoryPatch.Category) {
+		c.JSON(http.StatusUnprocessableEntity, gin.H{"error": gin.H{
+			"message":    "vorschaubild nicht erlaubt für diese kategorie",
+			"error_code": "PREVIEW_NOT_ALLOWED_FOR_CATEGORY",
+		}})
+		return
 	}
 
 	patchInput := repository.ReleaseVersionMediaPatchInput{
