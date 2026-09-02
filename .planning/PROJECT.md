@@ -85,6 +85,8 @@ Phase 139 completed on 2026-08-24: user-detail Contributions and Media are now s
 
 Phase 141 completed on 2026-08-26: the release-review queue is now actor-decidable end to end (RDEL-05, RQUE-01–06). The real N+1 in `authorizedKinds` is closed by resolving group rights exactly once per handler call (`permissions.Service.ResolveReviewGroupAuthorization`); List/Counts now exclude an actor's own submissions via the same two-signal identity check `review_service.go` already uses at decision time, sort newest-first (D15), and carry a real `allowed_types` signal instead of a fake zero "Mitwirkungen" badge; Detail/Next share one existence-then-authorize lookup returning a genuine 403 (not 404, not a silent 200) for an own-or-forbidden review. A new "Wartet auf Fremdprüfung" Tabs lane (`view=own`, capability-bypassed, read-only) gives an actor's own pending submissions a real home, and the review-detail page's "Next" control is now honest in all three states (available/exhausted/error) instead of silently disappearing. 12/12 verification must-haves passed; code review found 0 critical, 5 warning, 1 info findings (filter-context loss on Next, a silently-swallowed post-decision fetch error, a misleading 403 for platform-admin override edge case, a frontend own-submission check missing the member-claim signal, and independent URL-sync clobbering between the two Tabs lanes) — tracked for a future hardening pass, not blocking.
 
+Phase 143 completed on 2026-09-02 (Remediation-Phase, keine v1.4-Requirement-IDs): closed all defects the 2026-09-01 external code review found in Phase 142's rework, and added the rejected-own-notes dashboard lane. 19/19 plans complete across 8 waves, including a five-plan gap-closure round (143-15..19) that resolved UAT-01 (stale review-detail status badge), UAT-02 (`has_own_notes` false-positive-done on rejected notes), UAT-03 (dashboard lane layout), and UAT-05 (`has_own_media` false-positive-done on rejected media — the exact mirror of UAT-02, closed last by adding a symmetric `has_own_rejected_media` field and unifying the `hasOwnArtifacts`/`needsRework` frontend logic across notes and media). Final re-verification: 8/8 must-haves passed, 0 regressions (`go build ./...` clean, full `npx vitest run` 289 files/2162 tests green, `tsc --noEmit` clean), 0 critical code-review findings (5 warnings tracked as pre-existing/non-blocking).
+
 ## Current Milestone: v1.4 Capability-, Review- und Benutzerverwaltung
 
 **Goal:** Make permissions understandable and safely controllable per user, complete the existing review-delegation seam, and reduce admin/review views to relevant, actionable work.
@@ -145,4 +147,4 @@ This document evolves at phase transitions and milestone boundaries.
 4. Update Context with the current system state.
 
 ---
-*Last updated: 2026-08-26 for milestone v1.4 Capability-, Review- und Benutzerverwaltung*
+*Last updated: 2026-09-02 for milestone v1.4 Capability-, Review- und Benutzerverwaltung*
