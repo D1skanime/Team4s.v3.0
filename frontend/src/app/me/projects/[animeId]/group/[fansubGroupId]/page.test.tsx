@@ -55,6 +55,7 @@ function makeRelease(overrides: Partial<MeProjectReleaseVersion> = {}): MeProjec
     has_own_notes: overrides.has_own_notes ?? false,
     has_own_media: overrides.has_own_media ?? false,
     has_own_rejected_notes: overrides.has_own_rejected_notes ?? false,
+    has_own_rejected_media: overrides.has_own_rejected_media ?? false,
     ...overrides,
   }
 }

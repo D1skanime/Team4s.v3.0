@@ -199,6 +199,7 @@ export interface MeProjectReleaseVersion {
   has_own_notes: boolean;
   has_own_media: boolean;
   has_own_rejected_notes: boolean;
+  has_own_rejected_media: boolean;
 }
 
 export interface MeProjectDetail {

@@ -12070,6 +12070,7 @@ components:
         - has_own_notes
         - has_own_media
         - has_own_rejected_notes
+        - has_own_rejected_media
       properties:
         release_version_id:
           type: integer
@@ -12102,6 +12103,8 @@ components:
         has_own_media:
           type: boolean
         has_own_rejected_notes:
+          type: boolean
+        has_own_rejected_media:
           type: boolean
     MeProjectDetail:
       type: object
