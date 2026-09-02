@@ -32,6 +32,7 @@ import {
   formatReleaseReviewDateTime,
   RELEASE_REVIEW_CATEGORY_LABELS,
   releaseReviewDetailStatus,
+  releaseReviewResubmissionBadge, resolvePriorRejectionContextLine,
 } from '../../../releaseReviewPresentation'
 import styles from '../../../releaseReviews.module.css'
 import { useReleaseReviewMobileGate } from '../../../useReleaseReviewMobileGate'
@@ -247,6 +248,7 @@ export default function ReleaseReviewPage() {
         <div className={styles.titleLine}>
           <h1>Prüfung</h1>
           <Badge variant={status.variant}>{status.label}</Badge>
+          {detail.prior_rejection ? <Badge variant={releaseReviewResubmissionBadge().variant}>{releaseReviewResubmissionBadge().label}</Badge> : null}
         </div>
       </header>
 
@@ -271,6 +273,7 @@ export default function ReleaseReviewPage() {
             <RichTextRenderer bodyHtml={detail.text.body_html} />
           </>
         ) : null}
+        {detail.prior_rejection ? <p className={styles.hint}>{resolvePriorRejectionContextLine(detail.prior_rejection)}</p> : null}
         {detail.type === 'image' && detail.image ? (
           <ReleaseReviewMediaPreview
             thumbnailUrl={detail.image.thumbnail_url}

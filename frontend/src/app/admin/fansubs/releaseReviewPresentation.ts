@@ -2,6 +2,7 @@ import type {
   ReleaseReviewCounts,
   ReleaseReviewDetail,
   ReleaseReviewImageCategory,
+  ReleaseReviewPriorRejection,
   ReleaseReviewQueueItem,
   ReleaseReviewRejectionCategory,
   ReleaseReviewType,
@@ -84,6 +85,14 @@ export function releaseReviewDetailStatus(status: ReleaseReviewDetail['status'])
 
 export function releaseReviewResubmissionBadge() {
   return { label: 'Überarbeitet', variant: 'warning' as const }
+}
+
+export function resolvePriorRejectionContextLine(priorRejection: ReleaseReviewPriorRejection): string {
+  const reason = priorRejection.rejection_reason
+  if (priorRejection.rejected_by_current_actor) {
+    return `Überarbeitete Fassung deiner eigenen Ablehnung vom ${formatReleaseReviewDateTime(priorRejection.rejected_at)}: „${reason}"`
+  }
+  return `Überarbeitete Fassung — zuvor von ${priorRejection.reviewer_display_name} abgelehnt: „${reason}"`
 }
 
 export function formatReleaseReviewDateTime(value: string): string {
