@@ -160,6 +160,7 @@ export default function ReleaseReviewPage() {
       })
       setRejectOpen(false)
       setDecisionState({ kind: 'success', response })
+      setDetail((previous) => (previous ? { ...previous, status: decision === 'confirm' ? 'confirmed' : 'rejected' } : previous))
     } catch (error) {
       if (
         error instanceof ApiError &&
