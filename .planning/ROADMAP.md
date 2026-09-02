@@ -416,7 +416,7 @@ Milestone v1.4 closes Live-UAT Findings #29-#32 by making effective group rights
 - [x] **Phase 141: Actor-Decidable Review Queue** - Make every queue lane, count, detail, and next action reflect what the current reviewer may actually decide. (completed 2026-08-26)
 - [x] **Phase 142: Integrated Security, Fixtures & Live Release Gate** - Prove the complete milestone across contracts, auth refresh, fixtures, security, responsive UI, and canonical ownership. (completed 2026-09-01)
 - [x] **Phase 143: Phase-142-Nacharbeit und Dashboard-Lane für abgelehnte Notizen** - Die in der externen Codeprüfung vom 2026-09-01 belegten Defekte schließen und abgelehnte eigene Release-Notizen im persönlichen Dashboard sichtbar machen. (completed 2026-09-01)
-- [ ] **Phase 144: Überarbeitungs-Kreislauf für Release-Medien vervollständigen** - Abgelehnte Release-Medien lassen sich an Ort und Stelle ersetzen statt nur den Text daneben zu ändern, mit Revisionssprung statt Neu-Upload.
+- [x] **Phase 144: Überarbeitungs-Kreislauf für Release-Medien vervollständigen** - Abgelehnte Release-Medien lassen sich an Ort und Stelle ersetzen statt nur den Text daneben zu ändern, mit Revisionssprung statt Neu-Upload. (completed 2026-09-02)
 
 ## Phase Details
 
@@ -792,7 +792,7 @@ Plans:
 **Goal:** Ein abgelehntes Release-Medium lässt sich in derselben Zeile korrigieren — Datei ersetzen und/oder Kategorie ändern, statt neu hochzuladen — und der Prüfer sieht beim erneuten Vorlegen, dass es sich um die überarbeitete Fassung seiner eigenen Ablehnung handelt, nicht um eine fremde neue Einreichung.
 **Requirements**: TBD (UAT-06, 143-UAT.md — kein v1.4-Requirement-Mapping)
 **Depends on:** Phase 143
-**Plans:** 6/7 plans executed
+**Plans:** 7/7 plans complete
 
 Plans:
 **Wave 1**
@@ -815,7 +815,7 @@ Plans:
 **Wave 5** *(blocked on Wave 4 completion)*
 
 - [x] 144-06-PLAN.md — Einreicher-UI: Datei-ersetzen-Kontrolle + Kategoriefeld im Bearbeiten-Formular
-- [ ] 144-07-PLAN.md — Prüfer-UI: Überarbeitet-Badge + Kontextzeile auf Detail- und Listenansicht
+- [x] 144-07-PLAN.md — Prüfer-UI: Überarbeitet-Badge + Kontextzeile auf Detail- und Listenansicht
 
 ## v1.4 Coverage
 
