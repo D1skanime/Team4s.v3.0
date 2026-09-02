@@ -4,7 +4,11 @@
  */
 
 import { UploadQueueItem } from './useReleaseVersionMedia'
-import { ReleaseVersionMediaCategory } from '@/types/releaseVersionMedia'
+import {
+  ReleaseVersionMediaCategory,
+  ReleaseVersionMediaItem,
+  ReleaseVersionMediaPatchRequest,
+} from '@/types/releaseVersionMedia'
 import { ReplaceReleaseVersionMediaFileOptions } from '@/lib/api'
 import styles from './ReleaseVersionMediaSection.module.css'
 
@@ -81,5 +85,63 @@ export function buildReplaceMediaFileRequest(
     caption: options.caption,
     isPreviewCandidate: options.isPreviewCandidate,
     sourceRevision: currentSourceRevision ?? undefined,
+  }
+}
+
+// ─── Edit-Drawer Speichern/Übernahme (Phase 144) ────────────────────────────
+
+/** Drei-Zustands-Label für den Primäraktions-Button des Bearbeiten-Drawers (UI-SPEC Copywriting Contract). */
+export function resolveEditDrawerPrimaryLabel(
+  item: { review_state?: string | null } | null,
+  hasStagedChanges: boolean,
+): string {
+  if (item?.review_state === 'rejected') {
+    return hasStagedChanges ? 'Überarbeitung einreichen' : 'Erneut einreichen'
+  }
+  return 'Speichern'
+}
+
+interface SelectedItemSaveInput {
+  selectedItem: ReleaseVersionMediaItem
+  editCategory: ReleaseVersionMediaCategory
+  editCaption: string
+  canEditPreviewCandidate: boolean
+  editPreviewCandidate: boolean
+  stagedReplaceFile: File | null
+}
+
+type SelectedItemSaveOp =
+  | {
+      mode: 'replace'
+      payload: { file: File; category?: ReleaseVersionMediaCategory; caption: string | null; isPreviewCandidate?: boolean }
+    }
+  | { mode: 'patch'; payload: ReleaseVersionMediaPatchRequest }
+
+/** Entscheidet zwischen replaceItem (gestagte Datei) und patchItem (nur Metadaten) und baut das jeweilige Payload. */
+export function buildSelectedItemSavePayload(input: SelectedItemSaveInput): SelectedItemSaveOp {
+  const { selectedItem, editCategory, editCaption, canEditPreviewCandidate, editPreviewCandidate, stagedReplaceFile } = input
+  const trimmedCaption = editCaption.trim() === '' ? null : editCaption.trim()
+  const categoryChanged = editCategory !== selectedItem.category
+  const previewCandidateChanged = canEditPreviewCandidate && editPreviewCandidate !== selectedItem.is_preview_candidate
+
+  if (stagedReplaceFile) {
+    return {
+      mode: 'replace',
+      payload: {
+        file: stagedReplaceFile,
+        ...(categoryChanged ? { category: editCategory } : {}),
+        caption: trimmedCaption,
+        ...(previewCandidateChanged ? { isPreviewCandidate: editPreviewCandidate } : {}),
+      },
+    }
+  }
+
+  return {
+    mode: 'patch',
+    payload: {
+      caption: trimmedCaption,
+      ...(selectedItem.source_revision != null ? { source_revision: selectedItem.source_revision } : {}),
+      ...(categoryChanged ? { category: editCategory } : {}),
+    },
   }
 }

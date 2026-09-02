@@ -3,28 +3,13 @@
 import { ChangeEvent, DragEvent, KeyboardEvent, useEffect, useMemo, useRef, useState } from 'react'
 import { ImageIcon, RefreshCw, Star, Trash2, Upload } from 'lucide-react'
 
-import {
-  CATEGORY_ALLOWS_PREVIEW,
-  ReleaseVersionMediaCategory,
-  ReleaseVersionMediaItem,
-  ReleaseVersionMediaPatchRequest,
-} from '@/types/releaseVersionMedia'
+import { CATEGORY_ALLOWS_PREVIEW, ReleaseVersionMediaCategory, ReleaseVersionMediaItem } from '@/types/releaseVersionMedia'
 
-import { Badge } from '@/components/ui/Badge'
-import { Button } from '@/components/ui/Button'
-import { Drawer } from '@/components/ui/Drawer'
-import { EmptyState } from '@/components/ui/EmptyState'
-import { FormField } from '@/components/ui/FormField'
-import { Textarea } from '@/components/ui/Textarea'
+import { Badge, Button, Drawer, EmptyState, FormField, Textarea } from '@/components/ui'
 import { UploadQueueItem, useReleaseVersionMedia, UseReleaseVersionMediaResult } from './useReleaseVersionMedia'
-import {
-  CATEGORY_OPTIONS,
-  buildLocalPreviewURL,
-  fileKey,
-  isTerminalStatus,
-  statusClassName,
-  statusLabel,
-} from './ReleaseVersionMediaSection.helpers'
+import { ReleaseVersionMediaReplaceControls } from './ReleaseVersionMediaReplaceControls'
+import { RELEASE_REVIEW_REJECTION_CATEGORY_LABELS } from '../../../fansubs/releaseReviewPresentation'
+import { CATEGORY_OPTIONS, buildLocalPreviewURL, buildSelectedItemSavePayload, fileKey, isTerminalStatus, resolveEditDrawerPrimaryLabel, statusClassName, statusLabel } from './ReleaseVersionMediaSection.helpers'
 import styles from './ReleaseVersionMediaSection.module.css'
 
 interface ReleaseVersionMediaSectionProps {
@@ -69,14 +54,6 @@ function statusBadge(item: ReleaseVersionMediaItem): { label: string; className:
   }
 }
 
-const REJECTION_CATEGORY_LABELS: Record<string, string> = {
-  'content.incorrect': 'Inhaltlich falsch',
-  'release_context.wrong': 'Falscher Release-Kontext',
-  'quality.insufficient': 'Qualität unzureichend',
-  'rights.unclear': 'Quelle oder Rechte unklar',
-  other: 'Sonstiger Grund',
-}
-
 function formatLastActivity(value?: string | null): string | null {
   if (!value) return null
   const date = new Date(value)
@@ -107,10 +84,14 @@ export function ReleaseVersionMediaSection({
   const [uploadError, setUploadError] = useState<string | null>(null)
   const [editCaption, setEditCaption] = useState('')
   const [editPreviewCandidate, setEditPreviewCandidate] = useState(false)
+  const [editCategory, setEditCategory] = useState<ReleaseVersionMediaCategory>('screenshot')
+  const [stagedReplaceFile, setStagedReplaceFile] = useState<File | null>(null)
+  const [isReplaceDragActive, setIsReplaceDragActive] = useState(false)
   const [editError, setEditError] = useState<string | null>(null)
   const [previewSavingId, setPreviewSavingId] = useState<number | null>(null)
   const [toast, setToast] = useState<string | null>(null)
   const fileInputRef = useRef<HTMLInputElement | null>(null)
+  const replaceFileInputRef = useRef<HTMLInputElement | null>(null)
 
   const selectedFilePreviews = useMemo(
     () => selectedFiles.map((file) => ({ file, previewURL: buildLocalPreviewURL(file) })),
@@ -126,6 +107,16 @@ export function ReleaseVersionMediaSection({
       }
     }
   }, [selectedFilePreviews])
+
+  const stagedReplacePreviewURL = useMemo(() => (stagedReplaceFile ? buildLocalPreviewURL(stagedReplaceFile) : null), [stagedReplaceFile])
+
+  useEffect(() => {
+    return () => {
+      if (stagedReplacePreviewURL && typeof URL !== 'undefined' && typeof URL.revokeObjectURL === 'function') {
+        URL.revokeObjectURL(stagedReplacePreviewURL)
+      }
+    }
+  }, [stagedReplacePreviewURL])
 
   const categoryCounts = useMemo(() => {
     const counts = new Map<ReleaseVersionMediaCategory, number>()
@@ -182,6 +173,10 @@ export function ReleaseVersionMediaSection({
   const canEditPreviewCandidate = selectedItem ? CATEGORY_ALLOWS_PREVIEW[selectedItem.category] : false
   const canEditSelectedItem = Boolean(selectedItem && (selectedItem.can_update ?? canUpdateMedia))
   const canDeleteSelectedItem = Boolean(selectedItem && (selectedItem.can_delete ?? (canDeleteMedia || canDeleteOwnMedia)))
+  const isRejectedEditable = Boolean(selectedItem?.review_state === 'rejected' && canEditSelectedItem)
+  const hasStagedChanges = Boolean(stagedReplaceFile) ||
+    (selectedItem != null && editCategory !== selectedItem.category) ||
+    (selectedItem != null && (editCaption.trim() || null) !== (selectedItem.caption ?? null))
   const uploadSummaryVisible =
     media.uploadItems.length > 0 && media.uploadItems.every((item) => isTerminalStatus(item.status))
   const successCount = media.uploadItems.filter((item) => item.status === 'ready').length
@@ -193,6 +188,8 @@ export function ReleaseVersionMediaSection({
   function openEditSheet(item: ReleaseVersionMediaItem) {
     setEditCaption(item.caption ?? '')
     setEditPreviewCandidate(item.is_preview_candidate)
+    setEditCategory(item.category)
+    setStagedReplaceFile(null)
     setEditError(null)
     setSelectedItemId(item.id)
   }
@@ -258,6 +255,36 @@ export function ReleaseVersionMediaSection({
     handleFiles(Array.from(event.dataTransfer.files ?? []))
   }
 
+  function onReplaceFileChange(event: ChangeEvent<HTMLInputElement>) {
+    const file = event.target.files?.[0] ?? null
+    if (file) setStagedReplaceFile(file)
+    event.target.value = ''
+  }
+
+  function openReplaceFilePicker() {
+    replaceFileInputRef.current?.click()
+  }
+
+  function onReplaceDropZoneKeyDown(event: KeyboardEvent<HTMLDivElement>) {
+    if (event.key === 'Enter' || event.key === ' ') {
+      event.preventDefault()
+      openReplaceFilePicker()
+    }
+  }
+
+  function onReplaceDragToggle(event: DragEvent<HTMLDivElement>, active: boolean) {
+    event.preventDefault()
+    if (active) event.dataTransfer.dropEffect = 'copy'
+    setIsReplaceDragActive(active)
+  }
+
+  function onReplaceDrop(event: DragEvent<HTMLDivElement>) {
+    event.preventDefault()
+    setIsReplaceDragActive(false)
+    const file = event.dataTransfer.files?.[0] ?? null
+    if (file) setStagedReplaceFile(file)
+  }
+
   async function handleUploadClick() {
     if (!canUpload) return
 
@@ -282,18 +309,27 @@ export function ReleaseVersionMediaSection({
   async function handleSaveSelectedItem() {
     if (!selectedItem || !canEditSelectedItem) return
 
-    const patch: ReleaseVersionMediaPatchRequest = {
-      caption: editCaption.trim() === '' ? null : editCaption.trim(),
-      ...(selectedItem.source_revision != null
-        ? { source_revision: selectedItem.source_revision }
-        : {}),
-    }
+    const saveOp = buildSelectedItemSavePayload({
+      selectedItem,
+      editCategory,
+      editCaption,
+      canEditPreviewCandidate,
+      editPreviewCandidate,
+      stagedReplaceFile,
+    })
 
     setEditError(null)
     try {
-      await media.patchItem(selectedItem.id, patch)
-      setSelectedItemId(null)
-      showToast('Änderungen gespeichert.')
+      if (saveOp.mode === 'replace') {
+        await media.replaceItem(selectedItem.id, saveOp.payload)
+        setStagedReplaceFile(null)
+        setSelectedItemId(null)
+        showToast('Überarbeitung eingereicht.')
+      } else {
+        await media.patchItem(selectedItem.id, saveOp.payload)
+        setSelectedItemId(null)
+        showToast('Änderungen gespeichert.')
+      }
     } catch (error) {
       setEditError(error instanceof Error ? error.message : 'Speichern fehlgeschlagen.')
     }
@@ -618,9 +654,9 @@ export function ReleaseVersionMediaSection({
               variant="ghost"
               className={styles.accentButton}
               onClick={() => void handleSaveSelectedItem()}
-              disabled={!canEditSelectedItem}
+              disabled={!canEditSelectedItem || (selectedItem?.review_state === 'rejected' && !hasStagedChanges)}
             >
-              {selectedItem?.review_state === 'rejected' ? 'Erneut einreichen' : 'Speichern'}
+              {resolveEditDrawerPrimaryLabel(selectedItem, hasStagedChanges)}
             </Button>
           </>
         }
@@ -628,7 +664,9 @@ export function ReleaseVersionMediaSection({
         {selectedItem ? (
           <div className={styles.sheetStack}>
             <div className={styles.editPreview}>
-              {selectedItem.original_url || selectedItem.thumbnail_url ? (
+              {stagedReplacePreviewURL ? (
+                <img src={stagedReplacePreviewURL} alt="" />
+              ) : selectedItem.original_url || selectedItem.thumbnail_url ? (
                 <img src={selectedItem.original_url ?? selectedItem.thumbnail_url ?? ''} alt="" />
               ) : (
                 <ImageIcon size={28} aria-hidden="true" />
@@ -638,10 +676,40 @@ export function ReleaseVersionMediaSection({
             {selectedItem.review_state === 'rejected' ? (
               <div className={styles.statusHint} role="status">
                 <strong>
-                  {REJECTION_CATEGORY_LABELS[selectedItem.rejection_category ?? 'other'] ?? 'Sonstiger Grund'}
+                  {RELEASE_REVIEW_REJECTION_CATEGORY_LABELS[selectedItem.rejection_category ?? 'other'] ?? 'Sonstiger Grund'}
                 </strong>
                 {selectedItem.rejection_reason ? <p>{selectedItem.rejection_reason}</p> : null}
               </div>
+            ) : null}
+            {isRejectedEditable ? <ReleaseVersionMediaReplaceControls editCategory={editCategory} onCategoryChange={setEditCategory} /> : null}
+            {isRejectedEditable ? (
+              <FormField label="Datei ersetzen" hint="Ersetzt die aktuell abgelehnte Datei durch eine neue Fassung. Beschreibung und Kategorie kannst du im selben Formular anpassen.">
+                <div
+                  className={[styles.dropZone, isReplaceDragActive ? styles.dropZoneActive : ''].filter(Boolean).join(' ')}
+                  role="button"
+                  tabIndex={0}
+                  onClick={openReplaceFilePicker}
+                  onKeyDown={onReplaceDropZoneKeyDown}
+                  onDragEnter={(event) => onReplaceDragToggle(event, true)}
+                  onDragOver={(event) => onReplaceDragToggle(event, true)}
+                  onDragLeave={(event) => onReplaceDragToggle(event, false)}
+                  onDrop={onReplaceDrop}
+                >
+                  <div className={styles.dropZoneHeader}>
+                    <p className={styles.dropZoneCallout}>Neue Datei hier hineinziehen oder antippen.</p>
+                    {stagedReplaceFile ? <p className={styles.helper}>Ausgewählt: {stagedReplaceFile.name}</p> : null}
+                  </div>
+                  <input
+                    ref={replaceFileInputRef}
+                    className={styles.fileInput}
+                    type="file"
+                    aria-label="Ersatzdatei"
+                    accept="image/*"
+                    onChange={onReplaceFileChange}
+                    onClick={(event) => event.stopPropagation()}
+                  />
+                </div>
+              </FormField>
             ) : null}
             <FormField label="Beschreibung">
               <Textarea
