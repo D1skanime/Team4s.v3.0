@@ -36,6 +36,7 @@ type ReleaseVersionMediaPatchInput struct {
 	Caption            *string
 	CaptionSet         bool
 	IsPreviewCandidate *bool
+	Category           *string // nil = do not change, matches the existing nil-means-unchanged convention (Zielbild 2, 144-CONTEXT.md)
 	// Review-Felder (Phase 78, additiv): nur gesetzt wenn Key im Request vorhanden war.
 	Visibility   *string // kanonischer API-Wert (intern/oeffentlich), nil = nicht ändern
 	ReviewStatus *string // kanonischer API-Wert (in_pruefung/...), nil = nicht ändern
@@ -305,8 +306,7 @@ func (r *MediaRepository) ListReleaseVersionMedia(
 	return items, nil
 }
 
-// PatchReleaseVersionMedia updates caption and/or is_preview_candidate for a relation.
-// Category cannot be changed (enforced by handler before calling this).
+// PatchReleaseVersionMedia updates caption, is_preview_candidate, and/or category for a relation.
 // Uses a transaction so the caller can combine with ClearPreviewCandidateForVersion.
 func (r *MediaRepository) PatchReleaseVersionMedia(
 	ctx context.Context,
@@ -319,10 +319,11 @@ func (r *MediaRepository) PatchReleaseVersionMedia(
 		SET
 			caption              = CASE WHEN $2 THEN $3 ELSE caption END,
 			is_preview_candidate = COALESCE($4, is_preview_candidate),
+			category             = COALESCE($5, category),
 			updated_at           = NOW()
 		WHERE id = $1
 		  AND deleted_at IS NULL
-	`, relationID, input.CaptionSet, input.Caption, input.IsPreviewCandidate)
+	`, relationID, input.CaptionSet, input.Caption, input.IsPreviewCandidate, input.Category)
 	if err != nil {
 		return fmt.Errorf("patch release_version_media %d: %w", relationID, err)
 	}
