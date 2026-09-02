@@ -335,9 +335,9 @@ function MyProjectDetailPage() {
 
         <ul className={styles.releaseList}>
           {visibleReleases.map((release) => {
-            const hasOwnArtifacts = release.has_own_notes || release.has_own_media || release.has_own_rejected_notes
+            const hasOwnArtifacts = release.has_own_notes || release.has_own_media || release.has_own_rejected_notes || release.has_own_rejected_media
             const releaseDone = isDone(release)
-            const needsRework = !releaseDone && release.has_own_rejected_notes
+            const needsRework = !releaseDone && (release.has_own_rejected_notes || release.has_own_rejected_media)
             return (
               <li key={release.release_version_id} className={styles.releaseRow}>
                 <div className={styles.releaseMain}>
