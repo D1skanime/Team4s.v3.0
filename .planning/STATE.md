@@ -3,14 +3,14 @@ gsd_state_version: 1.0
 milestone: v1.4
 milestone_name: Coverage
 status: executing
-stopped_at: Phase 144 UI-SPEC approved
-last_updated: "2026-09-02T12:45:12.026Z"
-last_activity: 2026-09-02 -- Phase 144 planning complete
+stopped_at: Completed 144-01-PLAN.md
+last_updated: "2026-09-02T14:16:17.322Z"
+last_activity: 2026-09-02
 progress:
   total_phases: 9
   completed_phases: 8
   total_plans: 110
-  completed_plans: 103
+  completed_plans: 104
   percent: 89
 ---
 
@@ -29,14 +29,14 @@ Phase 135 and any future roadmap entries continue from here.
 See: .planning/PROJECT.md (updated 2026-08-13)
 
 **Core value:** Team4s presents fansub history and collaboration credibly while keeping identity, visibility, ownership, and permissions correct.
-**Current focus:** Milestone complete
+**Current focus:** Phase 144 — berarbeitungs-kreislauf-f-r-release-medien-vervollst-ndigen
 
 ## Current Position
 
-Phase: 143
-Plan: Not started
+Phase: 144 (berarbeitungs-kreislauf-f-r-release-medien-vervollst-ndigen) — EXECUTING
+Plan: 2 of 7
 Status: Ready to execute
-Last activity: 2026-09-02 -- Phase 144 planning complete
+Last activity: 2026-09-02
 
 ## Accumulated Context
 
@@ -232,6 +232,7 @@ Last activity: 2026-09-02 -- Phase 144 planning complete
 - [Phase 143]: Plan 143-17 closed UAT-02's backend/contract half: has_own_rejected_notes uses an INNER JOIN (not LEFT JOIN like has_own_notes) to release_version_note_review_lifecycle, since a rejected state can only be represented when a lifecycle row exists.
 - [Phase 143]: 143-18 executed: needsRework = !releaseDone && has_own_rejected_notes gates only Badge variant/text and button prominence; isDone()/counters/filters stay byte-identical (Kriterium 5 locked). Reused Badge variant=danger for consistency with AttentionSection.tsx's rejected-notes semantics. — UAT-02 is now fully closed (backend half in 143-17, frontend half here); Phase 143 (last plan 4 of 4) is complete.
 - [Phase 143]: 143-19 closed UAT-05: has_own_media's EXISTS subquery now excludes rejected media via a LEFT JOIN to release_version_media_review_lifecycle (mirroring has_own_notes); a new has_own_rejected_media boolean (INNER JOIN) flows through openapi.yaml/contributions.ts; page.tsx's hasOwnArtifacts/needsRework unify has_own_rejected_notes and has_own_rejected_media via a single OR so either or both rejected-artifact types render exactly one 'Überarbeitung nötig' badge, never a precedence puzzle.
+- [Phase 144]: [Phase 144, Plan 01]: PatchReleaseVersionMedia's category hard-block is removed; category is now validated via parseRVMCategoryPatchField (new sibling file admin_content_release_version_media_category.go, keeps the 1148-line handler file at 1146) and persisted via ReleaseVersionMediaPatchInput.Category; rvmCategoryAllowsPreview checks the effective post-patch category so a category change cannot bypass PREVIEW_NOT_ALLOWED_FOR_CATEGORY.
 
 ### Pending Todos
 
@@ -521,10 +522,11 @@ untruncated list lives in `.planning/todos/pending/`.
 | Phase 143 P17 | 15min | 2 tasks | 5 files |
 | Phase 143 P18 | 10min | 2 tasks | 2 files |
 | Phase 143 P19 | 20min | 3 tasks | 7 files |
+| Phase 144 P01 | 35min | 3 tasks | 8 files |
 
 ## Session Continuity
 
-Last session: 2026-09-02T11:44:21.938Z
-Stopped at: Phase 144 UI-SPEC approved
+Last session: 2026-09-02T14:16:17.306Z
+Stopped at: Completed 144-01-PLAN.md
 Last activity: 2026-09-01 - Milestone v1.4 audit passed (41/41 requirements, 7/7 phases, .planning/v1.4-MILESTONE-AUDIT.md); Phase 143 added to roadmap, not yet planned
-Resume file: .planning/phases/144-berarbeitungs-kreislauf-f-r-release-medien-vervollst-ndigen/144-UI-SPEC.md
+Resume file: None

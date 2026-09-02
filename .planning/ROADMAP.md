@@ -792,12 +792,12 @@ Plans:
 **Goal:** Ein abgelehntes Release-Medium lässt sich in derselben Zeile korrigieren — Datei ersetzen und/oder Kategorie ändern, statt neu hochzuladen — und der Prüfer sieht beim erneuten Vorlegen, dass es sich um die überarbeitete Fassung seiner eigenen Ablehnung handelt, nicht um eine fremde neue Einreichung.
 **Requirements**: TBD (UAT-06, 143-UAT.md — kein v1.4-Requirement-Mapping)
 **Depends on:** Phase 143
-**Plans:** 7 plans
+**Plans:** 1/7 plans executed
 
 Plans:
 **Wave 1**
 
-- [ ] 144-01-PLAN.md — Kategorie im bestehenden PATCH-Endpunkt änderbar machen (Zielbild 2)
+- [x] 144-01-PLAN.md — Kategorie im bestehenden PATCH-Endpunkt änderbar machen (Zielbild 2)
 - [ ] 144-02-PLAN.md — Neues Replace-Repository: Identität erhalten, Revision springt, alte Datei in die Cleanup-Outbox (Zielbild 1, 4)
 
 **Wave 2** *(blocked on Wave 1 completion)*
