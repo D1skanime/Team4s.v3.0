@@ -3,6 +3,7 @@ import type {
   ReleaseReviewDetail,
   ReleaseReviewImageCategory,
   ReleaseReviewQueueItem,
+  ReleaseReviewRejectionCategory,
   ReleaseReviewType,
   ReleaseReviewView,
 } from '@/types/releaseReviews'
@@ -25,6 +26,14 @@ export const RELEASE_REVIEW_CATEGORY_LABELS: Record<ReleaseReviewImageCategory, 
   typesetting_karaoke: 'Typesetting / Karaoke',
   fun_outtake: 'Fun / Outtake',
   other: 'Sonstiges',
+}
+
+export const RELEASE_REVIEW_REJECTION_CATEGORY_LABELS: Record<ReleaseReviewRejectionCategory, string> = {
+  'content.incorrect': 'Inhaltlich falsch',
+  'release_context.wrong': 'Falscher Release-Kontext',
+  'quality.insufficient': 'Qualität unzureichend',
+  'rights.unclear': 'Quelle oder Rechte unklar',
+  other: 'Sonstiger Grund',
 }
 
 export function readPositiveReviewNumber(value: string | null): number | null {
@@ -71,6 +80,10 @@ export function releaseReviewDetailStatus(status: ReleaseReviewDetail['status'])
   return status === 'confirmed'
     ? { ...queueStatus, label: 'Bestätigt / Öffentlich' }
     : queueStatus
+}
+
+export function releaseReviewResubmissionBadge() {
+  return { label: 'Überarbeitet', variant: 'warning' as const }
 }
 
 export function formatReleaseReviewDateTime(value: string): string {
