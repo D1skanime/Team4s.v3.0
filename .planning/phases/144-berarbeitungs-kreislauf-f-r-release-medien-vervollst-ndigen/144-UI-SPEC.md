@@ -55,11 +55,16 @@ active use — reuse it as-is, do not invent ad-hoc px/rem values for new markup
 |-------|-------|-------|
 | `--space-1` | 4px | Icon gaps, badge inline padding |
 | `--space-2` | 8px | Compact row gaps (checkbox rows, badge rows) |
-| `--space-3` | 12px | Form control internal padding |
 | `--space-4` | 16px | Default `FormField`/drawer stack gap |
 | `--space-5` | 24px | Section padding inside cards |
 | `--space-6` | 32px | Drawer section breaks |
 | `--space-7` | 48px | Major layout breaks (not used at this component scale) |
+
+`--space-3` (12px) exists globally but is **not** part of the standard 8-point scale (4, 8, 16, 24,
+32, 48, 64) and is not needed by this phase's new markup — the category `Select`/`FormField` use the
+existing primitives' own baked-in padding, and the file-replace drop-zone reuses the existing
+`.dropZone` classes below (rem literals, not the token scale). Do not reach for `--space-3` when
+writing new CSS this phase; use `--space-2` or `--space-4` if a form-control padding value is needed.
 
 Exceptions: the existing `ReleaseVersionMediaSection.module.css` uses literal `rem` values
 (`0.75rem`, `1rem`, etc.) instead of the `--space-*` tokens throughout. This is pre-existing,
@@ -75,15 +80,21 @@ Do not refactor the whole file's spacing system as a side effect of this phase.
 | Role | Size | Weight | Line Height |
 |------|------|--------|-------------|
 | Body | 14px (0.9rem) | 400 | 1.5 |
-| Label | 12px (0.72–0.76rem) | 700–800 | 1.2 |
+| Label | 12px (0.72–0.76rem) | 800 | 1.2 |
 | Heading | 16px (1.05rem) | 800 | 1.25 |
 | Display | 19px (1.2rem) | 800 | 1.2 |
+
+Two weights project-wide for this phase's new copy: `400` (Body) and `800` (Label/Heading/Display).
+The shipped `ReleaseVersionMediaSection.module.css` uses `700` for some pre-existing Label instances
+(e.g. `.categoryKicker`) — that is pre-existing, out-of-scope debt (same treatment as the hardcoded-hex
+color debt noted in the Color section below). Any **new** Label-role markup this phase adds (rejection/
+resubmission hint text, replace-file helper text, category field label) MUST use `800`, matching
+Heading/Display, so the contract stays at exactly two weights.
 
 Matches the already-shipped scale in `ReleaseVersionMediaSection.module.css`
 (`.helper`/`.mediaName` ≈ Body, `.categoryKicker`/`.contextLine` ≈ Label uppercase,
 `.detailTitle`/`.categoryTitle` ≈ Heading, `.headline` ≈ Display). New copy introduced by this phase
-(rejection/resubmission hint text, replace-file helper text, category field label) uses these same
-four roles — do not introduce a fifth size.
+uses these same four roles — do not introduce a fifth size.
 
 ---
 
