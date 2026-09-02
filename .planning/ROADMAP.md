@@ -792,7 +792,7 @@ Plans:
 **Goal:** Ein abgelehntes Release-Medium lässt sich in derselben Zeile korrigieren — Datei ersetzen und/oder Kategorie ändern, statt neu hochzuladen — und der Prüfer sieht beim erneuten Vorlegen, dass es sich um die überarbeitete Fassung seiner eigenen Ablehnung handelt, nicht um eine fremde neue Einreichung.
 **Requirements**: TBD (UAT-06, 143-UAT.md — kein v1.4-Requirement-Mapping)
 **Depends on:** Phase 143
-**Plans:** 7/7 plans complete
+**Plans:** 8/8 plans complete
 
 Plans:
 **Wave 1**

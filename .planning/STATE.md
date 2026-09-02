@@ -2,16 +2,16 @@
 gsd_state_version: 1.0
 milestone: v1.4
 milestone_name: Coverage
-status: executing
-stopped_at: Completed 144-06-PLAN.md
-last_updated: "2026-09-02T18:03:22.437Z"
-last_activity: 2026-09-02 -- Phase 144 planning complete
+status: verifying
+stopped_at: Completed 144-08-PLAN.md
+last_updated: "2026-09-02T18:27:26.763Z"
+last_activity: 2026-09-02
 progress:
   total_phases: 9
-  completed_phases: 8
+  completed_phases: 9
   total_plans: 111
-  completed_plans: 110
-  percent: 89
+  completed_plans: 111
+  percent: 100
 ---
 
 # Project State
@@ -34,9 +34,9 @@ See: .planning/PROJECT.md (updated 2026-08-13)
 ## Current Position
 
 Phase: 144 (berarbeitungs-kreislauf-f-r-release-medien-vervollst-ndigen) — EXECUTING
-Plan: 7 of 7
-Status: Ready to execute
-Last activity: 2026-09-02 -- Phase 144 planning complete
+Plan: 1 of 1
+Status: Phase complete — ready for verification
+Last activity: 2026-09-02
 
 ## Accumulated Context
 
@@ -239,6 +239,7 @@ Last activity: 2026-09-02 -- Phase 144 planning complete
 - [Phase 144]: [Phase 144] Plan 144-05 executed: added replaceReleaseVersionMediaFile() (PUT client for 144-04's replace-file endpoint) and RELEASE_REVIEW_REJECTION_CATEGORY_LABELS/releaseReviewResubmissionBadge() to releaseReviewPresentation.ts, giving Wave-5 plans (144-06, 144-07) one shared API/label surface instead of inventing duplicates. No UI changes in this plan.
 - [Phase 144]: Plan 144-06 executed (Zielbild 1/2, UI-SPEC file-replace contract) -- useReleaseVersionMedia.ts gained replaceItem/replaceError mirroring patchItem's revision-binding shape (buildReplaceMediaFileRequest extracted to helpers.tsx to stay under the 450-line cap); new ReleaseVersionMediaReplaceControls.tsx hosts the category Select (global primitives only); the file-replace drop-zone's native input stays inline in ReleaseVersionMediaSection.tsx per the ESLint LEGACY_NO_RESTRICTED_SYNTAX_FILES ratchet, since a brand-new file can never join that exemption. The primary submit button now reflects three UI-SPEC states and is disabled for a rejected item until a real change is staged, closing the no-op-resubmit gap. 20/20 tests pass in the touched test file, full suite 289/289 files green, tsc clean, 0 new eslint violation categories.
 - [Phase 144]: [Phase 144, 2026-09-02]: Plan 144-07 executed — resolvePriorRejectionContextLine() in releaseReviewPresentation.ts owns own-rejection vs other-reviewer resubmission copy branching (no rejection_category label interpolated, per UI-SPEC's locked Copywriting Contract); page.tsx's badge+context-line JSX uses single-line ternaries to stay at exactly 450 lines, the CLAUDE.md cap. Closes Phase 144's Zielbild 3 frontend half; all 4 Zielbild goals now have both backend and frontend halves shipped across the phase's 7 plans.
+- [Phase 144-08]: rvmPreviewGuardBlocked falls back to the row's real current is_preview_candidate only when the request omits the field; an explicit request value (true or false) always wins — Closes 144-VERIFICATION.md's omitted-field guard bypass without making the guard stricter than an explicit request
 
 ### Pending Todos
 
@@ -535,10 +536,11 @@ untruncated list lives in `.planning/todos/pending/`.
 | Phase 144 P05 | ~15min | 2 tasks | 2 files |
 | Phase 144 P06 | 45min | 3 tasks | 6 files |
 | Phase 144 P07 | 20min | 3 tasks | 4 files |
+| Phase 144 P08 | 20min | 3 tasks | 7 files |
 
 ## Session Continuity
 
-Last session: 2026-09-02T15:16:08.602Z
-Stopped at: Completed 144-06-PLAN.md
+Last session: 2026-09-02T18:27:26.745Z
+Stopped at: Completed 144-08-PLAN.md
 Last activity: 2026-09-01 - Milestone v1.4 audit passed (41/41 requirements, 7/7 phases, .planning/v1.4-MILESTONE-AUDIT.md); Phase 143 added to roadmap, not yet planned
 Resume file: None
