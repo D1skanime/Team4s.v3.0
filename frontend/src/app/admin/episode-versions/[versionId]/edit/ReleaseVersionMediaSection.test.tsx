@@ -83,9 +83,11 @@ function makeMediaState(
     retryUpload: vi.fn().mockResolvedValue(undefined),
     clearUploadQueue: vi.fn(),
     patchItem: vi.fn().mockResolvedValue(undefined),
+    replaceItem: vi.fn().mockResolvedValue(undefined),
     deleteItem: vi.fn().mockResolvedValue(undefined),
     reorderItems: vi.fn().mockResolvedValue(undefined),
     patchError: null,
+    replaceError: null,
     deleteError: null,
     reorderError: null,
     capabilities: defaultCapabilities,
@@ -249,11 +251,14 @@ describe('ReleaseVersionMediaSection Phase 90 upload redesign', () => {
     expect(within(dialog).getByText('Falscher Release-Kontext')).not.toBeNull()
     expect(within(dialog).getByText(/anderen Release-Version/i)).not.toBeNull()
 
-    fireEvent.click(within(dialog).getByRole('button', { name: 'Erneut einreichen' }))
+    expect(within(dialog).getByRole('button', { name: 'Erneut einreichen' })).toHaveProperty('disabled', true)
+
+    fireEvent.change(within(dialog).getByRole('textbox'), { target: { value: 'Bitte korrigiert' } })
+    fireEvent.click(within(dialog).getByRole('button', { name: 'Überarbeitung einreichen' }))
 
     await waitFor(() => {
       expect(patchItem).toHaveBeenCalledWith(62, {
-        caption: 'Bitte korrigieren',
+        caption: 'Bitte korrigiert',
         source_revision: 2,
       })
     })
@@ -396,5 +401,132 @@ describe('ReleaseVersionMediaSection Phase 90 upload redesign', () => {
 
     expect(screen.getByText('INVALID_MIME_TYPE')).not.toBeNull()
     expect(screen.getByRole('button', { name: /retry/i })).not.toBeNull()
+  })
+})
+
+describe('ReleaseVersionMediaSection Phase 144 replace-file drawer', () => {
+  it('zeigt Kategorie-Auswahl und Datei-ersetzen-Kontrolle nur für abgelehnte, editierbare Medien', async () => {
+    renderSection(
+      makeMediaState({
+        items: [makeItem({
+          id: 81,
+          caption: 'Rejected Item',
+          review_state: 'rejected',
+          can_update: true,
+          rejection_category: 'quality.insufficient',
+          rejection_reason: 'Testgrund',
+        })],
+      }),
+    )
+
+    fireEvent.click(screen.getByRole('button', { name: /Rejected Item bearbeiten/i }))
+    const rejectedDialog = await screen.findByRole('dialog', { name: 'Medium bearbeiten' })
+    expect(within(rejectedDialog).getByLabelText('Kategorie')).not.toBeNull()
+    expect(within(rejectedDialog).getByLabelText('Ersatzdatei')).not.toBeNull()
+
+    cleanup()
+
+    renderSection(
+      makeMediaState({
+        items: [makeItem({
+          id: 82,
+          caption: 'Confirmed Item',
+          review_state: 'confirmed',
+          can_update: true,
+        })],
+      }),
+    )
+
+    fireEvent.click(screen.getByRole('button', { name: /Confirmed Item bearbeiten/i }))
+    const confirmedDialog = await screen.findByRole('dialog', { name: 'Medium bearbeiten' })
+    expect(within(confirmedDialog).queryByLabelText('Kategorie')).toBeNull()
+    expect(within(confirmedDialog).queryByLabelText('Ersatzdatei')).toBeNull()
+  })
+
+  it('primärer Button liest "Erneut einreichen" (deaktiviert) ohne Änderungen und "Überarbeitung einreichen" (aktiv) nach Datei-Auswahl', async () => {
+    renderSection(
+      makeMediaState({
+        items: [makeItem({
+          id: 83,
+          caption: 'Needs Fix',
+          review_state: 'rejected',
+          can_update: true,
+          rejection_category: 'quality.insufficient',
+          rejection_reason: 'Testgrund',
+        })],
+      }),
+    )
+
+    fireEvent.click(screen.getByRole('button', { name: /Needs Fix bearbeiten/i }))
+    const dialog = await screen.findByRole('dialog', { name: 'Medium bearbeiten' })
+
+    expect(within(dialog).getByRole('button', { name: 'Erneut einreichen' })).toHaveProperty('disabled', true)
+
+    const file = new File(['x'], 'replacement.png', { type: 'image/png' })
+    fireEvent.change(within(dialog).getByLabelText('Ersatzdatei'), { target: { files: [file] } })
+
+    expect(within(dialog).getByRole('button', { name: 'Überarbeitung einreichen' })).toHaveProperty('disabled', false)
+  })
+
+  it('routet Submit mit gestagter Datei zu replaceItem, ohne gestagte Datei (nur Kategorie) zu patchItem', async () => {
+    const replaceItem = vi.fn().mockResolvedValue(undefined)
+    const patchItem = vi.fn().mockResolvedValue(undefined)
+    renderSection(
+      makeMediaState({
+        items: [makeItem({
+          id: 84,
+          caption: 'Route Me',
+          review_state: 'rejected',
+          can_update: true,
+          rejection_category: 'quality.insufficient',
+          rejection_reason: 'Testgrund',
+        })],
+        replaceItem,
+        patchItem,
+      }),
+    )
+
+    fireEvent.click(screen.getByRole('button', { name: /Route Me bearbeiten/i }))
+    const dialog = await screen.findByRole('dialog', { name: 'Medium bearbeiten' })
+
+    const file = new File(['x'], 'replacement.png', { type: 'image/png' })
+    fireEvent.change(within(dialog).getByLabelText('Ersatzdatei'), { target: { files: [file] } })
+    fireEvent.click(within(dialog).getByRole('button', { name: 'Überarbeitung einreichen' }))
+
+    await waitFor(() => {
+      expect(replaceItem).toHaveBeenCalledWith(84, expect.objectContaining({ file }))
+    })
+    expect(patchItem).not.toHaveBeenCalled()
+
+    cleanup()
+
+    const replaceItem2 = vi.fn().mockResolvedValue(undefined)
+    const patchItem2 = vi.fn().mockResolvedValue(undefined)
+    renderSection(
+      makeMediaState({
+        items: [makeItem({
+          id: 85,
+          caption: 'Route Me Category',
+          category: 'screenshot',
+          review_state: 'rejected',
+          can_update: true,
+          rejection_category: 'quality.insufficient',
+          rejection_reason: 'Testgrund',
+        })],
+        replaceItem: replaceItem2,
+        patchItem: patchItem2,
+      }),
+    )
+
+    fireEvent.click(screen.getByRole('button', { name: /Route Me Category bearbeiten/i }))
+    const dialog2 = await screen.findByRole('dialog', { name: 'Medium bearbeiten' })
+
+    fireEvent.change(within(dialog2).getByLabelText('Kategorie'), { target: { value: 'typesetting_karaoke' } })
+    fireEvent.click(within(dialog2).getByRole('button', { name: 'Überarbeitung einreichen' }))
+
+    await waitFor(() => {
+      expect(patchItem2).toHaveBeenCalledWith(85, expect.objectContaining({ category: 'typesetting_karaoke' }))
+    })
+    expect(replaceItem2).not.toHaveBeenCalled()
   })
 })
