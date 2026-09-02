@@ -1,336 +1,233 @@
 ---
 phase: 143-phase-142-nacharbeit-und-dashboard-lane-f-r-abgelehnte-notiz
-reviewed: 2026-09-01T23:45:00Z
+reviewed: 2026-09-02T00:00:00Z
 depth: standard
-files_reviewed: 49
+files_reviewed: 11
 files_reviewed_list:
-  - backend/cmd/server/main.go
-  - backend/internal/handlers/admin_content_anime_project_timeline_test.go
-  - backend/internal/handlers/app_auth_capabilities.go
-  - backend/internal/handlers/app_auth.go
-  - backend/internal/handlers/app_auth_group_member_roles.go
-  - backend/internal/handlers/app_auth_group_members.go
-  - backend/internal/handlers/app_auth_invitations.go
-  - backend/internal/handlers/contribution_proposals_me_test.go
-  - backend/internal/handlers/dashboard_me_handler.go
-  - backend/internal/handlers/dashboard_me_handler_test.go
-  - backend/internal/migrations/phase143_role_capability_defaults_reset_test.go
-  - backend/internal/repository/anime_contributions_member_anchor_test.go
-  - backend/internal/repository/anime_contributions_member_project_repository.go
-  - backend/internal/repository/anime_contributions_member_project_repository_has_own_notes_test.go
-  - backend/internal/repository/anime_contributions_proposal_member_repository.go
-  - backend/internal/repository/anime_contributions_proposal_repository.go
-  - backend/internal/repository/anime_contributions_proposal_repository_test.go
-  - backend/internal/repository/anime_fansub_project_timeline_repository_test.go
-  - backend/internal/repository/member_claims_queries_repository.go
-  - backend/internal/repository/member_claims_repository.go
-  - backend/internal/repository/member_claims_repository_test.go
-  - backend/internal/repository/member_claims_submit_repository.go
-  - backend/internal/repository/member_profile_dashboard_repository.go
-  - backend/internal/repository/member_profile_projects_release_versions_repository.go
-  - backend/internal/repository/member_profile_projects_repository.go
-  - backend/internal/repository/release_review_query_own_note_revisions.go
-  - backend/internal/repository/release_review_query_repository.go
-  - backend/internal/repository/release_review_query_scan_helpers.go
-  - backend/internal/services/release_metadata_credit_service_test.go
-  - database/migrations/0159_role_capability_defaults_reset.down.sql
-  - database/migrations/0159_role_capability_defaults_reset.up.sql
-  - frontend/eslint.config.mjs
-  - frontend/next.config.mjs
-  - frontend/src/app/admin/episode-versions/[versionId]/edit/page.test.tsx
-  - frontend/src/app/admin/episode-versions/[versionId]/edit/ReleaseVersionMetadataFields.tsx
-  - frontend/src/app/admin/fansubs/[id]/edit/AnimeProjectTimelineSection.module.css
-  - frontend/src/app/admin/fansubs/[id]/edit/AnimeProjectTimelineSection.tsx
-  - frontend/src/app/admin/fansubs/[id]/edit/FansubAppMembersSection.test.tsx
-  - frontend/src/app/admin/fansubs/[id]/edit/fansubEditAccess.ts
-  - frontend/src/app/admin/fansubs/[id]/edit/page.test.tsx
-  - frontend/src/app/admin/fansubs/[id]/edit/useGroupMembersTab.ts
-  - frontend/src/app/anime/[id]/group/[groupId]/releases/[releaseVersionId]/ReleaseGallery.test.tsx
-  - frontend/src/app/fansubs/[slug]/fansubprojekt/[animeSlug]/mitwirkende/[memberSlug]/page.test.tsx
+  - frontend/src/app/me/dashboard/components/AttentionSection.tsx
   - frontend/src/app/me/dashboard/components/AttentionSection.module.css
   - frontend/src/app/me/dashboard/components/AttentionSection.test.tsx
-  - frontend/src/app/me/dashboard/components/AttentionSection.tsx
-  - frontend/src/app/me/dashboard/components/CategoryProgressTable.test.tsx
-  - frontend/src/app/me/dashboard/components/DashboardMetrics.test.tsx
-  - frontend/src/app/me/dashboard/page.tsx
-  - frontend/src/app/members/[slug]/page.test.tsx
-  - frontend/src/app/me/projects/[animeId]/group/[fansubGroupId]/page.test.tsx
-  - frontend/src/app/me/projects/[animeId]/group/[fansubGroupId]/page.tsx
-  - frontend/src/app/me/releases/[versionId]/workspace/page.tsx
-  - frontend/src/app/me/releases/[versionId]/workspace/workspaceHelpers.ts
-  - frontend/src/app/me/releases/[versionId]/workspace/workspace.module.css
-  - frontend/src/components/contributions/ContributionCard.tsx
-  - frontend/src/components/fansubs/projectMember/ProjectMemberHero.tsx
-  - frontend/src/components/fansubs/projectMember/ProjectMemberReleaseCard.tsx
-  - frontend/src/components/profile/MemberBadgeChain.test.tsx
-  - frontend/src/components/profile/MemberCurrentProjectsSection.test.tsx
-  - frontend/src/components/profile/MemberCurrentProjectsSection.tsx
-  - frontend/src/components/profile/MembershipsSection.test.tsx
-  - frontend/src/lib/api.dashboard.test.ts
-  - frontend/src/lib/api.no-token-boundary.test.ts
-  - frontend/src/lib/roleCatalog.ts
-  - frontend/src/lib/roleColors.ts
-  - frontend/src/types/dashboard.ts
-  - frontend/src/types/__tests__/v12-projection-contract.test.ts
-  - .planning/todos/pending/2026-09-01-no-restricted-syntax-legacy-datei-migration.md
+  - frontend/src/app/admin/fansubs/[id]/reviews/[reviewId]/page.tsx
+  - frontend/src/app/admin/fansubs/[id]/reviews/[reviewId]/page.test.tsx
+  - backend/internal/repository/anime_contributions_member_project_repository.go
+  - backend/internal/repository/anime_contributions_member_project_repository_has_own_notes_test.go
   - shared/contracts/openapi.yaml
+  - frontend/src/types/contributions.ts
+  - frontend/src/app/me/projects/[animeId]/group/[fansubGroupId]/page.tsx
+  - frontend/src/app/me/projects/[animeId]/group/[fansubGroupId]/page.test.tsx
 findings:
-  critical: 2
-  warning: 4
-  info: 1
-  total: 7
-status: fixed
+  critical: 1
+  warning: 3
+  info: 0
+  total: 4
+status: issues_found
 ---
 
-## Post-Review Fix Status
+# Phase 143: Code Review Report (gap-closure re-review, UAT-01..UAT-04)
 
-CR-01 fixed (`37961c60`): `CreateFansubGroupInvitation`'s `bodyHTML` now wraps every
-`inviterName`/`groupName` interpolation in `html.EscapeString(...)`; `roleSuffixHTML` and
-`bodyText` were left untouched (role codes are validated against a fixed catalog via
-`permissions.IsKnownFansubGroupRole`, and HTML-escaping the plain-text body would have
-incorrectly injected entities into it).
-
-CR-02 fixed (`00218f58`): removed the unqualified `DELETE FROM role_capabilities;` from
-`0159_role_capability_defaults_reset.up.sql`, making the migration purely additive
-(`INSERT ... ON CONFLICT (role_code, action_code) DO NOTHING`) so it can no longer discard
-rows outside its 232-tuple catalog. Rewrote the header comment to state the additive-only
-rationale directly instead of drawing a false distinction from 0154. Verified against the
-live `team4s_v2` dev database (which has not yet applied 0159) that a real, migration-granted
-techadmin row (`fansub_group_media.update_own`, granted by migration 0155's broad
-fansub_group-context role grant) exists today and would have been silently destroyed by the
-old unconditional `DELETE` -- confirming the exact class of data loss CR-02 described. Updated
-`phase143_role_capability_defaults_reset_test.go`'s techadmin-row-count assertions from 12 to
-13 to match this now-correctly-preserved row, with a comment explaining both contributing
-migrations.
-
-WR-01 fixed (`251a00b1`): corrected all 15 double-encoded UTF-8 ("mojibake") German string
-literals across `app_auth_group_member_roles.go` (9), `app_auth_group_members.go` (2), and
-`app_auth_invitations.go` (4); re-grepped all three files for `Ã` afterward and confirmed zero
-remaining occurrences.
-
-WR-04 fixed (`20564956`): corrected the mojibake literal in
-`page.test.tsx`'s "shows only segments..." test from `"Notizen / BeitrÃ¤ge"` to
-`"Notizen / Beiträge"`, so the `queryByRole(...).toBeNull()` assertion now genuinely exercises
-the capability-gating regression guard instead of being vacuously true. All 15 tests in the
-file pass.
-
-WR-02 open: not included in user's fix scope for this pass.
-
-WR-03 open: documented and intentionally deferred per 143-VALIDATION.md; tracked in
-143-10-SUMMARY.md.
-
-IN-01 fixed (`c431531f`): removed the dead `"errors"` import and the `var _ = errors.New`
-keeper line (two total line removals, no other changes) from
-`contribution_proposals_me_test.go`.
-
-Final verification: `go build ./...` clean; `npx vitest run` shows 288 files passed / 1
-skipped (289), 2150 tests passed / 1 skipped / 3 todo (2154) -- matching the pre-fix baseline
-with 0 unexpected failures; the CR-02 DSN-gated migration test
-(`TestPhase143RoleCapabilityDefaultsResetIdempotentAndReversible`) passes.
-
-# Phase 143: Code Review Report
-
-**Reviewed:** 2026-09-01T23:45:00Z
+**Reviewed:** 2026-09-02T00:00:00Z
 **Depth:** standard
-**Files Reviewed:** 49 (plus supporting cross-checks)
+**Files Reviewed:** 11
 **Status:** issues_found
 
 ## Summary
 
-Phase 143 splits several oversized handler/repository files under the 450-line cap, adds a
-backend+frontend dashboard lane for rejected own release notes, fixes the `has_own_notes`
-exclusion for rejected notes, reworks the role-capability defaults-reset migration for
-idempotency, retrofits two frontend files onto design-system primitives, and ratchets an
-ESLint rule to `error` with a frozen exemption list.
+This pass is scoped to only the files touched by phase 143's four gap-closure
+plans (143-15 through 143-18), which addressed live UAT findings UAT-01
+(stale header status badge), UAT-02 (rejected-note "done" false positive),
+UAT-03 (single-entry rejected-notes card spacing) and UAT-04 (hardcoded CSS
+color fallback). All four narrowly-targeted fixes are correctly implemented
+and covered by focused regression tests (verified by reading the actual
+commits: `1c9b96d8`, `69c0b5bf`, `b9c84b76`, `bc5e1d14`/`291d233d`,
+`217c47aa`).
 
-Mechanically, the work is solid: `go build ./...` and `go vet ./...` succeed against the
-actual repository source, all reviewed files are under the 450-line cap and gofmt-clean, the
-ESLint ratchet list was independently re-measured (`--rule '{"no-restricted-syntax":"error"}'`)
-and matches exactly the 67 frozen files claimed in the code comment and companion backlog
-item, and the new `has_own_notes`/dashboard-lane logic is internally consistent between
-backend SQL, Go DTOs, the OpenAPI contract, and the TypeScript types/tests.
-
-Two Critical issues remain, however: an unescaped-HTML injection into outbound invitation
-emails (present in a file this phase relocated but did not fix), and a role-capability reset
-migration that unconditionally wipes and cannot distinguish admin-configured drift from the
-approved baseline catalog. Several lower-severity issues (broken UTF‑8 in copied-forward
-German strings, a documented-but-unfixed point-crediting bug, a vacuous test assertion, and
-a small dead-code import shim) round out the findings below.
+However, tracing the exact SQL pattern that was fixed for
+**notes** (`has_own_notes` / `has_own_rejected_notes` in
+`anime_contributions_member_project_repository.go`) against the sibling
+`has_own_media` query in the *same file* (untouched by this phase, but read
+in full as part of the required scope) surfaces a real, high-confidence
+correctness gap: rejected **media** contributions are not excluded from
+`has_own_media` the way rejected **notes** now are, and the async cleanup
+job that eventually deletes rejected media rows has a 90-day production
+retention window. This directly undermines the intent of this phase's UAT-02
+fix for the sibling artifact type and is filed as a Critical finding. Two
+further Warnings cover dead/duplicate error-handling code and a Modal focus
+escape introduced in the UAT-01 fix's surrounding code, plus a masking
+interaction between the new `needsRework` badge and pre-existing `has_own_media`
+completion logic.
 
 ## Critical Issues
 
-### CR-01: Unescaped HTML injection into outbound fansub-group invitation emails
+### CR-01: `has_own_media` does not exclude rejected media, unlike the just-fixed `has_own_notes` — rejected media falsely reports "Erledigt" for up to 90 days
 
-**File:** `backend/internal/handlers/app_auth_invitations.go:173-187`
-**Issue:** `CreateFansubGroupInvitation` builds the invitation email's `bodyHTML` with
-`fmt.Sprintf`, embedding `inviterName` (`identity.DisplayName`, the *inviter's own*,
-freely user-editable profile display name via `PUT /me/profile`) and `groupName` (the
-fansub group's `Name`, editable by any actor with `can_edit_group`) directly into raw HTML
-tags (`<p>`, `<strong>`) with no HTML-escaping:
+**File:** `backend/internal/repository/anime_contributions_member_project_repository.go:150-156`
 
-```go
-bodyHTML := fmt.Sprintf(
-    `<p>%s hat dich eingeladen, der Fansub-Gruppe <strong>"%s"</strong> auf Team4s beizutreten%s.</p>`+
-    ...
-    inviterName, groupName, roleSuffixHTML,
-    groupName,
-    created.Invitation.Email,
-    mailURL,
-    expiresLabel,
-    groupName,
-)
+**Issue:** This phase's UAT-02 fix (commits `8d9695ba`, `bc5e1d14`) correctly
+taught `has_own_notes` and the new `has_own_rejected_notes` to join
+`release_version_note_review_lifecycle` and exclude/detect
+`review_state = 'rejected'` notes, so a rejected note no longer counts as
+"done" and instead surfaces the new "Überarbeitung nötig" badge
+(`frontend/src/app/me/projects/[animeId]/group/[fansubGroupId]/page.tsx:217c47aa`).
+
+The sibling `has_own_media` `EXISTS` subquery in the same query/file was left
+untouched:
+
+```sql
+EXISTS (
+    SELECT 1
+    FROM release_version_media rvm
+    WHERE rvm.release_version_id = rv.id
+      AND rvm.uploaded_by_user_id = $2
+      AND rvm.deleted_at IS NULL
+) AS has_own_media,
 ```
 
-The recipient (`created.Invitation.Email`) is itself validated/normalized via
-`net/mail.ParseAddress` in `fansub_group_invitations_repository.go` (safe), but
-`inviterName`/`groupName` are not sanitized anywhere in the profile/group-update paths
-(no `bluemonday` or tag-stripping is applied to `display_name`/group `name`). Any
-authenticated user who can create an invitation (fansub lead / co-leader) can set their own
-display name (or, with edit rights, the group name) to arbitrary HTML/markup — e.g. a fake
-"Login" button/link overlaying the real `mailURL`, or content designed to make the email
-look like it comes from a different sender — and have that payload delivered, unescaped,
-inside an HTML email to a third party (the invitee) who never agreed to trust that actor.
-This is a stored HTML-injection / phishing vector reaching users outside the authenticated
-app boundary.
+It has no join to `release_version_media_review_lifecycle` at all, and does
+not check `review_state`. Media has an exactly analogous lifecycle table and
+`rejected` state (`backend/internal/repository/release_review_lifecycle_repository.go:25`,
+`ReleaseVersionMediaReviewSourceType`), and rejected media rows are **not**
+deleted (`deleted_at` stays `NULL`) until the async cleanup job runs past its
+retention window:
 
-This code was not newly written by Phase 143 — it was mechanically relocated out of the
-former monolithic `app_auth.go` (confirmed via `git show 1cdba33b^:...app_auth.go` — the
-same unescaped `fmt.Sprintf` existed pre-split) — but it is present, unmodified, in a file
-this phase's own diff touches and ships, so it belongs in this review.
-
-**Fix:**
 ```go
-import "html"
-
-bodyHTML := fmt.Sprintf(
-    `<p>%s hat dich eingeladen, ...`,
-    html.EscapeString(inviterName), html.EscapeString(groupName), roleSuffixHTML,
-    html.EscapeString(groupName),
-    created.Invitation.Email, // already a validated bare address
-    mailURL,                  // already a builder-controlled URL, not free text
-    expiresLabel,
-    html.EscapeString(groupName),
-)
+// backend/internal/services/release_review_cleanup.go:13
+ReleaseReviewCleanupProductionRetention = 90 * 24 * time.Hour
 ```
-(`roleSuffixHTML` is built from `permissions.IsKnownFansubGroupRole`-validated role codes
-joined server-side, so it does not need the same treatment, but should be double-checked.)
 
-### CR-02: Migration 0159 unconditionally wipes `role_capabilities`, discarding any admin-configured drift
+Consequence: a member whose only contribution to a release is a **rejected**
+image submission will have `has_own_media = true` for up to 90 days in
+production. On the frontend
+(`frontend/src/app/me/projects/[animeId]/group/[fansubGroupId]/page.tsx:53-55`,
+`isDone()` returns `release.has_own_notes || release.has_own_media`), this
+makes the release badge show green "Erledigt" and downgrades the workspace
+button to secondary styling (`page.tsx:338,351`) — exactly the false-positive
+"done" bug that UAT-02 was raised to fix, just for the media artifact type
+instead of notes. The member has no visual signal that their rejected image
+needs to be reworked and resubmitted.
 
-**File:** `database/migrations/0159_role_capability_defaults_reset.up.sql:13-249`
-**Issue:** The migration's `up.sql` runs an unqualified `DELETE FROM role_capabilities;`
-before re-inserting a fixed 232-tuple baseline catalog via `INSERT ... ON CONFLICT DO
-NOTHING`. This makes the *reinsert* idempotent (the stated goal, fixing migration 0154's
-non-idempotent version), but it does not make the *reset* itself safe: if a platform admin
-has used the Capability-Matrix CRUD UI (Phase 87, `AdminCapabilityHandler`) to grant or
-revoke any `role_capabilities` row that deviates from this exact 232-row baseline at any
-point between migration 0154 and 0159 being applied to a given environment, that
-customization is silently and irreversibly deleted the moment 0159 runs on that
-environment — with no warning, no backup, and no way to distinguish "baseline drift I
-should preserve" from "stale row I should discard." Because migrations are append-only in
-this project (per `CLAUDE.md`) and are expected to run against real, already-provisioned
-databases (not just fresh ones — this is exactly the "genuinely empty database" vs.
-"existing" distinction the migration's own new test cares about), this is a real data-loss
-risk on any environment where 0154 already ran and capabilities were subsequently
-hand-tuned.
+**Fix:** Mirror the note fix for media — exclude rejected media from
+`has_own_media`, and optionally add a `has_own_rejected_media` flag
+mirroring `has_own_rejected_notes` so the frontend badge/button logic can
+treat both artifact types consistently:
 
-**Fix:** Either (a) make the migration additive-only (`INSERT ... ON CONFLICT DO NOTHING`
-without the preceding `DELETE`, matching the down-migration's scoped-delete pattern already
-used for reversibility), or (b) add a pre-flight check that fails loudly (rather than
-silently discarding) if `role_capabilities` contains rows outside the approved 232-tuple set
-at migration time, so an operator can review before the reset proceeds.
+```sql
+EXISTS (
+    SELECT 1
+    FROM release_version_media rvm
+    LEFT JOIN release_version_media_review_lifecycle lifecycle
+      ON lifecycle.release_version_media_id = rvm.id
+    WHERE rvm.release_version_id = rv.id
+      AND rvm.uploaded_by_user_id = $2
+      AND rvm.deleted_at IS NULL
+      AND (lifecycle.review_state IS NULL OR lifecycle.review_state <> 'rejected')
+) AS has_own_media,
+EXISTS (
+    SELECT 1
+    FROM release_version_media rvm
+    JOIN release_version_media_review_lifecycle lifecycle
+      ON lifecycle.release_version_media_id = rvm.id
+    WHERE rvm.release_version_id = rv.id
+      AND rvm.uploaded_by_user_id = $2
+      AND rvm.deleted_at IS NULL
+      AND lifecycle.review_state = 'rejected'
+) AS has_own_rejected_media,
+```
+
+then thread `has_own_rejected_media` through `MemberProjectReleaseVersionRow`,
+`shared/contracts/openapi.yaml`'s `MeProjectReleaseVersion`,
+`frontend/src/types/contributions.ts`, and
+`page.tsx`'s `needsRework`/`hasOwnArtifacts` computation.
 
 ## Warnings
 
-### WR-01: Broken UTF-8 ("mojibake") in German user-facing error strings, carried unfixed into new split files
+### WR-01: Dead duplicate 409-conflict branch in `submitDecision`
 
-**File:** `backend/internal/handlers/app_auth_group_member_roles.go:56,150,156,167,173,243,249,260,266`, `backend/internal/handlers/app_auth_group_members.go:39,69`, `backend/internal/handlers/app_auth_invitations.go:46,82,215,273`
-**Issue:** Strings such as `"Mitgliederberechtigung konnte nicht geprÃ¼ft werden."` and
-`"ungÃ¼ltige fansub-id"` are double-encoded UTF-8 (`ü` stored as `Ã¼`), directly violating
-this repository's mandatory `CLAUDE.md` Sprachqualität rule, which explicitly requires
-correct umlauts in "Go-Response-Strings" and forbids ASCII/mojibake substitutions. These
-strings pre-date Phase 143 (confirmed via `git show 1cdba33b^:...app_auth.go`), but this
-phase's own stated remediation goal was to split `app_auth.go` into clean, reviewable
-files — the mechanical split copied the corruption forward into brand-new files without
-correcting it, so every one of these admin-facing error messages still renders garbled text
-in the UI/logs today. `app_auth_capabilities.go` (also a 143-01 split output) already
-contains the *correctly* encoded equivalents at lines 118, 173 ("Berechtigung für den
-Projektzeitraum konnte nicht geprüft werden.", "...Textprüfung..."), showing the
-correct fix is already known/used elsewhere in this same phase's own output — it just
-wasn't applied consistently to the sibling files.
-**Fix:** Re-save the affected literals as proper UTF-8 (`geprüft`, `ungültige`, `prüfe`).
+**File:** `frontend/src/app/admin/fansubs/[id]/reviews/[reviewId]/page.tsx:164-185`
 
-### WR-02: `GetOwnDashboard`'s success-path response omits `PendingGroupMediaReviews` initialization
+**Issue:** `submitDecision`'s catch block checks `error instanceof ApiError &&
+error.status === 409 && error.code === 'REVIEW_ALREADY_DECIDED'` and then,
+immediately after, repeats the identical check via manual duck-typing
+(`typeof error === 'object' && ... 'status' in error && ...`). Every error
+thrown by `frontend/src/lib/api.ts`'s request helpers is already an instance
+of `ApiError` (confirmed: all `throw` sites in `api.ts` construct
+`new ApiError(...)`), so the second branch is unreachable in practice. It
+adds cyclomatic complexity and gives a false impression that some other
+error shape can reach this code path.
 
-**File:** `backend/internal/repository/member_profile_dashboard_repository.go:253-265`
-**Issue:** The `OwnDashboardData` literal returned by `GetOwnDashboard` explicitly
-initializes `PendingClaims`, `PendingReleaseReviews`, and `PendingOwnNoteRevisions` to empty
-slices, but omits `PendingGroupMediaReviews` — leaving it `nil` at that point. Production
-behavior is currently masked because `dashboard_me_handler.go`'s
-`attachPendingGroupMediaReviewAttention` always runs afterward and unconditionally
-overwrites it with `make([]repository.OwnDashboardPendingGroupMediaReview, 0, ...)` — but
-only as long as both `h.reviewQueryRepo` and `h.permissionSvc` are non-nil (guaranteed today
-by `main.go`'s `.WithClaimAttention(...).WithReviewQueryRepo(...)` chain). If that wiring
-ever changes (e.g. a future refactor constructs `DashboardMeHandler` without
-`WithReviewQueryRepo`), the field silently reverts to serializing as JSON `null` instead of
-`[]`, breaking the "never null" array contract the OpenAPI schema and every sibling field
-promise, and that every other `pending_*` field in this exact struct already defends
-against.
-**Fix:** Add `PendingGroupMediaReviews: []OwnDashboardPendingGroupMediaReview{},` to the
-struct literal for defense in depth, consistent with the other three `pending_*` fields.
+**Fix:** Remove the second duck-typed block; the `instanceof ApiError` check
+already covers the real error shape:
 
-### WR-03: Documented-but-unfixed wrong-release-version point-crediting bug ships as-is
-
-**File:** `backend/internal/services/release_metadata_credit_service_test.go:19-67` (bug lives in `backend/internal/services/release_metadata_credit_service.go:43-51`)
-**Issue:** The new test `TestReleaseMetadataCreditServiceAwardIfCompleted/AmbiguousIDCollisionCreditsTheWrongReleaseVersion`
-proves, against a real Postgres fixture, that `AwardIfCompleted`'s lookup query
-(`WHERE rv.id = $1 OR rev.id = $1 ORDER BY rv.id LIMIT 1`) is genuinely ambiguous: when a
-`release_variants.id` numerically collides with an unrelated `release_versions.id`, the
-service silently credits and point-awards the **wrong** release version's metadata-complete
-milestone to the member, rather than the one the caller actually intended. The test's own
-comment states this is deliberately not fixed by this phase and only "documents the resolved
-(surprising) behavior." This is a genuine data-integrity bug (misattributed
-point-ledger/badge credit) that the phase's own validation explicitly acknowledges and still
-ships unresolved. Flagging so it is not lost track of outside `143-10-SUMMARY.md`.
-**Fix:** Disambiguate the lookup — e.g. query `release_versions` by `rev.id = $1` first, and
-only fall back to resolving via `release_variants.id = $1` if no release_versions row
-matches, instead of a single `OR`-joined, arbitrarily-ordered query.
-
-### WR-04: Vacuous test assertion — asserts absence of a string the component never renders (encoding mismatch)
-
-**File:** `frontend/src/app/admin/episode-versions/[versionId]/edit/page.test.tsx:417`
-**Issue:** In the test `"shows only segments for non-platform users with segment
-capability"`, one assertion reads:
 ```ts
-expect(
-  screen.queryByRole("button", { name: "Notizen / BeitrÃ¤ge" }),
-).toBeNull();
+} catch (error) {
+  if (
+    error instanceof ApiError &&
+    error.status === 409 &&
+    error.code === 'REVIEW_ALREADY_DECIDED'
+  ) {
+    setRejectOpen(false)
+    setDecisionState({ kind: 'conflict' })
+    return
+  }
+  setDecisionState({ kind: 'error' })
+}
 ```
-The literal contains mojibake (`BeitrÃ¤ge` instead of `Beiträge`). The real
-`EpisodeVersionEditorPage` component only ever renders the correctly-encoded label
-`"Notizen / Beiträge"` (as every other assertion in this same file, e.g. lines 367, 443,
-correctly spells it). Because `queryByRole` returns `null` for a name that never exists
-verbatim in the DOM, this specific assertion is true unconditionally — it would pass even if
-the capability-gating bug it's meant to catch (showing the Notes tab to a user without notes
-capability) were reintroduced, giving false confidence in that regression guard. Predates
-Phase 143 (introduced in commit `3c3dfff0`) but was touched/left in place by this phase's own
-`73587955` "fix stale test drift" commit to this exact file without being corrected.
-**Fix:** Change the literal to `"Notizen / Beiträge"`.
 
-## Info
+### WR-02: Admin-override validation focuses a field hidden behind the open reject Modal
 
-### IN-01: Dead "keep this import alive" hack instead of removing the unused import
+**File:** `frontend/src/app/admin/fansubs/[id]/reviews/[reviewId]/page.tsx:121-131`, `301-320`, `376-444`
 
-**File:** `backend/internal/handlers/contribution_proposals_me_test.go:683`
-**Issue:** `var _ = errors.New // Sicherstellt dass errors-Paket importiert bleibt` exists
-solely to prevent Go from complaining about an otherwise-unused `errors` import — the
-package has no other use in this file. This is a maintenance smell: a future reader has to
-puzzle out why an unused-looking `errors.New` reference exists, and any real future usage of
-`errors` in this file makes the line redundant without an obvious prompt to remove it.
-**Fix:** Remove both the `"errors"` import and this line, since neither is otherwise needed.
+**Issue:** `requiresAdminOverride` validation runs first inside
+`submitDecision`, for *both* the `confirm` and `reject` decision paths. The
+"Ablehnen" button that triggers `submitDecision('reject')` lives inside the
+`Modal` (`rejectOpen === true`). If the platform admin is reviewing their own
+submission and the override-reason textarea (rendered in `decisionPanel`,
+*outside* the Modal) is invalid, `overrideReasonRef.current?.focus()` moves
+keyboard focus out of the currently-open Modal to a background field. Modal
+dialogs conventionally trap focus while open; forcing focus outside an open
+dialog either breaks that trap (letting focus land on a field the user can't
+see behind the overlay) or silently no-ops if the Modal's trap intercepts it
+(in which case the user gets no indication at all of why nothing happened,
+since the Modal's own `validationError` paragraph correctly renders the
+message, but the referenced field is not reachable/visible to fix).
+
+**Fix:** Validate the override reason before allowing the reject Modal to
+open (e.g. in the "Ablehnen" button's `onClick`, before `setRejectOpen(true)`),
+or move the override-reason field into the Modal for the reject flow so
+focus stays within the open dialog.
+
+### WR-03: `needsRework` badge is masked whenever the release is independently "done" via media
+
+**File:** `frontend/src/app/me/projects/[animeId]/group/[fansubGroupId]/page.tsx:338-347`
+
+**Issue:**
+```ts
+const releaseDone = isDone(release)                                  // has_own_notes || has_own_media
+const needsRework = !releaseDone && release.has_own_rejected_notes   // short-circuits to false if releaseDone
+```
+If a release has an accepted/pending media contribution (`has_own_media:
+true`) from the same member **and** a separately rejected note
+(`has_own_rejected_notes: true`), `releaseDone` is `true` (via media alone),
+so `needsRework` is forced to `false` and the row renders the green
+"Erledigt" badge — even though the member has a rejected note on that exact
+release that still needs revision. This is a real, reachable state (member
+uploads accepted media and writes a note that later gets rejected) and
+directly undercuts this phase's stated goal of surfacing rejected-work
+needing revision (Kriterium 5 / UAT-02 / 143-18).
+
+**Fix:** Decouple the "needs rework" signal from the overall done/undone
+status so it is not suppressed by unrelated completed artifacts, e.g. render
+it as an additional badge/indicator rather than an alternative to "Erledigt":
+
+```ts
+const releaseDone = isDone(release)
+const needsRework = release.has_own_rejected_notes // no releaseDone gate
+```
+and adjust the `Badge`/label rendering to show both signals when applicable
+(e.g. "Erledigt · Überarbeitung nötig" or two stacked badges), confirming
+the desired UX with product before changing the visual treatment.
 
 ---
 
-_Reviewed: 2026-09-01T23:45:00Z_
+_Reviewed: 2026-09-02T00:00:00Z_
 _Reviewer: Claude (gsd-code-reviewer)_
 _Depth: standard_
