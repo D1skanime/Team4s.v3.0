@@ -93,7 +93,6 @@ func TestMediaRepositoryMethodSignatures(t *testing.T) {
 	_ = repo.InsertMediaFileWithStatus            // must exist
 	_ = repo.GetMaxRVMSortOrder                   // must exist
 	_ = repo.ReleaseVersionExistsForRVM           // must exist
-	_ = repo.GetRVMCategory                       // must exist
 	_ = repo.GetReleaseVersionMediaRelation       // must exist
 	_ = repo.ValidateReleaseVersionMediaOwnership // must exist
 }

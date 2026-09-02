@@ -85,6 +85,7 @@ func openReleaseVersionMediaReplaceFixture(t *testing.T) *pgxpool.Pool {
 			fansub_group_id BIGINT NULL REFERENCES fansub_groups(id),
 			media_asset_id BIGINT NOT NULL REFERENCES media_assets(id),
 			category TEXT NOT NULL,
+			is_preview_candidate BOOLEAN NOT NULL DEFAULT false,
 			uploaded_by_user_id BIGINT NULL REFERENCES users(id),
 			created_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
 			updated_at TIMESTAMPTZ NULL,
@@ -313,4 +314,25 @@ func TestReleaseVersionMediaReplaceFileArchivistCountUnchanged(t *testing.T) {
 	countAfter, err := profileRepo.loadContribArchivistCount(ctx, memberID)
 	require.NoError(t, err)
 	assert.EqualValues(t, countBefore, countAfter, "replacing the file must not change the archivist badge count")
+}
+
+// TestGetReleaseVersionMediaRelationReturnsCurrentPreviewCandidate proves the guard-completeness
+// fix's data source: GetReleaseVersionMediaRelation must read the row's real current
+// is_preview_candidate value (144-VERIFICATION.md's gap), not just echo the request body.
+func TestGetReleaseVersionMediaRelationReturnsCurrentPreviewCandidate(t *testing.T) {
+	pool := openReleaseVersionMediaReplaceFixture(t)
+	ctx := context.Background()
+
+	_, err := pool.Exec(ctx, `UPDATE release_version_media SET is_preview_candidate = true WHERE id = 601`)
+	require.NoError(t, err)
+
+	repo := NewMediaRepository(pool, "")
+
+	metaTrue, err := repo.GetReleaseVersionMediaRelation(ctx, 601)
+	require.NoError(t, err)
+	assert.True(t, metaTrue.IsPreviewCandidate, "relation 601 was explicitly set to true and must read back true")
+
+	metaFalse, err := repo.GetReleaseVersionMediaRelation(ctx, 602)
+	require.NoError(t, err)
+	assert.False(t, metaFalse.IsPreviewCandidate, "relation 602 was never updated and must read back the DB default false")
 }

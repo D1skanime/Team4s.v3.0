@@ -81,10 +81,11 @@ type ReleaseVersionMediaItem struct {
 
 // ReleaseVersionMediaRelationMeta holds the owning release_version_id and category for one relation.
 type ReleaseVersionMediaRelationMeta struct {
-	RelationID       int64
-	ReleaseVersionID int64
-	Category         string
-	UploadedByUserID *int64
+	RelationID         int64
+	ReleaseVersionID   int64
+	Category           string
+	IsPreviewCandidate bool
+	UploadedByUserID   *int64
 }
 
 // BeginTx starts a new database transaction on the MediaRepository pool.
@@ -489,33 +490,17 @@ func (r *MediaRepository) ReleaseVersionExistsForRVM(ctx context.Context, versio
 	return exists, nil
 }
 
-// GetRVMCategory returns the category of a non-deleted release_version_media relation.
-// Used by the PATCH handler to enforce preview category rules (D-16).
-// Returns ErrNotFound if the relation does not exist or is soft-deleted.
-func (r *MediaRepository) GetRVMCategory(ctx context.Context, relationID int64) (string, error) {
-	var category string
-	err := r.db.QueryRow(ctx, `
-		SELECT category FROM release_version_media
-		WHERE id = $1 AND deleted_at IS NULL
-	`, relationID).Scan(&category)
-	if errors.Is(err, pgx.ErrNoRows) {
-		return "", ErrNotFound
-	}
-	if err != nil {
-		return "", fmt.Errorf("get rvm category %d: %w", relationID, err)
-	}
-	return category, nil
-}
-
-// GetReleaseVersionMediaRelation returns the owning release_version_id and category for one non-deleted relation.
-// Used by PATCH and DELETE to validate that route relationId belongs to route versionId before side effects run.
+// GetReleaseVersionMediaRelation returns the owning release_version_id, category, and current
+// is_preview_candidate for one non-deleted relation. Used by PATCH and DELETE to validate that
+// route relationId belongs to route versionId before side effects run, and by the preview-category
+// guard to fall back to the row's real current state whenever the request omits is_preview_candidate.
 func (r *MediaRepository) GetReleaseVersionMediaRelation(ctx context.Context, relationID int64) (*ReleaseVersionMediaRelationMeta, error) {
 	var meta ReleaseVersionMediaRelationMeta
 	err := r.db.QueryRow(ctx, `
-		SELECT id, release_version_id, category, uploaded_by_user_id
+		SELECT id, release_version_id, category, is_preview_candidate, uploaded_by_user_id
 		FROM release_version_media
 		WHERE id = $1 AND deleted_at IS NULL
-	`, relationID).Scan(&meta.RelationID, &meta.ReleaseVersionID, &meta.Category, &meta.UploadedByUserID)
+	`, relationID).Scan(&meta.RelationID, &meta.ReleaseVersionID, &meta.Category, &meta.IsPreviewCandidate, &meta.UploadedByUserID)
 	if errors.Is(err, pgx.ErrNoRows) {
 		return nil, ErrNotFound
 	}
