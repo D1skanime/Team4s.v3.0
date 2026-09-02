@@ -4,6 +4,8 @@
  */
 
 import { UploadQueueItem } from './useReleaseVersionMedia'
+import { ReleaseVersionMediaCategory } from '@/types/releaseVersionMedia'
+import { ReplaceReleaseVersionMediaFileOptions } from '@/lib/api'
 import styles from './ReleaseVersionMediaSection.module.css'
 
 // ─── Kategorie-Optionen (Surface 4, D-08) ───────────────────────────────────
@@ -60,4 +62,24 @@ export function statusClassName(item: UploadQueueItem): string {
 
 export function isTerminalStatus(status: UploadQueueItem['status']): boolean {
   return status === 'ready' || status === 'failed'
+}
+
+// ─── replaceItem Argument-Mapping (Phase 144) ───────────────────────────────
+
+/** Baut das FormData-Argument für replaceReleaseVersionMediaFile aus dem Hook-Zustand. */
+export function buildReplaceMediaFileRequest(
+  versionId: number,
+  mediaId: number,
+  options: { file: File; category?: ReleaseVersionMediaCategory; caption?: string | null; isPreviewCandidate?: boolean },
+  currentSourceRevision: number | null | undefined,
+): ReplaceReleaseVersionMediaFileOptions {
+  return {
+    versionId,
+    relationId: mediaId,
+    file: options.file,
+    category: options.category,
+    caption: options.caption,
+    isPreviewCandidate: options.isPreviewCandidate,
+    sourceRevision: currentSourceRevision ?? undefined,
+  }
 }

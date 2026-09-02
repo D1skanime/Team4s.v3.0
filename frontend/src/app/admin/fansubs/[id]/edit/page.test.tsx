@@ -261,9 +261,11 @@ function makeMediaState(): UseReleaseVersionMediaResult {
     retryUpload: vi.fn().mockResolvedValue(undefined),
     clearUploadQueue: vi.fn(),
     patchItem: vi.fn().mockResolvedValue(undefined),
+    replaceItem: vi.fn().mockResolvedValue(undefined),
     deleteItem: vi.fn().mockResolvedValue(undefined),
     reorderItems: vi.fn().mockResolvedValue(undefined),
     patchError: null,
+    replaceError: null,
     deleteError: null,
     reorderError: null,
   }

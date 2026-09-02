@@ -1,22 +1,9 @@
 'use client'
 
 import { useCallback, useEffect, useRef, useState } from 'react'
-import {
-  ApiError,
-  getReleaseVersionCapabilities,
-  deleteReleaseVersionMediaItem,
-  getReleaseVersionMedia,
-  patchReleaseVersionMediaItem,
-  reorderReleaseVersionMedia,
-  uploadReleaseVersionMedia,
-} from '@/lib/api'
-import {
-  ReleaseVersionMediaCategory,
-  ReleaseVersionCapabilities,
-  ReleaseVersionMediaItem,
-  ReleaseVersionMediaPatchRequest,
-  ReleaseVersionMediaReorderRequest,
-} from '@/types/releaseVersionMedia'
+import { ApiError, getReleaseVersionCapabilities, deleteReleaseVersionMediaItem, getReleaseVersionMedia, patchReleaseVersionMediaItem, replaceReleaseVersionMediaFile, reorderReleaseVersionMedia, uploadReleaseVersionMedia } from '@/lib/api'
+import { ReleaseVersionMediaCategory, ReleaseVersionCapabilities, ReleaseVersionMediaItem, ReleaseVersionMediaPatchRequest, ReleaseVersionMediaReorderRequest } from '@/types/releaseVersionMedia'
+import { buildReplaceMediaFileRequest } from './ReleaseVersionMediaSection.helpers'
 
 export interface UploadQueueItem {
   file: File
@@ -38,18 +25,15 @@ export interface UseReleaseVersionMediaResult {
   error: string | null
   reload: () => void
   uploadItems: UploadQueueItem[]
-  startUpload: (
-    category: ReleaseVersionMediaCategory,
-    files: File[],
-    defaultCaption?: string,
-    isPreviewCandidate?: boolean,
-  ) => Promise<void>
+  startUpload: (category: ReleaseVersionMediaCategory, files: File[], defaultCaption?: string, isPreviewCandidate?: boolean) => Promise<void>
   retryUpload: (fileIndex: number) => Promise<void>
   clearUploadQueue: () => void
   patchItem: (mediaId: number, patch: ReleaseVersionMediaPatchRequest) => Promise<void>
+  replaceItem: (mediaId: number, options: { file: File; category?: ReleaseVersionMediaCategory; caption?: string | null; isPreviewCandidate?: boolean }) => Promise<void>
   deleteItem: (mediaId: number) => Promise<void>
   reorderItems: (versionId: number, body: ReleaseVersionMediaReorderRequest) => Promise<void>
   patchError: string | null
+  replaceError: string | null
   deleteError: string | null
   reorderError: string | null
   capabilities?: ReleaseVersionCapabilities | null
@@ -90,6 +74,7 @@ export function useReleaseVersionMedia(versionId: number | null): UseReleaseVers
   const [error, setError] = useState<string | null>(null)
   const [uploadItems, setUploadItems] = useState<UploadQueueItem[]>([])
   const [patchError, setPatchError] = useState<string | null>(null)
+  const [replaceError, setReplaceError] = useState<string | null>(null)
   const [deleteError, setDeleteError] = useState<string | null>(null)
   const [reorderError, setReorderError] = useState<string | null>(null)
   const [capabilities, setCapabilities] = useState<ReleaseVersionCapabilities | null>(null)
@@ -343,6 +328,23 @@ export function useReleaseVersionMedia(versionId: number | null): UseReleaseVers
     [versionId],
   )
 
+  const replaceItem = useCallback(
+    async (mediaId: number, options: { file: File; category?: ReleaseVersionMediaCategory; caption?: string | null; isPreviewCandidate?: boolean }) => {
+      if (versionId === null) return
+      setReplaceError(null)
+      try {
+        const currentItem = itemsRef.current.find((item) => item.id === mediaId)
+        const updated = await replaceReleaseVersionMediaFile(buildReplaceMediaFileRequest(versionId, mediaId, options, currentItem?.source_revision))
+        setItems((current) => current.map((item) => (item.id === mediaId ? updated : options.isPreviewCandidate === true ? { ...item, is_preview_candidate: false } : item)))
+      } catch (replaceItemError) {
+        const message = readUploadError(replaceItemError, 'Datei konnte nicht ersetzt werden. Versuch es erneut oder wähle eine andere Datei.')
+        setReplaceError(message)
+        throw replaceItemError
+      }
+    },
+    [versionId],
+  )
+
   const reorderItems = useCallback(
     async (targetVersionId: number, body: ReleaseVersionMediaReorderRequest) => {
       const previousItems = itemsRef.current
@@ -433,9 +435,11 @@ export function useReleaseVersionMedia(versionId: number | null): UseReleaseVers
     retryUpload,
     clearUploadQueue,
     patchItem,
+    replaceItem,
     deleteItem,
     reorderItems,
     patchError,
+    replaceError,
     deleteError,
     reorderError,
     capabilities,
