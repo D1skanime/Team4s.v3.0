@@ -2374,6 +2374,7 @@ type UploadRetryEligibility =
 
 interface AuthorizedUploadXhrOptions<T> {
   endpoint: string;
+  method?: "POST" | "PUT";
   buildBody: () => FormData;
   onProgress?: (percent: number) => void;
   retryEligibility: UploadRetryEligibility;
@@ -2399,7 +2400,7 @@ function sendAuthorizedUploadXhrOnce<T>(
 ): Promise<UploadXhrResult> {
   return new Promise<UploadXhrResult>((resolve, reject) => {
     const xhr = new XMLHttpRequest();
-    xhr.open("POST", options.endpoint, true);
+    xhr.open(options.method ?? "POST", options.endpoint, true);
     if (token) {
       xhr.setRequestHeader("Authorization", `Bearer ${token}`);
     }
@@ -7480,6 +7481,51 @@ export async function patchReleaseVersionMediaItem(
   }
 
   return response.json() as Promise<ReleaseVersionMediaItem>;
+}
+
+export interface ReplaceReleaseVersionMediaFileOptions {
+  versionId: number;
+  relationId: number;
+  file: File;
+  category?: ReleaseVersionMediaCategory;
+  caption?: string | null;
+  isPreviewCandidate?: boolean;
+  sourceRevision?: number;
+  onProgress?: (percent: number) => void;
+}
+
+export async function replaceReleaseVersionMediaFile(
+  options: ReplaceReleaseVersionMediaFileOptions,
+): Promise<ReleaseVersionMediaItem> {
+  if (typeof window === "undefined") {
+    throw new ApiError(500, "Upload ist nur im Browser verfügbar.");
+  }
+
+  const API_BASE_URL = getApiBaseUrl();
+  const endpoint = `${API_BASE_URL}/api/v1/admin/release-versions/${options.versionId}/media/${options.relationId}/file`;
+  return authorizedUploadXhr<ReleaseVersionMediaItem>({
+    endpoint,
+    method: "PUT",
+    retryEligibility: "never",
+    onProgress: options.onProgress,
+    buildBody: () => {
+      const body = new FormData();
+      body.set("file", options.file);
+      if (options.category !== undefined) {
+        body.set("category", options.category);
+      }
+      if (options.caption !== undefined) {
+        body.set("caption", options.caption ?? "");
+      }
+      if (options.isPreviewCandidate !== undefined) {
+        body.set("is_preview_candidate", String(options.isPreviewCandidate));
+      }
+      if (options.sourceRevision !== undefined) {
+        body.set("source_revision", String(options.sourceRevision));
+      }
+      return body;
+    },
+  });
 }
 
 export async function deleteReleaseVersionMediaItem(
