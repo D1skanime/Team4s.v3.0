@@ -2,16 +2,16 @@
 gsd_state_version: 1.0
 milestone: v1.4
 milestone_name: Coverage
-status: milestone_complete
-stopped_at: Milestone complete (Phase 143 was final phase)
-last_updated: 2026-09-02T09:57:19.942Z
-last_activity: 2026-09-02
+status: executing
+stopped_at: Phase 144 UI-SPEC approved
+last_updated: "2026-09-02T12:45:12.026Z"
+last_activity: 2026-09-02 -- Phase 144 planning complete
 progress:
-  total_phases: 8
+  total_phases: 9
   completed_phases: 8
-  total_plans: 103
-  completed_plans: 157
-  percent: 100
+  total_plans: 110
+  completed_plans: 103
+  percent: 89
 ---
 
 # Project State
@@ -35,8 +35,8 @@ See: .planning/PROJECT.md (updated 2026-08-13)
 
 Phase: 143
 Plan: Not started
-Status: Milestone complete
-Last activity: 2026-09-02
+Status: Ready to execute
+Last activity: 2026-09-02 -- Phase 144 planning complete
 
 ## Accumulated Context
 
@@ -524,7 +524,7 @@ untruncated list lives in `.planning/todos/pending/`.
 
 ## Session Continuity
 
-Last session: 2026-09-02T09:40:46.229Z
-Stopped at: Completed 143-19-PLAN.md
+Last session: 2026-09-02T11:44:21.938Z
+Stopped at: Phase 144 UI-SPEC approved
 Last activity: 2026-09-01 - Milestone v1.4 audit passed (41/41 requirements, 7/7 phases, .planning/v1.4-MILESTONE-AUDIT.md); Phase 143 added to roadmap, not yet planned
-Resume file: None
+Resume file: .planning/phases/144-berarbeitungs-kreislauf-f-r-release-medien-vervollst-ndigen/144-UI-SPEC.md

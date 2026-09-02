@@ -795,11 +795,25 @@ Plans:
 **Plans:** 7 plans
 
 Plans:
+**Wave 1**
+
 - [ ] 144-01-PLAN.md — Kategorie im bestehenden PATCH-Endpunkt änderbar machen (Zielbild 2)
 - [ ] 144-02-PLAN.md — Neues Replace-Repository: Identität erhalten, Revision springt, alte Datei in die Cleanup-Outbox (Zielbild 1, 4)
+
+**Wave 2** *(blocked on Wave 1 completion)*
+
 - [ ] 144-03-PLAN.md — Prior-Rejection-DTO für die Prüfer-Detailseite (Zielbild 3, Backend)
+
+**Wave 3** *(blocked on Wave 2 completion)*
+
 - [ ] 144-04-PLAN.md — Neuer PUT-Endpunkt für Datei-Ersatz inkl. Route + OpenAPI (Zielbild 1)
+
+**Wave 4** *(blocked on Wave 3 completion)*
+
 - [ ] 144-05-PLAN.md — Frontend-Contracts: API-Client + geteilte Review-Präsentationshelfer
+
+**Wave 5** *(blocked on Wave 4 completion)*
+
 - [ ] 144-06-PLAN.md — Einreicher-UI: Datei-ersetzen-Kontrolle + Kategoriefeld im Bearbeiten-Formular
 - [ ] 144-07-PLAN.md — Prüfer-UI: Überarbeitet-Badge + Kontextzeile auf Detail- und Listenansicht
 
