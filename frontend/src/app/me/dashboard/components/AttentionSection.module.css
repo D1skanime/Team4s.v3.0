@@ -38,7 +38,7 @@
   display: inline-flex;
   flex: 0 0 auto;
   align-items: center;
-  color: var(--color-primary, #2f5fe3);
+  color: var(--color-primary);
 }
 
 .taskList {
@@ -52,10 +52,10 @@
   display: inline-flex;
   max-width: 100%;
   padding: 3px 8px;
-  border: 1px solid color-mix(in srgb, var(--color-primary, #2f5fe3) 24%, transparent);
+  border: 1px solid color-mix(in srgb, var(--color-primary) 24%, transparent);
   border-radius: 999px;
-  color: var(--color-primary, #2f5fe3);
-  background: color-mix(in srgb, var(--color-primary, #2f5fe3) 8%, white);
+  color: var(--color-primary);
+  background: color-mix(in srgb, var(--color-primary) 8%, white);
   font-size: 0.8rem;
   font-weight: 600;
 }
@@ -97,7 +97,7 @@
 
 .noteRevisionRow:hover,
 .noteRevisionRow:focus-visible {
-  background: color-mix(in srgb, var(--color-primary, #2f5fe3) 8%, transparent);
+  background: color-mix(in srgb, var(--color-primary) 8%, transparent);
 }
 
 .noteRevisionRow:hover .noteRevisionTitle,
@@ -108,7 +108,7 @@
 .noteRevisionEpisode {
   flex: 0 0 auto;
   font-weight: 600;
-  color: var(--text-soft, #6b6b70);
+  color: var(--text-soft);
 }
 
 .noteRevisionTitle {
