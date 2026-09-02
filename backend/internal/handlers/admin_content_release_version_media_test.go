@@ -421,16 +421,28 @@ func TestReleaseVersionMedia_PreviewRejectedForOther(t *testing.T) {
 }
 
 // ---------------------------------------------------------------------------
-// TestReleaseVersionMedia_CategoryChangePrevented — PATCH category lock
+// TestPatchReleaseVersionMediaAllowsCategoryChange — PATCH category unblock (Zielbild 2)
 // ---------------------------------------------------------------------------
 
-// TestReleaseVersionMedia_PatchCategoryChangePrevented verifies the PATCH handler
-// rejects category changes with CATEGORY_CHANGE_NOT_ALLOWED.
-func TestReleaseVersionMedia_PatchCategoryChangePrevented(t *testing.T) {
+// TestPatchReleaseVersionMediaAllowsCategoryChange verifies the PATCH handler no longer
+// rejects category changes with CATEGORY_CHANGE_NOT_ALLOWED, routes them through the new
+// parseRVMCategoryPatchField helper, and still enforces PREVIEW_NOT_ALLOWED_FOR_CATEGORY.
+func TestPatchReleaseVersionMediaAllowsCategoryChange(t *testing.T) {
 	src, err := os.ReadFile("admin_content_release_version_media.go")
 	require.NoError(t, err)
-	assert.True(t, strings.Contains(string(src), `"CATEGORY_CHANGE_NOT_ALLOWED"`),
-		"PATCH handler must reject category changes with CATEGORY_CHANGE_NOT_ALLOWED")
+	content := string(src)
+
+	assert.False(t, strings.Contains(content, "CATEGORY_CHANGE_NOT_ALLOWED"),
+		"PATCH handler must no longer reject category changes with CATEGORY_CHANGE_NOT_ALLOWED")
+	assert.True(t, strings.Contains(content, "parseRVMCategoryPatchField(rawBody)"),
+		"PATCH handler must parse the category field via parseRVMCategoryPatchField")
+	assert.True(t, strings.Contains(content, "PREVIEW_NOT_ALLOWED_FOR_CATEGORY"),
+		"PATCH handler must still enforce the preview-candidate-vs-category guard")
+
+	categorySrc, err := os.ReadFile("admin_content_release_version_media_category.go")
+	require.NoError(t, err)
+	assert.True(t, strings.Contains(string(categorySrc), "rvmValidCategories[value]"),
+		"parseRVMCategoryPatchField must validate against rvmValidCategories")
 }
 
 // ---------------------------------------------------------------------------

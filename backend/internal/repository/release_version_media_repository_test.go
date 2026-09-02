@@ -202,25 +202,18 @@ func TestReleaseVersionMedia_ContributorGroupOwnershipResolverExists(t *testing.
 	assert.Contains(t, content, "rvg.fansub_group_id = ac.fansub_group_id")
 }
 
-// TestReleaseVersionMedia_CategoryChangePrevented verifies the repository
-// does NOT have a SetCategory method — category changes are prevented at the
-// handler layer by rejecting the PATCH body field before calling the repository.
-func TestReleaseVersionMedia_CategoryChangePrevented(t *testing.T) {
+// TestReleaseVersionMedia_CategoryChangeAllowed verifies the repository accepts and
+// persists category changes via the existing PatchReleaseVersionMedia path (Zielbild 2,
+// 144-CONTEXT.md) — the former hard-block on category changes is gone.
+func TestReleaseVersionMedia_CategoryChangeAllowed(t *testing.T) {
 	repoSrc, err := os.ReadFile("release_version_media_repository.go")
 	require.NoError(t, err)
 	content := string(repoSrc)
 
-	assert.False(t, strings.Contains(content, "SetCategory"),
-		"repository must NOT have a SetCategory method — category is immutable after creation")
-
-	// PatchReleaseVersionMedia SQL must NOT include category in the SET clause
-	patchIdx := strings.Index(content, "func (r *MediaRepository) PatchReleaseVersionMedia")
-	require.Greater(t, patchIdx, 0)
-	afterPatch := content[patchIdx:]
-	// Find the UPDATE statement and assert category is not in the SET clause
-	// by checking the function ends before any SET category= pattern.
-	assert.False(t, strings.Contains(afterPatch[:500], "SET\n\t\t\t\tcategory"),
-		"PatchReleaseVersionMedia SQL must not include category in SET clause")
+	assert.Contains(t, content, "Category           *string",
+		"ReleaseVersionMediaPatchInput must have a Category *string field")
+	assert.Contains(t, content, "category             = COALESCE($5, category)",
+		"PatchReleaseVersionMedia SQL must update category in the SET clause")
 }
 
 // TestReleaseVersionMedia_PreviewEnforcementInRepository verifies that the

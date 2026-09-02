@@ -93,6 +93,7 @@ export interface ReleaseVersionMediaPatchRequest {
   caption?: string | null
   sort_order?: number
   is_preview_candidate?: boolean
+  category?: ReleaseVersionMediaCategory
   /** Erwartete Lifecycle-Revision für revisionssichere Änderungen/Neueinreichungen. */
   source_revision?: number
   /** @deprecated Nur für den bestehenden Leader-Metadatenpfad; Submitter senden dieses Feld nicht. */

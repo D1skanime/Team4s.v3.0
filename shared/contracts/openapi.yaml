@@ -13918,6 +13918,8 @@ components:
           nullable: true
         is_preview_candidate:
           type: boolean
+        category:
+          $ref: "#/components/schemas/ReleaseVersionMediaCategory"
         source_revision:
           type: integer
           format: int64
