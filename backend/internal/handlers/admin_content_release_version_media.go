@@ -851,17 +851,14 @@ func (h *AdminContentHandler) PatchReleaseVersionMedia(c *gin.Context) {
 		c.JSON(http.StatusBadRequest, gin.H{"error": gin.H{"message": "ungültige json body"}})
 		return
 	}
-	if _, hasCategory := rawBody["category"]; hasCategory {
-		c.JSON(http.StatusUnprocessableEntity, gin.H{"error": gin.H{
-			"message":    "kategorie kann nicht geaendert werden",
-			"error_code": "CATEGORY_CHANGE_NOT_ALLOWED",
-		}})
-		return
-	}
-
 	caption, captionSet, err := parseOptionalCaptionField(rawBody)
 	if err != nil {
 		c.JSON(http.StatusBadRequest, gin.H{"error": gin.H{"message": err.Error()}})
+		return
+	}
+	categoryPatch := parseRVMCategoryPatchField(rawBody)
+	if categoryPatch.Invalid {
+		c.JSON(http.StatusUnprocessableEntity, gin.H{"error": gin.H{"message": "ungültige kategorie", "error_code": "INVALID_CATEGORY"}})
 		return
 	}
 	var isPreviewCandidate *bool
@@ -886,7 +883,7 @@ func (h *AdminContentHandler) PatchReleaseVersionMedia(c *gin.Context) {
 	}
 
 	if isPreviewCandidate != nil && *isPreviewCandidate {
-		if !rvmPreviewAllowedCategories[relationMeta.Category] {
+		if !rvmCategoryAllowsPreview(relationMeta.Category, categoryPatch.Category) {
 			c.JSON(http.StatusUnprocessableEntity, gin.H{"error": gin.H{
 				"message":    "vorschaubild nicht erlaubt für diese kategorie",
 				"error_code": "PREVIEW_NOT_ALLOWED_FOR_CATEGORY",
@@ -899,6 +896,7 @@ func (h *AdminContentHandler) PatchReleaseVersionMedia(c *gin.Context) {
 		Caption:            caption,
 		CaptionSet:         captionSet,
 		IsPreviewCandidate: isPreviewCandidate,
+		Category:           categoryPatch.Category,
 	}
 
 	tx, err := h.mediaRepo.BeginTx(c.Request.Context())
