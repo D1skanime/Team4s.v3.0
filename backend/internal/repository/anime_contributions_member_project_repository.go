@@ -9,17 +9,18 @@ import (
 )
 
 type MemberProjectReleaseVersionRow struct {
-	ReleaseVersionID   int64    `json:"release_version_id"`
-	EpisodeNumber      string   `json:"episode_number"`
-	EpisodeTitle       *string  `json:"episode_title"`
-	EpisodeSortIndex   *int     `json:"episode_sort_index"`
-	Version            string   `json:"version"`
-	Title              *string  `json:"title"`
-	RoleCodes          []string `json:"role_codes"`
-	RoleLabels         []string `json:"role_labels"`
-	HasOwnContribution bool     `json:"has_own_contribution"`
-	HasOwnNotes        bool     `json:"has_own_notes"`
-	HasOwnMedia        bool     `json:"has_own_media"`
+	ReleaseVersionID    int64    `json:"release_version_id"`
+	EpisodeNumber       string   `json:"episode_number"`
+	EpisodeTitle        *string  `json:"episode_title"`
+	EpisodeSortIndex    *int     `json:"episode_sort_index"`
+	Version             string   `json:"version"`
+	Title               *string  `json:"title"`
+	RoleCodes           []string `json:"role_codes"`
+	RoleLabels          []string `json:"role_labels"`
+	HasOwnContribution  bool     `json:"has_own_contribution"`
+	HasOwnNotes         bool     `json:"has_own_notes"`
+	HasOwnMedia         bool     `json:"has_own_media"`
+	HasOwnRejectedNotes bool     `json:"has_own_rejected_notes"`
 }
 
 type MemberProjectDetailRow struct {
@@ -152,7 +153,17 @@ func (r *AnimeContributionsRepository) listMemberProjectReleaseVersions(
 				WHERE rvm.release_version_id = rv.id
 				  AND rvm.uploaded_by_user_id = $2
 				  AND rvm.deleted_at IS NULL
-			) AS has_own_media
+			) AS has_own_media,
+			EXISTS (
+				SELECT 1
+				FROM release_version_notes rvn
+				JOIN release_version_note_review_lifecycle lifecycle
+				  ON lifecycle.release_version_note_id = rvn.id
+				WHERE rvn.release_version_id = rv.id
+				  AND rvn.member_id = $1
+				  AND rvn.deleted_at IS NULL
+				  AND lifecycle.review_state = 'rejected'
+			) AS has_own_rejected_notes
 		FROM release_versions rv
 		JOIN release_version_groups rvg ON rvg.release_version_id = rv.id
 		JOIN fansub_releases fr ON fr.id = rv.release_id
@@ -202,6 +213,7 @@ func (r *AnimeContributionsRepository) listMemberProjectReleaseVersions(
 			&row.HasOwnContribution,
 			&row.HasOwnNotes,
 			&row.HasOwnMedia,
+			&row.HasOwnRejectedNotes,
 		); err != nil {
 			return nil, fmt.Errorf("scan member project release version: %w", err)
 		}

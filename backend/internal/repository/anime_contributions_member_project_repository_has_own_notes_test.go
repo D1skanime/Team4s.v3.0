@@ -339,3 +339,117 @@ func TestGetMemberProjectDetailHasOwnNotesExcludesTombstonedNote(t *testing.T) {
 	require.Len(t, detail.ReleaseVersions, 1)
 	require.False(t, detail.ReleaseVersions[0].HasOwnNotes, "a tombstoned note must remain excluded via the existing deleted_at IS NULL clause")
 }
+
+// TestGetMemberProjectDetailHasOwnRejectedNotesTrueForRejectedOnlyNote: a
+// release whose only note was reviewed and rejected must report
+// has_own_rejected_notes=true (and, per Kriterium 5, has_own_notes=false on
+// the same row -- the two flags are complementary for this case).
+func TestGetMemberProjectDetailHasOwnRejectedNotesTrueForRejectedOnlyNote(t *testing.T) {
+	pool := openMemberProjectHasOwnNotesFixture(t)
+	ctx := context.Background()
+
+	const memberID, appUserID = int64(114001), int64(114002)
+	const animeID, groupID = int64(114010), int64(114020)
+	seedPhase143Member(t, pool, memberID)
+	seedPhase143AppUser(t, pool, appUserID)
+	seedPhase143Anime(t, pool, animeID, "Phase143 Rejected-Only Anime")
+	seedPhase143FansubGroup(t, pool, groupID, "Phase143 Rejected-Only Group")
+	seedPhase143ConfirmedProjectContribution(t, pool, 114030, animeID, groupID, memberID)
+
+	epID, relID, verID := int64(114040), int64(114041), int64(114042)
+	seedPhase143Episode(t, pool, epID, animeID, "01", 1)
+	seedPhase143ReleaseVersion(t, pool, relID, verID, epID, groupID, "v1")
+
+	roleID := int64(114060)
+	seedPhase143ContributorRole(t, pool, roleID, "translator")
+	noteID := int64(114050)
+	seedPhase143ReleaseVersionNote(t, pool, noteID, verID, memberID, roleID)
+	seedPhase143NoteReviewLifecycle(t, pool, noteID, appUserID, memberID, "rejected")
+
+	repo := NewAnimeContributionsRepository(pool)
+	detail, err := repo.GetMemberProjectDetail(ctx, memberID, appUserID, animeID, groupID)
+	require.NoError(t, err)
+	require.Len(t, detail.ReleaseVersions, 1)
+	require.True(t, detail.ReleaseVersions[0].HasOwnRejectedNotes, "a rejected-only note must set has_own_rejected_notes=true")
+	require.False(t, detail.ReleaseVersions[0].HasOwnNotes, "a rejected-only note must still leave has_own_notes=false")
+}
+
+// TestGetMemberProjectDetailHasOwnRejectedNotesFalseForConfirmedNote: a
+// release whose only note was reviewed and confirmed must report
+// has_own_rejected_notes=false (and has_own_notes=true).
+func TestGetMemberProjectDetailHasOwnRejectedNotesFalseForConfirmedNote(t *testing.T) {
+	pool := openMemberProjectHasOwnNotesFixture(t)
+	ctx := context.Background()
+
+	const memberID, appUserID = int64(115001), int64(115002)
+	const animeID, groupID = int64(115010), int64(115020)
+	seedPhase143Member(t, pool, memberID)
+	seedPhase143AppUser(t, pool, appUserID)
+	seedPhase143Anime(t, pool, animeID, "Phase143 Confirmed Note Anime")
+	seedPhase143FansubGroup(t, pool, groupID, "Phase143 Confirmed Note Group")
+	seedPhase143ConfirmedProjectContribution(t, pool, 115030, animeID, groupID, memberID)
+
+	epID, relID, verID := int64(115040), int64(115041), int64(115042)
+	seedPhase143Episode(t, pool, epID, animeID, "01", 1)
+	seedPhase143ReleaseVersion(t, pool, relID, verID, epID, groupID, "v1")
+
+	roleID := int64(115060)
+	seedPhase143ContributorRole(t, pool, roleID, "translator")
+	noteID := int64(115050)
+	seedPhase143ReleaseVersionNote(t, pool, noteID, verID, memberID, roleID)
+	seedPhase143NoteReviewLifecycle(t, pool, noteID, appUserID, memberID, "confirmed")
+
+	repo := NewAnimeContributionsRepository(pool)
+	detail, err := repo.GetMemberProjectDetail(ctx, memberID, appUserID, animeID, groupID)
+	require.NoError(t, err)
+	require.Len(t, detail.ReleaseVersions, 1)
+	require.False(t, detail.ReleaseVersions[0].HasOwnRejectedNotes, "a confirmed note must not set has_own_rejected_notes")
+	require.True(t, detail.ReleaseVersions[0].HasOwnNotes, "a confirmed note must still count as has_own_notes")
+}
+
+// TestGetMemberProjectDetailHasOwnRejectedNotesFalseForTombstonedNote mirrors
+// TestGetMemberProjectDetailHasOwnNotesExcludesTombstonedNote's exact
+// tombstone seeding: a tombstoned note (deleted_at set on the note,
+// review_state='tombstoned' + tombstoned_at set on the lifecycle row) must
+// not set has_own_rejected_notes, via the pre-existing rvn.deleted_at IS NULL
+// clause -- no new tombstone-specific filter added.
+func TestGetMemberProjectDetailHasOwnRejectedNotesFalseForTombstonedNote(t *testing.T) {
+	pool := openMemberProjectHasOwnNotesFixture(t)
+	ctx := context.Background()
+
+	const memberID, appUserID = int64(116001), int64(116002)
+	const animeID, groupID = int64(116010), int64(116020)
+	seedPhase143Member(t, pool, memberID)
+	seedPhase143AppUser(t, pool, appUserID)
+	seedPhase143Anime(t, pool, animeID, "Phase143 Rejected Tombstoned Anime")
+	seedPhase143FansubGroup(t, pool, groupID, "Phase143 Rejected Tombstoned Group")
+	seedPhase143ConfirmedProjectContribution(t, pool, 116030, animeID, groupID, memberID)
+
+	epID, relID, verID := int64(116040), int64(116041), int64(116042)
+	seedPhase143Episode(t, pool, epID, animeID, "01", 1)
+	seedPhase143ReleaseVersion(t, pool, relID, verID, epID, groupID, "v1")
+
+	roleID := int64(116060)
+	seedPhase143ContributorRole(t, pool, roleID, "translator")
+	noteID := int64(116050)
+	seedPhase143ReleaseVersionNote(t, pool, noteID, verID, memberID, roleID)
+	seedPhase143NoteReviewLifecycle(t, pool, noteID, appUserID, memberID, "rejected")
+
+	// Mirror release_review_cleanup_repository.go's tombstone shape exactly:
+	// deleted_at set on the note, review_state='tombstoned' + tombstoned_at set
+	// on the lifecycle row (the CHECK constraint requires both together).
+	_, err := pool.Exec(ctx, `UPDATE release_version_notes SET deleted_at = NOW() WHERE id = $1`, noteID)
+	require.NoError(t, err)
+	_, err = pool.Exec(ctx, `
+		UPDATE release_version_note_review_lifecycle
+		SET review_state = 'tombstoned', tombstoned_at = NOW()
+		WHERE release_version_note_id = $1
+	`, noteID)
+	require.NoError(t, err)
+
+	repo := NewAnimeContributionsRepository(pool)
+	detail, err := repo.GetMemberProjectDetail(ctx, memberID, appUserID, animeID, groupID)
+	require.NoError(t, err)
+	require.Len(t, detail.ReleaseVersions, 1)
+	require.False(t, detail.ReleaseVersions[0].HasOwnRejectedNotes, "a tombstoned rejected note must remain excluded via the existing deleted_at IS NULL clause")
+}
