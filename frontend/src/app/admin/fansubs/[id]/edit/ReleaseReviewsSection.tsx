@@ -33,6 +33,7 @@ import {
   readReviewView,
   RELEASE_REVIEW_CATEGORY_LABELS,
   releaseReviewQueueStatus,
+  releaseReviewResubmissionBadge,
 } from '../../releaseReviewPresentation'
 import styles from '../../releaseReviews.module.css'
 import { useReleaseReviewMobileGate } from '../../useReleaseReviewMobileGate'
@@ -323,6 +324,7 @@ export function ReleaseReviewsSection({ fansubId }: { fansubId: number }) {
                       <TableCell>
                         <div className={styles.typeStack}>
                           <Badge variant={status.variant}>{status.label}</Badge>
+                          {item.status === 'pending' && item.source_revision > 1 ? <Badge variant={releaseReviewResubmissionBadge().variant}>{releaseReviewResubmissionBadge().label}</Badge> : null}
                           <span>{item.type === 'text' ? 'Text' : 'Bild'}</span>
                           {item.category ? (
                             <Badge className={styles.tabletOnly} variant="muted">
