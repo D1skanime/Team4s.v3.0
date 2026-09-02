@@ -789,13 +789,19 @@ Plans:
 
 ### Phase 144: Überarbeitungs-Kreislauf für Release-Medien vervollständigen
 
-**Goal:** [To be planned]
-**Requirements**: TBD
+**Goal:** Ein abgelehntes Release-Medium lässt sich in derselben Zeile korrigieren — Datei ersetzen und/oder Kategorie ändern, statt neu hochzuladen — und der Prüfer sieht beim erneuten Vorlegen, dass es sich um die überarbeitete Fassung seiner eigenen Ablehnung handelt, nicht um eine fremde neue Einreichung.
+**Requirements**: TBD (UAT-06, 143-UAT.md — kein v1.4-Requirement-Mapping)
 **Depends on:** Phase 143
-**Plans:** 0 plans
+**Plans:** 7 plans
 
 Plans:
-- [ ] TBD (run /gsd-plan-phase 144 to break down)
+- [ ] 144-01-PLAN.md — Kategorie im bestehenden PATCH-Endpunkt änderbar machen (Zielbild 2)
+- [ ] 144-02-PLAN.md — Neues Replace-Repository: Identität erhalten, Revision springt, alte Datei in die Cleanup-Outbox (Zielbild 1, 4)
+- [ ] 144-03-PLAN.md — Prior-Rejection-DTO für die Prüfer-Detailseite (Zielbild 3, Backend)
+- [ ] 144-04-PLAN.md — Neuer PUT-Endpunkt für Datei-Ersatz inkl. Route + OpenAPI (Zielbild 1)
+- [ ] 144-05-PLAN.md — Frontend-Contracts: API-Client + geteilte Review-Präsentationshelfer
+- [ ] 144-06-PLAN.md — Einreicher-UI: Datei-ersetzen-Kontrolle + Kategoriefeld im Bearbeiten-Formular
+- [ ] 144-07-PLAN.md — Prüfer-UI: Überarbeitet-Badge + Kontextzeile auf Detail- und Listenansicht
 
 ## v1.4 Coverage
 
