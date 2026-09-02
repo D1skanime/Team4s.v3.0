@@ -172,3 +172,46 @@ describe('409 conflict mapping covers both already-decided and not-pending (D11)
     expect(screen.getByRole('button', { name: 'Aktuellen Stand laden' })).toBeTruthy()
   })
 })
+
+describe('header status Badge reflects the decision (UAT-01)', () => {
+  it('updates the header Badge to "Bestätigt / Öffentlich" immediately after a confirm decision', async () => {
+    api.decideReleaseReview.mockResolvedValue({
+      data: { review_id: 'review-image', decision: 'confirm', next: null },
+    })
+    render(<ReleaseReviewPage />)
+
+    await screen.findByText('In Prüfung')
+
+    fireEvent.click(await screen.findByRole('button', { name: 'Bestätigen und veröffentlichen' }))
+
+    await waitFor(() => {
+      expect(screen.getByText('Bestätigt / Öffentlich')).toBeTruthy()
+      expect(screen.queryByText('In Prüfung')).toBeNull()
+    })
+  })
+
+  it('updates the header Badge to "Abgelehnt" immediately after a reject decision', async () => {
+    api.decideReleaseReview.mockResolvedValue({
+      data: { review_id: 'review-image', decision: 'reject', next: null },
+    })
+    render(<ReleaseReviewPage />)
+
+    await screen.findByText('In Prüfung')
+
+    fireEvent.click(await screen.findByRole('button', { name: 'Ablehnen' }))
+
+    fireEvent.change(await screen.findByLabelText('Ablehnungsgrund'), {
+      target: { value: 'quality.insufficient' },
+    })
+    fireEvent.change(screen.getByLabelText('Begründung'), {
+      target: { value: 'Bitte Qualität vor der Neueinreichung deutlich verbessern.' },
+    })
+
+    fireEvent.click(screen.getByRole('button', { name: 'Beitrag ablehnen' }))
+
+    await waitFor(() => {
+      expect(screen.getByText('Abgelehnt')).toBeTruthy()
+      expect(screen.queryByText('In Prüfung')).toBeNull()
+    })
+  })
+})
