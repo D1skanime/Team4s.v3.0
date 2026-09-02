@@ -3,14 +3,14 @@ gsd_state_version: 1.0
 milestone: v1.4
 milestone_name: Coverage
 status: executing
-stopped_at: Completed 143-15-PLAN.md
-last_updated: "2026-09-02T08:26:32.753Z"
+stopped_at: Completed 143-16-PLAN.md
+last_updated: "2026-09-02T08:29:03.977Z"
 last_activity: 2026-09-02
 progress:
   total_phases: 8
   completed_phases: 7
   total_plans: 102
-  completed_plans: 99
+  completed_plans: 100
   percent: 88
 ---
 
@@ -34,7 +34,7 @@ See: .planning/PROJECT.md (updated 2026-08-13)
 ## Current Position
 
 Phase: 143 (phase-142-nacharbeit-und-dashboard-lane-f-r-abgelehnte-notiz) — EXECUTING
-Plan: 2 of 4
+Plan: 3 of 4
 Status: Ready to execute
 Last activity: 2026-09-02
 
@@ -227,6 +227,7 @@ Last activity: 2026-09-02
 - [Phase 143]: 143-13 closed Criterion-7's backend half -- ReleaseReviewQueryRepository.PendingOwnNoteRevisionAttention is the inverse of the review-queue self-exclusion predicate (explicitly returns the actor's own rejected release-version notes); OwnDashboardData.PendingOwnNoteRevisions groups the flat rows by anime+fansub-group via a single linear pass relying on the query's own ORDER BY; dashboard_me_handler.go stays at zero raw h.db.Query calls.
 - [Phase 143]: Phase 143 Plan 14 executed: rejected own release notes now render as a fifth Attention-lane in AttentionSection.tsx, grouped per anime-project + fansub-group, closing Criterion-7 end to end (backend half shipped in 143-13).
 - [Phase 143]: Plan 143-15 closed UAT-03/UAT-04: noteRevisionListSingle append-only CSS override reduces single-item rejected-notes card spacing without touching multi-item rendering — All 6 raw hex color fallbacks (var(--color-primary, #2f5fe3)/var(--text-soft, #6b6b70), 4 pre-existing + 2 from plan 143-14) removed from AttentionSection.module.css in favor of bare design tokens, per CLAUDE.md's token-only convention
+- [Phase 143]: Plan 143-16 patched detail.status client-side via setDetail's functional updater inside submitDecision's success branch (using the decision parameter, not response.data.decision), closing UAT-01's stale header status Badge without adding a refetch that would re-hide the just-shown decision message and NextReviewControl success actions.
 
 ### Pending Todos
 
@@ -512,10 +513,11 @@ untruncated list lives in `.planning/todos/pending/`.
 | Phase 143 P13 | 50min | 3 tasks | 6 files |
 | Phase 143 P14 | 35min | 3 tasks | 8 files |
 | Phase 143 P15 | 5min | 2 tasks | 3 files |
+| Phase 143 P16 | 5min | 2 tasks | 2 files |
 
 ## Session Continuity
 
-Last session: 2026-09-02T08:26:32.738Z
-Stopped at: Completed 143-15-PLAN.md
+Last session: 2026-09-02T08:29:03.962Z
+Stopped at: Completed 143-16-PLAN.md
 Last activity: 2026-09-01 - Milestone v1.4 audit passed (41/41 requirements, 7/7 phases, .planning/v1.4-MILESTONE-AUDIT.md); Phase 143 added to roadmap, not yet planned
 Resume file: None
