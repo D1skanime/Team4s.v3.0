@@ -4,13 +4,13 @@ milestone: v1.4
 milestone_name: Coverage
 status: executing
 stopped_at: Completed 144-01-PLAN.md
-last_updated: "2026-09-02T14:16:17.322Z"
+last_updated: "2026-09-02T14:25:46.082Z"
 last_activity: 2026-09-02
 progress:
   total_phases: 9
   completed_phases: 8
   total_plans: 110
-  completed_plans: 104
+  completed_plans: 105
   percent: 89
 ---
 
@@ -34,7 +34,7 @@ See: .planning/PROJECT.md (updated 2026-08-13)
 ## Current Position
 
 Phase: 144 (berarbeitungs-kreislauf-f-r-release-medien-vervollst-ndigen) — EXECUTING
-Plan: 2 of 7
+Plan: 3 of 7
 Status: Ready to execute
 Last activity: 2026-09-02
 
@@ -233,6 +233,7 @@ Last activity: 2026-09-02
 - [Phase 143]: 143-18 executed: needsRework = !releaseDone && has_own_rejected_notes gates only Badge variant/text and button prominence; isDone()/counters/filters stay byte-identical (Kriterium 5 locked). Reused Badge variant=danger for consistency with AttentionSection.tsx's rejected-notes semantics. — UAT-02 is now fully closed (backend half in 143-17, frontend half here); Phase 143 (last plan 4 of 4) is complete.
 - [Phase 143]: 143-19 closed UAT-05: has_own_media's EXISTS subquery now excludes rejected media via a LEFT JOIN to release_version_media_review_lifecycle (mirroring has_own_notes); a new has_own_rejected_media boolean (INNER JOIN) flows through openapi.yaml/contributions.ts; page.tsx's hasOwnArtifacts/needsRework unify has_own_rejected_notes and has_own_rejected_media via a single OR so either or both rejected-artifact types render exactly one 'Überarbeitung nötig' badge, never a precedence puzzle.
 - [Phase 144]: [Phase 144, Plan 01]: PatchReleaseVersionMedia's category hard-block is removed; category is now validated via parseRVMCategoryPatchField (new sibling file admin_content_release_version_media_category.go, keeps the 1148-line handler file at 1146) and persisted via ReleaseVersionMediaPatchInput.Category; rvmCategoryAllowsPreview checks the effective post-patch category so a category change cannot bypass PREVIEW_NOT_ALLOWED_FOR_CATEGORY.
+- [Phase 144]: 144-02 executed (Zielbild 1, Zielbild 4, Points invariant) -- new backend/internal/repository/release_version_media_replace_repository.go gives *MediaRepository.ReplaceReleaseVersionMediaFile (swaps media_asset_id under FOR UPDATE, never touches the row's own id) and .EnqueueReleaseVersionMediaFileDeleteJob (mirrors scrubExpiredReleaseReviewMedia's INSERT into release_review_file_delete_jobs, ON CONFLICT (media_file_id) DO NOTHING). Neither method reimplements the revision-bump/pending-reset -- callers compose both with the existing ReleaseReviewLifecycleRepository.SubmitMedia, proven by 4 real-Postgres tests (identity preservation, exact +1 revision, pending reset, safe double-enqueue, zero point_ledger_entries rows, unchanged archivist badge count against a non-trivial control row). Test fixture lives in package repository (not services) specifically to reach the unexported MemberProfileRepository.loadContribArchivistCount. Resolves CONTEXT.md's 'Alte Datei behalten oder verwerfen?' as verwerfen (discard via the existing outbox), matching 144-PATTERNS.md.
 
 ### Pending Todos
 
@@ -523,10 +524,11 @@ untruncated list lives in `.planning/todos/pending/`.
 | Phase 143 P18 | 10min | 2 tasks | 2 files |
 | Phase 143 P19 | 20min | 3 tasks | 7 files |
 | Phase 144 P01 | 35min | 3 tasks | 8 files |
+| Phase 144 P02 | ~50min | 3 tasks | 2 files |
 
 ## Session Continuity
 
-Last session: 2026-09-02T14:16:17.306Z
+Last session: 2026-09-02T14:25:37.441Z
 Stopped at: Completed 144-01-PLAN.md
 Last activity: 2026-09-01 - Milestone v1.4 audit passed (41/41 requirements, 7/7 phases, .planning/v1.4-MILESTONE-AUDIT.md); Phase 143 added to roadmap, not yet planned
 Resume file: None
