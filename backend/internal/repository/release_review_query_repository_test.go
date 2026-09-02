@@ -1043,3 +1043,81 @@ func TestPendingOwnNoteRevisionAttentionOnlyRejectedOwnNotes(t *testing.T) {
 	assert.EqualValues(t, 21, foreignItems[0].FansubGroupID)
 	assert.Equal(t, "Fremde Notiz", foreignItems[0].NoteTitle)
 }
+
+// TestReleaseReviewQueryDetailIncludesPriorRejection proves Zielbild 3 (144-CONTEXT.md):
+// Detail() surfaces who rejected the immediately-preceding revision of a resubmitted
+// source, when, and why -- correctly distinguishing "rejected by the current actor" from
+// "rejected by someone else" -- and stays nil for a source that was never resubmitted.
+// Fixture row 606 (source_revision=2, added by THIS test, not the shared fixture -- adding
+// a pending row to openReleaseReviewQueryFixture itself would silently inflate every other
+// test's List/Counts pending-item assertions) carries a review_decisions reject on revision
+// 1, decided by app_user 12 / member 102 (both already seeded by the shared fixture).
+func TestReleaseReviewQueryDetailIncludesPriorRejection(t *testing.T) {
+	pool := openReleaseReviewQueryFixture(t)
+	ctx := context.Background()
+	repo := NewReleaseReviewQueryRepository(pool)
+	allowed := []string{string(ReviewKindImage)}
+
+	_, err := pool.Exec(ctx, `
+		INSERT INTO media_assets(id) VALUES (706);
+		INSERT INTO media_files(id, media_id, variant, path, status) VALUES
+			(807, 706, 'original', '/app/media/review/706/original.png', 'ready');
+		INSERT INTO release_version_media(
+			id, release_version_id, fansub_group_id, media_asset_id, category, caption, uploaded_by_user_id
+		) VALUES (606, 41, 21, 706, 'screenshot', 'Bild Sechs', 1001);
+		INSERT INTO release_version_media_review_lifecycle(
+			release_version_media_id, source_revision, review_state, category,
+			submitter_app_user_id, submitter_member_id, submitted_at, last_activity_at, decided_at
+		) VALUES (606, 2, 'pending', 'screenshot', 11, 101, '2026-07-23T11:00:00Z', '2026-07-23T11:00:00Z', NULL);
+		INSERT INTO review_decisions(
+			id, source_type, source_key, source_revision, review_kind, decision,
+			rejection_category, fansub_group_id, reviewer_app_user_id, reviewer_member_id,
+			is_platform_override, decided_at
+		) VALUES (
+			9001, 'release_version_media', '606', 1, 'image', 'reject',
+			'quality.insufficient', 21, 12, 102, false, '2026-07-23T10:00:00Z'
+		);
+		INSERT INTO review_audit_events(
+			id, event_code, review_decision_id, actor_kind, actor_app_user_id, actor_member_id,
+			fansub_group_id, source_type, source_key, source_revision, decision,
+			is_platform_override, has_reason, occurred_at
+		) VALUES (
+			9001, 'review.rejected', 9001, 'app_user', 12, 102,
+			21, 'release_version_media', '606', 1, 'reject', false, true, '2026-07-23T10:00:00Z'
+		);
+		INSERT INTO review_reason_texts(audit_event_id, reason_kind, reason_text) VALUES
+			(9001, 'reject', 'Qualität war zu niedrig.');
+	`)
+	require.NoError(t, err)
+
+	resubmittedID, err := EncodeReleaseReviewID(ReleaseVersionMediaReviewSourceType, 606)
+	require.NoError(t, err)
+	neverResubmittedID, err := EncodeReleaseReviewID(ReleaseVersionMediaReviewSourceType, 603)
+	require.NoError(t, err)
+
+	t.Run("own rejection resubmission shows RejectedByCurrentActor true", func(t *testing.T) {
+		detail, err := repo.Detail(ctx, 21, resubmittedID, allowed, 12, nil)
+		require.NoError(t, err)
+		require.NotNil(t, detail.PriorRejection)
+		assert.True(t, detail.PriorRejection.RejectedByCurrentActor)
+		assert.Equal(t, "quality.insufficient", detail.PriorRejection.RejectionCategory)
+		assert.Equal(t, "Qualität war zu niedrig.", detail.PriorRejection.RejectionReason)
+		assert.Equal(t, "Reviewer Zwei", detail.PriorRejection.ReviewerDisplayName)
+		assert.True(t, detail.PriorRejection.RejectedAt.Equal(time.Date(2026, 7, 23, 10, 0, 0, 0, time.UTC)))
+	})
+
+	t.Run("different reviewer's prior rejection shows RejectedByCurrentActor false", func(t *testing.T) {
+		detail, err := repo.Detail(ctx, 21, resubmittedID, allowed, 13, nil)
+		require.NoError(t, err)
+		require.NotNil(t, detail.PriorRejection)
+		assert.False(t, detail.PriorRejection.RejectedByCurrentActor)
+		assert.Equal(t, "quality.insufficient", detail.PriorRejection.RejectionCategory)
+		assert.Equal(t, "Reviewer Zwei", detail.PriorRejection.ReviewerDisplayName)
+	})
+
+	t.Run("first-time submission returns nil PriorRejection", func(t *testing.T) {
+		detail, err := repo.Detail(ctx, 21, neverResubmittedID, allowed, 12, nil)
+		require.NoError(t, err)
+		assert.Nil(t, detail.PriorRejection)
+	})
+}
