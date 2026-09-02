@@ -21,6 +21,7 @@ type MemberProjectReleaseVersionRow struct {
 	HasOwnNotes         bool     `json:"has_own_notes"`
 	HasOwnMedia         bool     `json:"has_own_media"`
 	HasOwnRejectedNotes bool     `json:"has_own_rejected_notes"`
+	HasOwnRejectedMedia bool     `json:"has_own_rejected_media"`
 }
 
 type MemberProjectDetailRow struct {
@@ -150,9 +151,12 @@ func (r *AnimeContributionsRepository) listMemberProjectReleaseVersions(
 			EXISTS (
 				SELECT 1
 				FROM release_version_media rvm
+				LEFT JOIN release_version_media_review_lifecycle lifecycle
+				  ON lifecycle.release_version_media_id = rvm.id
 				WHERE rvm.release_version_id = rv.id
 				  AND rvm.uploaded_by_user_id = $2
 				  AND rvm.deleted_at IS NULL
+				  AND (lifecycle.review_state IS NULL OR lifecycle.review_state <> 'rejected')
 			) AS has_own_media,
 			EXISTS (
 				SELECT 1
@@ -163,7 +167,17 @@ func (r *AnimeContributionsRepository) listMemberProjectReleaseVersions(
 				  AND rvn.member_id = $1
 				  AND rvn.deleted_at IS NULL
 				  AND lifecycle.review_state = 'rejected'
-			) AS has_own_rejected_notes
+			) AS has_own_rejected_notes,
+			EXISTS (
+				SELECT 1
+				FROM release_version_media rvm
+				JOIN release_version_media_review_lifecycle lifecycle
+				  ON lifecycle.release_version_media_id = rvm.id
+				WHERE rvm.release_version_id = rv.id
+				  AND rvm.uploaded_by_user_id = $2
+				  AND rvm.deleted_at IS NULL
+				  AND lifecycle.review_state = 'rejected'
+			) AS has_own_rejected_media
 		FROM release_versions rv
 		JOIN release_version_groups rvg ON rvg.release_version_id = rv.id
 		JOIN fansub_releases fr ON fr.id = rv.release_id
@@ -214,6 +228,7 @@ func (r *AnimeContributionsRepository) listMemberProjectReleaseVersions(
 			&row.HasOwnNotes,
 			&row.HasOwnMedia,
 			&row.HasOwnRejectedNotes,
+			&row.HasOwnRejectedMedia,
 		); err != nil {
 			return nil, fmt.Errorf("scan member project release version: %w", err)
 		}
