@@ -4,6 +4,7 @@ import (
 	"context"
 	"path/filepath"
 	"runtime"
+	"strconv"
 	"testing"
 	"time"
 
@@ -267,4 +268,49 @@ func TestReleaseVersionMediaReplaceFileHandlesPriorFile(t *testing.T) {
 		WHERE release_version_media_id = 601 AND media_asset_id = 701
 	`).Scan(&jobCount))
 	assert.EqualValues(t, 2, jobCount)
+}
+
+func TestReleaseVersionMediaReplaceFileDoesNotCreditPoints(t *testing.T) {
+	pool := openReleaseVersionMediaReplaceFixture(t)
+	ctx := context.Background()
+	startedAt := time.Now().UTC().Add(-10 * time.Minute)
+	sourceKey := strconv.FormatInt(601, 10)
+
+	countCreditEntries := func() int64 {
+		var count int64
+		require.NoError(t, pool.QueryRow(ctx, `
+			SELECT COUNT(*) FROM point_ledger_entries
+			WHERE source_type = 'release_version_media' AND source_key = $1
+		`, sourceKey).Scan(&count))
+		return count
+	}
+
+	assert.EqualValues(t, 0, countCreditEntries())
+
+	submitMedia(t, pool, 601, 11, nil, startedAt)
+	rejectLifecycle(t, pool, 601)
+	replaceFile(t, pool, 601, 702, 11, rvmReplaceRevision(1), startedAt.Add(time.Hour))
+
+	assert.EqualValues(t, 0, countCreditEntries())
+}
+
+func TestReleaseVersionMediaReplaceFileArchivistCountUnchanged(t *testing.T) {
+	pool := openReleaseVersionMediaReplaceFixture(t)
+	ctx := context.Background()
+	startedAt := time.Now().UTC().Add(-10 * time.Minute)
+	const memberID int64 = 101
+
+	profileRepo := NewMemberProfileRepository(pool, "")
+
+	countBefore, err := profileRepo.loadContribArchivistCount(ctx, memberID)
+	require.NoError(t, err)
+	assert.EqualValues(t, 1, countBefore, "only the control relation (602/703) should count before replace")
+
+	submitMedia(t, pool, 601, 11, nil, startedAt)
+	rejectLifecycle(t, pool, 601)
+	replaceFile(t, pool, 601, 702, 11, rvmReplaceRevision(1), startedAt.Add(time.Hour))
+
+	countAfter, err := profileRepo.loadContribArchivistCount(ctx, memberID)
+	require.NoError(t, err)
+	assert.EqualValues(t, countBefore, countAfter, "replacing the file must not change the archivist badge count")
 }
