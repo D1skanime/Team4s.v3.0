@@ -173,6 +173,68 @@ describe('409 conflict mapping covers both already-decided and not-pending (D11)
   })
 })
 
+describe('resubmission badge and prior-rejection context line (144-07)', () => {
+  it('renders the "Überarbeitet" badge and a context line naming the reviewer\'s own prior rejection', async () => {
+    api.getReleaseReview.mockResolvedValue({
+      data: {
+        ...item,
+        text: null,
+        image: {
+          caption: null,
+          thumbnail_url: 'https://example.test/thumb.jpg',
+          original_url: 'https://example.test/original.jpg',
+        },
+        can_edit_release: false,
+        prior_rejection: {
+          rejected_at: '2026-07-20T09:00:00Z',
+          rejection_category: 'quality.insufficient',
+          rejection_reason: 'Auflösung zu niedrig.',
+          reviewer_display_name: 'Review Lead',
+          rejected_by_current_actor: true,
+        },
+      },
+    })
+    render(<ReleaseReviewPage />)
+
+    expect(await screen.findByText('Überarbeitet')).toBeTruthy()
+    expect(screen.getByText((content) => content.includes('deiner eigenen Ablehnung') && content.includes('Auflösung zu niedrig.'))).toBeTruthy()
+  })
+
+  it('renders a context line naming the other reviewer who rejected the prior revision', async () => {
+    api.getReleaseReview.mockResolvedValue({
+      data: {
+        ...item,
+        text: null,
+        image: {
+          caption: null,
+          thumbnail_url: 'https://example.test/thumb.jpg',
+          original_url: 'https://example.test/original.jpg',
+        },
+        can_edit_release: false,
+        prior_rejection: {
+          rejected_at: '2026-07-20T09:00:00Z',
+          rejection_category: 'content.incorrect',
+          rejection_reason: 'Falsche Szene.',
+          reviewer_display_name: 'Mika',
+          rejected_by_current_actor: false,
+        },
+      },
+    })
+    render(<ReleaseReviewPage />)
+
+    expect(await screen.findByText('Überarbeitet')).toBeTruthy()
+    expect(screen.getByText((content) => content.includes('zuvor von Mika abgelehnt') && content.includes('Falsche Szene.'))).toBeTruthy()
+  })
+
+  it('renders neither the badge nor a context line when prior_rejection is absent', async () => {
+    render(<ReleaseReviewPage />)
+
+    await screen.findByText('In Prüfung')
+    expect(screen.queryByText('Überarbeitet')).toBeNull()
+    expect(screen.queryByText((content) => content.includes('Überarbeitete Fassung'))).toBeNull()
+  })
+})
+
 describe('header status Badge reflects the decision (UAT-01)', () => {
   it('updates the header Badge to "Bestätigt / Öffentlich" immediately after a confirm decision', async () => {
     api.decideReleaseReview.mockResolvedValue({
