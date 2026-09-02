@@ -3,6 +3,7 @@ package repository
 import (
 	"path/filepath"
 	"strings"
+	"time"
 )
 
 // This file holds the scan/URL helper functions and shared SQL fragments
@@ -115,3 +116,78 @@ const releaseReviewQueueBaseSQL = `
 			LIMIT 1
 		) original ON TRUE
 	)`
+
+// ReleaseReviewPriorRejection carries the outcome of a rejection decision on the
+// immediately preceding source_revision of the same review source ("who rejected this
+// before, when, why, and was it the same person now reviewing again"). Populated only
+// when the current revision has a rejected predecessor -- see releaseReviewPriorRejectionJoinSQL
+// below (Plan 144-03, Zielbild 3).
+type ReleaseReviewPriorRejection struct {
+	RejectedAt             time.Time `json:"rejected_at"`
+	RejectionCategory      string    `json:"rejection_category"`
+	RejectionReason        string    `json:"rejection_reason"`
+	ReviewerDisplayName    string    `json:"reviewer_display_name"`
+	RejectedByCurrentActor bool      `json:"rejected_by_current_actor"`
+}
+
+// releaseReviewPriorRejectionScan holds the nullable scan destinations for the
+// releaseReviewPriorRejectionColumns appended to Detail's query; targets() returns them
+// in the exact order those columns are selected.
+type releaseReviewPriorRejectionScan struct {
+	decidedAt           *time.Time
+	rejectionCategory   *string
+	reviewerAppUserID   *int64
+	reviewerDisplayName string
+	rejectionReason     *string
+}
+
+func (s *releaseReviewPriorRejectionScan) targets() []any {
+	return []any{&s.decidedAt, &s.rejectionCategory, &s.reviewerAppUserID, &s.reviewerDisplayName, &s.rejectionReason}
+}
+
+// build constructs the exported DTO, returning nil when the LATERAL join found no
+// matching prior rejection (first submission, or a source that was never rejected before).
+func (s *releaseReviewPriorRejectionScan) build(actorAppUserID int64) *ReleaseReviewPriorRejection {
+	if s.decidedAt == nil {
+		return nil
+	}
+	return &ReleaseReviewPriorRejection{
+		RejectedAt:             *s.decidedAt,
+		RejectionCategory:      stringValue(s.rejectionCategory),
+		RejectionReason:        stringValue(s.rejectionReason),
+		ReviewerDisplayName:    s.reviewerDisplayName,
+		RejectedByCurrentActor: s.reviewerAppUserID != nil && *s.reviewerAppUserID == actorAppUserID,
+	}
+}
+
+// releaseReviewPriorRejectionJoinSQL resolves the immediately-preceding revision's
+// reject decision (if any) plus its reviewer's display name via one LEFT JOIN LATERAL
+// against review_decisions. Scoped by exact source_type/source_key match (threat T-144-03-02)
+// so it can never leak an unrelated source's rejection history, even if source_revision - 1
+// collides numerically across unrelated rows.
+const releaseReviewPriorRejectionJoinSQL = `
+	LEFT JOIN LATERAL (
+		SELECT decision.decided_at, decision.rejection_category, decision.reviewer_app_user_id,
+		       decision.reviewer_member_id, reason.reason_text
+		FROM review_decisions decision
+		LEFT JOIN review_reason_texts reason
+		  ON reason.audit_event_id = (
+		      SELECT audit.id FROM review_audit_events audit
+		      WHERE audit.review_decision_id = decision.id AND audit.event_code = 'review.rejected'
+		      LIMIT 1
+		  )
+		 AND reason.reason_kind = 'reject'
+		WHERE decision.source_type = source.source_type
+		  AND decision.source_key = source.source_id::text
+		  AND decision.decision = 'reject'
+		  AND decision.source_revision = source.source_revision - 1
+		  AND source.source_revision > 1
+		ORDER BY decision.id DESC
+		LIMIT 1
+	) prior_rejection ON TRUE
+	LEFT JOIN members reviewer_member ON reviewer_member.id = prior_rejection.reviewer_member_id`
+
+const releaseReviewPriorRejectionColumns = `
+	prior_rejection.decided_at, prior_rejection.rejection_category, prior_rejection.reviewer_app_user_id,
+	COALESCE(NULLIF(TRIM(reviewer_member.display_name), ''), reviewer_member.nickname, '') AS reviewer_display_name,
+	prior_rejection.reason_text`

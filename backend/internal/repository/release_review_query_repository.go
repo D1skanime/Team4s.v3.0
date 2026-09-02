@@ -74,9 +74,10 @@ type ReleaseReviewImageContent struct {
 
 type ReleaseReviewDetail struct {
 	ReleaseReviewQueueItem
-	Text           *ReleaseReviewTextContent  `json:"text,omitempty"`
-	Image          *ReleaseReviewImageContent `json:"image,omitempty"`
-	CanEditRelease bool                       `json:"can_edit_release"`
+	Text           *ReleaseReviewTextContent    `json:"text,omitempty"`
+	Image          *ReleaseReviewImageContent   `json:"image,omitempty"`
+	CanEditRelease bool                         `json:"can_edit_release"`
+	PriorRejection *ReleaseReviewPriorRejection `json:"prior_rejection,omitempty"`
 }
 
 type ReleaseReviewQueryRepository struct {
@@ -207,13 +208,17 @@ func (r *ReleaseReviewQueryRepository) Detail(
 	var detail ReleaseReviewDetail
 	var key ReleaseReviewSortKey
 	var noteTitle, noteHTML, caption, thumbPath, originalPath *string
+	var priorRejection releaseReviewPriorRejectionScan
 	targets := releaseReviewQueueScanTargets(&detail.ReleaseReviewQueueItem, &key)
 	targets = append(targets, &noteTitle, &noteHTML, &caption, &thumbPath, &originalPath)
+	targets = append(targets, priorRejection.targets()...)
 	err = r.db.QueryRow(ctx, releaseReviewQueueBaseSQL+`
 		SELECT `+releaseReviewQueueColumns+`,
 		       source.note_title, source.note_html, source.caption,
-		       source.thumbnail_path, source.original_path
+		       source.thumbnail_path, source.original_path,
+		       `+releaseReviewPriorRejectionColumns+`
 		FROM review_sources source
+		`+releaseReviewPriorRejectionJoinSQL+`
 		WHERE source.fansub_group_id = $1
 		  AND source.source_type = $2
 		  AND source.source_id = $3
@@ -238,6 +243,7 @@ func (r *ReleaseReviewQueryRepository) Detail(
 			OriginalURL: releaseReviewMediaURL(originalPath),
 		}
 	}
+	detail.PriorRejection = priorRejection.build(actorAppUserID)
 	return &detail, nil
 }
 
