@@ -3,14 +3,14 @@ gsd_state_version: 1.0
 milestone: v1.4
 milestone_name: Coverage
 status: executing
-stopped_at: Completed 143-16-PLAN.md
-last_updated: "2026-09-02T08:29:03.977Z"
+stopped_at: Completed 143-17-PLAN.md
+last_updated: "2026-09-02T08:33:52.420Z"
 last_activity: 2026-09-02
 progress:
   total_phases: 8
   completed_phases: 7
   total_plans: 102
-  completed_plans: 100
+  completed_plans: 101
   percent: 88
 ---
 
@@ -34,7 +34,7 @@ See: .planning/PROJECT.md (updated 2026-08-13)
 ## Current Position
 
 Phase: 143 (phase-142-nacharbeit-und-dashboard-lane-f-r-abgelehnte-notiz) — EXECUTING
-Plan: 3 of 4
+Plan: 4 of 4
 Status: Ready to execute
 Last activity: 2026-09-02
 
@@ -228,6 +228,7 @@ Last activity: 2026-09-02
 - [Phase 143]: Phase 143 Plan 14 executed: rejected own release notes now render as a fifth Attention-lane in AttentionSection.tsx, grouped per anime-project + fansub-group, closing Criterion-7 end to end (backend half shipped in 143-13).
 - [Phase 143]: Plan 143-15 closed UAT-03/UAT-04: noteRevisionListSingle append-only CSS override reduces single-item rejected-notes card spacing without touching multi-item rendering — All 6 raw hex color fallbacks (var(--color-primary, #2f5fe3)/var(--text-soft, #6b6b70), 4 pre-existing + 2 from plan 143-14) removed from AttentionSection.module.css in favor of bare design tokens, per CLAUDE.md's token-only convention
 - [Phase 143]: Plan 143-16 patched detail.status client-side via setDetail's functional updater inside submitDecision's success branch (using the decision parameter, not response.data.decision), closing UAT-01's stale header status Badge without adding a refetch that would re-hide the just-shown decision message and NextReviewControl success actions.
+- [Phase 143]: Plan 143-17 closed UAT-02's backend/contract half: has_own_rejected_notes uses an INNER JOIN (not LEFT JOIN like has_own_notes) to release_version_note_review_lifecycle, since a rejected state can only be represented when a lifecycle row exists.
 
 ### Pending Todos
 
@@ -514,10 +515,11 @@ untruncated list lives in `.planning/todos/pending/`.
 | Phase 143 P14 | 35min | 3 tasks | 8 files |
 | Phase 143 P15 | 5min | 2 tasks | 3 files |
 | Phase 143 P16 | 5min | 2 tasks | 2 files |
+| Phase 143 P17 | 15min | 2 tasks | 5 files |
 
 ## Session Continuity
 
-Last session: 2026-09-02T08:29:03.962Z
-Stopped at: Completed 143-16-PLAN.md
+Last session: 2026-09-02T08:33:52.404Z
+Stopped at: Completed 143-17-PLAN.md
 Last activity: 2026-09-01 - Milestone v1.4 audit passed (41/41 requirements, 7/7 phases, .planning/v1.4-MILESTONE-AUDIT.md); Phase 143 added to roadmap, not yet planned
 Resume file: None
