@@ -2,145 +2,174 @@
 phase: 143-phase-142-nacharbeit-und-dashboard-lane-f-r-abgelehnte-notiz
 reviewed: 2026-09-02T00:00:00Z
 depth: standard
-files_reviewed: 11
+files_reviewed: 62
 files_reviewed_list:
-  - frontend/src/app/me/dashboard/components/AttentionSection.tsx
+  - backend/cmd/server/main.go
+  - backend/internal/handlers/admin_content_anime_project_timeline_test.go
+  - backend/internal/handlers/app_auth_capabilities.go
+  - backend/internal/handlers/app_auth.go
+  - backend/internal/handlers/app_auth_group_member_roles.go
+  - backend/internal/handlers/app_auth_group_members.go
+  - backend/internal/handlers/app_auth_invitations.go
+  - backend/internal/handlers/contribution_proposals_me_test.go
+  - backend/internal/handlers/dashboard_me_handler.go
+  - backend/internal/handlers/dashboard_me_handler_test.go
+  - backend/internal/migrations/phase143_role_capability_defaults_reset_test.go
+  - backend/internal/repository/anime_contributions_member_anchor_test.go
+  - backend/internal/repository/anime_contributions_member_project_repository.go
+  - backend/internal/repository/anime_contributions_member_project_repository_has_own_media_test.go
+  - backend/internal/repository/anime_contributions_member_project_repository_has_own_notes_test.go
+  - backend/internal/repository/anime_contributions_proposal_member_repository.go
+  - backend/internal/repository/anime_contributions_proposal_repository.go
+  - backend/internal/repository/anime_contributions_proposal_repository_test.go
+  - backend/internal/repository/anime_fansub_project_timeline_repository_test.go
+  - backend/internal/repository/member_claims_queries_repository.go
+  - backend/internal/repository/member_claims_repository.go
+  - backend/internal/repository/member_claims_repository_test.go
+  - backend/internal/repository/member_claims_submit_repository.go
+  - backend/internal/repository/member_profile_dashboard_repository.go
+  - backend/internal/repository/member_profile_projects_release_versions_repository.go
+  - backend/internal/repository/member_profile_projects_repository.go
+  - backend/internal/repository/release_review_query_own_note_revisions.go
+  - backend/internal/repository/release_review_query_repository.go
+  - backend/internal/repository/release_review_query_repository_test.go
+  - backend/internal/repository/release_review_query_scan_helpers.go
+  - backend/internal/services/release_metadata_credit_service_test.go
+  - database/migrations/0159_role_capability_defaults_reset.down.sql
+  - database/migrations/0159_role_capability_defaults_reset.up.sql
+  - frontend/eslint.config.mjs
+  - frontend/next.config.mjs
+  - frontend/src/app/admin/episode-versions/[versionId]/edit/page.test.tsx
+  - frontend/src/app/admin/episode-versions/[versionId]/edit/ReleaseVersionMetadataFields.tsx
+  - frontend/src/app/admin/fansubs/[id]/edit/AnimeProjectTimelineSection.module.css
+  - frontend/src/app/admin/fansubs/[id]/edit/AnimeProjectTimelineSection.tsx
+  - frontend/src/app/admin/fansubs/[id]/edit/FansubAppMembersSection.test.tsx
+  - frontend/src/app/admin/fansubs/[id]/edit/page.test.tsx
+  - frontend/src/app/admin/fansubs/[id]/edit/useGroupMembersTab.ts
+  - frontend/src/app/admin/fansubs/[id]/reviews/[reviewId]/page.test.tsx
+  - frontend/src/app/admin/fansubs/[id]/reviews/[reviewId]/page.tsx
+  - frontend/src/app/anime/[id]/group/[groupId]/releases/[releaseVersionId]/ReleaseGallery.test.tsx
+  - frontend/src/app/fansubs/[slug]/fansubprojekt/[animeSlug]/mitwirkende/[memberSlug]/page.test.tsx
   - frontend/src/app/me/dashboard/components/AttentionSection.module.css
   - frontend/src/app/me/dashboard/components/AttentionSection.test.tsx
-  - frontend/src/app/admin/fansubs/[id]/reviews/[reviewId]/page.tsx
-  - frontend/src/app/admin/fansubs/[id]/reviews/[reviewId]/page.test.tsx
-  - backend/internal/repository/anime_contributions_member_project_repository.go
-  - backend/internal/repository/anime_contributions_member_project_repository_has_own_notes_test.go
-  - shared/contracts/openapi.yaml
-  - frontend/src/types/contributions.ts
-  - frontend/src/app/me/projects/[animeId]/group/[fansubGroupId]/page.tsx
+  - frontend/src/app/me/dashboard/components/AttentionSection.tsx
+  - frontend/src/app/me/dashboard/components/CategoryProgressTable.test.tsx
+  - frontend/src/app/me/dashboard/components/DashboardMetrics.test.tsx
+  - frontend/src/app/me/dashboard/page.tsx
+  - frontend/src/app/members/[slug]/page.test.tsx
+  - frontend/src/app/me/projects/[animeId]/group/[fansubGroupId]/page.rejected-artifacts.test.tsx
   - frontend/src/app/me/projects/[animeId]/group/[fansubGroupId]/page.test.tsx
+  - frontend/src/app/me/projects/[animeId]/group/[fansubGroupId]/page.tsx
+  - frontend/src/app/me/releases/[versionId]/workspace/page.tsx
+  - frontend/src/app/me/releases/[versionId]/workspace/workspaceHelpers.ts
+  - frontend/src/app/me/releases/[versionId]/workspace/workspace.module.css
+  - frontend/src/components/contributions/ContributionCard.tsx
+  - frontend/src/components/fansubs/projectMember/ProjectMemberHero.tsx
+  - frontend/src/components/fansubs/projectMember/ProjectMemberReleaseCard.tsx
+  - frontend/src/components/profile/MemberBadgeChain.test.tsx
+  - frontend/src/components/profile/MemberCurrentProjectsSection.test.tsx
+  - frontend/src/components/profile/MemberCurrentProjectsSection.tsx
+  - frontend/src/components/profile/MembershipsSection.test.tsx
+  - frontend/src/lib/api.dashboard.test.ts
+  - frontend/src/lib/api.no-token-boundary.test.ts
+  - frontend/src/lib/roleCatalog.ts
+  - frontend/src/lib/roleColors.ts
+  - frontend/src/types/contributions.ts
+  - frontend/src/types/dashboard.ts
+  - frontend/src/types/__tests__/v12-projection-contract.test.ts
+  - shared/contracts/openapi.yaml
 findings:
-  critical: 1
-  warning: 3
-  info: 0
-  total: 4
+  critical: 0
+  warning: 5
+  info: 2
+  total: 7
 status: issues_found
 ---
 
-# Phase 143: Code Review Report (gap-closure re-review, UAT-01..UAT-04)
+# Phase 143: Code Review Report (full re-pass, overwrites prior partial round)
 
 **Reviewed:** 2026-09-02T00:00:00Z
 **Depth:** standard
-**Files Reviewed:** 11
+**Files Reviewed:** 62
 **Status:** issues_found
 
 ## Summary
 
-This pass is scoped to only the files touched by phase 143's four gap-closure
-plans (143-15 through 143-18), which addressed live UAT findings UAT-01
-(stale header status badge), UAT-02 (rejected-note "done" false positive),
-UAT-03 (single-entry rejected-notes card spacing) and UAT-04 (hardcoded CSS
-color fallback). All four narrowly-targeted fixes are correctly implemented
-and covered by focused regression tests (verified by reading the actual
-commits: `1c9b96d8`, `69c0b5bf`, `b9c84b76`, `bc5e1d14`/`291d233d`,
-`217c47aa`).
+This is a full standard-depth pass over the complete union of key files touched
+across phase 143's 19 gap-closure/remediation plans, replacing the prior
+partial `143-REVIEW.md` (which only covered plans 143-15..18).
 
-However, tracing the exact SQL pattern that was fixed for
-**notes** (`has_own_notes` / `has_own_rejected_notes` in
-`anime_contributions_member_project_repository.go`) against the sibling
-`has_own_media` query in the *same file* (untouched by this phase, but read
-in full as part of the required scope) surfaces a real, high-confidence
-correctness gap: rejected **media** contributions are not excluded from
-`has_own_media` the way rejected **notes** now are, and the async cleanup
-job that eventually deletes rejected media rows has a 90-day production
-retention window. This directly undermines the intent of this phase's UAT-02
-fix for the sibling artifact type and is filed as a Critical finding. Two
-further Warnings cover dead/duplicate error-handling code and a Modal focus
-escape introduced in the UAT-01 fix's surrounding code, plus a masking
-interaction between the new `needsRework` badge and pre-existing `has_own_media`
-completion logic.
+The prior round's CR-01 (`has_own_media` not excluding rejected media) is
+**confirmed fixed** by plan 143-19: `anime_contributions_member_project_repository.go`
+now carries a `has_own_rejected_media` `EXISTS` subquery mirroring the note
+fix exactly, threaded through `MemberProjectReleaseVersionRow`,
+`shared/contracts/openapi.yaml`, `frontend/src/types/contributions.ts`, and
+`page.tsx`'s `hasOwnArtifacts`/`needsRework` computation, and is well covered
+by three new backend tests
+(`anime_contributions_member_project_repository_has_own_media_test.go`) plus
+five new frontend tests
+(`page.rejected-artifacts.test.tsx`). No new Critical/BLOCKER findings were
+identified in this pass — the media-artifact parity gap that was the headline
+risk of the prior round is closed.
 
-## Critical Issues
-
-### CR-01: `has_own_media` does not exclude rejected media, unlike the just-fixed `has_own_notes` — rejected media falsely reports "Erledigt" for up to 90 days
-
-**File:** `backend/internal/repository/anime_contributions_member_project_repository.go:150-156`
-
-**Issue:** This phase's UAT-02 fix (commits `8d9695ba`, `bc5e1d14`) correctly
-taught `has_own_notes` and the new `has_own_rejected_notes` to join
-`release_version_note_review_lifecycle` and exclude/detect
-`review_state = 'rejected'` notes, so a rejected note no longer counts as
-"done" and instead surfaces the new "Überarbeitung nötig" badge
-(`frontend/src/app/me/projects/[animeId]/group/[fansubGroupId]/page.tsx:217c47aa`).
-
-The sibling `has_own_media` `EXISTS` subquery in the same query/file was left
-untouched:
-
-```sql
-EXISTS (
-    SELECT 1
-    FROM release_version_media rvm
-    WHERE rvm.release_version_id = rv.id
-      AND rvm.uploaded_by_user_id = $2
-      AND rvm.deleted_at IS NULL
-) AS has_own_media,
-```
-
-It has no join to `release_version_media_review_lifecycle` at all, and does
-not check `review_state`. Media has an exactly analogous lifecycle table and
-`rejected` state (`backend/internal/repository/release_review_lifecycle_repository.go:25`,
-`ReleaseVersionMediaReviewSourceType`), and rejected media rows are **not**
-deleted (`deleted_at` stays `NULL`) until the async cleanup job runs past its
-retention window:
-
-```go
-// backend/internal/services/release_review_cleanup.go:13
-ReleaseReviewCleanupProductionRetention = 90 * 24 * time.Hour
-```
-
-Consequence: a member whose only contribution to a release is a **rejected**
-image submission will have `has_own_media = true` for up to 90 days in
-production. On the frontend
-(`frontend/src/app/me/projects/[animeId]/group/[fansubGroupId]/page.tsx:53-55`,
-`isDone()` returns `release.has_own_notes || release.has_own_media`), this
-makes the release badge show green "Erledigt" and downgrades the workspace
-button to secondary styling (`page.tsx:338,351`) — exactly the false-positive
-"done" bug that UAT-02 was raised to fix, just for the media artifact type
-instead of notes. The member has no visual signal that their rejected image
-needs to be reworked and resubmitted.
-
-**Fix:** Mirror the note fix for media — exclude rejected media from
-`has_own_media`, and optionally add a `has_own_rejected_media` flag
-mirroring `has_own_rejected_notes` so the frontend badge/button logic can
-treat both artifact types consistently:
-
-```sql
-EXISTS (
-    SELECT 1
-    FROM release_version_media rvm
-    LEFT JOIN release_version_media_review_lifecycle lifecycle
-      ON lifecycle.release_version_media_id = rvm.id
-    WHERE rvm.release_version_id = rv.id
-      AND rvm.uploaded_by_user_id = $2
-      AND rvm.deleted_at IS NULL
-      AND (lifecycle.review_state IS NULL OR lifecycle.review_state <> 'rejected')
-) AS has_own_media,
-EXISTS (
-    SELECT 1
-    FROM release_version_media rvm
-    JOIN release_version_media_review_lifecycle lifecycle
-      ON lifecycle.release_version_media_id = rvm.id
-    WHERE rvm.release_version_id = rv.id
-      AND rvm.uploaded_by_user_id = $2
-      AND rvm.deleted_at IS NULL
-      AND lifecycle.review_state = 'rejected'
-) AS has_own_rejected_media,
-```
-
-then thread `has_own_rejected_media` through `MemberProjectReleaseVersionRow`,
-`shared/contracts/openapi.yaml`'s `MeProjectReleaseVersion`,
-`frontend/src/types/contributions.ts`, and
-`page.tsx`'s `needsRework`/`hasOwnArtifacts` computation.
+However, tracing the prior round's WR-01/WR-02/WR-03 warnings against the
+current file contents shows all three are still present, byte-for-byte
+unchanged — none of the four newest plans (143-15..19) touched
+`app/admin/fansubs/[id]/reviews/[reviewId]/page.tsx`'s dead duplicate
+409-handling branch or its focus-escape issue, and 143-19 explicitly
+**codified** the WR-03 masking behavior in a new regression test rather than
+decoupling it. Two further issues were found during this pass: a defensive
+initialization gap in `GetOwnDashboard`'s `PendingGroupMediaReviews` field
+that is inconsistent with its three sibling `Pending*` fields and would crash
+the dashboard frontend under an untested wiring regression, and two minor
+Info-level quality items (a `gofmt`-inconsistent struct in
+`app_auth_capabilities.go`, and a permanently-skipped scroll-locking
+regression test).
 
 ## Warnings
 
-### WR-01: Dead duplicate 409-conflict branch in `submitDecision`
+### WR-01: `needsRework` badge remains maskable by an unrelated completed artifact on the same release (carried over from prior round, now explicitly locked in by a test)
+
+**File:** `frontend/src/app/me/projects/[animeId]/group/[fansubGroupId]/page.tsx:338-347`
+
+**Issue:**
+```ts
+const hasOwnArtifacts = release.has_own_notes || release.has_own_media || release.has_own_rejected_notes || release.has_own_rejected_media
+const releaseDone = isDone(release)                                                          // has_own_notes || has_own_media
+const needsRework = !releaseDone && (release.has_own_rejected_notes || release.has_own_rejected_media)
+```
+If a release has an accepted/pending media contribution (`has_own_media:
+true`) from the same member **and** a separately rejected note or rejected
+media row on the very same release, `releaseDone` is `true` via the
+unconditional artifact alone, so `needsRework` short-circuits to `false` and
+the row renders the green "Erledigt" badge — even though the member has a
+rejected artifact on that exact release that still needs revision. This is
+the identical masking issue flagged in the prior review round's WR-03,
+carried forward unchanged into 143-19's rewrite (the boolean expression was
+extended to cover `has_own_rejected_media` too, but the `!releaseDone` gate
+that causes the masking was preserved as-is).
+
+This is now explicitly asserted as *intended* behavior by
+`page.rejected-artifacts.test.tsx:139-160` ("shows 'Erledigt' (not
+'Überarbeitung nötig') when has_own_media is true, even with rejected media
+also set"), so this is a confirmed product decision rather than an oversight
+— but it is still a real, reachable state (member uploads accepted media and
+separately writes a note that gets rejected) where the UI gives the member no
+visual signal that a rejected artifact on that release needs to be reworked
+and resubmitted, silently understating the outstanding-work count.
+
+**Fix:** If the masking is intentional, no code change is required, but
+consider surfacing the rejected state as a secondary indicator alongside
+"Erledigt" (e.g. a stacked badge or an inline note) instead of fully
+suppressing it, so a member with mixed accepted/rejected artifacts on the
+same release still gets a rework signal. If unintentional, decouple
+`needsRework` from the `releaseDone` gate:
+```ts
+const needsRework = release.has_own_rejected_notes || release.has_own_rejected_media
+```
+and adjust the badge to show both signals when applicable.
+
+### WR-02: Dead duplicate 409-conflict branch in `submitDecision` (carried over from prior round, still unchanged)
 
 **File:** `frontend/src/app/admin/fansubs/[id]/reviews/[reviewId]/page.tsx:164-185`
 
@@ -149,14 +178,11 @@ error.status === 409 && error.code === 'REVIEW_ALREADY_DECIDED'` and then,
 immediately after, repeats the identical check via manual duck-typing
 (`typeof error === 'object' && ... 'status' in error && ...`). Every error
 thrown by `frontend/src/lib/api.ts`'s request helpers is already an instance
-of `ApiError` (confirmed: all `throw` sites in `api.ts` construct
-`new ApiError(...)`), so the second branch is unreachable in practice. It
-adds cyclomatic complexity and gives a false impression that some other
-error shape can reach this code path.
+of `ApiError`, so the second branch is unreachable in practice and adds
+cyclomatic complexity while giving a false impression that some other error
+shape can reach this code path.
 
-**Fix:** Remove the second duck-typed block; the `instanceof ApiError` check
-already covers the real error shape:
-
+**Fix:** Remove the second duck-typed block:
 ```ts
 } catch (error) {
   if (
@@ -172,7 +198,7 @@ already covers the real error shape:
 }
 ```
 
-### WR-02: Admin-override validation focuses a field hidden behind the open reject Modal
+### WR-03: Admin-override validation focuses a field hidden behind the open reject Modal (carried over from prior round, still unchanged)
 
 **File:** `frontend/src/app/admin/fansubs/[id]/reviews/[reviewId]/page.tsx:121-131`, `301-320`, `376-444`
 
@@ -181,50 +207,122 @@ already covers the real error shape:
 "Ablehnen" button that triggers `submitDecision('reject')` lives inside the
 `Modal` (`rejectOpen === true`). If the platform admin is reviewing their own
 submission and the override-reason textarea (rendered in `decisionPanel`,
-*outside* the Modal) is invalid, `overrideReasonRef.current?.focus()` moves
-keyboard focus out of the currently-open Modal to a background field. Modal
-dialogs conventionally trap focus while open; forcing focus outside an open
-dialog either breaks that trap (letting focus land on a field the user can't
-see behind the overlay) or silently no-ops if the Modal's trap intercepts it
-(in which case the user gets no indication at all of why nothing happened,
-since the Modal's own `validationError` paragraph correctly renders the
-message, but the referenced field is not reachable/visible to fix).
+*outside* the Modal, lines 301-320) is invalid,
+`overrideReasonRef.current?.focus()` (line 129) moves keyboard focus out of
+the currently-open Modal to a background field. Modal dialogs conventionally
+trap focus while open; forcing focus outside an open dialog either breaks
+that trap or silently no-ops, leaving the user with no visible indication of
+why nothing happened (the field they need to fix is not reachable/visible
+behind the modal overlay).
 
 **Fix:** Validate the override reason before allowing the reject Modal to
-open (e.g. in the "Ablehnen" button's `onClick`, before `setRejectOpen(true)`),
-or move the override-reason field into the Modal for the reject flow so
-focus stays within the open dialog.
+open (e.g. in the "Ablehnen" button's `onClick`, before `setRejectOpen(true)`
+at line 359), or move the override-reason field into the Modal for the
+reject flow so focus stays within the open dialog.
 
-### WR-03: `needsRework` badge is masked whenever the release is independently "done" via media
+### WR-04: `GetOwnDashboard` leaves `PendingGroupMediaReviews` as a nil slice, inconsistent with its three sibling `Pending*` fields — risks `null` JSON and a frontend crash if the review-query wiring ever regresses
 
-**File:** `frontend/src/app/me/projects/[animeId]/group/[fansubGroupId]/page.tsx:338-347`
+**File:** `backend/internal/repository/member_profile_dashboard_repository.go:253-266`
 
-**Issue:**
-```ts
-const releaseDone = isDone(release)                                  // has_own_notes || has_own_media
-const needsRework = !releaseDone && release.has_own_rejected_notes   // short-circuits to false if releaseDone
+**Issue:** `GetOwnDashboard`'s final `return &OwnDashboardData{...}` literal
+explicitly initializes three of the four `Pending*` slice fields to empty
+slices:
+```go
+PendingClaims:           []OwnDashboardPendingClaim{},
+PendingReleaseReviews:   []OwnDashboardPendingReleaseReview{},
+PendingOwnNoteRevisions: []OwnDashboardPendingOwnNoteRevisionGroup{},
 ```
-If a release has an accepted/pending media contribution (`has_own_media:
-true`) from the same member **and** a separately rejected note
-(`has_own_rejected_notes: true`), `releaseDone` is `true` (via media alone),
-so `needsRework` is forced to `false` and the row renders the green
-"Erledigt" badge — even though the member has a rejected note on that exact
-release that still needs revision. This is a real, reachable state (member
-uploads accepted media and writes a note that later gets rejected) and
-directly undercuts this phase's stated goal of surfacing rejected-work
-needing revision (Kriterium 5 / UAT-02 / 143-18).
+`PendingGroupMediaReviews` is missing from this literal entirely, so it stays
+Go's zero value (`nil`) unless `dashboard_me_handler.go`'s
+`attachPendingGroupMediaReviewAttention` later overwrites it — which it only
+does when `h.reviewQueryRepo != nil && h.permissionSvc != nil && data != nil`
+(early-returns `nil` otherwise, leaving the field untouched). In current
+`main.go` wiring `WithReviewQueryRepo(releaseReviewQueryRepo)` is always
+called, so this is not reachable in production today, but it is a real,
+silent trap: `OwnDashboardData.PendingGroupMediaReviews` has no
+`json:"...,omitempty"` tag, so a nil slice serializes to `"pending_group_media_reviews": null`
+in the API response.
 
-**Fix:** Decouple the "needs rework" signal from the overall done/undone
-status so it is not suppressed by unrelated completed artifacts, e.g. render
-it as an additional badge/indicator rather than an alternative to "Erledigt":
+On the frontend, `frontend/src/app/me/dashboard/page.tsx:150-152` passes
+`state.dashboardData.pending_group_media_reviews` straight through as a prop.
+`AttentionSection`'s `pendingGroupMediaReviews = []` default parameter
+(`AttentionSection.tsx:39`) only applies when the prop is `undefined` — **not**
+`null` — so a `null` value would flow through unchanged and
+`pendingGroupMediaReviews.length` (line 50) would throw a `TypeError`,
+crashing the whole dashboard page render. `emptyOwnDashboardData()` in
+`dashboard_me_handler.go` correctly initializes this same field
+(`PendingGroupMediaReviews: []repository.OwnDashboardPendingGroupMediaReview{}`),
+making this repository-level omission the only place in the codebase where
+the invariant is violated, and no existing test (`AttentionSection.test.tsx`
+only exercises this prop as a populated array) would catch either the nil
+JSON or the frontend crash.
 
-```ts
-const releaseDone = isDone(release)
-const needsRework = release.has_own_rejected_notes // no releaseDone gate
+**Fix:** Initialize the field defensively alongside its siblings:
+```go
+return &OwnDashboardData{
+    ...
+    PendingClaims:            []OwnDashboardPendingClaim{},
+    PendingGroupMediaReviews: []OwnDashboardPendingGroupMediaReview{},
+    PendingReleaseReviews:    []OwnDashboardPendingReleaseReview{},
+    PendingOwnNoteRevisions:  []OwnDashboardPendingOwnNoteRevisionGroup{},
+}, nil
 ```
-and adjust the `Badge`/label rendering to show both signals when applicable
-(e.g. "Erledigt · Überarbeitung nötig" or two stacked badges), confirming
-the desired UX with product before changing the visual treatment.
+
+### WR-05: `has_own_media` / `has_own_notes` anchor on two different identity columns within the same query without explanation
+
+**File:** `backend/internal/repository/anime_contributions_member_project_repository.go:141-160`
+
+**Issue:** `listMemberProjectReleaseVersions`'s `has_own_notes` /
+`has_own_rejected_notes` subqueries filter on `rvn.member_id = $1`
+(`memberID`), while the sibling `has_own_media` / `has_own_rejected_media`
+subqueries filter on `rvm.uploaded_by_user_id = $2` (`appUserID`) — two
+different parameters bound to two different identity columns in the same
+function, for what the UI treats as parallel "your own artifact" signals.
+This is very likely correct given the underlying schema
+(`release_version_notes.member_id` vs.
+`release_version_media.uploaded_by_user_id` are genuinely different FK
+targets), and the has-own-media test file's fixtures confirm the media
+column really is `uploaded_by_user_id`, but nothing in the function
+documents *why* the two artifact types anchor on different identity
+columns, which makes the asymmetry look like a copy-paste bug on first read
+(as this review's own initial pass treated it before confirming the schema
+difference in the test fixtures).
+
+**Fix:** Add a short comment above the two `EXISTS` blocks noting that notes
+are anchored to `member_id` (a `members` FK) while media is anchored to
+`uploaded_by_user_id` (an `app_users` FK) by design, so a future reader (or
+the eventual media/notes unification pass) doesn't "fix" this into a
+regression.
+
+## Info
+
+### IN-01: `fansubGroupCapabilitiesResponse` struct is not `gofmt`-aligned
+
+**File:** `backend/internal/handlers/app_auth_capabilities.go:13-42`
+
+**Issue:** Most struct field/tag columns in `fansubGroupCapabilitiesResponse`
+are tab-aligned as `gofmt` would produce, but `CanEditNotes` (line 24) and
+`CanEditProjectTimeline` (line 25) carry one extra space before `bool`,
+breaking the aligned block gofmt would otherwise produce for a
+field list with no blank/comment-line breaks. This is purely cosmetic (no
+runtime effect) but would show up as a diff under `gofmt -l`/`gofmt -w` if
+CI or a pre-commit hook enforces formatting.
+
+**Fix:** Run `gofmt -w backend/internal/handlers/app_auth_capabilities.go`.
+
+### IN-02: Permanently skipped scroll-locking regression test
+
+**File:** `frontend/src/components/profile/MemberBadgeChain.test.tsx:1235`
+
+**Issue:** `it.skip('centers the current stage through its own strip and
+never scrolls an ancestor', ...)` is disabled with no explanation (no
+`// TODO`/reason comment), leaving the badge-carousel's "must scroll its own
+strip, never an ancestor" behavior — a real, previously-reported class of bug
+per the surrounding comments in this file — without regression coverage.
+
+**Fix:** Either fix and re-enable the test, or add a comment explaining why
+it is currently unrunnable (e.g. jsdom limitation) and link a follow-up task,
+so the gap is visible and intentional rather than silently bit-rotting.
 
 ---
 
