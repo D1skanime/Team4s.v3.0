@@ -58,7 +58,7 @@ Identical to Phase 143 (same repo, same day — re-measure only if a later phase
 | **Frontend framework** | vitest 3.x, config `frontend/vitest.config.ts` |
 | **Frontend quick run** | `docker compose exec team4sv30-frontend npx vitest run <path>` |
 | **Frontend full suite** | `docker compose exec team4sv30-frontend npx vitest run` |
-| **Frontend lint** | `docker compose exec team4sv30-frontend npx eslint .` (base severity `error`, frozen legacy-file exemption list in `frontend/eslint.config.mjs` — the two files this phase touches, `ReleaseVersionMediaSection.tsx` and the reviewer detail page, are **not** on that list and must pass at `error` with zero `no-restricted-syntax` findings) |
+| **Frontend lint** | `docker compose exec team4sv30-frontend npx eslint .` (base severity `error`, frozen legacy-file exemption list in `frontend/eslint.config.mjs`. **Correction (post plan-checker, 2026-09-02):** `ReleaseVersionMediaSection.tsx` **is** on `LEGACY_NO_RESTRICTED_SYNTAX_FILES` (`frontend/eslint.config.mjs:81`, severity `warn`) — it already has 3 pre-existing native-`<input>` findings (checkboxes + file-picker; `@/components/ui` has no `Checkbox`/`FileInput` primitive) that are structurally permanent, not simple migration debt. This phase's new file-replace drop-zone adds a 4th native `<input type="file">`, mirroring the existing upload drop-zone. Gate for this file: no *new violation category* (`<select>`/`<textarea>`) is introduced — do NOT require "zero `no-restricted-syntax` findings" for it. The reviewer detail page (`.../reviews/[reviewId]/page.tsx`) is genuinely not on the legacy list and must stay at zero findings.) |
 | **Backend framework** | `go test`, no separate config file |
 | **Backend quick run** | `docker compose exec team4sv30-backend go test ./internal/<pkg>/... -run <Test>` |
 | **Backend full suite gate** | **Not usable unqualified** — see "Backend Gate Qualification" (carried over from 143-VALIDATION.md, still true against current HEAD). |
@@ -81,8 +81,10 @@ tests — never a bare `./internal/repository/...` or `./internal/migrations/...
 - **After every plan wave:** full frontend suite (`npx vitest run`) + `go build ./...` + the wave's own
   `-run`-filtered backend test set + `npx eslint .`
 - **Before `/gsd:verify-work`:** frontend full suite green; backend `go build ./...` succeeds and every
-  criterion's named `-run` filter passes; `no-restricted-syntax` at `error` with zero violations in the
-  two touched frontend files
+  criterion's named `-run` filter passes; `no-restricted-syntax` at `error` with zero violations in
+  `.../reviews/[reviewId]/page.tsx`; `ReleaseVersionMediaSection.tsx` must introduce no *new violation
+  category* (still legacy-listed at `warn` for its existing checkbox/file-input findings — see Test
+  Infrastructure table)
 - **Max feedback latency:** ~90s (frontend full suite dominates)
 
 ---
