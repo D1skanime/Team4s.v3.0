@@ -335,14 +335,15 @@ function MyProjectDetailPage() {
 
         <ul className={styles.releaseList}>
           {visibleReleases.map((release) => {
-            const hasOwnArtifacts = release.has_own_notes || release.has_own_media
+            const hasOwnArtifacts = release.has_own_notes || release.has_own_media || release.has_own_rejected_notes
             const releaseDone = isDone(release)
+            const needsRework = !releaseDone && release.has_own_rejected_notes
             return (
               <li key={release.release_version_id} className={styles.releaseRow}>
                 <div className={styles.releaseMain}>
                   <strong>{releaseLabel(release, project.fansub_group_name)}</strong>
-                  <Badge variant={releaseDone ? 'success' : 'warning'}>
-                    {releaseDone ? 'Erledigt' : 'Offen'}
+                  <Badge variant={releaseDone ? 'success' : needsRework ? 'danger' : 'warning'}>
+                    {releaseDone ? 'Erledigt' : needsRework ? 'Überarbeitung nötig' : 'Offen'}
                   </Badge>
                 </div>
                 <Button
