@@ -167,6 +167,7 @@ func registerAdminRoutes(v1 *gin.RouterGroup, auth gin.HandlerFunc, deps adminRo
 	v1.POST("/admin/release-versions/:versionId/media/reorder", auth, deps.adminContentHandler.ReorderReleaseVersionMedia)
 	v1.PATCH("/admin/release-versions/:versionId/media/:relationId", auth, deps.adminContentHandler.PatchReleaseVersionMedia)
 	v1.DELETE("/admin/release-versions/:versionId/media/:relationId", auth, deps.adminContentHandler.DeleteReleaseVersionMedia)
+	v1.PUT("/admin/release-versions/:versionId/media/:relationId/file", auth, deps.adminContentHandler.ReplaceReleaseVersionMediaFile)
 	// Release-Version-Notes routes (Phase 40)
 	v1.GET("/admin/release-versions/:versionId/notes", auth, deps.adminContentHandler.ListReleaseVersionNotes)
 	v1.POST("/admin/release-versions/:versionId/notes", auth, deps.adminContentHandler.BulkUpsertReleaseVersionNotes)

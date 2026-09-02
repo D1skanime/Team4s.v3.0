@@ -6810,6 +6810,108 @@ paths:
             application/json:
               schema:
                 $ref: "#/components/schemas/ErrorResponse"
+  /api/v1/admin/release-versions/{versionId}/media/{relationId}/file:
+    put:
+      tags: [Admin]
+      summary: Replace the file on an existing release-version media relation
+      description: >-
+        Single-file multipart replace. The relation's own id never changes; the review
+        lifecycle's source_revision bumps by exactly 1 and review_state resets to pending
+        (Zielbild 1, Phase 144). Optional category/caption/is_preview_candidate fields apply
+        in the same atomic submission (Zielbild 2).
+      operationId: replaceReleaseVersionMediaFile
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: versionId
+          in: path
+          required: true
+          schema:
+            type: integer
+            format: int64
+            minimum: 1
+        - name: relationId
+          in: path
+          required: true
+          schema:
+            type: integer
+            format: int64
+            minimum: 1
+      requestBody:
+        required: true
+        content:
+          multipart/form-data:
+            schema:
+              type: object
+              required:
+                - file
+              properties:
+                file:
+                  type: string
+                  format: binary
+                category:
+                  $ref: "#/components/schemas/ReleaseVersionMediaCategory"
+                caption:
+                  type: string
+                  nullable: true
+                is_preview_candidate:
+                  type: boolean
+                source_revision:
+                  type: integer
+                  format: int64
+                  minimum: 1
+            encoding:
+              file:
+                contentType: image/jpeg, image/png, image/webp, image/gif
+      responses:
+        "200":
+          description: Updated release-version media payload after the file replace
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ReleaseVersionMediaItem"
+        "400":
+          description: Invalid request (missing/multiple files, invalid source_revision)
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+        "401":
+          description: Authentication required
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+        "403":
+          description: Admin permission required
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+        "404":
+          description: Media relation not found or not scoped to this release version
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+        "409":
+          description: Stale source_revision (SOURCE_REVISION_CONFLICT)
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+        "422":
+          description: Multipart file-intake or category/preview validation failure
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+        "500":
+          description: Internal server error
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
   /api/v1/release-versions/{id}/playback-access:
     get:
       tags: [Releases]
