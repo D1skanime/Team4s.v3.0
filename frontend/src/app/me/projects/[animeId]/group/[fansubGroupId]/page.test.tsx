@@ -352,6 +352,102 @@ describe('MyProjectDetailPage', () => {
     expect(screen.getByText('Folge 01 · AnimeOwnage · v1')).toBeTruthy()
   })
 
+  it('shows a distinct "Überarbeitung nötig" badge for a rejected-only release', async () => {
+    getMyProjectDetailMock.mockResolvedValue({
+      data: makeProject([
+        makeRelease({
+          release_version_id: 41,
+          episode_number: '01',
+          has_own_contribution: true,
+          has_own_notes: false,
+          has_own_media: false,
+          has_own_rejected_notes: true,
+        }),
+      ]),
+    })
+
+    render(<MyProjectDetailPage />)
+
+    await screen.findByRole('heading', { name: 'Naruto', level: 1 })
+    const reworkBadges = screen.getAllByText('Überarbeitung nötig').filter((node) => node.tagName === 'SPAN')
+    expect(reworkBadges).toHaveLength(1)
+    const openBadges = screen.queryAllByText('Offen').filter((node) => node.tagName === 'SPAN')
+    const doneBadges = screen.queryAllByText('Erledigt').filter((node) => node.tagName === 'SPAN')
+    expect(openBadges).toHaveLength(0)
+    expect(doneBadges).toHaveLength(0)
+  })
+
+  it('renders a primary, non-downgraded button for a rejected-only release', async () => {
+    getMyProjectDetailMock.mockResolvedValue({
+      data: makeProject([
+        makeRelease({
+          release_version_id: 41,
+          episode_number: '01',
+          has_own_contribution: true,
+          has_own_notes: false,
+          has_own_media: false,
+          has_own_rejected_notes: true,
+        }),
+      ]),
+    })
+
+    render(<MyProjectDetailPage />)
+
+    await screen.findByRole('heading', { name: 'Naruto', level: 1 })
+    const workspaceLink = screen.getByRole('link', { name: /Notizen & Medien/i })
+    expect(workspaceLink.className).not.toContain('buttonSecondary')
+  })
+
+  it('still counts and filters a rejected-only release as "offen"', async () => {
+    getMyProjectDetailMock.mockResolvedValue({
+      data: makeProject([
+        makeRelease({
+          release_version_id: 41,
+          episode_number: '01',
+          has_own_contribution: true,
+          has_own_notes: false,
+          has_own_media: false,
+          has_own_rejected_notes: true,
+        }),
+      ]),
+    })
+
+    render(<MyProjectDetailPage />)
+
+    await screen.findByRole('heading', { name: 'Naruto', level: 1 })
+    expect(screen.getByText('1 offen · 0 erledigt')).toBeTruthy()
+
+    fireEvent.click(screen.getByRole('button', { name: 'Offen' }))
+    expect(screen.getByText('Folge 01 · AnimeOwnage · v1')).toBeTruthy()
+
+    fireEvent.click(screen.getByRole('button', { name: 'Erledigt' }))
+    expect(screen.queryByText('Folge 01 · AnimeOwnage · v1')).toBeNull()
+  })
+
+  it('shows plain "Offen" for a never-touched release (regression guard)', async () => {
+    getMyProjectDetailMock.mockResolvedValue({
+      data: makeProject([
+        makeRelease({
+          release_version_id: 41,
+          episode_number: '01',
+          has_own_contribution: true,
+          has_own_notes: false,
+          has_own_media: false,
+          has_own_rejected_notes: false,
+        }),
+      ]),
+    })
+
+    render(<MyProjectDetailPage />)
+
+    await screen.findByRole('heading', { name: 'Naruto', level: 1 })
+    const openBadges = screen.getAllByText('Offen').filter((node) => node.tagName === 'SPAN')
+    expect(openBadges).toHaveLength(1)
+    expect(screen.queryByText('Überarbeitung nötig')).toBeNull()
+    const workspaceLink = screen.getByRole('link', { name: /Notizen & Medien/i })
+    expect(workspaceLink.className).toContain('buttonSecondary')
+  })
+
   it('shows a motivating empty state when the user has no assigned releases at all', async () => {
     getMyProjectDetailMock.mockResolvedValue({
       data: makeProject([
