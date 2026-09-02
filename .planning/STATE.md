@@ -3,15 +3,15 @@ gsd_state_version: 1.0
 milestone: v1.4
 milestone_name: Coverage
 status: executing
-stopped_at: Completed 143-18-PLAN.md
-last_updated: "2026-09-02T09:29:01.166Z"
-last_activity: 2026-09-02 -- Phase 143 planning complete
+stopped_at: Completed 143-19-PLAN.md
+last_updated: "2026-09-02T09:40:46.243Z"
+last_activity: 2026-09-02
 progress:
   total_phases: 8
-  completed_phases: 7
+  completed_phases: 8
   total_plans: 103
-  completed_plans: 102
-  percent: 88
+  completed_plans: 103
+  percent: 100
 ---
 
 # Project State
@@ -33,10 +33,10 @@ See: .planning/PROJECT.md (updated 2026-08-13)
 
 ## Current Position
 
-Phase: 143 (phase-142-nacharbeit-und-dashboard-lane-f-r-abgelehnte-notiz) — EXECUTING
-Plan: 4 of 4
-Status: Ready to execute
-Last activity: 2026-09-02 -- Phase 143 planning complete
+Phase: 143 (phase-142-nacharbeit-und-dashboard-lane-f-r-abgelehnte-notiz) — COMPLETE
+Plan: 19 of 19
+Status: Complete
+Last activity: 2026-09-02 -- Phase 143 execution complete (all 19 plans)
 
 ## Accumulated Context
 
@@ -230,6 +230,7 @@ Last activity: 2026-09-02 -- Phase 143 planning complete
 - [Phase 143]: Plan 143-16 patched detail.status client-side via setDetail's functional updater inside submitDecision's success branch (using the decision parameter, not response.data.decision), closing UAT-01's stale header status Badge without adding a refetch that would re-hide the just-shown decision message and NextReviewControl success actions.
 - [Phase 143]: Plan 143-17 closed UAT-02's backend/contract half: has_own_rejected_notes uses an INNER JOIN (not LEFT JOIN like has_own_notes) to release_version_note_review_lifecycle, since a rejected state can only be represented when a lifecycle row exists.
 - [Phase 143]: 143-18 executed: needsRework = !releaseDone && has_own_rejected_notes gates only Badge variant/text and button prominence; isDone()/counters/filters stay byte-identical (Kriterium 5 locked). Reused Badge variant=danger for consistency with AttentionSection.tsx's rejected-notes semantics. — UAT-02 is now fully closed (backend half in 143-17, frontend half here); Phase 143 (last plan 4 of 4) is complete.
+- [Phase 143]: 143-19 closed UAT-05: has_own_media's EXISTS subquery now excludes rejected media via a LEFT JOIN to release_version_media_review_lifecycle (mirroring has_own_notes); a new has_own_rejected_media boolean (INNER JOIN) flows through openapi.yaml/contributions.ts; page.tsx's hasOwnArtifacts/needsRework unify has_own_rejected_notes and has_own_rejected_media via a single OR so either or both rejected-artifact types render exactly one 'Überarbeitung nötig' badge, never a precedence puzzle.
 
 ### Pending Todos
 
@@ -518,10 +519,11 @@ untruncated list lives in `.planning/todos/pending/`.
 | Phase 143 P16 | 5min | 2 tasks | 2 files |
 | Phase 143 P17 | 15min | 2 tasks | 5 files |
 | Phase 143 P18 | 10min | 2 tasks | 2 files |
+| Phase 143 P19 | 20min | 3 tasks | 7 files |
 
 ## Session Continuity
 
-Last session: 2026-09-02T08:37:12.341Z
-Stopped at: Completed 143-18-PLAN.md
+Last session: 2026-09-02T09:40:46.229Z
+Stopped at: Completed 143-19-PLAN.md
 Last activity: 2026-09-01 - Milestone v1.4 audit passed (41/41 requirements, 7/7 phases, .planning/v1.4-MILESTONE-AUDIT.md); Phase 143 added to roadmap, not yet planned
 Resume file: None
