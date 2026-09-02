@@ -416,6 +416,7 @@ Milestone v1.4 closes Live-UAT Findings #29-#32 by making effective group rights
 - [x] **Phase 141: Actor-Decidable Review Queue** - Make every queue lane, count, detail, and next action reflect what the current reviewer may actually decide. (completed 2026-08-26)
 - [x] **Phase 142: Integrated Security, Fixtures & Live Release Gate** - Prove the complete milestone across contracts, auth refresh, fixtures, security, responsive UI, and canonical ownership. (completed 2026-09-01)
 - [x] **Phase 143: Phase-142-Nacharbeit und Dashboard-Lane für abgelehnte Notizen** - Die in der externen Codeprüfung vom 2026-09-01 belegten Defekte schließen und abgelehnte eigene Release-Notizen im persönlichen Dashboard sichtbar machen. (completed 2026-09-01)
+- [ ] **Phase 144: Überarbeitungs-Kreislauf für Release-Medien vervollständigen** - Abgelehnte Release-Medien lassen sich an Ort und Stelle ersetzen statt nur den Text daneben zu ändern, mit Revisionssprung statt Neu-Upload.
 
 ## Phase Details
 
@@ -785,6 +786,16 @@ Plans:
 **UAT gap closure — Wave 11** *(blocked on 143-18 completion, see 143-UAT.md UAT-05)*
 
 - [x] 143-19-PLAN.md — UAT-05: has_own_media excludes rejected media + has_own_rejected_media contract chain + unified needsRework badge/button logic (notes+media)
+
+### Phase 144: Überarbeitungs-Kreislauf für Release-Medien vervollständigen
+
+**Goal:** [To be planned]
+**Requirements**: TBD
+**Depends on:** Phase 143
+**Plans:** 0 plans
+
+Plans:
+- [ ] TBD (run /gsd-plan-phase 144 to break down)
 
 ## v1.4 Coverage
 

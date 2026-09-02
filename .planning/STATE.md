@@ -42,6 +42,7 @@ Last activity: 2026-09-02
 
 ### Roadmap Evolution
 
+- Phase 144 added (2026-09-02): Überarbeitungs-Kreislauf für Release-Medien vervollständigen.
 - Phase 143 added (2026-09-01): Phase-142-Nacharbeit und Dashboard-Lane für abgelehnte Notizen.
 - Milestone v1.4 roadmap created (2026-08-20): seven sequential phases 136-142 cover Findings #29-#32 and all 41 approved requirements exactly once. Finding #33 (platform documents) and #34 (badge UI) remain deferred.
 - Phase 135 added (2026-08-17): Einladungs- und Onboarding-Flow fuer eingeladene Fansub-Mitglieder haerten. Scope = Live-UAT-Findings #6-#10 (.planning/notes/live-uat-ux-findings.md). Additiv an v1.3 angehaengt; Requirements TBD (kein REQUIREMENTS.md-Mapping -- Decision-Coverage-Gate beim Planen beachten).
