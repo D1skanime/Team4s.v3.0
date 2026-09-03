@@ -831,7 +831,8 @@ Plans:
 **Ausgangsbefund** (am Code verifiziert 2026-09-03):
 
   - `membershipBaselineActions` in `backend/internal/permissions/effective_rights.go:74` hält drei Actions: `fansub_group.members.view`, `fansub_group_media.view`, `fansub_group_media.upload`. Ausgewertet an genau einer Stelle — `IsMembershipBaselineAction` im Precedence-`switch`, `effective_rights.go:356`.
-  - Alle drei Actions stehen bereits in `action_definitions` und sind dort 15 Rollen über `role_capabilities` zugeordnet; in SQL ist die rollenunabhängige Baseline nirgends nachgebaut. Die Lücke ist auf diese eine Go-Stelle begrenzt.
+  -  hält einen ZWEITEN Hardcode:  filtert dieselben drei Actions aus der Capability-Matrix JEDER Rolle heraus und zeigt stattdessen einen statischen Satz (verifiziert 2026-09-03 durch den UI-Researcher). Die Überführung ist damit nicht auf eine Go-Stelle begrenzt — dieser Filter muss für normale Rollen bleiben und für die Pseudo-Rolle abgeschaltet werden, siehe .
+  - Alle drei Actions stehen bereits in `action_definitions` und sind dort 15 Rollen über `role_capabilities` zugeordnet; in SQL ist die rollenunabhängige Baseline nirgends nachgebaut.
   - Die Registry ist produktiv: `LoadRoleCapabilities` (`authz_permissions.go:400`), Startup bricht ab, wenn eine Action weder in `role_capabilities` steht noch standalone ist (`permissions.go:399`).
 
 **Success Criteria** (what must be TRUE):
@@ -844,7 +845,7 @@ Plans:
   6. Fehlen die `role_capabilities`-Zeilen der Pseudo-Rolle, bricht der Start fail-closed ab — analog zum bestehenden Startup-Check (`permissions.go:399`) — statt Mitglieder still ihre Rechte verlieren zu lassen.
 
 **Plans**: TBD (noch nicht geplant)
-**UI hint**: yes
+**UI hint**: yes —  liegt vor (2026-09-03, gsd-ui-checker 6/6 approved)
 
 ## v1.4 Coverage
 

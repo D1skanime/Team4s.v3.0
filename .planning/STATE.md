@@ -3,14 +3,14 @@ gsd_state_version: 1.0
 milestone: v1.4
 milestone_name: Coverage
 status: ready_to_plan
-stopped_at: Phase 145 additiv angelegt (Roadmap-Eintrag), noch nicht geplant
-last_updated: 2026-09-03T12:59:54.000Z
+stopped_at: Phase 145 UI-SPEC approved (6/6), noch keine CONTEXT.md und keine Pläne
+last_updated: "2026-09-03T13:34:32.550Z"
 last_activity: 2026-09-03
 progress:
   total_phases: 10
   completed_phases: 9
   total_plans: 111
-  completed_plans: 165
+  completed_plans: 111
   percent: 90
 ---
 
@@ -550,7 +550,7 @@ untruncated list lives in `.planning/todos/pending/`.
 
 ## Session Continuity
 
-Last session: 2026-09-02T18:27:26.745Z
-Stopped at: Completed 144-08-PLAN.md
+Last session: 2026-09-03T13:34:32.530Z
+Stopped at: Phase 145 UI-SPEC approved
 Last activity: 2026-09-01 - Milestone v1.4 audit passed (41/41 requirements, 7/7 phases, .planning/v1.4-MILESTONE-AUDIT.md); Phase 143 added to roadmap, not yet planned
-Resume file: None
+Resume file: .planning/phases/145-mitgliedschafts-grundausstattung-in-die-rechte-registry-berf/145-UI-SPEC.md
