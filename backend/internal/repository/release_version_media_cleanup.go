@@ -265,6 +265,11 @@ func (r *MediaRepository) HardDeleteRVMAndAsset(
 		return fmt.Errorf("hard delete media_files for asset %d: %w", mediaAssetID, err)
 	}
 	if _, err := tx.Exec(ctx,
+		`DELETE FROM release_version_media_review_lifecycle WHERE release_version_media_id = $1`, relationID,
+	); err != nil {
+		return fmt.Errorf("hard delete release_version_media_review_lifecycle for relation %d: %w", relationID, err)
+	}
+	if _, err := tx.Exec(ctx,
 		`DELETE FROM release_version_media WHERE id = $1`, relationID,
 	); err != nil {
 		return fmt.Errorf("hard delete release_version_media %d: %w", relationID, err)

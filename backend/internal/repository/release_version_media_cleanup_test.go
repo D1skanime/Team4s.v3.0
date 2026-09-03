@@ -1,10 +1,12 @@
 package repository
 
 import (
+	"context"
 	"testing"
 	"time"
 
 	"github.com/stretchr/testify/assert"
+	"github.com/stretchr/testify/require"
 )
 
 // TestStaleProcessingCleanupCandidateFields verifies that
@@ -87,4 +89,35 @@ func TestSoftDeleteCandidateNoSharedAsset(t *testing.T) {
 		"MediaAssetID must be non-zero to identify the asset to clean up")
 	assert.NotEqual(t, int64(0), candidate.RelationID,
 		"RelationID identifies the soft-deleted row that owns the asset")
+}
+
+// TestHardDeleteRVMAndAssetRemovesLifecycleRow proves against real Postgres
+// that HardDeleteRVMAndAsset succeeds even when a
+// release_version_media_review_lifecycle row exists for the relation being
+// hard-deleted. Before the fix, this failed with a live FK violation
+// (SQLSTATE 23503) identical to the production error observed every 10
+// minutes in the rvm cleanup goroutine's logs since 2026-09-02 18:55.
+func TestHardDeleteRVMAndAssetRemovesLifecycleRow(t *testing.T) {
+	pool := openReleaseVersionMediaReplaceFixture(t)
+	ctx := context.Background()
+
+	// Submit relation 601 for review, creating a
+	// release_version_media_review_lifecycle row referencing it.
+	submitMedia(t, pool, 601, 11, nil, time.Now().UTC().Add(-time.Hour))
+
+	repo := NewMediaRepository(pool, "")
+	err := repo.HardDeleteRVMAndAsset(ctx, 601, 701)
+	require.NoError(t, err, "HardDeleteRVMAndAsset must succeed even when a review_lifecycle row references the relation")
+
+	var rvmCount int
+	require.NoError(t, pool.QueryRow(ctx,
+		`SELECT COUNT(*) FROM release_version_media WHERE id = $1`, 601,
+	).Scan(&rvmCount))
+	assert.Equal(t, 0, rvmCount, "release_version_media row 601 must be hard-deleted")
+
+	var lifecycleCount int
+	require.NoError(t, pool.QueryRow(ctx,
+		`SELECT COUNT(*) FROM release_version_media_review_lifecycle WHERE release_version_media_id = $1`, 601,
+	).Scan(&lifecycleCount))
+	assert.Equal(t, 0, lifecycleCount, "release_version_media_review_lifecycle row for relation 601 must be hard-deleted")
 }
