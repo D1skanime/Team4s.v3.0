@@ -86,3 +86,24 @@ Postgres-Tests derselben Phase es bereits machen.
 **Umfang:** Größer als CR-01, betrifft auch vorbestehende Tests. Kandidat für die geplante
 zweite externe Prüfrunde, die laut Handoff ohnehin evidenz-geführt bei dem ansetzen soll,
 was nachweislich schwach ist.
+
+**Tatsächlicher Umfang (nachgemessen):** Die obige Dateien-Liste nennt nur die zwei Dateien
+aus der ursprünglichen CR-01/WR-02-Prüfrunde und unterschätzt damit den echten Umfang — sie
+deckt lediglich das ab, was diese eine Prüfrunde zufällig aufgedeckt hat, nicht eine
+codebase-weite Messung. Eine vollständige Messung ergibt: **49** Backend-Testdateien lesen
+eine `.go`-Quelldatei als Text und beweisen Verhalten per `strings.Contains`, insgesamt
+**236** solche Assertions, verteilt über drei Pakete: `internal/handlers`,
+`internal/repository`, `internal/services`.
+
+**Beleg für aktive Ausbreitung:** `admin_content_release_version_media_replace_test.go`, eine
+brandneue Datei aus Phase 144, hat dasselbe Muster bereits übernommen —
+`TestReplaceReleaseVersionMediaFileRequiresUpdatePermission` liest per `os.ReadFile` die
+Quelldatei `admin_content_release_version_media_replace.go` und prüft anschließend eine Kette
+von `strings.Contains`-Aufrufen, während die tatsächliche Response verworfen wird, ohne dass
+der Handler je über `httptest` aufgerufen und eine echte Antwort geprüft würde. Das zeigt: das
+Muster ist keine ruhende Altlast, sondern breitet sich aktiv in neuen Code aus.
+
+**Weiteres Vorgehen:** Die Behebung der 49 Dateien ist eine separate, künftige Phase — nicht
+dieser Quick-Task. Sie sollte evidenz-geführt erfolgen: zuerst die Dateien, deren Tests
+tatsächlich wichtige Invarianten schützen (Permissions, Preview-Lock-Invarianten), statt
+alphabetisch oder in Auffindungsreihenfolge vorzugehen.
