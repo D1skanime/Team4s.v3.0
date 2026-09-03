@@ -61,14 +61,20 @@ func (r *AnimeContributionsRepository) ListByMemberIDWithProposalFields(ctx cont
 			CASE WHEN ac.release_version_id IS NULL THEN false ELSE (
 				EXISTS (
 					SELECT 1 FROM release_version_notes n
+					LEFT JOIN release_version_note_review_lifecycle lifecycle
+					  ON lifecycle.release_version_note_id = n.id
 					WHERE n.release_version_id = ac.release_version_id
 					  AND n.member_id = $1
 					  AND n.deleted_at IS NULL
+					  AND (lifecycle.review_state IS NULL OR lifecycle.review_state <> 'rejected')
 				) OR EXISTS (
 					SELECT 1 FROM release_version_media m
+					LEFT JOIN release_version_media_review_lifecycle lifecycle
+					  ON lifecycle.release_version_media_id = m.id
 					WHERE m.release_version_id = ac.release_version_id
 					  AND m.uploaded_by_user_id = $2
 					  AND m.deleted_at IS NULL
+					  AND (lifecycle.review_state IS NULL OR lifecycle.review_state <> 'rejected')
 				)
 			) END AS has_own_release_work,
 			(SELECT COUNT(DISTINCT rv.id) FROM release_versions rv
