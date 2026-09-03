@@ -124,6 +124,26 @@ Team4s is an existing anime platform with a Go backend, Next.js frontend, and an
   führen (UI-Checker-Gate).
 - **Ausnahme:** Die Primitive-Definitionen selbst unter
   `frontend/src/components/ui/` dürfen native Elemente kapseln.
+
+### Teststil
+
+- **Pflicht:** Verhaltens-Assertions (ein Guard greift, eine Route ist geschützt,
+  ein Fehlercode wird zurückgegeben) müssen den geprüften Code tatsächlich
+  AUSFÜHREN — bei Handlern über `httptest` gegen ein leichtgewichtiges
+  Fake-Repository, mit Prüfung von Statuscode und Response-Body.
+- **Verboten:** Das Lesen der eigenen `.go`-Quelldatei eines Handlers per
+  `os.ReadFile` und die Prüfung eines Substrings per `strings.Contains`, um zu
+  behaupten, etwas existiere oder greife, ohne den Code je aufzurufen und eine
+  echte Response zu prüfen.
+- **Ausnahmen:** (1) Abwesenheits-Prüfungen (ein Bezeichner darf NIRGENDS in der
+  Datei vorkommen) und (2) Dateien, die selbst der geprüfte Gegenstand sind
+  (SQL-Migrationen).
+- Lokale Datei-Konsistenz mit Nachbar-Tests rechtfertigt KEIN Übernehmen dieses
+  Musters; die „closest-analog"-Regel darf die Teststil-Regel niemals
+  überstimmen. Der bestehende Bestand von 49 Dateien (236 Assertions) ist
+  Altlast, die künftig behoben werden soll — kein Vorbild zum Weiterkopieren.
+- Siehe `.planning/notes/2026-09-02-altlasten-cr01-wr02.md` (WR-02) für den
+  nachgemessenen Umfang und den Bearbeitungsstand.
 <!-- GSD:conventions-end -->
 
 <!-- GSD:architecture-start source:ARCHITECTURE.md -->
