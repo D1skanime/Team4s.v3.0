@@ -18,11 +18,16 @@ export interface RoleDetailPanelProps {
   onOpenCategoriesChange: (next: Set<string>) => void
 }
 
-function holderCountText(role: RoleEntry, holders: RoleHolderEntry[], isHoldersLoading: boolean): string {
+export function holderCountText(role: RoleEntry, holders: RoleHolderEntry[], isHoldersLoading: boolean): string {
   if (role.role_kind === 'global_app_role') {
     const count = role.global_assignment_count ?? 0
     return count > 0 ? `${rowCountText(role)} vergeben` : 'Noch niemandem zugewiesen'
   }
+  // 145-03: die reservierte Mitgliedschafts-Grundausstattung hat keine eigene Inhaberliste --
+  // ohne diesen Zweig würde hier ein stehengebliebener Inhaber-Count der zuvor ausgewählten
+  // Rolle angezeigt, da loadHolders() für diese Rolle nie aufgerufen wird und `holders` beim
+  // Rollenwechsel nicht zurückgesetzt wird.
+  if (role.role_kind === 'reserved_baseline') return '–'
   if (isHoldersLoading) return 'Inhaber werden geladen …'
   return `${holders.length} Inhaber`
 }
@@ -44,6 +49,7 @@ export function RoleDetailPanel({
   onOpenCategoriesChange,
 }: RoleDetailPanelProps) {
   const isGlobalRole = role.role_kind === 'global_app_role'
+  const isReservedBaseline = role.role_kind === 'reserved_baseline'
 
   return (
     <div>
@@ -84,6 +90,12 @@ export function RoleDetailPanel({
                   Benutzer mit dieser Rolle anzeigen
                 </Button>
               </div>
+            ) : isReservedBaseline ? (
+              <p style={{ margin: 0, fontSize: '0.875rem', color: 'var(--text-soft)' }}>
+                Diese Grundausstattung wird nicht einzeln zugewiesen — jedes aktive Mitglied
+                jeder Fansub-Gruppe besitzt sie automatisch. Es gibt daher keine gesonderte
+                Inhaberliste.
+              </p>
             ) : isHoldersLoading ? (
               <LoadingState title="Lade Rolleninhaber …" description="" />
             ) : holdersError ? (

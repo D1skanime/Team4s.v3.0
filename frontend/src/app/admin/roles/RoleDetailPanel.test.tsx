@@ -9,7 +9,7 @@
  */
 import { render, screen, fireEvent } from '@testing-library/react'
 import { describe, it, expect, vi, beforeEach } from 'vitest'
-import { RoleDetailPanel } from './RoleDetailPanel'
+import { RoleDetailPanel, holderCountText } from './RoleDetailPanel'
 import type { RoleEntry, RoleHolderEntry } from '@/types/admin-capability'
 
 vi.mock('next/navigation', () => ({
@@ -63,6 +63,24 @@ const platformAdmin: RoleEntry = {
   role_kind: 'global_app_role',
   global_assignment_count: 4,
   actions: [],
+}
+
+const reservedBaseline: RoleEntry = {
+  role_code: 'group_member',
+  label_de: 'Mitgliedschafts-Grundausstattung',
+  role_kind: 'reserved_baseline',
+  assignable: false,
+  capability_editable: true,
+  contexts: ['fansub_group'],
+  actions: [
+    {
+      code: 'fansub_group.members.view',
+      label_de: 'Mitglieder anzeigen',
+      category: 'gruppe',
+      granted: true,
+      standalone: false,
+    },
+  ],
 }
 
 const holder: RoleHolderEntry = {
@@ -163,5 +181,35 @@ describe('RoleDetailPanel', () => {
     )
     fireEvent.click(screen.getByRole('tab', { name: 'Standardrechte' }))
     expect(onActiveTabIdChange).toHaveBeenCalledWith('caps')
+  })
+
+  it('145-03: holderCountText liefert für role_kind "reserved_baseline" immer "–", unabhängig von holders/isHoldersLoading', () => {
+    expect(holderCountText(reservedBaseline, [holder], false)).toBe('–')
+    expect(holderCountText(reservedBaseline, [], true)).toBe('–')
+    expect(holderCountText(reservedBaseline, [holder, holder], true)).toBe('–')
+  })
+
+  it('145-03: Inhaber-Tab zeigt für die reservierte Pseudo-Rolle die statische Erklärung, kein RoleHoldersTable und keinen Button', () => {
+    render(
+      <RoleDetailPanel
+        role={reservedBaseline}
+        activeTabId="holders"
+        onActiveTabIdChange={vi.fn()}
+        holders={[holder]}
+        isHoldersLoading={false}
+        holdersError={null}
+        onRequestChange={vi.fn()}
+        openCategories={new Set()}
+        onOpenCategoriesChange={vi.fn()}
+      />,
+    )
+    expect(
+      screen.getByText(
+        'Diese Grundausstattung wird nicht einzeln zugewiesen — jedes aktive Mitglied jeder Fansub-Gruppe besitzt sie automatisch. Es gibt daher keine gesonderte Inhaberliste.',
+      ),
+    ).toBeTruthy()
+    expect(screen.queryByText('Mira')).toBeNull()
+    expect(screen.queryByRole('link')).toBeNull()
+    expect(screen.queryByRole('button', { name: /anzeigen/i })).toBeNull()
   })
 })
