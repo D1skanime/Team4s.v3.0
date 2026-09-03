@@ -116,3 +116,7 @@ None - no external service configuration required.
 ---
 *Phase: 145-mitgliedschafts-grundausstattung-in-die-rechte-registry-berf*
 *Completed: 2026-09-03*
+
+## Self-Check: PASSED
+
+All 9 listed files found on disk; all 4 commit hashes (8d78d52c, 9e94521e, 9d5b071c, de2cd44d) found in git history.
