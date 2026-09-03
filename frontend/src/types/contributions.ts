@@ -108,6 +108,14 @@ export interface MeAnimeContribution {
   /** True after this user created a non-deleted text or image in this release version. */
   has_own_release_work?: boolean;
   /**
+   * Quick task 260903-dth: true when this user's own release-version note
+   * (respectively media) on this contribution was reviewed and rejected —
+   * independent of has_own_release_work, so a confirmed note alongside
+   * rejected media still surfaces "Überarbeitung nötig" instead of vanishing.
+   */
+  has_own_rejected_notes?: boolean;
+  has_own_rejected_media?: boolean;
+  /**
    * Phase 116 (D-02/Pattern 3): additiv, spiegelt AnimeContributionRow.CreatedAt/ConfirmedAt
    * (backend/internal/repository/anime_contributions_inputs.go:27-25) — bereits im JSON
    * vorhanden, hier nur nachträglich typisiert für isRecentlyAssigned (attentionHelpers.ts).

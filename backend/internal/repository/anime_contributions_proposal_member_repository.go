@@ -32,6 +32,8 @@ type MemberContributionWithProposalRow struct {
 	TotalReleaseVersionCount  int32   `json:"total_release_version_count"`
 	WorkedReleaseVersionCount int32   `json:"worked_release_version_count"`
 	HasOwnReleaseWork         bool    `json:"has_own_release_work"`
+	HasOwnRejectedNotes       bool    `json:"has_own_rejected_notes"`
+	HasOwnRejectedMedia       bool    `json:"has_own_rejected_media"`
 }
 
 // ListByMemberIDWithProposalFields gibt Contributions für einen Member zurück,
@@ -77,6 +79,28 @@ func (r *AnimeContributionsRepository) ListByMemberIDWithProposalFields(ctx cont
 					  AND (lifecycle.review_state IS NULL OR lifecycle.review_state <> 'rejected')
 				)
 			) END AS has_own_release_work,
+			CASE WHEN ac.release_version_id IS NULL THEN false ELSE (
+				EXISTS (
+					SELECT 1 FROM release_version_notes n
+					JOIN release_version_note_review_lifecycle lifecycle
+					  ON lifecycle.release_version_note_id = n.id
+					WHERE n.release_version_id = ac.release_version_id
+					  AND n.member_id = $1
+					  AND n.deleted_at IS NULL
+					  AND lifecycle.review_state = 'rejected'
+				)
+			) END AS has_own_rejected_notes,
+			CASE WHEN ac.release_version_id IS NULL THEN false ELSE (
+				EXISTS (
+					SELECT 1 FROM release_version_media m
+					JOIN release_version_media_review_lifecycle lifecycle
+					  ON lifecycle.release_version_media_id = m.id
+					WHERE m.release_version_id = ac.release_version_id
+					  AND m.uploaded_by_user_id = $2
+					  AND m.deleted_at IS NULL
+					  AND lifecycle.review_state = 'rejected'
+				)
+			) END AS has_own_rejected_media,
 			(SELECT COUNT(DISTINCT rv.id) FROM release_versions rv
 			 JOIN release_version_groups rvg ON rvg.release_version_id = rv.id
 			 JOIN fansub_releases fr2 ON fr2.id = rv.release_id
@@ -157,6 +181,8 @@ func (r *AnimeContributionsRepository) ListByMemberIDWithProposalFields(ctx cont
 			&row.EpisodeNumber,
 			&row.EpisodeSortIndex,
 			&row.HasOwnReleaseWork,
+			&row.HasOwnRejectedNotes,
+			&row.HasOwnRejectedMedia,
 			&row.TotalReleaseVersionCount,
 			&row.WorkedReleaseVersionCount,
 		); err != nil {
