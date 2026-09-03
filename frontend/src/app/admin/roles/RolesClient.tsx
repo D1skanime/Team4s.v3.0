@@ -86,8 +86,12 @@ export default function RolesClient() {
     const role = matrix?.roles.find((r) => r.role_code === roleCode)
     // D-07/D-08 pro-Rolle-Default: globale App-Rollen zeigen zuerst die Standardrechte
     // (keine Gruppen-Inhaber-Tabelle möglich), alle anderen Rollen zeigen zuerst ihre Inhaber.
-    setActiveTabId(role?.role_kind === 'global_app_role' ? 'caps' : 'holders')
-    if (role && role.role_kind !== 'global_app_role') {
+    // Die reservierte Mitgliedschafts-Grundausstattung (145-03) verhält sich hier wie eine
+    // globale App-Rolle: sie hat keine eigene Inhaberliste (jedes aktive Mitglied besitzt sie
+    // automatisch), also niemals listRoleHolders() für sie aufrufen.
+    const defaultsToCapsTab = role?.role_kind === 'global_app_role' || role?.role_kind === 'reserved_baseline'
+    setActiveTabId(defaultsToCapsTab ? 'caps' : 'holders')
+    if (role && role.role_kind !== 'global_app_role' && role.role_kind !== 'reserved_baseline') {
       void loadHolders(roleCode)
     }
   }

@@ -137,4 +137,16 @@ describe('RoleRail', () => {
     render(<RoleRail roles={[]} selectedRoleCode={null} onSelectRole={vi.fn()} />)
     expect(screen.getByText('Keine Rollen gefunden.')).toBeTruthy()
   })
+
+  it('roleKindLabel liefert für role_kind "reserved_baseline" die exakte Grundausstattungs-Beschriftung (145-03)', () => {
+    const reservedBaselineRole: RoleEntry = {
+      role_code: 'group_member',
+      label_de: 'Mitgliedschafts-Grundausstattung',
+      role_kind: 'reserved_baseline',
+      capability_editable: true,
+      assignable: false,
+      actions: [],
+    }
+    expect(roleKindLabel(reservedBaselineRole)).toBe('Grundausstattung aller aktiven Mitglieder')
+  })
 })

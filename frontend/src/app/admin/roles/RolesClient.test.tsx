@@ -107,8 +107,30 @@ const platformAdmin: RoleCapabilityMatrix['roles'][number] = {
   ],
 }
 
+const reservedBaseline: RoleCapabilityMatrix['roles'][number] = {
+  role_code: 'group_member',
+  label_de: 'Mitgliedschafts-Grundausstattung',
+  role_kind: 'reserved_baseline',
+  capability_editable: true,
+  assignable: false,
+  actions: [
+    {
+      code: 'fansub_group.members.view',
+      label_de: 'Mitglieder anzeigen',
+      category: 'gruppe',
+      granted: true,
+      standalone: false,
+    },
+  ],
+}
+
 const sampleMatrix: RoleCapabilityMatrix = {
   roles: [coLeader, platformAdmin],
+  all_actions: [],
+}
+
+const matrixWithReservedBaseline: RoleCapabilityMatrix = {
+  roles: [coLeader, platformAdmin, reservedBaseline],
   all_actions: [],
 }
 
@@ -172,6 +194,21 @@ describe('RolesClient', () => {
       '/admin/users?role=platform_admin',
     )
     expect(apiModule.listRoleHolders).not.toHaveBeenCalledWith('platform_admin')
+  })
+
+  it('Test B2 (145-03): ?role=group_member (reserved_baseline) zeigt Standardrechte-Tab standardmäßig, ohne listRoleHolders-Aufruf', async () => {
+    vi.mocked(useSearchParams).mockReturnValue(
+      new URLSearchParams('role=group_member') as ReturnType<typeof useSearchParams>,
+    )
+    const apiModule = await import('@/lib/api')
+    vi.mocked(apiModule.listRoleCapabilities).mockResolvedValue(matrixWithReservedBaseline)
+
+    render(<RolesClient />)
+
+    await waitFor(() => {
+      expect(screen.getByRole('tab', { name: 'Standardrechte' }).getAttribute('aria-selected')).toBe('true')
+    })
+    expect(apiModule.listRoleHolders).not.toHaveBeenCalledWith('group_member')
   })
 
   it('Test C: erste Kategorie (sortCategories-Reihenfolge) ist ohne Akkordeon-Klick offen, sobald Standardrechte-Tab aktiv ist', async () => {
