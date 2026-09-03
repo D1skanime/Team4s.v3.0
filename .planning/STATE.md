@@ -2,14 +2,14 @@
 gsd_state_version: 1.0
 milestone: v1.4
 milestone_name: Coverage
-status: ready_to_plan
-stopped_at: Phase 145 UI-SPEC approved (6/6), noch keine CONTEXT.md und keine Pläne
-last_updated: "2026-09-03T13:34:32.550Z"
-last_activity: 2026-09-03
+status: executing
+stopped_at: Phase 145 UI-SPEC approved
+last_updated: "2026-09-03T14:45:36.662Z"
+last_activity: 2026-09-03 -- Phase 145 planning complete
 progress:
   total_phases: 10
   completed_phases: 9
-  total_plans: 111
+  total_plans: 115
   completed_plans: 111
   percent: 90
 ---
@@ -35,10 +35,10 @@ See: .planning/PROJECT.md (updated 2026-08-13)
 
 Phase: 145
 Plan: Noch nicht geplant — nur der Roadmap-Eintrag steht
-Status: ready_to_plan (v1.4 bleibt abgeschlossen; Phase 145 ist additiv angehängt)
+Status: Ready to execute
 
 Nächster Schritt: `discuss-phase 145` (keine CONTEXT.md) oder direkt `plan-phase 145` — `145-UI-SPEC.md` liegt vor (gsd-ui-checker 6/6), das UI-Gate ist damit beantwortet.
-Last activity: 2026-09-03 - Phase 145 (Mitgliedschafts-Grundausstattung in die Rechte-Registry überführen) additiv in ROADMAP.md angelegt; davor Quick-Task 260903-gqt (Planungs-Buchhaltung für Phasen 143/144) abgeschlossen
+Last activity: 2026-09-03 -- Phase 145 planning complete
 
 ## Accumulated Context
 
