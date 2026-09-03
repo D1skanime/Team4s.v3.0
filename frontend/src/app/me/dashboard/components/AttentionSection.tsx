@@ -204,7 +204,11 @@ export function AttentionSection({
                       ))}
                     </span>
                   </span>
-                  {project.hasRecentAssignment ? <Badge variant="info">Neu</Badge> : null}
+                  {project.hasOwnRejectedWork ? (
+                    <Badge variant="danger">Überarbeitung nötig</Badge>
+                  ) : project.hasRecentAssignment ? (
+                    <Badge variant="info">Neu</Badge>
+                  ) : null}
                   <span className={styles.itemAction}>
                     <ArrowRight size={15} aria-hidden="true" />
                   </span>

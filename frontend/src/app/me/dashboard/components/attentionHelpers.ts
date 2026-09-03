@@ -71,6 +71,15 @@ export function filterAttentionContributions(
     }
 
     if (contribution.has_own_release_work) {
+      // Abgelehnte eigene Arbeit auf demselben Release verdient weiterhin
+      // Aufmerksamkeit, auch wenn andere eigene Arbeit dort bereits bestätigt
+      // ist und has_own_release_work deshalb true bleibt.
+      if (
+        contribution.has_own_rejected_notes ||
+        contribution.has_own_rejected_media
+      ) {
+        return true;
+      }
       return false;
     }
 
@@ -118,6 +127,7 @@ export interface AttentionProjectGroup {
   contributions: MeAnimeContribution[];
   href: string;
   hasRecentAssignment: boolean;
+  hasOwnRejectedWork: boolean;
 }
 
 /**
@@ -150,6 +160,7 @@ export function groupAttentionContributions(
         contributions: ordered,
         href: resolveWorkspaceHref(primary),
         hasRecentAssignment: ordered.some((item) => isRecentlyAssigned(item.created_at, ATTENTION_WINDOW_DAYS)),
+        hasOwnRejectedWork: ordered.some((item) => item.has_own_rejected_notes || item.has_own_rejected_media),
       };
     })
     .sort((left, right) => {
