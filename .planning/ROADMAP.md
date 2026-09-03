@@ -864,7 +864,7 @@ Plans:
 
 **Wave 3** *(blocked on Wave 2 completion)*
 
-- [ ] 145-03-PLAN.md — Capability Matrix frontend: role rail label, tab defaults, RoleCapabilityDetail hardcode-filter split, Inhaber-tab explanation.
+- [x] 145-03-PLAN.md — Capability Matrix frontend: role rail label, tab defaults, RoleCapabilityDetail hardcode-filter split, Inhaber-tab explanation.
 
 **Wave 4** *(blocked on Wave 3 completion)*
 
@@ -898,4 +898,4 @@ Plans:
 | 142. Integrated Security, Fixtures & Live Release Gate | 1/1 | Complete | 2026-09-01 |
 | 143. Phase-142-Nacharbeit und Dashboard-Lane für abgelehnte Notizen | 19/19 | Complete | 2026-09-02 |
 | 144. Überarbeitungs-Kreislauf für Release-Medien vervollständigen | 8/8 | Complete | 2026-09-03 |
-| 145. Mitgliedschafts-Grundausstattung in die Rechte-Registry überführen | 2/4 | In Progress|  |
+| 145. Mitgliedschafts-Grundausstattung in die Rechte-Registry überführen | 3/4 | In Progress|  |
