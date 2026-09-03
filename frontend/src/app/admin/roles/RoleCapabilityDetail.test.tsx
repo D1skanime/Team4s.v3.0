@@ -84,6 +84,38 @@ const historicalRole: RoleEntry = {
   ],
 }
 
+const reservedBaselineRole: RoleEntry = {
+  role_code: 'group_member',
+  label_de: 'Mitgliedschafts-Grundausstattung',
+  role_kind: 'reserved_baseline',
+  assignable: false,
+  capability_editable: true,
+  contexts: ['fansub_group'],
+  actions: [
+    {
+      code: 'fansub_group.members.view',
+      label_de: 'Mitglieder anzeigen',
+      category: 'gruppe',
+      granted: true,
+      standalone: false,
+    },
+    {
+      code: 'fansub_group_media.view',
+      label_de: 'Gruppenmedien ansehen',
+      category: 'gruppenmedien',
+      granted: true,
+      standalone: false,
+    },
+    {
+      code: 'fansub_group_media.upload',
+      label_de: 'Gruppenmedien hochladen',
+      category: 'gruppenmedien',
+      granted: true,
+      standalone: false,
+    },
+  ],
+}
+
 describe('RoleCapabilityDetail', () => {
   it('rendert Accordion-Header pro Kategorie (Gruppe)', () => {
     render(<DetailHarness role={assignableRole} />)
@@ -206,5 +238,33 @@ describe('RoleCapabilityDetail', () => {
     expect(triggerTexts[0]).toContain('gruppe')
     expect(triggerTexts[1]).toContain('projekt')
     expect(triggerTexts[2]).toContain('release')
+  })
+
+  it('145-03: rendert für die reservierte Pseudo-Rolle alle 3 Grundausstattungs-Aktionen als normale Switch-Zeilen (keine Sonderbehandlung) mit Hinweistext statt Deep-Link', () => {
+    render(<DetailHarness role={reservedBaselineRole} initialOpen={['gruppe', 'gruppenmedien']} />)
+
+    const switches = screen.getAllByRole('switch')
+    expect(switches).toHaveLength(3)
+    const checkedSwitches = switches.filter((s) => s.getAttribute('aria-checked') === 'true')
+    expect(checkedSwitches).toHaveLength(3)
+
+    expect(
+      screen.getByText(
+        'Diese drei Rechte erhält jedes aktive Gruppenmitglied automatisch, unabhängig von seiner Rolle. Änderungen hier wirken sich sofort auf alle aktiven Mitglieder aller Fansub-Gruppen aus.',
+      ),
+    ).toBeTruthy()
+    expect(screen.queryByRole('link', { name: 'Grundausstattung öffnen' })).toBeNull()
+  })
+
+  it('145-03: zeigt für eine normale kapazitätsbearbeitbare Rolle die aktualisierte Erklärung + einen Deep-Link "Grundausstattung öffnen" statt der alten statischen Zeile', () => {
+    render(<DetailHarness role={assignableRole} />)
+
+    expect(
+      screen.getByText(
+        'Die Grundrechte aller aktiven Mitglieder (Mitglieder anzeigen, Gruppenmedien ansehen und hochladen) werden zentral über die Rolle „Mitgliedschafts-Grundausstattung“ verwaltet.',
+      ),
+    ).toBeTruthy()
+    const deepLink = screen.getByRole('link', { name: 'Grundausstattung öffnen' })
+    expect(deepLink.getAttribute('href')).toBe('/admin/roles?role=group_member&tab=caps')
   })
 })

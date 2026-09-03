@@ -2,6 +2,7 @@
 
 import { useMemo } from 'react'
 import { Accordion } from '@/components/ui/Accordion'
+import { Button } from '@/components/ui/Button'
 import { Switch } from '@/components/ui/Switch'
 import type { RoleEntry } from '@/types/admin-capability'
 import { categoryDisplayLabel, sortCategories } from './capabilityCategories'
@@ -48,7 +49,10 @@ export function RoleCapabilityDetail({
   onOpenCategoriesChange,
 }: RoleCapabilityDetailProps) {
   const isEditable = role.capability_editable !== false
-  const configurableActions = role.actions.filter((action) => !membershipBaselineCodes.has(action.code))
+  const isReservedBaseline = role.role_kind === 'reserved_baseline'
+  const configurableActions = isReservedBaseline
+    ? role.actions
+    : role.actions.filter((action) => !membershipBaselineCodes.has(action.code))
 
   const accordionItems = useMemo(() => {
     // Aktionen nach Kategorie gruppieren
@@ -156,10 +160,34 @@ export function RoleCapabilityDetail({
         )}
       </div>
 
-      {isEditable && (
+      {isEditable && isReservedBaseline && (
         <p style={{ color: 'var(--color-text-secondary)', fontSize: '0.8125rem', margin: '0 0 var(--space-3)' }}>
-          Grundrechte aller aktiven Mitglieder: Mitglieder anzeigen sowie Gruppenmedien ansehen und hochladen.
+          Diese drei Rechte erhält jedes aktive Gruppenmitglied automatisch, unabhängig von seiner
+          Rolle. Änderungen hier wirken sich sofort auf alle aktiven Mitglieder aller
+          Fansub-Gruppen aus.
         </p>
+      )}
+
+      {isEditable && !isReservedBaseline && (
+        <div
+          style={{
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'space-between',
+            gap: 'var(--space-3)',
+            flexWrap: 'wrap',
+            margin: '0 0 var(--space-3)',
+          }}
+        >
+          <p style={{ color: 'var(--color-text-secondary)', fontSize: '0.8125rem', margin: 0 }}>
+            Die Grundrechte aller aktiven Mitglieder (Mitglieder anzeigen, Gruppenmedien ansehen
+            und hochladen) werden zentral über die Rolle „Mitgliedschafts-Grundausstattung“
+            verwaltet.
+          </p>
+          <Button variant="ghost" size="sm" href="/admin/roles?role=group_member&tab=caps">
+            Grundausstattung öffnen
+          </Button>
+        </div>
       )}
 
       {/* Inline-Fehler */}
