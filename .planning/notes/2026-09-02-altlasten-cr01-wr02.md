@@ -6,6 +6,22 @@ CR-01 fälschlich eine "Regression" dieser Phase.
 
 ## CR-01 — Upload-Fehler werden als Erfolg gemeldet
 
+**Status: Behoben (2026-09-03, Quick-Task 260903-flw).** `runUpload` wirft im
+catch-Block jetzt weiter (`throw uploadError`), genau wie `patchItem`/`replaceItem`/
+`deleteItem`/`reorderItems`. Zusätzlich baut `runUpload` bei normalem Abschluss lokal
+ein `UploadRunResult` (`{ items, allSucceeded }`) aus den tatsächlichen Pro-Datei-
+Ergebnissen — nie aus einem nachträglichen State-Read — und gibt es über
+`startUpload`/`retryUpload` an den Aufrufer weiter. `handleUploadClick` in
+`ReleaseVersionMediaSection.tsx` zeigt den Erfolgs-Toast und schließt den Drawer nur
+noch, wenn `result.allSucceeded === true` ist; bei hartem Fehlschlag (Netzwerk/5xx)
+greift wieder der bestehende `catch`-Zweig mit Fehlerbanner, bei HTTP-200-mit-
+Fehlerstatus (ganz oder teilweise) bleibt der Drawer offen und die betroffenen
+Dateien bleiben mit Fehlermeldung und Retry-Button sichtbar. Ein neuer
+`handleRetryClick`-Wrapper fängt abgelehnte `retryUpload`-Promises ab, sodass ein
+erneuter Fehlschlag beim Retry nie als unhandled promise rejection auftaucht.
+Siehe `.planning/quick/260903-flw-cr-01-fehlgeschlagene-uploads-duerfen-ni/` für
+Plan und Summary.
+
 **Dateien:**
 - `frontend/src/app/admin/episode-versions/[versionId]/edit/useReleaseVersionMedia.ts` (`runUpload`, catch-Block)
 - `frontend/src/app/admin/episode-versions/[versionId]/edit/ReleaseVersionMediaSection.tsx` (`handleUploadClick`)
