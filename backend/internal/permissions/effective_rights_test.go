@@ -450,3 +450,74 @@ func TestResolveGroupRightsActiveMemberGetsMembershipBaselineRights(t *testing.T
 		assert.Equal(t, "membership_baseline", state.DecisiveSource)
 	}
 }
+
+// TestResolveGroupRightsBaselineActionsSourcedFromRegistry proves Phase 145's Success
+// Criterion 1: IsMembershipBaselineAction's source is genuinely the loaded
+// RoleMembershipBaseline registry entry, not a hardcoded list. Temporarily mutating
+// loadedCache["group_member"] (mirroring TestPermissionCatalogFailsClosedBeforeLoad's
+// lock/restore pattern) to drop one of the 3 actions must flip that one action's
+// membership-baseline resolution to false while the other two remain true.
+func TestResolveGroupRightsBaselineActionsSourcedFromRegistry(t *testing.T) {
+	cacheMu.Lock()
+	previous := loadedCache
+	mutated := roleMatrixStubData()
+	mutated[RoleMembershipBaseline] = []Action{ActionFansubGroupMembersView, ActionFansubGroupMediaView}
+	loadedCache = mutated
+	cacheMu.Unlock()
+	t.Cleanup(func() { cacheMu.Lock(); loadedCache = previous; cacheMu.Unlock() })
+
+	resolver := &effectiveRightsFakeResolver{activeMembership: true}
+	service := NewService(resolver)
+	actor := Actor{AppUserID: 10, Status: "active"}
+
+	res, err := service.ResolveGroupRights(context.Background(), actor, effectiveRightsTestGroupID)
+	require.NoError(t, err)
+
+	droppedState := res.Can(ActionFansubGroupMediaUpload)
+	assert.False(t, droppedState.Allowed, "removing the action from the registry entry must stop it resolving as baseline")
+	assert.NotEqual(t, ProvenanceMembershipBaseline, droppedState.DecisiveSource)
+
+	for _, stillPresent := range []Action{ActionFansubGroupMembersView, ActionFansubGroupMediaView} {
+		state := res.Can(stillPresent)
+		assert.True(t, state.Allowed, "action %s remains in the registry entry and must still resolve baseline", stillPresent)
+		assert.Equal(t, ProvenanceMembershipBaseline, state.DecisiveSource)
+	}
+}
+
+// TestResolveGroupRightsUserDenyOverridesRegistrySourcedBaseline locks Success Criterion 3/4:
+// user_deny still beats the now-registry-sourced membership_baseline for an active member
+// with no matching role grant.
+func TestResolveGroupRightsUserDenyOverridesRegistrySourcedBaseline(t *testing.T) {
+	resolver := &effectiveRightsFakeResolver{
+		activeMembership: true,
+		overrides: []UserCapabilityOverride{
+			{ActionCode: ActionFansubGroupMediaUpload, Effect: "deny"},
+		},
+	}
+	service := NewService(resolver)
+	actor := Actor{AppUserID: 10, Status: "active"}
+
+	res, err := service.ResolveGroupRights(context.Background(), actor, effectiveRightsTestGroupID)
+	require.NoError(t, err)
+
+	state := res.Can(ActionFansubGroupMediaUpload)
+	assert.False(t, state.Allowed)
+	assert.Equal(t, ProvenanceUserDeny, state.DecisiveSource)
+}
+
+// TestResolveGroupRightsBaselineRequiresActiveMembership locks Success Criterion 4: an
+// inactive membership denies all 3 baseline actions regardless of the pseudo-role's
+// role_capabilities rows.
+func TestResolveGroupRightsBaselineRequiresActiveMembership(t *testing.T) {
+	resolver := &effectiveRightsFakeResolver{activeMembership: false}
+	service := NewService(resolver)
+	actor := Actor{AppUserID: 10, Status: "active"}
+
+	res, err := service.ResolveGroupRights(context.Background(), actor, effectiveRightsTestGroupID)
+	require.NoError(t, err)
+
+	for _, action := range []Action{ActionFansubGroupMembersView, ActionFansubGroupMediaView, ActionFansubGroupMediaUpload} {
+		state := res.Can(action)
+		assert.False(t, state.Allowed, "inactive membership must deny %s despite the baseline registry entry", action)
+	}
+}

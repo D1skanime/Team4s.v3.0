@@ -82,6 +82,12 @@ const (
 	RoleGfxler    = "gfxler"
 )
 
+// RoleMembershipBaseline (Phase 145) is the reserved, non-assignable pseudo-role sourcing
+// the active-membership baseline via IsMembershipBaselineAction (effective_rights.go) --
+// never assignable, excluded from LoadFansubGroupRoles's catalog despite carrying the
+// fansub_group context needed for IsCapabilityBearingRole.
+const RoleMembershipBaseline = "group_member"
+
 const (
 	ReasonAllowed            = "allowed"
 	ReasonPlatformAdmin      = "platform_admin"
@@ -378,6 +384,9 @@ func (s *Service) LoadCache(ctx context.Context, loader CacheLoader) error {
 	if err := validateCapabilityCatalog(m); err != nil {
 		return err
 	}
+	if err := validateMembershipBaselineRegistryPresence(m); err != nil {
+		return err
+	}
 
 	cacheMu.Lock()
 	loadedCache = m
@@ -403,6 +412,24 @@ func validateCapabilityCatalog(m map[string][]Action) error {
 	return nil
 }
 
+// validateMembershipBaselineRegistryPresence (Phase 145, Success Criterion 6) checks that
+// the reserved RoleMembershipBaseline pseudo-role's loaded role_capabilities entry carries
+// all three membership-baseline actions. validateCapabilityCatalog already proves every
+// known Action is granted by SOME role -- it cannot catch a botched migration/seed that
+// leaves specifically the pseudo-role's own rows incomplete while the same 3 actions remain
+// present for other roles. Called from LoadCache/LoadFansubGroupCatalog before loadedCache
+// is published, so a failure here leaves the previously loaded cache state untouched
+// (fail-closed, not fail-open).
+func validateMembershipBaselineRegistryPresence(m map[string][]Action) error {
+	baseline := m[RoleMembershipBaseline]
+	for _, a := range []Action{ActionFansubGroupMembersView, ActionFansubGroupMediaView, ActionFansubGroupMediaUpload} {
+		if !slices.Contains(baseline, a) {
+			return fmt.Errorf("permission cache: Rolle %q (Mitgliedschafts-Grundausstattung) fehlt Action %q in role_capabilities — Startup abgebrochen", RoleMembershipBaseline, a)
+		}
+	}
+	return nil
+}
+
 // LoadFansubGroupCatalog lädt die assignable Gruppenrollen aus der DB in den In-Memory-Cache (D-12).
 // MUSS nach LoadCache aufgerufen werden (Fallstrick 5: LoadCache ZUERST).
 func (s *Service) LoadFansubGroupCatalog(ctx context.Context, loader CatalogLoader) error {
@@ -423,6 +450,9 @@ func (s *Service) LoadFansubGroupCatalog(ctx context.Context, loader CatalogLoad
 			return fmt.Errorf("permission catalog load: %w", err)
 		}
 		if err := validateCapabilityCatalog(capabilities); err != nil {
+			return err
+		}
+		if err := validateMembershipBaselineRegistryPresence(capabilities); err != nil {
 			return err
 		}
 	}

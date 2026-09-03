@@ -252,6 +252,15 @@ func roleMatrixStubData() map[string][]Action {
 			ActionFansubGroupPageGeneralEdit,
 			ActionFansubGroupLinksUpdate,
 		},
+		// Phase 145: RoleMembershipBaseline (group_member) is the reserved pseudo-role
+		// sourcing IsMembershipBaselineAction from the registry instead of a hardcoded Go
+		// slice -- required here so the fail-closed validateMembershipBaselineRegistryPresence
+		// check (permissions.go) passes for every test loading this fixture.
+		RoleMembershipBaseline: {
+			ActionFansubGroupMembersView,
+			ActionFansubGroupMediaView,
+			ActionFansubGroupMediaUpload,
+		},
 	}
 }
 
@@ -344,6 +353,56 @@ func TestStartupConsistencyCheck(t *testing.T) {
 
 	errIncomplete := svc.LoadCache(ctx, incompleteStub)
 	assert.Error(t, errIncomplete, "LoadCache muss einen Fehler zurückgeben wenn ein Action-Code in keiner Rolle vertreten ist (D-10)")
+}
+
+// TestLoadCacheFailsClosedWhenPseudoRoleCapabilitiesMissing proves Phase 145's Success
+// Criterion 6: LoadCache aborts (returns an identifiable error, does not publish the
+// rejected map) when the RoleMembershipBaseline pseudo-role's role_capabilities entry is
+// missing entirely or incomplete, even though every other role's data is otherwise valid --
+// mirroring TestStartupConsistencyCheck's two-step happy-path/incomplete-path pattern.
+func TestLoadCacheFailsClosedWhenPseudoRoleCapabilitiesMissing(t *testing.T) {
+	ctx := context.Background()
+	svc := NewService(nil)
+
+	// Step 1: full stub (including the pseudo-role's 3 actions) succeeds.
+	fullStub := stubCacheLoader{data: roleMatrixStubData()}
+	require.NoError(t, svc.LoadCache(ctx, fullStub))
+	beforeActions := AllowedActionsForRole(RoleMembershipBaseline)
+	require.NotEmpty(t, beforeActions)
+
+	cases := []struct {
+		name   string
+		mutate func(map[string][]Action)
+	}{
+		{
+			name: "entry entirely missing",
+			mutate: func(data map[string][]Action) {
+				delete(data, RoleMembershipBaseline)
+			},
+		},
+		{
+			name: "entry has fewer than 3 actions",
+			mutate: func(data map[string][]Action) {
+				data[RoleMembershipBaseline] = []Action{ActionFansubGroupMembersView}
+			},
+		},
+	}
+
+	for _, tc := range cases {
+		t.Run(tc.name, func(t *testing.T) {
+			incomplete := roleMatrixStubData()
+			tc.mutate(incomplete)
+			incompleteStub := stubCacheLoader{data: incomplete}
+
+			err := svc.LoadCache(ctx, incompleteStub)
+			require.Error(t, err, "LoadCache must fail closed when the pseudo-role's registry rows are incomplete")
+			assert.Contains(t, err.Error(), RoleMembershipBaseline)
+
+			// The OLD cache state must still be published, not the rejected one.
+			afterActions := AllowedActionsForRole(RoleMembershipBaseline)
+			assert.ElementsMatch(t, beforeActions, afterActions, "a rejected LoadCache must not publish its incomplete map")
+		})
+	}
 }
 
 func TestPhase107PermissionCatalogRequiresEveryReviewAction(t *testing.T) {

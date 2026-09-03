@@ -77,6 +77,14 @@ func fullValidCacheData() map[string][]Action {
 		RoleDesigner: {
 			ActionReleaseVersionMediaDeleteOwn,
 		},
+		// Phase 145: required so validateMembershipBaselineRegistryPresence passes for the
+		// two tests directly consuming this fixture (TestReloadCacheReplacesCacheAtomically,
+		// TestReloadCacheFailsafe).
+		RoleMembershipBaseline: {
+			ActionFansubGroupMembersView,
+			ActionFansubGroupMediaView,
+			ActionFansubGroupMediaUpload,
+		},
 	}
 }
 

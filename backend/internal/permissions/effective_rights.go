@@ -36,7 +36,6 @@ package permissions
 
 import (
 	"context"
-	"slices"
 	"sort"
 	"strings"
 )
@@ -69,17 +68,13 @@ const (
 	ReasonCodeNoGrant            = "no_grant"
 )
 
-// membershipBaselineActions are the fixed rights every active group member receives.
-// A stored user_deny remains able to revoke one of these defaults for an exception.
-var membershipBaselineActions = []Action{
-	ActionFansubGroupMembersView,
-	ActionFansubGroupMediaView,
-	ActionFansubGroupMediaUpload,
-}
-
-// IsMembershipBaselineAction reports whether an action belongs to the active-membership baseline.
+// IsMembershipBaselineAction reports whether an action belongs to the active-membership
+// baseline. Phase 145: the source of truth is the loaded role_capabilities cache entry for
+// the reserved RoleMembershipBaseline pseudo-role (group_member), not a hardcoded Go slice
+// -- see permissions.go's validateMembershipBaselineRegistryPresence for the fail-closed
+// startup guarantee that this cache entry always carries the expected 3 actions.
 func IsMembershipBaselineAction(action Action) bool {
-	return slices.Contains(membershipBaselineActions, action)
+	return roleAllows(RoleMembershipBaseline, action)
 }
 
 // UserCapabilityOverride is one stored personal allow/deny row for one (actor,
