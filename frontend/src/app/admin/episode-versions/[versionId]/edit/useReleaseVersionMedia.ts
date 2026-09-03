@@ -13,6 +13,11 @@ export interface UploadQueueItem {
   resultId: number | null
 }
 
+export interface UploadRunResult {
+  items: UploadQueueItem[]
+  allSucceeded: boolean
+}
+
 interface UploadConfig {
   category: ReleaseVersionMediaCategory
   defaultCaption?: string
@@ -25,8 +30,8 @@ export interface UseReleaseVersionMediaResult {
   error: string | null
   reload: () => void
   uploadItems: UploadQueueItem[]
-  startUpload: (category: ReleaseVersionMediaCategory, files: File[], defaultCaption?: string, isPreviewCandidate?: boolean) => Promise<void>
-  retryUpload: (fileIndex: number) => Promise<void>
+  startUpload: (category: ReleaseVersionMediaCategory, files: File[], defaultCaption?: string, isPreviewCandidate?: boolean) => Promise<UploadRunResult>
+  retryUpload: (fileIndex: number) => Promise<UploadRunResult>
   clearUploadQueue: () => void
   patchItem: (mediaId: number, patch: ReleaseVersionMediaPatchRequest) => Promise<void>
   replaceItem: (mediaId: number, options: { file: File; category?: ReleaseVersionMediaCategory; caption?: string | null; isPreviewCandidate?: boolean }) => Promise<void>
@@ -115,9 +120,9 @@ export function useReleaseVersionMedia(versionId: number | null): UseReleaseVers
   )
 
   const runUpload = useCallback(
-    async (queueIndices: number[], files: File[], config: UploadConfig) => {
+    async (queueIndices: number[], files: File[], config: UploadConfig): Promise<UploadRunResult> => {
       if (versionId === null || files.length === 0) {
-        return
+        return { items: [], allSucceeded: true }
       }
 
       lastUploadConfigRef.current = config
@@ -162,9 +167,14 @@ export function useReleaseVersionMedia(versionId: number | null): UseReleaseVers
 
         const nextQueue = [...queueIndices]
         let shouldReload = false
+        const outcomes: UploadQueueItem[] = []
+        let loopIndex = 0
 
         for (const result of response.results) {
           const targetIndex = nextQueue.shift()
+          const sourceFile = files[loopIndex]
+          loopIndex += 1
+
           if (targetIndex == null) {
             continue
           }
@@ -173,58 +183,55 @@ export function useReleaseVersionMedia(versionId: number | null): UseReleaseVers
             try {
               await patchUploadedItem(result.release_version_media_id, result.source_revision, config)
               shouldReload = true
+              const readyItem: UploadQueueItem = {
+                file: sourceFile,
+                status: 'ready',
+                progress: 100,
+                errorMessage: null,
+                resultId: result.release_version_media_id ?? null,
+              }
+              outcomes.push(readyItem)
               setUploadItems((current) =>
-                current.map((item, index) =>
-                  index === targetIndex
-                    ? {
-                        ...item,
-                        status: 'ready',
-                        progress: 100,
-                        errorMessage: null,
-                        resultId: result.release_version_media_id ?? null,
-                      }
-                    : item,
-                ),
+                current.map((item, index) => (index === targetIndex ? readyItem : item)),
               )
             } catch (patchError) {
-              setUploadItems((current) =>
-                current.map((item, index) =>
-                  index === targetIndex
-                    ? {
-                        ...item,
-                        status: 'failed',
-                        progress: 100,
-                        errorMessage: readUploadError(
-                          patchError,
-                          'Metadaten konnten nach dem Upload nicht gesetzt werden.',
-                        ),
-                        resultId: result.release_version_media_id ?? null,
-                      }
-                    : item,
+              const failedItem: UploadQueueItem = {
+                file: sourceFile,
+                status: 'failed',
+                progress: 100,
+                errorMessage: readUploadError(
+                  patchError,
+                  'Metadaten konnten nach dem Upload nicht gesetzt werden.',
                 ),
+                resultId: result.release_version_media_id ?? null,
+              }
+              outcomes.push(failedItem)
+              setUploadItems((current) =>
+                current.map((item, index) => (index === targetIndex ? failedItem : item)),
               )
             }
             continue
           }
 
+          const failedItem: UploadQueueItem = {
+            file: sourceFile,
+            status: 'failed',
+            progress: 100,
+            errorMessage: result.error_code || 'Upload fehlgeschlagen.',
+            resultId: null,
+          }
+          outcomes.push(failedItem)
           setUploadItems((current) =>
-            current.map((item, index) =>
-              index === targetIndex
-                ? {
-                    ...item,
-                    status: 'failed',
-                    progress: 100,
-                    errorMessage: result.error_code || 'Upload fehlgeschlagen.',
-                    resultId: null,
-                  }
-                : item,
-            ),
+            current.map((item, index) => (index === targetIndex ? failedItem : item)),
           )
         }
 
         if (shouldReload) {
           reload()
         }
+
+        const allSucceeded = outcomes.length === files.length && outcomes.every((outcomeItem) => outcomeItem.status === 'ready')
+        return { items: outcomes, allSucceeded }
       } catch (uploadError) {
         const message = readUploadError(uploadError, 'Upload fehlgeschlagen.')
         setError(message)
@@ -241,6 +248,7 @@ export function useReleaseVersionMedia(versionId: number | null): UseReleaseVers
               : item,
           ),
         )
+        throw uploadError
       }
     },
     [patchUploadedItem, reload, versionId],
@@ -252,9 +260,9 @@ export function useReleaseVersionMedia(versionId: number | null): UseReleaseVers
       files: File[],
       defaultCaption?: string,
       isPreviewCandidate?: boolean,
-    ) => {
+    ): Promise<UploadRunResult> => {
       if (files.length === 0) {
-        return
+        return { items: [], allSucceeded: true }
       }
 
       const config: UploadConfig = { category, defaultCaption, isPreviewCandidate }
@@ -267,7 +275,7 @@ export function useReleaseVersionMedia(versionId: number | null): UseReleaseVers
       }))
 
       setUploadItems(initialQueue)
-      await runUpload(
+      return runUpload(
         initialQueue.map((_, index) => index),
         files,
         config,
@@ -277,14 +285,14 @@ export function useReleaseVersionMedia(versionId: number | null): UseReleaseVers
   )
 
   const retryUpload = useCallback(
-    async (fileIndex: number) => {
+    async (fileIndex: number): Promise<UploadRunResult> => {
       const config = lastUploadConfigRef.current
       const queueItem = uploadItems[fileIndex]
       if (!config || !queueItem) {
-        return
+        return { items: [], allSucceeded: true }
       }
 
-      await runUpload([fileIndex], [queueItem.file], config)
+      return runUpload([fileIndex], [queueItem.file], config)
     },
     [runUpload, uploadItems],
   )

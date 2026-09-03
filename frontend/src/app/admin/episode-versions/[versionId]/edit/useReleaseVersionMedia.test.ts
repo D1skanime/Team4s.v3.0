@@ -9,6 +9,7 @@ const api = vi.hoisted(() => ({
 vi.mock('@/lib/api', () => ({ ApiError: class extends Error {}, ...api }))
 
 import { useReleaseVersionMedia } from './useReleaseVersionMedia'
+import type { UploadRunResult } from './useReleaseVersionMedia'
 
 const item = (id: number, preview: boolean) => ({
   id, release_version_id: 1, media_asset_id: id, category: 'screenshot' as const, caption: null,
@@ -42,7 +43,10 @@ describe('useReleaseVersionMedia preview reconciliation', () => {
       await waitFor(() => expect(result.current.isLoading).toBe(false))
       const file = new File(['asset'], 'asset.png', { type: 'image/png' })
 
-      await act(async () => result.current.startUpload(category, [file]))
+      let uploadResult: UploadRunResult | undefined
+      await act(async () => {
+        uploadResult = await result.current.startUpload(category, [file])
+      })
 
       const options = api.uploadReleaseVersionMedia.mock.calls.at(-1)?.[0]
       expect(options).toMatchObject({ versionId: 42, category, files: [file] })
@@ -50,8 +54,73 @@ describe('useReleaseVersionMedia preview reconciliation', () => {
       expect(options).not.toHaveProperty('visibilityCode')
       expect(options).not.toHaveProperty('reviewStatusCode')
       expect(options).not.toHaveProperty('fansubGroupId')
+      expect(uploadResult).toMatchObject({ allSucceeded: true })
+      expect(uploadResult?.items[0]).toMatchObject({ status: 'ready' })
     },
   )
+
+  it('rejects startUpload on a hard failure (network/5xx) and marks the queued item failed', async () => {
+    api.uploadReleaseVersionMedia.mockRejectedValue(new Error('Netzwerkfehler beim Upload.'))
+    const { result } = renderHook(() => useReleaseVersionMedia(42))
+    await waitFor(() => expect(result.current.isLoading).toBe(false))
+    const file = new File(['asset'], 'asset.png', { type: 'image/png' })
+
+    let caughtError: unknown
+    await act(async () => {
+      try {
+        await result.current.startUpload('screenshot', [file])
+      } catch (error) {
+        caughtError = error
+      }
+    })
+
+    expect(caughtError).toBeInstanceOf(Error)
+    expect((caughtError as Error).message).toBe('Netzwerkfehler beim Upload.')
+    expect(result.current.error).toBe('Netzwerkfehler beim Upload.')
+    expect(result.current.uploadItems[0]).toMatchObject({
+      status: 'failed',
+      errorMessage: 'Netzwerkfehler beim Upload.',
+    })
+  })
+
+  it('resolves with allSucceeded=false when the backend reports every file failed at HTTP 200', async () => {
+    api.uploadReleaseVersionMedia.mockResolvedValue({
+      results: [{ client_file_name: 'bad.png', status: 'failed', error_code: 'INVALID_MIME_TYPE' }],
+    })
+    const { result } = renderHook(() => useReleaseVersionMedia(42))
+    await waitFor(() => expect(result.current.isLoading).toBe(false))
+    const file = new File(['bad'], 'bad.png', { type: 'image/png' })
+
+    let uploadResult: UploadRunResult | undefined
+    await act(async () => {
+      uploadResult = await result.current.startUpload('screenshot', [file])
+    })
+
+    expect(uploadResult).toMatchObject({ allSucceeded: false })
+    expect(uploadResult?.items[0]).toMatchObject({ status: 'failed', errorMessage: 'INVALID_MIME_TYPE' })
+    expect(result.current.uploadItems[0].status).toBe('failed')
+  })
+
+  it('resolves with allSucceeded=false and mixed item statuses for a partial failure', async () => {
+    api.uploadReleaseVersionMedia.mockResolvedValue({
+      results: [
+        { client_file_name: 'good.png', status: 'ready', release_version_media_id: 91 },
+        { client_file_name: 'bad.png', status: 'failed', error_code: 'INVALID_MIME_TYPE' },
+      ],
+    })
+    const { result } = renderHook(() => useReleaseVersionMedia(42))
+    await waitFor(() => expect(result.current.isLoading).toBe(false))
+    const goodFile = new File(['good'], 'good.png', { type: 'image/png' })
+    const badFile = new File(['bad'], 'bad.png', { type: 'image/png' })
+
+    let uploadResult: UploadRunResult | undefined
+    await act(async () => {
+      uploadResult = await result.current.startUpload('screenshot', [goodFile, badFile])
+    })
+
+    expect(uploadResult).toMatchObject({ allSucceeded: false })
+    expect(uploadResult?.items.map((item) => item.status)).toEqual(['ready', 'failed'])
+  })
 
   it('sendet bei abgelehnten Medien die erwartete Revision und übernimmt die autoritative Antwort', async () => {
     const rejected = {
