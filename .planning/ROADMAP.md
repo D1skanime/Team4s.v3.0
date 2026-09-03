@@ -417,7 +417,7 @@ Milestone v1.4 closes Live-UAT Findings #29-#32 by making effective group rights
 - [x] **Phase 142: Integrated Security, Fixtures & Live Release Gate** - Prove the complete milestone across contracts, auth refresh, fixtures, security, responsive UI, and canonical ownership. (completed 2026-09-01)
 - [x] **Phase 143: Phase-142-Nacharbeit und Dashboard-Lane für abgelehnte Notizen** - Die in der externen Codeprüfung vom 2026-09-01 belegten Defekte schließen und abgelehnte eigene Release-Notizen im persönlichen Dashboard sichtbar machen. (completed 2026-09-01)
 - [x] **Phase 144: Überarbeitungs-Kreislauf für Release-Medien vervollständigen** - Abgelehnte Release-Medien lassen sich an Ort und Stelle ersetzen statt nur den Text daneben zu ändern, mit Revisionssprung statt Neu-Upload. (completed 2026-09-02, Live-UAT abgenommen 2026-09-03, siehe 144-UAT.md)
-- [ ] **Phase 145: Mitgliedschafts-Grundausstattung in die Rechte-Registry überführen** - Die drei rollenunabhängigen Mitgliedsrechte kommen nicht mehr aus einem Go-Slice, sondern als reservierte, nicht zuweisbare Pseudo-Rolle aus der Datenbank-Registry.
+- [x] **Phase 145: Mitgliedschafts-Grundausstattung in die Rechte-Registry überführen** - Die drei rollenunabhängigen Mitgliedsrechte kommen nicht mehr aus einem Go-Slice, sondern als reservierte, nicht zuweisbare Pseudo-Rolle aus der Datenbank-Registry. (completed 2026-09-04, Live-UAT abgenommen 2026-09-04, siehe 145-UAT.md)
 
 ## Phase Details
 
@@ -868,7 +868,7 @@ Plans:
 
 **Wave 4** *(blocked on Wave 3 completion)*
 
-- [ ] 145-04-PLAN.md — Full regression gate + live UAT checkpoint.
+- [x] 145-04-PLAN.md — Full regression gate + live UAT checkpoint.
 
 ## v1.4 Coverage
 
@@ -898,4 +898,4 @@ Plans:
 | 142. Integrated Security, Fixtures & Live Release Gate | 1/1 | Complete | 2026-09-01 |
 | 143. Phase-142-Nacharbeit und Dashboard-Lane für abgelehnte Notizen | 19/19 | Complete | 2026-09-02 |
 | 144. Überarbeitungs-Kreislauf für Release-Medien vervollständigen | 8/8 | Complete | 2026-09-03 |
-| 145. Mitgliedschafts-Grundausstattung in die Rechte-Registry überführen | 3/4 | In Progress|  |
+| 145. Mitgliedschafts-Grundausstattung in die Rechte-Registry überführen | 4/4 | Complete | 2026-09-04 |

@@ -3,15 +3,15 @@ gsd_state_version: 1.0
 milestone: v1.4
 milestone_name: Coverage
 status: executing
-stopped_at: Completed 145-03-PLAN.md
-last_updated: "2026-09-03T15:30:26.855Z"
-last_activity: 2026-09-03
+stopped_at: Phase 145 complete (145-04, Live-UAT abgenommen 2026-09-04)
+last_updated: "2026-09-04T00:00:00.000Z"
+last_activity: 2026-09-04
 progress:
   total_phases: 10
-  completed_phases: 9
+  completed_phases: 10
   total_plans: 115
-  completed_plans: 114
-  percent: 90
+  completed_plans: 115
+  percent: 100
 ---
 
 # Project State
@@ -29,28 +29,40 @@ Phase 135 and any future roadmap entries continue from here.
 See: .planning/PROJECT.md (updated 2026-08-13)
 
 **Core value:** Team4s presents fansub history and collaboration credibly while keeping identity, visibility, ownership, and permissions correct.
-**Current focus:** Phase 145 — mitgliedschafts-grundausstattung-in-die-rechte-registry-berf
+**Current focus:** Phase 145 complete — awaiting next phase scoping
 
 ## Current Position
 
-Phase: 145 (mitgliedschafts-grundausstattung-in-die-rechte-registry-berf) — EXECUTING
-Plan: 4 of 4
-Status: Ready to execute
+Phase: 145 (mitgliedschafts-grundausstattung-in-die-rechte-registry-berf) — complete
+Plan: 4 of 4 complete, Live-UAT abgenommen 2026-09-04 (siehe 145-UAT.md)
+Status: Phase complete
 
-Vorliegende Artefakte: `145-UI-SPEC.md` (gsd-ui-checker 6/6 approved), `145-VALIDATION.md`
-(direkt aus den sechs Success Criteria geschrieben, kein Research-Lauf, kein Wave-0-RED-Schritt —
-`nyquist_compliant: false` ist daher erwartet, nicht ein Fehlschlag), `145-01..04-PLAN.md`.
-Keine CONTEXT.md — bewusst übersprungen, die Darstellungsentscheidung ist im Roadmap-Block gelockt.
+Vorliegende Artefakte: `145-UI-SPEC.md` (gsd-ui-checker 6/6 approved), `145-VALIDATION.md`,
+`145-01..04-PLAN.md`, `145-01..04-SUMMARY.md`, `145-UAT.md`.
 
-Nächster Schritt: `execute-phase 145`. Plan 145-04 ist `autonomous: false` — er endet in einer
-manuellen Live-UAT (Pseudo-Rolle in der Capability-Matrix umschalten und die effektiven Rechte eines
-echten aktiven Mitglieds prüfen).
-Last activity: 2026-09-03
+Alle vier Pläne sind ausgeführt und committet. Der volle Regressions-Gate (Backend
+build/vet/test, Frontend tsc/eslint/vitest, Contract-Byte-Diff, Untouched-File-Check) ist grün;
+die Live-UAT im Browser ist vom Nutzer über alle sechs geprüften Beobachtungen hinweg abgenommen.
+v1.4 bleibt ein abgeschlossener Meilenstein — diese Phase wurde additiv angehängt (kein
+Meilenstein-Reset).
+Last activity: 2026-09-04
 
 ## Accumulated Context
 
 ### Roadmap Evolution
 
+- Phase 145 complete (2026-09-04): Alle 4 Pläne fertig; Live-UAT vom Nutzer abgenommen und deckt
+  alle 6 Prüfpunkte ab (Pseudo-Rolle als erste Zeile unter Gruppenrollen, Standardrechte-Tab als
+  Default mit reinem Erklärtext auf "Inhaber", genau 3 umschaltbare Rechte, andere Rollen ohne
+  diese 3 Rechte samt "Grundausstattung öffnen"-Deep-Link, Herkunft Grundausstattung/
+  `membership_baseline` beim aktiven Mitglied, wirksames Umschalten mit Rückweg). Post-Checkpoint-
+  DB-Zustand vom Nutzer unabhängig erhoben und von diesem Agenten read-only nachbestätigt:
+  `schema_migrations = 160`, `role_definitions` hält genau eine reservierte Zeile (`group_member`,
+  Label "Mitgliedschafts-Grundausstattung", contexts `fansub_group`, `assignable = false`,
+  `reserved = true`, `sort_order = -10`), `role_capabilities` hält exakt die 3 erwarteten Zeilen
+  für `group_member`. Backend nach Rebuild sauber gestartet (hört auf 8092), das fail-closed Gate
+  schlägt nicht an. **v1.4 bleibt ein abgeschlossener Meilenstein — dies ist additive
+  Phasen-Fertigstellung, kein Meilenstein-Reset.**
 - Phase 145 geplant (2026-09-03): 4 Pläne / 4 Wellen. Der Planner hat beim Grounding eine im Roadmap-Befund fehlende Stelle gefunden — die SQL-Abfrage in `LoadFansubGroupRoles` muss die reservierte Pseudo-Rolle ebenfalls ausschließen, sonst taucht sie im zuweisbaren Rollenkatalog auf. Migration erhält Nummer 0160.
 - Phase 145 added (2026-09-03): Mitgliedschafts-Grundausstattung in die Rechte-Registry überführen. Additiv an das abgeschlossene v1.4 angehängt (KEIN Milestone-Reset). Scope = `membershipBaselineActions` (effective_rights.go:74) als reservierte, nicht zuweisbare Pseudo-Rolle in `role_definitions`/`role_capabilities` darstellen; Entscheidung zur Darstellung ist bereits vom Nutzer getroffen (siehe .planning/notes/2026-09-03-handoff-nach-phase144.md). Requirements TBD (kein v1.4-Requirement-Mapping — Decision-Coverage-Gate beim Planen beachten). Vor `plan-phase` `/gsd-ui-phase 145` laufen lassen.
 - Phase 144 added (2026-09-02): Überarbeitungs-Kreislauf für Release-Medien vervollständigen.
