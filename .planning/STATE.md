@@ -37,7 +37,7 @@ Phase: 145
 Plan: Noch nicht geplant — nur der Roadmap-Eintrag steht
 Status: ready_to_plan (v1.4 bleibt abgeschlossen; Phase 145 ist additiv angehängt)
 
-Nächster Schritt: `/gsd-ui-phase 145` (Capability-Matrix wird berührt), danach `plan-phase 145`.
+Nächster Schritt: `discuss-phase 145` (keine CONTEXT.md) oder direkt `plan-phase 145` — `145-UI-SPEC.md` liegt vor (gsd-ui-checker 6/6), das UI-Gate ist damit beantwortet.
 Last activity: 2026-09-03 - Phase 145 (Mitgliedschafts-Grundausstattung in die Rechte-Registry überführen) additiv in ROADMAP.md angelegt; davor Quick-Task 260903-gqt (Planungs-Buchhaltung für Phasen 143/144) abgeschlossen
 
 ## Accumulated Context
