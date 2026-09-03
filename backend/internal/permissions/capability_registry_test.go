@@ -405,6 +405,35 @@ func TestLoadCacheFailsClosedWhenPseudoRoleCapabilitiesMissing(t *testing.T) {
 	}
 }
 
+// pseudoRoleCatalogStub is a CatalogLoader stub (Phase 145, Task 3) whose
+// LoadFansubGroupRoles return value deliberately EXCLUDES RoleMembershipBaseline while its
+// LoadCapabilityRoles return value deliberately INCLUDES it -- proving the Go-side catalog
+// functions correctly reflect whatever a loader provides. It intentionally does not
+// implement CacheLoader (mirrors the testmain_test.go stubs' CatalogLoader-only shape), so
+// LoadFansubGroupCatalog never touches loadedCache here.
+type pseudoRoleCatalogStub struct{}
+
+func (pseudoRoleCatalogStub) LoadFansubGroupRoles(context.Context) ([]string, error) {
+	return []string{RoleFansubLead}, nil
+}
+
+func (pseudoRoleCatalogStub) LoadCapabilityRoles(context.Context) ([]string, error) {
+	return []string{RoleFansubLead, RoleMembershipBaseline}, nil
+}
+
+// TestPseudoRoleCapabilityEditableButNotAssignable proves Phase 145's Success Criterion 5 in
+// both directions within one test run (a test that only checks one direction is
+// insufficient, per 145-VALIDATION.md): the reserved pseudo-role is simultaneously
+// unassignable (never in the known-group-role catalog) and capability-editable (present in
+// the capability-bearing catalog).
+func TestPseudoRoleCapabilityEditableButNotAssignable(t *testing.T) {
+	err := NewService(nil).LoadFansubGroupCatalog(context.Background(), pseudoRoleCatalogStub{})
+	require.NoError(t, err)
+
+	assert.False(t, IsKnownFansubGroupRole(RoleMembershipBaseline), "the reserved pseudo-role must never be assignable via IsKnownFansubGroupRole")
+	assert.True(t, IsCapabilityBearingRole(RoleMembershipBaseline), "the reserved pseudo-role must remain capability-editable via IsCapabilityBearingRole")
+}
+
 func TestPhase107PermissionCatalogRequiresEveryReviewAction(t *testing.T) {
 	for _, missing := range []Action{
 		ActionReviewTextDecide,

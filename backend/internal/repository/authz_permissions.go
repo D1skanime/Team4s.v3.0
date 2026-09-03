@@ -432,13 +432,19 @@ var _ permissions.CacheLoader = (*AuthzRepository)(nil)
 // als Gruppenmitglied-Rolle gespeichert werden dürfen. Reine Spezialfälle ohne
 // aktiven Kontext bleiben draußen; historische offene Rollen können so beim
 // Verknüpfen eines App-Mitglieds übernommen werden.
+// Phase 145: `AND NOT reserved` excludes reserved pseudo-roles (e.g. the
+// membership-baseline pseudo-role group_member) from this assignable catalog even
+// though they carry the fansub_group context that otherwise satisfies the OR predicate
+// -- reserved roles remain capability-editable via LoadCapabilityRoles below, they are
+// just never assignable to a real member.
 // Implementiert das permissions.CatalogLoader-Interface für den Startup-Load (D-12).
 func (r *AuthzRepository) LoadFansubGroupRoles(ctx context.Context) ([]string, error) {
 	rows, err := r.db.Query(ctx, `
 		SELECT code FROM role_definitions
-		WHERE assignable = true
+		WHERE (assignable = true
 		   OR 'fansub_group' = ANY(contexts)
-		   OR 'anime_contribution' = ANY(contexts)
+		   OR 'anime_contribution' = ANY(contexts))
+		  AND NOT reserved
 		ORDER BY sort_order, code
 	`)
 	if err != nil {
