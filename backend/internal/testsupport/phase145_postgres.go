@@ -51,6 +51,19 @@ func validatePhase145SchemaName(name string) error {
 
 func createPhase145Prerequisites(t testing.TB, pool *pgxpool.Pool) {
 	t.Helper()
+
+	// Minimal stand-in required before migration 0085's Step 4 ALTER TABLE
+	// hist_group_member_roles ADD CONSTRAINT fk_hist_group_member_roles_role_code FOREIGN KEY
+	// (role_code) REFERENCES role_definitions(code), and before migration 0112's historical
+	// role_code rewrite -- mirrors phase137_postgres.go's identical stand-in.
+	const preMigrationSQL = `CREATE TABLE hist_group_member_roles (role_code TEXT);`
+	if err := validatePhase106SQL(preMigrationSQL); err != nil {
+		t.Fatal(err)
+	}
+	if _, err := pool.Exec(context.Background(), preMigrationSQL); err != nil {
+		t.Fatalf("create Phase-145 pre-migration prerequisites: %v", err)
+	}
+
 	for _, migration := range []string{
 		// role_definitions (fansub_lead, group_history roles, techadmin/gfxler, assignable).
 		"0085_role_definitions_seed.up.sql",
