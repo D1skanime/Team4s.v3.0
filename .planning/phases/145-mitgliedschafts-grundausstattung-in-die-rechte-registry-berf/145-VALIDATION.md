@@ -188,9 +188,14 @@ created: 2026-09-03
 
 ## Wave 0 Requirements
 
-- [ ] New backend test file(s) under `backend/internal/permissions/` covering Success Criteria 1, 3,
-      4, 6 (no existing file currently exercises pseudo-role-sourced baseline resolution — this is
-      genuinely new test surface, not an extension of an existing suite)
+- [ ] New backend test coverage under `backend/internal/permissions/` covering Success Criteria 1,
+      3, 4, 6 (no existing test previously exercised pseudo-role-sourced baseline resolution — this
+      is genuinely new test *coverage*; per Plan 145-01 Task 2, it is delivered as new test
+      functions added to the existing files `effective_rights_test.go`,
+      `capability_registry_test.go`, and `permissions_reload_test.go` rather than a dedicated new
+      file, since two of those files' fixtures — `roleMatrixStubData()` and `fullValidCacheData()`
+      — must themselves be updated with a `RoleMembershipBaseline` entry for the new fail-closed
+      check to pass, making the extension approach both deliberate and functionally sound)
 - [ ] New backend real-Postgres migration test under `backend/internal/repository/` covering Success
       Criterion 2 (before/after effective-rights snapshot)
 - [ ] New frontend test file `frontend/src/app/admin/roles/RoleCapabilityDetail.test.tsx` (or
