@@ -844,8 +844,31 @@ Plans:
   5. Die Pseudo-Rolle erscheint in keiner Rollen-Auswahlliste (nicht zuweisbar), ist aber in der Capability-Matrix im Admin sichtbar und bearbeitbar — über die bestehende Unterscheidung `fansubGroupRoleCatalog` (zuweisbar) vs. `capabilityRoleCatalog` (capability-editierbar) in `permissions.go`.
   6. Fehlen die `role_capabilities`-Zeilen der Pseudo-Rolle, bricht der Start fail-closed ab — analog zum bestehenden Startup-Check (`permissions.go:399`) — statt Mitglieder still ihre Rechte verlieren zu lassen.
 
-**Plans**: TBD (noch nicht geplant)
+**Plans**: 4 plans across 4 waves
+
+  - Wave 1: 145-01 (migration 0160 + cache-driven IsMembershipBaselineAction + fail-closed startup gate + assignable-catalog exclusion)
+  - Wave 2: 145-02 (real-Postgres proof: migration idempotency/rollback + effective-rights snapshot + role_kind emission + remaining role-picker/catalog exclusions)
+  - Wave 3: 145-03 (Capability Matrix frontend: role rail label, tab defaults, RoleCapabilityDetail hardcode-filter split, Inhaber-tab explanation)
+  - Wave 4: 145-04 (full regression gate + live UAT checkpoint)
+
 **UI hint**: yes — `145-UI-SPEC.md` liegt vor (2026-09-03, gsd-ui-checker 6/6 approved)
+
+Plans:
+**Wave 1**
+
+- [ ] 145-01-PLAN.md — Migration 0160 + cache-driven IsMembershipBaselineAction + fail-closed startup gate + assignable-catalog exclusion.
+
+**Wave 2** *(blocked on Wave 1 completion)*
+
+- [ ] 145-02-PLAN.md — Real-Postgres proof (migration idempotency/rollback + effective-rights snapshot) + role_kind emission + remaining role-picker/catalog exclusions.
+
+**Wave 3** *(blocked on Wave 2 completion)*
+
+- [ ] 145-03-PLAN.md — Capability Matrix frontend: role rail label, tab defaults, RoleCapabilityDetail hardcode-filter split, Inhaber-tab explanation.
+
+**Wave 4** *(blocked on Wave 3 completion)*
+
+- [ ] 145-04-PLAN.md — Full regression gate + live UAT checkpoint.
 
 ## v1.4 Coverage
 
@@ -875,4 +898,4 @@ Plans:
 | 142. Integrated Security, Fixtures & Live Release Gate | 1/1 | Complete | 2026-09-01 |
 | 143. Phase-142-Nacharbeit und Dashboard-Lane für abgelehnte Notizen | 19/19 | Complete | 2026-09-02 |
 | 144. Überarbeitungs-Kreislauf für Release-Medien vervollständigen | 8/8 | Complete | 2026-09-03 |
-| 145. Mitgliedschafts-Grundausstattung in die Rechte-Registry überführen | 0/0 | Not started | - |
+| 145. Mitgliedschafts-Grundausstattung in die Rechte-Registry überführen | 0/4 | Not started | - |
