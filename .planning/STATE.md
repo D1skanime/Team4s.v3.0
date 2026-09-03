@@ -2,16 +2,16 @@
 gsd_state_version: 1.0
 milestone: v1.4
 milestone_name: Coverage
-status: milestone_complete
-stopped_at: Milestone complete (Phase 144 was final phase)
-last_updated: 2026-09-03T12:00:00.000Z
-last_activity: 2026-09-02
+status: ready_to_plan
+stopped_at: Phase 145 additiv angelegt (Roadmap-Eintrag), noch nicht geplant
+last_updated: 2026-09-03T12:59:54.000Z
+last_activity: 2026-09-03
 progress:
-  total_phases: 9
+  total_phases: 10
   completed_phases: 9
   total_plans: 111
   completed_plans: 165
-  percent: 100
+  percent: 90
 ---
 
 # Project State
@@ -29,19 +29,22 @@ Phase 135 and any future roadmap entries continue from here.
 See: .planning/PROJECT.md (updated 2026-08-13)
 
 **Core value:** Team4s presents fansub history and collaboration credibly while keeping identity, visibility, ownership, and permissions correct.
-**Current focus:** Milestone complete
+**Current focus:** Phase 145 — Mitgliedschafts-Grundausstattung in die Rechte-Registry überführen (angelegt, noch nicht geplant)
 
 ## Current Position
 
-Phase: 144
-Plan: 8/8 plans complete, Live-UAT abgenommen 2026-09-03 (siehe 144-UAT.md)
-Status: Milestone complete
-Last activity: 2026-09-03 - Completed quick task 260903-gqt: Planungs-Buchhaltung fuer Phasen 143/144 nachgetragen (ROADMAP.md, v1.4-MILESTONE-AUDIT.md, STATE.md-Frontmatter, neue Offene-Fragen-Notiz, DECISIONS.md-Eintrag zur Projektlisten-isDone-Entscheidung); alle sechs Quick-Tasks aus dieser Sitzung (260903-cjk/czh/dth/flw/gf0/gqt) sind damit abgeschlossen
+Phase: 145
+Plan: Noch nicht geplant — nur der Roadmap-Eintrag steht
+Status: ready_to_plan (v1.4 bleibt abgeschlossen; Phase 145 ist additiv angehängt)
+
+Nächster Schritt: `/gsd-ui-phase 145` (Capability-Matrix wird berührt), danach `plan-phase 145`.
+Last activity: 2026-09-03 - Phase 145 (Mitgliedschafts-Grundausstattung in die Rechte-Registry überführen) additiv in ROADMAP.md angelegt; davor Quick-Task 260903-gqt (Planungs-Buchhaltung für Phasen 143/144) abgeschlossen
 
 ## Accumulated Context
 
 ### Roadmap Evolution
 
+- Phase 145 added (2026-09-03): Mitgliedschafts-Grundausstattung in die Rechte-Registry überführen. Additiv an das abgeschlossene v1.4 angehängt (KEIN Milestone-Reset). Scope = `membershipBaselineActions` (effective_rights.go:74) als reservierte, nicht zuweisbare Pseudo-Rolle in `role_definitions`/`role_capabilities` darstellen; Entscheidung zur Darstellung ist bereits vom Nutzer getroffen (siehe .planning/notes/2026-09-03-handoff-nach-phase144.md). Requirements TBD (kein v1.4-Requirement-Mapping — Decision-Coverage-Gate beim Planen beachten). Vor `plan-phase` `/gsd-ui-phase 145` laufen lassen.
 - Phase 144 added (2026-09-02): Überarbeitungs-Kreislauf für Release-Medien vervollständigen.
 - Phase 144 Live-UAT abgenommen (2026-09-03): Nutzer hat den vollständigen Ersetzen-Kreislauf (Upload -> Ablehnung -> Ersetzen -> zweite Ablehnung) im Browser durchgespielt und alle in 144-UAT.md belegten Invarianten bestätigt. Drei während der UAT gefundene, nicht zu Phase 144 gehörende Altlasten sind bereits behoben: RVM-Cleanup-Endlosschleife (448a4b02), has_own_release_work zählte abgelehnte Arbeit als erledigt (07a8c88d), Dashboard kannte Ablehnungen gar nicht (8c910c67/3f4ca6b1). Offen: Projektlisten-„Erledigt"-Grenzfall (bewusst zurückgestellt), CR-01/WR-02 aus .planning/notes/2026-09-02-altlasten-cr01-wr02.md, v1.4-MILESTONE-AUDIT.md fehlen Phasen 143/144.
 - Phase 143 added (2026-09-01): Phase-142-Nacharbeit und Dashboard-Lane für abgelehnte Notizen.

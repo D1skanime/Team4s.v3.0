@@ -417,6 +417,7 @@ Milestone v1.4 closes Live-UAT Findings #29-#32 by making effective group rights
 - [x] **Phase 142: Integrated Security, Fixtures & Live Release Gate** - Prove the complete milestone across contracts, auth refresh, fixtures, security, responsive UI, and canonical ownership. (completed 2026-09-01)
 - [x] **Phase 143: Phase-142-Nacharbeit und Dashboard-Lane für abgelehnte Notizen** - Die in der externen Codeprüfung vom 2026-09-01 belegten Defekte schließen und abgelehnte eigene Release-Notizen im persönlichen Dashboard sichtbar machen. (completed 2026-09-01)
 - [x] **Phase 144: Überarbeitungs-Kreislauf für Release-Medien vervollständigen** - Abgelehnte Release-Medien lassen sich an Ort und Stelle ersetzen statt nur den Text daneben zu ändern, mit Revisionssprung statt Neu-Upload. (completed 2026-09-02, Live-UAT abgenommen 2026-09-03, siehe 144-UAT.md)
+- [ ] **Phase 145: Mitgliedschafts-Grundausstattung in die Rechte-Registry überführen** - Die drei rollenunabhängigen Mitgliedsrechte kommen nicht mehr aus einem Go-Slice, sondern als reservierte, nicht zuweisbare Pseudo-Rolle aus der Datenbank-Registry.
 
 ## Phase Details
 
@@ -818,6 +819,33 @@ Plans:
 - [x] 144-06-PLAN.md — Einreicher-UI: Datei-ersetzen-Kontrolle + Kategoriefeld im Bearbeiten-Formular
 - [x] 144-07-PLAN.md — Prüfer-UI: Überarbeitet-Badge + Kontextzeile auf Detail- und Listenansicht
 
+### Phase 145: Mitgliedschafts-Grundausstattung in die Rechte-Registry überführen
+
+**Goal:** Die drei Rechte, die heute jedes aktive Gruppenmitglied unabhängig von seiner Rolle aus dem Go-Slice `membershipBaselineActions` erhält, stammen aus der Datenbank-Registry — dargestellt als reservierte, nicht zuweisbare Pseudo-Rolle — bei unverändertem Laufzeitverhalten und in der Capability-Matrix bearbeitbar.
+**Requirements**: TBD (Folgearbeit an der Capability-Registry, kein v1.4-Requirement-Mapping)
+**Depends on:** Phase 144
+**Vorbedingung Planung:** `/gsd-ui-phase 145` vor `plan-phase` laufen lassen — die Capability-Matrix wird berührt, sonst blockt das UI-Gate.
+
+**Getroffene Entscheidung (nicht erneut zur Diskussion stellen):** Darstellung als reservierte Pseudo-Rolle in `role_definitions` plus `role_capabilities`-Zeilen (z. B. `group_member`). Begründung: nutzt Lade-, Cache- und Startup-Prüfmaschinerie vollständig und macht die Grundausstattung in der Capability-Matrix im Admin bearbeitbar. Alternative Darstellungen (eigene Baseline-Tabelle, Beibehaltung des Hardcodes) sind verworfen.
+
+**Ausgangsbefund** (am Code verifiziert 2026-09-03):
+
+  - `membershipBaselineActions` in `backend/internal/permissions/effective_rights.go:74` hält drei Actions: `fansub_group.members.view`, `fansub_group_media.view`, `fansub_group_media.upload`. Ausgewertet an genau einer Stelle — `IsMembershipBaselineAction` im Precedence-`switch`, `effective_rights.go:356`.
+  - Alle drei Actions stehen bereits in `action_definitions` und sind dort 15 Rollen über `role_capabilities` zugeordnet; in SQL ist die rollenunabhängige Baseline nirgends nachgebaut. Die Lücke ist auf diese eine Go-Stelle begrenzt.
+  - Die Registry ist produktiv: `LoadRoleCapabilities` (`authz_permissions.go:400`), Startup bricht ab, wenn eine Action weder in `role_capabilities` steht noch standalone ist (`permissions.go:399`).
+
+**Success Criteria** (what must be TRUE):
+
+  1. `membershipBaselineActions` existiert nicht mehr als Rechte-Quelle im Go-Code; die Baseline-Entscheidung im Precedence-`switch` (`effective_rights.go:356`) speist sich aus den geladenen `role_capabilities` der reservierten Pseudo-Rolle.
+  2. Eine neue reversible Migration seedet den Ist-Zustand exakt — genau diese drei Actions, kein Recht mehr und keines weniger. Ein Test gegen echtes Postgres belegt, dass die effektiven Rechte eines aktiven Mitglieds vor und nach der Migration identisch sind.
+  3. Die Provenance-Stufe `membership_baseline` bleibt erhalten: die Baseline darf nicht als `group_role` durchschlagen. Die Precedence-Kette `no_active_membership > user_deny > user_allow > membership_baseline > role_grant > specialized_grant > no_grant` und ihre Contract-Enums (`shared/contracts/admin-capabilities.yaml`, `openapi.yaml`, `frontend/src/types/admin-capability.ts`) bleiben unverändert; `GuidedRevokeFlow.tsx` und `userGroupRightsHelpers.ts` erklären die Herkunft weiterhin als Grundausstattung.
+  4. Ein `user_deny` entzieht ein Baseline-Recht weiterhin, und die Baseline gilt weiterhin nur bei aktiver Mitgliedschaft — beides durch Tests belegt.
+  5. Die Pseudo-Rolle erscheint in keiner Rollen-Auswahlliste (nicht zuweisbar), ist aber in der Capability-Matrix im Admin sichtbar und bearbeitbar — über die bestehende Unterscheidung `fansubGroupRoleCatalog` (zuweisbar) vs. `capabilityRoleCatalog` (capability-editierbar) in `permissions.go`.
+  6. Fehlen die `role_capabilities`-Zeilen der Pseudo-Rolle, bricht der Start fail-closed ab — analog zum bestehenden Startup-Check (`permissions.go:399`) — statt Mitglieder still ihre Rechte verlieren zu lassen.
+
+**Plans**: TBD (noch nicht geplant)
+**UI hint**: yes
+
 ## v1.4 Coverage
 
 | Phase | Requirement Count | Requirement IDs |
@@ -833,7 +861,7 @@ Plans:
 
 ## v1.4 Progress
 
-**Execution Order:** 136 - 137 - 138 - 139 - 140 - 141 - 142 - 143 - 144
+**Execution Order:** 136 - 137 - 138 - 139 - 140 - 141 - 142 - 143 - 144 - 145
 
 | Phase | Plans Complete | Status | Completed |
 |-------|----------------|--------|-----------|
@@ -846,3 +874,4 @@ Plans:
 | 142. Integrated Security, Fixtures & Live Release Gate | 1/1 | Complete | 2026-09-01 |
 | 143. Phase-142-Nacharbeit und Dashboard-Lane für abgelehnte Notizen | 19/19 | Complete | 2026-09-02 |
 | 144. Überarbeitungs-Kreislauf für Release-Medien vervollständigen | 8/8 | Complete | 2026-09-03 |
+| 145. Mitgliedschafts-Grundausstattung in die Rechte-Registry überführen | 0/0 | Not started | - |
