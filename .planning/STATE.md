@@ -3,7 +3,7 @@ gsd_state_version: 1.0
 milestone: v1.4
 milestone_name: Coverage
 status: executing
-stopped_at: Phase 145 UI-SPEC approved
+stopped_at: Phase 145 geplant (4 Pläne / 4 Wellen), noch nicht ausgeführt
 last_updated: "2026-09-03T14:45:36.662Z"
 last_activity: 2026-09-03 -- Phase 145 planning complete
 progress:
@@ -34,16 +34,24 @@ See: .planning/PROJECT.md (updated 2026-08-13)
 ## Current Position
 
 Phase: 145
-Plan: Noch nicht geplant — nur der Roadmap-Eintrag steht
+Plan: 0/4 — geplant, noch nicht ausgeführt (145-01 bis 145-04, vier Wellen)
 Status: Ready to execute
 
-Nächster Schritt: `discuss-phase 145` (keine CONTEXT.md) oder direkt `plan-phase 145` — `145-UI-SPEC.md` liegt vor (gsd-ui-checker 6/6), das UI-Gate ist damit beantwortet.
+Vorliegende Artefakte: `145-UI-SPEC.md` (gsd-ui-checker 6/6 approved), `145-VALIDATION.md`
+(direkt aus den sechs Success Criteria geschrieben, kein Research-Lauf, kein Wave-0-RED-Schritt —
+`nyquist_compliant: false` ist daher erwartet, nicht ein Fehlschlag), `145-01..04-PLAN.md`.
+Keine CONTEXT.md — bewusst übersprungen, die Darstellungsentscheidung ist im Roadmap-Block gelockt.
+
+Nächster Schritt: `execute-phase 145`. Plan 145-04 ist `autonomous: false` — er endet in einer
+manuellen Live-UAT (Pseudo-Rolle in der Capability-Matrix umschalten und die effektiven Rechte eines
+echten aktiven Mitglieds prüfen).
 Last activity: 2026-09-03 -- Phase 145 planning complete
 
 ## Accumulated Context
 
 ### Roadmap Evolution
 
+- Phase 145 geplant (2026-09-03): 4 Pläne / 4 Wellen. Der Planner hat beim Grounding eine im Roadmap-Befund fehlende Stelle gefunden — die SQL-Abfrage in `LoadFansubGroupRoles` muss die reservierte Pseudo-Rolle ebenfalls ausschließen, sonst taucht sie im zuweisbaren Rollenkatalog auf. Migration erhält Nummer 0160.
 - Phase 145 added (2026-09-03): Mitgliedschafts-Grundausstattung in die Rechte-Registry überführen. Additiv an das abgeschlossene v1.4 angehängt (KEIN Milestone-Reset). Scope = `membershipBaselineActions` (effective_rights.go:74) als reservierte, nicht zuweisbare Pseudo-Rolle in `role_definitions`/`role_capabilities` darstellen; Entscheidung zur Darstellung ist bereits vom Nutzer getroffen (siehe .planning/notes/2026-09-03-handoff-nach-phase144.md). Requirements TBD (kein v1.4-Requirement-Mapping — Decision-Coverage-Gate beim Planen beachten). Vor `plan-phase` `/gsd-ui-phase 145` laufen lassen.
 - Phase 144 added (2026-09-02): Überarbeitungs-Kreislauf für Release-Medien vervollständigen.
 - Phase 144 Live-UAT abgenommen (2026-09-03): Nutzer hat den vollständigen Ersetzen-Kreislauf (Upload -> Ablehnung -> Ersetzen -> zweite Ablehnung) im Browser durchgespielt und alle in 144-UAT.md belegten Invarianten bestätigt. Drei während der UAT gefundene, nicht zu Phase 144 gehörende Altlasten sind bereits behoben: RVM-Cleanup-Endlosschleife (448a4b02), has_own_release_work zählte abgelehnte Arbeit als erledigt (07a8c88d), Dashboard kannte Ablehnungen gar nicht (8c910c67/3f4ca6b1). Offen: Projektlisten-„Erledigt"-Grenzfall (bewusst zurückgestellt), CR-01/WR-02 aus .planning/notes/2026-09-02-altlasten-cr01-wr02.md, v1.4-MILESTONE-AUDIT.md fehlen Phasen 143/144.
