@@ -36,7 +36,7 @@ See: .planning/PROJECT.md (updated 2026-08-13)
 Phase: 144
 Plan: Not started
 Status: Milestone complete
-Last activity: 2026-09-02
+Last activity: 2026-09-03 - Completed quick task 260903-cjk: Endlosschleife im RVM-Cleanup beheben: Lifecycle-Zeile blockiert den Hard-Delete
 
 ## Accumulated Context
 
@@ -283,6 +283,7 @@ Last activity: 2026-09-02
 | 260901-historical-role-catalog | Historische Rollen-Auswahl vervollständigt: Technik-Admin, GFX, Karaoke-FX und Administration werden über den zentralen `group_history`-Katalog dokumentiert; reversible Migration und Regressionstests ergänzt. | 2026-09-01 | pending | [260901-historical-role-catalog](./quick/260901-historical-role-catalog/) |
 | 260901-jk5 | Hygiene-Nacharbeit zu Phase 142 (mechanisch, keine Verhaltensaenderung): gofmt fuer 15 im Bereich 4891109a..HEAD verdriftete Go-Dateien, zwei React-Compiler set-state-in-effect-Fehler per queueMicrotask entschaerft (FansubEditClient.tsx, EpisodeVersionEditorPage.tsx), Contract-Permission-Korrektur (admin-fansub-anime-project-timeline-update: anime_fansub_project.timeline.update statt fansub_group.notes.write), Leerzeile in admin-fansub-anime-contributions-create entfernt, v1.4-MILESTONE-AUDIT.md korrigiert (11 statt 13 Lint-Fehler, 2 davon aus Commit 0481b671 Phase-142-implicated, vitest-Suite nie am Gate ausgefuehrt - 16 failed Testdateien/58 failed Tests, als Phase-143-Schuld dokumentiert) | 2026-09-01 | 77d767ab | [260901-jk5-hygiene-nacharbeit-zu-phase-142-gofmt-fo](./quick/260901-jk5-hygiene-nacharbeit-zu-phase-142-gofmt-fo/) |
 | 260901-la2 | Fix phase136 test repo-root helper and correct stale STATE.md frontmatter: phase136RepositoryRoot in phase136_narrow_role_defaults_enforcement_test.go umbenannt zu phase136BackendRoot, neuer phase136RepoRoot-Helper fuer den Migrations-Read ergaenzt (TestPhase136NarrowRoleDefaultsSeedToHandlerContract war seit Phase 136 dauerhaft rot); STATE.md-Frontmatter und Current-Position/Session-Continuity-Abschnitte auf tatsaechlichen Stand (v1.4: 7/8 Phasen abgeschlossen, Phase 143 ready to plan, 84/84 Plaene) korrigiert | 2026-09-01 | fa023325 | [260901-la2-fix-phase136-test-repo-root-helper-and-c](./quick/260901-la2-fix-phase136-test-repo-root-helper-and-c/) |
+| 260903-cjk | RVM-Cleanup-Endlosschleife behoben: HardDeleteRVMAndAsset loeschte nie die release_version_media_review_lifecycle-Zeile vor dem Hard-Delete (Migration-0135-RESTRICT-FK), wodurch der periodische Cleanup seit 2026-09-02 18:55 alle 10 Minuten 83+ mal an Relation 10 scheiterte; DELETE in derselben Transaktion ergaenzt, RED/GREEN-Postgres-Test, notes-Zweig bestaetigt unbetroffen (nur UPDATE, nie DELETE), live gemessen: Relation 10 nach Redeploy in beiden Tabellen count=0, Relation 11 (live UAT) unangetastet | 2026-09-03 | 448a4b02 | [260903-cjk-endlosschleife-im-rvm-cleanup-beheben-li](./quick/260903-cjk-endlosschleife-im-rvm-cleanup-beheben-li/) |
 
 ### Verification Baseline
 
