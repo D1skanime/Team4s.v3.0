@@ -247,6 +247,51 @@ describe("AttentionSection (Phase 116, D-02)", () => {
     expect(screen.queryByText(/Folge 05/i)).toBeNull();
   });
 
+  it('zeigt "Überarbeitung nötig" statt die Zuweisung auszublenden, wenn eigene Arbeit abgelehnt wurde', () => {
+    const rejectedMediaButConfirmedNote = makeContribution({
+      release_version_id: 61,
+      episode_number: "05",
+      role_codes: ["quality_control"],
+      has_own_release_work: true,
+      has_own_rejected_media: true,
+    });
+
+    render(
+      <AttentionSection
+        contributions={[rejectedMediaButConfirmedNote]}
+        pendingClaims={[]}
+      />,
+    );
+
+    expect(screen.queryByText("Nichts Neues im Moment")).toBeNull();
+    const releaseLink = screen.getByRole("link", { name: /Folge 05/i });
+    expect(releaseLink.getAttribute("href")).toBe(
+      "/me/releases/61/workspace?tab=segments",
+    );
+    expect(screen.getByText("Überarbeitung nötig")).not.toBeNull();
+  });
+
+  it('zeigt "Überarbeitung nötig" statt "Neu", wenn beide Bedingungen zutreffen', () => {
+    const recentAndRejected = makeContribution({
+      release_version_id: 61,
+      episode_number: "05",
+      role_codes: ["quality_control"],
+      has_own_release_work: true,
+      has_own_rejected_notes: true,
+      created_at: "2026-07-27T00:00:00Z", // 2 Tage alt -> innerhalb des 14-Tage-Fensters
+    });
+
+    render(
+      <AttentionSection
+        contributions={[recentAndRejected]}
+        pendingClaims={[]}
+      />,
+    );
+
+    expect(screen.getByText("Überarbeitung nötig")).not.toBeNull();
+    expect(screen.queryByText("Neu")).toBeNull();
+  });
+
   it("fasst offene Release-Prüfungen pro Anime zusammen und verlinkt die Prüfungsseite", () => {
     render(
       <AttentionSection

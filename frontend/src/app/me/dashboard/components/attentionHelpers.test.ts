@@ -1,6 +1,6 @@
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
 
-import { ATTENTION_WINDOW_DAYS, groupAttentionContributions, isRecentlyAssigned, resolveWorkspaceHref } from './attentionHelpers'
+import { ATTENTION_WINDOW_DAYS, filterAttentionContributions, groupAttentionContributions, isRecentlyAssigned, resolveWorkspaceHref } from './attentionHelpers'
 import type { MeAnimeContribution } from '@/types/contributions'
 
 describe('attentionHelpers (Phase 116, D-02)', () => {
@@ -75,5 +75,93 @@ describe('groupAttentionContributions', () => {
     expect(groups).toHaveLength(1)
     expect(groups[0]?.contributions).toHaveLength(2)
     expect(groups[0]?.href).toBe('/me/releases/61/workspace?tab=segments')
+  })
+
+  it('setzt hasOwnRejectedWork=true, wenn eine Contribution in der Gruppe abgelehnte eigene Arbeit hat', () => {
+    const groups = groupAttentionContributions([
+      contribution({
+        id: 3,
+        release_version_id: 61,
+        episode_number: '05',
+        has_own_release_work: true,
+        has_own_rejected_media: true,
+      }),
+    ])
+
+    expect(groups).toHaveLength(1)
+    expect(groups[0]?.hasOwnRejectedWork).toBe(true)
+  })
+
+  it('setzt hasOwnRejectedWork=false, wenn keine Contribution abgelehnte eigene Arbeit hat', () => {
+    const groups = groupAttentionContributions([
+      contribution({ id: 4, release_version_id: null }),
+    ])
+
+    expect(groups).toHaveLength(1)
+    expect(groups[0]?.hasOwnRejectedWork).toBe(false)
+  })
+})
+
+describe('filterAttentionContributions', () => {
+  function contribution(overrides: Partial<MeAnimeContribution>): MeAnimeContribution {
+    return {
+      id: 1,
+      anime_id: 5,
+      anime_title: 'Testanime',
+      fansub_group_id: 9,
+      fansub_group_member_id: 2,
+      status: 'confirmed',
+      role_codes: ['translator'],
+      role_labels: ['Übersetzung'],
+      started_year: null,
+      ended_year: null,
+      is_public_on_anime_page: true,
+      is_public_on_member_profile: true,
+      note: null,
+      release_version_id: null,
+      is_own_proposal: false,
+      created_at: '2026-07-28T00:00:00Z',
+      ...overrides,
+    }
+  }
+
+  it('behaelt eine Contribution mit has_own_release_work=true, wenn has_own_rejected_media=true ist', () => {
+    const result = filterAttentionContributions([
+      contribution({
+        id: 1,
+        release_version_id: 61,
+        has_own_release_work: true,
+        has_own_rejected_media: true,
+      }),
+    ])
+
+    expect(result).toHaveLength(1)
+  })
+
+  it('behaelt eine Contribution mit has_own_release_work=true, wenn has_own_rejected_notes=true ist', () => {
+    const result = filterAttentionContributions([
+      contribution({
+        id: 1,
+        release_version_id: 61,
+        has_own_release_work: true,
+        has_own_rejected_notes: true,
+      }),
+    ])
+
+    expect(result).toHaveLength(1)
+  })
+
+  it('verwirft weiterhin eine ausschliesslich erledigte Contribution ohne abgelehnte eigene Arbeit', () => {
+    const result = filterAttentionContributions([
+      contribution({
+        id: 1,
+        release_version_id: 61,
+        has_own_release_work: true,
+        has_own_rejected_notes: false,
+        has_own_rejected_media: false,
+      }),
+    ])
+
+    expect(result).toHaveLength(0)
   })
 })
