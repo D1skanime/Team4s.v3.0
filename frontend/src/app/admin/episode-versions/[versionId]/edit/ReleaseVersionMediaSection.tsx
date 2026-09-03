@@ -290,12 +290,15 @@ export function ReleaseVersionMediaSection({
 
     setUploadError(null)
     try {
-      await media.startUpload(
+      const result = await media.startUpload(
         selectedCategory,
         selectedFiles,
         defaultCaption,
         canShowPreviewToggle ? isPreviewCandidate : false,
       )
+      if (!result.allSucceeded) {
+        return
+      }
       setSelectedFiles([])
       setDefaultCaption('')
       setIsPreviewCandidate(false)
@@ -304,6 +307,12 @@ export function ReleaseVersionMediaSection({
     } catch (error) {
       setUploadError(error instanceof Error ? error.message : 'Upload fehlgeschlagen.')
     }
+  }
+
+  function handleRetryClick(index: number) {
+    media.retryUpload(index).catch((error: unknown) => {
+      setUploadError(error instanceof Error ? error.message : 'Erneuter Versuch fehlgeschlagen.')
+    })
   }
 
   async function handleSaveSelectedItem() {
@@ -617,7 +626,7 @@ export function ReleaseVersionMediaSection({
                       size="sm"
                       className={styles.ghostAction}
                       leftIcon={<RefreshCw size={14} aria-hidden="true" />}
-                      onClick={() => void media.retryUpload(index)}
+                      onClick={() => handleRetryClick(index)}
                     >
                       Retry
                     </Button>

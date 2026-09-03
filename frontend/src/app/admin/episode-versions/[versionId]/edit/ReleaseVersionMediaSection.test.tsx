@@ -11,7 +11,18 @@ import type {
 } from '@/types/releaseVersionMedia'
 
 import { ReleaseVersionMediaSection } from './ReleaseVersionMediaSection'
-import type { UploadQueueItem, UseReleaseVersionMediaResult } from './useReleaseVersionMedia'
+import type { UploadQueueItem, UploadRunResult, UseReleaseVersionMediaResult } from './useReleaseVersionMedia'
+
+const api = vi.hoisted(() => ({
+  getReleaseVersionMedia: vi.fn(),
+  getReleaseVersionCapabilities: vi.fn(),
+  patchReleaseVersionMediaItem: vi.fn(),
+  deleteReleaseVersionMediaItem: vi.fn(),
+  reorderReleaseVersionMedia: vi.fn(),
+  uploadReleaseVersionMedia: vi.fn(),
+  replaceReleaseVersionMediaFile: vi.fn(),
+}))
+vi.mock('@/lib/api', () => ({ ApiError: class extends Error {}, ...api }))
 
 const mediaSectionCSS = readFileSync(resolve(process.cwd(), 'src/app/admin/episode-versions/[versionId]/edit/ReleaseVersionMediaSection.module.css'), 'utf8')
 
@@ -24,6 +35,19 @@ beforeEach(() => {
   vi.stubGlobal('URL', {
     createObjectURL: vi.fn(() => 'blob:test-preview'),
     revokeObjectURL: vi.fn(),
+  })
+  vi.clearAllMocks()
+  api.getReleaseVersionMedia.mockResolvedValue({ data: [] })
+  api.getReleaseVersionCapabilities.mockResolvedValue({
+    data: {
+      can_view_media: true,
+      can_upload_media: true,
+      can_update_media: true,
+      can_delete_media: true,
+      can_delete_own_media: true,
+      can_edit_notes: true,
+      can_manage_segments: false,
+    },
   })
 })
 
@@ -79,8 +103,8 @@ function makeMediaState(
     error: null,
     reload: vi.fn(),
     uploadItems: [],
-    startUpload: vi.fn().mockResolvedValue(undefined),
-    retryUpload: vi.fn().mockResolvedValue(undefined),
+    startUpload: vi.fn().mockResolvedValue({ allSucceeded: true, items: [] } satisfies UploadRunResult),
+    retryUpload: vi.fn().mockResolvedValue({ allSucceeded: true, items: [] } satisfies UploadRunResult),
     clearUploadQueue: vi.fn(),
     patchItem: vi.fn().mockResolvedValue(undefined),
     replaceItem: vi.fn().mockResolvedValue(undefined),
@@ -162,7 +186,7 @@ describe('ReleaseVersionMediaSection Phase 90 upload redesign', () => {
   })
 
   it('starts upload with the active category after a file was selected', async () => {
-    const startUpload = vi.fn().mockResolvedValue(undefined)
+    const startUpload = vi.fn().mockResolvedValue({ allSucceeded: true, items: [] } satisfies UploadRunResult)
     renderSection(makeMediaState({ items: [makeItem()], startUpload }))
 
     openUploadSheet()
@@ -528,5 +552,113 @@ describe('ReleaseVersionMediaSection Phase 144 replace-file drawer', () => {
       expect(patchItem2).toHaveBeenCalledWith(85, expect.objectContaining({ category: 'typesetting_karaoke' }))
     })
     expect(replaceItem2).not.toHaveBeenCalled()
+  })
+})
+
+describe('ReleaseVersionMediaSection CR-01 upload failure gating (real hook, mocked @/lib/api)', () => {
+  function renderLiveSection() {
+    return render(
+      <ReleaseVersionMediaSection
+        versionId={42}
+        fansubGroupName="SubGroup"
+        releaseVersionLabel="v1"
+      />,
+    )
+  }
+
+  async function openLiveUploadSheetWithFiles(files: File[]) {
+    renderLiveSection()
+    await waitFor(() => {
+      expect(screen.getByRole('button', { name: /^Hochladen$/ })).toHaveProperty('disabled', false)
+    })
+    openUploadSheet()
+    fireEvent.change(screen.getByLabelText('Dateien'), { target: { files } })
+  }
+
+  it('shows the error banner and keeps the upload drawer open on a hard upload failure', async () => {
+    api.uploadReleaseVersionMedia.mockRejectedValue(new Error('Netzwerkfehler beim Upload.'))
+    const file = new File(['data'], 'scene.png', { type: 'image/png' })
+    await openLiveUploadSheetWithFiles([file])
+
+    fireEvent.click(screen.getByRole('button', { name: 'Upload starten' }))
+
+    await waitFor(() => {
+      expect(screen.getByText('Netzwerkfehler beim Upload.')).not.toBeNull()
+    })
+    expect(screen.queryByText('Upload abgeschlossen.')).toBeNull()
+    expect(screen.getByRole('dialog', { name: 'Medien hochladen' })).not.toBeNull()
+  })
+
+  it('keeps the upload drawer open with the failed file and a retry action on HTTP-200 total failure', async () => {
+    api.uploadReleaseVersionMedia.mockResolvedValue({
+      results: [{ client_file_name: 'scene.png', status: 'failed', error_code: 'INVALID_MIME_TYPE' }],
+    })
+    const file = new File(['data'], 'scene.png', { type: 'image/png' })
+    await openLiveUploadSheetWithFiles([file])
+
+    fireEvent.click(screen.getByRole('button', { name: 'Upload starten' }))
+
+    const dialog = await screen.findByRole('dialog', { name: 'Medien hochladen' })
+    await waitFor(() => {
+      expect(within(dialog).getByText('INVALID_MIME_TYPE')).not.toBeNull()
+    })
+    expect(within(dialog).getByRole('button', { name: /retry/i })).not.toBeNull()
+    expect(screen.queryByText('Upload abgeschlossen.')).toBeNull()
+  })
+
+  it('keeps the upload drawer open with the failed row visible on a partial failure', async () => {
+    api.uploadReleaseVersionMedia.mockResolvedValue({
+      results: [
+        { client_file_name: 'good.png', status: 'ready', release_version_media_id: 501 },
+        { client_file_name: 'bad.png', status: 'failed', error_code: 'INVALID_MIME_TYPE' },
+      ],
+    })
+    const goodFile = new File(['good'], 'good.png', { type: 'image/png' })
+    const badFile = new File(['bad'], 'bad.png', { type: 'image/png' })
+    await openLiveUploadSheetWithFiles([goodFile, badFile])
+
+    fireEvent.click(screen.getByRole('button', { name: 'Upload starten' }))
+
+    const dialog = await screen.findByRole('dialog', { name: 'Medien hochladen' })
+    await waitFor(() => {
+      expect(within(dialog).getByText('INVALID_MIME_TYPE')).not.toBeNull()
+    })
+    expect(screen.queryByText('Upload abgeschlossen.')).toBeNull()
+  })
+
+  it('still shows the success toast and closes the drawer when every file succeeds', async () => {
+    api.uploadReleaseVersionMedia.mockResolvedValue({
+      results: [{ client_file_name: 'scene.png', status: 'ready', release_version_media_id: 502 }],
+    })
+    const file = new File(['data'], 'scene.png', { type: 'image/png' })
+    await openLiveUploadSheetWithFiles([file])
+
+    fireEvent.click(screen.getByRole('button', { name: 'Upload starten' }))
+
+    expect((await screen.findByRole('status')).textContent).toContain('Upload abgeschlossen.')
+    await waitFor(() => {
+      expect(screen.queryByRole('dialog', { name: 'Medien hochladen' })).toBeNull()
+    })
+  })
+
+  it('shows a friendly error and never leaves an unhandled rejection when a retry click fails', async () => {
+    const retryUpload = vi.fn().mockRejectedValue(new Error('Netzwerkfehler bei erneutem Versuch.'))
+    renderSection(
+      makeMediaState({
+        items: [makeItem()],
+        uploadItems: [makeQueueItem({ status: 'failed', errorMessage: 'INVALID_MIME_TYPE' })],
+        retryUpload,
+      }),
+    )
+
+    openUploadSheet()
+    fireEvent.click(screen.getByRole('button', { name: /retry/i }))
+
+    await waitFor(() => {
+      expect(retryUpload).toHaveBeenCalledWith(0)
+    })
+    await waitFor(() => {
+      expect(screen.getByText('Netzwerkfehler bei erneutem Versuch.')).not.toBeNull()
+    })
   })
 })
