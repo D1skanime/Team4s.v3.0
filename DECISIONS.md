@@ -810,3 +810,40 @@ Explizite Nutzerentscheidung am 2026-08-23. Eine reine Dokumentationsklarstellun
 
 ### Follow-ups Required
 - Keine (dokumentationsseitig abgeschlossen).
+
+## 2026-09-03 - Projektliste isDone: Beitragsvollständigkeit statt Überarbeitungsbedarf
+
+### Decision
+In der Projektlisten-Ansicht (`frontend/src/app/me/projects/[animeId]/group/[fansubGroupId]/page.tsx`,
+die `isDone`-Logik) gilt eine Release-Version bewusst weiterhin als „Erledigt", sobald der Nutzer
+IRGENDETWAS Bestätigtes zu dieser Release-Version beigetragen hat -- auch wenn auf derselben
+Release-Version etwas anderes abgelehnt wurde. Die Regel bleibt unverändert seit Phase 143:
+`isDone = has_own_notes || has_own_media`. Dies ist ausdrücklich eine bewusste Design-Entscheidung
+und explizit nicht als Defekt zu werten, auch wenn Phase 144s Code-Review dies als Finding markiert hat.
+
+### Context
+Die Projektlisten-Ansicht beantwortet die Frage, ob zu jeder Release überhaupt ein Beitrag
+geleistet wurde (Beitragsvollständigkeit), nicht ob Überarbeitungsbedarf besteht. Eine bestätigte
+Notiz erfüllt diese Frage bereits; ein daneben abgelehntes Bild ändert daran nichts. Der
+Überarbeitungsbedarf gehört ins Dashboard, wo er bereits seit den Quick-Tasks 260903-czh und
+260903-dth sichtbar gemacht wird (der „Überarbeitung nötig"-Badge). Die beiden Oberflächen
+beantworten bewusst unterschiedliche Fragen -- Projektliste = Vollständigkeit, Dashboard =
+Überarbeitungsbedarf.
+
+WICHTIG: Dieser Eintrag ersetzt (supersedes) die frühere, in `.planning/notes/2026-09-02-handoff-phase144.md` festgehaltene Begründung ("damit die Zähler nicht doppelt zählen"). Diese frühere Zähler-Begründung wird durch die
+Beitragsvollständigkeit-vs-Überarbeitungsbedarf-Unterscheidung ersetzt.
+
+### Why This Won
+Die Beitragsvollständigkeit-vs-Überarbeitungsbedarf-Unterscheidung ist ein saubereres mentales
+Modell als ein doppelt belasteter Zähler, und sie entspricht bereits der praktischen Nutzung beider
+Oberflächen: die Projektliste als Überblick, was angefasst wurde; das Dashboard als Anzeige, was
+noch Arbeit braucht.
+
+### Consequences
+- `isDone()` in der Projektlisten-Ansicht bleibt unverändert -- aus diesem Eintrag folgt keine
+  weitere Code-Änderung.
+- Eine künftige Code-Review MUSS diesen Eintrag konsultieren, bevor dasselbe Verhalten erneut als
+  Defekt markiert wird -- das ist der gesamte Zweck, diesen Eintrag festzuhalten.
+
+### Follow-ups Required
+Keine (dokumentationsseitig abgeschlossen, Entscheidung festgeschrieben).
