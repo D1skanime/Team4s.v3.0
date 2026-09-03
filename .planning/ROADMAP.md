@@ -833,7 +833,7 @@ Plans:
 
 ## v1.4 Progress
 
-**Execution Order:** 136 - 137 - 138 - 139 - 140 - 141 - 142
+**Execution Order:** 136 - 137 - 138 - 139 - 140 - 141 - 142 - 143 - 144
 
 | Phase | Plans Complete | Status | Completed |
 |-------|----------------|--------|-----------|
@@ -844,3 +844,5 @@ Plans:
 | 140. Review Delegation Management | 3/3 | Complete | 2026-08-26 |
 | 141. Actor-Decidable Review Queue | 7/7 | Complete | 2026-08-26 |
 | 142. Integrated Security, Fixtures & Live Release Gate | 1/1 | Complete | 2026-09-01 |
+| 143. Phase-142-Nacharbeit und Dashboard-Lane für abgelehnte Notizen | 19/19 | Complete | 2026-09-02 |
+| 144. Überarbeitungs-Kreislauf für Release-Medien vervollständigen | 8/8 | Complete | 2026-09-03 |
