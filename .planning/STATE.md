@@ -4,7 +4,7 @@ milestone: v1.4
 milestone_name: Coverage
 status: milestone_complete
 stopped_at: Milestone complete (Phase 144 was final phase)
-last_updated: 2026-09-02T18:40:38.509Z
+last_updated: 2026-09-03T12:00:00.000Z
 last_activity: 2026-09-02
 progress:
   total_phases: 9
