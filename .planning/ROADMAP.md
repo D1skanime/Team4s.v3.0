@@ -416,7 +416,7 @@ Milestone v1.4 closes Live-UAT Findings #29-#32 by making effective group rights
 - [x] **Phase 141: Actor-Decidable Review Queue** - Make every queue lane, count, detail, and next action reflect what the current reviewer may actually decide. (completed 2026-08-26)
 - [x] **Phase 142: Integrated Security, Fixtures & Live Release Gate** - Prove the complete milestone across contracts, auth refresh, fixtures, security, responsive UI, and canonical ownership. (completed 2026-09-01)
 - [x] **Phase 143: Phase-142-Nacharbeit und Dashboard-Lane für abgelehnte Notizen** - Die in der externen Codeprüfung vom 2026-09-01 belegten Defekte schließen und abgelehnte eigene Release-Notizen im persönlichen Dashboard sichtbar machen. (completed 2026-09-01)
-- [x] **Phase 144: Überarbeitungs-Kreislauf für Release-Medien vervollständigen** - Abgelehnte Release-Medien lassen sich an Ort und Stelle ersetzen statt nur den Text daneben zu ändern, mit Revisionssprung statt Neu-Upload. (completed 2026-09-02)
+- [x] **Phase 144: Überarbeitungs-Kreislauf für Release-Medien vervollständigen** - Abgelehnte Release-Medien lassen sich an Ort und Stelle ersetzen statt nur den Text daneben zu ändern, mit Revisionssprung statt Neu-Upload. (completed 2026-09-02, Live-UAT abgenommen 2026-09-03, siehe 144-UAT.md)
 
 ## Phase Details
 
@@ -793,6 +793,7 @@ Plans:
 **Requirements**: TBD (UAT-06, 143-UAT.md — kein v1.4-Requirement-Mapping)
 **Depends on:** Phase 143
 **Plans:** 8/8 plans complete
+**Live-UAT:** Abgenommen 2026-09-03 durch den Nutzer im Browser, siehe `144-UAT.md`. Drei während der UAT gefundene Altlasten (Endlosschleife im RVM-Cleanup, has_own_release_work, Dashboard-Ablehnungssignal) lagen außerhalb der Phase-144-Arbeit und sind bereits als Quick-Tasks behoben.
 
 Plans:
 **Wave 1**

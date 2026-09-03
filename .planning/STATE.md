@@ -34,15 +34,16 @@ See: .planning/PROJECT.md (updated 2026-08-13)
 ## Current Position
 
 Phase: 144
-Plan: Not started
+Plan: 8/8 plans complete, Live-UAT abgenommen 2026-09-03 (siehe 144-UAT.md)
 Status: Milestone complete
-Last activity: 2026-09-03 - Completed quick task 260903-dth: Dashboard: abgelehnte Arbeit als Ueberarbeitungsbedarf sichtbar machen
+Last activity: 2026-09-03 - Phase 144 Live-UAT vom Nutzer im Browser abgenommen ("144er uat erfolgreich"); drei waehrend der UAT gefundene Altlasten (RVM-Cleanup-Endlosschleife, has_own_release_work, Dashboard-Ablehnungssignal) bereits als Quick-Tasks 260903-cjk/czh/dth behoben
 
 ## Accumulated Context
 
 ### Roadmap Evolution
 
 - Phase 144 added (2026-09-02): Überarbeitungs-Kreislauf für Release-Medien vervollständigen.
+- Phase 144 Live-UAT abgenommen (2026-09-03): Nutzer hat den vollständigen Ersetzen-Kreislauf (Upload -> Ablehnung -> Ersetzen -> zweite Ablehnung) im Browser durchgespielt und alle in 144-UAT.md belegten Invarianten bestätigt. Drei während der UAT gefundene, nicht zu Phase 144 gehörende Altlasten sind bereits behoben: RVM-Cleanup-Endlosschleife (448a4b02), has_own_release_work zählte abgelehnte Arbeit als erledigt (07a8c88d), Dashboard kannte Ablehnungen gar nicht (8c910c67/3f4ca6b1). Offen: Projektlisten-„Erledigt"-Grenzfall (bewusst zurückgestellt), CR-01/WR-02 aus .planning/notes/2026-09-02-altlasten-cr01-wr02.md, v1.4-MILESTONE-AUDIT.md fehlen Phasen 143/144.
 - Phase 143 added (2026-09-01): Phase-142-Nacharbeit und Dashboard-Lane für abgelehnte Notizen.
 - Milestone v1.4 roadmap created (2026-08-20): seven sequential phases 136-142 cover Findings #29-#32 and all 41 approved requirements exactly once. Finding #33 (platform documents) and #34 (badge UI) remain deferred.
 - Phase 135 added (2026-08-17): Einladungs- und Onboarding-Flow fuer eingeladene Fansub-Mitglieder haerten. Scope = Live-UAT-Findings #6-#10 (.planning/notes/live-uat-ux-findings.md). Additiv an v1.3 angehaengt; Requirements TBD (kein REQUIREMENTS.md-Mapping -- Decision-Coverage-Gate beim Planen beachten).
