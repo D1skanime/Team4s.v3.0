@@ -12,10 +12,23 @@ type CapabilityMatrixRoleRow struct {
 	RoleContexts                                   []string
 	RoleSortOrder, OperativeCapabilityCount        int
 	RoleAssignable                                 bool
-	ActionCode, ActionLabel, Category              string
-	ActionSortOrder                                int
-	ActionDescription, ActionHelpText              *string
-	UserOverridable, Granted, Standalone           bool
+	// RoleReserved (Phase 145) mirrors role_definitions.reserved -- true only for the reserved,
+	// non-assignable membership-baseline pseudo-role (group_member). Drives RoleKind emission.
+	RoleReserved                         bool
+	ActionCode, ActionLabel, Category    string
+	ActionSortOrder                      int
+	ActionDescription, ActionHelpText    *string
+	UserOverridable, Granted, Standalone bool
+}
+
+// reservedRoleKind (Phase 145) maps role_definitions.reserved to the CapabilityMatrixRoleEntry
+// role_kind the frontend (Plan 145-03) consumes -- "reserved_baseline" for the reserved
+// membership-baseline pseudo-role, "" for every ordinary role_definitions-backed row.
+func reservedRoleKind(reserved bool) string {
+	if reserved {
+		return "reserved_baseline"
+	}
+	return ""
 }
 
 // CapabilityMatrixActionState ist der serialisierbare Zustand einer Action in einer Rolle.
@@ -102,7 +115,7 @@ func (r *AuthzRepository) ListCapabilityMatrix(ctx context.Context) (*Capability
 			ad.sort_order, ad.description_de, ad.help_text_de, ad.user_overridable,
 			rd.code           AS role_code,
 			rd.label_de       AS role_label,
-			rd.sort_order, rd.assignable, rd.color_key, rd.icon_key,
+			rd.sort_order, rd.assignable, rd.color_key, rd.icon_key, rd.reserved,
 			COUNT(rc.action_code) OVER (PARTITION BY rd.code)::integer,
 			(rc.action_code IS NOT NULL) AS granted,
 			(ad.code = ANY($1)) AS standalone,
@@ -138,7 +151,7 @@ func (r *AuthzRepository) ListCapabilityMatrix(ctx context.Context) (*Capability
 			&row.ActionSortOrder, &row.ActionDescription, &row.ActionHelpText, &row.UserOverridable,
 			&row.RoleCode,
 			&row.RoleLabel,
-			&row.RoleSortOrder, &row.RoleAssignable, &row.RoleColorKey, &row.RoleIconKey,
+			&row.RoleSortOrder, &row.RoleAssignable, &row.RoleColorKey, &row.RoleIconKey, &row.RoleReserved,
 			&row.OperativeCapabilityCount,
 			&row.Granted,
 			&row.Standalone,
@@ -194,6 +207,7 @@ func (r *AuthzRepository) ListCapabilityMatrix(ctx context.Context) (*Capability
 			CapabilityEditable: slices.Contains(row.RoleContexts, "fansub_group") && row.RoleCode != "founder", ColorKey: row.RoleColorKey, IconKey: row.RoleIconKey,
 			OperativeCapabilityCount: row.OperativeCapabilityCount,
 			HasOperativeCapabilities: row.OperativeCapabilityCount > 0,
+			RoleKind:                 reservedRoleKind(row.RoleReserved),
 		})
 	}
 

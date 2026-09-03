@@ -241,6 +241,14 @@ func (dashboardAttentionCacheLoader) LoadRoleCapabilities(_ context.Context) (ma
 			permissions.ActionUserGroupCapabilityOverrideManage,
 		},
 		"quality_checker": {permissions.ActionReviewTextDecide, permissions.ActionReviewImageDecide},
+		// Phase 145: permissions.validateMembershipBaselineRegistryPresence fail-closed-rejects
+		// any LoadCache call missing the reserved RoleMembershipBaseline (group_member) entry's
+		// 3 baseline actions -- mirrors the same fixture fix applied to appAuthCapabilityCacheLoader.
+		permissions.RoleMembershipBaseline: {
+			permissions.ActionFansubGroupMembersView,
+			permissions.ActionFansubGroupMediaView,
+			permissions.ActionFansubGroupMediaUpload,
+		},
 	}, nil
 }
 

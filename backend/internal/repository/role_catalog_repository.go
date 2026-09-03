@@ -49,7 +49,7 @@ func (r *RoleCatalogRepository) ListPublicRoleDefinitions(ctx context.Context, c
 			COUNT(rc.action_code)::integer AS operative_capability_count
 		FROM role_definitions rd
 		LEFT JOIN role_capabilities rc ON rc.role_code = rd.code
-		WHERE $1 = ANY(rd.contexts)
+		WHERE $1 = ANY(rd.contexts) AND NOT rd.reserved
 		GROUP BY rd.code, rd.label_de, rd.contexts, rd.sort_order, rd.assignable, rd.color_key, rd.icon_key
 		ORDER BY rd.sort_order, rd.code
 	`

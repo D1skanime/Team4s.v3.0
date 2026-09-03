@@ -294,7 +294,7 @@ func (r *HistGroupMemberRolesRepository) ListFansubGroupRoleDefinitions(ctx cont
 		SELECT rd.code, rd.label_de, rd.contexts, rd.sort_order, rd.assignable, rd.color_key, rd.icon_key,
 		       COUNT(rc.action_code)::integer
 		FROM role_definitions rd LEFT JOIN role_capabilities rc ON rc.role_code = rd.code
-		WHERE 'fansub_group' = ANY(rd.contexts) OR 'group_history' = ANY(rd.contexts)
+		WHERE ('fansub_group' = ANY(rd.contexts) OR 'group_history' = ANY(rd.contexts)) AND NOT rd.reserved
 		GROUP BY rd.code ORDER BY rd.sort_order, rd.code
 	`)
 	if err != nil {

@@ -633,6 +633,14 @@ func (releaseReviewDelegationCacheLoader) LoadRoleCapabilities(
 			permissions.ActionReviewContributionDecide,
 			permissions.ActionUserGroupCapabilityOverrideManage,
 		},
+		// Phase 145: permissions.validateMembershipBaselineRegistryPresence fail-closed-rejects
+		// any LoadCache call missing the reserved RoleMembershipBaseline (group_member) entry's
+		// 3 baseline actions -- mirrors the same fixture fix applied elsewhere in this phase.
+		permissions.RoleMembershipBaseline: {
+			permissions.ActionFansubGroupMembersView,
+			permissions.ActionFansubGroupMediaView,
+			permissions.ActionFansubGroupMediaUpload,
+		},
 	}, nil
 }
 

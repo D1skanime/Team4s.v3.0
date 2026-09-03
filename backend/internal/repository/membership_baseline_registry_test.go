@@ -221,3 +221,46 @@ func TestLoadFansubGroupRolesExcludesReservedPseudoRoleAfterMigration(t *testing
 	require.NoError(t, err)
 	assert.NotContains(t, roles, "group_member", "LoadFansubGroupRoles must exclude the reserved pseudo-role from the assignable catalog")
 }
+
+// TestReservedPseudoRoleExcludedFromPickersAndMarkedInCapabilityMatrix proves Phase 145
+// Success Criterion 5's remaining real-SQL surfaces in one run: ListCapabilityMatrix emits
+// role_kind "reserved_baseline" (and stays capability-editable) for the reserved pseudo-role
+// while every other role_definitions-backed row has an empty role_kind; the app-member-add
+// role picker (ListFansubGroupRoleDefinitions) and the public role catalog
+// (ListPublicRoleDefinitions) both exclude the reserved pseudo-role entirely.
+func TestReservedPseudoRoleExcludedFromPickersAndMarkedInCapabilityMatrix(t *testing.T) {
+	pool := testsupport.OpenPhase145Postgres(t)
+	ctx := context.Background()
+
+	testsupport.ApplySQLFile(t, pool, phase145MigrationPath(t, "0160_membership_baseline_pseudo_role.up.sql"))
+
+	repo := NewAuthzRepository(pool)
+
+	matrix, err := repo.ListCapabilityMatrix(ctx)
+	require.NoError(t, err)
+	foundReserved := false
+	for _, role := range matrix.Roles {
+		if role.RoleCode == "group_member" {
+			foundReserved = true
+			assert.Equal(t, "reserved_baseline", role.RoleKind, "the reserved pseudo-role must emit role_kind=reserved_baseline")
+			assert.True(t, role.CapabilityEditable, "the reserved pseudo-role must stay capability-editable")
+			continue
+		}
+		assert.Empty(t, role.RoleKind, "role %q must have an empty role_kind (only the reserved pseudo-role carries reserved_baseline)", role.RoleCode)
+	}
+	assert.True(t, foundReserved, "ListCapabilityMatrix must include the group_member row")
+
+	histRepo := NewHistGroupMemberRolesRepository(pool)
+	fansubGroupOptions, err := histRepo.ListFansubGroupRoleDefinitions(ctx)
+	require.NoError(t, err)
+	for _, opt := range fansubGroupOptions {
+		assert.NotEqual(t, "group_member", opt.Code, "the app-member-add role picker must never return the reserved pseudo-role")
+	}
+
+	catalogRepo := NewRoleCatalogRepository(pool)
+	publicOptions, err := catalogRepo.ListPublicRoleDefinitions(ctx, "fansub_group")
+	require.NoError(t, err)
+	for _, opt := range publicOptions {
+		assert.NotEqual(t, "group_member", opt.Code, "the public role catalog must never return the reserved pseudo-role")
+	}
+}

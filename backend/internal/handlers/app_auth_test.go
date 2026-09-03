@@ -231,6 +231,16 @@ func (appAuthCapabilityCacheLoader) LoadRoleCapabilities(_ context.Context) (map
 		"founder":                   {permissions.ActionFansubGroupMediaUpdate, permissions.ActionFansubGroupPageFoundingHistoryEdit},
 		"co_leader":                 {permissions.ActionFansubGroupMediaUpdate, permissions.ActionFansubGroupPageGeneralEdit, permissions.ActionFansubGroupLinksUpdate},
 		"media_sorter":              {permissions.ActionFansubGroupMediaView, permissions.ActionFansubGroupMediaReorder},
+		// Phase 145: permissions.validateMembershipBaselineRegistryPresence fail-closed-rejects
+		// any LoadCache call whose cache is missing the reserved RoleMembershipBaseline
+		// (group_member) entry's 3 baseline actions -- this fixture must carry it too, mirroring
+		// the same fix Plan 145-01 already applied to roleMatrixStubData()/fullValidCacheData()
+		// in the permissions package.
+		permissions.RoleMembershipBaseline: {
+			permissions.ActionFansubGroupMembersView,
+			permissions.ActionFansubGroupMediaView,
+			permissions.ActionFansubGroupMediaUpload,
+		},
 	}, nil
 }
 
