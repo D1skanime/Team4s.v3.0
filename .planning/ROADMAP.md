@@ -860,7 +860,7 @@ Plans:
 
 **Wave 2** *(blocked on Wave 1 completion)*
 
-- [ ] 145-02-PLAN.md — Real-Postgres proof (migration idempotency/rollback + effective-rights snapshot) + role_kind emission + remaining role-picker/catalog exclusions.
+- [x] 145-02-PLAN.md — Real-Postgres proof (migration idempotency/rollback + effective-rights snapshot) + role_kind emission + remaining role-picker/catalog exclusions.
 
 **Wave 3** *(blocked on Wave 2 completion)*
 
@@ -898,4 +898,4 @@ Plans:
 | 142. Integrated Security, Fixtures & Live Release Gate | 1/1 | Complete | 2026-09-01 |
 | 143. Phase-142-Nacharbeit und Dashboard-Lane für abgelehnte Notizen | 19/19 | Complete | 2026-09-02 |
 | 144. Überarbeitungs-Kreislauf für Release-Medien vervollständigen | 8/8 | Complete | 2026-09-03 |
-| 145. Mitgliedschafts-Grundausstattung in die Rechte-Registry überführen | 1/4 | In Progress|  |
+| 145. Mitgliedschafts-Grundausstattung in die Rechte-Registry überführen | 2/4 | In Progress|  |

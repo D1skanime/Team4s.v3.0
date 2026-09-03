@@ -3,14 +3,14 @@ gsd_state_version: 1.0
 milestone: v1.4
 milestone_name: Coverage
 status: executing
-stopped_at: Completed 145-01-PLAN.md
-last_updated: "2026-09-03T15:07:30.553Z"
+stopped_at: Completed 145-02-PLAN.md
+last_updated: "2026-09-03T15:23:33.950Z"
 last_activity: 2026-09-03
 progress:
   total_phases: 10
   completed_phases: 9
   total_plans: 115
-  completed_plans: 112
+  completed_plans: 113
   percent: 90
 ---
 
@@ -34,7 +34,7 @@ See: .planning/PROJECT.md (updated 2026-08-13)
 ## Current Position
 
 Phase: 145 (mitgliedschafts-grundausstattung-in-die-rechte-registry-berf) — EXECUTING
-Plan: 2 of 4
+Plan: 3 of 4
 Status: Ready to execute
 
 Vorliegende Artefakte: `145-UI-SPEC.md` (gsd-ui-checker 6/6 approved), `145-VALIDATION.md`
@@ -255,6 +255,8 @@ Last activity: 2026-09-03
 - [Phase 145]: group_member pseudo-role uses sort_order -10 (below the live minimum of 0) so it sorts first under Gruppenrollen, per 145-UI-SPEC.md's Interaction Contract — Locked UI ordering requirement for Phase 145
 - [Phase 145]: validateMembershipBaselineRegistryPresence is a distinct check from validateCapabilityCatalog because the 3 baseline actions are already granted to other roles -- the existing catalog-wide check cannot detect the pseudo-role's own rows being absent — Closes Success Criterion 6 fail-closed gap validateCapabilityCatalog alone cannot catch
 - [Phase 145]: LoadCapabilityRoles is intentionally left untouched -- its contexts-only predicate already correctly includes the reserved pseudo-role for capability-matrix editing; only LoadFansubGroupRoles needed the NOT reserved guard — Keeps the pseudo-role capability-editable while excluding it from the assignable catalog (Success Criterion 5)
+- [Phase 145]: 145-02: OpenPhase145Postgres's post-migration stand-in replicates only the exact columns/rows real migrations 0109/0146 contribute (fansub_group_media.view/.upload action rows, role_definitions.color_key/icon_key, action_definitions.description_de/help_text_de/user_overridable) rather than replaying those migrations' full SQL, which would pull in unrelated production tables.
+- [Phase 145]: 145-02: found and fixed a Plan-145-01 regression -- validateMembershipBaselineRegistryPresence's fail-closed gate broke 5 independent local permissions.CacheLoader test stubs across internal/handlers/internal/services/internal/repository that Plan 145-01 did not update; full go test ./... now shows zero group_member-related failures.
 
 ### Pending Todos
 
@@ -559,10 +561,11 @@ untruncated list lives in `.planning/todos/pending/`.
 | Phase 144 P07 | 20min | 3 tasks | 4 files |
 | Phase 144 P08 | 20min | 3 tasks | 7 files |
 | Phase 145 P01 | 5min | 3 tasks | 8 files |
+| Phase 145 P02 | 10min | 3 tasks | 10 files |
 
 ## Session Continuity
 
-Last session: 2026-09-03T15:07:30.537Z
-Stopped at: Completed 145-01-PLAN.md
+Last session: 2026-09-03T15:23:33.934Z
+Stopped at: Completed 145-02-PLAN.md
 Last activity: 2026-09-01 - Milestone v1.4 audit passed (41/41 requirements, 7/7 phases, .planning/v1.4-MILESTONE-AUDIT.md); Phase 143 added to roadmap, not yet planned
 Resume file: None
