@@ -3,14 +3,14 @@ gsd_state_version: 1.0
 milestone: v1.4
 milestone_name: Coverage
 status: executing
-stopped_at: Phase 145 geplant (4 Pläne / 4 Wellen), noch nicht ausgeführt
-last_updated: "2026-09-03T14:45:36.662Z"
-last_activity: 2026-09-03 -- Phase 145 planning complete
+stopped_at: Completed 145-01-PLAN.md
+last_updated: "2026-09-03T15:07:30.553Z"
+last_activity: 2026-09-03
 progress:
   total_phases: 10
   completed_phases: 9
   total_plans: 115
-  completed_plans: 111
+  completed_plans: 112
   percent: 90
 ---
 
@@ -29,12 +29,12 @@ Phase 135 and any future roadmap entries continue from here.
 See: .planning/PROJECT.md (updated 2026-08-13)
 
 **Core value:** Team4s presents fansub history and collaboration credibly while keeping identity, visibility, ownership, and permissions correct.
-**Current focus:** Phase 145 — Mitgliedschafts-Grundausstattung in die Rechte-Registry überführen (angelegt, noch nicht geplant)
+**Current focus:** Phase 145 — mitgliedschafts-grundausstattung-in-die-rechte-registry-berf
 
 ## Current Position
 
-Phase: 145
-Plan: 0/4 — geplant, noch nicht ausgeführt (145-01 bis 145-04, vier Wellen)
+Phase: 145 (mitgliedschafts-grundausstattung-in-die-rechte-registry-berf) — EXECUTING
+Plan: 2 of 4
 Status: Ready to execute
 
 Vorliegende Artefakte: `145-UI-SPEC.md` (gsd-ui-checker 6/6 approved), `145-VALIDATION.md`
@@ -45,7 +45,7 @@ Keine CONTEXT.md — bewusst übersprungen, die Darstellungsentscheidung ist im 
 Nächster Schritt: `execute-phase 145`. Plan 145-04 ist `autonomous: false` — er endet in einer
 manuellen Live-UAT (Pseudo-Rolle in der Capability-Matrix umschalten und die effektiven Rechte eines
 echten aktiven Mitglieds prüfen).
-Last activity: 2026-09-03 -- Phase 145 planning complete
+Last activity: 2026-09-03
 
 ## Accumulated Context
 
@@ -252,6 +252,9 @@ Last activity: 2026-09-03 -- Phase 145 planning complete
 - [Phase 144]: Plan 144-06 executed (Zielbild 1/2, UI-SPEC file-replace contract) -- useReleaseVersionMedia.ts gained replaceItem/replaceError mirroring patchItem's revision-binding shape (buildReplaceMediaFileRequest extracted to helpers.tsx to stay under the 450-line cap); new ReleaseVersionMediaReplaceControls.tsx hosts the category Select (global primitives only); the file-replace drop-zone's native input stays inline in ReleaseVersionMediaSection.tsx per the ESLint LEGACY_NO_RESTRICTED_SYNTAX_FILES ratchet, since a brand-new file can never join that exemption. The primary submit button now reflects three UI-SPEC states and is disabled for a rejected item until a real change is staged, closing the no-op-resubmit gap. 20/20 tests pass in the touched test file, full suite 289/289 files green, tsc clean, 0 new eslint violation categories.
 - [Phase 144]: [Phase 144, 2026-09-02]: Plan 144-07 executed — resolvePriorRejectionContextLine() in releaseReviewPresentation.ts owns own-rejection vs other-reviewer resubmission copy branching (no rejection_category label interpolated, per UI-SPEC's locked Copywriting Contract); page.tsx's badge+context-line JSX uses single-line ternaries to stay at exactly 450 lines, the CLAUDE.md cap. Closes Phase 144's Zielbild 3 frontend half; all 4 Zielbild goals now have both backend and frontend halves shipped across the phase's 7 plans.
 - [Phase 144-08]: rvmPreviewGuardBlocked falls back to the row's real current is_preview_candidate only when the request omits the field; an explicit request value (true or false) always wins — Closes 144-VERIFICATION.md's omitted-field guard bypass without making the guard stricter than an explicit request
+- [Phase 145]: group_member pseudo-role uses sort_order -10 (below the live minimum of 0) so it sorts first under Gruppenrollen, per 145-UI-SPEC.md's Interaction Contract — Locked UI ordering requirement for Phase 145
+- [Phase 145]: validateMembershipBaselineRegistryPresence is a distinct check from validateCapabilityCatalog because the 3 baseline actions are already granted to other roles -- the existing catalog-wide check cannot detect the pseudo-role's own rows being absent — Closes Success Criterion 6 fail-closed gap validateCapabilityCatalog alone cannot catch
+- [Phase 145]: LoadCapabilityRoles is intentionally left untouched -- its contexts-only predicate already correctly includes the reserved pseudo-role for capability-matrix editing; only LoadFansubGroupRoles needed the NOT reserved guard — Keeps the pseudo-role capability-editable while excluding it from the assignable catalog (Success Criterion 5)
 
 ### Pending Todos
 
@@ -555,10 +558,11 @@ untruncated list lives in `.planning/todos/pending/`.
 | Phase 144 P06 | 45min | 3 tasks | 6 files |
 | Phase 144 P07 | 20min | 3 tasks | 4 files |
 | Phase 144 P08 | 20min | 3 tasks | 7 files |
+| Phase 145 P01 | 5min | 3 tasks | 8 files |
 
 ## Session Continuity
 
-Last session: 2026-09-03T13:34:32.530Z
-Stopped at: Phase 145 UI-SPEC approved
+Last session: 2026-09-03T15:07:30.537Z
+Stopped at: Completed 145-01-PLAN.md
 Last activity: 2026-09-01 - Milestone v1.4 audit passed (41/41 requirements, 7/7 phases, .planning/v1.4-MILESTONE-AUDIT.md); Phase 143 added to roadmap, not yet planned
-Resume file: .planning/phases/145-mitgliedschafts-grundausstattung-in-die-rechte-registry-berf/145-UI-SPEC.md
+Resume file: None

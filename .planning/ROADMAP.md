@@ -856,7 +856,7 @@ Plans:
 Plans:
 **Wave 1**
 
-- [ ] 145-01-PLAN.md — Migration 0160 + cache-driven IsMembershipBaselineAction + fail-closed startup gate + assignable-catalog exclusion.
+- [x] 145-01-PLAN.md — Migration 0160 + cache-driven IsMembershipBaselineAction + fail-closed startup gate + assignable-catalog exclusion.
 
 **Wave 2** *(blocked on Wave 1 completion)*
 
@@ -898,4 +898,4 @@ Plans:
 | 142. Integrated Security, Fixtures & Live Release Gate | 1/1 | Complete | 2026-09-01 |
 | 143. Phase-142-Nacharbeit und Dashboard-Lane für abgelehnte Notizen | 19/19 | Complete | 2026-09-02 |
 | 144. Überarbeitungs-Kreislauf für Release-Medien vervollständigen | 8/8 | Complete | 2026-09-03 |
-| 145. Mitgliedschafts-Grundausstattung in die Rechte-Registry überführen | 0/4 | Not started | - |
+| 145. Mitgliedschafts-Grundausstattung in die Rechte-Registry überführen | 1/4 | In Progress|  |
