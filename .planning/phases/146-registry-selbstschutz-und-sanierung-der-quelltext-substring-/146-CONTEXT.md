@@ -94,7 +94,7 @@ Research-Berichts)
   (D-15) ist die zweite Verteidigungslinie, nicht die einzige.
 
 **Drei nachgemessene Zusatzfakten (2026-09-04, live gegen `team4s_v2`):**
-- **D-17 (vierte betroffene Abfrage + Falle):** `GrantCapability` UND `RevokeCapability` in
+- **D-17:** (vierte betroffene Abfrage + Falle) `GrantCapability` UND `RevokeCapability` in
   `backend/internal/handlers/admin_capability_handler.go` (~Zeile 170 bzw. ~Zeile 235) benutzen
   denselben Guard `permissions.IsCapabilityBearingRole`, gespeist aus `capabilityRoleCatalog`,
   gefüllt von `LoadCapabilityRoles` in `backend/internal/repository/authz_permissions.go`
@@ -111,13 +111,13 @@ Research-Berichts)
   erlaubt), nicht rollen-pauschal über `IsCapabilityBearingRole`. Die Planung muss ausdrücklich
   behandeln, ob/wie `LoadCapabilityRoles` angefasst wird, und Kriterium 4 (eine autoritative Quelle
   für die drei Baseline-Codes) so zuschneiden, dass sie diesen neuen Guard trägt.
-- **D-18 (Zahlen):** `action_definitions` hat 38 Zeilen, `role_capabilities` für `group_member`
+- **D-18:** (Zahlen) `action_definitions` hat 38 Zeilen, `role_capabilities` für `group_member`
   genau 3. `role_definitions` für `group_member`: `assignable=false`, `reserved=true`,
   `contexts={fansub_group}`, `sort_order=-10`. Eine Action (`fansub_group.invitations.accept`) ist
   standalone und wird nicht als Switch gerendert — die ungefilterte Ansicht ergibt somit **37**
   Switches, davon **34** nicht gewährt (präzisiert gegenüber der ersten, grob gerundeten
   Research-Fassung).
-- **D-19 (UAT-/Test-Lücke, in dieser Phase zu schließen):** Das `Accordion` mountet eingeklappte
+- **D-19:** (UAT-/Test-Lücke, in dieser Phase zu schließen) Das `Accordion` mountet eingeklappte
   Kategorien nicht (`isMounted = isOpen || keepMountedIds?.has(id)`), der Phase-145-UAT-Prüfer hatte
   2 von 8 Kategorien offen und sah dort korrekt 3 Switches. Der bestehende Unit-Test in
   `RoleCapabilityDetail.test.tsx` füttert eine Fixture mit genau 3 Fake-Actions und übt die reale
