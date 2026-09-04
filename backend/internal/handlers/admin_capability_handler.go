@@ -178,6 +178,23 @@ func (h *AdminCapabilityHandler) GrantCapability(c *gin.Context) {
 		return
 	}
 
+	// T-146-06 (146-03, D-16): Action-spezifischer Registry-Selbstschutz-Guard für die
+	// reservierte Mitgliedschafts-Grundausstattung — verhindert, dass der Pseudo-Rolle
+	// group_member irgendeine Nicht-Grundausstattungs-Action zugewiesen wird, damit ihr
+	// Registrierungszustand strukturell auf die 3 vorgesehenen Actions begrenzt bleibt, selbst
+	// wenn das Frontend-Badge/-Filter je umgangen wird. Die 3 Grundausstattungs-Actions selbst
+	// bleiben weiterhin zuweisbar (z. B. nach einem legitimen Entzug-dann-Korrektur-Zyklus) —
+	// dieser Guard ist bewusst NICHT in LoadCapabilityRoles/IsCapabilityBearingRole verortet
+	// (siehe D-17-Falle), sondern eigenständig hier in GrantCapability.
+	if roleCode == permissions.RoleMembershipBaseline &&
+		!slices.Contains(permissions.MembershipBaselineActionCodes, permissions.Action(actionCode)) {
+		c.JSON(http.StatusConflict, gin.H{"error": gin.H{
+			"code":    "membership_baseline_guard",
+			"message": "Die reservierte Mitgliedschafts-Grundausstattung ist auf genau die 3 Grundrechte beschränkt und kann nicht um weitere Rechte erweitert werden — die Änderung wurde nicht gespeichert.",
+		}})
+		return
+	}
+
 	if err := h.mutationRepo.GrantRoleCapability(c.Request.Context(), roleCode, actionCode); err != nil {
 		log.Printf("capability grant: repo error (role=%q, action=%q): %v", roleCode, actionCode, err)
 		internalError(c, "Capability konnte nicht zugewiesen werden.")
