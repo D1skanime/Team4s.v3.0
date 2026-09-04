@@ -897,8 +897,24 @@ Plans:
   7. Ein automatischer Guard verhindert Neuzugänge — eingefrorene, nur schrumpfende Ausnahmeliste nach dem Vorbild von `LEGACY_NO_RESTRICTED_SYNTAX_FILES` in `frontend/eslint.config.mjs`. Die `CLAUDE.md`-Konvention ist damit durchgesetzt statt nur beschrieben.
   8. Der bewusst stehen gelassene Restbestand ist als benannte Schuld dokumentiert, mit dem Grund je Datei — nicht als stillschweigende Lücke.
 
-**Plans**: TBD (noch nicht geplant)
-**UI hint**: ja — Kriterium 2 berührt die Capability-Matrix; vor `plan-phase` `/gsd-ui-phase 146` laufen lassen.
+**Plans:** 13 plans in 4 waves
+
+Plans:
+- [ ] 146-01-PLAN.md — Criterion 3+4: NOT reserved filter fix, single-source baseline action codes
+- [ ] 146-02-PLAN.md — Criterion 2: capability-matrix badge/lock/aria-describedby + 38-vs-3 filter fix (D-15/D-19)
+- [ ] 146-03-PLAN.md — Criterion 1+D-16: unconditional revoke guard + action-specific grant guard
+- [ ] 146-04-PLAN.md — Criteria 5/6/7: lock security-relevant file list (D-08) + remediate 3 files
+- [ ] 146-05-PLAN.md — Criteria 5/6: remediate hist_group_member_roles_whitelist_test.go + member_claims_repository_claim_activation_test.go
+- [ ] 146-06-PLAN.md — Criteria 5/6: remediate member_archive_repository_test.go + member_point_totals_repository_test.go
+- [ ] 146-07-PLAN.md — Criteria 5/6: remediate fansub_test.go + point_ledger_repository_test.go
+- [ ] 146-08-PLAN.md — Criteria 5/6: remediate 3 admin_content_* handler test files
+- [ ] 146-09-PLAN.md — Criteria 5/6: remediate dashboard_me_handler_test.go
+- [ ] 146-10-PLAN.md — Criteria 5/6: remediate public_member_access_matrix_test.go
+- [ ] 146-11-PLAN.md — Criteria 5/6: remediate release_version_media_repository_test.go
+- [ ] 146-12-PLAN.md — Criteria 5/6: remediate admin_content_release_version_media_test.go
+- [ ] 146-13-PLAN.md — Criteria 6/7/8: ratchet guard + named remainder documentation
+
+**UI hint**: ja — Kriterium 2 berührt die Capability-Matrix; vor `plan-phase` `/gsd-ui-phase 146` laufen lassen. (erledigt, 146-UI-SPEC.md abgenommen)
 
 ## v1.4 Coverage
 
