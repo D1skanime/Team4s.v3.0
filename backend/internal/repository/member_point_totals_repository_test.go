@@ -25,12 +25,36 @@ import (
 // "undefined: NewMemberPointTotalsRepository" (RED) fehl. Siehe 109-01-PLAN.md Task 2.
 
 func TestMemberPointTotalsRankingUsesCanonicalStoredSlug(t *testing.T) {
+	pool := openMemberPointTotalsPostgres(t)
+
+	// Seed a member whose nickname deliberately diverges from its stored public_slug --
+	// if ListRanking ever fell back to a nickname-derived or generated slug, this
+	// divergence would surface it.
+	_, err := pool.Exec(context.Background(), `
+INSERT INTO members (id, nickname, display_name, profile_visibility, public_slug)
+VALUES (901, 'ranking-divergent-nickname', 'Ranking Divergent', 'public', 'stable-ranking-slug');`)
+	require.NoError(t, err)
+
+	ledger := NewPointLedgerRepository(pool)
+	_, err = ledger.InsertAward(context.Background(), postgresAwardInputForMember(901, "award:mpt-canonical-slug"))
+	require.NoError(t, err)
+
+	rows, _, err := NewMemberPointTotalsRepository(pool).ListRanking(context.Background(), 1)
+	require.NoError(t, err)
+
+	var seeded *MemberPointRankingRow
+	for i := range rows {
+		if rows[i].MemberID == 901 {
+			seeded = &rows[i]
+		}
+	}
+	require.NotNil(t, seeded, "seeded divergent-nickname member must appear in the ranking")
+	require.Equal(t, pointStringPtr("stable-ranking-slug"), seeded.Slug,
+		"ranking must return the stored public_slug, not a nickname-derived or generated fallback")
+
 	contentBytes, err := os.ReadFile("member_point_totals_repository.go")
 	require.NoError(t, err)
 	content := strings.ToLower(string(contentBytes))
-	compact := strings.Join(strings.Fields(content), " ")
-
-	require.Contains(t, compact, "m.public_slug as slug", "ranking must select the stored canonical slug directly")
 	for _, forbidden := range []string{"memberslugexpr", "regexp_replace", "coalesce(m.public_slug", "id::text"} {
 		require.NotContains(t, content, forbidden, "ranking must not contain generated or fallback member identity")
 	}
