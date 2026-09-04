@@ -2,6 +2,7 @@ package repository
 
 import (
 	"context"
+	"fmt"
 	"os"
 	"path/filepath"
 	"runtime"
@@ -117,94 +118,174 @@ VALUES (801, 701, true, 'confirmed');`)
 	}
 }
 
-// TestArchiveVisibilityFilter prueft, dass die SearchMembers-Query alle drei
-// Sichtbarkeits-Bedingungen enthaelt (Source-Inspection-Test, keine echte DB benoetigt).
-func TestArchiveVisibilityFilter(t *testing.T) {
-	// Erstelle eine Instanz ohne echte DB, um die SQL-Strings zu inspizieren.
-	// Der SQL wird in SearchMembers durch fmt.Sprintf aufgebaut; wir testen
-	// die Schluessel-Bedingungen direkt an den bekannten SQL-Fragmenten.
+// TestArchiveVisibilityFilterExcludesNonPublicRows prueft direkt gegen die echte
+// SearchMembers-Implementierung, dass genau die Zeile erscheint, die alle vier
+// Sichtbarkeits-Bedingungen erfuellt, und jede Zeile ausgeschlossen wird, die genau
+// eine der Bedingungen verletzt (m.profile_visibility, hfgm.visibility,
+// ac.is_public_on_member_profile, ac.status).
+func TestArchiveVisibilityFilterExcludesNonPublicRows(t *testing.T) {
+	pool := openMemberArchivePostgres(t)
+	ctx := context.Background()
 
-	requiredConditions := []string{
-		"profile_visibility = 'public'",
-		"is_public_on_member_profile = true",
-		"hfgm.visibility = 'public'",
-		"ac.status = 'confirmed'",
-	}
+	_, err := pool.Exec(ctx, `
+INSERT INTO fansub_groups (id, name) VALUES (8100, 'Visibility Test Group');
 
-	// Die SQL-Fragmente sind hartcodiert in SearchMembers. Wir verifizieren sie
-	// durch String-Matching gegen die bekannte Query-Struktur.
-	knownMainQueryFragment := `
-WHERE m.profile_visibility = 'public'
-`
-	knownJoinFragment := `hfgm.visibility = 'public'`
-	knownContribFragment := `ac.is_public_on_member_profile = true
-    AND ac.status = 'confirmed'`
+-- Row A: erfuellt alle vier Sichtbarkeits-Bedingungen -- muss im Ergebnis erscheinen.
+INSERT INTO members (id, nickname, display_name, profile_visibility, public_slug)
+VALUES (8101, 'vis-public-ok', 'Visible OK', 'public', 'vis-public-ok');
+INSERT INTO hist_fansub_group_members (id, member_id, fansub_group_id, visibility)
+VALUES (8201, 8101, 8100, 'public');
+INSERT INTO anime_contributions (id, fansub_group_member_id, is_public_on_member_profile, status)
+VALUES (8301, 8201, true, 'confirmed');
 
-	allFragments := knownMainQueryFragment + knownJoinFragment + knownContribFragment
+-- Row B: verletzt nur m.profile_visibility.
+INSERT INTO members (id, nickname, display_name, profile_visibility, public_slug)
+VALUES (8102, 'vis-member-private', 'Visible Private', 'private', 'vis-member-private');
+INSERT INTO hist_fansub_group_members (id, member_id, fansub_group_id, visibility)
+VALUES (8202, 8102, 8100, 'public');
+INSERT INTO anime_contributions (id, fansub_group_member_id, is_public_on_member_profile, status)
+VALUES (8302, 8202, true, 'confirmed');
 
-	for _, cond := range requiredConditions {
-		if !strings.Contains(allFragments, cond) {
-			t.Errorf("Sichtbarkeits-Bedingung fehlt in SearchMembers-Query: %q", cond)
-		}
-	}
+-- Row C: verletzt nur hfgm.visibility.
+INSERT INTO members (id, nickname, display_name, profile_visibility, public_slug)
+VALUES (8103, 'vis-hfgm-internal', 'Visible HFGM Internal', 'public', 'vis-hfgm-internal');
+INSERT INTO hist_fansub_group_members (id, member_id, fansub_group_id, visibility)
+VALUES (8203, 8103, 8100, 'internal');
+INSERT INTO anime_contributions (id, fansub_group_member_id, is_public_on_member_profile, status)
+VALUES (8303, 8203, true, 'confirmed');
+
+-- Row D: verletzt nur ac.is_public_on_member_profile.
+INSERT INTO members (id, nickname, display_name, profile_visibility, public_slug)
+VALUES (8104, 'vis-contrib-notpublic', 'Visible Contrib Not Public', 'public', 'vis-contrib-notpublic');
+INSERT INTO hist_fansub_group_members (id, member_id, fansub_group_id, visibility)
+VALUES (8204, 8104, 8100, 'public');
+INSERT INTO anime_contributions (id, fansub_group_member_id, is_public_on_member_profile, status)
+VALUES (8304, 8204, false, 'confirmed');
+
+-- Row E: verletzt nur ac.status.
+INSERT INTO members (id, nickname, display_name, profile_visibility, public_slug)
+VALUES (8105, 'vis-contrib-pending', 'Visible Contrib Pending', 'public', 'vis-contrib-pending');
+INSERT INTO hist_fansub_group_members (id, member_id, fansub_group_id, visibility)
+VALUES (8205, 8105, 8100, 'public');
+INSERT INTO anime_contributions (id, fansub_group_member_id, is_public_on_member_profile, status)
+VALUES (8305, 8205, true, 'pending');
+`)
+	require.NoError(t, err)
+
+	repo := NewMemberArchiveRepository(pool)
+	result, err := repo.SearchMembers(ctx, ArchiveSearchFilters{}, 1)
+	require.NoError(t, err)
+	require.Len(t, result.Members, 1,
+		"only the row satisfying all four visibility conditions must appear in the archive search result")
+	require.Equal(t, int64(8101), result.Members[0].ID,
+		"rows violating profile_visibility, hfgm.visibility, is_public_on_member_profile, or status must be excluded")
 }
 
-// TestArchivePaginationBounds prueft, dass die Offset-Berechnung korrekt ist.
+// TestArchivePaginationBounds treibt die echte SearchMembers-Pagination (nicht eine
+// Kopie ihrer Klammer-Logik) mit page=0, negativem page und page=1001, um die reale
+// Normalisierung/Kappung sowie die Seiten-/Offset-Semantik zu beweisen.
 func TestArchivePaginationBounds(t *testing.T) {
-	tests := []struct {
-		page           int
-		expectedOffset int
-		expectedPage   int
-	}{
-		{page: 0, expectedOffset: 0, expectedPage: 1},  // page < 1 → page=1, offset=0
-		{page: -1, expectedOffset: 0, expectedPage: 1}, // negativ → page=1, offset=0
-		{page: 1, expectedOffset: 0, expectedPage: 1},  // erste Seite
-		{page: 2, expectedOffset: 20, expectedPage: 2}, // zweite Seite
-		{page: 3, expectedOffset: 40, expectedPage: 3}, // dritte Seite
-		{page: 1001, expectedOffset: 999 * 20, expectedPage: 1000}, // gekappt auf 1000
+	pool := openMemberArchivePostgres(t)
+	ctx := context.Background()
+
+	// archivePageSize + 5 Mitglieder: erzwingt eine volle erste Seite und eine
+	// teilweise gefuellte zweite Seite, damit die Offset-Semantik wirklich geprueft wird.
+	const seedCount = archivePageSize + 5
+	const baseMemberID = 8700
+	const groupID = 8800
+
+	_, err := pool.Exec(ctx, `INSERT INTO fansub_groups (id, name) VALUES ($1, 'Pagination Test Group')`, groupID)
+	require.NoError(t, err)
+
+	for i := 0; i < seedCount; i++ {
+		memberID := baseMemberID + i
+		hfgmID := 8900 + i
+		contribID := 9000 + i
+		slug := fmt.Sprintf("page-member-%d", memberID)
+
+		// pgx's simple/extended protocol rejects multiple parameterized commands in a
+		// single Exec call ("cannot insert multiple commands into a prepared
+		// statement"), unlike the unparameterized multi-statement blocks used
+		// elsewhere in this file -- so each seeded row needs three separate Exec calls.
+		_, err := pool.Exec(ctx, `
+INSERT INTO members (id, nickname, display_name, profile_visibility, public_slug)
+VALUES ($1, $2, $2, 'public', $2)`, memberID, slug)
+		require.NoError(t, err)
+
+		_, err = pool.Exec(ctx, `
+INSERT INTO hist_fansub_group_members (id, member_id, fansub_group_id, visibility)
+VALUES ($1, $2, $3, 'public')`, hfgmID, memberID, groupID)
+		require.NoError(t, err)
+
+		_, err = pool.Exec(ctx, `
+INSERT INTO anime_contributions (id, fansub_group_member_id, is_public_on_member_profile, status)
+VALUES ($1, $2, true, 'confirmed')`, contribID, hfgmID)
+		require.NoError(t, err)
 	}
 
-	for _, tc := range tests {
-		p := tc.page
-		if p < 1 {
-			p = 1
-		}
-		if p > 1000 {
-			p = 1000
-		}
-		offset := (p - 1) * archivePageSize
+	repo := NewMemberArchiveRepository(pool)
 
-		if p != tc.expectedPage {
-			t.Errorf("page=%d: erwartete normalisierte Seite %d, bekam %d", tc.page, tc.expectedPage, p)
-		}
-		if offset != tc.expectedOffset {
-			t.Errorf("page=%d: erwarteter Offset %d, bekam %d", tc.page, tc.expectedOffset, offset)
-		}
-	}
+	page1, err := repo.SearchMembers(ctx, ArchiveSearchFilters{}, 1)
+	require.NoError(t, err)
+	require.Len(t, page1.Members, archivePageSize, "first page must return a full page of results")
+	require.Equal(t, seedCount, page1.Total)
+
+	page2, err := repo.SearchMembers(ctx, ArchiveSearchFilters{}, 2)
+	require.NoError(t, err)
+	require.Len(t, page2.Members, seedCount-archivePageSize, "second page must return exactly the remaining rows")
+
+	pageZero, err := repo.SearchMembers(ctx, ArchiveSearchFilters{}, 0)
+	require.NoError(t, err)
+	require.Equal(t, page1.Members, pageZero.Members, "page=0 must be normalized to page=1 (offset=0)")
+
+	pageNegative, err := repo.SearchMembers(ctx, ArchiveSearchFilters{}, -5)
+	require.NoError(t, err)
+	require.Equal(t, page1.Members, pageNegative.Members, "a negative page must be normalized to page=1 (offset=0)")
+
+	pageBeyondCeiling, err := repo.SearchMembers(ctx, ArchiveSearchFilters{}, 1001)
+	require.NoError(t, err)
+	require.Empty(t, pageBeyondCeiling.Members,
+		"page=1001 must be clamped (not passed through as a raw huge offset) and, for this seed size, yield no rows without erroring")
+	require.Equal(t, seedCount, pageBeyondCeiling.Total, "total count must be unaffected by page clamping")
 }
 
-// TestArchiveRoleFilter prueft, dass bei gesetztem RoleCode die EXISTS-Subquery
-// im SQL enthalten ist (Source-Inspection-Test).
+// TestArchiveRoleFilter treibt die echte RoleCode-EXISTS-Subquery in SearchMembers:
+// ein Mitglied mit passender Rolle muss erscheinen, ein Mitglied mit einer anderen
+// Rolle (sonst identisch sichtbar) muss ausgeschlossen bleiben.
 func TestArchiveRoleFilter(t *testing.T) {
-	// Das EXISTS-Fragment wird nur bei RoleCode != "" eingefuegt.
-	// Wir verifizieren, dass der Aufbau-Mechanismus korrekt arbeitet.
-	existsFragment := "EXISTS"
-	roleCodeCondition := "acr2.role_code = $"
+	pool := openMemberArchivePostgres(t)
+	ctx := context.Background()
 
-	// Simuliere Filter mit gesetztem RoleCode.
-	filters := ArchiveSearchFilters{RoleCode: "translator"}
-	if filters.RoleCode == "" {
-		t.Error("Rolle-Filter sollte nicht leer sein fuer diesen Test")
-	}
+	_, err := pool.Exec(ctx, `
+INSERT INTO fansub_groups (id, name) VALUES (8400, 'Role Filter Test Group');
 
-	// Der SQL-Builder wuerde EXISTS einfuegen — verifiziere, dass das Fragment
-	// korrekte SQL-Schluessel enthaelt.
-	builtFragment := "EXISTS (\n      SELECT 1\n      FROM anime_contribution_roles acr2\n      JOIN anime_contributions ac2 ON ac2.id = acr2.anime_contribution_id\n      JOIN hist_fansub_group_members hfgm2 ON hfgm2.id = ac2.fansub_group_member_id\n      WHERE hfgm2.member_id = m.id\n        AND ac2.is_public_on_member_profile = true\n        AND ac2.status = 'confirmed'\n        AND acr2.role_code = $1\n  )"
+-- Mitglied mit Rolle 'translator' -- muss bei RoleCode='translator' erscheinen.
+INSERT INTO members (id, nickname, display_name, profile_visibility, public_slug)
+VALUES (8401, 'role-translator', 'Role Translator', 'public', 'role-translator');
+INSERT INTO hist_fansub_group_members (id, member_id, fansub_group_id, visibility)
+VALUES (8501, 8401, 8400, 'public');
+INSERT INTO anime_contributions (id, fansub_group_member_id, is_public_on_member_profile, status)
+VALUES (8601, 8501, true, 'confirmed');
+INSERT INTO anime_contribution_roles (anime_contribution_id, role_code)
+VALUES (8601, 'translator');
 
-	if !strings.Contains(builtFragment, existsFragment) {
-		t.Errorf("EXISTS-Subquery fehlt im Rolle-Filter-Fragment")
-	}
-	if !strings.Contains(builtFragment, roleCodeCondition) {
-		t.Errorf("parameterized role_code-Bedingung fehlt im Rolle-Filter-Fragment")
-	}
+-- Mitglied nur mit Rolle 'editor' -- darf bei RoleCode='translator' NICHT erscheinen.
+INSERT INTO members (id, nickname, display_name, profile_visibility, public_slug)
+VALUES (8402, 'role-editor', 'Role Editor', 'public', 'role-editor');
+INSERT INTO hist_fansub_group_members (id, member_id, fansub_group_id, visibility)
+VALUES (8502, 8402, 8400, 'public');
+INSERT INTO anime_contributions (id, fansub_group_member_id, is_public_on_member_profile, status)
+VALUES (8602, 8502, true, 'confirmed');
+INSERT INTO anime_contribution_roles (anime_contribution_id, role_code)
+VALUES (8602, 'editor');
+`)
+	require.NoError(t, err)
+
+	repo := NewMemberArchiveRepository(pool)
+	result, err := repo.SearchMembers(ctx, ArchiveSearchFilters{RoleCode: "translator"}, 1)
+	require.NoError(t, err)
+	require.Len(t, result.Members, 1,
+		"role filter must return only members with a confirmed, public contribution carrying the requested role_code")
+	require.Equal(t, int64(8401), result.Members[0].ID)
+	require.Contains(t, result.Members[0].TopRoles, "translator")
 }
