@@ -94,3 +94,12 @@ None - no external service configuration required. All commands run via `docker 
 ---
 *Phase: 146-registry-selbstschutz-und-sanierung-der-quelltext-substring*
 *Completed: 2026-09-04*
+
+## Self-Check: PASSED
+
+- FOUND: backend/internal/handlers/fansub_test.go
+- FOUND: backend/internal/repository/point_ledger_repository_test.go
+- FOUND: .planning/phases/146-registry-selbstschutz-und-sanierung-der-quelltext-substring-/146-07-SUMMARY.md
+- FOUND commit: 75af9bd8 (Task 1)
+- FOUND commit: 6bd07835 (Task 2)
+- FOUND commit: 498a0e72 (SUMMARY)
