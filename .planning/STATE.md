@@ -2,10 +2,10 @@
 gsd_state_version: 1.0
 milestone: v1.4
 milestone_name: Coverage
-status: ready_to_plan
-stopped_at: Phase 146 additiv angelegt (Roadmap-Eintrag), noch nicht geplant
-last_updated: "2026-09-04T00:00:00.000Z"
-last_activity: 2026-09-04
+status: ready_to_plan (v1.4 bleibt abgeschlossen; 145 und 146 sind additiv angehängt)
+stopped_at: Phase 146 UI-SPEC approved
+last_updated: "2026-09-04T10:18:20.621Z"
+last_activity: 2026-09-04 - Phase 145 abgeschlossen und live abgenommen; Phase 146 additiv angelegt
 progress:
   total_phases: 11
   completed_phases: 10
@@ -65,6 +65,7 @@ Last activity: 2026-09-04 - Phase 145 abgeschlossen und live abgenommen; Phase 1
   für `group_member`. Backend nach Rebuild sauber gestartet (hört auf 8092), das fail-closed Gate
   schlägt nicht an. **v1.4 bleibt ein abgeschlossener Meilenstein — dies ist additive
   Phasen-Fertigstellung, kein Meilenstein-Reset.**
+
 - Phase 145 geplant (2026-09-03): 4 Pläne / 4 Wellen. Der Planner hat beim Grounding eine im Roadmap-Befund fehlende Stelle gefunden — die SQL-Abfrage in `LoadFansubGroupRoles` muss die reservierte Pseudo-Rolle ebenfalls ausschließen, sonst taucht sie im zuweisbaren Rollenkatalog auf. Migration erhält Nummer 0160.
 - Phase 145 added (2026-09-03): Mitgliedschafts-Grundausstattung in die Rechte-Registry überführen. Additiv an das abgeschlossene v1.4 angehängt (KEIN Milestone-Reset). Scope = `membershipBaselineActions` (effective_rights.go:74) als reservierte, nicht zuweisbare Pseudo-Rolle in `role_definitions`/`role_capabilities` darstellen; Entscheidung zur Darstellung ist bereits vom Nutzer getroffen (siehe .planning/notes/2026-09-03-handoff-nach-phase144.md). Requirements TBD (kein v1.4-Requirement-Mapping — Decision-Coverage-Gate beim Planen beachten). Vor `plan-phase` `/gsd-ui-phase 145` laufen lassen.
 - Phase 144 added (2026-09-02): Überarbeitungs-Kreislauf für Release-Medien vervollständigen.
@@ -581,7 +582,7 @@ untruncated list lives in `.planning/todos/pending/`.
 
 ## Session Continuity
 
-Last session: 2026-09-03T15:30:26.838Z
-Stopped at: Completed 145-03-PLAN.md
+Last session: 2026-09-04T10:18:20.601Z
+Stopped at: Phase 146 UI-SPEC approved
 Last activity: 2026-09-01 - Milestone v1.4 audit passed (41/41 requirements, 7/7 phases, .planning/v1.4-MILESTONE-AUDIT.md); Phase 143 added to roadmap, not yet planned
-Resume file: None
+Resume file: .planning/phases/146-registry-selbstschutz-und-sanierung-der-quelltext-substring-/146-UI-SPEC.md
