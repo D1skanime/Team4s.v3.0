@@ -42,7 +42,17 @@ func (t *handlerTestCatalogLoader) LoadFansubGroupRoles(_ context.Context) ([]st
 	}, nil
 }
 
-// LoadCapabilityRoles: dieselben aktiven Rollen sind capability-editierbar (G4).
+// LoadCapabilityRoles: dieselben aktiven Rollen sind capability-editierbar (G4), PLUS die
+// reservierte Mitgliedschafts-Grundausstattung (group_member) — production's LoadCapabilityRoles
+// (authz_permissions.go) deliberately carries NO "AND NOT reserved" filter (D-17 trap, Plan
+// 146-03), unlike LoadFansubGroupRoles above which does exclude reserved roles from the
+// assignable-role list. Without this, IsCapabilityBearingRole("group_member") would be false in
+// tests and the 146-03 membership-baseline guards inside GrantCapability/RevokeCapability would
+// be unreachable, masked by the earlier role_not_capability_bearing 422.
 func (t *handlerTestCatalogLoader) LoadCapabilityRoles(ctx context.Context) ([]string, error) {
-	return t.LoadFansubGroupRoles(ctx)
+	assignable, err := t.LoadFansubGroupRoles(ctx)
+	if err != nil {
+		return nil, err
+	}
+	return append(assignable, permissions.RoleMembershipBaseline), nil
 }

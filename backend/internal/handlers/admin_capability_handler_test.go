@@ -194,6 +194,145 @@ func TestRevokeCapabilityLastActionGuard(t *testing.T) {
 	}
 }
 
+// --- MembershipBaseline-Guard-Tests (Plan 146-03, Criterion 1 / D-16) ---
+
+// TestRevokeCapabilityMembershipBaselineGuardRejectsUnconditionally prüft, dass DELETE
+// /api/v1/admin/role-capabilities/group_member/{baselineAction} den neuen, unconditionalen
+// Registry-Selbstschutz-Guard mit HTTP 409 "membership_baseline_guard" auslöst — UNABHÄNGIG davon,
+// was CountRolesWithAction zurückgibt (hier absichtlich auf 16 gestubbt, weit über dem
+// Lockout-Schwellwert von 1), da der neue Guard VOR CountRolesWithAction greift.
+func TestRevokeCapabilityMembershipBaselineGuardRejectsUnconditionally(t *testing.T) {
+	gin.SetMode(gin.TestMode)
+
+	c, rec := makeCapabilityTestContext(http.MethodDelete, "/admin/role-capabilities/group_member/fansub_group_media.upload",
+		middleware.AuthIdentity{
+			UserID:          1,
+			AppUserID:       1,
+			AppUserStatus:   models.AppUserStatusActive,
+			IsPlatformAdmin: true,
+			DisplayName:     "Admin",
+		})
+	c.Params = gin.Params{
+		{Key: "roleCode", Value: "group_member"},
+		{Key: "actionCode", Value: "fansub_group_media.upload"},
+	}
+
+	// countRolesWithAction=16 beweist: der neue Guard greift unabhängig vom Lockout-Zähler.
+	authzStub := &stubCapabilityAuthzRepo{
+		isPlatformAdmin:      true,
+		countRolesWithAction: 16,
+	}
+	permStub := &stubCapabilityPermissionSvc{}
+	auditStub := &captureAuditLogRepo{}
+
+	h := NewAdminCapabilityHandler(authzStub, authzStub, permStub, auditStub)
+	h.RevokeCapability(c)
+
+	if rec.Code != http.StatusConflict {
+		t.Fatalf("erwartet 409, erhalten %d (body: %s)", rec.Code, rec.Body.String())
+	}
+
+	var body struct {
+		Error struct {
+			Code string `json:"code"`
+		} `json:"error"`
+	}
+	if err := json.Unmarshal(rec.Body.Bytes(), &body); err != nil {
+		t.Fatalf("body parsen fehlgeschlagen: %v", err)
+	}
+	if body.Error.Code != "membership_baseline_guard" {
+		t.Fatalf("erwartet error.code='membership_baseline_guard' (nicht 'lockout_guard'), erhalten %q", body.Error.Code)
+	}
+	// Kein Audit bei Registry-Selbstschutz-Ablehnung
+	if len(auditStub.entries) != 0 {
+		t.Fatalf("kein Audit-Eintrag bei 409 erwartet, erhalten %d", len(auditStub.entries))
+	}
+}
+
+// TestGrantCapabilityMembershipBaselineGuardRejectsNonBaselineAction prüft, dass PUT
+// /api/v1/admin/role-capabilities/group_member/{nonBaselineAction} mit HTTP 409
+// "membership_baseline_guard" abgelehnt wird — die reservierte Pseudo-Rolle darf keine über die
+// 3 Grundausstattungs-Rechte hinausgehende Action erhalten (D-16).
+func TestGrantCapabilityMembershipBaselineGuardRejectsNonBaselineAction(t *testing.T) {
+	gin.SetMode(gin.TestMode)
+
+	c, rec := makeCapabilityTestContext(http.MethodPut, "/admin/role-capabilities/group_member/release_version_media.delete",
+		middleware.AuthIdentity{
+			UserID:          1,
+			AppUserID:       1,
+			AppUserStatus:   models.AppUserStatusActive,
+			IsPlatformAdmin: true,
+			DisplayName:     "Admin",
+		})
+	c.Params = gin.Params{
+		{Key: "roleCode", Value: "group_member"},
+		{Key: "actionCode", Value: "release_version_media.delete"},
+	}
+
+	authzStub := &stubCapabilityAuthzRepo{isPlatformAdmin: true}
+	permStub := &stubCapabilityPermissionSvc{}
+	auditStub := &captureAuditLogRepo{}
+
+	h := NewAdminCapabilityHandler(authzStub, authzStub, permStub, auditStub)
+	h.GrantCapability(c)
+
+	if rec.Code != http.StatusConflict {
+		t.Fatalf("erwartet 409, erhalten %d (body: %s)", rec.Code, rec.Body.String())
+	}
+
+	var body struct {
+		Error struct {
+			Code string `json:"code"`
+		} `json:"error"`
+	}
+	if err := json.Unmarshal(rec.Body.Bytes(), &body); err != nil {
+		t.Fatalf("body parsen fehlgeschlagen: %v", err)
+	}
+	if body.Error.Code != "membership_baseline_guard" {
+		t.Fatalf("erwartet error.code='membership_baseline_guard', erhalten %q", body.Error.Code)
+	}
+	// Kein Audit bei Registry-Selbstschutz-Ablehnung
+	if len(auditStub.entries) != 0 {
+		t.Fatalf("kein Audit-Eintrag bei 409 erwartet, erhalten %d", len(auditStub.entries))
+	}
+}
+
+// TestGrantCapabilityMembershipBaselineAllowsBaselineAction prüft, dass PUT
+// /api/v1/admin/role-capabilities/group_member/{baselineAction} weiterhin gelingt (HTTP 200) — der
+// neue Guard blockiert nur Nicht-Grundausstattungs-Actions, nicht das erneute Zuweisen einer der 3
+// Grundausstattungs-Rechte nach einem legitimen Entzug-dann-Korrektur-Zyklus.
+func TestGrantCapabilityMembershipBaselineAllowsBaselineAction(t *testing.T) {
+	gin.SetMode(gin.TestMode)
+
+	c, rec := makeCapabilityTestContext(http.MethodPut, "/admin/role-capabilities/group_member/fansub_group_media.upload",
+		middleware.AuthIdentity{
+			UserID:          1,
+			AppUserID:       1,
+			AppUserStatus:   models.AppUserStatusActive,
+			IsPlatformAdmin: true,
+			DisplayName:     "Admin",
+		})
+	c.Params = gin.Params{
+		{Key: "roleCode", Value: "group_member"},
+		{Key: "actionCode", Value: "fansub_group_media.upload"},
+	}
+
+	authzStub := &stubCapabilityAuthzRepo{isPlatformAdmin: true}
+	permStub := &stubCapabilityPermissionSvc{}
+	auditStub := &captureAuditLogRepo{}
+
+	h := NewAdminCapabilityHandler(authzStub, authzStub, permStub, auditStub)
+	h.GrantCapability(c)
+
+	if rec.Code != http.StatusOK {
+		t.Fatalf("erwartet 200, erhalten %d (body: %s)", rec.Code, rec.Body.String())
+	}
+	// Audit-Eintrag bei erfolgreicher Mutation
+	if len(auditStub.entries) != 1 {
+		t.Fatalf("erwartet genau 1 Audit-Eintrag bei erfolgreicher Zuweisung, erhalten %d", len(auditStub.entries))
+	}
+}
+
 // --- AssignableGuard-Tests (Nyquist RED — Guard existiert noch nicht in Plan 01) ---
 
 // TestGrantCapabilityAssignableGuardRejectsHistoricalRole prüft, dass GrantCapability
