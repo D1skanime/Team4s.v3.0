@@ -418,6 +418,7 @@ Milestone v1.4 closes Live-UAT Findings #29-#32 by making effective group rights
 - [x] **Phase 143: Phase-142-Nacharbeit und Dashboard-Lane für abgelehnte Notizen** - Die in der externen Codeprüfung vom 2026-09-01 belegten Defekte schließen und abgelehnte eigene Release-Notizen im persönlichen Dashboard sichtbar machen. (completed 2026-09-01)
 - [x] **Phase 144: Überarbeitungs-Kreislauf für Release-Medien vervollständigen** - Abgelehnte Release-Medien lassen sich an Ort und Stelle ersetzen statt nur den Text daneben zu ändern, mit Revisionssprung statt Neu-Upload. (completed 2026-09-02, Live-UAT abgenommen 2026-09-03, siehe 144-UAT.md)
 - [x] **Phase 145: Mitgliedschafts-Grundausstattung in die Rechte-Registry überführen** - Die drei rollenunabhängigen Mitgliedsrechte kommen nicht mehr aus einem Go-Slice, sondern als reservierte, nicht zuweisbare Pseudo-Rolle aus der Datenbank-Registry. (completed 2026-09-04, Live-UAT abgenommen 2026-09-04, siehe 145-UAT.md)
+- [ ] **Phase 146: Registry-Selbstschutz und Sanierung der Quelltext-Substring-Tests** - Kein Admin kann über die Capability-Matrix einen Zustand erzeugen, der den nächsten Backend-Start scheitern lässt, und sicherheitsrelevante Tests belegen Verhalten durch echte Aufrufe statt durch Quelltextsuche.
 
 ## Phase Details
 
@@ -870,6 +871,35 @@ Plans:
 
 - [x] 145-04-PLAN.md — Full regression gate + live UAT checkpoint.
 
+### Phase 146: Registry-Selbstschutz und Sanierung der Quelltext-Substring-Tests
+
+**Goal:** Die in der Phase-145-Codeprüfung gefundenen Registry-Schwächen sind geschlossen — vor allem kann kein Admin über die ausgelieferte Capability-Matrix einen Zustand herstellen, der den nächsten Backend-Start in eine Absturzschleife schickt — und die sicherheitsrelevanten Tests belegen Verhalten durch echte Aufrufe statt durch Quelltextsuche.
+**Requirements**: TBD (Nacharbeit aus `145-REVIEW.md` und Altlast WR-02 aus `144-REVIEW.md`, kein v1.4-Requirement-Mapping)
+**Depends on:** Phase 145
+**Zuschnitt:** Zwei Blöcke in einer Phase, in dieser Reihenfolge — erst der Registry-Selbstschutz (Kriterien 1–4, kleiner und dringender, betrifft live ausgelieferten Code), dann die Testsanierung (Kriterien 5–8).
+
+**Ausgangsbefund** (selbst gemessen 2026-09-04, nicht aus Berichten übernommen):
+
+  - `CountRolesWithAction` (`backend/internal/repository/authz_capability_mutations.go:334`) zählt mit `SELECT COUNT(DISTINCT role_code) ... WHERE action_code = $1` die Rollen INSGESAMT, die eine Action gewähren. Da rund 15 weitere Rollen dieselben drei Baseline-Rechte tragen, feuert der Lockout-Guard beim Entfernen an `group_member` nie.
+  - Der laufende Prozess bleibt korrekt fail-closed (`validateMembershipBaselineRegistryPresence` lässt den alten Cache stehen), aber der nächste Start bricht in `LoadCache` ab und `cmd/server/main.go:138` beendet mit `log.Fatalf` — Container-Absturzschleife, bis jemand die Zeile von Hand nachträgt. Auslösbar mit zwei Klicks in der regulären Admin-Oberfläche, ohne Datenbankzugriff.
+  - `ListGroupHistoryRoleDefinitions` fehlt der `NOT reserved`-Filter, den seine drei Geschwisterabfragen bekommen haben (derzeit folgenlos, weil der Kontext nicht passt — aber genau die Art Inkonsistenz, die später zum Fehler wird).
+  - Die drei Baseline-Action-Codes stehen an drei Stellen hartkodiert: Migration, Go-Validator, TS-Filter.
+  - Quelltext-Substring-Tests: **53 Testdateien** lesen per `os.ReadFile` eine `.go`-Quelldatei ein und belegen Verhalten mit `strings.Contains` — **357** solcher Aufrufe in 302 Testfunktionen. Verteilung: `internal/repository` 34, `internal/handlers` 15, `internal/services` 3, `cmd/server` 1. Spitzenreiter: `member_profile_repository_test.go` mit 117 Aufrufen. **17 dieser Dateien** berühren Sicherheitszusicherungen (Permission, Authz, Capability, Preview-Sperre, 403). Die ältere Schätzung aus `.planning/notes/2026-09-02-altlasten-cr01-wr02.md` (49 Dateien / 236 Behauptungen) ist damit überholt.
+
+**Success Criteria** (what must be TRUE):
+
+  1. Das Entfernen einer der drei Pflicht-Actions von der reservierten Pseudo-Rolle wird im Mutationspfad serverseitig abgelehnt — nicht nur in der Oberfläche — und ein Test spielt genau diesen Pfad durch, statt die Ablehnung aus dem Quelltext zu erschließen. Der bestehende Lockout-Guard bleibt für alle anderen Rollen unverändert.
+  2. Die Capability-Matrix weist diese drei Rechte sichtbar als geschützt aus und zeigt bei einem Versuch eine sprechende deutsche Meldung mit korrekten Umlauten — kein stiller Fehlschlag und kein roher Serverfehler.
+  3. `ListGroupHistoryRoleDefinitions` trägt denselben `NOT reserved`-Filter wie seine drei Geschwisterabfragen; ein Test belegt gegen echtes Postgres, dass die Pseudo-Rolle in keiner der vier Abfragen auftaucht.
+  4. Die drei Baseline-Action-Codes haben eine einzige autoritative Quelle; die verbleibenden Verwendungen leiten sich davon ab oder sind durch einen Test gegen Auseinanderdriften gesichert.
+  5. Alle 17 sicherheitsrelevanten Testdateien belegen ihre Verhaltensbehauptungen durch echte Aufrufe des geprüften Codes. Quelltextsuche bleibt nur für Abwesenheitsprüfungen und für Dateien, die selbst Prüfgegenstand sind — die Konvention aus `CLAUDE.md`.
+  6. Messbar am Ende: höchstens 36 Testdateien lesen noch eine `.go`-Quelldatei ein (von 53), und keine der 17 sicherheitsrelevanten ist darunter.
+  7. Ein automatischer Guard verhindert Neuzugänge — eingefrorene, nur schrumpfende Ausnahmeliste nach dem Vorbild von `LEGACY_NO_RESTRICTED_SYNTAX_FILES` in `frontend/eslint.config.mjs`. Die `CLAUDE.md`-Konvention ist damit durchgesetzt statt nur beschrieben.
+  8. Der bewusst stehen gelassene Restbestand ist als benannte Schuld dokumentiert, mit dem Grund je Datei — nicht als stillschweigende Lücke.
+
+**Plans**: TBD (noch nicht geplant)
+**UI hint**: ja — Kriterium 2 berührt die Capability-Matrix; vor `plan-phase` `/gsd-ui-phase 146` laufen lassen.
+
 ## v1.4 Coverage
 
 | Phase | Requirement Count | Requirement IDs |
@@ -885,7 +915,7 @@ Plans:
 
 ## v1.4 Progress
 
-**Execution Order:** 136 - 137 - 138 - 139 - 140 - 141 - 142 - 143 - 144 - 145
+**Execution Order:** 136 - 137 - 138 - 139 - 140 - 141 - 142 - 143 - 144 - 145 - 146
 
 | Phase | Plans Complete | Status | Completed |
 |-------|----------------|--------|-----------|
@@ -899,3 +929,4 @@ Plans:
 | 143. Phase-142-Nacharbeit und Dashboard-Lane für abgelehnte Notizen | 19/19 | Complete | 2026-09-02 |
 | 144. Überarbeitungs-Kreislauf für Release-Medien vervollständigen | 8/8 | Complete | 2026-09-03 |
 | 145. Mitgliedschafts-Grundausstattung in die Rechte-Registry überführen | 4/4 | Complete | 2026-09-04 |
+| 146. Registry-Selbstschutz und Sanierung der Quelltext-Substring-Tests | 0/0 | Not started | - |

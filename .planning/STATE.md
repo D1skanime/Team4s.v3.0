@@ -2,16 +2,16 @@
 gsd_state_version: 1.0
 milestone: v1.4
 milestone_name: Coverage
-status: executing
-stopped_at: Phase 145 complete (145-04, Live-UAT abgenommen 2026-09-04)
+status: ready_to_plan
+stopped_at: Phase 146 additiv angelegt (Roadmap-Eintrag), noch nicht geplant
 last_updated: "2026-09-04T00:00:00.000Z"
 last_activity: 2026-09-04
 progress:
-  total_phases: 10
+  total_phases: 11
   completed_phases: 10
   total_plans: 115
   completed_plans: 115
-  percent: 100
+  percent: 91
 ---
 
 # Project State
@@ -33,24 +33,26 @@ See: .planning/PROJECT.md (updated 2026-08-13)
 
 ## Current Position
 
-Phase: 145 (mitgliedschafts-grundausstattung-in-die-rechte-registry-berf) — complete
-Plan: 4 of 4 complete, Live-UAT abgenommen 2026-09-04 (siehe 145-UAT.md)
-Status: Phase complete
+Phase: 146
+Plan: Noch nicht geplant — nur der Roadmap-Eintrag steht
+Status: ready_to_plan (v1.4 bleibt abgeschlossen; 145 und 146 sind additiv angehängt)
 
-Vorliegende Artefakte: `145-UI-SPEC.md` (gsd-ui-checker 6/6 approved), `145-VALIDATION.md`,
-`145-01..04-PLAN.md`, `145-01..04-SUMMARY.md`, `145-UAT.md`.
+Phase 145 ist abgeschlossen und live abgenommen (145-UAT.md, 2026-09-04). Die Codeprüfung dieser
+Phase (145-REVIEW.md) hat danach einen kritischen Befund geliefert, der Phase 146 auslöst: der
+Lockout-Guard schützt die reservierte Pseudo-Rolle nicht, ein Admin kann mit zwei Klicks in der
+Capability-Matrix einen Zustand erzeugen, der den nächsten Backend-Start in eine Absturzschleife
+schickt. Aktuell unkritisch — alle drei role_capabilities-Zeilen sind vorhanden (geprüft
+2026-09-04), das Backend läuft.
 
-Alle vier Pläne sind ausgeführt und committet. Der volle Regressions-Gate (Backend
-build/vet/test, Frontend tsc/eslint/vitest, Contract-Byte-Diff, Untouched-File-Check) ist grün;
-die Live-UAT im Browser ist vom Nutzer über alle sechs geprüften Beobachtungen hinweg abgenommen.
-v1.4 bleibt ein abgeschlossener Meilenstein — diese Phase wurde additiv angehängt (kein
-Meilenstein-Reset).
-Last activity: 2026-09-04
+Nächster Schritt: `/gsd-ui-phase 146` (Kriterium 2 berührt die Capability-Matrix), danach
+`plan-phase 146`.
+Last activity: 2026-09-04 - Phase 145 abgeschlossen und live abgenommen; Phase 146 additiv angelegt
 
 ## Accumulated Context
 
 ### Roadmap Evolution
 
+- Phase 146 added (2026-09-04): Registry-Selbstschutz und Sanierung der Quelltext-Substring-Tests. Zwei Blöcke in einer Phase auf Wunsch des Nutzers — erst die drei Befunde aus `145-REVIEW.md` (CR-01 Lockout-Guard-Lücke, fehlender NOT-reserved-Filter, dreifach hartkodierte Action-Codes), dann die Testsanierung. Bestand selbst gemessen 2026-09-04: 53 Testdateien lesen eine `.go`-Quelldatei per `os.ReadFile` und belegen Verhalten mit `strings.Contains` (357 Aufrufe, 302 Testfunktionen); 17 davon berühren Sicherheitszusicherungen. Die ältere Schätzung 49/236 aus der Altlasten-Notiz ist überholt. Additiv an v1.4, KEIN Milestone-Reset.
 - Phase 145 complete (2026-09-04): Alle 4 Pläne fertig; Live-UAT vom Nutzer abgenommen und deckt
   alle 6 Prüfpunkte ab (Pseudo-Rolle als erste Zeile unter Gruppenrollen, Standardrechte-Tab als
   Default mit reinem Erklärtext auf "Inhaber", genau 3 umschaltbare Rechte, andere Rollen ohne
