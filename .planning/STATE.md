@@ -3,14 +3,14 @@ gsd_state_version: 1.0
 milestone: v1.4
 milestone_name: Coverage
 status: executing
-stopped_at: Completed 146-01-PLAN.md
-last_updated: "2026-09-04T15:45:41.988Z"
+stopped_at: Completed 146-02-PLAN.md
+last_updated: "2026-09-04T15:50:23.385Z"
 last_activity: 2026-09-04
 progress:
   total_phases: 11
   completed_phases: 10
   total_plans: 128
-  completed_plans: 116
+  completed_plans: 117
   percent: 91
 ---
 
@@ -34,7 +34,7 @@ See: .planning/PROJECT.md (updated 2026-08-13)
 ## Current Position
 
 Phase: 146 (registry-selbstschutz-und-sanierung-der-quelltext-substring) — EXECUTING
-Plan: 2 of 13
+Plan: 3 of 13
 Status: Ready to execute
 
 Phase 145 ist abgeschlossen und live abgenommen (145-UAT.md, 2026-09-04). Die Codeprüfung dieser
@@ -275,6 +275,7 @@ Last activity: 2026-09-04
 - [Phase 145]: Plan 145-03 executed (SC-3, SC-5) -- roleKindLabel/RolesClient/RoleCapabilityDetail/RoleDetailPanel now present the reserved group_member pseudo-role as a normal, editable role: correctly labeled and first in Gruppenrollen, defaulting to Standardrechte with no holder fetch, its 3 baseline actions editable through the unmodified accordion/Switch machinery, and every other role deep-links to it via a new Button. holderCountText() bug-fix prevents a stale holder count from leaking into the pseudo-role's subject header.
 - [Phase 146]: MembershipBaselineActionCodes lives directly above validateMembershipBaselineRegistryPresence in permissions.go, matching Plan 146-03's later admin_capability_handler.go guards contract
 - [Phase 146]: permissions.go's pre-existing 928-line size stays out of scope for this additive plan, carried forward as debt
+- [Phase 146]: RoleCapabilityDetail.tsx's configurableActions filter now scopes the reserved pseudo-role's rendered rows to exactly its 3 intended membershipBaselineCodes actions (D-15), fixing a defect where all 38 catalog actions rendered unfiltered; the 3 rows carry a non-color-only Badge/Lock/aria-describedby protected-state contract (Criterion 2) while staying fully interactive per 146-UI-SPEC.md's attempt-then-reject interaction shape.
 
 ### Pending Todos
 
@@ -583,10 +584,11 @@ untruncated list lives in `.planning/todos/pending/`.
 | Phase 145 P02 | 10min | 3 tasks | 10 files |
 | Phase 145 P03 | ~15min | 3 tasks | 8 files |
 | Phase 146 P01 | 3min | 3 tasks | 3 files |
+| Phase 146 P02 | 12min | 2 tasks | 2 files |
 
 ## Session Continuity
 
-Last session: 2026-09-04T15:45:41.972Z
-Stopped at: Completed 146-01-PLAN.md
+Last session: 2026-09-04T15:50:23.368Z
+Stopped at: Completed 146-02-PLAN.md
 Last activity: 2026-09-01 - Milestone v1.4 audit passed (41/41 requirements, 7/7 phases, .planning/v1.4-MILESTONE-AUDIT.md); Phase 143 added to roadmap, not yet planned
 Resume file: None
