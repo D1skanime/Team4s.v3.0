@@ -101,3 +101,7 @@ None - no external service configuration required.
 ---
 *Phase: 146-registry-selbstschutz-und-sanierung-der-quelltext-substring-*
 *Completed: 2026-09-04*
+
+## Self-Check: PASSED
+
+All 3 modified source/test files and this SUMMARY.md exist on disk; all 4 recorded commit hashes (aec4b581, 71b5026d, 2d3ae85a, 08fe6b1d) are present in `git log --all`.
