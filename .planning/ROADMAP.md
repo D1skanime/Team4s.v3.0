@@ -900,9 +900,17 @@ Plans:
 **Plans:** 13 plans in 4 waves
 
 Plans:
+**Wave 1**
+
 - [ ] 146-01-PLAN.md — Criterion 3+4: NOT reserved filter fix, single-source baseline action codes
 - [ ] 146-02-PLAN.md — Criterion 2: capability-matrix badge/lock/aria-describedby + 38-vs-3 filter fix (D-15/D-19)
+
+**Wave 2** *(blocked on Wave 1 completion)*
+
 - [ ] 146-03-PLAN.md — Criterion 1+D-16: unconditional revoke guard + action-specific grant guard
+
+**Wave 3** *(blocked on Wave 2 completion)*
+
 - [ ] 146-04-PLAN.md — Criteria 5/6/7: lock security-relevant file list (D-08) + remediate 3 files
 - [ ] 146-05-PLAN.md — Criteria 5/6: remediate hist_group_member_roles_whitelist_test.go + member_claims_repository_claim_activation_test.go
 - [ ] 146-06-PLAN.md — Criteria 5/6: remediate member_archive_repository_test.go + member_point_totals_repository_test.go
@@ -912,6 +920,9 @@ Plans:
 - [ ] 146-10-PLAN.md — Criteria 5/6: remediate public_member_access_matrix_test.go
 - [ ] 146-11-PLAN.md — Criteria 5/6: remediate release_version_media_repository_test.go
 - [ ] 146-12-PLAN.md — Criteria 5/6: remediate admin_content_release_version_media_test.go
+
+**Wave 4** *(blocked on Wave 3 completion)*
+
 - [ ] 146-13-PLAN.md — Criteria 6/7/8: ratchet guard + named remainder documentation
 
 **UI hint**: ja — Kriterium 2 berührt die Capability-Matrix; vor `plan-phase` `/gsd-ui-phase 146` laufen lassen. (erledigt, 146-UI-SPEC.md abgenommen)

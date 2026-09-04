@@ -2,16 +2,16 @@
 gsd_state_version: 1.0
 milestone: v1.4
 milestone_name: Coverage
-status: ready_to_plan (v1.4 bleibt abgeschlossen; 145 und 146 sind additiv angehängt)
+status: executing
 stopped_at: Phase 146 UI-SPEC approved
-last_updated: "2026-09-04T10:18:20.621Z"
-last_activity: 2026-09-04 - Phase 145 abgeschlossen und live abgenommen; Phase 146 additiv angelegt
+last_updated: "2026-09-04T14:59:27.167Z"
+last_activity: 2026-09-04 -- Phase 146 planning complete
 progress:
   total_phases: 11
   completed_phases: 10
-  total_plans: 115
+  total_plans: 128
   completed_plans: 115
-  percent: 91
+  percent: 90
 ---
 
 # Project State
@@ -35,7 +35,7 @@ See: .planning/PROJECT.md (updated 2026-08-13)
 
 Phase: 146
 Plan: Noch nicht geplant — nur der Roadmap-Eintrag steht
-Status: ready_to_plan (v1.4 bleibt abgeschlossen; 145 und 146 sind additiv angehängt)
+Status: Ready to execute
 
 Phase 145 ist abgeschlossen und live abgenommen (145-UAT.md, 2026-09-04). Die Codeprüfung dieser
 Phase (145-REVIEW.md) hat danach einen kritischen Befund geliefert, der Phase 146 auslöst: der
@@ -46,7 +46,7 @@ schickt. Aktuell unkritisch — alle drei role_capabilities-Zeilen sind vorhande
 
 Nächster Schritt: `/gsd-ui-phase 146` (Kriterium 2 berührt die Capability-Matrix), danach
 `plan-phase 146`.
-Last activity: 2026-09-04 - Phase 145 abgeschlossen und live abgenommen; Phase 146 additiv angelegt
+Last activity: 2026-09-04 -- Phase 146 planning complete
 
 ## Accumulated Context
 
