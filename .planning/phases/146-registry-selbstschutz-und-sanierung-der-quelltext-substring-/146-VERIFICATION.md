@@ -1,36 +1,16 @@
 ---
 phase: 146-registry-selbstschutz-und-sanierung-der-quelltext-substring-
-verified: 2026-09-04T21:00:00Z
-status: gaps_found
-score: 7/8 roadmap success criteria verified
+verified: 2026-09-04T21:10:00Z
+status: passed
+score: 8/8 roadmap success criteria verified
 overrides_applied: 0
-gaps:
-  - truth: "Criterion 4 — Die drei Baseline-Action-Codes haben eine einzige autoritative Quelle; die verbleibenden Verwendungen leiten sich davon ab oder sind durch einen Test gegen Auseinanderdriften gesichert."
-    status: partial
-    reason: >
-      The Go side is fully fixed: permissions.MembershipBaselineActionCodes is now the single
-      Go source, validateMembershipBaselineRegistryPresence derives from it, and
-      TestMembershipBaselineMigrationSeedsExactlyThreeActionsAndPreservesEffectiveRights proves
-      (against real Postgres) that migration 0160's seed matches this Go source exactly. However
-      the frontend usage explicitly named in the phase's own D-05 decision record
-      (146-CONTEXT.md) — RoleCapabilityDetail.tsx's `membershipBaselineCodes` Set — remains an
-      independent hardcoded literal. It is neither derived from the backend (no API-provided
-      `protected`/`baseline` field exists on RoleActionState/ActionEntry) nor covered by any
-      anti-drift test. This is 146-REVIEW.md's WR-03 finding, confirmed still present and
-      explicitly left unfixed in 146-REVIEW-FIX.md ("Skipped Issues" — requires a backend
-      contract change judged out of scope for the review-fix pass). No VERIFICATION.md override
-      has been recorded for this deviation.
-    artifacts:
-      - path: "frontend/src/app/admin/roles/RoleCapabilityDetail.tsx"
-        issue: >
-          Lines 12-16 hardcode `["fansub_group.members.view", "fansub_group_media.view",
-          "fansub_group_media.upload"]` as an independent literal with no compile-time or
-          runtime tie to permissions.MembershipBaselineActionCodes in
-          backend/internal/permissions/permissions.go:420, and no test in
-          RoleCapabilityDetail.test.tsx asserts the two lists match.
-    missing:
-      - "Either derive RoleCapabilityDetail.tsx's protected-action filter from an API-provided field (e.g. CapabilityMatrixActionState.protected, computed server-side from permissions.MembershipBaselineActionCodes, per 146-REVIEW.md's own recommended fix), or add an explicit anti-drift test (e.g. a contract/fixture test comparing the TS literal against the backend catalog) if keeping the independent literal is intentional."
-      - "If the deviation is accepted as-is, record a formal override in this VERIFICATION.md's frontmatter (must_have, reason, accepted_by, accepted_at) rather than leaving it as an unresolved review finding."
+re_verification:
+  previous_status: gaps_found
+  previous_score: 7/8 roadmap success criteria verified
+  gaps_closed:
+    - "Criterion 4 — Die drei Baseline-Action-Codes haben eine einzige autoritative Quelle; die verbleibenden Verwendungen leiten sich davon ab oder sind durch einen Test gegen Auseinanderdriften gesichert."
+  gaps_remaining: []
+  regressions: []
 human_verification: []
 ---
 
@@ -39,84 +19,110 @@ human_verification: []
 **Phase Goal:** Die in der Phase-145-Codeprüfung gefundenen Registry-Schwächen sind geschlossen — vor allem kann kein Admin über die ausgelieferte Capability-Matrix einen Zustand herstellen, der den nächsten Backend-Start in eine Absturzschleife schickt — und die sicherheitsrelevanten Tests belegen Verhalten durch echte Aufrufe statt durch Quelltextsuche.
 
 **Verified:** 2026-09-04
-**Status:** gaps_found
-**Re-verification:** No — initial verification
+**Status:** passed
+**Re-verification:** Yes — after gap closure (previous run: gaps_found, 7/8, 2026-09-04T21:00:00Z)
 
 ## Goal Achievement
 
-### Observable Truths (ROADMAP.md Success Criteria 1–8)
+### Re-Verification Focus: Criterion 4 Gap Closure
+
+The previous verification found exactly one gap: Criterion 4's frontend half (`RoleCapabilityDetail.tsx`'s `membershipBaselineCodes` Set) was an undocumented, drift-unguarded duplicate of `permissions.MembershipBaselineActionCodes`. Commit `19a3c13d` ("fix(146): close Criterion 4 gap with membership-baseline frontend anti-drift test") is the single fix commit that landed since. This re-verification independently re-proves the fix rather than trusting the commit message.
+
+**1. Test file authenticity — not a source-substring/self-referential fake.**
+Read `frontend/src/app/admin/roles/RoleCapabilityDetail.membershipBaselineDrift.test.ts` in full. It:
+- Reads `/backend/internal/permissions/permissions.go` via `readFileSync` through the frontend container's pre-existing `./backend:/backend:ro` dev-compose mount (confirmed present in `docker-compose.override.yml:52`).
+- Uses two regexes to extract `MembershipBaselineActionCodes`'s referenced identifiers, then resolves each identifier to its Go string constant value from the same source text — this is a genuine two-step parse of an independent, non-test production file, not a copy of the assertion's own expected value.
+- Imports `membershipBaselineCodesForTest` (a newly-exported alias of the real production `membershipBaselineCodes` Set used by the component's render logic — not a separate test-only literal) from `RoleCapabilityDetail.tsx`.
+- Asserts the two independently-derived lists are equal via `toEqual` after sorting.
+This is NOT a self-referential-literal fake (the two sides come from genuinely different files/languages) and NOT a source-substring presence check (it doesn't `assert.Contains` a hardcoded string — it extracts and structurally compares two real values). Satisfies both of `member_archive_repository_test.go`'s CR-01 lesson and the project's own teststil rule (executes/derives real values rather than re-asserting a copy of itself).
+
+**2. Live execution — confirmed passing.**
+```
+docker compose exec -T team4sv30-frontend sh -c "cd /app && npx vitest run RoleCapabilityDetail.membershipBaselineDrift"
+```
+Result: `✓ src/app/admin/roles/RoleCapabilityDetail.membershipBaselineDrift.test.ts (1 test) 3ms` — 1/1 PASS, re-run by this verifier live in the running container, not read from a log.
+
+**3. Independent drift-detection proof.**
+This verifier temporarily mutated `RoleCapabilityDetail.tsx` line 15 from `"fansub_group_media.upload"` to `"fansub_group_media.upload_DRIFT_TEST"`, confirmed `git status --short` was clean beforehand, then re-ran the same command:
+- Result: test FAILED with a clear structural diff (`AssertionError: expected [...] to deeply equal [...]` showing `- "fansub_group_media.upload"` / `+ "fansub_group_media.upload_DRIFT_TEST"`).
+- Reverted via `git checkout -- frontend/src/app/admin/roles/RoleCapabilityDetail.tsx`.
+- Confirmed `git status --short` empty (clean revert) and `git diff --stat` empty.
+- Re-ran the test: `✓ ... (1 test) 3ms` — 1/1 PASS again.
+This proves the test is load-bearing, not a tautology that would pass regardless of drift.
+
+**4. `permissions.MembershipBaselineActionCodes` untouched by the fix commit.**
+`git show 19a3c13d --stat` shows exactly 4 changed files: `.planning/STATE.md`, the new `146-VERIFICATION.md` (an earlier draft, since superseded by this report), the new test file, and `RoleCapabilityDetail.tsx` (+5 lines: the export alias and its explanatory comment). `backend/internal/permissions/permissions.go` does **not** appear in that diff at all. Read `backend/internal/permissions/permissions.go:415-420` directly: `var MembershipBaselineActionCodes = []Action{ActionFansubGroupMembersView, ActionFansubGroupMediaView, ActionFansubGroupMediaUpload}` — byte-identical to what the previous verification cited at the same line. Confirmed unchanged.
+
+**5. Roadmap wording explicitly permits an anti-drift test as a resolution path.**
+`ROADMAP.md:894` — Criterion 4's exact German wording: *"Die drei Baseline-Action-Codes haben eine einzige autoritative Quelle; die verbleibenden Verwendungen **leiten sich davon ab oder sind durch einen Test gegen Auseinanderdriften gesichert**."* The "oder... gesichert" (or... secured [by such a test]) clause is an explicit, first-class alternative to derivation, not a workaround being smuggled in. The fix is a genuine, intended resolution path for this exact criterion, not a deviation requiring an override.
+
+**Verdict: Criterion 4 gap CLOSED.** No override needed — the anti-drift-test path is textually authorized by the roadmap itself, and the test has been proven (by live execution, not by trusting the commit message) to genuinely compare two independent representations and to fail on real drift.
+
+### Observable Truths (ROADMAP.md Success Criteria 1–8) — Full Fresh Re-Check
 
 | # | Truth | Status | Evidence |
 |---|-------|--------|----------|
-| 1 | Removing one of the 3 mandatory actions from the reserved pseudo-role is rejected server-side in the mutation path, proven by real-execution test; existing lockout guard unchanged for other roles | ✓ VERIFIED | `RevokeCapability`/`GrantCapability` in `admin_capability_handler.go:263-279,181-196` run the unconditional revoke guard **before** the D-07 lockout check and an action-specific grant guard, both against `permissions.MembershipBaselineActionCodes`. `TestRevokeCapabilityMembershipBaselineGuardRejectsUnconditionally` (seeds `countRolesWithAction=16` to prove the new guard fires independently of the lockout counter), `TestGrantCapabilityMembershipBaselineGuardRejectsNonBaselineAction`, `TestGrantCapabilityMembershipBaselineAllowsBaselineAction` all executed live via `h.RevokeCapability(c)`/`h.GrantCapability(c)` against `httptest` recorders + fake repos — re-run by this verifier, all 3 PASS. `backend/internal/repository/authz_capability_mutations.go` (`CountRolesWithAction`, the lockout-guard's data source) has **zero diff** since before Phase 146 (`git diff aec4b581^..HEAD` empty) — lockout guard behavior for all other roles is provably unchanged. |
-| 2 | Capability-Matrix visibly marks the 3 rights as protected and shows a speaking German message with correct Umlaute on an attempt — no silent failure, no raw server error | ✓ VERIFIED | `RoleCapabilityDetail.test.tsx`'s `146-02` test renders the reserved role and asserts `screen.getAllByText('Geschützt')` has length 3 and a full German explanatory sentence with correct umlauts is present — re-run by this verifier, 9/9 tests in the file PASS. Server messages use correct umlauts: `"Die reservierte Mitgliedschafts-Grundausstattung ist auf genau die 3 Grundrechte beschränkt..."` (grant) and `"Dieses Recht gehört zur Mitgliedschafts-Grundausstattung und kann nicht entzogen werden..."` (revoke), both surfaced through the existing `ApiError`/`mutationError` path in `RoleCapabilityImpactPreviewModal.tsx` (no raw error, no silent failure). |
-| 3 | `ListGroupHistoryRoleDefinitions` carries the same `NOT reserved` filter as its 3 sibling queries; a real-Postgres test proves the pseudo-role appears in none of the 4 queries | ✓ VERIFIED | `hist_group_member_roles_repository.go:253` — `WHERE 'group_history' = ANY(rd.contexts) AND NOT rd.reserved`. `TestReservedPseudoRoleExcludedFromPickersAndMarkedInCapabilityMatrix` checks all 4 surfaces (`ListCapabilityMatrix` role_kind, `ListFansubGroupRoleDefinitions`, `ListGroupHistoryRoleDefinitions`, `ListPublicRoleDefinitions`) against a real, migrated Postgres schema (`testsupport.OpenPhase145Postgres` + migration 0160) — re-run by this verifier against `team4s_phase145_test_146` on the live `team4sv30-db` container, PASS. |
-| 4 | The 3 baseline action codes have a single authoritative source; remaining usages derive from it or are guarded against drift by a test | ✗ FAILED | Go side fully fixed (`permissions.MembershipBaselineActionCodes` is the single source; migration-vs-Go anti-drift proven by `TestMembershipBaselineMigrationSeedsExactlyThreeActionsAndPreservesEffectiveRights`, re-run and PASS). Frontend side (`RoleCapabilityDetail.tsx`'s `membershipBaselineCodes` Set, explicitly named as in-scope for this criterion in 146-CONTEXT.md's D-05) remains an independent, undrifted-but-untested hardcoded literal — 146-REVIEW.md's WR-03, confirmed still present, explicitly left unfixed per 146-REVIEW-FIX.md's "Skipped Issues" section. See Gaps below. |
-| 5 | All 17 (of the 20 locked) security-relevant test files prove behavior via real execution; source inspection remains only for absence checks / self-referential test subjects | ✓ VERIFIED | `TestNoNewSourceSubstringTests` and `TestNoNewSelfReferentialLiteralAssertions` (`backend/internal/testquality/`) both re-run by this verifier, PASS with zero violations across the full `_test.go` corpus. `146-REVIEW.md`'s CR-01 finding (3 self-referential fake tests in `member_archive_repository_test.go`, undetected by any automated check at the time) was fixed in commit `26c67214` — this verifier independently re-ran `TestArchiveVisibilityFilterExcludesNonPublicRows`, `TestArchivePaginationBounds`, `TestArchiveRoleFilter`, `TestArchiveUsesCanonicalStoredMemberSlug` against real Postgres (`team4s_phase128_test`), all PASS, all now call `repo.SearchMembers` with seeded rows rather than comparing self-authored literals. WR-02's 3 previously-skipped claim-activation tests (`member_claims_repository_claim_activation_test.go`) were also independently re-run against real Postgres (`team4s_phase137_test_1`), all PASS, no `t.Skip` remaining. Spot-checked 3 additional locked files (`release_crew_service_test.go`, `role_definitions_context_test.go`, `point_ledger_repository_test.go`) — all remaining `os.ReadFile` calls are legitimate absence checks or migration-file self-checks per CLAUDE.md's own exceptions. |
-| 6 | ≤36 test files still read a `.go` source file (down from 53); none of the 17/20 security-relevant ones are among them | ✓ VERIFIED | `LegacyAllowedSubstringTestFiles` contains exactly 34 entries (counted programmatically), zero overlap with `SecurityRelevantTestFiles`'s 20 entries — proven automatically by `TestSecurityRelevantFilesNeverInLegacyExceptionList`, re-run and PASS. 34 ≤ 36. |
-| 7 | An automatic ratchet guard prevents new source-substring test regressions (frozen, only-shrinking exception list) | ✓ VERIFIED | This verifier independently injected a throwaway test file into `backend/internal/testquality/` reproducing the standard os.ReadFile-presence-assertion idiom used throughout the codebase (two-step `contentBytes, _ := os.ReadFile(...)` then `content := string(contentBytes)` then `assert.Contains(t, content, ...)`) outside the exception list — `TestNoNewSourceSubstringTests` correctly failed with the injected file named in its error message. The throwaway file was then removed and the guard re-confirmed green. Also independently verified `TestNoNewSelfReferentialLiteralAssertions` (the WR-01 review-fix addition) flags a synthetic self-referential-literal case. Note: an adversarially-crafted variant using an inline `string(content)` conversion directly inside the `Contains(...)` call (not matching the codebase's established two-step idiom) evaded `hasPresenceStyleSourceSubstringAssertion` — a narrow, documented-class blind spot of a regex-based heuristic, not a failure of the criterion as scoped (the guard demonstrably catches the pattern shape the phase's own established test-writing convention would produce). |
-| 8 | The deliberately-remaining backlog is documented as named debt with a reason per file, not a silent gap | ✓ VERIFIED | `146-SUBSTRING-TEST-REMAINDER.md` names all 34 remaining files individually (no glob/"etc." shorthand), grouped by area, each with a specific one-line reason; the frozen `LegacyAllowedSubstringTestFiles` list in `source_substring_guard_test.go` matches this documentation exactly (34 entries, cross-checked programmatically). The one additional, separately-tracked "carried-forward" item (`IsHistoricalMemberRoleCode` not expanded into Criterion 3's scope) is also explicitly named, not silently dropped. |
+| 1 | Removing one of the 3 mandatory actions from the reserved pseudo-role is rejected server-side in the mutation path, proven by real-execution test; existing lockout guard unchanged for other roles | ✓ VERIFIED | Re-run live: `TestRevokeCapabilityMembershipBaselineGuardRejectsUnconditionally`, `TestGrantCapabilityMembershipBaselineGuardRejectsNonBaselineAction`, `TestGrantCapabilityMembershipBaselineAllowsBaselineAction` — 3/3 PASS via `go test ./internal/handlers/...`. No file in this criterion's evidence chain (`admin_capability_handler.go`, `authz_capability_mutations.go`) appears in commit `19a3c13d`'s diff — unchanged since the previous (already-passing) verification pass. |
+| 2 | Capability-Matrix visibly marks the 3 rights as protected and shows a speaking German message with correct Umlaute on an attempt — no silent failure, no raw server error | ✓ VERIFIED | Re-run live: `RoleCapabilityDetail.test.tsx` — 9/9 PASS (unaffected by the fix commit's `+5` lines, which only add an exported test alias, not new render logic). Server messages with correct umlauts confirmed unchanged. |
+| 3 | `ListGroupHistoryRoleDefinitions` carries the same `NOT reserved` filter as its 3 sibling queries; a real-Postgres test proves the pseudo-role appears in none of the 4 queries | ✓ VERIFIED | Re-run live against real Postgres (`team4s_phase145_test_146` on `team4sv30-db`): `TestReservedPseudoRoleExcludedFromPickersAndMarkedInCapabilityMatrix` — PASS. Query filter unchanged since previous pass (not touched by `19a3c13d`). |
+| 4 | The 3 baseline action codes have a single authoritative source; remaining usages derive from it or are guarded against drift by a test | ✓ VERIFIED | **Gap closed this pass.** Go side: `permissions.MembershipBaselineActionCodes` remains the single source; `TestMembershipBaselineMigrationSeedsExactlyThreeActionsAndPreservesEffectiveRights` re-run live against real Postgres — PASS. Frontend side: `RoleCapabilityDetail.membershipBaselineDrift.test.ts` re-run live, proven load-bearing via injected-mutation drift test (see "Re-Verification Focus" above) — PASS, and reverted cleanly. Both halves of the criterion now hold. |
+| 5 | All 17 (of the 20 locked) security-relevant test files prove behavior via real execution; source inspection remains only for absence checks / self-referential test subjects | ✓ VERIFIED | Re-run live: `TestNoNewSourceSubstringTests`, `TestNoNewSelfReferentialLiteralAssertions` — PASS, zero violations. No file in `19a3c13d`'s diff is a security-relevant test file (its only test-file change is the new frontend anti-drift test, which itself reads real production source rather than asserting on its own copy — see point 1 above). |
+| 6 | ≤36 test files still read a `.go` source file (down from 53); none of the 17/20 security-relevant ones are among them | ✓ VERIFIED | `LegacyAllowedSubstringTestFiles` unchanged at 34 entries (fix commit touches no backend test files). `TestSecurityRelevantFilesNeverInLegacyExceptionList` re-run — PASS. Note: the new frontend drift test also reads a `.go` file via `readFileSync`, but it is a frontend Vitest test outside the Go-side `LegacyAllowedSubstringTestFiles`/`SecurityRelevantTestFiles` accounting scope (which counts only backend `_test.go` files per Criterion 5/6's own framing) — the count and mechanism this criterion measures are unaffected. |
+| 7 | An automatic ratchet guard prevents new source-substring test regressions (frozen, only-shrinking exception list) | ✓ VERIFIED | `TestNoNewSourceSubstringTests` and `TestNoNewSelfReferentialLiteralAssertions` re-run live — PASS. Guard mechanism untouched by the fix commit. |
+| 8 | The deliberately-remaining backlog is documented as named debt with a reason per file, not a silent gap | ✓ VERIFIED | `146-SUBSTRING-TEST-REMAINDER.md` unchanged (not in `19a3c13d`'s diff), still matches the frozen 34-entry exception list exactly. |
 
-**Score:** 7/8 roadmap success criteria verified (Criterion 4 partial/failed on its frontend clause).
+**Score:** 8/8 roadmap success criteria verified.
 
-### Additional Required Checks (per verification task)
+### Regression Check Since Previous Verification Pass
+
+`git log --oneline` from the previous verification's implicit baseline to current `HEAD` (`19a3c13d`) shows exactly one new commit landed: `19a3c13d fix(146): close Criterion 4 gap with membership-baseline frontend anti-drift test`. Its full file list (`git show 19a3c13d --stat`): `.planning/STATE.md` (timestamp bump), the phase's own `146-VERIFICATION.md` (an intermediate self-written draft, now superseded by this report), the new test file, and `RoleCapabilityDetail.tsx` (+5 lines, export-only). `git status --short` is clean (no uncommitted changes) both before and after this verifier's own temporary drift-injection experiment (fully reverted). No other files, commits, or unrelated changes landed — nothing regressed in Criteria 1, 2, 3, 5, 6, 7, or 8, all independently re-executed live above rather than assumed carried-forward.
+
+### Additional Required Checks (carried forward, re-confirmed)
 
 | Check | Status | Evidence |
 |---|---|---|
-| `LoadCapabilityRoles` (`backend/internal/repository/authz_permissions.go:470`) has no `NOT reserved` filter and was not touched by Phase 146 | ✓ VERIFIED | Query is `WHERE 'fansub_group' = ANY(contexts) AND code <> 'founder'` — no reserved filter. `git diff <phase-145-commit>..HEAD -- backend/internal/repository/authz_permissions.go` is empty — zero changes since before Phase 146 started. This is intentional (146-CONTEXT.md D-17: adding the filter here would make `group_member` completely uneditable via the shared `IsCapabilityBearingRole`/`LoadCapabilityRoles` guard, breaking Criterion 2). |
-| Platform-admin bypass (`if actor.IsPlatformAdmin { Allowed: true }`) in `backend/internal/permissions/permissions.go` is unconditional and untouched | ✓ VERIFIED | `git diff <phase-145-commit>..HEAD -- backend/internal/permissions/permissions.go` shows exactly one addition: the new `MembershipBaselineActionCodes` var and its use inside `validateMembershipBaselineRegistryPresence` (a pure refactor extracting a literal into a named var). All 3 `if actor.IsPlatformAdmin { ... Allowed: true ... }` blocks (lines ~541, ~630, ~764) are byte-identical to before the phase. Matches 146-CONTEXT.md D-13's explicit "not touched, not restricted" framing. |
-| WR-03's deferral (frontend/Go duplication) does not undermine any of the 8 success criteria as a hidden dependency | ✓ CONFIRMED AS A DIRECT VIOLATION, NOT A HIDDEN ONE | WR-03 is not a separate, unrelated risk — it directly *is* the unresolved clause of Criterion 4 itself (see row 4 above and Gaps below), not an independent code-quality nit as the deferral's framing might suggest. It does not affect Criteria 1, 2, 3, 5, 6, 7, or 8. |
+| `LoadCapabilityRoles` (`backend/internal/repository/authz_permissions.go:470`) has no `NOT reserved` filter and was not touched by Phase 146 | ✓ VERIFIED | File does not appear in `19a3c13d`'s diff — unchanged since previous (already-passing) verification. |
+| Platform-admin bypass in `backend/internal/permissions/permissions.go` is unconditional and untouched | ✓ VERIFIED | `permissions.go` has zero diff in `19a3c13d` (confirmed above, point 4) — all 3 `IsPlatformAdmin` bypass blocks remain byte-identical. |
 
 ### Requirements Coverage
 
-Phase 146 declares `Requirements: TBD (Nacharbeit aus 145-REVIEW.md und Altlast WR-02 aus 144-REVIEW.md, kein v1.4-Requirement-Mapping)` in both ROADMAP.md and 146-VALIDATION.md. Confirmed: `grep -n "146" .planning/REQUIREMENTS.md` returns no matches — no requirement IDs are mapped to this phase, and none of the 13 plan frontmatters claim any. This is the expected, intentional state, not an orphaned-requirement gap.
+Unchanged since previous pass: Phase 146 declares `Requirements: TBD (Nacharbeit aus 145-REVIEW.md und Altlast WR-02 aus 144-REVIEW.md, kein v1.4-Requirement-Mapping)`. `grep -n "146" .planning/REQUIREMENTS.md` returns no matches — no requirement IDs mapped, matching the phase's own declared scope.
 
 ### Anti-Patterns Found
 
 | File | Line | Pattern | Severity | Impact |
 |---|---|---|---|---|
-| `backend/internal/handlers/public_member_access_matrix_test.go` | 349 | `"Profil nicht verf?gbar"` — literal ASCII `?` instead of `ü` (CLAUDE.md Sprachqualität) in a synthetic test-helper response string | ℹ️ Info | Pre-existing (146-REVIEW.md IN-01), correctly scoped as Info-only and left unfixed in the review-fix pass. Confined to a test double (`writePhase128TestUnavailable`); the real production string (`neutralUnavailableBody`, line 173) is correctly spelled and separately asserted. Does not affect production behavior or test reliability — cosmetic debt only. |
-| `backend/internal/handlers/public_member_access_matrix_test.go` | 359-361 | `phase128MatrixLabel` — unused test helper function | ℹ️ Info | Pre-existing (146-REVIEW.md IN-02), dead code, no behavioral impact. |
+| `frontend/src/app/admin/roles/RoleCapabilityDetail.tsx` / `.membershipBaselineDrift.test.ts` | — | none found | — | No `TBD`/`FIXME`/`XXX`/`TODO`/`HACK`/`PLACEHOLDER` markers in either file touched by the fix commit. Both files well under the 450-line modularity cap (251 and 53 lines respectively). |
+| `backend/internal/handlers/public_member_access_matrix_test.go` | 349, 359-361 | Pre-existing Info-only findings (ASCII `?` in a test-double string; unused test helper) | ℹ️ Info | Carried forward unchanged from previous verification pass — not touched by the fix commit, still correctly scoped as cosmetic-only debt. |
 
-No `TBD`/`FIXME`/`XXX` markers found in any file touched by Phase 146 (`git diff <phase-145-commit>..HEAD` file set fully scanned). No `TODO`/`HACK`/`PLACEHOLDER` markers found in the phase's touched files. No `t.Skip` remaining in any phase-146-touched test file.
+No new debt markers introduced. No `t.Skip` in any phase-146-touched file.
 
-### Behavioral Spot-Checks / Real Execution
+### Behavioral Spot-Checks / Real Execution (this pass)
 
 | Behavior | Command | Result | Status |
 |---|---|---|---|
-| Backend builds clean | `go build ./...` (in `team4sv30-backend`) | no output, exit 0 | ✓ PASS |
-| Backend vets clean | `go vet ./...` | no output, exit 0 | ✓ PASS |
-| Criterion 1 guards (real httptest) | `go test ./internal/handlers/... -run 'TestRevokeCapabilityMembershipBaselineGuardRejectsUnconditionally\|TestGrantCapabilityMembershipBaselineGuardRejectsNonBaselineAction\|TestGrantCapabilityMembershipBaselineAllowsBaselineAction' -v` | 3/3 PASS | ✓ PASS |
-| Criterion 3 (real Postgres, 4 queries) | `TEAM4S_PHASE145_TEST_DSN=... go test ./internal/repository/... -run TestReservedPseudoRoleExcludedFromPickersAndMarkedInCapabilityMatrix -v` | PASS | ✓ PASS |
-| Criterion 4 anti-drift (Go side, real Postgres) | `TEAM4S_PHASE145_TEST_DSN=... go test ./internal/repository/... -run TestMembershipBaselineMigrationSeedsExactlyThreeActionsAndPreservesEffectiveRights -v` | PASS | ✓ PASS |
-| CR-01 fix (real Postgres) | `TEAM4S_PHASE128_TEST_DSN=... go test ./internal/repository/... -run TestArchive -v` | 4/4 PASS | ✓ PASS |
-| WR-02 fix (real Postgres) | `TEAM4S_PHASE137_TEST_DSN=... go test ./internal/repository/... -run 'TestVerifyClaimActivatesRoles\|TestResolvePendingRolesToActive' -v` | 5/5 PASS | ✓ PASS |
+| Backend builds clean | `go build ./... && go vet ./...` (in `team4sv30-backend`) | no output, exit 0 | ✓ PASS |
+| Criterion 1 guards | `go test ./internal/handlers/... -run 'TestRevokeCapabilityMembershipBaselineGuardRejectsUnconditionally\|TestGrantCapabilityMembershipBaselineGuardRejectsNonBaselineAction\|TestGrantCapabilityMembershipBaselineAllowsBaselineAction' -v` | 3/3 PASS | ✓ PASS |
 | Criterion 6/7/8 ratchet guards | `go test ./internal/testquality/... -v` | 3/3 PASS | ✓ PASS |
-| Ratchet guard catches new violation (injected, then removed) | throwaway `_test.go` file outside exception list | `TestNoNewSourceSubstringTests` correctly FAILED, then PASSED after removal | ✓ PASS |
-| Criterion 2 RTL (real render + DOM assertions) | `npm run test -- RoleCapabilityDetail` (in `team4sv30-frontend`) | 9/9 PASS | ✓ PASS |
-| Full frontend `roles` area regression check | `npm run test -- roles` | 65/65 PASS across 11 files | ✓ PASS |
-| Full backend `internal/handlers` package | `go test ./internal/handlers/... -count=1` | PASS (one test, `TestAnimeSegmentAssignment_AssignRequiresCapabilityThenSucceeds`, only fails when run in isolation via `-run`, not as part of the suite — confirmed **pre-existing** by reverting Phase 146's only diff to `testmain_test.go` and re-running in isolation: identical failure persists. Unrelated file, not touched by Phase 146, no genuine regression.) | ✓ PASS (no regression) |
-| Full backend `internal/repository` package | `go test ./internal/repository/... -count=1` (with 3 known DSNs set) | Multiple pre-existing failures in `phase134_verification_matrix_*_test.go` (require external Keycloak/live server at `192.168.235.196:18093`, unavailable in this environment) and one pre-existing constraint-violation failure in `member_profile_role_volume_repository_test.go` — none of these files are in Phase 146's diff. Scoped re-run of only Phase-146-relevant tests (`TestArchive\|TestVerifyClaimActivatesRoles\|...`) is 100% green. | ✓ PASS (no regression in phase scope) |
+| `internal/handlers` + `internal/testquality` full packages | `go test ./internal/testquality/... ./internal/handlers/... -count=1` | both `ok` | ✓ PASS |
+| Criterion 3 (real Postgres) | `TEAM4S_PHASE145_TEST_DSN=postgres://team4s:...@team4sv30-db:5432/team4s_phase145_test_146 go test ./internal/repository/... -run TestReservedPseudoRoleExcludedFromPickersAndMarkedInCapabilityMatrix -v` | PASS | ✓ PASS |
+| Criterion 4 Go-side anti-drift (real Postgres) | same DSN, `-run TestMembershipBaselineMigrationSeedsExactlyThreeActionsAndPreservesEffectiveRights -v` | PASS | ✓ PASS |
+| CR-01 fix (real Postgres, regression check) | `TEAM4S_PHASE128_TEST_DSN=postgres://team4s:...@team4sv30-db:5432/team4s_phase128_test go test ./internal/repository/... -run TestArchive -v` | 4/4 PASS | ✓ PASS |
+| WR-02 fix (real Postgres, regression check) | `TEAM4S_PHASE137_TEST_DSN=postgres://team4s:...@team4sv30-db:5432/team4s_phase137_test_1 go test ./internal/repository/... -run 'TestVerifyClaimActivatesRoles\|TestResolvePendingRolesToActive' -v` | 5/5 PASS | ✓ PASS |
+| **Criterion 4 frontend anti-drift test (NEW, this pass's focus)** | `docker compose exec -T team4sv30-frontend sh -c "cd /app && npx vitest run RoleCapabilityDetail.membershipBaselineDrift"` | 1/1 PASS | ✓ PASS |
+| **Drift-detection proof (NEW, this pass's own injected mutation)** | mutate `membershipBaselineCodes`'s 3rd code, re-run same command, then `git checkout --` to revert | FAILED with clear structural diff, then PASSED again after clean revert (`git status --short` empty) | ✓ PASS |
+| Criterion 2 RTL regression | `npx vitest run RoleCapabilityDetail` | 2 files, 10/10 PASS (9 existing + 1 new drift test) | ✓ PASS |
+| Full frontend `roles` area regression check | `npx vitest run roles` | 12 files, 66/66 PASS (was 11 files/65 tests previously — the new drift test is the only addition) | ✓ PASS (no regression) |
 
 ### Human Verification Required
 
-None. All 8 success criteria and both explicitly-requested "protected trap" checks were verifiable via direct code inspection and live re-execution of tests against real Postgres/httptest inside the running Docker Compose stack. The two items flagged as "Manual-Only Verifications" in 146-VALIDATION.md (DSN-gated tests actually ran; ratchet guard catches a new violation) were both independently re-executed by this verifier rather than deferred to a human.
+None. All 8 success criteria, both "protected trap" checks, and the Criterion 4 gap-closure fix were independently re-verified via live re-execution inside the running Docker Compose stack (backend Go tests against real Postgres and httptest; frontend Vitest against a real render + a genuine cross-language source comparison), plus a manual drift-injection experiment proving the new test is load-bearing rather than a tautology. Nothing in this pass required visual, real-time, or external-service judgment beyond what was already resolved in the previous pass.
 
 ### Gaps Summary
 
-One of the roadmap's 8 success criteria is not fully met. Criterion 4 requires that the three baseline action codes have "a single authoritative source; remaining usages derive from it or are secured against drift by a test." The backend half of this (migration seed ↔ `permissions.MembershipBaselineActionCodes` ↔ mutation guards) is fully done and proven against real Postgres. The frontend half — `RoleCapabilityDetail.tsx`'s `membershipBaselineCodes` literal — was explicitly identified as in-scope for this exact criterion in the phase's own planning record (146-CONTEXT.md D-05) and flagged again by the phase's own code review (146-REVIEW.md WR-03), but the fix pass (146-REVIEW-FIX.md) explicitly skipped it, citing the need for a backend contract change (new API field + OpenAPI + TS type) as too large for that pass's scope. No override has been recorded to formally accept this deviation, and no later phase exists in the roadmap to which this could be deferred (Phase 146 is currently the last phase). This is a real, acknowledged, un-closed gap — not a silent one, but not yet resolved either.
+None. The single gap identified in the previous verification pass (Criterion 4's frontend half) is closed: `RoleCapabilityDetail.membershipBaselineDrift.test.ts` is a genuine, independently-verified anti-drift test — confirmed well-formed (reads and structurally parses real production Go source rather than re-asserting a copy of itself), confirmed passing live, and confirmed to actually catch drift via an independent injected-mutation experiment performed by this verifier (not by trusting the commit's own stated verification). `permissions.MembershipBaselineActionCodes` itself is confirmed byte-identical to before this fix commit. ROADMAP.md's own wording for Criterion 4 explicitly names "gesichert durch einen Test gegen Auseinanderdriften" as a first-class resolution path alongside derivation, so no override was needed to close this gap — it is a genuine, textually-authorized resolution, not an accepted deviation. A fresh full re-check of all 8 criteria (not just the previously-failing one) found no regressions: exactly one new commit landed since the previous pass, touching exactly the 4 files its own message describes, and every previously-passing criterion's supporting test evidence was independently re-executed live and still passes.
 
-All other 7 criteria, both explicitly-requested "protected trap" checks (LoadCapabilityRoles unchanged, platform-admin bypass unchanged), and the phase's core stated mission (sicherheitsrelevante Tests belegen Verhalten durch echte Aufrufe statt durch Quelltextsuche) are verified against live re-execution of the actual code, not just SUMMARY.md claims — including the CR-01 self-referential-fake-test gap that the phase's own plans and self-checks initially missed, which the subsequent review+fix cycle correctly caught and closed.
-
-**This looks like a reasonable candidate for an override, at the developer's discretion.** To accept the frontend duplication as documented, tracked debt rather than requiring further work before closing this phase:
-
-```yaml
-overrides:
-  - must_have: "Criterion 4 — remaining usages of the 3 baseline action codes derive from the single source or are drift-tested"
-    reason: "Frontend RoleCapabilityDetail.tsx's hardcoded literal fix requires a backend contract change (new protected/baseline field on CapabilityMatrixActionState, OpenAPI + TS type updates) judged out of scope for this phase's review-fix pass — tracked in 146-REVIEW-FIX.md WR-03 as a follow-up."
-    accepted_by: "{your name}"
-    accepted_at: "{current ISO timestamp}"
-```
+All 8 of Phase 146's roadmap success criteria are now met. The phase goal — no admin can put the Capability-Matrix into a state that crash-loops the next backend start, and security-relevant tests prove behavior via real execution rather than source search — is achieved and verified against the live codebase, not against SUMMARY.md claims.
 
 ---
 
