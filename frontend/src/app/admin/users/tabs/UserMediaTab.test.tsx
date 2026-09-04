@@ -105,7 +105,7 @@ describe('UserMediaTab', () => {
     getAdminUserMediaMock.mockResolvedValue(makePage([makeBlock({ release_version_id: 42 })]))
     render(<UserMediaTab userId={7} />)
     const link = await screen.findByRole('link', { name: 'Release-Medien öffnen' })
-    expect(link).toHaveProperty('href', expect.stringContaining('/me/releases/42/workspace'))
+    expect(link).toHaveProperty('href', expect.stringContaining('/admin/episode-versions/42/edit'))
     expect(screen.queryByText('Arbeitsfläche öffnen')).toBeNull()
   })
 
