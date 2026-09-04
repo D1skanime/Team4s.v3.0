@@ -162,11 +162,11 @@ func TestMembershipBaselineMigrationSeedsExactlyThreeActionsAndPreservesEffectiv
 	rows.Close()
 	require.NoError(t, rows.Err())
 	require.Len(t, actionCodes, 3, "migration 0160 must seed exactly 3 baseline actions, no more, no fewer")
-	assert.ElementsMatch(t, []string{
-		"fansub_group.members.view",
-		"fansub_group_media.upload",
-		"fansub_group_media.view",
-	}, actionCodes, "migration 0160 must seed exactly the 3 expected baseline actions (order not asserted -- Postgres' default locale collation does not sort '.' vs '_' as plain ASCII byte order)")
+	expectedActionCodes := make([]string, 0, len(permissions.MembershipBaselineActionCodes))
+	for _, action := range permissions.MembershipBaselineActionCodes {
+		expectedActionCodes = append(expectedActionCodes, string(action))
+	}
+	assert.ElementsMatch(t, expectedActionCodes, actionCodes, "migration 0160 must seed exactly the 3 baseline actions from the single Go source permissions.MembershipBaselineActionCodes (Criterion 4) -- order not asserted, Postgres' default locale collation does not sort '.' vs '_' as plain ASCII byte order")
 
 	// (c) Load a real cache from Postgres and prove ResolveGroupRights sources the 3 baseline
 	// actions from the pseudo-role's registry entry, matching Plan 145-01's locked pure-Go
@@ -255,6 +255,12 @@ func TestReservedPseudoRoleExcludedFromPickersAndMarkedInCapabilityMatrix(t *tes
 	require.NoError(t, err)
 	for _, opt := range fansubGroupOptions {
 		assert.NotEqual(t, "group_member", opt.Code, "the app-member-add role picker must never return the reserved pseudo-role")
+	}
+
+	groupHistoryOptions, err := histRepo.ListGroupHistoryRoleDefinitions(ctx)
+	require.NoError(t, err)
+	for _, opt := range groupHistoryOptions {
+		assert.NotEqual(t, "group_member", opt.Code, "the group-history role picker (4th sibling query, Criterion 3) must never return the reserved pseudo-role")
 	}
 
 	catalogRepo := NewRoleCatalogRepository(pool)
