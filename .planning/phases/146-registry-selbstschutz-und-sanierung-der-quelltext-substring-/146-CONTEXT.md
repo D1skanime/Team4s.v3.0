@@ -58,6 +58,73 @@ Requirements sind bewusst TBD — additive Nacharbeit aus `145-REVIEW.md` und Al
   „keine Sonderbehandlung" behauptet heute das Gegenteil dessen, was Kriterium 2 baut, und muss
   umgeschrieben werden.
 
+### Block 1 — Zusatzbefund aus dem Research: 38-gegen-3-Anzeige und fehlender Grant-Guard
+(Nutzerentscheidung nach Research, 2026-09-04 — verbindlich, ersetzt die ursprüngliche Rahmung des
+Research-Berichts)
+
+**Korrektur der Rahmung (verbindlich für alle Pläne, Tasks, Testnamen und Threat-Model-Abschnitte):**
+- **D-13:** `backend/internal/permissions/permissions.go` (~Zeile 534 und ~Zeile 623) enthält einen
+  bedingungslosen Plattform-Admin-Bypass VOR jeder Rollenprüfung
+  (`if actor.IsPlatformAdmin { return Result{Allowed: true, ReasonCode: ReasonPlatformAdmin ...} }`),
+  festgeschrieben durch Phase 136 Erfolgskriterium 1: der IdP-eigene Plattform-Admin-Bypass ist durch
+  Gruppen-Kontrollen nicht verweigerbar. Ein Plattform-Admin, der die Capability-Matrix bearbeitet,
+  nutzt genau die Befugnis, für die die Oberfläche gebaut wurde — das ist **keine Rechte-Eskalation
+  und keine Sicherheitslücke**. Der Bypass wird in dieser Phase NICHT angetastet, nicht eingeschränkt
+  und nicht mit zusätzlichen Prüfungen umstellt. Diese Rahmung ersetzt die im ursprünglichen
+  `146-RESEARCH.md` verwendete Formulierung „stille plattformweite Rechteausweitung" — letztere ist
+  fehlerhaft und darf in keinem Plan-Artefakt wiederholt werden.
+- **D-14:** Tatsächlich zu behebende Probleme sind (1) **Betriebssicherheit** — eine erlaubte Aktion
+  darf nicht den nächsten Backend-Start unmöglich machen und die Reparatur-Oberfläche mit sich
+  reißen (unveränderter Kern der Kriterien 1–4), und (2) **Konsistenz** — jede normale Rolle wird in
+  `RoleCapabilityDetail.tsx` gefiltert dargestellt, die als `reserved` markierte Pseudo-Rolle aktuell
+  nicht, obwohl sie als eingeschränkt konzipiert ist.
+
+**Antwort auf Frage 1 — 38-gegen-3 wird in dieser Phase behoben, keine eigene Phase:**
+- **D-15:** In `RoleCapabilityDetail.tsx` bekommt der `isReservedBaseline`-Zweig von
+  `configurableActions` einen Filter auf `membershipBaselineCodes`, statt `role.actions` ungefiltert
+  durchzureichen. Die Badge- und `aria-describedby`-Verträge aus `146-UI-SPEC.md` bleiben unverändert
+  gültig und gelten für genau die 3 verbleibenden Zeilen — keine Neuverhandlung der UI-SPEC, nur die
+  bereits vorausgesetzte Prämisse „genau 3 Zeilen" wird jetzt tatsächlich wahr.
+
+**Antwort auf Frage 2 — Backend-Guard auch beim Granten, ja:**
+- **D-16:** Der Server lehnt zusätzlich das Zuweisen (Grant) einer Nicht-Baseline-Action an
+  `group_member` ab, nicht nur das Entziehen (Revoke) einer Baseline-Action. Beide Richtungen mit
+  sprechender deutscher Meldung, korrekten Umlauten, kein roher Serverfehler. Damit ist der Zustand
+  der reservierten Rolle serverseitig auf genau die drei Grundrechte festgelegt; die Oberfläche
+  (D-15) ist die zweite Verteidigungslinie, nicht die einzige.
+
+**Drei nachgemessene Zusatzfakten (2026-09-04, live gegen `team4s_v2`):**
+- **D-17 (vierte betroffene Abfrage + Falle):** `GrantCapability` UND `RevokeCapability` in
+  `backend/internal/handlers/admin_capability_handler.go` (~Zeile 170 bzw. ~Zeile 235) benutzen
+  denselben Guard `permissions.IsCapabilityBearingRole`, gespeist aus `capabilityRoleCatalog`,
+  gefüllt von `LoadCapabilityRoles` in `backend/internal/repository/authz_permissions.go`
+  (~Zeile 470). Dessen Query filtert nur auf `'fansub_group' = ANY(contexts)` und
+  `code <> 'founder'` — ihm fehlt der `NOT reserved`-Filter. Live gemessen: `group_member` steht als
+  erster von 15 Einträgen in diesem Katalog, deshalb läuft der Grant-Pfad ungehindert durch. Das ist
+  eine VIERTE betroffene Abfrage, die der ursprüngliche Roadmap-Befund nicht kennt.
+  **Falle, ausdrücklich zu vermeiden:** `NOT reserved` einfach in `LoadCapabilityRoles` zu ergänzen
+  ist NICHT die Lösung — da Grant und Revoke sich denselben Guard teilen, würde die Pseudo-Rolle
+  dadurch komplett uneditierbar (beide Pfade würden mit 422 und der generischen, hier inhaltlich
+  falschen Meldung „Diese Beitrags- oder historische Rolle kann keine Standardrechte erhalten"
+  antworten). Das bricht Kriterium 2, das interaktive Switches und eine sprechende, zutreffende
+  Meldung verlangt. Der neue Guard muss **action-spezifisch** sein (welche Action ist an dieser Rolle
+  erlaubt), nicht rollen-pauschal über `IsCapabilityBearingRole`. Die Planung muss ausdrücklich
+  behandeln, ob/wie `LoadCapabilityRoles` angefasst wird, und Kriterium 4 (eine autoritative Quelle
+  für die drei Baseline-Codes) so zuschneiden, dass sie diesen neuen Guard trägt.
+- **D-18 (Zahlen):** `action_definitions` hat 38 Zeilen, `role_capabilities` für `group_member`
+  genau 3. `role_definitions` für `group_member`: `assignable=false`, `reserved=true`,
+  `contexts={fansub_group}`, `sort_order=-10`. Eine Action (`fansub_group.invitations.accept`) ist
+  standalone und wird nicht als Switch gerendert — die ungefilterte Ansicht ergibt somit **37**
+  Switches, davon **34** nicht gewährt (präzisiert gegenüber der ersten, grob gerundeten
+  Research-Fassung).
+- **D-19 (UAT-/Test-Lücke, in dieser Phase zu schließen):** Das `Accordion` mountet eingeklappte
+  Kategorien nicht (`isMounted = isOpen || keepMountedIds?.has(id)`), der Phase-145-UAT-Prüfer hatte
+  2 von 8 Kategorien offen und sah dort korrekt 3 Switches. Der bestehende Unit-Test in
+  `RoleCapabilityDetail.test.tsx` füttert eine Fixture mit genau 3 Fake-Actions und übt die reale
+  38-Actions-Form nie aus. Beide Lücken müssen in dieser Phase geschlossen werden: ein Test mit der
+  realen Action-Menge, der belegt, dass für die reservierte Rolle über ALLE Kategorien hinweg genau
+  3 Switches erscheinen.
+
 ### Block 2 — Testsanierung
 - **D-08:** Erste Aufgabe von Block 2: die Filterregel festnageln, die entscheidet, welche
   Testdateien „sicherheitsrelevant" sind (Kriterium 5/6 Zähler). Ausgangslage laut frischer Messung

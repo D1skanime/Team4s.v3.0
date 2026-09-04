@@ -83,6 +83,40 @@ below, then implement the Go-side ratchet test as a plain `_test.go` file (no CI
 golangci-lint config exist in this repo to hook into — the guard must be a `go test`-executed Go
 test, not a lint rule or CI job).
 
+## ⚠ Post-Research User Correction (2026-09-04, binding — read before the section below)
+
+The "Critical Additional Finding" section immediately below frames the 38-vs-3 exposure as a
+"silent platform-wide rights expansion" / privilege escalation. **The user has corrected this
+framing and it must NOT be used in plans, tasks, test names, or threat-model sections.**
+
+`backend/internal/permissions/permissions.go` (~line 534 and ~line 623) contains an unconditional
+platform-admin bypass BEFORE any role check (`if actor.IsPlatformAdmin { return Result{Allowed:
+true, ReasonCode: ReasonPlatformAdmin ...} }`), locked in by Phase 136 Success Criterion 1: the
+IdP-native platform-admin bypass is not deniable via group controls. A platform admin editing the
+capability matrix is exercising exactly the authority this surface was built for — that is not
+misuse and not an escalation. The bypass is NOT touched, NOT restricted, and NOT gated with
+additional checks in this phase.
+
+The two things that actually need fixing are: (1) **operational safety** — a permitted action must
+not be able to make the next backend start impossible while taking the repair surface down with it
+(unchanged core of Criteria 1-4), and (2) **consistency** — every normal role is filtered in
+`RoleCapabilityDetail.tsx`; the role marked `reserved` is currently shown unfiltered, the opposite
+of what its design intent (restricted) implies.
+
+See `146-CONTEXT.md` decisions D-13 through D-19 for the full corrected framing, the user's binding
+answers to both scope questions (fix the 38-vs-3 display bug in this phase; add a backend grant-side
+guard too, not just revoke), and three newly measured facts not in the original finding below:
+a **fourth** affected query (`LoadCapabilityRoles` in `authz_permissions.go`, feeding the
+`IsCapabilityBearingRole` guard shared by both Grant and Revoke) plus an explicit trap (naively
+adding `NOT reserved` there breaks Grant entirely for `group_member`, contradicting Criterion 2);
+precise counts (37 switches, 34 ungranted, not 38/35); and the exact UAT/unit-test blind spot to
+close with a real-action-count test.
+
+The rest of this "Critical Additional Finding" section remains useful for its code-location and
+mechanism details (the CROSS JOIN, the Accordion lazy-mount explanation, the exact file/line
+citations) — only the "privilege escalation" / "rights expansion" framing and severity language
+are superseded.
+
 ## Critical Additional Finding (verify before planning Criterion 1/2)
 
 **Not in `145-REVIEW.md`, not in `146-CONTEXT.md`, not in `146-UI-SPEC.md`.** Independently
@@ -589,7 +623,7 @@ established fallback (SKIP-not-FAIL for the DSN; `go test`-based enforcement for
 |---------------|---------|-----------------|
 | V2 Authentication | no (unchanged — `requirePlatformAdminIdentity` already gates every touched endpoint) | — |
 | V3 Session Management | no (unchanged) | — |
-| V4 Access Control | **yes** | Criterion 1 is a server-side authorization/mutation-integrity control (BOLA-adjacent: prevents an authorized-but-overreaching admin action from corrupting a security-relevant registry); the "Critical Additional Finding" above is squarely a V4 concern (unrestricted action-grant surface on a role that structurally should only ever carry 3 actions) |
+| V4 Access Control | **yes** | Criterion 1 is a server-side mutation-integrity control that keeps the reserved pseudo-role's registry state structurally consistent with its 3-action design intent, independent of the (unrestricted-by-design, correctly-so) platform-admin bypass — see `146-CONTEXT.md` D-13/D-14: this is a consistency/operational-safety concern, NOT an access-control gap or privilege escalation; the platform-admin bypass itself is intentionally out of scope |
 | V5 Input Validation | yes (unchanged pattern) | `roleCode`/`actionCode` route params already validated for non-empty + `IsCapabilityBearingRole`; no new input surface introduced |
 | V6 Cryptography | no | — |
 
@@ -597,7 +631,7 @@ established fallback (SKIP-not-FAIL for the DSN; `go test`-based enforcement for
 
 | Pattern | STRIDE | Standard Mitigation |
 |---------|--------|---------------------|
-| Privilege escalation via unrestricted role-capability mutation (the Critical Additional Finding) | Elevation of Privilege | Server-side allow-list scoping which `actionCode`s may be granted/revoked for a structurally-fixed reserved role, not merely a UI-side hidden/disabled control — this is exactly the class of fix Criterion 1 already establishes for the *revoke* direction; the *grant* direction is the still-open gap flagged above |
+| Reserved pseudo-role's registry state drifting from its structurally-fixed 3-action design intent via unrestricted role-capability mutation (NOT privilege escalation — the platform-admin bypass performing the mutation is intentional and out of scope per D-13/D-14) | Tampering (registry-consistency, not access-control) | Server-side allow-list scoping which `actionCode`s may be granted/revoked for the reserved role, not merely a UI-side hidden/disabled control — Criterion 1 already establishes this for the *revoke* direction; D-16 extends it to the *grant* direction via a new action-specific guard (NOT a blanket `NOT reserved` filter on `LoadCapabilityRoles` — see D-17's trap) |
 | Fail-open cache/registry corruption leading to a denial-of-service crash-loop | Denial of Service | Fail-closed startup validation (`validateMembershipBaselineRegistryPresence`, already in place since Phase 145) — Criterion 1 moves the defense earlier (mutation time) so the fail-closed startup path is never reached in the first place |
 | Source-substring tests masking unverified security-critical behavior (Block 2's entire premise) | Repudiation / false assurance | Real behavioral tests (httptest + fake repo, or real Postgres) that actually execute the authorization/access-control code path and assert on the real outcome |
 
