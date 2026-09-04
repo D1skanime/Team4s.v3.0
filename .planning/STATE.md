@@ -4,13 +4,13 @@ milestone: v1.4
 milestone_name: Coverage
 status: executing
 stopped_at: Completed 146-05-PLAN.md
-last_updated: "2026-09-04T17:01:39.023Z"
+last_updated: "2026-09-04T17:07:16.866Z"
 last_activity: 2026-09-04
 progress:
   total_phases: 11
   completed_phases: 10
   total_plans: 128
-  completed_plans: 123
+  completed_plans: 124
   percent: 91
 ---
 
@@ -34,7 +34,7 @@ See: .planning/PROJECT.md (updated 2026-08-13)
 ## Current Position
 
 Phase: 146 (registry-selbstschutz-und-sanierung-der-quelltext-substring) — EXECUTING
-Plan: 9 of 13
+Plan: 10 of 13
 Status: Ready to execute
 
 Phase 145 ist abgeschlossen und live abgenommen (145-UAT.md, 2026-09-04). Die Codeprüfung dieser
@@ -282,6 +282,7 @@ Last activity: 2026-09-04
 - [Phase 146]: member_archive_repository_test.go and member_point_totals_repository_test.go's 'uses canonical stored slug' claims are now proven via real Postgres SearchMembers/ListRanking calls against a seeded nickname-divergent member row instead of grepping the repository's own SQL text; the sanctioned static-authority absence loops stay unchanged (D-10).
 - [Phase 146]: Reused phase136LinkResolver + a repository.DBTX-implementing captured-args fake DB to prove the fansub alias group-edit guard's real 403 and exact audit event, since FansubHandler.auditLogRepo is a concrete type not an interface
 - [Phase 146]: 146-08: fansubNotesRepo/mediaRepo are concrete repository types, not interfaces -- real schema-isolated Postgres fixtures replaced os.ReadFile/strings.Contains source-substring proofs in 3 Block-2 handler test files (fansub notes, theme assets, RVM file-replace) instead of the plan's assumed fake-repo pattern. — themeRepo/permissionSvc/projectNoteCreditSvc are interfaces and were faked as planned; fansubNotesRepo and mediaRepo cannot be, so real Postgres was used per CLAUDE.md Teststil's closest-analog precedent already established by dashboard_me_handler_test.go.
+- [Phase 146]: dashboard_me_handler_test.go's 4 source-substring functions now prove D-08 IDOR resistance and D-09 graceful-empty-state via real httptest + real-Postgres calls against the already-established testsupport.OpenPhase107Postgres fixture, closing Criteria 5/6 for this file. — Plan 146-09, CLAUDE.md Teststil rule
 
 ### Pending Todos
 
@@ -597,10 +598,11 @@ untruncated list lives in `.planning/todos/pending/`.
 | Phase 146 P06 | 24min | 2 tasks | 2 files |
 | Phase 146 P07 | 20min | 2 tasks | 2 files |
 | Phase 146 P08 | 3h | 3 tasks | 3 files |
+| Phase 146 P09 | 1h | 1 tasks | 1 files |
 
 ## Session Continuity
 
-Last session: 2026-09-04T17:01:15.593Z
+Last session: 2026-09-04T17:07:12.025Z
 Stopped at: Completed 146-05-PLAN.md
 Last activity: 2026-09-01 - Milestone v1.4 audit passed (41/41 requirements, 7/7 phases, .planning/v1.4-MILESTONE-AUDIT.md); Phase 143 added to roadmap, not yet planned
 Resume file: None
