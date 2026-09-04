@@ -116,6 +116,54 @@ const reservedBaselineRole: RoleEntry = {
   ],
 }
 
+const NON_BASELINE_CATEGORIES = [
+  'gruppenseite',
+  'projekt',
+  'rechteverwaltung',
+  'release',
+  'review',
+  'veroeffentlichungen',
+]
+
+/**
+ * Nicht-Baseline-Aktionen der realen D-18-Katalogform: 34 Aktionen, gleichmäßig über die
+ * restlichen 6 Kategorien verteilt (Phase-146-RESEARCH.md, Zeile 148f.).
+ */
+const nonBaselineFullCatalogActions = Array.from({ length: 34 }, (_, i) => ({
+  code: `full_catalog.action_${i}`,
+  label_de: `Vollkatalog-Aktion ${i}`,
+  category: NON_BASELINE_CATEGORIES[i % NON_BASELINE_CATEGORIES.length],
+  granted: false,
+  standalone: false,
+}))
+
+/**
+ * Reale D-19-Katalogform der reservierten Pseudo-Rolle: 38 Gesamtaktionen (3 Baseline + 34
+ * Nicht-Baseline + 1 Systemaktion) statt der alten 3-Aktionen-Fixture, die den
+ * `configurableActions`-Filterfehler nicht aufdecken konnte.
+ */
+const reservedBaselineRoleFullCatalog: RoleEntry = {
+  role_code: 'group_member',
+  label_de: 'Mitgliedschafts-Grundausstattung',
+  role_kind: 'reserved_baseline',
+  assignable: false,
+  capability_editable: true,
+  contexts: ['fansub_group'],
+  actions: [
+    ...reservedBaselineRole.actions,
+    ...nonBaselineFullCatalogActions,
+    {
+      code: 'fansub_group.invitations.accept',
+      label_de: 'Einladung annehmen',
+      category: 'projekt',
+      granted: false,
+      standalone: true,
+    },
+  ],
+}
+
+const ALL_FULL_CATALOG_CATEGORIES = ['gruppe', 'gruppenmedien', ...NON_BASELINE_CATEGORIES]
+
 describe('RoleCapabilityDetail', () => {
   it('rendert Accordion-Header pro Kategorie (Gruppe)', () => {
     render(<DetailHarness role={assignableRole} />)
@@ -240,13 +288,14 @@ describe('RoleCapabilityDetail', () => {
     expect(triggerTexts[2]).toContain('release')
   })
 
-  it('145-03: rendert für die reservierte Pseudo-Rolle alle 3 Grundausstattungs-Aktionen als normale Switch-Zeilen (keine Sonderbehandlung) mit Hinweistext statt Deep-Link', () => {
+  it('146-02: rendert für die reservierte Pseudo-Rolle alle 3 Grundausstattungs-Aktionen als Switch-Zeilen MIT sichtbarem "Geschützt"-Badge (Criterion 2) und Hinweistext statt Deep-Link', () => {
     render(<DetailHarness role={reservedBaselineRole} initialOpen={['gruppe', 'gruppenmedien']} />)
 
     const switches = screen.getAllByRole('switch')
     expect(switches).toHaveLength(3)
     const checkedSwitches = switches.filter((s) => s.getAttribute('aria-checked') === 'true')
     expect(checkedSwitches).toHaveLength(3)
+    expect(screen.getAllByText('Geschützt')).toHaveLength(3)
 
     expect(
       screen.getByText(
@@ -254,6 +303,18 @@ describe('RoleCapabilityDetail', () => {
       ),
     ).toBeTruthy()
     expect(screen.queryByRole('link', { name: 'Grundausstattung öffnen' })).toBeNull()
+  })
+
+  it('146-02 (D-19): rendert für die reservierte Pseudo-Rolle exakt 3 Switches gegen die reale 38-Aktionen-Katalogform über alle 8 Kategorien hinweg, nicht 37', () => {
+    render(
+      <DetailHarness
+        role={reservedBaselineRoleFullCatalog}
+        initialOpen={ALL_FULL_CATALOG_CATEGORIES}
+      />,
+    )
+
+    const switches = screen.getAllByRole('switch')
+    expect(switches).toHaveLength(3)
   })
 
   it('145-03: zeigt für eine normale kapazitätsbearbeitbare Rolle die aktualisierte Erklärung + einen Deep-Link "Grundausstattung öffnen" statt der alten statischen Zeile', () => {
