@@ -1,7 +1,9 @@
 'use client'
 
 import { useMemo } from 'react'
+import { Lock } from 'lucide-react'
 import { Accordion } from '@/components/ui/Accordion'
+import { Badge } from '@/components/ui/Badge'
 import { Button } from '@/components/ui/Button'
 import { Switch } from '@/components/ui/Switch'
 import type { RoleEntry } from '@/types/admin-capability'
@@ -51,7 +53,7 @@ export function RoleCapabilityDetail({
   const isEditable = role.capability_editable !== false
   const isReservedBaseline = role.role_kind === 'reserved_baseline'
   const configurableActions = isReservedBaseline
-    ? role.actions
+    ? role.actions.filter((action) => membershipBaselineCodes.has(action.code))
     : role.actions.filter((action) => !membershipBaselineCodes.has(action.code))
 
   const accordionItems = useMemo(() => {
@@ -95,6 +97,16 @@ export function RoleCapabilityDetail({
                 >
                   {action.label_de}
                 </span>
+                {isReservedBaseline && membershipBaselineCodes.has(action.code) && (
+                  <Badge variant="info" id={`baseline-protected-${action.code}`}>
+                    <Lock size={16} aria-hidden="true" />
+                    {' '}Geschützt
+                    <span className="visually-hidden">
+                      {' '}– Teil der Mitgliedschafts-Grundausstattung. Entziehen wird serverseitig abgelehnt,
+                      da jedes aktive Mitglied dieses Recht automatisch benötigt.
+                    </span>
+                  </Badge>
+                )}
                 {action.standalone ? (
                   <span
                     style={{
@@ -110,6 +122,11 @@ export function RoleCapabilityDetail({
                     checked={action.granted}
                     disabled={!isEditable}
                     aria-label={action.label_de}
+                    aria-describedby={
+                      isReservedBaseline && membershipBaselineCodes.has(action.code)
+                        ? `baseline-protected-${action.code}`
+                        : undefined
+                    }
                     onCheckedChange={(next) => {
                       if (!isEditable) return
                       // Kein sofortiges Speichern (D-18): nur den Impact-Preview-Dialog
