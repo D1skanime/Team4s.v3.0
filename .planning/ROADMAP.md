@@ -897,7 +897,7 @@ Plans:
   7. Ein automatischer Guard verhindert Neuzugänge — eingefrorene, nur schrumpfende Ausnahmeliste nach dem Vorbild von `LEGACY_NO_RESTRICTED_SYNTAX_FILES` in `frontend/eslint.config.mjs`. Die `CLAUDE.md`-Konvention ist damit durchgesetzt statt nur beschrieben.
   8. Der bewusst stehen gelassene Restbestand ist als benannte Schuld dokumentiert, mit dem Grund je Datei — nicht als stillschweigende Lücke.
 
-**Plans:** 2/13 plans executed
+**Plans:** 3/13 plans executed
 
 Plans:
 **Wave 1**
@@ -907,7 +907,7 @@ Plans:
 
 **Wave 2** *(blocked on Wave 1 completion)*
 
-- [ ] 146-03-PLAN.md — Criterion 1+D-16: unconditional revoke guard + action-specific grant guard
+- [x] 146-03-PLAN.md — Criterion 1+D-16: unconditional revoke guard + action-specific grant guard
 
 **Wave 3** *(blocked on Wave 2 completion)*
 
@@ -956,4 +956,4 @@ Plans:
 | 143. Phase-142-Nacharbeit und Dashboard-Lane für abgelehnte Notizen | 19/19 | Complete | 2026-09-02 |
 | 144. Überarbeitungs-Kreislauf für Release-Medien vervollständigen | 8/8 | Complete | 2026-09-03 |
 | 145. Mitgliedschafts-Grundausstattung in die Rechte-Registry überführen | 4/4 | Complete | 2026-09-04 |
-| 146. Registry-Selbstschutz und Sanierung der Quelltext-Substring-Tests | 2/13 | In Progress|  |
+| 146. Registry-Selbstschutz und Sanierung der Quelltext-Substring-Tests | 3/13 | In Progress|  |
