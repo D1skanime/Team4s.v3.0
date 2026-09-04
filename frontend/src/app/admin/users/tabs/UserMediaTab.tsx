@@ -113,7 +113,7 @@ function ReleaseBlockCard({ block }: { block: AdminMediaReleaseBlock }) {
         <Button
           size="sm"
           variant="primary"
-          href={`/me/releases/${block.release_version_id}/workspace`}
+          href={`/admin/episode-versions/${block.release_version_id}/edit`}
         >
           Release-Medien öffnen
         </Button>
