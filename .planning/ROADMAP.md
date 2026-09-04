@@ -897,7 +897,7 @@ Plans:
   7. Ein automatischer Guard verhindert Neuzugänge — eingefrorene, nur schrumpfende Ausnahmeliste nach dem Vorbild von `LEGACY_NO_RESTRICTED_SYNTAX_FILES` in `frontend/eslint.config.mjs`. Die `CLAUDE.md`-Konvention ist damit durchgesetzt statt nur beschrieben.
   8. Der bewusst stehen gelassene Restbestand ist als benannte Schuld dokumentiert, mit dem Grund je Datei — nicht als stillschweigende Lücke.
 
-**Plans:** 6/13 plans executed
+**Plans:** 7/13 plans executed
 
 Plans:
 **Wave 1**
@@ -914,7 +914,7 @@ Plans:
 - [x] 146-04-PLAN.md — Criteria 5/6/7: lock security-relevant file list (D-08) + remediate 3 files
 - [x] 146-05-PLAN.md — Criteria 5/6: remediate hist_group_member_roles_whitelist_test.go + member_claims_repository_claim_activation_test.go
 - [x] 146-06-PLAN.md — Criteria 5/6: remediate member_archive_repository_test.go + member_point_totals_repository_test.go
-- [ ] 146-07-PLAN.md — Criteria 5/6: remediate fansub_test.go + point_ledger_repository_test.go
+- [x] 146-07-PLAN.md — Criteria 5/6: remediate fansub_test.go + point_ledger_repository_test.go
 - [ ] 146-08-PLAN.md — Criteria 5/6: remediate 3 admin_content_* handler test files
 - [ ] 146-09-PLAN.md — Criteria 5/6: remediate dashboard_me_handler_test.go
 - [ ] 146-10-PLAN.md — Criteria 5/6: remediate public_member_access_matrix_test.go
@@ -956,4 +956,4 @@ Plans:
 | 143. Phase-142-Nacharbeit und Dashboard-Lane für abgelehnte Notizen | 19/19 | Complete | 2026-09-02 |
 | 144. Überarbeitungs-Kreislauf für Release-Medien vervollständigen | 8/8 | Complete | 2026-09-03 |
 | 145. Mitgliedschafts-Grundausstattung in die Rechte-Registry überführen | 4/4 | Complete | 2026-09-04 |
-| 146. Registry-Selbstschutz und Sanierung der Quelltext-Substring-Tests | 6/13 | In Progress|  |
+| 146. Registry-Selbstschutz und Sanierung der Quelltext-Substring-Tests | 7/13 | In Progress|  |
