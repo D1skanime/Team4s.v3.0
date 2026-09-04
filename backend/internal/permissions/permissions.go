@@ -412,6 +412,13 @@ func validateCapabilityCatalog(m map[string][]Action) error {
 	return nil
 }
 
+// MembershipBaselineActionCodes (Phase 146, Success Criterion 4) is the single Go source for
+// the 3 membership-baseline action codes. Previously this exact 3-element literal was
+// duplicated across the migration seed, this validator, and a TS filter, risking silent
+// drift. Consumed by validateMembershipBaselineRegistryPresence below and by the mutation
+// guards Plan 146-03 adds to admin_capability_handler.go.
+var MembershipBaselineActionCodes = []Action{ActionFansubGroupMembersView, ActionFansubGroupMediaView, ActionFansubGroupMediaUpload}
+
 // validateMembershipBaselineRegistryPresence (Phase 145, Success Criterion 6) checks that
 // the reserved RoleMembershipBaseline pseudo-role's loaded role_capabilities entry carries
 // all three membership-baseline actions. validateCapabilityCatalog already proves every
@@ -422,7 +429,7 @@ func validateCapabilityCatalog(m map[string][]Action) error {
 // (fail-closed, not fail-open).
 func validateMembershipBaselineRegistryPresence(m map[string][]Action) error {
 	baseline := m[RoleMembershipBaseline]
-	for _, a := range []Action{ActionFansubGroupMembersView, ActionFansubGroupMediaView, ActionFansubGroupMediaUpload} {
+	for _, a := range MembershipBaselineActionCodes {
 		if !slices.Contains(baseline, a) {
 			return fmt.Errorf("permission cache: Rolle %q (Mitgliedschafts-Grundausstattung) fehlt Action %q in role_capabilities — Startup abgebrochen", RoleMembershipBaseline, a)
 		}
