@@ -3,14 +3,14 @@ gsd_state_version: 1.0
 milestone: v1.4
 milestone_name: Coverage
 status: executing
-stopped_at: Completed 146-03-PLAN.md
-last_updated: "2026-09-04T15:58:32.061Z"
+stopped_at: Completed 146-04-PLAN.md
+last_updated: "2026-09-04T16:05:22.191Z"
 last_activity: 2026-09-04
 progress:
   total_phases: 11
   completed_phases: 10
   total_plans: 128
-  completed_plans: 118
+  completed_plans: 119
   percent: 91
 ---
 
@@ -34,7 +34,7 @@ See: .planning/PROJECT.md (updated 2026-08-13)
 ## Current Position
 
 Phase: 146 (registry-selbstschutz-und-sanierung-der-quelltext-substring) — EXECUTING
-Plan: 4 of 13
+Plan: 5 of 13
 Status: Ready to execute
 
 Phase 145 ist abgeschlossen und live abgenommen (145-UAT.md, 2026-09-04). Die Codeprüfung dieser
@@ -277,6 +277,7 @@ Last activity: 2026-09-04
 - [Phase 146]: permissions.go's pre-existing 928-line size stays out of scope for this additive plan, carried forward as debt
 - [Phase 146]: RoleCapabilityDetail.tsx's configurableActions filter now scopes the reserved pseudo-role's rendered rows to exactly its 3 intended membershipBaselineCodes actions (D-15), fixing a defect where all 38 catalog actions rendered unfiltered; the 3 rows carry a non-color-only Badge/Lock/aria-describedby protected-state contract (Criterion 2) while staying fully interactive per 146-UI-SPEC.md's attempt-then-reject interaction shape.
 - [Phase 146]: Plan 146-03: membership-baseline mutation guards reuse one error.code (membership_baseline_guard) for both grant and revoke, and the test-fixture LoadCapabilityRoles now includes group_member so guards are actually reachable in tests
+- [Phase 146]: 146-04 lockte die 20-Datei-Definition 'sicherheitsrelevant' (D-08, SecurityRelevantTestFiles) und sanierte die ersten 3 der 20 gesperrten Testdateien (role_catalog_router_integration_test.go, role_catalog_repository_test.go, role_definitions_context_test.go) von os.ReadFile+strings.Contains-Quelltext-Substring-Behauptungen auf echte httptest/Postgres-Ausfuehrung.
 
 ### Pending Todos
 
@@ -587,10 +588,11 @@ untruncated list lives in `.planning/todos/pending/`.
 | Phase 146 P01 | 3min | 3 tasks | 3 files |
 | Phase 146 P02 | 12min | 2 tasks | 2 files |
 | Phase 146 P03 | 8min | 3 tasks | 3 files |
+| Phase 146 P04 | 40min | 3 tasks | 4 files |
 
 ## Session Continuity
 
-Last session: 2026-09-04T15:58:32.044Z
-Stopped at: Completed 146-03-PLAN.md
+Last session: 2026-09-04T16:05:22.176Z
+Stopped at: Completed 146-04-PLAN.md
 Last activity: 2026-09-01 - Milestone v1.4 audit passed (41/41 requirements, 7/7 phases, .planning/v1.4-MILESTONE-AUDIT.md); Phase 143 added to roadmap, not yet planned
 Resume file: None
