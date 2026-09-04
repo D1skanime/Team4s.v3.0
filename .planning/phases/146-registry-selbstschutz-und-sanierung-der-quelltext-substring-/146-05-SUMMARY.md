@@ -92,3 +92,12 @@ Two of the 20 locked Block-2 security-relevant files are now fully remediated (2
 ---
 *Phase: 146-registry-selbstschutz-und-sanierung-der-quelltext-substring*
 *Completed: 2026-09-04*
+
+## Self-Check: PASSED
+
+- FOUND: backend/internal/repository/hist_group_member_roles_whitelist_test.go
+- FOUND: backend/internal/repository/member_claims_repository_claim_activation_test.go
+- FOUND: .planning/phases/146-registry-selbstschutz-und-sanierung-der-quelltext-substring-/146-05-SUMMARY.md
+- FOUND commit: 99a3bd2f
+- FOUND commit: 760e7baa
+- FOUND commit: 68797e92
