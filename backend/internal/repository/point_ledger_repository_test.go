@@ -72,17 +72,24 @@ func TestPointLedgerValidation(t *testing.T) {
 	}
 }
 
-func TestPointLedgerSQLContract(t *testing.T) {
+// TestPointLedgerForbidsDirectMutationSQL is the sanctioned absence half of the former
+// TestPointLedgerSQLContract (CLAUDE.md Teststil exception 1): it proves the repository's
+// source never issues a raw UPDATE/DELETE against point_ledger_entries, which cannot be
+// observed behaviorally (there is no "absence of a query" response to assert against a live
+// database) and is legitimately proven by inspecting the repository's own source. The
+// presence half of the old test — asserting SQL fragments like "ON CONFLICT DO NOTHING",
+// "FOR UPDATE" and "REVERSAL_OF_ENTRY_ID" exist in source — has been removed: it never
+// exercised the repository, and the same INSERT-only, ON-CONFLICT-idempotent,
+// FOR-UPDATE-locked, reversal-linked contract is already proven behaviorally by
+// TestPointLedgerPostgresAwardRetryAndLostResponse, TestPointLedgerPostgresConcurrentAward,
+// TestPointLedgerPostgresReversalRetryConcurrentAndLostResponse and
+// TestPointLedgerPostgresRollback below (all real-Postgres, already passing).
+func TestPointLedgerForbidsDirectMutationSQL(t *testing.T) {
 	source, err := os.ReadFile("point_ledger_repository.go")
 	if err != nil {
 		t.Fatal(err)
 	}
 	s := strings.ToUpper(string(source))
-	for _, required := range []string{"ON CONFLICT DO NOTHING", "INSERT INTO POINT_LEDGER_ENTRIES", "INSERT", "SELECT", "FOR UPDATE", "REVERSAL_OF_ENTRY_ID"} {
-		if !strings.Contains(s, required) {
-			t.Errorf("missing SQL contract %q", required)
-		}
-	}
 	for _, forbidden := range []string{"UPDATE POINT_LEDGER_ENTRIES", "DELETE FROM POINT_LEDGER_ENTRIES"} {
 		if strings.Contains(s, forbidden) {
 			t.Errorf("forbidden SQL %q", forbidden)
