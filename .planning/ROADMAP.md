@@ -653,12 +653,12 @@ Plans:
 Plans:
 **Wave 1**
 
-- [ ] 140-01-PLAN.md — Non-locking delegation-state read + AdminReviewDelegationHandler (GET/PUT), stub-tested
-- [ ] 140-03-PLAN.md — ReviewDelegationSection UI + asymmetric grant-removal in the generic override view
+- [x] 140-01-PLAN.md — Non-locking delegation-state read + AdminReviewDelegationHandler (GET/PUT), stub-tested
+- [x] 140-03-PLAN.md — ReviewDelegationSection UI + asymmetric grant-removal in the generic override view
 
 **Wave 2** *(blocked on Wave 1 completion)*
 
-- [ ] 140-02-PLAN.md — Route registration, main.go wiring, OpenAPI contract sync
+- [x] 140-02-PLAN.md — Route registration, main.go wiring, OpenAPI contract sync
 
 **UI hint**: yes
 
