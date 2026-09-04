@@ -15,6 +15,11 @@ const membershipBaselineCodes = new Set([
   "fansub_group_media.upload",
 ])
 
+// Exportiert ausschließlich für den Auseinanderdriften-Test gegen
+// permissions.MembershipBaselineActionCodes (146-VERIFICATION.md, Kriterium 4-Nachtrag) --
+// kein Produktionsverwendungszweck außerhalb dieser Datei.
+export const membershipBaselineCodesForTest = membershipBaselineCodes
+
 export interface RoleCapabilityDetailProps {
   role: RoleEntry
   /**
