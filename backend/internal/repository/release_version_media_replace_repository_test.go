@@ -72,7 +72,9 @@ func openReleaseVersionMediaReplaceFixture(t *testing.T) *pgxpool.Pool {
 		CREATE TABLE media_files (
 			id BIGSERIAL PRIMARY KEY,
 			media_id BIGINT NOT NULL REFERENCES media_assets(id),
-			variant TEXT NOT NULL
+			variant TEXT NOT NULL,
+			path TEXT NOT NULL DEFAULT '',
+			status TEXT NOT NULL DEFAULT 'ready'
 		);
 		-- Unused by this file's tests, but 0135_release_review_lifecycle.up.sql's
 		-- release_version_note_review_lifecycle table has a hard FK to it.
@@ -80,11 +82,13 @@ func openReleaseVersionMediaReplaceFixture(t *testing.T) *pgxpool.Pool {
 			id BIGINT PRIMARY KEY
 		);
 		CREATE TABLE release_version_media (
-			id BIGINT PRIMARY KEY,
+			id BIGSERIAL PRIMARY KEY,
 			release_version_id BIGINT NOT NULL REFERENCES release_versions(id),
 			fansub_group_id BIGINT NULL REFERENCES fansub_groups(id),
 			media_asset_id BIGINT NOT NULL REFERENCES media_assets(id),
 			category TEXT NOT NULL,
+			caption TEXT NULL,
+			sort_order INT NOT NULL DEFAULT 0,
 			is_preview_candidate BOOLEAN NOT NULL DEFAULT false,
 			uploaded_by_user_id BIGINT NULL REFERENCES users(id),
 			created_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),

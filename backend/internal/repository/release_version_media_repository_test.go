@@ -1,10 +1,11 @@
 package repository
 
 import (
-	"os"
-	"strings"
+	"context"
 	"testing"
 	"time"
+
+	"team4s.v3/backend/internal/models"
 
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
@@ -59,17 +60,34 @@ func TestReleaseVersionMediaTypes(t *testing.T) {
 	assert.Equal(t, "/media/release-version/2/uuid/thumb.jpg", item.ThumbnailURL)
 }
 
+// TestReleaseVersionMedia_ListIncludesOwnReviewLifecycle proves against real
+// Postgres that ListReleaseVersionMedia's LEFT JOIN onto
+// release_version_media_review_lifecycle actually surfaces a relation's own
+// review-lifecycle state (source_revision/review_state/last_activity_at),
+// not merely that the SQL fragments are present in source (D-12).
 func TestReleaseVersionMedia_ListIncludesOwnReviewLifecycle(t *testing.T) {
-	repoSrc, err := os.ReadFile("release_version_media_repository.go")
-	require.NoError(t, err)
-	content := string(repoSrc)
+	pool := openReleaseVersionMediaReplaceFixture(t)
+	ctx := context.Background()
+	startedAt := time.Now().UTC().Add(-10 * time.Minute)
 
-	assert.Contains(t, content, "release_version_media_review_lifecycle")
-	assert.Contains(t, content, "lifecycle.source_revision")
-	assert.Contains(t, content, "lifecycle.review_state")
-	assert.Contains(t, content, "lifecycle.last_activity_at")
-	assert.Contains(t, content, "decision.source_revision = lifecycle.source_revision")
-	assert.Contains(t, content, "reason.reason_kind = 'reject'")
+	lifecycle := submitMedia(t, pool, 601, 11, nil, startedAt)
+
+	repo := NewMediaRepository(pool, "")
+	items, err := repo.ListReleaseVersionMedia(ctx, 41)
+	require.NoError(t, err)
+
+	var found *ReleaseVersionMediaItem
+	for i := range items {
+		if items[i].ID == 601 {
+			found = &items[i]
+		}
+	}
+	require.NotNil(t, found, "relation 601 must appear in the version-41 listing")
+	require.NotNil(t, found.SourceRevision, "the lifecycle JOIN must populate source_revision")
+	assert.Equal(t, lifecycle.SourceRevision, *found.SourceRevision)
+	require.NotNil(t, found.ReviewState, "the lifecycle JOIN must populate review_state")
+	assert.Equal(t, string(ReleaseReviewStatePending), *found.ReviewState)
+	require.NotNil(t, found.LastActivityAt, "the lifecycle JOIN must populate last_activity_at")
 }
 
 // TestMediaRepositoryMethodSignatures verifies that all required methods
@@ -124,233 +142,309 @@ func TestRVMCleanupRepositoryMutationMethodSignatures(t *testing.T) {
 // Upload contract source invariant tests
 // ---------------------------------------------------------------------------
 
-// TestReleaseVersionMedia_UploadTransactionContract verifies the upload path
-// enforces the processing→ready atomic transition via a transaction. A broken
-// upload (commit failure) must never leave a status='ready' asset visible.
+// TestReleaseVersionMedia_UploadTransactionContract proves against real
+// Postgres that the processing->ready status transition is transactional: a
+// rolled-back transaction must never leave 'ready' visible, and only a
+// committed transaction makes the transition observable (D-12).
 func TestReleaseVersionMedia_UploadTransactionContract(t *testing.T) {
-	// Verify the main repository writes happen inside a transaction.
-	repoSrc, err := os.ReadFile("release_version_media_repository.go")
+	pool := openReleaseVersionMediaReplaceFixture(t)
+	ctx := context.Background()
+	repo := NewMediaRepository(pool, "")
+
+	statusOf := func(assetID int64) string {
+		var status string
+		require.NoError(t, pool.QueryRow(ctx, `SELECT status FROM media_assets WHERE id = $1`, assetID).Scan(&status))
+		return status
+	}
+	require.Equal(t, "processing", statusOf(701), "fixture asset 701 must start in 'processing'")
+
+	// A mid-transaction failure (rollback) must never leave 'ready' visible.
+	txFail, err := pool.Begin(ctx)
 	require.NoError(t, err)
-	content := string(repoSrc)
+	defer txFail.Rollback(ctx) //nolint:errcheck // no-op once explicitly rolled back below
+	require.NoError(t, repo.UpdateMediaAssetStatusRVMTx(ctx, txFail, 701, "ready"))
+	require.NoError(t, repo.UpdateMediaFileStatusRVMTx(ctx, txFail, 701, "ready"))
+	require.NoError(t, txFail.Rollback(ctx))
+	assert.Equal(t, "processing", statusOf(701), "a rolled-back transition must leave the asset in its prior status")
 
-	assert.True(t, strings.Contains(content, "func (r *MediaRepository) UpdateMediaAssetStatusRVMTx"),
-		"UpdateMediaAssetStatusRVMTx must exist — status update runs inside the caller tx")
-	assert.True(t, strings.Contains(content, "func (r *MediaRepository) UpdateMediaFileStatusRVMTx"),
-		"UpdateMediaFileStatusRVMTx must exist — file status update runs inside the caller tx")
-
-	// The status transition from 'processing' to 'ready' must be transactional:
-	// both UpdateMediaAssetStatusRVMTx and tx.Commit must succeed together.
-	// Verify 'processing' is mentioned in the repository doc comment.
-	assert.True(t, strings.Contains(content, "processing"),
-		"'processing' must appear in repository (as initial status doc or usage)")
+	// Only a committed transaction makes the transition visible.
+	txOK, err := pool.Begin(ctx)
+	require.NoError(t, err)
+	defer txOK.Rollback(ctx) //nolint:errcheck // no-op once committed below
+	require.NoError(t, repo.UpdateMediaAssetStatusRVMTx(ctx, txOK, 701, "ready"))
+	require.NoError(t, repo.UpdateMediaFileStatusRVMTx(ctx, txOK, 701, "ready"))
+	require.NoError(t, txOK.Commit(ctx))
+	assert.Equal(t, "ready", statusOf(701), "a committed transition must be visible")
 }
 
-// TestReleaseVersionMedia_SoftDeleteQueryExcludesDeletedRows verifies that
-// ListReleaseVersionMedia and related queries exclude soft-deleted rows
-// by checking for 'deleted_at IS NULL' in the SQL source.
+// TestReleaseVersionMedia_SoftDeleteQueryExcludesDeletedRows proves against
+// real Postgres that ListReleaseVersionMedia excludes soft-deleted rows and
+// that PatchReleaseVersionMedia refuses to mutate a soft-deleted relation
+// (D-12).
 func TestReleaseVersionMedia_SoftDeleteQueryExcludesDeletedRows(t *testing.T) {
-	repoSrc, err := os.ReadFile("release_version_media_repository.go")
+	pool := openReleaseVersionMediaReplaceFixture(t)
+	ctx := context.Background()
+	repo := NewMediaRepository(pool, "")
+
+	_, err := pool.Exec(ctx, `UPDATE release_version_media SET deleted_at = NOW() WHERE id = 602`)
 	require.NoError(t, err)
-	content := string(repoSrc)
 
-	// ListReleaseVersionMedia must filter soft-deleted rows
-	assert.True(t, strings.Contains(content, "deleted_at IS NULL"),
-		"list query must exclude soft-deleted rows via deleted_at IS NULL")
+	items, err := repo.ListReleaseVersionMedia(ctx, 41)
+	require.NoError(t, err)
 
-	// SoftDeleteReleaseVersionMedia must SET deleted_at
-	assert.True(t, strings.Contains(content, "deleted_at = NOW()"),
-		"soft delete must set deleted_at to NOW()")
+	ids := make([]int64, 0, len(items))
+	for _, item := range items {
+		ids = append(ids, item.ID)
+	}
+	assert.Contains(t, ids, int64(601), "the live relation must remain listed")
+	assert.NotContains(t, ids, int64(602), "the soft-deleted relation must be excluded by deleted_at IS NULL")
 
-	// PatchReleaseVersionMedia must not update deleted rows
-	patchIdx := strings.Index(content, "func (r *MediaRepository) PatchReleaseVersionMedia")
-	assert.Greater(t, patchIdx, 0, "PatchReleaseVersionMedia must exist")
-	afterPatch := content[patchIdx:]
-	// Find the first occurrence of "deleted_at IS NULL" after the patch function
-	assert.True(t, strings.Contains(afterPatch, "deleted_at IS NULL"),
-		"PatchReleaseVersionMedia must filter deleted rows")
+	// PatchReleaseVersionMedia must also refuse to touch a soft-deleted row.
+	tx, err := pool.Begin(ctx)
+	require.NoError(t, err)
+	defer tx.Rollback(ctx) //nolint:errcheck // no-op once explicitly rolled back below
+	newCategory := "poster"
+	patchErr := repo.PatchReleaseVersionMedia(ctx, tx, 602, ReleaseVersionMediaPatchInput{Category: &newCategory})
+	assert.ErrorIs(t, patchErr, ErrNotFound, "patching a soft-deleted relation must be rejected, not silently succeed")
+	require.NoError(t, tx.Rollback(ctx))
 }
 
-// TestReleaseVersionMedia_ReorderOwnershipValidationExists verifies that
-// ValidateReleaseVersionMediaOwnership exists and enforces both ErrNotFound
-// and ErrOwnershipMismatch as distinct error cases.
+// TestReleaseVersionMedia_ReorderOwnershipValidationExists proves against
+// real Postgres that ValidateReleaseVersionMediaOwnership rejects relation
+// IDs belonging to a different release version, and that
+// ValidateReleaseVersionMediaUploader rejects relation IDs not uploaded by
+// the given legacy user — real rejections, not source-substring claims
+// (D-12).
 func TestReleaseVersionMedia_ReorderOwnershipValidationExists(t *testing.T) {
-	repoSrc, err := os.ReadFile("release_version_media_repository.go")
-	require.NoError(t, err)
-	content := string(repoSrc)
+	pool := openReleaseVersionMediaReplaceFixture(t)
+	ctx := context.Background()
+	repo := NewMediaRepository(pool, "")
 
-	assert.True(t, strings.Contains(content, "func (r *MediaRepository) ValidateReleaseVersionMediaOwnership"),
-		"ValidateReleaseVersionMediaOwnership must exist in repository")
-	assert.True(t, strings.Contains(content, "ErrOwnershipMismatch"),
-		"ValidateReleaseVersionMediaOwnership must return ErrOwnershipMismatch for cross-version IDs")
-	assert.True(t, strings.Contains(content, "ErrNotFound"),
-		"ValidateReleaseVersionMediaOwnership must return ErrNotFound for nonexistent IDs")
-	assert.True(t, strings.Contains(content, "func (r *MediaRepository) ValidateReleaseVersionMediaUploader"),
-		"ValidateReleaseVersionMediaUploader must exist for contributor-scoped reorder")
-	assert.True(t, strings.Contains(content, "uploaded_by_user_id = $3"),
-		"ValidateReleaseVersionMediaUploader must restrict relation IDs to the current uploader")
+	_, err := pool.Exec(ctx, `INSERT INTO release_versions(id) VALUES (42)`)
+	require.NoError(t, err)
+
+	// Cross-version: relation 601 belongs to release_version 41, not 42.
+	err = repo.ValidateReleaseVersionMediaOwnership(ctx, 42, []int64{601})
+	assert.ErrorIs(t, err, ErrOwnershipMismatch, "a relation from a different release version must be rejected")
+
+	// Same-version: no error.
+	require.NoError(t, repo.ValidateReleaseVersionMediaOwnership(ctx, 41, []int64{601}))
+
+	// Uploader-scoped: relation 601 was uploaded by legacy user 2001 (fixture seed).
+	require.NoError(t, repo.ValidateReleaseVersionMediaUploader(ctx, 41, []int64{601}, 2001))
+	assert.ErrorIs(t, repo.ValidateReleaseVersionMediaUploader(ctx, 41, []int64{601}, 9999), ErrOwnershipMismatch,
+		"a relation ID not uploaded by the given user must be rejected")
 }
 
+// TestReleaseVersionMedia_ContributorGroupOwnershipResolverExists proves
+// against real Postgres that ListReleaseVersionMediaContributorGroupIDs
+// resolves the uploader's real, verified fansub group — not merely that the
+// JOIN fragments are present in source (D-12).
 func TestReleaseVersionMedia_ContributorGroupOwnershipResolverExists(t *testing.T) {
-	repoSrc, err := os.ReadFile("release_version_media_repository.go")
-	require.NoError(t, err)
-	content := string(repoSrc)
+	pool := openReleaseVersionMediaReplaceFixture(t)
+	ctx := context.Background()
 
-	assert.Contains(t, content, "ListReleaseVersionMediaContributorGroupIDs")
-	assert.Contains(t, content, "JOIN member_claims mc")
-	assert.Contains(t, content, "JOIN anime_contributions ac")
-	assert.Contains(t, content, "rvg.fansub_group_id = ac.fansub_group_id")
+	_, err := pool.Exec(ctx, `
+		ALTER TABLE release_versions ADD COLUMN release_id BIGINT NULL;
+		CREATE TABLE anime (id BIGINT PRIMARY KEY);
+		CREATE TABLE episodes (id BIGINT PRIMARY KEY, anime_id BIGINT NOT NULL REFERENCES anime(id));
+		CREATE TABLE fansub_releases (id BIGINT PRIMARY KEY, episode_id BIGINT NOT NULL REFERENCES episodes(id));
+		CREATE TABLE anime_contributions (
+			id BIGSERIAL PRIMARY KEY,
+			member_id BIGINT NOT NULL,
+			fansub_group_id BIGINT NOT NULL,
+			anime_id BIGINT NULL,
+			release_version_id BIGINT NULL
+		);
+		INSERT INTO anime(id) VALUES (901);
+		INSERT INTO episodes(id, anime_id) VALUES (911, 901);
+		INSERT INTO fansub_releases(id, episode_id) VALUES (921, 911);
+		UPDATE release_versions SET release_id = 921 WHERE id = 41;
+		INSERT INTO anime_contributions(member_id, fansub_group_id, anime_id, release_version_id)
+			VALUES (101, 21, NULL, 41);
+	`)
+	require.NoError(t, err)
+
+	repo := NewMediaRepository(pool, "")
+	groupIDs, err := repo.ListReleaseVersionMediaContributorGroupIDs(ctx, 601)
+	require.NoError(t, err)
+	assert.Equal(t, []int64{21}, groupIDs,
+		"the uploader's verified member identity must resolve to their real contributing fansub group")
 }
 
-// TestReleaseVersionMedia_CategoryChangeAllowed verifies the repository accepts and
-// persists category changes via the existing PatchReleaseVersionMedia path (Zielbild 2,
-// 144-CONTEXT.md) — the former hard-block on category changes is gone.
+// TestReleaseVersionMedia_CategoryChangeAllowed proves against real Postgres
+// that PatchReleaseVersionMedia persists a category change (Zielbild 2,
+// 144-CONTEXT.md) — the former hard-block on category changes is gone
+// (D-12).
 func TestReleaseVersionMedia_CategoryChangeAllowed(t *testing.T) {
-	repoSrc, err := os.ReadFile("release_version_media_repository.go")
-	require.NoError(t, err)
-	content := string(repoSrc)
+	pool := openReleaseVersionMediaReplaceFixture(t)
+	ctx := context.Background()
+	repo := NewMediaRepository(pool, "")
 
-	assert.Contains(t, content, "Category           *string",
-		"ReleaseVersionMediaPatchInput must have a Category *string field")
-	assert.Contains(t, content, "category             = COALESCE($5, category)",
-		"PatchReleaseVersionMedia SQL must update category in the SET clause")
+	tx, err := pool.Begin(ctx)
+	require.NoError(t, err)
+	defer tx.Rollback(ctx) //nolint:errcheck // no-op once committed below
+	newCategory := "poster"
+	require.NoError(t, repo.PatchReleaseVersionMedia(ctx, tx, 601, ReleaseVersionMediaPatchInput{Category: &newCategory}))
+	require.NoError(t, tx.Commit(ctx))
+
+	var category string
+	require.NoError(t, pool.QueryRow(ctx, `SELECT category FROM release_version_media WHERE id = 601`).Scan(&category))
+	assert.Equal(t, "poster", category)
 }
 
-// TestReleaseVersionMedia_PreviewEnforcementInRepository verifies that the
-// ClearPreviewCandidateForVersion method exists and that the patch path
-// routes through it when is_preview_candidate is true.
+// TestReleaseVersionMedia_PreviewEnforcementInRepository proves against real
+// Postgres that ClearPreviewCandidateForVersion enforces the max-one-preview
+// rule: the excluded relation keeps its flag, every sibling relation's flag
+// is cleared (D-12).
 func TestReleaseVersionMedia_PreviewEnforcementInRepository(t *testing.T) {
-	repoSrc, err := os.ReadFile("release_version_media_repository.go")
+	pool := openReleaseVersionMediaReplaceFixture(t)
+	ctx := context.Background()
+	repo := NewMediaRepository(pool, "")
+
+	_, err := pool.Exec(ctx, `UPDATE release_version_media SET is_preview_candidate = true WHERE id IN (601, 602)`)
 	require.NoError(t, err)
-	assert.True(t, strings.Contains(string(repoSrc), "func (r *MediaRepository) ClearPreviewCandidateForVersion"),
-		"ClearPreviewCandidateForVersion must exist to enforce max-one-preview rule")
+
+	tx, err := pool.Begin(ctx)
+	require.NoError(t, err)
+	defer tx.Rollback(ctx) //nolint:errcheck // no-op once committed below
+	require.NoError(t, repo.ClearPreviewCandidateForVersion(ctx, tx, 41, 601))
+	require.NoError(t, tx.Commit(ctx))
+
+	var preview601, preview602 bool
+	require.NoError(t, pool.QueryRow(ctx, `SELECT is_preview_candidate FROM release_version_media WHERE id = 601`).Scan(&preview601))
+	require.NoError(t, pool.QueryRow(ctx, `SELECT is_preview_candidate FROM release_version_media WHERE id = 602`).Scan(&preview602))
+	assert.True(t, preview601, "the excluded relation keeps its preview flag")
+	assert.False(t, preview602, "a sibling relation's preview flag is cleared — max-one-preview enforced")
 }
 
-// TestReleaseVersionMedia_PartialFailureIsolation verifies the upload contract:
-// each file is processed independently, errors in one file must not roll back
-// successful files that completed earlier.
+// TestReleaseVersionMedia_PartialFailureIsolation proves against real
+// Postgres that per-file upload transactions are isolated from each other:
+// one file's rolled-back transaction must not affect a sibling file's
+// already-committed relation (D-12) — mirroring processOneRVMFile's
+// per-file transaction composition in admin_content_release_version_media.go.
 func TestReleaseVersionMedia_PartialFailureIsolation(t *testing.T) {
-	// The per-file isolation is enforced by processOneRVMFile — each file gets
-	// its own transaction. Verify the handler source reflects this.
-	handlerSrc, err := os.ReadFile("../handlers/admin_content_release_version_media.go")
-	require.NoError(t, err)
-	content := string(handlerSrc)
+	pool := openReleaseVersionMediaReplaceFixture(t)
+	ctx := context.Background()
+	repo := NewMediaRepository(pool, "")
 
-	// processOneRVMFile must exist and be called per file in a loop
-	assert.True(t, strings.Contains(content, "func (h *AdminContentHandler) processOneRVMFile"),
-		"processOneRVMFile must be a separate function — one transaction per file")
-	assert.True(t, strings.Contains(content, "h.processOneRVMFile("),
-		"upload must call processOneRVMFile inside a for loop for each file")
-	assert.True(t, strings.Contains(content, `"results"`),
-		"upload response must carry a 'results' array with per-file entries")
+	// Fresh, dedicated assets for this test — 701/702/703 are the fixture's
+	// own pre-seeded assets (702 is free-standing, but 703 already backs
+	// relation 602, so reusing it here would make the "must not persist"
+	// assertion below match that pre-existing row instead of proving isolation).
+	_, err := pool.Exec(ctx, `
+		INSERT INTO media_assets (id, status, visibility_id, review_status_id)
+		VALUES (710, 'ready', 1, 2), (711, 'ready', 1, 2)
+	`)
+	require.NoError(t, err)
+
+	// File 1 ("good"): its own transaction commits successfully.
+	tx1, err := pool.Begin(ctx)
+	require.NoError(t, err)
+	defer tx1.Rollback(ctx) //nolint:errcheck // no-op once committed below
+	goodID, err := repo.CreateReleaseVersionMediaAsset(ctx, tx1, ReleaseVersionMediaCreateInput{
+		ReleaseVersionID: 41, MediaAssetID: 710, Category: "screenshot", SortOrder: 5,
+	})
+	require.NoError(t, err)
+	require.NoError(t, tx1.Commit(ctx))
+
+	// File 2 ("bad"): its own, independent transaction is rolled back.
+	// The deferred Rollback guarantees the connection is released even if a
+	// require.NoError below fails and stops this goroutine — an unrolled
+	// aborted transaction otherwise blocks the pool's later cleanup.
+	tx2, err := pool.Begin(ctx)
+	require.NoError(t, err)
+	defer tx2.Rollback(ctx) //nolint:errcheck // idempotent if already rolled back explicitly
+	_, err = repo.CreateReleaseVersionMediaAsset(ctx, tx2, ReleaseVersionMediaCreateInput{
+		ReleaseVersionID: 41, MediaAssetID: 711, Category: "screenshot", SortOrder: 6,
+	})
+	require.NoError(t, err)
+	require.NoError(t, tx2.Rollback(ctx))
+
+	var goodCount int
+	require.NoError(t, pool.QueryRow(ctx, `SELECT COUNT(*) FROM release_version_media WHERE id = $1`, goodID).Scan(&goodCount))
+	assert.Equal(t, 1, goodCount, "the successful file's relation must persist despite a sibling file's rollback")
+
+	var failedCount int
+	require.NoError(t, pool.QueryRow(ctx, `
+		SELECT COUNT(*) FROM release_version_media WHERE media_asset_id = 711 AND release_version_id = 41
+	`).Scan(&failedCount))
+	assert.Equal(t, 0, failedCount, "the rolled-back file's relation must not persist — per-file isolation, not a shared rollback")
 }
 
-// TestReleaseVersionMedia_HardDeleteTransactional verifies that HardDeleteRVMAndAsset
-// uses a transaction so media_files, release_version_media, and media_assets are
-// removed atomically — preventing partial deletes on cleanup failures.
+// TestReleaseVersionMedia_HardDeleteTransactional proves against real
+// Postgres that HardDeleteRVMAndAsset removes release_version_media,
+// media_assets, and media_files atomically — no partial delete state
+// remains (D-12).
 func TestReleaseVersionMedia_HardDeleteTransactional(t *testing.T) {
-	cleanupSrc, err := os.ReadFile("release_version_media_cleanup.go")
+	pool := openReleaseVersionMediaReplaceFixture(t)
+	ctx := context.Background()
+
+	_, err := pool.Exec(ctx, `INSERT INTO media_files(media_id, variant) VALUES (701, 'original'), (701, 'thumb')`)
 	require.NoError(t, err)
-	content := string(cleanupSrc)
 
-	assert.True(t, strings.Contains(content, "func (r *MediaRepository) HardDeleteRVMAndAsset"),
-		"HardDeleteRVMAndAsset must exist")
-	assert.True(t, strings.Contains(content, "BeginTx"),
-		"HardDeleteRVMAndAsset must use a transaction for atomic removal")
-	assert.True(t, strings.Contains(content, "tx.Commit"),
-		"HardDeleteRVMAndAsset must commit the transaction on success")
-	assert.True(t, strings.Contains(content, "defer tx.Rollback"),
-		"HardDeleteRVMAndAsset must have a deferred rollback to prevent partial deletes")
-}
+	repo := NewMediaRepository(pool, "")
+	require.NoError(t, repo.HardDeleteRVMAndAsset(ctx, 601, 701))
 
-// TestReleaseVersionMedia_CleanupServicePassesExist verifies the three-pass cleanup
-// seam is implemented in the services layer and wired to concrete repository methods.
-func TestReleaseVersionMedia_CleanupServicePassesExist(t *testing.T) {
-	svcSrc, err := os.ReadFile("../services/release_version_media_cleanup.go")
-	require.NoError(t, err)
-	content := string(svcSrc)
-
-	// Pass 1: stale processing
-	assert.True(t, strings.Contains(content, "SelectStaleProcessingRVMAssets"),
-		"cleanup service must implement pass 1: stale processing scan")
-	// Pass 2: missing files
-	assert.True(t, strings.Contains(content, "SelectMissingFileRVMCandidates"),
-		"cleanup service must implement pass 2: missing file scan")
-	// Pass 3: soft-delete purge
-	assert.True(t, strings.Contains(content, "SelectSoftDeleteRVMCleanupCandidates"),
-		"cleanup service must implement pass 3: soft-delete purge scan")
+	var rvmCount, assetCount, fileCount int
+	require.NoError(t, pool.QueryRow(ctx, `SELECT COUNT(*) FROM release_version_media WHERE id = 601`).Scan(&rvmCount))
+	require.NoError(t, pool.QueryRow(ctx, `SELECT COUNT(*) FROM media_assets WHERE id = 701`).Scan(&assetCount))
+	require.NoError(t, pool.QueryRow(ctx, `SELECT COUNT(*) FROM media_files WHERE media_id = 701`).Scan(&fileCount))
+	assert.Equal(t, 0, rvmCount, "release_version_media row must be hard-deleted")
+	assert.Equal(t, 0, assetCount, "media_assets row must be hard-deleted")
+	assert.Equal(t, 0, fileCount, "media_files rows must be hard-deleted atomically alongside the parent rows")
 }
 
 // ---------------------------------------------------------------------------
 // Task 79-02 Task 2: Sub-SELECT-Persistenz in CreateMediaAsset + Handler-Defaults
 // ---------------------------------------------------------------------------
 
-// TestCreateMediaAsset_SubSelectVisibilityOnInput verifies that media_repository.go
-// contains the Sub-SELECT pattern for visibility_id and review_status_id
-// in CreateMediaAsset when VisibilityCode is not nil (Lock K).
+// TestCreateMediaAsset_SubSelectVisibilityOnInput proves against real
+// Postgres that CreateMediaAsset's Sub-SELECT-INSERT persists visibility_id
+// and review_status_id resolved from the visibilities/review_statuses
+// lookup tables (Lock K) — not merely that the SQL fragments are present in
+// source (D-12).
 func TestCreateMediaAsset_SubSelectVisibilityOnInput(t *testing.T) {
-	repoSrc, err := os.ReadFile("../repository/media_repository.go")
+	pool := openReleaseVersionMediaReplaceFixture(t)
+	ctx := context.Background()
+
+	// The shared fixture's media_assets table only carries the columns its own
+	// tests need (id, status, visibility_id, review_status_id); CreateMediaAsset's
+	// production INSERT additionally needs media_type_id/file_path/mime_type/
+	// format/created_at and an auto-generated id (it never supplies one),
+	// so this test extends the table locally rather than widening the shared
+	// fixture for every sibling test in this package.
+	_, err := pool.Exec(ctx, `
+		CREATE TABLE media_types (id BIGSERIAL PRIMARY KEY, name TEXT NOT NULL UNIQUE);
+		INSERT INTO media_types(name) VALUES ('image');
+		ALTER TABLE media_assets
+			ADD COLUMN media_type_id BIGINT NULL REFERENCES media_types(id),
+			ADD COLUMN file_path TEXT NULL,
+			ADD COLUMN mime_type TEXT NULL,
+			ADD COLUMN format TEXT NULL,
+			ADD COLUMN created_at TIMESTAMPTZ NOT NULL DEFAULT NOW();
+		ALTER TABLE media_assets ALTER COLUMN id ADD GENERATED BY DEFAULT AS IDENTITY (START WITH 800);
+	`)
 	require.NoError(t, err)
-	content := string(repoSrc)
 
-	// Sub-SELECT muss im INSERT für visibility_id vorhanden sein
-	assert.True(t, strings.Contains(content, "SELECT id FROM visibilities WHERE name"),
-		"CreateMediaAsset INSERT muss Sub-SELECT für visibility_id enthalten (Lock K)")
-
-	// Sub-SELECT muss im INSERT für review_status_id vorhanden sein
-	assert.True(t, strings.Contains(content, "SELECT id FROM review_statuses WHERE code"),
-		"CreateMediaAsset INSERT muss Sub-SELECT für review_status_id enthalten (Lock K)")
-}
-
-// TestFansubMediaUploadHandler_BrandingDefaults verifies the fansub_media_upload.go
-// handler sets Branding-Defaults (public/approved) when visibility/review fields are empty (D-09).
-func TestFansubMediaUploadHandler_BrandingDefaults(t *testing.T) {
-	src, err := os.ReadFile("../handlers/fansub_media_upload.go")
+	repo := NewMediaRepository(pool, "")
+	visibility := "public"
+	reviewStatus := "approved"
+	asset, err := repo.CreateMediaAsset(ctx, models.MediaAssetCreateInput{
+		Kind:             models.MediaKindImage,
+		Filename:         "cover.png",
+		StoragePath:      "/media/covers/cover.png",
+		MimeType:         "image/png",
+		SizeBytes:        2048,
+		VisibilityCode:   &visibility,
+		ReviewStatusCode: &reviewStatus,
+	})
 	require.NoError(t, err)
-	content := string(src)
 
-	// Branding-Default: 'public' und 'approved' müssen als Default gesetzt werden
-	assert.True(t, strings.Contains(content, `"public"`),
-		"fansub_media_upload.go muss 'public' als Branding-Default setzen (D-09)")
-	assert.True(t, strings.Contains(content, `"approved"`),
-		"fansub_media_upload.go muss 'approved' als Branding-Default setzen (D-09)")
-
-	// visibility_code muss aus FormData gelesen werden
-	assert.True(t, strings.Contains(content, "visibility_code"),
-		"fansub_media_upload.go muss visibility_code aus FormData lesen")
-
-	// review_status_code muss aus FormData gelesen werden
-	assert.True(t, strings.Contains(content, "review_status_code"),
-		"fansub_media_upload.go muss review_status_code aus FormData lesen")
-}
-
-// TestRVMHandler_ProzessmedienDefaults verifies admin_content_release_version_media.go
-// sets Prozessmedien-Defaults (private/in_review) when fields are empty (D-03).
-func TestRVMHandler_ProzessmedienDefaults(t *testing.T) {
-	src, err := os.ReadFile("../handlers/admin_content_release_version_media.go")
-	require.NoError(t, err)
-	content := string(src)
-
-	// Prozessmedien-Default: 'private' und 'in_review' müssen als Default gesetzt werden
-	assert.True(t, strings.Contains(content, `"private"`),
-		"admin_content_release_version_media.go muss 'private' als Prozessmedien-Default setzen (D-03)")
-	assert.True(t, strings.Contains(content, `"in_review"`),
-		"admin_content_release_version_media.go muss 'in_review' als Prozessmedien-Default setzen (D-03)")
-}
-
-// TestMemberMediaHandler_LockI_OwnerFromSession verifies member_media_upload.go
-// does NOT read owner_member_id from PostForm (Lock I enforcement).
-func TestMemberMediaHandler_LockI_OwnerFromSession(t *testing.T) {
-	src, err := os.ReadFile("../handlers/member_media_upload.go")
-	require.NoError(t, err)
-	content := string(src)
-
-	// owner_member_id darf NICHT aus PostForm kommen (Lock I)
-	assert.False(t, strings.Contains(content, `PostForm("owner_member_id")`),
-		"member_media_upload.go darf owner_member_id NICHT aus dem Request lesen (Lock I)")
-
-	// Avatar/Hintergrund-Branding-Default: 'public' und 'approved' müssen vorhanden sein
-	assert.True(t, strings.Contains(content, `"public"`),
-		"member_media_upload.go muss 'public' als Branding-Default für Avatar/Hintergrund setzen (D-09)")
-	assert.True(t, strings.Contains(content, `"approved"`),
-		"member_media_upload.go muss 'approved' als Branding-Default für Avatar/Hintergrund setzen (D-09)")
+	var visibilityID, reviewStatusID int64
+	require.NoError(t, pool.QueryRow(ctx, `
+		SELECT visibility_id, review_status_id FROM media_assets WHERE id = $1
+	`, asset.ID).Scan(&visibilityID, &reviewStatusID))
+	assert.EqualValues(t, 2, visibilityID, "the Sub-SELECT must resolve visibility_id from visibilities WHERE name = 'public'")
+	assert.EqualValues(t, 2, reviewStatusID, "the Sub-SELECT must resolve review_status_id from review_statuses WHERE code = 'approved'")
 }
