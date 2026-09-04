@@ -4,6 +4,7 @@ import (
 	"context"
 	"log"
 	"net/http"
+	"slices"
 
 	"team4s.v3/backend/internal/permissions"
 	"team4s.v3/backend/internal/repository"
@@ -237,6 +238,24 @@ func (h *AdminCapabilityHandler) RevokeCapability(c *gin.Context) {
 			"error": gin.H{
 				"code":    "role_not_capability_bearing",
 				"message": "Diese Beitrags- oder historische Rolle kann keine Standardrechte erhalten.",
+			},
+		})
+		return
+	}
+
+	// T-146-05 (146-03): Unconditionaler Registry-Selbstschutz-Guard für die reservierte
+	// Mitgliedschafts-Grundausstattung — VOR dem D-07 Lockout-Guard geprüft, unabhängig von
+	// CountRolesWithAction. Die 3 Grundausstattungs-Rechte dürfen der Pseudo-Rolle group_member
+	// niemals entzogen werden, auch wenn zahlreiche andere Rollen dieselbe Action noch tragen
+	// (145-REVIEW.md CR-01) — jedes aktive Mitglied benötigt sie automatisch. Dieser Guard ist
+	// eigenständig und unverändert zusätzlich zum bestehenden D-07 Lockout-Guard, der für alle
+	// anderen Rollen exakt wie zuvor weiterläuft (D-02, D-03).
+	if roleCode == permissions.RoleMembershipBaseline &&
+		slices.Contains(permissions.MembershipBaselineActionCodes, permissions.Action(actionCode)) {
+		c.JSON(http.StatusConflict, gin.H{
+			"error": gin.H{
+				"code":    "membership_baseline_guard",
+				"message": "Dieses Recht gehört zur Mitgliedschafts-Grundausstattung und kann nicht entzogen werden. Jedes aktive Mitglied benötigt es automatisch — die Änderung wurde nicht gespeichert.",
 			},
 		})
 		return
