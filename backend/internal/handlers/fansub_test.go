@@ -1,16 +1,41 @@
 package handlers
 
 import (
+	"bytes"
+	"context"
 	"encoding/json"
+	"net/http"
+	"net/http/httptest"
 	"os"
 	"path/filepath"
 	"reflect"
 	"strings"
 	"testing"
 
+	"team4s.v3/backend/internal/middleware"
 	"team4s.v3/backend/internal/models"
 	"team4s.v3/backend/internal/permissions"
+	"team4s.v3/backend/internal/repository"
+
+	"github.com/gin-gonic/gin"
+	"github.com/jackc/pgx/v5"
+	"github.com/jackc/pgx/v5/pgconn"
 )
+
+// fansubAliasAuditCaptureDB implements repository.DBTX and captures every Exec call's
+// positional argument list so tests can assert the exact audit event written for a denied
+// permission check (event_type at index 2, outcome at index 8 — see
+// repository/audit_logs.go's INSERT column order) without reading source text.
+type fansubAliasAuditCaptureDB struct {
+	execs [][]any
+}
+
+func (db *fansubAliasAuditCaptureDB) Exec(_ context.Context, _ string, args ...any) (pgconn.CommandTag, error) {
+	db.execs = append(db.execs, args)
+	return pgconn.NewCommandTag("INSERT 1"), nil
+}
+
+func (*fansubAliasAuditCaptureDB) QueryRow(context.Context, string, ...any) pgx.Row { return nil }
 
 func TestValidateFansubGroupCreateRequest(t *testing.T) {
 	founded := int32(2010)
@@ -296,18 +321,66 @@ func TestFansubAliasMutationsUseGroupEditPermission(t *testing.T) {
 		t.Fatal("DeleteFansubAlias must not require platform-admin-only access")
 	}
 
-	required := []string{
-		"permissionactorfromcontext(c)",
-		"permissions.actionfansubgroupedit",
-		"canforfansubgroup",
-		"fansub_group_alias.create.denied",
-		"fansub_group_alias.delete.denied",
-	}
-	for _, fragment := range required {
-		if !strings.Contains(normalized, fragment) {
-			t.Fatalf("expected alias mutation permission guard to contain %q", fragment)
+	gin.SetMode(gin.TestMode)
+
+	t.Run("create denied without group-edit permission", func(t *testing.T) {
+		auditDB := &fansubAliasAuditCaptureDB{}
+		h := &FansubHandler{
+			permissionSvc: permissions.NewService(phase136LinkResolver{found: true}),
+			auditLogRepo:  repository.NewAuditLogRepository(auditDB),
 		}
-	}
+
+		recorder := httptest.NewRecorder()
+		c, _ := gin.CreateTestContext(recorder)
+		c.Request = httptest.NewRequest(http.MethodPost, "/api/v1/admin/fansubs/41/aliases", bytes.NewBufferString(`{"alias":"whatever"}`))
+		c.Request.Header.Set("Content-Type", "application/json")
+		c.Params = gin.Params{{Key: "id", Value: "41"}}
+		c.Set("auth_identity", middleware.AuthIdentity{UserID: 3, AppUserID: 5, DisplayName: "Alias Tester", AppUserStatus: "active", IsPlatformAdmin: false})
+
+		h.CreateFansubAlias(c)
+
+		if recorder.Code != http.StatusForbidden {
+			t.Fatalf("expected 403 for missing group-edit permission, got %d (body: %s)", recorder.Code, recorder.Body.String())
+		}
+		if len(auditDB.execs) != 1 {
+			t.Fatalf("expected exactly 1 audit write for the denied create attempt, got %d", len(auditDB.execs))
+		}
+		if gotEventType, _ := auditDB.execs[0][2].(string); gotEventType != "fansub_group_alias.create.denied" {
+			t.Fatalf("expected denied event fansub_group_alias.create.denied, got %q", gotEventType)
+		}
+		if gotOutcome, _ := auditDB.execs[0][8].(string); gotOutcome != "denied" {
+			t.Fatalf("expected outcome denied, got %q", gotOutcome)
+		}
+	})
+
+	t.Run("delete denied without group-edit permission", func(t *testing.T) {
+		auditDB := &fansubAliasAuditCaptureDB{}
+		h := &FansubHandler{
+			permissionSvc: permissions.NewService(phase136LinkResolver{found: true}),
+			auditLogRepo:  repository.NewAuditLogRepository(auditDB),
+		}
+
+		recorder := httptest.NewRecorder()
+		c, _ := gin.CreateTestContext(recorder)
+		c.Request = httptest.NewRequest(http.MethodDelete, "/api/v1/admin/fansubs/41/aliases/9", nil)
+		c.Params = gin.Params{{Key: "id", Value: "41"}, {Key: "aliasId", Value: "9"}}
+		c.Set("auth_identity", middleware.AuthIdentity{UserID: 3, AppUserID: 5, DisplayName: "Alias Tester", AppUserStatus: "active", IsPlatformAdmin: false})
+
+		h.DeleteFansubAlias(c)
+
+		if recorder.Code != http.StatusForbidden {
+			t.Fatalf("expected 403 for missing group-edit permission, got %d (body: %s)", recorder.Code, recorder.Body.String())
+		}
+		if len(auditDB.execs) != 1 {
+			t.Fatalf("expected exactly 1 audit write for the denied delete attempt, got %d", len(auditDB.execs))
+		}
+		if gotEventType, _ := auditDB.execs[0][2].(string); gotEventType != "fansub_group_alias.delete.denied" {
+			t.Fatalf("expected denied event fansub_group_alias.delete.denied, got %q", gotEventType)
+		}
+		if gotOutcome, _ := auditDB.execs[0][8].(string); gotOutcome != "denied" {
+			t.Fatalf("expected outcome denied, got %q", gotOutcome)
+		}
+	})
 }
 
 func TestExtractReleaseGroupAliasCandidates(t *testing.T) {
