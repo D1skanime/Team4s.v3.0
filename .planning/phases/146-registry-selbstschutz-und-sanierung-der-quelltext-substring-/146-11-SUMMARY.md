@@ -133,6 +133,10 @@ None - no external service configuration required. Verification used the project
 - The `repository_test` external-package-in-same-directory pattern (Deviation 1) is now a documented precedent for Plan 146-12/146-13 if any remaining Block-2 file has handler/service-behavior claims misplaced in a repository (or vice versa) test file.
 - Plan 146-13's ratchet-guard file (Criterion 7 scanner) should be able to drop this file from its still-unremediated exception list once that plan runs.
 
+## Self-Check: PASSED
+
+All created/modified files verified present on disk; all 3 task commit hashes (`0e2aac74`, `ff2889f3`, `6441cbf1`) verified present in `git log`.
+
 ---
 *Phase: 146-registry-selbstschutz-und-sanierung-der-quelltext-substring-*
 *Completed: 2026-09-04*
