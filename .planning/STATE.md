@@ -3,14 +3,14 @@ gsd_state_version: 1.0
 milestone: v1.4
 milestone_name: Coverage
 status: executing
-stopped_at: Completed 146-11-PLAN.md
-last_updated: "2026-09-04T19:38:31.913Z"
+stopped_at: Completed 146-12-PLAN.md
+last_updated: "2026-09-04T19:55:48.093Z"
 last_activity: 2026-09-04
 progress:
   total_phases: 11
   completed_phases: 10
   total_plans: 128
-  completed_plans: 126
+  completed_plans: 127
   percent: 91
 ---
 
@@ -34,7 +34,7 @@ See: .planning/PROJECT.md (updated 2026-08-13)
 ## Current Position
 
 Phase: 146 (registry-selbstschutz-und-sanierung-der-quelltext-substring) — EXECUTING
-Plan: 12 of 13
+Plan: 13 of 13
 Status: Ready to execute
 
 Phase 145 ist abgeschlossen und live abgenommen (145-UAT.md, 2026-09-04). Die Codeprüfung dieser
@@ -286,6 +286,7 @@ Last activity: 2026-09-04
 - [Phase 146-10]: Proved public_member_access_matrix_test.go's Vary/resolver/route claims by wiring real-interface fakes into the real AppPublicProfileHandler/ProjectMemberPublicHandler behind the real middleware.CommentAuthOptionalMiddlewareWithState constructor, instead of source-substring grep.
 - [Phase 146]: [Plan 146-11]: repository<->services/handlers import cycle blocks real handler/service execution from internal package-repository test files; use an external repository_test package file in the same directory as the sanctioned workaround (still discovered by go test ./internal/repository/...).
 - [Phase 146]: [Plan 146-11]: openReleaseVersionMediaReplaceFixture (shared test fixture) extended with caption/sort_order on release_version_media, path/status on media_files, and BIGSERIAL id -- pre-existing schema gaps only surfaced because this plan first exercised ListReleaseVersionMedia/UpdateMediaFileStatusRVMTx/CreateReleaseVersionMediaAsset against it.
+- [Phase ?]: 146-12: All 17 os.ReadFile-based functions in admin_content_release_version_media_test.go remediated via real httptest calls against a new shared Postgres fixture (openRVMExecFixture); platform-admin identity used for ALLOW-path proofs and a genuine no-membership outsider identity for DENY-path proofs, avoiding permissions.loadedCache's fail-closed test-env constraint per 146-11's documented precedent.
 
 ### Pending Todos
 
@@ -604,10 +605,11 @@ untruncated list lives in `.planning/todos/pending/`.
 | Phase 146 P09 | 1h | 1 tasks | 1 files |
 | Phase 146 P10 | 25min | 1 tasks | 1 files |
 | Phase 146 P11 | 180m | 3 tasks | 4 files |
+| Phase 146 P12 | 150min | 3 tasks | 1 files |
 
 ## Session Continuity
 
-Last session: 2026-09-04T19:38:31.893Z
-Stopped at: Completed 146-11-PLAN.md
+Last session: 2026-09-04T19:55:48.078Z
+Stopped at: Completed 146-12-PLAN.md
 Last activity: 2026-09-01 - Milestone v1.4 audit passed (41/41 requirements, 7/7 phases, .planning/v1.4-MILESTONE-AUDIT.md); Phase 143 added to roadmap, not yet planned
 Resume file: None
