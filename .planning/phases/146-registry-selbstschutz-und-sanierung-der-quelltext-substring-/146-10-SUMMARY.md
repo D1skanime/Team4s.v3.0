@@ -101,3 +101,10 @@ None - no external service configuration required.
 ---
 *Phase: 146-registry-selbstschutz-und-sanierung-der-quelltext-substring-*
 *Completed: 2026-09-04*
+
+## Self-Check: PASSED
+
+- FOUND: backend/internal/handlers/public_member_access_matrix_test.go
+- FOUND: .planning/phases/146-registry-selbstschutz-und-sanierung-der-quelltext-substring-/146-10-SUMMARY.md
+- FOUND: commit 82d4eef3 (test)
+- FOUND: commit bb510a5d (docs, this SUMMARY)
