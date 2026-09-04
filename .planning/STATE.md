@@ -2,16 +2,16 @@
 gsd_state_version: 1.0
 milestone: v1.4
 milestone_name: Coverage
-status: executing
-stopped_at: Completed 146-12-PLAN.md
-last_updated: "2026-09-04T19:55:48.093Z"
+status: verifying
+stopped_at: Completed 146-13-PLAN.md (final plan of Phase 146)
+last_updated: "2026-09-04T20:11:17.032Z"
 last_activity: 2026-09-04
 progress:
   total_phases: 11
-  completed_phases: 10
+  completed_phases: 11
   total_plans: 128
-  completed_plans: 127
-  percent: 91
+  completed_plans: 128
+  percent: 100
 ---
 
 # Project State
@@ -35,7 +35,7 @@ See: .planning/PROJECT.md (updated 2026-08-13)
 
 Phase: 146 (registry-selbstschutz-und-sanierung-der-quelltext-substring) — EXECUTING
 Plan: 13 of 13
-Status: Ready to execute
+Status: Phase complete — ready for verification
 
 Phase 145 ist abgeschlossen und live abgenommen (145-UAT.md, 2026-09-04). Die Codeprüfung dieser
 Phase (145-REVIEW.md) hat danach einen kritischen Befund geliefert, der Phase 146 auslöst: der
@@ -287,6 +287,7 @@ Last activity: 2026-09-04
 - [Phase 146]: [Plan 146-11]: repository<->services/handlers import cycle blocks real handler/service execution from internal package-repository test files; use an external repository_test package file in the same directory as the sanctioned workaround (still discovered by go test ./internal/repository/...).
 - [Phase 146]: [Plan 146-11]: openReleaseVersionMediaReplaceFixture (shared test fixture) extended with caption/sort_order on release_version_media, path/status on media_files, and BIGSERIAL id -- pre-existing schema gaps only surfaced because this plan first exercised ListReleaseVersionMedia/UpdateMediaFileStatusRVMTx/CreateReleaseVersionMediaAsset against it.
 - [Phase ?]: 146-12: All 17 os.ReadFile-based functions in admin_content_release_version_media_test.go remediated via real httptest calls against a new shared Postgres fixture (openRVMExecFixture); platform-admin identity used for ALLOW-path proofs and a genuine no-membership outsider identity for DENY-path proofs, avoiding permissions.loadedCache's fail-closed test-env constraint per 146-11's documented precedent.
+- [Phase 146]: Plan 146-13 (final plan) closed Criteria 6/7/8 -- a go-test-executed ratchet guard (backend/internal/testquality/source_substring_guard_test.go) locks the post-remediation state at 34/53 remaining source-substring test files, zero of the 20 locked security-relevant files among them; the 34-file remainder is named and reasoned per-file in 146-SUBSTRING-TEST-REMAINDER.md, including a carried-forward IsHistoricalMemberRoleCode open item from 145-REVIEW.md WR-01. Phase 146 (Block 1 registry-selbstschutz + Block 2 testsanierung) is now complete.
 
 ### Pending Todos
 
@@ -606,10 +607,11 @@ untruncated list lives in `.planning/todos/pending/`.
 | Phase 146 P10 | 25min | 1 tasks | 1 files |
 | Phase 146 P11 | 180m | 3 tasks | 4 files |
 | Phase 146 P12 | 150min | 3 tasks | 1 files |
+| Phase 146 P13 | 90min | 3 tasks | 2 files |
 
 ## Session Continuity
 
-Last session: 2026-09-04T19:55:48.078Z
-Stopped at: Completed 146-12-PLAN.md
+Last session: 2026-09-04T20:11:17.017Z
+Stopped at: Completed 146-13-PLAN.md (final plan of Phase 146)
 Last activity: 2026-09-01 - Milestone v1.4 audit passed (41/41 requirements, 7/7 phases, .planning/v1.4-MILESTONE-AUDIT.md); Phase 143 added to roadmap, not yet planned
 Resume file: None
