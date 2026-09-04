@@ -3,12 +3,11 @@ package handlers
 import (
 	"context"
 	"encoding/json"
+	"errors"
 	"net/http"
 	"net/http/httptest"
-	"os"
 	"path/filepath"
 	"runtime"
-	"strings"
 	"sync"
 	"testing"
 
@@ -26,14 +25,17 @@ import (
 
 // Plan 116-02, Task 3: Handler-Tests fuer GET /api/v1/me/dashboard (D-08/D-09).
 // Die Ownership-Gate-Aufloesung (resolveVerifiedMemberIDForAppUser) haengt an einem
-// echten *pgxpool.Pool und kann ohne Postgres-Fixture nicht sinnvoll gemockt werden
-// (identisches Muster zu contributions_me_member_anchor_test.go / Phase-37-Konvention:
-// Source-Inspection statt Interface-Mock fuer DB-gebundene Methoden). Die vier
-// Verhaltens-Bullets werden daher so abgedeckt:
+// echten *pgxpool.Pool. Plan 146-09 (CLAUDE.md Teststil-Regel) ersetzt die vier
+// zuvor Source-Inspection-basierten Funktionen unten durch echte Aufrufe gegen eine
+// schema-isolierte Postgres-Fixture (testsupport.OpenPhase107Postgres, dieselbe
+// members/app_users/member_claims-Struktur, die dieses Paket bereits fuer die
+// attachPendingXxxAttention-Tests nutzt):
 //  1. 401 ohne Authorization-Header: reiner Gin-Test, keine DB noetig.
-//  2/3. 200 mit vollem Envelope / 200 mit has_member_profile=false: Source-Inspection
-//     bestaetigt den D-08/D-09-Kontrakt im Handler-Code (siehe unten).
-//  4. member_id NIE aus Query/Body/Param: Source-Inspection.
+//  2. IDOR-Resistenz (D-08): ein echter GET-Request mit angreifer-gesteuertem
+//     ?member_id= wird real ausgefuehrt; die vom Stub-Loader tatsaechlich empfangene
+//     memberID wird geprueft, nicht der Quelltext.
+//  3. Graceful-Leerzustand (D-09): ein echter GET-Request ohne verifizierten Claim
+//     wird real ausgefuehrt; Statuscode und has_member_profile werden geprueft.
 
 // stubDashboardLoader implementiert ownDashboardLoader fuer den (hier nicht erreichten)
 // Erfolgspfad -- wird nur benoetigt, damit NewDashboardMeHandler in Tests konstruierbar
@@ -65,38 +67,90 @@ func TestGetOwnDashboardRequiresAuth(t *testing.T) {
 		"GET /me/dashboard ohne Authorization-Header muss 401 zurueckgeben")
 }
 
-// TestDashboardMeHandlerUsesSharedOwnershipGateHelper ist die verbindliche D-08-
-// Regression: der Handler MUSS resolveVerifiedMemberIDForAppUser(ctx, db,
-// identity.AppUserID) verwenden und darf memberID an keiner Stelle aus
-// c.Query/c.Param/dem Request-Body lesen.
-func TestDashboardMeHandlerUsesSharedOwnershipGateHelper(t *testing.T) {
-	srcBytes, err := os.ReadFile("dashboard_me_handler.go")
-	require.NoError(t, err)
-	src := string(srcBytes)
+// capturingDashboardLoader implements ownDashboardLoader and records the memberID
+// argument GetOwnDashboard actually received, so D-08's IDOR-resistance claim can be
+// proven against the real value the handler resolved -- never grepped from source.
+type capturingDashboardLoader struct {
+	capturedMemberID int64
+	data             *repository.OwnDashboardData
+}
 
-	require.Contains(t, src, "resolveVerifiedMemberIDForAppUser(c.Request.Context(), h.db, identity.AppUserID)",
-		"D-08: die member_id muss ausschliesslich ueber den gemeinsamen Ownership-Gate-Seam aufgeloest werden")
-	require.NotContains(t, src, `c.Query("member_id")`)
-	require.NotContains(t, src, `c.Param("member_id")`)
-	require.NotContains(t, src, `c.PostForm("member_id")`)
-	require.NotContains(t, src, "ShouldBindJSON",
-		"GET /me/dashboard definiert keinen Request-Body -- keine member_id darf aus einem Body gebunden werden")
+func (c *capturingDashboardLoader) GetOwnDashboard(ctx context.Context, memberID int64) (*repository.OwnDashboardData, error) {
+	c.capturedMemberID = memberID
+	return c.data, nil
+}
+
+// TestDashboardMeHandlerUsesSharedOwnershipGateHelper ist die verbindliche D-08-
+// Regression: der Handler MUSS memberID ausschliesslich ueber
+// resolveVerifiedMemberIDForAppUser(ctx, h.db, identity.AppUserID) aufloesen und darf
+// einen angreifer-gesteuerten ?member_id=-Query-Parameter niemals uebernehmen. Echter
+// GET-Request gegen eine schema-isolierte Postgres-Fixture -- kein Quelltext-Grep.
+func TestDashboardMeHandlerUsesSharedOwnershipGateHelper(t *testing.T) {
+	gin.SetMode(gin.TestMode)
+
+	pool := testsupport.OpenPhase107Postgres(t)
+	ctx := context.Background()
+	_, err := pool.Exec(ctx, `
+		INSERT INTO members(id) VALUES (501);
+		INSERT INTO app_users(id, status) VALUES (55, 'active');
+		INSERT INTO member_claims(id, member_id, app_user_id, claim_status, verified_at)
+		VALUES (1, 501, 55, 'verified', now());
+	`)
+	require.NoError(t, err)
+
+	loader := &capturingDashboardLoader{data: &repository.OwnDashboardData{HasMemberProfile: true}}
+	h := NewDashboardMeHandler(loader, pool)
+
+	recorder := httptest.NewRecorder()
+	c, _ := gin.CreateTestContext(recorder)
+	// Angreifer-Query-Param member_id=999999 zeigt auf ein fremdes, unbeteiligtes Member --
+	// muss vom Handler vollstaendig ignoriert werden.
+	c.Request = httptest.NewRequest(http.MethodGet, "/api/v1/me/dashboard?member_id=999999", nil)
+	c.Set("auth_identity", middleware.AuthIdentity{UserID: 55, AppUserID: 55, AppUserStatus: models.AppUserStatusActive, DisplayName: "Testuser"})
+
+	h.GetOwnDashboard(c)
+
+	require.Equal(t, http.StatusOK, recorder.Code, "body: %s", recorder.Body.String())
+	assert.EqualValues(t, 501, loader.capturedMemberID,
+		"D-08: memberID muss ausschliesslich ueber resolveVerifiedMemberIDForAppUser (verifizierter member_claims-Eintrag) aufgeloest werden")
+	assert.NotEqual(t, int64(999999), loader.capturedMemberID,
+		"D-08: ein angreifer-gesteuerter ?member_id=-Query-Parameter darf die Ownership-Gate-Aufloesung nie ueberschreiben")
 }
 
 // TestDashboardMeHandlerGracefulEmptyStateInsteadOf403 ist die verbindliche D-09-
 // Regression: fehlt ein verifizierter member_claims-Eintrag, MUSS der Handler mit
 // dem Leerzustand (200 + has_member_profile=false) antworten, NICHT mit
-// respondMemberProfileRequired (403) wie ListMyAnimeContributions.
+// respondMemberProfileRequired (403) wie ListMyAnimeContributions. Echter GET-Request
+// gegen eine schema-isolierte Postgres-Fixture ohne verifizierten Claim -- die 200-vs-403-
+// Verhaltensdifferenz beweist den Kontrakt strukturell, ohne source-basierte Abwesenheits-
+// Pruefung von respondMemberProfileRequired.
 func TestDashboardMeHandlerGracefulEmptyStateInsteadOf403(t *testing.T) {
-	srcBytes, err := os.ReadFile("dashboard_me_handler.go")
-	require.NoError(t, err)
-	src := string(srcBytes)
+	gin.SetMode(gin.TestMode)
 
-	require.NotContains(t, src, "respondMemberProfileRequired(c)",
-		"D-09: der Dashboard-Handler darf den 403-Pfad der Contribution-Handler nicht aufrufen")
-	require.Contains(t, src, "emptyOwnDashboardData()")
-	require.Contains(t, src, "http.StatusOK",
-		"der no-verified-claim-Zweig muss 200 zurueckgeben, nie 403")
+	pool := testsupport.OpenPhase107Postgres(t)
+	// Bewusst kein member_claims-Eintrag fuer diesen AppUser -- resolveVerifiedMemberIDForAppUser
+	// muss repository.ErrNotFound liefern und der Handler in den D-09-Leerzustand verzweigen.
+
+	h := NewDashboardMeHandler(&stubDashboardLoader{}, pool)
+
+	recorder := httptest.NewRecorder()
+	c, _ := gin.CreateTestContext(recorder)
+	c.Request = httptest.NewRequest(http.MethodGet, "/api/v1/me/dashboard", nil)
+	c.Set("auth_identity", middleware.AuthIdentity{UserID: 909, AppUserID: 909, AppUserStatus: models.AppUserStatusActive, DisplayName: "Testuser"})
+
+	h.GetOwnDashboard(c)
+
+	require.Equal(t, http.StatusOK, recorder.Code,
+		"D-09: fehlt ein verifizierter member_claims-Eintrag, muss der Handler 200 (graceful Leerzustand) statt 403 zurueckgeben, body: %s", recorder.Body.String())
+
+	var body struct {
+		Data struct {
+			HasMemberProfile bool `json:"has_member_profile"`
+		} `json:"data"`
+	}
+	require.NoError(t, json.Unmarshal(recorder.Body.Bytes(), &body))
+	assert.False(t, body.Data.HasMemberProfile,
+		"D-09: der no-verified-claim-Pfad muss has_member_profile=false liefern (emptyOwnDashboardData()-Kontrakt)")
 }
 
 // TestEmptyOwnDashboardDataMatchesD09Contract prueft den konkreten Leerzustand direkt
@@ -125,27 +179,58 @@ func TestEmptyOwnDashboardDataMatchesD09Contract(t *testing.T) {
 // TestContributionsMeHandlerDelegatesToSharedOwnershipGateHelper stellt sicher, dass
 // die Extraktion in me_identity_helpers.go den bestehenden ContributionsMeHandler
 // nicht anders verhalten laesst -- resolveVerifiedMemberID bleibt ein Delegat mit
-// unveraendertem Signatur-Vertrag (Regression fuer Task 3, keine anderen Zeilen in
-// contributions_me_handler.go duerfen sich veraendert haben).
+// unveraendertem Signatur-Vertrag. Ruft beide Pfade real gegen dieselbe Postgres-Fixture
+// auf und vergleicht die tatsaechlich aufgeloesten memberIDs, statt den Delegations-
+// Aufruf im Quelltext zu grep-en.
 func TestContributionsMeHandlerDelegatesToSharedOwnershipGateHelper(t *testing.T) {
-	srcBytes, err := os.ReadFile("contributions_me_handler.go")
+	pool := testsupport.OpenPhase107Postgres(t)
+	ctx := context.Background()
+	_, err := pool.Exec(ctx, `
+		INSERT INTO members(id) VALUES (601);
+		INSERT INTO app_users(id, status) VALUES (66, 'active');
+		INSERT INTO member_claims(id, member_id, app_user_id, claim_status, verified_at)
+		VALUES (2, 601, 66, 'verified', now());
+	`)
 	require.NoError(t, err)
-	src := string(srcBytes)
 
-	require.Contains(t, src, "return resolveVerifiedMemberIDForAppUser(ctx, h.db, appUserID)",
-		"ContributionsMeHandler.resolveVerifiedMemberID muss an den paket-weiten Ownership-Gate-Seam delegieren")
+	h := NewContributionsMeHandler(nil, nil, pool)
+
+	viaHandler, err := h.resolveVerifiedMemberID(ctx, 66)
+	require.NoError(t, err)
+
+	viaSharedHelper, err := resolveVerifiedMemberIDForAppUser(ctx, pool, 66)
+	require.NoError(t, err)
+
+	assert.EqualValues(t, 601, viaHandler)
+	assert.Equal(t, viaSharedHelper, viaHandler,
+		"ContributionsMeHandler.resolveVerifiedMemberID muss denselben memberID liefern wie der geteilte Ownership-Gate-Seam (Beweis der Delegation durch Ausfuehrung, nicht durch Quelltext-Grep)")
 }
 
-// TestMeIdentityHelpersDefinesSharedOwnershipGate stellt sicher, dass
-// resolveVerifiedMemberIDForAppUser tatsaechlich in me_identity_helpers.go definiert
-// ist (nicht versehentlich an anderer Stelle dupliziert).
+// TestMeIdentityHelpersDefinesSharedOwnershipGate prueft die claim_status='verified'-
+// Eingrenzung von resolveVerifiedMemberIDForAppUser durch echte Postgres-Aufrufe: ein
+// 'pending'-Claim darf memberID nie aufloesen, ein 'verified'-Claim muss die korrekte
+// member_id liefern.
 func TestMeIdentityHelpersDefinesSharedOwnershipGate(t *testing.T) {
-	srcBytes, err := os.ReadFile("me_identity_helpers.go")
+	pool := testsupport.OpenPhase107Postgres(t)
+	ctx := context.Background()
+	_, err := pool.Exec(ctx, `
+		INSERT INTO members(id) VALUES (701), (702);
+		INSERT INTO app_users(id, status) VALUES (81, 'active'), (82, 'active');
+		INSERT INTO member_claims(id, member_id, app_user_id, claim_status, verified_at)
+		VALUES
+			(3, 701, 81, 'pending', NULL),
+			(4, 702, 82, 'verified', now());
+	`)
 	require.NoError(t, err)
-	src := string(srcBytes)
 
-	require.True(t, strings.Contains(src, "func resolveVerifiedMemberIDForAppUser(ctx context.Context, db *pgxpool.Pool, appUserID int64) (int64, error)"))
-	require.Contains(t, src, "claim_status = 'verified'")
+	_, err = resolveVerifiedMemberIDForAppUser(ctx, pool, 81)
+	assert.True(t, errors.Is(err, repository.ErrNotFound),
+		"claim_status='pending' darf memberID nicht aufloesen -- nur 'verified' zaehlt")
+
+	memberID, err := resolveVerifiedMemberIDForAppUser(ctx, pool, 82)
+	require.NoError(t, err)
+	assert.EqualValues(t, 702, memberID,
+		"claim_status='verified' muss die korrekte member_id liefern")
 }
 
 // Plan 143-09, Task 2: first-ever tests for attachPendingGroupMediaReviewAttention and
