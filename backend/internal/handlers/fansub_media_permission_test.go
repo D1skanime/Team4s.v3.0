@@ -44,6 +44,11 @@ func (s fansubMediaPermissionResolver) ListActorContributionRolesForVersion(_ co
 
 func TestFansubMediaUploadAllowsFansubLeadPastPermissionGate(t *testing.T) {
 	gin.SetMode(gin.TestMode)
+	// Die Capability-Matrix ist paketweiter Zustand (permissions.loadedCache) und
+	// ohne Load fail-closed. Ohne eigenes Fixture war dieser Test davon abhaengig,
+	// dass ein anderer Test im Paket den Cache vorher geladen hat -- er lief im
+	// vollen Paketlauf gruen und bei -run-Teilmengen mit 403 rot.
+	loadAppAuthCapabilityTestCache(t)
 
 	handler := &FansubHandler{
 		permissionSvc: permissions.NewService(fansubMediaPermissionResolver{roles: []string{permissions.RoleFansubLead}}),

@@ -1772,6 +1772,82 @@ paths:
             application/json:
               schema:
                 $ref: "#/components/schemas/ErrorResponse"
+  /api/v1/admin/media/{id}:
+    delete:
+      tags: [Admin]
+      summary: Delete an admin-managed anime media asset
+      description: |
+        Requires the platform-admin permission. Authenticated callers without that
+        permission receive 403 before the asset is looked up, so media ids cannot be
+        enumerated. Only assets belonging to anime master data can be removed here;
+        fansub-group, release and member media keep their own endpoints.
+      operationId: adminDeleteMedia
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: id
+          in: path
+          required: true
+          description: Media asset id (uuid) as returned by adminUploadMedia.
+          schema:
+            type: string
+      responses:
+        "200":
+          description: Media asset and its stored files were removed
+          content:
+            application/json:
+              schema:
+                type: object
+                required: [success]
+                properties:
+                  success:
+                    type: boolean
+        "400":
+          description: Media id missing, or the asset does not belong to anime master data
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+              examples:
+                nonAnimeAsset:
+                  value:
+                    error:
+                      message: nur anime-medien können hier gelöscht werden
+                      code: asset_lifecycle.invalid_entity_type
+        "401":
+          description: Authentication required
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+              examples:
+                authRequired:
+                  value:
+                    error:
+                      message: anmeldung erforderlich
+        "403":
+          description: Caller is authenticated but not a platform admin
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+              examples:
+                forbidden:
+                  value:
+                    error:
+                      message: keine berechtigung
+        "404":
+          description: Media asset not found
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+        "500":
+          description: Internal server error
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
   /api/v1/admin/anime/{id}/themes:
     post:
       tags: [Admin]
