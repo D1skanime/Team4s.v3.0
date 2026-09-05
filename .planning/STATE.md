@@ -2,16 +2,16 @@
 gsd_state_version: 1.0
 milestone: v1.4
 milestone_name: Coverage
-status: ready_to_plan (v1.4 bleibt abgeschlossen; 149 ist additiv angehängt)
-stopped_at: Phase 149 additiv angelegt (Roadmap-Eintrag), UI-SPEC wird erstellt
-last_updated: 2026-09-05T19:36:12.821Z
+status: executing
+stopped_at: Phase 149 UI-SPEC approved
+last_updated: "2026-09-05T22:09:09.133Z"
 last_activity: 2026-09-05
 progress:
-  total_phases: 13
+  total_phases: 14
   completed_phases: 13
   total_plans: 142
   completed_plans: 142
-  percent: 100
+  percent: 93
 ---
 
 # Project State
@@ -639,7 +639,7 @@ untruncated list lives in `.planning/todos/pending/`.
 
 ## Session Continuity
 
-Last session: 2026-09-05T19:30:32.708Z
-Stopped at: 148-08 gap closure landed (SC1/SC2) — awaiting re-verification
+Last session: 2026-09-05T22:09:09.116Z
+Stopped at: Phase 149 UI-SPEC approved
 Last activity: 2026-09-01 - Milestone v1.4 audit passed (41/41 requirements, 7/7 phases, .planning/v1.4-MILESTONE-AUDIT.md); Phase 143 added to roadmap, not yet planned
-Resume file: None
+Resume file: .planning/phases/149-tote-css-tokens-sanieren-und-den-notiz-kontrast-schlie-en/149-UI-SPEC.md
