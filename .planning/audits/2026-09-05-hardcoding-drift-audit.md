@@ -375,15 +375,36 @@ Produktionsnutzungen (`permissions.<Konstante>`, ohne Tests):
 | `RoleEditor`, `RoleTimer` | 0 | je 1 |
 | `RoleTranslator`, `RoleTypesetter`, `RoleTechadmin`, `RoleGfxler` | **0** | **0** |
 
-Vier Konstanten haben null Referenzen im gesamten Repo. Sie suggerieren einem Leser, der
-Rollensatz sei in Go definiert — genau die Fehlannahme, die zu HC-01 und HC-02 geführt hat.
-Zugleich fehlen `karaoke_fx`, `founder`, `co_leader`, `admin`, `other`, was den Eindruck einer
-Rollenliste zusätzlich falsch macht.
+Vier Konstanten haben keine Produktionsreferenz — 0 Treffer für die qualifizierte Form
+`permissions.<Konstante>` außerhalb von Tests. Sie suggerieren einem Leser, der Rollensatz sei
+in Go definiert — genau die Fehlannahme, die zu HC-01 und HC-02 geführt hat. Zugleich fehlen
+`karaoke_fx`, `founder`, `co_leader`, `admin`, `other`, was den Eindruck einer Rollenliste
+zusätzlich falsch macht.
 
 Empfehlung: die vier referenzlosen Konstanten löschen, den verbleibenden Block mit einem
 kurzen Kommentar versehen („keine Rollenliste — nur die im Go-Code referenzierten Codes;
 autoritativer Katalog: `role_definitions`"). Die Test-Nutzungen sind Fixtures und können auf
 Literale umgestellt oder mitgezogen werden.
+
+**Korrektur (2026-09-05, Phase 148 Plan 06):** Die Tabelle und die vorstehende Formulierung
+suggerierten ursprünglich, die vier Konstanten `RoleTranslator`, `RoleTypesetter`,
+`RoleTechadmin`, `RoleGfxler` kämen im ganzen Repository überhaupt nirgendwo vor — das war
+falsch. Die Zählmethode hinter der „Test"-Spalte erfasste nur die qualifizierte Aufrufsyntax
+`permissions.<Konstante>` (z. B. per Grep). Genau diese vier Testdateien liegen jedoch selbst im
+Package `permissions` (`effective_rights_test.go`,
+`effective_rights_capability_impact_preview_test.go`, `capability_registry_test.go`,
+`permissions_test.go`) und referenzierten die Konstanten dort unqualifiziert (bloßes
+`RoleTranslator` statt `permissions.RoleTranslator`) — ein Grep nach der qualifizierten Form
+konnte diese Package-internen Fixture-Nutzungen also strukturell nicht finden und lieferte „Test
+0", obwohl reale Referenzen existierten. Bestätigt durch `git show 79bbdff9` (Commit
+`test(147-05): convert four package-internal test fixtures to string literals`), der genau diese
+vier Dateien von den bloßen Konstantennamen auf String-Literale umgestellt hat. Die richtige
+Aussage war und ist: **keine Produktionsreferenz**, nicht „null Referenzen repo-weit". Phase 147
+hat den zugrunde liegenden Befund bereits vollständig behoben — die vier Konstanten wurden aus
+`permissions.go` entfernt und alle vier Testdateien-Fixtures auf String-Literale umgestellt (siehe
+`.planning/phases/147-rollen-registry-letzte-parallelkataloge-aufl-sen/147-06-SUMMARY.md`,
+`requirements-completed: [..., HC-09]`). Diese Korrektur berichtigt nur den historischen
+Befund-Wortlaut, sie ist kein Aufruf zu erneuter Sanierung.
 
 ---
 
