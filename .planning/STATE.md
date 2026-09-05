@@ -2,8 +2,8 @@
 gsd_state_version: 1.0
 milestone: v1.4
 milestone_name: Coverage
-status: milestone_complete
-stopped_at: Milestone complete (Phase 148 was final phase)
+status: ready_to_plan (v1.4 bleibt abgeschlossen; 149 ist additiv angehängt)
+stopped_at: Phase 149 additiv angelegt (Roadmap-Eintrag), UI-SPEC wird erstellt
 last_updated: 2026-09-05T19:36:12.821Z
 last_activity: 2026-09-05
 progress:
@@ -33,9 +33,9 @@ See: .planning/PROJECT.md (updated 2026-08-13)
 
 ## Current Position
 
-Phase: 148
+Phase: 149
 Plan: Not started
-Status: Milestone complete
+Status: Ready to plan (UI-SPEC in progress) — v1.4 bleibt abgeschlossen, Phase 149 ist additiv angehängt, kein neuer Milestone
 
 Phase 145 ist abgeschlossen und live abgenommen (145-UAT.md, 2026-09-04). Die Codeprüfung dieser
 Phase (145-REVIEW.md) hat danach einen kritischen Befund geliefert, der Phase 146 auslöst: der
