@@ -285,6 +285,13 @@ textarea {
 [data-color-key='#b23a78'] { --role-chip-accent: #b23a78; }
 [data-color-key='neutral'] { --role-chip-accent: #596176; }
 
+/* Einzige Ableitungsstelle: --role-accent bezieht die Katalogfarbe aus der obigen
+   data-color-key/--role-chip-accent-Naht, mit demselben neutralen Fallback wie die Naht selbst. */
+:root {
+  --role-accent: #596176;
+}
+[data-color-key] { --role-accent: var(--role-chip-accent, #596176); }
+
 .role-catalog-chip {
   --role-chip-accent: #596176;
   --role-chip-text: #111827;
