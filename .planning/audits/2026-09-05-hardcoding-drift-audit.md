@@ -192,14 +192,13 @@ die Rolle ab, obwohl die DB sie erlaubt.
 var AppGlobalRoles = []string{AppGlobalRolePlatformAdmin, AppGlobalRoleContentAdmin, AppGlobalRoleUser}
 ```
 
-Der Fix ist damit klein: keine neuen Konstanten, nur fünf Literale gegen einen Import tauschen.
-
 Alle fünf Konsumenten leiten daraus ab (Set, Reihenfolge, `AssignableRoles`, Fehlertext per
 `strings.Join`). Dazu **ein** Test nach dem etablierten Muster der `*_source_contract`-Tests in
 `backend/internal/migrations/`, der die Migration liest und den CHECK-Wertebereich gegen
 `AppGlobalRoles` abgleicht. Die Labels bleiben getrennt (Anzeigetext, kein Wertebereich).
 Bewusst **keine** DB-Runtime-Abfrage: der Satz ist echte Compile-Time-Konstante mit einer
-Migration als Vertrag.
+Migration als Vertrag. Der Fix ist damit klein: keine neuen Konstanten, nur fünf Literale
+gegen einen Import tauschen.
 
 ---
 
@@ -240,9 +239,8 @@ Das ist der Musterfall für „Anti-Drift-Test als Übergang" — und im Repo be
 protokolliert: der Testkopf hält fest, dass die vom Review vorgeschlagene serverseitige
 `protected`-Feld-Ableitung (146-REVIEW.md WR-03) „bewusst aus dem Fix-Pass ausgeklammert"
 wurde. Die Absicherung ist heute korrekt und ausreichend, aber sie ist eine Krücke für eine
-fehlende Feldinformation im Vertrag. Solange nur
-eine reservierte Gruppe existiert, ist der Aufwand einer Vertragserweiterung nicht zwingend —
-mit der zweiten reservierten Gruppe kippt die Rechnung.
+fehlende Feldinformation im Vertrag. Solange nur eine reservierte Gruppe existiert, ist der
+Aufwand einer Vertragserweiterung nicht zwingend — mit der zweiten kippt die Rechnung.
 
 ---
 
