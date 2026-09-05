@@ -468,7 +468,8 @@ describe('MemberProfilePage Phase 99 route composition', () => {
         .getAllByText(/Typesetting|Karaoke-FX|Future Role/)
         .map((item) => item.textContent),
     ).toEqual(['Typesetting', 'Karaoke-FX', 'Future Role'])
-    expect(within(projects).getByText('Future Role').getAttribute('data-role-code')).toBe('other')
+    expect(within(projects).getByText('Future Role').getAttribute('data-role-code')).toBe('future_role')
+    expect(within(projects).getByText('Future Role').getAttribute('data-color-key')).toBe('neutral')
   })
   it('keeps empty earned-only and contribution sections out of the public outline', async () => {
     await renderMemberPage(
