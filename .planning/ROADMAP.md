@@ -420,6 +420,7 @@ Milestone v1.4 closes Live-UAT Findings #29-#32 by making effective group rights
 - [x] **Phase 145: Mitgliedschafts-Grundausstattung in die Rechte-Registry überführen** - Die drei rollenunabhängigen Mitgliedsrechte kommen nicht mehr aus einem Go-Slice, sondern als reservierte, nicht zuweisbare Pseudo-Rolle aus der Datenbank-Registry. (completed 2026-09-04, Live-UAT abgenommen 2026-09-04, siehe 145-UAT.md)
 - [x] **Phase 146: Registry-Selbstschutz und Sanierung der Quelltext-Substring-Tests** - Kein Admin kann über die Capability-Matrix einen Zustand erzeugen, der den nächsten Backend-Start scheitern lässt, und sicherheitsrelevante Tests belegen Verhalten durch echte Aufrufe statt durch Quelltextsuche. (completed 2026-09-04)
 - [x] **Phase 147: Rollen-Registry — letzte Parallelkataloge auflösen** - Eine neue Gruppenrolle muss nur noch in `role_definitions` ergänzt werden; die verbliebenen Frontend-/Go-Parallelregistries für Rollen sind entfernt. (completed 2026-09-05)
+- [ ] **Phase 148: Rollenfarben wieder an den Katalog anschließen** - Die beim Seam-Umbau in Phase 136-30 zurückgebliebenen toten Farb-Token, Hex-in-`data-role-code`-Attribute und Kategorie-Klassenmaps sind entfernt; die Rollenfarbe kommt app-weit aus `role_definitions.color_key`.
 
 ## Phase Details
 
@@ -982,6 +983,38 @@ Plans:
 
 - [x] 147-06-PLAN.md — Full regression gate (backend/frontend/contract) + live UAT sign-off.
 
+### Phase 148: Rollenfarben wieder an den Katalog anschließen
+
+**Goal:** Die Rollenfarbe kommt app-weit wieder sichtbar an — aus genau einer Quelle: `role_definitions.color_key` über den in Phase 136-30 gebauten `data-color-key`-Seam. Die beim damaligen Umbau zurückgebliebenen toten Token-Referenzen, Hex-in-`data-role-code`-Attribute und Kategorie-Klassenmaps sind entfernt, und `data-role-code` trägt überall ausschließlich den stabilen Rollen-Code.
+
+**Requirements**: TBD (Restbefunde aus Phase 147, siehe `147-06-SUMMARY.md` „Out-of-Scope Findings"; kein v1.4-Requirement-Mapping)
+**Depends on:** Phase 147
+**Scope-Grenze:** Nur die Rollenfarb-Verkettung. **Nicht** in dieser Phase: Badge-Schwellen, Badge-Artwork, `LayeredBadgeArtwork` (setzt bewusst eine eigene `--role-accent`-Farbe und bleibt unberührt), Karussell, Member-Profile-Performance, die Palette selbst (die 15 Hex-Werte in `role_definitions.color_key` und `ROLE_COLOR_KEYS` werden nicht neu gewählt), sowie alle offenen Hardcoding-Findings HC-04 bis HC-08. Am Badge-System wird ausschließlich die tote Farbvariable angeschlossen, sonst nichts.
+
+**Ausgangsbefund** (selbst gemessen 2026-09-05 auf `team4s-linux`, Commit `df7fa91a`):
+
+  - Commit `84a38c0f` („feat(136-30): add bounded semantic role color seam", 2026-08-21) hat die 14 Tokens `--role-accent-base/-default/-fansub-lead/…` und den kompletten `[data-role-code='<code>'] { --role-accent: … }`-Block **absichtlich** aus `frontend/src/styles/globals.css` entfernt und durch einen Katalog-Seam ersetzt: `[data-color-key='<hex>'] { --role-chip-accent: <hex> }` plus die Klasse `.role-catalog-chip`. Commit-Begründung: „role codes never select color". Der Seam funktioniert und wird von sechs Admin-Oberflächen korrekt benutzt (`UserContributionsTab`, `AnimeGroupCard`, `DefaultCrewManager`, `FansubAppMemberEditorPanel`, `ReleaseVersionNotesTab`).
+  - **Nicht mitgezogen wurden zehn CSS-Module**, die weiterhin `var(--role-accent, var(--role-accent-default))` lesen bzw. sich selbst `--role-accent: var(--role-accent-<code>)` zuweisen: `PublicNoteCard`, `ProjectMemberPage`, `ProjectMemberReleasesSection`, `MemberCurrentProjectsSection`, `MemberBadgeChain`, `RoleBadgeCard` (+ `.stages` + `.status`) und `FansubEdit`. Keiner dieser Tokennamen ist heute irgendwo im Repo definiert. Im Browser gemessen (`getComputedStyle` auf der Notizkarte): `--role-accent` und `--role-accent-default` liefern beide den leeren String; die Deklarationen sind damit invalid-at-computed-value-time, das Header-Band bleibt transparent und der 8px-Farbstreifen fällt auf `currentColor`. Die Rollenfarbe ist auf diesen Oberflächen seit dem 2026-08-21 tot.
+  - **`categoryForRole()`** (`frontend/src/lib/roleCatalog.ts:66`) verspricht laut Kommentar eine „Semantische Rollen-Kategorie (technical/creative/production/language/other …)", liefert aber `role.color_key` — und der ist seit `84a38c0f` ein Hex-Wert. Sechs Komponenten schreiben dieses Ergebnis direkt nach `data-role-code`: `ProjectMemberHero`, `ProjectMemberReleaseCard`, `MemberCurrentProjectsSection` (2×), `ContributionCard` und `me/projects/[animeId]/group/[fansubGroupId]/page.tsx`. Live gemessen auf der Projekt-Member-Seite: `data-role-code="#7b3c4e"`. Das trifft weder einen CSS-Selektor noch ist es ein Rollen-Code.
+  - **`getRoleClassName()`** (`FansubAppMembersOverview.tsx:55`) mappt die Kategorienamen `leadership/creative/technical/language/quality/production` auf CSS-Klassen. Diese Werte gibt `color_key` seit `84a38c0f` nicht mehr her, also greift ausnahmslos der `fansubEditRoleDefault`-Zweig — eine dritte tote Parallelmap.
+  - **`presentationForRole()`** verwirft die Farbe zusammen mit dem Icon: `if (!role || !role.icon_key || !ICON_KEYS.has(role.icon_key)) return neutral`. Im Katalog tragen `fansub_lead`, `founder`, `co_leader`, `techadmin`, `gfxler` und `group_member` den Wert `icon_key='other'`, der nicht in `ICON_KEYS` steht — sie bekommen deshalb auch im *funktionierenden* Chip-Seam neutrales Grau, obwohl ihr `color_key` ein gültiger Hex-Wert ist (`#183B7C`, `#8C4A16`, `#0F766E`, `#475569`, `#7E22CE`). Ohne diese Entkopplung bliebe der Fix ausgerechnet für die Leitungsrollen wirkungslos.
+  - Für die öffentliche Notizkarte liegt der `color_key` nicht vor: Phase 147 reicht `role_code` durch, aber nicht `color_key`, und `PublicNoteCard` hat — anders als die sechs `categoryForRole`-Konsumenten — keinen Katalog als Prop. Ein zusätzlicher Katalog-Fetch auf den öffentlichen SSR-Seiten wäre der falsche Weg (siehe `.planning/notes` zum seriellen SSR-Request-Fächer); der `color_key` gehört analog zu `role_code` ins DTO. Alle drei Notiz-Abfragen joinen `role_definitions` bereits.
+  - Das Audit `.planning/audits/2026-09-05-hardcoding-drift-audit.md` führt unter HC-09 vier Konstanten mit „Prod 0 / Test 0" und dem Satz „Vier Konstanten haben null Referenzen im gesamten Repo". Nachgemessen ist das falsch: `RoleTranslator` (3 Testdateien), `RoleTypesetter`, `RoleTechadmin` und `RoleGfxler` (je `capability_registry_test.go`) wurden paketintern unqualifiziert benutzt; gezählt wurden offenbar nur qualifizierte `permissions.X`-Treffer. Richtig ist „keine Produktionsreferenz".
+
+**Success Criteria** (what must be TRUE):
+
+  1. Es gibt genau einen Ort, an dem eine Rollenfarbe aus dem Katalog in CSS ankommt: `globals.css` leitet `--role-accent` aus dem bestehenden `--role-chip-accent`/`data-color-key`-Seam ab und definiert einen neutralen Default. Kein CSS-Modul weist sich mehr eine Farbe aus einem `--role-accent-<code>`-Token zu, und kein Selektor wählt eine Farbe anhand eines Rollen-Codes.
+  2. Keine Referenz auf die nicht existierenden Tokens `--role-accent-base`, `--role-accent-default` oder `--role-accent-<code>` bleibt im Repo übrig — nachweisbar per Suche. `LayeredBadgeArtwork.module.css` behält seine eigene, bewusst gesetzte `--role-accent`-Farbe.
+  3. `data-role-code` trägt an jeder Stelle den stabilen Rollen-Code aus `role_definitions.code`, niemals einen Hex-Wert oder Kategorienamen. `categoryForRole()` ist ersatzlos entfernt; die sechs Konsumenten setzen den Code für die Semantik und `data-color-key` für die Farbe.
+  4. `getRoleClassName()` und die zugehörige Kategorie-Klassenmap in `FansubAppMembersOverview.tsx` sind entfernt; die Rollen-Badges dort beziehen ihre Farbe über denselben Seam wie alle anderen.
+  5. `presentationForRole()` entkoppelt Farbe und Icon: ein unbekannter `icon_key` führt zum neutralen Icon, verwirft aber einen gültigen `color_key` nicht mehr. Ein Test belegt das für `fansub_lead`, `founder`, `co_leader`, `techadmin` und `gfxler`, und ebenso, dass ein unbekannter `color_key` weiterhin auf `neutral` fällt.
+  6. Die öffentliche Notizkarte bekommt ihre Farbe ohne zusätzlichen Client-Request: `role_color_key` wird an allen drei Notiz-Abfragestellen aus `role_definitions.color_key` mitgeliefert, im `shared/contracts/`-Vertrag und in beiden TypeScript-Typen geführt, und ein Backend-Test belegt das Feld am echten Abfrageergebnis.
+  7. Frontend-Tests belegen für mindestens eine Oberfläche je Seam-Typ, dass ein Element mit Rollenbezug sowohl den korrekten `data-role-code` als auch den korrekten `data-color-key` trägt — und dass eine Änderung von `color_key` im Katalog die Farbe ändert, eine Änderung von `label_de` aber nicht.
+  8. Backend-, Frontend- und Contract-Tests laufen grün, ohne neue Fehler gegenüber der Baseline. Ein Live-UAT auf `:3000` belegt an der Release-Detail-Notizkarte und auf der Projekt-Member-Seite eine tatsächlich gerenderte, rollenabhängige Farbe — gemessen über `getComputedStyle`, nicht nach Augenschein.
+  9. Die HC-09-Tabelle im Audit-Dokument ist korrigiert: die vier Konstanten hatten keine Produktionsreferenz, aber sehr wohl paketinterne Testfixture-Referenzen, und die Korrektur benennt die Zählweise, die zum Fehler geführt hat.
+
+**UI hint**: ja — die Phase macht app-weit Farben sichtbar, die heute fehlen. Vor `plan-phase` `/gsd-ui-phase 148` laufen lassen.
+
 ## v1.4 Coverage
 
 | Phase | Requirement Count | Requirement IDs |
@@ -997,7 +1030,7 @@ Plans:
 
 ## v1.4 Progress
 
-**Execution Order:** 136 - 137 - 138 - 139 - 140 - 141 - 142 - 143 - 144 - 145 - 146 - 147
+**Execution Order:** 136 - 137 - 138 - 139 - 140 - 141 - 142 - 143 - 144 - 145 - 146 - 147 - 148
 
 | Phase | Plans Complete | Status | Completed |
 |-------|----------------|--------|-----------|
@@ -1013,3 +1046,4 @@ Plans:
 | 145. Mitgliedschafts-Grundausstattung in die Rechte-Registry überführen | 4/4 | Complete | 2026-09-04 |
 | 146. Registry-Selbstschutz und Sanierung der Quelltext-Substring-Tests | 13/13 | Complete   | 2026-09-04 |
 | 147. Rollen-Registry — letzte Parallelkataloge auflösen | 6/6 | Complete   | 2026-09-05 |
+| 148. Rollenfarben wieder an den Katalog anschließen | 0/0 | Planning | - |
