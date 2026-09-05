@@ -7,7 +7,7 @@ import { ArrowLeft, Pencil, Search } from 'lucide-react'
 
 import { Badge, Button, Card, ErrorState, Input, LoadingState, PageHeader, SectionHeader } from '@/components/ui'
 import { ApiError, getMyProjectDetail } from '@/lib/api'
-import { categoryForRole, getRole, labelForRole, orderForContext } from '@/lib/roleCatalog'
+import { getRole, labelForRole, orderForContext, presentationForRole } from '@/lib/roleCatalog'
 import { useAuthSession } from '@/lib/useAuthSession'
 import { useRoleCatalog } from '@/providers/RoleCatalogProvider'
 import type { MeProjectDetail, MeProjectReleaseVersion } from '@/types/contributions'
@@ -268,7 +268,8 @@ function MyProjectDetailPage() {
             <div
               key={role.code}
               className={styles.roleDetailRow}
-              data-role-code={categoryForRole(contributionRoles, role.code)}
+              data-role-code={role.code}
+              data-color-key={presentationForRole(contributionRoles, role.code).colorKey}
               style={{ borderInlineStartColor: 'var(--role-accent)', borderInlineStartWidth: 3 }}
             >
               <strong>{role.label}</strong>

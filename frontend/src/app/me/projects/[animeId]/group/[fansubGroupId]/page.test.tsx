@@ -8,9 +8,9 @@ const useAuthSessionMock = vi.hoisted(() => vi.fn())
 const useSearchParamsMock = vi.hoisted(() => vi.fn())
 
 const catalogRoles = vi.hoisted(() => [
-  { code: 'typer', label_de: 'Typesetting', contexts: ['anime_contribution'], sort_order: 10, color_key: 'technical', icon_key: 'wrench' },
-  { code: 'karaoke_fx', label_de: 'Karaoke-FX', contexts: ['anime_contribution'], sort_order: 20, color_key: 'creative', icon_key: 'image' },
-  { code: 'encoder', label_de: 'Encoding', contexts: ['anime_contribution'], sort_order: 30, color_key: 'production', icon_key: 'film' },
+  { code: 'typer', label_de: 'Typesetting', contexts: ['anime_contribution'], sort_order: 10, color_key: '#0f766e', icon_key: 'wrench' },
+  { code: 'karaoke_fx', label_de: 'Karaoke-FX', contexts: ['anime_contribution'], sort_order: 20, color_key: '#7e22ce', icon_key: 'image' },
+  { code: 'encoder', label_de: 'Encoding', contexts: ['anime_contribution'], sort_order: 30, color_key: '#c26a2e', icon_key: 'film' },
 ])
 
 vi.mock('@/providers/RoleCatalogProvider', () => ({
@@ -131,10 +131,16 @@ describe('MyProjectDetailPage', () => {
       'Future Role',
     ])
     expect(roleRows.map((row) => row.getAttribute('data-role-code'))).toEqual([
-      'technical',
-      'creative',
-      'production',
-      'other',
+      'typer',
+      'karaoke_fx',
+      'encoder',
+      'future_role',
+    ])
+    expect(roleRows.map((row) => row.getAttribute('data-color-key'))).toEqual([
+      '#0f766e',
+      '#7e22ce',
+      '#c26a2e',
+      'neutral',
     ])
     expect(screen.queryByText('Typesetting / FX')).toBeNull()
   })

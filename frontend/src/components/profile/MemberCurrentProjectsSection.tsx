@@ -9,7 +9,7 @@ import { getMemberProjects, resolveApiUrl } from '@/lib/api'
 import { ResponsiveImage } from '@/components/ui/ResponsiveImage'
 import { useCancellableSlugState } from '@/hooks/useCancellableSlugState'
 import { useNearViewportActivation } from '@/hooks/useNearViewportActivation'
-import { categoryForRole, labelForRole } from '@/lib/roleCatalog'
+import { labelForRole, presentationForRole } from '@/lib/roleCatalog'
 import { useRoleCatalog } from '@/providers/RoleCatalogProvider'
 import type { PublicMemberCurrentProject, PublicMemberProjectsPage } from '@/types/profile'
 
@@ -190,7 +190,8 @@ export function MemberCurrentProjectsSection({ memberSlug, projects, totalCount 
                               key={role.code}
                               variant="neutral"
                               className={styles.roleChip}
-                              data-role-code={categoryForRole(contributionRoles, role.code)}
+                              data-role-code={role.code}
+                              data-color-key={presentationForRole(contributionRoles, role.code).colorKey}
                             >
                               {labelForRole(contributionRoles, role.code)}
                             </Badge>
@@ -226,7 +227,8 @@ export function MemberCurrentProjectsSection({ memberSlug, projects, totalCount 
                                   key={role.code}
                                   variant="neutral"
                                   className={styles.roleChip}
-                                  data-role-code={categoryForRole(contributionRoles, role.code)}
+                                  data-role-code={role.code}
+                                  data-color-key={presentationForRole(contributionRoles, role.code).colorKey}
                                 >
                                   {labelForRole(contributionRoles, role.code)}
                                 </Badge>
