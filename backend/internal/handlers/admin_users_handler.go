@@ -87,11 +87,17 @@ func NewAdminUsersHandler(
 	}
 }
 
-// validGlobalRoles enthält die erlaubten globalen Rollenwerte.
-var validGlobalRoles = map[string]struct{}{
-	"platform_admin": {},
-	"content_admin":  {},
-	"user":           {},
+// validGlobalRoles enthält die erlaubten globalen Rollenwerte, abgeleitet aus
+// models.AppGlobalRoles (Phase 147 / HC-03).
+var validGlobalRoles = buildRoleSet(models.AppGlobalRoles)
+
+// buildRoleSet baut aus einer geordneten Rollenliste eine Lookup-Menge auf.
+func buildRoleSet(roles []string) map[string]struct{} {
+	set := make(map[string]struct{}, len(roles))
+	for _, r := range roles {
+		set[r] = struct{}{}
+	}
+	return set
 }
 
 // validAdminUserStatusValues enthält die per Handler erlaubten Status-Werte (pending ist read-only).

@@ -22,18 +22,23 @@ const (
 	FansubGroupInvitationStatusExpired   = "expired"
 )
 
+// AppGlobalRoles is the canonical, ordered set of global App-Rollen (Phase 147 / HC-03).
+// Order matches every existing consumer's literal today: platform_admin, content_admin, user.
+var AppGlobalRoles = []string{
+	AppGlobalRolePlatformAdmin,
+	AppGlobalRoleContentAdmin,
+	AppGlobalRoleUser,
+}
+
 // KeycloakManagedGlobalRoles is the set of Keycloak realm-role names that the
 // IdP-role-driven JIT sync (repository.AuthzRepository.SyncGlobalRolesFromKeycloak)
 // is authoritative for. Only realm roles listed here are ever reconciled into
 // app_user_global_roles; any other realm role on the token is ignored (defense
 // in depth alongside the DB's chk_app_user_global_roles_role CHECK constraint).
-// Names are identical to the AppGlobalRole* constants above today; centralizing
-// the mapping here means a future rename only touches one place.
-var KeycloakManagedGlobalRoles = []string{
-	AppGlobalRolePlatformAdmin,
-	AppGlobalRoleContentAdmin,
-	AppGlobalRoleUser,
-}
+// Identical to AppGlobalRoles today (see above); kept as its own named slice because
+// it documents a different authority — the Keycloak-JIT-sync whitelist, not the DB
+// CHECK constraint.
+var KeycloakManagedGlobalRoles = AppGlobalRoles
 
 type AppUser struct {
 	ID                int64      `json:"id"`

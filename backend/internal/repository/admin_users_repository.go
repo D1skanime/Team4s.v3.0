@@ -193,6 +193,6 @@ func (r *AdminUsersRepository) GetUserGlobalRoles(
 	}
 	return &models.AdminUserGlobalRolesResult{
 		Roles:           roles,
-		AssignableRoles: []string{"platform_admin", "content_admin", "user"},
+		AssignableRoles: models.AppGlobalRoles,
 	}, nil
 }

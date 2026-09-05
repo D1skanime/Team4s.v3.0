@@ -3,6 +3,7 @@ package handlers
 import (
 	"log"
 	"net/http"
+	"strings"
 
 	"team4s.v3/backend/internal/models"
 	"team4s.v3/backend/internal/repository"
@@ -27,7 +28,7 @@ func (h *AdminUsersHandler) AssignGlobalRole(c *gin.Context) {
 
 	role := c.Param("role")
 	if _, valid := validGlobalRoles[role]; !valid {
-		badRequest(c, "Ungültige Rolle. Erlaubte Werte: platform_admin, content_admin, user.")
+		badRequest(c, "Ungültige Rolle. Erlaubte Werte: "+strings.Join(models.AppGlobalRoles, ", ")+".")
 		return
 	}
 
@@ -68,7 +69,7 @@ func (h *AdminUsersHandler) RevokeGlobalRole(c *gin.Context) {
 
 	role := c.Param("role")
 	if _, valid := validGlobalRoles[role]; !valid {
-		badRequest(c, "Ungültige Rolle. Erlaubte Werte: platform_admin, content_admin, user.")
+		badRequest(c, "Ungültige Rolle. Erlaubte Werte: "+strings.Join(models.AppGlobalRoles, ", ")+".")
 		return
 	}
 

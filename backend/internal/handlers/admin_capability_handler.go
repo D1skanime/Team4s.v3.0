@@ -6,6 +6,7 @@ import (
 	"net/http"
 	"slices"
 
+	"team4s.v3/backend/internal/models"
 	"team4s.v3/backend/internal/permissions"
 	"team4s.v3/backend/internal/repository"
 
@@ -36,8 +37,8 @@ type capabilityMutationRepo interface {
 
 // globalAppRoleCodes ist die feste Reihenfolge der drei globalen App-Rollen, die als
 // synthetische, nicht-editierbare Zeilen der Capability-Matrix vorangestellt werden.
-// Kanonische Quelle für diese drei Codes: admin_users_repository.go AssignableRoles (Zeile 192).
-var globalAppRoleCodes = []string{"platform_admin", "content_admin", "user"}
+// Kanonische Quelle für diese drei Codes: models.AppGlobalRoles.
+var globalAppRoleCodes = models.AppGlobalRoles
 
 // globalAppRoleLabels sind die deutschen Anzeigenamen der globalen App-Rollen. MUSS synchron
 // bleiben zu roleLabel() in frontend/src/app/admin/users/tabs/UserGlobalRolesTab.tsx (Pitfall 2,
