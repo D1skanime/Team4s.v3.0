@@ -318,7 +318,8 @@ func main() {
 	assetLifecycleService := services.NewAssetLifecycleService(assetLifecycleRepo, cfg.MediaStorageDir)
 	mediaUploadRepo := repository.NewMediaUploadRepository(dbPool)
 	mediaUploadHandler := handlers.NewMediaUploadHandler(mediaUploadRepo, cfg.MediaStorageDir, cfg.MediaPublicBaseURL, cfg.FFmpegPath).
-		WithLifecycleService(assetLifecycleService)
+		WithLifecycleService(assetLifecycleService).
+		WithAdminAuthz(authzRepo, cfg.AuthAdminRoleName)
 
 	// Periodic release-version-media cleanup job (stale processing, missing files, soft-delete).
 	// Runs every 10 minutes in a background goroutine; best-effort, never stops the server.

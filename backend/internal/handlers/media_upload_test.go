@@ -119,7 +119,7 @@ func (m *MockMediaUploadRepository) WithTx(ctx context.Context, fn func(repo rep
 func TestMediaUploadHandler_ValidateFile(t *testing.T) {
 	repo := NewMockMediaUploadRepository()
 	tmpDir := t.TempDir()
-	handler := NewMediaUploadHandler(repo, tmpDir, "http://localhost", "/usr/bin/ffmpeg")
+	handler := newAdminMediaUploadHandler(repo, tmpDir, "http://localhost", "/usr/bin/ffmpeg")
 
 	tests := []struct {
 		name        string
@@ -199,7 +199,7 @@ func TestMediaUploadHandler_ValidateFile(t *testing.T) {
 func TestMediaUploadHandler_Delete(t *testing.T) {
 	repo := NewMockMediaUploadRepository()
 	tmpDir := t.TempDir()
-	handler := NewMediaUploadHandler(repo, tmpDir, "http://localhost", "/usr/bin/ffmpeg")
+	handler := newAdminMediaUploadHandler(repo, tmpDir, "http://localhost", "/usr/bin/ffmpeg")
 
 	// Setup test asset
 	mediaID := "test-media-123"
@@ -243,7 +243,7 @@ func TestMediaUploadHandler_Delete(t *testing.T) {
 
 func TestMediaUploadHandler_UploadRejectsMissingAuthIdentity(t *testing.T) {
 	repo := NewMockMediaUploadRepository()
-	handler := NewMediaUploadHandler(repo, t.TempDir(), "http://localhost", "/usr/bin/ffmpeg")
+	handler := newAdminMediaUploadHandler(repo, t.TempDir(), "http://localhost", "/usr/bin/ffmpeg")
 
 	gin.SetMode(gin.TestMode)
 	router := gin.New()
@@ -259,7 +259,7 @@ func TestMediaUploadHandler_UploadRejectsMissingAuthIdentity(t *testing.T) {
 
 func TestMediaUploadHandler_UploadPersistsUploadedByFromAuthIdentity(t *testing.T) {
 	repo := NewMockMediaUploadRepository()
-	handler := NewMediaUploadHandler(repo, t.TempDir(), "http://localhost", "/usr/bin/ffmpeg")
+	handler := newAdminMediaUploadHandler(repo, t.TempDir(), "http://localhost", "/usr/bin/ffmpeg")
 
 	gin.SetMode(gin.TestMode)
 	router := gin.New()
@@ -288,7 +288,7 @@ func TestMediaUploadHandler_UploadPersistsUploadedByFromAuthIdentity(t *testing.
 func TestMediaUploadHandler_UploadPreservesPNGOutputAndAlpha(t *testing.T) {
 	repo := NewMockMediaUploadRepository()
 	tmpDir := t.TempDir()
-	handler := NewMediaUploadHandler(repo, tmpDir, "http://localhost", "/usr/bin/ffmpeg")
+	handler := newAdminMediaUploadHandler(repo, tmpDir, "http://localhost", "/usr/bin/ffmpeg")
 
 	w := performAuthorizedUpload(t, handler, newMediaUploadRequest(t))
 
@@ -373,7 +373,7 @@ func TestMediaUploadHandler_UploadAutoProvisionsCanonicalAnimeFoldersAndReportsS
 	repo.legacySchema = false
 	tmpDir := t.TempDir()
 	store := newMockAssetLifecycleStore(123)
-	handler := NewMediaUploadHandler(repo, tmpDir, "http://localhost", "/usr/bin/ffmpeg").
+	handler := newAdminMediaUploadHandler(repo, tmpDir, "http://localhost", "/usr/bin/ffmpeg").
 		WithLifecycleService(services.NewAssetLifecycleService(store, tmpDir))
 
 	w := performAuthorizedUpload(t, handler, newMediaUploadRequest(t))
@@ -413,7 +413,7 @@ func TestMediaUploadHandler_UploadReportsIdempotentProvisioningReuse(t *testing.
 	repo.legacySchema = false
 	tmpDir := t.TempDir()
 	store := newMockAssetLifecycleStore(123)
-	handler := NewMediaUploadHandler(repo, tmpDir, "http://localhost", "/usr/bin/ffmpeg").
+	handler := newAdminMediaUploadHandler(repo, tmpDir, "http://localhost", "/usr/bin/ffmpeg").
 		WithLifecycleService(services.NewAssetLifecycleService(store, tmpDir))
 
 	first := performAuthorizedUpload(t, handler, newMediaUploadRequest(t))
@@ -436,7 +436,7 @@ func TestMediaUploadHandler_UploadUsesManualAnimePathWithoutJellyfinMetadata(t *
 	repo.legacySchema = false
 	tmpDir := t.TempDir()
 	store := newMockAssetLifecycleStore(123)
-	handler := NewMediaUploadHandler(repo, tmpDir, "http://localhost", "/usr/bin/ffmpeg").
+	handler := newAdminMediaUploadHandler(repo, tmpDir, "http://localhost", "/usr/bin/ffmpeg").
 		WithLifecycleService(services.NewAssetLifecycleService(store, tmpDir))
 
 	req := newMediaUploadRequest(t)
@@ -460,7 +460,7 @@ func TestMediaUploadHandler_UploadReturnsDetailedValidationErrors(t *testing.T) 
 				return newMediaUploadRequestWithFields(t, "episode", "123", "poster")
 			},
 			setupHandler: func(t *testing.T, tmpDir string) *MediaUploadHandler {
-				return NewMediaUploadHandler(NewMockMediaUploadRepository(), tmpDir, "http://localhost", "/usr/bin/ffmpeg")
+				return newAdminMediaUploadHandler(NewMockMediaUploadRepository(), tmpDir, "http://localhost", "/usr/bin/ffmpeg")
 			},
 			expectedStatus: http.StatusBadRequest,
 			expectedBody:   "ungültiger entity_type",
@@ -474,7 +474,7 @@ func TestMediaUploadHandler_UploadReturnsDetailedValidationErrors(t *testing.T) 
 				repo := NewMockMediaUploadRepository()
 				repo.legacySchema = false
 				store := newMockAssetLifecycleStore(123)
-				return NewMediaUploadHandler(repo, tmpDir, "http://localhost", "/usr/bin/ffmpeg").
+				return newAdminMediaUploadHandler(repo, tmpDir, "http://localhost", "/usr/bin/ffmpeg").
 					WithLifecycleService(services.NewAssetLifecycleService(store, tmpDir))
 			},
 			expectedStatus: http.StatusBadRequest,
@@ -489,7 +489,7 @@ func TestMediaUploadHandler_UploadReturnsDetailedValidationErrors(t *testing.T) 
 				repo := NewMockMediaUploadRepository()
 				repo.legacySchema = false
 				store := newMockAssetLifecycleStore(123)
-				return NewMediaUploadHandler(repo, tmpDir, "http://localhost", "/usr/bin/ffmpeg").
+				return newAdminMediaUploadHandler(repo, tmpDir, "http://localhost", "/usr/bin/ffmpeg").
 					WithLifecycleService(services.NewAssetLifecycleService(store, tmpDir))
 			},
 			expectedStatus: http.StatusBadRequest,
@@ -506,7 +506,7 @@ func TestMediaUploadHandler_UploadReturnsDetailedValidationErrors(t *testing.T) 
 				repo := NewMockMediaUploadRepository()
 				repo.legacySchema = false
 				store := newMockAssetLifecycleStore(123)
-				return NewMediaUploadHandler(repo, tmpDir, "http://localhost", "/usr/bin/ffmpeg").
+				return newAdminMediaUploadHandler(repo, tmpDir, "http://localhost", "/usr/bin/ffmpeg").
 					WithLifecycleService(services.NewAssetLifecycleService(store, tmpDir))
 			},
 			expectedStatus: http.StatusBadRequest,
@@ -540,6 +540,13 @@ func TestMediaUploadHandler_MainFileStaysWithinLineBudget(t *testing.T) {
 	if lineCount > 450 {
 		t.Fatalf("media_upload.go line count = %d, want <= 450", lineCount)
 	}
+}
+
+// newAdminMediaUploadHandler baut den Handler wie in main.go, inklusive
+// verdrahtetem Plattform-Admin-Guard, damit Bestandstests den Admin-Pfad testen.
+func newAdminMediaUploadHandler(repo repository.MediaUploadRepoTx, storageDir, baseURL, ffmpegPath string) *MediaUploadHandler {
+	return NewMediaUploadHandler(repo, storageDir, baseURL, ffmpegPath).
+		WithAdminAuthz(stubRoleChecker{appUserIsAdmin: true, legacyIsAdmin: true}, "admin")
 }
 
 func newMediaUploadRequest(t *testing.T) *http.Request {

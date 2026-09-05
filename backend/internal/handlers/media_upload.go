@@ -72,6 +72,11 @@ type MediaUploadHandler struct {
 	mediaStorageDir string
 	mediaBaseURL    string
 	ffmpegPath      string
+	// authzRepo/adminRoleName speisen den zentralen Plattform-Admin-Guard
+	// (requirePlatformAdminIdentity). Ohne gesetzte Abhaengigkeit bleibt der
+	// Guard bewusst fail-closed und antwortet mit 500 statt Zugriff zu gewaehren.
+	authzRepo     any
+	adminRoleName string
 }
 
 func NewMediaUploadHandler(repo repository.MediaUploadRepoTx, storageDir, baseURL, ffmpegPath string) *MediaUploadHandler {
@@ -88,11 +93,24 @@ func (h *MediaUploadHandler) WithLifecycleService(lifecycle mediaUploadLifecycle
 	return h
 }
 
+// WithAdminAuthz verdrahtet den Plattform-Admin-Guard fuer die generischen
+// Anime-Medienendpunkte (POST /admin/upload, DELETE /admin/media/:id).
+func (h *MediaUploadHandler) WithAdminAuthz(authzRepo any, adminRoleName string) *MediaUploadHandler {
+	h.authzRepo = authzRepo
+	h.adminRoleName = strings.TrimSpace(adminRoleName)
+	return h
+}
+
+// requireAdmin nutzt den zentralen Plattform-Admin-Guard; 401 fuer fehlende
+// Identity, 403 fuer authentifizierte Nicht-Admins.
+func (h *MediaUploadHandler) requireAdmin(c *gin.Context) (middleware.AuthIdentity, bool) {
+	return requirePlatformAdminIdentity(c, h.authzRepo, h.adminRoleName)
+}
+
 // Upload handles POST /api/admin/upload
 func (h *MediaUploadHandler) Upload(c *gin.Context) {
-	identity, ok := middleware.CommentAuthIdentityFromContext(c)
+	identity, ok := h.requireAdmin(c)
 	if !ok {
-		h.writeUploadError(c, http.StatusUnauthorized, "anmeldung erforderlich", "", "")
 		return
 	}
 
@@ -319,8 +337,7 @@ func (h *MediaUploadHandler) validateFile(file multipart.File, size int64) (stri
 
 // Delete handles DELETE /api/admin/media/{id}
 func (h *MediaUploadHandler) Delete(c *gin.Context) {
-	if _, ok := middleware.CommentAuthIdentityFromContext(c); !ok {
-		c.JSON(http.StatusUnauthorized, gin.H{"error": gin.H{"message": "anmeldung erforderlich"}})
+	if _, ok := h.requireAdmin(c); !ok {
 		return
 	}
 
@@ -335,6 +352,16 @@ func (h *MediaUploadHandler) Delete(c *gin.Context) {
 	if err != nil {
 		log.Printf("media_upload: get asset failed: %v", err)
 		c.JSON(http.StatusNotFound, gin.H{"error": "media nicht gefunden"})
+		return
+	}
+
+	// Fachlicher Scope: dieser generische Endpunkt gehoert zur Anime-Stammdatenpflege.
+	// Gruppen-, Release- und Profilmedien haben eigene Endpunkte mit eigener Autorisierung.
+	if normalizeUploadEntityType(asset.EntityType) != "anime" {
+		c.JSON(http.StatusBadRequest, gin.H{"error": gin.H{
+			"message": "nur anime-medien können hier gelöscht werden",
+			"code":    services.AssetLifecycleCodeInvalidEntityType,
+		}})
 		return
 	}
 

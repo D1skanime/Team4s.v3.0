@@ -1672,6 +1672,9 @@ paths:
     post:
       tags: [Admin]
       summary: Upload admin-managed anime media through the shared V2 seam
+      description: |
+        Requires the platform-admin permission. Authenticated callers without that
+        permission receive 403; only `entity_type=anime` is accepted here.
       operationId: adminUploadMedia
       security:
         - bearerAuth: []
@@ -1753,7 +1756,7 @@ paths:
                     error:
                       message: anmeldung erforderlich
         "403":
-          description: Permission denied for this release version
+          description: Caller is authenticated but not a platform admin
           content:
             application/json:
               schema:
