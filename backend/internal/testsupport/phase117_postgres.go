@@ -62,17 +62,20 @@ CREATE TABLE episodes (
     title TEXT
 );
 CREATE TABLE fansub_groups (
-    id BIGINT PRIMARY KEY
+    id BIGINT PRIMARY KEY,
+    name TEXT
 );
 CREATE TABLE fansub_releases (
     id BIGINT PRIMARY KEY,
-    episode_id BIGINT NOT NULL REFERENCES episodes(id)
+    episode_id BIGINT NOT NULL REFERENCES episodes(id),
+    release_date TIMESTAMPTZ NULL
 );
 CREATE TABLE release_versions (
     id BIGINT PRIMARY KEY,
     release_id BIGINT NOT NULL REFERENCES fansub_releases(id),
     version VARCHAR(20) NOT NULL DEFAULT 'v1',
-    title TEXT
+    title TEXT,
+    release_date TIMESTAMPTZ NULL
 );
 CREATE TABLE release_version_groups (
     release_version_id BIGINT NOT NULL REFERENCES release_versions(id),
@@ -117,6 +120,37 @@ CREATE TABLE theme_segments (
     start_episode_id BIGINT,
     end_episode_id BIGINT,
     created_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
+);
+CREATE TABLE members (
+    id BIGINT PRIMARY KEY,
+    nickname TEXT,
+    display_name TEXT,
+    avatar_media_id BIGINT REFERENCES media_assets(id)
+);
+CREATE TABLE contributor_roles (
+    id BIGINT PRIMARY KEY,
+    name VARCHAR(80) NOT NULL
+);
+CREATE TABLE role_definitions (
+    code TEXT PRIMARY KEY,
+    label_de TEXT NOT NULL,
+    contexts TEXT[] NOT NULL DEFAULT '{}',
+    sort_order INT NOT NULL DEFAULT 0
+);
+CREATE TABLE release_version_notes (
+    id BIGINT PRIMARY KEY,
+    release_version_id BIGINT NOT NULL REFERENCES release_versions(id),
+    fansub_group_id BIGINT REFERENCES fansub_groups(id),
+    member_id BIGINT NOT NULL REFERENCES members(id),
+    role_id BIGINT REFERENCES contributor_roles(id),
+    title TEXT,
+    body_html TEXT NOT NULL DEFAULT '',
+    body_text TEXT NOT NULL DEFAULT '',
+    visibility VARCHAR(20) NOT NULL DEFAULT 'internal',
+    status VARCHAR(20) NOT NULL DEFAULT 'draft',
+    sort_order INT NOT NULL DEFAULT 0,
+    created_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
+    deleted_at TIMESTAMPTZ NULL
 );`
 	if err := validatePhase106SQL(sql); err != nil {
 		t.Fatal(err)
