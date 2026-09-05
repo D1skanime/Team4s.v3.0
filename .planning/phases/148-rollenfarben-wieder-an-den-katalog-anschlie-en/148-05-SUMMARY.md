@@ -85,8 +85,8 @@ Each task was committed atomically:
 - `shared/contracts/openapi.yaml` - `role_color_key: {type: string}` added to `PublicReleaseNote` and `ProjectMemberNote` schemas
 - `frontend/src/types/releaseDetail.ts` - `role_color_key: string` added to `PublicReleaseNote`
 - `frontend/src/types/projectMember.ts` - `role_color_key: string` added to `ProjectMemberNote`
-- `frontend/src/components/public/PublicNoteCard.tsx` - `roleColorKey` prop; `data-color-key` rendered on `<article>`; doc-comment corrected
-- `frontend/src/components/public/PublicNoteCard.test.tsx` - new `describe('data-color-key ...')` block, 6 tests
+- `frontend/src/components/public/PublicNoteCard.tsx` - `roleColorKey` prop; `data-color-key` rendered on `<article>`; doc-comment corrected (see Post-Completion Fix below — this attribute assignment was later corrected to normalize through `boundedColorKey`)
+- `frontend/src/components/public/PublicNoteCard.test.tsx` - new `describe('data-color-key ...')` block, 6 tests (see Post-Completion Fix below — 2 more tests added)
 - `frontend/src/app/anime/[id]/group/[groupId]/releases/[releaseVersionId]/ReleaseNotesList.tsx` - `roleColorKey={note.role_color_key}` added to the `<PublicNoteCard>` call
 - `frontend/src/app/anime/[id]/group/[groupId]/releases/[releaseVersionId]/ReleaseNotesList.test.tsx` - fixtures updated with `role_color_key` (Rule 3, required by the now-mandatory TS field)
 - `frontend/src/components/fansubs/projectMember/ProjectMemberNoteCard.tsx` - `roleColorKey={note.role_color_key}` added to the `<PublicNoteCard>` call
@@ -120,6 +120,48 @@ Each task was committed atomically:
 
 ## User Setup Required
 None - no external service configuration required.
+
+## Post-Completion Fix (found during 148-07 pre-review, fixed before 148-07 UAT)
+
+**Defect:** `role_definitions.color_key` is stored uppercase in the database (e.g. `'#C26A2E'`). This
+plan's `data-color-key={roleColorKey || 'neutral'}` in `PublicNoteCard.tsx` passed the raw DTO value
+straight to the DOM attribute, unnormalized. `globals.css`'s `[data-color-key='#c26a2e']` selectors are
+lowercase and CSS attribute selectors are case-sensitive, so the selector never matched for real catalog
+data — every public note card rendered the neutral `--role-accent` instead of its real role color. The
+catalog's `'other'` value (used by `group_member`/`admin`/`other`) had the same problem: it was written
+into `data-color-key` verbatim instead of resolving to `'neutral'`. Live-verified on `/anime/1/group/1/
+releases/27` and the project-member notes list, side-by-side against the already-correct
+`presentationForRole()`-driven seam on the same page. Success Criteria 6 and 8 were not actually met for
+the public note card.
+
+**Root cause:** every other `data-color-key` consumer in the codebase derives its value through
+`presentationForRole(...).colorKey`, whose private `boundedColorKey()` helper lowercases the value and
+falls back unknown/unbounded values to `'neutral'`. This plan's DTO passthrough bypassed that function
+entirely — a second, unnormalized code path for the same seam.
+
+**Fix (single normalization point, no second variant):**
+- `boundedColorKey()` in `frontend/src/lib/roleCatalog.ts` is now exported (was already used internally
+  by `presentationForRole`).
+- `PublicNoteCard.tsx` now renders `data-color-key={boundedColorKey(roleColorKey)}` instead of the raw
+  `roleColorKey || 'neutral'`. This is the only call site that needed the change — every other
+  `data-color-key` consumer already went through `presentationForRole()`, confirmed by a repo-wide grep.
+- Backend and the `role_color_key` DTO field are unchanged: the raw, unnormalized catalog value is still
+  the correct thing for the API to return; normalization for the CSS seam belongs client-side, at the
+  same place as every other consumer.
+
+**Tests added (`PublicNoteCard.test.tsx`):**
+- An uppercase-hex `roleColorKey` (`ROLE_COLOR_KEYS[8].toUpperCase()`) now asserts the rendered
+  `data-color-key` is lowercase and matches the `globals.css` selector.
+- `roleColorKey="other"` now asserts the rendered `data-color-key` is `'neutral'`.
+
+**Backend test:** `public_note_role_code_integration_test.go` already seeded its fixture with an
+uppercase hex (`'#0F766E'`) and asserted the backend returns it unchanged — this already documented that
+normalization is deliberately not the backend's job. Re-verified green against a real, isolated
+`team4s_phase117_test_*` Postgres database; no backend change was needed or made.
+
+**Verification:** full frontend suite (290 files / 2226 tests) green, `tsc --noEmit` and `eslint` clean
+on all touched files (only the pre-existing, unrelated generated route-type error remains), Go
+`TestPublicNoteRoleCode` green against real Postgres.
 
 ## Next Phase Readiness
 - All three plan-level verification commands pass: `go build ./...` exits 0; `go test ./internal/repository/... -run TestPublicNoteRoleCode` (real Postgres, via a `golang:1.25-alpine` container on `team4s_default` network) exits 0 with all 3 sub-cases green; `npx tsc --noEmit` and `npx vitest run src/components/public/PublicNoteCard.test.tsx` both exit 0; `grep -c "role_color_key" shared/contracts/openapi.yaml` returns 2.

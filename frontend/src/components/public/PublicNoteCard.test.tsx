@@ -130,6 +130,31 @@ describe('data-color-key (role_color_key-driven, Phase 148)', () => {
     expect(card.getAttribute('data-color-key')).toBe(NEUTRAL_ROLE_COLOR_KEY)
   })
 
+  it('lowercases an UPPERCASE hex from the raw DTO value so it matches the globals.css [data-color-key] selector', () => {
+    // role_definitions.color_key is stored uppercase in the DB (e.g. '#C26A2E'); the DTO
+    // passes that raw value through unnormalized. globals.css only defines lowercase
+    // [data-color-key='#c26a2e'] selectors, so an uppercased attribute silently misses them.
+    render(
+      <PublicNoteCard
+        roleLabel="Beliebiges Label"
+        roleCode="editor"
+        roleColorKey={ROLE_COLOR_KEYS[8].toUpperCase()}
+        dateLabel="x"
+        bodyText="kurz"
+      />,
+    )
+    const card = screen.getByRole('article')
+    expect(card.getAttribute('data-color-key')).toBe(ROLE_COLOR_KEYS[8])
+  })
+
+  it('falls back to "neutral" for an unbounded roleColorKey value (e.g. the catalog\'s "other")', () => {
+    render(
+      <PublicNoteCard roleLabel="Beliebiges Label" roleCode="editor" roleColorKey="other" dateLabel="x" bodyText="kurz" />,
+    )
+    const card = screen.getByRole('article')
+    expect(card.getAttribute('data-color-key')).toBe(NEUTRAL_ROLE_COLOR_KEY)
+  })
+
   it('keeps data-color-key stable across a roleLabel change when roleColorKey is held fixed', () => {
     const { rerender } = render(
       <PublicNoteCard

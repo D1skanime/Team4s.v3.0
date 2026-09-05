@@ -46,7 +46,7 @@ export function orderForContext(rows: readonly RoleDefinitionOption[], context: 
   return rows.filter((row) => row.contexts?.includes(context)).slice().sort((a, b) => a.sort_order - b.sort_order || a.code.localeCompare(b.code))
 }
 
-function boundedColorKey(value: string | null | undefined): BoundedRoleColorKey {
+export function boundedColorKey(value: string | null | undefined): BoundedRoleColorKey {
   const normalized = value?.trim().toLowerCase()
   return normalized && COLOR_KEYS.has(normalized) ? normalized as RoleColorKey : NEUTRAL_ROLE_COLOR_KEY
 }

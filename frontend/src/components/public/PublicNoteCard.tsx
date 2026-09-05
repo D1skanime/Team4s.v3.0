@@ -6,6 +6,7 @@ import { useState } from 'react'
 
 import { RichTextRenderer } from '@/components/editor'
 import { resolveApiUrl } from '@/lib/api'
+import { boundedColorKey } from '@/lib/roleCatalog'
 
 import styles from './PublicNoteCard.module.css'
 
@@ -81,7 +82,7 @@ export function PublicNoteCard({
     <article
       className={styles.card}
       data-role-code={roleCode || 'other'}
-      data-color-key={roleColorKey || 'neutral'}
+      data-color-key={boundedColorKey(roleColorKey)}
     >
       <div className={styles.head}>
         {author ? (
