@@ -62,24 +62,19 @@ const (
 	ActionUserGroupCapabilityOverrideManage Action = "user_group_capability_override.manage"
 )
 
+// Dieser Block ist KEINE autoritative Rollenliste. Der Katalog aller gueltigen Rollen ist
+// die Tabelle role_definitions. Hier stehen ausschliesslich Codes, die direkt im Go-Code fuer
+// Vergleiche referenziert werden (z. B. result.MatchedRole == permissions.RoleFansubLead).
 const (
 	RolePlatformAdmin  = "platform_admin"
 	RoleFansubLead     = "fansub_lead"
 	RoleProjectLead    = "project_lead"
-	RoleTranslator     = "translator"
 	RoleTimer          = "timer"
-	RoleTypesetter     = "typesetter"
 	RoleEditor         = "editor"
 	RoleEncoder        = "encoder"
 	RoleRawProvider    = "raw_provider"
 	RoleQualityChecker = "quality_checker"
 	RoleDesigner       = "designer"
-)
-
-// Neue Gruppenrollen (D-07): in Migration 0112 mit assignable=true angelegt.
-const (
-	RoleTechadmin = "techadmin"
-	RoleGfxler    = "gfxler"
 )
 
 // RoleMembershipBaseline (Phase 145) is the reserved, non-assignable pseudo-role sourcing
