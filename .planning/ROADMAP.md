@@ -419,6 +419,7 @@ Milestone v1.4 closes Live-UAT Findings #29-#32 by making effective group rights
 - [x] **Phase 144: Überarbeitungs-Kreislauf für Release-Medien vervollständigen** - Abgelehnte Release-Medien lassen sich an Ort und Stelle ersetzen statt nur den Text daneben zu ändern, mit Revisionssprung statt Neu-Upload. (completed 2026-09-02, Live-UAT abgenommen 2026-09-03, siehe 144-UAT.md)
 - [x] **Phase 145: Mitgliedschafts-Grundausstattung in die Rechte-Registry überführen** - Die drei rollenunabhängigen Mitgliedsrechte kommen nicht mehr aus einem Go-Slice, sondern als reservierte, nicht zuweisbare Pseudo-Rolle aus der Datenbank-Registry. (completed 2026-09-04, Live-UAT abgenommen 2026-09-04, siehe 145-UAT.md)
 - [x] **Phase 146: Registry-Selbstschutz und Sanierung der Quelltext-Substring-Tests** - Kein Admin kann über die Capability-Matrix einen Zustand erzeugen, der den nächsten Backend-Start scheitern lässt, und sicherheitsrelevante Tests belegen Verhalten durch echte Aufrufe statt durch Quelltextsuche. (completed 2026-09-04)
+- [ ] **Phase 147: Rollen-Registry — letzte Parallelkataloge auflösen** - Eine neue Gruppenrolle muss nur noch in `role_definitions` ergänzt werden; die verbliebenen Frontend-/Go-Parallelregistries für Rollen sind entfernt.
 
 ## Phase Details
 
@@ -927,6 +928,36 @@ Plans:
 
 **UI hint**: ja — Kriterium 2 berührt die Capability-Matrix; vor `plan-phase` `/gsd-ui-phase 146` laufen lassen. (erledigt, 146-UI-SPEC.md abgenommen)
 
+### Phase 147: Rollen-Registry — letzte Parallelkataloge auflösen
+
+**Goal:** Eine neue Gruppenrolle muss künftig nur noch an der autoritativen Rollenquelle (`role_definitions`) ergänzt werden; die verbliebenen Frontend- und Go-Parallelregistries für Rollen sind verschwunden, und der globale App-Rollen-Satz hat genau eine importierbare Go-Quelle.
+**Requirements**: TBD (Nacharbeit aus `.planning/audits/2026-09-05-hardcoding-drift-audit.md`, Findings HC-01, HC-02, HC-03, HC-09; kein v1.4-Requirement-Mapping)
+**Depends on:** Phase 146
+**Scope-Grenze:** Ausschließlich HC-01, HC-02, HC-03, HC-09. Nicht in dieser Phase: HC-04 (Membership-Baseline), HC-05 (Claim-Status), HC-06 (Visibility/Review-Status), HC-07 (Status-Unions), HC-08 (Asset-Typen), HC-10, Badge-System, Member-Profile-Performance, Carousel, sonstige Features/Refactorings. Weitere Auffälligkeiten werden nur dokumentiert.
+
+**Ausgangsbefund** (selbst gemessen 2026-09-05 auf `team4s-linux`, Commit `d8c2c983`, nicht aus dem Audit übernommen):
+
+  - `role_definitions` enthält **18 Rollen**. Die Label→Code-Map `ROLE_CODE_BY_LABEL` in `frontend/src/lib/roleColors.ts:6-19` hat 12 Einträge, von denen **5 Labels nicht mehr existieren** (`Gruppenleitung` vs. `Fansub-Leitung`, `Editing` vs. `Edit`, `Typesetting / FX` vs. `Typesetting`, `Technische Administration` vs. `Technik-Admin`, `Grafik` vs. `GFX`) und 6 weitere Codes gar nicht vorkommen (`founder`, `co_leader`, `karaoke_fx`, `admin`, `other`, `group_member`). Nur **7 von 18 Rollen** treffen; alle anderen — inklusive aller Leitungsrollen — fallen auf `'other'` zurück. Es gibt keinen Test für die Datei.
+  - Einziger Konsument: `PublicNoteCard.tsx:76` (`data-role-code={roleColorCode(roleLabel ?? '')}`), gespeist von `ReleaseNotesList.tsx:71` und `ProjectMemberNoteCard.tsx:25`.
+  - Der `role_code` ist auf dem gesamten Weg vorhanden, wird aber nicht durchgereicht: `repository.PublicReleaseNote` (`release_detail_public_repository.go:57-67`) und `repository.ProjectMemberNote` (`project_member_public_repository.go:44-54`) tragen nur `RoleLabel`. Beide SQL-Abfragen joinen bereits `role_definitions rd ON rd.code = cr.name` (`release_detail_public_repository.go:470`, `release_detail_public_repository_helpers.go:408`, `project_member_public_repository.go:257`), `rd.code` ist also ohne Query-Umbau selektierbar.
+  - Zweite Parallelregistry: `ROLE_LABELS` in `frontend/src/app/admin/fansubs/[id]/edit/useGroupMembersTab.ts:44-65` (20 Einträge) mit fünf Codes, die es in `role_definitions` nie gab (`typesetting`, `encoding`, `project_manager`, `leader`, plus `founder` als „Gründung" statt „Gründer"), und ohne `karaoke_fx`. Einziger verbleibender Konsument ist `roleLabelForCode` in Zeile 283 (`roleSummary`, als Fallback hinter `role.role_label ??`). Der kataloggetriebene Pfad existiert daneben schon: `GroupMembersTab.tsx:170,239` reicht `labelForRole(historyRoleOptions, code)` durch, die Optionen kommen aus `listGroupHistoryRoleDefinitions(fansubId)`.
+  - Globale App-Rollen: `models/app_auth.go:10-12` definiert die drei Einzelkonstanten, exportiert aber **keinen Satz**. Deshalb existieren vier unabhängige Literal-Kopien — `handlers/admin_capability_handler.go:40` (`globalAppRoleCodes`), `handlers/admin_users_handler.go:91-95` (`validGlobalRoles`), `repository/admin_users_repository.go:196` (`AssignableRoles`), `handlers/admin_users_mutations_handler.go:29,71` (Wertebereich im Fehlertext) — plus die autoritative DB-CHECK-Constraint `chk_app_user_global_roles_role` aus `database/migrations/0072_keycloak_app_users_foundation.up.sql`. Der Kommentar in `admin_capability_handler.go:39` erklärt die Kopplung per Prosa („Kanonische Quelle … admin_users_repository.go"), ohne Import und ohne Test. `models.KeycloakManagedGlobalRoles` (`app_auth.go:33-37`) listet dieselben drei Werte bereits als Slice, referenziert aber die Einzelkonstanten und deckt einen anderen Zweck ab.
+  - Rollenkonstanten in `permissions.go:66-83`: **Korrektur zum Audit** — die dort als „null Referenzen im gesamten Repo" geführten vier Konstanten sind nicht referenzlos. `RoleTranslator` (3 Testdateien), `RoleTypesetter`, `RoleTechadmin`, `RoleGfxler` (je `capability_registry_test.go`) werden paketintern unqualifiziert in Testfixtures benutzt; das Audit hat nur qualifizierte `permissions.X`-Treffer gezählt. Richtig ist: **keine** dieser vier hat eine Produktionsreferenz. Produktionsreferenzen außerhalb der Definition haben nur `RoleFansubLead` (4), `RoleProjectLead` (2) und `RolePlatformAdmin` (1 extern + 1 paketintern).
+  - Nebenbefund (außerhalb des Scopes, nur zu dokumentieren): die CSS-Tokens `--role-accent-<code>` und `--role-accent-default`, auf die `PublicNoteCard.module.css:13,25,33,56` und fünf weitere Module verweisen, sind **nirgends im Repo definiert** — weder in `frontend/src/styles/globals.css` (dort kommt „role-accent" gar nicht vor) noch sonstwo. Die Rollenfarbe der Notizkarten ist damit heute unabhängig von HC-01 wirkungslos. Diese Phase stellt den korrekten `data-role-code` her; die fehlende Palette bleibt als eigener Befund stehen.
+
+**Success Criteria** (what must be TRUE):
+
+  1. Die Rollenfarbe der öffentlichen Notizkarte wird aus dem stabilen `role_code` bestimmt, nicht aus dem Anzeige-Label: `PublicNoteCard` erhält den Code als eigene Eigenschaft und schreibt ihn nach `data-role-code`. `ROLE_CODE_BY_LABEL` und die Label-Rückwärtsauflösung sind ersatzlos entfernt; es entsteht keine neue Rollen-Map und kein neuer Fallback-Katalog.
+  2. Der `role_code` wird sauber von der Datenbank bis ins Frontend durchgereicht — Repository-Struct, JSON-Feld, `shared/contracts/`-Vertrag und TypeScript-Typ für **beide** Notiz-Oberflächen (Release-Detail und Projekt-Member-Seite). Ein Backend-Test belegt das Feld am echten Ergebnis, nicht per Quelltextsuche.
+  3. Ein Frontend-Regressionstest belegt, dass die aktuellen Rollen `fansub_lead`, `founder`, `co_leader`, `techadmin`, `gfxler`, `karaoke_fx`, `editor` und `typesetter` ihren eigenen `data-role-code` bekommen und nicht auf `other` zurückfallen, und dass eine Änderung von `label_de` den Wert nicht beeinflusst.
+  4. `ROLE_LABELS` und `roleLabelForCode` in `useGroupMembersTab.ts` sind entfernt; `roleSummary` löst Rollen-Labels über den bestehenden kataloggetriebenen `labelForRole(...)`-Pfad auf. Ein Test belegt die Auflösung über den Katalog.
+  5. `backend/internal/models/app_auth.go` exportiert `AppGlobalRoles` als einzige importierbare Quelle des globalen App-Rollen-Satzes. `admin_capability_handler.go`, `admin_users_handler.go`, `admin_users_repository.go` und `admin_users_mutations_handler.go` leiten Reihenfolge, Set, `AssignableRoles` und den Wertebereich im Fehlertext daraus ab — kein Wert dieser drei Rollen steht in diesen Dateien noch als String-Literal. Die Fehlermeldung bleibt deutsch mit korrekten Umlauten.
+  6. Ein Source-Contract-Test nach dem Muster der bestehenden `*_source_contract`-Tests liest die Migration `0072_keycloak_app_users_foundation.up.sql` und belegt, dass der Wertebereich der CHECK-Constraint `chk_app_user_global_roles_role` und `models.AppGlobalRoles` identisch sind. Es wird **keine** Laufzeit-Abfrage der Rollen aus der Datenbank eingeführt; die DB-CHECK bleibt Persistenz-Invariante.
+  7. Die vier Rollenkonstanten ohne Produktionsreferenz (`RoleTranslator`, `RoleTypesetter`, `RoleTechadmin`, `RoleGfxler`) sind aus `permissions.go` entfernt und ihre Testfixture-Verwendungen auf Literale umgestellt; der verbleibende Konstantenblock trägt einen Kommentar, der klarstellt, dass er keine autoritative Rollenliste ist, der Katalog in `role_definitions` liegt und hier nur direkt im Go-Code referenzierte Codes stehen. Es entsteht keine neue Go-Rollenliste.
+  8. Backend-, Frontend- und Contract-Tests laufen grün; ein Live-UAT auf `:3000` bestätigt, dass die Notizdarstellung mit dem neuen `role_code`-Pfad unverändert korrekt rendert.
+
+**UI hint**: nein — reine Datenquellen-Umstellung hinter einem bestehenden Attribut-Seam, kein neues visuelles Element, keine Layout-Änderung.
+
 ## v1.4 Coverage
 
 | Phase | Requirement Count | Requirement IDs |
@@ -942,7 +973,7 @@ Plans:
 
 ## v1.4 Progress
 
-**Execution Order:** 136 - 137 - 138 - 139 - 140 - 141 - 142 - 143 - 144 - 145 - 146
+**Execution Order:** 136 - 137 - 138 - 139 - 140 - 141 - 142 - 143 - 144 - 145 - 146 - 147
 
 | Phase | Plans Complete | Status | Completed |
 |-------|----------------|--------|-----------|
@@ -957,3 +988,4 @@ Plans:
 | 144. Überarbeitungs-Kreislauf für Release-Medien vervollständigen | 8/8 | Complete | 2026-09-03 |
 | 145. Mitgliedschafts-Grundausstattung in die Rechte-Registry überführen | 4/4 | Complete | 2026-09-04 |
 | 146. Registry-Selbstschutz und Sanierung der Quelltext-Substring-Tests | 13/13 | Complete   | 2026-09-04 |
+| 147. Rollen-Registry — letzte Parallelkataloge auflösen | 0/0 | Planning | - |
