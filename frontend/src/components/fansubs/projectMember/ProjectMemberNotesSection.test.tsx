@@ -25,6 +25,7 @@ const note = (overrides: Partial<ProjectMemberNote> = {}): ProjectMemberNote => 
   body_html: '',
   body_text: 'kurz',
   role_label: 'Qualitätsprüfung',
+  role_code: 'quality_checker',
   episode_label: '08',
   release_version_label: 'v1',
   release_version_id: 41,

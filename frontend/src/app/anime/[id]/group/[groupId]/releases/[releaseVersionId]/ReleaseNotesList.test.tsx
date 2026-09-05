@@ -12,10 +12,10 @@ afterEach(cleanup)
 describe('ReleaseNotesList', () => {
   it('shows one initial note per source group before filling to three', () => {
     const notes = [
-      {id:1,fansub_group_id:1,member_id:1,member_name:'A',member_avatar_url:null,role_label:'Timing',body_html:'<p>A</p>',created_at:'2026-01-01'},
-      {id:2,fansub_group_id:1,member_id:2,member_name:'B',member_avatar_url:null,role_label:'Timing',body_html:'<p>B</p>',created_at:'2026-01-02'},
-      {id:3,fansub_group_id:2,member_id:3,member_name:'C',member_avatar_url:null,role_label:'Karaoke',body_html:'<p>C</p>',created_at:'2026-01-03'},
-      {id:4,fansub_group_id:null,member_id:4,member_name:'D',member_avatar_url:null,role_label:'Editing',body_html:'<p>D</p>',created_at:'2026-01-04'},
+      {id:1,fansub_group_id:1,member_id:1,member_name:'A',member_avatar_url:null,role_label:'Timing',role_code:'Timing',body_html:'<p>A</p>',created_at:'2026-01-01'},
+      {id:2,fansub_group_id:1,member_id:2,member_name:'B',member_avatar_url:null,role_label:'Timing',role_code:'Timing',body_html:'<p>B</p>',created_at:'2026-01-02'},
+      {id:3,fansub_group_id:2,member_id:3,member_name:'C',member_avatar_url:null,role_label:'Karaoke',role_code:'Karaoke',body_html:'<p>C</p>',created_at:'2026-01-03'},
+      {id:4,fansub_group_id:null,member_id:4,member_name:'D',member_avatar_url:null,role_label:'Editing',role_code:'Editing',body_html:'<p>D</p>',created_at:'2026-01-04'},
     ]
     expect(selectInitialReleaseNotes(notes).map(note => note.id)).toEqual([1, 3, 4])
   })
@@ -28,7 +28,7 @@ describe('ReleaseNotesList', () => {
       member_id: index + 1,
       member_name: `Mitglied ${index + 1}`,
       member_avatar_url: null,
-      role_label: 'Timing',
+      role_label:'Timing',role_code:'Timing',
       body_html: `<p>Teamtext ${index + 1}</p>`,
       created_at: '2026-01-01',
     }))
@@ -46,7 +46,7 @@ describe('ReleaseNotesList', () => {
   })
 
   it('groups whole role blocks in the responsive role grid', () => {
-    render(<ReleaseNotesList animeID={1} groupID={2} releaseVersionID={3} totalCount={2} initialNotes={[{id:1,member_id:1,member_name:'Anna',member_avatar_url:null,role_label:'Übersetzung',body_html:'<p>Text A</p>',created_at:'2026-01-02'},{id:2,member_id:2,member_name:'Mika',member_avatar_url:null,role_label:'Karaoke',body_html:'<p>Text B</p>',created_at:'2026-01-03'}]} />)
+    render(<ReleaseNotesList animeID={1} groupID={2} releaseVersionID={3} totalCount={2} initialNotes={[{id:1,member_id:1,member_name:'Anna',member_avatar_url:null,role_label:'Übersetzung',role_code:'Übersetzung',body_html:'<p>Text A</p>',created_at:'2026-01-02'},{id:2,member_id:2,member_name:'Mika',member_avatar_url:null,role_label:'Karaoke',role_code:'Karaoke',body_html:'<p>Text B</p>',created_at:'2026-01-03'}]} />)
     const grid = document.querySelector('[data-role-grid="responsive"]')
     expect(grid?.children).toHaveLength(2)
     // Rollen-Bucket-Header entfernt: Rolle steht nur noch in der Karten-Meta, nicht als Heading.
@@ -62,8 +62,8 @@ describe('ReleaseNotesList', () => {
       totalCount={2}
       groups={[{ id: 2, slug: 'c-subs', name: 'C-Subs', logo_url: null }, { id: 3, slug: 'd-subs', name: 'D-Subs', logo_url: null }]}
       initialNotes={[
-        { id: 11, fansub_group_id: 2, member_id: 1, member_name: 'Anna', member_avatar_url: null, role_label: 'Übersetzung', body_html: '<p>Text A</p>', created_at: '2026-01-02' },
-        { id: 12, fansub_group_id: 3, member_id: 2, member_name: 'Mika', member_avatar_url: null, role_label: 'Karaoke', body_html: '<p>Text B</p>', created_at: '2026-01-03' },
+        { id: 11, fansub_group_id: 2, member_id: 1, member_name: 'Anna', member_avatar_url: null, role_label:'Übersetzung',role_code:'Übersetzung', body_html: '<p>Text A</p>', created_at: '2026-01-02' },
+        { id: 12, fansub_group_id: 3, member_id: 2, member_name: 'Mika', member_avatar_url: null, role_label:'Karaoke',role_code:'Karaoke', body_html: '<p>Text B</p>', created_at: '2026-01-03' },
       ]}
     />)
 
@@ -80,7 +80,7 @@ describe('ReleaseNotesList', () => {
     const longAnnaText = `Annas langer Text ${'mit weiteren Details '.repeat(24)}`
     const longMikaText = `Mikas langer Text ${'mit weiteren Details '.repeat(24)}`
     vi.spyOn(api, 'getGroupReleaseNotes').mockResolvedValue({
-      items: [{ id: 23, fansub_group_id: 2, member_id: 3, member_name: 'Noah', member_avatar_url: null, role_label: 'Timing', body_html: '<p>Cursor-Text</p>', created_at: '2026-01-04' }],
+      items: [{ id: 23, fansub_group_id: 2, member_id: 3, member_name: 'Noah', member_avatar_url: null, role_label:'Timing',role_code:'Timing', body_html: '<p>Cursor-Text</p>', created_at: '2026-01-04' }],
       next_cursor: null,
       has_more: false,
     })
@@ -90,8 +90,8 @@ describe('ReleaseNotesList', () => {
       releaseVersionID={3}
       totalCount={3}
       initialNotes={[
-        { id: 21, fansub_group_id: 2, member_id: 1, member_name: 'Anna', member_avatar_url: null, role_label: 'Übersetzung', body_html: `<p>${longAnnaText}</p>`, created_at: '2026-01-02' },
-        { id: 22, fansub_group_id: 2, member_id: 2, member_name: 'Mika', member_avatar_url: null, role_label: 'Karaoke', body_html: `<p>${longMikaText}</p>`, created_at: '2026-01-03' },
+        { id: 21, fansub_group_id: 2, member_id: 1, member_name: 'Anna', member_avatar_url: null, role_label:'Übersetzung',role_code:'Übersetzung', body_html: `<p>${longAnnaText}</p>`, created_at: '2026-01-02' },
+        { id: 22, fansub_group_id: 2, member_id: 2, member_name: 'Mika', member_avatar_url: null, role_label:'Karaoke',role_code:'Karaoke', body_html: `<p>${longMikaText}</p>`, created_at: '2026-01-03' },
       ]}
     />)
 
@@ -117,7 +117,7 @@ describe('ReleaseNotesList', () => {
       groupID={2}
       releaseVersionID={3}
       totalCount={2}
-      initialNotes={[{ id: 31, member_id: 1, member_name: 'Anna', member_avatar_url: null, role_label: 'Übersetzung', body_html: '<p>Bestehender Text</p>', created_at: '2026-01-02' }]}
+      initialNotes={[{ id: 31, member_id: 1, member_name: 'Anna', member_avatar_url: null, role_label:'Übersetzung',role_code:'Übersetzung', body_html: '<p>Bestehender Text</p>', created_at: '2026-01-02' }]}
     />)
 
     fireEvent.click(screen.getByRole('button', { name: /Weitere 1 Texte anzeigen/ }))
@@ -127,7 +127,7 @@ describe('ReleaseNotesList', () => {
 
   it('hydrates the timezone-sensitive German date without a mismatch', async () => {
     const timestamp = '2026-07-06T22:30:00.000Z'
-    const notes = [{id:3,member_id:3,member_name:'Sheppert',member_avatar_url:null,role_label:'Timing',body_html:'<p>Grenzfall</p>',created_at:timestamp}]
+    const notes = [{id:3,member_id:3,member_name:'Sheppert',member_avatar_url:null,role_label:'Timing',role_code:'Timing',body_html:'<p>Grenzfall</p>',created_at:timestamp}]
     const previousTZ = process.env.TZ
     process.env.TZ = 'UTC'
     const serverHTML = renderToString(<ReleaseNotesList animeID={1} groupID={2} releaseVersionID={3} totalCount={1} initialNotes={notes} />)

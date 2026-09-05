@@ -6,7 +6,6 @@ import { useState } from 'react'
 
 import { RichTextRenderer } from '@/components/editor'
 import { resolveApiUrl } from '@/lib/api'
-import { roleColorCode } from '@/lib/roleColors'
 
 import styles from './PublicNoteCard.module.css'
 
@@ -23,6 +22,8 @@ export interface PublicNoteFooterLink {
 export interface PublicNoteCardProps {
   /** Rolle → färbt das Header-Band (--role-accent) und wird in der Rollen-Variante als Titel gezeigt. */
   roleLabel?: string | null
+  /** Stabiler Rollen-Code (role_definitions.code) für data-role-code; unabhängig vom Anzeigelabel. */
+  roleCode?: string | null
   /** Autor-Variante (z. B. Release-Seite): Avatar + Name im Band. Ohne Autor = Rollen-Variante. */
   author?: PublicNoteAuthor | null
   /** Zusatz in der Autor-Meta-Zeile, z. B. Herkunftsgruppe. */
@@ -52,6 +53,7 @@ function stripHtml(value: string): string {
 // Autor-Header; Body als RichText (bodyHtml) oder Klartext (bodyText); optionaler Footer-Link.
 export function PublicNoteCard({
   roleLabel,
+  roleCode,
   author,
   metaSuffix,
   dateLabel,
@@ -73,7 +75,7 @@ export function PublicNoteCard({
   const bodyClass = `${styles.body}${expandable && !expanded ? ` ${styles.bodyClamped}` : ''}`
 
   return (
-    <article className={styles.card} data-role-code={roleColorCode(roleLabel ?? '')}>
+    <article className={styles.card} data-role-code={roleCode || 'other'}>
       <div className={styles.head}>
         {author ? (
           <div className={styles.author}>

@@ -31,6 +31,7 @@ export interface PublicReleaseNote {
   member_id: number;
   member_avatar_url: string | null;
   role_label: string;
+  role_code: string;
   body_html: string;
   created_at: string;
 }
