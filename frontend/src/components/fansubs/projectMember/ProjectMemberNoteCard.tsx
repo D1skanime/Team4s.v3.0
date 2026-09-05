@@ -23,6 +23,7 @@ export function ProjectMemberNoteCard({
   return (
     <PublicNoteCard
       roleLabel={note.role_label}
+      roleCode={note.role_code}
       dateLabel={formatDate(note.created_at)}
       contextLine={note.episode_label ? `Notiz zu Folge ${note.episode_label}` : null}
       title={note.title}
