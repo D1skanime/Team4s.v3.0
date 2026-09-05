@@ -419,7 +419,7 @@ Milestone v1.4 closes Live-UAT Findings #29-#32 by making effective group rights
 - [x] **Phase 144: Überarbeitungs-Kreislauf für Release-Medien vervollständigen** - Abgelehnte Release-Medien lassen sich an Ort und Stelle ersetzen statt nur den Text daneben zu ändern, mit Revisionssprung statt Neu-Upload. (completed 2026-09-02, Live-UAT abgenommen 2026-09-03, siehe 144-UAT.md)
 - [x] **Phase 145: Mitgliedschafts-Grundausstattung in die Rechte-Registry überführen** - Die drei rollenunabhängigen Mitgliedsrechte kommen nicht mehr aus einem Go-Slice, sondern als reservierte, nicht zuweisbare Pseudo-Rolle aus der Datenbank-Registry. (completed 2026-09-04, Live-UAT abgenommen 2026-09-04, siehe 145-UAT.md)
 - [x] **Phase 146: Registry-Selbstschutz und Sanierung der Quelltext-Substring-Tests** - Kein Admin kann über die Capability-Matrix einen Zustand erzeugen, der den nächsten Backend-Start scheitern lässt, und sicherheitsrelevante Tests belegen Verhalten durch echte Aufrufe statt durch Quelltextsuche. (completed 2026-09-04)
-- [ ] **Phase 147: Rollen-Registry — letzte Parallelkataloge auflösen** - Eine neue Gruppenrolle muss nur noch in `role_definitions` ergänzt werden; die verbliebenen Frontend-/Go-Parallelregistries für Rollen sind entfernt.
+- [x] **Phase 147: Rollen-Registry — letzte Parallelkataloge auflösen** - Eine neue Gruppenrolle muss nur noch in `role_definitions` ergänzt werden; die verbliebenen Frontend-/Go-Parallelregistries für Rollen sind entfernt. (completed 2026-09-05)
 
 ## Phase Details
 
@@ -980,7 +980,7 @@ Plans:
 
 **Wave 3** *(blocked on Wave 1 and Wave 2 completion)*
 
-- [ ] 147-06-PLAN.md — Full regression gate (backend/frontend/contract) + live UAT sign-off.
+- [x] 147-06-PLAN.md — Full regression gate (backend/frontend/contract) + live UAT sign-off.
 
 ## v1.4 Coverage
 
@@ -1012,4 +1012,4 @@ Plans:
 | 144. Überarbeitungs-Kreislauf für Release-Medien vervollständigen | 8/8 | Complete | 2026-09-03 |
 | 145. Mitgliedschafts-Grundausstattung in die Rechte-Registry überführen | 4/4 | Complete | 2026-09-04 |
 | 146. Registry-Selbstschutz und Sanierung der Quelltext-Substring-Tests | 13/13 | Complete   | 2026-09-04 |
-| 147. Rollen-Registry — letzte Parallelkataloge auflösen | 5/6 | In Progress|  |
+| 147. Rollen-Registry — letzte Parallelkataloge auflösen | 6/6 | Complete   | 2026-09-05 |
