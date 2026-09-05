@@ -1,10 +1,26 @@
 // @vitest-environment jsdom
 
-import { afterEach, describe, expect, it, vi } from 'vitest'
+import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
 import { cleanup, fireEvent, render, screen } from '@testing-library/react'
+
+const { catalogRoles, useRoleCatalogMock } = vi.hoisted(() => ({
+  catalogRoles: [
+    { code: 'co_leader', label_de: 'Co-Leitung', contexts: ['fansub_group'], sort_order: 10, color_key: '#0f766e', icon_key: 'other' },
+    { code: 'fansub_lead', label_de: 'Gruppenleitung', contexts: ['fansub_group'], sort_order: 5, color_key: '#183b7c', icon_key: 'crown' },
+  ],
+  useRoleCatalogMock: vi.fn(),
+}))
+
+vi.mock('@/providers/RoleCatalogProvider', () => ({
+  useRoleCatalog: (...args: unknown[]) => useRoleCatalogMock(...args),
+}))
 
 import { GroupMembersHistTable, type GroupMembersHistTableProps } from './GroupMembersHistTable'
 import type { HistFansubGroupMember, HistGroupMemberRole } from '@/types/fansub'
+
+beforeEach(() => {
+  useRoleCatalogMock.mockReturnValue({ roles: catalogRoles, error: null })
+})
 
 afterEach(() => {
   cleanup()
@@ -136,5 +152,40 @@ describe('GroupMembersHistTable claim-invite wiring', () => {
 
     fireEvent.click(screen.getByRole('button', { name: 'Zurückziehen' }))
     expect(onCancelInvitation).toHaveBeenCalledWith(member.id, member.member_id, 7)
+  })
+})
+
+describe('GroupMembersHistTable historical role badge — data-color-key seam (Phase 148-08)', () => {
+  it('carries the catalog color_key on the role badge and no role-code-specific class', () => {
+    render(<GroupMembersHistTable {...baseProps()} />)
+
+    const badge = screen.getByText('Co-Leitung').closest('[data-color-key]')
+    expect(badge).not.toBeNull()
+    expect(badge?.getAttribute('data-color-key')).toBe('#0f766e')
+    expect(badge?.className).not.toMatch(/fansubEditRoleLead|fansubEditRoleProjectLead|fansubEditRoleEditor|fansubEditRoleTranslator|fansubEditRoleTimer|fansubEditRoleTypesetter|fansubEditRoleQuality|fansubEditRoleEncoder|fansubEditRoleDefault/)
+  })
+
+  it('changes data-color-key when the catalog color_key changes, but not when only label_de changes', () => {
+    const { unmount } = render(<GroupMembersHistTable {...baseProps()} />)
+    expect(screen.getByText('Co-Leitung').closest('[data-color-key]')?.getAttribute('data-color-key')).toBe('#0f766e')
+    unmount()
+    cleanup()
+
+    useRoleCatalogMock.mockReturnValue({
+      roles: catalogRoles.map((role) => (role.code === 'co_leader' ? { ...role, color_key: '#a04444' } : role)),
+      error: null,
+    })
+    const { unmount: unmountColorChanged } = render(<GroupMembersHistTable {...baseProps()} />)
+    expect(screen.getByText('Co-Leitung').closest('[data-color-key]')?.getAttribute('data-color-key')).toBe('#a04444')
+    unmountColorChanged()
+    cleanup()
+
+    useRoleCatalogMock.mockReturnValue({
+      roles: catalogRoles.map((role) => (role.code === 'co_leader' ? { ...role, label_de: 'Zweite Leitung' } : role)),
+      error: null,
+    })
+    render(<GroupMembersHistTable {...baseProps()} />)
+    const badge = screen.getByText('Co-Leitung').closest('[data-color-key]')
+    expect(badge?.getAttribute('data-color-key')).toBe('#0f766e')
   })
 })
