@@ -969,7 +969,7 @@ Plans:
 Plans:
 **Wave 1**
 
-- [ ] 147-01-PLAN.md — HC-01 backend: role_code SELECT/Scan at all 3 note query sites + OpenAPI contract + real-Postgres proof.
+- [x] 147-01-PLAN.md — HC-01 backend: role_code SELECT/Scan at all 3 note query sites + OpenAPI contract + real-Postgres proof.
 - [ ] 147-03-PLAN.md — HC-02: useGroupMembersTab.ts migrated onto the catalog-driven labelForRole path.
 - [ ] 147-04-PLAN.md — HC-03: models.AppGlobalRoles single source + 4 derived consumers + source-contract test.
 - [ ] 147-05-PLAN.md — HC-09: remove the 4 unreferenced permissions.go role constants.
@@ -1012,4 +1012,4 @@ Plans:
 | 144. Überarbeitungs-Kreislauf für Release-Medien vervollständigen | 8/8 | Complete | 2026-09-03 |
 | 145. Mitgliedschafts-Grundausstattung in die Rechte-Registry überführen | 4/4 | Complete | 2026-09-04 |
 | 146. Registry-Selbstschutz und Sanierung der Quelltext-Substring-Tests | 13/13 | Complete   | 2026-09-04 |
-| 147. Rollen-Registry — letzte Parallelkataloge auflösen | 0/6 | Planning | - |
+| 147. Rollen-Registry — letzte Parallelkataloge auflösen | 1/6 | In Progress|  |
