@@ -70,6 +70,7 @@ export function ReleaseNotesList({ animeID, groupID, releaseVersionID, initialNo
             key={note.id}
             roleLabel={note.role_label}
             roleCode={note.role_code}
+            roleColorKey={note.role_color_key}
             title={note.title}
             author={{ name: note.member_name, avatarUrl: note.member_avatar_url }}
             metaSuffix={sourceGroupName ?? null}

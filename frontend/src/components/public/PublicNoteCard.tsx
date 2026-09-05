@@ -20,10 +20,12 @@ export interface PublicNoteFooterLink {
 }
 
 export interface PublicNoteCardProps {
-  /** Rolle → färbt das Header-Band (--role-accent) und wird in der Rollen-Variante als Titel gezeigt. */
+  /** Rolle → wird in der Rollen-Variante als Titel gezeigt (rein textuell/semantisch). */
   roleLabel?: string | null
   /** Stabiler Rollen-Code (role_definitions.code) für data-role-code; unabhängig vom Anzeigelabel. */
   roleCode?: string | null
+  /** Stabile Rollenfarbe (role_definitions.color_key) für data-color-key → färbt das Header-Band (--role-accent); unabhängig vom Anzeigelabel. */
+  roleColorKey?: string | null
   /** Autor-Variante (z. B. Release-Seite): Avatar + Name im Band. Ohne Autor = Rollen-Variante. */
   author?: PublicNoteAuthor | null
   /** Zusatz in der Autor-Meta-Zeile, z. B. Herkunftsgruppe. */
@@ -54,6 +56,7 @@ function stripHtml(value: string): string {
 export function PublicNoteCard({
   roleLabel,
   roleCode,
+  roleColorKey,
   author,
   metaSuffix,
   dateLabel,
@@ -75,7 +78,11 @@ export function PublicNoteCard({
   const bodyClass = `${styles.body}${expandable && !expanded ? ` ${styles.bodyClamped}` : ''}`
 
   return (
-    <article className={styles.card} data-role-code={roleCode || 'other'}>
+    <article
+      className={styles.card}
+      data-role-code={roleCode || 'other'}
+      data-color-key={roleColorKey || 'neutral'}
+    >
       <div className={styles.head}>
         {author ? (
           <div className={styles.author}>

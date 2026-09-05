@@ -67,3 +67,22 @@
   pre-regression, also-non-compliant state) or add a new remediation plan that raises these mix
   percentages (a locked-hex-preserving formula change, same pattern UI-SPEC pre-authorized for
   the FansubEdit row).
+
+## Pre-existing, out-of-scope stale `data-role-code` expectation in `src/app/members/[slug]/page.test.tsx`
+
+- **Found during:** Plan 05, Task 2 full-suite regression run (`npx vitest run`)
+- **File:** `frontend/src/app/members/[slug]/page.test.tsx`, line 471
+  (`expect(...).getAttribute('data-role-code')).toBe('other')` for an unmatched `future_role` fixture)
+- **Issue:** Plan 01 changed `data-role-code` behavior so an unmatched role code now carries the raw
+  fallback value verbatim (e.g. `'future_role'`) instead of a synthesized `'other'` category string
+  (148-01-SUMMARY.md "Decisions Made"), and updated three touched test files accordingly — but this
+  fourth file with the identical `future_role` -> `'other'` assertion pattern was not caught/updated
+  in that pass, so it now fails: expected `'other'`, received `'future_role'`.
+- **Why out of scope for Plan 05:** Not in Plan 05's `files_modified` list; not caused by any Task 1/2
+  commit in this plan (`git diff` against the pre-Plan-05 HEAD shows zero changes to
+  `src/app/members/[slug]/page.tsx` or `page.test.tsx`); the stale expectation predates this plan and
+  stems entirely from Plan 01's `data-role-code` semantics change.
+- **Action:** Not fixed, per SCOPE BOUNDARY rule. The one-line fix is updating the assertion's expected
+  value from `'other'` to `'future_role'` to match Plan 01's already-decided, already-shipped behavior
+  — left for a follow-up pass (or Plan 01's own closing review) rather than touching an out-of-list file
+  in Plan 05.

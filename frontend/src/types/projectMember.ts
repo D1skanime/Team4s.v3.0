@@ -25,6 +25,7 @@ export interface ProjectMemberNote {
   body_text: string
   role_label: string
   role_code: string
+  role_color_key: string
   episode_label: string
   release_version_label: string
   release_version_id: number

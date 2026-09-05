@@ -3,6 +3,8 @@
 import { cleanup, fireEvent, render, screen, within } from '@testing-library/react'
 import { afterEach, describe, expect, it } from 'vitest'
 
+import { NEUTRAL_ROLE_COLOR_KEY, ROLE_COLOR_KEYS } from '@/lib/roleCatalog'
+
 import { PublicNoteCard } from './PublicNoteCard'
 
 afterEach(cleanup)
@@ -100,5 +102,56 @@ describe('data-role-code (role_code-driven, Phase 147)', () => {
 
     rerender(<PublicNoteCard roleLabel="Etwas ganz anderes" roleCode="editor" dateLabel="x" bodyText="kurz" />)
     expect(card.getAttribute('data-role-code')).toBe('editor')
+  })
+})
+
+describe('data-color-key (role_color_key-driven, Phase 148)', () => {
+  const SAMPLE_COLOR_KEYS = [ROLE_COLOR_KEYS[0], ROLE_COLOR_KEYS[7], ROLE_COLOR_KEYS[14]] as const
+
+  it.each(SAMPLE_COLOR_KEYS)('renders data-color-key from roleColorKey for hex "%s"', (colorKey) => {
+    render(
+      <PublicNoteCard roleLabel="Beliebiges Label" roleCode="editor" roleColorKey={colorKey} dateLabel="x" bodyText="kurz" />,
+    )
+    const card = screen.getByRole('article')
+    expect(card.getAttribute('data-color-key')).toBe(colorKey)
+  })
+
+  it('falls back to "neutral" when roleColorKey is absent', () => {
+    render(<PublicNoteCard roleLabel="Beliebiges Label" roleCode="editor" dateLabel="x" bodyText="kurz" />)
+    const card = screen.getByRole('article')
+    expect(card.getAttribute('data-color-key')).toBe(NEUTRAL_ROLE_COLOR_KEY)
+  })
+
+  it('falls back to "neutral" when roleColorKey is null', () => {
+    render(
+      <PublicNoteCard roleLabel="Beliebiges Label" roleCode="editor" roleColorKey={null} dateLabel="x" bodyText="kurz" />,
+    )
+    const card = screen.getByRole('article')
+    expect(card.getAttribute('data-color-key')).toBe(NEUTRAL_ROLE_COLOR_KEY)
+  })
+
+  it('keeps data-color-key stable across a roleLabel change when roleColorKey is held fixed', () => {
+    const { rerender } = render(
+      <PublicNoteCard
+        roleLabel="Editing"
+        roleCode="editor"
+        roleColorKey={ROLE_COLOR_KEYS[7]}
+        dateLabel="x"
+        bodyText="kurz"
+      />,
+    )
+    const card = screen.getByRole('article')
+    expect(card.getAttribute('data-color-key')).toBe(ROLE_COLOR_KEYS[7])
+
+    rerender(
+      <PublicNoteCard
+        roleLabel="Etwas ganz anderes"
+        roleCode="editor"
+        roleColorKey={ROLE_COLOR_KEYS[7]}
+        dateLabel="x"
+        bodyText="kurz"
+      />,
+    )
+    expect(card.getAttribute('data-color-key')).toBe(ROLE_COLOR_KEYS[7])
   })
 })

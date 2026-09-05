@@ -32,6 +32,7 @@ export interface PublicReleaseNote {
   member_avatar_url: string | null;
   role_label: string;
   role_code: string;
+  role_color_key: string;
   body_html: string;
   created_at: string;
 }
