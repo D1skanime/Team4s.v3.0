@@ -1,18 +1,86 @@
-import { describe, expect, it } from 'vitest'
+// @vitest-environment jsdom
 
+import { cleanup, renderHook, waitFor } from '@testing-library/react'
+import { afterEach, describe, expect, it, vi } from 'vitest'
+
+import type { RoleDefinitionOption } from '@/types/admin-capability'
 import type { HistFansubGroupMember } from '@/types/fansub'
 
-import { findDuplicateMemberMatches, roleLabelForCode } from './useGroupMembersTab'
+import type { GroupMembersTabActions } from './GroupMembersTab'
 
-describe('roleLabelForCode', () => {
-  it('labels historical founder roles neutrally in German', () => {
-    expect(roleLabelForCode('founder')).toBe('Gründung')
-  })
+const { MockApiError } = vi.hoisted(() => ({
+  MockApiError: class extends Error {
+    status: number
+    code?: string
+    constructor(status: number, message = 'API request failed') {
+      super(message)
+      this.status = status
+    }
+  },
+}))
 
-  it('keeps active role labels and unknown-code fallbacks', () => {
-    expect(roleLabelForCode('translator')).toBe('Übersetzung')
-    expect(roleLabelForCode('unknown_role')).toBe('unknown_role')
-  })
+vi.mock('@/lib/api', () => ({
+  ApiError: MockApiError,
+  listGroupMembers: vi.fn().mockResolvedValue({
+    data: [
+      {
+        id: 1,
+        fansub_group_id: 10,
+        member_id: 100,
+        display_name: 'Sora',
+        joined_date: null,
+        left_date: null,
+        app_user_id: null,
+        app_username: null,
+        active_app_member_id: null,
+        status: 'historical',
+        visibility: 'internal',
+        confirmed_by_app_user_id: null,
+        confirmed_by_display_name: null,
+        confirmed_at: null,
+        created_at: '2026-01-01T00:00:00Z',
+      },
+    ],
+  }),
+  listMemberRoles: vi.fn().mockResolvedValue({
+    data: [
+      {
+        id: 1,
+        fansub_group_member_id: 1,
+        member_display_name: 'Sora',
+        role_code: 'founder',
+        role_label: null,
+        started_date: '2020-01-01',
+        ended_date: null,
+        note: null,
+        status: 'historical',
+        created_at: '2020-01-01T00:00:00Z',
+      },
+    ],
+  }),
+  listClaimInvitations: vi.fn().mockResolvedValue([]),
+  listPendingMemberClaims: vi.fn().mockResolvedValue([]),
+  listMemberRequests: vi.fn().mockResolvedValue([]),
+  createGroupMember: vi.fn(),
+  createMemberRole: vi.fn(),
+  deleteGroupMember: vi.fn(),
+  deleteMemberRole: vi.fn(),
+  updateGroupMember: vi.fn(),
+  updateMemberRole: vi.fn(),
+  approveMemberRequest: vi.fn(),
+  cancelClaimInvitation: vi.fn(),
+  generateClaimInvitation: vi.fn(),
+  rejectMemberClaim: vi.fn(),
+  rejectMemberRequest: vi.fn(),
+  verifyMemberClaim: vi.fn(),
+  activateClaimedMember: vi.fn(),
+}))
+
+import { findDuplicateMemberMatches, useGroupMembersTab } from './useGroupMembersTab'
+
+afterEach(() => {
+  cleanup()
+  vi.clearAllMocks()
 })
 
 function buildMember(overrides: Partial<HistFansubGroupMember> = {}): HistFansubGroupMember {
@@ -35,6 +103,28 @@ function buildMember(overrides: Partial<HistFansubGroupMember> = {}): HistFansub
     ...overrides,
   }
 }
+
+describe('useGroupMembersTab roleSummary', () => {
+  it('resolves an open historical role label via labelForRole(historyRoleOptions, code)', async () => {
+    const historyRoleOptions: RoleDefinitionOption[] = [
+      { code: 'founder', label_de: 'Gründer/in', sort_order: 1 } as RoleDefinitionOption,
+    ]
+    let capturedActions: GroupMembersTabActions | null = null
+    const onActionsChange = (actions: GroupMembersTabActions | null) => {
+      capturedActions = actions
+    }
+
+    const { result } = renderHook(() =>
+      useGroupMembersTab({ fansubId: 10, historyRoleOptions, onActionsChange }),
+    )
+
+    await waitFor(() => expect(result.current.loading).toBe(false))
+    await waitFor(() => expect(capturedActions).not.toBeNull())
+
+    const option = capturedActions!.historicalIdentityOptions.find((o) => o.displayName === 'Sora')
+    expect(option?.roleSummary).toBe('Gründer/in')
+  })
+})
 
 describe('findDuplicateMemberMatches', () => {
   it('finds a case-insensitive, trimmed exact match', () => {
