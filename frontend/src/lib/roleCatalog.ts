@@ -53,16 +53,7 @@ function boundedColorKey(value: string | null | undefined): BoundedRoleColorKey 
 
 export function presentationForRole(rows: readonly RoleDefinitionOption[], code: string): RolePresentation {
   const role = getRole(rows, code)
-  if (!role || !role.icon_key || !ICON_KEYS.has(role.icon_key)) return neutral
-  return { colorKey: boundedColorKey(role.color_key), iconKey: role.icon_key }
-}
-
-// Semantische Rollen-Kategorie (technical/creative/production/language/other …) für den
-// data-role-code-Attribut-Seam, den lebende CSS-Module noch semantisch keyen
-// (z. B. .roleChip[data-role-code='fansub_lead']). Bewusst getrennt von presentationForRole():
-// dessen .colorKey liefert seit der gebundenen Hex-Palette (Phase 136-30) KEINE Semantik mehr und
-// darf hier nicht verwendet werden. Keine Hex-Validierung — der rohe color_key-Wert des Katalogs
-// fließt unverändert durch.
-export function categoryForRole(rows: readonly RoleDefinitionOption[], code: string): string {
-  return getRole(rows, code)?.color_key?.trim().toLowerCase() || 'other'
+  if (!role) return neutral
+  const iconKey = role.icon_key && ICON_KEYS.has(role.icon_key) ? role.icon_key : neutral.iconKey
+  return { colorKey: boundedColorKey(role.color_key), iconKey }
 }

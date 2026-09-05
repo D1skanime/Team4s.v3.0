@@ -43,4 +43,22 @@ describe('roleCatalog', () => {
     expect(presentationForRole([role('typesetter', { color_key: '#7B3C4E' })], 'typesetter').colorKey).toBe('#7b3c4e')
     expect(presentationForRole([role('typesetter', { color_key: '#123456' })], 'typesetter').colorKey).toBe(NEUTRAL_ROLE_COLOR_KEY)
   })
+
+  it('decouples colorKey from an unrecognized icon_key — a valid color_key still resolves even when icon_key falls back to user', () => {
+    const codesWithHexColors: Array<[string, string]> = [
+      ['fansub_lead', '#183b7c'],
+      ['founder', '#8c4a16'],
+      ['co_leader', '#0f766e'],
+      ['techadmin', '#475569'],
+      ['gfxler', '#7e22ce'],
+    ]
+    for (const [code, hex] of codesWithHexColors) {
+      const rows = [role(code, { icon_key: 'other', color_key: hex })]
+      expect(presentationForRole(rows, code)).toEqual({ colorKey: hex, iconKey: 'user' })
+    }
+    expect(presentationForRole(
+      [role('fansub_lead', { icon_key: 'other', color_key: '#183b7c' })],
+      'fansub_lead',
+    )).toEqual({ colorKey: '#183b7c', iconKey: 'user' })
+  })
 })
