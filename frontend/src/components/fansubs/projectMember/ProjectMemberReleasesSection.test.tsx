@@ -9,10 +9,10 @@ import type { CursorPage } from '@/types/releaseDetail'
 const getProjectMemberReleases = vi.fn()
 const { catalogRoles } = vi.hoisted(() => ({
   catalogRoles: [
-    { code: 'typesetter', label_de: 'Typesetting', contexts: ['anime_contribution'], sort_order: 10, color_key: 'technical', icon_key: 'wrench' },
-    { code: 'karaoke_fx', label_de: 'Karaoke-FX', contexts: ['anime_contribution'], sort_order: 20, color_key: 'creative', icon_key: 'image' },
-    { code: 'translator', label_de: 'Übersetzung', contexts: ['anime_contribution'], sort_order: 30, color_key: 'language', icon_key: 'languages' },
-    { code: 'timer', label_de: 'Timing', contexts: ['anime_contribution'], sort_order: 40, color_key: 'production', icon_key: 'film' },
+    { code: 'typesetter', label_de: 'Typesetting', contexts: ['anime_contribution'], sort_order: 10, color_key: '#0f766e', icon_key: 'wrench' },
+    { code: 'karaoke_fx', label_de: 'Karaoke-FX', contexts: ['anime_contribution'], sort_order: 20, color_key: '#7e22ce', icon_key: 'image' },
+    { code: 'translator', label_de: 'Übersetzung', contexts: ['anime_contribution'], sort_order: 30, color_key: '#0369a1', icon_key: 'languages' },
+    { code: 'timer', label_de: 'Timing', contexts: ['anime_contribution'], sort_order: 40, color_key: '#c26a2e', icon_key: 'film' },
   ],
 }))
 vi.mock('@/lib/api', () => ({
@@ -66,9 +66,12 @@ describe('ProjectMemberReleaseCard', () => {
       />,
     )
 
-    expect(screen.getByText('Typesetting').getAttribute('data-role-code')).toBe('technical')
-    expect(screen.getByText('Karaoke-FX').getAttribute('data-role-code')).toBe('creative')
-    expect(screen.getByText('future_role').getAttribute('data-role-code')).toBe('other')
+    expect(screen.getByText('Typesetting').getAttribute('data-role-code')).toBe('typesetter')
+    expect(screen.getByText('Typesetting').getAttribute('data-color-key')).toBe('#0f766e')
+    expect(screen.getByText('Karaoke-FX').getAttribute('data-role-code')).toBe('karaoke_fx')
+    expect(screen.getByText('Karaoke-FX').getAttribute('data-color-key')).toBe('#7e22ce')
+    expect(screen.getByText('future_role').getAttribute('data-role-code')).toBe('future_role')
+    expect(screen.getByText('future_role').getAttribute('data-color-key')).toBe('neutral')
   })
 
   it('renders a compact row: episode, roles, confirmed date and release link (no images)', () => {
@@ -82,8 +85,10 @@ describe('ProjectMemberReleaseCard', () => {
     )
     expect(screen.getByText('Folge 08')).not.toBeNull()
     // Rollen sind jetzt einzelne farbcodierte Chips (data-role-code -> Team4s-Rollenfarbe).
-    expect(screen.getByText('Übersetzung').getAttribute('data-role-code')).toBe('language')
-    expect(screen.getByText('Timing').getAttribute('data-role-code')).toBe('production')
+    expect(screen.getByText('Übersetzung').getAttribute('data-role-code')).toBe('translator')
+    expect(screen.getByText('Übersetzung').getAttribute('data-color-key')).toBe('#0369a1')
+    expect(screen.getByText('Timing').getAttribute('data-role-code')).toBe('timer')
+    expect(screen.getByText('Timing').getAttribute('data-color-key')).toBe('#c26a2e')
     expect(screen.getByText('bestätigt 12.04.2024')).not.toBeNull()
     const link = screen.getByRole('link', { name: 'Release ansehen →' })
     expect(link.getAttribute('href')).toBe('/fansubs/c-subs/fansubprojekt/vipers-creed/releases/1')
@@ -106,7 +111,8 @@ describe('ProjectMemberReleaseCard', () => {
       'Karaoke-FX',
       'future_role',
     ])
-    expect(screen.getByText('future_role').getAttribute('data-role-code')).toBe('other')
+    expect(screen.getByText('future_role').getAttribute('data-role-code')).toBe('future_role')
+    expect(screen.getByText('future_role').getAttribute('data-color-key')).toBe('neutral')
   })
 })
 

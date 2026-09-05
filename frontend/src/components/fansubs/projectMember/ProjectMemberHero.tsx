@@ -2,7 +2,7 @@ import Image from 'next/image'
 
 import { Button } from '@/components/ui'
 import { resolveApiUrl } from '@/lib/api'
-import { categoryForRole } from '@/lib/roleCatalog'
+import { presentationForRole } from '@/lib/roleCatalog'
 import { useRoleCatalog } from '@/providers/RoleCatalogProvider'
 import type { ProjectMemberSummary } from '@/types/projectMember'
 
@@ -20,7 +20,7 @@ interface ProjectMemberHeroProps {
 // Kompakter Hero — bewusst NICHT das große allgemeine Memberprofil (Brief 6/26):
 // nur Avatar, Name, optionaler Verifiziert-Badge, Kontextzeile, Rollen-Chips (D-12) und
 // zwei Absprünge (allgemeines Profil + zurück zum Projekt, D-16). Die Rollen-Chips tragen die
-// globalen Team4s-Rollenfarben (data-role-code → --role-accent).
+// globalen Team4s-Rollenfarben (data-color-key → --role-accent).
 export function ProjectMemberHero({
   summary,
   memberSlug,
@@ -65,7 +65,8 @@ export function ProjectMemberHero({
               <span
                 key={role.code}
                 className={styles.roleChip}
-                data-role-code={categoryForRole(roles, role.code)}
+                data-role-code={role.code}
+                data-color-key={presentationForRole(roles, role.code).colorKey}
               >
                 {role.label}
               </span>

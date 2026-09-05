@@ -7,8 +7,8 @@ import type { MeAnimeContribution } from '@/types/contributions'
 
 const { catalogRoles } = vi.hoisted(() => ({
   catalogRoles: [
-    { code: 'typer', label_de: 'Typesetting', contexts: ['anime_contribution'], sort_order: 10, color_key: 'technical', icon_key: 'wrench' },
-    { code: 'karaoke_fx', label_de: 'Karaoke-FX', contexts: ['anime_contribution'], sort_order: 20, color_key: 'creative', icon_key: 'image' },
+    { code: 'typer', label_de: 'Typesetting', contexts: ['anime_contribution'], sort_order: 10, color_key: '#0f766e', icon_key: 'wrench' },
+    { code: 'karaoke_fx', label_de: 'Karaoke-FX', contexts: ['anime_contribution'], sort_order: 20, color_key: '#7e22ce', icon_key: 'image' },
   ],
 }))
 
@@ -63,9 +63,14 @@ describe('ContributionCard', () => {
       'Future Role',
     ])
     expect(badges.map((badge) => badge.getAttribute('data-role-code'))).toEqual([
-      'technical',
-      'creative',
-      'other',
+      'typer',
+      'karaoke_fx',
+      'future_role',
+    ])
+    expect(badges.map((badge) => badge.getAttribute('data-color-key'))).toEqual([
+      '#0f766e',
+      '#7e22ce',
+      'neutral',
     ])
   })
 

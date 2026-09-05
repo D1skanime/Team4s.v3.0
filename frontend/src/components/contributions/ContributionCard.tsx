@@ -1,7 +1,7 @@
 'use client'
 
 import { Badge, Button, Card } from '@/components/ui'
-import { categoryForRole, labelForRole } from '@/lib/roleCatalog'
+import { ROLE_CATALOG_CHIP_CLASS, labelForRole, presentationForRole } from '@/lib/roleCatalog'
 import { useRoleCatalog } from '@/providers/RoleCatalogProvider'
 import type { MeAnimeContribution } from '@/types/contributions'
 
@@ -76,7 +76,9 @@ export function ContributionCard({
             <Badge
               key={code}
               variant="info"
-              data-role-code={categoryForRole(contributionRoles, code)}
+              className={ROLE_CATALOG_CHIP_CLASS}
+              data-role-code={code}
+              data-color-key={presentationForRole(contributionRoles, code).colorKey}
             >
               {labelForRole(contributionRoles, code)}
             </Badge>
