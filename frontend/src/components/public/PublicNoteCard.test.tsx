@@ -12,6 +12,7 @@ describe('PublicNoteCard', () => {
     render(
       <PublicNoteCard
         roleLabel="Qualitätsprüfung"
+        roleCode="quality_checker"
         dateLabel="12.04.2024"
         contextLine="Notiz zu Folge 08"
         bodyText="kurzer Text"
@@ -31,6 +32,7 @@ describe('PublicNoteCard', () => {
     render(
       <PublicNoteCard
         roleLabel="Timing"
+        roleCode="timer"
         author={{ name: 'Sheppert', avatarUrl: null }}
         metaSuffix="C-Subs"
         dateLabel="6. Juli 2026"
@@ -48,6 +50,7 @@ describe('PublicNoteCard', () => {
     render(
       <PublicNoteCard
         roleLabel="Editing"
+        roleCode="editor"
         dateLabel="x"
         bodyText={'a'.repeat(400)}
         bodyId="release-note-body-7"
@@ -64,7 +67,38 @@ describe('PublicNoteCard', () => {
   })
 
   it('omits the toggle for short bodies', () => {
-    render(<PublicNoteCard roleLabel="Editing" dateLabel="x" bodyText="kurz" clampThreshold={180} />)
+    render(<PublicNoteCard roleLabel="Editing" roleCode="editor" dateLabel="x" bodyText="kurz" clampThreshold={180} />)
     expect(screen.queryByRole('button')).toBeNull()
+  })
+})
+
+describe('data-role-code (role_code-driven, Phase 147)', () => {
+  const ROLE_CODES = [
+    'fansub_lead',
+    'founder',
+    'co_leader',
+    'techadmin',
+    'gfxler',
+    'karaoke_fx',
+    'editor',
+    'typesetter',
+  ] as const
+
+  it.each(ROLE_CODES)('renders its own data-role-code for role code "%s" (never "other")', (code) => {
+    render(<PublicNoteCard roleLabel="Beliebiges Label" roleCode={code} dateLabel="x" bodyText="kurz" />)
+    const card = screen.getByRole('article')
+    expect(card.getAttribute('data-role-code')).toBe(code)
+    expect(card.getAttribute('data-role-code')).not.toBe('other')
+  })
+
+  it('keeps data-role-code stable across a roleLabel change when roleCode is held fixed', () => {
+    const { rerender } = render(
+      <PublicNoteCard roleLabel="Editing" roleCode="editor" dateLabel="x" bodyText="kurz" />,
+    )
+    const card = screen.getByRole('article')
+    expect(card.getAttribute('data-role-code')).toBe('editor')
+
+    rerender(<PublicNoteCard roleLabel="Etwas ganz anderes" roleCode="editor" dateLabel="x" bodyText="kurz" />)
+    expect(card.getAttribute('data-role-code')).toBe('editor')
   })
 })
