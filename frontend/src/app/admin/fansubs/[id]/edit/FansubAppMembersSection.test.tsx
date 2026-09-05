@@ -3,7 +3,7 @@
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import { cleanup, fireEvent, render, screen, waitFor } from "@testing-library/react";
 
-const { catalogRoles } = vi.hoisted(() => ({
+const { catalogRoles, useRoleCatalogMock } = vi.hoisted(() => ({
   catalogRoles: [
     { code: "fansub_lead", label_de: "Gruppenleitung", contexts: ["fansub_group", "group_history"], sort_order: 10, color_key: "#183b7c", icon_key: "crown" },
     { code: "editor", label_de: "Editing", contexts: ["fansub_group", "anime_contribution"], sort_order: 20, color_key: "#0f766e", icon_key: "languages" },
@@ -11,10 +11,11 @@ const { catalogRoles } = vi.hoisted(() => ({
     { code: "quality_checker", label_de: "Qualitätsprüfung", contexts: ["fansub_group", "anime_contribution"], sort_order: 40, color_key: "#6b7f2a", icon_key: "check" },
     { code: "raw_provider", label_de: "Raw-Bereitstellung", contexts: ["fansub_group", "anime_contribution"], sort_order: 50, color_key: "#a04444", icon_key: "image" },
   ],
+  useRoleCatalogMock: vi.fn(),
 }));
 
 vi.mock("@/providers/RoleCatalogProvider", () => ({
-  useRoleCatalog: () => ({ roles: catalogRoles, error: null }),
+  useRoleCatalog: (...args: unknown[]) => useRoleCatalogMock(...args),
 }));
 
 const listFansubGroupRoleDefinitions = vi.fn();
@@ -90,6 +91,7 @@ vi.mock("@/lib/api", () => ({
 import { FansubAppMembersSection } from "./FansubAppMembersSection";
 
 beforeEach(() => {
+  useRoleCatalogMock.mockReturnValue({ roles: catalogRoles, error: null });
   listFansubGroupRoleDefinitions.mockResolvedValue(catalogRoles.map((role) => ({ ...role, assignable: true })));
   listGroupHistoryRoleDefinitions.mockResolvedValue([]);
   listGroupMembers.mockResolvedValue({ data: [] });
@@ -347,6 +349,93 @@ describe("FansubAppMembersSection", () => {
     expect(screen.getAllByText(/Aktiv/).length).toBeGreaterThan(0);
     expect(screen.queryByText("phase-admin@example.local")).toBeNull();
     expect(screen.queryByText(/phase 45 mvp/i)).toBeNull();
+
+    const leadBadge = screen.getAllByText("Gruppenleitung")[0].closest('[data-color-key]');
+    expect(leadBadge).not.toBeNull();
+    expect(leadBadge?.getAttribute("data-color-key")).toBe("#183b7c");
+    expect(leadBadge?.className).not.toMatch(/fansubEditRoleLead|fansubEditRoleDefault/);
+  });
+
+  it("drives the member-role badge's data-color-key purely from color_key, independent of label_de", async () => {
+    getFansubGroupCapabilities.mockResolvedValue({
+      data: {
+        can_edit_group: true,
+        can_manage_links: true,
+        can_view_members: true,
+        can_manage_members: true,
+        can_edit_notes: true,
+        can_view_invitations: false,
+        can_create_invitation: false,
+        can_cancel_invitation: false,
+        can_view_releases: true,
+        can_view_release_media: true,
+        can_upload_release_media: true,
+        can_edit_release_notes: true,
+        can_view_group_media: true,
+        can_upload_group_media: true,
+        can_update_group_media: true,
+  can_update_own_group_media: true,
+        can_delete_own_group_media: true,
+        can_delete_group_media: true,
+        can_reorder_group_media: true,
+      },
+    });
+    listFansubAppMembers.mockResolvedValue({
+      data: [
+        {
+          id: 51,
+          fansub_group_id: 88,
+          app_user_id: 15,
+          status: "active",
+          roles: ["fansub_lead"],
+          media_permissions: {
+            can_upload: false,
+            can_delete_own: false,
+            can_delete_all: false,
+            can_reorder: false,
+          },
+          created_at: "2026-05-16T08:15:00Z",
+          updated_at: "2026-05-16T08:15:00Z",
+          member: {
+            member_id: 48,
+            fansub_name: "Seam Prüfling",
+          },
+        },
+      ],
+    });
+    listFansubGroupInvitations.mockResolvedValue({ data: [] });
+
+    // Baseline: real fixture color_key '#183b7c' with label_de 'Gruppenleitung'.
+    const { unmount: unmountBaseline } = render(<FansubAppMembersSection fansubId={88} hasAccessToken />);
+    const baselineBadge = (await screen.findAllByText("Gruppenleitung"))[0].closest('[data-color-key]');
+    expect(baselineBadge?.getAttribute("data-color-key")).toBe("#183b7c");
+    unmountBaseline();
+    cleanup();
+
+    // Same label_de, different color_key: data-color-key must follow color_key.
+    useRoleCatalogMock.mockReturnValue({
+      roles: catalogRoles.map((role) =>
+        role.code === "fansub_lead" ? { ...role, color_key: "#a04444" } : role,
+      ),
+      error: null,
+    });
+    const { unmount: unmountColorChanged } = render(<FansubAppMembersSection fansubId={88} hasAccessToken />);
+    const colorChangedBadge = (await screen.findAllByText("Gruppenleitung"))[0].closest('[data-color-key]');
+    expect(colorChangedBadge?.getAttribute("data-color-key")).toBe("#a04444");
+    unmountColorChanged();
+    cleanup();
+
+    // Same color_key, different label_de: data-color-key must stay unchanged.
+    useRoleCatalogMock.mockReturnValue({
+      roles: catalogRoles.map((role) =>
+        role.code === "fansub_lead" ? { ...role, label_de: "Anführung" } : role,
+      ),
+      error: null,
+    });
+    render(<FansubAppMembersSection fansubId={88} hasAccessToken />);
+    const labelChangedBadge = (await screen.findAllByText("Anführung"))[0].closest('[data-color-key]');
+    expect(labelChangedBadge?.getAttribute("data-color-key")).toBe("#183b7c");
+    expect(screen.queryByText("Gruppenleitung")).toBeNull();
   });
 
   it("renders app user display name for members without linked history", async () => {

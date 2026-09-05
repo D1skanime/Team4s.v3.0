@@ -22,7 +22,7 @@ import {
   type FansubGroupInvitation,
   type FansubGroupMediaPermissions,
 } from '@/types/fansub'
-import { labelForRole, presentationForRole } from '@/lib/roleCatalog'
+import { ROLE_CATALOG_CHIP_CLASS, labelForRole, presentationForRole } from '@/lib/roleCatalog'
 import { useRoleCatalog } from '@/providers/RoleCatalogProvider'
 
 import sharedStyles from '../../../admin.module.css'
@@ -50,18 +50,6 @@ function formatAppMemberName(member: FansubAppMember): string {
     || member.app_user?.email?.trim()
     || `Mitglied #${member.app_user_id}`
   )
-}
-
-function getRoleClassName(colorKey: string): string {
-  const colorClassMap: Record<string, string> = {
-    leadership: styles.fansubEditRoleLead,
-    creative: styles.fansubEditRoleEditor,
-    technical: styles.fansubEditRoleEncoder,
-    language: styles.fansubEditRoleTranslator,
-    quality: styles.fansubEditRoleQuality,
-    production: styles.fansubEditRoleProjectLead,
-  }
-  return colorClassMap[colorKey] ?? styles.fansubEditRoleDefault
 }
 
 function styleNames(...names: Array<string | undefined | false>): string {
@@ -228,7 +216,8 @@ export function FansubAppMembersOverview({
                             <Badge
                               key={`${member.id}-${role}`}
                               variant="info"
-                              className={styleNames(styles.fansubEditRoleBadge, getRoleClassName(presentationForRole(roles, role).colorKey))}
+                              className={ROLE_CATALOG_CHIP_CLASS}
+                              data-color-key={presentationForRole(roles, role).colorKey}
                             >
                               {labelForRole(roles, role)}
                             </Badge>
@@ -319,7 +308,8 @@ export function FansubAppMembersOverview({
                                   <Badge
                                     key={`${invitation.id}-${role}`}
                                     variant="info"
-                                    className={styleNames(styles.fansubEditRoleBadge, getRoleClassName(presentationForRole(roles, role).colorKey))}
+                                    className={ROLE_CATALOG_CHIP_CLASS}
+                                    data-color-key={presentationForRole(roles, role).colorKey}
                                   >
                                     {labelForRole(roles, role)}
                                   </Badge>
@@ -374,7 +364,8 @@ export function FansubAppMembersOverview({
                               <Badge
                                 key={`mobile-${invitation.id}-${role}`}
                                 variant="info"
-                                className={styleNames(styles.fansubEditRoleBadge, getRoleClassName(presentationForRole(roles, role).colorKey))}
+                                className={ROLE_CATALOG_CHIP_CLASS}
+                                data-color-key={presentationForRole(roles, role).colorKey}
                               >
                                 {labelForRole(roles, role)}
                               </Badge>
