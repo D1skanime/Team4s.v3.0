@@ -3,14 +3,14 @@ gsd_state_version: 1.0
 milestone: v1.4
 milestone_name: Coverage
 status: executing
-stopped_at: Completed 148-01-PLAN.md
-last_updated: "2026-09-05T17:53:23.761Z"
+stopped_at: Completed 148-02-PLAN.md
+last_updated: "2026-09-05T18:09:18.365Z"
 last_activity: 2026-09-05
 progress:
   total_phases: 13
   completed_phases: 12
   total_plans: 141
-  completed_plans: 135
+  completed_plans: 136
   percent: 92
 ---
 
@@ -34,7 +34,7 @@ See: .planning/PROJECT.md (updated 2026-08-13)
 ## Current Position
 
 Phase: 148 (rollenfarben-wieder-an-den-katalog-anschlie-en) — EXECUTING
-Plan: 2 of 7
+Plan: 3 of 7
 Status: Ready to execute
 
 Phase 145 ist abgeschlossen und live abgenommen (145-UAT.md, 2026-09-04). Die Codeprüfung dieser
@@ -296,6 +296,8 @@ Last activity: 2026-09-05
 - [Phase 148]: presentationForRole only returns full neutral when the role itself is missing from the catalog; an unrecognized icon_key alone falls back to iconKey 'user' while colorKey still resolves via boundedColorKey()
 - [Phase 148]: data-role-code carries the raw fallback value for a role unmatched in the catalog (e.g. 'future_role'), not a synthesized category string, since there is no real role_definitions.code to report
 - [Phase 148]: ContributionCard's role Badge adopts the shared .role-catalog-chip 14%-mix formula per the UI-SPEC Restoration Rule exception (it previously had no color formula at all)
+- [Phase 148]: [Plan 02] --role-accent is derived in globals.css via two new rules (:root default + [data-color-key] rule) placed after the existing neutral seam line; PublicNoteCard/ProjectMemberPage/ProjectMemberReleasesSection now read var(--role-accent) with zero dead --role-accent-default fallback, formulas byte-for-byte unchanged.
+- [Phase 148]: [Plan 02] roleCatalog.accessibility.test.ts extended to prove real WCAG contrast (regex-extracted percentages, never hand-copied) for every restored role-accent formula across the phase; discovered several locked, pre-existing ratios (PublicNoteCard .head/.role, the three role-chip border formulas, all 5 RoleBadgeCard.stages/MemberBadgeChain border mixes, plus a few single-hex misses) fail their WCAG threshold - each is asserted via its exact measured failing-hex set rather than silently forced to pass, generalizing UI-SPEC's FansubEdit-specific failure-reporting rule; needs a follow-up remediation decision, tracked in deferred-items.md.
 
 ### Pending Todos
 
@@ -622,10 +624,11 @@ untruncated list lives in `.planning/todos/pending/`.
 | Phase 147 P05 | 6min | 2 tasks | 5 files |
 | Phase 147 P02 | ~25 minutes | 3 tasks | 8 files |
 | Phase 148 P01 | 35min | 3 tasks | 12 files |
+| Phase 148 P02 | 70min | 2 tasks | 5 files |
 
 ## Session Continuity
 
-Last session: 2026-09-05T17:53:23.748Z
-Stopped at: Completed 148-01-PLAN.md
+Last session: 2026-09-05T18:09:18.347Z
+Stopped at: Completed 148-02-PLAN.md
 Last activity: 2026-09-01 - Milestone v1.4 audit passed (41/41 requirements, 7/7 phases, .planning/v1.4-MILESTONE-AUDIT.md); Phase 143 added to roadmap, not yet planned
 Resume file: None
