@@ -61,6 +61,7 @@ type PublicReleaseNote struct {
 	MemberName      string    `json:"member_name"`
 	MemberAvatarURL *string   `json:"member_avatar_url"`
 	RoleLabel       string    `json:"role_label"`
+	RoleCode        string    `json:"role_code"`
 	Title           string    `json:"title"`
 	BodyHTML        string    `json:"body_html"`
 	CreatedAt       time.Time `json:"created_at"`
@@ -460,6 +461,7 @@ func (r *ReleaseDetailPublicRepository) ListReleaseVersionNotesCursor(
 			COALESCE(NULLIF(TRIM(m.nickname), ''), NULLIF(TRIM(m.display_name), ''), 'Mitglied') AS member_name,
 			NULLIF(TRIM(member_avatar.file_path), '') AS member_avatar_url,
 			COALESCE(rd.label_de, '') AS role_label,
+			COALESCE(rd.code, '') AS role_code,
 			COALESCE(NULLIF(TRIM(rvn.title), ''), '') AS title,
 			rvn.body_html,
 			rvn.created_at
@@ -486,7 +488,7 @@ func (r *ReleaseDetailPublicRepository) ListReleaseVersionNotesCursor(
 	items := make([]PublicReleaseNote, 0, limit+1)
 	for rows.Next() {
 		var item PublicReleaseNote
-		if err := rows.Scan(&item.ID, &item.FansubGroupID, &item.MemberID, &item.MemberName, &item.MemberAvatarURL, &item.RoleLabel, &item.Title, &item.BodyHTML, &item.CreatedAt); err != nil {
+		if err := rows.Scan(&item.ID, &item.FansubGroupID, &item.MemberID, &item.MemberName, &item.MemberAvatarURL, &item.RoleLabel, &item.RoleCode, &item.Title, &item.BodyHTML, &item.CreatedAt); err != nil {
 			return nil, fmt.Errorf("release detail: scan note cursor row: %w", err)
 		}
 		items = append(items, item)

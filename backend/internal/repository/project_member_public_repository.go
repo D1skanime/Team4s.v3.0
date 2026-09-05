@@ -47,6 +47,7 @@ type ProjectMemberNote struct {
 	BodyHTML            string    `json:"body_html"`
 	BodyText            string    `json:"body_text"`
 	RoleLabel           string    `json:"role_label"`
+	RoleCode            string    `json:"role_code"`
 	EpisodeLabel        string    `json:"episode_label"`
 	ReleaseVersionLabel string    `json:"release_version_label"`
 	ReleaseVersionID    int64     `json:"release_version_id"`
@@ -245,6 +246,7 @@ func (r *ProjectMemberPublicRepository) ListNotes(ctx context.Context, animeID, 
 	q := `
 		SELECT rvn.id, rvn.title, rvn.body_html, rvn.body_text,
 		       COALESCE(rd.label_de, '') AS role_label,
+		       COALESCE(rd.code, '') AS role_code,
 		       COALESCE(e.episode_number, '') AS episode_label,
 		       COALESCE(rv.version, '') AS version_label,
 		       rvn.release_version_id, rvn.created_at
@@ -267,7 +269,7 @@ func (r *ProjectMemberPublicRepository) ListNotes(ctx context.Context, animeID, 
 	items := make([]ProjectMemberNote, 0, limit+1)
 	for rows.Next() {
 		var n ProjectMemberNote
-		if err := rows.Scan(&n.ID, &n.Title, &n.BodyHTML, &n.BodyText, &n.RoleLabel,
+		if err := rows.Scan(&n.ID, &n.Title, &n.BodyHTML, &n.BodyText, &n.RoleLabel, &n.RoleCode,
 			&n.EpisodeLabel, &n.ReleaseVersionLabel, &n.ReleaseVersionID, &n.CreatedAt); err != nil {
 			return nil, nil, false, fmt.Errorf("project member: notes scan: %w", err)
 		}
