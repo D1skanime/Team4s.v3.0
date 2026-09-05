@@ -72,7 +72,7 @@ Ausschließlich vier Findings aus dem Hardcoding-Audit:
 ### Sprachqualität, UI, Dateigröße
 - Alle deutschen UI-Strings und Fehlertexte (inkl. der Fehlermeldung in `admin_users_mutations_handler.go`) verwenden korrekte Umlaute (ä ö ü Ä Ö Ü ß), niemals ae/oe/ue.
 - Kein neues UI-Element, keine neue `@/components/ui`-Nutzung nötig — reine Datenverdrahtung hinter bestehendem `data-role-code`-Attribut-Seam.
-- Produktionsdateien bleiben bei ≤ 450 Zeilen (betroffene Dateien sind aktuell alle deutlich darunter; bei den kleinen Ergänzungen dieser Phase nicht gefährdet — trotzdem nach jeder Änderung prüfen).
+- Produktionsdateien bleiben bei ≤ 450 Zeilen. Korrektur nach Live-Messung (2026-09-05, team4s-linux): drei betroffene Dateien liegen bereits VOR dieser Phase auf oder über dem Limit — `backend/internal/repository/release_detail_public_repository.go` (507 Zeilen), `backend/internal/repository/release_detail_public_repository_helpers.go` (450 Zeilen), beide von Plan 147-01 mit ~2-4 Zeilen Ergänzung berührt (danach ~509-511 bzw. leicht über 450), sowie `frontend/src/app/admin/fansubs/[id]/edit/useGroupMembersTab.ts` (512 Zeilen), von Plan 147-03 mit Netto-Zeilenreduktion berührt (bleibt trotzdem deutlich über 450). Dies ist vorbestehende technische Schuld, keine neue Verletzung durch diese Phase — die Ergänzungen sind zu klein, um das Phasenziel zu gefährden oder eine Datei-Aufteilung in dieser Phase zu erfordern. Aufteilung ist als separate technische Schuld zu tracken, nicht Teil dieser Phase. Alle anderen betroffenen Dateien bleiben deutlich unter 450 Zeilen.
 
 ### Teststil
 - Neue/geänderte Tests belegen Verhalten durch echte Aufrufe (Repository-/Handler-Test mit echtem Ergebnis, Frontend-Test mit echtem Rendering/Props), nicht durch Quelltextsuche.
