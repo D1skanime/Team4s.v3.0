@@ -1018,12 +1018,20 @@ Plans:
 **Plans:** 7 plans
 
 Plans:
+**Wave 1**
+
 - [ ] 148-01-PLAN.md — roleCatalog.ts contract (decouple presentationForRole, remove categoryForRole) + migrate 6 consumers
 - [ ] 148-02-PLAN.md — globals.css --role-accent seam derivation + 3-module fallback cleanup + contrast-test extension
-- [ ] 148-03-PLAN.md — RoleBadgeCard + MemberBadgeChain color wiring
-- [ ] 148-04-PLAN.md — FansubEdit role-toggle cleanup + FansubAppMembersOverview seam migration
 - [ ] 148-05-PLAN.md — Backend role_color_key passthrough + contract + PublicNoteCard wiring
 - [ ] 148-06-PLAN.md — HC-09 audit-doc correction
+
+**Wave 2** *(blocked on Wave 1 completion)*
+
+- [ ] 148-03-PLAN.md — RoleBadgeCard + MemberBadgeChain color wiring
+- [ ] 148-04-PLAN.md — FansubEdit role-toggle cleanup + FansubAppMembersOverview seam migration
+
+**Wave 3** *(blocked on Wave 2 completion)*
+
 - [ ] 148-07-PLAN.md — Full regression sweep + live UAT
 
 ## v1.4 Coverage
