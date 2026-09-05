@@ -67,9 +67,9 @@ func TestPublicNoteRoleCode(t *testing.T) {
 	pmRepo := NewProjectMemberPublicRepository(pool)
 
 	type result struct {
-		cursorRoleCode, cursorRoleLabel string
-		loadRoleCode, loadRoleLabel     string
-		pmRoleCode, pmRoleLabel         string
+		cursorRoleCode, cursorRoleLabel, cursorRoleColorKey string
+		loadRoleCode, loadRoleLabel, loadRoleColorKey       string
+		pmRoleCode, pmRoleLabel, pmRoleColorKey             string
 	}
 
 	callAll := func(t *testing.T) result {
@@ -81,18 +81,21 @@ func TestPublicNoteRoleCode(t *testing.T) {
 		require.Len(t, cursorPage.Items, 1)
 		out.cursorRoleCode = cursorPage.Items[0].RoleCode
 		out.cursorRoleLabel = cursorPage.Items[0].RoleLabel
+		out.cursorRoleColorKey = cursorPage.Items[0].RoleColorKey
 
 		loadedNotes, err := repo.loadNotes(ctx, releaseVersionID)
 		require.NoError(t, err)
 		require.Len(t, loadedNotes, 1)
 		out.loadRoleCode = loadedNotes[0].RoleCode
 		out.loadRoleLabel = loadedNotes[0].RoleLabel
+		out.loadRoleColorKey = loadedNotes[0].RoleColorKey
 
 		pmNotes, _, _, err := pmRepo.ListNotes(ctx, animeID, fansubGroupID, memberID, "", 10)
 		require.NoError(t, err)
 		require.Len(t, pmNotes, 1)
 		out.pmRoleCode = pmNotes[0].RoleCode
 		out.pmRoleLabel = pmNotes[0].RoleLabel
+		out.pmRoleColorKey = pmNotes[0].RoleColorKey
 
 		return out
 	}
@@ -118,5 +121,26 @@ func TestPublicNoteRoleCode(t *testing.T) {
 		require.Equal(t, "phase147_test_role", out.loadRoleCode, "role_code darf sich durch eine label_de-Aenderung nicht aendern")
 		require.Equal(t, "Testrolle Zwei", out.pmRoleLabel)
 		require.Equal(t, "phase147_test_role", out.pmRoleCode, "role_code darf sich durch eine label_de-Aenderung nicht aendern")
+	})
+
+	t.Run("role_color_key stammt an allen drei Abfragestellen aus role_definitions.color_key und ist unabhaengig von label_de", func(t *testing.T) {
+		_, err := pool.Exec(ctx, `UPDATE role_definitions SET color_key = '#0F766E' WHERE code = 'phase147_test_role'`)
+		require.NoError(t, err)
+
+		out := callAll(t)
+		require.Equal(t, "#0F766E", out.cursorRoleColorKey)
+		require.Equal(t, "#0F766E", out.loadRoleColorKey)
+		require.Equal(t, "#0F766E", out.pmRoleColorKey)
+
+		_, err = pool.Exec(ctx, `UPDATE role_definitions SET label_de = 'Testrolle Drei' WHERE code = 'phase147_test_role'`)
+		require.NoError(t, err)
+
+		out = callAll(t)
+		require.Equal(t, "Testrolle Drei", out.cursorRoleLabel)
+		require.Equal(t, "#0F766E", out.cursorRoleColorKey, "role_color_key darf sich durch eine label_de-Aenderung nicht aendern")
+		require.Equal(t, "Testrolle Drei", out.loadRoleLabel)
+		require.Equal(t, "#0F766E", out.loadRoleColorKey, "role_color_key darf sich durch eine label_de-Aenderung nicht aendern")
+		require.Equal(t, "Testrolle Drei", out.pmRoleLabel)
+		require.Equal(t, "#0F766E", out.pmRoleColorKey, "role_color_key darf sich durch eine label_de-Aenderung nicht aendern")
 	})
 }

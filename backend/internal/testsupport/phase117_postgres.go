@@ -135,7 +135,8 @@ CREATE TABLE role_definitions (
     code TEXT PRIMARY KEY,
     label_de TEXT NOT NULL,
     contexts TEXT[] NOT NULL DEFAULT '{}',
-    sort_order INT NOT NULL DEFAULT 0
+    sort_order INT NOT NULL DEFAULT 0,
+    color_key TEXT NOT NULL DEFAULT 'other'
 );
 CREATE TABLE release_version_notes (
     id BIGINT PRIMARY KEY,

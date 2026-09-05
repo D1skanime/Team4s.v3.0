@@ -14914,6 +14914,8 @@ components:
           type: string
         role_code:
           type: string
+        role_color_key:
+          type: string
         body_html:
           type: string
         created_at:
@@ -15161,6 +15163,7 @@ components:
         body_text: {type: string}
         role_label: {type: string}
         role_code: {type: string}
+        role_color_key: {type: string}
         episode_label: {type: string}
         release_version_label: {type: string}
         release_version_id: {type: integer, format: int64}
