@@ -1015,7 +1015,7 @@ Plans:
 
 **UI hint**: ja — die Phase macht app-weit Farben sichtbar, die heute fehlen. Vor `plan-phase` `/gsd-ui-phase 148` laufen lassen.
 
-**Plans:** 3/7 plans executed
+**Plans:** 4/7 plans executed
 
 Plans:
 **Wave 1**
@@ -1023,7 +1023,7 @@ Plans:
 - [x] 148-01-PLAN.md — roleCatalog.ts contract (decouple presentationForRole, remove categoryForRole) + migrate 6 consumers
 - [x] 148-02-PLAN.md — globals.css --role-accent seam derivation + 3-module fallback cleanup + contrast-test extension
 - [x] 148-05-PLAN.md — Backend role_color_key passthrough + contract + PublicNoteCard wiring
-- [ ] 148-06-PLAN.md — HC-09 audit-doc correction
+- [x] 148-06-PLAN.md — HC-09 audit-doc correction
 
 **Wave 2** *(blocked on Wave 1 completion)*
 
@@ -1065,4 +1065,4 @@ Plans:
 | 145. Mitgliedschafts-Grundausstattung in die Rechte-Registry überführen | 4/4 | Complete | 2026-09-04 |
 | 146. Registry-Selbstschutz und Sanierung der Quelltext-Substring-Tests | 13/13 | Complete   | 2026-09-04 |
 | 147. Rollen-Registry — letzte Parallelkataloge auflösen | 6/6 | Complete   | 2026-09-05 |
-| 148. Rollenfarben wieder an den Katalog anschließen | 3/7 | In Progress|  |
+| 148. Rollenfarben wieder an den Katalog anschließen | 4/7 | In Progress|  |
