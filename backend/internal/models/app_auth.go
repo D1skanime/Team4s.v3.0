@@ -35,10 +35,14 @@ var AppGlobalRoles = []string{
 // is authoritative for. Only realm roles listed here are ever reconciled into
 // app_user_global_roles; any other realm role on the token is ignored (defense
 // in depth alongside the DB's chk_app_user_global_roles_role CHECK constraint).
-// Identical to AppGlobalRoles today (see above); kept as its own named slice because
-// it documents a different authority — the Keycloak-JIT-sync whitelist, not the DB
-// CHECK constraint.
-var KeycloakManagedGlobalRoles = AppGlobalRoles
+// Identical in content to AppGlobalRoles today, but deliberately NOT an alias of it:
+// this slice documents a different authority (the Keycloak-JIT-sync whitelist), so a
+// future global role that the DB allows but Keycloak must not sync stays expressible.
+var KeycloakManagedGlobalRoles = []string{
+	AppGlobalRolePlatformAdmin,
+	AppGlobalRoleContentAdmin,
+	AppGlobalRoleUser,
+}
 
 type AppUser struct {
 	ID                int64      `json:"id"`

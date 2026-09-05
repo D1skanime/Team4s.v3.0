@@ -3,6 +3,7 @@ package repository
 import (
 	"context"
 	"fmt"
+	"slices"
 
 	"team4s.v3/backend/internal/models"
 
@@ -193,6 +194,8 @@ func (r *AdminUsersRepository) GetUserGlobalRoles(
 	}
 	return &models.AdminUserGlobalRolesResult{
 		Roles:           roles,
-		AssignableRoles: models.AppGlobalRoles,
+		// Kopie: models.AppGlobalRoles ist die kanonische Quelle und darf über die
+		// Response nicht veränderbar nach außen gereicht werden.
+		AssignableRoles: slices.Clone(models.AppGlobalRoles),
 	}, nil
 }

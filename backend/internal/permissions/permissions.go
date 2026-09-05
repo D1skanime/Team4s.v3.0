@@ -62,8 +62,8 @@ const (
 	ActionUserGroupCapabilityOverrideManage Action = "user_group_capability_override.manage"
 )
 
-// Dieser Block ist KEINE autoritative Rollenliste. Der Katalog aller gueltigen Rollen ist
-// die Tabelle role_definitions. Hier stehen ausschliesslich Codes, die direkt im Go-Code fuer
+// Dieser Block ist KEINE autoritative Rollenliste. Der Katalog aller gültigen Rollen ist
+// die Tabelle role_definitions. Hier stehen ausschließlich Codes, die direkt im Go-Code für
 // Vergleiche referenziert werden (z. B. result.MatchedRole == permissions.RoleFansubLead).
 const (
 	RolePlatformAdmin  = "platform_admin"
