@@ -11,6 +11,8 @@ import {
   Modal,
   Select,
 } from '@/components/ui'
+import { presentationForRole } from '@/lib/roleCatalog'
+import { useRoleCatalog } from '@/providers/RoleCatalogProvider'
 import {
   type FansubGroupMemberCandidate,
   type FansubGroupRoleCode,
@@ -71,20 +73,6 @@ export function FansubAppMemberChoiceModal({
       </div>
     </Modal>
   )
-}
-
-function getRoleClassName(role: string): string {
-  const roleClassMap: Record<string, string> = {
-    fansub_lead: styles.fansubEditRoleLead,
-    project_lead: styles.fansubEditRoleProjectLead,
-    editor: styles.fansubEditRoleEditor,
-    translator: styles.fansubEditRoleTranslator,
-    timer: styles.fansubEditRoleTimer,
-    typesetter: styles.fansubEditRoleTypesetter,
-    quality_checker: styles.fansubEditRoleQuality,
-    encoder: styles.fansubEditRoleEncoder,
-  }
-  return roleClassMap[role] ?? styles.fansubEditRoleDefault
 }
 
 function styleNames(...names: Array<string | undefined | false>): string {
@@ -148,6 +136,7 @@ export function FansubAppMemberAddModal({
   onToggleInviteRole,
   onCreateInvitation,
 }: FansubAppMemberAddModalProps) {
+  const { roles } = useRoleCatalog('fansub_group')
   const hasHistoricalSelection = selectedHistoricalMemberId.trim().length > 0
   const canSubmitMember = Boolean(selectedCandidateId) && (selectedRoles.length > 0 || hasHistoricalSelection)
 
@@ -250,7 +239,8 @@ export function FansubAppMemberAddModal({
                         key={option.code}
                         variant={selected ? 'secondary' : 'ghost'}
                         size="sm"
-                        className={styleNames(styles.fansubEditRoleOption, getRoleClassName(option.code), selected && styles.fansubEditRoleOptionSelected)}
+                        className={styleNames(styles.fansubEditRoleOption, selected && styles.fansubEditRoleOptionSelected)}
+                        data-color-key={presentationForRole(roles, option.code).colorKey}
                         aria-pressed={selected}
                         onClick={() => onToggleRole(option.code)}
                         title={option.description}
@@ -310,7 +300,8 @@ export function FansubAppMemberAddModal({
                       key={`invite-${option.code}`}
                       variant={selected ? 'secondary' : 'ghost'}
                       size="sm"
-                      className={styleNames(styles.fansubEditRoleOption, getRoleClassName(option.code), selected && styles.fansubEditRoleOptionSelected)}
+                      className={styleNames(styles.fansubEditRoleOption, selected && styles.fansubEditRoleOptionSelected)}
+                      data-color-key={presentationForRole(roles, option.code).colorKey}
                       aria-pressed={selected}
                       onClick={() => onToggleInviteRole(option.code)}
                       title={option.description}

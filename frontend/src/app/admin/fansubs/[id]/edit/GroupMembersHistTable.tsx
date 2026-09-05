@@ -8,6 +8,8 @@ import {
   Input,
   Toolbar,
 } from '@/components/ui'
+import { presentationForRole } from '@/lib/roleCatalog'
+import { useRoleCatalog } from '@/providers/RoleCatalogProvider'
 import type {
   HistFansubGroupMember,
   HistGroupMemberRole,
@@ -55,20 +57,6 @@ function formatMemberInitials(name: string): string {
 function historicalMemberMeta(member: HistFansubGroupMember): string {
   if (member.app_username) return `Verknüpft mit ${member.app_username}`
   return 'Historisch dokumentiert'
-}
-
-function getRoleClassName(role: string): string {
-  const roleClassMap: Record<string, string> = {
-    fansub_lead: styles.fansubEditRoleLead,
-    project_lead: styles.fansubEditRoleProjectLead,
-    editor: styles.fansubEditRoleEditor,
-    translator: styles.fansubEditRoleTranslator,
-    timer: styles.fansubEditRoleTimer,
-    typesetter: styles.fansubEditRoleTypesetter,
-    quality_checker: styles.fansubEditRoleQuality,
-    encoder: styles.fansubEditRoleEncoder,
-  }
-  return roleClassMap[role] ?? styles.fansubEditRoleDefault
 }
 
 function styleNames(...names: Array<string | undefined | false>): string {
@@ -164,6 +152,7 @@ function HistoricalMemberCard({
   onRejectClaim,
   onActivateMember,
 }: HistoricalMemberCardProps) {
+  const { roles } = useRoleCatalog('fansub_group')
   const invite = generatedInvites[member.id]
   const inviteLink = invite ? normalizeInviteLink(invite.invite_link) : ''
   const activeInvitation = (memberInvitations[member.id] ?? []).find((entry) => entry.status === 'pending')
@@ -223,7 +212,8 @@ function HistoricalMemberCard({
               <Badge
                 key={`historical-role-${role.id}`}
                 variant="info"
-                className={styleNames(styles.fansubEditRoleBadge, getRoleClassName(role.role_code), styles.fansubEditHistoricalRoleBadge)}
+                className={styleNames(styles.fansubEditRoleBadge, styles.fansubEditHistoricalRoleBadge)}
+                data-color-key={presentationForRole(roles, role.role_code).colorKey}
                 title={`${formatRoleZeitraum(role)} · ${formatRoleDuration(role)}`}
               >
                 <span>{role.role_label ?? roleLabelForCode(role.role_code)}</span>
