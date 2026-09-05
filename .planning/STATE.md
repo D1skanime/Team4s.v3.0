@@ -3,14 +3,14 @@ gsd_state_version: 1.0
 milestone: v1.4
 milestone_name: Coverage
 status: executing
-stopped_at: Phase 148 UI-SPEC approved
-last_updated: "2026-09-05T17:36:53.595Z"
-last_activity: 2026-09-05 -- Phase 148 planning complete
+stopped_at: Completed 148-01-PLAN.md
+last_updated: "2026-09-05T17:53:23.761Z"
+last_activity: 2026-09-05
 progress:
   total_phases: 13
   completed_phases: 12
   total_plans: 141
-  completed_plans: 134
+  completed_plans: 135
   percent: 92
 ---
 
@@ -29,12 +29,12 @@ Phase 135 and any future roadmap entries continue from here.
 See: .planning/PROJECT.md (updated 2026-08-13)
 
 **Core value:** Team4s presents fansub history and collaboration credibly while keeping identity, visibility, ownership, and permissions correct.
-**Current focus:** Phase 147 — rollen-registry-letzte-parallelkataloge-aufl-sen
+**Current focus:** Phase 148 — rollenfarben-wieder-an-den-katalog-anschlie-en
 
 ## Current Position
 
-Phase: 147 (rollen-registry-letzte-parallelkataloge-aufl-sen) — EXECUTING
-Plan: 6 of 6
+Phase: 148 (rollenfarben-wieder-an-den-katalog-anschlie-en) — EXECUTING
+Plan: 2 of 7
 Status: Ready to execute
 
 Phase 145 ist abgeschlossen und live abgenommen (145-UAT.md, 2026-09-04). Die Codeprüfung dieser
@@ -46,7 +46,7 @@ schickt. Aktuell unkritisch — alle drei role_capabilities-Zeilen sind vorhande
 
 Nächster Schritt: `/gsd-ui-phase 146` (Kriterium 2 berührt die Capability-Matrix), danach
 `plan-phase 146`.
-Last activity: 2026-09-05 -- Phase 148 planning complete
+Last activity: 2026-09-05
 
 ## Accumulated Context
 
@@ -293,6 +293,9 @@ Last activity: 2026-09-05 -- Phase 148 planning complete
 - [Phase 147]: models.AppGlobalRoles ist die einzige exportierte Go-Quelle der drei globalen App-Rollen; alle vier bisherigen Literal-Kopien (admin_capability_handler.go, admin_users_handler.go, admin_users_repository.go, admin_users_mutations_handler.go) leiten jetzt daraus ab, gesichert durch einen Source-Contract-Test gegen Migration 0072s CHECK-Constraint.
 - [Phase 147]: HC-09 closed -- RoleTranslator/RoleTypesetter/RoleTechadmin/RoleGfxler removed from permissions.go; four package-internal test fixtures now use raw string literals; remaining role-constant block carries a non-authoritative clarifying comment (role_definitions remains sole catalog).
 - [Phase 147]: data-role-code now renders raw role_definitions.code values for techadmin/gfxler directly (no longer remapped to 'admin'/'designer' as roleColorCode's old label-driven map did) — Explicit, tested Phase 147 contract closing HC-01, not a regression
+- [Phase 148]: presentationForRole only returns full neutral when the role itself is missing from the catalog; an unrecognized icon_key alone falls back to iconKey 'user' while colorKey still resolves via boundedColorKey()
+- [Phase 148]: data-role-code carries the raw fallback value for a role unmatched in the catalog (e.g. 'future_role'), not a synthesized category string, since there is no real role_definitions.code to report
+- [Phase 148]: ContributionCard's role Badge adopts the shared .role-catalog-chip 14%-mix formula per the UI-SPEC Restoration Rule exception (it previously had no color formula at all)
 
 ### Pending Todos
 
@@ -618,10 +621,11 @@ untruncated list lives in `.planning/todos/pending/`.
 | Phase 147 P04 | 3min | 2 tasks | 6 files |
 | Phase 147 P05 | 6min | 2 tasks | 5 files |
 | Phase 147 P02 | ~25 minutes | 3 tasks | 8 files |
+| Phase 148 P01 | 35min | 3 tasks | 12 files |
 
 ## Session Continuity
 
-Last session: 2026-09-05T16:55:49.415Z
-Stopped at: Phase 148 UI-SPEC approved
+Last session: 2026-09-05T17:53:23.748Z
+Stopped at: Completed 148-01-PLAN.md
 Last activity: 2026-09-01 - Milestone v1.4 audit passed (41/41 requirements, 7/7 phases, .planning/v1.4-MILESTONE-AUDIT.md); Phase 143 added to roadmap, not yet planned
-Resume file: .planning/phases/148-rollenfarben-wieder-an-den-katalog-anschlie-en/148-UI-SPEC.md
+Resume file: None
