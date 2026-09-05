@@ -3,14 +3,14 @@ gsd_state_version: 1.0
 milestone: v1.4
 milestone_name: Coverage
 status: executing
-stopped_at: Completed 148-03-PLAN.md
-last_updated: "2026-09-05T18:28:03.273Z"
+stopped_at: Completed 148-04-PLAN.md
+last_updated: "2026-09-05T18:32:46.397Z"
 last_activity: 2026-09-05
 progress:
   total_phases: 13
   completed_phases: 12
   total_plans: 141
-  completed_plans: 139
+  completed_plans: 140
   percent: 92
 ---
 
@@ -34,7 +34,7 @@ See: .planning/PROJECT.md (updated 2026-08-13)
 ## Current Position
 
 Phase: 148 (rollenfarben-wieder-an-den-katalog-anschlie-en) — EXECUTING
-Plan: 6 of 7
+Plan: 7 of 7
 Status: Ready to execute
 
 Phase 145 ist abgeschlossen und live abgenommen (145-UAT.md, 2026-09-04). Die Codeprüfung dieser
@@ -301,6 +301,8 @@ Last activity: 2026-09-05
 - [Phase 148]: [Phase 148, Plan 05] The shared Phase-117 Postgres test harness lacked a color_key column on its stub role_definitions table; added color_key TEXT NOT NULL DEFAULT 'other' directly to the stub, mirroring phase145_postgres.go's already-established minimal-stand-in-for-migration-0146 precedent.
 - [Phase 148]: HC-09 audit correction: 'zero references repo-wide' claim replaced with 'zero production references'; qualified-grep counting-method gap explained; Phase 147's prior remediation confirmed as already resolving the underlying finding
 - [Phase 148]: The role-progress badge card (RoleBadgeCard.module.css/MemberBadgeChain.tsx) now derives --role-accent via data-color-key from the same catalog seam every other restored surface uses; test fixture uses catalog_hex_role instead of fansub_lead to avoid colliding with an unrelated existing negative assertion, and the neutral-fallback proof targets timer's unmatched color_key rather than a catalog-absent role code, since the latter is structurally unreachable through MemberBadgeChain's render path.
+- [Phase 148]: [Phase 148, Plan 04] FansubAppMembersOverview.tsx's third broken color mapping (getRoleClassName/colorClassMap, category-name-keyed) removed; role badges now use ROLE_CATALOG_CHIP_CLASS + data-color-key, matching the working admin precedent. — Closes the plan's objective; the map always fell through to fansubEditRoleDefault since presentationForRole().colorKey stopped returning category strings.
+- [Phase 148]: [Phase 148, Plan 04] FansubEdit.module.css's role-toggle no longer self-assigns --role-accent from the dead --role-accent-default token; --role-accent now resolves via the [data-color-key] seam FansubAppMemberEditorPanel.tsx already sets. — Single-source-swap restoration per the Restoration Rule; every other declaration in the toggle rule stays byte-for-byte unchanged.
 
 ### Pending Todos
 
@@ -631,10 +633,11 @@ untruncated list lives in `.planning/todos/pending/`.
 | Phase 148 P05 | ~30min | 2 tasks | 14 files |
 | Phase 148 P06 | 5min | 1 tasks | 1 files |
 | Phase 148 P03 | 20min | 1 tasks | 3 files |
+| Phase 148 P04 | 35min | 2 tasks | 3 files |
 
 ## Session Continuity
 
-Last session: 2026-09-05T18:27:54.540Z
-Stopped at: Completed 148-03-PLAN.md
+Last session: 2026-09-05T18:32:46.383Z
+Stopped at: Completed 148-04-PLAN.md
 Last activity: 2026-09-01 - Milestone v1.4 audit passed (41/41 requirements, 7/7 phases, .planning/v1.4-MILESTONE-AUDIT.md); Phase 143 added to roadmap, not yet planned
 Resume file: None

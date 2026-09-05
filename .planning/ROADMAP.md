@@ -1015,7 +1015,7 @@ Plans:
 
 **UI hint**: ja — die Phase macht app-weit Farben sichtbar, die heute fehlen. Vor `plan-phase` `/gsd-ui-phase 148` laufen lassen.
 
-**Plans:** 5/7 plans executed
+**Plans:** 6/7 plans executed
 
 Plans:
 **Wave 1**
@@ -1028,7 +1028,7 @@ Plans:
 **Wave 2** *(blocked on Wave 1 completion)*
 
 - [x] 148-03-PLAN.md — RoleBadgeCard + MemberBadgeChain color wiring
-- [ ] 148-04-PLAN.md — FansubEdit role-toggle cleanup + FansubAppMembersOverview seam migration
+- [x] 148-04-PLAN.md — FansubEdit role-toggle cleanup + FansubAppMembersOverview seam migration
 
 **Wave 3** *(blocked on Wave 2 completion)*
 
@@ -1065,4 +1065,4 @@ Plans:
 | 145. Mitgliedschafts-Grundausstattung in die Rechte-Registry überführen | 4/4 | Complete | 2026-09-04 |
 | 146. Registry-Selbstschutz und Sanierung der Quelltext-Substring-Tests | 13/13 | Complete   | 2026-09-04 |
 | 147. Rollen-Registry — letzte Parallelkataloge auflösen | 6/6 | Complete   | 2026-09-05 |
-| 148. Rollenfarben wieder an den Katalog anschließen | 5/7 | In Progress|  |
+| 148. Rollenfarben wieder an den Katalog anschließen | 6/7 | In Progress|  |
