@@ -735,6 +735,7 @@ export function MemberBadgeChain({
                       <Card
                         className={`${roleBadgeCardStyles.roleBadgeRow} ${roleBadgeCardStatusStyles.roleBadgeRow} ${roleBadgeCardStagesStyles.roleBadgeRow} ${chainStyles.roleBadgeRow}`}
                         data-role-code={row.key}
+                        data-color-key={presentationForRole(contributionRoles, row.key).colorKey}
                         data-role-card-state={state.expanded ? 'expanded' : state.active ? 'active' : 'inactive'}
                         data-active={state.active ? 'true' : 'false'}
                         data-expanded={state.expanded ? 'true' : 'false'}

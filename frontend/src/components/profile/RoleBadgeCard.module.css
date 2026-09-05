@@ -104,26 +104,6 @@
   padding-block: 18px;
 }
 
-.roleBadgeRow[data-role-code="fansub_lead"],
-.roleBadgeRowCompact[data-role-code="fansub_lead"] {
-  --role-accent: var(--role-accent-fansub-lead);
-}
-
-.roleBadgeRow[data-role-code="project_lead"],
-.roleBadgeRowCompact[data-role-code="project_lead"] {
-  --role-accent: var(--role-accent-project-lead);
-}
-
-.roleBadgeRow[data-role-code="editor"],
-.roleBadgeRowCompact[data-role-code="editor"] {
-  --role-accent: var(--role-accent-editor);
-}
-
-.roleBadgeRow[data-role-code="translator"],
-.roleBadgeRowCompact[data-role-code="translator"] {
-  --role-accent: var(--role-accent-translator);
-}
-
 /* Not currently rendered by MemberBadgeChain.tsx (no JSX site applies roleBadgeRowCompact or
    roleBadgeRowLayered); preserved byte-identical from the pre-split file rather than deleted,
    since this plan's scope is CSS-module extraction and de-duplication, not dead-code removal. */
@@ -137,49 +117,8 @@
   z-index: 1;
 }
 
-.roleBadgeRow[data-role-code="timer"],
-.roleBadgeRowCompact[data-role-code="timer"] {
-  --role-accent: var(--role-accent-timer);
-}
-
-.roleBadgeRow[data-role-code="typesetter"],
-.roleBadgeRowCompact[data-role-code="typesetter"] {
-  --role-accent: var(--role-accent-typesetter);
-}
-
-.roleBadgeRow[data-role-code="quality_checker"],
-.roleBadgeRowCompact[data-role-code="quality_checker"] {
-  --role-accent: var(--role-accent-quality-checker);
-}
-
-.roleBadgeRow[data-role-code="encoder"],
-.roleBadgeRowCompact[data-role-code="encoder"] {
-  --role-accent: var(--role-accent-encoder);
-}
-
-.roleBadgeRow[data-role-code="raw_provider"],
-.roleBadgeRowCompact[data-role-code="raw_provider"] {
-  --role-accent: var(--role-accent-raw-provider);
-}
-
-.roleBadgeRow[data-role-code="designer"],
-.roleBadgeRowCompact[data-role-code="designer"] {
-  --role-accent: var(--role-accent-designer);
-}
-
-.roleBadgeRow[data-role-code="admin"],
-.roleBadgeRowCompact[data-role-code="admin"] {
-  --role-accent: var(--role-accent-admin);
-}
-
-.roleBadgeRow[data-role-code="other"],
-.roleBadgeRowCompact[data-role-code="other"] {
-  --role-accent: var(--role-accent-other);
-}
-
 /* Not currently rendered (see .roleBadgeRowLayered comment above); preserved byte-identical. */
 .roleBadgeRowCompact {
-  --role-accent: var(--role-accent-default);
   position: relative;
   isolation: isolate;
   min-height: 420px;

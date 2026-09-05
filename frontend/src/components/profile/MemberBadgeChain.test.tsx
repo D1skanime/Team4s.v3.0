@@ -23,13 +23,14 @@ const contributionRoles = [
   ['typer', 'Typesetting'],
   ['karaoke_fx', 'Karaoke-FX'],
   ['future_role', 'Zukunftsrolle'],
+  ['catalog_hex_role', 'Katalogfarbe'],
 ].map(([code, label_de], sort_order) => ({
   code,
   label_de,
   contexts: ['anime_contribution'],
   sort_order,
-  color_key: code === 'karaoke_fx' ? 'creative' : 'other',
-  icon_key: code === 'karaoke_fx' ? 'image' : code === 'future_role' ? 'film' : 'user',
+  color_key: code === 'karaoke_fx' ? 'creative' : code === 'catalog_hex_role' ? '#183b7c' : 'other',
+  icon_key: code === 'karaoke_fx' ? 'image' : code === 'future_role' ? 'film' : code === 'catalog_hex_role' ? 'other' : 'user',
 }))
 
 vi.mock('@/providers/RoleCatalogProvider', () => ({
@@ -1674,6 +1675,37 @@ describe('Phase 121 semantischer Rollen-Rank-Track', () => {
   })
 })
 
+describe('Phase 148-03 data-color-key auf der Rollenfortschritt-Karte', () => {
+  const roleEntryBadge = (roleCode: string): PublicMemberBadge => ({
+    id: 1,
+    badge_code: `role_entry_${roleCode}`,
+    badge_category: 'role_entry',
+    current_count: 1,
+  })
+
+  it('trägt den Katalog-Hex aus data-color-key auch für eine Rolle mit icon_key "other"', async () => {
+    const { MemberBadgeChain } = await loadMemberBadgeChain()
+    const { container } = render(
+      <MemberBadgeChain earnedBadges={[roleEntryBadge('catalog_hex_role')]} />,
+    )
+
+    const card = container.querySelector('[data-role-code="catalog_hex_role"]') as HTMLElement
+    expect(card).not.toBeNull()
+    expect(card.getAttribute('data-color-key')).toBe('#183b7c')
+    expect(card.getAttribute('data-role-code')).toBe('catalog_hex_role')
+  })
+
+  it('fällt für eine Rolle ohne passenden Katalog-Hex auf data-color-key="neutral" zurück', async () => {
+    const { MemberBadgeChain } = await loadMemberBadgeChain()
+    const { container } = render(
+      <MemberBadgeChain earnedBadges={[roleEntryBadge('timer')]} />,
+    )
+
+    const card = container.querySelector('[data-role-code="timer"]') as HTMLElement
+    expect(card).not.toBeNull()
+    expect(card.getAttribute('data-color-key')).toBe('neutral')
+  })
+})
 
 describe('Phase 124 Punkte-Meilensteine single-family stage', () => {
   type Progress = { family: string; current_count: number; next_threshold: number | null; remaining_count: number | null; next_tier: string | null; complete: boolean }
