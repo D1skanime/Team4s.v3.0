@@ -421,6 +421,7 @@ Milestone v1.4 closes Live-UAT Findings #29-#32 by making effective group rights
 - [x] **Phase 146: Registry-Selbstschutz und Sanierung der Quelltext-Substring-Tests** - Kein Admin kann über die Capability-Matrix einen Zustand erzeugen, der den nächsten Backend-Start scheitern lässt, und sicherheitsrelevante Tests belegen Verhalten durch echte Aufrufe statt durch Quelltextsuche. (completed 2026-09-04)
 - [x] **Phase 147: Rollen-Registry — letzte Parallelkataloge auflösen** - Eine neue Gruppenrolle muss nur noch in `role_definitions` ergänzt werden; die verbliebenen Frontend-/Go-Parallelregistries für Rollen sind entfernt. (completed 2026-09-05)
 - [x] **Phase 148: Rollenfarben wieder an den Katalog anschließen** - Die beim Seam-Umbau in Phase 136-30 zurückgebliebenen toten Farb-Token, Hex-in-`data-role-code`-Attribute und Kategorie-Klassenmaps sind entfernt; die Rollenfarbe kommt app-weit aus `role_definitions.color_key`. (completed 2026-09-05)
+- [ ] **Phase 149: Tote CSS-Tokens sanieren und den Notiz-Kontrast schließen** - 13 referenzierte, aber nirgends definierte Custom Properties (78 Referenzen) sind auf vorhandene Design-Tokens umgebogen, ein Guard verhindert Neuzugänge, und der Rollentext der Notizkarte erreicht WCAG AA.
 
 ## Phase Details
 
@@ -1038,6 +1039,52 @@ Plans:
 
 - [x] 148-08-PLAN.md — Migrate GroupMembersHistTable.tsx + FansubAppMemberAddModal.tsx off their local getRoleClassName()/roleClassMap onto the presentationForRole()/data-color-key seam; remove the now-dead role-specific classes from FansubEdit.module.css (closes SC1/SC2 gap found by 148-VERIFICATION.md)
 
+### Phase 149: Tote CSS-Tokens sanieren und den Notiz-Kontrast schließen
+
+**Goal:** Kein Stylesheet referenziert mehr eine CSS-Custom-Property, die es nirgends gibt — die betroffenen Text-, Flächen- und Akzentfarben wirken wieder. Ein automatischer Guard verhindert Neuzugänge dieser Fehlerklasse. Zusätzlich erfüllt der Rollentext der öffentlichen Notizkarte die WCAG-AA-Schwelle für alle 15 Katalogfarben.
+
+**Requirements**: TBD (Restbefunde aus Phase 148 `deferred-items.md` plus eigener Repo-Scan vom 2026-09-05; kein v1.4-Requirement-Mapping)
+**Depends on:** Phase 148
+**Scope-Grenze:** Nur (a) das Umbiegen referenzierter, aber undefinierter Custom Properties auf vorhandene Design-Tokens, (b) der Guard-Test und (c) die eine Kontrast-Zahl der Notizkarte. **Nicht** in dieser Phase: neue Design-Tokens erfinden, die Palette ändern, Layouts anfassen, die 44 Referenzen **mit** Fallback (die degradieren sauber und sind kein Defekt), der vorbestehende `params`-Typkonflikt in der generierten Next.js-Routendatei, Badge-System, HC-04 bis HC-08.
+
+**Ausgangsbefund** (selbst gemessen 2026-09-05 auf `team4s-linux`, Commit `05ffefec`, per Repo-Scan über alle `.css`/`.ts`/`.tsx` unter `frontend/src`):
+
+  - 184 Custom Properties sind definiert, 227 werden referenziert. **57 werden referenziert, aber nirgends definiert.** Davon degradieren 44 sauber, weil sie einen `var(--x, fallback)`-Fallback tragen — die sind kein Defekt und bleiben unangetastet.
+  - **13 werden ohne Fallback referenziert, in 78 Referenzen über rund 30 Dateien.** Eine `var()`-Referenz auf eine undefinierte Property ohne Fallback macht die gesamte Deklaration invalid-at-computed-value-time; die Regel ist also wirkungslos, und es rendert die vererbte bzw. initiale Farbe. Das ist exakt dieselbe Fehlerklasse wie die in Phase 148 behobenen `--role-accent-*`-Tokens, nur breiter — und keine Testsuite findet sie.
+  - Verteilung, absteigend: `--color-text-muted` (22 Referenzen, 11 Dateien), `--color-text` (15/6), `--color-surface` (12/6), `--surface-muted` (8/3), `--accent` (5/1), `--color-text-tertiary` (4/2), `--color-info` (3/1), `--success` (2/1), `--accent-primary-strong` (2/2), `--tag-` (2/1), `--radius` (1/1), `--border-default` (1/1), `--border-soft` (1/1).
+  - Betroffen sind unter anderem `UserAuditTab`, `UserGroupRightsTab`, `UserOverviewTab`, `releases/page.module.css`, `me/profile/page.module.css`, `GroupContributionBlock`, `CollapsibleStory`, `Breadcrumbs`, `VersionRow`, `ThemeTimeline`, `ui.module.css` und `FansubEdit.module.css`.
+  - Für jeden der 13 Fälle existiert ein passendes, bereits definiertes Token — es handelt sich durchweg um Altnamen, nicht um fehlende Design-Entscheidungen. Belegte Zuordnung aus dem jeweiligen Nutzungskontext:
+
+    | tot | Ersatz | Beleg |
+    |---|---|---|
+    | `--color-text-muted` | `--text-muted` | `globals.css:24` definiert `--text-muted: var(--color-text-secondary)` |
+    | `--color-text` | `--text-primary` | `globals.css:22`; alle Fundstellen sind Haupttext |
+    | `--color-surface` | `--surface-card` | `globals.css:129`; alle Fundstellen sind Kartenflächen |
+    | `--surface-muted` | `--surface-card-muted` | `globals.css:130` |
+    | `--accent` | `--accent-primary` | `globals.css:29`; Fokusrahmen/Schatten in `FansubEdit.module.css:501,502,523` |
+    | `--color-text-tertiary` | `--text-faint` | `globals.css:136`; dritte Textstufe in `releases/page.module.css` |
+    | `--color-info` | `--accent-primary` | `VersionRow.module.css:99-101`, blauer Info-Badge |
+    | `--success` | `--color-success` | `globals.css:13`; `FansubEdit.module.css:531,533` |
+    | `--accent-primary-strong` | `--accent-deep` | `globals.css:32`; betonte Akzentschrift |
+    | `--border-default` | `--color-border` | `globals.css:12`; Standardrahmen in `ThemeTimeline.module.css:58` |
+    | `--border-soft` | `--border-subtle` | `globals.css:138`; `ui.module.css:643` |
+    | `--radius` | im Kontext belegen | `RoleCapabilityDetail.tsx:224` Inline-Style; `--radius-md` ist der Kandidat |
+    | `--tag-` | prüfen, mutmaßlich Fehlalarm | `app/dev/ui-system/page.tsx`, sieht nach Template-String-Konstruktion aus und ist dann kein echter Treffer |
+
+  - Kontrast der öffentlichen Notizkarte, in Phase 148 als benannte Schuld hinterlassen und jetzt durchgerechnet: der Rollentext `color-mix(--role-accent 38%, --text-primary)` auf dem Band `color-mix(--role-accent 55%, --color-border)` erreicht für die dunkelste Katalogfarbe `#183b7c` nur **4,01:1** (live gemessen für `#7b3c4e`: 4,16:1). Der Engpass ist **nicht** die Textmischung, sondern das Band: selbst bei 0 % Textmischung bleibt `#183b7c` bei 4,63:1 und damit nur knapp über der Schwelle. Durchgerechnet über alle 15 Katalogfarben und beide Mischverhältnisse: **Band 55 % → 45 % genügt und lässt die 38-%-Textmischung unangetastet** — schlechtester Wert dann 4,83:1. Die Alternative, nur die Textmischung zu senken, löst das Problem bei keinem Wert.
+
+**Success Criteria** (what must be TRUE):
+
+  1. Keine Custom Property wird im Frontend mehr ohne Fallback referenziert, ohne definiert zu sein. Nachweis über denselben Scan, der den Befund erhoben hat: die Menge der 13 ist leer.
+  2. Jede Ersetzung nutzt ein **bereits vorhandenes** Design-Token gemäß der Zuordnungstabelle oben. Es wird kein neues Token eingeführt und kein bestehendes im Wert verändert; die `--tag-`-Fundstelle wird als echter Treffer oder als Scan-Fehlalarm belegt entschieden.
+  3. Ein automatischer Test schlägt fehl, sobald eine neue fallback-lose Referenz auf eine undefinierte Custom Property hinzukommt. Er läuft in der regulären Frontend-Testsuite, benennt im Fehlerfall Token, Datei und Zeile, und behandelt Referenzen **mit** Fallback bewusst als zulässig.
+  4. Die 44 Referenzen mit Fallback bleiben unverändert; sie sind im Guard als zulässig dokumentiert, damit die Unterscheidung nicht bei der nächsten Änderung verloren geht.
+  5. Der Rollentext der öffentlichen Notizkarte erreicht für alle 15 Katalogfarben mindestens 4,5:1. Die Bandmischung sinkt von 55 % auf 45 %, die Textmischung bleibt bei 38 %.
+  6. Der Kontrast-Test in `roleCatalog.accessibility.test.ts` prüft diese Zusage als echte Schwelle statt als „known gap"-Snapshot; der entsprechende Snapshot-Eintrag entfällt. Die übrigen, weiterhin bewusst dokumentierten Lücken bleiben als Snapshot bestehen und werden nicht stillschweigend mitgeändert.
+  7. Backend-, Frontend- und Contract-Tests laufen grün, ohne neue Fehler gegenüber der Baseline. Ein Live-UAT auf `:3000` belegt per `getComputedStyle` an mindestens je einer Fundstelle der drei häufigsten Tokens (`--color-text-muted`, `--color-text`, `--surface-muted`) eine tatsächlich aufgelöste Farbe statt eines leeren Wertes, sowie das aufgehellte Notizkarten-Band.
+
+**UI hint**: ja — Textfarben, Flächen und ein Kontrastverhältnis ändern sich sichtbar. Vor `plan-phase` `/gsd-ui-phase 149` laufen lassen.
+
 ## v1.4 Coverage
 
 | Phase | Requirement Count | Requirement IDs |
@@ -1053,7 +1100,7 @@ Plans:
 
 ## v1.4 Progress
 
-**Execution Order:** 136 - 137 - 138 - 139 - 140 - 141 - 142 - 143 - 144 - 145 - 146 - 147 - 148
+**Execution Order:** 136 - 137 - 138 - 139 - 140 - 141 - 142 - 143 - 144 - 145 - 146 - 147 - 148 - 149
 
 | Phase | Plans Complete | Status | Completed |
 |-------|----------------|--------|-----------|
@@ -1070,3 +1117,4 @@ Plans:
 | 146. Registry-Selbstschutz und Sanierung der Quelltext-Substring-Tests | 13/13 | Complete   | 2026-09-04 |
 | 147. Rollen-Registry — letzte Parallelkataloge auflösen | 6/6 | Complete   | 2026-09-05 |
 | 148. Rollenfarben wieder an den Katalog anschließen | 8/8 | Complete    | 2026-09-05 |
+| 149. Tote CSS-Tokens sanieren und den Notiz-Kontrast schließen | 0/0 | Planning | - |
