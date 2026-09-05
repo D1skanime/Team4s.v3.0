@@ -3779,7 +3779,6 @@
 }
 
 .fansubEditMemberRoleToggle {
-  --role-accent: var(--role-accent-default);
   --role-bg: rgba(240, 246, 255, 0.98);
   --role-border: rgba(89, 122, 176, 0.22);
   display: inline-flex;
