@@ -16,6 +16,8 @@ import {
   updateGroupMember,
   updateMemberRole,
 } from '@/lib/api'
+import { labelForRole } from '@/lib/roleCatalog'
+import type { RoleDefinitionOption } from '@/types/admin-capability'
 import {
   type CreateGroupMemberRequest,
   type CreateMemberRoleRequest,
@@ -36,36 +38,6 @@ import { useGroupMembersClaimActions } from './useGroupMembersClaimActions'
 function formatApiError(error: unknown, fallback: string): string {
   if (error instanceof ApiError) return error.message
   return fallback
-}
-
-// Deutsche Rollen-Labels je Code. Git-verifiziert wiederhergestellt aus dem in Commit
-// eed757e1 gelöschten ROLE_LABELS-Objekt (ContributionCard.tsx). Unbekannte Codes geben den
-// rohen Code unverändert zurück (kein readableCodeLabel-Title-Case-Fallback mehr).
-const ROLE_LABELS: Record<string, string> = {
-  translator: 'Übersetzung',
-  editor: 'Editing',
-  timer: 'Timing',
-  typesetter: 'Typesetting / FX',
-  typesetting: 'Typesetting / FX',
-  encoder: 'Encoding',
-  encoding: 'Encoding',
-  raw_provider: 'Raw-Bereitstellung',
-  quality_checker: 'Qualitätsprüfung',
-  project_lead: 'Projektleitung',
-  project_manager: 'Projektmanagement',
-  designer: 'Design',
-  techadmin: 'Technische Administration',
-  gfxler: 'Grafik',
-  admin: 'Administration',
-  fansub_lead: 'Gruppenleitung',
-  leader: 'Gruppenleitung',
-  co_leader: 'Co-Leitung',
-  founder: 'Gründung',
-  other: 'Sonstiges',
-}
-
-export function roleLabelForCode(code: string): string {
-  return ROLE_LABELS[code] ?? code
 }
 
 export type DuplicateMemberMatch = {
@@ -170,9 +142,10 @@ export type UseGroupMembersTabOptions = {
   fansubId: number
   onActionsChange?: (actions: GroupMembersTabActions | null) => void
   onActiveAppMembersChanged?: () => void
+  historyRoleOptions: RoleDefinitionOption[]
 }
 
-export function useGroupMembersTab({ fansubId, onActionsChange, onActiveAppMembersChanged }: UseGroupMembersTabOptions) {
+export function useGroupMembersTab({ fansubId, onActionsChange, onActiveAppMembersChanged, historyRoleOptions }: UseGroupMembersTabOptions) {
   const [members, setMembers] = useState<HistFansubGroupMember[]>([])
   const [roles, setRoles] = useState<HistGroupMemberRole[]>([])
   const [loading, setLoading] = useState(true)
@@ -280,11 +253,11 @@ export function useGroupMembersTab({ fansubId, onActionsChange, onActiveAppMembe
         return {
           id: member.id,
           displayName: member.display_name,
-          roleSummary: openRoles.map((role) => role.role_label ?? roleLabelForCode(role.role_code)).join(', '),
+          roleSummary: openRoles.map((role) => role.role_label ?? labelForRole(historyRoleOptions, role.role_code)).join(', '),
         }
       })
       .filter((option) => option.roleSummary.length > 0)
-  }, [members, rolesByMember])
+  }, [members, rolesByMember, historyRoleOptions])
 
   const openNew = useCallback(() => {
     setEditTarget(null)

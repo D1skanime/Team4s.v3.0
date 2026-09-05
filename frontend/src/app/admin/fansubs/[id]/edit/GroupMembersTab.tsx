@@ -79,8 +79,6 @@ export function GroupMembersTab({
   showClaimRequests = true,
   showHeaderActions = true,
 }: GroupMembersTabProps) {
-  const tab = useGroupMembersTab({ fansubId, onActionsChange, onActiveAppMembersChanged })
-
   const [historyRoleOptions, setHistoryRoleOptions] = useState<RoleDefinitionOption[]>([])
   const [historyRoleLoadError, setHistoryRoleLoadError] = useState<string | null>(null)
 
@@ -103,6 +101,8 @@ export function GroupMembersTab({
       cancelled = true
     }
   }, [fansubId])
+
+  const tab = useGroupMembersTab({ fansubId, onActionsChange, onActiveAppMembersChanged, historyRoleOptions })
 
   return (
     <section className={embedded ? styles.fansubEditEmbeddedMembershipSurface : styles.fansubEditMembershipSurface}>
