@@ -183,7 +183,7 @@ func roleMatrixStubData() map[string][]Action {
 			ActionAnimeFansubProjectNotesWrite,
 			ActionReleaseVersionNotesWrite,
 		},
-		RoleTranslator: {
+		"translator": {
 			ActionReleaseView,
 			ActionReleaseVersionView,
 			ActionReleaseVersionNotesWrite,
@@ -194,7 +194,7 @@ func roleMatrixStubData() map[string][]Action {
 			ActionReleaseVersionNotesWrite,
 			ActionReleaseVersionSegmentsManage,
 		},
-		RoleTypesetter: {
+		"typesetter": {
 			ActionReleaseView,
 			ActionReleaseVersionView,
 			ActionReleaseVersionNotesWrite,
@@ -218,19 +218,19 @@ func roleMatrixStubData() map[string][]Action {
 			ActionReleaseVersionMediaView,
 			ActionReleaseVersionNotesWrite,
 		},
-		// Phase-136-Rollen (Migration 0146) -- gfxler/techadmin sind Go-Konstanten,
-		// founder/co_leader existieren nur als role_definitions-Rollencodes ohne
-		// eigene Go-Konstante (siehe app_auth_test.go's bestehende Testfälle). Diese
+		// Phase-136-Rollen (Migration 0146) -- gfxler/techadmin/founder/co_leader
+		// existieren nur als role_definitions-Rollencodes ohne eigene Go-Konstante
+		// (seit Phase 147/HC-09; siehe app_auth_test.go's bestehende Testfälle). Diese
 		// vier Zuordnungen entsprechen exakt Migration 0146's role_capabilities-Seed
 		// und werden erst seit Plan 137-05 gebraucht, weil allKnownActions jetzt auch
 		// die fünf Phase-136-Actions enthält (D-10-Konsistenz-Check).
-		RoleGfxler: {
+		"gfxler": {
 			ActionFansubGroupMediaUpload,
 			ActionFansubGroupMediaUpdate,
 			ActionFansubGroupMediaUpdateOwn,
 			ActionFansubGroupMediaReorder,
 		},
-		RoleTechadmin: {
+		"techadmin": {
 			ActionFansubGroupMediaUpload,
 			ActionFansubGroupMediaUpdate,
 			ActionFansubGroupMediaUpdateOwn,

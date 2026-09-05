@@ -322,7 +322,7 @@ func TestResolveGroupRightsNegativeSecurityMatrix(t *testing.T) {
 		{
 			name:             "multiple roles, one grants",
 			actor:            Actor{AppUserID: 10, Status: "active"},
-			roles:            []string{RoleTranslator, RoleFansubLead},
+			roles:            []string{"translator", RoleFansubLead},
 			activeMembership: true,
 			wantAllowed:      true,
 			wantDecisive:     ProvenanceGroupRole,

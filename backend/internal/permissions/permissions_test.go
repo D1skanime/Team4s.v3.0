@@ -463,7 +463,7 @@ func TestCanForReleaseVersionWithContribution(t *testing.T) {
 	// appUserID=2 hat translator-Contribution für versionID=42
 	mock := mockResolverV83{
 		groupRolesByUser:        map[int64][]string{},
-		contributionRolesByUser: map[int64][]string{2: {RoleTranslator}},
+		contributionRolesByUser: map[int64][]string{2: {"translator"}},
 	}
 	service := NewService(mock)
 

@@ -180,7 +180,7 @@ func TestPreviewGroupRightsCapabilityChangeProcessesMultipleHoldersIndependently
 	resolver := &capabilityImpactPreviewFakeResolver{
 		states: map[capabilityImpactHolderKey]capabilityImpactHolderState{
 			{appUserID: 101, fansubGroupID: 5}: {roles: []string{RoleEditor}, activeMembership: true},
-			{appUserID: 102, fansubGroupID: 6}: {roles: []string{RoleTranslator}, activeMembership: true},
+			{appUserID: 102, fansubGroupID: 6}: {roles: []string{"translator"}, activeMembership: true},
 		},
 	}
 	service := NewService(resolver)
