@@ -2,13 +2,13 @@
 gsd_state_version: 1.0
 milestone: v1.4
 milestone_name: Coverage
-status: verifying
-stopped_at: 148-08 gap closure landed (SC1/SC2) — awaiting re-verification
-last_updated: "2026-09-05T19:30:32.724Z"
+status: milestone_complete
+stopped_at: Milestone complete (Phase 148 was final phase)
+last_updated: 2026-09-05T19:36:12.821Z
 last_activity: 2026-09-05
 progress:
   total_phases: 13
-  completed_phases: 12
+  completed_phases: 13
   total_plans: 142
   completed_plans: 142
   percent: 100
@@ -29,13 +29,13 @@ Phase 135 and any future roadmap entries continue from here.
 See: .planning/PROJECT.md (updated 2026-08-13)
 
 **Core value:** Team4s presents fansub history and collaboration credibly while keeping identity, visibility, ownership, and permissions correct.
-**Current focus:** Phase 148 — awaiting re-verification after 148-08 gap closure before milestone v1.4 can close
+**Current focus:** Milestone complete
 
 ## Current Position
 
-Phase: 148 (rollenfarben-wieder-an-den-katalog-anschlie-en) — EXECUTING
-Plan: 8 of 8, all executed
-Status: 148-08 closed the SC1/SC2 gap 148-07's verifier found (GroupMembersHistTable.tsx/FansubAppMemberAddModal.tsx migrated onto the data-color-key seam; dead FansubEdit.module.css class blocks removed). A fresh 148-VERIFICATION.md re-run is the next step before phase/milestone completion.
+Phase: 148
+Plan: Not started
+Status: Milestone complete
 
 Phase 145 ist abgeschlossen und live abgenommen (145-UAT.md, 2026-09-04). Die Codeprüfung dieser
 Phase (145-REVIEW.md) hat danach einen kritischen Befund geliefert, der Phase 146 auslöst: der
