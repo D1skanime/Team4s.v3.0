@@ -3,14 +3,14 @@ gsd_state_version: 1.0
 milestone: v1.4
 milestone_name: Coverage
 status: executing
-stopped_at: Completed 147-03-PLAN.md
-last_updated: "2026-09-05T14:52:57.491Z"
+stopped_at: Completed 147-04-PLAN.md
+last_updated: "2026-09-05T14:57:32.653Z"
 last_activity: 2026-09-05
 progress:
   total_phases: 12
   completed_phases: 11
   total_plans: 134
-  completed_plans: 130
+  completed_plans: 131
   percent: 92
 ---
 
@@ -34,7 +34,7 @@ See: .planning/PROJECT.md (updated 2026-08-13)
 ## Current Position
 
 Phase: 147 (rollen-registry-letzte-parallelkataloge-aufl-sen) — EXECUTING
-Plan: 3 of 6
+Plan: 4 of 6
 Status: Ready to execute
 
 Phase 145 ist abgeschlossen und live abgenommen (145-UAT.md, 2026-09-04). Die Codeprüfung dieser
@@ -290,6 +290,7 @@ Last activity: 2026-09-05
 - [Phase 146]: Plan 146-13 (final plan) closed Criteria 6/7/8 -- a go-test-executed ratchet guard (backend/internal/testquality/source_substring_guard_test.go) locks the post-remediation state at 34/53 remaining source-substring test files, zero of the 20 locked security-relevant files among them; the 34-file remainder is named and reasoned per-file in 146-SUBSTRING-TEST-REMAINDER.md, including a carried-forward IsHistoricalMemberRoleCode open item from 145-REVIEW.md WR-01. Phase 146 (Block 1 registry-selbstschutz + Block 2 testsanierung) is now complete.
 - [Phase 147]: role_code Go field is a plain non-pointer string mirroring RoleLabel's COALESCE(..., '') non-null contract at all three public-note query sites; only the OpenAPI schema marks it non-required.
 - [Phase 147-03]: useGroupMembersTab.ts's roleSummary now resolves labels via labelForRole(historyRoleOptions, code), converging onto the catalog path GroupMembersTab.tsx already used for GroupHistRoleDialog/GroupMembersHistTable/GroupMemberFormModals. — Closes HC-02; the removed ROLE_LABELS map had 5 codes never present in role_definitions and no karaoke_fx entry.
+- [Phase 147]: models.AppGlobalRoles ist die einzige exportierte Go-Quelle der drei globalen App-Rollen; alle vier bisherigen Literal-Kopien (admin_capability_handler.go, admin_users_handler.go, admin_users_repository.go, admin_users_mutations_handler.go) leiten jetzt daraus ab, gesichert durch einen Source-Contract-Test gegen Migration 0072s CHECK-Constraint.
 
 ### Pending Todos
 
@@ -612,10 +613,11 @@ untruncated list lives in `.planning/todos/pending/`.
 | Phase 146 P13 | 90min | 3 tasks | 2 files |
 | Phase 147 P01 | 35m | 3 tasks | 6 files |
 | Phase 147 P03 | 12min | 2 tasks | 3 files |
+| Phase 147 P04 | 3min | 2 tasks | 6 files |
 
 ## Session Continuity
 
-Last session: 2026-09-05T14:52:57.476Z
-Stopped at: Completed 147-03-PLAN.md
+Last session: 2026-09-05T14:57:32.638Z
+Stopped at: Completed 147-04-PLAN.md
 Last activity: 2026-09-01 - Milestone v1.4 audit passed (41/41 requirements, 7/7 phases, .planning/v1.4-MILESTONE-AUDIT.md); Phase 143 added to roadmap, not yet planned
 Resume file: None
