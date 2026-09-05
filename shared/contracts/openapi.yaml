@@ -14912,6 +14912,8 @@ components:
           nullable: true
         role_label:
           type: string
+        role_code:
+          type: string
         body_html:
           type: string
         created_at:
@@ -15158,6 +15160,7 @@ components:
         body_html: {type: string}
         body_text: {type: string}
         role_label: {type: string}
+        role_code: {type: string}
         episode_label: {type: string}
         release_version_label: {type: string}
         release_version_id: {type: integer, format: int64}
