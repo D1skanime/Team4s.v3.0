@@ -976,7 +976,7 @@ Plans:
 
 **Wave 2** *(blocked on 147-01 completion)*
 
-- [ ] 147-02-PLAN.md — HC-01 frontend: role_code TS types + PublicNoteCard roleCode prop + consumers + roleColors.ts removal.
+- [x] 147-02-PLAN.md — HC-01 frontend: role_code TS types + PublicNoteCard roleCode prop + consumers + roleColors.ts removal.
 
 **Wave 3** *(blocked on Wave 1 and Wave 2 completion)*
 
@@ -1012,4 +1012,4 @@ Plans:
 | 144. Überarbeitungs-Kreislauf für Release-Medien vervollständigen | 8/8 | Complete | 2026-09-03 |
 | 145. Mitgliedschafts-Grundausstattung in die Rechte-Registry überführen | 4/4 | Complete | 2026-09-04 |
 | 146. Registry-Selbstschutz und Sanierung der Quelltext-Substring-Tests | 13/13 | Complete   | 2026-09-04 |
-| 147. Rollen-Registry — letzte Parallelkataloge auflösen | 4/6 | In Progress|  |
+| 147. Rollen-Registry — letzte Parallelkataloge auflösen | 5/6 | In Progress|  |

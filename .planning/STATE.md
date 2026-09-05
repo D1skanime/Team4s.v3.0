@@ -3,14 +3,14 @@ gsd_state_version: 1.0
 milestone: v1.4
 milestone_name: Coverage
 status: executing
-stopped_at: Completed 147-05-PLAN.md
-last_updated: "2026-09-05T15:01:13.014Z"
+stopped_at: Completed 147-02-PLAN.md
+last_updated: "2026-09-05T15:07:12.363Z"
 last_activity: 2026-09-05
 progress:
   total_phases: 12
   completed_phases: 11
   total_plans: 134
-  completed_plans: 132
+  completed_plans: 133
   percent: 92
 ---
 
@@ -34,7 +34,7 @@ See: .planning/PROJECT.md (updated 2026-08-13)
 ## Current Position
 
 Phase: 147 (rollen-registry-letzte-parallelkataloge-aufl-sen) — EXECUTING
-Plan: 5 of 6
+Plan: 6 of 6
 Status: Ready to execute
 
 Phase 145 ist abgeschlossen und live abgenommen (145-UAT.md, 2026-09-04). Die Codeprüfung dieser
@@ -292,6 +292,7 @@ Last activity: 2026-09-05
 - [Phase 147-03]: useGroupMembersTab.ts's roleSummary now resolves labels via labelForRole(historyRoleOptions, code), converging onto the catalog path GroupMembersTab.tsx already used for GroupHistRoleDialog/GroupMembersHistTable/GroupMemberFormModals. — Closes HC-02; the removed ROLE_LABELS map had 5 codes never present in role_definitions and no karaoke_fx entry.
 - [Phase 147]: models.AppGlobalRoles ist die einzige exportierte Go-Quelle der drei globalen App-Rollen; alle vier bisherigen Literal-Kopien (admin_capability_handler.go, admin_users_handler.go, admin_users_repository.go, admin_users_mutations_handler.go) leiten jetzt daraus ab, gesichert durch einen Source-Contract-Test gegen Migration 0072s CHECK-Constraint.
 - [Phase 147]: HC-09 closed -- RoleTranslator/RoleTypesetter/RoleTechadmin/RoleGfxler removed from permissions.go; four package-internal test fixtures now use raw string literals; remaining role-constant block carries a non-authoritative clarifying comment (role_definitions remains sole catalog).
+- [Phase 147]: data-role-code now renders raw role_definitions.code values for techadmin/gfxler directly (no longer remapped to 'admin'/'designer' as roleColorCode's old label-driven map did) — Explicit, tested Phase 147 contract closing HC-01, not a regression
 
 ### Pending Todos
 
@@ -616,10 +617,11 @@ untruncated list lives in `.planning/todos/pending/`.
 | Phase 147 P03 | 12min | 2 tasks | 3 files |
 | Phase 147 P04 | 3min | 2 tasks | 6 files |
 | Phase 147 P05 | 6min | 2 tasks | 5 files |
+| Phase 147 P02 | ~25 minutes | 3 tasks | 8 files |
 
 ## Session Continuity
 
-Last session: 2026-09-05T15:01:12.999Z
-Stopped at: Completed 147-05-PLAN.md
+Last session: 2026-09-05T15:07:12.347Z
+Stopped at: Completed 147-02-PLAN.md
 Last activity: 2026-09-01 - Milestone v1.4 audit passed (41/41 requirements, 7/7 phases, .planning/v1.4-MILESTONE-AUDIT.md); Phase 143 added to roadmap, not yet planned
 Resume file: None
