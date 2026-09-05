@@ -1015,7 +1015,7 @@ Plans:
 
 **UI hint**: ja — die Phase macht app-weit Farben sichtbar, die heute fehlen. Vor `plan-phase` `/gsd-ui-phase 148` laufen lassen.
 
-**Plans:** 7/8 plans executed — 148-07's verifier found gaps (7/9 ROADMAP success criteria; SC1/SC2 failed), see `148-VERIFICATION.md`. 148-08 closes the gap; phase completion is deferred until re-verification passes.
+**Plans:** 8/8 plans executed — 148-08 closed the SC1/SC2 gap 148-07's verifier found. Phase completion is deferred until re-verification (fresh `148-VERIFICATION.md`) passes.
 
 Plans:
 **Wave 1**
@@ -1036,7 +1036,7 @@ Plans:
 
 **Wave 4** *(gap closure, blocked on 148-04 and 148-07's finding)*
 
-- [ ] 148-08-PLAN.md — Migrate GroupMembersHistTable.tsx + FansubAppMemberAddModal.tsx off their local getRoleClassName()/roleClassMap onto the presentationForRole()/data-color-key seam; remove the now-dead role-specific classes from FansubEdit.module.css (closes SC1/SC2 gap found by 148-VERIFICATION.md)
+- [x] 148-08-PLAN.md — Migrate GroupMembersHistTable.tsx + FansubAppMemberAddModal.tsx off their local getRoleClassName()/roleClassMap onto the presentationForRole()/data-color-key seam; remove the now-dead role-specific classes from FansubEdit.module.css (closes SC1/SC2 gap found by 148-VERIFICATION.md)
 
 ## v1.4 Coverage
 
@@ -1069,4 +1069,4 @@ Plans:
 | 145. Mitgliedschafts-Grundausstattung in die Rechte-Registry überführen | 4/4 | Complete | 2026-09-04 |
 | 146. Registry-Selbstschutz und Sanierung der Quelltext-Substring-Tests | 13/13 | Complete   | 2026-09-04 |
 | 147. Rollen-Registry — letzte Parallelkataloge auflösen | 6/6 | Complete   | 2026-09-05 |
-| 148. Rollenfarben wieder an den Katalog anschließen | 7/8 | In Progress|  |
+| 148. Rollenfarben wieder an den Katalog anschließen | 8/8 | In Progress|  |
