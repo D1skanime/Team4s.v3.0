@@ -956,7 +956,31 @@ Plans:
   7. Die vier Rollenkonstanten ohne Produktionsreferenz (`RoleTranslator`, `RoleTypesetter`, `RoleTechadmin`, `RoleGfxler`) sind aus `permissions.go` entfernt und ihre Testfixture-Verwendungen auf Literale umgestellt; der verbleibende Konstantenblock trägt einen Kommentar, der klarstellt, dass er keine autoritative Rollenliste ist, der Katalog in `role_definitions` liegt und hier nur direkt im Go-Code referenzierte Codes stehen. Es entsteht keine neue Go-Rollenliste.
   8. Backend-, Frontend- und Contract-Tests laufen grün; ein Live-UAT auf `:3000` bestätigt, dass die Notizdarstellung mit dem neuen `role_code`-Pfad unverändert korrekt rendert.
 
+**Plans**: 6 plans across 3 waves
+
+  - Wave 1: 147-01 (HC-01 backend: role_code SELECT/Scan at all 3 note query sites + OpenAPI contract + real-Postgres proof), 147-03 (HC-02: useGroupMembersTab.ts onto labelForRole), 147-04 (HC-03: models.AppGlobalRoles + 4 consumers + source-contract test), 147-05 (HC-09: remove 4 unreferenced permissions.go constants)
+  - Wave 2: 147-02 (HC-01 frontend: role_code TS types + PublicNoteCard prop + consumers + roleColors.ts removal, depends on 147-01)
+  - Wave 3: 147-06 (full regression gate + live UAT sign-off, depends on all five)
+
+**Plan-time read first**: `.planning/phases/147-rollen-registry-letzte-parallelkataloge-aufl-sen/147-CONTEXT.md`, `.planning/phases/147-rollen-registry-letzte-parallelkataloge-aufl-sen/147-PATTERNS.md`, `backend/internal/repository/release_detail_public_repository.go`, `backend/internal/repository/project_member_public_repository.go`, `backend/internal/models/app_auth.go`, `backend/internal/permissions/permissions.go`, `frontend/src/components/public/PublicNoteCard.tsx`, `frontend/src/app/admin/fansubs/[id]/edit/useGroupMembersTab.ts`.
+
 **UI hint**: nein — reine Datenquellen-Umstellung hinter einem bestehenden Attribut-Seam, kein neues visuelles Element, keine Layout-Änderung.
+
+Plans:
+**Wave 1**
+
+- [ ] 147-01-PLAN.md — HC-01 backend: role_code SELECT/Scan at all 3 note query sites + OpenAPI contract + real-Postgres proof.
+- [ ] 147-03-PLAN.md — HC-02: useGroupMembersTab.ts migrated onto the catalog-driven labelForRole path.
+- [ ] 147-04-PLAN.md — HC-03: models.AppGlobalRoles single source + 4 derived consumers + source-contract test.
+- [ ] 147-05-PLAN.md — HC-09: remove the 4 unreferenced permissions.go role constants.
+
+**Wave 2** *(blocked on 147-01 completion)*
+
+- [ ] 147-02-PLAN.md — HC-01 frontend: role_code TS types + PublicNoteCard roleCode prop + consumers + roleColors.ts removal.
+
+**Wave 3** *(blocked on Wave 1 and Wave 2 completion)*
+
+- [ ] 147-06-PLAN.md — Full regression gate (backend/frontend/contract) + live UAT sign-off.
 
 ## v1.4 Coverage
 
@@ -988,4 +1012,4 @@ Plans:
 | 144. Überarbeitungs-Kreislauf für Release-Medien vervollständigen | 8/8 | Complete | 2026-09-03 |
 | 145. Mitgliedschafts-Grundausstattung in die Rechte-Registry überführen | 4/4 | Complete | 2026-09-04 |
 | 146. Registry-Selbstschutz und Sanierung der Quelltext-Substring-Tests | 13/13 | Complete   | 2026-09-04 |
-| 147. Rollen-Registry — letzte Parallelkataloge auflösen | 0/0 | Planning | - |
+| 147. Rollen-Registry — letzte Parallelkataloge auflösen | 0/6 | Planning | - |
