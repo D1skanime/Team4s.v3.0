@@ -3,14 +3,14 @@ gsd_state_version: 1.0
 milestone: v1.4
 milestone_name: Coverage
 status: executing
-stopped_at: Completed 149-01-PLAN.md
-last_updated: "2026-09-06T06:46:48.005Z"
+stopped_at: Completed 149-02-PLAN.md
+last_updated: "2026-09-06T06:50:44.827Z"
 last_activity: 2026-09-06
 progress:
   total_phases: 14
   completed_phases: 13
   total_plans: 148
-  completed_plans: 143
+  completed_plans: 144
   percent: 93
 ---
 
@@ -34,7 +34,7 @@ See: .planning/PROJECT.md (updated 2026-08-13)
 ## Current Position
 
 Phase: 149 (Tote CSS-Tokens sanieren und den Notiz-Kontrast schließen) — EXECUTING
-Plan: 2 of 6
+Plan: 3 of 6
 Status: Ready to execute
 
 Phase 145 ist abgeschlossen und live abgenommen (145-UAT.md, 2026-09-04). Die Codeprüfung dieser
@@ -304,6 +304,7 @@ Last activity: 2026-09-06
 - [Phase 148]: [Phase 148, Plan 04] FansubAppMembersOverview.tsx's third broken color mapping (getRoleClassName/colorClassMap, category-name-keyed) removed; role badges now use ROLE_CATALOG_CHIP_CLASS + data-color-key, matching the working admin precedent. — Closes the plan's objective; the map always fell through to fansubEditRoleDefault since presentationForRole().colorKey stopped returning category strings.
 - [Phase 148]: [Phase 148, Plan 04] FansubEdit.module.css's role-toggle no longer self-assigns --role-accent from the dead --role-accent-default token; --role-accent now resolves via the [data-color-key] seam FansubAppMemberEditorPanel.tsx already sets. — Single-source-swap restoration per the Restoration Rule; every other declaration in the toggle rule stays byte-for-byte unchanged.
 - [Phase 149]: Plan 149-01: used sed with explicit line-number anchors for CSS token renames to avoid corrupting the fallback-protected var(--color-surface, #f9f9f9) occurrences sharing the same base token name
+- [Phase 149]: Plan 149-02: sed mit exakten Zeilenankern für alle CSS-Ersetzungen verwendet, um sicherzustellen, dass nur die im Plan zitierten Zeilen geändert werden — GroupMediaReviewSection.module.css enthielt bereits eine vorbestehende, korrekte var(--surface-card-muted)-Verwendung (Zeile 361), die denselben Zielnamen wie die 5 zu behebenden Zeilen teilt
 
 ### Pending Todos
 
@@ -638,10 +639,11 @@ untruncated list lives in `.planning/todos/pending/`.
 | Phase 148 P07 | external | 2 tasks | 0 files |
 | Phase 148 P08 | ~40min | 2 tasks | 5 files |
 | Phase 149 P01 | 5min | 2 tasks | 5 files |
+| Phase 149 P02 | 7min | 2 tasks | 4 files |
 
 ## Session Continuity
 
-Last session: 2026-09-06T06:46:47.988Z
-Stopped at: Completed 149-01-PLAN.md
+Last session: 2026-09-06T06:50:44.813Z
+Stopped at: Completed 149-02-PLAN.md
 Last activity: 2026-09-01 - Milestone v1.4 audit passed (41/41 requirements, 7/7 phases, .planning/v1.4-MILESTONE-AUDIT.md); Phase 143 added to roadmap, not yet planned
 Resume file: None
