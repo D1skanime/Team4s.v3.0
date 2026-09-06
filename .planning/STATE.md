@@ -3,14 +3,14 @@ gsd_state_version: 1.0
 milestone: v1.4
 milestone_name: Coverage
 status: executing
-stopped_at: Completed 149-03-PLAN.md
-last_updated: "2026-09-06T06:58:51.482Z"
+stopped_at: Completed 149-05-PLAN.md
+last_updated: "2026-09-06T07:11:37.504Z"
 last_activity: 2026-09-06
 progress:
   total_phases: 14
   completed_phases: 13
   total_plans: 148
-  completed_plans: 146
+  completed_plans: 147
   percent: 93
 ---
 
@@ -34,7 +34,7 @@ See: .planning/PROJECT.md (updated 2026-08-13)
 ## Current Position
 
 Phase: 149 (Tote CSS-Tokens sanieren und den Notiz-Kontrast schließen) — EXECUTING
-Plan: 5 of 6
+Plan: 6 of 6
 Status: Ready to execute
 
 Phase 145 ist abgeschlossen und live abgenommen (145-UAT.md, 2026-09-04). Die Codeprüfung dieser
@@ -307,6 +307,7 @@ Last activity: 2026-09-06
 - [Phase 149]: Plan 149-02: sed mit exakten Zeilenankern für alle CSS-Ersetzungen verwendet, um sicherzustellen, dass nur die im Plan zitierten Zeilen geändert werden — GroupMediaReviewSection.module.css enthielt bereits eine vorbestehende, korrekte var(--surface-card-muted)-Verwendung (Zeile 361), die denselben Zielnamen wie die 5 zu behebenden Zeilen teilt
 - [Phase 149]: Phase 149, 2026-09-06: --radius at RoleCapabilityDetail.tsx resolves to --radius-sm (6px) per 149-UI-SPEC.md's sibling-alert-box comparison, overriding ROADMAP's tentative --radius-md guess.
 - [Phase 149]: [Phase 149-04]: PublicNoteCard .head band mix lowered from 55% to 45% (role-accent), closing the .role text WCAG AA 4.5:1 contrast gap for all 15 ROLE_COLOR_KEYS while .role's 38% text mix stays unchanged -- the one deliberate exception to Phase 148's frozen Restoration Rule.
+- [Phase 149-05]: Guard test's nested var() fallback detection uses two explicit regex alternatives (nested-shape tried first, plain/literal-fallback second) instead of one generic non-greedy fallback capture, which cannot correctly balance one level of nested var() parens — a single '.+?' capture stops at the first upcoming close-paren, which for a nested var() fallback is the inner call's own closing paren, one character too early. Guard-test self-referential-scan hygiene established: exclude the guard test's own fixture file by basename, avoid literal var(--x) syntax in the scanner's own comments, and use a documented, size-locked allow-list for pre-existing locked-file false positives (e.g. roleCatalog.accessibility.test.ts:284, out of 149-UI-SPEC.md's editable scope).
 
 ### Pending Todos
 
@@ -644,10 +645,11 @@ untruncated list lives in `.planning/todos/pending/`.
 | Phase 149 P02 | 7min | 2 tasks | 4 files |
 | Phase 149 P03 | 2min | 2 tasks | 6 files |
 | Phase 149 P04 | 3min | 2 tasks | 2 files |
+| Phase 149 P05 | 25min | 2 tasks | 2 files |
 
 ## Session Continuity
 
-Last session: 2026-09-06T06:58:27.139Z
-Stopped at: Completed 149-03-PLAN.md
+Last session: 2026-09-06T07:11:37.489Z
+Stopped at: Completed 149-05-PLAN.md
 Last activity: 2026-09-01 - Milestone v1.4 audit passed (41/41 requirements, 7/7 phases, .planning/v1.4-MILESTONE-AUDIT.md); Phase 143 added to roadmap, not yet planned
 Resume file: None
