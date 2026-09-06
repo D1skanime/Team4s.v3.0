@@ -11382,12 +11382,43 @@ components:
       required:
         - role_code
         - count
+        - current_tier
+        - current_threshold
+        - next_threshold
+        - remaining_count
+        - next_tier
       properties:
         role_code:
           type: string
         count:
           type: integer
           format: int64
+        current_tier:
+          type: string
+          description: Empty string if no role-volume tier has been reached yet.
+        current_threshold:
+          type: integer
+          format: int64
+          nullable: true
+          description: >-
+            The registry threshold belonging to current_tier itself (e.g. 12 for
+            "bronze"). Null exactly when current_tier is empty (below the first
+            tier). Phase 150 revision 2026-09-06, companion to Plan 150-05's
+            role-volume badge label.
+        next_threshold:
+          type: integer
+          format: int64
+          nullable: true
+          description: Null once the highest (platinum) tier has already been reached.
+        remaining_count:
+          type: integer
+          format: int64
+          nullable: true
+          description: Null once the highest (platinum) tier has already been reached.
+        next_tier:
+          type: string
+          nullable: true
+          description: Null once the highest (platinum) tier has already been reached.
     OwnDashboardCategoryProgress:
       type: object
       required:
@@ -11395,6 +11426,8 @@ components:
         - current_tier
         - current_count
         - next_threshold
+        - remaining_count
+        - next_tier
       properties:
         family:
           type: string
@@ -11402,6 +11435,7 @@ components:
             - contribution_projects
             - contribution_chronicle
             - contribution_archivist
+            - points
         current_tier:
           type: string
           description: Empty string if no tier has been reached yet.
@@ -11413,6 +11447,21 @@ components:
           format: int64
           nullable: true
           description: Null once the highest (gold) tier has already been reached.
+        remaining_count:
+          type: integer
+          format: int64
+          nullable: true
+          description: >-
+            Null once the highest tier has already been reached. Already emitted
+            by the Go struct before Plan 150-02; documented here for the first
+            time (pre-existing schema drift closed in passing).
+        next_tier:
+          type: string
+          nullable: true
+          description: >-
+            Null once the highest tier has already been reached. Already emitted
+            by the Go struct before Plan 150-02; documented here for the first
+            time (pre-existing schema drift closed in passing).
     OwnDashboardPendingClaim:
       type: object
       required:
@@ -11522,6 +11571,7 @@ components:
         - contributions_count
         - role_volume
         - category_progress
+        - points_progress
         - pending_claims
         - pending_group_media_reviews
         - pending_release_reviews
@@ -11552,6 +11602,13 @@ components:
           type: array
           items:
             $ref: "#/components/schemas/OwnDashboardCategoryProgress"
+        points_progress:
+          allOf:
+            - $ref: "#/components/schemas/OwnDashboardCategoryProgress"
+          description: >-
+            Server-authoritative points-milestone progress row (D-08, Phase 150)
+            -- family is always "points". Replaces the frontend's previous
+            client-side total_points -> milestone derivation.
         pending_claims:
           type: array
           items:

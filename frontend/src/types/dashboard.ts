@@ -5,27 +5,42 @@
 // Dashboard-Sektionskomponenten) importieren diese Interfaces direkt statt
 // die Form erneut abzuleiten oder eigene Shapes zu erfinden.
 //
-// category_progress enthält bewusst KEINE Punkt-Meilenstein- oder
-// Rollen-Volumen-Zeilen — diese werden client-seitig in Plan 116-05 aus
-// total_points/role_volume plus den in memberBadgeLabels.ts exportierten
-// Schwellen-Helfern (resolveNextPointMilestone/resolveNextRoleVolumeThreshold)
-// berechnet, niemals serverseitig dupliziert.
+// Phase 150 (D-07/D-08): role_code/count-Zeilen tragen jetzt zusätzlich
+// server-autoritatives Tier/Schwelle/Rest (aus backend/internal/badges), und
+// OwnDashboardData trägt eine eigene points_progress-Zeile. Vor Phase 150
+// berechnete das Frontend Punkt-Meilenstein und Rollen-Volumen-Tier/Schwelle
+// selbst aus total_points/role_volume (resolveNextPointMilestone/
+// resolveNextRoleVolumeThreshold in memberBadgeLabels.ts) -- das ist mit dieser
+// Erweiterung nicht mehr nötig; jede Schwellenänderung an der Registry wirkt
+// sich jetzt allein über diese Response-Felder aus.
 
-/** Einzelne Rollen-Volumen-Zeile (Anzahl gewährter Credits je Rollencode). */
+/** Einzelne Rollen-Volumen-Zeile (Anzahl gewährter Credits je Rollencode, plus
+ * Registry-Tier/Schwelle/Rest, Phase 150 D-07). CurrentThreshold ist die
+ * Registry-Schwelle der aktuell erreichten Stufe selbst (nicht der nächsten --
+ * das bleibt next_threshold); null, solange current_tier leer ist. */
 export interface OwnDashboardRoleVolumeEntry {
   role_code: string;
   count: number;
+  current_tier: string;
+  current_threshold: number | null;
+  next_threshold: number | null;
+  remaining_count: number | null;
+  next_tier: string | null;
 }
 
-/** Fortschritts-Zeile je Contribution-Familie (D-04, Phase 113 Tier-Schwellen). */
+/** Fortschritts-Zeile je Contribution-Familie (D-04, Phase 113 Tier-Schwellen)
+ * bzw. je Punkte-Meilenstein (family: "points", Phase 150 D-08). */
 export interface OwnDashboardCategoryProgress {
   family:
     | "contribution_projects"
     | "contribution_chronicle"
-    | "contribution_archivist";
+    | "contribution_archivist"
+    | "points";
   current_tier: string;
   current_count: number;
   next_threshold: number | null;
+  remaining_count: number | null;
+  next_tier: string | null;
 }
 
 /** Aggregierte Kennzahlen des eingeloggten Members für /me/dashboard (D-03). */
@@ -76,6 +91,8 @@ export interface OwnDashboardData {
   contributions_count: number;
   role_volume: OwnDashboardRoleVolumeEntry[];
   category_progress: OwnDashboardCategoryProgress[];
+  /** Server-autoritative Punkte-Meilenstein-Fortschrittszeile (D-08, Phase 150). */
+  points_progress: OwnDashboardCategoryProgress;
   pending_claims: OwnDashboardPendingClaim[];
   pending_group_media_reviews: OwnDashboardPendingGroupMediaReview[];
   pending_release_reviews: OwnDashboardPendingReleaseReview[];

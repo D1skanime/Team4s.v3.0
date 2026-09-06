@@ -51,20 +51,34 @@ function makeData(overrides: Partial<OwnDashboardData> = {}): OwnDashboardData {
         current_tier: "",
         current_count: 0,
         next_threshold: null,
+        remaining_count: null,
+        next_tier: null,
       },
       {
         family: "contribution_chronicle",
         current_tier: "",
         current_count: 0,
         next_threshold: null,
+        remaining_count: null,
+        next_tier: null,
       },
       {
         family: "contribution_projects",
         current_tier: "",
         current_count: 0,
         next_threshold: null,
+        remaining_count: null,
+        next_tier: null,
       },
     ],
+    points_progress: {
+      family: "points",
+      current_tier: "",
+      current_count: 0,
+      next_threshold: null,
+      remaining_count: null,
+      next_tier: null,
+    },
     pending_claims: [],
     pending_group_media_reviews: [],
     pending_release_reviews: [],
@@ -79,9 +93,33 @@ describe("CategoryProgressTable (Phase 116, D-04)", () => {
       <CategoryProgressTable
         data={makeData({
           role_volume: [
-            { role_code: "unknown_helper", count: 12 },
-            { role_code: "karaoke_fx", count: 12 },
-            { role_code: "typer", count: 12 },
+            {
+              role_code: "unknown_helper",
+              count: 12,
+              current_tier: "bronze",
+              current_threshold: 12,
+              next_threshold: 108,
+              remaining_count: 96,
+              next_tier: "silver",
+            },
+            {
+              role_code: "karaoke_fx",
+              count: 12,
+              current_tier: "bronze",
+              current_threshold: 12,
+              next_threshold: 108,
+              remaining_count: 96,
+              next_tier: "silver",
+            },
+            {
+              role_code: "typer",
+              count: 12,
+              current_tier: "bronze",
+              current_threshold: 12,
+              next_threshold: 108,
+              remaining_count: 96,
+              next_tier: "silver",
+            },
           ],
         })}
       />,
@@ -111,7 +149,17 @@ describe("CategoryProgressTable (Phase 116, D-04)", () => {
     render(
       <CategoryProgressTable
         data={makeData({
-          role_volume: [{ role_code: "translator", count: 20 }],
+          role_volume: [
+            {
+              role_code: "translator",
+              count: 20,
+              current_tier: "bronze",
+              current_threshold: 12,
+              next_threshold: 108,
+              remaining_count: 88,
+              next_tier: "silver",
+            },
+          ],
         })}
       />,
     );
@@ -131,18 +179,24 @@ describe("CategoryProgressTable (Phase 116, D-04)", () => {
               current_tier: "silver",
               current_count: 60,
               next_threshold: 150,
+              remaining_count: 90,
+              next_tier: "gold",
             },
             {
               family: "contribution_chronicle",
               current_tier: "",
               current_count: 0,
               next_threshold: null,
+              remaining_count: null,
+              next_tier: null,
             },
             {
               family: "contribution_projects",
               current_tier: "",
               current_count: 0,
               next_threshold: null,
+              remaining_count: null,
+              next_tier: null,
             },
           ],
         })}
@@ -164,18 +218,24 @@ describe("CategoryProgressTable (Phase 116, D-04)", () => {
               current_tier: "gold",
               current_count: 500,
               next_threshold: null,
+              remaining_count: null,
+              next_tier: null,
             },
             {
               family: "contribution_chronicle",
               current_tier: "bronze",
               current_count: 12,
               next_threshold: 40,
+              remaining_count: 28,
+              next_tier: "silver",
             },
             {
               family: "contribution_projects",
               current_tier: "",
               current_count: 0,
               next_threshold: 5,
+              remaining_count: 5,
+              next_tier: "bronze",
             },
           ],
         })}

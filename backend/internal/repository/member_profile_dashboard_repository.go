@@ -3,6 +3,8 @@ package repository
 import (
 	"context"
 	"fmt"
+
+	"team4s.v3/backend/internal/badges"
 )
 
 // Plan 116-02 (D-03/D-04): GetOwnDashboard buendelt die fuenf Kennzahlen ("Punkte",
@@ -15,10 +17,20 @@ import (
 // SQL-Duplizierung. Rein lesend, kein neuer Schreibpfad.
 
 // OwnDashboardRoleVolumeEntry ist eine Rohzahl-Zeile der Rollen-Volumen-Tabelle (D-04
-// Typ 3) fuer die eigene Sicht.
+// Typ 3) fuer die eigene Sicht. Phase 150 (D-07, plus die Revision 2026-09-06 fuer
+// CurrentThreshold) ergaenzt Tier/Schwellen/Rest, aus badges.RoleVolume abgeleitet --
+// vorher trug diese Zeile nur role_code+count, das Frontend leitete Tier/Schwelle
+// selbst ab. CurrentThreshold ist nil, solange CurrentTier leer ist ("" = unterhalb
+// Bronze); sonst die Registry-Schwelle der aktuell erreichten Stufe (nicht der
+// naechsten -- das bleibt NextThreshold).
 type OwnDashboardRoleVolumeEntry struct {
-	RoleCode string `json:"role_code"`
-	Count    int64  `json:"count"`
+	RoleCode         string  `json:"role_code"`
+	Count            int64   `json:"count"`
+	CurrentTier      string  `json:"current_tier"`
+	CurrentThreshold *int64  `json:"current_threshold"`
+	NextThreshold    *int64  `json:"next_threshold"`
+	RemainingCount   *int64  `json:"remaining_count"`
+	NextTier         *string `json:"next_tier"`
 }
 
 // OwnDashboardCategoryProgress ist eine Zeile der D-04-Fortschritts-Tabelle fuer genau
@@ -90,51 +102,46 @@ type OwnDashboardData struct {
 	ContributionsCount       int64                                     `json:"contributions_count"`
 	RoleVolume               []OwnDashboardRoleVolumeEntry             `json:"role_volume"`
 	CategoryProgress         []OwnDashboardCategoryProgress            `json:"category_progress"`
+	// PointsProgress (D-08, Phase 150) ersetzt die bisherige client-seitige
+	// total_points -> Meilenstein-Ableitung: eine serverautoritative
+	// Fortschrittszeile aus badges.Points, in derselben Form wie eine
+	// Contribution-Familienzeile (Family: "points").
+	PointsProgress           OwnDashboardCategoryProgress              `json:"points_progress"`
 	PendingClaims            []OwnDashboardPendingClaim                `json:"pending_claims"`
 	PendingGroupMediaReviews []OwnDashboardPendingGroupMediaReview     `json:"pending_group_media_reviews"`
 	PendingReleaseReviews    []OwnDashboardPendingReleaseReview        `json:"pending_release_reviews"`
 	PendingOwnNoteRevisions  []OwnDashboardPendingOwnNoteRevisionGroup `json:"pending_own_note_revisions"`
 }
 
-// contribFamilyAscendingThresholds spiegelt die Bronze/Silber/Gold-Schwellen der
-// bestehenden highestContribXTier-Switches (member_profile_contribution_badges_repository.go)
-// wortgetreu -- NIEMALS eigene Zahlen einfuehren. Reihenfolge ist aufsteigend, damit
-// der naechste-Schwelle-Scan in buildContribCategoryProgress linear funktioniert.
-var contribFamilyAscendingThresholds = map[string][]int64{
-	"contribution_projects":  {1, 5, 15},
-	"contribution_chronicle": {10, 50, 150},
-	"contribution_archivist": {10, 50, 150},
-}
-
-// contribFamilyTierFuncs bindet jede Familie an ihre bestehende, unveraenderte
-// Tier-Ableitungsfunktion -- Single Source of Truth bleibt
-// member_profile_contribution_badges_repository.go.
-var contribFamilyTierFuncs = map[string]func(int) string{
-	"contribution_projects":  highestContribProjectsTier,
-	"contribution_chronicle": highestContribChronicleTier,
-	"contribution_archivist": highestContribArchivistTier,
+// contribFamilyRegistry bindet jeden Familiennamen an seine autoritative
+// backend/internal/badges-Family (Phase 150 D-01/D-02). Die vorher hier lokal
+// gefuehrten Schwellen-/Tier-Funktions-Karten hielten trotz gegenteiliger
+// Kommentierung eine EIGENE Zahlenkopie; diese Karte haelt keine Zahlen mehr,
+// nur die Zuordnung Familienname -> Registry-Family.
+var contribFamilyRegistry = map[string]badges.Family{
+	"contribution_projects":  badges.ContributionProjects,
+	"contribution_chronicle": badges.ContributionChronicle,
+	"contribution_archivist": badges.ContributionArchivist,
 }
 
 // buildContribCategoryProgress berechnet eine D-04-Fortschrittszeile fuer eine
-// Contribution-Familie aus deren Rohzahl. NextThreshold ist die kleinste Schwelle
-// echt oberhalb der aktuellen Rohzahl; ist die Rohzahl >= der hoechsten (Gold-)
-// Schwelle, bleibt NextThreshold nil ("Hoechste Stufe erreicht").
+// Contribution-Familie aus deren Rohzahl, ausschliesslich ueber die Registry-Family
+// (Phase 150 D-01/D-02 -- keine lokalen Schwellen-Literale mehr). NextThreshold ist
+// die kleinste Schwelle echt oberhalb der aktuellen Rohzahl; ist die Rohzahl >= der
+// hoechsten (Gold-)Schwelle, bleibt NextThreshold nil ("Hoechste Stufe erreicht").
 func buildContribCategoryProgress(family string, count int64) OwnDashboardCategoryProgress {
-	tier := contribFamilyTierFuncs[family](int(count))
+	fam := contribFamilyRegistry[family]
+	tier := fam.CurrentTier(count)
 	var nextThreshold *int64
 	var remainingCount *int64
 	var nextTier *string
-	tierNames := []string{"bronze", "silver", "gold"}
-	for index, threshold := range contribFamilyAscendingThresholds[family] {
-		if count < threshold {
-			t := threshold
-			nextThreshold = &t
-			r := threshold - count
-			remainingCount = &r
-			n := tierNames[index]
-			nextTier = &n
-			break
-		}
+	if next, ok := fam.NextTier(count); ok {
+		t := next.Threshold
+		nextThreshold = &t
+		r := fam.Remaining(count)
+		remainingCount = &r
+		n := next.Code
+		nextTier = &n
 	}
 	return OwnDashboardCategoryProgress{
 		Family:         family,
@@ -228,10 +235,34 @@ func (r *MemberProfileRepository) GetOwnDashboard(ctx context.Context, memberID 
 
 	roleVolume := make([]OwnDashboardRoleVolumeEntry, 0, len(roleVolumeCounts))
 	for _, entry := range roleVolumeCounts {
-		roleVolume = append(roleVolume, OwnDashboardRoleVolumeEntry{RoleCode: entry.RoleCode, Count: entry.Count})
-		if highestRoleVolumeTier(int(entry.Count)) != "" {
+		currentTier := badges.RoleVolume.CurrentTier(entry.Count)
+		roleVolumeEntry := OwnDashboardRoleVolumeEntry{
+			RoleCode:    entry.RoleCode,
+			Count:       entry.Count,
+			CurrentTier: currentTier,
+		}
+		if currentTier != "" {
+			// Registry-Schwelle der bereits erreichten (aktuellen) Stufe -- linearer Scan
+			// ueber das kleine (4-Element), bereits exportierte badges.RoleVolume.Tiers-Slice
+			// (Plan 150-05's Revision, kein neuer Registry-Aufruf).
+			for _, tier := range badges.RoleVolume.Tiers {
+				if tier.Code == currentTier {
+					threshold := tier.Threshold
+					roleVolumeEntry.CurrentThreshold = &threshold
+					break
+				}
+			}
 			badgesCount++
 		}
+		if next, ok := badges.RoleVolume.NextTier(entry.Count); ok {
+			nextThreshold := next.Threshold
+			roleVolumeEntry.NextThreshold = &nextThreshold
+			remaining := badges.RoleVolume.Remaining(entry.Count)
+			roleVolumeEntry.RemainingCount = &remaining
+			nextTier := next.Code
+			roleVolumeEntry.NextTier = &nextTier
+		}
+		roleVolume = append(roleVolume, roleVolumeEntry)
 	}
 
 	if highestContribProjectsTier(int(familyProjectsCount)) != "" {
@@ -250,6 +281,23 @@ func (r *MemberProfileRepository) GetOwnDashboard(ctx context.Context, memberID 
 		buildContribCategoryProgress("contribution_archivist", archivistCount),
 	}
 
+	// PointsProgress (D-08): dieselbe Form wie eine Contribution-Familienzeile, aus dem
+	// bereits geladenen totalPoints ueber badges.Points -- keine neue Abfrage.
+	pointsTier := badges.Points.CurrentTier(totalPoints)
+	pointsProgress := OwnDashboardCategoryProgress{
+		Family:       "points",
+		CurrentTier:  pointsTier,
+		CurrentCount: totalPoints,
+	}
+	if next, ok := badges.Points.NextTier(totalPoints); ok {
+		nextThreshold := next.Threshold
+		pointsProgress.NextThreshold = &nextThreshold
+		remaining := badges.Points.Remaining(totalPoints)
+		pointsProgress.RemainingCount = &remaining
+		nextTier := next.Code
+		pointsProgress.NextTier = &nextTier
+	}
+
 	return &OwnDashboardData{
 		HasMemberProfile:        true,
 		TotalPoints:             totalPoints,
@@ -259,6 +307,7 @@ func (r *MemberProfileRepository) GetOwnDashboard(ctx context.Context, memberID 
 		ContributionsCount:      chronicleCount,
 		RoleVolume:              roleVolume,
 		CategoryProgress:        categoryProgress,
+		PointsProgress:          pointsProgress,
 		PendingClaims:           []OwnDashboardPendingClaim{},
 		PendingReleaseReviews:   []OwnDashboardPendingReleaseReview{},
 		PendingOwnNoteRevisions: []OwnDashboardPendingOwnNoteRevisionGroup{},

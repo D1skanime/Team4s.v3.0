@@ -38,10 +38,16 @@ const CATEGORY_FAMILY_ORDER: OwnDashboardCategoryProgress['family'][] = [
 // Contribution-Familien -- analog zur bereits bestehenden, ebenfalls privaten
 // ROLE_VOLUME_TIER_LABELS-Konvention in memberBadgeLabels.ts. Alle Zahlen/Schwellen kommen
 // ausschliesslich aus data.category_progress (next_threshold) bzw. den 116-01-Helfern.
+// "points" ist hier nur fuer Typ-Vollstaendigkeit gelistet (Phase 150 D-08 erweitert
+// OwnDashboardCategoryProgress['family'] um "points") -- diese Tabelle rendert die
+// Punkte-Zeile weiterhin ueber die eigene, separate resolveNextPointMilestone-Zeile
+// unten (CATEGORY_FAMILY_ORDER enthaelt "points" bewusst NICHT); der Umstieg auf
+// data.points_progress ist D-12s Aufgabe fuer einen spaeteren Plan.
 const CATEGORY_FAMILY_LABELS: Record<OwnDashboardCategoryProgress['family'], string> = {
   contribution_archivist: 'Bildarchivpflege',
   contribution_chronicle: 'Chronikpflege',
   contribution_projects: 'Dokumentierte Projekte',
+  points: 'Punkte-Meilenstein',
 }
 
 // Reine Tier-Namens-Labels (keine Zahlen) fuer die "noch X bis {Label}"-Zelle der drei

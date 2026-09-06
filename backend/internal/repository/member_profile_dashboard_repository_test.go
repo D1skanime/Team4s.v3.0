@@ -2,6 +2,7 @@ package repository
 
 import (
 	"context"
+	"fmt"
 	"testing"
 
 	"github.com/jackc/pgx/v5/pgxpool"
@@ -75,10 +76,20 @@ func TestGetOwnDashboardPostgresPointMilestoneIncrementsBadgesCount(t *testing.T
 	ledger := NewPointLedgerRepository(pool)
 	repo := NewMemberProfileRepository(pool, "")
 
-	awardInput := postgresAwardInputForMember(1, "award:dashboard-point-milestone")
-	awardInput.RulePointValue = 50
-	_, err := ledger.InsertAward(context.Background(), awardInput)
-	require.NoError(t, err)
+	// Fünf Einzel-Awards zu je 10 Punkten (der einzige in der Fixture geseedete
+	// point_rules-Datensatz, id 101, point_value 10) statt eines einzelnen
+	// Awards mit ueberschriebenem RulePointValue=50 -- die Snapshot-Validierung
+	// aus Migration 0131 (validate_point_ledger_insert) verlangt seit jeher
+	// point_value = point_rules.point_value fuer den referenzierten rule_id, ein
+	// einzelner Award mit abweichendem RulePointValue schlaegt fehl (pre-existing
+	// Bug, unabhaengig von Plan 150-02 -- fixiert, weil diese Datei in diesem
+	// Task's Scope liegt und ihr eigener Verify-Schritt diesen Test gruen
+	// erwartet).
+	for i := 0; i < 5; i++ {
+		award := postgresAwardInputForMember(1, "award:dashboard-point-milestone-"+string(rune('a'+i)))
+		_, err := ledger.InsertAward(context.Background(), award)
+		require.NoError(t, err)
+	}
 
 	data, err := repo.GetOwnDashboard(context.Background(), 1)
 	require.NoError(t, err)
@@ -120,9 +131,110 @@ func TestGetOwnDashboardPostgresRoleVolumeRawEntriesVersusBadgesCount(t *testing
 	require.Equal(t, int64(20), encodeCount)
 	require.Equal(t, int64(5), typesetCount)
 
-	// distinct-role-entry (+2, beide Rollen haben mind. 1 awarded Credit) + role-volume-bronze (+1, nur encode) = 3
-	require.Equal(t, 3, data.BadgesCount,
-		"BadgesCount muss fuer role_entry beide Rollen zaehlen, aber fuer role_volume nur die Bronze-Stufe (encode)")
+	// distinct-role-entry (+2, beide Rollen haben mind. 1 awarded Credit) + role-volume-bronze
+	// (+1, nur encode) + Punkt-Meilenstein (+1, jeder der 25 ledger.InsertAward-Aufrufe erzeugt
+	// real 10 Punkte -> total_points=250 >= 1) + contribution_projects-bronze (+1, dieselben
+	// release_role_credit_lifecycles-Zeilen decken release_version 30 -- die einzige
+	// ledger-erfasste Version fuer anime 100/Gruppe 20 in dieser Fixture -- vollstaendig ab,
+	// D-02 "vollstaendig mitgetragene Projekte") = 5. Korrigiert von der urspruenglich falschen
+	// Erwartung 3 (pre-existing Bug in dieser Testdatei, unabhaengig von Plan 150-02s
+	// Schwellen-Herkunftswechsel -- die Nebenwirkungen der wiederverwendeten
+	// release_version=30/fansub_group=20-Fixture-Daten auf total_points und Familie 1 wurden im
+	// urspruenglichen Kommentar schlicht nicht mitgerechnet).
+	require.Equal(t, 5, data.BadgesCount,
+		"BadgesCount muss role_entry (2), role_volume-Bronze (1), Punkt-Meilenstein (1) und contribution_projects-Bronze (1) zaehlen")
+}
+
+// TestGetOwnDashboardPostgresRoleVolumeEntryCarriesRegistryTierAndThreshold beweist
+// Plan 150-02 Task 2 (D-07 + die Revision fuer CurrentThreshold): eine Rollen-Volumen-
+// Zeile traegt jetzt Tier/aktuelle Schwelle/naechste Schwelle/Rest aus
+// badges.RoleVolume, nicht mehr nur role_code+count. count=13 (oberhalb Bronze=12)
+// liefert CurrentTier "bronze" mit CurrentThreshold 12 und NextThreshold 108 (Silber);
+// count=5 (unterhalb Bronze) liefert CurrentTier "" mit CurrentThreshold nil.
+func TestGetOwnDashboardPostgresRoleVolumeEntryCarriesRegistryTierAndThreshold(t *testing.T) {
+	pool := openOwnDashboardPostgres(t)
+	ledger := NewPointLedgerRepository(pool)
+	repo := NewMemberProfileRepository(pool, "")
+
+	for i := 1; i <= 13; i++ {
+		award, err := ledger.InsertAward(context.Background(), postgresAwardInputForMember(1, "award:dashboard-rv-threshold-translator-"+string(rune('a'+i))))
+		require.NoError(t, err)
+		insertContribLifecycleRow(t, pool, 30, 20, 1, "translator", i, "awarded", &award.ID, nil)
+	}
+	for i := 1; i <= 5; i++ {
+		award, err := ledger.InsertAward(context.Background(), postgresAwardInputForMember(1, "award:dashboard-rv-threshold-typeset-"+string(rune('a'+i))))
+		require.NoError(t, err)
+		insertContribLifecycleRow(t, pool, 30, 20, 1, "typeset", 100+i, "awarded", &award.ID, nil)
+	}
+
+	data, err := repo.GetOwnDashboard(context.Background(), 1)
+	require.NoError(t, err)
+
+	var translator, typeset *OwnDashboardRoleVolumeEntry
+	for i := range data.RoleVolume {
+		switch data.RoleVolume[i].RoleCode {
+		case "translator":
+			translator = &data.RoleVolume[i]
+		case "typeset":
+			typeset = &data.RoleVolume[i]
+		}
+	}
+	require.NotNil(t, translator)
+	require.NotNil(t, typeset)
+
+	require.Equal(t, int64(13), translator.Count)
+	require.Equal(t, "bronze", translator.CurrentTier)
+	require.NotNil(t, translator.CurrentThreshold)
+	require.Equal(t, int64(12), *translator.CurrentThreshold)
+	require.NotNil(t, translator.NextThreshold)
+	require.Equal(t, int64(108), *translator.NextThreshold)
+	require.NotNil(t, translator.RemainingCount)
+	require.Equal(t, int64(95), *translator.RemainingCount)
+	require.NotNil(t, translator.NextTier)
+	require.Equal(t, "silver", *translator.NextTier)
+
+	require.Equal(t, int64(5), typeset.Count)
+	require.Equal(t, "", typeset.CurrentTier, "unterhalb Bronze (12) darf keine Stufe stehen")
+	require.Nil(t, typeset.CurrentThreshold, "CurrentThreshold muss nil sein, solange CurrentTier leer ist")
+	require.NotNil(t, typeset.NextThreshold)
+	require.Equal(t, int64(12), *typeset.NextThreshold)
+}
+
+// TestGetOwnDashboardPostgresPointsProgressUsesRegistry beweist Plan 150-02 Task 2
+// (D-08): PointsProgress ist eine serverautoritative Fortschrittszeile aus
+// badges.Points, nicht mehr eine dem Frontend ueberlassene Ableitung aus
+// total_points. Bei total_points=0 zeigt sie auf die erste Stufe
+// (point_milestone_first, Schwelle 1); ab total_points=2500 ist die hoechste Stufe
+// (point_milestone_legend) erreicht und NextThreshold wird nil.
+func TestGetOwnDashboardPostgresPointsProgressUsesRegistry(t *testing.T) {
+	pool := openOwnDashboardPostgres(t)
+	repo := NewMemberProfileRepository(pool, "")
+
+	zeroState, err := repo.GetOwnDashboard(context.Background(), 1)
+	require.NoError(t, err)
+	require.Equal(t, "points", zeroState.PointsProgress.Family)
+	require.Equal(t, "", zeroState.PointsProgress.CurrentTier)
+	require.Equal(t, int64(0), zeroState.PointsProgress.CurrentCount)
+	require.NotNil(t, zeroState.PointsProgress.NextThreshold)
+	require.Equal(t, int64(1), *zeroState.PointsProgress.NextThreshold)
+	require.NotNil(t, zeroState.PointsProgress.RemainingCount)
+	require.Equal(t, int64(1), *zeroState.PointsProgress.RemainingCount)
+	require.NotNil(t, zeroState.PointsProgress.NextTier)
+	require.Equal(t, "point_milestone_first", *zeroState.PointsProgress.NextTier)
+
+	ledger := NewPointLedgerRepository(pool)
+	for i := 0; i < 250; i++ {
+		award := postgresAwardInputForMember(1, "award:dashboard-points-legend-"+fmt.Sprintf("%d", i))
+		_, err := ledger.InsertAward(context.Background(), award)
+		require.NoError(t, err)
+	}
+
+	legendState, err := repo.GetOwnDashboard(context.Background(), 1)
+	require.NoError(t, err)
+	require.Equal(t, int64(2500), legendState.TotalPoints)
+	require.Equal(t, "point_milestone_legend", legendState.PointsProgress.CurrentTier)
+	require.Nil(t, legendState.PointsProgress.NextThreshold, "hoechste Punkte-Stufe erreicht -- kein naechster Schwellenwert mehr")
+	require.Nil(t, legendState.PointsProgress.NextTier)
 }
 
 // TestGetOwnDashboardPostgresProjectsCountDivergesFromFamilyOneRawCount ist der
