@@ -2,8 +2,8 @@
 gsd_state_version: 1.0
 milestone: v1.4
 milestone_name: Coverage
-status: milestone_complete
-stopped_at: Milestone complete (Phase 149 was final phase)
+status: ready_to_plan (v1.4 bleibt abgeschlossen; 150 ist additiv angehängt)
+stopped_at: Phase 150 additiv angelegt (Roadmap-Eintrag), UI-SPEC erstellt und verifiziert
 last_updated: 2026-09-06T07:54:19.022Z
 last_activity: 2026-09-06
 progress:
@@ -29,13 +29,18 @@ Phase 135 and any future roadmap entries continue from here.
 See: .planning/PROJECT.md (updated 2026-08-13)
 
 **Core value:** Team4s presents fansub history and collaboration credibly while keeping identity, visibility, ownership, and permissions correct.
-**Current focus:** Milestone complete
+**Current focus:** Phase 150 (additiv an v1.4 angehängt)
 
 ## Current Position
 
-Phase: 149
-Plan: 6 of 6 (complete)
-Status: Milestone complete
+Phase: 150
+Plan: Not started
+Status: UI-SPEC approved — v1.4 bleibt abgeschlossen, Phase 150 ist additiv angehängt, kein neuer Milestone
+
+Phase 150 (Badge-Regeln — eine autoritative Schwellenquelle) ist additiv an v1.4 angehängt
+(gleiches Muster wie 143-149). 150-UI-SPEC.md wurde erstellt und vom UI-Checker mit 6/6 PASS
+freigegeben (eine nicht blockierende Empfehlung zur Parity-Methode Abschnitt B). Nächster Schritt:
+`/gsd:discuss-phase 150` oder direkt `/gsd:plan-phase 150`.
 
 Phase 149 (Tote CSS-Tokens sanieren und den Notiz-Kontrast schließen) passed goal-backward
 verification 7/7 (149-VERIFICATION.md, 2026-09-06) — all 6 plans executed, guard test proven with
