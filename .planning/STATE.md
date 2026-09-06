@@ -3,14 +3,14 @@ gsd_state_version: 1.0
 milestone: v1.4
 milestone_name: Coverage
 status: executing
-stopped_at: Completed 150-04-PLAN.md
-last_updated: "2026-09-06T23:30:04.613Z"
+stopped_at: Completed 150-03-PLAN.md
+last_updated: "2026-09-06T23:55:31.319Z"
 last_activity: 2026-09-06
 progress:
   total_phases: 15
   completed_phases: 14
   total_plans: 155
-  completed_plans: 151
+  completed_plans: 152
   percent: 93
 ---
 
@@ -34,7 +34,7 @@ See: .planning/PROJECT.md (updated 2026-08-13)
 ## Current Position
 
 Phase: 150 (badge-regeln-eine-autoritative-schwellenquelle) — EXECUTING
-Plan: 4 of 7
+Plan: 5 of 7
 Status: Ready to execute
 
 Phase 150 (Badge-Regeln — eine autoritative Schwellenquelle) ist additiv an v1.4 angehängt
@@ -319,6 +319,8 @@ Last activity: 2026-09-06
 - [Phase 150]: OwnDashboardRoleVolumeEntry gained current_threshold as a companion addition for Plan 150-05's role-volume badge label ('Bronze · 12+'); PublicMemberBadgeProgress.stages (Plan 150-03) cannot supply it since it lives on a different response than /me/dashboard.
 - [Phase 150]: member_profile_dashboard_repository.go's contribFamilyAscendingThresholds/contribFamilyTierFuncs maps removed (150-02); Test-DB fixture drift (nickname/public_slug NOT NULL, duplicate member_claims table, missing PMDA-06 media_assets join) in member_profile_contribution_badges_repository_test.go was pre-existing and unrelated to this plan, fixed since the file was in-scope and its own verify command required these tests green.
 - [Phase 150]: 150-04: role_entry_<code> now sourced exclusively by loadRoleVolumeBadges (D-10 fix); dedicated single-use Postgres fixture used since point_ledger_entries' append-only guard is incompatible with the shared openPhase129Postgres DELETE-reset
+- [Phase 150]: Fixed two pre-existing role_volume Postgres boundary tests that had never actually run against a real DSN (nil award/reversal entry IDs violated chk_release_role_credit_lifecycle_shape) — 150-03 Task 1
+- [Phase 150]: loadBadgeProgress role_volume integration tests use a new openBadgeProgressPostgres fixture extending 150-02's schema-isolated openContributionBadgesPostgres, not openPhase129Postgres (unsafe for point_ledger_entries per 150-04's finding) — 150-03 Task 2
 
 ### Pending Todos
 
@@ -660,10 +662,11 @@ untruncated list lives in `.planning/todos/pending/`.
 | Phase 150 P01 | 9min | 2 tasks | 4 files |
 | Phase 150 P02 | 35min | 3 tasks | 12 files |
 | Phase 150 P04 | 26min | 1 tasks | 3 files |
+| Phase 150 P03 | 45min | 2 tasks | 9 files |
 
 ## Session Continuity
 
-Last session: 2026-09-06T23:30:04.596Z
-Stopped at: Completed 150-04-PLAN.md
+Last session: 2026-09-06T23:55:31.296Z
+Stopped at: Completed 150-03-PLAN.md
 Last activity: 2026-09-01 - Milestone v1.4 audit passed (41/41 requirements, 7/7 phases, .planning/v1.4-MILESTONE-AUDIT.md); Phase 143 added to roadmap, not yet planned
 Resume file: None
