@@ -15,14 +15,14 @@
   color: var(--text-primary);
 }
 
-/* Gedaempftes Header-Band im Ton der fruehreren Seitenleiste (55% Akzent + Rahmengrau). */
+/* Gedämpftes Header-Band im Ton der früheren Seitenleiste (45% Akzent + Rahmengrau). */
 .head {
   display: flex;
   align-items: center;
   justify-content: space-between;
   gap: 10px;
   padding: 9px 14px;
-  background: color-mix(in srgb, var(--role-accent) 55%, var(--color-border));
+  background: color-mix(in srgb, var(--role-accent) 45%, var(--color-border));
   color: var(--text-primary);
 }
 
