@@ -4,6 +4,7 @@ import (
 	"context"
 	"fmt"
 
+	"team4s.v3/backend/internal/badges"
 	"team4s.v3/backend/internal/models"
 )
 
@@ -18,36 +19,21 @@ import (
 // ("vollstaendig mitgetragene Projekte", D-02). Zaehlbasis ist die Anzahl Projekte
 // (anime_id, fansub_group_id), die der Member ueber JEDE ledger-erfasste
 // release_version hinweg mit mindestens einem eigenen netto-awarded
-// release_role_credit_lifecycles-Credit abgedeckt hat. Schwellen: 1/5/15.
+// release_role_credit_lifecycles-Credit abgedeckt hat. Schwellen: 1/5/15 (aus der
+// autoritativen Registry backend/internal/badges, Phase 150 D-02/D-03 -- keine eigene
+// Zahlenkopie mehr).
 func highestContribProjectsTier(count int) string {
-	switch {
-	case count >= 15:
-		return "gold"
-	case count >= 5:
-		return "silver"
-	case count >= 1:
-		return "bronze"
-	default:
-		return ""
-	}
+	return badges.ContributionProjects.CurrentTier(int64(count))
 }
 
 // highestContribChronicleTier liefert die hoechste erreichte Stufe fuer Familie 2
 // ("Chronist", D-03). Zaehlbasis ist die Netto-Anzahl veroeffentlichter, nicht
 // geloeschter Notiz-/Text-Beitraege des Members ueber release_version_notes
 // (Pflicht-Kern, member_id direkt) plus anime_fansub_project_notes und
-// fansub_group_notes ueber den created_by_user_id-Autor-Seam. Schwellen: 10/50/150.
+// fansub_group_notes ueber den created_by_user_id-Autor-Seam. Schwellen: 10/50/150
+// (aus der autoritativen Registry backend/internal/badges, Phase 150 D-02/D-03).
 func highestContribChronicleTier(count int) string {
-	switch {
-	case count >= 150:
-		return "gold"
-	case count >= 50:
-		return "silver"
-	case count >= 10:
-		return "bronze"
-	default:
-		return ""
-	}
+	return badges.ContributionChronicle.CurrentTier(int64(count))
 }
 
 // highestContribArchivistTier liefert die hoechste erreichte Stufe fuer Familie 3
@@ -55,18 +41,10 @@ func highestContribChronicleTier(count int) string {
 // Zeilen des Members ueber den Autor-Seam, ausschliesslich net soft-delete
 // (deleted_at IS NULL) sowie oeffentlich freigegebene Medien (media_assets
 // status='ready', visibilities public, review_statuses approved -- PMDA-06/
-// PMPR-06). Schwellen: 10/50/150.
+// PMPR-06). Schwellen: 10/50/150 (aus der autoritativen Registry
+// backend/internal/badges, Phase 150 D-02/D-03).
 func highestContribArchivistTier(count int) string {
-	switch {
-	case count >= 150:
-		return "gold"
-	case count >= 50:
-		return "silver"
-	case count >= 10:
-		return "bronze"
-	default:
-		return ""
-	}
+	return badges.ContributionArchivist.CurrentTier(int64(count))
 }
 
 // authorMemberSeam ist der wiederkehrende Autor->Member-Auflösungs-Seam (Pattern 3):

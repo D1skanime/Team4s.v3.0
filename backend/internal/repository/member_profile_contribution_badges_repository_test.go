@@ -59,7 +59,7 @@ func openContributionBadgesPostgres(t *testing.T) *pgxpool.Pool {
 ALTER TABLE release_versions ADD COLUMN release_id BIGINT;
 ALTER TABLE app_users ADD COLUMN legacy_user_id BIGINT;
 
-INSERT INTO members (id) VALUES (2);
+INSERT INTO members (id, nickname, public_slug) VALUES (2, 'member-two', 'member-two');
 
 CREATE TABLE fansub_releases (
 	id BIGINT PRIMARY KEY,
@@ -69,12 +69,10 @@ CREATE TABLE episodes (
 	id BIGINT PRIMARY KEY,
 	anime_id BIGINT NOT NULL
 );
-CREATE TABLE member_claims (
-	id BIGSERIAL PRIMARY KEY,
-	member_id BIGINT NOT NULL,
-	app_user_id BIGINT NOT NULL,
-	claim_status TEXT NOT NULL DEFAULT 'pending'
-);
+-- member_claims already exists via the Phase-128 base fixture
+-- (testsupport.OpenPhase128Postgres's createPhase128Prerequisites); a second
+-- CREATE TABLE here collided with it (pre-existing schema drift, not caused by
+-- Phase 150 -- fixed in passing since this exact fixture is in this task's scope).
 CREATE TABLE release_version_notes (
 	id BIGSERIAL PRIMARY KEY,
 	release_version_id BIGINT NOT NULL,
@@ -94,9 +92,36 @@ CREATE TABLE fansub_group_notes (
 	status TEXT NOT NULL DEFAULT 'draft',
 	deleted_at TIMESTAMPTZ NULL
 );
+-- Phase 129 (PMDA-06/PMPR-06) added a media_assets/visibilities/review_statuses
+-- visibility-and-review gate to loadContribArchivistCount's JOIN -- this
+-- fixture predates that fix and never got the tables added, so a default
+-- public+approved+ready media_assets row (id 9000) is seeded here and every
+-- existing INSERT INTO release_version_media below defaults to it, keeping
+-- this task's unrelated pre-existing test fixture in sync with production
+-- (Phase 150 Task 1 scope: fixed in passing since this exact file/fixture is
+-- in this task's file list and its own <verify> command runs these tests).
+CREATE TABLE visibilities (
+	id BIGINT PRIMARY KEY,
+	name TEXT NOT NULL
+);
+CREATE TABLE review_statuses (
+	id BIGINT PRIMARY KEY,
+	code TEXT NOT NULL
+);
+CREATE TABLE media_assets (
+	id BIGINT PRIMARY KEY,
+	status TEXT NOT NULL DEFAULT 'ready',
+	visibility_id BIGINT NOT NULL,
+	review_status_id BIGINT NOT NULL
+);
+INSERT INTO visibilities (id, name) VALUES (1, 'public');
+INSERT INTO review_statuses (id, code) VALUES (1, 'approved');
+INSERT INTO media_assets (id, status, visibility_id, review_status_id) VALUES (9000, 'ready', 1, 1);
+
 CREATE TABLE release_version_media (
 	id BIGSERIAL PRIMARY KEY,
 	release_version_id BIGINT NOT NULL,
+	media_asset_id BIGINT NOT NULL DEFAULT 9000,
 	uploaded_by_user_id BIGINT NULL,
 	deleted_at TIMESTAMPTZ NULL
 );
