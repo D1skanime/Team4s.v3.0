@@ -2,16 +2,16 @@
 gsd_state_version: 1.0
 milestone: v1.4
 milestone_name: Coverage
-status: ready_to_plan (v1.4 bleibt abgeschlossen; 150 ist additiv angehängt)
-stopped_at: Phase 150 additiv angelegt (Roadmap-Eintrag), UI-SPEC erstellt und verifiziert
-last_updated: 2026-09-06T07:54:19.022Z
-last_activity: 2026-09-06
+status: executing
+stopped_at: Completed 149-05-PLAN.md
+last_updated: "2026-09-06T22:14:40.028Z"
+last_activity: 2026-09-06 -- Phase 150 execution started
 progress:
-  total_phases: 14
+  total_phases: 15
   completed_phases: 14
-  total_plans: 148
+  total_plans: 155
   completed_plans: 148
-  percent: 100
+  percent: 93
 ---
 
 # Project State
@@ -29,13 +29,13 @@ Phase 135 and any future roadmap entries continue from here.
 See: .planning/PROJECT.md (updated 2026-08-13)
 
 **Core value:** Team4s presents fansub history and collaboration credibly while keeping identity, visibility, ownership, and permissions correct.
-**Current focus:** Phase 150 (additiv an v1.4 angehängt)
+**Current focus:** Phase 150 — badge-regeln-eine-autoritative-schwellenquelle
 
 ## Current Position
 
-Phase: 150
-Plan: Not started
-Status: UI-SPEC approved — v1.4 bleibt abgeschlossen, Phase 150 ist additiv angehängt, kein neuer Milestone
+Phase: 150 (badge-regeln-eine-autoritative-schwellenquelle) — EXECUTING
+Plan: 1 of 7
+Status: Executing Phase 150
 
 Phase 150 (Badge-Regeln — eine autoritative Schwellenquelle) ist additiv an v1.4 angehängt
 (gleiches Muster wie 143-149). 150-UI-SPEC.md wurde erstellt und vom UI-Checker mit 6/6 PASS
@@ -52,7 +52,7 @@ timing flakiness, not a Phase 149 regression, and not yet root-caused.
 
 v1.4 remains complete; Phase 149 was appended additively (same pattern as 143-148), no new
 milestone was created.
-Last activity: 2026-09-06
+Last activity: 2026-09-06 -- Phase 150 execution started
 
 ## Accumulated Context
 
