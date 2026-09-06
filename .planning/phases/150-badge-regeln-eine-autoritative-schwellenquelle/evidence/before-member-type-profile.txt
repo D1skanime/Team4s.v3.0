@@ -1,0 +1,370 @@
+# Phase 150-01 evidence capture -- 2026-09-06T22:19:53.016Z
+# slug: type
+# url: http://192.168.235.196:3000/members/type
+
+## h1
+Type
+
+## h3
+Fansub-Geschichte
+Gruppenzugehörigkeit
+Typesetting:
+Anime-Projekte
+Mitgetragene Projekte
+Chronikpflege
+Bildarchivpflege
+Mitgliedsdauer
+Letzte Beiträge
+Frühere Mitwirkungen
+
+## badge-stage-strips (data-badge-stage-strip elements)
+[]
+
+## badge-items (all [data-badge-code] elements -- badge codes, thresholds, stage state)
+[
+  {
+    "badgeCode": "point_milestone_first",
+    "threshold": "1",
+    "stageState": "current",
+    "ariaCurrent": "step",
+    "ariaLabel": null,
+    "text": "Stufe: Erste PunkteAb 1 PunktenAktuell"
+  },
+  {
+    "badgeCode": "point_milestone_active",
+    "threshold": "50",
+    "stageState": "locked",
+    "ariaCurrent": null,
+    "ariaLabel": null,
+    "text": "?Stufe: Aktiv dabeiAb 50 Punkten Gesperrt"
+  },
+  {
+    "badgeCode": "point_milestone_experienced",
+    "threshold": "200",
+    "stageState": "locked",
+    "ariaCurrent": null,
+    "ariaLabel": null,
+    "text": "?Stufe: ErfahrungsstufeAb 200 Punkten Gesperrt"
+  },
+  {
+    "badgeCode": "point_milestone_engaged",
+    "threshold": "500",
+    "stageState": "locked",
+    "ariaCurrent": null,
+    "ariaLabel": null,
+    "text": "?Stufe: Stark engagiertAb 500 Punkten Gesperrt"
+  },
+  {
+    "badgeCode": "point_milestone_veteran",
+    "threshold": "1000",
+    "stageState": "locked",
+    "ariaCurrent": null,
+    "ariaLabel": null,
+    "text": "?Stufe: VeteranenstatusAb 1’000 Punkten Gesperrt"
+  },
+  {
+    "badgeCode": "point_milestone_legend",
+    "threshold": "2500",
+    "stageState": "locked",
+    "ariaCurrent": null,
+    "ariaLabel": null,
+    "text": "?Stufe: Archiv-LegendeAb 2’500 Punkten Gesperrt"
+  },
+  {
+    "badgeCode": "contribution_projects_bronze",
+    "threshold": null,
+    "stageState": "current",
+    "ariaCurrent": "step",
+    "ariaLabel": null,
+    "text": "BronzeAktuell"
+  },
+  {
+    "badgeCode": "contribution_projects_silver",
+    "threshold": null,
+    "stageState": "locked",
+    "ariaCurrent": null,
+    "ariaLabel": null,
+    "text": "?SilberGesperrt"
+  },
+  {
+    "badgeCode": "contribution_projects_gold",
+    "threshold": null,
+    "stageState": "locked",
+    "ariaCurrent": null,
+    "ariaLabel": null,
+    "text": "?GoldGesperrt"
+  },
+  {
+    "badgeCode": "contribution_chronicle_bronze",
+    "threshold": null,
+    "stageState": "current",
+    "ariaCurrent": "step",
+    "ariaLabel": null,
+    "text": "BronzeAktuell"
+  },
+  {
+    "badgeCode": "contribution_chronicle_silver",
+    "threshold": null,
+    "stageState": "locked",
+    "ariaCurrent": null,
+    "ariaLabel": null,
+    "text": "?SilberGesperrt"
+  },
+  {
+    "badgeCode": "contribution_chronicle_gold",
+    "threshold": null,
+    "stageState": "locked",
+    "ariaCurrent": null,
+    "ariaLabel": null,
+    "text": "?GoldGesperrt"
+  },
+  {
+    "badgeCode": "contribution_archivist_bronze",
+    "threshold": null,
+    "stageState": "locked",
+    "ariaCurrent": null,
+    "ariaLabel": null,
+    "text": "?BronzeGesperrt"
+  },
+  {
+    "badgeCode": "contribution_archivist_silver",
+    "threshold": null,
+    "stageState": "locked",
+    "ariaCurrent": null,
+    "ariaLabel": null,
+    "text": "?SilberGesperrt"
+  },
+  {
+    "badgeCode": "contribution_archivist_gold",
+    "threshold": null,
+    "stageState": "locked",
+    "ariaCurrent": null,
+    "ariaLabel": null,
+    "text": "?GoldGesperrt"
+  },
+  {
+    "badgeCode": "long_term_member",
+    "threshold": "5",
+    "stageState": "locked",
+    "ariaCurrent": null,
+    "ariaLabel": null,
+    "text": "?5 Jahre Gesperrt"
+  },
+  {
+    "badgeCode": "membership_7_years",
+    "threshold": "7",
+    "stageState": "locked",
+    "ariaCurrent": null,
+    "ariaLabel": null,
+    "text": "?7 Jahre Gesperrt"
+  },
+  {
+    "badgeCode": "membership_10_years",
+    "threshold": "10",
+    "stageState": "locked",
+    "ariaCurrent": null,
+    "ariaLabel": null,
+    "text": "?10 Jahre Gesperrt"
+  }
+]
+
+## role_volume_typesetter_bronze ground-truth snippet (from SSR RSC payload)
+present: true
+vement\"},{\"id\":9,\"badge_code\":\"verified\",\"badge_category\":\"platform\"},{\"id\":0,\"badge_code\":\"role_entry_typesetter\",\"badge_category\":\"role_entry\"},{\"id\":0,\"badge_code\":\"role_entry_typesetter\",\"badge_category\":\"role_entry\",\"current_count\":13,\"current_tier\":\"bronze\",\"next_threshold\":108,\"remaining_count\":95,\"next_tier\":\"silver\"},{\"id\":0,\"badge_code\":\"role_volume_typesetter_bronze\",\"badge_category\":\"role_volume\",\"current_count\":13,\"current_tier\":\"bronze\",\"next_threshold\":108,\"remaining_count\":95,\"next_tier\":\"silver\"},{\"id\":0,\"
+
+## document.body.innerText
+T4
+Team4s
+Plattform
+
+ENTDECKEN
+
+Anime entdecken
+Rangliste
+Fansub-Gruppen
+Suche
+Anmelden
+Anime
+>
+Members
+>
+Type
+T
+
+FANSUB-MEMBER
+
+Type
+Verifiziert
+Aktiv
+Punkte
+39
+Schwerpunkte: Typesetting
+Profil und Mitgliedschaft
+Fansub-Geschichte
+
+Noch keine Geschichte hinterlegt.
+
+Gruppenzugehörigkeit
+New-Subs
+Aktuelles Mitglied
+Typesetting
+Zur Gruppe
+Fansub-Projekte
+Buddy Complex
+New-Subs
+Typesetting
+Projektweit
+1 von 1 Projekten sichtbar
+Rollenfortschritt
+1 ausgeübte Fansubrolle
+Typesetting:
+Bronze
+13 Mitwirkungen
+13 / 108
+12%
+
+Noch 95 Mitwirkungen bis Silber
+
+Einstieg
+1+
+Erstes Typesetting
+Bronze
+12+
+Aktuell
+?
+Silber
+108+
+Gesperrt
+?
+Gold
+320+
+Gesperrt
+?
+Platin
+510+
+Gesperrt
+Fortschritt
+ANIME-PROJEKTE
+Erste Mitwirkung
+1 Anime-Projekt
+1 / 10
+10 %
+
+Noch 9 Anime-Projekte bis Bronze
+
+★
+Erste Mitwirkung
+1
+Aktuell
+?
+Bronze
+10
+Gesperrt
+?
+Silber
+25
+Gesperrt
+?
+Gold
+50
+Gesperrt
+Punkte-Meilensteine
+Erste Punkte
+39 Punkte
+39 / 50
+78 %
+
+Noch 11 Punkte bis Aktiv dabei
+
+Stufe: Erste Punkte
+Ab 1 Punkten
+Aktuell
+?
+Stufe: Aktiv dabei
+Ab 50 Punkten
+Gesperrt
+?
+Stufe: Erfahrungsstufe
+Ab 200 Punkten
+Gesperrt
+?
+Stufe: Stark engagiert
+Ab 500 Punkten
+Gesperrt
+?
+Stufe: Veteranenstatus
+Ab 1’000 Punkten
+Gesperrt
+?
+Stufe: Archiv-Legende
+Ab 2’500 Punkten
+Gesperrt
+Beiträge
+MITGETRAGENE PROJEKTE
+Bronze
+Aktuell
+1 mitgetragenes Projekt
+1 / 5
+20 %
+
+Noch 4 mitgetragene Projekte bis Silber
+
+Bronze
+Aktuell
+?
+Silber
+Gesperrt
+?
+Gold
+Gesperrt
+?
+Noch nicht freigeschaltet
+1 von 3 Sammlungen
+Alle Auszeichnungen in Beiträge anzeigen
+Mitgliedschaft
+?
+Noch nicht freigeschaltet
+MITGLIEDSDAUER
+5+ Jahre Mitglied
+Gesperrt
+0 Jahre Mitgliedschaft
+0 / 5
+0 %
+
+Noch 5 Jahre bis 5 Jahre
+
+?
+5 Jahre
+Gesperrt
+?
+7 Jahre
+Gesperrt
+?
+10 Jahre
+Gesperrt
+Beiträge
+Letzte Beiträge
+Buddy Complex
+vor 4 Tagen
+Textbeitrag
+test
+
+test 3
+
+Buddy Complex
+vor 4 Tagen
+Medienbeitrag
+Spaßbild / Outtake
+
+richtiger shoot
+
+Buddy Complex
+vor 5 Tagen
+Textbeitrag
+Abschluss
+
+Zum Abschluss noch einmal besonders auf Konsistenz mit den vorherigen Folgen geachtet. Wiederkehrende Schilder, Displays und Bezeichnungen kontrolliert und kleinere Abweichungen korrigiert.
+
+Frühere Mitwirkungen
+
+Keine früheren Mitwirkungen sichtbar.
