@@ -242,3 +242,52 @@ None - no external service configuration required.
 - Commit `d74dd070` — FOUND in `git log --oneline --all`
 - Commit `3878217f` — FOUND in `git log --oneline --all`
 - Working tree confirmed clean of the temporary proof change (`git diff --stat` empty) before this commit.
+
+## Reconciliation: ROADMAP's "78 references" vs. 149-UI-SPEC.md's corrected "39"
+
+The orchestrator investigated this discrepancy directly against the pre-phase baseline
+(commit `aa9256f5`, immediately before any Phase 149 execution), independently of both
+prior figures, using an exact-token-boundary `git grep` (`var(--TOKEN` followed by `,`,
+whitespace, or `)` — not a bare substring match, which would falsely count e.g.
+`--color-text-primary` as a hit for `--color-text`):
+
+| Token | Total `var(--TOKEN...)` occurrences (any form) | Fallback-free (`var(--TOKEN)` only) |
+|---|---|---|
+| `--color-text-muted` | 22 | 4 |
+| `--color-text` | 15 | 3 |
+| `--color-surface` | 12 | 6 |
+| `--surface-muted` | 8 | 8 (see note) |
+| `--accent` | 5 | 5 |
+| `--color-text-tertiary` | 4 | 4 |
+| `--color-info` | 3 | 3 |
+| `--success` | 2 | 2 |
+| `--accent-primary-strong` | 2 | 2 |
+| `--border-default` | 1 | 1 |
+| `--border-soft` | 1 | 1 |
+| `--radius` | 1 | 1 |
+| **Subtotal (12 tokens)** | **76** | **40** |
+| `--tag-` (2 template-string hits in `app/dev/ui-system/page.tsx:217`) | +2 | — |
+| **Total** | **78** | **40 (39 real)** |
+
+**76 + 2 = 78 — an exact match to the ROADMAP's original figure.** This proves the
+ROADMAP's "78" was the raw count of every textual `var(--TOKEN...)` occurrence for these
+13 names, **without checking whether each occurrence actually carried a fallback
+argument** — it counted fallback-protected and fallback-free occurrences identically, plus
+the 2 `--tag-` template-string hits, which don't even match real `var()` syntax (they're
+runtime string interpolation over already-defined concrete tokens like `--tag-gallery-bg`).
+
+The `--surface-muted` row needs one further correction: of its 8 occurrences, 7 are real
+CSS declarations and the 8th is a **test-description string literal** in
+`roleCatalog.accessibility.test.ts:288` that mentions `var(--surface-muted)` in prose
+while documenting a separate, unrelated known gap — not an actual code reference. Removing
+that false match brings the true fallback-free defect count to **39**, exactly matching
+`149-UI-SPEC.md`'s corrected table.
+
+**Which number is authoritative:** neither 78 nor 39 needs to be trusted on its own. This
+plan's guard test (`cssCustomProperties.guard.test.ts`) performs a full, token-list-agnostic
+scan of every `.css`/`.ts`/`.tsx` file under `frontend/src` for fallback-free references to
+*any* undefined custom property — not just the pre-identified 13 — and asserts the
+resulting dead-reference set is empty against the real, already-fixed tree (Plans 149-01
+through 149-03 landed first). That assertion passed. This is direct, unbiased proof that
+ROADMAP Success Criterion 1 is met: no additional "missing Stellen" beyond the 39 exist,
+and none were needed.
