@@ -36,7 +36,7 @@
   padding: var(--space-3);
   border: 1px dashed var(--border-strong);
   border-radius: var(--radius-md);
-  background: color-mix(in srgb, var(--surface-muted) 70%, transparent);
+  background: color-mix(in srgb, var(--surface-card-muted) 70%, transparent);
 }
 
 .fileInput {
@@ -184,7 +184,7 @@
 
 .dragHandle:hover {
   border-color: var(--border-subtle);
-  background: var(--surface-muted);
+  background: var(--surface-card-muted);
   color: var(--text-strong);
 }
 
@@ -277,7 +277,7 @@
   overflow: hidden;
   border: 1px solid var(--border-subtle);
   border-radius: var(--radius-sm);
-  background: var(--surface-muted);
+  background: var(--surface-card-muted);
   color: var(--text-muted);
   cursor: pointer;
   font-size: 0.75rem;
@@ -376,7 +376,7 @@
   overflow: hidden;
   border: 1px solid var(--border-subtle);
   border-radius: var(--radius-sm);
-  background: var(--surface-muted);
+  background: var(--surface-card-muted);
   color: var(--text-muted);
   font-size: 0.875rem;
   text-align: center;
@@ -420,7 +420,7 @@
 
 .drawerCancelButton:hover {
   border-color: var(--border-strong);
-  background: var(--surface-muted);
+  background: var(--surface-card-muted);
   color: var(--text-strong);
 }
 

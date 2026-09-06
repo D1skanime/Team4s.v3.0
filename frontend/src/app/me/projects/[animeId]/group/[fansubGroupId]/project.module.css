@@ -55,7 +55,7 @@
   padding: 9px 10px;
   border: 1px solid var(--border-subtle);
   border-radius: 8px;
-  background: var(--surface-muted);
+  background: var(--surface-card-muted);
 }
 
 .roleDetailRow strong {
@@ -88,7 +88,7 @@
   padding: 3px;
   border: 1px solid var(--border-subtle);
   border-radius: 8px;
-  background: var(--surface-muted);
+  background: var(--surface-card-muted);
 }
 
 .segmented button {
