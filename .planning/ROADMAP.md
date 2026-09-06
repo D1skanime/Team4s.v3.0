@@ -421,7 +421,7 @@ Milestone v1.4 closes Live-UAT Findings #29-#32 by making effective group rights
 - [x] **Phase 146: Registry-Selbstschutz und Sanierung der Quelltext-Substring-Tests** - Kein Admin kann über die Capability-Matrix einen Zustand erzeugen, der den nächsten Backend-Start scheitern lässt, und sicherheitsrelevante Tests belegen Verhalten durch echte Aufrufe statt durch Quelltextsuche. (completed 2026-09-04)
 - [x] **Phase 147: Rollen-Registry — letzte Parallelkataloge auflösen** - Eine neue Gruppenrolle muss nur noch in `role_definitions` ergänzt werden; die verbliebenen Frontend-/Go-Parallelregistries für Rollen sind entfernt. (completed 2026-09-05)
 - [x] **Phase 148: Rollenfarben wieder an den Katalog anschließen** - Die beim Seam-Umbau in Phase 136-30 zurückgebliebenen toten Farb-Token, Hex-in-`data-role-code`-Attribute und Kategorie-Klassenmaps sind entfernt; die Rollenfarbe kommt app-weit aus `role_definitions.color_key`. (completed 2026-09-05)
-- [ ] **Phase 149: Tote CSS-Tokens sanieren und den Notiz-Kontrast schließen** - 13 referenzierte, aber nirgends definierte Custom Properties (78 Referenzen) sind auf vorhandene Design-Tokens umgebogen, ein Guard verhindert Neuzugänge, und der Rollentext der Notizkarte erreicht WCAG AA.
+- [x] **Phase 149: Tote CSS-Tokens sanieren und den Notiz-Kontrast schließen** - 13 referenzierte, aber nirgends definierte Custom Properties (78 Referenzen) sind auf vorhandene Design-Tokens umgebogen, ein Guard verhindert Neuzugänge, und der Rollentext der Notizkarte erreicht WCAG AA. (completed 2026-09-06)
 
 ## Phase Details
 
@@ -1085,7 +1085,7 @@ Plans:
 
 **UI hint**: ja — Textfarben, Flächen und ein Kontrastverhältnis ändern sich sichtbar. Vor `plan-phase` `/gsd-ui-phase 149` laufen lassen.
 
-**Plans:** 5/6 plans executed
+**Plans:** 6/6 plans complete
 
 Plans:
 **Wave 1**
@@ -1101,7 +1101,7 @@ Plans:
 
 **Wave 3** *(blocked on Wave 2 completion)*
 
-- [ ] 149-06-PLAN.md — Full regression sweep + live UAT
+- [x] 149-06-PLAN.md — Full regression sweep + live UAT
 
 ## v1.4 Coverage
 
@@ -1135,4 +1135,4 @@ Plans:
 | 146. Registry-Selbstschutz und Sanierung der Quelltext-Substring-Tests | 13/13 | Complete   | 2026-09-04 |
 | 147. Rollen-Registry — letzte Parallelkataloge auflösen | 6/6 | Complete   | 2026-09-05 |
 | 148. Rollenfarben wieder an den Katalog anschließen | 8/8 | Complete    | 2026-09-05 |
-| 149. Tote CSS-Tokens sanieren und den Notiz-Kontrast schließen | 5/6 | In Progress|  |
+| 149. Tote CSS-Tokens sanieren und den Notiz-Kontrast schließen | 6/6 | Complete   | 2026-09-06 |
