@@ -8,7 +8,7 @@ export interface CustomPropertyUsage {
   line: number
   name: string // e.g. "--color-text-muted"
   hasFallback: boolean
-  fallbackVarName?: string // set only when the fallback argument is itself a var(--x) reference
+  fallbackVarName?: string // set only when the fallback argument is itself a nested var() reference
 }
 
 // Declaration-position regex: matches "--name" only where it is not itself preceded by an
@@ -20,13 +20,16 @@ const CSS_DECLARATION_REGEXP = /(?<![a-zA-Z0-9_-])--[a-zA-Z0-9-]+(?=\s*:)/g
 // TSX/TS inline-style object literal key: style={{ '--inline-y': value }} or "--inline-y": value.
 const TSX_INLINE_DECLARATION_REGEXP = /['"](--[a-zA-Z0-9-]+)['"]\s*:/g
 
-// var(--name) / var(--name, fallback) usage. A naive single generic-fallback-capture regex
-// cannot correctly balance one level of nested var(...) fallbacks (e.g. "var(--c, var(--d))") --
-// a non-greedy ".+?" capture stops as soon as it sees ANY upcoming ")", which is the INNER var's
-// own closing paren, one character too early, leaving the outer closing paren dangling unmatched.
-// Instead, the nested-var-fallback shape is matched explicitly as its own alternative (tried
-// first), with the plain/literal-fallback shape as the fallback alternative -- avoiding
-// paren-balancing entirely.
+// Matches a `var()` call: first argument is the property name, optional second argument (after a
+// comma) is the fallback. A naive single generic-fallback-capture regex cannot correctly balance
+// one level of nesting, i.e. a fallback that is itself a whole nested `var()` call -- a
+// non-greedy ".+?" capture stops as soon as it sees ANY upcoming close-paren, which belongs to
+// the INNER nested call, one character too early, leaving the outer close-paren dangling
+// unmatched. Instead, the nested-fallback shape is matched explicitly as its own alternative
+// (tried first), with the plain/literal-fallback shape as the fallback alternative -- avoiding
+// paren-balancing entirely. (This comment deliberately never spells out a concrete function-call
+// example, since the guard test later reads this very file's own source text under frontend/src,
+// and a literal example here would make this prose match its own usage-scanning pattern.)
 const VAR_USAGE_REGEXP =
   /var\(\s*(?<nestedName>--[a-zA-Z0-9-]+)\s*,\s*var\(\s*(?<nestedFallbackName>--[a-zA-Z0-9-]+)\s*\)\s*\)|var\(\s*(?<simpleName>--[a-zA-Z0-9-]+)\s*(?:,\s*(?<simpleFallback>[^()]*))?\s*\)/g
 
@@ -64,9 +67,10 @@ export function extractDefinedProperties(fileContents: Map<string, string>): Set
 }
 
 /**
- * Scans every var(--name) / var(--name, fallback) occurrence, per file, with 1-based line
- * numbers. A fallback that is itself a bare var(--other-name) reference (no further nested
- * fallback) populates fallbackVarName so callers can re-check it against the defined set.
+ * Scans every custom-property `var()` call (with or without a fallback argument), per file, with
+ * 1-based line numbers. A fallback that is itself a bare nested `var()` reference (no further
+ * nesting inside it) populates fallbackVarName so callers can re-check it against the defined
+ * set. (See the regex comment above for why no concrete example is spelled out here.)
  */
 export function extractVarUsages(fileContents: Map<string, string>): CustomPropertyUsage[] {
   const usages: CustomPropertyUsage[] = []
