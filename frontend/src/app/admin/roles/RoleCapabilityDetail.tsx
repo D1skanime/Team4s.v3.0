@@ -221,7 +221,7 @@ export function RoleCapabilityDetail({
             marginBottom: 'var(--space-3)',
             background: 'var(--color-danger-bg, #fef2f2)',
             border: '1px solid var(--color-danger-border, #fca5a5)',
-            borderRadius: 'var(--radius)',
+            borderRadius: 'var(--radius-sm)',
             color: 'var(--color-danger, #dc2626)',
             fontSize: '0.875rem',
           }}

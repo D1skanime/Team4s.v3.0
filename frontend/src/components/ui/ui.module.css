@@ -640,7 +640,7 @@
   width: 100%;
   min-width: 0;
   min-height: var(--control-height-md);
-  border: 1px solid var(--border-soft);
+  border: 1px solid var(--border-subtle);
   border-radius: var(--radius-sm);
   background: linear-gradient(180deg, rgba(255, 255, 255, 0.96), rgba(247, 250, 255, 0.94));
   color: var(--text-primary);
