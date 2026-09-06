@@ -115,6 +115,15 @@ func TestGetPublicMemberProfilePostgresIncludesTotalPoints(t *testing.T) {
 	require.Equal(t, int64(0), zeroTotal, "ein Member ohne Ledger-Zeilen liefert 0, nie einen Fehler oder NULL")
 }
 
+// Phase 150 (Plan 04, D-10): role_entry_<code> is no longer sourced by loadPublicBadges --
+// loadPublicBadges' own independent release_role_credit_lifecycles query (and its bare,
+// progress-field-less "role_entry_<code>" rows) was deleted, because loadRoleVolumeBadges
+// (called immediately afterwards in GetPublicMemberProfileByID) already emitted the exact
+// same badge code, WITH progress fields, for every awarded role including entry tier. The
+// four tests below previously asserted this on repo.loadPublicBadges directly; they now
+// assert the identical live-projection/award-visible/reversal-hidden behavior on
+// repo.loadRoleVolumeBadges, its sole remaining source.
+
 func TestLoadPublicBadgesPostgresRoleEntryAwardedVisible(t *testing.T) {
 	pool := openMemberProfileBadgeLifecyclePostgres(t)
 	ledger := NewPointLedgerRepository(pool)
@@ -124,7 +133,7 @@ func TestLoadPublicBadgesPostgresRoleEntryAwardedVisible(t *testing.T) {
 	require.NoError(t, err)
 	insertRoleEntryLifecycleRow(t, pool, 1, "translator", 1, "awarded", &award.ID, nil)
 
-	badges, err := repo.loadPublicBadges(context.Background(), 1)
+	badges, err := repo.loadRoleVolumeBadges(context.Background(), 1)
 	require.NoError(t, err)
 	require.True(t, containsPublicBadge(badges, "role_entry_translator", "role_entry"),
 		"eine awarded lifecycle-Zeile muss die live-berechnete role_entry_translator Badge produzieren")
@@ -139,7 +148,7 @@ func TestLoadPublicBadgesPostgresKaraokeFXAwardedVisible(t *testing.T) {
 	require.NoError(t, err)
 	insertRoleEntryLifecycleRow(t, pool, 1, "karaoke_fx", 1, "awarded", &award.ID, nil)
 
-	badges, err := repo.loadPublicBadges(context.Background(), 1)
+	badges, err := repo.loadRoleVolumeBadges(context.Background(), 1)
 	require.NoError(t, err)
 	require.True(t, containsPublicBadge(badges, "role_entry_karaoke_fx", "role_entry"))
 }
@@ -153,7 +162,7 @@ func TestLoadPublicBadgesPostgresRoleEntryReversedHidden(t *testing.T) {
 	require.NoError(t, err)
 	lifecycleID := insertRoleEntryLifecycleRow(t, pool, 1, "translator", 1, "awarded", &award.ID, nil)
 
-	badgesBeforeReversal, err := repo.loadPublicBadges(context.Background(), 1)
+	badgesBeforeReversal, err := repo.loadRoleVolumeBadges(context.Background(), 1)
 	require.NoError(t, err)
 	require.True(t, containsPublicBadge(badgesBeforeReversal, "role_entry_translator", "role_entry"))
 
@@ -173,7 +182,7 @@ func TestLoadPublicBadgesPostgresRoleEntryReversedHidden(t *testing.T) {
 	`, reversal.ID, lifecycleID)
 	require.NoError(t, err)
 
-	badgesAfterReversal, err := repo.loadPublicBadges(context.Background(), 1)
+	badgesAfterReversal, err := repo.loadRoleVolumeBadges(context.Background(), 1)
 	require.NoError(t, err)
 	require.False(t, containsPublicBadge(badgesAfterReversal, "role_entry_translator", "role_entry"),
 		"eine reversed lifecycle-Zeile muss die Badge sofort beim naechsten Read verschwinden lassen (D-03 Live-Projektion)")
@@ -185,7 +194,7 @@ func TestLoadPublicBadgesPostgresNonEligibleRoleNeverAppears(t *testing.T) {
 
 	insertRoleEntryLifecycleRow(t, pool, 1, "fansub_lead", 1, "pending", nil, nil)
 
-	badges, err := repo.loadPublicBadges(context.Background(), 1)
+	badges, err := repo.loadRoleVolumeBadges(context.Background(), 1)
 	require.NoError(t, err)
 	require.False(t, containsPublicBadge(badges, "role_entry_fansub_lead", "role_entry"),
 		"eine Rolle, die nie 'awarded' erreicht, darf nie eine role_entry Badge produzieren, ohne Go-seitige Sonderbehandlung")

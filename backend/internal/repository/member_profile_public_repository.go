@@ -171,6 +171,16 @@ func (r *MemberProfileRepository) GetPublicMemberProfileByID(ctx context.Context
 
 // loadPublicBadges laedt nur visibility='public' AND status='active' Badges eines Members.
 // Projektions-Hilfsfunktion fuer GetPublicMemberProfile (CTE-Erweiterung ausgelagert wegen 450-Zeilen-Limit).
+//
+// D-10 (Phase 150, Plan 04): role-entry Badges ("role_entry_<code>") werden HIER NICHT MEHR
+// erzeugt. Bis Plan 150-04 fragte diese Funktion zusaetzlich unabhaengig
+// release_role_credit_lifecycles ab und haengte fuer jede Rolle mit mindestens einem awarded
+// Credit eine eigene, progress-lose "role_entry_<code>"-Zeile an -- redundant zu
+// loadRoleVolumeBadges (unmittelbar danach in GetPublicMemberProfileByID aufgerufen), das
+// denselben Badge-Code fuer JEDE Stufe (inklusive entry) bereits MIT Progress-Feldern
+// (CurrentCount/CurrentTier/NextThreshold/RemainingCount/NextTier) liefert. Die role-entry-
+// Quelle ist jetzt exklusiv loadRoleVolumeBadges; diese Funktion liefert nur noch die real
+// persistierten member_badges-Zeilen.
 func (r *MemberProfileRepository) loadPublicBadges(ctx context.Context, memberID int64) ([]models.PublicMemberBadge, error) {
 	rows, err := r.db.Query(ctx, `
 		SELECT id, badge_code, badge_category
@@ -193,32 +203,6 @@ func (r *MemberProfileRepository) loadPublicBadges(ctx context.Context, memberID
 	}
 	if err := rows.Err(); err != nil {
 		return nil, fmt.Errorf("iterate public badges for member %d: %w", memberID, err)
-	}
-
-	// D-03 (Live-Projektion): role-entry Badges werden NIE in member_badges geschrieben
-	// (kein UpsertMemberBadge-Aufruf) -- sie werden bei jedem Read live aus
-	// release_role_credit_lifecycles neu berechnet, sodass ein reversed Punkt die Badge
-	// sofort auf dem naechsten Read verschwinden laesst. ID bleibt 0, da nichts
-	// downstream Eindeutigkeit dieses Felds fuer diese synthetischen Zeilen voraussetzt.
-	roleRows, err := r.db.Query(ctx, `
-		SELECT DISTINCT role_code
-		FROM release_role_credit_lifecycles
-		WHERE member_id = $1 AND lifecycle_status = 'awarded'
-		ORDER BY role_code
-	`, memberID)
-	if err != nil {
-		return items, fmt.Errorf("load role-entry badges for member %d: %w", memberID, err)
-	}
-	defer roleRows.Close()
-	for roleRows.Next() {
-		var roleCode string
-		if err := roleRows.Scan(&roleCode); err != nil {
-			return nil, fmt.Errorf("scan role-entry badge row for member %d: %w", memberID, err)
-		}
-		items = append(items, models.PublicMemberBadge{ID: 0, BadgeCode: "role_entry_" + roleCode, BadgeCategory: "role_entry"})
-	}
-	if err := roleRows.Err(); err != nil {
-		return nil, fmt.Errorf("iterate role-entry badges for member %d: %w", memberID, err)
 	}
 
 	return items, nil

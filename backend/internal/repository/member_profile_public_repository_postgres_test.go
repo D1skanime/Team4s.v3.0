@@ -8,6 +8,7 @@ import (
 	"regexp"
 	"strings"
 	"testing"
+	"time"
 
 	"github.com/jackc/pgx/v5/pgxpool"
 	"github.com/stretchr/testify/require"
@@ -240,6 +241,51 @@ func countBadgeCodeOccurrences(badges []models.PublicMemberBadge, badgeCode stri
 	return count
 }
 
+// phase15004DSNEnv points at a DEDICATED, single-test-use throwaway database (full
+// pg_dump --schema-only copy of team4s_v2, same recipe as openPhase129Postgres), never
+// shared with the other Phase-129/131/132 tests in this file. This test needs its own
+// database rather than reusing openPhase129Postgres's shared, DELETE-reset fixture because
+// point_ledger_entries carries an append-only guard trigger (DELETE/UPDATE both raise
+// "point ledger is append-only") -- resetPhase129Fixtures' shared-DB DELETE-based reset can
+// never clean up a point_ledger_entries row once inserted, which would permanently break
+// every later test sharing that database. award_entry_id on an 'awarded'
+// release_role_credit_lifecycles row is NOT NULL (chk_release_role_credit_lifecycle_shape),
+// so proving this fix at real awarded counts requires real point_ledger_entries rows.
+const phase15004DSNEnv = "TEAM4S_PHASE150_04_TEST_DSN"
+
+var phase15004DatabasePattern = regexp.MustCompile(`^team4s_phase150_test(?:_[a-z0-9]+)?$`)
+
+// openPhase15004Postgres opens the dedicated, single-test throwaway database (skip-if-unset).
+func openPhase15004Postgres(t *testing.T) *pgxpool.Pool {
+	t.Helper()
+	dsn := strings.TrimSpace(os.Getenv(phase15004DSNEnv))
+	if dsn == "" {
+		t.Skipf("%s is not set; skipping Phase-150 Plan-04 role-entry double-emission test", phase15004DSNEnv)
+	}
+	config, err := pgxpool.ParseConfig(dsn)
+	require.NoErrorf(t, err, "parse %s", phase15004DSNEnv)
+	dbName := config.ConnConfig.Database
+	require.Truef(t, phase15004DatabasePattern.MatchString(dbName),
+		"unsafe %s: database name %q must match %s (never run against team4s_v2)", phase15004DSNEnv, dbName, phase15004DatabasePattern)
+
+	pool, err := pgxpool.NewWithConfig(context.Background(), config)
+	require.NoErrorf(t, err, "open %s pool", phase15004DSNEnv)
+	t.Cleanup(pool.Close)
+
+	var runtimeDB string
+	require.NoError(t, pool.QueryRow(context.Background(), `SELECT current_database()`).Scan(&runtimeDB))
+	require.Equalf(t, dbName, runtimeDB, "runtime database %q differs from guarded DSN database %q", runtimeDB, dbName)
+
+	return pool
+}
+
+// mustExecPhase15004 mirrors mustExecPhase129 for the dedicated Phase-150-04 database.
+func mustExecPhase15004(t *testing.T, pool *pgxpool.Pool, sql string) {
+	t.Helper()
+	_, err := pool.Exec(context.Background(), sql)
+	require.NoError(t, err, "seed Phase-150-04 fixture")
+}
+
 // seedPhase150AwardedRoleCredits inserts `count` distinct awarded release_role_credit_lifecycles
 // rows (each backed by its own point_ledger_entries row, since award_entry_id carries a UNIQUE
 // constraint) for (memberID, roleCode) against the given release_version/fansub_group pair. IDs
@@ -257,21 +303,22 @@ func seedPhase150AwardedRoleCredits(
 	count int,
 ) {
 	t.Helper()
+	ruleCode := fmt.Sprintf("phase150_role_credit_%d", ruleID)
 	for i := 1; i <= count; i++ {
 		entryID := idBase + int64(i)
-		mustExecPhase129(t, pool, fmt.Sprintf(`
+		mustExecPhase15004(t, pool, fmt.Sprintf(`
 			INSERT INTO point_ledger_entries
 				(id, member_id, source_type, source_key, rule_id, rule_code_snapshot,
 				 rule_version_snapshot, rule_category_snapshot, rule_point_value_snapshot,
 				 point_value, entry_kind, effective_at, idempotency_key)
 			VALUES
-				(%d, %d, 'release_version', '%d', %d, 'phase150_role_credit', 1, 'fansub_work', 1,
-				 1, 'award', TIMESTAMPTZ '2024-01-01 00:00:00+00', 'phase150-role-credit-%s-%d');
+				(%d, %d, 'release_version', '%d', %d, '%s', 1, 'fansub_work', 1,
+				 1, 'award', TIMESTAMPTZ '2024-01-01 00:00:00+00', 'phase150-role-credit-%d-%s-%d');
 			INSERT INTO release_role_credit_lifecycles
 				(id, release_version_id, fansub_group_id, member_id, role_code, generation, lifecycle_status, award_entry_id)
 			VALUES
 				(%d, %d, %d, %d, '%s', %d, 'awarded', %d);
-		`, entryID, memberID, releaseVersionID, ruleID, roleCode, entryID,
+		`, entryID, memberID, releaseVersionID, ruleID, ruleCode, ruleID, roleCode, entryID,
 			entryID, releaseVersionID, fansubGroupID, memberID, roleCode, i, entryID))
 	}
 }
@@ -292,30 +339,49 @@ func seedPhase150AwardedRoleCredits(
 // example of the corrected latent inaccuracy: this role's real current_count must now flow
 // through, not a hardcoded stand-in).
 func TestPhase150RoleEntryBadgeEmittedExactlyOnceWithProgress(t *testing.T) {
-	pool := openPhase129Postgres(t)
+	pool := openPhase15004Postgres(t)
 	repo := NewMemberProfileRepository(pool, "")
 
-	const memberID int64 = 1504001
-	const releaseVersionID int64 = 1504131
-	const fansubGroupID int64 = 1504141
-	const ruleID int64 = 1504151
+	// This fixture database is a dedicated, single-purpose throwaway (see
+	// openPhase15004Postgres) that cannot be reset via DELETE (point_ledger_entries is
+	// append-only) or TRUNCATE (also guarded). IDs are therefore derived from the current
+	// nanosecond clock rather than fixed literals, so repeated invocations against the same
+	// long-lived database (e.g. re-running the full suite in one session) never collide with
+	// rows a prior run left behind.
+	runBase := time.Now().UnixNano()
+	memberID := runBase + 1
+	fansubGroupID := runBase + 2
+	animeID := runBase + 3
+	episodeID := runBase + 4
+	fansubReleaseID := runBase + 5
+	releaseVersionID := runBase + 6
+	ruleID := runBase + 7
+	typesetterIDBase := runBase + 1000
+	translatorIDBase := runBase + 2000
 
-	mustExecPhase129(t, pool, fmt.Sprintf(`
-		INSERT INTO members (id, nickname, public_slug) VALUES (%d, 'phase150-role-entry', 'phase150-role-entry');
-		INSERT INTO fansub_groups (id, slug, name, status) VALUES (%d, 'phase150-re-grp', 'Phase150 Role Entry Group', 'active');
-		INSERT INTO anime (id, title) VALUES (1504101, 'Phase150 Role Entry Anime');
-		INSERT INTO episodes (id, anime_id, episode_number) VALUES (1504111, 1504101, '1');
-		INSERT INTO fansub_releases (id, episode_id) VALUES (1504121, 1504111);
-		INSERT INTO release_versions (id, release_id) VALUES (%d, 1504121);
+	mustExecPhase15004(t, pool, fmt.Sprintf(`
+		INSERT INTO members (id, nickname, public_slug) VALUES (%d, 'phase150-role-entry-%d', 'phase150-role-entry-%d');
+		INSERT INTO fansub_groups (id, slug, name, status) VALUES (%d, 'phase150-re-grp-%d', 'Phase150 Role Entry Group %d', 'active');
+		INSERT INTO anime (id, title) VALUES (%d, 'Phase150 Role Entry Anime');
+		INSERT INTO episodes (id, anime_id, episode_number) VALUES (%d, %d, '1');
+		INSERT INTO fansub_releases (id, episode_id) VALUES (%d, %d);
+		INSERT INTO release_versions (id, release_id) VALUES (%d, %d);
 		INSERT INTO release_version_groups (release_version_id, fansub_group_id) VALUES (%d, %d);
 		INSERT INTO point_rules (id, rule_code, rule_version, category, point_value)
-			VALUES (%d, 'phase150_role_credit', 1, 'fansub_work', 1);
-	`, memberID, fansubGroupID, releaseVersionID, releaseVersionID, fansubGroupID, ruleID))
+			VALUES (%d, 'phase150_role_credit_%d', 1, 'fansub_work', 1);
+	`, memberID, memberID, memberID,
+		fansubGroupID, fansubGroupID, fansubGroupID,
+		animeID,
+		episodeID, animeID,
+		fansubReleaseID, episodeID,
+		releaseVersionID, fansubReleaseID,
+		releaseVersionID, fansubGroupID,
+		ruleID, ruleID))
 
 	// "typesetter" above entry tier (13 awarded credits -> bronze).
-	seedPhase150AwardedRoleCredits(t, pool, memberID, "typesetter", releaseVersionID, fansubGroupID, ruleID, 1504200, 13)
+	seedPhase150AwardedRoleCredits(t, pool, memberID, "typesetter", releaseVersionID, fansubGroupID, ruleID, typesetterIDBase, 13)
 	// "translator" still at entry tier only (5 awarded credits).
-	seedPhase150AwardedRoleCredits(t, pool, memberID, "translator", releaseVersionID, fansubGroupID, ruleID, 1504300, 5)
+	seedPhase150AwardedRoleCredits(t, pool, memberID, "translator", releaseVersionID, fansubGroupID, ruleID, translatorIDBase, 5)
 
 	profile, err := repo.GetPublicMemberProfileByID(context.Background(), memberID)
 	require.NoError(t, err)
