@@ -4,8 +4,8 @@ milestone: v1.4
 milestone_name: Coverage
 status: executing
 stopped_at: Phase 149 UI-SPEC approved
-last_updated: "2026-09-06T06:38:56.967Z"
-last_activity: 2026-09-06 -- Phase 149 planning complete
+last_updated: "2026-09-06T06:42:50.787Z"
+last_activity: 2026-09-06 -- Phase 149 execution started
 progress:
   total_phases: 14
   completed_phases: 13
@@ -29,13 +29,13 @@ Phase 135 and any future roadmap entries continue from here.
 See: .planning/PROJECT.md (updated 2026-08-13)
 
 **Core value:** Team4s presents fansub history and collaboration credibly while keeping identity, visibility, ownership, and permissions correct.
-**Current focus:** Milestone complete
+**Current focus:** Phase 149 — Tote CSS-Tokens sanieren und den Notiz-Kontrast schließen
 
 ## Current Position
 
-Phase: 149
-Plan: Not started
-Status: Ready to execute
+Phase: 149 (Tote CSS-Tokens sanieren und den Notiz-Kontrast schließen) — EXECUTING
+Plan: 1 of 6
+Status: Executing Phase 149
 
 Phase 145 ist abgeschlossen und live abgenommen (145-UAT.md, 2026-09-04). Die Codeprüfung dieser
 Phase (145-REVIEW.md) hat danach einen kritischen Befund geliefert, der Phase 146 auslöst: der
@@ -46,7 +46,7 @@ schickt. Aktuell unkritisch — alle drei role_capabilities-Zeilen sind vorhande
 
 Nächster Schritt: `/gsd-ui-phase 146` (Kriterium 2 berührt die Capability-Matrix), danach
 `plan-phase 146`.
-Last activity: 2026-09-06 -- Phase 149 planning complete
+Last activity: 2026-09-06 -- Phase 149 execution started
 
 ## Accumulated Context
 
