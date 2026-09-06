@@ -113,6 +113,85 @@ Fundstelle wird vor dem Ändern trotzdem einzeln im aktuellen Code verifiziert.
   Wave-Abhängigkeiten (Registry vor Ableitungen vor Vertrag vor Frontend-Rückbau vor
   Checkpoint/UAT) eingehalten werden.
 
+## Revision 2026-09-06 (nach Plan-Checker-Vorlauf, VOR dem ersten Checker-Lauf)
+
+Der erste Planner-Durchlauf (Plan 150-05) fand eine echte, im ursprünglichen Ausgangsbefund nicht
+erfasste fünfte Rechenstelle und schlug vor, `ROLE_VOLUME_TIER_THRESHOLDS`, `POINT_MILESTONES`,
+`ROLE_PROGRESS_STAGES` und die `FAMILY_DEFINITIONS`-Inline-Schwellen zu behalten, weil sie die
+Mehrstufen-"Leiter"-Streifen speisen. Diese Auflösung wurde vom Nutzer geprüft und **verworfen**:
+sie verfehlt SC-2 (kein "soweit unbenutzt"-Vorbehalt für diese vier Konstanten) und das
+Phasenziel selbst — eine geänderte Registry-Schwelle würde die angezeigte Leiter sonst still
+falsch machen. D-11/D-13 werden durch die folgenden Entscheidungen präzisiert (nicht ersetzt, nur
+konkretisiert):
+
+- D-24: Die Stufenliste ("Leiter") jeder `badge_progress`-Familie (alle sieben: die sechs
+  bestehenden plus `role_volume`) kommt aus derselben Go-Schwellenregistry wie alles andere in
+  dieser Phase. Konkret: `PublicMemberBadgeProgress` (Go: `backend/internal/models/member_profile.go`;
+  TS: `frontend/src/types/profile.ts`) bekommt ein zusätzliches Feld — pro Stufe der stabile Code
+  bzw. Tier-Token (je nach Familie das bestehende Namensschema, z. B. volle Badge-Codes bei
+  `points`/`progress`/`membership`, nackte Tier-Token bei den Contribution-Familien und bei
+  `role_volume`, analog zu `current_tier`s bestehender Konvention pro Familie) und die zugehörige
+  Schwelle, aufsteigend sortiert. Das ist eine Erweiterung derselben, bereits für `current_tier`
+  und die `role_volume`-Familie erweiterten Struktur — keine zweite Registry, kein neuer Endpoint,
+  kein paralleles Feld.
+  - Backend-seitig ist das nahezu kostenlos: `buildBadgeProgress` (`member_profile_progress_repository.go`)
+    bekommt die aufsteigende Schwellenliste für die sechs Nicht-role_volume-Familien bereits als
+    Parameter (`[]badgeProgressThreshold`, selbst aus `badges.<Family>.Tiers` aufgebaut) — sie muss
+    nur zusätzlich in die neue Stufenliste des Rückgabewerts übernommen werden, keine neue Quelle.
+  - Für `role_volume` gilt dieselbe Erweiterung, zusätzlich zu `current_tier`/`next_threshold`/
+    `remaining_count`/`next_tier`, die Plan 150-03 dort bereits vorsieht.
+  - Sonderfall "Einstieg"/"entry": `badges.RoleVolume.Tiers` enthält bewusst nur bronze/silver/
+    gold/platinum (12/108/320/510) — die "entry"-Stufe (Schwelle 1) ist seit jeher eine
+    präsentationslokale Umbenennung der leeren Registry-Antwort (D-03, unverändert für
+    `CurrentTier`/`NextTier`/`Remaining`). Damit auch die "entry"-Stufe nicht als Frontend-Literal
+    überlebt, wird sie GENAU DORT, wo die `role_volume`-Stufenliste für den Contract gebaut wird
+    (Plan 150-03, backend-seitig, NICHT im Frontend), als erste Stufe (Code "entry", Schwelle 1)
+    vorangestellt — konsistent mit dem bestehenden D-03-Präzedenzfall, dass "entry" backend-lokal
+    behandelt wird, nur jetzt auch für die Stufenliste. Die Zahl 1 ist damit nirgends mehr ein
+    Frontend-Literal.
+- D-25: Nach D-24 entfallen `ROLE_VOLUME_TIER_THRESHOLDS`, `POINT_MILESTONES`,
+  `ROLE_PROGRESS_STAGES` und die Inline-Schwellen-Arrays in `FAMILY_DEFINITIONS`
+  (`memberBadgeLabels.ts`) ERSATZLOS — keine Ausnahme, kein "soweit unbenutzt" mehr nötig, weil
+  jeder verbleibende Aufrufer auf die vom Server gelieferte Stufenliste umgestellt wird:
+  - `resolveMemberBadgeFamilies` liest die Stufenliste aus dem jeweiligen `badge_progress`-Eintrag
+    (`progress.stages` o. ä.) statt aus `FAMILY_DEFINITIONS[key].stages`. `FAMILY_DEFINITIONS`
+    behält ausschließlich `group`/`label`/`unitSingular`/`unitPlural` (reine Präsentation).
+  - `resolveRoleProgressPresentation` wird NICHT gelöscht, sondern umgestellt: sie erhält künftig
+    den passenden `role_volume`-`badge_progress`-Eintrag (gefiltert nach `family === 'role_volume'`
+    und passendem `role_code`) statt eines rohen Zählwerts, und leitet Tier/nächste
+    Schwelle/Rest/Stufenliste ausschließlich aus dessen Feldern ab (inkl. der jetzt vom Server
+    gelieferten Stufenliste inkl. "entry"). Sie trifft keine Tier-Auswahl mehr selbst und kennt
+    keine Schwelle mehr als eigenes Literal.
+  - Die fünfte, im ursprünglichen Ausgangsbefund nicht benannte Rechenstelle — der Aufruf von
+    `resolveRoleProgressPresentation` in der "roles"-Karussellgruppe von `MemberBadgeChain.tsx`
+    (Stand vor dieser Revision: um Zeile 726) — wird hiermit explizit als fünfte Fundstelle neben
+    den vier ursprünglich benannten (`MemberProfileContent.tsx:47`,
+    `CategoryProgressTable.tsx:87`/`:103`, `MemberBadgeChain.tsx:634-637`) aufgenommen und ist
+    gleichrangig in Scope. Der bei `MemberBadgeChain.tsx:634-637` gebaute `roleCounts`-Map bleibt
+    für Anzeige-/Sortierzwecke (Reihenfolge der Rollen-Karten, roher Anzeigewert) bestehen, liefert
+    aber ab jetzt nicht mehr die Grundlage für die Tier-/Fortschritts-Ableitung — dafür wird
+    zusätzlich der passende `badge_progress`-`role_volume`-Eintrag nach `role_code` nachgeschlagen.
+  - Das Dashboard (`CategoryProgressTable.tsx`) rendert keine Stufen-Leiter (nur je eine
+    Fortschrittszeile pro Kategorie) — D-24/D-25 betreffen dort nichts zusätzlich zu dem, was
+    D-12 bereits für `buildPointsRow`/`buildRoleVolumeRow` vorsieht.
+- D-26: Ob der "erreicht/aktuell/gesperrt"-Zustand pro Stufe weiterhin clientseitig aus
+  `current_count >= stage.threshold` (beides jetzt serverautoritative Werte derselben Antwort)
+  berechnet wird, oder ob der Server stattdessen ein explizites `earned`/`state`-Feld pro Stufe
+  mitliefert, ist Claude's Discretion — beides ist zulässig, solange KEIN unabhängiges
+  Frontend-Threshold-Literal mehr existiert, das bei einer Registry-Änderung nicht automatisch
+  mitzieht.
+- D-27: Der Executor verifiziert nach dem Umbau per grep, dass keine der vier genannten
+  Konstanten (`ROLE_VOLUME_TIER_THRESHOLDS`, `POINT_MILESTONES`, `ROLE_PROGRESS_STAGES`, sowie
+  keine Inline-Schwellen-Arrays in `FAMILY_DEFINITIONS`) und keine sonstige badge-bezogene
+  Schwellenzahl mehr in `memberBadgeLabels.ts` (bzw. einer eventuell abgespaltenen Datei) als
+  Literal vorkommt. Findet der Executor per eigenem Grep einen echten Überlebenden, der laut
+  dieser Revision hätte entfernt werden sollen, ist das im SUMMARY explizit zu benennen, nicht
+  still zu übernehmen.
+- D-28: Success Criterion 6 (Registry-Änderung wirkt sich ohne TypeScript-Änderung bis in die
+  Oberfläche aus) muss durch den vom Checkpoint-Plan (150-06) durchgeführten Propagationsnachweis
+  ausdrücklich auch die Stufen-Leiter abdecken (z. B. Rollen-Badge-Leiter oder Punkte-Meilenstein-
+  Leiter), nicht nur die einzelne Fortschrittszeile im Dashboard.
+
 </decisions>
 
 <canonical_refs>
