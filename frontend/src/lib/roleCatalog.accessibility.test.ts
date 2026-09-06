@@ -114,21 +114,17 @@ describe('restored role-accent formulas across Phase 148 (Plan 148-02, Task 2)',
   describe('PublicNoteCard.module.css', () => {
     const cssText = readModule('src/components/public/PublicNoteCard.module.css')
 
-    it('.head background (role-accent/--color-border mix) vs .role text (role-accent/--text-primary mix) - flags the known gap against the 4.5:1 text threshold for every catalog hex', () => {
+    it('.head background (role-accent/--color-border mix) vs .role text (role-accent/--text-primary mix) meets 4.5:1 for every catalog hex', () => {
       const [headPct] = extractMixPercents(cssText, 'role-accent', 'var\\(--color-border\\)')
       const [rolePct] = extractMixPercents(cssText, 'role-accent', 'var\\(--text-primary\\)')
       expect(headPct, '.head must be a role-accent/--color-border color-mix').toBeDefined()
       expect(rolePct, '.role must be a role-accent/--text-primary color-mix').toBeDefined()
-      const failing = ROLE_COLOR_KEYS.filter((colorKey) => {
+      for (const colorKey of ROLE_COLOR_KEYS) {
         const accent = hexRgb(colorKey)
         const headBackground = mix(accent, colorBorder, headPct)
         const roleText = mix(accent, textPrimary, rolePct)
-        return contrast(roleText, headBackground) < 4.5
-      })
-      // Measured today: every one of the 15 catalog hexes lands between ~4.0:1 and ~4.4:1 for
-      // this pre-existing 55%/38% ratio pair - consistently just under the 4.5:1 AA text floor.
-      // Restoration Rule locks these ratios; not fixed by this plan (file not in Task 1's scope).
-      expect(failing, '.head/.role known-gap hex list').toEqual(ROLE_COLOR_KEYS)
+        expect(contrast(roleText, headBackground), `${colorKey} .head/.role contrast`).toBeGreaterThanOrEqual(4.5)
+      }
     })
 
     it('.avatar background (role-accent 70% + #000) vs white text meets 4.5:1 for every catalog hex', () => {
