@@ -151,7 +151,7 @@
   border: 1px solid #E1E1E6;
   border-radius: 8px;
   background: white;
-  color: var(--color-text);
+  color: var(--text-primary);
   outline: none;
   transition: border-color 0.15s ease;
 }
@@ -179,7 +179,7 @@
 }
 
 .clearButton:hover {
-  color: var(--color-text);
+  color: var(--text-primary);
 }
 
 .releasesSection {
@@ -240,7 +240,7 @@
   justify-content: center;
   font-size: 12px;
   font-weight: 600;
-  background: var(--color-surface);
+  background: var(--surface-card);
   color: var(--color-text-secondary);
 }
 
@@ -268,7 +268,7 @@
 .emptyState {
   padding: 40px 20px;
   text-align: center;
-  color: var(--color-text-tertiary);
+  color: var(--text-faint);
 }
 
 .emptyStateText {
@@ -283,7 +283,7 @@
   border: 1px solid #E1E1E6;
   border-radius: 8px;
   background: white;
-  color: var(--color-text);
+  color: var(--text-primary);
   cursor: pointer;
   transition: all 0.15s ease;
 }
@@ -319,7 +319,7 @@
   width: 100%;
   aspect-ratio: 16 / 9;
   overflow: hidden;
-  background: var(--color-surface);
+  background: var(--surface-card);
 }
 
 .thumbnailImage {
@@ -350,8 +350,8 @@
   display: flex;
   align-items: center;
   justify-content: center;
-  background: var(--color-surface);
-  color: var(--color-text-tertiary);
+  background: var(--surface-card);
+  color: var(--text-faint);
 }
 
 .releaseInfo {
@@ -378,7 +378,7 @@
   font-size: 12px;
   font-weight: 500;
   border-radius: var(--radius-sm);
-  background: var(--color-surface);
+  background: var(--surface-card);
   color: var(--color-text-secondary);
   border: 1px solid var(--color-border);
 }
@@ -397,7 +397,7 @@
 .releaseDate {
   margin: 0;
   font-size: 13px;
-  color: var(--color-text-tertiary);
+  color: var(--text-faint);
 }
 
 .cardActions {

@@ -77,14 +77,14 @@
   border-radius: var(--radius-sm);
   object-fit: contain;
   flex: 0 0 auto;
-  background: var(--color-surface);
+  background: var(--surface-card);
 }
 
 .previewLogoPlaceholder {
   width: 66px;
   height: 66px;
   border-radius: var(--radius-sm);
-  background: var(--color-surface);
+  background: var(--surface-card);
   display: flex;
   align-items: center;
   justify-content: center;
