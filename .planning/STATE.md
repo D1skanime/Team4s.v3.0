@@ -2,13 +2,13 @@
 gsd_state_version: 1.0
 milestone: v1.4
 milestone_name: Coverage
-status: executing
-stopped_at: Completed 149-06-PLAN.md (checkpoint + live UAT, run externally) — awaiting 149-VERIFICATION.md
-last_updated: "2026-09-06T07:20:00.000Z"
+status: milestone_complete
+stopped_at: Milestone complete (Phase 149 was final phase)
+last_updated: 2026-09-06T07:54:19.022Z
 last_activity: 2026-09-06
 progress:
   total_phases: 14
-  completed_phases: 13
+  completed_phases: 14
   total_plans: 148
   completed_plans: 148
   percent: 100
@@ -29,26 +29,24 @@ Phase 135 and any future roadmap entries continue from here.
 See: .planning/PROJECT.md (updated 2026-08-13)
 
 **Core value:** Team4s presents fansub history and collaboration credibly while keeping identity, visibility, ownership, and permissions correct.
-**Current focus:** Phase 149 — Tote CSS-Tokens sanieren und den Notiz-Kontrast schließen
+**Current focus:** Milestone complete
 
 ## Current Position
 
-Phase: 149 (Tote CSS-Tokens sanieren und den Notiz-Kontrast schließen) — ALL 6 PLANS EXECUTED
-Plan: 6 of 6 (149-06 checkpoint + live UAT signed off externally on 2026-09-06)
-Status: Pending goal-backward verification (149-VERIFICATION.md) — ROADMAP.md's phase checkbox was
-auto-marked complete by `roadmap.update-plan-progress` on the final plan's completion; this mirrors
-the exact tooling behavior from Phase 148 (which was later reverted once 148-VERIFICATION.md found
-gaps). Treat the phase as provisionally, not finally, complete until verification confirms it.
+Phase: 149
+Plan: 6 of 6 (complete)
+Status: Milestone complete
 
-Phase 145 ist abgeschlossen und live abgenommen (145-UAT.md, 2026-09-04). Die Codeprüfung dieser
-Phase (145-REVIEW.md) hat danach einen kritischen Befund geliefert, der Phase 146 auslöst: der
-Lockout-Guard schützt die reservierte Pseudo-Rolle nicht, ein Admin kann mit zwei Klicks in der
-Capability-Matrix einen Zustand erzeugen, der den nächsten Backend-Start in eine Absturzschleife
-schickt. Aktuell unkritisch — alle drei role_capabilities-Zeilen sind vorhanden (geprüft
-2026-09-04), das Backend läuft.
+Phase 149 (Tote CSS-Tokens sanieren und den Notiz-Kontrast schließen) passed goal-backward
+verification 7/7 (149-VERIFICATION.md, 2026-09-06) — all 6 plans executed, guard test proven with
+an independently-reproduced negative proof, PublicNoteCard contrast confirmed live at the
+previously-critical 4.16:1→5.01:1 case. One named, non-blocking observation carried forward: 2 of 9
+full frontend `vitest` runs during 149-06 showed a single non-reproducible failing test (isolated
+reruns of the only suspect file were green 3/3) — classified as pre-existing Docker-parallelism
+timing flakiness, not a Phase 149 regression, and not yet root-caused.
 
-Nächster Schritt: `/gsd-ui-phase 146` (Kriterium 2 berührt die Capability-Matrix), danach
-`plan-phase 146`.
+v1.4 remains complete; Phase 149 was appended additively (same pattern as 143-148), no new
+milestone was created.
 Last activity: 2026-09-06
 
 ## Accumulated Context

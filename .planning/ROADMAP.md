@@ -1135,4 +1135,4 @@ Plans:
 | 146. Registry-Selbstschutz und Sanierung der Quelltext-Substring-Tests | 13/13 | Complete   | 2026-09-04 |
 | 147. Rollen-Registry — letzte Parallelkataloge auflösen | 6/6 | Complete   | 2026-09-05 |
 | 148. Rollenfarben wieder an den Katalog anschließen | 8/8 | Complete    | 2026-09-05 |
-| 149. Tote CSS-Tokens sanieren und den Notiz-Kontrast schließen | 6/6 | Complete   | 2026-09-06 |
+| 149. Tote CSS-Tokens sanieren und den Notiz-Kontrast schließen | 6/6 | Complete    | 2026-09-06 |
