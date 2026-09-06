@@ -97,3 +97,8 @@ Block A (dead-token remediation) is now complete across all three parallel plans
 ---
 *Phase: 149-tote-css-tokens-sanieren-und-den-notiz-kontrast-schlie-en*
 *Completed: 2026-09-06*
+
+## Self-Check: PASSED
+
+All 7 files (6 modified source files + this SUMMARY.md) confirmed present on disk. All 3 commits
+(`134480a3`, `d8abd779`, `5ee95e69`) confirmed present in git log.
