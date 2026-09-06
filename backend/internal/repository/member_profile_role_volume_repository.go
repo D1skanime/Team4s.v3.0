@@ -4,6 +4,7 @@ import (
 	"context"
 	"fmt"
 
+	"team4s.v3/backend/internal/badges"
 	"team4s.v3/backend/internal/models"
 )
 
@@ -11,20 +12,11 @@ import (
 // Netto-Anzahl awarded release_role_credit_lifecycles-Buchungen in einer Rolle. Tier-Tokens
 // sind intern-englisch (bronze/silver/gold/platinum) -- konsistent mit dem bestehenden
 // productive_bronze/silver/gold-Code-Praezedenzfall. Das deutsche Label wird clientseitig
-// aufgeloest (Plan 112-02); count < 12 liefert "" (keine Stufe erreicht).
+// aufgeloest (Plan 112-02); count < 12 liefert "" (keine Stufe erreicht). Ab Phase 150 (D-02)
+// delegiert die Funktion an die autoritative Registry backend/internal/badges statt eine
+// eigene Zahlenkopie zu halten.
 func highestRoleVolumeTier(count int) string {
-	switch {
-	case count >= 510:
-		return "platinum"
-	case count >= 320:
-		return "gold"
-	case count >= 108:
-		return "silver"
-	case count >= 12:
-		return "bronze"
-	default:
-		return ""
-	}
+	return badges.RoleVolume.CurrentTier(int64(count))
 }
 
 // RoleVolumeCount ist die Rohzahl-Variante der pro-Rolle-Netto-Zaehlung, die
@@ -76,28 +68,23 @@ func roleVolumeProgressBadge(roleCode string, count int64) *models.PublicMemberB
 	currentTier := "entry"
 	nextTier := "bronze"
 	nextThreshold := int64(12)
-	switch {
-	case count >= 510:
-		currentTier = "platinum"
+	if tier := badges.RoleVolume.CurrentTier(count); tier != "" {
+		// Registry returns "" below the first tier; keep the local "entry" default
+		// rather than letting that "" leak into the badge's CurrentTier (D-03: the
+		// "entry" relabeling stays presentation-local to this file, not a registry
+		// concern).
+		currentTier = tier
+	}
+	if next, ok := badges.RoleVolume.NextTier(count); ok {
+		nextTier = next.Code
+		nextThreshold = next.Threshold
+	} else {
+		// Highest tier already reached: no next tier, and NextThreshold reports the
+		// highest tier's own threshold (matches pre-registry behavior).
 		nextTier = ""
-		nextThreshold = 510
-	case count >= 320:
-		currentTier = "gold"
-		nextTier = "platinum"
-		nextThreshold = 510
-	case count >= 108:
-		currentTier = "silver"
-		nextTier = "gold"
-		nextThreshold = 320
-	case count >= 12:
-		currentTier = "bronze"
-		nextTier = "silver"
-		nextThreshold = 108
+		nextThreshold = badges.RoleVolume.Tiers[len(badges.RoleVolume.Tiers)-1].Threshold
 	}
-	remaining := nextThreshold - count
-	if remaining < 0 {
-		remaining = 0
-	}
+	remaining := badges.RoleVolume.Remaining(count)
 
 	badgeCode := "role_entry_" + roleCode
 	badgeCategory := "role_entry"

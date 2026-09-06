@@ -4,6 +4,7 @@ import (
 	"context"
 	"fmt"
 	"testing"
+	"time"
 
 	"team4s.v3/backend/internal/models"
 
@@ -92,9 +93,17 @@ func TestLoadRoleVolumeBadgesPostgresProgressBoundaries(t *testing.T) {
 	for _, tc := range tests {
 		t.Run(fmt.Sprintf("count_%d", tc.count), func(t *testing.T) {
 			pool := openMemberProfileBadgeLifecyclePostgres(t)
+			ledger := NewPointLedgerRepository(pool)
 			repo := NewMemberProfileRepository(pool, "")
 			for generation := 1; generation <= tc.count; generation++ {
-				insertRoleEntryLifecycleRow(t, pool, 1, "translator", generation, "awarded", nil, nil)
+				// chk_release_role_credit_lifecycle_shape mandates a non-null
+				// award_entry_id for 'awarded' rows -- pre-existing bug fixed in
+				// passing (Phase 150 Task 1, Rule 1): this loop previously passed nil,
+				// which real Postgres has always rejected (this fixture had never
+				// actually been run against a real DSN).
+				award, err := ledger.InsertAward(context.Background(), postgresAwardInput(fmt.Sprintf("award:role-volume-boundary-%d-g%d", tc.count, generation)))
+				require.NoError(t, err)
+				insertRoleEntryLifecycleRow(t, pool, 1, "translator", generation, "awarded", &award.ID, nil)
 			}
 
 			badges, err := repo.loadRoleVolumeBadges(context.Background(), 1)
@@ -126,14 +135,29 @@ func TestLoadRoleVolumeBadgesPostgresProgressBoundaries(t *testing.T) {
 
 func TestLoadRoleVolumeBadgesPostgresKeepsRolesIndependentAndReversesLive(t *testing.T) {
 	pool := openMemberProfileBadgeLifecyclePostgres(t)
+	ledger := NewPointLedgerRepository(pool)
 	repo := NewMemberProfileRepository(pool, "")
-	var translatorLifecycleIDs []int64
+
+	// chk_release_role_credit_lifecycle_shape mandates a non-null award_entry_id for
+	// 'awarded' rows (and a non-null reversal_entry_id for 'reversed' rows) -- pre-
+	// existing bug fixed in passing (Phase 150 Task 1, Rule 1): this test previously
+	// passed nil award/reversal entries, which real Postgres has always rejected
+	// (this fixture had never actually been run against a real DSN).
+	type awardedLifecycle struct {
+		lifecycleID int64
+		awardID     int64
+	}
+	var translatorEntries []awardedLifecycle
 	for generation := 1; generation <= 12; generation++ {
-		translatorLifecycleIDs = append(translatorLifecycleIDs,
-			insertRoleEntryLifecycleRow(t, pool, 1, "translator", generation, "awarded", nil, nil))
+		award, err := ledger.InsertAward(context.Background(), postgresAwardInput(fmt.Sprintf("award:role-volume-independent-translator-g%d", generation)))
+		require.NoError(t, err)
+		lifecycleID := insertRoleEntryLifecycleRow(t, pool, 1, "translator", generation, "awarded", &award.ID, nil)
+		translatorEntries = append(translatorEntries, awardedLifecycle{lifecycleID: lifecycleID, awardID: award.ID})
 	}
 	for generation := 1; generation <= 108; generation++ {
-		insertRoleEntryLifecycleRow(t, pool, 1, "timer", generation, "awarded", nil, nil)
+		award, err := ledger.InsertAward(context.Background(), postgresAwardInput(fmt.Sprintf("award:role-volume-independent-timer-g%d", generation)))
+		require.NoError(t, err)
+		insertRoleEntryLifecycleRow(t, pool, 1, "timer", generation, "awarded", &award.ID, nil)
 	}
 
 	badges, err := repo.loadRoleVolumeBadges(context.Background(), 1)
@@ -145,11 +169,19 @@ func TestLoadRoleVolumeBadgesPostgresKeepsRolesIndependentAndReversesLive(t *tes
 	require.Equal(t, int64(12), *translator.CurrentCount)
 	require.Equal(t, int64(108), *timer.CurrentCount)
 
+	firstReversal, err := ledger.InsertReversal(context.Background(), PointReversalInput{
+		OriginalEntryID: translatorEntries[0].awardID,
+		ActorAppUserID:  10,
+		IdempotencyKey:  "reverse:role-volume-independent-translator-g1",
+		EffectiveAt:     time.Date(2026, 7, 28, 12, 0, 0, 0, time.UTC),
+		Reason:          "Testkorrektur",
+	})
+	require.NoError(t, err)
 	_, err = pool.Exec(context.Background(), `
 		UPDATE release_role_credit_lifecycles
-		SET lifecycle_status = 'reversed'
-		WHERE id = $1
-	`, translatorLifecycleIDs[0])
+		SET lifecycle_status = 'reversed', reversal_entry_id = $1
+		WHERE id = $2
+	`, firstReversal.ID, translatorEntries[0].lifecycleID)
 	require.NoError(t, err)
 
 	badges, err = repo.loadRoleVolumeBadges(context.Background(), 1)
@@ -161,13 +193,23 @@ func TestLoadRoleVolumeBadgesPostgresKeepsRolesIndependentAndReversesLive(t *tes
 	require.Equal(t, "entry", *translator.CurrentTier)
 	require.Equal(t, int64(108), *findPublicBadge(badges, "role_volume_timer_silver").CurrentCount)
 
-	_, err = pool.Exec(context.Background(), `
-		UPDATE release_role_credit_lifecycles
-		SET lifecycle_status = 'reversed'
-		WHERE role_code = 'translator'
-	`)
+	for i, entry := range translatorEntries[1:] {
+		reversal, err := ledger.InsertReversal(context.Background(), PointReversalInput{
+			OriginalEntryID: entry.awardID,
+			ActorAppUserID:  10,
+			IdempotencyKey:  fmt.Sprintf("reverse:role-volume-independent-translator-g%d", i+2),
+			EffectiveAt:     time.Date(2026, 7, 28, 12, 0, 0, 0, time.UTC),
+			Reason:          "Testkorrektur",
+		})
+		require.NoError(t, err)
+		_, err = pool.Exec(context.Background(), `
+			UPDATE release_role_credit_lifecycles
+			SET lifecycle_status = 'reversed', reversal_entry_id = $1
+			WHERE id = $2
+		`, reversal.ID, entry.lifecycleID)
+		require.NoError(t, err)
+	}
 
-	require.NoError(t, err)
 	badges, err = repo.loadRoleVolumeBadges(context.Background(), 1)
 	require.NoError(t, err)
 	require.Nil(t, findPublicBadge(badges, "role_entry_translator"))
