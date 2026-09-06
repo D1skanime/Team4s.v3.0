@@ -1085,6 +1085,24 @@ Plans:
 
 **UI hint**: ja — Textfarben, Flächen und ein Kontrastverhältnis ändern sich sichtbar. Vor `plan-phase` `/gsd-ui-phase 149` laufen lassen.
 
+**Plans:** 6 plans
+
+Plans:
+**Wave 1**
+
+- [ ] 149-01-PLAN.md — Block A file group 1: --color-text-muted/--color-text/--color-surface/--color-text-tertiary in admin user tabs + releases page + GroupEdgeNavigation
+- [ ] 149-02-PLAN.md — Block A file group 2: --surface-muted in project/media-review CSS + --accent/--success in FansubEdit + Breadcrumbs two-level dead reference
+- [ ] 149-03-PLAN.md — Block A file group 3: --color-info + --accent-primary-strong + --border-default + --border-soft + --radius across 6 files
+- [ ] 149-04-PLAN.md — Block C: PublicNoteCard .head band 55%→45% + roleCatalog.accessibility.test.ts known-gap→real-threshold conversion
+
+**Wave 2** *(blocked on Wave 1 Block A completion)*
+
+- [ ] 149-05-PLAN.md — Block B: cssCustomProperties guard test (synthetic-fixture unit tests + real-tree integration assertion)
+
+**Wave 3** *(blocked on Wave 2 completion)*
+
+- [ ] 149-06-PLAN.md — Full regression sweep + live UAT
+
 ## v1.4 Coverage
 
 | Phase | Requirement Count | Requirement IDs |
