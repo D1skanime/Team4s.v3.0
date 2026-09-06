@@ -498,8 +498,8 @@
 
 .fansubEditCandidateResult:hover,
 .fansubEditCandidateResult:focus-visible {
-  border-color: color-mix(in srgb, var(--accent) 32%, transparent);
-  box-shadow: 0 12px 24px -22px color-mix(in srgb, var(--accent) 55%, transparent);
+  border-color: color-mix(in srgb, var(--accent-primary) 32%, transparent);
+  box-shadow: 0 12px 24px -22px color-mix(in srgb, var(--accent-primary) 55%, transparent);
   outline: none;
   transform: translateY(-1px);
 }
@@ -520,17 +520,17 @@
 }
 
 .fansubEditCandidateResultSelected {
-  border-color: color-mix(in srgb, var(--accent) 44%, transparent);
-  background: color-mix(in srgb, var(--accent) 9%, var(--bg-primary));
-  box-shadow: inset 3px 0 0 color-mix(in srgb, var(--accent) 72%, transparent);
+  border-color: color-mix(in srgb, var(--accent-primary) 44%, transparent);
+  background: color-mix(in srgb, var(--accent-primary) 9%, var(--bg-primary));
+  box-shadow: inset 3px 0 0 color-mix(in srgb, var(--accent-primary) 72%, transparent);
 }
 
 .fansubEditCandidateSelection {
   display: grid;
   gap: 0.15rem;
-  border: 1px solid color-mix(in srgb, var(--success) 22%, transparent);
+  border: 1px solid color-mix(in srgb, var(--color-success) 22%, transparent);
   border-radius: var(--radius-sm);
-  background: color-mix(in srgb, var(--success) 8%, var(--bg-primary));
+  background: color-mix(in srgb, var(--color-success) 8%, var(--bg-primary));
   padding: 0.7rem 0.8rem;
 }
 

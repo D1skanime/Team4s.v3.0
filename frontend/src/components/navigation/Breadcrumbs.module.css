@@ -38,7 +38,7 @@
 }
 
 .breadcrumbsSeparator {
-  color: var(--breadcrumb-separator-color, var(--color-text-tertiary));
+  color: var(--breadcrumb-separator-color, var(--text-faint));
   flex-shrink: 0;
 }
 
