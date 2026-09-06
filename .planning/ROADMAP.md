@@ -1208,4 +1208,4 @@ Plans:
 | 147. Rollen-Registry — letzte Parallelkataloge auflösen | 6/6 | Complete   | 2026-09-05 |
 | 148. Rollenfarben wieder an den Katalog anschließen | 8/8 | Complete    | 2026-09-05 |
 | 149. Tote CSS-Tokens sanieren und den Notiz-Kontrast schließen | 6/6 | Complete    | 2026-09-06 |
-| 150. Badge-Regeln — eine autoritative Schwellenquelle | 1/7 | In Progress|  |
+| 150. Badge-Regeln — eine autoritative Schwellenquelle | 2/7 | In Progress|  |
