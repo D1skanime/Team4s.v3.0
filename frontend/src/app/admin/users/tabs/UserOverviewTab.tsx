@@ -102,7 +102,7 @@ function GroupSummaryCard({
       <div style={{ padding: 'var(--space-3)', display: 'grid', gap: 'var(--space-1)' }}>
         <div style={{ display: 'flex', alignItems: 'center', gap: 'var(--space-2)', flexWrap: 'wrap' }}>
           <strong>{fansubGroupName}</strong>
-          <span style={{ color: 'var(--color-text-muted)', fontSize: '0.85rem' }}>
+          <span style={{ color: 'var(--text-muted)', fontSize: '0.85rem' }}>
             Rolle: {roleLabel}
           </span>
         </div>
@@ -115,7 +115,7 @@ function GroupSummaryCard({
             ))}
           </div>
         )}
-        <p style={{ margin: 0, fontSize: '0.8rem', color: 'var(--color-text-muted)' }}>
+        <p style={{ margin: 0, fontSize: '0.8rem', color: 'var(--text-muted)' }}>
           {hasDeviation ? 'Persönliche Rechteabweichungen vorhanden' : 'Keine persönlichen Rechteabweichungen'}
           {' · '}
           {openClaimsCount > 0 ? `${openClaimsCount} offene Claims` : 'Keine offenen Claims'}

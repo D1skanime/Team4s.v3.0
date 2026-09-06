@@ -286,7 +286,7 @@ export function UserGroupRightsTab({ userId, initialGroupId }: Props) {
             >
               <span>{membership.fansub_group_name}</span>
               {membership.roles.length > 0 && (
-                <span style={{ color: 'var(--color-text-muted)', marginLeft: 'var(--space-2)' }}>
+                <span style={{ color: 'var(--text-muted)', marginLeft: 'var(--space-2)' }}>
                   {membership.roles.join(', ')}
                 </span>
               )}

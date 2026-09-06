@@ -93,7 +93,7 @@ function AuditTable({ entries }: { entries: AdminAuditEntry[] }) {
               <Badge variant="info">{entry.event_type}</Badge>
             </TableCell>
             <TableCell style={{ fontSize: '0.9rem' }}>{entry.action}</TableCell>
-            <TableCell style={{ fontSize: '0.85rem', color: 'var(--color-text-muted)' }}>
+            <TableCell style={{ fontSize: '0.85rem', color: 'var(--text-muted)' }}>
               {entry.target_type}
               {entry.target_id != null ? ` #${entry.target_id}` : ''}
             </TableCell>
