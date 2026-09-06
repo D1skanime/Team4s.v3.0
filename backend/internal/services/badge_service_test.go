@@ -43,20 +43,21 @@ func TestComputeFirstContribution(t *testing.T) {
 	}
 }
 
-// TestComputeProductiveTiers verifiziert, dass computeProductiveTiers alle drei Stufen
-// (bronze/silver/gold) mit den korrekten Schwellenwerten 10/25/50 implementiert (D-05).
+// TestComputeProductiveTiers verifiziert, dass computeProductiveTiers vorhanden ist, die
+// richtige Rohzahl-Abfrage nutzt und Badges entziehen kann. Die frueheren
+// Zahlen-Fragment-Assertionen ("productive_bronze", 10 usw.) sind seit Plan 150-02 Task 3
+// STALE, nicht falsch -- computeProductiveTiers zieht die drei Schwellen jetzt aus
+// badges.Progress.Tiers (Registry, gefiltert auf "productive_"-Codes) statt aus einem
+// lokalen Struct-Literal, daher stehen die einzelnen Codes/Zahlen nicht mehr als Text in
+// dieser Funktion. Die tatsaechlichen Schwellen-Grenzwerte (9/10/24/25/49/50) werden ab
+// jetzt durch TestComputeProductiveTiersPostgresBoundaries mit echten Postgres-Aufrufen
+// bewiesen (D-20), nicht mehr per Quelltext-Substring.
 func TestComputeProductiveTiers(t *testing.T) {
 	content := readBadgeServiceSource(t, "badge_service.go")
 	normalized := strings.ToLower(content)
 
 	requiredFragments := []string{
 		"func (s *badgeservice) computeproductivetiers(",
-		"productive_bronze",
-		"productive_silver",
-		"productive_gold",
-		`"productive_bronze", 10`,
-		`"productive_silver", 25`,
-		`"productive_gold", 50`,
 		"count(distinct ac.anime_id)",
 		"revokememberbadge",
 	}
@@ -178,8 +179,10 @@ func TestComputeAndStoreBadges_CallsAllFunctions(t *testing.T) {
 		"s.computefoundingmember(",
 		"s.computehistoricalleader(",
 		"s.computelongtermmember(",
-		"s.computemembershipmilestone(ctx, memberid, \"membership_7_years\", 7)",
-		"s.computemembershipmilestone(ctx, memberid, \"membership_10_years\", 10)",
+		// Plan 150-02 Task 3: die 7/10-Jahre-Argumente kommen jetzt aus der Registry
+		// (badges.Membership7Years/Membership10Years) statt aus Go-Int-Literalen.
+		"s.computemembershipmilestone(ctx, memberid, \"membership_7_years\", int(badges.membership7years))",
+		"s.computemembershipmilestone(ctx, memberid, \"membership_10_years\", int(badges.membership10years))",
 		"s.computefirstcontribution(",
 		"s.computeproductivetiers(",
 		"s.computeallrounder(",

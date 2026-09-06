@@ -4,7 +4,9 @@ import (
 	"context"
 	"errors"
 	"log"
+	"strings"
 
+	"team4s.v3/backend/internal/badges"
 	"team4s.v3/backend/internal/repository"
 
 	"github.com/jackc/pgx/v5"
@@ -32,8 +34,8 @@ func (s *BadgeService) ComputeAndStoreBadges(ctx context.Context, memberID int64
 	s.computeFoundingMember(ctx, memberID)
 	s.computeHistoricalLeader(ctx, memberID)
 	s.computeLongTermMember(ctx, memberID)
-	s.computeMembershipMilestone(ctx, memberID, "membership_7_years", 7)
-	s.computeMembershipMilestone(ctx, memberID, "membership_10_years", 10)
+	s.computeMembershipMilestone(ctx, memberID, "membership_7_years", int(badges.Membership7Years))
+	s.computeMembershipMilestone(ctx, memberID, "membership_10_years", int(badges.Membership10Years))
 	s.computeFirstContribution(ctx, memberID)
 	s.computeProductiveTiers(ctx, memberID)
 	s.computeAllRounder(ctx, memberID)
@@ -132,8 +134,13 @@ func (s *BadgeService) computeHistoricalLeader(ctx context.Context, memberID int
 	}
 }
 
-// computeLongTermMember vergibt long_term_member, wenn der Member mindestens 5 Jahre Mitglied war
-// oder noch aktiv ist.
+// computeLongTermMember vergibt long_term_member, wenn der Member mindestens
+// badges.MembershipLongTermYears Jahre Mitglied war oder noch aktiv ist. Die
+// Jahreszahl kommt aus der autoritativen Registry backend/internal/badges (Phase
+// 150 D-04) und wird als gebundener make_interval-Parameter uebergeben --
+// dieselbe Parametrisierungs-Disziplin wie computeMembershipMilestone's eigenes
+// make_interval(years => $2) in derselben Datei, keine String-Interpolation in
+// die SQL-INTERVAL-Literale mehr.
 func (s *BadgeService) computeLongTermMember(ctx context.Context, memberID int64) {
 	var rowID int64
 	err := s.db.QueryRow(ctx, `
@@ -141,13 +148,13 @@ func (s *BadgeService) computeLongTermMember(ctx context.Context, memberID int64
 		FROM hist_fansub_group_members
 		WHERE member_id = $1
 		  AND (
-		      (joined_date IS NOT NULL AND left_date IS NOT NULL AND left_date >= joined_date + INTERVAL '5 years')
+		      (joined_date IS NOT NULL AND left_date IS NOT NULL AND left_date >= joined_date + make_interval(years => $2))
 		      OR
 		      (joined_date IS NOT NULL AND left_date IS NULL
-		       AND CURRENT_DATE >= joined_date + INTERVAL '5 years')
+		       AND CURRENT_DATE >= joined_date + make_interval(years => $2))
 		  )
 		LIMIT 1
-	`, memberID).Scan(&rowID)
+	`, memberID, badges.MembershipLongTermYears).Scan(&rowID)
 	if err != nil {
 		if errors.Is(err, pgx.ErrNoRows) {
 			return
@@ -185,11 +192,15 @@ func (s *BadgeService) computeFirstContribution(ctx context.Context, memberID in
 	}
 }
 
-// computeProductiveTiers vergibt productive_bronze (≥10), productive_silver (≥25) und
-// productive_gold (≥50) abhängig von der Anzahl bestätigter distinct-Anime-Beiträge (D-03, D-05).
-// Jede Stufe wird einzeln geprüft und bei Nichterfüllung entzogen (D-08).
+// computeProductiveTiers vergibt productive_bronze/silver/gold abhaengig von der Anzahl
+// bestaetigter distinct-Anime-Beitraege (D-03, D-05). Die drei Schwellen (10/25/50) kommen
+// aus der autoritativen Registry backend/internal/badges (Phase 150 D-02), gefiltert auf die
+// "productive_"-Tier-Codes der Progress-Familie -- diese Familie enthaelt zusaetzlich
+// "first_contribution" (Schwelle 1), das bleibt ausschliesslich computeFirstContribution's
+// eigene Zustaendigkeit und wird hier bewusst uebersprungen. Jede Stufe wird einzeln geprueft
+// und bei Nichterfuellung entzogen (D-08).
 func (s *BadgeService) computeProductiveTiers(ctx context.Context, memberID int64) {
-	var animeCount int
+	var animeCount int64
 	err := s.db.QueryRow(ctx, `
 		SELECT COUNT(DISTINCT ac.anime_id)
 		FROM anime_contributions ac
@@ -200,23 +211,18 @@ func (s *BadgeService) computeProductiveTiers(ctx context.Context, memberID int6
 		log.Printf("badge_service: productive tier query error (member_id=%d): %v", memberID, err)
 		return
 	}
-	tiers := []struct {
-		code      string
-		threshold int
-	}{
-		{"productive_bronze", 10},
-		{"productive_silver", 25},
-		{"productive_gold", 50},
-	}
-	for _, t := range tiers {
-		if animeCount >= t.threshold {
-			if err := s.repo.UpsertMemberBadge(ctx, memberID, t.code,
+	for _, tier := range badges.Progress.Tiers {
+		if !strings.HasPrefix(tier.Code, "productive_") {
+			continue
+		}
+		if animeCount >= tier.Threshold {
+			if err := s.repo.UpsertMemberBadge(ctx, memberID, tier.Code,
 				"historical_achievement", "anime_contribution", 0); err != nil {
-				log.Printf("badge_service: upsert %s error (member_id=%d): %v", t.code, memberID, err)
+				log.Printf("badge_service: upsert %s error (member_id=%d): %v", tier.Code, memberID, err)
 			}
 		} else {
-			if err := s.repo.RevokeMemberBadge(ctx, memberID, t.code); err != nil {
-				log.Printf("badge_service: revoke %s error (member_id=%d): %v", t.code, memberID, err)
+			if err := s.repo.RevokeMemberBadge(ctx, memberID, tier.Code); err != nil {
+				log.Printf("badge_service: revoke %s error (member_id=%d): %v", tier.Code, memberID, err)
 			}
 		}
 	}
