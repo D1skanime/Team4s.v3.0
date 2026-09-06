@@ -156,13 +156,24 @@ export interface PublicMemberBadge {
   next_tier?: 'bronze' | 'silver' | 'gold' | 'platinum' | null
 }
 
+/** One ascending {code, threshold} rung in a badge_progress entry's static family
+ * ladder (Phase 150, D-24). Independent of current_count -- lets the frontend render a
+ * full stage ladder (locked and unlocked rungs) without holding a threshold literal. */
+export interface PublicMemberBadgeProgressStage {
+  code: string
+  threshold: number
+}
+
 export interface PublicMemberBadgeProgress {
   family: string
   current_count: number
+  current_tier: string
   next_threshold: number | null
   remaining_count: number | null
   next_tier: string | null
   complete: boolean
+  role_code?: string | null
+  stages: PublicMemberBadgeProgressStage[]
 }
 
 /** Stabiles Rollen-Code+Label-Paar (D-06): code steuert Styling, label_de ist serverautoritativ. */

@@ -202,12 +202,25 @@ type PublicMemberBadge struct {
 }
 
 type PublicMemberBadgeProgress struct {
-	Family         string  `json:"family"`
-	CurrentCount   int64   `json:"current_count"`
-	NextThreshold  *int64  `json:"next_threshold"`
-	RemainingCount *int64  `json:"remaining_count"`
-	NextTier       *string `json:"next_tier"`
-	Complete       bool    `json:"complete"`
+	Family         string               `json:"family"`
+	CurrentCount   int64                `json:"current_count"`
+	CurrentTier    string               `json:"current_tier"`
+	NextThreshold  *int64               `json:"next_threshold"`
+	RemainingCount *int64               `json:"remaining_count"`
+	NextTier       *string              `json:"next_tier"`
+	Complete       bool                 `json:"complete"`
+	RoleCode       *string              `json:"role_code,omitempty"`
+	Stages         []BadgeProgressStage `json:"stages"`
+}
+
+// BadgeProgressStage is one ascending {code, threshold} rung in a badge_progress
+// entry's static family ladder (Phase 150, D-24). Unlike CurrentTier/NextTier/
+// RemainingCount, Stages never depends on the member's own count -- it lets a
+// frontend render a full stage-ladder UI (locked and unlocked rungs) without
+// holding a single threshold literal of its own.
+type BadgeProgressStage struct {
+	Code      string `json:"code"`
+	Threshold int64  `json:"threshold"`
 }
 
 // PublicMemberRole ist ein stabiles Rollen-Code+Label-Paar (D-06): der Code steuert

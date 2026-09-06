@@ -187,7 +187,7 @@ describe('Phase 124 canonical points-family boundary oracle', () => {
     const next = resolveNextPointMilestone(points)
     const family = resolveMemberBadgeFamilies({
       earned_codes: currentBadge ? [currentBadge.badge_code] : [],
-      badge_progress: [{ family: 'points', current_count: points, next_threshold: nextThreshold, remaining_count: remainingCount, next_tier: nextThreshold == null ? null : String(nextThreshold), complete }],
+      badge_progress: [{ family: 'points', current_count: points, current_tier: currentCode ?? '', next_threshold: nextThreshold, remaining_count: remainingCount, next_tier: nextThreshold == null ? null : String(nextThreshold), complete, stages: [] }],
     }).find((candidate) => candidate.key === 'points')
     expect(POINT_MILESTONES.map(({ badge_code }) => badge_code).reverse()).toEqual(orderedCodes)
     expect(family?.stages.map(({ threshold }) => threshold)).toEqual(orderedThresholds)
@@ -360,8 +360,8 @@ describe('Phase 125 contribution boundary oracle', () => {
 
   it('keeps all three zero families visible in canonical order', () => {
     const badge_progress = [...specs].reverse().map(([family]) => ({
-      family, current_count: 0, next_threshold: family === 'contribution_projects' ? 1 : 10,
-      remaining_count: family === 'contribution_projects' ? 1 : 10, next_tier: 'bronze', complete: false,
+      family, current_count: 0, current_tier: '', next_threshold: family === 'contribution_projects' ? 1 : 10,
+      remaining_count: family === 'contribution_projects' ? 1 : 10, next_tier: 'bronze', complete: false, stages: [],
     }))
     const result = resolveMemberBadgeFamilies({ earned_codes: [], badge_progress })
       .filter(({ group }) => group === 'contributions')
@@ -376,7 +376,7 @@ describe('Phase 125 contribution boundary oracle', () => {
     const [value, tier, nextThreshold, remainingCount, percent, complete] = boundary
     const family = resolveMemberBadgeFamilies({
       earned_codes: [],
-      badge_progress: [{ family: key, current_count: value, next_threshold: nextThreshold, remaining_count: remainingCount, next_tier: null, complete }],
+      badge_progress: [{ family: key, current_count: value, current_tier: tier ?? '', next_threshold: nextThreshold, remaining_count: remainingCount, next_tier: null, complete, stages: [] }],
     }).find(({ key: candidate }) => candidate === key)!
     const max = nextThreshold ?? family.stages.at(-1)!.threshold
     expect(family).toMatchObject({
@@ -397,9 +397,10 @@ describe('Phase 126 independent membership presentation contract', () => {
     return resolveMemberBadgeFamilies({
       earned_codes,
       badge_progress: [{
-        family: 'membership', current_count: currentCount, next_threshold: nextThreshold,
+        family: 'membership', current_count: currentCount, current_tier: '', next_threshold: nextThreshold,
         remaining_count: nextThreshold == null ? null : nextThreshold - currentCount,
         next_tier: nextThreshold == null ? null : `${nextThreshold} Jahre`, complete: nextThreshold == null,
+        stages: [],
       }],
     }).find(({ key }) => key === 'membership')!
   }
@@ -447,10 +448,10 @@ describe('Phase 126 independent membership presentation contract', () => {
         expect(resolveMemberBadgeFamilies({
           earned_codes: founder ? ['founding_member'] : [],
           badge_progress: [{
-            family: 'membership', current_count: count,
+            family: 'membership', current_count: count, current_tier: '',
             next_threshold: count < 5 ? 5 : count < 7 ? 7 : count < 10 ? 10 : null,
             remaining_count: count < 5 ? 5 - count : count < 7 ? 7 - count : count < 10 ? 10 - count : null,
-            next_tier: null, complete: count >= 10,
+            next_tier: null, complete: count >= 10, stages: [],
           }],
         }).filter(({ key }) => key === 'special')).toHaveLength(0)
       }

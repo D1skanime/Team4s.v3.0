@@ -12285,18 +12285,38 @@ components:
           type: string
           enum: [bronze, silver, gold, platinum]
           nullable: true
+    PublicMemberBadgeProgressStage:
+      type: object
+      description: >-
+        One ascending {code, threshold} rung in a badge_progress entry's static family
+        ladder (Phase 150, D-24). Independent of the member's own current_count -- lets a
+        frontend render a full stage ladder (locked and unlocked rungs) without holding
+        any threshold literal of its own.
+      required: [code, threshold]
+      properties:
+        code:
+          type: string
+        threshold:
+          type: integer
+          format: int64
     PublicMemberBadgeProgress:
       type: object
       description: Authoritative progress for one public badge family, emitted only inside a visible member profile.
-      required: [family, current_count, next_threshold, remaining_count, next_tier, complete]
+      required: [family, current_count, current_tier, next_threshold, remaining_count, next_tier, complete, stages]
       properties:
         family:
           type: string
-          enum: [progress, points, contribution_projects, contribution_chronicle, contribution_archivist, membership]
+          enum: [progress, points, contribution_projects, contribution_chronicle, contribution_archivist, membership, role_volume]
         current_count:
           type: integer
           format: int64
           minimum: 0
+        current_tier:
+          type: string
+          description: >-
+            Highest tier already reached, "" if none. Full badge codes for progress/
+            points/membership; bare tier tokens (bronze/silver/gold[/platinum]) for the
+            contribution_* families and role_volume (Phase 150, D-05).
         next_threshold:
           type: integer
           nullable: true
@@ -12311,6 +12331,18 @@ components:
           nullable: true
         complete:
           type: boolean
+        role_code:
+          type: string
+          nullable: true
+          description: Set only on family=role_volume entries (Phase 150, D-06); one entry per role the member has any awarded credit in.
+        stages:
+          type: array
+          description: >-
+            The family's complete ascending stage ladder (Phase 150, D-24). For
+            role_volume, includes a server-synthesized "entry" stage (threshold 1) that
+            precedes the registry's bronze/silver/gold/platinum tiers.
+          items:
+            $ref: "#/components/schemas/PublicMemberBadgeProgressStage"
     MeProjectReleaseVersion:
       type: object
       required:
