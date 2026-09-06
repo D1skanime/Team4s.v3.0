@@ -1085,14 +1085,14 @@ Plans:
 
 **UI hint**: ja — Textfarben, Flächen und ein Kontrastverhältnis ändern sich sichtbar. Vor `plan-phase` `/gsd-ui-phase 149` laufen lassen.
 
-**Plans:** 2/6 plans executed
+**Plans:** 3/6 plans executed
 
 Plans:
 **Wave 1**
 
 - [x] 149-01-PLAN.md — Block A file group 1: --color-text-muted/--color-text/--color-surface/--color-text-tertiary in admin user tabs + releases page + GroupEdgeNavigation
 - [x] 149-02-PLAN.md — Block A file group 2: --surface-muted in project/media-review CSS + --accent/--success in FansubEdit + Breadcrumbs two-level dead reference
-- [ ] 149-03-PLAN.md — Block A file group 3: --color-info + --accent-primary-strong + --border-default + --border-soft + --radius across 6 files
+- [x] 149-03-PLAN.md — Block A file group 3: --color-info + --accent-primary-strong + --border-default + --border-soft + --radius across 6 files
 - [ ] 149-04-PLAN.md — Block C: PublicNoteCard .head band 55%→45% + roleCatalog.accessibility.test.ts known-gap→real-threshold conversion
 
 **Wave 2** *(blocked on Wave 1 Block A completion)*
@@ -1135,4 +1135,4 @@ Plans:
 | 146. Registry-Selbstschutz und Sanierung der Quelltext-Substring-Tests | 13/13 | Complete   | 2026-09-04 |
 | 147. Rollen-Registry — letzte Parallelkataloge auflösen | 6/6 | Complete   | 2026-09-05 |
 | 148. Rollenfarben wieder an den Katalog anschließen | 8/8 | Complete    | 2026-09-05 |
-| 149. Tote CSS-Tokens sanieren und den Notiz-Kontrast schließen | 2/6 | In Progress|  |
+| 149. Tote CSS-Tokens sanieren und den Notiz-Kontrast schließen | 3/6 | In Progress|  |
