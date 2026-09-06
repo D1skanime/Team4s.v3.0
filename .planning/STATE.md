@@ -4,12 +4,12 @@ milestone: v1.4
 milestone_name: Coverage
 status: executing
 stopped_at: Phase 149 UI-SPEC approved
-last_updated: "2026-09-05T22:09:09.133Z"
-last_activity: 2026-09-05
+last_updated: "2026-09-06T06:38:56.967Z"
+last_activity: 2026-09-06 -- Phase 149 planning complete
 progress:
   total_phases: 14
   completed_phases: 13
-  total_plans: 142
+  total_plans: 148
   completed_plans: 142
   percent: 93
 ---
@@ -35,7 +35,7 @@ See: .planning/PROJECT.md (updated 2026-08-13)
 
 Phase: 149
 Plan: Not started
-Status: Ready to plan (UI-SPEC in progress) — v1.4 bleibt abgeschlossen, Phase 149 ist additiv angehängt, kein neuer Milestone
+Status: Ready to execute
 
 Phase 145 ist abgeschlossen und live abgenommen (145-UAT.md, 2026-09-04). Die Codeprüfung dieser
 Phase (145-REVIEW.md) hat danach einen kritischen Befund geliefert, der Phase 146 auslöst: der
@@ -46,7 +46,7 @@ schickt. Aktuell unkritisch — alle drei role_capabilities-Zeilen sind vorhande
 
 Nächster Schritt: `/gsd-ui-phase 146` (Kriterium 2 berührt die Capability-Matrix), danach
 `plan-phase 146`.
-Last activity: 2026-09-05
+Last activity: 2026-09-06 -- Phase 149 planning complete
 
 ## Accumulated Context
 
