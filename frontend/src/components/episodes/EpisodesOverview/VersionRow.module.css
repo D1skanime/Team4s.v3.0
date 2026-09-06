@@ -96,9 +96,9 @@
 }
 
 .subtitleSoftsub {
-  border: 1px solid color-mix(in srgb, var(--color-info) 48%, transparent);
-  background: color-mix(in srgb, var(--color-info) 12%, transparent);
-  color: color-mix(in srgb, var(--color-info) 78%, var(--text-primary));
+  border: 1px solid color-mix(in srgb, var(--accent-primary) 48%, transparent);
+  background: color-mix(in srgb, var(--accent-primary) 12%, transparent);
+  color: color-mix(in srgb, var(--accent-primary) 78%, var(--text-primary));
 }
 
 /* Default Badge */

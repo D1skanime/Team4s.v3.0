@@ -256,7 +256,7 @@
 }
 
 .heroLink:hover {
-  color: var(--accent-primary-strong);
+  color: var(--accent-deep);
   text-decoration: underline;
 }
 
