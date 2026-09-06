@@ -3,14 +3,14 @@ gsd_state_version: 1.0
 milestone: v1.4
 milestone_name: Coverage
 status: executing
-stopped_at: Completed 149-05-PLAN.md
-last_updated: "2026-09-06T22:14:40.028Z"
-last_activity: 2026-09-06 -- Phase 150 execution started
+stopped_at: Completed 150-01-PLAN.md
+last_updated: "2026-09-06T22:25:44.807Z"
+last_activity: 2026-09-06
 progress:
   total_phases: 15
   completed_phases: 14
   total_plans: 155
-  completed_plans: 148
+  completed_plans: 149
   percent: 93
 ---
 
@@ -34,8 +34,8 @@ See: .planning/PROJECT.md (updated 2026-08-13)
 ## Current Position
 
 Phase: 150 (badge-regeln-eine-autoritative-schwellenquelle) — EXECUTING
-Plan: 1 of 7
-Status: Executing Phase 150
+Plan: 2 of 7
+Status: Ready to execute
 
 Phase 150 (Badge-Regeln — eine autoritative Schwellenquelle) ist additiv an v1.4 angehängt
 (gleiches Muster wie 143-149). 150-UI-SPEC.md wurde erstellt und vom UI-Checker mit 6/6 PASS
@@ -52,7 +52,7 @@ timing flakiness, not a Phase 149 regression, and not yet root-caused.
 
 v1.4 remains complete; Phase 149 was appended additively (same pattern as 143-148), no new
 milestone was created.
-Last activity: 2026-09-06 -- Phase 150 execution started
+Last activity: 2026-09-06
 
 ## Accumulated Context
 
@@ -314,6 +314,8 @@ Last activity: 2026-09-06 -- Phase 150 execution started
 - [Phase 149]: Phase 149, 2026-09-06: --radius at RoleCapabilityDetail.tsx resolves to --radius-sm (6px) per 149-UI-SPEC.md's sibling-alert-box comparison, overriding ROADMAP's tentative --radius-md guess.
 - [Phase 149]: [Phase 149-04]: PublicNoteCard .head band mix lowered from 55% to 45% (role-accent), closing the .role text WCAG AA 4.5:1 contrast gap for all 15 ROLE_COLOR_KEYS while .role's 38% text mix stays unchanged -- the one deliberate exception to Phase 148's frozen Restoration Rule.
 - [Phase 149-05]: Guard test's nested var() fallback detection uses two explicit regex alternatives (nested-shape tried first, plain/literal-fallback second) instead of one generic non-greedy fallback capture, which cannot correctly balance one level of nested var() parens — a single '.+?' capture stops at the first upcoming close-paren, which for a nested var() fallback is the inner call's own closing paren, one character too early. Guard-test self-referential-scan hygiene established: exclude the guard test's own fixture file by basename, avoid literal var(--x) syntax in the scanner's own comments, and use a documented, size-locked allow-list for pre-existing locked-file false positives (e.g. roleCatalog.accessibility.test.ts:284, out of 149-UI-SPEC.md's editable scope).
+- [Phase 150]: Phase 150-01: member 'type' (id 5, type@team4s.de) used for both before-evidence captures instead of sheppert/csubs-leader, which no longer exist in this environment's database. — type has real non-trivial activity (points, role_volume, all three contribution families) and is already the plan's public-profile ground-truth member.
+- [Phase 150]: Phase 150-01: evidence baseline files force-added past the .planning/**/evidence/** .gitignore rule. — These are point-in-time 'before' snapshots Plan 150-06's Live-UAT must diff against after production code changes land -- unlike other generated evidence artifacts, this snapshot cannot be regenerated later.
 
 ### Pending Todos
 
@@ -652,10 +654,11 @@ untruncated list lives in `.planning/todos/pending/`.
 | Phase 149 P03 | 2min | 2 tasks | 6 files |
 | Phase 149 P04 | 3min | 2 tasks | 2 files |
 | Phase 149 P05 | 25min | 2 tasks | 2 files |
+| Phase 150 P01 | 9min | 2 tasks | 4 files |
 
 ## Session Continuity
 
-Last session: 2026-09-06T07:11:37.489Z
-Stopped at: Completed 149-05-PLAN.md
+Last session: 2026-09-06T22:25:44.790Z
+Stopped at: Completed 150-01-PLAN.md
 Last activity: 2026-09-01 - Milestone v1.4 audit passed (41/41 requirements, 7/7 phases, .planning/v1.4-MILESTONE-AUDIT.md); Phase 143 added to roadmap, not yet planned
 Resume file: None
