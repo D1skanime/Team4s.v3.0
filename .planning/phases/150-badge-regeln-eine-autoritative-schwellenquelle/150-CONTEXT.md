@@ -192,6 +192,53 @@ konkretisiert):
   ausdrücklich auch die Stufen-Leiter abdecken (z. B. Rollen-Badge-Leiter oder Punkte-Meilenstein-
   Leiter), nicht nur die einzelne Fortschrittszeile im Dashboard.
 
+## Revision 2026-09-06, zweiter Durchgang (sechster Fund: `resolveRoleVolumePresentation`)
+
+Der erste Revisionsdurchgang (150-05, Task 3) fand einen sechsten, bis dahin nicht benannten
+Fundort — `resolveRoleVolumePresentation`s Label `"${ROLE_VOLUME_TIER_LABELS[tier]} ·
+${ROLE_VOLUME_TIER_THRESHOLDS[tier]}+"` (z. B. `"Gold · 320+"`) — und schlug vor, das
+"· Schwelle+"-Suffix ERSATZLOS ZU STREICHEN, mit der (falschen) Begründung, es werde nirgends
+gerendert. Das wurde geprüft und widerlegt: `CategoryProgressTable.test.tsx:98`
+(`expect(screen.getAllByText("Bronze · 12+"))`) und `MemberBadgeChain.test.tsx:695`
+(`getByLabelText('Silber · 108+ gesperrt')`) beweisen, dass genau dieser String heute real
+gerendert wird (Dashboard-Zeilenlabel via `buildRoleVolumeRow`/`buildCategoryRow`, und
+Locked-Stage-ARIA-Label in der Rollen-Leiter). Das Suffix zu streichen wäre eine sichtbare
+Änderung und verletzt die byte-exakte Baseline aus `150-UI-SPEC.md`. Diese Auflösung ist
+**verworfen**.
+
+**Verbindliche Entscheidung (D-29):**
+
+- Das Label-FORMAT `"<Tier-Label> · <Zahl>+"` ist Präsentation und bleibt unverändert im
+  Frontend — an der Zusammensetzung selbst ändert sich nichts.
+- Die ZAHL darin ist Business-Regel und muss aus der vom Server gelieferten Stufenliste
+  (`badge_progress[].stages`, D-24) stammen, nicht aus `ROLE_VOLUME_TIER_THRESHOLDS`.
+  `resolveRoleVolumePresentation` (bzw. der Code-Pfad, der dieses Label baut) bekommt die
+  Schwelle als Eingabe, statt sie selbst nachzuschlagen — ob als zusätzlicher Parameter oder
+  indem die Label-Erzeugung an die Aufrufstelle wandert, die die Stufenliste ohnehin schon hat
+  (`buildRoleVolumeRow`/`buildCategoryRow` im Dashboard; die entsprechende Stelle in
+  `MemberBadgeChain.tsx`), ist Claude's Discretion — beide Wege sind zulässig, solange danach
+  keine Schwellenzahl mehr als Frontend-Literal existiert.
+- Dieselbe Regel gilt für JEDEN weiteren Präsentationspfad, der heute eine Zahl aus einer der
+  vier Konstanten (`ROLE_VOLUME_TIER_THRESHOLDS`, `POINT_MILESTONES`, `ROLE_PROGRESS_STAGES`,
+  `FAMILY_DEFINITIONS`-Inline-Arrays) zieht: das Anzeigeformat bleibt exakt wie heute, nur die
+  Zahlenherkunft wechselt zum Server.
+- Die gerenderten Strings bleiben zeichengleich — `"Bronze · 12+"` bleibt `"Bronze · 12+"`,
+  solange die Registry `12` sagt. `CategoryProgressTable.test.tsx:98` und
+  `MemberBadgeChain.test.tsx:695` bleiben mit UNVERÄNDERTEN erwarteten Strings bestehen und sind
+  ausdrücklich Teil des Paritätsnachweises. Passen sie Fixtures an, um die neue Stufenliste
+  mitzuliefern, ist das eine Fixture-Anpassung — die erwarteten (`expect(...)`) Strings selbst
+  dürfen nicht geändert werden.
+- D-30: Fundstellen-Register — der ursprüngliche Ausgangsbefund im Roadmap-Eintrag nannte vier
+  Frontend-Rechenstellen. Während der Planung sind bisher zwei weitere hinzugekommen: (5) der
+  `resolveRoleProgressPresentation`-Aufruf in der "roles"-Karussellgruppe von
+  `MemberBadgeChain.tsx` (D-25), und (6) `resolveRoleVolumePresentation`s Label-Schwelle (D-29,
+  dieser Abschnitt). Jede weitere während der Planung oder Ausführung entdeckte Präsentationsstelle,
+  die heute eine Zahl aus einer der vier Konstanten zieht, ist nach demselben Muster zu behandeln
+  (Format bleibt, Zahl kommt vom Server) UND vollständig und nummeriert fortlaufend (7, 8, …) in
+  der jeweiligen PLAN.md sowie später in der SUMMARY zu benennen — nicht still zu beheben. Der
+  gewachsene Befund muss nachvollziehbar bleiben.
+
+
 </decisions>
 
 <canonical_refs>
