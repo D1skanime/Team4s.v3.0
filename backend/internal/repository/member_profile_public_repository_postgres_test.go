@@ -228,6 +228,126 @@ func TestPhase129PublicRecentMediaExcludesUnapprovedPrivateMedia(t *testing.T) {
 		"PMDA-07/PMPR-06: private, non-approved release media must not leak into the public recent-media projection; got %d row(s)", len(media))
 }
 
+// countBadgeCodeOccurrences counts how many entries in a PublicMemberBadge slice carry the
+// exact given BadgeCode -- the "exactly once" proof D-10/SC-5 requires.
+func countBadgeCodeOccurrences(badges []models.PublicMemberBadge, badgeCode string) int {
+	count := 0
+	for _, b := range badges {
+		if b.BadgeCode == badgeCode {
+			count++
+		}
+	}
+	return count
+}
+
+// seedPhase150AwardedRoleCredits inserts `count` distinct awarded release_role_credit_lifecycles
+// rows (each backed by its own point_ledger_entries row, since award_entry_id carries a UNIQUE
+// constraint) for (memberID, roleCode) against the given release_version/fansub_group pair. IDs
+// for the point_ledger_entries/lifecycle rows are derived from idBase so multiple roles seeded in
+// the same test do not collide.
+func seedPhase150AwardedRoleCredits(
+	t *testing.T,
+	pool *pgxpool.Pool,
+	memberID int64,
+	roleCode string,
+	releaseVersionID int64,
+	fansubGroupID int64,
+	ruleID int64,
+	idBase int64,
+	count int,
+) {
+	t.Helper()
+	for i := 1; i <= count; i++ {
+		entryID := idBase + int64(i)
+		mustExecPhase129(t, pool, fmt.Sprintf(`
+			INSERT INTO point_ledger_entries
+				(id, member_id, source_type, source_key, rule_id, rule_code_snapshot,
+				 rule_version_snapshot, rule_category_snapshot, rule_point_value_snapshot,
+				 point_value, entry_kind, effective_at, idempotency_key)
+			VALUES
+				(%d, %d, 'release_version', '%d', %d, 'phase150_role_credit', 1, 'fansub_work', 1,
+				 1, 'award', TIMESTAMPTZ '2024-01-01 00:00:00+00', 'phase150-role-credit-%s-%d');
+			INSERT INTO release_role_credit_lifecycles
+				(id, release_version_id, fansub_group_id, member_id, role_code, generation, lifecycle_status, award_entry_id)
+			VALUES
+				(%d, %d, %d, %d, '%s', %d, 'awarded', %d);
+		`, entryID, memberID, releaseVersionID, ruleID, roleCode, entryID,
+			entryID, releaseVersionID, fansubGroupID, memberID, roleCode, i, entryID))
+	}
+}
+
+// TestPhase150RoleEntryBadgeEmittedExactlyOnceWithProgress covers D-10/SC-5/SC-7: before this
+// fix, loadPublicBadges independently queried release_role_credit_lifecycles for distinct role
+// codes and appended a bare (no progress fields) "role_entry_<code>" badge, WHILE
+// loadRoleVolumeBadges (called immediately afterwards in GetPublicMemberProfileByID) already
+// emitted the same badge code -- WITH progress fields -- for every role with at least one awarded
+// credit. This produced two role_entry_<code> copies for every role that ever earned a credit
+// (three total for roles above entry tier, since roleVolumeProgressBadge's own intentional
+// entry+tier duplication already contributes one of the two). After the fix, loadPublicBadges no
+// longer touches release_role_credit_lifecycles at all, so role_entry_<code> is sourced exclusively
+// by loadRoleVolumeBadges and appears exactly once, always with progress fields.
+//
+// Two roles are seeded on the same member: "typesetter" at count=13 (bronze, above entry tier --
+// the plan's own example) and "translator" at count=5 (still entry tier only -- the plan's own
+// example of the corrected latent inaccuracy: this role's real current_count must now flow
+// through, not a hardcoded stand-in).
+func TestPhase150RoleEntryBadgeEmittedExactlyOnceWithProgress(t *testing.T) {
+	pool := openPhase129Postgres(t)
+	repo := NewMemberProfileRepository(pool, "")
+
+	const memberID int64 = 1504001
+	const releaseVersionID int64 = 1504131
+	const fansubGroupID int64 = 1504141
+	const ruleID int64 = 1504151
+
+	mustExecPhase129(t, pool, fmt.Sprintf(`
+		INSERT INTO members (id, nickname, public_slug) VALUES (%d, 'phase150-role-entry', 'phase150-role-entry');
+		INSERT INTO fansub_groups (id, slug, name, status) VALUES (%d, 'phase150-re-grp', 'Phase150 Role Entry Group', 'active');
+		INSERT INTO anime (id, title) VALUES (1504101, 'Phase150 Role Entry Anime');
+		INSERT INTO episodes (id, anime_id, episode_number) VALUES (1504111, 1504101, '1');
+		INSERT INTO fansub_releases (id, episode_id) VALUES (1504121, 1504111);
+		INSERT INTO release_versions (id, release_id) VALUES (%d, 1504121);
+		INSERT INTO release_version_groups (release_version_id, fansub_group_id) VALUES (%d, %d);
+		INSERT INTO point_rules (id, rule_code, rule_version, category, point_value)
+			VALUES (%d, 'phase150_role_credit', 1, 'fansub_work', 1);
+	`, memberID, fansubGroupID, releaseVersionID, releaseVersionID, fansubGroupID, ruleID))
+
+	// "typesetter" above entry tier (13 awarded credits -> bronze).
+	seedPhase150AwardedRoleCredits(t, pool, memberID, "typesetter", releaseVersionID, fansubGroupID, ruleID, 1504200, 13)
+	// "translator" still at entry tier only (5 awarded credits).
+	seedPhase150AwardedRoleCredits(t, pool, memberID, "translator", releaseVersionID, fansubGroupID, ruleID, 1504300, 5)
+
+	profile, err := repo.GetPublicMemberProfileByID(context.Background(), memberID)
+	require.NoError(t, err)
+
+	// (a) role above entry tier: role_entry_typesetter appears exactly once, with progress fields.
+	require.Equalf(t, 1, countBadgeCodeOccurrences(profile.PublicBadges, "role_entry_typesetter"),
+		"D-10/SC-5: role_entry_typesetter must be emitted exactly once (was emitted twice: once by loadPublicBadges without progress fields, once by loadRoleVolumeBadges with them)")
+	typesetterEntry := findPublicBadge(profile.PublicBadges, "role_entry_typesetter")
+	require.NotNil(t, typesetterEntry)
+	require.NotNilf(t, typesetterEntry.CurrentCount, "role_entry_typesetter must carry progress fields (CurrentCount), not the bare loadPublicBadges shape")
+	require.Equal(t, int64(13), *typesetterEntry.CurrentCount)
+	require.NotNil(t, typesetterEntry.CurrentTier)
+	require.Equal(t, "bronze", *typesetterEntry.CurrentTier)
+	// The above-entry-tier role also carries the intentional role_volume_<code>_<tier> sibling
+	// badge (roleVolumeProgressBadge's own entry+tier duplication for higher tiers) -- untouched
+	// by this fix, but confirmed exactly-once too since it is unrelated to the deleted query.
+	require.Equalf(t, 1, countBadgeCodeOccurrences(profile.PublicBadges, "role_volume_typesetter_bronze"),
+		"role_volume_typesetter_bronze must also appear exactly once")
+
+	// (b) role still at entry tier only: role_entry_translator appears exactly once, and now
+	// carries the REAL count (5), not a hardcoded stand-in.
+	require.Equalf(t, 1, countBadgeCodeOccurrences(profile.PublicBadges, "role_entry_translator"),
+		"D-10/SC-5: role_entry_translator must be emitted exactly once even at entry tier")
+	translatorEntry := findPublicBadge(profile.PublicBadges, "role_entry_translator")
+	require.NotNil(t, translatorEntry)
+	require.NotNilf(t, translatorEntry.CurrentCount, "role_entry_translator must carry progress fields (CurrentCount) even at entry tier, not the bare loadPublicBadges shape")
+	require.Equal(t, int64(5), *translatorEntry.CurrentCount,
+		"the corrected entry-tier count must be the real awarded count, not a hardcoded stand-in")
+	require.NotNil(t, translatorEntry.CurrentTier)
+	require.Equal(t, "entry", *translatorEntry.CurrentTier)
+}
+
 // projectKeys extracts the (anime_id, fansub_group_id) identity sequence of a current-
 // projects page as human-readable strings, so two page loads can be compared for
 // identical ordering and pages can be checked for row overlap.
