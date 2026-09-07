@@ -2,15 +2,13 @@
 
 import { ChevronLeft, ChevronRight } from 'lucide-react'
 import {
+  useCallback,
   useEffect,
   useId,
   useRef,
   useState,
-  type CSSProperties,
   type KeyboardEvent,
-  type MouseEvent,
   type PointerEvent,
-  type ReactNode,
 } from 'react'
 
 import { useNearViewportActivation } from '@/hooks/useNearViewportActivation'
@@ -18,64 +16,38 @@ import { useNearViewportActivation } from '@/hooks/useNearViewportActivation'
 import { Button } from './Button'
 import { classNames } from './classNames'
 import styles from './FocalCarousel.module.css'
+import {
+  centeredScrollLeft, directItemElements, nearestOwnedItemIndex, consumeSuppressedClick,
+  DirectCarouselItem, ExpandedCarousel, type FocalCarouselProps,
+} from './FocalCarouselInternals'
+
+export type { FocalCarouselItemState } from './FocalCarouselInternals'
 
 const NAVIGATION_DURATION_MS = 210
 
-export type FocalCarouselItemState = {
-  active: boolean
-  expanded: boolean
-  position: number
-  total: number
-  showAll: () => void
-}
-
-type FocalCarouselProps<T> = {
-  items: readonly T[]
-  carouselItems?: readonly T[]
-  getItemKey: (item: T) => string | number
-  renderItem: (item: T, state: FocalCarouselItemState) => ReactNode
-  regionLabel: string
-  itemSingularLabel: string
-  itemPluralLabel: string
-  previousLabel: string
-  nextLabel: string
-  showAllLabel?: string
-  showLessLabel?: string
-  listLabel?: string
-  carouselClassName?: string
-  itemClassName?: string
-  activeItemClassName?: string
-  gridClassName?: string
-  className?: string
-  style?: CSSProperties
-  showCounter?: boolean
-  formatCounter?: (position: number, total: number, label: string) => ReactNode
-  deferInteractionUntilNearViewport?: boolean
-}
-
-export function FocalCarousel<T>({
-  items,
-  carouselItems,
-  getItemKey,
-  renderItem,
-  regionLabel,
-  itemSingularLabel,
-  itemPluralLabel,
-  previousLabel,
-  nextLabel,
-  showAllLabel,
-  showLessLabel = 'Weniger anzeigen',
-  listLabel,
-  carouselClassName,
-  itemClassName,
-  activeItemClassName,
-  gridClassName,
-  className,
-  style,
-  showCounter = false,
-  formatCounter = (position, total, label) => `${position} von ${total} ${label}`,
-  deferInteractionUntilNearViewport = false,
-}: FocalCarouselProps<T>) {
+export function FocalCarousel<T>(props: FocalCarouselProps<T>) {
+  const {
+    items,
+    carouselItems,
+    getItemKey,
+    renderItem,
+    regionLabel,
+    itemSingularLabel,
+    itemPluralLabel,
+    previousLabel,
+    nextLabel,
+    showAllLabel,
+    showLessLabel = 'Weniger anzeigen',
+    listLabel,
+    carouselClassName,
+    itemClassName,
+    activeItemClassName,
+    className,
+    style,
+    showCounter = false,
+    formatCounter = (position, total, label) => `${position} von ${total} ${label}`,
+    deferInteractionUntilNearViewport = false,
+  } = props
   const [activeIndex, setActiveIndex] = useState(0)
   const [isNavigating, setIsNavigating] = useState(false)
   const gridId = useId()
@@ -91,14 +63,21 @@ export function FocalCarousel<T>({
   const expandFocusRef = useRef(false)
   const suppressClickRef = useRef(false)
   const scrollSettleTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null)
+  const scrollMeasurementFrameRef = useRef<number | null>(null)
   const programmaticAnimationFrameRef = useRef<number | null>(null)
   const programmaticAnimationTrackRef = useRef<HTMLDivElement | null>(null)
   const reducedMotionRef = useRef(false)
+  const focusItemRef = useRef<(index: number) => void>(() => {})
   const dragRef = useRef({ active: false, intent: 'pending', startX: 0, startY: 0, startScroll: 0, pointerId: -1, captured: false })
 
   const visibleItems = carouselItems ?? items
   const lastIndex = Math.max(0, visibleItems.length - 1)
   const safeIndex = Math.min(activeIndex, lastIndex)
+  const showAll = useCallback(() => {
+    expandFocusRef.current = true
+    setExpanded(true)
+  }, [])
+  const selectItem = useCallback((index: number) => focusItemRef.current(index), [])
 
   useEffect(() => {
     if (!expanded && restoreFocusRef.current) {
@@ -117,8 +96,9 @@ export function FocalCarousel<T>({
   }, [expanded, collapseId])
 
   useEffect(() => () => {
-    if (scrollSettleTimerRef.current) clearTimeout(scrollSettleTimerRef.current)
-    cancelProgrammaticAnimation()
+    cancelPendingInteraction(false)
+    // Cleanup reads mutable work refs only and must remain bound to this mount.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [])
 
   useEffect(() => {
@@ -127,8 +107,7 @@ export function FocalCarousel<T>({
     const media = window.matchMedia('(prefers-reduced-motion: reduce)')
     const update = () => {
       reducedMotionRef.current = media.matches
-      if (scrollSettleTimerRef.current) { clearTimeout(scrollSettleTimerRef.current); scrollSettleTimerRef.current = null }
-      const wasAnimating = cancelProgrammaticAnimation()
+      const wasAnimating = cancelPendingInteraction()
       if (media.matches || wasAnimating) focusItem(nearestItemIndex(), false)
     }
     update()
@@ -136,9 +115,6 @@ export function FocalCarousel<T>({
     return () => media.removeEventListener('change', update)
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [interactionEnabled])
-
-  const itemElements = () =>
-    Array.from(trackRef.current?.querySelectorAll<HTMLElement>('[data-focal-item]') ?? [])
 
   function cancelProgrammaticAnimation() {
     const frameId = programmaticAnimationFrameRef.current
@@ -150,16 +126,16 @@ export function FocalCarousel<T>({
     return wasAnimating
   }
 
-  function centeredScrollLeft(track: HTMLDivElement, element: HTMLElement) {
-    const maxScroll = Math.max(0, track.scrollWidth - track.clientWidth)
-    const trackRect = track.getBoundingClientRect()
-    const elementRect = element.getBoundingClientRect()
-    const unclampedLeft = trackRect.width > 0 && elementRect.width > 0
-      ? track.scrollLeft
-        + elementRect.left + elementRect.width / 2
-        - (trackRect.left + trackRect.width / 2)
-      : element.offsetLeft + element.offsetWidth / 2 - track.clientWidth / 2
-    return Math.max(0, Math.min(unclampedLeft, maxScroll))
+  function cancelPendingInteraction(updateNavigationState = true) {
+    if (scrollSettleTimerRef.current) clearTimeout(scrollSettleTimerRef.current)
+    scrollSettleTimerRef.current = null
+    if (scrollMeasurementFrameRef.current !== null && typeof cancelAnimationFrame === 'function') {
+      cancelAnimationFrame(scrollMeasurementFrameRef.current)
+    }
+    scrollMeasurementFrameRef.current = null
+    const wasAnimating = cancelProgrammaticAnimation()
+    if (updateNavigationState) setIsNavigating(false)
+    return wasAnimating
   }
 
   const focusItem = (index: number, animate = true) => {
@@ -169,12 +145,10 @@ export function FocalCarousel<T>({
     setActiveIndex(boundedIndex)
 
     const track = trackRef.current
-    const element = itemElements()[boundedIndex]
+    const element = directItemElements(track)[boundedIndex]
     if (!track || !element) return
 
-    if (scrollSettleTimerRef.current) clearTimeout(scrollSettleTimerRef.current)
-    scrollSettleTimerRef.current = null
-    cancelProgrammaticAnimation()
+    cancelPendingInteraction()
 
     const targetLeft = centeredScrollLeft(track, element)
     const startLeft = track.scrollLeft
@@ -213,6 +187,7 @@ export function FocalCarousel<T>({
     }
     programmaticAnimationFrameRef.current = requestAnimationFrame(step)
   }
+  focusItemRef.current = focusItem
 
   useEffect(() => {
     const track = trackRef.current
@@ -225,8 +200,9 @@ export function FocalCarousel<T>({
       const next = Math.max(0, Math.min(maxScroll, track.scrollLeft + delta))
       if (next === track.scrollLeft) return
       event.preventDefault()
-      cancelProgrammaticAnimation()
+      cancelPendingInteraction()
       track.scrollLeft = next
+      scheduleScrollMeasurement()
       scheduleScrollSettle()
     }
     track.addEventListener('wheel', handleWheel, { passive: false })
@@ -251,29 +227,25 @@ export function FocalCarousel<T>({
     }
   }
 
-  function nearestItemIndex() {
-    const track = trackRef.current
-    if (!track) return safeIndex
-    const maxScroll = Math.max(0, track.scrollWidth - track.clientWidth)
-    const trackRect = track.getBoundingClientRect()
-    const useLiveGeometry = trackRect.width > 0
-    const center = useLiveGeometry
-      ? trackRect.left + trackRect.width / 2
-      : track.scrollLeft + track.clientWidth / 2
-    let nearest = track.scrollLeft <= 1 ? 0 : track.scrollLeft >= maxScroll - 1 ? lastIndex : safeIndex
-    let nearestDistance = Number.POSITIVE_INFINITY
-    itemElements().forEach((element, index) => {
-      const elementRect = element.getBoundingClientRect()
-      const elementCenter = useLiveGeometry && elementRect.width > 0
-        ? elementRect.left + elementRect.width / 2
-        : element.offsetLeft + element.offsetWidth / 2
-      const distance = Math.abs(elementCenter - center)
-      if (distance < nearestDistance) {
-        nearestDistance = distance
-        if (track.scrollLeft > 1 && track.scrollLeft < maxScroll - 1) nearest = index
-      }
+  const nearestItemIndex = () => nearestOwnedItemIndex(trackRef.current, activeIndexRef.current, lastIndex)
+
+  function updateActiveFromGeometry() {
+    const physicalIndex = nearestItemIndex()
+    if (physicalIndex === activeIndexRef.current) return
+    activeIndexRef.current = physicalIndex
+    setActiveIndex(physicalIndex)
+  }
+
+  function scheduleScrollMeasurement() {
+    if (scrollMeasurementFrameRef.current !== null) return
+    if (typeof requestAnimationFrame !== 'function') {
+      updateActiveFromGeometry()
+      return
+    }
+    scrollMeasurementFrameRef.current = requestAnimationFrame(() => {
+      scrollMeasurementFrameRef.current = null
+      updateActiveFromGeometry()
     })
-    return nearest
   }
 
   function scheduleScrollSettle() {
@@ -281,9 +253,11 @@ export function FocalCarousel<T>({
     if (scrollSettleTimerRef.current) clearTimeout(scrollSettleTimerRef.current)
     scrollSettleTimerRef.current = setTimeout(() => {
       scrollSettleTimerRef.current = null
-      const physicalIndex = nearestItemIndex()
-      activeIndexRef.current = physicalIndex
-      setActiveIndex(physicalIndex)
+      if (scrollMeasurementFrameRef.current !== null && typeof cancelAnimationFrame === 'function') {
+        cancelAnimationFrame(scrollMeasurementFrameRef.current)
+      }
+      scrollMeasurementFrameRef.current = null
+      updateActiveFromGeometry()
       setIsNavigating(false)
     }, 120)
   }
@@ -291,6 +265,7 @@ export function FocalCarousel<T>({
   const handleScroll = () => {
     if (!interactionEnabled) return
     if (programmaticAnimationFrameRef.current !== null) return
+    scheduleScrollMeasurement()
     scheduleScrollSettle()
   }
 
@@ -299,7 +274,8 @@ export function FocalCarousel<T>({
     if (event.pointerType === 'mouse' && event.button !== 0) return
     const track = trackRef.current
     if (!track) return
-    cancelProgrammaticAnimation()
+    cancelPendingInteraction()
+    updateActiveFromGeometry()
     dragRef.current = {
       active: true,
       intent: 'pending',
@@ -332,6 +308,7 @@ export function FocalCarousel<T>({
     event.preventDefault()
     setIsNavigating(true)
     track.scrollLeft = drag.startScroll - deltaX
+    scheduleScrollMeasurement()
     if (!drag.captured) {
       drag.captured = true
       track.classList.add(styles.dragging)
@@ -353,52 +330,24 @@ export function FocalCarousel<T>({
     focusItem(nearestItemIndex())
   }
 
-  const handleClickCapture = (event: MouseEvent<HTMLDivElement>) => {
-    if (!suppressClickRef.current) return
-    event.preventDefault()
-    event.stopPropagation()
-    suppressClickRef.current = false
-  }
-
   if (items.length === 0) return null
   const quiet = visibleItems.length === 1
 
-  if (expanded) {
-    return (
-      <div ref={activationRef} className={classNames(styles.root, className)} style={style}>
-        <ul id={gridId} className={classNames(styles.grid, gridClassName)} aria-label={`Alle ${itemPluralLabel}`}>
-          {items.map((item, index) => (
-            <li key={getItemKey(item)} className={itemClassName}>
-              {renderItem(item, {
-                active: index === safeIndex,
-                expanded: true,
-                position: index + 1,
-                total: items.length,
-                showAll: () => {
-                  expandFocusRef.current = true
-                  setExpanded(true)
-                },
-              })}
-            </li>
-          ))}
-        </ul>
-        <Button
-          id={collapseId}
-          type="button"
-          variant="subtle"
-          size="sm"
-          aria-expanded="true"
-          aria-controls={gridId}
-          onClick={() => {
-            restoreFocusRef.current = true
-            setExpanded(false)
-          }}
-        >
-          {showLessLabel}
-        </Button>
-      </div>
-    )
-  }
+  if (expanded) return (
+    <ExpandedCarousel
+      {...props}
+      activationRef={activationRef}
+      gridId={gridId}
+      collapseId={collapseId}
+      activeIndex={safeIndex}
+      showAll={showAll}
+      showLessLabel={showLessLabel}
+      onCollapse={() => {
+        restoreFocusRef.current = true
+        setExpanded(false)
+      }}
+    />
+  )
 
   return (
     <div ref={activationRef} className={classNames(styles.root, className)} style={style}>
@@ -435,53 +384,31 @@ export function FocalCarousel<T>({
           onPointerMove={interactionEnabled ? handlePointerMove : undefined}
           onPointerUp={interactionEnabled ? handlePointerEnd : undefined}
           onPointerCancel={interactionEnabled ? handlePointerEnd : undefined}
-          onClickCapture={interactionEnabled ? handleClickCapture : undefined}
+          onClickCapture={interactionEnabled ? (event) => consumeSuppressedClick(event, suppressClickRef) : undefined}
           onDragStart={interactionEnabled ? (event) => event.preventDefault() : undefined}
         >
-          <div className={styles.items} role={listLabel ? 'list' : undefined} aria-label={listLabel}>
-            {visibleItems.map((item, index) => {
-              const isActive = index === safeIndex
-              return (
-                <div
-                  key={getItemKey(item)}
-                  data-focal-item
-                  role={listLabel ? 'listitem' : undefined}
-                  className={classNames(
-                    styles.itemWindow,
-                    itemClassName,
-                    isActive && styles.itemWindowActive,
-                    isActive && activeItemClassName,
-                  )}
-                  aria-current={isActive ? 'true' : undefined}
-                  aria-label={`${itemSingularLabel} ${index + 1} von ${visibleItems.length}`}
-                  ref={(node) => {
-                    // react-dom@18.3 does not recognize `inert` as a boolean DOM property (it
-                    // was only added in a later React major), so a declarative `inert={boolean}`
-                    // JSX prop emits a dev warning and never reaches the DOM. Setting the
-                    // attribute imperatively via the DOM API works in every browser and in this
-                    // repo's jsdom test environment alike.
-                    if (!node) return
-                    if (isActive) node.removeAttribute('inert')
-                    else node.setAttribute('inert', '')
-                  }}
-                  onClick={(event) => {
-                    if (isActive || (event.target instanceof Element && event.target.closest('button, a, input, select, textarea'))) return
-                    focusItem(index)
-                  }}
-                >
-                  {renderItem(item, {
-                    active: isActive,
-                    expanded: false,
-                    position: index + 1,
-                    total: visibleItems.length,
-                    showAll: () => {
-                      expandFocusRef.current = true
-                      setExpanded(true)
-                    },
-                  })}
-                </div>
-              )
-            })}
+          <div
+            className={styles.items}
+            role={listLabel ? 'list' : undefined}
+            aria-label={listLabel}
+            data-focal-carousel-items
+          >
+            {visibleItems.map((item, index) => (
+              <DirectCarouselItem
+                key={getItemKey(item)}
+                item={item}
+                index={index}
+                total={visibleItems.length}
+                active={index === safeIndex}
+                listItem={Boolean(listLabel)}
+                itemSingularLabel={itemSingularLabel}
+                itemClassName={itemClassName}
+                activeItemClassName={activeItemClassName}
+                renderItem={renderItem}
+                showAll={showAll}
+                onSelect={selectItem}
+              />
+            ))}
           </div>
         </div>
         {!quiet ? <Button
@@ -511,8 +438,7 @@ export function FocalCarousel<T>({
           aria-expanded="false"
           aria-controls={gridId}
           onClick={() => {
-            expandFocusRef.current = true
-            setExpanded(true)
+            showAll()
           }}
         >
           {showAllLabel}

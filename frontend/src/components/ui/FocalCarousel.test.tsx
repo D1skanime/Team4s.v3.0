@@ -68,6 +68,26 @@ function mockRect(left: number, width: number): DOMRect {
   } as DOMRect
 }
 
+function directCarouselItems(region: HTMLElement) {
+  return Array.from(region.firstElementChild?.children ?? []).filter(
+    (element): element is HTMLElement => (
+      element instanceof HTMLElement && element.hasAttribute('data-focal-carousel-item')
+    ),
+  )
+}
+
+function configureLinearGeometry(region: HTMLDivElement, slides: readonly HTMLElement[]) {
+  Object.defineProperties(region, {
+    clientWidth: { configurable: true, value: 300 },
+    scrollWidth: { configurable: true, value: slides.length * 300 },
+    scrollLeft: { configurable: true, writable: true, value: 0 },
+  })
+  slides.forEach((slide, index) => Object.defineProperties(slide, {
+    offsetLeft: { configurable: true, value: index * 300 },
+    offsetWidth: { configurable: true, value: 300 },
+  }))
+}
+
 describe('FocalCarousel', () => {
   it('uses the carousel container width to show one complete mobile card with arrows below it', () => {
     expect(focalCarouselCss).toMatch(/\.root\s*\{[^}]*container:\s*focal-carousel \/ inline-size;/s)
@@ -672,6 +692,228 @@ describe('FocalCarousel Phase 119 shared interaction contract', () => {
     rendered.unmount()
     expect(removeEventListener).toHaveBeenCalledWith('change', expect.any(Function))
     vi.unstubAllGlobals()
+  })
+})
+
+describe('FocalCarousel Phase 151 interaction hardening', () => {
+  it('updates the active direct item on one animation frame while manual scrolling and settles after 120ms', () => {
+    vi.useFakeTimers()
+    const animation = stubAnimationFrames()
+    try {
+      renderCarousel()
+      const region = screen.getByRole('region', { name: 'Beispiel-Karussell' }) as HTMLDivElement
+      const slides = directCarouselItems(region)
+      configureLinearGeometry(region, slides)
+
+      region.scrollLeft = 300
+      fireEvent.scroll(region)
+      expect(region.getAttribute('data-navigation-state')).toBe('moving')
+      expect(screen.getByText('Alpha').closest('[aria-current="true"]')).not.toBeNull()
+
+      act(() => animation.advanceTo(0))
+      expect(screen.getByText('Beta').closest('[aria-current="true"]')).not.toBeNull()
+
+      region.scrollLeft = 600
+      fireEvent.scroll(region)
+      act(() => animation.advanceTo(16))
+      expect(screen.getByText('Gamma').closest('[aria-current="true"]')).not.toBeNull()
+
+      act(() => vi.advanceTimersByTime(119))
+      expect(region.getAttribute('data-navigation-state')).toBe('moving')
+      act(() => vi.advanceTimersByTime(1))
+      expect(region.getAttribute('data-navigation-state')).toBe('settled')
+      expect(screen.getByText('Gamma').closest('[aria-current="true"]')).not.toBeNull()
+      expect(animation.pendingCount()).toBe(0)
+    } finally {
+      vi.useRealTimers()
+      vi.unstubAllGlobals()
+    }
+  })
+
+  it('cancels pointer and wheel interruptions without stale motion or a second settle', () => {
+    vi.useFakeTimers()
+    const animation = stubAnimationFrames()
+    vi.stubGlobal('matchMedia', vi.fn().mockReturnValue({
+      matches: false,
+      addEventListener: vi.fn(),
+      removeEventListener: vi.fn(),
+    }))
+    try {
+      renderCarousel()
+      const region = screen.getByRole('region', { name: 'Beispiel-Karussell' }) as HTMLDivElement
+      const slides = directCarouselItems(region)
+      configureLinearGeometry(region, slides)
+
+      fireEvent.click(screen.getByRole('button', { name: 'Nächste Karte' }))
+      act(() => animation.advanceTo(0))
+      act(() => animation.advanceTo(25))
+      const pointerInterruptLeft = region.scrollLeft
+
+      fireEvent.pointerDown(region, { pointerId: 7, pointerType: 'touch', clientX: 100, clientY: 100 })
+      expect(animation.pendingCount()).toBe(0)
+      expect(region.scrollLeft).toBe(pointerInterruptLeft)
+      expect(region.className).not.toContain('programmaticScrolling')
+      expect(region.getAttribute('data-navigation-state')).toBe('settled')
+      expect(screen.getByText('Alpha').closest('[aria-current="true"]')).not.toBeNull()
+      fireEvent.pointerCancel(region, { pointerId: 7, pointerType: 'touch' })
+
+      fireEvent.click(screen.getByRole('button', { name: 'Nächste Karte' }))
+      act(() => animation.advanceTo(120))
+      act(() => animation.advanceTo(225))
+      const beforeWheel = region.scrollLeft
+      const horizontal = new WheelEvent('wheel', { deltaX: 300, cancelable: true })
+      act(() => { region.dispatchEvent(horizontal) })
+      const wheelInterruptLeft = region.scrollLeft
+
+      expect(horizontal.defaultPrevented).toBe(true)
+      expect(wheelInterruptLeft).toBeGreaterThan(beforeWheel)
+      expect(animation.pendingCount()).toBe(1)
+      act(() => animation.advanceTo(226))
+      expect(screen.getByText('Gamma').closest('[aria-current="true"]')).not.toBeNull()
+
+      act(() => vi.advanceTimersByTime(120))
+      expect(region.getAttribute('data-navigation-state')).toBe('settled')
+      expect(region.scrollLeft).toBe(wheelInterruptLeft)
+      expect(vi.getTimerCount()).toBe(0)
+      act(() => animation.advanceTo(435))
+      expect(region.scrollLeft).toBe(wheelInterruptLeft)
+    } finally {
+      vi.useRealTimers()
+      vi.unstubAllGlobals()
+    }
+  })
+
+  it('retargets rapid next, next, previous navigation from live geometry', () => {
+    vi.useFakeTimers()
+    const animation = stubAnimationFrames()
+    vi.stubGlobal('matchMedia', vi.fn().mockReturnValue({
+      matches: false,
+      addEventListener: vi.fn(),
+      removeEventListener: vi.fn(),
+    }))
+    try {
+      renderCarousel()
+      const region = screen.getByRole('region', { name: 'Beispiel-Karussell' }) as HTMLDivElement
+      configureLinearGeometry(region, directCarouselItems(region))
+
+      fireEvent.click(screen.getByRole('button', { name: 'Nächste Karte' }))
+      act(() => animation.advanceTo(0))
+      act(() => animation.advanceTo(70))
+      const firstLeg = region.scrollLeft
+
+      fireEvent.click(screen.getByRole('button', { name: 'Nächste Karte' }))
+      act(() => animation.advanceTo(80))
+      act(() => animation.advanceTo(150))
+      expect(region.scrollLeft).toBeGreaterThan(firstLeg)
+
+      fireEvent.click(screen.getByRole('button', { name: 'Vorherige Karte' }))
+      act(() => animation.advanceTo(160))
+      act(() => animation.advanceTo(370))
+
+      expect(region.scrollLeft).toBe(300)
+      expect(region.getAttribute('data-navigation-state')).toBe('settled')
+      expect(screen.getByText('Beta').closest('[aria-current="true"]')).not.toBeNull()
+      expect(animation.pendingCount()).toBe(0)
+      expect(vi.getTimerCount()).toBe(0)
+    } finally {
+      vi.useRealTimers()
+      vi.unstubAllGlobals()
+    }
+  })
+
+  it('keeps nested carousel items out of parent geometry, active state, inert state and count', () => {
+    vi.useFakeTimers()
+    const animation = stubAnimationFrames()
+    const outerItems = ['Outer Alpha', 'Outer Beta', 'Outer Gamma']
+    try {
+      render(
+        <FocalCarousel
+          items={outerItems}
+          getItemKey={(item) => item}
+          renderItem={(item) => item === 'Outer Alpha' ? (
+            <FocalCarousel
+              items={['Nested Alpha', 'Nested Beta']}
+              getItemKey={(nestedItem) => nestedItem}
+              renderItem={(nestedItem) => <span>{nestedItem}</span>}
+              regionLabel="Nested carousel"
+              itemSingularLabel="Nested item"
+              itemPluralLabel="Nested items"
+              previousLabel="Previous nested item"
+              nextLabel="Next nested item"
+            />
+          ) : <span>{item}</span>}
+          regionLabel="Parent carousel"
+          itemSingularLabel="Outer item"
+          itemPluralLabel="Outer items"
+          previousLabel="Previous outer item"
+          nextLabel="Next outer item"
+          showCounter
+        />,
+      )
+      const parent = screen.getByRole('region', { name: 'Parent carousel' }) as HTMLDivElement
+      const nested = screen.getByRole('region', { name: 'Nested carousel' }) as HTMLDivElement
+      const outerSlides = directCarouselItems(parent)
+      const nestedSlides = directCarouselItems(nested)
+      configureLinearGeometry(parent, outerSlides)
+      configureLinearGeometry(nested, nestedSlides)
+
+      expect(outerSlides).toHaveLength(3)
+      expect(screen.getByText('1 von 3 Outer items')).toBeTruthy()
+      expect(outerSlides[0].hasAttribute('inert')).toBe(false)
+      expect(outerSlides[1].hasAttribute('inert')).toBe(true)
+
+      parent.scrollLeft = 300
+      fireEvent.scroll(parent)
+      act(() => animation.advanceTo(0))
+      act(() => vi.advanceTimersByTime(120))
+
+      expect(screen.getByText('Outer Beta').closest('[aria-current="true"]')).toBe(outerSlides[1])
+      expect(screen.getByText('2 von 3 Outer items')).toBeTruthy()
+      expect(outerSlides[0].hasAttribute('inert')).toBe(true)
+      expect(outerSlides[1].hasAttribute('inert')).toBe(false)
+      expect(nestedSlides[0].getAttribute('aria-current')).toBe('true')
+    } finally {
+      vi.useRealTimers()
+      vi.unstubAllGlobals()
+    }
+  })
+
+  it.each([100, 200])('bounds renderItem work for %i mounted items without requests', (itemCount) => {
+    const manyItems = Array.from({ length: itemCount }, (_, index) => index)
+    const renderItem = vi.fn((item: number) => <span>Stress item {item + 1}</span>)
+    const fetchSpy = vi.fn()
+    const xhrSpy = vi.fn()
+    vi.stubGlobal('fetch', fetchSpy)
+    vi.stubGlobal('XMLHttpRequest', xhrSpy)
+    try {
+      render(
+        <FocalCarousel
+          items={manyItems}
+          getItemKey={(item) => item}
+          renderItem={renderItem}
+          regionLabel={`${itemCount}-item carousel`}
+          itemSingularLabel="Stress item"
+          itemPluralLabel="Stress items"
+          previousLabel="Previous stress item"
+          nextLabel="Next stress item"
+          showCounter
+        />,
+      )
+      const region = screen.getByRole('region', { name: `${itemCount}-item carousel` }) as HTMLDivElement
+      configureLinearGeometry(region, directCarouselItems(region))
+      expect(renderItem).toHaveBeenCalledTimes(itemCount)
+
+      fireEvent.keyDown(region, { key: 'End' })
+      fireEvent.keyDown(region, { key: 'Home' })
+
+      expect(renderItem).toHaveBeenCalledTimes(itemCount + 4)
+      expect(directCarouselItems(region)).toHaveLength(itemCount)
+      expect(screen.getByText(`1 von ${itemCount} Stress items`)).toBeTruthy()
+      expect(fetchSpy).not.toHaveBeenCalled()
+      expect(xhrSpy).not.toHaveBeenCalled()
+    } finally {
+      vi.unstubAllGlobals()
+    }
   })
 })
 
