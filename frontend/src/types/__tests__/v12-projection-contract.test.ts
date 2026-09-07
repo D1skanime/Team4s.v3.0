@@ -319,10 +319,15 @@ describe("v12 projection contract parity", () => {
 });
 
 describe("Phase 119 additive badge_progress contract", () => {
+  // Phase 150 (D-05/D-06/D-24) additively extended this originally-Phase-119 contract:
+  // `current_tier` and `stages` became required, non-nullable fields, and the `family`
+  // enum gained `role_volume`. The assertions below were raised to match that deliberate
+  // extension -- see 150-03-SUMMARY.md's addendum for the full before/after and the
+  // required-vs-nullable safety analysis for existing consumers.
   it("keeps Go, OpenAPI and TypeScript field names and nullability aligned", () => {
     const profileTypes = readFileSync(new URL("../profile.ts", import.meta.url), "utf8").replace(/\r\n/g, "\n");
     const goModels = readFileSync(new URL("../../../../backend/internal/models/member_profile.go", import.meta.url), "utf8").replace(/\r\n/g, "\n");
-    const exactKeys = ["family", "current_count", "next_threshold", "remaining_count", "next_tier", "complete"];
+    const exactKeys = ["family", "current_count", "current_tier", "next_threshold", "remaining_count", "next_tier", "complete", "stages"];
 
     expect(profileTypes).toContain("export interface PublicMemberBadgeProgress");
     expect(profileTypes).toContain("badge_progress: PublicMemberBadgeProgress[]");
@@ -330,10 +335,20 @@ describe("Phase 119 additive badge_progress contract", () => {
     expect(goModels).toContain('BadgeProgress []PublicMemberBadgeProgress `json:"badge_progress"`');
 
     const block = getOpenApiBlock("    PublicMemberBadgeProgress:\n", /\n    [A-Za-z][A-Za-z0-9]+:\n/);
-    expect(block).toContain("required: [family, current_count, next_threshold, remaining_count, next_tier, complete]");
+    expect(block).toContain(
+      "required: [family, current_count, current_tier, next_threshold, remaining_count, next_tier, complete, stages]",
+    );
     for (const key of exactKeys) expect(block).toContain(`${key}:`);
+    // role_code is intentionally NOT required (only set on family=role_volume entries),
+    // but it must still exist as a documented, nullable property.
+    expect(block).toContain("role_code:");
+    expect(block).toMatch(/current_tier:\n\s+type: string\n/);
+    expect(block).not.toMatch(/current_tier:\n\s+type: string\n\s+nullable: true/);
     expect(block).toMatch(/next_threshold:\n\s+type: integer\n\s+nullable: true/);
     expect(block).toMatch(/remaining_count:\n\s+type: integer\n\s+nullable: true/);
     expect(block).toMatch(/next_tier:\n\s+type: string\n\s+nullable: true/);
+    expect(block).toMatch(/role_code:\n\s+type: string\n\s+nullable: true/);
+    expect(block).toMatch(/stages:\n\s+type: array\n/);
+    expect(block).not.toMatch(/stages:\n\s+type: array\n\s+nullable: true/);
   });
 });

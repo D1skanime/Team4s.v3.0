@@ -130,3 +130,62 @@ Running the full `go test ./internal/repository/...` suite (broader than either 
 ## Self-Check: PASSED
 
 All modified files found on disk; both task commits (`989b845b`, `0497e928`) found in git history.
+
+## Addendum: v12-projection-contract test updated for Phase 150 additions (post-execution review)
+
+**Why this was stale:** `frontend/src/types/__tests__/v12-projection-contract.test.ts`'s `describe("Phase 119 additive badge_progress contract")` block predates this phase (its own name says so) and asserted the OLD, pre-Phase-150 `PublicMemberBadgeProgress` shape: six required fields, no `current_tier`, no `stages`, no `role_volume` in the `family` enum. This plan's Task 2 deliberately and correctly extended the real contract (Go struct, `shared/contracts/openapi.yaml`, `frontend/src/types/profile.ts`) per D-05/D-06/D-24, but did not update this pre-existing, differently-scoped drift test — it was out of this plan's `<files>` list and its own `<verify>` commands did not touch it. The test went red as an expected, documented side effect (noted in the phase's overall gate-status tracking) and has now been fixed in a follow-up review pass, per the phase owner's explicit instruction, to raise its expectations to match the deliberately-extended contract rather than weaken the test.
+
+**Before/after of the key assertions:**
+
+Before:
+```ts
+const exactKeys = ["family", "current_count", "next_threshold", "remaining_count", "next_tier", "complete"];
+...
+expect(block).toContain("required: [family, current_count, next_threshold, remaining_count, next_tier, complete]");
+for (const key of exactKeys) expect(block).toContain(`${key}:`);
+expect(block).toMatch(/next_threshold:\n\s+type: integer\n\s+nullable: true/);
+expect(block).toMatch(/remaining_count:\n\s+type: integer\n\s+nullable: true/);
+expect(block).toMatch(/next_tier:\n\s+type: string\n\s+nullable: true/);
+```
+
+After:
+```ts
+const exactKeys = ["family", "current_count", "current_tier", "next_threshold", "remaining_count", "next_tier", "complete", "stages"];
+...
+expect(block).toContain(
+  "required: [family, current_count, current_tier, next_threshold, remaining_count, next_tier, complete, stages]",
+);
+for (const key of exactKeys) expect(block).toContain(`${key}:`);
+// role_code is intentionally NOT required (only set on family=role_volume entries),
+// but it must still exist as a documented, nullable property.
+expect(block).toContain("role_code:");
+expect(block).toMatch(/current_tier:\n\s+type: string\n/);
+expect(block).not.toMatch(/current_tier:\n\s+type: string\n\s+nullable: true/);
+expect(block).toMatch(/next_threshold:\n\s+type: integer\n\s+nullable: true/);
+expect(block).toMatch(/remaining_count:\n\s+type: integer\n\s+nullable: true/);
+expect(block).toMatch(/next_tier:\n\s+type: string\n\s+nullable: true/);
+expect(block).toMatch(/role_code:\n\s+type: string\n\s+nullable: true/);
+expect(block).toMatch(/stages:\n\s+type: array\n/);
+expect(block).not.toMatch(/stages:\n\s+type: array\n\s+nullable: true/);
+```
+
+`role_code` was deliberately left OUT of `exactKeys`/the `required: [...]` string (it is documented as an optional, `role_volume`-only field, matching the real schema), but a standalone existence + nullability assertion was added for it so the test still covers every property in the block, not just the required ones.
+
+**Required-vs-nullable safety analysis for `current_tier` and `stages` (the user's explicit question):**
+
+Investigated directly, not assumed:
+
+1. **Does the Go backend unconditionally populate both fields on every entry?** Yes, confirmed by reading `buildBadgeProgress` and the `role_volume` entry-construction loop in `backend/internal/repository/member_profile_progress_repository.go`:
+   - `CurrentTier` is a plain (non-pointer) `string` field on `models.PublicMemberBadgeProgress` (`backend/internal/models/member_profile.go:207`, `json:"current_tier"` with no `omitempty`). `buildBadgeProgress` initializes `progress := models.PublicMemberBadgeProgress{...}` (zero value `""`) and only ever assigns a non-empty tier if a threshold is reached — it never leaves the field unset in a way that would omit it from JSON. The `role_volume` branch always sets `CurrentTier: badges.RoleVolume.CurrentTier(entry.Count)` (a helper call, never skipped) for every emitted entry.
+   - `Stages` is `[]BadgeProgressStage` with `json:"stages"` (no `omitempty`, `backend/internal/models/member_profile.go:213`). In `buildBadgeProgress`, `stages := make([]models.BadgeProgressStage, 0, len(thresholds))` is always initialized (even to a non-nil empty slice if `thresholds` were empty, which never happens in practice since all six families have non-empty tier registries) and unconditionally assigned via `progress.Stages = stages` before return. The `role_volume` branch builds `roleVolumeStages` once (always non-empty: the synthesized `"entry"` stage plus at least the registry's bronze/silver/gold/platinum tiers) and sets it on every `roleEntryProgress`. A Go non-nil slice, even if it were empty, marshals to JSON `[]`, never `null` — so `stages` can never be absent or null in a real response.
+   - Conclusion: both fields are populated on literally every `PublicMemberBadgeProgress` entry the backend ever emits, across all seven families (the original six plus `role_volume`). There is no code path that constructs an entry without them.
+
+2. **Is there any strict/closed schema validation anywhere that would reject a response for this reason?** No. Searched for `additionalProperties`, `ajv`, and any OpenAPI-driven runtime validation middleware or codegen step:
+   - `additionalProperties` appears 5 times in `shared/contracts/openapi.yaml`, none inside `PublicMemberBadgeProgress` or `PublicMemberBadgeProgressStage` — those two schemas have no `additionalProperties: false`, so even the OpenAPI document itself doesn't declare this object closed.
+   - `ajv` exists only inside `frontend/package-lock.json` as a transitive dependency of ESLint's own internal config-schema validation (`eslint` → `@eslint/eslintrc`/`@humanwhocodes/*` dependency chains) — it is never imported or invoked against `openapi.yaml` or any API response body anywhere in `frontend/` or `backend/`.
+   - No `express-openapi-validator`, no Go OpenAPI-request-validation middleware, no codegen step (`openapi-generator`, `swagger-codegen`, or similar) was found anywhere in the repo. The Go handlers construct and marshal `models.PublicMemberBadgeProgress` directly via `encoding/json`; the frontend consumes it via a hand-written TypeScript interface (`frontend/src/types/profile.ts`) with no runtime shape validation at the network boundary.
+   - `shared/contracts/openapi.yaml` functions here purely as a documentation/drift-detection contract (exactly what this test file itself exists to enforce byte-for-byte), not as an executable schema gate.
+
+3. **Does "required" on a JSON response schema actually constrain existing consumers at runtime, or is it just server-side documentation?** For a response body (as opposed to a request body validated by a server before accepting it), "required" in an OpenAPI schema is descriptive, not enforced by any runtime gate in this codebase (per point 2). A permissive JSON consumer that destructures only the fields it knows about (which is exactly what pre-Phase-150 frontend code did, and what `PublicMemberBadge`'s own already-established pattern of optional `current_count?`/`current_tier?` fields shows is the norm for badge-shaped types elsewhere in `profile.ts`) is entirely unaffected by two new keys appearing in the object — extra JSON object keys are inert to any code that doesn't reference them, and TypeScript's structural typing only requires updating type declarations for anyone recompiling against the new interface, not for already-running/already-built consumers of the wire format itself.
+
+**Conclusion:** My own investigation (reading the actual Go struct, the actual `buildBadgeProgress`/`role_volume`-entry code, and searching for any strict validator) **confirms** the prompt's expected conclusion: marking `current_tier` and `stages` as `required` in the OpenAPI response schema is accurate and safe. Both fields are unconditionally populated server-side on every entry with no code path that omits them, and no strict/closed schema validator exists anywhere in this codebase (frontend or backend) that would reject a response for having gained new required keys. "Required" here correctly documents an invariant the server actually and always upholds — it is not a runtime constraint that could break any consumer, old or new. No nullability change is warranted; the schema, the Go model, and the TypeScript interface are all already correct as committed in Task 2, and the test fix above simply catches the drift-test up to that already-correct reality.
