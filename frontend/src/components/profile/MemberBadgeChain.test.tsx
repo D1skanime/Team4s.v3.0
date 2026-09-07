@@ -1107,7 +1107,7 @@ describe('MemberBadgeChain Phase 118 role cards', () => {
     expect(container.querySelectorAll('[data-role-stage]')).toHaveLength(10)
     const roleStageImages = Array.from(container.querySelectorAll<HTMLImageElement>('[data-role-stage] img'))
     expect(roleStageImages.length).toBeGreaterThan(0)
-    expect(roleStageImages.every((image) => image.getAttribute('sizes') === '(min-width: 562px) 80px, 64px')).toBe(true)
+    expect(roleStageImages.every((image) => image.getAttribute('sizes') === 'auto, (min-width: 562px) 80px, 64px')).toBe(true)
     expect(container.querySelectorAll('[data-role-stage][tabindex]')).toHaveLength(0)
     expect(screen.getAllByText('Aktuell')).toHaveLength(2)
     expect(screen.getAllByText('Gesperrt').length).toBeGreaterThan(0)
@@ -1332,10 +1332,10 @@ it('routes compact and active badge art through responsive optimized sizes', asy
 
   const compactImages = Array.from(container.querySelectorAll<HTMLImageElement>('[data-achievement-size="stage"] img'))
   expect(compactImages.length).toBeGreaterThan(0)
-  expect(compactImages.every((image) => image.getAttribute('sizes') === '(min-width: 562px) 80px, 64px')).toBe(true)
+  expect(compactImages.every((image) => image.getAttribute('sizes') === 'auto, (min-width: 562px) 80px, 64px')).toBe(true)
   const activeImages = Array.from(container.querySelectorAll<HTMLImageElement>('[data-achievement-art]'))
   expect(activeImages.length).toBeGreaterThan(0)
-  expect(activeImages.every((image) => ['(min-width: 562px) 80px, 64px', '(min-width: 658px) 240px, (min-width: 562px) 216px, 192px'].includes(image.getAttribute('sizes') ?? ''))).toBe(true)
+  expect(activeImages.every((image) => ['auto, (min-width: 562px) 80px, 64px', 'auto, (min-width: 658px) 240px, (min-width: 562px) 216px, 192px'].includes(image.getAttribute('sizes') ?? ''))).toBe(true)
   expect(container.querySelectorAll('[data-badge-skeleton][aria-hidden="true"]')).toHaveLength(1)
 })
 

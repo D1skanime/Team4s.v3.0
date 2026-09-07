@@ -161,3 +161,7 @@ None.
 ## Full-suite expectation maintenance
 
 The route-level points test now asserts literal Swiss grouping text (2’500/5’000) instead of reproducing the server runtime Intl glyph. Obsolete badge source-shape checks were removed in favor of existing DOM/browser coverage. The contrast test still measures every remaining role-stage formula without fixing a duplicate-declaration count. Its line-based CSS scanner prose exception moved accordingly.56 focused regressions pass; no business values or rendered role colors changed in this follow-up.
+
+## Container-native image hints
+
+Final review found viewport-derived image hints on narrow embedded cards. Lazy shared artwork now uses native auto sizes with the existing conservative fallback; priority/eager images retain the fallback only. No per-card observer/request or optimizer configuration was added.100 artwork/chain/ResponsiveImage tests and scoped lint pass. Native1440px/DPR2 probe measured176px hero and48px marker image boxes; candidates512w/96w match the smallest adequate existing candidate entries (the project has no384w entry). See the documented strategy refinement in UI-SPEC.

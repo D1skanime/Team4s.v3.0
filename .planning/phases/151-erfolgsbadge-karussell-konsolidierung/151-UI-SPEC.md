@@ -152,3 +152,7 @@ The 107-file source review is complete and remains the byte-identical baseline. 
 `151-PROTOTYPE.html` demonstrates narrow and wide container behavior plus layered and portrait art in the same slot. It is not a route, feature, asset source or permission to alter product copy. Implementation must use production components, existing tokens and existing public asset paths.
 
 UI-SPEC COMPLETE
+
+## Verified candidate strategy refinement
+
+Lazy shared artwork uses HTML auto sizes to derive the real container-sized image box, followed by the original bounded viewport hint for browsers without support. Eager priority artwork uses the conservative hint. Slot geometry remains192/216/240 and64/80;8px padding means image boxes are16px smaller. The existing Next candidate ladder stays unchanged;512w is its smallest adequate352px DPR2 hero candidate. See docs/frontend/member-achievement-artwork.md and native candidate evidence.
