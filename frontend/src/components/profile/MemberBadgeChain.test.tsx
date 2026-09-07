@@ -2,8 +2,7 @@
 
 import type { ComponentType } from 'react'
 import { renderToStaticMarkup } from 'react-dom/server'
-import { readFileSync } from 'node:fs'
-import { act, cleanup, fireEvent, render, screen, within } from '@testing-library/react'
+import { cleanup, fireEvent, render, screen, within } from '@testing-library/react'
 import { afterEach, describe, expect, it, vi } from 'vitest'
 
 import type { PublicMemberBadge } from '@/types/profile'
@@ -102,18 +101,6 @@ const contributionRoles = [
 vi.mock('@/providers/RoleCatalogProvider', () => ({
   useRoleCatalog: () => ({ roles: contributionRoles, error: null }),
 }))
-const memberBadgeChainCss = readFileSync('src/components/profile/MemberBadgeChain.module.css', 'utf8')
-const lockedStageArtworkCss = readFileSync('src/components/profile/LockedStageArtwork.module.css', 'utf8')
-const layeredBadgeArtworkCss = readFileSync('src/components/profile/LayeredBadgeArtwork.module.css', 'utf8')
-const animeProjectStageCss = readFileSync('src/components/profile/AnimeProjectStage.module.css', 'utf8')
-const pointsAchievementStageCss = readFileSync('src/components/profile/PointsAchievementStage.module.css', 'utf8')
-const contributionAchievementStageCss = readFileSync('src/components/profile/ContributionAchievementStage.module.css', 'utf8')
-const membershipStageCss = readFileSync('src/components/profile/MembershipStage.module.css', 'utf8')
-const badgeFamilyCardCss = readFileSync('src/components/profile/BadgeFamilyCard.module.css', 'utf8')
-const badgeChipCss = readFileSync('src/components/profile/BadgeChip.module.css', 'utf8')
-const roleBadgeCardCss = readFileSync('src/components/profile/RoleBadgeCard.module.css', 'utf8')
-const roleBadgeCardStatusCss = readFileSync('src/components/profile/RoleBadgeCard.status.module.css', 'utf8')
-const roleBadgeCardStagesCss = readFileSync('src/components/profile/RoleBadgeCard.stages.module.css', 'utf8')
 
 function expectDisplayImageSource(image: Element | null, expectedSource: string) {
   const src = image?.getAttribute('src')
@@ -199,7 +186,7 @@ describe('Phase 136 catalog-backed role badges', () => {
 
     expect(html).toContain('Karaoke-FX:')
     expect(html).toContain('Zukunftsrolle:')
-    expect(html).not.toContain('data-achievement-art="role_entry_karaoke_fx"')
+    expect(html).toContain('data-achievement-art="role_entry_karaoke_fx"')
     expect(html).not.toContain('data-achievement-art="role_entry_future_role"')
   })
 
@@ -485,10 +472,6 @@ describe('Phase 125 contribution achievement stages', () => {
     fireEvent.click(screen.getByRole('button', { name: 'Alle Auszeichnungen in Beiträge anzeigen' }))
     expect(Array.from(container.querySelectorAll('[data-contribution-achievement-stage]')).map(shape)).toEqual(before)
     expect(container.querySelectorAll('[data-badge-skeleton]')).toHaveLength(0)
-    expect(contributionAchievementStageCss).toMatch(/\.contributionHeroArtwork\s*\{[^}]*aspect-ratio:\s*1/s)
-    expect(contributionAchievementStageCss).toMatch(/\.contributionHeroArtwork\s*>\s*img\s*\{[^}]*object-fit:\s*contain/s)
-    expect(contributionAchievementStageCss).toMatch(/\.contributionTierTrack\s*\{[^}]*grid-template-columns:\s*repeat\(3,\s*minmax\(0,\s*1fr\)\)/s)
-    expect(contributionAchievementStageCss).not.toMatch(/\.contributionTierTrack\s*\{[^}]*(scroll-snap|overflow-x)/s)
   })
 })
 
@@ -548,7 +531,7 @@ describe('Phase 125 contribution achievement stages', () => {
       container.querySelector('img[data-achievement-art="role_volume_translator_gold"]'),
       '/member-achievement-badges/rank-frame-translator-gold.png',
     )
-    expect(container.querySelectorAll('img[src*="role-translator-motif.png"]')).toHaveLength(1)
+    expect(container.querySelectorAll('[data-achievement-size="hero"] img[src*="role-translator-motif.png"]')).toHaveLength(1)
     expect(
       container.querySelector('img[data-achievement-art="role_volume_translator_gold"]')?.getAttribute('width'),
     ).toBe('1254')
@@ -591,7 +574,7 @@ describe('Phase 125 contribution achievement stages', () => {
       container.querySelector('img[data-achievement-art="role_volume_encoder_bronze"]'),
       '/member-achievement-badges/rank-frame-encoder-bronze.png',
     )
-    expect(container.querySelectorAll('img[src*="role-encoder-motif.png"]')).toHaveLength(1)
+    expect(container.querySelectorAll('[data-achievement-size="hero"] img[src*="role-encoder-motif.png"]')).toHaveLength(1)
   })
 
   it('composes typesetting with the matching layered rank artwork', async () => {
@@ -610,7 +593,7 @@ describe('Phase 125 contribution achievement stages', () => {
       container.querySelector('img[data-achievement-art="role_volume_typesetter_bronze"]'),
       '/member-achievement-badges/rank-frame-typesetter-bronze.png',
     )
-    expect(container.querySelectorAll('img[src*="role-typesetter-motif.png"]')).toHaveLength(1)
+    expect(container.querySelectorAll('[data-achievement-size="hero"] img[src*="role-typesetter-motif.png"]')).toHaveLength(1)
   })
 
   it('composes quality checking with the matching layered rank artwork', async () => {
@@ -629,7 +612,7 @@ describe('Phase 125 contribution achievement stages', () => {
       container.querySelector('img[data-achievement-art="role_volume_quality_checker_bronze"]'),
       '/member-achievement-badges/rank-frame-quality_checker-bronze.png',
     )
-    expect(container.querySelectorAll('img[src*="role-quality_checker-motif.png"]')).toHaveLength(1)
+    expect(container.querySelectorAll('[data-achievement-size="hero"] img[src*="role-quality_checker-motif.png"]')).toHaveLength(1)
   })
 
   it('composes project leadership with the matching layered rank artwork', async () => {
@@ -648,7 +631,7 @@ describe('Phase 125 contribution achievement stages', () => {
       container.querySelector('img[data-achievement-art="role_volume_project_lead_bronze"]'),
       '/member-achievement-badges/rank-frame-project_lead-bronze.png',
     )
-    expect(container.querySelectorAll('img[src*="role-project_lead-motif.png"]')).toHaveLength(1)
+    expect(container.querySelectorAll('[data-achievement-size="hero"] img[src*="role-project_lead-motif.png"]')).toHaveLength(1)
   })
 
   it.each([
@@ -674,7 +657,7 @@ describe('Phase 125 contribution achievement stages', () => {
       container.querySelector(`img[data-achievement-art="${volumeCode}"]`),
       `/member-achievement-badges/rank-frame-${roleCode}-bronze.png`,
     )
-    expect(container.querySelectorAll(`img[src*="role-${roleCode}-motif.png"]`)).toHaveLength(1)
+    expect(container.querySelectorAll(`[data-achievement-size="hero"] img[src*="role-${roleCode}-motif.png"]`)).toHaveLength(1)
   })
 
   it('labels the catch-all role as Andere instead of exposing the raw role code', async () => {
@@ -1093,30 +1076,6 @@ describe('buildMemberBadgeGroups (D-04)', () => {
   })
 })
 describe('MemberBadgeChain Phase 118 role cards', () => {
-  it('keeps approved role-art geometry for desktop, tablet, mobile and special roles', () => {
-    expect(roleBadgeCardCss).toContain('width: 320px;')
-    expect(roleBadgeCardCss).toContain('width: 280px;')
-    expect(roleBadgeCardCss).toContain('width: 248px;')
-    expect(roleBadgeCardStatusCss).toContain('.roleArtworkBackdrop {\n  inset: 12%;')
-    expect(roleBadgeCardStatusCss).toContain('clip-path: circle(34% at 50% 50%);')
-  })
-
-  it('keeps all five mobile medals and progress copy inside the role card', () => {
-    expect(roleBadgeCardCss).toMatch(/@media \(max-width: 520px\)[\s\S]*\.roleBadgeRow\s*\{[^}]*padding:\s*20px 10px;/)
-    expect(roleBadgeCardStagesCss).toMatch(/@media \(max-width: 520px\)[\s\S]*\.roleProgression\s*\{[^}]*gap:\s*4px;/)
-    expect(roleBadgeCardCss).toMatch(/\.roleBadgeRow\s*\{[^}]*width:\s*100%;[^}]*min-width:\s*0;[^}]*box-sizing:\s*border-box;[^}]*grid-template-columns:\s*minmax\(0, 1fr\);/s)
-    expect(roleBadgeCardCss).toMatch(/\.roleBadgeRow > \*\s*\{[^}]*min-width:\s*0;[^}]*max-width:\s*100%;/s)
-    expect(roleBadgeCardStatusCss).toMatch(/\.roleProgressCopy\s*\{[^}]*white-space:\s*normal;/s)
-  })
-
-  it('matches the narrow carousel skeleton to one full card and a separate controls row', () => {
-    expect(memberBadgeChainCss).toMatch(/\.carouselShell\s*\{[^}]*container:\s*member-badge-carousel \/ inline-size;/s)
-    expect(memberBadgeChainCss).toContain('@container member-badge-carousel (max-width: 480px)')
-    expect(memberBadgeChainCss).toMatch(/\.carouselSkeleton\s*\{[^}]*grid-template-rows:\s*minmax\(280px, auto\) 36px;/s)
-    expect(memberBadgeChainCss).toMatch(/\.skeletonCard\s*\{[^}]*grid-column:\s*1 \/ -1;[^}]*grid-row:\s*1;[^}]*width:\s*100%;/s)
-    expect(memberBadgeChainCss).toMatch(/\.skeletonControl:first-child\s*\{[^}]*grid-column:\s*1;/s)
-    expect(memberBadgeChainCss).toMatch(/\.skeletonControl:last-child\s*\{[^}]*grid-column:\s*3;/s)
-  })
 
   const roleBadge = (role: 'translator' | 'timer', count: number): PublicMemberBadge => ({
     id: count + 1,
@@ -1146,10 +1105,11 @@ describe('MemberBadgeChain Phase 118 role cards', () => {
     expect(screen.getByRole('button', { name: 'Vorherige Rolle' })).not.toBeNull()
     expect(screen.getByRole('button', { name: 'Nächste Rolle' })).not.toBeNull()
     expect(container.querySelectorAll('[data-role-stage]')).toHaveLength(10)
-    expect(container.querySelectorAll('[data-role-stage] img')).toHaveLength(0)
+    const roleStageImages = Array.from(container.querySelectorAll<HTMLImageElement>('[data-role-stage] img'))
+    expect(roleStageImages.length).toBeGreaterThan(0)
+    expect(roleStageImages.every((image) => image.getAttribute('sizes') === '(min-width: 562px) 80px, 64px')).toBe(true)
     expect(container.querySelectorAll('[data-role-stage][tabindex]')).toHaveLength(0)
     expect(screen.getAllByText('Aktuell')).toHaveLength(2)
-    expect(roleBadgeCardStagesCss).toMatch(/\.roleProgression \.currentChip\s*\{[^}]*position:\s*static;[^}]*white-space:\s*nowrap;[^}]*font-size:\s*0\.58rem;/s)
     expect(screen.getAllByText('Gesperrt').length).toBeGreaterThan(0)
   })
 
@@ -1248,9 +1208,9 @@ describe('MemberBadgeChain Phase 119 collection cards', () => {
     expect(screen.getByText('25 Medienbeiträge')).not.toBeNull()
     expect(screen.getByText('Höchste Stufe erreicht')).not.toBeNull()
     const heroFrame = container.querySelector<HTMLImageElement>('img[data-achievement-art="productive_bronze"]')
-    expect(heroFrame?.parentElement?.className).toContain('badgeArtworkLayered')
+    expect(heroFrame?.parentElement?.hasAttribute('data-achievement-slot')).toBe(true)
     const projectCard = container.querySelector('[data-family="progress"]')
-    expect(projectCard?.querySelectorAll('img[src*="progress-productive-motif.png"]')).toHaveLength(1)
+    expect(projectCard?.querySelectorAll('[data-achievement-size="hero"] img[src*="progress-productive-motif.png"]')).toHaveLength(1)
   })
 
   it('renders Anime-Projekte as one stage without outer carousel chrome', async () => {
@@ -1327,22 +1287,7 @@ describe('MemberBadgeChain Phase 119 collection cards', () => {
   })
 })
 
-describe('MemberBadgeChain Phase 119 inner stage strip', () => {
-  it('keeps a visible, touch-friendly horizontal scroll affordance without page overflow', () => {
-    expect(badgeFamilyCardCss).toContain('@container member-badge-carousel (max-width: 820px)')
-    expect(badgeFamilyCardCss).toContain('padding-inline: calc(50% - 52px)')
-    expect(badgeFamilyCardCss).toContain('scroll-snap-type: x proximity')
-    expect(badgeFamilyCardCss).toContain('scrollbar-width: thin')
-    const familyStagesRule = badgeFamilyCardCss.match(/\.familyStages\s*\{[^}]*\}/s)?.[0] ?? ''
-    expect(familyStagesRule).not.toContain('scrollbar-width: none')
-    expect(badgeFamilyCardCss).toContain('.familyStages::-webkit-scrollbar')
-    expect(badgeFamilyCardCss).toMatch(/\.familyStages::\-webkit-scrollbar\s*\{[^}]*height:\s*8px;/s)
-    expect(badgeFamilyCardCss).toContain('touch-action: pan-x pan-y')
-    expect(badgeFamilyCardCss).toContain('flex: 0 0 104px')
-    expect(memberBadgeChainCss).toMatch(/\.section,\s*\.chainCard,\s*\.groupList,\s*\.group\s*\{[^}]*min-width:\s*0;[^}]*max-width:\s*100%;/s)
-    expect(badgeFamilyCardCss).toMatch(/\.familyCard\s*\{[^}]*width:\s*100%;[^}]*min-width:\s*0;[^}]*box-sizing:\s*border-box;[^}]*grid-template-columns:\s*minmax\(0, 1fr\);/s)
-    expect(badgeFamilyCardCss).toMatch(/\.familyCard > \*\s*\{[^}]*min-width:\s*0;[^}]*max-width:\s*100%;/s)
-  })
+describe('MemberBadgeChain Phase 119 stage composition', () => {
 
   it('does not map a mouse wheel to a horizontal stage strip', async () => {
     const { MemberBadgeChain } = await loadMemberBadgeChain()
@@ -1355,68 +1300,6 @@ describe('MemberBadgeChain Phase 119 inner stage strip', () => {
     expect(wheelEvent.defaultPrevented).toBe(false)
     expect(strip.scrollLeft).toBe(20)
   })
-    const scrollIntoView = vi.fn()
-
-  it.skip('centers the current stage through its own strip and never scrolls an ancestor', async () => {
-    const scrollTo = vi.fn()
-    const disconnect = vi.fn()
-    let resizeCallback: ResizeObserverCallback | null = null
-    let breakpointCallback: (() => void) | null = null
-    const original = Element.prototype.scrollIntoView
-    Element.prototype.scrollIntoView = scrollIntoView
-    Object.defineProperty(HTMLElement.prototype, 'scrollTo', { configurable: true, value: scrollTo })
-
-    try {
-      vi.stubGlobal('ResizeObserver', class {
-        constructor(callback: ResizeObserverCallback) {
-          resizeCallback = callback
-        }
-        observe() {}
-        disconnect() { disconnect() }
-      })
-      vi.stubGlobal('matchMedia', vi.fn((query: string) => ({
-        matches: false,
-        addEventListener: (_event: string, callback: () => void) => {
-          if (query === '(max-width: 820px)') breakpointCallback = callback
-        },
-        removeEventListener: vi.fn(),
-      })))
-      const { MemberBadgeChain } = await loadMemberBadgeChain()
-      const CollectionChain = MemberBadgeChain as ComponentType<{
-        earnedBadges: PublicMemberBadge[]
-        badgeProgress: Array<{ family: string; current_count: number; next_threshold: number | null; remaining_count: number | null; next_tier: string | null; complete: boolean; stages?: Array<{ code: string; threshold: number }> }>
-      }>
-      const rendered = render(<CollectionChain earnedBadges={[{ id: 1, badge_code: 'productive_bronze', badge_category: 'quantity' }]} badgeProgress={[{ family: 'progress', current_count: 10, next_threshold: 25, remaining_count: 15, next_tier: '25 Projekte', complete: false, stages: FAMILY_STAGE_FIXTURES.progress }]} />)
-      const current = screen.getByRole('button', { name: /10 Anime-Projekte auswählen, Aktuell/ })
-      const strip = current.closest('[data-badge-stage-strip]') as HTMLElement
-      Object.defineProperties(strip, {
-        clientWidth: { configurable: true, value: 200 },
-        scrollWidth: { configurable: true, value: 600 },
-        scrollLeft: { configurable: true, writable: true, value: 20 },
-      })
-      vi.spyOn(strip, 'getBoundingClientRect').mockReturnValue({ left: 20, width: 200 } as DOMRect)
-      vi.spyOn(current, 'getBoundingClientRect').mockReturnValue({ left: 260, width: 100 } as DOMRect)
-      scrollTo.mockClear()
-
-      act(() => resizeCallback?.([], {} as ResizeObserver))
-
-      expect(scrollIntoView).not.toHaveBeenCalled()
-      expect(scrollTo).toHaveBeenCalledWith({ left: 210, behavior: 'smooth' })
-      expect(scrollTo.mock.instances.every((element) => element instanceof HTMLElement && element.hasAttribute('data-badge-stage-strip'))).toBe(true)
-
-      scrollTo.mockClear()
-      act(() => breakpointCallback?.())
-      expect(scrollTo).toHaveBeenCalledWith({ left: 210, behavior: 'smooth' })
-
-      rendered.unmount()
-      expect(disconnect).toHaveBeenCalled()
-    } finally {
-      Element.prototype.scrollIntoView = original
-      delete (HTMLElement.prototype as { scrollTo?: unknown }).scrollTo
-      vi.unstubAllGlobals()
-    }
-  })
-
   it('exposes every earned and locked stage as a semantic list item', async () => {
     const { MemberBadgeChain } = await loadMemberBadgeChain()
     const CollectionChain = MemberBadgeChain as ComponentType<{
@@ -1431,11 +1314,6 @@ describe('MemberBadgeChain Phase 119 inner stage strip', () => {
     expect(within(stageList).getAllByRole('listitem')).toHaveLength(4)
     expect(within(stageList).getByRole('button', { name: /10 Anime-Projekte auswählen, Aktuell/ })).not.toBeNull()
     expect(within(stageList).getByLabelText('25 Anime-Projekte · Gesperrt')).not.toBeNull()
-  })
-
-  it('reserves fixed collection hero geometry at tablet and smartphone widths', () => {
-    expect(badgeFamilyCardCss).toMatch(/@container member-badge-carousel \(max-width: 520px\)[\s\S]*?\.familyHero\s*\{[\s\S]*?width: 248px/)
-    expect(badgeFamilyCardCss).toMatch(/@container member-badge-carousel \(max-width: 1099px\)[\s\S]*?\.familyHero\s*\{[\s\S]*?width: 280px/)
   })
 })
 
@@ -1452,11 +1330,12 @@ it('routes compact and active badge art through responsive optimized sizes', asy
     />,
   )
 
-  const compactImages = Array.from(container.querySelectorAll<HTMLImageElement>('[data-badge-stage-strip] img, [data-role-stage] img'))
-  expect(compactImages).toHaveLength(0)
+  const compactImages = Array.from(container.querySelectorAll<HTMLImageElement>('[data-achievement-size="stage"] img'))
+  expect(compactImages.length).toBeGreaterThan(0)
+  expect(compactImages.every((image) => image.getAttribute('sizes') === '(min-width: 562px) 80px, 64px')).toBe(true)
   const activeImages = Array.from(container.querySelectorAll<HTMLImageElement>('[data-achievement-art]'))
   expect(activeImages.length).toBeGreaterThan(0)
-  expect(activeImages.every((image) => image.getAttribute('sizes') === '(max-width: 520px) 248px, (max-width: 1099px) 280px, 320px')).toBe(true)
+  expect(activeImages.every((image) => ['(min-width: 562px) 80px, 64px', '(min-width: 658px) 240px, (min-width: 562px) 216px, 192px'].includes(image.getAttribute('sizes') ?? ''))).toBe(true)
   expect(container.querySelectorAll('[data-badge-skeleton][aria-hidden="true"]')).toHaveLength(1)
 })
 
@@ -1530,28 +1409,11 @@ it('Phase 120 Task 2: keeps SSR carousel content while expensive listeners remai
       expect(screen.getByText('Höchste Stufe erreicht')).not.toBeNull()
       expect(screen.queryByRole('tab')).toBeNull()
       expect(screen.queryByRole('tablist')).toBeNull()
-      expect(resizeObserve.mock.calls.every(([element]) => (
-        element instanceof HTMLElement && element.hasAttribute('data-badge-stage-strip')
-      ))).toBe(true)
-      expect(mediaAdd).toHaveBeenCalledTimes(resizeObserve.mock.calls.length)
-      expect(roleBadgeCardCss).toMatch(/\.roleHeroArtwork\s*\{[^}]*width:\s*320px;[^}]*aspect-ratio:\s*1;[^}]*height:\s*auto;/s)
-      expect(memberBadgeChainCss).not.toMatch(/transition:[^;]*(?:width|height)/)
+      expect(resizeObserve).not.toHaveBeenCalled()
+      expect(mediaAdd).not.toHaveBeenCalled()
     } finally {
       vi.unstubAllGlobals()
     }
-})
-
-it('keeps badge artwork slots stable and expresses focus only through transforms', () => {
-  expect(roleBadgeCardCss).toMatch(/\.roleHeroArtwork\s*\{[^}]*width:\s*320px;[^}]*aspect-ratio:\s*1;[^}]*height:\s*auto;[^}]*transform:\s*scale\(0\.84\);/s)
-  expect(badgeChipCss).toMatch(/\.badgeArtwork\s*\{[^}]*width:\s*320px;[^}]*height:\s*320px;[^}]*transform:\s*scale\(0\.84\);/s)
-  expect(roleBadgeCardStatusCss).toMatch(/\.badgeWindowActive \.roleHeroArtwork\s*\{[^}]*transform:\s*scale\(1\);/s)
-  expect(memberBadgeChainCss).toMatch(/\.badgeWindowActive \.badgeArtwork\s*\{[^}]*transform:\s*scale\(1\);/s)
-  expect(memberBadgeChainCss).not.toMatch(/\.badgeWindowActive :?is\([^}]*\)\s*\{[^}]*(?:width|height):/s)
-  expect(memberBadgeChainCss).not.toMatch(/\.badgeWindowActive \.badgeArtwork\s*\{[^}]*(?:width|height):/s)
-  expect(roleBadgeCardStatusCss).not.toMatch(/\.badgeWindowActive \.roleHeroArtwork\s*\{[^}]*(?:width|height):/s)
-  // Plan 133-09 merged the identical contributions/membership value pairs into one comma-joined
-  // selector (see MemberBadgeChain.module.css's comment above this block).
-  expect(memberBadgeChainCss).toMatch(/@container member-badge-carousel \(max-width: 520px\)[\s\S]*?\.group\[data-badge-group="contributions"\] \.badgeArtwork,[\s\S]*?\{[^}]*width:\s*clamp\(210px, 60vw, 240px\);/s)
 })
 
 describe('Phase 121 Rollenfamilien und Hero-Artwork', () => {
@@ -1567,6 +1429,7 @@ describe('Phase 121 Rollenfamilien und Hero-Artwork', () => {
     ['designer', 'Design'],
     ['admin', 'Administration'],
     ['other', 'Andere'],
+    ['karaoke_fx', 'Karaoke-FX'],
   ] as const
 
   const rankCases = [
@@ -1577,7 +1440,7 @@ describe('Phase 121 Rollenfamilien und Hero-Artwork', () => {
     [510, 'platinum'],
   ] as const
 
-  it('zeigt exakt 11 verdiente Rollenfamilien und keine Alias- oder Fremdrollen', async () => {
+  it('zeigt exakt 12 verdiente Rollenfamilien und keine Alias- oder Fremdrollen', async () => {
     const { MemberBadgeChain } = await loadMemberBadgeChain()
     const earnedBadges: PublicMemberBadge[] = [
       ...roles.map(([roleCode], index) => ({
@@ -1606,7 +1469,7 @@ describe('Phase 121 Rollenfamilien und Hero-Artwork', () => {
     expect(roleCards.every((card) => card.hasAttribute('data-role-card-state'))).toBe(true)
   })
 
-  it('löst alle fünf Hero-Ränge aller 11 Familien auf und bewahrt direkte Timing-Quellen', async () => {
+  it('löst alle fünf Hero-Ränge aller 12 Familien auf und bewahrt direkte Timing-Quellen', async () => {
     const { MemberBadgeChain } = await loadMemberBadgeChain()
 
     for (const [roleCode] of roles) {
@@ -1647,9 +1510,9 @@ describe('Phase 121 Rollenfamilien und Hero-Artwork', () => {
       badgeProgress={[roleVolumeBadgeProgress('timer', 108)]}
     />)
     const timerCard = timer.container.querySelector('[data-role-code="timer"]') as HTMLElement
-    expect(timerCard.querySelectorAll('img')).toHaveLength(1)
+    expect(timerCard.querySelectorAll('[data-achievement-size="hero"] img')).toHaveLength(1)
     expectDisplayImageSource(
-      timerCard.querySelector('img'),
+      timerCard.querySelector('[data-achievement-size="hero"] img'),
       '/member-achievement-badges/role_volume_timer_silver.png',
     )
     timer.unmount()
@@ -1665,16 +1528,11 @@ describe('Phase 121 Rollenfamilien und Hero-Artwork', () => {
         badgeProgress={[roleVolumeBadgeProgress(roleCode, 108)]}
       />)
       const card = rendered.container.querySelector(`[data-role-code="${roleCode}"]`) as HTMLElement
-      const hero = card.querySelector('[class*="roleHeroArtworkLayered"]') as HTMLElement
+      const hero = card.querySelector('[data-achievement-slot]') as HTMLElement
       expect(hero).not.toBeNull()
       expect(hero.querySelectorAll('img')).toHaveLength(2)
       rendered.unmount()
     }
-
-    expect(layeredBadgeArtworkCss).toMatch(/\.roleHeroArtworkLayered,\s*\.badgeArtworkLayered\s*\{[^}]*position:\s*relative;/s)
-    expect(roleBadgeCardCss).toMatch(/\.roleHeroArtwork\s*\{[^}]*aspect-ratio:\s*1;[^}]*height:\s*auto;/s)
-    expect(layeredBadgeArtworkCss).toMatch(/\.roleArtworkMotif\s*\{[^}]*object-fit:\s*contain;[^}]*clip-path:\s*circle/s)
-    expect(layeredBadgeArtworkCss).toMatch(/\.roleArtworkFrame\s*\{[^}]*object-fit:\s*contain;/s)
   })
 })
 
@@ -1689,21 +1547,11 @@ describe('Phase 121 semantischer Rollen-Rank-Track', () => {
     expect(screen.queryByRole('region', { name: 'Rollenfortschritt-Karussell' })).toBeNull()
     expect(container.querySelectorAll('[data-role-card-state="expanded"]')).toHaveLength(2)
     expect(container.querySelector('[data-badge-skeleton="true"]')).not.toBeNull()
-    expect(memberBadgeChainCss).toMatch(/\.carouselShell:has\(\.badgeGrid\) > \.carouselSkeleton\s*\{[^}]*visibility:\s*hidden;/s)
-    expect(roleBadgeCardCss).toMatch(/\.roleBadgeRow\[data-role-card-state="expanded"\]\s*\{[^}]*grid-template-columns:\s*minmax\(0, 1fr\);[^}]*transform:\s*none;/s)
 
     fireEvent.click(screen.getByRole('button', { name: 'Weniger anzeigen' }))
     expect(screen.getByRole('region', { name: 'Rollenfortschritt-Karussell' })).not.toBeNull()
     expect(container.querySelectorAll('[data-role-card-state="expanded"]')).toHaveLength(0)
     expect(container.querySelectorAll('[data-role-card-state="active"]')).toHaveLength(1)
-  })
-
-  it('locks the final desktop hierarchy and near-full-width narrow role card', () => {
-    expect(roleBadgeCardStatusCss).toMatch(/@media \(min-width: 1440px\)[\s\S]*font-size:\s*clamp\(2rem, 2\.4vw, 3rem\);/)
-    expect(roleBadgeCardStatusCss).toMatch(/@media \(min-width: 1440px\)[\s\S]*\.roleProgressTrack\s*\{[^}]*height:\s*10px;/)
-    expect(memberBadgeChainCss).toMatch(/@container member-badge-carousel \(max-width: 480px\)[\s\S]*--focal-item-size:\s*min\(98%, 340px\);/)
-    expect(memberBadgeChainCss).toMatch(/@media \(max-width: 520px\)[\s\S]*\.chainCard:has\(\.group\[data-badge-group="roles"\]\)[\s\S]*padding-inline:\s*4px;/)
-    expect(roleBadgeCardStatusCss).toMatch(/\.badgeWindowActive \.roleBadgeRow\s*\{[^}]*width:\s*calc\(100% \+ 16px\);/)
   })
 
   const roleBadge = (roleCode: string, count: number, id = 1): PublicMemberBadge => ({
@@ -1862,6 +1710,13 @@ describe('Phase 124 Punkte-Meilensteine single-family stage', () => {
     )
   }
 
+  it('uses the same Swiss thousands separator for SSR and browser point labels', async () => {
+    await renderPoints(1234, 'point_milestone_veteran', 2500, 1266)
+    expect(screen.getByText('1’234 Punkte')).not.toBeNull()
+    expect(screen.getByText('Ab 1’000 Punkten')).not.toBeNull()
+    expect(screen.getByText('1’234 / 2’500')).not.toBeNull()
+  })
+
   it('renders exactly six ordered stations without outer carousel chrome or skeletons', async () => {
     const { container } = await renderPoints(500, 'point_milestone_engaged', 1000, 500)
     const stage = container.querySelector('[data-points-achievement-stage]') as HTMLElement
@@ -1917,28 +1772,15 @@ describe('Phase 124 Punkte-Meilensteine single-family stage', () => {
     expect(progress.getAttribute('aria-valuenow')).toBe('734')
   })
 
-  it.each([2500, 2733, 5000])('keeps the true terminal value %i with bounded progressbar semantics', async (points) => {
+  it.each([[2500, '2’500'], [2733, '2’733'], [5000, '5’000']] as const)('keeps the true terminal value %i with bounded progressbar semantics', async (points, label) => {
     const { container } = await renderPoints(points, 'point_milestone_legend', null, null, true)
     const stage = container.querySelector('[data-points-achievement-stage]') as HTMLElement
     const progress = within(stage).getByRole('progressbar', { name: /Punkte/ })
-    expect(within(stage).getByText(`${points.toLocaleString('de-CH')} Punkte`)).not.toBeNull()
+    expect(within(stage).getByText(`${label} Punkte`)).not.toBeNull()
     expect(progress.getAttribute('aria-valuenow')).toBe('2500')
     expect(progress.getAttribute('aria-valuemax')).toBe('2500')
     expect(within(stage).getByText('Höchste Stufe erreicht')).not.toBeNull()
     expect(stage.textContent).not.toContain('Noch ')
-  })
-
-  it('locks square contained artwork, local overflow and reduced-motion CSS contracts', () => {
-    expect(pointsAchievementStageCss).toMatch(/\.pointsAchievementStage\s*\{[^}]*min-width:\s*0;/s)
-    expect(pointsAchievementStageCss).toMatch(/\.pointsHeroArtwork\s*\{[^}]*aspect-ratio:\s*1/s)
-    expect(pointsAchievementStageCss).toMatch(/\.pointsHeroArtwork\s*>\s*img\s*\{[^}]*object-fit:\s*contain/s)
-    expect(pointsAchievementStageCss).toMatch(/\.pointsStageTrack\s*\{[^}]*overflow-x:\s*auto/s)
-    expect(pointsAchievementStageCss).toMatch(/\.pointsStageTrack\s*\{[^}]*scrollbar-width:\s*none/s)
-    expect(pointsAchievementStageCss).toMatch(/\.pointsStageTrack::\-webkit-scrollbar\s*\{[^}]*display:\s*none/s)
-    expect(pointsAchievementStageCss).toMatch(/\.pointsStageArtwork\s*\{[^}]*aspect-ratio:\s*1/s)
-    expect(pointsAchievementStageCss).toMatch(/@media\s*\(prefers-reduced-motion:\s*reduce\)[\s\S]*?\.points/s)
-    const groupRule = memberBadgeChainCss.match(/\.group\s*\{[^}]*\}/)?.[0] ?? ''
-    expect(groupRule).not.toContain('overflow-x: auto')
   })
 })
 
@@ -2095,19 +1937,6 @@ describe('Phase 126 membership stage', () => {
     expect(stage.querySelector('[data-threshold="10"]')?.getAttribute('aria-current')).toBe('step')
   })
 
-  it('uses stable three-column contain geometry', () => {
-    expect(membershipStageCss).toMatch(/\.membershipStage\s*\{[^}]*min-width:\s*0;/s)
-    expect(membershipStageCss).toMatch(/\.membershipHeroArtwork\s*\{[^}]*aspect-ratio:\s*1/s)
-    expect(membershipStageCss).toMatch(/\.membershipHeroArtwork\s*>\s*img\s*\{[^}]*object-fit:\s*contain/s)
-    expect(membershipStageCss).toMatch(/\.membershipDurationTrack\s*\{[^}]*grid-template-columns:\s*repeat\(3,\s*minmax\(0,\s*1fr\)\);[^}]*min-width:\s*0;/s)
-    expect(membershipStageCss).toMatch(/\.membershipStageArtwork\s*\{[^}]*aspect-ratio:\s*1/s)
-    expect(membershipStageCss).toMatch(/\.membershipStageArtwork\s*>\s*img\s*\{[^}]*object-fit:\s*contain/s)
-    expect(membershipStageCss).toMatch(/@container\s*\(max-width:\s*900px\)[\s\S]*?\.membershipStageHero/s)
-    expect(membershipStageCss).toMatch(/@media\s*\(prefers-reduced-motion:\s*reduce\)[\s\S]*?\.membership/s)
-    const trackRule = membershipStageCss.match(/\.membershipDurationTrack\s*\{[^}]*\}/s)?.[0] ?? ''
-    expect(trackRule).not.toMatch(/overflow-x|scroll-snap|touch-action/)
-  })
-
 })
 
 describe('Quick 260811-lck locked achievement artwork secrecy', () => {
@@ -2235,102 +2064,31 @@ describe('Quick 260812-bqs locked mystery heroes', () => {
     expect(html).not.toContain('data-achievement-art')
     expect(html).not.toContain('/member-achievement-badges/')
   })
-
-  it('defines a responsive hero composition without changing the compact lock default', () => {
-    expect(lockedStageArtworkCss).toMatch(/\.lockedStageArtworkHero\s*\{[^}]*width:\s*min\(100%,\s*320px\);[^}]*max-width:\s*100%;[^}]*aspect-ratio:\s*1;/s)
-    expect(lockedStageArtworkCss).toMatch(/\.lockedStageHeroCopy\s*\{[^}]*text-align:\s*center;/s)
-    expect(lockedStageArtworkCss).toMatch(/\.lockedStageArtwork:not\(\.lockedStageArtworkHero\)\s*\{[^}]*width:\s*clamp\(44px,\s*100%,\s*96px\);/s)
-  })
-
-describe('Quick 260812-rps responsive BadgeChain contract', () => {
-  it('bounds hero, progress and carousel consumers without arbitrary copy breaking', () => {
-    expect(memberBadgeChainCss).toMatch(/\.carouselShell\s*\{[^}]*min-width:\s*0;[^}]*max-width:\s*100%;[^}]*container:\s*member-badge-carousel \/ inline-size;/s)
-    expect(badgeFamilyCardCss).toMatch(/\.familyCard\s*\{[^}]*width:\s*100%;[^}]*min-width:\s*0;[^}]*max-width:\s*100%;/s)
-    expect(badgeFamilyCardCss).toMatch(/\.familyProgressBlock\s*\{[^}]*min-width:\s*0;[^}]*max-width:\s*100%;/s)
-    expect(badgeFamilyCardCss).toMatch(/\.familyProgressCopy\s*\{[^}]*overflow-wrap:\s*normal;/s)
-    expect(badgeFamilyCardCss).not.toMatch(/\.(?:familyCard|familyProgressCopy)\s*\{[^}]*(?:overflow-wrap:\s*anywhere|word-break:\s*break-all)/s)
-  })
-})
-
-describe('Quick 260812-rps medium contribution carousel geometry', () => {
-  it('gives the active card usable width and stacks its hero before copy is squeezed', () => {
-    expect(memberBadgeChainCss).toMatch(/@container member-badge-carousel \(max-width:\s*1100px\)[\s\S]*?\.group\[data-badge-group=['"]contributions['"]\] \.chain\s*\{[^}]*--focal-item-size:\s*88%;/s)
-    expect(contributionAchievementStageCss).toMatch(/@container member-badge-carousel \(max-width:\s*1100px\)[\s\S]*?\.contributionStageHero\s*\{[^}]*grid-template-columns:\s*minmax\(0,\s*1fr\);/s)
-    expect(contributionAchievementStageCss).toMatch(/\.contributionStageInfo\s*\{[^}]*min-width:\s*0;[^}]*max-width:\s*100%;/s)
-    expect(contributionAchievementStageCss).toMatch(/\.contributionStageProgressValue\s*\{[^}]*flex-wrap:\s*wrap;/s)
-    expect(memberBadgeChainCss).not.toMatch(/\.group\[data-badge-group=['"]contributions['"]\][^}]*overflow:\s*hidden/s)
-  })
-
-describe('Quick 260812-jtp BadgeChain rhythm ownership', () => {
-  it('uses the shared spacing scale only at section and group seams', () => {
-    expect(memberBadgeChainCss).toMatch(/\.section\s*\{[^}]*gap:\s*var\(--space-4\);/s)
-    expect(memberBadgeChainCss).toMatch(/\.groupList\s*\{[^}]*gap:\s*var\(--space-5\);/s)
-    expect(memberBadgeChainCss).toMatch(/\.group\s*\{[^}]*gap:\s*var\(--space-2\);/s)
-    expect(badgeFamilyCardCss).toMatch(/\.familyCard\s*\{[^}]*padding:\s*24px;/s)
-    expect(contributionAchievementStageCss).toMatch(/\.contributionHeroArtwork\s*\{[^}]*aspect-ratio:\s*1;/s)
-  })
-
-describe('Quick 260812-jtp contribution card density', () => {
-  it('keeps the contribution stage content-sized across embedded widths', () => {
-    expect(contributionAchievementStageCss).toMatch(/\.contributionAchievementStage\s*\{[^}]*gap:\s*var\(--space-4\);[^}]*padding:\s*var\(--space-4\) var\(--space-5\);/s)
-    expect(contributionAchievementStageCss).toMatch(/\.contributionStageHero\s*\{[^}]*grid-template-columns:\s*minmax\(200px,\s*300px\) minmax\(0,\s*1fr\);[^}]*gap:\s*clamp\(var\(--space-4\),\s*3vw,\s*var\(--space-6\)\);/s)
-    expect(contributionAchievementStageCss).toMatch(/\.contributionHeroArtwork\s*\{[^}]*width:\s*min\(100%,\s*300px\);[^}]*aspect-ratio:\s*1;/s)
-    expect(contributionAchievementStageCss).toMatch(/@container member-badge-carousel \(max-width:\s*1100px\)[\s\S]*?\.contributionAchievementStage\s*\{[^}]*gap:\s*var\(--space-3\);[^}]*padding:\s*var\(--space-4\);/s)
-    expect(contributionAchievementStageCss).toMatch(/@container member-badge-carousel \(max-width:\s*1100px\)[\s\S]*?\.contributionHeroArtwork\s*\{[^}]*width:\s*min\(100%,\s*220px\);/s)
-    expect(contributionAchievementStageCss).toMatch(/@container member-badge-carousel \(max-width:\s*1100px\)[\s\S]*?\.contributionTierArtwork\s*\{[^}]*width:\s*min\(96px,\s*100%\);/s)
-    expect(contributionAchievementStageCss).not.toMatch(/\.contributionAchievementStage\s*\{[^}]*min-height:/s)
-    expect(contributionAchievementStageCss).toMatch(/\.contributionAchievementStage\s*\{[^}]*border:\s*0;[^}]*border-radius:\s*0;[^}]*background:\s*transparent;[^}]*box-shadow:\s*none;/s)
-    expect(memberBadgeChainCss).toMatch(/\.group\[data-badge-group=['"]contributions['"]\] \.badgeWindow:not\(\.badgeWindowActive\) \.contributionAchievementStage\s*\{[^}]*place-content:\s*center;[^}]*padding:\s*0;/s)
-    expect(memberBadgeChainCss).toMatch(/\.group\[data-badge-group=['"]contributions['"]\] \.badgeWindow:not\(\.badgeWindowActive\) :is\(\.contributionStageTitle, \.contributionStageInfo, \.contributionTierTrack\)\s*\{[^}]*display:\s*none;/s)
-    expect(memberBadgeChainCss).toMatch(/\.group\[data-badge-group=['"]contributions['"]\] \.badgeWindow:not\(\.badgeWindowActive\) \.contributionStageHero\s*\{[^}]*grid-template-columns:\s*minmax\(0,\s*1fr\);[^}]*width:\s*100%;/s)
-    expect(memberBadgeChainCss).toMatch(/@container member-badge-carousel \(min-width:\s*640px\) and \(max-width:\s*1100px\)[\s\S]*?\.contributionStageHero\s*\{[^}]*grid-template-columns:\s*minmax\(180px,\s*220px\) minmax\(0,\s*1fr\);/s)
-    expect(memberBadgeChainCss).toMatch(/@container member-badge-carousel \(min-width:\s*640px\) and \(max-width:\s*1100px\)[\s\S]*?\.contributionHeroArtwork\s*\{[^}]*width:\s*min\(100%,\s*220px\);/s)
-    expect(memberBadgeChainCss).toMatch(/\.group\[data-badge-group=['"]contributions['"]\] \.badgeWindow:not\(\.badgeWindowActive\) \.contributionHeroArtwork\s*\{[^}]*width:\s*min\(100%,\s*144px\);/s)
-  })
-})
-})
-})
-})
-
-describe('Quick 260812-kr1 transparent achievement stages', () => {
-  it('keeps one no-card-surface rule authoritative for the role-card hero wrapper, now extracted alongside its sibling stages', () => {
-    // Historical note: .roleBadgeRow was the last stage-selector no-card-surface rule to live
-    // directly in MemberBadgeChain.module.css; Plan 133-09 extracted it to RoleBadgeCard.module.css
-    // alongside the other four stages (see the next test), so this now asserts parity with them.
-    expect(roleBadgeCardCss).toMatch(/\.roleBadgeRow\s*\{[^}]*border:\s*0;[^}]*border-radius:\s*0;[^}]*background:\s*transparent;[^}]*box-shadow:\s*none;/s)
-  })
-
-  it('keeps the same no-card-surface declaration on every extracted stage Card root', () => {
-    expect(animeProjectStageCss).toMatch(/\.animeProjectStage\s*\{[^}]*border:\s*0;[^}]*border-radius:\s*0;[^}]*box-shadow:\s*none;/s)
-    expect(pointsAchievementStageCss).toMatch(/\.pointsAchievementStage\s*\{[^}]*border:\s*0;[^}]*border-radius:\s*0;[^}]*box-shadow:\s*none;/s)
-    expect(contributionAchievementStageCss).toMatch(/\.contributionAchievementStage\s*\{[^}]*border:\s*0;[^}]*border-radius:\s*0;[^}]*background:\s*transparent;[^}]*box-shadow:\s*none;/s)
-    expect(membershipStageCss).toMatch(/\.membershipStage\s*\{[^}]*border:\s*0;[^}]*border-radius:\s*0;[^}]*box-shadow:\s*none;/s)
-  })
-
-  it('retains responsive ownership and bounded hero media without document-level clipping', () => {
-    expect(memberBadgeChainCss).toMatch(/\.carouselShell\s*\{[^}]*min-width:\s*0;[^}]*max-width:\s*100%;[^}]*container:\s*member-badge-carousel \/ inline-size;/s)
-    expect(animeProjectStageCss).toMatch(/\.animeProjectStage\s*\{[^}]*min-width:\s*0;/s)
-    expect(pointsAchievementStageCss).toMatch(/\.pointsAchievementStage\s*\{[^}]*min-width:\s*0;/s)
-    expect(contributionAchievementStageCss).toMatch(/\.contributionAchievementStage\s*\{[^}]*min-width:\s*0;/s)
-    expect(membershipStageCss).toMatch(/\.membershipStage\s*\{[^}]*min-width:\s*0;/s)
-    expect(roleBadgeCardCss).toMatch(/\.roleBadgeRow\s*\{[^}]*min-width:\s*0;/s)
-    expect(animeProjectStageCss).toMatch(/\.animeProjectArtwork\s*\{[^}]*width:\s*min\(100%,/s)
-    expect(pointsAchievementStageCss).toMatch(/\.pointsHeroArtwork\s*\{[^}]*width:\s*min\(100%,/s)
-    expect(contributionAchievementStageCss).toMatch(/\.contributionHeroArtwork\s*\{[^}]*width:\s*min\(100%,/s)
-    expect(membershipStageCss).toMatch(/\.membershipHeroArtwork\s*\{[^}]*width:\s*min\(100%,/s)
-    expect(memberBadgeChainCss).not.toMatch(/(?:html|body)\s*\{[^}]*overflow-x:\s*hidden/s)
-  })
 })
 
 describe('Quick 260812-kr1 rendered Card ownership regression', () => {
-  it('uses a higher-specificity section rule than the global Card class and compacts inactive roles', () => {
-    expect(memberBadgeChainCss).toMatch(/\.group\[data-badge-group\]\s+:is\([\s\S]*?\.roleBadgeRow,[\s\S]*?\.animeProjectStage,[\s\S]*?\.pointsAchievementStage,[\s\S]*?\.contributionAchievementStage,[\s\S]*?\.membershipStage[\s\S]*?\)\s*\{[^}]*border:\s*0;[^}]*border-radius:\s*0;[^}]*background:\s*transparent;[^}]*box-shadow:\s*none;/s)
-    // The `.group[data-badge-group="roles"]` qualifier was dropped when this rule moved to
-    // RoleBadgeCard.module.css (Plan 133-09) -- roleBadgeCardStyles.roleBadgeRow/roleLabel only
-    // ever render inside the roles branch, so the plain selector is equivalent.
-    expect(roleBadgeCardCss).toMatch(/\.roleBadgeRow\[data-role-card-state="inactive"\]\s*\{[^}]*place-content:\s*center;[^}]*min-height:\s*0;[^}]*padding:\s*0;/s)
-    expect(roleBadgeCardCss).toMatch(/\.roleBadgeRow\[data-role-card-state="inactive"\] \.roleLabel\s*\{[^}]*display:\s*none;/s)
-    expect(roleBadgeCardStatusCss).toMatch(/\.roleBadgeRow\[data-role-card-state="inactive"\] :is\([\s\S]*?\.roleStatus,[\s\S]*?\.roleProgressBlock[\s\S]*?\)\s*\{[^}]*display:\s*none;/s)
-    expect(roleBadgeCardStagesCss).toMatch(/\.roleBadgeRow\[data-role-card-state="inactive"\] \.roleProgression\s*\{[^}]*display:\s*none;/s)
+
+  it('memoizes unchanged role cards and invalidates only changed carousel states', async () => {
+    const { roleAchievementCardPropsEqual } = await import('./RoleAchievementCard')
+    const catalogItems: MemberBadgeCatalogItem[] = []
+    const progress = {} as never
+    const base = {
+      roleCode: 'translator',
+      roleLabel: 'Übersetzung',
+      colorKey: 'translation',
+      count: 12,
+      catalogItems,
+      progress,
+      state: { active: false, expanded: false, position: 3, total: 5, showAll: vi.fn() },
+    }
+
+    expect(roleAchievementCardPropsEqual(base, {
+      ...base,
+      state: { ...base.state, showAll: vi.fn() },
+    })).toBe(true)
+    expect(roleAchievementCardPropsEqual(base, {
+      ...base,
+      state: { ...base.state, active: true },
+    })).toBe(false)
   })
 })

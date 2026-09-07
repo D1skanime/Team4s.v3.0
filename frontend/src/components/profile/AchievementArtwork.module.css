@@ -1,0 +1,131 @@
+.container {
+  container: achievement-card / inline-size;
+  display: block;
+  width: 100%;
+  min-width: 0;
+  max-width: 100%;
+}
+
+.slot {
+  position: relative;
+  isolation: isolate;
+  display: grid;
+  grid-template-columns: minmax(0, 1fr);
+  grid-template-rows: minmax(0, 1fr);
+  place-items: center;
+  flex: none;
+  box-sizing: border-box;
+  max-inline-size: 100%;
+  padding: 8px;
+  overflow: hidden;
+  transform: none;
+  transform-origin: center;
+}
+
+.hero {
+  inline-size: 192px;
+  block-size: 192px;
+}
+
+.stage {
+  inline-size: 64px;
+  block-size: 64px;
+}
+
+.slot > img,
+.slot > .mist,
+.slot > .backdrop {
+  grid-area: 1 / 1;
+  min-inline-size: 0;
+  min-block-size: 0;
+  max-inline-size: 100%;
+  max-block-size: 100%;
+}
+
+.slot > img {
+  inline-size: 100%;
+  block-size: 100%;
+  object-fit: contain;
+}
+
+.mist,
+.backdrop {
+  place-self: stretch;
+  pointer-events: none;
+}
+
+.mist {
+  z-index: 0;
+  align-self: end;
+  inline-size: 84%;
+  block-size: 24%;
+  margin-block-end: -4%;
+  border-radius: 50%;
+  background: radial-gradient(
+    ellipse at 50% 50%,
+    color-mix(in srgb, var(--role-accent, #17a7a5) 48%, transparent) 0%,
+    color-mix(in srgb, var(--role-accent, #17a7a5) 22%, transparent) 42%,
+    transparent 74%
+  );
+  filter: blur(10px);
+}
+
+.backdrop {
+  z-index: 1;
+  margin: 5%;
+  border-radius: 50%;
+  background:
+    radial-gradient(circle at 42% 34%, color-mix(in srgb, white 18%, transparent), transparent 34%),
+    linear-gradient(
+      145deg,
+      color-mix(in srgb, var(--role-accent, #17a7a5) 88%, #16382d),
+      color-mix(in srgb, var(--role-accent, #17a7a5) 68%, #0d261e)
+    );
+}
+
+.motif {
+  z-index: 2;
+  clip-path: circle(40% at 50% 50%);
+}
+
+.frame {
+  z-index: 3;
+}
+
+.slot:is(
+    [data-badge-code*="_designer_"],
+    [data-badge-code*="_admin_"],
+    [data-badge-code*="_other_"]
+  ) .backdrop {
+  margin: 12%;
+}
+
+.slot:is(
+    [data-badge-code*="_project_lead_"],
+    [data-badge-code*="_editor_"],
+    [data-badge-code*="_raw_provider_"],
+    [data-badge-code*="_designer_"],
+    [data-badge-code*="_admin_"],
+    [data-badge-code*="_other_"]
+  ) .motif {
+  clip-path: circle(40% at 50% 47%);
+}
+
+@container achievement-card (min-width: 562px) {
+  .hero {
+    inline-size: 216px;
+    block-size: 216px;
+  }
+
+  .stage {
+    inline-size: 80px;
+    block-size: 80px;
+  }
+}
+
+@container achievement-card (min-width: 658px) {
+  .hero {
+    inline-size: 240px;
+    block-size: 240px;
+  }
+}
