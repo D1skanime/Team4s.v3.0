@@ -1,0 +1,87 @@
+{
+  "at": "2026-09-07T16:04:47.824469+00:00",
+  "results": [
+    {
+      "check": "vitest",
+      "exitCode": 1,
+      "log": "/tmp/team4s-151-final-frontend-vitest.log",
+      "summary": [
+        " Test Files  6 failed | 287 passed | 1 skipped (294)",
+        "      Tests  10 failed | 2191 passed | 3 todo (2204)",
+        " FAIL  src/app/admin/fansubs/[id]/edit/page.test.tsx [ src/app/admin/fansubs/[id]/edit/page.test.tsx ]",
+        "\u23af\u23af\u23af\u23af\u23af\u23af Failed Tests 10 \u23af\u23af\u23af\u23af\u23af\u23af\u23af",
+        " FAIL  src/components/profile/MemberBadgeChain.test.tsx > MemberBadgeChain roleLabel prefix (Phase 112 Plan 03, D-04) > renders the role-name prefix for a roles row with only the Typ-1 chip (under threshold, no volume merge)",
+        " FAIL  src/components/profile/MemberBadgeChain.test.tsx > Phase 121 Rollenfamilien und Hero-Artwork > l\u00f6st alle f\u00fcnf Hero-R\u00e4nge aller 12 Familien auf und bewahrt direkte Timing-Quellen",
+        " FAIL  src/components/profile/badgeArtwork.test.ts > canonical live catalog and shipped files > requires real files for every achievement role from the canonical catalog",
+        " FAIL  src/app/me/profile/page.test.tsx > MyProfilePage > keeps the account display name out of editable profile fields until Team4s data changes",
+        " FAIL  src/app/me/profile/page.test.tsx > MyProfilePage > uploads animated WebP avatars directly so animation is preserved",
+        " FAIL  src/app/dev/ui-system/showcase/AchievementBadgeShowcase.test.tsx > AchievementBadgeShowcase > renders every ordinary non-role badge as its current real production family stage",
+        " FAIL  src/app/dev/ui-system/showcase/AchievementBadgeShowcase.test.tsx > AchievementBadgeShowcase > publishes gallery readiness only after a client layout effect",
+        " FAIL  src/app/dev/ui-system/showcase/AchievementBadgeShowcase.test.tsx > AchievementBadgeShowcase > mounts the full 200-item production FocalCarousel stress fixture",
+        " FAIL  src/app/admin/fansubs/[id]/edit/GroupMediaReviewSection.test.tsx > GroupMediaReviewSection > skaliert 20 Medien kompakt ohne dauerhaft offene Detailformulare",
+        " FAIL  src/app/admin/fansubs/[id]/edit/GroupMediaReviewSection.test.tsx > GroupMediaReviewSection > rendert bei 100 Treffern zun\u00e4chst nur die erste kompakte Seite"
+      ],
+      "tail": [
+        " \u276f Timeout._onTimeout node_modules/vitest/dist/chunks/index.B521nVV-.js:59:62",
+        " \u276f listOnTimeout node:internal/timers:581:17",
+        " \u276f processTimers node:internal/timers:519:7",
+        "",
+        "\u23af\u23af\u23af\u23af\u23af\u23af\u23af\u23af\u23af\u23af\u23af\u23af\u23af\u23af\u23af\u23af\u23af\u23af\u23af\u23af\u23af\u23af\u23af\u23af\u23af\u23af\u23af\u23af\u23af\u23af",
+        ""
+      ]
+    },
+    {
+      "check": "build",
+      "exitCode": 0,
+      "log": "/tmp/team4s-151-final-frontend-build.log",
+      "summary": [
+        "#12 15.47 \u2713 Compiled successfully in 13.5s",
+        "#12 957.1   Generating static pages using 3 workers (0/25) ...",
+        "#12 957.5   Generating static pages using 3 workers (6/25) ",
+        "#12 957.6   Generating static pages using 3 workers (12/25) ",
+        "#12 958.1   Generating static pages using 3 workers (18/25) ",
+        "#12 958.2 \u2713 Generating static pages using 3 workers (25/25) in 1069.5ms"
+      ],
+      "tail": [
+        "",
+        "#29 resolving provenance for metadata file",
+        "#29 DONE 0.0s",
+        "",
+        " Image team4s-team4sv30-frontend Building ",
+        " Image team4s-team4sv30-frontend Built "
+      ]
+    },
+    {
+      "check": "lint",
+      "exitCode": 1,
+      "log": "/tmp/team4s-151-final-frontend-lint.log",
+      "summary": [
+        "\u2716 345 problems (13 errors, 332 warnings)"
+      ],
+      "tail": [
+        "  13:16  warning  'waitForText' is defined but never used  @typescript-eslint/no-unused-vars",
+        "",
+        "\u2716 345 problems (13 errors, 332 warnings)",
+        "  0 errors and 1 warning potentially fixable with the `--fix` option.",
+        "",
+        ""
+      ]
+    },
+    {
+      "check": "typecheck",
+      "exitCode": 2,
+      "log": "/tmp/team4s-151-final-frontend-typecheck.log",
+      "summary": [
+        ".next/dev/types/app/anime/[id]/group/[groupId]/releases/page.ts(36,29): error TS2344: Type 'GroupReleasesPageProps' does not satisfy the constraint 'PageProps'."
+      ],
+      "tail": [
+        "",
+        ".next/dev/types/app/anime/[id]/group/[groupId]/releases/page.ts(36,29): error TS2344: Type 'GroupReleasesPageProps' does not satisfy the constraint 'PageProps'.",
+        "  Types of property 'params' are incompatible.",
+        "    Type '{ id: string; groupId: string; } | Promise<{ id: string; groupId: string; }>' is not assignable to type 'Promise<any> | undefined'.",
+        "      Type '{ id: string; groupId: string; }' is missing the following properties from type 'Promise<any>': then, catch, finally, [Symbol.toStringTag]",
+        ""
+      ]
+    }
+  ]
+}

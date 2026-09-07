@@ -1,0 +1,52 @@
+HEAD before handoff commit: 05b7ba3936cf6a678999aec9ea97d902457f34da
+Branch: main
+Recorded: 2026-09-07T17:27:47.140779+00:00
+All entries belong to Phase151; no existing changes discarded.
+After local checkpoint, expected and subsequently verified status: empty.
+
+ M .planning/ROADMAP.md
+ M .planning/STATE.md
+ M .planning/phases/151-erfolgsbadge-karussell-konsolidierung/151-01-PLAN.md
+ M .planning/phases/151-erfolgsbadge-karussell-konsolidierung/151-03-SUMMARY.md
+ M DECISIONS.md
+ M frontend/src/app/dev/ui-system/page.tsx
+ M frontend/src/components/profile/badgeArtwork.test.ts
+ M frontend/src/components/profile/badgeArtwork.ts
+ M frontend/src/components/ui/FocalCarousel.module.css
+ M frontend/src/components/ui/FocalCarousel.test.tsx
+ M frontend/src/components/ui/FocalCarousel.tsx
+ M frontend/src/components/ui/FocalCarouselInternals.tsx
+?? .planning/HANDOFF.json
+?? .planning/phases/151-erfolgsbadge-karussell-konsolidierung/.continue-here.md
+?? .planning/phases/151-erfolgsbadge-karussell-konsolidierung/151-ARTWORK-GENERATION.md
+?? .planning/phases/151-erfolgsbadge-karussell-konsolidierung/151-BACKEND-CHECKS.md
+?? .planning/phases/151-erfolgsbadge-karussell-konsolidierung/151-FINAL-CODE-REVIEW.md
+?? .planning/phases/151-erfolgsbadge-karussell-konsolidierung/151-FRONTEND-CHECKS.md
+?? .planning/phases/151-erfolgsbadge-karussell-konsolidierung/151-GAPS.md
+?? .planning/phases/151-erfolgsbadge-karussell-konsolidierung/151-GIT-STATUS-BEFORE-HANDOFF.txt
+?? .planning/phases/151-erfolgsbadge-karussell-konsolidierung/151-LOG-INDEX.json
+?? .planning/phases/151-erfolgsbadge-karussell-konsolidierung/151-MANUAL-VISUAL-REVIEW.md
+?? .planning/phases/151-erfolgsbadge-karussell-konsolidierung/checks/check-native-touch.cjs
+?? .planning/phases/151-erfolgsbadge-karussell-konsolidierung/checks/extract-new-karaoke-alpha.cjs
+?? .planning/phases/151-erfolgsbadge-karussell-konsolidierung/checks/karaoke-alpha-extraction.json
+?? .planning/phases/151-erfolgsbadge-karussell-konsolidierung/checks/team4s-151-final-frontend-checks.json
+?? .planning/phases/151-erfolgsbadge-karussell-konsolidierung/checks/team4s-151-sequential-vitest.json
+?? .planning/phases/151-erfolgsbadge-karussell-konsolidierung/evidence/handoff-logs/team4s-151-carousel-readable-handoff.md
+?? .planning/phases/151-erfolgsbadge-karussell-konsolidierung/evidence/handoff-logs/team4s-151-collector-review-handoff.md
+?? .planning/phases/151-erfolgsbadge-karussell-konsolidierung/evidence/handoff-logs/team4s-151-gallery-handoff.md
+?? docs/frontend/member-achievement-artwork.md
+?? frontend/public/member-achievement-badges/rank-frame-karaoke_fx-bronze.png
+?? frontend/public/member-achievement-badges/rank-frame-karaoke_fx-gold.png
+?? frontend/public/member-achievement-badges/rank-frame-karaoke_fx-platinum.png
+?? frontend/public/member-achievement-badges/rank-frame-karaoke_fx-silver.png
+?? frontend/public/member-achievement-badges/role-karaoke_fx-motif.png
+?? frontend/public/member-achievement-badges/role_entry_karaoke_fx.png
+?? frontend/scripts/capture-phase151-badge-evidence.mjs
+?? frontend/scripts/phase151-badge-evidence-browser-private.mjs
+?? frontend/scripts/phase151-badge-evidence-private.mjs
+?? frontend/src/app/dev/ui-system/achievements/page.tsx
+?? frontend/src/app/dev/ui-system/showcase/AchievementBadgeNonRoleCases.tsx
+?? frontend/src/app/dev/ui-system/showcase/AchievementBadgeShowcase.module.css
+?? frontend/src/app/dev/ui-system/showcase/AchievementBadgeShowcase.test.tsx
+?? frontend/src/app/dev/ui-system/showcase/AchievementBadgeShowcase.tsx
+?? frontend/src/app/dev/ui-system/showcase/achievementBadgeGalleryFixtures.ts

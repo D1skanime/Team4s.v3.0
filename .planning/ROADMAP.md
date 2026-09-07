@@ -1220,7 +1220,7 @@ Plans:
 
 Plans:
 - [ ] 151-01-PLAN.md — Rollen-Artwork-Manifest, vollständige Karaoke-FX-Assets und echte Katalog-/Dateisystem-Abdeckung
-- [ ] 151-02-PLAN.md — Gemeinsamer Artwork-Slot, produktive Karten-/Stage-Komposition mit gemeinsamer Slot-CSS
-- [ ] 151-03-PLAN.md — Fokussierte Härtung des generischen FocalCarousel mit Interaktions- und Stressregressionen
-- [ ] 151-04-PLAN.md — Konsolidierte mobile Container-CSS für Karten und Badge-Familien
+- [x] 151-02-PLAN.md — Gemeinsamer Artwork-Slot, produktive Karten-/Stage-Komposition mit gemeinsamer Slot-CSS
+- [x] 151-03-PLAN.md — Fokussierte Härtung des generischen FocalCarousel mit Interaktions- und Stressregressionen
+- [x] 151-04-PLAN.md — Konsolidierte mobile Container-CSS für Karten und Badge-Familien
 - [ ] 151-05-PLAN.md — Dev-Galerie, vollständige Linux-Browserevidenz, Full-Suite-Gates und manuelle Einzelabnahme

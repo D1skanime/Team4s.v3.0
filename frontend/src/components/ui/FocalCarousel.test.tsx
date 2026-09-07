@@ -773,6 +773,33 @@ describe('FocalCarousel Phase 151 interaction hardening', () => {
     }
   })
 
+  it.each(['pointerCancel', 'pointerUp'] as const)(
+    'does not suppress a new click when %s produces no compatibility click',
+    (endEvent) => {
+      const restoreGeometry = mockBrowserCarouselGeometry(3)
+      try {
+        renderCarousel()
+        const region = screen.getByRole('region', { name: 'Beispiel-Karussell' }) as HTMLDivElement
+        configureLinearGeometry(region, directCarouselItems(region))
+        const pointer = (type: string, clientX: number, pointerType: string) => {
+          const event = new MouseEvent(type, { bubbles: true, clientX, clientY: 50, button: 0 })
+          fireEvent(region, Object.assign(event, { pointerId: 7, pointerType }))
+        }
+        pointer('pointerdown', 200, 'touch')
+        pointer('pointermove', 140, 'touch')
+        pointer(endEvent.toLowerCase(), 140, 'touch')
+
+        // A new physical gesture must not inherit suppression from the prior drag.
+        pointer('pointerdown', 350, 'mouse')
+        pointer('pointerup', 350, 'mouse')
+        fireEvent.click(region, { clientX: 350, clientY: 50 })
+        expect(screen.getByText('Beta').closest('[aria-current="true"]')).not.toBeNull()
+      } finally {
+        restoreGeometry()
+      }
+    },
+  )
+
   it('clamps a shrinking item set, cancels its pending motion and moves on the first Previous command', () => {
     const animation = stubAnimationFrames()
     vi.stubGlobal('matchMedia', vi.fn().mockReturnValue({

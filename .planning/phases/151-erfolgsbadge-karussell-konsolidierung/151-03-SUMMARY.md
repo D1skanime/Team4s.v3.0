@@ -153,3 +153,7 @@ This bounded extra private file is a coordinator-approved modularity correction 
 ## Integration review closure
 
 The independent review reopened three behavioral gaps after initial execution. Track-level native-inert selection, expand/collapse cancellation and physical recentering, and item-count shrink synchronization are fixed and covered by37 component tests plus105 consumer tests and native Chromium proofs. See151-CAROUSEL-REVIEW-FIXES.md. The shared disclosure target minimum is now44px, confirmed by real rectangles. Full Phase151 acceptance remains dependent on artwork and exhaustive final QA.
+
+## Final review follow-up
+
+Cancellation no longer leaks click suppression into the next gesture; reduced motion preserves static active emphasis. Native trusted-touch cancel/click and0.72/1 opacity proof pass in both motion modes. The interaction engine is normally formatted at404 lines, with a private collapsed/expanded presenter module at443 lines;39 carousel and105 consumer tests pass. See151-FINAL-CODE-REVIEW.md coordinator closure and checks/check-native-touch.cjs.

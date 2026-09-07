@@ -1,0 +1,35 @@
+[
+  {
+    "kind": "entry",
+    "filename": "role_entry_karaoke_fx.png",
+    "sourceHash": "6620ab15513556831d13417fc65ccbfe89ab4a1eaedd0205708bbc7f7c5f454f",
+    "outputHash": "c9428d7ddc5a1a37c4a0b8c2f7c5c21554227a0295ecc4e64c55d65884aa82a5",
+    "width": 1254,
+    "height": 1254,
+    "removedBackgroundPixels": 483138,
+    "changedRgbSamples": 0,
+    "output": "/tmp/team4s-151-artwork-alpha/role_entry_karaoke_fx.png"
+  },
+  {
+    "kind": "motif",
+    "filename": "role-karaoke_fx-motif.png",
+    "sourceHash": "75cc64ba6595b1d7d34230e32028b09bfad3b0f4c0209e969c9af0454fb57712",
+    "outputHash": "4a4b84a0f4dfdb584704db9c203e76b53d01460a5b9c648106a653a9a2767231",
+    "width": 1254,
+    "height": 1254,
+    "removedBackgroundPixels": 600110,
+    "changedRgbSamples": 0,
+    "output": "/tmp/team4s-151-artwork-alpha/role-karaoke_fx-motif.png"
+  },
+  {
+    "kind": "bronze",
+    "filename": "rank-frame-karaoke_fx-bronze.png",
+    "sourceHash": "c36c2756ad2db0d80995e026330762a8fc0de38a6ef08e3620bf2f4de623d45a",
+    "outputHash": "32465eecaebb52c4752cc21bf90463b143c55489f32dd426d7b990f650f41f38",
+    "width": 1254,
+    "height": 1254,
+    "removedBackgroundPixels": 1090462,
+    "changedRgbSamples": 0,
+    "output": "/tmp/team4s-151-artwork-alpha/rank-frame-karaoke_fx-bronze.png"
+  }
+]

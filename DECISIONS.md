@@ -847,3 +847,21 @@ noch Arbeit braucht.
 
 ### Follow-ups Required
 Keine (dokumentationsseitig abgeschlossen, Entscheidung festgeschrieben).
+
+
+## 2026-09-07 — Phase 151 achievement presentation ownership
+
+Badge eligibility and thresholds remain in the canonical role catalog and Phase-150 backend.
+The frontend declares only a role artwork strategy and explicit approved non-role files; it
+must validate the real catalog against the real public directory rather than infer that a
+filename exists. Timer retains its existing direct-volume sprites. New layered roles use one
+entry, one motif and four frames. Unknown role/code fallbacks are not coverage.
+
+`AchievementArtwork` owns hero 192/216/240 px, stage 64/80 px and 8 px inset, switching at outer
+card widths 562 and 658 px. Cards/lanes wrap to fit these slots; family CSS and active carousel
+states must not introduce competing artwork dimensions or height-changing copy visibility.
+All 107 pre-Phase151 source PNGs remain byte-for-byte preserved.
+
+See `docs/frontend/member-achievement-artwork.md` for the extension/check workflow and the
+Phase-151 evidence directory for the outstanding native-alpha artwork gate. This decision
+does not declare Phase 151 complete.

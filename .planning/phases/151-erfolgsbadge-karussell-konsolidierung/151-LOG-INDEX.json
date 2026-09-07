@@ -1,0 +1,564 @@
+{
+  "at": "2026-09-07T17:23:23.581964+00:00",
+  "note": "Index of all available Phase-151 root/agent/check logs. Direct check outputs are also preserved under ignored local evidence/handoff-logs. Earlier repeated checks are described in plan summaries; counts must not be summed across overlapping runs.",
+  "logs": [
+    {
+      "path": "/tmp/team4s-151-320-fixed.json",
+      "bytes": 40,
+      "sha256": "6016c88c5e37b03120f9fc63aea9c4820e7ac39317bd623b93c5c00165ddc6cf",
+      "preserved_copy": ".planning/phases/151-erfolgsbadge-karussell-konsolidierung/evidence/handoff-logs/team4s-151-320-fixed.json"
+    },
+    {
+      "path": "/tmp/team4s-151-320-geometry.json",
+      "bytes": 2176,
+      "sha256": "b3a88b65d66c7272b6a2e904ee4764c39e1d2e0a089e49ebd0584e4083062b05",
+      "preserved_copy": null
+    },
+    {
+      "path": "/tmp/team4s-151-alpha-final-result.txt",
+      "bytes": 976,
+      "sha256": "0ebba5c15943801509f6635e4ff76e75aab9550eeac0c0f07d8807b7f25c0aa0",
+      "preserved_copy": null
+    },
+    {
+      "path": "/tmp/team4s-151-alpha-final.log",
+      "bytes": 93310,
+      "sha256": "b71f1f1e79d39cf9766c24c4086f4e976ed7dcd053c839d8e193e9ea598da7dc",
+      "preserved_copy": null
+    },
+    {
+      "path": "/tmp/team4s-151-alpha-final.md",
+      "bytes": 8188,
+      "sha256": "c4fba9d0902c082d67ec14b6770f2757ddb859e0b71bdcf10bf7c750247b9784",
+      "preserved_copy": null
+    },
+    {
+      "path": "/tmp/team4s-151-alpha-retry-result.txt",
+      "bytes": 797,
+      "sha256": "fcd831a46fb51a06399d6c0af5d130bac3704fdcea0878de07e387d0e34f6a38",
+      "preserved_copy": null
+    },
+    {
+      "path": "/tmp/team4s-151-alpha-retry.log",
+      "bytes": 111084,
+      "sha256": "a280e31745a8aafa9a4a1b4f4a78324e66cf61759ceb25f531086c785675539f",
+      "preserved_copy": null
+    },
+    {
+      "path": "/tmp/team4s-151-artwork-current-gate.log",
+      "bytes": 1467,
+      "sha256": "b0df2d995879a385916a99943b3215d8e0d539dc9e21ece506bd8a913a428588",
+      "preserved_copy": null
+    },
+    {
+      "path": "/tmp/team4s-151-auto-sizes.json",
+      "bytes": 11937,
+      "sha256": "b52de36cfba03763acd2923aecab956b739843aae52d54e8bf62e2cb3d00b2e7",
+      "preserved_copy": ".planning/phases/151-erfolgsbadge-karussell-konsolidierung/evidence/handoff-logs/team4s-151-auto-sizes.json"
+    },
+    {
+      "path": "/tmp/team4s-151-baseline-badges.log",
+      "bytes": 46,
+      "sha256": "e7ab44ad4d9b7755312ebd3fd07257fcc22d77273160424b2af902c9876c61a3",
+      "preserved_copy": ".planning/phases/151-erfolgsbadge-karussell-konsolidierung/evidence/handoff-logs/team4s-151-baseline-badges.log"
+    },
+    {
+      "path": "/tmp/team4s-151-baseline-lint.log",
+      "bytes": 76375,
+      "sha256": "18d664fae7d522bf76ce936a9e1ffb638d93933573ccf6b0858502b910a8e5f9",
+      "preserved_copy": ".planning/phases/151-erfolgsbadge-karussell-konsolidierung/evidence/handoff-logs/team4s-151-baseline-lint.log"
+    },
+    {
+      "path": "/tmp/team4s-151-baseline-pg131.log",
+      "bytes": 359,
+      "sha256": "61479b43cdfa7f77b38dd6d2da91e371f39bf69faf9ee7cd9c644ed3d157ac79",
+      "preserved_copy": ".planning/phases/151-erfolgsbadge-karussell-konsolidierung/evidence/handoff-logs/team4s-151-baseline-pg131.log"
+    },
+    {
+      "path": "/tmp/team4s-151-baseline-pg150.log",
+      "bytes": 197,
+      "sha256": "bee3359dd7c89c0942539ae695c0bd055f315f09105de3a319df7843398b5256",
+      "preserved_copy": ".planning/phases/151-erfolgsbadge-karussell-konsolidierung/evidence/handoff-logs/team4s-151-baseline-pg150.log"
+    },
+    {
+      "path": "/tmp/team4s-151-baseline-typecheck.log",
+      "bytes": 552,
+      "sha256": "3f7f5165197ab43082ea944f3ca6a42857bb3c48d83727560bc851937fe40cc4",
+      "preserved_copy": ".planning/phases/151-erfolgsbadge-karussell-konsolidierung/evidence/handoff-logs/team4s-151-baseline-typecheck.log"
+    },
+    {
+      "path": "/tmp/team4s-151-baseline-vitest.log",
+      "bytes": 39189,
+      "sha256": "0131f6e8f4bb0faf9d81dd1a502d8fc1fa276ad9823759e2d57bca87867bd495",
+      "preserved_copy": ".planning/phases/151-erfolgsbadge-karussell-konsolidierung/evidence/handoff-logs/team4s-151-baseline-vitest.log"
+    },
+    {
+      "path": "/tmp/team4s-151-carousel-consumers.log",
+      "bytes": 423,
+      "sha256": "2c0d6cd3b9907ffc93f6eddc80ae6bd4190a3be314f4b5ace41945a5e6fae4d9",
+      "preserved_copy": ".planning/phases/151-erfolgsbadge-karussell-konsolidierung/evidence/handoff-logs/team4s-151-carousel-consumers.log"
+    },
+    {
+      "path": "/tmp/team4s-151-carousel-readable-eslint.log",
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "preserved_copy": ".planning/phases/151-erfolgsbadge-karussell-konsolidierung/evidence/handoff-logs/team4s-151-carousel-readable-eslint.log"
+    },
+    {
+      "path": "/tmp/team4s-151-carousel-readable-handoff.md",
+      "bytes": 1579,
+      "sha256": "620bcc48e2e2e1f24922ccaad40c86dab92c3452566c3b7488102ee59ff41eca",
+      "preserved_copy": ".planning/phases/151-erfolgsbadge-karussell-konsolidierung/evidence/handoff-logs/team4s-151-carousel-readable-handoff.md"
+    },
+    {
+      "path": "/tmp/team4s-151-carousel-readable-result.txt",
+      "bytes": 860,
+      "sha256": "5028cfc422d674a82f613b5e1d74d88a0532963a478e387631a293d4795d09df",
+      "preserved_copy": null
+    },
+    {
+      "path": "/tmp/team4s-151-carousel-readable-tests.log",
+      "bytes": 1989,
+      "sha256": "5bed7dd6329091809fc1a76738b2914f0503fd05d8ed735aeaa83c8a4b58e481",
+      "preserved_copy": ".planning/phases/151-erfolgsbadge-karussell-konsolidierung/evidence/handoff-logs/team4s-151-carousel-readable-tests.log"
+    },
+    {
+      "path": "/tmp/team4s-151-carousel-readable.log",
+      "bytes": 620509,
+      "sha256": "a4f12b975ea3a15b03d56be54e3ba8bf8b6e3a58e15205c5b13c7c95237b7565",
+      "preserved_copy": null
+    },
+    {
+      "path": "/tmp/team4s-151-carousel-review-fix-result.txt",
+      "bytes": 1720,
+      "sha256": "acca5a2d79fa1481d09daa96484728eca91eeb3c2a524761cb7b699dc192bb97",
+      "preserved_copy": null
+    },
+    {
+      "path": "/tmp/team4s-151-carousel-review-fix.log",
+      "bytes": 1237448,
+      "sha256": "5a928be38bcc8f8845b1de6490d98508774844c67b0f619f73dd50430a814d8f",
+      "preserved_copy": null
+    },
+    {
+      "path": "/tmp/team4s-151-carousel-split-tests.log",
+      "bytes": 1981,
+      "sha256": "3ec3e3d987fc8af62c7ee35658917e060b54939147e611ff8d43ad39dd7ce725",
+      "preserved_copy": ".planning/phases/151-erfolgsbadge-karussell-konsolidierung/evidence/handoff-logs/team4s-151-carousel-split-tests.log"
+    },
+    {
+      "path": "/tmp/team4s-151-clean-browser-errors.json",
+      "bytes": 2231,
+      "sha256": "8653eb2159fab0cab5b79e49711c88094ef89b84f5309b48b6dcba4f41a01783",
+      "preserved_copy": ".planning/phases/151-erfolgsbadge-karussell-konsolidierung/evidence/handoff-logs/team4s-151-clean-browser-errors.json"
+    },
+    {
+      "path": "/tmp/team4s-151-collector-result.txt",
+      "bytes": 2357,
+      "sha256": "0b70cdca437745a6b7d85880f06a4fb34a78d2411884d69d2b3dda269f989ba9",
+      "preserved_copy": null
+    },
+    {
+      "path": "/tmp/team4s-151-collector-review-handoff.md",
+      "bytes": 5829,
+      "sha256": "2f27192681ef6f89a064983b3e36ecfc7777b4c233ee33cace5c2ee9657b02af",
+      "preserved_copy": ".planning/phases/151-erfolgsbadge-karussell-konsolidierung/evidence/handoff-logs/team4s-151-collector-review-handoff.md"
+    },
+    {
+      "path": "/tmp/team4s-151-collector-review-result.txt",
+      "bytes": 1372,
+      "sha256": "782f425b57f09c960845bb46dfde576e84d825d6daaf1a0c52a733bb8dbdb32e",
+      "preserved_copy": null
+    },
+    {
+      "path": "/tmp/team4s-151-collector-review.log",
+      "bytes": 2349199,
+      "sha256": "c461c9faf8a7eae32b4d3f14cc814944193c0e8c21e82fd89ef82af6cb1d27c2",
+      "preserved_copy": null
+    },
+    {
+      "path": "/tmp/team4s-151-collector.log",
+      "bytes": 5341411,
+      "sha256": "bb1959a91c80ccd158830f82efa30c3802d65c0e8c036a7e16fa248e24dc92fc",
+      "preserved_copy": null
+    },
+    {
+      "path": "/tmp/team4s-151-component-review-tests.log",
+      "bytes": 565,
+      "sha256": "277b60e02dfbe62d98935a07cc494b4bc370782c71c0eec04a830333f3e4101c",
+      "preserved_copy": ".planning/phases/151-erfolgsbadge-karussell-konsolidierung/evidence/handoff-logs/team4s-151-component-review-tests.log"
+    },
+    {
+      "path": "/tmp/team4s-151-container-sizes-green.log",
+      "bytes": 414,
+      "sha256": "b62bd360d4f094ed591ec503c7b36c114cf5b60f959b10b12c4e7dc80a062a74",
+      "preserved_copy": ".planning/phases/151-erfolgsbadge-karussell-konsolidierung/evidence/handoff-logs/team4s-151-container-sizes-green.log"
+    },
+    {
+      "path": "/tmp/team4s-151-container-sizes-red.log",
+      "bytes": 1971,
+      "sha256": "02407ddf899521b963c1caedeb952f57bb1b19c85067dcbcafcdbade75ea724b",
+      "preserved_copy": ".planning/phases/151-erfolgsbadge-karussell-konsolidierung/evidence/handoff-logs/team4s-151-container-sizes-red.log"
+    },
+    {
+      "path": "/tmp/team4s-151-drafts-result.txt",
+      "bytes": 793,
+      "sha256": "37470a191d0fa96e9e56c7074feff7b93725c082bd6dafd161ed31cd9e0830b8",
+      "preserved_copy": null
+    },
+    {
+      "path": "/tmp/team4s-151-drafts.log",
+      "bytes": 98691,
+      "sha256": "df3c5f30f11cda292e9f909a232086d4cbdb37348f938b2611a89476d1d3f674",
+      "preserved_copy": null
+    },
+    {
+      "path": "/tmp/team4s-151-exec01-prompt.txt",
+      "bytes": 2562,
+      "sha256": "99cd9f4e902e4ab5fbbb6eb181f396a19c9e9eba895e7fff0aeaea4e96d7261a",
+      "preserved_copy": null
+    },
+    {
+      "path": "/tmp/team4s-151-exec01.log",
+      "bytes": 688870,
+      "sha256": "309053dae1d704146f13ffb9b8905e5b1866e9eb401e93ea61baca657f1e2c98",
+      "preserved_copy": null
+    },
+    {
+      "path": "/tmp/team4s-151-exec02-prompt.txt",
+      "bytes": 3075,
+      "sha256": "619dd32f7a90141f20c6f8c563cb456e7dd7316d5a3292bb8e44dbd949368d10",
+      "preserved_copy": null
+    },
+    {
+      "path": "/tmp/team4s-151-exec02-result.txt",
+      "bytes": 369,
+      "sha256": "97166e395445887432225c9b1e170903e63898357da32101c6cdede2d9777dd8",
+      "preserved_copy": null
+    },
+    {
+      "path": "/tmp/team4s-151-exec02.log",
+      "bytes": 11816465,
+      "sha256": "710d409b4fd4a560ed48f0ddcc423f5cb5cd738c86cb3838978ec1bf152fb5bf",
+      "preserved_copy": null
+    },
+    {
+      "path": "/tmp/team4s-151-exec03-prompt.txt",
+      "bytes": 2088,
+      "sha256": "3d605e010c7cba5f596064cf7dd2eb38e1d07b2f2d4b67ffd38df41b3091e59c",
+      "preserved_copy": null
+    },
+    {
+      "path": "/tmp/team4s-151-exec03-result.txt",
+      "bytes": 307,
+      "sha256": "8269d5013a8d7d6fb4045d753a01e879d591b4b8d7f5088337af819176e41266",
+      "preserved_copy": null
+    },
+    {
+      "path": "/tmp/team4s-151-exec03.log",
+      "bytes": 1581699,
+      "sha256": "f8d5267bef86afb0a278649d34797cfca67c517b37104b473c41d54c6a97a5e2",
+      "preserved_copy": null
+    },
+    {
+      "path": "/tmp/team4s-151-exec04-result.txt",
+      "bytes": 656,
+      "sha256": "5fa180cccfa672187b0ed9abc696e73cb7f62e2dce8fa59f047f5bca6080aa94",
+      "preserved_copy": null
+    },
+    {
+      "path": "/tmp/team4s-151-exec04.log",
+      "bytes": 3508832,
+      "sha256": "1c1741fc62e2bb7b085ea39f85f746ff37df5497463b9bfd91e286330b7a8fed",
+      "preserved_copy": null
+    },
+    {
+      "path": "/tmp/team4s-151-final-backend.log",
+      "bytes": 15767,
+      "sha256": "a8e51e5652da78dc62ee4b66289bcda05bda4ae8991cea88ad814b6c23ba347d",
+      "preserved_copy": ".planning/phases/151-erfolgsbadge-karussell-konsolidierung/evidence/handoff-logs/team4s-151-final-backend.log"
+    },
+    {
+      "path": "/tmp/team4s-151-final-badge-regressions.log",
+      "bytes": 12100,
+      "sha256": "4f1a789986449d0b6a3a2f0e054c4de1bc1de225d8826da0b47d62c79544df36",
+      "preserved_copy": ".planning/phases/151-erfolgsbadge-karussell-konsolidierung/evidence/handoff-logs/team4s-151-final-badge-regressions.log"
+    },
+    {
+      "path": "/tmp/team4s-151-final-code-review-result.txt",
+      "bytes": 781,
+      "sha256": "3e2293611f9ec29eb302f6af51b13290646effe726ccaa1ca570ff2c85024a3b",
+      "preserved_copy": null
+    },
+    {
+      "path": "/tmp/team4s-151-final-code-review.log",
+      "bytes": 566068,
+      "sha256": "98c4bf9b788393fa249cad549398e1af00b078b7f11a332cdf2d62dc0f3c5099",
+      "preserved_copy": null
+    },
+    {
+      "path": "/tmp/team4s-151-final-fix-lint.log",
+      "bytes": 1,
+      "sha256": "01ba4719c80b6fe911b091a7c05124b64eeece964e09c058ef8f9805daca546b",
+      "preserved_copy": ".planning/phases/151-erfolgsbadge-karussell-konsolidierung/evidence/handoff-logs/team4s-151-final-fix-lint.log"
+    },
+    {
+      "path": "/tmp/team4s-151-final-frontend-build.log",
+      "bytes": 7291,
+      "sha256": "7d31838c665646f594c140a2e3c0aa76b4a81b228e632fa881f17af4222bb8f5",
+      "preserved_copy": ".planning/phases/151-erfolgsbadge-karussell-konsolidierung/evidence/handoff-logs/team4s-151-final-frontend-build.log"
+    },
+    {
+      "path": "/tmp/team4s-151-final-frontend-checks.json",
+      "bytes": 5052,
+      "sha256": "b9a140b67ddbc0056703ffd69569eed1e13bfda6755c1c1a10234e55a1dbf741",
+      "preserved_copy": ".planning/phases/151-erfolgsbadge-karussell-konsolidierung/evidence/handoff-logs/team4s-151-final-frontend-checks.json"
+    },
+    {
+      "path": "/tmp/team4s-151-final-frontend-lint.log",
+      "bytes": 76376,
+      "sha256": "3324b27e75a6234dda5fbea4757b625aa4263d799b6cce9bb166e39fdf8f40ce",
+      "preserved_copy": ".planning/phases/151-erfolgsbadge-karussell-konsolidierung/evidence/handoff-logs/team4s-151-final-frontend-lint.log"
+    },
+    {
+      "path": "/tmp/team4s-151-final-frontend-typecheck.log",
+      "bytes": 553,
+      "sha256": "77ed3c18c40b95217a19399540bcf2462305e5b832ac40ebd8a87add1ce6de62",
+      "preserved_copy": ".planning/phases/151-erfolgsbadge-karussell-konsolidierung/evidence/handoff-logs/team4s-151-final-frontend-typecheck.log"
+    },
+    {
+      "path": "/tmp/team4s-151-final-frontend-vitest.log",
+      "bytes": 56631,
+      "sha256": "3db2aecab6176d4836a4e3484f526b41f15f5c4c4f2ae770d6e1f206b20b3384",
+      "preserved_copy": ".planning/phases/151-erfolgsbadge-karussell-konsolidierung/evidence/handoff-logs/team4s-151-final-frontend-vitest.log"
+    },
+    {
+      "path": "/tmp/team4s-151-final-go-build.log",
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "preserved_copy": ".planning/phases/151-erfolgsbadge-karussell-konsolidierung/evidence/handoff-logs/team4s-151-final-go-build.log"
+    },
+    {
+      "path": "/tmp/team4s-151-final-go-vet.log",
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "preserved_copy": ".planning/phases/151-erfolgsbadge-karussell-konsolidierung/evidence/handoff-logs/team4s-151-final-go-vet.log"
+    },
+    {
+      "path": "/tmp/team4s-151-final-postgres.log",
+      "bytes": 558,
+      "sha256": "0aeaa392d0e3109e04a5be86f167cec77af241c08eb885655b835b5a8d00939e",
+      "preserved_copy": ".planning/phases/151-erfolgsbadge-karussell-konsolidierung/evidence/handoff-logs/team4s-151-final-postgres.log"
+    },
+    {
+      "path": "/tmp/team4s-151-final-review-green.log",
+      "bytes": 1989,
+      "sha256": "0516bff1c1b5f9abe59d7697bab54e96a624516f7f484626c24d55f6cbd695fd",
+      "preserved_copy": ".planning/phases/151-erfolgsbadge-karussell-konsolidierung/evidence/handoff-logs/team4s-151-final-review-green.log"
+    },
+    {
+      "path": "/tmp/team4s-151-final-review-lint.log",
+      "bytes": 1,
+      "sha256": "01ba4719c80b6fe911b091a7c05124b64eeece964e09c058ef8f9805daca546b",
+      "preserved_copy": ".planning/phases/151-erfolgsbadge-karussell-konsolidierung/evidence/handoff-logs/team4s-151-final-review-lint.log"
+    },
+    {
+      "path": "/tmp/team4s-151-final-review-red.log",
+      "bytes": 2947,
+      "sha256": "fee64d0071d7d6f117fb3d1be4be9232427591b108fbe677a72b1d74abd60a8c",
+      "preserved_copy": ".planning/phases/151-erfolgsbadge-karussell-konsolidierung/evidence/handoff-logs/team4s-151-final-review-red.log"
+    },
+    {
+      "path": "/tmp/team4s-151-gallery-handoff.md",
+      "bytes": 9198,
+      "sha256": "2192886c6821417698998709f9c78d9321a3b5968e1e72e9ad0e503c986fe128",
+      "preserved_copy": ".planning/phases/151-erfolgsbadge-karussell-konsolidierung/evidence/handoff-logs/team4s-151-gallery-handoff.md"
+    },
+    {
+      "path": "/tmp/team4s-151-gallery-result.txt",
+      "bytes": 1655,
+      "sha256": "107bf30f0cf7ffe6f6d4aefef5287eee93481e4a07b83b7aa5e41315280e016e",
+      "preserved_copy": null
+    },
+    {
+      "path": "/tmp/team4s-151-gallery-review-result.txt",
+      "bytes": 1953,
+      "sha256": "a03eb18b9470e944d4d89c6d55fd7652b671e9541f5974f6f4a3222f458d86ca",
+      "preserved_copy": null
+    },
+    {
+      "path": "/tmp/team4s-151-gallery-review.log",
+      "bytes": 1832830,
+      "sha256": "a4f80cb2d48995de6406f19fcded239ecce116828c9b93b8889a674510f18460",
+      "preserved_copy": null
+    },
+    {
+      "path": "/tmp/team4s-151-gallery.log",
+      "bytes": 1299653,
+      "sha256": "27519da495ebeb3a1c6c6e64f9703113f5a3c7db75341e747b2bc2bb56cd4aef",
+      "preserved_copy": null
+    },
+    {
+      "path": "/tmp/team4s-151-image-capability.log",
+      "bytes": 18133,
+      "sha256": "d7eac3d20a1e5e966551cfaf0a861d013282acfef25a1052206627bd25111cb4",
+      "preserved_copy": null
+    },
+    {
+      "path": "/tmp/team4s-151-image-capability.txt",
+      "bytes": 177,
+      "sha256": "86b63caaa8bad58ddf8528411ee99a8258f56971a2b37caf90ea3a6137dcc374",
+      "preserved_copy": null
+    },
+    {
+      "path": "/tmp/team4s-151-integration-review-result.txt",
+      "bytes": 131,
+      "sha256": "b08d56579cff26c390fb0b1bdf4ec791141a970c9b90a6663992ba58d8f35c90",
+      "preserved_copy": null
+    },
+    {
+      "path": "/tmp/team4s-151-integration-review.log",
+      "bytes": 651027,
+      "sha256": "83a87ab2dc52f757183e0afc1c76cd23b89e9cbf66125306cc34dc5d9bf5b383",
+      "preserved_copy": null
+    },
+    {
+      "path": "/tmp/team4s-151-native-touch.log",
+      "bytes": 2183,
+      "sha256": "271f29442ea90d6235497d88bd7d22810fb998ea1bd4c626b1d9824b4f8d7f59",
+      "preserved_copy": ".planning/phases/151-erfolgsbadge-karussell-konsolidierung/evidence/handoff-logs/team4s-151-native-touch.log"
+    },
+    {
+      "path": "/tmp/team4s-151-plan-check-result.txt",
+      "bytes": 571,
+      "sha256": "f228ac955616722b4ab9e4bd74b41b5d5ebdef5d1f0a01d32e7d20e1fdf4cfdc",
+      "preserved_copy": null
+    },
+    {
+      "path": "/tmp/team4s-151-plan-check.log",
+      "bytes": 280935,
+      "sha256": "0df9acdf274f3a1f38dee85721bfaae97831b9acb804d0eb390dc660115a944c",
+      "preserved_copy": null
+    },
+    {
+      "path": "/tmp/team4s-151-plan-final-result.txt",
+      "bytes": 240,
+      "sha256": "1efc129b4715b49a910c2e90422400f3e29bd4173b955ed3d0e7af3a7b4e34d1",
+      "preserved_copy": null
+    },
+    {
+      "path": "/tmp/team4s-151-plan-final.log",
+      "bytes": 37571,
+      "sha256": "f5d25f35eeb94aec78be6ae1185a98db3391fbe4c9d38d95035389e2b9ef86ce",
+      "preserved_copy": null
+    },
+    {
+      "path": "/tmp/team4s-151-plan-revision-result.txt",
+      "bytes": 434,
+      "sha256": "bd70bd8b53486adaa32873963b5df512ff9c62935fcd1cb8372feb9179c37eb4",
+      "preserved_copy": null
+    },
+    {
+      "path": "/tmp/team4s-151-plan-revision.log",
+      "bytes": 76692,
+      "sha256": "4bc2d47bb95704ecfcf30dc8bf6ff96549bcde2b4d4d2c403bd17cdfc84888a3",
+      "preserved_copy": null
+    },
+    {
+      "path": "/tmp/team4s-151-plan.log",
+      "bytes": 1126850,
+      "sha256": "a992d9478c99647b8887eabbbc34b34549a4b9c988b7a4ddd815fcae006d41f0",
+      "preserved_copy": null
+    },
+    {
+      "path": "/tmp/team4s-151-point-format-red.log",
+      "bytes": 8697,
+      "sha256": "00e4ef99d8ece9597a544bb6fcc4e9be0a094cf89d9808afcb968cc7dd216278",
+      "preserved_copy": ".planning/phases/151-erfolgsbadge-karussell-konsolidierung/evidence/handoff-logs/team4s-151-point-format-red.log"
+    },
+    {
+      "path": "/tmp/team4s-151-research.log",
+      "bytes": 4909251,
+      "sha256": "36f4cf008f1c641db33d41ba6988e041f64a4e40072ec369fb97d24256697412",
+      "preserved_copy": null
+    },
+    {
+      "path": "/tmp/team4s-151-resolver-awaiting-assets.log",
+      "bytes": 2926,
+      "sha256": "0ac86086f2c3f603991afd3a19c22b0dc7097036a0966dbaac4420922081b647",
+      "preserved_copy": ".planning/phases/151-erfolgsbadge-karussell-konsolidierung/evidence/handoff-logs/team4s-151-resolver-awaiting-assets.log"
+    },
+    {
+      "path": "/tmp/team4s-151-resolver-red.log",
+      "bytes": 8147,
+      "sha256": "fb4072c2b0341fa5e75256e26ccfa7f04522fe40502ab7e32c44b76c61dbf60a",
+      "preserved_copy": ".planning/phases/151-erfolgsbadge-karussell-konsolidierung/evidence/handoff-logs/team4s-151-resolver-red.log"
+    },
+    {
+      "path": "/tmp/team4s-151-root-browser-first.json",
+      "bytes": 20440,
+      "sha256": "6da44e22815d1b52d8718d1a52c88d82526019f553cdd6fba25a0b4f5f859470",
+      "preserved_copy": null
+    },
+    {
+      "path": "/tmp/team4s-151-root-targets-and-nav.json",
+      "bytes": 1204,
+      "sha256": "f3485ede4168c6a28d778a7762953f181cc978d715850c431e296060a870111a",
+      "preserved_copy": ".planning/phases/151-erfolgsbadge-karussell-konsolidierung/evidence/handoff-logs/team4s-151-root-targets-and-nav.json"
+    },
+    {
+      "path": "/tmp/team4s-151-sequential-vitest.json",
+      "bytes": 105,
+      "sha256": "4284912c89ab18059b654be4360323477f31c611e2760d7354eff6ba15db3a84",
+      "preserved_copy": ".planning/phases/151-erfolgsbadge-karussell-konsolidierung/evidence/handoff-logs/team4s-151-sequential-vitest.json"
+    },
+    {
+      "path": "/tmp/team4s-151-sequential-vitest.log",
+      "bytes": 59586,
+      "sha256": "a6228be294778fe9123fd2828addba9514f215eb9f74e6c38e027a27aa0e5981",
+      "preserved_copy": ".planning/phases/151-erfolgsbadge-karussell-konsolidierung/evidence/handoff-logs/team4s-151-sequential-vitest.log"
+    },
+    {
+      "path": "/tmp/team4s-151-source-list.txt",
+      "bytes": 3383,
+      "sha256": "83ee75e399a34d8991480587be53386a32104afc5a0db3ec8aac180185ce4e60",
+      "preserved_copy": null
+    },
+    {
+      "path": "/tmp/team4s-151-surface-review.json",
+      "bytes": 741,
+      "sha256": "860372c9ee03b8bc9fa6c53b0e7baca40861eb5c205c06ce3eb4e6ee82253828",
+      "preserved_copy": ".planning/phases/151-erfolgsbadge-karussell-konsolidierung/evidence/handoff-logs/team4s-151-surface-review.json"
+    },
+    {
+      "path": "/tmp/team4s-151-test-expectation-fixes.log",
+      "bytes": 1726,
+      "sha256": "8f278ed218c9e579e742067152b3e6f40a454c3a95add1d3a921b9de0e14abf3",
+      "preserved_copy": ".planning/phases/151-erfolgsbadge-karussell-konsolidierung/evidence/handoff-logs/team4s-151-test-expectation-fixes.log"
+    },
+    {
+      "path": "/tmp/team4s-151-ui-check-result.txt",
+      "bytes": 246,
+      "sha256": "41929a72937996fc59c1fc6373de8494e86dd68fd28a95447c05df5358216cd3",
+      "preserved_copy": null
+    },
+    {
+      "path": "/tmp/team4s-151-ui-check.log",
+      "bytes": 75348,
+      "sha256": "962d08273cc2f3eefe0f4f0ab0f9cb451ad0fed9ac75d8619dd98f3595b19c98",
+      "preserved_copy": null
+    },
+    {
+      "path": "/tmp/team4s-151-ui-result.txt",
+      "bytes": 1144,
+      "sha256": "1b922ef60ea5bfd97c3a6bbf6e61090e3004f7a2b31fdf772723e06f8e0f0d26",
+      "preserved_copy": null
+    },
+    {
+      "path": "/tmp/team4s-151-ui.log",
+      "bytes": 378064,
+      "sha256": "8720705ed8f8377539e832d7a3d3bdcec497da610f77f7b9809ad95e4055ead1",
+      "preserved_copy": null
+    }
+  ]
+}

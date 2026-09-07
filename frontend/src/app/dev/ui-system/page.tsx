@@ -108,6 +108,9 @@ export default function UISystemPlaygroundPage() {
           )}
           actions={(
             <div className={styles.buttonRow}>
+              <Button href="/dev/ui-system/achievements" variant="secondary" rightIcon={<ArrowRight size={16} />}>
+                Erfolgsbadge-Galerie
+              </Button>
               <Button variant="secondary" onClick={() => setDrawerOpen(true)} leftIcon={<PanelRight size={16} />}>
                 Drawer öffnen
               </Button>
