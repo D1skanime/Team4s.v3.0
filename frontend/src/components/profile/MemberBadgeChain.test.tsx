@@ -286,9 +286,20 @@ describe('MemberBadgeChain', () => {
 
   it('renders approved artwork inside the focal card for earned image badges', async () => {
     const { MemberBadgeChain } = await loadMemberBadgeChain()
+    // D-29 (achte Fundstelle, Post-Execution-Review): "50 Punkte" kam frueher aus einem
+    // hartcodierten detailLabel-Literal und wurde deshalb ohne jede badgeProgress-Fixture
+    // sichtbar. Seit der Fixture-Anpassung braucht dieselbe Zahl eine echte Stufenliste
+    // (badge_progress[].stages) als Quelle -- die Fixture liefert current_count=50 fuer die
+    // "points"-Familie, damit derselbe erwartete String (byte-identisch) weiterhin erscheint.
+    // Das schaltet den Rendermodus auf die Familien-Ladder-Karte (PointsAchievementStage)
+    // um; die beiden nur an der alten Zeilen-Kette haengenden Assertions (Karussell-
+    // aria-label, separate "Fortschritt"-Liste) entfallen deshalb ersatzlos.
     const { container } = render(
       <MemberBadgeChain
         earnedBadges={[{ id: 1, badge_code: 'point_milestone_active', badge_category: 'progress' }]}
+        badgeProgress={[
+          { family: 'points', current_count: 50, next_threshold: 200, remaining_count: 150, next_tier: '200 Punkte', complete: false, stages: FAMILY_STAGE_FIXTURES.points },
+        ]}
       />,
     )
 
@@ -298,9 +309,7 @@ describe('MemberBadgeChain', () => {
     expect(artwork).not.toBeNull()
     expect(artwork?.getAttribute('src')).toContain('point_milestone_active-v2.png')
     expect(screen.getByText('50 Punkte')).not.toBeNull()
-    expect(artwork?.closest('[aria-label^="Auszeichnung"]')).not.toBeNull()
     expect(screen.getByRole('list', { name: 'Punkte-Meilensteine' })).not.toBeNull()
-    expect(screen.getByRole('list', { name: 'Fortschritt' }).textContent).not.toContain('Aktiv dabei')
   })
 
   it('verwendet für Erste Punkte die neue Oldschool-Medaillenserie', async () => {

@@ -10,6 +10,7 @@ import { useRoleCatalog } from '@/providers/RoleCatalogProvider'
 import type { PublicMemberBadge, PublicMemberBadgeProgress } from '@/types/profile'
 
 import {
+  resolveBadgeProgressThreshold,
   resolveMemberBadgeFamilies,
   resolveRoleProgressPresentation,
   type MemberBadgeFamilyPresentation,
@@ -111,6 +112,22 @@ function resolveLayeredProgressArtwork(
     motifSrc: '/member-achievement-badges/progress-productive-motif.png',
     frameSrc: `/member-achievement-badges/progress-frame-productive-${productiveMatch[1]}.png`,
   }
+}
+
+// D-29 (achte Fundstelle, Post-Execution-Review): "<Zahl> Anime-Projekte"/"<Zahl> Punkt(e)"
+// bleibt reine Formatierung im Frontend (Singular nur bei genau 1 Punkt) -- die Zahl selbst
+// kommt seit Phase 150 ausschliesslich aus badge_progress[].stages
+// (resolveBadgeProgressThreshold). Kein Fallback-Text, wenn die passende Stufe in den
+// verfuegbaren Daten fehlt -- dasselbe Muster wie die sechste Fundstelle (D-29 oben).
+function resolveGeneralBadgeDetailLabel(
+  badgeCode: string,
+  badgeProgress: PublicMemberBadgeProgress[] | undefined,
+): string | undefined {
+  const threshold = resolveBadgeProgressThreshold(badgeProgress, badgeCode)
+  if (threshold == null) return undefined
+  if (badgeCode.startsWith('productive_')) return `${threshold} Anime-Projekte`
+  if (badgeCode.startsWith('point_milestone_')) return threshold === 1 ? `${threshold} Punkt` : `${threshold} Punkte`
+  return undefined
 }
 
 function catalogWithEarnedBadges(
@@ -820,6 +837,7 @@ export function MemberBadgeChain({
                       const imageSrc = resolveBadgeArtwork(item.badge_code)
                       const layeredProgressArtwork = resolveLayeredProgressArtwork(item.badge_code)
                       const earnedBadge = earnedBadges.find((badge) => badge.badge_code === item.badge_code)
+                      const detailLabel = resolveGeneralBadgeDetailLabel(item.badge_code, badgeProgress)
 
                       return (
                         <span
@@ -879,8 +897,8 @@ export function MemberBadgeChain({
                             </span>
                             <span className={badgeChipStyles.badgeText}>
                               <span>{item.label}</span>
-                              {presentation.detailLabel ? (
-                                <span className={badgeChipStyles.badgeDetail}>{presentation.detailLabel}</span>
+                              {detailLabel ? (
+                                <span className={badgeChipStyles.badgeDetail}>{detailLabel}</span>
                               ) : null}
                             </span>
                             {isEarned && earnedBadge ? <ContributionProgress badge={earnedBadge} /> : null}

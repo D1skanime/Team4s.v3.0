@@ -242,6 +242,26 @@ function stageBadgeCode(familyKey: (typeof FAMILY_ORDER)[number], code: string):
   return CONTRIBUTION_FAMILY_KEYS.has(familyKey) ? `${familyKey}_${code}` : code
 }
 
+// D-29 (achte Fundstelle, Post-Execution-Review): loest die Schwellenzahl fuer einen
+// einzelnen badge_code direkt aus dem server-gelieferten badge_progress[].stages auf --
+// ersetzt den vormals hartcodierten Zahlwert in MEMBER_BADGE_PRESENTATIONS.detailLabel
+// (memberBadgeLabels.ts). Durchsucht alle mitgelieferten Familien-Eintraege (nicht nur
+// "points"/"progress"), damit derselbe Helfer fuer jede kuenftige Fundstelle desselben
+// Musters wiederverwendbar bleibt. Liefert undefined, wenn keine passende Stufe vorliegt --
+// KEIN Fallback-Literal (dasselbe Muster wie die sechste Fundstelle oben).
+export function resolveBadgeProgressThreshold(
+  badgeProgress: PublicMemberBadgeProgress[] | undefined,
+  badgeCode: string,
+): number | undefined {
+  for (const entry of badgeProgress ?? []) {
+    const familyKey = entry.family as (typeof FAMILY_ORDER)[number]
+    for (const stage of entry.stages ?? []) {
+      if (stageBadgeCode(familyKey, stage.code) === badgeCode) return stage.threshold
+    }
+  }
+  return undefined
+}
+
 function familyStage(
   item: Pick<PublicMemberBadgeCatalogItem, 'badge_code' | 'label' | 'badge_category'> & Partial<PublicMemberBadgeCatalogItem>,
   family: string,

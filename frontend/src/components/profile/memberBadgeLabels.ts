@@ -41,7 +41,6 @@ export type MemberBadgeGroup = 'roles' | 'progress' | 'points' | 'contributions'
 
 export type MemberBadgePresentation = {
   label: string
-  detailLabel?: string
   variant: MemberBadgeVariant
   Icon: LucideIcon
   palette: MemberBadgePalette
@@ -68,9 +67,14 @@ export const MEMBER_BADGE_PRESENTATIONS: Record<string, MemberBadgePresentation>
   membership_7_years: { label: '7+ Jahre Mitglied', variant: 'success', Icon: CalendarClock, palette: 'orange', group: 'membership' },
   membership_10_years: { label: '10+ Jahre Mitglied', variant: 'info', Icon: CalendarClock, palette: 'indigo', group: 'membership' },
   first_contribution: { label: 'Erste Mitwirkung', variant: 'neutral', Icon: Sparkles, palette: 'mint', group: 'progress' },
-  productive_bronze: { label: 'Projekt-Engagement · Bronze', detailLabel: '10 Anime-Projekte', variant: 'muted', Icon: Layers, palette: 'mint', group: 'progress' },
-  productive_silver: { label: 'Projekterfahrung · Silber', detailLabel: '25 Anime-Projekte', variant: 'neutral', Icon: Layers, palette: 'mint', group: 'progress' },
-  productive_gold: { label: 'Projekt-Veteranenstatus · Gold', detailLabel: '50 Anime-Projekte', variant: 'warning', Icon: Star, palette: 'gold', group: 'progress' },
+  // D-29 (achte Fundstelle, Post-Execution-Review): kein detailLabel-Feld mehr -- die
+  // sichtbare "<Zahl> Anime-Projekte"-Zeile wird an der einzigen Aufrufstelle, die sie
+  // rendert (MemberBadgeChain.tsx's allgemeine Katalog-Zeile), aus badge_progress[].stages
+  // rekonstruiert (resolveGeneralBadgeDetailLabel/resolveBadgeProgressThreshold). Dieselbe
+  // Regel wie bei der sechsten Fundstelle: Format bleibt, Zahl kommt vom Server.
+  productive_bronze: { label: 'Projekt-Engagement · Bronze', variant: 'muted', Icon: Layers, palette: 'mint', group: 'progress' },
+  productive_silver: { label: 'Projekterfahrung · Silber', variant: 'neutral', Icon: Layers, palette: 'mint', group: 'progress' },
+  productive_gold: { label: 'Projekt-Veteranenstatus · Gold', variant: 'warning', Icon: Star, palette: 'gold', group: 'progress' },
   all_rounder: { label: 'Allrounder', variant: 'info', Icon: Hexagon, palette: 'red', group: 'special' },
   verified: { label: 'Verifiziert', variant: 'success', Icon: BadgeCheck, palette: 'red', group: 'special' },
   role_entry_translator: { label: 'Erste Übersetzung', variant: 'info', Icon: Languages, palette: 'indigo', group: 'roles', roleCode: 'translator' },
@@ -94,12 +98,18 @@ export const MEMBER_BADGE_PRESENTATIONS: Record<string, MemberBadgePresentation>
   // (kein Locked-Zustand fuer Typ 2; der erreichte Meilenstein fliesst zur Laufzeit ueber den
   // earned-but-not-in-catalog-Fallback ein -- seit Phase 150 gelesen aus profile.badge_progress's
   // "points"-Familie, siehe MemberProfileContent.tsx).
-  point_milestone_first: { label: 'Erste Punkte', detailLabel: '1 Punkt', variant: 'muted', Icon: Flag, palette: 'mint', group: 'points' },
-  point_milestone_active: { label: 'Aktiv dabei', detailLabel: '50 Punkte', variant: 'neutral', Icon: Flame, palette: 'mint', group: 'points' },
-  point_milestone_experienced: { label: 'Erfahrungsstufe', detailLabel: '200 Punkte', variant: 'success', Icon: Award, palette: 'orange', group: 'points' },
-  point_milestone_engaged: { label: 'Stark engagiert', detailLabel: '500 Punkte', variant: 'success', Icon: Medal, palette: 'orange', group: 'points' },
-  point_milestone_veteran: { label: 'Veteranenstatus', detailLabel: '1000 Punkte', variant: 'warning', Icon: Trophy, palette: 'gold', group: 'points' },
-  point_milestone_legend: { label: 'Archiv-Legende', detailLabel: '2500 Punkte', variant: 'warning', Icon: Gem, palette: 'gold', group: 'points' },
+  // D-29 (achte Fundstelle, Post-Execution-Review): kein detailLabel-Feld mehr -- die
+  // sichtbare "<Zahl> Punkt(e)"-Zeile (Singular nur bei genau 1) wird an der einzigen
+  // Aufrufstelle, die sie rendert (MemberBadgeChain.tsx's allgemeine Katalog-Zeile), aus
+  // badge_progress[].stages rekonstruiert (resolveGeneralBadgeDetailLabel/
+  // resolveBadgeProgressThreshold). Dieselbe Regel wie bei der sechsten Fundstelle: Format
+  // bleibt, Zahl kommt vom Server.
+  point_milestone_first: { label: 'Erste Punkte', variant: 'muted', Icon: Flag, palette: 'mint', group: 'points' },
+  point_milestone_active: { label: 'Aktiv dabei', variant: 'neutral', Icon: Flame, palette: 'mint', group: 'points' },
+  point_milestone_experienced: { label: 'Erfahrungsstufe', variant: 'success', Icon: Award, palette: 'orange', group: 'points' },
+  point_milestone_engaged: { label: 'Stark engagiert', variant: 'success', Icon: Medal, palette: 'orange', group: 'points' },
+  point_milestone_veteran: { label: 'Veteranenstatus', variant: 'warning', Icon: Trophy, palette: 'gold', group: 'points' },
+  point_milestone_legend: { label: 'Archiv-Legende', variant: 'warning', Icon: Gem, palette: 'gold', group: 'points' },
   contribution_projects_bronze: { label: 'Mitgetragene Projekte · Bronze', variant: 'muted', Icon: FolderCheck, palette: 'bronze', group: 'contributions' },
   contribution_projects_silver: { label: 'Mitgetragene Projekte · Silber', variant: 'neutral', Icon: FolderCheck, palette: 'silver', group: 'contributions' },
   contribution_projects_gold: { label: 'Mitgetragene Projekte · Gold', variant: 'warning', Icon: FolderCheck, palette: 'gold', group: 'contributions' },
