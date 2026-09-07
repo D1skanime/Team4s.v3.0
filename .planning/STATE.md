@@ -3,15 +3,15 @@ gsd_state_version: 1.0
 milestone: v1.4
 milestone_name: Coverage
 status: active
-stopped_at: Phase 151 paused by user; full one-worker Vitest PASS; six Karaoke PNGs present; final visual QA and verification pending
-last_updated: "2026-09-07T17:26:31.072393+00:00"
+stopped_at: Phase 151 complete — build, full Vitest, browser matrix, per-row visual signoff, backend gates and independent verification all PASS
+last_updated: "2026-09-07T19:00:00+00:00"
 last_activity: 2026-09-07
 progress:
   total_phases: 16
-  completed_phases: 15
+  completed_phases: 16
   total_plans: 160
-  completed_plans: 158
-  percent: 99
+  completed_plans: 160
+  percent: 100
 ---
 
 # Project State
@@ -29,13 +29,27 @@ Phase 135 and any future roadmap entries continue from here.
 See: .planning/PROJECT.md (updated 2026-08-13)
 
 **Core value:** Team4s presents fansub history and collaboration credibly while keeping identity, visibility, ownership, and permissions correct.
-**Current focus:** Phase 151 — paused by user; implementation checkpoint and agent handoff saved
+**Current focus:** Phase 151 abgeschlossen (2026-09-07); keine offenen Gaps
 
 ## Current Position
 
-Phase: 151 (erfolgsbadge-karussell-konsolidierung) — PAUSED BY USER
-Plan: 3 of 5 executed (151-02, 151-03, 151-04)
-Status: Paused for handoff. Plans 02/03/04 implemented; Plan 01 resolver and six RGBA assets present, final composition signoff pending; Plan 05 gallery/collector implemented, final matrix and exhaustive signoff pending. Full one-worker Vitest: 2237 PASS. No further Execute/build/browser run after the stop request; no push. See `.planning/HANDOFF.json` and Phase 151 `.continue-here.md`.
+Phase: 151 (erfolgsbadge-karussell-konsolidierung) — COMPLETE
+Plan: 5 of 5 executed (151-01 bis 151-05)
+Status: Abgeschlossen am 2026-09-07. Die pausierte Uebergabe wurde uebernommen und zu Ende gefuehrt:
+Produktionsbuild nach den letzten drei PNGs PASS (rc=0, TypeScript ok, 25 statische Seiten), voller
+Vitest-Lauf mit einem Worker 293 Dateien / 2239 Tests PASS (1 skipped, 3 todo, exit 0), Collector-
+Browsermatrix `pass: true` ueber 16/16 Zeilen ohne Findings und ohne Browserfehler, alle 197 Zeilen
+der Artwork-Signoff-Tabelle einzeln gesichtet, nativer Touch-Check PASS, Backend-Gates (go build/vet,
+badges-Tests, guarded PostgreSQL 20/20 und Exact-once) PASS.
+
+Ein echter Defekt wurde dabei gefunden und minimal behoben: die generische Chip-Zeile
+(`BadgeChip.module.css`) klemmte den quadratischen Hero-Slot der historischen/speziellen
+Badge-Familie bei 320 px Viewport auf 190.72 x 192 px. Fix ist ein nachgebender Innenabstand
+(`padding-inline: clamp(...)`) plus zwei Regressionstests; Details in `151-VERIFICATION.md`.
+
+Vorbestehend und ausserhalb der Phase: 13 ESLint-Fehler / 332 Warnungen sowie 49 Fehler der breiten
+Backend-Repository-Diagnose (fehlende Phase-128/134-Fixtures). Backend-Quellen sind byteidentisch
+zur Baseline `052858dc`.
 
 Phase 151 preserves the Phase-150 threshold/query authority and changes presentation only. Wave 1 contains
 three file-disjoint plans: artwork/resolver, shared slot/cards/stages, and generic FocalCarousel. Wave2 consolidates family CSS after shared components; Wave3

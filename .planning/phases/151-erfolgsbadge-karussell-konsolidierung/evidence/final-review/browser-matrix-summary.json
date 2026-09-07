@@ -1,0 +1,873 @@
+{
+ "generatedAt": "2026-09-07T18:34:52.419Z",
+ "galleryURL": "http://127.0.0.1:3000/dev/ui-system/achievements",
+ "zoomMethod": "Post-hydration CSS zoom on documentElement at 2 and 4. This exercises layout/reflow without claiming native browser-chrome zoom; effective CSS widths are recorded.",
+ "pass": true,
+ "failures": [],
+ "browserErrors": [],
+ "artifactCounts": {
+  "matrixRows": 16,
+  "sourceCrops": 113,
+  "compositionCrops": 84,
+  "contactSheets": 18
+ },
+ "matrix": [
+  {
+   "motion": "normal",
+   "width": 320,
+   "height": 568,
+   "compositions": 84,
+   "sources": 113,
+   "document": {
+    "scrollWidth": 320,
+    "clientWidth": 320
+   },
+   "heroSizes": [
+    192
+   ],
+   "stageSizes": [
+    64
+   ],
+   "nonSquareSlots": 0,
+   "screenshots": [
+    "screenshots/normal-320x568-role.png",
+    "screenshots/normal-320x568-non-role.png",
+    "screenshots/normal-320x568-states.png",
+    "screenshots/normal-320x568-sources.png",
+    "screenshots/normal-320x568-stress.png"
+   ],
+   "profileScreenshots": [
+    "screenshots/normal-320x568-profile-hero.png",
+    "screenshots/normal-320x568-profile-badges.png"
+   ]
+  },
+  {
+   "motion": "normal",
+   "width": 390,
+   "height": 844,
+   "compositions": 84,
+   "sources": 113,
+   "document": {
+    "scrollWidth": 390,
+    "clientWidth": 390
+   },
+   "heroSizes": [
+    192
+   ],
+   "stageSizes": [
+    64
+   ],
+   "nonSquareSlots": 0,
+   "screenshots": [
+    "screenshots/normal-390x844-role.png",
+    "screenshots/normal-390x844-non-role.png",
+    "screenshots/normal-390x844-states.png",
+    "screenshots/normal-390x844-sources.png",
+    "screenshots/normal-390x844-stress.png"
+   ],
+   "profileScreenshots": [
+    "screenshots/normal-390x844-profile-hero.png",
+    "screenshots/normal-390x844-profile-badges.png"
+   ]
+  },
+  {
+   "motion": "normal",
+   "width": 520,
+   "height": 900,
+   "compositions": 84,
+   "sources": 113,
+   "document": {
+    "scrollWidth": 520,
+    "clientWidth": 520
+   },
+   "heroSizes": [
+    192
+   ],
+   "stageSizes": [
+    64
+   ],
+   "nonSquareSlots": 0,
+   "screenshots": [
+    "screenshots/normal-520x900-role.png",
+    "screenshots/normal-520x900-non-role.png",
+    "screenshots/normal-520x900-states.png",
+    "screenshots/normal-520x900-sources.png",
+    "screenshots/normal-520x900-stress.png"
+   ],
+   "profileScreenshots": [
+    "screenshots/normal-520x900-profile-hero.png",
+    "screenshots/normal-520x900-profile-badges.png"
+   ]
+  },
+  {
+   "motion": "normal",
+   "width": 768,
+   "height": 1024,
+   "compositions": 84,
+   "sources": 113,
+   "document": {
+    "scrollWidth": 768,
+    "clientWidth": 768
+   },
+   "heroSizes": [
+    192,
+    216,
+    240
+   ],
+   "stageSizes": [
+    64,
+    80
+   ],
+   "nonSquareSlots": 0,
+   "screenshots": [
+    "screenshots/normal-768x1024-role.png",
+    "screenshots/normal-768x1024-non-role.png",
+    "screenshots/normal-768x1024-states.png",
+    "screenshots/normal-768x1024-sources.png",
+    "screenshots/normal-768x1024-stress.png"
+   ],
+   "profileScreenshots": [
+    "screenshots/normal-768x1024-profile-hero.png",
+    "screenshots/normal-768x1024-profile-badges.png"
+   ]
+  },
+  {
+   "motion": "normal",
+   "width": 1024,
+   "height": 768,
+   "compositions": 84,
+   "sources": 113,
+   "document": {
+    "scrollWidth": 1024,
+    "clientWidth": 1024
+   },
+   "heroSizes": [
+    192,
+    240
+   ],
+   "stageSizes": [
+    64,
+    80
+   ],
+   "nonSquareSlots": 0,
+   "screenshots": [
+    "screenshots/normal-1024x768-role.png",
+    "screenshots/normal-1024x768-non-role.png",
+    "screenshots/normal-1024x768-states.png",
+    "screenshots/normal-1024x768-sources.png",
+    "screenshots/normal-1024x768-stress.png"
+   ],
+   "profileScreenshots": [
+    "screenshots/normal-1024x768-profile-hero.png",
+    "screenshots/normal-1024x768-profile-badges.png"
+   ]
+  },
+  {
+   "motion": "normal",
+   "width": 1440,
+   "height": 900,
+   "compositions": 84,
+   "sources": 113,
+   "document": {
+    "scrollWidth": 1440,
+    "clientWidth": 1440
+   },
+   "heroSizes": [
+    192,
+    216,
+    240
+   ],
+   "stageSizes": [
+    64,
+    80
+   ],
+   "nonSquareSlots": 0,
+   "screenshots": [
+    "screenshots/normal-1440x900-role.png",
+    "screenshots/normal-1440x900-non-role.png",
+    "screenshots/normal-1440x900-states.png",
+    "screenshots/normal-1440x900-sources.png",
+    "screenshots/normal-1440x900-stress.png"
+   ],
+   "profileScreenshots": [
+    "screenshots/normal-1440x900-profile-hero.png",
+    "screenshots/normal-1440x900-profile-badges.png"
+   ]
+  },
+  {
+   "motion": "normal",
+   "width": 1920,
+   "height": 1080,
+   "compositions": 84,
+   "sources": 113,
+   "document": {
+    "scrollWidth": 1920,
+    "clientWidth": 1920
+   },
+   "heroSizes": [
+    192,
+    216,
+    240
+   ],
+   "stageSizes": [
+    64,
+    80
+   ],
+   "nonSquareSlots": 0,
+   "screenshots": [
+    "screenshots/normal-1920x1080-role.png",
+    "screenshots/normal-1920x1080-non-role.png",
+    "screenshots/normal-1920x1080-states.png",
+    "screenshots/normal-1920x1080-sources.png",
+    "screenshots/normal-1920x1080-stress.png"
+   ],
+   "profileScreenshots": [
+    "screenshots/normal-1920x1080-profile-hero.png",
+    "screenshots/normal-1920x1080-profile-badges.png"
+   ]
+  },
+  {
+   "motion": "normal",
+   "width": 2560,
+   "height": 1440,
+   "compositions": 84,
+   "sources": 113,
+   "document": {
+    "scrollWidth": 2560,
+    "clientWidth": 2560
+   },
+   "heroSizes": [
+    192,
+    216,
+    240
+   ],
+   "stageSizes": [
+    64,
+    80
+   ],
+   "nonSquareSlots": 0,
+   "screenshots": [
+    "screenshots/normal-2560x1440-role.png",
+    "screenshots/normal-2560x1440-non-role.png",
+    "screenshots/normal-2560x1440-states.png",
+    "screenshots/normal-2560x1440-sources.png",
+    "screenshots/normal-2560x1440-stress.png"
+   ],
+   "profileScreenshots": [
+    "screenshots/normal-2560x1440-profile-hero.png",
+    "screenshots/normal-2560x1440-profile-badges.png"
+   ]
+  },
+  {
+   "motion": "reduced",
+   "width": 320,
+   "height": 568,
+   "compositions": 84,
+   "sources": 113,
+   "document": {
+    "scrollWidth": 320,
+    "clientWidth": 320
+   },
+   "heroSizes": [
+    192
+   ],
+   "stageSizes": [
+    64
+   ],
+   "nonSquareSlots": 0,
+   "screenshots": [
+    "screenshots/reduced-320x568-role.png",
+    "screenshots/reduced-320x568-non-role.png",
+    "screenshots/reduced-320x568-states.png",
+    "screenshots/reduced-320x568-sources.png",
+    "screenshots/reduced-320x568-stress.png"
+   ],
+   "profileScreenshots": [
+    "screenshots/reduced-320x568-profile-hero.png",
+    "screenshots/reduced-320x568-profile-badges.png"
+   ]
+  },
+  {
+   "motion": "reduced",
+   "width": 390,
+   "height": 844,
+   "compositions": 84,
+   "sources": 113,
+   "document": {
+    "scrollWidth": 390,
+    "clientWidth": 390
+   },
+   "heroSizes": [
+    192
+   ],
+   "stageSizes": [
+    64
+   ],
+   "nonSquareSlots": 0,
+   "screenshots": [
+    "screenshots/reduced-390x844-role.png",
+    "screenshots/reduced-390x844-non-role.png",
+    "screenshots/reduced-390x844-states.png",
+    "screenshots/reduced-390x844-sources.png",
+    "screenshots/reduced-390x844-stress.png"
+   ],
+   "profileScreenshots": [
+    "screenshots/reduced-390x844-profile-hero.png",
+    "screenshots/reduced-390x844-profile-badges.png"
+   ]
+  },
+  {
+   "motion": "reduced",
+   "width": 520,
+   "height": 900,
+   "compositions": 84,
+   "sources": 113,
+   "document": {
+    "scrollWidth": 520,
+    "clientWidth": 520
+   },
+   "heroSizes": [
+    192
+   ],
+   "stageSizes": [
+    64
+   ],
+   "nonSquareSlots": 0,
+   "screenshots": [
+    "screenshots/reduced-520x900-role.png",
+    "screenshots/reduced-520x900-non-role.png",
+    "screenshots/reduced-520x900-states.png",
+    "screenshots/reduced-520x900-sources.png",
+    "screenshots/reduced-520x900-stress.png"
+   ],
+   "profileScreenshots": [
+    "screenshots/reduced-520x900-profile-hero.png",
+    "screenshots/reduced-520x900-profile-badges.png"
+   ]
+  },
+  {
+   "motion": "reduced",
+   "width": 768,
+   "height": 1024,
+   "compositions": 84,
+   "sources": 113,
+   "document": {
+    "scrollWidth": 768,
+    "clientWidth": 768
+   },
+   "heroSizes": [
+    192,
+    216,
+    240
+   ],
+   "stageSizes": [
+    64,
+    80
+   ],
+   "nonSquareSlots": 0,
+   "screenshots": [
+    "screenshots/reduced-768x1024-role.png",
+    "screenshots/reduced-768x1024-non-role.png",
+    "screenshots/reduced-768x1024-states.png",
+    "screenshots/reduced-768x1024-sources.png",
+    "screenshots/reduced-768x1024-stress.png"
+   ],
+   "profileScreenshots": [
+    "screenshots/reduced-768x1024-profile-hero.png",
+    "screenshots/reduced-768x1024-profile-badges.png"
+   ]
+  },
+  {
+   "motion": "reduced",
+   "width": 1024,
+   "height": 768,
+   "compositions": 84,
+   "sources": 113,
+   "document": {
+    "scrollWidth": 1024,
+    "clientWidth": 1024
+   },
+   "heroSizes": [
+    192,
+    240
+   ],
+   "stageSizes": [
+    64,
+    80
+   ],
+   "nonSquareSlots": 0,
+   "screenshots": [
+    "screenshots/reduced-1024x768-role.png",
+    "screenshots/reduced-1024x768-non-role.png",
+    "screenshots/reduced-1024x768-states.png",
+    "screenshots/reduced-1024x768-sources.png",
+    "screenshots/reduced-1024x768-stress.png"
+   ],
+   "profileScreenshots": [
+    "screenshots/reduced-1024x768-profile-hero.png",
+    "screenshots/reduced-1024x768-profile-badges.png"
+   ]
+  },
+  {
+   "motion": "reduced",
+   "width": 1440,
+   "height": 900,
+   "compositions": 84,
+   "sources": 113,
+   "document": {
+    "scrollWidth": 1440,
+    "clientWidth": 1440
+   },
+   "heroSizes": [
+    192,
+    216,
+    240
+   ],
+   "stageSizes": [
+    64,
+    80
+   ],
+   "nonSquareSlots": 0,
+   "screenshots": [
+    "screenshots/reduced-1440x900-role.png",
+    "screenshots/reduced-1440x900-non-role.png",
+    "screenshots/reduced-1440x900-states.png",
+    "screenshots/reduced-1440x900-sources.png",
+    "screenshots/reduced-1440x900-stress.png"
+   ],
+   "profileScreenshots": [
+    "screenshots/reduced-1440x900-profile-hero.png",
+    "screenshots/reduced-1440x900-profile-badges.png"
+   ]
+  },
+  {
+   "motion": "reduced",
+   "width": 1920,
+   "height": 1080,
+   "compositions": 84,
+   "sources": 113,
+   "document": {
+    "scrollWidth": 1920,
+    "clientWidth": 1920
+   },
+   "heroSizes": [
+    192,
+    216,
+    240
+   ],
+   "stageSizes": [
+    64,
+    80
+   ],
+   "nonSquareSlots": 0,
+   "screenshots": [
+    "screenshots/reduced-1920x1080-role.png",
+    "screenshots/reduced-1920x1080-non-role.png",
+    "screenshots/reduced-1920x1080-states.png",
+    "screenshots/reduced-1920x1080-sources.png",
+    "screenshots/reduced-1920x1080-stress.png"
+   ],
+   "profileScreenshots": [
+    "screenshots/reduced-1920x1080-profile-hero.png",
+    "screenshots/reduced-1920x1080-profile-badges.png"
+   ]
+  },
+  {
+   "motion": "reduced",
+   "width": 2560,
+   "height": 1440,
+   "compositions": 84,
+   "sources": 113,
+   "document": {
+    "scrollWidth": 2560,
+    "clientWidth": 2560
+   },
+   "heroSizes": [
+    192,
+    216,
+    240
+   ],
+   "stageSizes": [
+    64,
+    80
+   ],
+   "nonSquareSlots": 0,
+   "screenshots": [
+    "screenshots/reduced-2560x1440-role.png",
+    "screenshots/reduced-2560x1440-non-role.png",
+    "screenshots/reduced-2560x1440-states.png",
+    "screenshots/reduced-2560x1440-sources.png",
+    "screenshots/reduced-2560x1440-stress.png"
+   ],
+   "profileScreenshots": [
+    "screenshots/reduced-2560x1440-profile-hero.png",
+    "screenshots/reduced-2560x1440-profile-badges.png"
+   ]
+  }
+ ],
+ "containerBoundaries": [
+  {
+   "width": 561,
+   "hero": 192,
+   "stage": [
+    64
+   ]
+  },
+  {
+   "width": 562,
+   "hero": 216,
+   "stage": [
+    80
+   ]
+  },
+  {
+   "width": 657,
+   "hero": 216,
+   "stage": [
+    80
+   ]
+  },
+  {
+   "width": 658,
+   "hero": 240,
+   "stage": [
+    80
+   ]
+  }
+ ],
+ "narrowEmbed": {
+  "wrapper": 320,
+  "hero": 192
+ },
+ "states": {
+  "active": {
+   "hero": 240,
+   "card": [
+    658,
+    442
+   ],
+   "stages": [
+    80
+   ]
+  },
+  "inactive": {
+   "hero": 240,
+   "card": [
+    658,
+    442
+   ],
+   "stages": [
+    80
+   ]
+  }
+ },
+ "zoom": [
+  {
+   "scale": 2,
+   "method": "documentElement.style.zoom after hydration",
+   "viewportCssPixels": {
+    "width": 1440,
+    "height": 900
+   },
+   "effectiveLayoutWidth": 720,
+   "document": {
+    "scrollWidth": 1440,
+    "clientWidth": 1440
+   },
+   "gallery": {
+    "width": 1408,
+    "right": 1440
+   }
+  },
+  {
+   "scale": 4,
+   "method": "documentElement.style.zoom after hydration",
+   "viewportCssPixels": {
+    "width": 1440,
+    "height": 900
+   },
+   "effectiveLayoutWidth": 360,
+   "document": {
+    "scrollWidth": 1440,
+    "clientWidth": 1440
+   },
+   "gallery": {
+    "width": 1376,
+    "right": 1440
+   }
+  }
+ ],
+ "interactions": {
+  "adjacent": {
+   "point": {
+    "index": 1,
+    "x": 608.3203125,
+    "y": 449.765625
+   },
+   "movingImmediately": "moving",
+   "settleMs": 146,
+   "logical": 1,
+   "physical": 1,
+   "scrollLeft": 374,
+   "maxScroll": 35699,
+   "navigationState": "settled"
+  },
+  "nonAdjacentKeyboard": {
+   "end": {
+    "logical": 99,
+    "physical": 99,
+    "scrollLeft": 35685,
+    "maxScroll": 35699,
+    "navigationState": "settled"
+   },
+   "home": {
+    "logical": 0,
+    "physical": 0,
+    "scrollLeft": 14,
+    "maxScroll": 35699,
+    "navigationState": "settled"
+   }
+  },
+  "rapid": {
+   "logical": 3,
+   "physical": 3,
+   "scrollLeft": 1095,
+   "maxScroll": 35699,
+   "navigationState": "settled",
+   "settleMs": 221
+  },
+  "interrupted": {
+   "movingBeforeWheel": "moving",
+   "before": 215,
+   "settleMs": 132,
+   "logical": 2,
+   "physical": 2,
+   "scrollLeft": 735,
+   "maxScroll": 35699,
+   "navigationState": "settled"
+  },
+  "pointerDrag": {
+   "logical": 1,
+   "physical": 1,
+   "scrollLeft": 374,
+   "maxScroll": 35699,
+   "navigationState": "settled"
+  },
+  "wheels": {
+   "horizontal": {
+    "before": {
+     "logical": 0,
+     "physical": 0,
+     "scrollLeft": 14,
+     "maxScroll": 35699,
+     "navigationState": "settled"
+    },
+    "after": {
+     "logical": 1,
+     "physical": 1,
+     "scrollLeft": 374,
+     "maxScroll": 35699,
+     "navigationState": "settled"
+    },
+    "pageBeforeHorizontal": 32455,
+    "pageAfterHorizontal": 32455
+   },
+   "vertical": {
+    "before": {
+     "logical": 0,
+     "physical": 0,
+     "scrollLeft": 14,
+     "maxScroll": 35699,
+     "navigationState": "settled"
+    },
+    "after": {
+     "logical": 0,
+     "physical": 0,
+     "scrollLeft": 14,
+     "maxScroll": 35699,
+     "navigationState": "settled"
+    },
+    "pageBeforeVertical": 32455,
+    "pageAfterVertical": 32755
+   }
+  },
+  "keyboard": {
+   "end": 99,
+   "left": 98,
+   "home": 0
+  },
+  "focusAndInert": {
+   "focus": {
+    "active": true,
+    "focusVisible": true,
+    "outline": "solid",
+    "outlineWidth": "2px",
+    "boxShadow": "none"
+   },
+   "inertCandidates": 0,
+   "inertFocusLeaks": []
+  },
+  "expandCollapse": {
+   "expandedFocus": true,
+   "restoredFocus": true
+  },
+  "fetchXhrDuringInputs": 0
+ },
+ "stress": [
+  {
+   "count": 100,
+   "mounted": 100,
+   "beforeRender": 534,
+   "afterRender": 538,
+   "renderGrowth": 4,
+   "requestGrowth": 0,
+   "settleMs": 139,
+   "elapsedMs": 309
+  },
+  {
+   "count": 200,
+   "mounted": 200,
+   "beforeRender": 200,
+   "afterRender": 204,
+   "renderGrowth": 4,
+   "requestGrowth": 0,
+   "settleMs": 140,
+   "elapsedMs": 316
+  }
+ ],
+ "fetchXhr": {
+  "afterLoad": 0,
+  "afterAllNavigation": 0,
+  "navigationGrowth": 0
+ },
+ "motion": [
+  {
+   "reduced": false,
+   "selector": "[data-stress-count=\"100\"]",
+   "immediate": "moving",
+   "animationClassImmediately": false,
+   "animationClassAfterTwoFrames": false,
+   "settleMs": 113
+  },
+  {
+   "reduced": true,
+   "selector": "[data-stress-count=\"100\"]",
+   "immediate": "moving",
+   "animationClassImmediately": false,
+   "animationClassAfterTwoFrames": false,
+   "settleMs": 11
+  }
+ ],
+ "highDpi": [
+  {
+   "width": 390,
+   "dpr": 2,
+   "compositions": 84,
+   "document": {
+    "scrollWidth": 390,
+    "clientWidth": 390
+   }
+  },
+  {
+   "width": 1440,
+   "dpr": 2,
+   "compositions": 84,
+   "document": {
+    "scrollWidth": 1440,
+    "clientWidth": 1440
+   }
+  }
+ ],
+ "contactSheets": [
+  {
+   "path": "contact-sheets/sources-01.png",
+   "columns": 4,
+   "allContained": true
+  },
+  {
+   "path": "contact-sheets/sources-02.png",
+   "columns": 4,
+   "allContained": true
+  },
+  {
+   "path": "contact-sheets/sources-03.png",
+   "columns": 4,
+   "allContained": true
+  },
+  {
+   "path": "contact-sheets/sources-04.png",
+   "columns": 4,
+   "allContained": true
+  },
+  {
+   "path": "contact-sheets/sources-05.png",
+   "columns": 4,
+   "allContained": true
+  },
+  {
+   "path": "contact-sheets/sources-06.png",
+   "columns": 4,
+   "allContained": true
+  },
+  {
+   "path": "contact-sheets/sources-07.png",
+   "columns": 4,
+   "allContained": true
+  },
+  {
+   "path": "contact-sheets/sources-08.png",
+   "columns": 4,
+   "allContained": true
+  },
+  {
+   "path": "contact-sheets/compositions-01.png",
+   "columns": 3,
+   "allContained": true
+  },
+  {
+   "path": "contact-sheets/compositions-02.png",
+   "columns": 3,
+   "allContained": true
+  },
+  {
+   "path": "contact-sheets/compositions-03.png",
+   "columns": 3,
+   "allContained": true
+  },
+  {
+   "path": "contact-sheets/compositions-04.png",
+   "columns": 3,
+   "allContained": true
+  },
+  {
+   "path": "contact-sheets/compositions-05.png",
+   "columns": 3,
+   "allContained": true
+  },
+  {
+   "path": "contact-sheets/compositions-06.png",
+   "columns": 3,
+   "allContained": true
+  },
+  {
+   "path": "contact-sheets/compositions-07.png",
+   "columns": 3,
+   "allContained": true
+  },
+  {
+   "path": "contact-sheets/compositions-08.png",
+   "columns": 3,
+   "allContained": true
+  },
+  {
+   "path": "contact-sheets/compositions-09.png",
+   "columns": 3,
+   "allContained": true
+  },
+  {
+   "path": "contact-sheets/compositions-10.png",
+   "columns": 3,
+   "allContained": true
+  }
+ ]
+}

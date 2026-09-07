@@ -33,3 +33,23 @@ No further Execute, browser matrix or build was started after the user's stop re
 The successful production image build predates the final three additive PNGs; no rebuild was started after the stop request. The current source and all six assets were covered by the latest full Vitest run, but final five-rank Karaoke visual acceptance is pending. Scoped lint predates the newly added one-off alpha extraction script. Full lint and dev typecheck are still not green; do not change unrelated routes or configuration to hide their baseline failures.
 
 All root direct-check logs are copied to local ignored `evidence/handoff-logs/`; `151-LOG-INDEX.json` records all available root/agent logs and hashes. Plan summaries contain the earlier repeated focused runs. Overlapping counts must not be added as unique tests.
+
+
+## Abschlusslauf 2026-09-07 (nach dem Wiederaufnehmen)
+
+Alle folgenden Ergebnisse wurden nach dem Geometriefix in `BadgeChip.module.css` neu erhoben und
+loesen die oberen Checkpoint-Einschraenkungen ab.
+
+| Check | Ergebnis | Beleg |
+|---|---|---|
+| Produktionsbuild `docker compose build team4sv30-frontend` | **PASS, rc=0** — kompiliert, TypeScript ok, 25 statische Seiten, Image gebaut | `/tmp/p151-build.log` |
+| Vitest voll, ein Worker | **PASS: 293 Dateien / 2239 Tests; 1 Datei skipped, 3 todo; 207.14 s; exit 0** | `/tmp/p151-test.log` |
+| Collector-Browsermatrix | **PASS: `pass: true`, 16/16 Zeilen, 0 Findings, 0 Browserfehler** | `evidence/final-review/gap-manifest.json`, `browser-matrix-summary.json` |
+| Nativer Touch-Check | **PASS (`pass: true`)** | `checks/check-native-touch.cjs` |
+| Scoped ESLint (geaenderte Dateien) | **0 Fehler** | — |
+| Voller ESLint | **Baseline unveraendert: 13 Fehler, 332 Warnungen**, ausserhalb des Phasencodes | `/tmp/p151-lint.log` |
+| `npx tsc --noEmit` | **PASS** — der frueher notierte `GroupReleasesPageProps`-Fehler reproduziert nach dem Build nicht mehr | `/tmp/p151-lint.log` |
+| `git diff --check` | **rc=0** | — |
+
+Der Volltest liegt +2 Tests ueber dem Uebergabestand (2237 -> 2239); die Differenz sind die zwei
+neuen Regressionsfaelle in `AchievementArtwork.test.tsx`.

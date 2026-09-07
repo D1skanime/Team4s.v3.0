@@ -4,9 +4,14 @@ phase: 151-erfolgsbadge-karussell-konsolidierung
 plan: 05
 task: 3
 total_tasks: 3
-status: paused
+status: superseded
 last_updated: "2026-09-07T17:26:31.072393+00:00"
 ---
+
+> **HISTORISCH — abgeloest.** Diese Datei war die pausierte Uebergabe vom 2026-09-07 17:26 UTC.
+> Die Arbeit wurde am selben Tag wieder aufgenommen und abgeschlossen. Verbindlicher Schlussstand:
+> `151-VERIFICATION.md`, `151-GAPS.md`, `151-01-SUMMARY.md` und `151-05-SUMMARY.md`.
+> Es gibt keine pausierte Phase-151-Arbeit mehr.
 
 # Phase 151 — Übergabe auf ausdrücklichen Nutzerwunsch
 

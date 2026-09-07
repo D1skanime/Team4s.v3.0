@@ -1,4 +1,26 @@
-# Phase 151 gaps — paused handoff
+# Phase 151 gaps — geschlossen
+
+Abschluss am 2026-09-07 durch die unabhaengige Verifikation (`151-VERIFICATION.md`).
+**Alle Gaps sind geschlossen; es bleibt kein offener Punkt.** Die Tabelle unten ist der
+Schlussstand, danach folgt die historische Fassung der pausierten Uebergabe.
+
+| Gap | Schlussstand | Beleg |
+|---|---|---|
+| Drei fehlende Karaoke-Quellen / Alpha-Freigabe | **CLOSED** | Sechs RGBA-Dateien vorhanden, Resolver 7/7 PASS, Sichtabnahme aller fuenf Stufen erfolgt |
+| Volltest unter Speicherdruck | **CLOSED** | 293 Dateien / 2239 Tests PASS, 1 skipped, 3 todo, exit 0, ein Worker |
+| Vollstaendige Browsermatrix | **CLOSED** | Collector `pass: true`, 16/16 Zeilen, 0 Findings, 0 Browserfehler |
+| Erschoepfende Sichtabnahme | **CLOSED** | Alle 197 Zeilen in `evidence/final-review/ARTWORK-SIGNOFF.md` signiert, Kontaktboegen ohne Beschnitt |
+| Kontaktbogen-Beschnitt / Hover-Drawer in alten Screenshots | **CLOSED** | Neuer Lauf: alle Kontaktbogen-Kacheln `contained: true`, keine Drawer-Artefakte |
+| Build auf den finalen additiven Assets | **CLOSED** | `docker compose build team4sv30-frontend` rc=0 nach den letzten drei PNGs |
+| Finale unabhaengige Verifikation, Summaries 01/05, GSD-Abschluss, Push | **CLOSED** | `151-01-SUMMARY.md`, `151-05-SUMMARY.md`, `151-VERIFICATION.md`, Commits auf `main` |
+| Slot-Geometrie `historical_leader` bei 320 px | **CLOSED (neu gefunden und behoben)** | Root Cause, Minimalfix und Regressionstest in `151-VERIFICATION.md` |
+| Voller Lint / Dev-Typecheck | **Vorbestehend, unveraendert** | 13 Fehler / 332 Warnungen ausserhalb des Phasencodes; `tsc --noEmit` aktuell fehlerfrei |
+| Breite Backend-Diagnose | **Vorbestehend, umgebungsbedingt** | 49 Fehler ohne Phase-128-DSN-/Phase-134-Fixtures; Backend byteidentisch zur Baseline |
+
+---
+
+## Historische Fassung (pausierte Uebergabe)
+
 
 Current checkpoint supersedes the historical progress notes below. No further Execute step is authorized in this paused task.
 

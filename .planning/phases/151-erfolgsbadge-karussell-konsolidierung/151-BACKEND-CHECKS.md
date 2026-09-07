@@ -64,3 +64,21 @@ Failed broad repository tests:
 - `TestPhase134MatrixDenseProfileMatchesManifest`
 - `TestPhase134MatrixErrorMalformedSlugDoesNotPanic`
 - `TestPhase134MatrixPaginationHonestAcrossPages`
+
+
+## Nachpruefung 2026-09-07 (Phasenabschluss)
+
+Backend-Quellen bleiben byteidentisch zur Baseline `052858dc`
+(`git diff 052858dc..HEAD -- backend shared database` ist leer).
+
+- `docker exec team4sv30-backend go build ./...`: **PASS**
+- `docker exec team4sv30-backend go vet ./...`: **PASS**
+- `go test ./internal/badges/...`: **PASS**
+- `checks/check-postgres.py` gegen schema-only Scratch-Datenbanken: **PASS** —
+  `TestPhase131PublicProfileQueryBudgetIsConstant` meldet 2 Projekte -> 20 Queries und
+  6 Projekte -> 20 Queries; `TestPhase150RoleEntryBadgeEmittedExactlyOnceWithProgress` PASS.
+  Scratch-Datenbanken wurden im garantierten Cleanup wieder entfernt.
+
+Die 49 Fehler der breiten Repository-Diagnose sind unveraendert vorbestehend und umgebungsbedingt
+(fehlende Phase-128-DSN-Fixtures und Phase-134-Fixture-Runtime auf Port 18093). Sie sind kein
+Phase-151-Gate.
