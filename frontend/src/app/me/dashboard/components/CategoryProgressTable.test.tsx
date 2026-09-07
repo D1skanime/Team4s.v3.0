@@ -75,9 +75,9 @@ function makeData(overrides: Partial<OwnDashboardData> = {}): OwnDashboardData {
       family: "points",
       current_tier: "",
       current_count: 0,
-      next_threshold: null,
-      remaining_count: null,
-      next_tier: null,
+      next_threshold: 1,
+      remaining_count: 1,
+      next_tier: "point_milestone_first",
     },
     pending_claims: [],
     pending_group_media_reviews: [],
@@ -137,8 +137,22 @@ describe("CategoryProgressTable (Phase 116, D-04)", () => {
     expect(screen.getAllByText("noch 96 bis Silber")).toHaveLength(3);
   });
 
-  it('rendert die Punkte-Meilenstein-Zeile mit "noch X bis Y" aus resolveNextPointMilestone, ohne neue Schwellen', () => {
-    render(<CategoryProgressTable data={makeData({ total_points: 62 })} />);
+  it('rendert die Punkte-Meilenstein-Zeile mit "noch X bis Y" aus data.points_progress, ohne neue Schwellen', () => {
+    render(
+      <CategoryProgressTable
+        data={makeData({
+          total_points: 62,
+          points_progress: {
+            family: "points",
+            current_tier: "point_milestone_active",
+            current_count: 62,
+            next_threshold: 200,
+            remaining_count: 138,
+            next_tier: "point_milestone_experienced",
+          },
+        })}
+      />,
+    );
 
     expect(screen.getByText("Punkte-Meilenstein")).not.toBeNull();
     expect(screen.getByText("Aktiv dabei")).not.toBeNull();

@@ -7,10 +7,7 @@ import { MemberProfileHero } from '@/components/profile/MemberProfileHero'
 import { MemberStorySection } from '@/components/profile/MemberStorySection'
 import { MembershipsSection } from '@/components/profile/MembershipsSection'
 import { PreviousContributionsSection } from '@/components/profile/PreviousContributionsSection'
-import {
-  PUBLIC_MEMBER_BADGE_CATALOG,
-  deriveMilestoneBadge,
-} from '@/components/profile/memberBadgeLabels'
+import { PUBLIC_MEMBER_BADGE_CATALOG } from '@/components/profile/memberBadgeLabels'
 import { Button, SectionHeader } from '@/components/ui'
 import { resolveApiUrl } from '@/lib/api'
 import type { PublicMemberProfileData, PublicMemberViewer } from '@/types/profile'
@@ -41,10 +38,14 @@ export function MemberProfileContent({
   const avatarURL = resolveApiUrl(profile.avatar?.public_url || '')
   const backgroundImageURL = resolveApiUrl(profile.background_image?.public_url || '')
   const publicBadges = profile.public_badges ?? []
-  // Phase 112 D-01/D-02/D-03: höchster erreichter Punkt-Meilenstein wird bei jedem SSR-Render
-  // frisch aus total_points abgeleitet (Live-Rückstufung ohne Persistenz, GAM-04) und additiv
-  // in earnedBadges gemischt; MemberBadgeChain selbst bleibt ohne total_points-Kenntnis.
-  const milestoneBadge = deriveMilestoneBadge(profile.total_points ?? 0)
+  // Phase 150 (D-12 #1): höchster erreichter Punkt-Meilenstein kommt jetzt direkt aus der
+  // "points"-Familie in profile.badge_progress (serverautoritativ, kein eigenes
+  // total_points->Meilenstein-Mapping mehr) und wird additiv in earnedBadges gemischt;
+  // MemberBadgeChain selbst bleibt ohne total_points-Kenntnis.
+  const pointsProgress = profile.badge_progress?.find((entry) => entry.family === 'points')
+  const milestoneBadge = pointsProgress?.current_tier
+    ? { id: 0, badge_code: pointsProgress.current_tier, badge_category: 'progress' }
+    : null
   const earnedBadges = milestoneBadge ? [...publicBadges, milestoneBadge] : publicBadges
   const currentProjects = profile.current_projects ?? []
   const latestContributions = profile.latest_contributions ?? []

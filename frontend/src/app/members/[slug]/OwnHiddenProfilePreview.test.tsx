@@ -62,7 +62,6 @@ vi.mock('@/components/profile/MemberBadgeChain', () => ({
 }))
 vi.mock('@/components/profile/memberBadgeLabels', () => ({
   PUBLIC_MEMBER_BADGE_CATALOG: [],
-  deriveMilestoneBadge: () => null,
 }))
 vi.mock('@/components/profile/CorrectionReportModal', () => ({
   CorrectionReportModal: () => <button type="button">Korrektur melden</button>,

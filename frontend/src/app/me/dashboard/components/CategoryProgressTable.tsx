@@ -10,10 +10,7 @@ import {
   TableRow,
 } from '@/components/ui'
 import {
-  POINT_MILESTONES,
   getMemberBadgePresentation,
-  resolveNextPointMilestone,
-  resolveNextRoleVolumeThreshold,
   type MemberBadgeVariant,
 } from '@/components/profile/memberBadgeLabels'
 import { labelForRole, orderForContext } from '@/lib/roleCatalog'
@@ -37,12 +34,12 @@ const CATEGORY_FAMILY_ORDER: OwnDashboardCategoryProgress['family'][] = [
 // Reine Praesentations-Labels (KEINE Schwellenwerte) fuer die "Kategorie"-Zelle der drei
 // Contribution-Familien -- analog zur bereits bestehenden, ebenfalls privaten
 // ROLE_VOLUME_TIER_LABELS-Konvention in memberBadgeLabels.ts. Alle Zahlen/Schwellen kommen
-// ausschliesslich aus data.category_progress (next_threshold) bzw. den 116-01-Helfern.
+// ausschliesslich aus data.category_progress (next_threshold) bzw. data.points_progress.
 // "points" ist hier nur fuer Typ-Vollstaendigkeit gelistet (Phase 150 D-08 erweitert
 // OwnDashboardCategoryProgress['family'] um "points") -- diese Tabelle rendert die
-// Punkte-Zeile weiterhin ueber die eigene, separate resolveNextPointMilestone-Zeile
-// unten (CATEGORY_FAMILY_ORDER enthaelt "points" bewusst NICHT); der Umstieg auf
-// data.points_progress ist D-12s Aufgabe fuer einen spaeteren Plan.
+// Punkte-Zeile weiterhin ueber die eigene, separate buildPointsRow-Zeile unten
+// (CATEGORY_FAMILY_ORDER enthaelt "points" bewusst NICHT), seit Phase 150 (D-12 #2)
+// gespeist aus data.points_progress statt einem lokal abgeleiteten Meilenstein.
 const CATEGORY_FAMILY_LABELS: Record<OwnDashboardCategoryProgress['family'], string> = {
   contribution_archivist: 'Bildarchivpflege',
   contribution_chronicle: 'Chronikpflege',
@@ -89,11 +86,9 @@ function formatProgressText(
   return `noch ${nextThreshold - currentCount} bis ${nextLabel}`
 }
 
-function buildPointsRow(totalPoints: number): ProgressRow {
-  const resolved = resolveNextPointMilestone(totalPoints)
-  const nextMilestone = POINT_MILESTONES.find((milestone) => milestone.threshold === resolved.nextThreshold)
-  const nextLabel = nextMilestone ? getMemberBadgePresentation(nextMilestone.badge_code).label : null
-  const presentation = resolved.currentBadge ? getMemberBadgePresentation(resolved.currentBadge.badge_code) : null
+function buildPointsRow(row: OwnDashboardCategoryProgress): ProgressRow {
+  const presentation = row.current_tier ? getMemberBadgePresentation(row.current_tier) : null
+  const nextLabel = row.next_tier ? getMemberBadgePresentation(row.next_tier).label : null
 
   return {
     key: 'points-milestone',
@@ -101,22 +96,32 @@ function buildPointsRow(totalPoints: number): ProgressRow {
     badge: presentation
       ? { label: presentation.label, variant: presentation.variant }
       : { label: NO_TIER_LABEL, variant: 'muted' },
-    progressText: formatProgressText(resolved.nextThreshold, totalPoints, nextLabel),
+    progressText: formatProgressText(row.next_threshold, row.current_count, nextLabel),
   }
 }
 
+// D-29: resolveRoleVolumePresentation() liefert seit Task 3 nur noch das nackte Tier-Label
+// (z. B. "Bronze", ohne "· <Zahl>+"-Suffix) -- die Zahl kommt hier aus entry.current_threshold
+// (Plan 150-02s Companion-Feld), damit der gerenderte String byte-identisch bleibt.
 function buildRoleVolumeRow(entry: OwnDashboardRoleVolumeEntry, roles: readonly RoleDefinitionOption[]): ProgressRow {
-  const resolved = resolveNextRoleVolumeThreshold(entry.count)
-  const badgeCode = resolved.currentTier ? `role_volume_${entry.role_code}_${resolved.currentTier}` : null
+  const badgeCode = entry.current_tier ? `role_volume_${entry.role_code}_${entry.current_tier}` : null
   const presentation = badgeCode ? getMemberBadgePresentation(badgeCode) : null
+  const nextLabel = entry.next_tier
+    ? getMemberBadgePresentation(`role_volume_${entry.role_code}_${entry.next_tier}`).label
+    : null
 
   return {
     key: `role-volume-${entry.role_code}`,
     categoryLabel: `${labelForRole(roles, entry.role_code)} · Rollen-Volumen`,
     badge: presentation
-      ? { label: presentation.label, variant: presentation.variant }
+      ? {
+          label: entry.current_threshold != null
+            ? `${presentation.label} · ${entry.current_threshold}+`
+            : presentation.label,
+          variant: presentation.variant,
+        }
       : { label: NO_TIER_LABEL, variant: 'muted' },
-    progressText: formatProgressText(resolved.nextThreshold, entry.count, resolved.nextTierLabel),
+    progressText: formatProgressText(entry.next_threshold, entry.count, nextLabel),
   }
 }
 
@@ -141,7 +146,7 @@ function buildCategoryRow(row: OwnDashboardCategoryProgress): ProgressRow {
 }
 
 function buildProgressRows(data: OwnDashboardData, roles: readonly RoleDefinitionOption[]): ProgressRow[] {
-  const rows: ProgressRow[] = [buildPointsRow(data.total_points)]
+  const rows: ProgressRow[] = [buildPointsRow(data.points_progress)]
 
   const counts = new Map(data.role_volume.map((entry) => [entry.role_code, entry]))
   for (const role of orderForContext(roles, 'anime_contribution')) {
@@ -162,10 +167,11 @@ function buildProgressRows(data: OwnDashboardData, roles: readonly RoleDefinitio
 }
 
 /**
- * "Fortschritt je Kategorie" (D-04): merged Punkte-Meilenstein-/Rollen-Volumen-Zeilen
- * (client-berechnet via die Plan-116-01-Helfer) mit den server-gelieferten
- * category_progress-Zeilen (Phase 113). Definiert selbst NIEMALS einen neuen
- * Schwellenwert -- jede Zahl kommt aus data oder einem 116-01-Helfer.
+ * "Fortschritt je Kategorie" (D-04): merged die Punkte-Meilenstein-/Rollen-Volumen-Zeilen
+ * mit den server-gelieferten category_progress-Zeilen (Phase 113). Seit Phase 150 (D-12)
+ * liest jede Zeile Tier/Schwelle/Rest ausschliesslich aus dem jeweiligen Response-Feld
+ * (data.points_progress, data.role_volume[], data.category_progress[]) -- diese Tabelle
+ * definiert selbst NIEMALS einen neuen Schwellenwert.
  */
 export function CategoryProgressTable({ data }: CategoryProgressTableProps) {
   const { roles } = useRoleCatalog('anime_contribution')
