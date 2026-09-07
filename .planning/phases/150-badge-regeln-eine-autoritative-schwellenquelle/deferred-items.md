@@ -53,3 +53,23 @@ verify 150-02.
 None of the above block Plan 150-02's own `<verify>` commands (all of which
 pass); they are pre-existing gaps surfaced only by running the full package
 test suite as an extra sanity check beyond what the plan required.
+
+## 6. `Phase 119 additive badge_progress contract` (v12-projection-contract.test.ts)
+File: `frontend/src/types/__tests__/v12-projection-contract.test.ts`
+`keeps Go, OpenAPI and TypeScript field names and nullability aligned` fails
+because it asserts a hardcoded, stale expectation of the
+`PublicMemberBadgeProgress` OpenAPI schema block (`required: [family,
+current_count, next_threshold, remaining_count, next_tier, complete]`, six
+fields, no `current_tier`/`stages`/`role_code`). Plan 150-03 already extended
+`shared/contracts/openapi.yaml`'s `PublicMemberBadgeProgress` schema with
+`current_tier`, `role_code`, and `stages` (D-05/D-06/D-24) — a real, intentional
+contract widening, not a regression. This test's own hardcoded expected
+`required` list was not updated when 150-03 landed, so it has been failing
+since commit `0497e928` (Plan 150-03), before Plan 150-05 (this plan) started.
+Confirmed via `git log`/`git diff` that neither this test file nor
+`shared/contracts/openapi.yaml` were touched during 150-05's execution.
+Discovered during 150-05's full `npx vitest run` sanity check (broader than
+this plan's own per-task `<verify>` commands). Not in 150-05's `<files>` list
+for any task; not fixed here per the scope-boundary rule — logged for a
+follow-up plan to update this test's hardcoded expectation to match the
+current (150-03-landed) schema.

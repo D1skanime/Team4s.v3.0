@@ -9,10 +9,11 @@
 // server-autoritatives Tier/Schwelle/Rest (aus backend/internal/badges), und
 // OwnDashboardData trägt eine eigene points_progress-Zeile. Vor Phase 150
 // berechnete das Frontend Punkt-Meilenstein und Rollen-Volumen-Tier/Schwelle
-// selbst aus total_points/role_volume (resolveNextPointMilestone/
-// resolveNextRoleVolumeThreshold in memberBadgeLabels.ts) -- das ist mit dieser
-// Erweiterung nicht mehr nötig; jede Schwellenänderung an der Registry wirkt
-// sich jetzt allein über diese Response-Felder aus.
+// selbst aus total_points/role_volume (die dafuer zustaendigen Helfer
+// resolveNextPointMilestone/resolveNextRoleVolumeThreshold in
+// memberBadgeLabels.ts sind seit Plan 150-05 vollstaendig entfernt) -- das ist
+// mit dieser Erweiterung nicht mehr nötig; jede Schwellenänderung an der
+// Registry wirkt sich jetzt allein über diese Response-Felder aus.
 
 /** Einzelne Rollen-Volumen-Zeile (Anzahl gewährter Credits je Rollencode, plus
  * Registry-Tier/Schwelle/Rest, Phase 150 D-07). CurrentThreshold ist die
