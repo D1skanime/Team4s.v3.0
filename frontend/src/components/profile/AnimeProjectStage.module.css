@@ -1,36 +1,217 @@
-/* Phase 123: single-family Anime-Projekte stage, deliberately independent of FocalCarousel. */
-.animeProjectStage { container-type: inline-size; display: grid; gap: 22px; width: 100%; min-width: 0; padding: clamp(18px, 2.4vw, 32px); overflow: hidden; background: radial-gradient(circle at 18% 32%, color-mix(in srgb, var(--color-primary) 12%, transparent), transparent 38%), var(--surface-card); border: 0; border-radius: 0; box-shadow: none; }
-.animeProjectTitle { margin: 0; color: var(--text-secondary); font-size: .82rem; font-weight: 800; letter-spacing: .08em; text-transform: uppercase; }
-.animeProjectHero { display: grid; grid-template-columns: minmax(240px, 340px) minmax(0, 1fr); align-items: center; gap: clamp(24px, 5vw, 72px); }
-.animeProjectArtwork { position: relative; display: grid; place-items: center; width: 100%; aspect-ratio: 1; }
-.animeProjectArtwork > img { width: 100%; height: 100%; object-fit: contain; }
-.animeProjectInfo { display: grid; min-width: 0; gap: 14px; }
-.animeProjectStatus { display: flex; flex-wrap: wrap; align-items: center; gap: 8px; }
-.animeProjectCount { color: var(--text-primary); font-size: clamp(1.65rem, 3vw, 2.7rem); line-height: 1.1; }
-.animeProjectProgressValue { display: flex; justify-content: space-between; gap: 12px; color: var(--text-secondary); font-weight: 800; }
-.animeProjectProgressTrack { height: 12px; overflow: hidden; border-radius: 999px; background: color-mix(in srgb, var(--text-secondary) 14%, var(--surface-card-muted)); }
-.animeProjectProgressTrack > span { display: block; height: 100%; border-radius: inherit; background: linear-gradient(90deg, var(--color-primary), var(--color-success)); }
-.animeProjectNext { margin: 0; padding: 12px 14px; border-left: 3px solid var(--color-primary); color: var(--text-primary); background: color-mix(in srgb, var(--color-primary) 7%, transparent); font-weight: 750; }
-.animeProjectMilestones { position: relative; display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); margin: 0; padding: 18px 0 0; list-style: none; border-top: 1px solid var(--border-subtle); }
-/* Phase 134-06 fix: measured live (Playwright getBoundingClientRect) at all three UAT reference
-   viewports (390/768/1440) against the actual 24px .animeProjectMarker circles -- top: 41px sat
-   this connector line a consistent ~12px below marker center at every width (this rule has no
-   breakpoint variance, and none of padding-top/border-top-width/marker size change across
-   widths either, so a single corrected value holds everywhere). 29px is exact. */
-.animeProjectMilestones::before { content: ''; position: absolute; top: 29px; left: 12.5%; right: 12.5%; height: 2px; background: var(--border-strong); }
-.animeProjectMilestones li { position: relative; z-index: 1; min-width: 0; text-align: center; }
-.animeProjectMilestones button, .animeProjectMilestones li > span { display: grid; justify-items: center; gap: 5px; width: 100%; min-width: 0; padding: 0 4px; border: 0; color: var(--text-primary); background: transparent; font: inherit; }
-.animeProjectMilestones button { cursor: pointer; border-radius: var(--radius-md); }
-/* Phase 134-06 fix: --focus-ring is a box-shadow shorthand (globals.css), not a color -- using it
-   as an outline color made this declaration invalid at computed-value time (collapses to
-   outline-style: none), silently hiding the focus ring. --focus-outline is the dedicated color
-   token for exactly this purpose. */
-.animeProjectMilestones button:focus-visible { outline: 3px solid var(--focus-outline); outline-offset: 3px; }
-.animeProjectMarker { display: grid; place-items: center; width: 24px; height: 24px; border: 2px solid var(--border-strong); border-radius: 50%; color: var(--text-secondary); background: var(--surface-card); }
-.animeProjectMilestones [data-stage-state='earned'] .animeProjectMarker { border-color: var(--color-success); color: var(--color-success); }
-.animeProjectMilestones [data-stage-state='current'] .animeProjectMarker { border: 3px double var(--color-primary); color: var(--color-primary); box-shadow: 0 0 0 4px color-mix(in srgb, var(--color-primary) 16%, transparent); }
-.animeProjectMilestones [data-stage-state='locked'] { color: var(--text-secondary); opacity: .62; }
-.animeProjectMilestoneName { min-width: 0; overflow-wrap: anywhere; font-size: .78rem; font-weight: 800; }
-.animeProjectThreshold { color: var(--text-secondary); font-size: .76rem; font-weight: 800; }
-@container (max-width: 700px) { .animeProjectStage { gap: 18px; padding: 16px 12px; } .animeProjectHero { grid-template-columns: minmax(0, 1fr); gap: 16px; } .animeProjectArtwork { width: min(100%, 280px); justify-self: center; } .animeProjectCount { font-size: 1.65rem; } .animeProjectMilestones { margin-inline: -4px; } .animeProjectMilestoneName { font-size: .68rem; } .animeProjectThreshold { font-size: .7rem; } }
-@media (prefers-reduced-motion: reduce) { .animeProjectProgressTrack > span { transition: none; } }
+/* Phase 151: the outer AchievementArtwork container owns the named size query. */
+.animeProjectStage {
+  display: grid;
+  width: 100%;
+  min-width: 0;
+  box-sizing: border-box;
+  gap: 16px;
+  padding: 16px;
+  overflow: hidden;
+  border: 1px solid var(--border-subtle);
+  border-radius: var(--radius-lg);
+  background:
+    radial-gradient(circle at 18% 32%, color-mix(in srgb, var(--color-primary) 12%, transparent), transparent 38%),
+    var(--surface-card);
+  box-shadow: var(--shadow-xs);
+}
+
+.animeProjectTitle {
+  margin: 0;
+  color: var(--text-secondary);
+  font-size: 0.82rem;
+  font-weight: 800;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+
+.animeProjectHero {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr);
+  justify-items: center;
+  gap: 16px;
+  min-width: 0;
+}
+
+.animeProjectHero > * {
+  min-width: 0;
+  max-width: 100%;
+}
+
+.animeProjectArtwork {
+  min-width: 0;
+  justify-self: center;
+}
+
+.animeProjectInfo {
+  display: grid;
+  width: 100%;
+  min-width: 0;
+  gap: 14px;
+}
+
+.animeProjectStatus {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 8px;
+}
+
+.animeProjectCount {
+  color: var(--text-primary);
+  font-size: clamp(1.65rem, 3vw, 2.7rem);
+  line-height: 1.1;
+}
+
+.animeProjectProgressValue {
+  display: flex;
+  justify-content: space-between;
+  gap: 12px;
+  color: var(--text-secondary);
+  font-weight: 800;
+}
+
+.animeProjectProgressTrack {
+  height: 12px;
+  overflow: hidden;
+  border-radius: 999px;
+  background: color-mix(in srgb, var(--text-secondary) 14%, var(--surface-card-muted));
+}
+
+.animeProjectProgressTrack > span {
+  display: block;
+  height: 100%;
+  border-radius: inherit;
+  background: linear-gradient(90deg, var(--color-primary), var(--color-success));
+}
+
+.animeProjectNext {
+  margin: 0;
+  padding: 12px 14px;
+  border-left: 3px solid var(--color-primary);
+  color: var(--text-primary);
+  background: color-mix(in srgb, var(--color-primary) 7%, transparent);
+  font-weight: 750;
+}
+
+.animeProjectMilestones {
+  position: relative;
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  min-width: 0;
+  margin: 0;
+  padding: 18px 0 0;
+  list-style: none;
+  border-top: 1px solid var(--border-subtle);
+}
+
+.animeProjectMilestones::before {
+  display: none;
+  content: '';
+  position: absolute;
+  top: 49px;
+  right: 12.5%;
+  left: 12.5%;
+  height: 2px;
+  background: var(--border-strong);
+}
+
+.animeProjectMilestones li {
+  position: relative;
+  z-index: 1;
+  min-width: 0;
+  text-align: center;
+}
+
+.animeProjectMilestones button,
+.animeProjectMilestones li > span {
+  display: grid;
+  justify-items: center;
+  gap: 5px;
+  width: 100%;
+  min-width: 0;
+  min-height: 44px;
+  padding: 0 4px;
+  border: 0;
+  color: var(--text-primary);
+  background: transparent;
+  font: inherit;
+}
+
+.animeProjectMilestones button {
+  cursor: pointer;
+  border-radius: var(--radius-md);
+}
+
+.animeProjectMilestones button:focus-visible {
+  outline: 3px solid var(--focus-outline);
+  outline-offset: 3px;
+}
+
+.animeProjectMarker {
+  display: grid;
+  place-items: center;
+  box-shadow: inset 0 0 0 2px var(--border-strong);
+  border-radius: 50%;
+  color: var(--text-secondary);
+  background: var(--surface-card);
+}
+
+.animeProjectMilestones [data-stage-state='earned'] .animeProjectMarker {
+  border-color: var(--color-success);
+  color: var(--color-success);
+}
+
+.animeProjectMilestones [data-stage-state='current'] .animeProjectMarker {
+  color: var(--color-primary);
+  box-shadow: 0 0 0 4px color-mix(in srgb, var(--color-primary) 16%, transparent);
+}
+
+.animeProjectMilestones [data-stage-state='locked'] {
+  color: var(--text-secondary);
+  opacity: 0.62;
+}
+
+.animeProjectMilestoneName {
+  min-width: 0;
+  font-size: 0.68rem;
+  font-weight: 800;
+  hyphens: auto;
+}
+
+.animeProjectThreshold {
+  color: var(--text-secondary);
+  font-size: 0.7rem;
+  font-weight: 800;
+}
+
+@container achievement-card (min-width: 562px) {
+  .animeProjectHero {
+    grid-template-columns: auto minmax(0, 1fr);
+    align-items: center;
+    justify-items: stretch;
+    gap: 24px;
+  }
+
+  .animeProjectMilestones {
+    grid-template-columns: repeat(4, minmax(0, 1fr));
+  }
+
+  .animeProjectMilestones::before {
+    display: block;
+    top: 57px;
+  }
+
+  .animeProjectMilestoneName {
+    font-size: 0.78rem;
+  }
+
+  .animeProjectThreshold {
+    font-size: 0.76rem;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .animeProjectProgressTrack > span {
+    transition: none;
+  }
+}

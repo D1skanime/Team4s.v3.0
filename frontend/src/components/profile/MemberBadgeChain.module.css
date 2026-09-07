@@ -1,10 +1,4 @@
-/* Plan 133-09: shrunk shell. Every .roleBadgeRow-, .roleLabel-, .roleHeroArtwork-, .roleStatus-,
-   .roleCount-, .roleProgress-, .roleProgression-, .roleStage-prefixed declaration moved to RoleBadgeCard
-   .module.css/.status.module.css/.stages.module.css. What remains: pure shell selectors, Plans
-   133-04/07/08's kept-behind overrides, and role-card overrides combining a chainStyles-only
-   ancestor (.badgeWindowActive, the shared :is(...) rule, .currentChip) with a role-card class --
-   CSS-Modules per-file scoping (Plan 133-04's SUMMARY). Role Card carries both
-   roleBadgeCardStyles.roleBadgeRow and chainStyles.roleBadgeRow. */
+/* Phase 151: section/family orchestration only. FocalCarousel owns all scroll/snap mechanics. */
 .section {
   display: grid;
   gap: var(--space-4);
@@ -13,15 +7,50 @@
 .section,
 .chainCard,
 .groupList,
-.group {
+.group,
+.carouselShell {
   min-width: 0;
   max-width: 100%;
 }
 
+.chainCard {
+  padding: var(--space-3);
+  display: grid;
+  gap: 14px;
+  overflow: hidden;
+}
+
+.groupList {
+  display: grid;
+  gap: var(--space-5);
+}
+
+.group {
+  display: grid;
+  gap: var(--space-2);
+}
+
+.groupTitle {
+  margin: 0;
+  color: var(--text-secondary);
+  font-size: 12px;
+  font-weight: 700;
+  line-height: 1.2;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+}
+
+.progressMeta {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  color: var(--text-secondary);
+  font-size: 0.9rem;
+  font-weight: 800;
+}
+
 .carouselShell {
   position: relative;
-  min-width: 0;
-  max-width: 100%;
   container: member-badge-carousel / inline-size;
 }
 
@@ -36,7 +65,8 @@
   pointer-events: none;
 }
 
-.carouselShell:has([data-interaction-enabled="true"]) > .carouselSkeleton {
+.carouselShell:has([data-interaction-enabled="true"]) > .carouselSkeleton,
+.carouselShell:has(.badgeGrid) > .carouselSkeleton {
   visibility: hidden;
 }
 
@@ -54,261 +84,54 @@
 
 .skeletonCard {
   justify-self: center;
-  width: min(72%, 760px);
+  width: min(88%, 720px);
   min-height: 320px;
   border-radius: var(--radius-lg);
 }
 
-/* Plan 133-08: family-card selectors moved out; .chain.specialChain stays (chainStyles-local). */
-.chain.specialChain {
-  --focal-item-size: min(42%, 420px);
-}
-
-/* Plan 133-08: .familyStageButton moved out; combines with .currentChip (chainStyles-local) so
-   stays here (Plan 133-04's SUMMARY). Rendered <button> carries both classes. */
-.familyStageButton:has(.currentChip) {
-  padding-bottom: 24px;
-}
-
-.familyStageButton .currentChip {
-  bottom: 4px;
-  padding: 2px 6px;
-  transform: translateX(-50%);
-  font-size: 10px;
-}
-
-.selectedChip {
-  color: var(--color-primary);
-}
-
-/* Plan 133-08: family breakpoints moved out; this shared .group:not(roles) .chain stays. */
-@media (max-width: 520px) {
-  .group:not([data-badge-group="roles"]) .chain {
-    --focal-item-size: 88%;
-  }
-}
-
-.carouselShell:has(.badgeGrid) > .carouselSkeleton {
-  visibility: hidden;
-}
-
-/* D-05/Task 2: !important removed -- 2-class specificity (0,2,0) already outranks the 1-class
-   .itemWindow/.badgeWindow rules (0,1,0) via normal cascade; no !important needed. */
-.badgeGrid > .badgeWindow {
-  overflow: hidden;
-  border-radius: var(--radius-lg);
-}
-
-@container member-badge-carousel (max-width: 480px) {
-  .group[data-badge-group="roles"] .carouselShell > :last-child > div:has(> .chain) { display: grid; grid-template-columns: 40px minmax(0, 1fr) 40px; grid-template-rows: auto 40px; align-items: center; gap: 4px 8px; }
-  .group[data-badge-group="roles"] .chain { grid-column: 1 / -1; grid-row: 1; --focal-item-size: min(98%, 340px); }
-  .group[data-badge-group="roles"] .carouselShell > :last-child > div:has(> .chain) > [aria-label="Vorherige Rolle"],
-  .group[data-badge-group="roles"] .carouselShell > :last-child > div:has(> .chain) > [aria-label="Nächste Rolle"] { grid-row: 2; }
-  .group[data-badge-group="roles"] .currentChip { font-size: 0.66rem; }
-}
-
-@media (max-width: 520px) {
-  .chainCard:has(.group[data-badge-group="roles"]) {
-    padding-inline: 4px;
-  }
-}
-
-/* Plan 133-08: 820px mobile-strip + family prefers-reduced-motion blocks moved to
-   BadgeFamilyCard.module.css (matches FAMILY_CARD_COMPACT_QUERY). */
-
-.chainCard {
-  display: grid;
-  gap: 14px;
-  overflow: hidden;
-}
-
-.progressMeta {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  color: var(--text-secondary);
-  font-size: 0.9rem;
-  font-weight: 800;
-}
-
+/* Consumer sizing remains a CSS custom property; FocalCarousel retains its implementation. */
 .chain {
   --focal-card-accent: var(--color-primary);
-  --focal-item-size: min(72%, 760px);
-}
-
-.groupList {
-  display: grid;
-  gap: var(--space-5);
-}
-
-.group {
-  display: grid;
-  gap: var(--space-2);
-}
-
-.groupTitle {
-  margin: 0;
-  font-size: 12px;
-  font-weight: 700;
-  line-height: 1.2;
-  color: var(--text-secondary);
-  text-transform: uppercase;
-  letter-spacing: 0.04em;
-}
-
-/* Plan 133-08: .badgeRow/.badgeRowCompact moved to BadgeChip.module.css.
-   D-05/Task 2: begruendete Ausnahme -- same-specificity FocalCarousel.module.css .itemWindow
-   (unowned, dual-classed) also sets flex-basis/overflow; cross-file order is unreliable. */
-.badgeWindow {
-  flex-basis: var(--focal-item-size) !important;
-  overflow: visible !important;
-  z-index: 0;
+  --focal-item-size: min(88%, 720px);
 }
 
 .group[data-badge-group="roles"] .chain {
-  --focal-item-size: min(68%, 680px);
+  --focal-item-size: min(98%, 720px);
 }
 
-.group[data-badge-group="roles"] .badgeWindowActive {
-  filter: none;
+.group[data-badge-group="contributions"] .chain {
+  --focal-item-size: min(98%, 720px);
 }
 
-.badgeWindowActive {
-  z-index: 2;
-  filter: drop-shadow(0 22px 34px color-mix(in srgb, var(--focal-card-accent) 13%, transparent));
+.badgeWindow,
+.badgeWindowActive,
+.badgeRow,
+.badgeRowCompact,
+.badgeStep,
+.badgeArtwork,
+.roleBadgeRow,
+.animeProjectStage,
+.animeProjectArtwork,
+.animeProjectMilestones,
+.pointsAchievementStage,
+.contributionAchievementStage,
+.contributionStageTitle,
+.contributionStageHero,
+.contributionHeroArtwork,
+.contributionStageInfo,
+.contributionTierTrack,
+.membershipStage {
+  min-width: 0;
 }
 
-.badgeGrid {
-  grid-template-columns: repeat(auto-fit, minmax(min(100%, 360px), 1fr));
-}
-
-/* Plan 133-08: badge-chip selectors moved to BadgeChip.module.css; these compound rules combine a
-   staying ancestor (.badgeWindowActive/.group[...]) with a moved descendant, so stay here per the
-   CSS-Modules per-file scoping constraint (Plan 133-04's SUMMARY). Rendered elements carry both
-   classes. Plan 133-09: merged identical contributions/membership value pairs (zero behavior
-   change) to help this file fit under CLAUDE.md's 450-line cap. */
 .badgeWindowActive .badgeArtwork {
-  transform: scale(1);
   filter:
     drop-shadow(0 0 24px color-mix(in srgb, var(--badge-accent) 44%, transparent))
     drop-shadow(0 22px 34px color-mix(in srgb, var(--badge-accent) 26%, transparent));
 }
 
-.group[data-badge-group="contributions"] .badgeRow,
-.group[data-badge-group="membership"] .badgeRow {
-  min-height: 390px;
-  padding-block: 10px 16px;
-}
-
-.group[data-badge-group="contributions"] .badgeArtwork,
-.group[data-badge-group="membership"] .badgeArtwork {
-  width: clamp(310px, 36vw, 380px);
-  height: clamp(310px, 36vw, 380px);
-}
-
-.group[data-badge-group="contributions"] .badgeArtwork img {
-  border-radius: 50%;
-  clip-path: circle(49% at 50% 50%);
-}
-
-.group[data-badge-group="special"] .badgeRow {
-  min-height: 280px;
-  padding-block: 8px 14px;
-}
-
-.group[data-badge-group="special"] .badgeArtwork {
-  width: clamp(165px, 19vw, 205px);
-  height: clamp(215px, 25vw, 265px);
-}
-
-.group[data-badge-group="special"] .badgeRowCompact {
-  min-height: 96px;
-  padding-block: 8px;
-}
-
-.badgeWindowActive .badgeStep {
-  filter: none;
-}
-
-/* Plan 133-08: the bare .badgeRow/.badgeRowCompact/.badgeArtwork breakpoint rules below moved to
-   BadgeChip.module.css as @container member-badge-carousel; .chain/.badgeWindow/roles-only rules
-   are untouched, unrelated chainStyles-local content and stay @media. */
-@media (max-width: 520px) {
-  .chain { --focal-item-size: 86%; margin-inline: 0; }
-  /* D-05/Task 2: same begruendete Ausnahme as the base .badgeWindow rule above. */
-  .badgeWindow { flex-basis: var(--focal-item-size) !important; }
-  .group[data-badge-group="roles"] .chain { --focal-item-size: 84%; }
-}
-@media (min-width: 521px) and (max-width: 900px) {
-  .group[data-badge-group="roles"] .chain { --focal-item-size: min(74%, 600px); }
-}
-
-/* Plan 133-08: badge-chip compound rules (see comment above .badgeWindowActive .badgeArtwork),
-   converted @media -> @container since matching is DOM-tree-based (Plan 133-07 precedent).
-   Plan 133-09: merged identical contributions/membership value pairs, zero behavior change. */
-@container member-badge-carousel (max-width: 520px) {
-  .group[data-badge-group="contributions"] .badgeRow,
-  .group[data-badge-group="membership"] .badgeRow {
-    min-height: 350px;
-    padding-block: 6px 12px;
-  }
-
-  .group[data-badge-group="contributions"] .badgeArtwork,
-  .group[data-badge-group="membership"] .badgeArtwork {
-    width: clamp(210px, 60vw, 240px);
-    height: clamp(210px, 60vw, 240px);
-  }
-
-  .group[data-badge-group="special"] .badgeRow {
-    min-height: 245px;
-  }
-
-  .group[data-badge-group="special"] .badgeArtwork {
-    width: 145px;
-    height: 195px;
-  }
-
-  .group[data-badge-group="special"] .badgeRowCompact {
-    min-height: 88px;
-  }
-}
-
-@container member-badge-carousel (min-width: 521px) and (max-width: 900px) {
-  .group[data-badge-group="contributions"] .badgeRow,
-  .group[data-badge-group="membership"] .badgeRow {
-    min-height: 380px;
-    padding-block: 8px 14px;
-  }
-
-  .group[data-badge-group="contributions"] .badgeArtwork,
-  .group[data-badge-group="membership"] .badgeArtwork {
-    width: min(54vw, 310px);
-    height: min(54vw, 310px);
-  }
-
-  .group[data-badge-group="special"] .badgeRow {
-    min-height: 260px;
-  }
-
-  .group[data-badge-group="special"] .badgeArtwork {
-    width: 155px;
-    height: 210px;
-  }
-
-  .group[data-badge-group="special"] .badgeRowCompact {
-    min-height: 96px;
-  }
-}
-
-/* Plan 133-08: contribution-progress reduced-motion/520px rules moved to BadgeChip.module.css. */
-
-/* Phase 118: selected Sketch-A earned-role card composition. */
-.group[data-badge-group="roles"] .chain {
-  --focal-item-size: min(60%, 720px);
-}
-
-.group[data-badge-group="roles"] .badgeWindow {
-  min-width: 0;
+.badgeGrid {
+  grid-template-columns: repeat(auto-fit, minmax(min(100%, 360px), 1fr));
 }
 
 .currentChip {
@@ -327,6 +150,11 @@
   line-height: 1.2;
 }
 
+.animeProjectMilestones .currentChip {
+  position: static;
+  transform: none;
+}
+
 .visuallyHidden {
   position: absolute;
   width: 1px;
@@ -338,32 +166,10 @@
   border: 0;
 }
 
-@media (max-width: 1099px) {
-  .skeletonCard {
-    width: 74%;
-  }
-}
-
-@media (max-width: 520px) {
-  .carouselSkeleton {
-    grid-template-columns: 36px minmax(0, 1fr) 36px;
-  }
-
-  .skeletonControl {
-    width: 36px;
-    height: 36px;
-  }
-
-  .skeletonCard {
-    width: 88%;
-    min-height: 280px;
-  }
-}
-
 @container member-badge-carousel (max-width: 480px) {
   .carouselSkeleton {
-    grid-template-columns: 36px minmax(0, 1fr) 36px;
-    grid-template-rows: minmax(280px, auto) 36px;
+    grid-template-columns: 44px minmax(0, 1fr) 44px;
+    grid-template-rows: minmax(280px, auto) 44px;
   }
 
   .skeletonCard {
@@ -375,8 +181,6 @@
 
   .skeletonControl {
     grid-row: 2;
-    width: 36px;
-    height: 36px;
   }
 
   .skeletonControl:first-child {
@@ -388,63 +192,8 @@
   }
 }
 
-@media (min-width: 1440px) {
-  .group[data-badge-group="roles"] .chain { --focal-item-size: min(76%, 1120px); }
+@container member-badge-carousel (min-width: 562px) {
+  .group[data-badge-group="contributions"] .chain {
+    --focal-item-size: min(88%, 720px);
+  }
 }
-@media (min-width: 1600px) {
-  .group[data-badge-group="roles"] .chain { --focal-item-size: min(78%, 1260px); }
-}
-@media (min-width: 2100px) {
-  .group[data-badge-group="roles"] .chain { --focal-item-size: min(80%, 1360px); }
-}
-
-@media (max-width: 520px) {
-  .group[data-badge-group="roles"] .chain { --focal-item-size: min(98%, 340px); }
-  .group[data-badge-group="roles"] .currentChip { font-size: 0.52rem; }
-  .group[data-badge-group="roles"] .chain [aria-label="Vorherige Rolle"],
-  .group[data-badge-group="roles"] .chain [aria-label="Nächste Rolle"] { border-color: color-mix(in srgb, var(--role-accent) 32%, var(--border-subtle)); background: var(--surface-card); box-shadow: var(--shadow-xs); }
-}
-
-/* Plan 133-07: .animeProjectArtwork moved out, but .roleArtworkMist/Backdrop/Motif (133-04) and
-   .currentChip stay chainStyles-local, so these overrides stay here (Plan 133-04's SUMMARY). JSX
-   applies both classes. */
-.animeProjectArtwork .roleArtworkMist,
-.animeProjectArtwork .roleArtworkBackdrop { display: none; }
-.animeProjectArtwork .roleArtworkMotif { inset: 0; width: 100%; height: 100%; clip-path: circle(30% at 50% 46%); object-fit: contain; transform: none; }
-.animeProjectArtwork[data-anime-project-art='first_contribution'] .roleArtworkMotif { inset: 6%; width: auto; height: auto; clip-path: none; }
-.animeProjectMilestones .currentChip { position: static; transform: none; }
-@container (max-width: 700px) { .animeProjectMilestones .currentChip { font-size: .62rem; } }
-
-/* Plan 133-07: contribution-stage selectors moved out; .group/.badgeWindow/.badgeWindowActive/
-   .chain stay chainStyles-local so these overrides stay here (Plan 133-04's SUMMARY). JSX applies
-   both classes. */
-.group[data-badge-group='contributions'] .badgeWindow:not(.badgeWindowActive) .contributionAchievementStage { place-content: center; padding: 0; }
-.group[data-badge-group='contributions'] .badgeWindow:not(.badgeWindowActive) :is(.contributionStageTitle, .contributionStageInfo, .contributionTierTrack) { display: none; }
-.group[data-badge-group='contributions'] .badgeWindow:not(.badgeWindowActive) .contributionStageHero { grid-template-columns: minmax(0, 1fr); width: 100%; }
-.group[data-badge-group='contributions'] .badgeWindow:not(.badgeWindowActive) .contributionHeroArtwork { width: min(100%, 144px); opacity: .58; }
-
-.group[data-badge-group='contributions'] [data-carousel-expanded='true'] .contributionAchievementStage { max-width: none; transform: none; }
-@container member-badge-carousel (max-width: 1100px) {
-  .group[data-badge-group='contributions'] .chain { --focal-item-size: 88%; }
-}
-@container member-badge-carousel (min-width: 640px) and (max-width: 1100px) {
-  .badgeWindowActive .contributionStageHero { grid-template-columns: minmax(180px, 220px) minmax(0, 1fr); }
-  .badgeWindowActive .contributionHeroArtwork { width: min(100%, 220px); }
-}
-
-/* Section qualifier wins over the global Card surface regardless of CSS injection order. Kept
-   listing all five stage selectors -- .group[data-badge-group] is chainStyles-local, so a per-file
-   split would drop this guarantee (Plan 133-04's SUMMARY). Each Card root carries both classes. */
-.group[data-badge-group] :is(
-  .roleBadgeRow,
-  .animeProjectStage,
-  .pointsAchievementStage,
-  .contributionAchievementStage,
-  .membershipStage
-) {
-  border: 0;
-  border-radius: 0;
-  background: transparent;
-  box-shadow: none;
-}
-

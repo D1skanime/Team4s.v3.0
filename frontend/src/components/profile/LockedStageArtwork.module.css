@@ -1,17 +1,16 @@
-/* Phase 134-06 fix: the cqi terms below resolved against a distant ANCESTOR stage/carousel
-   container (LockedStageArtwork is not itself a container), so every clamp(min, Ncqi, max)
-   was permanently pinned to its max at all viewport widths -- the intended badge-local fluid
-   scaling never activated. Combined with the deeply nested container-type: inline-size
-   hierarchy, these cqi units drove a non-terminating synchronous layout that hung
-   /members/{slug} for 90s+ at container widths below 42rem (viewport <=761px). Replaced each
-   with its already-effective max value: pixel-identical render, no cqi feedback loop. */
+/*
+ * Locked presentation only. AchievementArtwork owns all hero/marker dimensions and inset values;
+ * these selectors deliberately contain no competing slot geometry.
+ */
 .lockedStageArtwork:not(.lockedStageArtworkHero) {
   display: grid;
   grid-template-areas: "art";
   place-items: center;
-  width: clamp(44px, 100%, 96px);
+  min-width: 0;
+  min-height: 0;
   max-width: 100%;
-  aspect-ratio: 1;
+  max-height: 100%;
+  box-sizing: border-box;
   border: 1px solid var(--border-strong);
   border-radius: 50%;
   color: var(--text-secondary);
@@ -38,11 +37,11 @@
   display: grid;
   grid-template-rows: minmax(0, 1fr) auto;
   place-items: center;
-  width: min(100%, 320px);
+  min-width: 0;
+  min-height: 0;
   max-width: 100%;
-  aspect-ratio: 1;
+  max-height: 100%;
   gap: 18px;
-  padding: 28px;
   box-sizing: border-box;
   color: var(--text-secondary);
 }
@@ -51,7 +50,10 @@
   position: relative;
   display: grid;
   place-items: center;
-  width: min(100%, 232px);
+  min-width: 0;
+  min-height: 0;
+  max-width: 100%;
+  max-height: 100%;
   aspect-ratio: 1;
   border: 1px solid var(--border-strong);
   border-radius: 50%;
