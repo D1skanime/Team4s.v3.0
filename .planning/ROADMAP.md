@@ -422,7 +422,7 @@ Milestone v1.4 closes Live-UAT Findings #29-#32 by making effective group rights
 - [x] **Phase 147: Rollen-Registry — letzte Parallelkataloge auflösen** - Eine neue Gruppenrolle muss nur noch in `role_definitions` ergänzt werden; die verbliebenen Frontend-/Go-Parallelregistries für Rollen sind entfernt. (completed 2026-09-05)
 - [x] **Phase 148: Rollenfarben wieder an den Katalog anschließen** - Die beim Seam-Umbau in Phase 136-30 zurückgebliebenen toten Farb-Token, Hex-in-`data-role-code`-Attribute und Kategorie-Klassenmaps sind entfernt; die Rollenfarbe kommt app-weit aus `role_definitions.color_key`. (completed 2026-09-05)
 - [x] **Phase 149: Tote CSS-Tokens sanieren und den Notiz-Kontrast schließen** - 13 referenzierte, aber nirgends definierte Custom Properties (78 Referenzen) sind auf vorhandene Design-Tokens umgebogen, ein Guard verhindert Neuzugänge, und der Rollentext der Notizkarte erreicht WCAG AA. (completed 2026-09-06)
-- [ ] **Phase 150: Badge-Regeln — eine autoritative Schwellenquelle** - Jede Badge-Schwelle hat genau eine fachlich autoritative Stelle: eine Go-Schwellenregistry ersetzt sechs Backend-Kopien und vier Frontend-Threshold-Quellen, das Frontend stellt nur noch dar.
+- [x] **Phase 150: Badge-Regeln — eine autoritative Schwellenquelle** - Jede Badge-Schwelle hat genau eine fachlich autoritative Stelle: eine Go-Schwellenregistry ersetzt sechs Backend-Kopien und vier Frontend-Threshold-Quellen, das Frontend stellt nur noch dar. (completed 2026-09-07)
 
 ## Phase Details
 
@@ -1208,4 +1208,4 @@ Plans:
 | 147. Rollen-Registry — letzte Parallelkataloge auflösen | 6/6 | Complete   | 2026-09-05 |
 | 148. Rollenfarben wieder an den Katalog anschließen | 8/8 | Complete    | 2026-09-05 |
 | 149. Tote CSS-Tokens sanieren und den Notiz-Kontrast schließen | 6/6 | Complete    | 2026-09-06 |
-| 150. Badge-Regeln — eine autoritative Schwellenquelle | 6/7 | In Progress|  |
+| 150. Badge-Regeln — eine autoritative Schwellenquelle | 7/7 | Complete   | 2026-09-07 |

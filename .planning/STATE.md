@@ -2,16 +2,16 @@
 gsd_state_version: 1.0
 milestone: v1.4
 milestone_name: Coverage
-status: executing
-stopped_at: Completed 150-07-PLAN.md
+status: executed
+stopped_at: Phase 150 all 7 plans executed, regression gates + Live-UAT passed externally, awaiting goal-backward verification
 last_updated: "2026-09-07T00:48:24.145Z"
 last_activity: 2026-09-07
 progress:
   total_phases: 15
-  completed_phases: 14
+  completed_phases: 15
   total_plans: 155
-  completed_plans: 154
-  percent: 93
+  completed_plans: 155
+  percent: 100
 ---
 
 # Project State
@@ -29,18 +29,23 @@ Phase 135 and any future roadmap entries continue from here.
 See: .planning/PROJECT.md (updated 2026-08-13)
 
 **Core value:** Team4s presents fansub history and collaboration credibly while keeping identity, visibility, ownership, and permissions correct.
-**Current focus:** Phase 150 — badge-regeln-eine-autoritative-schwellenquelle
+**Current focus:** Phase 150 — awaiting goal-backward verification
 
 ## Current Position
 
-Phase: 150 (badge-regeln-eine-autoritative-schwellenquelle) — EXECUTING
-Plan: 7 of 7
-Status: Ready to execute
+Phase: 150 (badge-regeln-eine-autoritative-schwellenquelle) — EXECUTED, VERIFICATION PENDING
+Plan: 7 of 7 (all executed)
+Status: Regression gates + Live-UAT passed externally (150-06-SUMMARY.md) — awaiting gsd-verifier
 
 Phase 150 (Badge-Regeln — eine autoritative Schwellenquelle) ist additiv an v1.4 angehängt
-(gleiches Muster wie 143-149). 150-UI-SPEC.md wurde erstellt und vom UI-Checker mit 6/6 PASS
-freigegeben (eine nicht blockierende Empfehlung zur Parity-Methode Abschnitt B). Nächster Schritt:
-`/gsd:discuss-phase 150` oder direkt `/gsd:plan-phase 150`.
+(gleiches Muster wie 143-149). Alle 7 Pläne ausgeführt (150-01 bis 150-05, 150-07 autonom;
+150-06 als nicht-autonomer Checkpoint extern vom Nutzer gefahren). Ein Go-Schwellenregistry
+ersetzt sechs Backend-Kopien; der Frontend-Threshold-Befund wuchs während Planung/Ausführung/
+Post-Execution-Review von 4 auf 8 Fundstellen, alle geschlossen und unabhängig verifiziert
+(150-05-SUMMARY.md mit zwei Addenda, 150-07-SUMMARY.md, 150-06-SUMMARY.md). Alle sechs
+Regression-Gates grün, SC-1/SC-6/SC-9 live belegt (inkl. nachgeholtem SC-6-Durchschlag-Nachweis
+mit Schwellenbump 12→20 und Revert). Nächster Schritt: `/gsd:verify-work 150` bzw. den
+Verifier-Agenten für `150-VERIFICATION.md` laufen lassen (wird jetzt ausgelöst).
 
 Phase 149 (Tote CSS-Tokens sanieren und den Notiz-Kontrast schließen) passed goal-backward
 verification 7/7 (149-VERIFICATION.md, 2026-09-06) — all 6 plans executed, guard test proven with
