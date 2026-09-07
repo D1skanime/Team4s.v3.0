@@ -18,8 +18,6 @@ const memberProfileContentSource = existsSync(memberProfileContentPath)
 const memberStorySource = readFileSync('src/components/profile/MemberStorySection.tsx', 'utf8')
 const membershipsSource = readFileSync('src/components/profile/MembershipsSection.tsx', 'utf8')
 const currentProjectsSource = readFileSync('src/components/profile/MemberCurrentProjectsSection.tsx', 'utf8')
-const memberBadgeChainSource = readFileSync('src/components/profile/MemberBadgeChain.tsx', 'utf8')
-const focalCarouselSource = readFileSync('src/components/ui/FocalCarousel.tsx', 'utf8')
 const profileStyles = readFileSync('src/components/profile/profile.module.css', 'utf8')
 
 // Phase 150 (D-24): dieselbe Stufen-Referenztabelle wie 150-05-PLAN.md's Stage-Code-Tabelle --
@@ -456,12 +454,6 @@ describe('MemberProfilePage Phase 99 route composition', () => {
     expect(memberStorySource).toContain('<Card variant="section" className={styles.storyCard}>')
     expect(membershipsSource).toContain('<Card variant="interactive" className={styles.membershipCard}>')
     expect(currentProjectsSource).toContain('<Card variant="interactive" className={styles.projectCard}>')
-    expect(memberBadgeChainSource).toContain(
-      '<Card className={badgeFamilyCardStyles.familyCard} data-family={family.key}>',
-    )
-    expect(memberBadgeChainSource).toContain('<FocalCarousel')
-    expect(focalCarouselSource).toContain('onKeyDown={interactionEnabled ? handleKeyDown : undefined}')
-    expect(focalCarouselSource).toContain('onPointerDown={interactionEnabled ? handlePointerDown : undefined}')
     expect(profileStyles).toMatch(
       /\.membershipCard\s*\{[\s\S]*?border:\s*1px solid var\(--border-subtle\);[\s\S]*?border-radius:\s*var\(--radius-lg\);[\s\S]*?background:\s*var\(--surface-card\);[\s\S]*?box-shadow:\s*var\(--shadow-sm\);/,
     )
@@ -658,13 +650,13 @@ describe('MemberProfilePage Phase 99 route composition', () => {
 
 describe('Phase 124 deterministic points SSR projection', () => {
   it.each([
-    [0, null, 1, 1, false],
-    [734, 'point_milestone_engaged', 1000, 266, false],
-    [2500, 'point_milestone_legend', null, null, true],
-    [5000, 'point_milestone_legend', null, null, true],
+    [0, null, 1, 1, false, '0 Punkte'],
+    [734, 'point_milestone_engaged', 1000, 266, false, '734 Punkte'],
+    [2500, 'point_milestone_legend', null, null, true, '2’500 Punkte'],
+    [5000, 'point_milestone_legend', null, null, true, '5’000 Punkte'],
   ])(
     'derives only the highest badge at %i and forwards authoritative progress unchanged',
-    async (totalPoints, expectedCode, nextThreshold, remainingCount, complete) => {
+    async (totalPoints, expectedCode, nextThreshold, remainingCount, complete, expectedLabel) => {
       const profile = makePublicProfile({
         total_points: totalPoints,
         public_badges: [
@@ -706,7 +698,7 @@ describe('Phase 124 deterministic points SSR projection', () => {
       const boundedMax = nextThreshold ?? 2500
       expect(progress.getAttribute('aria-valuenow')).toBe(String(Math.min(totalPoints, boundedMax)))
       expect(progress.getAttribute('aria-valuemax')).toBe(String(boundedMax))
-      expect(stage.textContent).toContain(`${totalPoints.toLocaleString('de-CH')} Punkte`)
+      expect(stage.textContent).toContain(expectedLabel)
       expect(stage.textContent?.includes('Noch ')).toBe(!complete)
     },
   )

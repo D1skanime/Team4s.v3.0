@@ -110,7 +110,7 @@ function collectRealSourceFiles(rootDir: string): Map<string, string> {
 const KNOWN_NON_CSS_TEXTUAL_MENTIONS = [
   {
     file: 'lib/roleCatalog.accessibility.test.ts',
-    line: 284,
+    line: 282,
     name: '--surface-muted',
     reason:
       "test-description prose ('the row itself sets background: var(--surface-muted)...out of this plan's scope - see deferred-items.md'), authored Phase 148 (commit 281182d1); not an executable var() call",
