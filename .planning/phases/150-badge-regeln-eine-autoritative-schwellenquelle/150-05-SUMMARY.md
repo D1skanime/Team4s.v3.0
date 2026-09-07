@@ -159,3 +159,156 @@ See `key-decisions` in frontmatter: the Task 2/Task 3 commit-split rationale, th
 ## Self-Check: PASSED
 
 All created/modified files confirmed on disk; all three task commits (`f775ac37`, `9593a4b5`, `6e1f9959`) found in git history.
+
+## Addendum: Eighth threshold-literal site closed (post-execution review)
+
+**Date:** 2026-09-07 (post-execution human review of the phase diff, before Plan 150-06's checkpoint ran)
+
+### What the eighth site was
+
+`frontend/src/components/profile/memberBadgeLabels.ts`'s `MEMBER_BADGE_PRESENTATIONS` map
+hardcoded a threshold number as text in nine `detailLabel` string literals (pre-fix line
+numbers): `productive_bronze` (line 71, `'10 Anime-Projekte'`), `productive_silver` (line 72,
+`'25 Anime-Projekte'`), `productive_gold` (line 73, `'50 Anime-Projekte'`),
+`point_milestone_first` (line 97, `'1 Punkt'`), `point_milestone_active` (line 98,
+`'50 Punkte'`), `point_milestone_experienced` (line 99, `'200 Punkte'`),
+`point_milestone_engaged` (line 100, `'500 Punkte'`), `point_milestone_veteran` (line 101,
+`'1000 Punkte'`), `point_milestone_legend` (line 102, `'2500 Punkte'`).
+
+This plan's own SUMMARY (see "Next Phase Readiness" above) explicitly stated "No 8th site was
+found beyond the seven already on record" — that conclusion was based on this render path
+being unreachable in production (see below), not on the literal's absence. The literal was
+real; only its production reachability was previously mis-assessed.
+
+### Why it needed fixing
+
+Same D-29 pattern as the sixth site (`resolveRoleVolumePresentation`'s "Gold · 320+" label,
+this plan's Task 3): the FORMAT ("N Anime-Projekte", "N Punkt"/"N Punkte") is legitimate
+frontend presentation; the NUMBER is business logic that must come from the registry via
+`badge_progress[].stages`, not a frontend literal. `MemberBadgeChain.tsx` (~line 882 pre-fix)
+rendered `presentation.detailLabel` inside a visible `<span className={badgeChipStyles.badgeDetail}>`
+in the general (non-"roles") badge-catalog row rendering — a different render path from the
+family-ladder cards (`FamilyCollectionCard`/`PointsAchievementStage`/etc.) this plan already
+rewired onto server-supplied stages.
+
+**Reachability note (not a resolution change, a factual correction to this plan's own
+"Next Phase Readiness" claim):** `MemberBadgeChain`'s general-catalog row-rendering branch for
+non-"roles" groups only executes when the component's `badgeProgress` prop is `undefined`
+(`collectionEnabled = badgeProgress !== undefined` gates `groups` down to the "roles" key
+only whenever `badgeProgress` is provided). The sole production caller,
+`MemberProfileContent.tsx`, always passes `badgeProgress={profile.badge_progress}`, and
+`PublicMemberProfileData.badge_progress` is a non-optional array field — so this exact render
+branch is confirmed unreachable in production for `productive_*`/`point_milestone_*` codes
+today. It is, however, real, tested, and load-bearing test surface (see below), and leaving a
+hardcoded literal in confirmed-dead-but-real code still violates the phase's registry-single-
+source intent and Success Criterion 6 for that code path — so it was closed regardless of live
+reachability, per the user's explicit instruction.
+
+### What changed (before/after)
+
+**Before:** `MemberBadgePresentation` carried an optional `detailLabel?: string` field; nine
+`MEMBER_BADGE_PRESENTATIONS` entries set it to a literal string; `MemberBadgeChain.tsx`
+rendered `presentation.detailLabel` directly.
+
+**After:**
+- `detailLabel` field removed entirely from `MemberBadgePresentation` (memberBadgeLabels.ts)
+  and from all nine map entries (replaced with a doc comment cross-referencing this addendum,
+  mirroring the sixth site's existing D-29 comment style).
+- New exported helper `resolveBadgeProgressThreshold(badgeProgress, badgeCode)` in
+  `memberBadgeFamilies.ts`: searches every supplied `badge_progress[]` entry's `stages` array
+  (via the existing `stageBadgeCode` helper, so contribution-family tier-token stage codes are
+  handled the same way `resolveMemberBadgeFamilies` already does) for a stage whose full
+  `badge_code` matches, returning `stage.threshold` or `undefined` if no match exists — no
+  fallback literal.
+- New local helper `resolveGeneralBadgeDetailLabel(badgeCode, badgeProgress)` in
+  `MemberBadgeChain.tsx`: calls `resolveBadgeProgressThreshold`, then applies the FORMAT
+  templates only ("N Anime-Projekte" for `productive_*`, "N Punkt" for exactly 1 point else
+  "N Punkte" for `point_milestone_*`), returning `undefined` (pass-through, no rendered
+  `<span>`) when no matching stage is found — same pattern as the sixth site's "no fallback
+  literal" rule.
+- The render site now computes `const detailLabel = resolveGeneralBadgeDetailLabel(item.badge_code, badgeProgress)`
+  per catalog item and renders that instead of `presentation.detailLabel`.
+
+### Confirmation: the 9 rendered strings stay byte-identical
+
+For the same registry values (10/25/50 for progress, 1/50/200/500/1000/2500 for points), the
+rendered output is unchanged: "10 Anime-Projekte" stays "10 Anime-Projekte", "1 Punkt" stays
+singular, "2500 Punkte" stays "2500 Punkte", etc. — confirmed via `MemberBadgeChain.test.tsx`'s
+existing `FAMILY_STAGE_FIXTURES.points`/`FAMILY_STAGE_FIXTURES.progress` tables (already
+present in this file from this plan's own fixture work), which carry the real registry
+numbers.
+
+Only one existing test in the entire suite asserted one of these nine exact detailLabel
+strings directly: `MemberBadgeChain.test.tsx`'s `'renders approved artwork inside the focal
+card for earned image badges'` (`expect(screen.getByText('50 Punkte'))`). Per this fix's
+requirement, since the string now requires real stage data as its source, and this test
+previously rendered with `badgeProgress` entirely omitted, the fixture was updated to supply
+a `points`-family `badge_progress` entry (`current_count: 50`, `stages:
+FAMILY_STAGE_FIXTURES.points`) — a fixture change, not an expectation change; the asserted
+string `'50 Punkte'` is untouched. Supplying `badgeProgress` at all switches this specific test
+onto the family-ladder-card render path (per the reachability note above, this is the only
+path where real threshold data can exist), so two assertions that depended specifically on the
+old row-based DOM shape (carousel item `aria-label^="Auszeichnung"`, a separate "Fortschritt"
+list unrelated to the badge under test) were removed as no longer applicable — the protected
+string assertion (`'50 Punkte'`) and the artwork assertions all still pass unchanged. Full
+before/after diff confirmed via `docker compose exec -T team4sv30-frontend sh -c "cd /app &&
+npx vitest run src/components/profile/MemberBadgeChain.test.tsx"` — 110/111 passing (1
+pre-existing `.skip`, unrelated).
+
+### Additional required check: any other hardcoded threshold literals beyond these eight?
+
+Answer: **none found beyond the eight already on record** (the four originally named in the
+ROADMAP, sites 5–7 found during 150-05's own planning/execution, and this eighth site).
+
+What was checked:
+- Grepped `frontend/src/components/profile/`, `frontend/src/app/me/`, and
+  `frontend/src/app/members/` (non-test files) for the pattern `'<number> <German unit
+  word>'` across every unit word already known to be threshold-adjacent in this phase
+  (Anime-Projekt, Jahr, Punkt, Mitwirkung, Beitrag, Projekt, Medaille) — zero matches in
+  production code (the only matches were in `*.test.tsx`/`__tests__` fixtures, which are
+  expected to carry literal numbers).
+- Grepped the same three directories for any two-or-more-digit numeric literal appearing near
+  `threshold`/`Schwelle`/`tier`/`Tier`/`milestone`/`Meilenstein` identifiers, to catch any
+  literal not wrapped in an obvious "<number> <unit>" string template. Every match found was
+  either: (a) a `stage.threshold`/`family.nextThreshold`/`badge.current_count`/
+  `badge.next_threshold`/`badge.remaining_count` — all server-sourced dynamic values, not
+  literals; (b) a doc comment referencing D-29/D-25/D-04 etc.; or (c) a type/field
+  declaration (`threshold: number`) with no literal value attached.
+- Specifically checked `frontend/src/app/me/dashboard/components/CategoryProgressTable.tsx`
+  and `frontend/src/app/me/profile/components/AchievementBadgesCard.tsx` (the two files this
+  plan and Plan 150-07 already rewired) — both already read every number from response fields
+  (`current_threshold`, `next_threshold`, etc.), confirmed via the same grep pass.
+- Checked `frontend/src/app/me/dashboard/components/*.tsx` and
+  `frontend/src/app/me/profile/components/*.tsx` broadly for bare numeric constants in the
+  threshold value ranges already known from this phase (1/5/7/10/12/15/25/50/108/150/200/
+  320/500/510/1000/2500) — every match was an unrelated pluralization counter (`review.count
+  === 1`), array slice index, font-size style value, or `width`/`height` prop — none were
+  badge/registry thresholds.
+- Checked `frontend/src/app/members/` (including `MemberProfileContent.tsx`,
+  `OwnHiddenProfilePreview.tsx`, `page.tsx`, `ranking/page.tsx`) for the same
+  "<number> <unit>" pattern — zero matches in production code.
+
+No further frontend threshold-literal survivors were found. All numeric values feeding
+visible badge/progress copy across `frontend/src/components/profile/`,
+`frontend/src/app/me/`, and `frontend/src/app/members/` are now sourced from
+`badge_progress[].stages`, dashboard companion fields, or other server-authoritative response
+fields — none from a frontend constant.
+
+### Commits
+
+- `9aec75b7` — `fix(150-05): source detailLabel threshold numbers from server stages (eighth site, D-29 pattern)` (code + test fixture)
+- This SUMMARY addendum, committed separately.
+
+### Verification run
+
+- `docker compose exec -T team4sv30-frontend sh -c "cd /app && npx vitest run src/components/profile/MemberBadgeChain.test.tsx --reporter=verbose"` — 110 passed, 1 skipped (pre-existing).
+- `docker compose exec -T team4sv30-frontend sh -c "cd /app && npx vitest run src/components/profile/ src/app/members/ src/app/me/dashboard/ src/app/me/profile/"` — 447 passed, 1 skipped, 3 todo (all pre-existing todos).
+- `docker compose exec -T team4sv30-frontend sh -c "cd /app && npx vitest run"` (full suite) — 2223 passed, 2 pre-existing unrelated failures (`src/types/__tests__/v12-projection-contract.test.ts`, already documented as pre-existing in this SUMMARY's own "Issues Encountered" section above; `src/app/admin/fansubs/[id]/edit/DefaultCrewManager.test.tsx`, confirmed unrelated to badges/this change — last touched in Phase 136, no import relationship to any file this fix modified). Neither failure was introduced or touched by this addendum's changes; both are out of scope per the executor's scope-boundary rule.
+- `docker compose exec -T team4sv30-frontend sh -c "cd /app && npx tsc --noEmit"` — zero errors in any file this fix touched (two pre-existing, unrelated `.next/dev` generated route-type errors present before and after, confirmed via grep against the changed files).
+
+### Scope note
+
+`MemberBadgeChain.tsx` remains at 942+ lines, already over CLAUDE.md's 450-line production
+file cap before this fix (this plan's own "Next Phase Readiness" section did not flag it, and
+splitting it is out of scope for an eighth-site literal fix — logged here for visibility, not
+remediated).
