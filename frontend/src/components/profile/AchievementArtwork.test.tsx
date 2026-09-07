@@ -1,5 +1,8 @@
 // @vitest-environment jsdom
 
+import { readFileSync } from 'node:fs'
+import path from 'node:path'
+
 import type { ImgHTMLAttributes } from 'react'
 import { render, screen } from '@testing-library/react'
 import { describe, expect, it, vi } from 'vitest'
@@ -120,5 +123,29 @@ describe('AchievementArtwork', () => {
     expect(portrait.getAttribute('src')).toContain('special-historical_leader-v1.png')
     expect(portrait.getAttribute('width')).toBe('1254')
     expect(portrait.getAttribute('height')).toBe('1254')
+  })
+})
+
+describe('shared achievement card geometry', () => {
+  const readCss = (file: string) => readFileSync(path.join(__dirname, file), 'utf8')
+
+  it('declares the hero and stage sizes only in the shared artwork module', () => {
+    const shared = readCss('AchievementArtwork.module.css')
+
+    expect(shared).toContain('inline-size: 192px')
+    expect(shared).toContain('inline-size: 216px')
+    expect(shared).toContain('inline-size: 240px')
+    expect(shared).toContain('@container achievement-card (min-width: 562px)')
+    expect(shared).toContain('@container achievement-card (min-width: 658px)')
+  })
+
+  it('lets the generic badge row yield inline padding instead of squeezing the square hero slot', () => {
+    // Regression (Phase 151): a fixed `padding: 24px 12px` left only 190.72px inside the
+    // narrowest carousel card (88% of a 320px track), so `max-inline-size: 100%` clamped the
+    // 192px hero to a 190.72x192 non-square box for the historical/special badge family.
+    const badgeChip = readCss('BadgeChip.module.css')
+
+    expect(badgeChip).toContain('padding-inline: clamp(0px, calc((100% - 192px) / 2), 12px)')
+    expect(badgeChip).not.toContain('padding: 24px 12px')
   })
 })

@@ -6,7 +6,13 @@
   align-items: center;
   justify-content: center;
   gap: 18px;
-  padding: 24px 12px;
+  /* Phase 151: der gemeinsame Hero-Slot ist unterhalb des 562px-Kartenbreakpoints 192px breit
+     (AchievementArtwork.module.css). In der schmalsten Karussellkarte (88% einer 320px-Spur =
+     214.72px) liess eine feste Innenabstandsbreite von 12px nur 190.72px uebrig, wodurch der
+     quadratische Hero-Slot auf eine nicht-quadratische Box geklemmt wurde. Der Innenabstand gibt
+     nach, nicht die Badge-Geometrie. */
+  padding-block: 24px;
+  padding-inline: clamp(0px, calc((100% - 192px) / 2), 12px);
   background:
     radial-gradient(circle at 50% 48%, color-mix(in srgb, var(--focal-card-accent) 10%, transparent), transparent 58%);
 }
