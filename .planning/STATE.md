@@ -2,16 +2,16 @@
 gsd_state_version: 1.0
 milestone: v1.4
 milestone_name: Coverage
-status: milestone_complete
-stopped_at: Phase 150 passed goal-backward verification 9/9 (150-VERIFICATION.md, 2026-09-07)
-last_updated: "2026-09-07T02:01:16Z"
+status: active
+stopped_at: Phase 151 planned as five plans in three waves; plan review PASS; starting Wave1 execution
+last_updated: "2026-09-07T12:43:59Z"
 last_activity: 2026-09-07
 progress:
-  total_phases: 15
+  total_phases: 16
   completed_phases: 15
-  total_plans: 155
+  total_plans: 160
   completed_plans: 155
-  percent: 100
+  percent: 97
 ---
 
 # Project State
@@ -29,13 +29,22 @@ Phase 135 and any future roadmap entries continue from here.
 See: .planning/PROJECT.md (updated 2026-08-13)
 
 **Core value:** Team4s presents fansub history and collaboration credibly while keeping identity, visibility, ownership, and permissions correct.
-**Current focus:** Milestone complete
+**Current focus:** Phase 151 — Erfolgsbadge-Karussell-Konsolidierung plan review PASS; Wave1 execution starting
 
 ## Current Position
 
-Phase: 150 (badge-regeln-eine-autoritative-schwellenquelle) — COMPLETE
-Plan: 7 of 7 (all executed)
-Status: Passed goal-backward verification 9/9 (150-VERIFICATION.md, 2026-09-07)
+Phase: 151 (erfolgsbadge-karussell-konsolidierung) — EXECUTING
+Plan: 0 of 5 executed
+Status: Five reviewed plans executing in three waves; coordinator owns sequential commits and final independent verification
+
+Phase 151 preserves the Phase-150 threshold/query authority and changes presentation only. Wave 1 contains
+three file-disjoint plans: artwork/resolver, shared slot/cards/stages, and generic FocalCarousel. Wave2 consolidates family CSS after shared components; Wave3
+integrates them in a linked dev-only gallery, exhaustive Linux Playwright evidence, full regression gates,
+guarded constant-20/exact-once PostgreSQL proofs, and mandatory coordinator per-artwork signoff. No production
+backend, API, schema, auth, runtime/tool configuration, or original artwork mutation is planned.
+
+Previous completed phase: Phase 150 (badge-regeln-eine-autoritative-schwellenquelle) — COMPLETE,
+7 of 7 plans executed; passed goal-backward verification 9/9 on 2026-09-07.
 
 Phase 150 (Badge-Regeln — eine autoritative Schwellenquelle) ist additiv an v1.4 angehängt
 (gleiches Muster wie 143-149) und abgeschlossen. Alle 7 Pläne ausgeführt (150-01 bis 150-05,
@@ -68,6 +77,8 @@ Last activity: 2026-09-07
 ## Accumulated Context
 
 ### Roadmap Evolution
+
+- Phase 151 planned (2026-09-07): 4 plans / 2 waves. Plans 151-01/02/03 may execute independently on Linux main because their file ownership is explicit and disjoint; 151-04 depends on all three. Root/coordinator serializes Git index operations and retains final independent verification plus commit/push ownership.
 
 - Phase 146 added (2026-09-04): Registry-Selbstschutz und Sanierung der Quelltext-Substring-Tests. Zwei Blöcke in einer Phase auf Wunsch des Nutzers — erst die drei Befunde aus `145-REVIEW.md` (CR-01 Lockout-Guard-Lücke, fehlender NOT-reserved-Filter, dreifach hartkodierte Action-Codes), dann die Testsanierung. Bestand selbst gemessen 2026-09-04: 53 Testdateien lesen eine `.go`-Quelldatei per `os.ReadFile` und belegen Verhalten mit `strings.Contains` (357 Aufrufe, 302 Testfunktionen); 17 davon berühren Sicherheitszusicherungen. Die ältere Schätzung 49/236 aus der Altlasten-Notiz ist überholt. Additiv an v1.4, KEIN Milestone-Reset.
 - Phase 145 complete (2026-09-04): Alle 4 Pläne fertig; Live-UAT vom Nutzer abgenommen und deckt
@@ -682,7 +693,7 @@ untruncated list lives in `.planning/todos/pending/`.
 
 ## Session Continuity
 
-Last session: 2026-09-07T00:48:24.130Z
-Stopped at: Completed 150-07-PLAN.md
-Last activity: 2026-09-01 - Milestone v1.4 audit passed (41/41 requirements, 7/7 phases, .planning/v1.4-MILESTONE-AUDIT.md); Phase 143 added to roadmap, not yet planned
+Last session: 2026-09-07T12:43:59Z
+Stopped at: Phase 151 planning complete; 151-01 through 151-04 plan review PASS; starting Wave1 execution
+Last activity: 2026-09-07 - Phase 151 planned as three parallel Wave-1 ownership slices plus one Wave-2 integration/evidence/signoff plan; no implementation or commit performed
 Resume file: None

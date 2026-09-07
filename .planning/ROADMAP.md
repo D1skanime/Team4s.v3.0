@@ -1209,3 +1209,18 @@ Plans:
 | 148. Rollenfarben wieder an den Katalog anschließen | 8/8 | Complete    | 2026-09-05 |
 | 149. Tote CSS-Tokens sanieren und den Notiz-Kontrast schließen | 6/6 | Complete    | 2026-09-06 |
 | 150. Badge-Regeln — eine autoritative Schwellenquelle | 7/7 | Complete   | 2026-09-07 |
+| 151. Erfolgsbadge-Karussell-Konsolidierung | 0/5 | Planned | — |
+
+### Phase 151: Erfolgsbadge-Karussell-Konsolidierung
+
+**Goal:** Erfolgsbadges zeigen scharfes Artwork in einer kleineren, konsistenten, container-responsiven Bühne; Karaoke FX ist vollständig integriert, das Karussell bleibt präzise und die Phase-150-Business-/Query-Architektur unverändert.
+**Requirements**: P151-01, P151-02, P151-03, P151-04, P151-05, P151-06, P151-07, P151-08, P151-09, P151-10, P151-11, P151-12
+**Depends on:** Phase 150
+**Plans:** 5 plans
+
+Plans:
+- [ ] 151-01-PLAN.md — Rollen-Artwork-Manifest, vollständige Karaoke-FX-Assets und echte Katalog-/Dateisystem-Abdeckung
+- [ ] 151-02-PLAN.md — Gemeinsamer Artwork-Slot, produktive Karten-/Stage-Komposition mit gemeinsamer Slot-CSS
+- [ ] 151-03-PLAN.md — Fokussierte Härtung des generischen FocalCarousel mit Interaktions- und Stressregressionen
+- [ ] 151-04-PLAN.md — Konsolidierte mobile Container-CSS für Karten und Badge-Familien
+- [ ] 151-05-PLAN.md — Dev-Galerie, vollständige Linux-Browserevidenz, Full-Suite-Gates und manuelle Einzelabnahme

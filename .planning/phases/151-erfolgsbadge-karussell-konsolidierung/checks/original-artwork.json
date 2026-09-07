@@ -1,0 +1,965 @@
+[
+  {
+    "path": "frontend/public/member-achievement-badges/contribution_archivist_bronze-v2.png",
+    "bytes": 2482260,
+    "sha256": "a096b7e33b943e195112997acde922bcbd85833b14ce2b26508758ecbd5b4934",
+    "dimensions": [
+      1254,
+      1254
+    ]
+  },
+  {
+    "path": "frontend/public/member-achievement-badges/contribution_archivist_bronze.png",
+    "bytes": 247119,
+    "sha256": "20b96a3aaad3e096ace5de8a2ef410034c1e79bebf93f5f0a9184eb8ec419f96",
+    "dimensions": [
+      418,
+      418
+    ]
+  },
+  {
+    "path": "frontend/public/member-achievement-badges/contribution_archivist_gold-v2.png",
+    "bytes": 2712593,
+    "sha256": "7ba5fd4aacb3de109e808387f3bbb1d1c017df9d020046ab962d90fa6758e5f6",
+    "dimensions": [
+      1254,
+      1254
+    ]
+  },
+  {
+    "path": "frontend/public/member-achievement-badges/contribution_archivist_gold.png",
+    "bytes": 420402,
+    "sha256": "a6c291019fca3ca493820ae5ff4d7c3c48fc685bb925b372049c8fa71a08561f",
+    "dimensions": [
+      418,
+      418
+    ]
+  },
+  {
+    "path": "frontend/public/member-achievement-badges/contribution_archivist_silver-v2.png",
+    "bytes": 2432594,
+    "sha256": "5b9c4136302a1067283fd92c174d99056088c7a8de195b1937bb9cc9fe894b69",
+    "dimensions": [
+      1254,
+      1254
+    ]
+  },
+  {
+    "path": "frontend/public/member-achievement-badges/contribution_archivist_silver.png",
+    "bytes": 299728,
+    "sha256": "cbe00fc391c009883fe77564e5fa4142b492613cb073a551c05bc7ee02df57a4",
+    "dimensions": [
+      418,
+      418
+    ]
+  },
+  {
+    "path": "frontend/public/member-achievement-badges/contribution_chronicle_bronze-v4.png",
+    "bytes": 2525810,
+    "sha256": "c69728f16c7ca70591a1e615f3ecb02ca116ae8d35f6d91ad71a02df9045cd58",
+    "dimensions": [
+      1254,
+      1254
+    ]
+  },
+  {
+    "path": "frontend/public/member-achievement-badges/contribution_chronicle_bronze.png",
+    "bytes": 295453,
+    "sha256": "5aa1a0ce52769450fbb3411b14c94d00f43f106865da0108f4b78ab4c91dba4b",
+    "dimensions": [
+      418,
+      418
+    ]
+  },
+  {
+    "path": "frontend/public/member-achievement-badges/contribution_chronicle_gold-v2.png",
+    "bytes": 2788304,
+    "sha256": "e910cc38459cd982f33c75cfd71f190c6cd384192b74280015f46fc9b6f5692b",
+    "dimensions": [
+      1254,
+      1254
+    ]
+  },
+  {
+    "path": "frontend/public/member-achievement-badges/contribution_chronicle_gold.png",
+    "bytes": 362806,
+    "sha256": "71e150757e6a00caae132a724d47cc2ea4ccdda89938654f0b2a4cb874fe18e9",
+    "dimensions": [
+      418,
+      418
+    ]
+  },
+  {
+    "path": "frontend/public/member-achievement-badges/contribution_chronicle_silver-v2.png",
+    "bytes": 2618650,
+    "sha256": "770a5cc192d3cc794a7ad35984615bac35af6fbabff0f641e3bee5c46494771f",
+    "dimensions": [
+      1254,
+      1254
+    ]
+  },
+  {
+    "path": "frontend/public/member-achievement-badges/contribution_chronicle_silver.png",
+    "bytes": 308759,
+    "sha256": "0d3e30c30110650a764cdc0cd793a6cab4e482c804157823c77341cd6e798c1d",
+    "dimensions": [
+      418,
+      418
+    ]
+  },
+  {
+    "path": "frontend/public/member-achievement-badges/contribution_projects_bronze-v3.png",
+    "bytes": 2492608,
+    "sha256": "57b7ef433eca75715a6092084507482e70f37834fba1e5b93ed4c7d506d595dc",
+    "dimensions": [
+      1254,
+      1254
+    ]
+  },
+  {
+    "path": "frontend/public/member-achievement-badges/contribution_projects_bronze.png",
+    "bytes": 261016,
+    "sha256": "e7b45f7df1f424be9df4a46cd3d4479cb15dcb9f16756a5a291f486487476377",
+    "dimensions": [
+      418,
+      418
+    ]
+  },
+  {
+    "path": "frontend/public/member-achievement-badges/contribution_projects_gold-v2.png",
+    "bytes": 2830809,
+    "sha256": "d251ec30671a4a71d26ab8f83706a92246b285521e2bad037c9abf102f6a5354",
+    "dimensions": [
+      1254,
+      1254
+    ]
+  },
+  {
+    "path": "frontend/public/member-achievement-badges/contribution_projects_gold.png",
+    "bytes": 414270,
+    "sha256": "e21680bff9f62668da36cf6c6f891363aa6cb9e14a17d69facb2668c5ce2fc40",
+    "dimensions": [
+      418,
+      418
+    ]
+  },
+  {
+    "path": "frontend/public/member-achievement-badges/contribution_projects_silver-v2.png",
+    "bytes": 2743044,
+    "sha256": "7a9130ed5f98e2d330f81973d9ec45fcb9b233783244fc0f19d0be8bca0d8521",
+    "dimensions": [
+      1254,
+      1254
+    ]
+  },
+  {
+    "path": "frontend/public/member-achievement-badges/contribution_projects_silver.png",
+    "bytes": 357538,
+    "sha256": "ce84bacc7cf49d7f219a727a872e5c0720fe66691295ff42616fdf0f169014b6",
+    "dimensions": [
+      418,
+      418
+    ]
+  },
+  {
+    "path": "frontend/public/member-achievement-badges/membership-10_years-v4.png",
+    "bytes": 1866975,
+    "sha256": "6f26d210f552c8c29e218a6453562a720a13c96a123ab93fe889f59f54bbaed2",
+    "dimensions": [
+      1254,
+      1254
+    ]
+  },
+  {
+    "path": "frontend/public/member-achievement-badges/membership-7_years-v4.png",
+    "bytes": 2121115,
+    "sha256": "ed433ef2c81a8dc124a289c4173b6b4391714f29bb284fdef5caef0dfee1809f",
+    "dimensions": [
+      1254,
+      1254
+    ]
+  },
+  {
+    "path": "frontend/public/member-achievement-badges/membership-founding_member-v4.png",
+    "bytes": 2991915,
+    "sha256": "728d15fa08a48f57c0dca707c99a58c9858077d111106ae614224baf9d803384",
+    "dimensions": [
+      1254,
+      1254
+    ]
+  },
+  {
+    "path": "frontend/public/member-achievement-badges/membership-long_term_member-v4.png",
+    "bytes": 3060262,
+    "sha256": "ec8c7df07e7ebac7a96f12394d1d4ee271499a6aa350ccb62b478da3e8f236e3",
+    "dimensions": [
+      1254,
+      1254
+    ]
+  },
+  {
+    "path": "frontend/public/member-achievement-badges/point_milestone_active-v2.png",
+    "bytes": 2404603,
+    "sha256": "6278d996b1af5becd9e4db7071006fbce0e352fb7e8046c97a7f2ef90f718b70",
+    "dimensions": [
+      1254,
+      1254
+    ]
+  },
+  {
+    "path": "frontend/public/member-achievement-badges/point_milestone_engaged-v2.png",
+    "bytes": 2469680,
+    "sha256": "782141a1ede34539c84bd72d4a2de383f13d03a1d32cf41ab0372b98d8885b46",
+    "dimensions": [
+      1254,
+      1254
+    ]
+  },
+  {
+    "path": "frontend/public/member-achievement-badges/point_milestone_experienced-v2.png",
+    "bytes": 2666045,
+    "sha256": "006a3296b1973690b81ede288c3bd920f3e2182aaa6e408e4b9c6b89f3ce087b",
+    "dimensions": [
+      1254,
+      1254
+    ]
+  },
+  {
+    "path": "frontend/public/member-achievement-badges/point_milestone_first-v2.png",
+    "bytes": 2185019,
+    "sha256": "50c3761028938f57c2468a102533b1f48d8aa98ad31f3587541f4515c593d19a",
+    "dimensions": [
+      1254,
+      1254
+    ]
+  },
+  {
+    "path": "frontend/public/member-achievement-badges/point_milestone_first.png",
+    "bytes": 501711,
+    "sha256": "6fc590ab18c2edbb03ba3a7ac6f5e5b5f0264301145d2cecea8f38f40dbc7e5f",
+    "dimensions": [
+      512,
+      512
+    ]
+  },
+  {
+    "path": "frontend/public/member-achievement-badges/point_milestone_legend-v2.png",
+    "bytes": 2792843,
+    "sha256": "a7a6f8b6bea437c5fdeadec6bdf5d772a1970f0eba62b8eee5b7cce2e8907d54",
+    "dimensions": [
+      1254,
+      1254
+    ]
+  },
+  {
+    "path": "frontend/public/member-achievement-badges/point_milestone_veteran-v2.png",
+    "bytes": 2415545,
+    "sha256": "9dbaff911d93c524b0c9ba36bdaae58c609f799bbb7c67564a9325dccd730464",
+    "dimensions": [
+      1254,
+      1254
+    ]
+  },
+  {
+    "path": "frontend/public/member-achievement-badges/point_milestone_veteran-v3.png",
+    "bytes": 2348506,
+    "sha256": "f8bd9a1828c936d720ef595f9aa9420caafedb8bd0fae6bf7d2f749d5caf194e",
+    "dimensions": [
+      1254,
+      1254
+    ]
+  },
+  {
+    "path": "frontend/public/member-achievement-badges/progress-first_contribution-motif.png",
+    "bytes": 1519106,
+    "sha256": "860edecaa7f18dd483abba8a1b3a9e3ff29e2b8008ca5172eb3b9f07c919787d",
+    "dimensions": [
+      1254,
+      1254
+    ]
+  },
+  {
+    "path": "frontend/public/member-achievement-badges/progress-frame-first_contribution.png",
+    "bytes": 1403540,
+    "sha256": "f3ab4734298139863cf56da92e9bcb7f2f5b69bda704cad5a552bc30dd2fd2b9",
+    "dimensions": [
+      1254,
+      1254
+    ]
+  },
+  {
+    "path": "frontend/public/member-achievement-badges/progress-frame-productive-bronze.png",
+    "bytes": 1271333,
+    "sha256": "448e0cdd3d754d14c3679105b27483987c3e54aefd44996b81bd6eb8201b775a",
+    "dimensions": [
+      1254,
+      1254
+    ]
+  },
+  {
+    "path": "frontend/public/member-achievement-badges/progress-frame-productive-gold.png",
+    "bytes": 1230355,
+    "sha256": "18ebf46c1d7cd0ddeb0e67bdca3a06461ce912a6a95333b6d113de95facffdf7",
+    "dimensions": [
+      1254,
+      1254
+    ]
+  },
+  {
+    "path": "frontend/public/member-achievement-badges/progress-frame-productive-silver.png",
+    "bytes": 1197367,
+    "sha256": "af65baeef19706f4042dbd0eff96fcee143fa7ef8ac34d9d018efd9140403482",
+    "dimensions": [
+      1254,
+      1254
+    ]
+  },
+  {
+    "path": "frontend/public/member-achievement-badges/progress-productive-motif.png",
+    "bytes": 1828302,
+    "sha256": "071aa2b276e6f903634550fdcf8a667873bd49ec3de13bb8cfebb62aae0324d1",
+    "dimensions": [
+      1254,
+      1254
+    ]
+  },
+  {
+    "path": "frontend/public/member-achievement-badges/rank-frame-admin-bronze.png",
+    "bytes": 1150828,
+    "sha256": "761502135e67269668da31b844f5f3844d5dfa3e038fa42602cb7fbf558136db",
+    "dimensions": [
+      1254,
+      1254
+    ]
+  },
+  {
+    "path": "frontend/public/member-achievement-badges/rank-frame-admin-gold.png",
+    "bytes": 1155472,
+    "sha256": "84e9bbe40978cfa84b90f95a6e019bcafc01380a8e500338fe149dd362403fe1",
+    "dimensions": [
+      1254,
+      1254
+    ]
+  },
+  {
+    "path": "frontend/public/member-achievement-badges/rank-frame-admin-platinum.png",
+    "bytes": 1239783,
+    "sha256": "4dc1b3f82b2ff2ce233a5dbd682bd8a443babb4981f8af8ec714aeb89158dffa",
+    "dimensions": [
+      1254,
+      1254
+    ]
+  },
+  {
+    "path": "frontend/public/member-achievement-badges/rank-frame-admin-silver.png",
+    "bytes": 1126854,
+    "sha256": "3de2a2cb9162afd78effb4ffd76dabacb52dd1e5eeb724cd8624a9a34d824c91",
+    "dimensions": [
+      1254,
+      1254
+    ]
+  },
+  {
+    "path": "frontend/public/member-achievement-badges/rank-frame-designer-bronze.png",
+    "bytes": 1148135,
+    "sha256": "36000fc26a1d449795c2f7ff890b9e1e8cc275c5f672146097d06e6bae91476d",
+    "dimensions": [
+      1254,
+      1254
+    ]
+  },
+  {
+    "path": "frontend/public/member-achievement-badges/rank-frame-designer-gold.png",
+    "bytes": 1135715,
+    "sha256": "96f70ccc6420eeb79e1f71c09317f769b73a5ed222c49c9c1ed04ed751342515",
+    "dimensions": [
+      1254,
+      1254
+    ]
+  },
+  {
+    "path": "frontend/public/member-achievement-badges/rank-frame-designer-platinum.png",
+    "bytes": 1210917,
+    "sha256": "1888ed02465010827eabc5ab4725c6789b3ffc3b45643dfff30ee932009e6e82",
+    "dimensions": [
+      1254,
+      1254
+    ]
+  },
+  {
+    "path": "frontend/public/member-achievement-badges/rank-frame-designer-silver.png",
+    "bytes": 1129709,
+    "sha256": "8173455c8325215e5bc1efca3b276d2fbc63e34073dad0fb54fa72aa8d39836b",
+    "dimensions": [
+      1254,
+      1254
+    ]
+  },
+  {
+    "path": "frontend/public/member-achievement-badges/rank-frame-editor-bronze.png",
+    "bytes": 1067863,
+    "sha256": "e863805576e58e4f0e161d3c11fb4aeb18fc1121d6d8c70e2152d8719fbe0051",
+    "dimensions": [
+      1254,
+      1254
+    ]
+  },
+  {
+    "path": "frontend/public/member-achievement-badges/rank-frame-editor-gold.png",
+    "bytes": 1078638,
+    "sha256": "2e5c1b73a0df41ad7e0644ea40b4b3157f909f411cf097a841a87d28a4cd1135",
+    "dimensions": [
+      1254,
+      1254
+    ]
+  },
+  {
+    "path": "frontend/public/member-achievement-badges/rank-frame-editor-platinum.png",
+    "bytes": 1156056,
+    "sha256": "11fc1791489f69b5d5e3a9aff834340ecce1a3686585c015ecfaf90347ab3f4f",
+    "dimensions": [
+      1254,
+      1254
+    ]
+  },
+  {
+    "path": "frontend/public/member-achievement-badges/rank-frame-editor-silver.png",
+    "bytes": 1065396,
+    "sha256": "27d06d9c984ae168e0ac6503a90fe4d90fe7e1466f32f536a0577169f3ab1cdb",
+    "dimensions": [
+      1254,
+      1254
+    ]
+  },
+  {
+    "path": "frontend/public/member-achievement-badges/rank-frame-encoder-bronze.png",
+    "bytes": 1153652,
+    "sha256": "306cd58ba866ea2c8d38b7c6ecaf1bc3ef5724c63f358f91d873d4d7f95d699f",
+    "dimensions": [
+      1254,
+      1254
+    ]
+  },
+  {
+    "path": "frontend/public/member-achievement-badges/rank-frame-encoder-gold.png",
+    "bytes": 1165229,
+    "sha256": "bdede8c04d72aa4108259f3239c05d97b99a1bb427fa92f7b1ee4faeb0a27fde",
+    "dimensions": [
+      1254,
+      1254
+    ]
+  },
+  {
+    "path": "frontend/public/member-achievement-badges/rank-frame-encoder-platinum.png",
+    "bytes": 1230531,
+    "sha256": "b1448a96bb7f2bc78dcd14929b57c31ffad3a02c17847655034aee36b95d2302",
+    "dimensions": [
+      1254,
+      1254
+    ]
+  },
+  {
+    "path": "frontend/public/member-achievement-badges/rank-frame-encoder-silver.png",
+    "bytes": 1112199,
+    "sha256": "88cd4306e78c1d61bb7c476cfa88568a74b053c9c9ca1fca72334abe78a897a9",
+    "dimensions": [
+      1254,
+      1254
+    ]
+  },
+  {
+    "path": "frontend/public/member-achievement-badges/rank-frame-other-bronze.png",
+    "bytes": 1197334,
+    "sha256": "1079689f0f26b8343cec3e1ed5ff34e8d0bb1286cf9db18641a236426d35e46d",
+    "dimensions": [
+      1254,
+      1254
+    ]
+  },
+  {
+    "path": "frontend/public/member-achievement-badges/rank-frame-other-gold.png",
+    "bytes": 1187127,
+    "sha256": "60e5967d9454714853a839c77435474da1cfb578d62deb84ce0c7208a5324dd8",
+    "dimensions": [
+      1254,
+      1254
+    ]
+  },
+  {
+    "path": "frontend/public/member-achievement-badges/rank-frame-other-platinum.png",
+    "bytes": 1300118,
+    "sha256": "0423e3fea7e70142f89a3579aac63ff4a79dbb72daaa6f3134dfe4fdafeec685",
+    "dimensions": [
+      1254,
+      1254
+    ]
+  },
+  {
+    "path": "frontend/public/member-achievement-badges/rank-frame-other-silver.png",
+    "bytes": 1137776,
+    "sha256": "3332fd49e09e903adfd0326e41743ace4652afd2a19d1326c27fc83308e34d52",
+    "dimensions": [
+      1254,
+      1254
+    ]
+  },
+  {
+    "path": "frontend/public/member-achievement-badges/rank-frame-project_lead-bronze.png",
+    "bytes": 1129898,
+    "sha256": "52362576fd223be92ea417903054dffaf67326873b0af9c9514fd1c70d791901",
+    "dimensions": [
+      1254,
+      1254
+    ]
+  },
+  {
+    "path": "frontend/public/member-achievement-badges/rank-frame-project_lead-gold.png",
+    "bytes": 1138670,
+    "sha256": "24260a381e12f5412465aeb1547e7b9b7f8aa3315712e9e9e2f0ba6342dde2f6",
+    "dimensions": [
+      1254,
+      1254
+    ]
+  },
+  {
+    "path": "frontend/public/member-achievement-badges/rank-frame-project_lead-platinum.png",
+    "bytes": 1185421,
+    "sha256": "48789814229dae08f59f6091708f1872fb9c3eab13d75d4818f6501942775f3c",
+    "dimensions": [
+      1254,
+      1254
+    ]
+  },
+  {
+    "path": "frontend/public/member-achievement-badges/rank-frame-project_lead-silver.png",
+    "bytes": 1116223,
+    "sha256": "49676718c31cfcd95892f5ee7727e1835156d3c55065f30c5a19c83e028dad65",
+    "dimensions": [
+      1254,
+      1254
+    ]
+  },
+  {
+    "path": "frontend/public/member-achievement-badges/rank-frame-quality_checker-bronze.png",
+    "bytes": 1476031,
+    "sha256": "9d2111c12a4b7d57d415cdedde3515b073856c38188a161fb8ea14d2cc28d5e8",
+    "dimensions": [
+      1254,
+      1254
+    ]
+  },
+  {
+    "path": "frontend/public/member-achievement-badges/rank-frame-quality_checker-gold.png",
+    "bytes": 1506843,
+    "sha256": "7e9ae6fe76ac0eaf29125555d4e14a2c3498044e3d2e43d68c7acd185b41241c",
+    "dimensions": [
+      1254,
+      1254
+    ]
+  },
+  {
+    "path": "frontend/public/member-achievement-badges/rank-frame-quality_checker-platinum.png",
+    "bytes": 1651880,
+    "sha256": "e284e3d14caaa8edb7b72c979a10e6d0d47683a55514f40263221267fc970856",
+    "dimensions": [
+      1254,
+      1254
+    ]
+  },
+  {
+    "path": "frontend/public/member-achievement-badges/rank-frame-quality_checker-silver.png",
+    "bytes": 1441395,
+    "sha256": "83bfd69ba8790311e434ef7657f995198d12e2e50f220c5466f7e55b4552c328",
+    "dimensions": [
+      1254,
+      1254
+    ]
+  },
+  {
+    "path": "frontend/public/member-achievement-badges/rank-frame-raw_provider-bronze.png",
+    "bytes": 1095034,
+    "sha256": "ec5851b4ed4b57072ef1da5063cf3aa5befa7c56528de8dd2777369b3ad1168e",
+    "dimensions": [
+      1254,
+      1254
+    ]
+  },
+  {
+    "path": "frontend/public/member-achievement-badges/rank-frame-raw_provider-gold.png",
+    "bytes": 1099259,
+    "sha256": "19530c4434120162b9d80a68e1dba1b461c24434b2c4fe161e8e434c6bb938a6",
+    "dimensions": [
+      1254,
+      1254
+    ]
+  },
+  {
+    "path": "frontend/public/member-achievement-badges/rank-frame-raw_provider-platinum.png",
+    "bytes": 1113091,
+    "sha256": "beaf280e3ba49f6fba8013d21926616f281b5792fc9635022589e27f9b817a4d",
+    "dimensions": [
+      1254,
+      1254
+    ]
+  },
+  {
+    "path": "frontend/public/member-achievement-badges/rank-frame-raw_provider-silver.png",
+    "bytes": 1055838,
+    "sha256": "df099a5e855f8fdf1cd31e3997546407b13f046cf741268179c20d65b97fedc0",
+    "dimensions": [
+      1254,
+      1254
+    ]
+  },
+  {
+    "path": "frontend/public/member-achievement-badges/rank-frame-timer-bronze.png",
+    "bytes": 1276677,
+    "sha256": "dd0e1b2945964aa90f4415e9aed20a274e5ae421e852e7f3ed36c039a1132b5a",
+    "dimensions": [
+      1254,
+      1254
+    ]
+  },
+  {
+    "path": "frontend/public/member-achievement-badges/rank-frame-timer-gold.png",
+    "bytes": 1224276,
+    "sha256": "583ffa57c8739e1817472bd62c8eac2322701f3353c447808a3f0f73aec1c8fe",
+    "dimensions": [
+      1254,
+      1254
+    ]
+  },
+  {
+    "path": "frontend/public/member-achievement-badges/rank-frame-timer-platinum.png",
+    "bytes": 1372165,
+    "sha256": "5f75c63d8380cb098bbe6b98160a8bd530f03b614800f30d1110613c68b18008",
+    "dimensions": [
+      1254,
+      1254
+    ]
+  },
+  {
+    "path": "frontend/public/member-achievement-badges/rank-frame-timer-silver.png",
+    "bytes": 1222286,
+    "sha256": "85ac43738469105c583828428d31adeb9ff1783a9e19f330f8b94547403c7066",
+    "dimensions": [
+      1254,
+      1254
+    ]
+  },
+  {
+    "path": "frontend/public/member-achievement-badges/rank-frame-translator-bronze.png",
+    "bytes": 1154501,
+    "sha256": "b207d6765ec7af6ea5b6391106efd857daae9d0acb48e3c2cde1a387fa089411",
+    "dimensions": [
+      1254,
+      1254
+    ]
+  },
+  {
+    "path": "frontend/public/member-achievement-badges/rank-frame-translator-gold.png",
+    "bytes": 1151037,
+    "sha256": "9a91cb30d9b74ed70d1ea238f560c21fb0b2b612604eb89703ba3e77b67b1905",
+    "dimensions": [
+      1254,
+      1254
+    ]
+  },
+  {
+    "path": "frontend/public/member-achievement-badges/rank-frame-translator-platinum.png",
+    "bytes": 1287126,
+    "sha256": "c5e814af59cbee64c3dcccc84cb1ac518df2707d7624f76f0e22eb624d2477ed",
+    "dimensions": [
+      1254,
+      1254
+    ]
+  },
+  {
+    "path": "frontend/public/member-achievement-badges/rank-frame-translator-silver.png",
+    "bytes": 1087154,
+    "sha256": "b90976fd8c2d4b2d69358b7083749badd0cd95681a4359d45519d4e2db5b9d84",
+    "dimensions": [
+      1254,
+      1254
+    ]
+  },
+  {
+    "path": "frontend/public/member-achievement-badges/rank-frame-typesetter-bronze.png",
+    "bytes": 1166638,
+    "sha256": "954c9ed82f943eb93bd661e8f925c8c371eb167de924da3d46a58d3c1e6dbaff",
+    "dimensions": [
+      1254,
+      1254
+    ]
+  },
+  {
+    "path": "frontend/public/member-achievement-badges/rank-frame-typesetter-gold.png",
+    "bytes": 1169671,
+    "sha256": "69afce5736b287d9a2eaec1f839e618b7f2213bef7ed06620257c099bd4f5d2a",
+    "dimensions": [
+      1254,
+      1254
+    ]
+  },
+  {
+    "path": "frontend/public/member-achievement-badges/rank-frame-typesetter-platinum.png",
+    "bytes": 1235023,
+    "sha256": "b638f096613bdaf36f3934212a661aedc569da600aec48454bfa62e3f19270d9",
+    "dimensions": [
+      1254,
+      1254
+    ]
+  },
+  {
+    "path": "frontend/public/member-achievement-badges/rank-frame-typesetter-silver.png",
+    "bytes": 1129263,
+    "sha256": "c517a589b2f4ad5136498fbc243226f8daa25acb4266112ff7462f3a64e5444e",
+    "dimensions": [
+      1254,
+      1254
+    ]
+  },
+  {
+    "path": "frontend/public/member-achievement-badges/role-admin-motif.png",
+    "bytes": 1313143,
+    "sha256": "0280e86650e0df1ce28c96a5db9a409ec0ce96ddad69829c9027309d821e1b60",
+    "dimensions": [
+      1254,
+      1254
+    ]
+  },
+  {
+    "path": "frontend/public/member-achievement-badges/role-designer-motif.png",
+    "bytes": 1778031,
+    "sha256": "426b54bac16c678e89ea1a15047ca82d2040ffb2715bf3f05bd76c4eb62049a4",
+    "dimensions": [
+      1254,
+      1254
+    ]
+  },
+  {
+    "path": "frontend/public/member-achievement-badges/role-editor-motif.png",
+    "bytes": 1479887,
+    "sha256": "3890c20c862dbe830093b2b5699419755d27fda8c41a76dfdc8aefcedaf7fa0d",
+    "dimensions": [
+      1254,
+      1254
+    ]
+  },
+  {
+    "path": "frontend/public/member-achievement-badges/role-encoder-motif.png",
+    "bytes": 1600669,
+    "sha256": "3baf3a63cfdd06ad7adb1a8d21529fb03778b20932d671cbc3b6a34216fc22f1",
+    "dimensions": [
+      1254,
+      1254
+    ]
+  },
+  {
+    "path": "frontend/public/member-achievement-badges/role-other-motif.png",
+    "bytes": 1424203,
+    "sha256": "5b5098acce6e675b205e1e90c3feb603fe585417ec90b97264b5260a2f144c92",
+    "dimensions": [
+      1254,
+      1254
+    ]
+  },
+  {
+    "path": "frontend/public/member-achievement-badges/role-project_lead-motif.png",
+    "bytes": 1281285,
+    "sha256": "a4f12cf9f7d901c71ac0efeda2db7dab447fe5f6334b12b0748b4bfbe2bebd7a",
+    "dimensions": [
+      1254,
+      1254
+    ]
+  },
+  {
+    "path": "frontend/public/member-achievement-badges/role-quality_checker-motif.png",
+    "bytes": 1040369,
+    "sha256": "8024692ebb67359b893468770c176e3934a50cbbebbbdbdce1f37e57e197a86d",
+    "dimensions": [
+      1254,
+      1254
+    ]
+  },
+  {
+    "path": "frontend/public/member-achievement-badges/role-raw_provider-motif.png",
+    "bytes": 1413956,
+    "sha256": "d66536eb86915911b269c383c651c17cbbd6d017eb1c257ef3ef2edd5dcff63d",
+    "dimensions": [
+      1254,
+      1254
+    ]
+  },
+  {
+    "path": "frontend/public/member-achievement-badges/role-timer-motif.png",
+    "bytes": 1579343,
+    "sha256": "a94c8ec067a8c0c0dfd48e3391c6c746d4ea43ea1abe46ac4d3b71705e4f3964",
+    "dimensions": [
+      1254,
+      1254
+    ]
+  },
+  {
+    "path": "frontend/public/member-achievement-badges/role-translator-motif.png",
+    "bytes": 1623502,
+    "sha256": "e3a4f1cb643c9954e9c072a6657bee7c15ba50948e264458190a8d326c077c10",
+    "dimensions": [
+      1254,
+      1254
+    ]
+  },
+  {
+    "path": "frontend/public/member-achievement-badges/role-typesetter-motif.png",
+    "bytes": 1619911,
+    "sha256": "1465fec5385e54a6b95d712d85fc3592b2cd6f2eb3ad2a24802a2708c14200c9",
+    "dimensions": [
+      1254,
+      1254
+    ]
+  },
+  {
+    "path": "frontend/public/member-achievement-badges/role_entry_admin.png",
+    "bytes": 759971,
+    "sha256": "d8431140eead20bffc1c9bd6210b8a9593eb024007ae5427d6f731eeddf5cbcd",
+    "dimensions": [
+      627,
+      627
+    ]
+  },
+  {
+    "path": "frontend/public/member-achievement-badges/role_entry_designer.png",
+    "bytes": 762679,
+    "sha256": "2ed4fada3228c69b41d571d381c693658139338706c7cfe4f41954bb02bc43f6",
+    "dimensions": [
+      627,
+      627
+    ]
+  },
+  {
+    "path": "frontend/public/member-achievement-badges/role_entry_editor.png",
+    "bytes": 707989,
+    "sha256": "42deeec816948cf0d6772c07b104fcddb96d33cd2f44825b1fe02ecf7a9b6266",
+    "dimensions": [
+      627,
+      627
+    ]
+  },
+  {
+    "path": "frontend/public/member-achievement-badges/role_entry_encoder.png",
+    "bytes": 679847,
+    "sha256": "2025303eded1aaa2678e005590cd0e319c76a9980af407226ab1137e1357cad1",
+    "dimensions": [
+      627,
+      627
+    ]
+  },
+  {
+    "path": "frontend/public/member-achievement-badges/role_entry_other.png",
+    "bytes": 770243,
+    "sha256": "f0b8ed3b4925196175f0559fde6e4bab97442dcdbfd4d1b313adf87b6be52823",
+    "dimensions": [
+      627,
+      627
+    ]
+  },
+  {
+    "path": "frontend/public/member-achievement-badges/role_entry_project_lead.png",
+    "bytes": 691509,
+    "sha256": "717c31309212cad46c14d45ed0f5ffb49919ef4efa73720954abe96ea872a080",
+    "dimensions": [
+      627,
+      627
+    ]
+  },
+  {
+    "path": "frontend/public/member-achievement-badges/role_entry_quality_checker.png",
+    "bytes": 709715,
+    "sha256": "170c404d4a0c7caa41bdfbaaab6fa6494a2e0a7516509633608cbd9a35368853",
+    "dimensions": [
+      627,
+      627
+    ]
+  },
+  {
+    "path": "frontend/public/member-achievement-badges/role_entry_raw_provider.png",
+    "bytes": 705925,
+    "sha256": "9e9deca2155529254bfe247b4cfaab1bf702a8dbcdd684d219e68378660661f7",
+    "dimensions": [
+      627,
+      627
+    ]
+  },
+  {
+    "path": "frontend/public/member-achievement-badges/role_entry_timer.png",
+    "bytes": 718128,
+    "sha256": "793a6d293233503a778f190c9160a4e006c7c854ee891c7fc35eb0ff67fd300d",
+    "dimensions": [
+      627,
+      627
+    ]
+  },
+  {
+    "path": "frontend/public/member-achievement-badges/role_entry_translator.png",
+    "bytes": 703933,
+    "sha256": "c23f8657ca130fc6311b6301fcdd081c7765e4077be8a20210aa1c7af826d375",
+    "dimensions": [
+      627,
+      627
+    ]
+  },
+  {
+    "path": "frontend/public/member-achievement-badges/role_entry_typesetter.png",
+    "bytes": 695388,
+    "sha256": "9f72c21d5c19fa804e0ee10ef972608fb4bb2e649a523f921af32387ec7ed79b",
+    "dimensions": [
+      627,
+      627
+    ]
+  },
+  {
+    "path": "frontend/public/member-achievement-badges/role_volume_timer_bronze.png",
+    "bytes": 712466,
+    "sha256": "a859254f0d33a6c1b932819a64f6ef0acd8fa93de01ca6bd5b9f92f70190932a",
+    "dimensions": [
+      627,
+      627
+    ]
+  },
+  {
+    "path": "frontend/public/member-achievement-badges/role_volume_timer_gold.png",
+    "bytes": 2065597,
+    "sha256": "8d5fd03daa8171a1c22b7845a1e94b12603ee120e0e09ae5e3055b31cb72871f",
+    "dimensions": [
+      1024,
+      1024
+    ]
+  },
+  {
+    "path": "frontend/public/member-achievement-badges/role_volume_timer_platinum.png",
+    "bytes": 2066842,
+    "sha256": "a123456a872bf6665c3a1b8438746077ca36248c0d431ad28f8555f93f9b9a26",
+    "dimensions": [
+      1024,
+      1024
+    ]
+  },
+  {
+    "path": "frontend/public/member-achievement-badges/role_volume_timer_silver.png",
+    "bytes": 1979659,
+    "sha256": "260a9ff0b188863a6951ed728009174169ae0247d1e2cffab180b88f8213b4c9",
+    "dimensions": [
+      1024,
+      1024
+    ]
+  },
+  {
+    "path": "frontend/public/member-achievement-badges/special-historical_leader-v1.png",
+    "bytes": 1276207,
+    "sha256": "1ddfb86ac45cd465677f86494bc479f8c9962d760448167f62ccb83f7570521a",
+    "dimensions": [
+      1024,
+      1536
+    ]
+  }
+]

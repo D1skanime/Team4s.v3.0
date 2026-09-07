@@ -1,0 +1,105 @@
+<!doctype html>
+<html lang="de">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1">
+  <title>Phase 151 – Achievement-Slot-Prototyp</title>
+  <style>
+    :root {
+      color-scheme: dark;
+      --page:#0c1423; --card:#14233a; --nested:#0f1c30; --text:#f3f7ff;
+      --muted:#9eb0c9; --line:#314763; --cobalt:#5b8cff; --wine:#9d4667;
+    }
+    * { box-sizing:border-box; }
+    body { margin:0; padding:32px 16px 64px; background:var(--page); color:var(--text); font:400 16px/1.5 system-ui,sans-serif; }
+    main { max-width:1120px; margin:auto; }
+    h1,h2,p { margin-block-start:0; }
+    h1 { font-size:28px; line-height:1.2; font-weight:600; }
+    h2 { font-size:20px; line-height:1.2; font-weight:600; }
+    .note { color:var(--muted); max-width:72ch; }
+    .comparison { display:grid; gap:24px; align-items:start; grid-template-columns:repeat(auto-fit,minmax(min(100%,320px),1fr)); }
+    .case { container:achievement-stage / inline-size; min-width:0; }
+    .case.narrow { max-width:520px; }
+    .case.wide { grid-column:1/-1; max-width:760px; }
+    .label { margin:0 0 8px; color:var(--muted); font-size:14px; }
+    .stage {
+      min-width:0; min-height:360px; padding:16px; display:grid; align-content:start; justify-items:center; gap:16px;
+      border:1px solid var(--line); border-radius:16px; background:linear-gradient(145deg,var(--card),var(--nested));
+    }
+    .stage[aria-current="true"] { border-color:var(--cobalt); box-shadow:0 0 0 1px color-mix(in srgb,var(--cobalt) 45%,transparent); }
+    .stage.inactive { opacity:.62; }
+    .art-slot {
+      inline-size:192px; block-size:192px; flex:none; display:grid; grid-template-columns:minmax(0,1fr); grid-template-rows:minmax(0,1fr); place-items:center; padding:8px;
+      border-radius:16px; background:color-mix(in srgb,var(--nested) 72%,transparent);
+    }
+    .art-slot > img { grid-area:1/1; min-inline-size:0; min-block-size:0; max-inline-size:100%; max-block-size:100%; inline-size:100%; block-size:100%; object-fit:contain; }
+    .copy { min-width:0; width:100%; text-align:center; }
+    .copy h2 { margin-bottom:8px; }
+    .copy p { margin-bottom:16px; color:var(--muted); }
+    .accent { width:48px; height:2px; margin:0 auto 16px; background:var(--wine); }
+    .markers { display:flex; gap:8px; flex-wrap:wrap; justify-content:center; }
+    .marker {
+      inline-size:64px; block-size:64px; flex:none; padding:4px; display:grid; place-items:center;
+      border:1px solid var(--line); border-radius:12px; background:transparent; color:var(--text);
+    }
+    .marker img { max-width:100%; max-height:100%; object-fit:contain; }
+    .marker.active { border-color:var(--cobalt); opacity:1; }
+    .marker.locked { opacity:.42; filter:saturate(.45); }
+    @container achievement-stage (min-width:562px) {
+      .stage { min-height:280px; grid-template-columns:216px minmax(288px,1fr); gap:24px; align-items:center; justify-items:start; }
+      .art-slot { inline-size:216px; block-size:216px; }
+      .copy { text-align:left; }
+      .accent { margin-left:0; }
+      .markers { justify-content:flex-start; }
+      .marker { inline-size:80px; block-size:80px; }
+    }
+    @container achievement-stage (min-width:658px) {
+      .stage { grid-template-columns:240px minmax(360px,1fr); }
+      .art-slot { inline-size:240px; block-size:240px; }
+    }
+    @media (prefers-reduced-motion:reduce) { *,*::before,*::after { scroll-behavior:auto!important; transition:none!important; animation:none!important; } }
+  </style>
+</head>
+<body>
+<main>
+  <h1>Achievement-Slot · Geometrieprototyp</h1>
+  <p class="note">Keine neue Produktseite. Dieselbe Card-Sprache und derselbe Slot zeigen containerabhängig die schmale und breite Komposition; Quelldateien bleiben unverändert.</p>
+  <div class="comparison">
+    <section class="case narrow" aria-labelledby="narrow-title">
+      <p class="label">Schmaler Container · 192-px-Slot</p>
+      <article class="stage" aria-current="true">
+        <div class="art-slot" role="img" aria-label="Übersetzer, Gold">
+          <img alt="" src="http://127.0.0.1:3000/member-achievement-badges/role-translator-motif.png">
+          <img alt="" src="http://127.0.0.1:3000/member-achievement-badges/rank-frame-translator-gold.png">
+        </div>
+        <div class="copy">
+          <h2 id="narrow-title">Übersetzer</h2><div class="accent"></div>
+          <p>Gold · aktive Karte. Der Inhalt steht unter dem Motiv, ohne den Slot zu vergrößern.</p>
+          <div class="markers" aria-label="Stufen">
+            <button class="marker active" aria-label="Gold ausgewählt"><img alt="" src="http://127.0.0.1:3000/member-achievement-badges/rank-frame-translator-gold.png"></button>
+            <button class="marker locked" aria-label="Platin, gesperrt"><img alt="" src="http://127.0.0.1:3000/member-achievement-badges/rank-frame-translator-platinum.png"></button>
+          </div>
+        </div>
+      </article>
+    </section>
+
+    <section class="case wide" aria-labelledby="wide-title">
+      <p class="label">Breiter Container · 240-px-Maximum, Motiv und Text nebeneinander</p>
+      <article class="stage inactive">
+        <div class="art-slot" role="img" aria-label="Historische Auszeichnung">
+          <img alt="" src="http://127.0.0.1:3000/member-achievement-badges/special-historical_leader-v1.png">
+        </div>
+        <div class="copy">
+          <h2 id="wide-title">Historische Auszeichnung</h2><div class="accent"></div>
+          <p>Das 2:3-Porträt bleibt proportional und zentriert im identischen quadratischen Slot. Die produktive historische Pill bleibt im Profil-Hero.</p>
+          <div class="markers" aria-label="Vergleich identischer Außenmaße">
+            <button class="marker active" aria-label="Aktiver Zustand"><img alt="" src="http://127.0.0.1:3000/member-achievement-badges/role_entry_translator.png"></button>
+            <button class="marker locked" aria-label="Inaktiver Zustand"><img alt="" src="http://127.0.0.1:3000/member-achievement-badges/role_entry_timer.png"></button>
+          </div>
+        </div>
+      </article>
+    </section>
+  </div>
+</main>
+</body>
+</html>

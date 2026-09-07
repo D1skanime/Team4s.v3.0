@@ -145,3 +145,36 @@
 ---
 *Requirements defined: 2026-08-20*
 *Last updated: 2026-09-01 after Phase 142 final-gate reconciliation*
+
+
+## Phase 151 — Additive scope (2026-09-07)
+
+Source: `.planning/phases/151-erfolgsbadge-karussell-konsolidierung/151-USER-REQUEST.md`. Existing v1.4 requirements remain complete.
+
+- [ ] **P151-01**: Aktuellen Phase-150-Code, CSS-Kaskade, Artwork, Rollen, Karussell und Query-Pfade vor Implementierung analysieren und dokumentieren.
+- [ ] **P151-02**: Bestehende Backend-Threshold-Autorität und Badge-Deduplizierung ohne neue Frontend-Business-Registry erhalten.
+- [ ] **P151-03**: Gemeinsame zentrierte Badge-Bühne mit contain, konsistentem Padding und erhaltenem Seitenverhältnis; bestehende Quellassets unverändert scharf erhalten.
+- [ ] **P151-04**: Kleinere Mobile-First-Größen, begrenzte Maximalgröße, konsolidierte Container Queries ohne konkurrierende Größen-Overrides; alle sechs Viewportklassen, Einbettung und Zoom prüfen.
+- [ ] **P151-05**: Karussell mit eindeutiger aktiver Karte, ohne Pumpen oder größere Nachbarn; Maus, Trackpad, Touch, Tastatur und Reduced Motion zuverlässig.
+- [ ] **P151-06**: Karaoke FX Entry, Bronze, Silber, Gold und Platin in bestehender visueller Sprache und regulärem Artwork-Resolver integrieren.
+- [ ] **P151-07**: Explizite testbare Artwork-Metadaten mit Rollen-Katalog-Abdeckung, klaren Erweiterungsschritten und bewusst deklarierten Ausnahmen; keine spekulativen Dateipfade.
+- [ ] **P151-08**: Aggregierte Datenbeschaffung erhalten, keine Abfragen pro Badge/Rollenkarte; Query-Pfade und unveränderte Query-Anzahl bzw. erforderliche Änderungen dokumentieren.
+- [ ] **P151-09**: Frontend-Tests für Resolver, alle Rollen, Duplikate, responsive Darstellung, aktive Karte, Karussell und Reduced Motion; relevante bestehende Seitenregressionen prüfen.
+- [ ] **P151-10**: Backend-Threshold-/Deduplizierungsregressionen sowie relevante Frontend-Tests, Typecheck, Lint, Build und git diff --check ausführen und getrennt dokumentieren.
+- [ ] **P151-11**: Jedes verfügbare Achievement-Artwork einzeln visuell prüfen; reproduzierbare Linux-Browser-Screenshots und robuste strukturelle/visuelle Regression mit Badge-Inventar und Abnahmeprotokoll.
+- [ ] **P151-12**: GSD Research, geprüfte Wave-Pläne, Execute, Gap-Behebung und unabhängige Abschlussprüfung abschließen; nur Phase151 auf main committen und origin/main ohne Force pushen.
+
+| Requirement | Phase | Status |
+|-------------|-------|--------|
+| P151-01 | Phase 151 | Pending |
+| P151-02 | Phase 151 | Pending |
+| P151-03 | Phase 151 | Pending |
+| P151-04 | Phase 151 | Pending |
+| P151-05 | Phase 151 | Pending |
+| P151-06 | Phase 151 | Pending |
+| P151-07 | Phase 151 | Pending |
+| P151-08 | Phase 151 | Pending |
+| P151-09 | Phase 151 | Pending |
+| P151-10 | Phase 151 | Pending |
+| P151-11 | Phase 151 | Pending |
+| P151-12 | Phase 151 | Pending |
