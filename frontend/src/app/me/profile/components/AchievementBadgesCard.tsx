@@ -36,6 +36,14 @@ export function AchievementBadgesCard({
             const toggleId = `badge-visibility-${badge.id}`
             const isPending = pendingBadgeId === badge.id
             const presentation = getMemberBadgePresentation(badge.badge_code)
+            // D-30 (siebte Fundstelle): resolveRoleVolumePresentation liefert seit Plan 150-05
+            // nur noch das nackte Tier-Label -- die Schwellenzahl kommt server-autoritativ aus
+            // badge.current_threshold und wird hier exakt wie CategoryProgressTable.tsx's
+            // buildRoleVolumeRow rekonstruiert. Fuer jeden Badge-Code mit current_threshold=null
+            // (heute jeder von GET /me/badges tatsächlich lieferbare Code) ist dies ein No-Op.
+            const displayLabel = badge.current_threshold != null
+              ? `${presentation.label} · ${badge.current_threshold}+`
+              : presentation.label
             const Icon = presentation.Icon
             const isPublic = badge.visibility === 'public'
 
@@ -44,7 +52,7 @@ export function AchievementBadgesCard({
                 <div className={styles.badgeManagerCopy}>
                   <span className={styles.badgeIdentity}>
                     <Icon size={16} aria-hidden="true" />
-                    <strong>{presentation.label}</strong>
+                    <strong>{displayLabel}</strong>
                   </span>
                   <label className={styles.badgeToggle} htmlFor={toggleId}>
                     <input
@@ -52,7 +60,7 @@ export function AchievementBadgesCard({
                       type="checkbox"
                       checked={isPublic}
                       disabled={disabled || isPending}
-                      aria-label={`${presentation.label} öffentlich anzeigen`}
+                      aria-label={`${displayLabel} öffentlich anzeigen`}
                       onChange={(event) => onVisibilityChange(badge.id, event.target.checked ? 'public' : 'internal')}
                     />
                     <span aria-hidden="true" className={styles.badgeToggleTrack}>

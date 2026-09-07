@@ -256,6 +256,14 @@ export interface MemberBadge {
   badge_category: string;
   visibility: "public" | "internal" | "hidden";
   awarded_at: string;
+  /**
+   * Phase 150 Plan 150-07 (D-30, siebte Fundstelle): Registry-Schwellenwert der eigenen
+   * aktuellen Stufe für role_volume_<roleCode>_<tier>-Badges (z.B. 320 für "gold"); null für
+   * jeden anderen Badge-Code. Zum Zeitpunkt dieser Änderung kann GET /me/badges keinen
+   * role_volume_-Code tatsächlich liefern (siehe Plan-SUMMARY) -- das Feld ist trotzdem
+   * vollständig, damit AchievementBadgesCard.tsx korrekt reagiert, sobald sich das ändert.
+   */
+  current_threshold: number | null;
 }
 
 export interface MemberBadgesResponse {
