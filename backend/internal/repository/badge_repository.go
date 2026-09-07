@@ -3,8 +3,10 @@ package repository
 import (
 	"context"
 	"errors"
+	"strings"
 	"time"
 
+	"team4s.v3/backend/internal/badges"
 	"team4s.v3/backend/internal/models"
 
 	"github.com/jackc/pgx/v5"
@@ -31,13 +33,50 @@ func (r *BadgeRepository) ResolveMemberIDForAppUser(ctx context.Context, appUser
 }
 
 // MemberBadgeRow repräsentiert eine Zeile aus member_badges.
+// CurrentThreshold (Phase 150, Plan 150-07/D-30, siebte Fundstelle) ist der
+// Registry-Schwellenwert der eigenen Stufe eines role_volume_<roleCode>_<tier>-Badge-Codes
+// (z.B. 320 fuer "role_volume_translator_gold"), nil fuer jeden anderen Badge-Code -- siehe
+// roleVolumeThresholdForBadgeCode fuer die Berechnung und deren Grounding-Hinweis.
 type MemberBadgeRow struct {
-	ID            int64
-	MemberID      int64
-	BadgeCode     string
-	BadgeCategory string
-	Visibility    string
-	AwardedAt     time.Time
+	ID               int64
+	MemberID         int64
+	BadgeCode        string
+	BadgeCategory    string
+	Visibility       string
+	AwardedAt        time.Time
+	CurrentThreshold *int64
+}
+
+// roleVolumeThresholdForBadgeCode liefert den Registry-Schwellenwert der eigenen Stufe eines
+// role_volume_<roleCode>_<tier>-Badge-Codes (z.B. "role_volume_translator_gold" -> 320), oder
+// nil fuer jeden anderen Badge-Code. Tier-Suffixe werden ueber einen bekannten Endungs-Scan
+// erkannt (nicht per naivem split("_")), weil Rollencodes selbst Unterstriche enthalten koennen
+// (z.B. "quality_checker", "raw_provider", "project_lead") -- spiegelt den Ansatz des Frontends
+// (resolveRoleVolumePresentation in memberBadgeFamilies.ts). Ein unbekanntes/unerwartetes
+// Tier-Suffix liefert defensiv nil statt zu panicen.
+//
+// Grounding (D-30, Plan 150-07): zum Zeitpunkt dieser Aenderung schreibt kein Codepfad im
+// Backend einen role_volume_-praefixierten Badge-Code in member_badges --
+// services/badge_service.go's ComputeAndStoreBadges persistiert ausschliesslich
+// founding_member/historical_leader/long_term_member/membership_7_years/membership_10_years/
+// first_contribution/productive_bronze|silver|gold/all_rounder/verified. Rollen-Volumen-Badges
+// sind bislang eine rein live berechnete Projektion des OEFFENTLICHEN Profil-Endpunkts
+// (loadPublicBadges/loadRoleVolumeBadges), nicht von GetMemberBadges. Dieses Feld existiert
+// trotzdem vollstaendig und korrekt, damit MemberBadge's Contract nach D-30's Vorgabe ohne
+// Ausnahme korrekt bleibt -- unabhaengig von der aktuellen Erreichbarkeit in Produktion.
+func roleVolumeThresholdForBadgeCode(badgeCode string) *int64 {
+	const prefix = "role_volume_"
+	if !strings.HasPrefix(badgeCode, prefix) {
+		return nil
+	}
+	withoutPrefix := strings.TrimPrefix(badgeCode, prefix)
+	for _, tier := range badges.RoleVolume.Tiers {
+		if strings.HasSuffix(withoutPrefix, "_"+tier.Code) {
+			threshold := tier.Threshold
+			return &threshold
+		}
+	}
+	return nil
 }
 
 // BadgeRepository verwaltet den Datenbankzugriff auf member_badges.
@@ -173,6 +212,7 @@ func (r *BadgeRepository) GetMemberBadges(ctx context.Context, memberID int64) (
 		); err != nil {
 			return nil, err
 		}
+		row.CurrentThreshold = roleVolumeThresholdForBadgeCode(row.BadgeCode)
 		result = append(result, row)
 	}
 	if err := rows.Err(); err != nil {

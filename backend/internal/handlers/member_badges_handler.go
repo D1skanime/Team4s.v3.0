@@ -28,12 +28,17 @@ type meBadgeVisibilityPatchRequest struct {
 }
 
 // meBadgeResponse ist ein einzelnes Badge in der GET /me/badges-Antwort.
+// CurrentThreshold (Plan 150-07/D-30, siebte Fundstelle) ist der Registry-Schwellenwert der
+// eigenen Stufe fuer role_volume_<roleCode>_<tier>-Badge-Codes, null fuer jeden anderen
+// Badge-Code -- siehe repository.MemberBadgeRow/roleVolumeThresholdForBadgeCode fuer die
+// Berechnung und deren Grounding-Hinweis zur aktuellen Nicht-Erreichbarkeit in Produktion.
 type meBadgeResponse struct {
-	ID            int64  `json:"id"`
-	BadgeCode     string `json:"badge_code"`
-	BadgeCategory string `json:"badge_category"`
-	Visibility    string `json:"visibility"`
-	AwardedAt     string `json:"awarded_at"`
+	ID               int64  `json:"id"`
+	BadgeCode        string `json:"badge_code"`
+	BadgeCategory    string `json:"badge_category"`
+	Visibility       string `json:"visibility"`
+	AwardedAt        string `json:"awarded_at"`
+	CurrentThreshold *int64 `json:"current_threshold"`
 }
 
 // GetMyBadges handles GET /api/v1/me/badges
@@ -65,11 +70,12 @@ func (h *MemberBadgesHandler) GetMyBadges(c *gin.Context) {
 	badges := make([]meBadgeResponse, 0, len(rows))
 	for _, row := range rows {
 		badges = append(badges, meBadgeResponse{
-			ID:            row.ID,
-			BadgeCode:     row.BadgeCode,
-			BadgeCategory: row.BadgeCategory,
-			Visibility:    row.Visibility,
-			AwardedAt:     row.AwardedAt.Format(time.RFC3339),
+			ID:               row.ID,
+			BadgeCode:        row.BadgeCode,
+			BadgeCategory:    row.BadgeCategory,
+			Visibility:       row.Visibility,
+			AwardedAt:        row.AwardedAt.Format(time.RFC3339),
+			CurrentThreshold: row.CurrentThreshold,
 		})
 	}
 

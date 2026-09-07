@@ -11351,6 +11351,7 @@ components:
         - badge_category
         - visibility
         - awarded_at
+        - current_threshold
       properties:
         id:
           type: integer
@@ -11368,6 +11369,17 @@ components:
         awarded_at:
           type: string
           format: date-time
+        current_threshold:
+          type: integer
+          format: int64
+          nullable: true
+          description: >-
+            Registry-Schwellenwert der eigenen aktuellen Stufe für
+            role_volume_<roleCode>_<tier>-Badges (z.B. 320 für "gold"); null für jeden
+            anderen Badge-Code. Phase 150 Plan 150-07 (D-30, siebte Fundstelle) --
+            zum Zeitpunkt dieser Änderung ist role_volume_ kein von GET /me/badges
+            tatsächlich lieferbarer Badge-Code (siehe Plan-SUMMARY), daher ist dieses
+            Feld in Produktion derzeit immer null; es existiert für Vertrags-Korrektheit.
     MemberBadgesResponse:
       type: object
       required:
