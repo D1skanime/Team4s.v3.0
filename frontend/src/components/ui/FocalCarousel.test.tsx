@@ -88,6 +88,38 @@ function configureLinearGeometry(region: HTMLDivElement, slides: readonly HTMLEl
   }))
 }
 
+function mockBrowserCarouselGeometry(itemCount: number) {
+  const clientWidth = vi.spyOn(HTMLElement.prototype, 'clientWidth', 'get').mockImplementation(function (this: HTMLElement) {
+    return this.getAttribute('role') === 'region' ? 300 : 0
+  })
+  const scrollWidth = vi.spyOn(HTMLElement.prototype, 'scrollWidth', 'get').mockImplementation(function (this: HTMLElement) {
+    return this.getAttribute('role') === 'region' ? itemCount * 300 : 0
+  })
+  const rect = vi.spyOn(HTMLElement.prototype, 'getBoundingClientRect').mockImplementation(function (this: HTMLElement) {
+    if (this.getAttribute('role') === 'region') return mockRect(0, 300)
+    if (this.hasAttribute('data-focal-carousel-item')) {
+      const track = this.closest('[role="region"]') as HTMLDivElement | null
+      const directItems = track ? directCarouselItems(track) : []
+      return mockRect(directItems.indexOf(this) * 300 - (track?.scrollLeft ?? 0), 300)
+    }
+    return mockRect(0, 0)
+  })
+  const originalScrollTo = Object.getOwnPropertyDescriptor(HTMLElement.prototype, 'scrollTo')
+  Object.defineProperty(HTMLElement.prototype, 'scrollTo', {
+    configurable: true,
+    value(this: HTMLElement, options: ScrollToOptions) {
+      this.scrollLeft = Number(options.left)
+    },
+  })
+  return () => {
+    clientWidth.mockRestore()
+    scrollWidth.mockRestore()
+    rect.mockRestore()
+    if (originalScrollTo) Object.defineProperty(HTMLElement.prototype, 'scrollTo', originalScrollTo)
+    else delete (HTMLElement.prototype as { scrollTo?: typeof HTMLElement.prototype.scrollTo }).scrollTo
+  }
+}
+
 describe('FocalCarousel', () => {
   it('uses the carousel container width to show one complete mobile card with arrows below it', () => {
     expect(focalCarouselCss).toMatch(/\.root\s*\{[^}]*container:\s*focal-carousel \/ inline-size;/s)
@@ -425,7 +457,7 @@ describe('FocalCarousel Phase 119 shared interaction contract', () => {
     }
   })
 
-  it('activates a directly clicked non-interactive neighbor without hijacking nested controls', () => {
+  it('activates an owned inactive neighbor from track-level click coordinates without removing inert', () => {
     render(
       <FocalCarousel
         items={items}
@@ -439,8 +471,19 @@ describe('FocalCarousel Phase 119 shared interaction contract', () => {
       />,
     )
 
-    fireEvent.click(screen.getByLabelText('Karte 2 von 3'))
+    const region = screen.getByRole('region', { name: 'Direktwahl-Karussell' }) as HTMLDivElement
+    const slides = directCarouselItems(region)
+    Object.defineProperty(region, 'getBoundingClientRect', { configurable: true, value: () => mockRect(0, 300) })
+    slides.forEach((slide, index) => Object.defineProperty(slide, 'getBoundingClientRect', {
+      configurable: true,
+      value: () => mockRect(index * 100, 100),
+    }))
+
+    expect(slides[1].hasAttribute('inert')).toBe(true)
+    fireEvent.click(region.firstElementChild as HTMLElement, { clientX: 150, clientY: 50 })
     expect(screen.getByText('Beta').closest('[aria-current="true"]')).not.toBeNull()
+    expect(slides[0].hasAttribute('inert')).toBe(true)
+    expect(slides[1].hasAttribute('inert')).toBe(false)
 
     fireEvent.click(screen.getByRole('button', { name: 'Gamma' }))
     expect(screen.getByText('Beta').closest('[aria-current="true"]')).not.toBeNull()
@@ -696,6 +739,81 @@ describe('FocalCarousel Phase 119 shared interaction contract', () => {
 })
 
 describe('FocalCarousel Phase 151 interaction hardening', () => {
+  it('cancels in-flight motion and restores the active physical center before collapse focus', () => {
+    const animation = stubAnimationFrames()
+    const restoreGeometry = mockBrowserCarouselGeometry(items.length)
+    vi.stubGlobal('matchMedia', vi.fn().mockReturnValue({
+      matches: false,
+      addEventListener: vi.fn(),
+      removeEventListener: vi.fn(),
+    }))
+    try {
+      renderCarousel()
+      const oldRegion = screen.getByRole('region', { name: 'Beispiel-Karussell' }) as HTMLDivElement
+      fireEvent.click(screen.getByRole('button', { name: 'Nächste Karte' }))
+
+      expect(screen.getByText('Beta').closest('[aria-current="true"]')).not.toBeNull()
+      expect(animation.pendingCount()).toBe(1)
+      fireEvent.click(screen.getByRole('button', { name: 'Alle Karten anzeigen' }))
+      expect(animation.pendingCount()).toBe(0)
+
+      fireEvent.click(screen.getByRole('button', { name: 'Weniger anzeigen' }))
+      const remountedRegion = screen.getByRole('region', { name: 'Beispiel-Karussell' }) as HTMLDivElement
+      expect(remountedRegion).not.toBe(oldRegion)
+      expect(screen.getByText('Beta').closest('[aria-current="true"]')).not.toBeNull()
+      expect(remountedRegion.scrollLeft).toBe(300)
+      expect(document.activeElement).toBe(screen.getByRole('button', { name: 'Alle Karten anzeigen' }))
+
+      act(() => animation.advanceTo(500))
+      expect(oldRegion.scrollLeft).toBe(0)
+      expect(remountedRegion.scrollLeft).toBe(300)
+    } finally {
+      restoreGeometry()
+      vi.unstubAllGlobals()
+    }
+  })
+
+  it('clamps a shrinking item set, cancels its pending motion and moves on the first Previous command', () => {
+    const animation = stubAnimationFrames()
+    vi.stubGlobal('matchMedia', vi.fn().mockReturnValue({
+      matches: false,
+      addEventListener: vi.fn(),
+      removeEventListener: vi.fn(),
+    }))
+    const fiveItems = ['Alpha', 'Beta', 'Gamma', 'Delta', 'Epsilon']
+    const carousel = (currentItems: readonly string[]) => (
+      <FocalCarousel
+        items={currentItems}
+        getItemKey={(item) => item}
+        renderItem={(item) => <span>{item}</span>}
+        regionLabel="Schrumpfendes Karussell"
+        itemSingularLabel="Karte"
+        itemPluralLabel="Karten"
+        previousLabel="Vorherige Karte"
+        nextLabel="Nächste Karte"
+      />
+    )
+    try {
+      const rendered = render(carousel(fiveItems))
+      const region = screen.getByRole('region', { name: 'Schrumpfendes Karussell' }) as HTMLDivElement
+      configureLinearGeometry(region, directCarouselItems(region))
+      fireEvent.keyDown(region, { key: 'End' })
+      fireEvent.click(screen.getByRole('button', { name: 'Vorherige Karte' }))
+      expect(screen.getByText('Delta').closest('[aria-current="true"]')).not.toBeNull()
+      expect(animation.pendingCount()).toBe(1)
+
+      rendered.rerender(carousel(fiveItems.slice(0, 2)))
+      expect(screen.getByText('Beta').closest('[aria-current="true"]')).not.toBeNull()
+      expect(animation.pendingCount()).toBe(0)
+      expect(region.scrollLeft).toBe(300)
+
+      fireEvent.click(screen.getByRole('button', { name: 'Vorherige Karte' }))
+      expect(screen.getByText('Alpha').closest('[aria-current="true"]')).not.toBeNull()
+    } finally {
+      vi.unstubAllGlobals()
+    }
+  })
+
   it('updates the active direct item on one animation frame while manual scrolling and settles after 120ms', () => {
     vi.useFakeTimers()
     const animation = stubAnimationFrames()

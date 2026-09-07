@@ -149,3 +149,7 @@ interaction timing and data ownership are reused. The expanded/full-mount/focus 
 After extraction: all35 FocalCarousel tests PASS; scoped ESLint on engine/internal module/test PASS;
 `git diff --check` PASS. Log: `/tmp/team4s-151-carousel-split-tests.log`.
 This bounded extra private file is a coordinator-approved modularity correction within Plan03 ownership.
+
+## Integration review closure
+
+The independent review reopened three behavioral gaps after initial execution. Track-level native-inert selection, expand/collapse cancellation and physical recentering, and item-count shrink synchronization are fixed and covered by37 component tests plus105 consumer tests and native Chromium proofs. See151-CAROUSEL-REVIEW-FIXES.md. The shared disclosure target minimum is now44px, confirmed by real rectangles. Full Phase151 acceptance remains dependent on artwork and exhaustive final QA.

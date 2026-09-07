@@ -1,5 +1,6 @@
 'use client'
 
+import { ChevronLeft, ChevronRight } from 'lucide-react'
 import { memo, type MouseEvent, type CSSProperties, type ReactNode, type Ref } from 'react'
 
 import { Button } from './Button'
@@ -49,7 +50,6 @@ type DirectCarouselItemProps<T> = {
   activeItemClassName?: string
   renderItem: (item: T, state: FocalCarouselItemState) => ReactNode
   showAll: () => void
-  onSelect: (index: number) => void
 }
 
 function DirectCarouselItemInner<T>({
@@ -63,7 +63,6 @@ function DirectCarouselItemInner<T>({
   activeItemClassName,
   renderItem,
   showAll,
-  onSelect,
 }: DirectCarouselItemProps<T>) {
   return (
     <div
@@ -84,10 +83,6 @@ function DirectCarouselItemInner<T>({
         if (!node) return
         if (active) node.removeAttribute('inert')
         else node.setAttribute('inert', '')
-      }}
-      onClick={(event) => {
-        if (active || (event.target instanceof Element && event.target.closest('button, a, input, select, textarea'))) return
-        onSelect(index)
       }}
     >
       {renderItem(item, {
@@ -115,6 +110,13 @@ export function directItemElements(track: HTMLDivElement | null) {
   )
 }
 
+export function ownedItemIndexAtPoint(track: HTMLDivElement, x: number, y: number) {
+  return directItemElements(track).findIndex((element) => {
+    const rect = element.getBoundingClientRect()
+    return x >= rect.left && x <= rect.right && y >= rect.top && y <= rect.bottom
+  })
+}
+
 export function centeredScrollLeft(track: HTMLDivElement, element: HTMLElement) {
   const maxScroll = Math.max(0, track.scrollWidth - track.clientWidth)
   const trackRect = track.getBoundingClientRect()
@@ -125,6 +127,15 @@ export function centeredScrollLeft(track: HTMLDivElement, element: HTMLElement) 
       - (trackRect.left + trackRect.width / 2)
     : element.offsetLeft + element.offsetWidth / 2 - track.clientWidth / 2
   return Math.max(0, Math.min(unclampedLeft, maxScroll))
+}
+
+export function positionOwnedItem(track: HTMLDivElement | null, index: number) {
+  if (!track) return
+  const element = directItemElements(track)[index]
+  if (!element) return
+  const left = centeredScrollLeft(track, element)
+  track.scrollTo?.({ left, behavior: 'auto' })
+  if (typeof track.scrollTo !== 'function') track.scrollLeft = left
 }
 
 export function nearestOwnedItemIndex(track: HTMLDivElement | null, activeIndex: number, lastIndex: number) {
@@ -204,4 +215,28 @@ export function consumeSuppressedClick(event: MouseEvent<HTMLDivElement>, suppre
   event.preventDefault()
   event.stopPropagation()
   suppressed.current = false
+}
+
+type CarouselArrowProps = {
+  direction: 'previous' | 'next'
+  label: string
+  disabled: boolean
+  onClick: () => void
+}
+
+export function CarouselArrow({ direction, label, disabled, onClick }: CarouselArrowProps) {
+  const Icon = direction === 'previous' ? ChevronLeft : ChevronRight
+  return (
+    <Button
+      type="button"
+      variant="ghost"
+      iconOnly
+      className={styles.arrow}
+      aria-label={label}
+      disabled={disabled}
+      onClick={onClick}
+    >
+      <Icon size={18} aria-hidden="true" />
+    </Button>
+  )
 }

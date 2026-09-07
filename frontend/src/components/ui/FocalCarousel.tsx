@@ -1,6 +1,5 @@
 'use client'
 
-import { ChevronLeft, ChevronRight } from 'lucide-react'
 import {
   useCallback,
   useEffect,
@@ -18,7 +17,8 @@ import { classNames } from './classNames'
 import styles from './FocalCarousel.module.css'
 import {
   centeredScrollLeft, directItemElements, nearestOwnedItemIndex, consumeSuppressedClick,
-  DirectCarouselItem, ExpandedCarousel, type FocalCarouselProps,
+  ownedItemIndexAtPoint, positionOwnedItem, CarouselArrow, DirectCarouselItem,
+  ExpandedCarousel, type FocalCarouselProps,
 } from './FocalCarouselInternals'
 
 export type { FocalCarouselItemState } from './FocalCarouselInternals'
@@ -58,7 +58,7 @@ export function FocalCarousel<T>(props: FocalCarouselProps<T>) {
   const { targetRef: activationRef, interactionEnabled } = useNearViewportActivation<HTMLDivElement>(
     deferInteractionUntilNearViewport,
   )
-  const trackRef = useRef<HTMLDivElement>(null)
+  const trackRef = useRef<HTMLDivElement | null>(null)
   const restoreFocusRef = useRef(false)
   const expandFocusRef = useRef(false)
   const suppressClickRef = useRef(false)
@@ -68,24 +68,38 @@ export function FocalCarousel<T>(props: FocalCarouselProps<T>) {
   const programmaticAnimationTrackRef = useRef<HTMLDivElement | null>(null)
   const reducedMotionRef = useRef(false)
   const focusItemRef = useRef<(index: number) => void>(() => {})
+  const cancelPendingInteractionRef = useRef<(updateNavigationState?: boolean) => boolean>(() => false)
   const dragRef = useRef({ active: false, intent: 'pending', startX: 0, startY: 0, startScroll: 0, pointerId: -1, captured: false })
 
   const visibleItems = carouselItems ?? items
+  const [renderedItemCount, setRenderedItemCount] = useState(visibleItems.length)
   const lastIndex = Math.max(0, visibleItems.length - 1)
   const safeIndex = Math.min(activeIndex, lastIndex)
+  if (renderedItemCount !== visibleItems.length) {
+    setRenderedItemCount(visibleItems.length)
+    activeIndexRef.current = safeIndex
+    if (activeIndex !== safeIndex) setActiveIndex(safeIndex)
+    if (isNavigating) setIsNavigating(false)
+  }
   const showAll = useCallback(() => {
+    cancelPendingInteractionRef.current()
     expandFocusRef.current = true
     setExpanded(true)
   }, [])
-  const selectItem = useCallback((index: number) => focusItemRef.current(index), [])
+
+  const setTrackElement = useCallback((track: HTMLDivElement | null) => {
+    trackRef.current = track
+    cancelPendingInteractionRef.current(false)
+    if (!track) return
+    positionOwnedItem(track, Math.min(activeIndexRef.current, Math.max(0, renderedItemCount - 1)))
+  }, [renderedItemCount])
 
   useEffect(() => {
-    if (!expanded && restoreFocusRef.current) {
-      restoreFocusRef.current = false
-      const toggle = document.getElementById(toggleId)
-      if (toggle) toggle.focus()
-      else trackRef.current?.focus()
-    }
+    if (expanded || !restoreFocusRef.current) return
+    restoreFocusRef.current = false
+    const toggle = document.getElementById(toggleId)
+    if (toggle) toggle.focus()
+    else trackRef.current?.focus()
   }, [expanded, toggleId])
 
   useEffect(() => {
@@ -102,8 +116,7 @@ export function FocalCarousel<T>(props: FocalCarouselProps<T>) {
   }, [])
 
   useEffect(() => {
-    if (!interactionEnabled) return
-    if (typeof window.matchMedia !== 'function') return
+    if (!interactionEnabled || typeof window.matchMedia !== 'function') return
     const media = window.matchMedia('(prefers-reduced-motion: reduce)')
     const update = () => {
       reducedMotionRef.current = media.matches
@@ -137,6 +150,7 @@ export function FocalCarousel<T>(props: FocalCarouselProps<T>) {
     if (updateNavigationState) setIsNavigating(false)
     return wasAnimating
   }
+  cancelPendingInteractionRef.current = cancelPendingInteraction
 
   const focusItem = (index: number, animate = true) => {
     const boundedIndex = Math.max(0, Math.min(index, lastIndex))
@@ -160,8 +174,7 @@ export function FocalCarousel<T>(props: FocalCarouselProps<T>) {
       && typeof requestAnimationFrame === 'function'
 
     if (!shouldAnimate) {
-      track.scrollTo?.({ left: targetLeft, behavior: 'auto' })
-      if (typeof track.scrollTo !== 'function') track.scrollLeft = targetLeft
+      positionOwnedItem(track, boundedIndex)
       setIsNavigating(false)
       return
     }
@@ -216,8 +229,7 @@ export function FocalCarousel<T>(props: FocalCarouselProps<T>) {
   }
 
   const handleKeyDown = (event: KeyboardEvent<HTMLDivElement>) => {
-    if (!interactionEnabled) return
-    if (event.target !== event.currentTarget) return
+    if (!interactionEnabled || event.target !== event.currentTarget) return
     if (event.key === 'ArrowRight' || event.key === 'ArrowLeft') {
       event.preventDefault()
       move(event.key === 'ArrowRight' ? 1 : -1)
@@ -263,15 +275,13 @@ export function FocalCarousel<T>(props: FocalCarouselProps<T>) {
   }
 
   const handleScroll = () => {
-    if (!interactionEnabled) return
-    if (programmaticAnimationFrameRef.current !== null) return
+    if (!interactionEnabled || programmaticAnimationFrameRef.current !== null) return
     scheduleScrollMeasurement()
     scheduleScrollSettle()
   }
 
   const handlePointerDown = (event: PointerEvent<HTMLDivElement>) => {
-    if (!interactionEnabled) return
-    if (event.pointerType === 'mouse' && event.button !== 0) return
+    if (!interactionEnabled || (event.pointerType === 'mouse' && event.button !== 0)) return
     const track = trackRef.current
     if (!track) return
     cancelPendingInteraction()
@@ -321,8 +331,7 @@ export function FocalCarousel<T>(props: FocalCarouselProps<T>) {
   }
 
   const handlePointerEnd = () => {
-    if (!interactionEnabled) return
-    if (!dragRef.current.active) return
+    if (!interactionEnabled || !dragRef.current.active) return
     dragRef.current.active = false
     trackRef.current?.classList.remove(styles.dragging)
     if (scrollSettleTimerRef.current) clearTimeout(scrollSettleTimerRef.current)
@@ -352,19 +361,14 @@ export function FocalCarousel<T>(props: FocalCarouselProps<T>) {
   return (
     <div ref={activationRef} className={classNames(styles.root, className)} style={style}>
       <div className={classNames(styles.controls, quiet && styles.controlsQuiet)}>
-        {!quiet ? <Button
-          type="button"
-          variant="ghost"
-          iconOnly
-          className={styles.arrow}
-          aria-label={previousLabel}
+        {!quiet ? <CarouselArrow
+          direction="previous"
+          label={previousLabel}
           disabled={safeIndex === 0}
           onClick={() => move(-1)}
-        >
-          <ChevronLeft size={18} aria-hidden="true" />
-        </Button> : null}
+        /> : null}
         <div
-          ref={trackRef}
+          ref={setTrackElement}
           className={classNames(
             styles.track,
             interactionEnabled && styles.trackInteractive,
@@ -385,6 +389,11 @@ export function FocalCarousel<T>(props: FocalCarouselProps<T>) {
           onPointerUp={interactionEnabled ? handlePointerEnd : undefined}
           onPointerCancel={interactionEnabled ? handlePointerEnd : undefined}
           onClickCapture={interactionEnabled ? (event) => consumeSuppressedClick(event, suppressClickRef) : undefined}
+          onClick={interactionEnabled ? (event) => {
+            if (event.target instanceof Element && event.target.closest('button, a, input, select, textarea')) return
+            const index = ownedItemIndexAtPoint(event.currentTarget, event.clientX, event.clientY)
+            if (index >= 0 && index !== activeIndexRef.current) focusItemRef.current(index)
+          } : undefined}
           onDragStart={interactionEnabled ? (event) => event.preventDefault() : undefined}
         >
           <div
@@ -406,22 +415,16 @@ export function FocalCarousel<T>(props: FocalCarouselProps<T>) {
                 activeItemClassName={activeItemClassName}
                 renderItem={renderItem}
                 showAll={showAll}
-                onSelect={selectItem}
               />
             ))}
           </div>
         </div>
-        {!quiet ? <Button
-          type="button"
-          variant="ghost"
-          iconOnly
-          className={styles.arrow}
-          aria-label={nextLabel}
+        {!quiet ? <CarouselArrow
+          direction="next"
+          label={nextLabel}
           disabled={safeIndex === lastIndex}
           onClick={() => move(1)}
-        >
-          <ChevronRight size={18} aria-hidden="true" />
-        </Button> : null}
+        /> : null}
       </div>
       {showCounter && !quiet ? (
         <output className={styles.counter} aria-live="polite">
@@ -437,9 +440,7 @@ export function FocalCarousel<T>(props: FocalCarouselProps<T>) {
           className={styles.toggle}
           aria-expanded="false"
           aria-controls={gridId}
-          onClick={() => {
-            showAll()
-          }}
+          onClick={showAll}
         >
           {showAllLabel}
         </Button>
