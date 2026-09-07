@@ -22,6 +22,53 @@ const memberBadgeChainSource = readFileSync('src/components/profile/MemberBadgeC
 const focalCarouselSource = readFileSync('src/components/ui/FocalCarousel.tsx', 'utf8')
 const profileStyles = readFileSync('src/components/profile/profile.module.css', 'utf8')
 
+// Phase 150 (D-24): dieselbe Stufen-Referenztabelle wie 150-05-PLAN.md's Stage-Code-Tabelle --
+// badge_progress[].stages muss echte Werte tragen, seit resolveMemberBadgeFamilies (Task 2)
+// die Stufenliste direkt daraus liest statt aus FAMILY_DEFINITIONS.
+const FAMILY_STAGE_FIXTURES: Record<string, Array<{ code: string; threshold: number }>> = {
+  progress: [
+    { code: 'first_contribution', threshold: 1 },
+    { code: 'productive_bronze', threshold: 10 },
+    { code: 'productive_silver', threshold: 25 },
+    { code: 'productive_gold', threshold: 50 },
+  ],
+  points: [
+    { code: 'point_milestone_first', threshold: 1 },
+    { code: 'point_milestone_active', threshold: 50 },
+    { code: 'point_milestone_experienced', threshold: 200 },
+    { code: 'point_milestone_engaged', threshold: 500 },
+    { code: 'point_milestone_veteran', threshold: 1000 },
+    { code: 'point_milestone_legend', threshold: 2500 },
+  ],
+  contribution_projects: [
+    { code: 'bronze', threshold: 1 },
+    { code: 'silver', threshold: 5 },
+    { code: 'gold', threshold: 15 },
+  ],
+  contribution_chronicle: [
+    { code: 'bronze', threshold: 10 },
+    { code: 'silver', threshold: 50 },
+    { code: 'gold', threshold: 150 },
+  ],
+  contribution_archivist: [
+    { code: 'bronze', threshold: 10 },
+    { code: 'silver', threshold: 50 },
+    { code: 'gold', threshold: 150 },
+  ],
+  membership: [
+    { code: 'long_term_member', threshold: 5 },
+    { code: 'membership_7_years', threshold: 7 },
+    { code: 'membership_10_years', threshold: 10 },
+  ],
+  role_volume: [
+    { code: 'entry', threshold: 1 },
+    { code: 'bronze', threshold: 12 },
+    { code: 'silver', threshold: 108 },
+    { code: 'gold', threshold: 320 },
+    { code: 'platinum', threshold: 510 },
+  ],
+}
+
 const { getMemberProfileMock, getMemberContributionsMock, notFoundMock, reactCacheEntries } = vi.hoisted(() => ({
   getMemberProfileMock: vi.fn(),
   getMemberContributionsMock: vi.fn(),
@@ -182,7 +229,7 @@ function makePublicProfile(overrides: Partial<PublicMemberProfileData> = {}): Pu
         remaining_count: 15,
         next_tier: '25 Projekte',
         complete: false,
-        stages: [],
+        stages: FAMILY_STAGE_FIXTURES.progress,
       },
       {
         family: 'points',
@@ -192,7 +239,7 @@ function makePublicProfile(overrides: Partial<PublicMemberProfileData> = {}): Pu
         remaining_count: 150,
         next_tier: '200 Punkte',
         complete: false,
-        stages: [],
+        stages: FAMILY_STAGE_FIXTURES.points,
       },
       {
         family: 'contribution_projects',
@@ -202,7 +249,7 @@ function makePublicProfile(overrides: Partial<PublicMemberProfileData> = {}): Pu
         remaining_count: 4,
         next_tier: 'Silber',
         complete: false,
-        stages: [],
+        stages: FAMILY_STAGE_FIXTURES.contribution_projects,
       },
       {
         family: 'contribution_chronicle',
@@ -212,7 +259,7 @@ function makePublicProfile(overrides: Partial<PublicMemberProfileData> = {}): Pu
         remaining_count: 20,
         next_tier: 'Silber',
         complete: false,
-        stages: [],
+        stages: FAMILY_STAGE_FIXTURES.contribution_chronicle,
       },
       {
         family: 'contribution_archivist',
@@ -222,7 +269,7 @@ function makePublicProfile(overrides: Partial<PublicMemberProfileData> = {}): Pu
         remaining_count: null,
         next_tier: null,
         complete: true,
-        stages: [],
+        stages: FAMILY_STAGE_FIXTURES.contribution_archivist,
       },
       {
         family: 'membership',
@@ -232,7 +279,7 @@ function makePublicProfile(overrides: Partial<PublicMemberProfileData> = {}): Pu
         remaining_count: 3,
         next_tier: '10 Jahre',
         complete: false,
-        stages: [],
+        stages: FAMILY_STAGE_FIXTURES.membership,
       },
     ],
     total_points: 0,
@@ -600,7 +647,7 @@ describe('MemberProfilePage Phase 99 route composition', () => {
             remaining_count: 1,
             next_tier: '10 Projekte',
             complete: false,
-            stages: [],
+            stages: FAMILY_STAGE_FIXTURES.progress,
           },
         ],
       }),
@@ -636,7 +683,7 @@ describe('Phase 124 deterministic points SSR projection', () => {
             remaining_count: remainingCount,
             next_tier: nextThreshold == null ? null : `${nextThreshold} Punkte`,
             complete,
-            stages: [],
+            stages: FAMILY_STAGE_FIXTURES.points,
           },
         ],
       })
@@ -676,7 +723,7 @@ describe('Phase 124 deterministic points SSR projection', () => {
           remaining_count: 266,
           next_tier: '1000 Punkte',
           complete: false,
-          stages: [],
+          stages: FAMILY_STAGE_FIXTURES.points,
         },
       ],
     })
@@ -708,7 +755,7 @@ describe('Phase 126 membership SSR projection', () => {
               remaining_count: 5 - currentCount,
               next_tier: '5 Jahre',
               complete: false,
-              stages: [],
+              stages: FAMILY_STAGE_FIXTURES.membership,
             },
           ],
         }),

@@ -8,6 +8,72 @@ import { afterEach, describe, expect, it, vi } from 'vitest'
 
 import type { PublicMemberBadge } from '@/types/profile'
 
+// Phase 150 (D-24): eine geteilte Stufen-Referenztabelle je Familie -- dieselben Zahlen, die
+// seit Plan 150-03 backend-seitig in badge_progress[].stages ausgeliefert werden (siehe
+// 150-05-PLAN.md's Stage-Code-Referenztabelle). Fixtures bauen ihre badge_progress-Eintraege
+// daraus statt unabhaengiger Kopien, die driften koennten.
+const FAMILY_STAGE_FIXTURES: Record<string, Array<{ code: string; threshold: number }>> = {
+  progress: [
+    { code: 'first_contribution', threshold: 1 },
+    { code: 'productive_bronze', threshold: 10 },
+    { code: 'productive_silver', threshold: 25 },
+    { code: 'productive_gold', threshold: 50 },
+  ],
+  points: [
+    { code: 'point_milestone_first', threshold: 1 },
+    { code: 'point_milestone_active', threshold: 50 },
+    { code: 'point_milestone_experienced', threshold: 200 },
+    { code: 'point_milestone_engaged', threshold: 500 },
+    { code: 'point_milestone_veteran', threshold: 1000 },
+    { code: 'point_milestone_legend', threshold: 2500 },
+  ],
+  contribution_projects: [
+    { code: 'bronze', threshold: 1 },
+    { code: 'silver', threshold: 5 },
+    { code: 'gold', threshold: 15 },
+  ],
+  contribution_chronicle: [
+    { code: 'bronze', threshold: 10 },
+    { code: 'silver', threshold: 50 },
+    { code: 'gold', threshold: 150 },
+  ],
+  contribution_archivist: [
+    { code: 'bronze', threshold: 10 },
+    { code: 'silver', threshold: 50 },
+    { code: 'gold', threshold: 150 },
+  ],
+  membership: [
+    { code: 'long_term_member', threshold: 5 },
+    { code: 'membership_7_years', threshold: 7 },
+    { code: 'membership_10_years', threshold: 10 },
+  ],
+  role_volume: [
+    { code: 'entry', threshold: 1 },
+    { code: 'bronze', threshold: 12 },
+    { code: 'silver', threshold: 108 },
+    { code: 'gold', threshold: 320 },
+    { code: 'platinum', threshold: 510 },
+  ],
+}
+
+// D-25 (fuenfte Fundstelle): die "roles"-Karussellgruppe leitet Tier/Stufen seit Task 2 aus dem
+// passenden role_volume-badge_progress-Eintrag ab (nach role_code gefiltert), nicht mehr aus
+// roleCounts allein -- dieser Helfer baut den minimalen, aber vollstaendigen Eintrag, den
+// Tests brauchen, um dieselbe Stufen-Leiter wie vor dem Umbau zu sehen.
+function roleVolumeBadgeProgress(roleCode: string, count: number) {
+  return {
+    family: 'role_volume',
+    role_code: roleCode,
+    current_count: count,
+    current_tier: '',
+    next_threshold: null,
+    remaining_count: null,
+    next_tier: null,
+    complete: false,
+    stages: FAMILY_STAGE_FIXTURES.role_volume,
+  }
+}
+
 const contributionRoles = [
   ['project_lead', 'Projektleitung'],
   ['translator', 'Übersetzung'],
@@ -84,10 +150,23 @@ function fakePresentation(overrides: Partial<FakePresentation> & { group: string
 type MemberBadgeGroupRow = { key: string; items: MemberBadgeCatalogItem[] }
 type MemberBadgeGroupResult = { key: string; label: string; rows: MemberBadgeGroupRow[] }
 
+type TestBadgeProgress = {
+  family: string
+  current_count: number
+  current_tier?: string
+  next_threshold: number | null
+  remaining_count: number | null
+  next_tier: string | null
+  complete?: boolean
+  role_code?: string
+  stages?: Array<{ code: string; threshold: number }>
+}
+
 async function loadMemberBadgeChain(): Promise<{
   MemberBadgeChain: ComponentType<{
     earnedBadges: PublicMemberBadge[]
     catalog?: MemberBadgeCatalogItem[]
+    badgeProgress?: TestBadgeProgress[]
   }>
   buildMemberBadgeGroups: (
     visibleCatalog: MemberBadgeCatalogItem[],
@@ -334,7 +413,7 @@ describe('MemberBadgeChain', () => {
   })
 
 describe('Phase 125 contribution achievement stages', () => {
-  type Progress = { family: string; current_count: number; next_threshold: number | null; remaining_count: number | null; next_tier: string | null; complete: boolean }
+  type Progress = { family: string; current_count: number; next_threshold: number | null; remaining_count: number | null; next_tier: string | null; complete: boolean; stages?: Array<{ code: string; threshold: number }> }
   const orderedFamilies = ['contribution_projects', 'contribution_chronicle', 'contribution_archivist']
 
   async function renderContributions(progress: Progress[]) {
@@ -345,9 +424,9 @@ describe('Phase 125 contribution achievement stages', () => {
 
   it('renders one ordered three-family outer carousel and three native artwork tiers at zero', async () => {
     const { container } = await renderContributions([
-      { family: 'contribution_archivist', current_count: 0, next_threshold: 10, remaining_count: 10, next_tier: 'bronze', complete: false },
-      { family: 'contribution_projects', current_count: 0, next_threshold: 1, remaining_count: 1, next_tier: 'bronze', complete: false },
-      { family: 'contribution_chronicle', current_count: 0, next_threshold: 10, remaining_count: 10, next_tier: 'bronze', complete: false },
+      { family: 'contribution_archivist', current_count: 0, next_threshold: 10, remaining_count: 10, next_tier: 'bronze', complete: false, stages: FAMILY_STAGE_FIXTURES.contribution_archivist },
+      { family: 'contribution_projects', current_count: 0, next_threshold: 1, remaining_count: 1, next_tier: 'bronze', complete: false, stages: FAMILY_STAGE_FIXTURES.contribution_projects },
+      { family: 'contribution_chronicle', current_count: 0, next_threshold: 10, remaining_count: 10, next_tier: 'bronze', complete: false, stages: FAMILY_STAGE_FIXTURES.contribution_chronicle },
     ])
     const carousel = screen.getByRole('region', { name: 'Beiträge-Karussell' })
     expect(carousel).not.toBeNull()
@@ -365,9 +444,9 @@ describe('Phase 125 contribution achievement stages', () => {
 
   it('keeps tier preview independent from true terminal progress and outer family state', async () => {
     const { container } = await renderContributions([
-      { family: 'contribution_projects', current_count: 20, next_threshold: null, remaining_count: null, next_tier: null, complete: true },
-      { family: 'contribution_chronicle', current_count: 50, next_threshold: 150, remaining_count: 100, next_tier: 'gold', complete: false },
-      { family: 'contribution_archivist', current_count: 10, next_threshold: 50, remaining_count: 40, next_tier: 'silver', complete: false },
+      { family: 'contribution_projects', current_count: 20, next_threshold: null, remaining_count: null, next_tier: null, complete: true, stages: FAMILY_STAGE_FIXTURES.contribution_projects },
+      { family: 'contribution_chronicle', current_count: 50, next_threshold: 150, remaining_count: 100, next_tier: 'gold', complete: false, stages: FAMILY_STAGE_FIXTURES.contribution_chronicle },
+      { family: 'contribution_archivist', current_count: 10, next_threshold: 50, remaining_count: 40, next_tier: 'silver', complete: false, stages: FAMILY_STAGE_FIXTURES.contribution_archivist },
     ])
     const stage = container.querySelector<HTMLElement>('[data-family="contribution_projects"][data-contribution-achievement-stage]')!
     const familyCurrent = screen.getByLabelText('Sammlung 1 von 3')
@@ -389,6 +468,7 @@ describe('Phase 125 contribution achievement stages', () => {
       family, current_count: family === 'contribution_projects' ? 5 : 50,
       next_threshold: family === 'contribution_projects' ? 15 : 150,
       remaining_count: family === 'contribution_projects' ? 10 : 100, next_tier: 'gold', complete: false,
+      stages: FAMILY_STAGE_FIXTURES[family],
     })))
     const stages = Array.from(container.querySelectorAll('[data-contribution-achievement-stage]'))
     const shape = (stage: Element) => Array.from(stage.children).map((node) => node.tagName)
@@ -448,9 +528,10 @@ describe('Phase 125 contribution achievement stages', () => {
     const { container } = render(
       <MemberBadgeChain
         earnedBadges={[
-          { id: 1, badge_code: 'role_entry_translator', badge_category: 'role_entry' },
-          { id: 2, badge_code: 'role_volume_translator_gold', badge_category: 'role_volume' },
+          { id: 1, badge_code: 'role_entry_translator', badge_category: 'role_entry', current_count: 1 },
+          { id: 2, badge_code: 'role_volume_translator_gold', badge_category: 'role_volume', current_count: 320 },
         ]}
+        badgeProgress={[roleVolumeBadgeProgress('translator', 320)]}
       />,
     )
 
@@ -471,9 +552,10 @@ describe('Phase 125 contribution achievement stages', () => {
     const { container } = render(
       <MemberBadgeChain
         earnedBadges={[
-          { id: 1, badge_code: 'role_entry_timer', badge_category: 'role_entry' },
-          { id: 0, badge_code: 'role_volume_timer_silver', badge_category: 'role_volume' },
+          { id: 1, badge_code: 'role_entry_timer', badge_category: 'role_entry', current_count: 1 },
+          { id: 0, badge_code: 'role_volume_timer_silver', badge_category: 'role_volume', current_count: 108 },
         ]}
+        badgeProgress={[roleVolumeBadgeProgress('timer', 108)]}
       />,
     )
 
@@ -489,9 +571,10 @@ describe('Phase 125 contribution achievement stages', () => {
     const { container } = render(
       <MemberBadgeChain
         earnedBadges={[
-          { id: 1, badge_code: 'role_entry_encoder', badge_category: 'role_entry' },
-          { id: 2, badge_code: 'role_volume_encoder_bronze', badge_category: 'role_volume' },
+          { id: 1, badge_code: 'role_entry_encoder', badge_category: 'role_entry', current_count: 1 },
+          { id: 2, badge_code: 'role_volume_encoder_bronze', badge_category: 'role_volume', current_count: 12 },
         ]}
+        badgeProgress={[roleVolumeBadgeProgress('encoder', 12)]}
       />,
     )
 
@@ -507,9 +590,10 @@ describe('Phase 125 contribution achievement stages', () => {
     const { container } = render(
       <MemberBadgeChain
         earnedBadges={[
-          { id: 1, badge_code: 'role_entry_typesetter', badge_category: 'role_entry' },
-          { id: 2, badge_code: 'role_volume_typesetter_bronze', badge_category: 'role_volume' },
+          { id: 1, badge_code: 'role_entry_typesetter', badge_category: 'role_entry', current_count: 1 },
+          { id: 2, badge_code: 'role_volume_typesetter_bronze', badge_category: 'role_volume', current_count: 12 },
         ]}
+        badgeProgress={[roleVolumeBadgeProgress('typesetter', 12)]}
       />,
     )
 
@@ -525,9 +609,10 @@ describe('Phase 125 contribution achievement stages', () => {
     const { container } = render(
       <MemberBadgeChain
         earnedBadges={[
-          { id: 1, badge_code: 'role_entry_quality_checker', badge_category: 'role_entry' },
-          { id: 2, badge_code: 'role_volume_quality_checker_bronze', badge_category: 'role_volume' },
+          { id: 1, badge_code: 'role_entry_quality_checker', badge_category: 'role_entry', current_count: 1 },
+          { id: 2, badge_code: 'role_volume_quality_checker_bronze', badge_category: 'role_volume', current_count: 12 },
         ]}
+        badgeProgress={[roleVolumeBadgeProgress('quality_checker', 12)]}
       />,
     )
 
@@ -543,9 +628,10 @@ describe('Phase 125 contribution achievement stages', () => {
     const { container } = render(
       <MemberBadgeChain
         earnedBadges={[
-          { id: 1, badge_code: 'role_entry_project_lead', badge_category: 'role_entry' },
-          { id: 2, badge_code: 'role_volume_project_lead_bronze', badge_category: 'role_volume' },
+          { id: 1, badge_code: 'role_entry_project_lead', badge_category: 'role_entry', current_count: 1 },
+          { id: 2, badge_code: 'role_volume_project_lead_bronze', badge_category: 'role_volume', current_count: 12 },
         ]}
+        badgeProgress={[roleVolumeBadgeProgress('project_lead', 12)]}
       />,
     )
 
@@ -568,9 +654,10 @@ describe('Phase 125 contribution achievement stages', () => {
     const { container } = render(
       <MemberBadgeChain
         earnedBadges={[
-          { id: 1, badge_code: entryCode, badge_category: 'role_entry' },
-          { id: 2, badge_code: volumeCode, badge_category: 'role_volume' },
+          { id: 1, badge_code: entryCode, badge_category: 'role_entry', current_count: 1 },
+          { id: 2, badge_code: volumeCode, badge_category: 'role_volume', current_count: 12 },
         ]}
+        badgeProgress={[roleVolumeBadgeProgress(roleCode, 12)]}
       />,
     )
 
@@ -586,7 +673,7 @@ describe('Phase 125 contribution achievement stages', () => {
 
     render(
       <MemberBadgeChain
-        earnedBadges={[{ id: 1, badge_code: 'role_entry_other', badge_category: 'role_entry' }]}
+        earnedBadges={[{ id: 1, badge_code: 'role_entry_other', badge_category: 'role_entry', current_count: 1 }]}
       />,
     )
 
@@ -664,8 +751,8 @@ describe('Phase 125 contribution achievement stages', () => {
       <MemberBadgeChain
         earnedBadges={[
           { id: 1, badge_code: 'founding_member', badge_category: 'historical_achievement' },
-          { id: 2, badge_code: 'role_entry_translator', badge_category: 'role_entry' },
-          { id: 3, badge_code: 'role_volume_translator_bronze', badge_category: 'role_volume' },
+          { id: 2, badge_code: 'role_entry_translator', badge_category: 'role_entry', current_count: 1 },
+          { id: 3, badge_code: 'role_volume_translator_bronze', badge_category: 'role_volume', current_count: 12 },
         ]}
         catalog={roleProgressCatalog}
       />,
@@ -681,9 +768,10 @@ describe('Phase 125 contribution achievement stages', () => {
     render(
       <MemberBadgeChain
         earnedBadges={[
-          { id: 1, badge_code: 'role_entry_translator', badge_category: 'role_entry' },
-          { id: 2, badge_code: 'role_volume_translator_bronze', badge_category: 'role_volume' },
+          { id: 1, badge_code: 'role_entry_translator', badge_category: 'role_entry', current_count: 1 },
+          { id: 2, badge_code: 'role_volume_translator_bronze', badge_category: 'role_volume', current_count: 12 },
         ]}
+        badgeProgress={[roleVolumeBadgeProgress('translator', 12)]}
         catalog={roleProgressCatalog}
       />,
     )
@@ -710,7 +798,8 @@ describe('Phase 125 contribution achievement stages', () => {
 
     render(
       <MemberBadgeChain
-        earnedBadges={[{ id: 0, badge_code: 'role_entry_translator', badge_category: 'role_entry' }]}
+        earnedBadges={[{ id: 0, badge_code: 'role_entry_translator', badge_category: 'role_entry', current_count: 1 }]}
+        badgeProgress={[roleVolumeBadgeProgress('translator', 1)]}
         catalog={roleEntryCatalog}
       />,
     )
@@ -724,7 +813,7 @@ describe('Phase 125 contribution achievement stages', () => {
 
     const { rerender } = render(
       <MemberBadgeChain
-        earnedBadges={[{ id: 1, badge_code: 'role_entry_translator', badge_category: 'role_entry' }]}
+        earnedBadges={[{ id: 1, badge_code: 'role_entry_translator', badge_category: 'role_entry', current_count: 1 }]}
         catalog={roleProgressCatalog}
       />,
     )
@@ -733,8 +822,8 @@ describe('Phase 125 contribution achievement stages', () => {
     rerender(
       <MemberBadgeChain
         earnedBadges={[
-          { id: 1, badge_code: 'role_entry_translator', badge_category: 'role_entry' },
-          { id: 2, badge_code: 'role_entry_timer', badge_category: 'role_entry' },
+          { id: 1, badge_code: 'role_entry_translator', badge_category: 'role_entry', current_count: 1 },
+          { id: 2, badge_code: 'role_entry_timer', badge_category: 'role_entry', current_count: 1 },
         ]}
         catalog={roleProgressCatalog}
       />,
@@ -783,9 +872,10 @@ describe('MemberBadgeChain roleLabel prefix (Phase 112 Plan 03, D-04)', () => {
     render(
       <MemberBadgeChain
         earnedBadges={[
-          { id: 1, badge_code: 'role_entry_translator', badge_category: 'role_entry' },
-          { id: 0, badge_code: 'role_volume_translator_gold', badge_category: 'role_volume' },
+          { id: 1, badge_code: 'role_entry_translator', badge_category: 'role_entry', current_count: 1 },
+          { id: 0, badge_code: 'role_volume_translator_gold', badge_category: 'role_volume', current_count: 320 },
         ]}
+        badgeProgress={[roleVolumeBadgeProgress('translator', 320)]}
       />,
     )
 
@@ -799,7 +889,8 @@ describe('MemberBadgeChain roleLabel prefix (Phase 112 Plan 03, D-04)', () => {
 
     render(
       <MemberBadgeChain
-        earnedBadges={[{ id: 1, badge_code: 'role_entry_translator', badge_category: 'role_entry' }]}
+        earnedBadges={[{ id: 1, badge_code: 'role_entry_translator', badge_category: 'role_entry', current_count: 1 }]}
+        badgeProgress={[roleVolumeBadgeProgress('translator', 1)]}
       />,
     )
 
@@ -814,8 +905,8 @@ describe('MemberBadgeChain roleLabel prefix (Phase 112 Plan 03, D-04)', () => {
     render(
       <MemberBadgeChain
         earnedBadges={[
-          { id: 1, badge_code: 'role_entry_translator', badge_category: 'role_entry' },
-          { id: 2, badge_code: 'role_entry_timer', badge_category: 'role_entry' },
+          { id: 1, badge_code: 'role_entry_translator', badge_category: 'role_entry', current_count: 1 },
+          { id: 2, badge_code: 'role_entry_timer', badge_category: 'role_entry', current_count: 1 },
         ]}
         catalog={roleProgressCatalog}
       />,
@@ -1031,7 +1122,11 @@ describe('MemberBadgeChain Phase 118 role cards', () => {
   it('renders exact earned-role cards through one carousel station', async () => {
     const { MemberBadgeChain } = await loadMemberBadgeChain()
     const { container } = render(
-      <MemberBadgeChain earnedBadges={[roleBadge('translator', 108), roleBadge('timer', 12)]} catalog={roleProgressCatalog} />,
+      <MemberBadgeChain
+        earnedBadges={[roleBadge('translator', 108), roleBadge('timer', 12)]}
+        badgeProgress={[roleVolumeBadgeProgress('translator', 108), roleVolumeBadgeProgress('timer', 12)]}
+        catalog={roleProgressCatalog}
+      />,
     )
     expect(screen.getByText('Rollenfortschritt')).not.toBeNull()
     expect(screen.getByText('108 / 320')).not.toBeNull()
@@ -1056,7 +1151,11 @@ describe('MemberBadgeChain Phase 118 role cards', () => {
   it('keeps every role row mounted after expanding the Fansubrollen carousel', async () => {
     const { MemberBadgeChain } = await loadMemberBadgeChain()
     const { container } = render(
-      <MemberBadgeChain earnedBadges={[roleBadge('translator', 108), roleBadge('timer', 12)]} catalog={roleProgressCatalog} />,
+      <MemberBadgeChain
+        earnedBadges={[roleBadge('translator', 108), roleBadge('timer', 12)]}
+        badgeProgress={[roleVolumeBadgeProgress('translator', 108), roleVolumeBadgeProgress('timer', 12)]}
+        catalog={roleProgressCatalog}
+      />,
     )
     expect(container.querySelectorAll('[data-role-stage]')).toHaveLength(10)
 
@@ -1069,12 +1168,22 @@ describe('MemberBadgeChain Phase 118 role cards', () => {
   it('hides zero and foreign roles and reverses rank state on rerender', async () => {
     const { MemberBadgeChain } = await loadMemberBadgeChain()
     const { rerender } = render(
-      <MemberBadgeChain earnedBadges={[roleBadge('translator', 510), { ...roleBadge('timer', 0), badge_code: 'role_volume_foreign_gold' }]} catalog={roleProgressCatalog} />,
+      <MemberBadgeChain
+        earnedBadges={[roleBadge('translator', 510), { ...roleBadge('timer', 0), badge_code: 'role_volume_foreign_gold' }]}
+        badgeProgress={[roleVolumeBadgeProgress('translator', 510)]}
+        catalog={roleProgressCatalog}
+      />,
     )
     expect(screen.getByText('510 Mitwirkungen')).not.toBeNull()
     expect(screen.getByText('Höchste Stufe erreicht')).not.toBeNull()
     expect(screen.queryByText('Timing')).toBeNull()
-    rerender(<MemberBadgeChain earnedBadges={[roleBadge('translator', 11)]} catalog={roleProgressCatalog} />)
+    rerender(
+      <MemberBadgeChain
+        earnedBadges={[roleBadge('translator', 11)]}
+        badgeProgress={[roleVolumeBadgeProgress('translator', 11)]}
+        catalog={roleProgressCatalog}
+      />,
+    )
     expect(screen.getAllByText('Einstieg', { exact: true }).length).toBeGreaterThanOrEqual(1)
     expect(screen.getByText('11 / 12')).not.toBeNull()
     expect(screen.getByText('Noch 1 Mitwirkungen bis Bronze')).not.toBeNull()
@@ -1084,7 +1193,13 @@ describe('MemberBadgeChain Phase 118 role cards', () => {
 
   it('keeps a full Platinum progressbar while preserving the true visible count', async () => {
     const { MemberBadgeChain } = await loadMemberBadgeChain()
-    render(<MemberBadgeChain earnedBadges={[roleBadge('translator', 777)]} catalog={roleProgressCatalog} />)
+    render(
+      <MemberBadgeChain
+        earnedBadges={[roleBadge('translator', 777)]}
+        badgeProgress={[roleVolumeBadgeProgress('translator', 777)]}
+        catalog={roleProgressCatalog}
+      />,
+    )
     const progress = screen.getByRole('progressbar', { name: 'Fortschritt für Übersetzung' })
     expect(progress.getAttribute('aria-valuenow')).toBe('510')
     expect(progress.getAttribute('aria-valuemax')).toBe('510')
@@ -1095,12 +1210,12 @@ describe('MemberBadgeChain Phase 118 role cards', () => {
 
 describe('MemberBadgeChain Phase 119 collection cards', () => {
   const badgeProgress = [
-    { family: 'progress', current_count: 10, next_threshold: 25, remaining_count: 15, next_tier: '25 Projekte', complete: false },
-    { family: 'points', current_count: 50, next_threshold: 200, remaining_count: 150, next_tier: '200 Punkte', complete: false },
-    { family: 'contribution_projects', current_count: 1, next_threshold: 5, remaining_count: 4, next_tier: 'Silber', complete: false },
-    { family: 'contribution_chronicle', current_count: 5, next_threshold: 25, remaining_count: 20, next_tier: 'Silber', complete: false },
-    { family: 'contribution_archivist', current_count: 25, next_threshold: null, remaining_count: null, next_tier: null, complete: true },
-    { family: 'membership', current_count: 7, next_threshold: 10, remaining_count: 3, next_tier: '10 Jahre', complete: false },
+    { family: 'progress', current_count: 10, next_threshold: 25, remaining_count: 15, next_tier: '25 Projekte', complete: false, stages: FAMILY_STAGE_FIXTURES.progress },
+    { family: 'points', current_count: 50, next_threshold: 200, remaining_count: 150, next_tier: '200 Punkte', complete: false, stages: FAMILY_STAGE_FIXTURES.points },
+    { family: 'contribution_projects', current_count: 1, next_threshold: 5, remaining_count: 4, next_tier: 'Silber', complete: false, stages: FAMILY_STAGE_FIXTURES.contribution_projects },
+    { family: 'contribution_chronicle', current_count: 5, next_threshold: 25, remaining_count: 20, next_tier: 'Silber', complete: false, stages: FAMILY_STAGE_FIXTURES.contribution_chronicle },
+    { family: 'contribution_archivist', current_count: 25, next_threshold: null, remaining_count: null, next_tier: null, complete: true, stages: FAMILY_STAGE_FIXTURES.contribution_archivist },
+    { family: 'membership', current_count: 7, next_threshold: 10, remaining_count: 3, next_tier: '10 Jahre', complete: false, stages: FAMILY_STAGE_FIXTURES.membership },
   ]
 
   async function renderCollections(earnedBadges: PublicMemberBadge[] = []) {
@@ -1142,7 +1257,7 @@ describe('MemberBadgeChain Phase 119 collection cards', () => {
   it('preserves a real value above Gold while rendering a full terminal bar', async () => {
     const { MemberBadgeChain } = await loadMemberBadgeChain()
     const CollectionChain = MemberBadgeChain as ComponentType<{ earnedBadges: PublicMemberBadge[]; badgeProgress: typeof badgeProgress }>
-    render(<CollectionChain earnedBadges={[{ id: 1, badge_code: 'productive_gold', badge_category: 'quantity' }]} badgeProgress={[{ family: 'progress', current_count: 73, next_threshold: null, remaining_count: null, next_tier: null, complete: true }]} />)
+    render(<CollectionChain earnedBadges={[{ id: 1, badge_code: 'productive_gold', badge_category: 'quantity' }]} badgeProgress={[{ family: 'progress', current_count: 73, next_threshold: null, remaining_count: null, next_tier: null, complete: true, stages: FAMILY_STAGE_FIXTURES.progress }]} />)
     const progress = screen.getByRole('progressbar', { name: 'Fortschritt für Anime-Projekte' })
     expect(progress.getAttribute('aria-valuenow')).toBe('73')
     expect(progress.getAttribute('aria-valuemax')).toBe('50')
@@ -1222,8 +1337,8 @@ describe('MemberBadgeChain Phase 119 inner stage strip', () => {
 
   it('does not map a mouse wheel to a horizontal stage strip', async () => {
     const { MemberBadgeChain } = await loadMemberBadgeChain()
-    const CollectionChain = MemberBadgeChain as ComponentType<{ earnedBadges: PublicMemberBadge[]; badgeProgress: Array<{ family: string; current_count: number; next_threshold: number | null; remaining_count: number | null; next_tier: string | null; complete: boolean }> }>
-    render(<CollectionChain earnedBadges={[{ id: 1, badge_code: 'productive_bronze', badge_category: 'quantity' }]} badgeProgress={[{ family: 'progress', current_count: 10, next_threshold: 25, remaining_count: 15, next_tier: '25 Projekte', complete: false }]} />)
+    const CollectionChain = MemberBadgeChain as ComponentType<{ earnedBadges: PublicMemberBadge[]; badgeProgress: Array<{ family: string; current_count: number; next_threshold: number | null; remaining_count: number | null; next_tier: string | null; complete: boolean; stages?: Array<{ code: string; threshold: number }> }> }>
+    render(<CollectionChain earnedBadges={[{ id: 1, badge_code: 'productive_bronze', badge_category: 'quantity' }]} badgeProgress={[{ family: 'progress', current_count: 10, next_threshold: 25, remaining_count: 15, next_tier: '25 Projekte', complete: false, stages: FAMILY_STAGE_FIXTURES.progress }]} />)
     const strip = screen.getByRole('list', { name: 'Stufen für Anime-Projekte' }) as HTMLElement
     Object.defineProperties(strip, { clientWidth: { configurable: true, value: 200 }, scrollWidth: { configurable: true, value: 600 }, scrollLeft: { configurable: true, writable: true, value: 20 } })
     const wheelEvent = new WheelEvent('wheel', { deltaX: 0, deltaY: 80, bubbles: true, cancelable: true })
@@ -1260,9 +1375,9 @@ describe('MemberBadgeChain Phase 119 inner stage strip', () => {
       const { MemberBadgeChain } = await loadMemberBadgeChain()
       const CollectionChain = MemberBadgeChain as ComponentType<{
         earnedBadges: PublicMemberBadge[]
-        badgeProgress: Array<{ family: string; current_count: number; next_threshold: number | null; remaining_count: number | null; next_tier: string | null; complete: boolean }>
+        badgeProgress: Array<{ family: string; current_count: number; next_threshold: number | null; remaining_count: number | null; next_tier: string | null; complete: boolean; stages?: Array<{ code: string; threshold: number }> }>
       }>
-      const rendered = render(<CollectionChain earnedBadges={[{ id: 1, badge_code: 'productive_bronze', badge_category: 'quantity' }]} badgeProgress={[{ family: 'progress', current_count: 10, next_threshold: 25, remaining_count: 15, next_tier: '25 Projekte', complete: false }]} />)
+      const rendered = render(<CollectionChain earnedBadges={[{ id: 1, badge_code: 'productive_bronze', badge_category: 'quantity' }]} badgeProgress={[{ family: 'progress', current_count: 10, next_threshold: 25, remaining_count: 15, next_tier: '25 Projekte', complete: false, stages: FAMILY_STAGE_FIXTURES.progress }]} />)
       const current = screen.getByRole('button', { name: /10 Anime-Projekte auswählen, Aktuell/ })
       const strip = current.closest('[data-badge-stage-strip]') as HTMLElement
       Object.defineProperties(strip, {
@@ -1297,9 +1412,9 @@ describe('MemberBadgeChain Phase 119 inner stage strip', () => {
     const { MemberBadgeChain } = await loadMemberBadgeChain()
     const CollectionChain = MemberBadgeChain as ComponentType<{
       earnedBadges: PublicMemberBadge[]
-      badgeProgress: Array<{ family: string; current_count: number; next_threshold: number | null; remaining_count: number | null; next_tier: string | null; complete: boolean }>
+      badgeProgress: Array<{ family: string; current_count: number; next_threshold: number | null; remaining_count: number | null; next_tier: string | null; complete: boolean; stages?: Array<{ code: string; threshold: number }> }>
     }>
-    render(<CollectionChain earnedBadges={[{ id: 1, badge_code: 'productive_bronze', badge_category: 'quantity' }]} badgeProgress={[{ family: 'progress', current_count: 10, next_threshold: 25, remaining_count: 15, next_tier: '25 Projekte', complete: false }]} />)
+    render(<CollectionChain earnedBadges={[{ id: 1, badge_code: 'productive_bronze', badge_category: 'quantity' }]} badgeProgress={[{ family: 'progress', current_count: 10, next_threshold: 25, remaining_count: 15, next_tier: '25 Projekte', complete: false, stages: FAMILY_STAGE_FIXTURES.progress }]} />)
     const progressHeading = screen.getByRole('heading', { level: 2, name: 'Fortschritt' })
     const progressGroup = progressHeading.closest('[data-badge-group="progress"]') as HTMLElement
     const stageList = within(progressGroup).getByRole('list', { name: /Stufen für Anime-Projekte/ })
@@ -1317,14 +1432,14 @@ describe('MemberBadgeChain Phase 119 inner stage strip', () => {
 
 it('routes compact and active badge art through responsive optimized sizes', async () => {
   const { MemberBadgeChain } = await loadMemberBadgeChain()
-  const CollectionChain = MemberBadgeChain as ComponentType<{ earnedBadges: PublicMemberBadge[]; badgeProgress: Array<{ family: string; current_count: number; next_threshold: number | null; remaining_count: number | null; next_tier: string | null; complete: boolean }> }>
+  const CollectionChain = MemberBadgeChain as ComponentType<{ earnedBadges: PublicMemberBadge[]; badgeProgress: Array<{ family: string; current_count: number; next_threshold: number | null; remaining_count: number | null; next_tier: string | null; complete: boolean; stages?: Array<{ code: string; threshold: number }> }> }>
   const { container } = render(
     <CollectionChain
       earnedBadges={[
         { id: 1, badge_code: 'role_entry_translator', badge_category: 'role_entry', current_count: 12 },
         { id: 2, badge_code: 'productive_bronze', badge_category: 'quantity' },
       ]}
-      badgeProgress={[{ family: 'progress', current_count: 10, next_threshold: 25, remaining_count: 15, next_tier: '25 Projekte', complete: false }]}
+      badgeProgress={[{ family: 'progress', current_count: 10, next_threshold: 25, remaining_count: 15, next_tier: '25 Projekte', complete: false, stages: FAMILY_STAGE_FIXTURES.progress }]}
     />,
   )
 
@@ -1363,7 +1478,7 @@ it('Phase 120 Task 2: keeps SSR carousel content while expensive listeners remai
       const { MemberBadgeChain } = await loadMemberBadgeChain()
       const CollectionChain = MemberBadgeChain as ComponentType<{
         earnedBadges: PublicMemberBadge[]
-        badgeProgress: Array<{ family: string; current_count: number; next_threshold: number | null; remaining_count: number | null; next_tier: string | null; complete: boolean }>
+        badgeProgress: Array<{ family: string; current_count: number; next_threshold: number | null; remaining_count: number | null; next_tier: string | null; complete: boolean; stages?: Array<{ code: string; threshold: number }> }>
       }>
       render(
         <CollectionChain
@@ -1374,12 +1489,14 @@ it('Phase 120 Task 2: keeps SSR carousel content while expensive listeners remai
             { id: 4, badge_code: 'historical_leader', badge_category: 'historical_achievement' },
           ]}
           badgeProgress={[
-            { family: 'progress', current_count: 10, next_threshold: 25, remaining_count: 15, next_tier: '25 Projekte', complete: false },
-            { family: 'points', current_count: 50, next_threshold: 200, remaining_count: 150, next_tier: '200 Punkte', complete: false },
-            { family: 'contribution_projects', current_count: 1, next_threshold: 5, remaining_count: 4, next_tier: 'Silber', complete: false },
-            { family: 'contribution_chronicle', current_count: 5, next_threshold: 25, remaining_count: 20, next_tier: 'Silber', complete: false },
-            { family: 'contribution_archivist', current_count: 25, next_threshold: null, remaining_count: null, next_tier: null, complete: true },
-            { family: 'membership', current_count: 7, next_threshold: 10, remaining_count: 3, next_tier: '10 Jahre', complete: false },
+            roleVolumeBadgeProgress('translator', 12),
+            roleVolumeBadgeProgress('timer', 1),
+            { family: 'progress', current_count: 10, next_threshold: 25, remaining_count: 15, next_tier: '25 Projekte', complete: false, stages: FAMILY_STAGE_FIXTURES.progress },
+            { family: 'points', current_count: 50, next_threshold: 200, remaining_count: 150, next_tier: '200 Punkte', complete: false, stages: FAMILY_STAGE_FIXTURES.points },
+            { family: 'contribution_projects', current_count: 1, next_threshold: 5, remaining_count: 4, next_tier: 'Silber', complete: false, stages: FAMILY_STAGE_FIXTURES.contribution_projects },
+            { family: 'contribution_chronicle', current_count: 5, next_threshold: 25, remaining_count: 20, next_tier: 'Silber', complete: false, stages: FAMILY_STAGE_FIXTURES.contribution_chronicle },
+            { family: 'contribution_archivist', current_count: 25, next_threshold: null, remaining_count: null, next_tier: null, complete: true, stages: FAMILY_STAGE_FIXTURES.contribution_archivist },
+            { family: 'membership', current_count: 7, next_threshold: 10, remaining_count: 3, next_tier: '10 Jahre', complete: false, stages: FAMILY_STAGE_FIXTURES.membership },
           ]}
         />,
       )
@@ -1494,6 +1611,7 @@ describe('Phase 121 Rollenfamilien und Hero-Artwork', () => {
               badge_category: 'role_entry',
               current_count: count,
             }]}
+            badgeProgress={[roleVolumeBadgeProgress(roleCode, count)]}
           />,
         )
         const expectedCode = rank === 'entry' ? badgeCode : `role_volume_${roleCode}_${rank}`
@@ -1510,12 +1628,15 @@ describe('Phase 121 Rollenfamilien und Hero-Artwork', () => {
 
   it('bindet komponierte Hero-Layer an einen quadratischen lokalen Geometriekontext', async () => {
     const { MemberBadgeChain } = await loadMemberBadgeChain()
-    const timer = render(<MemberBadgeChain earnedBadges={[{
-      id: 108,
-      badge_code: 'role_volume_timer_silver',
-      badge_category: 'role_volume',
-      current_count: 108,
-    }]} />)
+    const timer = render(<MemberBadgeChain
+      earnedBadges={[{
+        id: 108,
+        badge_code: 'role_volume_timer_silver',
+        badge_category: 'role_volume',
+        current_count: 108,
+      }]}
+      badgeProgress={[roleVolumeBadgeProgress('timer', 108)]}
+    />)
     const timerCard = timer.container.querySelector('[data-role-code="timer"]') as HTMLElement
     expect(timerCard.querySelectorAll('img')).toHaveLength(1)
     expectDisplayImageSource(
@@ -1525,12 +1646,15 @@ describe('Phase 121 Rollenfamilien und Hero-Artwork', () => {
     timer.unmount()
 
     for (const roleCode of ['project_lead', 'quality_checker', 'encoder'] as const) {
-      const rendered = render(<MemberBadgeChain earnedBadges={[{
-        id: 108,
-        badge_code: `role_volume_${roleCode}_silver`,
-        badge_category: 'role_volume',
-        current_count: 108,
-      }]} />)
+      const rendered = render(<MemberBadgeChain
+        earnedBadges={[{
+          id: 108,
+          badge_code: `role_volume_${roleCode}_silver`,
+          badge_category: 'role_volume',
+          current_count: 108,
+        }]}
+        badgeProgress={[roleVolumeBadgeProgress(roleCode, 108)]}
+      />)
       const card = rendered.container.querySelector(`[data-role-code="${roleCode}"]`) as HTMLElement
       const hero = card.querySelector('[class*="roleHeroArtworkLayered"]') as HTMLElement
       expect(hero).not.toBeNull()
@@ -1583,7 +1707,10 @@ describe('Phase 121 semantischer Rollen-Rank-Track', () => {
   it('beschreibt Gold und Platin als geordnete informative Fünf-Schritt-Listen', async () => {
     const { MemberBadgeChain } = await loadMemberBadgeChain()
     const rendered = render(
-      <MemberBadgeChain earnedBadges={[roleBadge('translator', 356)]} />,
+      <MemberBadgeChain
+        earnedBadges={[roleBadge('translator', 356)]}
+        badgeProgress={[roleVolumeBadgeProgress('translator', 356)]}
+      />,
     )
 
     const goldTrack = screen.getByRole('list', { name: 'Medaillen für Übersetzung' })
@@ -1620,7 +1747,12 @@ describe('Phase 121 semantischer Rollen-Rank-Track', () => {
     expect(goldProgress.getAttribute('aria-valuenow')).toBe('356')
     expect(goldProgress.getAttribute('aria-valuemax')).toBe('510')
 
-    rendered.rerender(<MemberBadgeChain earnedBadges={[roleBadge('translator', 687)]} />)
+    rendered.rerender(
+      <MemberBadgeChain
+        earnedBadges={[roleBadge('translator', 687)]}
+        badgeProgress={[roleVolumeBadgeProgress('translator', 687)]}
+      />,
+    )
     const platinumTrack = screen.getByRole('list', { name: 'Medaillen für Übersetzung' })
     const platinumSteps = within(platinumTrack).getAllByRole('listitem')
     expect(platinumSteps.map((step) => step.getAttribute('data-role-stage-state'))).toEqual([
@@ -1708,7 +1840,7 @@ describe('Phase 148-03 data-color-key auf der Rollenfortschritt-Karte', () => {
 })
 
 describe('Phase 124 Punkte-Meilensteine single-family stage', () => {
-  type Progress = { family: string; current_count: number; next_threshold: number | null; remaining_count: number | null; next_tier: string | null; complete: boolean }
+  type Progress = { family: string; current_count: number; next_threshold: number | null; remaining_count: number | null; next_tier: string | null; complete: boolean; stages?: Array<{ code: string; threshold: number }> }
 
   async function renderPoints(points: number, currentCode: string | null, nextThreshold: number | null, remainingCount: number | null, complete = false) {
     const { MemberBadgeChain } = await loadMemberBadgeChain()
@@ -1716,7 +1848,7 @@ describe('Phase 124 Punkte-Meilensteine single-family stage', () => {
     return render(
       <PointsChain
         earnedBadges={currentCode ? [{ id: 0, badge_code: currentCode, badge_category: 'progress' }] : []}
-        badgeProgress={[{ family: 'points', current_count: points, next_threshold: nextThreshold, remaining_count: remainingCount, next_tier: nextThreshold == null ? null : `${nextThreshold} Punkte`, complete }]}
+        badgeProgress={[{ family: 'points', current_count: points, next_threshold: nextThreshold, remaining_count: remainingCount, next_tier: nextThreshold == null ? null : `${nextThreshold} Punkte`, complete, stages: FAMILY_STAGE_FIXTURES.points }]}
       />,
     )
   }
@@ -1802,7 +1934,7 @@ describe('Phase 124 Punkte-Meilensteine single-family stage', () => {
 })
 
 describe('Phase 126 membership stage', () => {
-  type Progress = { family: string; current_count: number; next_threshold: number | null; remaining_count: number | null; next_tier: string | null; complete: boolean }
+  type Progress = { family: string; current_count: number; next_threshold: number | null; remaining_count: number | null; next_tier: string | null; complete: boolean; stages?: Array<{ code: string; threshold: number }> }
 
   async function renderMembership(years: number, founding = false) {
     const { MemberBadgeChain } = await loadMemberBadgeChain()
@@ -1818,6 +1950,7 @@ describe('Phase 126 membership stage', () => {
       family: 'membership', current_count: years, next_threshold: nextThreshold,
       remaining_count: nextThreshold == null ? null : nextThreshold - years,
       next_tier: nextThreshold == null ? null : `${nextThreshold} Jahre`, complete: nextThreshold == null,
+      stages: FAMILY_STAGE_FIXTURES.membership,
     }]} />)
   }
 
@@ -1970,12 +2103,13 @@ describe('Phase 126 membership stage', () => {
 
 describe('Quick 260811-lck locked achievement artwork secrecy', () => {
   const progress = [
-    { family: 'progress', current_count: 10, next_threshold: 25, remaining_count: 15, next_tier: 'Silber', complete: false },
-    { family: 'points', current_count: 500, next_threshold: 1000, remaining_count: 500, next_tier: 'Veteranenstatus', complete: false },
-    { family: 'contribution_projects', current_count: 1, next_threshold: 5, remaining_count: 4, next_tier: 'Silber', complete: false },
-    { family: 'contribution_chronicle', current_count: 5, next_threshold: 25, remaining_count: 20, next_tier: 'Silber', complete: false },
-    { family: 'contribution_archivist', current_count: 5, next_threshold: 25, remaining_count: 20, next_tier: 'Silber', complete: false },
-    { family: 'membership', current_count: 6, next_threshold: 7, remaining_count: 1, next_tier: '7 Jahre', complete: false },
+    roleVolumeBadgeProgress('translator', 12),
+    { family: 'progress', current_count: 10, next_threshold: 25, remaining_count: 15, next_tier: 'Silber', complete: false, stages: FAMILY_STAGE_FIXTURES.progress },
+    { family: 'points', current_count: 500, next_threshold: 1000, remaining_count: 500, next_tier: 'Veteranenstatus', complete: false, stages: FAMILY_STAGE_FIXTURES.points },
+    { family: 'contribution_projects', current_count: 1, next_threshold: 5, remaining_count: 4, next_tier: 'Silber', complete: false, stages: FAMILY_STAGE_FIXTURES.contribution_projects },
+    { family: 'contribution_chronicle', current_count: 5, next_threshold: 25, remaining_count: 20, next_tier: 'Silber', complete: false, stages: FAMILY_STAGE_FIXTURES.contribution_chronicle },
+    { family: 'contribution_archivist', current_count: 5, next_threshold: 25, remaining_count: 20, next_tier: 'Silber', complete: false, stages: FAMILY_STAGE_FIXTURES.contribution_archivist },
+    { family: 'membership', current_count: 6, next_threshold: 7, remaining_count: 1, next_tier: '7 Jahre', complete: false, stages: FAMILY_STAGE_FIXTURES.membership },
   ]
   const earned: PublicMemberBadge[] = [
     { id: 1, badge_code: 'role_entry_translator', badge_category: 'role_entry', current_count: 12 },
@@ -2055,11 +2189,11 @@ describe('Quick 260811-lck locked achievement artwork secrecy', () => {
 
 describe('Quick 260812-bqs locked mystery heroes', () => {
   const lockedProgress = [
-    { family: 'points', current_count: 0, next_threshold: 1, remaining_count: 1, next_tier: 'Erste Punkte', complete: false },
-    { family: 'contribution_projects', current_count: 0, next_threshold: 1, remaining_count: 1, next_tier: 'Bronze', complete: false },
-    { family: 'contribution_chronicle', current_count: 0, next_threshold: 5, remaining_count: 5, next_tier: 'Bronze', complete: false },
-    { family: 'contribution_archivist', current_count: 0, next_threshold: 5, remaining_count: 5, next_tier: 'Bronze', complete: false },
-    { family: 'membership', current_count: 0, next_threshold: 5, remaining_count: 5, next_tier: '5 Jahre', complete: false },
+    { family: 'points', current_count: 0, next_threshold: 1, remaining_count: 1, next_tier: 'Erste Punkte', complete: false, stages: FAMILY_STAGE_FIXTURES.points },
+    { family: 'contribution_projects', current_count: 0, next_threshold: 1, remaining_count: 1, next_tier: 'Bronze', complete: false, stages: FAMILY_STAGE_FIXTURES.contribution_projects },
+    { family: 'contribution_chronicle', current_count: 0, next_threshold: 5, remaining_count: 5, next_tier: 'Bronze', complete: false, stages: FAMILY_STAGE_FIXTURES.contribution_chronicle },
+    { family: 'contribution_archivist', current_count: 0, next_threshold: 5, remaining_count: 5, next_tier: 'Bronze', complete: false, stages: FAMILY_STAGE_FIXTURES.contribution_archivist },
+    { family: 'membership', current_count: 0, next_threshold: 5, remaining_count: 5, next_tier: '5 Jahre', complete: false, stages: FAMILY_STAGE_FIXTURES.membership },
   ]
 
   it('renders the same secret neutral hero contract for every completely unearned family', async () => {

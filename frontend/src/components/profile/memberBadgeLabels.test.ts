@@ -1,22 +1,82 @@
 import { describe, expect, it } from 'vitest'
 import { FolderCheck, Images, ScrollText } from 'lucide-react'
 
-// deriveMilestoneBadge existiert noch nicht in memberBadgeLabels.ts — macht diesen Test
-// legitim RED (Task 1, Typ-2-Grenzwerte D-01/D-03).
 import {
-  deriveMilestoneBadge,
   getMemberBadgePresentation,
   MEMBER_BADGE_GROUP_LABELS,
   MEMBER_BADGE_GROUP_ORDER,
   MEMBER_BADGE_PRESENTATIONS,
-  POINT_MILESTONES,
   PUBLIC_MEMBER_BADGE_CATALOG,
-  resolveMemberBadgeFamilies,
-  resolveNextPointMilestone,
-  resolveNextRoleVolumeThreshold,
-  resolveRoleProgressPresentation,
-  ROLE_VOLUME_TIER_THRESHOLDS,
 } from './memberBadgeLabels'
+import {
+  resolveMemberBadgeFamilies,
+  resolveRoleProgressPresentation,
+} from './memberBadgeFamilies'
+
+// Phase 150 (D-24): eine geteilte Stufen-Referenztabelle je Familie -- dieselben Zahlen, die
+// seit Plan 150-03 backend-seitig in badge_progress[].stages ausgeliefert werden (siehe
+// 150-05-PLAN.md's Stage-Code-Referenztabelle). Tests bauen ihre badge_progress-Fixtures
+// daraus statt acht unabhaengige Kopien driften zu lassen.
+const FAMILY_STAGE_FIXTURES: Record<string, Array<{ code: string; threshold: number }>> = {
+  progress: [
+    { code: 'first_contribution', threshold: 1 },
+    { code: 'productive_bronze', threshold: 10 },
+    { code: 'productive_silver', threshold: 25 },
+    { code: 'productive_gold', threshold: 50 },
+  ],
+  points: [
+    { code: 'point_milestone_first', threshold: 1 },
+    { code: 'point_milestone_active', threshold: 50 },
+    { code: 'point_milestone_experienced', threshold: 200 },
+    { code: 'point_milestone_engaged', threshold: 500 },
+    { code: 'point_milestone_veteran', threshold: 1000 },
+    { code: 'point_milestone_legend', threshold: 2500 },
+  ],
+  contribution_projects: [
+    { code: 'bronze', threshold: 1 },
+    { code: 'silver', threshold: 5 },
+    { code: 'gold', threshold: 15 },
+  ],
+  contribution_chronicle: [
+    { code: 'bronze', threshold: 10 },
+    { code: 'silver', threshold: 50 },
+    { code: 'gold', threshold: 150 },
+  ],
+  contribution_archivist: [
+    { code: 'bronze', threshold: 10 },
+    { code: 'silver', threshold: 50 },
+    { code: 'gold', threshold: 150 },
+  ],
+  membership: [
+    { code: 'long_term_member', threshold: 5 },
+    { code: 'membership_7_years', threshold: 7 },
+    { code: 'membership_10_years', threshold: 10 },
+  ],
+  role_volume: [
+    { code: 'entry', threshold: 1 },
+    { code: 'bronze', threshold: 12 },
+    { code: 'silver', threshold: 108 },
+    { code: 'gold', threshold: 320 },
+    { code: 'platinum', threshold: 510 },
+  ],
+}
+
+// D-25 (fuenfte/sechste Fundstelle): resolveRoleProgressPresentation nimmt seit Task 2 den
+// passenden role_volume-badge_progress-Eintrag statt eines rohen Zaehlwerts entgegen -- dieser
+// Helfer baut ein minimales, aber vollstaendiges role_volume-Progress-Objekt fuer Tests, die
+// vorher nur `resolveRoleProgressPresentation(count)` aufgerufen haben.
+function roleVolumeProgress(count: number) {
+  return {
+    family: 'role_volume',
+    current_count: count,
+    current_tier: '',
+    next_threshold: null,
+    remaining_count: null,
+    next_tier: null,
+    complete: false,
+    stages: FAMILY_STAGE_FIXTURES.role_volume,
+  }
+}
 
 describe('Contribution-Badge-Präsentationen (D-05)', () => {
   const families = [
@@ -71,50 +131,16 @@ describe('Contribution-Badge-Präsentationen (D-05)', () => {
   })
 })
 
-describe('deriveMilestoneBadge (D-01/D-03 — reine Read-time-Ableitung aus total_points)', () => {
-  it('gibt null unter 1 Punkt zurück', () => {
-    expect(deriveMilestoneBadge(0)).toBeNull()
-  })
-
-  it('liefert point_milestone_first bei 1 Punkt', () => {
-    expect(deriveMilestoneBadge(1)?.badge_code).toBe('point_milestone_first')
-  })
-
-  it('bleibt bei 49 Punkten auf point_milestone_first', () => {
-    expect(deriveMilestoneBadge(49)?.badge_code).toBe('point_milestone_first')
-  })
-
-  it('springt bei 50 Punkten auf point_milestone_active', () => {
-    expect(deriveMilestoneBadge(50)?.badge_code).toBe('point_milestone_active')
-  })
-
-  it('bleibt bei 199 Punkten auf point_milestone_active', () => {
-    expect(deriveMilestoneBadge(199)?.badge_code).toBe('point_milestone_active')
-  })
-
-  it('springt bei 200 Punkten eindeutig auf point_milestone_experienced (D-01)', () => {
-    expect(deriveMilestoneBadge(200)?.badge_code).toBe('point_milestone_experienced')
-  })
-
-  it('liefert point_milestone_legend bei 2500 Punkten', () => {
-    expect(deriveMilestoneBadge(2500)?.badge_code).toBe('point_milestone_legend')
-  })
-
-  it('bleibt bei 2501 Punkten auf point_milestone_legend (kein siebtes Level)', () => {
-    expect(deriveMilestoneBadge(2501)?.badge_code).toBe('point_milestone_legend')
-  })
-
-  it('liefert die feste PublicMemberBadge-Form { id: 0, badge_category: "progress" }', () => {
-    const result = deriveMilestoneBadge(200)
-    expect(result?.id).toBe(0)
-    expect(result?.badge_category).toBe('progress')
-  })
-})
-
 describe('getMemberBadgePresentation — role_volume_-Resolver (D-04, Typ 3)', () => {
+  // D-29 (sechste Fundstelle): das Label ist seit Task 3 nur noch der nackte Tier-Name (keine
+  // "· <Zahl>+"-Suffix mehr) -- ROLE_VOLUME_TIER_THRESHOLDS ist geloescht, diese Funktion hat
+  // keine legitime Quelle mehr fuer die Schwellenzahl. Das byte-identische "<Label> · <Zahl>+"
+  // bleibt trotzdem live, rekonstruiert an CategoryProgressTable.tsx's buildRoleVolumeRow (siehe
+  // CategoryProgressTable.test.tsx:98) -- diese unit-level Assertions pruefen NICHT jene DOM-
+  // Stelle, sondern resolveRoleVolumePresentation's eigenen Rueckgabewert direkt.
   it('loest role_volume_translator_gold zu Gold-Tier-Praesentation auf', () => {
     const presentation = getMemberBadgePresentation('role_volume_translator_gold')
-    expect(presentation.label).toBe('Gold · 320+')
+    expect(presentation.label).toBe('Gold')
     expect(presentation.group).toBe('roles')
     expect(presentation.roleCode).toBe('translator')
     expect(presentation.palette).toBe('gold')
@@ -123,51 +149,31 @@ describe('getMemberBadgePresentation — role_volume_-Resolver (D-04, Typ 3)', (
   it('parst Multi-Underscore-Rollencodes korrekt (kein naives split)', () => {
     const presentation = getMemberBadgePresentation('role_volume_quality_checker_bronze')
     expect(presentation.roleCode).toBe('quality_checker')
-    expect(presentation.label).toBe('Bronze · 12+')
+    expect(presentation.label).toBe('Bronze')
   })
 
   it('loest die Platin-Stufe auf', () => {
     const presentation = getMemberBadgePresentation('role_volume_translator_platinum')
-    expect(presentation.label).toBe('Platin · 510+')
+    expect(presentation.label).toBe('Platin')
     expect(presentation.palette).toBe('platinum')
   })
 
   it('loest die Silber-Stufe auf', () => {
     const presentation = getMemberBadgePresentation('role_volume_translator_silver')
-    expect(presentation.label).toBe('Silber · 108+')
+    expect(presentation.label).toBe('Silber')
     expect(presentation.palette).toBe('silver')
   })
 
   it('faellt bei unbekanntem Rollencode defensiv auf den rohen Code zurueck (kein throw)', () => {
     const presentation = getMemberBadgePresentation('role_volume_unknownrole_gold')
     expect(presentation.roleCode).toBe('unknownrole')
-    expect(presentation.label).toBe('Gold · 320+')
+    expect(presentation.label).toBe('Gold')
   })
 
   it('laesst statische Codes unveraendert (kein Regress)', () => {
     const presentation = getMemberBadgePresentation('founding_member')
     expect(presentation.label).toBe('Gründungsmitglied')
     expect(presentation.group).toBe('membership')
-  })
-})
-
-describe('resolveNextPointMilestone (Phase 116 D-04 — naechste Punkt-Schwelle)', () => {
-  it('liefert kein aktuelles Badge und Schwelle 1 bei 0 Punkten', () => {
-    const result = resolveNextPointMilestone(0)
-    expect(result.currentBadge).toBeNull()
-    expect(result.nextThreshold).toBe(1)
-  })
-
-  it('liefert point_milestone_active und Schwelle 200 bei 50 Punkten', () => {
-    const result = resolveNextPointMilestone(50)
-    expect(result.currentBadge?.badge_code).toBe('point_milestone_active')
-    expect(result.nextThreshold).toBe(200)
-  })
-
-  it('liefert point_milestone_legend und keine weitere Schwelle bei 2500 Punkten', () => {
-    const result = resolveNextPointMilestone(2500)
-    expect(result.currentBadge?.badge_code).toBe('point_milestone_legend')
-    expect(result.nextThreshold).toBeNull()
   })
 })
 
@@ -183,91 +189,37 @@ describe('Phase 124 canonical points-family boundary oracle', () => {
     [2499, 'point_milestone_veteran', 2500, 1, 100, false], [2500, 'point_milestone_legend', null, null, 100, true],
     [2733, 'point_milestone_legend', null, null, 100, true], [5000, 'point_milestone_legend', null, null, 100, true],
   ])('resolves %i points without duplicating production thresholds', (points, currentCode, nextThreshold, remainingCount, percent, complete) => {
-    const currentBadge = deriveMilestoneBadge(points)
-    const next = resolveNextPointMilestone(points)
+    // Phase 150 (D-12/D-13): deriveMilestoneBadge/resolveNextPointMilestone sind geloescht --
+    // currentCode/nextThreshold/remainingCount/complete sind jetzt genau die Felder, die der
+    // Server in badge_progress[] fuer die "points"-Familie liefert (simuliert hier als reale
+    // Eingabe fuer resolveMemberBadgeFamilies, statt clientseitig aus total_points abgeleitet).
     const family = resolveMemberBadgeFamilies({
-      earned_codes: currentBadge ? [currentBadge.badge_code] : [],
-      badge_progress: [{ family: 'points', current_count: points, current_tier: currentCode ?? '', next_threshold: nextThreshold, remaining_count: remainingCount, next_tier: nextThreshold == null ? null : String(nextThreshold), complete, stages: [] }],
+      earned_codes: currentCode ? [currentCode] : [],
+      badge_progress: [{
+        family: 'points', current_count: points, current_tier: currentCode ?? '', next_threshold: nextThreshold,
+        remaining_count: remainingCount, next_tier: nextThreshold == null ? null : String(nextThreshold),
+        complete, stages: FAMILY_STAGE_FIXTURES.points,
+      }],
     }).find((candidate) => candidate.key === 'points')
-    expect(POINT_MILESTONES.map(({ badge_code }) => badge_code).reverse()).toEqual(orderedCodes)
     expect(family?.stages.map(({ threshold }) => threshold)).toEqual(orderedThresholds)
-    expect(currentBadge?.badge_code ?? null).toBe(currentCode)
-    expect(next).toEqual({ currentBadge, nextThreshold })
     expect(family).toMatchObject({ currentStage: currentCode ? { badge_code: currentCode } : null, nextThreshold, remainingCount, complete })
     expect(family?.stages.map(({ threshold, earned, locked }) => ({ threshold, earned, locked }))).toEqual(
       orderedThresholds.map((threshold) => ({ threshold, earned: points >= threshold, locked: points < threshold })),
     )
     const progressMax = nextThreshold ?? orderedThresholds.at(-1)!
     expect(Math.round((Math.min(points, progressMax) / progressMax) * 100)).toBe(percent)
+    expect(orderedCodes).toHaveLength(orderedThresholds.length)
   })
 })
 
-describe('resolveNextRoleVolumeThreshold (Phase 116 D-04 — naechste Rollen-Volumen-Stufe)', () => {
-  it('liefert leere aktuelle Stufe und Schwelle 12/Bronze bei 0', () => {
-    const result = resolveNextRoleVolumeThreshold(0)
-    expect(result.currentTier).toBe('')
-    expect(result.nextThreshold).toBe(12)
-    expect(result.nextTierLabel).toBe('Bronze')
-  })
-
-  it('liefert bronze und Schwelle 108/Silber bei 12', () => {
-    const result = resolveNextRoleVolumeThreshold(12)
-    expect(result.currentTier).toBe('bronze')
-    expect(result.nextThreshold).toBe(108)
-    expect(result.nextTierLabel).toBe('Silber')
-  })
-
-  it('liefert platinum und keine weitere Schwelle bei 510', () => {
-    const result = resolveNextRoleVolumeThreshold(510)
-    expect(result.currentTier).toBe('platinum')
-    expect(result.nextThreshold).toBeNull()
-    expect(result.nextTierLabel).toBeNull()
-  })
-})
-describe('resolveRoleProgressPresentation (Phase 118 — Rollenfortschritt)', () => {
-  it.each([
-    [0, null, 12, 'Bronze'], [1, 'entry', 12, 'Bronze'], [11, 'entry', 12, 'Bronze'],
-    [12, 'bronze', 108, 'Silber'], [107, 'bronze', 108, 'Silber'],
-    [108, 'silver', 320, 'Gold'], [319, 'silver', 320, 'Gold'],
-    [320, 'gold', 510, 'Platin'], [509, 'gold', 510, 'Platin'],
-    [510, 'platinum', null, null],
-  ])('resolves %i Mitwirkungen at every boundary', (count, tier, nextThreshold, nextTierLabel) => {
-    expect(resolveRoleProgressPresentation(count)).toMatchObject({ tier, nextThreshold, nextTierLabel })
-  })
-
-  it('keeps exact rank and progress copy at entry, intermediate, and terminal states', () => {
-    expect(resolveRoleProgressPresentation(1)).toMatchObject({
-      tierLabel: 'Einstieg',
-      rankLabel: 'Einstieg · 1+',
-      progressCopy: '1 von 12 Mitwirkungen · Noch 11 bis Bronze',
-      nextCopy: 'Noch 11 Mitwirkungen bis Bronze',
-    })
-    expect(resolveRoleProgressPresentation(108)).toMatchObject({
-      tierLabel: 'Silber',
-      rankLabel: 'Silber · 108+',
-      progressCopy: '108 von 320 Mitwirkungen · Noch 212 bis Gold',
-      nextCopy: 'Noch 212 Mitwirkungen bis Gold',
-    })
-    expect(resolveRoleProgressPresentation(777)).toMatchObject({
-      tierLabel: 'Platin',
-      rankLabel: 'Platin · 510+',
-      progressCopy: '777 Mitwirkungen · Höchste Stufe erreicht',
-      nextCopy: 'Höchste Stufe erreicht',
-      progressValue: 510, progressMax: 510,
-    })
-  })
-})
-
-describe('Phase 121 Rollen-Schwellen- und Parsing-Matrix', () => {
-  it('verwendet unverändert die vier kanonischen Volumenschwellen', () => {
-    expect(ROLE_VOLUME_TIER_THRESHOLDS).toEqual({
-      bronze: 12,
-      silver: 108,
-      gold: 320,
-      platinum: 510,
-    })
-  })
-
+describe('Phase 121 Rollen-Schwellen-Grenzwerte (D-22 Anti-Drift-Fix)', () => {
+  // D-22: der fruehere Test hier verglich ROLE_VOLUME_TIER_THRESHOLDS (Frontend-Konstante, seit
+  // Task 3 geloescht) nur gegen eine zweite, ebenfalls hartcodierte Kopie derselben Zahlen im
+  // Testkoerper selbst -- das konnte niemals eine echte Drift zur Backend-Registry erkennen.
+  // Diese exakten Grenzwerte (12/108/320/510) sind stattdessen serverseitig bewiesen durch
+  // TestLoadRoleVolumeBadgesPostgresProgressBoundaries in
+  // backend/internal/repository/member_profile_role_volume_repository_test.go (Plan 150-03) --
+  // ein echter Postgres-Integrationstest gegen die Registry, keine zweite hartcodierte Liste.
   it.each([
     [0, null, 12, '0 von 12 Mitwirkungen · Noch 12 bis Bronze'],
     [1, 'entry', 12, '1 von 12 Mitwirkungen · Noch 11 bis Bronze'],
@@ -281,7 +233,7 @@ describe('Phase 121 Rollen-Schwellen- und Parsing-Matrix', () => {
     [510, 'platinum', null, '510 Mitwirkungen · Höchste Stufe erreicht'],
     [687, 'platinum', null, '687 Mitwirkungen · Höchste Stufe erreicht'],
   ])('bewahrt bei %i den echten Count, Rang und das nächste Ziel', (count, tier, nextThreshold, progressCopy) => {
-    expect(resolveRoleProgressPresentation(count)).toMatchObject({
+    expect(resolveRoleProgressPresentation(roleVolumeProgress(count))).toMatchObject({
       tier,
       nextThreshold,
       progressCopy,
@@ -297,17 +249,71 @@ describe('Phase 121 Rollen-Schwellen- und Parsing-Matrix', () => {
   })
 })
 
+describe('resolveRoleProgressPresentation (Phase 118 — Rollenfortschritt)', () => {
+  it.each([
+    [0, null, 12, 'Bronze'], [1, 'entry', 12, 'Bronze'], [11, 'entry', 12, 'Bronze'],
+    [12, 'bronze', 108, 'Silber'], [107, 'bronze', 108, 'Silber'],
+    [108, 'silver', 320, 'Gold'], [319, 'silver', 320, 'Gold'],
+    [320, 'gold', 510, 'Platin'], [509, 'gold', 510, 'Platin'],
+    [510, 'platinum', null, null],
+  ])('resolves %i Mitwirkungen at every boundary', (count, tier, nextThreshold, nextTierLabel) => {
+    expect(resolveRoleProgressPresentation(roleVolumeProgress(count))).toMatchObject({ tier, nextThreshold, nextTierLabel })
+  })
+
+  it('keeps exact rank and progress copy at entry, intermediate, and terminal states', () => {
+    expect(resolveRoleProgressPresentation(roleVolumeProgress(1))).toMatchObject({
+      tierLabel: 'Einstieg',
+      rankLabel: 'Einstieg · 1+',
+      progressCopy: '1 von 12 Mitwirkungen · Noch 11 bis Bronze',
+      nextCopy: 'Noch 11 Mitwirkungen bis Bronze',
+    })
+    expect(resolveRoleProgressPresentation(roleVolumeProgress(108))).toMatchObject({
+      tierLabel: 'Silber',
+      rankLabel: 'Silber · 108+',
+      progressCopy: '108 von 320 Mitwirkungen · Noch 212 bis Gold',
+      nextCopy: 'Noch 212 Mitwirkungen bis Gold',
+    })
+    expect(resolveRoleProgressPresentation(roleVolumeProgress(777))).toMatchObject({
+      tierLabel: 'Platin',
+      rankLabel: 'Platin · 510+',
+      progressCopy: '777 Mitwirkungen · Höchste Stufe erreicht',
+      nextCopy: 'Höchste Stufe erreicht',
+      progressValue: 510, progressMax: 510,
+    })
+  })
+
+  it('resolveRoleProgressPresentation(undefined, 0) bleibt ein dokumentiert unerreichbarer Defensivpfad (D-25)', () => {
+    // Kein passender role_volume-badge_progress-Eintrag: stages ist [], also bleiben
+    // nextThreshold/nextTierLabel bewusst null statt auf ROLE_VOLUME_TIER_THRESHOLDS
+    // zurueckzufallen (das Literal existiert nicht mehr). In Produktion unerreichbar, weil
+    // jede Rolle in roleCounts einen passenden role_volume-Eintrag hat.
+    expect(resolveRoleProgressPresentation(undefined, 0)).toMatchObject({
+      tier: null,
+      nextThreshold: null,
+      nextTierLabel: null,
+    })
+  })
+})
+
 describe('Phase 119 canonical badge-family resolver contract', () => {
   type Stage = { badge_code: string; threshold: number; label: string }
   type Family = { key: string; stages: Stage[] }
   type ResolveFamilies = (input: {
     earned_codes: string[]
-    badge_progress: Array<{ family: string; current_count: number; next_threshold: number | null; remaining_count: number | null; next_tier: string | null; complete: boolean }>
+    badge_progress: Array<{
+      family: string
+      current_count: number
+      next_threshold: number | null
+      remaining_count: number | null
+      next_tier: string | null
+      complete: boolean
+      stages?: Array<{ code: string; threshold: number }>
+    }>
     catalog?: Stage[]
   }) => Family[]
 
   async function resolver(): Promise<ResolveFamilies> {
-    const labels = await import('./memberBadgeLabels')
+    const labels = await import('./memberBadgeFamilies')
     expect(labels).toHaveProperty('resolveMemberBadgeFamilies')
     return (labels as unknown as { resolveMemberBadgeFamilies: ResolveFamilies }).resolveMemberBadgeFamilies
   }
@@ -317,10 +323,10 @@ describe('Phase 119 canonical badge-family resolver contract', () => {
     const families = resolve({
       earned_codes: ['first_contribution', 'point_milestone_active', 'contribution_projects_bronze', 'founding_member'],
       badge_progress: [
-        { family: 'progress', current_count: 10, next_threshold: 25, remaining_count: 15, next_tier: '25 Projekte', complete: false },
-        { family: 'points', current_count: 50, next_threshold: 200, remaining_count: 150, next_tier: '200 Punkte', complete: false },
-        { family: 'contribution_projects', current_count: 3, next_threshold: 5, remaining_count: 2, next_tier: 'Silber', complete: false },
-        { family: 'membership', current_count: 0, next_threshold: 5, remaining_count: 5, next_tier: '5 Jahre', complete: false },
+        { family: 'progress', current_count: 10, next_threshold: 25, remaining_count: 15, next_tier: '25 Projekte', complete: false, stages: FAMILY_STAGE_FIXTURES.progress },
+        { family: 'points', current_count: 50, next_threshold: 200, remaining_count: 150, next_tier: '200 Punkte', complete: false, stages: FAMILY_STAGE_FIXTURES.points },
+        { family: 'contribution_projects', current_count: 3, next_threshold: 5, remaining_count: 2, next_tier: 'Silber', complete: false, stages: FAMILY_STAGE_FIXTURES.contribution_projects },
+        { family: 'membership', current_count: 0, next_threshold: 5, remaining_count: 5, next_tier: '5 Jahre', complete: false, stages: FAMILY_STAGE_FIXTURES.membership },
       ],
     })
     expect(families.map((family) => family.key)).toEqual(['progress', 'points', 'contribution_projects', 'membership'])
@@ -361,7 +367,8 @@ describe('Phase 125 contribution boundary oracle', () => {
   it('keeps all three zero families visible in canonical order', () => {
     const badge_progress = [...specs].reverse().map(([family]) => ({
       family, current_count: 0, current_tier: '', next_threshold: family === 'contribution_projects' ? 1 : 10,
-      remaining_count: family === 'contribution_projects' ? 1 : 10, next_tier: 'bronze', complete: false, stages: [],
+      remaining_count: family === 'contribution_projects' ? 1 : 10, next_tier: 'bronze', complete: false,
+      stages: FAMILY_STAGE_FIXTURES[family],
     }))
     const result = resolveMemberBadgeFamilies({ earned_codes: [], badge_progress })
       .filter(({ group }) => group === 'contributions')
@@ -376,7 +383,7 @@ describe('Phase 125 contribution boundary oracle', () => {
     const [value, tier, nextThreshold, remainingCount, percent, complete] = boundary
     const family = resolveMemberBadgeFamilies({
       earned_codes: [],
-      badge_progress: [{ family: key, current_count: value, current_tier: tier ?? '', next_threshold: nextThreshold, remaining_count: remainingCount, next_tier: null, complete, stages: [] }],
+      badge_progress: [{ family: key, current_count: value, current_tier: tier ?? '', next_threshold: nextThreshold, remaining_count: remainingCount, next_tier: null, complete, stages: FAMILY_STAGE_FIXTURES[key] }],
     }).find(({ key: candidate }) => candidate === key)!
     const max = nextThreshold ?? family.stages.at(-1)!.threshold
     expect(family).toMatchObject({
@@ -400,7 +407,7 @@ describe('Phase 126 independent membership presentation contract', () => {
         family: 'membership', current_count: currentCount, current_tier: '', next_threshold: nextThreshold,
         remaining_count: nextThreshold == null ? null : nextThreshold - currentCount,
         next_tier: nextThreshold == null ? null : `${nextThreshold} Jahre`, complete: nextThreshold == null,
-        stages: [],
+        stages: FAMILY_STAGE_FIXTURES.membership,
       }],
     }).find(({ key }) => key === 'membership')!
   }
@@ -451,7 +458,7 @@ describe('Phase 126 independent membership presentation contract', () => {
             family: 'membership', current_count: count, current_tier: '',
             next_threshold: count < 5 ? 5 : count < 7 ? 7 : count < 10 ? 10 : null,
             remaining_count: count < 5 ? 5 - count : count < 7 ? 7 - count : count < 10 ? 10 - count : null,
-            next_tier: null, complete: count >= 10, stages: [],
+            next_tier: null, complete: count >= 10, stages: FAMILY_STAGE_FIXTURES.membership,
           }],
         }).filter(({ key }) => key === 'special')).toHaveLength(0)
       }

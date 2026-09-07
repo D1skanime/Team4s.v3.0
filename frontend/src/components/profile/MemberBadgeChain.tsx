@@ -10,15 +10,16 @@ import { useRoleCatalog } from '@/providers/RoleCatalogProvider'
 import type { PublicMemberBadge, PublicMemberBadgeProgress } from '@/types/profile'
 
 import {
+  resolveMemberBadgeFamilies,
+  resolveRoleProgressPresentation,
+  type MemberBadgeFamilyPresentation,
+} from './memberBadgeFamilies'
+import {
   MEMBER_BADGE_GROUP_LABELS,
   MEMBER_BADGE_GROUP_ORDER,
   PUBLIC_MEMBER_BADGE_CATALOG,
   getMemberBadgePresentation,
-  resolveMemberBadgeFamilies,
-  resolveRoleProgressPresentation,
-  ROLE_VOLUME_TIER_THRESHOLDS,
   type MemberBadgeGroup,
-  type MemberBadgeFamilyPresentation,
   type MemberBadgePresentation,
   type PublicMemberBadgeCatalogItem,
 } from './memberBadgeLabels'
@@ -626,19 +627,25 @@ export function MemberBadgeChain({
 }: MemberBadgeChainProps) {
   const { roles: contributionRoles } = useRoleCatalog('anime_contribution')
   const earnedCodes = new Set(earnedBadges.map((badge) => badge.badge_code))
+  // Phase 150 (D-12 #4): Plan 150-04 garantiert current_count auf jedem
+  // role_entry_*/role_volume_*_<tier>-Badge -- die alte tier-suffix-basierte
+  // Schwellen-Rueckfallschaetzung ist damit unerreichbarer Code und entfaellt.
   const roleCounts = new Map<string, number>()
   for (const badge of earnedBadges) {
     const presentation = getMemberBadgePresentation(badge.badge_code)
     if (presentation.group !== 'roles' || !presentation.roleCode) continue
-    const tier = (['bronze', 'silver', 'gold', 'platinum'] as const)
-      .find((candidate) => badge.badge_code.endsWith(`_${candidate}`))
-    const fallbackCount = badge.badge_code.startsWith('role_entry_')
-      ? 1
-      : tier ? ROLE_VOLUME_TIER_THRESHOLDS[tier] : 0
-    const count = badge.current_count ?? fallbackCount
+    const count = badge.current_count ?? 0
     if (count < 1) continue
     roleCounts.set(presentation.roleCode, Math.max(roleCounts.get(presentation.roleCode) ?? 0, count))
   }
+  // D-25 (fuenfte Fundstelle): roleCounts bleibt fuer Anzeige-/Sortierzwecke bestehen, ist
+  // aber ab jetzt NICHT mehr die Tier-/Fortschritts-Ableitungsgrundlage -- dafuer wird der
+  // passende role_volume-badge_progress-Eintrag nach role_code nachgeschlagen.
+  const roleVolumeProgressByCode = new Map(
+    (badgeProgress ?? [])
+      .filter((entry) => entry.family === 'role_volume' && entry.role_code)
+      .map((entry) => [entry.role_code as string, entry]),
+  )
   const orderedRoleCodes = orderForContext(contributionRoles, 'anime_contribution').map((option) => option.code)
     .filter((roleCode) => roleCounts.has(roleCode))
   const earnedRoleCodes = new Set(orderedRoleCodes)
@@ -723,7 +730,7 @@ export function MemberBadgeChain({
                       ? presentationForRole(contributionRoles, row.key).iconKey
                       : undefined
                     const count = roleCounts.get(row.key) ?? 0
-                    const progress = resolveRoleProgressPresentation(count)
+                    const progress = resolveRoleProgressPresentation(roleVolumeProgressByCode.get(row.key), count)
                     const roleLabel = resolveRoleLabel(contributionRoles, row.key)
                     const currentIndex = ['entry', 'bronze', 'silver', 'gold', 'platinum'].indexOf(progress.tier ?? '')
                     const artworkItem = row.items[Math.max(0, currentIndex)]
