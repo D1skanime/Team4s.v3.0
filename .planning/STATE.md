@@ -3,14 +3,14 @@ gsd_state_version: 1.0
 milestone: v1.4
 milestone_name: Coverage
 status: executing
-stopped_at: Completed 150-03-PLAN.md
-last_updated: "2026-09-06T23:55:31.319Z"
-last_activity: 2026-09-06
+stopped_at: Completed 150-05-PLAN.md
+last_updated: "2026-09-07T00:38:12.517Z"
+last_activity: 2026-09-07
 progress:
   total_phases: 15
   completed_phases: 14
   total_plans: 155
-  completed_plans: 152
+  completed_plans: 153
   percent: 93
 ---
 
@@ -34,7 +34,7 @@ See: .planning/PROJECT.md (updated 2026-08-13)
 ## Current Position
 
 Phase: 150 (badge-regeln-eine-autoritative-schwellenquelle) — EXECUTING
-Plan: 5 of 7
+Plan: 6 of 7
 Status: Ready to execute
 
 Phase 150 (Badge-Regeln — eine autoritative Schwellenquelle) ist additiv an v1.4 angehängt
@@ -52,7 +52,7 @@ timing flakiness, not a Phase 149 regression, and not yet root-caused.
 
 v1.4 remains complete; Phase 149 was appended additively (same pattern as 143-148), no new
 milestone was created.
-Last activity: 2026-09-06
+Last activity: 2026-09-07
 
 ## Accumulated Context
 
@@ -321,6 +321,8 @@ Last activity: 2026-09-06
 - [Phase 150]: 150-04: role_entry_<code> now sourced exclusively by loadRoleVolumeBadges (D-10 fix); dedicated single-use Postgres fixture used since point_ledger_entries' append-only guard is incompatible with the shared openPhase129Postgres DELETE-reset
 - [Phase 150]: Fixed two pre-existing role_volume Postgres boundary tests that had never actually run against a real DSN (nil award/reversal entry IDs violated chk_release_role_credit_lifecycle_shape) — 150-03 Task 1
 - [Phase 150]: loadBadgeProgress role_volume integration tests use a new openBadgeProgressPostgres fixture extending 150-02's schema-isolated openContributionBadgesPostgres, not openPhase129Postgres (unsafe for point_ledger_entries per 150-04's finding) — 150-03 Task 2
+- [Phase 150]: 150-05: resolveRoleVolumePresentation now returns bare tier label; buildRoleVolumeRow reconstructs the suffixed string from server current_threshold (D-29). resolveMemberBadgeFamilies/resolveRoleProgressPresentation read badge_progress[].stages instead of FAMILY_DEFINITIONS/ROLE_PROGRESS_STAGES (D-24/D-25).
+- [Phase 150]: 150-05: Tasks 1-3's own <verify> commands were mutually interdependent per the plan's own design (Task 1 needs Task 3's label fix; Task 2/3 share files); implemented all three tasks' code together and split git history into 3 commits by final file ownership instead of forcing artificial per-task isolation.
 
 ### Pending Todos
 
@@ -663,10 +665,11 @@ untruncated list lives in `.planning/todos/pending/`.
 | Phase 150 P02 | 35min | 3 tasks | 12 files |
 | Phase 150 P04 | 26min | 1 tasks | 3 files |
 | Phase 150 P03 | 45min | 2 tasks | 9 files |
+| Phase 150 P05 | 75min | 3 tasks | 11 files |
 
 ## Session Continuity
 
-Last session: 2026-09-06T23:55:31.296Z
-Stopped at: Completed 150-03-PLAN.md
+Last session: 2026-09-07T00:38:12.509Z
+Stopped at: Completed 150-05-PLAN.md
 Last activity: 2026-09-01 - Milestone v1.4 audit passed (41/41 requirements, 7/7 phases, .planning/v1.4-MILESTONE-AUDIT.md); Phase 143 added to roadmap, not yet planned
 Resume file: None
