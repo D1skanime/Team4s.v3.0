@@ -7,12 +7,14 @@
   gap: 16px;
   padding: 16px;
   overflow: hidden;
-  border: 1px solid var(--border-subtle);
-  border-radius: var(--radius-lg);
-  background:
-    radial-gradient(circle at 18% 32%, color-mix(in srgb, var(--color-primary) 12%, transparent), transparent 38%),
-    var(--surface-card);
-  box-shadow: var(--shadow-xs);
+}
+
+/* The profile section owns the surface; retain only the structural border allowance. */
+section.animeProjectStage {
+  border: 1px solid transparent;
+  border-radius: 0;
+  background: transparent;
+  box-shadow: none;
 }
 
 .animeProjectTitle {

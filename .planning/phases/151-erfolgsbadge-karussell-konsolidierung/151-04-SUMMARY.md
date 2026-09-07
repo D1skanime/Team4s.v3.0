@@ -60,3 +60,14 @@ PLAN COMPLETE
 - Replaced the progress artwork's layout-changing border with non-layout outline/shadow treatment, retaining the shared 8px image inset.
 - Repeated Linux Chromium 320px measurement: **0 non-square slots, 0 marker/lane overlaps, 0 page errors, 0 document overflow**. Machine result `/tmp/team4s-151-320-fixed.json`; screenshots `/tmp/team4s-phase151-root/{role,progress}-320-fixed.png` in frontend container.
 - Final integration component suite **176 PASS**; scoped ESLint and diff check PASS. Final exhaustive viewport/artwork gate remains Plan 05.
+
+### Surface parity review
+
+The coordinator compared the final Phase-150 no-card-surface rule with the worker CSS and found
+that the rewrite had reintroduced per-stage white/gradient cards. Restored transparent surfaces
+for all five family/role roots using a local `section.<owner>` declaration; a transparent 1px
+structural border retains the query sizing allowance. No active-state geometry changes were added.
+Fresh Linux Chromium 320px computed styles for role, progress, points, all three contribution
+families and membership: background transparent, background-image none, shadow none, radius0;
+all hero192/marker64 rectangles exact, no page error or document overflow. Evidence:
+`/tmp/team4s-151-surface-review.json`. Final collector must retain this parity check.

@@ -7,10 +7,14 @@
   gap: var(--space-4);
   padding: var(--space-4);
   overflow: visible;
-  border: 1px solid var(--border-subtle);
-  border-radius: var(--radius-lg);
+}
+
+/* The profile section owns the surface; retain only the structural border allowance. */
+section.contributionAchievementStage {
+  border: 1px solid transparent;
+  border-radius: 0;
   background: transparent;
-  box-shadow: var(--shadow-xs);
+  box-shadow: none;
 }
 
 .contributionStageTitle {
