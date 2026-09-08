@@ -327,27 +327,31 @@ func renderTableContent(rows []TipTapNode, sb *strings.Builder, resolver func(in
 	}
 }
 
-// resolveHeadingLevel extracts the heading level from attrs, defaulting to 1, clamped 1-3.
+// resolveHeadingLevel extracts the heading level from attrs, defaulting to 2, clamped 2-3.
+// h1 is intentionally excluded (Phase 152-02, D2): the public fansub page already renders
+// exactly one <h1> (group name in Hero), and h1 is not in the sanitizer's AllowElements,
+// so a level-1 or level-less heading must degrade to <h2> instead of being silently
+// stripped to bare text by the sanitizer.
 func resolveHeadingLevel(attrs map[string]any) int {
 	if attrs == nil {
-		return 1
+		return 2
 	}
 	lvl, ok := attrs["level"]
 	if !ok {
-		return 1
+		return 2
 	}
 	switch v := lvl.(type) {
 	case float64:
 		level := int(v)
-		if level < 1 {
-			return 1
+		if level < 2 {
+			return 2
 		}
 		if level > 3 {
 			return 3
 		}
 		return level
 	}
-	return 1
+	return 2
 }
 
 // renderCellAttrs builds the attribute string for td/th elements.

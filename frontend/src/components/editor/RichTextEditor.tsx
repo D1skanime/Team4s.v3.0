@@ -176,14 +176,6 @@ function EditorToolbar({ editor, variant = 'full', enableImages, onPendingImageA
       </button>
       <button
         type="button"
-        className={`${styles.toolbarBtn} ${editor.isActive('heading', { level: 1 }) ? styles.toolbarBtnActive : ''}`}
-        onClick={() => setHeading(1)}
-        title="Überschrift 1"
-      >
-        H1
-      </button>
-      <button
-        type="button"
         className={`${styles.toolbarBtn} ${editor.isActive('heading', { level: 2 }) ? styles.toolbarBtnActive : ''}`}
         onClick={() => setHeading(2)}
         title="Überschrift 2"

@@ -212,6 +212,30 @@ func TestTipTapRenderHTML_heading(t *testing.T) {
 	assert.Contains(t, html, "<h2>")
 }
 
+// TestTipTapRenderHTML_headingLevel1DegradesToH2 prueft die Regression aus 152-REVIEW.md
+// CR-01: eine Heading-Node mit level:1 darf nach dem Sanitizing niemals stillschweigend zu
+// unformatiertem Text verschwinden (h1 ist nicht in AllowElements). resolveHeadingLevel
+// muss level 1 auf 2 anheben, sodass die Ueberschrift als <h2> erhalten bleibt.
+func TestTipTapRenderHTML_headingLevel1DegradesToH2(t *testing.T) {
+	svc := newTestTipTapService(t)
+	input := `{"type":"doc","content":[{"type":"heading","attrs":{"level":1},"content":[{"type":"text","text":"Titel"}]}]}`
+	html, err := svc.RenderHTML(input)
+	require.NoError(t, err)
+	assert.NotContains(t, html, "<h1", "h1 darf nie gerendert werden")
+	assert.Contains(t, html, "<h2>Titel</h2>", "level:1 muss auf h2 degradieren statt zu verschwinden")
+}
+
+// TestTipTapRenderHTML_headingLevelMissingDegradesToH2 prueft denselben Fall fuer eine
+// Heading-Node ganz ohne level-Attribut (levelless), die frueher ebenfalls auf 1 defaultete.
+func TestTipTapRenderHTML_headingLevelMissingDegradesToH2(t *testing.T) {
+	svc := newTestTipTapService(t)
+	input := `{"type":"doc","content":[{"type":"heading","content":[{"type":"text","text":"Titel"}]}]}`
+	html, err := svc.RenderHTML(input)
+	require.NoError(t, err)
+	assert.NotContains(t, html, "<h1", "h1 darf nie gerendert werden")
+	assert.Contains(t, html, "<h2>Titel</h2>", "levelless heading muss auf h2 degradieren statt zu verschwinden")
+}
+
 func TestTipTapRenderHTML_bold(t *testing.T) {
 	svc := newTestTipTapService(t)
 	input := `{"type":"doc","content":[{"type":"paragraph","content":[{"type":"text","text":"Fett","marks":[{"type":"bold"}]}]}]}`
