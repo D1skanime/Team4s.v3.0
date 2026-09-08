@@ -146,7 +146,7 @@ describe('FansubGroupMediaBlock + FansubMediaLightbox Integration (verdrahtet in
     render(<FansubGroupMediaBlock media={items} />)
 
     fireEvent.click(screen.getByText('Alle 7 anzeigen'))
-    fireEvent.click(screen.getByAltText('Medium 6'))
+    fireEvent.click(screen.getByRole('button', { name: 'Medium 6' }))
 
     expect(screen.getByRole('dialog')).toBeTruthy()
     expect(screen.getByText('6 / 7')).toBeTruthy()
@@ -158,7 +158,7 @@ describe('FansubGroupMediaBlock + FansubMediaLightbox Integration (verdrahtet in
 
     render(<FansubGroupMediaBlock media={items} />)
 
-    const trigger = screen.getByAltText('Medium 1').closest('button') as HTMLButtonElement
+    const trigger = screen.getByRole('button', { name: 'Medium 1' }) as HTMLButtonElement
     fireEvent.click(trigger)
     expect(screen.getByRole('dialog')).toBeTruthy()
 
@@ -173,7 +173,7 @@ describe('FansubGroupMediaBlock + FansubMediaLightbox Integration (verdrahtet in
 
     render(<FansubGroupMediaBlock media={items} onSelect={onSelect} />)
 
-    fireEvent.click(screen.getByAltText('Medium 2'))
+    fireEvent.click(screen.getByRole('button', { name: 'Medium 2' }))
 
     expect(onSelect).toHaveBeenCalledWith(1)
     expect(screen.getByRole('dialog')).toBeTruthy()
