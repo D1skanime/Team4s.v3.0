@@ -2,6 +2,8 @@
 
 import { useState } from 'react'
 
+import { AchievementArtwork } from '@/components/profile/AchievementArtwork'
+import artworkStyles from '@/components/profile/AchievementArtwork.module.css'
 import { Button, SectionHeader } from '@/components/ui'
 import { getGroupHistoryEventPresentation } from '@/lib/group-history-events'
 import type { GroupHistoryEventPresentation } from '@/lib/group-history-events'
@@ -28,46 +30,16 @@ function achievementStyle(eventType: string): string {
   return 'achAccent'
 }
 
-function achievementEventStyle(eventType: string): string | null {
-  if (eventType === 'projects_500') return 'historyTimelineEventProjects500'
-  if (eventType === 'releases_500') return 'historyTimelineEventReleases500'
-  if (eventType === 'releases_1000') return 'historyTimelineEventReleases1000'
-  if (eventType === 'releases_5000') return 'historyTimelineEventReleases5000'
-  if (eventType === 'releases_10000') return 'historyTimelineEventReleases10000'
-  return null
-}
-
 function historyTitle(item: PublicFansubHistory): string {
   return item.title?.trim() || item.event_type
-}
-
-function publicDomainTerms(text: string): string {
-  return text
-    .replaceAll('Fansub-Projekte', '__FANSUB_PROJECTS__')
-    .replaceAll('Fansub-Projekt', '__FANSUB_PROJECT__')
-    .replaceAll('Fansub-Releases', '__FANSUB_RELEASES__')
-    .replaceAll('Fansub-Release', '__FANSUB_RELEASE__')
-    .replaceAll('Projekte', 'Fansub-Projekte')
-    .replaceAll('Projekt', 'Fansub-Projekt')
-    .replaceAll('Releases', 'Fansub-Releases')
-    .replaceAll('Release', 'Fansub-Release')
-    .replaceAll('__FANSUB_PROJECTS__', 'Fansub-Projekte')
-    .replaceAll('__FANSUB_PROJECT__', 'Fansub-Projekt')
-    .replaceAll('__FANSUB_RELEASES__', 'Fansub-Releases')
-    .replaceAll('__FANSUB_RELEASE__', 'Fansub-Release')
-    .replaceAll('Fansub-Fansub-', 'Fansub-')
-}
-
-function publicHistoryLabel(presentation: GroupHistoryEventPresentation): string {
-  return publicDomainTerms(presentation.label)
 }
 
 function publicHistoryTitle(item: PublicFansubHistory, presentation: GroupHistoryEventPresentation): string {
   const title = historyTitle(item)
   if (title === item.event_type || title === presentation.label) {
-    return publicHistoryLabel(presentation)
+    return presentation.publicLabel
   }
-  return publicDomainTerms(title)
+  return title
 }
 
 function sortHistory(history: PublicFansubHistory[]): PublicFansubHistory[] {
@@ -96,12 +68,12 @@ export function FansubHistorySection({ history }: FansubHistorySectionProps) {
       <ol className={styles.historyTimeline}>
         {visibleHistory.map((item, index) => {
           const style = achievementStyle(item.event_type)
-          const eventStyle = achievementEventStyle(item.event_type)
           const presentation = getGroupHistoryEventPresentation(item.event_type)
-          const publicLabel = publicHistoryLabel(presentation)
+          const eventStyle = presentation.emphasis === 'legendary' ? 'historyTimelineEmphasisLegendary' : null
           return (
             <li
               key={item.id}
+              data-emphasis={presentation.emphasis !== 'none' ? presentation.emphasis : undefined}
               className={[
                 styles.historyTimelineItem,
                 styles[style],
@@ -111,17 +83,25 @@ export function FansubHistorySection({ history }: FansubHistorySectionProps) {
                 .filter(Boolean)
                 .join(' ')}
             >
-              <div className={styles.historyTimelinePair}>
-                {item.year ? <span className={styles.historyTimelineAxisYear}>{item.year}</span> : null}
-                <div className={styles.historyTimelineBadge} aria-hidden="true">
-                  <img src={presentation.imageSrc} alt="" className={styles.historyTimelineImage} />
+              <div className={artworkStyles.container}>
+                <div className={styles.historyTimelinePair}>
+                  {item.year ? <span className={styles.historyTimelineAxisYear} aria-hidden="true">{item.year}</span> : null}
+                  <div className={styles.historyTimelineBadge}>
+                    <AchievementArtwork
+                      descriptor={{ kind: 'direct', src: presentation.imageSrc }}
+                      badgeCode={item.event_type}
+                      alt=""
+                      size="hero"
+                      decorative
+                    />
+                  </div>
+                  <article className={styles.historyTimelineCard}>
+                    {item.year ? <span className={styles.historyTimelineYear}>{item.year}</span> : null}
+                    <strong>{publicHistoryTitle(item, presentation)}</strong>
+                    <span className={styles.historyTimelineType}>{presentation.publicLabel}</span>
+                    {item.note ? <p className={styles.historyTimelineNote}>{item.note}</p> : null}
+                  </article>
                 </div>
-                <article className={styles.historyTimelineCard}>
-                  {item.year ? <span className={styles.historyTimelineYear}>{item.year}</span> : null}
-                  <strong>{publicHistoryTitle(item, presentation)}</strong>
-                  <span className={styles.historyTimelineType}>{publicLabel}</span>
-                  {item.note ? <p className={styles.historyTimelineNote}>{item.note}</p> : null}
-                </article>
               </div>
             </li>
           )
