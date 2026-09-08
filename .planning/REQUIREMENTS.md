@@ -195,7 +195,7 @@ Existing v1.4 requirements remain complete.
 - [ ] **P152-08**: Ungenutzte Contributors-Projektion geprueft und Entscheidung belegt; `public-profile` und `domain-projection` bleiben fachlich getrennt.
 - [ ] **P152-09**: Query-Budget-Test auf Basis der vorhandenen Query-Counter-Infrastruktur; konstantes Budget, kein Wachstum mit Projekten/Mitgliedern/History/Media; neuer Sollwert dokumentiert.
 - [ ] **P152-10**: Totes History-CSS entfernt, angefasste Breakpoints/Hex-Farben konsolidiert, Initialenlogik entschieden, `CATEGORY_TAG_CLASS` typisiert, `Promise.allSettled([single])` vereinfacht.
-- [ ] **P152-11**: Tiptap-Link-Contract zwischen Editor und Backend konsistent, mit Regressionstest; Sanitizer-Haertung (`class`-Muster, `h1`) geprueft und wo ohne Seiteneffekt umgesetzt.
+- [x] **P152-11**: Tiptap-Link-Contract zwischen Editor und Backend konsistent, mit Regressionstest; Sanitizer-Haertung (`class`-Muster, `h1`) geprueft und wo ohne Seiteneffekt umgesetzt.
 - [ ] **P152-12**: Accessibility-Findings behoben (kein doppeltes Jahr im A11y-Tree, keine Doppelbeschriftung der Medien-Thumbnails); axe-Abdeckung ueber die vorhandene Infrastruktur ergaenzt.
 - [ ] **P152-13**: Page-Kompositionstests fuer Sektionsbedingungen, Leerzustaende, Projektions-Fallback und Fehlerzustand; History-Tests verhaltensbasiert statt Klassennamen-Assertions.
 - [ ] **P152-14**: Viewport-Sichtabnahme 320/390/520/768/1024/1440/1920/2560 ueber Hero, Story, Projekte, Team, History, Media; Build und relevante Front-/Backend-Tests PASS; unabhaengige Abschlussverifikation.
@@ -212,7 +212,7 @@ Existing v1.4 requirements remain complete.
 | P152-08 | Phase 152 | Pending |
 | P152-09 | Phase 152 | Pending |
 | P152-10 | Phase 152 | Pending |
-| P152-11 | Phase 152 | Pending |
+| P152-11 | Phase 152 | Complete |
 | P152-12 | Phase 152 | Pending |
 | P152-13 | Phase 152 | Pending |
 | P152-14 | Phase 152 | Pending |
