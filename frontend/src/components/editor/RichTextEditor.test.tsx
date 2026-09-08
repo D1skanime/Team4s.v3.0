@@ -29,6 +29,7 @@ vi.mock('./ColorTokenExtension', () => ({
 
 // RichTextEditor ist 'use client' — wir importieren nach den Mocks
 import { areRichTextValuesEqual, RichTextEditor } from './RichTextEditor'
+import StarterKit from '@tiptap/starter-kit'
 
 describe('RichTextEditor', () => {
   it('rendert ohne Crash (Smoke Test)', () => {
@@ -36,6 +37,15 @@ describe('RichTextEditor', () => {
       <RichTextEditor value={null} onChange={() => {}} />,
     )
     expect(html).toBeTruthy()
+  })
+
+  it('deaktiviert die StarterKit link-Extension (Phase 152-02, D1)', () => {
+    renderToStaticMarkup(
+      <RichTextEditor value={null} onChange={() => {}} />,
+    )
+    expect(vi.mocked(StarterKit.configure)).toHaveBeenCalledWith(
+      expect.objectContaining({ link: false }),
+    )
   })
 
   it('zeigt den Shortnote-Hinweis bei mode="shortnote"', () => {

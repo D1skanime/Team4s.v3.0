@@ -448,6 +448,7 @@ export function RichTextEditor({
         code: false,
         strike: false,
         hardBreak: false,
+        link: false,
       }),
       Table.configure({ resizable: false }),
       TableRow,
