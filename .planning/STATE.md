@@ -2,16 +2,16 @@
 gsd_state_version: 1.0
 milestone: v1.4
 milestone_name: Coverage
-status: executing
-stopped_at: Completed 152-08-PLAN.md
-last_updated: "2026-09-08T18:45:04.915Z"
+status: verifying
+stopped_at: Completed 152-10-PLAN.md — Phase 152 fully executed (10/10 plans); VERIFICATION.md via gsd-verifier is the outstanding next step
+last_updated: "2026-09-08T18:57:20.246Z"
 last_activity: 2026-09-08
 progress:
   total_phases: 17
-  completed_phases: 16
+  completed_phases: 17
   total_plans: 170
-  completed_plans: 169
-  percent: 94
+  completed_plans: 170
+  percent: 100
 ---
 
 # Project State
@@ -33,9 +33,9 @@ See: .planning/PROJECT.md (updated 2026-08-13)
 
 ## Current Position
 
-Phase: 152 (public-fansub-gruppenseite-konsolidierung-und-modernisierung) — EXECUTING
+Phase: 152 (public-fansub-gruppenseite-konsolidierung-und-modernisierung) — COMPLETE (10/10 plans, 14/14 requirements)
 Plan: 10 of 10
-Status: Ready to execute
+Status: Phase complete — independent verification (152-VERIFICATION.md via gsd-verifier) outstanding
 Produktionsbuild nach den letzten drei PNGs PASS (rc=0, TypeScript ok, 25 statische Seiten), voller
 Vitest-Lauf mit einem Worker 293 Dateien / 2239 Tests PASS (1 skipped, 3 todo, exit 0), Collector-
 Browsermatrix `pass: true` ueber 16/16 Zeilen ohne Findings und ohne Browserfehler, alle 197 Zeilen
@@ -378,6 +378,8 @@ Last activity: 2026-09-08
 - [Phase 152]: Plan 152-09's full regression gate confirms zero new backend/frontend failures across all of Waves 1-2 — the 49 repository + 6 migrations backend failures and 2 frontend test files are exact repeats of already-documented pre-existing baseline items (deferred-items.md), not new regressions.
 - [Phase 152]: P152-06 image-delivery evidence measured live: History badges -95% to -97% (raw PNG to WebP via next/image), Hero logo/banner -96% to -98%. WebP figures require an explicit Accept: image/webp header on curl — bare curl falls back to unreduced image/png.
 - [Phase 152]: Plan 152-09 seeded a temporary 7-row fansub_group_history fixture (IDs 2-8, group new-subs) for Plan 152-10's visual QA — covers all 3 categories and both legendary-emphasis badges; Plan 152-10 must delete rows 2-8 only (not the pre-existing row 1) after its screenshot pass.
+- [Phase 152]: Task 2's checkpoint sign-off was backed by an independent Playwright DOM-geometry re-measurement of every [data-achievement-slot] across all 8 viewports, not visual review alone.
+- [Phase 152]: Public-profile query budget is pinned at 8 (not the originally planned 7) because ListGroupLinks issues an internal fansubGroupExists existence-check round-trip; domain-projection is pinned at 2. Recorded as the phase-closing binding value for 152-VERIFICATION.md.
 
 ### Pending Todos
 
@@ -731,11 +733,12 @@ untruncated list lives in `.planning/todos/pending/`.
 | Phase 152 P07 | 30min | 3 tasks | 4 files |
 | Phase 152 P08 | 35min | 2 tasks | 1 files |
 | Phase 152 P09 | 50min | 3 tasks | 0 files |
+| Phase 152 P10 | 25min | 3 tasks | 0 files |
 
 ## Session Continuity
 
-Last session: 2026-09-08T18:44:48.448Z
-Stopped at: Completed 152-08-PLAN.md
+Last session: 2026-09-08T18:57:20.222Z
+Stopped at: Completed 152-10-PLAN.md — Phase 152 fully executed (10/10 plans); VERIFICATION.md via gsd-verifier is the outstanding next step
 Last activity: Local handoff checkpoint; no new Execute step, browser matrix, build, agent or push started after stop.
 Resume file: None
 Structured state: .planning/HANDOFF.json
