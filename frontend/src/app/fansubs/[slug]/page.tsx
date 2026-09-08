@@ -62,11 +62,13 @@ export default async function FansubProfilePage({ params }: FansubProfilePagePro
   const profile = profileResponse.data
   const group = profile.group
 
-  const domainProjectionResult = await Promise.allSettled([getFansubGroupDomainProjection(group.id)])
-  const domainProjection: DomainProjectionResponse =
-    domainProjectionResult[0].status === 'fulfilled'
-      ? domainProjectionResult[0].value
-      : { members: [], historical: [], contributors: [] }
+  let domainProjection: DomainProjectionResponse = { members: [], historical: [], contributors: [] }
+  try {
+    domainProjection = await getFansubGroupDomainProjection(group.id)
+  } catch {
+    // Domain projection is best-effort; the page still renders Hero/Story/Projects/History/Media
+    // without a Team section if this fails (unchanged fallback behavior, now explicit).
+  }
   const visibleTeamCount = countVisibleTeamMembers(domainProjection.members, domainProjection.historical)
   const heroStats = [
     { label: 'Anime-Projekte', value: profile.projects.length },
