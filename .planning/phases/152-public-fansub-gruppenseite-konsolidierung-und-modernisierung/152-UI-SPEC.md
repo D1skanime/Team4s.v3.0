@@ -1,7 +1,7 @@
 ---
 phase: 152
 slug: public-fansub-gruppenseite-konsolidierung-und-modernisierung
-status: draft
+status: approved
 shadcn_initialized: false
 preset: none
 created: 2026-09-08
@@ -397,11 +397,11 @@ Not applicable — this project does not use the shadcn CLI/registry system (con
 
 ## Checker Sign-Off
 
-- [ ] Dimension 1 Copywriting: PASS
-- [ ] Dimension 2 Visuals: PASS
-- [ ] Dimension 3 Color: PASS
-- [ ] Dimension 4 Typography: PASS
-- [ ] Dimension 5 Spacing: PASS
-- [ ] Dimension 6 Registry Safety: PASS
+- [x] Dimension 1 Copywriting: PASS
+- [x] Dimension 2 Visuals: FLAG (non-blocking — no explicit primary-visual-anchor statement; badge sizing scope is narrow enough that this doesn't block)
+- [x] Dimension 3 Color: PASS
+- [x] Dimension 4 Typography: FLAG (non-blocking — 4 pre-existing font weights/sizes, protected by D02 no-redesign lock; tracked as pre-existing debt, not expanded)
+- [x] Dimension 5 Spacing: FLAG (non-blocking — documented pre-existing `.historyTimelineCard` 18px exception, protected by D02; no action this phase)
+- [x] Dimension 6 Registry Safety: PASS
 
-**Approval:** pending
+**Approval:** approved — gsd-ui-checker run 2026-09-08, verdict `## UI-SPEC VERIFIED` / status APPROVED. 3 FLAGs are non-blocking recommendations (pre-existing typography/spacing debt deferred per D02; visual-anchor statement omitted but scope is narrow and Plan 152-10's mandatory human visual-QA checkpoint provides a safety net). No revision iteration was required.

@@ -2,16 +2,16 @@
 gsd_state_version: 1.0
 milestone: v1.4
 milestone_name: Coverage
-status: active
-stopped_at: Phase 151 complete — build, full Vitest, browser matrix, per-row visual signoff, backend gates and independent verification all PASS
-last_updated: "2026-09-07T19:00:00+00:00"
+status: "Abgeschlossen am 2026-09-07. Die pausierte Uebergabe wurde uebernommen und zu Ende gefuehrt:"
+stopped_at: Phase 152 UI-SPEC approved
+last_updated: "2026-09-08T16:33:11.685Z"
 last_activity: 2026-09-07
 progress:
-  total_phases: 16
+  total_phases: 17
   completed_phases: 16
   total_plans: 160
   completed_plans: 160
-  percent: 100
+  percent: 94
 ---
 
 # Project State
@@ -707,10 +707,10 @@ untruncated list lives in `.planning/todos/pending/`.
 
 ## Session Continuity
 
-Last session: 2026-09-07T17:26:31.072393+00:00
-Stopped at: User-requested Phase 151 pause after the running full test finished successfully.
+Last session: 2026-09-08T16:33:11.663Z
+Stopped at: Phase 152 UI-SPEC approved
 Last activity: Local handoff checkpoint; no new Execute step, browser matrix, build, agent or push started after stop.
-Resume file: .planning/phases/151-erfolgsbadge-karussell-konsolidierung/.continue-here.md
+Resume file: .planning/phases/152-public-fansub-gruppenseite-konsolidierung-und-modernisierung/152-UI-SPEC.md
 Structured state: .planning/HANDOFF.json
 
 Plans 151-02/03/04 have implementation summaries. Plans 151-01 and 151-05 remain open until final artwork/composition review, complete browser evidence and independent verification; their missing summaries are intentional. No requirement or phase has been falsely marked complete.
