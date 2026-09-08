@@ -197,7 +197,7 @@ Existing v1.4 requirements remain complete.
 - [x] **P152-10**: Totes History-CSS entfernt, angefasste Breakpoints/Hex-Farben konsolidiert, Initialenlogik entschieden, `CATEGORY_TAG_CLASS` typisiert, `Promise.allSettled([single])` vereinfacht.
 - [x] **P152-11**: Tiptap-Link-Contract zwischen Editor und Backend konsistent, mit Regressionstest; Sanitizer-Haertung (`class`-Muster, `h1`) geprueft und wo ohne Seiteneffekt umgesetzt.
 - [x] **P152-12**: Accessibility-Findings behoben (kein doppeltes Jahr im A11y-Tree, keine Doppelbeschriftung der Medien-Thumbnails); axe-Abdeckung ueber die vorhandene Infrastruktur ergaenzt.
-- [ ] **P152-13**: Page-Kompositionstests fuer Sektionsbedingungen, Leerzustaende, Projektions-Fallback und Fehlerzustand; History-Tests verhaltensbasiert statt Klassennamen-Assertions.
+- [x] **P152-13**: Page-Kompositionstests fuer Sektionsbedingungen, Leerzustaende, Projektions-Fallback und Fehlerzustand; History-Tests verhaltensbasiert statt Klassennamen-Assertions.
 - [ ] **P152-14**: Viewport-Sichtabnahme 320/390/520/768/1024/1440/1920/2560 ueber Hero, Story, Projekte, Team, History, Media; Build und relevante Front-/Backend-Tests PASS; unabhaengige Abschlussverifikation.
 
 | Requirement | Phase | Status |
@@ -214,5 +214,5 @@ Existing v1.4 requirements remain complete.
 | P152-10 | Phase 152 | Complete |
 | P152-11 | Phase 152 | Complete |
 | P152-12 | Phase 152 | Complete |
-| P152-13 | Phase 152 | Pending |
+| P152-13 | Phase 152 | Complete |
 | P152-14 | Phase 152 | Pending |
