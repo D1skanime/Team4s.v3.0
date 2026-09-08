@@ -1,8 +1,24 @@
 // @vitest-environment jsdom
 
+import type { ImgHTMLAttributes } from 'react'
 import { fireEvent, render, screen } from '@testing-library/react'
 import { renderToStaticMarkup } from 'react-dom/server'
-import { describe, expect, it } from 'vitest'
+import { axe } from 'jest-axe'
+import { describe, expect, it, vi } from 'vitest'
+
+vi.mock('next/image', () => ({
+  default: ({
+    alt,
+    priority,
+    unoptimized,
+    ...props
+  }: ImgHTMLAttributes<HTMLImageElement> & { priority?: boolean; unoptimized?: boolean }) => {
+    void priority
+    void unoptimized
+    // eslint-disable-next-line @next/next/no-img-element
+    return <img alt={alt} {...props} />
+  },
+}))
 
 import { FansubHistorySection } from '../FansubHistorySection'
 import type { PublicFansubHistory } from '@/types/fansub'
@@ -38,19 +54,20 @@ const countHistory: PublicFansubHistory[] = [
 ]
 
 describe('FansubHistorySection', () => {
-  it('rendert bestätigte Historie getrennt von Gruppenleitung', () => {
-    const html = renderToStaticMarkup(<FansubHistorySection history={history} />)
+  it('rendert bestätigte Historie getrennt von Gruppenleitung, mit Artwork-Slot statt rohem Bildpfad', () => {
+    render(<FansubHistorySection history={history} />)
 
-    expect(html).toContain('Historie &amp; Erfolge')
-    expect(html).toContain('Erstes Komplettprojekt abgeschlossen')
-    expect(html).not.toContain('Gruppenleitung')
-    expect(html).toContain('historyTimeline')
-    expect(html).toMatch(/class="[^"]*achGold[^"]*"/)
-    expect(html).toContain('/history-event-badges-transparent/milestone.png')
-    expect(html).toContain('Meilenstein')
-    expect(html).toContain('2014')
-    expect(html).toContain('historyTimelinePair')
-    expect(html).toContain('historyTimelineAxisYear')
+    expect(screen.getByText('Historie & Erfolge')).not.toBeNull()
+    expect(screen.getByText('Erstes Komplettprojekt abgeschlossen')).not.toBeNull()
+    expect(screen.queryByText('Gruppenleitung')).toBeNull()
+    expect(screen.getAllByRole('listitem')).toHaveLength(1)
+    expect(screen.getByText('Meilenstein')).not.toBeNull()
+    expect(screen.getAllByText('2014')).toHaveLength(2)
+
+    // Badge geht durch den geteilten AchievementArtwork-Slot (data-achievement-art), nicht mehr
+    // über einen rohen <img src="...">.
+    const badge = document.querySelector('[data-achievement-art="milestone"]')
+    expect(badge).not.toBeNull()
   })
 
   it('benennt Zähler-Meilensteine öffentlich als Fansub-Projekte und Fansub-Releases', () => {
@@ -82,8 +99,28 @@ describe('FansubHistorySection', () => {
     expect(html).not.toContain('Erstes Release')
   })
 
-  it('markiert besonders seltene Meilensteine mit eigener Public-Timeline-Klasse', () => {
+  it('lässt einen admin-eingegebenen Freitext-Titel byte-für-byte unverändert (A5-Regression)', () => {
     const html = renderToStaticMarkup(
+      <FansubHistorySection
+        history={[
+          {
+            id: 10,
+            year: 2023,
+            event_type: 'award',
+            title: 'Projektor gekauft',
+            note: null,
+            status: 'confirmed',
+          },
+        ]}
+      />,
+    )
+
+    expect(html).toContain('Projektor gekauft')
+    expect(html).not.toContain('Fansub-Projektor gekauft')
+  })
+
+  it('markiert genau die zwei legendären Meilensteine mit data-emphasis, nicht die mittleren Stufen', () => {
+    render(
       <FansubHistorySection
         history={[
           {
@@ -126,15 +163,33 @@ describe('FansubHistorySection', () => {
             note: null,
             status: 'confirmed',
           },
+          {
+            id: 11,
+            year: 2032,
+            event_type: 'milestone',
+            title: 'Kontrollgruppe',
+            note: null,
+            status: 'confirmed',
+          },
         ]}
       />,
     )
 
-    expect(html).toContain('historyTimelineEventReleases500')
-    expect(html).toContain('historyTimelineEventReleases1000')
-    expect(html).toContain('historyTimelineEventReleases5000')
-    expect(html).toContain('historyTimelineEventProjects500')
-    expect(html).toContain('historyTimelineEventReleases10000')
+    const items = screen.getAllByRole('listitem')
+    expect(items).toHaveLength(6)
+
+    const emphasisByBadge = (badgeCode: string) =>
+      document
+        .querySelector(`[data-achievement-art="${badgeCode}"]`)
+        ?.closest('li')
+        ?.getAttribute('data-emphasis')
+
+    expect(emphasisByBadge('projects_500')).toBe('legendary')
+    expect(emphasisByBadge('releases_10000')).toBe('legendary')
+    expect(emphasisByBadge('releases_500')).toBeNull()
+    expect(emphasisByBadge('releases_1000')).toBeNull()
+    expect(emphasisByBadge('releases_5000')).toBeNull()
+    expect(emphasisByBadge('milestone')).toBeNull()
   })
 
   it('zeigt zuerst sechs Einträge und klappt weitere auf', () => {
@@ -163,5 +218,24 @@ describe('FansubHistorySection', () => {
     const html = renderToStaticMarkup(<FansubHistorySection history={[]} />)
 
     expect(html).toBe('')
+  })
+
+  it('hält die Jahreszahl der Spine-Markierung aus dem Accessibility-Tree, das Jahr in der Karte bleibt sichtbar', () => {
+    render(<FansubHistorySection history={history} />)
+
+    const axisYear = document.querySelector('[data-achievement-art="milestone"]')
+      ?.closest('.historyTimelinePair, [class*="historyTimelinePair"]')
+      ?.querySelector('[class*="historyTimelineAxisYear"]')
+    expect(axisYear?.getAttribute('aria-hidden')).toBe('true')
+
+    const cardYear = document.querySelector('[class*="historyTimelineYear"]')
+    expect(cardYear).not.toBeNull()
+    expect(cardYear?.getAttribute('aria-hidden')).toBeNull()
+  })
+
+  it('hat keine axe-Verstöße bei einer gefüllten Timeline', async () => {
+    const { container } = render(<FansubHistorySection history={[...history, ...countHistory]} />)
+
+    expect(await axe(container)).toHaveNoViolations()
   })
 })
