@@ -1,7 +1,7 @@
-import Image from 'next/image'
 import Link from 'next/link'
 
 import { Badge, HeroMetrics } from '@/components/ui'
+import { ResponsiveImage } from '@/components/ui/ResponsiveImage'
 import { resolveApiUrl } from '@/lib/api'
 import { getFansubLinkTypeLabel } from '@/lib/fansub-labels'
 import { buildFansubFactSummary } from '@/lib/fansub-summary'
@@ -100,13 +100,14 @@ export function FansubHeroSection({
         <div className={styles.heroCard}>
           {bannerURL ? (
             <div className={styles.heroBannerWrap}>
-              <Image
+              <ResponsiveImage
                 src={bannerURL}
                 alt={`${group.name} Banner`}
                 width={1200}
                 height={200}
                 className={styles.heroBannerImg}
-                unoptimized
+                sizes="1200px"
+                loading="eager"
                 priority
               />
             </div>
@@ -117,13 +118,14 @@ export function FansubHeroSection({
               <div className={styles.heroIdentity}>
                 <div className={styles.heroLogo} aria-label={`${group.name} Logo`}>
                   {logoURL ? (
-                    <Image
+                    <ResponsiveImage
                       src={logoURL}
                       alt={`${group.name} Logo`}
                       width={132}
                       height={132}
                       className={styles.heroLogoImage}
-                      unoptimized
+                      sizes="132px"
+                      loading="eager"
                     />
                   ) : (
                     <span className={styles.heroLogoFallback}>{buildInitials(group.name)}</span>
