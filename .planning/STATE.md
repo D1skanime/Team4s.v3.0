@@ -2,14 +2,14 @@
 gsd_state_version: 1.0
 milestone: v1.4
 milestone_name: Coverage
-status: "Abgeschlossen am 2026-09-07. Die pausierte Uebergabe wurde uebernommen und zu Ende gefuehrt:"
+status: executing
 stopped_at: Phase 152 UI-SPEC approved
-last_updated: "2026-09-08T16:33:11.685Z"
-last_activity: 2026-09-07
+last_updated: "2026-09-08T17:17:50.187Z"
+last_activity: 2026-09-08 -- Phase 152 planning complete
 progress:
   total_phases: 17
   completed_phases: 16
-  total_plans: 160
+  total_plans: 170
   completed_plans: 160
   percent: 94
 ---
@@ -35,7 +35,7 @@ See: .planning/PROJECT.md (updated 2026-08-13)
 
 Phase: 151 (erfolgsbadge-karussell-konsolidierung) — COMPLETE
 Plan: 5 of 5 executed (151-01 bis 151-05)
-Status: Abgeschlossen am 2026-09-07. Die pausierte Uebergabe wurde uebernommen und zu Ende gefuehrt:
+Status: Ready to execute
 Produktionsbuild nach den letzten drei PNGs PASS (rc=0, TypeScript ok, 25 statische Seiten), voller
 Vitest-Lauf mit einem Worker 293 Dateien / 2239 Tests PASS (1 skipped, 3 todo, exit 0), Collector-
 Browsermatrix `pass: true` ueber 16/16 Zeilen ohne Findings und ohne Browserfehler, alle 197 Zeilen
@@ -86,7 +86,7 @@ timing flakiness, not a Phase 149 regression, and not yet root-caused.
 
 v1.4 remains complete; Phase 149 was appended additively (same pattern as 143-148), no new
 milestone was created.
-Last activity: 2026-09-07
+Last activity: 2026-09-08 -- Phase 152 planning complete
 
 ## Accumulated Context
 

@@ -1220,6 +1220,7 @@ Plans:
 **Plans:** 5 plans
 
 Plans:
+
 - [x] 151-01-PLAN.md — Rollen-Artwork-Manifest, vollständige Karaoke-FX-Assets und echte Katalog-/Dateisystem-Abdeckung
 - [x] 151-02-PLAN.md — Gemeinsamer Artwork-Slot, produktive Karten-/Stage-Komposition mit gemeinsamer Slot-CSS
 - [x] 151-03-PLAN.md — Fokussierte Härtung des generischen FocalCarousel mit Interaktions- und Stressregressionen
@@ -1269,13 +1270,24 @@ Viewport-Sichtabnahme belegt.
 **UI hint**: yes (152-UI-SPEC.md approved)
 
 Plans:
+**Wave 1**
+
 - [ ] 152-01-PLAN.md — Free /history-event-badges-transparent/** for the Next Image pipeline (A1).
 - [ ] 152-02-PLAN.md — Tiptap link-contract closure + sanitizer hardening (D1, D2).
 - [ ] 152-03-PLAN.md — Public group load-path reduction + contributors trim (B1, B2, B3).
 - [ ] 152-04-PLAN.md — Media-block accessibility fix + category typing (D3, D4, C4).
 - [ ] 152-05-PLAN.md — Hero initials divergence doc + image optimization (C3, E1, E2, E3).
 - [ ] 152-06-PLAN.md — Page composition simplification + tests (C5, D5).
+
+**Wave 2** *(blocked on Wave 1 completion)*
+
 - [ ] 152-07-PLAN.md — History artwork-slot migration + registry + CSS + tests (A2-A5, D3, D6).
 - [ ] 152-08-PLAN.md — Query-budget constant gate (B4).
+
+**Wave 3** *(blocked on Wave 2 completion)*
+
 - [ ] 152-09-PLAN.md — Full regression gate + image-performance measurement + temp fixture seed.
+
+**Wave 4** *(blocked on Wave 3 completion)*
+
 - [ ] 152-10-PLAN.md — Visual QA checkpoint + fixture cleanup + phase close (P152-14).
