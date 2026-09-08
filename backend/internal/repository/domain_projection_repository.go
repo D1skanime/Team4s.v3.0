@@ -86,14 +86,9 @@ func (r *DomainProjectionRepository) GetFansubGroupDomainProjection(ctx context.
 	if err != nil {
 		return nil, err
 	}
-	contributors, err := r.listProjectionContributors(ctx, groupID)
-	if err != nil {
-		return nil, err
-	}
 
 	resp.Members = members
 	resp.Historical = historical
-	resp.Contributors = contributors
 	return resp, nil
 }
 

@@ -181,6 +181,28 @@ func TestProjectionRouteIsGetOnly(t *testing.T) {
 	}
 }
 
+func TestGetFansubGroupDomainProjection_DoesNotCallListProjectionContributors(t *testing.T) {
+	content := readRepositorySource(t, "domain_projection_repository.go")
+
+	funcStart := strings.Index(content, "func (r *DomainProjectionRepository) GetFansubGroupDomainProjection")
+	if funcStart < 0 {
+		t.Fatalf("expected to find GetFansubGroupDomainProjection function")
+	}
+
+	nextFuncStart := strings.Index(content[funcStart+1:], "\nfunc ")
+	if nextFuncStart < 0 {
+		t.Fatalf("expected another top-level func declaration after GetFansubGroupDomainProjection")
+	}
+	body := content[funcStart : funcStart+1+nextFuncStart]
+
+	if strings.Contains(body, "listProjectionContributors(") {
+		t.Fatalf("expected GetFansubGroupDomainProjection to no longer call listProjectionContributors")
+	}
+	if !strings.Contains(body, "Contributors: []DomainProjectionContributorRow{}") {
+		t.Fatalf("expected GetFansubGroupDomainProjection response literal to still default Contributors to an empty slice")
+	}
+}
+
 func TestProjectionUsesCanonicalPublicMemberSlugs(t *testing.T) {
 	content := strings.ToLower(readRepositorySource(t, "domain_projection_repository.go"))
 	memberStart := strings.Index(content, "func (r *domainprojectionrepository) listprojectionmembers")
