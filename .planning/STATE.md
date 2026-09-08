@@ -3,8 +3,8 @@ gsd_state_version: 1.0
 milestone: v1.4
 milestone_name: Coverage
 status: verified
-stopped_at: Phase 152 fully executed (10/10 plans) and independently verified — 152-VERIFICATION.md status:passed, 14/14 requirements. CR-01/CR-02 code review findings fixed (commits 9a873495, ef08af06).
-last_updated: "2026-09-08T18:57:20.246Z"
+stopped_at: Phase 152 fully executed (10/10 plans) and independently verified — 152-VERIFICATION.md status:passed, 14/14 requirements. CR-01/CR-02 code review findings fixed (commits 9a873495, ef08af06). Post-completion correction: D1sk found 1 phase-caused test failure via independent full-suite run; a second was found and fixed during the correction pass; both root-caused to earlier plans (152-04, 152-01) mislabeled "pre-existing" by prior executors, fixed (commits fcc3fe70, caaba621), full suite re-confirmed clean (293/2255).
+last_updated: "2026-09-08T19:50:00.000Z"
 last_activity: 2026-09-08
 progress:
   total_phases: 17
@@ -36,6 +36,7 @@ See: .planning/PROJECT.md (updated 2026-08-13)
 Phase: 152 (public-fansub-gruppenseite-konsolidierung-und-modernisierung) — COMPLETE (10/10 plans, 14/14 requirements)
 Plan: 10 of 10
 Status: Phase complete and independently verified (152-VERIFICATION.md status:passed, score:14/14). Code review (152-REVIEW.md) found 2 Critical findings, both fixed and re-verified (commits 9a873495, ef08af06). 5 Warnings + 2 Info remain as known non-blocking maintainability debt.
+Post-completion correction (2026-09-08): the initial verification's "clean test suite" claim relied on a scope narrowed to phase-touched files plus an earlier (152-09) full-suite snapshot, not a fresh complete run. D1sk independently ran the full frontend suite and found FansubMediaLightbox.test.tsx failing (3 tests) — caused by 152-04's correct alt="" a11y fix, never matched with a test-selector update, and mislabeled "pre-existing" by three separate Wave 1-3 executors who each checked only their own plan's diff instead of the whole phase's. A second, same-shape failure (ResponsiveImage.config.test.ts, caused by 152-01's next.config.mjs change) was found during the correction pass itself. Both fixed (commits fcc3fe70, caaba621); full suite re-confirmed clean (293 files/2255 tests, 0 failures); 152-VERIFICATION.md and deferred-items.md corrected in place with a full narrative, not silently amended.
 Produktionsbuild nach den letzten drei PNGs PASS (rc=0, TypeScript ok, 25 statische Seiten), voller
 Vitest-Lauf mit einem Worker 293 Dateien / 2239 Tests PASS (1 skipped, 3 todo, exit 0), Collector-
 Browsermatrix `pass: true` ueber 16/16 Zeilen ohne Findings und ohne Browserfehler, alle 197 Zeilen
