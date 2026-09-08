@@ -426,12 +426,15 @@ func (s *TipTapService) IsEmpty(input string) (bool, error) {
 // newTipTapSanitizerPolicy erstellt eine enge bluemonday-Policy für TipTap-Output.
 func newTipTapSanitizerPolicy() *bluemonday.Policy {
 	p := bluemonday.NewPolicy()
-	p.AllowElements("p", "h1", "h2", "h3", "strong", "em",
+	p.AllowElements("p", "h2", "h3", "strong", "em",
 		"ul", "ol", "li", "blockquote",
 		"table", "thead", "tbody", "tr", "th", "td", "hr", "span",
 		// Phase 70: Story-Bilder
 		"img")
-	p.AllowAttrs("class").OnElements("span", "td", "th")
+	// class: nur der von applyMarks erzeugte color-token-<token> (Phase 152-02, D2, T-152-02-01)
+	p.AllowAttrs("class").Matching(
+		regexp.MustCompile(`^color-token-[a-z]+$`),
+	).OnElements("span", "td", "th")
 	p.AllowAttrs("colspan", "rowspan").OnElements("td", "th")
 	p.AllowAttrs("data-color-token").OnElements("span")
 	// Phase 70 — img-Attribute mit enger Regex-Bindung (T-70-03-01, T-70-03-02, D-20, D-23)

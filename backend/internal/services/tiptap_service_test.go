@@ -417,6 +417,36 @@ func TestTipTapSanitizeImage_BlocksStyleBeyondWidth(t *testing.T) {
 	assert.NotContains(t, sanitized, "color:red", "color:red darf nicht im sanitisierten HTML verbleiben (D-20)")
 }
 
+// TestTipTapSanitizeSpanClass_AllowsColorToken prueft, dass eine von applyMarks erzeugte
+// color-token-<token>-Klasse auf span/td/th den Sanitizer unveraendert passiert (Phase 152-02, D2).
+func TestTipTapSanitizeSpanClass_AllowsColorToken(t *testing.T) {
+	p := newTipTapSanitizerPolicyForTest()
+	raw := `<span class="color-token-red">x</span>`
+	sanitized := string(p.SanitizeBytes([]byte(raw)))
+	assert.Contains(t, sanitized, `class="color-token-red"`, "legitime color-token-Klasse muss erhalten bleiben")
+}
+
+// TestTipTapSanitizeSpanClass_BlocksArbitraryClass prueft, dass ein beliebiger class-Wert
+// auf span (nicht dem color-token-Muster entsprechend) durch Sanitizing entfernt wird
+// (Phase 152-02, D2, T-152-02-01).
+func TestTipTapSanitizeSpanClass_BlocksArbitraryClass(t *testing.T) {
+	p := newTipTapSanitizerPolicyForTest()
+	raw := `<span class="arbitrary-injected-class">x</span>`
+	sanitized := string(p.SanitizeBytes([]byte(raw)))
+	assert.NotContains(t, sanitized, "arbitrary-injected-class", "beliebiger class-Wert muss entfernt werden")
+}
+
+// TestTipTapSanitizeH1_Stripped prueft, dass ein rich-text-authored <h1> nach Sanitizing
+// nicht mehr als <h1> vorkommt, waehrend sein Textinhalt erhalten bleibt (Phase 152-02, D2,
+// T-152-02-02).
+func TestTipTapSanitizeH1_Stripped(t *testing.T) {
+	p := newTipTapSanitizerPolicyForTest()
+	raw := `<h1>Text</h1>`
+	sanitized := string(p.SanitizeBytes([]byte(raw)))
+	assert.NotContains(t, sanitized, "<h1", "h1 darf nicht mehr erlaubt sein")
+	assert.Contains(t, sanitized, "Text", "Textinhalt des entfernten h1 muss erhalten bleiben")
+}
+
 // newTipTapSanitizerPolicyForTest ist ein Testhelfer, der die exportierte Policy zurueckgibt.
 func newTipTapSanitizerPolicyForTest() interface{ SanitizeBytes([]byte) []byte } {
 	return services.NewTipTapSanitizerPolicy()
