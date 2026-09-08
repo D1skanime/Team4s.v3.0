@@ -21,7 +21,17 @@ const MEDIA_IMAGE_SIZES = '(max-width: 640px) 100vw, 220px'
 const PREVIEW_LIMIT = 5
 const MEDIA_BATCH = 10
 
-const CATEGORY_TAG_CLASS: Record<string, string> = {
+type FansubMediaCategory =
+  | 'gallery'
+  | 'history_screenshot'
+  | 'old_website'
+  | 'forum'
+  | 'irc_chat'
+  | 'event_meeting'
+  | 'artwork_fanart'
+  | 'other'
+
+const CATEGORY_TAG_CLASS: Record<FansubMediaCategory, string> = {
   gallery: 'tagGallery',
   history_screenshot: 'tagHistory',
   old_website: 'tagOldweb',
@@ -33,7 +43,7 @@ const CATEGORY_TAG_CLASS: Record<string, string> = {
 }
 
 function categoryTagClass(category: string): string {
-  return CATEGORY_TAG_CLASS[category] || 'tagOther'
+  return CATEGORY_TAG_CLASS[category as FansubMediaCategory] || 'tagOther'
 }
 
 function isImage(item: PublicFansubMediaItem): boolean {
@@ -101,7 +111,7 @@ export function FansubGroupMediaBlock({ media, onSelect }: FansubGroupMediaBlock
                   <div className={styles.mediaThumbFrame}>
                     <Image
                       src={resolvedImageUrl}
-                      alt={title}
+                      alt=""
                       fill
                       sizes={MEDIA_IMAGE_SIZES}
                       loading="lazy"
