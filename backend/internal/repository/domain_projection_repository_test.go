@@ -6,14 +6,21 @@ import (
 	"testing"
 )
 
-func TestProjectionSeparatesThreeSets(t *testing.T) {
+// TestProjectionSeparatesMemberAndHistoricalSets proves the members and
+// historical projections stay two independent queries, not a UNION. This test
+// used to cover three sets (members, historical, contributors); the
+// contributors query was deleted as unreachable dead code after Plan 152's
+// code review (152-REVIEW.md WR-02) -- GetFansubGroupDomainProjection no
+// longer calls it (see TestDomainProjectionQueryBudgetExcludesContributors in
+// fansub_public_profile_query_budget_test.go for the real behavioral proof
+// that Contributors stays empty).
+func TestProjectionSeparatesMemberAndHistoricalSets(t *testing.T) {
 	content := readRepositorySource(t, "domain_projection_repository.go")
 	normalized := strings.ToLower(content)
 
 	required := []string{
 		"from fansub_group_members",
 		"from hist_fansub_group_members",
-		"from anime_contributions",
 	}
 	for _, fragment := range required {
 		if !strings.Contains(normalized, fragment) {
@@ -22,23 +29,6 @@ func TestProjectionSeparatesThreeSets(t *testing.T) {
 	}
 	if strings.Contains(normalized, "union") {
 		t.Fatalf("expected domain projection repository to keep sets separate without UNION")
-	}
-}
-
-func TestProjectionDisputeStateIsolated(t *testing.T) {
-	content := readRepositorySource(t, "domain_projection_repository.go")
-	normalized := strings.ToLower(content)
-
-	required := []string{
-		"ac.dispute_state",
-		"ac.status",
-		"left join review_statuses",
-		"left join visibilities",
-	}
-	for _, fragment := range required {
-		if !strings.Contains(normalized, fragment) {
-			t.Fatalf("expected domain projection repository to contain %q", fragment)
-		}
 	}
 }
 
@@ -116,11 +106,14 @@ func TestProjectionHistoricalRowsUseMembershipVisibilityForListing(t *testing.T)
 	normalized := strings.ToLower(content)
 
 	historicalBlockStart := strings.Index(normalized, "func (r *domainprojectionrepository) listprojectionhistorical")
-	contributorBlockStart := strings.Index(normalized, "from anime_contributions")
-	if historicalBlockStart < 0 || contributorBlockStart < 0 || contributorBlockStart <= historicalBlockStart {
-		t.Fatalf("expected historical SELECT block before contributor SELECT block")
+	if historicalBlockStart < 0 {
+		t.Fatalf("expected historical SELECT block")
 	}
-	historicalBlock := normalized[historicalBlockStart:contributorBlockStart]
+	// listProjectionHistorical is the last method on DomainProjectionRepository
+	// since Plan 152's code review (WR-02) removed the dead listProjectionContributors
+	// query -- the historical block now runs to end of file, not up to a
+	// contributor-block marker.
+	historicalBlock := normalized[historicalBlockStart:]
 	historicalBlockCompact := strings.Join(strings.Fields(historicalBlock), " ")
 	if !strings.Contains(historicalBlock, "hfgm.visibility = 'public'") {
 		t.Fatalf("expected historical group membership listing to be guarded by membership visibility")
@@ -185,11 +178,16 @@ func TestProjectionUsesCanonicalPublicMemberSlugs(t *testing.T) {
 	content := strings.ToLower(readRepositorySource(t, "domain_projection_repository.go"))
 	memberStart := strings.Index(content, "func (r *domainprojectionrepository) listprojectionmembers")
 	historicalStart := strings.Index(content, "func (r *domainprojectionrepository) listprojectionhistorical")
-	contributorStart := strings.Index(content, "func (r *domainprojectionrepository) listprojectioncontributors")
-	if memberStart < 0 || historicalStart <= memberStart || contributorStart <= historicalStart {
-		t.Fatalf("expected ordered member, historical, and contributor query blocks")
+	if memberStart < 0 || historicalStart <= memberStart {
+		t.Fatalf("expected ordered member and historical query blocks")
 	}
 
+	// listProjectionHistorical is the last method on DomainProjectionRepository
+	// since Plan 152's code review (WR-02) removed the dead listProjectionContributors
+	// query as unreachable code -- the DomainProjectionResponse.Contributors field
+	// and its DomainProjectionContributorRow element type stay (the public JSON
+	// contract `"contributors": []` is still part of the API response), but the
+	// unreachable query that used to populate it does not.
 	blocks := []struct {
 		name     string
 		content  string
@@ -202,13 +200,8 @@ func TestProjectionUsesCanonicalPublicMemberSlugs(t *testing.T) {
 		},
 		{
 			name:     "historical",
-			content:  content[historicalStart:contributorStart],
+			content:  content[historicalStart:],
 			required: "when m.profile_visibility = 'public' then m.public_slug",
-		},
-		{
-			name:     "contributors",
-			content:  content[contributorStart:],
-			required: "case when m.profile_visibility = 'public' then m.public_slug else null end as member_slug",
 		},
 	}
 
@@ -218,8 +211,8 @@ func TestProjectionUsesCanonicalPublicMemberSlugs(t *testing.T) {
 			t.Errorf("expected %s projection to contain %q", block.name, block.required)
 		}
 	}
-	if got := strings.Count(content, "m.public_slug"); got != 3 {
-		t.Errorf("expected exactly three stored public-slug selections, got %d", got)
+	if got := strings.Count(content, "m.public_slug"); got != 2 {
+		t.Errorf("expected exactly two stored public-slug selections, got %d", got)
 	}
 	for _, forbidden := range []string{"memberslugexpr", "regexp_replace", "coalesce(m.public_slug"} {
 		if strings.Contains(content, forbidden) {

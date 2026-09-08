@@ -143,11 +143,11 @@ func TestFansubPublicProfileQueryBudgetIsConstant(t *testing.T) {
 }
 
 // seedPhase152DomainProjectionContributorGroup seeds one fansub_groups row plus a
-// REAL contributor row satisfying listProjectionContributors's WHERE clause
-// exactly (ac.fansub_group_id = groupID, ac.is_public_on_anime_page = true,
-// hfgm.visibility = 'public', m.profile_visibility = 'public', and a NULL
+// REAL contributor row satisfying the predicate the now-removed contributors
+// query used exactly (ac.fansub_group_id = groupID, ac.is_public_on_anime_page =
+// true, hfgm.visibility = 'public', m.profile_visibility = 'public', and a NULL
 // visibility_id so it COALESCEs to 'public') -- so that, were the OLD code path
-// (GetFansubGroupDomainProjection calling listProjectionContributors) still
+// (GetFansubGroupDomainProjection still issuing that contributors query) still
 // active, response.Contributors would be non-empty.
 func seedPhase152DomainProjectionContributorGroup(t *testing.T, pool *pgxpool.Pool, groupID int64, slug string) {
 	t.Helper()
@@ -177,9 +177,14 @@ func seedPhase152DomainProjectionContributorGroup(t *testing.T, pool *pgxpool.Po
 
 // phase152DomainProjectionConstantQueryBudget is the enforced constant number of
 // SQL queries a single GetFansubGroupDomainProjection load issues after Plan
-// 152-03 removed the never-rendered listProjectionContributors call: only
+// 152-03 removed the never-rendered contributors query: only
 // listProjectionMembers (1) + listProjectionHistorical (1) = 2, down from the
-// pre-152 baseline of 3 (which also called listProjectionContributors).
+// pre-152 baseline of 3 (which also queried contributors). The contributors
+// query function itself (formerly listProjectionContributors) was deleted as
+// dead code after this phase's own code review flagged it (152-REVIEW.md
+// WR-02) -- the Contributors field/type stay, since the JSON contract
+// (`"contributors": []`) is still part of the public API response, but the
+// unreachable query it used to run does not.
 // Update this constant ONLY for an intentional, documented loader change.
 const phase152DomainProjectionConstantQueryBudget = 2
 
@@ -206,7 +211,7 @@ func TestDomainProjectionQueryBudgetExcludesContributors(t *testing.T) {
 	require.NotNilf(t, response.Contributors,
 		"Contributors must stay a non-nil empty slice (JSON contract: []), not nil")
 	require.Emptyf(t, response.Contributors,
-		"Contributors must be empty even though a real seeded row satisfies listProjectionContributors's WHERE clause -- proving the removal is behaviorally real, not just textually absent")
+		"Contributors must be empty even though a real seeded row satisfies the removed contributors query's WHERE clause -- proving the removal is behaviorally real, not just textually absent")
 
 	t.Logf("P152-09 domain-projection budget: real seeded contributor row -> %d queries, Contributors=%v (must equal the pinned constant %d and stay empty).",
 		got, response.Contributors, phase152DomainProjectionConstantQueryBudget)
