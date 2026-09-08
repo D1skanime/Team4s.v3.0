@@ -22,7 +22,9 @@ pinned_facts:
       verification independently re-ran against a live Postgres database on 2026-09-08 and
       confirmed PASS at exactly these pinned values (8 and 2). Full reasoning trail is in
       152-08-SUMMARY.md and 152-10-SUMMARY.md.
-re_verification: null
+re_verification: 2026-09-08T19:50:00Z
+corrections_applied:
+  - "Initial verification (2026-09-08T19:21:06Z) claimed the frontend test surface was fully clean based on a scope narrowed to phase-touched files plus 152-09's earlier full-suite run. The project owner (D1sk) independently ran the full frontend suite post-completion and found 1 failing file (3 failing tests): FansubMediaLightbox.test.tsx, caused by this phase's own 152-04 change (alt=\"\" on the thumbnail image moved the accessible name to the button's aria-label; the test still selected via getByAltText). Root-caused, fixed (commit fcc3fe70), and re-verified. A second phase-caused failure was found during the correction pass and had been mislabeled 'pre-existing' by three separate executors across Waves 1-3: ResponsiveImage.config.test.ts asserted /history-event-badges-transparent/** was NOT locally optimizable, which 152-01 deliberately made false by adding that exact pattern to next.config.mjs. Fixed (commit caaba621) and re-verified."
 gaps: []
 deferred: []
 human_verification: []
@@ -81,6 +83,73 @@ PASS
 
 Both pinned constants (8 and 2) are confirmed live-measured and enforced by a real regression gate,
 not an aspirational plan-time estimate.
+
+## Correction: Two Phase-Caused Test Failures Missed by the Initial Verification Pass
+
+**This section documents a real gap in the initial verification (2026-09-08T19:21:06Z) and how it
+was closed.** That pass claimed the frontend test surface was clean, but its "39/39 tests PASS"
+evidence was scoped only to the four files phase 152 directly touched
+(`FansubHistorySection.test.tsx`, `FansubGroupMediaBlock.test.tsx`, `page.test.tsx`,
+`RichTextEditor.test.tsx`) — never a fresh full-suite run. It also inherited 152-09-SUMMARY.md's
+full-suite result as-is, and that run happened *before* this phase's own later commits (the CR-01/CR-02
+review-fix pass). A test suite snapshot taken mid-phase, and a re-verification scoped only to the
+files a phase's SUMMARYs list as touched, is not sufficient to claim "no phase-caused failures" —
+downstream consumers of a changed component or config are not in that file list by construction.
+
+**Why it slipped through in the first place (Waves 1-3):** `FansubMediaLightbox.test.tsx` failure was
+actually first observed during Plan 152-05's execution and again during 152-07 and 152-09, but each
+time it was checked only against that specific plan's own diff (`git log`/`git status` on files *that
+plan* touched) and, finding no match, logged to `deferred-items.md` as "pre-existing, out-of-scope."
+None of those checks asked the broader question "did *any* commit earlier in this phase change the
+production behavior this test depends on?" — `FansubMediaLightbox.test.tsx` depends on
+`FansubGroupMediaBlock.tsx`'s `alt` attribute, which Plan 152-04 (an earlier, different plan in the
+same Wave 1) changed from `alt={title}` to `alt=""` for a deliberate, correct a11y fix. The same
+"checked only my own diff, not the whole phase's diff" gap applied to `ResponsiveImage.config.test.ts`,
+which depends on `next.config.mjs`'s `localPatterns` — changed by Plan 152-01, also earlier in Wave 1.
+
+**Project owner's independent check (2026-09-08, after the phase was first reported complete):**
+```
+docker compose exec -T team4sv30-frontend sh -c "cd /app && npx vitest run src/components/fansubs src/app/fansubs src/components/editor src/lib"
+Test Files  1 failed | 64 passed (65)
+     Tests  3 failed | 380 passed (383)
+FAIL  src/components/fansubs/__tests__/FansubMediaLightbox.test.tsx
+  (lines 149, 161, 176 — screen.getByAltText('Medium N') no longer resolves)
+```
+
+**Root cause 1 (reported by D1sk, verified):** `FansubGroupMediaBlock.tsx`'s inner thumbnail image
+correctly moved to `alt=""` in Plan 152-04 (the button's `aria-label={title}` is now the sole
+accessible name — this production change is correct and stays). `FansubMediaLightbox.test.tsx` was
+never touched by any phase-152 plan (`git log 5e896cd2..HEAD` for that file is empty) but still
+selected its trigger elements via `getByAltText`, so it stopped finding them. **Fix (commit
+`fcc3fe70`):** the three affected selectors now use `getByRole('button', { name: 'Medium N' })`,
+testing the actual accessibility interface. Line 65's `getByAltText('Erstes Bild')` was correctly left
+alone — the lightbox's own enlarged image still carries a content-bearing `alt={title}`.
+
+**Root cause 2 (found during this correction pass):** `ResponsiveImage.config.test.ts` asserted
+`hasLocalMatch(localPatterns, '/history-event-badges-transparent/unrelated.png')` must be `false` —
+true before this phase, but Plan 152-01 deliberately added exactly that pattern to
+`next.config.mjs`'s `localPatterns` (the entire point of Wave 2's dependency on 152-01). **Fix
+(commit `caaba621`):** updated the assertion to the new intended behavior (the badge namespace is now
+allowed) and swapped in a genuinely unrelated path to keep proving the "doesn't open arbitrary static
+paths" guarantee the test's own name promises.
+
+**Fresh full-suite results after both fixes (2026-09-08T19:45:05Z, one full `npx vitest run`, no
+scope narrowing):**
+```
+Test Files  293 passed | 1 skipped (294)
+     Tests  2255 passed | 3 todo (2258)
+Duration    86.41s
+```
+Zero failures. This is the actual, complete, current state — not a snapshot from earlier in the
+phase. Fresh backend re-runs after both fixes: `internal/services` TipTap suite 33/33 PASS,
+`internal/repository` load-path/domain-projection/query-budget suite 26 PASS + 1 skipped (unrelated
+DSN-gated test), `go build ./...` and `go vet ./...` clean.
+
+**Corrected bottom line:** the phase's production code was never broken — both root causes were
+deliberate, correct production changes (152-04's `alt=""` a11y fix, 152-01's `localPatterns`
+addition). What was broken were two *tests* that depended on the pre-change behavior and were not
+updated in lockstep, and the initial verification's failure was trusting a narrower or older test
+result instead of running the complete, current suite fresh.
 
 ## Goal Achievement
 
@@ -174,6 +243,7 @@ the file continues to grow past the modularity ceiling and should be split in a 
 | Domain-projection query budget pinned at 2, contributors empty despite real seeded row | `go test -run TestDomainProjectionQueryBudgetExcludesContributors` | `real seeded contributor row -> 2 queries, Contributors=[]` PASS | ✓ PASS |
 | Backend TipTap suite (34 tests incl. CR-01 regression tests) | `go test ./internal/services/... -run TipTap -v` | 34/34 PASS | ✓ PASS |
 | Frontend fansub-public + editor test surface (4 files) | `vitest run FansubHistorySection.test.tsx FansubGroupMediaBlock.test.tsx page.test.tsx RichTextEditor.test.tsx` | 4 files, 39/39 tests PASS | ✓ PASS |
+| Full frontend suite, fresh, no scope narrowing (post-correction) | `npx vitest run` | 293 files / 2255 tests PASS, 1 skipped, 3 todo, 0 failures | ✓ PASS |
 | Dead CSS classes absent | `grep` for 11 named classes in `FansubPublicSections.module.css` | zero matches | ✓ PASS |
 | `publicDomainTerms`/`achievementEventStyle` absent from frontend source | `grep -rn` across `frontend/src/` | zero matches | ✓ PASS |
 | No debt markers (TBD/FIXME/XXX) in phase-touched files | `grep -n -E "TBD\|FIXME\|XXX"` across all 19 modified/created files | zero matches | ✓ PASS |
@@ -223,18 +293,23 @@ change).
 
 ### Gaps Summary
 
-No gaps. All 14 observable truths (P152-01 through P152-14) are verified against the actual codebase
-via a combination of direct source reads and independent, freshly-executed test runs — not SUMMARY.md
-claims alone. Both Critical code-review findings (CR-01, CR-02) are confirmed fixed and landed
-(commits `9a873495`, `ef08af06` exist, diffs match their stated descriptions, and both fixes' own
-regression tests pass on independent re-execution). The mandatory pinned query-budget fact (12→8,
-3→2, with the `fansubGroupExists` internal-round-trip reasoning) is documented above as an explicit,
-named fact per the project owner's requirement, and independently re-verified live against Postgres
-rather than trusted from the SUMMARY text. The 5 open Warnings and 2 open Info findings from
-152-REVIEW.md are carried forward, re-confirmed present, and explicitly classified as non-blocking —
-none of them contradict phase goal achievement.
+No gaps remain as of this correction pass (2026-09-08T19:50:00Z). All 14 observable truths (P152-01
+through P152-14) are verified against the actual codebase via a combination of direct source reads
+and independent, freshly-executed test runs — not SUMMARY.md claims alone. Both Critical code-review
+findings (CR-01, CR-02) are confirmed fixed and landed (commits `9a873495`, `ef08af06`). The mandatory
+pinned query-budget fact (12→8, 3→2, with the `fansubGroupExists` internal-round-trip reasoning) is
+documented above and independently re-verified live against Postgres. The 5 open Warnings and 2 open
+Info findings from 152-REVIEW.md are carried forward, re-confirmed present, and explicitly classified
+as non-blocking — none of them contradict phase goal achievement.
+
+**The initial verification pass (2026-09-08T19:21:06Z) did have a real gap**, corrected above: it
+did not run the complete, fresh frontend test suite, and so missed two test files broken by this
+phase's own earlier changes (152-04, 152-01) — both mislabeled "pre-existing" by prior executors who
+each checked only their own plan's diff rather than the whole phase's diff. Both are now fixed
+(commits `fcc3fe70`, `caaba621`) and the complete suite (293 files / 2255 tests) is confirmed green
+fresh, with no scope narrowing.
 
 ---
 
-_Verified: 2026-09-08T19:21:06Z_
-_Verifier: Claude (gsd-verifier)_
+_Verified: 2026-09-08T19:21:06Z (initial), corrected 2026-09-08T19:50:00Z_
+_Verifier: Claude (gsd-verifier initial pass; correction applied directly per project-owner-reported gap)_
