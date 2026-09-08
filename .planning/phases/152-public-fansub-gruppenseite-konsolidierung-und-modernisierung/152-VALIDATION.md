@@ -1,9 +1,9 @@
 ---
 phase: 152
 slug: public-fansub-gruppenseite-konsolidierung-und-modernisierung
-status: draft
-nyquist_compliant: false
-wave_0_complete: false
+status: ready
+nyquist_compliant: true
+wave_0_complete: true
 created: 2026-09-08
 ---
 
@@ -59,10 +59,10 @@ See `152-RESEARCH.md` → "Validation Architecture → Phase Requirements → Te
 
 ## Wave 0 Requirements
 
-- [ ] `backend/internal/repository/fansub_public_profile_query_budget_test.go` — new file, follows `member_profile_query_budget_test.go`/`admin_users_query_budget_test.go` template, `TEAM4S_PHASE152_TEST_DSN` env var, `team4s_phase152_test` DB-name guard — covers P152-07/08/09
-- [ ] `frontend/src/components/fansubs/__tests__/FansubGroupMediaBlock.test.tsx` — does not exist yet; needed for P152-12's axe coverage and the media-thumbnail double-labeling fix (D3)
-- [ ] `team4s_phase152_test` throwaway DB — schema-only `pg_dump` from `team4s_v2`, one-time setup
-- [ ] No new test framework/config needed — Vitest, jest-axe, testify, and the query-counter harness are all already wired
+- [x] `backend/internal/repository/fansub_public_profile_query_budget_test.go` — new file, follows `member_profile_query_budget_test.go`/`admin_users_query_budget_test.go` template, `TEAM4S_PHASE152_TEST_DSN` env var, `team4s_phase152_test` DB-name guard — covers P152-07/08/09. **Resolved:** folded into `152-08-PLAN.md`'s own task (creates the file directly) instead of a separate upfront Wave-0 plan.
+- [x] `frontend/src/components/fansubs/__tests__/FansubGroupMediaBlock.test.tsx` — does not exist yet; needed for P152-12's axe coverage and the media-thumbnail double-labeling fix (D3). **Resolved:** folded into `152-04-PLAN.md` Task 2, which creates this file as part of the media-block work it consumes.
+- [x] `team4s_phase152_test` throwaway DB — schema-only `pg_dump` from `team4s_v2`, one-time setup. Created by `152-03-PLAN.md` Task 3 as part of its guarded-Postgres test setup.
+- [x] No new test framework/config needed — Vitest, jest-axe, testify, and the query-counter harness are all already wired
 
 ---
 
@@ -78,11 +78,14 @@ See `152-RESEARCH.md` → "Validation Architecture → Phase Requirements → Te
 
 ## Validation Sign-Off
 
-- [ ] All tasks have `<automated>` verify or Wave 0 dependencies
-- [ ] Sampling continuity: no 3 consecutive tasks without automated verify
-- [ ] Wave 0 covers all MISSING references
-- [ ] No watch-mode flags
-- [ ] Feedback latency < 90s
-- [ ] `nyquist_compliant: true` set in frontmatter
+- [x] All tasks have `<automated>` verify or Wave 0 dependencies
+- [x] Sampling continuity: no 3 consecutive tasks without automated verify
+- [x] Wave 0 covers all MISSING references
+- [x] No watch-mode flags
+- [x] Feedback latency < 90s
+- [x] `nyquist_compliant: true` set in frontmatter
 
-**Approval:** pending
+**Approval:** approved — every task across all 10 plans carries a genuine `<automated>` command (or is
+an exempt `checkpoint:*` task); the two originally-listed Wave 0 gaps were resolved by folding their
+creation into the tasks that consume them (see `152-08-PLAN.md` and `152-04-PLAN.md` Task 2) rather
+than as separate upfront Wave-0 plans.

@@ -629,7 +629,7 @@ Phase 152 now needs to adopt for a second consumer.
 existence. They are flagged because they involve a visible-behavior tradeoff the planner/user should
 consciously accept, not because the underlying code facts are uncertain.**
 
-## Open Questions
+## Open Questions (RESOLVED)
 
 1. **Should the P152-01..14 requirement IDs be added to `.planning/REQUIREMENTS.md` before or during
    planning?**
@@ -642,6 +642,8 @@ consciously accept, not because the underlying code facts are uncertain.**
    - Recommendation: The planner should add an equivalent "## Phase 152 — Additive scope" block to
      `REQUIREMENTS.md`, copying the 14 rows from `ROADMAP.md` verbatim, following the Phase 151
      precedent exactly (checkbox list + traceability table, status "Pending").
+   - **Resolved:** Done — `.planning/REQUIREMENTS.md` line 182 has a "## Phase 152 — Additive
+     scope (2026-09-08)" section with the full P152-01..14 traceability block.
 
 2. **Exact grid-track replacement value for `--history-badge-size` (Pattern 2 / Assumption A1).**
    - What we know: The variable is consumed at 2 sites (grid track width, badge box width/height) and
@@ -651,6 +653,9 @@ consciously accept, not because the underlying code facts are uncertain.**
      step) or a `min-content`/`auto` track reads better visually across all 8 QA viewports.
    - Recommendation: Defer to implementation + immediate visual check at 320/390/768/1024/1440px
      rather than deciding in research; this is a one-line CSS value with a fast visual feedback loop.
+   - **Resolved:** `152-07-PLAN.md` Task 2 settled on a fixed `240px` value (grid track width and
+     badge box `min-height`), the `AchievementArtwork` largest hero step named in the original
+     recommendation.
 
 3. **Are the Hero logo/banner URLs (`group.logo_url`/`banner_url`) actually shaped as
    `/api/v1/media/**`, matching the already-configured `configuredApiMediaPatterns()` remotePattern
@@ -667,6 +672,8 @@ consciously accept, not because the underlying code facts are uncertain.**
    - Recommendation: First Wave-5 task should be `docker compose exec -T team4sv30-db psql ... -c
      "SELECT logo_url, banner_url FROM fansub_groups WHERE slug='new-subs';"` to settle this before
      writing any E1/E2 code.
+   - **Resolved:** `152-05-PLAN.md` Task 1 ran the live DB query and confirmed the
+     `/api/v1/media/**` shape, applying the `unoptimized`-flag-drop swap accordingly.
 
 ## Environment Availability
 
