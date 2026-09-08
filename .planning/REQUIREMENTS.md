@@ -178,3 +178,41 @@ Source: `.planning/phases/151-erfolgsbadge-karussell-konsolidierung/151-USER-REQ
 | P151-10 | Phase 151 | Pending |
 | P151-11 | Phase 151 | Pending |
 | P151-12 | Phase 151 | Pending |
+
+## Phase 152 — Additive scope (2026-09-08)
+
+Source: `.planning/ROADMAP.md` lines 1239-1258 (Phase 152 roadmap entry), grounded in
+`.planning/phases/152-public-fansub-gruppenseite-konsolidierung-und-modernisierung/152-USER-REQUEST.md`.
+Existing v1.4 requirements remain complete.
+
+- [ ] **P152-01**: `/history-event-badges-transparent/**` fuer die Next-Image-Pipeline freigeben; `/_next/image` liefert 200 statt 400, WebP, srcset, Lazy Loading; Master-PNGs unveraendert.
+- [ ] **P152-02**: `FansubHistorySection` rendert Artwork ueber den Phase-151-`AchievementArtwork`-Slot; Timeline, eigene Assets und eigene Registry bleiben; kein Member-Badge-Resolver.
+- [ ] **P152-03**: `--history-badge-size`, zugehoerige Badge-Groessen-Breakpoints, die `releases_10000`-Sondergroesse, achievement-spezifische Groessenlogik und unnoetige Pixel-Shifts sind entfernt.
+- [ ] **P152-04**: `achievementEventStyle`/harte `eventType`-If-Ketten sind durch additive Felder in `GROUP_HISTORY_EVENT_OPTIONS` ersetzt; keine zweite Registry.
+- [ ] **P152-05**: `publicDomainTerms` entfernt; statische Public-Labels in der Registry; Admin-Freitext nachweislich unveraendert.
+- [ ] **P152-06**: Bildperformance vorher/nachher dokumentiert (History; Hero falls umgestellt), inkl. Initial-Payload-Differenz und prozentualer Reduktion.
+- [ ] **P152-07**: Public-spezifischer Gruppenladepfad hydratisiert nur benoetigte Felder; doppelte Link-Ladung beseitigt; andere Konsumenten unbeschaedigt; keine Monster-Query.
+- [ ] **P152-08**: Ungenutzte Contributors-Projektion geprueft und Entscheidung belegt; `public-profile` und `domain-projection` bleiben fachlich getrennt.
+- [ ] **P152-09**: Query-Budget-Test auf Basis der vorhandenen Query-Counter-Infrastruktur; konstantes Budget, kein Wachstum mit Projekten/Mitgliedern/History/Media; neuer Sollwert dokumentiert.
+- [ ] **P152-10**: Totes History-CSS entfernt, angefasste Breakpoints/Hex-Farben konsolidiert, Initialenlogik entschieden, `CATEGORY_TAG_CLASS` typisiert, `Promise.allSettled([single])` vereinfacht.
+- [ ] **P152-11**: Tiptap-Link-Contract zwischen Editor und Backend konsistent, mit Regressionstest; Sanitizer-Haertung (`class`-Muster, `h1`) geprueft und wo ohne Seiteneffekt umgesetzt.
+- [ ] **P152-12**: Accessibility-Findings behoben (kein doppeltes Jahr im A11y-Tree, keine Doppelbeschriftung der Medien-Thumbnails); axe-Abdeckung ueber die vorhandene Infrastruktur ergaenzt.
+- [ ] **P152-13**: Page-Kompositionstests fuer Sektionsbedingungen, Leerzustaende, Projektions-Fallback und Fehlerzustand; History-Tests verhaltensbasiert statt Klassennamen-Assertions.
+- [ ] **P152-14**: Viewport-Sichtabnahme 320/390/520/768/1024/1440/1920/2560 ueber Hero, Story, Projekte, Team, History, Media; Build und relevante Front-/Backend-Tests PASS; unabhaengige Abschlussverifikation.
+
+| Requirement | Phase | Status |
+|-------------|-------|--------|
+| P152-01 | Phase 152 | Pending |
+| P152-02 | Phase 152 | Pending |
+| P152-03 | Phase 152 | Pending |
+| P152-04 | Phase 152 | Pending |
+| P152-05 | Phase 152 | Pending |
+| P152-06 | Phase 152 | Pending |
+| P152-07 | Phase 152 | Pending |
+| P152-08 | Phase 152 | Pending |
+| P152-09 | Phase 152 | Pending |
+| P152-10 | Phase 152 | Pending |
+| P152-11 | Phase 152 | Pending |
+| P152-12 | Phase 152 | Pending |
+| P152-13 | Phase 152 | Pending |
+| P152-14 | Phase 152 | Pending |

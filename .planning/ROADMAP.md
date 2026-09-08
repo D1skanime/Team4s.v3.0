@@ -1210,7 +1210,7 @@ Plans:
 | 149. Tote CSS-Tokens sanieren und den Notiz-Kontrast schließen | 6/6 | Complete    | 2026-09-06 |
 | 150. Badge-Regeln — eine autoritative Schwellenquelle | 7/7 | Complete   | 2026-09-07 |
 | 151. Erfolgsbadge-Karussell-Konsolidierung | 5/5 | Complete | 2026-09-07 |
-| 152. Public-Fansub-Gruppenseite: Konsolidierung und Modernisierung | 0/0 | Planning | - |
+| 152. Public-Fansub-Gruppenseite: Konsolidierung und Modernisierung | 0/10 | Planned | - |
 
 ### Phase 151: Erfolgsbadge-Karussell-Konsolidierung
 
@@ -1258,7 +1258,24 @@ Viewport-Sichtabnahme belegt.
 | P152-14 | QA | Viewport-Sichtabnahme 320/390/520/768/1024/1440/1920/2560 ueber Hero, Story, Projekte, Team, History, Media; Build und relevante Front-/Backend-Tests PASS; unabhaengige Abschlussverifikation |
 
 **Depends on:** Phase 151
-**Plans:** TBD
+**Plans:** 10 plans across 4 waves
+
+  - Wave 1: 152-01 (A1 next.config localPatterns), 152-02 (Tiptap D1/D2, own strand), 152-03 (B1/B2/B3 public data flow), 152-04 (media a11y/typing D3/D4/C4), 152-05 (Hero C3 + E1/E2/E3), 152-06 (page composition C5/D5)
+  - Wave 2: 152-07 (History artwork/registry/CSS/tests A2-A5/D3/D6, depends on 152-01), 152-08 (query-budget gate B4, depends on 152-03)
+  - Wave 3: 152-09 (full regression gate + performance measurement + temp fixture seed, depends on all Wave 1/2 plans)
+  - Wave 4: 152-10 (Visual QA checkpoint + fixture cleanup + phase close, depends on 152-09)
+
+**Plan-time read first**: `frontend/src/components/fansubs/FansubHistorySection.tsx`, `frontend/src/components/fansubs/FansubPublicSections.module.css`, `frontend/src/lib/group-history-events.ts`, `frontend/src/components/profile/AchievementArtwork.tsx`, `backend/internal/repository/fansub_repository.go`, `backend/internal/repository/domain_projection_repository.go`, `backend/internal/services/tiptap_service.go`, `frontend/next.config.mjs`, and `152-RESEARCH.md`/`152-PATTERNS.md`/`152-UI-SPEC.md` as the binding contracts.
+**UI hint**: yes (152-UI-SPEC.md approved)
 
 Plans:
-- [ ] TBD (run /gsd-plan-phase 152 to break down)
+- [ ] 152-01-PLAN.md — Free /history-event-badges-transparent/** for the Next Image pipeline (A1).
+- [ ] 152-02-PLAN.md — Tiptap link-contract closure + sanitizer hardening (D1, D2).
+- [ ] 152-03-PLAN.md — Public group load-path reduction + contributors trim (B1, B2, B3).
+- [ ] 152-04-PLAN.md — Media-block accessibility fix + category typing (D3, D4, C4).
+- [ ] 152-05-PLAN.md — Hero initials divergence doc + image optimization (C3, E1, E2, E3).
+- [ ] 152-06-PLAN.md — Page composition simplification + tests (C5, D5).
+- [ ] 152-07-PLAN.md — History artwork-slot migration + registry + CSS + tests (A2-A5, D3, D6).
+- [ ] 152-08-PLAN.md — Query-budget constant gate (B4).
+- [ ] 152-09-PLAN.md — Full regression gate + image-performance measurement + temp fixture seed.
+- [ ] 152-10-PLAN.md — Visual QA checkpoint + fixture cleanup + phase close (P152-14).
