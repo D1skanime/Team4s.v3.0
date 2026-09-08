@@ -141,3 +141,77 @@ func TestFansubPublicProfileQueryBudgetIsConstant(t *testing.T) {
 		"public group profile query budget drifted from the enforced constant %d; got %d (update phase152PublicProfileConstantQueryBudget only with an intentional, documented loader change)",
 		phase152PublicProfileConstantQueryBudget, largeCount)
 }
+
+// seedPhase152DomainProjectionContributorGroup seeds one fansub_groups row plus a
+// REAL contributor row satisfying listProjectionContributors's WHERE clause
+// exactly (ac.fansub_group_id = groupID, ac.is_public_on_anime_page = true,
+// hfgm.visibility = 'public', m.profile_visibility = 'public', and a NULL
+// visibility_id so it COALESCEs to 'public') -- so that, were the OLD code path
+// (GetFansubGroupDomainProjection calling listProjectionContributors) still
+// active, response.Contributors would be non-empty.
+func seedPhase152DomainProjectionContributorGroup(t *testing.T, pool *pgxpool.Pool, groupID int64, slug string) {
+	t.Helper()
+
+	memberID := groupID*1000 + 10
+	histMemberID := groupID*1000 + 11
+	animeID := groupID*1000 + 12
+	contributionID := groupID*1000 + 13
+	memberSlug := fmt.Sprintf("phase152-contrib-%d", groupID)
+
+	mustExecPhase152(t, pool, fmt.Sprintf(`
+		INSERT INTO fansub_groups (id, slug, name, status)
+			VALUES (%d, '%s', 'Phase152 Contributor Group %d', 'active');
+
+		INSERT INTO members (id, nickname, public_slug, profile_visibility)
+			VALUES (%d, 'Phase152 Contributor Member', '%s', 'public');
+
+		INSERT INTO hist_fansub_group_members (id, fansub_group_id, member_id, status, visibility)
+			VALUES (%d, %d, %d, 'confirmed', 'public');
+
+		INSERT INTO anime (id, title) VALUES (%d, 'Phase152 Contributor Anime %d');
+
+		INSERT INTO anime_contributions (id, fansub_group_id, anime_id, fansub_group_member_id, member_id, is_public_on_anime_page)
+			VALUES (%d, %d, %d, %d, %d, true);
+	`, groupID, slug, groupID, memberID, memberSlug, histMemberID, groupID, memberID, animeID, animeID, contributionID, groupID, animeID, histMemberID, memberID))
+}
+
+// phase152DomainProjectionConstantQueryBudget is the enforced constant number of
+// SQL queries a single GetFansubGroupDomainProjection load issues after Plan
+// 152-03 removed the never-rendered listProjectionContributors call: only
+// listProjectionMembers (1) + listProjectionHistorical (1) = 2, down from the
+// pre-152 baseline of 3 (which also called listProjectionContributors).
+// Update this constant ONLY for an intentional, documented loader change.
+const phase152DomainProjectionConstantQueryBudget = 2
+
+// TestDomainProjectionQueryBudgetExcludesContributors is the real behavioral
+// proof for B3 (Requirement P152-09): a group with a REAL seeded contributor row
+// (one that would populate the OLD code path's Contributors slice) still returns
+// an empty Contributors slice from GetFansubGroupDomainProjection, and the
+// measured query count equals the pinned, documented post-152 constant -- proving
+// the contributors query removal is behaviorally real, not just a source-text
+// absence check.
+func TestDomainProjectionQueryBudgetExcludesContributors(t *testing.T) {
+	pool, counter := openPhase152Postgres(t)
+	domainRepo := NewDomainProjectionRepository(pool)
+
+	const groupID int64 = 1520300
+	slug := "phase152-domain-contrib"
+	seedPhase152DomainProjectionContributorGroup(t, pool, groupID, slug)
+
+	counter.reset()
+	response, err := domainRepo.GetFansubGroupDomainProjection(context.Background(), groupID)
+	require.NoError(t, err)
+	got := counter.count()
+
+	require.NotNilf(t, response.Contributors,
+		"Contributors must stay a non-nil empty slice (JSON contract: []), not nil")
+	require.Emptyf(t, response.Contributors,
+		"Contributors must be empty even though a real seeded row satisfies listProjectionContributors's WHERE clause -- proving the removal is behaviorally real, not just textually absent")
+
+	t.Logf("P152-09 domain-projection budget: real seeded contributor row -> %d queries, Contributors=%v (must equal the pinned constant %d and stay empty).",
+		got, response.Contributors, phase152DomainProjectionConstantQueryBudget)
+
+	require.Equalf(t, phase152DomainProjectionConstantQueryBudget, got,
+		"domain-projection query budget drifted from the enforced constant %d; got %d (update phase152DomainProjectionConstantQueryBudget only with an intentional, documented loader change)",
+		phase152DomainProjectionConstantQueryBudget, got)
+}
