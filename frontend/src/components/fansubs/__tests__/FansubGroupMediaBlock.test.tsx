@@ -3,6 +3,7 @@
 import { forwardRef, type ImgHTMLAttributes } from 'react'
 import { afterEach, describe, expect, it, vi } from 'vitest'
 import { cleanup, fireEvent, render, screen } from '@testing-library/react'
+import { axe } from 'jest-axe'
 
 import { FansubGroupMediaBlock } from '../FansubGroupMediaBlock'
 import type { PublicFansubMediaItem } from '@/types/fansub'
@@ -61,9 +62,11 @@ describe('FansubGroupMediaBlock', () => {
   it('setzt loading="lazy" und sizes auf Bild-Elementen', () => {
     render(<FansubGroupMediaBlock media={[mediaRow({ title: 'Bild-Item' })]} />)
 
-    const image = screen.getByAltText('Bild-Item')
-    expect(image.getAttribute('loading')).toBe('lazy')
-    expect(image.getAttribute('sizes')).toBeTruthy()
+    const button = screen.getByRole('button', { name: 'Bild-Item' })
+    const image = button.querySelector('img')
+    expect(image).not.toBeNull()
+    expect(image?.getAttribute('loading')).toBe('lazy')
+    expect(image?.getAttribute('sizes')).toBeTruthy()
   })
 
   it('zeigt EmptyState bei leerer Medien-Liste', () => {
@@ -104,8 +107,40 @@ describe('FansubGroupMediaBlock', () => {
     )
     render(<FansubGroupMediaBlock media={items} onSelect={onSelect} />)
 
-    fireEvent.click(screen.getByAltText('Medium 2'))
+    fireEvent.click(screen.getByRole('button', { name: 'Medium 2' }))
 
     expect(onSelect).toHaveBeenCalledWith(1)
+  })
+
+  it('gibt dem Thumbnail-Button genau einen barrierefreien Namen (kein doppeltes alt+aria-label)', () => {
+    render(
+      <FansubGroupMediaBlock media={[mediaRow({ title: 'Eindeutiges Thumbnail' })]} />,
+    )
+
+    const buttons = screen.getAllByRole('button', { name: 'Eindeutiges Thumbnail' })
+    expect(buttons).toHaveLength(1)
+
+    const image = buttons[0].querySelector('img')
+    expect(image).not.toBeNull()
+    expect(image?.getAttribute('alt')).toBe('')
+  })
+
+  it('hat keine Axe-Verstöße bei befüllter Medienliste', async () => {
+    const { container } = render(
+      <FansubGroupMediaBlock
+        media={[
+          mediaRow({ title: 'Galerie-Highlight', category: 'gallery' }),
+          mediaRow({ id: 2, title: 'Zweites Medium', category: 'forum' }),
+        ]}
+      />,
+    )
+
+    expect(await axe(container)).toHaveNoViolations()
+  })
+
+  it('hat keine Axe-Verstöße im Leerzustand', async () => {
+    const { container } = render(<FansubGroupMediaBlock media={[]} />)
+
+    expect(await axe(container)).toHaveNoViolations()
   })
 })
