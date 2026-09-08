@@ -186,10 +186,10 @@ Source: `.planning/ROADMAP.md` lines 1239-1258 (Phase 152 roadmap entry), ground
 Existing v1.4 requirements remain complete.
 
 - [x] **P152-01**: `/history-event-badges-transparent/**` fuer die Next-Image-Pipeline freigeben; `/_next/image` liefert 200 statt 400, WebP, srcset, Lazy Loading; Master-PNGs unveraendert.
-- [ ] **P152-02**: `FansubHistorySection` rendert Artwork ueber den Phase-151-`AchievementArtwork`-Slot; Timeline, eigene Assets und eigene Registry bleiben; kein Member-Badge-Resolver.
-- [ ] **P152-03**: `--history-badge-size`, zugehoerige Badge-Groessen-Breakpoints, die `releases_10000`-Sondergroesse, achievement-spezifische Groessenlogik und unnoetige Pixel-Shifts sind entfernt.
-- [ ] **P152-04**: `achievementEventStyle`/harte `eventType`-If-Ketten sind durch additive Felder in `GROUP_HISTORY_EVENT_OPTIONS` ersetzt; keine zweite Registry.
-- [ ] **P152-05**: `publicDomainTerms` entfernt; statische Public-Labels in der Registry; Admin-Freitext nachweislich unveraendert.
+- [x] **P152-02**: `FansubHistorySection` rendert Artwork ueber den Phase-151-`AchievementArtwork`-Slot; Timeline, eigene Assets und eigene Registry bleiben; kein Member-Badge-Resolver.
+- [x] **P152-03**: `--history-badge-size`, zugehoerige Badge-Groessen-Breakpoints, die `releases_10000`-Sondergroesse, achievement-spezifische Groessenlogik und unnoetige Pixel-Shifts sind entfernt.
+- [x] **P152-04**: `achievementEventStyle`/harte `eventType`-If-Ketten sind durch additive Felder in `GROUP_HISTORY_EVENT_OPTIONS` ersetzt; keine zweite Registry.
+- [x] **P152-05**: `publicDomainTerms` entfernt; statische Public-Labels in der Registry; Admin-Freitext nachweislich unveraendert.
 - [x] **P152-06**: Bildperformance vorher/nachher dokumentiert (History; Hero falls umgestellt), inkl. Initial-Payload-Differenz und prozentualer Reduktion.
 - [x] **P152-07**: Public-spezifischer Gruppenladepfad hydratisiert nur benoetigte Felder; doppelte Link-Ladung beseitigt; andere Konsumenten unbeschaedigt; keine Monster-Query.
 - [x] **P152-08**: Ungenutzte Contributors-Projektion geprueft und Entscheidung belegt; `public-profile` und `domain-projection` bleiben fachlich getrennt.
@@ -203,10 +203,10 @@ Existing v1.4 requirements remain complete.
 | Requirement | Phase | Status |
 |-------------|-------|--------|
 | P152-01 | Phase 152 | Complete |
-| P152-02 | Phase 152 | Pending |
-| P152-03 | Phase 152 | Pending |
-| P152-04 | Phase 152 | Pending |
-| P152-05 | Phase 152 | Pending |
+| P152-02 | Phase 152 | Complete |
+| P152-03 | Phase 152 | Complete |
+| P152-04 | Phase 152 | Complete |
+| P152-05 | Phase 152 | Complete |
 | P152-06 | Phase 152 | Complete |
 | P152-07 | Phase 152 | Complete |
 | P152-08 | Phase 152 | Complete |

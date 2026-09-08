@@ -3,14 +3,14 @@ gsd_state_version: 1.0
 milestone: v1.4
 milestone_name: Coverage
 status: executing
-stopped_at: Completed 152-06-PLAN.md
-last_updated: "2026-09-08T17:56:39.472Z"
+stopped_at: Completed 152-07-PLAN.md
+last_updated: "2026-09-08T18:13:47.399Z"
 last_activity: 2026-09-08
 progress:
   total_phases: 17
   completed_phases: 16
   total_plans: 170
-  completed_plans: 166
+  completed_plans: 167
   percent: 94
 ---
 
@@ -34,7 +34,7 @@ See: .planning/PROJECT.md (updated 2026-08-13)
 ## Current Position
 
 Phase: 152 (public-fansub-gruppenseite-konsolidierung-und-modernisierung) — EXECUTING
-Plan: 7 of 10
+Plan: 8 of 10
 Status: Ready to execute
 Produktionsbuild nach den letzten drei PNGs PASS (rc=0, TypeScript ok, 25 statische Seiten), voller
 Vitest-Lauf mit einem Worker 293 Dateien / 2239 Tests PASS (1 skipped, 3 todo, exit 0), Collector-
@@ -371,6 +371,8 @@ Last activity: 2026-09-08
 - [Phase 152]: 152-05: FansubProjectBannerCard.tsx (E3) left unchanged -- sizes/lazy already adequate, and live banner_url is a dynamic Jellyfin-proxy endpoint, not a static file, matching the user's 'schwierig' carve-out
 - [Phase 152]: Domain-projection load uses a plain try/catch (not Promise.allSettled) with an explicit empty-projection fallback, matching RESEARCH.md's C5 example
 - [Phase 152]: Fixed mocked ApiError constructor arg order (status, message) in page.test.tsx to match the real @/lib/api.ApiError signature, surfaced while writing the new 404-branch composition test
+- [Phase ?]: [Phase 152, 2026-09-08]: History-badge geometry fixed at AchievementArtwork's 240px hero step everywhere (grid track + min-height), no family-specific breakpoint logic reintroduced for group-history badges.
+- [Phase ?]: [Phase 152, 2026-09-08]: projects_500/releases_10000 legendary glow collapsed into one shared .historyTimelineEmphasisLegendary token-driven treatment; the two-palette-to-one visual delta is intentional, flagged for Visual QA sign-off.
 
 ### Pending Todos
 
@@ -721,11 +723,12 @@ untruncated list lives in `.planning/todos/pending/`.
 | Phase 152 P04 | 10min | 2 tasks | 2 files |
 | Phase 152 P05 | 35min | 3 tasks | 1 files |
 | Phase 152 P06 | 15min | 2 tasks | 2 files |
+| Phase 152 P07 | 30min | 3 tasks | 4 files |
 
 ## Session Continuity
 
-Last session: 2026-09-08T17:56:39.455Z
-Stopped at: Completed 152-06-PLAN.md
+Last session: 2026-09-08T18:13:47.383Z
+Stopped at: Completed 152-07-PLAN.md
 Last activity: Local handoff checkpoint; no new Execute step, browser matrix, build, agent or push started after stop.
 Resume file: None
 Structured state: .planning/HANDOFF.json
