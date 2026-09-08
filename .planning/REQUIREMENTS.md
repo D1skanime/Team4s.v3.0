@@ -193,7 +193,7 @@ Existing v1.4 requirements remain complete.
 - [x] **P152-06**: Bildperformance vorher/nachher dokumentiert (History; Hero falls umgestellt), inkl. Initial-Payload-Differenz und prozentualer Reduktion.
 - [x] **P152-07**: Public-spezifischer Gruppenladepfad hydratisiert nur benoetigte Felder; doppelte Link-Ladung beseitigt; andere Konsumenten unbeschaedigt; keine Monster-Query.
 - [x] **P152-08**: Ungenutzte Contributors-Projektion geprueft und Entscheidung belegt; `public-profile` und `domain-projection` bleiben fachlich getrennt.
-- [ ] **P152-09**: Query-Budget-Test auf Basis der vorhandenen Query-Counter-Infrastruktur; konstantes Budget, kein Wachstum mit Projekten/Mitgliedern/History/Media; neuer Sollwert dokumentiert.
+- [x] **P152-09**: Query-Budget-Test auf Basis der vorhandenen Query-Counter-Infrastruktur; konstantes Budget, kein Wachstum mit Projekten/Mitgliedern/History/Media; neuer Sollwert dokumentiert.
 - [x] **P152-10**: Totes History-CSS entfernt, angefasste Breakpoints/Hex-Farben konsolidiert, Initialenlogik entschieden, `CATEGORY_TAG_CLASS` typisiert, `Promise.allSettled([single])` vereinfacht.
 - [x] **P152-11**: Tiptap-Link-Contract zwischen Editor und Backend konsistent, mit Regressionstest; Sanitizer-Haertung (`class`-Muster, `h1`) geprueft und wo ohne Seiteneffekt umgesetzt.
 - [x] **P152-12**: Accessibility-Findings behoben (kein doppeltes Jahr im A11y-Tree, keine Doppelbeschriftung der Medien-Thumbnails); axe-Abdeckung ueber die vorhandene Infrastruktur ergaenzt.
@@ -210,7 +210,7 @@ Existing v1.4 requirements remain complete.
 | P152-06 | Phase 152 | Complete |
 | P152-07 | Phase 152 | Complete |
 | P152-08 | Phase 152 | Complete |
-| P152-09 | Phase 152 | Pending |
+| P152-09 | Phase 152 | Complete |
 | P152-10 | Phase 152 | Complete |
 | P152-11 | Phase 152 | Complete |
 | P152-12 | Phase 152 | Complete |

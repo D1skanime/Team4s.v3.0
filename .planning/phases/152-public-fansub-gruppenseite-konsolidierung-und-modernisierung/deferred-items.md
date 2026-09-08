@@ -42,3 +42,32 @@ appearing in only one run. `FansubHistorySection.test.tsx` (9/9) and every other
 consumer (`GroupHistoryForm.test.tsx`, `GroupHistorySection.test.tsx`) were green in every run.
 None of the three failures above are fixed here; all remain out of scope for 152-07 and tracked for a
 future hardening pass.
+
+## From 152-08 (`go test ./internal/repository/...` full-package verification run)
+
+`git status --short` confirmed exactly one new file for this plan
+(`fansub_public_profile_query_budget_test.go`); everything below pre-exists and is unrelated to it.
+49 pre-existing `--- FAIL` results out of 422 tests (376 pass, 163 skip) fall into three unrelated
+buckets, none touching `fansub_repository.go`, `domain_projection_repository.go`, or this plan's new
+test file:
+
+- **Missing-DSN-but-`t.Fatal`-instead-of-`t.Skip` tests** (39 tests) — `TestArchive*`,
+  `TestMemberPointTotals*`, `TestLoadContributionBadges*`, `TestGetOwnDashboardPostgres*`,
+  `TestLoadBadgeProgressPostgres*`, `TestGetPublicMemberProfilePostgresIncludesTotalPoints`,
+  `TestLoadPublicBadgesPostgres*`, `TestLoadRoleVolume*Postgres*`, `TestPhase128*` — all fail with
+  `"TEAM4S_PHASE128_TEST_DSN is required for Phase-128 PostgreSQL tests"` (a `t.Fatal`, not the
+  skip-if-unset convention `openPhase131Postgres`/`openPhase152Postgres` use). `TestPhase134Matrix*`
+  (9 tests) fail the same way for a `TEAM4S_PHASE134_TEST_DSN`-shaped dependency. Neither DSN was
+  provided to this plan's verification run (only `TEAM4S_PHASE152_TEST_DSN` was set, per this plan's
+  own scope) and neither database was created by any prior 152-0x plan.
+- **Pre-existing unimplemented-feature test failures** (3 tests) — `TestClaimSubmitBlockedForMemorialProfile`,
+  `TestClaimBlockWritesDeniedAudit`, `TestClaimBlockDeniedAuditOutcomeColocated` in
+  `member_claims_memorial_guard_test.go` fail with explicit "noch nicht implementiert" /
+  "nicht implementiert" messages — a documented, pre-existing gap unrelated to Phase 152.
+- **Pre-existing pure-function / non-DB test failures** (2 tests) —
+  `TestEvaluateMemberMutationConflictBlocksLastActiveManager` (`fansub_group_app_members_repository_test.go`,
+  touches no DB, reproduces in isolation with no env vars set) and
+  `TestMemberClaimsRepositoryBlocksAlreadyAssignedMembers` (`member_claims_repository_test.go`).
+
+Not fixed here; all remain out of scope for 152-08 per the executor's scope-boundary rule and are
+tracked for a future hardening pass.
