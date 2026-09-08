@@ -191,8 +191,8 @@ Existing v1.4 requirements remain complete.
 - [ ] **P152-04**: `achievementEventStyle`/harte `eventType`-If-Ketten sind durch additive Felder in `GROUP_HISTORY_EVENT_OPTIONS` ersetzt; keine zweite Registry.
 - [ ] **P152-05**: `publicDomainTerms` entfernt; statische Public-Labels in der Registry; Admin-Freitext nachweislich unveraendert.
 - [ ] **P152-06**: Bildperformance vorher/nachher dokumentiert (History; Hero falls umgestellt), inkl. Initial-Payload-Differenz und prozentualer Reduktion.
-- [ ] **P152-07**: Public-spezifischer Gruppenladepfad hydratisiert nur benoetigte Felder; doppelte Link-Ladung beseitigt; andere Konsumenten unbeschaedigt; keine Monster-Query.
-- [ ] **P152-08**: Ungenutzte Contributors-Projektion geprueft und Entscheidung belegt; `public-profile` und `domain-projection` bleiben fachlich getrennt.
+- [x] **P152-07**: Public-spezifischer Gruppenladepfad hydratisiert nur benoetigte Felder; doppelte Link-Ladung beseitigt; andere Konsumenten unbeschaedigt; keine Monster-Query.
+- [x] **P152-08**: Ungenutzte Contributors-Projektion geprueft und Entscheidung belegt; `public-profile` und `domain-projection` bleiben fachlich getrennt.
 - [ ] **P152-09**: Query-Budget-Test auf Basis der vorhandenen Query-Counter-Infrastruktur; konstantes Budget, kein Wachstum mit Projekten/Mitgliedern/History/Media; neuer Sollwert dokumentiert.
 - [ ] **P152-10**: Totes History-CSS entfernt, angefasste Breakpoints/Hex-Farben konsolidiert, Initialenlogik entschieden, `CATEGORY_TAG_CLASS` typisiert, `Promise.allSettled([single])` vereinfacht.
 - [x] **P152-11**: Tiptap-Link-Contract zwischen Editor und Backend konsistent, mit Regressionstest; Sanitizer-Haertung (`class`-Muster, `h1`) geprueft und wo ohne Seiteneffekt umgesetzt.
@@ -208,8 +208,8 @@ Existing v1.4 requirements remain complete.
 | P152-04 | Phase 152 | Pending |
 | P152-05 | Phase 152 | Pending |
 | P152-06 | Phase 152 | Pending |
-| P152-07 | Phase 152 | Pending |
-| P152-08 | Phase 152 | Pending |
+| P152-07 | Phase 152 | Complete |
+| P152-08 | Phase 152 | Complete |
 | P152-09 | Phase 152 | Pending |
 | P152-10 | Phase 152 | Pending |
 | P152-11 | Phase 152 | Complete |
