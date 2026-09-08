@@ -3,14 +3,14 @@ gsd_state_version: 1.0
 milestone: v1.4
 milestone_name: Coverage
 status: executing
-stopped_at: Phase 152 UI-SPEC approved
-last_updated: "2026-09-08T17:17:50.187Z"
-last_activity: 2026-09-08 -- Phase 152 planning complete
+stopped_at: Completed 152-01-PLAN.md
+last_updated: "2026-09-08T17:27:36.249Z"
+last_activity: 2026-09-08
 progress:
   total_phases: 17
   completed_phases: 16
   total_plans: 170
-  completed_plans: 160
+  completed_plans: 161
   percent: 94
 ---
 
@@ -29,12 +29,12 @@ Phase 135 and any future roadmap entries continue from here.
 See: .planning/PROJECT.md (updated 2026-08-13)
 
 **Core value:** Team4s presents fansub history and collaboration credibly while keeping identity, visibility, ownership, and permissions correct.
-**Current focus:** Phase 151 abgeschlossen (2026-09-07); keine offenen Gaps
+**Current focus:** Phase 152 — public-fansub-gruppenseite-konsolidierung-und-modernisierung
 
 ## Current Position
 
-Phase: 151 (erfolgsbadge-karussell-konsolidierung) — COMPLETE
-Plan: 5 of 5 executed (151-01 bis 151-05)
+Phase: 152 (public-fansub-gruppenseite-konsolidierung-und-modernisierung) — EXECUTING
+Plan: 2 of 10
 Status: Ready to execute
 Produktionsbuild nach den letzten drei PNGs PASS (rc=0, TypeScript ok, 25 statische Seiten), voller
 Vitest-Lauf mit einem Worker 293 Dateien / 2239 Tests PASS (1 skipped, 3 todo, exit 0), Collector-
@@ -86,7 +86,7 @@ timing flakiness, not a Phase 149 regression, and not yet root-caused.
 
 v1.4 remains complete; Phase 149 was appended additively (same pattern as 143-148), no new
 milestone was created.
-Last activity: 2026-09-08 -- Phase 152 planning complete
+Last activity: 2026-09-08
 
 ## Accumulated Context
 
@@ -360,6 +360,7 @@ Last activity: 2026-09-08 -- Phase 152 planning complete
 - [Phase 150]: 150-05: resolveRoleVolumePresentation now returns bare tier label; buildRoleVolumeRow reconstructs the suffixed string from server current_threshold (D-29). resolveMemberBadgeFamilies/resolveRoleProgressPresentation read badge_progress[].stages instead of FAMILY_DEFINITIONS/ROLE_PROGRESS_STAGES (D-24/D-25).
 - [Phase 150]: 150-05: Tasks 1-3's own <verify> commands were mutually interdependent per the plan's own design (Task 1 needs Task 3's label fix; Task 2/3 share files); implemented all three tasks' code together and split git history into 3 commits by final file ownership instead of forcing artificial per-task isolation.
 - [Phase 150-07]: GET /me/badges gains registry-derived current_threshold; AchievementBadgesCard.tsx reconstructs role-volume label from it (D-30 seventh site closed). — Field is currently always null in production -- no writer persists role_volume_-prefixed badge codes into member_badges; closes the contract gap defensively per D-30's no-exception instruction.
+- [Phase 152]: Plan 152-01 unblocks the Next.js image optimizer for /history-event-badges-transparent/** via a single additive images.localPatterns entry — Hard precondition for Plan 152-07's AchievementArtwork migration of FansubHistorySection (D09) — next/image on an unmatched path throws E426 and crashes the page
 
 ### Pending Todos
 
@@ -704,13 +705,14 @@ untruncated list lives in `.planning/todos/pending/`.
 | Phase 150 P03 | 45min | 2 tasks | 9 files |
 | Phase 150 P05 | 75min | 3 tasks | 11 files |
 | Phase 150 P07 | 35min | 2 tasks | 7 files |
+| Phase 152 P01 | 10min | 1 tasks | 1 files |
 
 ## Session Continuity
 
-Last session: 2026-09-08T16:33:11.663Z
-Stopped at: Phase 152 UI-SPEC approved
+Last session: 2026-09-08T17:27:36.235Z
+Stopped at: Completed 152-01-PLAN.md
 Last activity: Local handoff checkpoint; no new Execute step, browser matrix, build, agent or push started after stop.
-Resume file: .planning/phases/152-public-fansub-gruppenseite-konsolidierung-und-modernisierung/152-UI-SPEC.md
+Resume file: None
 Structured state: .planning/HANDOFF.json
 
 Plans 151-02/03/04 have implementation summaries. Plans 151-01 and 151-05 remain open until final artwork/composition review, complete browser evidence and independent verification; their missing summaries are intentional. No requirement or phase has been falsely marked complete.
