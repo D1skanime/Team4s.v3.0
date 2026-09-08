@@ -256,52 +256,142 @@ func (r *FansubRepository) GetGroupBySlug(ctx context.Context, slug string) (*mo
 }
 
 // GetPublicProfileBySlug returns the public profile payload for /fansubs/[slug].
+//
+// This uses a public-specific load path (getPublicGroupBase +
+// attachPublicReleaseVersionsCount) instead of the shared GetGroupBySlug/
+// hydrateFansubGroup path: the public page only ever reads
+// ReleaseVersionsCount out of the five counts hydrateFansubGroup computes, and
+// it needs exactly one fansub_group_links query, not two (hydrateFansubGroup's
+// attachGroupLinks plus this function's own ListGroupLinks call). See
+// 152-RESEARCH.md Pitfall 1: applyLegacyLinkProjection MUST still run after the
+// single ListGroupLinks call below, or group.website_url/discord_url/irc_url go
+// stale relative to fansub_group_links.
 func (r *FansubRepository) GetPublicProfileBySlug(ctx context.Context, slug string) (*models.PublicFansubProfileResponse, error) {
-	group, err := r.GetGroupBySlug(ctx, slug)
+	group, err := r.getPublicGroupBase(ctx, slug)
 	if err != nil {
 		return nil, err
 	}
 
-	resp := &models.PublicFansubProfileResponse{
-		Group:          *group,
-		Stories:        make([]models.PublicFansubStory, 0),
-		Projects:       make([]models.PublicFansubProject, 0),
-		History:        make([]models.PublicFansubHistory, 0),
-		Media:          make([]models.PublicFansubMediaItem, 0),
-		CommunityLinks: make([]models.FansubGroupLink, 0),
+	if err := r.attachPublicReleaseVersionsCount(ctx, group); err != nil {
+		return nil, err
 	}
 
 	stories, err := r.listPublicFansubStories(ctx, group.ID)
 	if err != nil {
 		return nil, err
 	}
-	resp.Stories = stories
 
 	projects, err := r.listPublicFansubProjects(ctx, group.ID)
 	if err != nil {
 		return nil, err
 	}
-	resp.Projects = projects
 
 	history, err := r.listPublicFansubHistory(ctx, group.ID)
 	if err != nil {
 		return nil, err
 	}
-	resp.History = history
 
 	media, err := r.listPublicFansubMedia(ctx, group.ID, group.LogoID, group.BannerID)
 	if err != nil {
 		return nil, err
 	}
-	resp.Media = media
 
 	links, err := r.ListGroupLinks(ctx, group.ID)
 	if err != nil {
 		return nil, err
 	}
-	resp.CommunityLinks = links
+	group.Links = links
+	applyLegacyLinkProjection(group)
+
+	resp := &models.PublicFansubProfileResponse{
+		Group:          *group,
+		Stories:        stories,
+		Projects:       projects,
+		History:        history,
+		Media:          media,
+		CommunityLinks: links,
+	}
 
 	return resp, nil
+}
+
+// getPublicGroupBase loads the same base row as GetGroupBySlug but skips
+// hydrateFansubGroup (which attaches five counts and a links query the public
+// profile does not need). It leaves all four unused counts and Links at their
+// zero values -- callers that need the full admin-hydrated group must keep
+// using GetGroupBySlug/GetGroupByID instead.
+func (r *FansubRepository) getPublicGroupBase(ctx context.Context, slug string) (*models.FansubGroup, error) {
+	query := `
+		SELECT
+			id, slug, name, logo_id, banner_id, logo_url, banner_url,
+			founded_year, dissolved_year, closed_year, status, 'group' AS group_type, website_url, discord_url, irc_url, country,
+			created_at, updated_at
+		FROM fansub_groups
+		WHERE slug = $1
+	`
+
+	var item models.FansubGroup
+	if err := r.db.QueryRow(ctx, query, slug).Scan(
+		&item.ID,
+		&item.Slug,
+		&item.Name,
+		&item.LogoID,
+		&item.BannerID,
+		&item.LogoURL,
+		&item.BannerURL,
+		&item.FoundedYear,
+		&item.DissolvedYear,
+		&item.ClosedYear,
+		&item.Status,
+		&item.GroupType,
+		&item.WebsiteURL,
+		&item.DiscordURL,
+		&item.IrcURL,
+		&item.Country,
+		&item.CreatedAt,
+		&item.UpdatedAt,
+	); errors.Is(err, pgx.ErrNoRows) {
+		return nil, ErrNotFound
+	} else if err != nil {
+		return nil, fmt.Errorf("get fansub group %q: %w", slug, err)
+	}
+
+	return &item, nil
+}
+
+// attachPublicReleaseVersionsCount computes only ReleaseVersionsCount -- the
+// single count field the public profile actually reads -- reusing the exact
+// SQL attachGroupCounts uses for that field, via the same populateCountMap
+// helper and single-element slice-wrap pattern hydrateFansubGroup uses.
+func (r *FansubRepository) attachPublicReleaseVersionsCount(ctx context.Context, group *models.FansubGroup) error {
+	if group == nil {
+		return nil
+	}
+
+	items := []models.FansubGroup{*group}
+	indexByID := map[int64]int{items[0].ID: 0}
+
+	if err := r.populateCountMap(
+		ctx,
+		`
+		SELECT group_id, COUNT(*)
+		FROM (
+			SELECT fansub_group_id AS group_id
+			FROM release_version_groups
+			WHERE fansub_group_id = ANY($1)
+		) grouped
+		GROUP BY group_id
+		`,
+		[]int64{items[0].ID},
+		func(i int, count int) { items[i].ReleaseVersionsCount = count },
+		indexByID,
+	); err != nil {
+		return fmt.Errorf("load episode version counts: %w", err)
+	}
+
+	*group = items[0]
+
+	return nil
 }
 
 func (r *FansubRepository) listPublicFansubStories(ctx context.Context, groupID int64) ([]models.PublicFansubStory, error) {
