@@ -27,6 +27,7 @@ const nextConfig = {
     localPatterns: [
       { pathname: '/__phase120-image-probe/alpha-badge.png', search: '' },
       { pathname: '/member-achievement-badges/**', search: '' },
+      { pathname: '/history-event-badges-transparent/**', search: '' },
       { pathname: '/covers/**', search: '' },
       // T-143-07-01: narrowed from a blanket /media/** wildcard to the explicit set of
       // legitimate namespaces the app actually serves (confirmed via a repo-wide grep of
