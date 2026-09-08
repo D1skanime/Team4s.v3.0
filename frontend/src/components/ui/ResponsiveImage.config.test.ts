@@ -22,9 +22,10 @@ describe('ResponsiveImage profile-media configuration', () => {
     },
   )
 
-  it('allows the production badge namespace without opening unrelated static paths', () => {
+  it('allows the production badge namespaces without opening unrelated static paths', () => {
     expect(hasLocalMatch(localPatterns, '/member-achievement-badges/role-project_lead-motif.png')).toBe(true)
-    expect(hasLocalMatch(localPatterns, '/history-event-badges-transparent/unrelated.png')).toBe(false)
+    expect(hasLocalMatch(localPatterns, '/history-event-badges-transparent/founding.png')).toBe(true)
+    expect(hasLocalMatch(localPatterns, '/some-unrelated-static-namespace/unrelated.png')).toBe(false)
   })
 
   it('allows public release-version contribution media without opening all media paths', () => {
