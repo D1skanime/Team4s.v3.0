@@ -25,6 +25,15 @@ const LINK_DOT_COLOR: Record<FansubGroupLinkType, string> = {
   github: 'var(--link-github)',
 }
 
+// Bewusst NICHT identisch mit fansubTeamInitials.getMemberInitials: buildInitials nimmt genau
+// einen Buchstaben aus jedem der ersten zwei Wörter eines GRUPPENnamens (z. B. "Coalguys" -> "C",
+// da nur ein Wort vorhanden ist; "Foo Bar Baz" -> "FB", erste zwei Wörter). getMemberInitials nimmt
+// bei einem einzelnen PERSONENnamen-Wort zwei Zeichen (z. B. "Coalguys" -> "CO") und sonst
+// Erst- + Letztwort (z. B. "Alpha Beta Gamma Delta" -> "AD", nicht "AB"). Beide Funktionen sehen
+// oberflächlich gleich aus, kodieren aber unterschiedliche Kürzungsregeln für unterschiedliche
+// Domänen (Gruppenname vs. Personenname). Ein Zusammenführen auf getMemberInitials würde die
+// sichtbare Fallback-Avatar-Darstellung im Hero verändern (z. B. "C" -> "CO" bei Einwort-Namen) und
+// erfordert daher explizites Produkt-Sign-off statt eines default Refactorings (152-USER-REQUEST.md C3).
 function buildInitials(name: string): string {
   return name
     .split(/\s+/)
