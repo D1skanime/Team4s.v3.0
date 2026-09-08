@@ -2,8 +2,8 @@
 gsd_state_version: 1.0
 milestone: v1.4
 milestone_name: Coverage
-status: verifying
-stopped_at: Completed 152-10-PLAN.md — Phase 152 fully executed (10/10 plans); VERIFICATION.md via gsd-verifier is the outstanding next step
+status: verified
+stopped_at: Phase 152 fully executed (10/10 plans) and independently verified — 152-VERIFICATION.md status:passed, 14/14 requirements. CR-01/CR-02 code review findings fixed (commits 9a873495, ef08af06).
 last_updated: "2026-09-08T18:57:20.246Z"
 last_activity: 2026-09-08
 progress:
@@ -35,7 +35,7 @@ See: .planning/PROJECT.md (updated 2026-08-13)
 
 Phase: 152 (public-fansub-gruppenseite-konsolidierung-und-modernisierung) — COMPLETE (10/10 plans, 14/14 requirements)
 Plan: 10 of 10
-Status: Phase complete — independent verification (152-VERIFICATION.md via gsd-verifier) outstanding
+Status: Phase complete and independently verified (152-VERIFICATION.md status:passed, score:14/14). Code review (152-REVIEW.md) found 2 Critical findings, both fixed and re-verified (commits 9a873495, ef08af06). 5 Warnings + 2 Info remain as known non-blocking maintainability debt.
 Produktionsbuild nach den letzten drei PNGs PASS (rc=0, TypeScript ok, 25 statische Seiten), voller
 Vitest-Lauf mit einem Worker 293 Dateien / 2239 Tests PASS (1 skipped, 3 todo, exit 0), Collector-
 Browsermatrix `pass: true` ueber 16/16 Zeilen ohne Findings und ohne Browserfehler, alle 197 Zeilen
