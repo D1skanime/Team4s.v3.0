@@ -1210,6 +1210,7 @@ Plans:
 | 149. Tote CSS-Tokens sanieren und den Notiz-Kontrast schließen | 6/6 | Complete    | 2026-09-06 |
 | 150. Badge-Regeln — eine autoritative Schwellenquelle | 7/7 | Complete   | 2026-09-07 |
 | 151. Erfolgsbadge-Karussell-Konsolidierung | 5/5 | Complete | 2026-09-07 |
+| 152. Public-Fansub-Gruppenseite: Konsolidierung und Modernisierung | 0/0 | Planning | - |
 
 ### Phase 151: Erfolgsbadge-Karussell-Konsolidierung
 
@@ -1224,3 +1225,40 @@ Plans:
 - [x] 151-03-PLAN.md — Fokussierte Härtung des generischen FocalCarousel mit Interaktions- und Stressregressionen
 - [x] 151-04-PLAN.md — Konsolidierte mobile Container-CSS für Karten und Badge-Familien
 - [x] 151-05-PLAN.md — Dev-Galerie, vollständige Linux-Browserevidenz, Full-Suite-Gates und manuelle Einzelabnahme
+
+### Phase 152: Public-Fansub-Gruppenseite: Konsolidierung und Modernisierung
+
+**Goal:** Die oeffentliche Fansub-Gruppenseite `/fansubs/[slug]` nutzt fuer History-Badges den
+gemeinsamen Phase-151-Artwork-Slot statt eines zweiten Badge-Systems, liefert Badge- und Hero-Bilder
+ueber die vorhandene Next-Image-Pipeline aus, steuert Achievement-Darstellung datengetrieben ueber die
+bestehende Gruppen-History-Registry, laesst Admin-Freitexte unveraendert, laedt public-seitig nur noch
+tatsaechlich benoetigte Daten mit abgesichertem Query-Budget, besitzt einen konsistenten
+Tiptap-Link-Contract und ist durch verhaltensbasierte Tests, axe-Abdeckung und eine vollstaendige
+Viewport-Sichtabnahme belegt.
+
+**Requirements**: P152-01, P152-02, P152-03, P152-04, P152-05, P152-06, P152-07, P152-08, P152-09, P152-10, P152-11, P152-12, P152-13, P152-14
+
+**Requirement-Definitionen** (Phasen-eigener Tracking-Namespace, Quelle: `152-USER-REQUEST.md`):
+
+| ID | Workstream | Anforderung |
+|----|-----------|-------------|
+| P152-01 | A1 | `/history-event-badges-transparent/**` fuer die Next-Image-Pipeline freigeben; `/_next/image` liefert 200 statt 400, WebP, srcset, Lazy Loading; Master-PNGs unveraendert |
+| P152-02 | A2 | `FansubHistorySection` rendert Artwork ueber den Phase-151-`AchievementArtwork`-Slot; Timeline, eigene Assets und eigene Registry bleiben; kein Member-Badge-Resolver |
+| P152-03 | A3 | `--history-badge-size`, zugehoerige Badge-Groessen-Breakpoints, die `releases_10000`-Sondergroesse, achievement-spezifische Groessenlogik und unnoetige Pixel-Shifts sind entfernt |
+| P152-04 | A4 | `achievementEventStyle`/harte `eventType`-If-Ketten sind durch additive Felder in `GROUP_HISTORY_EVENT_OPTIONS` ersetzt; keine zweite Registry |
+| P152-05 | A5 | `publicDomainTerms` entfernt; statische Public-Labels in der Registry; Admin-Freitext nachweislich unveraendert |
+| P152-06 | A6, E | Bildperformance vorher/nachher dokumentiert (History; Hero falls umgestellt), inkl. Initial-Payload-Differenz und prozentualer Reduktion |
+| P152-07 | B1, B2 | Public-spezifischer Gruppenladepfad hydratisiert nur benoetigte Felder; doppelte Link-Ladung beseitigt; andere Konsumenten unbeschaedigt; keine Monster-Query |
+| P152-08 | B3 | Ungenutzte Contributors-Projektion geprueft und Entscheidung belegt; `public-profile` und `domain-projection` bleiben fachlich getrennt |
+| P152-09 | B4 | Query-Budget-Test auf Basis der vorhandenen Query-Counter-Infrastruktur; konstantes Budget, kein Wachstum mit Projekten/Mitgliedern/History/Media; neuer Sollwert dokumentiert |
+| P152-10 | C1-C5 | Totes History-CSS entfernt, angefasste Breakpoints/Hex-Farben konsolidiert, Initialenlogik entschieden, `CATEGORY_TAG_CLASS` typisiert, `Promise.allSettled([single])` vereinfacht |
+| P152-11 | D1, D2 | Tiptap-Link-Contract zwischen Editor und Backend konsistent, mit Regressionstest; Sanitizer-Haertung (`class`-Muster, `h1`) geprueft und wo ohne Seiteneffekt umgesetzt |
+| P152-12 | D3, D4 | Accessibility-Findings behoben (kein doppeltes Jahr im A11y-Tree, keine Doppelbeschriftung der Medien-Thumbnails); axe-Abdeckung ueber die vorhandene Infrastruktur ergaenzt |
+| P152-13 | D5, D6 | Page-Kompositionstests fuer Sektionsbedingungen, Leerzustaende, Projektions-Fallback und Fehlerzustand; History-Tests verhaltensbasiert statt Klassennamen-Assertions |
+| P152-14 | QA | Viewport-Sichtabnahme 320/390/520/768/1024/1440/1920/2560 ueber Hero, Story, Projekte, Team, History, Media; Build und relevante Front-/Backend-Tests PASS; unabhaengige Abschlussverifikation |
+
+**Depends on:** Phase 151
+**Plans:** TBD
+
+Plans:
+- [ ] TBD (run /gsd-plan-phase 152 to break down)
