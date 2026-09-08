@@ -39,6 +39,19 @@ func TestTipTapValidateJSON_invalidMark(t *testing.T) {
 	assert.Contains(t, err.Error(), "nicht erlaubter Mark-Typ")
 }
 
+// TestTipTapValidateJSON_linkMarkRejected pins today's already-correct backend-deny
+// behavior for a TipTap "link" mark (Phase 152-02, D1). allowedTipTapMarks has no "link"
+// entry, so a text node carrying a link mark must be rejected with the standard
+// "nicht erlaubter Mark-Typ" message naming the offending type.
+func TestTipTapValidateJSON_linkMarkRejected(t *testing.T) {
+	svc := newTestTipTapService(t)
+	input := `{"type":"doc","content":[{"type":"paragraph","content":[{"type":"text","text":"https://example.com","marks":[{"type":"link","attrs":{"href":"https://example.com"}}]}]}]}`
+	err := svc.ValidateJSON(input)
+	assert.Error(t, err)
+	assert.Contains(t, err.Error(), "nicht erlaubter Mark-Typ")
+	assert.Contains(t, err.Error(), "link")
+}
+
 func TestTipTapValidateJSON_invalidColorToken(t *testing.T) {
 	svc := newTestTipTapService(t)
 	input := `{"type":"doc","content":[{"type":"paragraph","content":[{"type":"text","text":"Test","marks":[{"type":"textStyle","attrs":{"colorToken":"#ff0000"}}]}]}]}`
