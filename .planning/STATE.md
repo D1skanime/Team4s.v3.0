@@ -3,14 +3,14 @@ gsd_state_version: 1.0
 milestone: v1.4
 milestone_name: Coverage
 status: executing
-stopped_at: Completed 152-03-PLAN.md
-last_updated: "2026-09-08T17:42:52.345Z"
+stopped_at: Completed 152-04-PLAN.md
+last_updated: "2026-09-08T17:46:08.489Z"
 last_activity: 2026-09-08
 progress:
   total_phases: 17
   completed_phases: 16
   total_plans: 170
-  completed_plans: 163
+  completed_plans: 164
   percent: 94
 ---
 
@@ -34,7 +34,7 @@ See: .planning/PROJECT.md (updated 2026-08-13)
 ## Current Position
 
 Phase: 152 (public-fansub-gruppenseite-konsolidierung-und-modernisierung) — EXECUTING
-Plan: 4 of 10
+Plan: 5 of 10
 Status: Ready to execute
 Produktionsbuild nach den letzten drei PNGs PASS (rc=0, TypeScript ok, 25 statische Seiten), voller
 Vitest-Lauf mit einem Worker 293 Dateien / 2239 Tests PASS (1 skipped, 3 todo, exit 0), Collector-
@@ -365,6 +365,7 @@ Last activity: 2026-09-08
 - [Phase 152]: Sanitizer hardening (D2): span/td/th class attribute constrained to ^color-token-[a-z]+$ and h1 removed from AllowElements — Closes an open path for arbitrary class values and prevents rich text from authoring a second h1 alongside the page's group-name h1
 - [Phase 152]: getPublicGroupBase/attachPublicReleaseVersionsCount added as new additive private FansubRepository methods rather than modifying GetGroupBySlug/hydrateFansubGroup, preserving those functions byte-for-byte for their other callers (fansub_groups.go, fansub_merge.go, app_auth_invitations.go).
 - [Phase 152]: listProjectionContributors left defined-but-uncalled after removing its call from GetFansubGroupDomainProjection (D02 additive-only scope lock); response JSON still defaults contributors to [].
+- [Phase 152]: FansubGroupMediaBlock.test.tsx already existed from Phase 99 (contrary to plan's description of it as new) — updated in place rather than recreated — Preserved all 6 pre-existing tests and fixed the 2 that queried getByAltText(title), which broke once the inner image became alt=""
 
 ### Pending Todos
 
@@ -712,11 +713,12 @@ untruncated list lives in `.planning/todos/pending/`.
 | Phase 152 P01 | 10min | 1 tasks | 1 files |
 | Phase 152 P02 | 15min | 3 tasks | 4 files |
 | Phase 152 P03 | 20min | 3 tasks | 4 files |
+| Phase 152 P04 | 10min | 2 tasks | 2 files |
 
 ## Session Continuity
 
-Last session: 2026-09-08T17:42:52.330Z
-Stopped at: Completed 152-03-PLAN.md
+Last session: 2026-09-08T17:46:08.475Z
+Stopped at: Completed 152-04-PLAN.md
 Last activity: Local handoff checkpoint; no new Execute step, browser matrix, build, agent or push started after stop.
 Resume file: None
 Structured state: .planning/HANDOFF.json

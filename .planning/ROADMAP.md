@@ -1210,7 +1210,7 @@ Plans:
 | 149. Tote CSS-Tokens sanieren und den Notiz-Kontrast schließen | 6/6 | Complete    | 2026-09-06 |
 | 150. Badge-Regeln — eine autoritative Schwellenquelle | 7/7 | Complete   | 2026-09-07 |
 | 151. Erfolgsbadge-Karussell-Konsolidierung | 5/5 | Complete | 2026-09-07 |
-| 152. Public-Fansub-Gruppenseite: Konsolidierung und Modernisierung | 3/10 | In Progress|  |
+| 152. Public-Fansub-Gruppenseite: Konsolidierung und Modernisierung | 4/10 | In Progress|  |
 
 ### Phase 151: Erfolgsbadge-Karussell-Konsolidierung
 
@@ -1259,7 +1259,7 @@ Viewport-Sichtabnahme belegt.
 | P152-14 | QA | Viewport-Sichtabnahme 320/390/520/768/1024/1440/1920/2560 ueber Hero, Story, Projekte, Team, History, Media; Build und relevante Front-/Backend-Tests PASS; unabhaengige Abschlussverifikation |
 
 **Depends on:** Phase 151
-**Plans:** 3/10 plans executed
+**Plans:** 4/10 plans executed
 
   - Wave 1: 152-01 (A1 next.config localPatterns), 152-02 (Tiptap D1/D2, own strand), 152-03 (B1/B2/B3 public data flow), 152-04 (media a11y/typing D3/D4/C4), 152-05 (Hero C3 + E1/E2/E3), 152-06 (page composition C5/D5)
   - Wave 2: 152-07 (History artwork/registry/CSS/tests A2-A5/D3/D6, depends on 152-01), 152-08 (query-budget gate B4, depends on 152-03)
@@ -1275,7 +1275,7 @@ Plans:
 - [x] 152-01-PLAN.md — Free /history-event-badges-transparent/** for the Next Image pipeline (A1).
 - [x] 152-02-PLAN.md — Tiptap link-contract closure + sanitizer hardening (D1, D2).
 - [x] 152-03-PLAN.md — Public group load-path reduction + contributors trim (B1, B2, B3).
-- [ ] 152-04-PLAN.md — Media-block accessibility fix + category typing (D3, D4, C4).
+- [x] 152-04-PLAN.md — Media-block accessibility fix + category typing (D3, D4, C4).
 - [ ] 152-05-PLAN.md — Hero initials divergence doc + image optimization (C3, E1, E2, E3).
 - [ ] 152-06-PLAN.md — Page composition simplification + tests (C5, D5).
 
