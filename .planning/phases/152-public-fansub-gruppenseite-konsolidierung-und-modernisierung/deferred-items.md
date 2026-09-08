@@ -3,6 +3,19 @@
 Out-of-scope discoveries surfaced during plan execution. Not fixed here per the executor's
 scope-boundary rule (only auto-fix issues directly caused by the current task's changes).
 
+**CORRECTION (2026-09-08, post-completion):** Two items below —
+`FansubMediaLightbox.test.tsx` and `ResponsiveImage.config.test.ts` — were mislabeled
+"pre-existing"/"out of scope" by every executor that encountered them (152-05, 152-07, 152-09).
+Both were actually caused by earlier plans in THIS phase (152-04 and 152-01, respectively); the
+mislabeling happened because each executor checked the failure only against its own plan's diff,
+never against the whole phase's diff. The project owner (D1sk) caught this via an independent
+full-suite run after the phase was first reported complete. Both are now fixed — see
+`152-VERIFICATION.md`'s "Correction" section and commits `fcc3fe70`/`caaba621`. Entries left
+unmodified below for the historical record of what each executor actually observed and concluded
+at the time; do not treat them as still-open. `DefaultCrewManager.test.tsx` (152-07) and the
+`internal/repository` DSN-gated/pre-existing failures (152-08) were re-checked during the
+correction pass and are still genuinely unrelated to phase 152 — those remain open as documented.
+
 ## From 152-05 (Task 1 verification run)
 
 - **`src/components/fansubs/__tests__/FansubMediaLightbox.test.tsx`** — 3 failing tests
