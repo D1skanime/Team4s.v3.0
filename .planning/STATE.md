@@ -2,14 +2,14 @@
 gsd_state_version: 1.0
 milestone: v1.4
 milestone_name: Coverage
-status: Phase 153 in der ROADMAP angelegt, `153-USER-REQUEST.md` als verbindliche Auftragsquelle
+status: executing
 stopped_at: Phase 153 UI-SPEC approved
-last_updated: "2026-09-09T20:16:44.217Z"
-last_activity: 2026-09-08
+last_updated: "2026-09-09T20:50:37.648Z"
+last_activity: 2026-09-09
 progress:
   total_phases: 18
   completed_phases: 17
-  total_plans: 170
+  total_plans: 177
   completed_plans: 170
   percent: 94
 ---
@@ -35,7 +35,7 @@ See: .planning/PROJECT.md (updated 2026-08-13)
 
 Phase: 153 (public-member-clientlast-und-speicherretention) — PLANNING
 Plan: 0 of 0 (noch nicht geplant)
-Status: Phase 153 in der ROADMAP angelegt, `153-USER-REQUEST.md` als verbindliche Auftragsquelle
+Status: Ready to execute
 abgelegt, Planung steht aus. Faktenbasis ist die committete Messreihe
 `docs/audits/2026-09-09-public-member-performance/REPORT.md` (Commit `592df665`): die Phase schliesst
 die drei P1-Befunde RCA-01 (native Auto-Sizes-DOM-Retention bei SPA-Navigation, 466 → 15.107 Knoten
@@ -107,7 +107,7 @@ timing flakiness, not a Phase 149 regression, and not yet root-caused.
 
 v1.4 remains complete; Phase 149 was appended additively (same pattern as 143-148), no new
 milestone was created.
-Last activity: 2026-09-08
+Last activity: 2026-09-09
 
 ## Accumulated Context
 
