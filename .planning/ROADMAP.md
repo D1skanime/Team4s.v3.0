@@ -423,6 +423,9 @@ Milestone v1.4 closes Live-UAT Findings #29-#32 by making effective group rights
 - [x] **Phase 148: Rollenfarben wieder an den Katalog anschließen** - Die beim Seam-Umbau in Phase 136-30 zurückgebliebenen toten Farb-Token, Hex-in-`data-role-code`-Attribute und Kategorie-Klassenmaps sind entfernt; die Rollenfarbe kommt app-weit aus `role_definitions.color_key`. (completed 2026-09-05)
 - [x] **Phase 149: Tote CSS-Tokens sanieren und den Notiz-Kontrast schließen** - 13 referenzierte, aber nirgends definierte Custom Properties (78 Referenzen) sind auf vorhandene Design-Tokens umgebogen, ein Guard verhindert Neuzugänge, und der Rollentext der Notizkarte erreicht WCAG AA. (completed 2026-09-06)
 - [x] **Phase 150: Badge-Regeln — eine autoritative Schwellenquelle** - Jede Badge-Schwelle hat genau eine fachlich autoritative Stelle: eine Go-Schwellenregistry ersetzt sechs Backend-Kopien und vier Frontend-Threshold-Quellen, das Frontend stellt nur noch dar. (completed 2026-09-07)
+- [x] **Phase 151: Erfolgsbadge-Karussell-Konsolidierung** - Alle Badge-Familien teilen einen gemeinsamen Artwork-Slot, gemeinsame Karten/Stufen und ein generisches Karussell; die Phase-150-Schwellenautoritaet bleibt unangetastet, geaendert wird nur die Darstellung. (completed 2026-09-08)
+- [x] **Phase 152: Public-Fansub-Gruppenseite: Konsolidierung und Modernisierung** - Die oeffentliche Gruppenseite nutzt den gemeinsamen Artwork-Slot statt eines zweiten Badge-Systems, liefert Bilder ueber die Next-Image-Pipeline aus und laedt public-seitig nur noch benoetigte Daten mit abgesichertem Query-Budget. (completed 2026-09-08)
+- [ ] **Phase 153: Public-Member-Profil: Speicherretention, Importgraph und SSR-Sichtbarkeit** - Die drei P1-Befunde der Messreihe vom 2026-09-09 sind geschlossen: die native Auto-Sizes-DOM-Retention, der Editor-Importzweig im oeffentlichen Graph und die Skeletons, die vorhandene SSR-Inhalte bis zur Hydration verdecken.
 
 ## Phase Details
 
@@ -1291,3 +1294,54 @@ Plans:
 **Wave 4** *(blocked on Wave 3 completion)*
 
 - [x] 152-10-PLAN.md — Visual QA checkpoint + fixture cleanup + phase close (P152-14).
+
+### Phase 153: Public-Member-Profil: Speicherretention, Importgraph und SSR-Sichtbarkeit
+
+**Goal:** Das oeffentliche Member-Profil `/members/[slug]` haelt bei SPA-Navigation keine entfernten
+DOM-Baeume mehr fest, laedt keinen Editor-Zweig und keine private Not-found-Vollvorschau mehr in den
+oeffentlichen Clientgraph, und zeigt bereits serverseitig gerenderte Inhalte ohne Wartezeit auf die
+Hydration an — belegt mit denselben committeten Messskripten, die die Ausgangslage erhoben haben,
+und ohne den weiterhin unreproduzierten Chrome-Absturz als behoben zu erklaeren.
+
+**Requirements**: P153-01, P153-02, P153-03, P153-04, P153-05, P153-06, P153-07, P153-08, P153-09, P153-10, P153-11, P153-12, P153-13, P153-14
+
+**Requirement-Definitionen** (Phasen-eigener Tracking-Namespace, Quelle: `153-USER-REQUEST.md`):
+
+| ID | Workstream | Anforderung |
+|----|-----------|-------------|
+| P153-01 | A1, A3, A4 | `auto`-Praefix im `sizes`-Deskriptor entfernt; deterministische, an der CSS-Wahrheit ausgerichtete responsive `sizes` fuer Hero und Stage; weitere `auto`-Aufrufstellen mitbehandelt |
+| P153-02 | A2 | Lazy Loading, reservierte Geometrie, Optimizer, `srcset` und Bildschaerfe nachweislich unveraendert; kein globales `eager` |
+| P153-03 | A | Keine lineare DOM-/Listener-Retention ueber 12 und 50 SPA-Zyklen, belegt mit dem committeten Retentionsskript |
+| P153-04 | B1, B2 | Alle vier reinen Renderer-Konsumenten importieren `RichTextRenderer` direkt; keine Kopie, kein zweiter Renderer |
+| P153-05 | B3 | Entscheidung ueber die kuenftige Barrel-Struktur getroffen und begruendet dokumentiert |
+| P153-06 | B4 | Private Not-found-Vollvorschau hinter echter Ladegrenze; Owner-/Privatsphaere-Logik unveraendert, Vorschau regressionsgeprueft |
+| P153-07 | B5, B | Kein Tiptap/ProseMirror/RichTextEditor im oeffentlichen Importgraph; Rich-Text-Darstellung und Phase-152-Link-Contract unveraendert; DEV- und Produktionsbytes neu gemessen |
+| P153-08 | C1, C6 | Serverseitig vorhandene oeffentliche Inhalte vor vollstaendiger Hydration sichtbar; Daten, SEO und Accessibility unveraendert |
+| P153-09 | C2, C5 | Leere Bereiche serverseitig entschieden; Umfang der gesperrten Badge-Darstellung bei leerem Profil bewusst geklaert statt still gekuerzt |
+| P153-10 | C3, C4 | Kleinere interaktive Inseln mit echten Ladegrenzen; keine Skeleton-Timer-Kosmetik, kein rootMargin-Tuning als Ersatzloesung |
+| P153-11 | D1 | Vorher/Nachher-Messung unter Berichtsbedingungen als neues Auditdokument; bestehender Bericht unveraendert |
+| P153-12 | D2, D3 | Regressionstests fuer alle drei Workstreams gruen, bestehende Frontend-Suite gruen, Produktionsbuild ueber `docker compose build` PASS; Retentions-/Bundle-Gate als Dauerschutz geprueft |
+| P153-13 | D4 | RCA-04 explizit als offen gefuehrt; kein Crash-Behoben-Claim; Beobachtungsauftrag fuer das Nutzer-Chrome formuliert |
+| P153-14 | D5 | Bestehende phasenfremde Typecheck-, Build- und Lint-Defekte benannt und belegt abgegrenzt statt still mitveraendert |
+
+**Faktenbasis:** `docs/audits/2026-09-09-public-member-performance/REPORT.md` (Commit `592df665`),
+Befunde RCA-01, RCA-02 und RCA-03. Die P2-Befunde RCA-05, RCA-06 und RCA-08 sind bewusst
+ausgeklammert und fuer Phase 154 vorgesehen; RCA-07 ist laut Bericht erst nach der
+Graphverkleinerung sinnvoll erneut messbar. RCA-04 (gemeldeter Chrome-Tab-Absturz) bleibt offen und
+ist kein Umsetzungsziel.
+
+**Depends on:** Phase 152
+
+**Plan-time read first**: `frontend/src/components/profile/AchievementArtwork.tsx`,
+`frontend/src/components/ui/ResponsiveImage.tsx`, `frontend/src/components/editor/index.ts`,
+`frontend/src/components/profile/MemberStorySection.tsx`,
+`frontend/src/app/members/[slug]/not-found.tsx`,
+`frontend/src/app/members/[slug]/OwnHiddenProfilePreview.tsx`,
+`frontend/src/components/profile/MemberProfileContent.tsx`,
+`frontend/src/components/profile/MemberBadgeChain.tsx`,
+`frontend/src/hooks/useNearViewportActivation.ts`,
+`docs/audits/2026-09-09-public-member-performance/REPORT.md` und `153-USER-REQUEST.md` als
+verbindliche Auftragsquelle.
+
+**UI hint**: yes — Workstream C aendert die sichtbare Ladereihenfolge und Leerzustaende des
+oeffentlichen Profils.

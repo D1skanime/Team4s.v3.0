@@ -2,16 +2,16 @@
 gsd_state_version: 1.0
 milestone: v1.4
 milestone_name: Coverage
-status: verified
-stopped_at: Phase 152 fully executed (10/10 plans) and independently verified twice by the project owner — 152-VERIFICATION.md status:passed, 14/14 requirements. CR-01/CR-02 fixed (9a873495, ef08af06). Correction pass 1: 2 phase-caused test failures (mislabeled "pre-existing" by prior executors) fixed (fcc3fe70, caaba621). Correction pass 2: TestPointServicePhase106Boundary confirmed genuinely pre-existing via baseline-worktree counter-proof (not fixed, out of scope); WR-02 dead code (listProjectionContributors) resolved by removal (e3a62984). Full backend+frontend suites and production build all confirmed green fresh, no scope narrowing.
-last_updated: "2026-09-08T20:15:00.000Z"
-last_activity: 2026-09-08
+status: planning
+stopped_at: Phase 153 angelegt und mit 153-USER-REQUEST.md beauftragt; Planung steht aus. Phase 152 bleibt abgeschlossen und zweifach verifiziert.
+last_updated: "2026-09-09T00:00:00.000Z"
+last_activity: 2026-09-09
 progress:
-  total_phases: 17
+  total_phases: 18
   completed_phases: 17
   total_plans: 170
   completed_plans: 170
-  percent: 100
+  percent: 94
 ---
 
 # Project State
@@ -29,9 +29,27 @@ Phase 135 and any future roadmap entries continue from here.
 See: .planning/PROJECT.md (updated 2026-08-13)
 
 **Core value:** Team4s presents fansub history and collaboration credibly while keeping identity, visibility, ownership, and permissions correct.
-**Current focus:** Phase 152 — public-fansub-gruppenseite-konsolidierung-und-modernisierung
+**Current focus:** Phase 153 — public-member-clientlast-und-speicherretention
 
 ## Current Position
+
+Phase: 153 (public-member-clientlast-und-speicherretention) — PLANNING
+Plan: 0 of 0 (noch nicht geplant)
+Status: Phase 153 in der ROADMAP angelegt, `153-USER-REQUEST.md` als verbindliche Auftragsquelle
+abgelegt, Planung steht aus. Faktenbasis ist die committete Messreihe
+`docs/audits/2026-09-09-public-member-performance/REPORT.md` (Commit `592df665`): die Phase schliesst
+die drei P1-Befunde RCA-01 (native Auto-Sizes-DOM-Retention bei SPA-Navigation, 466 → 15.107 Knoten
+nach zwoelf Zyklen), RCA-02 (Editor-Barrel und private Not-found-Vollvorschau im oeffentlichen
+Importgraph, rund 1,65 MB vermeidbarer JS-Transfer) und RCA-03 (Skeletons verdecken vorhandene
+SSR-Inhalte bis zur Hydration). RCA-05/06/08 sind bewusst fuer Phase 154 zurueckgestellt, RCA-07 ist
+laut Bericht erst nach der Graphverkleinerung sinnvoll erneut messbar, und RCA-04 (gemeldeter
+Chrome-Tab-Absturz) bleibt ausdruecklich offen und unreproduziert — die Phase darf ihn nicht als
+behoben erklaeren.
+
+Beim Anlegen wurde ausserdem eine Roadmap-Drift geschlossen: die Phasen 151 und 152 fehlten in der
+oberen Checkliste und sind jetzt als abgeschlossen nachgetragen.
+
+## Vorherige Position (Phase 152, abgeschlossen)
 
 Phase: 152 (public-fansub-gruppenseite-konsolidierung-und-modernisierung) — COMPLETE (10/10 plans, 14/14 requirements)
 Plan: 10 of 10
