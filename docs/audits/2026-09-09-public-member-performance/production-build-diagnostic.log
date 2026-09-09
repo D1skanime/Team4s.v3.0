@@ -1,0 +1,84 @@
+
+> team4s-frontend@0.1.0 build
+> next build --webpack
+
+▲ Next.js 16.1.6 (webpack)
+
+  Creating an optimized production build ...
+✓ Compiled successfully in 20.0s
+  Skipping validation of types
+  Collecting page data using 3 workers ...
+  Generating static pages using 3 workers (0/25) ...
+  Generating static pages using 3 workers (6/25)
+  Generating static pages using 3 workers (12/25)
+  Generating static pages using 3 workers (18/25)
+✓ Generating static pages using 3 workers (25/25) in 751.7ms
+  Finalizing page optimization ...
+  Collecting build traces ...
+
+Route (app)
+┌ ƒ /
+├ ƒ /_not-found
+├ ƒ /admin
+├ ƒ /admin/anime
+├ ƒ /admin/anime/[id]/edit
+├ ƒ /admin/anime/[id]/episodes
+├ ƒ /admin/anime/[id]/episodes/[episodeId]/edit
+├ ƒ /admin/anime/[id]/episodes/[episodeId]/versions
+├ ƒ /admin/anime/[id]/episodes/import
+├ ƒ /admin/anime/create
+├ ƒ /admin/changes
+├ ƒ /admin/claims
+├ ƒ /admin/dev/ui-system
+├ ƒ /admin/episode-versions/[versionId]/edit
+├ ƒ /admin/episodes
+├ ƒ /admin/fansubs
+├ ƒ /admin/fansubs/[id]/edit
+├ ƒ /admin/fansubs/[id]/reviews/[reviewId]
+├ ƒ /admin/fansubs/create
+├ ƒ /admin/fansubs/merge
+├ ƒ /admin/groups
+├ ƒ /admin/profile
+├ ƒ /admin/role-capabilities
+├ ƒ /admin/roles
+├ ƒ /admin/users
+├ ƒ /admin/users/[id]
+├ ƒ /anime
+├ ƒ /anime/[id]
+├ ƒ /anime/[id]/group/[groupId]
+├ ƒ /anime/[id]/group/[groupId]/releases
+├ ƒ /anime/[id]/group/[groupId]/releases/[releaseVersionId]
+├ ƒ /api/admin/asset-proxy
+├ ƒ /api/admin/upload-cover
+├ ƒ /api/auth/keycloak/logout
+├ ƒ /api/auth/keycloak/token
+├ ƒ /api/episodes/[id]/play
+├ ƒ /api/releases/[id]/stream
+├ ƒ /api/segments/[id]/stream
+├ ƒ /api/v1/[...path]
+├ ƒ /archiv
+├ ƒ /claim-invitations/accept
+├ ƒ /covers/[file]
+├ ƒ /dev/ui-system
+├ ƒ /dev/ui-system/achievements
+├ ƒ /episodes/[id]
+├ ƒ /fansubs
+├ ƒ /fansubs/[slug]
+├ ƒ /fansubs/[slug]/fansubprojekt/[animeSlug]
+├ ƒ /fansubs/[slug]/fansubprojekt/[animeSlug]/mitwirkende/[memberSlug]
+├ ƒ /fansubs/[slug]/fansubprojekt/[animeSlug]/releases/[releaseVersionId]
+├ ƒ /invitations/accept
+├ ƒ /login
+├ ƒ /me/contributions
+├ ƒ /me/dashboard
+├ ƒ /me/profile
+├ ƒ /me/projects/[animeId]/group/[fansubGroupId]
+├ ƒ /me/releases/[versionId]/workspace
+├ ƒ /media/[...path]
+├ ƒ /members/[slug]
+├ ƒ /members/ranking
+├ ƒ /suche
+└ ƒ /watchlist
+
+
+ƒ  (Dynamic)  server-rendered on demand

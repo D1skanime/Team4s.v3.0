@@ -1,0 +1,40 @@
+=== RUN   TestPublicMemberPerformanceAudit
+    public_member_performance_audit_test.go:123: member-timer iteration=0 queries=21 load=28.194ms bytes=10171
+    public_member_performance_audit_test.go:123: member-timer iteration=1 queries=21 load=16.417ms bytes=10171
+    public_member_performance_audit_test.go:123: member-timer iteration=2 queries=21 load=16.627ms bytes=10171
+    public_member_performance_audit_test.go:123: member-timer iteration=3 queries=21 load=13.115ms bytes=10171
+    public_member_performance_audit_test.go:123: member-timer iteration=4 queries=21 load=13.483ms bytes=10171
+    public_member_performance_audit_test.go:123: member-timer iteration=5 queries=21 load=17.210ms bytes=10171
+    public_member_performance_audit_test.go:123: member-timer iteration=6 queries=21 load=4.969ms bytes=10171
+    public_member_performance_audit_test.go:123: member-kara iteration=0 queries=20 load=3.709ms bytes=2608
+    public_member_performance_audit_test.go:123: member-kara iteration=1 queries=20 load=3.217ms bytes=2608
+    public_member_performance_audit_test.go:123: member-kara iteration=2 queries=20 load=3.832ms bytes=2608
+    public_member_performance_audit_test.go:123: member-kara iteration=3 queries=20 load=3.559ms bytes=2608
+    public_member_performance_audit_test.go:123: member-kara iteration=4 queries=20 load=3.051ms bytes=2608
+    public_member_performance_audit_test.go:123: member-kara iteration=5 queries=20 load=3.575ms bytes=2608
+    public_member_performance_audit_test.go:123: member-kara iteration=6 queries=20 load=3.909ms bytes=2608
+    public_member_performance_audit_test.go:123: member-type iteration=0 queries=21 load=5.394ms bytes=9146
+    public_member_performance_audit_test.go:123: member-type iteration=1 queries=21 load=5.189ms bytes=9146
+    public_member_performance_audit_test.go:123: member-type iteration=2 queries=21 load=5.260ms bytes=9146
+    public_member_performance_audit_test.go:123: member-type iteration=3 queries=21 load=5.297ms bytes=9146
+    public_member_performance_audit_test.go:123: member-type iteration=4 queries=21 load=5.151ms bytes=9146
+    public_member_performance_audit_test.go:123: member-type iteration=5 queries=21 load=5.378ms bytes=9146
+    public_member_performance_audit_test.go:123: member-type iteration=6 queries=21 load=5.902ms bytes=9146
+    public_member_performance_audit_test.go:123: group-new-subs iteration=0 queries=8 load=4.653ms bytes=2034
+    public_member_performance_audit_test.go:123: group-new-subs iteration=1 queries=8 load=2.763ms bytes=2034
+    public_member_performance_audit_test.go:123: group-new-subs iteration=2 queries=8 load=3.152ms bytes=2034
+    public_member_performance_audit_test.go:123: group-new-subs iteration=3 queries=8 load=2.829ms bytes=2034
+    public_member_performance_audit_test.go:123: group-new-subs iteration=4 queries=8 load=2.478ms bytes=2034
+    public_member_performance_audit_test.go:123: group-new-subs iteration=5 queries=8 load=2.518ms bytes=2034
+    public_member_performance_audit_test.go:123: group-new-subs iteration=6 queries=8 load=0.759ms bytes=2034
+    public_member_performance_audit_test.go:123: group-domain-projection iteration=0 queries=2 load=3.160ms bytes=3590
+    public_member_performance_audit_test.go:123: group-domain-projection iteration=1 queries=2 load=2.256ms bytes=3590
+    public_member_performance_audit_test.go:123: group-domain-projection iteration=2 queries=2 load=2.300ms bytes=3590
+    public_member_performance_audit_test.go:123: group-domain-projection iteration=3 queries=2 load=2.395ms bytes=3590
+    public_member_performance_audit_test.go:123: group-domain-projection iteration=4 queries=2 load=2.042ms bytes=3590
+    public_member_performance_audit_test.go:123: group-domain-projection iteration=5 queries=2 load=3.045ms bytes=3590
+    public_member_performance_audit_test.go:123: group-domain-projection iteration=6 queries=2 load=0.758ms bytes=3590
+Read-only audit written: /tmp/public-member-backend-validation.json
+--- PASS: TestPublicMemberPerformanceAudit (0.31s)
+PASS
+ok  	team4s.v3/backend/internal/repository	0.322s

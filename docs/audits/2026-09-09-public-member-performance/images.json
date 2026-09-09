@@ -1,0 +1,752 @@
+[
+  {
+    "case": "baseline-members-timer-0-cold",
+    "source": "/media/profile/11/background/e9c17c69-7c46-41bf-a9db-cd59b0868e4b/original.jpg",
+    "path": "/media/profile/11/background/e9c17c69-7c46-41bf-a9db-cd59b0868e4b/original.jpg",
+    "sourceBytes": 141990,
+    "sourceMetadata": {
+      "format": "jpeg",
+      "width": 1920,
+      "height": 384,
+      "pages": 1
+    },
+    "error": null,
+    "request": "http://127.0.0.1:3000/_next/image?url=%2Fmedia%2Fprofile%2F11%2Fbackground%2Fe9c17c69-7c46-41bf-a9db-cd59b0868e4b%2Foriginal.jpg&w=1480&q=75",
+    "status": 200,
+    "deliveredFormat": "image/webp",
+    "transferred": 23128,
+    "decodedBody": 22708,
+    "nextImage": true,
+    "rendered": {
+      "width": 1358,
+      "height": 339.984375
+    },
+    "loading": "eager",
+    "decoding": "async",
+    "fetchPriority": "high",
+    "initialElement": true,
+    "note": null
+  },
+  {
+    "case": "baseline-members-timer-0-cold",
+    "source": "/media/profile/11/avatar/25383ba2-6477-4aed-9bb0-58d75dd6ec4f/original.webp",
+    "path": "/media/profile/11/avatar/25383ba2-6477-4aed-9bb0-58d75dd6ec4f/original.webp",
+    "sourceBytes": 411828,
+    "sourceMetadata": {
+      "format": "webp",
+      "width": 540,
+      "height": 260,
+      "pages": 26
+    },
+    "error": null,
+    "request": "http://127.0.0.1:3000/_next/image?url=%2Fmedia%2Fprofile%2F11%2Favatar%2F25383ba2-6477-4aed-9bb0-58d75dd6ec4f%2Foriginal.webp&w=160&q=75",
+    "status": 200,
+    "deliveredFormat": "image/webp",
+    "transferred": 412249,
+    "decodedBody": 411828,
+    "nextImage": true,
+    "rendered": {
+      "width": 132,
+      "height": 132
+    },
+    "loading": "eager",
+    "decoding": "async",
+    "fetchPriority": "auto",
+    "initialElement": true,
+    "note": null
+  },
+  {
+    "case": "baseline-members-timer-0-cold",
+    "source": "http://192.168.235.196:18092/api/v1/media/files/logo_1787928990830_d3b5184c5dc28cca.png",
+    "path": "/media/files/logo_1787928990830_d3b5184c5dc28cca.png",
+    "sourceBytes": null,
+    "sourceMetadata": null,
+    "error": null,
+    "request": "http://127.0.0.1:3000/_next/image?url=http%3A%2F%2F192.168.235.196%3A18092%2Fapi%2Fv1%2Fmedia%2Ffiles%2Flogo_1787928990830_d3b5184c5dc28cca.png&w=64&q=75",
+    "status": 200,
+    "deliveredFormat": "image/webp",
+    "transferred": 2372,
+    "decodedBody": 1926,
+    "nextImage": true,
+    "rendered": {
+      "width": 50,
+      "height": 50
+    },
+    "loading": "lazy",
+    "decoding": "async",
+    "fetchPriority": "auto",
+    "initialElement": true,
+    "note": null
+  },
+  {
+    "case": "baseline-members-timer-0-cold",
+    "source": "http://192.168.235.196:18092/api/v1/media/image?item_id=46523903e0af5022d78af0368d89b805&kind=primary&provider=jellyfin",
+    "path": "/media/image",
+    "sourceBytes": null,
+    "sourceMetadata": null,
+    "error": null,
+    "request": "http://127.0.0.1:3000/_next/image?url=http%3A%2F%2F192.168.235.196%3A18092%2Fapi%2Fv1%2Fmedia%2Fimage%3Fitem_id%3D46523903e0af5022d78af0368d89b805%26kind%3Dprimary%26provider%3Djellyfin&w=96&q=75",
+    "status": 200,
+    "deliveredFormat": "image/webp",
+    "transferred": 5598,
+    "decodedBody": 5180,
+    "nextImage": true,
+    "rendered": {
+      "width": 90,
+      "height": 135
+    },
+    "loading": "lazy",
+    "decoding": "async",
+    "fetchPriority": "auto",
+    "initialElement": true,
+    "note": null
+  },
+  {
+    "case": "baseline-members-timer-0-cold",
+    "source": "/member-achievement-badges/role_volume_timer_bronze.png",
+    "path": "/app/public/member-achievement-badges/role_volume_timer_bronze.png",
+    "sourceBytes": 712466,
+    "sourceMetadata": {
+      "format": "png",
+      "width": 627,
+      "height": 627,
+      "pages": 1
+    },
+    "error": null,
+    "request": "http://127.0.0.1:3000/_next/image?url=%2Fmember-achievement-badges%2Frole_volume_timer_bronze.png&w=256&q=75",
+    "status": 200,
+    "deliveredFormat": "image/webp",
+    "transferred": 52370,
+    "decodedBody": 51932,
+    "nextImage": true,
+    "rendered": {
+      "width": 224,
+      "height": 224
+    },
+    "loading": "lazy",
+    "decoding": "async",
+    "fetchPriority": "auto",
+    "badgeCode": "role_volume_timer_bronze",
+    "initialElement": true,
+    "note": null
+  },
+  {
+    "case": "baseline-members-timer-0-cold",
+    "source": "/member-achievement-badges/role_entry_timer.png",
+    "path": "/app/public/member-achievement-badges/role_entry_timer.png",
+    "sourceBytes": 718128,
+    "sourceMetadata": {
+      "format": "png",
+      "width": 627,
+      "height": 627,
+      "pages": 1
+    },
+    "error": null,
+    "request": "http://127.0.0.1:3000/_next/image?url=%2Fmember-achievement-badges%2Frole_entry_timer.png&w=64&q=75",
+    "status": 200,
+    "deliveredFormat": "image/webp",
+    "transferred": 5411,
+    "decodedBody": 4982,
+    "nextImage": true,
+    "rendered": {
+      "width": 64,
+      "height": 64
+    },
+    "loading": "lazy",
+    "decoding": "async",
+    "fetchPriority": "auto",
+    "badgeCode": "role_entry_timer",
+    "initialElement": true,
+    "note": null
+  },
+  {
+    "case": "baseline-members-timer-0-cold",
+    "source": "/member-achievement-badges/role_volume_timer_bronze.png",
+    "path": "/app/public/member-achievement-badges/role_volume_timer_bronze.png",
+    "sourceBytes": 712466,
+    "sourceMetadata": {
+      "format": "png",
+      "width": 627,
+      "height": 627,
+      "pages": 1
+    },
+    "error": null,
+    "request": "http://127.0.0.1:3000/_next/image?url=%2Fmember-achievement-badges%2Frole_volume_timer_bronze.png&w=64&q=75",
+    "status": 200,
+    "deliveredFormat": "image/webp",
+    "transferred": 5419,
+    "decodedBody": 4982,
+    "nextImage": true,
+    "rendered": null,
+    "initialElement": false,
+    "note": "Requested variant no longer selected at final DOM sample; see same asset at another optimizer width."
+  },
+  {
+    "case": "baseline-members-timer-0-cold",
+    "source": "/member-achievement-badges/progress-first_contribution-motif.png",
+    "path": "/app/public/member-achievement-badges/progress-first_contribution-motif.png",
+    "sourceBytes": 1519106,
+    "sourceMetadata": {
+      "format": "png",
+      "width": 1254,
+      "height": 1254,
+      "pages": 1
+    },
+    "error": null,
+    "request": "http://127.0.0.1:3000/_next/image?url=%2Fmember-achievement-badges%2Fprogress-first_contribution-motif.png&w=256&q=75",
+    "status": 200,
+    "deliveredFormat": "image/webp",
+    "transferred": 13929,
+    "decodedBody": 13482,
+    "nextImage": true,
+    "rendered": {
+      "width": 224,
+      "height": 224
+    },
+    "loading": "lazy",
+    "decoding": "async",
+    "fetchPriority": "auto",
+    "badgeCode": "first_contribution",
+    "initialElement": true,
+    "note": null
+  },
+  {
+    "case": "baseline-members-timer-0-cold",
+    "source": "/member-achievement-badges/progress-frame-first_contribution.png",
+    "path": "/app/public/member-achievement-badges/progress-frame-first_contribution.png",
+    "sourceBytes": 1403540,
+    "sourceMetadata": {
+      "format": "png",
+      "width": 1254,
+      "height": 1254,
+      "pages": 1
+    },
+    "error": null,
+    "request": "http://127.0.0.1:3000/_next/image?url=%2Fmember-achievement-badges%2Fprogress-frame-first_contribution.png&w=256&q=75",
+    "status": 200,
+    "deliveredFormat": "image/webp",
+    "transferred": 20811,
+    "decodedBody": 20364,
+    "nextImage": true,
+    "rendered": {
+      "width": 224,
+      "height": 224
+    },
+    "loading": "lazy",
+    "decoding": "async",
+    "fetchPriority": "auto",
+    "badgeCode": "first_contribution",
+    "initialElement": true,
+    "note": null
+  },
+  {
+    "case": "baseline-members-timer-0-cold",
+    "source": "/member-achievement-badges/progress-first_contribution-motif.png",
+    "path": "/app/public/member-achievement-badges/progress-first_contribution-motif.png",
+    "sourceBytes": 1519106,
+    "sourceMetadata": {
+      "format": "png",
+      "width": 1254,
+      "height": 1254,
+      "pages": 1
+    },
+    "error": null,
+    "request": "http://127.0.0.1:3000/_next/image?url=%2Fmember-achievement-badges%2Fprogress-first_contribution-motif.png&w=64&q=75",
+    "status": 200,
+    "deliveredFormat": "image/webp",
+    "transferred": 2564,
+    "decodedBody": 2118,
+    "nextImage": true,
+    "rendered": null,
+    "initialElement": false,
+    "note": "Requested variant no longer selected at final DOM sample; see same asset at another optimizer width."
+  },
+  {
+    "case": "baseline-members-timer-0-cold",
+    "source": "/member-achievement-badges/progress-frame-first_contribution.png",
+    "path": "/app/public/member-achievement-badges/progress-frame-first_contribution.png",
+    "sourceBytes": 1403540,
+    "sourceMetadata": {
+      "format": "png",
+      "width": 1254,
+      "height": 1254,
+      "pages": 1
+    },
+    "error": null,
+    "request": "http://127.0.0.1:3000/_next/image?url=%2Fmember-achievement-badges%2Fprogress-frame-first_contribution.png&w=64&q=75",
+    "status": 200,
+    "deliveredFormat": "image/webp",
+    "transferred": 3638,
+    "decodedBody": 3192,
+    "nextImage": true,
+    "rendered": null,
+    "initialElement": false,
+    "note": "Requested variant no longer selected at final DOM sample; see same asset at another optimizer width."
+  },
+  {
+    "case": "baseline-members-timer-0-cold",
+    "source": "/member-achievement-badges/point_milestone_first-v2.png",
+    "path": "/app/public/member-achievement-badges/point_milestone_first-v2.png",
+    "sourceBytes": 2185019,
+    "sourceMetadata": {
+      "format": "png",
+      "width": 1254,
+      "height": 1254,
+      "pages": 1
+    },
+    "error": null,
+    "request": "http://127.0.0.1:3000/_next/image?url=%2Fmember-achievement-badges%2Fpoint_milestone_first-v2.png&w=256&q=75",
+    "status": 200,
+    "deliveredFormat": "image/webp",
+    "transferred": 20994,
+    "decodedBody": 20556,
+    "nextImage": true,
+    "rendered": {
+      "width": 224,
+      "height": 224
+    },
+    "loading": "lazy",
+    "decoding": "async",
+    "fetchPriority": "auto",
+    "badgeCode": "point_milestone_first",
+    "initialElement": true,
+    "note": null
+  },
+  {
+    "case": "baseline-members-timer-0-cold",
+    "source": "/member-achievement-badges/point_milestone_first-v2.png",
+    "path": "/app/public/member-achievement-badges/point_milestone_first-v2.png",
+    "sourceBytes": 2185019,
+    "sourceMetadata": {
+      "format": "png",
+      "width": 1254,
+      "height": 1254,
+      "pages": 1
+    },
+    "error": null,
+    "request": "http://127.0.0.1:3000/_next/image?url=%2Fmember-achievement-badges%2Fpoint_milestone_first-v2.png&w=64&q=75",
+    "status": 200,
+    "deliveredFormat": "image/webp",
+    "transferred": 3341,
+    "decodedBody": 2904,
+    "nextImage": true,
+    "rendered": null,
+    "initialElement": false,
+    "note": "Requested variant no longer selected at final DOM sample; see same asset at another optimizer width."
+  },
+  {
+    "case": "baseline-members-timer-0-cold",
+    "source": "/member-achievement-badges/contribution_projects_bronze-v3.png",
+    "path": "/app/public/member-achievement-badges/contribution_projects_bronze-v3.png",
+    "sourceBytes": 2492608,
+    "sourceMetadata": {
+      "format": "png",
+      "width": 1254,
+      "height": 1254,
+      "pages": 1
+    },
+    "error": null,
+    "request": "http://127.0.0.1:3000/_next/image?url=%2Fmember-achievement-badges%2Fcontribution_projects_bronze-v3.png&w=256&q=75",
+    "status": 200,
+    "deliveredFormat": "image/webp",
+    "transferred": 18421,
+    "decodedBody": 17976,
+    "nextImage": true,
+    "rendered": {
+      "width": 224,
+      "height": 224
+    },
+    "loading": "lazy",
+    "decoding": "async",
+    "fetchPriority": "auto",
+    "badgeCode": "contribution_projects_bronze",
+    "initialElement": true,
+    "note": null
+  },
+  {
+    "case": "baseline-members-timer-0-cold",
+    "source": "/member-achievement-badges/contribution_projects_bronze-v3.png",
+    "path": "/app/public/member-achievement-badges/contribution_projects_bronze-v3.png",
+    "sourceBytes": 2492608,
+    "sourceMetadata": {
+      "format": "png",
+      "width": 1254,
+      "height": 1254,
+      "pages": 1
+    },
+    "error": null,
+    "request": "http://127.0.0.1:3000/_next/image?url=%2Fmember-achievement-badges%2Fcontribution_projects_bronze-v3.png&w=64&q=75",
+    "status": 200,
+    "deliveredFormat": "image/webp",
+    "transferred": 2980,
+    "decodedBody": 2536,
+    "nextImage": true,
+    "rendered": null,
+    "initialElement": false,
+    "note": "Requested variant no longer selected at final DOM sample; see same asset at another optimizer width."
+  },
+  {
+    "case": "baseline-members-timer-0-cold",
+    "source": "/media/release-version/28/5e6e1d88-be83-45b8-89f3-446ca6123da2/original.jpg",
+    "path": "/media/release-version/28/5e6e1d88-be83-45b8-89f3-446ca6123da2/original.jpg",
+    "sourceBytes": 62613,
+    "sourceMetadata": {
+      "format": "jpeg",
+      "width": 600,
+      "height": 336,
+      "pages": 1
+    },
+    "error": null,
+    "request": "http://127.0.0.1:3000/_next/image?url=%2Fmedia%2Frelease-version%2F28%2F5e6e1d88-be83-45b8-89f3-446ca6123da2%2Foriginal.jpg&w=256&q=75",
+    "status": 200,
+    "deliveredFormat": "image/webp",
+    "transferred": 6985,
+    "decodedBody": 6566,
+    "nextImage": true,
+    "rendered": {
+      "width": 240,
+      "height": 240
+    },
+    "loading": "lazy",
+    "decoding": "async",
+    "fetchPriority": "auto",
+    "initialElement": true,
+    "note": null
+  },
+  {
+    "case": "baseline-members-timer-0-cold",
+    "source": "/media/release-version/27/f9db4b5d-f929-4305-9e95-57fe0ccd272b/original.jpg",
+    "path": "/media/release-version/27/f9db4b5d-f929-4305-9e95-57fe0ccd272b/original.jpg",
+    "sourceBytes": 187922,
+    "sourceMetadata": {
+      "format": "jpeg",
+      "width": 1000,
+      "height": 562,
+      "pages": 1
+    },
+    "error": null,
+    "request": "http://127.0.0.1:3000/_next/image?url=%2Fmedia%2Frelease-version%2F27%2Ff9db4b5d-f929-4305-9e95-57fe0ccd272b%2Foriginal.jpg&w=256&q=75",
+    "status": 200,
+    "deliveredFormat": "image/webp",
+    "transferred": 7933,
+    "decodedBody": 7514,
+    "nextImage": true,
+    "rendered": {
+      "width": 240,
+      "height": 240
+    },
+    "loading": "lazy",
+    "decoding": "async",
+    "fetchPriority": "auto",
+    "initialElement": true,
+    "note": null
+  },
+  {
+    "case": "baseline-members-kara-0-cold",
+    "source": "http://192.168.235.196:18092/api/v1/media/files/logo_1787928990830_d3b5184c5dc28cca.png",
+    "path": "/media/files/logo_1787928990830_d3b5184c5dc28cca.png",
+    "sourceBytes": null,
+    "sourceMetadata": null,
+    "error": null,
+    "request": "http://127.0.0.1:3000/_next/image?url=http%3A%2F%2F192.168.235.196%3A18092%2Fapi%2Fv1%2Fmedia%2Ffiles%2Flogo_1787928990830_d3b5184c5dc28cca.png&w=64&q=75",
+    "status": 200,
+    "deliveredFormat": "image/webp",
+    "transferred": 2372,
+    "decodedBody": 1926,
+    "nextImage": true,
+    "rendered": {
+      "width": 50,
+      "height": 50
+    },
+    "loading": "lazy",
+    "decoding": "async",
+    "fetchPriority": "auto",
+    "initialElement": true,
+    "note": null
+  },
+  {
+    "case": "baseline-members-kara-0-cold",
+    "source": "/member-achievement-badges/progress-first_contribution-motif.png",
+    "path": "/app/public/member-achievement-badges/progress-first_contribution-motif.png",
+    "sourceBytes": 1519106,
+    "sourceMetadata": {
+      "format": "png",
+      "width": 1254,
+      "height": 1254,
+      "pages": 1
+    },
+    "error": null,
+    "request": "http://127.0.0.1:3000/_next/image?url=%2Fmember-achievement-badges%2Fprogress-first_contribution-motif.png&w=256&q=75",
+    "status": 200,
+    "deliveredFormat": "image/webp",
+    "transferred": 13927,
+    "decodedBody": 13482,
+    "nextImage": true,
+    "rendered": {
+      "width": 224,
+      "height": 224
+    },
+    "loading": "lazy",
+    "decoding": "async",
+    "fetchPriority": "auto",
+    "badgeCode": "first_contribution",
+    "initialElement": true,
+    "note": null
+  },
+  {
+    "case": "baseline-members-kara-0-cold",
+    "source": "/member-achievement-badges/progress-frame-first_contribution.png",
+    "path": "/app/public/member-achievement-badges/progress-frame-first_contribution.png",
+    "sourceBytes": 1403540,
+    "sourceMetadata": {
+      "format": "png",
+      "width": 1254,
+      "height": 1254,
+      "pages": 1
+    },
+    "error": null,
+    "request": "http://127.0.0.1:3000/_next/image?url=%2Fmember-achievement-badges%2Fprogress-frame-first_contribution.png&w=256&q=75",
+    "status": 200,
+    "deliveredFormat": "image/webp",
+    "transferred": 20809,
+    "decodedBody": 20364,
+    "nextImage": true,
+    "rendered": {
+      "width": 224,
+      "height": 224
+    },
+    "loading": "lazy",
+    "decoding": "async",
+    "fetchPriority": "auto",
+    "badgeCode": "first_contribution",
+    "initialElement": true,
+    "note": null
+  },
+  {
+    "case": "baseline-fansubs-new-subs-0-cold",
+    "source": "http://192.168.235.196:18092/api/v1/media/files/banner_1787929528893_61f798bd03c48a67.png",
+    "path": "/media/files/banner_1787929528893_61f798bd03c48a67.png",
+    "sourceBytes": null,
+    "sourceMetadata": null,
+    "error": null,
+    "request": "http://127.0.0.1:3000/_next/image?url=http%3A%2F%2F192.168.235.196%3A18092%2Fapi%2Fv1%2Fmedia%2Ffiles%2Fbanner_1787929528893_61f798bd03c48a67.png&w=1480&q=75",
+    "status": 200,
+    "deliveredFormat": "image/webp",
+    "transferred": 18563,
+    "decodedBody": 18114,
+    "nextImage": true,
+    "rendered": {
+      "width": 972.953125,
+      "height": 178.359375
+    },
+    "loading": "eager",
+    "decoding": "async",
+    "fetchPriority": "auto",
+    "initialElement": true,
+    "note": null
+  },
+  {
+    "case": "baseline-fansubs-new-subs-0-cold",
+    "source": "http://192.168.235.196:18092/api/v1/media/files/logo_1787928990830_d3b5184c5dc28cca.png",
+    "path": "/media/files/logo_1787928990830_d3b5184c5dc28cca.png",
+    "sourceBytes": null,
+    "sourceMetadata": null,
+    "error": null,
+    "request": "http://127.0.0.1:3000/_next/image?url=http%3A%2F%2F192.168.235.196%3A18092%2Fapi%2Fv1%2Fmedia%2Ffiles%2Flogo_1787928990830_d3b5184c5dc28cca.png&w=160&q=75",
+    "status": 200,
+    "deliveredFormat": "image/webp",
+    "transferred": 6962,
+    "decodedBody": 6516,
+    "nextImage": true,
+    "rendered": {
+      "width": 86.390625,
+      "height": 86.390625
+    },
+    "loading": "eager",
+    "decoding": "async",
+    "fetchPriority": "auto",
+    "initialElement": true,
+    "note": null
+  },
+  {
+    "case": "baseline-fansubs-new-subs-0-cold",
+    "source": "http://192.168.235.196:18092/api/v1/media/files/banner_1787929528893_61f798bd03c48a67.png",
+    "path": "/media/files/banner_1787929528893_61f798bd03c48a67.png",
+    "sourceBytes": null,
+    "sourceMetadata": null,
+    "error": null,
+    "request": "http://192.168.235.196:18092/api/v1/media/files/banner_1787929528893_61f798bd03c48a67.png",
+    "status": 200,
+    "deliveredFormat": "image/png",
+    "transferred": 500036,
+    "decodedBody": 499682,
+    "nextImage": false,
+    "rendered": null,
+    "initialElement": false,
+    "note": "Requested variant no longer selected at final DOM sample; see same asset at another optimizer width."
+  },
+  {
+    "case": "baseline-fansubs-new-subs-0-cold",
+    "source": "http://192.168.235.196:18092/api/v1/media/image?item_id=46523903e0af5022d78af0368d89b805&kind=banner&provider=jellyfin",
+    "path": "/media/image",
+    "sourceBytes": null,
+    "sourceMetadata": null,
+    "error": null,
+    "request": "http://192.168.235.196:18092/api/v1/media/image?item_id=46523903e0af5022d78af0368d89b805&kind=banner&provider=jellyfin",
+    "status": 200,
+    "deliveredFormat": "image/jpeg",
+    "transferred": 131344,
+    "decodedBody": 131026,
+    "nextImage": false,
+    "rendered": {
+      "width": 718,
+      "height": 403.875
+    },
+    "loading": "lazy",
+    "decoding": "async",
+    "fetchPriority": "auto",
+    "initialElement": true,
+    "note": null
+  },
+  {
+    "case": "baseline-fansubs-new-subs-0-cold",
+    "source": "http://127.0.0.1:3000/media/profile/11/avatar/25383ba2-6477-4aed-9bb0-58d75dd6ec4f/original.webp",
+    "path": "/media/profile/11/avatar/25383ba2-6477-4aed-9bb0-58d75dd6ec4f/original.webp",
+    "sourceBytes": 411828,
+    "sourceMetadata": {
+      "format": "webp",
+      "width": 540,
+      "height": 260,
+      "pages": 26
+    },
+    "error": null,
+    "request": "http://127.0.0.1:3000/media/profile/11/avatar/25383ba2-6477-4aed-9bb0-58d75dd6ec4f/original.webp",
+    "status": 200,
+    "deliveredFormat": "image/webp",
+    "transferred": 412120,
+    "decodedBody": 411828,
+    "nextImage": false,
+    "rendered": {
+      "width": 34,
+      "height": 34
+    },
+    "loading": "lazy",
+    "decoding": "async",
+    "fetchPriority": "auto",
+    "initialElement": true,
+    "note": null
+  },
+  {
+    "case": "baseline-fansubs-new-subs-0-cold",
+    "source": "/history-event-badges-transparent/founding.png",
+    "path": "/app/public/history-event-badges-transparent/founding.png",
+    "sourceBytes": 840090,
+    "sourceMetadata": {
+      "format": "png",
+      "width": 624,
+      "height": 627,
+      "pages": 1
+    },
+    "error": null,
+    "request": "http://127.0.0.1:3000/_next/image?url=%2Fhistory-event-badges-transparent%2Ffounding.png&w=256&q=75",
+    "status": 200,
+    "deliveredFormat": "image/webp",
+    "transferred": 22258,
+    "decodedBody": 21836,
+    "nextImage": true,
+    "rendered": {
+      "width": 224,
+      "height": 224
+    },
+    "loading": "lazy",
+    "decoding": "async",
+    "fetchPriority": "auto",
+    "badgeCode": "founding",
+    "initialElement": true,
+    "note": null
+  },
+  {
+    "case": "baseline-fansubs-new-subs-0-cold",
+    "source": "http://127.0.0.1:3000/media/image_1788047813685_be76dba4710bd6d7_thumb.jpg",
+    "path": "/media/image_1788047813685_be76dba4710bd6d7_thumb.jpg",
+    "sourceBytes": 25926,
+    "sourceMetadata": {
+      "format": "jpeg",
+      "width": 400,
+      "height": 224,
+      "pages": 1
+    },
+    "error": null,
+    "request": "http://127.0.0.1:3000/media/image_1788047813685_be76dba4710bd6d7_thumb.jpg",
+    "status": 200,
+    "deliveredFormat": "image/jpeg",
+    "transferred": 26217,
+    "decodedBody": 25926,
+    "nextImage": false,
+    "rendered": {
+      "width": 317,
+      "height": 198.125
+    },
+    "loading": "lazy",
+    "decoding": "async",
+    "fetchPriority": "auto",
+    "initialElement": true,
+    "note": null
+  },
+  {
+    "case": "baseline-fansubs-new-subs-0-cold",
+    "source": "http://127.0.0.1:3000/media/image_1787949132983_00ec458dd311b8f9_thumb.jpg",
+    "path": "/media/image_1787949132983_00ec458dd311b8f9_thumb.jpg",
+    "sourceBytes": 29802,
+    "sourceMetadata": {
+      "format": "jpeg",
+      "width": 400,
+      "height": 224,
+      "pages": 1
+    },
+    "error": null,
+    "request": "http://127.0.0.1:3000/media/image_1787949132983_00ec458dd311b8f9_thumb.jpg",
+    "status": 200,
+    "deliveredFormat": "image/jpeg",
+    "transferred": 30093,
+    "decodedBody": 29802,
+    "nextImage": false,
+    "rendered": {
+      "width": 317,
+      "height": 198.125
+    },
+    "loading": "lazy",
+    "decoding": "async",
+    "fetchPriority": "auto",
+    "initialElement": true,
+    "note": null
+  },
+  {
+    "case": "baseline-fansubs-new-subs-0-cold",
+    "source": "http://127.0.0.1:3000/media/image_1788184523091_2165f158e6ad30a6_thumb.jpg",
+    "path": "/media/image_1788184523091_2165f158e6ad30a6_thumb.jpg",
+    "sourceBytes": 24462,
+    "sourceMetadata": {
+      "format": "jpeg",
+      "width": 400,
+      "height": 224,
+      "pages": 1
+    },
+    "error": null,
+    "request": "http://127.0.0.1:3000/media/image_1788184523091_2165f158e6ad30a6_thumb.jpg",
+    "status": 200,
+    "deliveredFormat": "image/jpeg",
+    "transferred": 24753,
+    "decodedBody": 24462,
+    "nextImage": false,
+    "rendered": {
+      "width": 317,
+      "height": 198.125
+    },
+    "loading": "lazy",
+    "decoding": "async",
+    "fetchPriority": "auto",
+    "initialElement": true,
+    "note": null
+  }
+]

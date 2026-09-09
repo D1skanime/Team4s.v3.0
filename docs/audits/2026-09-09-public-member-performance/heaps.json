@@ -1,0 +1,4754 @@
+{
+  "baseline-fansubs-new-subs-0-cold-after.heapsnapshot.gz": {
+    "nodes": 220994,
+    "edges": 1020073,
+    "byType": {
+      "synthetic": 31,
+      "hidden": 48974,
+      "string": 20179,
+      "object shape": 12155,
+      "code": 55622,
+      "array": 5546,
+      "number": 3697,
+      "symbol": 48,
+      "object": 27187,
+      "native": 10122,
+      "closure": 31100,
+      "concatenated string": 6244,
+      "regexp": 76,
+      "sliced string": 13
+    },
+    "fibers": 761,
+    "fiberSelfBytes": 109584,
+    "domNative": 535,
+    "detached": 0,
+    "attached": 357,
+    "unknown": 178,
+    "largestSelf": [
+      [
+        "native:system / ExternalStringData",
+        {
+          "count": 767,
+          "selfBytes": 55192843
+        }
+      ],
+      [
+        "object:Object",
+        {
+          "count": 9808,
+          "selfBytes": 267812
+        }
+      ],
+      [
+        "object:system / Context",
+        {
+          "count": 10155,
+          "selfBytes": 242412
+        }
+      ],
+      [
+        "object:FiberNode",
+        {
+          "count": 761,
+          "selfBytes": 109584
+        }
+      ],
+      [
+        "object:Array",
+        {
+          "count": 3795,
+          "selfBytes": 60720
+        }
+      ],
+      [
+        "native:Attr",
+        {
+          "count": 642,
+          "selfBytes": 56496
+        }
+      ],
+      [
+        "native:V8EventListener",
+        {
+          "count": 603,
+          "selfBytes": 24120
+        }
+      ],
+      [
+        "object:ReactPromise",
+        {
+          "count": 503,
+          "selfBytes": 18108
+        }
+      ],
+      [
+        "object:Error",
+        {
+          "count": 749,
+          "selfBytes": 17904
+        }
+      ],
+      [
+        "native:EventListener",
+        {
+          "count": 635,
+          "selfBytes": 15240
+        }
+      ],
+      [
+        "native:NamedNodeMap",
+        {
+          "count": 294,
+          "selfBytes": 11760
+        }
+      ],
+      [
+        "native:Text",
+        {
+          "count": 139,
+          "selfBytes": 11280
+        }
+      ],
+      [
+        "native:SVGAnimatedLength",
+        {
+          "count": 153,
+          "selfBytes": 9792
+        }
+      ],
+      [
+        "object:ry",
+        {
+          "count": 82,
+          "selfBytes": 8528
+        }
+      ],
+      [
+        "native:<script>",
+        {
+          "count": 29,
+          "selfBytes": 5568
+        }
+      ],
+      [
+        "native:DOMTokenList",
+        {
+          "count": 88,
+          "selfBytes": 4928
+        }
+      ],
+      [
+        "native:SVGSVGElement",
+        {
+          "count": 21,
+          "selfBytes": 4536
+        }
+      ],
+      [
+        "native:SVGAnimatedString",
+        {
+          "count": 80,
+          "selfBytes": 4496
+        }
+      ],
+      [
+        "native:SVGAnimatedTransformList",
+        {
+          "count": 70,
+          "selfBytes": 4480
+        }
+      ],
+      [
+        "native:SVGPathElement",
+        {
+          "count": 25,
+          "selfBytes": 4000
+        }
+      ],
+      [
+        "native:CSSStyleSheet",
+        {
+          "count": 19,
+          "selfBytes": 3344
+        }
+      ],
+      [
+        "native:HTMLDocument",
+        {
+          "count": 1,
+          "selfBytes": 3200
+        }
+      ],
+      [
+        "native:SVGAnimatedNumber",
+        {
+          "count": 50,
+          "selfBytes": 3200
+        }
+      ],
+      [
+        "native:PerformanceResourceTiming",
+        {
+          "count": 16,
+          "selfBytes": 2304
+        }
+      ],
+      [
+        "object:Module",
+        {
+          "count": 92,
+          "selfBytes": 2176
+        }
+      ],
+      [
+        "native:<style data-nextjs-dev-tool-style=\"true\">",
+        {
+          "count": 13,
+          "selfBytes": 2080
+        }
+      ],
+      [
+        "native:PerformanceEventTiming",
+        {
+          "count": 7,
+          "selfBytes": 1792
+        }
+      ],
+      [
+        "native:<span>",
+        {
+          "count": 14,
+          "selfBytes": 1680
+        }
+      ],
+      [
+        "object:HTMLSpanElement",
+        {
+          "count": 101,
+          "selfBytes": 1640
+        }
+      ],
+      [
+        "object:Set",
+        {
+          "count": 101,
+          "selfBytes": 1640
+        }
+      ]
+    ]
+  },
+  "baseline-fansubs-new-subs-0-cold-before.heapsnapshot.gz": {
+    "nodes": 212004,
+    "edges": 977297,
+    "byType": {
+      "synthetic": 31,
+      "hidden": 46621,
+      "string": 19355,
+      "object shape": 11468,
+      "code": 52401,
+      "array": 5466,
+      "number": 3695,
+      "symbol": 47,
+      "object": 26415,
+      "native": 10027,
+      "closure": 30224,
+      "concatenated string": 6166,
+      "regexp": 75,
+      "sliced string": 13
+    },
+    "fibers": 761,
+    "fiberSelfBytes": 109584,
+    "domNative": 535,
+    "detached": 0,
+    "attached": 357,
+    "unknown": 178,
+    "largestSelf": [
+      [
+        "native:system / ExternalStringData",
+        {
+          "count": 752,
+          "selfBytes": 55192292
+        }
+      ],
+      [
+        "object:Object",
+        {
+          "count": 9729,
+          "selfBytes": 266056
+        }
+      ],
+      [
+        "object:system / Context",
+        {
+          "count": 10072,
+          "selfBytes": 239452
+        }
+      ],
+      [
+        "object:FiberNode",
+        {
+          "count": 761,
+          "selfBytes": 109584
+        }
+      ],
+      [
+        "object:Array",
+        {
+          "count": 3752,
+          "selfBytes": 60032
+        }
+      ],
+      [
+        "native:Attr",
+        {
+          "count": 642,
+          "selfBytes": 56496
+        }
+      ],
+      [
+        "native:V8EventListener",
+        {
+          "count": 590,
+          "selfBytes": 23600
+        }
+      ],
+      [
+        "object:ReactPromise",
+        {
+          "count": 503,
+          "selfBytes": 18108
+        }
+      ],
+      [
+        "object:Error",
+        {
+          "count": 746,
+          "selfBytes": 17868
+        }
+      ],
+      [
+        "native:EventListener",
+        {
+          "count": 622,
+          "selfBytes": 14928
+        }
+      ],
+      [
+        "native:NamedNodeMap",
+        {
+          "count": 294,
+          "selfBytes": 11760
+        }
+      ],
+      [
+        "native:Text",
+        {
+          "count": 139,
+          "selfBytes": 11280
+        }
+      ],
+      [
+        "native:SVGAnimatedLength",
+        {
+          "count": 153,
+          "selfBytes": 9792
+        }
+      ],
+      [
+        "object:ry",
+        {
+          "count": 82,
+          "selfBytes": 8528
+        }
+      ],
+      [
+        "native:<script>",
+        {
+          "count": 29,
+          "selfBytes": 5568
+        }
+      ],
+      [
+        "native:DOMTokenList",
+        {
+          "count": 88,
+          "selfBytes": 4928
+        }
+      ],
+      [
+        "native:SVGSVGElement",
+        {
+          "count": 21,
+          "selfBytes": 4536
+        }
+      ],
+      [
+        "native:SVGAnimatedString",
+        {
+          "count": 80,
+          "selfBytes": 4496
+        }
+      ],
+      [
+        "native:SVGAnimatedTransformList",
+        {
+          "count": 70,
+          "selfBytes": 4480
+        }
+      ],
+      [
+        "native:SVGPathElement",
+        {
+          "count": 25,
+          "selfBytes": 4000
+        }
+      ],
+      [
+        "native:CSSStyleSheet",
+        {
+          "count": 19,
+          "selfBytes": 3344
+        }
+      ],
+      [
+        "native:HTMLDocument",
+        {
+          "count": 1,
+          "selfBytes": 3200
+        }
+      ],
+      [
+        "native:SVGAnimatedNumber",
+        {
+          "count": 50,
+          "selfBytes": 3200
+        }
+      ],
+      [
+        "native:PerformanceResourceTiming",
+        {
+          "count": 16,
+          "selfBytes": 2304
+        }
+      ],
+      [
+        "object:Module",
+        {
+          "count": 92,
+          "selfBytes": 2176
+        }
+      ],
+      [
+        "native:<style data-nextjs-dev-tool-style=\"true\">",
+        {
+          "count": 13,
+          "selfBytes": 2080
+        }
+      ],
+      [
+        "native:PerformanceEventTiming",
+        {
+          "count": 7,
+          "selfBytes": 1792
+        }
+      ],
+      [
+        "native:<span>",
+        {
+          "count": 14,
+          "selfBytes": 1680
+        }
+      ],
+      [
+        "native:SVGLineElement",
+        {
+          "count": 9,
+          "selfBytes": 1584
+        }
+      ],
+      [
+        "native:<span class=\"FansubTeamSection_memberRoles__aZN9W\">",
+        {
+          "count": 13,
+          "selfBytes": 1560
+        }
+      ]
+    ]
+  },
+  "baseline-members-kara-0-cold-after.heapsnapshot.gz": {
+    "nodes": 297651,
+    "edges": 1367300,
+    "byType": {
+      "synthetic": 31,
+      "hidden": 67141,
+      "string": 24066,
+      "object shape": 15110,
+      "code": 71761,
+      "array": 7439,
+      "number": 6299,
+      "symbol": 49,
+      "object": 36626,
+      "native": 16555,
+      "closure": 43318,
+      "concatenated string": 9130,
+      "regexp": 114,
+      "sliced string": 12
+    },
+    "fibers": 1457,
+    "fiberSelfBytes": 209808,
+    "domNative": 955,
+    "detached": 0,
+    "attached": 720,
+    "unknown": 235,
+    "largestSelf": [
+      [
+        "native:system / ExternalStringData",
+        {
+          "count": 943,
+          "selfBytes": 84976419
+        }
+      ],
+      [
+        "object:Object",
+        {
+          "count": 13208,
+          "selfBytes": 359368
+        }
+      ],
+      [
+        "object:system / Context",
+        {
+          "count": 14292,
+          "selfBytes": 335440
+        }
+      ],
+      [
+        "object:FiberNode",
+        {
+          "count": 1457,
+          "selfBytes": 209808
+        }
+      ],
+      [
+        "native:Attr",
+        {
+          "count": 1541,
+          "selfBytes": 135608
+        }
+      ],
+      [
+        "object:Array",
+        {
+          "count": 4058,
+          "selfBytes": 64952
+        }
+      ],
+      [
+        "native:SVGAnimatedLength",
+        {
+          "count": 535,
+          "selfBytes": 34240
+        }
+      ],
+      [
+        "object:Error",
+        {
+          "count": 1271,
+          "selfBytes": 30388
+        }
+      ],
+      [
+        "native:V8EventListener",
+        {
+          "count": 615,
+          "selfBytes": 24600
+        }
+      ],
+      [
+        "native:NamedNodeMap",
+        {
+          "count": 556,
+          "selfBytes": 22240
+        }
+      ],
+      [
+        "native:Text",
+        {
+          "count": 254,
+          "selfBytes": 22000
+        }
+      ],
+      [
+        "native:EventListener",
+        {
+          "count": 636,
+          "selfBytes": 15264
+        }
+      ],
+      [
+        "native:SVGSVGElement",
+        {
+          "count": 55,
+          "selfBytes": 11880
+        }
+      ],
+      [
+        "object:ReactPromise",
+        {
+          "count": 330,
+          "selfBytes": 11880
+        }
+      ],
+      [
+        "native:SVGAnimatedTransformList",
+        {
+          "count": 176,
+          "selfBytes": 11264
+        }
+      ],
+      [
+        "native:SVGAnimatedString",
+        {
+          "count": 186,
+          "selfBytes": 10432
+        }
+      ],
+      [
+        "native:SVGPathElement",
+        {
+          "count": 63,
+          "selfBytes": 10080
+        }
+      ],
+      [
+        "native:SVGRectElement",
+        {
+          "count": 47,
+          "selfBytes": 8648
+        }
+      ],
+      [
+        "object:ry",
+        {
+          "count": 82,
+          "selfBytes": 8528
+        }
+      ],
+      [
+        "native:SVGAnimatedNumber",
+        {
+          "count": 122,
+          "selfBytes": 7808
+        }
+      ],
+      [
+        "native:<span>",
+        {
+          "count": 47,
+          "selfBytes": 5640
+        }
+      ],
+      [
+        "object:Module",
+        {
+          "count": 204,
+          "selfBytes": 4416
+        }
+      ],
+      [
+        "native:Comment",
+        {
+          "count": 54,
+          "selfBytes": 4384
+        }
+      ],
+      [
+        "native:<script>",
+        {
+          "count": 22,
+          "selfBytes": 4224
+        }
+      ],
+      [
+        "native:DOMTokenList",
+        {
+          "count": 69,
+          "selfBytes": 3880
+        }
+      ],
+      [
+        "native:SVGAnimatedPreserveAspectRatio",
+        {
+          "count": 55,
+          "selfBytes": 3520
+        }
+      ],
+      [
+        "native:SVGAnimatedRect",
+        {
+          "count": 55,
+          "selfBytes": 3520
+        }
+      ],
+      [
+        "native:CSSStyleSheet",
+        {
+          "count": 19,
+          "selfBytes": 3344
+        }
+      ],
+      [
+        "object:HTMLSpanElement",
+        {
+          "count": 207,
+          "selfBytes": 3336
+        }
+      ],
+      [
+        "native:HTMLDocument",
+        {
+          "count": 1,
+          "selfBytes": 3200
+        }
+      ]
+    ]
+  },
+  "baseline-members-kara-0-cold-before.heapsnapshot.gz": {
+    "nodes": 275582,
+    "edges": 1262022,
+    "byType": {
+      "synthetic": 31,
+      "hidden": 59354,
+      "string": 23038,
+      "object shape": 13783,
+      "code": 66316,
+      "array": 6836,
+      "number": 5375,
+      "symbol": 47,
+      "object": 33870,
+      "native": 16105,
+      "closure": 41685,
+      "concatenated string": 9018,
+      "regexp": 112,
+      "sliced string": 12
+    },
+    "fibers": 1227,
+    "fiberSelfBytes": 176688,
+    "domNative": 955,
+    "detached": 0,
+    "attached": 719,
+    "unknown": 236,
+    "largestSelf": [
+      [
+        "native:system / ExternalStringData",
+        {
+          "count": 910,
+          "selfBytes": 84975238
+        }
+      ],
+      [
+        "object:Object",
+        {
+          "count": 12179,
+          "selfBytes": 334116
+        }
+      ],
+      [
+        "object:system / Context",
+        {
+          "count": 14068,
+          "selfBytes": 327928
+        }
+      ],
+      [
+        "object:FiberNode",
+        {
+          "count": 1227,
+          "selfBytes": 176688
+        }
+      ],
+      [
+        "native:Attr",
+        {
+          "count": 1543,
+          "selfBytes": 135784
+        }
+      ],
+      [
+        "object:Array",
+        {
+          "count": 3879,
+          "selfBytes": 62088
+        }
+      ],
+      [
+        "native:SVGAnimatedLength",
+        {
+          "count": 535,
+          "selfBytes": 34240
+        }
+      ],
+      [
+        "object:Error",
+        {
+          "count": 1108,
+          "selfBytes": 26548
+        }
+      ],
+      [
+        "native:V8EventListener",
+        {
+          "count": 586,
+          "selfBytes": 23440
+        }
+      ],
+      [
+        "native:NamedNodeMap",
+        {
+          "count": 556,
+          "selfBytes": 22240
+        }
+      ],
+      [
+        "native:Text",
+        {
+          "count": 254,
+          "selfBytes": 21984
+        }
+      ],
+      [
+        "native:EventListener",
+        {
+          "count": 606,
+          "selfBytes": 14544
+        }
+      ],
+      [
+        "native:SVGSVGElement",
+        {
+          "count": 55,
+          "selfBytes": 11880
+        }
+      ],
+      [
+        "object:ReactPromise",
+        {
+          "count": 330,
+          "selfBytes": 11880
+        }
+      ],
+      [
+        "native:SVGAnimatedTransformList",
+        {
+          "count": 176,
+          "selfBytes": 11264
+        }
+      ],
+      [
+        "native:SVGAnimatedString",
+        {
+          "count": 186,
+          "selfBytes": 10432
+        }
+      ],
+      [
+        "native:SVGPathElement",
+        {
+          "count": 63,
+          "selfBytes": 10080
+        }
+      ],
+      [
+        "native:SVGRectElement",
+        {
+          "count": 47,
+          "selfBytes": 8648
+        }
+      ],
+      [
+        "object:ry",
+        {
+          "count": 82,
+          "selfBytes": 8528
+        }
+      ],
+      [
+        "native:SVGAnimatedNumber",
+        {
+          "count": 122,
+          "selfBytes": 7808
+        }
+      ],
+      [
+        "native:<span>",
+        {
+          "count": 47,
+          "selfBytes": 5640
+        }
+      ],
+      [
+        "object:Module",
+        {
+          "count": 204,
+          "selfBytes": 4416
+        }
+      ],
+      [
+        "native:Comment",
+        {
+          "count": 54,
+          "selfBytes": 4384
+        }
+      ],
+      [
+        "native:<script>",
+        {
+          "count": 22,
+          "selfBytes": 4224
+        }
+      ],
+      [
+        "native:DOMTokenList",
+        {
+          "count": 68,
+          "selfBytes": 3808
+        }
+      ],
+      [
+        "native:SVGAnimatedPreserveAspectRatio",
+        {
+          "count": 55,
+          "selfBytes": 3520
+        }
+      ],
+      [
+        "native:SVGAnimatedRect",
+        {
+          "count": 55,
+          "selfBytes": 3520
+        }
+      ],
+      [
+        "native:CSSStyleSheet",
+        {
+          "count": 19,
+          "selfBytes": 3344
+        }
+      ],
+      [
+        "native:HTMLDocument",
+        {
+          "count": 1,
+          "selfBytes": 3200
+        }
+      ],
+      [
+        "native:<style data-nextjs-dev-tool-style=\"true\">",
+        {
+          "count": 13,
+          "selfBytes": 2080
+        }
+      ]
+    ]
+  },
+  "baseline-members-timer-0-cold-after.heapsnapshot.gz": {
+    "nodes": 327084,
+    "edges": 1493612,
+    "byType": {
+      "synthetic": 31,
+      "hidden": 79671,
+      "string": 24663,
+      "object shape": 15955,
+      "code": 73680,
+      "array": 8906,
+      "number": 8496,
+      "symbol": 49,
+      "object": 41560,
+      "closure": 43743,
+      "native": 21038,
+      "concatenated string": 9165,
+      "sliced string": 13,
+      "regexp": 114
+    },
+    "fibers": 1988,
+    "fiberSelfBytes": 286272,
+    "domNative": 1257,
+    "detached": 1,
+    "attached": 959,
+    "unknown": 297,
+    "largestSelf": [
+      [
+        "native:system / ExternalStringData",
+        {
+          "count": 983,
+          "selfBytes": 84979688
+        }
+      ],
+      [
+        "object:Object",
+        {
+          "count": 16081,
+          "selfBytes": 433568
+        }
+      ],
+      [
+        "object:system / Context",
+        {
+          "count": 14530,
+          "selfBytes": 342972
+        }
+      ],
+      [
+        "object:FiberNode",
+        {
+          "count": 1988,
+          "selfBytes": 286272
+        }
+      ],
+      [
+        "native:Attr",
+        {
+          "count": 2016,
+          "selfBytes": 177408
+        }
+      ],
+      [
+        "object:Array",
+        {
+          "count": 4655,
+          "selfBytes": 74504
+        }
+      ],
+      [
+        "object:Error",
+        {
+          "count": 1676,
+          "selfBytes": 40108
+        }
+      ],
+      [
+        "native:SVGAnimatedLength",
+        {
+          "count": 562,
+          "selfBytes": 35968
+        }
+      ],
+      [
+        "native:NamedNodeMap",
+        {
+          "count": 758,
+          "selfBytes": 30320
+        }
+      ],
+      [
+        "native:Text",
+        {
+          "count": 325,
+          "selfBytes": 28304
+        }
+      ],
+      [
+        "native:V8EventListener",
+        {
+          "count": 646,
+          "selfBytes": 25840
+        }
+      ],
+      [
+        "native:EventListener",
+        {
+          "count": 672,
+          "selfBytes": 16128
+        }
+      ],
+      [
+        "object:ReactPromise",
+        {
+          "count": 388,
+          "selfBytes": 13968
+        }
+      ],
+      [
+        "native:SVGPathElement",
+        {
+          "count": 85,
+          "selfBytes": 13600
+        }
+      ],
+      [
+        "native:SVGAnimatedTransformList",
+        {
+          "count": 206,
+          "selfBytes": 13184
+        }
+      ],
+      [
+        "native:SVGSVGElement",
+        {
+          "count": 59,
+          "selfBytes": 12744
+        }
+      ],
+      [
+        "native:SVGAnimatedString",
+        {
+          "count": 216,
+          "selfBytes": 12112
+        }
+      ],
+      [
+        "native:SVGAnimatedNumber",
+        {
+          "count": 148,
+          "selfBytes": 9472
+        }
+      ],
+      [
+        "object:ry",
+        {
+          "count": 82,
+          "selfBytes": 8528
+        }
+      ],
+      [
+        "native:SVGRectElement",
+        {
+          "count": 46,
+          "selfBytes": 8464
+        }
+      ],
+      [
+        "native:<span>",
+        {
+          "count": 53,
+          "selfBytes": 6360
+        }
+      ],
+      [
+        "native:Comment",
+        {
+          "count": 70,
+          "selfBytes": 5632
+        }
+      ],
+      [
+        "native:<script>",
+        {
+          "count": 29,
+          "selfBytes": 5568
+        }
+      ],
+      [
+        "native:DOMTokenList",
+        {
+          "count": 83,
+          "selfBytes": 4648
+        }
+      ],
+      [
+        "object:HTMLSpanElement",
+        {
+          "count": 287,
+          "selfBytes": 4616
+        }
+      ],
+      [
+        "object:Module",
+        {
+          "count": 204,
+          "selfBytes": 4416
+        }
+      ],
+      [
+        "native:SVGAnimatedPreserveAspectRatio",
+        {
+          "count": 59,
+          "selfBytes": 3776
+        }
+      ],
+      [
+        "native:SVGAnimatedRect",
+        {
+          "count": 59,
+          "selfBytes": 3776
+        }
+      ],
+      [
+        "native:PerformanceResourceTiming",
+        {
+          "count": 26,
+          "selfBytes": 3744
+        }
+      ],
+      [
+        "native:CSSStyleSheet",
+        {
+          "count": 19,
+          "selfBytes": 3344
+        }
+      ]
+    ]
+  },
+  "baseline-members-timer-0-cold-before.heapsnapshot.gz": {
+    "nodes": 300759,
+    "edges": 1368243,
+    "byType": {
+      "synthetic": 31,
+      "hidden": 69715,
+      "string": 23604,
+      "object shape": 14556,
+      "code": 68115,
+      "array": 8087,
+      "number": 7082,
+      "symbol": 47,
+      "object": 37732,
+      "closure": 42057,
+      "native": 20515,
+      "concatenated string": 9093,
+      "sliced string": 13,
+      "regexp": 112
+    },
+    "fibers": 1638,
+    "fiberSelfBytes": 235872,
+    "domNative": 1257,
+    "detached": 1,
+    "attached": 959,
+    "unknown": 297,
+    "largestSelf": [
+      [
+        "native:system / ExternalStringData",
+        {
+          "count": 949,
+          "selfBytes": 84978497
+        }
+      ],
+      [
+        "object:Object",
+        {
+          "count": 14486,
+          "selfBytes": 393872
+        }
+      ],
+      [
+        "object:system / Context",
+        {
+          "count": 14256,
+          "selfBytes": 334056
+        }
+      ],
+      [
+        "object:FiberNode",
+        {
+          "count": 1638,
+          "selfBytes": 235872
+        }
+      ],
+      [
+        "native:Attr",
+        {
+          "count": 2018,
+          "selfBytes": 177584
+        }
+      ],
+      [
+        "object:Array",
+        {
+          "count": 4430,
+          "selfBytes": 70904
+        }
+      ],
+      [
+        "native:SVGAnimatedLength",
+        {
+          "count": 562,
+          "selfBytes": 35968
+        }
+      ],
+      [
+        "object:Error",
+        {
+          "count": 1437,
+          "selfBytes": 34444
+        }
+      ],
+      [
+        "native:NamedNodeMap",
+        {
+          "count": 758,
+          "selfBytes": 30320
+        }
+      ],
+      [
+        "native:Text",
+        {
+          "count": 325,
+          "selfBytes": 28304
+        }
+      ],
+      [
+        "native:V8EventListener",
+        {
+          "count": 617,
+          "selfBytes": 24680
+        }
+      ],
+      [
+        "native:EventListener",
+        {
+          "count": 642,
+          "selfBytes": 15408
+        }
+      ],
+      [
+        "object:ReactPromise",
+        {
+          "count": 388,
+          "selfBytes": 13968
+        }
+      ],
+      [
+        "native:SVGPathElement",
+        {
+          "count": 85,
+          "selfBytes": 13600
+        }
+      ],
+      [
+        "native:SVGAnimatedTransformList",
+        {
+          "count": 206,
+          "selfBytes": 13184
+        }
+      ],
+      [
+        "native:SVGSVGElement",
+        {
+          "count": 59,
+          "selfBytes": 12744
+        }
+      ],
+      [
+        "native:SVGAnimatedString",
+        {
+          "count": 216,
+          "selfBytes": 12112
+        }
+      ],
+      [
+        "native:SVGAnimatedNumber",
+        {
+          "count": 148,
+          "selfBytes": 9472
+        }
+      ],
+      [
+        "object:ry",
+        {
+          "count": 82,
+          "selfBytes": 8528
+        }
+      ],
+      [
+        "native:SVGRectElement",
+        {
+          "count": 46,
+          "selfBytes": 8464
+        }
+      ],
+      [
+        "native:<span>",
+        {
+          "count": 53,
+          "selfBytes": 6360
+        }
+      ],
+      [
+        "native:Comment",
+        {
+          "count": 70,
+          "selfBytes": 5632
+        }
+      ],
+      [
+        "native:<script>",
+        {
+          "count": 29,
+          "selfBytes": 5568
+        }
+      ],
+      [
+        "native:DOMTokenList",
+        {
+          "count": 82,
+          "selfBytes": 4592
+        }
+      ],
+      [
+        "object:Module",
+        {
+          "count": 204,
+          "selfBytes": 4416
+        }
+      ],
+      [
+        "native:SVGAnimatedRect",
+        {
+          "count": 59,
+          "selfBytes": 3776
+        }
+      ],
+      [
+        "native:SVGAnimatedPreserveAspectRatio",
+        {
+          "count": 59,
+          "selfBytes": 3776
+        }
+      ],
+      [
+        "native:PerformanceResourceTiming",
+        {
+          "count": 24,
+          "selfBytes": 3456
+        }
+      ],
+      [
+        "native:CSSStyleSheet",
+        {
+          "count": 19,
+          "selfBytes": 3344
+        }
+      ],
+      [
+        "native:HTMLDocument",
+        {
+          "count": 1,
+          "selfBytes": 3200
+        }
+      ]
+    ]
+  },
+  "retention-dev-group-after.heapsnapshot.gz": {
+    "nodes": 275062,
+    "edges": 1251605,
+    "byType": {
+      "synthetic": 31,
+      "hidden": 60451,
+      "string": 21573,
+      "object shape": 13184,
+      "code": 65978,
+      "array": 10834,
+      "number": 6658,
+      "symbol": 48,
+      "object": 35106,
+      "native": 23019,
+      "closure": 31771,
+      "concatenated string": 6314,
+      "sliced string": 19,
+      "regexp": 76
+    },
+    "fibers": 888,
+    "fiberSelfBytes": 127872,
+    "domNative": 4528,
+    "detached": 2997,
+    "attached": 359,
+    "unknown": 1172,
+    "largestSelf": [
+      [
+        "native:system / ExternalStringData",
+        {
+          "count": 949,
+          "selfBytes": 57117050
+        }
+      ],
+      [
+        "object:Object",
+        {
+          "count": 13069,
+          "selfBytes": 342972
+        }
+      ],
+      [
+        "object:system / Context",
+        {
+          "count": 10256,
+          "selfBytes": 245368
+        }
+      ],
+      [
+        "object:FiberNode",
+        {
+          "count": 888,
+          "selfBytes": 127872
+        }
+      ],
+      [
+        "object:Array",
+        {
+          "count": 5887,
+          "selfBytes": 94192
+        }
+      ],
+      [
+        "native:Text",
+        {
+          "count": 1134,
+          "selfBytes": 92608
+        }
+      ],
+      [
+        "native:SVGAnimatedLength",
+        {
+          "count": 1161,
+          "selfBytes": 74304
+        }
+      ],
+      [
+        "native:Attr",
+        {
+          "count": 619,
+          "selfBytes": 54472
+        }
+      ],
+      [
+        "native:SVGSVGElement",
+        {
+          "count": 201,
+          "selfBytes": 43416
+        }
+      ],
+      [
+        "object:ReactPromise",
+        {
+          "count": 1125,
+          "selfBytes": 40500
+        }
+      ],
+      [
+        "native:V8EventListener",
+        {
+          "count": 908,
+          "selfBytes": 36320
+        }
+      ],
+      [
+        "native:SVGAnimatedTransformList",
+        {
+          "count": 538,
+          "selfBytes": 34432
+        }
+      ],
+      [
+        "native:SVGAnimatedString",
+        {
+          "count": 548,
+          "selfBytes": 30704
+        }
+      ],
+      [
+        "native:EventListener",
+        {
+          "count": 1194,
+          "selfBytes": 28656
+        }
+      ],
+      [
+        "native:SVGPathElement",
+        {
+          "count": 169,
+          "selfBytes": 27040
+        }
+      ],
+      [
+        "object:Error",
+        {
+          "count": 1088,
+          "selfBytes": 26040
+        }
+      ],
+      [
+        "native:SVGAnimatedNumber",
+        {
+          "count": 338,
+          "selfBytes": 21632
+        }
+      ],
+      [
+        "native:<span class=\"FansubTeamSection_memberRoles__aZN9W\">",
+        {
+          "count": 169,
+          "selfBytes": 20280
+        }
+      ],
+      [
+        "native:DOMTokenList",
+        {
+          "count": 335,
+          "selfBytes": 18760
+        }
+      ],
+      [
+        "native:<span class=\"FansubTeamSection_memberMeta__ZF5ek\">",
+        {
+          "count": 156,
+          "selfBytes": 18720
+        }
+      ],
+      [
+        "native:<span class=\"FansubTeamSection_memberNameLink__tvX4e\">",
+        {
+          "count": 156,
+          "selfBytes": 18720
+        }
+      ],
+      [
+        "native:SVGLineElement",
+        {
+          "count": 81,
+          "selfBytes": 14256
+        }
+      ],
+      [
+        "object:HTMLSpanElement",
+        {
+          "count": 855,
+          "selfBytes": 13704
+        }
+      ],
+      [
+        "native:SVGAnimatedPreserveAspectRatio",
+        {
+          "count": 201,
+          "selfBytes": 12864
+        }
+      ],
+      [
+        "native:SVGAnimatedRect",
+        {
+          "count": 201,
+          "selfBytes": 12864
+        }
+      ],
+      [
+        "native:SVGPolylineElement",
+        {
+          "count": 78,
+          "selfBytes": 12480
+        }
+      ],
+      [
+        "native:<span>",
+        {
+          "count": 98,
+          "selfBytes": 11760
+        }
+      ],
+      [
+        "native:NamedNodeMap",
+        {
+          "count": 290,
+          "selfBytes": 11600
+        }
+      ],
+      [
+        "native:PerformanceResourceTiming",
+        {
+          "count": 70,
+          "selfBytes": 11200
+        }
+      ],
+      [
+        "native:<span class=\"ui_badge__rKDPn ui_badgeMuted__wtbuO\">",
+        {
+          "count": 91,
+          "selfBytes": 10920
+        }
+      ]
+    ]
+  },
+  "retention-dev-group-before.heapsnapshot.gz": {
+    "nodes": 208736,
+    "edges": 967014,
+    "byType": {
+      "synthetic": 31,
+      "hidden": 46857,
+      "string": 19288,
+      "object shape": 11351,
+      "code": 49085,
+      "array": 5495,
+      "number": 3702,
+      "symbol": 47,
+      "object": 26423,
+      "native": 9959,
+      "closure": 30225,
+      "concatenated string": 6185,
+      "regexp": 75,
+      "sliced string": 13
+    },
+    "fibers": 767,
+    "fiberSelfBytes": 110448,
+    "domNative": 535,
+    "detached": 0,
+    "attached": 357,
+    "unknown": 178,
+    "largestSelf": [
+      [
+        "native:system / ExternalStringData",
+        {
+          "count": 726,
+          "selfBytes": 55191484
+        }
+      ],
+      [
+        "object:Object",
+        {
+          "count": 9718,
+          "selfBytes": 265792
+        }
+      ],
+      [
+        "object:system / Context",
+        {
+          "count": 10065,
+          "selfBytes": 239464
+        }
+      ],
+      [
+        "object:FiberNode",
+        {
+          "count": 767,
+          "selfBytes": 110448
+        }
+      ],
+      [
+        "object:Array",
+        {
+          "count": 3764,
+          "selfBytes": 60224
+        }
+      ],
+      [
+        "native:Attr",
+        {
+          "count": 642,
+          "selfBytes": 56496
+        }
+      ],
+      [
+        "native:V8EventListener",
+        {
+          "count": 589,
+          "selfBytes": 23560
+        }
+      ],
+      [
+        "object:ReactPromise",
+        {
+          "count": 503,
+          "selfBytes": 18108
+        }
+      ],
+      [
+        "object:Error",
+        {
+          "count": 754,
+          "selfBytes": 18060
+        }
+      ],
+      [
+        "native:EventListener",
+        {
+          "count": 621,
+          "selfBytes": 14904
+        }
+      ],
+      [
+        "native:NamedNodeMap",
+        {
+          "count": 294,
+          "selfBytes": 11760
+        }
+      ],
+      [
+        "native:Text",
+        {
+          "count": 139,
+          "selfBytes": 11280
+        }
+      ],
+      [
+        "native:SVGAnimatedLength",
+        {
+          "count": 153,
+          "selfBytes": 9792
+        }
+      ],
+      [
+        "object:ry",
+        {
+          "count": 82,
+          "selfBytes": 8528
+        }
+      ],
+      [
+        "native:<script>",
+        {
+          "count": 29,
+          "selfBytes": 5568
+        }
+      ],
+      [
+        "native:DOMTokenList",
+        {
+          "count": 88,
+          "selfBytes": 4928
+        }
+      ],
+      [
+        "native:SVGSVGElement",
+        {
+          "count": 21,
+          "selfBytes": 4536
+        }
+      ],
+      [
+        "native:SVGAnimatedString",
+        {
+          "count": 80,
+          "selfBytes": 4496
+        }
+      ],
+      [
+        "native:SVGAnimatedTransformList",
+        {
+          "count": 70,
+          "selfBytes": 4480
+        }
+      ],
+      [
+        "native:SVGPathElement",
+        {
+          "count": 25,
+          "selfBytes": 4000
+        }
+      ],
+      [
+        "native:CSSStyleSheet",
+        {
+          "count": 19,
+          "selfBytes": 3344
+        }
+      ],
+      [
+        "native:HTMLDocument",
+        {
+          "count": 1,
+          "selfBytes": 3200
+        }
+      ],
+      [
+        "native:SVGAnimatedNumber",
+        {
+          "count": 50,
+          "selfBytes": 3200
+        }
+      ],
+      [
+        "native:PerformanceResourceTiming",
+        {
+          "count": 16,
+          "selfBytes": 2560
+        }
+      ],
+      [
+        "object:Module",
+        {
+          "count": 92,
+          "selfBytes": 2176
+        }
+      ],
+      [
+        "native:<style data-nextjs-dev-tool-style=\"true\">",
+        {
+          "count": 13,
+          "selfBytes": 2080
+        }
+      ],
+      [
+        "native:PerformanceEventTiming",
+        {
+          "count": 7,
+          "selfBytes": 1792
+        }
+      ],
+      [
+        "native:<span>",
+        {
+          "count": 14,
+          "selfBytes": 1680
+        }
+      ],
+      [
+        "native:SVGLineElement",
+        {
+          "count": 9,
+          "selfBytes": 1584
+        }
+      ],
+      [
+        "native:<span class=\"FansubTeamSection_memberRoles__aZN9W\">",
+        {
+          "count": 13,
+          "selfBytes": 1560
+        }
+      ]
+    ]
+  },
+  "retention-dev-group-cleared.heapsnapshot.gz": {
+    "nodes": 275072,
+    "edges": 1251737,
+    "byType": {
+      "synthetic": 31,
+      "hidden": 60451,
+      "string": 21573,
+      "object shape": 13184,
+      "code": 65982,
+      "array": 10838,
+      "number": 6658,
+      "symbol": 48,
+      "object": 35118,
+      "native": 23011,
+      "closure": 31769,
+      "concatenated string": 6314,
+      "sliced string": 19,
+      "regexp": 76
+    },
+    "fibers": 888,
+    "fiberSelfBytes": 127872,
+    "domNative": 4528,
+    "detached": 2997,
+    "attached": 359,
+    "unknown": 1172,
+    "largestSelf": [
+      [
+        "native:system / ExternalStringData",
+        {
+          "count": 949,
+          "selfBytes": 57117050
+        }
+      ],
+      [
+        "object:Object",
+        {
+          "count": 13077,
+          "selfBytes": 343172
+        }
+      ],
+      [
+        "object:system / Context",
+        {
+          "count": 10256,
+          "selfBytes": 245368
+        }
+      ],
+      [
+        "object:FiberNode",
+        {
+          "count": 888,
+          "selfBytes": 127872
+        }
+      ],
+      [
+        "object:Array",
+        {
+          "count": 5891,
+          "selfBytes": 94256
+        }
+      ],
+      [
+        "native:Text",
+        {
+          "count": 1134,
+          "selfBytes": 92608
+        }
+      ],
+      [
+        "native:SVGAnimatedLength",
+        {
+          "count": 1161,
+          "selfBytes": 74304
+        }
+      ],
+      [
+        "native:Attr",
+        {
+          "count": 619,
+          "selfBytes": 54472
+        }
+      ],
+      [
+        "native:SVGSVGElement",
+        {
+          "count": 201,
+          "selfBytes": 43416
+        }
+      ],
+      [
+        "object:ReactPromise",
+        {
+          "count": 1125,
+          "selfBytes": 40500
+        }
+      ],
+      [
+        "native:V8EventListener",
+        {
+          "count": 908,
+          "selfBytes": 36320
+        }
+      ],
+      [
+        "native:SVGAnimatedTransformList",
+        {
+          "count": 538,
+          "selfBytes": 34432
+        }
+      ],
+      [
+        "native:SVGAnimatedString",
+        {
+          "count": 548,
+          "selfBytes": 30704
+        }
+      ],
+      [
+        "native:EventListener",
+        {
+          "count": 1194,
+          "selfBytes": 28656
+        }
+      ],
+      [
+        "native:SVGPathElement",
+        {
+          "count": 169,
+          "selfBytes": 27040
+        }
+      ],
+      [
+        "object:Error",
+        {
+          "count": 1088,
+          "selfBytes": 26040
+        }
+      ],
+      [
+        "native:SVGAnimatedNumber",
+        {
+          "count": 338,
+          "selfBytes": 21632
+        }
+      ],
+      [
+        "native:<span class=\"FansubTeamSection_memberRoles__aZN9W\">",
+        {
+          "count": 169,
+          "selfBytes": 20280
+        }
+      ],
+      [
+        "native:DOMTokenList",
+        {
+          "count": 335,
+          "selfBytes": 18760
+        }
+      ],
+      [
+        "native:<span class=\"FansubTeamSection_memberMeta__ZF5ek\">",
+        {
+          "count": 156,
+          "selfBytes": 18720
+        }
+      ],
+      [
+        "native:<span class=\"FansubTeamSection_memberNameLink__tvX4e\">",
+        {
+          "count": 156,
+          "selfBytes": 18720
+        }
+      ],
+      [
+        "native:SVGLineElement",
+        {
+          "count": 81,
+          "selfBytes": 14256
+        }
+      ],
+      [
+        "object:HTMLSpanElement",
+        {
+          "count": 855,
+          "selfBytes": 13704
+        }
+      ],
+      [
+        "native:SVGAnimatedPreserveAspectRatio",
+        {
+          "count": 201,
+          "selfBytes": 12864
+        }
+      ],
+      [
+        "native:SVGAnimatedRect",
+        {
+          "count": 201,
+          "selfBytes": 12864
+        }
+      ],
+      [
+        "native:SVGPolylineElement",
+        {
+          "count": 78,
+          "selfBytes": 12480
+        }
+      ],
+      [
+        "native:<span>",
+        {
+          "count": 98,
+          "selfBytes": 11760
+        }
+      ],
+      [
+        "native:NamedNodeMap",
+        {
+          "count": 290,
+          "selfBytes": 11600
+        }
+      ],
+      [
+        "native:PerformanceResourceTiming",
+        {
+          "count": 70,
+          "selfBytes": 11200
+        }
+      ],
+      [
+        "native:<span class=\"ui_badge__rKDPn ui_badgeMuted__wtbuO\">",
+        {
+          "count": 91,
+          "selfBytes": 10920
+        }
+      ]
+    ]
+  },
+  "retention-dev-member-after.heapsnapshot.gz": {
+    "nodes": 384836,
+    "edges": 1722596,
+    "byType": {
+      "synthetic": 31,
+      "hidden": 72381,
+      "string": 26410,
+      "object shape": 16494,
+      "code": 76799,
+      "array": 20626,
+      "number": 13366,
+      "symbol": 48,
+      "object": 48544,
+      "closure": 44756,
+      "native": 55740,
+      "concatenated string": 9509,
+      "regexp": 113,
+      "sliced string": 19
+    },
+    "fibers": 2322,
+    "fiberSelfBytes": 334368,
+    "domNative": 15008,
+    "detached": 11627,
+    "attached": 372,
+    "unknown": 3009,
+    "largestSelf": [
+      [
+        "native:system / ExternalStringData",
+        {
+          "count": 1381,
+          "selfBytes": 90400427
+        }
+      ],
+      [
+        "object:Object",
+        {
+          "count": 18372,
+          "selfBytes": 476864
+        }
+      ],
+      [
+        "native:SVGAnimatedLength",
+        {
+          "count": 6915,
+          "selfBytes": 442560
+        }
+      ],
+      [
+        "native:Text",
+        {
+          "count": 4040,
+          "selfBytes": 348224
+        }
+      ],
+      [
+        "object:system / Context",
+        {
+          "count": 14716,
+          "selfBytes": 346064
+        }
+      ],
+      [
+        "object:FiberNode",
+        {
+          "count": 2322,
+          "selfBytes": 334368
+        }
+      ],
+      [
+        "native:SVGSVGElement",
+        {
+          "count": 813,
+          "selfBytes": 175608
+        }
+      ],
+      [
+        "native:SVGAnimatedTransformList",
+        {
+          "count": 2458,
+          "selfBytes": 157312
+        }
+      ],
+      [
+        "native:SVGPathElement",
+        {
+          "count": 901,
+          "selfBytes": 144160
+        }
+      ],
+      [
+        "native:SVGAnimatedString",
+        {
+          "count": 2468,
+          "selfBytes": 138224
+        }
+      ],
+      [
+        "object:Array",
+        {
+          "count": 8003,
+          "selfBytes": 128072
+        }
+      ],
+      [
+        "native:SVGAnimatedNumber",
+        {
+          "count": 1646,
+          "selfBytes": 105344
+        }
+      ],
+      [
+        "native:SVGRectElement",
+        {
+          "count": 536,
+          "selfBytes": 98624
+        }
+      ],
+      [
+        "native:<span>",
+        {
+          "count": 686,
+          "selfBytes": 82320
+        }
+      ],
+      [
+        "native:Attr",
+        {
+          "count": 686,
+          "selfBytes": 60368
+        }
+      ],
+      [
+        "object:ReactPromise",
+        {
+          "count": 1501,
+          "selfBytes": 54036
+        }
+      ],
+      [
+        "native:SVGAnimatedPreserveAspectRatio",
+        {
+          "count": 813,
+          "selfBytes": 52032
+        }
+      ],
+      [
+        "native:SVGAnimatedRect",
+        {
+          "count": 813,
+          "selfBytes": 52032
+        }
+      ],
+      [
+        "native:V8EventListener",
+        {
+          "count": 1176,
+          "selfBytes": 47040
+        }
+      ],
+      [
+        "native:<img id=\"alttext-image\" width=\"16\" height=\"16\" align=\"left\" style=\"margin: 0px;\">",
+        {
+          "count": 156,
+          "selfBytes": 37440
+        }
+      ],
+      [
+        "native:EventListener",
+        {
+          "count": 1551,
+          "selfBytes": 37224
+        }
+      ],
+      [
+        "object:Error",
+        {
+          "count": 1284,
+          "selfBytes": 30736
+        }
+      ],
+      [
+        "native:ShadowRoot",
+        {
+          "count": 158,
+          "selfBytes": 26576
+        }
+      ],
+      [
+        "native:<span class=\"ui_badge__rKDPn ui_badgeMuted__wtbuO\">",
+        {
+          "count": 205,
+          "selfBytes": 24600
+        }
+      ],
+      [
+        "native:DOMTokenList",
+        {
+          "count": 412,
+          "selfBytes": 23072
+        }
+      ],
+      [
+        "native:CSSStyleDeclaration",
+        {
+          "count": 371,
+          "selfBytes": 22472
+        }
+      ],
+      [
+        "native:<span class=\"FansubTeamSection_memberRoles__aZN9W\">",
+        {
+          "count": 169,
+          "selfBytes": 20280
+        }
+      ],
+      [
+        "native:<div class=\"ui_sectionHeaderContent__bzwa1\">",
+        {
+          "count": 160,
+          "selfBytes": 19200
+        }
+      ],
+      [
+        "native:<span class=\"FansubTeamSection_memberNameLink__tvX4e\">",
+        {
+          "count": 156,
+          "selfBytes": 18720
+        }
+      ],
+      [
+        "native:<span class=\"FansubTeamSection_memberMeta__ZF5ek\">",
+        {
+          "count": 156,
+          "selfBytes": 18720
+        }
+      ]
+    ]
+  },
+  "retention-dev-member-before.heapsnapshot.gz": {
+    "nodes": 208746,
+    "edges": 967014,
+    "byType": {
+      "synthetic": 31,
+      "hidden": 46860,
+      "string": 19285,
+      "object shape": 11350,
+      "code": 49078,
+      "array": 5495,
+      "number": 3702,
+      "symbol": 47,
+      "object": 26423,
+      "native": 9975,
+      "closure": 30228,
+      "concatenated string": 6184,
+      "regexp": 75,
+      "sliced string": 13
+    },
+    "fibers": 767,
+    "fiberSelfBytes": 110448,
+    "domNative": 535,
+    "detached": 0,
+    "attached": 357,
+    "unknown": 178,
+    "largestSelf": [
+      [
+        "native:system / ExternalStringData",
+        {
+          "count": 727,
+          "selfBytes": 55191521
+        }
+      ],
+      [
+        "object:Object",
+        {
+          "count": 9718,
+          "selfBytes": 265792
+        }
+      ],
+      [
+        "object:system / Context",
+        {
+          "count": 10065,
+          "selfBytes": 239464
+        }
+      ],
+      [
+        "object:FiberNode",
+        {
+          "count": 767,
+          "selfBytes": 110448
+        }
+      ],
+      [
+        "object:Array",
+        {
+          "count": 3764,
+          "selfBytes": 60224
+        }
+      ],
+      [
+        "native:Attr",
+        {
+          "count": 642,
+          "selfBytes": 56496
+        }
+      ],
+      [
+        "native:V8EventListener",
+        {
+          "count": 589,
+          "selfBytes": 23560
+        }
+      ],
+      [
+        "object:ReactPromise",
+        {
+          "count": 503,
+          "selfBytes": 18108
+        }
+      ],
+      [
+        "object:Error",
+        {
+          "count": 754,
+          "selfBytes": 18060
+        }
+      ],
+      [
+        "native:EventListener",
+        {
+          "count": 621,
+          "selfBytes": 14904
+        }
+      ],
+      [
+        "native:NamedNodeMap",
+        {
+          "count": 294,
+          "selfBytes": 11760
+        }
+      ],
+      [
+        "native:Text",
+        {
+          "count": 139,
+          "selfBytes": 11280
+        }
+      ],
+      [
+        "native:SVGAnimatedLength",
+        {
+          "count": 153,
+          "selfBytes": 9792
+        }
+      ],
+      [
+        "object:ry",
+        {
+          "count": 82,
+          "selfBytes": 8528
+        }
+      ],
+      [
+        "native:<script>",
+        {
+          "count": 29,
+          "selfBytes": 5568
+        }
+      ],
+      [
+        "native:DOMTokenList",
+        {
+          "count": 88,
+          "selfBytes": 4928
+        }
+      ],
+      [
+        "native:SVGSVGElement",
+        {
+          "count": 21,
+          "selfBytes": 4536
+        }
+      ],
+      [
+        "native:SVGAnimatedString",
+        {
+          "count": 80,
+          "selfBytes": 4496
+        }
+      ],
+      [
+        "native:SVGAnimatedTransformList",
+        {
+          "count": 70,
+          "selfBytes": 4480
+        }
+      ],
+      [
+        "native:SVGPathElement",
+        {
+          "count": 25,
+          "selfBytes": 4000
+        }
+      ],
+      [
+        "native:CSSStyleSheet",
+        {
+          "count": 19,
+          "selfBytes": 3344
+        }
+      ],
+      [
+        "native:HTMLDocument",
+        {
+          "count": 1,
+          "selfBytes": 3200
+        }
+      ],
+      [
+        "native:SVGAnimatedNumber",
+        {
+          "count": 50,
+          "selfBytes": 3200
+        }
+      ],
+      [
+        "native:PerformanceResourceTiming",
+        {
+          "count": 16,
+          "selfBytes": 2560
+        }
+      ],
+      [
+        "object:Module",
+        {
+          "count": 92,
+          "selfBytes": 2176
+        }
+      ],
+      [
+        "native:<style data-nextjs-dev-tool-style=\"true\">",
+        {
+          "count": 13,
+          "selfBytes": 2080
+        }
+      ],
+      [
+        "native:PerformanceEventTiming",
+        {
+          "count": 7,
+          "selfBytes": 1792
+        }
+      ],
+      [
+        "native:<span>",
+        {
+          "count": 14,
+          "selfBytes": 1680
+        }
+      ],
+      [
+        "native:SVGLineElement",
+        {
+          "count": 9,
+          "selfBytes": 1584
+        }
+      ],
+      [
+        "native:<span class=\"FansubTeamSection_memberRoles__aZN9W\">",
+        {
+          "count": 13,
+          "selfBytes": 1560
+        }
+      ]
+    ]
+  },
+  "retention-dev-member-cleared.heapsnapshot.gz": {
+    "nodes": 384850,
+    "edges": 1722737,
+    "byType": {
+      "synthetic": 31,
+      "hidden": 72381,
+      "string": 26411,
+      "object shape": 16494,
+      "code": 76809,
+      "array": 20630,
+      "number": 13366,
+      "symbol": 48,
+      "object": 48556,
+      "closure": 44754,
+      "native": 55729,
+      "concatenated string": 9509,
+      "regexp": 113,
+      "sliced string": 19
+    },
+    "fibers": 2322,
+    "fiberSelfBytes": 334368,
+    "domNative": 15008,
+    "detached": 11627,
+    "attached": 372,
+    "unknown": 3009,
+    "largestSelf": [
+      [
+        "native:system / ExternalStringData",
+        {
+          "count": 1381,
+          "selfBytes": 90400427
+        }
+      ],
+      [
+        "object:Object",
+        {
+          "count": 18380,
+          "selfBytes": 477064
+        }
+      ],
+      [
+        "native:SVGAnimatedLength",
+        {
+          "count": 6915,
+          "selfBytes": 442560
+        }
+      ],
+      [
+        "native:Text",
+        {
+          "count": 4040,
+          "selfBytes": 348224
+        }
+      ],
+      [
+        "object:system / Context",
+        {
+          "count": 14716,
+          "selfBytes": 346064
+        }
+      ],
+      [
+        "object:FiberNode",
+        {
+          "count": 2322,
+          "selfBytes": 334368
+        }
+      ],
+      [
+        "native:SVGSVGElement",
+        {
+          "count": 813,
+          "selfBytes": 175608
+        }
+      ],
+      [
+        "native:SVGAnimatedTransformList",
+        {
+          "count": 2458,
+          "selfBytes": 157312
+        }
+      ],
+      [
+        "native:SVGPathElement",
+        {
+          "count": 901,
+          "selfBytes": 144160
+        }
+      ],
+      [
+        "native:SVGAnimatedString",
+        {
+          "count": 2468,
+          "selfBytes": 138224
+        }
+      ],
+      [
+        "object:Array",
+        {
+          "count": 8007,
+          "selfBytes": 128136
+        }
+      ],
+      [
+        "native:SVGAnimatedNumber",
+        {
+          "count": 1646,
+          "selfBytes": 105344
+        }
+      ],
+      [
+        "native:SVGRectElement",
+        {
+          "count": 536,
+          "selfBytes": 98624
+        }
+      ],
+      [
+        "native:<span>",
+        {
+          "count": 686,
+          "selfBytes": 82320
+        }
+      ],
+      [
+        "native:Attr",
+        {
+          "count": 686,
+          "selfBytes": 60368
+        }
+      ],
+      [
+        "object:ReactPromise",
+        {
+          "count": 1501,
+          "selfBytes": 54036
+        }
+      ],
+      [
+        "native:SVGAnimatedPreserveAspectRatio",
+        {
+          "count": 813,
+          "selfBytes": 52032
+        }
+      ],
+      [
+        "native:SVGAnimatedRect",
+        {
+          "count": 813,
+          "selfBytes": 52032
+        }
+      ],
+      [
+        "native:V8EventListener",
+        {
+          "count": 1176,
+          "selfBytes": 47040
+        }
+      ],
+      [
+        "native:<img id=\"alttext-image\" width=\"16\" height=\"16\" align=\"left\" style=\"margin: 0px;\">",
+        {
+          "count": 156,
+          "selfBytes": 37440
+        }
+      ],
+      [
+        "native:EventListener",
+        {
+          "count": 1551,
+          "selfBytes": 37224
+        }
+      ],
+      [
+        "object:Error",
+        {
+          "count": 1284,
+          "selfBytes": 30736
+        }
+      ],
+      [
+        "native:ShadowRoot",
+        {
+          "count": 158,
+          "selfBytes": 26576
+        }
+      ],
+      [
+        "native:<span class=\"ui_badge__rKDPn ui_badgeMuted__wtbuO\">",
+        {
+          "count": 205,
+          "selfBytes": 24600
+        }
+      ],
+      [
+        "native:DOMTokenList",
+        {
+          "count": 412,
+          "selfBytes": 23072
+        }
+      ],
+      [
+        "native:CSSStyleDeclaration",
+        {
+          "count": 371,
+          "selfBytes": 22472
+        }
+      ],
+      [
+        "native:<span class=\"FansubTeamSection_memberRoles__aZN9W\">",
+        {
+          "count": 169,
+          "selfBytes": 20280
+        }
+      ],
+      [
+        "native:<div class=\"ui_sectionHeaderContent__bzwa1\">",
+        {
+          "count": 160,
+          "selfBytes": 19200
+        }
+      ],
+      [
+        "native:<span class=\"FansubTeamSection_memberNameLink__tvX4e\">",
+        {
+          "count": 156,
+          "selfBytes": 18720
+        }
+      ],
+      [
+        "native:<span class=\"FansubTeamSection_memberMeta__ZF5ek\">",
+        {
+          "count": 156,
+          "selfBytes": 18720
+        }
+      ]
+    ]
+  },
+  "retention-production-diagnostic-group-after.heapsnapshot.gz": {
+    "nodes": 112855,
+    "edges": 499898,
+    "byType": {
+      "synthetic": 31,
+      "hidden": 15047,
+      "string": 12586,
+      "object shape": 6727,
+      "code": 36032,
+      "array": 5065,
+      "number": 932,
+      "symbol": 40,
+      "object": 10086,
+      "native": 17902,
+      "closure": 6931,
+      "concatenated string": 1462,
+      "regexp": 14
+    },
+    "fibers": 0,
+    "fiberSelfBytes": 0,
+    "domNative": 4426,
+    "detached": 2974,
+    "attached": 323,
+    "unknown": 1129,
+    "largestSelf": [
+      [
+        "native:system / ExternalStringData",
+        {
+          "count": 406,
+          "selfBytes": 740998
+        }
+      ],
+      [
+        "object:Object",
+        {
+          "count": 4402,
+          "selfBytes": 119252
+        }
+      ],
+      [
+        "native:Text",
+        {
+          "count": 1104,
+          "selfBytes": 90192
+        }
+      ],
+      [
+        "object:rb",
+        {
+          "count": 821,
+          "selfBytes": 85384
+        }
+      ],
+      [
+        "native:SVGAnimatedLength",
+        {
+          "count": 1133,
+          "selfBytes": 72512
+        }
+      ],
+      [
+        "native:SVGSVGElement",
+        {
+          "count": 200,
+          "selfBytes": 43200
+        }
+      ],
+      [
+        "native:SVGAnimatedTransformList",
+        {
+          "count": 529,
+          "selfBytes": 33856
+        }
+      ],
+      [
+        "native:SVGAnimatedString",
+        {
+          "count": 529,
+          "selfBytes": 29624
+        }
+      ],
+      [
+        "object:system / Context",
+        {
+          "count": 658,
+          "selfBytes": 27860
+        }
+      ],
+      [
+        "native:SVGPathElement",
+        {
+          "count": 167,
+          "selfBytes": 26720
+        }
+      ],
+      [
+        "native:V8EventListener",
+        {
+          "count": 534,
+          "selfBytes": 21360
+        }
+      ],
+      [
+        "native:SVGAnimatedNumber",
+        {
+          "count": 329,
+          "selfBytes": 21056
+        }
+      ],
+      [
+        "object:Array",
+        {
+          "count": 1280,
+          "selfBytes": 20480
+        }
+      ],
+      [
+        "native:<span class=\"FansubTeamSection_memberRoles__aZN9W\">",
+        {
+          "count": 169,
+          "selfBytes": 20280
+        }
+      ],
+      [
+        "native:<span class=\"FansubTeamSection_memberNameLink__tvX4e\">",
+        {
+          "count": 156,
+          "selfBytes": 18720
+        }
+      ],
+      [
+        "native:<span class=\"FansubTeamSection_memberMeta__ZF5ek\">",
+        {
+          "count": 156,
+          "selfBytes": 18720
+        }
+      ],
+      [
+        "native:EventListener",
+        {
+          "count": 766,
+          "selfBytes": 18384
+        }
+      ],
+      [
+        "native:ElementIntersectionObserverData",
+        {
+          "count": 254,
+          "selfBytes": 18288
+        }
+      ],
+      [
+        "native:SVGLineElement",
+        {
+          "count": 81,
+          "selfBytes": 14256
+        }
+      ],
+      [
+        "object:HTMLSpanElement",
+        {
+          "count": 872,
+          "selfBytes": 13976
+        }
+      ],
+      [
+        "native:DOMTokenList",
+        {
+          "count": 248,
+          "selfBytes": 13888
+        }
+      ],
+      [
+        "native:PerformanceResourceTiming",
+        {
+          "count": 82,
+          "selfBytes": 13120
+        }
+      ],
+      [
+        "native:SVGAnimatedPreserveAspectRatio",
+        {
+          "count": 200,
+          "selfBytes": 12800
+        }
+      ],
+      [
+        "native:SVGAnimatedRect",
+        {
+          "count": 200,
+          "selfBytes": 12800
+        }
+      ],
+      [
+        "native:SVGPolylineElement",
+        {
+          "count": 78,
+          "selfBytes": 12480
+        }
+      ],
+      [
+        "native:<span>",
+        {
+          "count": 98,
+          "selfBytes": 11760
+        }
+      ],
+      [
+        "native:<span class=\"ui_badge__rKDPn ui_badgeMuted__wtbuO\">",
+        {
+          "count": 91,
+          "selfBytes": 10920
+        }
+      ],
+      [
+        "native:CSSStyleDeclaration",
+        {
+          "count": 148,
+          "selfBytes": 9440
+        }
+      ],
+      [
+        "native:<span class=\"FansubTeamSection_memberNameRow__d_qBX\">",
+        {
+          "count": 78,
+          "selfBytes": 9360
+        }
+      ],
+      [
+        "native:<span class=\"FansubTeamSection_avatar__h7TVU FansubTeamSection_avatarMuted__NE8MH\" aria-hidden=\"true\">",
+        {
+          "count": 78,
+          "selfBytes": 9360
+        }
+      ]
+    ]
+  },
+  "retention-production-diagnostic-group-before.heapsnapshot.gz": {
+    "nodes": 83641,
+    "edges": 376161,
+    "byType": {
+      "synthetic": 31,
+      "hidden": 13562,
+      "string": 12023,
+      "object shape": 6130,
+      "code": 28549,
+      "array": 1738,
+      "number": 91,
+      "symbol": 40,
+      "object": 7504,
+      "closure": 6559,
+      "native": 5933,
+      "concatenated string": 1467,
+      "regexp": 14
+    },
+    "fibers": 0,
+    "fiberSelfBytes": 0,
+    "domNative": 458,
+    "detached": 0,
+    "attached": 323,
+    "unknown": 135,
+    "largestSelf": [
+      [
+        "native:system / ExternalStringData",
+        {
+          "count": 234,
+          "selfBytes": 733211
+        }
+      ],
+      [
+        "object:Object",
+        {
+          "count": 3727,
+          "selfBytes": 101584
+        }
+      ],
+      [
+        "object:rb",
+        {
+          "count": 714,
+          "selfBytes": 74256
+        }
+      ],
+      [
+        "object:system / Context",
+        {
+          "count": 626,
+          "selfBytes": 26452
+        }
+      ],
+      [
+        "object:Array",
+        {
+          "count": 1067,
+          "selfBytes": 17072
+        }
+      ],
+      [
+        "native:V8EventListener",
+        {
+          "count": 322,
+          "selfBytes": 12880
+        }
+      ],
+      [
+        "native:Text",
+        {
+          "count": 110,
+          "selfBytes": 8960
+        }
+      ],
+      [
+        "native:EventListener",
+        {
+          "count": 347,
+          "selfBytes": 8328
+        }
+      ],
+      [
+        "native:PerformanceResourceTiming",
+        {
+          "count": 52,
+          "selfBytes": 8320
+        }
+      ],
+      [
+        "native:SVGAnimatedLength",
+        {
+          "count": 125,
+          "selfBytes": 8000
+        }
+      ],
+      [
+        "native:ReadableStreamDefaultReader",
+        {
+          "count": 45,
+          "selfBytes": 4320
+        }
+      ],
+      [
+        "native:SVGSVGElement",
+        {
+          "count": 20,
+          "selfBytes": 4320
+        }
+      ],
+      [
+        "native:DOMTokenList",
+        {
+          "count": 73,
+          "selfBytes": 4088
+        }
+      ],
+      [
+        "object:Promise",
+        {
+          "count": 202,
+          "selfBytes": 4064
+        }
+      ],
+      [
+        "native:SVGAnimatedTransformList",
+        {
+          "count": 61,
+          "selfBytes": 3904
+        }
+      ],
+      [
+        "native:SVGPathElement",
+        {
+          "count": 23,
+          "selfBytes": 3680
+        }
+      ],
+      [
+        "native:ReadableStream",
+        {
+          "count": 45,
+          "selfBytes": 3584
+        }
+      ],
+      [
+        "native:SVGAnimatedString",
+        {
+          "count": 61,
+          "selfBytes": 3416
+        }
+      ],
+      [
+        "native:<script>",
+        {
+          "count": 17,
+          "selfBytes": 3264
+        }
+      ],
+      [
+        "native:HTMLDocument",
+        {
+          "count": 1,
+          "selfBytes": 3200
+        }
+      ],
+      [
+        "object:P",
+        {
+          "count": 126,
+          "selfBytes": 3156
+        }
+      ],
+      [
+        "native:ReadableByteStreamController",
+        {
+          "count": 22,
+          "selfBytes": 2992
+        }
+      ],
+      [
+        "native:SVGAnimatedNumber",
+        {
+          "count": 41,
+          "selfBytes": 2624
+        }
+      ],
+      [
+        "native:ScriptFunction",
+        {
+          "count": 46,
+          "selfBytes": 2208
+        }
+      ],
+      [
+        "native:ReadableStreamDefaultController",
+        {
+          "count": 23,
+          "selfBytes": 2024
+        }
+      ],
+      [
+        "native:PerformanceEventTiming",
+        {
+          "count": 7,
+          "selfBytes": 1792
+        }
+      ],
+      [
+        "native:ElementIntersectionObserverData",
+        {
+          "count": 24,
+          "selfBytes": 1728
+        }
+      ],
+      [
+        "native:<span>",
+        {
+          "count": 14,
+          "selfBytes": 1680
+        }
+      ],
+      [
+        "object:HTMLSpanElement",
+        {
+          "count": 101,
+          "selfBytes": 1640
+        }
+      ],
+      [
+        "native:SVGLineElement",
+        {
+          "count": 9,
+          "selfBytes": 1584
+        }
+      ]
+    ]
+  },
+  "retention-production-diagnostic-member-after.heapsnapshot.gz": {
+    "nodes": 187042,
+    "edges": 805291,
+    "byType": {
+      "synthetic": 31,
+      "hidden": 17598,
+      "string": 15917,
+      "object shape": 10237,
+      "code": 47636,
+      "array": 13215,
+      "number": 2414,
+      "symbol": 40,
+      "object": 17460,
+      "closure": 9454,
+      "native": 50617,
+      "concatenated string": 2374,
+      "regexp": 49
+    },
+    "fibers": 0,
+    "fiberSelfBytes": 0,
+    "domNative": 14896,
+    "detached": 11604,
+    "attached": 324,
+    "unknown": 2968,
+    "largestSelf": [
+      [
+        "native:system / ExternalStringData",
+        {
+          "count": 779,
+          "selfBytes": 1753475
+        }
+      ],
+      [
+        "native:SVGAnimatedLength",
+        {
+          "count": 6887,
+          "selfBytes": 440768
+        }
+      ],
+      [
+        "native:Text",
+        {
+          "count": 4011,
+          "selfBytes": 345904
+        }
+      ],
+      [
+        "object:rb",
+        {
+          "count": 2269,
+          "selfBytes": 235976
+        }
+      ],
+      [
+        "native:SVGSVGElement",
+        {
+          "count": 812,
+          "selfBytes": 175392
+        }
+      ],
+      [
+        "object:Object",
+        {
+          "count": 6242,
+          "selfBytes": 165168
+        }
+      ],
+      [
+        "native:SVGAnimatedTransformList",
+        {
+          "count": 2449,
+          "selfBytes": 156736
+        }
+      ],
+      [
+        "native:SVGPathElement",
+        {
+          "count": 899,
+          "selfBytes": 143840
+        }
+      ],
+      [
+        "native:SVGAnimatedString",
+        {
+          "count": 2449,
+          "selfBytes": 137144
+        }
+      ],
+      [
+        "native:SVGAnimatedNumber",
+        {
+          "count": 1637,
+          "selfBytes": 104768
+        }
+      ],
+      [
+        "native:SVGRectElement",
+        {
+          "count": 534,
+          "selfBytes": 98256
+        }
+      ],
+      [
+        "native:<span>",
+        {
+          "count": 686,
+          "selfBytes": 82320
+        }
+      ],
+      [
+        "native:SVGAnimatedPreserveAspectRatio",
+        {
+          "count": 812,
+          "selfBytes": 51968
+        }
+      ],
+      [
+        "native:SVGAnimatedRect",
+        {
+          "count": 812,
+          "selfBytes": 51968
+        }
+      ],
+      [
+        "object:system / Context",
+        {
+          "count": 974,
+          "selfBytes": 39220
+        }
+      ],
+      [
+        "native:<img id=\"alttext-image\" width=\"16\" height=\"16\" align=\"left\" style=\"margin: 0px;\">",
+        {
+          "count": 156,
+          "selfBytes": 37440
+        }
+      ],
+      [
+        "native:V8EventListener",
+        {
+          "count": 778,
+          "selfBytes": 31120
+        }
+      ],
+      [
+        "native:ElementIntersectionObserverData",
+        {
+          "count": 426,
+          "selfBytes": 30672
+        }
+      ],
+      [
+        "object:Array",
+        {
+          "count": 1881,
+          "selfBytes": 30096
+        }
+      ],
+      [
+        "native:EventListener",
+        {
+          "count": 1100,
+          "selfBytes": 26400
+        }
+      ],
+      [
+        "native:ShadowRoot",
+        {
+          "count": 157,
+          "selfBytes": 26392
+        }
+      ],
+      [
+        "object:HTMLSpanElement",
+        {
+          "count": 1629,
+          "selfBytes": 26088
+        }
+      ],
+      [
+        "native:<span class=\"ui_badge__rKDPn ui_badgeMuted__wtbuO\">",
+        {
+          "count": 205,
+          "selfBytes": 24600
+        }
+      ],
+      [
+        "native:CSSStyleDeclaration",
+        {
+          "count": 364,
+          "selfBytes": 22496
+        }
+      ],
+      [
+        "native:<span class=\"FansubTeamSection_memberRoles__aZN9W\">",
+        {
+          "count": 169,
+          "selfBytes": 20280
+        }
+      ],
+      [
+        "native:PerformanceResourceTiming",
+        {
+          "count": 126,
+          "selfBytes": 20160
+        }
+      ],
+      [
+        "native:<div class=\"ui_sectionHeaderContent__bzwa1\">",
+        {
+          "count": 160,
+          "selfBytes": 19200
+        }
+      ],
+      [
+        "native:<span class=\"FansubTeamSection_memberNameLink__tvX4e\">",
+        {
+          "count": 156,
+          "selfBytes": 18720
+        }
+      ],
+      [
+        "native:<span class=\"FansubTeamSection_memberMeta__ZF5ek\">",
+        {
+          "count": 156,
+          "selfBytes": 18720
+        }
+      ],
+      [
+        "native:SVGLineElement",
+        {
+          "count": 93,
+          "selfBytes": 16368
+        }
+      ]
+    ]
+  },
+  "retention-production-diagnostic-member-before.heapsnapshot.gz": {
+    "nodes": 83462,
+    "edges": 375022,
+    "byType": {
+      "synthetic": 31,
+      "hidden": 13552,
+      "string": 12022,
+      "object shape": 6093,
+      "code": 28475,
+      "array": 1736,
+      "number": 91,
+      "symbol": 40,
+      "object": 7478,
+      "closure": 6542,
+      "native": 5922,
+      "concatenated string": 1466,
+      "regexp": 14
+    },
+    "fibers": 0,
+    "fiberSelfBytes": 0,
+    "domNative": 459,
+    "detached": 0,
+    "attached": 321,
+    "unknown": 138,
+    "largestSelf": [
+      [
+        "native:system / ExternalStringData",
+        {
+          "count": 231,
+          "selfBytes": 733141
+        }
+      ],
+      [
+        "object:Object",
+        {
+          "count": 3715,
+          "selfBytes": 101112
+        }
+      ],
+      [
+        "object:rb",
+        {
+          "count": 708,
+          "selfBytes": 73632
+        }
+      ],
+      [
+        "object:system / Context",
+        {
+          "count": 623,
+          "selfBytes": 26272
+        }
+      ],
+      [
+        "object:Array",
+        {
+          "count": 1065,
+          "selfBytes": 17040
+        }
+      ],
+      [
+        "native:V8EventListener",
+        {
+          "count": 322,
+          "selfBytes": 12880
+        }
+      ],
+      [
+        "native:Text",
+        {
+          "count": 110,
+          "selfBytes": 8944
+        }
+      ],
+      [
+        "native:EventListener",
+        {
+          "count": 347,
+          "selfBytes": 8328
+        }
+      ],
+      [
+        "native:PerformanceResourceTiming",
+        {
+          "count": 52,
+          "selfBytes": 8320
+        }
+      ],
+      [
+        "native:SVGAnimatedLength",
+        {
+          "count": 125,
+          "selfBytes": 8000
+        }
+      ],
+      [
+        "native:ReadableStreamDefaultReader",
+        {
+          "count": 45,
+          "selfBytes": 4320
+        }
+      ],
+      [
+        "native:SVGSVGElement",
+        {
+          "count": 20,
+          "selfBytes": 4320
+        }
+      ],
+      [
+        "native:DOMTokenList",
+        {
+          "count": 74,
+          "selfBytes": 4144
+        }
+      ],
+      [
+        "object:Promise",
+        {
+          "count": 196,
+          "selfBytes": 3944
+        }
+      ],
+      [
+        "native:SVGAnimatedTransformList",
+        {
+          "count": 61,
+          "selfBytes": 3904
+        }
+      ],
+      [
+        "native:SVGPathElement",
+        {
+          "count": 23,
+          "selfBytes": 3680
+        }
+      ],
+      [
+        "native:ReadableStream",
+        {
+          "count": 45,
+          "selfBytes": 3584
+        }
+      ],
+      [
+        "native:SVGAnimatedString",
+        {
+          "count": 61,
+          "selfBytes": 3416
+        }
+      ],
+      [
+        "native:<script>",
+        {
+          "count": 17,
+          "selfBytes": 3264
+        }
+      ],
+      [
+        "native:HTMLDocument",
+        {
+          "count": 1,
+          "selfBytes": 3200
+        }
+      ],
+      [
+        "object:P",
+        {
+          "count": 126,
+          "selfBytes": 3156
+        }
+      ],
+      [
+        "native:ReadableByteStreamController",
+        {
+          "count": 22,
+          "selfBytes": 2992
+        }
+      ],
+      [
+        "native:PerformanceEventTiming",
+        {
+          "count": 11,
+          "selfBytes": 2816
+        }
+      ],
+      [
+        "native:SVGAnimatedNumber",
+        {
+          "count": 41,
+          "selfBytes": 2624
+        }
+      ],
+      [
+        "native:ScriptFunction",
+        {
+          "count": 46,
+          "selfBytes": 2208
+        }
+      ],
+      [
+        "native:ReadableStreamDefaultController",
+        {
+          "count": 23,
+          "selfBytes": 2024
+        }
+      ],
+      [
+        "native:ElementIntersectionObserverData",
+        {
+          "count": 24,
+          "selfBytes": 1728
+        }
+      ],
+      [
+        "native:<span>",
+        {
+          "count": 14,
+          "selfBytes": 1680
+        }
+      ],
+      [
+        "object:HTMLSpanElement",
+        {
+          "count": 101,
+          "selfBytes": 1640
+        }
+      ],
+      [
+        "native:SVGLineElement",
+        {
+          "count": 9,
+          "selfBytes": 1584
+        }
+      ]
+    ]
+  },
+  "retention-production-eager-member-after.heapsnapshot.gz": {
+    "nodes": 125244,
+    "edges": 570724,
+    "byType": {
+      "synthetic": 31,
+      "hidden": 16118,
+      "string": 15902,
+      "object shape": 9287,
+      "code": 47330,
+      "array": 3219,
+      "number": 963,
+      "symbol": 40,
+      "object": 11570,
+      "native": 9356,
+      "closure": 9006,
+      "concatenated string": 2373,
+      "regexp": 49
+    },
+    "fibers": 0,
+    "fiberSelfBytes": 0,
+    "domNative": 1179,
+    "detached": 602,
+    "attached": 324,
+    "unknown": 253,
+    "largestSelf": [
+      [
+        "native:system / ExternalStringData",
+        {
+          "count": 772,
+          "selfBytes": 1752389
+        }
+      ],
+      [
+        "object:Object",
+        {
+          "count": 6241,
+          "selfBytes": 165156
+        }
+      ],
+      [
+        "object:rb",
+        {
+          "count": 818,
+          "selfBytes": 85072
+        }
+      ],
+      [
+        "object:system / Context",
+        {
+          "count": 974,
+          "selfBytes": 39220
+        }
+      ],
+      [
+        "native:SVGAnimatedLength",
+        {
+          "count": 591,
+          "selfBytes": 37824
+        }
+      ],
+      [
+        "object:Array",
+        {
+          "count": 1881,
+          "selfBytes": 30096
+        }
+      ],
+      [
+        "native:PerformanceResourceTiming",
+        {
+          "count": 181,
+          "selfBytes": 28960
+        }
+      ],
+      [
+        "native:Text",
+        {
+          "count": 318,
+          "selfBytes": 27248
+        }
+      ],
+      [
+        "native:SVGSVGElement",
+        {
+          "count": 69,
+          "selfBytes": 14904
+        }
+      ],
+      [
+        "native:V8EventListener",
+        {
+          "count": 334,
+          "selfBytes": 13360
+        }
+      ],
+      [
+        "native:SVGAnimatedTransformList",
+        {
+          "count": 206,
+          "selfBytes": 13184
+        }
+      ],
+      [
+        "native:SVGPathElement",
+        {
+          "count": 73,
+          "selfBytes": 11680
+        }
+      ],
+      [
+        "native:SVGAnimatedString",
+        {
+          "count": 206,
+          "selfBytes": 11536
+        }
+      ],
+      [
+        "native:EventListener",
+        {
+          "count": 367,
+          "selfBytes": 8808
+        }
+      ],
+      [
+        "native:SVGAnimatedNumber",
+        {
+          "count": 137,
+          "selfBytes": 8768
+        }
+      ],
+      [
+        "native:SVGRectElement",
+        {
+          "count": 45,
+          "selfBytes": 8280
+        }
+      ],
+      [
+        "native:ReadableStreamDefaultReader",
+        {
+          "count": 81,
+          "selfBytes": 7776
+        }
+      ],
+      [
+        "native:<span>",
+        {
+          "count": 60,
+          "selfBytes": 7200
+        }
+      ],
+      [
+        "object:Promise",
+        {
+          "count": 352,
+          "selfBytes": 7064
+        }
+      ],
+      [
+        "native:ReadableStream",
+        {
+          "count": 81,
+          "selfBytes": 6176
+        }
+      ],
+      [
+        "object:P",
+        {
+          "count": 251,
+          "selfBytes": 6072
+        }
+      ],
+      [
+        "native:ReadableByteStreamController",
+        {
+          "count": 40,
+          "selfBytes": 5440
+        }
+      ],
+      [
+        "native:NavigationHistoryEntry",
+        {
+          "count": 26,
+          "selfBytes": 4992
+        }
+      ],
+      [
+        "native:DOMTokenList",
+        {
+          "count": 83,
+          "selfBytes": 4648
+        }
+      ],
+      [
+        "native:SVGAnimatedPreserveAspectRatio",
+        {
+          "count": 69,
+          "selfBytes": 4416
+        }
+      ],
+      [
+        "native:SVGAnimatedRect",
+        {
+          "count": 69,
+          "selfBytes": 4416
+        }
+      ],
+      [
+        "native:ScriptFunction",
+        {
+          "count": 82,
+          "selfBytes": 3936
+        }
+      ],
+      [
+        "native:ReadableStreamDefaultController",
+        {
+          "count": 41,
+          "selfBytes": 3608
+        }
+      ],
+      [
+        "native:<script>",
+        {
+          "count": 17,
+          "selfBytes": 3264
+        }
+      ],
+      [
+        "native:HTMLDocument",
+        {
+          "count": 1,
+          "selfBytes": 3200
+        }
+      ]
+    ]
+  },
+  "retention-production-eager-member-before.heapsnapshot.gz": {
+    "nodes": 83371,
+    "edges": 375159,
+    "byType": {
+      "synthetic": 31,
+      "hidden": 13521,
+      "string": 12010,
+      "object shape": 6093,
+      "code": 28413,
+      "array": 1736,
+      "number": 89,
+      "symbol": 40,
+      "object": 7492,
+      "closure": 6552,
+      "native": 5913,
+      "concatenated string": 1467,
+      "regexp": 14
+    },
+    "fibers": 0,
+    "fiberSelfBytes": 0,
+    "domNative": 459,
+    "detached": 0,
+    "attached": 321,
+    "unknown": 138,
+    "largestSelf": [
+      [
+        "native:system / ExternalStringData",
+        {
+          "count": 234,
+          "selfBytes": 733209
+        }
+      ],
+      [
+        "object:Object",
+        {
+          "count": 3726,
+          "selfBytes": 101572
+        }
+      ],
+      [
+        "object:rb",
+        {
+          "count": 714,
+          "selfBytes": 74256
+        }
+      ],
+      [
+        "object:system / Context",
+        {
+          "count": 626,
+          "selfBytes": 26452
+        }
+      ],
+      [
+        "object:Array",
+        {
+          "count": 1067,
+          "selfBytes": 17072
+        }
+      ],
+      [
+        "native:V8EventListener",
+        {
+          "count": 322,
+          "selfBytes": 12880
+        }
+      ],
+      [
+        "native:Text",
+        {
+          "count": 110,
+          "selfBytes": 8944
+        }
+      ],
+      [
+        "native:EventListener",
+        {
+          "count": 347,
+          "selfBytes": 8328
+        }
+      ],
+      [
+        "native:PerformanceResourceTiming",
+        {
+          "count": 52,
+          "selfBytes": 8320
+        }
+      ],
+      [
+        "native:SVGAnimatedLength",
+        {
+          "count": 125,
+          "selfBytes": 8000
+        }
+      ],
+      [
+        "native:ReadableStreamDefaultReader",
+        {
+          "count": 45,
+          "selfBytes": 4320
+        }
+      ],
+      [
+        "native:SVGSVGElement",
+        {
+          "count": 20,
+          "selfBytes": 4320
+        }
+      ],
+      [
+        "native:DOMTokenList",
+        {
+          "count": 74,
+          "selfBytes": 4144
+        }
+      ],
+      [
+        "object:Promise",
+        {
+          "count": 196,
+          "selfBytes": 3944
+        }
+      ],
+      [
+        "native:SVGAnimatedTransformList",
+        {
+          "count": 61,
+          "selfBytes": 3904
+        }
+      ],
+      [
+        "native:SVGPathElement",
+        {
+          "count": 23,
+          "selfBytes": 3680
+        }
+      ],
+      [
+        "native:ReadableStream",
+        {
+          "count": 45,
+          "selfBytes": 3584
+        }
+      ],
+      [
+        "native:SVGAnimatedString",
+        {
+          "count": 61,
+          "selfBytes": 3416
+        }
+      ],
+      [
+        "native:<script>",
+        {
+          "count": 17,
+          "selfBytes": 3264
+        }
+      ],
+      [
+        "native:HTMLDocument",
+        {
+          "count": 1,
+          "selfBytes": 3200
+        }
+      ],
+      [
+        "object:P",
+        {
+          "count": 126,
+          "selfBytes": 3156
+        }
+      ],
+      [
+        "native:ReadableByteStreamController",
+        {
+          "count": 22,
+          "selfBytes": 2992
+        }
+      ],
+      [
+        "native:PerformanceEventTiming",
+        {
+          "count": 11,
+          "selfBytes": 2816
+        }
+      ],
+      [
+        "native:SVGAnimatedNumber",
+        {
+          "count": 41,
+          "selfBytes": 2624
+        }
+      ],
+      [
+        "native:ScriptFunction",
+        {
+          "count": 46,
+          "selfBytes": 2208
+        }
+      ],
+      [
+        "native:ReadableStreamDefaultController",
+        {
+          "count": 23,
+          "selfBytes": 2024
+        }
+      ],
+      [
+        "native:ElementIntersectionObserverData",
+        {
+          "count": 24,
+          "selfBytes": 1728
+        }
+      ],
+      [
+        "native:<span>",
+        {
+          "count": 14,
+          "selfBytes": 1680
+        }
+      ],
+      [
+        "object:HTMLSpanElement",
+        {
+          "count": 101,
+          "selfBytes": 1640
+        }
+      ],
+      [
+        "native:SVGLineElement",
+        {
+          "count": 9,
+          "selfBytes": 1584
+        }
+      ]
+    ]
+  },
+  "retention-production-no-auto-sizes-member-after.heapsnapshot.gz": {
+    "nodes": 125401,
+    "edges": 571375,
+    "byType": {
+      "synthetic": 31,
+      "hidden": 16173,
+      "string": 15921,
+      "object shape": 9237,
+      "code": 47462,
+      "array": 3221,
+      "number": 963,
+      "symbol": 40,
+      "object": 11587,
+      "native": 9333,
+      "closure": 9011,
+      "concatenated string": 2373,
+      "regexp": 49
+    },
+    "fibers": 0,
+    "fiberSelfBytes": 0,
+    "domNative": 1177,
+    "detached": 602,
+    "attached": 324,
+    "unknown": 251,
+    "largestSelf": [
+      [
+        "native:system / ExternalStringData",
+        {
+          "count": 773,
+          "selfBytes": 1752466
+        }
+      ],
+      [
+        "object:Object",
+        {
+          "count": 6242,
+          "selfBytes": 165168
+        }
+      ],
+      [
+        "object:rb",
+        {
+          "count": 818,
+          "selfBytes": 85072
+        }
+      ],
+      [
+        "object:system / Context",
+        {
+          "count": 974,
+          "selfBytes": 39220
+        }
+      ],
+      [
+        "native:SVGAnimatedLength",
+        {
+          "count": 591,
+          "selfBytes": 37824
+        }
+      ],
+      [
+        "object:Array",
+        {
+          "count": 1881,
+          "selfBytes": 30096
+        }
+      ],
+      [
+        "native:PerformanceResourceTiming",
+        {
+          "count": 175,
+          "selfBytes": 28000
+        }
+      ],
+      [
+        "native:Text",
+        {
+          "count": 318,
+          "selfBytes": 27248
+        }
+      ],
+      [
+        "native:SVGSVGElement",
+        {
+          "count": 69,
+          "selfBytes": 14904
+        }
+      ],
+      [
+        "native:V8EventListener",
+        {
+          "count": 334,
+          "selfBytes": 13360
+        }
+      ],
+      [
+        "native:SVGAnimatedTransformList",
+        {
+          "count": 206,
+          "selfBytes": 13184
+        }
+      ],
+      [
+        "native:SVGPathElement",
+        {
+          "count": 73,
+          "selfBytes": 11680
+        }
+      ],
+      [
+        "native:SVGAnimatedString",
+        {
+          "count": 206,
+          "selfBytes": 11536
+        }
+      ],
+      [
+        "native:EventListener",
+        {
+          "count": 367,
+          "selfBytes": 8808
+        }
+      ],
+      [
+        "native:SVGAnimatedNumber",
+        {
+          "count": 137,
+          "selfBytes": 8768
+        }
+      ],
+      [
+        "native:SVGRectElement",
+        {
+          "count": 45,
+          "selfBytes": 8280
+        }
+      ],
+      [
+        "native:ReadableStreamDefaultReader",
+        {
+          "count": 81,
+          "selfBytes": 7776
+        }
+      ],
+      [
+        "object:Promise",
+        {
+          "count": 364,
+          "selfBytes": 7304
+        }
+      ],
+      [
+        "native:<span>",
+        {
+          "count": 60,
+          "selfBytes": 7200
+        }
+      ],
+      [
+        "native:ReadableStream",
+        {
+          "count": 81,
+          "selfBytes": 6208
+        }
+      ],
+      [
+        "object:P",
+        {
+          "count": 251,
+          "selfBytes": 6072
+        }
+      ],
+      [
+        "native:ReadableByteStreamController",
+        {
+          "count": 40,
+          "selfBytes": 5440
+        }
+      ],
+      [
+        "native:NavigationHistoryEntry",
+        {
+          "count": 26,
+          "selfBytes": 4992
+        }
+      ],
+      [
+        "native:DOMTokenList",
+        {
+          "count": 81,
+          "selfBytes": 4536
+        }
+      ],
+      [
+        "native:SVGAnimatedPreserveAspectRatio",
+        {
+          "count": 69,
+          "selfBytes": 4416
+        }
+      ],
+      [
+        "native:SVGAnimatedRect",
+        {
+          "count": 69,
+          "selfBytes": 4416
+        }
+      ],
+      [
+        "native:PerformanceEventTiming",
+        {
+          "count": 16,
+          "selfBytes": 4112
+        }
+      ],
+      [
+        "native:ScriptFunction",
+        {
+          "count": 82,
+          "selfBytes": 3936
+        }
+      ],
+      [
+        "native:ReadableStreamDefaultController",
+        {
+          "count": 41,
+          "selfBytes": 3608
+        }
+      ],
+      [
+        "native:<script>",
+        {
+          "count": 17,
+          "selfBytes": 3264
+        }
+      ]
+    ]
+  },
+  "retention-production-no-auto-sizes-member-before.heapsnapshot.gz": {
+    "nodes": 83670,
+    "edges": 376559,
+    "byType": {
+      "synthetic": 31,
+      "hidden": 13572,
+      "string": 12039,
+      "object shape": 6115,
+      "code": 28539,
+      "array": 1744,
+      "number": 92,
+      "symbol": 40,
+      "object": 7523,
+      "closure": 6573,
+      "native": 5914,
+      "concatenated string": 1474,
+      "regexp": 14
+    },
+    "fibers": 0,
+    "fiberSelfBytes": 0,
+    "domNative": 457,
+    "detached": 0,
+    "attached": 321,
+    "unknown": 136,
+    "largestSelf": [
+      [
+        "native:system / ExternalStringData",
+        {
+          "count": 235,
+          "selfBytes": 733286
+        }
+      ],
+      [
+        "object:Object",
+        {
+          "count": 3735,
+          "selfBytes": 101836
+        }
+      ],
+      [
+        "object:rb",
+        {
+          "count": 714,
+          "selfBytes": 74256
+        }
+      ],
+      [
+        "object:system / Context",
+        {
+          "count": 629,
+          "selfBytes": 26632
+        }
+      ],
+      [
+        "object:Array",
+        {
+          "count": 1073,
+          "selfBytes": 17168
+        }
+      ],
+      [
+        "native:V8EventListener",
+        {
+          "count": 322,
+          "selfBytes": 12880
+        }
+      ],
+      [
+        "native:Text",
+        {
+          "count": 110,
+          "selfBytes": 8944
+        }
+      ],
+      [
+        "native:EventListener",
+        {
+          "count": 347,
+          "selfBytes": 8328
+        }
+      ],
+      [
+        "native:PerformanceResourceTiming",
+        {
+          "count": 52,
+          "selfBytes": 8320
+        }
+      ],
+      [
+        "native:SVGAnimatedLength",
+        {
+          "count": 125,
+          "selfBytes": 8000
+        }
+      ],
+      [
+        "native:ReadableStreamDefaultReader",
+        {
+          "count": 45,
+          "selfBytes": 4320
+        }
+      ],
+      [
+        "native:SVGSVGElement",
+        {
+          "count": 20,
+          "selfBytes": 4320
+        }
+      ],
+      [
+        "object:Promise",
+        {
+          "count": 202,
+          "selfBytes": 4064
+        }
+      ],
+      [
+        "native:DOMTokenList",
+        {
+          "count": 72,
+          "selfBytes": 4032
+        }
+      ],
+      [
+        "native:SVGAnimatedTransformList",
+        {
+          "count": 61,
+          "selfBytes": 3904
+        }
+      ],
+      [
+        "native:SVGPathElement",
+        {
+          "count": 23,
+          "selfBytes": 3680
+        }
+      ],
+      [
+        "native:ReadableStream",
+        {
+          "count": 45,
+          "selfBytes": 3584
+        }
+      ],
+      [
+        "native:SVGAnimatedString",
+        {
+          "count": 61,
+          "selfBytes": 3416
+        }
+      ],
+      [
+        "native:<script>",
+        {
+          "count": 17,
+          "selfBytes": 3264
+        }
+      ],
+      [
+        "native:HTMLDocument",
+        {
+          "count": 1,
+          "selfBytes": 3200
+        }
+      ],
+      [
+        "object:P",
+        {
+          "count": 126,
+          "selfBytes": 3156
+        }
+      ],
+      [
+        "native:ReadableByteStreamController",
+        {
+          "count": 22,
+          "selfBytes": 2992
+        }
+      ],
+      [
+        "native:SVGAnimatedNumber",
+        {
+          "count": 41,
+          "selfBytes": 2624
+        }
+      ],
+      [
+        "native:ScriptFunction",
+        {
+          "count": 46,
+          "selfBytes": 2208
+        }
+      ],
+      [
+        "native:ReadableStreamDefaultController",
+        {
+          "count": 23,
+          "selfBytes": 2024
+        }
+      ],
+      [
+        "native:ElementIntersectionObserverData",
+        {
+          "count": 24,
+          "selfBytes": 1728
+        }
+      ],
+      [
+        "native:<span>",
+        {
+          "count": 14,
+          "selfBytes": 1680
+        }
+      ],
+      [
+        "object:HTMLSpanElement",
+        {
+          "count": 101,
+          "selfBytes": 1640
+        }
+      ],
+      [
+        "native:SVGLineElement",
+        {
+          "count": 9,
+          "selfBytes": 1584
+        }
+      ],
+      [
+        "native:<span class=\"FansubTeamSection_memberRoles__aZN9W\">",
+        {
+          "count": 13,
+          "selfBytes": 1560
+        }
+      ]
+    ]
+  }
+}

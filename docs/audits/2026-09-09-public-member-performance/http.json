@@ -1,0 +1,282 @@
+[
+  {
+    "endpoint": "/api/v1/members/timer",
+    "iteration": 0,
+    "ttfb_ms": 8.062797016464174,
+    "total_ms": 8.133470080792904,
+    "bytes": 10235,
+    "status": 200
+  },
+  {
+    "endpoint": "/api/v1/members/timer",
+    "iteration": 1,
+    "ttfb_ms": 6.453134003095329,
+    "total_ms": 6.527393939904869,
+    "bytes": 10235,
+    "status": 200
+  },
+  {
+    "endpoint": "/api/v1/members/timer",
+    "iteration": 2,
+    "ttfb_ms": 6.466399994678795,
+    "total_ms": 6.526843993924558,
+    "bytes": 10235,
+    "status": 200
+  },
+  {
+    "endpoint": "/api/v1/members/timer",
+    "iteration": 3,
+    "ttfb_ms": 5.690457997843623,
+    "total_ms": 5.739631014876068,
+    "bytes": 10235,
+    "status": 200
+  },
+  {
+    "endpoint": "/api/v1/members/timer",
+    "iteration": 4,
+    "ttfb_ms": 5.329517996869981,
+    "total_ms": 5.369573016650975,
+    "bytes": 10235,
+    "status": 200
+  },
+  {
+    "endpoint": "/api/v1/members/timer",
+    "iteration": 5,
+    "ttfb_ms": 5.161431967280805,
+    "total_ms": 5.203019944019616,
+    "bytes": 10235,
+    "status": 200
+  },
+  {
+    "endpoint": "/api/v1/members/timer",
+    "iteration": 6,
+    "ttfb_ms": 5.792320007458329,
+    "total_ms": 5.869956105016172,
+    "bytes": 10235,
+    "status": 200
+  },
+  {
+    "endpoint": "/api/v1/members/kara",
+    "iteration": 0,
+    "ttfb_ms": 4.305479931645095,
+    "total_ms": 4.362677922472358,
+    "bytes": 2672,
+    "status": 200
+  },
+  {
+    "endpoint": "/api/v1/members/kara",
+    "iteration": 1,
+    "ttfb_ms": 4.18912002351135,
+    "total_ms": 4.224707023240626,
+    "bytes": 2672,
+    "status": 200
+  },
+  {
+    "endpoint": "/api/v1/members/kara",
+    "iteration": 2,
+    "ttfb_ms": 3.9986519841477275,
+    "total_ms": 4.035801975987852,
+    "bytes": 2672,
+    "status": 200
+  },
+  {
+    "endpoint": "/api/v1/members/kara",
+    "iteration": 3,
+    "ttfb_ms": 3.809846006333828,
+    "total_ms": 3.846163977868855,
+    "bytes": 2672,
+    "status": 200
+  },
+  {
+    "endpoint": "/api/v1/members/kara",
+    "iteration": 4,
+    "ttfb_ms": 3.581325989216566,
+    "total_ms": 3.618765971623361,
+    "bytes": 2672,
+    "status": 200
+  },
+  {
+    "endpoint": "/api/v1/members/kara",
+    "iteration": 5,
+    "ttfb_ms": 3.6507670301944017,
+    "total_ms": 3.697715001180768,
+    "bytes": 2672,
+    "status": 200
+  },
+  {
+    "endpoint": "/api/v1/members/kara",
+    "iteration": 6,
+    "ttfb_ms": 4.040139960125089,
+    "total_ms": 4.076407989487052,
+    "bytes": 2672,
+    "status": 200
+  },
+  {
+    "endpoint": "/api/v1/members/type",
+    "iteration": 0,
+    "ttfb_ms": 6.649513961747289,
+    "total_ms": 6.764521007426083,
+    "bytes": 9210,
+    "status": 200
+  },
+  {
+    "endpoint": "/api/v1/members/type",
+    "iteration": 1,
+    "ttfb_ms": 6.384977023117244,
+    "total_ms": 6.451292079873383,
+    "bytes": 9210,
+    "status": 200
+  },
+  {
+    "endpoint": "/api/v1/members/type",
+    "iteration": 2,
+    "ttfb_ms": 5.904300953261554,
+    "total_ms": 5.959093919955194,
+    "bytes": 9210,
+    "status": 200
+  },
+  {
+    "endpoint": "/api/v1/members/type",
+    "iteration": 3,
+    "ttfb_ms": 5.604426027275622,
+    "total_ms": 5.652306019328535,
+    "bytes": 9210,
+    "status": 200
+  },
+  {
+    "endpoint": "/api/v1/members/type",
+    "iteration": 4,
+    "ttfb_ms": 5.897709052078426,
+    "total_ms": 5.9570809826254845,
+    "bytes": 9210,
+    "status": 200
+  },
+  {
+    "endpoint": "/api/v1/members/type",
+    "iteration": 5,
+    "ttfb_ms": 6.067628972232342,
+    "total_ms": 6.167416926473379,
+    "bytes": 9210,
+    "status": 200
+  },
+  {
+    "endpoint": "/api/v1/members/type",
+    "iteration": 6,
+    "ttfb_ms": 5.846973042935133,
+    "total_ms": 5.886307102628052,
+    "bytes": 9210,
+    "status": 200
+  },
+  {
+    "endpoint": "/api/v1/fansub-slugs/new-subs/public-profile",
+    "iteration": 0,
+    "ttfb_ms": 3.40371101628989,
+    "total_ms": 3.4443580079823732,
+    "bytes": 2043,
+    "status": 200
+  },
+  {
+    "endpoint": "/api/v1/fansub-slugs/new-subs/public-profile",
+    "iteration": 1,
+    "ttfb_ms": 3.2712819520384073,
+    "total_ms": 3.323059994727373,
+    "bytes": 2043,
+    "status": 200
+  },
+  {
+    "endpoint": "/api/v1/fansub-slugs/new-subs/public-profile",
+    "iteration": 2,
+    "ttfb_ms": 3.5835590679198503,
+    "total_ms": 3.6264500813558698,
+    "bytes": 2043,
+    "status": 200
+  },
+  {
+    "endpoint": "/api/v1/fansub-slugs/new-subs/public-profile",
+    "iteration": 3,
+    "ttfb_ms": 3.2186120515689254,
+    "total_ms": 3.249450004659593,
+    "bytes": 2043,
+    "status": 200
+  },
+  {
+    "endpoint": "/api/v1/fansub-slugs/new-subs/public-profile",
+    "iteration": 4,
+    "ttfb_ms": 1.389607903547585,
+    "total_ms": 1.4084929134696722,
+    "bytes": 2043,
+    "status": 200
+  },
+  {
+    "endpoint": "/api/v1/fansub-slugs/new-subs/public-profile",
+    "iteration": 5,
+    "ttfb_ms": 1.3222999405115843,
+    "total_ms": 1.3542909873649478,
+    "bytes": 2043,
+    "status": 200
+  },
+  {
+    "endpoint": "/api/v1/fansub-slugs/new-subs/public-profile",
+    "iteration": 6,
+    "ttfb_ms": 1.2108009541407228,
+    "total_ms": 1.2285240227356553,
+    "bytes": 2043,
+    "status": 200
+  },
+  {
+    "endpoint": "/api/v1/fansubs/1/domain-projection",
+    "iteration": 0,
+    "ttfb_ms": 2.996122930198908,
+    "total_ms": 3.0543729662895203,
+    "bytes": 3590,
+    "status": 200
+  },
+  {
+    "endpoint": "/api/v1/fansubs/1/domain-projection",
+    "iteration": 1,
+    "ttfb_ms": 3.3731330186128616,
+    "total_ms": 3.432565019465983,
+    "bytes": 3590,
+    "status": 200
+  },
+  {
+    "endpoint": "/api/v1/fansubs/1/domain-projection",
+    "iteration": 2,
+    "ttfb_ms": 3.113273996859789,
+    "total_ms": 3.1468470115214586,
+    "bytes": 3590,
+    "status": 200
+  },
+  {
+    "endpoint": "/api/v1/fansubs/1/domain-projection",
+    "iteration": 3,
+    "ttfb_ms": 3.502857987768948,
+    "total_ms": 3.5621500574052334,
+    "bytes": 3590,
+    "status": 200
+  },
+  {
+    "endpoint": "/api/v1/fansubs/1/domain-projection",
+    "iteration": 4,
+    "ttfb_ms": 6.363205029629171,
+    "total_ms": 6.400024984031916,
+    "bytes": 3590,
+    "status": 200
+  },
+  {
+    "endpoint": "/api/v1/fansubs/1/domain-projection",
+    "iteration": 5,
+    "ttfb_ms": 1.1889600427821279,
+    "total_ms": 1.2185659725219011,
+    "bytes": 3590,
+    "status": 200
+  },
+  {
+    "endpoint": "/api/v1/fansubs/1/domain-projection",
+    "iteration": 6,
+    "ttfb_ms": 1.144666108302772,
+    "total_ms": 1.172789023257792,
+    "bytes": 3590,
+    "status": 200
+  }
+]

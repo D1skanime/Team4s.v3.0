@@ -1,0 +1,8 @@
+
+> team4s-frontend@0.1.0 typecheck
+> tsc --noEmit
+
+.next/dev/types/app/anime/page.ts(36,29): error TS2344: Type 'AnimePageProps' does not satisfy the constraint 'PageProps'.
+  Types of property 'searchParams' are incompatible.
+    Type 'Promise<{ page?: string | string[] | undefined; per_page?: string | string[] | undefined; q?: string | string[] | undefined; letter?: string | string[] | undefined; content_type?: string | string[] | undefined; status?: string | ... 1 more ... | undefined; }> | { ...; } | undefined' is not assignable to type 'Promise<any> | undefined'.
+      Type '{ page?: string | string[] | undefined; per_page?: string | string[] | undefined; q?: string | string[] | undefined; letter?: string | string[] | undefined; content_type?: string | string[] | undefined; status?: string | ... 1 more ... | undefined; }' is missing the following properties from type 'Promise<any>': then, catch, finally, [Symbol.toStringTag]

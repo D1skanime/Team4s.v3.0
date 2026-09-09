@@ -1,0 +1,2526 @@
+{
+  "samples": [
+    {
+      "at": 760.2999999523163,
+      "h1": "timer",
+      "panels": [
+        {
+          "section": "Fansub-Projekte",
+          "top": 1062.65625,
+          "height": 18,
+          "visibility": "visible",
+          "opacity": "1",
+          "state": "true"
+        },
+        {
+          "section": "Rollenfortschritt",
+          "top": 1378.09375,
+          "height": 0,
+          "visibility": "visible",
+          "opacity": "1",
+          "state": null
+        },
+        {
+          "section": "Letzte Beiträge",
+          "top": 17295.0625,
+          "height": 91.4375,
+          "visibility": "visible",
+          "opacity": "1",
+          "state": "true"
+        }
+      ],
+      "images": 0
+    },
+    {
+      "at": 1289.7999999523163,
+      "h1": "timer",
+      "panels": [
+        {
+          "section": "Fansub-Projekte",
+          "top": 864.15625,
+          "height": 137,
+          "visibility": "visible",
+          "opacity": "1",
+          "state": "true"
+        },
+        {
+          "section": "Rollenfortschritt",
+          "top": 1212.15625,
+          "height": 466.203125,
+          "visibility": "visible",
+          "opacity": "1",
+          "state": null
+        },
+        {
+          "section": "Letzte Beiträge",
+          "top": 4222.171875,
+          "height": 667,
+          "visibility": "visible",
+          "opacity": "1",
+          "state": "true"
+        }
+      ],
+      "images": 1
+    },
+    {
+      "at": 1714.6999999284744,
+      "h1": "timer",
+      "panels": [
+        {
+          "section": "Fansub-Projekte",
+          "top": 864.15625,
+          "height": 137,
+          "visibility": "visible",
+          "opacity": "1",
+          "state": "true"
+        },
+        {
+          "section": "Rollenfortschritt",
+          "top": 1212.15625,
+          "height": 466.203125,
+          "visibility": "visible",
+          "opacity": "1",
+          "state": null
+        },
+        {
+          "section": "Letzte Beiträge",
+          "top": 4222.171875,
+          "height": 667,
+          "visibility": "visible",
+          "opacity": "1",
+          "state": "true"
+        }
+      ],
+      "images": 1
+    },
+    {
+      "at": 2214.6999999284744,
+      "h1": "timer",
+      "panels": [
+        {
+          "section": "Fansub-Projekte",
+          "top": 864.15625,
+          "height": 137,
+          "visibility": "visible",
+          "opacity": "1",
+          "state": "true"
+        },
+        {
+          "section": "Rollenfortschritt",
+          "top": 1212.15625,
+          "height": 466.203125,
+          "visibility": "visible",
+          "opacity": "1",
+          "state": null
+        },
+        {
+          "section": "Letzte Beiträge",
+          "top": 4222.171875,
+          "height": 667,
+          "visibility": "visible",
+          "opacity": "1",
+          "state": "true"
+        }
+      ],
+      "images": 1
+    },
+    {
+      "at": 2713.399999976158,
+      "h1": "timer",
+      "panels": [
+        {
+          "section": "Fansub-Projekte",
+          "top": 864.15625,
+          "height": 137,
+          "visibility": "visible",
+          "opacity": "1",
+          "state": "true"
+        },
+        {
+          "section": "Rollenfortschritt",
+          "top": 1212.15625,
+          "height": 466.203125,
+          "visibility": "visible",
+          "opacity": "1",
+          "state": null
+        },
+        {
+          "section": "Letzte Beiträge",
+          "top": 4222.171875,
+          "height": 667,
+          "visibility": "visible",
+          "opacity": "1",
+          "state": "true"
+        }
+      ],
+      "images": 1
+    },
+    {
+      "at": 3212.6999999284744,
+      "h1": "timer",
+      "panels": [
+        {
+          "section": "Fansub-Projekte",
+          "top": 864.15625,
+          "height": 137,
+          "visibility": "visible",
+          "opacity": "1",
+          "state": "true"
+        },
+        {
+          "section": "Rollenfortschritt",
+          "top": 1212.15625,
+          "height": 466.203125,
+          "visibility": "visible",
+          "opacity": "1",
+          "state": null
+        },
+        {
+          "section": "Letzte Beiträge",
+          "top": 4222.171875,
+          "height": 667,
+          "visibility": "visible",
+          "opacity": "1",
+          "state": "true"
+        }
+      ],
+      "images": 2
+    },
+    {
+      "at": 3712.6999999284744,
+      "h1": "timer",
+      "panels": [
+        {
+          "section": "Fansub-Projekte",
+          "top": 864.15625,
+          "height": 137,
+          "visibility": "visible",
+          "opacity": "1",
+          "state": "true"
+        },
+        {
+          "section": "Rollenfortschritt",
+          "top": 1212.15625,
+          "height": 466.203125,
+          "visibility": "visible",
+          "opacity": "1",
+          "state": null
+        },
+        {
+          "section": "Letzte Beiträge",
+          "top": 4222.171875,
+          "height": 667,
+          "visibility": "visible",
+          "opacity": "1",
+          "state": "true"
+        }
+      ],
+      "images": 3
+    },
+    {
+      "at": 4212.699999928474,
+      "h1": "timer",
+      "panels": [
+        {
+          "section": "Fansub-Projekte",
+          "top": 864.15625,
+          "height": 137,
+          "visibility": "visible",
+          "opacity": "1",
+          "state": "true"
+        },
+        {
+          "section": "Rollenfortschritt",
+          "top": 1212.15625,
+          "height": 466.203125,
+          "visibility": "visible",
+          "opacity": "1",
+          "state": null
+        },
+        {
+          "section": "Letzte Beiträge",
+          "top": 4222.171875,
+          "height": 667,
+          "visibility": "visible",
+          "opacity": "1",
+          "state": "true"
+        }
+      ],
+      "images": 3
+    },
+    {
+      "at": 4713.199999928474,
+      "h1": "timer",
+      "panels": [
+        {
+          "section": "Fansub-Projekte",
+          "top": 864.15625,
+          "height": 137,
+          "visibility": "visible",
+          "opacity": "1",
+          "state": "true"
+        },
+        {
+          "section": "Rollenfortschritt",
+          "top": 1212.15625,
+          "height": 466.203125,
+          "visibility": "visible",
+          "opacity": "1",
+          "state": null
+        },
+        {
+          "section": "Letzte Beiträge",
+          "top": 4222.171875,
+          "height": 667,
+          "visibility": "visible",
+          "opacity": "1",
+          "state": "true"
+        }
+      ],
+      "images": 3
+    },
+    {
+      "at": 5215.299999952316,
+      "h1": "timer",
+      "panels": [
+        {
+          "section": "Fansub-Projekte",
+          "top": 864.15625,
+          "height": 137,
+          "visibility": "visible",
+          "opacity": "1",
+          "state": "true"
+        },
+        {
+          "section": "Rollenfortschritt",
+          "top": 1212.15625,
+          "height": 466.203125,
+          "visibility": "visible",
+          "opacity": "1",
+          "state": null
+        },
+        {
+          "section": "Letzte Beiträge",
+          "top": 4222.171875,
+          "height": 667,
+          "visibility": "visible",
+          "opacity": "1",
+          "state": "true"
+        }
+      ],
+      "images": 4
+    },
+    {
+      "at": 5713.699999928474,
+      "h1": "timer",
+      "panels": [
+        {
+          "section": "Fansub-Projekte",
+          "top": 864.15625,
+          "height": 137,
+          "visibility": "visible",
+          "opacity": "1",
+          "state": "true"
+        },
+        {
+          "section": "Rollenfortschritt",
+          "top": 1212.15625,
+          "height": 466.203125,
+          "visibility": "visible",
+          "opacity": "1",
+          "state": null
+        },
+        {
+          "section": "Letzte Beiträge",
+          "top": 4222.171875,
+          "height": 667,
+          "visibility": "visible",
+          "opacity": "1",
+          "state": "true"
+        }
+      ],
+      "images": 5
+    },
+    {
+      "at": 6213.099999904633,
+      "h1": "timer",
+      "panels": [
+        {
+          "section": "Fansub-Projekte",
+          "top": 864.15625,
+          "height": 137,
+          "visibility": "visible",
+          "opacity": "1",
+          "state": "true"
+        },
+        {
+          "section": "Rollenfortschritt",
+          "top": 1212.15625,
+          "height": 466.203125,
+          "visibility": "visible",
+          "opacity": "1",
+          "state": null
+        },
+        {
+          "section": "Letzte Beiträge",
+          "top": 4222.171875,
+          "height": 667,
+          "visibility": "visible",
+          "opacity": "1",
+          "state": "true"
+        }
+      ],
+      "images": 6
+    },
+    {
+      "at": 6712.399999976158,
+      "h1": "timer",
+      "panels": [
+        {
+          "section": "Fansub-Projekte",
+          "top": 864.15625,
+          "height": 137,
+          "visibility": "visible",
+          "opacity": "1",
+          "state": "true"
+        },
+        {
+          "section": "Rollenfortschritt",
+          "top": 1212.15625,
+          "height": 466.203125,
+          "visibility": "visible",
+          "opacity": "1",
+          "state": null
+        },
+        {
+          "section": "Letzte Beiträge",
+          "top": 4222.171875,
+          "height": 667,
+          "visibility": "visible",
+          "opacity": "1",
+          "state": "true"
+        }
+      ],
+      "images": 7
+    },
+    {
+      "at": 7213.899999976158,
+      "h1": "timer",
+      "panels": [
+        {
+          "section": "Fansub-Projekte",
+          "top": 864.15625,
+          "height": 137,
+          "visibility": "visible",
+          "opacity": "1",
+          "state": "true"
+        },
+        {
+          "section": "Rollenfortschritt",
+          "top": 1212.15625,
+          "height": 466.203125,
+          "visibility": "visible",
+          "opacity": "1",
+          "state": null
+        },
+        {
+          "section": "Letzte Beiträge",
+          "top": 4222.171875,
+          "height": 667,
+          "visibility": "visible",
+          "opacity": "1",
+          "state": "true"
+        }
+      ],
+      "images": 8
+    },
+    {
+      "at": 7712.5,
+      "h1": "timer",
+      "panels": [
+        {
+          "section": "Fansub-Projekte",
+          "top": 864.15625,
+          "height": 137,
+          "visibility": "visible",
+          "opacity": "1",
+          "state": "true"
+        },
+        {
+          "section": "Rollenfortschritt",
+          "top": 1212.15625,
+          "height": 466.203125,
+          "visibility": "visible",
+          "opacity": "1",
+          "state": null
+        },
+        {
+          "section": "Letzte Beiträge",
+          "top": 4222.171875,
+          "height": 667,
+          "visibility": "visible",
+          "opacity": "1",
+          "state": "true"
+        }
+      ],
+      "images": 10
+    },
+    {
+      "at": 8212.099999904633,
+      "h1": "timer",
+      "panels": [
+        {
+          "section": "Fansub-Projekte",
+          "top": 864.15625,
+          "height": 137,
+          "visibility": "visible",
+          "opacity": "1",
+          "state": "true"
+        },
+        {
+          "section": "Rollenfortschritt",
+          "top": 1212.15625,
+          "height": 466.203125,
+          "visibility": "visible",
+          "opacity": "1",
+          "state": null
+        },
+        {
+          "section": "Letzte Beiträge",
+          "top": 4222.171875,
+          "height": 667,
+          "visibility": "visible",
+          "opacity": "1",
+          "state": "true"
+        }
+      ],
+      "images": 10
+    },
+    {
+      "at": 8713.5,
+      "h1": "timer",
+      "panels": [
+        {
+          "section": "Fansub-Projekte",
+          "top": 864.15625,
+          "height": 137,
+          "visibility": "visible",
+          "opacity": "1",
+          "state": "true"
+        },
+        {
+          "section": "Rollenfortschritt",
+          "top": 1212.15625,
+          "height": 466.203125,
+          "visibility": "visible",
+          "opacity": "1",
+          "state": null
+        },
+        {
+          "section": "Letzte Beiträge",
+          "top": 4222.171875,
+          "height": 667,
+          "visibility": "visible",
+          "opacity": "1",
+          "state": "true"
+        }
+      ],
+      "images": 10
+    },
+    {
+      "at": 9213,
+      "h1": "timer",
+      "panels": [
+        {
+          "section": "Fansub-Projekte",
+          "top": 864.15625,
+          "height": 137,
+          "visibility": "visible",
+          "opacity": "1",
+          "state": "true"
+        },
+        {
+          "section": "Rollenfortschritt",
+          "top": 1212.15625,
+          "height": 466.203125,
+          "visibility": "visible",
+          "opacity": "1",
+          "state": null
+        },
+        {
+          "section": "Letzte Beiträge",
+          "top": 4222.171875,
+          "height": 667,
+          "visibility": "visible",
+          "opacity": "1",
+          "state": "true"
+        }
+      ],
+      "images": 10
+    },
+    {
+      "at": 9712.699999928474,
+      "h1": "timer",
+      "panels": [
+        {
+          "section": "Fansub-Projekte",
+          "top": 864.15625,
+          "height": 137,
+          "visibility": "visible",
+          "opacity": "1",
+          "state": "true"
+        },
+        {
+          "section": "Rollenfortschritt",
+          "top": 1212.15625,
+          "height": 466.203125,
+          "visibility": "visible",
+          "opacity": "1",
+          "state": null
+        },
+        {
+          "section": "Letzte Beiträge",
+          "top": 4222.171875,
+          "height": 667,
+          "visibility": "visible",
+          "opacity": "1",
+          "state": "true"
+        }
+      ],
+      "images": 10
+    },
+    {
+      "at": 10214.899999976158,
+      "h1": "timer",
+      "panels": [
+        {
+          "section": "Fansub-Projekte",
+          "top": 864.15625,
+          "height": 137,
+          "visibility": "visible",
+          "opacity": "1",
+          "state": "true"
+        },
+        {
+          "section": "Rollenfortschritt",
+          "top": 1212.15625,
+          "height": 466.203125,
+          "visibility": "visible",
+          "opacity": "1",
+          "state": null
+        },
+        {
+          "section": "Letzte Beiträge",
+          "top": 4222.171875,
+          "height": 667,
+          "visibility": "visible",
+          "opacity": "1",
+          "state": "true"
+        }
+      ],
+      "images": 10
+    },
+    {
+      "at": 10712.699999928474,
+      "h1": "timer",
+      "panels": [
+        {
+          "section": "Fansub-Projekte",
+          "top": 864.15625,
+          "height": 137,
+          "visibility": "visible",
+          "opacity": "1",
+          "state": "true"
+        },
+        {
+          "section": "Rollenfortschritt",
+          "top": 1212.15625,
+          "height": 466.203125,
+          "visibility": "visible",
+          "opacity": "1",
+          "state": null
+        },
+        {
+          "section": "Letzte Beiträge",
+          "top": 4222.171875,
+          "height": 667,
+          "visibility": "visible",
+          "opacity": "1",
+          "state": "true"
+        }
+      ],
+      "images": 10
+    },
+    {
+      "at": 11212.299999952316,
+      "h1": "timer",
+      "panels": [
+        {
+          "section": "Fansub-Projekte",
+          "top": 864.15625,
+          "height": 137,
+          "visibility": "visible",
+          "opacity": "1",
+          "state": "true"
+        },
+        {
+          "section": "Rollenfortschritt",
+          "top": 1212.15625,
+          "height": 466.203125,
+          "visibility": "visible",
+          "opacity": "1",
+          "state": null
+        },
+        {
+          "section": "Letzte Beiträge",
+          "top": 4222.171875,
+          "height": 667,
+          "visibility": "visible",
+          "opacity": "1",
+          "state": "true"
+        }
+      ],
+      "images": 10
+    },
+    {
+      "at": 11713,
+      "h1": "timer",
+      "panels": [
+        {
+          "section": "Fansub-Projekte",
+          "top": 864.15625,
+          "height": 137,
+          "visibility": "visible",
+          "opacity": "1",
+          "state": "true"
+        },
+        {
+          "section": "Rollenfortschritt",
+          "top": 1212.15625,
+          "height": 466.203125,
+          "visibility": "visible",
+          "opacity": "1",
+          "state": null
+        },
+        {
+          "section": "Letzte Beiträge",
+          "top": 4222.171875,
+          "height": 667,
+          "visibility": "visible",
+          "opacity": "1",
+          "state": "true"
+        }
+      ],
+      "images": 11
+    },
+    {
+      "at": 12212.5,
+      "h1": "timer",
+      "panels": [
+        {
+          "section": "Fansub-Projekte",
+          "top": 864.15625,
+          "height": 137,
+          "visibility": "visible",
+          "opacity": "1",
+          "state": "true"
+        },
+        {
+          "section": "Rollenfortschritt",
+          "top": 1212.15625,
+          "height": 466.203125,
+          "visibility": "visible",
+          "opacity": "1",
+          "state": null
+        },
+        {
+          "section": "Letzte Beiträge",
+          "top": 4222.171875,
+          "height": 667,
+          "visibility": "visible",
+          "opacity": "1",
+          "state": "true"
+        }
+      ],
+      "images": 11
+    },
+    {
+      "at": 12712.699999928474,
+      "h1": "timer",
+      "panels": [
+        {
+          "section": "Fansub-Projekte",
+          "top": 864.15625,
+          "height": 137,
+          "visibility": "visible",
+          "opacity": "1",
+          "state": "true"
+        },
+        {
+          "section": "Rollenfortschritt",
+          "top": 1212.15625,
+          "height": 466.203125,
+          "visibility": "visible",
+          "opacity": "1",
+          "state": null
+        },
+        {
+          "section": "Letzte Beiträge",
+          "top": 4222.171875,
+          "height": 667,
+          "visibility": "visible",
+          "opacity": "1",
+          "state": "true"
+        }
+      ],
+      "images": 11
+    },
+    {
+      "at": 13212.5,
+      "h1": "timer",
+      "panels": [
+        {
+          "section": "Fansub-Projekte",
+          "top": 864.15625,
+          "height": 137,
+          "visibility": "visible",
+          "opacity": "1",
+          "state": "true"
+        },
+        {
+          "section": "Rollenfortschritt",
+          "top": 1212.15625,
+          "height": 466.203125,
+          "visibility": "visible",
+          "opacity": "1",
+          "state": null
+        },
+        {
+          "section": "Letzte Beiträge",
+          "top": 4222.171875,
+          "height": 667,
+          "visibility": "visible",
+          "opacity": "1",
+          "state": "true"
+        }
+      ],
+      "images": 11
+    },
+    {
+      "at": 13712.699999928474,
+      "h1": "timer",
+      "panels": [
+        {
+          "section": "Fansub-Projekte",
+          "top": 864.15625,
+          "height": 137,
+          "visibility": "visible",
+          "opacity": "1",
+          "state": "true"
+        },
+        {
+          "section": "Rollenfortschritt",
+          "top": 1212.15625,
+          "height": 466.203125,
+          "visibility": "visible",
+          "opacity": "1",
+          "state": null
+        },
+        {
+          "section": "Letzte Beiträge",
+          "top": 4222.171875,
+          "height": 667,
+          "visibility": "visible",
+          "opacity": "1",
+          "state": "true"
+        }
+      ],
+      "images": 11
+    },
+    {
+      "at": 14212.799999952316,
+      "h1": "timer",
+      "panels": [
+        {
+          "section": "Fansub-Projekte",
+          "top": 864.15625,
+          "height": 137,
+          "visibility": "visible",
+          "opacity": "1",
+          "state": "true"
+        },
+        {
+          "section": "Rollenfortschritt",
+          "top": 1212.15625,
+          "height": 466.203125,
+          "visibility": "visible",
+          "opacity": "1",
+          "state": null
+        },
+        {
+          "section": "Letzte Beiträge",
+          "top": 4222.171875,
+          "height": 667,
+          "visibility": "visible",
+          "opacity": "1",
+          "state": "true"
+        }
+      ],
+      "images": 11
+    },
+    {
+      "at": 14712.799999952316,
+      "h1": "timer",
+      "panels": [
+        {
+          "section": "Fansub-Projekte",
+          "top": 864.15625,
+          "height": 137,
+          "visibility": "visible",
+          "opacity": "1",
+          "state": "true"
+        },
+        {
+          "section": "Rollenfortschritt",
+          "top": 1212.15625,
+          "height": 466.203125,
+          "visibility": "visible",
+          "opacity": "1",
+          "state": null
+        },
+        {
+          "section": "Letzte Beiträge",
+          "top": 4222.171875,
+          "height": 667,
+          "visibility": "visible",
+          "opacity": "1",
+          "state": "true"
+        }
+      ],
+      "images": 11
+    },
+    {
+      "at": 15213.299999952316,
+      "h1": "timer",
+      "panels": [
+        {
+          "section": "Fansub-Projekte",
+          "top": 864.15625,
+          "height": 137,
+          "visibility": "visible",
+          "opacity": "1",
+          "state": "true"
+        },
+        {
+          "section": "Rollenfortschritt",
+          "top": 1212.15625,
+          "height": 466.203125,
+          "visibility": "visible",
+          "opacity": "1",
+          "state": null
+        },
+        {
+          "section": "Letzte Beiträge",
+          "top": 4222.171875,
+          "height": 667,
+          "visibility": "visible",
+          "opacity": "1",
+          "state": "true"
+        }
+      ],
+      "images": 11
+    },
+    {
+      "at": 15712.299999952316,
+      "h1": "timer",
+      "panels": [
+        {
+          "section": "Fansub-Projekte",
+          "top": 864.15625,
+          "height": 137,
+          "visibility": "visible",
+          "opacity": "1",
+          "state": "true"
+        },
+        {
+          "section": "Rollenfortschritt",
+          "top": 1212.15625,
+          "height": 466.203125,
+          "visibility": "visible",
+          "opacity": "1",
+          "state": null
+        },
+        {
+          "section": "Letzte Beiträge",
+          "top": 4222.171875,
+          "height": 667,
+          "visibility": "visible",
+          "opacity": "1",
+          "state": "true"
+        }
+      ],
+      "images": 11
+    },
+    {
+      "at": 16212.799999952316,
+      "h1": "timer",
+      "panels": [
+        {
+          "section": "Fansub-Projekte",
+          "top": 864.15625,
+          "height": 137,
+          "visibility": "visible",
+          "opacity": "1",
+          "state": "true"
+        },
+        {
+          "section": "Rollenfortschritt",
+          "top": 1212.15625,
+          "height": 466.203125,
+          "visibility": "visible",
+          "opacity": "1",
+          "state": null
+        },
+        {
+          "section": "Letzte Beiträge",
+          "top": 4222.171875,
+          "height": 667,
+          "visibility": "visible",
+          "opacity": "1",
+          "state": "true"
+        }
+      ],
+      "images": 11
+    },
+    {
+      "at": 16712.799999952316,
+      "h1": "timer",
+      "panels": [
+        {
+          "section": "Fansub-Projekte",
+          "top": 864.15625,
+          "height": 137,
+          "visibility": "visible",
+          "opacity": "1",
+          "state": "true"
+        },
+        {
+          "section": "Rollenfortschritt",
+          "top": 1212.15625,
+          "height": 466.203125,
+          "visibility": "visible",
+          "opacity": "1",
+          "state": null
+        },
+        {
+          "section": "Letzte Beiträge",
+          "top": 4222.171875,
+          "height": 667,
+          "visibility": "visible",
+          "opacity": "1",
+          "state": "true"
+        }
+      ],
+      "images": 11
+    },
+    {
+      "at": 17212.799999952316,
+      "h1": "timer",
+      "panels": [
+        {
+          "section": "Fansub-Projekte",
+          "top": 864.15625,
+          "height": 137,
+          "visibility": "visible",
+          "opacity": "1",
+          "state": "true"
+        },
+        {
+          "section": "Rollenfortschritt",
+          "top": 1212.15625,
+          "height": 466.203125,
+          "visibility": "visible",
+          "opacity": "1",
+          "state": null
+        },
+        {
+          "section": "Letzte Beiträge",
+          "top": 4222.171875,
+          "height": 667,
+          "visibility": "visible",
+          "opacity": "1",
+          "state": "true"
+        }
+      ],
+      "images": 11
+    },
+    {
+      "at": 17712.299999952316,
+      "h1": "timer",
+      "panels": [
+        {
+          "section": "Fansub-Projekte",
+          "top": 864.15625,
+          "height": 137,
+          "visibility": "visible",
+          "opacity": "1",
+          "state": "true"
+        },
+        {
+          "section": "Rollenfortschritt",
+          "top": 1212.15625,
+          "height": 466.203125,
+          "visibility": "visible",
+          "opacity": "1",
+          "state": null
+        },
+        {
+          "section": "Letzte Beiträge",
+          "top": 4222.171875,
+          "height": 667,
+          "visibility": "visible",
+          "opacity": "1",
+          "state": "true"
+        }
+      ],
+      "images": 11
+    },
+    {
+      "at": 18212.399999976158,
+      "h1": "timer",
+      "panels": [
+        {
+          "section": "Fansub-Projekte",
+          "top": 864.15625,
+          "height": 137,
+          "visibility": "visible",
+          "opacity": "1",
+          "state": "true"
+        },
+        {
+          "section": "Rollenfortschritt",
+          "top": 1212.15625,
+          "height": 466.203125,
+          "visibility": "visible",
+          "opacity": "1",
+          "state": null
+        },
+        {
+          "section": "Letzte Beiträge",
+          "top": 4222.171875,
+          "height": 667,
+          "visibility": "visible",
+          "opacity": "1",
+          "state": "true"
+        }
+      ],
+      "images": 11
+    },
+    {
+      "at": 18712.699999928474,
+      "h1": "timer",
+      "panels": [
+        {
+          "section": "Fansub-Projekte",
+          "top": 864.15625,
+          "height": 137,
+          "visibility": "visible",
+          "opacity": "1",
+          "state": "true"
+        },
+        {
+          "section": "Rollenfortschritt",
+          "top": 1212.15625,
+          "height": 466.203125,
+          "visibility": "visible",
+          "opacity": "1",
+          "state": null
+        },
+        {
+          "section": "Letzte Beiträge",
+          "top": 4222.171875,
+          "height": 667,
+          "visibility": "visible",
+          "opacity": "1",
+          "state": "true"
+        }
+      ],
+      "images": 11
+    },
+    {
+      "at": 19213,
+      "h1": "timer",
+      "panels": [
+        {
+          "section": "Fansub-Projekte",
+          "top": 864.15625,
+          "height": 137,
+          "visibility": "visible",
+          "opacity": "1",
+          "state": "true"
+        },
+        {
+          "section": "Rollenfortschritt",
+          "top": 1212.15625,
+          "height": 466.203125,
+          "visibility": "visible",
+          "opacity": "1",
+          "state": null
+        },
+        {
+          "section": "Letzte Beiträge",
+          "top": 4222.171875,
+          "height": 667,
+          "visibility": "visible",
+          "opacity": "1",
+          "state": "true"
+        }
+      ],
+      "images": 11
+    },
+    {
+      "at": 19712.799999952316,
+      "h1": "timer",
+      "panels": [
+        {
+          "section": "Fansub-Projekte",
+          "top": 864.15625,
+          "height": 137,
+          "visibility": "visible",
+          "opacity": "1",
+          "state": "true"
+        },
+        {
+          "section": "Rollenfortschritt",
+          "top": 1212.15625,
+          "height": 466.203125,
+          "visibility": "visible",
+          "opacity": "1",
+          "state": null
+        },
+        {
+          "section": "Letzte Beiträge",
+          "top": 4222.171875,
+          "height": 667,
+          "visibility": "visible",
+          "opacity": "1",
+          "state": "true"
+        }
+      ],
+      "images": 11
+    },
+    {
+      "at": 20212.399999976158,
+      "h1": "timer",
+      "panels": [
+        {
+          "section": "Fansub-Projekte",
+          "top": 864.15625,
+          "height": 137,
+          "visibility": "visible",
+          "opacity": "1",
+          "state": "true"
+        },
+        {
+          "section": "Rollenfortschritt",
+          "top": 1212.15625,
+          "height": 466.203125,
+          "visibility": "visible",
+          "opacity": "1",
+          "state": null
+        },
+        {
+          "section": "Letzte Beiträge",
+          "top": 4222.171875,
+          "height": 667,
+          "visibility": "visible",
+          "opacity": "1",
+          "state": "true"
+        }
+      ],
+      "images": 11
+    },
+    {
+      "at": 20712.699999928474,
+      "h1": "timer",
+      "panels": [
+        {
+          "section": "Fansub-Projekte",
+          "top": 864.15625,
+          "height": 137,
+          "visibility": "visible",
+          "opacity": "1",
+          "state": "true"
+        },
+        {
+          "section": "Rollenfortschritt",
+          "top": 1212.15625,
+          "height": 466.203125,
+          "visibility": "visible",
+          "opacity": "1",
+          "state": null
+        },
+        {
+          "section": "Letzte Beiträge",
+          "top": 4222.171875,
+          "height": 667,
+          "visibility": "visible",
+          "opacity": "1",
+          "state": "true"
+        }
+      ],
+      "images": 11
+    },
+    {
+      "at": 21212.099999904633,
+      "h1": "timer",
+      "panels": [
+        {
+          "section": "Fansub-Projekte",
+          "top": 864.15625,
+          "height": 137,
+          "visibility": "visible",
+          "opacity": "1",
+          "state": "true"
+        },
+        {
+          "section": "Rollenfortschritt",
+          "top": 1212.15625,
+          "height": 466.203125,
+          "visibility": "visible",
+          "opacity": "1",
+          "state": null
+        },
+        {
+          "section": "Letzte Beiträge",
+          "top": 4222.171875,
+          "height": 667,
+          "visibility": "visible",
+          "opacity": "1",
+          "state": "true"
+        }
+      ],
+      "images": 11
+    },
+    {
+      "at": 21712.899999976158,
+      "h1": "timer",
+      "panels": [
+        {
+          "section": "Fansub-Projekte",
+          "top": 864.15625,
+          "height": 137,
+          "visibility": "visible",
+          "opacity": "1",
+          "state": "true"
+        },
+        {
+          "section": "Rollenfortschritt",
+          "top": 1212.15625,
+          "height": 466.203125,
+          "visibility": "visible",
+          "opacity": "1",
+          "state": null
+        },
+        {
+          "section": "Letzte Beiträge",
+          "top": 4222.171875,
+          "height": 667,
+          "visibility": "visible",
+          "opacity": "1",
+          "state": "true"
+        }
+      ],
+      "images": 11
+    },
+    {
+      "at": 22212.699999928474,
+      "h1": "timer",
+      "panels": [
+        {
+          "section": "Fansub-Projekte",
+          "top": 864.15625,
+          "height": 137,
+          "visibility": "visible",
+          "opacity": "1",
+          "state": "true"
+        },
+        {
+          "section": "Rollenfortschritt",
+          "top": 1212.15625,
+          "height": 466.203125,
+          "visibility": "visible",
+          "opacity": "1",
+          "state": null
+        },
+        {
+          "section": "Letzte Beiträge",
+          "top": 4222.171875,
+          "height": 667,
+          "visibility": "visible",
+          "opacity": "1",
+          "state": "true"
+        }
+      ],
+      "images": 11
+    },
+    {
+      "at": 22712.599999904633,
+      "h1": "timer",
+      "panels": [
+        {
+          "section": "Fansub-Projekte",
+          "top": 864.15625,
+          "height": 137,
+          "visibility": "visible",
+          "opacity": "1",
+          "state": "true"
+        },
+        {
+          "section": "Rollenfortschritt",
+          "top": 1212.15625,
+          "height": 466.203125,
+          "visibility": "visible",
+          "opacity": "1",
+          "state": null
+        },
+        {
+          "section": "Letzte Beiträge",
+          "top": 4222.171875,
+          "height": 667,
+          "visibility": "visible",
+          "opacity": "1",
+          "state": "true"
+        }
+      ],
+      "images": 11
+    },
+    {
+      "at": 23212.699999928474,
+      "h1": "timer",
+      "panels": [
+        {
+          "section": "Fansub-Projekte",
+          "top": 864.15625,
+          "height": 137,
+          "visibility": "visible",
+          "opacity": "1",
+          "state": "true"
+        },
+        {
+          "section": "Rollenfortschritt",
+          "top": 1212.15625,
+          "height": 466.203125,
+          "visibility": "visible",
+          "opacity": "1",
+          "state": null
+        },
+        {
+          "section": "Letzte Beiträge",
+          "top": 4222.171875,
+          "height": 667,
+          "visibility": "visible",
+          "opacity": "1",
+          "state": "true"
+        }
+      ],
+      "images": 11
+    },
+    {
+      "at": 23713.199999928474,
+      "h1": "timer",
+      "panels": [
+        {
+          "section": "Fansub-Projekte",
+          "top": 864.15625,
+          "height": 137,
+          "visibility": "visible",
+          "opacity": "1",
+          "state": "true"
+        },
+        {
+          "section": "Rollenfortschritt",
+          "top": 1212.15625,
+          "height": 466.203125,
+          "visibility": "visible",
+          "opacity": "1",
+          "state": null
+        },
+        {
+          "section": "Letzte Beiträge",
+          "top": 4222.171875,
+          "height": 667,
+          "visibility": "visible",
+          "opacity": "1",
+          "state": "true"
+        }
+      ],
+      "images": 11
+    },
+    {
+      "at": 24212.299999952316,
+      "h1": "timer",
+      "panels": [
+        {
+          "section": "Fansub-Projekte",
+          "top": 864.15625,
+          "height": 137,
+          "visibility": "visible",
+          "opacity": "1",
+          "state": "true"
+        },
+        {
+          "section": "Rollenfortschritt",
+          "top": 1212.15625,
+          "height": 466.203125,
+          "visibility": "visible",
+          "opacity": "1",
+          "state": null
+        },
+        {
+          "section": "Letzte Beiträge",
+          "top": 4222.171875,
+          "height": 667,
+          "visibility": "visible",
+          "opacity": "1",
+          "state": "true"
+        }
+      ],
+      "images": 11
+    },
+    {
+      "at": 24712.799999952316,
+      "h1": "timer",
+      "panels": [
+        {
+          "section": "Fansub-Projekte",
+          "top": 864.15625,
+          "height": 137,
+          "visibility": "visible",
+          "opacity": "1",
+          "state": "true"
+        },
+        {
+          "section": "Rollenfortschritt",
+          "top": 1212.15625,
+          "height": 466.203125,
+          "visibility": "visible",
+          "opacity": "1",
+          "state": null
+        },
+        {
+          "section": "Letzte Beiträge",
+          "top": 4222.171875,
+          "height": 667,
+          "visibility": "visible",
+          "opacity": "1",
+          "state": "true"
+        }
+      ],
+      "images": 11
+    },
+    {
+      "at": 25212.599999904633,
+      "h1": "timer",
+      "panels": [
+        {
+          "section": "Fansub-Projekte",
+          "top": 864.15625,
+          "height": 137,
+          "visibility": "visible",
+          "opacity": "1",
+          "state": "true"
+        },
+        {
+          "section": "Rollenfortschritt",
+          "top": 1212.15625,
+          "height": 466.203125,
+          "visibility": "visible",
+          "opacity": "1",
+          "state": null
+        },
+        {
+          "section": "Letzte Beiträge",
+          "top": 4222.171875,
+          "height": 667,
+          "visibility": "visible",
+          "opacity": "1",
+          "state": "true"
+        }
+      ],
+      "images": 11
+    },
+    {
+      "at": 25713,
+      "h1": "timer",
+      "panels": [
+        {
+          "section": "Fansub-Projekte",
+          "top": 864.15625,
+          "height": 137,
+          "visibility": "visible",
+          "opacity": "1",
+          "state": "true"
+        },
+        {
+          "section": "Rollenfortschritt",
+          "top": 1212.15625,
+          "height": 466.203125,
+          "visibility": "visible",
+          "opacity": "1",
+          "state": null
+        },
+        {
+          "section": "Letzte Beiträge",
+          "top": 4222.171875,
+          "height": 667,
+          "visibility": "visible",
+          "opacity": "1",
+          "state": "true"
+        }
+      ],
+      "images": 11
+    },
+    {
+      "at": 26212.299999952316,
+      "h1": "timer",
+      "panels": [
+        {
+          "section": "Fansub-Projekte",
+          "top": 864.15625,
+          "height": 137,
+          "visibility": "visible",
+          "opacity": "1",
+          "state": "true"
+        },
+        {
+          "section": "Rollenfortschritt",
+          "top": 1212.15625,
+          "height": 466.203125,
+          "visibility": "visible",
+          "opacity": "1",
+          "state": null
+        },
+        {
+          "section": "Letzte Beiträge",
+          "top": 4222.171875,
+          "height": 667,
+          "visibility": "visible",
+          "opacity": "1",
+          "state": "true"
+        }
+      ],
+      "images": 11
+    },
+    {
+      "at": 26712.799999952316,
+      "h1": "timer",
+      "panels": [
+        {
+          "section": "Fansub-Projekte",
+          "top": 864.15625,
+          "height": 137,
+          "visibility": "visible",
+          "opacity": "1",
+          "state": "true"
+        },
+        {
+          "section": "Rollenfortschritt",
+          "top": 1212.15625,
+          "height": 466.203125,
+          "visibility": "visible",
+          "opacity": "1",
+          "state": null
+        },
+        {
+          "section": "Letzte Beiträge",
+          "top": 4222.171875,
+          "height": 667,
+          "visibility": "visible",
+          "opacity": "1",
+          "state": "true"
+        }
+      ],
+      "images": 11
+    },
+    {
+      "at": 27212.899999976158,
+      "h1": "timer",
+      "panels": [
+        {
+          "section": "Fansub-Projekte",
+          "top": 864.15625,
+          "height": 137,
+          "visibility": "visible",
+          "opacity": "1",
+          "state": "true"
+        },
+        {
+          "section": "Rollenfortschritt",
+          "top": 1212.15625,
+          "height": 466.203125,
+          "visibility": "visible",
+          "opacity": "1",
+          "state": null
+        },
+        {
+          "section": "Letzte Beiträge",
+          "top": 4222.171875,
+          "height": 667,
+          "visibility": "visible",
+          "opacity": "1",
+          "state": "true"
+        }
+      ],
+      "images": 11
+    },
+    {
+      "at": 27712.899999976158,
+      "h1": "timer",
+      "panels": [
+        {
+          "section": "Fansub-Projekte",
+          "top": 864.15625,
+          "height": 137,
+          "visibility": "visible",
+          "opacity": "1",
+          "state": "true"
+        },
+        {
+          "section": "Rollenfortschritt",
+          "top": 1212.15625,
+          "height": 466.203125,
+          "visibility": "visible",
+          "opacity": "1",
+          "state": null
+        },
+        {
+          "section": "Letzte Beiträge",
+          "top": 4222.171875,
+          "height": 667,
+          "visibility": "visible",
+          "opacity": "1",
+          "state": "true"
+        }
+      ],
+      "images": 11
+    },
+    {
+      "at": 28212.599999904633,
+      "h1": "timer",
+      "panels": [
+        {
+          "section": "Fansub-Projekte",
+          "top": 864.15625,
+          "height": 137,
+          "visibility": "visible",
+          "opacity": "1",
+          "state": "true"
+        },
+        {
+          "section": "Rollenfortschritt",
+          "top": 1212.15625,
+          "height": 466.203125,
+          "visibility": "visible",
+          "opacity": "1",
+          "state": null
+        },
+        {
+          "section": "Letzte Beiträge",
+          "top": 4222.171875,
+          "height": 667,
+          "visibility": "visible",
+          "opacity": "1",
+          "state": "true"
+        }
+      ],
+      "images": 11
+    },
+    {
+      "at": 28712.5,
+      "h1": "timer",
+      "panels": [
+        {
+          "section": "Fansub-Projekte",
+          "top": 864.15625,
+          "height": 137,
+          "visibility": "visible",
+          "opacity": "1",
+          "state": "true"
+        },
+        {
+          "section": "Rollenfortschritt",
+          "top": 1212.15625,
+          "height": 466.203125,
+          "visibility": "visible",
+          "opacity": "1",
+          "state": null
+        },
+        {
+          "section": "Letzte Beiträge",
+          "top": 4222.171875,
+          "height": 667,
+          "visibility": "visible",
+          "opacity": "1",
+          "state": "true"
+        }
+      ],
+      "images": 11
+    },
+    {
+      "at": 29213,
+      "h1": "timer",
+      "panels": [
+        {
+          "section": "Fansub-Projekte",
+          "top": 864.15625,
+          "height": 137,
+          "visibility": "visible",
+          "opacity": "1",
+          "state": "true"
+        },
+        {
+          "section": "Rollenfortschritt",
+          "top": 1212.15625,
+          "height": 466.203125,
+          "visibility": "visible",
+          "opacity": "1",
+          "state": null
+        },
+        {
+          "section": "Letzte Beiträge",
+          "top": 4222.171875,
+          "height": 667,
+          "visibility": "visible",
+          "opacity": "1",
+          "state": "true"
+        }
+      ],
+      "images": 11
+    },
+    {
+      "at": 29712.399999976158,
+      "h1": "timer",
+      "panels": [
+        {
+          "section": "Fansub-Projekte",
+          "top": 864.15625,
+          "height": 137,
+          "visibility": "visible",
+          "opacity": "1",
+          "state": "true"
+        },
+        {
+          "section": "Rollenfortschritt",
+          "top": 1212.15625,
+          "height": 466.203125,
+          "visibility": "visible",
+          "opacity": "1",
+          "state": null
+        },
+        {
+          "section": "Letzte Beiträge",
+          "top": 4222.171875,
+          "height": 667,
+          "visibility": "visible",
+          "opacity": "1",
+          "state": "true"
+        }
+      ],
+      "images": 11
+    },
+    {
+      "at": 30212.899999976158,
+      "h1": "timer",
+      "panels": [
+        {
+          "section": "Fansub-Projekte",
+          "top": 864.15625,
+          "height": 137,
+          "visibility": "visible",
+          "opacity": "1",
+          "state": "true"
+        },
+        {
+          "section": "Rollenfortschritt",
+          "top": 1212.15625,
+          "height": 466.203125,
+          "visibility": "visible",
+          "opacity": "1",
+          "state": null
+        },
+        {
+          "section": "Letzte Beiträge",
+          "top": 4222.171875,
+          "height": 667,
+          "visibility": "visible",
+          "opacity": "1",
+          "state": "true"
+        }
+      ],
+      "images": 11
+    },
+    {
+      "at": 30712.599999904633,
+      "h1": "timer",
+      "panels": [
+        {
+          "section": "Fansub-Projekte",
+          "top": 864.15625,
+          "height": 137,
+          "visibility": "visible",
+          "opacity": "1",
+          "state": "true"
+        },
+        {
+          "section": "Rollenfortschritt",
+          "top": 1212.15625,
+          "height": 466.203125,
+          "visibility": "visible",
+          "opacity": "1",
+          "state": null
+        },
+        {
+          "section": "Letzte Beiträge",
+          "top": 4222.171875,
+          "height": 667,
+          "visibility": "visible",
+          "opacity": "1",
+          "state": "true"
+        }
+      ],
+      "images": 11
+    },
+    {
+      "at": 31212.599999904633,
+      "h1": "timer",
+      "panels": [
+        {
+          "section": "Fansub-Projekte",
+          "top": 864.15625,
+          "height": 137,
+          "visibility": "visible",
+          "opacity": "1",
+          "state": "true"
+        },
+        {
+          "section": "Rollenfortschritt",
+          "top": 1212.15625,
+          "height": 466.203125,
+          "visibility": "visible",
+          "opacity": "1",
+          "state": null
+        },
+        {
+          "section": "Letzte Beiträge",
+          "top": 4222.171875,
+          "height": 667,
+          "visibility": "visible",
+          "opacity": "1",
+          "state": "true"
+        }
+      ],
+      "images": 11
+    },
+    {
+      "at": 31712.099999904633,
+      "h1": "timer",
+      "panels": [
+        {
+          "section": "Fansub-Projekte",
+          "top": 864.15625,
+          "height": 137,
+          "visibility": "visible",
+          "opacity": "1",
+          "state": "true"
+        },
+        {
+          "section": "Rollenfortschritt",
+          "top": 1212.15625,
+          "height": 466.203125,
+          "visibility": "visible",
+          "opacity": "1",
+          "state": null
+        },
+        {
+          "section": "Letzte Beiträge",
+          "top": 4222.171875,
+          "height": 667,
+          "visibility": "visible",
+          "opacity": "1",
+          "state": "true"
+        }
+      ],
+      "images": 11
+    },
+    {
+      "at": 32212.799999952316,
+      "h1": "timer",
+      "panels": [
+        {
+          "section": "Fansub-Projekte",
+          "top": 864.15625,
+          "height": 137,
+          "visibility": "visible",
+          "opacity": "1",
+          "state": "true"
+        },
+        {
+          "section": "Rollenfortschritt",
+          "top": 1212.15625,
+          "height": 466.203125,
+          "visibility": "visible",
+          "opacity": "1",
+          "state": null
+        },
+        {
+          "section": "Letzte Beiträge",
+          "top": 4222.171875,
+          "height": 667,
+          "visibility": "visible",
+          "opacity": "1",
+          "state": "true"
+        }
+      ],
+      "images": 11
+    },
+    {
+      "at": 32712.699999928474,
+      "h1": "timer",
+      "panels": [
+        {
+          "section": "Fansub-Projekte",
+          "top": 864.15625,
+          "height": 137,
+          "visibility": "visible",
+          "opacity": "1",
+          "state": "true"
+        },
+        {
+          "section": "Rollenfortschritt",
+          "top": 1212.15625,
+          "height": 466.203125,
+          "visibility": "visible",
+          "opacity": "1",
+          "state": null
+        },
+        {
+          "section": "Letzte Beiträge",
+          "top": 4222.171875,
+          "height": 667,
+          "visibility": "visible",
+          "opacity": "1",
+          "state": "true"
+        }
+      ],
+      "images": 11
+    },
+    {
+      "at": 33212.699999928474,
+      "h1": "timer",
+      "panels": [
+        {
+          "section": "Fansub-Projekte",
+          "top": 864.15625,
+          "height": 137,
+          "visibility": "visible",
+          "opacity": "1",
+          "state": "true"
+        },
+        {
+          "section": "Rollenfortschritt",
+          "top": 1212.15625,
+          "height": 466.203125,
+          "visibility": "visible",
+          "opacity": "1",
+          "state": null
+        },
+        {
+          "section": "Letzte Beiträge",
+          "top": 4222.171875,
+          "height": 667,
+          "visibility": "visible",
+          "opacity": "1",
+          "state": "true"
+        }
+      ],
+      "images": 11
+    },
+    {
+      "at": 33713.09999990463,
+      "h1": "timer",
+      "panels": [
+        {
+          "section": "Fansub-Projekte",
+          "top": 864.15625,
+          "height": 137,
+          "visibility": "visible",
+          "opacity": "1",
+          "state": "true"
+        },
+        {
+          "section": "Rollenfortschritt",
+          "top": 1212.15625,
+          "height": 466.203125,
+          "visibility": "visible",
+          "opacity": "1",
+          "state": null
+        },
+        {
+          "section": "Letzte Beiträge",
+          "top": 4222.171875,
+          "height": 667,
+          "visibility": "visible",
+          "opacity": "1",
+          "state": "true"
+        }
+      ],
+      "images": 11
+    },
+    {
+      "at": 34212.89999997616,
+      "h1": "timer",
+      "panels": [
+        {
+          "section": "Fansub-Projekte",
+          "top": 864.15625,
+          "height": 137,
+          "visibility": "visible",
+          "opacity": "1",
+          "state": "true"
+        },
+        {
+          "section": "Rollenfortschritt",
+          "top": 1212.15625,
+          "height": 466.203125,
+          "visibility": "visible",
+          "opacity": "1",
+          "state": null
+        },
+        {
+          "section": "Letzte Beiträge",
+          "top": 4222.171875,
+          "height": 667,
+          "visibility": "visible",
+          "opacity": "1",
+          "state": "true"
+        }
+      ],
+      "images": 11
+    },
+    {
+      "at": 34712.59999990463,
+      "h1": "timer",
+      "panels": [
+        {
+          "section": "Fansub-Projekte",
+          "top": 864.15625,
+          "height": 137,
+          "visibility": "visible",
+          "opacity": "1",
+          "state": "true"
+        },
+        {
+          "section": "Rollenfortschritt",
+          "top": 1212.15625,
+          "height": 466.203125,
+          "visibility": "visible",
+          "opacity": "1",
+          "state": null
+        },
+        {
+          "section": "Letzte Beiträge",
+          "top": 4222.171875,
+          "height": 667,
+          "visibility": "visible",
+          "opacity": "1",
+          "state": "true"
+        }
+      ],
+      "images": 11
+    },
+    {
+      "at": 35212.89999997616,
+      "h1": "timer",
+      "panels": [
+        {
+          "section": "Fansub-Projekte",
+          "top": 864.15625,
+          "height": 137,
+          "visibility": "visible",
+          "opacity": "1",
+          "state": "true"
+        },
+        {
+          "section": "Rollenfortschritt",
+          "top": 1212.15625,
+          "height": 466.203125,
+          "visibility": "visible",
+          "opacity": "1",
+          "state": null
+        },
+        {
+          "section": "Letzte Beiträge",
+          "top": 4222.171875,
+          "height": 667,
+          "visibility": "visible",
+          "opacity": "1",
+          "state": "true"
+        }
+      ],
+      "images": 11
+    },
+    {
+      "at": 36926.09999990463,
+      "h1": "timer",
+      "panels": [
+        {
+          "section": "Fansub-Projekte",
+          "top": 864.15625,
+          "height": 137,
+          "visibility": "visible",
+          "opacity": "1",
+          "state": "true"
+        },
+        {
+          "section": "Rollenfortschritt",
+          "top": 1212.15625,
+          "height": 466.203125,
+          "visibility": "visible",
+          "opacity": "1",
+          "state": null
+        },
+        {
+          "section": "Letzte Beiträge",
+          "top": 4222.171875,
+          "height": 667,
+          "visibility": "visible",
+          "opacity": "1",
+          "state": "true"
+        }
+      ],
+      "images": 11
+    },
+    {
+      "at": 37230.89999997616,
+      "h1": "timer",
+      "panels": [
+        {
+          "section": "Fansub-Projekte",
+          "top": 864.15625,
+          "height": 137,
+          "visibility": "visible",
+          "opacity": "1",
+          "state": "true"
+        },
+        {
+          "section": "Rollenfortschritt",
+          "top": 1212.15625,
+          "height": 466.203125,
+          "visibility": "visible",
+          "opacity": "1",
+          "state": null
+        },
+        {
+          "section": "Letzte Beiträge",
+          "top": 4222.171875,
+          "height": 667,
+          "visibility": "visible",
+          "opacity": "1",
+          "state": "true"
+        }
+      ],
+      "images": 11
+    },
+    {
+      "at": 37713,
+      "h1": "timer",
+      "panels": [
+        {
+          "section": "Fansub-Projekte",
+          "top": 912.15625,
+          "height": 137,
+          "visibility": "hidden",
+          "opacity": "0",
+          "state": "false"
+        },
+        {
+          "section": "Rollenfortschritt",
+          "top": 1260.15625,
+          "height": 466.203125,
+          "visibility": "hidden",
+          "opacity": "1",
+          "state": null
+        },
+        {
+          "section": "Letzte Beiträge",
+          "top": 4270.171875,
+          "height": 667,
+          "visibility": "visible",
+          "opacity": "1",
+          "state": "true"
+        }
+      ],
+      "images": 11
+    },
+    {
+      "at": 38213,
+      "h1": "timer",
+      "panels": [
+        {
+          "section": "Fansub-Projekte",
+          "top": 912.15625,
+          "height": 137,
+          "visibility": "hidden",
+          "opacity": "0",
+          "state": "false"
+        },
+        {
+          "section": "Rollenfortschritt",
+          "top": 1260.15625,
+          "height": 466.203125,
+          "visibility": "hidden",
+          "opacity": "1",
+          "state": null
+        },
+        {
+          "section": "Letzte Beiträge",
+          "top": 4270.171875,
+          "height": 667,
+          "visibility": "visible",
+          "opacity": "1",
+          "state": "true"
+        }
+      ],
+      "images": 11
+    },
+    {
+      "at": 38712.89999997616,
+      "h1": "timer",
+      "panels": [
+        {
+          "section": "Fansub-Projekte",
+          "top": -87.84375,
+          "height": 137,
+          "visibility": "hidden",
+          "opacity": "0",
+          "state": "false"
+        },
+        {
+          "section": "Rollenfortschritt",
+          "top": 260.15625,
+          "height": 466.203125,
+          "visibility": "hidden",
+          "opacity": "1",
+          "state": null
+        },
+        {
+          "section": "Letzte Beiträge",
+          "top": 3270.171875,
+          "height": 667,
+          "visibility": "visible",
+          "opacity": "1",
+          "state": "true"
+        }
+      ],
+      "images": 11
+    },
+    {
+      "at": 39215,
+      "h1": "timer",
+      "panels": [
+        {
+          "section": "Fansub-Projekte",
+          "top": -2087.84375,
+          "height": 137,
+          "visibility": "hidden",
+          "opacity": "0",
+          "state": "false"
+        },
+        {
+          "section": "Rollenfortschritt",
+          "top": -1739.84375,
+          "height": 466.203125,
+          "visibility": "hidden",
+          "opacity": "1",
+          "state": null
+        },
+        {
+          "section": "Letzte Beiträge",
+          "top": 1270.171875,
+          "height": 667,
+          "visibility": "hidden",
+          "opacity": "0",
+          "state": "false"
+        }
+      ],
+      "images": 15
+    },
+    {
+      "at": 39712.59999990463,
+      "h1": "timer",
+      "panels": [
+        {
+          "section": "Fansub-Projekte",
+          "top": -3290.84375,
+          "height": 137,
+          "visibility": "hidden",
+          "opacity": "0",
+          "state": "false"
+        },
+        {
+          "section": "Rollenfortschritt",
+          "top": -2942.84375,
+          "height": 466.203125,
+          "visibility": "hidden",
+          "opacity": "1",
+          "state": null
+        },
+        {
+          "section": "Letzte Beiträge",
+          "top": 67.171875,
+          "height": 667,
+          "visibility": "hidden",
+          "opacity": "0",
+          "state": "false"
+        }
+      ],
+      "images": 17
+    },
+    {
+      "at": 40212.89999997616,
+      "h1": "timer",
+      "panels": [
+        {
+          "section": "Fansub-Projekte",
+          "top": -3290.84375,
+          "height": 137,
+          "visibility": "hidden",
+          "opacity": "0",
+          "state": "false"
+        },
+        {
+          "section": "Rollenfortschritt",
+          "top": -2942.84375,
+          "height": 466.203125,
+          "visibility": "hidden",
+          "opacity": "1",
+          "state": null
+        },
+        {
+          "section": "Letzte Beiträge",
+          "top": 67.171875,
+          "height": 667,
+          "visibility": "hidden",
+          "opacity": "0",
+          "state": "false"
+        }
+      ],
+      "images": 17
+    },
+    {
+      "at": 40712,
+      "h1": "timer",
+      "panels": [
+        {
+          "section": "Fansub-Projekte",
+          "top": -3290.84375,
+          "height": 137,
+          "visibility": "hidden",
+          "opacity": "0",
+          "state": "false"
+        },
+        {
+          "section": "Rollenfortschritt",
+          "top": -2942.84375,
+          "height": 466.203125,
+          "visibility": "hidden",
+          "opacity": "1",
+          "state": null
+        },
+        {
+          "section": "Letzte Beiträge",
+          "top": 67.171875,
+          "height": 667,
+          "visibility": "hidden",
+          "opacity": "0",
+          "state": "false"
+        }
+      ],
+      "images": 17
+    }
+  ],
+  "changes": [
+    {
+      "at": 37658,
+      "attribute": "data-visible",
+      "value": "false",
+      "section": "Fansub-Projekte"
+    },
+    {
+      "at": 37658,
+      "attribute": "data-interaction-enabled",
+      "value": "true",
+      "section": "Rollenfortschritt"
+    },
+    {
+      "at": 38804,
+      "attribute": "data-interaction-enabled",
+      "value": "true",
+      "section": "Rollenfortschritt"
+    },
+    {
+      "at": 39191.09999990463,
+      "attribute": "data-visible",
+      "value": "false",
+      "section": "Letzte Beiträge"
+    }
+  ],
+  "navigation": {
+    "name": "http://127.0.0.1:3000/members/timer",
+    "entryType": "navigation",
+    "startTime": 0,
+    "duration": 36908.59999990463,
+    "initiatorType": "navigation",
+    "deliveryType": "",
+    "nextHopProtocol": "http/1.1",
+    "renderBlockingStatus": "non-blocking",
+    "workerStart": 0,
+    "workerRouterEvaluationStart": 0,
+    "workerCacheLookupStart": 0,
+    "workerMatchedSourceType": "",
+    "workerFinalSourceType": "",
+    "redirectStart": 0,
+    "redirectEnd": 0,
+    "fetchStart": 0.09999990463256836,
+    "domainLookupStart": 1,
+    "domainLookupEnd": 1,
+    "connectStart": 1,
+    "secureConnectionStart": 0,
+    "connectEnd": 1.0999999046325684,
+    "requestStart": 1.0999999046325684,
+    "responseStart": 180.29999995231628,
+    "firstInterimResponseStart": 0,
+    "finalResponseHeadersStart": 180.29999995231628,
+    "responseEnd": 490.2999999523163,
+    "transferSize": 39149,
+    "encodedBodySize": 38849,
+    "decodedBodySize": 207054,
+    "responseStatus": 200,
+    "serverTiming": [],
+    "unloadEventStart": 0,
+    "unloadEventEnd": 0,
+    "domInteractive": 1289.7999999523163,
+    "domContentLoadedEventStart": 1289.7999999523163,
+    "domContentLoadedEventEnd": 1289.8999999761581,
+    "domComplete": 36908.59999990463,
+    "loadEventStart": 36908.59999990463,
+    "loadEventEnd": 36908.59999990463,
+    "type": "navigate",
+    "redirectCount": 0,
+    "activationStart": 0,
+    "criticalCHRestart": 0,
+    "notRestoredReasons": null
+  },
+  "beforeScroll": 38417.799999952316
+}
