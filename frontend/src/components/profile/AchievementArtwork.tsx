@@ -32,9 +32,7 @@ export function AchievementArtwork({
   const slotClassName = [styles.slot, size === 'hero' ? styles.hero : styles.stage, className]
     .filter(Boolean)
     .join(' ')
-  const fallbackSizes = size === 'hero' ? HERO_SIZES : STAGE_SIZES
-  // Native lazy-image auto sizes use the actual container layout without per-card observers.
-  const sizes = priority ? fallbackSizes : `auto, ${fallbackSizes}`
+  const sizes = size === 'hero' ? HERO_SIZES : STAGE_SIZES
   const loading = priority ? undefined : 'lazy'
   const meaningfulAlt = decorative ? '' : alt
   const decorativeProps = decorative ? { 'aria-hidden': true as const } : {}
