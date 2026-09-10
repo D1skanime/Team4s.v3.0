@@ -48,16 +48,20 @@ export function AnimeProjectAchievementStage({
         <h3 className={animeProjectStageStyles.animeProjectTitle}>Anime-Projekte</h3>
         <div className={animeProjectStageStyles.animeProjectHero}>
           <span data-anime-project-art={heroStage.badge_code}>
-            {descriptor ? (
-              <AchievementArtwork
-                descriptor={descriptor}
-                badgeCode={heroStage.badge_code}
-                alt={heroStage.label}
-                size="hero"
-                className={`${animeProjectStageStyles.animeProjectArtwork} ${chainStyles.animeProjectArtwork}`}
-              />
+            {currentCode ? (
+              descriptor ? (
+                <AchievementArtwork
+                  descriptor={descriptor}
+                  badgeCode={heroStage.badge_code}
+                  alt={heroStage.label}
+                  size="hero"
+                  className={`${animeProjectStageStyles.animeProjectArtwork} ${chainStyles.animeProjectArtwork}`}
+                />
+              ) : (
+                <presentation.Icon size={96} aria-label={heroStage.label} />
+              )
             ) : (
-              <presentation.Icon size={96} aria-label={heroStage.label} />
+              <LockedStageArtwork hero />
             )}
           </span>
           <div className={animeProjectStageStyles.animeProjectInfo} aria-live="polite">
