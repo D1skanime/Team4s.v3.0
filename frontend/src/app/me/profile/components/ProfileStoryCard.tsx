@@ -1,4 +1,5 @@
-import { RichTextEditor, RichTextRenderer } from '@/components/editor'
+import { RichTextEditor } from '@/components/editor'
+import { RichTextRenderer } from '@/components/editor/RichTextRenderer'
 import { Button, FormField } from '@/components/ui'
 
 import type { MemberProfileFormState } from './profileFormTypes'

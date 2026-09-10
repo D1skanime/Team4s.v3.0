@@ -9,6 +9,9 @@ const deleteAnimeFansubProjectNoteMock = vi.fn()
 
 vi.mock('@/components/editor', () => ({
   RichTextEditor: () => <textarea />,
+}))
+
+vi.mock('@/components/editor/RichTextRenderer', () => ({
   RichTextRenderer: ({ bodyHtml }: { bodyHtml?: string | null }) => (
     <div dangerouslySetInnerHTML={{ __html: bodyHtml ?? '' }} />
   ),

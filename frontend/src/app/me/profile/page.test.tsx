@@ -64,6 +64,9 @@ vi.mock('@/components/editor', () => ({
       })}
     />
   ),
+}))
+
+vi.mock('@/components/editor/RichTextRenderer', () => ({
   RichTextRenderer: ({ bodyHtml }: { bodyHtml?: string | null }) => (
     <div data-testid="story-renderer" dangerouslySetInnerHTML={{ __html: bodyHtml || '' }} />
   ),

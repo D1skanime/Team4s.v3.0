@@ -35,6 +35,9 @@ vi.mock('@/components/editor', () => ({
       {helperText ? <p>{helperText}</p> : null}
     </div>
   ),
+}))
+
+vi.mock('@/components/editor/RichTextRenderer', () => ({
   RichTextRenderer: ({ bodyHtml }: { bodyHtml?: string | null }) => (
     <div dangerouslySetInnerHTML={{ __html: bodyHtml || '' }} />
   ),

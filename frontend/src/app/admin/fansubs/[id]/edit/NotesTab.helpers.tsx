@@ -2,7 +2,8 @@
 
 import { Pencil, Save, Trash2 } from 'lucide-react'
 
-import { RichTextEditor, RichTextRenderer } from '@/components/editor'
+import { RichTextEditor } from '@/components/editor'
+import { RichTextRenderer } from '@/components/editor/RichTextRenderer'
 import { Button } from '@/components/ui'
 import { MemberStoryContextMember, MemberStoryContextRole } from '@/types/fansubNotes'
 import sharedStyles from '../../../admin.module.css'
