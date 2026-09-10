@@ -1422,3 +1422,25 @@ verbindliche Auftragsquelle.
 
 **UI hint**: yes — Workstream B aendert sichtbares Artwork bei leeren Profilen und das
 Fehlerverhalten von Bildern.
+
+**Plans:** 7 plans
+
+Plans:
+**Wave 1**
+
+- [ ] 154-01-PLAN.md — Workstream A: vier doppelte Faktenabfragen im Aggregator beseitigen (Query-Budget 20->16).
+- [ ] 154-02-PLAN.md — Workstream B1: Locked-Hero-Gate fuer AnimeProjectAchievementStage nachziehen.
+- [ ] 154-03-PLAN.md — Workstream B2/B3: begrenzter Bild-Fallback und Budget fuer animierte Avatare.
+- [ ] 154-04-PLAN.md — Workstream C: schlanker Viewer-Endpunkt + durchgereichtes Abbruchsignal.
+
+**Wave 2** *(blocked on Wave 1 completion)*
+
+- [ ] 154-05-PLAN.md — Workstream D: RCA-07- und Listener-Rest-Nachmessung mit offenem Ausgang.
+
+**Wave 3** *(blocked on 154-05)*
+
+- [ ] 154-06-PLAN.md — Workstream E: Vorher/Nachher-Audit, volle Testsuiten, docker compose build.
+
+**Wave 4** *(blocked on 154-04, 154-06)*
+
+- [ ] 154-07-PLAN.md — Workstream E: menschlicher Live-Checkpoint, Owner-Ansicht eines versteckten Profils.
