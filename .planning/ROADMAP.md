@@ -1346,14 +1346,14 @@ verbindliche Auftragsquelle.
 **UI hint**: yes — Workstream C aendert die sichtbare Ladereihenfolge und Leerzustaende des
 oeffentlichen Profils.
 
-**Plans:** 2/7 plans executed
+**Plans:** 3/7 plans executed
 
 Plans:
 **Wave 1**
 
 - [x] 153-01-PLAN.md — Workstream A: AchievementArtwork sizes fix (auto-Praefix entfernen, Retentionsaudit 12/50 Zyklen).
 - [x] 153-02-PLAN.md — Workstream B1/B3: vier Renderer-Only-Konsumenten auf Direktimport, Barrel-Split-Entscheidung dokumentiert.
-- [ ] 153-03-PLAN.md — Workstream B4: echte Ladegrenze fuer die private Not-found-Vollvorschau.
+- [x] 153-03-PLAN.md — Workstream B4: echte Ladegrenze fuer die private Not-found-Vollvorschau.
 - [ ] 153-04-PLAN.md — Workstream C: MemberCurrentProjectsSection — Skeleton-Overlay entfernen, leerer Zustand serverseitig entschieden.
 - [ ] 153-05-PLAN.md — Workstream C: LatestContributionsSection + PreviousContributionsSection — identischer Skeleton-Fix (Sibling-Konsistenz).
 

@@ -4,13 +4,13 @@ milestone: v1.4
 milestone_name: Coverage
 status: executing
 stopped_at: Completed 153-02-PLAN.md
-last_updated: "2026-09-10T10:41:21.446Z"
+last_updated: "2026-09-10T10:45:12.806Z"
 last_activity: 2026-09-10
 progress:
   total_phases: 18
   completed_phases: 17
   total_plans: 177
-  completed_plans: 172
+  completed_plans: 173
   percent: 94
 ---
 
@@ -34,7 +34,7 @@ See: .planning/PROJECT.md (updated 2026-08-13)
 ## Current Position
 
 Phase: 153 (public-member-clientlast-und-speicherretention) — EXECUTING
-Plan: 3 of 7
+Plan: 4 of 7
 Status: Ready to execute
 abgelegt, Planung steht aus. Faktenbasis ist die committete Messreihe
 `docs/audits/2026-09-09-public-member-performance/REPORT.md` (Commit `592df665`): die Phase schliesst
@@ -403,6 +403,8 @@ Last activity: 2026-09-10
 - [Phase 152]: Public-profile query budget is pinned at 8 (not the originally planned 7) because ListGroupLinks issues an internal fansubGroupExists existence-check round-trip; domain-projection is pinned at 2. Recorded as the phase-closing binding value for 152-VERIFICATION.md.
 - [Phase 153]: Plan 153-01 removed the native sizes="auto," prefix from AchievementArtwork.tsx (RCA-01's sole confirmed source); both lazy and priority achievement images now use the deterministic HERO_SIZES/STAGE_SIZES strings. Live retention audits at 12 and 50 SPA navigation cycles confirm bounded, non-linear growth vs the original 466->15,107 node / 347->1,100 listener defect (post-fix: 1187->1434 nodes / 634->818 listeners at 12 cycles; 1187->1548 nodes / 634->1350 listeners at 50 cycles).
 - [Phase 153]: 153-02: RichTextRenderer split out of editor/index.ts barrel (B3, locked); four renderer-only consumers (MemberStorySection, MemberGroupsHistorySection, PublicNoteCard, AnimeProjectNotesSection) and three dual-symbol consumers (ProfileStoryCard, AnimeProjectNoteWorkspace, NotesTab.helpers) now import it directly from '@/components/editor/RichTextRenderer'; barrel keeps only RichTextEditor/ColorTokenExtension/COLOR_TOKENS. — Converts a future accidental barrel-wide RichTextRenderer import from a silent runtime bundle-size regression into a compile-time TypeScript error; combined with Plan 03 this is what the audit measured as 1.653 MB / 26.1% public JS transfer savings.
+- [Phase ?]: [Phase 153-03]: not-found.tsx is marked 'use client' and wraps OwnHiddenProfilePreview in next/dynamic({ ssr: false }) — the segment already renders exclusively a client component, so no server-rendered content is lost; closes the second half of RCA-02.
+- [Phase ?]: [Phase 153-03]: next/dynamic's ssr:false resolved cleanly under this project's Vitest + Testing Library + jsdom setup with zero mocking shim required, establishing this repo's first verified next/dynamic code-split loading-boundary pattern.
 
 ### Pending Todos
 
@@ -759,10 +761,11 @@ untruncated list lives in `.planning/todos/pending/`.
 | Phase 152 P10 | 25min | 3 tasks | 0 files |
 | Phase 153 P01 | 6min | 2 tasks | 3 files |
 | Phase 153 P02 | 4min | 2 tasks | 13 files |
+| Phase 153 P03 | 4min | 2 tasks | 2 files |
 
 ## Session Continuity
 
-Last session: 2026-09-10T10:41:21.428Z
+Last session: 2026-09-10T10:45:12.789Z
 Stopped at: Completed 153-02-PLAN.md
 Last activity: Local handoff checkpoint; no new Execute step, browser matrix, build, agent or push started after stop.
 Resume file: None
