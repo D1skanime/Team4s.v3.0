@@ -116,133 +116,118 @@ export function MemberCurrentProjectsSection({ memberSlug, projects, totalCount 
     setAttempt((current) => current + 1)
   }
 
+  if (totalCount === 0) {
+    return (
+      <section ref={targetRef} className={styles.section}>
+        <SectionHeader title="Fansub-Projekte" />
+        <EmptyState title="Keine aktuellen Projekte sichtbar." />
+      </section>
+    )
+  }
+
   return (
     <section ref={targetRef} className={styles.section}>
       <SectionHeader title="Fansub-Projekte" />
 
-      {visibleProjects.length > 0 ? (
-        <ul
-          className={`${styles.projectList} ${styles.projectSkeleton}`}
-          aria-hidden="true"
-          data-visible={interactionEnabled ? 'false' : 'true'}
-        >
-          {visibleProjects.map((project) => (
-            <li key={`skeleton:${projectKey(project)}`}>
-              <Card className={`${styles.projectCard} ${styles.skeletonCard}`}>
-                <span className={`${styles.cover} ${styles.skeletonCover}`} />
-                <span className={`${styles.projectBody} ${styles.skeletonBody}`}>
-                  <span className={styles.skeletonTitle} />
-                  <span className={styles.skeletonGroup} />
-                  <span className={styles.skeletonChips} />
+      <ul className={styles.projectList} aria-label="Fansub-Projekte">
+        {visibleProjects.map((project) => (
+          <li key={projectKey(project)}>
+            <Link
+              href={projectHref(project)}
+              className={styles.projectLink}
+              aria-label={`${project.anime_title} öffnen`}
+            >
+              <Card variant="interactive" className={styles.projectCard}>
+                <span className={styles.cover} aria-hidden={!project.cover_url}>
+                  {project.cover_url ? (
+                    <ResponsiveImage
+                      src={resolveApiUrl(project.cover_url)}
+                      alt={`${project.anime_title} Cover`}
+                      width={96}
+                      height={136}
+                      sizes="(max-width: 720px) 68px, 90px"
+                      loading="lazy"
+                    />
+                  ) : (
+                    <span>{project.anime_title.slice(0, 2).toUpperCase()}</span>
+                  )}
+                </span>
+
+                <span className={styles.projectBody}>
+                  <span className={styles.projectTitleRow}>
+                    <strong>{project.anime_title}</strong>
+                    <span className={styles.projectGroup}>{project.fansub_group_name}</span>
+                  </span>
+
+                  {project.roles.length > 0 ? (
+                    <span className={styles.chipRow}>
+                      {project.roles
+                        .slice()
+                        .sort((left, right) => {
+                          const leftIndex = contributionRoles.findIndex((role) => role.code === left.code)
+                          const rightIndex = contributionRoles.findIndex((role) => role.code === right.code)
+                          return (
+                            (leftIndex < 0 ? Number.MAX_SAFE_INTEGER : leftIndex) -
+                            (rightIndex < 0 ? Number.MAX_SAFE_INTEGER : rightIndex)
+                          )
+                        })
+                        .map((role) => (
+                          <Badge
+                            key={role.code}
+                            variant="neutral"
+                            className={styles.roleChip}
+                            data-role-code={role.code}
+                            data-color-key={presentationForRole(contributionRoles, role.code).colorKey}
+                          >
+                            {labelForRole(contributionRoles, role.code)}
+                          </Badge>
+                        ))}
+                      {project.is_project_level ? (
+                        <Badge variant="neutral">
+                          <Layers size={13} aria-hidden="true" />
+                          Projektweit
+                        </Badge>
+                      ) : null}
+                    </span>
+                  ) : null}
+                  {project.release_versions
+                    .filter((release) => release.is_release_specific)
+                    .map((release) => (
+                      <span key={release.release_version_id} className={styles.releaseException}>
+                        <span className={styles.releaseExceptionLabel}>
+                          {releaseExceptionLabel(release.episode_number, release.episode_title)}
+                        </span>
+                        <span className={styles.chipRow}>
+                          {release.roles
+                            .slice()
+                            .sort((left, right) => {
+                              const leftIndex = contributionRoles.findIndex((role) => role.code === left.code)
+                              const rightIndex = contributionRoles.findIndex((role) => role.code === right.code)
+                              return (
+                                (leftIndex < 0 ? Number.MAX_SAFE_INTEGER : leftIndex) -
+                                (rightIndex < 0 ? Number.MAX_SAFE_INTEGER : rightIndex)
+                              )
+                            })
+                            .map((role) => (
+                              <Badge
+                                key={role.code}
+                                variant="neutral"
+                                className={styles.roleChip}
+                                data-role-code={role.code}
+                                data-color-key={presentationForRole(contributionRoles, role.code).colorKey}
+                              >
+                                {labelForRole(contributionRoles, role.code)}
+                              </Badge>
+                            ))}
+                        </span>
+                      </span>
+                    ))}
                 </span>
               </Card>
-            </li>
-          ))}
-        </ul>
-      ) : null}
-      {visibleProjects.length === 0 ? (
-        <EmptyState title="Keine aktuellen Projekte sichtbar." />
-      ) : (
-        <ul className={styles.projectList} aria-label="Fansub-Projekte">
-          {visibleProjects.map((project) => (
-            <li key={projectKey(project)}>
-              <Link
-                href={projectHref(project)}
-                className={styles.projectLink}
-                aria-label={`${project.anime_title} öffnen`}
-              >
-                <Card variant="interactive" className={styles.projectCard}>
-                  <span className={styles.cover} aria-hidden={!project.cover_url}>
-                    {project.cover_url ? (
-                      <ResponsiveImage
-                        src={resolveApiUrl(project.cover_url)}
-                        alt={`${project.anime_title} Cover`}
-                        width={96}
-                        height={136}
-                        sizes="(max-width: 720px) 68px, 90px"
-                        loading="lazy"
-                      />
-                    ) : (
-                      <span>{project.anime_title.slice(0, 2).toUpperCase()}</span>
-                    )}
-                  </span>
-
-                  <span className={styles.projectBody}>
-                    <span className={styles.projectTitleRow}>
-                      <strong>{project.anime_title}</strong>
-                      <span className={styles.projectGroup}>{project.fansub_group_name}</span>
-                    </span>
-
-                    {project.roles.length > 0 ? (
-                      <span className={styles.chipRow}>
-                        {project.roles
-                          .slice()
-                          .sort((left, right) => {
-                            const leftIndex = contributionRoles.findIndex((role) => role.code === left.code)
-                            const rightIndex = contributionRoles.findIndex((role) => role.code === right.code)
-                            return (
-                              (leftIndex < 0 ? Number.MAX_SAFE_INTEGER : leftIndex) -
-                              (rightIndex < 0 ? Number.MAX_SAFE_INTEGER : rightIndex)
-                            )
-                          })
-                          .map((role) => (
-                            <Badge
-                              key={role.code}
-                              variant="neutral"
-                              className={styles.roleChip}
-                              data-role-code={role.code}
-                              data-color-key={presentationForRole(contributionRoles, role.code).colorKey}
-                            >
-                              {labelForRole(contributionRoles, role.code)}
-                            </Badge>
-                          ))}
-                        {project.is_project_level ? (
-                          <Badge variant="neutral">
-                            <Layers size={13} aria-hidden="true" />
-                            Projektweit
-                          </Badge>
-                        ) : null}
-                      </span>
-                    ) : null}
-                    {project.release_versions
-                      .filter((release) => release.is_release_specific)
-                      .map((release) => (
-                        <span key={release.release_version_id} className={styles.releaseException}>
-                          <span className={styles.releaseExceptionLabel}>
-                            {releaseExceptionLabel(release.episode_number, release.episode_title)}
-                          </span>
-                          <span className={styles.chipRow}>
-                            {release.roles
-                              .slice()
-                              .sort((left, right) => {
-                                const leftIndex = contributionRoles.findIndex((role) => role.code === left.code)
-                                const rightIndex = contributionRoles.findIndex((role) => role.code === right.code)
-                                return (
-                                  (leftIndex < 0 ? Number.MAX_SAFE_INTEGER : leftIndex) -
-                                  (rightIndex < 0 ? Number.MAX_SAFE_INTEGER : rightIndex)
-                                )
-                              })
-                              .map((role) => (
-                                <Badge
-                                  key={role.code}
-                                  variant="neutral"
-                                  className={styles.roleChip}
-                                  data-role-code={role.code}
-                                  data-color-key={presentationForRole(contributionRoles, role.code).colorKey}
-                                >
-                                  {labelForRole(contributionRoles, role.code)}
-                                </Badge>
-                              ))}
-                          </span>
-                        </span>
-                      ))}
-                  </span>
-                </Card>
-              </Link>
-            </li>
-          ))}
-        </ul>
-      )}
+            </Link>
+          </li>
+        ))}
+      </ul>
 
       {visibleProjects.length > 0 ? (
         <div className={styles.projectFooter}>

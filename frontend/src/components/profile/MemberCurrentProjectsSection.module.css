@@ -18,47 +18,6 @@
   min-width: 0;
   height: 100%;
 }
-.projectSkeleton {
-  z-index: 2;
-  pointer-events: none;
-  opacity: 1;
-  visibility: visible;
-}
-
-.projectSkeleton[data-visible='false'] {
-  opacity: 0;
-  visibility: hidden;
-}
-
-.skeletonCard {
-  border-color: var(--border-subtle);
-  background: var(--surface-card);
-}
-
-.skeletonCover {
-  background: var(--surface-card-muted);
-}
-
-.skeletonBody > span {
-  display: block;
-  border-radius: 999px;
-  background: var(--surface-sunken);
-}
-
-.skeletonTitle {
-  width: min(72%, 240px);
-  height: 18px;
-}
-
-.skeletonGroup {
-  width: min(48%, 160px);
-  height: 14px;
-}
-
-.skeletonChips {
-  width: min(62%, 200px);
-  height: 24px;
-}
 
 .projectLink {
   display: block;
