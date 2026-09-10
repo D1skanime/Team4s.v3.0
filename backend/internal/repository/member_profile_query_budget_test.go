@@ -165,7 +165,16 @@ func TestPhase131PublicProfileQueryBudgetCharacterization(t *testing.T) {
 // Phase 132 (D-06/D-07): raised from 19 to 20 to account for the new loadKnownFor
 // full-set aggregate query (top roles / known groups / active years), an intentional,
 // documented addition wired into GetPublicMemberProfileByID alongside countCurrentProjects.
-const phase131ConstantQueryBudget = 20
+// Phase 154 (RCA-05/P154-01..04): lowered from 20 to 16. This is a REGRESSION GUARD
+// against re-introducing the four duplicate query pairs GetPublicMemberProfileByID used
+// to issue -- loadRoleVolumeCounts, loadContribProjectsCount, loadContribChronicleCount,
+// and loadContribArchivistCount were each called TWICE per request (once inside
+// loadRoleVolumeBadges/loadContributionBadges, once again inside loadBadgeProgress).
+// GetPublicMemberProfileByID now calls each of the four exactly once and passes the
+// results into all three consumers. No SQL changed, no join, no index migration -- this
+// is purely a call-count reduction (20 -> 16), NOT a page-load speed claim (per
+// CONTEXT.md A3/A4; HTTP medians were already 4-6ms before this change).
+const phase131ConstantQueryBudget = 16
 
 // TestPhase131PublicProfileQueryBudgetIsConstant is the constant-query-budget gate
 // (Requirement PMPF-01, CONTEXT D-07 SC1): a public-profile load must issue the SAME
