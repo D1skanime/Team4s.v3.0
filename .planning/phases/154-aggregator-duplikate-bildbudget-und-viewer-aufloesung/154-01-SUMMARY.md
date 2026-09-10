@@ -136,3 +136,11 @@ None - no external service configuration required. (The `team4s_phase131_test` f
 ---
 *Phase: 154-aggregator-duplikate-bildbudget-und-viewer-aufloesung*
 *Completed: 2026-09-10*
+
+## Self-Check: PASSED
+
+- FOUND: `.planning/phases/154-aggregator-duplikate-bildbudget-und-viewer-aufloesung/154-01-SUMMARY.md`
+- FOUND: `f1f2d293` (Task 1 commit)
+- FOUND: `9e80aad8` (Task 2 commit)
+- FOUND: `857cdf13` (Task 3 commit)
+- FOUND: `660404aa` (this SUMMARY's own commit)
