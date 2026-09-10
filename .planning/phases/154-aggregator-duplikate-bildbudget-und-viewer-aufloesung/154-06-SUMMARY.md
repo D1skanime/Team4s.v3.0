@@ -143,3 +143,16 @@ None - no external service configuration required.
 ---
 *Phase: 154-aggregator-duplikate-bildbudget-und-viewer-aufloesung*
 *Completed: 2026-09-10*
+
+## Self-Check: PASSED
+
+- FOUND: `docs/audits/2026-09-09-public-member-performance/154-AFTER.md`
+- FOUND: `frontend/src/lib/api.no-token-boundary.test.ts`
+- FOUND: `frontend/src/components/ui/ResponsiveImage.test.tsx`
+- FOUND: `.planning/phases/154-aggregator-duplikate-bildbudget-und-viewer-aufloesung/154-06-SUMMARY.md`
+- FOUND commit: `4aedbff4` (Task 1a: test-boundary allowlist fix)
+- FOUND commit: `fdfc77da` (Task 1b: lint-warning fix)
+- FOUND commit: `21fd4132` (Task 2: 154-AFTER.md)
+- FOUND commit: `577c5d08` (this SUMMARY's own commit)
+
+No missing items.
