@@ -140,7 +140,11 @@ describe('MemberProfileNotFound loading boundary', () => {
     await waitFor(() => expect(screen.getByRole('heading', { name: 'Canonical Owner' })).toBeTruthy())
 
     expect(getMemberProfileMock).toHaveBeenCalledTimes(1)
-    expect(getMemberProfileMock).toHaveBeenCalledWith('canonical-owner')
+    // Phase 154 (P154-08..10): useMemberViewer's fetcher now forwards
+    // useCancellableSlugState's AbortSignal instead of dropping it.
+    const [slugArg, signalArg] = getMemberProfileMock.mock.calls[0] as [string, unknown]
+    expect(slugArg).toBe('canonical-owner')
+    expect(signalArg).toBeInstanceOf(AbortSignal)
     expect(screen.getByText('Privates Profil – nur für dich sichtbar')).toBeTruthy()
     expect(screen.queryByText('Profil nicht verfügbar')).toBeNull()
   })

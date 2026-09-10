@@ -35,3 +35,28 @@ slice the buffer or use a read stream with `start`/`end`, return `206 Partial Co
 `Content-Range`/`Accept-Ranges` headers) — a general improvement that would also benefit video
 scrubbing (`.mp4`/`.webm` are served through the same route) and not just this probe. Not filed as
 a numbered `P154-*` requirement; flagged here for a future maintenance pass.
+
+## From 154-03 (surfaced during 154-04's full-suite run): api.no-token-boundary.test.ts failure
+
+**Finding:** The unscoped `npx vitest run` during 154-04's Task 3 shows exactly one failing test
+file, `src/lib/api.no-token-boundary.test.ts` ("keeps direct fetch outside the central client
+limited to auth entrypoint, Keycloak, server routes, and public no-auth fetches"). It fails because
+`MemberProfileHero.tsx:122` calls raw `fetch(url, { headers: { Range: 'bytes=0-63' } })` directly
+(the same 154-03/P154-07 animated-WebP probe documented above) instead of going through the
+central `apiClientFetch`/`authorizedFetch` boundary this Phase-49 regression lock enforces, and
+that file is not yet in the test's explicit allow-list.
+
+**Why not fixed in 154-04:** `MemberProfileHero.tsx` and `api.no-token-boundary.test.ts` are not
+in 154-04's `<files>` list for any task (`app_public_profile.go`, `main.go`, `api.ts`,
+`useMemberViewer.ts`, `useMemberViewer.test.ts`, `OwnProfileEditLink.tsx`,
+`OwnProfileEditLink.test.tsx`) — the raw `fetch` call was introduced by 154-03, not by this plan.
+Confirmed via `git diff --name-only` (154-04's working tree touches none of these two files) and
+`git log` (`MemberProfileHero.tsx` was last modified by commit `9e0b4da9`, `fix(154-03): give
+animated avatars a single, budgeted code path (P154-07)`, before this plan started). Out of scope
+per the scope-boundary rule; not fixed here.
+
+**Suggested follow-up:** Either route the animated-WebP probe's `fetch` call through
+`apiClientFetch` (if it supports forwarding a `Range` header transparently) or add
+`src/components/profile/MemberProfileHero.tsx` to the test's documented allow-list with a comment
+explaining the same-origin, no-auth, byte-range probe rationale. A future phase/quick fix should
+close this so the full suite is green again.

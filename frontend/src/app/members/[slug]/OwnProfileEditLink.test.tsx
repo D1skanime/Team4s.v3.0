@@ -6,7 +6,7 @@ import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
 
 import type { PublicMemberViewer } from '@/types/profile'
 
-const getMemberProfileMock = vi.hoisted(() => vi.fn())
+const getMemberViewerAccessMock = vi.hoisted(() => vi.fn())
 const getOwnProfileMock = vi.hoisted(() => vi.fn())
 const useAuthSessionMock = vi.hoisted(() => vi.fn())
 
@@ -17,9 +17,12 @@ vi.mock('next/link', () => ({
 }))
 
 vi.mock('@/lib/api', () => ({
-  getMemberProfile: (...args: unknown[]) => getMemberProfileMock(...args),
+  // Phase 154 (RCA-08 / P154-08..10): OwnProfileEditLink now consumes the slim
+  // useMemberViewerAccess hook (getMemberViewerAccess), not the full-profile
+  // getMemberProfile.
+  getMemberViewerAccess: (...args: unknown[]) => getMemberViewerAccessMock(...args),
   getOwnProfile: (...args: unknown[]) => getOwnProfileMock(...args),
-  // useMemberViewer.ts (the shared hook this component now consumes) checks
+  // useMemberViewer.ts (the shared hook module this component consumes) checks
   // `error instanceof ApiError` to distinguish 404s from other failures.
   ApiError: class ApiError extends Error {
     status: number
@@ -62,7 +65,7 @@ function renderToolbar(overrides: Record<string, unknown> = {}) {
 }
 
 beforeEach(() => {
-  getMemberProfileMock.mockReset()
+  getMemberViewerAccessMock.mockReset()
   getOwnProfileMock.mockReset()
   getOwnProfileMock.mockResolvedValue({ data: { member_id: 3 } })
   useAuthSessionMock.mockReturnValue({
@@ -90,11 +93,11 @@ describe('OwnProfileEditLink authoritative viewer actions', () => {
 
     expect(screen.queryByRole('link', { name: 'Profil bearbeiten' })).toBeNull()
     expect(screen.queryByText('Korrektur melden')).toBeNull()
-    expect(getMemberProfileMock).not.toHaveBeenCalled()
+    expect(getMemberViewerAccessMock).not.toHaveBeenCalled()
   })
 
   it('uses the stored slug and central refresh seam for a refresh-only owner', async () => {
-    getMemberProfileMock.mockResolvedValue({ viewer: ownerViewer })
+    getMemberViewerAccessMock.mockResolvedValue({ viewer: ownerViewer })
 
     renderToolbar()
 
@@ -104,13 +107,15 @@ describe('OwnProfileEditLink authoritative viewer actions', () => {
     const editLink = await screen.findByRole('link', { name: 'Profil bearbeiten' })
     expect(editLink.getAttribute('href')).toBe('/me/profile')
     expect(screen.queryByText('Korrektur melden')).toBeNull()
-    expect(getMemberProfileMock).toHaveBeenCalledTimes(1)
-    expect(getMemberProfileMock).toHaveBeenCalledWith('canonical-owner')
+    expect(getMemberViewerAccessMock).toHaveBeenCalledTimes(1)
+    const [slugArg, signalArg] = getMemberViewerAccessMock.mock.calls[0] as [string, unknown]
+    expect(slugArg).toBe('canonical-owner')
+    expect(signalArg).toBeInstanceOf(AbortSignal)
     expect(getOwnProfileMock).not.toHaveBeenCalled()
   })
 
   it('renders correction only after an authenticated non-owner resolves', async () => {
-    getMemberProfileMock.mockResolvedValue({ viewer: nonOwnerViewer })
+    getMemberViewerAccessMock.mockResolvedValue({ viewer: nonOwnerViewer })
 
     renderToolbar()
 
@@ -130,15 +135,15 @@ describe('OwnProfileEditLink authoritative viewer actions', () => {
 
     expect(screen.getByText('Korrektur melden')).toBeTruthy()
     expect(screen.queryByRole('link', { name: 'Profil bearbeiten' })).toBeNull()
-    expect(getMemberProfileMock).not.toHaveBeenCalled()
+    expect(getMemberViewerAccessMock).not.toHaveBeenCalled()
   })
 
   it('renders neither action when the authoritative endpoint is unavailable', async () => {
-    getMemberProfileMock.mockRejectedValue(Object.assign(new Error('not found'), { status: 404 }))
+    getMemberViewerAccessMock.mockRejectedValue(Object.assign(new Error('not found'), { status: 404 }))
 
     renderToolbar()
 
-    await waitFor(() => expect(getMemberProfileMock).toHaveBeenCalledTimes(1))
+    await waitFor(() => expect(getMemberViewerAccessMock).toHaveBeenCalledTimes(1))
     expect(screen.queryByRole('link', { name: 'Profil bearbeiten' })).toBeNull()
     expect(screen.queryByText('Korrektur melden')).toBeNull()
   })
@@ -151,7 +156,7 @@ describe('OwnProfileEditLink authoritative viewer actions', () => {
 
     expect(screen.getByRole('link', { name: 'Profil bearbeiten' })).toBeTruthy()
     expect(screen.queryByText('Korrektur melden')).toBeNull()
-    expect(getMemberProfileMock).not.toHaveBeenCalled()
+    expect(getMemberViewerAccessMock).not.toHaveBeenCalled()
     expect(getOwnProfileMock).not.toHaveBeenCalled()
   })
 })
