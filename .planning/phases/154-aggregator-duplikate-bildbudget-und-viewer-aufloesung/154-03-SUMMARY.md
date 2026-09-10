@@ -286,3 +286,10 @@ None - no external service configuration required.
 ---
 *Phase: 154-aggregator-duplikate-bildbudget-und-viewer-aufloesung*
 *Completed: 2026-09-10*
+
+## Self-Check: PASSED
+
+All claimed files exist on disk (`ResponsiveImage.tsx`, `ResponsiveImage.test.tsx`,
+`MemberProfileHero.tsx`, `MemberProfileHero.test.tsx`, `deferred-items.md`,
+`154-03-SUMMARY.md`) and all claimed commit hashes (`9d1c8ab5`, `9e0b4da9`, `4a142ac1`) are
+present in `git log --oneline --all`. No missing items.
