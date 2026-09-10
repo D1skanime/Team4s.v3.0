@@ -4,7 +4,7 @@ import Image from 'next/image'
 import Link from 'next/link'
 import { useState } from 'react'
 
-import { RichTextRenderer } from '@/components/editor'
+import { RichTextRenderer } from '@/components/editor/RichTextRenderer'
 import { resolveApiUrl } from '@/lib/api'
 import { boundedColorKey } from '@/lib/roleCatalog'
 

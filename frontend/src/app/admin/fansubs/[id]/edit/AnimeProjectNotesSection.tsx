@@ -3,7 +3,7 @@
 import { useEffect, useState } from 'react'
 import { ChevronDown, ChevronRight, Pencil, Trash2 } from 'lucide-react'
 
-import { RichTextRenderer } from '@/components/editor'
+import { RichTextRenderer } from '@/components/editor/RichTextRenderer'
 import { Button } from '@/components/ui'
 import {
   ApiError,

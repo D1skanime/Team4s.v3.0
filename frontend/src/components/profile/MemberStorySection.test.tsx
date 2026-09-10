@@ -5,7 +5,7 @@ import type { ComponentType } from 'react'
 import { cleanup, fireEvent, render, screen } from '@testing-library/react'
 import { afterEach, describe, expect, it, vi } from 'vitest'
 
-vi.mock('@/components/editor', () => ({
+vi.mock('@/components/editor/RichTextRenderer', () => ({
   RichTextRenderer: ({ bodyHtml }: { bodyHtml?: string | null }) => (
     <div data-testid="rich-text-renderer">{bodyHtml}</div>
   ),

@@ -2,7 +2,7 @@
 
 import { useCallback, useEffect, useRef, useState } from 'react'
 
-import { RichTextRenderer } from '@/components/editor'
+import { RichTextRenderer } from '@/components/editor/RichTextRenderer'
 import { Button, Card, SectionHeader } from '@/components/ui'
 
 import styles from './MemberStorySection.module.css'

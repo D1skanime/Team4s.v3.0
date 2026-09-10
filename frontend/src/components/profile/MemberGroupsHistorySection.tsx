@@ -7,7 +7,7 @@
  */
 
 import { Card, EmptyState } from '@/components/ui'
-import { RichTextRenderer } from '@/components/editor'
+import { RichTextRenderer } from '@/components/editor/RichTextRenderer'
 import type { MemberProfileMembership } from '@/types/profile'
 
 import { MembershipsSection } from './MembershipsSection'
