@@ -120,7 +120,10 @@ function isWebpAvatarURL(avatarURL: string): boolean {
 async function isAnimatedWebpSource(url: string): Promise<boolean> {
   try {
     const response = await fetch(url, { headers: { Range: 'bytes=0-63' } })
-    if (!response.ok) return false
+    // WR-01 (154-REVIEW.md): only trust a genuine 206 before reading the body -- a 200 means
+    // the media route did not honor Range (quick task 260910-s1b), so treat it as
+    // not-animated/unknown instead of silently downloading the full file.
+    if (!response.ok || response.status !== 206) return false
     const buffer = new Uint8Array(await response.arrayBuffer())
     let signature = ''
     for (const byte of buffer) signature += String.fromCharCode(byte)

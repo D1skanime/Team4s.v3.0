@@ -453,6 +453,7 @@ describe('MemberProfileHero', () => {
     it('detects an animated WebP avatar via the RIFF/WEBP/ANIM signature and swaps into the SAME unoptimized branch GIFs already use', async () => {
       const fetchMock = vi.fn().mockResolvedValue({
         ok: true,
+        status: 206,
         arrayBuffer: async () => webpHeaderBytes(true),
       })
       global.fetch = fetchMock as unknown as typeof fetch
@@ -486,6 +487,7 @@ describe('MemberProfileHero', () => {
     it('keeps a plain static WebP avatar (no ANIM chunk) on the normal ResponsiveImage branch throughout, no flash/swap', async () => {
       const fetchMock = vi.fn().mockResolvedValue({
         ok: true,
+        status: 206,
         arrayBuffer: async () => webpHeaderBytes(false),
       })
       global.fetch = fetchMock as unknown as typeof fetch
@@ -505,6 +507,31 @@ describe('MemberProfileHero', () => {
       })
 
       // Resolved probe found no ANIM chunk -- stays on the same ResponsiveImage branch.
+      expect(screen.getByRole('img', { name: 'Ballelboy Avatar' }).getAttribute('data-unoptimized')).toBe('false')
+    })
+
+    it('WR-01: never reads the response body when Range is not honored (status 200), stays not-animated', async () => {
+      const arrayBufferSpy = vi.fn(async () => webpHeaderBytes(true))
+      const fetchMock = vi.fn().mockResolvedValue({
+        ok: true,
+        status: 200,
+        arrayBuffer: arrayBufferSpy,
+      })
+      global.fetch = fetchMock as unknown as typeof fetch
+
+      render(
+        <MemberProfileHero
+          profile={makePublicProfile()}
+          avatarURL="/media/profile/11/avatar/current/original.webp"
+          isPublicView={true}
+        />,
+      )
+
+      await waitFor(() => {
+        expect(fetchMock).toHaveBeenCalled()
+      })
+
+      expect(arrayBufferSpy).not.toHaveBeenCalled()
       expect(screen.getByRole('img', { name: 'Ballelboy Avatar' }).getAttribute('data-unoptimized')).toBe('false')
     })
   })
