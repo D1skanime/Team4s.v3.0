@@ -1423,7 +1423,7 @@ verbindliche Auftragsquelle.
 **UI hint**: yes — Workstream B aendert sichtbares Artwork bei leeren Profilen und das
 Fehlerverhalten von Bildern.
 
-**Plans:** 4/7 plans executed
+**Plans:** 5/7 plans executed
 
 Plans:
 **Wave 1**
@@ -1435,7 +1435,7 @@ Plans:
 
 **Wave 2** *(blocked on Wave 1 completion)*
 
-- [ ] 154-05-PLAN.md — Workstream D: RCA-07- und Listener-Rest-Nachmessung mit offenem Ausgang.
+- [x] 154-05-PLAN.md — Workstream D: RCA-07- und Listener-Rest-Nachmessung mit offenem Ausgang.
 
 **Wave 3** *(blocked on 154-05)*
 

@@ -3,14 +3,14 @@ gsd_state_version: 1.0
 milestone: v1.4
 milestone_name: Coverage
 status: executing
-stopped_at: Completed 154-04-PLAN.md
-last_updated: "2026-09-10T15:20:17.690Z"
+stopped_at: Completed 154-05-PLAN.md
+last_updated: "2026-09-10T15:31:45.525Z"
 last_activity: 2026-09-10
 progress:
   total_phases: 19
   completed_phases: 18
   total_plans: 184
-  completed_plans: 181
+  completed_plans: 182
   percent: 95
 ---
 
@@ -34,7 +34,7 @@ See: .planning/PROJECT.md (updated 2026-08-13)
 ## Current Position
 
 Phase: 154 (aggregator-duplikate-bildbudget-und-viewer-aufloesung) — EXECUTING
-Plan: 5 of 7
+Plan: 6 of 7
 Status: Ready to execute
 abgelegt, Planung steht aus. Die Phase schliesst die verbliebenen P2-Befunde der Messreihe vom
 2026-09-09: RCA-05 (vier redundante Faktenabfragen im sequenziellen Aggregator), RCA-06
@@ -459,6 +459,8 @@ Last activity: 2026-09-10
 - [Phase ?]: 154-03: ResponsiveImage optimizer-error fallback removed the unoptimized-original escape hatch entirely (no smaller same-origin derivative exists, and the audit-blocked /_next/image route fails identically on retry) -- measured 13.8MB->4.8MB for timer under AUDIT_FAIL_BADGES=1.
 - [Phase ?]: 154-03: MemberProfileHero animated-avatar detection extended to WebP via a client-side RIFF/ANIM byte-range probe, folded into the SAME existing unoptimized branch GIFs use -- documented as NOT reducing transferred bytes (confirmed both optimizer route and raw original return the identical 411,828 bytes for timer's avatar), since no backend derivative service exists in scope.
 - [Phase 154]: New GET /members/:slug/viewer endpoint reuses resolvePublicMemberAccess verbatim, no new resolver seam; PMFE-10 guard extracted into one shared deriveViewerStatus<T> used by both useMemberViewer and the new useMemberViewerAccess hook — Closes RCA-08 without duplicating the fail-closed viewer guard or the access resolver
+- [Phase 154-05]: RCA-07 (empty React-root commits) is closed -- leading changed=0 commits dropped from 1,664 (timer) / 257 (kara) to 0 in two independent re-runs after Phase 153's graph reduction; no further investigation warranted
+- [Phase 154-05]: Phase-153 listener remainder (~14-15/cycle) is unchanged after Phase 154 Wave 1 (14.24/cycle vs 14.3/cycle baseline); no second listener source found -- zero addEventListener matches across all 8 files touched by Plans 154-01..04 -- documented negative outcome for D2
 
 ### Pending Todos
 
@@ -823,11 +825,12 @@ untruncated list lives in `.planning/todos/pending/`.
 | Phase 154 P02 | 12min | 2 tasks | 2 files |
 | Phase 154 P03 | 25min | 2 tasks | 4 files |
 | Phase 154 P04 | 35min | 3 tasks | 10 files |
+| Phase 154 P05 | 20min | 2 tasks | 1 files |
 
 ## Session Continuity
 
-Last session: 2026-09-10T15:20:17.673Z
-Stopped at: Completed 154-04-PLAN.md
+Last session: 2026-09-10T15:31:45.512Z
+Stopped at: Completed 154-05-PLAN.md
 Last activity: Local handoff checkpoint; no new Execute step, browser matrix, build, agent or push started after stop.
 Resume file: None
 Structured state: .planning/HANDOFF.json
