@@ -54,41 +54,6 @@
   container: member-badge-carousel / inline-size;
 }
 
-.carouselSkeleton {
-  position: absolute;
-  inset: 0;
-  z-index: 2;
-  display: grid;
-  grid-template-columns: 44px minmax(0, 1fr) 44px;
-  align-items: center;
-  gap: 8px;
-  pointer-events: none;
-}
-
-.carouselShell:has([data-interaction-enabled="true"]) > .carouselSkeleton,
-.carouselShell:has(.badgeGrid) > .carouselSkeleton {
-  visibility: hidden;
-}
-
-.skeletonControl,
-.skeletonCard {
-  display: block;
-  background: color-mix(in srgb, var(--text-secondary) 10%, var(--surface-card-muted));
-}
-
-.skeletonControl {
-  width: 44px;
-  height: 44px;
-  border-radius: 999px;
-}
-
-.skeletonCard {
-  justify-self: center;
-  width: min(88%, 720px);
-  min-height: 320px;
-  border-radius: var(--radius-lg);
-}
-
 /* Consumer sizing remains a CSS custom property; FocalCarousel retains its implementation. */
 .chain {
   --focal-card-accent: var(--color-primary);
@@ -164,32 +129,6 @@
   clip: rect(0, 0, 0, 0);
   white-space: nowrap;
   border: 0;
-}
-
-@container member-badge-carousel (max-width: 480px) {
-  .carouselSkeleton {
-    grid-template-columns: 44px minmax(0, 1fr) 44px;
-    grid-template-rows: minmax(280px, auto) 44px;
-  }
-
-  .skeletonCard {
-    grid-column: 1 / -1;
-    grid-row: 1;
-    width: 100%;
-    min-height: 280px;
-  }
-
-  .skeletonControl {
-    grid-row: 2;
-  }
-
-  .skeletonControl:first-child {
-    grid-column: 1;
-  }
-
-  .skeletonControl:last-child {
-    grid-column: 3;
-  }
 }
 
 @container member-badge-carousel (min-width: 562px) {

@@ -208,15 +208,6 @@ export function MemberBadgeChain({
                 </div>
               ) : null}
               <div className={chainStyles.carouselShell}>
-                <div
-                  className={chainStyles.carouselSkeleton}
-                  aria-hidden="true"
-                  data-badge-skeleton
-                >
-                  <span className={chainStyles.skeletonControl} />
-                  <span className={chainStyles.skeletonCard} />
-                  <span className={chainStyles.skeletonControl} />
-                </div>
                 <FocalCarousel
                   items={group.rows}
                   getItemKey={(row) => row.key}
