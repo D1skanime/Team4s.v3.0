@@ -2027,6 +2027,7 @@ describe('Quick 260811-lck locked achievement artwork secrecy', () => {
 
 describe('Quick 260812-bqs locked mystery heroes', () => {
   const lockedProgress = [
+    { family: 'progress', current_count: 0, next_threshold: 1, remaining_count: 1, next_tier: 'first_contribution', complete: false, stages: FAMILY_STAGE_FIXTURES.progress },
     { family: 'points', current_count: 0, next_threshold: 1, remaining_count: 1, next_tier: 'Erste Punkte', complete: false, stages: FAMILY_STAGE_FIXTURES.points },
     { family: 'contribution_projects', current_count: 0, next_threshold: 1, remaining_count: 1, next_tier: 'Bronze', complete: false, stages: FAMILY_STAGE_FIXTURES.contribution_projects },
     { family: 'contribution_chronicle', current_count: 0, next_threshold: 5, remaining_count: 5, next_tier: 'Bronze', complete: false, stages: FAMILY_STAGE_FIXTURES.contribution_chronicle },
@@ -2039,8 +2040,8 @@ describe('Quick 260812-bqs locked mystery heroes', () => {
     const Chain = MemberBadgeChain as ComponentType<{ earnedBadges: PublicMemberBadge[]; badgeProgress: typeof lockedProgress }>
     const { container } = render(<Chain earnedBadges={[]} badgeProgress={lockedProgress} />)
     const heroes = Array.from(container.querySelectorAll<HTMLElement>('[data-locked-stage-hero]'))
-    expect(heroes).toHaveLength(5)
-    expect(screen.getAllByText('Noch nicht freigeschaltet')).toHaveLength(5)
+    expect(heroes).toHaveLength(6)
+    expect(screen.getAllByText('Noch nicht freigeschaltet')).toHaveLength(6)
     for (const hero of heroes) {
       expect(hero.matches('[data-locked-stage-art]')).toBe(true)
       expect(hero.textContent).toContain('?')
@@ -2048,6 +2049,7 @@ describe('Quick 260812-bqs locked mystery heroes', () => {
       expect(hero.querySelector('img, [data-achievement-art], [class*="Motif"], [class*="Frame"]')).toBeNull()
       expect(hero.getAttribute('class')).not.toMatch(/bronze|silver|gold|platinum/i)
     }
+    expect(container.querySelector('[data-family="progress"] [data-locked-stage-hero]')).not.toBeNull()
     expect(container.querySelector('[data-points-achievement-stage] [data-locked-stage-hero]')).not.toBeNull()
     for (const key of ['contribution_projects', 'contribution_chronicle', 'contribution_archivist']) {
       expect(container.querySelector(`[data-family="${key}"] [data-locked-stage-hero]`)).not.toBeNull()
@@ -2059,8 +2061,8 @@ describe('Quick 260812-bqs locked mystery heroes', () => {
     const { MemberBadgeChain } = await loadMemberBadgeChain()
     const Chain = MemberBadgeChain as ComponentType<{ earnedBadges: PublicMemberBadge[]; badgeProgress: typeof lockedProgress }>
     const html = renderToStaticMarkup(<Chain earnedBadges={[]} badgeProgress={lockedProgress} />)
-    expect(html.match(/data-locked-stage-hero/g)).toHaveLength(5)
-    expect(html.match(/Noch nicht freigeschaltet/g)).toHaveLength(5)
+    expect(html.match(/data-locked-stage-hero/g)).toHaveLength(6)
+    expect(html.match(/Noch nicht freigeschaltet/g)).toHaveLength(6)
     expect(html).not.toContain('data-achievement-art')
     expect(html).not.toContain('/member-achievement-badges/')
   })
