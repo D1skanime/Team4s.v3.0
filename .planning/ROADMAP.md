@@ -1346,7 +1346,7 @@ verbindliche Auftragsquelle.
 **UI hint**: yes — Workstream C aendert die sichtbare Ladereihenfolge und Leerzustaende des
 oeffentlichen Profils.
 
-**Plans:** 5/7 plans executed
+**Plans:** 6/7 plans executed
 
 Plans:
 **Wave 1**
@@ -1359,7 +1359,7 @@ Plans:
 
 **Wave 2** *(blocked on 153-01)*
 
-- [ ] 153-06-PLAN.md — Workstream C: MemberBadgeChain — Skeleton-Timing-Fix ohne Aenderung am Badge-/Stufen-Inhalt (P153-09 Ladder-Ausnahme). Haengt an 153-01: die drei `auto,`-Assertions in MemberBadgeChain.test.tsx pruefen Ausgabe, die erst 153-01s Quellfix erzeugt.
+- [x] 153-06-PLAN.md — Workstream C: MemberBadgeChain — Skeleton-Timing-Fix ohne Aenderung am Badge-/Stufen-Inhalt (P153-09 Ladder-Ausnahme). Haengt an 153-01: die drei `auto,`-Assertions in MemberBadgeChain.test.tsx pruefen Ausgabe, die erst 153-01s Quellfix erzeugt.
 
 **Wave 3** *(blocked on Wave 2 completion)*
 

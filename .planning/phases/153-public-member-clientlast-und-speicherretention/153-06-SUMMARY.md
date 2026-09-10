@@ -94,3 +94,7 @@ None - no external service configuration required.
 ---
 *Phase: 153-public-member-clientlast-und-speicherretention*
 *Completed: 2026-09-10*
+
+## Self-Check: PASSED
+
+All created/modified files confirmed present on disk; all three commit hashes (95b4e1d7, 46950275, 2063423f) confirmed present in git log.
