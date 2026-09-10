@@ -426,6 +426,7 @@ Milestone v1.4 closes Live-UAT Findings #29-#32 by making effective group rights
 - [x] **Phase 151: Erfolgsbadge-Karussell-Konsolidierung** - Alle Badge-Familien teilen einen gemeinsamen Artwork-Slot, gemeinsame Karten/Stufen und ein generisches Karussell; die Phase-150-Schwellenautoritaet bleibt unangetastet, geaendert wird nur die Darstellung. (completed 2026-09-08)
 - [x] **Phase 152: Public-Fansub-Gruppenseite: Konsolidierung und Modernisierung** - Die oeffentliche Gruppenseite nutzt den gemeinsamen Artwork-Slot statt eines zweiten Badge-Systems, liefert Bilder ueber die Next-Image-Pipeline aus und laedt public-seitig nur noch benoetigte Daten mit abgesichertem Query-Budget. (completed 2026-09-08)
 - [x] **Phase 153: Public-Member-Profil: Speicherretention, Importgraph und SSR-Sichtbarkeit** - Die drei P1-Befunde der Messreihe vom 2026-09-09 sind geschlossen: die native Auto-Sizes-DOM-Retention, der Editor-Importzweig im oeffentlichen Graph und die Skeletons, die vorhandene SSR-Inhalte bis zur Hydration verdecken. (completed 2026-09-10)
+- [ ] **Phase 154: Public-Member-Profil: Aggregator-Duplikate, Bildbudget und Viewer-Aufloesung** - Die verbliebenen P2-Befunde der Messreihe vom 2026-09-09 sind geschlossen: vier redundante Faktenabfragen im Profil-Aggregator, ungegatetes Locked-Artwork samt schwerem Original-Fallback und die zu breite Viewer-Aufloesung ohne durchgereichtes Abbruchsignal. Dazu zwei Nachmessungen, die erst nach der Graphverkleinerung moeglich sind.
 
 ## Phase Details
 
@@ -1364,3 +1365,60 @@ Plans:
 **Wave 3** *(blocked on Wave 2 completion)*
 
 - [x] 153-07-PLAN.md — Workstream D: Vorher/Nachher-Audit, Regressions-Guard, volle Testsuite + docker compose build, Live-Checkpoint.
+
+
+### Phase 154: Public-Member-Profil: Aggregator-Duplikate, Bildbudget und Viewer-Aufloesung
+
+**Goal:** Der oeffentliche Profil-Aggregator laedt jede Tatsache nur noch einmal statt vier Paare
+doppelt, ein Profil ohne Projekte laedt kein ungegatetes Hero-Artwork und keine Multi-Megabyte-
+Originalbilder bei Optimizer-Fehlern mehr, die Viewer-Aufloesung zieht kein zweites Vollprofil
+allein fuer den Edit-Link und reicht das vorhandene Abbruchsignal durch — belegt mit denselben
+committeten Messskripten, ohne Beschleunigungsversprechen fuer die Seitenanzeige und ohne den
+weiterhin unreproduzierten Chrome-Absturz als behoben zu erklaeren.
+
+**Requirements**: P154-01, P154-02, P154-03, P154-04, P154-05, P154-06, P154-07, P154-08, P154-09, P154-10, P154-11, P154-12, P154-13, P154-14, P154-15
+
+**Requirement-Definitionen** (Phasen-eigener Tracking-Namespace, Quelle: `154-USER-REQUEST.md`):
+
+| ID | Workstream | Anforderung |
+|----|-----------|-------------|
+| P154-01 | A1 | Vier Duplikatpaare (Rollen-Volumen, Contribution-Projekte, Chronik, Archivist) beseitigt; Fakten request-lokal einmal geladen und mehrfach abgeleitet |
+| P154-02 | A2, A3 | Fachliche Trennung Badges/Fortschritt erhalten; keine Monsterfunktion, keine Blind-Parallelisierung, kein kartesisch wachsender Join, keine spekulative Indexmigration |
+| P154-03 | A4 | Query-Budget-Test auf vorhandener Counter-Infrastruktur; neuer Sollwert dokumentiert und als Regressionsschutz, nicht als Performancenachweis beschriftet |
+| P154-04 | A5 | Ausgelieferte DTOs und Sichtbarkeitsregeln unveraendert; Public- und Owner-Antworten inhaltlich identisch |
+| P154-05 | B1 | Kein Projekt-Hero-Artwork bei null Projekten; Locked-Gating folgt dem vorhandenen Muster, keine dritte Variante |
+| P154-06 | B2, B4 | Original-Fallback begrenzt ueber vorhandene Medienstrukturen; kein Retry-Loop, kein Geometriesprung; keine pauschale PNG-Crash-Zuschreibung |
+| P154-07 | B3 | Animierte Avatare mit eigenem Budget; der unverkleinerte Optimizer-Durchlauf ist behandelt und die Wahl begruendet |
+| P154-08 | C1 | Kein unnoetiger Vollprofilabruf allein fuer den Edit-Link; Viewer- und Vollprofilbedarf getrennt oder Information weitergereicht |
+| P154-09 | C2 | `getMemberProfile` nimmt ein optionales `AbortSignal` und reicht es an `apiClientFetch` weiter; `useMemberViewer` uebergibt das Hook-Signal |
+| P154-10 | C3, C4 | PMFE-10-Fail-closed-Invariant und Fetcher-Memoisierung unveraendert; Auth-Refresh, keine private Datenfreigabe, keine falsche Login-Anzeige |
+| P154-11 | D1 | RCA-07 nach der Graphverkleinerung erneut gemessen und dokumentiert; keine Zuschreibung ohne Beleg |
+| P154-12 | D2 | Listener-Rest aus Phase 153 untersucht; Ergebnis offen dokumentiert, auch ein Negativbefund ist zulaessig |
+| P154-13 | E1, E2, E3 | Vorher/Nachher-Messung als neues Auditdokument; volle Suiten, Backend-Tests im Go-Container und `docker compose build` PASS |
+| P154-14 | E5, E8 | RCA-04 als offen gefuehrt; phasenfremde Altdefekte benannt und abgegrenzt, die Phase-153-Diskrepanz geklaert oder erneut als offen dokumentiert |
+| P154-15 | E6 | Owner-Ansicht eines versteckten Profils live als angemeldeter Eigentuemer bestaetigt (offener Punkt aus Phase 153) |
+
+**Faktenbasis:** `docs/audits/2026-09-09-public-member-performance/REPORT.md` (Commit `592df665`),
+Befunde RCA-05, RCA-06, RCA-07 und RCA-08, sowie `153-AFTER.md` mit den nach Phase 153 offen
+gebliebenen Punkten. RCA-01/02/03 sind in Phase 153 geschlossen und werden nicht erneut angefasst.
+RCA-04 (gemeldeter Chrome-Tab-Absturz) bleibt offen und ist kein Umsetzungsziel.
+
+**Einordnung:** Der Bericht stuft RCA-05 als „aktuell sekundaer fuer UX, strukturell wichtig fuer
+Last und Roundtrips" ein — die HTTP-Mediane liegen bei 4 bis 6 ms. Diese Phase verspricht deshalb
+ausdruecklich **keine** spuerbare Beschleunigung der Seitenanzeige.
+
+**Depends on:** Phase 153
+
+**Plan-time read first**: `backend/internal/repository/member_profile_public_repository.go`,
+`backend/internal/repository/member_profile_role_volume_repository.go`,
+`backend/internal/repository/member_profile_contribution_badges_repository.go`,
+`backend/internal/repository/member_profile_progress_repository.go`,
+`frontend/src/components/profile/AnimeProjectAchievementStage.tsx`,
+`frontend/src/components/ui/ResponsiveImage.tsx`,
+`frontend/src/lib/useMemberViewer.ts`, `frontend/src/hooks/useCancellableSlugState.ts`,
+`frontend/src/lib/api.ts` (getMemberProfile), `docs/audits/2026-09-09-public-member-performance/REPORT.md`,
+`docs/audits/2026-09-09-public-member-performance/153-AFTER.md` und `154-USER-REQUEST.md` als
+verbindliche Auftragsquelle.
+
+**UI hint**: yes — Workstream B aendert sichtbares Artwork bei leeren Profilen und das
+Fehlerverhalten von Bildern.

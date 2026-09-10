@@ -2,16 +2,16 @@
 gsd_state_version: 1.0
 milestone: v1.4
 milestone_name: Coverage
-status: milestone_complete
-stopped_at: Milestone complete (Phase 153 was final phase)
-last_updated: 2026-09-10T12:09:45.597Z
+status: planning
+stopped_at: Phase 154 angelegt und mit 154-USER-REQUEST.md beauftragt; Planung steht aus. Phase 153 bleibt abgeschlossen und verifiziert (14/14).
+last_updated: "2026-09-10T13:00:00.000Z"
 last_activity: 2026-09-10
 progress:
-  total_phases: 18
+  total_phases: 19
   completed_phases: 18
   total_plans: 177
   completed_plans: 177
-  percent: 100
+  percent: 95
 ---
 
 # Project State
@@ -32,6 +32,24 @@ See: .planning/PROJECT.md (updated 2026-08-13)
 **Current focus:** Milestone complete
 
 ## Current Position
+
+Phase: 154 (aggregator-duplikate-bildbudget-und-viewer-aufloesung) — PLANNING
+Plan: 0 of 0 (noch nicht geplant)
+Status: Phase 154 in der ROADMAP angelegt, `154-USER-REQUEST.md` als verbindliche Auftragsquelle
+abgelegt, Planung steht aus. Die Phase schliesst die verbliebenen P2-Befunde der Messreihe vom
+2026-09-09: RCA-05 (vier redundante Faktenabfragen im sequenziellen Aggregator), RCA-06
+(ungegatetes Locked-Artwork bei null Projekten, schwerer Original-Fallback, animierter Avatar) und
+RCA-08 (zu breite Viewer-Aufloesung, ignoriertes Abbruchsignal). Dazu zwei Nachmessungen, die erst
+nach der Graphverkleinerung durch Phase 153 sinnvoll sind: RCA-07 (leere React-Root-Commits) und
+der in Phase 153 verbliebene Listener-Zuwachs von rund 14 bis 15 pro Navigationszyklus. Ebenfalls
+enthalten ist der aus Phase 153 offene Verifikationspunkt, die Owner-Ansicht eines versteckten
+Profils live zu bestaetigen. RCA-04 (gemeldeter Chrome-Tab-Absturz) bleibt ausdruecklich offen und
+unreproduziert.
+
+Milestone v1.4 bleibt fuer die Phasen 136 bis 153 abgeschlossen; Phase 154 wird additiv angehaengt,
+ohne Milestone-Reset.
+
+## Vorherige Position (Phase 153, abgeschlossen)
 
 Milestone v1.4 (Coverage) is complete: all 18 phases (136-153), 177/177 plans, 100%.
 
