@@ -1336,7 +1336,7 @@ it('routes compact and active badge art through responsive optimized sizes', asy
   const activeImages = Array.from(container.querySelectorAll<HTMLImageElement>('[data-achievement-art]'))
   expect(activeImages.length).toBeGreaterThan(0)
   expect(activeImages.every((image) => ['(min-width: 562px) 80px, 64px', '(min-width: 658px) 240px, (min-width: 562px) 216px, 192px'].includes(image.getAttribute('sizes') ?? ''))).toBe(true)
-  expect(container.querySelectorAll('[data-badge-skeleton][aria-hidden="true"]')).toHaveLength(1)
+  expect(container.querySelectorAll('[data-badge-skeleton]')).toHaveLength(0)
 })
 
 it('Phase 120 Task 2: keeps SSR carousel content while expensive listeners remain dormant', async () => {
@@ -1546,7 +1546,7 @@ describe('Phase 121 semantischer Rollen-Rank-Track', () => {
     fireEvent.click(screen.getByRole('button', { name: 'Alle Auszeichnungen in Fansubrollen anzeigen' }))
     expect(screen.queryByRole('region', { name: 'Rollenfortschritt-Karussell' })).toBeNull()
     expect(container.querySelectorAll('[data-role-card-state="expanded"]')).toHaveLength(2)
-    expect(container.querySelector('[data-badge-skeleton="true"]')).not.toBeNull()
+    expect(container.querySelector('[data-badge-skeleton]')).toBeNull()
 
     fireEvent.click(screen.getByRole('button', { name: 'Weniger anzeigen' }))
     expect(screen.getByRole('region', { name: 'Rollenfortschritt-Karussell' })).not.toBeNull()
