@@ -620,7 +620,7 @@ scope for this phase.
 
 ## Open Questions
 
-1. **What exact byte/behavior budget should the bounded image fallback (B2) enforce?**
+1. **What exact byte/behavior budget should the bounded image fallback (B2) enforce?** (RESOLVED — see Plan 154-03)
    - What we know: the current `unoptimized` fallback delivers unbounded original bytes (up to
      2.92MB for the two `first_contribution` PNGs in the reported test); the fixed `width`/`height`
      props already prevent layout shift regardless of fallback state.
@@ -634,7 +634,7 @@ scope for this phase.
      `audit-public-member-performance.mjs`'s `AUDIT_FAIL_BADGES` env var).
 
 2. **Does the query-budget test's fixture database (`team4s_phase131_test`) still exist and match
-   the current schema, or does it need re-seeding for this phase's re-run?**
+   the current schema, or does it need re-seeding for this phase's re-run?** (RESOLVED — see Plan 154-01)
    - What we know: `TEAM4S_PHASE131_TEST_DSN`-gated tests `t.Skip()` cleanly when unset, and the
      fixture reset (`resetPhase131Fixtures`) runs automatically inside `openPhase131Postgres`.
    - What's unclear: whether the throwaway DB still exists on `team4s-linux` from Phase 131/132/150
@@ -643,7 +643,7 @@ scope for this phase.
    - Recommendation: verify DB existence as an early plan-execution step, not an assumption.
 
 3. **Should the D1 (RCA-07) and D2 (listener) re-measurements run against DEV or the isolated
-   production-diagnostic build?**
+   production-diagnostic build?** (RESOLVED — see Plan 154-05)
    - What we know: REPORT.md's original RCA-07 numbers were captured "unter Produktionsdrosselung"
      (production throttling) using `production-slow4g-cpu4`-labeled runs; 153-AFTER.md's RCA-01
      re-measurement instead used DEV-mode runs and explicitly noted the before/after comparison
