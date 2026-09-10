@@ -425,7 +425,7 @@ Milestone v1.4 closes Live-UAT Findings #29-#32 by making effective group rights
 - [x] **Phase 150: Badge-Regeln — eine autoritative Schwellenquelle** - Jede Badge-Schwelle hat genau eine fachlich autoritative Stelle: eine Go-Schwellenregistry ersetzt sechs Backend-Kopien und vier Frontend-Threshold-Quellen, das Frontend stellt nur noch dar. (completed 2026-09-07)
 - [x] **Phase 151: Erfolgsbadge-Karussell-Konsolidierung** - Alle Badge-Familien teilen einen gemeinsamen Artwork-Slot, gemeinsame Karten/Stufen und ein generisches Karussell; die Phase-150-Schwellenautoritaet bleibt unangetastet, geaendert wird nur die Darstellung. (completed 2026-09-08)
 - [x] **Phase 152: Public-Fansub-Gruppenseite: Konsolidierung und Modernisierung** - Die oeffentliche Gruppenseite nutzt den gemeinsamen Artwork-Slot statt eines zweiten Badge-Systems, liefert Bilder ueber die Next-Image-Pipeline aus und laedt public-seitig nur noch benoetigte Daten mit abgesichertem Query-Budget. (completed 2026-09-08)
-- [ ] **Phase 153: Public-Member-Profil: Speicherretention, Importgraph und SSR-Sichtbarkeit** - Die drei P1-Befunde der Messreihe vom 2026-09-09 sind geschlossen: die native Auto-Sizes-DOM-Retention, der Editor-Importzweig im oeffentlichen Graph und die Skeletons, die vorhandene SSR-Inhalte bis zur Hydration verdecken.
+- [x] **Phase 153: Public-Member-Profil: Speicherretention, Importgraph und SSR-Sichtbarkeit** - Die drei P1-Befunde der Messreihe vom 2026-09-09 sind geschlossen: die native Auto-Sizes-DOM-Retention, der Editor-Importzweig im oeffentlichen Graph und die Skeletons, die vorhandene SSR-Inhalte bis zur Hydration verdecken. (completed 2026-09-10)
 
 ## Phase Details
 
@@ -1346,7 +1346,7 @@ verbindliche Auftragsquelle.
 **UI hint**: yes — Workstream C aendert die sichtbare Ladereihenfolge und Leerzustaende des
 oeffentlichen Profils.
 
-**Plans:** 6/7 plans executed
+**Plans:** 7/7 plans complete
 
 Plans:
 **Wave 1**
@@ -1363,4 +1363,4 @@ Plans:
 
 **Wave 3** *(blocked on Wave 2 completion)*
 
-- [ ] 153-07-PLAN.md — Workstream D: Vorher/Nachher-Audit, Regressions-Guard, volle Testsuite + docker compose build, Live-Checkpoint.
+- [x] 153-07-PLAN.md — Workstream D: Vorher/Nachher-Audit, Regressions-Guard, volle Testsuite + docker compose build, Live-Checkpoint.

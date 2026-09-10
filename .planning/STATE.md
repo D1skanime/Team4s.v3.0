@@ -2,16 +2,16 @@
 gsd_state_version: 1.0
 milestone: v1.4
 milestone_name: Coverage
-status: executing
-stopped_at: Completed 153-06-PLAN.md
-last_updated: "2026-09-10T11:15:55.306Z"
+status: milestone_complete
+stopped_at: Milestone complete (Phase 153 was final phase)
+last_updated: 2026-09-10T12:09:45.597Z
 last_activity: 2026-09-10
 progress:
   total_phases: 18
-  completed_phases: 17
+  completed_phases: 18
   total_plans: 177
-  completed_plans: 176
-  percent: 94
+  completed_plans: 177
+  percent: 100
 ---
 
 # Project State
@@ -29,25 +29,51 @@ Phase 135 and any future roadmap entries continue from here.
 See: .planning/PROJECT.md (updated 2026-08-13)
 
 **Core value:** Team4s presents fansub history and collaboration credibly while keeping identity, visibility, ownership, and permissions correct.
-**Current focus:** Phase 153 — public-member-clientlast-und-speicherretention
+**Current focus:** Milestone complete
 
 ## Current Position
 
-Phase: 153 (public-member-clientlast-und-speicherretention) — EXECUTING
+Milestone v1.4 (Coverage) is complete: all 18 phases (136-153), 177/177 plans, 100%.
+
+## Vorherige Position (Phase 153, abgeschlossen)
+
+Phase: 153 (public-member-clientlast-und-speicherretention) — COMPLETE (7/7 plans, 14/14 must-haves
+verified, 153-VERIFICATION.md status: passed, score: 14/14)
 Plan: 7 of 7
-Status: Ready to execute
-abgelegt, Planung steht aus. Faktenbasis ist die committete Messreihe
+Status: Phase complete and independently verified. Faktenbasis ist die committete Messreihe
 `docs/audits/2026-09-09-public-member-performance/REPORT.md` (Commit `592df665`): die Phase schliesst
 die drei P1-Befunde RCA-01 (native Auto-Sizes-DOM-Retention bei SPA-Navigation, 466 → 15.107 Knoten
 nach zwoelf Zyklen), RCA-02 (Editor-Barrel und private Not-found-Vollvorschau im oeffentlichen
 Importgraph, rund 1,65 MB vermeidbarer JS-Transfer) und RCA-03 (Skeletons verdecken vorhandene
 SSR-Inhalte bis zur Hydration). RCA-05/06/08 sind bewusst fuer Phase 154 zurueckgestellt, RCA-07 ist
 laut Bericht erst nach der Graphverkleinerung sinnvoll erneut messbar, und RCA-04 (gemeldeter
-Chrome-Tab-Absturz) bleibt ausdruecklich offen und unreproduziert — die Phase darf ihn nicht als
-behoben erklaeren.
+Chrome-Tab-Absturz) bleibt ausdruecklich offen und unreproduziert — kein Dokument dieser Phase
+erklaert ihn als behoben.
 
-Beim Anlegen wurde ausserdem eine Roadmap-Drift geschlossen: die Phasen 151 und 152 fehlten in der
-oberen Checkliste und sind jetzt als abgeschlossen nachgetragen.
+Nachmessung (153-AFTER.md, gegen den vollstaendig gemergten Sieben-Plan-Stand): Bundle Member
+`page.js` 6,845→3,359 MB roh (−50,9 %), `not-found.js` 7,045→1,258 MB roh (−82,1 %), 0
+Tiptap/ProseMirror-Bytes in beiden oeffentlichen Importgraphen. Retention (12/50 Zyklen):
+Knotenwachstum 20,6/7,2 pro Zyklus (vorher ~1.220), Listenerwachstum 15,3/14,3 pro Zyklus (vorher
+~62,75) — Knoten um Faktor 59-170, Listener nur um Faktor ~4 gefallen; der Restanstieg bei
+Listenern bleibt eine offene Beobachtung. Sichtbarkeit: timer 36,91→26,15 s (−29,2 %), kara
+34,27→23,37 s (−31,8 %), Gruppen-Kontrolle unveraendert.
+
+Der blockierende Live-Checkpoint (153-07 Task 3) wurde vom Auftraggeber mit expliziter, messbasierter
+Begruendung freigegeben (SSR-HTML-Pruefung, CSS-Vorfahrenkette, Playwright-Screenshots im Container),
+nicht als pauschale Aussage — siehe `153-AFTER.md`, Abschnitt "Live-Checkpoint (Task 3) —
+Freigabebasis". Checkpoint-Schritt 4 (Owner-Ansicht eines versteckten Profils) wurde dabei
+ausdruecklich NICHT live geprueft (keine angemeldete Sitzung verfuegbar) und bleibt als offener
+Punkt dokumentiert, nicht als bestanden. Zwei der drei unter D5 genannten vorbestehenden,
+phasenfremden Befunde liessen sich unter den fuer diesen Plan verbindlichen Kommandos
+(`npm run typecheck`, `docker compose build`) nicht reproduzieren — als Messdiskrepanz dokumentiert,
+nicht als Erfolg dieser Phase verbucht.
+
+`.planning/REQUIREMENTS.md` hat weiterhin keinen Phase-153-Abschnitt (durchgehend ueber alle sieben
+Plaene bestaetigt, `grep -c "P153"` → 0) — ein phasenuebergreifendes Tracking-Artefakt-Luecke, die
+keinem einzelnen Plan zuzurechnen ist; alle 14 P153-Anforderungen sind inhaltlich gegen den Code
+verifiziert (153-VERIFICATION.md), nur nicht in dieser Datei nachverfolgt.
+
+Milestone v1.4 (Coverage) ist mit Phase 153 vollstaendig (18/18 Phasen, 177/177 Plaene).
 
 ## Vorherige Position (Phase 152, abgeschlossen)
 
