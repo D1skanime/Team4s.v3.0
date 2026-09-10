@@ -360,6 +360,7 @@ func main() {
 	publicProfileHandler := handlers.NewAppPublicProfileHandler(memberProfileRepo, memberProfileRepo, memberProfileRepo)
 	v1.GET("/members/:slug", authOptionalMiddleware, publicProfileHandler.GetPublicMemberProfile)
 	v1.GET("/members/:slug/projects", authOptionalMiddleware, publicProfileHandler.GetPublicMemberProjects)
+	v1.GET("/members/:slug/viewer", authOptionalMiddleware, publicProfileHandler.GetPublicMemberViewer)
 	v1.POST("/invitations/accept", authMiddleware, appAuthHandler.AcceptFansubInvitation)
 	v1.GET("/me/member-search", authMiddleware, memberClaimsHandler.SearchMembers)
 	v1.GET("/me/member-claim", authMiddleware, memberClaimsHandler.GetMyClaim)

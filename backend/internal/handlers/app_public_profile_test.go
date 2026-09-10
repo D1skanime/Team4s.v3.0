@@ -257,6 +257,83 @@ func TestGetPublicMemberProfileDenialDoesNotLoadDetails(t *testing.T) {
 	require.Equal(t, publicMemberUnavailableResponse().Body.Bytes(), recorder.Body.Bytes())
 }
 
+func TestGetPublicMemberViewerReportsOwnerWithoutLoadingProfile(t *testing.T) {
+	gin.SetMode(gin.TestMode)
+	resolver := &recordingPublicMemberAccessResolver{access: repository.PublicMemberAccess{
+		MemberID:         23,
+		Slug:             "private-member",
+		IsOwner:          true,
+		IsPrivatePreview: false,
+	}}
+	loaders := &recordingPublicMemberProfileLoaders{}
+	handler := NewAppPublicProfileHandler(resolver, loaders, loaders)
+	recorder, c := publicMemberRequestContext("/api/v1/members/private-member/viewer", "private-member")
+
+	handler.GetPublicMemberViewer(c)
+
+	require.Equal(t, http.StatusOK, recorder.Code)
+	require.JSONEq(t, `{"viewer":{"is_owner":true,"is_private_preview":false}}`, recorder.Body.String())
+	require.Equal(t, 1, resolver.calls)
+	require.Zero(t, loaders.profileCalls)
+	require.Zero(t, loaders.projectsCalls)
+}
+
+func TestGetPublicMemberViewerReportsPrivatePreview(t *testing.T) {
+	gin.SetMode(gin.TestMode)
+	resolver := &recordingPublicMemberAccessResolver{access: repository.PublicMemberAccess{
+		MemberID:         24,
+		Slug:             "hidden-member",
+		IsOwner:          false,
+		IsPrivatePreview: true,
+	}}
+	loaders := &recordingPublicMemberProfileLoaders{}
+	handler := NewAppPublicProfileHandler(resolver, loaders, loaders)
+	recorder, c := publicMemberRequestContext("/api/v1/members/hidden-member/viewer", "hidden-member")
+
+	handler.GetPublicMemberViewer(c)
+
+	require.Equal(t, http.StatusOK, recorder.Code)
+	require.JSONEq(t, `{"viewer":{"is_owner":false,"is_private_preview":true}}`, recorder.Body.String())
+	require.Equal(t, 1, resolver.calls)
+	require.Zero(t, loaders.profileCalls)
+	require.Zero(t, loaders.projectsCalls)
+}
+
+func TestGetPublicMemberViewerDenialIsNeutral(t *testing.T) {
+	gin.SetMode(gin.TestMode)
+	resolver := &recordingPublicMemberAccessResolver{err: repository.ErrNotFound}
+	loaders := &recordingPublicMemberProfileLoaders{}
+	handler := NewAppPublicProfileHandler(resolver, loaders, loaders)
+	recorder, c := publicMemberRequestContext("/api/v1/members/2/viewer", "2")
+
+	handler.GetPublicMemberViewer(c)
+
+	require.Equal(t, http.StatusNotFound, recorder.Code)
+	require.Equal(t, publicMemberUnavailableResponse().Body.Bytes(), recorder.Body.Bytes())
+	require.Zero(t, loaders.profileCalls)
+	require.Zero(t, loaders.projectsCalls)
+}
+
+func TestGetPublicMemberViewerResolverCalledExactlyOnce(t *testing.T) {
+	gin.SetMode(gin.TestMode)
+	events := []string{}
+	resolver := &recordingPublicMemberAccessResolver{
+		access: repository.PublicMemberAccess{MemberID: 29, Slug: "project-member"},
+		events: &events,
+	}
+	loaders := &recordingPublicMemberProfileLoaders{events: &events}
+	handler := NewAppPublicProfileHandler(resolver, loaders, loaders)
+	recorder, c := publicMemberRequestContext("/api/v1/members/project-member/viewer", "project-member")
+
+	handler.GetPublicMemberViewer(c)
+
+	require.Equal(t, http.StatusOK, recorder.Code)
+	require.Equal(t, []string{"resolve"}, events)
+	require.Equal(t, 1, resolver.calls)
+	require.Zero(t, loaders.profileCalls)
+	require.Zero(t, loaders.projectsCalls)
+}
+
 func TestGetPublicMemberProjectsResolvesBeforeLoadingAndBoundsPagination(t *testing.T) {
 	gin.SetMode(gin.TestMode)
 	events := []string{}

@@ -90,6 +90,22 @@ func (h *AppPublicProfileHandler) GetPublicMemberProfile(c *gin.Context) {
 	})
 }
 
+// GetPublicMemberViewer answers only the owner/private-preview viewer facts for a slug,
+// reusing the same resolver as GetPublicMemberProfile without loading the full profile
+// (RCA-08 / P154-08..10: the signed-in edit-link consumer only ever needed this).
+func (h *AppPublicProfileHandler) GetPublicMemberViewer(c *gin.Context) {
+	access, ok := resolvePublicMemberAccess(c, h.accessResolver, c.Param("slug"))
+	if !ok {
+		return
+	}
+	c.JSON(http.StatusOK, gin.H{
+		"viewer": gin.H{
+			"is_owner":           access.IsOwner,
+			"is_private_preview": access.IsPrivatePreview,
+		},
+	})
+}
+
 func (h *AppPublicProfileHandler) GetPublicMemberProjects(c *gin.Context) {
 	access, ok := resolvePublicMemberAccess(c, h.accessResolver, c.Param("slug"))
 	if !ok {
