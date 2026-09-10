@@ -221,6 +221,67 @@ grün).
 
 ---
 
+## Live-Checkpoint (Task 3) — Freigabebasis
+
+**Freigegeben durch den Auftraggeber am 10. September 2026, mit expliziter Angabe, worauf sich die
+Freigabe stützt.** Dies ist keine pauschale "Live-UAT bestanden"-Aussage — die einzelnen
+Prüfschritte 1 bis 3 stützen sich auf unabhängige Messung, nicht auf manuelle Betrachtung im
+Nutzer-Chrome über den SSH-Tunnel. Schritt 4 wurde nicht geprüft (siehe unten).
+
+**Schritte 1–3 (SSR-Sichtbarkeit, Badge-Ladder, Rendering-Status) — belegt durch Messung:**
+
+- **Ausgeliefertes SSR-HTML** von `/members/kara` und `/members/timer` geprüft: kein `auto,`-
+  Deskriptor mehr enthalten; `sizes` liefert deterministisch
+  `(min-width: 562px) 80px, 64px` bzw. `(min-width: 658px) 240px, (min-width: 562px) 216px, 192px`.
+  Keine Skeleton-Masking-Marker im HTML; verblieben ist genau ein
+  `data-interaction-enabled="false"` für das Pagination-Gate, wie geplant.
+- **Badge-Ladder unverändert:** `kara` 28 Artwork-Slots, 606 Dokumentelemente; `timer` 34 Slots.
+  Die 606 entsprechen exakt der Baseline aus REPORT.md — die P153-09-Entscheidung ("nicht als
+  Nebenwirkung einer Performancekorrektur gekürzt") ist eingehalten.
+- **CSS-Vorfahrenkette** vom Artwork-Slot bis `html` vollständig geprüft: durchgehend `opacity: 1`,
+  `visibility: visible`, `content-visibility: visible`, keine Transforms, keine Clip-Paths.
+  Slot-Geometrie live 240×240 px (Hero) und 80×80 px (Stage) — deckungsgleich mit den
+  deterministischen `sizes`-Deskriptoren oben. Damit ist A3 nicht nur statisch (Quelltext), sondern
+  am laufenden System bestätigt.
+- **Screenshot-Beweis** mit eigenem Chromium im Frontend-Container (Playwright, nicht das
+  Browser-Panel — siehe Messwerkzeug-Befund unten) bei 1440×900, `scrollY` 1300: nicht-
+  hintergrundfarbene Pixel im Viewport 39,22 % (`timer`), 14,95 % (`kara`), 38,15 % (Gruppenseite,
+  Kontrolle). Die Seiten rendern real; `kara` zeigt den vollständigen gesperrten Ladder von
+  "Erste Punkte" bis "Archiv-Legende".
+
+**Messwerkzeug-Befund (gehört in die Dokumentation, damit niemand später darüber stolpert):**
+Screenshots aus dem in Claude Code eingebetteten Browser-Panel sind nach programmatischem oder
+simuliertem Scrollen unbrauchbar — sie liefern eine weiße Fläche, obwohl der DOM an derselben
+Stelle korrekten Inhalt meldet. Das betrifft alle Seiten gleichermaßen, auch die von dieser Phase
+unberührte Gruppenseite, ist also **kein Produktdefekt**. Für visuelle Nachweise ist Playwright im
+Container zu verwenden, nicht das Panel.
+
+**Schritt 4 der Checkpoint-Liste — NICHT geprüft.** Die Owner-Ansicht eines versteckten Profils
+erfordert eine angemeldete Sitzung; die lag beim Freigabezeitpunkt nicht vor. Dies ist ein
+ausdrücklich offener Verifikationspunkt, nicht bestanden, nicht irrelevant. Plan 03 hat die
+private Vorschau (den Code-Split-Ladeboundary sowie den unveränderten Owner-/Privacy-Gate) auf
+Testebene abgedeckt (`not-found.test.tsx`, `OwnHiddenProfilePreview.test.tsx`, 9/9 Tests grün);
+eine Live-Bestätigung durch einen echten angemeldeten Eigentümer steht aus.
+
+**Zwei Punkte, die hier ausdrücklich nicht geglättet werden:**
+
+1. **Verbleibender Listener-Zuwachs:** rund 14–15 pro Navigationszyklus (634 → 1.350 über 50
+   Zyklen, siehe RCA-01-Abschnitt oben). Der Knotenzuwachs fiel um Faktor 59–170, die Listener nur
+   um Faktor rund 4. RCA-01 ist an seiner belegten Quelle (`sizes="auto"`) geschlossen, aber die
+   Listener-Kurve ist nicht flach — das bleibt eine offene Beobachtung mit den echten Zahlen, nicht
+   eine Randnotiz.
+2. **D5-Diskrepanz:** zwei der drei unter D5 genannten vorbestehenden Defekte
+   (`anime/page.tsx` searchParams-Typecheck, `admin/anime/[id]/edit/page.tsx`
+   `formatEditLoadError`) ließen sich unter den für diesen Plan verbindlichen Kommandos
+   (`npm run typecheck`, `docker compose build`) in dieser Session nicht reproduzieren (siehe
+   D5-Abschnitt oben für Details zur abweichenden Originalmessmethode). Das bleibt als Diskrepanz
+   stehen und wird nicht als Erfolg dieser Phase verbucht.
+
+**RCA-04 bleibt offen und unreproduziert.** Kein Dokument dieser Phase bezeichnet den gemeldeten
+Chrome-Tab-Absturz als behoben.
+
+---
+
 ## Validierung dieses Dokuments
 
 ```

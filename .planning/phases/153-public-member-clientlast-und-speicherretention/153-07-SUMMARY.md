@@ -11,7 +11,7 @@ provides:
   - publicImportGraph.test.ts static regression guard against both structural regressions (barrel re-import, sizes="auto" reintroduction)
   - 153-AFTER.md before/after audit document with real measured RCA-01/02/03 numbers against the merged six-plan state
   - full-suite/typecheck/lint/docker-compose-build gate results with real numbers
-affects: [153-07 Task 3 checkpoint, any future public-member-profile performance work]
+affects: [any future public-member-profile performance work]
 
 tech-stack:
   added: []
@@ -24,56 +24,83 @@ key-files:
   modified: []
 
 key-decisions:
-  - "Task 3 (checkpoint:human-verify, gate=blocking) was intentionally NOT performed or self-approved by this executor -- it requires the actual user's live browser confirmation over the SSH tunnel and cannot be substituted by an agent."
+  - "Task 3 (checkpoint:human-verify, gate=blocking) was not self-approved by the executor -- it required the actual user's confirmation, which was then given with explicit measurement-based grounding (SSR-HTML inspection, DOM/CSS-ancestor-chain checks, Playwright-in-container screenshots) rather than a blanket 'Live-UAT passed' claim. Recorded verbatim in 153-AFTER.md's 'Live-Checkpoint (Task 3)' section and below."
   - "Two of D5's three named pre-existing defects (anime/page.tsx searchParams, admin/anime/[id]/edit/page.tsx formatEditLoadError) did not reproduce as failures in this session's npm run typecheck / docker compose build, unlike REPORT.md's original diagnostic-container-based build -- reported as a measured discrepancy in 153-AFTER.md, not silently smoothed over or claimed fixed."
+  - "Claude Code's embedded browser panel returns a blank/white screenshot after programmatic or simulated scrolling even though the DOM reports correct content at that position -- affects all routes equally (including the phase-untouched group control page), so it is a tooling limitation, not a product defect. Playwright inside the frontend container is the reliable path for visual proof; recorded in 153-AFTER.md so it isn't rediscovered."
 
-requirements-completed: []  # Intentionally left empty -- Task 3 (live human checkpoint) is outstanding; requirements.mark-complete was deliberately NOT run per this plan's checkpoint gate. See "Plan Status" below.
+requirements-completed: [P153-07, P153-11, P153-12, P153-13, P153-14]
 
 # Metrics
-duration: ~75min (Tasks 1-2 only)
+duration: ~90min (all 3 tasks, including live checkpoint)
 completed: 2026-09-10
 ---
 
-# Phase 153 Plan 07: Full Regression/Build Gate + Before/After Audit (Tasks 1-2 only) Summary
+# Phase 153 Plan 07: Full Regression/Build Gate + Before/After Audit + Live Checkpoint Summary
 
-**Static import-graph regression guard added and full automated gate confirmed green; a new before/after audit document proves RCA-01/02/03 are measurably corrected against the merged six-plan state with real numbers -- Task 3's live human checkpoint remains outstanding and this plan is NOT complete.**
+**Static import-graph regression guard added, full automated gate confirmed green, a new before/after audit document proves RCA-01/02/03 are measurably corrected against the merged six-plan state with real numbers, and the user approved the live checkpoint with an explicit, measurement-grounded basis (not a blanket pass) -- this plan is complete.**
 
-## Plan Status: PARTIAL (2 of 3 tasks done; Task 3 is a blocking human checkpoint)
+## Plan Status: COMPLETE (3 of 3 tasks done)
 
 This plan's Task 3 is `type="checkpoint:human-verify"` with `gate="blocking"` and `autonomous: false`
-on the plan itself. Per this execution's explicit instructions, the executor agent did **not**
-perform, simulate, or self-approve Task 3 -- it requires the actual user's live browser
-confirmation over the SSH tunnel (`http://127.0.0.1:3300`) against the four checks listed in
-`153-07-PLAN.md`'s Task 3 `<how-to-verify>` block. STATE.md was updated with a decision entry and
-session record reflecting this partial state; `state.advance-plan`, `roadmap.update-plan-progress`,
-and `requirements.mark-complete` were deliberately **not** run, since they would incorrectly signal
-full plan/phase completion.
+on the plan itself. The executor agent that ran Tasks 1-2 correctly did **not** perform, simulate,
+or self-approve Task 3. The user then completed the live checkpoint and approved it, with the
+following precise basis (not a generic "approved"):
 
-**Task 3's exact verification steps (for the user, verbatim from the plan):**
+**Steps 1-3 (SSR visibility, badge-ladder scope, rendering status) -- approved on the basis of
+independent measurement, not manual browsing over the SSH tunnel:**
+- Delivered SSR HTML for `/members/kara` and `/members/timer` inspected directly: no `auto,`
+  descriptor remains; `sizes` is deterministically `(min-width: 562px) 80px, 64px` /
+  `(min-width: 658px) 240px, (min-width: 562px) 216px, 192px`. No skeleton-masking markers in the
+  HTML; exactly one `data-interaction-enabled="false"` remains, for the pagination gate, as
+  designed.
+- Badge ladder unchanged: `kara` 28 artwork slots / 606 document elements (matches REPORT.md's
+  baseline exactly -- P153-09 honored); `timer` 34 slots.
+- Full CSS ancestor chain from the artwork slot to `html` checked: `opacity: 1`,
+  `visibility: visible`, `content-visibility: visible` throughout, no transforms, no clip-paths.
+  Live slot geometry 240x240px (hero) / 80x80px (stage) matches the deterministic `sizes`
+  descriptors -- confirms A3 on the running system, not just statically.
+- Screenshot proof via Playwright's own Chromium inside the frontend container (not the Claude
+  Code browser panel -- see tooling note below) at 1440x900, `scrollY` 1300: non-background pixel
+  coverage 39.22% (timer), 14.95% (kara), 38.15% (group page control). Pages render real content;
+  `kara` shows the full locked ladder from "Erste Punkte" to "Archiv-Legende".
 
-> Via the SSH tunnel at `http://127.0.0.1:3300`:
-> 1. Open `/members/timer` (a full profile) and `/members/kara` (a near-empty profile). Confirm
->    content that is present in "View Source" (server-rendered HTML) appears visually immediately
->    on page load, without a skeleton flash blocking it while the page hydrates.
-> 2. On `/members/kara`, confirm the full locked/gesperrte badge ladder (all badge families, all
->    locked tiers) still renders exactly as fully as before this phase -- this is a deliberate,
->    unchanged product decision, not a regression to look for.
-> 3. Navigate between two member profiles several times in a row (SPA navigation, using in-app
->    links, not full page reloads) and confirm the browser stays responsive with no obvious
->    progressive slowdown.
-> 4. If you are logged in as the owner of a currently-hidden profile, open that profile's URL and
->    confirm the private preview still renders correctly for you.
->
-> **Resume signal:** Type "approved" or describe any issue observed.
+**Tooling finding, recorded so it doesn't get rediscovered:** screenshots from Claude Code's
+embedded browser panel are unusable after programmatic/simulated scrolling -- they return a blank
+white area even though the DOM reports correct content at the same position. This affects all
+pages equally, including the group control page untouched by this phase, so it is a tooling
+limitation, not a product defect. Use Playwright in the container for visual proof, not the panel.
+
+**Step 4 -- explicitly NOT checked.** Verifying the owner view of a hidden profile requires an
+authenticated session, which was not available at approval time. This is an open verification
+point, not passed and not irrelevant. Plan 03 covered the private preview (the code-split loading
+boundary and the untouched owner/privacy gate) at the test level
+(`not-found.test.tsx`/`OwnHiddenProfilePreview.test.tsx`, 9/9 green); a live confirmation by an
+actual logged-in owner is still outstanding.
+
+**Two points the user required not be smoothed over, both already present in 153-AFTER.md and
+restated here:**
+1. Residual listener growth of ~14-15/cycle (634->1,350 over 50 cycles) remains, even though node
+   growth fell 59x-170x and listener growth only ~4x. RCA-01 is closed at its proven source
+   (`sizes="auto"`), but the listener curve is not flat -- reported as an open observation with
+   real numbers, not a footnote.
+2. The D5 discrepancy (2 of 3 named pre-existing defects did not reproduce under this plan's
+   mandated commands) stands as a discrepancy, not a phase success.
+
+RCA-04 remains open and unreproduced; no document from this phase calls the reported Chrome crash
+fixed.
+
+Full verbatim record of the approval basis is in
+`docs/audits/2026-09-09-public-member-performance/153-AFTER.md`, section "Live-Checkpoint (Task 3)
+-- Freigabebasis".
 
 ## Performance
 
-- **Duration:** ~75 min (Tasks 1-2 only; Task 3 not attempted)
+- **Duration:** ~90 min (all 3 tasks, including the live checkpoint)
 - **Started:** 2026-09-10T11:00Z (approx, per STATE.md `last_updated`)
-- **Tasks:** 2 of 3 completed (Task 3 outstanding, blocking)
-- **Files modified:** 2 created, 0 modified
+- **Tasks:** 3 of 3 completed
+- **Files modified:** 2 created, 0 modified (plus this SUMMARY.md and 153-AFTER.md updated after Task 3's approval)
 
-## Accomplishments (Tasks 1-2 only)
+## Accomplishments
 
 - Added `publicImportGraph.test.ts`, a static source-text absence guard (CLAUDE.md Teststil
   carve-out) locking two Phase-153 structural regressions: none of the four renderer-only
@@ -108,9 +135,7 @@ full plan/phase completion.
 
 1. **Task 1: Full regression/build gate + lightweight permanent regression guard** - `eb20fc76` (test)
 2. **Task 2: Before/after audit document (D1) with explicit D4/D5 boundaries** - `7f29897a` (docs)
-3. **Task 3: Live sanity check of the corrected public member profile** - NOT PERFORMED (blocking human checkpoint, awaiting user)
-
-No plan-metadata "complete" commit was made, since the plan is not complete.
+3. **Task 3: Live sanity check of the corrected public member profile** - approved by the user with explicit measurement-grounded basis (see "Plan Status" above and `153-AFTER.md`'s "Live-Checkpoint (Task 3)" section); recorded in a follow-up docs commit updating both `153-AFTER.md` and this SUMMARY.md, plus the final plan-completion commit.
 
 ## Files Created/Modified
 
@@ -119,16 +144,16 @@ No plan-metadata "complete" commit was made, since the plan is not complete.
 
 ## Decisions Made
 
-- Task 3 is a blocking human checkpoint and was correctly left unperformed by this executor agent; approving it, simulating it, or self-signing it on the user's behalf would violate the plan's own `autonomous: false` / `gate="blocking"` contract and this execution's explicit instructions.
+- Task 3 is a blocking human checkpoint. The executor agent that ran Tasks 1-2 correctly left it unperformed rather than self-signing it; approval was then given by the actual user with an explicit measurement-based basis, not a blanket claim.
 - Two of D5's three named pre-existing defects did not reproduce as failures under this session's `npm run typecheck` / `docker compose build` (unlike REPORT.md's original diagnostic-container-based build with `typescript.ignoreBuildErrors=true`). This is reported as a factual measurement discrepancy in `153-AFTER.md`'s D5 section, not silently smoothed over, not claimed as a fix, and not itself fixed (the source files still match D5's description verbatim).
+- Step 4 of Task 3's checkpoint (owner view of a hidden profile) was left explicitly open rather than marked passed, since no authenticated owner session was available to verify it live.
 
 ## Deviations from Plan
 
 None (Rule 1-3 sense) -- no bugs found, no missing functionality added, no blocking issues hit
-during Tasks 1-2. The only deviation from a fully-executed plan is the deliberate, instructed
-non-performance of Task 3's human checkpoint, which is not a deviation under Rules 1-4 (it is the
-correct behavior for a `checkpoint:human-verify`/`gate="blocking"` task per the checkpoint protocol
--- an executor agent must stop and return control, not fabricate approval).
+during any task. Task 3's checkpoint was correctly not self-approved by the executor agent that ran
+Tasks 1-2 (per the `checkpoint:human-verify`/`gate="blocking"` protocol, an executor must stop and
+return control, not fabricate approval); the user then completed it directly.
 
 ## Self-Check
 
@@ -151,15 +176,10 @@ UNCHANGED
 
 All created files exist, both task commits exist in git history, REPORT.md is confirmed unchanged.
 
-## Next Steps (for the orchestrator / user)
+## Open Items Carried Forward (not blocking this plan's completion)
 
-1. Run Task 3's live checkpoint over the SSH tunnel (`http://127.0.0.1:3300`) against the four
-   `<how-to-verify>` items quoted above.
-2. On "approved", a continuation agent should: mark Task 3 done, run
-   `requirements.mark-complete` for `[P153-07, P153-11, P153-12, P153-13, P153-14]`,
-   `state.advance-plan`, `roadmap.update-plan-progress 153`, and the final plan-metadata commit
-   (`docs(153-07): complete ... plan`, including this SUMMARY.md + STATE.md + ROADMAP.md +
-   REQUIREMENTS.md).
-3. If an issue is found during the live check, describe it precisely (route, viewport, exact
-   observation) so a follow-up plan/task can address it -- do not resolve it inline during the
-   checkpoint per the plan's own `<action>` instruction.
+1. Task 3's checkpoint step 4 (owner view of a hidden profile) was not verified live -- requires an
+   authenticated owner session. Recorded as an open verification point in `153-AFTER.md`, not as
+   passed.
+2. The residual RCA-01 listener growth (~14-15/cycle) and the D5 measurement discrepancy are
+   documented as open observations, not phase failures requiring a fix within this phase's scope.
