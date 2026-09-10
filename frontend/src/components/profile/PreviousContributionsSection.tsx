@@ -60,22 +60,6 @@ export function PreviousContributionsSection({
       {headingLevel === 3
         ? <h3 className={styles.cardHeading}>Frühere Mitwirkungen</h3>
         : <SectionHeader title="Frühere Mitwirkungen" />}
-      <div
-        className={styles.skeletonLayer}
-        aria-hidden="true"
-        data-visible={interactionEnabled ? 'false' : 'true'}
-      >
-        <Card variant="section" className={`${styles.card} ${styles.skeletonCard}`}>
-          <span className={styles.skeletonButton} />
-          <span className={styles.skeletonEntry}>
-            <span className={styles.skeletonIcon} />
-            <span className={styles.skeletonBody}>
-              <span />
-              <span />
-            </span>
-          </span>
-        </Card>
-      </div>
       <Card variant="section" className={styles.card}>
         <Button
           type="button"

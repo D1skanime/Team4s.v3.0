@@ -97,16 +97,19 @@ describe('PreviousContributionsSection', () => {
     })
 
     const { PreviousContributionsSection } = await loadPreviousContributionsSection()
-    const rendered = render(
+    render(
       <PreviousContributionsSection items={previousItems} totalCount={1} headingLevel={3} />,
     )
 
     expect(screen.getByRole('heading', { level: 3, name: 'Frühere Mitwirkungen' })).not.toBeNull()
     expect(screen.queryByRole('heading', { level: 2, name: 'Frühere Mitwirkungen' })).toBeNull()
+    // Real content (the toggle button inside its card) is present in the DOM from the very first
+    // render -- before the IntersectionObserver ever fires -- there is no skeleton overlay gating
+    // it (RCA-03).
     const toggle = screen.getByRole('button', { name: 'Frühere Mitwirkungen anzeigen (1)' })
+    expect(toggle).not.toBeNull()
     expect(toggle.hasAttribute('disabled')).toBe(true)
     expect(observe).toHaveBeenCalledTimes(1)
-    expect(rendered.container.querySelector(':scope > section > [aria-hidden="true"]')?.getAttribute('data-visible')).toBe('true')
     fireEvent.click(toggle)
     expect(screen.queryByRole('list', { name: 'Frühere Mitwirkungen' })).toBeNull()
 
@@ -139,7 +142,7 @@ describe('PreviousContributionsSection', () => {
 
 })
 
-it('Phase 120 RED: keeps previous contributions accessible beneath an aria-hidden shell', async () => {
+it('renders the previous-contributions toggle immediately with no skeleton scaffolding (RCA-03)', async () => {
     const { PreviousContributionsSection } = await loadPreviousContributionsSection()
     const { container } = render(
       <PreviousContributionsSection items={previousItems} totalCount={1} />,
@@ -148,17 +151,13 @@ it('Phase 120 RED: keeps previous contributions accessible beneath an aria-hidde
     expect(screen.getByRole('heading', { name: 'Frühere Mitwirkungen' })).not.toBeNull()
     const toggle = screen.getByRole('button', { name: 'Frühere Mitwirkungen anzeigen (1)' })
     expect(toggle).not.toBeNull()
-    const shell = container.querySelector(':scope > section > [aria-hidden="true"]')
-    expect(shell).not.toBeNull()
-    expect(shell?.querySelectorAll('[role], a, button')).toHaveLength(0)
-    expect(shell?.textContent).not.toContain('Archiv der Sterne')
+    expect(container.querySelector(':scope > section > [aria-hidden="true"]')).toBeNull()
+    expect(container.querySelector('[class*="skeleton"]')).toBeNull()
 
     fireEvent.click(toggle)
     const list = screen.getByRole('list', { name: 'Frühere Mitwirkungen' })
     expect(within(list).getByText('Archiv der Sterne')).not.toBeNull()
-    expect(previousContributionStyles).toMatch(/opacity:\s*[01](?:\.\d+)?;/)
-    expect(previousContributionStyles).toMatch(/visibility:\s*(?:visible|hidden);/)
-    expect(previousContributionStyles).not.toMatch(/transition:[^;]*(?:width|height|min-height|padding|margin|transform)/)
+    expect(previousContributionStyles).not.toMatch(/skeleton/i)
 })
 
 
