@@ -3,14 +3,14 @@ gsd_state_version: 1.0
 milestone: v1.4
 milestone_name: Coverage
 status: executing
-stopped_at: Phase 153 UI-SPEC approved
-last_updated: "2026-09-09T20:50:37.648Z"
-last_activity: 2026-09-09
+stopped_at: Completed 153-01-PLAN.md
+last_updated: "2026-09-10T10:34:56.242Z"
+last_activity: 2026-09-10
 progress:
   total_phases: 18
   completed_phases: 17
   total_plans: 177
-  completed_plans: 170
+  completed_plans: 171
   percent: 94
 ---
 
@@ -33,8 +33,8 @@ See: .planning/PROJECT.md (updated 2026-08-13)
 
 ## Current Position
 
-Phase: 153 (public-member-clientlast-und-speicherretention) — PLANNING
-Plan: 0 of 0 (noch nicht geplant)
+Phase: 153 (public-member-clientlast-und-speicherretention) — EXECUTING
+Plan: 2 of 7
 Status: Ready to execute
 abgelegt, Planung steht aus. Faktenbasis ist die committete Messreihe
 `docs/audits/2026-09-09-public-member-performance/REPORT.md` (Commit `592df665`): die Phase schliesst
@@ -107,7 +107,7 @@ timing flakiness, not a Phase 149 regression, and not yet root-caused.
 
 v1.4 remains complete; Phase 149 was appended additively (same pattern as 143-148), no new
 milestone was created.
-Last activity: 2026-09-09
+Last activity: 2026-09-10
 
 ## Accumulated Context
 
@@ -401,6 +401,7 @@ Last activity: 2026-09-09
 - [Phase 152]: Plan 152-09 seeded a temporary 7-row fansub_group_history fixture (IDs 2-8, group new-subs) for Plan 152-10's visual QA — covers all 3 categories and both legendary-emphasis badges; Plan 152-10 must delete rows 2-8 only (not the pre-existing row 1) after its screenshot pass.
 - [Phase 152]: Task 2's checkpoint sign-off was backed by an independent Playwright DOM-geometry re-measurement of every [data-achievement-slot] across all 8 viewports, not visual review alone.
 - [Phase 152]: Public-profile query budget is pinned at 8 (not the originally planned 7) because ListGroupLinks issues an internal fansubGroupExists existence-check round-trip; domain-projection is pinned at 2. Recorded as the phase-closing binding value for 152-VERIFICATION.md.
+- [Phase 153]: Plan 153-01 removed the native sizes="auto," prefix from AchievementArtwork.tsx (RCA-01's sole confirmed source); both lazy and priority achievement images now use the deterministic HERO_SIZES/STAGE_SIZES strings. Live retention audits at 12 and 50 SPA navigation cycles confirm bounded, non-linear growth vs the original 466->15,107 node / 347->1,100 listener defect (post-fix: 1187->1434 nodes / 634->818 listeners at 12 cycles; 1187->1548 nodes / 634->1350 listeners at 50 cycles).
 
 ### Pending Todos
 
@@ -755,13 +756,14 @@ untruncated list lives in `.planning/todos/pending/`.
 | Phase 152 P08 | 35min | 2 tasks | 1 files |
 | Phase 152 P09 | 50min | 3 tasks | 0 files |
 | Phase 152 P10 | 25min | 3 tasks | 0 files |
+| Phase 153 P01 | 6min | 2 tasks | 3 files |
 
 ## Session Continuity
 
-Last session: 2026-09-09T20:16:44.200Z
-Stopped at: Phase 153 UI-SPEC approved
+Last session: 2026-09-10T10:34:56.225Z
+Stopped at: Completed 153-01-PLAN.md
 Last activity: Local handoff checkpoint; no new Execute step, browser matrix, build, agent or push started after stop.
-Resume file: .planning/phases/153-public-member-clientlast-und-speicherretention/153-UI-SPEC.md
+Resume file: None
 Structured state: .planning/HANDOFF.json
 
 Plans 151-02/03/04 have implementation summaries. Plans 151-01 and 151-05 remain open until final artwork/composition review, complete browser evidence and independent verification; their missing summaries are intentional. No requirement or phase has been falsely marked complete.
