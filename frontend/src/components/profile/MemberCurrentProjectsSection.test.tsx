@@ -249,7 +249,7 @@ describe('MemberCurrentProjectsSection', () => {
     expect(screen.queryByText('Weitere Projekte konnten nicht geladen werden')).toBeNull()
   })
 
-  it('keeps load-more dormant and the geometry shell visible until the section is near the viewport', () => {
+  it('renders real project content immediately, before load-more activates near the viewport', () => {
     let observerCallback: IntersectionObserverCallback | undefined
     const disconnect = vi.fn()
     const observe = vi.fn()
@@ -270,17 +270,17 @@ describe('MemberCurrentProjectsSection', () => {
       },
     )
 
-    const rendered = render(
-      <MemberCurrentProjectsSection memberSlug="subaru" projects={[makeProject(1)]} totalCount={2} />,
-    )
+    render(<MemberCurrentProjectsSection memberSlug="subaru" projects={[makeProject(1)]} totalCount={2} />)
+
+    // Real content is present in the DOM from the very first render -- before the
+    // IntersectionObserver ever fires -- there is no skeleton overlay gating it (RCA-03).
+    expect(screen.getByRole('link', { name: 'Projekt 1 öffnen' })).not.toBeNull()
 
     const button = screen.getByRole('button', {
       name: 'Weitere Projekte laden',
     })
-    const shell = rendered.container.querySelector(':scope > section > [aria-hidden="true"]')
     expect(observe).toHaveBeenCalledTimes(1)
     expect(button.hasAttribute('disabled')).toBe(true)
-    expect(shell?.getAttribute('data-visible')).toBe('true')
     expect(getMemberProjectsMock).not.toHaveBeenCalled()
 
     act(() => {
@@ -288,37 +288,39 @@ describe('MemberCurrentProjectsSection', () => {
     })
 
     expect(button.hasAttribute('disabled')).toBe(false)
-    expect(shell?.getAttribute('data-visible')).toBe('false')
     expect(disconnect).toHaveBeenCalledTimes(1)
   })
-})
 
-it('Phase 120 RED: reserves project geometry while SSR cards remain readable', () => {
-  const rendered = render(
-    <MemberCurrentProjectsSection memberSlug="subaru" projects={[makeProject(1), makeProject(2)]} totalCount={2} />,
-  )
+  it('renders the full project grid with real cards and no skeleton scaffolding', () => {
+    render(
+      <MemberCurrentProjectsSection
+        memberSlug="subaru"
+        projects={[makeProject(1), makeProject(2)]}
+        totalCount={2}
+      />,
+    )
 
-  const list = screen.getByRole('list', { name: 'Fansub-Projekte' })
-  expect(within(list).getAllByRole('listitem')).toHaveLength(2)
-  expect(screen.getByRole('link', { name: 'Projekt 1 öffnen' })).not.toBeNull()
-  expect(screen.getByRole('link', { name: 'Projekt 2 öffnen' })).not.toBeNull()
-  for (const image of screen.getAllByRole('img')) {
-    expect(image.getAttribute('sizes')).toBe('(max-width: 720px) 68px, 90px')
-    expect(image.getAttribute('loading')).toBe('lazy')
-  }
+    const list = screen.getByRole('list', { name: 'Fansub-Projekte' })
+    expect(within(list).getAllByRole('listitem')).toHaveLength(2)
+    expect(screen.getByRole('link', { name: 'Projekt 1 öffnen' })).not.toBeNull()
+    expect(screen.getByRole('link', { name: 'Projekt 2 öffnen' })).not.toBeNull()
+    for (const image of screen.getAllByRole('img')) {
+      expect(image.getAttribute('sizes')).toBe('(max-width: 720px) 68px, 90px')
+      expect(image.getAttribute('loading')).toBe('lazy')
+    }
+    expect(projectStyles).toMatch(/\.cover\s*\{[^}]*width:\s*90px;[^}]*aspect-ratio:\s*2 \/ 3;/s)
+    expect(projectStyles).toMatch(/@media \(max-width: 720px\)[\s\S]*?\.cover\s*\{[^}]*width:\s*68px;/)
+  })
 
-  const shell = rendered.container.querySelector(':scope > section > [aria-hidden="true"]')
-  expect(shell).not.toBeNull()
-  expect(shell?.textContent).not.toContain('Projekt 1')
-  expect(projectStyles).toMatch(/\.cover\s*\{[^}]*width:\s*90px;[^}]*aspect-ratio:\s*2 \/ 3;/s)
-  expect(projectStyles).toMatch(/@media \(max-width: 720px\)[\s\S]*?\.cover\s*\{[^}]*width:\s*68px;/)
-  expect(projectStyles).toMatch(/opacity:\s*[01](?:\.\d+)?;/)
-  expect(projectStyles).toMatch(/visibility:\s*(?:visible|hidden);/)
-  expect(projectStyles).not.toMatch(/transition:[^;]*(?:width|height|min-height|padding|margin|transform)/)
+  it('renders only the server-decided EmptyState and no pagination scaffolding when totalCount is 0', () => {
+    const { container } = render(<MemberCurrentProjectsSection memberSlug="subaru" projects={[]} totalCount={0} />)
 
-  rendered.rerender(<MemberCurrentProjectsSection memberSlug="subaru" projects={[]} totalCount={0} />)
-  expect(screen.getByText('Keine aktuellen Projekte sichtbar.')).not.toBeNull()
-  expect(rendered.container.querySelector(':scope > section > [aria-hidden="true"]')).toBeNull()
+    expect(screen.getByText('Keine aktuellen Projekte sichtbar.')).not.toBeNull()
+    expect(screen.queryByRole('button', { name: 'Weitere Projekte laden' })).toBeNull()
+    expect(screen.queryByRole('list', { name: 'Fansub-Projekte' })).toBeNull()
+    expect(container.querySelector('[class*="projectFooter"]')).toBeNull()
+    expect(container.querySelector('[class*="skeleton"]')).toBeNull()
+  })
 })
 
 describe('Quick 260812-rps widescreen project alignment', () => {
