@@ -122,3 +122,13 @@ None - no external service configuration required.
 ---
 *Phase: 153-public-member-clientlast-und-speicherretention*
 *Completed: 2026-09-10*
+
+## Self-Check: PASSED
+
+- FOUND: frontend/src/components/profile/AchievementArtwork.tsx
+- FOUND: frontend/src/components/profile/AchievementArtwork.test.tsx
+- FOUND: frontend/src/components/profile/MemberBadgeChain.test.tsx
+- FOUND: .planning/phases/153-public-member-clientlast-und-speicherretention/153-01-SUMMARY.md
+- FOUND commit: 8cfaf9d4
+- FOUND commit: 5a91ffed
+- FOUND commit: 32243921
