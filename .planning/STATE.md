@@ -3,14 +3,14 @@ gsd_state_version: 1.0
 milestone: v1.4
 milestone_name: Coverage
 status: executing
-stopped_at: Completed 153-04-PLAN.md
-last_updated: "2026-09-10T10:50:53.775Z"
+stopped_at: Completed 153-05-PLAN.md
+last_updated: "2026-09-10T10:55:41.967Z"
 last_activity: 2026-09-10
 progress:
   total_phases: 18
   completed_phases: 17
   total_plans: 177
-  completed_plans: 174
+  completed_plans: 175
   percent: 94
 ---
 
@@ -34,7 +34,7 @@ See: .planning/PROJECT.md (updated 2026-08-13)
 ## Current Position
 
 Phase: 153 (public-member-clientlast-und-speicherretention) — EXECUTING
-Plan: 5 of 7
+Plan: 6 of 7
 Status: Ready to execute
 abgelegt, Planung steht aus. Faktenbasis ist die committete Messreihe
 `docs/audits/2026-09-09-public-member-performance/REPORT.md` (Commit `592df665`): die Phase schliesst
@@ -406,6 +406,7 @@ Last activity: 2026-09-10
 - [Phase ?]: [Phase 153-03]: not-found.tsx is marked 'use client' and wraps OwnHiddenProfilePreview in next/dynamic({ ssr: false }) — the segment already renders exclusively a client component, so no server-rendered content is lost; closes the second half of RCA-02.
 - [Phase ?]: [Phase 153-03]: next/dynamic's ssr:false resolved cleanly under this project's Vitest + Testing Library + jsdom setup with zero mocking shim required, establishing this repo's first verified next/dynamic code-split loading-boundary pattern.
 - [Phase 153]: 153-04: MemberCurrentProjectsSection's empty-state early return branches on totalCount === 0 (props-level structural signal), not visibleProjects.length === 0; the initial-mount skeleton overlay is deleted entirely, leaving the pagination continuation fetch as the only legitimate loading substate (RCA-03).
+- [Phase 153]: Plan 05 removed LatestContributionsSection's and PreviousContributionsSection's skeletonLayer overlays (RCA-03), reusing Plan 04's fix shape for sibling consistency (UI-SPEC §6); both components' zero-content early returns are unchanged and interactionEnabled still gates only interactive affordances.
 
 ### Pending Todos
 
@@ -764,11 +765,12 @@ untruncated list lives in `.planning/todos/pending/`.
 | Phase 153 P02 | 4min | 2 tasks | 13 files |
 | Phase 153 P03 | 4min | 2 tasks | 2 files |
 | Phase 153 P04 | 20min | 2 tasks | 3 files |
+| Phase 153 P05 | 6min | 2 tasks | 6 files |
 
 ## Session Continuity
 
-Last session: 2026-09-10T10:50:53.760Z
-Stopped at: Completed 153-04-PLAN.md
+Last session: 2026-09-10T10:55:41.952Z
+Stopped at: Completed 153-05-PLAN.md
 Last activity: Local handoff checkpoint; no new Execute step, browser matrix, build, agent or push started after stop.
 Resume file: None
 Structured state: .planning/HANDOFF.json
