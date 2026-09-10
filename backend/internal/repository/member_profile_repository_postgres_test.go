@@ -133,8 +133,9 @@ func TestLoadPublicBadgesPostgresRoleEntryAwardedVisible(t *testing.T) {
 	require.NoError(t, err)
 	insertRoleEntryLifecycleRow(t, pool, 1, "translator", 1, "awarded", &award.ID, nil)
 
-	badges, err := repo.loadRoleVolumeBadges(context.Background(), 1)
+	counts, err := repo.loadRoleVolumeCounts(context.Background(), 1)
 	require.NoError(t, err)
+	badges := repo.loadRoleVolumeBadges(counts)
 	require.True(t, containsPublicBadge(badges, "role_entry_translator", "role_entry"),
 		"eine awarded lifecycle-Zeile muss die live-berechnete role_entry_translator Badge produzieren")
 }
@@ -148,8 +149,9 @@ func TestLoadPublicBadgesPostgresKaraokeFXAwardedVisible(t *testing.T) {
 	require.NoError(t, err)
 	insertRoleEntryLifecycleRow(t, pool, 1, "karaoke_fx", 1, "awarded", &award.ID, nil)
 
-	badges, err := repo.loadRoleVolumeBadges(context.Background(), 1)
+	counts, err := repo.loadRoleVolumeCounts(context.Background(), 1)
 	require.NoError(t, err)
+	badges := repo.loadRoleVolumeBadges(counts)
 	require.True(t, containsPublicBadge(badges, "role_entry_karaoke_fx", "role_entry"))
 }
 
@@ -162,8 +164,9 @@ func TestLoadPublicBadgesPostgresRoleEntryReversedHidden(t *testing.T) {
 	require.NoError(t, err)
 	lifecycleID := insertRoleEntryLifecycleRow(t, pool, 1, "translator", 1, "awarded", &award.ID, nil)
 
-	badgesBeforeReversal, err := repo.loadRoleVolumeBadges(context.Background(), 1)
+	countsBeforeReversal, err := repo.loadRoleVolumeCounts(context.Background(), 1)
 	require.NoError(t, err)
+	badgesBeforeReversal := repo.loadRoleVolumeBadges(countsBeforeReversal)
 	require.True(t, containsPublicBadge(badgesBeforeReversal, "role_entry_translator", "role_entry"))
 
 	reversal, err := ledger.InsertReversal(context.Background(), PointReversalInput{
@@ -182,8 +185,9 @@ func TestLoadPublicBadgesPostgresRoleEntryReversedHidden(t *testing.T) {
 	`, reversal.ID, lifecycleID)
 	require.NoError(t, err)
 
-	badgesAfterReversal, err := repo.loadRoleVolumeBadges(context.Background(), 1)
+	countsAfterReversal, err := repo.loadRoleVolumeCounts(context.Background(), 1)
 	require.NoError(t, err)
+	badgesAfterReversal := repo.loadRoleVolumeBadges(countsAfterReversal)
 	require.False(t, containsPublicBadge(badgesAfterReversal, "role_entry_translator", "role_entry"),
 		"eine reversed lifecycle-Zeile muss die Badge sofort beim naechsten Read verschwinden lassen (D-03 Live-Projektion)")
 }
@@ -194,8 +198,9 @@ func TestLoadPublicBadgesPostgresNonEligibleRoleNeverAppears(t *testing.T) {
 
 	insertRoleEntryLifecycleRow(t, pool, 1, "fansub_lead", 1, "pending", nil, nil)
 
-	badges, err := repo.loadRoleVolumeBadges(context.Background(), 1)
+	counts, err := repo.loadRoleVolumeCounts(context.Background(), 1)
 	require.NoError(t, err)
+	badges := repo.loadRoleVolumeBadges(counts)
 	require.False(t, containsPublicBadge(badges, "role_entry_fansub_lead", "role_entry"),
 		"eine Rolle, die nie 'awarded' erreicht, darf nie eine role_entry Badge produzieren, ohne Go-seitige Sonderbehandlung")
 }
@@ -222,8 +227,9 @@ func TestLoadPublicBadgesPostgresRoleVolume(t *testing.T) {
 		lifecycleIDs = append(lifecycleIDs, lifecycleID)
 	}
 
-	badgesAfterTwelve, err := repo.loadRoleVolumeBadges(context.Background(), 1)
+	countsAfterTwelve, err := repo.loadRoleVolumeCounts(context.Background(), 1)
 	require.NoError(t, err)
+	badgesAfterTwelve := repo.loadRoleVolumeBadges(countsAfterTwelve)
 	require.True(t, containsPublicBadge(badgesAfterTwelve, "role_volume_translator_bronze", "role_volume"),
 		"12 awarded Credits in einer Rolle muessen role_volume_translator_bronze produzieren")
 
@@ -243,8 +249,9 @@ func TestLoadPublicBadgesPostgresRoleVolume(t *testing.T) {
 	`, reversal.ID, lifecycleIDs[0])
 	require.NoError(t, err)
 
-	badgesAfterReversal, err := repo.loadRoleVolumeBadges(context.Background(), 1)
+	countsAfterReversal, err := repo.loadRoleVolumeCounts(context.Background(), 1)
 	require.NoError(t, err)
+	badgesAfterReversal := repo.loadRoleVolumeBadges(countsAfterReversal)
 	require.False(t, containsPublicBadge(badgesAfterReversal, "role_volume_translator_bronze", "role_volume"),
 		"eine Netto-Zahl von 11 nach Storno darf role_volume_translator_bronze nicht mehr enthalten (frisch je Read, kein Cache)")
 }

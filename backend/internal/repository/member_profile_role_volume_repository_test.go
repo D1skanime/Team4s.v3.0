@@ -50,8 +50,7 @@ func TestLoadRoleVolumeCountsPostgresMatchesRawValueAndBadgeDerivation(t *testin
 		"12 awarded Credits muessen die Rohzahl 12 fuer die Rolle translator ergeben")
 	require.Equal(t, "bronze", highestRoleVolumeTier(int(counts[0].Count)))
 
-	badges, err := repo.loadRoleVolumeBadges(context.Background(), 1)
-	require.NoError(t, err)
+	badges := repo.loadRoleVolumeBadges(counts)
 	require.True(t, containsPublicBadge(badges, "role_volume_translator_bronze", "role_volume"),
 		"loadRoleVolumeBadges muss nach der Rohzahl-Extraktion dasselbe Badge wie vorher emittieren")
 }
@@ -106,8 +105,9 @@ func TestLoadRoleVolumeBadgesPostgresProgressBoundaries(t *testing.T) {
 				insertRoleEntryLifecycleRow(t, pool, 1, "translator", generation, "awarded", &award.ID, nil)
 			}
 
-			badges, err := repo.loadRoleVolumeBadges(context.Background(), 1)
+			counts, err := repo.loadRoleVolumeCounts(context.Background(), 1)
 			require.NoError(t, err)
+			badges := repo.loadRoleVolumeBadges(counts)
 			if tc.count == 0 {
 				require.Empty(t, badges)
 				return
@@ -160,8 +160,9 @@ func TestLoadRoleVolumeBadgesPostgresKeepsRolesIndependentAndReversesLive(t *tes
 		insertRoleEntryLifecycleRow(t, pool, 1, "timer", generation, "awarded", &award.ID, nil)
 	}
 
-	badges, err := repo.loadRoleVolumeBadges(context.Background(), 1)
+	counts, err := repo.loadRoleVolumeCounts(context.Background(), 1)
 	require.NoError(t, err)
+	badges := repo.loadRoleVolumeBadges(counts)
 	translator := findPublicBadge(badges, "role_volume_translator_bronze")
 	timer := findPublicBadge(badges, "role_volume_timer_silver")
 	require.NotNil(t, translator)
@@ -184,8 +185,9 @@ func TestLoadRoleVolumeBadgesPostgresKeepsRolesIndependentAndReversesLive(t *tes
 	`, firstReversal.ID, translatorEntries[0].lifecycleID)
 	require.NoError(t, err)
 
-	badges, err = repo.loadRoleVolumeBadges(context.Background(), 1)
+	counts, err = repo.loadRoleVolumeCounts(context.Background(), 1)
 	require.NoError(t, err)
+	badges = repo.loadRoleVolumeBadges(counts)
 	require.Nil(t, findPublicBadge(badges, "role_volume_translator_bronze"))
 	translator = findPublicBadge(badges, "role_entry_translator")
 	require.NotNil(t, translator)
@@ -210,8 +212,9 @@ func TestLoadRoleVolumeBadgesPostgresKeepsRolesIndependentAndReversesLive(t *tes
 		require.NoError(t, err)
 	}
 
-	badges, err = repo.loadRoleVolumeBadges(context.Background(), 1)
+	counts, err = repo.loadRoleVolumeCounts(context.Background(), 1)
 	require.NoError(t, err)
+	badges = repo.loadRoleVolumeBadges(counts)
 	require.Nil(t, findPublicBadge(badges, "role_entry_translator"))
 	require.NotNil(t, findPublicBadge(badges, "role_volume_timer_silver"))
 }

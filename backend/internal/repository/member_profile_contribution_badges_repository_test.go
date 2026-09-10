@@ -191,8 +191,13 @@ func TestLoadContributionBadgesPostgres(t *testing.T) {
 	require.NoError(t, err)
 	insertContribLifecycleRow(t, pool, 30, 20, 1, "encode", 1, "awarded", &awardM1V30.ID, nil)
 
-	badgesWithGap, err := repo.loadContributionBadges(context.Background(), 1)
+	gapProjectsCount, err := repo.loadContribProjectsCount(context.Background(), 1)
 	require.NoError(t, err)
+	gapChronicleCount, err := repo.loadContribChronicleCount(context.Background(), 1)
+	require.NoError(t, err)
+	gapArchivistCount, err := repo.loadContribArchivistCount(context.Background(), 1)
+	require.NoError(t, err)
+	badgesWithGap := repo.loadContributionBadges(gapProjectsCount, gapChronicleCount, gapArchivistCount)
 	require.False(t, containsPublicBadge(badgesWithGap, "contribution_projects_bronze", "contribution"),
 		"Member 1 deckt release_version 31 (ledger-erfasst durch Member 2s Credit) nicht ab -- Projekt zaehlt nicht (D-02 Luecke)")
 
@@ -201,8 +206,13 @@ func TestLoadContributionBadgesPostgres(t *testing.T) {
 	require.NoError(t, err)
 	fam1LifecycleID := insertContribLifecycleRow(t, pool, 31, 20, 1, "typeset", 1, "awarded", &awardM1V31.ID, nil)
 
-	badgesFullyCovered, err := repo.loadContributionBadges(context.Background(), 1)
+	coveredProjectsCount, err := repo.loadContribProjectsCount(context.Background(), 1)
 	require.NoError(t, err)
+	coveredChronicleCount, err := repo.loadContribChronicleCount(context.Background(), 1)
+	require.NoError(t, err)
+	coveredArchivistCount, err := repo.loadContribArchivistCount(context.Background(), 1)
+	require.NoError(t, err)
+	badgesFullyCovered := repo.loadContributionBadges(coveredProjectsCount, coveredChronicleCount, coveredArchivistCount)
 	require.True(t, containsPublicBadge(badgesFullyCovered, "contribution_projects_bronze", "contribution"),
 		"Member 1 deckt jetzt beide ledger-erfassten Release-Versionen (30, 31) ab -- Projekt zaehlt (D-02)")
 
@@ -220,8 +230,13 @@ func TestLoadContributionBadgesPostgres(t *testing.T) {
 	`, reversal.ID, fam1LifecycleID)
 	require.NoError(t, err)
 
-	badgesAfterReversal, err := repo.loadContributionBadges(context.Background(), 1)
+	reversalProjectsCount, err := repo.loadContribProjectsCount(context.Background(), 1)
 	require.NoError(t, err)
+	reversalChronicleCount, err := repo.loadContribChronicleCount(context.Background(), 1)
+	require.NoError(t, err)
+	reversalArchivistCount, err := repo.loadContribArchivistCount(context.Background(), 1)
+	require.NoError(t, err)
+	badgesAfterReversal := repo.loadContributionBadges(reversalProjectsCount, reversalChronicleCount, reversalArchivistCount)
 	require.False(t, containsPublicBadge(badgesAfterReversal, "contribution_projects_bronze", "contribution"),
 		"ein Storno auf release_version 31 darf die Vollabdeckung sofort beim naechsten Read wieder aufheben (D-01)")
 
@@ -241,16 +256,26 @@ func TestLoadContributionBadgesPostgres(t *testing.T) {
 	`)
 	require.NoError(t, err)
 
-	badgesWithTenNotes, err := repo.loadContributionBadges(context.Background(), 1)
+	tenNotesProjectsCount, err := repo.loadContribProjectsCount(context.Background(), 1)
 	require.NoError(t, err)
+	tenNotesChronicleCount, err := repo.loadContribChronicleCount(context.Background(), 1)
+	require.NoError(t, err)
+	tenNotesArchivistCount, err := repo.loadContribArchivistCount(context.Background(), 1)
+	require.NoError(t, err)
+	badgesWithTenNotes := repo.loadContributionBadges(tenNotesProjectsCount, tenNotesChronicleCount, tenNotesArchivistCount)
 	require.True(t, containsPublicBadge(badgesWithTenNotes, "contribution_chronicle_bronze", "contribution"),
 		"10 veroeffentlichte, nicht geloeschte release_version_notes muessen contribution_chronicle_bronze produzieren (D-03)")
 
 	_, err = pool.Exec(context.Background(), `UPDATE release_version_notes SET deleted_at = NOW() WHERE id = $1`, chronicleNoteIDs[0])
 	require.NoError(t, err)
 
-	badgesAfterNoteSoftDelete, err := repo.loadContributionBadges(context.Background(), 1)
+	noteSoftDeleteProjectsCount, err := repo.loadContribProjectsCount(context.Background(), 1)
 	require.NoError(t, err)
+	noteSoftDeleteChronicleCount, err := repo.loadContribChronicleCount(context.Background(), 1)
+	require.NoError(t, err)
+	noteSoftDeleteArchivistCount, err := repo.loadContribArchivistCount(context.Background(), 1)
+	require.NoError(t, err)
+	badgesAfterNoteSoftDelete := repo.loadContributionBadges(noteSoftDeleteProjectsCount, noteSoftDeleteChronicleCount, noteSoftDeleteArchivistCount)
 	require.False(t, containsPublicBadge(badgesAfterNoteSoftDelete, "contribution_chronicle_bronze", "contribution"),
 		"ein Soft-Delete auf eine veroeffentlichte Notiz muss die Netto-Zahl sofort unter die Bronze-Schwelle senken (D-01/D-03)")
 
@@ -274,16 +299,26 @@ func TestLoadContributionBadgesPostgres(t *testing.T) {
 		archivistMediaIDs = append(archivistMediaIDs, mediaID)
 	}
 
-	badgesWithTenMedia, err := repo.loadContributionBadges(context.Background(), 1)
+	tenMediaProjectsCount, err := repo.loadContribProjectsCount(context.Background(), 1)
 	require.NoError(t, err)
+	tenMediaChronicleCount, err := repo.loadContribChronicleCount(context.Background(), 1)
+	require.NoError(t, err)
+	tenMediaArchivistCount, err := repo.loadContribArchivistCount(context.Background(), 1)
+	require.NoError(t, err)
+	badgesWithTenMedia := repo.loadContributionBadges(tenMediaProjectsCount, tenMediaChronicleCount, tenMediaArchivistCount)
 	require.True(t, containsPublicBadge(badgesWithTenMedia, "contribution_archivist_bronze", "contribution"),
 		"10 nicht geloeschte release_version_media-Zeilen ueber den Autor-Seam muessen contribution_archivist_bronze produzieren (D-04)")
 
 	_, err = pool.Exec(context.Background(), `UPDATE release_version_media SET deleted_at = NOW() WHERE id = $1`, archivistMediaIDs[0])
 	require.NoError(t, err)
 
-	badgesAfterMediaSoftDelete, err := repo.loadContributionBadges(context.Background(), 1)
+	mediaSoftDeleteProjectsCount, err := repo.loadContribProjectsCount(context.Background(), 1)
 	require.NoError(t, err)
+	mediaSoftDeleteChronicleCount, err := repo.loadContribChronicleCount(context.Background(), 1)
+	require.NoError(t, err)
+	mediaSoftDeleteArchivistCount, err := repo.loadContribArchivistCount(context.Background(), 1)
+	require.NoError(t, err)
+	badgesAfterMediaSoftDelete := repo.loadContributionBadges(mediaSoftDeleteProjectsCount, mediaSoftDeleteChronicleCount, mediaSoftDeleteArchivistCount)
 	require.False(t, containsPublicBadge(badgesAfterMediaSoftDelete, "contribution_archivist_bronze", "contribution"),
 		"ein Soft-Delete auf ein Bild muss die TOTAL-Zaehlung sofort unter die Bronze-Schwelle senken (D-04)")
 
@@ -319,8 +354,11 @@ func TestLoadContributionBadgesProjectsCountPostgresMatchesRawValueAndBadgeDeriv
 		"Member 1 deckt genau ein Projekt (anime_id 100, fansub_group_id 20) vollstaendig ab")
 	require.Equal(t, "bronze", highestContribProjectsTier(int(projectsCount)))
 
-	badges, err := repo.loadContributionBadges(context.Background(), 1)
+	chronicleCount, err := repo.loadContribChronicleCount(context.Background(), 1)
 	require.NoError(t, err)
+	archivistCount, err := repo.loadContribArchivistCount(context.Background(), 1)
+	require.NoError(t, err)
+	badges := repo.loadContributionBadges(projectsCount, chronicleCount, archivistCount)
 	require.True(t, containsPublicBadge(badges, "contribution_projects_bronze", "contribution"),
 		"loadContributionBadges muss nach der Rohzahl-Extraktion dasselbe Badge wie vorher emittieren")
 }
@@ -345,8 +383,11 @@ func TestLoadContributionBadgesChronicleCountPostgresMatchesRawValueAndBadgeDeri
 		"10 veroeffentlichte, nicht geloeschte release_version_notes muessen die Rohzahl 10 ergeben")
 	require.Equal(t, "bronze", highestContribChronicleTier(int(chronicleCount)))
 
-	badges, err := repo.loadContributionBadges(context.Background(), 1)
+	projectsCount, err := repo.loadContribProjectsCount(context.Background(), 1)
 	require.NoError(t, err)
+	archivistCount, err := repo.loadContribArchivistCount(context.Background(), 1)
+	require.NoError(t, err)
+	badges := repo.loadContributionBadges(projectsCount, chronicleCount, archivistCount)
 	require.True(t, containsPublicBadge(badges, "contribution_chronicle_bronze", "contribution"),
 		"loadContributionBadges muss nach der Rohzahl-Extraktion dasselbe Badge wie vorher emittieren")
 }
@@ -378,8 +419,11 @@ func TestLoadContributionBadgesArchivistCountPostgresMatchesRawValueAndBadgeDeri
 		"10 nicht geloeschte release_version_media-Zeilen ueber den Autor-Seam muessen die Rohzahl 10 ergeben")
 	require.Equal(t, "bronze", highestContribArchivistTier(int(archivistCount)))
 
-	badges, err := repo.loadContributionBadges(context.Background(), 1)
+	projectsCount, err := repo.loadContribProjectsCount(context.Background(), 1)
 	require.NoError(t, err)
+	chronicleCount, err := repo.loadContribChronicleCount(context.Background(), 1)
+	require.NoError(t, err)
+	badges := repo.loadContributionBadges(projectsCount, chronicleCount, archivistCount)
 	require.True(t, containsPublicBadge(badges, "contribution_archivist_bronze", "contribution"),
 		"loadContributionBadges muss nach der Rohzahl-Extraktion dasselbe Badge wie vorher emittieren")
 }

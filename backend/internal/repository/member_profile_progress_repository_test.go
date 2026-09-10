@@ -37,7 +37,15 @@ func TestPhase129BadgeProgressExcludesPrivateConfirmedContributions(t *testing.T
 		VALUES (1295402, 1295201, 1295302, 1295001, 'confirmed', false, 2021);
 	`)
 
-	progress, err := repo.loadBadgeProgress(context.Background(), 1295001, 0)
+	roleVolumeCounts, err := repo.loadRoleVolumeCounts(context.Background(), 1295001)
+	require.NoError(t, err)
+	projectsCount, err := repo.loadContribProjectsCount(context.Background(), 1295001)
+	require.NoError(t, err)
+	chronicleCount, err := repo.loadContribChronicleCount(context.Background(), 1295001)
+	require.NoError(t, err)
+	archivistCount, err := repo.loadContribArchivistCount(context.Background(), 1295001)
+	require.NoError(t, err)
+	progress, err := repo.loadBadgeProgress(context.Background(), 1295001, 0, roleVolumeCounts, projectsCount, chronicleCount, archivistCount)
 	require.NoError(t, err)
 
 	var found bool
@@ -208,7 +216,15 @@ func TestLoadBadgeProgressPostgresIncludesRoleVolumeEntryPerRoleWithSynthesizedE
 	seedAwardedRoleVolumeCredits(t, pool, 1, "translator", 13)
 	seedAwardedRoleVolumeCredits(t, pool, 1, "timer", 108)
 
-	progress, err := repo.loadBadgeProgress(context.Background(), 1, 0)
+	roleVolumeCounts, err := repo.loadRoleVolumeCounts(context.Background(), 1)
+	require.NoError(t, err)
+	projectsCount, err := repo.loadContribProjectsCount(context.Background(), 1)
+	require.NoError(t, err)
+	chronicleCount, err := repo.loadContribChronicleCount(context.Background(), 1)
+	require.NoError(t, err)
+	archivistCount, err := repo.loadContribArchivistCount(context.Background(), 1)
+	require.NoError(t, err)
+	progress, err := repo.loadBadgeProgress(context.Background(), 1, 0, roleVolumeCounts, projectsCount, chronicleCount, archivistCount)
 	require.NoError(t, err)
 
 	require.Len(t, progress, 8, "six base families plus one role_volume entry per active role")
@@ -297,7 +313,15 @@ func TestLoadBadgeProgressPostgresZeroAwardedRolesProducesNoRoleVolumeEntries(t 
 	pool := openBadgeProgressPostgres(t)
 	repo := NewMemberProfileRepository(pool, "")
 
-	progress, err := repo.loadBadgeProgress(context.Background(), 2, 0)
+	roleVolumeCounts, err := repo.loadRoleVolumeCounts(context.Background(), 2)
+	require.NoError(t, err)
+	projectsCount, err := repo.loadContribProjectsCount(context.Background(), 2)
+	require.NoError(t, err)
+	chronicleCount, err := repo.loadContribChronicleCount(context.Background(), 2)
+	require.NoError(t, err)
+	archivistCount, err := repo.loadContribArchivistCount(context.Background(), 2)
+	require.NoError(t, err)
+	progress, err := repo.loadBadgeProgress(context.Background(), 2, 0, roleVolumeCounts, projectsCount, chronicleCount, archivistCount)
 	require.NoError(t, err)
 
 	require.Len(t, progress, 6, "no active roles means no role_volume entries, only the six base families")
