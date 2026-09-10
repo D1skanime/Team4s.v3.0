@@ -41,6 +41,14 @@ const publicNoAuthFetchAllowlist = new Set([
   'src/app/episodes/[id]/components/ScreenshotGallery/ScreenshotGallery.tsx',
   'src/app/me/profile/components/MemberAvatarCard.tsx',
   'src/components/admin/MediaUpload.tsx',
+  // 154-06 (P154-13 gate fix, introduced by 154-03/9e0b4da9): isAnimatedWebpSource's
+  // fetch(avatarURL, { headers: { Range: 'bytes=0-63' } }) probe reads the SAME
+  // same-origin, already-public /media/profile/** avatar source the <img> element is
+  // already loading -- no credentials attached, no Team4s API endpoint involved, no new
+  // data exposed (T-154-B3-01). It targets a local media route, not the central Team4s
+  // API this boundary test protects, so it belongs in the no-auth allowlist alongside
+  // MemberAvatarCard.tsx's equivalent same-origin media fetch above.
+  'src/components/profile/MemberProfileHero.tsx',
 ])
 
 const docsAllowlist = new Set([
