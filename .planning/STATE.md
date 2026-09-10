@@ -4,13 +4,13 @@ milestone: v1.4
 milestone_name: Coverage
 status: executing
 stopped_at: Completed 154-02-PLAN.md
-last_updated: "2026-09-10T14:47:42.787Z"
+last_updated: "2026-09-10T15:06:06.807Z"
 last_activity: 2026-09-10
 progress:
   total_phases: 19
   completed_phases: 18
   total_plans: 184
-  completed_plans: 179
+  completed_plans: 180
   percent: 95
 ---
 
@@ -34,7 +34,7 @@ See: .planning/PROJECT.md (updated 2026-08-13)
 ## Current Position
 
 Phase: 154 (aggregator-duplikate-bildbudget-und-viewer-aufloesung) — EXECUTING
-Plan: 3 of 7
+Plan: 4 of 7
 Status: Ready to execute
 abgelegt, Planung steht aus. Die Phase schliesst die verbliebenen P2-Befunde der Messreihe vom
 2026-09-09: RCA-05 (vier redundante Faktenabfragen im sequenziellen Aggregator), RCA-06
@@ -456,6 +456,8 @@ Last activity: 2026-09-10
 - [Phase 153]: Plan 07: Tasks 1 (publicImportGraph regression guard + full green gate: 295/296 files, 2263/2266 tests, tsc clean, lint 13 errors/331 warnings matching D5, docker compose build exit 0) and 2 (153-AFTER.md before/after audit with real measured RCA-01/02/03 numbers, REPORT.md verified byte-unchanged) are complete and committed (eb20fc76, 7f29897a). — Task 3 (checkpoint:human-verify, gate=blocking, live sanity check of /members/timer and /members/kara over the SSH tunnel) is NOT yet performed -- it requires the actual user's live browser confirmation and cannot be self-approved by an executor agent; Plan 153-07 is intentionally left incomplete pending that human checkpoint
 - [Phase 154]: Hoisted the four raw-count loaders (role-volume, contribution-projects/chronicle/archivist) to run exactly once per GetPublicMemberProfileByID request; GetOwnDashboard's independent calls to the same loaders are untouched. — RCA-05/P154-01..04 removed a documented duplicate-query pattern; regression-guard constant lowered 20->16, empirically re-measured against pre-change code on the same fixture DB.
 - [Phase 154]: 154-02: Followed sibling currentCode gate pattern verbatim for AnimeProjectAchievementStage hero; left Badge chip variant untouched per plan's explicit hero-artwork-slot-only scope
+- [Phase ?]: 154-03: ResponsiveImage optimizer-error fallback removed the unoptimized-original escape hatch entirely (no smaller same-origin derivative exists, and the audit-blocked /_next/image route fails identically on retry) -- measured 13.8MB->4.8MB for timer under AUDIT_FAIL_BADGES=1.
+- [Phase ?]: 154-03: MemberProfileHero animated-avatar detection extended to WebP via a client-side RIFF/ANIM byte-range probe, folded into the SAME existing unoptimized branch GIFs use -- documented as NOT reducing transferred bytes (confirmed both optimizer route and raw original return the identical 411,828 bytes for timer's avatar), since no backend derivative service exists in scope.
 
 ### Pending Todos
 
@@ -818,10 +820,11 @@ untruncated list lives in `.planning/todos/pending/`.
 | Phase 153 P06 | 3min | 2 tasks | 3 files |
 | Phase 154 P01 | 7min | 3 tasks | 9 files |
 | Phase 154 P02 | 12min | 2 tasks | 2 files |
+| Phase 154 P03 | 25min | 2 tasks | 4 files |
 
 ## Session Continuity
 
-Last session: 2026-09-10T14:47:42.764Z
+Last session: 2026-09-10T15:05:45.868Z
 Stopped at: Completed 154-02-PLAN.md
 Last activity: Local handoff checkpoint; no new Execute step, browser matrix, build, agent or push started after stop.
 Resume file: None
