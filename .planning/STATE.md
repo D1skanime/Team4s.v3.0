@@ -2,14 +2,14 @@
 gsd_state_version: 1.0
 milestone: v1.4
 milestone_name: Coverage
-status: Phase 154 in der ROADMAP angelegt, `154-USER-REQUEST.md` als verbindliche Auftragsquelle
+status: executing
 stopped_at: Phase 154 UI-SPEC approved
-last_updated: "2026-09-10T13:49:53.462Z"
+last_updated: "2026-09-10T14:30:01.615Z"
 last_activity: 2026-09-10
 progress:
   total_phases: 19
   completed_phases: 18
-  total_plans: 177
+  total_plans: 184
   completed_plans: 177
   percent: 95
 ---
@@ -35,7 +35,7 @@ See: .planning/PROJECT.md (updated 2026-08-13)
 
 Phase: 154 (aggregator-duplikate-bildbudget-und-viewer-aufloesung) — PLANNING
 Plan: 0 of 0 (noch nicht geplant)
-Status: Phase 154 in der ROADMAP angelegt, `154-USER-REQUEST.md` als verbindliche Auftragsquelle
+Status: Ready to execute
 abgelegt, Planung steht aus. Die Phase schliesst die verbliebenen P2-Befunde der Messreihe vom
 2026-09-09: RCA-05 (vier redundante Faktenabfragen im sequenziellen Aggregator), RCA-06
 (ungegatetes Locked-Artwork bei null Projekten, schwerer Original-Fallback, animierter Avatar) und
