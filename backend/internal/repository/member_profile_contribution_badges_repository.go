@@ -152,16 +152,15 @@ func (r *MemberProfileRepository) loadContribArchivistCount(ctx context.Context,
 // Member und emittiert je Familie nur die hoechste erreichte Stufe als synthetisches
 // PublicMemberBadge (ID:0, nie persistiert -- GAM-04, D-01 Live-Projektion). Wird
 // ausschliesslich innerhalb von GetPublicMemberProfile aufgerufen, hinter dem
-// bestehenden members_only-Visibility-Gate (V4, T-113-03). Ab Plan 116-02 delegiert
-// die Funktion die drei Zaehlungen an die extrahierten loadContribXCount-Methoden
-// (verhaltenserhaltend, keine SQL-Aenderung) statt sie inline zu berechnen.
-func (r *MemberProfileRepository) loadContributionBadges(ctx context.Context, memberID int64) ([]models.PublicMemberBadge, error) {
+// bestehenden members_only-Visibility-Gate (V4, T-113-03). Ab Phase 154 (RCA-05/P154-02..04)
+// ist dies eine reine Ableitungsfunktion: der Aufrufer laedt die drei Rohzahlen
+// (loadContribProjectsCount/loadContribChronicleCount/loadContribArchivistCount) genau
+// einmal pro Request und uebergibt sie hier hinein -- vorher rief diese Funktion alle drei
+// Loader selbst ein zweites Mal auf (Duplikat neben loadBadgeProgress's eigenen Aufrufen
+// derselben drei Rohzahlen).
+func (r *MemberProfileRepository) loadContributionBadges(projectsCount, chronicleCount, archivistCount int64) []models.PublicMemberBadge {
 	items := make([]models.PublicMemberBadge, 0)
 
-	projectsCount, err := r.loadContribProjectsCount(ctx, memberID)
-	if err != nil {
-		return nil, err
-	}
 	if tier := highestContribProjectsTier(int(projectsCount)); tier != "" {
 		progress := buildContribCategoryProgress("contribution_projects", projectsCount)
 		items = append(items, models.PublicMemberBadge{
@@ -176,10 +175,6 @@ func (r *MemberProfileRepository) loadContributionBadges(ctx context.Context, me
 		})
 	}
 
-	chronicleCount, err := r.loadContribChronicleCount(ctx, memberID)
-	if err != nil {
-		return nil, err
-	}
 	if tier := highestContribChronicleTier(int(chronicleCount)); tier != "" {
 		progress := buildContribCategoryProgress("contribution_chronicle", chronicleCount)
 		items = append(items, models.PublicMemberBadge{
@@ -194,10 +189,6 @@ func (r *MemberProfileRepository) loadContributionBadges(ctx context.Context, me
 		})
 	}
 
-	archivistCount, err := r.loadContribArchivistCount(ctx, memberID)
-	if err != nil {
-		return nil, err
-	}
 	if tier := highestContribArchivistTier(int(archivistCount)); tier != "" {
 		progress := buildContribCategoryProgress("contribution_archivist", archivistCount)
 		items = append(items, models.PublicMemberBadge{
@@ -212,5 +203,5 @@ func (r *MemberProfileRepository) loadContributionBadges(ctx context.Context, me
 		})
 	}
 
-	return items, nil
+	return items
 }

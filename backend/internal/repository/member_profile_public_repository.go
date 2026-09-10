@@ -122,21 +122,35 @@ func (r *MemberProfileRepository) GetPublicMemberProfileByID(ctx context.Context
 	if loadErr != nil {
 		return nil, loadErr
 	}
-	volumeBadges, loadErr := r.loadRoleVolumeBadges(ctx, row.memberID)
+	// Phase 154 (RCA-05/P154-01..04): the four raw-count loaders below are hoisted to run
+	// exactly ONCE per request here, then passed into the three consumers that each used
+	// to re-query them a second time (loadRoleVolumeBadges, loadContributionBadges,
+	// loadBadgeProgress). No SQL changed -- only the call count per request.
+	roleVolumeCounts, loadErr := r.loadRoleVolumeCounts(ctx, row.memberID)
 	if loadErr != nil {
 		return nil, loadErr
 	}
+	projectsCount, loadErr := r.loadContribProjectsCount(ctx, row.memberID)
+	if loadErr != nil {
+		return nil, loadErr
+	}
+	chronicleCount, loadErr := r.loadContribChronicleCount(ctx, row.memberID)
+	if loadErr != nil {
+		return nil, loadErr
+	}
+	archivistCount, loadErr := r.loadContribArchivistCount(ctx, row.memberID)
+	if loadErr != nil {
+		return nil, loadErr
+	}
+	volumeBadges := r.loadRoleVolumeBadges(roleVolumeCounts)
 	profile.PublicBadges = append(profile.PublicBadges, volumeBadges...)
-	contributionBadges, loadErr := r.loadContributionBadges(ctx, row.memberID)
-	if loadErr != nil {
-		return nil, loadErr
-	}
+	contributionBadges := r.loadContributionBadges(projectsCount, chronicleCount, archivistCount)
 	profile.PublicBadges = append(profile.PublicBadges, contributionBadges...)
 	profile.TotalPoints, loadErr = r.loadTotalPoints(ctx, row.memberID)
 	if loadErr != nil {
 		return nil, loadErr
 	}
-	profile.BadgeProgress, loadErr = r.loadBadgeProgress(ctx, row.memberID, profile.TotalPoints)
+	profile.BadgeProgress, loadErr = r.loadBadgeProgress(ctx, row.memberID, profile.TotalPoints, roleVolumeCounts, projectsCount, chronicleCount, archivistCount)
 	if loadErr != nil {
 		return nil, loadErr
 	}

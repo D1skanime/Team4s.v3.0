@@ -61,7 +61,16 @@ func buildBadgeProgress(family string, currentCount int64, thresholds []badgePro
 	return progress
 }
 
-func (r *MemberProfileRepository) loadBadgeProgress(ctx context.Context, memberID int64, totalPoints int64) ([]models.PublicMemberBadgeProgress, error) {
+// loadBadgeProgress derives the badge-progress payload for every family. Ab Phase 154
+// (RCA-05/P154-01..04) erhaelt die Funktion die vier bereits einmal pro Request geladenen
+// Rohzahlen (roleVolumeCounts, projectsCount, chronicleCount, archivistCount) als Parameter
+// statt sie selbst ein zweites Mal zu laden -- vorher duplizierte diese Funktion alle vier
+// Aufrufe, die GetPublicMemberProfileByID bereits fuer loadRoleVolumeBadges/
+// loadContributionBadges getaetigt hatte. Die zwei genuinely-unique r.db.QueryRow-Bloecke
+// (projectCount ueber is_public_on_member_profile, und membershipYears) bleiben unveraendert
+// -- sie sind KEIN fuenftes Duplikat von loadContribProjectsCount (andere WHERE-Klausel,
+// andere Kennzahl).
+func (r *MemberProfileRepository) loadBadgeProgress(ctx context.Context, memberID int64, totalPoints int64, roleVolumeCounts []RoleVolumeCount, projectsCount, chronicleCount, archivistCount int64) ([]models.PublicMemberBadgeProgress, error) {
 	var projectCount int64
 	if err := r.db.QueryRow(ctx, `
 		SELECT COUNT(DISTINCT ac.anime_id)
@@ -70,18 +79,6 @@ func (r *MemberProfileRepository) loadBadgeProgress(ctx context.Context, memberI
 		  AND ac.is_public_on_member_profile = true
 	`, memberID).Scan(&projectCount); err != nil {
 		return nil, fmt.Errorf("load badge progress project count for member %d: %w", memberID, err)
-	}
-	projectsCount, err := r.loadContribProjectsCount(ctx, memberID)
-	if err != nil {
-		return nil, err
-	}
-	chronicleCount, err := r.loadContribChronicleCount(ctx, memberID)
-	if err != nil {
-		return nil, err
-	}
-	archivistCount, err := r.loadContribArchivistCount(ctx, memberID)
-	if err != nil {
-		return nil, err
 	}
 
 	var membershipYears int64
@@ -111,10 +108,6 @@ func (r *MemberProfileRepository) loadBadgeProgress(ctx context.Context, memberI
 	// roleVolumeProgressBadge (member_profile_role_volume_repository.go): CurrentTier
 	// here is plain "" below bronze, consistent with every other family in this same
 	// array -- the "entry" relabeling only appears in this family's Stages list below.
-	roleVolumeCounts, err := r.loadRoleVolumeCounts(ctx, memberID)
-	if err != nil {
-		return nil, err
-	}
 	if len(roleVolumeCounts) > 0 {
 		// Built once: identical for every role_volume entry. badges.RoleVolume.Tiers
 		// intentionally excludes an "entry" tier (registry only holds bronze/silver/

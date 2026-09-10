@@ -107,19 +107,15 @@ func roleVolumeProgressBadge(roleCode string, count int64) *models.PublicMemberB
 	return badge
 }
 
-// loadRoleVolumeBadges laedt eine rollen-gefilterte Netto-Zaehlung der
-// release_role_credit_lifecycles-Buchungen eines Members und emittiert pro Rolle nur die
-// hoechste erreichte Volumenstufe als synthetisches PublicMemberBadge (Typ 3, D-04). Storniert
-// (lifecycle_status != 'awarded') zaehlt nicht (D-02). Diese Badges werden NIE persistiert --
-// sie werden bei jedem Read live neu berechnet (GAM-04), analog zu den role_entry_*-Badges in
-// loadPublicBadges. ID bleibt 0. Ab Plan 116-02 delegiert die Funktion die Zaehlung an
-// loadRoleVolumeCounts (verhaltenserhaltend, keine SQL-Aenderung).
-func (r *MemberProfileRepository) loadRoleVolumeBadges(ctx context.Context, memberID int64) ([]models.PublicMemberBadge, error) {
-	counts, err := r.loadRoleVolumeCounts(ctx, memberID)
-	if err != nil {
-		return nil, err
-	}
-
+// loadRoleVolumeBadges emittiert pro Rolle nur die hoechste erreichte Volumenstufe als
+// synthetisches PublicMemberBadge (Typ 3, D-04). Storniert (lifecycle_status != 'awarded')
+// zaehlt nicht (D-02). Diese Badges werden NIE persistiert -- sie werden bei jedem Read live
+// neu berechnet (GAM-04), analog zu den role_entry_*-Badges in loadPublicBadges. ID bleibt 0.
+// Ab Phase 154 (RCA-05/P154-01) ist dies eine reine Ableitungsfunktion: der Aufrufer laedt
+// die Rohzahlen (loadRoleVolumeCounts) genau einmal pro Request und uebergibt sie hier hinein
+// -- vorher rief diese Funktion loadRoleVolumeCounts selbst ein zweites Mal auf (Duplikat
+// neben loadBadgeProgress's eigenem Aufruf derselben Rohzahl).
+func (r *MemberProfileRepository) loadRoleVolumeBadges(counts []RoleVolumeCount) []models.PublicMemberBadge {
 	items := make([]models.PublicMemberBadge, 0)
 	for _, entry := range counts {
 		progressBadge := roleVolumeProgressBadge(entry.RoleCode, entry.Count)
@@ -135,5 +131,5 @@ func (r *MemberProfileRepository) loadRoleVolumeBadges(ctx context.Context, memb
 		items = append(items, *progressBadge)
 	}
 
-	return items, nil
+	return items
 }
