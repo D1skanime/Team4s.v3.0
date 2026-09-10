@@ -38,7 +38,7 @@ describe('AchievementArtwork', () => {
     expect(image.getAttribute('data-achievement-art')).toBe('direct_badge')
     expect(image.getAttribute('loading')).toBe('lazy')
     expect(image.getAttribute('sizes')).toBe(
-      'auto, (min-width: 658px) 240px, (min-width: 562px) 216px, 192px',
+      '(min-width: 658px) 240px, (min-width: 562px) 216px, 192px',
     )
     expect(image.closest('[data-achievement-slot]')?.getAttribute('data-achievement-size')).toBe(
       'hero',
@@ -86,7 +86,7 @@ describe('AchievementArtwork', () => {
     const image = container.querySelector('img[data-achievement-art="marker_badge"]')
     expect(image?.getAttribute('alt')).toBe('')
     expect(image?.getAttribute('aria-hidden')).toBe('true')
-    expect(image?.getAttribute('sizes')).toBe('auto, (min-width: 562px) 80px, 64px')
+    expect(image?.getAttribute('sizes')).toBe('(min-width: 562px) 80px, 64px')
   })
 
   it('keeps eager priority artwork on a conservative image hint without invalid auto sizing', () => {
