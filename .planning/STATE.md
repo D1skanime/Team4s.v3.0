@@ -3,14 +3,14 @@ gsd_state_version: 1.0
 milestone: v1.4
 milestone_name: Coverage
 status: executing
-stopped_at: Completed 154-05-PLAN.md
-last_updated: "2026-09-10T15:31:45.525Z"
+stopped_at: Completed 154-06-PLAN.md
+last_updated: "2026-09-10T15:46:13.593Z"
 last_activity: 2026-09-10
 progress:
   total_phases: 19
   completed_phases: 18
   total_plans: 184
-  completed_plans: 182
+  completed_plans: 183
   percent: 95
 ---
 
@@ -34,7 +34,7 @@ See: .planning/PROJECT.md (updated 2026-08-13)
 ## Current Position
 
 Phase: 154 (aggregator-duplikate-bildbudget-und-viewer-aufloesung) — EXECUTING
-Plan: 6 of 7
+Plan: 7 of 7
 Status: Ready to execute
 abgelegt, Planung steht aus. Die Phase schliesst die verbliebenen P2-Befunde der Messreihe vom
 2026-09-09: RCA-05 (vier redundante Faktenabfragen im sequenziellen Aggregator), RCA-06
@@ -461,6 +461,7 @@ Last activity: 2026-09-10
 - [Phase 154]: New GET /members/:slug/viewer endpoint reuses resolvePublicMemberAccess verbatim, no new resolver seam; PMFE-10 guard extracted into one shared deriveViewerStatus<T> used by both useMemberViewer and the new useMemberViewerAccess hook — Closes RCA-08 without duplicating the fail-closed viewer guard or the access resolver
 - [Phase 154-05]: RCA-07 (empty React-root commits) is closed -- leading changed=0 commits dropped from 1,664 (timer) / 257 (kara) to 0 in two independent re-runs after Phase 153's graph reduction; no further investigation warranted
 - [Phase 154-05]: Phase-153 listener remainder (~14-15/cycle) is unchanged after Phase 154 Wave 1 (14.24/cycle vs 14.3/cycle baseline); no second listener source found -- zero addEventListener matches across all 8 files touched by Plans 154-01..04 -- documented negative outcome for D2
+- [Phase 154]: 154-06: full verification gate green; resolved two genuine 154-03-introduced regressions (test-boundary allowlist gap, lint-warning delta) via git-log-traced E4 checks instead of mislabeling pre-existing; 154-AFTER.md documents before/after numbers, RCA-04 stays open
 
 ### Pending Todos
 
@@ -826,11 +827,12 @@ untruncated list lives in `.planning/todos/pending/`.
 | Phase 154 P03 | 25min | 2 tasks | 4 files |
 | Phase 154 P04 | 35min | 3 tasks | 10 files |
 | Phase 154 P05 | 20min | 2 tasks | 1 files |
+| Phase 154 P06 | 25min | 2 tasks | 3 files |
 
 ## Session Continuity
 
-Last session: 2026-09-10T15:31:45.512Z
-Stopped at: Completed 154-05-PLAN.md
+Last session: 2026-09-10T15:46:13.575Z
+Stopped at: Completed 154-06-PLAN.md
 Last activity: Local handoff checkpoint; no new Execute step, browser matrix, build, agent or push started after stop.
 Resume file: None
 Structured state: .planning/HANDOFF.json

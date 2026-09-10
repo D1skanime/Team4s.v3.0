@@ -1423,7 +1423,7 @@ verbindliche Auftragsquelle.
 **UI hint**: yes — Workstream B aendert sichtbares Artwork bei leeren Profilen und das
 Fehlerverhalten von Bildern.
 
-**Plans:** 5/7 plans executed
+**Plans:** 6/7 plans executed
 
 Plans:
 **Wave 1**
@@ -1439,7 +1439,7 @@ Plans:
 
 **Wave 3** *(blocked on 154-05)*
 
-- [ ] 154-06-PLAN.md — Workstream E: Vorher/Nachher-Audit, volle Testsuiten, docker compose build.
+- [x] 154-06-PLAN.md — Workstream E: Vorher/Nachher-Audit, volle Testsuiten, docker compose build.
 
 **Wave 4** *(blocked on 154-04, 154-06)*
 
