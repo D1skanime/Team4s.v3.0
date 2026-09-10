@@ -60,3 +60,37 @@ per the scope-boundary rule; not fixed here.
 `src/components/profile/MemberProfileHero.tsx` to the test's documented allow-list with a comment
 explaining the same-origin, no-auth, byte-range probe rationale. A future phase/quick fix should
 close this so the full suite is green again.
+
+## From 154-07 (Task 1: live owner-view checkpoint, P154-15/E6): no permanent private-visibility test fixture exists
+
+**Finding:** While completing the live human checkpoint for owner-only rendering of a hidden
+member profile, the operator found that the live dataset (12 members) contained **zero**
+`profile_visibility = 'private'` rows -- every member stood at `public`. The checkpoint as
+originally planned (navigate to an *existing* hidden profile as its owner) was therefore not
+executable in its planned form.
+
+**Why it surfaced here:** The operator worked around this by temporarily setting one member
+(`d1sk`, user_id 2) to `private`, performing the owner/anonymous comparison, and then reverting
+it back to `public` immediately afterward (rollback independently verified: all 12 members
+`public`, anonymous GET on both the API and the frontend page returns 200, viewer endpoint
+anonymous `is_owner: false`, no test data left behind). This proved the path works, but it also
+means the `private`-visibility branch of the public-member-access resolver (`ResolvePublicMemberAccess`
+and the members/[slug] owner-preview path) had never been exercised against real data in normal
+operation before this ad-hoc, manually-reverted test.
+
+**Impact:** Functionally harmless -- the checkpoint's goal was met and the path is confirmed
+correct. But the absence of any standing `private` profile means any future regression on this
+path (e.g. a change that accidentally makes hidden profiles publicly readable, or breaks the
+owner-preview branch) would currently go undetected by browsing the live dataset; it would require
+another manual toggle-and-revert to notice.
+
+**Why not fixed in 154-07:** Creating or seeding a permanent test fixture is data/infrastructure
+work outside this plan's scope (`files_modified: []`, a `checkpoint:human-verify` task whose
+`<action>` explicitly forbids altering application code or data during the checkpoint itself).
+
+**Suggested follow-up:** Add a permanent, clearly-labeled test/fixture member profile with
+`profile_visibility = 'private'` to the reset/reseed fixture set (see the existing
+`sheppert`/`csubs-leader` fixture pattern from Phase 134), so the hidden-profile owner-preview and
+anonymous-denial paths are continuously exercisable against real data rather than requiring a
+manual temporary toggle each time. Not filed as a numbered `P154-*` requirement; flagged here for
+a future maintenance pass.
