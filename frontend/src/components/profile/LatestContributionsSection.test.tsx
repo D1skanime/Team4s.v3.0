@@ -154,7 +154,7 @@ describe('LatestContributionsSection', () => {
     })
 
     const { LatestContributionsSection } = await loadLatestContributionsSection()
-    const rendered = render(
+    render(
       <LatestContributionsSection
         headingLevel={3}
         items={[
@@ -171,9 +171,11 @@ describe('LatestContributionsSection', () => {
     expect(screen.queryByRole('heading', { level: 2, name: 'Letzte Beiträge' })).toBeNull()
     const list = screen.getByRole('list', { name: 'Letzte Beiträge' })
     expect(within(list).getAllByRole('listitem')).toHaveLength(3)
+    // Real content is present in the DOM from the very first render -- before the
+    // IntersectionObserver ever fires -- there is no skeleton overlay gating it (RCA-03).
+    expect(screen.getByText('SSR eins.')).not.toBeNull()
     const button = screen.getByRole('button', { name: 'Weitere Beiträge anzeigen' })
     expect(button.hasAttribute('disabled')).toBe(true)
-    expect(rendered.container.querySelector(':scope > section > [aria-hidden="true"]')?.getAttribute('data-visible')).toBe('true')
 
     act(() => {
       observerCallback?.([{ isIntersecting: true } as IntersectionObserverEntry], {} as IntersectionObserver)
@@ -210,7 +212,7 @@ it('Phase 132 PMFE-09: renders the same relative-date label for a fixed referenc
   second.unmount()
 })
 
-it('Phase 120 RED: keeps latest contributions accessible beneath an aria-hidden shell', async () => {
+it('renders latest contribution content immediately with no skeleton scaffolding (RCA-03)', async () => {
     const { LatestContributionsSection } = await loadLatestContributionsSection()
     const { container } = render(
       <LatestContributionsSection
@@ -222,14 +224,10 @@ it('Phase 120 RED: keeps latest contributions accessible beneath an aria-hidden 
     const list = screen.getByRole('list', { name: 'Letzte Beiträge' })
     expect(within(list).getAllByRole('listitem')).toHaveLength(2)
     expect(screen.getByText('Lesbarer SSR-Beitrag.')).not.toBeNull()
-    const shell = container.querySelector(':scope > section > [aria-hidden="true"]')
-    expect(shell).not.toBeNull()
-    expect(shell?.querySelectorAll('[role], a, button')).toHaveLength(0)
-    expect(shell?.textContent).not.toContain('Lesbarer SSR-Beitrag.')
+    expect(container.querySelector(':scope > section > [aria-hidden="true"]')).toBeNull()
+    expect(container.querySelector('[class*="skeleton"]')).toBeNull()
     expect(latestContributionStyles).toMatch(/\.iconField\s*\{[^}]*width:\s*48px;[^}]*height:\s*48px;/s)
-    expect(latestContributionStyles).toMatch(/opacity:\s*[01](?:\.\d+)?;/)
-    expect(latestContributionStyles).toMatch(/visibility:\s*(?:visible|hidden);/)
-    expect(latestContributionStyles).not.toMatch(/transition:[^;]*(?:width|height|min-height|padding|margin|transform)/)
+    expect(latestContributionStyles).not.toMatch(/skeleton/i)
 })
 
 

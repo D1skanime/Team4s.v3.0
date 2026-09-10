@@ -118,34 +118,6 @@ function usableItems(items: PublicMemberLatestContribution[]): PublicMemberLates
 
 const INITIAL_ITEM_COUNT = 3
 
-function ContributionSkeleton({ item }: { item: PublicMemberLatestContribution }) {
-  if (item.type === 'media') {
-    return (
-      <Card variant="flat" className={`${styles.mediaCard} ${styles.skeletonCard}`}>
-        <span className={`${styles.mediaPreview} ${styles.skeletonMedia}`} />
-        <span className={`${styles.mediaBody} ${styles.skeletonBody}`}>
-          <span className={styles.skeletonMeta} />
-          <span className={styles.skeletonBadge} />
-          <span className={styles.skeletonTitle} />
-          <span className={styles.skeletonCopy} />
-        </span>
-      </Card>
-    )
-  }
-
-  return (
-    <Card variant="flat" className={`${styles.textCard} ${styles.skeletonCard}`}>
-      <span className={`${styles.iconField} ${styles.skeletonIcon}`} />
-      <span className={`${styles.textBody} ${styles.skeletonBody}`}>
-        <span className={styles.skeletonMeta} />
-        <span className={styles.skeletonBadge} />
-        <span className={styles.skeletonTitle} />
-        <span className={styles.skeletonCopy} />
-      </span>
-    </Card>
-  )
-}
-
 export function LatestContributionsSection({
   items,
   headingLevel = 2,
@@ -156,7 +128,6 @@ export function LatestContributionsSection({
   const { targetRef, interactionEnabled } = useNearViewportActivation<HTMLElement>()
   const allUsableItems = usableItems(items)
   const visibleItems = expanded ? allUsableItems : allUsableItems.slice(0, INITIAL_ITEM_COUNT)
-  const initialVisibleItems = allUsableItems.slice(0, INITIAL_ITEM_COUNT)
   if (allUsableItems.length === 0) return null
 
   return (
@@ -164,19 +135,6 @@ export function LatestContributionsSection({
       {headingLevel === 3
         ? <h3 className={styles.cardHeading}>Letzte Beiträge</h3>
         : <SectionHeader title="Letzte Beiträge" />}
-      <div
-        className={styles.skeletonLayer}
-        aria-hidden="true"
-        data-visible={interactionEnabled ? 'false' : 'true'}
-      >
-        <ul className={styles.list}>
-          {initialVisibleItems.map((item) => (
-            <li key={`skeleton:${item.type}:${item.id}`}>
-              <ContributionSkeleton item={item} />
-            </li>
-          ))}
-        </ul>
-      </div>
       <ul id={listId} className={styles.list} aria-label="Letzte Beiträge">
         {visibleItems.map((item) => {
           if (item.type === 'media') {

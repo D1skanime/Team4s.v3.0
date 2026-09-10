@@ -13,13 +13,9 @@
   line-height: 1.2;
 }
 
-.skeletonLayer,
 .list {
   grid-column: 1;
   grid-row: 2;
-}
-
-.list {
   display: grid;
   gap: 16px;
   margin: 0;
@@ -29,54 +25,6 @@
 
 .list > li {
   min-width: 0;
-}
-
-.skeletonLayer {
-  z-index: 2;
-  pointer-events: none;
-  opacity: 1;
-  visibility: visible;
-}
-
-.skeletonLayer[data-visible="false"] {
-  opacity: 0;
-  visibility: hidden;
-}
-
-.skeletonCard {
-  border-color: var(--border-subtle);
-  background: var(--surface-card);
-}
-
-.skeletonIcon,
-.skeletonMedia,
-.skeletonBody > span {
-  display: block;
-  background: var(--surface-sunken);
-}
-
-.skeletonMeta {
-  width: min(76%, 320px);
-  height: 14px;
-  border-radius: 999px;
-}
-
-.skeletonBadge {
-  width: 112px;
-  height: 24px;
-  border-radius: 999px;
-}
-
-.skeletonTitle {
-  width: min(64%, 260px);
-  height: 18px;
-  border-radius: 999px;
-}
-
-.skeletonCopy {
-  width: min(88%, 420px);
-  height: 40px;
-  border-radius: 8px;
 }
 
 .textCard {
@@ -222,13 +170,6 @@
   .iconField {
     width: 40px;
     height: 40px;
-  }
-}
-
-@media (scripting: none) {
-  .skeletonLayer {
-    opacity: 0;
-    visibility: hidden;
   }
 }
 
