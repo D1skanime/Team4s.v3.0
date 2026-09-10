@@ -2,9 +2,9 @@
 gsd_state_version: 1.0
 milestone: v1.4
 milestone_name: Coverage
-status: planning
-stopped_at: Phase 154 angelegt und mit 154-USER-REQUEST.md beauftragt; Planung steht aus. Phase 153 bleibt abgeschlossen und verifiziert (14/14).
-last_updated: "2026-09-10T13:00:00.000Z"
+status: Phase 154 in der ROADMAP angelegt, `154-USER-REQUEST.md` als verbindliche Auftragsquelle
+stopped_at: Phase 154 UI-SPEC approved
+last_updated: "2026-09-10T13:49:53.462Z"
 last_activity: 2026-09-10
 progress:
   total_phases: 19
@@ -817,10 +817,10 @@ untruncated list lives in `.planning/todos/pending/`.
 
 ## Session Continuity
 
-Last session: 2026-09-10T11:15:55.292Z
-Stopped at: Completed 153-06-PLAN.md
+Last session: 2026-09-10T13:49:53.444Z
+Stopped at: Phase 154 UI-SPEC approved
 Last activity: Local handoff checkpoint; no new Execute step, browser matrix, build, agent or push started after stop.
-Resume file: None
+Resume file: .planning/phases/154-aggregator-duplikate-bildbudget-und-viewer-aufloesung/154-UI-SPEC.md
 Structured state: .planning/HANDOFF.json
 
 Plans 151-02/03/04 have implementation summaries. Plans 151-01 and 151-05 remain open until final artwork/composition review, complete browser evidence and independent verification; their missing summaries are intentional. No requirement or phase has been falsely marked complete.
