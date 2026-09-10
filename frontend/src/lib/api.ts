@@ -76,6 +76,7 @@ import {
   MemberSearchResult,
   PublicMemberProfileResponse,
   PublicMemberProjectsResponse,
+  PublicMemberViewer,
   UpdateMemberProfileRequest,
 } from "@/types/profile";
 import {
@@ -3177,11 +3178,12 @@ export async function getOwnProfile(
 
 export async function getMemberProfile(
   slug: string,
+  signal?: AbortSignal,
 ): Promise<PublicMemberProfileResponse> {
   const encodedSlug = encodeURIComponent(slug);
   const response = await apiClientFetch(
     `/api/v1/members/${encodedSlug}`,
-    { cache: "no-store" },
+    { cache: "no-store", signal },
   );
 
   if (!response.ok) {
@@ -3199,6 +3201,39 @@ export async function getMemberProfile(
   }
 
   return response.json() as Promise<PublicMemberProfileResponse>;
+}
+
+/**
+ * Fordert nur die schlanke Viewer-/Owner-Entscheidung an (RCA-08 / P154-08..10), ohne das
+ * volle öffentliche Profil zu laden -- für Konsumenten wie OwnProfileEditLink, die
+ * ausschließlich `is_owner`/`is_private_preview` brauchen. Spiegelt getMemberProjects'
+ * Signal-Weiterleitung.
+ */
+export async function getMemberViewerAccess(
+  slug: string,
+  signal?: AbortSignal,
+): Promise<{ viewer: PublicMemberViewer }> {
+  const encodedSlug = encodeURIComponent(slug);
+  const response = await apiClientFetch(
+    `/api/v1/members/${encodedSlug}/viewer`,
+    { cache: "no-store", signal },
+  );
+
+  if (!response.ok) {
+    const parsed = await parseApiErrorPayload(
+      response,
+      `API request failed: ${response.status}`,
+    );
+    throw new ApiError(
+      response.status,
+      parsed.message,
+      null,
+      parsed.code,
+      parsed.details,
+    );
+  }
+
+  return response.json() as Promise<{ viewer: PublicMemberViewer }>;
 }
 
 /**

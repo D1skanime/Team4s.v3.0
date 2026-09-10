@@ -5,7 +5,7 @@ import { PencilLine } from 'lucide-react'
 
 import { CorrectionReportModal } from '@/components/profile/CorrectionReportModal'
 import { useAuthSession } from '@/lib/useAuthSession'
-import { useMemberViewer } from '@/lib/useMemberViewer'
+import { useMemberViewerAccess } from '@/lib/useMemberViewer'
 import type { PublicMemberViewer } from '@/types/profile'
 
 import styles from './page.module.css'
@@ -28,10 +28,11 @@ export function OwnProfileEditLink({
   const { hasAccessToken, hasRefreshToken, isClientInitialized } = useAuthSession()
   const hasAuthSession = hasAccessToken || hasRefreshToken
 
-  // PMFE-02: einziger Owner-/Viewer-Resolver dieser Seite (siehe useMemberViewer.ts). Ist der
-  // Viewer bereits über die SSR/Owner-Vorschau bekannt (`viewerResolved`), wird gar nicht erst
-  // gefetcht.
-  const { status, response } = useMemberViewer(storedSlug, {
+  // RCA-08 / P154-08..10: schlanker Viewer-Resolver (siehe useMemberViewer.ts,
+  // useMemberViewerAccess) -- lädt nur is_owner/is_private_preview statt des vollen
+  // öffentlichen Profils, das diese Komponente nie liest. Ist der Viewer bereits über die
+  // SSR/Owner-Vorschau bekannt (`viewerResolved`), wird gar nicht erst gefetcht.
+  const { status, viewer: resolvedViewer } = useMemberViewerAccess(storedSlug, {
     enabled: isClientInitialized && !viewerResolved && hasAuthSession,
   })
 
@@ -41,8 +42,8 @@ export function OwnProfileEditLink({
     ? initialViewer
     : !hasAuthSession
       ? initialViewer
-      : status === 'resolved' && response
-        ? response.viewer
+      : status === 'resolved' && resolvedViewer
+        ? resolvedViewer
         : null
 
   if (!viewer) return null
