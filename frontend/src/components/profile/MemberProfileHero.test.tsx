@@ -2,9 +2,9 @@
 
 import { readFileSync } from 'node:fs'
 import type { ImgHTMLAttributes } from 'react'
-import { render, screen, within } from '@testing-library/react'
+import { render, screen, waitFor, within } from '@testing-library/react'
 import { axe } from 'jest-axe'
-import { describe, expect, it, vi } from 'vitest'
+import { afterEach, describe, expect, it, vi } from 'vitest'
 
 import type { MemberProfileData, PublicMemberProfileData, PublicMemberProfileBackgroundImage } from '@/types/profile'
 
@@ -432,6 +432,81 @@ describe('MemberProfileHero', () => {
     const avatar = screen.getByRole('img', { name: 'Ballelboy Avatar' })
     expect(avatar.getAttribute('src')).toBe('/media/profile/3/avatar/current/original.gif')
     expect(avatar.getAttribute('data-unoptimized')).toBe('true')
+  })
+
+  describe('154-03/P154-07: single animated-avatar code path extended to animated WebP', () => {
+    const originalFetch = global.fetch
+
+    afterEach(() => {
+      global.fetch = originalFetch
+    })
+
+    function webpHeaderBytes(hasAnimChunk: boolean): ArrayBuffer {
+      const bytes = new Uint8Array(64)
+      const text = hasAnimChunk
+        ? 'RIFF\0\0\0\0WEBPVP8X\0\0\0\0\0\0\0\0\0\0ANIM'
+        : 'RIFF\0\0\0\0WEBPVP8 \0\0\0\0\0\0\0\0\0\0\0\0\0\0'
+      for (let index = 0; index < text.length; index += 1) bytes[index] = text.charCodeAt(index)
+      return bytes.buffer
+    }
+
+    it('detects an animated WebP avatar via the RIFF/WEBP/ANIM signature and swaps into the SAME unoptimized branch GIFs already use', async () => {
+      const fetchMock = vi.fn().mockResolvedValue({
+        ok: true,
+        arrayBuffer: async () => webpHeaderBytes(true),
+      })
+      global.fetch = fetchMock as unknown as typeof fetch
+
+      render(
+        <MemberProfileHero
+          profile={makePublicProfile()}
+          avatarURL="/media/profile/11/avatar/current/original.webp"
+          isPublicView={true}
+        />,
+      )
+
+      // While the probe is pending, the safe default stays the normal ResponsiveImage
+      // branch -- no speculative flash to the unoptimized branch.
+      expect(screen.getByRole('img', { name: 'Ballelboy Avatar' }).getAttribute('data-unoptimized')).toBe('false')
+
+      await waitFor(() => {
+        expect(screen.getByRole('img', { name: 'Ballelboy Avatar' }).getAttribute('data-unoptimized')).toBe('true')
+      })
+
+      const avatar = screen.getByRole('img', { name: 'Ballelboy Avatar' })
+      expect(avatar.getAttribute('src')).toBe('/media/profile/11/avatar/current/original.webp')
+      expect(avatar.getAttribute('width')).toBe('140')
+      expect(avatar.getAttribute('height')).toBe('140')
+      expect(fetchMock).toHaveBeenCalledWith(
+        '/media/profile/11/avatar/current/original.webp',
+        expect.objectContaining({ headers: { Range: 'bytes=0-63' } }),
+      )
+    })
+
+    it('keeps a plain static WebP avatar (no ANIM chunk) on the normal ResponsiveImage branch throughout, no flash/swap', async () => {
+      const fetchMock = vi.fn().mockResolvedValue({
+        ok: true,
+        arrayBuffer: async () => webpHeaderBytes(false),
+      })
+      global.fetch = fetchMock as unknown as typeof fetch
+
+      render(
+        <MemberProfileHero
+          profile={makePublicProfile()}
+          avatarURL="/media/profile/3/avatar/current/original.webp"
+          isPublicView={true}
+        />,
+      )
+
+      expect(screen.getByRole('img', { name: 'Ballelboy Avatar' }).getAttribute('data-unoptimized')).toBe('false')
+
+      await waitFor(() => {
+        expect(fetchMock).toHaveBeenCalled()
+      })
+
+      // Resolved probe found no ANIM chunk -- stays on the same ResponsiveImage branch.
+      expect(screen.getByRole('img', { name: 'Ballelboy Avatar' }).getAttribute('data-unoptimized')).toBe('false')
+    })
   })
 
   it('shows the total points hero metric for a public profile with real points (D-02)', () => {

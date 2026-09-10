@@ -1,4 +1,7 @@
+'use client'
+
 import Image from 'next/image'
+import { useEffect, useState } from 'react'
 import { CalendarDays, Eye, Save } from 'lucide-react'
 
 import { Button, HeroMetrics, PageHeader } from '@/components/ui'
@@ -86,6 +89,47 @@ function getKnownFor(profile: MemberProfileData | PublicMemberProfileData): Know
   }
 }
 
+function isGifAvatarURL(avatarURL: string): boolean {
+  return /\.gif(?:$|\?)/i.test(avatarURL)
+}
+
+function isWebpAvatarURL(avatarURL: string): boolean {
+  return /\.webp(?:$|\?)/i.test(avatarURL)
+}
+
+// isAnimatedWebpSource extends the pre-existing GIF-only isAnimatedAvatar precedent
+// (P154-07, RCA-06 Workstream B3) to animated WebP. Root cause, empirically confirmed
+// against this exact deployment (`^16.1.6`): a direct `/_next/image?url=<timer's
+// avatar>&w=160&q=75` request returns the SAME 411,828-byte content-length as the raw
+// original file -- Next.js's own built-in image loader auto-detects animated GIF/APNG/
+// WebP and bypasses resizing entirely regardless of the requested `w=`
+// (nextjs.org/docs/app/api-reference/components/image), which is documented, intentional
+// Next.js behavior, not a client-set `unoptimized` prop (this component's normal
+// ResponsiveImage branch never sets `unoptimized`) and not a bug in this codebase.
+//
+// No backend derivative-generation service exists for avatar uploads
+// (`media_service.go` has no `imaging.Resize` call), so there is no smaller same-origin
+// derivative to request instead. The chosen mechanism is a lightweight client-side probe:
+// fetch a small byte range of the same-origin avatar source the <img> is already loading
+// (T-154-B3-01: same asset, no additional private data exposed) and check for the WebP
+// RIFF container's ANIM chunk signature, which marks the file as animated. If detected,
+// the avatar is rendered through the SAME existing unoptimized <Image> branch GIFs
+// already use (never a second, parallel branch) -- this puts it on Next's real escape
+// hatch (unoptimized, browser-native decoding) instead of the optimizer's silent,
+// unbounded auto-bypass.
+async function isAnimatedWebpSource(url: string): Promise<boolean> {
+  try {
+    const response = await fetch(url, { headers: { Range: 'bytes=0-63' } })
+    if (!response.ok) return false
+    const buffer = new Uint8Array(await response.arrayBuffer())
+    let signature = ''
+    for (const byte of buffer) signature += String.fromCharCode(byte)
+    return signature.includes('RIFF') && signature.includes('WEBP') && signature.includes('ANIM')
+  } catch {
+    return false
+  }
+}
+
 export function MemberProfileHero({
   profile,
   avatarURL = '',
@@ -104,7 +148,42 @@ export function MemberProfileHero({
   const profileStatus = getProfileStatus(profile)
   const knownFor = getKnownFor(profile)
   const totalPoints = getTotalPoints(profile)
-  const isAnimatedAvatar = /\.gif(?:$|\?)/i.test(avatarURL)
+
+  // isGifAvatarURL is a pure, synchronous function of avatarURL, so its result is derived
+  // directly during render (React's documented "adjusting state when a prop changes"
+  // pattern) rather than via a synchronous setState-in-effect, which
+  // react-hooks/set-state-in-effect correctly flags as cascading-render-prone. Only the
+  // ASYNC WebP probe below needs a real effect (it sets state later, from a callback, in
+  // response to an external fetch -- the effect pattern the rule endorses).
+  const [webpProbeState, setWebpProbeState] = useState(() => ({
+    avatarURL,
+    animated: isGifAvatarURL(avatarURL),
+  }))
+  const resolvedWebpProbeState = webpProbeState.avatarURL === avatarURL
+    ? webpProbeState
+    : { avatarURL, animated: isGifAvatarURL(avatarURL) }
+  if (resolvedWebpProbeState !== webpProbeState) setWebpProbeState(resolvedWebpProbeState)
+  const isAnimatedAvatar = resolvedWebpProbeState.animated
+
+  // Wave-safe default: while the async WebP probe is pending, keep rendering the normal
+  // ResponsiveImage branch (never speculatively swap to the unoptimized branch) -- no
+  // flash/swap for the common static-image case, and GIFs stay synchronously correct
+  // (handled above, without waiting for this effect).
+  useEffect(() => {
+    if (isGifAvatarURL(avatarURL) || !avatarURL || !isWebpAvatarURL(avatarURL)) return
+
+    let cancelled = false
+    isAnimatedWebpSource(avatarURL).then((animated) => {
+      if (cancelled || !animated) return
+      setWebpProbeState((previous) => (
+        previous.avatarURL === avatarURL ? { avatarURL, animated: true } : previous
+      ))
+    })
+    return () => {
+      cancelled = true
+    }
+  }, [avatarURL])
+
   const earnedCodes = new Set(publicBadges.map((badge) => badge.badge_code))
   const specialAwards = PUBLIC_MEMBER_BADGE_CATALOG
     .filter((item) => HEADER_SPECIAL_CODES.has(item.badge_code) && earnedCodes.has(item.badge_code))
