@@ -52,6 +52,7 @@ it('154-03/P154-06: renders the SAME <Image> element, className and props spread
   // (correctly) creates a new closure over it each render; that identity churn is not
   // part of the "{...props} spread untouched" contract, which concerns the other,
   // stable props (src, sizing, unoptimized, className, etc.).
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars -- destructured only to exclude onError from the comparison below
   const { onError: _beforeOnError, ...beforeErrorProps } = nextImageRenderMock.mock.calls.at(-1)?.[0] ?? {}
 
   fireEvent.error(image)
@@ -62,6 +63,7 @@ it('154-03/P154-06: renders the SAME <Image> element, className and props spread
   expect(afterErrorImage.tagName).toBe('IMG')
   expect(afterErrorImage.className).toBe('heroAvatarImage')
 
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars -- destructured only to exclude onError from the comparison below
   const { onError: _afterOnError, ...afterErrorProps } = nextImageRenderMock.mock.calls.at(-1)?.[0] ?? {}
   // {...props} spread is untouched: the only fields the fallback is allowed to change are
   // src and/or unoptimized/sizing -- and per the bound below, this component changes NONE
