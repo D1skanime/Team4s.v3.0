@@ -1346,7 +1346,7 @@ verbindliche Auftragsquelle.
 **UI hint**: yes — Workstream C aendert die sichtbare Ladereihenfolge und Leerzustaende des
 oeffentlichen Profils.
 
-**Plans:** 7 plans across 2 waves
+**Plans:** 7 plans across 3 waves
 
 Plans:
 **Wave 1**
@@ -1356,8 +1356,11 @@ Plans:
 - [ ] 153-03-PLAN.md — Workstream B4: echte Ladegrenze fuer die private Not-found-Vollvorschau.
 - [ ] 153-04-PLAN.md — Workstream C: MemberCurrentProjectsSection — Skeleton-Overlay entfernen, leerer Zustand serverseitig entschieden.
 - [ ] 153-05-PLAN.md — Workstream C: LatestContributionsSection + PreviousContributionsSection — identischer Skeleton-Fix (Sibling-Konsistenz).
-- [ ] 153-06-PLAN.md — Workstream C: MemberBadgeChain — Skeleton-Timing-Fix ohne Aenderung am Badge-/Stufen-Inhalt (P153-09 Ladder-Ausnahme).
 
-**Wave 2** *(blocked on Wave 1 completion)*
+**Wave 2** *(blocked on 153-01)*
+
+- [ ] 153-06-PLAN.md — Workstream C: MemberBadgeChain — Skeleton-Timing-Fix ohne Aenderung am Badge-/Stufen-Inhalt (P153-09 Ladder-Ausnahme). Haengt an 153-01: die drei `auto,`-Assertions in MemberBadgeChain.test.tsx pruefen Ausgabe, die erst 153-01s Quellfix erzeugt.
+
+**Wave 3** *(blocked on Wave 2 completion)*
 
 - [ ] 153-07-PLAN.md — Workstream D: Vorher/Nachher-Audit, Regressions-Guard, volle Testsuite + docker compose build, Live-Checkpoint.
