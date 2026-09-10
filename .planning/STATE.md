@@ -3,14 +3,14 @@ gsd_state_version: 1.0
 milestone: v1.4
 milestone_name: Coverage
 status: executing
-stopped_at: Phase 154 UI-SPEC approved
-last_updated: "2026-09-10T14:30:01.615Z"
+stopped_at: Completed 154-01-PLAN.md
+last_updated: "2026-09-10T14:44:33.556Z"
 last_activity: 2026-09-10
 progress:
   total_phases: 19
   completed_phases: 18
   total_plans: 184
-  completed_plans: 177
+  completed_plans: 178
   percent: 95
 ---
 
@@ -29,12 +29,12 @@ Phase 135 and any future roadmap entries continue from here.
 See: .planning/PROJECT.md (updated 2026-08-13)
 
 **Core value:** Team4s presents fansub history and collaboration credibly while keeping identity, visibility, ownership, and permissions correct.
-**Current focus:** Milestone complete
+**Current focus:** Phase 154 — aggregator-duplikate-bildbudget-und-viewer-aufloesung
 
 ## Current Position
 
-Phase: 154 (aggregator-duplikate-bildbudget-und-viewer-aufloesung) — PLANNING
-Plan: 0 of 0 (noch nicht geplant)
+Phase: 154 (aggregator-duplikate-bildbudget-und-viewer-aufloesung) — EXECUTING
+Plan: 2 of 7
 Status: Ready to execute
 abgelegt, Planung steht aus. Die Phase schliesst die verbliebenen P2-Befunde der Messreihe vom
 2026-09-09: RCA-05 (vier redundante Faktenabfragen im sequenziellen Aggregator), RCA-06
@@ -454,6 +454,7 @@ Last activity: 2026-09-10
 - [Phase 153]: Plan 153-06: MemberBadgeChain's locked/gesperrte badge ladder content and element count (kara: 606 DOM elements) stay deliberately unchanged; only carouselSkeleton visibility timing was fixed. — Binding Auftraggeber decision quoted in the plan objective: the RCA-03 defect is a visibility-timing problem, not a content-scope problem.
 - [Phase 153]: Plan 153-06: MemberBadgeChain.test.tsx's auto-prefixed sizes-string assertions were already corrected by Plan 01 as a Rule-1 side-effect before this plan started. — Verified via grep (zero 'auto, ' matches) before editing rather than trusting the plan's cited line numbers, per binding run-context instruction; only the skeleton-presence assertions needed updating.
 - [Phase 153]: Plan 07: Tasks 1 (publicImportGraph regression guard + full green gate: 295/296 files, 2263/2266 tests, tsc clean, lint 13 errors/331 warnings matching D5, docker compose build exit 0) and 2 (153-AFTER.md before/after audit with real measured RCA-01/02/03 numbers, REPORT.md verified byte-unchanged) are complete and committed (eb20fc76, 7f29897a). — Task 3 (checkpoint:human-verify, gate=blocking, live sanity check of /members/timer and /members/kara over the SSH tunnel) is NOT yet performed -- it requires the actual user's live browser confirmation and cannot be self-approved by an executor agent; Plan 153-07 is intentionally left incomplete pending that human checkpoint
+- [Phase 154]: Hoisted the four raw-count loaders (role-volume, contribution-projects/chronicle/archivist) to run exactly once per GetPublicMemberProfileByID request; GetOwnDashboard's independent calls to the same loaders are untouched. — RCA-05/P154-01..04 removed a documented duplicate-query pattern; regression-guard constant lowered 20->16, empirically re-measured against pre-change code on the same fixture DB.
 
 ### Pending Todos
 
@@ -814,13 +815,14 @@ untruncated list lives in `.planning/todos/pending/`.
 | Phase 153 P04 | 20min | 2 tasks | 3 files |
 | Phase 153 P05 | 6min | 2 tasks | 6 files |
 | Phase 153 P06 | 3min | 2 tasks | 3 files |
+| Phase 154 P01 | 7min | 3 tasks | 9 files |
 
 ## Session Continuity
 
-Last session: 2026-09-10T13:49:53.444Z
-Stopped at: Phase 154 UI-SPEC approved
+Last session: 2026-09-10T14:44:33.539Z
+Stopped at: Completed 154-01-PLAN.md
 Last activity: Local handoff checkpoint; no new Execute step, browser matrix, build, agent or push started after stop.
-Resume file: .planning/phases/154-aggregator-duplikate-bildbudget-und-viewer-aufloesung/154-UI-SPEC.md
+Resume file: None
 Structured state: .planning/HANDOFF.json
 
 Plans 151-02/03/04 have implementation summaries. Plans 151-01 and 151-05 remain open until final artwork/composition review, complete browser evidence and independent verification; their missing summaries are intentional. No requirement or phase has been falsely marked complete.
