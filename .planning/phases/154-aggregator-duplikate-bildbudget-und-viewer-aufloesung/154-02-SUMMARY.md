@@ -106,3 +106,12 @@ None - no external service configuration required.
 ---
 *Phase: 154-aggregator-duplikate-bildbudget-und-viewer-aufloesung*
 *Completed: 2026-09-10*
+
+## Self-Check: PASSED
+
+- FOUND: frontend/src/components/profile/AnimeProjectAchievementStage.tsx
+- FOUND: frontend/src/components/profile/MemberBadgeChain.test.tsx
+- FOUND: .planning/phases/154-aggregator-duplikate-bildbudget-und-viewer-aufloesung/154-02-SUMMARY.md
+- FOUND commit: 12a5d2d3
+- FOUND commit: cbdb3ba4
+- FOUND commit: 6b6d7a48
