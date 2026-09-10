@@ -426,7 +426,7 @@ Milestone v1.4 closes Live-UAT Findings #29-#32 by making effective group rights
 - [x] **Phase 151: Erfolgsbadge-Karussell-Konsolidierung** - Alle Badge-Familien teilen einen gemeinsamen Artwork-Slot, gemeinsame Karten/Stufen und ein generisches Karussell; die Phase-150-Schwellenautoritaet bleibt unangetastet, geaendert wird nur die Darstellung. (completed 2026-09-08)
 - [x] **Phase 152: Public-Fansub-Gruppenseite: Konsolidierung und Modernisierung** - Die oeffentliche Gruppenseite nutzt den gemeinsamen Artwork-Slot statt eines zweiten Badge-Systems, liefert Bilder ueber die Next-Image-Pipeline aus und laedt public-seitig nur noch benoetigte Daten mit abgesichertem Query-Budget. (completed 2026-09-08)
 - [x] **Phase 153: Public-Member-Profil: Speicherretention, Importgraph und SSR-Sichtbarkeit** - Die drei P1-Befunde der Messreihe vom 2026-09-09 sind geschlossen: die native Auto-Sizes-DOM-Retention, der Editor-Importzweig im oeffentlichen Graph und die Skeletons, die vorhandene SSR-Inhalte bis zur Hydration verdecken. (completed 2026-09-10)
-- [ ] **Phase 154: Public-Member-Profil: Aggregator-Duplikate, Bildbudget und Viewer-Aufloesung** - Die verbliebenen P2-Befunde der Messreihe vom 2026-09-09 sind geschlossen: vier redundante Faktenabfragen im Profil-Aggregator, ungegatetes Locked-Artwork samt schwerem Original-Fallback und die zu breite Viewer-Aufloesung ohne durchgereichtes Abbruchsignal. Dazu zwei Nachmessungen, die erst nach der Graphverkleinerung moeglich sind.
+- [x] **Phase 154: Public-Member-Profil: Aggregator-Duplikate, Bildbudget und Viewer-Aufloesung** - Die verbliebenen P2-Befunde der Messreihe vom 2026-09-09 sind geschlossen: vier redundante Faktenabfragen im Profil-Aggregator, ungegatetes Locked-Artwork samt schwerem Original-Fallback und die zu breite Viewer-Aufloesung ohne durchgereichtes Abbruchsignal. Dazu zwei Nachmessungen, die erst nach der Graphverkleinerung moeglich sind. (completed 2026-09-10)
 
 ## Phase Details
 
@@ -1423,7 +1423,7 @@ verbindliche Auftragsquelle.
 **UI hint**: yes — Workstream B aendert sichtbares Artwork bei leeren Profilen und das
 Fehlerverhalten von Bildern.
 
-**Plans:** 6/7 plans executed
+**Plans:** 7/7 plans complete
 
 Plans:
 **Wave 1**
@@ -1443,4 +1443,4 @@ Plans:
 
 **Wave 4** *(blocked on 154-04, 154-06)*
 
-- [ ] 154-07-PLAN.md — Workstream E: menschlicher Live-Checkpoint, Owner-Ansicht eines versteckten Profils.
+- [x] 154-07-PLAN.md — Workstream E: menschlicher Live-Checkpoint, Owner-Ansicht eines versteckten Profils.
