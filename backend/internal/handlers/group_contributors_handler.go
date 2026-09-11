@@ -5,6 +5,7 @@ import (
 	"net/http"
 	"strconv"
 
+	"team4s.v3/backend/internal/models"
 	"team4s.v3/backend/internal/repository"
 
 	"github.com/gin-gonic/gin"
@@ -200,6 +201,37 @@ func (h *GroupPublicHandler) GetGroupReleaseDetail(c *gin.Context) {
 	}
 
 	c.JSON(http.StatusOK, detail)
+}
+
+// GetGroupReleaseCount handles GET /api/v1/anime/:id/group/:groupId/releases/count
+// Liefert nur die Anzahl der Release-Versionen (COUNT(DISTINCT rev.id)) fuer
+// diese Anime/Gruppen-Kombination, ohne eine Release-Zeilenliste zu laden
+// (Plan 155-02, P155-07/P155-08). Nutzt GetGroupReleaseVersionCount mit einer
+// leeren Filter-Struktur — diese Route filtert bewusst nicht per Query-Param.
+func (h *GroupPublicHandler) GetGroupReleaseCount(c *gin.Context) {
+	animeID, err := parseAnimeID(c.Param("id"))
+	if err != nil {
+		badRequest(c, "ungültige anime-id")
+		return
+	}
+	groupID, err := parseGroupID(c.Param("groupId"))
+	if err != nil {
+		badRequest(c, "ungültige group-id")
+		return
+	}
+
+	if h.groupReleasesRepo == nil {
+		internalError(c, "interner serverfehler")
+		return
+	}
+
+	count, err := h.groupReleasesRepo.GetGroupReleaseVersionCount(c.Request.Context(), animeID, groupID, models.GroupReleasesFilter{})
+	if err != nil {
+		internalError(c, "interner serverfehler")
+		return
+	}
+
+	c.JSON(http.StatusOK, gin.H{"data": gin.H{"count": count}})
 }
 
 // GetGroupReleaseListCursor handles GET /api/v1/anime/:id/group/:groupId/release-list

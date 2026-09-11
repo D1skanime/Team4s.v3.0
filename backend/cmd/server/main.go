@@ -382,6 +382,7 @@ func main() {
 	v1.GET("/anime/:id/group/:groupId/assets", groupAssetsHandler.GetGroupAssets)
 	v1.GET("/anime/:id/group/:groupId/releases", groupHandler.GetGroupReleases)
 	v1.GET("/anime/:id/group/:groupId/release-list", groupPublicHandler.GetGroupReleaseListCursor)
+	v1.GET("/anime/:id/group/:groupId/releases/count", groupPublicHandler.GetGroupReleaseCount)
 	v1.GET("/anime/:id/group/:groupId/releases/:releaseVersionId", groupPublicHandler.GetGroupReleaseDetail)
 	v1.GET("/anime/:id/group/:groupId/releases/:releaseVersionId/images", groupPublicHandler.GetGroupReleaseImages)
 	v1.GET("/anime/:id/group/:groupId/releases/:releaseVersionId/notes", groupPublicHandler.GetGroupReleaseNotes)
