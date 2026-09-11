@@ -3,14 +3,14 @@ gsd_state_version: 1.0
 milestone: v1.4
 milestone_name: Coverage
 status: executing
-stopped_at: Completed 156-06-PLAN.md
-last_updated: "2026-09-11T21:04:40.647Z"
+stopped_at: Completed 156-04-PLAN.md
+last_updated: "2026-09-11T21:21:21.455Z"
 last_activity: 2026-09-11
 progress:
   total_phases: 21
   completed_phases: 20
   total_plans: 202
-  completed_plans: 195
+  completed_plans: 196
   percent: 95
 ---
 
@@ -34,9 +34,29 @@ See: .planning/PROJECT.md (updated 2026-08-13)
 ## Current Position
 
 Phase: 156 (segment-domain-konsistenz-und-oeffentliche-release-projektion) — EXECUTING
-Plan: 5 of 11
-Status: Plan 156-06 complete (Projektseite: Assignment-basierte Timeline). Naechste laut
-ROADMAP.md-Reihenfolge: 156-04/156-05 (Segment-Origin-Welle), dann 156-07/08/09.
+Plan: 6 of 11
+Status: Ready to execute
+ROADMAP.md-Reihenfolge: 156-05 als naechstes (Segment-Origin-Welle abschliessen), dann 156-07/08/09.
+
+Plan 156-04 (2026-09-11) abgeschlossen: eine neue `SetThemeSegmentOrigin`-Repository-Methode und
+`PUT /api/v1/admin/anime/:id/segments/:segmentId/origin` erlauben Admins, `theme_segments.
+origin_release_version_id` gezielt zu setzen/korrigieren (P156-06) -- eine Ziel-Release-Version, die
+dem Segment nicht ueber `theme_segment_assignments` zugewiesen ist, wird mit 409/
+`origin_not_assigned` abgelehnt statt still uebernommen, hinter demselben
+`release_version.segments.manage`-Capability-Gate wie jeder andere Segment-Schreibpfad (P156-18,
+T-156-11). `ListAnimeSegments`/`GetAnimeSegmentByID` liefern die aktuelle Origin jetzt mit aus
+(`AdminThemeSegment.OriginReleaseVersionID`, nil vor dem ersten Setzen). Eine Abweichung vom
+Plantext war noetig (Rule 1): die Validierungsreihenfolge prueft Segment-EXISTENZ vor der
+Zuweisungs-Mitgliedschaft, nicht umgekehrt wie im Plan woertlich beschrieben -- ein nicht
+existierendes Segment kann per FK niemals eine `theme_segment_assignments`-Zeile haben, ein
+Membership-Check zuerst haette ErrNotFound fuer diesen Fall strukturell unerreichbar gemacht.
+Zusaetzlich musste die gemeinsame Phase-117-Testfixture (`testsupport.OpenPhase117Postgres`) um
+Migration 0161 ergaenzt werden (Rule 3, blockierend -- die Spalte fehlte sonst im isolierten
+Testschema), und zwei vorbestehende vollstaendig-manuelle `adminThemeRepository`-Test-Stubs
+brauchten eine No-op-Implementierung der neuen Schnittstellenmethode, um weiter zu kompilieren
+(Rule 3). Backend nach Rebuild live verifiziert (Route liefert 401 ohne Auth, nicht 404).
+`requirements.mark-complete P156-06/P156-18` fand wie bei den Vorplaenen keine Zeile in
+REQUIREMENTS.md (dieselbe uebergreifende Tracking-Luecke). Details: 156-04-SUMMARY.md.
 
 Plan 156-06 (2026-09-11) abgeschlossen: die Projektseiten-Timeline (`attachReleaseTimelineSegments`,
 `group_repository_cursor_timeline.go`, neu ausgelagert aus `group_repository_cursor.go` wegen des
@@ -572,6 +592,7 @@ Last activity: 2026-09-11
 - [Phase 156]: AssignThemeSegmentToEpisodeRange ist jetzt eine Soll-Ist-Synchronisation (insert-missing/delete-excess), nicht mehr additiv — Bereichsverkuerzung muss veraltete Zuweisungen entfernen koennen; der Guard gegen unvollstaendige Bereiche bleibt verbatim und hat einen eigenen dedizierten Postgres-Test
 - [Phase 156]: Reverse-direction auto-assign hooked directly into upsertReleaseVersionGroup's existing per-group loop (Plan 156-03); episode/version resolved once per release version, byte-identical join fragments reused from theme_segment_assignments.go
 - [Phase 156]: Split attachReleaseTimelineSegments into group_repository_cursor_timeline.go (CLAUDE.md 450-line cap); is_karaoke now derives from CanonicalSegmentType output instead of a second SQL LIKE heuristic.
+- [Phase 156]: 156-04: SetThemeSegmentOrigin checks segment existence before assignment membership — A non-existent segment can never have a theme_segment_assignments row (FK-enforced); checking membership first would always yield ErrConflict, making ErrNotFound unreachable
 
 ### Pending Todos
 
@@ -951,11 +972,12 @@ untruncated list lives in `.planning/todos/pending/`.
 | Phase 156 P02 | 22min | 2 tasks | 9 files |
 | Phase 156 P03 | 14min | 1 tasks | 3 files |
 | Phase 156 P06 | 14min | 2 tasks | 6 files |
+| Phase 156 P04 | 35min | 2 tasks | 11 files |
 
 ## Session Continuity
 
-Last session: 2026-09-11T21:04:40.632Z
-Stopped at: Completed 156-06-PLAN.md
+Last session: 2026-09-11T21:21:21.437Z
+Stopped at: Completed 156-04-PLAN.md
 Last activity: Local handoff checkpoint; no new Execute step, browser matrix, build, agent or push started after stop.
 Resume file: None
 Structured state: .planning/HANDOFF.json

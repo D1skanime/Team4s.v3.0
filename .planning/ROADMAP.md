@@ -1592,7 +1592,7 @@ ausdruecklich **kein** visuelles Redesign und kopiert keine Credits in Segmentta
 
 **Depends on:** Phase 155
 
-**Plans:** 4/11 plans executed
+**Plans:** 5/11 plans executed
 
 Plans:
 
@@ -1605,7 +1605,7 @@ Plans:
 
 **Wave 2** *(blocked on Wave 1 completion)*
 
-- [ ] 156-04-PLAN.md — Segment-Origin: Repository, Admin-Endpoint, Read-Path-Plumbing
+- [x] 156-04-PLAN.md — Segment-Origin: Repository, Admin-Endpoint, Read-Path-Plumbing
 - [ ] 156-05-PLAN.md — Rollen-Codes + member_slug durch loadPublicEffectiveContributors
 
 **Wave 3** *(blocked on Wave 2 completion)*
