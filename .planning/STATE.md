@@ -4,13 +4,13 @@ milestone: v1.4
 milestone_name: Coverage
 status: executing
 stopped_at: Completed 155-01-PLAN.md
-last_updated: "2026-09-11T15:23:00.088Z"
+last_updated: "2026-09-11T15:31:42.234Z"
 last_activity: 2026-09-11
 progress:
   total_phases: 20
   completed_phases: 19
   total_plans: 191
-  completed_plans: 186
+  completed_plans: 187
   percent: 95
 ---
 
@@ -34,7 +34,7 @@ See: .planning/PROJECT.md (updated 2026-08-13)
 ## Current Position
 
 Phase: 155 (fansub-projektseite-read-model-und-query-budget) — EXECUTING
-Plan: 3 of 7
+Plan: 4 of 7
 Status: Ready to execute
 
 Phase 155 wurde additiv an die Roadmap angehaengt (Milestone v1.4 bleibt als abgeschlossen dokumentiert, kein Milestone-Reset). Auftragsquelle: `.planning/phases/155-fansub-projektseite-read-model-und-query-budget/155-USER-REQUEST.md`, Kontext: `155-CONTEXT.md` (ersetzt eine interaktive discuss-phase-Sitzung).
@@ -472,6 +472,7 @@ Last activity: 2026-09-11
 - [Phase 154]: P154-15/E6 closed with precise, non-blanket operator confirmation: owner-view of a temporarily-toggled hidden profile (d1sk) confirmed correct; dataset held zero private profiles beforehand, requiring an ad-hoc toggle-and-revert; edit-link visibility not separately confirmed and is not claimed as verified.
 - [Phase 155]: FansubHandler.projectResolverRepo is typed as a narrow fansubProjectResolverRepo interface (not the concrete repository pointer) so httptest fakes can execute ResolveFansubProject directly — Satisfies CLAUDE.md Teststil (must actually run the checked code); WithProjectResolverRepo's public signature is unchanged
 - [Phase 155]: Reused Plan-155-01's DSN-gated team4s_phase155_test Postgres scaffold for the release-count parity test instead of group_repository_test.go's perpetually-skipping setupTestRepo helper
+- [Phase ?]: [Phase 155, Plan 03] GetProjectContributors constant-query-budget (2) locked in by a real Postgres test at 30-50 contributor scale; no repository SQL change made per CONTEXT.md's negative-finding allowance
 
 ### Pending Todos
 
@@ -842,10 +843,11 @@ untruncated list lives in `.planning/todos/pending/`.
 | Phase 154 P07 | 10min | 1 tasks | 0 files |
 | Phase 155 P01 | 26min | 3 tasks | 9 files |
 | Phase 155 P02 | 24min | 3 tasks | 6 files |
+| Phase 155 P03 | 12min | 1 tasks | 1 files |
 
 ## Session Continuity
 
-Last session: 2026-09-11T15:22:41.590Z
+Last session: 2026-09-11T15:31:17.266Z
 Stopped at: Completed 155-01-PLAN.md
 Last activity: Local handoff checkpoint; no new Execute step, browser matrix, build, agent or push started after stop.
 Resume file: None

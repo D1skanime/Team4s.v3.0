@@ -1489,7 +1489,7 @@ ausdruecklich **kein** visuelles Redesign und keine Aenderung der sichtbaren Inf
 
 **Depends on:** Phase 154
 
-**Plans:** 2/7 plans executed
+**Plans:** 3/7 plans executed
 
 Plans:
 
@@ -1500,7 +1500,7 @@ Plans:
 **Wave 2** *(blocked on Wave 1 completion)*
 
 - [x] 155-02-PLAN.md — Release-Version-Count: eigenstaendige Query, Endpoint, Contract
-- [ ] 155-03-PLAN.md — Contributor-Query-Budget-Absicherung (30-50 Mitwirkende)
+- [x] 155-03-PLAN.md — Contributor-Query-Budget-Absicherung (30-50 Mitwirkende)
 
 **Wave 3** *(blocked on Wave 2 completion)*
 
