@@ -3,14 +3,14 @@ gsd_state_version: 1.0
 milestone: v1.4
 milestone_name: Coverage
 status: executing
-stopped_at: Completed 156-04-PLAN.md
-last_updated: "2026-09-11T21:21:21.455Z"
+stopped_at: Completed 156-05-PLAN.md
+last_updated: "2026-09-11T21:28:59.416Z"
 last_activity: 2026-09-11
 progress:
   total_phases: 21
   completed_phases: 20
   total_plans: 202
-  completed_plans: 196
+  completed_plans: 197
   percent: 95
 ---
 
@@ -34,9 +34,26 @@ See: .planning/PROJECT.md (updated 2026-08-13)
 ## Current Position
 
 Phase: 156 (segment-domain-konsistenz-und-oeffentliche-release-projektion) — EXECUTING
-Plan: 6 of 11
+Plan: 7 of 11
 Status: Ready to execute
-ROADMAP.md-Reihenfolge: 156-05 als naechstes (Segment-Origin-Welle abschliessen), dann 156-07/08/09.
+ROADMAP.md-Reihenfolge: 156-07/08/09 als naechstes (zentrale Segment-Credit-Semantik).
+
+Plan 156-05 (2026-09-11) abgeschlossen: `loadPublicEffectiveContributors`
+(`public_effective_contributors.go`) -- die eine gemeinsame batch-faehige Funktion, die bereits
+sowohl die Projektseite als auch die Release-Seite beliefert -- behaelt jetzt den rohen
+`role_code`-Satz je Mitwirkendem (`PublicReleaseContributor.RoleCodes`, sortiert, unabhaengig vom
+aggregierten deutschen `RoleLabel`-String) und liefert zusaetzlich einen sichtbarkeits-gegateten
+`MemberSlug` (P156-08/P156-09) -- letzterer per exakt demselben, woertlich kopierten
+`CASE WHEN m.profile_visibility = 'public' THEN m.public_slug ELSE NULL END`-Muster wie bereits in
+`group_contributors_repository.go`. Keine zweite Lade-Funktion, keine Aenderung an Batch-Signatur,
+Praezedenz- oder `is_public`-Filterlogik -- rein additiv am Ausgabe-Shape pro Zeile, per RED/GREEN-
+TDD-Zyklus bewiesen (3 neue Unit-Tests plus alle 3 vorbestehenden weiterhin gruen). Keine
+Abweichungen vom Plan. Ein vorbestehender, nicht durch diesen Plan verursachter Befund ist
+dokumentiert (`release_detail_public_repository.go` war bereits vor diesem Plan bei 511 Zeilen,
+ueber dem 450-Zeilen-Limit -- als Altlast in 156-05-SUMMARY.md geflaggt, nicht behoben, mirrors
+156-01's `permissions.go`-Praezedenzfall). `requirements.mark-complete P156-08/P156-09` fand wie
+bei den Vorplaenen keine Zeile in REQUIREMENTS.md (dieselbe uebergreifende Tracking-Luecke).
+Details: 156-05-SUMMARY.md.
 
 Plan 156-04 (2026-09-11) abgeschlossen: eine neue `SetThemeSegmentOrigin`-Repository-Methode und
 `PUT /api/v1/admin/anime/:id/segments/:segmentId/origin` erlauben Admins, `theme_segments.
@@ -593,6 +610,7 @@ Last activity: 2026-09-11
 - [Phase 156]: Reverse-direction auto-assign hooked directly into upsertReleaseVersionGroup's existing per-group loop (Plan 156-03); episode/version resolved once per release version, byte-identical join fragments reused from theme_segment_assignments.go
 - [Phase 156]: Split attachReleaseTimelineSegments into group_repository_cursor_timeline.go (CLAUDE.md 450-line cap); is_karaoke now derives from CanonicalSegmentType output instead of a second SQL LIKE heuristic.
 - [Phase 156]: 156-04: SetThemeSegmentOrigin checks segment existence before assignment membership — A non-existent segment can never have a theme_segment_assignments row (FK-enforced); checking membership first would always yield ErrConflict, making ErrNotFound unreachable
+- [Phase 156]: 156-05: loadPublicEffectiveContributors tests stay unit-level (no new Postgres harness) — Function had zero DB-gated tests before this plan and the plan's own verify step only requires go build/go vet; the SQL change is exercised indirectly by existing production consumers
 
 ### Pending Todos
 
@@ -973,11 +991,12 @@ untruncated list lives in `.planning/todos/pending/`.
 | Phase 156 P03 | 14min | 1 tasks | 3 files |
 | Phase 156 P06 | 14min | 2 tasks | 6 files |
 | Phase 156 P04 | 35min | 2 tasks | 11 files |
+| Phase 156 P05 | 6min | 1 tasks | 3 files |
 
 ## Session Continuity
 
-Last session: 2026-09-11T21:21:21.437Z
-Stopped at: Completed 156-04-PLAN.md
+Last session: 2026-09-11T21:28:59.398Z
+Stopped at: Completed 156-05-PLAN.md
 Last activity: Local handoff checkpoint; no new Execute step, browser matrix, build, agent or push started after stop.
 Resume file: None
 Structured state: .planning/HANDOFF.json
