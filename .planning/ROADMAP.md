@@ -1366,7 +1366,6 @@ Plans:
 
 - [x] 153-07-PLAN.md — Workstream D: Vorher/Nachher-Audit, Regressions-Guard, volle Testsuite + docker compose build, Live-Checkpoint.
 
-
 ### Phase 154: Public-Member-Profil: Aggregator-Duplikate, Bildbudget und Viewer-Aufloesung
 
 **Goal:** Der oeffentliche Profil-Aggregator laedt jede Tatsache nur noch einmal statt vier Paare
@@ -1494,12 +1493,26 @@ ausdruecklich **kein** visuelles Redesign und keine Aenderung der sichtbaren Inf
 
 Plans:
 
+**Wave 1**
+
 - [ ] 155-01-PLAN.md — Project Resolver: Backend-Repository, Handler, Contract
+
+**Wave 2** *(blocked on Wave 1 completion)*
+
 - [ ] 155-02-PLAN.md — Release-Version-Count: eigenstaendige Query, Endpoint, Contract
 - [ ] 155-03-PLAN.md — Contributor-Query-Budget-Absicherung (30-50 Mitwirkende)
+
+**Wave 3** *(blocked on Wave 2 completion)*
+
 - [ ] 155-04-PLAN.md — Project-Loader-Umbau: Release-Datenpfade, tote Fetches, Resolver-Schnittstelle
+
+**Wave 4** *(blocked on Wave 3 completion)*
+
 - [ ] 155-05-PLAN.md — Render-Konsumenten: Hero/Stats/Assets/Releases-Prop-Verdrahtung
 - [ ] 155-06-PLAN.md — Drill-down-Routen: Resolver-Verdrahtung in allen drei Pretty-Routen
+
+**Wave 5** *(blocked on Wave 4 completion)*
+
 - [ ] 155-07-PLAN.md — Messung, Edge-Cases, Vorher/Nachher-Auditbericht
 
 **Plan-time read first**: `.planning/phases/155-fansub-projektseite-read-model-und-query-budget/155-USER-REQUEST.md`,

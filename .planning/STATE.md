@@ -2,15 +2,15 @@
 gsd_state_version: 1.0
 milestone: v1.4
 milestone_name: Coverage
-status: in_progress
-stopped_at: Phase 155 angelegt, bereit fuer plan-phase
-last_updated: 2026-09-11T00:00:00.000Z
+status: executing
+stopped_at: Completed 154-07-PLAN.md
+last_updated: "2026-09-11T14:45:45.476Z"
 last_activity: 2026-09-11
 progress:
   total_phases: 20
   completed_phases: 19
-  total_plans: 184
-  completed_plans: 238
+  total_plans: 191
+  completed_plans: 184
   percent: 95
 ---
 
@@ -35,7 +35,7 @@ See: .planning/PROJECT.md (updated 2026-08-13)
 
 Phase: 155
 Plan: Not started
-Status: Ready for planning
+Status: Ready to execute
 
 Phase 155 wurde additiv an die Roadmap angehaengt (Milestone v1.4 bleibt als abgeschlossen dokumentiert, kein Milestone-Reset). Auftragsquelle: `.planning/phases/155-fansub-projektseite-read-model-und-query-budget/155-USER-REQUEST.md`, Kontext: `155-CONTEXT.md` (ersetzt eine interaktive discuss-phase-Sitzung).
 
@@ -158,7 +158,7 @@ timing flakiness, not a Phase 149 regression, and not yet root-caused.
 
 v1.4 remains complete; Phase 149 was appended additively (same pattern as 143-148), no new
 milestone was created.
-Last activity: 2026-09-10
+Last activity: 2026-09-11
 
 ## Accumulated Context
 
