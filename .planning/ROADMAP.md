@@ -1489,7 +1489,7 @@ ausdruecklich **kein** visuelles Redesign und keine Aenderung der sichtbaren Inf
 
 **Depends on:** Phase 154
 
-**Plans:** 3/7 plans executed
+**Plans:** 4/7 plans executed
 
 Plans:
 
@@ -1504,7 +1504,7 @@ Plans:
 
 **Wave 3** *(blocked on Wave 2 completion)*
 
-- [ ] 155-04-PLAN.md — Project-Loader-Umbau: Release-Datenpfade, tote Fetches, Resolver-Schnittstelle
+- [x] 155-04-PLAN.md — Project-Loader-Umbau: Release-Datenpfade, tote Fetches, Resolver-Schnittstelle
 
 **Wave 4** *(blocked on Wave 3 completion)*
 
