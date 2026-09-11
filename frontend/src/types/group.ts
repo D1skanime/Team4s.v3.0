@@ -77,6 +77,14 @@ export interface GroupReleasesResponse {
   meta: PaginationMeta
 }
 
+export interface GroupReleaseCount {
+  count: number
+}
+
+export interface GroupReleaseCountResponse {
+  data: GroupReleaseCount
+}
+
 export interface GroupReleasesParams {
   page?: number
   per_page?: number

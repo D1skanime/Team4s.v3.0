@@ -178,6 +178,7 @@ import {
   GroupDetailResponse,
   GroupReleasesResponse,
   GroupReleasesParams,
+  GroupReleaseCountResponse,
   EpisodeReleaseSummary,
 } from "@/types/group";
 import { GroupAssetsResponse } from "@/types/groupAsset";
@@ -6608,6 +6609,29 @@ export async function getGroupReleases(
   }
 
   return response.json() as Promise<GroupReleasesResponse>;
+}
+
+export async function getGroupReleaseCount(
+  animeID: number,
+  groupID: number,
+): Promise<GroupReleaseCountResponse> {
+  const API_BASE_URL = getApiBaseUrl();
+  const response = await authorizedFetch(
+    `${API_BASE_URL}/api/v1/anime/${animeID}/group/${groupID}/releases/count`,
+    {
+      cache: "no-store",
+    },
+  );
+
+  if (!response.ok) {
+    const message = await parseApiError(
+      response,
+      `API request failed: ${response.status}`,
+    );
+    throw new ApiError(response.status, message);
+  }
+
+  return response.json() as Promise<GroupReleaseCountResponse>;
 }
 
 export async function getGroupAssets(
