@@ -10,10 +10,10 @@ afterEach(cleanup)
 describe('ContributorsRow', () => {
   it('aggregates one release card per group and member with unique roles', () => {
     render(<ContributorsRow contributors={[
-      { fansub_group_id: 4, member_id: 1, name: 'Mika', role_label: 'Karaoke', avatar_url: null },
-      { fansub_group_id: 4, member_id: 1, name: 'Mika', role_label: 'Karaoke', avatar_url: null },
-      { fansub_group_id: 4, member_id: 1, name: 'Mika', role_label: 'Typesetting', avatar_url: null },
-      { fansub_group_id: 5, member_id: 1, name: 'Mika', role_label: 'Timing', avatar_url: null },
+      { fansub_group_id: 4, member_id: 1, name: 'Mika', role_label: 'Karaoke', role_codes: [], member_slug: null, avatar_url: null },
+      { fansub_group_id: 4, member_id: 1, name: 'Mika', role_label: 'Karaoke', role_codes: [], member_slug: null, avatar_url: null },
+      { fansub_group_id: 4, member_id: 1, name: 'Mika', role_label: 'Typesetting', role_codes: [], member_slug: null, avatar_url: null },
+      { fansub_group_id: 5, member_id: 1, name: 'Mika', role_label: 'Timing', role_codes: [], member_slug: null, avatar_url: null },
     ]} />)
 
     expect(screen.getAllByText('Mika')).toHaveLength(2)
@@ -25,7 +25,7 @@ describe('ContributorsRow', () => {
 
   it('uses only supplied release contributors and omits an empty section', () => {
     const { rerender } = render(<ContributorsRow contributors={[
-      { fansub_group_id: 4, member_id: 1, name: 'Mika', role_label: 'Karaoke', avatar_url: null },
+      { fansub_group_id: 4, member_id: 1, name: 'Mika', role_label: 'Karaoke', role_codes: [], member_slug: null, avatar_url: null },
     ]} />)
     expect(screen.getByText('Mika')).toBeTruthy()
     expect(screen.queryByText('Projektmitglieder')).toBeNull()

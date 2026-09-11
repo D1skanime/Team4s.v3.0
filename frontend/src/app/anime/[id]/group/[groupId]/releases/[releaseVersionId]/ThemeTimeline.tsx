@@ -1,13 +1,14 @@
 'use client'
 
 import { Lock, Play } from 'lucide-react'
-import type { CSSProperties, ReactNode } from 'react'
+import type { CSSProperties } from 'react'
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
 
-import { Badge, Button, Card, SectionHeader } from '@/components/ui'
+import { Button, Card, SectionHeader } from '@/components/ui'
 import { useAuthSession } from '@/lib/useAuthSession'
 import type { PublicReleaseSegment } from '@/types/releaseDetail'
 
+import { segmentTypeDisplayLabel, SelectionSurface } from './ThemeTimelineSegmentDetails'
 import styles from './ThemeTimeline.module.css'
 
 interface ThemeTimelineProps {
@@ -17,6 +18,8 @@ interface ThemeTimelineProps {
   initialSegmentID?: number | null
   autoPlayInitial?: boolean
   episodeNumber?: string
+  /** Projekt-Pfad im Fansub-Projektkontext (Phase 155), fuer Mitwirkenden-Links (P156-14). */
+  projectPath?: string | null
 }
 
 type SegmentGeometry = {
@@ -28,34 +31,15 @@ type SegmentGeometry = {
   labelAlignment: 'start' | 'center' | 'end'
 }
 
-const TYPE_LABELS: Record<string, string> = {
-  OP: 'Opening',
-  ED: 'Ending',
-  IN: 'Insert',
-  MIDDLE: 'Middle',
-  KARA: 'Karaoke',
-  OTHER: 'Other',
-}
-
-const TYPE_STYLE_KEYS: Record<string, keyof typeof styles> = {
+// Rein darstellerische CSS-Klassen-Zuordnung, keyed auf den bereits
+// kanonischen `segment.type`-Wert (CanonicalSegmentType, Plan 156-06/156-07).
+// Diese Zuordnung entscheidet NICHT, welcher Typ vorliegt -- sie bildet nur
+// einen bereits feststehenden Wert auf eine Farb-/Stil-Klasse ab.
+const SEGMENT_TYPE_STYLE_CLASS: Record<string, keyof typeof styles> = {
   OP: 'typeOp',
-  'OP KARA': 'typeOp',
-  OPENING: 'typeOp',
-  'OPENING KARA': 'typeOp',
   ED: 'typeEd',
-  'ED KARA': 'typeEd',
-  ENDING: 'typeEd',
-  'ENDING KARA': 'typeEd',
-  IN: 'typeIn',
-  'IN KARA': 'typeIn',
   INSERT: 'typeIn',
-  'INSERT KARA': 'typeIn',
-  MIDDLE: 'typeMiddle',
-  'MIDDLE KARA': 'typeMiddle',
   KARA: 'typeKara',
-  KARAOKE: 'typeKara',
-  OTHER: 'typeOther',
-  'OTHER KARA': 'typeOther',
 }
 
 const LABEL_HALF_WIDTH_PERCENT = 9
@@ -72,13 +56,8 @@ function clock(seconds: number | null): string {
   return `${minutes.toString().padStart(2, '0')}:${rest.toString().padStart(2, '0')}`
 }
 
-function typeKey(type: string): keyof typeof styles {
-  const normalized = type.trim().toUpperCase().replace(/[\s_-]+/g, ' ')
-  return TYPE_STYLE_KEYS[normalized] ?? 'typeOther'
-}
-
-function segmentTypeLabel(type: string): string {
-  return TYPE_LABELS[type.toUpperCase()] ?? type
+function segmentTypeStyleClass(type: string): keyof typeof styles {
+  return SEGMENT_TYPE_STYLE_CLASS[type] ?? 'typeOther'
 }
 
 function resolveDuration(episodeDurationSeconds: number | null, segments: PublicReleaseSegment[]): number {
@@ -137,61 +116,7 @@ function geometryStyle(geometry: SegmentGeometry): CSSProperties {
 }
 
 function segmentClassName(segment: PublicReleaseSegment, baseClass: string): string {
-  return `${baseClass} ${styles[typeKey(segment.type)]}`
-}
-
-function SegmentDetails({ segment, episodeNumber }: { segment: PublicReleaseSegment; episodeNumber?: string }) {
-  const start = segment.start_seconds ?? 0
-  const end = segment.end_seconds ?? start
-  const duration = segment.duration_seconds ?? Math.max(0, end - start)
-
-  return (
-    <div className={styles.segmentDetails}>
-      <Badge variant="muted" className={styles.typeBadge}>{segmentTypeLabel(segment.type)}</Badge>
-      <strong className={styles.segmentName}>{segment.name}</strong>
-      <div className={styles.timeRow}>
-        <span>{clock(start)}–{clock(end)}</span>
-        <span>Dauer {clock(duration)}</span>
-      </div>
-      {segment.applies_through_episode ? (
-        <Badge variant="muted">Gilt auch für Folge {episodeNumber}–{segment.applies_through_episode}</Badge>
-      ) : null}
-      {segment.participants.length > 0 ? (
-        <span className={styles.participants}>
-          {segment.participants.map((participant) => `${participant.name} · ${participant.role_label}`).join(', ')}
-        </span>
-      ) : null}
-    </div>
-  )
-}
-
-function SelectionSurface({
-  segment,
-  selected,
-  playable,
-  onSelect,
-  episodeNumber,
-}: {
-  segment: PublicReleaseSegment
-  selected: boolean
-  playable: boolean
-  onSelect: () => void
-  episodeNumber?: string
-}) {
-  const content: ReactNode = <SegmentDetails segment={segment} episodeNumber={episodeNumber} />
-  if (!playable) return <div className={styles.staticCardContent}>{content}</div>
-
-  return (
-    <button
-      type="button"
-      className={styles.cardSelection}
-      aria-label={`${segmentTypeLabel(segment.type)} ${segment.name} auswählen`}
-      aria-pressed={selected}
-      onClick={onSelect}
-    >
-      {content}
-    </button>
-  )
+  return `${baseClass} ${styles[segmentTypeStyleClass(segment.type)]}`
 }
 
 export function ThemeTimeline({
@@ -201,6 +126,7 @@ export function ThemeTimeline({
   initialSegmentID = null,
   autoPlayInitial = false,
   episodeNumber,
+  projectPath,
 }: ThemeTimelineProps) {
   const session = useAuthSession()
   const hasSession = session.isClientInitialized && (session.hasAccessToken || session.hasRefreshToken)
@@ -296,7 +222,7 @@ export function ThemeTimeline({
                     className={`${styles.hitTarget} ${selected ? styles.hitTargetSelected : ''}`}
                     data-testid={`kara-hit-target-${segment.theme_segment_id}`}
                     style={{ minWidth: '44px', minHeight: '44px' }}
-                    aria-label={`${segmentTypeLabel(segment.type)} ${segment.name}, ${clock(segment.start_seconds)} bis ${clock(segment.end_seconds)}, Dauer ${clock(segment.duration_seconds)}`}
+                    aria-label={`${segmentTypeDisplayLabel(segment.type)} ${segment.name}, ${clock(segment.start_seconds)} bis ${clock(segment.end_seconds)}, Dauer ${clock(segment.duration_seconds)}`}
                     aria-current={selected ? 'true' : undefined}
                     onClick={() => playSegment(segment)}
                   />
@@ -308,7 +234,7 @@ export function ThemeTimeline({
                   data-alignment={geometry.labelAlignment}
                 >
                   <strong>{segment.name}</strong>
-                  <span>{segmentTypeLabel(segment.type)} · {clock(segment.start_seconds)}–{clock(segment.end_seconds)}</span>
+                  <span>{segmentTypeDisplayLabel(segment.type)} · {clock(segment.start_seconds)}–{clock(segment.end_seconds)}</span>
                 </span>
               </div>
             )
@@ -332,6 +258,7 @@ export function ThemeTimeline({
                 playable={playable}
                 onSelect={() => selectSegment(segment)}
                 episodeNumber={episodeNumber}
+                projectPath={projectPath}
               />
               {playable ? (
                 <Button

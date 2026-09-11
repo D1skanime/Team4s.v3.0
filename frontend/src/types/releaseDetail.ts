@@ -8,6 +8,10 @@ export interface PublicReleaseContributor {
   member_id: number;
   name: string;
   role_label: string;
+  /** Rohe Rollen-Codes (z. B. "translator", "timer") -- Plan 156-05/156-08, unabhaengig vom aggregierten deutschen role_label. */
+  role_codes: string[];
+  /** Sichtbarkeits-gegateter Member-Slug fuer Projektkontext-Links (Plan 156-05/156-08), null wenn kein oeffentliches Profil. */
+  member_slug: string | null;
   avatar_url: string | null;
 }
 
