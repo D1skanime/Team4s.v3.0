@@ -173,6 +173,10 @@ CREATE TABLE release_version_notes (
 		// Release-Version-Zuweisung, D-03) am alten uq_theme_segment_playback_sources_segment
 		// scheitern -- genau das Szenario, das Plan 117-03 Task 3 testet.
 		"0144_drop_theme_segment_playback_sources_legacy_unique.up.sql",
+		// 0161 (Phase 156, Workstream C): theme_segments.origin_release_version_id --
+		// ohne diese Migration fehlt die Spalte, gegen die SetThemeSegmentOrigin und die
+		// erweiterten ListAnimeSegments/GetAnimeSegmentByID-SELECTs in diesem Fixture testen.
+		"0161_theme_segments_origin_release_version.up.sql",
 	} {
 		ApplySQLFile(t, pool, phase117MigrationPath(t, migration))
 	}

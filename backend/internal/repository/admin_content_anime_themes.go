@@ -403,7 +403,8 @@ func (r *AdminContentRepository) ListAnimeSegments(ctx context.Context, animeID 
 			ts.source_type,
 			ts.source_ref,
 			ts.source_label,
-			ts.created_at
+			ts.created_at,
+			ts.origin_release_version_id
 		FROM theme_segments ts
 		JOIN themes t ON t.id = ts.theme_id
 		JOIN theme_types tt ON tt.id = t.theme_type_id
@@ -451,6 +452,7 @@ func (r *AdminContentRepository) ListAnimeSegments(ctx context.Context, animeID 
 			&seg.SourceRef,
 			&seg.SourceLabel,
 			&seg.CreatedAt,
+			&seg.OriginReleaseVersionID,
 		); err != nil {
 			return nil, fmt.Errorf("scan anime segment anime=%d: %w", animeID, err)
 		}
@@ -1015,7 +1017,8 @@ func loadSegmentByID(ctx context.Context, r *AdminContentRepository, segID int64
 			ts.source_type,
 			ts.source_ref,
 			ts.source_label,
-			ts.created_at
+			ts.created_at,
+			ts.origin_release_version_id
 		FROM theme_segments ts
 		JOIN themes t ON t.id = ts.theme_id
 		JOIN theme_types tt ON tt.id = t.theme_type_id
@@ -1037,6 +1040,7 @@ func loadSegmentByID(ctx context.Context, r *AdminContentRepository, segID int64
 		&seg.SourceRef,
 		&seg.SourceLabel,
 		&seg.CreatedAt,
+		&seg.OriginReleaseVersionID,
 	); err != nil {
 		if errors.Is(err, pgx.ErrNoRows) {
 			return nil, ErrNotFound
