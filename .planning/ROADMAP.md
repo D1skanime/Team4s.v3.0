@@ -1489,7 +1489,7 @@ ausdruecklich **kein** visuelles Redesign und keine Aenderung der sichtbaren Inf
 
 **Depends on:** Phase 154
 
-**Plans:** 4/7 plans executed
+**Plans:** 5/7 plans executed
 
 Plans:
 
@@ -1508,7 +1508,7 @@ Plans:
 
 **Wave 4** *(blocked on Wave 3 completion)*
 
-- [ ] 155-05-PLAN.md — Render-Konsumenten: Hero/Stats/Assets/Releases-Prop-Verdrahtung
+- [x] 155-05-PLAN.md — Render-Konsumenten: Hero/Stats/Assets/Releases-Prop-Verdrahtung
 - [ ] 155-06-PLAN.md — Drill-down-Routen: Resolver-Verdrahtung in allen drei Pretty-Routen
 
 **Wave 5** *(blocked on Wave 4 completion)*
