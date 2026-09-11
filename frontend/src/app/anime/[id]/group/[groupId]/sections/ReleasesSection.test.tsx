@@ -2,21 +2,8 @@ import { renderToStaticMarkup } from 'react-dom/server'
 import { describe, expect, it } from 'vitest'
 
 import type { PublicReleasePreview } from '@/components/fansubs/PublicReleaseBlock'
-import type { EpisodeReleaseSummary } from '@/types/group'
 
 import { ReleasesSection } from './ReleasesSection'
-
-const makeEpisode = (overrides: Partial<EpisodeReleaseSummary> = {}): EpisodeReleaseSummary => ({
-  id: 1,
-  episode_number: 1,
-  episode_number_label: 'Folge 1',
-  has_op: false,
-  has_ed: false,
-  karaoke_count: 0,
-  insert_count: 0,
-  screenshot_count: 0,
-  ...overrides,
-})
 
 const makePreview = (overrides: Partial<PublicReleasePreview> = {}): PublicReleasePreview => ({
   id: 10,
@@ -33,17 +20,9 @@ const makePreview = (overrides: Partial<PublicReleasePreview> = {}): PublicRelea
 })
 
 describe('ReleasesSection (Phase 102-05)', () => {
-  it('renders nothing when there are no episodes', () => {
-    const markup = renderToStaticMarkup(
-      <ReleasesSection episodes={[]} publicReleasePreviews={[]} animeID={1} groupID={2} />,
-    )
-    expect(markup).toBe('')
-  })
-
   it('renders the public release block and CTA when activity previews are available', () => {
     const markup = renderToStaticMarkup(
       <ReleasesSection
-        episodes={[makeEpisode({ id: 10, episode_number: 1 })]}
         publicReleasePreviews={[makePreview()]}
         animeID={1}
         groupID={2}
@@ -61,17 +40,9 @@ describe('ReleasesSection (Phase 102-05)', () => {
     expect(markup.indexOf('Neuestes Fansub-Release')).toBeLessThan(markup.indexOf('data-project-release-band="true"'))
   })
 
-  it('falls back to the conservative release list without activity previews', () => {
+  it('falls back to the conservative release list without activity previews (Plan 155-04: gate moved to ProjectPage.tsx via data.hasReleases)', () => {
     const markup = renderToStaticMarkup(
-      <ReleasesSection
-        episodes={[
-          makeEpisode({ id: 10, episode_number: 1 }),
-          makeEpisode({ id: 11, episode_number: 2 }),
-        ]}
-        publicReleasePreviews={[]}
-        animeID={1}
-        groupID={2}
-      />,
+      <ReleasesSection publicReleasePreviews={[]} animeID={1} groupID={2} />,
     )
 
     expect(markup).toContain('Alle Releases')

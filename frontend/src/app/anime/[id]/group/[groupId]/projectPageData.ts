@@ -8,31 +8,25 @@ import {
   getGroupContributors,
   getGroupDetail,
   getGroupProjectNote,
+  getGroupReleaseCount,
   getGroupReleaseDetail,
   getGroupReleaseListCursor,
-  getGroupReleaseMedia,
-  getGroupReleases,
-  getGroupThemes,
   getPublicFansubProfileBySlug,
 } from "@/lib/api";
-import { buildFansubReleaseHref, buildPublicFansubProjectPath } from "@/lib/fansubProjectRoutes";
+import { buildPublicFansubProjectPath } from "@/lib/fansubProjectRoutes";
 import {
   buildFansubProjectNavigation,
   type FansubProjectNavigation,
 } from "@/lib/fansubProjectNavigation";
 import { buildGroupNavigationGroups } from "@/lib/groupNavigation";
 import { resolvePublicApiUrl } from "@/lib/publicApiUrl";
-import type { PublicReleasePreview, PublicReleaseTimelineSegment } from "@/components/fansubs/PublicReleaseBlock";
+import type { PublicReleasePreview } from "@/components/fansubs/PublicReleaseBlock";
 import type { AnimeDetail } from "@/types/anime";
 import type { FansubGroupSummary } from "@/types/fansub";
-import type { EpisodeReleaseSummary, GroupDetail } from "@/types/group";
+import type { GroupDetail } from "@/types/group";
 import type { GroupAssetsResponse } from "@/types/groupAsset";
-import type {
-  GroupContributorsResponse,
-  GroupReleaseMediaResponse,
-  GroupThemesResponse,
-} from "@/types/groupContributors";
-import { CATEGORY_LABELS, type ReleaseVersionMediaCategory } from "@/types/releaseVersionMedia";
+import type { GroupContributorsResponse } from "@/types/groupContributors";
+import { buildPublicReleasePreview } from "./projectPageData.releasePreview";
 
 export interface PublicFansubProjectRouteParams {
   id: string;
@@ -48,17 +42,13 @@ export interface PublicFansubProjectPageData extends PublicFansubProjectIDs {
   group: GroupDetail;
   anime: AnimeDetail;
   groupAssetsResponse: GroupAssetsResponse | null;
-  releaseEpisodes: EpisodeReleaseSummary[];
+  releaseVersionCount: number;
   publicReleasePreviews: PublicReleasePreview[];
   contributorsData: GroupContributorsResponse;
-  themesData: GroupThemesResponse;
-  releaseMediaData: GroupReleaseMediaResponse;
   projectNotesHtml: string | null;
   hasTeamContent: boolean;
   storyAvailable: boolean;
   hasReleases: boolean;
-  hasThemes: boolean;
-  hasMedia: boolean;
   navigationGroups: FansubGroupSummary[];
   fansubProjectNavigation: FansubProjectNavigation;
   breadcrumbItems: { label: string; href?: string }[];
@@ -105,122 +95,6 @@ export function parsePublicFansubProjectRouteParams(
 export { buildPublicFansubProjectPath };
 
 const RELEASE_PREVIEW_LIMIT = 1;
-const NOTE_EXCERPT_LENGTH = 150;
-
-function stripHtmlExcerpt(bodyHtml: string): string {
-  const plain = bodyHtml.replace(/<[^>]+>/g, " ").replace(/\s+/g, " ").trim();
-  return plain.length > NOTE_EXCERPT_LENGTH ? `${plain.slice(0, NOTE_EXCERPT_LENGTH)}...` : plain;
-}
-
-function formatDuration(seconds?: number | null): string {
-  if (!seconds || seconds < 0) return "00:00:00";
-  const hours = Math.floor(seconds / 3600);
-  const minutes = Math.floor((seconds % 3600) / 60);
-  const rest = Math.floor(seconds % 60);
-  return [hours, minutes, rest].map((part) => String(part).padStart(2, "0")).join(":");
-}
-
-function formatEpisodeLabel(release: EpisodeReleaseSummary): string {
-  const label = release.episode_number_label?.trim();
-  if (!label) return `Folge ${release.episode_number}`;
-  return /^\d+$/.test(label) ? `Folge ${label}` : label;
-}
-
-function parseTimelineTime(value?: string | null): number | null {
-  if (!value) return null;
-  const parts = value.split(":").map(Number);
-  if (parts.length !== 3 || parts.some((part) => Number.isNaN(part))) return null;
-  return Math.max(0, parts[0] * 3600 + parts[1] * 60 + parts[2]);
-}
-
-function buildTimelineSegment(
-  segment: NonNullable<EpisodeReleaseSummary["timeline_segments"]>[number],
-  durationSeconds: number | null | undefined,
-  href: string,
-): PublicReleaseTimelineSegment {
-  const start = parseTimelineTime(segment.start_time) ?? 0;
-  const end = parseTimelineTime(segment.end_time);
-  const duration = Math.max(durationSeconds ?? 0, end ?? 0, start + 1);
-  const rawWidth = end != null ? (Math.max(end - start, 1) / duration) * 100 : 14;
-  const widthPercent = Math.min(Math.max(rawWidth, 4), 34);
-  const leftPercent = Math.min(Math.max((start / duration) * 100, 0), 100 - widthPercent);
-  const rawType = segment.type.toUpperCase();
-  const type: PublicReleaseTimelineSegment["type"] =
-    rawType === "OP" || rawType === "ED" || rawType === "KARA"
-      ? rawType
-      : rawType === "INSERT"
-        ? "IN"
-        : "OTHER";
-
-  return {
-    id: segment.id,
-    type,
-    label: segment.title || segment.type,
-    leftPercent,
-    widthPercent,
-    href: `${href}?kara=${segment.id}&autoplay=1#op-ed-middle`,
-    versionLabel: segment.version?.trim() || undefined,
-  };
-}
-
-function buildPublicReleasePreview({
-  animeID,
-  groupID,
-  release,
-  detail,
-  canonicalProjectPath,
-}: {
-  animeID: number;
-  groupID: number;
-  release: EpisodeReleaseSummary;
-  detail: Awaited<ReturnType<typeof getGroupReleaseDetail>> | null;
-  canonicalProjectPath: string | null;
-}): PublicReleasePreview {
-  const href = buildFansubReleaseHref({ animeID, groupID, releaseVersionID: release.id, canonicalProjectPath });
-  const detailImages = detail?.images ?? [];
-  const imagePreviews = detailImages
-    .slice(0, 4)
-    .map((image) => {
-      const src = image.thumbnail_url ?? image.original_url;
-      if (!src) return null;
-      const categoryLabel = CATEGORY_LABELS[image.category as ReleaseVersionMediaCategory] ?? "Bild";
-      return {
-        id: image.id,
-        src: resolvePublicApiUrl(src),
-        label: image.caption?.trim() || categoryLabel,
-        alt: image.caption?.trim() || categoryLabel,
-      };
-    })
-    .filter((image): image is NonNullable<typeof image> => Boolean(image));
-
-  return {
-    id: release.id,
-    href,
-    episodeLabel: formatEpisodeLabel(release),
-    title: detail?.title ?? release.title ?? "",
-    versionLabel: release.version_label ?? undefined,
-    releasedAtLabel: release.released_at ?? undefined,
-    durationLabel: formatDuration(release.duration_seconds),
-    imageCount: detail?.images_count ?? release.images_count ?? 0,
-    noteCount: detail?.notes_count ?? release.notes_count ?? 0,
-    contributorCount: detail?.contributors_count ?? release.contributors_count ?? 0,
-    heroImage: imagePreviews[0],
-    imagePreviews,
-    notePreviews: (detail?.notes ?? []).slice(0, 2).map((note) => ({
-      id: note.id,
-      author: note.member_name,
-      excerpt: stripHtmlExcerpt(note.body_html),
-    })),
-    contributors: (detail?.contributors ?? []).slice(0, 6).map((contributor) => ({
-      id: contributor.member_id,
-      name: contributor.name,
-      roleLabel: contributor.role_label,
-    })),
-    timelineSegments: (release.timeline_segments ?? []).map((segment) =>
-      buildTimelineSegment(segment, release.duration_seconds, href),
-    ),
-  };
-}
 
 export async function resolvePublicFansubProjectCanonicalPath({
   animeID,
@@ -308,35 +182,19 @@ export async function loadPublicFansubProjectPageData({
   // Fallback, damit ein Fehler keine andere Branch mitreisst (Promise.all darf nicht rejecten).
   const [
     groupAssetsResponse,
-    releasesBranch,
+    animeFansubRelations,
+    releaseVersionCount,
     profileDerived,
     publicReleasePreviews,
     contributorsData,
-    themesData,
-    releaseMediaData,
     projectNotesHtml,
   ] = await Promise.all([
     withFallback<Awaited<ReturnType<typeof getGroupAssets>> | null>(() => getGroupAssets(animeID, groupID), null),
-    (async () => {
-      let releaseEpisodes: Awaited<ReturnType<typeof getGroupReleases>>["data"]["episodes"] = [];
-      let otherGroups: Awaited<ReturnType<typeof getGroupReleases>>["data"]["other_groups"] = [];
-      let animeFansubRelations: Awaited<ReturnType<typeof getAnimeFansubs>>["data"] | null = null;
-      try {
-        const [releasesData, fansubsData] = await Promise.all([getGroupReleases(animeID, groupID, { per_page: 100 }), getAnimeFansubs(animeID)]);
-        releaseEpisodes = releasesData.data.episodes;
-        otherGroups = releasesData.data.other_groups;
-        animeFansubRelations = fansubsData.data;
-      } catch {
-        try {
-          const releasesData = await getGroupReleases(animeID, groupID, { per_page: 100 });
-          releaseEpisodes = releasesData.data.episodes;
-          otherGroups = releasesData.data.other_groups;
-        } catch {
-          /* Continue without navigation data. */
-        }
-      }
-      return { releaseEpisodes, otherGroups, animeFansubRelations };
-    })(),
+    withFallback<Awaited<ReturnType<typeof getAnimeFansubs>>["data"] | null>(
+      async () => (await getAnimeFansubs(animeID)).data,
+      null,
+    ),
+    withFallback<number>(async () => (await getGroupReleaseCount(animeID, groupID)).data.count, 0),
     (async () => {
       const canonicalProjectPath = await resolveCanonicalProjectPath(profilePromise, canonicalFansubSlug, animeID);
       let fansubProjectNavigation: FansubProjectNavigation = { previous: null, next: null };
@@ -381,25 +239,19 @@ export async function loadPublicFansubProjectPageData({
       }
     })(),
     withFallback<GroupContributorsResponse>(() => getGroupContributors(animeID, groupID), { team_members: [], external_contributors: [] }),
-    withFallback<GroupThemesResponse>(() => getGroupThemes(animeID, groupID), { themes: [] }),
-    withFallback<GroupReleaseMediaResponse>(() => getGroupReleaseMedia(animeID, groupID), { items: [] }),
     withFallback<string | null>(async () => (await getGroupProjectNote(animeID, groupID)).data?.body_html?.trim() || null, null),
   ]);
 
-  const { releaseEpisodes, otherGroups, animeFansubRelations } = releasesBranch;
   const { canonicalProjectPath, fansubProjectNavigation } = profileDerived;
 
   const hasTeamContent =
     contributorsData.team_members.length > 0 ||
     contributorsData.external_contributors.length > 0;
   const storyAvailable = hasStoryContent(group.story, projectNotesHtml);
-  const hasReleases = releaseEpisodes.length > 0 || publicReleasePreviews.length > 0;
-  const hasThemes = themesData.themes.length > 0;
-  const hasMedia = releaseMediaData.items.length > 0;
+  const hasReleases = releaseVersionCount > 0 || publicReleasePreviews.length > 0;
 
   const navigationGroups = buildGroupNavigationGroups({
     currentGroup: group.fansub,
-    fallbackOtherGroups: otherGroups,
     animeFansubRelations,
   });
   const breadcrumbItems = [
@@ -459,17 +311,13 @@ export async function loadPublicFansubProjectPageData({
       group,
       anime,
       groupAssetsResponse,
-      releaseEpisodes,
+      releaseVersionCount,
       publicReleasePreviews,
       contributorsData,
-      themesData,
-      releaseMediaData,
       projectNotesHtml,
       hasTeamContent,
       storyAvailable,
       hasReleases,
-      hasThemes,
-      hasMedia,
       navigationGroups,
       fansubProjectNavigation,
       breadcrumbItems,

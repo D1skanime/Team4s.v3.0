@@ -2,13 +2,11 @@ import Link from 'next/link'
 
 import fansubSurfaceStyles from '@/app/fansubs/[slug]/page.module.css'
 import { PublicReleaseBlock, type PublicReleasePreview } from '@/components/fansubs/PublicReleaseBlock'
-import type { EpisodeReleaseSummary } from '@/types/group'
 
 import styles from '../page.module.css'
 import { OlderReleasesList } from './OlderReleasesList'
 
 interface ReleasesSectionProps {
-  episodes: EpisodeReleaseSummary[]
   publicReleasePreviews: PublicReleasePreview[]
   animeID: number
   groupID: number
@@ -17,21 +15,21 @@ interface ReleasesSectionProps {
 }
 
 /**
- * AO4-13: komponiert das eingebettete neueste Release (AO4-11, hoechste
- * episode_number/rev.id — `episodes` ist aufsteigend sortiert) und die
+ * AO4-13: komponiert das eingebettete neueste Release (AO4-11) und die
  * kompakte, per Cursor nachladende Liste aelterer Releases (AO4-12).
- * Wird von der Seite nur gerendert, wenn `episodes.length > 0` ist — der
- * Leerfall laeuft ueber den gemeinsamen Sammel-Hinweis (AO4-07).
+ * Wird von der Seite nur gerendert, wenn `data.hasReleases` true ist (Plan 155-04:
+ * `releaseVersionCount > 0 || publicReleasePreviews.length > 0`) — der Leerfall laeuft
+ * ueber den gemeinsamen Sammel-Hinweis (AO4-07). Die frueher hier zusaetzlich gepruefte,
+ * separat uebergebene `episodes`-Liste (per_page:100) war ein redundantes zweites Gate und
+ * ist mit dem Fetch selbst entfernt worden.
  */
 export function ReleasesSection({
-  episodes,
   publicReleasePreviews,
   animeID,
   groupID,
   canonicalProjectPath,
   releaseBackdropUrl,
 }: ReleasesSectionProps) {
-  if (episodes.length === 0) return null
   const [latestRelease] = publicReleasePreviews
 
   return (

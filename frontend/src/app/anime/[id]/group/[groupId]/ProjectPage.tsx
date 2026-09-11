@@ -32,7 +32,7 @@ export function ProjectPage({ data }: ProjectPageProps) {
         cooperationGroups={data.navigationGroups.filter((group) => group.id !== data.groupID)}
         fansubProjectNavigation={data.fansubProjectNavigation}
         groupAssetsResponse={data.groupAssetsResponse}
-        releaseEpisodes={data.releaseEpisodes}
+        releaseEpisodes={[]}
       />
       <StorySection story={data.group.story} projectNotesHtml={data.projectNotesHtml} />
       <TeamSection
@@ -42,7 +42,6 @@ export function ProjectPage({ data }: ProjectPageProps) {
       />
       {data.hasReleases ? (
         <ReleasesSection
-          episodes={data.releaseEpisodes}
           publicReleasePreviews={data.publicReleasePreviews}
           animeID={data.animeID}
           groupID={data.groupID}
