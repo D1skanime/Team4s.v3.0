@@ -41,7 +41,13 @@ export default async function ProjectMemberRoute({ params }: ProjectMemberRouteP
   )
   if (!currentProject) return notFound()
 
-  const groupDetail = await getGroupDetail(resolution.data.anime_id, resolution.data.group_id)
+  let groupDetail: Awaited<ReturnType<typeof getGroupDetail>>
+  try {
+    groupDetail = await getGroupDetail(resolution.data.anime_id, resolution.data.group_id)
+  } catch (error) {
+    if (error instanceof ApiError && error.status === 404) return notFound()
+    throw error
+  }
 
   let summary: Awaited<ReturnType<typeof getProjectMemberSummary>>
   try {
