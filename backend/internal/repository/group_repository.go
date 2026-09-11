@@ -363,6 +363,45 @@ func publicReleaseVersionLabelSQL(releaseVersionAlias string) string {
 			END`, versionExpr)
 }
 
+// GetGroupReleaseVersionCount returns the exact COUNT(DISTINCT rev.id) of
+// release versions matching filter — the same count query GetGroupReleases
+// already computes internally as its countQuery (see above), extracted as a
+// standalone, independently-callable method (Plan 155-02, P155-07/P155-08) so
+// callers that only need "how many release versions exist" (e.g. the public
+// project page's Releases stat) don't have to load a paginated episode list.
+// Deliberately does NOT reuse getGroupStats's EpisodeCount
+// (COUNT(DISTINCT e.id), a different and smaller number for episodes carrying
+// multiple release versions/v2-fix-releases) — this is the operator-locked
+// "Releases-Zahl" decision in 155-CONTEXT.md. GetGroupReleases itself is left
+// unchanged; its own internal countQuery duplication is a known, documented,
+// non-blocking finding, not fixed here (GetGroupReleases has other consumers:
+// the offset releases browsing page and group_assets_handler.go).
+func (r *GroupRepository) GetGroupReleaseVersionCount(
+	ctx context.Context,
+	animeID int64,
+	groupID int64,
+	filter models.GroupReleasesFilter,
+) (int64, error) {
+	whereSQL, args := r.buildReleasesWhere(animeID, groupID, filter)
+
+	countQuery := fmt.Sprintf(`
+		SELECT COUNT(DISTINCT rev.id)
+		FROM release_versions rev
+		JOIN fansub_releases fr ON fr.id = rev.release_id
+		JOIN episodes e ON e.id = fr.episode_id
+		JOIN release_version_groups rvg ON rvg.release_version_id = rev.id
+		JOIN fansub_groups fg ON fg.id = rvg.fansub_group_id
+		%s
+	`, whereSQL)
+
+	var count int64
+	if err := r.db.QueryRow(ctx, countQuery, args...).Scan(&count); err != nil {
+		return 0, fmt.Errorf("count group release versions (%d,%d): %w", animeID, groupID, err)
+	}
+
+	return count, nil
+}
+
 // getOtherGroups retrieves other fansub groups that worked on this anime
 func (r *GroupRepository) getOtherGroups(
 	ctx context.Context,
