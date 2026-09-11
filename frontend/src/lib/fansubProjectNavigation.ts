@@ -1,5 +1,5 @@
 import { buildPublicFansubProjectPath } from '@/lib/fansubProjectRoutes'
-import type { PublicFansubProject } from '@/types/fansub'
+import type { FansubProjectNavigationEntry } from '@/types/fansub'
 
 export interface FansubProjectNavigationItem {
   id: number
@@ -18,20 +18,26 @@ interface BuildFansubProjectNavigationInput {
   currentAnimeSlug?: string | null
   currentFansubGroupID: number
   currentFansubSlug: string
-  projects: PublicFansubProject[]
+  projects: FansubProjectNavigationEntry[]
 }
 
 function normalizeSlug(slug: string | null | undefined): string {
   return slug?.trim().toLowerCase() ?? ''
 }
 
-function compareProjects(left: PublicFansubProject, right: PublicFansubProject): number {
+function compareProjects(
+  left: FansubProjectNavigationEntry,
+  right: FansubProjectNavigationEntry,
+): number {
   const byTitle = left.title.localeCompare(right.title, 'de', { sensitivity: 'base' })
   if (byTitle !== 0) return byTitle
   return left.id - right.id
 }
 
-function toNavigationItem(project: PublicFansubProject, fansubSlug: string): FansubProjectNavigationItem {
+function toNavigationItem(
+  project: FansubProjectNavigationEntry,
+  fansubSlug: string,
+): FansubProjectNavigationItem {
   const animeSlug = project.anime_slug.trim()
   return {
     id: project.id,
