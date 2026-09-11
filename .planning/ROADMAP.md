@@ -427,6 +427,8 @@ Milestone v1.4 closes Live-UAT Findings #29-#32 by making effective group rights
 - [x] **Phase 152: Public-Fansub-Gruppenseite: Konsolidierung und Modernisierung** - Die oeffentliche Gruppenseite nutzt den gemeinsamen Artwork-Slot statt eines zweiten Badge-Systems, liefert Bilder ueber die Next-Image-Pipeline aus und laedt public-seitig nur noch benoetigte Daten mit abgesichertem Query-Budget. (completed 2026-09-08)
 - [x] **Phase 153: Public-Member-Profil: Speicherretention, Importgraph und SSR-Sichtbarkeit** - Die drei P1-Befunde der Messreihe vom 2026-09-09 sind geschlossen: die native Auto-Sizes-DOM-Retention, der Editor-Importzweig im oeffentlichen Graph und die Skeletons, die vorhandene SSR-Inhalte bis zur Hydration verdecken. (completed 2026-09-10)
 - [x] **Phase 154: Public-Member-Profil: Aggregator-Duplikate, Bildbudget und Viewer-Aufloesung** - Die verbliebenen P2-Befunde der Messreihe vom 2026-09-09 sind geschlossen: vier redundante Faktenabfragen im Profil-Aggregator, ungegatetes Locked-Artwork samt schwerem Original-Fallback und die zu breite Viewer-Aufloesung ohne durchgereichtes Abbruchsignal. Dazu zwei Nachmessungen, die erst nach der Graphverkleinerung moeglich sind. (completed 2026-09-10)
+- [x] **Phase 155: Public-Fansub-Projektseite: Read-Model, Drill-down-Navigation und Query-Budget** - Die oeffentliche Fansub-Projektseite laedt ueber einen gezielten Project Resolver, eine schlanke Contributor-Summary und entflochtene Release-Pfade, ohne doppelten Profil-Load und ohne Vollinventar-Abfragen; Member-Klicks fuehren kanonisch auf die Projekt-Member-Route. (completed 2026-09-11)
+- [ ] **Phase 156: Segment-Domain-Konsistenz und oeffentliche Release-Projektion** - `theme_segment_assignments` wird die kanonische Release-Segment-Wahrheit, Bereichsaenderungen und spaetere Releases halten die Assignments konsistent, Segment-Credits werden ueber stabile Rollen-Codes dynamisch aus einer korrigierbaren Segment-Origin projiziert, und Projekt- wie Release-Seite lesen dieselbe Wahrheit.
 
 ## Phase Details
 
@@ -1530,3 +1532,66 @@ Plans:
 **UI hint**: nein — Read-Model-, Datenfluss- und Query-Budget-Phase. Die sichtbare Oberflaeche und
 die Informationsarchitektur bleiben unveraendert; lediglich Link-**Ziele** werden vereinheitlicht.
 `plan-phase` daher mit `--skip-ui` fahren.
+
+### Phase 156: Segment-Domain-Konsistenz und oeffentliche Release-Projektion
+
+**Goal:** `theme_segment_assignments` ist die kanonische Wahrheit dafuer, welche Release-Version
+welches Kara-Segment verwendet; Bereichsaenderungen und spaeter angelegte Releases halten die
+Assignments konsistent, Segment-Credits werden ueber stabile Rollen-Codes dynamisch aus einer
+stabilen, korrigierbaren Segment-Origin projiziert, und Projektseite wie Release-Seite lesen
+dieselbe Wahrheit mit unterschiedlicher Darstellung.
+
+**Requirements**: P156-01, P156-02, P156-03, P156-04, P156-05, P156-06, P156-07, P156-08, P156-09,
+P156-10, P156-11, P156-12, P156-13, P156-14, P156-15, P156-16, P156-17, P156-18, P156-19
+
+**Requirement-Definitionen** (Phasen-eigener Tracking-Namespace, Quelle: `156-USER-REQUEST.md`):
+
+| ID | Auftragsabschnitt | Inhalt |
+|----|-------------------|--------|
+| P156-01 | 1, Zentrale Fachentscheidung | `theme_segment_assignments` ist die kanonische Release↔Segment-Wahrheit; `start_episode`/`end_episode` beschreibt nur noch den fachlichen Gueltigkeitsbereich |
+| P156-02 | 1 | Bereichsaenderung bestimmt eine Soll-Menge; Verkuerzung entfernt Assignments ausserhalb des Bereichs kontrolliert, Erweiterung ergaenzt fehlende — nicht mehr rein additiv |
+| P156-03 | 2 | Legitime Overrides/Sonderzuweisungen werden nicht blind geloescht; Zielzustand eindeutig und testbar, keine neue Komplexitaet ohne belegten Bedarf; unvollstaendiger Bereich loescht nichts |
+| P156-04 | 3 | Eine neu angelegte Release-Version innerhalb eines bestehenden Segmentbereichs erhaelt ihr Assignment automatisch; beide Reihenfolgen (Segment zuerst / Release zuerst) funktionieren |
+| P156-05 | 8, 22 | Stabile fachliche Segment-Origin (`origin_release_version_id` o. gleichwertig) mit dokumentiertem, deterministischem Backfill; kein blindes `MIN(Episode)`, keine falsche Praezision |
+| P156-06 | 9 | Origin ist administrativ korrigierbar und validiert; keine unveraenderliche Momentaufnahme |
+| P156-07 | 10, 11, 14 | Segment-Credits werden dynamisch aus den aktuellen Credits der Origin-Release-Version projiziert; keine neue Tabelle, keine Kopie; Faelle A–D (Segment zuerst, Credits zuerst, Credit korrigiert, Member ergaenzt) belegt |
+| P156-08 | 12 | Keine Rollenlabel-Substring-Heuristik mehr; Ableitung ueber stabile Rollen-Codes aus dem bestehenden Katalog, keine neuen Rollen, keine parallele Mapping-Welt |
+| P156-09 | 13 | Segmentrelevante Rollen an genau einer zentralen Stelle definiert; Frontend erhaelt fertig projizierte Credits |
+| P156-10 | 5, 6, 18 | Projektseite leitet Segmente aus Assignments statt aus der Range ab und zeigt ein Segment nur beim ersten Auftreten bzw. Segmentwechsel |
+| P156-11 | 4, 15 | Segmentidentitaet (`theme_segment_id`) entscheidet allein ueber ein neues Karaoke-Ereignis; Member-, Rollen-, Credit-, Timing-, Render- oder Caption-Aenderungen erzeugen keinen neuen Eintrag |
+| P156-12 | 16 | Ein echtes Folgesegment (eigene ID, eigener Bereich, eigene Origin) erzeugt einen neuen Projekt-Timeline-Eintrag und ersetzt das Vorsegment auf seinen Release-Seiten |
+| P156-13 | 7, 18 | Release-Detailseite zeigt alle ihrem Release tatsaechlich zugewiesenen Segmente mit fachlicher Kennzeichnung (verwendet seit / gueltig bis) statt sie zu unterdruecken |
+| P156-14 | 19 | Segmentbezogene Member-Klicks fuehren im Projektkontext auf `/fansubs/[groupSlug]/fansubprojekt/[animeSlug]/mitwirkende/[memberSlug]` |
+| P156-15 | 17 | `ThemeTimeline` und verwandte Komponenten halten keine eigene fachliche Typwelt mehr; kanonische Segmenttypen kommen aus Backend/Domaene, das Frontend rendert |
+| P156-16 | 20 | Kein N+1: keine Query je Segment, Member, Release oder Credit; Segmentdaten und Origin-Credits gebuendelt geladen; Query-Budget gemessen |
+| P156-17 | 21 | Indizes fuer Assignments, Segmentbereich und Origin geprueft; neue Indizes nur mit Query-Plan-Beleg |
+| P156-18 | 23, 24, 29 | Admin-Segmentverwaltung kann Origin sauber setzen ohne unnoetige Pflichtinteraktion; keine UI-Neugestaltung, nur neue fachliche Semantik sichtbar; Public-Visibility-Regeln unveraendert |
+| P156-19 | 25, 26, 27, 28, 30 | Vollstaendige Testmatrix (Lifecycle, Projektseite, Release-Seite, Credits inkl. Encoding/QC-Negativfaelle) gruen; Migration/Backfill geprueft; Vorher/Nachher-Bericht; sauberer Working Tree |
+
+**Faktenbasis:** `156-USER-REQUEST.md` als verbindliche Auftragsquelle. Die dort genannten Befunde
+sind am Code vorgeprueft: `backend/internal/repository/theme_segment_assignments.go:57-185`
+(`AssignThemeSegmentToEpisodeRange`) ist per Kommentar und Implementierung ausdruecklich **additiv**;
+`backend/internal/repository/group_repository_cursor.go:290-330` leitet die Projekt-Timeline direkt
+aus `start_episode`/`end_episode` ab und klassifiziert Segmenttypen per SQL-`LIKE`-Heuristik;
+`backend/internal/repository/release_detail_public_repository_helpers.go:104-107` filtert
+Segment-Credits ueber `strings.Contains(label, "kara") || strings.Contains(label, "typeset")`, weil
+`PublicReleaseContributor` nur ein aggregiertes `RoleLabel` und keinen Rollen-Code traegt, obwohl
+`loadPublicEffectiveContributors` (`public_effective_contributors.go:43ff`) `acr.role_code` bereits
+in der Hand hat und **beide** Flaechen beliefert; `theme_segments` hat **keine** Origin-Spalte; der
+einzige produktive `release_versions`-Insert-Pfad
+(`episode_import_repository_release_helpers.go:163`) kennt bestehende Segmente nicht;
+`ThemeTimeline.tsx:32-58` haelt eine eigene Typwelt inkl. `'OP KARA'`/`'INSERT KARA'`-Varianten.
+Rollen-Codes `translator`, `timer`, `karaoke_fx`, `typesetter`, `encoder`, `quality_checker`
+existieren als stabiler Katalog in `role_definitions` (per DB geprueft). Naechste freie
+Migrationsnummer: **0161**.
+
+**Einordnung:** Domain-Konsistenz-, Datenmodell- und Projektionsphase. Sie loest fuer die
+Release-Detailseite bewusst die Phase-117-Entscheidung D-02 (Unterdrueckung bereits sichtbarer
+Segmente) ab und verschiebt die First-Occurrence-Regel auf die Projektseite. Diese Phase verspricht
+ausdruecklich **kein** visuelles Redesign und kopiert keine Credits in Segmenttabellen.
+
+**Depends on:** Phase 155
+
+**UI hint**: nein — Domain-, Datenmodell- und Projektionsphase. Bestehende Komponenten bleiben
+erhalten; UI aendert sich nur dort, wo neue fachliche Semantik sichtbar gemacht werden muss
+(„gilt Folge 1–10", „seit Folge 1", Credits, Origin). `plan-phase` daher mit `--skip-ui` fahren.

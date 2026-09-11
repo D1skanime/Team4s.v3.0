@@ -33,11 +33,13 @@ See: .planning/PROJECT.md (updated 2026-08-13)
 
 ## Current Position
 
-Phase: 155
+Phase: 156
 Plan: Not started
-Status: Milestone complete
+Status: Phase 156 angelegt, bereit fuer plan-phase
 
 Phase 155 wurde additiv an die Roadmap angehaengt (Milestone v1.4 bleibt als abgeschlossen dokumentiert, kein Milestone-Reset). Auftragsquelle: `.planning/phases/155-fansub-projektseite-read-model-und-query-budget/155-USER-REQUEST.md`, Kontext: `155-CONTEXT.md` (ersetzt eine interaktive discuss-phase-Sitzung).
+
+Phase 156 wurde ebenfalls additiv an die Roadmap angehaengt (Milestone v1.4 bleibt als abgeschlossen dokumentiert, kein Milestone-Reset). Auftragsquelle: `.planning/phases/156-segment-domain-konsistenz-und-oeffentliche-release-projektion/156-USER-REQUEST.md`, Kontext: `156-CONTEXT.md` (ersetzt eine interaktive discuss-phase-Sitzung). Phase 155 ist abgeschlossen (7/7 Plaene, 155-VERIFICATION.md).
 
 ### Phase 154 (abgeschlossen)
 
