@@ -2,12 +2,14 @@ package repository
 
 import (
 	"context"
+	"fmt"
 	"os"
 	"strings"
 	"testing"
 
 	"team4s.v3/backend/internal/models"
 
+	"github.com/jackc/pgx/v5/pgxpool"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 )
@@ -185,4 +187,151 @@ func TestGroupContributorsRepositoryUsesCanonicalPublicMemberSlugs(t *testing.T)
 	assert.NotContains(t, content, "memberslugexpr", "group contributor links must not derive slugs from nicknames")
 	assert.NotContains(t, content, "regexp_replace", "group contributor links must not derive slugs with a nickname regex")
 	assert.NotContains(t, content, "coalesce(m.public_slug", "stored public slugs must not fall back to derived identity")
+}
+
+// Plan 155-03 (Requirements P155-03, P155-04): the constant-query-budget
+// regression gate proving GetProjectContributors issues the SAME number of
+// SQL queries (2: one external-contributors query, one team-members query)
+// whether a project has 0 contributors or 30-50 contributors across many
+// roles. This locks in, with a real running test, the negative finding
+// RESEARCH.md already confirmed by direct SQL inspection (Workstream B): the
+// repository's existing SQL is already bounded and join-arm; this plan does
+// not change it.
+//
+// Uses openPhase155Postgres/mustExecPhase155 declared in
+// fansub_project_resolver_query_budget_test.go (Plan 155-01, same package) --
+// deliberately NOT setupTestRepo, which unconditionally skips
+// (test_helpers.go:14-17) and has therefore never actually run against a
+// real database.
+
+// seedPhase155ContributorBudgetGroup seeds one fansub_groups row, one anime
+// scoped to it, one shared release chain (episode/release/version/
+// version_group) team members attach to, and teamCount team members (via
+// release_member_roles) plus externalCount external contributors (via
+// anime_contributions). Every member/contribution id is namespaced by
+// groupID*1000+offset to keep seeds collision-free across groups within a
+// single test run. Returns the seeded animeID.
+func seedPhase155ContributorBudgetGroup(t *testing.T, pool *pgxpool.Pool, groupID int64, slug string, teamCount int, externalCount int) int64 {
+	t.Helper()
+
+	animeID := groupID * 1000
+	episodeID := animeID + 1
+	releaseID := animeID + 2
+	versionID := animeID + 3
+
+	mustExecPhase155(t, pool, fmt.Sprintf(`
+		INSERT INTO fansub_groups (id, slug, name, status) VALUES (%d, '%s', 'Phase155 Contributors Group %d', 'active');
+		INSERT INTO anime (id, title, status) VALUES (%d, 'Phase155 Contributors Anime %d', 'ongoing');
+		INSERT INTO anime_fansub_groups (anime_id, fansub_group_id) VALUES (%d, %d);
+		INSERT INTO episodes (id, anime_id, episode_number) VALUES (%d, %d, '1');
+		INSERT INTO fansub_releases (id, episode_id) VALUES (%d, %d);
+		INSERT INTO release_versions (id, release_id, version) VALUES (%d, %d, 'v1');
+		INSERT INTO release_version_groups (release_version_id, fansub_group_id) VALUES (%d, %d);
+	`, groupID, slug, groupID,
+		animeID, animeID,
+		animeID, groupID,
+		episodeID, animeID,
+		releaseID, episodeID,
+		versionID, releaseID,
+		versionID, groupID))
+
+	// Shared lookup rows (idempotent, ON CONFLICT DO NOTHING): one
+	// contributor_roles row and a role_definitions row sharing the exact
+	// same string. GetProjectContributors' team query joins
+	// role_definitions.code = contributor_roles.name verbatim
+	// (case-sensitive) -- the production seed rows ('Translator' vs
+	// 'translator') never satisfy that join, and this DSN-gated test
+	// database (schema-only clone) carries no lookup-row data at all, so
+	// this test must supply its own matching pair to seed any team member
+	// row through.
+	mustExecPhase155(t, pool, `
+		INSERT INTO contributor_roles (name) VALUES ('Phase155BudgetRole') ON CONFLICT (name) DO NOTHING;
+		INSERT INTO role_definitions (code, label_de, contexts, sort_order)
+			VALUES ('Phase155BudgetRole', 'Phase155 Budget Rolle', ARRAY['anime_contribution'], 0)
+			ON CONFLICT (code) DO NOTHING;
+	`)
+
+	for i := 0; i < teamCount; i++ {
+		memberID := groupID*1000 + 100 + int64(i)
+		memberSlug := fmt.Sprintf("phase155-team-%d", memberID)
+		mustExecPhase155(t, pool, fmt.Sprintf(`
+			INSERT INTO members (id, nickname, display_name, public_slug, profile_visibility)
+				VALUES (%d, 'Phase155 Team %d', 'Phase155 Team Member %d', '%s', 'public');
+			INSERT INTO release_member_roles (release_id, member_id, role_id)
+				SELECT %d, %d, cr.id FROM contributor_roles cr WHERE cr.name = 'Phase155BudgetRole';
+		`, memberID, memberID, memberID, memberSlug, releaseID, memberID))
+	}
+
+	for i := 0; i < externalCount; i++ {
+		memberID := groupID*1000 + 500 + int64(i)
+		contribID := groupID*1000 + 700 + int64(i)
+		memberSlug := fmt.Sprintf("phase155-external-%d", memberID)
+		mustExecPhase155(t, pool, fmt.Sprintf(`
+			INSERT INTO members (id, nickname, display_name, public_slug, profile_visibility)
+				VALUES (%d, 'Phase155 External %d', 'Phase155 External Member %d', '%s', 'public');
+			INSERT INTO anime_contributions (id, fansub_group_id, anime_id, member_id, status, is_public_on_anime_page)
+				VALUES (%d, %d, %d, %d, 'confirmed', true);
+			INSERT INTO anime_contribution_roles (anime_contribution_id, role_code)
+				VALUES (%d, 'Phase155BudgetRole');
+		`, memberID, memberID, memberID, memberSlug, contribID, groupID, animeID, memberID, contribID))
+	}
+
+	return animeID
+}
+
+// phase155ContributorsConstantQueryBudget is the enforced constant number of
+// SQL queries a single GetProjectContributors call issues, INDEPENDENT of
+// how many team members/external contributors the project has: one query
+// for the external-contributors block, one query for the team-members
+// block. This is the exact number RESEARCH.md's own live-EXPLAIN finding
+// already established for this repository's existing, unmodified SQL.
+// Update this constant ONLY for an intentional, documented repository
+// change.
+const phase155ContributorsConstantQueryBudget = 2
+
+// TestGetProjectContributorsQueryBudgetIsConstantAt30To50Contributors locks
+// in, with a real seeded 30-50-contributor scale, the negative finding
+// RESEARCH.md already confirmed by direct SQL inspection (Workstream B):
+// GetProjectContributors already issues exactly 2 fixed SQL queries
+// regardless of contributor count -- there is no per-member request/query
+// fan-out today (P155-04). Notes/media volume is deliberately not seeded:
+// GetProjectContributors does not join the notes/media tables at all, which
+// is itself part of what a constant query count at this scale proves.
+func TestGetProjectContributorsQueryBudgetIsConstantAt30To50Contributors(t *testing.T) {
+	pool, counter := openPhase155Postgres(t)
+	repo := NewGroupContributorsRepository(pool)
+
+	const smallGroupID int64 = 1550400
+	const largeGroupID int64 = 1550500
+	const smallTeamCount = 2
+	const smallExternalCount = 2
+	const largeTeamCount = 30
+	const largeExternalCount = 20
+
+	smallAnimeID := seedPhase155ContributorBudgetGroup(t, pool, smallGroupID, "phase155-contrib-small", smallTeamCount, smallExternalCount)
+	largeAnimeID := seedPhase155ContributorBudgetGroup(t, pool, largeGroupID, "phase155-contrib-large", largeTeamCount, largeExternalCount)
+
+	counter.reset()
+	small, err := repo.GetProjectContributors(context.Background(), smallAnimeID, smallGroupID)
+	require.NoError(t, err)
+	smallCount := counter.count()
+	require.Lenf(t, small.TeamMembers, smallTeamCount, "small seed must list exactly its %d seeded team members", smallTeamCount)
+	require.Lenf(t, small.ExternalContributors, smallExternalCount, "small seed must list exactly its %d seeded external contributors", smallExternalCount)
+
+	counter.reset()
+	large, err := repo.GetProjectContributors(context.Background(), largeAnimeID, largeGroupID)
+	require.NoError(t, err)
+	largeCount := counter.count()
+	require.Lenf(t, large.TeamMembers, largeTeamCount, "large seed must list exactly its %d seeded team members", largeTeamCount)
+	require.Lenf(t, large.ExternalContributors, largeExternalCount, "large seed must list exactly its %d seeded external contributors", largeExternalCount)
+
+	t.Logf("P155-04 constant-budget gate: %d+%d contributors -> %d queries; %d+%d contributors -> %d queries (must be equal and constant).",
+		smallTeamCount, smallExternalCount, smallCount, largeTeamCount, largeExternalCount, largeCount)
+
+	require.Equalf(t, smallCount, largeCount,
+		"constant query budget violated: %d-contributor project issued %d queries but %d-contributor project issued %d (GetProjectContributors cost must not grow with contributor count)",
+		smallTeamCount+smallExternalCount, smallCount, largeTeamCount+largeExternalCount, largeCount)
+	require.Equalf(t, phase155ContributorsConstantQueryBudget, largeCount,
+		"GetProjectContributors query budget drifted from the enforced constant %d; got %d (update phase155ContributorsConstantQueryBudget only with an intentional, documented repository change)",
+		phase155ContributorsConstantQueryBudget, largeCount)
 }
