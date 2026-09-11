@@ -28,10 +28,6 @@ func TestGroupReleaseCursorSourceSupportsMixedEpisodesAndSegmentVersions(t *test
 		"CASE WHEN %[1]s THEN 0 ELSE 1 END ASC",
 		"filter.Sort == \"release_date\"",
 		"decodeMixedReleaseCursor(cursor)",
-		"e.episode_number !~ '^[0-9]+$'",
-		"ts.start_episode IS NULL",
-		"ts.end_episode IS NULL",
-		"&segment.Version",
 	} {
 		if !strings.Contains(content, fragment) {
 			t.Fatalf("expected mixed release cursor source to contain %q", fragment)
@@ -39,6 +35,31 @@ func TestGroupReleaseCursorSourceSupportsMixedEpisodesAndSegmentVersions(t *test
 	}
 	if strings.Contains(content, "JOIN episodes e ON e.id = fr.episode_id AND e.episode_number ~ '^[0-9]+$'") {
 		t.Fatal("cursor release query must not filter out Specials/OVAs")
+	}
+
+	// attachReleaseTimelineSegments wurde in Plan 156-06 nach
+	// group_repository_cursor_timeline.go ausgelagert (450-Zeilen-Limit) --
+	// die Segment-bezogenen Fragmente werden dort geprueft, nicht mehr hier.
+	timelineRaw, err := os.ReadFile("group_repository_cursor_timeline.go")
+	if err != nil {
+		t.Fatalf("read group release timeline segment source: %v", err)
+	}
+	timelineContent := string(timelineRaw)
+	for _, fragment := range []string{
+		"FROM theme_segment_assignments tsa",
+		"&segment.Version",
+	} {
+		if !strings.Contains(timelineContent, fragment) {
+			t.Fatalf("expected release timeline segment source to contain %q", fragment)
+		}
+	}
+	// P156-10: die Segment-Existenz auf der Projekt-Timeline kommt seit Phase 156
+	// ausschliesslich aus theme_segment_assignments, nicht mehr aus einem
+	// start_episode/end_episode-Bereichsvergleich -- Abwesenheits-Pruefung
+	// (CLAUDE.md-Teststil-Ausnahme) fuer das exakte Fragment der alten,
+	// von diesem Plan abgeloesten Bereichsklausel.
+	if strings.Contains(timelineContent, "ts.start_episode IS NULL OR ts.start_episode <=") {
+		t.Fatal("timeline segment query must no longer derive existence from a start_episode/end_episode range comparison (superseded by theme_segment_assignments, Plan 156-06)")
 	}
 }
 

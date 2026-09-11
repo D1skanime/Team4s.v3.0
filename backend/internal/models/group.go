@@ -72,6 +72,12 @@ type ReleaseTimelineSegment struct {
 	StartTime *string `json:"start_time"`
 	EndTime   *string `json:"end_time"`
 	Version   *string `json:"version,omitempty"`
+	// StartEpisode/EndEpisode (P156-10): die fachliche Gueltigkeitsangabe
+	// ("gilt Folge X-Y") des Segments, seit Phase 156 reine Anzeige-Metadaten
+	// -- theme_segment_assignments entscheidet ueber die Existenz auf der
+	// Timeline, nicht mehr diese Range.
+	StartEpisode *int `json:"start_episode,omitempty"`
+	EndEpisode   *int `json:"end_episode,omitempty"`
 }
 
 // GroupReleasesData contains group detail and episode releases
