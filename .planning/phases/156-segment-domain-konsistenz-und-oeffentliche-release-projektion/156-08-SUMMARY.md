@@ -127,3 +127,8 @@ None -- no external service configuration required. No backend changes in this p
 ---
 *Phase: 156-segment-domain-konsistenz-und-oeffentliche-release-projektion*
 *Completed: 2026-09-11*
+
+## Self-Check: PASSED
+
+All 6 created/modified source files plus this SUMMARY.md confirmed present on disk (7/7 checked).
+All three commits (`a9363666`, `3c958033`, `0a5ad761`) confirmed present in `git log`.
