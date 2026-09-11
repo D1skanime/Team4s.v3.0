@@ -1489,13 +1489,13 @@ ausdruecklich **kein** visuelles Redesign und keine Aenderung der sichtbaren Inf
 
 **Depends on:** Phase 154
 
-**Plans:** 7 plans
+**Plans:** 1/7 plans executed
 
 Plans:
 
 **Wave 1**
 
-- [ ] 155-01-PLAN.md — Project Resolver: Backend-Repository, Handler, Contract
+- [x] 155-01-PLAN.md — Project Resolver: Backend-Repository, Handler, Contract
 
 **Wave 2** *(blocked on Wave 1 completion)*
 

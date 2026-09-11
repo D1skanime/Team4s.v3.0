@@ -3,14 +3,14 @@ gsd_state_version: 1.0
 milestone: v1.4
 milestone_name: Coverage
 status: executing
-stopped_at: Completed 154-07-PLAN.md
-last_updated: "2026-09-11T14:45:45.476Z"
+stopped_at: Completed 155-01-PLAN.md
+last_updated: "2026-09-11T15:13:31.805Z"
 last_activity: 2026-09-11
 progress:
   total_phases: 20
   completed_phases: 19
   total_plans: 191
-  completed_plans: 184
+  completed_plans: 185
   percent: 95
 ---
 
@@ -29,12 +29,12 @@ Phase 135 and any future roadmap entries continue from here.
 See: .planning/PROJECT.md (updated 2026-08-13)
 
 **Core value:** Team4s presents fansub history and collaboration credibly while keeping identity, visibility, ownership, and permissions correct.
-**Current focus:** Phase 155 — Public-Fansub-Projektseite: Read-Model, Drill-down-Navigation und Query-Budget
+**Current focus:** Phase 155 — fansub-projektseite-read-model-und-query-budget
 
 ## Current Position
 
-Phase: 155
-Plan: Not started
+Phase: 155 (fansub-projektseite-read-model-und-query-budget) — EXECUTING
+Plan: 2 of 7
 Status: Ready to execute
 
 Phase 155 wurde additiv an die Roadmap angehaengt (Milestone v1.4 bleibt als abgeschlossen dokumentiert, kein Milestone-Reset). Auftragsquelle: `.planning/phases/155-fansub-projektseite-read-model-und-query-budget/155-USER-REQUEST.md`, Kontext: `155-CONTEXT.md` (ersetzt eine interaktive discuss-phase-Sitzung).
@@ -470,6 +470,7 @@ Last activity: 2026-09-11
 - [Phase 154-05]: Phase-153 listener remainder (~14-15/cycle) is unchanged after Phase 154 Wave 1 (14.24/cycle vs 14.3/cycle baseline); no second listener source found -- zero addEventListener matches across all 8 files touched by Plans 154-01..04 -- documented negative outcome for D2
 - [Phase 154]: 154-06: full verification gate green; resolved two genuine 154-03-introduced regressions (test-boundary allowlist gap, lint-warning delta) via git-log-traced E4 checks instead of mislabeling pre-existing; 154-AFTER.md documents before/after numbers, RCA-04 stays open
 - [Phase 154]: P154-15/E6 closed with precise, non-blanket operator confirmation: owner-view of a temporarily-toggled hidden profile (d1sk) confirmed correct; dataset held zero private profiles beforehand, requiring an ad-hoc toggle-and-revert; edit-link visibility not separately confirmed and is not claimed as verified.
+- [Phase 155]: FansubHandler.projectResolverRepo is typed as a narrow fansubProjectResolverRepo interface (not the concrete repository pointer) so httptest fakes can execute ResolveFansubProject directly — Satisfies CLAUDE.md Teststil (must actually run the checked code); WithProjectResolverRepo's public signature is unchanged
 
 ### Pending Todos
 
@@ -838,11 +839,12 @@ untruncated list lives in `.planning/todos/pending/`.
 | Phase 154 P05 | 20min | 2 tasks | 1 files |
 | Phase 154 P06 | 25min | 2 tasks | 3 files |
 | Phase 154 P07 | 10min | 1 tasks | 0 files |
+| Phase 155 P01 | 26min | 3 tasks | 9 files |
 
 ## Session Continuity
 
-Last session: 2026-09-10T18:45:56.342Z
-Stopped at: Completed 154-07-PLAN.md
+Last session: 2026-09-11T15:13:31.789Z
+Stopped at: Completed 155-01-PLAN.md
 Last activity: Local handoff checkpoint; no new Execute step, browser matrix, build, agent or push started after stop.
 Resume file: None
 Structured state: .planning/HANDOFF.json
