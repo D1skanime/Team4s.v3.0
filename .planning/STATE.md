@@ -4,13 +4,13 @@ milestone: v1.4
 milestone_name: Coverage
 status: executing
 stopped_at: Completed 156-05-PLAN.md
-last_updated: "2026-09-11T21:45:17.477Z"
+last_updated: "2026-09-11T22:03:08.458Z"
 last_activity: 2026-09-11
 progress:
   total_phases: 21
   completed_phases: 20
   total_plans: 202
-  completed_plans: 198
+  completed_plans: 199
   percent: 95
 ---
 
@@ -34,9 +34,34 @@ See: .planning/PROJECT.md (updated 2026-08-13)
 ## Current Position
 
 Phase: 156 (segment-domain-konsistenz-und-oeffentliche-release-projektion) — EXECUTING
-Plan: 8 of 11
+Plan: 9 of 11
 Status: Ready to execute
 ROADMAP.md-Reihenfolge: 156-08/09 als naechstes (zentrale Segment-Credit-Semantik, Frontend-/Folgeplaene).
+
+Plan 156-08 (2026-09-11) abgeschlossen: `ThemeTimeline.tsx`
+(`frontend/src/app/anime/[id]/group/[groupId]/releases/[releaseVersionId]/`) haelt keine eigene
+OP/ED/INSERT/KARA-Klassifikationswelt mehr -- `TYPE_LABELS`/`TYPE_STYLE_KEYS`/`typeKey`/
+`segmentTypeLabel` (inkl. Varianten-Schluessel wie `'OP KARA'`) sind vollstaendig entfernt (P156-15).
+`SegmentDetails`/`SelectionSurface` wurden in eine neue Nachbardatei `ThemeTimelineSegmentDetails.tsx`
+(97 Zeilen) ausgelagert -- `ThemeTimeline.tsx` liegt danach bei 323 Zeilen, beide klar unter dem
+450-Zeilen-Limit (die Datei stand laut Recherche vorher bei 396/450). Verbleibend sind nur zwei rein
+darstellerische Lookup-Tabellen (`SEGMENT_TYPE_STYLE_CLASS` fuer die CSS-Klasse,
+`SEGMENT_TYPE_DISPLAY_LABEL` fuer das deutsche Label), beide Exact-Key-Maps ueber die vier
+kanonischen Backend-Codes (`OP`/`ED`/`INSERT`/`KARA`) mit `typeOther`/Rohwert als einzigem Fallback --
+keine Substring-/Heuristik-Logik mehr im Frontend. Segment-Beteiligte mit `member_slug` rendern jetzt
+als Link auf `{projectPath}/mitwirkende/{memberSlug}` -- der erste produktive Verbraucher von
+`buildPublicFansubProjectMemberPath`s Suffix-Form (Phase 155, bis dahin ungenutzt); ohne `member_slug`
+oder ohne `projectPath` bleibt die alte reine Textzeile pro Beteiligtem unveraendert erhalten (P156-14).
+`PublicReleaseContributor` (Frontend-DTO) traegt jetzt `role_codes`/`member_slug`, spiegelbildlich zu
+Plan 156-05s Backend-Feldern. Eine Abweichung (Rule 1): das vorbestehende, planfremde
+`ContributorsRow.test.tsx` brach durch die neuen Pflichtfelder auf dem DTO und wurde mit
+`role_codes: []`/`member_slug: null` in den Fixtures repariert, ohne Verhaltensaenderung. 23/23
+Vitest-Tests in `ThemeTimeline.test.tsx` gruen, inkl. neuer Faelle fuer Link-Praesenz/-Abwesenheit und
+eines Regressionsfalls (`type: 'KARAAGE'`), der beweist, dass ein unzusammenhaengendes "kara"-Teilwort
+NICHT mehr als Karaoke fehlklassifiziert wird. Voller Frontend-Suite-Lauf (298/299 Dateien, 2305 Tests)
+sowie `tsc --noEmit` und `eslint` auf allen geaenderten Dateien gruen. `requirements.mark-complete
+P156-14/P156-15` fand wie bei den Vorplaenen keine Zeile in REQUIREMENTS.md (dieselbe
+uebergreifende Tracking-Luecke). Details: 156-08-SUMMARY.md.
 
 Plan 156-07 (2026-09-11) abgeschlossen: `loadReleaseSegments`
 (`release_detail_public_repository_helpers.go`) projiziert Segment-Credits jetzt LIVE aus der
@@ -642,6 +667,8 @@ Last activity: 2026-09-11
 - [Phase 156]: 156-05: loadPublicEffectiveContributors tests stay unit-level (no new Postgres harness) — Function had zero DB-gated tests before this plan and the plan's own verify step only requires go build/go vet; the SQL change is exercised indirectly by existing production consumers
 - [Phase 156]: 156-07: Release detail page stops suppressing already-visible segments (supersedes Phase 117 D-02 for the release-detail surface only) -- documented in DECISIONS.md 2026-09-11
 - [Phase 156]: 156-07: Segment credits now project dynamically from each segment's ORIGIN release version's current contributors, filtered by permissions.SegmentCreditRoleCodes -- replacing the strings.Contains(label, kara) heuristic
+- [Phase 156]: ThemeTimeline.tsx split into a new sibling ThemeTimelineSegmentDetails.tsx; own OP/ED/INSERT/KARA classification (TYPE_LABELS/TYPE_STYLE_KEYS) deleted in favor of rendering backend-canonical segment.type via a small presentational CSS-class/label lookup — P156-15 requires the frontend to stop holding its own type world; keeps both files under the 450-line cap
+- [Phase 156]: Segment participants with a member_slug now render as a Link to the project-context member route via buildPublicFansubProjectMemberPath's suffix shape ('/mitwirkende/'), the first production consumer of that Phase-155 helper — P156-14: segment-related member clicks land on the project member route instead of plain text
 
 ### Pending Todos
 
@@ -1024,10 +1051,11 @@ untruncated list lives in `.planning/todos/pending/`.
 | Phase 156 P04 | 35min | 2 tasks | 11 files |
 | Phase 156 P05 | 6min | 1 tasks | 3 files |
 | Phase 156 P07 | 46min | 2 tasks | 5 files |
+| Phase 156 P08 | 11min | 2 tasks | 6 files |
 
 ## Session Continuity
 
-Last session: 2026-09-11T21:44:46.954Z
+Last session: 2026-09-11T22:03:08.441Z
 Stopped at: Completed 156-05-PLAN.md
 Last activity: Local handoff checkpoint; no new Execute step, browser matrix, build, agent or push started after stop.
 Resume file: None
