@@ -36,7 +36,7 @@ const segments: PublicReleaseSegment[] = [{
   end_seconds: 120,
   duration_seconds: 90,
   readiness: 'ready' as const,
-  participants: [{ member_id: 41, name: 'Mia', role_label: 'Karaoke', avatar_url: null }],
+  participants: [{ member_id: 41, name: 'Mia', role_label: 'Karaoke', role_codes: ['karaoke_fx'], member_slug: 'mia', avatar_url: null }],
   preview_url: null,
 }, {
   theme_segment_id: 8,
@@ -46,12 +46,12 @@ const segments: PublicReleaseSegment[] = [{
   end_seconds: 1_290,
   duration_seconds: 90,
   readiness: 'ready' as const,
-  participants: [{ member_id: 42, name: 'Noah', role_label: 'Typesetting', avatar_url: null }],
+  participants: [{ member_id: 42, name: 'Noah', role_label: 'Typesetting', role_codes: ['typesetter'], member_slug: null, avatar_url: null }],
   preview_url: null,
 }, {
   theme_segment_id: 9,
   name: 'Silent Insert',
-  type: 'IN',
+  type: 'INSERT',
   start_seconds: 600,
   end_seconds: 630,
   duration_seconds: 30,
@@ -150,21 +150,36 @@ describe('ThemeTimeline Phase 105 geometry and selection', () => {
     expect(geometry.style.width).toBe(`${1 / 1_400 * 100}%`)
   })
 
-  it('maps live OP Kara and ED Kara variants to distinct card and geometry colors', () => {
+  it('maps backend-canonical OP/ED types to distinct card and geometry colors', () => {
     renderTimeline({
       segments: [
-        { ...segments[0], type: 'OP Kara' },
-        { ...segments[1], type: 'ED Kara' },
-        { ...segments[2], type: 'Fansub Special' },
+        { ...segments[0], type: 'OP' },
+        { ...segments[1], type: 'ED' },
+        { ...segments[2], type: 'INSERT' },
       ],
     })
 
     expect(screen.getByTestId('kara-segment-geometry-7').classList.contains(styles.typeOp)).toBe(true)
     expect(screen.getByTestId('kara-segment-geometry-8').classList.contains(styles.typeEd)).toBe(true)
-    expect(screen.getByTestId('kara-segment-geometry-9').classList.contains(styles.typeOther)).toBe(true)
+    expect(screen.getByTestId('kara-segment-geometry-9').classList.contains(styles.typeIn)).toBe(true)
     expect(document.querySelectorAll(`.${styles.segmentCard}.${styles.typeOp}`)).toHaveLength(1)
     expect(document.querySelectorAll(`.${styles.segmentCard}.${styles.typeEd}`)).toHaveLength(1)
-    expect(document.querySelectorAll(`.${styles.segmentCard}.${styles.typeOther}`)).toHaveLength(1)
+    expect(document.querySelectorAll(`.${styles.segmentCard}.${styles.typeIn}`)).toHaveLength(1)
+  })
+
+  it('renders a segment type value the OLD frontend heuristic would have mis-handled (unrelated "kara" substring) as-is via the presentational-only map, not via string-matching', () => {
+    renderTimeline({
+      segments: [{ ...segments[0], type: 'KARAAGE' }],
+    })
+
+    // 'KARAAGE' contains 'kara' as an unrelated substring at the start of the word. The
+    // OLD frontend heuristic normalized/looked up type strings by pattern; the new
+    // SEGMENT_TYPE_STYLE_CLASS/SEGMENT_TYPE_DISPLAY_LABEL maps are exact-key lookups over
+    // the four canonical backend codes only, so an unrecognized value must fall back to
+    // typeOther/the raw value, never be misread as Karaoke.
+    expect(screen.getByTestId('kara-segment-geometry-7').classList.contains(styles.typeKara)).toBe(false)
+    expect(screen.getByTestId('kara-segment-geometry-7').classList.contains(styles.typeOther)).toBe(true)
+    expect(screen.getAllByText('KARAAGE').length).toBeGreaterThan(0)
   })
 
   it('keeps the 44 by 44 hit target structurally separate from visible geometry', () => {
@@ -191,7 +206,7 @@ describe('ThemeTimeline Phase 105 geometry and selection', () => {
       segments: [
         { ...segments[0], theme_segment_id: 20, type: 'OP', start_seconds: 10, end_seconds: 20 },
         { ...segments[1], theme_segment_id: 21, type: 'ED', start_seconds: 21, end_seconds: 30 },
-        { ...segments[2], theme_segment_id: 22, type: 'IN', start_seconds: 31, end_seconds: 40 },
+        { ...segments[2], theme_segment_id: 22, type: 'INSERT', start_seconds: 31, end_seconds: 40 },
         { ...segments[0], theme_segment_id: 23, type: 'KARA', start_seconds: 41, end_seconds: 50 },
       ],
     })
@@ -240,6 +255,38 @@ describe('ThemeTimeline Phase 105 geometry and selection', () => {
 
     await waitFor(() => expect(screen.getAllByRole('button', { pressed: true })).toHaveLength(1))
     expect(document.querySelector('video')).toBeNull()
+  })
+})
+
+describe('ThemeTimeline Phase 156-08 project-context member links', () => {
+  it('renders a participant with a member_slug as a link to the project-context member route when projectPath is provided (P156-14)', () => {
+    renderTimeline({
+      projectPath: '/fansubs/csubs/fansubprojekt/moonlight',
+      segments: [{ ...segments[0], participants: [{ member_id: 41, name: 'Mia', role_label: 'Karaoke', role_codes: ['karaoke_fx'], member_slug: 'mia', avatar_url: null }] }],
+    })
+
+    const link = screen.getAllByRole('link', { name: 'Mia' })[0]
+    expect(link.getAttribute('href')).toBe('/fansubs/csubs/fansubprojekt/moonlight/mitwirkende/mia')
+    expect(document.querySelector(`.${styles.participants}`)?.textContent).toContain('Mia · Karaoke')
+  })
+
+  it('renders a participant with member_slug as plain text (no link) when no projectPath is supplied', () => {
+    renderTimeline({
+      segments: [{ ...segments[0], participants: [{ member_id: 41, name: 'Mia', role_label: 'Karaoke', role_codes: ['karaoke_fx'], member_slug: 'mia', avatar_url: null }] }],
+    })
+
+    expect(screen.queryByRole('link', { name: 'Mia' })).toBeNull()
+    expect(screen.getAllByText(/Mia.*Karaoke/).length).toBeGreaterThan(0)
+  })
+
+  it('renders a participant with member_slug null as plain text (no link) even when projectPath is provided', () => {
+    renderTimeline({
+      projectPath: '/fansubs/csubs/fansubprojekt/moonlight',
+      segments: [{ ...segments[0], participants: [{ member_id: 42, name: 'Noah', role_label: 'Typesetting', role_codes: ['typesetter'], member_slug: null, avatar_url: null }] }],
+    })
+
+    expect(screen.queryByRole('link', { name: 'Noah' })).toBeNull()
+    expect(screen.getAllByText(/Noah.*Typesetting/).length).toBeGreaterThan(0)
   })
 })
 
