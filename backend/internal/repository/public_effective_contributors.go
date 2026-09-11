@@ -17,6 +17,8 @@ type publicContributionCandidate struct {
 	Name             string
 	AvatarURL        *string
 	RoleLabels       []string
+	RoleCodes        []string
+	MemberSlug       *string
 	IsOverride       bool
 	IsPublic         bool
 }
@@ -34,6 +36,7 @@ type publicContributorKey struct {
 type publicContributorAccumulator struct {
 	contributor PublicReleaseContributor
 	roleLabels  map[string]struct{}
+	roleCodes   map[string]struct{}
 }
 
 // loadPublicEffectiveContributors resolves the public crew for each release version.
@@ -69,6 +72,11 @@ func loadPublicEffectiveContributors(
 					FILTER (WHERE acr.role_code IS NOT NULL),
 				ARRAY[]::text[]
 			) AS role_labels,
+			COALESCE(
+				ARRAY_AGG(DISTINCT acr.role_code) FILTER (WHERE acr.role_code IS NOT NULL),
+				ARRAY[]::text[]
+			) AS role_codes,
+			CASE WHEN m.profile_visibility = 'public' THEN m.public_slug ELSE NULL END AS member_slug,
 			COALESCE(ac.release_version_id = rc.release_version_id, false) AS is_override,
 			(
 				COALESCE(ac.is_public_on_anime_page = true, false)
@@ -90,7 +98,7 @@ func loadPublicEffectiveContributors(
 		LEFT JOIN anime_contribution_roles acr ON acr.anime_contribution_id = ac.id
 		LEFT JOIN role_definitions rd ON rd.code = acr.role_code
 		LEFT JOIN visibilities v ON v.id = ac.visibility_id
-		GROUP BY rc.release_version_id, ac.id, m.nickname, m.display_name, member_avatar.file_path, v.name
+		GROUP BY rc.release_version_id, ac.id, m.nickname, m.display_name, member_avatar.file_path, v.name, m.profile_visibility, m.public_slug
 		ORDER BY rc.release_version_id, ac.fansub_group_id, ac.id
 	`, releaseVersionIDs)
 	if err != nil {
@@ -109,6 +117,8 @@ func loadPublicEffectiveContributors(
 			&candidate.Name,
 			&candidate.AvatarURL,
 			&candidate.RoleLabels,
+			&candidate.RoleCodes,
+			&candidate.MemberSlug,
 			&candidate.IsOverride,
 			&candidate.IsPublic,
 		); err != nil {
@@ -167,18 +177,31 @@ func resolvePublicEffectiveContributors(
 						MemberID:      candidate.MemberID,
 						Name:          candidate.Name,
 						AvatarURL:     candidate.AvatarURL,
+						MemberSlug:    candidate.MemberSlug,
 					},
 					roleLabels: make(map[string]struct{}),
+					roleCodes:  make(map[string]struct{}),
 				}
 				contributors[key] = accumulator
-			} else if accumulator.contributor.AvatarURL == nil && candidate.AvatarURL != nil {
-				accumulator.contributor.AvatarURL = candidate.AvatarURL
+			} else {
+				if accumulator.contributor.AvatarURL == nil && candidate.AvatarURL != nil {
+					accumulator.contributor.AvatarURL = candidate.AvatarURL
+				}
+				if accumulator.contributor.MemberSlug == nil && candidate.MemberSlug != nil {
+					accumulator.contributor.MemberSlug = candidate.MemberSlug
+				}
 			}
 
 			for _, roleLabel := range candidate.RoleLabels {
 				roleLabel = strings.TrimSpace(roleLabel)
 				if roleLabel != "" {
 					accumulator.roleLabels[roleLabel] = struct{}{}
+				}
+			}
+			for _, roleCode := range candidate.RoleCodes {
+				roleCode = strings.TrimSpace(roleCode)
+				if roleCode != "" {
+					accumulator.roleCodes[roleCode] = struct{}{}
 				}
 			}
 		}
@@ -194,6 +217,14 @@ func resolvePublicEffectiveContributors(
 			}
 			sort.Strings(roles)
 			accumulator.contributor.RoleLabel = strings.Join(roles, ", ")
+
+			roleCodes := make([]string, 0, len(accumulator.roleCodes))
+			for code := range accumulator.roleCodes {
+				roleCodes = append(roleCodes, code)
+			}
+			sort.Strings(roleCodes)
+			accumulator.contributor.RoleCodes = roleCodes
+
 			items = append(items, accumulator.contributor)
 		}
 		sort.Slice(items, func(i, j int) bool {

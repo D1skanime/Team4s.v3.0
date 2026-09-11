@@ -32,11 +32,13 @@ func NewReleaseDetailPublicRepository(db *pgxpool.Pool, mediaStorageDir string) 
 
 // PublicReleaseContributor ist ein oeffentlich sichtbarer Beteiligter einer Release-Version.
 type PublicReleaseContributor struct {
-	FansubGroupID int64   `json:"fansub_group_id"`
-	MemberID      int64   `json:"member_id"`
-	Name          string  `json:"name"`
-	RoleLabel     string  `json:"role_label"`
-	AvatarURL     *string `json:"avatar_url"`
+	FansubGroupID int64    `json:"fansub_group_id"`
+	MemberID      int64    `json:"member_id"`
+	Name          string   `json:"name"`
+	RoleLabel     string   `json:"role_label"`
+	RoleCodes     []string `json:"role_codes"`
+	MemberSlug    *string  `json:"member_slug"`
+	AvatarURL     *string  `json:"avatar_url"`
 }
 
 // PublicReleaseImage ist ein oeffentlich sichtbares Bild einer Release-Version.
