@@ -99,3 +99,7 @@ None - no external service configuration required. Migration 0161 was applied di
 ---
 *Phase: 156-segment-domain-konsistenz-und-oeffentliche-release-projektion*
 *Completed: 2026-09-11*
+
+## Self-Check: PASSED
+
+All created/modified files confirmed present on disk; all four commits (`264cb657`, `bd4e61cf`, `438af16b`, `a3bd8dc6`) confirmed in `git log`. `grep -c 'SegmentCreditRoleCodes' backend/internal/permissions/permissions.go` returns exactly 2 (declaration + doc comment, no duplicates).
