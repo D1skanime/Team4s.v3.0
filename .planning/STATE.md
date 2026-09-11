@@ -3,15 +3,15 @@ gsd_state_version: 1.0
 milestone: v1.4
 milestone_name: Coverage
 status: executing
-stopped_at: 156-11-PLAN.md automatable scope closed (Task 1 committed d6edc718); Task 2 live-UAT deferred to operator, see deferred-items.md
-last_updated: "2026-09-11T22:22:05Z"
+stopped_at: 156-10-PLAN.md complete (automatable phase-closing scope); Phase 156 has ONE explicit open item (156-11 Task 2 live-UAT), see deferred-items.md -- not fully accepted
+last_updated: "2026-09-11T22:44:50.586Z"
 last_activity: 2026-09-11
 progress:
   total_phases: 21
-  completed_phases: 20
+  completed_phases: 21
   total_plans: 202
-  completed_plans: 200
-  percent: 95
+  completed_plans: 202
+  percent: 100
 ---
 
 # Project State
@@ -33,12 +33,36 @@ See: .planning/PROJECT.md (updated 2026-08-13)
 
 ## Current Position
 
-Phase: 156 (segment-domain-konsistenz-und-oeffentliche-release-projektion) — EXECUTING
-Plan: 10 of 11
-Status: 156-11 Task 1 (automatable scope) committed and green; Task 2 (checkpoint:human-verify)
-ausgefuehrt, Live-UAT durch den Auftraggeber ausstehend -- kein "verified"/"bestaetigt"-Claim,
-siehe deferred-items.md. Naechster Schritt bleibt 156-10.
-ROADMAP.md-Reihenfolge: 156-08/09 als naechstes (zentrale Segment-Credit-Semantik, Frontend-/Folgeplaene).
+Phase: 156 (segment-domain-konsistenz-und-oeffentliche-release-projektion) — ALLE 11 PLAENE
+AUSGEFUEHRT; automatisiert/funktional abgeschlossen, ABER NICHT vollstaendig abgenommen
+Plan: 11 von 11 (alle Plaene 156-01 bis 156-11 haben eine SUMMARY.md)
+Status: executing -- automatisierter Umfang abgeschlossen, ein Punkt offen (siehe unten)
+
+Ausfuehrlich: Phase 156 ist funktional und automatisiert abgeschlossen (voller
+Backend-/Frontend-Testlauf gruen, Migration 0161 im Rundlauf erneut verifiziert,
+Vorher/Nachher-Bericht vorliegend, sauberer Working Tree). Sie gilt AUSDRUECKLICH NICHT als
+vollstaendig verifiziert/abgenommen: ein einziger Punkt bleibt offen -- Plan 156-11 Task 2
+(`checkpoint:human-verify`, Live-UAT des Admin-Segment-Origin-Select-Controls) konnte in keiner
+Ausfuehrungsumgebung dieser Phase durchgefuehrt werden, da keine authentifizierte
+Platform-Admin-Browsersession verfuegbar war. Kein "verified"/"bestaetigt"-Claim fuer diesen Punkt
+-- siehe deferred-items.md. `P156-18` bleibt entsprechend NICHT per `requirements.mark-complete`
+abgehakt.
+
+Plan 156-10 (2026-09-11) abgeschlossen: voller Backend-Build/Vet/Testlauf erneut ausgefuehrt (DSN
+aus dem laufenden Backend-Container abgeleitet, nicht aus `.env`, dessen Passwort nicht zum
+Live-Container passt) -- `internal/handlers`/`internal/permissions` gruen, `internal/repository`
+meldet dieselben 49 vorbestehenden, phasenfremden Fehlschlaege wie in 156-05/06/07/09 dokumentiert
+(kein Phase-156-Test darunter, per gezieltem Namens-Filter bestaetigt). Migration 0161 wurde gegen
+die live `team4s_v2`-Datenbank einen Schritt zurueckgerollt und erneut angewendet -- Spalte/Index
+verschwinden und erscheinen sauber, der deterministische Backfill liefert vor/nach byte-identische
+Werte (`27/27/29`). Frontend: `tsc` sauber, voller Vitest-Lauf 298/299 Dateien (2305/2308 Tests)
+gruen, `ThemeTimeline` 23/23, ESLint 13 Errors/331 Warnings (identisch zur Phase-155-Baseline,
+ausserhalb dieser Phase). `docker compose build` fuer Frontend UND Backend erfolgreich. Der
+Vorher/Nachher-Abschlussbericht liegt unter `docs/audits/2026-09-11-segment-domain-consistency/`
+im etablierten 4-Datei-Format (REPORT/REPRODUCE/TABLES/VALIDATION). `156-VALIDATION.md`s
+Per-Task Verification Map ist vollstaendig aufgeloest -- jede Zeile gruen, AUSSER der P156-18-Zeile
+(`⚠️ PARTIAL`, siehe oben). `requirements.mark-complete P156-19` wurde ausgefuehrt. Details:
+156-10-SUMMARY.md.
 
 Plan 156-11 (2026-09-11) TEILWEISE abgeschlossen: Task 1 (Type-Feld
 `AdminThemeSegment.origin_release_version_id`, API-Client `setAnimeSegmentOrigin`, ein
@@ -713,6 +737,7 @@ Last activity: 2026-09-11
 - [Phase ?]: Constant-query-budget test for loadReleaseSegments opens a second traced pgxpool.Pool on the same schema as testsupport.OpenPhase117Postgres rather than modifying the shared fixture — Keeps the diff scoped to test files only, no risk to 12+ other tests sharing the fixture
 - [Phase ?]: hasAnySegmentRelevantRole (Plan 156-07) already existed as a directly-testable unexported function — No extraction needed for the table-driven role-filter unit test; calls real production logic
 - [Phase ?]: idx_theme_segments_origin_release_version index-plan evidence recorded honestly: live team4s_v2 theme_segments has only 3 rows, Postgres naturally chooses Seq Scan; SET enable_seqscan=off proves the index is well-formed via Index Only Scan — Both plans recorded, not just the favorable one, per no-speculation-index constraint
+- [Phase 156]: 156-10: Phase 156 wird als funktional/automatisiert abgeschlossen behandelt, NICHT als vollstaendig abgenommen -- Plan 156-11 Task 2s Live-UAT (Admin-Segment-Origin-Select) bleibt offen, siehe deferred-items.md
 
 ### Pending Todos
 
@@ -1097,11 +1122,12 @@ untruncated list lives in `.planning/todos/pending/`.
 | Phase 156 P07 | 46min | 2 tasks | 5 files |
 | Phase 156 P08 | 11min | 2 tasks | 6 files |
 | Phase 156 P09 | 25min | 2 tasks | 2 files |
+| Phase 156 P10 | 55min | 2 tasks | 5 files |
 
 ## Session Continuity
 
-Last session: 2026-09-11T22:13:49.718Z
-Stopped at: Completed 156-09-PLAN.md
+Last session: 2026-09-11T22:44:50.570Z
+Stopped at: 156-10-PLAN.md complete (automatable phase-closing scope); Phase 156 has ONE explicit open item (156-11 Task 2 live-UAT), see deferred-items.md -- not fully accepted
 Last activity: Local handoff checkpoint; no new Execute step, browser matrix, build, agent or push started after stop.
 Resume file: None
 Structured state: .planning/HANDOFF.json

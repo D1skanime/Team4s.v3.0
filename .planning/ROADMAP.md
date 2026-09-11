@@ -428,7 +428,7 @@ Milestone v1.4 closes Live-UAT Findings #29-#32 by making effective group rights
 - [x] **Phase 153: Public-Member-Profil: Speicherretention, Importgraph und SSR-Sichtbarkeit** - Die drei P1-Befunde der Messreihe vom 2026-09-09 sind geschlossen: die native Auto-Sizes-DOM-Retention, der Editor-Importzweig im oeffentlichen Graph und die Skeletons, die vorhandene SSR-Inhalte bis zur Hydration verdecken. (completed 2026-09-10)
 - [x] **Phase 154: Public-Member-Profil: Aggregator-Duplikate, Bildbudget und Viewer-Aufloesung** - Die verbliebenen P2-Befunde der Messreihe vom 2026-09-09 sind geschlossen: vier redundante Faktenabfragen im Profil-Aggregator, ungegatetes Locked-Artwork samt schwerem Original-Fallback und die zu breite Viewer-Aufloesung ohne durchgereichtes Abbruchsignal. Dazu zwei Nachmessungen, die erst nach der Graphverkleinerung moeglich sind. (completed 2026-09-10)
 - [x] **Phase 155: Public-Fansub-Projektseite: Read-Model, Drill-down-Navigation und Query-Budget** - Die oeffentliche Fansub-Projektseite laedt ueber einen gezielten Project Resolver, eine schlanke Contributor-Summary und entflochtene Release-Pfade, ohne doppelten Profil-Load und ohne Vollinventar-Abfragen; Member-Klicks fuehren kanonisch auf die Projekt-Member-Route. (completed 2026-09-11)
-- [ ] **Phase 156: Segment-Domain-Konsistenz und oeffentliche Release-Projektion** - `theme_segment_assignments` wird die kanonische Release-Segment-Wahrheit, Bereichsaenderungen und spaetere Releases halten die Assignments konsistent, Segment-Credits werden ueber stabile Rollen-Codes dynamisch aus einer korrigierbaren Segment-Origin projiziert, und Projekt- wie Release-Seite lesen dieselbe Wahrheit.
+- [x] **Phase 156: Segment-Domain-Konsistenz und oeffentliche Release-Projektion** - `theme_segment_assignments` wird die kanonische Release-Segment-Wahrheit, Bereichsaenderungen und spaetere Releases halten die Assignments konsistent, Segment-Credits werden ueber stabile Rollen-Codes dynamisch aus einer korrigierbaren Segment-Origin projiziert, und Projekt- wie Release-Seite lesen dieselbe Wahrheit. (automatisiert/funktional abgeschlossen 2026-09-11 -- NICHT vollstaendig abgenommen: ein Punkt bleibt offen, Plan 156-11 Task 2 Live-UAT des Admin-Segment-Origin-Selects, siehe deferred-items.md)
 
 ## Phase Details
 
@@ -1592,7 +1592,7 @@ ausdruecklich **kein** visuelles Redesign und kopiert keine Credits in Segmentta
 
 **Depends on:** Phase 155
 
-**Plans:** 9/11 plans executed
+**Plans:** 11/11 plans executed (each has a SUMMARY.md); 156-11 Task 2's live-UAT checkpoint remains explicitly open, see deferred-items.md -- phase is automatisiert/funktional abgeschlossen, NOT fully accepted
 
 Plans:
 
@@ -1611,7 +1611,7 @@ Plans:
 **Wave 3** *(blocked on Wave 2 completion)*
 
 - [x] 156-07-PLAN.md — Release-Seite: dynamische Origin-Credit-Projektion, Suppression entfernt, DECISIONS.md
-- [ ] 156-11-PLAN.md — Admin-UI: minimale Origin-Korrektur im Segment-Editor. **TEILWEISE** —
+- [x] 156-11-PLAN.md — Admin-UI: minimale Origin-Korrektur im Segment-Editor. **TEILWEISE** —
       Task 1 (Type/API/Select-Control) implementiert, committet (`d6edc718`), automatisiert
       gruen; Task 2 (`checkpoint:human-verify`) ausgefuehrt, Live-UAT durch den Auftraggeber
       ausstehend (keine Platform-Admin-Zugangsdaten in dieser Ausfuehrungsumgebung) — kein
@@ -1625,7 +1625,7 @@ Plans:
 
 **Wave 5** *(blocked on Wave 4 completion)*
 
-- [ ] 156-10-PLAN.md — Vollstaendige Testmatrix, Migrationsverifikation, Vorher/Nachher-Auditbericht
+- [x] 156-10-PLAN.md — Vollstaendige Testmatrix, Migrationsverifikation, Vorher/Nachher-Auditbericht
 
 **Plan-time read first**: `.planning/phases/156-segment-domain-konsistenz-und-oeffentliche-release-projektion/156-USER-REQUEST.md`,
 `156-CONTEXT.md`, `156-RESEARCH.md`, `156-PATTERNS.md`,
