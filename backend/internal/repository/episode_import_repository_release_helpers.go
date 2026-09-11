@@ -238,6 +238,15 @@ func upsertReleaseVersionGroup(
 	`, releaseVersionID, newIDs); err != nil {
 		return fmt.Errorf("reset release version groups version=%d: %w", releaseVersionID, err)
 	}
+
+	// Phase 156, Workstream B (P156-04): Episoden-Sortindex + normalisierte Version EINMAL
+	// aufloesen (nicht pro Gruppe), damit das nachfolgende Auto-Assign gebuendelt pro Gruppe
+	// laufen kann statt pro Segment. Siehe episode_import_repository_release_autoassign.go.
+	episodeSortIndex, normalizedVersion, err := resolveReleaseVersionEpisodeSortIndexAndVersion(ctx, tx, releaseVersionID)
+	if err != nil {
+		return err
+	}
+
 	for _, group := range memberGroups {
 		if _, err := tx.Exec(ctx, `
 			INSERT INTO release_version_groups (release_version_id, fansub_group_id)
@@ -245,6 +254,9 @@ func upsertReleaseVersionGroup(
 			ON CONFLICT (release_version_id, fansub_group_id) DO NOTHING
 		`, releaseVersionID, group.ID); err != nil {
 			return fmt.Errorf("upsert release version group version=%d group=%d: %w", releaseVersionID, group.ID, err)
+		}
+		if err := autoAssignThemeSegmentsForNewReleaseVersion(ctx, tx, releaseVersionID, group.ID, normalizedVersion, episodeSortIndex); err != nil {
+			return err
 		}
 	}
 
