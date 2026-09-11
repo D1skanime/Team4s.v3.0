@@ -601,9 +601,9 @@ bundled load.
 direct file:line reads performed during this research session (Read tool + grep against the live
 repository on `team4s-linux`), not training-data recall.
 
-## Open Questions
+## Open Questions (RESOLVED)
 
-1. **Exact shape of `AssignThemeSegmentToEpisodeRange`'s new return value(s)**
+1. **Exact shape of `AssignThemeSegmentToEpisodeRange`'s new return value(s)** — RESOLVED
    - What we know: it must keep returning "newly assigned IDs" (existing callers' render fan-out
      depends on this) and must additionally surface "removed IDs" (for render/playback-source
      cleanup) and "override-protected, excluded-from-deletion IDs" (for admin visibility per
@@ -616,8 +616,16 @@ repository on `team4s-linux`), not training-data recall.
      `SegmentAssignmentSyncResult{Added, Removed, ProtectedByOverride []int64}` struct) so every
      downstream task (handler reload condition, render-cache cleanup, admin UI messaging) references
      the same field names consistently.
+   - Resolution (Plan 156-02): a single struct return value was chosen,
+     `models.ThemeSegmentAssignmentSyncResult{Added, Removed, ProtectedByOverride []int64}`
+     (`backend/internal/models/admin_anime_themes.go`), replacing
+     `AssignThemeSegmentToEpisodeRange`'s old `([]int64, error)` signature with
+     `(*models.ThemeSegmentAssignmentSyncResult, error)`. Every downstream task (the handler reload
+     condition at both Create/Update call sites, the transactional render-cache/playback-source
+     cleanup for removed assignments, and the admin JSON response) consistently references these
+     three field names.
 
-2. **Where exactly does the admin segment editor surface "excluded from auto-removal"?**
+2. **Where exactly does the admin segment editor surface "excluded from auto-removal"?** — RESOLVED
    - What we know: CONTEXT.md requires it be "sichtbar gemeldet", and explicitly forbids a UI
      redesign.
    - What's unclear: whether this is a toast/banner on save, an inline badge on the existing
@@ -629,6 +637,14 @@ repository on `team4s-linux`), not training-data recall.
      and treat frontend surfacing of that list as tightly scoped to a minimal existing-component
      extension (e.g. reusing the existing `has_override` chip styling) rather than new UI — planner
      should confirm this reading during plan-checker review, not assume it silently.
+   - Resolution (Plan 156-02, Task 2): the minimal-safe interpretation was taken. The API response
+     is extended with a `range_sync` JSON field (`gin.H{"data": created, "range_sync": rangeSync}`,
+     serializing `ThemeSegmentAssignmentSyncResult` with its `added`/`removed`/`protected_by_override`
+     JSON keys) at both the Create (201) and Update (200) success paths in
+     `admin_content_anime_theme_segments.go`. Frontend surfacing of `protected_by_override` beyond
+     this API-level visibility is intentionally deferred to a later phase; this phase's obligation is
+     backend correctness and API-level "sichtbar gemeldet", not new frontend UI, per the explicit
+     no-redesign constraint.
 
 ## Environment Availability
 
