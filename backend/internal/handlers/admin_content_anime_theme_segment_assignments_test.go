@@ -47,7 +47,7 @@ func (f *fakeSegmentAssignmentThemeRepo) UnassignThemeSegmentFromReleaseVersion(
 	return nil
 }
 
-func (f *fakeSegmentAssignmentThemeRepo) AssignThemeSegmentToEpisodeRange(ctx context.Context, segmentID int64, animeID int64, fansubGroupID int64, version string, startEpisode int, endEpisode int) ([]int64, error) {
+func (f *fakeSegmentAssignmentThemeRepo) AssignThemeSegmentToEpisodeRange(ctx context.Context, segmentID int64, animeID int64, fansubGroupID int64, version string, startEpisode int, endEpisode int) (*models.ThemeSegmentAssignmentSyncResult, error) {
 	return nil, nil
 }
 

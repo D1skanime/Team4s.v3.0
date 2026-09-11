@@ -117,7 +117,7 @@ func (s *fansubReleaseThemeRepoStub) AssignThemeSegmentToReleaseVersion(ctx cont
 func (s *fansubReleaseThemeRepoStub) UnassignThemeSegmentFromReleaseVersion(ctx context.Context, segmentID int64, releaseVersionID int64) error {
 	return nil
 }
-func (s *fansubReleaseThemeRepoStub) AssignThemeSegmentToEpisodeRange(ctx context.Context, segmentID int64, animeID int64, fansubGroupID int64, version string, startEpisode int, endEpisode int) ([]int64, error) {
+func (s *fansubReleaseThemeRepoStub) AssignThemeSegmentToEpisodeRange(ctx context.Context, segmentID int64, animeID int64, fansubGroupID int64, version string, startEpisode int, endEpisode int) (*models.ThemeSegmentAssignmentSyncResult, error) {
 	return nil, nil
 }
 func (s *fansubReleaseThemeRepoStub) UpsertThemeSegmentEpisodeOverride(ctx context.Context, input models.AdminThemeSegmentEpisodeOverrideUpsertInput) (*models.AdminThemeSegmentEpisodeOverride, error) {

@@ -49,7 +49,7 @@ type rangeAutoAssignThemeRepo struct {
 	assignedIDs []int64 // ListThemeSegmentAssignments (nonOverriddenSegmentAssignments) -- leer haelt den bestehenden Basis-Zeit-Fan-out-Pfad trivial.
 
 	rangeCall   *rangeAutoAssignCall
-	rangeResult []int64
+	rangeResult *models.ThemeSegmentAssignmentSyncResult
 	rangeErr    error
 
 	getSegmentByIDCalls int
@@ -92,7 +92,7 @@ func (f *rangeAutoAssignThemeRepo) GetThemeSegmentEpisodeOverride(ctx context.Co
 	return nil, repository.ErrNotFound
 }
 
-func (f *rangeAutoAssignThemeRepo) AssignThemeSegmentToEpisodeRange(ctx context.Context, segmentID int64, animeID int64, fansubGroupID int64, version string, startEpisode int, endEpisode int) ([]int64, error) {
+func (f *rangeAutoAssignThemeRepo) AssignThemeSegmentToEpisodeRange(ctx context.Context, segmentID int64, animeID int64, fansubGroupID int64, version string, startEpisode int, endEpisode int) (*models.ThemeSegmentAssignmentSyncResult, error) {
 	f.rangeCall = &rangeAutoAssignCall{segmentID, animeID, fansubGroupID, version, startEpisode, endEpisode}
 	return f.rangeResult, f.rangeErr
 }
@@ -150,7 +150,7 @@ func TestCreateAnimeSegment_RangeAutoAssignsAllEpisodesInRange(t *testing.T) {
 			AssignedReleaseVersionIDs: []int64{201, 202, 203},
 			IsShared:                  true,
 		},
-		rangeResult: []int64{201, 202, 203},
+		rangeResult: &models.ThemeSegmentAssignmentSyncResult{Added: []int64{201, 202, 203}},
 	}
 	handler := &AdminContentHandler{
 		themeRepo:     stub,
@@ -210,7 +210,7 @@ func TestCreateAnimeSegment_RangeAutoAssignIdempotentSkipsReload(t *testing.T) {
 			FansubGroupID: &fansubGroupID,
 			Version:       "v1",
 		},
-		rangeResult: nil, // keine neuen Zuweisungen -- bereits alles zugewiesen
+		rangeResult: &models.ThemeSegmentAssignmentSyncResult{}, // keine neuen/entfernten Zuweisungen -- bereits alles zugewiesen
 	}
 	handler := &AdminContentHandler{
 		themeRepo:     stub,
@@ -298,7 +298,7 @@ func TestUpdateAnimeSegment_RangeAutoAssignUsesEffectivePatchedValues(t *testing
 			AssignedReleaseVersionIDs: []int64{481, 482, 483},
 			IsShared:                  true,
 		},
-		rangeResult: []int64{483}, // Folge 12 kam durch die Bereichserweiterung neu hinzu
+		rangeResult: &models.ThemeSegmentAssignmentSyncResult{Added: []int64{483}}, // Folge 12 kam durch die Bereichserweiterung neu hinzu
 	}
 	handler := &AdminContentHandler{
 		themeRepo:     stub,
@@ -339,4 +339,3 @@ func TestUpdateAnimeSegment_RangeAutoAssignUsesEffectivePatchedValues(t *testing
 		t.Fatalf("expected the reloaded segment with all 3 assignments in the response, got %+v", resp.Data)
 	}
 }
-

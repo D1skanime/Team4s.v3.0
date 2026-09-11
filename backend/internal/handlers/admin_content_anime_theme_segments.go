@@ -334,19 +334,24 @@ func (h *AdminContentHandler) CreateAnimeSegment(c *gin.Context) {
 	// Bereich zugewiesen wird -- kein separater Button. Fan-out/Zuweisungs-Fehler sind NICHT
 	// fatal fuer die Create-Response: das Segment wurde bereits erfolgreich angelegt, ein 500
 	// hier waere irrefuehrend und ein Retry wuerde ein Duplikat-Segment anlegen.
+	var rangeSync *models.ThemeSegmentAssignmentSyncResult
 	if created.FansubGroupID != nil && created.StartEpisode != nil && created.EndEpisode != nil {
-		newlyAssigned, rangeErr := h.themeRepo.AssignThemeSegmentToEpisodeRange(
+		var rangeErr error
+		rangeSync, rangeErr = h.themeRepo.AssignThemeSegmentToEpisodeRange(
 			c.Request.Context(), created.ID, animeID, *created.FansubGroupID, created.Version, *created.StartEpisode, *created.EndEpisode,
 		)
 		if rangeErr != nil {
 			log.Printf("admin anime segment create: range auto-assign segment_id=%d anime_id=%d: %v", created.ID, animeID, rangeErr)
-		} else if len(newlyAssigned) > 0 {
-			if fanOutErr := h.resetAndQueueSegmentRenderForAssignments(c.Request.Context(), created.ID, newlyAssigned, nil, false); fanOutErr != nil {
+		} else if rangeSync != nil && (len(rangeSync.Added) > 0 || len(rangeSync.Removed) > 0) {
+			if fanOutErr := h.resetAndQueueSegmentRenderForAssignments(c.Request.Context(), created.ID, rangeSync.Added, nil, false); fanOutErr != nil {
 				log.Printf("admin anime segment create: range auto-assign fan-out segment_id=%d: %v", created.ID, fanOutErr)
 			}
 			// created neu laden, sonst fehlen assigned_release_version_ids/is_shared in der
 			// Response -- das Frontend zeigt sonst die frischen Zuweisungs-Chips nicht (create()
-			// im Frontend-Hook ruft nach dem Save kein load() auf, anders als update()).
+			// im Frontend-Hook ruft nach dem Save kein load() auf, anders als update()). Ein
+			// Bereichs-Shrink (nur Removed > 0) muss den Reload GENAUSO ausloesen wie ein Grow,
+			// sonst zeigt die Response veraltete assigned_release_version_ids (156-RESEARCH.md
+			// Pitfall A-1).
 			if reloaded, reloadErr := h.themeRepo.GetAnimeSegmentByID(c.Request.Context(), animeID, created.ID, releaseVariantID); reloadErr == nil {
 				created = reloaded
 			} else {
@@ -355,7 +360,7 @@ func (h *AdminContentHandler) CreateAnimeSegment(c *gin.Context) {
 		}
 	}
 
-	c.JSON(http.StatusCreated, gin.H{"data": created})
+	c.JSON(http.StatusCreated, gin.H{"data": created, "range_sync": rangeSync})
 }
 
 // UpdateAnimeSegment verarbeitet PATCH /api/v1/admin/anime/:id/segments/:segmentId
@@ -548,16 +553,21 @@ func (h *AdminContentHandler) UpdateAnimeSegment(c *gin.Context) {
 	// stilles Loeschen von ggf. bereits ueberschriebenen Zuweisungen; manuelles Entfernen bleibt ueber
 	// die bestehende Unassign-Aktion moeglich). Fan-out/Zuweisungs-Fehler sind NICHT fatal fuer die
 	// Update-Response, gleiches Non-Fatal-Handling wie beim Create-Pfad.
+	var rangeSync *models.ThemeSegmentAssignmentSyncResult
 	if updatedSegment.FansubGroupID != nil && updatedSegment.StartEpisode != nil && updatedSegment.EndEpisode != nil {
-		newlyAssigned, rangeErr := h.themeRepo.AssignThemeSegmentToEpisodeRange(
+		var rangeErr error
+		rangeSync, rangeErr = h.themeRepo.AssignThemeSegmentToEpisodeRange(
 			c.Request.Context(), updatedSegment.ID, animeID, *updatedSegment.FansubGroupID, updatedSegment.Version, *updatedSegment.StartEpisode, *updatedSegment.EndEpisode,
 		)
 		if rangeErr != nil {
 			log.Printf("admin anime segment update: range auto-assign segment_id=%d anime_id=%d: %v", updatedSegment.ID, animeID, rangeErr)
-		} else if len(newlyAssigned) > 0 {
-			if fanOutErr := h.resetAndQueueSegmentRenderForAssignments(c.Request.Context(), updatedSegment.ID, newlyAssigned, nil, false); fanOutErr != nil {
+		} else if rangeSync != nil && (len(rangeSync.Added) > 0 || len(rangeSync.Removed) > 0) {
+			if fanOutErr := h.resetAndQueueSegmentRenderForAssignments(c.Request.Context(), updatedSegment.ID, rangeSync.Added, nil, false); fanOutErr != nil {
 				log.Printf("admin anime segment update: range auto-assign fan-out segment_id=%d: %v", updatedSegment.ID, fanOutErr)
 			}
+			// Ein Bereichs-Shrink (nur Removed > 0) muss den Reload GENAUSO ausloesen wie ein
+			// Grow, sonst zeigt die Response veraltete assigned_release_version_ids
+			// (156-RESEARCH.md Pitfall A-1).
 			if reloaded, reloadErr := h.themeRepo.GetAnimeSegmentByID(c.Request.Context(), animeID, updatedSegment.ID, releaseVariantID); reloadErr == nil {
 				updatedSegment = reloaded
 			} else {
@@ -567,7 +577,7 @@ func (h *AdminContentHandler) UpdateAnimeSegment(c *gin.Context) {
 	}
 
 	// Return the fully hydrated segment so the frontend immediately receives updated playback_* fields.
-	c.JSON(http.StatusOK, gin.H{"data": updatedSegment})
+	c.JSON(http.StatusOK, gin.H{"data": updatedSegment, "range_sync": rangeSync})
 }
 
 // DeleteAnimeSegment verarbeitet DELETE /api/v1/admin/anime/:id/segments/:segmentId.

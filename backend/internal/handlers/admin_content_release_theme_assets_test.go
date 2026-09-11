@@ -109,7 +109,7 @@ func (s *releaseThemeAssetRepoStub) AssignThemeSegmentToReleaseVersion(context.C
 func (s *releaseThemeAssetRepoStub) UnassignThemeSegmentFromReleaseVersion(context.Context, int64, int64) error {
 	return nil
 }
-func (s *releaseThemeAssetRepoStub) AssignThemeSegmentToEpisodeRange(context.Context, int64, int64, int64, string, int, int) ([]int64, error) {
+func (s *releaseThemeAssetRepoStub) AssignThemeSegmentToEpisodeRange(context.Context, int64, int64, int64, string, int, int) (*models.ThemeSegmentAssignmentSyncResult, error) {
 	return nil, nil
 }
 func (s *releaseThemeAssetRepoStub) UpsertThemeSegmentEpisodeOverride(context.Context, models.AdminThemeSegmentEpisodeOverrideUpsertInput) (*models.AdminThemeSegmentEpisodeOverride, error) {
