@@ -166,6 +166,30 @@ export interface PublicFansubProject {
   banner_url?: string | null;
 }
 
+// FansubProjectNavigationEntry (Plan 155-01) is the narrow sibling-project
+// projection the resolver returns for Previous/Next-style navigation. It is
+// intentionally NOT PublicFansubProject -- only the three fields
+// buildFansubProjectNavigation's comparator reads.
+export interface FansubProjectNavigationEntry {
+  id: number;
+  title: string;
+  anime_slug: string;
+}
+
+// FansubProjectResolution (Plan 155-01) is the narrow identity a pretty route
+// needs to resolve groupSlug+animeSlug without loading the full public
+// fansub profile.
+export interface FansubProjectResolution {
+  group_id: number;
+  anime_id: number;
+  anime_slug: string;
+  projects: FansubProjectNavigationEntry[];
+}
+
+export interface FansubProjectResolutionResponse {
+  data: FansubProjectResolution;
+}
+
 export interface PublicFansubHistory {
   id: number;
   year?: number | null;

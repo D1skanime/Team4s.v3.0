@@ -159,6 +159,7 @@ import {
   ReplaceReleaseCrewRequest,
   ReplaceReleaseCrewResponse,
   FansubGroupRoleItem,
+  FansubProjectResolutionResponse,
 } from "@/types/fansub";
 import {
   PaginatedWatchlistResponse,
@@ -1784,6 +1785,41 @@ export async function getPublicFansubProfileBySlug(
   }
 
   return response.json() as Promise<PublicFansubProfileResponse>;
+}
+
+// resolveFansubProject (Plan 155-01) resolves groupSlug+animeSlug to the
+// project's narrow numeric identity plus a bounded sibling-project
+// navigation list, WITHOUT loading the full public fansub profile. No
+// frontend page calls this yet -- that wiring is 155-06's job.
+export async function resolveFansubProject(
+  groupSlug: string,
+  animeSlug: string,
+): Promise<FansubProjectResolutionResponse> {
+  const API_BASE_URL = getApiBaseUrl();
+  const encodedGroupSlug = encodeURIComponent(groupSlug);
+  const encodedAnimeSlug = encodeURIComponent(animeSlug);
+  const response = await authorizedFetch(
+    `${API_BASE_URL}/api/v1/fansub-slugs/${encodedGroupSlug}/projects/${encodedAnimeSlug}/resolve`,
+    {
+      cache: "no-store",
+    },
+  );
+
+  if (!response.ok) {
+    const parsed = await parseApiErrorPayload(
+      response,
+      `API request failed: ${response.status}`,
+    );
+    throw new ApiError(
+      response.status,
+      parsed.message,
+      null,
+      parsed.code,
+      parsed.details,
+    );
+  }
+
+  return response.json() as Promise<FansubProjectResolutionResponse>;
 }
 
 export async function getFansubMembers(

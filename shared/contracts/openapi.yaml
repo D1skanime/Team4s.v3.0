@@ -3362,6 +3362,49 @@ paths:
             application/json:
               schema:
                 $ref: "#/components/schemas/ErrorResponse"
+  /api/v1/fansub-slugs/{slug}/projects/{animeSlug}/resolve:
+    get:
+      tags: [Fansubs]
+      summary: Resolve a fansub project's numeric identity from groupSlug+animeSlug
+      operationId: resolveFansubProject
+      parameters:
+        - name: slug
+          in: path
+          required: true
+          schema:
+            type: string
+            minLength: 1
+            maxLength: 120
+        - name: animeSlug
+          in: path
+          required: true
+          schema:
+            type: string
+            minLength: 1
+            maxLength: 120
+      responses:
+        "200":
+          description: Resolved fansub project identity plus a bounded sibling-project navigation list
+          content:
+            application/json:
+              schema:
+                type: object
+                required: [data]
+                properties:
+                  data:
+                    $ref: "#/components/schemas/FansubProjectResolution"
+        "400":
+          description: Invalid groupSlug or animeSlug
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+        "404":
+          description: Unknown groupSlug, or animeSlug not found within that group
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
   /api/v1/fansubs/{id}/aliases:
     get:
       tags: [Fansubs]
@@ -12917,6 +12960,33 @@ components:
         banner_url:
           type: string
           nullable: true
+    FansubProjectNavigationEntry:
+      type: object
+      required: [id, title, anime_slug]
+      properties:
+        id:
+          type: integer
+          format: int64
+        title:
+          type: string
+        anime_slug:
+          type: string
+    FansubProjectResolution:
+      type: object
+      required: [group_id, anime_id, anime_slug, projects]
+      properties:
+        group_id:
+          type: integer
+          format: int64
+        anime_id:
+          type: integer
+          format: int64
+        anime_slug:
+          type: string
+        projects:
+          type: array
+          items:
+            $ref: "#/components/schemas/FansubProjectNavigationEntry"
     PublicFansubHistory:
       type: object
       required: [id, event_type, status]
