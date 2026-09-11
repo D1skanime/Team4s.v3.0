@@ -16,7 +16,6 @@ import (
 	"context"
 	"errors"
 	"fmt"
-	"strings"
 
 	"github.com/jackc/pgx/v5"
 )
@@ -81,45 +80,48 @@ func (r *ReleaseDetailPublicRepository) countImagesByCategory(ctx context.Contex
 	return out, err
 }
 
-// loadReleaseSegments liefert die oeffentlich sichtbaren Kara-Segmente einer
-// Release-Version, ueber theme_segment_assignments statt (wie zuvor) direkt ueber
-// theme_segment_playback_sources — ein geteiltes Kara kann seit Plan 117-01 mehrere
-// Zuweisungen (eine je Release-Version) haben, die konkrete Playback-Quelle bleibt
-// ueber den zusaetzlichen LEFT JOIN auf theme_segment_playback_sources fuer das
-// Readiness-Feld erreichbar. Nach dem Laden unterdrueckt loadReleaseSegments
-// (D-02/UI-SPEC Surface 3) jedes Segment, dessen theme_segment_id bereits auf der
-// Vorfolge (loadAdjacentReleases) zugewiesen war — ein reiner Zeit-Offset (D-01)
-// ohne echten Segment-Wechsel erzeugt so keinen erneuten Timeline-Eintrag. Fehlt die
-// Vorfolge (Anime-Anfang, Luecke in der Episodennummerierung), gilt die aktuelle
-// Folge automatisch als Span-Start, es wird nicht gefiltert.
+// loadReleaseSegments liefert JEDES tatsaechlich zugewiesene Segment einer
+// Release-Version (theme_segment_assignments) -- seit der DECISIONS.md-Entscheidung
+// vom 2026-09-11 ("Release detail page stops suppressing already-visible segments,
+// supersedes Phase 117 D-02") gibt es auf dieser Seite keine Entdopplung mehr: ein
+// geteiltes Segment erscheint auf jeder Folge, der es zugewiesen ist, nicht nur auf
+// seiner Span-Start-Folge. AppliesThroughEpisode (applyAppliesThroughEpisode) bleibt
+// das reine Anzeige-Feld fuer die Reichweite ("gilt auch fuer Folge X-Y"). Die
+// Entdopplungsfrage selbst beantwortet seit Plan 156-06 die Projektseiten-Timeline
+// (attachReleaseTimelineSegments), nicht mehr diese Release-Seite.
+//
+// Credits (Participants) kommen dynamisch von der ORIGIN-Release-Version jedes
+// Segments (ts.origin_release_version_id, Plan 156-01/156-04), gefiltert auf
+// permissions.SegmentCreditRoleCodes (P156-07/P156-08/P156-09) -- NICHT mehr von den
+// eigenen Beteiligten der betrachteten Release-Version per Label-Substring-Heuristik.
+// Der contributors-Parameter bleibt aus Kompatibilitaetsgruenden im Signaturprofil
+// erhalten (siehe GetPublicReleaseDetail-Aufrufstelle), wird in dieser Funktion aber
+// nicht mehr gelesen.
 func (r *ReleaseDetailPublicRepository) loadReleaseSegments(ctx context.Context, animeID, groupID, releaseVersionID int64, version, episodeNumber string, contributors []PublicReleaseContributor) ([]PublicReleaseSegment, error) {
-	rows, err := r.db.Query(ctx, `SELECT ts.id, COALESCE(NULLIF(TRIM(t.title),''),tt.name), tt.name, EXTRACT(EPOCH FROM ts.start_time)::int, EXTRACT(EPOCH FROM ts.end_time)::int, CASE WHEN ts.start_time IS NOT NULL AND ts.end_time IS NOT NULL THEN EXTRACT(EPOCH FROM (ts.end_time-ts.start_time))::int END, CASE WHEN cache.status='ready' THEN 'ready' ELSE 'unavailable' END FROM theme_segment_assignments tsa JOIN theme_segments ts ON ts.id=tsa.theme_segment_id JOIN themes t ON t.id=ts.theme_id JOIN theme_types tt ON tt.id=t.theme_type_id LEFT JOIN theme_segment_playback_sources src ON src.theme_segment_id=ts.id AND src.release_version_id=tsa.release_version_id LEFT JOIN LATERAL (SELECT status FROM theme_segment_render_cache WHERE theme_segment_id=ts.id ORDER BY id DESC LIMIT 1) cache ON TRUE WHERE tsa.release_version_id=$1 ORDER BY ts.start_time NULLS LAST,ts.id`, releaseVersionID)
+	rows, err := r.db.Query(ctx, `SELECT ts.id, COALESCE(NULLIF(TRIM(t.title),''),tt.name), tt.name, ts.origin_release_version_id, EXTRACT(EPOCH FROM ts.start_time)::int, EXTRACT(EPOCH FROM ts.end_time)::int, CASE WHEN ts.start_time IS NOT NULL AND ts.end_time IS NOT NULL THEN EXTRACT(EPOCH FROM (ts.end_time-ts.start_time))::int END, CASE WHEN cache.status='ready' THEN 'ready' ELSE 'unavailable' END FROM theme_segment_assignments tsa JOIN theme_segments ts ON ts.id=tsa.theme_segment_id JOIN themes t ON t.id=ts.theme_id JOIN theme_types tt ON tt.id=t.theme_type_id LEFT JOIN theme_segment_playback_sources src ON src.theme_segment_id=ts.id AND src.release_version_id=tsa.release_version_id LEFT JOIN LATERAL (SELECT status FROM theme_segment_render_cache WHERE theme_segment_id=ts.id ORDER BY id DESC LIMIT 1) cache ON TRUE WHERE tsa.release_version_id=$1 ORDER BY ts.start_time NULLS LAST,ts.id`, releaseVersionID)
 	if err != nil {
 		return nil, fmt.Errorf("release detail: load segments: %w", err)
 	}
 	defer rows.Close()
+
 	items := make([]PublicReleaseSegment, 0)
-	karaParticipants := make([]PublicReleaseContributor, 0)
-	for _, c := range contributors {
-		label := strings.ToLower(c.RoleLabel)
-		if strings.Contains(label, "kara") || strings.Contains(label, "typeset") {
-			karaParticipants = append(karaParticipants, c)
-		}
-	}
+	origins := make([]*int64, 0)
 	for rows.Next() {
 		var item PublicReleaseSegment
-		if err := rows.Scan(&item.ThemeSegmentID, &item.Name, &item.Type, &item.StartSeconds, &item.EndSeconds, &item.DurationSeconds, &item.Readiness); err != nil {
+		var rawTypeName string
+		var originReleaseVersionID *int64
+		if err := rows.Scan(&item.ThemeSegmentID, &item.Name, &rawTypeName, &originReleaseVersionID, &item.StartSeconds, &item.EndSeconds, &item.DurationSeconds, &item.Readiness); err != nil {
 			return nil, err
 		}
-		item.Participants = karaParticipants
+		item.Type = CanonicalSegmentType(rawTypeName)
 		items = append(items, item)
+		origins = append(origins, originReleaseVersionID)
 	}
 	if err := rows.Err(); err != nil {
 		return nil, err
 	}
 
-	items, err = r.suppressSegmentsAlreadyVisibleOnPreviousEpisode(ctx, items, animeID, groupID, releaseVersionID, version)
-	if err != nil {
+	if err := r.applySegmentOriginCredits(ctx, items, origins); err != nil {
 		return nil, err
 	}
 
@@ -130,60 +132,16 @@ func (r *ReleaseDetailPublicRepository) loadReleaseSegments(ctx context.Context,
 	return items, nil
 }
 
-// suppressSegmentsAlreadyVisibleOnPreviousEpisode entfernt jedes Segment aus items,
-// dessen theme_segment_id bereits der direkten Vorfolge (loadAdjacentReleases)
-// zugewiesen war (D-02). Ist prev == nil (keine Vorfolge oder Luecke), wird nicht
-// gefiltert — die aktuelle Folge gilt automatisch als Span-Start.
-func (r *ReleaseDetailPublicRepository) suppressSegmentsAlreadyVisibleOnPreviousEpisode(ctx context.Context, items []PublicReleaseSegment, animeID, groupID, releaseVersionID int64, version string) ([]PublicReleaseSegment, error) {
-	if len(items) == 0 {
-		return items, nil
-	}
-	prev, _, err := r.loadAdjacentReleases(ctx, animeID, groupID, releaseVersionID, version)
-	if err != nil {
-		return nil, err
-	}
-	if prev == nil {
-		return items, nil
-	}
-
-	rows, err := r.db.Query(ctx, `SELECT theme_segment_id FROM theme_segment_assignments WHERE release_version_id=$1`, prev.ReleaseVersionID)
-	if err != nil {
-		return nil, fmt.Errorf("release detail: load previous episode segment assignments: %w", err)
-	}
-	defer rows.Close()
-	assignedOnPrevious := make(map[int64]bool)
-	for rows.Next() {
-		var themeSegmentID int64
-		if err := rows.Scan(&themeSegmentID); err != nil {
-			return nil, err
-		}
-		assignedOnPrevious[themeSegmentID] = true
-	}
-	if err := rows.Err(); err != nil {
-		return nil, err
-	}
-	if len(assignedOnPrevious) == 0 {
-		return items, nil
-	}
-
-	filtered := make([]PublicReleaseSegment, 0, len(items))
-	for _, item := range items {
-		if assignedOnPrevious[item.ThemeSegmentID] {
-			continue
-		}
-		filtered = append(filtered, item)
-	}
-	return filtered, nil
-}
-
-// applyAppliesThroughEpisode befuellt AppliesThroughEpisode fuer jedes verbliebene
-// (also sichtbare, nicht unterdrueckte) Segment mit der hoechsten Episodennummer
-// aller seiner Zuweisungen (theme_segment_assignments) -- gleiches Join-Muster wie
+// applyAppliesThroughEpisode befuellt AppliesThroughEpisode fuer jedes zurueckgegebene
+// Segment mit der hoechsten Episodennummer aller seiner Zuweisungen
+// (theme_segment_assignments) -- gleiches Join-Muster wie
 // hydrateSegmentAssignmentMetadataList (theme_segment_playback_resolution.go,
 // release_versions -> fansub_releases -> episodes) -- sofern es mehr als eine
 // Zuweisung hat und diese hoechste Episodennummer von der aktuellen Folge abweicht
 // (UI-SPEC Surface 3, „Gilt auch fuer Folge {von}-{bis}"-Badge). Reines
-// Anzeige-Feld, aendert die Entdopplungslogik selbst nicht.
+// Anzeige-Feld -- seit dem 2026-09-11-Supersession-Entscheid (DECISIONS.md) die
+// EINZIGE Reichweiten-Information auf dieser Seite, da keine Entdopplung mehr
+// stattfindet.
 func (r *ReleaseDetailPublicRepository) applyAppliesThroughEpisode(ctx context.Context, items []PublicReleaseSegment, episodeNumber string) error {
 	if len(items) == 0 {
 		return nil
