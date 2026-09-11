@@ -3,14 +3,14 @@ gsd_state_version: 1.0
 milestone: v1.4
 milestone_name: Coverage
 status: executing
-stopped_at: Completed 155-07-PLAN.md (Phase 155 complete, 7/7 plans, ready for verification)
-last_updated: "2026-09-11T20:09:27.644Z"
+stopped_at: Completed 156-02-PLAN.md
+last_updated: "2026-09-11T20:33:28.194Z"
 last_activity: 2026-09-11
 progress:
   total_phases: 21
   completed_phases: 20
   total_plans: 202
-  completed_plans: 192
+  completed_plans: 193
   percent: 95
 ---
 
@@ -34,8 +34,27 @@ See: .planning/PROJECT.md (updated 2026-08-13)
 ## Current Position
 
 Phase: 156 (segment-domain-konsistenz-und-oeffentliche-release-projektion) — EXECUTING
-Plan: 2 of 11
-Status: Plan 156-01 complete (migration 0161 + SegmentCreditRoleCodes), ready to execute 156-02
+Plan: 3 of 11
+Status: Plan 156-02 complete (Soll-Ist-Synchronisation fuer AssignThemeSegmentToEpisodeRange), ready to execute 156-03
+
+Plan 156-02 (2026-09-11) abgeschlossen: `AssignThemeSegmentToEpisodeRange` ist jetzt eine
+Soll-Ist-Synchronisation (insert-missing/delete-excess) statt rein additiv --
+`models.ThemeSegmentAssignmentSyncResult{Added, Removed, ProtectedByOverride}` ist der neue
+Rueckgabewert. Der Guard gegen unvollstaendige Bereiche (segmentID/animeID/fansubGroupID<=0 oder
+startEpisode/endEpisode<=0) bleibt unveraendert als erste Anweisung erhalten und hat zwei
+unabhaengige, namentlich benannte Regressionstests (kein DB-Zugriff UND ein echter
+Postgres-Lauf mit bestehenden Zuweisungen, der beweist, dass NULL Zeilen geloescht werden).
+Bereichsverkuerzung, -erweiterung, Override-Schutz und Cross-Domain-Sicherheit sind je ein
+eigener benannter Subtest. Beide Admin-Handler (Create/Update) laden jetzt bei
+`Added>0 ODER Removed>0` neu (vorher nur bei Added>0) und liefern ein neues `range_sync`-Feld
+in der JSON-Antwort. Zwei Abweichungen: drei zusaetzliche `adminThemeRepository`-Stub-Dateien
+(nicht im Plan gelistet) mussten fuer die neue Signatur angepasst werden (Rule 3, blockierender
+Kompilierfehler), und die wachsende Integrationstestdatei wurde in zwei Dateien gesplittet, um
+unter dem 450-Zeilen-Limit zu bleiben (Rule 2/CLAUDE.md-Modularitaet). Ein vorbestehender,
+nicht durch diesen Plan verursachter Befund ist dokumentiert: eine Test-Reihenfolge-Abhaengigkeit
+laesst vier RangeAutoAssign-Handlertests bei isoliertem `-run`-Filter mit 403 fehlschlagen,
+obwohl sie im vollen Paket-Lauf gruen sind -- reproduziert identisch auf dem Pre-Plan-Baseline-
+Commit (`4fa8da5c`), siehe `deferred-items.md`. Details: 156-02-SUMMARY.md.
 
 Plan 156-01 (2026-09-11) abgeschlossen: Migration 0161 fuegt die nullable, korrigierbare
 `theme_segments.origin_release_version_id`-Spalte (FK auf `release_versions`, `ON DELETE SET
@@ -501,6 +520,7 @@ Last activity: 2026-09-11
 - [Phase 155]: Closed the phase-crossing REQUIREMENTS.md gap flagged by five of the six prior 155-0X plans by adding a Phase 155 additive-scope section (all 15 P155-* requirements) as the phase's closing plan, mirroring Phase 152's format. — Five of six prior plan SUMMARY.md files explicitly deferred this to the phase-level verifier/closeout rather than inventing a section format mid-phase; the closing plan is the correct place to resolve it once all evidence exists.
 - [Phase 156]: 156-01: origin_release_version_id uses ON DELETE SET NULL (not CASCADE) -- origin is correctable, never destructive
 - [Phase 156]: 156-01: SegmentCreditRoleCodes lives in backend/internal/permissions, not repository/handler/frontend -- single central definition
+- [Phase 156]: AssignThemeSegmentToEpisodeRange ist jetzt eine Soll-Ist-Synchronisation (insert-missing/delete-excess), nicht mehr additiv — Bereichsverkuerzung muss veraltete Zuweisungen entfernen koennen; der Guard gegen unvollstaendige Bereiche bleibt verbatim und hat einen eigenen dedizierten Postgres-Test
 
 ### Pending Todos
 
@@ -877,11 +897,12 @@ untruncated list lives in `.planning/todos/pending/`.
 | Phase 155 P06 | 22min | 3 tasks | 7 files |
 | Phase 155 P07 | 55min | 3 tasks | 6 files |
 | Phase 156 P01 | 8min | 2 tasks | 4 files |
+| Phase 156 P02 | 22min | 2 tasks | 9 files |
 
 ## Session Continuity
 
-Last session: 2026-09-11T20:08:44.576Z
-Stopped at: Completed 155-07-PLAN.md (Phase 155 complete, 7/7 plans, ready for verification)
+Last session: 2026-09-11T20:33:28.177Z
+Stopped at: Completed 156-02-PLAN.md
 Last activity: Local handoff checkpoint; no new Execute step, browser matrix, build, agent or push started after stop.
 Resume file: None
 Structured state: .planning/HANDOFF.json
