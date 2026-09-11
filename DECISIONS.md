@@ -865,3 +865,57 @@ All 107 pre-Phase151 source PNGs remain byte-for-byte preserved.
 See `docs/frontend/member-achievement-artwork.md` for the extension/check workflow and the
 Phase-151 evidence directory for the outstanding native-alpha artwork gate. This decision
 does not declare Phase 151 complete.
+
+## 2026-09-11 — Release detail page stops suppressing already-visible segments (supersedes Phase 117 D-02)
+
+### Decision
+For the release-detail page (`GetPublicReleaseDetail` -> `loadReleaseSegments`,
+`backend/internal/repository/release_detail_public_repository_helpers.go`),
+`suppressSegmentsAlreadyVisibleOnPreviousEpisode` (Phase 117, D-02) is deleted. A
+release version now shows every segment actually assigned to it via
+`theme_segment_assignments`, labeled with its range via the unchanged
+`applyAppliesThroughEpisode` ("verwendet seit Folge X" / "gilt bis Folge Y"). This
+supersedes Phase 117's D-02 decision **for the release-detail surface only** — D-02's
+original decision entry is not deleted, it remains valid history for the surface it
+was written for at the time; it is superseded here specifically for the release page.
+
+### Context
+D-02 (Phase 117) suppressed a shared segment on a later episode whenever it had
+already been visible on the direct previous episode with no real change, to avoid a
+duplicate-looking timeline entry. Phase 156's `156-CONTEXT.md` (Auftragsabschnitt 7)
+requires the opposite for this surface: a release page for Episode 5 must still show a
+segment that has been in use since Episode 1 — because a release page answers "what
+does THIS release actually contain", not "when did this first appear". The
+first-occurrence/deduplication question D-02 used to answer on this surface has been
+relocated to the fansub project page (`attachReleaseTimelineSegments`,
+`group_repository_cursor_timeline.go`, Plan 156-06 of Phase 156), which now performs
+the equivalent first-occurrence filtering itself. The project page and the release
+page can therefore answer two different questions without one page hiding information
+the other page needs.
+
+### Why This Won
+`156-CONTEXT.md`'s Auftragsabschnitt 7 explicitly states that a release page for
+Episode 5 must still show a segment used since Episode 1 — the exact case D-02's
+suppression logic was built to hide. Since Plan 156-06 already gives the project page
+its own, independent first-occurrence filter, keeping D-02's suppression on the
+release page as well would have meant the two pages disagreed about which surface
+owns "first occurrence", with the release page silently dropping content the user
+explicitly asked to see on this exact release version.
+
+### Consequences
+- `suppressSegmentsAlreadyVisibleOnPreviousEpisode` no longer exists in
+  `release_detail_public_repository_helpers.go`; its test coverage
+  (`release_detail_public_segments_integration_test.go`) was updated in the same plan
+  (156-07) to assert the release page now shows a shared segment on every release
+  version it is assigned to, not just its span-start version.
+- `loadAdjacentReleases` is unaffected and keeps its remaining caller
+  (Previous/Next navigation in `GetPublicReleaseDetail`).
+- Segment credits on this same code path were, in the same plan, additionally
+  rewritten to project dynamically from each segment's ORIGIN release version's
+  current contributors (filtered by `permissions.SegmentCreditRoleCodes`), replacing
+  a label-substring heuristic — an independent change bundled into the same rewrite
+  because both touch `loadReleaseSegments` and its callers.
+
+### Follow-ups Required
+None (self-contained; the project page's own first-occurrence filter was already
+delivered by the preceding Plan 156-06).

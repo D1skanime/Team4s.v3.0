@@ -1,13 +1,21 @@
 package repository
 
 // TestReleaseDetailPublicSegments beweist gegen eine echte, isolierte Postgres-
-// Instanz die serverseitige Entdopplung (D-02, Plan 117-08 UI-SPEC Surface 3):
-//   - ein geteiltes Kara erscheint nur auf der Span-Start-Folge, nicht erneut auf
-//     einer Folgeepisode, der dasselbe theme_segment_id bereits auf der Vorfolge
-//     zugewiesen war
-//   - ein echter Segment-Wechsel (andere theme_segment_id) wird NICHT unterdrueckt
-//   - fehlt die Vorfolge (Anime-Anfang), gilt die aktuelle Folge automatisch als
-//     Span-Start
+// Instanz, dass die Release-Detailseite seit dem DECISIONS.md-Eintrag vom
+// 2026-09-11 ("Release detail page stops suppressing already-visible segments,
+// supersedes Phase 117 D-02") KEINE Entdopplung mehr vornimmt:
+//   - ein geteiltes Segment (dieselbe theme_segment_id) erscheint auf JEDER
+//     Release-Version, der es zugewiesen ist -- auch auf einer Folgeepisode, die
+//     nur einen reinen Zeit-Offset gegenueber der Vorfolge darstellt (vormals D-02)
+//   - ein echter Segment-Wechsel (andere theme_segment_id) wurde nie unterdrueckt
+//     und bleibt es auch nach der Aenderung
+//   - fehlt die Vorfolge (Anime-Anfang), traegt das Segment trotzdem seine korrekte
+//     Span-Reichweite (AppliesThroughEpisode, reines Anzeige-Feld, unveraendert von
+//     applyAppliesThroughEpisode)
+//
+// Die Entdopplungs-/Erstauftritts-Frage, die D-02 auf dieser Seite frueher
+// beantwortet hat, beantwortet seit Plan 156-06 stattdessen die Projektseiten-
+// Timeline (attachReleaseTimelineSegments, group_repository_cursor_timeline.go).
 //
 // Package repository (nicht repository_test), analog zu
 // theme_segment_assignments_integration_test.go -- dieser Test importiert keine
@@ -90,19 +98,21 @@ func TestReleaseDetailPublicSegments(t *testing.T) {
 	`, themeSegmentXID, themeSegmentYID, releaseVersionA, releaseVersionB, releaseVersionC)
 	require.NoError(t, err)
 
-	t.Run("span-start Folge (keine Vorfolge) zeigt das Segment und traegt die Span-Reichweite", func(t *testing.T) {
+	t.Run("Folge ohne Vorfolge zeigt das Segment und traegt die Span-Reichweite", func(t *testing.T) {
 		segments, err := repo.loadReleaseSegments(ctx, animeID, fansubGroupID, releaseVersionA, "v1", "1", nil)
 		require.NoError(t, err)
-		require.Len(t, segments, 1, "Release-Version A ist der Anime-Anfang (keine Vorfolge) -- Segment X muss trotzdem angezeigt werden")
+		require.Len(t, segments, 1, "Release-Version A ist der Anime-Anfang (keine Vorfolge) -- Segment X muss angezeigt werden")
 		require.Equal(t, themeSegmentXID, segments[0].ThemeSegmentID)
 		require.NotNil(t, segments[0].AppliesThroughEpisode, "Segment X ist auch B zugewiesen -- die Badge-Spanne muss befuellt sein")
 		require.Equal(t, "2", *segments[0].AppliesThroughEpisode)
 	})
 
-	t.Run("reiner Zeit-Offset ohne echten Wechsel erzeugt keinen neuen Eintrag (D-02)", func(t *testing.T) {
+	t.Run("geteiltes Segment wird auf der Folgeepisode NICHT unterdrueckt (D-02 aufgehoben)", func(t *testing.T) {
 		segments, err := repo.loadReleaseSegments(ctx, animeID, fansubGroupID, releaseVersionB, "v1", "2", nil)
 		require.NoError(t, err)
-		require.Empty(t, segments, "Segment X war bereits auf der Vorfolge (A) sichtbar -- B darf keinen erneuten Eintrag zeigen")
+		require.Len(t, segments, 1, "Segment X war bereits auf der Vorfolge (A) sichtbar -- B muss es trotzdem zeigen, keine Entdopplung mehr auf dieser Seite")
+		require.Equal(t, themeSegmentXID, segments[0].ThemeSegmentID)
+		require.Nil(t, segments[0].AppliesThroughEpisode, "Segment X ist nur A und B zugewiesen -- auf B selbst (der hoechsten zugewiesenen Folge) gibt es keine weitere Reichweite anzuzeigen")
 	})
 
 	t.Run("echter Segment-Wechsel wird NICHT unterdrueckt", func(t *testing.T) {
