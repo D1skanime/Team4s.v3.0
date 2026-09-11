@@ -2,16 +2,16 @@
 gsd_state_version: 1.0
 milestone: v1.4
 milestone_name: Coverage
-status: executing
-stopped_at: Completed 155-06-PLAN.md
-last_updated: "2026-09-11T15:59:56.850Z"
+status: verifying
+stopped_at: Completed 155-07-PLAN.md (Phase 155 complete, 7/7 plans, ready for verification)
+last_updated: "2026-09-11T16:16:28.786Z"
 last_activity: 2026-09-11
 progress:
   total_phases: 20
-  completed_phases: 19
+  completed_phases: 20
   total_plans: 191
-  completed_plans: 190
-  percent: 95
+  completed_plans: 191
+  percent: 100
 ---
 
 # Project State
@@ -35,7 +35,7 @@ See: .planning/PROJECT.md (updated 2026-08-13)
 
 Phase: 155 (fansub-projektseite-read-model-und-query-budget) — EXECUTING
 Plan: 7 of 7
-Status: Ready to execute
+Status: Phase complete — ready for verification
 
 Phase 155 wurde additiv an die Roadmap angehaengt (Milestone v1.4 bleibt als abgeschlossen dokumentiert, kein Milestone-Reset). Auftragsquelle: `.planning/phases/155-fansub-projektseite-read-model-und-query-budget/155-USER-REQUEST.md`, Kontext: `155-CONTEXT.md` (ersetzt eine interaktive discuss-phase-Sitzung).
 
@@ -478,6 +478,7 @@ Last activity: 2026-09-11
 - [Phase 155-05]: Task 3 (ReleasesSection.tsx episodes->hasReleases rewrite) reconciled as an already-satisfied no-op: Plan 155-04 already removed ReleasesSection's episodes prop entirely and moved gating to ProjectPage.tsx's outer data.hasReleases ternary, making a new inner hasReleases prop redundant duplication.
 - [Phase 155]: fansubProjectNavigation.ts's projects input narrowed to FansubProjectNavigationEntry[]; PublicFansubProject structurally satisfies it, so the numeric legacy route needed zero changes
 - [Phase 155]: Release-detail's mismatched-slug test mocks a 404 rejection, not a wrong-anime_slug resolution, matching the resolver's real WHERE groupSlug AND animeSlug SQL contract
+- [Phase 155]: Closed the phase-crossing REQUIREMENTS.md gap flagged by five of the six prior 155-0X plans by adding a Phase 155 additive-scope section (all 15 P155-* requirements) as the phase's closing plan, mirroring Phase 152's format. — Five of six prior plan SUMMARY.md files explicitly deferred this to the phase-level verifier/closeout rather than inventing a section format mid-phase; the closing plan is the correct place to resolve it once all evidence exists.
 
 ### Pending Todos
 
@@ -852,11 +853,12 @@ untruncated list lives in `.planning/todos/pending/`.
 | Phase 155 P04 | 20min | 3 tasks | 6 files |
 | Phase 155 P05 | 12min | 2 tasks | 5 files |
 | Phase 155 P06 | 22min | 3 tasks | 7 files |
+| Phase 155 P07 | 55min | 3 tasks | 6 files |
 
 ## Session Continuity
 
-Last session: 2026-09-11T15:59:56.834Z
-Stopped at: Completed 155-06-PLAN.md
+Last session: 2026-09-11T16:16:28.770Z
+Stopped at: Completed 155-07-PLAN.md (Phase 155 complete, 7/7 plans, ready for verification)
 Last activity: Local handoff checkpoint; no new Execute step, browser matrix, build, agent or push started after stop.
 Resume file: None
 Structured state: .planning/HANDOFF.json

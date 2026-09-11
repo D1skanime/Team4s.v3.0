@@ -1489,7 +1489,7 @@ ausdruecklich **kein** visuelles Redesign und keine Aenderung der sichtbaren Inf
 
 **Depends on:** Phase 154
 
-**Plans:** 6/7 plans executed
+**Plans:** 7/7 plans complete
 
 Plans:
 
@@ -1513,7 +1513,7 @@ Plans:
 
 **Wave 5** *(blocked on Wave 4 completion)*
 
-- [ ] 155-07-PLAN.md — Messung, Edge-Cases, Vorher/Nachher-Auditbericht
+- [x] 155-07-PLAN.md — Messung, Edge-Cases, Vorher/Nachher-Auditbericht
 
 **Plan-time read first**: `.planning/phases/155-fansub-projektseite-read-model-und-query-budget/155-USER-REQUEST.md`,
 `155-CONTEXT.md`, `frontend/src/app/anime/[id]/group/[groupId]/projectPageData.ts`,

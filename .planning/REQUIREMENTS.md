@@ -216,3 +216,45 @@ Existing v1.4 requirements remain complete.
 | P152-12 | Phase 152 | Complete |
 | P152-13 | Phase 152 | Complete |
 | P152-14 | Phase 152 | Complete |
+
+## Phase 155 — Additive scope (2026-09-11)
+
+Source: `.planning/phases/155-fansub-projektseite-read-model-und-query-budget/155-USER-REQUEST.md`,
+grounded in `155-CONTEXT.md`/`155-RESEARCH.md`. Existing v1.4 requirements remain complete. This
+section closes a phase-crossing tracking-artifact gap flagged in every one of the phase's other six
+plan SUMMARY.md files (`grep -c "P155"` returned 0 across all six prior executions) — added here by
+the phase's closing plan (155-07) rather than invented mid-phase by an individual plan executor.
+
+- [x] **P155-01**: `groupSlug + animeSlug` wird ueber einen gezielten Resolver auf `groupID`, `animeID`, Projekt-Identitaet und kanonischen Pfad aufgeloest, ohne das vollstaendige Public Fansub Profile zu laden.
+- [x] **P155-02**: Kein doppelter Public-Fansub-Profile-Load im normalen Projekt-Request; Previous/Next-Projekt fallen nur ohne nennenswerte Zusatzlast aus derselben Aufloesung.
+- [x] **P155-03**: Die Contributor-Projektion enthaelt ausschliesslich sichtbare Uebersichtsfelder; keine Member-Texte, Medien, Beteiligungslisten, Historien oder Badges.
+- [x] **P155-04**: Kein Request-Fan-out pro Mitwirkendem; ein Lasttest mit 30-50 Mitwirkenden belegt, dass danach keine Member-Detaildaten nachgeladen werden.
+- [x] **P155-05**: Jeder Member-Klick im Projektkontext fuehrt kanonisch auf die Projekt-Member-Route, nicht auf `/members/[slug]`.
+- [x] **P155-06**: Die Projekt-Member-Seite bleibt unveraendert und laedt Texte/Medien/Beteiligungen selbst; das globale Profil bleibt als sekundaere Navigation erreichbar.
+- [x] **P155-07**: Latest Release Preview und Release History sind getrennte, jeweils bounded Projektionen ohne doppelten Abruf derselben Daten.
+- [x] **P155-08**: Counts/Flags stammen aus Count-/Query-Metadaten statt aus einer `per_page:100`-Vollliste; die oeffentlich sichtbare Zahl bleibt byte-identisch.
+- [x] **P155-09**: Getrennte Projektionen fuer Latest Preview und History sind zulaessig; kein Universal-DTO aus reiner Bequemlichkeit.
+- [x] **P155-10**: Keine initialen Fetches ohne sichtbaren Consumer (Themes, Release-Media, tote Flags); entfernte Felder verschwinden auch aus dem Loader-Vertrag.
+- [x] **P155-11**: Die bestehende Informationsarchitektur inklusive „Neuestes Fansub-Release"-Block bleibt vollstaendig erhalten; kein Redesign.
+- [x] **P155-12**: Keine neue Tabelle, keine Materialisierung, keine Datenduplikation; Indizes nur mit Query-Plan-Beleg.
+- [x] **P155-13**: Resolver und Summary liefern ausschliesslich oeffentliche Daten; bestehende Visibility-Filter bleiben unveraendert; Not-Found-Faelle sind belegt.
+- [x] **P155-14**: Eine Vorher/Nachher-Messung von Requests, Queries, Payload und TTFB liegt als eigenstaendiges Auditdokument unter `docs/audits/` vor.
+- [x] **P155-15**: Backend-/Frontend-Tests sind gruen, Vertragsparitaet Go-DTO/OpenAPI/TS/`api.ts` ist gewahrt, Working Tree ist sauber.
+
+| Requirement | Phase | Status |
+|-------------|-------|--------|
+| P155-01 | Phase 155 | Complete |
+| P155-02 | Phase 155 | Complete |
+| P155-03 | Phase 155 | Complete |
+| P155-04 | Phase 155 | Complete |
+| P155-05 | Phase 155 | Complete |
+| P155-06 | Phase 155 | Complete |
+| P155-07 | Phase 155 | Complete |
+| P155-08 | Phase 155 | Complete |
+| P155-09 | Phase 155 | Complete |
+| P155-10 | Phase 155 | Complete |
+| P155-11 | Phase 155 | Complete |
+| P155-12 | Phase 155 | Complete |
+| P155-13 | Phase 155 | Complete |
+| P155-14 | Phase 155 | Complete |
+| P155-15 | Phase 155 | Complete |
