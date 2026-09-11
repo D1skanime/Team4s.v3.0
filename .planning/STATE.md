@@ -3,14 +3,14 @@ gsd_state_version: 1.0
 milestone: v1.4
 milestone_name: Coverage
 status: executing
-stopped_at: Completed 156-02-PLAN.md
-last_updated: "2026-09-11T20:33:28.194Z"
+stopped_at: Completed 156-03-PLAN.md
+last_updated: "2026-09-11T20:47:55.353Z"
 last_activity: 2026-09-11
 progress:
   total_phases: 21
   completed_phases: 20
   total_plans: 202
-  completed_plans: 193
+  completed_plans: 194
   percent: 95
 ---
 
@@ -34,8 +34,31 @@ See: .planning/PROJECT.md (updated 2026-08-13)
 ## Current Position
 
 Phase: 156 (segment-domain-konsistenz-und-oeffentliche-release-projektion) — EXECUTING
-Plan: 3 of 11
-Status: Plan 156-02 complete (Soll-Ist-Synchronisation fuer AssignThemeSegmentToEpisodeRange), ready to execute 156-03
+Plan: 4 of 11
+Status: Plan 156-03 complete (Auto-Assignment neuer Release-Versionen), ready to execute 156-04
+
+Plan 156-03 (2026-09-11) abgeschlossen: die "Release-zuerst"-Ordnungsluecke ist geschlossen --
+`upsertReleaseVersionGroup` (der einzige produktive Insert-Pfad fuer `release_versions`) loest
+Episoden-Sortindex und normalisierte Version jetzt EINMAL pro Release-Version auf und fuehrt
+anschliessend pro tatsaechlich angehaengter Fansub-Gruppe EINE gebuendelte
+`INSERT ... SELECT ... ON CONFLICT DO NOTHING` gegen `theme_segment_assignments` aus
+(`episode_import_repository_release_autoassign.go`, neu). Die Episoden-/Versionsaufloesung ist
+byte-identisch (diff-bestaetigt) zu `theme_segment_assignments.go`s `themeSegmentRangeTargetQuery`,
+damit Segment-zuerst (Plan 156-02) und Release-zuerst (dieser Plan) dieselbe Zielmenge sehen. Vier
+neue Integrationstests gegen echtes PostgreSQL beweisen: Segment-zuerst-Auto-Assign ohne jeden
+Aufruf von `AssignThemeSegmentToEpisodeRange`; ein wiederholter Hook-Aufruf auf eine bereits
+zugewiesene Release-Version dupliziert nichts (`ON CONFLICT DO NOTHING` bewiesen, nicht angenommen);
+eine Release-Version mit zwei Fansub-Gruppen wird pro Gruppe einzeln zugewiesen (zwei getrennte
+gebuendelte Abfragen, kein Merge, keine Pro-Segment-Schleife); und eine Release-Version ausserhalb
+jedes Segmentbereichs bekommt keine Zuweisung. `episode_import_repository_release_helpers.go` wuchs
+nur um 12 Zeilen (432 gesamt) durch Auslagerung der neuen Logik in die neue Datei
+`episode_import_repository_release_autoassign.go` (75 Zeilen) -- beide klar unter dem
+450-Zeilen-Limit. Zwei Abweichungen, beide ausschliesslich in der neuen Testdatei: die geteilte
+Phase-117-Testfixture kannte weder `anime_fansub_groups` noch `fansub_groups.slug`/`status` (Rule 3,
+lokal in der neuen Testdatei ergaenzt, keine Aenderung an `testsupport/phase117_postgres.go`), und
+zwei kleinere Postgres-Parametertyp-Fehler wurden waehrend der Testautorenschaft behoben (Rule 1).
+`requirements.mark-complete P156-04` fand wie bei den Vorplaenen keine Zeile in REQUIREMENTS.md
+(dieselbe uebergreifende Tracking-Luecke, in ROADMAP.md verfolgt). Details: 156-03-SUMMARY.md.
 
 Plan 156-02 (2026-09-11) abgeschlossen: `AssignThemeSegmentToEpisodeRange` ist jetzt eine
 Soll-Ist-Synchronisation (insert-missing/delete-excess) statt rein additiv --
@@ -521,6 +544,7 @@ Last activity: 2026-09-11
 - [Phase 156]: 156-01: origin_release_version_id uses ON DELETE SET NULL (not CASCADE) -- origin is correctable, never destructive
 - [Phase 156]: 156-01: SegmentCreditRoleCodes lives in backend/internal/permissions, not repository/handler/frontend -- single central definition
 - [Phase 156]: AssignThemeSegmentToEpisodeRange ist jetzt eine Soll-Ist-Synchronisation (insert-missing/delete-excess), nicht mehr additiv — Bereichsverkuerzung muss veraltete Zuweisungen entfernen koennen; der Guard gegen unvollstaendige Bereiche bleibt verbatim und hat einen eigenen dedizierten Postgres-Test
+- [Phase 156]: Reverse-direction auto-assign hooked directly into upsertReleaseVersionGroup's existing per-group loop (Plan 156-03); episode/version resolved once per release version, byte-identical join fragments reused from theme_segment_assignments.go
 
 ### Pending Todos
 
@@ -898,10 +922,11 @@ untruncated list lives in `.planning/todos/pending/`.
 | Phase 155 P07 | 55min | 3 tasks | 6 files |
 | Phase 156 P01 | 8min | 2 tasks | 4 files |
 | Phase 156 P02 | 22min | 2 tasks | 9 files |
+| Phase 156 P03 | 14min | 1 tasks | 3 files |
 
 ## Session Continuity
 
-Last session: 2026-09-11T20:33:28.177Z
+Last session: 2026-09-11T20:47:31.827Z
 Stopped at: Completed 156-02-PLAN.md
 Last activity: Local handoff checkpoint; no new Execute step, browser matrix, build, agent or push started after stop.
 Resume file: None
