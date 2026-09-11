@@ -4,13 +4,13 @@ milestone: v1.4
 milestone_name: Coverage
 status: executing
 stopped_at: Completed 156-05-PLAN.md
-last_updated: "2026-09-11T21:28:59.416Z"
+last_updated: "2026-09-11T21:45:17.477Z"
 last_activity: 2026-09-11
 progress:
   total_phases: 21
   completed_phases: 20
   total_plans: 202
-  completed_plans: 197
+  completed_plans: 198
   percent: 95
 ---
 
@@ -34,9 +34,38 @@ See: .planning/PROJECT.md (updated 2026-08-13)
 ## Current Position
 
 Phase: 156 (segment-domain-konsistenz-und-oeffentliche-release-projektion) — EXECUTING
-Plan: 7 of 11
+Plan: 8 of 11
 Status: Ready to execute
-ROADMAP.md-Reihenfolge: 156-07/08/09 als naechstes (zentrale Segment-Credit-Semantik).
+ROADMAP.md-Reihenfolge: 156-08/09 als naechstes (zentrale Segment-Credit-Semantik, Frontend-/Folgeplaene).
+
+Plan 156-07 (2026-09-11) abgeschlossen: `loadReleaseSegments`
+(`release_detail_public_repository_helpers.go`) projiziert Segment-Credits jetzt LIVE aus der
+ORIGIN-Release-Version jedes Segments (`theme_segments.origin_release_version_id`, Plan 156-01/04)
+statt aus den eigenen Beteiligten der betrachteten Release-Version per
+`strings.Contains(label, "kara")`-Heuristik -- gefiltert auf `permissions.SegmentCreditRoleCodes`
+(P156-07/P156-08/P156-09), genau EIN gebuendelter `loadPublicEffectiveContributors`-Aufruf fuer die
+gesamte, deduplizierte Origin-Menge. `Type` kommt jetzt ueber `CanonicalSegmentType` (Plan 156-06),
+kein roher SQL-Passthrough mehr. `suppressSegmentsAlreadyVisibleOnPreviousEpisode` (Phase 117, D-02)
+ist GELOESCHT, nicht deaktiviert (P156-13) -- die Release-Seite zeigt jetzt jedes tatsaechlich
+zugewiesene Segment, `loadAdjacentReleases` bleibt fuer Vor-/Zurueck-Navigation unveraendert.
+`DECISIONS.md` traegt einen neuen datierten Eintrag (2026-09-11), der die D-02-Ablösung explizit NUR
+fuer die Release-Detailseite dokumentiert (der urspruengliche D-02-Eintrag bleibt als Historie
+erhalten). Die Umsetzung wuchs `release_detail_public_repository_helpers.go` zunaechst auf 471
+Zeilen -- ueber dem 450-Zeilen-Limit -- und wurde nach demselben Split-Muster wie Plan 156-06 in eine
+neue Datei `release_detail_public_repository_segment_credits.go` (84 Zeilen) ausgelagert, `helpers.go`
+liegt danach bei 410 Zeilen. Zwei kleine, nicht-architektonische Implementierungsentscheidungen: eine
+map-basierte Rollen-Ueberlappungspruefung statt des im Plantext illustrativ genannten
+`slices.ContainsAny` (existiert in Go 1.25s `slices`-Paket nicht), und die sieben planvorgegebenen
+Verhaltenstests wurden in eine NEUE Testdatei (`release_detail_public_repository_segment_credits_test.go`)
+statt in die vorbestehende Suppression-Testdatei geschrieben, um Fixture-Ueberschneidungen mit der
+gleichzeitigen D-02-Testaenderung zu vermeiden. Alle sieben Verhaltensfaelle live gegen echtes,
+isoliertes PostgreSQL bewiesen (Nullbeteiligte, Uebersetzer+Timer-Projektion, Live-Korrektur ohne
+Segment-Edit, neu hinzugefuegter Beitragender, Encoder/QC-Ausschluss, NULL-Origin, kanonischer Typ).
+`requirements.mark-complete P156-07/08/09/13` fand wie bei den Vorplaenen keine Zeile in
+REQUIREMENTS.md (dieselbe uebergreifende Tracking-Luecke). 49 vorbestehende, nicht durch diesen Plan
+verursachte Testfehler bleiben dokumentiert (TEAM4S_PHASE128_TEST_DSN fehlt, Phase-134-Live-Fixture,
+sowie unabhaengige Befunde in `member_claims_*`/`fansub_group_app_members_repository_test.go` --
+komplett unberuehrte Dateien dieses Plans). Details: 156-07-SUMMARY.md.
 
 Plan 156-05 (2026-09-11) abgeschlossen: `loadPublicEffectiveContributors`
 (`public_effective_contributors.go`) -- die eine gemeinsame batch-faehige Funktion, die bereits
@@ -611,6 +640,8 @@ Last activity: 2026-09-11
 - [Phase 156]: Split attachReleaseTimelineSegments into group_repository_cursor_timeline.go (CLAUDE.md 450-line cap); is_karaoke now derives from CanonicalSegmentType output instead of a second SQL LIKE heuristic.
 - [Phase 156]: 156-04: SetThemeSegmentOrigin checks segment existence before assignment membership — A non-existent segment can never have a theme_segment_assignments row (FK-enforced); checking membership first would always yield ErrConflict, making ErrNotFound unreachable
 - [Phase 156]: 156-05: loadPublicEffectiveContributors tests stay unit-level (no new Postgres harness) — Function had zero DB-gated tests before this plan and the plan's own verify step only requires go build/go vet; the SQL change is exercised indirectly by existing production consumers
+- [Phase 156]: 156-07: Release detail page stops suppressing already-visible segments (supersedes Phase 117 D-02 for the release-detail surface only) -- documented in DECISIONS.md 2026-09-11
+- [Phase 156]: 156-07: Segment credits now project dynamically from each segment's ORIGIN release version's current contributors, filtered by permissions.SegmentCreditRoleCodes -- replacing the strings.Contains(label, kara) heuristic
 
 ### Pending Todos
 
@@ -992,10 +1023,11 @@ untruncated list lives in `.planning/todos/pending/`.
 | Phase 156 P06 | 14min | 2 tasks | 6 files |
 | Phase 156 P04 | 35min | 2 tasks | 11 files |
 | Phase 156 P05 | 6min | 1 tasks | 3 files |
+| Phase 156 P07 | 46min | 2 tasks | 5 files |
 
 ## Session Continuity
 
-Last session: 2026-09-11T21:28:59.398Z
+Last session: 2026-09-11T21:44:46.954Z
 Stopped at: Completed 156-05-PLAN.md
 Last activity: Local handoff checkpoint; no new Execute step, browser matrix, build, agent or push started after stop.
 Resume file: None

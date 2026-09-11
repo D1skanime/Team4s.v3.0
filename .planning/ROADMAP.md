@@ -1592,7 +1592,7 @@ ausdruecklich **kein** visuelles Redesign und kopiert keine Credits in Segmentta
 
 **Depends on:** Phase 155
 
-**Plans:** 6/11 plans executed
+**Plans:** 7/11 plans executed
 
 Plans:
 
@@ -1610,7 +1610,7 @@ Plans:
 
 **Wave 3** *(blocked on Wave 2 completion)*
 
-- [ ] 156-07-PLAN.md — Release-Seite: dynamische Origin-Credit-Projektion, Suppression entfernt, DECISIONS.md
+- [x] 156-07-PLAN.md — Release-Seite: dynamische Origin-Credit-Projektion, Suppression entfernt, DECISIONS.md
 - [ ] 156-11-PLAN.md — Admin-UI: minimale Origin-Korrektur im Segment-Editor
 
 **Wave 4** *(blocked on Wave 3 completion)*
