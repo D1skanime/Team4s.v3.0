@@ -2,16 +2,16 @@
 gsd_state_version: 1.0
 milestone: v1.4
 milestone_name: Coverage
-status: milestone_complete
-stopped_at: Milestone complete (Phase 154 was final phase)
-last_updated: 2026-09-10T20:22:00.000Z
-last_activity: 2026-09-10
+status: in_progress
+stopped_at: Phase 155 angelegt, bereit fuer plan-phase
+last_updated: 2026-09-11T00:00:00.000Z
+last_activity: 2026-09-11
 progress:
-  total_phases: 19
+  total_phases: 20
   completed_phases: 19
   total_plans: 184
   completed_plans: 238
-  percent: 100
+  percent: 95
 ---
 
 # Project State
@@ -29,13 +29,18 @@ Phase 135 and any future roadmap entries continue from here.
 See: .planning/PROJECT.md (updated 2026-08-13)
 
 **Core value:** Team4s presents fansub history and collaboration credibly while keeping identity, visibility, ownership, and permissions correct.
-**Current focus:** Milestone complete
+**Current focus:** Phase 155 — Public-Fansub-Projektseite: Read-Model, Drill-down-Navigation und Query-Budget
 
 ## Current Position
 
-Phase: 154
+Phase: 155
 Plan: Not started
-Status: Milestone complete
+Status: Ready for planning
+
+Phase 155 wurde additiv an die Roadmap angehaengt (Milestone v1.4 bleibt als abgeschlossen dokumentiert, kein Milestone-Reset). Auftragsquelle: `.planning/phases/155-fansub-projektseite-read-model-und-query-budget/155-USER-REQUEST.md`, Kontext: `155-CONTEXT.md` (ersetzt eine interaktive discuss-phase-Sitzung).
+
+### Phase 154 (abgeschlossen)
+
 der Messreihe vom 2026-09-09: RCA-05 (vier redundante Faktenabfragen im sequenziellen Aggregator),
 RCA-06 (ungegatetes Locked-Artwork bei null Projekten, schwerer Original-Fallback, animierter
 Avatar) und RCA-08 (zu breite Viewer-Aufloesung, ignoriertes Abbruchsignal). Dazu zwei

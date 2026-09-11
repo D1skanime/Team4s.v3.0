@@ -1444,3 +1444,64 @@ Plans:
 **Wave 4** *(blocked on 154-04, 154-06)*
 
 - [x] 154-07-PLAN.md — Workstream E: menschlicher Live-Checkpoint, Owner-Ansicht eines versteckten Profils.
+
+### Phase 155: Public-Fansub-Projektseite: Read-Model, Drill-down-Navigation und Query-Budget
+
+**Goal:** Die oeffentliche Fansub-Projektseite liefert dieselben sichtbaren Informationen wie heute,
+laedt sie aber ueber einen gezielten Project Resolver, eine schlanke Contributor-Summary und
+entflochtene Release-Pfade — ohne doppelten Profil-Load, ohne Vollinventar-Abfragen und ohne Fetches
+ohne sichtbaren Consumer; Member-Klicks fuehren kanonisch auf die Projekt-Member-Route.
+
+**Requirements**: P155-01, P155-02, P155-03, P155-04, P155-05, P155-06, P155-07, P155-08, P155-09,
+P155-10, P155-11, P155-12, P155-13, P155-14, P155-15
+
+**Requirement-Definitionen** (Phasen-eigener Tracking-Namespace, Quelle: `155-USER-REQUEST.md`):
+
+| ID | Auftragsabschnitt | Inhalt |
+|----|-------------------|--------|
+| P155-01 | 1 | `groupSlug + animeSlug` werden ueber einen gezielten Resolver zu `groupID`, `animeID`, Projekt-Identitaet und kanonischem Pfad aufgeloest; kein Vollprofil, kein Gruppenprofil als Resolver |
+| P155-02 | 1, 11 | Kein doppelter Public-Fansub-Profile-Load im normalen Project-Request; Previous/Next nur, wenn ohne nennenswerte Zusatzlast |
+| P155-03 | 2, 13 | Contributor-Projection der Projektseite enthaelt nur sichtbare Uebersichtsfelder; keine Member-Texte, Medien, Beteiligungslisten, Historien, Badges oder Vollprofile |
+| P155-04 | 2, 12 | Kein Request-Fan-out pro Member; Lasttest mit 30–50 Mitwirkenden belegt, dass keine Detaildaten nachgeladen werden |
+| P155-05 | 3 | Jeder Member-Klick im Projektkontext fuehrt kanonisch auf `/fansubs/[slug]/fansubprojekt/[animeSlug]/mitwirkende/[memberSlug]`, nicht auf `/members/[slug]` |
+| P155-06 | 3, 7 | Projekt-Member-Seite bleibt unveraendert bestehen und laedt Texte/Medien/Beteiligungen erst selbst; globales Profil bleibt als sekundaere Navigation erreichbar |
+| P155-07 | 4 | Latest Release Preview und Release-Historie sind getrennte, jeweils bounded Pfade ohne doppelte Beschaffung derselben Daten |
+| P155-08 | 4, 5 | Counts/Flags kommen aus Count- bzw. Query-Metadaten; `per_page: 100` ist entfernt oder nachweislich begruendet und bounded |
+| P155-09 | 13 | Getrennte Projections fuer Latest Preview und History erlaubt; kein Universal-DTO aus Bequemlichkeit |
+| P155-10 | 6 | Keine initialen Fetches ohne sichtbaren Consumer (Themes, Release-Media, tote Flags); entfernte Felder verschwinden auch aus dem Loader-Vertrag |
+| P155-11 | 9, 10 | Release-Drill-down und die bestehende Informationsarchitektur inkl. Block „Neuestes Fansub-Release" bleiben vollstaendig erhalten; kein Redesign |
+| P155-12 | 8, 14, 15 | Keine neue Tabelle, keine Materialisierung, keine Datendopplung; Indizes nur mit Query-Plan-Beleg |
+| P155-13 | 16, 17 | Resolver und Summary liefern nur oeffentliche Daten; bestehende Visibility-Filter unveraendert; Edge- und Not-found-Faelle belegt |
+| P155-14 | 11, 12, 19 | Vorher/Nachher-Messung von Requests, Queries, Payload und TTFB als eigenes Auditdokument |
+| P155-15 | 18 | Backend- und Frontend-Tests gruen, Vertragsparitaet Go-DTO ↔ OpenAPI ↔ TS ↔ `api.ts`, sauberer Working Tree |
+
+**Faktenbasis:** `155-USER-REQUEST.md` als verbindliche Auftragsquelle. Die dort genannten Befunde
+sind am Code vorgeprueft: `frontend/src/app/fansubs/[slug]/fansubprojekt/[animeSlug]/page.tsx` loest
+`animeSlug` ueber `getPublicFansubProfileBySlug` auf und
+`frontend/src/app/anime/[id]/group/[groupId]/projectPageData.ts` laedt dasselbe Profil ein zweites
+Mal; `getGroupReleases(..., { per_page: 100 })` steht neben Cursor- und Detail-Abfragen; `themesData`
+und `releaseMediaData` sowie `hasThemes`/`hasMedia`/`hasTeamContent` haben in `ProjectPage.tsx`
+keinen Consumer. Die Contributor-Projection ist auf Contract-Ebene bereits schlank — ihre SQL-Seite
+ist zu pruefen, ein Negativbefund ist zulaessig.
+
+**Einordnung:** Read-Model-, Datenfluss-, API- und Performance-Phase in derselben Linie wie Phase 152
+(oeffentliche Gruppenseite) und 153/154 (oeffentliches Member-Profil). Diese Phase verspricht
+ausdruecklich **kein** visuelles Redesign und keine Aenderung der sichtbaren Informationen.
+
+**Depends on:** Phase 154
+
+**Plan-time read first**: `.planning/phases/155-fansub-projektseite-read-model-und-query-budget/155-USER-REQUEST.md`,
+`155-CONTEXT.md`, `frontend/src/app/anime/[id]/group/[groupId]/projectPageData.ts`,
+`frontend/src/app/anime/[id]/group/[groupId]/ProjectPage.tsx`,
+`frontend/src/app/anime/[id]/group/[groupId]/sections/`,
+`frontend/src/app/fansubs/[slug]/fansubprojekt/[animeSlug]/page.tsx`,
+`frontend/src/app/fansubs/[slug]/fansubprojekt/[animeSlug]/mitwirkende/[memberSlug]/page.tsx`,
+`frontend/src/components/fansubs/ProjectMemberRows.tsx`,
+`frontend/src/lib/fansubProjectRoutes.ts`, `frontend/src/lib/fansubProjectNavigation.ts`,
+`frontend/src/lib/api.ts`, `frontend/src/types/groupContributors.ts`,
+`backend/cmd/server/main.go`, `shared/contracts/openapi.yaml`,
+`docs/audits/2026-09-09-public-member-performance/REPORT.md` (Muster fuer die Messdokumentation).
+
+**UI hint**: nein — Read-Model-, Datenfluss- und Query-Budget-Phase. Die sichtbare Oberflaeche und
+die Informationsarchitektur bleiben unveraendert; lediglich Link-**Ziele** werden vereinheitlicht.
+`plan-phase` daher mit `--skip-ui` fahren.
