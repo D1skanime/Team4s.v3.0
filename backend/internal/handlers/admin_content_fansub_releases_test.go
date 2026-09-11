@@ -126,6 +126,9 @@ func (s *fansubReleaseThemeRepoStub) UpsertThemeSegmentEpisodeOverride(ctx conte
 func (s *fansubReleaseThemeRepoStub) DeleteThemeSegmentEpisodeOverride(ctx context.Context, segmentID int64, releaseVersionID int64) error {
 	return nil
 }
+func (s *fansubReleaseThemeRepoStub) SetThemeSegmentOrigin(ctx context.Context, segmentID int64, releaseVersionID int64) error {
+	return nil
+}
 func (s *fansubReleaseThemeRepoStub) ClearSegmentAsset(ctx context.Context, animeID int64, segmentID int64) (*string, error) {
 	return nil, nil
 }

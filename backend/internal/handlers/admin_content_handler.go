@@ -80,6 +80,10 @@ type adminThemeRepository interface {
 	AssignThemeSegmentToEpisodeRange(ctx context.Context, segmentID int64, animeID int64, fansubGroupID int64, version string, startEpisode int, endEpisode int) (*models.ThemeSegmentAssignmentSyncResult, error)
 	UpsertThemeSegmentEpisodeOverride(ctx context.Context, input models.AdminThemeSegmentEpisodeOverrideUpsertInput) (*models.AdminThemeSegmentEpisodeOverride, error)
 	DeleteThemeSegmentEpisodeOverride(ctx context.Context, segmentID int64, releaseVersionID int64) error
+	// SetThemeSegmentOrigin (Phase 156, Workstream C): setzt/korrigiert die administrativ
+	// korrigierbare origin_release_version_id eines Segments (P156-06). Lehnt ein Ziel, das dem
+	// Segment nicht ueber theme_segment_assignments zugewiesen ist, mit ErrConflict ab.
+	SetThemeSegmentOrigin(ctx context.Context, segmentID int64, releaseVersionID int64) error
 	ClearSegmentAsset(ctx context.Context, animeID int64, segmentID int64) (*string, error)
 	BindUploadedSegmentAsset(ctx context.Context, animeID int64, segmentID int64, mediaAssetID int64, sourceRef string, sourceLabel *string) (*models.AdminThemeSegment, error)
 	AttachSegmentLibraryAsset(ctx context.Context, animeID int64, segmentID int64, input models.SegmentLibraryAttachInput) (*models.AdminThemeSegment, error)

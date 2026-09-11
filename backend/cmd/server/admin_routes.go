@@ -147,6 +147,8 @@ func registerAdminRoutes(v1 *gin.RouterGroup, auth gin.HandlerFunc, deps adminRo
 	v1.DELETE("/admin/anime/:id/segments/:segmentId/assignments/:releaseVersionId", auth, deps.adminContentHandler.UnassignAnimeSegment)
 	v1.PUT("/admin/anime/:id/segments/:segmentId/assignments/:releaseVersionId/override", auth, deps.adminContentHandler.UpsertAnimeSegmentEpisodeOverride)
 	v1.DELETE("/admin/anime/:id/segments/:segmentId/assignments/:releaseVersionId/override", auth, deps.adminContentHandler.DeleteAnimeSegmentEpisodeOverride)
+	// Phase 156, Workstream C: administrativ korrigierbare Origin-Referenz eines Segments (P156-06/P156-18).
+	v1.PUT("/admin/anime/:id/segments/:segmentId/origin", auth, deps.adminContentHandler.SetAnimeSegmentOrigin)
 	v1.GET("/admin/fansubs/:id/anime", auth, deps.adminContentHandler.ListFansubAnime)
 	v1.GET("/admin/fansubs/:id/anime/:animeId/releases", auth, deps.adminContentHandler.ListFansubAnimeReleases)
 	v1.GET("/admin/fansubs/:id/anime/:animeId/releases/canonical", auth, deps.adminContentHandler.GetCanonicalFansubAnimeReleaseSummary)
