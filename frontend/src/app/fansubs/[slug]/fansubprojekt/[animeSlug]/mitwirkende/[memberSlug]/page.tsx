@@ -1,7 +1,8 @@
 import { notFound } from 'next/navigation'
 
 import { ProjectMemberPage } from '@/components/fansubs/projectMember/ProjectMemberPage'
-import { ApiError, getProjectMemberSummary, getPublicFansubProfileBySlug } from '@/lib/api'
+import { ApiError, getGroupDetail, getProjectMemberSummary, resolveFansubProject } from '@/lib/api'
+import { buildPublicFansubProjectPath } from '@/lib/fansubProjectRoutes'
 
 interface ProjectMemberRouteParams {
   slug: string
@@ -23,21 +24,28 @@ export default async function ProjectMemberRoute({ params }: ProjectMemberRouteP
   const memberSlug = resolved.memberSlug?.trim()
   if (!fansubSlug || !animeSlug || !memberSlug) return notFound()
 
-  let profileResponse: Awaited<ReturnType<typeof getPublicFansubProfileBySlug>>
+  let resolution: Awaited<ReturnType<typeof resolveFansubProject>>
   try {
-    profileResponse = await getPublicFansubProfileBySlug(fansubSlug)
+    resolution = await resolveFansubProject(fansubSlug, animeSlug)
   } catch (error) {
     if (error instanceof ApiError && error.status === 404) return notFound()
     throw error
   }
 
-  const profile = profileResponse.data
-  const project = profile.projects.find((item) => item.anime_slug?.trim() === animeSlug)
-  if (!project) return notFound()
+  // The resolver's own sibling-projects list always includes the current project (the one
+  // matching resolution.data.anime_slug) with its title. Narrowed via find()+guard rather than
+  // an inline `.find(...)?.title` because ProjectMemberPageProps.animeTitle is a required,
+  // non-optional string under tsconfig's strict mode.
+  const currentProject = resolution.data.projects.find(
+    (project) => project.anime_slug === resolution.data.anime_slug,
+  )
+  if (!currentProject) return notFound()
+
+  const groupDetail = await getGroupDetail(resolution.data.anime_id, resolution.data.group_id)
 
   let summary: Awaited<ReturnType<typeof getProjectMemberSummary>>
   try {
-    summary = await getProjectMemberSummary(project.id, profile.group.id, memberSlug)
+    summary = await getProjectMemberSummary(resolution.data.anime_id, resolution.data.group_id, memberSlug)
   } catch (error) {
     if (error instanceof ApiError && error.status === 404) return notFound()
     throw error
@@ -47,12 +55,12 @@ export default async function ProjectMemberRoute({ params }: ProjectMemberRouteP
     <ProjectMemberPage
       summary={summary}
       memberSlug={memberSlug}
-      groupName={profile.group.name}
-      groupSlug={profile.group.slug}
-      animeTitle={project.title}
-      animeID={project.id}
-      groupID={profile.group.id}
-      projectPath={`/fansubs/${profile.group.slug}/fansubprojekt/${animeSlug}`}
+      groupName={groupDetail.data.fansub.name}
+      groupSlug={fansubSlug}
+      animeTitle={currentProject.title}
+      animeID={resolution.data.anime_id}
+      groupID={resolution.data.group_id}
+      projectPath={buildPublicFansubProjectPath(fansubSlug, resolution.data.anime_slug)}
     />
   )
 }
