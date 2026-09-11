@@ -3,8 +3,8 @@ gsd_state_version: 1.0
 milestone: v1.4
 milestone_name: Coverage
 status: executing
-stopped_at: Completed 156-09-PLAN.md
-last_updated: "2026-09-11T22:13:49.736Z"
+stopped_at: 156-11-PLAN.md automatable scope closed (Task 1 committed d6edc718); Task 2 live-UAT deferred to operator, see deferred-items.md
+last_updated: "2026-09-11T22:22:05Z"
 last_activity: 2026-09-11
 progress:
   total_phases: 21
@@ -35,8 +35,25 @@ See: .planning/PROJECT.md (updated 2026-08-13)
 
 Phase: 156 (segment-domain-konsistenz-und-oeffentliche-release-projektion) — EXECUTING
 Plan: 10 of 11
-Status: Ready to execute
+Status: 156-11 Task 1 (automatable scope) committed and green; Task 2 (checkpoint:human-verify)
+ausgefuehrt, Live-UAT durch den Auftraggeber ausstehend -- kein "verified"/"bestaetigt"-Claim,
+siehe deferred-items.md. Naechster Schritt bleibt 156-10.
 ROADMAP.md-Reihenfolge: 156-08/09 als naechstes (zentrale Segment-Credit-Semantik, Frontend-/Folgeplaene).
+
+Plan 156-11 (2026-09-11) TEILWEISE abgeschlossen: Task 1 (Type-Feld
+`AdminThemeSegment.origin_release_version_id`, API-Client `setAnimeSegmentOrigin`, ein
+kompaktes `@/components/ui`-`Select` in `SegmentEditPanel.tsx` fuer die Segment-Origin-Korrektur,
+verdrahtet ueber `SegmenteTab.tsx`) ist implementiert, committet (`d6edc718`) und automatisiert
+gruen (tsc, 83/83 Vitest, 0 neue ESLint-Warnungen, Umlaut-Check sauber -- "mitgeändert", keine
+ASCII-Ersetzung). Task 2 ist ein `checkpoint:human-verify`-Gate, das eine live authentifizierte
+Platform-Admin-Browsersession voraussetzt; diese Zugangsdaten liegen in der Ausfuehrungsumgebung
+nicht vor. Formulierung gemaess expliziter Auftraggeber-Anweisung: Task 2 ist "ausgefuehrt,
+Live-UAT durch den Auftraggeber ausstehend" -- WEDER als bestanden NOCH als fehlgeschlagen
+markiert. Die konkrete Pruefanweisung (Segment-Origin-Select erscheint bei geteiltem Segment,
+speichert sofort ohne Haupt-Speichern-Button, persistiert nach Neuoeffnen, Haupt-Speichern-Button
+bleibt unveraendert funktionsfaehig; nutzbarer Testdatensatz `theme_segment_id 3` mit 3
+Assignments) steht in `deferred-items.md`. `P156-18` bleibt entsprechend NICHT per
+`requirements.mark-complete` abgehakt, bis die Live-UAT bestaetigt. Details: 156-11-SUMMARY.md.
 
 Plan 156-09 (2026-09-11) abgeschlossen: zwei neue Tests schliessen die verbliebenen
 Nachweispflichten von Plan 156-07 (P156-16/P156-17). `TestLoadReleaseSegmentsQueryBudgetIsConstant`

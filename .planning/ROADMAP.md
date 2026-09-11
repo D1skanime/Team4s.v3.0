@@ -1611,7 +1611,12 @@ Plans:
 **Wave 3** *(blocked on Wave 2 completion)*
 
 - [x] 156-07-PLAN.md — Release-Seite: dynamische Origin-Credit-Projektion, Suppression entfernt, DECISIONS.md
-- [ ] 156-11-PLAN.md — Admin-UI: minimale Origin-Korrektur im Segment-Editor
+- [ ] 156-11-PLAN.md — Admin-UI: minimale Origin-Korrektur im Segment-Editor. **TEILWEISE** —
+      Task 1 (Type/API/Select-Control) implementiert, committet (`d6edc718`), automatisiert
+      gruen; Task 2 (`checkpoint:human-verify`) ausgefuehrt, Live-UAT durch den Auftraggeber
+      ausstehend (keine Platform-Admin-Zugangsdaten in dieser Ausfuehrungsumgebung) — kein
+      "verified"-Claim. Pruefanweisung + Testdatensatz (`theme_segment_id 3`) in
+      `deferred-items.md`. See `156-11-SUMMARY.md`.
 
 **Wave 4** *(blocked on Wave 3 completion)*
 
