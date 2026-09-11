@@ -6,7 +6,7 @@ import { Breadcrumbs } from "@/components/navigation/Breadcrumbs";
 import { AdjacentNavigation } from "@/components/ui";
 import type { FansubProjectNavigation } from "@/lib/fansubProjectNavigation";
 import type { FansubGroupSummary } from "@/types/fansub";
-import type { GroupDetail, EpisodeReleaseSummary } from "@/types/group";
+import type { GroupDetail } from "@/types/group";
 import type { GroupAssetsResponse } from "@/types/groupAsset";
 import type { AnimeDetail } from "@/types/anime";
 
@@ -30,7 +30,7 @@ interface HeroSectionProps {
   cooperationGroups: FansubGroupSummary[];
   fansubProjectNavigation: FansubProjectNavigation;
   groupAssetsResponse: GroupAssetsResponse | null;
-  releaseEpisodes: EpisodeReleaseSummary[];
+  releaseVersionCount: number;
 }
 
 export function HeroSection({
@@ -49,7 +49,7 @@ export function HeroSection({
   cooperationGroups,
   fansubProjectNavigation,
   groupAssetsResponse,
-  releaseEpisodes,
+  releaseVersionCount,
 }: HeroSectionProps) {
   const hasGroupFolder = Boolean(groupAssetsResponse?.data.folder_name);
   const hasEpisodeAssets = Boolean(groupAssetsResponse?.data.episodes?.length);
@@ -127,7 +127,7 @@ export function HeroSection({
                   <div className={styles.heroIdentity}>{identity}</div>
                   <ProjectStats
                     contributorCount={group.stats.project_contributor_count}
-                    releaseCount={releaseEpisodes.length}
+                    releaseCount={releaseVersionCount}
                     coopGroups={coopGroups}
                   />
                 </div>
@@ -160,7 +160,6 @@ export function HeroSection({
             animeID={animeID}
             groupID={groupID}
             episodes={groupAssetsResponse!.data.episodes}
-            releaseEpisodes={releaseEpisodes}
           />
         </section>
       ) : null}

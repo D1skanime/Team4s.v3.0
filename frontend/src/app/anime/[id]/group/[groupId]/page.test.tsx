@@ -195,7 +195,7 @@ describe('HeroSection navigation (102-03)', () => {
           },
         }}
         groupAssetsResponse={null}
-        releaseEpisodes={[]}
+        releaseVersionCount={0}
       />,
     )
 
@@ -228,7 +228,7 @@ describe('HeroSection navigation (102-03)', () => {
         cooperationGroups={[{ id: 2, slug: 'honto', name: 'Honto', logo_url: null }]}
         fansubProjectNavigation={{ previous: null, next: null }}
         groupAssetsResponse={null}
-        releaseEpisodes={[]}
+        releaseVersionCount={0}
       />,
     )
 
@@ -256,7 +256,7 @@ describe('HeroSection navigation (102-03)', () => {
         cooperationGroups={[]}
         fansubProjectNavigation={{ previous: null, next: null }}
         groupAssetsResponse={null}
-        releaseEpisodes={[]}
+        releaseVersionCount={0}
       />,
     )
 
@@ -286,7 +286,7 @@ describe('HeroSection navigation (102-03)', () => {
         ]}
         fansubProjectNavigation={{ previous: null, next: null }}
         groupAssetsResponse={null}
-        releaseEpisodes={[]}
+        releaseVersionCount={0}
       />,
     )
 
