@@ -75,7 +75,22 @@ const (
 	RoleRawProvider    = "raw_provider"
 	RoleQualityChecker = "quality_checker"
 	RoleDesigner       = "designer"
+	RoleTranslator     = "translator"
+	RoleTypesetter     = "typesetter"
+	RoleKaraokeFX      = "karaoke_fx"
 )
+
+// SegmentCreditRoleCodes is the single central definition of which contributor
+// role codes are segment-relevant (Phase 156, Workstream D, P156-08/P156-09).
+// It replaces the label-substring heuristic previously used to guess segment
+// credits from an already-aggregated German role label
+// (`strings.Contains(label, "kara") || strings.Contains(label, "typeset")`).
+// Consumed by the dynamic segment-credit projection in
+// loadReleaseSegments/loadPublicEffectiveContributors (Plan 156-07). This is
+// defined here -- Domain-/Permissions-Nachbarschaft, nicht im Repository,
+// nicht im Handler, nicht im Frontend -- and must not be duplicated anywhere
+// else in the backend or frontend.
+var SegmentCreditRoleCodes = []string{RoleTranslator, RoleTimer, RoleKaraokeFX, RoleTypesetter}
 
 // RoleMembershipBaseline (Phase 145) is the reserved, non-assignable pseudo-role sourcing
 // the active-membership baseline via IsMembershipBaselineAction (effective_rights.go) --
