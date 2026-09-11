@@ -159,6 +159,20 @@ type AdminThemeSegmentEpisodeOverrideUpsertInput struct {
 	EndTime          string `json:"end_time"`
 }
 
+// ThemeSegmentAssignmentSyncResult ist der Rueckgabewert der Soll-Ist-Synchronisation
+// AssignThemeSegmentToEpisodeRange (Phase 156, Workstream A -- ersetzt die rein additive
+// Quick-Task-260819-lm5-Semantik). Added enthaelt die release_version_id's, die durch diesen
+// Aufruf NEU zugewiesen wurden (Basis fuer gezielten Render-Fan-out). Removed enthaelt die
+// release_version_id's, deren Zuweisung entfernt wurde, weil sie ausserhalb des neuen Bereichs
+// liegen UND keinen aktiven theme_segment_episode_overrides-Eintrag haben. ProtectedByOverride
+// enthaelt release_version_id's, die ausserhalb des neuen Bereichs liegen, aber WEGEN eines
+// aktiven Overrides NICHT entfernt wurden -- sichtbar gemeldet statt still geloescht (P156-03).
+type ThemeSegmentAssignmentSyncResult struct {
+	Added               []int64 `json:"added"`
+	Removed             []int64 `json:"removed"`
+	ProtectedByOverride []int64 `json:"protected_by_override"`
+}
+
 type SegmentLibraryIdentityStatus string
 
 const (

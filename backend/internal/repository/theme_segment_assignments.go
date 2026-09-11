@@ -54,24 +54,75 @@ func (r *AdminContentRepository) AssignThemeSegmentToReleaseVersion(
 	return assignment, nil
 }
 
-// AssignThemeSegmentToEpisodeRange stellt sicher, dass ein Kara-Segment ALLEN Release-Versionen
-// zugewiesen ist, deren Episode im angegebenen Bereich [startEpisode, endEpisode] liegt (gleiche
-// Fansub-Gruppe + Version). Quick-Task 260819-lm5 (Bereich-Auto-Zuweisung): start_episode/
-// end_episode SIND der Mechanismus fuer die automatische Zuweisung beim Speichern (Create/Update),
-// kein separater Button noetig. ADDITIV: bestehende Zuweisungen ausserhalb des Bereichs werden
-// NICHT entfernt (verengt jemand den Bereich nachtraeglich, bleiben zuvor zugewiesene Folgen
-// zugewiesen -- verhindert stilles Loeschen von ggf. bereits ueberschriebenen Zuweisungen; manuelles
-// Entfernen bleibt ueber UnassignThemeSegmentFromReleaseVersion moeglich). Liefert NUR die NEU
-// eingefuegten release_version_id's zurueck (fuer gezielten Render-Fan-out -- bereits zugewiesene
-// Release-Versionen brauchen keinen erneuten Fan-out).
-//
-// Guard: bei fehlendem/ungueltigem Bereich (segmentID/animeID/fansubGroupID<=0 oder
-// startEpisode/endEpisode<=0) wird kein Fan-out ausgefuehrt (nil, nil) -- verhindert versehentliches
-// "allen Folgen aller Zeiten"-Zuweisen, wenn die Felder leer/ungesetzt sind.
-//
-// Enumeriert Ziel-release_version_id's ueber EXAKT das Join-Muster aus GetSegmentReleaseDuration
+// themeSegmentRangeTargetQuery enumeriert alle release_version_id's im angegebenen Episoden-Bereich
+// (gleiche Fansub-Gruppe + Version) -- EXAKT das Join-Muster aus GetSegmentReleaseDuration
 // (admin_content_anime_themes.go), damit beide Stellen bei gleichem Input immer dieselbe Menge an
 // Release-Versionen sehen.
+const themeSegmentRangeTargetQuery = `
+	SELECT DISTINCT rev.id
+	FROM release_version_groups rvg
+	JOIN release_versions rev ON rev.id = rvg.release_version_id
+		AND COALESCE(NULLIF(BTRIM(rev.version), ''), 'v1') = $3
+	JOIN fansub_releases fr ON fr.id = rev.release_id
+	JOIN episodes ep ON ep.id = fr.episode_id AND ep.anime_id = $1
+	WHERE rvg.fansub_group_id = $2
+	  AND COALESCE(ep.sort_index, CASE WHEN COALESCE(ep.episode_number, '') ~ '^[0-9]+$' THEN ep.episode_number::int ELSE NULL END) BETWEEN $4 AND $5
+`
+
+// themeSegmentDomainReleaseVersionIDsQuery ist derselbe Join wie themeSegmentRangeTargetQuery,
+// aber OHNE den Episoden-Filter -- definiert die vollstaendige Anime/Gruppe/Version-Domaene, auf
+// die die Loesch-Seite von AssignThemeSegmentToEpisodeRange jemals zugreifen darf (P156-03/T-156-05:
+// verhindert, dass ein Assignment einer ANDEREN Domaene versehentlich geloescht wird).
+const themeSegmentDomainReleaseVersionIDsQuery = `
+	SELECT DISTINCT rev.id
+	FROM release_version_groups rvg
+	JOIN release_versions rev ON rev.id = rvg.release_version_id
+		AND COALESCE(NULLIF(BTRIM(rev.version), ''), 'v1') = $3
+	JOIN fansub_releases fr ON fr.id = rev.release_id
+	JOIN episodes ep ON ep.id = fr.episode_id AND ep.anime_id = $1
+	WHERE rvg.fansub_group_id = $2
+`
+
+// collectInt64Column liest eine einzelne bigint-Spalte aus rows in einen Slice ein und schliesst
+// rows in jedem Fall.
+func collectInt64Column(rows pgx.Rows) ([]int64, error) {
+	defer rows.Close()
+	ids := make([]int64, 0)
+	for rows.Next() {
+		var id int64
+		if err := rows.Scan(&id); err != nil {
+			return nil, err
+		}
+		ids = append(ids, id)
+	}
+	if err := rows.Err(); err != nil {
+		return nil, err
+	}
+	return ids, nil
+}
+
+// AssignThemeSegmentToEpisodeRange ist die kanonische Soll-Ist-Synchronisation zwischen einem
+// Kara-Segment und den ihm zugewiesenen Release-Versionen (Phase 156, Workstream A -- ersetzt die
+// rein additive Semantik aus Quick-Task 260819-lm5). Ein Aufruf stellt sicher, dass GENAU die
+// release_version_id's zugewiesen sind, deren Episode im angegebenen Bereich [startEpisode,
+// endEpisode] liegt (gleiche Fansub-Gruppe + Version): fehlende werden ergaenzt (Added), ueberzaehlige
+// werden entfernt (Removed) -- AUSSER ein Assignment traegt einen aktiven
+// theme_segment_episode_overrides-Eintrag; ein solches Assignment wird NICHT geloescht und stattdessen
+// sichtbar als ProtectedByOverride gemeldet (P156-03), weil ein Override der einzige heute vorhandene
+// Beleg bewusster redaktioneller Arbeit an genau dieser (Segment, Release-Version)-Kombination ist.
+// start_episode/end_episode SIND weiterhin der Mechanismus fuer die automatische Zuweisung beim
+// Speichern (Create/Update), kein separater Button noetig.
+//
+// Guard: bei fehlendem/ungueltigem Bereich (segmentID/animeID/fansubGroupID<=0 oder
+// startEpisode/endEpisode<=0) wird GAR NICHTS ausgefuehrt (nil, nil) -- dieser Guard ist die
+// Anker-Bedingung fuer die Anforderung "ein unvollstaendiger Bereich loescht nichts": ein
+// unvollstaendiger Bereich darf NIEMALS als "Soll-Menge = leer" interpretiert und dadurch faelschlich
+// zum Loeschen aller Zuweisungen fuehren. Der Guard laeuft VOR jedem DB-Zugriff (bewiesen durch
+// TestAssignThemeSegmentToEpisodeRangeGuardsInvalidRangeWithoutDBAccess mit nil-db-Feld).
+//
+// Die Entfernung wirkt ausschliesslich auf Assignments derselben Anime/Gruppe/Version-Domaene
+// (themeSegmentDomainReleaseVersionIDsQuery) -- Assignments ausserhalb dieser Domaene werden nie
+// angefasst (P156-03/T-156-05).
 func (r *AdminContentRepository) AssignThemeSegmentToEpisodeRange(
 	ctx context.Context,
 	segmentID int64,
@@ -80,7 +131,7 @@ func (r *AdminContentRepository) AssignThemeSegmentToEpisodeRange(
 	version string,
 	startEpisode int,
 	endEpisode int,
-) ([]int64, error) {
+) (*models.ThemeSegmentAssignmentSyncResult, error) {
 	if segmentID <= 0 || animeID <= 0 || fansubGroupID <= 0 || startEpisode <= 0 || endEpisode <= 0 {
 		return nil, nil
 	}
@@ -98,65 +149,46 @@ func (r *AdminContentRepository) AssignThemeSegmentToEpisodeRange(
 		_ = tx.Rollback(ctx)
 	}()
 
-	rows, err := tx.Query(ctx, `
-		SELECT DISTINCT rev.id
-		FROM release_version_groups rvg
-		JOIN release_versions rev ON rev.id = rvg.release_version_id
-			AND COALESCE(NULLIF(BTRIM(rev.version), ''), 'v1') = $3
-		JOIN fansub_releases fr ON fr.id = rev.release_id
-		JOIN episodes ep ON ep.id = fr.episode_id AND ep.anime_id = $1
-		WHERE rvg.fansub_group_id = $2
-		  AND COALESCE(ep.sort_index, CASE WHEN COALESCE(ep.episode_number, '') ~ '^[0-9]+$' THEN ep.episode_number::int ELSE NULL END) BETWEEN $4 AND $5
-	`, animeID, fansubGroupID, normalizedVersion, startEpisode, endEpisode)
+	targetRows, err := tx.Query(ctx, themeSegmentRangeTargetQuery, animeID, fansubGroupID, normalizedVersion, startEpisode, endEpisode)
 	if err != nil {
 		return nil, fmt.Errorf("assign theme segment to episode range segment=%d: enumerate targets: %w", segmentID, err)
 	}
-	targetReleaseVersionIDs := make([]int64, 0)
-	for rows.Next() {
-		var id int64
-		if err := rows.Scan(&id); err != nil {
-			rows.Close()
-			return nil, fmt.Errorf("assign theme segment to episode range segment=%d: scan target: %w", segmentID, err)
-		}
-		targetReleaseVersionIDs = append(targetReleaseVersionIDs, id)
+	targetReleaseVersionIDs, err := collectInt64Column(targetRows)
+	if err != nil {
+		return nil, fmt.Errorf("assign theme segment to episode range segment=%d: scan targets: %w", segmentID, err)
 	}
-	rowsErr := rows.Err()
-	rows.Close()
-	if rowsErr != nil {
-		return nil, fmt.Errorf("assign theme segment to episode range segment=%d: rows: %w", segmentID, rowsErr)
+	targetSet := make(map[int64]bool, len(targetReleaseVersionIDs))
+	for _, id := range targetReleaseVersionIDs {
+		targetSet[id] = true
 	}
-	if len(targetReleaseVersionIDs) == 0 {
-		if err := tx.Commit(ctx); err != nil {
-			return nil, fmt.Errorf("commit assign theme segment to episode range segment=%d: %w", segmentID, err)
-		}
-		return nil, nil
+
+	domainRows, err := tx.Query(ctx, themeSegmentDomainReleaseVersionIDsQuery, animeID, fansubGroupID, normalizedVersion)
+	if err != nil {
+		return nil, fmt.Errorf("assign theme segment to episode range segment=%d: enumerate domain: %w", segmentID, err)
+	}
+	domainReleaseVersionIDs, err := collectInt64Column(domainRows)
+	if err != nil {
+		return nil, fmt.Errorf("assign theme segment to episode range segment=%d: scan domain: %w", segmentID, err)
 	}
 
 	existingRows, err := tx.Query(ctx, `
-		SELECT release_version_id FROM theme_segment_assignments
-		WHERE theme_segment_id = $1 AND release_version_id = ANY($2)
-	`, segmentID, targetReleaseVersionIDs)
+		SELECT release_version_id FROM theme_segment_assignments WHERE theme_segment_id = $1
+	`, segmentID)
 	if err != nil {
 		return nil, fmt.Errorf("assign theme segment to episode range segment=%d: load existing: %w", segmentID, err)
 	}
-	existing := make(map[int64]bool, len(targetReleaseVersionIDs))
-	for existingRows.Next() {
-		var id int64
-		if err := existingRows.Scan(&id); err != nil {
-			existingRows.Close()
-			return nil, fmt.Errorf("assign theme segment to episode range segment=%d: scan existing: %w", segmentID, err)
-		}
-		existing[id] = true
+	existingAssignmentIDs, err := collectInt64Column(existingRows)
+	if err != nil {
+		return nil, fmt.Errorf("assign theme segment to episode range segment=%d: scan existing: %w", segmentID, err)
 	}
-	existingErr := existingRows.Err()
-	existingRows.Close()
-	if existingErr != nil {
-		return nil, fmt.Errorf("assign theme segment to episode range segment=%d: existing rows: %w", segmentID, existingErr)
+	existingSet := make(map[int64]bool, len(existingAssignmentIDs))
+	for _, id := range existingAssignmentIDs {
+		existingSet[id] = true
 	}
 
 	newlyAssigned := make([]int64, 0)
 	for _, id := range targetReleaseVersionIDs {
-		if existing[id] {
+		if existingSet[id] {
 			continue
 		}
 		newlyAssigned = append(newlyAssigned, id)
@@ -172,11 +204,98 @@ func (r *AdminContentRepository) AssignThemeSegmentToEpisodeRange(
 		}
 	}
 
+	// Loeschkandidaten: bestehende Zuweisungen INNERHALB der Anime/Gruppe/Version-Domaene, aber
+	// ausserhalb des neuen Ziel-Bereichs. Ein Assignment ausserhalb der Domaene (z.B. eine andere
+	// Fansub-Gruppe oder Version) wird nie ein Kandidat -- unabhaengig vom Ziel-Bereich (P156-03/T-156-05).
+	domainSet := make(map[int64]bool, len(domainReleaseVersionIDs))
+	for _, id := range domainReleaseVersionIDs {
+		domainSet[id] = true
+	}
+	deletionCandidates := make([]int64, 0)
+	for _, id := range existingAssignmentIDs {
+		if domainSet[id] && !targetSet[id] {
+			deletionCandidates = append(deletionCandidates, id)
+		}
+	}
+
+	toRemove := make([]int64, 0)
+	protectedByOverride := make([]int64, 0)
+	if len(deletionCandidates) > 0 {
+		// Pattern 2 (156-RESEARCH.md): ein einziger LEFT JOIN statt einer Pro-Zeile-Override-Abfrage
+		// (kein N+1, siehe nonOverriddenSegmentAssignments-Anti-Pattern). o.id IS NULL selektiert
+		// GENAU die Kandidaten, die geloescht werden duerfen.
+		protectionRows, err := tx.Query(ctx, `
+			SELECT tsa.release_version_id
+			FROM theme_segment_assignments tsa
+			LEFT JOIN theme_segment_episode_overrides o
+			  ON o.theme_segment_id = tsa.theme_segment_id
+			 AND o.release_version_id = tsa.release_version_id
+			WHERE tsa.theme_segment_id = $1
+			  AND tsa.release_version_id = ANY($2)
+			  AND o.id IS NULL
+		`, segmentID, deletionCandidates)
+		if err != nil {
+			return nil, fmt.Errorf("assign theme segment to episode range segment=%d: override protection query: %w", segmentID, err)
+		}
+		toRemoveIDs, err := collectInt64Column(protectionRows)
+		if err != nil {
+			return nil, fmt.Errorf("assign theme segment to episode range segment=%d: scan override protection: %w", segmentID, err)
+		}
+		toRemoveSet := make(map[int64]bool, len(toRemoveIDs))
+		for _, id := range toRemoveIDs {
+			toRemoveSet[id] = true
+		}
+		for _, id := range deletionCandidates {
+			if toRemoveSet[id] {
+				toRemove = append(toRemove, id)
+			} else {
+				protectedByOverride = append(protectedByOverride, id)
+			}
+		}
+	}
+
+	if len(toRemove) > 0 {
+		kept := make([]int64, 0, len(targetReleaseVersionIDs)+len(protectedByOverride))
+		kept = append(kept, targetReleaseVersionIDs...)
+		kept = append(kept, protectedByOverride...)
+
+		// AND release_version_id = ANY($2) (domainReleaseVersionIDs) ist tragend: es verhindert,
+		// dass dieses DELETE JEMALS ein Assignment einer anderen Anime/Gruppe/Version-Domaene
+		// entfernt, unabhaengig davon, was in $3 (kept) steht (P156-03/T-156-05).
+		if _, err := tx.Exec(ctx, `
+			DELETE FROM theme_segment_assignments
+			WHERE theme_segment_id = $1
+			  AND release_version_id = ANY($2)
+			  AND NOT (release_version_id = ANY($3))
+		`, segmentID, domainReleaseVersionIDs, kept); err != nil {
+			return nil, fmt.Errorf("assign theme segment to episode range segment=%d: delete stale assignments: %w", segmentID, err)
+		}
+
+		// Gezielte Aufraeumarbeiten (156-CONTEXT.md) fuer die tatsaechlich entfernten
+		// Release-Versionen -- transaktional, nicht pauschal ueber das ganze Segment.
+		if _, err := tx.Exec(ctx, `
+			DELETE FROM theme_segment_playback_sources
+			WHERE theme_segment_id = $1 AND release_version_id = ANY($2)
+		`, segmentID, toRemove); err != nil {
+			return nil, fmt.Errorf("assign theme segment to episode range segment=%d: delete stale playback sources: %w", segmentID, err)
+		}
+		if _, err := tx.Exec(ctx, `
+			DELETE FROM theme_segment_render_cache
+			WHERE theme_segment_id = $1 AND release_version_id = ANY($2)
+		`, segmentID, toRemove); err != nil {
+			return nil, fmt.Errorf("assign theme segment to episode range segment=%d: delete stale render cache: %w", segmentID, err)
+		}
+	}
+
 	if err := tx.Commit(ctx); err != nil {
 		return nil, fmt.Errorf("commit assign theme segment to episode range segment=%d: %w", segmentID, err)
 	}
 
-	return newlyAssigned, nil
+	return &models.ThemeSegmentAssignmentSyncResult{
+		Added:               newlyAssigned,
+		Removed:             toRemove,
+		ProtectedByOverride: protectedByOverride,
+	}, nil
 }
 
 // UnassignThemeSegmentFromReleaseVersion entfernt die Zuweisung eines
