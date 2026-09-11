@@ -130,3 +130,8 @@ None - no external service configuration required. The existing `team4s_phase117
 ---
 *Phase: 156-segment-domain-konsistenz-und-oeffentliche-release-projektion*
 *Completed: 2026-09-11*
+
+## Self-Check: PASSED
+
+All 6 created/modified source files plus this SUMMARY.md confirmed present on disk (7/7 checked).
+All three commits (`e4c60ad5`, `8cd80cd0`, `dde8f334`) confirmed present in `git log`.

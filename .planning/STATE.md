@@ -3,14 +3,14 @@ gsd_state_version: 1.0
 milestone: v1.4
 milestone_name: Coverage
 status: executing
-stopped_at: Completed 156-03-PLAN.md
-last_updated: "2026-09-11T20:47:55.353Z"
+stopped_at: Completed 156-06-PLAN.md
+last_updated: "2026-09-11T21:04:40.647Z"
 last_activity: 2026-09-11
 progress:
   total_phases: 21
   completed_phases: 20
   total_plans: 202
-  completed_plans: 194
+  completed_plans: 195
   percent: 95
 ---
 
@@ -34,8 +34,34 @@ See: .planning/PROJECT.md (updated 2026-08-13)
 ## Current Position
 
 Phase: 156 (segment-domain-konsistenz-und-oeffentliche-release-projektion) — EXECUTING
-Plan: 4 of 11
-Status: Plan 156-03 complete (Auto-Assignment neuer Release-Versionen), ready to execute 156-04
+Plan: 5 of 11
+Status: Plan 156-06 complete (Projektseite: Assignment-basierte Timeline). Naechste laut
+ROADMAP.md-Reihenfolge: 156-04/156-05 (Segment-Origin-Welle), dann 156-07/08/09.
+
+Plan 156-06 (2026-09-11) abgeschlossen: die Projektseiten-Timeline (`attachReleaseTimelineSegments`,
+`group_repository_cursor_timeline.go`, neu ausgelagert aus `group_repository_cursor.go` wegen des
+450-Zeilen-Limits) leitet Segmente jetzt aus `theme_segment_assignments` ab statt aus einem
+`start_episode`/`end_episode`-Bereichsvergleich (P156-10). Eine neue, exportierte
+`CanonicalSegmentType(themeTypeName string) string` (`theme_segment_type.go`) ersetzt die
+SQL-`CASE...LIKE`-Heuristik als einzige Typklassifikation -- vorgesehen zur Wiederverwendung durch
+Plan 156-07 (Release-Seite) und 156-08 (Frontend). Eine gebuendelte, projektweite (nicht
+seitenlokale) First-Occurrence-Abfrage sorgt dafuer, dass ein geteiltes Segment nur bei seiner
+global ersten Zuweisung erscheint, korrekt auch ueber Cursor-Seitenwechsel hinweg (P156-11/P156-12)
+-- genau zwei Abfragen fuer die gesamte Seite, keine pro Episode/Segment. Eine neue dedizierte
+Integrationstestdatei (`group_repository_cursor_timeline_test.go`, gab es vorher nicht) beweist alle
+fuenf planvorgegebenen Verhaltensfaelle gegen echtes PostgreSQL. Zwei Abweichungen: der Datei-Split
+(Rule 2/CLAUDE.md-Modularitaet) und eine Reparatur eines vorbestehenden Quelltext-Substring-Tests
+(`release_detail_cursor_test.go`), dessen Annahmen durch die absichtliche Entfernung des alten
+Bereichspraedikats und den Datei-Split gebrochen wurden (Rule 1). TDD-Gate-Hinweis: Test und
+Implementierung wurden in einem gemeinsamen `feat`-Commit statt in getrennten RED/GREEN-Commits
+geliefert -- in 156-06-SUMMARY.md unter "TDD Gate Compliance" dokumentiert, nicht verschwiegen.
+Hinweis zur Ausfuehrungsreihenfolge: laut ROADMAP.md-Phasentabelle (Zeilen 1601-1619) ist 156-06 die
+naechste Plan-Nummer nach 156-03 in der tatsaechlichen Wellen-Reihenfolge, waehrend 156-04/156-05
+(Segment-Origin) einer spaeteren Welle angehoeren -- die Plan-NUMMER ist nicht die Ausfuehrungs-
+Reihenfolge; das Positions-"Plan: N of 11" zaehlt ausgefuehrte Plaene, nicht Plan-Nummern.
+`requirements.mark-complete P156-10/11/12` fand wie bei den Vorplaenen keine Zeile in
+REQUIREMENTS.md (dieselbe uebergreifende Tracking-Luecke, in ROADMAP.md verfolgt). Details:
+156-06-SUMMARY.md.
 
 Plan 156-03 (2026-09-11) abgeschlossen: die "Release-zuerst"-Ordnungsluecke ist geschlossen --
 `upsertReleaseVersionGroup` (der einzige produktive Insert-Pfad fuer `release_versions`) loest
@@ -545,6 +571,7 @@ Last activity: 2026-09-11
 - [Phase 156]: 156-01: SegmentCreditRoleCodes lives in backend/internal/permissions, not repository/handler/frontend -- single central definition
 - [Phase 156]: AssignThemeSegmentToEpisodeRange ist jetzt eine Soll-Ist-Synchronisation (insert-missing/delete-excess), nicht mehr additiv — Bereichsverkuerzung muss veraltete Zuweisungen entfernen koennen; der Guard gegen unvollstaendige Bereiche bleibt verbatim und hat einen eigenen dedizierten Postgres-Test
 - [Phase 156]: Reverse-direction auto-assign hooked directly into upsertReleaseVersionGroup's existing per-group loop (Plan 156-03); episode/version resolved once per release version, byte-identical join fragments reused from theme_segment_assignments.go
+- [Phase 156]: Split attachReleaseTimelineSegments into group_repository_cursor_timeline.go (CLAUDE.md 450-line cap); is_karaoke now derives from CanonicalSegmentType output instead of a second SQL LIKE heuristic.
 
 ### Pending Todos
 
@@ -923,11 +950,12 @@ untruncated list lives in `.planning/todos/pending/`.
 | Phase 156 P01 | 8min | 2 tasks | 4 files |
 | Phase 156 P02 | 22min | 2 tasks | 9 files |
 | Phase 156 P03 | 14min | 1 tasks | 3 files |
+| Phase 156 P06 | 14min | 2 tasks | 6 files |
 
 ## Session Continuity
 
-Last session: 2026-09-11T20:47:31.827Z
-Stopped at: Completed 156-02-PLAN.md
+Last session: 2026-09-11T21:04:40.632Z
+Stopped at: Completed 156-06-PLAN.md
 Last activity: Local handoff checkpoint; no new Execute step, browser matrix, build, agent or push started after stop.
 Resume file: None
 Structured state: .planning/HANDOFF.json
