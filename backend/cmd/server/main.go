@@ -287,7 +287,8 @@ func main() {
 	).WithMedia(mediaRepo, mediaService).
 		WithReleaseMetadataCreditService(services.NewReleaseMetadataCreditService(dbPool)).
 		WithPermissionDeps(permissionSvc, auditLogRepo).
-		WithReleasePlaybackEntitlements(repository.NewReleasePlaybackEntitlementRepository(dbPool, authzRepo))
+		WithReleasePlaybackEntitlements(repository.NewReleasePlaybackEntitlementRepository(dbPool, authzRepo)).
+		WithProjectResolverRepo(repository.NewFansubProjectResolverRepository(dbPool))
 	groupRepo := repository.NewGroupRepository(dbPool)
 	groupHandler := handlers.NewGroupHandler(groupRepo)
 	groupContributorsRepo := repository.NewGroupContributorsRepository(dbPool)
@@ -431,6 +432,7 @@ func main() {
 	v1.GET("/fansubs", fansubHandler.ListFansubs)
 	v1.GET("/fansub-slugs/:slug", fansubHandler.GetFansubBySlug)
 	v1.GET("/fansub-slugs/:slug/public-profile", fansubHandler.GetFansubPublicProfileBySlug)
+	v1.GET("/fansub-slugs/:slug/projects/:animeSlug/resolve", fansubHandler.ResolveFansubProject)
 	v1.GET("/fansubs/:id", fansubHandler.GetFansubByID)
 	v1.GET("/fansubs/:id/aliases", fansubHandler.ListFansubAliases)
 	v1.GET("/fansubs/:id/members", fansubHandler.ListFansubMembers)

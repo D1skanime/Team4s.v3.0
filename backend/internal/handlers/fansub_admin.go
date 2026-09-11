@@ -57,6 +57,7 @@ type FansubHandler struct {
 	updateGroupLink             func(context.Context, int64, int64, models.FansubGroupLinkPatchInput) (*models.FansubGroupLink, bool, error)
 	writeAuditLog               func(context.Context, repository.AuditLogEntry) error
 	releasePlaybackEntitlements permissions.ReleasePlaybackEntitlementResolver
+	projectResolverRepo         fansubProjectResolverRepo
 }
 
 func (h *FansubHandler) WithReleasePlaybackEntitlements(resolver permissions.ReleasePlaybackEntitlementResolver) *FansubHandler {
