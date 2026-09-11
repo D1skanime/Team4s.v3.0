@@ -55,3 +55,51 @@ func TestResolvePublicEffectiveContributors_AppliesVisibilityAfterPrecedenceAndD
 	assert.Equal(t, int64(5), resolved[12][0].MemberID)
 	assert.Equal(t, "Encoding, Timing", resolved[12][0].RoleLabel)
 }
+
+// TestResolvePublicEffectiveContributors_PreservesRoleCodesAlongsideLabels proves the
+// raw role_code set survives aggregation, not just the joined German label string
+// (156-05 Test 1: multi-role contributor, unique/order-independent RoleCodes).
+func TestResolvePublicEffectiveContributors_PreservesRoleCodesAlongsideLabels(t *testing.T) {
+	candidates := []publicContributionCandidate{
+		{
+			ReleaseVersionID: 20, ContributionID: 1, FansubGroupID: 1, MemberID: 1, Name: "Multi Role",
+			RoleLabels: []string{"Übersetzung", "Timing"}, RoleCodes: []string{"translator", "timer"}, IsPublic: true,
+		},
+	}
+
+	resolved := resolvePublicEffectiveContributors(candidates)
+
+	require.Len(t, resolved[20], 1)
+	assert.Equal(t, "Timing, Übersetzung", resolved[20][0].RoleLabel)
+	assert.ElementsMatch(t, []string{"translator", "timer"}, resolved[20][0].RoleCodes)
+}
+
+// TestResolvePublicEffectiveContributors_CarriesMemberSlugWhenPublic proves a
+// visibility-gated member_slug (already nil-or-populated by the SQL CASE before
+// reaching this function) survives aggregation (156-05 Test 2).
+func TestResolvePublicEffectiveContributors_CarriesMemberSlugWhenPublic(t *testing.T) {
+	slug := "sheppert"
+	candidates := []publicContributionCandidate{
+		{ReleaseVersionID: 21, ContributionID: 1, FansubGroupID: 1, MemberID: 1, Name: "Public Profile", MemberSlug: &slug, IsPublic: true},
+	}
+
+	resolved := resolvePublicEffectiveContributors(candidates)
+
+	require.Len(t, resolved[21], 1)
+	require.NotNil(t, resolved[21][0].MemberSlug)
+	assert.Equal(t, "sheppert", *resolved[21][0].MemberSlug)
+}
+
+// TestResolvePublicEffectiveContributors_MemberSlugNilWhenProfileNotPublic proves the
+// contributor is still returned (role/credit visibility gate) even though its
+// member_slug is nil (independent profile-visibility gate, 156-05 Test 3).
+func TestResolvePublicEffectiveContributors_MemberSlugNilWhenProfileNotPublic(t *testing.T) {
+	candidates := []publicContributionCandidate{
+		{ReleaseVersionID: 22, ContributionID: 1, FansubGroupID: 1, MemberID: 1, Name: "Non Public Profile", MemberSlug: nil, IsPublic: true},
+	}
+
+	resolved := resolvePublicEffectiveContributors(candidates)
+
+	require.Len(t, resolved[22], 1)
+	assert.Nil(t, resolved[22][0].MemberSlug)
+}
