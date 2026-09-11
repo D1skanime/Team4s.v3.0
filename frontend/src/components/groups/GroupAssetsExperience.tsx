@@ -6,7 +6,6 @@ import { ChevronLeft, ChevronRight, Play, X } from 'lucide-react'
 
 import VideoPlayerModal from '@/app/episodes/[id]/components/VideoPlayerModal'
 import { GroupAssetImage, GroupAssetMedia, GroupAssetMediaType, GroupEpisodeAssets } from '@/types/groupAsset'
-import { EpisodeReleaseSummary } from '@/types/group'
 import { MediaAsset } from '@/types/mediaAsset'
 import { resolvePublicApiUrl } from '@/lib/publicApiUrl'
 
@@ -16,7 +15,6 @@ interface GroupAssetsExperienceProps {
   animeID: number
   groupID: number
   episodes: GroupEpisodeAssets[]
-  releaseEpisodes: EpisodeReleaseSummary[]
   errorMessage?: string | null
 }
 
@@ -60,17 +58,12 @@ export function GroupAssetsExperience({
   animeID,
   groupID,
   episodes,
-  releaseEpisodes,
   errorMessage = null,
 }: GroupAssetsExperienceProps) {
   const [lightboxImages, setLightboxImages] = useState<GroupAssetImage[]>([])
   const [activeImageIndex, setActiveImageIndex] = useState(0)
   const [playingAsset, setPlayingAsset] = useState<MediaAsset | null>(null)
   const [isPlayerOpen, setIsPlayerOpen] = useState(false)
-  const releaseByEpisode = useMemo(
-    () => new Map(releaseEpisodes.map((release) => [release.episode_number, release])),
-    [releaseEpisodes],
-  )
 
   const hasEpisodes = episodes.length > 0
   const lightboxOpen = lightboxImages.length > 0
@@ -131,11 +124,10 @@ export function GroupAssetsExperience({
         {errorMessage ? <div className={styles.stateBox}>Medien konnten gerade nicht geladen werden.</div> : null}
 
         {episodes.map((episode) => {
-          const release = releaseByEpisode.get(episode.episode_number) || null
-          const releaseTitle = release?.title?.trim() || `Assets aus ${episode.folder_name}`
+          const releaseTitle = episode.title?.trim() || `Assets aus ${episode.folder_name}`
           const detailHref =
-            release?.episode_id && release.id
-              ? `/episodes/${release.episode_id}?releaseId=${release.id}&animeId=${animeID}&groupId=${groupID}`
+            episode.episode_id && episode.release_id
+              ? `/episodes/${episode.episode_id}?releaseId=${episode.release_id}&animeId=${animeID}&groupId=${groupID}`
               : null
 
           return (
