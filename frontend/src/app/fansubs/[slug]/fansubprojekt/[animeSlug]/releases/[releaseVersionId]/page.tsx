@@ -1,7 +1,7 @@
 import { notFound } from 'next/navigation'
 
 import { parseReleaseDetailSearchParams, ReleaseDetailPageContent } from '@/app/anime/[id]/group/[groupId]/releases/[releaseVersionId]/releaseDetailPageData'
-import { ApiError, getPublicFansubProfileBySlug } from '@/lib/api'
+import { ApiError, resolveFansubProject } from '@/lib/api'
 import { buildPublicFansubProjectPath } from '@/lib/fansubProjectRoutes'
 
 interface Props {
@@ -15,21 +15,19 @@ export default async function PrettyReleaseDetailPage({ params, searchParams }: 
   const releaseVersionID = Number.parseInt(releaseVersionId, 10)
   if (releaseVersionID <= 0) return notFound()
 
-  let profile: Awaited<ReturnType<typeof getPublicFansubProfileBySlug>>
+  let resolution: Awaited<ReturnType<typeof resolveFansubProject>>
   try {
-    profile = await getPublicFansubProfileBySlug(slug.trim())
+    resolution = await resolveFansubProject(slug.trim(), animeSlug.trim())
   } catch (error) {
     if (error instanceof ApiError && error.status === 404) return notFound()
     throw error
   }
-  const project = profile.data.projects.find((item) => item.anime_slug?.trim() === animeSlug.trim())
-  if (!project) return notFound()
   const deepLink = parseReleaseDetailSearchParams(await searchParams ?? {})
   return <ReleaseDetailPageContent
-    animeID={project.id}
-    groupID={profile.data.group.id}
+    animeID={resolution.data.anime_id}
+    groupID={resolution.data.group_id}
     releaseVersionID={releaseVersionID}
-    canonicalProjectPath={buildPublicFansubProjectPath(profile.data.group.slug, project.anime_slug)}
+    canonicalProjectPath={buildPublicFansubProjectPath(slug.trim(), resolution.data.anime_slug)}
     {...deepLink}
   />
 }
