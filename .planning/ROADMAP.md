@@ -1592,7 +1592,7 @@ ausdruecklich **kein** visuelles Redesign und kopiert keine Credits in Segmentta
 
 **Depends on:** Phase 155
 
-**Plans:** 8/11 plans executed
+**Plans:** 9/11 plans executed
 
 Plans:
 
@@ -1616,7 +1616,7 @@ Plans:
 **Wave 4** *(blocked on Wave 3 completion)*
 
 - [x] 156-08-PLAN.md — Frontend: ThemeTimeline-Split, kanonischer Typ, Projekt-Member-Link
-- [ ] 156-09-PLAN.md — Query-Budget-Regressionstest + Index-Plan-Beleg
+- [x] 156-09-PLAN.md — Query-Budget-Regressionstest + Index-Plan-Beleg
 
 **Wave 5** *(blocked on Wave 4 completion)*
 

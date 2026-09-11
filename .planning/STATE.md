@@ -3,14 +3,14 @@ gsd_state_version: 1.0
 milestone: v1.4
 milestone_name: Coverage
 status: executing
-stopped_at: Completed 156-05-PLAN.md
-last_updated: "2026-09-11T22:03:08.458Z"
+stopped_at: Completed 156-09-PLAN.md
+last_updated: "2026-09-11T22:13:49.736Z"
 last_activity: 2026-09-11
 progress:
   total_phases: 21
   completed_phases: 20
   total_plans: 202
-  completed_plans: 199
+  completed_plans: 200
   percent: 95
 ---
 
@@ -34,9 +34,33 @@ See: .planning/PROJECT.md (updated 2026-08-13)
 ## Current Position
 
 Phase: 156 (segment-domain-konsistenz-und-oeffentliche-release-projektion) — EXECUTING
-Plan: 9 of 11
+Plan: 10 of 11
 Status: Ready to execute
 ROADMAP.md-Reihenfolge: 156-08/09 als naechstes (zentrale Segment-Credit-Semantik, Frontend-/Folgeplaene).
+
+Plan 156-09 (2026-09-11) abgeschlossen: zwei neue Tests schliessen die verbliebenen
+Nachweispflichten von Plan 156-07 (P156-16/P156-17). `TestLoadReleaseSegmentsQueryBudgetIsConstant`
+(`segment_origin_query_budget_test.go`) beweist mit dem geteilten `queryCounter`-Muster (Phase 155)
+gegen echtes, isoliertes PostgreSQL, dass `loadReleaseSegments`' gebuendelte Origin-Credit-Ladung
+fuer eine 1-Segment/1-Beitragenden-Release und eine 3-Segment-Release mit drei VERSCHIEDENEN,
+je zweifach besetzten Origin-Release-Versionen dieselbe Abfragezahl ausloest (konstant 3 --
+Segment-Scan, ein gebuendelter `loadPublicEffectiveContributors`-Aufruf, ein gebuendelter
+`AppliesThroughEpisode`-Aufruf), gepinnt auf `phase156SegmentOriginConstantQueryBudget`. Da
+`testsupport.OpenPhase117Postgres` keinen Tracer-Injektionspunkt bietet, oeffnet der Test einen
+ZWEITEN Pool auf demselben DSN/Schema (per `current_schema()`-Discovery), ohne die geteilte
+Testsupport-Fixture zu aendern. `TestSegmentCreditRoleFilter`
+(`segment_credit_role_filter_test.go`) ist ein reiner Go-Table-Test ohne DB-Abhaengigkeit gegen die
+bereits bestehende, direkt aufrufbare `hasAnySegmentRelevantRole`-Funktion (Plan 156-07) und die
+echte `permissions.SegmentCreditRoleCodes`-Allow-List: Uebersetzer-only eingeschlossen,
+Encoder-/QC-only ausgeschlossen, gemischte Encoder+Uebersetzer-Rolle eingeschlossen (T-156-13),
+leere Rollenliste ausgeschlossen. Der Query-Plan-Beleg fuer
+`idx_theme_segments_origin_release_version` (Migration 0161) wurde live gegen `team4s_v2` erfasst:
+bei aktuell nur 3 Zeilen in `theme_segments` waehlt Postgres ehrlich einen Seq Scan (korrekt bei
+dieser Groesse), ein sitzungslokales `SET enable_seqscan = off` beweist zusaetzlich, dass der Index
+korrekt gebaut ist und als Index Only Scan greift -- beide Plaene sind in 156-09-SUMMARY.md
+dokumentiert, nicht nur der guenstige. Keine Abweichungen vom Plan. `requirements.mark-complete
+P156-16/P156-17` fand wie bei den Vorplaenen keine Zeile in REQUIREMENTS.md (dieselbe
+uebergreifende Tracking-Luecke). Details: 156-09-SUMMARY.md.
 
 Plan 156-08 (2026-09-11) abgeschlossen: `ThemeTimeline.tsx`
 (`frontend/src/app/anime/[id]/group/[groupId]/releases/[releaseVersionId]/`) haelt keine eigene
@@ -669,6 +693,9 @@ Last activity: 2026-09-11
 - [Phase 156]: 156-07: Segment credits now project dynamically from each segment's ORIGIN release version's current contributors, filtered by permissions.SegmentCreditRoleCodes -- replacing the strings.Contains(label, kara) heuristic
 - [Phase 156]: ThemeTimeline.tsx split into a new sibling ThemeTimelineSegmentDetails.tsx; own OP/ED/INSERT/KARA classification (TYPE_LABELS/TYPE_STYLE_KEYS) deleted in favor of rendering backend-canonical segment.type via a small presentational CSS-class/label lookup — P156-15 requires the frontend to stop holding its own type world; keeps both files under the 450-line cap
 - [Phase 156]: Segment participants with a member_slug now render as a Link to the project-context member route via buildPublicFansubProjectMemberPath's suffix shape ('/mitwirkende/'), the first production consumer of that Phase-155 helper — P156-14: segment-related member clicks land on the project member route instead of plain text
+- [Phase ?]: Constant-query-budget test for loadReleaseSegments opens a second traced pgxpool.Pool on the same schema as testsupport.OpenPhase117Postgres rather than modifying the shared fixture — Keeps the diff scoped to test files only, no risk to 12+ other tests sharing the fixture
+- [Phase ?]: hasAnySegmentRelevantRole (Plan 156-07) already existed as a directly-testable unexported function — No extraction needed for the table-driven role-filter unit test; calls real production logic
+- [Phase ?]: idx_theme_segments_origin_release_version index-plan evidence recorded honestly: live team4s_v2 theme_segments has only 3 rows, Postgres naturally chooses Seq Scan; SET enable_seqscan=off proves the index is well-formed via Index Only Scan — Both plans recorded, not just the favorable one, per no-speculation-index constraint
 
 ### Pending Todos
 
@@ -1052,11 +1079,12 @@ untruncated list lives in `.planning/todos/pending/`.
 | Phase 156 P05 | 6min | 1 tasks | 3 files |
 | Phase 156 P07 | 46min | 2 tasks | 5 files |
 | Phase 156 P08 | 11min | 2 tasks | 6 files |
+| Phase 156 P09 | 25min | 2 tasks | 2 files |
 
 ## Session Continuity
 
-Last session: 2026-09-11T22:03:08.441Z
-Stopped at: Completed 156-05-PLAN.md
+Last session: 2026-09-11T22:13:49.718Z
+Stopped at: Completed 156-09-PLAN.md
 Last activity: Local handoff checkpoint; no new Execute step, browser matrix, build, agent or push started after stop.
 Resume file: None
 Structured state: .planning/HANDOFF.json
