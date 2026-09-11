@@ -3,7 +3,7 @@
 import { useEffect, useRef, useState } from 'react'
 import { X, Upload, FileVideo, XCircle } from 'lucide-react'
 
-import { Switch, FormField, Input, Button } from '@/components/ui'
+import { Switch, FormField, Input, Button, Select } from '@/components/ui'
 import type { AdminThemeSegment, AdminSegmentSourceType, AdminSegmentLibraryCandidate } from '@/types/admin'
 import type { GenericSegmentThemeOption } from './useReleaseSegments'
 import {
@@ -51,6 +51,9 @@ interface SegmentEditPanelProps {
   onRemoveOverride: () => void
   isSavingOverride: boolean
   overrideError: string | null
+  onSetOrigin: (releaseVersionID: number) => void
+  isSettingOrigin: boolean
+  originError: string | null
   onClose: () => void
   onFormChange: (patch: Partial<FormState>) => void
   onPendingUploadFileChange: (file: File | null) => void
@@ -81,6 +84,9 @@ export function SegmentEditPanel({
   onRemoveOverride,
   isSavingOverride,
   overrideError,
+  onSetOrigin,
+  isSettingOrigin,
+  originError,
   onClose,
   onFormChange,
   onPendingUploadFileChange,
@@ -446,6 +452,31 @@ export function SegmentEditPanel({
                 ) : null}
               </div>
             ) : null}
+          </div>
+        ) : null}
+
+        {/* Segment-Origin (Phase 156, P156-06/P156-18) — nur bei geteilten, zugewiesenen Segmenten */}
+        {isSharedSegment && (editingSegment?.assigned_episodes?.length ?? 0) > 0 ? (
+          <div className={styles.panelField}>
+            <FormField label="Segment-Origin (Quelle der Credits)" htmlFor="segment-origin-select">
+              <Select
+                id="segment-origin-select"
+                value={editingSegment?.origin_release_version_id ?? ''}
+                onChange={(e) => onSetOrigin(Number(e.target.value))}
+                disabled={isSettingOrigin}
+              >
+                {(editingSegment?.assigned_episodes ?? []).map((ep) => (
+                  <option key={ep.release_version_id} value={ep.release_version_id}>
+                    {`Folge ${ep.episode_number}`}
+                  </option>
+                ))}
+              </Select>
+            </FormField>
+            <p className={styles.sourceHelpText}>
+              Bestimmt, aus welcher zugewiesenen Folge die Credits dieses Segments stammen. Wird
+              nicht automatisch mitgeändert, wenn du den Bereich anpasst.
+            </p>
+            {originError ? <div className={styles.assetError}>{originError}</div> : null}
           </div>
         ) : null}
 

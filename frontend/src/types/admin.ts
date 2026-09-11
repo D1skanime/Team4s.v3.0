@@ -881,6 +881,12 @@ export interface AdminThemeSegment {
   assigned_release_version_ids?: number[]
   /** true, wenn das Segment mehr als einer Release-Version zugewiesen ist (D-03). */
   is_shared?: boolean
+  /**
+   * Aktuelle Origin-Release-Version des Segments (Phase 156, P156-06/P156-18) -- bestimmt, aus
+   * welcher zugewiesenen Folge die oeffentlichen Credits dieses Segments stammen. `null`/`undefined`
+   * vor dem ersten Setzen, admin-korrigierbar ueber `PUT .../segments/:segmentId/origin`.
+   */
+  origin_release_version_id?: number | null
   /** true, wenn mindestens eine zugewiesene Folge einen Zeit-Override hat (D-01/D-02). */
   has_episode_override?: boolean
   /**

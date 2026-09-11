@@ -7091,6 +7091,49 @@ export async function assignAnimeSegment(
 }
 
 /**
+ * Setzt/korrigiert die Origin-Release-Version eines (potenziell geteilten) Segments -- bestimmt,
+ * aus welcher zugewiesenen Folge die öffentlichen Credits dieses Segments stammen (Phase 156,
+ * P156-06/P156-18). Lehnt eine Ziel-Release-Version, die dem Segment nicht zugewiesen ist, mit
+ * 409/`origin_not_assigned` ab.
+ * PUT /api/v1/admin/anime/:id/segments/:segmentId/origin
+ */
+export async function setAnimeSegmentOrigin(
+  animeId: number,
+  segmentId: number,
+  releaseVersionId: number,
+  authToken?: string,
+): Promise<{ data: AdminThemeSegment }> {
+  const API_BASE_URL = getApiBaseUrl();
+  const response = await authorizedFetch(
+    `${API_BASE_URL}/api/v1/admin/anime/${animeId}/segments/${segmentId}/origin`,
+    {
+      method: "PUT",
+      headers: withAuthHeader(
+        { "Content-Type": "application/json" },
+        authToken,
+      ),
+      body: JSON.stringify({ release_version_id: releaseVersionId }),
+    },
+  );
+
+  if (!response.ok) {
+    const parsed = await parseApiErrorPayload(
+      response,
+      `API request failed: ${response.status}`,
+    );
+    throw new ApiError(
+      response.status,
+      parsed.message,
+      null,
+      parsed.code,
+      parsed.details,
+    );
+  }
+
+  return response.json() as Promise<{ data: AdminThemeSegment }>;
+}
+
+/**
  * Entzieht einem geteilten Kara-Segment eine Release-Version-Zuweisung (D-03).
  * DELETE /api/v1/admin/anime/:id/segments/:segmentId/assignments/:releaseVersionId
  */

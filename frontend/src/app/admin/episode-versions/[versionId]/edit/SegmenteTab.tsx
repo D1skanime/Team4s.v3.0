@@ -27,6 +27,7 @@ import {
   deleteSegmentAsset,
   getAnimeSegmentSuggestions,
   getSegmentLibraryCandidates,
+  setAnimeSegmentOrigin,
   uploadSegmentAsset,
 } from '@/lib/api'
 import {
@@ -176,6 +177,8 @@ export function SegmenteTab({ animeId, groupId, version, episodeNumber, duration
   const [renderingSegmentId, setRenderingSegmentId] = useState<number | null>(null)
   const { isSavingOverride, overrideError, handleSaveOverride, handleRemoveOverride, resetOverrideError } =
     useSegmentOverrideHandlers({ editingSegment, releaseVariantId: releaseVariantId ?? null, setSegmentOverride, removeSegmentOverride })
+  const [isSettingOrigin, setIsSettingOrigin] = useState(false)
+  const [originError, setOriginError] = useState<string | null>(null)
 
   // Asset upload state
   const [isUploading, setIsUploading] = useState(false)
@@ -232,6 +235,7 @@ export function SegmenteTab({ animeId, groupId, version, episodeNumber, duration
     setReuseError(null)
     setPendingUploadFile(null)
     resetOverrideError()
+    setOriginError(null)
     setPanelOpen(true)
   }
 
@@ -245,6 +249,7 @@ export function SegmenteTab({ animeId, groupId, version, episodeNumber, duration
     setReuseError(null)
     setPendingUploadFile(null)
     resetOverrideError()
+    setOriginError(null)
   }
 
   useEffect(() => {
@@ -518,6 +523,21 @@ export function SegmenteTab({ animeId, groupId, version, episodeNumber, duration
     }
   }
 
+  async function handleSetOrigin(releaseVersionID: number) {
+    if (!animeId || !editingSegment) return
+    setIsSettingOrigin(true)
+    setOriginError(null)
+    try {
+      const res = await setAnimeSegmentOrigin(animeId, editingSegment.id, releaseVersionID)
+      await reload()
+      setEditingSegment(res.data)
+    } catch (error) {
+      setOriginError(error instanceof Error ? error.message : 'Segment-Origin konnte nicht gesetzt werden.')
+    } finally {
+      setIsSettingOrigin(false)
+    }
+  }
+
   const episodeLabel = episodeNumber != null ? `Aktive Segmente für Episode ${episodeNumber}` : 'Segmente verwalten'
   const episodeSubtitle = episodeNumber != null
     ? `Zeigt alle Segmente, deren Episodenbereich Episode ${episodeNumber} abdeckt.`
@@ -785,6 +805,9 @@ export function SegmenteTab({ animeId, groupId, version, episodeNumber, duration
           onRemoveOverride={() => void handleRemoveOverride()}
           isSavingOverride={isSavingOverride}
           overrideError={overrideError}
+          onSetOrigin={(releaseVersionID) => void handleSetOrigin(releaseVersionID)}
+          isSettingOrigin={isSettingOrigin}
+          originError={originError}
           onClose={closePanel}
           onFormChange={(patch) => {
             if (patch.sourceType && patch.sourceType !== 'release_asset') {
