@@ -4,13 +4,13 @@ milestone: v1.4
 milestone_name: Coverage
 status: executing
 stopped_at: Completed 155-07-PLAN.md (Phase 155 complete, 7/7 plans, ready for verification)
-last_updated: "2026-09-11T19:57:56.403Z"
+last_updated: "2026-09-11T20:09:27.644Z"
 last_activity: 2026-09-11
 progress:
   total_phases: 21
   completed_phases: 20
   total_plans: 202
-  completed_plans: 191
+  completed_plans: 192
   percent: 95
 ---
 
@@ -29,13 +29,31 @@ Phase 135 and any future roadmap entries continue from here.
 See: .planning/PROJECT.md (updated 2026-08-13)
 
 **Core value:** Team4s presents fansub history and collaboration credibly while keeping identity, visibility, ownership, and permissions correct.
-**Current focus:** Milestone complete
+**Current focus:** Phase 156 — segment-domain-konsistenz-und-oeffentliche-release-projektion
 
 ## Current Position
 
-Phase: 156
-Plan: Not started
-Status: Ready to execute
+Phase: 156 (segment-domain-konsistenz-und-oeffentliche-release-projektion) — EXECUTING
+Plan: 2 of 11
+Status: Plan 156-01 complete (migration 0161 + SegmentCreditRoleCodes), ready to execute 156-02
+
+Plan 156-01 (2026-09-11) abgeschlossen: Migration 0161 fuegt die nullable, korrigierbare
+`theme_segments.origin_release_version_id`-Spalte (FK auf `release_versions`, `ON DELETE SET
+NULL`) plus Index hinzu und backfuellt sie deterministisch (niedrigste aufgeloeste Episode je
+Segment ueber vorhandene `theme_segment_assignments`) -- live gegen `team4s_v2` verifiziert
+(3/3 Segmente mit Zuweisung korrekt befuellt, Down/Up-Rundlauf sauber). `permissions.
+SegmentCreditRoleCodes` ({translator, timer, karaoke_fx, typesetter}, encoder/quality_checker
+explizit ausgeschlossen) ist jetzt die einzige zentrale Definition segmentrelevanter
+Rollen-Codes, per RED/GREEN-TDD-Zyklus bewiesen. Keine Abweichungen vom Plan; ein
+vorbestehender, nicht durch diesen Plan verursachter Befund ist dokumentiert (permissions.go
+war bereits vor diesem Plan bei 930 Zeilen, weit ueber dem 450-Zeilen-Limit -- als Altlast
+in 156-01-SUMMARY.md geflaggt, nicht behoben). Details: 156-01-SUMMARY.md.
+
+Requirements-Hinweis (mirrors Phase 153's precedent): `.planning/REQUIREMENTS.md` hat keinen
+Phase-156-Abschnitt; P156-05/P156-08/P156-09 sind in `.planning/ROADMAP.md`s Phase-156-Tabelle
+verfolgt (nicht in REQUIREMENTS.md), `requirements.mark-complete` fand entsprechend keine
+Zeilen zum Abhaken -- kein Fehler dieses Plans, sondern dieselbe uebergreifende
+Tracking-Artefakt-Luecke, die STATE.md bereits fuer Phase 153 dokumentiert.
 
 Phase 155 wurde additiv an die Roadmap angehaengt (Milestone v1.4 bleibt als abgeschlossen dokumentiert, kein Milestone-Reset). Auftragsquelle: `.planning/phases/155-fansub-projektseite-read-model-und-query-budget/155-USER-REQUEST.md`, Kontext: `155-CONTEXT.md` (ersetzt eine interaktive discuss-phase-Sitzung).
 
@@ -481,6 +499,8 @@ Last activity: 2026-09-11
 - [Phase 155]: fansubProjectNavigation.ts's projects input narrowed to FansubProjectNavigationEntry[]; PublicFansubProject structurally satisfies it, so the numeric legacy route needed zero changes
 - [Phase 155]: Release-detail's mismatched-slug test mocks a 404 rejection, not a wrong-anime_slug resolution, matching the resolver's real WHERE groupSlug AND animeSlug SQL contract
 - [Phase 155]: Closed the phase-crossing REQUIREMENTS.md gap flagged by five of the six prior 155-0X plans by adding a Phase 155 additive-scope section (all 15 P155-* requirements) as the phase's closing plan, mirroring Phase 152's format. — Five of six prior plan SUMMARY.md files explicitly deferred this to the phase-level verifier/closeout rather than inventing a section format mid-phase; the closing plan is the correct place to resolve it once all evidence exists.
+- [Phase 156]: 156-01: origin_release_version_id uses ON DELETE SET NULL (not CASCADE) -- origin is correctable, never destructive
+- [Phase 156]: 156-01: SegmentCreditRoleCodes lives in backend/internal/permissions, not repository/handler/frontend -- single central definition
 
 ### Pending Todos
 
@@ -856,10 +876,11 @@ untruncated list lives in `.planning/todos/pending/`.
 | Phase 155 P05 | 12min | 2 tasks | 5 files |
 | Phase 155 P06 | 22min | 3 tasks | 7 files |
 | Phase 155 P07 | 55min | 3 tasks | 6 files |
+| Phase 156 P01 | 8min | 2 tasks | 4 files |
 
 ## Session Continuity
 
-Last session: 2026-09-11T16:16:28.770Z
+Last session: 2026-09-11T20:08:44.576Z
 Stopped at: Completed 155-07-PLAN.md (Phase 155 complete, 7/7 plans, ready for verification)
 Last activity: Local handoff checkpoint; no new Execute step, browser matrix, build, agent or push started after stop.
 Resume file: None

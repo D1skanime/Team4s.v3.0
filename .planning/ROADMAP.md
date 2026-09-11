@@ -1592,13 +1592,13 @@ ausdruecklich **kein** visuelles Redesign und kopiert keine Credits in Segmentta
 
 **Depends on:** Phase 155
 
-**Plans:** 0/11 plans complete
+**Plans:** 1/11 plans executed
 
 Plans:
 
 **Wave 1**
 
-- [ ] 156-01-PLAN.md — Migration 0161 (origin_release_version_id + backfill) + zentraler Rollen-Codes-Katalog
+- [x] 156-01-PLAN.md — Migration 0161 (origin_release_version_id + backfill) + zentraler Rollen-Codes-Katalog
 - [ ] 156-02-PLAN.md — Soll-Ist-Synchronisation: AssignThemeSegmentToEpisodeRange reconciling + Guard-Test
 - [ ] 156-03-PLAN.md — Auto-Zuweisung neuer Release-Versionen (Release-zuerst-Reihenfolge)
 - [ ] 156-06-PLAN.md — Projektseite: Assignment-basierte Timeline, kanonischer Segmenttyp, First-Occurrence
