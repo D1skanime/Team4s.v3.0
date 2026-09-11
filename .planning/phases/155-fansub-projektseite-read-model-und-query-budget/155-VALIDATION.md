@@ -1,8 +1,8 @@
 ---
 phase: 155
 slug: fansub-projektseite-read-model-und-query-budget
-status: draft
-nyquist_compliant: false
+status: approved
+nyquist_compliant: true
 wave_0_complete: false
 created: 2026-09-11
 ---
