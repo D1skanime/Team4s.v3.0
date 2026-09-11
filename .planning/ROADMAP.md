@@ -1592,6 +1592,45 @@ ausdruecklich **kein** visuelles Redesign und kopiert keine Credits in Segmentta
 
 **Depends on:** Phase 155
 
+**Plans:** 0/11 plans complete
+
+Plans:
+
+**Wave 1**
+
+- [ ] 156-01-PLAN.md — Migration 0161 (origin_release_version_id + backfill) + zentraler Rollen-Codes-Katalog
+- [ ] 156-02-PLAN.md — Soll-Ist-Synchronisation: AssignThemeSegmentToEpisodeRange reconciling + Guard-Test
+- [ ] 156-03-PLAN.md — Auto-Zuweisung neuer Release-Versionen (Release-zuerst-Reihenfolge)
+- [ ] 156-06-PLAN.md — Projektseite: Assignment-basierte Timeline, kanonischer Segmenttyp, First-Occurrence
+
+**Wave 2** *(blocked on Wave 1 completion)*
+
+- [ ] 156-04-PLAN.md — Segment-Origin: Repository, Admin-Endpoint, Read-Path-Plumbing
+- [ ] 156-05-PLAN.md — Rollen-Codes + member_slug durch loadPublicEffectiveContributors
+
+**Wave 3** *(blocked on Wave 2 completion)*
+
+- [ ] 156-07-PLAN.md — Release-Seite: dynamische Origin-Credit-Projektion, Suppression entfernt, DECISIONS.md
+- [ ] 156-11-PLAN.md — Admin-UI: minimale Origin-Korrektur im Segment-Editor
+
+**Wave 4** *(blocked on Wave 3 completion)*
+
+- [ ] 156-08-PLAN.md — Frontend: ThemeTimeline-Split, kanonischer Typ, Projekt-Member-Link
+- [ ] 156-09-PLAN.md — Query-Budget-Regressionstest + Index-Plan-Beleg
+
+**Wave 5** *(blocked on Wave 4 completion)*
+
+- [ ] 156-10-PLAN.md — Vollstaendige Testmatrix, Migrationsverifikation, Vorher/Nachher-Auditbericht
+
+**Plan-time read first**: `.planning/phases/156-segment-domain-konsistenz-und-oeffentliche-release-projektion/156-USER-REQUEST.md`,
+`156-CONTEXT.md`, `156-RESEARCH.md`, `156-PATTERNS.md`,
+`backend/internal/repository/theme_segment_assignments.go`,
+`backend/internal/repository/group_repository_cursor.go`,
+`backend/internal/repository/release_detail_public_repository_helpers.go`,
+`backend/internal/repository/public_effective_contributors.go`,
+`backend/internal/permissions/permissions.go`,
+`frontend/src/app/anime/[id]/group/[groupId]/releases/[releaseVersionId]/ThemeTimeline.tsx`.
+
 **UI hint**: nein — Domain-, Datenmodell- und Projektionsphase. Bestehende Komponenten bleiben
 erhalten; UI aendert sich nur dort, wo neue fachliche Semantik sichtbar gemacht werden muss
 („gilt Folge 1–10", „seit Folge 1", Credits, Origin). `plan-phase` daher mit `--skip-ui` fahren.
