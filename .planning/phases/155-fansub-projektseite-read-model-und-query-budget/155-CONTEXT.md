@@ -131,6 +131,32 @@ Phase 154.
   gerendert werden; ihr Verbleib wird im Bericht als bewusste Entscheidung festgehalten (kein
   stiller Komponenten-Löschzug in einer Read-Model-Phase).
 
+### Resolved Open Questions (post-research, locked)
+
+Diese drei Punkte wurden von `155-RESEARCH.md` als offene Entscheidungen eskaliert und vom
+Auftraggeber während der plan-phase-Orchestrierung (vor dem Planner-Spawn) am 2026-09-11
+entschieden. Sie sind **verbindlich** und ersetzen die vorherige „Claude's Discretion"-Einordnung
+für diese drei Punkte.
+
+- **Resolver-Reichweite (Bezug: Auftrag §1, §20):** Der neue Resolver ersetzt den bestehenden
+  Vollprofil-Aufruf (`getPublicFansubProfileBySlug` zur reinen Slug-Auflösung) **in allen drei**
+  Pretty-Routen: Projektseite (`fansubprojekt/[animeSlug]/page.tsx`), Projekt-Member-Seite
+  (`.../mitwirkende/[memberSlug]/page.tsx`) und Release-Detailseite
+  (`.../releases/[releaseVersionId]/page.tsx`). Ausdrücklich genehmigte, bewusste
+  Scope-Erweiterung — verletzt den Scope Fence nicht, da nur der Auflösungsaufruf getauscht wird;
+  kein Umbau, kein Redesign, keine Änderung der sichtbaren Inhalte der beiden zuletzt genannten
+  Seiten ist dadurch autorisiert.
+- **Releases-Zahl:** `ProjectStats` verwendet nach Entfernen von `per_page: 100` eine neue,
+  eigenständige `COUNT(DISTINCT rev.id)`-Abfrage statt `group.stats.episode_count`. Grund:
+  `episode_count` zählt distinkte Folgen und weicht bei Folgen mit mehreren Release-Versionen
+  (v2-/Fix-Release) still von der heutigen Zahl ab; die öffentlich sichtbare Zahl muss exakt
+  gleich bleiben. Ein Test muss „alte Zahl == neue Zahl" für einen Fall mit mehreren
+  Release-Versionen pro Folge absichern.
+- **Previous/Next-Sortierung:** bleibt in JS. Der bestehende deutsche, case-insensitive
+  `localeCompare`-Comparator bleibt unverändert; Resolver/Summary liefern dafür nur eine schmale
+  SQL-Projektion (`id`, `title`, `anime_slug`). Kein Port der Sortierung nach SQL, da die
+  Collation dieser Instanz nicht als deckungsgleich mit der JS-Sortierung verifiziert ist.
+
 ### Workstream F — Messung, Tests, Grenzen (P155-11 bis P155-15)
 
 - **Vorher/Nachher-Messung** ist Pflicht und wird als neues Auditdokument unter `docs/audits/`

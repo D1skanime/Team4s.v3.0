@@ -347,22 +347,24 @@ if (!project) return notFound()
 
 **If this table is empty:** N/A — see rows above.
 
-## Open Questions
+## Open Questions — RESOLVED (Auftraggeber-Entscheidung, 2026-09-11)
+
+All three open questions below were escalated to the operator during plan-phase orchestration (before planner spawn) and are now **locked decisions**, superseding the "Claude's Discretion" framing in `155-CONTEXT.md` for these three points. See `155-CONTEXT.md` → `### Resolved Open Questions (post-research, locked)` for the canonical decision record; this section keeps the original research framing plus the resolution for traceability.
 
 1. **Should the resolver also replace the identical full-profile-load in the Project-Member and Release-Detail pretty routes?**
    - What we know: All three routes (`fansubprojekt/[animeSlug]/page.tsx`, `.../mitwirkende/[memberSlug]/page.tsx`, `.../releases/[releaseVersionId]/page.tsx`) call `getPublicFansubProfileBySlug(slug)` purely to resolve `animeSlug → {animeID, groupID}` (and, for the project page and release page, `canonicalProjectPath`). This is the exact defect class P155-01/02 target.
    - What's unclear: CONTEXT.md's `155-CONTEXT.md` "Belegter Ist-Zustand" for Workstream A only names the project page's own `page.tsx`; the Scope Fence explicitly forbids "Neubau der Projekt-Member-Seite" and "großer Umbau der Release-Detailseite" — but swapping one resolver call inline, with the rest of the page unchanged, is not a rebuild or a large restructure.
-   - Recommendation: Surface this to the user/planner before finalizing the plan. If in scope, it is a low-risk, mechanical, high-value extension (same resolver, same call shape, just three call sites instead of one). If explicitly deferred, document that decision so it isn't silently forgotten as "already fixed."
+   - **RESOLVED: JA — extend to all three routes.** Operator explicitly approved swapping the resolver call in all three pretty routes (project page, project-member page, release-detail page), citing this as a deliberate, approved scope extension referencing Auftrag §1 and §20 — not a violation of the scope fence, since the fence only forbids rebuilding/redesigning those two pages, not swapping their ID-resolution call. No other change to those two pages' behavior or rendering is authorized by this decision.
 
 2. **What exact "Releases" count should `ProjectStats` show after `per_page:100` is removed?**
    - What we know: Today it is `releaseEpisodes.length` from the offset query (one row per `rev.id`/release_version). `group.stats.episode_count` (already free, already loaded) counts distinct episodes instead.
    - What's unclear: Whether the operator considers these interchangeable in practice, given the current dev dataset has no multi-version episodes to observe the divergence.
-   - Recommendation: Either confirm with the operator that episode-level counting is acceptable, or expose the offset query's internal `COUNT(DISTINCT rev.id)` as a small standalone count query (cheap, already written, just needs its own handler entry) to preserve exact parity.
+   - **RESOLVED: standalone `COUNT(DISTINCT rev.id)` query.** Operator rejected `group.stats.episode_count` as a substitute because it silently undercounts for episodes with multiple release versions (v2/fix releases). The publicly visible number must stay byte-identical to today's. A dedicated test must assert `old count == new count` for a seeded case with at least one episode carrying two release versions.
 
 3. **Should Previous/Next project resolution live in SQL (resolver) or stay in JS (using a bounded project-list fetch)?**
    - What we know: The existing JS comparator (`localeCompare` with German locale, base sensitivity) is the current, presumably intentional, sort order.
    - What's unclear: Whether Postgres's collation setup on this instance can reproduce that ordering exactly, and whether it's worth verifying/configuring vs. just keeping the JS-side comparison against a narrower project list (id/title/anime_slug only, not the full `PublicFansubProject` with banners).
-   - Recommendation: Given the current dev DB has exactly one project per group (no way to test ordering edge cases locally against real multi-project data), prefer keeping the sort in JS against a narrow SQL projection (id, title, anime_slug only) rather than porting comparator logic into SQL, unless a query-plan reason to do otherwise emerges.
+   - **RESOLVED: stay in JS.** Operator confirmed: keep the existing German case-insensitive `localeCompare` comparator unchanged in JS; the resolver/summary query only needs to supply a narrow SQL projection (id, title, anime_slug) for the comparator to run against. No SQL collation port, since this instance's collation is not verified to reproduce the JS ordering.
 
 ## Environment Availability
 
