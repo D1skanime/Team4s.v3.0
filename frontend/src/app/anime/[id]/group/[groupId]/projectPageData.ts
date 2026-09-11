@@ -63,6 +63,16 @@ export interface PublicFansubProjectPageData extends PublicFansubProjectIDs {
   canonicalProjectPath: string | null;
 }
 
+/**
+ * Vorab (z. B. vom Project Resolver, Plan 155-01/155-06) aufgeloeste Navigationsdaten.
+ * Wird eine Pretty-Route uebergeben, spart sich der Loader seine eigene, profilbasierte
+ * canonicalProjectPath-/Navigation-Aufloesung (kein zweiter getPublicFansubProfileBySlug-Call).
+ */
+export interface PrecomputedProjectNavigation {
+  canonicalProjectPath: string | null;
+  fansubProjectNavigation: FansubProjectNavigation;
+}
+
 export type LoadPublicFansubProjectPageDataResult =
   | { status: "ok"; data: PublicFansubProjectPageData }
   | { status: "not-found" }
@@ -145,7 +155,8 @@ async function resolveCanonicalProjectPath(
 export async function loadPublicFansubProjectPageData({
   animeID,
   groupID,
-}: PublicFansubProjectIDs): Promise<LoadPublicFansubProjectPageDataResult> {
+  precomputed,
+}: PublicFansubProjectIDs & { precomputed?: PrecomputedProjectNavigation }): Promise<LoadPublicFansubProjectPageDataResult> {
   let groupResponse: Awaited<ReturnType<typeof getGroupDetail>> | null = null;
   let animeResponse: Awaited<ReturnType<typeof getAnimeByID>> | null = null;
   let errorMessage: string | null = null;
@@ -173,10 +184,12 @@ export async function loadPublicFansubProjectPageData({
 
   const group = groupResponse.data;
   const anime = animeResponse.data;
-  // Ein einziger Profil-Fetch versorgt sowohl canonicalProjectPath als auch die
-  // Projekt-Navigation (identischer Slug, dasselbe aufgeloeste Profil).
-  const canonicalFansubSlug = group.fansub.slug?.trim();
-  const profilePromise = canonicalFansubSlug ? getPublicFansubProfileBySlug(canonicalFansubSlug) : null;
+  // Wenn der Aufrufer (Pretty-Route, ueber den Project Resolver) bereits canonicalProjectPath
+  // und die Projekt-Navigation aufgeloest hat, entfaellt der eigene Profil-Fetch komplett -
+  // weder canonicalFansubSlug noch profilePromise werden dann gebraucht.
+  const canonicalFansubSlug = precomputed ? undefined : group.fansub.slug?.trim();
+  const profilePromise =
+    !precomputed && canonicalFansubSlug ? getPublicFansubProfileBySlug(canonicalFansubSlug) : null;
 
   // Unabhaengige Phase-B-Fetches laufen nebenlaeufig; jede Branch kapselt ihren eigenen
   // Fallback, damit ein Fehler keine andere Branch mitreisst (Promise.all darf nicht rejecten).
@@ -196,6 +209,12 @@ export async function loadPublicFansubProjectPageData({
     ),
     withFallback<number>(async () => (await getGroupReleaseCount(animeID, groupID)).data.count, 0),
     (async () => {
+      if (precomputed) {
+        return {
+          canonicalProjectPath: precomputed.canonicalProjectPath,
+          fansubProjectNavigation: precomputed.fansubProjectNavigation,
+        };
+      }
       const canonicalProjectPath = await resolveCanonicalProjectPath(profilePromise, canonicalFansubSlug, animeID);
       let fansubProjectNavigation: FansubProjectNavigation = { previous: null, next: null };
       try {
@@ -217,7 +236,10 @@ export async function loadPublicFansubProjectPageData({
     })(),
     (async (): Promise<PublicReleasePreview[]> => {
       // Selber canonicalProjectPath (selbes Profil-Promise), aber getrennt vom Release-Liste-try/catch.
-      const canonicalProjectPath = await resolveCanonicalProjectPath(profilePromise, canonicalFansubSlug, animeID);
+      // Ist er bereits vorab aufgeloest (precomputed), wird kein zweiter Aufloese-Versuch gestartet.
+      const canonicalProjectPath = precomputed
+        ? precomputed.canonicalProjectPath
+        : await resolveCanonicalProjectPath(profilePromise, canonicalFansubSlug, animeID);
       try {
         const activityPage = await getGroupReleaseListCursor(animeID, groupID, { limit: RELEASE_PREVIEW_LIMIT, sort: "release_date" });
         const latestRelease = activityPage.items[0] ?? null;
