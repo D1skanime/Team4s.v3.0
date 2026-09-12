@@ -25,6 +25,12 @@ key-files:
   modified:
     - frontend/src/app/fansubs/[slug]/fansubprojekt/[animeSlug]/mitwirkende/[memberSlug]/page.test.tsx
     - frontend/scripts/shot-projectmember.mjs
+    - frontend/src/components/fansubs/projectMember/ProjectMemberPage.module.css
+    - frontend/src/components/fansubs/projectMember/ProjectMemberNotesSection.tsx
+    - frontend/src/components/fansubs/projectMember/ProjectMemberNotesSection.module.css
+    - frontend/src/components/fansubs/projectMember/ProjectMemberReleasesSection.tsx
+    - frontend/src/components/fansubs/projectMember/ProjectMemberReleasesSection.module.css
+    - frontend/src/components/fansubs/projectMember/ProjectMemberSummaryBand.module.css
     - .planning/phases/157-projekt-memberseite-visuelles-referenzdesign/deferred-items.md
 ---
 
@@ -162,5 +168,157 @@ checkpoint remains **open**. `STATE.md`/`ROADMAP.md` continue to show 157-06 out
 | Note role color (P157-13) | not measured | `data-color-key="#7b3c4e"` + computed `rgb(123, 60, 78)` on all visible entries |
 | Horizontal overflow | — | none at 320/390/768/1024/1440px |
 | Doc height | 2996px mobile / 2746px desktop | 2753px mobile (−243) / 2934px desktop (+188, new sections) |
+
+## 2026-09-12 — Operator fix pass: five mandatory corrections, checkpoint re-opened
+
+The operator explicitly rejected ("nicht approved") the Task 4 checkpoint above and ordered
+exactly five corrections, implemented and committed individually (`85297f38`, `066568c4`,
+`94e406d9`, `998e9e64`, `632d948f`). Scope for this pass was explicitly widened by the operator to
+`ProjectMemberNotesSection.tsx/.module.css`, `ProjectMemberReleasesSection.tsx/.module.css`,
+`ProjectMemberPage.module.css`, `ProjectMemberSummaryBand.module.css`, and
+`shot-projectmember.mjs` — nothing else was touched (confirmed via `git diff --stat` against the
+pre-fix commit: exactly those 7 files changed, no `ProjectMemberNoteEntry`/`ProjectMemberHero`/
+`ProjectMemberMediaGallery`/`ProjectMemberStickyNav`/`ProjectMemberSummary`/backend files in the
+diff).
+
+### 1) Mobile hero: avatar stays left of name/metadata
+
+Root cause confirmed as diagnosed: `ProjectMemberPage.module.css`'s `@media (max-width: 640px) {
+.hero { flex-direction: column } }` stacked the entire hero row, not just the action buttons. Fixed
+by moving `flex-direction: column` from `.hero` to `.heroActions` — the avatar+name/metadata row is
+now a horizontal flex row at every width; only the two action buttons stack under 640px. Verified
+live at 390px: avatar circle "TY" sits left of "Type · Verifiziert", exactly matching the reference.
+
+### 2) Unified section header icons (Texte & Notizen / Bilder & Medien / Mitwirkung an Releases)
+
+`ProjectMemberNotesSection.tsx` gained a `FileText` icon (already the established "notes/text"
+icon in this codebase — used identically in `ProjectMemberSummary.tsx`'s stat bar and in
+`OlderReleasesList.rows.tsx`/`PublicReleaseBlock.tsx` for the same semantics), wrapped in the same
+`.titleGroup` flex pattern `ProjectMemberMediaGallery.tsx` already used for its `ImageIcon`.
+`ProjectMemberReleasesSection.tsx`'s already-imported `Package` icon now also appears in the
+`count > 0` header branch (previously it only rendered inside the empty-state), and a matching
+`.titleGroup` was added to its own header for parity with the `count === 0` branch (which now also
+carries the icon). No new icon dependency was introduced; each choice reuses an icon already
+established in this codebase for the same semantic meaning.
+
+### 3) Sections are now one cohesive card (header + content share one surface)
+
+`.section` in `ProjectMemberPage.module.css` (the direct wrapper `<section>` for all three
+sections' header AND content — confirmed identical for Notes/Media/Releases via
+`grep -rn "pageStyles.section"`) now carries `background: var(--surface-card)`,
+`border: 1px solid var(--color-border)`, `border-radius: var(--radius-md)`, `padding: 22px` — the
+exact same token values already used by `ProjectMemberNoteEntry.module.css`'s entry cards, no new
+values. Releases' `.list` previously had its own outer card treatment (background/border/radius/
+shadow) wrapping the row list; this was removed to avoid a card-inside-a-card look now that
+`.section` provides the outer surface — `.row` styling itself (episode/version/roles/date/link,
+mobile wrap order) is untouched. Individual entries (`ProjectMemberNoteEntry`, media tiles) keep
+their own nested card look unchanged, matching the plan's "structurally unchanged, simply live
+inside the section card now" instruction.
+
+### 4) Summary band color: deliberate decision, documented in-code
+
+Chose to reuse `--avatar-4-bg`/`--avatar-4-fg` (an existing light-blue token pair, currently used
+in `FansubTeamSection.module.css` as one of several rotating, meaning-free avatar accent colors)
+over `--tag-gallery-bg`/`--tag-gallery-fg` (also light blue, but semantically bound to "gallery/
+media" in `FansubPublicSections.module.css` — reusing it here would misleadingly imply the band is
+about images, when it actually summarizes roles + episodes + notes + media). No new token or hex
+literal was introduced; the reasoning is written directly into
+`ProjectMemberSummaryBand.module.css` as a code comment, per the operator's requirement that the
+decision be visible in-code, not only in planning docs.
+
+### 5) Blue vertical stripe: root cause confirmed with DOM-query evidence, not re-asserted
+
+The prior checkpoint response's disposition ("F", `AppShell.module.css`'s `.brandMark`/
+`.userAvatar`) was re-investigated rather than accepted at face value, and turned out to be the
+**wrong specific element** even though the overall verdict (pre-existing AppShell chrome, out of
+Phase 157 scope) holds. Concrete evidence gathered via an extended `shot-projectmember.mjs` run
+(`SHOT_LABEL=fix5`, fresh `docker restart team4sv30-frontend` beforehand):
+
+- `document.elementFromPoint(4, 200)` on the desktop viewport returns
+  `AppShell_edgeStrip__8V5n2` (`aria-label="Menü öffnen"`, `role="button"`) — the always-mounted,
+  `position: fixed`, 16px-wide sidebar-reveal strip in `AppShell.tsx`/`.module.css`, **not**
+  `.brandMark`/`.userAvatar`.
+- A companion `drawerDiagnostics` probe confirms the nav drawer (which actually contains
+  `.brandMark`/`.userAvatar`) is closed and off-screen at capture time
+  (`transform: matrix(1, 0, 0, 1, -260, 0)`, no `drawerOpen` class) — those elements are not
+  painted anywhere on screen, ruling out the earlier hypothesis directly.
+- `edgeStripDiagnostics.rect` measured `{ x: 0, y: 0, width: 16, height: 1000 }` with
+  `matchesViewportHeight: true` (`window.innerHeight` was also 1000) and
+  `matchesDocumentHeight: false` (document height was 3065px) — the element is exactly one
+  viewport tall in a normal render, not document-tall.
+- A pixel scan of the resulting fullPage PNG (via the frontend container's own `sharp` dependency)
+  found the blue tint at column x=4 spans **exactly y:0–1000**, i.e. exactly the first viewport
+  height, not the full ~3065px document. Combined with the previous point, this shows Playwright's
+  `fullPage: true` capture paints the `position: fixed` `.edgeStrip` once, pinned to the top slice
+  of the stitched image, rather than following scroll like a real browser does — a screenshot-
+  capture-specific rendering quirk for fixed elements, not a per-scroll defect a real user would
+  ever see (a real user always sees the strip correctly follow their own viewport, since that is
+  the entire purpose of `position: fixed`).
+- A companion non-fullPage (`viewportOnlyFile`) screenshot at the same scroll position (top of
+  page) shows the same strip, confirming it is a genuine, always-rendered element in normal usage,
+  not a Playwright hallucination — it is real AppShell chrome, present on every page in the app,
+  not something introduced by or specific to Phase 157.
+- On mobile (390px), `edgeStripDiagnostics.rect` is `{ width: 0, height: 0 }` (the
+  `@media (max-width: 860px) { .edgeStrip { display: none } }` rule in `AppShell.module.css` hides
+  it), matching the original report that this was a desktop-only observation.
+
+**Verdict: confirmed real, pre-existing, always-mounted AppShell chrome (`.edgeStrip`, not
+`.brandMark`/`.userAvatar`), out of Phase 157's file scope (`AppShell.module.css` untouched, as
+required). The "stripe running down the page" specifically in the fullPage screenshot is an
+artifact of how Playwright/Chromium capture `position: fixed` elements during a fullPage capture,
+not a real per-scroll rendering defect.** No code fix was applied (none is warranted or
+in-scope); the diagnostic capability was added to `shot-projectmember.mjs` as permanent,
+reusable evidence-gathering rather than a one-off finding.
+
+### Re-assessment of findings A–D and F (E was not re-assessed, per instruction — already
+correctly disposed as an allowed, non-defect deviation)
+
+- **A (section header icons):** **behoben** (fixed) — see correction 2 above.
+- **B (summary band color):** **bewusst abweichend mit Begründung** (deliberate deviation,
+  documented) — see correction 4 above; `--surface-sunken` was replaced with `--avatar-4-bg/-fg`,
+  a closer-to-reference light blue, with the token-reuse reasoning written directly into
+  `ProjectMemberSummaryBand.module.css`.
+- **C (section framing):** **behoben** (fixed) — see correction 3 above.
+- **D (mobile hero avatar stacking):** **behoben** (fixed) — see correction 1 above.
+- **F (blue vertical stripe):** **bewusst abweichend mit Begründung** (deliberate deviation,
+  documented, not a defect) — re-investigated with concrete DOM-query and pixel-level evidence
+  (see correction 5 above); confirmed real, pre-existing, out-of-scope AppShell chrome
+  (`.edgeStrip`), and the full-page-screenshot appearance is a capture-tool artifact, not a live
+  rendering bug. `AppShell.module.css` was correctly left untouched.
+
+### Full frontend regression suite (re-run after all five corrections)
+
+- `docker compose exec -T team4sv30-frontend sh -c "cd /app && npx tsc --noEmit -p tsconfig.json"`
+  — clean, zero errors.
+- `docker compose exec -T team4sv30-frontend sh -c "cd /app && npx vitest run"` — 301 passed | 1
+  skipped (302 files), 2324 tests passed, 3 todo — identical counts to the pre-fix-pass baseline,
+  confirming zero regressions from these five corrections.
+- `docker compose exec -T team4sv30-frontend sh -c "cd /app && npm run lint"` — 13 pre-existing
+  errors, all in files this fix pass never touched (`capture-responsive.cjs`,
+  `src/app/admin/episode-versions/**`, `src/app/admin/fansubs/**`, `src/app/admin/groups/**`,
+  `src/app/admin/roles/**`, `src/app/admin/users/**`, `tmp-playwright-phase4/**`) — confirmed
+  present at the pre-session baseline commit (`git show <baseline>:<file>`, all predate this
+  session by weeks), unrelated to `projectMember`/Phase 157, and out of this fix pass's scope per
+  the scope-boundary rule. Zero lint errors or warnings in any file this fix pass touched.
+- Backend suite not re-run: no backend file was touched by any of the five corrections.
+
+### New Live-UAT screenshots (390px mobile, 1440px desktop)
+
+Captured via `SHOT_LABEL=fix5 node scripts/shot-projectmember.mjs` after a fresh
+`docker restart team4sv30-frontend`, against `127.0.0.1:3300` (never `:3000` directly):
+`/tmp/pmshots/fix5-mobile.png`, `/tmp/pmshots/fix5-desktop.png` (fullPage), plus
+`/tmp/pmshots/fix5-mobile-viewport-only.png`/`fix5-desktop-viewport-only.png` (viewport-only, for
+the correction-5 comparison). All facts from that run: `roleRepeatsInNotes: 0`,
+`noteAccentColorSamples` all `{"colorKey":"#7b3c4e","borderInlineStartColor":"rgb(123, 60, 78)"}`,
+`releasesEmptyStateText` present without "Alle 0 angezeigt", `mediaAllShownTextPresent: false`,
+`horizontalOverflow: false` on both viewports, `consoleErrors: []` on both viewports.
+
+### Checkpoint status: still OPEN
+
+This fix pass implements the operator's five ordered corrections and re-assesses findings A–F. It
+does **not** constitute human sign-off. Task 4 of Plan 157-06 remains an open
+`checkpoint:human-verify gate="blocking"` — the actual Auftraggeber must still review the new
+screenshots and confirm or reject. `STATE.md`/`ROADMAP.md` are intentionally left untouched by this
+fix pass (per the fix-pass instructions) and continue to show Phase 157 as outstanding.
 
 </summary>

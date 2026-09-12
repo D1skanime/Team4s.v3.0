@@ -89,3 +89,40 @@ before/after table: `157-06-SUMMARY.md`. Short form:
 
 None of A-F were auto-fixed or auto-closed as cosmetic. Phase 157 is NOT fully accepted; `STATE.md`
 continues to show 157-06/Task 4 outstanding.
+
+## 2026-09-12 — Operator fix pass: A/C/D fixed, B/F redisposed with evidence, checkpoint reopened
+
+The operator rejected the Task 4 checkpoint and ordered exactly five corrections (see
+`157-06-SUMMARY.md`'s "Operator fix pass" section for full detail and commit hashes):
+
+- **A (header icons):** fixed — `ProjectMemberNotesSection.tsx` gained `FileText`,
+  `ProjectMemberReleasesSection.tsx`'s `Package` icon now also renders in its `count > 0` header.
+- **B (summary band color):** redisposed from "forced beige, documented" to "deliberately reuse
+  `--avatar-4-bg/-fg`" (an existing light-blue token pair) instead of `--surface-sunken` — closer
+  to the reference, still zero new tokens/hex, reasoning written into
+  `ProjectMemberSummaryBand.module.css`.
+- **C (section framing):** fixed — `.section` in `ProjectMemberPage.module.css` now carries the
+  card surface (reusing `ProjectMemberNoteEntry`'s exact token values), so header + content share
+  one visual container per section.
+- **D (mobile hero stacking):** fixed — only `.heroActions` stacks under 640px now; the avatar +
+  name/metadata row stays horizontal at every width.
+- **F (blue vertical stripe):** re-investigated with concrete DOM-query + pixel-scan evidence
+  (not re-asserted). The earlier disposition's *verdict* (real, pre-existing, out-of-Phase-157-scope
+  AppShell chrome) was correct, but the earlier disposition's *specific element*
+  (`.brandMark`/`.userAvatar`) was wrong — those live inside the nav drawer, confirmed closed and
+  off-screen at capture time. `document.elementFromPoint(4, 200)` identifies the actual painted
+  element as AppShell's `.edgeStrip` (`position: fixed`, `aria-label="Menü öffnen"`), and a pixel
+  scan of the fullPage screenshot shows the blue tint spans exactly one viewport height (y:0-1000
+  of a ~3065px document) — proving this is a Playwright/Chromium fullPage-capture artifact for
+  `position: fixed` elements (pinned to the initial viewport slice), not a real per-scroll
+  rendering defect a live user would ever see. `AppShell.module.css` remains untouched (out of
+  Phase 157 scope).
+
+Full frontend regression suite re-run after all five corrections: `tsc --noEmit` clean, full
+`vitest run` unchanged at 2324 passed tests (zero regressions), `npm run lint` shows the same 13
+pre-existing errors as before this fix pass, all in files outside `projectMember`/Phase 157 scope
+(confirmed present at the pre-session baseline commit, unrelated to this work). New 390px/1440px
+Live-UAT screenshots captured against `127.0.0.1:3300` after a fresh container restart.
+
+Task 4 remains an OPEN `checkpoint:human-verify gate="blocking"` — this fix pass does not
+constitute sign-off. `STATE.md`/`ROADMAP.md` intentionally left untouched.
