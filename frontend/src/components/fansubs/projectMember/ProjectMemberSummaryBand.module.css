@@ -1,6 +1,18 @@
 /* Beitragszusammenfassung (Referenzdesign 157-02, Workstream D): getöntes, gerundetes Band
    zwischen Schnellnavigation und Sektionen. Nur globale Tokens. */
 
+/* Operator-Korrektur 4/5 (157-06): bewusste Entscheidung fuer die Bandfarbe. Der globale Token-Satz
+   (frontend/src/styles/globals.css) hat KEIN generisches "Info-/Hinweis-Oberflaechen"-Token -- nur
+   zwei semantisch gebundene helllblaue Paare existieren: --tag-gallery-bg/-fg (fuer den
+   "Galerie"-Tag in FansubPublicSections.module.css, semantisch an "Medien/Galerie" gekoppelt) und
+   --avatar-4-bg/-fg (eine von mehreren rotierenden, bedeutungslosen Avatar-Akzentfarben in
+   FansubTeamSection.module.css -- Variante Nr. 4 einer Farbrotation, an KEINE feste Bedeutung
+   gebunden). Fuer dieses informative Band wird bewusst --avatar-4-bg/-fg geliehen (nicht
+   --tag-gallery-*): letzteres wuerde durch seine Medien/Galerie-Bedeutung faelschlich signalisieren,
+   das Band handle von Bildern, waehrend das Band tatsaechlich Rollen+Folgen+Notizen+Medien
+   zusammenfasst. --avatar-4-* traegt keine derartige Bindung und ist rein farblich (helles Blau)
+   die naechste Entsprechung zur Referenz -- kein neuer Hex-Wert, kein neues Token, nur eine zweite,
+   bewusst dokumentierte Verwendungsstelle eines bestehenden Tokens. */
 .band {
   margin: 16px 0 24px;
   display: flex;
@@ -8,14 +20,14 @@
   gap: 10px;
   padding: 14px 18px;
   border-radius: var(--radius-md);
-  background: var(--surface-sunken);
-  color: var(--text-primary);
+  background: var(--avatar-4-bg);
+  color: var(--avatar-4-fg);
 }
 
 .icon {
   flex: 0 0 auto;
   margin-top: 2px;
-  color: var(--accent-primary);
+  color: var(--avatar-4-fg);
 }
 
 .text {
