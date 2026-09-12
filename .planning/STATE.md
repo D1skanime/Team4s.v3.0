@@ -4,13 +4,13 @@ milestone: v1.4
 milestone_name: Coverage
 status: executing
 stopped_at: 156-10-PLAN.md complete (automatable phase-closing scope); Phase 156 has ONE explicit open item (156-11 Task 2 live-UAT), see deferred-items.md -- not fully accepted
-last_updated: "2026-09-12T07:58:37.959Z"
+last_updated: "2026-09-12T08:26:27.000Z"
 last_activity: 2026-09-12
 progress:
   total_phases: 21
   completed_phases: 20
   total_plans: 206
-  completed_plans: 202
+  completed_plans: 203
   percent: 95
 ---
 
@@ -33,10 +33,10 @@ See: .planning/PROJECT.md (updated 2026-08-13)
 
 ## Current Position
 
-Phase: 156 (segment-domain-konsistenz-und-oeffentliche-release-projektion) — ALLE 11 PLAENE
+Phase: 156 (segment-domain-konsistenz-und-oeffentliche-release-projektion) — EXECUTING
 AUSGEFUEHRT; automatisiert/funktional abgeschlossen, ABER NICHT vollstaendig abgenommen
-Plan: 11 von 11 (alle Plaene 156-01 bis 156-11 haben eine SUMMARY.md)
-Status: Ready to execute
+Plan: 12 of 15
+Status: Executing Phase 156 -- GAP-01 gap-closure in progress (156-12 done, 156-13/14/15 offen)
 
 Ausfuehrlich: Phase 156 ist funktional und automatisiert abgeschlossen (voller
 Backend-/Frontend-Testlauf gruen, Migration 0161 im Rundlauf erneut verifiziert,
@@ -47,6 +47,33 @@ Ausfuehrungsumgebung dieser Phase durchgefuehrt werden, da keine authentifiziert
 Platform-Admin-Browsersession verfuegbar war. Kein "verified"/"bestaetigt"-Claim fuer diesen Punkt
 -- siehe deferred-items.md. `P156-18` bleibt entsprechend NICHT per `requirements.mark-complete`
 abgehakt.
+
+Plan 156-12 (2026-09-12) abgeschlossen: GAP-01-Datenmodell-Fundament. Migration 0162 legt
+`theme_segment_contributors` (`theme_segment_id` + `member_id` + `created_at`, UNIQUE auf dem Paar,
+KEIN `role_code`, KEINE `release_version_id`-Spalte) an -- exakt der in 156-UAT.md Nachtrag
+2026-09-12 bestaetigte Datenmodell-Entscheid, live gegen `team4s_v2` per `cmd/migrate` im
+Rundlauf (up/down/up) verifiziert. `permissions.SegmentCreditRoleCodes` waechst auf 6 Eintraege
+(`editor`/`quality_checker` neu, `encoder` bleibt einzige dauerhafte Ausnahme).
+`theme_segment_contributors.go` liefert `SetThemeSegmentContributors` (all-or-nothing validiert
+gegen die LIVE `loadPublicEffectiveContributors`-Aufloesung der Origin, kein zweiter
+Rollenpfad), `ListThemeSegmentContributorCandidates` (ungefilterte Kandidatenliste inkl.
+Encoder-only) und `GetThemeSegmentContributorMemberIDs`. `SetThemeSegmentOrigin` laeuft jetzt
+transaktional und entfernt beim Origin-Wechsel im SELBEN Commit jede jetzt ungueltige
+Contributor-Auswahl (`removedContributorCount`, Case H live bewiesen) -- `loadPublicEffectiveContributors`
+wurde dafuer auf ein minimales `pgxQuerier`-Interface umgestellt (Pool- und Tx-kompatibel, keine
+zweite Implementierung). Zwei Rule-1-Abweichungen (Migrationskommentar ohne woertliche
+`role_code`/`release_version_id`-Substrings fuer die eigene Akzeptanzpruefung; die
+`anime_contributions`-Lokal-Fixture in `theme_segment_origin_integration_test.go` musste an den
+Testanfang, weil `SetThemeSegmentOrigin` sie jetzt bei JEDEM erfolgreichen Aufruf braucht, nicht
+nur im neuen Case-H-Subtest). Bekannte, im Plantext selbst vorhergesehene Zwischenregression:
+das Erweitern der EINEN zentralen `SegmentCreditRoleCodes`-Liste wirkt sich zwangslaeufig auch auf
+die bestehende OEFFENTLICHE Segment-Credit-Projektion (Plan 156-07/156-09) aus, bis Plan 156-13 das
+"nur bei expliziter Auswahl"-Gate eigens dafuer baut -- zwei vorbestehende, planfremde Tests
+(`TestReleaseDetailPublicSegmentOriginCredits/Test5`, `TestSegmentCreditRoleFilter/quality_checker-only...`)
+sind deshalb aktuell rot, ausserhalb des Datei-Scopes dieses Plans, absichtlich NICHT hier
+repariert (Plan 156-13s Aufgabe). Backend nach Rebuild live gesund (`/health` 200).
+`requirements.mark-complete GAP-01` fand keine Zeile in REQUIREMENTS.md (dieselbe
+uebergreifende Tracking-Luecke wie bei allen Vorplaenen dieser Phase). Details: 156-12-SUMMARY.md.
 
 Plan 156-10 (2026-09-11) abgeschlossen: voller Backend-Build/Vet/Testlauf erneut ausgefuehrt (DSN
 aus dem laufenden Backend-Container abgeleitet, nicht aus `.env`, dessen Passwort nicht zum
