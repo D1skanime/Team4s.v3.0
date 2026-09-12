@@ -81,16 +81,21 @@ const (
 )
 
 // SegmentCreditRoleCodes is the single central definition of which contributor
-// role codes are segment-relevant (Phase 156, Workstream D, P156-08/P156-09).
-// It replaces the label-substring heuristic previously used to guess segment
-// credits from an already-aggregated German role label
+// role codes are segment-relevant (Phase 156, Workstream D, P156-08/P156-09;
+// extended by Plan 156-12/GAP-01 to {translator, timer, karaoke_fx,
+// typesetter, editor, quality_checker}). It replaces the label-substring
+// heuristic previously used to guess segment credits from an
+// already-aggregated German role label
 // (`strings.Contains(label, "kara") || strings.Contains(label, "typeset")`).
-// Consumed by the dynamic segment-credit projection in
-// loadReleaseSegments/loadPublicEffectiveContributors (Plan 156-07). This is
-// defined here -- Domain-/Permissions-Nachbarschaft, nicht im Repository,
-// nicht im Handler, nicht im Frontend -- and must not be duplicated anywhere
-// else in the backend or frontend.
-var SegmentCreditRoleCodes = []string{RoleTranslator, RoleTimer, RoleKaraokeFX, RoleTypesetter}
+// `encoder` remains the only deliberately excluded contributor-relevant role --
+// an encoder must never appear as a segment credit, regardless of any other
+// role they hold (156-UAT.md). Consumed by the dynamic segment-credit
+// projection in loadReleaseSegments/loadPublicEffectiveContributors (Plan
+// 156-07) and by the segment-contributor candidate/validation path
+// (Plan 156-12). This is defined here -- Domain-/Permissions-Nachbarschaft,
+// nicht im Repository, nicht im Handler, nicht im Frontend -- and must not be
+// duplicated anywhere else in the backend or frontend.
+var SegmentCreditRoleCodes = []string{RoleTranslator, RoleTimer, RoleKaraokeFX, RoleTypesetter, RoleEditor, RoleQualityChecker}
 
 // RoleMembershipBaseline (Phase 145) is the reserved, non-assignable pseudo-role sourcing
 // the active-membership baseline via IsMembershipBaselineAction (effective_rights.go) --

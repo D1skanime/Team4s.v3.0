@@ -177,6 +177,11 @@ CREATE TABLE release_version_notes (
 		// ohne diese Migration fehlt die Spalte, gegen die SetThemeSegmentOrigin und die
 		// erweiterten ListAnimeSegments/GetAnimeSegmentByID-SELECTs in diesem Fixture testen.
 		"0161_theme_segments_origin_release_version.up.sql",
+		// 0162 (Phase 156, Plan 156-12/GAP-01): theme_segment_contributors -- ohne diese
+		// Migration fehlt die Tabelle, gegen die SetThemeSegmentContributors/
+		// ListThemeSegmentContributorCandidates/GetThemeSegmentContributorMemberIDs in
+		// diesem isolierten Testschema schreiben und lesen.
+		"0162_theme_segment_contributors.up.sql",
 	} {
 		ApplySQLFile(t, pool, phase117MigrationPath(t, migration))
 	}

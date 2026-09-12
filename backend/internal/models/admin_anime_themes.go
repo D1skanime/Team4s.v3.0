@@ -177,6 +177,22 @@ type ThemeSegmentAssignmentSyncResult struct {
 	ProtectedByOverride []int64 `json:"protected_by_override"`
 }
 
+// AdminThemeSegmentContributorCandidate ist ein Eintrag der Admin-Kandidatenliste fuer
+// Segment-Contributor-Auswahl (Phase 156, Plan 156-12/GAP-01): jede Person, die aktuell
+// effektiver Beitragender der Origin-Release-Version des Segments ist (unfiltered by
+// permissions.SegmentCreditRoleCodes -- ein Encoder-only-Beitragender ist bewusst
+// referenzierbar, siehe 156-UAT.md Regressionsfall D), mit Selected je nach aktuellem
+// theme_segment_contributors-Eintrag.
+type AdminThemeSegmentContributorCandidate struct {
+	MemberID   int64    `json:"member_id"`
+	Name       string   `json:"name"`
+	AvatarURL  *string  `json:"avatar_url"`
+	RoleLabel  string   `json:"role_label"`
+	RoleCodes  []string `json:"role_codes"`
+	MemberSlug *string  `json:"member_slug"`
+	Selected   bool     `json:"selected"`
+}
+
 type SegmentLibraryIdentityStatus string
 
 const (
