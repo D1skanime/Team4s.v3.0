@@ -3,14 +3,14 @@ gsd_state_version: 1.0
 milestone: v1.4
 milestone_name: Coverage
 status: executing
-stopped_at: 156-10-PLAN.md complete (automatable phase-closing scope); Phase 156 has ONE explicit open item (156-11 Task 2 live-UAT), see deferred-items.md -- not fully accepted
-last_updated: "2026-09-12T08:26:27.000Z"
+stopped_at: 156-13-PLAN.md complete (GAP-01 public-projection gate + admin contributors endpoints); Phase 156 has TWO explicit open items (156-11 Task 2 live-UAT, GAP-02 combined live-UAT still pending 156-14/156-15), see deferred-items.md -- not fully accepted
+last_updated: "2026-09-12T09:15:00.000Z"
 last_activity: 2026-09-12
 progress:
   total_phases: 21
   completed_phases: 20
   total_plans: 206
-  completed_plans: 203
+  completed_plans: 204
   percent: 95
 ---
 
@@ -35,8 +35,39 @@ See: .planning/PROJECT.md (updated 2026-08-13)
 
 Phase: 156 (segment-domain-konsistenz-und-oeffentliche-release-projektion) — EXECUTING
 AUSGEFUEHRT; automatisiert/funktional abgeschlossen, ABER NICHT vollstaendig abgenommen
-Plan: 12 of 15
-Status: Executing Phase 156 -- GAP-01 gap-closure in progress (156-12 done, 156-13/14/15 offen)
+Plan: 13 of 15
+Status: Executing Phase 156 -- GAP-01 gap-closure in progress (156-12/156-13 done, 156-14/156-15 offen)
+
+Plan 156-13 (2026-09-12) abgeschlossen: die explizite Segment-Contributor-Auswahl aus
+Plan 156-12 (`theme_segment_contributors`) steuert jetzt tatsaechlich die oeffentliche
+Segment-Credit-Projektion. `applySegmentOriginCredits`
+(`release_detail_public_repository_segment_credits.go`) zeigt einen Beitragenden NUR,
+wenn er (a) explizit fuer dieses Segment ausgewaehlt wurde UND (b) seine aktuell live
+aufgeloeste Origin-Rolle in `permissions.SegmentCreditRoleCodes` liegt -- "keine Auswahl
+= keine personenbezogenen Segment-Credits", kein Fallback auf "alle Origin-Beteiligten
+zeigen". Ein neuer gebuendelter `loadThemeSegmentContributorSelections`-Aufruf hebt das
+gepinnte Query-Budget von 3 auf 4 (`phase156SegmentOriginConstantQueryBudget`), erweitert
+statt ersetzt, mit live gemessenem Beleg (`TestLoadReleaseSegmentsQueryBudgetIsConstant`).
+Die volle A-J-plus-K(a/b)-Regressionsmatrix aus 156-UAT.md (13 unabhaengige Subtests,
+inkl. des 2026-09-12-Nachtrags: ein nur ueber einen vererbten Anime-Default wirksamer
+Beitragender bleibt nach einem Release-Level-Override entweder mit neuer Rolle sichtbar
+oder verschwindet sauber, OHNE dass die `theme_segment_contributors`-Zeile selbst
+angefasst wird) ist gegen echtes, isoliertes PostgreSQL bewiesen
+(`TestSegmentContributorSubsetMatrix`). Die zwei von Plan 156-12 bewusst rot gelassenen
+Tests sind korrigiert, nicht geloescht: `TestReleaseDetailPublicSegmentOriginCredits/Test5`
+und `TestSegmentCreditRoleFilter` erwarten jetzt korrekt `quality_checker`/`editor` als
+segmentrelevant, `encoder` bleibt die einzige dauerhafte Ausnahme -- beide gruen. Neue
+Admin-Endpunkte `GET`/`PUT /api/v1/admin/anime/:id/segments/:segmentId/contributors`
+(`admin_content_anime_theme_segment_contributors.go`) sind hinter demselben
+`requireSegmentManage`-Capability-Gate wie jeder andere Segment-Schreibpfad live (nach
+Rebuild per curl bestaetigt: `401`, nicht `404`, unauthentifiziert). Keine Abweichungen
+vom Plan. Ein vorbestehender, planfremder Test-Reihenfolge-Befund (identisch zum in
+156-02-SUMMARY.md dokumentierten Muster: isolierter `-run`-Filter laesst
+`TestSetAnimeSegmentOrigin_RequiresCapabilityThenSucceeds` UND die beiden neuen
+Contributors-Capability-Tests mit 403 fehlschlagen, obwohl der volle
+`internal/handlers`-Paketlauf fuer alle drei gruen ist) ist dokumentiert, nicht durch
+diesen Plan verursacht. `gsd-sdk query roadmap.update-plan-progress "156" "156-13"
+"complete"` ausgefuehrt. Details: 156-13-SUMMARY.md.
 
 Ausfuehrlich: Phase 156 ist funktional und automatisiert abgeschlossen (voller
 Backend-/Frontend-Testlauf gruen, Migration 0161 im Rundlauf erneut verifiziert,
