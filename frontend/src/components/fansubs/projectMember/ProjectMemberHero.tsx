@@ -1,3 +1,4 @@
+import { Users } from 'lucide-react'
 import Image from 'next/image'
 
 import { Button } from '@/components/ui'
@@ -74,11 +75,16 @@ export function ProjectMemberHero({
           </div>
         ) : null}
         <div className={styles.heroActions}>
-          <Button href={`/members/${memberSlug}`} variant="secondary" size="sm">
+          <Button
+            href={`/members/${memberSlug}`}
+            variant="primary"
+            size="sm"
+            leftIcon={<Users size={16} />}
+          >
             Vollständiges Memberprofil
           </Button>
-          <Button href={projectPath} variant="ghost" size="sm">
-            Zurück zum Projekt
+          <Button href={projectPath} variant="secondary" size="sm">
+            ←&nbsp;Zurück zum Projekt
           </Button>
         </div>
       </div>
