@@ -10,15 +10,14 @@
   color: var(--text-primary);
 }
 
+/* Operator-Korrektur 3/5 (157-06): kein eigener Karten-Rahmen/-Schatten mehr auf .list, seit
+   ProjectMemberPage.module.css's .section die gesamte Sektion (Kopf + Inhalt) bereits als EINE
+   Karte umschliesst -- sonst entstuende eine Karte-in-Karte-Optik. Die Zeilen selbst (.row) bleiben
+   strukturell unveraendert, nur ohne den nun ueberfluessigen aeusseren Container-Rahmen. */
 .list {
   list-style: none;
   margin: 0;
   padding: 0;
-  border: 1px solid var(--color-border);
-  border-radius: var(--radius-md);
-  overflow: hidden;
-  background: var(--surface-card);
-  box-shadow: var(--shadow-xs);
 }
 
 .row {

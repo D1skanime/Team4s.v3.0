@@ -113,10 +113,18 @@
   gap: 10px;
 }
 
-/* Sektionen */
+/* Sektionen — eine zusammenhaengende weisse Karte je Sektion (Operator-Korrektur 3/5, 157-06):
+   Kopfzeile UND Inhalt liegen jetzt in DERSELBEN Flaeche, statt dass nur einzelne Eintraege
+   (Notiz-Zeilen, Medien-Kacheln) Karten sind. Wiederverwendet exakt dieselben Token-Werte wie die
+   Eintrags-Karten in ProjectMemberNoteEntry.module.css (--surface-card/--color-border/--radius-md)
+   -- keine neuen Werte. */
 .section {
   margin-top: 32px;
   scroll-margin-top: 72px;
+  padding: 22px;
+  background: var(--surface-card);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-md);
 }
 .sectionHead {
   display: flex;
