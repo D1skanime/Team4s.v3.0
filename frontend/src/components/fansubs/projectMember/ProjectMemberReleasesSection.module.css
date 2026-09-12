@@ -60,6 +60,11 @@
   text-decoration: underline;
 }
 
+.releasesEmpty {
+  border-style: dashed;
+  border-color: var(--color-border);
+}
+
 .loadingText,
 .error {
   margin-top: 12px;

@@ -1,8 +1,9 @@
 'use client'
 
 import { useCallback } from 'react'
+import { Package } from 'lucide-react'
 
-import { Button } from '@/components/ui'
+import { Button, EmptyState } from '@/components/ui'
 import { getProjectMemberReleases } from '@/lib/api'
 import type { ProjectMemberRelease } from '@/types/projectMember'
 
@@ -44,6 +45,25 @@ export function ProjectMemberReleasesSection({
       fetchPage,
     })
 
+  if (count === 0) {
+    return (
+      <section id="releases" className={pageStyles.section} aria-labelledby="pm-releases-title">
+        <div className={pageStyles.sectionHead}>
+          <h2 id="pm-releases-title" className={pageStyles.sectionTitle}>
+            Mitwirkung an Releases
+          </h2>
+          <span className={pageStyles.sectionCount}>{count}</span>
+        </div>
+        <EmptyState
+          variant="compact"
+          icon={<Package size={20} strokeWidth={2} />}
+          className={styles.releasesEmpty}
+          title="Noch keine öffentlichen Release-Einträge."
+        />
+      </section>
+    )
+  }
+
   return (
     <section id="releases" className={pageStyles.section} aria-labelledby="pm-releases-title">
       <div className={pageStyles.sectionHead}>
@@ -66,9 +86,9 @@ export function ProjectMemberReleasesSection({
       </ul>
       {loading ? <p className={styles.loadingText}>Wird geladen …</p> : null}
       <div className={pageStyles.pager}>
-        <span className={pageStyles.pagerInfo}>
-          {canShowMore ? `${shown.length} von ${count} angezeigt` : `Alle ${count} angezeigt`}
-        </span>
+        {canShowMore ? (
+          <span className={pageStyles.pagerInfo}>{`${shown.length} von ${count} angezeigt`}</span>
+        ) : null}
         <div className={pageStyles.pagerButtons}>
           {canShowLess ? (
             <Button type="button" variant="ghost" size="sm" onClick={showLess}>
