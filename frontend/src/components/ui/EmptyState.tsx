@@ -11,9 +11,18 @@ export interface EmptyStateProps {
   description?: string
   action?: ReactNode
   variant?: EmptyStateVariant
+  icon?: ReactNode
+  className?: string
 }
 
-export function EmptyState({ title, description, action, variant = 'default' }: EmptyStateProps) {
+export function EmptyState({
+  title,
+  description,
+  action,
+  variant = 'default',
+  icon,
+  className,
+}: EmptyStateProps) {
   if (variant === 'inline') {
     return (
       <p className={styles.stateInline}>
@@ -24,9 +33,16 @@ export function EmptyState({ title, description, action, variant = 'default' }: 
   }
 
   return (
-    <div className={classNames(styles.stateCard, styles.stateNeutral, variant === 'compact' && styles.stateCompact)}>
+    <div
+      className={classNames(
+        styles.stateCard,
+        styles.stateNeutral,
+        variant === 'compact' && styles.stateCompact,
+        className,
+      )}
+    >
       <div className={styles.stateIcon} aria-hidden="true">
-        <Inbox size={20} strokeWidth={2} />
+        {icon ?? <Inbox size={20} strokeWidth={2} />}
       </div>
       <h3 className={styles.stateTitle}>{title}</h3>
       {description ? <p className={styles.stateDescription}>{description}</p> : null}
