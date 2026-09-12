@@ -9,13 +9,15 @@ constructs a literal `ProjectMemberCounts` object:
 
 - `frontend/src/app/fansubs/[slug]/fansubprojekt/[animeSlug]/mitwirkende/[memberSlug]/page.test.tsx:43`
 - `frontend/src/app/fansubs/[slug]/fansubprojekt/[animeSlug]/mitwirkende/[memberSlug]/page.test.tsx:84`
-- `frontend/src/components/fansubs/projectMember/ProjectMemberReleasesSection.test.tsx:60`
+- ~~`frontend/src/components/fansubs/projectMember/ProjectMemberReleasesSection.test.tsx:60`~~ —
+  **closed by Plan 157-05** (added `episodes: 0` to the `ProjectMemberHero` fixture in that file;
+  `tsc --noEmit` is now clean for `ProjectMemberReleasesSection.test.tsx`).
 
 None of these files are in Plan 157-04's `files_modified` list (`ProjectMemberMediaGallery.tsx`,
 `ProjectMemberMediaGallery.module.css`, `ProjectMemberMediaGallery.test.tsx`), and the errors are
 not caused by Plan 04's changes — `tsc` reports zero errors for any file Plan 04 touched. Per the
 executor's scope-boundary rule, these are logged here rather than fixed inline.
 
-Likely candidate to close this: whichever later plan in this phase (e.g. 157-05/06, which touch
-`page.test.tsx` and `ProjectMemberReleasesSection.test.tsx` per 157-CONTEXT.md's Workstream
-I/H test list) should add `episodes: <n>` to these three fixture literals.
+Remaining candidate to close: whichever later plan in this phase touches `page.test.tsx` (per
+157-CONTEXT.md's Workstream I test list) should add `episodes: <n>` to the two remaining fixture
+literals there.

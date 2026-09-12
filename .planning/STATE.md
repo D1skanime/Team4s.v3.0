@@ -3,14 +3,14 @@ gsd_state_version: 1.0
 milestone: v1.4
 milestone_name: Coverage
 status: executing
-stopped_at: Completed 157-04-PLAN.md
-last_updated: "2026-09-12T18:18:26.178Z"
+stopped_at: Completed 157-05-PLAN.md
+last_updated: "2026-09-12T18:25:56.639Z"
 last_activity: 2026-09-12
 progress:
   total_phases: 22
   completed_phases: 21
   total_plans: 212
-  completed_plans: 208
+  completed_plans: 209
   percent: 95
 ---
 
@@ -34,7 +34,7 @@ See: .planning/PROJECT.md (updated 2026-08-13)
 ## Current Position
 
 Phase: 157 (projekt-memberseite-visuelles-referenzdesign) — EXECUTING
-Plan: 3 of 6
+Plan: 5 of 6
 Status: Ready to execute
 
 Phase 157 wurde additiv an die Roadmap angehaengt (Milestone v1.4 bleibt als abgeschlossen dokumentiert, kein Milestone-Reset). Auftragsquelle: `.planning/phases/157-projekt-memberseite-visuelles-referenzdesign/157-USER-REQUEST.md`, Kontext: `157-CONTEXT.md` (ersetzt eine interaktive discuss-phase-Sitzung, enthaelt Implementation Map, gemessenen Ist-Zustand und die Referenz-Spezifikation in Worten).
@@ -861,6 +861,7 @@ Last activity: 2026-09-12
 - [Phase 157]: P157-01: countEpisodes hoists projectMemberUserIDsCTE to a single leading WITH above both UNION branches (note + media), reusing countNotes/countMedia predicates verbatim -- no parallel business-logic path.
 - [Phase 157]: P157-01: New episodes-count integration test lives in its own package-repository file, kept separate from the legacy os.ReadFile+strings.Contains-style project_member_public_repository_test.go.
 - [Phase 157]: Plan 04 keeps the icon-import alias convention (Image as ImageIcon) established in PublicReleaseBlock.tsx; grid-column breakpoints for the media gallery left unchanged, deferred to Live-UAT (157-06)
+- [Phase 157]: EmptyState gained additive icon/className props (nullish-coalescing fallback keeps all 77 existing call sites byte-identical); Releases 0-count now reuses EmptyState (compact, Package icon, dashed .releasesEmpty override) instead of a bespoke box.
 
 ### Pending Todos
 
@@ -1249,11 +1250,12 @@ untruncated list lives in `.planning/todos/pending/`.
 | Phase 156 P156-15 | 1h 10min | 2 tasks | 3 files |
 | Phase 157 P01 | 35min | 3 tasks | 5 files |
 | Phase 157 P04 | 4min | 2 tasks | 3 files |
+| Phase 157 P05 | 12min | 3 tasks | 4 files |
 
 ## Session Continuity
 
-Last session: 2026-09-12T18:18:26.161Z
-Stopped at: Completed 157-04-PLAN.md
+Last session: 2026-09-12T18:25:56.621Z
+Stopped at: Completed 157-05-PLAN.md
 Last activity: Full Phase 156 regression re-run (backend+frontend+migration round-trip) proven green; GAP-02 live-UAT checkpoint documented as OPEN, not simulated.
 Resume file: None
 Structured state: .planning/HANDOFF.json

@@ -1700,7 +1700,7 @@ Release-Notizliste, wo der Rollen-Header fachlich richtig ist.
 `157-CONTEXT.md` als Spezifikation in Worten hinterlegt. Eine zusaetzliche UI-SPEC-Runde ist damit
 nicht erforderlich; `plan-phase` mit `--skip-ui` fahren.
 
-**Plans:** 2/6 plans executed
+**Plans:** 3/6 plans executed
 
 Plans:
 
@@ -1708,7 +1708,7 @@ Plans:
 
 - [x] 157-01-PLAN.md — Additive `episodes`-Count (einzige Backend-Aenderung) + Contract-Paritaet
 - [x] 157-04-PLAN.md — Medienbereich: Kopfzeile-Icon + "Alle N angezeigt"-Entfernung
-- [ ] 157-05-PLAN.md — Releases-Empty-State via erweitertes EmptyState-Primitive
+- [x] 157-05-PLAN.md — Releases-Empty-State via erweitertes EmptyState-Primitive
 
 **Wave 2** *(blocked on Wave 1 completion — 157-02 depends on 157-01's `episodes` contract)*
 
