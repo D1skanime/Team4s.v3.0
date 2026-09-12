@@ -51,12 +51,26 @@ export function ProjectMemberNoteEntry({
     .join(' · ')
   const showRoleChip = hasMultipleRoles && Boolean(note.role_label)
 
+  // 157-06 Operator-Politur (2. Runde, Punkt 5): gemessen (nicht vermutet) via computed styles/
+  // getBoundingClientRect an einem echten Live-Eintrag (Titel "test", Text "test 3"): keine
+  // versteckte min-height, kein ueberschuessiger gap/line-height -- die 108px Gesamthoehe sind
+  // exakt 14px+14px Padding + 2px Rand + 78px Inhalt (Meta-Zeile 19.69 + 4px Abstand + Titel 24 +
+  // 4px Abstand + Text 26.39). Das Padding/die Abstaende sind fuer NORMALE Eintraege (145-190
+  // Zeichen Text bei den restlichen 11 Notizen dieses Members) angemessen -- bei einem derart
+  // winzigen Eintrag wirken dieselben 14px/4px aber unverhaeltnismaessig gross. Fix ist deshalb
+  // gezielt an die tatsaechliche Inhaltslaenge gekoppelt (kein globales Verkleinern aller
+  // Eintraege): nur Eintraege mit sehr wenig Gesamttext bekommen ueber `data-compact` engere
+  // Innenabstaende, lange Eintraege bleiben unveraendert luftig.
+  const combinedTextLength = (note.title?.length ?? 0) + plainText.length
+  const isCompact = combinedTextLength > 0 && combinedTextLength <= 60
+
   return (
     <Link
       href={`${projectPath}/releases/${note.release_version_id}`}
       className={styles.entry}
       data-note-entry
       data-color-key={boundedColorKey(note.role_color_key)}
+      data-compact={isCompact ? 'true' : undefined}
     >
       <span className={styles.dot} aria-hidden="true" />
       <div className={styles.content}>

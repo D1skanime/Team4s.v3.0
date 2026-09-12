@@ -101,3 +101,17 @@
   flex-shrink: 0;
   color: var(--text-muted);
 }
+
+/* 157-06 Operator-Politur (2. Runde, Punkt 5): gezielt nur fuer sehr kurze Eintraege (siehe
+   `isCompact`-Berechnung in ProjectMemberNoteEntry.tsx, gemessen an einem echten Live-Beispiel).
+   Verkleinert ausschliesslich vertikales Padding und den Abstand zwischen Meta-Zeile/Titel, damit
+   die Zeile nicht unverhaeltnismaessig hoch wirkt, wenn der eigentliche Inhalt nur wenige Zeichen
+   umfasst. Lange Eintraege (kein data-compact) bleiben exakt wie zuvor. */
+.entry[data-compact='true'] {
+  padding-block: 10px;
+}
+
+.entry[data-compact='true'] .meta,
+.entry[data-compact='true'] .title {
+  margin-bottom: 2px;
+}
