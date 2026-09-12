@@ -58,3 +58,34 @@ the following pre-existing, environment-caused failures, unrelated to any Phase 
 
 Not fixed (all out of scope for Phase 157, pre-existing, environment/feature-gap causes, not
 regressions introduced by any 157-0x plan).
+
+## 2026-09-12 — Plan 157-06 Task 4 live-UAT: independent second-review deviations A-F (checkpoint OPEN)
+
+Task 4 of Plan 157-06 (`checkpoint:human-verify gate="blocking"`) is the phase's designed
+acceptance gate and requires actual human sign-off — it has NOT been given. A second, independent
+reviewer ran their own Playwright pass over `127.0.0.1:3300` (both viewports, fresh frontend
+restart) to verify the executor's Task 3 claims rather than accept them at face value, confirmed
+essentially all of them, and additionally found six reference deviations (A-F). Full detail and
+before/after table: `157-06-SUMMARY.md`. Short form:
+
+- **A (real gap, verified in source):** section header icons are inconsistent — Media has one
+  (`ImageIcon`, `ProjectMemberMediaGallery.tsx`), Notes and Releases headers have none (Releases'
+  `Package` icon only appears inside its empty state, not its `count > 0` header). Reference shows
+  an icon on all three headers. Not fixed — candidate change identified in `157-06-SUMMARY.md`.
+- **B (forced by "no new tokens", documented not silently accepted):** summary band uses
+  `var(--surface-sunken)` (beige) vs. the reference's light-blue tint; no existing global token is
+  a closer match, and adding one is barred by the phase's "no new design tokens" constraint.
+- **C (structural, not fixed):** section headers sit on the page background instead of inside one
+  white card per section, unlike the reference's single-card-per-section framing.
+- **D (already known, still open):** mobile hero (≤640px) stacks the avatar above the name, not
+  avatar-left/name-right; only button-stacking was authorized by the order.
+- **E (allowed, informational):** Statistik 2×2 wrap and two-line tab-row wrap on mobile are
+  explicitly permitted deviations, not defects.
+- **F (investigated and resolved, not a Phase-157 issue):** the "blue vertical stripe" at
+  x≈0-8px near the first notes on the desktop screenshot is the pre-existing global
+  `AppShell.module.css` `.brandMark`/`.userAvatar` block (`background: var(--color-primary,
+  #2f5fe3)`) — persistent app-shell chrome outside Phase 157's scope, not a screenshot artifact
+  and not introduced by any 157-0x plan.
+
+None of A-F were auto-fixed or auto-closed as cosmetic. Phase 157 is NOT fully accepted; `STATE.md`
+continues to show 157-06/Task 4 outstanding.

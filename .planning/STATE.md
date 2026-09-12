@@ -2,9 +2,9 @@
 gsd_state_version: 1.0
 milestone: v1.4
 milestone_name: Coverage
-status: Wave 3 (157-03) abgeschlossen, letzte Wave (157-06) ausstehend
-stopped_at: Completed 157-03-PLAN.md
-last_updated: "2026-09-12T18:49:08.512Z"
+status: 157-06 Tasks 1-3 abgeschlossen, Task 4 Live-UAT-Checkpoint OFFEN (unabhaengiger Review liefert Abweichungen A-F, siehe 157-06-SUMMARY.md)
+stopped_at: 157-06 Task 4 checkpoint:human-verify -- NICHT approved, NICHT abgelehnt
+last_updated: "2026-09-12T19:20:00.000Z"
 last_activity: 2026-09-12
 progress:
   total_phases: 22
@@ -33,9 +33,22 @@ See: .planning/PROJECT.md (updated 2026-08-13)
 
 ## Current Position
 
-Phase: 157 (projekt-memberseite-visuelles-referenzdesign) — EXECUTING
-Plan: 5 von 6 abgeschlossen (157-01, 157-04, 157-05, 157-02, 157-03); 157-06 steht aus
-Status: Wave 3 (157-03) abgeschlossen, letzte Wave (157-06 Testmatrix/Live-UAT) ausstehend
+Phase: 157 (projekt-memberseite-visuelles-referenzdesign) — EXECUTING, NICHT vollstaendig abgenommen
+Plan: 5 von 6 vollstaendig abgeschlossen (157-01, 157-04, 157-05, 157-02, 157-03); 157-06 Tasks 1-3
+(Testmatrix gruen, Responsive-Check, Vorher/Nachher-Live-UAT) abgeschlossen und committed, Task 4
+(Live-UAT-Sign-off, `checkpoint:human-verify gate="blocking"`) bleibt OFFEN
+Status: Ein zweiter, unabhaengiger Reviewer hat die Executor-Behauptungen aus Task 3 per eigenem
+Playwright-Lauf gegengeprueft (bestaetigt: Rollenfarbe P157-13 real gemalt, 0x Rollenname-Wiederholung,
+Timeline-Zeilen, Statistikleiste, Zusammenfassungsband, konkreter Pager, Media/Releases-Fixes, keine
+Konsolenfehler/horizontales Scrollen, Desktop-Hero) und zusaetzlich sechs Abweichungen A-F gegen die
+Referenz-Spezifikation dokumentiert (A: fehlendes Icon an Notizen-/Releases-Kopfzeile -- echte Luecke;
+B: Zusammenfassungsband beige statt hellblau -- durch "keine neuen Tokens" erzwungen, begruendet;
+C: Kopfzeile ausserhalb der Sektionskarte -- strukturelle Abweichung; D: mobiler Hero stapelt Avatar
+ueber Name statt daneben -- bereits bekannt; E: Statistik-2x2/Tab-Zweizeiler mobil -- ausdruecklich
+erlaubt; F: blauer Streifen am linken Rand -- identifiziert als vorbestehendes AppShell-Branding,
+kein Phase-157-Defekt). Keiner der Punkte A-F wurde eigenmaechtig als kosmetisch geschlossen oder
+automatisch behoben. Volle Abweichungsliste und Vorher/Nachher-Tabelle: 157-06-SUMMARY.md und
+deferred-items.md. Phase 157 gilt erst nach echtem Auftraggeber-Sign-off auf Task 4 als abgeschlossen.
 
 Hinweis zum Zaehler: `state.advance-plan` inkrementiert einen generischen Fortschrittszaehler ohne
 Bezug zur konkreten Plan-Datei (Phase 157 laeuft nicht strikt numerisch 1→6, sondern nach
