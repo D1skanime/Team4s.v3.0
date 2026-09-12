@@ -21,16 +21,17 @@ import (
 type fakeSegmentOriginThemeRepo struct {
 	adminThemeRepository
 
-	setOriginErr   error
-	setOriginCalls int
+	setOriginErr          error
+	setOriginCalls        int
+	setOriginRemovedCount int
 
 	segment       *models.AdminThemeSegment
 	getSegmentErr error
 }
 
-func (f *fakeSegmentOriginThemeRepo) SetThemeSegmentOrigin(ctx context.Context, segmentID int64, releaseVersionID int64) error {
+func (f *fakeSegmentOriginThemeRepo) SetThemeSegmentOrigin(ctx context.Context, segmentID int64, releaseVersionID int64) (int, error) {
 	f.setOriginCalls++
-	return f.setOriginErr
+	return f.setOriginRemovedCount, f.setOriginErr
 }
 
 func (f *fakeSegmentOriginThemeRepo) GetAnimeSegmentByID(ctx context.Context, animeID int64, segmentID int64, currentReleaseVersionID int64) (*models.AdminThemeSegment, error) {

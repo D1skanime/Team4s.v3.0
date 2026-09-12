@@ -59,6 +59,44 @@ func TestSetThemeSegmentOrigin(t *testing.T) {
 	_, err = pool.Exec(ctx, `INSERT INTO themes (id, anime_id, theme_type_id) VALUES ($1, $2, $3)`, themeID, animeID, themeTypeID)
 	require.NoError(t, err)
 
+	// Seit Plan 156-12/GAP-01 laedt SetThemeSegmentOrigin bei jedem erfolgreichen Setzen die
+	// effektiven Contributors der NEUEN Origin (fuer den atomaren Cleanup nicht mehr gueltiger
+	// theme_segment_contributors-Zeilen) -- ohne diese lokale Fixture-Ergaenzung (mirrors
+	// release_detail_public_repository_segment_credits_test.go/Plan 156-03s Praezedenzfall)
+	// scheitert jeder erfolgreiche Fall an der fehlenden anime_contributions-Tabelle.
+	_, err = pool.Exec(ctx, `
+		CREATE TABLE IF NOT EXISTS visibilities (
+			id BIGSERIAL PRIMARY KEY,
+			name TEXT NOT NULL UNIQUE
+		);
+		INSERT INTO visibilities (name) VALUES ('public') ON CONFLICT (name) DO NOTHING;
+
+		ALTER TABLE members ADD COLUMN IF NOT EXISTS profile_visibility TEXT NOT NULL DEFAULT 'members_only';
+		ALTER TABLE members ADD COLUMN IF NOT EXISTS public_slug TEXT;
+
+		CREATE TABLE IF NOT EXISTS anime_contributions (
+			id BIGSERIAL PRIMARY KEY,
+			fansub_group_id BIGINT NOT NULL,
+			anime_id BIGINT NOT NULL,
+			member_id BIGINT NOT NULL REFERENCES members(id),
+			release_version_id BIGINT NULL REFERENCES release_versions(id),
+			is_public_on_anime_page BOOLEAN NOT NULL DEFAULT false,
+			visibility_id BIGINT NULL REFERENCES visibilities(id)
+		);
+
+		CREATE TABLE IF NOT EXISTS anime_contribution_roles (
+			id BIGSERIAL PRIMARY KEY,
+			anime_contribution_id BIGINT NOT NULL REFERENCES anime_contributions(id) ON DELETE CASCADE,
+			role_code TEXT NOT NULL
+		);
+	`)
+	require.NoError(t, err)
+	_, err = pool.Exec(ctx, `
+		INSERT INTO role_definitions (code, label_de) VALUES ('translator', 'Übersetzung')
+		ON CONFLICT (code) DO NOTHING
+	`)
+	require.NoError(t, err)
+
 	var segmentID int64
 	err = pool.QueryRow(ctx, `
 		INSERT INTO theme_segments (theme_id, fansub_group_id, version, start_episode, end_episode)
@@ -84,7 +122,7 @@ func TestSetThemeSegmentOrigin(t *testing.T) {
 	})
 
 	t.Run("Setzen auf eine zugewiesene release_version_id gelingt und ist danach lesbar", func(t *testing.T) {
-		err := repo.SetThemeSegmentOrigin(ctx, segmentID, releaseVersionA)
+		_, err := repo.SetThemeSegmentOrigin(ctx, segmentID, releaseVersionA)
 		require.NoError(t, err)
 
 		var origin *int64
@@ -106,7 +144,7 @@ func TestSetThemeSegmentOrigin(t *testing.T) {
 	})
 
 	t.Run("Setzen auf eine NICHT zugewiesene release_version_id wird abgelehnt, Spalte bleibt unveraendert", func(t *testing.T) {
-		err := repo.SetThemeSegmentOrigin(ctx, segmentID, releaseVersionThird)
+		_, err := repo.SetThemeSegmentOrigin(ctx, segmentID, releaseVersionThird)
 		require.Error(t, err)
 		require.True(t, errors.Is(err, ErrConflict))
 
@@ -120,13 +158,54 @@ func TestSetThemeSegmentOrigin(t *testing.T) {
 
 	t.Run("Setzen auf eine nicht existierende segmentID liefert ErrNotFound", func(t *testing.T) {
 		const missingSegmentID = int64(999999)
-		err := repo.SetThemeSegmentOrigin(ctx, missingSegmentID, releaseVersionA)
+		_, err := repo.SetThemeSegmentOrigin(ctx, missingSegmentID, releaseVersionA)
 		require.Error(t, err)
 		require.True(t, errors.Is(err, ErrNotFound))
 	})
 
 	t.Run("segmentID/releaseVersionID<=0 liefert ErrNotFound ohne DB-Zugriff", func(t *testing.T) {
-		require.True(t, errors.Is(repo.SetThemeSegmentOrigin(ctx, 0, releaseVersionA), ErrNotFound))
-		require.True(t, errors.Is(repo.SetThemeSegmentOrigin(ctx, segmentID, 0), ErrNotFound))
+		_, err := repo.SetThemeSegmentOrigin(ctx, 0, releaseVersionA)
+		require.True(t, errors.Is(err, ErrNotFound))
+		_, err = repo.SetThemeSegmentOrigin(ctx, segmentID, 0)
+		require.True(t, errors.Is(err, ErrNotFound))
+	})
+
+	// Case H (156-UAT.md Regressionsmatrix): ein Segment traegt eine
+	// theme_segment_contributors-Auswahl fuer einen Contributor von Origin A, der KEIN
+	// effektiver Contributor von Origin B ist -- das Setzen der Origin auf B muss diese
+	// Auswahl im SELBEN Commit wie das origin_release_version_id-UPDATE entfernen und die
+	// Anzahl melden (T-156-21/T-156-22).
+	t.Run("Case H: Origin-Wechsel entfernt atomar eine jetzt ungueltige Contributor-Auswahl", func(t *testing.T) {
+		const publicVisibilityID = int64(1)
+		const caseHMemberID = int64(555)
+		_, err := pool.Exec(ctx, `INSERT INTO members (id) VALUES ($1)`, caseHMemberID)
+		require.NoError(t, err)
+
+		var contributionID int64
+		err = pool.QueryRow(ctx, `
+			INSERT INTO anime_contributions (fansub_group_id, anime_id, member_id, release_version_id, is_public_on_anime_page, visibility_id)
+			VALUES ($1, $2, $3, $4, true, $5)
+			RETURNING id
+		`, fansubGroupID, animeID, caseHMemberID, releaseVersionA, publicVisibilityID).Scan(&contributionID)
+		require.NoError(t, err)
+		_, err = pool.Exec(ctx, `INSERT INTO anime_contribution_roles (anime_contribution_id, role_code) VALUES ($1, 'translator')`, contributionID)
+		require.NoError(t, err)
+
+		// Origin ist bereits auf releaseVersionA (siehe voriger Subtest). caseHMemberID ist
+		// effektiver Contributor von A, aber NICHT von B -- die Segment-Auswahl wird direkt
+		// referenziert, ohne ueber SetThemeSegmentContributors' eigene Validierung zu laufen,
+		// um den Cleanup-Pfad isoliert zu pruefen.
+		_, err = pool.Exec(ctx, `
+			INSERT INTO theme_segment_contributors (theme_segment_id, member_id) VALUES ($1, $2)
+		`, segmentID, caseHMemberID)
+		require.NoError(t, err)
+
+		removedContributorCount, err := repo.SetThemeSegmentOrigin(ctx, segmentID, releaseVersionB)
+		require.NoError(t, err)
+		require.Equal(t, 1, removedContributorCount)
+
+		ids, err := repo.GetThemeSegmentContributorMemberIDs(ctx, segmentID)
+		require.NoError(t, err)
+		require.Empty(t, ids, "die jetzt ungueltige Auswahl muss entfernt sein")
 	})
 }

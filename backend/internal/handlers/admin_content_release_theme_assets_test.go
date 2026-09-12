@@ -118,8 +118,14 @@ func (s *releaseThemeAssetRepoStub) UpsertThemeSegmentEpisodeOverride(context.Co
 func (s *releaseThemeAssetRepoStub) DeleteThemeSegmentEpisodeOverride(context.Context, int64, int64) error {
 	return nil
 }
-func (s *releaseThemeAssetRepoStub) SetThemeSegmentOrigin(context.Context, int64, int64) error {
-	return nil
+func (s *releaseThemeAssetRepoStub) SetThemeSegmentOrigin(context.Context, int64, int64) (int, error) {
+	return 0, nil
+}
+func (s *releaseThemeAssetRepoStub) ListThemeSegmentContributorCandidates(context.Context, int64) ([]models.AdminThemeSegmentContributorCandidate, error) {
+	return nil, nil
+}
+func (s *releaseThemeAssetRepoStub) SetThemeSegmentContributors(context.Context, int64, []int64) (int, int, error) {
+	return 0, 0, nil
 }
 func (s *releaseThemeAssetRepoStub) ClearSegmentAsset(context.Context, int64, int64) (*string, error) {
 	return nil, nil

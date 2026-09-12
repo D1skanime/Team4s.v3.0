@@ -82,8 +82,16 @@ type adminThemeRepository interface {
 	DeleteThemeSegmentEpisodeOverride(ctx context.Context, segmentID int64, releaseVersionID int64) error
 	// SetThemeSegmentOrigin (Phase 156, Workstream C): setzt/korrigiert die administrativ
 	// korrigierbare origin_release_version_id eines Segments (P156-06). Lehnt ein Ziel, das dem
-	// Segment nicht ueber theme_segment_assignments zugewiesen ist, mit ErrConflict ab.
-	SetThemeSegmentOrigin(ctx context.Context, segmentID int64, releaseVersionID int64) error
+	// Segment nicht ueber theme_segment_assignments zugewiesen ist, mit ErrConflict ab. Seit Plan
+	// 156-12/GAP-01 laeuft der Vorgang atomar: der int-Rueckgabewert meldet, wie viele jetzt
+	// ungueltige theme_segment_contributors-Zeilen im selben Commit entfernt wurden.
+	SetThemeSegmentOrigin(ctx context.Context, segmentID int64, releaseVersionID int64) (int, error)
+	// ListThemeSegmentContributorCandidates/SetThemeSegmentContributors (Phase 156,
+	// Plan 156-12/GAP-01): die Segment-Contributor-Kandidatenliste (jeder effektive
+	// Origin-Contributor, ungefiltert) und der validierte Schreibpfad (all-or-nothing gegen die
+	// effektive Contributor-Aufloesung der Origin).
+	ListThemeSegmentContributorCandidates(ctx context.Context, segmentID int64) ([]models.AdminThemeSegmentContributorCandidate, error)
+	SetThemeSegmentContributors(ctx context.Context, segmentID int64, memberIDs []int64) (int, int, error)
 	ClearSegmentAsset(ctx context.Context, animeID int64, segmentID int64) (*string, error)
 	BindUploadedSegmentAsset(ctx context.Context, animeID int64, segmentID int64, mediaAssetID int64, sourceRef string, sourceLabel *string) (*models.AdminThemeSegment, error)
 	AttachSegmentLibraryAsset(ctx context.Context, animeID int64, segmentID int64, input models.SegmentLibraryAttachInput) (*models.AdminThemeSegment, error)

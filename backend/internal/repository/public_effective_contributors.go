@@ -6,8 +6,17 @@ import (
 	"sort"
 	"strings"
 
-	"github.com/jackc/pgx/v5/pgxpool"
+	"github.com/jackc/pgx/v5"
 )
+
+// pgxQuerier is the minimal read surface loadPublicEffectiveContributors needs. Both
+// *pgxpool.Pool and pgx.Tx satisfy it transparently (structural typing) -- this lets
+// callers running inside a transaction (Plan 156-12's SetThemeSegmentOrigin atomic
+// cleanup) reuse the exact same resolution logic as the pool-based callers, without a
+// second implementation.
+type pgxQuerier interface {
+	Query(ctx context.Context, sql string, args ...any) (pgx.Rows, error)
+}
 
 type publicContributionCandidate struct {
 	ReleaseVersionID int64
@@ -45,7 +54,7 @@ type publicContributorAccumulator struct {
 // without overrides continue to inherit their own defaults.
 func loadPublicEffectiveContributors(
 	ctx context.Context,
-	db *pgxpool.Pool,
+	db pgxQuerier,
 	releaseVersionIDs []int64,
 ) (map[int64][]PublicReleaseContributor, error) {
 	if len(releaseVersionIDs) == 0 {

@@ -27,46 +27,87 @@ import (
 // Membership-Check zuerst wuerde einen fehlenden Segment daher IMMER als
 // ErrConflict statt ErrNotFound melden und die beiden Fehlerfaelle fuer den
 // Aufrufer ununterscheidbar machen.
-func (r *AdminContentRepository) SetThemeSegmentOrigin(ctx context.Context, segmentID int64, releaseVersionID int64) error {
+//
+// Seit Plan 156-12/GAP-01 laeuft der gesamte Ablauf in EINER Transaktion: sobald
+// sich die Origin tatsaechlich auf eine ANDERE Release-Version aendert, wird im
+// SELBEN Commit jede bestehende theme_segment_contributors-Auswahl entfernt, deren
+// member_id kein effektiver Contributor der NEUEN Origin mehr ist (die
+// Segment-Contributor-Auswahl referenziert nur die Person, niemals eine konkrete
+// Contribution-Zeile -- 156-UAT.md Nachtrag 2026-09-12). removedContributorCount
+// meldet die Anzahl der entfernten Zeilen (0, wenn keine ungueltig waren oder keine
+// Auswahl bestand) -- nie still verworfen (T-156-22).
+func (r *AdminContentRepository) SetThemeSegmentOrigin(ctx context.Context, segmentID int64, releaseVersionID int64) (int, error) {
 	if segmentID <= 0 || releaseVersionID <= 0 {
-		return ErrNotFound
+		return 0, ErrNotFound
 	}
 
+	tx, err := r.db.Begin(ctx)
+	if err != nil {
+		return 0, fmt.Errorf("begin set theme segment origin segment=%d release_version=%d: %w", segmentID, releaseVersionID, err)
+	}
+	defer func() {
+		_ = tx.Rollback(ctx)
+	}()
+
 	var segmentExists bool
-	if err := r.db.QueryRow(ctx, `
+	if err := tx.QueryRow(ctx, `
 		SELECT EXISTS(SELECT 1 FROM theme_segments WHERE id = $1)
 	`, segmentID).Scan(&segmentExists); err != nil {
-		return fmt.Errorf("set theme segment origin segment=%d release_version=%d: check segment existence: %w", segmentID, releaseVersionID, err)
+		return 0, fmt.Errorf("set theme segment origin segment=%d release_version=%d: check segment existence: %w", segmentID, releaseVersionID, err)
 	}
 	if !segmentExists {
-		return ErrNotFound
+		return 0, ErrNotFound
 	}
 
 	var assigned bool
-	if err := r.db.QueryRow(ctx, `
+	if err := tx.QueryRow(ctx, `
 		SELECT EXISTS(
 			SELECT 1 FROM theme_segment_assignments
 			WHERE theme_segment_id = $1 AND release_version_id = $2
 		)
 	`, segmentID, releaseVersionID).Scan(&assigned); err != nil {
-		return fmt.Errorf("set theme segment origin segment=%d release_version=%d: check assignment membership: %w", segmentID, releaseVersionID, err)
+		return 0, fmt.Errorf("set theme segment origin segment=%d release_version=%d: check assignment membership: %w", segmentID, releaseVersionID, err)
 	}
 	if !assigned {
-		return ErrConflict
+		return 0, ErrConflict
 	}
 
-	tag, err := r.db.Exec(ctx, `
+	tag, err := tx.Exec(ctx, `
 		UPDATE theme_segments SET origin_release_version_id = $2 WHERE id = $1
 	`, segmentID, releaseVersionID)
 	if err != nil {
 		var pgErr *pgconn.PgError
 		if errors.As(err, &pgErr) && pgErr.Code == "23503" {
-			return ErrConflict
+			return 0, ErrConflict
 		}
-		return fmt.Errorf("set theme segment origin segment=%d release_version=%d: %w", segmentID, releaseVersionID, err)
+		return 0, fmt.Errorf("set theme segment origin segment=%d release_version=%d: %w", segmentID, releaseVersionID, err)
 	}
 	if tag.RowsAffected() == 0 {
-		return ErrNotFound
+		return 0, ErrNotFound
 	}
-	return nil
+
+	effective, err := loadPublicEffectiveContributors(ctx, tx, []int64{releaseVersionID})
+	if err != nil {
+		return 0, fmt.Errorf("set theme segment origin segment=%d release_version=%d: load new origin's effective contributors: %w", segmentID, releaseVersionID, err)
+	}
+	validMemberIDs := make([]int64, 0, len(effective[releaseVersionID]))
+	for _, contributor := range effective[releaseVersionID] {
+		validMemberIDs = append(validMemberIDs, contributor.MemberID)
+	}
+
+	cleanupTag, err := tx.Exec(ctx, `
+		DELETE FROM theme_segment_contributors
+		WHERE theme_segment_id = $1
+		  AND NOT (member_id = ANY($2))
+	`, segmentID, validMemberIDs)
+	if err != nil {
+		return 0, fmt.Errorf("set theme segment origin segment=%d release_version=%d: cleanup now-invalid contributor selection: %w", segmentID, releaseVersionID, err)
+	}
+	removedContributorCount := int(cleanupTag.RowsAffected())
+
+	if err := tx.Commit(ctx); err != nil {
+		return 0, fmt.Errorf("commit set theme segment origin segment=%d release_version=%d: %w", segmentID, releaseVersionID, err)
+	}
+
+	return removedContributorCount, nil
 }

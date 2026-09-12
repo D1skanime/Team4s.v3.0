@@ -44,7 +44,8 @@ func (h *AdminContentHandler) SetAnimeSegmentOrigin(c *gin.Context) {
 		return
 	}
 
-	if err := h.themeRepo.SetThemeSegmentOrigin(c.Request.Context(), segmentID, req.ReleaseVersionID); err != nil {
+	removedContributorCount, err := h.themeRepo.SetThemeSegmentOrigin(c.Request.Context(), segmentID, req.ReleaseVersionID)
+	if err != nil {
 		if errors.Is(err, repository.ErrConflict) {
 			c.JSON(http.StatusConflict, gin.H{"error": gin.H{"message": "release_version_id ist diesem Segment nicht zugewiesen", "code": "origin_not_assigned"}})
 			return
@@ -68,5 +69,5 @@ func (h *AdminContentHandler) SetAnimeSegmentOrigin(c *gin.Context) {
 		return
 	}
 
-	c.JSON(http.StatusOK, gin.H{"data": segment})
+	c.JSON(http.StatusOK, gin.H{"data": segment, "contributor_selection_changes_removed": removedContributorCount})
 }
