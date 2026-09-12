@@ -1,0 +1,71 @@
+/* Statistikleiste (Referenzdesign 157-02): EINE Karte mit vier Icon+Zahl+Label-Einträgen,
+   getrennt durch dünne vertikale Trenner. Nur globale Tokens. */
+
+.summary {
+  margin-top: 20px;
+  display: flex;
+  flex-wrap: wrap;
+  align-items: stretch;
+  padding: 16px 20px;
+  border-radius: var(--radius-md);
+  background: var(--surface-card);
+  border: 1px solid var(--color-border);
+  box-shadow: var(--shadow-sm);
+}
+
+.summaryEntry {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  flex: 1 1 160px;
+  padding-inline: 16px;
+}
+
+.summaryEntry:first-child {
+  padding-inline-start: 0;
+}
+
+.summaryEntry:not(:first-child) {
+  border-inline-start: 1px solid var(--color-border);
+}
+
+.summaryIcon {
+  flex: 0 0 auto;
+  width: 36px;
+  height: 36px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: var(--surface-sunken);
+  color: var(--accent-primary);
+}
+
+.summaryText {
+  min-width: 0;
+}
+
+.summaryValue {
+  font-size: 1.3rem;
+  font-weight: 700;
+  line-height: 1.1;
+  color: var(--text-primary);
+}
+
+.summaryLabel {
+  margin-top: 2px;
+  font-size: 0.8rem;
+  color: var(--text-muted);
+}
+
+/* Mobile darf zweizeilig umbrechen, fällt aber NICHT auf vier große Boxen zurück. */
+@media (max-width: 640px) {
+  .summaryEntry {
+    flex: 1 1 45%;
+  }
+
+  .summaryEntry:nth-child(3) {
+    border-inline-start: none;
+    padding-inline-start: 16px;
+  }
+}

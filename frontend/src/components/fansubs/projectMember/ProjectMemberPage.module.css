@@ -113,69 +113,6 @@
   gap: 10px;
 }
 
-/* Summary — 4 Karten */
-.summary {
-  margin-top: 20px;
-  display: grid;
-  grid-template-columns: repeat(4, 1fr);
-  gap: 12px;
-}
-.summaryCard {
-  padding: 16px;
-  border-radius: var(--radius-md);
-  background: var(--surface-card);
-  border: 1px solid var(--color-border);
-  box-shadow: var(--shadow-xs);
-  text-align: center;
-}
-.summaryValue {
-  font-size: 1.6rem;
-  font-weight: 700;
-  color: var(--text-primary);
-}
-.summaryLabel {
-  margin-top: 2px;
-  font-size: 0.8rem;
-  color: var(--text-muted);
-}
-
-/* Sticky Schnellnavigation */
-.stickyNav {
-  position: sticky;
-  top: 8px;
-  z-index: 5;
-  margin: 20px 0;
-  display: flex;
-  gap: 10px;
-  overflow-x: auto;
-  padding: 8px;
-  border-radius: var(--radius-md);
-  background: var(--surface-card);
-  border: 1px solid var(--color-border);
-  box-shadow: var(--shadow-sm);
-}
-.stickyNavItem {
-  flex: 0 0 auto;
-  border: 1px solid var(--color-border);
-  background: var(--surface-card);
-  color: var(--text-primary);
-  border-radius: 999px;
-  padding: 6px 14px;
-  font-size: 0.85rem;
-  font-weight: 600;
-  cursor: pointer;
-  white-space: nowrap;
-}
-.stickyNavItem:hover,
-.stickyNavItem:focus-visible {
-  background: var(--surface-sunken);
-  border-color: var(--accent-primary);
-}
-.stickyNavCount {
-  color: var(--text-muted);
-  margin-left: 4px;
-}
-
 /* Sektionen */
 .section {
   margin-top: 32px;
@@ -243,11 +180,6 @@
 }
 
 /* Responsive */
-@media (max-width: 900px) {
-  .summary {
-    grid-template-columns: repeat(2, 1fr);
-  }
-}
 @media (max-width: 640px) {
   .hero {
     flex-direction: column;
