@@ -1700,7 +1700,7 @@ Release-Notizliste, wo der Rollen-Header fachlich richtig ist.
 `157-CONTEXT.md` als Spezifikation in Worten hinterlegt. Eine zusaetzliche UI-SPEC-Runde ist damit
 nicht erforderlich; `plan-phase` mit `--skip-ui` fahren.
 
-**Plans:** 3/6 plans executed
+**Plans:** 4/6 plans executed
 
 Plans:
 
@@ -1712,7 +1712,7 @@ Plans:
 
 **Wave 2** *(blocked on Wave 1 completion — 157-02 depends on 157-01's `episodes` contract)*
 
-- [ ] 157-02-PLAN.md — Hero, Statistikleiste, Tab-Nav-Aktivzustand, Beitragszusammenfassung-Band
+- [x] 157-02-PLAN.md — Hero, Statistikleiste, Tab-Nav-Aktivzustand, Beitragszusammenfassung-Band
 
 **Wave 3** *(blocked on Wave 2 completion — shares ProjectMemberPage.tsx with 157-02)*
 

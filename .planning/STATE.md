@@ -3,14 +3,14 @@ gsd_state_version: 1.0
 milestone: v1.4
 milestone_name: Coverage
 status: executing
-stopped_at: Completed 157-05-PLAN.md
-last_updated: "2026-09-12T18:25:56.639Z"
+stopped_at: Completed 157-02-PLAN.md
+last_updated: "2026-09-12T18:37:02.255Z"
 last_activity: 2026-09-12
 progress:
   total_phases: 22
   completed_phases: 21
   total_plans: 212
-  completed_plans: 209
+  completed_plans: 210
   percent: 95
 ---
 
@@ -34,8 +34,40 @@ See: .planning/PROJECT.md (updated 2026-08-13)
 ## Current Position
 
 Phase: 157 (projekt-memberseite-visuelles-referenzdesign) — EXECUTING
-Plan: 5 of 6
-Status: Ready to execute
+Plan: 4 von 6 abgeschlossen (157-01, 157-04, 157-05, 157-02); 157-03 und 157-06 stehen aus
+Status: Wave 2 (157-02) abgeschlossen, weitere Waves ausstehend
+
+Hinweis zum Zaehler: `state.advance-plan` inkrementiert einen generischen Fortschrittszaehler ohne
+Bezug zur konkreten Plan-Datei (Phase 157 laeuft nicht strikt numerisch 1→6, sondern nach
+Wave/Abhaengigkeit, `parallelization: true`). Massgeblich fuer den tatsaechlichen Stand ist
+`roadmap.update-plan-progress "157"`: `plan_count: 6, summary_count: 4` — 157-01/04/05/02 sind
+fertig, 157-03 (Notiz-Timeline + Rollenfarb-Nachtrag) und 157-06 (Testmatrix/Live-UAT) stehen aus.
+
+Plan 157-02 (2026-09-12) abgeschlossen: Hero/Statistikleiste/Tab-Nav/Beitragszusammenfassung der
+Projekt-Member-Seite auf das Referenzdesign umgebaut. Hero-Actions: „Vollstaendiges Memberprofil"
+ist jetzt `variant="primary"` mit `Users`-Icon, „Zurueck zum Projekt" ist `variant="secondary"` mit
+fuehrendem Pfeil (`←&nbsp;`) — Avatar-links/Body-rechts-Layout und die 640px-Stapel-Media-Query
+blieben unveraendert, `useRoleCatalog`/`presentationForRole`/`getMemberInitials` unangetastet.
+Statistikleiste: `ProjectMemberSummaryBar` ist jetzt EINE Karte mit vier Icon+Zahl+Label-Eintraegen
+(Reihenfolge Rolle(n)/Beitraege/Medien/Releases, korrektes Singular/Plural), eigenes CSS-Modul statt
+weiterer Regeln in `ProjectMemberPage.module.css`. Tab-Nav: `ProjectMemberStickyNav` traegt jetzt
+einen `IntersectionObserver`-Scrollspy-Aktivzustand (Fallback: zuletzt geklickter Tab), `overflow-x:
+auto` wurde durch `flex-wrap: wrap` ersetzt (kein Abschneiden bei 390px), neuer
+`ProjectMemberStickyNav.test.tsx` beweist beides gegen echten Komponenten-Code (gestubbtes globales
+`IntersectionObserver`, keine Quelltext-Substring-Pruefung). Beitragszusammenfassung: neue
+`ProjectMemberSummaryBand`-Komponente (TDD RED `5be81c38` → GREEN `58a2b4ea`) rendert
+„<Rollen> fuer N Folgen · M dokumentierte Arbeitsnotizen · K Medien", komma-getrennt bei mehreren
+Rollen, „fuer N Folgen" entfaellt vollstaendig bei `episodes === 0` (konsumiert den additiven Count
+aus Plan 157-01). `ProjectMemberPage.module.css` schrumpfte von 270 auf 202 Zeilen (die
+extrahierten `.summaryCard`/`.stickyNavItem`-Regeln plus die 900px-Media-Query leben jetzt in
+eigenen Modulen). Rollenfarb-Naht (`data-color-key` → `--role-accent`) unangetastet — per Diff
+bestaetigt. Volle Frontend-Suite nach dem Umbau gruen (301/302 Dateien, 2322 Tests, 3 todo, keine
+Regression). `tsc --noEmit` sauber bis auf die bereits aus Wave 1 bekannte, explizit nicht in
+diesem Plans Scope liegende `page.test.tsx`-Luecke (fehlendes `episodes`-Feld in den Test-Fixtures,
+2 Fehler, fuer 157-06 vorgemerkt — Datei per `git status` bestaetigt unangetastet). Keine
+Abweichungen vom Plan. `requirements.mark-complete P157-01/02/03/04/10` fand wie bei den
+Phase-156-Vorplaenen keine Zeile in REQUIREMENTS.md (dieselbe uebergreifende Tracking-Luecke).
+Details: 157-02-SUMMARY.md.
 
 Phase 157 wurde additiv an die Roadmap angehaengt (Milestone v1.4 bleibt als abgeschlossen dokumentiert, kein Milestone-Reset). Auftragsquelle: `.planning/phases/157-projekt-memberseite-visuelles-referenzdesign/157-USER-REQUEST.md`, Kontext: `157-CONTEXT.md` (ersetzt eine interaktive discuss-phase-Sitzung, enthaelt Implementation Map, gemessenen Ist-Zustand und die Referenz-Spezifikation in Worten).
 
@@ -862,6 +894,7 @@ Last activity: 2026-09-12
 - [Phase 157]: P157-01: New episodes-count integration test lives in its own package-repository file, kept separate from the legacy os.ReadFile+strings.Contains-style project_member_public_repository_test.go.
 - [Phase 157]: Plan 04 keeps the icon-import alias convention (Image as ImageIcon) established in PublicReleaseBlock.tsx; grid-column breakpoints for the media gallery left unchanged, deferred to Live-UAT (157-06)
 - [Phase 157]: EmptyState gained additive icon/className props (nullish-coalescing fallback keeps all 77 existing call sites byte-identical); Releases 0-count now reuses EmptyState (compact, Package icon, dashed .releasesEmpty override) instead of a bespoke box.
+- [Phase 157]: 157-02: Beitragszusammenfassung als ein Text-Knoten (kein Bold/Regular-Split), damit exakte screen.getByText-Assertions gegen den ganzen Satz halten; lucide-react LucideIcon-Typ statt handgerolltem ComponentType<{size}> fuer die Statistikleisten-Icons.
 
 ### Pending Todos
 
@@ -1251,11 +1284,12 @@ untruncated list lives in `.planning/todos/pending/`.
 | Phase 157 P01 | 35min | 3 tasks | 5 files |
 | Phase 157 P04 | 4min | 2 tasks | 3 files |
 | Phase 157 P05 | 12min | 3 tasks | 4 files |
+| Phase 157 P02 | 30min | 3 tasks | 11 files |
 
 ## Session Continuity
 
-Last session: 2026-09-12T18:25:56.621Z
-Stopped at: Completed 157-05-PLAN.md
+Last session: 2026-09-12T18:37:02.238Z
+Stopped at: Completed 157-02-PLAN.md
 Last activity: Full Phase 156 regression re-run (backend+frontend+migration round-trip) proven green; GAP-02 live-UAT checkpoint documented as OPEN, not simulated.
 Resume file: None
 Structured state: .planning/HANDOFF.json
