@@ -279,3 +279,52 @@ Skript verwenden und um Vorher/Nachher-Kennzahlen erweitern.
 - Änderungen an Sichtbarkeit, Rollenberechnung, Release-Zuordnung, Medienlogik, Pagination
 - Erfundene Kennzahlen ohne belegte Ableitung
 </scope_fence>
+
+
+---
+
+### E2 — Rollenfarbe erhalten (Nachtrag, P157-13)
+
+Der Auftraggeber hat am 2026-09-12 nachgereicht, dass die **bestehende Rollenfarb-Semantik
+vollständig erhalten** bleiben muss. Das Referenzbild zeigt neutrale weiße Timeline-Zeilen — in
+diesem einen Punkt ist es **ausdrücklich nicht verbindlich**. Verbindlich bleiben Struktur,
+Reihenfolge und Proportionen.
+
+**Diese Vorgabe überschreibt den Satz aus Workstream E, dass bei genau einer Projektrolle „keine
+Rolle am Eintrag" erscheint.** Korrekt ist: der **Rollenname** wird bei genau einer Projektrolle
+nicht groß wiederholt, die **Rollenfarbe** ist aber an **jedem** Eintrag sichtbar — unabhängig von
+der Anzahl der Projektrollen.
+
+**Belegte zentrale Naht, die zu verwenden ist (keine parallele Farbwelt bauen):**
+
+1. Die Notiz-DTO liefert `role_color_key` (bereits vorhanden, `frontend/src/types/projectMember.ts`).
+2. `boundedColorKey()` aus `@/lib/roleCatalog` normalisiert und begrenzt den Wert auf den
+   Katalogvorrat, mit `neutral` als Fallback.
+3. Das Ergebnis wird als Attribut `data-color-key` an das Wurzelelement des Eintrags gesetzt —
+   genau so, wie es `PublicNoteCard.tsx:85` heute tut.
+4. `frontend/src/styles/globals.css:271-293` ist die **einzige Ableitungsstelle**: sie mappt
+   `[data-color-key='<hex>']` auf `--role-chip-accent` und setzt daraus
+   `[data-color-key] { --role-accent: var(--role-chip-accent, #596176); }`.
+5. Das neue CSS-Modul konsumiert **ausschließlich** `var(--role-accent)`. Keine Hex-Werte im
+   Komponenten-CSS, keine eigene Rollen-Farbtabelle in TS, kein zweites Mapping.
+
+**Katalogfarben zur Orientierung** (live aus `role_definitions` geprüft, nicht hartzucodieren):
+`typesetter #7B3C4E`, `translator #27664F`, `timer #C26A2E`, `karaoke_fx #A16207`,
+`editor #6D3F83`, `quality_checker #6B7F2A`, `encoder #506B91`. Das Mauve der heutigen
+Notiz-Kopfzeilen **ist** die Typesetting-Farbe `#7B3C4E` — sie muss nach dem Umbau erkennbar
+bleiben.
+
+**Gestaltungsspielraum innerhalb der Vorgabe:** schmale farbige obere Kante, linke Akzentlinie oder
+kleiner Rollen-Chip. Die heutige hohe, vollflächig gefärbte Kopfzeile mit Rollenname **entfällt**.
+Bei mehreren Projektrollen muss die Zuordnung eindeutig bleiben — dann ist zusätzlich ein kleiner
+Rollen-Chip in der Meta-Zeile zu zeigen, weil Farbe allein für sehbeeinträchtigte Nutzer nicht
+ausreicht (Farbe darf nie der **einzige** Informationsträger sein).
+
+**Accessibility:** Es existiert `frontend/src/lib/roleCatalog.accessibility.test.ts` — die
+Kontrastanforderungen dieses Guards gelten weiter. Ein farbiger Akzentstreifen ist unkritisch;
+farbiger **Text** auf hellem Grund muss den vorhandenen Kontrastregeln genügen. Den Guard nicht
+aufweichen.
+
+**Zusätzliches Acceptance Criterion:** nach dem Umbau ist an jedem Beitrag die Rollenfarbe aus der
+zentralen Naht sichtbar, die Seite ist nicht rein neutral, und es existiert **kein** zweites
+Farbmapping im Projekt-Member-Code.

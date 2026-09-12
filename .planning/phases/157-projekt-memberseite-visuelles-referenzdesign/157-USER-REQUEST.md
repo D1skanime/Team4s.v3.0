@@ -253,3 +253,53 @@ Opus: Planung, Implementation, Testanpassung, Live-UAT-Vorbereitung.
 
 Astra danach: unabhängiger visueller Review, fertige Screenshots gegen Referenzbild vergleichen,
 Abweichungen priorisiert auflisten, keine stillschweigende Neuinterpretation des Designs.
+
+
+---
+
+## Nachtrag 2026-09-12 — Rollenfarben unbedingt beibehalten
+
+**Wichtige Praezisierung zur visuellen Referenz** (wörtlicher Nachtrag des Auftraggebers):
+
+Das beigefügte Referenzbild zeigt die gewünschte neue Informationshierarchie und Kompaktheit,
+bildet aber die bestehende rollenbezogene Farbsemantik **nicht** ausreichend ab.
+
+Die Rollenfarben der aktuellen Team4s-Seite müssen ausdrücklich erhalten bleiben.
+
+**Hintergrund:** Jede Rolle besitzt bereits eine eigene Farbe. Diese Farbcodierung ist fachlich und
+visuell sinnvoll und soll weiterhin unmittelbar erkennbar machen, welcher Rolle ein Beitrag
+zugeordnet ist.
+
+Daher gilt:
+
+- Die Rollenfarbe **nicht** entfernen.
+- Keine neutrale weiße Darstellung aller Beiträge nur deshalb, weil das Referenzbild so aussieht.
+- Bestehende Rollenfarben und bestehende **zentrale** Rollenfarb-Definition weiterverwenden.
+- Keine neue parallele Farbzuordnung bauen.
+- Die Farbe soll weiterhin an **jeder** Beitragskarte sichtbar sein.
+- Gleichzeitig soll die Darstellung kompakter werden.
+
+**Bevorzugte Umsetzung:**
+
+- Rollenfarbe als kompakter visueller Akzent pro Beitrag
+- z. B. schmale farbige Kopfzeile, farbige obere Kante, linke Akzentlinie oder kleiner Rollen-Chip
+- keine unnötig hohe Rollen-Kopfzeile wie aktuell
+- Rollenname darf klein erscheinen, wenn er zur Unterscheidung nötig ist
+- bei nur einer Rolle im gesamten Projekt nicht überdimensioniert wiederholen
+- bei mehreren Rollen muss über Farbe und/oder kleinen Chip eindeutig bleiben, welcher Beitrag zu
+  welcher Rolle gehört
+
+Das Ziel ist ausdrücklich **nicht** „Rolleninformation aus den Beiträgen entfernen", sondern
+„Rolleninformation kompakter und eleganter darstellen, während die bestehende Rollenfarbe erhalten
+bleibt".
+
+**Ergänzte Acceptance Criteria:**
+
+- Bestehende Rollenfarb-Semantik ist nach dem Umbau vollständig erhalten.
+- Typesetting-Beiträge sind weiterhin sofort anhand ihrer Typesetting-Farbe erkennbar.
+- Beiträge anderer Rollen verwenden weiterhin deren bestehende Rollenfarben.
+- Die Karten bleiben visuell hochwertig und nicht rein neutral.
+- Die neue kompakte Struktur darf die farbliche Rollenidentität nicht opfern.
+
+Die visuelle Referenz ist damit bezüglich **Struktur und Proportionen verbindlich, nicht** bezüglich
+fehlender Rollenfarben.
