@@ -57,7 +57,7 @@ describe('ProjectMemberReleaseCard', () => {
           member_avatar_url: null,
           is_verified: true,
           role_labels: ['Karaoke-FX', 'future_role', 'Typesetting'],
-          counts: { roles: 3, notes: 0, media: 0, releases: 1 },
+          counts: { roles: 3, notes: 0, media: 0, releases: 1, episodes: 0 },
         }}
         memberSlug="sorata"
         groupName="C-Subs"
@@ -161,5 +161,43 @@ describe('ProjectMemberReleasesSection', () => {
     // Jetzt wieder einklappen
     fireEvent.click(screen.getByText('Weniger anzeigen'))
     await waitFor(() => expect(screen.getAllByRole('listitem')).toHaveLength(15))
+  })
+
+  it('does not show "Alle N angezeigt" once every release is loaded', async () => {
+    const items = Array.from({ length: 3 }, (_, i) => release({ release_version_id: i + 1 }))
+    getProjectMemberReleases.mockResolvedValueOnce(page(items, null, false))
+
+    render(
+      <ProjectMemberReleasesSection
+        animeID={10}
+        groupID={20}
+        memberSlug="csubs-leader"
+        projectPath="/p"
+        count={3}
+      />,
+    )
+    await waitFor(() => expect(screen.getAllByRole('listitem')).toHaveLength(3))
+    expect(screen.queryByText(/Alle \d+ angezeigt/)).toBeNull()
+  })
+})
+
+describe('ProjectMemberReleasesSection empty state', () => {
+  it('renders the compact empty state and no list when there are 0 public releases', async () => {
+    getProjectMemberReleases.mockResolvedValueOnce(page([], null, false))
+
+    render(
+      <ProjectMemberReleasesSection
+        animeID={10}
+        groupID={20}
+        memberSlug="csubs-leader"
+        projectPath="/p"
+        count={0}
+      />,
+    )
+
+    await waitFor(() =>
+      expect(screen.getByText('Noch keine öffentlichen Release-Einträge.')).not.toBeNull(),
+    )
+    expect(screen.queryByRole('listitem')).toBeNull()
   })
 })
