@@ -86,4 +86,20 @@ describe('ProjectMemberMediaGallery', () => {
     fireEvent.keyDown(window, { key: 'Escape' })
     await waitFor(() => expect(screen.queryByRole('dialog', { name: 'Medienansicht' })).toBeNull())
   })
+
+  it('renders no "Alle N angezeigt" pager text once every medium is loaded', async () => {
+    const items = Array.from({ length: 3 }, (_, i) => media({ id: i + 1 }))
+    getProjectMemberMedia.mockResolvedValueOnce(page(items, null, false))
+    render(
+      <ProjectMemberMediaGallery
+        animeID={10}
+        groupID={20}
+        memberSlug="csubs-leader"
+        projectPath="/fansubs/c-subs/fansubprojekt/vipers-creed"
+        count={3}
+      />,
+    )
+    await waitFor(() => expect(cards()).toHaveLength(3))
+    expect(screen.queryByText(/Alle \d+ angezeigt/)).toBeNull()
+  })
 })
