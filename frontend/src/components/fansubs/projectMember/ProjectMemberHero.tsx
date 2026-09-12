@@ -83,7 +83,12 @@ export function ProjectMemberHero({
           >
             Vollständiges Memberprofil
           </Button>
-          <Button href={projectPath} variant="secondary" size="sm">
+          {/* 157-06 Operator-Politur (2. Runde, Punkt 1): "subtle" statt "secondary" -- gleiches
+              Touch-Ziel (size="sm" -> --control-height-sm, unveraendert), aber deutlich leichter,
+              damit "Vollständiges Memberprofil" klar die primaere Aktion bleibt. "subtle" ist
+              bereits das etablierte Muster fuer sekundaere href-Links in diesem Codebase (siehe
+              PublicReleaseBlock.tsx). */}
+          <Button href={projectPath} variant="subtle" size="sm">
             ←&nbsp;Zurück zum Projekt
           </Button>
         </div>
