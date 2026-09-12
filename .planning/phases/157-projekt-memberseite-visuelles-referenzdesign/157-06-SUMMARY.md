@@ -321,4 +321,128 @@ does **not** constitute human sign-off. Task 4 of Plan 157-06 remains an open
 screenshots and confirm or reject. `STATE.md`/`ROADMAP.md` are intentionally left untouched by this
 fix pass (per the fix-pass instructions) and continue to show Phase 157 as outstanding.
 
+## 2026-09-12 — Operator polish pass, round 2: five UI-polish corrections, checkpoint still open
+
+The operator did not approve the Task 4 checkpoint and ordered a second, smaller polish round —
+five concrete UI-only corrections, no backend change, no role/count/visibility/data-path change.
+Implemented and committed individually (`516a40ae`, `34e46ec0`, `ca992dd8`, `5a34dbe2` — plus this
+docs-only commit). Scope: `ProjectMemberHero.tsx`, `ProjectMemberSummary.module.css`,
+`ProjectMemberPage.module.css`, `ProjectMemberNoteEntry.tsx`, `ProjectMemberNoteEntry.module.css`
+— confirmed via `git diff --stat` against the pre-round commit: exactly those 5 files, 63
+insertions / 8 deletions, no backend/STATE.md/ROADMAP.md changes.
+
+### 1) Hero back-link: "subtle" instead of "secondary"
+
+`ProjectMemberHero.tsx`'s "← Zurück zum Projekt" now uses `variant="subtle"` (was `"secondary"`,
+a full-gradient button as visually heavy as the primary action). `subtle` is already the
+established pattern for secondary `href`-based navigation buttons elsewhere in this codebase
+(`PublicReleaseBlock.tsx`). `size="sm"` is unchanged, so the touch target stays at
+`--control-height-sm` (36px) — measured directly: both buttons remain 36px tall before and after.
+On mobile (≤640px), `ProjectMemberPage.module.css`'s `.heroActions` now only forces the PRIMARY
+button to full width (`.heroActions > :first-child`, plus `align-items: flex-start` to stop the
+column-direction flex default from stretching the second child); the back-link keeps its natural
+content width (measured: 150.67px at 390px, vs. the primary's 204px).
+
+**Honest measurement, not just an assertion:** this change does NOT reduce the mobile hero's raw
+pixel height. Measured directly via `getBoundingClientRect()` at 390px width: hero height
+299.23px, `.heroActions` height 82px, both BEFORE and AFTER this change — the two buttons still
+don't fit on one row at 390px (204px + 150.67px + 10px gap = 364.67px, wider than the ~306px
+content column), so they still stack, and a stacked pair of 36px buttons is 82px regardless of
+either button's width. The achieved goal is de-emphasis (the back-link visibly reads as a lighter,
+narrower, less button-like secondary action — confirmed in the new screenshots), not a literal
+height reduction. This is reported honestly per the run constraints rather than claiming a
+height win that did not occur at the DOM level.
+
+### 2) Mobile 2×2 statistics grid: one cohesive block
+
+Root cause (confirmed, not assumed): the previous mobile rule gave entry 1 (row 1, col 1)
+`padding-inline-start: 0` (from the base `:first-child` rule) while entry 3 (row 2, col 1, whose
+border was already removed for the 2×2 case) kept `padding-inline-start: 16px` — the two
+"column 1" entries were horizontally misaligned against each other, and there was no vertical
+`gap` between the two wrapped rows at all (they touched). Fixed in
+`ProjectMemberSummary.module.css`: under the existing `@media (max-width: 640px)` block, all four
+`.summaryEntry` variants (base, `:first-child`, `:not(:first-child)`) now get identical
+`flex: 1 1 calc(50% - 8px)`, `padding-inline: 0`, `border-inline-start: none`, and `.summary`
+itself gets `gap: 14px 16px`. Desktop's single-row layout (flex-basis 160px, border separators)
+is untouched — confirmed via `git diff` that no rule outside the `@media (max-width: 640px)` block
+changed. Verified visually in the new mobile screenshot: icons/numbers in both columns now align
+vertically across both rows.
+
+### 3) Section card: visible depth against the page background
+
+`.section` in `ProjectMemberPage.module.css` already had the card surface
+(`background: var(--surface-card)` / border / radius) from the first polish round, but
+`--surface-card` (`#ffffff`) sits very close to `--surface-canvas` (`#f6f4ef`, the page
+background) — the border alone did not read as a clearly separated block. Added
+`box-shadow: var(--shadow-sm)` — the exact same token already used by `.hero`, the
+Statistikleiste (`.summary`), and `.stickyNav` for the identical purpose (confirmed by reading
+`ProjectMemberStickyNav.module.css`) — no new value. Confirmed no card-in-card regression: neither
+`ProjectMemberNoteEntry.module.css` nor the media-tile styling was touched, so timeline
+entries/media tiles keep their own unchanged nested-card look inside the now-more-defined outer
+section.
+
+### 4) Role-color timeline lockdown — verified untouched
+
+Re-ran the live-UAT script after all changes: `roleRepeatsInNotes: 0` (mobile and desktop),
+`noteAccentColorSamples` all `{"colorKey":"#7b3c4e","borderInlineStartColor":"rgb(123, 60, 78)"}`
+on every visible entry, both viewports. `ProjectMemberNoteEntry.tsx`'s `data-color-key` attribute
+and the `var(--role-accent)` CSS seam were not modified — only a new, independent `data-compact`
+attribute was added (see point 5) with no interaction with the color seam.
+
+### 5) Short-note compactness: measured first, then fixed, scoped to short content only
+
+Measured (not assumed) a real live example via `getComputedStyle`/`getBoundingClientRect` inside
+the running container, against member "Type" (`public_slug = 'type'`, `member_id = 5`),
+`release_version_notes.id = 23` (title "test", body_text "test 3" — confirmed via direct
+Postgres query, the only such short outlier among this member's 12 notes; the other 11 range
+145–189 characters). Findings: no hidden `min-height` exists anywhere in the chain (`.entry`,
+`.content`, `.notesGrid`); the chevron (30×30px, `align-self: center`) does not force extra row
+height since the content column (78.08px) is taller; the row's total 108.08px height is exactly
+14px+14px padding + 2px border + 78.08px of real content (a 19.69px meta line + 4px margin + 24px
+title + 4px margin + 26.39px body) — the existing 14px/4px rhythm is appropriate for this member's
+other 11 (145–189 char) notes; it only reads as disproportionate on the one 10-character outlier.
+
+Fix, scoped to content length rather than a global padding cut: `ProjectMemberNoteEntry.tsx`
+computes `isCompact` (`title.length + plainText.length <= 60`) and sets `data-compact="true"` on
+the entry when true. `ProjectMemberNoteEntry.module.css` adds
+`.entry[data-compact='true'] { padding-block: 10px }` and
+`.entry[data-compact='true'] .meta, .entry[data-compact='true'] .title { margin-bottom: 2px }` —
+no rule outside the `[data-compact='true']` selector changed, so all 11 longer notes for this
+member are pixel-identical to before (confirmed via `git diff` showing only additive new rules,
+no edits to the existing unconditional `.entry`/`.meta`/`.title` rules).
+
+Structure (dot, meta-line, title, text, chevron) is unchanged — `isCompact` only toggles spacing,
+never removes or reorders an element, per the P157-13/point-4 lockdown.
+
+### Full frontend regression suite (re-run after all five corrections, this round)
+
+- `docker compose exec -T team4sv30-frontend sh -c "cd /app && npx tsc --noEmit -p tsconfig.json"`
+  — clean, zero errors, run after every individual commit in this round.
+- `docker compose exec -T team4sv30-frontend sh -c "cd /app && npx vitest run"` — 301 passed | 1
+  skipped (302 files), 2324 tests passed, 3 todo — identical counts to the pre-round baseline,
+  zero regressions.
+- `docker compose exec -T team4sv30-frontend sh -c "cd /app && npm run lint"` — same 13
+  pre-existing errors as before this round, all in files this round never touched; zero lint
+  errors/warnings in any file this round touched.
+- Backend suite not re-run: no backend file was touched by any of the five corrections.
+
+### New Live-UAT screenshots (390px mobile, 1440px desktop)
+
+Captured via `SHOT_LABEL=polish2-after node scripts/shot-projectmember.mjs` after a fresh
+`docker restart team4sv30-frontend`, against `127.0.0.1:3300` (never `:3000` directly). Measured
+`docHeight`: mobile 2992px (baseline for this round: 2990px — effectively unchanged, +2px, from
+the new intentional 14px mobile stat-grid row-gap roughly offsetting removed border/padding
+elsewhere); desktop 3053px (baseline for this round: 3065px — **-12px**, consistent with point 5's
+compact-note padding reduction landing on a visible note in the desktop's fully-expanded 12-note
+list). `horizontalOverflow: false` on both viewports, `consoleErrors: []` on both viewports,
+`releasesEmptyStateText`/`mediaAllShownTextPresent` unchanged from the prior round.
+
+### Checkpoint status: still OPEN
+
+This second polish round does not constitute human sign-off. Task 4 of Plan 157-06 remains an open
+`checkpoint:human-verify gate="blocking"` — the actual Auftraggeber must still review the new
+screenshots and confirm or reject. `STATE.md`/`ROADMAP.md` are intentionally left untouched by this
+round (explicitly forbidden by the operator for this round) and continue to show Phase 157 as
+outstanding.
+
 </summary>
