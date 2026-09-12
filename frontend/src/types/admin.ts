@@ -941,6 +941,36 @@ export interface AdminSegmentSuggestionsResponse {
   data: AdminThemeSegment[]
 }
 
+/**
+ * Ein Kandidat der Segment-Contributor-Auswahl (Phase 156, Plan 156-12/156-13/156-14,
+ * GAP-01): jede Person, die aktuell effektiver Beitragender der Origin-Release-Version
+ * des Segments ist (ungefiltert nach Rollen-Relevanz -- auch ein reiner Encoder ist
+ * referenzierbar), mit `selected` je nach aktuellem `theme_segment_contributors`-Eintrag.
+ * Der Admin waehlt NUR Personen, niemals deren Rolle -- die kommt live aus dem
+ * Origin-Release (156-UAT.md Auftragspunkt 6/7/20).
+ */
+export interface AdminThemeSegmentContributorCandidate {
+  member_id: number
+  name: string
+  avatar_url: string | null
+  role_label: string
+  role_codes: string[]
+  member_slug: string | null
+  selected: boolean
+}
+
+/** API-Response für GET .../segments/:segmentId/contributors. */
+export interface AdminThemeSegmentContributorCandidatesResponse {
+  data: AdminThemeSegmentContributorCandidate[]
+  origin_release_version_id: number | null
+}
+
+/** API-Response für PUT .../segments/:segmentId/contributors. */
+export interface AdminThemeSegmentContributorsSetResponse {
+  data: AdminThemeSegment
+  contributors: AdminThemeSegmentContributorCandidate[]
+}
+
 /** Request zum Anlegen eines neuen Segments. */
 export interface AdminThemeSegmentCreateRequest {
   theme_id: number
