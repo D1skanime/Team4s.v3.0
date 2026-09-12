@@ -4,14 +4,14 @@ milestone: v1.4
 milestone_name: Coverage
 status: executing
 stopped_at: 156-10-PLAN.md complete (automatable phase-closing scope); Phase 156 has ONE explicit open item (156-11 Task 2 live-UAT), see deferred-items.md -- not fully accepted
-last_updated: "2026-09-11T22:44:50.586Z"
-last_activity: 2026-09-11
+last_updated: "2026-09-12T07:58:37.959Z"
+last_activity: 2026-09-12
 progress:
   total_phases: 21
-  completed_phases: 21
-  total_plans: 202
+  completed_phases: 20
+  total_plans: 206
   completed_plans: 202
-  percent: 100
+  percent: 95
 ---
 
 # Project State
@@ -36,7 +36,7 @@ See: .planning/PROJECT.md (updated 2026-08-13)
 Phase: 156 (segment-domain-konsistenz-und-oeffentliche-release-projektion) — ALLE 11 PLAENE
 AUSGEFUEHRT; automatisiert/funktional abgeschlossen, ABER NICHT vollstaendig abgenommen
 Plan: 11 von 11 (alle Plaene 156-01 bis 156-11 haben eine SUMMARY.md)
-Status: executing -- automatisierter Umfang abgeschlossen, ein Punkt offen (siehe unten)
+Status: Ready to execute
 
 Ausfuehrlich: Phase 156 ist funktional und automatisiert abgeschlossen (voller
 Backend-/Frontend-Testlauf gruen, Migration 0161 im Rundlauf erneut verifiziert,
@@ -402,7 +402,7 @@ timing flakiness, not a Phase 149 regression, and not yet root-caused.
 
 v1.4 remains complete; Phase 149 was appended additively (same pattern as 143-148), no new
 milestone was created.
-Last activity: 2026-09-11
+Last activity: 2026-09-12
 
 ## Accumulated Context
 
