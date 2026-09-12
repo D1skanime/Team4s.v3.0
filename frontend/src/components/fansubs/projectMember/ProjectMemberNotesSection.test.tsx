@@ -3,6 +3,7 @@
 import { cleanup, fireEvent, render, screen, waitFor } from '@testing-library/react'
 import { afterEach, describe, expect, it, vi } from 'vitest'
 
+import { boundedColorKey } from '@/lib/roleCatalog'
 import type { ProjectMemberNote } from '@/types/projectMember'
 import type { CursorPage } from '@/types/releaseDetail'
 
@@ -11,7 +12,7 @@ vi.mock('@/lib/api', () => ({
   getProjectMemberNotes: (...args: unknown[]) => getProjectMemberNotes(...args),
 }))
 
-import { ProjectMemberNoteCard } from './ProjectMemberNoteCard'
+import { ProjectMemberNoteEntry } from './ProjectMemberNoteEntry'
 import { ProjectMemberNotesSection } from './ProjectMemberNotesSection'
 
 afterEach(() => {
@@ -40,31 +41,102 @@ const page = (
   more: boolean,
 ): CursorPage<ProjectMemberNote> => ({ items, next_cursor: next, has_more: more })
 
-describe('ProjectMemberNoteCard', () => {
-  it('shows the role as heading, the episode line and the release link', () => {
+describe('ProjectMemberNoteEntry', () => {
+  it('hides the role name but keeps the release link when hasMultipleRoles is false (single-role member)', () => {
     render(
-      <ProjectMemberNoteCard
+      <ProjectMemberNoteEntry
         note={note()}
         projectPath="/fansubs/c-subs/fansubprojekt/vipers-creed"
+        hasMultipleRoles={false}
       />,
     )
-    expect(screen.getByText('Qualitätsprüfung')).not.toBeNull()
-    expect(screen.getByText('Notiz zu Folge 08')).not.toBeNull()
+    expect(screen.queryByText('Qualitätsprüfung')).toBeNull()
+    expect(screen.queryByText('Notiz zu Folge 08')).toBeNull()
     const link = screen.getByRole('link')
     expect(link.getAttribute('href')).toBe(
       '/fansubs/c-subs/fansubprojekt/vipers-creed/releases/41',
     )
+    // P157-13: role COLOR remains mandatory even though the role NAME is hidden.
+    expect(link.getAttribute('data-color-key')).toBe(boundedColorKey('#6b7f2a'))
+  })
+
+  it('shows the role name chip when hasMultipleRoles is true, with the identical role color as the single-role case', () => {
+    render(
+      <ProjectMemberNoteEntry
+        note={note()}
+        projectPath="/fansubs/c-subs/fansubprojekt/vipers-creed"
+        hasMultipleRoles
+      />,
+    )
+    expect(screen.getByText('Qualitätsprüfung')).not.toBeNull()
+    const link = screen.getByRole('link')
+    expect(link.getAttribute('data-color-key')).toBe(boundedColorKey('#6b7f2a'))
   })
 
   it('toggles Mehr/Weniger anzeigen for long text', () => {
-    render(<ProjectMemberNoteCard note={note({ body_text: 'x'.repeat(300) })} projectPath="/p" />)
+    render(
+      <ProjectMemberNoteEntry
+        note={note({ body_text: 'x'.repeat(300) })}
+        projectPath="/p"
+        hasMultipleRoles={false}
+      />,
+    )
     fireEvent.click(screen.getByText('Mehr anzeigen'))
     expect(screen.getByText('Weniger anzeigen')).not.toBeNull()
   })
 
   it('renders the optional title when present', () => {
-    render(<ProjectMemberNoteCard note={note({ title: 'Ending-Timing' })} projectPath="/p" />)
+    render(
+      <ProjectMemberNoteEntry
+        note={note({ title: 'Ending-Timing' })}
+        projectPath="/p"
+        hasMultipleRoles={false}
+      />,
+    )
     expect(screen.getByText('Ending-Timing')).not.toBeNull()
+  })
+
+  // Nachtrag 2 (2026-09-12, 157-CONTEXT.md "Pflicht-Acceptance-Test"): a mixed-role list must
+  // never let one entry's colour leak from page/summary context onto another entry — each row's
+  // data-color-key must trace back to ITS OWN note.role_color_key.
+  it('P157-13 Nachtrag 2: a mixed-role list keeps each entry\'s own role color distinct and shows both role-name chips, without reintroducing a large role header', () => {
+    const typesetterNote = note({
+      id: 101,
+      role_label: 'Typesetting',
+      role_code: 'typesetter',
+      role_color_key: '#7b3c4e',
+      release_version_id: 41,
+    })
+    const translatorNote = note({
+      id: 102,
+      role_label: 'Übersetzung',
+      role_code: 'translator',
+      role_color_key: '#27664f',
+      release_version_id: 42,
+    })
+
+    render(
+      <div>
+        <ProjectMemberNoteEntry note={typesetterNote} projectPath="/p" hasMultipleRoles />
+        <ProjectMemberNoteEntry note={translatorNote} projectPath="/p" hasMultipleRoles />
+      </div>,
+    )
+
+    const links = screen.getAllByRole('link')
+    expect(links).toHaveLength(2)
+    // Distinct colors, each traced to its OWN note's role_color_key — not a shared/page value.
+    expect(links[0].getAttribute('data-color-key')).toBe(boundedColorKey('#7b3c4e'))
+    expect(links[1].getAttribute('data-color-key')).toBe(boundedColorKey('#27664f'))
+    expect(links[0].getAttribute('data-color-key')).not.toBe(links[1].getAttribute('data-color-key'))
+
+    // Both entries show their small role-name chip, because hasMultipleRoles is true.
+    expect(screen.getByText('Typesetting')).not.toBeNull()
+    expect(screen.getByText('Übersetzung')).not.toBeNull()
+
+    // No large, fully-colored role header appears — the role name is never rendered as a heading.
+    expect(screen.queryByRole('heading', { name: 'Typesetting' })).toBeNull()
+    expect(screen.queryByRole('heading', { name: 'Übersetzung' })).toBeNull()
+    expect(screen.queryByText('Notiz zu Folge')).toBeNull()
   })
 })
 
@@ -84,12 +156,14 @@ describe('ProjectMemberNotesSection', () => {
         memberSlug="csubs-leader"
         projectPath="/p"
         count={24}
+        hasMultipleRoles={false}
       />,
     )
 
-    await waitFor(() => expect(screen.getAllByRole('article')).toHaveLength(15))
-    fireEvent.click(screen.getByText('Weitere Beiträge laden'))
+    await waitFor(() => expect(screen.getAllByRole('link')).toHaveLength(15))
+    // 24 total, 15 shown -> next batch is min(PAGE_LIMIT=10, 24-15=9) = 9.
+    fireEvent.click(screen.getByText('Weitere 9 Beiträge anzeigen'))
     // 15 + 10 - 1 Duplikat (id 15) = 24
-    await waitFor(() => expect(screen.getAllByRole('article')).toHaveLength(24))
+    await waitFor(() => expect(screen.getAllByRole('link')).toHaveLength(24))
   })
 })
