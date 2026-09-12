@@ -153,3 +153,63 @@ fail — as a dated note in this file or in a `156-11-UAT.md`, mirroring the pre
 **Conclusion:** No GAP-01 change (Plans 156-12/13/14) silently regressed any already-shipped
 Phase 156 behavior. All environment-conditional exceptions are the same pre-existing,
 phase-unrelated set documented since 156-05 through 156-13 — no new name added to either bucket.
+
+## 156-15 Task 2 / GAP-02: bundled live-UAT checkpoint (Origin + Segment-Contributors) — still open (2026-09-12)
+
+**Found during:** Plan 156-15 Task 2 (`checkpoint:human-verify`, the bundled Origin+
+Segment-Contributors live-UAT specified in `156-UAT.md`'s GAP-02 section), 2026-09-12.
+
+**Symptom:** Task 2 requires logging into the admin UI as a platform admin via the SSH-tunnel
+path (`http://127.0.0.1:3300`, per `CLAUDE.md`) and walking through the 14-item checklist below
+on a real shared theme segment (`theme_segment_id 3`, 3 assignments, ready-made in the dev
+dataset) in a real browser. This execution environment has no platform-admin Keycloak session
+and no browser-automation tool capable of driving an authenticated interactive session — the
+`KEYCLOAK_ADMIN`/`KEYCLOAK_*` variables in `.env` configure the Keycloak *server/realm*, not a
+usable platform-admin *Team4s user* browser session, and are not credentials this executor can
+or should use to open one. This is the exact same environment constraint already documented for
+`156-11: Task 2` above, now recurring for the bundled GAP-02 pass.
+
+**Why not fixed here:** Per this plan's own explicit instruction (mirrored from the orchestrator
+directives and the 156-11 precedent): do NOT mark this checkpoint as passed, and do NOT simulate
+it via API calls and call that "UAT" — UAT specifically means a human/browser-driven check. No
+auto-fix applies (Rules 1–4 do not cover a structurally-unavailable human/browser gate). The
+automated regression evidence for everything the checkpoint would exercise already exists (Task
+1 above, plus 156-12/13/14's own automated test suites) — only the live-browser/UX judgment pass
+itself is outstanding.
+
+**Concrete test recipe for the operator (all 14 items, run as ONE bundled pass):**
+
+1. Open `http://127.0.0.1:3300` (SSH tunnel, per `CLAUDE.md`) and log in as a platform admin.
+2. Navigate to an anime with a shared theme segment (assigned to ≥2 release versions) → its
+   episode-versions edit page → open the segment editor. `theme_segment_id 3` is a ready-made
+   test dataset with 3 assignments in the dev database.
+
+   **Origin (5 items, from 156-11's original checklist):**
+   1. Segment-Origin `Select` field appears (only for shared segments with ≥1 assigned episode).
+   2. Only assigned releases ("Folge N") are selectable.
+   3. Changing the selection saves immediately, without the main "Speichern" button.
+   4. Reopening the segment editor shows the persisted Origin.
+   5. The main segment Save workflow still works normally.
+
+   **Segment-Contributors (9 items, new for GAP-01):**
+   6. Origin contributors are displayed in a "Mitwirkende am Segment" section, each with their
+      current role.
+   7. Multiple people can be selected.
+   8. With 3 quality-checkers on the Origin, exactly one can be selected on its own.
+   9. Saving and reopening the editor retains the selection.
+   10. The change appears on the public release page.
+   11. Non-selected quality-checkers do NOT appear on the public page.
+   12. An editor can be selected and appears correctly.
+   13. An encoder never appears as a segment credit, even if selected.
+   14. Changing the Origin never leaves an inconsistent contributor state (a contributor invalid
+       for the new Origin is silently and correctly removed, not shown as broken/leftover).
+
+**Suggested follow-up:** The repo owner (Auftraggeber) performs this live-UAT pass directly
+against `http://127.0.0.1:3300` and records the outcome — pass or fail, item by item — as a
+dated note in this file (or a `156-15-UAT.md`), mirroring the precedent set by the `156-11` entry
+above. Once confirmed, `156-11-SUMMARY.md`'s and this file's `156-11` entry should also be
+updated to reflect the combined pass (per `156-UAT.md` GAP-02's own instruction that both
+checklists close together), and `requirements.mark-complete P156-18` should be run.
+
+**Status:** OPEN — neither passed nor failed. Phase 156 must NOT be declared fully accepted while
+this item remains open.
