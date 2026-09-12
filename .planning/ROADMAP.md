@@ -1592,7 +1592,7 @@ ausdruecklich **kein** visuelles Redesign und kopiert keine Credits in Segmentta
 
 **Depends on:** Phase 155
 
-**Plans:** 11/11 plans executed (each has a SUMMARY.md); 156-11 Task 2's live-UAT checkpoint remains explicitly open, see deferred-items.md -- phase is automatisiert/funktional abgeschlossen, NOT fully accepted
+**Plans:** 11 plans complete across 5 waves plus 4 post-hoc UAT gap-closure plans; 156-11 Task 2's live-UAT checkpoint (Origin) remains explicitly open and is bundled into 156-15's GAP-02 checkpoint, see deferred-items.md -- phase is automatisiert/funktional abgeschlossen, NOT fully accepted until 156-15 closes
 
 Plans:
 
@@ -1626,6 +1626,13 @@ Plans:
 **Wave 5** *(blocked on Wave 4 completion)*
 
 - [x] 156-10-PLAN.md — Vollstaendige Testmatrix, Migrationsverifikation, Vorher/Nachher-Auditbericht
+
+**Post-hoc UAT gap-closure** (156-UAT.md, 2026-09-12, GAP-01/GAP-02)
+
+- [ ] 156-12-PLAN.md — GAP-01 Segment-Contributors: Datenmodell (Migration 0162), Rollenkatalog-Erweiterung (editor/quality_checker), validierte Reconcile-Schreibpfad + atomarer Origin-Wechsel-Cleanup
+- [ ] 156-13-PLAN.md — GAP-01 oeffentliche Projektion (explizite Auswahl als Schnittmenge, Query-Budget erweitert, Regressionsmatrix A-J) + Admin-GET/PUT-Endpunkte
+- [ ] 156-14-PLAN.md — GAP-01 Admin-UI: Dateigroessen-Extraktion (SegmentEditPanel.tsx/SegmenteTab.tsx) + „Mitwirkende am Segment"-Mehrfachauswahl
+- [ ] 156-15-PLAN.md — Vollstaendiger Phase-156-Regressionslauf + gebuendelter Live-UAT-Checkpoint (GAP-02: 5 Origin- + 9 Segment-Contributor-Pruefpunkte)
 
 **Plan-time read first**: `.planning/phases/156-segment-domain-konsistenz-und-oeffentliche-release-projektion/156-USER-REQUEST.md`,
 `156-CONTEXT.md`, `156-RESEARCH.md`, `156-PATTERNS.md`,
