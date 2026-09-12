@@ -17,6 +17,7 @@ import { SegmentEditPanel } from './SegmentEditPanel'
 import type { FormState } from './SegmentEditPanel'
 import { SegmentsListSection } from './SegmentsListSection'
 import { useSegmentAssetHandlers } from './useSegmentAssetHandlers'
+import { useSegmentContributors } from './useSegmentContributors'
 import { getAnimeSegmentSuggestions, setAnimeSegmentOrigin, uploadSegmentAsset } from '@/lib/api'
 import { useAuthSession } from '@/lib/useAuthSession'
 import type {
@@ -76,6 +77,13 @@ export function SegmenteTab({ animeId, groupId, version, episodeNumber, duration
     useSegmentOverrideHandlers({ editingSegment, releaseVariantId: releaseVariantId ?? null, setSegmentOverride, removeSegmentOverride })
   const [isSettingOrigin, setIsSettingOrigin] = useState(false)
   const [originError, setOriginError] = useState<string | null>(null)
+  const {
+    candidates: contributorCandidates,
+    isLoading: isLoadingContributors,
+    isSaving: isSavingContributors,
+    error: contributorsError,
+    toggleMember: toggleContributorMember,
+  } = useSegmentContributors({ animeId, editingSegment })
 
   const {
     isUploading,
@@ -223,7 +231,7 @@ export function SegmenteTab({ animeId, groupId, version, episodeNumber, duration
 
       const resolvedThemeID = await ensureThemeFromSelection(formState.themeKind, formState.themeTitle)
       if (!resolvedThemeID) {
-        setFormError('Bitte einen gueltigen Typ auswählen.')
+        setFormError('Bitte einen gültigen Typ auswählen.')
         return
       }
 
@@ -380,6 +388,11 @@ export function SegmenteTab({ animeId, groupId, version, episodeNumber, duration
           onSetOrigin={(releaseVersionID) => void handleSetOrigin(releaseVersionID)}
           isSettingOrigin={isSettingOrigin}
           originError={originError}
+          contributorCandidates={contributorCandidates}
+          isLoadingContributors={isLoadingContributors}
+          isSavingContributors={isSavingContributors}
+          contributorsError={contributorsError}
+          onToggleContributor={(memberId, next) => void toggleContributorMember(memberId, next)}
           onClose={closePanel}
           onFormChange={(patch) => {
             if (patch.sourceType && patch.sourceType !== 'release_asset') {

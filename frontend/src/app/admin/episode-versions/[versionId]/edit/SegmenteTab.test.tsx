@@ -35,6 +35,10 @@ import {
   upsertAnimeSegmentEpisodeOverride,
 } from '@/lib/api'
 import { useAuthSession } from '@/lib/useAuthSession'
+import {
+  getThemeSegmentContributorCandidates,
+  setThemeSegmentContributors,
+} from '@/lib/api/segment-contributors'
 import { SegmenteTab } from './SegmenteTab'
 
 vi.mock('@/lib/useAuthSession', () => ({
@@ -58,6 +62,12 @@ vi.mock('@/lib/api', () => ({
   unassignAnimeSegment: vi.fn(),
   upsertAnimeSegmentEpisodeOverride: vi.fn(),
   deleteAnimeSegmentEpisodeOverride: vi.fn(),
+  setAnimeSegmentOrigin: vi.fn(),
+}))
+
+vi.mock('@/lib/api/segment-contributors', () => ({
+  getThemeSegmentContributorCandidates: vi.fn(),
+  setThemeSegmentContributors: vi.fn(),
 }))
 
 const mockedUseAuthSession = vi.mocked(useAuthSession)
@@ -71,6 +81,8 @@ const mockedUpdateAnimeSegment = vi.mocked(updateAnimeSegment)
 const mockedAssignAnimeSegment = vi.mocked(assignAnimeSegment)
 const mockedUnassignAnimeSegment = vi.mocked(unassignAnimeSegment)
 const mockedUpsertAnimeSegmentEpisodeOverride = vi.mocked(upsertAnimeSegmentEpisodeOverride)
+const mockedGetThemeSegmentContributorCandidates = vi.mocked(getThemeSegmentContributorCandidates)
+const mockedSetThemeSegmentContributors = vi.mocked(setThemeSegmentContributors)
 
 beforeEach(() => {
   vi.clearAllMocks()
@@ -85,6 +97,7 @@ beforeEach(() => {
   mockedGetAnimeSegmentSuggestions.mockResolvedValue({ data: [] })
   mockedGetAdminAnimeThemes.mockResolvedValue({ data: [] })
   mockedGetAdminThemeTypes.mockResolvedValue({ data: [] })
+  mockedGetThemeSegmentContributorCandidates.mockResolvedValue({ data: [], origin_release_version_id: null })
   mockedCreateAdminAnimeTheme.mockResolvedValue({
     data: {
       id: 99,
@@ -799,6 +812,11 @@ describe('SegmentEditPanel validation', () => {
         onSetOrigin={vi.fn()}
         isSettingOrigin={false}
         originError={null}
+        contributorCandidates={[]}
+        isLoadingContributors={false}
+        isSavingContributors={false}
+        contributorsError={null}
+        onToggleContributor={vi.fn()}
         onClose={vi.fn()}
         onFormChange={vi.fn()}
         onPendingUploadFileChange={vi.fn()}
@@ -850,6 +868,11 @@ describe('SegmentEditPanel validation', () => {
         onSetOrigin={vi.fn()}
         isSettingOrigin={false}
         originError={null}
+        contributorCandidates={[]}
+        isLoadingContributors={false}
+        isSavingContributors={false}
+        contributorsError={null}
+        onToggleContributor={vi.fn()}
         onClose={vi.fn()}
         onFormChange={vi.fn()}
         onPendingUploadFileChange={vi.fn()}
@@ -862,6 +885,155 @@ describe('SegmentEditPanel validation', () => {
 
     expect(screen.getByText('Segment-Zeitbereich darf maximal 4 Minuten lang sein.')).toBeTruthy()
     expect(screen.getByRole('button', { name: 'Speichern' })).toHaveProperty('disabled', true)
+  })
+})
+
+// ---------------------------------------------------------------------------
+// SegmentContributorsField / useSegmentContributors (Phase 156, Plan 156-14, GAP-01):
+// "Mitwirkende am Segment" -- Mehrfachauswahl der Origin-Contributors eines Segments.
+// ---------------------------------------------------------------------------
+describe('SegmentContributorsField (Phase 156, Plan 156-14, GAP-01)', () => {
+  function mockSharedSegmentWithOrigin(overrides: Partial<AdminThemeSegment> = {}) {
+    mockedGetAnimeSegments.mockResolvedValue({
+      data: [
+        makeSegment({
+          id: 81,
+          theme_title: 'Karaoke OP',
+          start_episode: 1,
+          end_episode: 12,
+          start_time: '00:00:10',
+          end_time: '00:01:40',
+          is_shared: true,
+          origin_release_version_id: 481,
+          assigned_release_version_ids: [481, 482],
+          assigned_episodes: [{ release_version_id: 481, episode_number: '3', has_override: false }],
+          ...overrides,
+        }),
+      ],
+    })
+  }
+
+  it('rendert keinen Mitwirkenden-Bereich und ruft die API nicht auf, wenn das Segment keine Origin hat', async () => {
+    mockSharedSegmentWithOrigin({ origin_release_version_id: null })
+
+    render(<SegmenteTab animeId={1} groupId={2} version="v1" episodeNumber={3} releaseVariantId={481} />)
+    const table = await screen.findByRole('table')
+    fireEvent.click(within(table).getByTitle('Bearbeiten'))
+
+    await screen.findByText('Segment bearbeiten')
+    expect(screen.queryByText('Mitwirkende am Segment')).toBeNull()
+    expect(mockedGetThemeSegmentContributorCandidates).not.toHaveBeenCalled()
+  })
+
+  it('zeigt eine EmptyState, wenn die Origin aktuell keine Kandidaten liefert', async () => {
+    mockSharedSegmentWithOrigin()
+    mockedGetThemeSegmentContributorCandidates.mockResolvedValue({ data: [], origin_release_version_id: 481 })
+
+    render(<SegmenteTab animeId={1} groupId={2} version="v1" episodeNumber={3} releaseVariantId={481} />)
+    const table = await screen.findByRole('table')
+    fireEvent.click(within(table).getByTitle('Bearbeiten'))
+
+    await screen.findByText('Mitwirkende am Segment')
+    expect(await screen.findByText(/Keine Mitwirkenden der Origin gefunden/)).toBeTruthy()
+    expect(mockedGetThemeSegmentContributorCandidates).toHaveBeenCalledWith(1, 81)
+  })
+
+  it('zeigt je Kandidat einen Switch mit aktuellem Auswahlstatus und speichert eine Umschaltung ueber die volle neu berechnete Auswahl', async () => {
+    mockSharedSegmentWithOrigin()
+    mockedGetThemeSegmentContributorCandidates.mockResolvedValue({
+      data: [
+        {
+          member_id: 7,
+          name: 'Karaoke Karl',
+          avatar_url: null,
+          role_label: 'Quality Checker',
+          role_codes: ['quality_checker'],
+          member_slug: 'karaoke-karl',
+          selected: false,
+        },
+      ],
+      origin_release_version_id: 481,
+    })
+    mockedSetThemeSegmentContributors.mockResolvedValue({
+      data: makeSegment({ id: 81, is_shared: true, origin_release_version_id: 481 }),
+      contributors: [
+        {
+          member_id: 7,
+          name: 'Karaoke Karl',
+          avatar_url: null,
+          role_label: 'Quality Checker',
+          role_codes: ['quality_checker'],
+          member_slug: 'karaoke-karl',
+          selected: true,
+        },
+      ],
+    })
+
+    render(<SegmenteTab animeId={1} groupId={2} version="v1" episodeNumber={3} releaseVariantId={481} />)
+    const table = await screen.findByRole('table')
+    fireEvent.click(within(table).getByTitle('Bearbeiten'))
+
+    const toggle = await screen.findByRole('switch', { name: /Karaoke Karl/i })
+    expect(toggle.getAttribute('aria-checked')).toBe('false')
+
+    fireEvent.click(toggle)
+
+    await waitFor(() => {
+      expect(mockedSetThemeSegmentContributors).toHaveBeenCalledWith(1, 81, [7])
+    })
+    await waitFor(() => {
+      expect(screen.getByRole('switch', { name: /Karaoke Karl/i }).getAttribute('aria-checked')).toBe('true')
+    })
+  })
+
+  it('erlaubt das Abwaehlen auf null Mitwirkende als eigenstaendigen, speicherbaren Zustand (156-UAT.md Nachtrag: keine Auswahl = keine Credits)', async () => {
+    mockSharedSegmentWithOrigin()
+    mockedGetThemeSegmentContributorCandidates.mockResolvedValue({
+      data: [
+        {
+          member_id: 7,
+          name: 'Karaoke Karl',
+          avatar_url: null,
+          role_label: 'Quality Checker',
+          role_codes: ['quality_checker'],
+          member_slug: 'karaoke-karl',
+          selected: true,
+        },
+      ],
+      origin_release_version_id: 481,
+    })
+    mockedSetThemeSegmentContributors.mockResolvedValue({
+      data: makeSegment({ id: 81, is_shared: true, origin_release_version_id: 481 }),
+      contributors: [
+        {
+          member_id: 7,
+          name: 'Karaoke Karl',
+          avatar_url: null,
+          role_label: 'Quality Checker',
+          role_codes: ['quality_checker'],
+          member_slug: 'karaoke-karl',
+          selected: false,
+        },
+      ],
+    })
+
+    render(<SegmenteTab animeId={1} groupId={2} version="v1" episodeNumber={3} releaseVariantId={481} />)
+    const table = await screen.findByRole('table')
+    fireEvent.click(within(table).getByTitle('Bearbeiten'))
+
+    const toggle = await screen.findByRole('switch', { name: /Karaoke Karl/i })
+    expect(toggle.getAttribute('aria-checked')).toBe('true')
+
+    fireEvent.click(toggle)
+
+    // Die abgeschickte Auswahl ist ein leeres Array -- nicht "unveraendert lassen" --
+    // und wird als eigener, expliziter PUT-Aufruf gesendet.
+    await waitFor(() => {
+      expect(mockedSetThemeSegmentContributors).toHaveBeenCalledWith(1, 81, [])
+    })
+    await waitFor(() => {
+      expect(screen.getByRole('switch', { name: /Karaoke Karl/i }).getAttribute('aria-checked')).toBe('false')
+    })
   })
 })
 

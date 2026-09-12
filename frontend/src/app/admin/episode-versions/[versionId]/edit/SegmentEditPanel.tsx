@@ -4,7 +4,12 @@ import { useEffect, useState } from 'react'
 import { X } from 'lucide-react'
 
 import { FormField, Select } from '@/components/ui'
-import type { AdminThemeSegment, AdminSegmentSourceType, AdminSegmentLibraryCandidate } from '@/types/admin'
+import type {
+  AdminThemeSegment,
+  AdminSegmentSourceType,
+  AdminSegmentLibraryCandidate,
+  AdminThemeSegmentContributorCandidate,
+} from '@/types/admin'
 import type { GenericSegmentThemeOption } from './useReleaseSegments'
 import {
   formatTimeInput,
@@ -17,6 +22,7 @@ import { SegmentBasicFieldsSection } from './SegmentBasicFieldsSection'
 import { SegmentOverrideField } from './SegmentOverrideField'
 import { SegmentPlaybackPreviewSection } from './SegmentPlaybackPreviewSection'
 import { SegmentAssetSection } from './SegmentAssetSection'
+import { SegmentContributorsField } from './SegmentContributorsField'
 import styles from './SegmenteTab.module.css'
 
 export interface FormState {
@@ -55,6 +61,11 @@ interface SegmentEditPanelProps {
   onSetOrigin: (releaseVersionID: number) => void
   isSettingOrigin: boolean
   originError: string | null
+  contributorCandidates: AdminThemeSegmentContributorCandidate[]
+  isLoadingContributors: boolean
+  isSavingContributors: boolean
+  contributorsError: string | null
+  onToggleContributor: (memberId: number, next: boolean) => void
   onClose: () => void
   onFormChange: (patch: Partial<FormState>) => void
   onPendingUploadFileChange: (file: File | null) => void
@@ -88,6 +99,11 @@ export function SegmentEditPanel({
   onSetOrigin,
   isSettingOrigin,
   originError,
+  contributorCandidates,
+  isLoadingContributors,
+  isSavingContributors,
+  contributorsError,
+  onToggleContributor,
   onClose,
   onFormChange,
   onPendingUploadFileChange,
@@ -307,6 +323,17 @@ export function SegmentEditPanel({
             </p>
             {originError ? <div className={styles.assetError}>{originError}</div> : null}
           </div>
+        ) : null}
+
+        {isSharedSegment && editingSegment?.origin_release_version_id != null ? (
+          <SegmentContributorsField
+            candidates={contributorCandidates}
+            isLoading={isLoadingContributors}
+            isSaving={isSavingContributors}
+            error={contributorsError}
+            hasOrigin={editingSegment?.origin_release_version_id != null}
+            onToggle={onToggleContributor}
+          />
         ) : null}
 
         <SegmentPlaybackPreviewSection
