@@ -58,14 +58,25 @@
   color: var(--text-muted);
 }
 
-/* Mobile darf zweizeilig umbrechen, fällt aber NICHT auf vier große Boxen zurück. */
+/* Mobile darf zweizeilig umbrechen (2x2), fällt aber NICHT auf vier große Boxen zurück.
+   2. Nachbesserungsrunde, Punkt 2: die vorherige Border/Padding-Kombi (Basisregeln oben setzen
+   padding-inline-start:0 nur fuer :first-child und border-inline-start nur fuer :not(:first-child))
+   liess Spalte 1 in Zeile 1 (Eintrag 1, kein Padding) und Spalte 1 in Zeile 2 (Eintrag 3, 16px
+   Padding trotz entfernter Border) UNTERSCHIEDLICH einruecken -- Icons/Zahlen der linken Spalte
+   waren dadurch nicht vertikal ausgerichtet und die vier Eintraege wirkten wie zwei separate
+   Bloecke statt einem zusammenhaengenden Raster. Fix: alle vier Eintraege bekommen auf Mobile
+   identische Breite/Innenabstand/keinen Rand, der Abstand kommt ausschliesslich aus `gap` (bereits
+   vorhandener Flex-Ansatz, keine neue Trennlinien-Logik). */
 @media (max-width: 640px) {
-  .summaryEntry {
-    flex: 1 1 45%;
+  .summary {
+    gap: 14px 16px;
   }
 
-  .summaryEntry:nth-child(3) {
+  .summaryEntry,
+  .summaryEntry:first-child,
+  .summaryEntry:not(:first-child) {
+    flex: 1 1 calc(50% - 8px);
+    padding-inline: 0;
     border-inline-start: none;
-    padding-inline-start: 16px;
   }
 }
