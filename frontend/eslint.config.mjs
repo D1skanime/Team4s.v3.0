@@ -80,6 +80,12 @@ const LEGACY_NO_RESTRICTED_SYNTAX_FILES = [
   'src/app/admin/episode-versions/\\[versionId\\]/edit/ReleaseVersionMediaDetailPanel.tsx',
   'src/app/admin/episode-versions/\\[versionId\\]/edit/ReleaseVersionMediaSection.tsx',
   'src/app/admin/episode-versions/\\[versionId\\]/edit/ReleaseVersionNotesTab.test.tsx',
+  // 156-14: reine Code-Verschiebung aus dem bereits gelisteten SegmentEditPanel.tsx (Extraktion
+  // zur Einhaltung der 450-Zeilen-Grenze aus 156-UAT.md) -- keine neuen nativen Elemente, nur
+  // relokierte Altlast. Bewusste, dokumentierte Ergaenzung (156-14-SUMMARY.md), keine stille
+  // Editierung.
+  'src/app/admin/episode-versions/\\[versionId\\]/edit/SegmentAssetSection.tsx',
+  'src/app/admin/episode-versions/\\[versionId\\]/edit/SegmentBasicFieldsSection.tsx',
   'src/app/admin/episode-versions/\\[versionId\\]/edit/SegmentEditPanel.tsx',
   'src/app/admin/episodes/page.tsx',
   'src/app/admin/fansubs/\\[id\\]/edit/AnimeProjectNoteForm.tsx',

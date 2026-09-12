@@ -1,21 +1,22 @@
 'use client'
 
-import { useEffect, useRef, useState } from 'react'
-import { X, Upload, FileVideo, XCircle } from 'lucide-react'
+import { useEffect, useState } from 'react'
+import { X } from 'lucide-react'
 
-import { Switch, FormField, Input, Button, Select } from '@/components/ui'
+import { FormField, Select } from '@/components/ui'
 import type { AdminThemeSegment, AdminSegmentSourceType, AdminSegmentLibraryCandidate } from '@/types/admin'
 import type { GenericSegmentThemeOption } from './useReleaseSegments'
 import {
   formatTimeInput,
   parseFlexibleTimeInput,
   parsePositiveEpisodeInput,
-  resolveLibraryCandidateLabel,
-  resolveSegmentProvenance,
-  resolveSegmentProvenanceDetails,
   findAssignedEpisodeNumber,
   findAssignedEpisodeHasOverride,
 } from './SegmenteTab.helpers'
+import { SegmentBasicFieldsSection } from './SegmentBasicFieldsSection'
+import { SegmentOverrideField } from './SegmentOverrideField'
+import { SegmentPlaybackPreviewSection } from './SegmentPlaybackPreviewSection'
+import { SegmentAssetSection } from './SegmentAssetSection'
 import styles from './SegmenteTab.module.css'
 
 export interface FormState {
@@ -95,7 +96,6 @@ export function SegmentEditPanel({
   onAssetDelete,
   onAttachReuseCandidate,
 }: SegmentEditPanelProps) {
-  const fileInputRef = useRef<HTMLInputElement>(null)
   // PRO-FOLGE-Override (Quick-Task 260819-lm5, Runde 5 Korrektheits-Fix): NICHT das segmentweite
   // editingSegment.has_episode_override verwenden -- das ist bereits true, sobald IRGENDEINE
   // zugewiesene Folge einen Override hat, und wuerde faelschlich den Switch fuer JEDE Folge als
@@ -114,8 +114,6 @@ export function SegmentEditPanel({
     setOverrideStartTime(editingSegment?.start_time ?? '')
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [editingSegment?.id])
-  const provenance = editingSegment ? resolveSegmentProvenance(editingSegment) : null
-  const provenanceDetails = editingSegment ? resolveSegmentProvenanceDetails(editingSegment) : null
   const startEpisodeValue = formState.startEpisode.trim()
   const endEpisodeValue = formState.endEpisode.trim()
   const startEpisodeNumber = parsePositiveEpisodeInput(formState.startEpisode)
@@ -249,211 +247,42 @@ export function SegmentEditPanel({
 
         {formError ? <div className={styles.panelError}>{formError}</div> : null}
 
-        <div className={styles.panelField}>
-          <label htmlFor="segment-type">Typ</label>
-          <select
-            id="segment-type"
-            value={formState.themeKind}
-            onChange={(e) => onFormChange({ themeKind: e.target.value })}
-          >
-            <option value="">-- Typ auswählen --</option>
-            {genericThemeOptions.map((option) => (
-              <option key={option.key} value={option.key}>
-                {option.label}
-              </option>
-            ))}
-          </select>
-        </div>
+        <SegmentBasicFieldsSection
+          formState={formState}
+          onFormChange={onFormChange}
+          genericThemeOptions={genericThemeOptions}
+          isSharedSegment={isSharedSegment}
+          runtimeKnown={runtimeKnown}
+          runtimeFromPlayback={runtimeFromPlayback}
+          effectiveDuration={effectiveDuration}
+          isStartTimeError={isStartTimeError}
+          isEndTimeError={isEndTimeError}
+          formError={formError}
+          isMissingEpisodeRange={isMissingEpisodeRange}
+          hasInvalidEpisodeValue={hasInvalidEpisodeValue}
+          hasInvalidEpisodeRange={hasInvalidEpisodeRange}
+          isMissingTimeRange={isMissingTimeRange}
+          hasInvalidTimeInput={hasInvalidTimeInput}
+          exceedsDuration={exceedsDuration}
+          startSeconds={startSeconds}
+          endSeconds={endSeconds}
+          exceedsMaxSegmentWindow={exceedsMaxSegmentWindow}
+        />
 
-        <div className={styles.panelField}>
-          <label htmlFor="segment-name">Name (optional)</label>
-          <input
-            id="segment-name"
-            type="text"
-            placeholder="z. B. Naruto OP 1"
-            value={formState.themeTitle}
-            onChange={(e) => onFormChange({ themeTitle: e.target.value })}
-          />
-          <span className={styles.sourceHelpText}>
-            Gleicher Typ plus gleicher Name wird wiederverwendet. Ein neuer Name erzeugt bei Bedarf automatisch ein neues Theme.
-          </span>
-        </div>
-
-        <div className={styles.panelField}>
-          <label>Episodenbereich</label>
-          <span className={styles.sourceHelpText}>
-            Von und Bis werden gespeichert. Für eine einzelne Folge beide Felder gleich setzen.
-          </span>
-          <span className={styles.sourceHelpText}>
-            Wird beim Speichern automatisch allen Folgen im Bereich zugewiesen — pro Ausreißer-Folge
-            kann die Startzeit einzeln überschrieben werden.
-          </span>
-        </div>
-        <div className={styles.panelFieldRow}>
-          <div className={styles.panelField}>
-            <label htmlFor="seg-ep-start">Von</label>
-            <input
-              id="seg-ep-start"
-              type="number"
-              min="1"
-              placeholder="z. B. 1"
-              value={formState.startEpisode}
-              onChange={(e) => onFormChange({ startEpisode: e.target.value })}
-            />
-          </div>
-          <div className={styles.panelField}>
-            <label htmlFor="seg-ep-end">Bis</label>
-            <input
-              id="seg-ep-end"
-              type="number"
-              min="1"
-              placeholder="z. B. 12"
-              value={formState.endEpisode}
-              onChange={(e) => onFormChange({ endEpisode: e.target.value })}
-            />
-          </div>
-        </div>
-        {isMissingEpisodeRange ? (
-          <div className={styles.assetError}>
-            Bitte Von und Bis ausfüllen. Für eine einzelne Folge beide Felder gleich setzen.
-          </div>
-        ) : hasInvalidEpisodeValue ? (
-          <div className={styles.assetError}>
-            Episoden müssen positive ganze Zahlen sein.
-          </div>
-        ) : hasInvalidEpisodeRange ? (
-          <div className={styles.assetError}>
-            Bis muss größer oder gleich Von sein.
-          </div>
-        ) : null}
-
-        <div className={styles.panelField}>
-          <label>{isSharedSegment ? 'Basis-Zeitbereich (gilt für alle zugewiesenen Folgen)' : 'Zeitbereich im Video'}</label>
-          <span className={styles.sourceHelpText}>
-            Eingabe einfach als `1:20`, `12:03` oder Sekunden.{' '}
-            {runtimeKnown
-              ? <>Videodauer: <strong>{formatTimeInput(effectiveDuration!)}</strong>{runtimeFromPlayback ? ' (aus Jellyfin/Release)' : ' (aus Version)'}. Das Ende wird automatisch auf diese Grenze begrenzt.</>
-              : 'Keine reale Laufzeit bekannt — Zeitbereich kann frei eingegeben werden.'}
-          </span>
-        </div>
-        <div className={styles.panelFieldRow}>
-          <div className={styles.panelField}>
-            <label htmlFor="seg-time-start">Start</label>
-            <input
-              id="seg-time-start"
-              type="text"
-              inputMode="numeric"
-              placeholder="z. B. 0:00"
-              value={formState.startTime}
-              onChange={(e) => onFormChange({ startTime: e.target.value })}
-              onBlur={(e) => {
-                const parsed = parseFlexibleTimeInput(e.target.value)
-                if (parsed != null) onFormChange({ startTime: formatTimeInput(parsed) })
-              }}
-              style={isStartTimeError ? { borderColor: '#c0392b' } : undefined}
-            />
-            {isStartTimeError ? (
-              <span className={styles.assetError} style={{ display: 'block', marginTop: 4 }}>{formError}</span>
-            ) : null}
-          </div>
-          <div className={styles.panelField}>
-            <label htmlFor="seg-time-end">Ende</label>
-            <input
-              id="seg-time-end"
-              type="text"
-              inputMode="numeric"
-              placeholder="z. B. 1:20"
-              value={formState.endTime}
-              onChange={(e) => onFormChange({ endTime: e.target.value })}
-              onBlur={(e) => {
-                const parsed = parseFlexibleTimeInput(e.target.value)
-                if (parsed == null) return
-                const clamped = effectiveDuration != null ? Math.min(parsed, effectiveDuration) : parsed
-                onFormChange({ endTime: formatTimeInput(clamped) })
-              }}
-              style={isEndTimeError ? { borderColor: '#c0392b' } : undefined}
-            />
-            {isEndTimeError ? (
-              <span className={styles.assetError} style={{ display: 'block', marginTop: 4 }}>{formError}</span>
-            ) : null}
-          </div>
-        </div>
-        {isMissingTimeRange ? (
-          <div className={styles.assetError}>
-            Bitte Start und Ende ausfüllen.
-          </div>
-        ) : hasInvalidTimeInput ? (
-          <div className={styles.assetError}>
-            Zeitangaben müssen z. B. 1:20, 00:01:20 oder Sekunden sein.
-          </div>
-        ) : null}
-        {exceedsDuration ? (
-          <div className={styles.assetError}>
-            Ende liegt über der bekannten Videodauer und wird beim Verlassen des Felds auf {formatTimeInput(effectiveDuration!)} begrenzt.
-          </div>
-        ) : null}
-        {startSeconds != null && endSeconds != null && endSeconds <= startSeconds ? (
-          <div className={styles.assetError}>
-            Ende muss nach dem Start liegen.
-          </div>
-        ) : null}
-        {exceedsMaxSegmentWindow ? (
-          <div className={styles.assetError}>
-            Segment-Zeitbereich darf maximal 4 Minuten lang sein.
-          </div>
-        ) : null}
-
-        {/* Per-Folge Zeit-Override (UI-SPEC Surface 1) — nur bei geteilten Segmenten */}
-        {isSharedSegment ? (
-          <div className={styles.panelField}>
-            <Switch
-              checked={overrideEnabled}
-              onCheckedChange={handleOverrideToggle}
-              label="Zeit nur für diese Folge abweichend setzen"
-              disabled={isSavingOverride}
-            />
-            {overrideEnabled ? (
-              <div style={{ display: 'grid', gap: 8, marginTop: 8 }}>
-                <h4 style={{ margin: 0, fontSize: 14, fontWeight: 600 }}>
-                  Zeit-Override für Folge {currentEpisodeLabel}
-                </h4>
-                <FormField
-                  label={`Start (Folge ${currentEpisodeLabel})`}
-                  htmlFor="segment-override-start"
-                  hint="Nur Startzeit — Dauer bleibt gleich wie Basis. Ende wird automatisch berechnet."
-                  error={overrideDisplayError ?? undefined}
-                >
-                  <Input
-                    id="segment-override-start"
-                    type="text"
-                    inputMode="numeric"
-                    placeholder="z. B. 0:00"
-                    value={overrideStartTime}
-                    onChange={(e) => setOverrideStartTime(e.target.value)}
-                    onBlur={(e) => {
-                      const parsed = parseFlexibleTimeInput(e.target.value)
-                      if (parsed != null) setOverrideStartTime(formatTimeInput(parsed))
-                    }}
-                  />
-                </FormField>
-                <p className={styles.sourceHelpText}>
-                  {`Ende (automatisch): ${computedOverrideEndTime ?? '—'} · gleiche Dauer wie Basis (${formatTimeInput(baseDurationSeconds ?? 0)})`}
-                </p>
-                <p className={styles.sourceHelpText}>Nur Startzeit — Dauer bleibt gleich wie Basis</p>
-                {currentReleaseHasOverride ? (
-                  <Button
-                    type="button"
-                    variant="secondary"
-                    onClick={handleRemoveOverrideClick}
-                    disabled={isSavingOverride}
-                  >
-                    Override entfernen
-                  </Button>
-                ) : null}
-              </div>
-            ) : null}
-          </div>
-        ) : null}
+        <SegmentOverrideField
+          isSharedSegment={isSharedSegment}
+          overrideEnabled={overrideEnabled}
+          onOverrideToggle={handleOverrideToggle}
+          currentEpisodeLabel={currentEpisodeLabel}
+          overrideStartTime={overrideStartTime}
+          onOverrideStartTimeChange={setOverrideStartTime}
+          computedOverrideEndTime={computedOverrideEndTime}
+          baseDurationSeconds={baseDurationSeconds}
+          overrideDisplayError={overrideDisplayError}
+          currentReleaseHasOverride={currentReleaseHasOverride}
+          onRemoveOverrideClick={handleRemoveOverrideClick}
+          isSavingOverride={isSavingOverride}
+        />
 
         {/* Segment-Origin (Phase 156, P156-06/P156-18) — nur bei geteilten, zugewiesenen Segmenten */}
         {isSharedSegment && (editingSegment?.assigned_episodes?.length ?? 0) > 0 ? (
@@ -480,244 +309,30 @@ export function SegmentEditPanel({
           </div>
         ) : null}
 
-        {/* Resolved playback status when editing an existing segment */}
-        {editingSegment?.playback_source_kind ? (
-          <div className={styles.panelField}>
-            <label>Aktive Playback-Quelle (Standard)</label>
-            <div style={{ padding: '8px 10px', background: '#f0f4ff', borderRadius: 8, fontSize: 13, color: '#2a2a3a' }}>
-              {editingSegment.playback_source_label ?? (
-                editingSegment.playback_source_kind === 'episode_version'
-                  ? 'Episode-Version / Jellyfin-Stream (Standard)'
-                  : editingSegment.playback_source_kind === 'uploaded_asset'
-                    ? 'hochgeladener Fallback'
-                    : editingSegment.playback_source_kind === 'jellyfin_theme'
-                      ? 'Jellyfin Serien-Theme'
-                      : editingSegment.playback_source_kind
-              )}
-              {editingSegment.playback_duration_seconds != null ? (
-                <span style={{ marginLeft: 8, fontSize: 11, color: '#6b6b70' }}>
-                  Laufzeit: {formatTimeInput(editingSegment.playback_duration_seconds)}
-                </span>
-              ) : null}
-            </div>
-          </div>
-        ) : null}
+        <SegmentPlaybackPreviewSection
+          editingSegment={editingSegment}
+          previewStreamHref={previewStreamHref ?? null}
+          renderStatus={renderStatus}
+        />
 
-        {/* Segmentstream preview */}
-        {editingSegment ? (
-          <div className={styles.previewSection}>
-            <div className={styles.assetSectionHeader}>
-              <FileVideo size={14} />
-              Segment-Vorschau
-            </div>
-            {previewStreamHref ? (
-              <video
-                key={previewStreamHref}
-                className={styles.previewVideo}
-                src={previewStreamHref}
-                controls
-                preload="metadata"
-              />
-            ) : (
-              <div className={styles.previewStatus}>{renderStatus}</div>
-            )}
-            <p className={styles.sourceHelpText}>
-              {previewStreamHref
-                ? 'Spielt den serverseitig vorbereiteten Segmentstream ab.'
-                : editingSegment.render_error_message || 'Der Segmentstream ist noch nicht bereit.'}
-            </p>
-          </div>
-        ) : null}
-
-        {/* Source type selector — Episode-Version/Jellyfin is default; upload is explicit fallback */}
-        <div className={styles.panelField}>
-          <label htmlFor="seg-source-type">Provenance / Fallback-Wahl</label>
-          <select
-            id="seg-source-type"
-            value={formState.sourceType}
-            onChange={(e) => onFormChange({ sourceType: e.target.value as AdminSegmentSourceType })}
-          >
-            <option value="none">Episode-Version / Jellyfin-Stream (Standard)</option>
-            <option value="release_asset">Hochgeladener Fallback (eigene Datei)</option>
-            <option value="jellyfin_theme">Jellyfin Serien-Theme (Legacy)</option>
-          </select>
-          {formState.sourceType === 'none' ? (
-            <p className={styles.sourceHelpText}>Standard: Playback läuft über den Jellyfin-Stream der aktuellen Episode-Version. Kein Upload erforderlich.</p>
-          ) : formState.sourceType === 'release_asset' ? (
-            <p className={styles.sourceHelpText}>Hochgeladener Fallback: Eine eigene Segment-Datei wird als explizit gewählte Playback-Quelle hinterlegt.</p>
-          ) : formState.sourceType === 'jellyfin_theme' ? (
-            <p className={styles.sourceHelpText}>Legacy: Timing stammt aus einem Jellyfin Serien-Theme-Eintrag.</p>
-          ) : null}
-        </div>
-
-        {/* Segment-Asset-Sektion: nur bei release_asset */}
-        {formState.sourceType === 'release_asset' ? (
-          <div className={styles.assetSection}>
-            <div className={styles.assetSectionHeader}>
-              <FileVideo size={14} />
-              Segment-Datei
-            </div>
-
-            {editingSegment?.source_ref ? (
-              <div className={styles.assetExisting}>
-                <div className={styles.assetExistingLabel}>
-                  <FileVideo size={13} />
-                  <span>{editingSegment.source_label ?? editingSegment.source_ref.split('/').pop() ?? 'Datei hinterlegt'}</span>
-                </div>
-                <p className={styles.assetExistingPath}>{editingSegment.source_ref}</p>
-                {provenance ? (
-                  <p className={styles.sourceHelpText}>
-                    {provenance}
-                    {provenanceDetails ? ` · ${provenanceDetails}` : ''}
-                  </p>
-                ) : null}
-                <button
-                  type="button"
-                  className={styles.assetDeleteButton}
-                  onClick={() => onAssetDelete()}
-                  disabled={isDeletingAsset}
-                >
-                  <XCircle size={13} />
-                  {isDeletingAsset ? 'Entfernt...' : 'Datei entfernen'}
-                </button>
-              </div>
-            ) : editingSegment ? (
-              <div style={{ display: 'grid', gap: 12 }}>
-                <div className={styles.assetUploadArea}>
-                  <p className={styles.sourceHelpText}>
-                    Vorhandene Library-Datei wiederverwenden oder unten eine neue Datei hochladen.
-                  </p>
-                  {isLoadingReuseCandidates ? (
-                    <p className={styles.sourceHelpText}>Library-Kandidaten werden geladen...</p>
-                  ) : reuseCandidates.length > 0 ? (
-                    <div style={{ display: 'grid', gap: 8, marginTop: 8 }}>
-                      {reuseCandidates.map((candidate) => (
-                        <div
-                          key={candidate.asset_id}
-                          style={{
-                            border: '1px solid #d7d7dd',
-                            borderRadius: 10,
-                            padding: '10px 12px',
-                            display: 'grid',
-                            gap: 4,
-                            background: '#fafafc',
-                          }}
-                        >
-                          <strong style={{ fontSize: 13 }}>{resolveLibraryCandidateLabel(candidate)}</strong>
-                          <span className={styles.sourceHelpText}>
-                            {candidate.anime_source_provider}:{candidate.anime_source_external_id} · {candidate.segment_kind.toUpperCase()}
-                            {candidate.segment_name?.trim() ? ` · ${candidate.segment_name.trim()}` : ''}
-                          </span>
-                          <span className={styles.sourceHelpText}>
-                            Aktiv verwendet: {candidate.active_assignment_count} · Herkunft: {candidate.asset_attach_source}
-                          </span>
-                          <button
-                            type="button"
-                            className={styles.assetUploadButton}
-                            disabled={isAttachingReuse}
-                            onClick={() => onAttachReuseCandidate(candidate)}
-                          >
-                            <FileVideo size={13} />
-                            {isAttachingReuse ? 'Verknüpft...' : 'Dieses Library-Asset verwenden'}
-                          </button>
-                        </div>
-                      ))}
-                    </div>
-                  ) : (
-                    <p className={styles.sourceHelpText}>Noch keine wiederverwendbare Library-Datei für diesen AniSearch/Group-Kontext gefunden.</p>
-                  )}
-                  {reuseError ? <div className={styles.assetError}>{reuseError}</div> : null}
-                </div>
-
-                <div className={styles.assetUploadArea}>
-                  <p className={styles.assetUploadFormats}>Erlaubte Formate: MP4, WebM, MKV, MP3, AAC, FLAC, OGG, OPUS, M4A &middot; Max. 150 MB</p>
-                  <input
-                    ref={fileInputRef}
-                    type="file"
-                    accept=".mp4,.webm,.mkv,.mp3,.aac,.flac,.ogg,.opus,.m4a,video/mp4,video/webm,video/x-matroska,audio/mpeg,audio/aac,audio/flac,audio/ogg,audio/mp4"
-                    className={styles.assetFileInput}
-                    id="segment-asset-file"
-                    disabled={isUploading}
-                    onChange={(e) => {
-                      const file = e.target.files?.[0]
-                      if (file) {
-                        onAssetUpload(file)
-                        if (fileInputRef.current) fileInputRef.current.value = ''
-                      }
-                    }}
-                  />
-                  <label
-                    htmlFor="segment-asset-file"
-                    className={`${styles.assetUploadButton} ${isUploading ? styles.assetUploadButtonBusy : ''}`}
-                  >
-                    <Upload size={13} />
-                    {isUploading ? 'Wird hochgeladen...' : 'Neue Datei auswählen und hochladen'}
-                  </label>
-                </div>
-              </div>
-            ) : (
-              <div style={{ display: 'grid', gap: 12 }}>
-                <div className={styles.assetUploadArea}>
-                  <p className={styles.assetUploadFormats}>Erlaubte Formate: MP4, WebM, MKV, MP3, AAC, FLAC, OGG, OPUS, M4A &middot; Max. 150 MB</p>
-                  <input
-                    ref={fileInputRef}
-                    type="file"
-                    accept=".mp4,.webm,.mkv,.mp3,.aac,.flac,.ogg,.opus,.m4a,video/mp4,video/webm,video/x-matroska,audio/mpeg,audio/aac,audio/flac,audio/ogg,audio/mp4"
-                    className={styles.assetFileInput}
-                    id="segment-asset-file-create"
-                    disabled={isSaving}
-                    onChange={(e) => {
-                      const file = e.target.files?.[0]
-                      if (file) {
-                        onPendingUploadFileChange(file)
-                        if (fileInputRef.current) fileInputRef.current.value = ''
-                      }
-                    }}
-                  />
-                  <label
-                    htmlFor="segment-asset-file-create"
-                    className={`${styles.assetUploadButton} ${isSaving ? styles.assetUploadButtonBusy : ''}`}
-                  >
-                    <Upload size={13} />
-                    Datei für neues Segment auswählen
-                  </label>
-                  {pendingUploadFile ? (
-                    <div className={styles.assetExisting} style={{ marginTop: 10 }}>
-                      <div className={styles.assetExistingLabel}>
-                        <FileVideo size={13} />
-                        <span>{pendingUploadFile.name}</span>
-                      </div>
-                      <p className={styles.sourceHelpText}>
-                        Das Segment wird erstellt und die Datei direkt danach automatisch hochgeladen.
-                      </p>
-                      <button
-                        type="button"
-                        className={styles.assetDeleteButton}
-                        onClick={() => onPendingUploadFileChange(null)}
-                        disabled={isSaving}
-                      >
-                        <XCircle size={13} />
-                        Auswahl entfernen
-                      </button>
-                    </div>
-                  ) : (
-                    <p className={styles.assetHintSave}>
-                      Optional kannst du die Segment-Datei schon jetzt auswählen. Beim Speichern wird beides in einem Schritt angelegt.
-                    </p>
-                  )}
-                </div>
-
-                <p className={styles.sourceHelpText}>
-                  Wiederverwendbare Library-Dateien können nach dem ersten Speichern zusätzlich verknüpft werden.
-                </p>
-              </div>
-            )}
-
-            {uploadError ? (
-              <div className={styles.assetError}>{uploadError}</div>
-            ) : null}
-          </div>
-        ) : null}
+        <SegmentAssetSection
+          formState={formState}
+          onFormChange={onFormChange}
+          editingSegment={editingSegment}
+          isSaving={isSaving}
+          isUploading={isUploading}
+          isDeletingAsset={isDeletingAsset}
+          isLoadingReuseCandidates={isLoadingReuseCandidates}
+          isAttachingReuse={isAttachingReuse}
+          uploadError={uploadError}
+          reuseCandidates={reuseCandidates}
+          reuseError={reuseError}
+          pendingUploadFile={pendingUploadFile}
+          onPendingUploadFileChange={onPendingUploadFileChange}
+          onAssetUpload={onAssetUpload}
+          onAssetDelete={onAssetDelete}
+          onAttachReuseCandidate={onAttachReuseCandidate}
+        />
 
         <div className={styles.panelActions}>
           <button type="button" className={styles.panelCancelButton} onClick={onClose}>
