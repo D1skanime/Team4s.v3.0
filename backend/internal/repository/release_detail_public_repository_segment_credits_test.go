@@ -1,21 +1,29 @@
 package repository
 
 // TestReleaseDetailPublicSegmentOriginCredits beweist gegen eine echte, isolierte
-// Postgres-Instanz die Origin-basierte, rollen-code-gefilterte Segment-Credit-
-// Projektion (P156-07/P156-08/P156-09, Plan 156-07 Task 1):
+// Postgres-Instanz die Origin-basierte, rollen-code- UND explizit-auswahl-gefilterte
+// Segment-Credit-Projektion (P156-07/P156-08/P156-09, Plan 156-07 Task 1; die
+// explizite Auswahl-Bedingung kam mit Plan 156-13/156-UAT.md GAP-01 hinzu):
 //   - ein Segment, dessen ORIGIN-Release-Version keine Beteiligten hat, liefert eine
 //     leere (nicht nil) Participants-Liste, keinen Fehler
-//   - ein Segment, dessen ORIGIN-Release-Version einen Uebersetzer und einen Timer
-//     hat, liefert beide inkl. ihrer RoleCodes
+//   - ein Segment, dessen ORIGIN-Release-Version einen explizit ausgewaehlten
+//     Uebersetzer und Timer hat, liefert beide inkl. ihrer RoleCodes
 //   - eine Korrektur der Beteiligten-Rollen auf der ORIGIN-Release-Version (ohne das
 //     Segment selbst anzufassen) wirkt sich sofort auf den NAECHSTEN Aufruf aus (live)
-//   - ein neu hinzugefuegter Beteiligter auf der ORIGIN-Release-Version erscheint beim
-//     naechsten Aufruf
-//   - ein Encoder/Quality-Checker auf der ORIGIN-Release-Version erscheint NIE als
-//     Segment-Credit, obwohl er ein echter, oeffentlich sichtbarer Beteiligter ist
+//   - ein neu hinzugefuegter, explizit ausgewaehlter Beteiligter auf der ORIGIN-Release-
+//     Version erscheint beim naechsten Aufruf
+//   - ein Encoder erscheint NIE als Segment-Credit, auch nicht bei expliziter Auswahl;
+//     ein explizit ausgewaehlter Quality-Checker erscheint dagegen (korrigierte Regel,
+//     Plan 156-13, 156-UAT.md Auftragspunkt 17 -- die alte "QC nie"-Annahme war falsch)
 //   - origin_release_version_id IS NULL liefert eine leere Participants-Liste, keinen
 //     Fehler und keine geratene Ersatzquelle
 //   - Type entspricht CanonicalSegmentType(rawTypeName), kein roher Passthrough
+//
+// Die volle A-J-plus-K-Regressionsmatrix (156-UAT.md Auftragspunkt 16 + Nachtrag
+// 2026-09-12) lebt in der Nachbardatei
+// release_detail_public_repository_segment_contributor_subset_test.go und teilt sich
+// die untenstehende segmentCreditsFixture, um die Postgres-Fixture-Erzeugungs-SQL nicht
+// woertlich in zwei Dateien zu duplizieren (CLAUDE.md 450-Zeilen-Limit).
 //
 // Package repository (nicht repository_test), analog zu
 // release_detail_public_segments_integration_test.go -- dieser Test greift direkt auf
@@ -28,23 +36,30 @@ import (
 	"fmt"
 	"testing"
 
-	"team4s.v3/backend/internal/testsupport"
-
+	"github.com/jackc/pgx/v5/pgxpool"
 	"github.com/stretchr/testify/require"
+
+	"team4s.v3/backend/internal/testsupport"
 )
 
-func TestReleaseDetailPublicSegmentOriginCredits(t *testing.T) {
-	pool := testsupport.OpenPhase117Postgres(t)
-	ctx := context.Background()
-	repo := NewReleaseDetailPublicRepository(pool, "")
+// segmentCreditsFixture buendelt die lokale Schema-Ergaenzung (analog Plan 156-03s
+// Praezedenzfall: lokale Fixture-Ergaenzung statt Aenderung an
+// testsupport/phase117_postgres.go) und die ID-generierenden Helfer, die sowohl
+// TestReleaseDetailPublicSegmentOriginCredits als auch
+// TestSegmentContributorSubsetMatrix (Plan 156-13) brauchen.
+type segmentCreditsFixture struct {
+	pool *pgxpool.Pool
 
-	// Ergaenzt die geteilte Phase-117-Test-Fixture (theme_segments.
-	// origin_release_version_id existiert bereits seit Migration 0161) LOKAL, nur in
-	// dieser Testdatei, um die Tabellen, die loadPublicEffectiveContributors fuer die
-	// Beteiligten-Aufloesung braucht (anime_contributions/anime_contribution_roles/
-	// visibilities, members.profile_visibility/public_slug) -- mirrors Plan 156-03s
-	// Praezedenzfall (lokale Fixture-Ergaenzung statt Aenderung an
-	// testsupport/phase117_postgres.go, siehe 156-03-SUMMARY.md).
+	animeID            int64
+	fansubGroupID      int64
+	themeID            int64
+	publicVisibilityID int64
+	nextID             int64
+}
+
+func newSegmentCreditsFixture(t *testing.T, ctx context.Context, pool *pgxpool.Pool) *segmentCreditsFixture {
+	t.Helper()
+
 	_, err := pool.Exec(ctx, `
 		CREATE TABLE visibilities (
 			id BIGSERIAL PRIMARY KEY,
@@ -79,123 +94,170 @@ func TestReleaseDetailPublicSegmentOriginCredits(t *testing.T) {
 			('timer', 'Timing'),
 			('typesetter', 'Typesetting'),
 			('karaoke_fx', 'Karaoke-Effekte'),
+			('editor', 'Editing'),
 			('encoder', 'Encoding'),
 			('quality_checker', 'Qualitätsprüfung')
 	`)
 	require.NoError(t, err)
 
-	const (
-		animeID       = int64(1)
-		fansubGroupID = int64(1)
-		themeTypeID   = int64(1)
-		themeID       = int64(1)
+	f := &segmentCreditsFixture{
+		pool:               pool,
+		animeID:            1,
+		fansubGroupID:      1,
+		themeID:            1,
+		publicVisibilityID: 1,
+		nextID:             1,
+	}
 
-		publicVisibilityID = int64(1)
-	)
-
-	_, err = pool.Exec(ctx, `INSERT INTO anime (id) VALUES ($1)`, animeID)
+	const themeTypeID = int64(1)
+	_, err = pool.Exec(ctx, `INSERT INTO anime (id) VALUES ($1)`, f.animeID)
 	require.NoError(t, err)
-	_, err = pool.Exec(ctx, `INSERT INTO fansub_groups (id) VALUES ($1)`, fansubGroupID)
+	_, err = pool.Exec(ctx, `INSERT INTO fansub_groups (id) VALUES ($1)`, f.fansubGroupID)
 	require.NoError(t, err)
 	_, err = pool.Exec(ctx, `INSERT INTO theme_types (id, name) VALUES ($1, 'OP1')`, themeTypeID)
 	require.NoError(t, err)
-	_, err = pool.Exec(ctx, `INSERT INTO themes (id, anime_id, theme_type_id, title) VALUES ($1, $2, $3, 'Moonlight')`, themeID, animeID, themeTypeID)
+	_, err = pool.Exec(ctx, `INSERT INTO themes (id, anime_id, theme_type_id, title) VALUES ($1, $2, $3, 'Moonlight')`, f.themeID, f.animeID, themeTypeID)
 	require.NoError(t, err)
 
-	// newReleaseVersion legt eine minimale Episode/Release/Version-Kette an --
-	// jede Origin-Release-Version braucht ihren eigenen Fansub-Release/Episode-Pfad,
-	// damit loadPublicEffectiveContributors' release_context-CTE (JOIN
-	// fansub_releases/episodes) sie aufloesen kann.
-	nextID := int64(1)
-	newReleaseVersion := func(t *testing.T) int64 {
-		t.Helper()
-		episodeID := nextID
-		releaseID := nextID
-		releaseVersionID := nextID
-		nextID++
-		_, err := pool.Exec(ctx, `INSERT INTO episodes (id, anime_id, sort_index, episode_number) VALUES ($1, $2, $3, $4)`, episodeID, animeID, episodeID, fmt.Sprintf("%d", episodeID))
-		require.NoError(t, err)
-		_, err = pool.Exec(ctx, `INSERT INTO fansub_releases (id, episode_id) VALUES ($1, $2)`, releaseID, episodeID)
-		require.NoError(t, err)
-		_, err = pool.Exec(ctx, `INSERT INTO release_versions (id, release_id, version) VALUES ($1, $2, 'v1')`, releaseVersionID, releaseID)
-		require.NoError(t, err)
-		_, err = pool.Exec(ctx, `INSERT INTO release_version_groups (release_version_id, fansub_group_id) VALUES ($1, $2)`, releaseVersionID, fansubGroupID)
-		require.NoError(t, err)
-		return releaseVersionID
-	}
+	return f
+}
 
-	newSegment := func(t *testing.T, originReleaseVersionID *int64) int64 {
-		t.Helper()
-		segmentID := nextID
-		nextID++
-		_, err := pool.Exec(ctx, `INSERT INTO theme_segments (id, theme_id, origin_release_version_id) VALUES ($1, $2, $3)`, segmentID, themeID, originReleaseVersionID)
-		require.NoError(t, err)
-		return segmentID
-	}
+func (f *segmentCreditsFixture) allocID() int64 {
+	id := f.nextID
+	f.nextID++
+	return id
+}
 
-	assignSegment := func(t *testing.T, segmentID, releaseVersionID int64) {
-		t.Helper()
-		_, err := pool.Exec(ctx, `INSERT INTO theme_segment_assignments (theme_segment_id, release_version_id) VALUES ($1, $2)`, segmentID, releaseVersionID)
-		require.NoError(t, err)
-	}
+// newReleaseVersion legt eine minimale Episode/Release/Version-Kette an -- jede
+// Origin-Release-Version braucht ihren eigenen Fansub-Release/Episode-Pfad, damit
+// loadPublicEffectiveContributors' release_context-CTE (JOIN fansub_releases/episodes)
+// sie aufloesen kann.
+func (f *segmentCreditsFixture) newReleaseVersion(t *testing.T, ctx context.Context) int64 {
+	t.Helper()
+	id := f.allocID()
+	_, err := f.pool.Exec(ctx, `INSERT INTO episodes (id, anime_id, sort_index, episode_number) VALUES ($1, $2, $3, $4)`, id, f.animeID, id, fmt.Sprintf("%d", id))
+	require.NoError(t, err)
+	_, err = f.pool.Exec(ctx, `INSERT INTO fansub_releases (id, episode_id) VALUES ($1, $2)`, id, id)
+	require.NoError(t, err)
+	_, err = f.pool.Exec(ctx, `INSERT INTO release_versions (id, release_id, version) VALUES ($1, $2, 'v1')`, id, id)
+	require.NoError(t, err)
+	_, err = f.pool.Exec(ctx, `INSERT INTO release_version_groups (release_version_id, fansub_group_id) VALUES ($1, $2)`, id, f.fansubGroupID)
+	require.NoError(t, err)
+	return id
+}
 
-	newPublicContribution := func(t *testing.T, memberID, memberOriginReleaseVersionID int64, roleCode string) {
-		t.Helper()
-		_, err := pool.Exec(ctx, `INSERT INTO members (id) VALUES ($1) ON CONFLICT (id) DO NOTHING`, memberID)
-		require.NoError(t, err)
-		var contributionID int64
-		err = pool.QueryRow(ctx, `
-			INSERT INTO anime_contributions (fansub_group_id, anime_id, member_id, release_version_id, is_public_on_anime_page, visibility_id)
-			VALUES ($1, $2, $3, $4, true, $5)
-			RETURNING id
-		`, fansubGroupID, animeID, memberID, memberOriginReleaseVersionID, publicVisibilityID).Scan(&contributionID)
-		require.NoError(t, err)
-		_, err = pool.Exec(ctx, `INSERT INTO anime_contribution_roles (anime_contribution_id, role_code) VALUES ($1, $2)`, contributionID, roleCode)
-		require.NoError(t, err)
-	}
+func (f *segmentCreditsFixture) newSegment(t *testing.T, ctx context.Context, originReleaseVersionID *int64) int64 {
+	t.Helper()
+	segmentID := f.allocID()
+	_, err := f.pool.Exec(ctx, `INSERT INTO theme_segments (id, theme_id, origin_release_version_id) VALUES ($1, $2, $3)`, segmentID, f.themeID, originReleaseVersionID)
+	require.NoError(t, err)
+	return segmentID
+}
 
-	viewedReleaseVersionID := newReleaseVersion(t)
+func (f *segmentCreditsFixture) assignSegment(t *testing.T, ctx context.Context, segmentID, releaseVersionID int64) {
+	t.Helper()
+	_, err := f.pool.Exec(ctx, `INSERT INTO theme_segment_assignments (theme_segment_id, release_version_id) VALUES ($1, $2)`, segmentID, releaseVersionID)
+	require.NoError(t, err)
+}
+
+// newContribution legt einen oeffentlich sichtbaren anime_contributions-Eintrag mit
+// genau einer Rolle auf einer konkreten Release-Version an (release-scoped, ggf. ein
+// Override -- siehe newAnimeDefaultContribution fuer den vererbten Fall).
+func (f *segmentCreditsFixture) newContribution(t *testing.T, ctx context.Context, memberID, releaseVersionID int64, roleCode string) int64 {
+	t.Helper()
+	return f.newContributionRow(t, ctx, memberID, &releaseVersionID, roleCode)
+}
+
+// newAnimeDefaultContribution legt einen vererbten Anime-Default-Beitrag an
+// (release_version_id IS NULL) -- effektiv fuer JEDE Release-Version des Animes, solange
+// keine Gruppen-Override-Zeile fuer dieselbe Release-Version existiert (Case K).
+func (f *segmentCreditsFixture) newAnimeDefaultContribution(t *testing.T, ctx context.Context, memberID int64, roleCode string) int64 {
+	t.Helper()
+	return f.newContributionRow(t, ctx, memberID, nil, roleCode)
+}
+
+func (f *segmentCreditsFixture) newContributionRow(t *testing.T, ctx context.Context, memberID int64, releaseVersionID *int64, roleCode string) int64 {
+	t.Helper()
+	_, err := f.pool.Exec(ctx, `INSERT INTO members (id) VALUES ($1) ON CONFLICT (id) DO NOTHING`, memberID)
+	require.NoError(t, err)
+	var contributionID int64
+	err = f.pool.QueryRow(ctx, `
+		INSERT INTO anime_contributions (fansub_group_id, anime_id, member_id, release_version_id, is_public_on_anime_page, visibility_id)
+		VALUES ($1, $2, $3, $4, true, $5)
+		RETURNING id
+	`, f.fansubGroupID, f.animeID, memberID, releaseVersionID, f.publicVisibilityID).Scan(&contributionID)
+	require.NoError(t, err)
+	_, err = f.pool.Exec(ctx, `INSERT INTO anime_contribution_roles (anime_contribution_id, role_code) VALUES ($1, $2)`, contributionID, roleCode)
+	require.NoError(t, err)
+	return contributionID
+}
+
+// selectContributor traegt eine explizite Segment-Contributor-Auswahl ein
+// (theme_segment_contributors, Plan 156-12) -- die Bedingung, auf die Plan 156-13 die
+// oeffentliche Projektion zusaetzlich zur Rollen-Relevanz gated.
+func (f *segmentCreditsFixture) selectContributor(t *testing.T, ctx context.Context, segmentID, memberID int64) {
+	t.Helper()
+	_, err := f.pool.Exec(ctx, `INSERT INTO theme_segment_contributors (theme_segment_id, member_id) VALUES ($1, $2)`, segmentID, memberID)
+	require.NoError(t, err)
+}
+
+// ensureMember legt eine minimale members-Zeile an, falls sie noch nicht existiert --
+// fuer Faelle, in denen eine Segment-Contributor-Auswahl OHNE eine begleitende
+// anime_contributions-Zeile geprueft wird (die members-FK von
+// theme_segment_contributors braucht trotzdem eine gueltige Zeile).
+func (f *segmentCreditsFixture) ensureMember(t *testing.T, ctx context.Context, memberID int64) {
+	t.Helper()
+	_, err := f.pool.Exec(ctx, `INSERT INTO members (id) VALUES ($1) ON CONFLICT (id) DO NOTHING`, memberID)
+	require.NoError(t, err)
+}
+
+func findSegmentByID(segments []PublicReleaseSegment, segmentID int64) *PublicReleaseSegment {
+	for i := range segments {
+		if segments[i].ThemeSegmentID == segmentID {
+			return &segments[i]
+		}
+	}
+	return nil
+}
+
+func TestReleaseDetailPublicSegmentOriginCredits(t *testing.T) {
+	pool := testsupport.OpenPhase117Postgres(t)
+	ctx := context.Background()
+	repo := NewReleaseDetailPublicRepository(pool, "")
+	f := newSegmentCreditsFixture(t, ctx, pool)
+
+	viewedReleaseVersionID := f.newReleaseVersion(t, ctx)
 
 	t.Run("Test1: Origin mit null Beteiligten liefert leere, nicht-nil Participants", func(t *testing.T) {
-		originID := newReleaseVersion(t)
-		segmentID := newSegment(t, &originID)
-		assignSegment(t, segmentID, viewedReleaseVersionID)
+		originID := f.newReleaseVersion(t, ctx)
+		segmentID := f.newSegment(t, ctx, &originID)
+		f.assignSegment(t, ctx, segmentID, viewedReleaseVersionID)
 
-		segments, err := repo.loadReleaseSegments(ctx, animeID, fansubGroupID, viewedReleaseVersionID, "v1", "1", nil)
+		segments, err := repo.loadReleaseSegments(ctx, f.animeID, f.fansubGroupID, viewedReleaseVersionID, "v1", "1", nil)
 		require.NoError(t, err)
 
-		var found *PublicReleaseSegment
-		for i := range segments {
-			if segments[i].ThemeSegmentID == segmentID {
-				found = &segments[i]
-			}
-		}
+		found := findSegmentByID(segments, segmentID)
 		require.NotNil(t, found, "Segment muss in der Ergebnisliste enthalten sein")
 		require.NotNil(t, found.Participants, "Participants darf nicht nil sein")
 		require.Empty(t, found.Participants, "Origin hat keine Beteiligten -- Participants muss leer sein")
 	})
 
-	t.Run("Test2: Origin mit Uebersetzer+Timer liefert beide inkl. RoleCodes", func(t *testing.T) {
-		originID := newReleaseVersion(t)
-		segmentID := newSegment(t, &originID)
-		assignSegment(t, segmentID, viewedReleaseVersionID)
+	t.Run("Test2: Origin mit explizit ausgewaehltem Uebersetzer+Timer liefert beide inkl. RoleCodes", func(t *testing.T) {
+		originID := f.newReleaseVersion(t, ctx)
+		segmentID := f.newSegment(t, ctx, &originID)
+		f.assignSegment(t, ctx, segmentID, viewedReleaseVersionID)
 
-		translatorMemberID := nextID
-		nextID++
-		timerMemberID := nextID
-		nextID++
-		newPublicContribution(t, translatorMemberID, originID, "translator")
-		newPublicContribution(t, timerMemberID, originID, "timer")
+		translatorMemberID := f.allocID()
+		timerMemberID := f.allocID()
+		f.newContribution(t, ctx, translatorMemberID, originID, "translator")
+		f.newContribution(t, ctx, timerMemberID, originID, "timer")
+		f.selectContributor(t, ctx, segmentID, translatorMemberID)
+		f.selectContributor(t, ctx, segmentID, timerMemberID)
 
-		segments, err := repo.loadReleaseSegments(ctx, animeID, fansubGroupID, viewedReleaseVersionID, "v1", "1", nil)
+		segments, err := repo.loadReleaseSegments(ctx, f.animeID, f.fansubGroupID, viewedReleaseVersionID, "v1", "1", nil)
 		require.NoError(t, err)
 
-		var found *PublicReleaseSegment
-		for i := range segments {
-			if segments[i].ThemeSegmentID == segmentID {
-				found = &segments[i]
-			}
-		}
+		found := findSegmentByID(segments, segmentID)
 		require.NotNil(t, found)
 		require.Len(t, found.Participants, 2)
 		gotMemberIDs := []int64{found.Participants[0].MemberID, found.Participants[1].MemberID}
@@ -206,28 +268,19 @@ func TestReleaseDetailPublicSegmentOriginCredits(t *testing.T) {
 	})
 
 	t.Run("Test3: Rollenkorrektur auf der Origin wirkt sich sofort auf den naechsten Aufruf aus (live)", func(t *testing.T) {
-		originID := newReleaseVersion(t)
-		segmentID := newSegment(t, &originID)
-		assignSegment(t, segmentID, viewedReleaseVersionID)
+		originID := f.newReleaseVersion(t, ctx)
+		segmentID := f.newSegment(t, ctx, &originID)
+		f.assignSegment(t, ctx, segmentID, viewedReleaseVersionID)
 
-		memberID := nextID
-		nextID++
-		newPublicContribution(t, memberID, originID, "translator")
+		memberID := f.allocID()
+		f.newContribution(t, ctx, memberID, originID, "translator")
+		f.selectContributor(t, ctx, segmentID, memberID)
 
-		findSegment := func(segments []PublicReleaseSegment) *PublicReleaseSegment {
-			for i := range segments {
-				if segments[i].ThemeSegmentID == segmentID {
-					return &segments[i]
-				}
-			}
-			return nil
-		}
-
-		before, err := repo.loadReleaseSegments(ctx, animeID, fansubGroupID, viewedReleaseVersionID, "v1", "1", nil)
+		before, err := repo.loadReleaseSegments(ctx, f.animeID, f.fansubGroupID, viewedReleaseVersionID, "v1", "1", nil)
 		require.NoError(t, err)
-		beforeSegment := findSegment(before)
+		beforeSegment := findSegmentByID(before, segmentID)
 		require.NotNil(t, beforeSegment)
-		require.Len(t, beforeSegment.Participants, 1, "vor der Korrektur: der Uebersetzer ist segmentrelevant")
+		require.Len(t, beforeSegment.Participants, 1, "vor der Korrektur: der Uebersetzer ist segmentrelevant UND ausgewaehlt")
 
 		// Korrektur direkt auf der Origin, OHNE das Segment anzufassen: die Rolle
 		// wechselt von 'translator' (segmentrelevant) auf 'encoder' (NICHT
@@ -235,98 +288,84 @@ func TestReleaseDetailPublicSegmentOriginCredits(t *testing.T) {
 		_, err = pool.Exec(ctx, `UPDATE anime_contribution_roles SET role_code = 'encoder' WHERE anime_contribution_id = (SELECT id FROM anime_contributions WHERE member_id = $1 AND release_version_id = $2)`, memberID, originID)
 		require.NoError(t, err)
 
-		after, err := repo.loadReleaseSegments(ctx, animeID, fansubGroupID, viewedReleaseVersionID, "v1", "1", nil)
+		after, err := repo.loadReleaseSegments(ctx, f.animeID, f.fansubGroupID, viewedReleaseVersionID, "v1", "1", nil)
 		require.NoError(t, err)
-		afterSegment := findSegment(after)
+		afterSegment := findSegmentByID(after, segmentID)
 		require.NotNil(t, afterSegment)
 		require.Empty(t, afterSegment.Participants, "nach der Korrektur (kein Segment-Edit!): der Beitragende ist nicht mehr segmentrelevant")
 	})
 
-	t.Run("Test4: neu hinzugefuegter Beteiligter auf der Origin erscheint beim naechsten Aufruf", func(t *testing.T) {
-		originID := newReleaseVersion(t)
-		segmentID := newSegment(t, &originID)
-		assignSegment(t, segmentID, viewedReleaseVersionID)
+	t.Run("Test4: neu hinzugefuegter, explizit ausgewaehlter Beteiligter auf der Origin erscheint beim naechsten Aufruf", func(t *testing.T) {
+		originID := f.newReleaseVersion(t, ctx)
+		segmentID := f.newSegment(t, ctx, &originID)
+		f.assignSegment(t, ctx, segmentID, viewedReleaseVersionID)
 
-		findSegment := func(segments []PublicReleaseSegment) *PublicReleaseSegment {
-			for i := range segments {
-				if segments[i].ThemeSegmentID == segmentID {
-					return &segments[i]
-				}
-			}
-			return nil
-		}
-
-		before, err := repo.loadReleaseSegments(ctx, animeID, fansubGroupID, viewedReleaseVersionID, "v1", "1", nil)
+		before, err := repo.loadReleaseSegments(ctx, f.animeID, f.fansubGroupID, viewedReleaseVersionID, "v1", "1", nil)
 		require.NoError(t, err)
-		require.Empty(t, findSegment(before).Participants)
+		require.Empty(t, findSegmentByID(before, segmentID).Participants)
 
-		newMemberID := nextID
-		nextID++
-		newPublicContribution(t, newMemberID, originID, "karaoke_fx")
+		newMemberID := f.allocID()
+		f.newContribution(t, ctx, newMemberID, originID, "karaoke_fx")
+		f.selectContributor(t, ctx, segmentID, newMemberID)
 
-		after, err := repo.loadReleaseSegments(ctx, animeID, fansubGroupID, viewedReleaseVersionID, "v1", "1", nil)
+		after, err := repo.loadReleaseSegments(ctx, f.animeID, f.fansubGroupID, viewedReleaseVersionID, "v1", "1", nil)
 		require.NoError(t, err)
-		afterSegment := findSegment(after)
+		afterSegment := findSegmentByID(after, segmentID)
 		require.Len(t, afterSegment.Participants, 1)
 		require.Equal(t, newMemberID, afterSegment.Participants[0].MemberID)
 	})
 
-	t.Run("Test5: Encoder und Quality-Checker erscheinen NIE als Segment-Credit", func(t *testing.T) {
-		originID := newReleaseVersion(t)
-		segmentID := newSegment(t, &originID)
-		assignSegment(t, segmentID, viewedReleaseVersionID)
+	t.Run("Test5: Encoder erscheint nie, Quality-Checker nur wenn explizit ausgewaehlt und aufloesbar", func(t *testing.T) {
+		originID := f.newReleaseVersion(t, ctx)
+		segmentID := f.newSegment(t, ctx, &originID)
+		f.assignSegment(t, ctx, segmentID, viewedReleaseVersionID)
 
-		encoderMemberID := nextID
-		nextID++
-		qcMemberID := nextID
-		nextID++
-		newPublicContribution(t, encoderMemberID, originID, "encoder")
-		newPublicContribution(t, qcMemberID, originID, "quality_checker")
+		encoderMemberID := f.allocID()
+		qcMemberID := f.allocID()
+		translatorMemberID := f.allocID()
+		f.newContribution(t, ctx, encoderMemberID, originID, "encoder")
+		f.newContribution(t, ctx, qcMemberID, originID, "quality_checker")
+		f.newContribution(t, ctx, translatorMemberID, originID, "translator")
+		// Alle DREI werden explizit als Segment-Contributor ausgewaehlt -- der Encoder
+		// darf trotzdem NIE erscheinen (Rollen-Katalog-Ausschluss gewinnt sogar gegen
+		// explizite Auswahl, 156-UAT.md Regressionsfall D).
+		f.selectContributor(t, ctx, segmentID, encoderMemberID)
+		f.selectContributor(t, ctx, segmentID, qcMemberID)
+		f.selectContributor(t, ctx, segmentID, translatorMemberID)
 
-		segments, err := repo.loadReleaseSegments(ctx, animeID, fansubGroupID, viewedReleaseVersionID, "v1", "1", nil)
+		segments, err := repo.loadReleaseSegments(ctx, f.animeID, f.fansubGroupID, viewedReleaseVersionID, "v1", "1", nil)
 		require.NoError(t, err)
 
-		var found *PublicReleaseSegment
-		for i := range segments {
-			if segments[i].ThemeSegmentID == segmentID {
-				found = &segments[i]
-			}
-		}
+		found := findSegmentByID(segments, segmentID)
 		require.NotNil(t, found)
-		require.Empty(t, found.Participants, "Encoder/QC sind real und oeffentlich, aber nie segmentrelevant")
+		gotMemberIDs := make([]int64, 0, len(found.Participants))
+		for _, p := range found.Participants {
+			gotMemberIDs = append(gotMemberIDs, p.MemberID)
+		}
+		require.ElementsMatch(t, []int64{qcMemberID, translatorMemberID}, gotMemberIDs, "Encoder erscheint nie, QC und Uebersetzer erscheinen (beide explizit ausgewaehlt und aufloesbar)")
 	})
 
 	t.Run("Test6: origin_release_version_id IS NULL liefert leere Participants, kein Fehler", func(t *testing.T) {
-		segmentID := newSegment(t, nil)
-		assignSegment(t, segmentID, viewedReleaseVersionID)
+		segmentID := f.newSegment(t, ctx, nil)
+		f.assignSegment(t, ctx, segmentID, viewedReleaseVersionID)
 
-		segments, err := repo.loadReleaseSegments(ctx, animeID, fansubGroupID, viewedReleaseVersionID, "v1", "1", nil)
+		segments, err := repo.loadReleaseSegments(ctx, f.animeID, f.fansubGroupID, viewedReleaseVersionID, "v1", "1", nil)
 		require.NoError(t, err)
 
-		var found *PublicReleaseSegment
-		for i := range segments {
-			if segments[i].ThemeSegmentID == segmentID {
-				found = &segments[i]
-			}
-		}
+		found := findSegmentByID(segments, segmentID)
 		require.NotNil(t, found)
 		require.NotNil(t, found.Participants)
 		require.Empty(t, found.Participants)
 	})
 
 	t.Run("Test7: Type entspricht CanonicalSegmentType, kein roher Passthrough", func(t *testing.T) {
-		segmentID := newSegment(t, nil)
-		assignSegment(t, segmentID, viewedReleaseVersionID)
+		segmentID := f.newSegment(t, ctx, nil)
+		f.assignSegment(t, ctx, segmentID, viewedReleaseVersionID)
 
-		segments, err := repo.loadReleaseSegments(ctx, animeID, fansubGroupID, viewedReleaseVersionID, "v1", "1", nil)
+		segments, err := repo.loadReleaseSegments(ctx, f.animeID, f.fansubGroupID, viewedReleaseVersionID, "v1", "1", nil)
 		require.NoError(t, err)
 
-		var found *PublicReleaseSegment
-		for i := range segments {
-			if segments[i].ThemeSegmentID == segmentID {
-				found = &segments[i]
-			}
-		}
+		found := findSegmentByID(segments, segmentID)
 		require.NotNil(t, found)
 		require.Equal(t, CanonicalSegmentType("OP1"), found.Type)
 		require.Equal(t, "OP", found.Type)

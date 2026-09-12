@@ -36,14 +36,20 @@ import (
 
 // phase156SegmentOriginConstantQueryBudget is the enforced constant number of
 // SQL queries a single loadReleaseSegments call issues, INDEPENDENT of how
-// many segments the release has or how many contributors each segment's
-// origin release version carries: one query for the segment-assignment scan
-// (loadReleaseSegments' own SELECT), one bundled query for the origin credits
-// (loadPublicEffectiveContributors, called once for the whole deduplicated
-// origin set), and one bundled query for AppliesThroughEpisode -- observed
-// and pinned below. Update this constant ONLY for an intentional, documented
-// loader change.
-const phase156SegmentOriginConstantQueryBudget = 3
+// many segments the release has, how many contributors each segment's origin
+// release version carries, or how many segments have an explicit
+// theme_segment_contributors selection: one query for the segment-assignment
+// scan (loadReleaseSegments' own SELECT), one bundled query for the origin
+// credits (loadPublicEffectiveContributors, called once for the whole
+// deduplicated origin set), one bundled query for the explicit segment-
+// contributor selection (loadThemeSegmentContributorSelections, called once
+// for the whole segment set -- added by Plan 156-13/156-UAT.md GAP-01 so the
+// public projection can intersect role-relevance with explicit selection
+// instead of showing every role-relevant Origin contributor unconditionally),
+// and one bundled query for AppliesThroughEpisode -- observed and pinned
+// below. Update this constant ONLY for an intentional, documented loader
+// change.
+const phase156SegmentOriginConstantQueryBudget = 4
 
 // openTracedPoolOnSameSchema opens a SECOND *pgxpool.Pool against the same DSN
 // and the exact isolated schema that fixturePool (opened via
@@ -192,25 +198,48 @@ func TestLoadReleaseSegmentsQueryBudgetIsConstant(t *testing.T) {
 		require.NoError(t, err)
 	}
 
-	// --- Small scenario: 1 release version, 1 segment, 1 origin with 1 contributor ---
+	// selectSegmentContributor inserts a theme_segment_contributors row (Plan 156-12) --
+	// the explicit per-segment selection that Plan 156-13 gates the public projection on.
+	selectSegmentContributor := func(t *testing.T, segmentID, memberID int64) {
+		t.Helper()
+		_, err := pool.Exec(ctx, `INSERT INTO theme_segment_contributors (theme_segment_id, member_id) VALUES ($1, $2)`, segmentID, memberID)
+		require.NoError(t, err)
+	}
+
+	// --- Small scenario: 1 release version, 1 segment, 1 origin with 1
+	// contributor, EXPLICITLY selected -- proves the new bundled selection
+	// query participates in the scan and yields a matching row. ---
 	smallViewedReleaseVersionID := newReleaseVersion(t)
 	smallOriginID := newReleaseVersion(t)
 	smallSegmentID := newSegment(t, smallOriginID)
 	assignSegment(t, smallSegmentID, smallViewedReleaseVersionID)
-	newPublicContribution(t, nextID, smallOriginID, "translator")
+	smallMemberID := nextID
 	nextID++
+	newPublicContribution(t, smallMemberID, smallOriginID, "translator")
+	selectSegmentContributor(t, smallSegmentID, smallMemberID)
 
 	// --- Large scenario: 1 release version, 3 segments, 3 DISTINCT origins,
-	// each origin with 2 contributors ---
+	// each origin with 2 contributors. The first two segments explicitly
+	// select BOTH their origin's contributors; the third segment selects
+	// NEITHER -- proving the bundled selection query participates in the scan
+	// regardless of whether it returns any row for a given segment (T-156-27),
+	// and that zero selection means zero credits even though the origin has
+	// two real, role-relevant contributors (156-UAT.md GAP-01 Case I/J). ---
 	largeViewedReleaseVersionID := newReleaseVersion(t)
 	for i := 0; i < 3; i++ {
 		originID := newReleaseVersion(t)
 		segmentID := newSegment(t, originID)
 		assignSegment(t, segmentID, largeViewedReleaseVersionID)
-		newPublicContribution(t, nextID, originID, "translator")
+		translatorID := nextID
 		nextID++
-		newPublicContribution(t, nextID, originID, "timer")
+		newPublicContribution(t, translatorID, originID, "translator")
+		timerID := nextID
 		nextID++
+		newPublicContribution(t, timerID, originID, "timer")
+		if i < 2 {
+			selectSegmentContributor(t, segmentID, translatorID)
+			selectSegmentContributor(t, segmentID, timerID)
+		}
 	}
 
 	counter := &queryCounter{}
@@ -221,14 +250,19 @@ func TestLoadReleaseSegmentsQueryBudgetIsConstant(t *testing.T) {
 	smallSegments, err := repo.loadReleaseSegments(ctx, animeID, fansubGroupID, smallViewedReleaseVersionID, "v1", "1", nil)
 	require.NoError(t, err)
 	require.Len(t, smallSegments, 1, "small scenario must return exactly its one seeded segment")
+	require.Len(t, smallSegments[0].Participants, 1, "small scenario's one explicitly selected contributor must resolve")
 	smallCount := counter.count()
 
 	counter.reset()
 	largeSegments, err := repo.loadReleaseSegments(ctx, animeID, fansubGroupID, largeViewedReleaseVersionID, "v1", "1", nil)
 	require.NoError(t, err)
 	require.Len(t, largeSegments, 3, "large scenario must return exactly its three seeded segments")
-	for _, segment := range largeSegments {
-		require.Len(t, segment.Participants, 2, "each large-scenario segment must resolve its own origin's 2 contributors")
+	for i, segment := range largeSegments {
+		if i < 2 {
+			require.Len(t, segment.Participants, 2, "each fully-selected large-scenario segment must resolve its own origin's 2 explicitly selected contributors")
+		} else {
+			require.Empty(t, segment.Participants, "the zero-selection large-scenario segment must show zero credits even though its origin has 2 real contributors")
+		}
 	}
 	largeCount := counter.count()
 

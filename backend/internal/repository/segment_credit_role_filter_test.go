@@ -39,9 +39,14 @@ func TestSegmentCreditRoleFilter(t *testing.T) {
 			want:      false,
 		},
 		{
-			name:      "quality_checker-only is excluded exactly like encoder",
+			name:      "quality_checker-only is included (segment-relevant per Plan 156-12's catalog extension -- actual appearance is gated by explicit selection elsewhere, not by this role-catalog check)",
 			roleCodes: []string{permissions.RoleQualityChecker},
-			want:      false,
+			want:      true,
+		},
+		{
+			name:      "editor-only is included (segment-relevant per Plan 156-12's catalog extension -- actual appearance is gated by explicit selection elsewhere, not by this role-catalog check)",
+			roleCodes: []string{permissions.RoleEditor},
+			want:      true,
 		},
 		{
 			name:      "mixed encoder+translator is included -- any overlapping relevant role includes the contributor (T-156-13)",

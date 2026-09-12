@@ -92,11 +92,13 @@ func (r *ReleaseDetailPublicRepository) countImagesByCategory(ctx context.Contex
 //
 // Credits (Participants) kommen dynamisch von der ORIGIN-Release-Version jedes
 // Segments (ts.origin_release_version_id, Plan 156-01/156-04), gefiltert auf
-// permissions.SegmentCreditRoleCodes (P156-07/P156-08/P156-09) -- NICHT mehr von den
-// eigenen Beteiligten der betrachteten Release-Version per Label-Substring-Heuristik.
-// Der contributors-Parameter bleibt aus Kompatibilitaetsgruenden im Signaturprofil
-// erhalten (siehe GetPublicReleaseDetail-Aufrufstelle), wird in dieser Funktion aber
-// nicht mehr gelesen.
+// permissions.SegmentCreditRoleCodes (P156-07/P156-08/P156-09) UND (seit Plan 156-13,
+// 156-UAT.md GAP-01) zusaetzlich auf die explizite theme_segment_contributors-Auswahl
+// des Segments -- ein Origin-Beteiligter erscheint nur, wenn beide Bedingungen
+// zutreffen. NICHT mehr von den eigenen Beteiligten der betrachteten Release-Version
+// per Label-Substring-Heuristik. Der contributors-Parameter bleibt aus
+// Kompatibilitaetsgruenden im Signaturprofil erhalten (siehe GetPublicReleaseDetail-
+// Aufrufstelle), wird in dieser Funktion aber nicht mehr gelesen.
 func (r *ReleaseDetailPublicRepository) loadReleaseSegments(ctx context.Context, animeID, groupID, releaseVersionID int64, version, episodeNumber string, contributors []PublicReleaseContributor) ([]PublicReleaseSegment, error) {
 	rows, err := r.db.Query(ctx, `SELECT ts.id, COALESCE(NULLIF(TRIM(t.title),''),tt.name), tt.name, ts.origin_release_version_id, EXTRACT(EPOCH FROM ts.start_time)::int, EXTRACT(EPOCH FROM ts.end_time)::int, CASE WHEN ts.start_time IS NOT NULL AND ts.end_time IS NOT NULL THEN EXTRACT(EPOCH FROM (ts.end_time-ts.start_time))::int END, CASE WHEN cache.status='ready' THEN 'ready' ELSE 'unavailable' END FROM theme_segment_assignments tsa JOIN theme_segments ts ON ts.id=tsa.theme_segment_id JOIN themes t ON t.id=ts.theme_id JOIN theme_types tt ON tt.id=t.theme_type_id LEFT JOIN theme_segment_playback_sources src ON src.theme_segment_id=ts.id AND src.release_version_id=tsa.release_version_id LEFT JOIN LATERAL (SELECT status FROM theme_segment_render_cache WHERE theme_segment_id=ts.id ORDER BY id DESC LIMIT 1) cache ON TRUE WHERE tsa.release_version_id=$1 ORDER BY ts.start_time NULLS LAST,ts.id`, releaseVersionID)
 	if err != nil {
