@@ -9,6 +9,13 @@
 // ein winziger Reverse-Proxy auf 127.0.0.1:3300 gestartet, der auf 127.0.0.1:3000 zeigt:
 // der Seiten-Origin ist damit echt 127.0.0.1:3300, CORS greift wie beim Auftraggeber,
 // und es wird KEIN Header gefaelscht.
+//
+// Plan 157-06 (Testmatrix/Live-UAT, Workstream I) erweitert die urspruengliche facts-Struktur
+// (Plan 157-01/gathering) um konkrete, screenshot-unabhaengige Kennzahlen fuer die
+// Beitragszusammenfassung, die Statistikleiste, den aktiven Tab, die Medien-/Releases-Pager-
+// Texte und -- per P157-13 -- die tatsaechlich berechnete Rollenfarbe je Notiz-Eintrag. Das
+// bestehende Ausgabeformat (ein JSON-Objekt pro Viewport, nach stdout) bleibt unveraendert;
+// es werden nur zusaetzliche Felder in `facts` angehaengt.
 import http from 'node:http'
 import { mkdirSync } from 'node:fs'
 import { chromium } from 'playwright'
@@ -79,6 +86,57 @@ try {
       const media = document.getElementById('bilder')
       const releases = document.getElementById('releases')
       const h = (el) => (el ? Math.round(el.getBoundingClientRect().height) : null)
+
+      // Workstream A -- Hero: beide Aktionsbuttons nebeneinander (D-16 + allgemeines Profil).
+      const heroSection = document.querySelector('section[aria-label="Projekt-Mitwirkung"]')
+      const heroButtonLabels = heroSection
+        ? Array.from(heroSection.querySelectorAll('a,button')).map((n) =>
+            (n.textContent || '').trim(),
+          )
+        : []
+
+      // Workstream B -- Statistikleiste: EINE Karte, vier Eintraege (nicht vier Boxen).
+      const statBarEntryCount = document.querySelectorAll('[class*="summaryEntry"]').length
+
+      // Workstream C -- Tab-Nav: welcher Pill traegt aktuell den Aktivzustand.
+      const activePillEl = document.querySelector('[class*="stickyNavItemActive"]')
+      const activeNavPill = activePillEl ? (activePillEl.textContent || '').trim() : null
+
+      // Workstream D -- Beitragszusammenfassung-Band (liest den echten episodes-Count aus 157-01).
+      const bandEl = document.querySelector('[class*="ProjectMemberSummaryBand"]')
+      const summaryBandText = bandEl ? (bandEl.textContent || '').trim() : null
+
+      // Workstream E/F -- Notizen-Timeline: Rollenname-Wiederholung soll auf 0 fallen (Single-Role
+      // Member "Type"), Pager-Text bleibt sichtbar wo er Information traegt.
+      const roleRepeatsInNotes = notes
+        ? ((notes.textContent || '').match(/Typesetting/g) || []).length
+        : null
+      const noteEntryCount = notes
+        ? notes.querySelectorAll('article, [data-note-entry]').length
+        : null
+      const pagerTexts = notes ? texts('#texte [class*="pager"], #texte [class*="Pager"]') : null
+
+      // P157-13 -- Rollenfarbe MUSS an jedem Eintrag sichtbar bleiben (data-color-key ->
+      // --role-accent -> border-inline-start-color), unabhaengig von hasMultipleRoles.
+      const noteAccentColorSamples = Array.from(document.querySelectorAll('[data-note-entry]')).map(
+        (el) => ({
+          colorKey: el.getAttribute('data-color-key'),
+          borderInlineStartColor: getComputedStyle(el).borderInlineStartColor,
+        }),
+      )
+
+      // Workstream G -- Medien: "Alle N angezeigt" soll verschwinden, sobald alles geladen ist.
+      const mediaText = media ? (media.textContent || '') : ''
+      const mediaAllShownTextPresent = /Alle\s+\d+\s+angezeigt/.test(mediaText)
+
+      // Workstream H -- Releases: kompakter Empty-State statt Doppelinformation bei 0.
+      const releasesText = releases ? (releases.textContent || '').trim() : ''
+      const releasesEmptyStateText = releasesText.includes(
+        'Noch keine öffentlichen Release-Einträge.',
+      )
+        ? 'Noch keine öffentlichen Release-Einträge.'
+        : null
+
       return {
         docHeight: document.documentElement.scrollHeight,
         horizontalOverflow:
@@ -88,17 +146,17 @@ try {
         notesSectionHeight: h(notes),
         mediaSectionHeight: h(media),
         releasesSectionHeight: h(releases),
-        // Wie oft taucht der Rollenname im Notizbereich auf? >0 = Rolle pro Beitrag wiederholt.
-        roleRepeatsInNotes: notes
-          ? ((notes.textContent || '').match(/Typesetting/g) || []).length
-          : null,
-        noteEntryCount: notes
-          ? notes.querySelectorAll('article, [data-note-entry]').length
-          : null,
-        pagerTexts: notes
-          ? texts('#texte [class*="pager"], #texte [class*="Pager"]')
-          : null,
-        releasesText: releases ? (releases.textContent || '').trim().slice(0, 200) : null,
+        heroButtonLabels,
+        statBarEntryCount,
+        activeNavPill,
+        summaryBandText,
+        roleRepeatsInNotes,
+        noteEntryCount,
+        pagerTexts,
+        noteAccentColorSamples,
+        mediaAllShownTextPresent,
+        releasesEmptyStateText,
+        releasesText: releasesText.slice(0, 200),
       }
     })
 
