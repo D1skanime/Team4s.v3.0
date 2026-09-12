@@ -110,3 +110,8 @@ None - no external service configuration required.
 ---
 *Phase: 157-projekt-memberseite-visuelles-referenzdesign*
 *Completed: 2026-09-12*
+
+## Self-Check: PASSED
+
+All created/modified files confirmed present on disk; both task commits (4402c5d1, 81dcddb4)
+and this summary's own commit (027e08ab) confirmed present in `git log --oneline --all`.
