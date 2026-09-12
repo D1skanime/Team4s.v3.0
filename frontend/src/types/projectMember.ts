@@ -6,6 +6,7 @@ export interface ProjectMemberCounts {
   notes: number
   media: number
   releases: number
+  episodes: number
 }
 
 export interface ProjectMemberSummary {
