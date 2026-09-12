@@ -6,6 +6,7 @@ package handlers
 
 import (
 	"context"
+	"encoding/json"
 	"net/http"
 	"net/http/httptest"
 	"os"
@@ -19,13 +20,14 @@ import (
 )
 
 type recordingProjectMemberLoader struct {
-	events        *[]string
-	relation      bool
-	relationCalls int
-	summaryCalls  int
-	notesCalls    int
-	mediaCalls    int
-	releaseCalls  int
+	events          *[]string
+	relation        bool
+	relationCalls   int
+	summaryCalls    int
+	notesCalls      int
+	mediaCalls      int
+	releaseCalls    int
+	summaryEpisodes int
 }
 
 func (r *recordingProjectMemberLoader) HasMemberRelation(_ context.Context, _, _, _ int64) (bool, error) {
@@ -37,7 +39,7 @@ func (r *recordingProjectMemberLoader) HasMemberRelation(_ context.Context, _, _
 func (r *recordingProjectMemberLoader) GetSummary(_ context.Context, _, _, _ int64) (*repository.ProjectMemberSummary, error) {
 	r.summaryCalls++
 	*r.events = append(*r.events, "summary")
-	return &repository.ProjectMemberSummary{}, nil
+	return &repository.ProjectMemberSummary{Counts: repository.ProjectMemberCounts{Episodes: r.summaryEpisodes}}, nil
 }
 
 func (r *recordingProjectMemberLoader) ListNotes(_ context.Context, _, _, _ int64, _ string, _ int) ([]repository.ProjectMemberNote, *string, bool, error) {
@@ -153,6 +155,32 @@ func TestProjectMemberOwnerPreviewResolvesRelationBeforeDetail(t *testing.T) {
 			require.Equal(t, "private, no-store", recorder.Header().Get("Cache-Control"))
 		})
 	}
+}
+
+// TestProjectMemberGetSummary_ReturnsEpisodesCount beweist, genuine ueber httptest ausgefuehrt
+// (Phase 157, Workstream D), dass das additive `episodes`-Feld tatsaechlich in der realen
+// GetSummary-JSON-Antwort ankommt -- nicht per os.ReadFile/strings.Contains auf den eigenen
+// Handler-Quelltext, sondern durch echten Aufruf von handler.GetSummary und Pruefung des
+// tatsaechlichen Response-Bodys (Teststil-konform, analog
+// admin_content_anime_theme_segment_origin_test.go).
+func TestProjectMemberGetSummary_ReturnsEpisodesCount(t *testing.T) {
+	gin.SetMode(gin.TestMode)
+	events := []string{}
+	resolver := &recordingPublicMemberAccessResolver{
+		access: repository.PublicMemberAccess{MemberID: 17, Slug: "private-member", IsOwner: true, IsPrivatePreview: true},
+		events: &events,
+	}
+	loader := &recordingProjectMemberLoader{events: &events, relation: true, summaryEpisodes: 13}
+	handler := NewProjectMemberPublicHandler(resolver, loader, "/media")
+	recorder, c := projectMemberRequestContext()
+
+	handler.GetSummary(c)
+
+	require.Equal(t, http.StatusOK, recorder.Code)
+
+	var body repository.ProjectMemberSummary
+	require.NoError(t, json.Unmarshal(recorder.Body.Bytes(), &body))
+	require.Equal(t, 13, body.Counts.Episodes)
 }
 
 func TestProjectMemberMissingRelationUsesNeutralUnavailable(t *testing.T) {
