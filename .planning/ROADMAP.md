@@ -1592,7 +1592,7 @@ ausdruecklich **kein** visuelles Redesign und kopiert keine Credits in Segmentta
 
 **Depends on:** Phase 155
 
-**Plans:** 13/15 plans executed
+**Plans:** 14/15 plans executed
 
 Plans:
 
@@ -1631,7 +1631,7 @@ Plans:
 
 - [x] 156-12-PLAN.md — GAP-01 Segment-Contributors: Datenmodell (Migration 0162), Rollenkatalog-Erweiterung (editor/quality_checker), validierte Reconcile-Schreibpfad + atomarer Origin-Wechsel-Cleanup
 - [x] 156-13-PLAN.md — GAP-01 oeffentliche Projektion (explizite Auswahl als Schnittmenge, Query-Budget erweitert, Regressionsmatrix A-J) + Admin-GET/PUT-Endpunkte
-- [ ] 156-14-PLAN.md — GAP-01 Admin-UI: Dateigroessen-Extraktion (SegmentEditPanel.tsx/SegmenteTab.tsx) + „Mitwirkende am Segment"-Mehrfachauswahl
+- [x] 156-14-PLAN.md — GAP-01 Admin-UI: Dateigroessen-Extraktion (SegmentEditPanel.tsx/SegmenteTab.tsx) + „Mitwirkende am Segment"-Mehrfachauswahl
 - [ ] 156-15-PLAN.md — Vollstaendiger Phase-156-Regressionslauf + gebuendelter Live-UAT-Checkpoint (GAP-02: 5 Origin- + 9 Segment-Contributor-Pruefpunkte)
 
 **Plan-time read first**: `.planning/phases/156-segment-domain-konsistenz-und-oeffentliche-release-projektion/156-USER-REQUEST.md`,

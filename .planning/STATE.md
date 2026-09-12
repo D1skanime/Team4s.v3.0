@@ -3,14 +3,14 @@ gsd_state_version: 1.0
 milestone: v1.4
 milestone_name: Coverage
 status: executing
-stopped_at: 156-13-PLAN.md complete (GAP-01 public-projection gate + admin contributors endpoints); Phase 156 has TWO explicit open items (156-11 Task 2 live-UAT, GAP-02 combined live-UAT still pending 156-14/156-15), see deferred-items.md -- not fully accepted
-last_updated: "2026-09-12T09:15:00.000Z"
+stopped_at: 156-14-PLAN.md complete (GAP-01 admin UI -- "Mitwirkende am Segment" multi-select wired to 156-13's endpoints); Phase 156 has TWO explicit open items (156-11 Task 2 live-UAT, GAP-02 combined live-UAT still pending 156-15), see deferred-items.md -- not fully accepted
+last_updated: "2026-09-12T11:25:00.000Z"
 last_activity: 2026-09-12
 progress:
   total_phases: 21
   completed_phases: 20
   total_plans: 206
-  completed_plans: 204
+  completed_plans: 205
   percent: 95
 ---
 
@@ -35,8 +35,34 @@ See: .planning/PROJECT.md (updated 2026-08-13)
 
 Phase: 156 (segment-domain-konsistenz-und-oeffentliche-release-projektion) — EXECUTING
 AUSGEFUEHRT; automatisiert/funktional abgeschlossen, ABER NICHT vollstaendig abgenommen
-Plan: 13 of 15
-Status: Executing Phase 156 -- GAP-01 gap-closure in progress (156-12/156-13 done, 156-14/156-15 offen)
+Plan: 14 of 15
+Status: Executing Phase 156 -- GAP-01 gap-closure in progress (156-12/156-13/156-14 done, 156-15 offen)
+
+Plan 156-14 (2026-09-12) abgeschlossen: GAP-01s einzige nutzersichtbare Oberflaeche --
+das "Mitwirkende am Segment"-Mehrfachauswahlfeld -- ist jetzt an Plan 156-13s bereits
+laufende GET/PUT-Endpunkte angebunden. Vor jedem neuen Feature-Code wurden beide von
+156-UAT.md als ueberlang benannten Dateien per reinem Code-Motion-Refactor unter die
+450-Zeilen-Grenze gebracht: `SegmentEditPanel.tsx` 733 -> 375 Zeilen (vier Extraktionen:
+`SegmentOverrideField.tsx`, `SegmentPlaybackPreviewSection.tsx`, `SegmentAssetSection.tsx`,
+`SegmentBasicFieldsSection.tsx` -- die vierte war noetig, weil die drei im Plan genannten
+Extraktionen allein bei 479 Zeilen stehen blieben), `SegmenteTab.tsx` 827 -> 412 Zeilen
+(drei Extraktionen: `SegmenteTab.formHelpers.ts`, `SegmentsListSection.tsx`,
+`useSegmentAssetHandlers.ts`). Beide Refactors sind reine Codeverschiebung ohne
+Verhaltensaenderung, bewiesen durch die unveraendert gruene `SegmenteTab`-Testsuite
+(83/83) nach jedem Schritt. Danach: `frontend/src/lib/api/segment-contributors.ts`
+(dediziertes API-Modul nach dem `admin-anime-intake.ts`-Praezedenzfall, `api.ts` gewinnt
+null neue Zeilen) plus `SegmentContributorsField.tsx`/`useSegmentContributors.ts` --
+ausschliesslich `@/components/ui`-Primitives (`Switch`/`SectionHeader`/`EmptyState`),
+korrekte Umlaute, "keine Auswahl" ist ein eigenstaendiger, per explizitem leeren
+`member_ids`-Array speicherbarer Zustand (156-UAT.md Nachtrag 2026-09-12), nie mit
+"unveraendert lassen" verwechselt. Test-first: 5 neue API-Modultests plus 4 neue
+`SegmenteTab`-Integrationstests, volle Frontend-Suite gruen (2314 bestanden, vorher
+2305). Zwei dokumentierte Abweichungen: die vierte Extraktionsdatei (s.o.) sowie eine
+bewusste, begruendete Ergaenzung von `eslint.config.mjs`s eingefrorener
+Altfaelle-Liste um die zwei neuen Dateien, die vorbestehende native Formularelemente aus
+dem bereits gelisteten `SegmentEditPanel.tsx` unveraendert weitertragen (keine neuen
+Verstoesse). `gsd-sdk query roadmap.update-plan-progress "156" "156-14" "complete"`
+ausgefuehrt. Details: 156-14-SUMMARY.md.
 
 Plan 156-13 (2026-09-12) abgeschlossen: die explizite Segment-Contributor-Auswahl aus
 Plan 156-12 (`theme_segment_contributors`) steuert jetzt tatsaechlich die oeffentliche
