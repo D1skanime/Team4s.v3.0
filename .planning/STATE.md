@@ -33,6 +33,16 @@ See: .planning/PROJECT.md (updated 2026-08-13)
 
 ## Current Position
 
+Phase: 157
+Plan: Not started
+Status: Phase 157 angelegt, bereit fuer plan-phase
+
+Phase 157 wurde additiv an die Roadmap angehaengt (Milestone v1.4 bleibt als abgeschlossen dokumentiert, kein Milestone-Reset). Auftragsquelle: `.planning/phases/157-projekt-memberseite-visuelles-referenzdesign/157-USER-REQUEST.md`, Kontext: `157-CONTEXT.md` (ersetzt eine interaktive discuss-phase-Sitzung, enthaelt Implementation Map, gemessenen Ist-Zustand und die Referenz-Spezifikation in Worten).
+
+Phase 156 bleibt mit EINEM offenen Punkt bestehen: der gebuendelte Live-UAT-Checkpoint (Segment-Origin + Segment-Contributors), siehe deferred-items.md. `main` ist zudem nicht nach `origin/main` gepusht.
+
+### Vorherige Position
+
 Phase: 156 (segment-domain-konsistenz-und-oeffentliche-release-projektion) — AUSGEFUEHRT
 AUSGEFUEHRT; automatisiert/funktional abgeschlossen, ABER NICHT vollstaendig abgenommen
 Plan: 15 of 15 (alle Plaene ausgefuehrt)

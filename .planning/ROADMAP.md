@@ -429,6 +429,7 @@ Milestone v1.4 closes Live-UAT Findings #29-#32 by making effective group rights
 - [x] **Phase 154: Public-Member-Profil: Aggregator-Duplikate, Bildbudget und Viewer-Aufloesung** - Die verbliebenen P2-Befunde der Messreihe vom 2026-09-09 sind geschlossen: vier redundante Faktenabfragen im Profil-Aggregator, ungegatetes Locked-Artwork samt schwerem Original-Fallback und die zu breite Viewer-Aufloesung ohne durchgereichtes Abbruchsignal. Dazu zwei Nachmessungen, die erst nach der Graphverkleinerung moeglich sind. (completed 2026-09-10)
 - [x] **Phase 155: Public-Fansub-Projektseite: Read-Model, Drill-down-Navigation und Query-Budget** - Die oeffentliche Fansub-Projektseite laedt ueber einen gezielten Project Resolver, eine schlanke Contributor-Summary und entflochtene Release-Pfade, ohne doppelten Profil-Load und ohne Vollinventar-Abfragen; Member-Klicks fuehren kanonisch auf die Projekt-Member-Route. (completed 2026-09-11)
 - [x] **Phase 156: Segment-Domain-Konsistenz und oeffentliche Release-Projektion** - `theme_segment_assignments` wird die kanonische Release-Segment-Wahrheit, Bereichsaenderungen und spaetere Releases halten die Assignments konsistent, Segment-Credits werden ueber stabile Rollen-Codes dynamisch aus einer korrigierbaren, um ein personenbezogenes Contributor-Subset (GAP-01) erweiterten Segment-Origin projiziert, und Projekt- wie Release-Seite lesen dieselbe Wahrheit. (automatisiert/funktional abgeschlossen 2026-09-12, voller Regressionslauf 156-15 gruen -- NICHT vollstaendig abgenommen: der gebuendelte Live-UAT-Checkpoint aus GAP-02 (5 Origin- + 9 Segment-Contributor-Pruefpunkte, 156-UAT.md) bleibt offen, siehe deferred-items.md)
+- [ ] **Phase 157: Projekt-Memberseite visuell auf Referenzdesign umbauen** - Die oeffentliche Projekt-Member-Seite folgt dem Referenzdesign des Auftraggebers: kompakter Profilkopf, eine Statistikleiste statt vier Karten, Tab-Navigation mit Aktivzustand, Beitragszusammenfassung, Notizen als kompakte Timeline ohne redundanten Rollen-Header und ein kompakter Releases-Empty-State.
 
 ## Phase Details
 
@@ -1646,3 +1647,54 @@ Plans:
 **UI hint**: nein — Domain-, Datenmodell- und Projektionsphase. Bestehende Komponenten bleiben
 erhalten; UI aendert sich nur dort, wo neue fachliche Semantik sichtbar gemacht werden muss
 („gilt Folge 1–10", „seit Folge 1", Credits, Origin). `plan-phase` daher mit `--skip-ui` fahren.
+
+### Phase 157: Projekt-Memberseite visuell auf Referenzdesign umbauen
+
+**Goal:** Die oeffentliche Projekt-Member-Seite entspricht in Informationshierarchie, Reihenfolge,
+Kartengroessen, Abstaenden und Typografie dem vom Auftraggeber beigefuegten Referenzdesign: kompakter
+Profilkopf, eine Statistikleiste statt vier Karten, Tab-Navigation mit Aktivzustand, eine
+Beitragszusammenfassung, Notizen als kompakte Timeline **ohne** redundanten Rollen-Header je
+Beitrag, Medienbereich nach Referenz und ein kompakter Releases-Empty-State — bei unveraenderter
+fachlicher Semantik.
+
+**Requirements**: P157-01, P157-02, P157-03, P157-04, P157-05, P157-06, P157-07, P157-08, P157-09,
+P157-10, P157-11, P157-12
+
+**Requirement-Definitionen** (Phasen-eigener Tracking-Namespace, Quelle: `157-USER-REQUEST.md`):
+
+| ID | Auftragsabschnitt | Inhalt |
+|----|-------------------|--------|
+| P157-01 | 1 | Hero mit Avatar links, Name/Verifiziert/Projektzeile/Rollen-Chip rechts, beide Aktionsbuttons nebeneinander (auf schmalen Screens stapelnd); angezeigte Daten unveraendert |
+| P157-02 | 2 | Eine kompakte Statistikleiste mit Icon+Zahl+Label in Referenz-Reihenfolge (Rolle, Beitraege, Medien, Releases), korrekter Singular/Plural; keine vier grossen Boxen |
+| P157-03 | 3 | Tab-/Jump-Navigation kompakt mit sichtbar hervorgehobenem aktivem Bereich; bestehende Anchor-/Scroll-Mechanik wiederverwendet; kein Abschneiden auf 390 px |
+| P157-04 | 4 | Beitragszusammenfassung „Rolle fuer N Folgen · M dokumentierte Arbeitsnotizen · K Medien"; der Folgen-Zaehler ist definiert als Folgen mit mindestens einer oeffentlichen Notiz ODER einem oeffentlichen Medium, gebildet mit den vorhandenen Public-Praedikaten — keine erfundene Zahl |
+| P157-05 | 5 | Notizen als kompakte Timeline-Zeilen: Meta-Zeile Folge · Version · Datum, Titel darunter, 2–4 Zeilen Text, optional „Mehr anzeigen"; kein Rollen-Header, keine doppelte Folgenangabe, keine grossen farbigen Karten |
+| P157-06 | 6 | Bei genau einer Projektrolle erscheint die Rolle nur im Header; bei mehreren Rollen ist ein kleiner Chip in der Meta-Zeile zulaessig; keine Wiederholung ohne Mehrwert |
+| P157-07 | 7 | Pager nennt die tatsaechliche naechste Anzahl („Weitere N Beitraege anzeigen") neben „X von Y angezeigt"; bestehende Lazy-Load-Mechanik unveraendert |
+| P157-08 | 8 | Medienbereich nach Referenz: Kopfzeile mit Anzahl rechts, responsive Galerie mit Bild, Titel, Folge/Version; bestehende Lightbox und Medienlogik unveraendert |
+| P157-09 | 9 | Bei 0 Releases kompakter Empty-State statt grosser Leerflaeche; keine Doppelinformation aus Zaehler und „Alle 0 angezeigt" |
+| P157-10 | 10, 11 | Informationshierarchie Person → Rolle → Umfang → Beitraege → Medien → Releases; sauberes Verhalten von 320 bis 1440 px ohne horizontale Scrollbar |
+| P157-11 | 12, 13 | Team4s-Designsprache und globale Primitives/Tokens erhalten, keine neuen Tokens; keine Regression bei Sichtbarkeit, Slug-Verlinkung, Release-Zuordnung, Medien-Sichtbarkeit, Pagination, API-Semantik, Rollenberechnung; keine Backend-Parallelstruktur |
+| P157-12 | 15, 16, 17 | Testmatrix angepasst statt geloescht und vollstaendig gruen; Live-UAT mit Vorher/Nachher-Screenshots (Header+Statistik, Beitraege, Medien, Releases, Desktop, schmaler Viewport) gegen die Referenz geprueft und Abweichungen dokumentiert |
+
+**Faktenbasis:** `157-USER-REQUEST.md` als verbindliche Auftragsquelle, `157-CONTEXT.md` mit
+Implementation Map, gemessenem Ist-Zustand und der Referenz-Spezifikation in Worten (das Bild liegt
+Executoren nicht vor). Live gemessen am 2026-09-12 auf
+`/fansubs/new-subs/fansubprojekt/buddy-complex/mitwirkende/type`: Dokumenthoehe 2996 px mobil /
+2746 px Desktop, Notizbereich 1649 px fuer 5 Notizen, der Rollenname erscheint **einmal pro Notiz**
+(5× mobil, 12× Desktop), die Releases-Sektion liest wortwoertlich „Mitwirkung an Releases0Alle 0
+angezeigt", die Beitragszusammenfassung fehlt vollstaendig, die Statistik sind vier grosse Karten
+und die Tab-Reihe hat keinen Aktivzustand. Der Folgen-Zaehler der Referenz („13 Folgen") ist
+reproduzierbar: mit dem kanonischen Public-Praedikat hat der Member 12 oeffentliche Notizen in 12
+Folgen und 2 Medien in 2 Folgen, die Vereinigung ergibt **13**.
+
+**Einordnung:** UI-/Layoutphase mit genau **einer** additiven Backend-Ergaenzung (ein zusaetzlicher
+`episodes`-Count im vorhandenen Summary-Endpunkt, gebildet mit den vorhandenen Public-Praedikaten).
+Die geteilte `PublicNoteCard` wird ausdruecklich **nicht** angefasst — sie beliefert auch die
+Release-Notizliste, wo der Rollen-Header fachlich richtig ist.
+
+**Depends on:** Phase 156
+
+**UI hint**: ja — der beigefuegte Referenz-Screenshot IST die visuelle Acceptance-Referenz und ist in
+`157-CONTEXT.md` als Spezifikation in Worten hinterlegt. Eine zusaetzliche UI-SPEC-Runde ist damit
+nicht erforderlich; `plan-phase` mit `--skip-ui` fahren.
