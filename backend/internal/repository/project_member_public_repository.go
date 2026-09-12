@@ -27,6 +27,10 @@ type ProjectMemberCounts struct {
 	Notes    int `json:"notes"`
 	Media    int `json:"media"`
 	Releases int `json:"releases"`
+	// Episodes ist additiv (Phase 157, Workstream D): Anzahl der Folgen, zu denen dieser
+	// Member in diesem Projekt mindestens einen oeffentlichen Textbeitrag ODER ein
+	// oeffentliches Medium hat. Gebildet aus countEpisodes, siehe dort.
+	Episodes int `json:"episodes"`
 }
 
 // ProjectMemberSummary sind Hero-Daten + Rollen + Counts fuer die Projekt-Member-Seite.
@@ -183,6 +187,9 @@ func (r *ProjectMemberPublicRepository) GetSummary(ctx context.Context, animeID,
 	if s.Counts.Releases, err = r.countReleases(ctx, animeID, groupID, memberID); err != nil {
 		return nil, err
 	}
+	if s.Counts.Episodes, err = r.countEpisodes(ctx, animeID, groupID, memberID); err != nil {
+		return nil, err
+	}
 	return s, nil
 }
 
@@ -230,6 +237,41 @@ func (r *ProjectMemberPublicRepository) countReleases(ctx context.Context, anime
 		JOIN release_versions rv ON rv.release_id = fr.id
 		JOIN release_version_groups rvg ON rvg.release_version_id = rv.id
 		WHERE rmr.member_id = $1 AND e.anime_id = $2 AND rvg.fansub_group_id = $3
+	`, memberID, animeID, groupID).Scan(&n)
+	return n, err
+}
+
+// countEpisodes liefert die Anzahl der Folgen, zu denen dieser Member mindestens einen
+// oeffentlichen Textbeitrag ODER ein oeffentliches Medium in diesem Projekt hat (Phase 157,
+// Workstream D). Eine gebuendelte Query, gebaut aus genau denselben Praedikaten wie countNotes/
+// countMedia -- kein neuer Ladepfad, keine neue Businesslogik. projectMemberUserIDsCTE muss vor
+// beide UNION-Zweige gehoben werden (ein WITH kann nicht innerhalb eines UNION-Teilselects stehen).
+func (r *ProjectMemberPublicRepository) countEpisodes(ctx context.Context, animeID, groupID, memberID int64) (int, error) {
+	var n int
+	err := r.db.QueryRow(ctx, `
+		WITH `+projectMemberUserIDsCTE+`
+		SELECT COUNT(DISTINCT episode_id) FROM (
+			SELECT e.id AS episode_id
+			FROM release_version_notes rvn
+			JOIN release_versions rv ON rv.id = rvn.release_version_id
+			JOIN fansub_releases fr ON fr.id = rv.release_id
+			JOIN episodes e ON e.id = fr.episode_id
+			JOIN release_version_groups rvg ON rvg.release_version_id = rv.id
+			WHERE rvn.member_id = $1 AND e.anime_id = $2 AND rvg.fansub_group_id = $3
+			  AND `+projectMemberPublicNotePredicate+`
+			UNION
+			SELECT e.id AS episode_id
+			FROM release_version_media rvm
+			JOIN release_versions rv ON rv.id = rvm.release_version_id
+			JOIN fansub_releases fr ON fr.id = rv.release_id
+			JOIN episodes e ON e.id = fr.episode_id
+			JOIN media_assets ma ON ma.id = rvm.media_asset_id
+			JOIN visibilities v ON v.id = ma.visibility_id
+			JOIN review_statuses rs ON rs.id = ma.review_status_id
+			WHERE rvm.uploaded_by_user_id IN (SELECT uid FROM member_users)
+			  AND e.anime_id = $2 AND rvm.fansub_group_id = $3
+			  AND `+projectMemberPublicMediaPredicate+`
+		) episodes
 	`, memberID, animeID, groupID).Scan(&n)
 	return n, err
 }
