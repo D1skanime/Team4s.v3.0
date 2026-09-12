@@ -180,8 +180,12 @@
 }
 
 /* Responsive */
+/* Korrektur (Operator-Auftrag, 157-06 Nachbesserung Punkt 1): Avatar bleibt links neben Name/
+   Metadaten, auch auf schmalen Screens -- NUR die Aktionsbuttons duerfen stapeln. Vorher stapelte
+   `.hero { flex-direction: column }` die GESAMTE Hero-Zeile (Avatar ueber Name), was die Referenz
+   nicht vorsieht. */
 @media (max-width: 640px) {
-  .hero {
+  .heroActions {
     flex-direction: column;
   }
   .heroActions a,
