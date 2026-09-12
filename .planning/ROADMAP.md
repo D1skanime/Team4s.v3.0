@@ -1658,7 +1658,7 @@ Beitrag, Medienbereich nach Referenz und ein kompakter Releases-Empty-State — 
 fachlicher Semantik.
 
 **Requirements**: P157-01, P157-02, P157-03, P157-04, P157-05, P157-06, P157-07, P157-08, P157-09,
-P157-10, P157-11, P157-12
+P157-10, P157-11, P157-12, P157-13
 
 **Requirement-Definitionen** (Phasen-eigener Tracking-Namespace, Quelle: `157-USER-REQUEST.md`):
 
@@ -1676,6 +1676,7 @@ P157-10, P157-11, P157-12
 | P157-10 | 10, 11 | Informationshierarchie Person → Rolle → Umfang → Beitraege → Medien → Releases; sauberes Verhalten von 320 bis 1440 px ohne horizontale Scrollbar |
 | P157-11 | 12, 13 | Team4s-Designsprache und globale Primitives/Tokens erhalten, keine neuen Tokens; keine Regression bei Sichtbarkeit, Slug-Verlinkung, Release-Zuordnung, Medien-Sichtbarkeit, Pagination, API-Semantik, Rollenberechnung; keine Backend-Parallelstruktur |
 | P157-12 | 15, 16, 17 | Testmatrix angepasst statt geloescht und vollstaendig gruen; Live-UAT mit Vorher/Nachher-Screenshots (Header+Statistik, Beitraege, Medien, Releases, Desktop, schmaler Viewport) gegen die Referenz geprueft und Abweichungen dokumentiert |
+| P157-13 | Nachtrag 2026-09-12 | Bestehende Rollenfarb-Semantik bleibt vollstaendig erhalten: die Rollenfarbe ist an JEDEM Beitrag sichtbar (unabhaengig von der Rollenzahl), ausschliesslich ueber die zentrale Naht role_color_key -> boundedColorKey() -> data-color-key -> globals.css:271-293 -> --role-accent; keine Hex-Werte im Komponenten-CSS, kein zweites Farbmapping; Referenzbild ist in diesem Punkt (neutrale Karten) ausdruecklich nicht verbindlich, Struktur/Reihenfolge/Proportionen bleiben es |
 
 **Faktenbasis:** `157-USER-REQUEST.md` als verbindliche Auftragsquelle, `157-CONTEXT.md` mit
 Implementation Map, gemessenem Ist-Zustand und der Referenz-Spezifikation in Worten (das Bild liegt
