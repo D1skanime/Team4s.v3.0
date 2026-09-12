@@ -183,3 +183,123 @@ entsprechend nicht per `requirements.mark-complete` abgehakt, bis die Live-UAT b
 - Offener Punkt: `.planning/phases/156-segment-domain-konsistenz-und-oeffentliche-release-projektion/deferred-items.md`,
   `156-11-SUMMARY.md`
 - Vorlage/Struktur: `docs/audits/2026-09-11-fansub-project-performance/`
+
+
+---
+
+## Nachtrag 2026-09-12 — Nachschärfung Segment-Contributors (GAP-01) und Push-Status (GAP-03)
+
+Bei der fachlichen Abnahme am 2026-09-12 ist eine Lücke im oben beschriebenen Modell
+aufgefallen. Sie wurde innerhalb von Phase 156 durch vier Gap-Pläne (156-12 bis 156-15)
+geschlossen. Auftragsquelle: `.planning/phases/156-.../156-UAT.md` inklusive des Abschnitts
+„Nachtrag 2026-09-12 — bestätigter Datenmodell-Entscheid". Endstand dieses Nachtrags:
+`522c81c2`.
+
+### Vorher (Stand `be954d2a`, der oben beschriebene Zustand)
+
+Die Segment-Credit-Projektion zeigte **alle** Beteiligten der Origin-Release-Version, deren
+Rollen-Code in `permissions.SegmentCreditRoleCodes` lag. Sie konnte nicht ausdrücken, **welche
+Personen tatsächlich an diesem Segment gearbeitet haben**. Bei Rollen, die ein Release mehrfach
+besetzt — typischerweise Quality Checker, oft auch Editoren — war das fachlich falsch: hat von
+drei QCs nur einer das Karaoke geprüft, erschienen trotzdem alle drei. Deshalb war auch das
+bloße Aufnehmen von `editor` und `quality_checker` in den Rollenkatalog **keine** gültige
+Lösung.
+
+### Nachher (Stand `522c81c2`)
+
+- **Neue Tabelle `theme_segment_contributors`** (Migration **0162**): ausschließlich
+  `theme_segment_id` + `member_id` + Auditfeld, `UNIQUE (theme_segment_id, member_id)`.
+  Bewusst **ohne** `role_code` und **ohne** `release_version_id`.
+- **Begründung des Modellentscheids** (vom Auftraggeber bestätigt): die effektive
+  Contributor-Wahrheit ist nicht ausschließlich versionsgebunden gespeichert.
+  `anime_contributions` hat keinen Unique-Key auf `(release_version_id, member_id)` — ein
+  Fremdschlüssel darauf ist strukturell unmöglich — und im Livebestand existieren **7**
+  vererbte Anime-Default-Mitwirkungen ohne Release-Versions-Bindung. Eine harte Versionsbindung
+  hätte diese fälschlich ausgeschlossen.
+- **Validierung service-seitig**, beim Schreiben **und** beim Lesen über
+  `loadPublicEffectiveContributors` — kein zweiter Contributor-Ladepfad.
+- **Rollenkatalog erweitert** auf `{translator, timer, karaoke_fx, typesetter, editor,
+  quality_checker}`. `encoder` bleibt ausgeschlossen. Weiterhin genau **eine** zentrale
+  Definition.
+- **Öffentliche Projektion** = Schnittmenge aus *expliziter Auswahl* und *Rollenrelevanz*.
+  „Keine Auswahl = keine personenbezogenen Segment-Credits". **Kein Legacy-Fallback** — bewusst
+  ausgeschlossen, weil sonst sofort eine zweite, später schwer entfernbare Semantik entstünde.
+- **Origin-Wechsel** entfernt eine dadurch ungültig gewordene Auswahl **atomar in derselben
+  Transaktion** und meldet die Anzahl zurück.
+- **Admin-UI** „Mitwirkende am Segment": Mehrfachauswahl ausschließlich unter den
+  Origin-Beteiligten, je Person mit Anzeigename und **aktueller** Rolle. Der Admin wählt nur
+  Personen, nie deren Rolle.
+
+### Korrigierte Fachregel
+
+Die bisherige Regel „Encoder und Quality-Checker erscheinen **nie** als Segment-Credit" war
+nach dieser Präzisierung falsch und wurde fachlich **korrigiert, nicht gelöscht**:
+
+- **Encoder erscheint niemals.**
+- **Quality Checker und Editor** erscheinen **nur**, wenn die Person explizit dem Segment
+  zugeordnet wurde **und** weiterhin als zulässige Contributorin der Origin auflösbar ist.
+
+### Bestandsdaten
+
+**Kein Backfill.** Nach der Migration hat keines der drei vorhandenen Segmente eine Auswahl
+(`theme_segment_contributors` = 0 Zeilen, live geprüft). Bestehende Segmente erhalten dadurch
+keine erfundenen QC- oder Editor-Credits. Der Preis ist, dass die drei Segmente ihre bisher
+gezeigten personenbezogenen Credits verlieren, bis die Auswahl gepflegt wird — bei drei
+Segmenten bewusst in Kauf genommen.
+
+### Struktur- und Zeilenbudget
+
+Anders als in der ersten Runde wurden Altlasten **abgebaut** statt vergrößert:
+
+| Datei | vorher | nachher |
+|-------|--------|---------|
+| `SegmentEditPanel.tsx` | 733 | **375** |
+| `SegmenteTab.tsx` | 827 | **412** |
+| `frontend/src/lib/api.ts` | 10893 | 10893 (±0) |
+| `admin_content_anime_theme_segments.go` | 967 | 967 (±0) |
+
+Elf neue Module, alle deutlich unter 450 Zeilen, darunter ein eigenes
+`frontend/src/lib/api/segment-contributors.ts` statt eines Anbaus an `api.ts`.
+**Verbleibende Ausnahme:** `frontend/src/types/admin.ts` ist um 30 auf 1035 Zeilen gewachsen —
+dort wurden die neuen Typdefinitionen angehängt, ohne die bereits überlange Datei vorher zu
+splitten.
+
+### Regressionsnachweis (unabhängig nachgefahren)
+
+- `go build ./...`, `go vet ./...` sauber; `internal/permissions` und `internal/handlers` `ok`.
+- `internal/repository`: **49** Fehlschläge — exakt dieselbe Zahl wie vor der Nachschärfung,
+  **0** davon mit Segment-, Origin-, Contributor-, AutoAssign- oder Timeline-Bezug. Ursache
+  reproduzierbar umgebungsbedingt (fehlendes `TEAM4S_PHASE128_TEST_DSN`, nicht erreichbares
+  Keycloak). **Hinweis zur Reproduktion:** der Datenbankname in `TEAM4S_PHASE117_TEST_DSN` muss
+  `^team4s_phase117_test_[a-z0-9]+$` erfüllen, sonst schlagen alle Integrationstests bei 0,00 s
+  mit „unsafe … must match" fehl und sehen wie ein Massendefekt aus.
+- Fallmatrix A–K plus Origin- und Schreibpfad-Tests: **48 von 48 bestanden, 0 Fehlschläge**,
+  darunter beide Varianten von Fall K (vererbter Anime-Default wird auf Release-Ebene auf eine
+  relevante bzw. auf eine irrelevante Rolle überschrieben).
+- Frontend: **2314 von 2317** Tests grün (3 `todo`), 299 Dateien.
+- Migration 0161+0162 Rundlauf (`down -steps 2`, dann `up`) gegen live `team4s_v2` geprüft.
+
+### Push-Status (GAP-03) — ausdrücklich dokumentiert
+
+| | |
+|---|---|
+| Lokaler HEAD | `522c81c2` |
+| `origin/main` | `a5557720` |
+| ahead | **192 Commits** |
+| behind | **0** |
+| gepusht | **nein** |
+
+Remote ist `https://github.com/D1skanime/Team4s.v3.0`. Aus einem sauberen Working Tree folgt
+**kein** Remote-Stand. Auf Entscheidung des Auftraggebers wird während der Nachschärfung nicht
+gepusht; der gesamte `main` soll erst nach sauberem Abschlussstand bewusst gepusht werden,
+damit auf dem Remote kein Zwischenstand von Phase 156 liegt.
+
+### Weiterhin offen
+
+Der gebündelte Live-UAT-Checkpoint (GAP-02) ist **nicht** durchgeführt: 5 Origin- und 9
+Segment-Contributor-Prüfpunkte, die eine echte, authentifizierte Plattform-Admin-Browsersession
+über den SSH-Tunnel erfordern. In keiner automatisierten Ausführungsumgebung dieser Phase
+standen dafür Zugangsdaten zur Verfügung. Rezept und Status stehen in `deferred-items.md`.
+
+**Phase 156 ist damit weiterhin nicht vollständig abgenommen.** Dieser Bericht behauptet
+ausdrücklich kein pauschales „vollständig verifiziert", solange dieser Punkt offen ist.
