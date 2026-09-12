@@ -40,7 +40,7 @@ const summary = (overrides: Partial<ProjectMemberSummary> = {}): ProjectMemberSu
   member_avatar_url: null,
   is_verified: true,
   role_labels: ['Übersetzung', 'Timing'],
-  counts: { roles: 2, notes: 5, media: 8, releases: 3 },
+  counts: { roles: 2, notes: 5, media: 8, releases: 3, episodes: 6 },
   ...overrides,
 })
 
@@ -78,13 +78,17 @@ describe('ProjectMemberPage', () => {
     expect(html).toContain('id="texte"')
     expect(html).toContain('id="bilder"')
     expect(html).toContain('id="releases"')
+    // Beitragszusammenfassung-Band (157-02, konsumiert den episodes-Count aus 157-01)
+    expect(html).toContain('dokumentierte Arbeitsnotizen')
   })
 
   it('shows an empty state (no sections, no sticky nav) when there are no public details', () => {
-    const html = render({ counts: { roles: 2, notes: 0, media: 0, releases: 0 } })
+    const html = render({ counts: { roles: 2, notes: 0, media: 0, releases: 0, episodes: 0 } })
     expect(html).toContain('keine öffentlichen Detailbeiträge')
     expect(html).not.toContain('Schnellnavigation')
     expect(html).not.toContain('id="texte"')
+    // Beitragszusammenfassung-Band existiert nur im nicht-leeren Zweig (ProjectMemberPage.tsx)
+    expect(html).not.toContain('dokumentierte Arbeitsnotizen')
     // Hero + Rollen bleiben sichtbar
     expect(html).toContain('CSubs Leader')
     expect(html).toContain('Übersetzung')
