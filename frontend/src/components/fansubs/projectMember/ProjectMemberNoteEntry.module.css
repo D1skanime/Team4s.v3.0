@@ -1,0 +1,103 @@
+/* Timeline-Zeile eines Textbeitrags (Phase 157, Workstream E). Die Rollenfarbe kommt
+   ausschliesslich ueber die zentrale data-color-key -> --role-accent-Naht (globals.css); dieses
+   Modul konsumiert nur var(--role-accent), nie einen Hex-Literal und baut keine zweite
+   Rollenfarbtabelle. */
+
+.entry {
+  position: relative;
+  display: flex;
+  align-items: flex-start;
+  gap: 12px;
+  margin-inline-start: 10px;
+  padding: 14px 16px;
+  border: 1px solid var(--color-border);
+  border-inline-start: 3px solid var(--role-accent);
+  border-radius: var(--radius-md);
+  background: var(--surface-card);
+  text-decoration: none;
+  color: inherit;
+}
+
+.entry + .entry {
+  margin-top: 14px;
+}
+
+.entry::before {
+  content: '';
+  position: absolute;
+  left: -10px;
+  top: -14px;
+  bottom: -14px;
+  width: 1px;
+  background: var(--color-border);
+}
+
+.entry:first-child::before {
+  top: 50%;
+}
+
+.entry:last-child::before {
+  bottom: 50%;
+}
+
+.dot {
+  position: absolute;
+  left: -13px;
+  top: 20px;
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  background: var(--role-accent);
+}
+
+.content {
+  flex: 1;
+  min-width: 0;
+}
+
+.meta {
+  margin: 0 0 4px;
+  font-size: 0.82rem;
+  color: var(--text-muted);
+}
+
+.roleChip {
+  display: inline-flex;
+  align-items: center;
+  padding: 1px 6px;
+  border-radius: var(--radius-sm);
+  border: 1px solid var(--color-border);
+  background: var(--surface-sunken);
+  color: var(--text-primary);
+  font-size: 0.78rem;
+}
+
+.title {
+  margin: 0 0 4px;
+  font-weight: 700;
+  color: var(--text-primary);
+}
+
+.body,
+.bodyText {
+  margin: 0;
+  font-size: 0.92rem;
+  color: var(--text-primary);
+}
+
+.bodyClamped {
+  display: -webkit-box;
+  -webkit-line-clamp: 4;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+}
+
+.toggle {
+  margin-top: 6px;
+}
+
+.chevron {
+  align-self: center;
+  flex-shrink: 0;
+  color: var(--text-muted);
+}
