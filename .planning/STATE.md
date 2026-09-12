@@ -3,14 +3,14 @@ gsd_state_version: 1.0
 milestone: v1.4
 milestone_name: Coverage
 status: executing
-stopped_at: Completed 157-01-PLAN.md
-last_updated: "2026-09-12T18:13:01.471Z"
+stopped_at: Completed 157-04-PLAN.md
+last_updated: "2026-09-12T18:18:26.178Z"
 last_activity: 2026-09-12
 progress:
   total_phases: 22
   completed_phases: 21
   total_plans: 212
-  completed_plans: 207
+  completed_plans: 208
   percent: 95
 ---
 
@@ -34,7 +34,7 @@ See: .planning/PROJECT.md (updated 2026-08-13)
 ## Current Position
 
 Phase: 157 (projekt-memberseite-visuelles-referenzdesign) — EXECUTING
-Plan: 2 of 6
+Plan: 3 of 6
 Status: Ready to execute
 
 Phase 157 wurde additiv an die Roadmap angehaengt (Milestone v1.4 bleibt als abgeschlossen dokumentiert, kein Milestone-Reset). Auftragsquelle: `.planning/phases/157-projekt-memberseite-visuelles-referenzdesign/157-USER-REQUEST.md`, Kontext: `157-CONTEXT.md` (ersetzt eine interaktive discuss-phase-Sitzung, enthaelt Implementation Map, gemessenen Ist-Zustand und die Referenz-Spezifikation in Worten).
@@ -860,6 +860,7 @@ Last activity: 2026-09-12
 - [Phase 156]: 156-10: Phase 156 wird als funktional/automatisiert abgeschlossen behandelt, NICHT als vollstaendig abgenommen -- Plan 156-11 Task 2s Live-UAT (Admin-Segment-Origin-Select) bleibt offen, siehe deferred-items.md
 - [Phase 157]: P157-01: countEpisodes hoists projectMemberUserIDsCTE to a single leading WITH above both UNION branches (note + media), reusing countNotes/countMedia predicates verbatim -- no parallel business-logic path.
 - [Phase 157]: P157-01: New episodes-count integration test lives in its own package-repository file, kept separate from the legacy os.ReadFile+strings.Contains-style project_member_public_repository_test.go.
+- [Phase 157]: Plan 04 keeps the icon-import alias convention (Image as ImageIcon) established in PublicReleaseBlock.tsx; grid-column breakpoints for the media gallery left unchanged, deferred to Live-UAT (157-06)
 
 ### Pending Todos
 
@@ -1247,11 +1248,12 @@ untruncated list lives in `.planning/todos/pending/`.
 | Phase 156 P10 | 55min | 2 tasks | 5 files |
 | Phase 156 P156-15 | 1h 10min | 2 tasks | 3 files |
 | Phase 157 P01 | 35min | 3 tasks | 5 files |
+| Phase 157 P04 | 4min | 2 tasks | 3 files |
 
 ## Session Continuity
 
-Last session: 2026-09-12T18:13:01.453Z
-Stopped at: Completed 157-01-PLAN.md
+Last session: 2026-09-12T18:18:26.161Z
+Stopped at: Completed 157-04-PLAN.md
 Last activity: Full Phase 156 regression re-run (backend+frontend+migration round-trip) proven green; GAP-02 live-UAT checkpoint documented as OPEN, not simulated.
 Resume file: None
 Structured state: .planning/HANDOFF.json
