@@ -3,14 +3,14 @@ gsd_state_version: 1.0
 milestone: v1.4
 milestone_name: Coverage
 status: executing
-stopped_at: "156-15-PLAN.md complete (final GAP-01 closure plan); Phase 156 has ONE explicit open item (bundled GAP-02 live-UAT: 5 Origin + 9 Segment-Contributor checkpoint items), see deferred-items.md -- NOT fully accepted. main is 190 commits ahead of origin/main, 0 behind, NOT pushed."
-last_updated: "2026-09-12T17:57:09.763Z"
+stopped_at: Completed 157-01-PLAN.md
+last_updated: "2026-09-12T18:13:01.471Z"
 last_activity: 2026-09-12
 progress:
   total_phases: 22
   completed_phases: 21
   total_plans: 212
-  completed_plans: 206
+  completed_plans: 207
   percent: 95
 ---
 
@@ -29,12 +29,12 @@ Phase 135 and any future roadmap entries continue from here.
 See: .planning/PROJECT.md (updated 2026-08-13)
 
 **Core value:** Team4s presents fansub history and collaboration credibly while keeping identity, visibility, ownership, and permissions correct.
-**Current focus:** Phase 156 — segment-domain-konsistenz-und-oeffentliche-release-projektion
+**Current focus:** Phase 157 — projekt-memberseite-visuelles-referenzdesign
 
 ## Current Position
 
-Phase: 157
-Plan: Not started
+Phase: 157 (projekt-memberseite-visuelles-referenzdesign) — EXECUTING
+Plan: 2 of 6
 Status: Ready to execute
 
 Phase 157 wurde additiv an die Roadmap angehaengt (Milestone v1.4 bleibt als abgeschlossen dokumentiert, kein Milestone-Reset). Auftragsquelle: `.planning/phases/157-projekt-memberseite-visuelles-referenzdesign/157-USER-REQUEST.md`, Kontext: `157-CONTEXT.md` (ersetzt eine interaktive discuss-phase-Sitzung, enthaelt Implementation Map, gemessenen Ist-Zustand und die Referenz-Spezifikation in Worten).
@@ -858,6 +858,8 @@ Last activity: 2026-09-12
 - [Phase ?]: hasAnySegmentRelevantRole (Plan 156-07) already existed as a directly-testable unexported function — No extraction needed for the table-driven role-filter unit test; calls real production logic
 - [Phase ?]: idx_theme_segments_origin_release_version index-plan evidence recorded honestly: live team4s_v2 theme_segments has only 3 rows, Postgres naturally chooses Seq Scan; SET enable_seqscan=off proves the index is well-formed via Index Only Scan — Both plans recorded, not just the favorable one, per no-speculation-index constraint
 - [Phase 156]: 156-10: Phase 156 wird als funktional/automatisiert abgeschlossen behandelt, NICHT als vollstaendig abgenommen -- Plan 156-11 Task 2s Live-UAT (Admin-Segment-Origin-Select) bleibt offen, siehe deferred-items.md
+- [Phase 157]: P157-01: countEpisodes hoists projectMemberUserIDsCTE to a single leading WITH above both UNION branches (note + media), reusing countNotes/countMedia predicates verbatim -- no parallel business-logic path.
+- [Phase 157]: P157-01: New episodes-count integration test lives in its own package-repository file, kept separate from the legacy os.ReadFile+strings.Contains-style project_member_public_repository_test.go.
 
 ### Pending Todos
 
@@ -1244,11 +1246,12 @@ untruncated list lives in `.planning/todos/pending/`.
 | Phase 156 P09 | 25min | 2 tasks | 2 files |
 | Phase 156 P10 | 55min | 2 tasks | 5 files |
 | Phase 156 P156-15 | 1h 10min | 2 tasks | 3 files |
+| Phase 157 P01 | 35min | 3 tasks | 5 files |
 
 ## Session Continuity
 
-Last session: 2026-09-12T09:27:31.238Z
-Stopped at: 156-15-PLAN.md complete (final GAP-01 closure plan); Phase 156 has ONE explicit open item (bundled GAP-02 live-UAT: 5 Origin + 9 Segment-Contributor checkpoint items), see deferred-items.md -- NOT fully accepted. main is 190 commits ahead of origin/main, 0 behind, NOT pushed.
+Last session: 2026-09-12T18:13:01.453Z
+Stopped at: Completed 157-01-PLAN.md
 Last activity: Full Phase 156 regression re-run (backend+frontend+migration round-trip) proven green; GAP-02 live-UAT checkpoint documented as OPEN, not simulated.
 Resume file: None
 Structured state: .planning/HANDOFF.json

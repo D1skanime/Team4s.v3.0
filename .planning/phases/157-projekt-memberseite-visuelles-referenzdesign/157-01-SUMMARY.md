@@ -113,6 +113,10 @@ None — the new `countEpisodes` query reuses the existing three public-visibili
 - FOUND commit d034866c in git log
 - FOUND commit 84d48e1c in git log
 
+## Requirements Tracking Note
+
+`requirements.mark-complete P157-04 P157-11` found no matching rows in REQUIREMENTS.md (`not_found: ["P157-04", "P157-11"]`) — the same cross-phase tracking gap documented in every Phase 156 plan summary (P156-07 through P156-15). Not caused by this plan; REQUIREMENTS.md simply has no rows for the P157-* namespace yet.
+
 ## Next Steps
 - Wave 2 frontend plans (157-02 through 157-06) can now consume `episodes` on `ProjectMemberCounts` without any further backend changes.
 - No backend follow-up expected from this plan; the mandatory-run-constraint's "one allowed backend change" has been fully delivered.
