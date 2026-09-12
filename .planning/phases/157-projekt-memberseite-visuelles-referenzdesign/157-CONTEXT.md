@@ -328,3 +328,33 @@ aufweichen.
 **Zusätzliches Acceptance Criterion:** nach dem Umbau ist an jedem Beitrag die Rollenfarbe aus der
 zentralen Naht sichtbar, die Seite ist nicht rein neutral, und es existiert **kein** zweites
 Farbmapping im Projekt-Member-Code.
+
+
+#### Pflicht-Acceptance-Test (Nachtrag 2, 2026-09-12)
+
+Der Auftraggeber hat einen konkreten Abnahmefall nachgereicht, der über die bisherige Prüfung
+„jeder Eintrag hat `data-color-key`" hinausgeht und **verbindlich** ist:
+
+> Member mit `typesetter` **plus einer zweiten Rolle**: Beiträge beider Rollen müssen in
+> **derselben** Timeline unterschiedlich und korrekt über die bestehenden Rollenfarben erkennbar
+> sein, ohne wieder große Rollenheader einzuführen.
+
+Konkret zu testen ist eine **gemischte Liste**: mindestens zwei Notizen desselben Members in einer
+Sektion, deren `role_color_key` sich unterscheidet (z. B. `#7B3C4E` für `typesetter` und
+`#27664F` für `translator`).
+
+Der Test muss belegen:
+
+1. Die gerenderten Einträge tragen **unterschiedliche** `data-color-key`-Werte, jeweils dem
+   `role_color_key` **ihrer eigenen Notiz** entsprechend — nicht einen gemeinsamen Wert aus der
+   Rolle des Headers oder der Summary. **Das ist der eigentliche Regressionsfänger:** ein
+   Eintrag, der seine Farbe aus dem Seitenkontext statt aus der Notiz bezieht, fällt hier auf und
+   sonst nirgends.
+2. Beide Einträge zeigen zusätzlich ihren **kleinen** Rollen-Namens-Chip, weil
+   `hasMultipleRoles` wahr ist.
+3. Es entsteht **kein** großer, vollflächig gefärbter Rollen-Header — die Prüfung auf das
+   Nichtvorhandensein der alten Kopfzeile gilt auch im Multi-Rollen-Fall.
+
+Ergänzt die bestehende Prüfmatrix, ersetzt sie nicht. Er gehört in
+`ProjectMemberNoteEntry`-nahe Tests bzw. in `ProjectMemberNotesSection.test.tsx`, wo eine Liste
+gerendert wird.
