@@ -2,9 +2,9 @@
 gsd_state_version: 1.0
 milestone: v1.4
 milestone_name: Coverage
-status: 157-06 Tasks 1-3 abgeschlossen, Task 4 Live-UAT-Checkpoint OFFEN (unabhaengiger Review liefert Abweichungen A-F, siehe 157-06-SUMMARY.md)
-stopped_at: 157-06 Task 4 checkpoint:human-verify -- NICHT approved, NICHT abgelehnt
-last_updated: "2026-09-12T19:20:00.000Z"
+status: 157-06 Operator-Korrekturpass (5/5) umgesetzt und unabhaengig re-verifiziert; Task 4 Live-UAT-Checkpoint weiterhin OFFEN
+stopped_at: 157-06 Task 4 checkpoint:human-verify -- NICHT approved, NICHT abgelehnt (zweite Runde)
+last_updated: "2026-09-12T20:15:00.000Z"
 last_activity: 2026-09-12
 progress:
   total_phases: 22
@@ -48,7 +48,36 @@ ueber Name statt daneben -- bereits bekannt; E: Statistik-2x2/Tab-Zweizeiler mob
 erlaubt; F: blauer Streifen am linken Rand -- identifiziert als vorbestehendes AppShell-Branding,
 kein Phase-157-Defekt). Keiner der Punkte A-F wurde eigenmaechtig als kosmetisch geschlossen oder
 automatisch behoben. Volle Abweichungsliste und Vorher/Nachher-Tabelle: 157-06-SUMMARY.md und
-deferred-items.md. Phase 157 gilt erst nach echtem Auftraggeber-Sign-off auf Task 4 als abgeschlossen.
+deferred-items.md.
+
+**Zweite Runde (2026-09-12):** Der Checkpoint wurde vom Auftraggeber explizit NICHT approved. Ein
+gezielter Korrekturpass mit genau 5 Punkten wurde innerhalb von Plan 157-06 umgesetzt (keine neue
+Phase, kein Scope-Wachstum): (1) mobiler Hero -- nur `.heroActions` stapelt jetzt, Avatar+Name
+bleiben bei jeder Breite nebeneinander; (2) alle drei Sektionskoepfe (Texte & Notizen/Bilder &
+Medien/Mitwirkung an Releases) tragen jetzt dasselbe Icon+Titel-Muster (FileText/ImageIcon/Package,
+alles bereits vorhandene lucide-react-Icons); (3) `.section` in ProjectMemberPage.module.css ist
+jetzt eine zusammenhaengende Karte (Kopf+Inhalt in derselben Flaeche, Token-Werte von
+ProjectMemberNoteEntry wiederverwendet, Eintrags-Interna unveraendert); (4) Summary-Band nutzt jetzt
+bewusst `--avatar-4-bg/-fg` (bestehendes helllblaues Token-Paar) statt `--surface-sunken`, Begruendung
+im Code dokumentiert (keine neuen Tokens/Hex-Werte); (5) blauer Streifen per DOM-Abfrage
+(`elementFromPoint`) im Screenshot-Skript nachgewiesen als `AppShell_edgeStrip` (echtes, aber
+vorbestehendes, phasenfremdes `position:fixed`-Element mit `aria-label="Menue oeffnen"`) --
+das Erscheinen "auf Hoehe der ersten beiden Notizen" im fullPage-Screenshot ist ein
+Chromium/Playwright-Capture-Effekt fuer fixed+100vh-Elemente, kein Live-Rendering-Fehler; nicht
+veraendert, da ausserhalb des Phasenumfangs (AppShell.module.css).
+
+Neubewertung A-F (Auftraggeber-Vorgabe, E bleibt wie zuvor disponiert): A behoben, B bewusst
+abweichend mit dokumentierter Begruendung (jetzt naeher an der Referenz durch Token-Wiederverwendung),
+C behoben, D behoben, F bewusst abweichend mit Beweisfuehrung (kein Fix noetig, kein Phase-157-Fehler).
+
+Eigenstaendig re-verifiziert (nicht nur aus dem Executor-Bericht uebernommen): `tsc --noEmit` clean,
+volle `vitest run` gruen (301/302 Dateien, 2324 Tests, keine Regression), `git diff --stat` bestaetigt
+exakt 7 geaenderte Dateien (keine Sperrlisten-Datei beruehrt), DOM-Abfrage `elementFromPoint(4, ~200)`
+persoenlich gegengeprueft -> liefert `AppShell_edgeStrip__*` mit `rgba(47, 95, 227, ...)`-Hintergrund
+(= `--color-primary`), neue 390px/1440px-Screenshots visuell gesichtet.
+
+Phase 157 gilt weiterhin erst nach echtem Auftraggeber-Sign-off auf Task 4 als abgeschlossen. Kein
+git push, Working Tree sauber.
 
 Hinweis zum Zaehler: `state.advance-plan` inkrementiert einen generischen Fortschrittszaehler ohne
 Bezug zur konkreten Plan-Datei (Phase 157 laeuft nicht strikt numerisch 1→6, sondern nach
