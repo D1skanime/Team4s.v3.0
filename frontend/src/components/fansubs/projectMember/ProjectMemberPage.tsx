@@ -77,6 +77,7 @@ export function ProjectMemberPage(props: ProjectMemberPageProps) {
               memberSlug={memberSlug}
               projectPath={projectPath}
               count={counts.notes}
+              hasMultipleRoles={counts.roles > 1}
             />
 
             <ProjectMemberMediaGallery

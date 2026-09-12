@@ -1,16 +1,10 @@
-/* Texte & Notizen — projektweiter Bereich (Brief 3.2/9). Desktop 2-spaltig, Mobile 1-spaltig.
-   Die Karten-Optik lebt jetzt im geteilten Component components/public/PublicNoteCard. */
+/* Texte & Notizen — projektweiter Bereich (Brief 3.2/9, Phase 157 Workstream E). Immer
+   einspaltige Timeline (kein 2-Spalten-Grid mehr) — die Zeilen-Optik lebt in
+   ProjectMemberNoteEntry.module.css. */
 
 .notesGrid {
-  display: grid;
-  grid-template-columns: 1fr;
-  gap: 14px;
-}
-
-@media (min-width: 720px) {
-  .notesGrid {
-    grid-template-columns: repeat(2, 1fr);
-  }
+  display: flex;
+  flex-direction: column;
 }
 
 .loadMoreWrap {

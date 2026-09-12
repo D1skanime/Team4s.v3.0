@@ -6,7 +6,7 @@ import { Button } from '@/components/ui'
 import { getProjectMemberNotes } from '@/lib/api'
 import type { ProjectMemberNote } from '@/types/projectMember'
 
-import { ProjectMemberNoteCard } from './ProjectMemberNoteCard'
+import { ProjectMemberNoteEntry } from './ProjectMemberNoteEntry'
 import styles from './ProjectMemberNotesSection.module.css'
 import pageStyles from './ProjectMemberPage.module.css'
 import { useProjectMemberCollection } from './useProjectMemberCollection'
@@ -20,6 +20,7 @@ interface ProjectMemberNotesSectionProps {
   memberSlug: string
   projectPath: string
   count: number
+  hasMultipleRoles: boolean
 }
 
 // Projektweite Texte-&-Notizen-Sektion (Brief 3.2/10): cursor-nachgeladen mit weniger/mehr.
@@ -29,6 +30,7 @@ export function ProjectMemberNotesSection({
   memberSlug,
   projectPath,
   count,
+  hasMultipleRoles,
 }: ProjectMemberNotesSectionProps) {
   const key = useCallback((note: ProjectMemberNote) => note.id, [])
   const fetchPage = useCallback(
@@ -61,7 +63,12 @@ export function ProjectMemberNotesSection({
       ) : null}
       <div className={styles.notesGrid}>
         {shown.map((note) => (
-          <ProjectMemberNoteCard key={note.id} note={note} projectPath={projectPath} />
+          <ProjectMemberNoteEntry
+            key={note.id}
+            note={note}
+            projectPath={projectPath}
+            hasMultipleRoles={hasMultipleRoles}
+          />
         ))}
       </div>
       {loading ? <p className={styles.loadingText}>Wird geladen …</p> : null}
@@ -75,11 +82,18 @@ export function ProjectMemberNotesSection({
               Weniger anzeigen
             </Button>
           ) : null}
-          {canShowMore ? (
-            <Button type="button" variant="secondary" size="sm" onClick={showMore} disabled={loading}>
-              Weitere Beiträge laden
-            </Button>
-          ) : null}
+          {canShowMore
+            ? (() => {
+                const nextBatch = Math.min(PAGE_LIMIT, count - shown.length)
+                const label =
+                  nextBatch === 1 ? 'Weiteren 1 Beitrag anzeigen' : `Weitere ${nextBatch} Beiträge anzeigen`
+                return (
+                  <Button type="button" variant="secondary" size="sm" onClick={showMore} disabled={loading}>
+                    {label}
+                  </Button>
+                )
+              })()
+            : null}
         </div>
       </div>
     </section>
