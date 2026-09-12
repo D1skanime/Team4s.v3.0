@@ -16,6 +16,13 @@
 // Texte und -- per P157-13 -- die tatsaechlich berechnete Rollenfarbe je Notiz-Eintrag. Das
 // bestehende Ausgabeformat (ein JSON-Objekt pro Viewport, nach stdout) bleibt unveraendert;
 // es werden nur zusaetzliche Felder in `facts` angehaengt.
+//
+// 157-06 Operator-Korrektur 5/5: zusaetzliche Diagnose fuer den "blauen vertikalen Streifen"
+// (x~0-8px) im Desktop-Vollseiten-Screenshot. Statt die fruehere Hypothese (AppShell .brandMark/
+// .userAvatar) nur zu wiederholen, wird hier per DOM-Abfrage das TATSAECHLICH an dieser Stelle
+// gerenderte Element ermittelt (elementFromPoint) und die AppShell-.edgeStrip (position:fixed;
+// height:100vh, `aria-label="Menü öffnen"`) direkt vermessen -- plus ein zusaetzlicher
+// Viewport-only-Screenshot (kein fullPage) zum Vergleich.
 import http from 'node:http'
 import { mkdirSync } from 'node:fs'
 import { chromium } from 'playwright'
@@ -77,6 +84,14 @@ try {
     const file = `${OUT}/${LABEL}-${name}.png`
     await page.screenshot({ path: file, fullPage: true })
 
+    // Korrektur 5/5 -- Vergleichsaufnahme OHNE fullPage, am aktuellen Scrollpunkt (oben), um zu
+    // pruefen, ob ein etwaiger Streifen nur im fullPage-Capture auftritt (Artefakt eines
+    // fixed+100vh-Elements, das bei der Vollseiten-Aufnahme auf Dokumenthoehe skaliert) oder auch
+    // in einer normalen Viewport-Aufnahme sichtbar ist (dann real, aber trotzdem ausserhalb der
+    // Phase-157-Komponenten, falls es sich um AppShell-Chrome handelt).
+    const viewportOnlyFile = `${OUT}/${LABEL}-${name}-viewport-only.png`
+    await page.screenshot({ path: viewportOnlyFile, fullPage: false })
+
     const facts = await page.evaluate(() => {
       const texts = (sel) =>
         Array.from(document.querySelectorAll(sel))
@@ -137,6 +152,55 @@ try {
         ? 'Noch keine öffentlichen Release-Einträge.'
         : null
 
+      // Korrektur 5/5 -- konkreter Beweis statt erneuter Vermutung: was rendert TATSAECHLICH an
+      // x=4 (innerhalb des gemeldeten x~0-8px-Bereichs)? elementFromPoint arbeitet in aktuellen
+      // Viewport-Koordinaten; da .edgeStrip `position: fixed` ist, ist das Ergebnis unabhaengig
+      // vom Scroll-Offset identisch.
+      const stripeProbeY = Math.min(200, window.innerHeight - 10)
+      const elAtStripe = document.elementFromPoint(4, stripeProbeY)
+      const elementAtStripePoint = elAtStripe
+        ? {
+            tagName: elAtStripe.tagName,
+            className:
+              typeof elAtStripe.className === 'string' ? elAtStripe.className : String(elAtStripe.className),
+            ariaLabel: elAtStripe.getAttribute('aria-label'),
+            role: elAtStripe.getAttribute('role'),
+            backgroundColor: getComputedStyle(elAtStripe).backgroundColor,
+            backgroundImage: getComputedStyle(elAtStripe).backgroundImage,
+          }
+        : null
+
+      const edgeStripEl = document.querySelector('[aria-label="Menü öffnen"]')
+      const edgeStripDiagnostics = edgeStripEl
+        ? (() => {
+            const rect = edgeStripEl.getBoundingClientRect()
+            const cs = getComputedStyle(edgeStripEl)
+            return {
+              found: true,
+              rect: { x: rect.x, y: rect.y, width: rect.width, height: rect.height },
+              position: cs.position,
+              backgroundImage: cs.backgroundImage,
+              borderRight: cs.borderRight,
+              // Wenn rect.height ~= window.innerHeight (statt document.scrollHeight), ist das der
+              // Beweis: das Element ist im NORMALEN Viewport genau einen Viewport hoch (100vh),
+              // nicht dokumenthoch -- der Vollseiten-Screenshot-Prozess vergroessert den
+              // effektiven Viewport auf Dokumenthoehe, wodurch 100vh sich auf Dokumenthoehe
+              // umrechnet und das Element im fullPage-Capture ueber die GESAMTE Seite reicht.
+              matchesViewportHeight: Math.abs(rect.height - window.innerHeight) < 2,
+              matchesDocumentHeight:
+                Math.abs(rect.height - document.documentElement.scrollHeight) < 2,
+            }
+          })()
+        : { found: false }
+
+      const drawerEl = document.querySelector('[aria-label="Team4s Navigation"]')
+      const drawerDiagnostics = drawerEl
+        ? {
+            hasOpenClass: /drawerOpen/.test(drawerEl.className),
+            transform: getComputedStyle(drawerEl).transform,
+          }
+        : null
+
       return {
         docHeight: document.documentElement.scrollHeight,
         horizontalOverflow:
@@ -157,12 +221,24 @@ try {
         mediaAllShownTextPresent,
         releasesEmptyStateText,
         releasesText: releasesText.slice(0, 200),
+        elementAtStripePoint,
+        edgeStripDiagnostics,
+        drawerDiagnostics,
+        windowInnerHeight: window.innerHeight,
+        documentScrollHeight: document.documentElement.scrollHeight,
       }
     })
 
     console.log(
       JSON.stringify(
-        { viewport: name, status: resp && resp.status(), file, facts, consoleErrors },
+        {
+          viewport: name,
+          status: resp && resp.status(),
+          file,
+          viewportOnlyFile,
+          facts,
+          consoleErrors,
+        },
         null,
         2,
       ),
