@@ -1,5 +1,6 @@
 'use client'
 
+import { Image as ImageIcon } from 'lucide-react'
 import { useCallback, useRef, useState } from 'react'
 
 import { Button } from '@/components/ui'
@@ -68,9 +69,12 @@ export function ProjectMemberMediaGallery({
   return (
     <section id="bilder" className={pageStyles.section} aria-labelledby="pm-bilder-title">
       <div className={pageStyles.sectionHead}>
-        <h2 id="pm-bilder-title" className={pageStyles.sectionTitle}>
-          Bilder &amp; Medien
-        </h2>
+        <span className={styles.titleGroup}>
+          <ImageIcon size={18} aria-hidden="true" />
+          <h2 id="pm-bilder-title" className={pageStyles.sectionTitle}>
+            Bilder &amp; Medien
+          </h2>
+        </span>
         <span className={pageStyles.sectionCount}>{count}</span>
       </div>
       {error ? <p className={styles.error}>Die Medien konnten nicht geladen werden.</p> : null}
@@ -81,9 +85,11 @@ export function ProjectMemberMediaGallery({
       </div>
       {loading ? <p className={styles.loadingText}>Wird geladen …</p> : null}
       <div className={pageStyles.pager}>
-        <span className={pageStyles.pagerInfo}>
-          {canShowMore ? `${shown.length} von ${count} angezeigt` : `Alle ${count} angezeigt`}
-        </span>
+        {canShowMore ? (
+          <span className={pageStyles.pagerInfo}>
+            {`${shown.length} von ${count} angezeigt`}
+          </span>
+        ) : null}
         <div className={pageStyles.pagerButtons}>
           {canShowLess ? (
             <Button type="button" variant="ghost" size="sm" onClick={showLess}>

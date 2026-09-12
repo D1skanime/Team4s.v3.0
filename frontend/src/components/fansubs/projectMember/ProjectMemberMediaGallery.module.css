@@ -1,6 +1,13 @@
 /* Bilder & Medien — projektweite Galerie (Brief 3.3/11, D-17 Breitbild).
    Mobile 2, Tablet 3, Desktop 4, Breitbild 5–6 Spalten. Team4s-Light-Theme-Tokens. */
 
+.titleGroup {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  color: var(--text-primary);
+}
+
 .grid {
   display: grid;
   grid-template-columns: repeat(2, 1fr);
