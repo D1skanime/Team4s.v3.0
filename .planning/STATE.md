@@ -2,15 +2,15 @@
 gsd_state_version: 1.0
 milestone: v1.4
 milestone_name: Coverage
-status: executing
-stopped_at: Completed 157-02-PLAN.md
-last_updated: "2026-09-12T18:37:02.255Z"
+status: Wave 3 (157-03) abgeschlossen, letzte Wave (157-06) ausstehend
+stopped_at: Completed 157-03-PLAN.md
+last_updated: "2026-09-12T18:49:08.512Z"
 last_activity: 2026-09-12
 progress:
   total_phases: 22
   completed_phases: 21
   total_plans: 212
-  completed_plans: 210
+  completed_plans: 212
   percent: 95
 ---
 
@@ -34,14 +34,40 @@ See: .planning/PROJECT.md (updated 2026-08-13)
 ## Current Position
 
 Phase: 157 (projekt-memberseite-visuelles-referenzdesign) — EXECUTING
-Plan: 4 von 6 abgeschlossen (157-01, 157-04, 157-05, 157-02); 157-03 und 157-06 stehen aus
-Status: Wave 2 (157-02) abgeschlossen, weitere Waves ausstehend
+Plan: 5 von 6 abgeschlossen (157-01, 157-04, 157-05, 157-02, 157-03); 157-06 steht aus
+Status: Wave 3 (157-03) abgeschlossen, letzte Wave (157-06 Testmatrix/Live-UAT) ausstehend
 
 Hinweis zum Zaehler: `state.advance-plan` inkrementiert einen generischen Fortschrittszaehler ohne
 Bezug zur konkreten Plan-Datei (Phase 157 laeuft nicht strikt numerisch 1→6, sondern nach
 Wave/Abhaengigkeit, `parallelization: true`). Massgeblich fuer den tatsaechlichen Stand ist
-`roadmap.update-plan-progress "157"`: `plan_count: 6, summary_count: 4` — 157-01/04/05/02 sind
-fertig, 157-03 (Notiz-Timeline + Rollenfarb-Nachtrag) und 157-06 (Testmatrix/Live-UAT) stehen aus.
+`roadmap.update-plan-progress "157"`: `plan_count: 6, summary_count: 5` — 157-01/04/05/02/03 sind
+fertig, nur noch 157-06 (Testmatrix/Live-UAT) steht aus.
+
+Plan 157-03 (2026-09-12) abgeschlossen: Kern der Phase (Workstream E/F) — die grossen,
+rollenfarbig geheaderten Notiz-Karten sind durch eine kompakte Timeline ersetzt. Neue,
+eigenstaendige Komponente `ProjectMemberNoteEntry` (importiert `PublicNoteCard` NICHT), die
+`ProjectMemberNoteCard`-Adapter ist geloescht. Rollenfarb-Nachtrag P157-13 vollstaendig umgesetzt:
+JEDER Eintrag traegt `data-color-key={boundedColorKey(note.role_color_key)}` unbedingt (ueber die
+EINE bestehende `globals.css`-Ableitungsstelle, solide `border-inline-start`/Punkt-Akzent, kein
+`color-mix`, keine zweite Farbtabelle) — der Rollen-NAME erscheint weiterhin nur bei
+`hasMultipleRoles` (neuer Prop, von `ProjectMemberPage.tsx` aus `counts.roles > 1` durchgereicht).
+Pager-Beschriftung konkret: „Weitere N Beitraege anzeigen" / „Weiteren 1 Beitrag anzeigen" bei
+N=1, `useProjectMemberCollection.ts` unangetastet. Nachtrag 2 (2026-09-12, waehrend der Ausfuehrung
+per Concurrent-Writer in `157-CONTEXT.md` ergaenzt, separat als `docs(157-03)` committet) verlangte
+einen zusaetzlichen Pflicht-Regressionstest: eine gemischte Liste (typesetter `#7b3c4e` +
+translator `#27664f`, selbes Mitglied, selbe Sektion) muss beweisen, dass jeder Eintrag SEINE
+EIGENE `data-color-key` traegt statt einer aus Seiten-/Summary-Kontext geerbten — dieser Test
+wurde geschrieben und ist gruen, plus beide Rollen-Chips sichtbar und kein grosser Rollen-Header.
+Testdatei umbenannt/angepasst (`getAllByRole('article')` → `getAllByRole('link')`, da der neue
+Eintrag ein `Link` statt `<article>` ist), nicht geloescht. `roleCatalog.accessibility.test.ts`
+unveraendert und gruen (17/17) — Guard nicht aufgeweicht. Volle Frontend-Suite gruen (301/302
+Dateien, 2324 Tests, 3 todo, +2 Netto-Tests). `tsc --noEmit` sauber bis auf dieselbe, bereits aus
+Wave 1/2 bekannte `page.test.tsx`-`episodes`-Fixture-Luecke (2 Fehler, fuer 157-06 vorgemerkt,
+Datei per gezieltem `grep` bestaetigt unangetastet). Eine dokumentierte Praezisierung (kein
+Rule-1-4-Fix): Task 1 trug `tdd="true"`, ohne eine eigene Testdatei im Aufgaben-Scope — die volle
+Verhaltensbeweisfuehrung liegt in Task 3s Testsuite. `requirements.mark-complete P157-05/06/07/13`
+fand wie bei allen Vorplaenen dieser Phase keine Zeile in REQUIREMENTS.md (dieselbe uebergreifende
+Tracking-Luecke). Details: 157-03-SUMMARY.md.
 
 Plan 157-02 (2026-09-12) abgeschlossen: Hero/Statistikleiste/Tab-Nav/Beitragszusammenfassung der
 Projekt-Member-Seite auf das Referenzdesign umgebaut. Hero-Actions: „Vollstaendiges Memberprofil"
@@ -895,6 +921,7 @@ Last activity: 2026-09-12
 - [Phase 157]: Plan 04 keeps the icon-import alias convention (Image as ImageIcon) established in PublicReleaseBlock.tsx; grid-column breakpoints for the media gallery left unchanged, deferred to Live-UAT (157-06)
 - [Phase 157]: EmptyState gained additive icon/className props (nullish-coalescing fallback keeps all 77 existing call sites byte-identical); Releases 0-count now reuses EmptyState (compact, Package icon, dashed .releasesEmpty override) instead of a bespoke box.
 - [Phase 157]: 157-02: Beitragszusammenfassung als ein Text-Knoten (kein Bold/Regular-Split), damit exakte screen.getByText-Assertions gegen den ganzen Satz halten; lucide-react LucideIcon-Typ statt handgerolltem ComponentType<{size}> fuer die Statistikleisten-Icons.
+- [Phase 157]: P157-13 Nachtrag 2 (mixed-role list) proven via a dedicated regression test in ProjectMemberNotesSection.test.tsx: distinct data-color-key per note's own role_color_key, both role-name chips, no large role header
 
 ### Pending Todos
 
@@ -1285,11 +1312,12 @@ untruncated list lives in `.planning/todos/pending/`.
 | Phase 157 P04 | 4min | 2 tasks | 3 files |
 | Phase 157 P05 | 12min | 3 tasks | 4 files |
 | Phase 157 P02 | 30min | 3 tasks | 11 files |
+| Phase 157 P03 | 45min | 3 tasks | 5 files |
 
 ## Session Continuity
 
-Last session: 2026-09-12T18:37:02.238Z
-Stopped at: Completed 157-02-PLAN.md
+Last session: 2026-09-12T18:49:08.494Z
+Stopped at: Completed 157-03-PLAN.md
 Last activity: Full Phase 156 regression re-run (backend+frontend+migration round-trip) proven green; GAP-02 live-UAT checkpoint documented as OPEN, not simulated.
 Resume file: None
 Structured state: .planning/HANDOFF.json

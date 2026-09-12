@@ -1700,7 +1700,7 @@ Release-Notizliste, wo der Rollen-Header fachlich richtig ist.
 `157-CONTEXT.md` als Spezifikation in Worten hinterlegt. Eine zusaetzliche UI-SPEC-Runde ist damit
 nicht erforderlich; `plan-phase` mit `--skip-ui` fahren.
 
-**Plans:** 4/6 plans executed
+**Plans:** 5/6 plans executed
 
 Plans:
 
@@ -1716,7 +1716,7 @@ Plans:
 
 **Wave 3** *(blocked on Wave 2 completion — shares ProjectMemberPage.tsx with 157-02)*
 
-- [ ] 157-03-PLAN.md — Notiz-Timeline (Kernstueck) + konkrete Pager-Beschriftung
+- [x] 157-03-PLAN.md — Notiz-Timeline (Kernstueck) + konkrete Pager-Beschriftung
 
 **Wave 4** *(blocked on Waves 2/3/1(04,05) completion — cross-cutting Abschlussverifikation)*
 
