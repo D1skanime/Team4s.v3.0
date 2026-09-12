@@ -1,5 +1,15 @@
 /* Mitwirkung an Releases — kompakte, dichte Zeilen-Liste (Brief 3.4/19), keine grossen Karten. */
 
+/* Kopfzeile mit Icon (Operator-Korrektur 2/5, 157-06): identisch zum bereits vorhandenen Muster
+   aus ProjectMemberMediaGallery.module.css, damit alle drei Sektionsköpfe (Texte/Bilder/
+   Releases) dieselbe Icon+Titel-Struktur teilen. */
+.titleGroup {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  color: var(--text-primary);
+}
+
 .list {
   list-style: none;
   margin: 0;

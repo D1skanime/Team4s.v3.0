@@ -49,9 +49,12 @@ export function ProjectMemberReleasesSection({
     return (
       <section id="releases" className={pageStyles.section} aria-labelledby="pm-releases-title">
         <div className={pageStyles.sectionHead}>
-          <h2 id="pm-releases-title" className={pageStyles.sectionTitle}>
-            Mitwirkung an Releases
-          </h2>
+          <span className={styles.titleGroup}>
+            <Package size={18} aria-hidden="true" />
+            <h2 id="pm-releases-title" className={pageStyles.sectionTitle}>
+              Mitwirkung an Releases
+            </h2>
+          </span>
           <span className={pageStyles.sectionCount}>{count}</span>
         </div>
         <EmptyState
@@ -67,9 +70,12 @@ export function ProjectMemberReleasesSection({
   return (
     <section id="releases" className={pageStyles.section} aria-labelledby="pm-releases-title">
       <div className={pageStyles.sectionHead}>
-        <h2 id="pm-releases-title" className={pageStyles.sectionTitle}>
-          Mitwirkung an Releases
-        </h2>
+        <span className={styles.titleGroup}>
+          <Package size={18} aria-hidden="true" />
+          <h2 id="pm-releases-title" className={pageStyles.sectionTitle}>
+            Mitwirkung an Releases
+          </h2>
+        </span>
         <span className={pageStyles.sectionCount}>{count}</span>
       </div>
       {error ? (

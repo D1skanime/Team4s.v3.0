@@ -2,6 +2,16 @@
    einspaltige Timeline (kein 2-Spalten-Grid mehr) — die Zeilen-Optik lebt in
    ProjectMemberNoteEntry.module.css. */
 
+/* Kopfzeile mit Icon (Operator-Korrektur 2/5, 157-06): identisch zum bereits vorhandenen Muster
+   aus ProjectMemberMediaGallery.module.css, damit alle drei Sektionsköpfe (Texte/Bilder/
+   Releases) dieselbe Icon+Titel-Struktur teilen. */
+.titleGroup {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  color: var(--text-primary);
+}
+
 .notesGrid {
   display: flex;
   flex-direction: column;

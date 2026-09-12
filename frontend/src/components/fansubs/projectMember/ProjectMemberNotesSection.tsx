@@ -1,5 +1,6 @@
 'use client'
 
+import { FileText } from 'lucide-react'
 import { useCallback } from 'react'
 
 import { Button } from '@/components/ui'
@@ -50,9 +51,12 @@ export function ProjectMemberNotesSection({
   return (
     <section id="texte" className={pageStyles.section} aria-labelledby="pm-texte-title">
       <div className={pageStyles.sectionHead}>
-        <h2 id="pm-texte-title" className={pageStyles.sectionTitle}>
-          Texte &amp; Notizen
-        </h2>
+        <span className={styles.titleGroup}>
+          <FileText size={18} aria-hidden="true" />
+          <h2 id="pm-texte-title" className={pageStyles.sectionTitle}>
+            Texte &amp; Notizen
+          </h2>
+        </span>
         <span className={pageStyles.sectionCount}>{count}</span>
       </div>
       <p className={pageStyles.sectionIntro}>
