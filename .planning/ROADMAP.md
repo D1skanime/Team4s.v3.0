@@ -1698,3 +1698,25 @@ Release-Notizliste, wo der Rollen-Header fachlich richtig ist.
 **UI hint**: ja — der beigefuegte Referenz-Screenshot IST die visuelle Acceptance-Referenz und ist in
 `157-CONTEXT.md` als Spezifikation in Worten hinterlegt. Eine zusaetzliche UI-SPEC-Runde ist damit
 nicht erforderlich; `plan-phase` mit `--skip-ui` fahren.
+
+**Plans:** 6 plans
+
+Plans:
+
+**Wave 1**
+
+- [ ] 157-01-PLAN.md — Additive `episodes`-Count (einzige Backend-Aenderung) + Contract-Paritaet
+- [ ] 157-04-PLAN.md — Medienbereich: Kopfzeile-Icon + "Alle N angezeigt"-Entfernung
+- [ ] 157-05-PLAN.md — Releases-Empty-State via erweitertes EmptyState-Primitive
+
+**Wave 2** *(blocked on Wave 1 completion — 157-02 depends on 157-01's `episodes` contract)*
+
+- [ ] 157-02-PLAN.md — Hero, Statistikleiste, Tab-Nav-Aktivzustand, Beitragszusammenfassung-Band
+
+**Wave 3** *(blocked on Wave 2 completion — shares ProjectMemberPage.tsx with 157-02)*
+
+- [ ] 157-03-PLAN.md — Notiz-Timeline (Kernstueck) + konkrete Pager-Beschriftung
+
+**Wave 4** *(blocked on Waves 2/3/1(04,05) completion — cross-cutting Abschlussverifikation)*
+
+- [ ] 157-06-PLAN.md — Responsive-Audit, volle Testsuite, Live-UAT mit Vorher/Nachher-Vergleich
