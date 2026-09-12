@@ -1,0 +1,25 @@
+/* Beitragszusammenfassung (Referenzdesign 157-02, Workstream D): getöntes, gerundetes Band
+   zwischen Schnellnavigation und Sektionen. Nur globale Tokens. */
+
+.band {
+  margin: 16px 0 24px;
+  display: flex;
+  align-items: flex-start;
+  gap: 10px;
+  padding: 14px 18px;
+  border-radius: var(--radius-md);
+  background: var(--surface-sunken);
+  color: var(--text-primary);
+}
+
+.icon {
+  flex: 0 0 auto;
+  margin-top: 2px;
+  color: var(--accent-primary);
+}
+
+.text {
+  margin: 0;
+  font-size: 0.95rem;
+  line-height: 1.5;
+}

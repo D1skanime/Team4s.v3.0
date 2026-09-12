@@ -10,6 +10,7 @@ import { ProjectMemberNotesSection } from './ProjectMemberNotesSection'
 import { ProjectMemberReleasesSection } from './ProjectMemberReleasesSection'
 import { ProjectMemberStickyNav } from './ProjectMemberStickyNav'
 import { ProjectMemberSummaryBar } from './ProjectMemberSummary'
+import { ProjectMemberSummaryBand } from './ProjectMemberSummaryBand'
 import styles from './ProjectMemberPage.module.css'
 
 export interface ProjectMemberPageProps {
@@ -67,6 +68,8 @@ export function ProjectMemberPage(props: ProjectMemberPageProps) {
         ) : (
           <>
             <ProjectMemberStickyNav counts={counts} />
+
+            <ProjectMemberSummaryBand summary={summary} />
 
             <ProjectMemberNotesSection
               animeID={animeID}
