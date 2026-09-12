@@ -3,15 +3,15 @@ gsd_state_version: 1.0
 milestone: v1.4
 milestone_name: Coverage
 status: executing
-stopped_at: 156-14-PLAN.md complete (GAP-01 admin UI -- "Mitwirkende am Segment" multi-select wired to 156-13's endpoints); Phase 156 has TWO explicit open items (156-11 Task 2 live-UAT, GAP-02 combined live-UAT still pending 156-15), see deferred-items.md -- not fully accepted
-last_updated: "2026-09-12T11:25:00.000Z"
+stopped_at: 156-15-PLAN.md complete (final GAP-01 closure plan -- full regression re-run green); Phase 156 has ONE explicit open item (bundled GAP-02 live-UAT: 5 Origin + 9 Segment-Contributor checkpoint items), see deferred-items.md -- NOT fully accepted
+last_updated: "2026-09-12T09:27:31.255Z"
 last_activity: 2026-09-12
 progress:
   total_phases: 21
-  completed_phases: 20
+  completed_phases: 21
   total_plans: 206
-  completed_plans: 205
-  percent: 95
+  completed_plans: 206
+  percent: 100
 ---
 
 # Project State
@@ -33,10 +33,36 @@ See: .planning/PROJECT.md (updated 2026-08-13)
 
 ## Current Position
 
-Phase: 156 (segment-domain-konsistenz-und-oeffentliche-release-projektion) — EXECUTING
+Phase: 156 (segment-domain-konsistenz-und-oeffentliche-release-projektion) — AUSGEFUEHRT
 AUSGEFUEHRT; automatisiert/funktional abgeschlossen, ABER NICHT vollstaendig abgenommen
-Plan: 14 of 15
-Status: Executing Phase 156 -- GAP-01 gap-closure in progress (156-12/156-13/156-14 done, 156-15 offen)
+Plan: 15 of 15 (alle Plaene ausgefuehrt)
+Status: Phase 156 automatisiert vollstaendig, ein Live-UAT-Punkt (GAP-02) bleibt offen -- Phase NICHT vollstaendig abgenommen
+
+Plan 156-15 (2026-09-12) abgeschlossen: der finale GAP-01-Abschlussplan. Task 1 fuehrt den
+VOLLSTAENDIGEN Phase-156-Regressionslauf erneut aus (nicht nur die neuen GAP-01-Tests): Backend
+`go build`/`go vet` sauber, `internal/handlers`/`internal/permissions` 100% gruen,
+`internal/repository` zeigt exakt dieselben 49 vorbestehenden, umgebungsbedingten Fehlschlaege
+wie seit 156-05 dokumentiert (TEAM4S_PHASE128_TEST_DSN fehlt, Phase-134-Keycloak-Abhaengigkeit,
+zwei unberuehrte Dateien aus 156-07) -- namentlich mit der Fehlerliste abgeglichen, nicht nur
+gezaehlt. Alle elf im Plan namentlich genannten Phase-156-Tests laufen und sind gruen (eine
+Namenskorrektur: der Projektseiten-Timeline-Test heisst tatsaechlich
+`TestAttachReleaseTimelineSegments`, nicht `TestGroupRepositoryCursorTimeline*`). Frontend:
+`tsc` sauber, ESLint bei der dokumentierten Phase-155-Basislinie (13 Errors/331 Warnings, keine
+neuen), voller Vitest-Lauf 2314/2317 gruen (3 vorbestehende `it.todo`). Migration 0161+0162 im
+kompletten Rundlauf (`down -steps 2` dann `up`) gegen `team4s_v2` erneut beweisbar
+byte-identisch (Origin-Werte `27/27/29` unveraendert, `theme_segment_contributors` sauber leer
+neu angelegt). Task 2 (der gebuendelte GAP-02-Live-UAT-Checkpoint aus 156-UAT.md: 5
+Origin- + 9 Segment-Contributor-Pruefpunkte) konnte NICHT durchgefuehrt werden -- keine
+authentifizierte Platform-Admin-Browsersession verfuegbar, exakt dieselbe Einschraenkung wie bei
+Plan 156-11 Task 2. Gemaess expliziter Anweisung WEDER als bestanden simuliert (auch nicht per
+API-Aufrufen) NOCH stillschweigend uebersprungen -- `deferred-items.md` traegt einen neuen,
+datierten Eintrag mit dem vollstaendigen 14-Punkte-Rezept fuer den Auftraggeber, exakt im Format
+des bestehenden 156-11-Eintrags. Phase 156 gilt damit weiterhin NICHT als vollstaendig
+abgenommen. Push-Status verifiziert (nicht geschaetzt): `git rev-list --left-right --count
+origin/main...HEAD` liefert `0	190` -- `main` ist 190 Commits vor `origin/main`, 0 dahinter,
+NICHT gepusht. `gsd-sdk query roadmap.update-plan-progress "156" "156-15" "complete"`
+ausgefuehrt (zaehlt PLAN-vs-SUMMARY-Dateien; bedeutet "Plan-eigene Aufgaben erledigt", NICHT
+"Phase-UAT bestanden"). Details: 156-15-SUMMARY.md.
 
 Plan 156-14 (2026-09-12) abgeschlossen: GAP-01s einzige nutzersichtbare Oberflaeche --
 das "Mitwirkende am Segment"-Mehrfachauswahlfeld -- ist jetzt an Plan 156-13s bereits
@@ -1207,12 +1233,13 @@ untruncated list lives in `.planning/todos/pending/`.
 | Phase 156 P08 | 11min | 2 tasks | 6 files |
 | Phase 156 P09 | 25min | 2 tasks | 2 files |
 | Phase 156 P10 | 55min | 2 tasks | 5 files |
+| Phase 156 P156-15 | 1h 10min | 2 tasks | 3 files |
 
 ## Session Continuity
 
-Last session: 2026-09-11T22:44:50.570Z
-Stopped at: 156-10-PLAN.md complete (automatable phase-closing scope); Phase 156 has ONE explicit open item (156-11 Task 2 live-UAT), see deferred-items.md -- not fully accepted
-Last activity: Local handoff checkpoint; no new Execute step, browser matrix, build, agent or push started after stop.
+Last session: 2026-09-12T09:27:31.238Z
+Stopped at: 156-15-PLAN.md complete (final GAP-01 closure plan); Phase 156 has ONE explicit open item (bundled GAP-02 live-UAT: 5 Origin + 9 Segment-Contributor checkpoint items), see deferred-items.md -- NOT fully accepted. main is 190 commits ahead of origin/main, 0 behind, NOT pushed.
+Last activity: Full Phase 156 regression re-run (backend+frontend+migration round-trip) proven green; GAP-02 live-UAT checkpoint documented as OPEN, not simulated.
 Resume file: None
 Structured state: .planning/HANDOFF.json
 

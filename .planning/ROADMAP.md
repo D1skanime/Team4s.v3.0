@@ -428,7 +428,7 @@ Milestone v1.4 closes Live-UAT Findings #29-#32 by making effective group rights
 - [x] **Phase 153: Public-Member-Profil: Speicherretention, Importgraph und SSR-Sichtbarkeit** - Die drei P1-Befunde der Messreihe vom 2026-09-09 sind geschlossen: die native Auto-Sizes-DOM-Retention, der Editor-Importzweig im oeffentlichen Graph und die Skeletons, die vorhandene SSR-Inhalte bis zur Hydration verdecken. (completed 2026-09-10)
 - [x] **Phase 154: Public-Member-Profil: Aggregator-Duplikate, Bildbudget und Viewer-Aufloesung** - Die verbliebenen P2-Befunde der Messreihe vom 2026-09-09 sind geschlossen: vier redundante Faktenabfragen im Profil-Aggregator, ungegatetes Locked-Artwork samt schwerem Original-Fallback und die zu breite Viewer-Aufloesung ohne durchgereichtes Abbruchsignal. Dazu zwei Nachmessungen, die erst nach der Graphverkleinerung moeglich sind. (completed 2026-09-10)
 - [x] **Phase 155: Public-Fansub-Projektseite: Read-Model, Drill-down-Navigation und Query-Budget** - Die oeffentliche Fansub-Projektseite laedt ueber einen gezielten Project Resolver, eine schlanke Contributor-Summary und entflochtene Release-Pfade, ohne doppelten Profil-Load und ohne Vollinventar-Abfragen; Member-Klicks fuehren kanonisch auf die Projekt-Member-Route. (completed 2026-09-11)
-- [x] **Phase 156: Segment-Domain-Konsistenz und oeffentliche Release-Projektion** - `theme_segment_assignments` wird die kanonische Release-Segment-Wahrheit, Bereichsaenderungen und spaetere Releases halten die Assignments konsistent, Segment-Credits werden ueber stabile Rollen-Codes dynamisch aus einer korrigierbaren Segment-Origin projiziert, und Projekt- wie Release-Seite lesen dieselbe Wahrheit. (automatisiert/funktional abgeschlossen 2026-09-11 -- NICHT vollstaendig abgenommen: ein Punkt bleibt offen, Plan 156-11 Task 2 Live-UAT des Admin-Segment-Origin-Selects, siehe deferred-items.md)
+- [x] **Phase 156: Segment-Domain-Konsistenz und oeffentliche Release-Projektion** - `theme_segment_assignments` wird die kanonische Release-Segment-Wahrheit, Bereichsaenderungen und spaetere Releases halten die Assignments konsistent, Segment-Credits werden ueber stabile Rollen-Codes dynamisch aus einer korrigierbaren, um ein personenbezogenes Contributor-Subset (GAP-01) erweiterten Segment-Origin projiziert, und Projekt- wie Release-Seite lesen dieselbe Wahrheit. (automatisiert/funktional abgeschlossen 2026-09-12, voller Regressionslauf 156-15 gruen -- NICHT vollstaendig abgenommen: der gebuendelte Live-UAT-Checkpoint aus GAP-02 (5 Origin- + 9 Segment-Contributor-Pruefpunkte, 156-UAT.md) bleibt offen, siehe deferred-items.md)
 
 ## Phase Details
 
@@ -1592,7 +1592,7 @@ ausdruecklich **kein** visuelles Redesign und kopiert keine Credits in Segmentta
 
 **Depends on:** Phase 155
 
-**Plans:** 14/15 plans executed
+**Plans:** 15/15 plans complete
 
 Plans:
 
@@ -1632,7 +1632,7 @@ Plans:
 - [x] 156-12-PLAN.md — GAP-01 Segment-Contributors: Datenmodell (Migration 0162), Rollenkatalog-Erweiterung (editor/quality_checker), validierte Reconcile-Schreibpfad + atomarer Origin-Wechsel-Cleanup
 - [x] 156-13-PLAN.md — GAP-01 oeffentliche Projektion (explizite Auswahl als Schnittmenge, Query-Budget erweitert, Regressionsmatrix A-J) + Admin-GET/PUT-Endpunkte
 - [x] 156-14-PLAN.md — GAP-01 Admin-UI: Dateigroessen-Extraktion (SegmentEditPanel.tsx/SegmenteTab.tsx) + „Mitwirkende am Segment"-Mehrfachauswahl
-- [ ] 156-15-PLAN.md — Vollstaendiger Phase-156-Regressionslauf + gebuendelter Live-UAT-Checkpoint (GAP-02: 5 Origin- + 9 Segment-Contributor-Pruefpunkte)
+- [x] 156-15-PLAN.md — Vollstaendiger Phase-156-Regressionslauf + gebuendelter Live-UAT-Checkpoint (GAP-02: 5 Origin- + 9 Segment-Contributor-Pruefpunkte)
 
 **Plan-time read first**: `.planning/phases/156-segment-domain-konsistenz-und-oeffentliche-release-projektion/156-USER-REQUEST.md`,
 `156-CONTEXT.md`, `156-RESEARCH.md`, `156-PATTERNS.md`,
