@@ -1736,7 +1736,12 @@ Plans:
 **Requirements**: P158-01, P158-02, P158-03, P158-04, P158-05, P158-06, P158-07, P158-08, P158-09
 **Depends on:** Implementierter Architekturstand157; offene Human-UAT 156/157 bleibt ausdrücklich offen und blockiert diesen neu autorisierten Scope nicht.
 **Baseline:** 7c7e1c7d02ac870e7c68c02b66fd7f4b33f36b85.
-**Plans:** 4 Pläne angelegt; Ausführung und Verifikation stehen aus.
+**Plans:** 1/4 ausgeführt; technische Phasenverifikation steht aus.
+
+- [x] 158-01 — Slug-, Relations- und Compatibility-Verträge (Welle 1)
+- [ ] 158-02 — Session- und Fehlerzustände (Welle 1, seriell)
+- [ ] 158-03 — Strikte Route, Lesbarkeit, Overflow und Pretty-Integration (Welle 2)
+- [ ] 158-04 — Technische Gesamtverifikation und Gate für 159 (Welle 3)
 
 | ID | Anforderung | Audit |
 |---|---|---|
@@ -1760,7 +1765,13 @@ Plans:
 **Requirements**: P159-01, P159-02, P159-03, P159-04, P159-05, P159-06, P159-07, P159-08
 **Depends on:** Phase 158 vollständig implementiert und technisch verifiziert; keine159-Ausführung vorher.
 **Baseline:** Erst nach158-Gate dessen Abschlusscommit eintragen und aktuellen Stand erneut prüfen.
-**Plans:** 5 Pläne angelegt; Ausführung und Verifikation stehen aus.
+**Plans:** 0/5 ausgeführt; Planprüfung ohne Blocker, Ausführung bis zum technischen 158-Gate gesperrt.
+
+- [ ] 159-01 — Begrenzte öffentliche Projektion und Assignment-Vertrag (Welle 1)
+- [ ] 159-02 — Explizite Streamidentität mit erhaltener Compatibility (Welle 2)
+- [ ] 159-03 — Gemeinsamer Gruppenzustand und Gridnachbarn (Welle 3)
+- [ ] 159-04 — Coverbudget und begrenzter Manifestcache (Welle 4)
+- [ ] 159-05 — Technische Gesamtverifikation (Welle 5)
 
 | ID | Anforderung | Audit |
 |---|---|---|
