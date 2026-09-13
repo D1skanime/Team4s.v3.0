@@ -1700,7 +1700,7 @@ Release-Notizliste, wo der Rollen-Header fachlich richtig ist.
 `157-CONTEXT.md` als Spezifikation in Worten hinterlegt. Eine zusaetzliche UI-SPEC-Runde ist damit
 nicht erforderlich; `plan-phase` mit `--skip-ui` fahren.
 
-**Plans:** 5/6 plans executed
+**Plans:** 9/10 plans executed, 1 gap-closure plan planned (GAP-01, 157-UAT.md)
 
 Plans:
 
@@ -1720,4 +1720,11 @@ Plans:
 
 **Wave 4** *(blocked on Waves 2/3/1(04,05) completion — cross-cutting Abschlussverifikation)*
 
-- [ ] 157-06-PLAN.md — Responsive-Audit, volle Testsuite, Live-UAT mit Vorher/Nachher-Vergleich
+- [x] 157-06-PLAN.md — Responsive-Audit, volle Testsuite, Live-UAT mit Vorher/Nachher-Vergleich
+- [x] 157-07-PLAN.md — Project Member Hero konsolidieren
+- [x] 157-08-PLAN.md — Beitraege statt zweiter Release-Historie (Release-Sektion/-Tab/-Zaehler entfernt)
+- [x] 157-09-PLAN.md — Mobiles Artwork-Banner + einheitliche 4-Zeilen-Beitragsvorschau (useClampedOverflow extrahiert)
+
+**Gap closure — Wave 5** *(GAP-01 aus 157-UAT.md: Nutzerauftrag 2026-09-13, verbindliche Nachpruefung nach 157-09)*
+
+- [ ] 157-10-PLAN.md — Notiz-Timeline: ungueltige Verschachtelung (Button/Link in Link) beheben, Rollenfarbe auf den Punkt konsolidieren, Card-Rahmen subtiler, Vorschau auf 3 Zeilen
