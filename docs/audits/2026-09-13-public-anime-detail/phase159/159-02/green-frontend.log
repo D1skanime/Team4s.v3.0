@@ -1,0 +1,14 @@
+
+> team4s-frontend@0.1.0 test
+> vitest run src/app/api/releases/[id]/stream/route.test.ts src/lib/server/streamRelayAuth.test.ts
+
+
+ RUN  v3.2.4 /app
+
+ ✓ src/app/api/releases/[id]/stream/route.test.ts (25 tests) 34ms
+ ✓ src/lib/server/streamRelayAuth.test.ts (8 tests) 32ms
+
+ Test Files  2 passed (2)
+      Tests  33 passed (33)
+   Start at  22:31:40
+   Duration  521ms (transform 283ms, setup 153ms, collect 449ms, tests 66ms, environment 0ms, prepare 114ms)

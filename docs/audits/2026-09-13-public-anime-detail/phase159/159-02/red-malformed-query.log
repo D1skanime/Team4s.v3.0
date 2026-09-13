@@ -1,0 +1,11 @@
+--- FAIL: TestReleaseStreamIdentityStrictSelectorsAndUnauthenticated (0.00s)
+    episode_version_stream_identity_test.go:139:
+            Error Trace:    /app/tmp/phase15902/backend/internal/handlers/episode_version_stream_identity_test.go:139
+            Error:          Not equal:
+                            expected: 400
+                            actual  : 503
+            Test:           TestReleaseStreamIdentityStrictSelectorsAndUnauthenticated
+            Messages:       malformed selector cannot disappear into legacy lookup: variant_id=%ZZ
+FAIL
+FAIL    team4s.v3/backend/internal/handlers 0.016s
+FAIL

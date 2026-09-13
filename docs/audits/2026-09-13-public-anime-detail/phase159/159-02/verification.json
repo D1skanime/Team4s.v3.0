@@ -1,0 +1,98 @@
+{
+  "plan": "159-02",
+  "starting_head": "3c94b2e8",
+  "product_commit": "7d5f3877",
+  "final_test_commit": "a9d9bd12",
+  "checks": [
+    {
+      "check": "SQL/handler RED",
+      "exit_code": 1,
+      "log": "red-backend.log",
+      "observation": "Grant for version 10 and explicit variant 100 delivered the foreign version20/variant10 stream before implementation."
+    },
+    {
+      "check": "SQL/handler GREEN",
+      "exit_code": 0,
+      "top_level_tests": 6,
+      "log": "green-backend.log"
+    },
+    {
+      "check": "malformed raw selector RED",
+      "exit_code": 1,
+      "log": "red-malformed-query.log"
+    },
+    {
+      "check": "final encoded selector and legacy query boundaries",
+      "exit_code": 0,
+      "top_level_tests": 2,
+      "log": "final-parsing.log"
+    },
+    {
+      "check": "frontend RED",
+      "exit_code": 1,
+      "failed": 22,
+      "passed": 11,
+      "log": "red-frontend.log"
+    },
+    {
+      "check": "frontend GREEN",
+      "exit_code": 0,
+      "passed": 33,
+      "files": 2,
+      "log": "green-frontend.log"
+    },
+    {
+      "check": "Go vet repository/handlers",
+      "exit_code": 0,
+      "log": "go-vet.log"
+    },
+    {
+      "check": "Go build ./...",
+      "exit_code": 0,
+      "log": "go-build.log"
+    },
+    {
+      "check": "full frontend typecheck",
+      "exit_code": 0,
+      "log": "typecheck.log"
+    },
+    {
+      "check": "scoped ESLint",
+      "exit_code": 0,
+      "errors": 0,
+      "warnings": 0,
+      "log": "scoped-lint.log"
+    },
+    {
+      "check": "OpenAPI js-yaml parse",
+      "exit_code": 0,
+      "log": "openapi-parse.log"
+    },
+    {
+      "check": "git diff --check",
+      "exit_code": 0
+    }
+  ],
+  "fixture_scope": {
+    "database": "team4s_phase117_test_p15902",
+    "helper": "OpenPhase117Postgres",
+    "source_scratch": "/app/tmp/phase15902",
+    "http": "synthetic RoundTripper; no real media fetch",
+    "frontend": "actual route and central relay auth helper; mocked cookies/fetch"
+  },
+  "cleanup": {
+    "container_id": "f28e5e24e49a534567181ea6ec6102126d96944dc054fb6ad40bc4d58d8c0acc",
+    "container_removed": true,
+    "scratch_removed": true,
+    "live_data_changed": false
+  },
+  "live_sync_evidence": "../root-runtime-sync-15902.json",
+  "live_probe": "HTTP400 for /api/v1/releases/27/stream?variant%5Fid=%ZZ before grant/source access; no real stream or grant creation",
+  "requirements": {
+    "addressed": [
+      "P159-05",
+      "P159-06"
+    ],
+    "phase_completion_deferred_to": "159-05"
+  }
+}

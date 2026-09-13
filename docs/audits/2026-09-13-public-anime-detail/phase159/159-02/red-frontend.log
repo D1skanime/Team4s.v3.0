@@ -1,0 +1,293 @@
+
+> team4s-frontend@0.1.0 test
+> vitest run src/app/api/releases/[id]/stream/route.test.ts src/lib/server/streamRelayAuth.test.ts
+
+
+ RUN  v3.2.4 /app
+
+ ✓ src/lib/server/streamRelayAuth.test.ts (8 tests) 23ms
+ ❯ src/app/api/releases/[id]/stream/route.test.ts (25 tests | 22 failed) 49ms
+   × release stream explicit variant identity > sends the same selector to initial grant and stream while preserving offset, range and response headers 16ms
+     → expected 'http://backend.fixture/api/v1/release…' to be 'http://backend.fixture/api/v1/release…' // Object.is equality
+   × release stream explicit variant identity > keeps the selector with a provided grant without requesting another grant 2ms
+     → expected null to be '100' // Object.is equality
+   × release stream explicit variant identity > uses the central refresh flow when only a refresh session exists 4ms
+     → expected 'http://backend.fixture/api/v1/release…' to contain 'variant_id=100'
+   × release stream explicit variant identity > preserves both identities when the grant request returns 401 and is retried after refresh 3ms
+     → expected 'http://backend.fixture/api/v1/release…' to be 'http://backend.fixture/api/v1/release…' // Object.is equality
+   × release stream explicit variant identity > preserves the selector during upstream 401 recovery from a provided grant 2ms
+     → expected 'http://backend.fixture/api/v1/release…' to be 'http://backend.fixture/api/v1/release…' // Object.is equality
+   × release stream explicit variant identity > rejects malformed selector "" before cookies or network 1ms
+     → Cannot read properties of undefined (reading 'status')
+   × release stream explicit variant identity > rejects malformed selector "0" before cookies or network 1ms
+     → Cannot read properties of undefined (reading 'status')
+   × release stream explicit variant identity > rejects malformed selector "-1" before cookies or network 1ms
+     → Cannot read properties of undefined (reading 'status')
+   × release stream explicit variant identity > rejects malformed selector "1.5" before cookies or network 1ms
+     → Cannot read properties of undefined (reading 'status')
+   × release stream explicit variant identity > rejects malformed selector "100abc" before cookies or network 1ms
+     → Cannot read properties of undefined (reading 'status')
+   × release stream explicit variant identity > rejects malformed selector "+100" before cookies or network 1ms
+     → Cannot read properties of undefined (reading 'status')
+   × release stream explicit variant identity > rejects malformed selector " 100" before cookies or network 1ms
+     → Cannot read properties of undefined (reading 'status')
+   × release stream explicit variant identity > rejects malformed selector "9007199254740992" before cookies or network 1ms
+     → Cannot read properties of undefined (reading 'status')
+   × release stream explicit variant identity > requires a complete safe canonical path with selector: "10abc" 1ms
+     → Cannot read properties of undefined (reading 'status')
+   × release stream explicit variant identity > requires a complete safe canonical path with selector: "1.5" 0ms
+     → Cannot read properties of undefined (reading 'status')
+   × release stream explicit variant identity > requires a complete safe canonical path with selector: "+10" 1ms
+     → Cannot read properties of undefined (reading 'status')
+   × release stream explicit variant identity > requires a complete safe canonical path with selector: " 10" 0ms
+     → Cannot read properties of undefined (reading 'status')
+   ✓ release stream explicit variant identity > requires a complete safe canonical path with selector: "0" 1ms
+   ✓ release stream explicit variant identity > requires a complete safe canonical path with selector: "-1" 0ms
+   × release stream explicit variant identity > requires a complete safe canonical path with selector: "9007199254740992" 0ms
+     → Cannot read properties of undefined (reading 'status')
+   × release stream explicit variant identity > rejects duplicate selectors before network access 1ms
+     → Cannot read properties of undefined (reading 'status')
+   × release stream explicit variant identity > preserves the backend rejection 403 for a foreign or denied selector 1ms
+     → expected null to be '10' // Object.is equality
+   × release stream explicit variant identity > preserves the backend rejection 404 for a foreign or denied selector 1ms
+     → expected null to be '10' // Object.is equality
+   ✓ release stream explicit variant identity > keeps the legacy path parser and URLs when no selector is supplied 1ms
+   × release stream explicit variant identity > documents the selector at both existing backend endpoints 9ms
+     → expected '    post:\n      tags: [Releases]\n  …' to contain '- name: variant_id'
+
+⎯⎯⎯⎯⎯⎯ Failed Tests 22 ⎯⎯⎯⎯⎯⎯⎯
+
+ FAIL  src/app/api/releases/[id]/stream/route.test.ts > release stream explicit variant identity > sends the same selector to initial grant and stream while preserving offset, range and response headers
+AssertionError: expected 'http://backend.fixture/api/v1/release…' to be 'http://backend.fixture/api/v1/release…' // Object.is equality
+
+Expected: "http://backend.fixture/api/v1/releases/10/grant?variant_id=100"
+Received: "http://backend.fixture/api/v1/releases/10/grant"
+
+ ❯ src/app/api/releases/[id]/stream/route.test.ts:29:40
+     27|     const result = await request('10', 'variant_id=100&StartTimeTicks=…
+     28|     expect(fetchMock).toHaveBeenCalledTimes(2)
+     29|     expect(fetchMock.mock.calls[0][0]).toBe(`${api}/api/v1/releases/10…
+       |                                        ^
+     30|     expect(fetchMock.mock.calls[0][1].method).toBe('POST')
+     31|     const target = new URL(fetchMock.mock.calls[1][0])
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[1/22]⎯
+
+ FAIL  src/app/api/releases/[id]/stream/route.test.ts > release stream explicit variant identity > keeps the selector with a provided grant without requesting another grant
+AssertionError: expected null to be '100' // Object.is equality
+
+- Expected:
+"100"
+
++ Received:
+null
+
+ ❯ src/app/api/releases/[id]/stream/route.test.ts:45:37
+     43|     expect(fetchMock).toHaveBeenCalledOnce()
+     44|     const query = new URL(fetchMock.mock.calls[0][0]).searchParams
+     45|     expect(query.get('variant_id')).toBe('100'); expect(query.get('gra…
+       |                                     ^
+     46|   })
+     47|
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[2/22]⎯
+
+ FAIL  src/app/api/releases/[id]/stream/route.test.ts > release stream explicit variant identity > uses the central refresh flow when only a refresh session exists
+AssertionError: expected 'http://backend.fixture/api/v1/release…' to contain 'variant_id=100'
+
+Expected: "variant_id=100"
+Received: "http://backend.fixture/api/v1/releases/10/grant"
+
+ ❯ src/app/api/releases/[id]/stream/route.test.ts:53:40
+     51|     const result = await request('10', 'variant_id=100')
+     52|     expect(fetchMock.mock.calls.map(([url]) => new URL(url).pathname))…
+     53|     expect(fetchMock.mock.calls[1][0]).toContain('variant_id=100'); ex…
+       |                                        ^
+     54|     expect(result.cookies.get('access')?.value).toBe('fresh-access'); …
+     55|   })
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[3/22]⎯
+
+ FAIL  src/app/api/releases/[id]/stream/route.test.ts > release stream explicit variant identity > preserves both identities when the grant request returns 401 and is retried after refresh
+AssertionError: expected 'http://backend.fixture/api/v1/release…' to be 'http://backend.fixture/api/v1/release…' // Object.is equality
+
+Expected: "http://backend.fixture/api/v1/releases/10/grant?variant_id=100"
+Received: "http://backend.fixture/api/v1/releases/10/grant"
+
+ ❯ src/app/api/releases/[id]/stream/route.test.ts:62:72
+     60|     const result = await request('10', 'variant_id=100')
+     61|     expect(result.status).toBe(206); expect(fetchMock).toHaveBeenCalle…
+     62|     for (const index of [0, 2]) expect(fetchMock.mock.calls[index][0])…
+       |                                                                        ^
+     63|     expect(new Headers(fetchMock.mock.calls[2][1].headers).get('Author…
+     64|     expect(new URL(fetchMock.mock.calls[3][0]).searchParams.get('varia…
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[4/22]⎯
+
+ FAIL  src/app/api/releases/[id]/stream/route.test.ts > release stream explicit variant identity > preserves the selector during upstream 401 recovery from a provided grant
+AssertionError: expected 'http://backend.fixture/api/v1/release…' to be 'http://backend.fixture/api/v1/release…' // Object.is equality
+
+Expected: "http://backend.fixture/api/v1/releases/10/grant?variant_id=100"
+Received: "http://backend.fixture/api/v1/releases/10/grant"
+
+ ❯ src/app/api/releases/[id]/stream/route.test.ts:73:40
+     71|     const result = await request('10', 'variant_id=100&grant=expired-g…
+     72|     expect(result.status).toBe(206); expect(fetchMock).toHaveBeenCalle…
+     73|     expect(fetchMock.mock.calls[2][0]).toBe(`${api}/api/v1/releases/10…
+       |                                        ^
+     74|     for (const index of [0, 3]) {
+     75|       const query = new URL(fetchMock.mock.calls[index][0]).searchPara…
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[5/22]⎯
+
+ FAIL  src/app/api/releases/[id]/stream/route.test.ts > release stream explicit variant identity > rejects malformed selector "" before cookies or network
+ FAIL  src/app/api/releases/[id]/stream/route.test.ts > release stream explicit variant identity > rejects malformed selector "0" before cookies or network
+ FAIL  src/app/api/releases/[id]/stream/route.test.ts > release stream explicit variant identity > rejects malformed selector "-1" before cookies or network
+ FAIL  src/app/api/releases/[id]/stream/route.test.ts > release stream explicit variant identity > rejects malformed selector "1.5" before cookies or network
+ FAIL  src/app/api/releases/[id]/stream/route.test.ts > release stream explicit variant identity > rejects malformed selector "100abc" before cookies or network
+ FAIL  src/app/api/releases/[id]/stream/route.test.ts > release stream explicit variant identity > rejects malformed selector "+100" before cookies or network
+ FAIL  src/app/api/releases/[id]/stream/route.test.ts > release stream explicit variant identity > rejects malformed selector " 100" before cookies or network
+ FAIL  src/app/api/releases/[id]/stream/route.test.ts > release stream explicit variant identity > rejects malformed selector "9007199254740992" before cookies or network
+TypeError: Cannot read properties of undefined (reading 'status')
+ ❯ Module.GET src/app/api/releases/[id]/stream/route.ts:96:16
+     94|
+     95|   let refreshedSession = relayTarget.refreshedSession
+     96|   if (upstream.status === 401) {
+       |                ^
+     97|     const unauthorizedRecoveryTarget = await resolveStreamRelayTarget({
+     98|       apiBaseURL,
+ ❯ src/app/api/releases/[id]/stream/route.test.ts:84:13
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[6/22]⎯
+
+ FAIL  src/app/api/releases/[id]/stream/route.test.ts > release stream explicit variant identity > requires a complete safe canonical path with selector: "10abc"
+ FAIL  src/app/api/releases/[id]/stream/route.test.ts > release stream explicit variant identity > requires a complete safe canonical path with selector: "1.5"
+ FAIL  src/app/api/releases/[id]/stream/route.test.ts > release stream explicit variant identity > requires a complete safe canonical path with selector: "+10"
+ FAIL  src/app/api/releases/[id]/stream/route.test.ts > release stream explicit variant identity > requires a complete safe canonical path with selector: " 10"
+ FAIL  src/app/api/releases/[id]/stream/route.test.ts > release stream explicit variant identity > requires a complete safe canonical path with selector: "9007199254740992"
+TypeError: Cannot read properties of undefined (reading 'status')
+ ❯ Module.GET src/app/api/releases/[id]/stream/route.ts:96:16
+     94|
+     95|   let refreshedSession = relayTarget.refreshedSession
+     96|   if (upstream.status === 401) {
+       |                ^
+     97|     const unauthorizedRecoveryTarget = await resolveStreamRelayTarget({
+     98|       apiBaseURL,
+ ❯ src/app/api/releases/[id]/stream/route.test.ts:89:13
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[7/22]⎯
+
+ FAIL  src/app/api/releases/[id]/stream/route.test.ts > release stream explicit variant identity > rejects duplicate selectors before network access
+TypeError: Cannot read properties of undefined (reading 'status')
+ ❯ Module.GET src/app/api/releases/[id]/stream/route.ts:96:16
+     94|
+     95|   let refreshedSession = relayTarget.refreshedSession
+     96|   if (upstream.status === 401) {
+       |                ^
+     97|     const unauthorizedRecoveryTarget = await resolveStreamRelayTarget({
+     98|       apiBaseURL,
+ ❯ src/app/api/releases/[id]/stream/route.test.ts:94:13
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[8/22]⎯
+
+ FAIL  src/app/api/releases/[id]/stream/route.test.ts > release stream explicit variant identity > preserves the backend rejection 403 for a foreign or denied selector
+ FAIL  src/app/api/releases/[id]/stream/route.test.ts > release stream explicit variant identity > preserves the backend rejection 404 for a foreign or denied selector
+AssertionError: expected null to be '10' // Object.is equality
+
+- Expected:
+"10"
+
++ Received:
+null
+
+ ❯ src/app/api/releases/[id]/stream/route.test.ts:102:80
+    100|     const result = await request('10', 'variant_id=10&grant=version10-…
+    101|     expect(result.status).toBe(status); expect(fetchMock).toHaveBeenCa…
+    102|     expect(new URL(fetchMock.mock.calls[0][0]).searchParams.get('varia…
+       |                                                                                ^
+    103|   })
+    104|
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[9/22]⎯
+
+ FAIL  src/app/api/releases/[id]/stream/route.test.ts > release stream explicit variant identity > documents the selector at both existing backend endpoints
+AssertionError: expected '    post:\n      tags: [Releases]\n  …' to contain '- name: variant_id'
+
+- Expected
++ Received
+
+- - name: variant_id
++     post:
++       tags: [Releases]
++       summary: Issue short-lived stream grant token for release playback
++       operationId: createReleaseStreamGrant
++       security:
++         - bearerAuth: []
++       parameters:
++         - name: id
++           in: path
++           required: true
++           schema:
++             type: integer
++             format: int64
++             minimum: 1
++       responses:
++         "201":
++           description: Stream grant created
++           headers:
++             Cache-Control:
++               schema:
++                 type: string
++               description: no-store
++           content:
++             application/json:
++               schema:
++                 $ref: "#/components/schemas/ReleaseStreamGrantResponse"
++         "400":
++           description: Invalid release id
++           content:
++             application/json:
++               schema:
++                 $ref: "#/components/schemas/ErrorResponse"
++         "401":
++           description: Authentication required
++           content:
++             application/json:
++               schema:
++                 $ref: "#/components/schemas/ErrorResponse"
++         "403":
++           description: Effective release playback entitlement denied
++         "404":
++           description: Release not found
++           content:
++             application/json:
++               schema:
++                 $ref: "#/components/schemas/ErrorResponse"
++         "503":
++           description: Grant service unavailable
++           content:
++             application/json:
++               schema:
++                 $ref: "#/components/schemas/ErrorResponse"
++         "500":
++           description: Internal server error
++           content:
++             application/json:
++               schema:
++                 $ref: "#/components/schemas/ErrorResponse"
+
+ ❯ src/app/api/releases/[id]/stream/route.test.ts:115:24
+    113|     for (const path of ['/api/v1/releases/{id}/grant', '/api/v1/releas…
+    114|       const endpoint = contract.split(`  ${path}:\n`)[1]?.split(/\n  \…
+    115|       expect(endpoint).toContain('- name: variant_id')
+       |                        ^
+    116|       expect(endpoint).toContain('canonical release version')
+    117|       expect(endpoint).toContain('"400":')
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[10/22]⎯
+
+
+ Test Files  1 failed | 1 passed (2)
+      Tests  22 failed | 11 passed (33)
+   Start at  22:30:23
+   Duration  540ms (transform 403ms, setup 166ms, collect 481ms, tests 72ms, environment 0ms, prepare 107ms)

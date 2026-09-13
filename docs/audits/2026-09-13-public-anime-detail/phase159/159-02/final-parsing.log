@@ -1,0 +1,6 @@
+=== RUN   TestReleaseStreamIdentityStrictSelectorsAndUnauthenticated
+--- PASS: TestReleaseStreamIdentityStrictSelectorsAndUnauthenticated (0.00s)
+=== RUN   TestReleaseStreamIdentityLegacyWithoutSelector
+--- PASS: TestReleaseStreamIdentityLegacyWithoutSelector (0.07s)
+PASS
+ok      team4s.v3/backend/internal/handlers 0.087s
