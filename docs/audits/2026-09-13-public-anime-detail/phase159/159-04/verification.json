@@ -1,0 +1,346 @@
+{
+  "phase": "159",
+  "plan": "04",
+  "checks": [
+    {
+      "check": "final-tests",
+      "command": [
+        "docker",
+        "compose",
+        "exec",
+        "-T",
+        "team4sv30-frontend",
+        "npm",
+        "test",
+        "--",
+        "src/components/anime/AnimeMediaProvider.test.tsx",
+        "src/lib/api.anime-media.test.ts",
+        "src/lib/animeBackdrops.test.ts",
+        "src/app/anime/[id]/page.performance.test.ts",
+        "src/app/anime/[id]/page.test.tsx",
+        "src/components/anime/themeVideoAudio.test.ts",
+        "src/components/ui/ResponsiveImage.test.tsx",
+        "src/components/ui/ResponsiveImage.config.test.ts"
+      ],
+      "exit_code": 0,
+      "duration_seconds": 5.86,
+      "log": "final-tests.log"
+    },
+    {
+      "check": "final-typecheck",
+      "command": [
+        "docker",
+        "compose",
+        "exec",
+        "-T",
+        "team4sv30-frontend",
+        "npm",
+        "run",
+        "typecheck"
+      ],
+      "exit_code": 0,
+      "duration_seconds": 6.56,
+      "log": "final-typecheck.log"
+    },
+    {
+      "check": "final-lint",
+      "command": [
+        "docker",
+        "compose",
+        "exec",
+        "-T",
+        "team4sv30-frontend",
+        "npx",
+        "eslint",
+        "src/components/anime/AnimeMediaProvider.tsx",
+        "src/components/anime/AnimeMediaProvider.test.tsx",
+        "src/lib/api.ts",
+        "src/lib/api.anime-media.test.ts",
+        "src/lib/animeBackdrops.ts",
+        "src/lib/animeBackdrops.test.ts",
+        "src/app/anime/[id]/page.tsx",
+        "src/app/anime/[id]/page.performance.test.ts",
+        "src/components/anime/AnimeBackdropRotator.tsx"
+      ],
+      "exit_code": 0,
+      "duration_seconds": 6.19,
+      "log": "final-lint.log"
+    },
+    {
+      "check": "auth-regression",
+      "command": [
+        "docker",
+        "compose",
+        "exec",
+        "-T",
+        "team4sv30-frontend",
+        "npm",
+        "test",
+        "--",
+        "src/lib/api.auth-refresh.test.ts",
+        "-t",
+        "shares one refresh across anime watchlist and comment actions"
+      ],
+      "exit_code": 0,
+      "duration_seconds": 2.65,
+      "log": "auth-regression.log"
+    },
+    {
+      "check": "diffcheck",
+      "command": [
+        "git",
+        "diff",
+        "--check"
+      ],
+      "exit_code": 0
+    },
+    {
+      "check": "url-boundary-typecheck",
+      "command": [
+        "docker",
+        "compose",
+        "exec",
+        "-T",
+        "team4sv30-frontend",
+        "npm",
+        "run",
+        "typecheck"
+      ],
+      "exit_code": 0,
+      "log": "url-boundary-typecheck.log"
+    },
+    {
+      "check": "url-boundary-lint",
+      "command": [
+        "docker",
+        "compose",
+        "exec",
+        "-T",
+        "team4sv30-frontend",
+        "npx",
+        "eslint",
+        "src/lib/animeBackdrops.ts",
+        "src/lib/animeBackdrops.test.ts"
+      ],
+      "exit_code": 0,
+      "log": "url-boundary-lint.log"
+    },
+    {
+      "check": "url-boundary-tests",
+      "command": [
+        "docker",
+        "compose",
+        "exec",
+        "-T",
+        "team4sv30-frontend",
+        "npm",
+        "test",
+        "--",
+        "src/lib/animeBackdrops.test.ts",
+        "src/components/anime/AnimeMediaProvider.test.tsx",
+        "src/app/anime/[id]/page.performance.test.ts"
+      ],
+      "exit_code": 0,
+      "log": "url-boundary-green.log",
+      "tests": 43
+    },
+    {
+      "check": "complete-tests",
+      "command": [
+        "docker",
+        "compose",
+        "exec",
+        "-T",
+        "team4sv30-frontend",
+        "npm",
+        "test",
+        "--",
+        "src/components/anime/AnimeMediaProvider.test.tsx",
+        "src/lib/api.anime-media.test.ts",
+        "src/lib/animeBackdrops.test.ts",
+        "src/app/anime/[id]/page.performance.test.ts",
+        "src/app/anime/[id]/page.test.tsx",
+        "src/components/anime/themeVideoAudio.test.ts",
+        "src/components/ui/ResponsiveImage.test.tsx",
+        "src/components/ui/ResponsiveImage.config.test.ts"
+      ],
+      "exit_code": 0,
+      "log": "complete-tests.log"
+    },
+    {
+      "check": "complete-typecheck",
+      "command": [
+        "docker",
+        "compose",
+        "exec",
+        "-T",
+        "team4sv30-frontend",
+        "npm",
+        "run",
+        "typecheck"
+      ],
+      "exit_code": 0,
+      "log": "complete-typecheck.log"
+    },
+    {
+      "check": "complete-lint",
+      "command": [
+        "docker",
+        "compose",
+        "exec",
+        "-T",
+        "team4sv30-frontend",
+        "npx",
+        "eslint",
+        "src/components/anime/AnimeMediaProvider.tsx",
+        "src/components/anime/AnimeMediaProvider.test.tsx",
+        "src/lib/api.ts",
+        "src/lib/api.anime-media.test.ts",
+        "src/lib/animeBackdrops.ts",
+        "src/lib/animeBackdrops.test.ts",
+        "src/app/anime/[id]/page.tsx",
+        "src/app/anime/[id]/page.performance.test.ts",
+        "src/components/anime/AnimeBackdropRotator.tsx"
+      ],
+      "exit_code": 0,
+      "log": "complete-lint.log"
+    },
+    {
+      "check": "complete-diffcheck",
+      "command": [
+        "git",
+        "diff",
+        "--check"
+      ],
+      "exit_code": 0
+    },
+    {
+      "check": "display-green",
+      "command": [
+        "docker",
+        "compose",
+        "exec",
+        "-T",
+        "team4sv30-frontend",
+        "npx",
+        "vitest",
+        "run",
+        "src/lib/server/imageDisplay.test.ts",
+        "src/app/covers/[file]/display/route.test.ts",
+        "src/app/api/v1/[...path]/route.test.ts",
+        "src/app/media/[...path]/route.test.ts",
+        "src/lib/server/apiProxy.test.ts",
+        "src/lib/animeBackdrops.test.ts",
+        "src/components/anime/AnimeMediaProvider.test.tsx",
+        "src/app/anime/[id]/page.performance.test.ts",
+        "src/app/anime/[id]/page.test.tsx",
+        "src/lib/api.anime-media.test.ts"
+      ],
+      "exit_code": 0,
+      "log": "display-green.log",
+      "source_commit": "7d9dedb14e603ad3395a50ca6981495ddb5a5800"
+    },
+    {
+      "check": "display-typecheck",
+      "command": [
+        "docker",
+        "compose",
+        "exec",
+        "-T",
+        "team4sv30-frontend",
+        "npx",
+        "tsc",
+        "--noEmit"
+      ],
+      "exit_code": 0,
+      "log": "display-typecheck.log",
+      "source_commit": "7d9dedb14e603ad3395a50ca6981495ddb5a5800"
+    },
+    {
+      "check": "display-lint",
+      "command": [
+        "docker",
+        "compose",
+        "exec",
+        "-T",
+        "team4sv30-frontend",
+        "npx",
+        "eslint",
+        "src/lib/server/imageDisplay.ts",
+        "src/lib/server/imageDisplay.test.ts",
+        "src/lib/server/coverFiles.ts",
+        "src/lib/server/apiProxy.ts",
+        "src/lib/imageDisplayContract.ts",
+        "src/app/covers/[file]/route.ts",
+        "src/app/covers/[file]/display/route.ts",
+        "src/app/covers/[file]/display/route.test.ts",
+        "src/app/api/v1/[...path]/route.ts",
+        "src/app/api/v1/[...path]/route.test.ts",
+        "src/app/media/[...path]/route.ts",
+        "src/lib/animeBackdrops.ts",
+        "src/lib/animeBackdrops.test.ts",
+        "src/components/anime/AnimeMediaProvider.test.tsx"
+      ],
+      "exit_code": 0,
+      "log": "display-lint.log",
+      "source_commit": "7d9dedb14e603ad3395a50ca6981495ddb5a5800"
+    }
+  ],
+  "preceding_product_commit": "38edb7f8",
+  "product_commit": "7d9dedb14e603ad3395a50ca6981495ddb5a5800",
+  "requirements_addressed": [
+    "P159-03",
+    "P159-04"
+  ],
+  "final_relevant_tests": 115,
+  "additional_auth_tests": {
+    "passed": 2,
+    "intentionally_filtered": 25
+  },
+  "open_delivery_boundary": "Implementation and real-byte unit/handler checks pass. Actual production Next HTTP for public static-cover precedence, private API files and animation delivery remains the existing 15905 harness gate, alongside browser/DPR/cache/byte measurements. No production success is claimed by this plan.",
+  "historical_source_sha256": {
+    "frontend/src/components/anime/AnimeMediaProvider.tsx": "9b5921ebeabfa22397e9394f756415f264b2094a986d22cc088d53f65744b6e7",
+    "frontend/src/components/anime/AnimeMediaProvider.test.tsx": "3a56dcc0f29731d5ef04a457a48434124823ad8b4c4bdb686477eefaefbef0d5",
+    "frontend/src/lib/api.ts": "3e8b70396759fe072201c9a78851cbcd0ab1a7dcc69f01fc3af1120a3c6b4469",
+    "frontend/src/lib/api.anime-media.test.ts": "d46fdc90452b0740ce35748896e60316579392228208f11d2c385527ce8447e0",
+    "frontend/src/lib/animeBackdrops.ts": "51290e19e48d3c3bed8968ce7d65b34ec30e7bca5629b3a6d1df88c794e6bd47",
+    "frontend/src/lib/animeBackdrops.test.ts": "5a108e5dc1008fc4bea5952b26071baacd688f133d9f4090b076baf824148e83",
+    "frontend/src/app/anime/[id]/page.tsx": "1e63c45ae36668e58f3276ba4e2867f4db51d312e18a59f91d299b9035a76686",
+    "frontend/src/app/anime/[id]/page.performance.test.ts": "393fc0543e01ec9e1df953beb2084416e549c8a52ee394d969ce4e65875b55b3",
+    "frontend/src/components/anime/AnimeBackdropRotator.tsx": "add1428569a7f5dc71c000162f9b24108fd42ffbbb4ba65a0d3df76b4286107b"
+  },
+  "historical_source_commit": "1f5dfa749a7a84c827321a033cec099bf293081b",
+  "source_sha256": {
+    "docs/api/api-contracts.md": "c7b97282156a8bdbca847114216c1d9f21181ab731f6b99a7b591f363bb9ecd0",
+    "frontend/package-lock.json": "efad587b1a434c37acd1812cea28749aebb23f18ae6ff7d8671de3a43c8ed0e6",
+    "frontend/package.json": "d0fee04dd8f0b1f19f26392be845c771546dc24f967e1a7b81c5bf692860bdd0",
+    "frontend/src/app/anime/[id]/page.performance.test.ts": "393fc0543e01ec9e1df953beb2084416e549c8a52ee394d969ce4e65875b55b3",
+    "frontend/src/app/anime/[id]/page.tsx": "1e63c45ae36668e58f3276ba4e2867f4db51d312e18a59f91d299b9035a76686",
+    "frontend/src/app/api/v1/[...path]/route.test.ts": "1744af298ceac6fe4279ff06465d0593214f0e5621bfa5879c012a409ad0883e",
+    "frontend/src/app/api/v1/[...path]/route.ts": "d82d8e3743e5297e8c528b052e5220d33c45eadc330aa5e205f6bc24602c49f2",
+    "frontend/src/app/covers/[file]/display/route.test.ts": "efdaaaeb8f0fed5bf6cd88ff775002b0247ead6c223edd461ee457d3f7cd27d0",
+    "frontend/src/app/covers/[file]/display/route.ts": "98446a55c0418a76ce0f9e1dc08a8b737352cd1ad379087cd42d829ff30b7c46",
+    "frontend/src/app/covers/[file]/route.ts": "e90c64c912565aa567cff89700d562cca8540cb30a8c5dca1dc17cbb274a31e8",
+    "frontend/src/app/media/[...path]/route.ts": "22b20debf4ea3cfb00c9b718e1a9babf28c6a09a9c08224d615f129a5db55fc4",
+    "frontend/src/components/anime/AnimeBackdropRotator.tsx": "add1428569a7f5dc71c000162f9b24108fd42ffbbb4ba65a0d3df76b4286107b",
+    "frontend/src/components/anime/AnimeMediaProvider.test.tsx": "1b3d424d3f750d15f34cca93066fcdb4b012d3c4f7ac6a5a160fc4858aa66de7",
+    "frontend/src/components/anime/AnimeMediaProvider.tsx": "9b5921ebeabfa22397e9394f756415f264b2094a986d22cc088d53f65744b6e7",
+    "frontend/src/lib/animeBackdrops.test.ts": "f6265f3d8418a375685fbbfc831bebba13d86577b3cbc179bef0fd9ac4f73754",
+    "frontend/src/lib/animeBackdrops.ts": "b01329ec483744e79b0edf06677808362fe366508f39226a2d003dbb308c911a",
+    "frontend/src/lib/api.anime-media.test.ts": "d46fdc90452b0740ce35748896e60316579392228208f11d2c385527ce8447e0",
+    "frontend/src/lib/api.ts": "3e8b70396759fe072201c9a78851cbcd0ab1a7dcc69f01fc3af1120a3c6b4469",
+    "frontend/src/lib/imageDisplayContract.ts": "0c5424983ff2a97c1a298378bf7ec4a304229b2ca3d3d4249ab2c8e237df4b25",
+    "frontend/src/lib/server/apiProxy.ts": "4f075eb237df3200aff1cd2fec44eab6212d896394ac16b61b2885ab821f7336",
+    "frontend/src/lib/server/coverFiles.ts": "d2d962fc1f42c5c66813583861e4232b97a5bdb93b304c2652b90f2189ce0c75",
+    "frontend/src/lib/server/imageDisplay.test.ts": "34a6ccd85602adfe5637c66cd7eb8ad4b047956aa343c8c48a6bb6e1b4241e73",
+    "frontend/src/lib/server/imageDisplay.ts": "c905f7e64f625e6b422ebfd4d5588987184d109d2379bee30cd1b61f4f17441e",
+    "shared/contracts/openapi.yaml": "eea1bdd7ba01c38fefed298bdb2fed9d501d692fcd521dcff24e74e18c2482da"
+  },
+  "production_build": "Not run here by explicit orchestration: reuse scripts/verify-anime-detail-phase.sh in 15905, no second harness or shared /app/.next build.",
+  "cleanup": {
+    "new_persistent_processes": 0,
+    "new_containers": 0,
+    "test_directories": "OS tmp directories removed by afterAll; no live media/DB writes",
+    "unrelated_files": "Root review/security/root JSONs and frontend/scripts/shot2.mjs untouched"
+  }
+}

@@ -1,0 +1,15 @@
+> team4s-frontend@0.1.0 test
+> vitest run src/lib/animeBackdrops.test.ts src/components/anime/AnimeMediaProvider.test.tsx src/components/ui/ResponsiveImage.test.tsx src/components/ui/ResponsiveImage.config.test.ts
+
+
+ RUN  v3.2.4 /app
+
+ ✓ src/components/ui/ResponsiveImage.config.test.ts (12 tests) 140ms
+ ✓ src/lib/animeBackdrops.test.ts (23 tests) 51ms
+ ✓ src/components/anime/AnimeMediaProvider.test.tsx (13 tests) 260ms
+ ✓ src/components/ui/ResponsiveImage.test.tsx (4 tests) 98ms
+
+ Test Files  4 passed (4)
+      Tests  52 passed (52)
+   Start at  23:08:53
+   Duration  1.89s (transform 673ms, setup 416ms, collect 1.20s, tests 550ms, environment 1.02s, prepare 359ms)

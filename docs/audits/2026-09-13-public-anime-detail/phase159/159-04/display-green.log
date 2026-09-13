@@ -1,0 +1,19 @@
+RUN  v3.2.4 /app
+
+ ✓ src/app/api/v1/[...path]/route.test.ts (3 tests) 66ms
+ ✓ src/app/covers/[file]/display/route.test.ts (2 tests) 198ms
+ ✓ src/lib/api.anime-media.test.ts (3 tests) 77ms
+ ✓ src/app/media/[...path]/route.test.ts (9 tests) 76ms
+ ✓ src/lib/server/apiProxy.test.ts (6 tests) 32ms
+ ✓ src/lib/animeBackdrops.test.ts (26 tests) 17ms
+ ✓ src/app/anime/[id]/page.test.tsx (19 tests) 23ms
+ ✓ src/lib/server/imageDisplay.test.ts (29 tests) 1968ms
+   ✓ real raster and resource limits > bounds actual output dimensions and bytes for slot 1920  410ms
+ ✓ src/components/anime/AnimeMediaProvider.test.tsx (13 tests) 118ms
+ ✓ src/app/anime/[id]/page.performance.test.ts (5 tests) 40ms
+
+ Test Files  10 passed (10)
+      Tests  115 passed (115)
+   Start at  23:52:07
+   Duration  3.61s (transform 1.25s, setup 743ms, collect 2.65s, tests 2.61s, environment 627ms, prepare 671ms)
+Exit code: 0

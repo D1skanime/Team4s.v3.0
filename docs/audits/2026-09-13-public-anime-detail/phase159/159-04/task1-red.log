@@ -1,0 +1,278 @@
+> team4s-frontend@0.1.0 test
+> vitest run src/components/anime/AnimeMediaProvider.test.tsx src/lib/api.anime-media.test.ts
+
+
+ RUN  v3.2.4 /app
+
+ ❯ src/lib/api.anime-media.test.ts (3 tests | 1 failed) 85ms
+   ✓ anime manifest transport > preserves the one-argument response and no-store policy 22ms
+   × anime manifest transport > forwards the exact AbortSignal through the central client and propagates abort unchanged 61ms
+     → expected { cache: 'no-store', headers: {} } to match object { …(2) }
+(1 matching property omitted from actual)
+   ✓ anime manifest transport > retains documented ApiError handling for unavailable manifests 1ms
+ ❯ src/components/anime/AnimeMediaProvider.test.tsx (11 tests | 10 failed) 107ms
+   × AnimeMediaProvider > zeigt zuerst das Cover und startet das Theme-Video automatisch, sobald das Manifest bereit ist 29ms
+     → expected "spy" to be called with arguments: [ 1, { signal: Any<AbortSignal> } ]
+
+Received:
+
+  1st spy call:
+
+  [
+    1,
+-   {
+-     "signal": Any<AbortSignal>,
+-   },
+  ]
+
+
+Number of calls: 1
+
+   × AnimeMediaProvider > dedupliziert den Manifest-Request auch bei doppelten Development-Effects 12ms
+     → expected "spy" to be called with arguments: [ 2, { signal: Any<AbortSignal> } ]
+
+Received:
+
+  1st spy call:
+
+  [
+    2,
+-   {
+-     "signal": Any<AbortSignal>,
+-   },
+  ]
+
+
+Number of calls: 1
+
+   × manifest lifecycle > shares across two providers and aborts only after the final consumer leaves 5ms
+     → expected undefined to be an instance of AbortSignal
+   × manifest lifecycle > shares pending work through StrictMode cleanup and setup 3ms
+     → expected undefined to be false // Object.is equality
+   × manifest lifecycle > reuses fresh success, renews expired acquisition and does not poll 6ms
+     → expected "spy" to be called 2 times, but got 1 times
+   × manifest lifecycle > coalesces expired focus/visibility bursts and updates both providers while preserving equal manifest identity 4ms
+     → expected "spy" to be called 2 times, but got 1 times
+   × manifest lifecycle > ignores hidden focus and revalidates once visible, then retries failure without a polling loop 3ms
+     → expected "spy" to be called 2 times, but got 1 times
+   × manifest lifecycle > does not let an old rejection evict a replacement request 6ms
+     → expected 'empty' to contain 'replacement'
+   ✓ manifest lifecycle > retries rejected requests on a later acquisition 3ms
+   × manifest lifecycle > never presents the previous anime manifest under a new anime ID, including late completion 2ms
+     → expected '108:/covers/first.png' to contain 'empty'
+   × manifest lifecycle > keeps only 20 unused fulfilled entries by LRU while protecting active and pending providers 33ms
+     → expected 1 to be 2 // Object.is equality
+
+ Test Files  2 failed (2)
+      Tests  11 failed | 3 passed (14)
+   Start at  23:01:07
+   Duration  861ms (transform 346ms, setup 144ms, collect 484ms, tests 192ms, environment 300ms, prepare 106ms)
+
+stderr | src/lib/api.anime-media.test.ts > anime manifest transport > forwards the exact AbortSignal through the central client and propagates abort unchanged
+Promise returned by `expect(actual).rejects.toBe(expected)` was not awaited. Vitest currently auto-awaits hanging assertions at the end of the test, but this will cause the test to fail in Vitest 3. Please remember to await the assertion.
+    at /app/src/lib/api.anime-media.test.ts:23:35
+
+
+⎯⎯⎯⎯⎯⎯ Failed Tests 11 ⎯⎯⎯⎯⎯⎯⎯
+
+ FAIL  src/lib/api.anime-media.test.ts > anime manifest transport > forwards the exact AbortSignal through the central client and propagates abort unchanged
+AssertionError: expected { cache: 'no-store', headers: {} } to match object { …(2) }
+(1 matching property omitted from actual)
+
+- Expected
++ Received
+
+  {
+    "cache": "no-store",
+-   "signal": AbortSignal {
+-     Symbol(kEvents): Map {},
+-     Symbol(events.maxEventTargetListeners): 10,
+-     Symbol(events.maxEventTargetListenersWarned): false,
+-     Symbol(kHandlers): Map {},
+-     Symbol(kAborted): false,
+-     Symbol(kReason): undefined,
+-     Symbol(kComposite): false,
+-   },
+  }
+
+ ❯ src/lib/api.anime-media.test.ts:25:38
+     23|     const rejected = expect(result).rejects.toBe(abort)
+     24|     await vi.waitFor(() => expect(fetcher).toHaveBeenCalledTimes(1))
+     25|     expect(fetcher.mock.calls[0][1]).toMatchObject({ signal: controlle…
+       |                                      ^
+     26|     controller.abort()
+     27|     await rejected
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[1/11]⎯
+
+ FAIL  src/components/anime/AnimeMediaProvider.test.tsx > AnimeMediaProvider > zeigt zuerst das Cover und startet das Theme-Video automatisch, sobald das Manifest bereit ist
+AssertionError: expected "spy" to be called with arguments: [ 1, { signal: Any<AbortSignal> } ]
+
+Received:
+
+  1st spy call:
+
+  [
+    1,
+-   {
+-     "signal": Any<AbortSignal>,
+-   },
+  ]
+
+
+Number of calls: 1
+
+ ❯ src/components/anime/AnimeMediaProvider.test.tsx:54:35
+     52|     expect(screen.queryByAltText("Viper's Creed Logo")).toBeNull()
+     53|     expect(getAnimeBackdropsMock).toHaveBeenCalledTimes(1)
+     54|     expect(getAnimeBackdropsMock).toHaveBeenCalledWith(1, { signal: ex…
+       |                                   ^
+     55|
+     56|     resolveManifest({
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[2/11]⎯
+
+ FAIL  src/components/anime/AnimeMediaProvider.test.tsx > AnimeMediaProvider > dedupliziert den Manifest-Request auch bei doppelten Development-Effects
+AssertionError: expected "spy" to be called with arguments: [ 2, { signal: Any<AbortSignal> } ]
+
+Received:
+
+  1st spy call:
+
+  [
+    2,
+-   {
+-     "signal": Any<AbortSignal>,
+-   },
+  ]
+
+
+Number of calls: 1
+
+ ❯ src/components/anime/AnimeMediaProvider.test.tsx:102:35
+    100|     await screen.findByAltText('Anime 2 Logo')
+    101|     expect(getAnimeBackdropsMock).toHaveBeenCalledTimes(1)
+    102|     expect(getAnimeBackdropsMock).toHaveBeenCalledWith(2, { signal: ex…
+       |                                   ^
+    103|   })
+    104| })
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[3/11]⎯
+
+ FAIL  src/components/anime/AnimeMediaProvider.test.tsx > manifest lifecycle > shares across two providers and aborts only after the final consumer leaves
+AssertionError: expected undefined to be an instance of AbortSignal
+ ❯ src/components/anime/AnimeMediaProvider.test.tsx:145:20
+    143|     expect(getAnimeBackdropsMock).toHaveBeenCalledTimes(1)
+    144|     const signal = getAnimeBackdropsMock.mock.calls[0][1]?.signal as A…
+    145|     expect(signal).toBeInstanceOf(AbortSignal)
+       |                    ^
+    146|     first.unmount()
+    147|     await flush()
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[4/11]⎯
+
+ FAIL  src/components/anime/AnimeMediaProvider.test.tsx > manifest lifecycle > shares pending work through StrictMode cleanup and setup
+AssertionError: expected undefined to be false // Object.is equality
+
+- Expected:
+false
+
++ Received:
+undefined
+
+ ❯ src/components/anime/AnimeMediaProvider.test.tsx:164:29
+    162|     expect(getAnimeBackdropsMock).toHaveBeenCalledTimes(1)
+    163|     const signal = getAnimeBackdropsMock.mock.calls[0][1]?.signal as A…
+    164|     expect(signal?.aborted).toBe(false)
+       |                             ^
+    165|     pending.resolve(response(102))
+    166|     await flush()
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[5/11]⎯
+
+ FAIL  src/components/anime/AnimeMediaProvider.test.tsx > manifest lifecycle > reuses fresh success, renews expired acquisition and does not poll
+AssertionError: expected "spy" to be called 2 times, but got 1 times
+ ❯ src/components/anime/AnimeMediaProvider.test.tsx:188:35
+    186|     render(provider(103))
+    187|     await flush()
+    188|     expect(getAnimeBackdropsMock).toHaveBeenCalledTimes(2)
+       |                                   ^
+    189|     await advance(180_000)
+    190|     expect(getAnimeBackdropsMock).toHaveBeenCalledTimes(2)
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[6/11]⎯
+
+ FAIL  src/components/anime/AnimeMediaProvider.test.tsx > manifest lifecycle > coalesces expired focus/visibility bursts and updates both providers while preserving equal manifest identity
+AssertionError: expected "spy" to be called 2 times, but got 1 times
+ ❯ src/components/anime/AnimeMediaProvider.test.tsx:208:35
+    206|       window.dispatchEvent(new Event('focus'))
+    207|     })
+    208|     expect(getAnimeBackdropsMock).toHaveBeenCalledTimes(2)
+       |                                   ^
+    209|     pending.resolve({ data: { logo_url: '/covers/first.png', theme_vid…
+    210|     await flush()
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[7/11]⎯
+
+ FAIL  src/components/anime/AnimeMediaProvider.test.tsx > manifest lifecycle > ignores hidden focus and revalidates once visible, then retries failure without a polling loop
+AssertionError: expected "spy" to be called 2 times, but got 1 times
+ ❯ src/components/anime/AnimeMediaProvider.test.tsx:234:35
+    232|     vi.spyOn(document, 'visibilityState', 'get').mockReturnValue('visi…
+    233|     await act(async () => { document.dispatchEvent(new Event('visibili…
+    234|     expect(getAnimeBackdropsMock).toHaveBeenCalledTimes(2)
+       |                                   ^
+    235|     await advance(180_000)
+    236|     expect(getAnimeBackdropsMock).toHaveBeenCalledTimes(2)
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[8/11]⎯
+
+ FAIL  src/components/anime/AnimeMediaProvider.test.tsx > manifest lifecycle > does not let an old rejection evict a replacement request
+AssertionError: expected 'empty' to contain 'replacement'
+
+Expected: "replacement"
+Received: "empty"
+
+ ❯ src/components/anime/AnimeMediaProvider.test.tsx:255:51
+    253|     replacement.resolve(response(106, 'replacement'))
+    254|     await flush()
+    255|     expect(screen.getByTestId('new').textContent).toContain('replaceme…
+       |                                                   ^
+    256|     expect(screen.getByTestId('other').textContent).toContain('replace…
+    257|   })
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[9/11]⎯
+
+ FAIL  src/components/anime/AnimeMediaProvider.test.tsx > manifest lifecycle > never presents the previous anime manifest under a new anime ID, including late completion
+AssertionError: expected '108:/covers/first.png' to contain 'empty'
+
+Expected: "empty"
+Received: "108:/covers/first.png"
+
+ ❯ src/components/anime/AnimeMediaProvider.test.tsx:279:56
+    277|     await flush()
+    278|     view.rerender(provider(109, 'manifest', observed))
+    279|     expect(screen.getByTestId('manifest').textContent).toContain('empt…
+       |                                                        ^
+    280|     view.rerender(provider(110, 'manifest', observed))
+    281|     await flush()
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[10/11]⎯
+
+ FAIL  src/components/anime/AnimeMediaProvider.test.tsx > manifest lifecycle > keeps only 20 unused fulfilled entries by LRU while protecting active and pending providers
+AssertionError: expected 1 to be 2 // Object.is equality
+
+- Expected
++ Received
+
+- 2
++ 1
+
+ ❯ src/components/anime/AnimeMediaProvider.test.tsx:316:24
+    314|     await flush()
+    315|     expect(count(200)).toBe(1)
+    316|     expect(count(201)).toBe(2)
+       |                        ^
+    317|     expect(count(198)).toBe(1)
+    318|     expect(count(199)).toBe(1)
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[11/11]⎯

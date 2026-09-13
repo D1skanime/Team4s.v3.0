@@ -1,0 +1,188 @@
+> team4s-frontend@0.1.0 test
+> vitest run src/lib/animeBackdrops.test.ts
+
+
+ RUN  v3.2.4 /app
+
+ ❯ src/lib/animeBackdrops.test.ts (23 tests | 22 failed) 29ms
+   × bounded anime image delivery > bounds the real provider while retaining identity query parameters: /api/v1/media/image?item_id=series&kind=primary&provider=jellyfin&index=2&tag=original 5ms
+     → (0 , resolveAnimeCoverURL) is not a function
+   × bounded anime image delivery > bounds the real provider while retaining identity query parameters: http://192.168.235.196:18092/api/v1/media/image?item_id=series&kind=primary&provider=jellyfin&index=2&tag=original 1ms
+     → (0 , resolveAnimeCoverURL) is not a function
+   × bounded anime image delivery > replaces existing provider bounds without duplicate query keys 1ms
+     → (0 , resolveAnimeCoverURL) is not a function
+   × bounded anime image delivery > uses a real generated local optimizer candidate at most 512px: /media/anime/1/poster/asset/original.jpg 6ms
+     → (0 , resolveAnimeCoverURL) is not a function
+   × bounded anime image delivery > uses a real generated local optimizer candidate at most 512px: /covers/anime.jpg 1ms
+     → (0 , resolveAnimeCoverURL) is not a function
+   × bounded anime image delivery > keeps an already bounded generated source unchanged instead of optimizing it twice 1ms
+     → (0 , resolveAnimeCoverURL) is not a function
+   × bounded anime image delivery > uses the configured API-file optimizer class without pretending its width query resizes files 0ms
+     → (0 , resolveAnimeImageURL) is not a function
+   × bounded anime image delivery > bounds the existing placeholder for an unusable cover and omits optional media: null 0ms
+     → (0 , resolveAnimeCoverURL) is not a function
+   × bounded anime image delivery > bounds the existing placeholder for an unusable cover and omits optional media: undefined 1ms
+     → (0 , resolveAnimeCoverURL) is not a function
+   × bounded anime image delivery > bounds the existing placeholder for an unusable cover and omits optional media:  0ms
+     → (0 , resolveAnimeCoverURL) is not a function
+   × bounded anime image delivery > bounds the existing placeholder for an unusable cover and omits optional media: https://untrusted.example/image.jpg 0ms
+     → (0 , resolveAnimeCoverURL) is not a function
+   × bounded anime image delivery > bounds the existing placeholder for an unusable cover and omits optional media: https://untrusted.example/api/v1/media/image?item_id=x 0ms
+     → (0 , resolveAnimeCoverURL) is not a function
+   × bounded anime image delivery > bounds the existing placeholder for an unusable cover and omits optional media: //untrusted.example/covers/image.jpg 0ms
+     → (0 , resolveAnimeCoverURL) is not a function
+   × bounded anime image delivery > bounds the existing placeholder for an unusable cover and omits optional media: http://[invalid 0ms
+     → (0 , resolveAnimeCoverURL) is not a function
+   × bounded anime image delivery > bounds the existing placeholder for an unusable cover and omits optional media: javascript:alert(1) 0ms
+     → (0 , resolveAnimeCoverURL) is not a function
+   × bounded anime image delivery > bounds the existing placeholder for an unusable cover and omits optional media: /media/admin/private/original.jpg 0ms
+     → (0 , resolveAnimeCoverURL) is not a function
+   × bounded anime image delivery > bounds the existing placeholder for an unusable cover and omits optional media: /covers/../private.jpg 0ms
+     → (0 , resolveAnimeCoverURL) is not a function
+   × bounded anime image delivery > bounds the existing placeholder for an unusable cover and omits optional media: /covers/local.jpg?width=512 0ms
+     → (0 , resolveAnimeCoverURL) is not a function
+   × bounded anime image delivery > bounds the existing placeholder for an unusable cover and omits optional media: /_next/image?url=https%3A%2F%2Funtrusted.example%2Fx.jpg&w=512&q=75 0ms
+     → (0 , resolveAnimeCoverURL) is not a function
+   × bounded anime image delivery > retains the existing bare cover filename convention without filename-derived variants 0ms
+     → (0 , resolveAnimeCoverURL) is not a function
+   × bounded anime image delivery > keeps missing-file delivery bounded without prefetching or original fallback 1ms
+     → (0 , resolveAnimeCoverURL) is not a function
+   × bounded anime image delivery > bounds banner/logo/backdrop slots through the same delivery classes 5ms
+     → expected [ …(3) ] to have a length of 2 but got 3
+   ✓ bounded anime image delivery > does not add image parameters or alter the video resolver 1ms
+
+ Test Files  1 failed (1)
+      Tests  22 failed | 1 passed (23)
+   Start at  23:07:08
+   Duration  344ms (transform 59ms, setup 73ms, collect 71ms, tests 29ms, environment 0ms, prepare 51ms)
+
+
+⎯⎯⎯⎯⎯⎯ Failed Tests 22 ⎯⎯⎯⎯⎯⎯⎯
+
+ FAIL  src/lib/animeBackdrops.test.ts > bounded anime image delivery > bounds the real provider while retaining identity query parameters: /api/v1/media/image?item_id=series&kind=primary&provider=jellyfin&index=2&tag=original
+ FAIL  src/lib/animeBackdrops.test.ts > bounded anime image delivery > bounds the real provider while retaining identity query parameters: http://192.168.235.196:18092/api/v1/media/image?item_id=series&kind=primary&provider=jellyfin&index=2&tag=original
+TypeError: (0 , resolveAnimeCoverURL) is not a function
+ ❯ src/lib/animeBackdrops.test.ts:31:24
+     29| describe('bounded anime image delivery', () => {
+     30|   it.each([provider, origin + provider])('bounds the real provider whi…
+     31|     const output = url(resolveAnimeCoverURL(source))
+       |                        ^
+     32|     expect(output.origin).toBe(origin)
+     33|     expect(output.pathname).toBe('/api/v1/media/image')
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[1/22]⎯
+
+ FAIL  src/lib/animeBackdrops.test.ts > bounded anime image delivery > replaces existing provider bounds without duplicate query keys
+TypeError: (0 , resolveAnimeCoverURL) is not a function
+ ❯ src/lib/animeBackdrops.test.ts:40:24
+     38|
+     39|   it('replaces existing provider bounds without duplicate query keys',…
+     40|     const output = url(resolveAnimeCoverURL(provider + '&width=4000&wi…
+       |                        ^
+     41|     expect(output.searchParams.getAll('width')).toEqual(['512'])
+     42|     expect(output.searchParams.getAll('quality')).toEqual(['75'])
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[2/22]⎯
+
+ FAIL  src/lib/animeBackdrops.test.ts > bounded anime image delivery > uses a real generated local optimizer candidate at most 512px: /media/anime/1/poster/asset/original.jpg
+ FAIL  src/lib/animeBackdrops.test.ts > bounded anime image delivery > uses a real generated local optimizer candidate at most 512px: /covers/anime.jpg
+TypeError: (0 , resolveAnimeCoverURL) is not a function
+ ❯ src/lib/animeBackdrops.test.ts:48:20
+     46|     const generated = getImageProps({ src: source, alt: '', width: 512…
+     47|     const candidates = generated.srcSet?.split(', ').map((candidate) =…
+     48|     const result = resolveAnimeCoverURL(source)
+       |                    ^
+     49|     const output = url(result)
+     50|     expect(candidates).toContain(result)
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[3/22]⎯
+
+ FAIL  src/lib/animeBackdrops.test.ts > bounded anime image delivery > keeps an already bounded generated source unchanged instead of optimizing it twice
+TypeError: (0 , resolveAnimeCoverURL) is not a function
+ ❯ src/lib/animeBackdrops.test.ts:62:19
+     60|
+     61|   it('keeps an already bounded generated source unchanged instead of o…
+     62|     const first = resolveAnimeCoverURL('/covers/anime.jpg')
+       |                   ^
+     63|     expect(resolveAnimeCoverURL(first)).toBe(first)
+     64|     expect(url(first).searchParams.get('url')).toBe('/covers/anime.jpg…
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[4/22]⎯
+
+ FAIL  src/lib/animeBackdrops.test.ts > bounded anime image delivery > uses the configured API-file optimizer class without pretending its width query resizes files
+TypeError: (0 , resolveAnimeImageURL) is not a function
+ ❯ src/lib/animeBackdrops.test.ts:69:24
+     67|   it('uses the configured API-file optimizer class without pretending …
+     68|     const source = origin + '/api/v1/media/files/logo.png'
+     69|     const output = url(resolveAnimeImageURL(source, 760))
+       |                        ^
+     70|     expect(output.pathname).toBe('/_next/image')
+     71|     expect(output.searchParams.get('url')).toBe(source)
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[5/22]⎯
+
+ FAIL  src/lib/animeBackdrops.test.ts > bounded anime image delivery > bounds the existing placeholder for an unusable cover and omits optional media: null
+ FAIL  src/lib/animeBackdrops.test.ts > bounded anime image delivery > bounds the existing placeholder for an unusable cover and omits optional media: undefined
+ FAIL  src/lib/animeBackdrops.test.ts > bounded anime image delivery > bounds the existing placeholder for an unusable cover and omits optional media:
+ FAIL  src/lib/animeBackdrops.test.ts > bounded anime image delivery > bounds the existing placeholder for an unusable cover and omits optional media: https://untrusted.example/image.jpg
+ FAIL  src/lib/animeBackdrops.test.ts > bounded anime image delivery > bounds the existing placeholder for an unusable cover and omits optional media: https://untrusted.example/api/v1/media/image?item_id=x
+ FAIL  src/lib/animeBackdrops.test.ts > bounded anime image delivery > bounds the existing placeholder for an unusable cover and omits optional media: //untrusted.example/covers/image.jpg
+ FAIL  src/lib/animeBackdrops.test.ts > bounded anime image delivery > bounds the existing placeholder for an unusable cover and omits optional media: http://[invalid
+ FAIL  src/lib/animeBackdrops.test.ts > bounded anime image delivery > bounds the existing placeholder for an unusable cover and omits optional media: javascript:alert(1)
+ FAIL  src/lib/animeBackdrops.test.ts > bounded anime image delivery > bounds the existing placeholder for an unusable cover and omits optional media: /media/admin/private/original.jpg
+ FAIL  src/lib/animeBackdrops.test.ts > bounded anime image delivery > bounds the existing placeholder for an unusable cover and omits optional media: /covers/../private.jpg
+ FAIL  src/lib/animeBackdrops.test.ts > bounded anime image delivery > bounds the existing placeholder for an unusable cover and omits optional media: /covers/local.jpg?width=512
+ FAIL  src/lib/animeBackdrops.test.ts > bounded anime image delivery > bounds the existing placeholder for an unusable cover and omits optional media: /_next/image?url=https%3A%2F%2Funtrusted.example%2Fx.jpg&w=512&q=75
+TypeError: (0 , resolveAnimeCoverURL) is not a function
+ ❯ src/lib/animeBackdrops.test.ts:83:26
+     81|     '/_next/image?url=https%3A%2F%2Funtrusted.example%2Fx.jpg&w=512&q=…
+     82|   ])('bounds the existing placeholder for an unusable cover and omits …
+     83|     const fallback = url(resolveAnimeCoverURL(source))
+       |                          ^
+     84|     expect(fallback.pathname).toBe('/_next/image')
+     85|     expect(fallback.searchParams.get('url')).toBe('/covers/placeholder…
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[6/22]⎯
+
+ FAIL  src/lib/animeBackdrops.test.ts > bounded anime image delivery > retains the existing bare cover filename convention without filename-derived variants
+TypeError: (0 , resolveAnimeCoverURL) is not a function
+ ❯ src/lib/animeBackdrops.test.ts:91:24
+     89|
+     90|   it('retains the existing bare cover filename convention without file…
+     91|     const output = url(resolveAnimeCoverURL('named-cover.jpg'))
+       |                        ^
+     92|     expect(output.searchParams.get('url')).toBe('/covers/named-cover.j…
+     93|   })
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[7/22]⎯
+
+ FAIL  src/lib/animeBackdrops.test.ts > bounded anime image delivery > keeps missing-file delivery bounded without prefetching or original fallback
+TypeError: (0 , resolveAnimeCoverURL) is not a function
+ ❯ src/lib/animeBackdrops.test.ts:99:20
+     97|     vi.stubGlobal('fetch', fetcher)
+     98|     const source = '/covers/missing-404.jpg'
+     99|     const output = resolveAnimeCoverURL(source)
+       |                    ^
+    100|     expect(url(output).searchParams.get('url')).toBe(source)
+    101|     expect(output).not.toBe(source)
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[8/22]⎯
+
+ FAIL  src/lib/animeBackdrops.test.ts > bounded anime image delivery > bounds banner/logo/backdrop slots through the same delivery classes
+AssertionError: expected [ …(3) ] to have a length of 2 but got 3
+
+- Expected
++ Received
+
+- 2
++ 3
+
+ ❯ src/lib/animeBackdrops.test.ts:110:23
+    108|     expect(url(resolveInfoLogoURL(data)).searchParams.get('width')).to…
+    109|     const backdrops = normalizeBackdropImageURLs(data)
+    110|     expect(backdrops).toHaveLength(2)
+       |                       ^
+    111|     expect(url(backdrops[0]).searchParams.get('width')).toBe('1920')
+    112|     expect(url(backdrops[1]).pathname).toBe('/_next/image')
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[9/22]⎯

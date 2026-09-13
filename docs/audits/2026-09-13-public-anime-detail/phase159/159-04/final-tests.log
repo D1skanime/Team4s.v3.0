@@ -1,0 +1,19 @@
+> team4s-frontend@0.1.0 test
+> vitest run src/components/anime/AnimeMediaProvider.test.tsx src/lib/api.anime-media.test.ts src/lib/animeBackdrops.test.ts src/app/anime/[id]/page.performance.test.ts src/app/anime/[id]/page.test.tsx src/components/anime/themeVideoAudio.test.ts src/components/ui/ResponsiveImage.test.tsx src/components/ui/ResponsiveImage.config.test.ts
+
+
+ RUN  v3.2.4 /app
+
+ ✓ src/components/ui/ResponsiveImage.test.tsx (4 tests) 205ms
+ ✓ src/components/anime/AnimeMediaProvider.test.tsx (13 tests) 258ms
+ ✓ src/components/ui/ResponsiveImage.config.test.ts (12 tests) 266ms
+ ✓ src/lib/api.anime-media.test.ts (3 tests) 86ms
+ ✓ src/app/anime/[id]/page.performance.test.ts (5 tests) 118ms
+ ✓ src/lib/animeBackdrops.test.ts (23 tests) 85ms
+ ✓ src/components/anime/themeVideoAudio.test.ts (4 tests) 2ms
+ ✓ src/app/anime/[id]/page.test.tsx (19 tests) 37ms
+
+ Test Files  8 passed (8)
+      Tests  83 passed (83)
+   Start at  23:13:08
+   Duration  4.93s (transform 2.03s, setup 1.26s, collect 4.79s, tests 1.06s, environment 2.12s, prepare 940ms)

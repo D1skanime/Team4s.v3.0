@@ -1,0 +1,63 @@
+> team4s-frontend@0.1.0 test
+> vitest run src/app/anime/[id]/page.performance.test.ts
+
+
+ RUN  v3.2.4 /app
+
+ ❯ src/app/anime/[id]/page.performance.test.ts (5 tests | 3 failed) 29ms
+   ✓ Anime-Detailseite Performance-Grenze > blockiert das Server-Rendering nicht mehr auf dem Backdrop-Manifest 3ms
+   ✓ Anime-Detailseite Performance-Grenze > keeps viewer auth and extra link-resolution fetches outside the public server page 1ms
+   × one bounded cover for every detail consumer > shares the generated display source across poster, hero, reflection and mounted rotator: /api/v1/media/image?provider=jellyfin&item_id=series&kind=primary 10ms
+     → expected "resolveAnimeCoverURL" to be called once with arguments: [ Array(1) ]
+
+Number of calls: 0
+
+   × one bounded cover for every detail consumer > shares the generated display source across poster, hero, reflection and mounted rotator: /media/anime/1/poster/asset/original.jpg 10ms
+     → expected "resolveAnimeCoverURL" to be called once with arguments: [ Array(1) ]
+
+Number of calls: 0
+
+   × one bounded cover for every detail consumer > shares the generated display source across poster, hero, reflection and mounted rotator: undefined 4ms
+     → expected "resolveAnimeCoverURL" to be called once with arguments: [ undefined ]
+
+Number of calls: 0
+
+
+ Test Files  1 failed (1)
+      Tests  3 failed | 2 passed (5)
+   Start at  23:11:08
+   Duration  1.43s (transform 522ms, setup 73ms, collect 874ms, tests 29ms, environment 286ms, prepare 55ms)
+
+
+⎯⎯⎯⎯⎯⎯⎯ Failed Tests 3 ⎯⎯⎯⎯⎯⎯⎯
+
+ FAIL  src/app/anime/[id]/page.performance.test.ts > one bounded cover for every detail consumer > shares the generated display source across poster, hero, reflection and mounted rotator: /api/v1/media/image?provider=jellyfin&item_id=series&kind=primary
+ FAIL  src/app/anime/[id]/page.performance.test.ts > one bounded cover for every detail consumer > shares the generated display source across poster, hero, reflection and mounted rotator: /media/anime/1/poster/asset/original.jpg
+AssertionError: expected "resolveAnimeCoverURL" to be called once with arguments: [ Array(1) ]
+
+Number of calls: 0
+
+ ❯ src/app/anime/[id]/page.performance.test.ts:86:26
+     84|     const reflection = all.find((element) => (element.props.style as R…
+     85|     const rotator = all.find((element) => element.type === AnimeBackdr…
+     86|     expect(resolveCover).toHaveBeenCalledExactlyOnceWith(rawCover)
+       |                          ^
+     87|     expect(poster?.props.src).toBe(expected)
+     88|     expect(poster?.props.unoptimized).toBe(true)
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[1/3]⎯
+
+ FAIL  src/app/anime/[id]/page.performance.test.ts > one bounded cover for every detail consumer > shares the generated display source across poster, hero, reflection and mounted rotator: undefined
+AssertionError: expected "resolveAnimeCoverURL" to be called once with arguments: [ undefined ]
+
+Number of calls: 0
+
+ ❯ src/app/anime/[id]/page.performance.test.ts:86:26
+     84|     const reflection = all.find((element) => (element.props.style as R…
+     85|     const rotator = all.find((element) => element.type === AnimeBackdr…
+     86|     expect(resolveCover).toHaveBeenCalledExactlyOnceWith(rawCover)
+       |                          ^
+     87|     expect(poster?.props.src).toBe(expected)
+     88|     expect(poster?.props.unoptimized).toBe(true)
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[2/3]⎯

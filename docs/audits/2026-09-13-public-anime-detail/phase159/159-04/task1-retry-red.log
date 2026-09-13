@@ -1,0 +1,44 @@
+> team4s-frontend@0.1.0 test
+> vitest run src/components/anime/AnimeMediaProvider.test.tsx
+
+
+ RUN  v3.2.4 /app
+
+ ❯ src/components/anime/AnimeMediaProvider.test.tsx (12 tests | 1 failed) 107ms
+   ✓ AnimeMediaProvider > zeigt zuerst das Cover und startet das Theme-Video automatisch, sobald das Manifest bereit ist 37ms
+   ✓ AnimeMediaProvider > dedupliziert den Manifest-Request auch bei doppelten Development-Effects 6ms
+   ✓ manifest lifecycle > shares across two providers and aborts only after the final consumer leaves 7ms
+   ✓ manifest lifecycle > shares pending work through StrictMode cleanup and setup 8ms
+   ✓ manifest lifecycle > reuses fresh success, renews expired acquisition and does not poll 5ms
+   ✓ manifest lifecycle > coalesces expired focus/visibility bursts and updates both providers while preserving equal manifest identity 5ms
+   ✓ manifest lifecycle > ignores hidden focus and revalidates once visible, then retries failure without a polling loop 3ms
+   ✓ manifest lifecycle > does not let an old rejection evict a replacement request 4ms
+   ✓ manifest lifecycle > retries rejected requests on a later acquisition 2ms
+   × manifest lifecycle > updates existing providers when a new consumer retries a failed shared request 7ms
+     → expected 'empty' to contain 'retry'
+   ✓ manifest lifecycle > never presents the previous anime manifest under a new anime ID, including late completion 2ms
+   ✓ manifest lifecycle > keeps only 20 unused fulfilled entries by LRU while protecting active and pending providers 19ms
+
+ Test Files  1 failed (1)
+      Tests  1 failed | 11 passed (12)
+   Start at  23:03:52
+   Duration  887ms (transform 145ms, setup 79ms, collect 259ms, tests 107ms, environment 276ms, prepare 50ms)
+
+
+⎯⎯⎯⎯⎯⎯⎯ Failed Tests 1 ⎯⎯⎯⎯⎯⎯⎯
+
+ FAIL  src/components/anime/AnimeMediaProvider.test.tsx > manifest lifecycle > updates existing providers when a new consumer retries a failed shared request
+AssertionError: expected 'empty' to contain 'retry'
+
+Expected: "retry"
+Received: "empty"
+
+ ❯ src/components/anime/AnimeMediaProvider.test.tsx:279:56
+    277|     await flush()
+    278|     expect(getAnimeBackdropsMock).toHaveBeenCalledTimes(2)
+    279|     expect(screen.getByTestId('existing').textContent).toContain('retr…
+       |                                                        ^
+    280|     expect(screen.getByTestId('newcomer').textContent).toContain('retr…
+    281|   })
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[1/1]⎯

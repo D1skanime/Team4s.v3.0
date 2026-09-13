@@ -1,0 +1,13 @@
+> team4s-frontend@0.1.0 test
+> vitest run src/components/anime/AnimeMediaProvider.test.tsx src/lib/api.anime-media.test.ts
+
+
+ RUN  v3.2.4 /app
+
+ ✓ src/lib/api.anime-media.test.ts (3 tests) 77ms
+ ✓ src/components/anime/AnimeMediaProvider.test.tsx (12 tests) 111ms
+
+ Test Files  2 passed (2)
+      Tests  15 passed (15)
+   Start at  23:04:24
+   Duration  918ms (transform 314ms, setup 142ms, collect 475ms, tests 188ms, environment 316ms, prepare 103ms)

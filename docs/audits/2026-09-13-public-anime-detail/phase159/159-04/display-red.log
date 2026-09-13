@@ -1,0 +1,50 @@
+RUN  v3.2.4 /app
+
+ ❯ src/lib/server/imageDisplay.test.ts (2 tests | 2 failed) 55ms
+   × explicit frontend display delivery > resizes actual local bytes, ignoring original Range/conditional headers 11ms
+     → expected 206 to be 200 // Object.is equality
+   × explicit frontend display delivery > routes API files through the fixed internal proxy and rewrites representation headers 3ms
+     → expected 'image/png' to be 'image/webp' // Object.is equality
+
+⎯⎯⎯⎯⎯⎯⎯ Failed Tests 2 ⎯⎯⎯⎯⎯⎯⎯
+
+ FAIL  src/lib/server/imageDisplay.test.ts > explicit frontend display delivery > resizes actual local bytes, ignoring original Range/conditional headers
+AssertionError: expected 206 to be 200 // Object.is equality
+
+- Expected
++ Received
+
+- 200
++ 206
+
+ ❯ src/lib/server/imageDisplay.test.ts:31:29
+     29|       headers: { range: 'bytes=0-10', 'if-none-match': 'original' },
+     30|     }), { params: Promise.resolve({ path: ['anime', 'cover.png'] }) })
+     31|     expect(response.status).toBe(200)
+       |                             ^
+     32|     expect(response.headers.get('content-type')).toBe('image/webp')
+     33|     const output = Buffer.from(await response.arrayBuffer())
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[1/2]⎯
+
+ FAIL  src/lib/server/imageDisplay.test.ts > explicit frontend display delivery > routes API files through the fixed internal proxy and rewrites representation headers
+AssertionError: expected 'image/png' to be 'image/webp' // Object.is equality
+
+Expected: "image/webp"
+Received: "image/png"
+
+ ❯ src/lib/server/imageDisplay.test.ts:49:50
+     47|     }), { params: Promise.resolve({ path: ['media', 'files', 'cover.pn…
+     48|     expect(response.status).toBe(200)
+     49|     expect(response.headers.get('content-type')).toBe('image/webp')
+       |                                                  ^
+     50|     expect((await sharp(Buffer.from(await response.arrayBuffer())).met…
+     51|     const [url, init] = fetchMock.mock.calls[0]
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[2/2]⎯
+
+
+ Test Files  1 failed (1)
+      Tests  2 failed (2)
+   Start at  23:43:06
+   Duration  368ms (transform 55ms, setup 70ms, collect 76ms, tests 55ms, environment 0ms, prepare 49ms)

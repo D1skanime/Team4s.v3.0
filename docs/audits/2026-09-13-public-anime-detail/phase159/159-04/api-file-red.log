@@ -1,0 +1,58 @@
+> team4s-frontend@0.1.0 test
+> vitest run src/lib/animeBackdrops.test.ts
+
+
+ RUN  v3.2.4 /app
+
+ ❯ src/lib/animeBackdrops.test.ts (26 tests | 1 failed) 47ms
+   ✓ bounded anime image delivery > bounds the real provider while retaining identity query parameters: /api/v1/media/image?item_id=series&kind=primary&provider=jellyfin&index=2&tag=original 4ms
+   ✓ bounded anime image delivery > bounds the real provider while retaining identity query parameters: http://192.168.235.196:18092/api/v1/media/image?item_id=series&kind=primary&provider=jellyfin&index=2&tag=original 1ms
+   ✓ bounded anime image delivery > replaces existing provider bounds without duplicate query keys 0ms
+   ✓ bounded anime image delivery > uses a real generated local optimizer candidate at most 512px: /media/anime/1/poster/asset/original.jpg 8ms
+   ✓ bounded anime image delivery > uses a real generated local optimizer candidate at most 512px: /covers/anime.jpg 3ms
+   ✓ bounded anime image delivery > keeps an already bounded generated source unchanged instead of optimizing it twice 2ms
+   ✓ bounded anime image delivery > uses the configured API-file optimizer class without pretending its width query resizes files: http://192.168.235.196:18092/api/v1/media/files/logo.png 2ms
+   × bounded anime image delivery > uses the configured API-file optimizer class without pretending its width query resizes files: /api/v1/media/files/logo.png 5ms
+     → expected '/' to be '/_next/image' // Object.is equality
+   ✓ bounded anime image delivery > bounds the existing placeholder for an unusable cover and omits optional media: null 1ms
+   ✓ bounded anime image delivery > bounds the existing placeholder for an unusable cover and omits optional media: undefined 1ms
+   ✓ bounded anime image delivery > bounds the existing placeholder for an unusable cover and omits optional media:  1ms
+   ✓ bounded anime image delivery > bounds the existing placeholder for an unusable cover and omits optional media: https://untrusted.example/image.jpg 1ms
+   ✓ bounded anime image delivery > bounds the existing placeholder for an unusable cover and omits optional media: https://untrusted.example/api/v1/media/image?item_id=x 1ms
+   ✓ bounded anime image delivery > bounds the existing placeholder for an unusable cover and omits optional media: /\\untrusted.example/api/v1/media/image?item_id=x 1ms
+   ✓ bounded anime image delivery > bounds the existing placeholder for an unusable cover and omits optional media: http://user:pass@192.168.235.196:18092/api/v1/media/image?item_id=x 1ms
+   ✓ bounded anime image delivery > bounds the existing placeholder for an unusable cover and omits optional media: //untrusted.example/covers/image.jpg 1ms
+   ✓ bounded anime image delivery > bounds the existing placeholder for an unusable cover and omits optional media: http://[invalid 1ms
+   ✓ bounded anime image delivery > bounds the existing placeholder for an unusable cover and omits optional media: javascript:alert(1) 1ms
+   ✓ bounded anime image delivery > bounds the existing placeholder for an unusable cover and omits optional media: /media/admin/private/original.jpg 1ms
+   ✓ bounded anime image delivery > bounds the existing placeholder for an unusable cover and omits optional media: /covers/../private.jpg 1ms
+   ✓ bounded anime image delivery > bounds the existing placeholder for an unusable cover and omits optional media: /covers/local.jpg?width=512 1ms
+   ✓ bounded anime image delivery > bounds the existing placeholder for an unusable cover and omits optional media: /_next/image?url=https%3A%2F%2Funtrusted.example%2Fx.jpg&w=512&q=75 1ms
+   ✓ bounded anime image delivery > retains the existing bare cover filename convention without filename-derived variants 1ms
+   ✓ bounded anime image delivery > keeps missing-file delivery bounded without prefetching or original fallback 2ms
+   ✓ bounded anime image delivery > bounds banner/logo/backdrop slots through the same delivery classes 5ms
+   ✓ bounded anime image delivery > does not add image parameters or alter the video resolver 0ms
+
+ Test Files  1 failed (1)
+      Tests  1 failed | 25 passed (26)
+   Start at  23:16:54
+   Duration  535ms (transform 210ms, setup 67ms, collect 251ms, tests 47ms, environment 0ms, prepare 51ms)
+
+
+⎯⎯⎯⎯⎯⎯⎯ Failed Tests 1 ⎯⎯⎯⎯⎯⎯⎯
+
+ FAIL  src/lib/animeBackdrops.test.ts > bounded anime image delivery > uses the configured API-file optimizer class without pretending its width query resizes files: /api/v1/media/files/logo.png
+AssertionError: expected '/' to be '/_next/image' // Object.is equality
+
+Expected: "/_next/image"
+Received: "/"
+
+ ❯ src/lib/animeBackdrops.test.ts:69:29
+     67|   it.each([origin + '/api/v1/media/files/logo.png', '/api/v1/media/fil…
+     68|     const output = url(resolveAnimeImageURL(source, 760))
+     69|     expect(output.pathname).toBe('/_next/image')
+       |                             ^
+     70|     expect(output.searchParams.get('url')).toBe(origin + '/api/v1/medi…
+     71|     expect(Number(output.searchParams.get('w'))).toBeLessThanOrEqual(7…
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[1/1]⎯

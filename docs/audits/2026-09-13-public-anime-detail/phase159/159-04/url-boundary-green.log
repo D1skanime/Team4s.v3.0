@@ -1,0 +1,14 @@
+> team4s-frontend@0.1.0 test
+> vitest run src/lib/animeBackdrops.test.ts src/components/anime/AnimeMediaProvider.test.tsx src/app/anime/[id]/page.performance.test.ts
+
+
+ RUN  v3.2.4 /app
+
+ ✓ src/lib/animeBackdrops.test.ts (25 tests) 41ms
+ ✓ src/components/anime/AnimeMediaProvider.test.tsx (13 tests) 118ms
+ ✓ src/app/anime/[id]/page.performance.test.ts (5 tests) 53ms
+
+ Test Files  3 passed (3)
+      Tests  43 passed (43)
+   Start at  23:14:51
+   Duration  1.54s (transform 763ms, setup 336ms, collect 1.51s, tests 212ms, environment 716ms, prepare 188ms)
