@@ -10,12 +10,14 @@
   gap: 12px;
   margin-inline-start: 10px;
   padding: 14px 16px;
-  border: 1px solid var(--color-border);
-  border-inline-start: 3px solid var(--role-accent);
+  border: 1px solid var(--border-subtle);
   border-radius: var(--radius-md);
   background: var(--surface-card);
-  text-decoration: none;
-  color: inherit;
+}
+
+.entry:focus-within {
+  box-shadow: var(--focus-ring);
+  border-color: var(--focus-outline);
 }
 
 .entry + .entry {
@@ -93,20 +95,43 @@
 
 .bodyClamped {
   /* One preview budget for plain text, paragraphs, lists and every viewport. */
-  max-height: calc(4 * 1.65em);
+  max-height: calc(3 * 1.65em);
   display: -webkit-box;
-  -webkit-line-clamp: 4;
+  -webkit-line-clamp: 3;
   -webkit-box-orient: vertical;
   overflow: hidden;
 }
 
+.body a {
+  position: relative;
+  z-index: 2;
+}
+
 .toggle {
   margin-top: 6px;
+  position: relative;
+  z-index: 2;
+}
+
+.entryLink {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  align-self: center;
+  flex-shrink: 0;
+  border-radius: var(--radius-sm);
+  color: inherit;
+  text-decoration: none;
+}
+
+.entryLink::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  z-index: 1;
 }
 
 .chevron {
-  align-self: center;
-  flex-shrink: 0;
   color: var(--text-muted);
 }
 

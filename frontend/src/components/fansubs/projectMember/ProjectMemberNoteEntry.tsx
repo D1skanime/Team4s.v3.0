@@ -63,13 +63,13 @@ export function ProjectMemberNoteEntry({
   // Innenabstaende, lange Eintraege bleiben unveraendert luftig.
   const combinedTextLength = (note.title?.length ?? 0) + plainText.length
   const isCompact = combinedTextLength > 0 && combinedTextLength <= 60
+  const colorKey = boundedColorKey(note.role_color_key)
 
   return (
-    <Link
-      href={`${projectPath}/releases/${note.release_version_id}`}
+    <article
       className={styles.entry}
       data-note-entry
-      data-color-key={boundedColorKey(note.role_color_key)}
+      data-color-key={colorKey}
       data-compact={isCompact ? 'true' : undefined}
     >
       <span className={styles.dot} aria-hidden="true" />
@@ -99,17 +99,20 @@ export function ProjectMemberNoteEntry({
             className={styles.toggle}
             aria-expanded={isExpanded}
             aria-controls={bodyId}
-            onClick={(event) => {
-              event.preventDefault()
-              event.stopPropagation()
-              setIsExpanded((value) => !value)
-            }}
+            onClick={() => setIsExpanded((value) => !value)}
           >
             {isExpanded ? 'Weniger anzeigen' : 'Mehr anzeigen'}
           </Button>
         ) : null}
       </div>
-      <DisclosureIndicator className={styles.chevron} />
-    </Link>
+      <Link
+        href={`${projectPath}/releases/${note.release_version_id}`}
+        className={styles.entryLink}
+        data-color-key={colorKey}
+        aria-label={`Beitrag ansehen: ${metaLead}`}
+      >
+        <DisclosureIndicator className={styles.chevron} />
+      </Link>
+    </article>
   )
 }
