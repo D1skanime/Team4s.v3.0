@@ -12,7 +12,7 @@ source_commit: feeeb125
 
 **All mandatory Phase158 technical behaviors pass, with explicitly classified pre-existing global test/lint/build exceptions.** This grants no Human-UAT sign-off. The orchestrator combines this result with the independent code/security/verification reports before starting159.
 
-Primary evidence: [RESULTS](../../../../docs/audits/2026-09-13-public-anime-detail/phase158/RESULTS.md), [fixture JSON](../../../../docs/audits/2026-09-13-public-anime-detail/phase158/fixture-results.json), [exact baseline comparison](../../../docs/audits/2026-09-13-public-anime-detail/phase158/baseline-comparison.json).
+Primary evidence: [RESULTS](../../../docs/audits/2026-09-13-public-anime-detail/phase158/RESULTS.md), [fixture JSON](../../../docs/audits/2026-09-13-public-anime-detail/phase158/fixture-results.json), [exact baseline comparison](../../../docs/audits/2026-09-13-public-anime-detail/phase158/baseline-comparison.json).
 
 ## Requirement evidence
 
@@ -34,9 +34,9 @@ The baseline episode-header outward focus outline can be clipped by its existing
 
 ## Reproducible evidence
 
-- [Complete results](../../../../docs/audits/2026-09-13-public-anime-detail/phase158/RESULTS.md)
-- [33-case final machine result](../../../../docs/audits/2026-09-13-public-anime-detail/phase158/fixture-results.json), SHA256 `51958ed5631ccca7f0444419ebf7661213513537328f2f38244c0991c9d1f6d0`.
-- [Shared live browser facts](../../../../docs/audits/2026-09-13-public-anime-detail/phase158/root-live-browser.json).
+- [Complete results](../../../docs/audits/2026-09-13-public-anime-detail/phase158/RESULTS.md)
+- [33-case final machine result](../../../docs/audits/2026-09-13-public-anime-detail/phase158/fixture-results.json), SHA256 `51958ed5631ccca7f0444419ebf7661213513537328f2f38244c0991c9d1f6d0`.
+- [Shared live browser facts](../../../docs/audits/2026-09-13-public-anime-detail/phase158/root-live-browser.json).
 - [Independent review](158-REVIEW.md), [security verification](158-SECURITY.md), and [independent technical verification](158-INDEPENDENT-VERIFICATION.md) are owned by the orchestrator/review agents; their current results must be consulted separately.
 - `bash scripts/verify-anime-detail-phase.sh 158 --fixtures`: exit0. `--gates`: exit1, preserving explicit baseline failures rather than masking them.
 
