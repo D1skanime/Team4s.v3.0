@@ -221,3 +221,61 @@ func TestAnimePublicReadRelationsDatabaseErrors(t *testing.T) {
 		})
 	}
 }
+
+func TestAnimePublicReadDetailStoredSlugAndSQLBudget(t *testing.T) {
+	for _, tc := range []struct {
+		name       string
+		storedSlug any
+		wantSlug   string
+		legacy     bool
+	}{
+		{"stored slug differs from display title", "authoritative-route", "authoritative-route", false},
+		{"trim stored slug", "  saved-route  ", "saved-route", false},
+		{"empty slug", "", "", false},
+		{"blank slug", "   ", "", false},
+		{"null slug", nil, "", false},
+		{"legacy schema has no slug", nil, "", true},
+	} {
+		t.Run(tc.name, func(t *testing.T) {
+			pool, tracer := openAnimePublicReadFixture(t)
+			if tc.legacy {
+				if _, err := pool.Exec(context.Background(), "ALTER TABLE anime DROP COLUMN slug"); err != nil {
+					t.Fatal(err)
+				}
+			} else if _, err := pool.Exec(context.Background(), "UPDATE anime SET slug = $1 WHERE id = 1", tc.storedSlug); err != nil {
+				t.Fatal(err)
+			}
+			tracer.reset()
+			detail, err := repository.NewAnimeRepository(pool).GetByID(context.Background(), 1, false)
+			if err != nil {
+				t.Fatal(err)
+			}
+			queries := tracer.snapshot()
+			t.Logf("detail SQL statements = %d (one schema read + six data statements)", len(queries))
+			if len(queries) != 7 {
+				t.Errorf("detail statements = %d, want unchanged 7; SQL: %v", len(queries), queries)
+			}
+			if detail.ID != 1 || detail.Title != "A Different Display Title" || detail.Status != "ongoing" || detail.Type != "tv" || detail.Year == nil || *detail.Year != 2024 {
+				t.Errorf("existing detail fields changed: %#v", detail)
+			}
+			if len(detail.Episodes) != 1 || detail.Episodes[0].ID != 11 || detail.Episodes[0].Title == nil || *detail.Episodes[0].Title != "First Episode" || detail.Episodes[0].ViewCount != 7 {
+				t.Errorf("existing episodes changed: %#v", detail.Episodes)
+			}
+			serialized, err := json.Marshal(detail)
+			if err != nil {
+				t.Fatal(err)
+			}
+			var payload map[string]any
+			if err := json.Unmarshal(serialized, &payload); err != nil {
+				t.Fatal(err)
+			}
+			if tc.wantSlug == "" {
+				if slug, exists := payload["slug"]; exists {
+					t.Errorf("unavailable slug must be omitted, got %#v", slug)
+				}
+			} else if payload["slug"] != tc.wantSlug {
+				t.Errorf("slug = %#v, want stored %q", payload["slug"], tc.wantSlug)
+			}
+		})
+	}
+}
