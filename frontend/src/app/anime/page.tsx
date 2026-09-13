@@ -1,3 +1,5 @@
+import { Suspense } from 'react'
+
 import { AnimeGrid } from '@/components/anime/AnimeGrid'
 import { AnimeGridScrollRestorer } from '@/components/anime/AnimeGridScrollRestorer'
 import { LetterFilter } from '@/components/anime/LetterFilter'
@@ -7,6 +9,7 @@ import { buildAnimeGridQuery } from '@/lib/animeGridContext'
 import { toNumber } from '@/lib/utils'
 import { AnimeStatus, ContentType } from '@/types/anime'
 
+import AnimeListLoading from './AnimeListLoading'
 import styles from './page.module.css'
 
 // Diese Route haengt von Query-Parametern (A-Z-Buchstabenfilter, Pagination usw.) ab.
@@ -53,7 +56,15 @@ const allowedStatuses: AnimeStatus[] = ['ongoing', 'done', 'aborted', 'licensed'
  * Laedt die gefilterte Anime-Liste vom Backend und rendert das Raster mit A-Z-Filter und Pagination.
  * Unterstützt Query-Parameter: page, per_page, q, letter, content_type, status.
  */
-export default async function AnimePage({ searchParams }: AnimePageProps) {
+export default function AnimePage({ searchParams }: AnimePageProps) {
+  return (
+    <Suspense fallback={<AnimeListLoading />}>
+      <AnimeListContent searchParams={searchParams} />
+    </Suspense>
+  )
+}
+
+async function AnimeListContent({ searchParams }: AnimePageProps) {
   // Next.js may provide searchParams as a Promise-like value.
   const resolvedSearchParams = ((await searchParams) ?? {}) as ResolvedAnimeSearchParams
 

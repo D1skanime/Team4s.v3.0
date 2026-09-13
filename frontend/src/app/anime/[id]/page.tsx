@@ -1,3 +1,4 @@
+import { Suspense } from 'react'
 import type { Metadata } from 'next'
 import Link from 'next/link'
 import Image from 'next/image'
@@ -29,6 +30,9 @@ import { buildFansubStoryGroups } from '@/lib/fansub-summary'
 import { getEmbySeriesUrlForAnime } from '@/lib/emby'
 import { getCoverUrl, shouldUseUnoptimizedImage } from '@/lib/utils'
 
+import type { AnimeDetail } from '@/types/anime'
+
+import AnimeDetailLoading from './AnimeDetailLoading'
 import { loadAnimeDetail } from './animeDetailData'
 import styles from './page.module.css'
 
@@ -53,6 +57,18 @@ export async function generateMetadata({ params }: AnimeDetailPageProps): Promis
  * Zeigt Poster, Beschreibung, Episodenliste mit Fansub-Filter sowie einen Kommentarbereich.
  */
 export default async function AnimeDetailPage({ params, searchParams }: AnimeDetailPageProps) {
+  const anime = await loadAnimeDetail((await params).id)
+  return (
+    <Suspense fallback={<AnimeDetailLoading />}>
+      <AnimeDetailContent anime={anime} searchParams={searchParams} />
+    </Suspense>
+  )
+}
+
+async function AnimeDetailContent({ anime, searchParams }: {
+  anime: AnimeDetail
+  searchParams: AnimeDetailPageProps['searchParams']
+}) {
   const resolvedSearchParams = ((await searchParams) ?? {}) as {
     from?: string | string[]
     grid_query?: string | string[]
@@ -61,7 +77,6 @@ export default async function AnimeDetailPage({ params, searchParams }: AnimeDet
   const authTokenFromCookie = (cookieStore.get(AUTH_TOKEN_COOKIE_NAME)?.value || '').trim()
   const authToken = authTokenFromCookie || AUTH_BEARER_TOKEN
 
-  const anime = await loadAnimeDetail((await params).id)
   const animeID = anime.id
   const breadcrumbItems = [
     { label: 'Anime', href: '/anime' },

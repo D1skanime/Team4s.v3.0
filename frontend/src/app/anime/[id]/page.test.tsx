@@ -1,3 +1,7 @@
+import { existsSync } from 'node:fs'
+import { join } from 'node:path'
+import { Suspense } from 'react'
+import AnimeListPage from '../page'
 import { beforeEach, describe, expect, it, vi } from 'vitest'
 
 vi.mock('react', async (importOriginal) => ({
@@ -7,7 +11,7 @@ vi.mock('next/navigation', () => ({ notFound: () => { throw new Error('NEXT_HTTP
 vi.mock('next/headers', () => ({ cookies: async () => ({ get: () => undefined }) }))
 vi.mock('@/lib/api', async (importOriginal) => ({
   ...await importOriginal<typeof import('@/lib/api')>(),
-  getAnimeByID: vi.fn(), getAnimeFansubs: vi.fn(), getGroupedEpisodes: vi.fn(),
+  getAnimeList: vi.fn(), getAnimeByID: vi.fn(), getAnimeFansubs: vi.fn(), getGroupedEpisodes: vi.fn(),
   getAnimeComments: vi.fn(), getAnimeRelations: vi.fn(), getWatchlistEntry: vi.fn(),
 }))
 
@@ -58,4 +62,28 @@ describe('anime detail page and metadata', () => {
       await expect(generateMetadata(paramsFor('22'))).rejects.toBe(error)
     },
   )
+})
+
+describe('loading boundaries follow resource validation', () => {
+  it('does not inherit an automatic loading boundary on the anime detail route', () => {
+    expect(existsSync(join(process.cwd(), 'src/app/anime/loading.tsx'))).toBe(false)
+    expect(existsSync(join(process.cwd(), 'src/app/anime/[id]/loading.tsx'))).toBe(false)
+  })
+
+  it('keeps the list loading UI in an explicit list-only Suspense', async () => {
+    const page = await AnimeListPage({ searchParams: undefined })
+    expect(page.type).toBe(Suspense)
+    expect(page.props.fallback.type.name).toBe('AnimeListLoading')
+  })
+
+  it('validates the anime before returning its content boundary or starting secondary reads', async () => {
+    const page = await AnimeDetailPage(paramsFor('22'))
+    expect(getAnimeByID).toHaveBeenCalledWith(22)
+    expect(page.type).toBe(Suspense)
+    expect(page.props.fallback.type.name).toBe('AnimeDetailLoading')
+    expect(getAnimeFansubs).not.toHaveBeenCalled()
+    expect(getGroupedEpisodes).not.toHaveBeenCalled()
+    expect(getAnimeComments).not.toHaveBeenCalled()
+    expect(getAnimeRelations).not.toHaveBeenCalled()
+  })
 })
