@@ -294,3 +294,8 @@ Phase 157's overall "NICHT vollstaendig abgenommen" status.
 ---
 *Phase: 157-projekt-memberseite-visuelles-referenzdesign*
 *Completed: 2026-09-13*
+
+## Self-Check: PASSED
+
+All 4 modified files confirmed present on disk; all 4 commit hashes
+(`51f76589`, `05b24745`, `d1ccda03`, `0c41981a`) confirmed present in `git log --oneline --all`.
