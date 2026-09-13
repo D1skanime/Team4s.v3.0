@@ -4,7 +4,7 @@ import { cleanup, render, screen } from '@testing-library/react'
 import { afterEach, describe, expect, it } from 'vitest'
 
 import { ActiveFansubStory } from '../ActiveFansubStory'
-import type { AnimeFansubRelation, FansubGroupSummary } from '@/types/fansub'
+import type { FansubGroupSummary } from '@/types/fansub'
 
 afterEach(() => {
   cleanup()
@@ -22,17 +22,7 @@ describe('ActiveFansubStory', () => {
         status: 'active',
       },
     ]
-    const animeFansubs: AnimeFansubRelation[] = [
-      {
-        anime_id: 1,
-        fansub_group_id: 1,
-        is_primary: true,
-        created_at: '2020-01-01T00:00:00Z',
-        fansub_group: fansubGroups[0],
-      },
-    ]
-
-    render(<ActiveFansubStory animeID={1} fansubGroups={fansubGroups} animeFansubs={animeFansubs} />)
+    render(<ActiveFansubStory activeFansubGroupID={1} groups={fansubGroups} />)
 
     expect(screen.getByText('C-Subs')).not.toBeNull()
     expect(screen.getByText('gegründet 2008 • Schweiz • aktiv')).not.toBeNull()

@@ -17,7 +17,7 @@ const fansubs: AnimeFansubRelation[] = [
   { anime_id: 22, fansub_group_id: 9, is_primary: false, created_at: '', fansub_group: { id: 9, slug: 'saved-secondary', name: 'Zweite Gruppe' } },
 ]
 beforeEach(() => { window.localStorage.clear() })
-afterEach(() => { cleanup(); vi.restoreAllMocks() })
+afterEach(async () => { await act(async () => {}); cleanup(); vi.restoreAllMocks() })
 
 describe('authoritative anime project navigation', () => {
   it('links the primary and selected group via their stored slugs', () => {

@@ -2,12 +2,13 @@
 
 import Image from 'next/image'
 import Link from 'next/link'
-import { useEffect, useMemo, useState } from 'react'
+import { useEffect, useMemo, useRef, useState } from 'react'
 
 import { buildPublicFansubProjectPath } from '@/lib/fansubProjectRoutes'
 
 import { GroupedEpisode, EpisodeVersion } from '@/types/episodeVersion'
-import { AnimeFansubRelation } from '@/types/fansub'
+import { ActiveFansubStory } from './ActiveFansubStory'
+import { AnimeFansubRelation, FansubGroupSummary } from '@/types/fansub'
 
 import styles from './FansubVersionBrowser.module.css'
 
@@ -16,6 +17,7 @@ interface FansubVersionBrowserProps {
   animeSlug?: string
   fansubs: AnimeFansubRelation[]
   episodes: GroupedEpisode[]
+  storyGroups?: FansubGroupSummary[]
   onActiveFansubChange?: (fansubGroupId: number | null) => void
 }
 
@@ -30,33 +32,17 @@ function getStorageKey(animeID: number): string {
 function collectFansubOptions(fansubs: AnimeFansubRelation[]): AnimeFansubRelation[] {
   const map = new Map<number, AnimeFansubRelation>()
   for (const relation of fansubs) {
-    if (!relation.fansub_group) continue
+    if (!relation.fansub_group || !Number.isSafeInteger(relation.fansub_group.id) || relation.fansub_group.id <= 0) continue
     map.set(relation.fansub_group.id, relation)
   }
   return Array.from(map.values())
 }
 
-function resolveInitialActiveFansubGroupID(animeID: number, fansubs: AnimeFansubRelation[]): number | null {
-  const options = collectFansubOptions(fansubs)
-  const optionIDs = new Set(options.map((item) => item.fansub_group?.id).filter((item): item is number => Boolean(item)))
-  const primary = options.find((item) => item.is_primary && item.fansub_group)?.fansub_group?.id ?? null
-  const fallback = primary ?? (options[0]?.fansub_group?.id ?? null)
-
-  if (typeof window === 'undefined') {
-    return fallback
-  }
-
-  const storageValue = window.localStorage.getItem(getStorageKey(animeID))
-  if (!storageValue) {
-    return fallback
-  }
-
+function parseStoredSelection(raw: string | null, validIDs: number[], fallback: number | null): number | null {
   try {
-    const parsed = JSON.parse(storageValue) as PersistedFilterState
-    const candidate = parsed.activeFansubGroupId
-    const activeFansubGroupID =
-      typeof candidate === 'number' && optionIDs.has(candidate) ? candidate : fallback
-    return activeFansubGroupID
+    const candidate: unknown = raw ? (JSON.parse(raw) as PersistedFilterState | null)?.activeFansubGroupId : null
+    return typeof candidate === 'number' && Number.isSafeInteger(candidate) && candidate > 0 && validIDs.includes(candidate)
+      ? candidate : fallback
   } catch {
     return fallback
   }
@@ -123,29 +109,62 @@ function getSummaryVersion(
   return preferred || episode.versions[0]
 }
 
-export function FansubVersionBrowser({ animeID, animeSlug, fansubs, episodes, onActiveFansubChange }: FansubVersionBrowserProps) {
-  const [activeFansubGroupID, setActiveFansubGroupID] = useState<number | null>(() => resolveInitialActiveFansubGroupID(animeID, fansubs))
-  const [expandedEpisodes, setExpandedEpisodes] = useState<Record<number, true>>({})
+export function FansubVersionBrowser(props: FansubVersionBrowserProps) {
+  // Route identity resets selection, expansion and pending callbacks together.
+  return <FansubVersionBrowserContent key={props.animeID} {...props} />
+}
 
+function FansubVersionBrowserContent({ animeID, animeSlug, fansubs, episodes, storyGroups = [], onActiveFansubChange }: FansubVersionBrowserProps) {
   const fansubOptions = useMemo(() => collectFansubOptions(fansubs), [fansubs])
+  const validIDs = fansubOptions.map((relation) => relation.fansub_group!.id)
+  const selectionScope = JSON.stringify(validIDs)
+  const fallback = fansubOptions.find((relation) => relation.is_primary)?.fansub_group?.id ?? validIDs[0] ?? null
+  const [selectedGroupID, setSelectedGroupID] = useState<number | null>(fallback)
+  const activeFansubGroupID = selectedGroupID !== null && validIDs.includes(selectedGroupID) ? selectedGroupID : fallback
+  const [expandedEpisodes, setExpandedEpisodes] = useState<Record<number, true>>({})
+  const selectionContext = useRef<{ scope: string; active: boolean; revision: number } | null>(null)
   const activeGroup = fansubOptions.find((relation) => relation.fansub_group?.id === activeFansubGroupID)?.fansub_group
   const groupProjectHref = animeSlug?.trim() && activeGroup?.slug?.trim()
     ? buildPublicFansubProjectPath(activeGroup.slug, animeSlug)
     : `/anime/${animeID}/group/${activeFansubGroupID}`
 
   useEffect(() => {
-    if (typeof window === 'undefined') return
-    const value: PersistedFilterState = {
-      activeFansubGroupId: activeFansubGroupID,
+    const ids = JSON.parse(selectionScope) as number[]
+    const context = { scope: selectionScope, active: true, revision: 0 }
+    selectionContext.current = context
+    const key = getStorageKey(animeID)
+    // The server and first hydration render use props only. A cancelled StrictMode
+    // effect or an explicit selection must not be overwritten by this mount read.
+    void Promise.resolve().then(() => {
+      if (!context.active || context.revision !== 0) return
+      let stored: string | null = null
+      try { stored = window.localStorage.getItem(key) } catch { /* Storage can be unavailable. */ }
+      setSelectedGroupID(parseStoredSelection(stored, ids, fallback))
+    })
+    const handleStorage = (event: StorageEvent) => {
+      if (!context.active || (event.key !== null && event.key !== key)) return
+      try {
+        if (event.storageArea && event.storageArea !== window.localStorage) return
+      } catch { return }
+      context.revision += 1
+      setSelectedGroupID(parseStoredSelection(event.newValue, ids, fallback))
     }
-    window.localStorage.setItem(getStorageKey(animeID), JSON.stringify(value))
-  }, [animeID, activeFansubGroupID])
+    window.addEventListener('storage', handleStorage)
+    return () => {
+      context.active = false
+      window.removeEventListener('storage', handleStorage)
+    }
+  }, [animeID, selectionScope, fallback])
 
   function selectFansubGroup(groupID: number) {
-    setActiveFansubGroupID(groupID)
-    if (onActiveFansubChange) {
-      onActiveFansubChange(groupID)
-    }
+    const context = selectionContext.current
+    if (!context?.active || context.scope !== selectionScope || !validIDs.includes(groupID)) return
+    context.revision += 1
+    setSelectedGroupID(groupID)
+    try {
+      window.localStorage.setItem(getStorageKey(animeID), JSON.stringify({ activeFansubGroupId: groupID }))
+    } catch { /* Keep the current tab usable when persistence is blocked. */ }
+    onActiveFansubChange?.(groupID)
   }
 
   function toggleEpisode(episodeNumber: number) {
@@ -160,6 +179,8 @@ export function FansubVersionBrowser({ animeID, animeSlug, fansubs, episodes, on
   }
 
   return (
+    <>
+    <ActiveFansubStory activeFansubGroupID={activeFansubGroupID} groups={storyGroups} />
     <section className={styles.section}>
       <div className={styles.filterRow}>
         {fansubOptions.map((relation) => {
@@ -282,5 +303,6 @@ export function FansubVersionBrowser({ animeID, animeSlug, fansubs, episodes, on
         </ul>
       )}
     </section>
+    </>
   )
 }

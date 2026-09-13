@@ -11,7 +11,6 @@ import { AnimeInfoBanner, AnimeMediaProvider, AnimeTitleLogo } from '@/component
 import { AnimeRelations } from '@/components/anime/AnimeRelations'
 import { Breadcrumbs } from '@/components/navigation/Breadcrumbs'
 import { FansubVersionBrowser } from '@/components/fansubs/FansubVersionBrowser'
-import { ActiveFansubStory } from '@/components/fansubs/ActiveFansubStory'
 import { StatusBadge } from '@/components/anime/StatusBadge'
 import { CommentSection } from '@/components/comments/CommentSection'
 import { WatchlistAddButton } from '@/components/watchlist/WatchlistAddButton'
@@ -245,19 +244,13 @@ async function AnimeDetailContent({ anime, searchParams }: {
               )}
             </div>
           )}
-          {groupedEpisodesResponse && fansubStoryGroups.length > 0 && (
-            <ActiveFansubStory
-              animeID={anime.id}
-              fansubGroups={fansubStoryGroups}
-              animeFansubs={animeFansubsResponse?.data ?? []}
-            />
-          )}
           {groupedEpisodesResponse ? (
             <FansubVersionBrowser
               key={anime.id}
               animeID={anime.id}
               animeSlug={anime.slug}
               fansubs={animeFansubsResponse?.data ?? []}
+              storyGroups={fansubStoryGroups}
               episodes={groupedEpisodesResponse.data.episodes}
             />
           ) : anime.episodes.length === 0 ? (
