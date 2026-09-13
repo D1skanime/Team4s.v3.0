@@ -1,14 +1,17 @@
 'use client'
 
-import { useEffect, useState } from 'react'
+import { useCallback, useEffect, useRef, useState } from 'react'
 import { Plus, Check } from 'lucide-react'
 
-import { addWatchlistEntry, ApiError, hasRuntimeAuthToken, removeWatchlistEntry } from '@/lib/api'
+import { addWatchlistEntry, ApiError, getWatchlistEntry, removeWatchlistEntry } from '@/lib/api'
+import { useAuthSession } from '@/lib/useAuthSession'
+import { Button } from '@/components/ui/Button'
 
 import styles from './WatchlistAddButton.module.css'
 
 interface WatchlistAddButtonProps {
   animeID: number
+  /** Compatibility prop until the page stops supplying SSR viewer state. Client GET owns status. */
   initiallyInWatchlist?: boolean
   /** Custom className for the button (overrides default styling) */
   className?: string
@@ -16,88 +19,116 @@ interface WatchlistAddButtonProps {
   activeClassName?: string
 }
 
-export function WatchlistAddButton({
+type WatchlistStatus = 'unknown' | 'loading' | 'present' | 'absent' | 'error'
+
+export function WatchlistAddButton(props: WatchlistAddButtonProps) {
+  const { hasAccessToken, hasRefreshToken, accountIdentity, accountGeneration } = useAuthSession()
+  const hasAuthSession = hasAccessToken || hasRefreshToken
+  // A different owner gets a fresh action lifecycle, including all pending callbacks.
+  const owner = JSON.stringify([props.animeID, accountIdentity, accountGeneration, hasAuthSession])
+  return <WatchlistAction key={owner} {...props} hasAuthSession={hasAuthSession} />
+}
+
+function WatchlistAction({
   animeID,
-  initiallyInWatchlist = false,
   className,
   activeClassName,
-}: WatchlistAddButtonProps) {
+  hasAuthSession,
+}: WatchlistAddButtonProps & { hasAuthSession: boolean }) {
+  const [status, setStatus] = useState<WatchlistStatus>('unknown')
   const [isSubmitting, setIsSubmitting] = useState(false)
-  const [isAdded, setIsAdded] = useState(initiallyInWatchlist)
-  const [hasAuthToken, setHasAuthToken] = useState(false)
   const [message, setMessage] = useState<string | null>(null)
+  const [isError, setIsError] = useState(false)
+  const requestGeneration = useRef(0)
+
+  const checkStatus = useCallback(async () => {
+    const generation = ++requestGeneration.current
+    setStatus('loading')
+    setMessage(null)
+    setIsError(false)
+    try {
+      await getWatchlistEntry(animeID)
+      if (generation === requestGeneration.current) setStatus('present')
+    } catch (error) {
+      if (generation !== requestGeneration.current) return
+      if (error instanceof ApiError && error.status === 404) {
+        setStatus('absent')
+      } else {
+        setStatus('error')
+        setIsError(true)
+        setMessage('Watchliststatus konnte nicht geladen werden. Bitte erneut prüfen.')
+      }
+    }
+  }, [animeID])
 
   useEffect(() => {
-    setHasAuthToken(hasRuntimeAuthToken())
-  }, [])
+    if (hasAuthSession) void checkStatus()
+    return () => { requestGeneration.current += 1 }
+  }, [hasAuthSession, checkStatus])
 
   async function handleToggle() {
-    if (isSubmitting) {
-      return
-    }
-    if (!hasRuntimeAuthToken()) {
-      setHasAuthToken(false)
-      setMessage('Anmeldung erforderlich. Bitte melde dich zuerst an.')
-      return
-    }
-    setHasAuthToken(true)
+    if (!hasAuthSession || isSubmitting || (status !== 'present' && status !== 'absent')) return
 
+    const generation = ++requestGeneration.current
     try {
       setIsSubmitting(true)
       setMessage(null)
-      if (isAdded) {
+      setIsError(false)
+      if (status === 'present') {
         await removeWatchlistEntry(animeID)
-        setIsAdded(false)
+        if (generation !== requestGeneration.current) return
+        setStatus('absent')
         setMessage('Aus Watchlist entfernt.')
       } else {
         await addWatchlistEntry(animeID)
-        setIsAdded(true)
-        setMessage('Zur Watchlist hinzugefuegt.')
+        if (generation !== requestGeneration.current) return
+        setStatus('present')
+        setMessage('Zur Watchlist hinzugefügt.')
       }
     } catch (error) {
-      if (error instanceof ApiError) {
-        setMessage(error.message)
-      } else {
-        setMessage('Watchlist-Aktion fehlgeschlagen.')
-      }
+      if (generation !== requestGeneration.current) return
+      setIsError(true)
+      setMessage(error instanceof ApiError ? error.message : 'Watchlist-Aktion fehlgeschlagen.')
     } finally {
-      setIsSubmitting(false)
+      if (generation === requestGeneration.current) setIsSubmitting(false)
     }
   }
 
-  // Determine button classes
-  const useCustomStyle = Boolean(className)
-  const buttonClasses = useCustomStyle
+  const isAdded = status === 'present'
+  const buttonClasses = className
     ? `${className}${isAdded && activeClassName ? ` ${activeClassName}` : ''}`
     : styles.button
-
-  const buttonContent = isSubmitting ? (
-    'Speichern...'
-  ) : isAdded ? (
-    <>
-      <Check size={18} />
-      In Watchlist
-    </>
-  ) : hasAuthToken ? (
-    <>
-      <Plus size={18} />
-      Zur Watchlist
-    </>
-  ) : (
+  const statusKnown = status === 'present' || status === 'absent'
+  const buttonContent = !hasAuthSession ? (
     'Anmeldung erforderlich'
+  ) : isSubmitting ? (
+    'Speichern...'
+  ) : status === 'error' ? (
+    'Watchliststatus unbekannt'
+  ) : !statusKnown ? (
+    'Watchlist wird geprüft…'
+  ) : isAdded ? (
+    <><Check size={18} aria-hidden="true" />In Watchlist</>
+  ) : (
+    <><Plus size={18} aria-hidden="true" />Zur Watchlist</>
   )
 
   return (
-    <div className={useCustomStyle ? undefined : styles.wrapper}>
+    <div className={styles.wrapper}>
       <button
         className={buttonClasses}
         type="button"
         onClick={handleToggle}
-        disabled={isSubmitting || !hasAuthToken}
+        disabled={isSubmitting || !hasAuthSession || !statusKnown}
       >
         {buttonContent}
       </button>
-      {message && !useCustomStyle ? <p className={styles.message}>{message}</p> : null}
+      {message ? <p className={styles.message} role={isError ? 'alert' : 'status'}>{message}</p> : null}
+      {hasAuthSession && status === 'error' ? (
+        <Button variant="secondary" size="sm" onClick={() => void checkStatus()}>
+          Erneut prüfen
+        </Button>
+      ) : null}
     </div>
   )
 }
