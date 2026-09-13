@@ -42,6 +42,11 @@ const page = (
   more: boolean,
 ): CursorPage<ProjectMemberNote> => ({ items, next_cursor: next, has_more: more })
 
+// GAP-01-Matrix-Punkt "Contribution ohne Zielroute" (157-UAT.md) hat KEINEN entsprechenden
+// Codepfad: `ProjectMemberNote.release_version_id` ist laut `frontend/src/types/projectMember.ts`
+// ein nicht-nullbares `number`-Feld. Es gibt keine href-lose Variante zu testen, ohne eine
+// optionale/nullbare Prop zu erfinden -- das ist bewusst NICHT Teil dieses Gap-Closure-Plans
+// (Backend-/Datenmodell-Beobachtung, dokumentiert in 157-10-SUMMARY.md, nicht hier umgesetzt).
 describe('ProjectMemberNoteEntry', () => {
   it('hides the role name but keeps the release link when hasMultipleRoles is false (single-role member)', () => {
     render(
@@ -171,6 +176,123 @@ describe('ProjectMemberNoteEntry', () => {
     expect(screen.queryByRole('heading', { name: 'Typesetting' })).toBeNull()
     expect(screen.queryByRole('heading', { name: 'Übersetzung' })).toBeNull()
     expect(screen.queryByText('Notiz zu Folge')).toBeNull()
+  })
+
+  it('renders no nested interactive markup even when the body contains a link', () => {
+    const { container } = render(
+      <ProjectMemberNoteEntry
+        note={note({
+          body_html: '<p>Text mit <a href="https://example.com">Link</a></p>',
+          body_text: 'Text mit Link',
+        })}
+        projectPath="/p"
+        hasMultipleRoles={false}
+      />,
+    )
+    const anchors = container.querySelectorAll('a')
+    anchors.forEach((anchor) => {
+      expect(anchor.querySelector('a, button')).toBeNull()
+    })
+    expect(container.querySelectorAll('a button').length).toBe(0)
+    expect(container.querySelectorAll('a a').length).toBe(0)
+  })
+
+  it('keeps the body link independently clickable and does not trigger navigation through it', () => {
+    render(
+      <ProjectMemberNoteEntry
+        note={note({
+          body_html: '<p>Text mit <a href="https://example.com">Link</a></p>',
+          body_text: 'Text mit Link',
+        })}
+        projectPath="/p"
+        hasMultipleRoles={false}
+      />,
+    )
+    const bodyLink = screen.getByRole('link', { name: 'Link' })
+    const entryLink = screen.getByRole('link', { name: /Beitrag ansehen/ })
+    expect(bodyLink).not.toBe(entryLink)
+    expect(screen.getAllByRole('link')).toHaveLength(2)
+  })
+
+  it('renders a very short entry compactly', () => {
+    render(
+      <ProjectMemberNoteEntry
+        note={note({ body_text: 'kurz zehn.' })}
+        projectPath="/p"
+        hasMultipleRoles={false}
+      />,
+    )
+    expect(screen.getByRole('article').getAttribute('data-compact')).toBe('true')
+  })
+
+  it('renders a very long entry without the compact flag', () => {
+    render(
+      <ProjectMemberNoteEntry
+        note={note({ body_text: 'x'.repeat(500) })}
+        projectPath="/p"
+        hasMultipleRoles={false}
+      />,
+    )
+    expect(screen.getByRole('article').getAttribute('data-compact')).toBeNull()
+  })
+
+  it('shows no expand control exactly at the clamp boundary', () => {
+    vi.spyOn(HTMLElement.prototype, 'scrollHeight', 'get').mockReturnValue(79)
+    vi.spyOn(HTMLElement.prototype, 'clientHeight', 'get').mockReturnValue(79)
+    render(
+      <ProjectMemberNoteEntry
+        note={note({ body_text: 'x'.repeat(200) })}
+        projectPath="/p"
+        hasMultipleRoles={false}
+      />,
+    )
+    expect(screen.queryByRole('button', { name: 'Mehr anzeigen' })).toBeNull()
+  })
+
+  it('shows the expand control one pixel past the clamp boundary', () => {
+    vi.spyOn(HTMLElement.prototype, 'scrollHeight', 'get').mockReturnValue(80)
+    vi.spyOn(HTMLElement.prototype, 'clientHeight', 'get').mockReturnValue(79)
+    render(
+      <ProjectMemberNoteEntry
+        note={note({ body_text: 'x'.repeat(200) })}
+        projectPath="/p"
+        hasMultipleRoles={false}
+      />,
+    )
+    expect(screen.getByRole('button', { name: 'Mehr anzeigen' })).not.toBeNull()
+  })
+
+  it('renders multiple entries in sequence with independent expand/collapse state', () => {
+    vi.spyOn(HTMLElement.prototype, 'scrollHeight', 'get').mockReturnValue(160)
+    vi.spyOn(HTMLElement.prototype, 'clientHeight', 'get').mockReturnValue(79)
+    render(
+      <div>
+        <ProjectMemberNoteEntry
+          note={note({ id: 201, body_text: 'x'.repeat(200) })}
+          projectPath="/p"
+          hasMultipleRoles={false}
+        />
+        <ProjectMemberNoteEntry
+          note={note({ id: 202, body_text: 'y'.repeat(200) })}
+          projectPath="/p"
+          hasMultipleRoles={false}
+        />
+      </div>,
+    )
+    const toggles = screen.getAllByRole('button', { name: 'Mehr anzeigen' })
+    expect(toggles).toHaveLength(2)
+    fireEvent.click(toggles[0])
+    const expandedToggles = screen
+      .getAllByRole('button')
+      .filter((toggle) => toggle.getAttribute('aria-expanded') === 'true')
+    expect(expandedToggles).toHaveLength(1)
+  })
+
+  it('supports keyboard activation of the whole-card link', () => {
+    render(<ProjectMemberNoteEntry note={note()} projectPath="/p" hasMultipleRoles={false} />)
+    const entryLink = screen.getByRole('link', { name: /Beitrag ansehen/ })
+    entryLink.focus()
+    expect(document.activeElement).toBe(entryLink)
   })
 })
 
