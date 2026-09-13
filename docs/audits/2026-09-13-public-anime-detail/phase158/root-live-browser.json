@@ -1,0 +1,61 @@
+{
+  "source": "Codex In-app Browser via cua_repl; direct live DOM/UI observations",
+  "observed_at": "2026-09-13T21:17:34.527918+00:00",
+  "product_commit": "d0ae1f9b",
+  "route": "http://127.0.0.1:3300/anime/1",
+  "anonymous": true,
+  "layouts": [
+    {
+      "viewport": 360,
+      "document": 345,
+      "body": 345,
+      "episode_closed": "pass",
+      "episode_open": "pass",
+      "horizontal_ui_scroll_x": 0
+    },
+    {
+      "viewport": 390,
+      "document": 375,
+      "body": 375,
+      "episode_closed": "pass",
+      "episode_open": "pass",
+      "horizontal_ui_scroll_x": 0
+    },
+    {
+      "viewport": 767,
+      "document": 752,
+      "body": 752,
+      "episode_closed": "pass",
+      "episode_open": "pass",
+      "horizontal_ui_scroll_x": 0
+    },
+    {
+      "viewport": 768,
+      "document": 753,
+      "body": 753,
+      "episode_closed": "pass",
+      "episode_open": "pass",
+      "horizontal_ui_scroll_x": 0
+    },
+    {
+      "viewport": 1440,
+      "document": 1425,
+      "body": 1425,
+      "episode_closed": "pass",
+      "episode_open": "pass",
+      "horizontal_ui_scroll_x": 0
+    }
+  ],
+  "colors": {
+    "episode_foreground": "rgb(28, 28, 30)",
+    "episode_background": "rgb(255, 255, 255)",
+    "contribution_foreground": "rgb(255, 255, 255)",
+    "main_background": "rgb(15, 15, 18)"
+  },
+  "visible_project_href": "/fansubs/new-subs/fansubprojekt/buddy-complex",
+  "project_click": "pass",
+  "numeric_compatibility": "pass",
+  "numeric_canonical": "/fansubs/new-subs/fansubprojekt/buddy-complex",
+  "viewport_reset": true,
+  "human_signoff": false
+}

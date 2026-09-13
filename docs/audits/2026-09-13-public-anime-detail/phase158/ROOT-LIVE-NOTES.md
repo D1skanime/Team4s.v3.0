@@ -13,3 +13,21 @@ Der erste geteilte Browsercheck nach d0ae1f9b zeigte trotz neuem Frontend weiter
 Nur der anhand seines Executablepfades verifizierte alte Childprozess wurde beendet. Ein einzelnes Air-Ereignis wurde über eine temporäre, verhaltenslose Go-Datei mit Inhalt package repository ausgelöst. Der anschließend von Air gestartete Server lieferte id=1 und slug=buddy-complex. Die eigene temporäre Datei wurde wieder entfernt. Container/PID1 blieben bestehen; kein Container-Neustart, Startup-/Migrationsbefehl, Seed oder Datenbankbefehl.
 
 Für spätere Quellensynchronisierung: Änderungen seriell übertragen und anschließend API-Parität und Air-Portbesitzer prüfen. Reine Dateiparität belegt noch keinen erfolgreichen Runtime-Wechsel.
+
+## Geteilter Live-Browser nach Runtime-Abgleich
+
+Codex In-app Browser, Tab 2, anonym, /anime/1, Produktcommit d0ae1f9b. Der bestehende 30-Sekunden-Revalidatecache von getAnimeByID lieferte zunächst noch die alte Antwort; nach Aktualisierung erschien der Pretty-Link auch im Browser.
+
+| Viewport | Dokument-/Bodybreite | Geschlossen | Geöffnet | Scrollversuch rechts |
+|---|---:|---|---|---|
+| 360 | 345 | PASS | PASS | scrollX=0 |
+| 390 | 375 | PASS | PASS | scrollX=0 |
+| 767 | 752 | PASS | PASS | scrollX=0 |
+| 768 | 753 | PASS | PASS | scrollX=0 |
+| 1440 | 1425 | PASS | PASS | scrollX=0 |
+
+Die Differenz von 15 Pixeln ist die vertikale Browser-Scrollbar. Folge 1 Begegnung wurde in jedem Viewport über das sichtbare Control geöffnet und geschlossen. Berechnete Episode-Headerfarbe rgb(28,28,30), Kartenhintergrund rgb(255,255,255). Contributionüberschrift rgb(255,255,255), eigener Hintergrund transparent; nächster deckender Main-Hintergrund rgb(15,15,18). Keine globale Overflow-Änderung. Geometrie über lesende DOM-Abfragen, horizontaler Versuch über Browser-Scrollbedienung.
+
+Sichtbarer Link Zum Gruppenbereich: /fansubs/new-subs/fansubprojekt/buddy-complex. Klick erreicht das Projekt Buddy Complex mit New-Subs und dessen Projektgeschichte. Die separat aufgerufene Compatibility-Route /anime/1/group/1 rendert dasselbe Projekt und enthält canonical=/fansubs/new-subs/fansubprojekt/buddy-complex. Die Pretty-Projektseite selbst besitzt bereits im Ausgangscode kein eigenes generateMetadata; beobachtet wurde daher dort kein self-canonical und der allgemeine Seitentitel. Dies ist keine Änderung dieses Auftrags. Der Anime hat den neuen Titel Buddy Complex | Team4s.
+
+Desktop- und Mobile-Screenshots wurden im geteilten Browser angesehen. Der temporäre Viewport-Override wurde anschließend zurückgesetzt. Kein Login, Formularsubmit oder Watchlist-Schreibzugriff; keine Human-UAT-Freigabe. Persistierte maschinelle Screenshots und weitere Fokus-/Fixturechecks folgen in 158-04.
