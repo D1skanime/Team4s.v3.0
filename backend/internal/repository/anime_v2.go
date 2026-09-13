@@ -142,6 +142,7 @@ func (r *AnimeRepository) getByIDV2(ctx context.Context, id int64, includeDisabl
 	query := `
 		SELECT
 			anime.id,
+			NULLIF(BTRIM(anime.slug), '') AS slug,
 			COALESCE((
 				SELECT at2.title
 				FROM anime_titles at2
@@ -222,6 +223,7 @@ func (r *AnimeRepository) getByIDV2(ctx context.Context, id int64, includeDisabl
 	var animeType *string
 	if err := r.db.QueryRow(ctx, query, id).Scan(
 		&anime.ID,
+		&anime.Slug,
 		&anime.Title,
 		&animeType,
 		&anime.ContentType,

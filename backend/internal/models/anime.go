@@ -40,6 +40,7 @@ type EpisodeListItem struct {
 // AnimeDetail enthält die vollständige Detailansicht eines Anime inklusive Episodenliste,
 // wird von der öffentlichen Anime-Detailseite verwendet.
 type AnimeDetail struct {
+	Slug             *string           `json:"slug,omitempty"`
 	ID               int64             `json:"id"`
 	Title            string            `json:"title"`
 	TitleDE          *string           `json:"title_de,omitempty"`
