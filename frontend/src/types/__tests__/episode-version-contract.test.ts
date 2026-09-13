@@ -1,9 +1,19 @@
 import { readFileSync } from 'node:fs'
-import { describe, expect, it } from 'vitest'
+import { describe, expect, expectTypeOf, it } from 'vitest'
+import { getGroupedEpisodes } from '@/lib/api'
+import type { GroupedEpisodesResponse, PublicGroupedEpisodesResponse, PublicEpisodeVersion } from '../episodeVersion'
+
 const openapi = readFileSync(new URL('../../../../shared/contracts/openapi.yaml', import.meta.url), 'utf8').replace(/\r\n/g, '\n')
 const schema = (name: string) => openapi.split(`    ${name}:\n`)[1]?.split(/\n    \w+:/)[0] ?? ''
 
 describe('episode version public/full contract', () => {
+  it('retains the full default overload and narrows only explicit public requests', () => {
+    const loadPublic = () => getGroupedEpisodes(1, { projection: 'public' })
+    expectTypeOf<ReturnType<typeof getGroupedEpisodes>>().toEqualTypeOf<Promise<GroupedEpisodesResponse>>()
+    expectTypeOf(loadPublic).returns.toEqualTypeOf<Promise<PublicGroupedEpisodesResponse>>()
+    expectTypeOf<PublicEpisodeVersion>().not.toHaveProperty('media_provider')
+    expectTypeOf<PublicEpisodeVersion>().not.toHaveProperty('segment_count')
+  })
   it('documents plural groups and every preserved full field', () => {
     const full = schema('EpisodeVersion')
     for (const field of ['variant_id','release_version_id','fansub_groups','covered_episode_numbers','release_version','production_started_on','segment_count','has_segment_asset','duration_seconds','media_provider','media_item_id','crc32','stream_url','created_at','updated_at']) {

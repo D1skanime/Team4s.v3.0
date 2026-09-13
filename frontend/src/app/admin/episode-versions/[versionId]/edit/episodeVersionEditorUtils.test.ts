@@ -57,6 +57,10 @@ describe('release version crc32 helpers', () => {
     const formState = buildInitialFormState({
       version: {
         id: 1,
+        variant_id: 1,
+        release_version_id: 10,
+        segment_count: 0,
+        has_segment_asset: false,
         anime_id: 2,
         episode_number: 1,
         media_provider: 'jellyfin',

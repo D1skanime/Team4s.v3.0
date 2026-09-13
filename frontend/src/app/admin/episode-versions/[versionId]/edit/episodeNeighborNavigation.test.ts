@@ -11,6 +11,10 @@ import {
 function makeVersion(overrides: Partial<EpisodeVersion>): EpisodeVersion {
   return {
     id: 1,
+    variant_id: overrides.id ?? 1,
+    release_version_id: 10,
+    segment_count: 0,
+    has_segment_asset: false,
     anime_id: 1,
     episode_number: 1,
     release_version: "v1",

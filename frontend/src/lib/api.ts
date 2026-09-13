@@ -86,6 +86,8 @@ import {
 } from "@/types/comment";
 import {
   GroupedEpisodesResponse,
+  PublicGroupedEpisodesResponse,
+  PublicGroupedEpisodesOptions,
   EpisodeVersionCreateRequest,
   EpisodeVersionEditorContextResponse,
   EpisodeVersionFolderScanResponse,
@@ -2135,14 +2137,28 @@ export async function detachAnimeFansub(
   }
 }
 
+export function getGroupedEpisodes(
+  animeID: number,
+  options: PublicGroupedEpisodesOptions,
+): Promise<PublicGroupedEpisodesResponse>;
+export function getGroupedEpisodes(animeID: number): Promise<GroupedEpisodesResponse>;
 export async function getGroupedEpisodes(
   animeID: number,
-): Promise<GroupedEpisodesResponse> {
+  options?: PublicGroupedEpisodesOptions,
+): Promise<GroupedEpisodesResponse | PublicGroupedEpisodesResponse> {
   const API_BASE_URL = getApiBaseUrl();
+  const query = new URLSearchParams();
+  if (options) {
+    query.set("projection", options.projection);
+    if (options.limit !== undefined) query.set("limit", String(options.limit));
+    if (options.cursor !== undefined) query.set("cursor", options.cursor);
+  }
+  const suffix = query.size ? `?${query}` : "";
   const response = await authorizedFetch(
-    `${API_BASE_URL}/api/v1/anime/${animeID}/episodes`,
+    `${API_BASE_URL}/api/v1/anime/${animeID}/episodes${suffix}`,
     {
       cache: "no-store",
+      ...(options?.signal ? { signal: options.signal } : {}),
     },
   );
 
@@ -2154,7 +2170,7 @@ export async function getGroupedEpisodes(
     throw new ApiError(response.status, message);
   }
 
-  return response.json() as Promise<GroupedEpisodesResponse>;
+  return response.json() as Promise<GroupedEpisodesResponse | PublicGroupedEpisodesResponse>;
 }
 
 export async function getEpisodeVersionByID(

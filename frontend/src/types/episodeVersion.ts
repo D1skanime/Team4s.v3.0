@@ -4,7 +4,10 @@ import type { SelectedFansubGroupInput } from '@/types/episodeImport'
 export type SubtitleType = 'hardsub' | 'softsub'
 
 export interface EpisodeVersion {
+  /** Legacy alias for variant_id. */
   id: number
+  variant_id: number
+  release_version_id: number
   anime_id: number
   episode_number: number
   title?: string | null
@@ -12,14 +15,15 @@ export interface EpisodeVersion {
   fansub_groups?: FansubGroupSummary[]
   media_provider: string
   media_item_id: string
+  covered_episode_numbers?: number[]
   video_quality?: string | null
   subtitle_type?: SubtitleType | null
   production_started_on?: string | null
   release_date?: string | null
   crc32?: string | null
   stream_url?: string | null
-  segment_count?: number
-  has_segment_asset?: boolean
+  segment_count: number
+  has_segment_asset: boolean
   duration_seconds?: number | null
   created_at: string
   updated_at: string
@@ -107,4 +111,36 @@ export interface EpisodeVersionPatchRequest {
   crc32?: string | null
   stream_url?: string | null
   duration_seconds?: number | null
+}
+
+/** Public display metadata; media and segment fields belong to the full contract. */
+export type PublicEpisodeVersion = Pick<EpisodeVersion,
+  'id' | 'variant_id' | 'release_version_id' | 'anime_id' | 'episode_number' |
+  'title' | 'release_version' | 'video_quality' | 'subtitle_type' | 'release_date'
+> & { fansub_groups: FansubGroupSummary[] }
+
+export interface PublicGroupedEpisode {
+  episode_id: number
+  episode_number: number
+  episode_title?: string | null
+  /** Variant alias, optional for neutral episodes. */
+  default_version_id?: number | null
+  /** Complete variant count, including variants outside this page. */
+  version_count: number
+  versions: PublicEpisodeVersion[]
+}
+
+export interface PublicGroupedEpisodesResponse {
+  data: {
+    anime_id: number
+    episodes: PublicGroupedEpisode[]
+    pagination: { has_more: boolean; next_cursor: string | null; row_limit: number }
+  }
+}
+
+export interface PublicGroupedEpisodesOptions {
+  projection: 'public'
+  limit?: number
+  cursor?: string
+  signal?: AbortSignal
 }

@@ -6067,21 +6067,43 @@ paths:
             type: boolean
             default: true
           description: Include fansub group data in version details. Only effective when includeVersions is true.
+        - name: projection
+          in: query
+          schema:
+            type: string
+            enum: [public]
+          description: Omit for the unchanged full response. Public includes groups and variants; contradictory includeVersions/includeFansubs values are rejected.
+        - name: limit
+          in: query
+          schema:
+            type: integer
+            minimum: 1
+            maximum: 100
+            default: 24
+          description: Public only. Maximum atomic variant or neutral-episode rows, not episode groups. No automatic page iteration.
+        - name: cursor
+          in: query
+          schema:
+            type: string
+            maxLength: 512
+          description: Public only. Opaque versioned anime-scoped keyset cursor; invalid format or anime scope returns 400. Omit or empty for the first page.
       responses:
         "200":
           description: Grouped episode/version payload
           content:
             application/json:
               schema:
-                $ref: "#/components/schemas/GroupedEpisodesResponse"
+                anyOf:
+                  - $ref: "#/components/schemas/GroupedEpisodesResponse"
+                  - $ref: "#/components/schemas/PublicGroupedEpisodesResponse"
         "400":
-          description: Invalid anime id
+          description: Invalid anime id, projection, limit, cursor, duplicate public options or contradictory include flags
           content:
             application/json:
               schema:
                 $ref: "#/components/schemas/ErrorResponse"
         "404":
-          description: Anime not found
+          description: Anime not found (public also excludes disabled anime)
           content:
             application/json:
               schema:
@@ -13762,6 +13784,10 @@ components:
       type: object
       required:
         - id
+        - variant_id
+        - release_version_id
+        - segment_count
+        - has_segment_asset
         - anime_id
         - episode_number
         - media_provider
@@ -13772,6 +13798,15 @@ components:
         id:
           type: integer
           format: int64
+          description: Legacy alias of variant_id, not release_version_id.
+        variant_id:
+          type: integer
+          format: int64
+          description: Release variant identity.
+        release_version_id:
+          type: integer
+          format: int64
+          description: Canonical parent release version identity.
         anime_id:
           type: integer
           format: int64
@@ -13781,8 +13816,35 @@ components:
         title:
           type: string
           nullable: true
-        fansub_group:
-          $ref: "#/components/schemas/FansubGroupSummary"
+        release_version:
+          type: string
+          nullable: true
+          description: Version label; never an identity.
+        fansub_groups:
+          type: array
+          description: Omitted when groups are excluded or empty in the full response.
+          items:
+            $ref: "#/components/schemas/FansubGroupSummary"
+        covered_episode_numbers:
+          type: array
+          items:
+            type: integer
+            format: int32
+        production_started_on:
+          type: string
+          format: date-time
+          nullable: true
+        segment_count:
+          type: integer
+          format: int32
+          description: Count of actual theme_segment_assignments for release_version_id.
+        has_segment_asset:
+          type: boolean
+          description: An assigned release_asset segment has a nonblank source_ref.
+        duration_seconds:
+          type: integer
+          format: int32
+          nullable: true
         media_provider:
           type: string
           maxLength: 30
@@ -13818,7 +13880,6 @@ components:
       type: object
       required:
         - episode_number
-        - default_version_id
         - version_count
         - versions
       properties:
@@ -13829,6 +13890,7 @@ components:
           type: string
           nullable: true
         default_version_id:
+          description: Variant alias; omitted for neutral or counts-only responses.
           type: integer
           format: int64
           nullable: true
@@ -13836,6 +13898,7 @@ components:
           type: integer
           format: int32
         versions:
+          description: Empty array for counts-only responses.
           type: array
           items:
             $ref: "#/components/schemas/EpisodeVersion"
@@ -13856,6 +13919,112 @@ components:
       properties:
         data:
           $ref: "#/components/schemas/GroupedEpisodesData"
+    PublicEpisodeVersion:
+      type: object
+      additionalProperties: false
+      required: [id, variant_id, release_version_id, anime_id, episode_number, fansub_groups]
+      properties:
+        id:
+          type: integer
+          format: int64
+          description: Legacy variant_id alias.
+        variant_id:
+          type: integer
+          format: int64
+        release_version_id:
+          type: integer
+          format: int64
+          description: Canonical parent release version identity.
+        anime_id:
+          type: integer
+          format: int64
+        episode_number:
+          type: integer
+          format: int32
+        title:
+          type: string
+          nullable: true
+        release_version:
+          type: string
+          nullable: true
+          description: Display label only.
+        fansub_groups:
+          type: array
+          items:
+            $ref: "#/components/schemas/FansubGroupSummary"
+        video_quality:
+          type: string
+          nullable: true
+        subtitle_type:
+          type: string
+          enum: [hardsub, softsub]
+          nullable: true
+        release_date:
+          type: string
+          format: date-time
+          nullable: true
+    PublicGroupedEpisode:
+      type: object
+      required:
+        - episode_id
+        - episode_number
+        - version_count
+        - versions
+      properties:
+        episode_id:
+          type: integer
+          format: int64
+          description: Stable neutral episode identity; episode_number is not unique.
+        episode_number:
+          type: integer
+          format: int32
+        episode_title:
+          type: string
+          nullable: true
+        default_version_id:
+          type: integer
+          format: int64
+          description: Variant alias (smallest variant ID across the episode); omitted for neutral episodes.
+        version_count:
+          type: integer
+          format: int32
+          description: Complete variant count before cursor and LIMIT; a page may contain only part of the episode.
+        versions:
+          type: array
+          items:
+            $ref: "#/components/schemas/PublicEpisodeVersion"
+    PublicGroupedEpisodesPagination:
+      type: object
+      required: [has_more, next_cursor, row_limit]
+      properties:
+        has_more:
+          type: boolean
+        next_cursor:
+          type: string
+          nullable: true
+          description: Null on the final page. Scoped to the anime, format version, episode number, episode ID and variant ID (zero for neutral rows).
+        row_limit:
+          type: integer
+          default: 24
+          minimum: 1
+          maximum: 100
+    PublicGroupedEpisodesResponse:
+      type: object
+      required: [data]
+      properties:
+        data:
+          type: object
+          required: [anime_id, episodes, pagination]
+          properties:
+            anime_id:
+              type: integer
+              format: int64
+            episodes:
+              type: array
+              items:
+                $ref: "#/components/schemas/PublicGroupedEpisode"
+            pagination:
+              $ref: "#/components/schemas/PublicGroupedEpisodesPagination"
     EpisodeVersionCreateRequest:
       type: object
       required: [media_provider, media_item_id]
