@@ -272,3 +272,20 @@ describe('bounded public inventory continuation', () => {
     await act(async () => current.resolve(publicPage([])))
   })
 })
+
+it('deduplicates variants only inside the same canonical episode', async () => {
+  const common = variant(100, 7)
+  groupedMock.mockResolvedValueOnce(publicPage([
+    { episode_id: 50, episode_number: 1, episode_title: 'Erste Identität', version_count: 1, versions: [common] },
+    { episode_id: 60, episode_number: 1, episode_title: 'Zweite Identität', version_count: 1, versions: [common] },
+  ]))
+  render(<FansubVersionBrowser animeID={22} fansubs={[]} episodes={[
+    { episode_id: 50, episode_number: 1, episode_title: 'Erste Identität', version_count: 1, versions: [common] },
+  ]} pagination={continued('same-number')} />)
+  await act(async () => {})
+  fireEvent.click(screen.getByRole('button', { name: /Erste Identität/ }))
+  fireEvent.click(screen.getByRole('button', { name: 'Weitere Episoden und Versionen laden' }))
+  await waitFor(() => expect(screen.getByRole('button', { name: /Zweite Identität/ })).toBeTruthy())
+  fireEvent.click(screen.getByRole('button', { name: /Zweite Identität/ }))
+  expect(screen.getAllByRole('link', { name: 'Version abspielen' })).toHaveLength(2)
+})
