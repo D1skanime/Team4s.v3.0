@@ -141,14 +141,34 @@ try {
         : null
       const pagerTexts = notes ? texts('#texte [class*="pager"], #texte [class*="Pager"]') : null
 
-      // P157-13 -- Rollenfarbe MUSS an jedem Eintrag sichtbar bleiben (data-color-key ->
-      // --role-accent -> border-inline-start-color), unabhaengig von hasMultipleRoles.
+      // P157-13 -- Rollenfarbe MUSS an jedem Eintrag sichtbar bleiben. Seit Plan 157-10 traegt
+      // NUR noch der Timeline-Punkt (.dot) die Farbe -- die frühere zweite Markierung
+      // (border-inline-start-color) ist entfallen, deshalb wird hier die berechnete
+      // Punkt-Hintergrundfarbe gelesen statt der jetzt neutralen Kartenkante.
       const noteAccentColorSamples = Array.from(document.querySelectorAll('[data-note-entry]')).map(
-        (el) => ({
-          colorKey: el.getAttribute('data-color-key'),
-          borderInlineStartColor: getComputedStyle(el).borderInlineStartColor,
-        }),
+        (el) => {
+          const dotEl = el.querySelector('[class*="dot"]')
+          return {
+            colorKey: el.getAttribute('data-color-key'),
+            dotColor: dotEl ? getComputedStyle(dotEl).backgroundColor : null,
+          }
+        },
       )
+
+      // Plan 157-10 -- Kartenrahmen muss auf allen vier Seiten gleich stark sein (kein zweiter
+      // farbiger Rand mehr neben dem Punkt).
+      const noteBorderUniformity = Array.from(document.querySelectorAll('[data-note-entry]')).map(
+        (el) => {
+          const cs = getComputedStyle(el)
+          return { top: cs.borderTopWidth, inlineStart: cs.borderInlineStartWidth }
+        },
+      )
+
+      // Plan 157-10 -- GAP-01: kein <button> und kein <a> darf innerhalb des Eintrags-Ankers
+      // verschachtelt sein, auch wenn der Beitragstext selbst einen Link enthaelt.
+      const noteNestedInteractiveViolations = Array.from(
+        document.querySelectorAll('[data-note-entry] a'),
+      ).filter((a) => a.querySelector('a, button')).length
 
       // Workstream G -- Medien: "Alle N angezeigt" soll verschwinden, sobald alles geladen ist.
       const mediaText = media ? (media.textContent || '') : ''
@@ -236,6 +256,8 @@ try {
         noteEntryCount,
         pagerTexts,
         noteAccentColorSamples,
+        noteBorderUniformity,
+        noteNestedInteractiveViolations,
         mediaAllShownTextPresent,
         releasesEmptyStateText,
         releasesText: releasesText.slice(0, 200),
@@ -257,8 +279,14 @@ try {
       overflow: body.scrollHeight > body.clientHeight,
       hasToggle: Boolean(body.parentElement.querySelector('button[aria-expanded="false"]')),
     })))
-    if (facts.notePreviews.some((note) => note.height > 4 * note.lineHeight + 1 || note.overflow !== note.hasToggle)) {
+    if (facts.notePreviews.some((note) => note.height > 3 * note.lineHeight + 1 || note.overflow !== note.hasToggle)) {
       throw new Error(`Inconsistent note preview at ${name}: ${JSON.stringify(facts.notePreviews)}`)
+    }
+    if (facts.noteBorderUniformity.some((b) => b.top !== b.inlineStart)) {
+      throw new Error('Card border is not uniform -- a second colored edge may still be present: ' + JSON.stringify(facts.noteBorderUniformity))
+    }
+    if (facts.noteNestedInteractiveViolations > 0) {
+      throw new Error(`Nested interactive markup found inside a note entry link at ${name}: ${facts.noteNestedInteractiveViolations} violation(s)`)
     }
     const expandableNote = page.locator('[data-note-entry]').filter({ has: page.getByRole('button', { name: 'Mehr anzeigen', exact: true }) }).first()
     if (await expandableNote.count()) {
