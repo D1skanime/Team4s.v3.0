@@ -16,8 +16,9 @@ function isConfiguredApiURL(url: URL): boolean {
 /** Only the existing local anime/cover and configured API-file namespaces use Next. */
 function staticImageSource(source: string): string | null {
   const url = new URL(source, LOCAL_ORIGIN)
+  if (url.username || url.password) return null
   if (source.startsWith('/') && !source.startsWith('//')) {
-    if (!url.search && (url.pathname.startsWith('/media/anime/') || url.pathname.startsWith('/covers/'))) {
+    if (url.origin === LOCAL_ORIGIN && !url.search && (url.pathname.startsWith('/media/anime/') || url.pathname.startsWith('/covers/'))) {
       return url.pathname
     }
   } else if (isConfiguredApiURL(url) && url.pathname.startsWith('/api/v1/media/files/')) {
@@ -46,6 +47,7 @@ export function resolveAnimeImageURL(source: string | null | undefined, maxWidth
     const url = new URL(value, LOCAL_ORIGIN)
     if (!['http:', 'https:'].includes(url.protocol) || value.startsWith('//')) return null
     const relative = value.startsWith('/')
+    if (url.username || url.password || (relative && url.origin !== LOCAL_ORIGIN)) return null
     if (url.pathname === '/api/v1/media/image' && (relative || isConfiguredApiURL(url))) {
       return resolvePublicApiUrl(value, { width: maxWidth, quality: IMAGE_QUALITY })
     }

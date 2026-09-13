@@ -76,6 +76,8 @@ describe('bounded anime image delivery', () => {
   it.each([
     null, undefined, '', 'https://untrusted.example/image.jpg',
     'https://untrusted.example/api/v1/media/image?item_id=x',
+    '/\\\\untrusted.example/api/v1/media/image?item_id=x',
+    'http://user:pass@192.168.235.196:18092/api/v1/media/image?item_id=x',
     '//untrusted.example/covers/image.jpg', 'http://[invalid', 'javascript:alert(1)',
     '/media/admin/private/original.jpg', '/covers/../private.jpg', '/covers/local.jpg?width=512',
     '/_next/image?url=https%3A%2F%2Funtrusted.example%2Fx.jpg&w=512&q=75',
