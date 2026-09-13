@@ -1736,11 +1736,11 @@ Plans:
 **Requirements**: P158-01, P158-02, P158-03, P158-04, P158-05, P158-06, P158-07, P158-08, P158-09
 **Depends on:** Implementierter Architekturstand157; offene Human-UAT 156/157 bleibt ausdrücklich offen und blockiert diesen neu autorisierten Scope nicht.
 **Baseline:** 7c7e1c7d02ac870e7c68c02b66fd7f4b33f36b85.
-**Plans:** 2/4 ausgeführt; technische Phasenverifikation steht aus.
+**Plans:** 3/4 ausgeführt; technische Phasenverifikation steht aus.
 
 - [x] 158-01 — Slug-, Relations- und Compatibility-Verträge (Welle 1)
 - [x] 158-02 — Session- und Fehlerzustände (Welle 1, seriell)
-- [ ] 158-03 — Strikte Route, Lesbarkeit, Overflow und Pretty-Integration (Welle 2)
+- [x] 158-03 — Strikte Route, Lesbarkeit, Overflow und Pretty-Integration (Welle 2)
 - [ ] 158-04 — Technische Gesamtverifikation und Gate für 159 (Welle 3)
 
 | ID | Anforderung | Audit |

@@ -3,14 +3,14 @@ gsd_state_version: 1.0
 milestone: v1.4
 milestone_name: Coverage
 status: executing
-stopped_at: Executing 158-03; Phase 159 gated on technical verification of 158; Human-UAT 156/157 remains OPEN
-last_updated: '2026-09-13T20:58:39.213893+00:00'
+stopped_at: Executing 158-04; Phase 159 gated on technical verification of 158; Human-UAT 156/157 remains OPEN
+last_updated: '2026-09-13T21:13:06.830812+00:00'
 last_activity: 2026-09-13
 progress:
   total_phases: 24
   completed_phases: 21
   total_plans: 225
-  completed_plans: 218
+  completed_plans: 219
   percent: 88
 ---
 
@@ -18,7 +18,7 @@ progress:
 
 ## Aktiver Zusatzauftrag — Anime158/159 (13.09.2026)
 
-Genau zwei Phasen sind angelegt: 158-public-anime-detail-reparatur und 159-public-anime-detail-konsolidierung. Die Plans 158-01 und 158-02 sind implementiert und gezielt geprüft; aktiver Schritt ist 158-03. Phase 159 beginnt erst nach vollständiger Implementierung und technischer Verifikation von 158.
+Genau zwei Phasen sind angelegt: 158-public-anime-detail-reparatur und 159-public-anime-detail-konsolidierung. Die Plans 158-01 bis 158-03 sind implementiert und gezielt geprüft; aktiver Schritt ist die technische Gesamtverifikation 158-04. Phase 159 beginnt erst nach vollständiger Implementierung und technischer Verifikation von 158.
 
 Der geprüfte Ausgangscommit ist `7c7e1c7d02ac870e7c68c02b66fd7f4b33f36b85`. Der Produktstand entsprach bei der Bestandsaufnahme dem Audit. Seither: Relationsprüfung auf zwei Datenstatements begrenzt, autoritativer Anime-Slug ergänzt, Session- und Fehlerzustände korrigiert. Einzelbelege und Commits stehen in den Plan-Summaries. Der vollständige Typecheck besteht; die technische Gesamtprüfung der Phase steht aus.
 
