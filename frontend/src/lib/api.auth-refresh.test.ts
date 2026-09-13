@@ -25,6 +25,8 @@ import {
   createFansubGroup,
   getEpisodeImportContext,
   getAuthSessionSnapshot,
+  getWatchlistEntry,
+  createAnimeComment,
   getMemberProfile,
   getReleaseVersionMedia,
   getReleasePlaybackAccess,
@@ -213,6 +215,30 @@ describe('authorized auth refresh flow', () => {
     expect(fetchMock).toHaveBeenCalledTimes(2)
     expect(refreshKeycloakTokenMock).not.toHaveBeenCalled()
   })
+
+  it.each([seedRuntimeSessionMissingAccessToken, seedRuntimeSessionExpiredAccessToken])(
+    'shares one refresh across anime watchlist and comment actions (%s)',
+    async (seed) => {
+      seed()
+      refreshKeycloakTokenMock.mockResolvedValue(freshKeycloakBundle())
+      const fetchMock = vi.fn((input: RequestInfo | URL) =>
+        Promise.resolve(String(input).endsWith('/api/v1/me')
+          ? makeCurrentUserResponse()
+          : makeResponse({ data: { id: 1, anime_id: 15 } }, { ok: true, status: 200 })),
+      )
+      vi.stubGlobal('fetch', fetchMock)
+
+      await Promise.all([getWatchlistEntry(15), createAnimeComment(15, { content: 'Ein Kommentar' })])
+
+      expect(refreshKeycloakTokenMock).toHaveBeenCalledTimes(1)
+      expect(fetchMock).toHaveBeenCalledTimes(3)
+      expect(getAuthSessionSnapshot().accountIdentity).toBe(7)
+      for (const [input, init] of fetchMock.mock.calls as unknown as Array<[string, RequestInit]>) {
+        expect(init.headers).toMatchObject({ Authorization: 'Bearer new-access-token' })
+        expect(input).toMatch(/\/api\/v1\/(me|watchlist\/15|anime\/15\/comments)$/)
+      }
+    },
+  )
 
   it('keeps expiry metadata private in the UI session snapshot', () => {
     const snapshot = getAuthSessionSnapshot() as unknown as Record<string, unknown>
