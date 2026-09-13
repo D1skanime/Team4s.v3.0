@@ -3,14 +3,14 @@ gsd_state_version: 1.0
 milestone: v1.4
 milestone_name: Coverage
 status: executing
-stopped_at: Completed 157-03-PLAN.md
-last_updated: "2026-09-13T11:22:04.309Z"
+stopped_at: Completed 157-10-PLAN.md (GAP-01 closure; Phase 157 human Live-UAT sign-off still pending)
+last_updated: "2026-09-13T11:46:27.497Z"
 last_activity: 2026-09-13
 progress:
   total_phases: 22
   completed_phases: 21
   total_plans: 216
-  completed_plans: 215
+  completed_plans: 216
   percent: 95
 ---
 
@@ -34,10 +34,43 @@ See: .planning/PROJECT.md (updated 2026-08-13)
 ## Current Position
 
 Phase: 157 (projekt-memberseite-visuelles-referenzdesign) — EXECUTING, NICHT vollstaendig abgenommen
-Plan: 5 von 6 vollstaendig abgeschlossen (157-01, 157-04, 157-05, 157-02, 157-03); 157-06 Tasks 1-3
-(Testmatrix gruen, Responsive-Check, Vorher/Nachher-Live-UAT) abgeschlossen und committed, Task 4
-(Live-UAT-Sign-off, `checkpoint:human-verify gate="blocking"`) bleibt OFFEN
+Plan: 10 von 10 Plaenen ausgefuehrt (157-01 bis 157-09 plus Gap-Closure-Plan 157-10, 2026-09-13,
+GAP-01 aus 157-UAT.md). Der menschliche Live-UAT-Sign-off aus Plan 157-06 Task 4
+(`checkpoint:human-verify gate="blocking"`) bleibt weiterhin OFFEN -- Plan 157-10s eigene,
+automatisierte Verifikation (siehe unten) ist KEIN Ersatz dafuer.
 Status: Ready to execute
+
+**Plan 157-10 (2026-09-13) abgeschlossen — GAP-01-Schliessung:** `ProjectMemberNoteEntry` rendert
+jetzt ein `<article>` statt eines die ganze Zeile umschliessenden `<Link>`; ein einziger
+nachgestellter `<Link>` (nur der Chevron) traegt per CSS-only Stretched-Link-Muster
+(`::after; inset:0`) die volle Klickflaeche, waehrend Toggle-Button und etwaige Links im
+Beitragstext per `position:relative; z-index:2` unabhaengig klickbar bleiben -- strukturell null
+verschachtelte interaktive Elemente (bewiesen per echtem `querySelector('a, button')` im Unit-Test
+UND per Live-Browser-Assertion `noteNestedInteractiveViolations === 0`). Rollenfarbe traegt jetzt
+ausschliesslich `.dot` (`border-inline-start` entfernt); Card-Rahmen ist ein einheitlicher,
+subtiler `--border-subtle`-Rand auf allen vier Seiten (live bewiesen:
+`noteBorderUniformity` -- `borderTopWidth === borderInlineStartWidth`). Vorschau-Clamp von 4 auf 3
+Zeilen reduziert (`157-UAT.md`s "2-3 Zeilen"-Vorgabe), gemessen mobil: 105,56px -> 79,17px bei
+ueberlaufenden Eintraegen (kurze, nie geclampte Eintraege bleiben unveraendert bei 26,39px --
+ehrlich als "keine Verbesserung fuer diesen Fall" berichtet, nicht schoengeredet). Alle 9
+bestehenden `ProjectMemberNotesSection.test.tsx`-Tests (inkl. P157-13 Nachtrag 2 Mixed-Role-Test)
+bleiben unveraendert gruen; 8 neue Tests decken die volle GAP-01-Matrix ab (verschachteltes Markup,
+unabhaengige Body-Links, sehr kurzer/sehr langer Eintrag, Clamp-Grenze beidseitig, Mehrfach-Eintrag
+Unabhaengigkeit, Tastatur-Fokus). Der Matrixpunkt "Contribution ohne Zielroute" ist als nicht
+repraesentierbar dokumentiert (release_version_id ist non-nullable), nicht kuenstlich nachgebaut.
+`shot-projectmember.mjs` um drei neue Live-Assertions erweitert (Dot-Farbe statt der entfernten
+border-inline-start-Farbe, Border-Uniformitaet, Nested-Interactive-Verletzungen) und live gegen
+alle drei Viewports (mobil/Tablet/Desktop) mit Exit-Code 0 gefahren; Screenshots persoenlich
+gesichtet (ruhigere Timeline, einheitlicher Rahmen, Farbe nur am Punkt, ausgewogene kurze/lange
+Eintraege, saubere Uebergabe zu "Bilder & Medien"). Zwei vorbestehende, planfremde
+Vollsuite-Fehlschlaege gefunden und dokumentiert statt repariert (Zeilennummer-Drift in
+`cssCustomProperties.guard.test.ts`s Allow-List, Timeout-Flakes in
+`AchievementBadgeShowcase.test.tsx` -- beide zuletzt von Commits vor 157-10 beruehrt, siehe
+`deferred-items.md`). Browser-Zoom-Matrixpunkt ehrlich als "in diesem Plan nicht eigenstaendig
+nachgeprueft" berichtet statt implizit als bestanden behauptet. Details: 157-10-SUMMARY.md.
+Phase 157 bleibt trotz 10/10 ausgefuehrter Plaene NICHT als abgeschlossen markiert -- der
+menschliche Live-UAT-Checkpoint (157-06 Task 4) ist eine separate, noch ausstehende
+Abnahmehandlung.
 Playwright-Lauf gegengeprueft (bestaetigt: Rollenfarbe P157-13 real gemalt, 0x Rollenname-Wiederholung,
 Timeline-Zeilen, Statistikleiste, Zusammenfassungsband, konkreter Pager, Media/Releases-Fixes, keine
 Konsolenfehler/horizontales Scrollen, Desktop-Hero) und zusaetzlich sechs Abweichungen A-F gegen die
@@ -964,6 +997,7 @@ Last activity: 2026-09-13
 - [Phase 157]: EmptyState gained additive icon/className props (nullish-coalescing fallback keeps all 77 existing call sites byte-identical); Releases 0-count now reuses EmptyState (compact, Package icon, dashed .releasesEmpty override) instead of a bespoke box.
 - [Phase 157]: 157-02: Beitragszusammenfassung als ein Text-Knoten (kein Bold/Regular-Split), damit exakte screen.getByText-Assertions gegen den ganzen Satz halten; lucide-react LucideIcon-Typ statt handgerolltem ComponentType<{size}> fuer die Statistikleisten-Icons.
 - [Phase 157]: P157-13 Nachtrag 2 (mixed-role list) proven via a dedicated regression test in ProjectMemberNotesSection.test.tsx: distinct data-color-key per note's own role_color_key, both role-name chips, no large role header
+- [Phase ?]: Plan 157-10: CSS-only stretched-link pattern resolves nested-interactive markup without preventDefault/stopPropagation
 
 ### Pending Todos
 
@@ -1355,13 +1389,14 @@ untruncated list lives in `.planning/todos/pending/`.
 | Phase 157 P05 | 12min | 3 tasks | 4 files |
 | Phase 157 P02 | 30min | 3 tasks | 11 files |
 | Phase 157 P03 | 45min | 3 tasks | 5 files |
+| Phase 157 P10 | 27min | 3 tasks | 4 files |
 
 ## Session Continuity
 
-Last session: 2026-09-12T18:49:08.494Z
-Stopped at: Completed 157-03-PLAN.md
+Last session: 2026-09-13T11:46:27.475Z
+Stopped at: Completed 157-10-PLAN.md (GAP-01 closure; Phase 157 human Live-UAT sign-off still pending)
 Last activity: Full Phase 156 regression re-run (backend+frontend+migration round-trip) proven green; GAP-02 live-UAT checkpoint documented as OPEN, not simulated.
-Resume file: None
+Resume file: 
 Structured state: .planning/HANDOFF.json
 
 Plans 151-02/03/04 have implementation summaries. Plans 151-01 and 151-05 remain open until final artwork/composition review, complete browser evidence and independent verification; their missing summaries are intentional. No requirement or phase has been falsely marked complete.

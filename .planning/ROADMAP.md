@@ -429,7 +429,7 @@ Milestone v1.4 closes Live-UAT Findings #29-#32 by making effective group rights
 - [x] **Phase 154: Public-Member-Profil: Aggregator-Duplikate, Bildbudget und Viewer-Aufloesung** - Die verbliebenen P2-Befunde der Messreihe vom 2026-09-09 sind geschlossen: vier redundante Faktenabfragen im Profil-Aggregator, ungegatetes Locked-Artwork samt schwerem Original-Fallback und die zu breite Viewer-Aufloesung ohne durchgereichtes Abbruchsignal. Dazu zwei Nachmessungen, die erst nach der Graphverkleinerung moeglich sind. (completed 2026-09-10)
 - [x] **Phase 155: Public-Fansub-Projektseite: Read-Model, Drill-down-Navigation und Query-Budget** - Die oeffentliche Fansub-Projektseite laedt ueber einen gezielten Project Resolver, eine schlanke Contributor-Summary und entflochtene Release-Pfade, ohne doppelten Profil-Load und ohne Vollinventar-Abfragen; Member-Klicks fuehren kanonisch auf die Projekt-Member-Route. (completed 2026-09-11)
 - [x] **Phase 156: Segment-Domain-Konsistenz und oeffentliche Release-Projektion** - `theme_segment_assignments` wird die kanonische Release-Segment-Wahrheit, Bereichsaenderungen und spaetere Releases halten die Assignments konsistent, Segment-Credits werden ueber stabile Rollen-Codes dynamisch aus einer korrigierbaren, um ein personenbezogenes Contributor-Subset (GAP-01) erweiterten Segment-Origin projiziert, und Projekt- wie Release-Seite lesen dieselbe Wahrheit. (automatisiert/funktional abgeschlossen 2026-09-12, voller Regressionslauf 156-15 gruen -- NICHT vollstaendig abgenommen: der gebuendelte Live-UAT-Checkpoint aus GAP-02 (5 Origin- + 9 Segment-Contributor-Pruefpunkte, 156-UAT.md) bleibt offen, siehe deferred-items.md)
-- [ ] **Phase 157: Projekt-Memberseite visuell auf Referenzdesign umbauen** - Die oeffentliche Projekt-Member-Seite folgt dem Referenzdesign des Auftraggebers: kompakter Profilkopf, eine Statistikleiste statt vier Karten, Tab-Navigation mit Aktivzustand, Beitragszusammenfassung, Notizen als kompakte Timeline ohne redundanten Rollen-Header und ein kompakter Releases-Empty-State.
+- [ ] **Phase 157: Projekt-Memberseite visuell auf Referenzdesign umbauen** - Die oeffentliche Projekt-Member-Seite folgt dem Referenzdesign des Auftraggebers: kompakter Profilkopf, eine Statistikleiste statt vier Karten, Tab-Navigation mit Aktivzustand, Beitragszusammenfassung, Notizen als kompakte Timeline ohne redundanten Rollen-Header und ein kompakter Releases-Empty-State. Alle 10 Plaene (inkl. Gap-Closure 157-10) sind ausgefuehrt; die Phase gilt ERST nach dem noch ausstehenden menschlichen Live-UAT-Sign-off (checkpoint:human-verify aus Plan 157-06 Task 4) als abgeschlossen.
 
 ## Phase Details
 
@@ -1700,7 +1700,8 @@ Release-Notizliste, wo der Rollen-Header fachlich richtig ist.
 `157-CONTEXT.md` als Spezifikation in Worten hinterlegt. Eine zusaetzliche UI-SPEC-Runde ist damit
 nicht erforderlich; `plan-phase` mit `--skip-ui` fahren.
 
-**Plans:** 9/10 plans executed, 1 gap-closure plan planned (GAP-01, 157-UAT.md)
+**Plans:** 10/10 plans executed and complete (incl. gap-closure 157-10); phase-level human
+Live-UAT sign-off (157-06 Task 4 checkpoint) remains OPEN — phase not yet marked done
 
 Plans:
 
@@ -1727,4 +1728,4 @@ Plans:
 
 **Gap closure — Wave 5** *(GAP-01 aus 157-UAT.md: Nutzerauftrag 2026-09-13, verbindliche Nachpruefung nach 157-09)*
 
-- [ ] 157-10-PLAN.md — Notiz-Timeline: ungueltige Verschachtelung (Button/Link in Link) beheben, Rollenfarbe auf den Punkt konsolidieren, Card-Rahmen subtiler, Vorschau auf 3 Zeilen
+- [x] 157-10-PLAN.md — Notiz-Timeline: ungueltige Verschachtelung (Button/Link in Link) beheben, Rollenfarbe auf den Punkt konsolidieren, Card-Rahmen subtiler, Vorschau auf 3 Zeilen
