@@ -1,0 +1,194 @@
+{
+  "fixture_result_sha256": "51958ed5631ccca7f0444419ebf7661213513537328f2f38244c0991c9d1f6d0",
+  "harness_commit": "feeeb125",
+  "artifacts": [
+    {
+      "path": "docs/audits/2026-09-13-public-anime-detail/phase158/RESULTS.md",
+      "sha256": "4b737a302b8c147802cd415c026a5a82f8823f9011c658e2a42c97cbd4f20c6b"
+    },
+    {
+      "path": "docs/audits/2026-09-13-public-anime-detail/phase158/baseline-comparison.json",
+      "sha256": "a2d4dbb4841c0a6ad8712590f04f11fa35a0d7104af3e1dadd763a52102d225b"
+    },
+    {
+      "path": "docs/audits/2026-09-13-public-anime-detail/phase158/file-inventory.json",
+      "sha256": "df9c9294c86554a6db5883b22e53bea9a6dd10380edd28c199fdca8ced98c8f4"
+    },
+    {
+      "path": "docs/audits/2026-09-13-public-anime-detail/phase158/fixture-results.json",
+      "sha256": "51958ed5631ccca7f0444419ebf7661213513537328f2f38244c0991c9d1f6d0"
+    },
+    {
+      "path": "docs/audits/2026-09-13-public-anime-detail/phase158/valid.html",
+      "sha256": "0cfdd44b3337890e3a3972ed77d2cad51fce3067ad0eb6e538e06d809b62be01"
+    },
+    {
+      "path": "docs/audits/2026-09-13-public-anime-detail/phase158/backend-anime-tests.log",
+      "sha256": "1463f75bdbf1a39935a4a97e32b2bf6119733541bec01b9ab3fe59761383c8f4"
+    },
+    {
+      "path": "docs/audits/2026-09-13-public-anime-detail/phase158/backend-build.log",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "path": "docs/audits/2026-09-13-public-anime-detail/phase158/backend-vet.log",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "path": "docs/audits/2026-09-13-public-anime-detail/phase158/diff-check.log",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "path": "docs/audits/2026-09-13-public-anime-detail/phase158/focused-tests.log",
+      "sha256": "4934044de2d527e73431839ff725ee01ca7f63a96330d5eb1d1b875c9923f0fb"
+    },
+    {
+      "path": "docs/audits/2026-09-13-public-anime-detail/phase158/frontend-tests.log",
+      "sha256": "1d6535ae56f992db3bea835781f981b70343307b0e08fc3f224d5fdb7e50dab1"
+    },
+    {
+      "path": "docs/audits/2026-09-13-public-anime-detail/phase158/lint.log",
+      "sha256": "c4e97e3caeec75f8ae6e36178c559e37689f6b2ffa545fb6d987a2879d87b7b7"
+    },
+    {
+      "path": "docs/audits/2026-09-13-public-anime-detail/phase158/typecheck.log",
+      "sha256": "09ad47fa13cd14375bfcabd33de5971e0ecb9a4acd39ff126f8851841fade982"
+    },
+    {
+      "path": "docs/audits/2026-09-13-public-anime-detail/phase158/production-build.log",
+      "sha256": "5bde9798bdcb00483d6a0eb06739cc28bda4aa7972e2f31837608315fcd5916a"
+    },
+    {
+      "path": "docs/audits/2026-09-13-public-anime-detail/phase158/production-selective-build.log",
+      "sha256": "8a95e3d5c681c1e59ee0ec85f0a4ad766db99cb10f07b9b5a1893b1d32c5b688"
+    },
+    {
+      "path": "docs/audits/2026-09-13-public-anime-detail/phase158/fixture-run.log",
+      "sha256": "37d8e38b7690389501bc0993c44168e628e2307743b8785c2c6fbd5008e4f815"
+    },
+    {
+      "path": "docs/audits/2026-09-13-public-anime-detail/phase158/fixture-next.log",
+      "sha256": "d3846511a8976195c4aa7a93cd92f7223b42329ae16267da368fa995d44db005"
+    },
+    {
+      "path": "docs/audits/2026-09-13-public-anime-detail/phase158/backend-anime-tests.exit",
+      "sha256": "9a271f2a916b0b6ee6cecb2426f0b3206ef074578be55d9bc94f6f3fe3ab86aa"
+    },
+    {
+      "path": "docs/audits/2026-09-13-public-anime-detail/phase158/backend-build.exit",
+      "sha256": "9a271f2a916b0b6ee6cecb2426f0b3206ef074578be55d9bc94f6f3fe3ab86aa"
+    },
+    {
+      "path": "docs/audits/2026-09-13-public-anime-detail/phase158/backend-vet.exit",
+      "sha256": "9a271f2a916b0b6ee6cecb2426f0b3206ef074578be55d9bc94f6f3fe3ab86aa"
+    },
+    {
+      "path": "docs/audits/2026-09-13-public-anime-detail/phase158/diff-check.exit",
+      "sha256": "9a271f2a916b0b6ee6cecb2426f0b3206ef074578be55d9bc94f6f3fe3ab86aa"
+    },
+    {
+      "path": "docs/audits/2026-09-13-public-anime-detail/phase158/frontend-tests.exit",
+      "sha256": "4355a46b19d348dc2f57c046f8ef63d4538ebb936000f3c9ee954a27460dd865"
+    },
+    {
+      "path": "docs/audits/2026-09-13-public-anime-detail/phase158/lint.exit",
+      "sha256": "4355a46b19d348dc2f57c046f8ef63d4538ebb936000f3c9ee954a27460dd865"
+    },
+    {
+      "path": "docs/audits/2026-09-13-public-anime-detail/phase158/typecheck.exit",
+      "sha256": "9a271f2a916b0b6ee6cecb2426f0b3206ef074578be55d9bc94f6f3fe3ab86aa"
+    },
+    {
+      "path": "docs/audits/2026-09-13-public-anime-detail/phase158/production-build.exit",
+      "sha256": "4355a46b19d348dc2f57c046f8ef63d4538ebb936000f3c9ee954a27460dd865"
+    },
+    {
+      "path": "docs/audits/2026-09-13-public-anime-detail/phase158/production-selective-build.exit",
+      "sha256": "9a271f2a916b0b6ee6cecb2426f0b3206ef074578be55d9bc94f6f3fe3ab86aa"
+    },
+    {
+      "path": "docs/audits/2026-09-13-public-anime-detail/phase158/fixture-run.exit",
+      "sha256": "9a271f2a916b0b6ee6cecb2426f0b3206ef074578be55d9bc94f6f3fe3ab86aa"
+    },
+    {
+      "path": "docs/audits/2026-09-13-public-anime-detail/phase158/viewport-1440-closed.png",
+      "sha256": "ae9a0657bf5e3a193836a0e8386af0739bb42df1a7fe95aa6feff20a5ff54b30"
+    },
+    {
+      "path": "docs/audits/2026-09-13-public-anime-detail/phase158/viewport-1440-open.png",
+      "sha256": "6f21eafc1ae04af436c0a05c10683a4897f5581159c03a8d8673ebd7abf25746"
+    },
+    {
+      "path": "docs/audits/2026-09-13-public-anime-detail/phase158/viewport-360-closed.png",
+      "sha256": "8b7ffec119ecdd2b2175629f0a56200e81bc40efc160bab9053f597cccc6c86c"
+    },
+    {
+      "path": "docs/audits/2026-09-13-public-anime-detail/phase158/viewport-360-open.png",
+      "sha256": "307eae07147bcb08819db2e967cebfe3eb882c7d0032d23f3b60de557f6861bf"
+    },
+    {
+      "path": "docs/audits/2026-09-13-public-anime-detail/phase158/viewport-390-closed.png",
+      "sha256": "12bcb92e74c7536d661c7f187e4aef2074a0a2eb0ba3e8f597ea2a7e88bf5992"
+    },
+    {
+      "path": "docs/audits/2026-09-13-public-anime-detail/phase158/viewport-390-open.png",
+      "sha256": "86f8d1d1d2b558dd73c4791abc7e74253c393c5d72389396254d6e33732860c7"
+    },
+    {
+      "path": "docs/audits/2026-09-13-public-anime-detail/phase158/viewport-767-closed.png",
+      "sha256": "7e49deec054735656ba3c620b99cd071ac2c4cd1ccf5e483b37baedb349626e4"
+    },
+    {
+      "path": "docs/audits/2026-09-13-public-anime-detail/phase158/viewport-767-open.png",
+      "sha256": "f8a1f1c2b1f093119bf07f652f720020e4a357d1845beceae5a626c0e859fb7d"
+    },
+    {
+      "path": "docs/audits/2026-09-13-public-anime-detail/phase158/viewport-768-closed.png",
+      "sha256": "d08fed969196ebab52455b4159f618248af3cdf7abd45b2ccc31e55f98c2ae73"
+    },
+    {
+      "path": "docs/audits/2026-09-13-public-anime-detail/phase158/viewport-768-open.png",
+      "sha256": "a5e9e632b55617078be85e698e8a74e1d324418fdd8a8e811aea6e7282bc8bd7"
+    },
+    {
+      "path": "docs/audits/2026-09-13-public-anime-detail/phase158/focus-1440-closed.png",
+      "sha256": "37a4813ee3ad6f8c97ebc35473c7ffa1701273745369ea01b654cdc3f89c48af"
+    },
+    {
+      "path": "docs/audits/2026-09-13-public-anime-detail/phase158/focus-1440-open.png",
+      "sha256": "c1cd5f9fad63fa8a9fe44d4f2514cacf1367126a8a557f8f86970559cacd6aab"
+    },
+    {
+      "path": "docs/audits/2026-09-13-public-anime-detail/phase158/focus-360-closed.png",
+      "sha256": "c418095fd3268c1433b1be526444e240f9a1da6a0bf5ea3e9a8e8fd6bc108295"
+    },
+    {
+      "path": "docs/audits/2026-09-13-public-anime-detail/phase158/focus-360-open.png",
+      "sha256": "c418095fd3268c1433b1be526444e240f9a1da6a0bf5ea3e9a8e8fd6bc108295"
+    },
+    {
+      "path": "docs/audits/2026-09-13-public-anime-detail/phase158/focus-390-closed.png",
+      "sha256": "f51583f60bb58b995ab53aa4950e9efba5a4040a6e4e7856cd899667fb368e06"
+    },
+    {
+      "path": "docs/audits/2026-09-13-public-anime-detail/phase158/focus-390-open.png",
+      "sha256": "f51583f60bb58b995ab53aa4950e9efba5a4040a6e4e7856cd899667fb368e06"
+    },
+    {
+      "path": "docs/audits/2026-09-13-public-anime-detail/phase158/focus-767-closed.png",
+      "sha256": "57162b4f79afb3e39712e676bb21b618c0780aa0939e1fa726656e5179143155"
+    },
+    {
+      "path": "docs/audits/2026-09-13-public-anime-detail/phase158/focus-767-open.png",
+      "sha256": "57162b4f79afb3e39712e676bb21b618c0780aa0939e1fa726656e5179143155"
+    },
+    {
+      "path": "docs/audits/2026-09-13-public-anime-detail/phase158/focus-768-closed.png",
+      "sha256": "ef999ea2bf681914eb47fdb97745b125628c758561f843305943eb207c3333cb"
+    },
+    {
+      "path": "docs/audits/2026-09-13-public-anime-detail/phase158/focus-768-open.png",
+      "sha256": "ef999ea2bf681914eb47fdb97745b125628c758561f843305943eb207c3333cb"
+    }
+  ]
+}

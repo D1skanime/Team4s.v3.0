@@ -1,0 +1,16 @@
+
+> team4s-frontend@0.1.0 build
+> next build --webpack
+
+▲ Next.js 16.1.6 (webpack)
+
+  Creating an optimized production build ...
+✓ Compiled successfully in 19.6s
+  Running TypeScript ...
+Failed to compile.
+
+src/app/admin/anime/[id]/edit/page.tsx
+Type error: Page "src/app/admin/anime/[id]/edit/page.tsx" does not match the required types of a Next.js Page.
+  "formatEditLoadError" is not a valid Page export field.
+
+Next.js build worker exited with code: 1 and signal: null

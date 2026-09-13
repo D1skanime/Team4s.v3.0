@@ -1,0 +1,30 @@
+
+> team4s-frontend@0.1.0 build
+> next build --webpack --debug-build-paths app/anime/**/page.tsx,app/fansubs/**/page.tsx
+
+▲ Next.js 16.1.6 (webpack)
+
+  Creating an optimized production build ...
+✓ Compiled successfully in 8.4s
+  Running TypeScript ...
+  Collecting page data using 3 workers ...
+  Generating static pages using 3 workers (0/2) ...
+✓ Generating static pages using 3 workers (2/2) in 105.7ms
+  Finalizing page optimization ...
+  Collecting build traces ...
+
+Route (app)
+┌ ƒ /_not-found
+├ ƒ /anime
+├ ƒ /anime/[id]
+├ ƒ /anime/[id]/group/[groupId]
+├ ƒ /anime/[id]/group/[groupId]/releases
+├ ƒ /anime/[id]/group/[groupId]/releases/[releaseVersionId]
+├ ƒ /fansubs
+├ ƒ /fansubs/[slug]
+├ ƒ /fansubs/[slug]/fansubprojekt/[animeSlug]
+├ ƒ /fansubs/[slug]/fansubprojekt/[animeSlug]/mitwirkende/[memberSlug]
+└ ƒ /fansubs/[slug]/fansubprojekt/[animeSlug]/releases/[releaseVersionId]
+
+
+ƒ  (Dynamic)  server-rendered on demand

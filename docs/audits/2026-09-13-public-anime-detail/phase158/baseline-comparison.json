@@ -1,0 +1,137 @@
+{
+  "phase_baseline": "7c7e1c7d02ac870e7c68c02b66fd7f4b33f36b85",
+  "verified_source_commit": "feeeb125fe249ab03cb33882814704b070ceacea",
+  "lint": {
+    "baseline_errors": [
+      {
+        "file": "capture-responsive.cjs",
+        "message": "A `require()` style import is forbidden  @typescript-eslint/no-require-imports"
+      },
+      {
+        "file": "capture-responsive.cjs",
+        "message": "A `require()` style import is forbidden  @typescript-eslint/no-require-imports"
+      },
+      {
+        "file": "src/app/admin/episode-versions/[versionId]/edit/useEpisodeNeighborNavigation.ts",
+        "message": "Error: Calling setState synchronously within an effect can trigger cascading renders"
+      },
+      {
+        "file": "src/app/admin/episode-versions/[versionId]/edit/useReleaseVersionMedia.ts",
+        "message": "Error: Calling setState synchronously within an effect can trigger cascading renders"
+      },
+      {
+        "file": "src/app/admin/fansubs/[id]/edit/GroupMemberFormModals.tsx",
+        "message": "Error: Calling setState synchronously within an effect can trigger cascading renders"
+      },
+      {
+        "file": "src/app/admin/fansubs/[id]/edit/GroupRolesTab.tsx",
+        "message": "Error: Calling setState synchronously within an effect can trigger cascading renders"
+      },
+      {
+        "file": "src/app/admin/groups/AdminGroupsClient.tsx",
+        "message": "Error: Calling setState synchronously within an effect can trigger cascading renders"
+      },
+      {
+        "file": "src/app/admin/groups/AdminGroupsClient.tsx:85:5",
+        "message": "Error: Calling setState synchronously within an effect can trigger cascading renders"
+      },
+      {
+        "file": "src/app/admin/groups/AdminGroupsClient.tsx:195:5",
+        "message": "Error: Calling setState synchronously within an effect can trigger cascading renders"
+      },
+      {
+        "file": "src/app/admin/groups/AdminGroupsClient.tsx:277:5",
+        "message": "Error: Calling setState synchronously within an effect can trigger cascading renders"
+      },
+      {
+        "file": "src/app/admin/roles/RoleCapabilityDetail.tsx",
+        "message": "Compilation Skipped: Existing memoization could not be preserved"
+      },
+      {
+        "file": "src/app/admin/users/tabs/CapabilityDetailRow.tsx",
+        "message": "`\"` can be escaped with `&quot;`, `&ldquo;`, `&#34;`, `&rdquo;`  react/no-unescaped-entities"
+      },
+      {
+        "file": "src/app/admin/users/tabs/CapabilityHistoryPanel.tsx",
+        "message": "Error: Calling setState synchronously within an effect can trigger cascading renders"
+      }
+    ],
+    "current_errors": [
+      {
+        "file": "capture-responsive.cjs",
+        "message": "A `require()` style import is forbidden  @typescript-eslint/no-require-imports"
+      },
+      {
+        "file": "capture-responsive.cjs",
+        "message": "A `require()` style import is forbidden  @typescript-eslint/no-require-imports"
+      },
+      {
+        "file": "src/app/admin/episode-versions/[versionId]/edit/useEpisodeNeighborNavigation.ts",
+        "message": "Error: Calling setState synchronously within an effect can trigger cascading renders"
+      },
+      {
+        "file": "src/app/admin/episode-versions/[versionId]/edit/useReleaseVersionMedia.ts",
+        "message": "Error: Calling setState synchronously within an effect can trigger cascading renders"
+      },
+      {
+        "file": "src/app/admin/fansubs/[id]/edit/GroupMemberFormModals.tsx",
+        "message": "Error: Calling setState synchronously within an effect can trigger cascading renders"
+      },
+      {
+        "file": "src/app/admin/fansubs/[id]/edit/GroupRolesTab.tsx",
+        "message": "Error: Calling setState synchronously within an effect can trigger cascading renders"
+      },
+      {
+        "file": "src/app/admin/groups/AdminGroupsClient.tsx",
+        "message": "Error: Calling setState synchronously within an effect can trigger cascading renders"
+      },
+      {
+        "file": "src/app/admin/groups/AdminGroupsClient.tsx:85:5",
+        "message": "Error: Calling setState synchronously within an effect can trigger cascading renders"
+      },
+      {
+        "file": "src/app/admin/groups/AdminGroupsClient.tsx:195:5",
+        "message": "Error: Calling setState synchronously within an effect can trigger cascading renders"
+      },
+      {
+        "file": "src/app/admin/groups/AdminGroupsClient.tsx:277:5",
+        "message": "Error: Calling setState synchronously within an effect can trigger cascading renders"
+      },
+      {
+        "file": "src/app/admin/roles/RoleCapabilityDetail.tsx",
+        "message": "Compilation Skipped: Existing memoization could not be preserved"
+      },
+      {
+        "file": "src/app/admin/users/tabs/CapabilityDetailRow.tsx",
+        "message": "`\"` can be escaped with `&quot;`, `&ldquo;`, `&#34;`, `&rdquo;`  react/no-unescaped-entities"
+      },
+      {
+        "file": "src/app/admin/users/tabs/CapabilityHistoryPanel.tsx",
+        "message": "Error: Calling setState synchronously within an effect can trigger cascading renders"
+      }
+    ],
+    "same_errors": true,
+    "baseline_warnings": 331,
+    "current_warnings": 331
+  },
+  "tests": {
+    "baseline_failures": [
+      "src/lib/cssCustomProperties.guard.test.ts > cssCustomProperties scanner (real frontend/src tree) > finds zero fallback-free dead custom-property references on the real, fixed tree (Success Criterion 1)",
+      "src/lib/cssCustomProperties.guard.test.ts > cssCustomProperties scanner (real frontend/src tree) > the known-non-CSS-textual-mentions allow-list stays exactly as small as documented (no silent growth)"
+    ],
+    "current_failures": [
+      "src/lib/cssCustomProperties.guard.test.ts > cssCustomProperties scanner (real frontend/src tree) > finds zero fallback-free dead custom-property references on the real, fixed tree (Success Criterion 1)",
+      "src/lib/cssCustomProperties.guard.test.ts > cssCustomProperties scanner (real frontend/src tree) > the known-non-CSS-textual-mentions allow-list stays exactly as small as documented (no silent growth)"
+    ],
+    "same_failures": true,
+    "baseline_passed": 2334,
+    "current_passed": 2459
+  },
+  "full_build": {
+    "result": "baseline-blocked",
+    "error": "formatEditLoadError is not a valid Page export field",
+    "file": "frontend/src/app/admin/anime/[id]/edit/page.tsx",
+    "exists_at_baseline": true
+  },
+  "selective_production_build": "PASS"
+}

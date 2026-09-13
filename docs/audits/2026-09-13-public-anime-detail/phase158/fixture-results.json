@@ -1,0 +1,2421 @@
+{
+  "measuredAt": "2026-09-13T21:38:08.845Z",
+  "mode": "isolated-production",
+  "checks": [
+    {
+      "name": "fixture-rejects-nonGET",
+      "status": "PASS"
+    },
+    {
+      "name": "production-valid-metadata-and-request-count",
+      "status": "PASS",
+      "detail": {
+        "status": 200,
+        "animeGets": 1,
+        "watchlistGets": 0,
+        "requests": [
+          {
+            "method": "GET",
+            "path": "/api/v1/role-definitions",
+            "query": "?context=fansub_group"
+          },
+          {
+            "method": "GET",
+            "path": "/api/v1/role-definitions",
+            "query": "?context=anime_contribution"
+          },
+          {
+            "method": "GET",
+            "path": "/api/v1/role-definitions",
+            "query": "?context=group_history"
+          },
+          {
+            "method": "GET",
+            "path": "/api/v1/anime/1",
+            "query": ""
+          },
+          {
+            "method": "GET",
+            "path": "/api/v1/anime/1/comments",
+            "query": "?page=1&per_page=10"
+          },
+          {
+            "method": "GET",
+            "path": "/api/v1/anime/1/fansubs",
+            "query": ""
+          },
+          {
+            "method": "GET",
+            "path": "/api/v1/anime/1/episodes",
+            "query": ""
+          },
+          {
+            "method": "GET",
+            "path": "/api/v1/anime/1/relations",
+            "query": ""
+          }
+        ]
+      }
+    },
+    {
+      "name": "production404-1abc",
+      "status": "PASS",
+      "detail": {
+        "status": 404,
+        "noindex": true,
+        "canonical": null
+      }
+    },
+    {
+      "name": "production404-1.5",
+      "status": "PASS",
+      "detail": {
+        "status": 404,
+        "noindex": true,
+        "canonical": null
+      }
+    },
+    {
+      "name": "production404-0",
+      "status": "PASS",
+      "detail": {
+        "status": 404,
+        "noindex": true,
+        "canonical": null
+      }
+    },
+    {
+      "name": "production404--1",
+      "status": "PASS",
+      "detail": {
+        "status": 404,
+        "noindex": true,
+        "canonical": null
+      }
+    },
+    {
+      "name": "production404-9007199254740992",
+      "status": "PASS",
+      "detail": {
+        "status": 404,
+        "noindex": true,
+        "canonical": null
+      }
+    },
+    {
+      "name": "production404-999999999",
+      "status": "PASS",
+      "detail": {
+        "status": 404,
+        "noindex": true,
+        "canonical": null
+      }
+    },
+    {
+      "name": "production-technical-error-500",
+      "status": "PASS",
+      "detail": {
+        "status": 500,
+        "noAnimeMetadata": true,
+        "robots": "noindex"
+      }
+    },
+    {
+      "name": "production-technical-error-501",
+      "status": "PASS",
+      "detail": {
+        "status": 500,
+        "noAnimeMetadata": true,
+        "robots": "noindex"
+      }
+    },
+    {
+      "name": "geometry-colors-focus-slider-360",
+      "status": "PASS",
+      "detail": {
+        "sliderBefore": 0,
+        "sliderAfter": 2
+      }
+    },
+    {
+      "name": "geometry-colors-focus-slider-390",
+      "status": "PASS",
+      "detail": {
+        "sliderBefore": 0,
+        "sliderAfter": 2
+      }
+    },
+    {
+      "name": "geometry-colors-focus-slider-767",
+      "status": "PASS",
+      "detail": {
+        "sliderBefore": 0,
+        "sliderAfter": 8
+      }
+    },
+    {
+      "name": "geometry-colors-focus-slider-768",
+      "status": "PASS",
+      "detail": {
+        "sliderBefore": 0,
+        "sliderAfter": 2
+      }
+    },
+    {
+      "name": "geometry-colors-focus-slider-1440",
+      "status": "PASS",
+      "detail": {
+        "sliderBefore": 0,
+        "sliderAfter": 8
+      }
+    },
+    {
+      "name": "anonymous-initial-and-lazy-request-budget",
+      "status": "PASS",
+      "detail": {
+        "ssr": [
+          {
+            "method": "GET",
+            "path": "/api/v1/role-definitions",
+            "query": "?context=fansub_group"
+          },
+          {
+            "method": "GET",
+            "path": "/api/v1/role-definitions",
+            "query": "?context=anime_contribution"
+          },
+          {
+            "method": "GET",
+            "path": "/api/v1/role-definitions",
+            "query": "?context=group_history"
+          },
+          {
+            "method": "GET",
+            "path": "/api/v1/anime/3",
+            "query": ""
+          },
+          {
+            "method": "GET",
+            "path": "/api/v1/anime/3/comments",
+            "query": "?page=1&per_page=10"
+          },
+          {
+            "method": "GET",
+            "path": "/api/v1/anime/3/fansubs",
+            "query": ""
+          },
+          {
+            "method": "GET",
+            "path": "/api/v1/anime/3/episodes",
+            "query": ""
+          },
+          {
+            "method": "GET",
+            "path": "/api/v1/anime/3/relations",
+            "query": ""
+          }
+        ],
+        "client": [
+          {
+            "path": "/api/v1/anime/3/contributions",
+            "method": "GET"
+          },
+          {
+            "path": "/api/v1/anime/3/backdrops",
+            "method": "GET"
+          }
+        ],
+        "lazyRequests": 0
+      }
+    },
+    {
+      "name": "empty-series",
+      "status": "PASS"
+    },
+    {
+      "name": "authoritative-visible-primary-secondary-pretty-and-numeric",
+      "status": "PASS",
+      "detail": {
+        "visibleLink": "/fansubs/stored-primary/fansubprojekt/stored-anime",
+        "numericHTTP": 200,
+        "numericCanonical": "/fansubs/stored-primary/fansubprojekt/stored-anime",
+        "prettySelfCanonical": "Existing pretty page has no metadata export; numeric canonical verified."
+      }
+    },
+    {
+      "name": "session-none",
+      "status": "PASS",
+      "detail": {
+        "refreshes": 0,
+        "writesAbsorbed": 0,
+        "requests": []
+      }
+    },
+    {
+      "name": "session-access",
+      "status": "PASS",
+      "detail": {
+        "refreshes": 0,
+        "writesAbsorbed": 1,
+        "requests": [
+          {
+            "path": "/api/v1/me/profile",
+            "method": "GET"
+          },
+          {
+            "path": "/api/v1/anime/1/contributions",
+            "method": "GET"
+          },
+          {
+            "path": "/api/v1/anime/1/backdrops",
+            "method": "GET"
+          },
+          {
+            "path": "/api/v1/watchlist/1",
+            "method": "GET"
+          },
+          {
+            "path": "/api/v1/anime/1/comments",
+            "method": "POST"
+          }
+        ]
+      }
+    },
+    {
+      "name": "session-refresh",
+      "status": "PASS",
+      "detail": {
+        "refreshes": 1,
+        "writesAbsorbed": 1,
+        "requests": [
+          {
+            "path": "/api/auth/keycloak/token",
+            "method": "POST"
+          },
+          {
+            "path": "/api/v1/me",
+            "method": "GET"
+          },
+          {
+            "path": "/api/v1/anime/1/contributions",
+            "method": "GET"
+          },
+          {
+            "path": "/api/v1/me/profile",
+            "method": "GET"
+          },
+          {
+            "path": "/api/v1/anime/1/backdrops",
+            "method": "GET"
+          },
+          {
+            "path": "/api/v1/watchlist/1",
+            "method": "GET"
+          },
+          {
+            "path": "/api/v1/anime/1/comments",
+            "method": "POST"
+          }
+        ]
+      }
+    },
+    {
+      "name": "session-expired",
+      "status": "PASS",
+      "detail": {
+        "refreshes": 1,
+        "writesAbsorbed": 1,
+        "requests": [
+          {
+            "path": "/api/auth/keycloak/token",
+            "method": "POST"
+          },
+          {
+            "path": "/api/v1/anime/1/contributions",
+            "method": "GET"
+          },
+          {
+            "path": "/api/v1/me",
+            "method": "GET"
+          },
+          {
+            "path": "/api/v1/me/profile",
+            "method": "GET"
+          },
+          {
+            "path": "/api/v1/anime/1/backdrops",
+            "method": "GET"
+          },
+          {
+            "path": "/api/v1/watchlist/1",
+            "method": "GET"
+          },
+          {
+            "path": "/api/v1/anime/1/comments",
+            "method": "POST"
+          }
+        ]
+      }
+    },
+    {
+      "name": "expired-refresh-denied",
+      "status": "PASS"
+    },
+    {
+      "name": "session-login-account-change-logout-after-mount",
+      "status": "PASS",
+      "detail": {
+        "requests": [
+          {
+            "path": "/api/v1/me/profile",
+            "method": "GET"
+          },
+          {
+            "path": "/api/v1/anime/1/contributions",
+            "method": "GET"
+          },
+          {
+            "path": "/api/v1/anime/1/backdrops",
+            "method": "GET"
+          },
+          {
+            "path": "/api/v1/watchlist/1",
+            "method": "GET"
+          },
+          {
+            "path": "/api/v1/watchlist/1",
+            "method": "GET"
+          }
+        ]
+      }
+    },
+    {
+      "name": "watchlist-unknown-retry-custom-action-401",
+      "status": "PASS",
+      "detail": {
+        "blockedUnknownWrites": 0,
+        "absorbedDelete": 1,
+        "customErrorVisible": true
+      }
+    },
+    {
+      "name": "watchlist-unknown-retry-custom-action-500",
+      "status": "PASS",
+      "detail": {
+        "blockedUnknownWrites": 0,
+        "absorbedDelete": 1,
+        "customErrorVisible": true
+      }
+    },
+    {
+      "name": "watchlist-unknown-retry-custom-action-network",
+      "status": "PASS",
+      "detail": {
+        "blockedUnknownWrites": 0,
+        "absorbedDelete": 1,
+        "customErrorVisible": true
+      }
+    },
+    {
+      "name": "contributions-loading-error-retry-empty-401",
+      "status": "PASS",
+      "detail": {
+        "loading": true,
+        "error": true,
+        "retryEmpty": true
+      }
+    },
+    {
+      "name": "contributions-loading-error-retry-empty-500",
+      "status": "PASS",
+      "detail": {
+        "loading": true,
+        "error": true,
+        "retryEmpty": true
+      }
+    },
+    {
+      "name": "contributions-loading-error-retry-empty-network",
+      "status": "PASS",
+      "detail": {
+        "loading": true,
+        "error": true,
+        "retryEmpty": true
+      }
+    },
+    {
+      "name": "comment-error-401",
+      "status": "PASS"
+    },
+    {
+      "name": "comment-error-500",
+      "status": "PASS"
+    },
+    {
+      "name": "comment-error-network",
+      "status": "PASS"
+    }
+  ],
+  "geometry": [
+    {
+      "width": 360,
+      "open": false,
+      "viewport": 360,
+      "scrollWidth": 360,
+      "rootScrollX": 0,
+      "header": {
+        "color": "rgb(28, 28, 30)",
+        "background": "rgba(0, 0, 0, 0)"
+      },
+      "card": {
+        "color": "rgb(28, 28, 30)",
+        "background": "rgb(255, 255, 255)"
+      },
+      "contribution": {
+        "color": "rgb(255, 255, 255)",
+        "background": "rgba(0, 0, 0, 0)"
+      },
+      "main": {
+        "color": "rgb(255, 255, 255)",
+        "background": "rgb(15, 15, 18)"
+      },
+      "focus": {
+        "control": "Gruppenbereich",
+        "active": true,
+        "outlineOffset": "2px",
+        "outlineStyle": "solid",
+        "outlineWidth": "2px",
+        "boxShadow": "none",
+        "left": 107.484375,
+        "right": 252.515625,
+        "clippedAncestors": []
+      }
+    },
+    {
+      "width": 360,
+      "open": true,
+      "viewport": 360,
+      "scrollWidth": 360,
+      "rootScrollX": 0,
+      "header": {
+        "color": "rgb(28, 28, 30)",
+        "background": "rgba(0, 0, 0, 0)"
+      },
+      "card": {
+        "color": "rgb(28, 28, 30)",
+        "background": "rgb(255, 255, 255)"
+      },
+      "contribution": {
+        "color": "rgb(255, 255, 255)",
+        "background": "rgba(0, 0, 0, 0)"
+      },
+      "main": {
+        "color": "rgb(255, 255, 255)",
+        "background": "rgb(15, 15, 18)"
+      },
+      "focus": {
+        "control": "Gruppenbereich",
+        "active": true,
+        "outlineOffset": "2px",
+        "outlineStyle": "solid",
+        "outlineWidth": "2px",
+        "boxShadow": "none",
+        "left": 107.484375,
+        "right": 252.515625,
+        "clippedAncestors": []
+      }
+    },
+    {
+      "width": 390,
+      "open": false,
+      "viewport": 390,
+      "scrollWidth": 390,
+      "rootScrollX": 0,
+      "header": {
+        "color": "rgb(28, 28, 30)",
+        "background": "rgba(0, 0, 0, 0)"
+      },
+      "card": {
+        "color": "rgb(28, 28, 30)",
+        "background": "rgb(255, 255, 255)"
+      },
+      "contribution": {
+        "color": "rgb(255, 255, 255)",
+        "background": "rgba(0, 0, 0, 0)"
+      },
+      "main": {
+        "color": "rgb(255, 255, 255)",
+        "background": "rgb(15, 15, 18)"
+      },
+      "focus": {
+        "control": "Gruppenbereich",
+        "active": true,
+        "outlineOffset": "2px",
+        "outlineStyle": "solid",
+        "outlineWidth": "2px",
+        "boxShadow": "none",
+        "left": 122.484375,
+        "right": 267.515625,
+        "clippedAncestors": []
+      }
+    },
+    {
+      "width": 390,
+      "open": true,
+      "viewport": 390,
+      "scrollWidth": 390,
+      "rootScrollX": 0,
+      "header": {
+        "color": "rgb(28, 28, 30)",
+        "background": "rgba(0, 0, 0, 0)"
+      },
+      "card": {
+        "color": "rgb(28, 28, 30)",
+        "background": "rgb(255, 255, 255)"
+      },
+      "contribution": {
+        "color": "rgb(255, 255, 255)",
+        "background": "rgba(0, 0, 0, 0)"
+      },
+      "main": {
+        "color": "rgb(255, 255, 255)",
+        "background": "rgb(15, 15, 18)"
+      },
+      "focus": {
+        "control": "Gruppenbereich",
+        "active": true,
+        "outlineOffset": "2px",
+        "outlineStyle": "solid",
+        "outlineWidth": "2px",
+        "boxShadow": "none",
+        "left": 122.484375,
+        "right": 267.515625,
+        "clippedAncestors": []
+      }
+    },
+    {
+      "width": 767,
+      "open": false,
+      "viewport": 767,
+      "scrollWidth": 767,
+      "rootScrollX": 0,
+      "header": {
+        "color": "rgb(28, 28, 30)",
+        "background": "rgba(0, 0, 0, 0)"
+      },
+      "card": {
+        "color": "rgb(28, 28, 30)",
+        "background": "rgb(255, 255, 255)"
+      },
+      "contribution": {
+        "color": "rgb(255, 255, 255)",
+        "background": "rgba(0, 0, 0, 0)"
+      },
+      "main": {
+        "color": "rgb(255, 255, 255)",
+        "background": "rgb(15, 15, 18)"
+      },
+      "focus": {
+        "control": "Gruppenbereich",
+        "active": true,
+        "outlineOffset": "2px",
+        "outlineStyle": "solid",
+        "outlineWidth": "2px",
+        "boxShadow": "none",
+        "left": 310.984375,
+        "right": 456.015625,
+        "clippedAncestors": []
+      }
+    },
+    {
+      "width": 767,
+      "open": true,
+      "viewport": 767,
+      "scrollWidth": 767,
+      "rootScrollX": 0,
+      "header": {
+        "color": "rgb(28, 28, 30)",
+        "background": "rgba(0, 0, 0, 0)"
+      },
+      "card": {
+        "color": "rgb(28, 28, 30)",
+        "background": "rgb(255, 255, 255)"
+      },
+      "contribution": {
+        "color": "rgb(255, 255, 255)",
+        "background": "rgba(0, 0, 0, 0)"
+      },
+      "main": {
+        "color": "rgb(255, 255, 255)",
+        "background": "rgb(15, 15, 18)"
+      },
+      "focus": {
+        "control": "Gruppenbereich",
+        "active": true,
+        "outlineOffset": "2px",
+        "outlineStyle": "solid",
+        "outlineWidth": "2px",
+        "boxShadow": "none",
+        "left": 310.984375,
+        "right": 456.015625,
+        "clippedAncestors": []
+      }
+    },
+    {
+      "width": 768,
+      "open": false,
+      "viewport": 768,
+      "scrollWidth": 768,
+      "rootScrollX": 0,
+      "header": {
+        "color": "rgb(28, 28, 30)",
+        "background": "rgba(0, 0, 0, 0)"
+      },
+      "card": {
+        "color": "rgb(28, 28, 30)",
+        "background": "rgb(255, 255, 255)"
+      },
+      "contribution": {
+        "color": "rgb(255, 255, 255)",
+        "background": "rgba(0, 0, 0, 0)"
+      },
+      "main": {
+        "color": "rgb(255, 255, 255)",
+        "background": "rgb(15, 15, 18)"
+      },
+      "focus": {
+        "control": "Gruppenbereich",
+        "active": true,
+        "outlineOffset": "2px",
+        "outlineStyle": "solid",
+        "outlineWidth": "2px",
+        "boxShadow": "none",
+        "left": 311.484375,
+        "right": 456.515625,
+        "clippedAncestors": []
+      }
+    },
+    {
+      "width": 768,
+      "open": true,
+      "viewport": 768,
+      "scrollWidth": 768,
+      "rootScrollX": 0,
+      "header": {
+        "color": "rgb(28, 28, 30)",
+        "background": "rgba(0, 0, 0, 0)"
+      },
+      "card": {
+        "color": "rgb(28, 28, 30)",
+        "background": "rgb(255, 255, 255)"
+      },
+      "contribution": {
+        "color": "rgb(255, 255, 255)",
+        "background": "rgba(0, 0, 0, 0)"
+      },
+      "main": {
+        "color": "rgb(255, 255, 255)",
+        "background": "rgb(15, 15, 18)"
+      },
+      "focus": {
+        "control": "Gruppenbereich",
+        "active": true,
+        "outlineOffset": "2px",
+        "outlineStyle": "solid",
+        "outlineWidth": "2px",
+        "boxShadow": "none",
+        "left": 311.484375,
+        "right": 456.515625,
+        "clippedAncestors": []
+      }
+    },
+    {
+      "width": 1440,
+      "open": false,
+      "viewport": 1440,
+      "scrollWidth": 1440,
+      "rootScrollX": 0,
+      "header": {
+        "color": "rgb(28, 28, 30)",
+        "background": "rgba(0, 0, 0, 0)"
+      },
+      "card": {
+        "color": "rgb(28, 28, 30)",
+        "background": "rgb(255, 255, 255)"
+      },
+      "contribution": {
+        "color": "rgb(255, 255, 255)",
+        "background": "rgba(0, 0, 0, 0)"
+      },
+      "main": {
+        "color": "rgb(255, 255, 255)",
+        "background": "rgb(15, 15, 18)"
+      },
+      "focus": {
+        "control": "Gruppenbereich",
+        "active": true,
+        "outlineOffset": "2px",
+        "outlineStyle": "solid",
+        "outlineWidth": "2px",
+        "boxShadow": "none",
+        "left": 655.484375,
+        "right": 800.515625,
+        "clippedAncestors": []
+      }
+    },
+    {
+      "width": 1440,
+      "open": true,
+      "viewport": 1440,
+      "scrollWidth": 1440,
+      "rootScrollX": 0,
+      "header": {
+        "color": "rgb(28, 28, 30)",
+        "background": "rgba(0, 0, 0, 0)"
+      },
+      "card": {
+        "color": "rgb(28, 28, 30)",
+        "background": "rgb(255, 255, 255)"
+      },
+      "contribution": {
+        "color": "rgb(255, 255, 255)",
+        "background": "rgba(0, 0, 0, 0)"
+      },
+      "main": {
+        "color": "rgb(255, 255, 255)",
+        "background": "rgb(15, 15, 18)"
+      },
+      "focus": {
+        "control": "Gruppenbereich",
+        "active": true,
+        "outlineOffset": "2px",
+        "outlineStyle": "solid",
+        "outlineWidth": "2px",
+        "boxShadow": "none",
+        "left": 655.484375,
+        "right": 800.515625,
+        "clippedAncestors": []
+      }
+    }
+  ],
+  "requests": [
+    {
+      "scope": "cold SSR Page+Metadata",
+      "requests": [
+        {
+          "method": "GET",
+          "path": "/api/v1/role-definitions",
+          "query": "?context=fansub_group"
+        },
+        {
+          "method": "GET",
+          "path": "/api/v1/role-definitions",
+          "query": "?context=anime_contribution"
+        },
+        {
+          "method": "GET",
+          "path": "/api/v1/role-definitions",
+          "query": "?context=group_history"
+        },
+        {
+          "method": "GET",
+          "path": "/api/v1/anime/1",
+          "query": ""
+        },
+        {
+          "method": "GET",
+          "path": "/api/v1/anime/1/comments",
+          "query": "?page=1&per_page=10"
+        },
+        {
+          "method": "GET",
+          "path": "/api/v1/anime/1/fansubs",
+          "query": ""
+        },
+        {
+          "method": "GET",
+          "path": "/api/v1/anime/1/episodes",
+          "query": ""
+        },
+        {
+          "method": "GET",
+          "path": "/api/v1/anime/1/relations",
+          "query": ""
+        }
+      ]
+    },
+    {
+      "scope": "browser-context",
+      "session": "none",
+      "requests": [
+        {
+          "path": "/api/v1/anime/1/contributions",
+          "method": "GET"
+        },
+        {
+          "path": "/api/v1/anime/1/backdrops",
+          "method": "GET"
+        }
+      ],
+      "refreshes": 0,
+      "writesAbsorbed": 0
+    },
+    {
+      "scope": "browser-context",
+      "session": "none",
+      "requests": [
+        {
+          "path": "/api/v1/anime/1/contributions",
+          "method": "GET"
+        },
+        {
+          "path": "/api/v1/anime/1/backdrops",
+          "method": "GET"
+        }
+      ],
+      "refreshes": 0,
+      "writesAbsorbed": 0
+    },
+    {
+      "scope": "browser-context",
+      "session": "none",
+      "requests": [
+        {
+          "path": "/api/v1/anime/1/contributions",
+          "method": "GET"
+        },
+        {
+          "path": "/api/v1/anime/1/backdrops",
+          "method": "GET"
+        }
+      ],
+      "refreshes": 0,
+      "writesAbsorbed": 0
+    },
+    {
+      "scope": "browser-context",
+      "session": "none",
+      "requests": [
+        {
+          "path": "/api/v1/anime/1/contributions",
+          "method": "GET"
+        },
+        {
+          "path": "/api/v1/anime/1/backdrops",
+          "method": "GET"
+        }
+      ],
+      "refreshes": 0,
+      "writesAbsorbed": 0
+    },
+    {
+      "scope": "browser-context",
+      "session": "none",
+      "requests": [
+        {
+          "path": "/api/v1/anime/1/contributions",
+          "method": "GET"
+        },
+        {
+          "path": "/api/v1/anime/1/backdrops",
+          "method": "GET"
+        }
+      ],
+      "refreshes": 0,
+      "writesAbsorbed": 0
+    },
+    {
+      "scope": "fresh anonymous anime3",
+      "ssr": [
+        {
+          "method": "GET",
+          "path": "/api/v1/role-definitions",
+          "query": "?context=fansub_group"
+        },
+        {
+          "method": "GET",
+          "path": "/api/v1/role-definitions",
+          "query": "?context=anime_contribution"
+        },
+        {
+          "method": "GET",
+          "path": "/api/v1/role-definitions",
+          "query": "?context=group_history"
+        },
+        {
+          "method": "GET",
+          "path": "/api/v1/anime/3",
+          "query": ""
+        },
+        {
+          "method": "GET",
+          "path": "/api/v1/anime/3/comments",
+          "query": "?page=1&per_page=10"
+        },
+        {
+          "method": "GET",
+          "path": "/api/v1/anime/3/fansubs",
+          "query": ""
+        },
+        {
+          "method": "GET",
+          "path": "/api/v1/anime/3/episodes",
+          "query": ""
+        },
+        {
+          "method": "GET",
+          "path": "/api/v1/anime/3/relations",
+          "query": ""
+        }
+      ],
+      "client": [
+        {
+          "path": "/api/v1/anime/3/contributions",
+          "method": "GET"
+        },
+        {
+          "path": "/api/v1/anime/3/backdrops",
+          "method": "GET"
+        }
+      ],
+      "lazyRequests": []
+    },
+    {
+      "scope": "browser-context",
+      "session": "none",
+      "requests": [
+        {
+          "path": "/api/v1/anime/3/contributions",
+          "method": "GET"
+        },
+        {
+          "path": "/api/v1/anime/3/backdrops",
+          "method": "GET"
+        }
+      ],
+      "refreshes": 0,
+      "writesAbsorbed": 0
+    },
+    {
+      "scope": "browser-context",
+      "session": "none",
+      "requests": [],
+      "refreshes": 0,
+      "writesAbsorbed": 0
+    },
+    {
+      "scope": "browser-context",
+      "session": "none",
+      "requests": [
+        {
+          "path": "/api/v1/anime/1/contributions",
+          "method": "GET"
+        },
+        {
+          "path": "/api/v1/anime/1/backdrops",
+          "method": "GET"
+        }
+      ],
+      "refreshes": 0,
+      "writesAbsorbed": 0
+    },
+    {
+      "scope": "browser-context",
+      "session": "none",
+      "requests": [],
+      "refreshes": 0,
+      "writesAbsorbed": 0
+    },
+    {
+      "scope": "browser-context",
+      "session": "access",
+      "requests": [
+        {
+          "path": "/api/v1/me/profile",
+          "method": "GET"
+        },
+        {
+          "path": "/api/v1/anime/1/contributions",
+          "method": "GET"
+        },
+        {
+          "path": "/api/v1/anime/1/backdrops",
+          "method": "GET"
+        },
+        {
+          "path": "/api/v1/watchlist/1",
+          "method": "GET"
+        },
+        {
+          "path": "/api/v1/anime/1/comments",
+          "method": "POST"
+        }
+      ],
+      "refreshes": 0,
+      "writesAbsorbed": 1
+    },
+    {
+      "scope": "browser-context",
+      "session": "refresh",
+      "requests": [
+        {
+          "path": "/api/auth/keycloak/token",
+          "method": "POST"
+        },
+        {
+          "path": "/api/v1/me",
+          "method": "GET"
+        },
+        {
+          "path": "/api/v1/anime/1/contributions",
+          "method": "GET"
+        },
+        {
+          "path": "/api/v1/me/profile",
+          "method": "GET"
+        },
+        {
+          "path": "/api/v1/anime/1/backdrops",
+          "method": "GET"
+        },
+        {
+          "path": "/api/v1/watchlist/1",
+          "method": "GET"
+        },
+        {
+          "path": "/api/v1/anime/1/comments",
+          "method": "POST"
+        }
+      ],
+      "refreshes": 1,
+      "writesAbsorbed": 1
+    },
+    {
+      "scope": "browser-context",
+      "session": "expired",
+      "requests": [
+        {
+          "path": "/api/auth/keycloak/token",
+          "method": "POST"
+        },
+        {
+          "path": "/api/v1/anime/1/contributions",
+          "method": "GET"
+        },
+        {
+          "path": "/api/v1/me",
+          "method": "GET"
+        },
+        {
+          "path": "/api/v1/me/profile",
+          "method": "GET"
+        },
+        {
+          "path": "/api/v1/anime/1/backdrops",
+          "method": "GET"
+        },
+        {
+          "path": "/api/v1/watchlist/1",
+          "method": "GET"
+        },
+        {
+          "path": "/api/v1/anime/1/comments",
+          "method": "POST"
+        }
+      ],
+      "refreshes": 1,
+      "writesAbsorbed": 1
+    },
+    {
+      "scope": "browser-context",
+      "session": "refresh",
+      "requests": [
+        {
+          "path": "/api/auth/keycloak/token",
+          "method": "POST"
+        },
+        {
+          "path": "/api/v1/anime/1/contributions",
+          "method": "GET"
+        },
+        {
+          "path": "/api/v1/anime/1/backdrops",
+          "method": "GET"
+        }
+      ],
+      "refreshes": 1,
+      "writesAbsorbed": 0
+    },
+    {
+      "scope": "browser-context",
+      "session": "none",
+      "requests": [
+        {
+          "path": "/api/v1/me/profile",
+          "method": "GET"
+        },
+        {
+          "path": "/api/v1/anime/1/contributions",
+          "method": "GET"
+        },
+        {
+          "path": "/api/v1/anime/1/backdrops",
+          "method": "GET"
+        },
+        {
+          "path": "/api/v1/watchlist/1",
+          "method": "GET"
+        },
+        {
+          "path": "/api/v1/watchlist/1",
+          "method": "GET"
+        }
+      ],
+      "refreshes": 0,
+      "writesAbsorbed": 0
+    },
+    {
+      "scope": "browser-context",
+      "session": "access",
+      "requests": [
+        {
+          "path": "/api/v1/me/profile",
+          "method": "GET"
+        },
+        {
+          "path": "/api/v1/anime/1/contributions",
+          "method": "GET"
+        },
+        {
+          "path": "/api/v1/anime/1/backdrops",
+          "method": "GET"
+        },
+        {
+          "path": "/api/v1/watchlist/1",
+          "method": "GET"
+        },
+        {
+          "path": "/api/v1/watchlist/1",
+          "method": "GET"
+        },
+        {
+          "path": "/api/v1/watchlist/1",
+          "method": "DELETE"
+        }
+      ],
+      "refreshes": 0,
+      "writesAbsorbed": 1
+    },
+    {
+      "scope": "browser-context",
+      "session": "access",
+      "requests": [
+        {
+          "path": "/api/v1/me/profile",
+          "method": "GET"
+        },
+        {
+          "path": "/api/v1/anime/1/contributions",
+          "method": "GET"
+        },
+        {
+          "path": "/api/v1/anime/1/backdrops",
+          "method": "GET"
+        },
+        {
+          "path": "/api/v1/watchlist/1",
+          "method": "GET"
+        },
+        {
+          "path": "/api/v1/watchlist/1",
+          "method": "GET"
+        },
+        {
+          "path": "/api/v1/watchlist/1",
+          "method": "DELETE"
+        }
+      ],
+      "refreshes": 0,
+      "writesAbsorbed": 1
+    },
+    {
+      "scope": "browser-context",
+      "session": "access",
+      "requests": [
+        {
+          "path": "/api/v1/me/profile",
+          "method": "GET"
+        },
+        {
+          "path": "/api/v1/anime/1/contributions",
+          "method": "GET"
+        },
+        {
+          "path": "/api/v1/anime/1/backdrops",
+          "method": "GET"
+        },
+        {
+          "path": "/api/v1/watchlist/1",
+          "method": "GET"
+        },
+        {
+          "path": "/api/v1/watchlist/1",
+          "method": "GET"
+        },
+        {
+          "path": "/api/v1/watchlist/1",
+          "method": "DELETE"
+        }
+      ],
+      "refreshes": 0,
+      "writesAbsorbed": 1
+    },
+    {
+      "scope": "browser-context",
+      "session": "none",
+      "requests": [
+        {
+          "path": "/api/v1/anime/1/contributions",
+          "method": "GET"
+        },
+        {
+          "path": "/api/v1/anime/1/backdrops",
+          "method": "GET"
+        },
+        {
+          "path": "/api/v1/anime/1/contributions",
+          "method": "GET"
+        }
+      ],
+      "refreshes": 0,
+      "writesAbsorbed": 0
+    },
+    {
+      "scope": "browser-context",
+      "session": "none",
+      "requests": [
+        {
+          "path": "/api/v1/anime/1/contributions",
+          "method": "GET"
+        },
+        {
+          "path": "/api/v1/anime/1/backdrops",
+          "method": "GET"
+        },
+        {
+          "path": "/api/v1/anime/1/contributions",
+          "method": "GET"
+        }
+      ],
+      "refreshes": 0,
+      "writesAbsorbed": 0
+    },
+    {
+      "scope": "browser-context",
+      "session": "none",
+      "requests": [
+        {
+          "path": "/api/v1/anime/1/contributions",
+          "method": "GET"
+        },
+        {
+          "path": "/api/v1/anime/1/backdrops",
+          "method": "GET"
+        },
+        {
+          "path": "/api/v1/anime/1/contributions",
+          "method": "GET"
+        }
+      ],
+      "refreshes": 0,
+      "writesAbsorbed": 0
+    },
+    {
+      "scope": "browser-context",
+      "session": "access",
+      "requests": [
+        {
+          "path": "/api/v1/me/profile",
+          "method": "GET"
+        },
+        {
+          "path": "/api/v1/anime/1/contributions",
+          "method": "GET"
+        },
+        {
+          "path": "/api/v1/anime/1/backdrops",
+          "method": "GET"
+        },
+        {
+          "path": "/api/v1/watchlist/1",
+          "method": "GET"
+        },
+        {
+          "path": "/api/v1/anime/1/comments",
+          "method": "POST"
+        }
+      ],
+      "refreshes": 0,
+      "writesAbsorbed": 1
+    },
+    {
+      "scope": "browser-context",
+      "session": "access",
+      "requests": [
+        {
+          "path": "/api/v1/me/profile",
+          "method": "GET"
+        },
+        {
+          "path": "/api/v1/anime/1/contributions",
+          "method": "GET"
+        },
+        {
+          "path": "/api/v1/anime/1/backdrops",
+          "method": "GET"
+        },
+        {
+          "path": "/api/v1/watchlist/1",
+          "method": "GET"
+        },
+        {
+          "path": "/api/v1/anime/1/comments",
+          "method": "POST"
+        }
+      ],
+      "refreshes": 0,
+      "writesAbsorbed": 1
+    },
+    {
+      "scope": "browser-context",
+      "session": "access",
+      "requests": [
+        {
+          "path": "/api/v1/me/profile",
+          "method": "GET"
+        },
+        {
+          "path": "/api/v1/anime/1/contributions",
+          "method": "GET"
+        },
+        {
+          "path": "/api/v1/anime/1/backdrops",
+          "method": "GET"
+        },
+        {
+          "path": "/api/v1/watchlist/1",
+          "method": "GET"
+        },
+        {
+          "path": "/api/v1/anime/1/comments",
+          "method": "POST"
+        }
+      ],
+      "refreshes": 0,
+      "writesAbsorbed": 1
+    }
+  ],
+  "blockedExternal": [],
+  "fixtures": {
+    "next": "http://127.0.0.1:3158",
+    "api": "http://127.0.0.1:3159"
+  },
+  "ssrRequests": [
+    {
+      "method": "POST",
+      "path": "/api/v1/anime/1",
+      "query": ""
+    },
+    {
+      "method": "GET",
+      "path": "/api/v1/role-definitions",
+      "query": "?context=fansub_group"
+    },
+    {
+      "method": "GET",
+      "path": "/api/v1/role-definitions",
+      "query": "?context=anime_contribution"
+    },
+    {
+      "method": "GET",
+      "path": "/api/v1/role-definitions",
+      "query": "?context=group_history"
+    },
+    {
+      "method": "GET",
+      "path": "/api/v1/anime/1",
+      "query": ""
+    },
+    {
+      "method": "GET",
+      "path": "/api/v1/anime/1/comments",
+      "query": "?page=1&per_page=10"
+    },
+    {
+      "method": "GET",
+      "path": "/api/v1/anime/1/fansubs",
+      "query": ""
+    },
+    {
+      "method": "GET",
+      "path": "/api/v1/anime/1/episodes",
+      "query": ""
+    },
+    {
+      "method": "GET",
+      "path": "/api/v1/anime/1/relations",
+      "query": ""
+    },
+    {
+      "method": "GET",
+      "path": "/api/v1/role-definitions",
+      "query": "?context=fansub_group"
+    },
+    {
+      "method": "GET",
+      "path": "/api/v1/role-definitions",
+      "query": "?context=anime_contribution"
+    },
+    {
+      "method": "GET",
+      "path": "/api/v1/role-definitions",
+      "query": "?context=group_history"
+    },
+    {
+      "method": "GET",
+      "path": "/api/v1/role-definitions",
+      "query": "?context=fansub_group"
+    },
+    {
+      "method": "GET",
+      "path": "/api/v1/role-definitions",
+      "query": "?context=anime_contribution"
+    },
+    {
+      "method": "GET",
+      "path": "/api/v1/role-definitions",
+      "query": "?context=group_history"
+    },
+    {
+      "method": "GET",
+      "path": "/api/v1/role-definitions",
+      "query": "?context=fansub_group"
+    },
+    {
+      "method": "GET",
+      "path": "/api/v1/role-definitions",
+      "query": "?context=anime_contribution"
+    },
+    {
+      "method": "GET",
+      "path": "/api/v1/role-definitions",
+      "query": "?context=group_history"
+    },
+    {
+      "method": "GET",
+      "path": "/api/v1/role-definitions",
+      "query": "?context=fansub_group"
+    },
+    {
+      "method": "GET",
+      "path": "/api/v1/role-definitions",
+      "query": "?context=anime_contribution"
+    },
+    {
+      "method": "GET",
+      "path": "/api/v1/role-definitions",
+      "query": "?context=group_history"
+    },
+    {
+      "method": "GET",
+      "path": "/api/v1/role-definitions",
+      "query": "?context=fansub_group"
+    },
+    {
+      "method": "GET",
+      "path": "/api/v1/role-definitions",
+      "query": "?context=anime_contribution"
+    },
+    {
+      "method": "GET",
+      "path": "/api/v1/role-definitions",
+      "query": "?context=group_history"
+    },
+    {
+      "method": "GET",
+      "path": "/api/v1/role-definitions",
+      "query": "?context=fansub_group"
+    },
+    {
+      "method": "GET",
+      "path": "/api/v1/role-definitions",
+      "query": "?context=anime_contribution"
+    },
+    {
+      "method": "GET",
+      "path": "/api/v1/role-definitions",
+      "query": "?context=group_history"
+    },
+    {
+      "method": "GET",
+      "path": "/api/v1/anime/999999999",
+      "query": ""
+    },
+    {
+      "method": "GET",
+      "path": "/api/v1/role-definitions",
+      "query": "?context=fansub_group"
+    },
+    {
+      "method": "GET",
+      "path": "/api/v1/role-definitions",
+      "query": "?context=anime_contribution"
+    },
+    {
+      "method": "GET",
+      "path": "/api/v1/role-definitions",
+      "query": "?context=group_history"
+    },
+    {
+      "method": "GET",
+      "path": "/api/v1/anime/500",
+      "query": ""
+    },
+    {
+      "method": "GET",
+      "path": "/api/v1/anime/500",
+      "query": ""
+    },
+    {
+      "method": "GET",
+      "path": "/api/v1/role-definitions",
+      "query": "?context=fansub_group"
+    },
+    {
+      "method": "GET",
+      "path": "/api/v1/role-definitions",
+      "query": "?context=anime_contribution"
+    },
+    {
+      "method": "GET",
+      "path": "/api/v1/role-definitions",
+      "query": "?context=group_history"
+    },
+    {
+      "method": "GET",
+      "path": "/api/v1/anime/501",
+      "query": ""
+    },
+    {
+      "method": "GET",
+      "path": "/api/v1/anime/501",
+      "query": ""
+    },
+    {
+      "method": "GET",
+      "path": "/api/v1/role-definitions",
+      "query": "?context=anime_contribution"
+    },
+    {
+      "method": "GET",
+      "path": "/api/v1/role-definitions",
+      "query": "?context=group_history"
+    },
+    {
+      "method": "GET",
+      "path": "/api/v1/role-definitions",
+      "query": "?context=fansub_group"
+    },
+    {
+      "method": "GET",
+      "path": "/api/v1/anime/1/comments",
+      "query": "?page=1&per_page=10"
+    },
+    {
+      "method": "GET",
+      "path": "/api/v1/anime/1/fansubs",
+      "query": ""
+    },
+    {
+      "method": "GET",
+      "path": "/api/v1/anime/1/episodes",
+      "query": ""
+    },
+    {
+      "method": "GET",
+      "path": "/api/v1/role-definitions",
+      "query": "?context=fansub_group"
+    },
+    {
+      "method": "GET",
+      "path": "/api/v1/role-definitions",
+      "query": "?context=anime_contribution"
+    },
+    {
+      "method": "GET",
+      "path": "/api/v1/role-definitions",
+      "query": "?context=group_history"
+    },
+    {
+      "method": "GET",
+      "path": "/api/v1/anime/1/comments",
+      "query": "?page=1&per_page=10"
+    },
+    {
+      "method": "GET",
+      "path": "/api/v1/anime/1/fansubs",
+      "query": ""
+    },
+    {
+      "method": "GET",
+      "path": "/api/v1/anime/1/episodes",
+      "query": ""
+    },
+    {
+      "method": "GET",
+      "path": "/api/v1/role-definitions",
+      "query": "?context=fansub_group"
+    },
+    {
+      "method": "GET",
+      "path": "/api/v1/role-definitions",
+      "query": "?context=anime_contribution"
+    },
+    {
+      "method": "GET",
+      "path": "/api/v1/role-definitions",
+      "query": "?context=group_history"
+    },
+    {
+      "method": "GET",
+      "path": "/api/v1/anime/1/comments",
+      "query": "?page=1&per_page=10"
+    },
+    {
+      "method": "GET",
+      "path": "/api/v1/anime/1/fansubs",
+      "query": ""
+    },
+    {
+      "method": "GET",
+      "path": "/api/v1/anime/1/episodes",
+      "query": ""
+    },
+    {
+      "method": "GET",
+      "path": "/api/v1/role-definitions",
+      "query": "?context=fansub_group"
+    },
+    {
+      "method": "GET",
+      "path": "/api/v1/role-definitions",
+      "query": "?context=anime_contribution"
+    },
+    {
+      "method": "GET",
+      "path": "/api/v1/role-definitions",
+      "query": "?context=group_history"
+    },
+    {
+      "method": "GET",
+      "path": "/api/v1/anime/1/comments",
+      "query": "?page=1&per_page=10"
+    },
+    {
+      "method": "GET",
+      "path": "/api/v1/anime/1/fansubs",
+      "query": ""
+    },
+    {
+      "method": "GET",
+      "path": "/api/v1/anime/1/episodes",
+      "query": ""
+    },
+    {
+      "method": "GET",
+      "path": "/api/v1/role-definitions",
+      "query": "?context=fansub_group"
+    },
+    {
+      "method": "GET",
+      "path": "/api/v1/role-definitions",
+      "query": "?context=anime_contribution"
+    },
+    {
+      "method": "GET",
+      "path": "/api/v1/role-definitions",
+      "query": "?context=group_history"
+    },
+    {
+      "method": "GET",
+      "path": "/api/v1/anime/1/comments",
+      "query": "?page=1&per_page=10"
+    },
+    {
+      "method": "GET",
+      "path": "/api/v1/anime/1/fansubs",
+      "query": ""
+    },
+    {
+      "method": "GET",
+      "path": "/api/v1/anime/1/episodes",
+      "query": ""
+    },
+    {
+      "method": "GET",
+      "path": "/api/v1/role-definitions",
+      "query": "?context=fansub_group"
+    },
+    {
+      "method": "GET",
+      "path": "/api/v1/role-definitions",
+      "query": "?context=anime_contribution"
+    },
+    {
+      "method": "GET",
+      "path": "/api/v1/role-definitions",
+      "query": "?context=group_history"
+    },
+    {
+      "method": "GET",
+      "path": "/api/v1/anime/3",
+      "query": ""
+    },
+    {
+      "method": "GET",
+      "path": "/api/v1/anime/3/comments",
+      "query": "?page=1&per_page=10"
+    },
+    {
+      "method": "GET",
+      "path": "/api/v1/anime/3/fansubs",
+      "query": ""
+    },
+    {
+      "method": "GET",
+      "path": "/api/v1/anime/3/episodes",
+      "query": ""
+    },
+    {
+      "method": "GET",
+      "path": "/api/v1/anime/3/relations",
+      "query": ""
+    },
+    {
+      "method": "GET",
+      "path": "/api/v1/role-definitions",
+      "query": "?context=fansub_group"
+    },
+    {
+      "method": "GET",
+      "path": "/api/v1/role-definitions",
+      "query": "?context=anime_contribution"
+    },
+    {
+      "method": "GET",
+      "path": "/api/v1/role-definitions",
+      "query": "?context=group_history"
+    },
+    {
+      "method": "GET",
+      "path": "/api/v1/anime/2",
+      "query": ""
+    },
+    {
+      "method": "GET",
+      "path": "/api/v1/anime/2/comments",
+      "query": "?page=1&per_page=10"
+    },
+    {
+      "method": "GET",
+      "path": "/api/v1/anime/2/fansubs",
+      "query": ""
+    },
+    {
+      "method": "GET",
+      "path": "/api/v1/anime/2/episodes",
+      "query": ""
+    },
+    {
+      "method": "GET",
+      "path": "/api/v1/anime/2/relations",
+      "query": ""
+    },
+    {
+      "method": "GET",
+      "path": "/api/v1/role-definitions",
+      "query": "?context=fansub_group"
+    },
+    {
+      "method": "GET",
+      "path": "/api/v1/role-definitions",
+      "query": "?context=anime_contribution"
+    },
+    {
+      "method": "GET",
+      "path": "/api/v1/role-definitions",
+      "query": "?context=group_history"
+    },
+    {
+      "method": "GET",
+      "path": "/api/v1/anime/1/comments",
+      "query": "?page=1&per_page=10"
+    },
+    {
+      "method": "GET",
+      "path": "/api/v1/anime/1/fansubs",
+      "query": ""
+    },
+    {
+      "method": "GET",
+      "path": "/api/v1/anime/1/episodes",
+      "query": ""
+    },
+    {
+      "method": "GET",
+      "path": "/api/v1/fansub-slugs/stored-primary/projects/stored-anime/resolve",
+      "query": ""
+    },
+    {
+      "method": "GET",
+      "path": "/api/v1/anime/1/group/7",
+      "query": ""
+    },
+    {
+      "method": "GET",
+      "path": "/api/v1/anime/1/group/7/release-list",
+      "query": "?limit=1&sort=release_date"
+    },
+    {
+      "method": "GET",
+      "path": "/api/v1/anime/1/group/7/assets",
+      "query": ""
+    },
+    {
+      "method": "GET",
+      "path": "/api/v1/anime/1/fansubs",
+      "query": ""
+    },
+    {
+      "method": "GET",
+      "path": "/api/v1/anime/1/group/7/releases/count",
+      "query": ""
+    },
+    {
+      "method": "GET",
+      "path": "/api/v1/anime/1/group/7/contributors",
+      "query": ""
+    },
+    {
+      "method": "GET",
+      "path": "/api/v1/anime/1/group/7/project-note",
+      "query": ""
+    },
+    {
+      "method": "GET",
+      "path": "/api/v1/role-definitions",
+      "query": "?context=fansub_group"
+    },
+    {
+      "method": "GET",
+      "path": "/api/v1/role-definitions",
+      "query": "?context=anime_contribution"
+    },
+    {
+      "method": "GET",
+      "path": "/api/v1/role-definitions",
+      "query": "?context=group_history"
+    },
+    {
+      "method": "GET",
+      "path": "/api/v1/anime/1/group/7",
+      "query": ""
+    },
+    {
+      "method": "GET",
+      "path": "/api/v1/fansub-slugs/stored-primary/public-profile",
+      "query": ""
+    },
+    {
+      "method": "GET",
+      "path": "/api/v1/anime/1/group/7/assets",
+      "query": ""
+    },
+    {
+      "method": "GET",
+      "path": "/api/v1/anime/1/fansubs",
+      "query": ""
+    },
+    {
+      "method": "GET",
+      "path": "/api/v1/anime/1/group/7/release-list",
+      "query": "?limit=1&sort=release_date"
+    },
+    {
+      "method": "GET",
+      "path": "/api/v1/anime/1/group/7/releases/count",
+      "query": ""
+    },
+    {
+      "method": "GET",
+      "path": "/api/v1/anime/1/group/7/contributors",
+      "query": ""
+    },
+    {
+      "method": "GET",
+      "path": "/api/v1/anime/1/group/7/project-note",
+      "query": ""
+    },
+    {
+      "method": "GET",
+      "path": "/api/v1/role-definitions",
+      "query": "?context=fansub_group"
+    },
+    {
+      "method": "GET",
+      "path": "/api/v1/role-definitions",
+      "query": "?context=anime_contribution"
+    },
+    {
+      "method": "GET",
+      "path": "/api/v1/role-definitions",
+      "query": "?context=group_history"
+    },
+    {
+      "method": "GET",
+      "path": "/api/v1/anime/1/comments",
+      "query": "?page=1&per_page=10"
+    },
+    {
+      "method": "GET",
+      "path": "/api/v1/anime/1/fansubs",
+      "query": ""
+    },
+    {
+      "method": "GET",
+      "path": "/api/v1/anime/1/episodes",
+      "query": ""
+    },
+    {
+      "method": "GET",
+      "path": "/api/v1/role-definitions",
+      "query": "?context=fansub_group"
+    },
+    {
+      "method": "GET",
+      "path": "/api/v1/role-definitions",
+      "query": "?context=anime_contribution"
+    },
+    {
+      "method": "GET",
+      "path": "/api/v1/role-definitions",
+      "query": "?context=group_history"
+    },
+    {
+      "method": "GET",
+      "path": "/api/v1/anime/1/comments",
+      "query": "?page=1&per_page=10"
+    },
+    {
+      "method": "GET",
+      "path": "/api/v1/anime/1/fansubs",
+      "query": ""
+    },
+    {
+      "method": "GET",
+      "path": "/api/v1/anime/1/episodes",
+      "query": ""
+    },
+    {
+      "method": "GET",
+      "path": "/api/v1/role-definitions",
+      "query": "?context=fansub_group"
+    },
+    {
+      "method": "GET",
+      "path": "/api/v1/role-definitions",
+      "query": "?context=anime_contribution"
+    },
+    {
+      "method": "GET",
+      "path": "/api/v1/role-definitions",
+      "query": "?context=group_history"
+    },
+    {
+      "method": "GET",
+      "path": "/api/v1/anime/1/comments",
+      "query": "?page=1&per_page=10"
+    },
+    {
+      "method": "GET",
+      "path": "/api/v1/anime/1/fansubs",
+      "query": ""
+    },
+    {
+      "method": "GET",
+      "path": "/api/v1/anime/1/episodes",
+      "query": ""
+    },
+    {
+      "method": "GET",
+      "path": "/api/v1/role-definitions",
+      "query": "?context=fansub_group"
+    },
+    {
+      "method": "GET",
+      "path": "/api/v1/role-definitions",
+      "query": "?context=anime_contribution"
+    },
+    {
+      "method": "GET",
+      "path": "/api/v1/role-definitions",
+      "query": "?context=group_history"
+    },
+    {
+      "method": "GET",
+      "path": "/api/v1/anime/1/comments",
+      "query": "?page=1&per_page=10"
+    },
+    {
+      "method": "GET",
+      "path": "/api/v1/anime/1/fansubs",
+      "query": ""
+    },
+    {
+      "method": "GET",
+      "path": "/api/v1/anime/1/episodes",
+      "query": ""
+    },
+    {
+      "method": "GET",
+      "path": "/api/v1/role-definitions",
+      "query": "?context=fansub_group"
+    },
+    {
+      "method": "GET",
+      "path": "/api/v1/role-definitions",
+      "query": "?context=anime_contribution"
+    },
+    {
+      "method": "GET",
+      "path": "/api/v1/role-definitions",
+      "query": "?context=group_history"
+    },
+    {
+      "method": "GET",
+      "path": "/api/v1/anime/1/comments",
+      "query": "?page=1&per_page=10"
+    },
+    {
+      "method": "GET",
+      "path": "/api/v1/anime/1/fansubs",
+      "query": ""
+    },
+    {
+      "method": "GET",
+      "path": "/api/v1/anime/1/episodes",
+      "query": ""
+    },
+    {
+      "method": "GET",
+      "path": "/api/v1/role-definitions",
+      "query": "?context=fansub_group"
+    },
+    {
+      "method": "GET",
+      "path": "/api/v1/role-definitions",
+      "query": "?context=anime_contribution"
+    },
+    {
+      "method": "GET",
+      "path": "/api/v1/role-definitions",
+      "query": "?context=group_history"
+    },
+    {
+      "method": "GET",
+      "path": "/api/v1/anime/1/comments",
+      "query": "?page=1&per_page=10"
+    },
+    {
+      "method": "GET",
+      "path": "/api/v1/anime/1/fansubs",
+      "query": ""
+    },
+    {
+      "method": "GET",
+      "path": "/api/v1/anime/1/episodes",
+      "query": ""
+    },
+    {
+      "method": "GET",
+      "path": "/api/v1/role-definitions",
+      "query": "?context=fansub_group"
+    },
+    {
+      "method": "GET",
+      "path": "/api/v1/role-definitions",
+      "query": "?context=anime_contribution"
+    },
+    {
+      "method": "GET",
+      "path": "/api/v1/role-definitions",
+      "query": "?context=group_history"
+    },
+    {
+      "method": "GET",
+      "path": "/api/v1/anime/1/comments",
+      "query": "?page=1&per_page=10"
+    },
+    {
+      "method": "GET",
+      "path": "/api/v1/anime/1/fansubs",
+      "query": ""
+    },
+    {
+      "method": "GET",
+      "path": "/api/v1/anime/1/episodes",
+      "query": ""
+    },
+    {
+      "method": "GET",
+      "path": "/api/v1/role-definitions",
+      "query": "?context=fansub_group"
+    },
+    {
+      "method": "GET",
+      "path": "/api/v1/role-definitions",
+      "query": "?context=anime_contribution"
+    },
+    {
+      "method": "GET",
+      "path": "/api/v1/role-definitions",
+      "query": "?context=group_history"
+    },
+    {
+      "method": "GET",
+      "path": "/api/v1/anime/1/comments",
+      "query": "?page=1&per_page=10"
+    },
+    {
+      "method": "GET",
+      "path": "/api/v1/anime/1/fansubs",
+      "query": ""
+    },
+    {
+      "method": "GET",
+      "path": "/api/v1/anime/1/episodes",
+      "query": ""
+    },
+    {
+      "method": "GET",
+      "path": "/api/v1/role-definitions",
+      "query": "?context=fansub_group"
+    },
+    {
+      "method": "GET",
+      "path": "/api/v1/role-definitions",
+      "query": "?context=anime_contribution"
+    },
+    {
+      "method": "GET",
+      "path": "/api/v1/role-definitions",
+      "query": "?context=group_history"
+    },
+    {
+      "method": "GET",
+      "path": "/api/v1/anime/1/comments",
+      "query": "?page=1&per_page=10"
+    },
+    {
+      "method": "GET",
+      "path": "/api/v1/anime/1/fansubs",
+      "query": ""
+    },
+    {
+      "method": "GET",
+      "path": "/api/v1/anime/1/episodes",
+      "query": ""
+    },
+    {
+      "method": "GET",
+      "path": "/api/v1/role-definitions",
+      "query": "?context=fansub_group"
+    },
+    {
+      "method": "GET",
+      "path": "/api/v1/role-definitions",
+      "query": "?context=anime_contribution"
+    },
+    {
+      "method": "GET",
+      "path": "/api/v1/role-definitions",
+      "query": "?context=group_history"
+    },
+    {
+      "method": "GET",
+      "path": "/api/v1/anime/1/comments",
+      "query": "?page=1&per_page=10"
+    },
+    {
+      "method": "GET",
+      "path": "/api/v1/anime/1/fansubs",
+      "query": ""
+    },
+    {
+      "method": "GET",
+      "path": "/api/v1/anime/1/episodes",
+      "query": ""
+    },
+    {
+      "method": "GET",
+      "path": "/api/v1/role-definitions",
+      "query": "?context=fansub_group"
+    },
+    {
+      "method": "GET",
+      "path": "/api/v1/role-definitions",
+      "query": "?context=anime_contribution"
+    },
+    {
+      "method": "GET",
+      "path": "/api/v1/role-definitions",
+      "query": "?context=group_history"
+    },
+    {
+      "method": "GET",
+      "path": "/api/v1/anime/1/comments",
+      "query": "?page=1&per_page=10"
+    },
+    {
+      "method": "GET",
+      "path": "/api/v1/anime/1/fansubs",
+      "query": ""
+    },
+    {
+      "method": "GET",
+      "path": "/api/v1/anime/1/episodes",
+      "query": ""
+    },
+    {
+      "method": "GET",
+      "path": "/api/v1/role-definitions",
+      "query": "?context=fansub_group"
+    },
+    {
+      "method": "GET",
+      "path": "/api/v1/role-definitions",
+      "query": "?context=anime_contribution"
+    },
+    {
+      "method": "GET",
+      "path": "/api/v1/role-definitions",
+      "query": "?context=group_history"
+    },
+    {
+      "method": "GET",
+      "path": "/api/v1/anime/1/comments",
+      "query": "?page=1&per_page=10"
+    },
+    {
+      "method": "GET",
+      "path": "/api/v1/anime/1/fansubs",
+      "query": ""
+    },
+    {
+      "method": "GET",
+      "path": "/api/v1/anime/1/episodes",
+      "query": ""
+    },
+    {
+      "method": "GET",
+      "path": "/api/v1/role-definitions",
+      "query": "?context=fansub_group"
+    },
+    {
+      "method": "GET",
+      "path": "/api/v1/role-definitions",
+      "query": "?context=anime_contribution"
+    },
+    {
+      "method": "GET",
+      "path": "/api/v1/role-definitions",
+      "query": "?context=group_history"
+    },
+    {
+      "method": "GET",
+      "path": "/api/v1/anime/1/comments",
+      "query": "?page=1&per_page=10"
+    },
+    {
+      "method": "GET",
+      "path": "/api/v1/anime/1/fansubs",
+      "query": ""
+    },
+    {
+      "method": "GET",
+      "path": "/api/v1/anime/1/episodes",
+      "query": ""
+    },
+    {
+      "method": "GET",
+      "path": "/api/v1/role-definitions",
+      "query": "?context=fansub_group"
+    },
+    {
+      "method": "GET",
+      "path": "/api/v1/role-definitions",
+      "query": "?context=anime_contribution"
+    },
+    {
+      "method": "GET",
+      "path": "/api/v1/role-definitions",
+      "query": "?context=group_history"
+    },
+    {
+      "method": "GET",
+      "path": "/api/v1/anime/1/comments",
+      "query": "?page=1&per_page=10"
+    },
+    {
+      "method": "GET",
+      "path": "/api/v1/anime/1/fansubs",
+      "query": ""
+    },
+    {
+      "method": "GET",
+      "path": "/api/v1/anime/1/episodes",
+      "query": ""
+    },
+    {
+      "method": "GET",
+      "path": "/api/v1/role-definitions",
+      "query": "?context=fansub_group"
+    },
+    {
+      "method": "GET",
+      "path": "/api/v1/role-definitions",
+      "query": "?context=anime_contribution"
+    },
+    {
+      "method": "GET",
+      "path": "/api/v1/role-definitions",
+      "query": "?context=group_history"
+    },
+    {
+      "method": "GET",
+      "path": "/api/v1/anime/1/comments",
+      "query": "?page=1&per_page=10"
+    },
+    {
+      "method": "GET",
+      "path": "/api/v1/anime/1/fansubs",
+      "query": ""
+    },
+    {
+      "method": "GET",
+      "path": "/api/v1/anime/1/episodes",
+      "query": ""
+    }
+  ],
+  "passed": true
+}

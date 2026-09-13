@@ -1,0 +1,172 @@
+{
+  "backend": [
+    {
+      "status": "M",
+      "path": "backend/internal/handlers/anime.go"
+    },
+    {
+      "status": "M",
+      "path": "backend/internal/models/anime.go"
+    },
+    {
+      "status": "M",
+      "path": "backend/internal/repository/anime.go"
+    },
+    {
+      "status": "M",
+      "path": "backend/internal/repository/anime_v2.go"
+    }
+  ],
+  "tests": [
+    {
+      "status": "A",
+      "path": "backend/internal/handlers/anime_relations_test.go"
+    },
+    {
+      "status": "A",
+      "path": "backend/internal/repository/anime_public_read_integration_test.go"
+    },
+    {
+      "status": "A",
+      "path": "frontend/scripts/anime-detail-phase158-probe.mjs"
+    },
+    {
+      "status": "A",
+      "path": "frontend/scripts/fixtures/anime-detail-fixture-server.mjs"
+    },
+    {
+      "status": "M",
+      "path": "frontend/src/app/admin/episode-versions/[versionId]/edit/SegmenteTab.test.tsx"
+    },
+    {
+      "status": "A",
+      "path": "frontend/src/app/anime/[id]/animeDetailData.test.ts"
+    },
+    {
+      "status": "M",
+      "path": "frontend/src/app/anime/[id]/group/[groupId]/page.test.tsx"
+    },
+    {
+      "status": "M",
+      "path": "frontend/src/app/anime/[id]/page.performance.test.ts"
+    },
+    {
+      "status": "A",
+      "path": "frontend/src/app/anime/[id]/page.test.tsx"
+    },
+    {
+      "status": "A",
+      "path": "frontend/src/components/anime/AnimeContributionsSection.test.tsx"
+    },
+    {
+      "status": "A",
+      "path": "frontend/src/components/comments/CommentForm.test.tsx"
+    },
+    {
+      "status": "A",
+      "path": "frontend/src/components/fansubs/FansubVersionBrowser.test.tsx"
+    },
+    {
+      "status": "M",
+      "path": "frontend/src/components/profile/CorrectionReportModal.test.tsx"
+    },
+    {
+      "status": "A",
+      "path": "frontend/src/components/watchlist/WatchlistAddButton.test.tsx"
+    },
+    {
+      "status": "M",
+      "path": "frontend/src/lib/api.auth-refresh.test.ts"
+    },
+    {
+      "status": "A",
+      "path": "frontend/src/lib/useAuthSession.test.tsx"
+    },
+    {
+      "status": "A",
+      "path": "frontend/src/types/__tests__/anime-detail-contract.test.ts"
+    },
+    {
+      "status": "A",
+      "path": "scripts/verify-anime-detail-phase.sh"
+    }
+  ],
+  "frontend": [
+    {
+      "status": "R077",
+      "path": "frontend/src/app/anime/AnimeListLoading.tsx",
+      "from": "frontend/src/app/anime/loading.tsx"
+    },
+    {
+      "status": "R063",
+      "path": "frontend/src/app/anime/[id]/AnimeDetailLoading.tsx",
+      "from": "frontend/src/app/anime/[id]/loading.tsx"
+    },
+    {
+      "status": "A",
+      "path": "frontend/src/app/anime/[id]/animeDetailData.ts"
+    },
+    {
+      "status": "M",
+      "path": "frontend/src/app/anime/[id]/group/[groupId]/page.tsx"
+    },
+    {
+      "status": "M",
+      "path": "frontend/src/app/anime/[id]/page.module.css"
+    },
+    {
+      "status": "M",
+      "path": "frontend/src/app/anime/[id]/page.tsx"
+    },
+    {
+      "status": "M",
+      "path": "frontend/src/app/anime/page.tsx"
+    },
+    {
+      "status": "M",
+      "path": "frontend/src/components/anime/AnimeContributionsSection.module.css"
+    },
+    {
+      "status": "M",
+      "path": "frontend/src/components/anime/AnimeContributionsSection.tsx"
+    },
+    {
+      "status": "M",
+      "path": "frontend/src/components/comments/CommentForm.tsx"
+    },
+    {
+      "status": "M",
+      "path": "frontend/src/components/fansubs/FansubVersionBrowser.module.css"
+    },
+    {
+      "status": "M",
+      "path": "frontend/src/components/fansubs/FansubVersionBrowser.tsx"
+    },
+    {
+      "status": "M",
+      "path": "frontend/src/components/watchlist/WatchlistAddButton.module.css"
+    },
+    {
+      "status": "M",
+      "path": "frontend/src/components/watchlist/WatchlistAddButton.tsx"
+    },
+    {
+      "status": "M",
+      "path": "frontend/src/lib/api.ts"
+    },
+    {
+      "status": "M",
+      "path": "frontend/src/lib/useAuthSession.ts"
+    }
+  ],
+  "contracts": [
+    {
+      "status": "M",
+      "path": "frontend/src/types/anime.ts"
+    },
+    {
+      "status": "M",
+      "path": "shared/contracts/openapi.yaml"
+    }
+  ]
+}

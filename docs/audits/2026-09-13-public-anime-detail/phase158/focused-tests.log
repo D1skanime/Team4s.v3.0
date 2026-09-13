@@ -1,0 +1,24 @@
+
+> team4s-frontend@0.1.0 test
+> vitest run src/lib/api.auth-refresh.test.ts src/lib/useAuthSession.test.tsx src/components/watchlist/WatchlistAddButton.test.tsx src/components/comments/CommentForm.test.tsx src/components/anime/AnimeContributionsSection.test.tsx src/app/anime/[id]/animeDetailData.test.ts src/app/anime/[id]/page.test.tsx src/app/anime/[id]/page.performance.test.ts src/components/fansubs/FansubVersionBrowser.test.tsx src/types/__tests__/anime-detail-contract.test.ts src/app/anime/[id]/group/[groupId]/page.test.tsx
+
+
+ RUN  v3.2.4 /app
+
+ ✓ src/lib/api.auth-refresh.test.ts (27 tests) 429ms
+   ✓ authorized auth refresh flow > retries an idempotent request once after a transient network failure  304ms
+ ✓ src/components/comments/CommentForm.test.tsx (19 tests) 367ms
+ ✓ src/components/watchlist/WatchlistAddButton.test.tsx (30 tests) 740ms
+ ✓ src/components/fansubs/FansubVersionBrowser.test.tsx (9 tests) 147ms
+ ✓ src/components/anime/AnimeContributionsSection.test.tsx (8 tests) 162ms
+ ✓ src/app/anime/[id]/group/[groupId]/page.test.tsx (20 tests) 163ms
+ ✓ src/lib/useAuthSession.test.tsx (8 tests) 76ms
+ ✓ src/app/anime/[id]/animeDetailData.test.ts (23 tests) 11ms
+ ✓ src/types/__tests__/anime-detail-contract.test.ts (4 tests) 5ms
+ ✓ src/app/anime/[id]/page.performance.test.ts (2 tests) 3ms
+ ✓ src/app/anime/[id]/page.test.tsx (18 tests) 19ms
+
+ Test Files  11 passed (11)
+      Tests  168 passed (168)
+   Start at  21:27:05
+   Duration  3.94s (transform 1.47s, setup 846ms, collect 3.65s, tests 2.12s, environment 2.64s, prepare 672ms)

@@ -1,0 +1,541 @@
+=== RUN   TestSlugifyAnimeTitle
+=== PAUSE TestSlugifyAnimeTitle
+=== RUN   TestBuildCreateAnimeV2InsertQuery_SkipsMissingRuntimeColumns
+=== PAUSE TestBuildCreateAnimeV2InsertQuery_SkipsMissingRuntimeColumns
+=== RUN   TestBuildCreateAnimeV2InsertQuery_IncludesAvailableRuntimeColumns
+=== PAUSE TestBuildCreateAnimeV2InsertQuery_IncludesAvailableRuntimeColumns
+=== RUN   TestBuildCreateAnimeV2InsertQuery_DerivesAniSearchIDWhenPrimarySourceIsJellyfin
+=== PAUSE TestBuildCreateAnimeV2InsertQuery_DerivesAniSearchIDWhenPrimarySourceIsJellyfin
+=== RUN   TestBuildCreateAnimeV2InsertQuery_DerivesNumericAniSearchID
+=== PAUSE TestBuildCreateAnimeV2InsertQuery_DerivesNumericAniSearchID
+=== RUN   TestAnimeTypeV2Names_UsesDatabaseLookupValues
+=== PAUSE TestAnimeTypeV2Names_UsesDatabaseLookupValues
+=== RUN   TestUpdateAnimeV2SourcePatchIncludesSourceAndFolderNameAssignments
+=== PAUSE TestUpdateAnimeV2SourcePatchIncludesSourceAndFolderNameAssignments
+=== RUN   TestAnimeRepository_Task2FilesStayWithinLineBudget
+--- PASS: TestAnimeRepository_Task2FilesStayWithinLineBudget (0.00s)
+=== RUN   TestAdminContentRepository_BuildAuthoritativeAnimeMetadataCreate_MatchesNormalizedReadContract
+--- PASS: TestAdminContentRepository_BuildAuthoritativeAnimeMetadataCreate_MatchesNormalizedReadContract (0.00s)
+=== RUN   TestAdminContentRepository_BuildAuthoritativeAnimeMetadataPatch_OnlyTouchesExplicitFields
+--- PASS: TestAdminContentRepository_BuildAuthoritativeAnimeMetadataPatch_OnlyTouchesExplicitFields (0.00s)
+=== RUN   TestAdminContentRepository_BuildAuthoritativeAnimeMetadataCreate_MainTitleUsesValidLanguageCode
+--- PASS: TestAdminContentRepository_BuildAuthoritativeAnimeMetadataCreate_MainTitleUsesValidLanguageCode (0.00s)
+=== RUN   TestAdminContentRepository_BuildAuthoritativeAnimeMetadataPatch_MainTitleUsesValidLanguageCode
+--- PASS: TestAdminContentRepository_BuildAuthoritativeAnimeMetadataPatch_MainTitleUsesValidLanguageCode (0.00s)
+=== RUN   TestAdminContentRepository_BuildAuthoritativeAnimeMetadataCreate_AppendsAltTitleSlots
+--- PASS: TestAdminContentRepository_BuildAuthoritativeAnimeMetadataCreate_AppendsAltTitleSlots (0.00s)
+=== RUN   TestAdminContentRepository_BuildAuthoritativeAnimeMetadataCreate_WithoutAltTitlesKeepsBaseSlots
+--- PASS: TestAdminContentRepository_BuildAuthoritativeAnimeMetadataCreate_WithoutAltTitlesKeepsBaseSlots (0.00s)
+=== RUN   TestAdminContentRepository_BuildAuthoritativeAnimeMetadataPatch_AppendsAltTitleSlots
+--- PASS: TestAdminContentRepository_BuildAuthoritativeAnimeMetadataPatch_AppendsAltTitleSlots (0.00s)
+=== RUN   TestAdminContentRepository_BuildAnimeCreateAuditEntry_PersistsActorAndPayload
+--- PASS: TestAdminContentRepository_BuildAnimeCreateAuditEntry_PersistsActorAndPayload (0.00s)
+=== RUN   TestAdminContentRepository_BuildAnimePatchAuditEntry_UsesCoverRemoveMutationKind
+--- PASS: TestAdminContentRepository_BuildAnimePatchAuditEntry_UsesCoverRemoveMutationKind (0.00s)
+=== RUN   TestAdminContentRepository_BuildAnimeDeleteAuditEntry_PersistsDeletedAnimeContext
+--- PASS: TestAdminContentRepository_BuildAnimeDeleteAuditEntry_PersistsDeletedAnimeContext (0.00s)
+=== RUN   TestAdminContentRepository_DeleteAnimeSourceWritesAuditBeforeDelete
+--- PASS: TestAdminContentRepository_DeleteAnimeSourceWritesAuditBeforeDelete (0.00s)
+=== RUN   TestAdminContentRepository_DeleteAnimeSourceCleansPostDeleteV2Orphans
+--- PASS: TestAdminContentRepository_DeleteAnimeSourceCleansPostDeleteV2Orphans (0.00s)
+=== RUN   TestAdminContentRepository_DeleteAnimeSourcePreservesReusableSegmentLibraryBeforeDelete
+--- PASS: TestAdminContentRepository_DeleteAnimeSourcePreservesReusableSegmentLibraryBeforeDelete (0.00s)
+=== RUN   TestAdminContentRepository_DeleteAnimeSourceProtectsSegmentLibraryMediaFromOrphanCleanup
+--- PASS: TestAdminContentRepository_DeleteAnimeSourceProtectsSegmentLibraryMediaFromOrphanCleanup (0.00s)
+=== RUN   TestAdminContentRepository_BuildAuthoritativeAnimeMetadataCreate_TagsSet
+--- PASS: TestAdminContentRepository_BuildAuthoritativeAnimeMetadataCreate_TagsSet (0.00s)
+=== RUN   TestAdminContentRepository_BuildAuthoritativeAnimeMetadataPatch_TagsSetOnly
+--- PASS: TestAdminContentRepository_BuildAuthoritativeAnimeMetadataPatch_TagsSetOnly (0.00s)
+=== RUN   TestAdminContentRepository_DeleteSource_ClearsAnimeTagsLinks
+--- PASS: TestAdminContentRepository_DeleteSource_ClearsAnimeTagsLinks (0.00s)
+=== RUN   TestListUserContributionsGroupsByAnimeAndProject
+    admin_users_contributions_query_test.go:170: TEAM4S_PHASE139_TEST_DSN is not set; skipping PostgreSQL integration test
+--- SKIP: TestListUserContributionsGroupsByAnimeAndProject (0.00s)
+=== RUN   TestReconcileAnimeProviderBackgrounds_PreservesManualAndAppendsNewProvider
+--- PASS: TestReconcileAnimeProviderBackgrounds_PreservesManualAndAppendsNewProvider (0.00s)
+=== RUN   TestResolveAnimeAssetURL_PrefersLocalMediaPath
+--- PASS: TestResolveAnimeAssetURL_PrefersLocalMediaPath (0.00s)
+=== RUN   TestProviderAnimeMediaMetadata_NeverReturnsEmptyMimeType
+--- PASS: TestProviderAnimeMediaMetadata_NeverReturnsEmptyMimeType (0.00s)
+=== RUN   TestAnimeContributionDisplayRowsExposeMemberAvatarURL
+--- PASS: TestAnimeContributionDisplayRowsExposeMemberAvatarURL (0.00s)
+=== RUN   TestAnimeContributionDisplayRowsPreserveReleaseVersionScope
+--- PASS: TestAnimeContributionDisplayRowsPreserveReleaseVersionScope (0.00s)
+=== RUN   TestAnimeContributionsMeQueriesUseMemberIDAnchorFallback
+--- PASS: TestAnimeContributionsMeQueriesUseMemberIDAnchorFallback (0.00s)
+=== RUN   TestPublicAnimeContributionsVersionBreakdown_MethodExists
+--- PASS: TestPublicAnimeContributionsVersionBreakdown_MethodExists (0.00s)
+=== RUN   TestPublicAnimeContributionsVersionBreakdown_DTOShape
+--- PASS: TestPublicAnimeContributionsVersionBreakdown_DTOShape (0.00s)
+=== RUN   TestPublicAnimeContributionsVersionBreakdown_QueryFiltersAndJoins
+--- PASS: TestPublicAnimeContributionsVersionBreakdown_QueryFiltersAndJoins (0.00s)
+=== RUN   TestPublicAnimeContributionsVersionBreakdown_SortOrder
+--- PASS: TestPublicAnimeContributionsVersionBreakdown_SortOrder (0.00s)
+=== RUN   TestPublicAnimeContributions_Level1FiltersVersionSpecific
+--- PASS: TestPublicAnimeContributions_Level1FiltersVersionSpecific (0.00s)
+=== RUN   TestPublicAnimeContributions_AttachVersionBreakdownsWired
+--- PASS: TestPublicAnimeContributions_AttachVersionBreakdownsWired (0.00s)
+=== RUN   TestAnimeCoverageCountsOnlyConfirmedProjectCrew
+--- PASS: TestAnimeCoverageCountsOnlyConfirmedProjectCrew (0.00s)
+=== RUN   TestUpdateAnimeFansubProjectTimelineRejectsEndBeforeCompletedRelease
+    anime_fansub_project_timeline_repository_test.go:21: TEAM4S_PHASE107_TEST_DSN is not set; skipping PostgreSQL integration test
+--- SKIP: TestUpdateAnimeFansubProjectTimelineRejectsEndBeforeCompletedRelease (0.00s)
+=== RUN   TestAnimeProjectNotesRepositoryMethodSignatures
+--- PASS: TestAnimeProjectNotesRepositoryMethodSignatures (0.00s)
+=== RUN   TestAnimeProjectNotesRepository_ContextGuardSourceInvariants
+--- PASS: TestAnimeProjectNotesRepository_ContextGuardSourceInvariants (0.00s)
+=== RUN   TestAnimeProjectNotesRepository_PublicProjectionGates
+--- PASS: TestAnimeProjectNotesRepository_PublicProjectionGates (0.00s)
+=== RUN   TestAnimeProjectNotesMigration_ContextGuardExists
+--- PASS: TestAnimeProjectNotesMigration_ContextGuardExists (0.00s)
+=== RUN   TestSearchAdminAnimeRelationTargetsQuery_UsesCurrentAnimeExclusionAndNormalizedTitles
+--- PASS: TestSearchAdminAnimeRelationTargetsQuery_UsesCurrentAnimeExclusionAndNormalizedTitles (0.00s)
+=== RUN   TestApplyAdminAnimeEnrichmentRelations_DoesNotDuplicateExistingRows
+=== PAUSE TestApplyAdminAnimeEnrichmentRelations_DoesNotDuplicateExistingRows
+=== RUN   TestBuildAnimeListWhere_IncludesQuery
+--- PASS: TestBuildAnimeListWhere_IncludesQuery (0.00s)
+=== RUN   TestBuildAnimeListWhere_QueryPositions
+--- PASS: TestBuildAnimeListWhere_QueryPositions (0.00s)
+=== RUN   TestBuildAnimeListWhere_HasCoverFalse
+--- PASS: TestBuildAnimeListWhere_HasCoverFalse (0.00s)
+=== RUN   TestBuildAnimeListWhere_FansubFilter
+--- PASS: TestBuildAnimeListWhere_FansubFilter (0.00s)
+=== RUN   TestBuildAnimeListWhere_FansubFilterArgPosition
+--- PASS: TestBuildAnimeListWhere_FansubFilterArgPosition (0.00s)
+=== RUN   TestBuildAnimeListWhereV2_UsesPersistedFieldsAndFilters
+--- PASS: TestBuildAnimeListWhereV2_UsesPersistedFieldsAndFilters (0.00s)
+=== RUN   TestAnimeCoverImageSelectSQL_UsesProviderFallbacks
+--- PASS: TestAnimeCoverImageSelectSQL_UsesProviderFallbacks (0.00s)
+=== RUN   TestBuildAnimeListWhere_IncludeDisabledTrue
+--- PASS: TestBuildAnimeListWhere_IncludeDisabledTrue (0.00s)
+=== RUN   TestMergeNormalizedAnimeMetadata_PrefersNormalizedTitlesAndGenres
+--- PASS: TestMergeNormalizedAnimeMetadata_PrefersNormalizedTitlesAndGenres (0.00s)
+=== RUN   TestMergeNormalizedAnimeMetadata_FallsBackToAvailableTitle
+--- PASS: TestMergeNormalizedAnimeMetadata_FallsBackToAvailableTitle (0.00s)
+=== RUN   TestMergeNormalizedAnimeMetadata_ReturnsNilWhenEmpty
+--- PASS: TestMergeNormalizedAnimeMetadata_ReturnsNilWhenEmpty (0.00s)
+=== RUN   TestAnimeAssetLinkSpec_SupportsPhaseSevenSingularSlots
+=== RUN   TestAnimeAssetLinkSpec_SupportsPhaseSevenSingularSlots/cover
+=== RUN   TestAnimeAssetLinkSpec_SupportsPhaseSevenSingularSlots/banner
+=== RUN   TestAnimeAssetLinkSpec_SupportsPhaseSevenSingularSlots/logo
+=== RUN   TestAnimeAssetLinkSpec_SupportsPhaseSevenSingularSlots/background_video
+--- PASS: TestAnimeAssetLinkSpec_SupportsPhaseSevenSingularSlots (0.00s)
+    --- PASS: TestAnimeAssetLinkSpec_SupportsPhaseSevenSingularSlots/cover (0.00s)
+    --- PASS: TestAnimeAssetLinkSpec_SupportsPhaseSevenSingularSlots/banner (0.00s)
+    --- PASS: TestAnimeAssetLinkSpec_SupportsPhaseSevenSingularSlots/logo (0.00s)
+    --- PASS: TestAnimeAssetLinkSpec_SupportsPhaseSevenSingularSlots/background_video (0.00s)
+=== RUN   TestAnimeAssetLinkSpec_BackgroundRemainsCollection
+--- PASS: TestAnimeAssetLinkSpec_BackgroundRemainsCollection (0.00s)
+=== RUN   TestAnimeAssetLinkSpec_RejectsMediaTypeMismatch
+--- PASS: TestAnimeAssetLinkSpec_RejectsMediaTypeMismatch (0.00s)
+=== RUN   TestAnimeAssetLinkSpec_RejectsUnknownSlot
+--- PASS: TestAnimeAssetLinkSpec_RejectsUnknownSlot (0.00s)
+=== RUN   TestBuildLookupAssetLifecycleSubjectQuery_AnimeOnly
+--- PASS: TestBuildLookupAssetLifecycleSubjectQuery_AnimeOnly (0.00s)
+=== RUN   TestBuildAnimeFansubLinkGroupIDs_IsIdempotentAcrossRepeatedApply
+=== PAUSE TestBuildAnimeFansubLinkGroupIDs_IsIdempotentAcrossRepeatedApply
+=== RUN   TestEpisodeImportReleaseHelpers_SourceLinksAnimeFansubsAfterReleaseVersionGroupWrite
+=== PAUSE TestEpisodeImportReleaseHelpers_SourceLinksAnimeFansubsAfterReleaseVersionGroupWrite
+=== RUN   TestBuildAnimeFansubLinkGroupIDs_UsesOnlyMemberGroupsNoEffectiveGroup
+=== PAUSE TestBuildAnimeFansubLinkGroupIDs_UsesOnlyMemberGroupsNoEffectiveGroup
+=== RUN   TestPublicAnimeSlugSQL_FallsBackWhenStoredSlugIsBlank
+--- PASS: TestPublicAnimeSlugSQL_FallsBackWhenStoredSlugIsBlank (0.00s)
+=== RUN   TestAttachGroupCounts_ProjectsCountExcludesDisabledAnime
+--- PASS: TestAttachGroupCounts_ProjectsCountExcludesDisabledAnime (0.00s)
+=== RUN   TestListAnimeFansubs_SummaryIncludesFansubStoryFacts
+--- PASS: TestListAnimeFansubs_SummaryIncludesFansubStoryFacts (0.00s)
+=== RUN   TestGetGroupStats_ProjectContributorCountUsesConfirmedAnimeContributions
+--- PASS: TestGetGroupStats_ProjectContributorCountUsesConfirmedAnimeContributions (0.00s)
+=== RUN   TestPhase69AnimeContributionMutationsUseRouteScope
+--- PASS: TestPhase69AnimeContributionMutationsUseRouteScope (0.00s)
+=== RUN   TestProjectMemberRepo_ScopingMemberAnimeGroup
+--- PASS: TestProjectMemberRepo_ScopingMemberAnimeGroup (0.00s)
+=== RUN   TestAnimeRepository_ReadPathUsesFlatColumnsWithNormalizedOverlay
+--- PASS: TestAnimeRepository_ReadPathUsesFlatColumnsWithNormalizedOverlay (0.00s)
+=== RUN   TestAdminAnimeWritesTargetNormalizedMetadataTables
+--- PASS: TestAdminAnimeWritesTargetNormalizedMetadataTables (0.00s)
+=== RUN   TestAnimeV2CreateAndReadPathsPersistRuntimeFields
+--- PASS: TestAnimeV2CreateAndReadPathsPersistRuntimeFields (0.00s)
+=== RUN   TestAnimeV2UpdatePathRoutesThroughSchemaAwareWriter
+--- PASS: TestAnimeV2UpdatePathRoutesThroughSchemaAwareWriter (0.00s)
+=== RUN   TestAnimeAssetCompatibilityUsesV2CoverHelpersWhenLegacySlotsAreGone
+--- PASS: TestAnimeAssetCompatibilityUsesV2CoverHelpersWhenLegacySlotsAreGone (0.00s)
+=== RUN   TestSearchAnimeQueryVisibilityDefault
+--- PASS: TestSearchAnimeQueryVisibilityDefault (0.00s)
+=== RUN   TestSearchAnimeQueryIncludeDisabledDropsFilter
+--- PASS: TestSearchAnimeQueryIncludeDisabledDropsFilter (0.00s)
+=== RUN   TestSearchAnimeQueryExplicitStatusOverridesDefault
+--- PASS: TestSearchAnimeQueryExplicitStatusOverridesDefault (0.00s)
+=== RUN   TestSearchAnimeRankingPopularityIsLastTieBreak
+--- PASS: TestSearchAnimeRankingPopularityIsLastTieBreak (0.00s)
+=== RUN   TestSearchAnimeQueryBindsMaliciousInput
+--- PASS: TestSearchAnimeQueryBindsMaliciousInput (0.00s)
+=== RUN   TestListAnimeSegmentsAssignedEpisodesHasOverridePerEpisode
+    theme_segment_assignments_integration_test.go:58: TEAM4S_PHASE117_TEST_DSN is not set; skipping PostgreSQL integration test
+--- SKIP: TestListAnimeSegmentsAssignedEpisodesHasOverridePerEpisode (0.00s)
+=== RUN   TestGetAnimeSegmentByID_HydratesPlaybackForRequestedReleaseVersion
+    admin_content_anime_theme_segments_hydration_integration_test.go:23: TEAM4S_PHASE117_TEST_DSN is not set; skipping PostgreSQL integration test
+--- SKIP: TestGetAnimeSegmentByID_HydratesPlaybackForRequestedReleaseVersion (0.00s)
+=== RUN   TestAnimePublicReadRelationsStatusAndSQLBudget
+=== RUN   TestAnimePublicReadRelationsStatusAndSQLBudget/visible_with_relations
+    anime_public_read_integration_test.go:147: HTTP 200; SQL statements = 2
+=== RUN   TestAnimePublicReadRelationsStatusAndSQLBudget/visible_without_relations
+    anime_public_read_integration_test.go:147: HTTP 200; SQL statements = 2
+=== RUN   TestAnimePublicReadRelationsStatusAndSQLBudget/licensed_remains_visible
+    anime_public_read_integration_test.go:147: HTTP 200; SQL statements = 2
+=== RUN   TestAnimePublicReadRelationsStatusAndSQLBudget/unknown
+    anime_public_read_integration_test.go:147: HTTP 404; SQL statements = 1
+=== RUN   TestAnimePublicReadRelationsStatusAndSQLBudget/disabled
+    anime_public_read_integration_test.go:147: HTTP 404; SQL statements = 1
+=== RUN   TestAnimePublicReadRelationsStatusAndSQLBudget/invalid
+    anime_public_read_integration_test.go:147: HTTP 400; SQL statements = 0
+=== RUN   TestAnimePublicReadRelationsStatusAndSQLBudget/decimal
+    anime_public_read_integration_test.go:147: HTTP 400; SQL statements = 0
+=== RUN   TestAnimePublicReadRelationsStatusAndSQLBudget/zero
+    anime_public_read_integration_test.go:147: HTTP 400; SQL statements = 0
+=== RUN   TestAnimePublicReadRelationsStatusAndSQLBudget/negative
+    anime_public_read_integration_test.go:147: HTTP 400; SQL statements = 0
+--- PASS: TestAnimePublicReadRelationsStatusAndSQLBudget (0.03s)
+    --- PASS: TestAnimePublicReadRelationsStatusAndSQLBudget/visible_with_relations (0.00s)
+    --- PASS: TestAnimePublicReadRelationsStatusAndSQLBudget/visible_without_relations (0.00s)
+    --- PASS: TestAnimePublicReadRelationsStatusAndSQLBudget/licensed_remains_visible (0.00s)
+    --- PASS: TestAnimePublicReadRelationsStatusAndSQLBudget/unknown (0.00s)
+    --- PASS: TestAnimePublicReadRelationsStatusAndSQLBudget/disabled (0.00s)
+    --- PASS: TestAnimePublicReadRelationsStatusAndSQLBudget/invalid (0.00s)
+    --- PASS: TestAnimePublicReadRelationsStatusAndSQLBudget/decimal (0.00s)
+    --- PASS: TestAnimePublicReadRelationsStatusAndSQLBudget/zero (0.00s)
+    --- PASS: TestAnimePublicReadRelationsStatusAndSQLBudget/negative (0.00s)
+=== RUN   TestAnimePublicReadRelationsDatabaseErrors
+=== RUN   TestAnimePublicReadRelationsDatabaseErrors/existence_failure
+    anime_public_read_integration_test.go:217: HTTP 500; SQL statements = 1
+=== RUN   TestAnimePublicReadRelationsDatabaseErrors/relations_failure
+    anime_public_read_integration_test.go:217: HTTP 500; SQL statements = 2
+--- PASS: TestAnimePublicReadRelationsDatabaseErrors (0.06s)
+    --- PASS: TestAnimePublicReadRelationsDatabaseErrors/existence_failure (0.03s)
+    --- PASS: TestAnimePublicReadRelationsDatabaseErrors/relations_failure (0.03s)
+=== RUN   TestAnimePublicReadDetailStoredSlugAndSQLBudget
+=== RUN   TestAnimePublicReadDetailStoredSlugAndSQLBudget/stored_slug_differs_from_display_title
+    anime_public_read_integration_test.go:254: detail SQL statements = 7 (one schema read + six data statements)
+=== RUN   TestAnimePublicReadDetailStoredSlugAndSQLBudget/trim_stored_slug
+    anime_public_read_integration_test.go:254: detail SQL statements = 7 (one schema read + six data statements)
+=== RUN   TestAnimePublicReadDetailStoredSlugAndSQLBudget/empty_slug
+    anime_public_read_integration_test.go:254: detail SQL statements = 7 (one schema read + six data statements)
+=== RUN   TestAnimePublicReadDetailStoredSlugAndSQLBudget/blank_slug
+    anime_public_read_integration_test.go:254: detail SQL statements = 7 (one schema read + six data statements)
+=== RUN   TestAnimePublicReadDetailStoredSlugAndSQLBudget/null_slug
+    anime_public_read_integration_test.go:254: detail SQL statements = 7 (one schema read + six data statements)
+=== RUN   TestAnimePublicReadDetailStoredSlugAndSQLBudget/legacy_schema_has_no_slug
+    anime_public_read_integration_test.go:254: detail SQL statements = 7 (one schema read + six data statements)
+--- PASS: TestAnimePublicReadDetailStoredSlugAndSQLBudget (0.20s)
+    --- PASS: TestAnimePublicReadDetailStoredSlugAndSQLBudget/stored_slug_differs_from_display_title (0.03s)
+    --- PASS: TestAnimePublicReadDetailStoredSlugAndSQLBudget/trim_stored_slug (0.04s)
+    --- PASS: TestAnimePublicReadDetailStoredSlugAndSQLBudget/empty_slug (0.04s)
+    --- PASS: TestAnimePublicReadDetailStoredSlugAndSQLBudget/blank_slug (0.03s)
+    --- PASS: TestAnimePublicReadDetailStoredSlugAndSQLBudget/null_slug (0.03s)
+    --- PASS: TestAnimePublicReadDetailStoredSlugAndSQLBudget/legacy_schema_has_no_slug (0.03s)
+=== CONT  TestSlugifyAnimeTitle
+--- PASS: TestSlugifyAnimeTitle (0.00s)
+=== CONT  TestUpdateAnimeV2SourcePatchIncludesSourceAndFolderNameAssignments
+=== CONT  TestBuildAnimeFansubLinkGroupIDs_IsIdempotentAcrossRepeatedApply
+--- PASS: TestBuildAnimeFansubLinkGroupIDs_IsIdempotentAcrossRepeatedApply (0.00s)
+=== CONT  TestApplyAdminAnimeEnrichmentRelations_DoesNotDuplicateExistingRows
+--- PASS: TestApplyAdminAnimeEnrichmentRelations_DoesNotDuplicateExistingRows (0.00s)
+=== CONT  TestBuildCreateAnimeV2InsertQuery_DerivesAniSearchIDWhenPrimarySourceIsJellyfin
+--- PASS: TestBuildCreateAnimeV2InsertQuery_DerivesAniSearchIDWhenPrimarySourceIsJellyfin (0.00s)
+=== CONT  TestAnimeTypeV2Names_UsesDatabaseLookupValues
+--- PASS: TestUpdateAnimeV2SourcePatchIncludesSourceAndFolderNameAssignments (0.00s)
+=== CONT  TestBuildCreateAnimeV2InsertQuery_IncludesAvailableRuntimeColumns
+=== CONT  TestBuildAnimeFansubLinkGroupIDs_UsesOnlyMemberGroupsNoEffectiveGroup
+=== CONT  TestBuildCreateAnimeV2InsertQuery_SkipsMissingRuntimeColumns
+--- PASS: TestAnimeTypeV2Names_UsesDatabaseLookupValues (0.00s)
+--- PASS: TestBuildCreateAnimeV2InsertQuery_IncludesAvailableRuntimeColumns (0.00s)
+=== CONT  TestEpisodeImportReleaseHelpers_SourceLinksAnimeFansubsAfterReleaseVersionGroupWrite
+--- PASS: TestBuildCreateAnimeV2InsertQuery_SkipsMissingRuntimeColumns (0.00s)
+=== CONT  TestBuildCreateAnimeV2InsertQuery_DerivesNumericAniSearchID
+--- PASS: TestBuildCreateAnimeV2InsertQuery_DerivesNumericAniSearchID (0.00s)
+--- PASS: TestBuildAnimeFansubLinkGroupIDs_UsesOnlyMemberGroupsNoEffectiveGroup (0.00s)
+--- PASS: TestEpisodeImportReleaseHelpers_SourceLinksAnimeFansubsAfterReleaseVersionGroupWrite (0.00s)
+PASS
+ok  	team4s.v3/backend/internal/repository	0.307s
+=== RUN   TestLoadAnimeAniSearchEditEnrichment_ReturnsDraftSuccessContract
+--- PASS: TestLoadAnimeAniSearchEditEnrichment_ReturnsDraftSuccessContract (0.00s)
+=== RUN   TestLoadAnimeAniSearchEditEnrichment_ReturnsConflictRedirectForDuplicateSource
+--- PASS: TestLoadAnimeAniSearchEditEnrichment_ReturnsConflictRedirectForDuplicateSource (0.00s)
+=== RUN   TestLoadAnimeAniSearchEditEnrichment_SerializesAppliedSummary
+--- PASS: TestLoadAnimeAniSearchEditEnrichment_SerializesAppliedSummary (0.00s)
+=== RUN   TestAnimeProjectNoteUpsertDelegatesOnceAndKeepsResponseShape
+--- PASS: TestAnimeProjectNoteUpsertDelegatesOnceAndKeepsResponseShape (0.00s)
+=== RUN   TestAnimeProjectNoteAuthorizationFailsBeforeServiceMutation
+--- PASS: TestAnimeProjectNoteAuthorizationFailsBeforeServiceMutation (0.00s)
+=== RUN   TestAnimeProjectNoteContextFailurePrecedesServiceMutation
+--- PASS: TestAnimeProjectNoteContextFailurePrecedesServiceMutation (0.00s)
+=== RUN   TestAnimeProjectNoteDeleteDelegatesOnce
+--- PASS: TestAnimeProjectNoteDeleteDelegatesOnce (0.00s)
+=== RUN   TestAnimeProjectNoteHandlerOwnsNoLedgerPolicy
+--- PASS: TestAnimeProjectNoteHandlerOwnsNoLedgerPolicy (0.00s)
+=== RUN   TestUpdateAnimeFansubProjectTimelineDeniesQualityChecker
+--- PASS: TestUpdateAnimeFansubProjectTimelineDeniesQualityChecker (0.00s)
+=== RUN   TestCreateAnimeRelation_RejectsSelfLink
+--- PASS: TestCreateAnimeRelation_RejectsSelfLink (0.00s)
+=== RUN   TestCreateAnimeRelation_UsesValidatedLabelAndTarget
+--- PASS: TestCreateAnimeRelation_UsesValidatedLabelAndTarget (0.00s)
+=== RUN   TestSearchAnimeRelationTargets_RequiresQuery
+--- PASS: TestSearchAnimeRelationTargets_RequiresQuery (0.00s)
+=== RUN   TestListAnimeRelations_ReturnsRepoRows
+--- PASS: TestListAnimeRelations_ReturnsRepoRows (0.00s)
+=== RUN   TestUpdateAnimeRelation_NotFound
+--- PASS: TestUpdateAnimeRelation_NotFound (0.00s)
+=== RUN   TestDeleteAnimeRelation_PropagatesInternalErrors
+2026/09/13 21:36:19 admin anime relation delete: anime_id=7 target_id=12: db down
+--- PASS: TestDeleteAnimeRelation_PropagatesInternalErrors (0.00s)
+=== RUN   TestAnimeSegmentAssignment_AssignRequiresCapabilityThenSucceeds
+=== RUN   TestAnimeSegmentAssignment_AssignRequiresCapabilityThenSucceeds/denied_without_capability
+=== RUN   TestAnimeSegmentAssignment_AssignRequiresCapabilityThenSucceeds/allowed_with_capability_creates_assignment
+--- PASS: TestAnimeSegmentAssignment_AssignRequiresCapabilityThenSucceeds (0.00s)
+    --- PASS: TestAnimeSegmentAssignment_AssignRequiresCapabilityThenSucceeds/denied_without_capability (0.00s)
+    --- PASS: TestAnimeSegmentAssignment_AssignRequiresCapabilityThenSucceeds/allowed_with_capability_creates_assignment (0.00s)
+=== RUN   TestAnimeSegmentAssignment_UpsertOverrideRejectsEndBeforeStart
+--- PASS: TestAnimeSegmentAssignment_UpsertOverrideRejectsEndBeforeStart (0.00s)
+=== RUN   TestAnimeSegmentAssignment_UpsertOverrideRejectsUnassignedReleaseVersion
+--- PASS: TestAnimeSegmentAssignment_UpsertOverrideRejectsUnassignedReleaseVersion (0.00s)
+=== RUN   TestAnimeSegmentAssignment_DeleteOverrideNotFoundWhenNoOverrideExists
+--- PASS: TestAnimeSegmentAssignment_DeleteOverrideNotFoundWhenNoOverrideExists (0.00s)
+=== RUN   TestSetAnimeSegmentContributors_RequiresCapabilityThenSucceeds
+=== RUN   TestSetAnimeSegmentContributors_RequiresCapabilityThenSucceeds/denied_without_capability_performs_no_repository_write
+=== RUN   TestSetAnimeSegmentContributors_RequiresCapabilityThenSucceeds/allowed_with_capability_sets_contributors_and_returns_segment_plus_contributors
+--- PASS: TestSetAnimeSegmentContributors_RequiresCapabilityThenSucceeds (0.00s)
+    --- PASS: TestSetAnimeSegmentContributors_RequiresCapabilityThenSucceeds/denied_without_capability_performs_no_repository_write (0.00s)
+    --- PASS: TestSetAnimeSegmentContributors_RequiresCapabilityThenSucceeds/allowed_with_capability_sets_contributors_and_returns_segment_plus_contributors (0.00s)
+=== RUN   TestSetAnimeSegmentContributors_NoOriginIsConflict
+--- PASS: TestSetAnimeSegmentContributors_NoOriginIsConflict (0.00s)
+=== RUN   TestSetAnimeSegmentContributors_RepositoryConflictIsMemberNotOriginContributor
+--- PASS: TestSetAnimeSegmentContributors_RepositoryConflictIsMemberNotOriginContributor (0.00s)
+=== RUN   TestSetAnimeSegmentContributors_MalformedBodyIsBadRequest
+--- PASS: TestSetAnimeSegmentContributors_MalformedBodyIsBadRequest (0.00s)
+=== RUN   TestSetAnimeSegmentOrigin_RequiresCapabilityThenSucceeds
+=== RUN   TestSetAnimeSegmentOrigin_RequiresCapabilityThenSucceeds/denied_without_capability_performs_no_repository_write
+=== RUN   TestSetAnimeSegmentOrigin_RequiresCapabilityThenSucceeds/allowed_with_capability_sets_origin_and_returns_the_reloaded_segment
+--- PASS: TestSetAnimeSegmentOrigin_RequiresCapabilityThenSucceeds (0.00s)
+    --- PASS: TestSetAnimeSegmentOrigin_RequiresCapabilityThenSucceeds/denied_without_capability_performs_no_repository_write (0.00s)
+    --- PASS: TestSetAnimeSegmentOrigin_RequiresCapabilityThenSucceeds/allowed_with_capability_sets_origin_and_returns_the_reloaded_segment (0.00s)
+=== RUN   TestSetAnimeSegmentOrigin_RejectsUnassignedReleaseVersion
+--- PASS: TestSetAnimeSegmentOrigin_RejectsUnassignedReleaseVersion (0.00s)
+=== RUN   TestSetAnimeSegmentOrigin_MissingReleaseVersionIDIsBadRequest
+--- PASS: TestSetAnimeSegmentOrigin_MissingReleaseVersionIDIsBadRequest (0.00s)
+=== RUN   TestCreateAnimeSegment_RangeAutoAssignsAllEpisodesInRange
+--- PASS: TestCreateAnimeSegment_RangeAutoAssignsAllEpisodesInRange (0.00s)
+=== RUN   TestCreateAnimeSegment_RangeAutoAssignIdempotentSkipsReload
+--- PASS: TestCreateAnimeSegment_RangeAutoAssignIdempotentSkipsReload (0.00s)
+=== RUN   TestCreateAnimeSegment_RangeAutoAssignFailureIsNonFatal
+2026/09/13 21:36:19 admin anime segment create: range auto-assign segment_id=99 anime_id=10: context deadline exceeded
+--- PASS: TestCreateAnimeSegment_RangeAutoAssignFailureIsNonFatal (0.00s)
+=== RUN   TestUpdateAnimeSegment_RangeAutoAssignUsesEffectivePatchedValues
+--- PASS: TestUpdateAnimeSegment_RangeAutoAssignUsesEffectivePatchedValues (0.00s)
+=== RUN   TestAdminFansubReleases_ListFansubAnimeAllowsFansubLead
+--- PASS: TestAdminFansubReleases_ListFansubAnimeAllowsFansubLead (0.00s)
+=== RUN   TestCreateAnimeThemeAllowsSegmentManagerWithReleaseVariantContext
+--- PASS: TestCreateAnimeThemeAllowsSegmentManagerWithReleaseVariantContext (0.00s)
+=== RUN   TestCreateAnimeThemeRejectsSegmentManagerWhenReleaseVariantBelongsToOtherAnime
+--- PASS: TestCreateAnimeThemeRejectsSegmentManagerWhenReleaseVariantBelongsToOtherAnime (0.00s)
+=== RUN   TestAdminFansubReleases_ListFansubAnimeReleasesReturnsData
+--- PASS: TestAdminFansubReleases_ListFansubAnimeReleasesReturnsData (0.00s)
+=== RUN   TestLoadAnimeCreateAniSearchEnrichment_ReturnsDraftEnvelope
+--- PASS: TestLoadAnimeCreateAniSearchEnrichment_ReturnsDraftEnvelope (0.00s)
+=== RUN   TestLoadAnimeCreateAniSearchEnrichment_ReturnsDuplicateRedirectEnvelope
+--- PASS: TestLoadAnimeCreateAniSearchEnrichment_ReturnsDuplicateRedirectEnvelope (0.00s)
+=== RUN   TestSearchAnimeCreateAniSearchCandidates_ReturnsCandidateEnvelope
+--- PASS: TestSearchAnimeCreateAniSearchCandidates_ReturnsCandidateEnvelope (0.00s)
+=== RUN   TestSearchAnimeCreateAniSearchCandidates_RejectsMissingQuery
+--- PASS: TestSearchAnimeCreateAniSearchCandidates_RejectsMissingQuery (0.00s)
+=== RUN   TestSearchAnimeCreateAssetCandidates_ReturnsCandidateEnvelope
+--- PASS: TestSearchAnimeCreateAssetCandidates_ReturnsCandidateEnvelope (0.00s)
+=== RUN   TestSearchAnimeCreateAssetCandidates_RejectsInvalidSourceFilter
+--- PASS: TestSearchAnimeCreateAssetCandidates_RejectsInvalidSourceFilter (0.00s)
+=== RUN   TestValidateAdminAnimeCreateRequest
+--- PASS: TestValidateAdminAnimeCreateRequest (0.00s)
+=== RUN   TestValidateAdminAnimeCreateRequest_AllowsMissingCoverForDeferredUpload
+--- PASS: TestValidateAdminAnimeCreateRequest_AllowsMissingCoverForDeferredUpload (0.00s)
+=== RUN   TestValidateAdminAnimeCreateRequest_PreservesCoverImageOnSuccess
+--- PASS: TestValidateAdminAnimeCreateRequest_PreservesCoverImageOnSuccess (0.00s)
+=== RUN   TestValidateAdminAnimeCreateRequest_PreservesTagsForAuthoritativePersistence
+--- PASS: TestValidateAdminAnimeCreateRequest_PreservesTagsForAuthoritativePersistence (0.00s)
+=== RUN   TestValidateAdminAnimeCreateRequest_ManualOnlyWithoutJellyfinDependency
+--- PASS: TestValidateAdminAnimeCreateRequest_ManualOnlyWithoutJellyfinDependency (0.00s)
+=== RUN   TestValidateAdminAnimeCreateRequest_AcceptsNormalizedJellyfinLinkage
+--- PASS: TestValidateAdminAnimeCreateRequest_AcceptsNormalizedJellyfinLinkage (0.00s)
+=== RUN   TestValidateAdminAnimeCreateRequest_RejectsMalformedJellyfinSource
+--- PASS: TestValidateAdminAnimeCreateRequest_RejectsMalformedJellyfinSource (0.00s)
+=== RUN   TestValidateAdminAnimeCreateRequest_RejectsFolderWithoutSource
+--- PASS: TestValidateAdminAnimeCreateRequest_RejectsFolderWithoutSource (0.00s)
+=== RUN   TestValidateAdminAnimeCreateRequest_InvalidType
+--- PASS: TestValidateAdminAnimeCreateRequest_InvalidType (0.00s)
+=== RUN   TestValidateAdminAnimePatchRequest_RequiresField
+--- PASS: TestValidateAdminAnimePatchRequest_RequiresField (0.00s)
+=== RUN   TestValidateAdminAnimePatchRequest_AcceptsNullableField
+--- PASS: TestValidateAdminAnimePatchRequest_AcceptsNullableField (0.00s)
+=== RUN   TestValidateAdminAnimeJellyfinSyncRequest_Defaults
+--- PASS: TestValidateAdminAnimeJellyfinSyncRequest_Defaults (0.00s)
+=== RUN   TestValidateAdminAnimeJellyfinSyncRequest_InvalidSeason
+--- PASS: TestValidateAdminAnimeJellyfinSyncRequest_InvalidSeason (0.00s)
+=== RUN   TestAssignAnimeCoverAsset_InvalidAnimeIDReturnsGermanOperatorMessage
+--- PASS: TestAssignAnimeCoverAsset_InvalidAnimeIDReturnsGermanOperatorMessage (0.00s)
+=== RUN   TestAdminAnimeAssetUnsupportedOperationMessage_IsExplicit
+--- PASS: TestAdminAnimeAssetUnsupportedOperationMessage_IsExplicit (0.00s)
+=== RUN   TestAdminAnimeAssetMediaMismatchMessage_IsExplicit
+--- PASS: TestAdminAnimeAssetMediaMismatchMessage_IsExplicit (0.00s)
+=== RUN   TestValidateAdminAnimeCreateRequest_EmptyTitle
+--- PASS: TestValidateAdminAnimeCreateRequest_EmptyTitle (0.00s)
+=== RUN   TestValidateAdminAnimeCreateRequest_WhitespaceOnlyTitle
+--- PASS: TestValidateAdminAnimeCreateRequest_WhitespaceOnlyTitle (0.00s)
+=== RUN   TestValidateAdminAnimeCreateRequest_TitleTooLong
+--- PASS: TestValidateAdminAnimeCreateRequest_TitleTooLong (0.00s)
+=== RUN   TestValidateAdminAnimeCreateRequest_InvalidContentType
+--- PASS: TestValidateAdminAnimeCreateRequest_InvalidContentType (0.00s)
+=== RUN   TestValidateAdminAnimeCreateRequest_InvalidStatus
+--- PASS: TestValidateAdminAnimeCreateRequest_InvalidStatus (0.00s)
+=== RUN   TestValidateAdminAnimeCreateRequest_InvalidYear
+--- PASS: TestValidateAdminAnimeCreateRequest_InvalidYear (0.00s)
+=== RUN   TestValidateAdminAnimeCreateRequest_ZeroYear
+--- PASS: TestValidateAdminAnimeCreateRequest_ZeroYear (0.00s)
+=== RUN   TestValidateAdminAnimeCreateRequest_InvalidMaxEpisodes
+--- PASS: TestValidateAdminAnimeCreateRequest_InvalidMaxEpisodes (0.00s)
+=== RUN   TestValidateAdminAnimeCreateRequest_AllAnimeTypes
+--- PASS: TestValidateAdminAnimeCreateRequest_AllAnimeTypes (0.00s)
+=== RUN   TestValidateAdminAnimeCreateRequest_AllStatuses
+--- PASS: TestValidateAdminAnimeCreateRequest_AllStatuses (0.00s)
+=== RUN   TestValidateAdminAnimeCreateRequest_AllContentTypes
+--- PASS: TestValidateAdminAnimeCreateRequest_AllContentTypes (0.00s)
+=== RUN   TestValidateAdminAnimePatchRequest_TitleTooLong
+--- PASS: TestValidateAdminAnimePatchRequest_TitleTooLong (0.00s)
+=== RUN   TestValidateAdminAnimePatchRequest_EmptyTitle
+--- PASS: TestValidateAdminAnimePatchRequest_EmptyTitle (0.00s)
+=== RUN   TestValidateAdminAnimePatchRequest_InvalidType
+--- PASS: TestValidateAdminAnimePatchRequest_InvalidType (0.00s)
+=== RUN   TestValidateAdminAnimePatchRequest_EmptyType
+--- PASS: TestValidateAdminAnimePatchRequest_EmptyType (0.00s)
+=== RUN   TestValidateAdminAnimePatchRequest_InvalidContentType
+--- PASS: TestValidateAdminAnimePatchRequest_InvalidContentType (0.00s)
+=== RUN   TestValidateAdminAnimePatchRequest_InvalidStatus
+--- PASS: TestValidateAdminAnimePatchRequest_InvalidStatus (0.00s)
+=== RUN   TestValidateAdminAnimePatchRequest_InvalidYear
+--- PASS: TestValidateAdminAnimePatchRequest_InvalidYear (0.00s)
+=== RUN   TestValidateAdminAnimePatchRequest_InvalidMaxEpisodes
+--- PASS: TestValidateAdminAnimePatchRequest_InvalidMaxEpisodes (0.00s)
+=== RUN   TestValidateAdminAnimePatchRequest_NormalizesOptionalFields
+--- PASS: TestValidateAdminAnimePatchRequest_NormalizesOptionalFields (0.00s)
+=== RUN   TestBuildAdminAnimeUpsertResponse_IncludesAniSearchWarningSummary
+=== PAUSE TestBuildAdminAnimeUpsertResponse_IncludesAniSearchWarningSummary
+=== RUN   TestValidateAdminAnimeCreateRequest_NormalizesSourceLinksAndRetainsPrimary
+=== PAUSE TestValidateAdminAnimeCreateRequest_NormalizesSourceLinksAndRetainsPrimary
+=== RUN   TestValidateAdminEpisodeCreateRequest_InvalidAnimeID
+--- PASS: TestValidateAdminEpisodeCreateRequest_InvalidAnimeID (0.00s)
+=== RUN   TestValidateAdminEpisodeCreateRequest_NegativeAnimeID
+--- PASS: TestValidateAdminEpisodeCreateRequest_NegativeAnimeID (0.00s)
+=== RUN   TestHasAnyAdminAnimePatchField
+=== RUN   TestHasAnyAdminAnimePatchField/empty
+=== RUN   TestHasAnyAdminAnimePatchField/title_set
+=== RUN   TestHasAnyAdminAnimePatchField/title_de_set
+=== RUN   TestHasAnyAdminAnimePatchField/title_en_set
+=== RUN   TestHasAnyAdminAnimePatchField/type_set
+=== RUN   TestHasAnyAdminAnimePatchField/content_type_set
+=== RUN   TestHasAnyAdminAnimePatchField/status_set
+=== RUN   TestHasAnyAdminAnimePatchField/year_set
+=== RUN   TestHasAnyAdminAnimePatchField/max_episodes_set
+=== RUN   TestHasAnyAdminAnimePatchField/genre_set
+=== RUN   TestHasAnyAdminAnimePatchField/description_set
+=== RUN   TestHasAnyAdminAnimePatchField/cover_image_set
+=== RUN   TestHasAnyAdminAnimePatchField/tags_set
+--- PASS: TestHasAnyAdminAnimePatchField (0.00s)
+    --- PASS: TestHasAnyAdminAnimePatchField/empty (0.00s)
+    --- PASS: TestHasAnyAdminAnimePatchField/title_set (0.00s)
+    --- PASS: TestHasAnyAdminAnimePatchField/title_de_set (0.00s)
+    --- PASS: TestHasAnyAdminAnimePatchField/title_en_set (0.00s)
+    --- PASS: TestHasAnyAdminAnimePatchField/type_set (0.00s)
+    --- PASS: TestHasAnyAdminAnimePatchField/content_type_set (0.00s)
+    --- PASS: TestHasAnyAdminAnimePatchField/status_set (0.00s)
+    --- PASS: TestHasAnyAdminAnimePatchField/year_set (0.00s)
+    --- PASS: TestHasAnyAdminAnimePatchField/max_episodes_set (0.00s)
+    --- PASS: TestHasAnyAdminAnimePatchField/genre_set (0.00s)
+    --- PASS: TestHasAnyAdminAnimePatchField/description_set (0.00s)
+    --- PASS: TestHasAnyAdminAnimePatchField/cover_image_set (0.00s)
+    --- PASS: TestHasAnyAdminAnimePatchField/tags_set (0.00s)
+=== RUN   TestBuildAnimeBackdropProxyURLs
+--- PASS: TestBuildAnimeBackdropProxyURLs (0.00s)
+=== RUN   TestBuildAnimeBackdropVideoProxyURL
+--- PASS: TestBuildAnimeBackdropVideoProxyURL (0.00s)
+=== RUN   TestBuildAnimeBannerProxyURL
+--- PASS: TestBuildAnimeBannerProxyURL (0.00s)
+=== RUN   TestAnimeRelationsInvalidIDNeverCallsRepository
+=== RUN   TestAnimeRelationsInvalidIDNeverCallsRepository/1abc
+=== RUN   TestAnimeRelationsInvalidIDNeverCallsRepository/1.5
+=== RUN   TestAnimeRelationsInvalidIDNeverCallsRepository/0
+=== RUN   TestAnimeRelationsInvalidIDNeverCallsRepository/-1
+=== RUN   TestAnimeRelationsInvalidIDNeverCallsRepository/9223372036854775808
+--- PASS: TestAnimeRelationsInvalidIDNeverCallsRepository (0.00s)
+    --- PASS: TestAnimeRelationsInvalidIDNeverCallsRepository/1abc (0.00s)
+    --- PASS: TestAnimeRelationsInvalidIDNeverCallsRepository/1.5 (0.00s)
+    --- PASS: TestAnimeRelationsInvalidIDNeverCallsRepository/0 (0.00s)
+    --- PASS: TestAnimeRelationsInvalidIDNeverCallsRepository/-1 (0.00s)
+    --- PASS: TestAnimeRelationsInvalidIDNeverCallsRepository/9223372036854775808 (0.00s)
+=== RUN   TestAttachPendingOwnNoteRevisionAttentionGroupsByAnimeAndFansubGroup
+    dashboard_me_handler_test.go:641: TEAM4S_PHASE107_TEST_DSN is not set; skipping PostgreSQL integration test
+--- SKIP: TestAttachPendingOwnNoteRevisionAttentionGroupsByAnimeAndFansubGroup (0.00s)
+=== RUN   TestViewCapabilityEnforcementAnimeCoverage
+=== RUN   TestViewCapabilityEnforcementAnimeCoverage/ohne_ActionReleaseView_→_403
+=== RUN   TestViewCapabilityEnforcementAnimeCoverage/mit_ActionReleaseView_→_200
+=== RUN   TestViewCapabilityEnforcementAnimeCoverage/platform_admin_passiert_immer_(D-03)
+--- PASS: TestViewCapabilityEnforcementAnimeCoverage (0.00s)
+    --- PASS: TestViewCapabilityEnforcementAnimeCoverage/ohne_ActionReleaseView_→_403 (0.00s)
+    --- PASS: TestViewCapabilityEnforcementAnimeCoverage/mit_ActionReleaseView_→_200 (0.00s)
+    --- PASS: TestViewCapabilityEnforcementAnimeCoverage/platform_admin_passiert_immer_(D-03) (0.00s)
+=== RUN   TestMapPersistedAnimeAssets_PreservesOwnershipAndOrdering
+--- PASS: TestMapPersistedAnimeAssets_PreservesOwnershipAndOrdering (0.00s)
+=== RUN   TestValidateAdminAnimeJellyfinSyncRequest_InvalidSeasonNumberZero
+--- PASS: TestValidateAdminAnimeJellyfinSyncRequest_InvalidSeasonNumberZero (0.00s)
+=== RUN   TestValidateAdminAnimeJellyfinSyncRequest_InvalidSeasonNumberNegative
+--- PASS: TestValidateAdminAnimeJellyfinSyncRequest_InvalidSeasonNumberNegative (0.00s)
+=== RUN   TestValidateAdminAnimeJellyfinSyncRequest_InvalidEpisodeStatus
+--- PASS: TestValidateAdminAnimeJellyfinSyncRequest_InvalidEpisodeStatus (0.00s)
+=== RUN   TestValidateAdminAnimeJellyfinSyncRequest_SeriesIDTooLong
+--- PASS: TestValidateAdminAnimeJellyfinSyncRequest_SeriesIDTooLong (0.00s)
+=== RUN   TestValidateAdminAnimeJellyfinSyncRequest_ValidStatuses
+--- PASS: TestValidateAdminAnimeJellyfinSyncRequest_ValidStatuses (0.00s)
+=== RUN   TestValidateAdminAnimeJellyfinSyncRequest_BooleanFlags
+--- PASS: TestValidateAdminAnimeJellyfinSyncRequest_BooleanFlags (0.00s)
+=== RUN   TestJellyfinSeriesIDFromAnimeSourceUsesSourceLinks
+--- PASS: TestJellyfinSeriesIDFromAnimeSourceUsesSourceLinks (0.00s)
+=== RUN   TestMediaUploadHandler_DeleteRejectsNonAnimeAssetForPlatformAdmin
+--- PASS: TestMediaUploadHandler_DeleteRejectsNonAnimeAssetForPlatformAdmin (0.00s)
+=== RUN   TestMediaUploadHandler_UploadAutoProvisionsCanonicalAnimeFoldersAndReportsStatuses
+--- PASS: TestMediaUploadHandler_UploadAutoProvisionsCanonicalAnimeFoldersAndReportsStatuses (0.02s)
+=== RUN   TestMediaUploadHandler_UploadUsesManualAnimePathWithoutJellyfinMetadata
+--- PASS: TestMediaUploadHandler_UploadUsesManualAnimePathWithoutJellyfinMetadata (0.02s)
+=== RUN   TestPhase136ContractParity
+=== RUN   TestPhase136ContractParity/group_capability_response
+=== RUN   TestPhase136ContractParity/YAML_and_TypeScript_owners
+=== RUN   TestPhase136ContractParity/Go_DTO_JSON_shapes
+=== RUN   TestPhase136ContractParity/nullable_and_optional_fields_use_pointers
+=== RUN   TestPhase136ContractParity/shared_enum_vocabulary
+=== RUN   TestPhase136ContractParity/external_request_cannot_assert_platform_admin_provenance
+--- PASS: TestPhase136ContractParity (0.09s)
+    --- PASS: TestPhase136ContractParity/group_capability_response (0.05s)
+    --- PASS: TestPhase136ContractParity/YAML_and_TypeScript_owners (0.04s)
+    --- PASS: TestPhase136ContractParity/Go_DTO_JSON_shapes (0.00s)
+    --- PASS: TestPhase136ContractParity/nullable_and_optional_fields_use_pointers (0.00s)
+    --- PASS: TestPhase136ContractParity/shared_enum_vocabulary (0.00s)
+    --- PASS: TestPhase136ContractParity/external_request_cannot_assert_platform_admin_provenance (0.00s)
+=== RUN   TestCreateUpdateAnimeSegment_SharedValidationSeamExists
+--- PASS: TestCreateUpdateAnimeSegment_SharedValidationSeamExists (0.00s)
+=== RUN   TestAdminAnimeSegments_UsesCapabilityWithoutRuntimeRoleHardcode
+--- PASS: TestAdminAnimeSegments_UsesCapabilityWithoutRuntimeRoleHardcode (0.00s)
+=== RUN   TestAdminAnimeSegments_NoParallelMediaOwnershipShortcuts
+--- PASS: TestAdminAnimeSegments_NoParallelMediaOwnershipShortcuts (0.00s)
+=== CONT  TestBuildAdminAnimeUpsertResponse_IncludesAniSearchWarningSummary
+--- PASS: TestBuildAdminAnimeUpsertResponse_IncludesAniSearchWarningSummary (0.00s)
+=== CONT  TestValidateAdminAnimeCreateRequest_NormalizesSourceLinksAndRetainsPrimary
+--- PASS: TestValidateAdminAnimeCreateRequest_NormalizesSourceLinksAndRetainsPrimary (0.00s)
+PASS
+ok  	team4s.v3/backend/internal/handlers	0.151s
+testing: warning: no tests to run
+PASS
+ok  	team4s.v3/backend/internal/models	0.002s [no tests to run]
