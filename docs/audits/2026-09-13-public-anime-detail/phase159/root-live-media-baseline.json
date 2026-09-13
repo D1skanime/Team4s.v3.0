@@ -1,0 +1,31 @@
+{
+  "measured_at": "2026-09-13T22:10:41.343548+00:00",
+  "method": "Direct HTTP body bytes, not browser transferred bytes; current live source before 159-04",
+  "requests": [
+    {
+      "label": "original",
+      "url": "http://127.0.0.1:18092/api/v1/media/image?item_id=46523903e0af5022d78af0368d89b805&kind=primary&provider=jellyfin",
+      "status": 200,
+      "bytes": 739798,
+      "mime": "image/jpeg",
+      "cache_control": "public, max-age=3600"
+    },
+    {
+      "label": "bounded_512",
+      "url": "http://127.0.0.1:18092/api/v1/media/image?item_id=46523903e0af5022d78af0368d89b805&kind=primary&provider=jellyfin&width=512&quality=75",
+      "status": 200,
+      "bytes": 95674,
+      "mime": "image/jpeg",
+      "cache_control": "public, max-age=3600"
+    }
+  ],
+  "shared_browser_dom": {
+    "route": "http://127.0.0.1:3300/anime/1",
+    "cover_display_width": 160,
+    "cover_display_height": 228,
+    "cover_natural_width": 1000,
+    "cover_natural_height": 1426,
+    "hero_uses_same_unbounded_primary_url": true,
+    "note": "Read-only CUA DOM inspection immediately before direct HTTP probe; existing tab, no viewport override."
+  }
+}

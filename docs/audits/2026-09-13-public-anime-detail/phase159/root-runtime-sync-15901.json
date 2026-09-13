@@ -1,0 +1,87 @@
+{
+  "at": "2026-09-13T22:15:53.140021+00:00",
+  "method": "one tar stream; existing Air hot reload; no container restart",
+  "product_commit": "53f49e76",
+  "sources": [
+    {
+      "file": "internal/models/episode_version.go",
+      "sha256": "91b90f4a3c95050e0550f71e2d39d324082a74f94c409e24895b7beab70860a6",
+      "matches": true
+    },
+    {
+      "file": "internal/handlers/episode_version_reads.go",
+      "sha256": "f813c3732d49c9ffe2192b81d3631d396874fad9346ed1ad7101a56a8592dd59",
+      "matches": true
+    },
+    {
+      "file": "internal/repository/episode_version_repository.go",
+      "sha256": "afd79633d8893c0b6ec7ffd217896f0d9e954febfa3fbc59975c19e92e86f5a5",
+      "matches": true
+    },
+    {
+      "file": "internal/repository/episode_version_repository_read_helpers.go",
+      "sha256": "701339b7e49d2bb64cd7800a308b83c14ce5235907b92eb64bc569adeaf534f5",
+      "matches": true
+    },
+    {
+      "file": "internal/repository/episode_version_public_query.go",
+      "sha256": "bf38abfe516af7cf305e2c234d3a866a649df479035ee9d64c023ee26fe2e9fd",
+      "matches": true
+    }
+  ],
+  "http_probe": {
+    "url": "http://127.0.0.1:18092/api/v1/anime/1/episodes?projection=public&limit=1",
+    "status": 200,
+    "bytes": 610,
+    "body": {
+      "data": {
+        "anime_id": 1,
+        "episodes": [
+          {
+            "episode_id": 27,
+            "episode_number": 1,
+            "episode_title": "Begegnung",
+            "default_version_id": 27,
+            "version_count": 1,
+            "versions": [
+              {
+                "id": 27,
+                "variant_id": 27,
+                "release_version_id": 27,
+                "anime_id": 1,
+                "episode_number": 1,
+                "title": "Begegnung",
+                "release_version": "v1",
+                "fansub_groups": [
+                  {
+                    "id": 1,
+                    "slug": "new-subs",
+                    "name": "New-Subs",
+                    "logo_url": "/api/v1/media/files/logo_1787928990830_d3b5184c5dc28cca.png"
+                  }
+                ],
+                "video_quality": "720p",
+                "subtitle_type": "softsub",
+                "release_date": "2013-07-19T00:00:00Z"
+              }
+            ]
+          }
+        ],
+        "pagination": {
+          "has_more": true,
+          "next_cursor": "eyJ2IjoxLCJhIjoxLCJuIjoxLCJlIjoyNywiaSI6Mjd9",
+          "row_limit": 1
+        }
+      }
+    }
+  },
+  "runtime": {
+    "pid1": "air -c .air.toml",
+    "old_api_child": 4048,
+    "new_api_child": 4408,
+    "new_executable": "/app/tmp/air/server",
+    "live_api_children": 1,
+    "container_restarted": false,
+    "migration_entrypoint_invoked": false
+  }
+}
