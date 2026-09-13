@@ -15,9 +15,11 @@ function isConfiguredApiURL(url: URL): boolean {
 
 /** Only the existing local anime/cover and configured API-file namespaces use Next. */
 function staticImageSource(source: string): string | null {
-  const url = new URL(source, LOCAL_ORIGIN)
+  // API files use the existing configured origin; local anime files must stay local.
+  const candidate = source.startsWith('/api/v1/media/files/') ? resolvePublicApiUrl(source) : source
+  const url = new URL(candidate, LOCAL_ORIGIN)
   if (url.username || url.password) return null
-  if (source.startsWith('/') && !source.startsWith('//')) {
+  if (candidate.startsWith('/') && !candidate.startsWith('//')) {
     if (url.origin === LOCAL_ORIGIN && !url.search && (url.pathname.startsWith('/media/anime/') || url.pathname.startsWith('/covers/'))) {
       return url.pathname
     }

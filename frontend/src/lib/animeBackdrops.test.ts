@@ -64,11 +64,10 @@ describe('bounded anime image delivery', () => {
     expect(url(first).searchParams.get('url')).toBe('/covers/anime.jpg')
   })
 
-  it('uses the configured API-file optimizer class without pretending its width query resizes files', () => {
-    const source = origin + '/api/v1/media/files/logo.png'
+  it.each([origin + '/api/v1/media/files/logo.png', '/api/v1/media/files/logo.png'])('uses the configured API-file optimizer class without pretending its width query resizes files: %s', (source) => {
     const output = url(resolveAnimeImageURL(source, 760))
     expect(output.pathname).toBe('/_next/image')
-    expect(output.searchParams.get('url')).toBe(source)
+    expect(output.searchParams.get('url')).toBe(origin + '/api/v1/media/files/logo.png')
     expect(Number(output.searchParams.get('w'))).toBeLessThanOrEqual(760)
     expect(url(output.searchParams.get('url')).search).toBe('')
   })
