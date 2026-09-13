@@ -1613,12 +1613,14 @@ export async function getAnimeByID(
 
 export async function getAnimeBackdrops(
   id: number,
+  options: { signal?: AbortSignal } = {},
 ): Promise<AnimeBackdropResponse> {
   const API_BASE_URL = getApiBaseUrl();
   const response = await authorizedFetch(
     `${API_BASE_URL}/api/v1/anime/${id}/backdrops`,
     {
       cache: "no-store",
+      signal: options.signal,
     },
   );
 

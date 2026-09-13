@@ -269,6 +269,17 @@ describe('manifest lifecycle', () => {
     expect(screen.getByTestId('manifest').textContent).toContain('107:')
   })
 
+  it('updates existing providers when a new consumer retries a failed shared request', async () => {
+    getAnimeBackdropsMock.mockRejectedValueOnce(new Error('failed')).mockResolvedValue(response(111, 'retry'))
+    render(provider(111, 'existing'))
+    await flush()
+    render(provider(111, 'newcomer'))
+    await flush()
+    expect(getAnimeBackdropsMock).toHaveBeenCalledTimes(2)
+    expect(screen.getByTestId('existing').textContent).toContain('retry')
+    expect(screen.getByTestId('newcomer').textContent).toContain('retry')
+  })
+
   it('never presents the previous anime manifest under a new anime ID, including late completion', async () => {
     const pending = deferredManifest()
     getAnimeBackdropsMock.mockResolvedValueOnce(response(108)).mockReturnValueOnce(pending.promise).mockResolvedValueOnce(response(110))
