@@ -1729,3 +1729,50 @@ Plans:
 **Gap closure — Wave 5** *(GAP-01 aus 157-UAT.md: Nutzerauftrag 2026-09-13, verbindliche Nachpruefung nach 157-09)*
 
 - [x] 157-10-PLAN.md — Notiz-Timeline: ungueltige Verschachtelung (Button/Link in Link) beheben, Rollenfarbe auf den Punkt konsolidieren, Card-Rahmen subtiler, Vorschau auf 3 Zeilen
+
+### Phase 158: Public Anime Detail — Reparatur
+
+**Goal:** Die öffentliche Anime-Detailseite behebt belegte Lesbarkeits-, Overflow-, Session-, Fehler- und Routingdefekte, entfernt unwahre Kennzahlen, verlinkt Projekte kanonisch und prüft Relations schlank, ohne Redesign oder Datenänderung.
+**Requirements**: P158-01, P158-02, P158-03, P158-04, P158-05, P158-06, P158-07, P158-08, P158-09
+**Depends on:** Implementierter Architekturstand157; offene Human-UAT 156/157 bleibt ausdrücklich offen und blockiert diesen neu autorisierten Scope nicht.
+**Baseline:** 7c7e1c7d02ac870e7c68c02b66fd7f4b33f36b85.
+**Plans:** 4 Pläne angelegt; Ausführung und Verifikation stehen aus.
+
+| ID | Anforderung | Audit |
+|---|---|---|
+| P158-01 | Episodentitel auf weißen Karten und Contributionüberschrift auf dunkler Fläche lesbar; vorhandene globale Tokens. | F01 |
+| P158-02 | Hero ohne horizontalen Dokumentoverflow; lokale Begrenzung, Fokus/Slider/Controls erhalten. | F03 |
+| P158-03 | Access- oder Refreshsession mit Reaktion nach Mount; ausschließlich zentrale Session-/Refreshseam. | F02 |
+| P158-04 | Contributions: Laden/leer/Fehler; Watchlistunknown blockiert Mutationen; sichtbare Aktionsfehler auch bei Custom-Styling. | F12 |
+| P158-05 | Vollständig positive sichere Integer-ID; echte Next404 für ungültig/fehlend; konsistenter Titel/Canonical/Robots ohne doppelten Animefetch. | F05 technisch |
+| P158-06 | Keine erfundene7.8-Bewertung/0Views; vorhandenes Anime22-/Emby-Mapping unverändert. | F04 Darstellung |
+| P158-07 | Gruppenbereich über kanonischen Pretty-Link aus autoritativen Slugs; DTO/Go/OpenAPI/TS gezielt; numeric Compatibility erhalten. | F06 |
+| P158-08 | Relationsprüfung ohne GetByID-Vollreload; aktive/unbekannte/deaktivierte Semantik; erfolgreicher Pfad höchstens zwei Datenstatements. | F07 |
+| P158-09 | Vollständige technische Nutzermatrix, frische Gates und Browser-/HTTP-/Request-/SQLbelege; neue Regressionen ausgeschlossen;156/157UAT offen. | Gate |
+
+**Verbindliche Quellen:** .planning/phases/158-public-anime-detail-reparatur/158-USER-REQUEST.md und158-CONTEXT.md (D-01 bisD-08); vollständige Abnahme in158-VALIDATION.md. Research, Patterns und konservativer UI-SPEC liegen vor.
+**Scopegrenze:** F15, Kommentar-Pagination, Audio-/Video-Umbau, neue Anime-Slug-/Rating-/View-/Embyregeln, Daten-/Compatibilitylöschungen und globale Cleanup-Arbeit bleiben ausgeschlossen.
+**Technisches Gate:** alle Nutzerfälle einschließlich360/390/767/768/1440, Sessionmatrix, echtenHTTP404/Metadata, Pretty/numericCompatibility, Relations≤2Statements und frische Tests/Typecheck/Lint/isolierterBuild/diffcheck/Browser/Queryvergleich.156GAP02/157-06Task4 bleibenOPEN.
+
+### Phase 159: Public Anime Detail — Konsolidierung
+
+**Goal:** Eine gemeinsame aktive Gruppe, korrekte lazy Gridnachbarn, begrenzte Bilddelivery und Manifestretention sowie consumergeprüfte Varianten-/Assignment-/ID-Verträge konsolidieren die bestehende Seite ohne Rewrite.
+**Requirements**: P159-01, P159-02, P159-03, P159-04, P159-05, P159-06, P159-07, P159-08
+**Depends on:** Phase 158 vollständig implementiert und technisch verifiziert; keine159-Ausführung vorher.
+**Baseline:** Erst nach158-Gate dessen Abschlusscommit eintragen und aktuellen Stand erneut prüfen.
+**Plans:** 5 Pläne angelegt; Ausführung und Verifikation stehen aus.
+
+| ID | Anforderung | Audit |
+|---|---|---|
+| P159-01 | Ein SSR-deterministischer Clientbesitzer für Story/Filter/Versionen, sichere Persistierung/Multitabs, kein200msPoll/Wechselrefetch. | F11 |
+| P159-02 | Gridnachbarn mit Zielanime+Gridseite; erster asynchroner Klick; Abort/Ignore; kein initialer Listenrequest ohne Interaktion. | F13 |
+| P159-03 | Reales mobiles/desktop Coverbudget über vorhandene Medienmechanismen; lokale/provider Bilder; keine Scheintransformation/Originalflucht. | F09 |
+| P159-04 | Ein geteilter Manifestrequest; begrenzte Lebensdauer/Größe; Consumerabort, Retry, SPA-Aktualisierung. | F10 |
+| P159-05 | Repositoryweite Feld-/Consumer-Matrix und isolierte Fixtures vor riskanten Änderungen; neutrale Episodenfallbacks erhalten. | F08/F14 Voraussetzung |
+| P159-06 | Assignmentautorität bei echtem Segmentbedarf; fansub_groups-Parität; eindeutige Varianten-/VersionsIDs; kontrollierte Streamcompatibility. | F08/F14 |
+| P159-07 | Belegte Payload-/Rowgrenze oder passender Abrufmechanismus; kein N+1 pro Episode/Variante/Gruppe/Contributor. | F08/F14 |
+| P159-08 | Volle technische Nutzermatrix einschließlich Storage/Multitab/Grid/Media/Cache/Kollision/Assignmentdivergenz und frische Gesamtgates. | Gate |
+
+**Verbindliche Quellen:** .planning/phases/159-public-anime-detail-konsolidierung/159-USER-REQUEST.md und159-CONTEXT.md (D-01 bisD-09); vollständige Abnahme in159-VALIDATION.md. Riskante Vertragsänderungen erst nach Feld-/Consumer-Matrix und isoliertenFixtures.
+**Scopegrenze:** gemeinsame Ausschlüsse aus158 bleiben bindend; Streamcompatibility und fachliche Daten-/Medienownership erhalten.
+**Technisches Gate:** volle Storage/Multitab/SSR/Grid/Media/Cache/Vertrags-/ID-/Assignmentmatrix; atomareRow-/Payloadgrenze, keinN+1, frische Gesamtgates und belegte Vorher/Nachherwerte; offene Human-UAT 156/157 nicht schließen.

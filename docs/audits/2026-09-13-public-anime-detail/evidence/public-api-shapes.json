@@ -1,0 +1,172 @@
+{
+  "measuredAt": "2026-09-13T16:55:13.642728+00:00",
+  "requests": [
+    {
+      "path": "/api/v1/anime/1",
+      "status": 200,
+      "jsonBodyBytes": 3378,
+      "cacheControl": null,
+      "shape": {
+        "data": {
+          "id": "int",
+          "title": "str",
+          "title_de": "str",
+          "title_en": "str",
+          "type": "str",
+          "content_type": "str",
+          "status": "str",
+          "year": "int",
+          "max_episodes": "int",
+          "genre": "str",
+          "genres": {
+            "length": 3,
+            "firstItemShape": "str"
+          },
+          "tags": {
+            "length": 8,
+            "firstItemShape": "str"
+          },
+          "description": "str",
+          "cover_image": "str",
+          "banner_url": "str",
+          "source": "str",
+          "source_links": {
+            "length": 2,
+            "firstItemShape": "str"
+          },
+          "folder_name": "str",
+          "anisearch_id": "str",
+          "jellyfin_series_id": "str",
+          "view_count": "int",
+          "episodes": {
+            "length": 13,
+            "firstItemShape": {
+              "id": "int",
+              "episode_number": "str",
+              "title": "str",
+              "status": "str",
+              "view_count": "int",
+              "download_count": "int"
+            }
+          }
+        }
+      }
+    },
+    {
+      "path": "/api/v1/anime/1/fansubs",
+      "status": 200,
+      "jsonBodyBytes": 327,
+      "cacheControl": null,
+      "shape": {
+        "data": {
+          "length": 1,
+          "firstItemShape": {
+            "anime_id": "int",
+            "fansub_group_id": "int",
+            "is_primary": "bool",
+            "created_at": "str",
+            "fansub_group": {
+              "id": "int",
+              "slug": "str",
+              "name": "str",
+              "logo_url": "str",
+              "founded_year": "int",
+              "dissolved_year": "int",
+              "country": "str",
+              "status": "str"
+            }
+          }
+        }
+      }
+    },
+    {
+      "path": "/api/v1/anime/1/episodes",
+      "status": 200,
+      "jsonBodyBytes": 10460,
+      "cacheControl": null,
+      "shape": {
+        "data": {
+          "anime_id": "int",
+          "episodes": {
+            "length": 13,
+            "firstItemShape": {
+              "episode_number": "int",
+              "episode_title": "str",
+              "default_version_id": "int",
+              "version_count": "int",
+              "versions": {
+                "length": 1,
+                "firstItemShape": null
+              }
+            }
+          }
+        }
+      }
+    },
+    {
+      "path": "/api/v1/anime/1/comments?page=1&per_page=10",
+      "status": 200,
+      "jsonBodyBytes": 69,
+      "cacheControl": null,
+      "shape": {
+        "data": {
+          "length": 0,
+          "firstItemShape": null
+        },
+        "meta": {
+          "total": "int",
+          "page": "int",
+          "per_page": "int",
+          "total_pages": "int"
+        }
+      }
+    },
+    {
+      "path": "/api/v1/anime/1/relations",
+      "status": 200,
+      "jsonBodyBytes": 11,
+      "cacheControl": null,
+      "shape": {
+        "data": {
+          "length": 0,
+          "firstItemShape": null
+        }
+      }
+    },
+    {
+      "path": "/api/v1/anime/1/backdrops",
+      "status": 200,
+      "jsonBodyBytes": 832,
+      "cacheControl": null,
+      "shape": {
+        "data": {
+          "anime_id": "int",
+          "provider": "str",
+          "media_item_id": "str",
+          "backdrops": {
+            "length": 4,
+            "firstItemShape": "str"
+          },
+          "theme_videos": {
+            "length": 1,
+            "firstItemShape": "str"
+          },
+          "logo_url": "str",
+          "banner_url": "str"
+        }
+      }
+    },
+    {
+      "path": "/api/v1/anime/1/contributions",
+      "status": 200,
+      "jsonBodyBytes": 13,
+      "cacheControl": null,
+      "shape": {
+        "groups": {
+          "length": 0,
+          "firstItemShape": null
+        }
+      }
+    }
+  ]
+}

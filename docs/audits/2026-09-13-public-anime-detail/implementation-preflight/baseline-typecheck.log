@@ -1,0 +1,12 @@
+
+> team4s-frontend@0.1.0 typecheck
+> tsc --noEmit
+
+.next/dev/types/app/anime/[id]/group/[groupId]/page.ts(36,29): error TS2344: Type 'GroupStoryPageProps' does not satisfy the constraint 'PageProps'.
+  Types of property 'params' are incompatible.
+    Type '{ id: string; groupId: string; } | Promise<{ id: string; groupId: string; }>' is not assignable to type 'Promise<any> | undefined'.
+      Type '{ id: string; groupId: string; }' is missing the following properties from type 'Promise<any>': then, catch, finally, [Symbol.toStringTag]
+.next/dev/types/app/anime/[id]/group/[groupId]/page.ts(40,31): error TS2344: Type 'GroupStoryPageProps' does not satisfy the constraint 'PageProps'.
+  Types of property 'params' are incompatible.
+    Type '{ id: string; groupId: string; } | Promise<{ id: string; groupId: string; }>' is not assignable to type 'Promise<any> | undefined'.
+      Type '{ id: string; groupId: string; }' is missing the following properties from type 'Promise<any>': then, catch, finally, [Symbol.toStringTag]

@@ -1,0 +1,769 @@
+
+> team4s-frontend@0.1.0 test
+> vitest run --reporter=dot
+
+
+ RUN  v3.2.4 /app
+
+··········································································································································································································································································································································································································································································································································································································································································································································································································································································································································································································································································································································································································································································································································································································································································································································································································································································································xx····················································································································································································································································································································································································································································································································································································································································································································---
+
+ Test Files  1 failed | 300 passed | 1 skipped (302)
+      Tests  2 failed | 2334 passed | 3 todo (2339)
+   Start at  20:00:44
+   Duration  90.17s (transform 8.16s, setup 21.66s, collect 64.57s, tests 59.33s, environment 72.43s, prepare 18.60s)
+
+stderr | src/app/admin/fansubs/[id]/edit/page.test.tsx > AdminFansubEditPage token-free wiring > renders branding uploads on Grunddaten and not in the media tab
+Warning: An update to FansubEditClient inside a test was not wrapped in act(...).
+
+When testing, code that causes React state updates should be wrapped into act(...):
+
+act(() => {
+  /* fire events that update state */
+});
+/* assert on the output */
+
+This ensures that you're testing the behavior the user would see in the browser. Learn more at https://reactjs.org/link/wrap-tests-with-act
+    at FansubEditClient (/app/src/app/admin/fansubs/[id]/edit/FansubEditClient.tsx:43:3)
+    at FansubEditAccessGate (/app/src/app/admin/fansubs/[id]/edit/FansubEditAccessGate.tsx:51:3)
+    at AdminFansubEditPage
+
+stderr | src/app/fansubs/page.test.tsx > FansubsPage (D-02/D-05) > renders an img for a group with logo_url and an initials fallback without one
+Warning: Received `true` for a non-boolean attribute `unoptimized`.
+
+If you want to write it to the DOM, pass a string instead: unoptimized="true" or unoptimized={value.toString()}.
+    at img
+    at default (/app/src/app/fansubs/page.test.tsx:13:15)
+    at span
+    at td
+    at TableCell (/app/src/components/ui/Table.tsx:84:22)
+    at tr
+    at TableRow (/app/src/components/ui/Table.tsx:70:21)
+    at tbody
+    at TableBody (/app/src/components/ui/Table.tsx:63:22)
+    at table
+    at div
+    at Table (/app/src/components/ui/Table.tsx:15:3)
+    at main
+
+stderr | src/app/admin/episode-versions/[versionId]/edit/ReleaseVersionMediaSection.test.tsx > ReleaseVersionMediaSection Phase 90 upload redesign > renders one segmented category control and no category dropdown
+Warning: An update to ReleaseVersionMediaSection inside a test was not wrapped in act(...).
+
+When testing, code that causes React state updates should be wrapped into act(...):
+
+act(() => {
+  /* fire events that update state */
+});
+/* assert on the output */
+
+This ensures that you're testing the behavior the user would see in the browser. Learn more at https://reactjs.org/link/wrap-tests-with-act
+    at ReleaseVersionMediaSection (/app/src/app/admin/episode-versions/[versionId]/edit/ReleaseVersionMediaSection.tsx:65:3)
+Warning: An update to ReleaseVersionMediaSection inside a test was not wrapped in act(...).
+
+When testing, code that causes React state updates should be wrapped into act(...):
+
+act(() => {
+  /* fire events that update state */
+});
+/* assert on the output */
+
+This ensures that you're testing the behavior the user would see in the browser. Learn more at https://reactjs.org/link/wrap-tests-with-act
+    at ReleaseVersionMediaSection (/app/src/app/admin/episode-versions/[versionId]/edit/ReleaseVersionMediaSection.tsx:65:3)
+
+stderr | src/app/admin/episode-versions/[versionId]/edit/ReleaseVersionMediaSection.test.tsx > ReleaseVersionMediaSection Phase 90 upload redesign > renders one segmented category control and no category dropdown
+Warning: An update to ReleaseVersionMediaSection inside a test was not wrapped in act(...).
+
+When testing, code that causes React state updates should be wrapped into act(...):
+
+act(() => {
+  /* fire events that update state */
+});
+/* assert on the output */
+
+This ensures that you're testing the behavior the user would see in the browser. Learn more at https://reactjs.org/link/wrap-tests-with-act
+    at ReleaseVersionMediaSection (/app/src/app/admin/episode-versions/[versionId]/edit/ReleaseVersionMediaSection.tsx:65:3)
+
+stderr | src/app/admin/episode-versions/[versionId]/edit/ReleaseVersionMediaSection.test.tsx > ReleaseVersionMediaSection Phase 90 upload redesign > shows only assets from the active category and switches without reload
+Warning: An update to ReleaseVersionMediaSection inside a test was not wrapped in act(...).
+
+When testing, code that causes React state updates should be wrapped into act(...):
+
+act(() => {
+  /* fire events that update state */
+});
+/* assert on the output */
+
+This ensures that you're testing the behavior the user would see in the browser. Learn more at https://reactjs.org/link/wrap-tests-with-act
+    at ReleaseVersionMediaSection (/app/src/app/admin/episode-versions/[versionId]/edit/ReleaseVersionMediaSection.tsx:65:3)
+Warning: An update to ReleaseVersionMediaSection inside a test was not wrapped in act(...).
+
+When testing, code that causes React state updates should be wrapped into act(...):
+
+act(() => {
+  /* fire events that update state */
+});
+/* assert on the output */
+
+This ensures that you're testing the behavior the user would see in the browser. Learn more at https://reactjs.org/link/wrap-tests-with-act
+    at ReleaseVersionMediaSection (/app/src/app/admin/episode-versions/[versionId]/edit/ReleaseVersionMediaSection.tsx:65:3)
+
+stderr | src/app/admin/episode-versions/[versionId]/edit/ReleaseVersionMediaSection.test.tsx > ReleaseVersionMediaSection Phase 90 upload redesign > shows only assets from the active category and switches without reload
+Warning: An update to ReleaseVersionMediaSection inside a test was not wrapped in act(...).
+
+When testing, code that causes React state updates should be wrapped into act(...):
+
+act(() => {
+  /* fire events that update state */
+});
+/* assert on the output */
+
+This ensures that you're testing the behavior the user would see in the browser. Learn more at https://reactjs.org/link/wrap-tests-with-act
+    at ReleaseVersionMediaSection (/app/src/app/admin/episode-versions/[versionId]/edit/ReleaseVersionMediaSection.tsx:65:3)
+
+stderr | src/app/admin/episode-versions/[versionId]/edit/ReleaseVersionMediaSection.test.tsx > ReleaseVersionMediaSection Phase 90 upload redesign > opens upload as a bottom-sheet without an editable status select
+Warning: An update to ReleaseVersionMediaSection inside a test was not wrapped in act(...).
+
+When testing, code that causes React state updates should be wrapped into act(...):
+
+act(() => {
+  /* fire events that update state */
+});
+/* assert on the output */
+
+This ensures that you're testing the behavior the user would see in the browser. Learn more at https://reactjs.org/link/wrap-tests-with-act
+    at ReleaseVersionMediaSection (/app/src/app/admin/episode-versions/[versionId]/edit/ReleaseVersionMediaSection.tsx:65:3)
+Warning: An update to ReleaseVersionMediaSection inside a test was not wrapped in act(...).
+
+When testing, code that causes React state updates should be wrapped into act(...):
+
+act(() => {
+  /* fire events that update state */
+});
+/* assert on the output */
+
+This ensures that you're testing the behavior the user would see in the browser. Learn more at https://reactjs.org/link/wrap-tests-with-act
+    at ReleaseVersionMediaSection (/app/src/app/admin/episode-versions/[versionId]/edit/ReleaseVersionMediaSection.tsx:65:3)
+
+stderr | src/app/admin/episode-versions/[versionId]/edit/ReleaseVersionMediaSection.test.tsx > ReleaseVersionMediaSection Phase 90 upload redesign > opens upload as a bottom-sheet without an editable status select
+Warning: An update to ReleaseVersionMediaSection inside a test was not wrapped in act(...).
+
+When testing, code that causes React state updates should be wrapped into act(...):
+
+act(() => {
+  /* fire events that update state */
+});
+/* assert on the output */
+
+This ensures that you're testing the behavior the user would see in the browser. Learn more at https://reactjs.org/link/wrap-tests-with-act
+    at ReleaseVersionMediaSection (/app/src/app/admin/episode-versions/[versionId]/edit/ReleaseVersionMediaSection.tsx:65:3)
+
+stderr | src/app/admin/episode-versions/[versionId]/edit/ReleaseVersionMediaSection.test.tsx > ReleaseVersionMediaSection Phase 90 upload redesign > renders compact status chips from existing visibility and review fields
+Warning: An update to ReleaseVersionMediaSection inside a test was not wrapped in act(...).
+
+When testing, code that causes React state updates should be wrapped into act(...):
+
+act(() => {
+  /* fire events that update state */
+});
+/* assert on the output */
+
+This ensures that you're testing the behavior the user would see in the browser. Learn more at https://reactjs.org/link/wrap-tests-with-act
+    at ReleaseVersionMediaSection (/app/src/app/admin/episode-versions/[versionId]/edit/ReleaseVersionMediaSection.tsx:65:3)
+Warning: An update to ReleaseVersionMediaSection inside a test was not wrapped in act(...).
+
+When testing, code that causes React state updates should be wrapped into act(...):
+
+act(() => {
+  /* fire events that update state */
+});
+/* assert on the output */
+
+This ensures that you're testing the behavior the user would see in the browser. Learn more at https://reactjs.org/link/wrap-tests-with-act
+    at ReleaseVersionMediaSection (/app/src/app/admin/episode-versions/[versionId]/edit/ReleaseVersionMediaSection.tsx:65:3)
+
+stderr | src/app/admin/episode-versions/[versionId]/edit/ReleaseVersionMediaSection.test.tsx > ReleaseVersionMediaSection Phase 90 upload redesign > renders compact status chips from existing visibility and review fields
+Warning: An update to ReleaseVersionMediaSection inside a test was not wrapped in act(...).
+
+When testing, code that causes React state updates should be wrapped into act(...):
+
+act(() => {
+  /* fire events that update state */
+});
+/* assert on the output */
+
+This ensures that you're testing the behavior the user would see in the browser. Learn more at https://reactjs.org/link/wrap-tests-with-act
+    at ReleaseVersionMediaSection (/app/src/app/admin/episode-versions/[versionId]/edit/ReleaseVersionMediaSection.tsx:65:3)
+
+stderr | src/app/admin/episode-versions/[versionId]/edit/ReleaseVersionMediaSection.test.tsx > ReleaseVersionMediaSection Phase 90 upload redesign > zeigt Pending und letzte Aktivität aus dem eigenen Lifecycle
+Warning: An update to ReleaseVersionMediaSection inside a test was not wrapped in act(...).
+
+When testing, code that causes React state updates should be wrapped into act(...):
+
+act(() => {
+  /* fire events that update state */
+});
+/* assert on the output */
+
+This ensures that you're testing the behavior the user would see in the browser. Learn more at https://reactjs.org/link/wrap-tests-with-act
+    at ReleaseVersionMediaSection (/app/src/app/admin/episode-versions/[versionId]/edit/ReleaseVersionMediaSection.tsx:65:3)
+Warning: An update to ReleaseVersionMediaSection inside a test was not wrapped in act(...).
+
+When testing, code that causes React state updates should be wrapped into act(...):
+
+act(() => {
+  /* fire events that update state */
+});
+/* assert on the output */
+
+This ensures that you're testing the behavior the user would see in the browser. Learn more at https://reactjs.org/link/wrap-tests-with-act
+    at ReleaseVersionMediaSection (/app/src/app/admin/episode-versions/[versionId]/edit/ReleaseVersionMediaSection.tsx:65:3)
+
+stderr | src/app/admin/episode-versions/[versionId]/edit/ReleaseVersionMediaSection.test.tsx > ReleaseVersionMediaSection Phase 90 upload redesign > zeigt Pending und letzte Aktivität aus dem eigenen Lifecycle
+Warning: An update to ReleaseVersionMediaSection inside a test was not wrapped in act(...).
+
+When testing, code that causes React state updates should be wrapped into act(...):
+
+act(() => {
+  /* fire events that update state */
+});
+/* assert on the output */
+
+This ensures that you're testing the behavior the user would see in the browser. Learn more at https://reactjs.org/link/wrap-tests-with-act
+    at ReleaseVersionMediaSection (/app/src/app/admin/episode-versions/[versionId]/edit/ReleaseVersionMediaSection.tsx:65:3)
+
+stderr | src/app/admin/episode-versions/[versionId]/edit/ReleaseVersionMediaSection.test.tsx > ReleaseVersionMediaSection Phase 90 upload redesign > blendet fremde offene Medien ohne passende Fähigkeit aus
+Warning: An update to ReleaseVersionMediaSection inside a test was not wrapped in act(...).
+
+When testing, code that causes React state updates should be wrapped into act(...):
+
+act(() => {
+  /* fire events that update state */
+});
+/* assert on the output */
+
+This ensures that you're testing the behavior the user would see in the browser. Learn more at https://reactjs.org/link/wrap-tests-with-act
+    at ReleaseVersionMediaSection (/app/src/app/admin/episode-versions/[versionId]/edit/ReleaseVersionMediaSection.tsx:65:3)
+Warning: An update to ReleaseVersionMediaSection inside a test was not wrapped in act(...).
+
+When testing, code that causes React state updates should be wrapped into act(...):
+
+act(() => {
+  /* fire events that update state */
+});
+/* assert on the output */
+
+This ensures that you're testing the behavior the user would see in the browser. Learn more at https://reactjs.org/link/wrap-tests-with-act
+    at ReleaseVersionMediaSection (/app/src/app/admin/episode-versions/[versionId]/edit/ReleaseVersionMediaSection.tsx:65:3)
+
+stderr | src/app/admin/episode-versions/[versionId]/edit/ReleaseVersionMediaSection.test.tsx > ReleaseVersionMediaSection Phase 90 upload redesign > blendet fremde offene Medien ohne passende Fähigkeit aus
+Warning: An update to ReleaseVersionMediaSection inside a test was not wrapped in act(...).
+
+When testing, code that causes React state updates should be wrapped into act(...):
+
+act(() => {
+  /* fire events that update state */
+});
+/* assert on the output */
+
+This ensures that you're testing the behavior the user would see in the browser. Learn more at https://reactjs.org/link/wrap-tests-with-act
+    at ReleaseVersionMediaSection (/app/src/app/admin/episode-versions/[versionId]/edit/ReleaseVersionMediaSection.tsx:65:3)
+
+stderr | src/app/admin/episode-versions/[versionId]/edit/ReleaseVersionMediaSection.test.tsx > ReleaseVersionMediaSection Phase 90 upload redesign > marks the current preview persistently on its card and exposes the removal action
+Warning: An update to ReleaseVersionMediaSection inside a test was not wrapped in act(...).
+
+When testing, code that causes React state updates should be wrapped into act(...):
+
+act(() => {
+  /* fire events that update state */
+});
+/* assert on the output */
+
+This ensures that you're testing the behavior the user would see in the browser. Learn more at https://reactjs.org/link/wrap-tests-with-act
+    at ReleaseVersionMediaSection (/app/src/app/admin/episode-versions/[versionId]/edit/ReleaseVersionMediaSection.tsx:65:3)
+Warning: An update to ReleaseVersionMediaSection inside a test was not wrapped in act(...).
+
+When testing, code that causes React state updates should be wrapped into act(...):
+
+act(() => {
+  /* fire events that update state */
+});
+/* assert on the output */
+
+This ensures that you're testing the behavior the user would see in the browser. Learn more at https://reactjs.org/link/wrap-tests-with-act
+    at ReleaseVersionMediaSection (/app/src/app/admin/episode-versions/[versionId]/edit/ReleaseVersionMediaSection.tsx:65:3)
+
+stderr | src/app/admin/episode-versions/[versionId]/edit/ReleaseVersionMediaSection.test.tsx > ReleaseVersionMediaSection Phase 90 upload redesign > marks the current preview persistently on its card and exposes the removal action
+Warning: An update to ReleaseVersionMediaSection inside a test was not wrapped in act(...).
+
+When testing, code that causes React state updates should be wrapped into act(...):
+
+act(() => {
+  /* fire events that update state */
+});
+/* assert on the output */
+
+This ensures that you're testing the behavior the user would see in the browser. Learn more at https://reactjs.org/link/wrap-tests-with-act
+    at ReleaseVersionMediaSection (/app/src/app/admin/episode-versions/[versionId]/edit/ReleaseVersionMediaSection.tsx:65:3)
+
+stderr | src/app/admin/episode-versions/[versionId]/edit/ReleaseVersionMediaSection.test.tsx > ReleaseVersionMediaSection Phase 90 upload redesign > hides preview selection for ineligible and readonly media
+Warning: An update to ReleaseVersionMediaSection inside a test was not wrapped in act(...).
+
+When testing, code that causes React state updates should be wrapped into act(...):
+
+act(() => {
+  /* fire events that update state */
+});
+/* assert on the output */
+
+This ensures that you're testing the behavior the user would see in the browser. Learn more at https://reactjs.org/link/wrap-tests-with-act
+    at ReleaseVersionMediaSection (/app/src/app/admin/episode-versions/[versionId]/edit/ReleaseVersionMediaSection.tsx:65:3)
+Warning: An update to ReleaseVersionMediaSection inside a test was not wrapped in act(...).
+
+When testing, code that causes React state updates should be wrapped into act(...):
+
+act(() => {
+  /* fire events that update state */
+});
+/* assert on the output */
+
+This ensures that you're testing the behavior the user would see in the browser. Learn more at https://reactjs.org/link/wrap-tests-with-act
+    at ReleaseVersionMediaSection (/app/src/app/admin/episode-versions/[versionId]/edit/ReleaseVersionMediaSection.tsx:65:3)
+
+stderr | src/app/admin/episode-versions/[versionId]/edit/ReleaseVersionMediaSection.test.tsx > ReleaseVersionMediaSection Phase 90 upload redesign > hides preview selection for ineligible and readonly media
+Warning: An update to ReleaseVersionMediaSection inside a test was not wrapped in act(...).
+
+When testing, code that causes React state updates should be wrapped into act(...):
+
+act(() => {
+  /* fire events that update state */
+});
+/* assert on the output */
+
+This ensures that you're testing the behavior the user would see in the browser. Learn more at https://reactjs.org/link/wrap-tests-with-act
+    at ReleaseVersionMediaSection (/app/src/app/admin/episode-versions/[versionId]/edit/ReleaseVersionMediaSection.tsx:65:3)
+
+stderr | src/app/admin/episode-versions/[versionId]/edit/ReleaseVersionMediaSection.test.tsx > ReleaseVersionMediaSection Phase 90 upload redesign > keeps failed upload retry rows inside the upload sheet
+Warning: An update to ReleaseVersionMediaSection inside a test was not wrapped in act(...).
+
+When testing, code that causes React state updates should be wrapped into act(...):
+
+act(() => {
+  /* fire events that update state */
+});
+/* assert on the output */
+
+This ensures that you're testing the behavior the user would see in the browser. Learn more at https://reactjs.org/link/wrap-tests-with-act
+    at ReleaseVersionMediaSection (/app/src/app/admin/episode-versions/[versionId]/edit/ReleaseVersionMediaSection.tsx:65:3)
+Warning: An update to ReleaseVersionMediaSection inside a test was not wrapped in act(...).
+
+When testing, code that causes React state updates should be wrapped into act(...):
+
+act(() => {
+  /* fire events that update state */
+});
+/* assert on the output */
+
+This ensures that you're testing the behavior the user would see in the browser. Learn more at https://reactjs.org/link/wrap-tests-with-act
+    at ReleaseVersionMediaSection (/app/src/app/admin/episode-versions/[versionId]/edit/ReleaseVersionMediaSection.tsx:65:3)
+
+stderr | src/app/admin/episode-versions/[versionId]/edit/ReleaseVersionMediaSection.test.tsx > ReleaseVersionMediaSection Phase 90 upload redesign > keeps failed upload retry rows inside the upload sheet
+Warning: An update to ReleaseVersionMediaSection inside a test was not wrapped in act(...).
+
+When testing, code that causes React state updates should be wrapped into act(...):
+
+act(() => {
+  /* fire events that update state */
+});
+/* assert on the output */
+
+This ensures that you're testing the behavior the user would see in the browser. Learn more at https://reactjs.org/link/wrap-tests-with-act
+    at ReleaseVersionMediaSection (/app/src/app/admin/episode-versions/[versionId]/edit/ReleaseVersionMediaSection.tsx:65:3)
+
+stderr | src/components/layout/AppShell.test.tsx > AppShell drawer behavior > logs out signed-in members from the drawer footer
+Error: Not implemented: navigation (except hash changes)
+    at module.exports (/app/node_modules/jsdom/lib/jsdom/browser/not-implemented.js:9:17)
+    at navigateFetch (/app/node_modules/jsdom/lib/jsdom/living/window/navigation.js:77:3)
+    at exports.navigate (/app/node_modules/jsdom/lib/jsdom/living/window/navigation.js:55:3)
+    at Timeout._onTimeout (/app/node_modules/jsdom/lib/jsdom/living/nodes/HTMLHyperlinkElementUtils-impl.js:80:7)
+    at listOnTimeout (node:internal/timers:581:17)
+    at processTimers (node:internal/timers:519:7) [90mundefined[39m
+
+stderr | src/components/layout/AppShell.test.tsx > AppShell drawer behavior > logs out signed-in members from the drawer footer
+Error: Not implemented: navigation (except hash changes)
+    at module.exports (/app/node_modules/jsdom/lib/jsdom/browser/not-implemented.js:9:17)
+    at navigateFetch (/app/node_modules/jsdom/lib/jsdom/living/window/navigation.js:77:3)
+    at exports.navigate (/app/node_modules/jsdom/lib/jsdom/living/window/navigation.js:55:3)
+    at Timeout._onTimeout (/app/node_modules/jsdom/lib/jsdom/living/nodes/HTMLHyperlinkElementUtils-impl.js:80:7)
+    at listOnTimeout (node:internal/timers:581:17)
+    at processTimers (node:internal/timers:519:7) [90mundefined[39m
+
+stderr | src/components/ui/FocalCarousel.test.tsx > FocalCarousel > erzwingt während freiem Maus- oder Touch-Scrollen kein erneutes Zentrieren
+Warning: An update to FocalCarousel inside a test was not wrapped in act(...).
+
+When testing, code that causes React state updates should be wrapped into act(...):
+
+act(() => {
+  /* fire events that update state */
+});
+/* assert on the output */
+
+This ensures that you're testing the behavior the user would see in the browser. Learn more at https://reactjs.org/link/wrap-tests-with-act
+    at FocalCarousel (/app/src/components/ui/FocalCarousel.tsx:16:5)
+
+stderr | src/components/ui/FocalCarousel.test.tsx > FocalCarousel Phase 119 shared interaction contract > leaves vertical page scrolling untouched while handling horizontal wheel gestures
+Warning: An update to FocalCarousel inside a test was not wrapped in act(...).
+
+When testing, code that causes React state updates should be wrapped into act(...):
+
+act(() => {
+  /* fire events that update state */
+});
+/* assert on the output */
+
+This ensures that you're testing the behavior the user would see in the browser. Learn more at https://reactjs.org/link/wrap-tests-with-act
+    at FocalCarousel (/app/src/components/ui/FocalCarousel.tsx:16:5)
+Warning: An update to FocalCarousel inside a test was not wrapped in act(...).
+
+When testing, code that causes React state updates should be wrapped into act(...):
+
+act(() => {
+  /* fire events that update state */
+});
+/* assert on the output */
+
+This ensures that you're testing the behavior the user would see in the browser. Learn more at https://reactjs.org/link/wrap-tests-with-act
+    at FocalCarousel (/app/src/components/ui/FocalCarousel.tsx:16:5)
+
+stderr | src/app/members/[slug]/page.test.tsx > MemberProfilePage Phase 99 route composition > renders the locked Hero B and Rhythm C heading hierarchy in DOM order
+Warning: Received `false` for a non-boolean attribute `priority`.
+
+If you want to write it to the DOM, pass a string instead: priority="false" or priority={value.toString()}.
+
+If you used to conditionally omit it with priority={condition && value}, pass priority={condition ? value : undefined} instead.
+    at img
+    at default (/app/src/app/members/[slug]/page.test.tsx:65:15)
+    at ResponsiveImage (/app/src/components/ui/ResponsiveImage.tsx:9:28)
+    at span
+    at AchievementArtwork (/app/src/components/profile/AchievementArtwork.tsx:12:3)
+    at section
+    at Card (/app/src/components/ui/Card.tsx:9:3)
+    at div
+    at RoleAchievementCardComponent (/app/src/components/profile/RoleAchievementCard.tsx:37:3)
+    at div
+    at DirectCarouselItemInner (/app/src/components/ui/FocalCarouselInternals.tsx:23:3)
+    at div
+    at div
+    at div
+    at div
+    at CollapsedCarousel (/app/src/components/ui/FocalCarouselInternals.tsx:131:3)
+    at FocalCarousel (/app/src/components/ui/FocalCarousel.tsx:16:5)
+    at div
+    at div
+    at div
+    at section
+    at Card (/app/src/components/ui/Card.tsx:9:3)
+    at section
+    at MemberBadgeChain (/app/src/components/profile/MemberBadgeChain.tsx:83:3)
+    at div
+    at main
+    at MemberProfileContent (/app/src/app/members/[slug]/MemberProfileContent.tsx:31:3)
+
+stderr | src/app/admin/fansubs/[id]/edit/ReadinessTab.test.tsx > ReadinessTab — Capability-Gating (Req F) > rendert keinen verwertbaren Readiness-Inhalt bei reiner Mitgliedschaft (nur can_view_members=true, can_edit_group=false)
+Warning: An update to ReadinessTab inside a test was not wrapped in act(...).
+
+When testing, code that causes React state updates should be wrapped into act(...):
+
+act(() => {
+  /* fire events that update state */
+});
+/* assert on the output */
+
+This ensures that you're testing the behavior the user would see in the browser. Learn more at https://reactjs.org/link/wrap-tests-with-act
+    at ReadinessTab (/app/src/app/admin/fansubs/[id]/edit/ReadinessTab.tsx:38:25)
+Warning: An update to ReadinessTab inside a test was not wrapped in act(...).
+
+When testing, code that causes React state updates should be wrapped into act(...):
+
+act(() => {
+  /* fire events that update state */
+});
+/* assert on the output */
+
+This ensures that you're testing the behavior the user would see in the browser. Learn more at https://reactjs.org/link/wrap-tests-with-act
+    at ReadinessTab (/app/src/app/admin/fansubs/[id]/edit/ReadinessTab.tsx:38:25)
+Warning: An update to ReadinessTab inside a test was not wrapped in act(...).
+
+When testing, code that causes React state updates should be wrapped into act(...):
+
+act(() => {
+  /* fire events that update state */
+});
+/* assert on the output */
+
+This ensures that you're testing the behavior the user would see in the browser. Learn more at https://reactjs.org/link/wrap-tests-with-act
+    at ReadinessTab (/app/src/app/admin/fansubs/[id]/edit/ReadinessTab.tsx:38:25)
+Warning: An update to ReadinessTab inside a test was not wrapped in act(...).
+
+When testing, code that causes React state updates should be wrapped into act(...):
+
+act(() => {
+  /* fire events that update state */
+});
+/* assert on the output */
+
+This ensures that you're testing the behavior the user would see in the browser. Learn more at https://reactjs.org/link/wrap-tests-with-act
+    at ReadinessTab (/app/src/app/admin/fansubs/[id]/edit/ReadinessTab.tsx:38:25)
+Warning: An update to ReadinessTab inside a test was not wrapped in act(...).
+
+When testing, code that causes React state updates should be wrapped into act(...):
+
+act(() => {
+  /* fire events that update state */
+});
+/* assert on the output */
+
+This ensures that you're testing the behavior the user would see in the browser. Learn more at https://reactjs.org/link/wrap-tests-with-act
+    at ReadinessTab (/app/src/app/admin/fansubs/[id]/edit/ReadinessTab.tsx:38:25)
+Warning: An update to ReadinessTab inside a test was not wrapped in act(...).
+
+When testing, code that causes React state updates should be wrapped into act(...):
+
+act(() => {
+  /* fire events that update state */
+});
+/* assert on the output */
+
+This ensures that you're testing the behavior the user would see in the browser. Learn more at https://reactjs.org/link/wrap-tests-with-act
+    at ReadinessTab (/app/src/app/admin/fansubs/[id]/edit/ReadinessTab.tsx:38:25)
+
+stderr | src/app/admin/fansubs/[id]/edit/ReadinessTab.test.tsx > ReadinessTab — Preview read-only (Req I) > rendert ohne Speichern-Button und ohne onSave-gesteuerte Interaktionen
+Warning: An update to ReadinessTab inside a test was not wrapped in act(...).
+
+When testing, code that causes React state updates should be wrapped into act(...):
+
+act(() => {
+  /* fire events that update state */
+});
+/* assert on the output */
+
+This ensures that you're testing the behavior the user would see in the browser. Learn more at https://reactjs.org/link/wrap-tests-with-act
+    at ReadinessTab (/app/src/app/admin/fansubs/[id]/edit/ReadinessTab.tsx:38:25)
+Warning: An update to ReadinessTab inside a test was not wrapped in act(...).
+
+When testing, code that causes React state updates should be wrapped into act(...):
+
+act(() => {
+  /* fire events that update state */
+});
+/* assert on the output */
+
+This ensures that you're testing the behavior the user would see in the browser. Learn more at https://reactjs.org/link/wrap-tests-with-act
+    at ReadinessTab (/app/src/app/admin/fansubs/[id]/edit/ReadinessTab.tsx:38:25)
+Warning: An update to ReadinessTab inside a test was not wrapped in act(...).
+
+When testing, code that causes React state updates should be wrapped into act(...):
+
+act(() => {
+  /* fire events that update state */
+});
+/* assert on the output */
+
+This ensures that you're testing the behavior the user would see in the browser. Learn more at https://reactjs.org/link/wrap-tests-with-act
+    at ReadinessTab (/app/src/app/admin/fansubs/[id]/edit/ReadinessTab.tsx:38:25)
+Warning: An update to ReadinessTab inside a test was not wrapped in act(...).
+
+When testing, code that causes React state updates should be wrapped into act(...):
+
+act(() => {
+  /* fire events that update state */
+});
+/* assert on the output */
+
+This ensures that you're testing the behavior the user would see in the browser. Learn more at https://reactjs.org/link/wrap-tests-with-act
+    at ReadinessTab (/app/src/app/admin/fansubs/[id]/edit/ReadinessTab.tsx:38:25)
+Warning: An update to ReadinessTab inside a test was not wrapped in act(...).
+
+When testing, code that causes React state updates should be wrapped into act(...):
+
+act(() => {
+  /* fire events that update state */
+});
+/* assert on the output */
+
+This ensures that you're testing the behavior the user would see in the browser. Learn more at https://reactjs.org/link/wrap-tests-with-act
+    at ReadinessTab (/app/src/app/admin/fansubs/[id]/edit/ReadinessTab.tsx:38:25)
+Warning: An update to ReadinessTab inside a test was not wrapped in act(...).
+
+When testing, code that causes React state updates should be wrapped into act(...):
+
+act(() => {
+  /* fire events that update state */
+});
+/* assert on the output */
+
+This ensures that you're testing the behavior the user would see in the browser. Learn more at https://reactjs.org/link/wrap-tests-with-act
+    at ReadinessTab (/app/src/app/admin/fansubs/[id]/edit/ReadinessTab.tsx:38:25)
+
+stderr | src/app/admin/users/tabs/UserMediaTab.test.tsx > UserMediaTab > rendert genau einen Block mit Sub-line-Text und beiden Items, nie "release_version:"
+Warning: Received `false` for a non-boolean attribute `unoptimized`.
+
+If you want to write it to the DOM, pass a string instead: unoptimized="false" or unoptimized={value.toString()}.
+
+If you used to conditionally omit it with unoptimized={condition && value}, pass unoptimized={condition ? value : undefined} instead.
+    at img
+    at default (/app/src/app/admin/users/tabs/UserMediaTab.test.tsx:13:15)
+    at ResponsiveImage (/app/src/components/ui/ResponsiveImage.tsx:9:28)
+    at div
+    at div
+    at MediaItemRow (/app/src/app/admin/users/tabs/UserMediaTab.tsx:42:25)
+    at div
+    at section
+    at Card (/app/src/components/ui/Card.tsx:9:3)
+    at ReleaseBlockCard (/app/src/app/admin/users/tabs/UserMediaTab.tsx:92:29)
+    at div
+    at div
+    at UserMediaTab (/app/src/app/admin/users/tabs/UserMediaTab.tsx:152:25)
+
+stderr | src/components/admin/MediaUpload.test.tsx > MediaUpload > uploads group media without forwarding token-shaped props and keeps progress visible
+Warning: An update to MediaUpload inside a test was not wrapped in act(...).
+
+When testing, code that causes React state updates should be wrapped into act(...):
+
+act(() => {
+  /* fire events that update state */
+});
+/* assert on the output */
+
+This ensures that you're testing the behavior the user would see in the browser. Learn more at https://reactjs.org/link/wrap-tests-with-act
+    at MediaUpload (/app/src/components/admin/MediaUpload.tsx:164:24)
+
+stderr | src/app/admin/fansubs/[id]/edit/FansubEditClient.test.tsx > FansubEditClient — Claims-Link-out (D-06/D-09/D-34) > rendert einen Link zur zentralen Claims-Fläche für Plattform-Admins im collaboration-Tab
+Warning: An update to FansubEditClient inside a test was not wrapped in act(...).
+
+When testing, code that causes React state updates should be wrapped into act(...):
+
+act(() => {
+  /* fire events that update state */
+});
+/* assert on the output */
+
+This ensures that you're testing the behavior the user would see in the browser. Learn more at https://reactjs.org/link/wrap-tests-with-act
+    at FansubEditClient (/app/src/app/admin/fansubs/[id]/edit/FansubEditClient.tsx:43:3)
+
+stderr | src/app/admin/fansubs/[id]/edit/FansubEditClient.test.tsx > FansubEditClient — Claims-Link-out (D-06/D-09/D-34) > rendert keinen Claims-Link außerhalb des collaboration-Tabs
+Warning: An update to FansubEditClient inside a test was not wrapped in act(...).
+
+When testing, code that causes React state updates should be wrapped into act(...):
+
+act(() => {
+  /* fire events that update state */
+});
+/* assert on the output */
+
+This ensures that you're testing the behavior the user would see in the browser. Learn more at https://reactjs.org/link/wrap-tests-with-act
+    at FansubEditClient (/app/src/app/admin/fansubs/[id]/edit/FansubEditClient.tsx:43:3)
+
+stderr | src/app/admin/fansubs/[id]/edit/FansubEditClient.test.tsx > FansubEditClient — Claims-Link-out (D-06/D-09/D-34) > rendert keinen Claims-Link für Nicht-Plattform-Admins (Ziel liegt hinter PlatformAdminGate)
+Warning: An update to FansubEditClient inside a test was not wrapped in act(...).
+
+When testing, code that causes React state updates should be wrapped into act(...):
+
+act(() => {
+  /* fire events that update state */
+});
+/* assert on the output */
+
+This ensures that you're testing the behavior the user would see in the browser. Learn more at https://reactjs.org/link/wrap-tests-with-act
+    at FansubEditClient (/app/src/app/admin/fansubs/[id]/edit/FansubEditClient.tsx:43:3)
+
+stderr | src/lib/api.session-switch.test.ts > runtime session switch signaling > resyncs token-free session snapshots on storage, custom, focus, and visibility events
+Warning: An update to TestComponent inside a test was not wrapped in act(...).
+
+When testing, code that causes React state updates should be wrapped into act(...):
+
+act(() => {
+  /* fire events that update state */
+});
+/* assert on the output */
+
+This ensures that you're testing the behavior the user would see in the browser. Learn more at https://reactjs.org/link/wrap-tests-with-act
+    at TestComponent (/app/node_modules/@testing-library/react/dist/pure.js:328:5)
+
+stderr | src/lib/api.session-switch.test.ts > runtime session switch signaling > resyncs token-free session snapshots on storage, custom, focus, and visibility events
+Warning: An update to TestComponent inside a test was not wrapped in act(...).
+
+When testing, code that causes React state updates should be wrapped into act(...):
+
+act(() => {
+  /* fire events that update state */
+});
+/* assert on the output */
+
+This ensures that you're testing the behavior the user would see in the browser. Learn more at https://reactjs.org/link/wrap-tests-with-act
+    at TestComponent (/app/node_modules/@testing-library/react/dist/pure.js:328:5)
+
+stderr | src/lib/api.session-switch.test.ts > runtime session switch signaling > resyncs token-free session snapshots on storage, custom, focus, and visibility events
+Warning: An update to TestComponent inside a test was not wrapped in act(...).
+
+When testing, code that causes React state updates should be wrapped into act(...):
+
+act(() => {
+  /* fire events that update state */
+});
+/* assert on the output */
+
+This ensures that you're testing the behavior the user would see in the browser. Learn more at https://reactjs.org/link/wrap-tests-with-act
+    at TestComponent (/app/node_modules/@testing-library/react/dist/pure.js:328:5)
+
+stderr | src/app/layout.test.tsx > app/layout > loads all public contexts once and mounts one provider for leaf consumers
+Warning: validateDOMNesting(...): <html> cannot appear as a child of <div>.
+    at html
+
+
+⎯⎯⎯⎯⎯⎯⎯ Failed Tests 2 ⎯⎯⎯⎯⎯⎯⎯
+
+ FAIL  src/lib/cssCustomProperties.guard.test.ts > cssCustomProperties scanner (real frontend/src tree) > finds zero fallback-free dead custom-property references on the real, fixed tree (Success Criterion 1)
+AssertionError: Dead custom-property references found:
+--surface-muted at lib/roleCatalog.accessibility.test.ts:268 (no fallback): expected [ { …(5) } ] to deeply equal []
+
+[32m- Expected[39m
+[31m+ Received[39m
+
+[32m- [][39m
+[31m+ [[39m
+[31m+   {[39m
+[31m+     "fallbackVarName": undefined,[39m
+[31m+     "file": "lib/roleCatalog.accessibility.test.ts",[39m
+[31m+     "hasFallback": false,[39m
+[31m+     "line": 268,[39m
+[31m+     "name": "--surface-muted",[39m
+[31m+   },[39m
+[31m+ ][39m
+
+ ❯ src/lib/cssCustomProperties.guard.test.ts:138:72
+    136|       .join('\n')
+    137|
+    138|     expect(dead, `Dead custom-property references found:\n${message}`)…
+       |                                                                        ^
+    139|   })
+    140|
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[1/2]⎯
+
+ FAIL  src/lib/cssCustomProperties.guard.test.ts > cssCustomProperties scanner (real frontend/src tree) > the known-non-CSS-textual-mentions allow-list stays exactly as small as documented (no silent growth)
+AssertionError: expected +0 to be 1 // Object.is equality
+
+[32m- Expected[39m
+[31m+ Received[39m
+
+[32m- 1[39m
+[31m+ 0[39m
+
+ ❯ src/lib/cssCustomProperties.guard.test.ts:142:42
+    140|
+    141|   it('the known-non-CSS-textual-mentions allow-list stays exactly as s…
+    142|     expect(rawDead.length - dead.length).toBe(KNOWN_NON_CSS_TEXTUAL_ME…
+       |                                          ^
+    143|   })
+    144|
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[2/2]⎯

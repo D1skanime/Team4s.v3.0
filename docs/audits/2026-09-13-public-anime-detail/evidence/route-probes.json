@@ -1,0 +1,61 @@
+{
+  "measuredAt": "2026-09-13T16:50:26.272172+00:00",
+  "requests": [
+    {
+      "path": "/anime/1",
+      "status": 200,
+      "title": [
+        "Team4s v3.0"
+      ],
+      "h1": [
+        "Buddy Complex"
+      ],
+      "canonical": [],
+      "robots": [],
+      "errorPhrases": [
+        "Buddy Complex"
+      ]
+    },
+    {
+      "path": "/anime/1abc",
+      "status": 200,
+      "title": [
+        "Team4s v3.0"
+      ],
+      "h1": [
+        "Buddy Complex"
+      ],
+      "canonical": [],
+      "robots": [],
+      "errorPhrases": [
+        "Buddy Complex"
+      ]
+    },
+    {
+      "path": "/anime/buddy-complex",
+      "status": 200,
+      "title": [
+        "Team4s v3.0"
+      ],
+      "h1": [],
+      "canonical": [],
+      "robots": [],
+      "errorPhrases": [
+        "Ungültige Anime-ID"
+      ]
+    },
+    {
+      "path": "/anime/999999999",
+      "status": 200,
+      "title": [
+        "Team4s v3.0"
+      ],
+      "h1": [],
+      "canonical": [],
+      "robots": [],
+      "errorPhrases": [
+        "Anime nicht gefunden"
+      ]
+    }
+  ]
+}

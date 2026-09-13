@@ -2,19 +2,25 @@
 gsd_state_version: 1.0
 milestone: v1.4
 milestone_name: Coverage
-status: executing
-stopped_at: Completed 157-10-PLAN.md (GAP-01 closure; Phase 157 human Live-UAT sign-off still pending)
-last_updated: "2026-09-13T11:46:27.497Z"
+status: planning
+stopped_at: Planning Phase 158; Phase 159 gated on technical verification of 158; Human-UAT 156/157 remains OPEN
+last_updated: '2026-09-13T20:13:45.146Z'
 last_activity: 2026-09-13
 progress:
-  total_phases: 22
+  total_phases: 24
   completed_phases: 21
-  total_plans: 216
+  total_plans: 225
   completed_plans: 216
-  percent: 95
+  percent: 88
 ---
 
 # Project State
+
+## Aktiver Zusatzauftrag — Anime158/159 (13.09.2026)
+
+Genau zwei Phasen wurden über scripts/gsd-linux.sh additiv angelegt:158-public-anime-detail-reparatur und159-public-anime-detail-konsolidierung. Aktiver Schritt ist die Planung158.159 wird erst nach vollständiger Implementierung und technischer Verifikation158 ausgeführt. Der158-Ausgangscommit ist7c7e1c7d02ac870e7c68c02b66fd7f4b33f36b85; der Produktstand entspricht dem Audit. GSD-init-progress mit129 ist eine historische Summary-/Parserabweichung und wird nicht als heutige Phase verwendet. PROJECT bleibt als älteres Dokument im Delta-Bericht eingeordnet; kein Milestone-Reset.
+
+Human-UAT156GAP-02 mit14Origin-/Contributorchecks und157-06 Task4 bleiben ausdrücklichOPEN. Neue Planung oder automatisierte Verifikation erteilt diesen Sign-off nicht. Die folgenden älteren Current-Position-/Milestoneabschnitte bleiben als Historie unverändert. Verbindlicher neuer Scope:158/159-USER-REQUEST,CONTEXT,VALIDATION sowie die offenen Anforderungszeilen in REQUIREMENTS. Keine Produkt-/DB-/Testdatenänderung durch dieses Grundgerüst.
 
 ## Milestone v1.3: COMPLETE (2026-08-20, tag `v1.3`)
 
@@ -660,6 +666,8 @@ Last activity: 2026-09-13
 ## Accumulated Context
 
 ### Roadmap Evolution
+
+- 2026-09-13: Genau158 (Public Anime Detail Reparatur) und159 (Konsolidierung) additiv angelegt.159 folgt erst nach dem technischen158-Gate. Human-UAT156/157 bleibt offen. Keine Produktänderung oder DBwrites durch Planung.
 
 - Phase 151 current reviewed structure: 5 plans / 3 waves. Plans 151-01/02/03 are Wave 1, CSS consolidation 151-04 is Wave 2, gallery/evidence/signoff 151-05 is Wave 3. This is the existing plan structure; no replan was performed during pause. Implementation paused by user for handoff on 2026-09-07.
 

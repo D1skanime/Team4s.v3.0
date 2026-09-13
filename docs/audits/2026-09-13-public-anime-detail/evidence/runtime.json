@@ -1,0 +1,813 @@
+[
+  {
+    "name": "mobile",
+    "width": 390,
+    "height": 844,
+    "startedAt": "2026-09-13T16:44:01.394Z",
+    "finishedAt": "2026-09-13T16:44:38.233Z",
+    "httpStatus": 200,
+    "initialDOM": {
+      "title": "Team4s v3.0",
+      "heading": "Buddy Complex",
+      "htmlBytes": 111325,
+      "text": "T4\nTeam4s\nPlattform\nNavigation\nT4\nTeam4s\nPlattform\n\nENTDECKEN\n\nAnime entdecken\nRangliste\nFansub-Gruppen\nSuche\nAnmelden\nAnime\nBuddy Complex\n★\n7.8\n0\n13 Episodes\nAnmeldung erforderlich\nBuddy Complex\nABGESCHLOSSEN\nTV\nANIME\n2014\n\nIm Jahr 2088 befinden sich die Free Treaty Alliance und die Great Zogilia Republic in einem verbitterten Krieg miteinander. Die Kämpfe werden mit fortschrittlichen Mecha-Anzügen geführt, die Valiancer genannt werden, und fordern große Verluste. Bis jetzt konnte keine Fraktion den Krieg für sich entscheiden. Aus unbekannten Gründen möchten die Soldaten der Great Zogilia Prebublic 70 Jahre in der Vergangenheit den gewöhnlichen Oberschüler Aoba Watasa ermorden. Seine Klassenkameradin Hina Yumihara ist insgeheim jedoch ebenso aus der Zukunft und beschützt ihn mittels ihres eigenen Valiancer. Sie nimmt ihn mit in ihre Zeit und er wird mit dem Valiancer namens Luxon ausgestattet, mit dem er bei der Verteidigung der Free Treaty Alliance Unterstützung leisten soll. Zusammen mit dem erfahrenen Piloten Dio Weinberg absolviert er daraufhin sogleich ein erfolgreiches Gefecht und sieht sich plötzlich in einen Krieg aus einer anderen Zeit hineingezogen, der ihm bisher gänzlich unbekannt war …\n\n0 Views\nEpisoden (13)\nNew-Subs\nNew-Subs\n\n2012 bis 2015 • Deutschland • aufgelöst\n\nNew-Subs\nGruppenbereich\n\nFolge 1\n\nBegegnung\n\n+1 VERSION\n\nFolge 2\n\nNice Coupling\n\n+1 VERSION\n\nFolge 3\n\nWiedersehen\n\n+1 VERSION\n\nFolge 4\n\nZeit für Entschlossenheit\n\n+1 VERSION\n\nFolge 5\n\nNarbe\n\n+1 VERSION\n\nFolge 6\n\nEin weiterer Coupler\n\n+1 VERSION\n\nFolge 7\n\nBuddy\n\n+1 VERSION\n\nFolge 8\n\nStürmische Nacht\n\n+1 VERSION\n\nFolge 9\n\nCoupling System\n\n+1 VERSION\n\nFolge 10\n\nVater und Kind\n\n+1 VERSION\n\nFolge 11\n\nDie Wahrheit\n\n+1 VERSION\n\nFolge 12\n\nDas Band zwischen ihnen\n\n+1 VERSION\n\nFolge 13\n\nAcception\n\n+1 VERSION\nMitwirkende Gruppen\n\nNoch keine Mitwirkenden eingetragen.\n\nKommentare (0)\nKommentar schreiben\n\nAngemeldet als: nicht angemeldet\n\nKommentar\nAnmeldung erforderlich\nNoch keine Kommentare vorhanden.",
+      "links": [
+        {
+          "label": "Anime",
+          "href": "/anime"
+        },
+        {
+          "label": "New-Subs",
+          "href": "/fansubs/new-subs"
+        },
+        {
+          "label": "New-Subs",
+          "href": "/fansubs/new-subs"
+        },
+        {
+          "label": "Gruppenbereich",
+          "href": "/anime/1/group/1"
+        }
+      ],
+      "images": [
+        {
+          "src": "http://192.168.235.196:18092/api/v1/media/image?item_id=46523903e0af5022d78af0368d89b805&kind=primary&provider=jellyfin",
+          "alt": "Buddy Complex",
+          "width": 1000,
+          "height": 1426,
+          "loading": "auto"
+        },
+        {
+          "src": "http://192.168.235.196:18092/api/v1/media/image?item_id=46523903e0af5022d78af0368d89b805&kind=logo&provider=jellyfin&width=760&quality=90",
+          "alt": "Buddy Complex Logo",
+          "width": 760,
+          "height": 294,
+          "loading": "lazy"
+        },
+        {
+          "src": "http://192.168.235.196:18092/api/v1/media/image?item_id=46523903e0af5022d78af0368d89b805&kind=banner&provider=jellyfin&width=1280&quality=86",
+          "alt": "",
+          "width": 1000,
+          "height": 185,
+          "loading": "lazy"
+        },
+        {
+          "src": "http://127.0.0.1:3300/api/v1/media/files/logo_1787928990830_d3b5184c5dc28cca.png",
+          "alt": "",
+          "width": 512,
+          "height": 512,
+          "loading": "lazy"
+        }
+      ],
+      "overflow": true,
+      "navigation": [
+        {
+          "ttfb": 160.70000004768372,
+          "domReady": 245.59999990463257,
+          "load": 2096.0999999046326,
+          "encodedBytes": 26355
+        }
+      ]
+    },
+    "afterIdle": {
+      "images": [
+        "http://192.168.235.196:18092/api/v1/media/image?item_id=46523903e0af5022d78af0368d89b805&kind=primary&provider=jellyfin",
+        "http://192.168.235.196:18092/api/v1/media/image?item_id=46523903e0af5022d78af0368d89b805&kind=logo&provider=jellyfin&width=760&quality=90",
+        "http://192.168.235.196:18092/api/v1/media/image?item_id=46523903e0af5022d78af0368d89b805&kind=banner&provider=jellyfin&width=1280&quality=86",
+        "http://127.0.0.1:3300/api/v1/media/files/logo_1787928990830_d3b5184c5dc28cca.png"
+      ],
+      "text": "T4\nTeam4s\nPlattform\nNavigation\nT4\nTeam4s\nPlattform\n\nENTDECKEN\n\nAnime entdecken\nRangliste\nFansub-Gruppen\nSuche\nAnmelden\nAnime\nBuddy Complex\n★\n7.8\n0\n13 Episodes\nAnmeldung erforderlich\nBuddy Complex\nABGESCHLOSSEN\nTV\nANIME\n2014\n\nIm Jahr 2088 befinden sich die Free Treaty Alliance und die Great Zogilia Republic in einem verbitterten Krieg miteinander. Die Kämpfe werden mit fortschrittlichen Mecha-Anzügen geführt, die Valiancer genannt werden, und fordern große Verluste. Bis jetzt konnte keine Fraktion den Krieg für sich entscheiden. Aus unbekannten Gründen möchten die Soldaten der Great Zogilia Prebublic 70 Jahre in der Vergangenheit den gewöhnlichen Oberschüler Aoba Watasa ermorden. Seine Klassenkameradin Hina Yumihara ist insgeheim jedoch ebenso aus der Zukunft und beschützt ihn mittels ihres eigenen Valiancer. Sie nimmt ihn mit in ihre Zeit und er wird mit dem Valiancer namens Luxon ausgestattet, mit dem er bei der Verteidigung der Free Treaty Alliance Unterstützung leisten soll. Zusammen mit dem erfahrenen Piloten Dio Weinberg absolviert er daraufhin sogleich ein erfolgreiches Gefecht und sieht sich plötzlich in einen Krieg aus einer anderen Zeit hineingezogen, der ihm bisher gänzlich unbekannt war …\n\n0 Views\nEpisoden (13)\nNew-Subs\nNew-Subs\n\n2012 bis 2015 • Deutschland • aufgelöst\n\nNew-Subs\nGruppenbereich\n\nFolge 1\n\nBegegnung\n\n+1 VERSION\n\nFolge 2\n\nNice Coupling\n\n+1 VERSION\n\nFolge 3\n\nWiedersehen\n\n+1 VERSION\n\nFolge 4\n\nZeit für Entschlossenheit\n\n+1 VERSION\n\nFolge 5\n\nNarbe\n\n+1 VERSION\n\nFolge 6\n\nEin weiterer Coupler\n\n+1 VERSION\n\nFolge 7\n\nBuddy\n\n+1 VERSION\n\nFolge 8\n\nStürmische Nacht\n\n+1 VERSION\n\nFolge 9\n\nCoupling System\n\n+1 VERSION\n\nFolge 10\n\nVater und Kind\n\n+1 VERSION\n\nFolge 11\n\nDie Wahrheit\n\n+1 VERSION\n\nFolge 12\n\nDas Band zwischen ihnen\n\n+1 VERSION\n\nFolge 13\n\nAcception\n\n+1 VERSION\nMitwirkende Gruppen\n\nNoch keine Mitwirkenden eingetragen.\n\nKommentare (0)\nKommentar schreiben\n\nAngemeldet als: nicht angemeldet\n\nKommentar\nAnmeldung erforderlich\nNoch keine Kommentare vorhanden."
+    },
+    "expanded": {
+      "text": "T4\nTeam4s\nPlattform\nNavigation\nT4\nTeam4s\nPlattform\n\nENTDECKEN\n\nAnime entdecken\nRangliste\nFansub-Gruppen\nSuche\nAnmelden\nAnime\nBuddy Complex\n★\n7.8\n0\n13 Episodes\nAnmeldung erforderlich\nBuddy Complex\nABGESCHLOSSEN\nTV\nANIME\n2014\n\nIm Jahr 2088 befinden sich die Free Treaty Alliance und die Great Zogilia Republic in einem verbitterten Krieg miteinander. Die Kämpfe werden mit fortschrittlichen Mecha-Anzügen geführt, die Valiancer genannt werden, und fordern große Verluste. Bis jetzt konnte keine Fraktion den Krieg für sich entscheiden. Aus unbekannten Gründen möchten die Soldaten der Great Zogilia Prebublic 70 Jahre in der Vergangenheit den gewöhnlichen Oberschüler Aoba Watasa ermorden. Seine Klassenkameradin Hina Yumihara ist insgeheim jedoch ebenso aus der Zukunft und beschützt ihn mittels ihres eigenen Valiancer. Sie nimmt ihn mit in ihre Zeit und er wird mit dem Valiancer namens Luxon ausgestattet, mit dem er bei der Verteidigung der Free Treaty Alliance Unterstützung leisten soll. Zusammen mit dem erfahrenen Piloten Dio Weinberg absolviert er daraufhin sogleich ein erfolgreiches Gefecht und sieht sich plötzlich in einen Krieg aus einer anderen Zeit hineingezogen, der ihm bisher gänzlich unbekannt war …\n\n0 Views\nEpisoden (13)\nNew-Subs\nNew-Subs\n\n2012 bis 2015 • Deutschland • aufgelöst\n\nNew-Subs\nGruppenbereich\n\nFolge 1\n\nBegegnung\n\n+1 VERSION\n\nNew-Subs\n\nBegegnung\n\n720p\nSoftsub\n19.07.2013\nPlay\n\nFolge 2\n\nNice Coupling\n\n+1 VERSION\n\nFolge 3\n\nWiedersehen\n\n+1 VERSION\n\nFolge 4\n\nZeit für Entschlossenheit\n\n+1 VERSION\n\nFolge 5\n\nNarbe\n\n+1 VERSION\n\nFolge 6\n\nEin weiterer Coupler\n\n+1 VERSION\n\nFolge 7\n\nBuddy\n\n+1 VERSION\n\nFolge 8\n\nStürmische Nacht\n\n+1 VERSION\n\nFolge 9\n\nCoupling System\n\n+1 VERSION\n\nFolge 10\n\nVater und Kind\n\n+1 VERSION\n\nFolge 11\n\nDie Wahrheit\n\n+1 VERSION\n\nFolge 12\n\nDas Band zwischen ihnen\n\n+1 VERSION\n\nFolge 13\n\nAcception\n\n+1 VERSION\nMitwirkende Gruppen\n\nNoch keine Mitwirkenden eingetragen.\n\nKommentare (0)\nKommentar schreiben\n\nAngemeldet als: nicht angemeldet\n\nKommentar\nAnmeldung erforderlich\nNoch keine Kommentare vorhanden.",
+      "links": [
+        {
+          "label": "Play",
+          "href": "/api/releases/27/stream",
+          "target": "_blank"
+        }
+      ]
+    },
+    "requests": [
+      {
+        "id": "0D89C0924CCBE0DFC36DE4040144B709",
+        "url": "http://127.0.0.1:3300/anime/1",
+        "method": "GET",
+        "type": "Document",
+        "phase": "initial",
+        "started": 1267491.30415,
+        "initiator": "other",
+        "status": 200,
+        "mime": "text/html",
+        "diskCache": false,
+        "cache": "no-store, must-revalidate",
+        "encodedBytes": 26979,
+        "elapsedMs": 172
+      },
+      {
+        "id": "628.2",
+        "url": "http://127.0.0.1:3300/_next/static/css/app/layout.css?v=1789317841427",
+        "method": "GET",
+        "type": "Stylesheet",
+        "phase": "initial",
+        "started": 1267491.467715,
+        "initiator": "other",
+        "status": 200,
+        "mime": "text/css",
+        "diskCache": false,
+        "cache": "no-store, must-revalidate",
+        "encodedBytes": 15348,
+        "elapsedMs": 21
+      },
+      {
+        "id": "628.3",
+        "url": "http://192.168.235.196:18092/api/v1/media/image?item_id=46523903e0af5022d78af0368d89b805&kind=primary&provider=jellyfin",
+        "method": "GET",
+        "type": "Image",
+        "phase": "initial",
+        "started": 1267491.46826,
+        "initiator": "parser",
+        "status": 200,
+        "mime": "image/jpeg",
+        "diskCache": false,
+        "cache": "public, max-age=3600",
+        "encodedBytes": 740116,
+        "elapsedMs": 16
+      },
+      {
+        "id": "628.5",
+        "url": "http://127.0.0.1:3300/_next/static/css/app/anime/%5Bid%5D/page.css?v=1789317841427",
+        "method": "GET",
+        "type": "Stylesheet",
+        "phase": "initial",
+        "started": 1267491.468347,
+        "initiator": "parser",
+        "status": 200,
+        "mime": "text/css",
+        "diskCache": false,
+        "cache": "no-store, must-revalidate",
+        "encodedBytes": 19751,
+        "elapsedMs": 35
+      },
+      {
+        "id": "628.6",
+        "url": "http://127.0.0.1:3300/_next/static/css/app/anime/%5Bid%5D/loading.css?v=1789317841427",
+        "method": "GET",
+        "type": "Stylesheet",
+        "phase": "initial",
+        "started": 1267491.468406,
+        "initiator": "parser",
+        "status": 200,
+        "mime": "text/css",
+        "diskCache": false,
+        "cache": "no-store, must-revalidate",
+        "encodedBytes": 3945,
+        "elapsedMs": 32
+      },
+      {
+        "id": "628.7",
+        "url": "http://127.0.0.1:3300/_next/static/chunks/webpack.js?v=1789317841427",
+        "method": "GET",
+        "type": "Script",
+        "phase": "initial",
+        "started": 1267491.468457,
+        "initiator": "parser",
+        "status": 200,
+        "mime": "application/javascript",
+        "diskCache": false,
+        "cache": "no-store, must-revalidate",
+        "encodedBytes": 29036,
+        "elapsedMs": 55
+      },
+      {
+        "id": "628.8",
+        "url": "http://127.0.0.1:3300/_next/static/chunks/main-app.js?v=1789317841427",
+        "method": "GET",
+        "type": "Script",
+        "phase": "initial",
+        "started": 1267491.468499,
+        "initiator": "parser",
+        "status": 200,
+        "mime": "application/javascript",
+        "diskCache": false,
+        "cache": "no-store, must-revalidate",
+        "encodedBytes": 2564175,
+        "elapsedMs": 1508
+      },
+      {
+        "id": "628.9",
+        "url": "http://127.0.0.1:3300/_next/static/chunks/app-pages-internals.js",
+        "method": "GET",
+        "type": "Script",
+        "phase": "initial",
+        "started": 1267491.46854,
+        "initiator": "parser",
+        "status": 200,
+        "mime": "application/javascript",
+        "diskCache": false,
+        "cache": "no-store, must-revalidate",
+        "encodedBytes": 57663,
+        "elapsedMs": 54
+      },
+      {
+        "id": "628.10",
+        "url": "http://127.0.0.1:3300/_next/static/chunks/app/layout.js",
+        "method": "GET",
+        "type": "Script",
+        "phase": "initial",
+        "started": 1267491.46858,
+        "initiator": "parser",
+        "status": 200,
+        "mime": "application/javascript",
+        "diskCache": false,
+        "cache": "no-store, must-revalidate",
+        "encodedBytes": 543647,
+        "elapsedMs": 317
+      },
+      {
+        "id": "628.11",
+        "url": "http://127.0.0.1:3300/_next/static/chunks/app/anime/%5Bid%5D/page.js",
+        "method": "GET",
+        "type": "Script",
+        "phase": "initial",
+        "started": 1267491.468628,
+        "initiator": "parser",
+        "status": 200,
+        "mime": "application/javascript",
+        "diskCache": false,
+        "cache": "no-store, must-revalidate",
+        "encodedBytes": 597307,
+        "elapsedMs": 384
+      },
+      {
+        "id": "628.12",
+        "url": "http://127.0.0.1:3300/_next/static/css/app/anime/loading.css?v=1789317841427",
+        "method": "GET",
+        "type": "Stylesheet",
+        "phase": "initial",
+        "started": 1267491.468667,
+        "initiator": "parser",
+        "status": 200,
+        "mime": "text/css",
+        "diskCache": false,
+        "cache": "no-store, must-revalidate",
+        "encodedBytes": 971,
+        "elapsedMs": 27
+      },
+      {
+        "id": "628.27",
+        "url": "http://127.0.0.1:3300/api/v1/media/files/logo_1787928990830_d3b5184c5dc28cca.png",
+        "method": "GET",
+        "type": "Image",
+        "phase": "initial",
+        "started": 1267491.540566,
+        "initiator": "parser",
+        "status": 200,
+        "mime": "image/png",
+        "diskCache": false,
+        "cache": "public, max-age=31536000, immutable",
+        "encodedBytes": 351041,
+        "elapsedMs": 1678
+      },
+      {
+        "id": "628.35",
+        "url": "http://192.168.235.196:18092/api/v1/anime/1/contributions",
+        "method": "GET",
+        "type": "Fetch",
+        "phase": "initial",
+        "started": 1267493.476837,
+        "initiator": "script",
+        "status": 200,
+        "mime": "application/json",
+        "diskCache": false,
+        "cache": null,
+        "encodedBytes": 331,
+        "elapsedMs": 9,
+        "jsonBytes": 13,
+        "keys": [
+          "groups"
+        ],
+        "dataKeys": [
+          "groups"
+        ],
+        "rows": null
+      },
+      {
+        "id": "628.36",
+        "url": "http://192.168.235.196:18092/api/v1/anime/1/backdrops",
+        "method": "GET",
+        "type": "Fetch",
+        "phase": "initial",
+        "started": 1267493.479959,
+        "initiator": "script",
+        "status": 200,
+        "mime": "application/json",
+        "diskCache": false,
+        "cache": null,
+        "encodedBytes": 1151,
+        "elapsedMs": 8,
+        "jsonBytes": 832,
+        "keys": [
+          "data"
+        ],
+        "dataKeys": [
+          "anime_id",
+          "provider",
+          "media_item_id",
+          "backdrops",
+          "theme_videos",
+          "logo_url",
+          "banner_url"
+        ],
+        "rows": null
+      },
+      {
+        "id": "628.39",
+        "url": "http://192.168.235.196:18092/media/anime/1/background_video/65f51170-5ce4-4817-833c-3306f4111875/original.mp4",
+        "method": "GET",
+        "type": "Media",
+        "phase": "initial",
+        "started": 1267493.503062,
+        "initiator": "other",
+        "status": 206,
+        "mime": "video/mp4",
+        "diskCache": false,
+        "cache": "private, no-transform"
+      },
+      {
+        "id": "628.40",
+        "url": "http://192.168.235.196:18092/media/anime/1/background/f2284cc5-75cd-4a60-909e-ae9b9ed5e92a/original.jpg?width=1920&quality=86",
+        "method": "GET",
+        "type": "Image",
+        "phase": "initial",
+        "started": 1267493.505157,
+        "initiator": "other",
+        "status": 200,
+        "mime": "image/jpeg",
+        "diskCache": false,
+        "cache": "private, no-transform",
+        "encodedBytes": 380457,
+        "elapsedMs": 7
+      },
+      {
+        "id": "628.37",
+        "url": "http://192.168.235.196:18092/api/v1/media/image?item_id=46523903e0af5022d78af0368d89b805&kind=logo&provider=jellyfin&width=760&quality=90",
+        "method": "GET",
+        "type": "Image",
+        "phase": "initial",
+        "started": 1267493.518499,
+        "initiator": "other",
+        "status": 200,
+        "mime": "image/png",
+        "diskCache": false,
+        "cache": "public, max-age=3600",
+        "encodedBytes": 209286,
+        "elapsedMs": 6
+      },
+      {
+        "id": "628.38",
+        "url": "http://192.168.235.196:18092/api/v1/media/image?item_id=46523903e0af5022d78af0368d89b805&kind=banner&provider=jellyfin&width=1280&quality=86",
+        "method": "GET",
+        "type": "Image",
+        "phase": "initial",
+        "started": 1267493.519721,
+        "initiator": "other",
+        "status": 200,
+        "mime": "image/jpeg",
+        "diskCache": false,
+        "cache": "public, max-age=3600",
+        "encodedBytes": 52449,
+        "elapsedMs": 4
+      },
+      {
+        "id": "628.43",
+        "url": "http://192.168.235.196:18092/api/v1/media/image?index=0&item_id=46523903e0af5022d78af0368d89b805&kind=backdrop&provider=jellyfin&width=1920&quality=86",
+        "method": "GET",
+        "type": "Image",
+        "phase": "idle",
+        "started": 1267502.609814,
+        "initiator": "other",
+        "status": 200,
+        "mime": "image/jpeg",
+        "diskCache": false,
+        "cache": "public, max-age=3600",
+        "encodedBytes": 187472,
+        "elapsedMs": 35
+      },
+      {
+        "id": "628.44",
+        "url": "http://192.168.235.196:18092/media/anime/1/background/b5fb227b-eac3-4975-bab1-b1162d86d401/original.jpg?width=1920&quality=86",
+        "method": "GET",
+        "type": "Image",
+        "phase": "idle",
+        "started": 1267511.609963,
+        "initiator": "other",
+        "status": 200,
+        "mime": "image/jpeg",
+        "diskCache": false,
+        "cache": "private, no-transform",
+        "encodedBytes": 34333,
+        "elapsedMs": 2
+      },
+      {
+        "id": "628.45",
+        "url": "http://192.168.235.196:18092/api/v1/media/image?index=1&item_id=46523903e0af5022d78af0368d89b805&kind=backdrop&provider=jellyfin&width=1920&quality=86",
+        "method": "GET",
+        "type": "Image",
+        "phase": "idle",
+        "started": 1267520.609796,
+        "initiator": "other",
+        "status": 200,
+        "mime": "image/jpeg",
+        "diskCache": false,
+        "cache": "public, max-age=3600",
+        "encodedBytes": 321257,
+        "elapsedMs": 61
+      }
+    ],
+    "errors": []
+  },
+  {
+    "name": "desktop",
+    "width": 1440,
+    "height": 900,
+    "startedAt": "2026-09-13T16:44:38.281Z",
+    "finishedAt": "2026-09-13T16:44:44.826Z",
+    "httpStatus": 200,
+    "initialDOM": {
+      "title": "Team4s v3.0",
+      "heading": "Buddy Complex",
+      "htmlBytes": 111326,
+      "text": "T4\nTeam4s\nPlattform\n\nENTDECKEN\n\nAnime entdecken\nRangliste\nFansub-Gruppen\nSuche\nAnmelden\nAnime\nBuddy Complex\n★\n7.8\n0\n13 Episodes\nAnmeldung erforderlich\nGENRES\nAction\nMecha\nScifi\nBuddy Complex\nABGESCHLOSSEN\nTV\nANIME\n2014\n\nIm Jahr 2088 befinden sich die Free Treaty Alliance und die Great Zogilia Republic in einem verbitterten Krieg miteinander. Die Kämpfe werden mit fortschrittlichen Mecha-Anzügen geführt, die Valiancer genannt werden, und fordern große Verluste. Bis jetzt konnte keine Fraktion den Krieg für sich entscheiden. Aus unbekannten Gründen möchten die Soldaten der Great Zogilia Prebublic 70 Jahre in der Vergangenheit den gewöhnlichen Oberschüler Aoba Watasa ermorden. Seine Klassenkameradin Hina Yumihara ist insgeheim jedoch ebenso aus der Zukunft und beschützt ihn mittels ihres eigenen Valiancer. Sie nimmt ihn mit in ihre Zeit und er wird mit dem Valiancer namens Luxon ausgestattet, mit dem er bei der Verteidigung der Free Treaty Alliance Unterstützung leisten soll. Zusammen mit dem erfahrenen Piloten Dio Weinberg absolviert er daraufhin sogleich ein erfolgreiches Gefecht und sieht sich plötzlich in einen Krieg aus einer anderen Zeit hineingezogen, der ihm bisher gänzlich unbekannt war …\n\n0 Views\nEpisoden (13)\nNew-Subs\nNew-Subs\n\n2012 bis 2015 • Deutschland • aufgelöst\n\nNew-Subs\nGruppenbereich\n\nFolge 1\n\nBegegnung\n\n+1 VERSION\n\nFolge 2\n\nNice Coupling\n\n+1 VERSION\n\nFolge 3\n\nWiedersehen\n\n+1 VERSION\n\nFolge 4\n\nZeit für Entschlossenheit\n\n+1 VERSION\n\nFolge 5\n\nNarbe\n\n+1 VERSION\n\nFolge 6\n\nEin weiterer Coupler\n\n+1 VERSION\n\nFolge 7\n\nBuddy\n\n+1 VERSION\n\nFolge 8\n\nStürmische Nacht\n\n+1 VERSION\n\nFolge 9\n\nCoupling System\n\n+1 VERSION\n\nFolge 10\n\nVater und Kind\n\n+1 VERSION\n\nFolge 11\n\nDie Wahrheit\n\n+1 VERSION\n\nFolge 12\n\nDas Band zwischen ihnen\n\n+1 VERSION\n\nFolge 13\n\nAcception\n\n+1 VERSION\nMitwirkende Gruppen\n\nNoch keine Mitwirkenden eingetragen.\n\nKommentare (0)\nKommentar schreiben\n\nAngemeldet als: nicht angemeldet\n\nKommentar\nAnmeldung erforderlich\nNoch keine Kommentare vorhanden.",
+      "links": [
+        {
+          "label": "Anime",
+          "href": "/anime"
+        },
+        {
+          "label": "New-Subs",
+          "href": "/fansubs/new-subs"
+        },
+        {
+          "label": "New-Subs",
+          "href": "/fansubs/new-subs"
+        },
+        {
+          "label": "Gruppenbereich",
+          "href": "/anime/1/group/1"
+        }
+      ],
+      "images": [
+        {
+          "src": "http://192.168.235.196:18092/api/v1/media/image?item_id=46523903e0af5022d78af0368d89b805&kind=primary&provider=jellyfin",
+          "alt": "Buddy Complex",
+          "width": 1000,
+          "height": 1426,
+          "loading": "auto"
+        },
+        {
+          "src": "http://192.168.235.196:18092/api/v1/media/image?item_id=46523903e0af5022d78af0368d89b805&kind=logo&provider=jellyfin&width=760&quality=90",
+          "alt": "Buddy Complex Logo",
+          "width": 760,
+          "height": 294,
+          "loading": "lazy"
+        },
+        {
+          "src": "http://192.168.235.196:18092/api/v1/media/image?item_id=46523903e0af5022d78af0368d89b805&kind=banner&provider=jellyfin&width=1280&quality=86",
+          "alt": "",
+          "width": 1000,
+          "height": 185,
+          "loading": "lazy"
+        },
+        {
+          "src": "http://127.0.0.1:3300/api/v1/media/files/logo_1787928990830_d3b5184c5dc28cca.png",
+          "alt": "",
+          "width": 512,
+          "height": 512,
+          "loading": "lazy"
+        }
+      ],
+      "overflow": true,
+      "navigation": [
+        {
+          "ttfb": 147.89999985694885,
+          "domReady": 283.89999985694885,
+          "load": 1116.1999998092651,
+          "encodedBytes": 26241
+        }
+      ]
+    },
+    "afterIdle": {
+      "images": [
+        "http://192.168.235.196:18092/api/v1/media/image?item_id=46523903e0af5022d78af0368d89b805&kind=primary&provider=jellyfin",
+        "http://192.168.235.196:18092/api/v1/media/image?item_id=46523903e0af5022d78af0368d89b805&kind=logo&provider=jellyfin&width=760&quality=90",
+        "http://192.168.235.196:18092/api/v1/media/image?item_id=46523903e0af5022d78af0368d89b805&kind=banner&provider=jellyfin&width=1280&quality=86",
+        "http://127.0.0.1:3300/api/v1/media/files/logo_1787928990830_d3b5184c5dc28cca.png"
+      ],
+      "text": "T4\nTeam4s\nPlattform\n\nENTDECKEN\n\nAnime entdecken\nRangliste\nFansub-Gruppen\nSuche\nAnmelden\nAnime\nBuddy Complex\n★\n7.8\n0\n13 Episodes\nAnmeldung erforderlich\nGENRES\nAction\nMecha\nScifi\nBuddy Complex\nABGESCHLOSSEN\nTV\nANIME\n2014\n\nIm Jahr 2088 befinden sich die Free Treaty Alliance und die Great Zogilia Republic in einem verbitterten Krieg miteinander. Die Kämpfe werden mit fortschrittlichen Mecha-Anzügen geführt, die Valiancer genannt werden, und fordern große Verluste. Bis jetzt konnte keine Fraktion den Krieg für sich entscheiden. Aus unbekannten Gründen möchten die Soldaten der Great Zogilia Prebublic 70 Jahre in der Vergangenheit den gewöhnlichen Oberschüler Aoba Watasa ermorden. Seine Klassenkameradin Hina Yumihara ist insgeheim jedoch ebenso aus der Zukunft und beschützt ihn mittels ihres eigenen Valiancer. Sie nimmt ihn mit in ihre Zeit und er wird mit dem Valiancer namens Luxon ausgestattet, mit dem er bei der Verteidigung der Free Treaty Alliance Unterstützung leisten soll. Zusammen mit dem erfahrenen Piloten Dio Weinberg absolviert er daraufhin sogleich ein erfolgreiches Gefecht und sieht sich plötzlich in einen Krieg aus einer anderen Zeit hineingezogen, der ihm bisher gänzlich unbekannt war …\n\n0 Views\nEpisoden (13)\nNew-Subs\nNew-Subs\n\n2012 bis 2015 • Deutschland • aufgelöst\n\nNew-Subs\nGruppenbereich\n\nFolge 1\n\nBegegnung\n\n+1 VERSION\n\nFolge 2\n\nNice Coupling\n\n+1 VERSION\n\nFolge 3\n\nWiedersehen\n\n+1 VERSION\n\nFolge 4\n\nZeit für Entschlossenheit\n\n+1 VERSION\n\nFolge 5\n\nNarbe\n\n+1 VERSION\n\nFolge 6\n\nEin weiterer Coupler\n\n+1 VERSION\n\nFolge 7\n\nBuddy\n\n+1 VERSION\n\nFolge 8\n\nStürmische Nacht\n\n+1 VERSION\n\nFolge 9\n\nCoupling System\n\n+1 VERSION\n\nFolge 10\n\nVater und Kind\n\n+1 VERSION\n\nFolge 11\n\nDie Wahrheit\n\n+1 VERSION\n\nFolge 12\n\nDas Band zwischen ihnen\n\n+1 VERSION\n\nFolge 13\n\nAcception\n\n+1 VERSION\nMitwirkende Gruppen\n\nNoch keine Mitwirkenden eingetragen.\n\nKommentare (0)\nKommentar schreiben\n\nAngemeldet als: nicht angemeldet\n\nKommentar\nAnmeldung erforderlich\nNoch keine Kommentare vorhanden."
+    },
+    "expanded": {
+      "text": "T4\nTeam4s\nPlattform\n\nENTDECKEN\n\nAnime entdecken\nRangliste\nFansub-Gruppen\nSuche\nAnmelden\nAnime\nBuddy Complex\n★\n7.8\n0\n13 Episodes\nAnmeldung erforderlich\nGENRES\nAction\nMecha\nScifi\nBuddy Complex\nABGESCHLOSSEN\nTV\nANIME\n2014\n\nIm Jahr 2088 befinden sich die Free Treaty Alliance und die Great Zogilia Republic in einem verbitterten Krieg miteinander. Die Kämpfe werden mit fortschrittlichen Mecha-Anzügen geführt, die Valiancer genannt werden, und fordern große Verluste. Bis jetzt konnte keine Fraktion den Krieg für sich entscheiden. Aus unbekannten Gründen möchten die Soldaten der Great Zogilia Prebublic 70 Jahre in der Vergangenheit den gewöhnlichen Oberschüler Aoba Watasa ermorden. Seine Klassenkameradin Hina Yumihara ist insgeheim jedoch ebenso aus der Zukunft und beschützt ihn mittels ihres eigenen Valiancer. Sie nimmt ihn mit in ihre Zeit und er wird mit dem Valiancer namens Luxon ausgestattet, mit dem er bei der Verteidigung der Free Treaty Alliance Unterstützung leisten soll. Zusammen mit dem erfahrenen Piloten Dio Weinberg absolviert er daraufhin sogleich ein erfolgreiches Gefecht und sieht sich plötzlich in einen Krieg aus einer anderen Zeit hineingezogen, der ihm bisher gänzlich unbekannt war …\n\n0 Views\nEpisoden (13)\nNew-Subs\nNew-Subs\n\n2012 bis 2015 • Deutschland • aufgelöst\n\nNew-Subs\nGruppenbereich\n\nFolge 1\n\nBegegnung\n\n+1 VERSION\n\nNew-Subs\n\nBegegnung\n\n720p\nSoftsub\n19.07.2013\nPlay\n\nFolge 2\n\nNice Coupling\n\n+1 VERSION\n\nFolge 3\n\nWiedersehen\n\n+1 VERSION\n\nFolge 4\n\nZeit für Entschlossenheit\n\n+1 VERSION\n\nFolge 5\n\nNarbe\n\n+1 VERSION\n\nFolge 6\n\nEin weiterer Coupler\n\n+1 VERSION\n\nFolge 7\n\nBuddy\n\n+1 VERSION\n\nFolge 8\n\nStürmische Nacht\n\n+1 VERSION\n\nFolge 9\n\nCoupling System\n\n+1 VERSION\n\nFolge 10\n\nVater und Kind\n\n+1 VERSION\n\nFolge 11\n\nDie Wahrheit\n\n+1 VERSION\n\nFolge 12\n\nDas Band zwischen ihnen\n\n+1 VERSION\n\nFolge 13\n\nAcception\n\n+1 VERSION\nMitwirkende Gruppen\n\nNoch keine Mitwirkenden eingetragen.\n\nKommentare (0)\nKommentar schreiben\n\nAngemeldet als: nicht angemeldet\n\nKommentar\nAnmeldung erforderlich\nNoch keine Kommentare vorhanden.",
+      "links": [
+        {
+          "label": "Play",
+          "href": "/api/releases/27/stream",
+          "target": "_blank"
+        }
+      ]
+    },
+    "requests": [
+      {
+        "id": "DAA30959BCE6DD5E2C9B13CB446B84C2",
+        "url": "http://127.0.0.1:3300/anime/1",
+        "method": "GET",
+        "type": "Document",
+        "phase": "initial",
+        "started": 1267528.190896,
+        "initiator": "other",
+        "status": 200,
+        "mime": "text/html",
+        "diskCache": false,
+        "cache": "no-store, must-revalidate",
+        "encodedBytes": 26865,
+        "elapsedMs": 218
+      },
+      {
+        "id": "673.2",
+        "url": "http://127.0.0.1:3300/_next/static/css/app/layout.css?v=1789317878316",
+        "method": "GET",
+        "type": "Stylesheet",
+        "phase": "initial",
+        "started": 1267528.342121,
+        "initiator": "other",
+        "status": 200,
+        "mime": "text/css",
+        "diskCache": false,
+        "cache": "no-store, must-revalidate",
+        "encodedBytes": 15348,
+        "elapsedMs": 20
+      },
+      {
+        "id": "673.3",
+        "url": "http://192.168.235.196:18092/api/v1/media/image?item_id=46523903e0af5022d78af0368d89b805&kind=primary&provider=jellyfin",
+        "method": "GET",
+        "type": "Image",
+        "phase": "initial",
+        "started": 1267528.350076,
+        "initiator": "parser",
+        "status": 200,
+        "mime": "image/jpeg",
+        "diskCache": false,
+        "cache": "public, max-age=3600",
+        "encodedBytes": 740116,
+        "elapsedMs": 8
+      },
+      {
+        "id": "673.5",
+        "url": "http://127.0.0.1:3300/_next/static/css/app/anime/%5Bid%5D/page.css?v=1789317878316",
+        "method": "GET",
+        "type": "Stylesheet",
+        "phase": "initial",
+        "started": 1267528.350292,
+        "initiator": "parser",
+        "status": 200,
+        "mime": "text/css",
+        "diskCache": false,
+        "cache": "no-store, must-revalidate",
+        "encodedBytes": 19751,
+        "elapsedMs": 36
+      },
+      {
+        "id": "673.6",
+        "url": "http://127.0.0.1:3300/_next/static/css/app/anime/%5Bid%5D/loading.css?v=1789317878316",
+        "method": "GET",
+        "type": "Stylesheet",
+        "phase": "initial",
+        "started": 1267528.350421,
+        "initiator": "parser",
+        "status": 200,
+        "mime": "text/css",
+        "diskCache": false,
+        "cache": "no-store, must-revalidate",
+        "encodedBytes": 3945,
+        "elapsedMs": 34
+      },
+      {
+        "id": "673.7",
+        "url": "http://127.0.0.1:3300/_next/static/chunks/webpack.js?v=1789317878316",
+        "method": "GET",
+        "type": "Script",
+        "phase": "initial",
+        "started": 1267528.350513,
+        "initiator": "parser",
+        "status": 200,
+        "mime": "application/javascript",
+        "diskCache": false,
+        "cache": "no-store, must-revalidate",
+        "encodedBytes": 29035,
+        "elapsedMs": 57
+      },
+      {
+        "id": "673.8",
+        "url": "http://127.0.0.1:3300/_next/static/chunks/main-app.js?v=1789317878316",
+        "method": "GET",
+        "type": "Script",
+        "phase": "initial",
+        "started": 1267528.35056,
+        "initiator": "parser",
+        "status": 200,
+        "mime": "application/javascript",
+        "diskCache": false,
+        "cache": "no-store, must-revalidate",
+        "encodedBytes": 2564201,
+        "elapsedMs": 549
+      },
+      {
+        "id": "673.9",
+        "url": "http://127.0.0.1:3300/_next/static/chunks/app-pages-internals.js",
+        "method": "GET",
+        "type": "Script",
+        "phase": "initial",
+        "started": 1267528.350602,
+        "initiator": "parser",
+        "status": 200,
+        "mime": "application/javascript",
+        "diskCache": false,
+        "cache": "no-store, must-revalidate",
+        "encodedBytes": 57663,
+        "elapsedMs": 91
+      },
+      {
+        "id": "673.10",
+        "url": "http://127.0.0.1:3300/_next/static/chunks/app/layout.js",
+        "method": "GET",
+        "type": "Script",
+        "phase": "initial",
+        "started": 1267528.350647,
+        "initiator": "parser",
+        "status": 200,
+        "mime": "application/javascript",
+        "diskCache": false,
+        "cache": "no-store, must-revalidate",
+        "encodedBytes": 543647,
+        "elapsedMs": 313
+      },
+      {
+        "id": "673.11",
+        "url": "http://127.0.0.1:3300/_next/static/chunks/app/anime/%5Bid%5D/page.js",
+        "method": "GET",
+        "type": "Script",
+        "phase": "initial",
+        "started": 1267528.35069,
+        "initiator": "parser",
+        "status": 200,
+        "mime": "application/javascript",
+        "diskCache": false,
+        "cache": "no-store, must-revalidate",
+        "encodedBytes": 597292,
+        "elapsedMs": 329
+      },
+      {
+        "id": "673.12",
+        "url": "http://127.0.0.1:3300/_next/static/css/app/anime/loading.css?v=1789317878316",
+        "method": "GET",
+        "type": "Stylesheet",
+        "phase": "initial",
+        "started": 1267528.350734,
+        "initiator": "parser",
+        "status": 200,
+        "mime": "text/css",
+        "diskCache": false,
+        "cache": "no-store, must-revalidate",
+        "encodedBytes": 971,
+        "elapsedMs": 34
+      },
+      {
+        "id": "673.27",
+        "url": "http://127.0.0.1:3300/api/v1/media/files/logo_1787928990830_d3b5184c5dc28cca.png",
+        "method": "GET",
+        "type": "Image",
+        "phase": "initial",
+        "started": 1267528.469968,
+        "initiator": "parser",
+        "status": 200,
+        "mime": "image/png",
+        "diskCache": false,
+        "cache": "public, max-age=31536000, immutable",
+        "encodedBytes": 351037,
+        "elapsedMs": 80
+      },
+      {
+        "id": "673.35",
+        "url": "http://192.168.235.196:18092/api/v1/anime/1/contributions",
+        "method": "GET",
+        "type": "Fetch",
+        "phase": "initial",
+        "started": 1267529.400469,
+        "initiator": "script",
+        "status": 200,
+        "mime": "application/json",
+        "diskCache": false,
+        "cache": null,
+        "encodedBytes": 331,
+        "elapsedMs": 10,
+        "jsonBytes": 13,
+        "keys": [
+          "groups"
+        ],
+        "dataKeys": [
+          "groups"
+        ],
+        "rows": null
+      },
+      {
+        "id": "673.36",
+        "url": "http://192.168.235.196:18092/api/v1/anime/1/backdrops",
+        "method": "GET",
+        "type": "Fetch",
+        "phase": "initial",
+        "started": 1267529.403308,
+        "initiator": "script",
+        "status": 200,
+        "mime": "application/json",
+        "diskCache": false,
+        "cache": null,
+        "encodedBytes": 1151,
+        "elapsedMs": 9,
+        "jsonBytes": 832,
+        "keys": [
+          "data"
+        ],
+        "dataKeys": [
+          "anime_id",
+          "provider",
+          "media_item_id",
+          "backdrops",
+          "theme_videos",
+          "logo_url",
+          "banner_url"
+        ],
+        "rows": null
+      },
+      {
+        "id": "673.39",
+        "url": "http://192.168.235.196:18092/media/anime/1/background_video/65f51170-5ce4-4817-833c-3306f4111875/original.mp4",
+        "method": "GET",
+        "type": "Media",
+        "phase": "initial",
+        "started": 1267529.424372,
+        "initiator": "other",
+        "status": 206,
+        "mime": "video/mp4",
+        "diskCache": false,
+        "cache": "private, no-transform"
+      },
+      {
+        "id": "673.40",
+        "url": "http://192.168.235.196:18092/api/v1/media/image?index=1&item_id=46523903e0af5022d78af0368d89b805&kind=backdrop&provider=jellyfin&width=1920&quality=86",
+        "method": "GET",
+        "type": "Image",
+        "phase": "initial",
+        "started": 1267529.448562,
+        "initiator": "other",
+        "status": 200,
+        "mime": "image/jpeg",
+        "diskCache": false,
+        "cache": "public, max-age=3600",
+        "encodedBytes": 321257,
+        "elapsedMs": 5
+      },
+      {
+        "id": "673.37",
+        "url": "http://192.168.235.196:18092/api/v1/media/image?item_id=46523903e0af5022d78af0368d89b805&kind=logo&provider=jellyfin&width=760&quality=90",
+        "method": "GET",
+        "type": "Image",
+        "phase": "initial",
+        "started": 1267529.460235,
+        "initiator": "other",
+        "status": 200,
+        "mime": "image/png",
+        "diskCache": false,
+        "cache": "public, max-age=3600",
+        "encodedBytes": 209286,
+        "elapsedMs": 5
+      },
+      {
+        "id": "673.38",
+        "url": "http://192.168.235.196:18092/api/v1/media/image?item_id=46523903e0af5022d78af0368d89b805&kind=banner&provider=jellyfin&width=1280&quality=86",
+        "method": "GET",
+        "type": "Image",
+        "phase": "initial",
+        "started": 1267529.460364,
+        "initiator": "other",
+        "status": 200,
+        "mime": "image/jpeg",
+        "diskCache": false,
+        "cache": "public, max-age=3600",
+        "encodedBytes": 52449,
+        "elapsedMs": 5
+      }
+    ],
+    "errors": []
+  }
+]
