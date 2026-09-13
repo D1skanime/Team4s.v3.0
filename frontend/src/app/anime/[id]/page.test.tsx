@@ -162,3 +162,18 @@ describe('anime detail integration without invented data', () => {
     expect(css.match(/\.page\s*\{([^}]+)\}/)?.[1]).not.toMatch(/overflow/)
   })
 })
+
+describe('bounded public SSR inventory', () => {
+  it('requests one 24-row public page and forwards cursor/story without claiming the slice is the total', async () => {
+    vi.mocked(getGroupedEpisodes).mockResolvedValue({ data: { anime_id: 22, episodes: [], pagination: { has_more: true, next_cursor: 'next', row_limit: 24 } } })
+    vi.mocked(getAnimeByID).mockResolvedValue({ data: { ...anime, episodes: Array.from({ length: 30 }, (_, index) => ({
+      id: index + 1, episode_number: String(index + 1), status: 'public' as const, view_count: 0, download_count: 0,
+    })) } })
+    const content = await loadContent()
+    expect(getGroupedEpisodes).toHaveBeenCalledExactlyOnceWith(22, { projection: 'public', limit: 24 })
+    const browser = elements(content).find((item) => item.type === FansubVersionBrowser)
+    expect(browser?.props.pagination).toEqual({ has_more: true, next_cursor: 'next', row_limit: 24 })
+    expect(browser?.props.storyGroups).toEqual([])
+    expect(textContent(content)).toContain('Episoden (30)')
+  })
+})
