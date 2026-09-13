@@ -1,8 +1,8 @@
 # Phase159: Public Anime Detail — Konsolidierung
 
-**Status:** Planung; kein Implementierungs- oder Human-UAT-PASS.
+**Status:** Ausführung 159-01 nach technisch bestandenem Phase-158-Gate; Human-UAT bleibt offen.
 **Auftragsquelle:** [vollständiger Nutzerauftrag](159-USER-REQUEST.md).
-**Baseline:** Technisch verifizierter158-Abschlusscommit; vor Ausführung frisch eintragen.
+**Baseline:** `c3bfcb23781addca1ccd3931592535416f706787` — technisch verifizierter Abschluss von158.
 
 ## Decisions
 

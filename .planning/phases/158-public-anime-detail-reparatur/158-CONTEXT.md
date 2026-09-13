@@ -1,6 +1,6 @@
 # Phase158: Public Anime Detail — Reparatur
 
-**Status:** Planung; kein Implementierungs- oder Human-UAT-PASS.
+**Status:** Technisch abgeschlossen (4/4 Plans, 9/9 Anforderungen); Human-UAT separat offen. Siehe 158-CLOSEOUT.md.
 **Auftragsquelle:** [vollständiger Nutzerauftrag](158-USER-REQUEST.md).
 **Baseline:** 7c7e1c7d02ac870e7c68c02b66fd7f4b33f36b85.
 

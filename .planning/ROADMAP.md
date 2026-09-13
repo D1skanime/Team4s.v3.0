@@ -1764,8 +1764,8 @@ Plans:
 **Goal:** Eine gemeinsame aktive Gruppe, korrekte lazy Gridnachbarn, begrenzte Bilddelivery und Manifestretention sowie consumergeprüfte Varianten-/Assignment-/ID-Verträge konsolidieren die bestehende Seite ohne Rewrite.
 **Requirements**: P159-01, P159-02, P159-03, P159-04, P159-05, P159-06, P159-07, P159-08
 **Depends on:** Phase 158 vollständig implementiert und technisch verifiziert; keine159-Ausführung vorher.
-**Baseline:** Erst nach158-Gate dessen Abschlusscommit eintragen und aktuellen Stand erneut prüfen.
-**Plans:** 0/5 ausgeführt; Planprüfung ohne Blocker, Ausführung bis zum technischen 158-Gate gesperrt.
+**Baseline:** `c3bfcb23781addca1ccd3931592535416f706787`; Phase158 technisch abgeschlossen, unabhängiger Review/Security/Verifier bestanden.
+**Plans:** 0/5 ausgeführt; Planprüfung ohne Blocker. Ausführung159-01 beginnt nach bestandenem158-Gate; Human-UAT bleibt separat offen.
 
 - [ ] 159-01 — Begrenzte öffentliche Projektion und Assignment-Vertrag (Welle 1)
 - [ ] 159-02 — Explizite Streamidentität mit erhaltener Compatibility (Welle 2)
