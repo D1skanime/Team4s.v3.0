@@ -25,6 +25,18 @@ func NewAnimeRepository(db *pgxpool.Pool) *AnimeRepository {
 	return &AnimeRepository{db: db}
 }
 
+// ExistsVisible checks public visibility without loading detail metadata or episodes.
+func (r *AnimeRepository) ExistsVisible(ctx context.Context, id int64) (bool, error) {
+	var exists bool
+	if err := r.db.QueryRow(ctx,
+		`SELECT EXISTS(SELECT 1 FROM anime WHERE id = $1 AND status <> 'disabled')`,
+		id,
+	).Scan(&exists); err != nil {
+		return false, fmt.Errorf("check visible anime existence %d: %w", id, err)
+	}
+	return exists, nil
+}
+
 func (r *AnimeRepository) List(ctx context.Context, filter models.AnimeFilter) ([]models.AnimeListItem, int64, error) {
 	schema, err := r.loadAnimeV2SchemaInfo(ctx)
 	if err != nil {

@@ -217,17 +217,16 @@ func (h *AnimeHandler) GetAnimeRelations(c *gin.Context) {
 		return
 	}
 
-	// Optional: Check if anime exists (can be disabled for performance)
-	_, err = h.repo.GetByID(c.Request.Context(), animeID, false)
+	exists, err := h.repo.ExistsVisible(c.Request.Context(), animeID)
 	if err != nil {
-		if errors.Is(err, repository.ErrNotFound) {
-			c.JSON(http.StatusNotFound, gin.H{
-				"error": gin.H{"message": "anime nicht gefunden"},
-			})
-			return
-		}
 		c.JSON(http.StatusInternalServerError, gin.H{
 			"error": gin.H{"message": "interner fehler"},
+		})
+		return
+	}
+	if !exists {
+		c.JSON(http.StatusNotFound, gin.H{
+			"error": gin.H{"message": "anime nicht gefunden"},
 		})
 		return
 	}
