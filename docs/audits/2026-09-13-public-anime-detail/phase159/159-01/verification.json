@@ -1,0 +1,113 @@
+{
+  "plan": "159-01",
+  "product_commit": "53f49e76",
+  "checks": [
+    {
+      "name": "real isolated repository RED",
+      "exit_code": 1,
+      "log": "red-repository.log"
+    },
+    {
+      "name": "handler initial RED",
+      "exit_code": 1,
+      "log": "red-backend.log",
+      "note": "Also contains the initial migration-path fixture setup error; actual repository RED is in red-repository.log."
+    },
+    {
+      "name": "frontend RED",
+      "exit_code": 1,
+      "tests_failed": 4,
+      "tests_passed": 3,
+      "log": "red-frontend.log"
+    },
+    {
+      "name": "isolated backend GREEN",
+      "exit_code": 0,
+      "top_level_tests": 8,
+      "log": "green-backend.log"
+    },
+    {
+      "name": "Go vet repository handlers models",
+      "exit_code": 0,
+      "evidence": "Executed in scratch source before 35a2da10; no output on success."
+    },
+    {
+      "name": "Go build ./...",
+      "exit_code": 0,
+      "evidence": "Executed in scratch source before 35a2da10; no output on success."
+    },
+    {
+      "name": "frontend GREEN",
+      "exit_code": 0,
+      "test_files": 5,
+      "tests_passed": 63,
+      "log": "green-frontend.log"
+    },
+    {
+      "name": "full frontend typecheck",
+      "exit_code": 0,
+      "log": "typecheck.log"
+    },
+    {
+      "name": "scoped lint",
+      "exit_code": 0,
+      "errors": 0,
+      "warnings": 0,
+      "log": "scoped-lint.log"
+    },
+    {
+      "name": "OpenAPI js-yaml parse",
+      "exit_code": 0,
+      "log": "openapi-parse.log"
+    },
+    {
+      "name": "final contract regression",
+      "exit_code": 0,
+      "tests_passed": 3,
+      "log": "final-contract.log"
+    },
+    {
+      "name": "git diff --check",
+      "exit_code": 0,
+      "evidence": "Passed before task commits and summary."
+    }
+  ],
+  "query_budget": {
+    "successful_statements": 2,
+    "metadata_rows": 1,
+    "inventory_returned_rows_max": "limit+1",
+    "default_limit": 24,
+    "maximum_limit": 100,
+    "maximum_combined_returned_rows": 102,
+    "measurement": "pgx QueryTracer CommandTag.RowsAffected after rows consumed; returned SQL rows, not estimated SQL text or PostgreSQL internal buffer scans"
+  },
+  "fixtures": [
+    {
+      "limit": 1,
+      "pages": 126,
+      "unique_atomic_rows": 126,
+      "serialized_bytes_all_pages": 72082
+    },
+    {
+      "limit": 24,
+      "pages": 6,
+      "unique_atomic_rows": 126,
+      "serialized_bytes_all_pages": 39456
+    },
+    {
+      "limit": 100,
+      "pages": 2,
+      "unique_atomic_rows": 126,
+      "serialized_bytes_all_pages": 38362
+    }
+  ],
+  "mixed_payload_bytes": 1449,
+  "cleanup": {
+    "container_id": "59097488dd4d39da34bf7ae4c95b80b0ef733a7295e7df23859022f53bd08080",
+    "container_removed": true,
+    "scratch": "/app/tmp/phase15901",
+    "scratch_removed": true,
+    "live_database_changed": false
+  },
+  "runtime_evidence": "../root-runtime-sync-15901.json"
+}
