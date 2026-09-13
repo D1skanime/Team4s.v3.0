@@ -125,6 +125,20 @@ describe('comment active-session boundary', () => {
     expect(created).toHaveBeenCalledWith(response.data)
   })
 
+  it('ignores a result settling in the same turn as an account change', async () => {
+    const pending = deferred()
+    vi.mocked(createAnimeComment).mockReturnValue(pending.promise)
+    const created = vi.fn()
+    render(<CommentForm animeID={1} onCommentCreated={created} />)
+    submit()
+    await act(async () => {
+      seed(22)
+      pending.resolve(response)
+    })
+    expect(created).not.toHaveBeenCalled()
+    expect(refresh).not.toHaveBeenCalled()
+  })
+
   it('ignores callbacks after unmount', async () => {
     const pending = deferred()
     vi.mocked(createAnimeComment).mockReturnValue(pending.promise)
