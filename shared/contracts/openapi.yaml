@@ -5180,6 +5180,16 @@ paths:
       tags: [Releases]
       summary: Resolve media file by filename
       operationId: getMediaFile
+      description: >-
+        Backend original-file contract. The Next frontend separately owns an opt-in
+        display_width transformation on its same-path relay; that parameter is
+        removed before this backend request. See docs/api/api-contracts.md.
+      x-frontend-display:
+        owner: Next frontend API relay
+        query: display_width
+        allowedWidths: [512, 760, 1280, 1920]
+        response: static frame-zero image/webp, quality 75
+        contract: docs/api/api-contracts.md
       parameters:
         - name: filename
           in: path

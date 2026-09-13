@@ -3,6 +3,8 @@ import { readFile, stat } from 'fs/promises'
 import { createReadStream } from 'fs'
 import { Readable } from 'node:stream'
 import path from 'path'
+import { IMAGE_DISPLAY_QUERY } from '@/lib/imageDisplayContract'
+import { serveImageDisplay } from '@/lib/server/imageDisplay'
 
 const MEDIA_BASE_PATH = process.env.MEDIA_BASE_PATH || path.join(process.cwd(), '..', 'media')
 
@@ -92,6 +94,10 @@ export async function GET(
     return new NextResponse('Forbidden', { status: 403 })
   }
 
+  if (pathSegments[0] === 'anime' && new URL(request.url).searchParams.has(IMAGE_DISPLAY_QUERY)) {
+    return serveImageDisplay(request, { filePath: resolvedPath })
+  }
+
   try {
     const fileStat = await stat(filePath)
     if (!fileStat.isFile()) {
@@ -146,4 +152,10 @@ export async function GET(
   } catch {
     return new NextResponse('Not Found', { status: 404 })
   }
+}
+
+export async function HEAD(request: NextRequest, context: { params: Promise<{ path: string[] }> }) {
+  const response = await GET(request, context)
+  await response.body?.cancel()
+  return new Response(null, { status: response.status, headers: response.headers })
 }

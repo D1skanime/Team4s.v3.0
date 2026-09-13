@@ -1,5 +1,4 @@
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
-import { getImageProps } from 'next/image'
 import { imageConfigDefault } from 'next/dist/shared/lib/image-config'
 import nextConfig from '../../next.config.mjs'
 
@@ -42,34 +41,27 @@ describe('bounded anime image delivery', () => {
     expect(output.searchParams.getAll('quality')).toEqual(['75'])
   })
 
-  it.each(['/media/anime/1/poster/asset/original.jpg', '/covers/anime.jpg'])('uses a real generated local optimizer candidate at most 512px: %s', (source) => {
-    const generated = getImageProps({ src: source, alt: '', width: 512, height: 768, quality: 75, sizes: '512px' }).props
-    const candidates = generated.srcSet?.split(', ').map((candidate) => candidate.split(' ')[0])
-    const result = resolveAnimeCoverURL(source)
-    const output = url(result)
-    expect(candidates).toContain(result)
-    expect(output.pathname).toBe('/_next/image')
-    expect(output.searchParams.get('url')).toBe(source)
-    expect(output.searchParams.get('w')).toBe('512')
-    expect(output.searchParams.get('q')).toBe('75')
-    expect(url(output.searchParams.get('url')).search).toBe('')
-    // The default src points at the largest generated candidate, so it is not the budget.
-    expect(Number(url(generated.src).searchParams.get('w'))).toBeGreaterThan(512)
-    expect(result).not.toBe(generated.src)
+  it.each([
+    ['/media/anime/1/poster/asset/original.jpg', '/media/anime/1/poster/asset/original.jpg'],
+    ['/covers/anime.jpg', '/covers/anime.jpg/display'],
+  ])('uses explicit same-origin bounded delivery: %s', (source, pathname) => {
+    const output = url(resolveAnimeCoverURL(source))
+    expect(output.origin).toBe('http://team4s.local')
+    expect(output.pathname).toBe(pathname)
+    expect([...output.searchParams]).toEqual([['display_width', '512']])
   })
 
-  it('keeps an already bounded generated source unchanged instead of optimizing it twice', () => {
+  it('keeps completed display sources unchanged and moves an old optimizer wrapper onto bounded delivery', () => {
     const first = resolveAnimeCoverURL('/covers/anime.jpg')
     expect(resolveAnimeCoverURL(first)).toBe(first)
-    expect(url(first).searchParams.get('url')).toBe('/covers/anime.jpg')
+    expect(resolveAnimeCoverURL('/_next/image?url=%2Fcovers%2Fanime.jpg&w=512&q=75')).toBe(first)
   })
 
-  it.each([origin + '/api/v1/media/files/logo.png', '/api/v1/media/files/logo.png'])('uses the configured API-file optimizer class without pretending its width query resizes files: %s', (source) => {
+  it.each([origin + '/api/v1/media/files/logo.png', '/api/v1/media/files/logo.png'])('keeps API-files same-origin and independent of private Next optimizer fetches: %s', (source) => {
     const output = url(resolveAnimeImageURL(source, 760))
-    expect(output.pathname).toBe('/_next/image')
-    expect(output.searchParams.get('url')).toBe(origin + '/api/v1/media/files/logo.png')
-    expect(Number(output.searchParams.get('w'))).toBeLessThanOrEqual(760)
-    expect(url(output.searchParams.get('url')).search).toBe('')
+    expect(output.origin).toBe('http://team4s.local')
+    expect(output.pathname).toBe('/api/v1/media/files/logo.png')
+    expect([...output.searchParams]).toEqual([['display_width', '760']])
   })
 
   it.each([
@@ -82,15 +74,14 @@ describe('bounded anime image delivery', () => {
     '/_next/image?url=https%3A%2F%2Funtrusted.example%2Fx.jpg&w=512&q=75',
   ])('bounds the existing placeholder for an unusable cover and omits optional media: %s', (source) => {
     const fallback = url(resolveAnimeCoverURL(source))
-    expect(fallback.pathname).toBe('/_next/image')
-    expect(fallback.searchParams.get('url')).toBe('/covers/placeholder.jpg')
-    expect(fallback.searchParams.get('w')).toBe('512')
+    expect(fallback.pathname).toBe('/covers/placeholder.jpg/display')
+    expect(fallback.searchParams.get('display_width')).toBe('512')
     expect(resolveAnimeImageURL(source, 512)).toBeNull()
   })
 
   it('retains the existing bare cover filename convention without filename-derived variants', () => {
     const output = url(resolveAnimeCoverURL('named-cover.jpg'))
-    expect(output.searchParams.get('url')).toBe('/covers/named-cover.jpg')
+    expect(output.pathname).toBe('/covers/named-cover.jpg/display')
   })
 
   it('keeps missing-file delivery bounded without prefetching or original fallback', () => {
@@ -98,7 +89,7 @@ describe('bounded anime image delivery', () => {
     vi.stubGlobal('fetch', fetcher)
     const source = '/covers/missing-404.jpg'
     const output = resolveAnimeCoverURL(source)
-    expect(url(output).searchParams.get('url')).toBe(source)
+    expect(url(output).pathname).toBe(source + '/display')
     expect(output).not.toBe(source)
     expect(fetcher).not.toHaveBeenCalled()
   })
@@ -110,7 +101,8 @@ describe('bounded anime image delivery', () => {
     const backdrops = normalizeBackdropImageURLs(data)
     expect(backdrops).toHaveLength(2)
     expect(url(backdrops[0]).searchParams.get('width')).toBe('1920')
-    expect(url(backdrops[1]).pathname).toBe('/_next/image')
+    expect(url(backdrops[1]).pathname).toBe('/media/anime/1/backdrop.jpg')
+    expect(url(backdrops[1]).searchParams.get('display_width')).toBe('1920')
     expect(url(resolveInfoBannerURL(manifest({ backdrops: [provider] }))).searchParams.get('width')).toBe('1280')
     expect(resolveInfoLogoURL(manifest({ logo_url: 'https://untrusted.example/logo.png' }))).toBeNull()
   })

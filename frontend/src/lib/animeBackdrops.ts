@@ -1,4 +1,4 @@
-import { getImageProps } from 'next/image'
+import { IMAGE_DISPLAY_QUERY, IMAGE_DISPLAY_WIDTHS, parseImageDisplayWidth } from '@/lib/imageDisplayContract'
 
 import type { AnimeBackdropManifest } from '@/types/anime'
 import { resolvePublicApiUrl } from '@/lib/publicApiUrl'
@@ -13,38 +13,25 @@ function isConfiguredApiURL(url: URL): boolean {
   return !!configured && url.origin === new URL(configured).origin
 }
 
-/** Only the existing local anime/cover and configured API-file namespaces use Next. */
-function staticImageSource(source: string): string | null {
-  // API files use the existing configured origin; local anime files must stay local.
-  const candidate = source.startsWith('/api/v1/media/files/') ? resolvePublicApiUrl(source) : source
-  const url = new URL(candidate, LOCAL_ORIGIN)
-  if (url.username || url.password) return null
-  if (candidate.startsWith('/') && !candidate.startsWith('//')) {
-    if (url.origin === LOCAL_ORIGIN && !url.search && (url.pathname.startsWith('/media/anime/') || url.pathname.startsWith('/covers/'))) {
-      return url.pathname
-    }
-  } else if (isConfiguredApiURL(url) && url.pathname.startsWith('/api/v1/media/files/')) {
-    return url.toString()
-  }
-  return null
+/** Resolve only the three authoritative serving namespaces; never infer a storage path. */
+function staticDisplayURL(url: URL, relative: boolean, width: number): string | null {
+  const local = relative && url.origin === LOCAL_ORIGIN
+  const apiFile = (local || isConfiguredApiURL(url)) && /^\/api\/v1\/media\/files\/[a-zA-Z0-9._-]+$/.test(url.pathname)
+  const cover = local && /^\/covers\/[a-zA-Z0-9._-]+(?:\/display)?$/.test(url.pathname)
+  const anime = local && url.pathname.startsWith('/media/anime/')
+  if (!apiFile && !cover && !anime) return null
+  // A completed display URL is idempotent. Other source queries have no documented semantics.
+  if ([...url.searchParams.keys()].some((key) => key !== IMAGE_DISPLAY_QUERY)) return null
+  if (url.search && parseImageDisplayWidth(url) === null) return null
+  let pathname = url.pathname
+  if (cover && !pathname.endsWith('/display')) pathname += '/display'
+  return pathname + '?' + IMAGE_DISPLAY_QUERY + '=' + width
 }
 
-function generatedCandidates(source: string, maxWidth: number) {
-  const { props } = getImageProps({
-    src: source, alt: '', width: maxWidth, height: Math.round(maxWidth * 1.5),
-    quality: IMAGE_QUALITY, sizes: maxWidth + 'px',
-  })
-  // sizes produces real width descriptors. props.src itself selects the largest candidate.
-  return (props.srcSet || '').split(', ').flatMap((candidate) => {
-    const match = candidate.match(/^(.*) (\d+)w$/)
-    return match && Number(match[2]) <= maxWidth ? [{ src: match[1], width: Number(match[2]) }] : []
-  })
-}
-
-/** Resolve a ready-to-display bounded URL; optional unsupported media is omitted. */
+/** Resolve a finished bounded source; optional unsupported media is omitted. */
 export function resolveAnimeImageURL(source: string | null | undefined, maxWidth: number): string | null {
   const value = source?.trim()
-  if (!value || !Number.isSafeInteger(maxWidth) || maxWidth <= 0) return null
+  if (!value || !IMAGE_DISPLAY_WIDTHS.some((width) => width === maxWidth)) return null
   try {
     const url = new URL(value, LOCAL_ORIGIN)
     if (!['http:', 'https:'].includes(url.protocol) || value.startsWith('//')) return null
@@ -53,17 +40,12 @@ export function resolveAnimeImageURL(source: string | null | undefined, maxWidth
     if (url.pathname === '/api/v1/media/image' && (relative || isConfiguredApiURL(url))) {
       return resolvePublicApiUrl(value, { width: maxWidth, quality: IMAGE_QUALITY })
     }
-
-    // Accept an existing generated candidate only if its original remains in the allowed seam.
+    // Existing Next wrappers are unwrapped into the explicit delivery seam. Next may pass animations through.
     if (relative && url.pathname === '/_next/image') {
-      const original = staticImageSource(url.searchParams.get('url') || '')
-      if (!original) return null
-      return generatedCandidates(original, maxWidth).find((candidate) => candidate.src === value)?.src ?? null
+      const original = url.searchParams.get('url')
+      return original && !original.startsWith('/_next/') ? resolveAnimeImageURL(original, maxWidth) : null
     }
-
-    const original = staticImageSource(value)
-    if (!original) return null
-    return generatedCandidates(original, maxWidth).sort((left, right) => right.width - left.width)[0]?.src ?? null
+    return staticDisplayURL(url, relative, maxWidth)
   } catch {
     return null
   }

@@ -23,7 +23,7 @@ The new display contract belongs to the frontend origin. The direct backend API 
 
 ## Fixed display policy
 
-Only display_width=512,760,1280,1920, exactly once. WebP quality75, first static frame0, alpha preserved, no enlargement. No raw-original fallback. Maximum input16MiB, decoded input20MP, encoded output4MiB; output width at most requested and height at most min(3*width,4096). At most two active source/decode operations per server process with no wait queue or cachemap. Input/request timeout and Sharp processing timeout are finite. Request cancellation stops source consumption; any native operation retains its slot until settlement.
+Only display_width=512,760,1280,1920, exactly once. WebP quality75, first static frame0, alpha preserved, no enlargement. No raw-original fallback. Maximum input16MiB, decoded input20MP, encoded output4MiB; output width at most requested and height at most min(3*width,4096). At most two active source/decode operations per server process with at most eight abortable FIFO waiters and no per-image cache map. Input/request timeout and Sharp processing timeout are finite. Request cancellation stops source consumption; any native operation retains its slot until settlement.
 
 Local stat precedes a bounded read and the byte bound is checked while reading to handle file growth. API source bodies are incrementally limited even when content-length is absent or false. SVG/video cannot enter the raster transform; original no-opt-in delivery remains available.
 
@@ -31,7 +31,7 @@ Local stat precedes a bounded read and the byte bound is checked while reading t
 
 Display requests deliberately ignore client Range and conditional If-* headers when obtaining full source bytes. Original ETag, content-encoding, content-range, accept-ranges and content-length are not forwarded as transformed truth. Successful output uses actual image/webp bytes and recomputed length, conservative cache policy and nosniff. GET returns the transformed body; HEAD uses the same transformation and headers with no body.
 
-Invalid/duplicate width400; missing local file404; abort/timeout408; input/pixel/output limits413; unsupported/corrupt raster415; capacity429; unavailable or unexpected partial-success upstream502. Upstream redirects/auth/missing/server statuses remain non200 without following redirects or pretending to be an image success. Error output uses the existing error.message shape and no-store. No error path serves an unbounded original.
+Invalid/duplicate width400; missing local file404; abort/timeout408; input/pixel/output limits413; unsupported/corrupt raster415; capacity429; unavailable or unexpected partial-success upstream502. Upstream redirects/auth/missing/server statuses remain non200 without following redirects or pretending to be an image success. Display errors use plain text with no-store; HEAD/304 have no body. This frontend-only error contract is documented separately from the unchanged backend ErrorResponse. No error path serves an unbounded original.
 
 ## Reuse and exclusions
 
@@ -39,4 +39,6 @@ One shared server-side Sharp helper is necessary because three existing serving 
 
 Sharp0.34.5 already exists under Next16.1.6; direct use declares that same version. Installed typings and official constructor/resize/output documentation were read. No framework upgrade is intended.
 
-Existing media/cover originals, backend services, env files and volumes are never rewritten. Fixtures live only in disposable test directories or isolated production source copies. Existing /media video206/416 and proxy tests remain regression gates. Real animated fixtures and productive Next HTTP through a pre-existing static cover are mandatory before claiming these findings closed.
+Existing media/cover originals, backend services, env files and volumes are never rewritten. Fixtures live only in disposable test directories or isolated production source copies. Existing /media video206/416 and proxy tests remain regression gates. Real animated fixtures are verified in this plan; productive Next HTTP through a pre-existing static cover, private API files and animations is the explicit 15905 production gate before these findings are globally closed.
+
+Admission correction from cold-start review: four distinct parallel images must complete with 200 through two active transforms. At most eight waiters share the five-second request deadline; queued abort removes the waiter before source IO. Saturation beyond this finite bound returns 429.

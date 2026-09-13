@@ -79,6 +79,7 @@ export async function proxyBackendApiRequest(request: Request, pathSegments: str
     headers: copyProxyRequestHeaders(request.headers),
     cache: 'no-store',
     redirect: 'manual',
+    signal: request.signal,
   }
 
   if (hasBody && request.body) {

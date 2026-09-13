@@ -77,3 +77,53 @@ If implementation and contract disagree:
 2. Fix the stale side when the intended behavior is clear.
 3. If the intended behavior is not clear, stop and document the mismatch as a risk or decision.
 4. Do not create a second helper, route, or DTO family to work around the mismatch.
+
+## Frontend image display delivery (Phase 159)
+
+This is an intentional surface split: the backend GET /api/v1/media/files/{filename}
+continues to serve its authoritative original and ignores display_width. The Next
+frontend owns the additive display contract below, removes that query before calling
+the existing fixed internal API proxy, and transforms the returned raster bytes.
+The OpenAPI media-files operation remains the backend original contract; its
+x-frontend-display metadata points here. No backend resize parameter is implied.
+
+| Frontend owner | Opt-in GET and HEAD URL | Authoritative source |
+| --- | --- | --- |
+| Covers child route | /covers/{filename}/display?display_width=512 | Existing public/covers basename resolution |
+| Existing local media route | /media/anime/{path}?display_width=512 | Existing validated MEDIA_BASE_PATH resolution |
+| Existing API relay, exact three segments | /api/v1/media/files/{filename}?display_width=512 | Existing internal API proxy and backend filename lookup |
+
+display_width is required on the covers child route and optional on the other two
+owners. Exactly one decimal value from 512, 760, 1280, 1920 is accepted. It is a
+frontend transform request, not an original-file query. No opt-in leaves existing
+original bytes, SVG/video handling, API methods/statuses and media Range 206/416
+unchanged. The covers child pathname deliberately avoids Next public-file precedence.
+
+Success is static frame-zero WebP, quality 75 with transparency, never enlarged;
+width <= requested slot, height <= min(3 * width, 4096), <= 4 MiB output. Input is
+limited to 16 MiB and 20 million decoded pixels. Only two transforms per server
+process run concurrently; up to eight requests wait in an abortable FIFO within the same five-second deadline; only excess requests return 429. Source
+reads and Sharp work have finite five-second deadlines; abort cancels source
+transport and a native job retains its slot until completion. Files are checked
+before and during bounded reads. No transformed cache map or original mutation.
+
+GET ignores source Range/If-* semantics for the transform. HEAD computes the same
+representation headers with no body. Original ETag, Content-Encoding, Content-Range,
+Accept-Ranges, Last-Modified and length are not forwarded as transformed metadata.
+Content-Type and length are recomputed. Local results cache publicly for 60 seconds;
+API-file results are private/no-store. The API relay retains its existing fixed
+target, manual redirect behavior and auth header forwarding; redirects and other
+non-200 source responses never become an image 200.
+
+Display failures have a plain-text body (HEAD/304 have no body), no-store and nosniff:
+400 invalid width, 404 missing/invalid cover or API filename, 408 abort/timeout,
+413 input/pixel/output budget, 415 corrupt/unsupported raster, 429 concurrency,
+502 unavailable or unexpected partial source. Existing source 3xx/401/404/5xx
+statuses are preserved without original image bytes. Existing media traversal
+checks still return 403. Supported input raster families are JPEG, PNG/APNG, GIF,
+WebP and AVIF; SVG/video are not decoded by the opt-in display helper.
+
+Focused coverage: imageDisplay.test.ts, covers/[file]/display/route.test.ts,
+api/v1/[...path]/route.test.ts, existing media Range tests and animeBackdrops.test.ts.
+
+Admission correction from cold-start review: four distinct parallel images must complete with 200 through two active transforms. At most eight waiters share the five-second request deadline; queued abort removes the waiter before source IO. Saturation beyond this finite bound returns 429.
