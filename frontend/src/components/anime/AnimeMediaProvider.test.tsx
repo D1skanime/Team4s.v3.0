@@ -1,7 +1,7 @@
 // @vitest-environment jsdom
 
 import { StrictMode, useEffect, type ImgHTMLAttributes } from 'react'
-import { act, cleanup, render, screen, waitFor } from '@testing-library/react'
+import { act, cleanup, fireEvent, render, screen, waitFor } from '@testing-library/react'
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
 
 import type { AnimeBackdropManifest, AnimeBackdropResponse } from '@/types/anime'
@@ -15,7 +15,8 @@ vi.mock('@/lib/api', () => ({
   getAnimeBackdrops: (...args: unknown[]) => getAnimeBackdropsMock(...args),
 }))
 
-vi.mock('next/image', () => ({
+vi.mock('next/image', async (importOriginal) => ({
+  ...await importOriginal<typeof import('next/image')>(),
   default: ({ unoptimized, alt = '', ...props }: ImgHTMLAttributes<HTMLImageElement> & { unoptimized?: boolean }) => {
     void unoptimized
     // eslint-disable-next-line @next/next/no-img-element
@@ -57,10 +58,10 @@ describe('AnimeMediaProvider', () => {
       data: {
         anime_id: 1,
         provider: 'jellyfin',
-        backdrops: ['/backdrop.jpg'],
+        backdrops: ['/covers/backdrop.jpg'],
         theme_videos: ['/theme.mp4'],
-        logo_url: '/logo.png',
-        banner_url: '/banner.jpg',
+        logo_url: '/covers/logo.png',
+        banner_url: '/covers/banner.jpg',
       },
     })
 
@@ -84,7 +85,7 @@ describe('AnimeMediaProvider', () => {
         provider: 'jellyfin',
         backdrops: [],
         theme_videos: [],
-        logo_url: '/logo-2.png',
+        logo_url: '/covers/logo-2.png',
         banner_url: undefined,
       },
     } satisfies AnimeBackdropResponse)
@@ -330,4 +331,17 @@ describe('manifest lifecycle', () => {
     pending.resolve(response(199))
     await flush()
   })
+})
+
+
+it('keeps a failed optional image on its bounded source without an original retry', async () => {
+  getAnimeBackdropsMock.mockResolvedValue(response(112, 'missing-404'))
+  render(<AnimeMediaProvider animeID={112}><AnimeTitleLogo title="Missing" /></AnimeMediaProvider>)
+  const logo = await screen.findByAltText('Missing Logo')
+  const source = logo.getAttribute('src')
+  expect(source).toContain('/_next/image?')
+  expect(source).not.toBe('/covers/missing-404.png')
+  fireEvent.error(logo)
+  expect(logo.getAttribute('src')).toBe(source)
+  expect(getAnimeBackdropsMock).toHaveBeenCalledTimes(1)
 })
