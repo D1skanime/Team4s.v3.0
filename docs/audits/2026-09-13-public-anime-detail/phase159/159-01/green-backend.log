@@ -167,7 +167,7 @@
 === CONT  TestScanEpisodeVersion_ReturnsCRC32
 --- PASS: TestScanEpisodeVersion_ReturnsCRC32 (0.00s)
 PASS
-ok  	team4s.v3/backend/internal/repository	0.467s
+ok      team4s.v3/backend/internal/repository   0.467s
 === RUN   TestEpisodeVersionPublicInvalidOptions
 === RUN   TestEpisodeVersionPublicInvalidOptions/projection=unknown
 === RUN   TestEpisodeVersionPublicInvalidOptions/projection=public&limit=1&limit=2
@@ -233,4 +233,4 @@ ok  	team4s.v3/backend/internal/repository	0.467s
     --- PASS: TestEpisodeVersionPublicInvalidOptions/projection=public&cursor=WzEsMSwxLDExLC0xXQ (0.00s)
     --- PASS: TestEpisodeVersionPublicInvalidOptions/projection=public&cursor=WzEsMSwxLDExLDEwMCw5OV0 (0.00s)
 PASS
-ok  	team4s.v3/backend/internal/handlers	0.018s
+ok      team4s.v3/backend/internal/handlers 0.018s

@@ -7,806 +7,806 @@
 --- FAIL: TestEpisodeVersionPublicFullAssignmentAndWrites (0.04s)
     episode_version_public_integration_test.go:209: read SQL file /app/tmp/phase15901/database/migrations/0049_extend_theme_segments.up.sql: open /app/tmp/phase15901/database/migrations/0049_extend_theme_segments.up.sql: no such file or directory
 FAIL
-FAIL	team4s.v3/backend/internal/repository	0.158s
+FAIL    team4s.v3/backend/internal/repository   0.158s
 
 
 2026/09/13 21:59:15 [Recovery] 2026/09/13 - 21:59:15 panic recovered:
 runtime error: invalid memory address or nil pointer dereference
 /usr/local/go/src/runtime/panic.go:262 (0x47eb98)
-	panicmem: panic(memoryError)
+    panicmem: panic(memoryError)
 /usr/local/go/src/runtime/signal_unix.go:925 (0x47eb68)
-	sigpanic: panicmem()
+    sigpanic: panicmem()
 /app/tmp/phase15901/backend/internal/repository/episode_version_repository.go:361 (0x9029e6)
-	(*EpisodeVersionRepository).animeExists: if err := r.db.QueryRow(ctx, `SELECT EXISTS(SELECT 1 FROM anime WHERE id = $1)`, animeID).Scan(&exists); err != nil {
+    (*EpisodeVersionRepository).animeExists: if err := r.db.QueryRow(ctx, `SELECT EXISTS(SELECT 1 FROM anime WHERE id = $1)`, animeID).Scan(&exists); err != nil {
 /app/tmp/phase15901/backend/internal/repository/episode_version_repository.go:34 (0x9013a6)
-	(*EpisodeVersionRepository).ListGroupedByAnimeID: exists, err := r.animeExists(ctx, animeID)
+    (*EpisodeVersionRepository).ListGroupedByAnimeID: exists, err := r.animeExists(ctx, animeID)
 /app/tmp/phase15901/backend/internal/handlers/episode_version_reads.go:24 (0xc52b4a)
-	(*FansubHandler).ListGroupedEpisodes: data, err := h.episodeVersionRepo.ListGroupedByAnimeID(
+    (*FansubHandler).ListGroupedEpisodes: data, err := h.episodeVersionRepo.ListGroupedByAnimeID(
 /go/pkg/mod/github.com/gin-gonic/gin@v1.10.0/context.go:185 (0xa6b00e)
-	(*Context).Next: c.handlers[c.index](c)
+    (*Context).Next: c.handlers[c.index](c)
 /go/pkg/mod/github.com/gin-gonic/gin@v1.10.0/recovery.go:102 (0xa6affb)
-	CustomRecoveryWithWriter.func1: c.Next()
+    CustomRecoveryWithWriter.func1: c.Next()
 /go/pkg/mod/github.com/gin-gonic/gin@v1.10.0/context.go:185 (0xa69dca)
-	(*Context).Next: c.handlers[c.index](c)
+    (*Context).Next: c.handlers[c.index](c)
 /go/pkg/mod/github.com/gin-gonic/gin@v1.10.0/gin.go:633 (0xa69767)
-	(*Engine).handleHTTPRequest: c.Next()
+    (*Engine).handleHTTPRequest: c.Next()
 /go/pkg/mod/github.com/gin-gonic/gin@v1.10.0/gin.go:589 (0xa693ec)
-	(*Engine).ServeHTTP: engine.handleHTTPRequest(c)
+    (*Engine).ServeHTTP: engine.handleHTTPRequest(c)
 /app/tmp/phase15901/backend/internal/handlers/episode_version_public_test.go:22 (0xd24e34)
-	TestEpisodeVersionPublicInvalidOptions.func1: w:=httptest.NewRecorder(); router.ServeHTTP(w,httptest.NewRequest("GET","/anime/1/episodes?"+query,nil))
+    TestEpisodeVersionPublicInvalidOptions.func1: w:=httptest.NewRecorder(); router.ServeHTTP(w,httptest.NewRequest("GET","/anime/1/episodes?"+query,nil))
 /usr/local/go/src/testing/testing.go:1934 (0x537e69)
-	tRunner: fn(t)
+    tRunner: fn(t)
 /usr/local/go/src/runtime/asm_amd64.s:1693 (0x4849c0)
-	goexit: BYTE	$0x90	// NOP
-
-
-
-2026/09/13 21:59:15 [Recovery] 2026/09/13 - 21:59:15 panic recovered:
-runtime error: invalid memory address or nil pointer dereference
-/usr/local/go/src/runtime/panic.go:262 (0x47eb98)
-	panicmem: panic(memoryError)
-/usr/local/go/src/runtime/signal_unix.go:925 (0x47eb68)
-	sigpanic: panicmem()
-/app/tmp/phase15901/backend/internal/repository/episode_version_repository.go:361 (0x9029e6)
-	(*EpisodeVersionRepository).animeExists: if err := r.db.QueryRow(ctx, `SELECT EXISTS(SELECT 1 FROM anime WHERE id = $1)`, animeID).Scan(&exists); err != nil {
-/app/tmp/phase15901/backend/internal/repository/episode_version_repository.go:34 (0x9013a6)
-	(*EpisodeVersionRepository).ListGroupedByAnimeID: exists, err := r.animeExists(ctx, animeID)
-/app/tmp/phase15901/backend/internal/handlers/episode_version_reads.go:24 (0xc52b4a)
-	(*FansubHandler).ListGroupedEpisodes: data, err := h.episodeVersionRepo.ListGroupedByAnimeID(
-/go/pkg/mod/github.com/gin-gonic/gin@v1.10.0/context.go:185 (0xa6b00e)
-	(*Context).Next: c.handlers[c.index](c)
-/go/pkg/mod/github.com/gin-gonic/gin@v1.10.0/recovery.go:102 (0xa6affb)
-	CustomRecoveryWithWriter.func1: c.Next()
-/go/pkg/mod/github.com/gin-gonic/gin@v1.10.0/context.go:185 (0xa69dca)
-	(*Context).Next: c.handlers[c.index](c)
-/go/pkg/mod/github.com/gin-gonic/gin@v1.10.0/gin.go:633 (0xa69767)
-	(*Engine).handleHTTPRequest: c.Next()
-/go/pkg/mod/github.com/gin-gonic/gin@v1.10.0/gin.go:589 (0xa693ec)
-	(*Engine).ServeHTTP: engine.handleHTTPRequest(c)
-/app/tmp/phase15901/backend/internal/handlers/episode_version_public_test.go:22 (0xd24e34)
-	TestEpisodeVersionPublicInvalidOptions.func1: w:=httptest.NewRecorder(); router.ServeHTTP(w,httptest.NewRequest("GET","/anime/1/episodes?"+query,nil))
-/usr/local/go/src/testing/testing.go:1934 (0x537e69)
-	tRunner: fn(t)
-/usr/local/go/src/runtime/asm_amd64.s:1693 (0x4849c0)
-	goexit: BYTE	$0x90	// NOP
+    goexit: BYTE    $0x90   // NOP
 
 
 
 2026/09/13 21:59:15 [Recovery] 2026/09/13 - 21:59:15 panic recovered:
 runtime error: invalid memory address or nil pointer dereference
 /usr/local/go/src/runtime/panic.go:262 (0x47eb98)
-	panicmem: panic(memoryError)
+    panicmem: panic(memoryError)
 /usr/local/go/src/runtime/signal_unix.go:925 (0x47eb68)
-	sigpanic: panicmem()
+    sigpanic: panicmem()
 /app/tmp/phase15901/backend/internal/repository/episode_version_repository.go:361 (0x9029e6)
-	(*EpisodeVersionRepository).animeExists: if err := r.db.QueryRow(ctx, `SELECT EXISTS(SELECT 1 FROM anime WHERE id = $1)`, animeID).Scan(&exists); err != nil {
+    (*EpisodeVersionRepository).animeExists: if err := r.db.QueryRow(ctx, `SELECT EXISTS(SELECT 1 FROM anime WHERE id = $1)`, animeID).Scan(&exists); err != nil {
 /app/tmp/phase15901/backend/internal/repository/episode_version_repository.go:34 (0x9013a6)
-	(*EpisodeVersionRepository).ListGroupedByAnimeID: exists, err := r.animeExists(ctx, animeID)
+    (*EpisodeVersionRepository).ListGroupedByAnimeID: exists, err := r.animeExists(ctx, animeID)
 /app/tmp/phase15901/backend/internal/handlers/episode_version_reads.go:24 (0xc52b4a)
-	(*FansubHandler).ListGroupedEpisodes: data, err := h.episodeVersionRepo.ListGroupedByAnimeID(
+    (*FansubHandler).ListGroupedEpisodes: data, err := h.episodeVersionRepo.ListGroupedByAnimeID(
 /go/pkg/mod/github.com/gin-gonic/gin@v1.10.0/context.go:185 (0xa6b00e)
-	(*Context).Next: c.handlers[c.index](c)
+    (*Context).Next: c.handlers[c.index](c)
 /go/pkg/mod/github.com/gin-gonic/gin@v1.10.0/recovery.go:102 (0xa6affb)
-	CustomRecoveryWithWriter.func1: c.Next()
+    CustomRecoveryWithWriter.func1: c.Next()
 /go/pkg/mod/github.com/gin-gonic/gin@v1.10.0/context.go:185 (0xa69dca)
-	(*Context).Next: c.handlers[c.index](c)
+    (*Context).Next: c.handlers[c.index](c)
 /go/pkg/mod/github.com/gin-gonic/gin@v1.10.0/gin.go:633 (0xa69767)
-	(*Engine).handleHTTPRequest: c.Next()
+    (*Engine).handleHTTPRequest: c.Next()
 /go/pkg/mod/github.com/gin-gonic/gin@v1.10.0/gin.go:589 (0xa693ec)
-	(*Engine).ServeHTTP: engine.handleHTTPRequest(c)
+    (*Engine).ServeHTTP: engine.handleHTTPRequest(c)
 /app/tmp/phase15901/backend/internal/handlers/episode_version_public_test.go:22 (0xd24e34)
-	TestEpisodeVersionPublicInvalidOptions.func1: w:=httptest.NewRecorder(); router.ServeHTTP(w,httptest.NewRequest("GET","/anime/1/episodes?"+query,nil))
+    TestEpisodeVersionPublicInvalidOptions.func1: w:=httptest.NewRecorder(); router.ServeHTTP(w,httptest.NewRequest("GET","/anime/1/episodes?"+query,nil))
 /usr/local/go/src/testing/testing.go:1934 (0x537e69)
-	tRunner: fn(t)
+    tRunner: fn(t)
 /usr/local/go/src/runtime/asm_amd64.s:1693 (0x4849c0)
-	goexit: BYTE	$0x90	// NOP
+    goexit: BYTE    $0x90   // NOP
 
 
 
 2026/09/13 21:59:15 [Recovery] 2026/09/13 - 21:59:15 panic recovered:
 runtime error: invalid memory address or nil pointer dereference
 /usr/local/go/src/runtime/panic.go:262 (0x47eb98)
-	panicmem: panic(memoryError)
+    panicmem: panic(memoryError)
 /usr/local/go/src/runtime/signal_unix.go:925 (0x47eb68)
-	sigpanic: panicmem()
+    sigpanic: panicmem()
 /app/tmp/phase15901/backend/internal/repository/episode_version_repository.go:361 (0x9029e6)
-	(*EpisodeVersionRepository).animeExists: if err := r.db.QueryRow(ctx, `SELECT EXISTS(SELECT 1 FROM anime WHERE id = $1)`, animeID).Scan(&exists); err != nil {
+    (*EpisodeVersionRepository).animeExists: if err := r.db.QueryRow(ctx, `SELECT EXISTS(SELECT 1 FROM anime WHERE id = $1)`, animeID).Scan(&exists); err != nil {
 /app/tmp/phase15901/backend/internal/repository/episode_version_repository.go:34 (0x9013a6)
-	(*EpisodeVersionRepository).ListGroupedByAnimeID: exists, err := r.animeExists(ctx, animeID)
+    (*EpisodeVersionRepository).ListGroupedByAnimeID: exists, err := r.animeExists(ctx, animeID)
 /app/tmp/phase15901/backend/internal/handlers/episode_version_reads.go:24 (0xc52b4a)
-	(*FansubHandler).ListGroupedEpisodes: data, err := h.episodeVersionRepo.ListGroupedByAnimeID(
+    (*FansubHandler).ListGroupedEpisodes: data, err := h.episodeVersionRepo.ListGroupedByAnimeID(
 /go/pkg/mod/github.com/gin-gonic/gin@v1.10.0/context.go:185 (0xa6b00e)
-	(*Context).Next: c.handlers[c.index](c)
+    (*Context).Next: c.handlers[c.index](c)
 /go/pkg/mod/github.com/gin-gonic/gin@v1.10.0/recovery.go:102 (0xa6affb)
-	CustomRecoveryWithWriter.func1: c.Next()
+    CustomRecoveryWithWriter.func1: c.Next()
 /go/pkg/mod/github.com/gin-gonic/gin@v1.10.0/context.go:185 (0xa69dca)
-	(*Context).Next: c.handlers[c.index](c)
+    (*Context).Next: c.handlers[c.index](c)
 /go/pkg/mod/github.com/gin-gonic/gin@v1.10.0/gin.go:633 (0xa69767)
-	(*Engine).handleHTTPRequest: c.Next()
+    (*Engine).handleHTTPRequest: c.Next()
 /go/pkg/mod/github.com/gin-gonic/gin@v1.10.0/gin.go:589 (0xa693ec)
-	(*Engine).ServeHTTP: engine.handleHTTPRequest(c)
+    (*Engine).ServeHTTP: engine.handleHTTPRequest(c)
 /app/tmp/phase15901/backend/internal/handlers/episode_version_public_test.go:22 (0xd24e34)
-	TestEpisodeVersionPublicInvalidOptions.func1: w:=httptest.NewRecorder(); router.ServeHTTP(w,httptest.NewRequest("GET","/anime/1/episodes?"+query,nil))
+    TestEpisodeVersionPublicInvalidOptions.func1: w:=httptest.NewRecorder(); router.ServeHTTP(w,httptest.NewRequest("GET","/anime/1/episodes?"+query,nil))
 /usr/local/go/src/testing/testing.go:1934 (0x537e69)
-	tRunner: fn(t)
+    tRunner: fn(t)
 /usr/local/go/src/runtime/asm_amd64.s:1693 (0x4849c0)
-	goexit: BYTE	$0x90	// NOP
+    goexit: BYTE    $0x90   // NOP
 
 
 
 2026/09/13 21:59:15 [Recovery] 2026/09/13 - 21:59:15 panic recovered:
 runtime error: invalid memory address or nil pointer dereference
 /usr/local/go/src/runtime/panic.go:262 (0x47eb98)
-	panicmem: panic(memoryError)
+    panicmem: panic(memoryError)
 /usr/local/go/src/runtime/signal_unix.go:925 (0x47eb68)
-	sigpanic: panicmem()
+    sigpanic: panicmem()
 /app/tmp/phase15901/backend/internal/repository/episode_version_repository.go:361 (0x9029e6)
-	(*EpisodeVersionRepository).animeExists: if err := r.db.QueryRow(ctx, `SELECT EXISTS(SELECT 1 FROM anime WHERE id = $1)`, animeID).Scan(&exists); err != nil {
+    (*EpisodeVersionRepository).animeExists: if err := r.db.QueryRow(ctx, `SELECT EXISTS(SELECT 1 FROM anime WHERE id = $1)`, animeID).Scan(&exists); err != nil {
 /app/tmp/phase15901/backend/internal/repository/episode_version_repository.go:34 (0x9013a6)
-	(*EpisodeVersionRepository).ListGroupedByAnimeID: exists, err := r.animeExists(ctx, animeID)
+    (*EpisodeVersionRepository).ListGroupedByAnimeID: exists, err := r.animeExists(ctx, animeID)
 /app/tmp/phase15901/backend/internal/handlers/episode_version_reads.go:24 (0xc52b4a)
-	(*FansubHandler).ListGroupedEpisodes: data, err := h.episodeVersionRepo.ListGroupedByAnimeID(
+    (*FansubHandler).ListGroupedEpisodes: data, err := h.episodeVersionRepo.ListGroupedByAnimeID(
 /go/pkg/mod/github.com/gin-gonic/gin@v1.10.0/context.go:185 (0xa6b00e)
-	(*Context).Next: c.handlers[c.index](c)
+    (*Context).Next: c.handlers[c.index](c)
 /go/pkg/mod/github.com/gin-gonic/gin@v1.10.0/recovery.go:102 (0xa6affb)
-	CustomRecoveryWithWriter.func1: c.Next()
+    CustomRecoveryWithWriter.func1: c.Next()
 /go/pkg/mod/github.com/gin-gonic/gin@v1.10.0/context.go:185 (0xa69dca)
-	(*Context).Next: c.handlers[c.index](c)
+    (*Context).Next: c.handlers[c.index](c)
 /go/pkg/mod/github.com/gin-gonic/gin@v1.10.0/gin.go:633 (0xa69767)
-	(*Engine).handleHTTPRequest: c.Next()
+    (*Engine).handleHTTPRequest: c.Next()
 /go/pkg/mod/github.com/gin-gonic/gin@v1.10.0/gin.go:589 (0xa693ec)
-	(*Engine).ServeHTTP: engine.handleHTTPRequest(c)
+    (*Engine).ServeHTTP: engine.handleHTTPRequest(c)
 /app/tmp/phase15901/backend/internal/handlers/episode_version_public_test.go:22 (0xd24e34)
-	TestEpisodeVersionPublicInvalidOptions.func1: w:=httptest.NewRecorder(); router.ServeHTTP(w,httptest.NewRequest("GET","/anime/1/episodes?"+query,nil))
+    TestEpisodeVersionPublicInvalidOptions.func1: w:=httptest.NewRecorder(); router.ServeHTTP(w,httptest.NewRequest("GET","/anime/1/episodes?"+query,nil))
 /usr/local/go/src/testing/testing.go:1934 (0x537e69)
-	tRunner: fn(t)
+    tRunner: fn(t)
 /usr/local/go/src/runtime/asm_amd64.s:1693 (0x4849c0)
-	goexit: BYTE	$0x90	// NOP
+    goexit: BYTE    $0x90   // NOP
 
 
 
 2026/09/13 21:59:15 [Recovery] 2026/09/13 - 21:59:15 panic recovered:
 runtime error: invalid memory address or nil pointer dereference
 /usr/local/go/src/runtime/panic.go:262 (0x47eb98)
-	panicmem: panic(memoryError)
+    panicmem: panic(memoryError)
 /usr/local/go/src/runtime/signal_unix.go:925 (0x47eb68)
-	sigpanic: panicmem()
+    sigpanic: panicmem()
 /app/tmp/phase15901/backend/internal/repository/episode_version_repository.go:361 (0x9029e6)
-	(*EpisodeVersionRepository).animeExists: if err := r.db.QueryRow(ctx, `SELECT EXISTS(SELECT 1 FROM anime WHERE id = $1)`, animeID).Scan(&exists); err != nil {
+    (*EpisodeVersionRepository).animeExists: if err := r.db.QueryRow(ctx, `SELECT EXISTS(SELECT 1 FROM anime WHERE id = $1)`, animeID).Scan(&exists); err != nil {
 /app/tmp/phase15901/backend/internal/repository/episode_version_repository.go:34 (0x9013a6)
-	(*EpisodeVersionRepository).ListGroupedByAnimeID: exists, err := r.animeExists(ctx, animeID)
+    (*EpisodeVersionRepository).ListGroupedByAnimeID: exists, err := r.animeExists(ctx, animeID)
 /app/tmp/phase15901/backend/internal/handlers/episode_version_reads.go:24 (0xc52b4a)
-	(*FansubHandler).ListGroupedEpisodes: data, err := h.episodeVersionRepo.ListGroupedByAnimeID(
+    (*FansubHandler).ListGroupedEpisodes: data, err := h.episodeVersionRepo.ListGroupedByAnimeID(
 /go/pkg/mod/github.com/gin-gonic/gin@v1.10.0/context.go:185 (0xa6b00e)
-	(*Context).Next: c.handlers[c.index](c)
+    (*Context).Next: c.handlers[c.index](c)
 /go/pkg/mod/github.com/gin-gonic/gin@v1.10.0/recovery.go:102 (0xa6affb)
-	CustomRecoveryWithWriter.func1: c.Next()
+    CustomRecoveryWithWriter.func1: c.Next()
 /go/pkg/mod/github.com/gin-gonic/gin@v1.10.0/context.go:185 (0xa69dca)
-	(*Context).Next: c.handlers[c.index](c)
+    (*Context).Next: c.handlers[c.index](c)
 /go/pkg/mod/github.com/gin-gonic/gin@v1.10.0/gin.go:633 (0xa69767)
-	(*Engine).handleHTTPRequest: c.Next()
+    (*Engine).handleHTTPRequest: c.Next()
 /go/pkg/mod/github.com/gin-gonic/gin@v1.10.0/gin.go:589 (0xa693ec)
-	(*Engine).ServeHTTP: engine.handleHTTPRequest(c)
+    (*Engine).ServeHTTP: engine.handleHTTPRequest(c)
 /app/tmp/phase15901/backend/internal/handlers/episode_version_public_test.go:22 (0xd24e34)
-	TestEpisodeVersionPublicInvalidOptions.func1: w:=httptest.NewRecorder(); router.ServeHTTP(w,httptest.NewRequest("GET","/anime/1/episodes?"+query,nil))
+    TestEpisodeVersionPublicInvalidOptions.func1: w:=httptest.NewRecorder(); router.ServeHTTP(w,httptest.NewRequest("GET","/anime/1/episodes?"+query,nil))
 /usr/local/go/src/testing/testing.go:1934 (0x537e69)
-	tRunner: fn(t)
+    tRunner: fn(t)
 /usr/local/go/src/runtime/asm_amd64.s:1693 (0x4849c0)
-	goexit: BYTE	$0x90	// NOP
+    goexit: BYTE    $0x90   // NOP
 
 
 
 2026/09/13 21:59:15 [Recovery] 2026/09/13 - 21:59:15 panic recovered:
 runtime error: invalid memory address or nil pointer dereference
 /usr/local/go/src/runtime/panic.go:262 (0x47eb98)
-	panicmem: panic(memoryError)
+    panicmem: panic(memoryError)
 /usr/local/go/src/runtime/signal_unix.go:925 (0x47eb68)
-	sigpanic: panicmem()
+    sigpanic: panicmem()
 /app/tmp/phase15901/backend/internal/repository/episode_version_repository.go:361 (0x9029e6)
-	(*EpisodeVersionRepository).animeExists: if err := r.db.QueryRow(ctx, `SELECT EXISTS(SELECT 1 FROM anime WHERE id = $1)`, animeID).Scan(&exists); err != nil {
+    (*EpisodeVersionRepository).animeExists: if err := r.db.QueryRow(ctx, `SELECT EXISTS(SELECT 1 FROM anime WHERE id = $1)`, animeID).Scan(&exists); err != nil {
 /app/tmp/phase15901/backend/internal/repository/episode_version_repository.go:34 (0x9013a6)
-	(*EpisodeVersionRepository).ListGroupedByAnimeID: exists, err := r.animeExists(ctx, animeID)
+    (*EpisodeVersionRepository).ListGroupedByAnimeID: exists, err := r.animeExists(ctx, animeID)
 /app/tmp/phase15901/backend/internal/handlers/episode_version_reads.go:24 (0xc52b4a)
-	(*FansubHandler).ListGroupedEpisodes: data, err := h.episodeVersionRepo.ListGroupedByAnimeID(
+    (*FansubHandler).ListGroupedEpisodes: data, err := h.episodeVersionRepo.ListGroupedByAnimeID(
 /go/pkg/mod/github.com/gin-gonic/gin@v1.10.0/context.go:185 (0xa6b00e)
-	(*Context).Next: c.handlers[c.index](c)
+    (*Context).Next: c.handlers[c.index](c)
 /go/pkg/mod/github.com/gin-gonic/gin@v1.10.0/recovery.go:102 (0xa6affb)
-	CustomRecoveryWithWriter.func1: c.Next()
+    CustomRecoveryWithWriter.func1: c.Next()
 /go/pkg/mod/github.com/gin-gonic/gin@v1.10.0/context.go:185 (0xa69dca)
-	(*Context).Next: c.handlers[c.index](c)
+    (*Context).Next: c.handlers[c.index](c)
 /go/pkg/mod/github.com/gin-gonic/gin@v1.10.0/gin.go:633 (0xa69767)
-	(*Engine).handleHTTPRequest: c.Next()
+    (*Engine).handleHTTPRequest: c.Next()
 /go/pkg/mod/github.com/gin-gonic/gin@v1.10.0/gin.go:589 (0xa693ec)
-	(*Engine).ServeHTTP: engine.handleHTTPRequest(c)
+    (*Engine).ServeHTTP: engine.handleHTTPRequest(c)
 /app/tmp/phase15901/backend/internal/handlers/episode_version_public_test.go:22 (0xd24e34)
-	TestEpisodeVersionPublicInvalidOptions.func1: w:=httptest.NewRecorder(); router.ServeHTTP(w,httptest.NewRequest("GET","/anime/1/episodes?"+query,nil))
+    TestEpisodeVersionPublicInvalidOptions.func1: w:=httptest.NewRecorder(); router.ServeHTTP(w,httptest.NewRequest("GET","/anime/1/episodes?"+query,nil))
 /usr/local/go/src/testing/testing.go:1934 (0x537e69)
-	tRunner: fn(t)
+    tRunner: fn(t)
 /usr/local/go/src/runtime/asm_amd64.s:1693 (0x4849c0)
-	goexit: BYTE	$0x90	// NOP
+    goexit: BYTE    $0x90   // NOP
 
 
 
 2026/09/13 21:59:15 [Recovery] 2026/09/13 - 21:59:15 panic recovered:
 runtime error: invalid memory address or nil pointer dereference
 /usr/local/go/src/runtime/panic.go:262 (0x47eb98)
-	panicmem: panic(memoryError)
+    panicmem: panic(memoryError)
 /usr/local/go/src/runtime/signal_unix.go:925 (0x47eb68)
-	sigpanic: panicmem()
+    sigpanic: panicmem()
 /app/tmp/phase15901/backend/internal/repository/episode_version_repository.go:361 (0x9029e6)
-	(*EpisodeVersionRepository).animeExists: if err := r.db.QueryRow(ctx, `SELECT EXISTS(SELECT 1 FROM anime WHERE id = $1)`, animeID).Scan(&exists); err != nil {
+    (*EpisodeVersionRepository).animeExists: if err := r.db.QueryRow(ctx, `SELECT EXISTS(SELECT 1 FROM anime WHERE id = $1)`, animeID).Scan(&exists); err != nil {
 /app/tmp/phase15901/backend/internal/repository/episode_version_repository.go:34 (0x9013a6)
-	(*EpisodeVersionRepository).ListGroupedByAnimeID: exists, err := r.animeExists(ctx, animeID)
+    (*EpisodeVersionRepository).ListGroupedByAnimeID: exists, err := r.animeExists(ctx, animeID)
 /app/tmp/phase15901/backend/internal/handlers/episode_version_reads.go:24 (0xc52b4a)
-	(*FansubHandler).ListGroupedEpisodes: data, err := h.episodeVersionRepo.ListGroupedByAnimeID(
+    (*FansubHandler).ListGroupedEpisodes: data, err := h.episodeVersionRepo.ListGroupedByAnimeID(
 /go/pkg/mod/github.com/gin-gonic/gin@v1.10.0/context.go:185 (0xa6b00e)
-	(*Context).Next: c.handlers[c.index](c)
+    (*Context).Next: c.handlers[c.index](c)
 /go/pkg/mod/github.com/gin-gonic/gin@v1.10.0/recovery.go:102 (0xa6affb)
-	CustomRecoveryWithWriter.func1: c.Next()
+    CustomRecoveryWithWriter.func1: c.Next()
 /go/pkg/mod/github.com/gin-gonic/gin@v1.10.0/context.go:185 (0xa69dca)
-	(*Context).Next: c.handlers[c.index](c)
+    (*Context).Next: c.handlers[c.index](c)
 /go/pkg/mod/github.com/gin-gonic/gin@v1.10.0/gin.go:633 (0xa69767)
-	(*Engine).handleHTTPRequest: c.Next()
+    (*Engine).handleHTTPRequest: c.Next()
 /go/pkg/mod/github.com/gin-gonic/gin@v1.10.0/gin.go:589 (0xa693ec)
-	(*Engine).ServeHTTP: engine.handleHTTPRequest(c)
+    (*Engine).ServeHTTP: engine.handleHTTPRequest(c)
 /app/tmp/phase15901/backend/internal/handlers/episode_version_public_test.go:22 (0xd24e34)
-	TestEpisodeVersionPublicInvalidOptions.func1: w:=httptest.NewRecorder(); router.ServeHTTP(w,httptest.NewRequest("GET","/anime/1/episodes?"+query,nil))
+    TestEpisodeVersionPublicInvalidOptions.func1: w:=httptest.NewRecorder(); router.ServeHTTP(w,httptest.NewRequest("GET","/anime/1/episodes?"+query,nil))
 /usr/local/go/src/testing/testing.go:1934 (0x537e69)
-	tRunner: fn(t)
+    tRunner: fn(t)
 /usr/local/go/src/runtime/asm_amd64.s:1693 (0x4849c0)
-	goexit: BYTE	$0x90	// NOP
+    goexit: BYTE    $0x90   // NOP
 
 
 
 2026/09/13 21:59:15 [Recovery] 2026/09/13 - 21:59:15 panic recovered:
 runtime error: invalid memory address or nil pointer dereference
 /usr/local/go/src/runtime/panic.go:262 (0x47eb98)
-	panicmem: panic(memoryError)
+    panicmem: panic(memoryError)
 /usr/local/go/src/runtime/signal_unix.go:925 (0x47eb68)
-	sigpanic: panicmem()
+    sigpanic: panicmem()
 /app/tmp/phase15901/backend/internal/repository/episode_version_repository.go:361 (0x9029e6)
-	(*EpisodeVersionRepository).animeExists: if err := r.db.QueryRow(ctx, `SELECT EXISTS(SELECT 1 FROM anime WHERE id = $1)`, animeID).Scan(&exists); err != nil {
+    (*EpisodeVersionRepository).animeExists: if err := r.db.QueryRow(ctx, `SELECT EXISTS(SELECT 1 FROM anime WHERE id = $1)`, animeID).Scan(&exists); err != nil {
 /app/tmp/phase15901/backend/internal/repository/episode_version_repository.go:34 (0x9013a6)
-	(*EpisodeVersionRepository).ListGroupedByAnimeID: exists, err := r.animeExists(ctx, animeID)
+    (*EpisodeVersionRepository).ListGroupedByAnimeID: exists, err := r.animeExists(ctx, animeID)
 /app/tmp/phase15901/backend/internal/handlers/episode_version_reads.go:24 (0xc52b4a)
-	(*FansubHandler).ListGroupedEpisodes: data, err := h.episodeVersionRepo.ListGroupedByAnimeID(
+    (*FansubHandler).ListGroupedEpisodes: data, err := h.episodeVersionRepo.ListGroupedByAnimeID(
 /go/pkg/mod/github.com/gin-gonic/gin@v1.10.0/context.go:185 (0xa6b00e)
-	(*Context).Next: c.handlers[c.index](c)
+    (*Context).Next: c.handlers[c.index](c)
 /go/pkg/mod/github.com/gin-gonic/gin@v1.10.0/recovery.go:102 (0xa6affb)
-	CustomRecoveryWithWriter.func1: c.Next()
+    CustomRecoveryWithWriter.func1: c.Next()
 /go/pkg/mod/github.com/gin-gonic/gin@v1.10.0/context.go:185 (0xa69dca)
-	(*Context).Next: c.handlers[c.index](c)
+    (*Context).Next: c.handlers[c.index](c)
 /go/pkg/mod/github.com/gin-gonic/gin@v1.10.0/gin.go:633 (0xa69767)
-	(*Engine).handleHTTPRequest: c.Next()
+    (*Engine).handleHTTPRequest: c.Next()
 /go/pkg/mod/github.com/gin-gonic/gin@v1.10.0/gin.go:589 (0xa693ec)
-	(*Engine).ServeHTTP: engine.handleHTTPRequest(c)
+    (*Engine).ServeHTTP: engine.handleHTTPRequest(c)
 /app/tmp/phase15901/backend/internal/handlers/episode_version_public_test.go:22 (0xd24e34)
-	TestEpisodeVersionPublicInvalidOptions.func1: w:=httptest.NewRecorder(); router.ServeHTTP(w,httptest.NewRequest("GET","/anime/1/episodes?"+query,nil))
+    TestEpisodeVersionPublicInvalidOptions.func1: w:=httptest.NewRecorder(); router.ServeHTTP(w,httptest.NewRequest("GET","/anime/1/episodes?"+query,nil))
 /usr/local/go/src/testing/testing.go:1934 (0x537e69)
-	tRunner: fn(t)
+    tRunner: fn(t)
 /usr/local/go/src/runtime/asm_amd64.s:1693 (0x4849c0)
-	goexit: BYTE	$0x90	// NOP
+    goexit: BYTE    $0x90   // NOP
 
 
 
 2026/09/13 21:59:15 [Recovery] 2026/09/13 - 21:59:15 panic recovered:
 runtime error: invalid memory address or nil pointer dereference
 /usr/local/go/src/runtime/panic.go:262 (0x47eb98)
-	panicmem: panic(memoryError)
+    panicmem: panic(memoryError)
 /usr/local/go/src/runtime/signal_unix.go:925 (0x47eb68)
-	sigpanic: panicmem()
+    sigpanic: panicmem()
 /app/tmp/phase15901/backend/internal/repository/episode_version_repository.go:361 (0x9029e6)
-	(*EpisodeVersionRepository).animeExists: if err := r.db.QueryRow(ctx, `SELECT EXISTS(SELECT 1 FROM anime WHERE id = $1)`, animeID).Scan(&exists); err != nil {
+    (*EpisodeVersionRepository).animeExists: if err := r.db.QueryRow(ctx, `SELECT EXISTS(SELECT 1 FROM anime WHERE id = $1)`, animeID).Scan(&exists); err != nil {
 /app/tmp/phase15901/backend/internal/repository/episode_version_repository.go:34 (0x9013a6)
-	(*EpisodeVersionRepository).ListGroupedByAnimeID: exists, err := r.animeExists(ctx, animeID)
+    (*EpisodeVersionRepository).ListGroupedByAnimeID: exists, err := r.animeExists(ctx, animeID)
 /app/tmp/phase15901/backend/internal/handlers/episode_version_reads.go:24 (0xc52b4a)
-	(*FansubHandler).ListGroupedEpisodes: data, err := h.episodeVersionRepo.ListGroupedByAnimeID(
+    (*FansubHandler).ListGroupedEpisodes: data, err := h.episodeVersionRepo.ListGroupedByAnimeID(
 /go/pkg/mod/github.com/gin-gonic/gin@v1.10.0/context.go:185 (0xa6b00e)
-	(*Context).Next: c.handlers[c.index](c)
+    (*Context).Next: c.handlers[c.index](c)
 /go/pkg/mod/github.com/gin-gonic/gin@v1.10.0/recovery.go:102 (0xa6affb)
-	CustomRecoveryWithWriter.func1: c.Next()
+    CustomRecoveryWithWriter.func1: c.Next()
 /go/pkg/mod/github.com/gin-gonic/gin@v1.10.0/context.go:185 (0xa69dca)
-	(*Context).Next: c.handlers[c.index](c)
+    (*Context).Next: c.handlers[c.index](c)
 /go/pkg/mod/github.com/gin-gonic/gin@v1.10.0/gin.go:633 (0xa69767)
-	(*Engine).handleHTTPRequest: c.Next()
+    (*Engine).handleHTTPRequest: c.Next()
 /go/pkg/mod/github.com/gin-gonic/gin@v1.10.0/gin.go:589 (0xa693ec)
-	(*Engine).ServeHTTP: engine.handleHTTPRequest(c)
+    (*Engine).ServeHTTP: engine.handleHTTPRequest(c)
 /app/tmp/phase15901/backend/internal/handlers/episode_version_public_test.go:22 (0xd24e34)
-	TestEpisodeVersionPublicInvalidOptions.func1: w:=httptest.NewRecorder(); router.ServeHTTP(w,httptest.NewRequest("GET","/anime/1/episodes?"+query,nil))
+    TestEpisodeVersionPublicInvalidOptions.func1: w:=httptest.NewRecorder(); router.ServeHTTP(w,httptest.NewRequest("GET","/anime/1/episodes?"+query,nil))
 /usr/local/go/src/testing/testing.go:1934 (0x537e69)
-	tRunner: fn(t)
+    tRunner: fn(t)
 /usr/local/go/src/runtime/asm_amd64.s:1693 (0x4849c0)
-	goexit: BYTE	$0x90	// NOP
+    goexit: BYTE    $0x90   // NOP
 
 
 
 2026/09/13 21:59:15 [Recovery] 2026/09/13 - 21:59:15 panic recovered:
 runtime error: invalid memory address or nil pointer dereference
 /usr/local/go/src/runtime/panic.go:262 (0x47eb98)
-	panicmem: panic(memoryError)
+    panicmem: panic(memoryError)
 /usr/local/go/src/runtime/signal_unix.go:925 (0x47eb68)
-	sigpanic: panicmem()
+    sigpanic: panicmem()
 /app/tmp/phase15901/backend/internal/repository/episode_version_repository.go:361 (0x9029e6)
-	(*EpisodeVersionRepository).animeExists: if err := r.db.QueryRow(ctx, `SELECT EXISTS(SELECT 1 FROM anime WHERE id = $1)`, animeID).Scan(&exists); err != nil {
+    (*EpisodeVersionRepository).animeExists: if err := r.db.QueryRow(ctx, `SELECT EXISTS(SELECT 1 FROM anime WHERE id = $1)`, animeID).Scan(&exists); err != nil {
 /app/tmp/phase15901/backend/internal/repository/episode_version_repository.go:34 (0x9013a6)
-	(*EpisodeVersionRepository).ListGroupedByAnimeID: exists, err := r.animeExists(ctx, animeID)
+    (*EpisodeVersionRepository).ListGroupedByAnimeID: exists, err := r.animeExists(ctx, animeID)
 /app/tmp/phase15901/backend/internal/handlers/episode_version_reads.go:24 (0xc52b4a)
-	(*FansubHandler).ListGroupedEpisodes: data, err := h.episodeVersionRepo.ListGroupedByAnimeID(
+    (*FansubHandler).ListGroupedEpisodes: data, err := h.episodeVersionRepo.ListGroupedByAnimeID(
 /go/pkg/mod/github.com/gin-gonic/gin@v1.10.0/context.go:185 (0xa6b00e)
-	(*Context).Next: c.handlers[c.index](c)
+    (*Context).Next: c.handlers[c.index](c)
 /go/pkg/mod/github.com/gin-gonic/gin@v1.10.0/recovery.go:102 (0xa6affb)
-	CustomRecoveryWithWriter.func1: c.Next()
+    CustomRecoveryWithWriter.func1: c.Next()
 /go/pkg/mod/github.com/gin-gonic/gin@v1.10.0/context.go:185 (0xa69dca)
-	(*Context).Next: c.handlers[c.index](c)
+    (*Context).Next: c.handlers[c.index](c)
 /go/pkg/mod/github.com/gin-gonic/gin@v1.10.0/gin.go:633 (0xa69767)
-	(*Engine).handleHTTPRequest: c.Next()
+    (*Engine).handleHTTPRequest: c.Next()
 /go/pkg/mod/github.com/gin-gonic/gin@v1.10.0/gin.go:589 (0xa693ec)
-	(*Engine).ServeHTTP: engine.handleHTTPRequest(c)
+    (*Engine).ServeHTTP: engine.handleHTTPRequest(c)
 /app/tmp/phase15901/backend/internal/handlers/episode_version_public_test.go:22 (0xd24e34)
-	TestEpisodeVersionPublicInvalidOptions.func1: w:=httptest.NewRecorder(); router.ServeHTTP(w,httptest.NewRequest("GET","/anime/1/episodes?"+query,nil))
+    TestEpisodeVersionPublicInvalidOptions.func1: w:=httptest.NewRecorder(); router.ServeHTTP(w,httptest.NewRequest("GET","/anime/1/episodes?"+query,nil))
 /usr/local/go/src/testing/testing.go:1934 (0x537e69)
-	tRunner: fn(t)
+    tRunner: fn(t)
 /usr/local/go/src/runtime/asm_amd64.s:1693 (0x4849c0)
-	goexit: BYTE	$0x90	// NOP
+    goexit: BYTE    $0x90   // NOP
 
 
 
 2026/09/13 21:59:15 [Recovery] 2026/09/13 - 21:59:15 panic recovered:
 runtime error: invalid memory address or nil pointer dereference
 /usr/local/go/src/runtime/panic.go:262 (0x47eb98)
-	panicmem: panic(memoryError)
+    panicmem: panic(memoryError)
 /usr/local/go/src/runtime/signal_unix.go:925 (0x47eb68)
-	sigpanic: panicmem()
+    sigpanic: panicmem()
 /app/tmp/phase15901/backend/internal/repository/episode_version_repository.go:361 (0x9029e6)
-	(*EpisodeVersionRepository).animeExists: if err := r.db.QueryRow(ctx, `SELECT EXISTS(SELECT 1 FROM anime WHERE id = $1)`, animeID).Scan(&exists); err != nil {
+    (*EpisodeVersionRepository).animeExists: if err := r.db.QueryRow(ctx, `SELECT EXISTS(SELECT 1 FROM anime WHERE id = $1)`, animeID).Scan(&exists); err != nil {
 /app/tmp/phase15901/backend/internal/repository/episode_version_repository.go:34 (0x9013a6)
-	(*EpisodeVersionRepository).ListGroupedByAnimeID: exists, err := r.animeExists(ctx, animeID)
+    (*EpisodeVersionRepository).ListGroupedByAnimeID: exists, err := r.animeExists(ctx, animeID)
 /app/tmp/phase15901/backend/internal/handlers/episode_version_reads.go:24 (0xc52b4a)
-	(*FansubHandler).ListGroupedEpisodes: data, err := h.episodeVersionRepo.ListGroupedByAnimeID(
+    (*FansubHandler).ListGroupedEpisodes: data, err := h.episodeVersionRepo.ListGroupedByAnimeID(
 /go/pkg/mod/github.com/gin-gonic/gin@v1.10.0/context.go:185 (0xa6b00e)
-	(*Context).Next: c.handlers[c.index](c)
+    (*Context).Next: c.handlers[c.index](c)
 /go/pkg/mod/github.com/gin-gonic/gin@v1.10.0/recovery.go:102 (0xa6affb)
-	CustomRecoveryWithWriter.func1: c.Next()
+    CustomRecoveryWithWriter.func1: c.Next()
 /go/pkg/mod/github.com/gin-gonic/gin@v1.10.0/context.go:185 (0xa69dca)
-	(*Context).Next: c.handlers[c.index](c)
+    (*Context).Next: c.handlers[c.index](c)
 /go/pkg/mod/github.com/gin-gonic/gin@v1.10.0/gin.go:633 (0xa69767)
-	(*Engine).handleHTTPRequest: c.Next()
+    (*Engine).handleHTTPRequest: c.Next()
 /go/pkg/mod/github.com/gin-gonic/gin@v1.10.0/gin.go:589 (0xa693ec)
-	(*Engine).ServeHTTP: engine.handleHTTPRequest(c)
+    (*Engine).ServeHTTP: engine.handleHTTPRequest(c)
 /app/tmp/phase15901/backend/internal/handlers/episode_version_public_test.go:22 (0xd24e34)
-	TestEpisodeVersionPublicInvalidOptions.func1: w:=httptest.NewRecorder(); router.ServeHTTP(w,httptest.NewRequest("GET","/anime/1/episodes?"+query,nil))
+    TestEpisodeVersionPublicInvalidOptions.func1: w:=httptest.NewRecorder(); router.ServeHTTP(w,httptest.NewRequest("GET","/anime/1/episodes?"+query,nil))
 /usr/local/go/src/testing/testing.go:1934 (0x537e69)
-	tRunner: fn(t)
+    tRunner: fn(t)
 /usr/local/go/src/runtime/asm_amd64.s:1693 (0x4849c0)
-	goexit: BYTE	$0x90	// NOP
+    goexit: BYTE    $0x90   // NOP
 
 
 
 2026/09/13 21:59:15 [Recovery] 2026/09/13 - 21:59:15 panic recovered:
 runtime error: invalid memory address or nil pointer dereference
 /usr/local/go/src/runtime/panic.go:262 (0x47eb98)
-	panicmem: panic(memoryError)
+    panicmem: panic(memoryError)
 /usr/local/go/src/runtime/signal_unix.go:925 (0x47eb68)
-	sigpanic: panicmem()
+    sigpanic: panicmem()
 /app/tmp/phase15901/backend/internal/repository/episode_version_repository.go:361 (0x9029e6)
-	(*EpisodeVersionRepository).animeExists: if err := r.db.QueryRow(ctx, `SELECT EXISTS(SELECT 1 FROM anime WHERE id = $1)`, animeID).Scan(&exists); err != nil {
+    (*EpisodeVersionRepository).animeExists: if err := r.db.QueryRow(ctx, `SELECT EXISTS(SELECT 1 FROM anime WHERE id = $1)`, animeID).Scan(&exists); err != nil {
 /app/tmp/phase15901/backend/internal/repository/episode_version_repository.go:34 (0x9013a6)
-	(*EpisodeVersionRepository).ListGroupedByAnimeID: exists, err := r.animeExists(ctx, animeID)
+    (*EpisodeVersionRepository).ListGroupedByAnimeID: exists, err := r.animeExists(ctx, animeID)
 /app/tmp/phase15901/backend/internal/handlers/episode_version_reads.go:24 (0xc52b4a)
-	(*FansubHandler).ListGroupedEpisodes: data, err := h.episodeVersionRepo.ListGroupedByAnimeID(
+    (*FansubHandler).ListGroupedEpisodes: data, err := h.episodeVersionRepo.ListGroupedByAnimeID(
 /go/pkg/mod/github.com/gin-gonic/gin@v1.10.0/context.go:185 (0xa6b00e)
-	(*Context).Next: c.handlers[c.index](c)
+    (*Context).Next: c.handlers[c.index](c)
 /go/pkg/mod/github.com/gin-gonic/gin@v1.10.0/recovery.go:102 (0xa6affb)
-	CustomRecoveryWithWriter.func1: c.Next()
+    CustomRecoveryWithWriter.func1: c.Next()
 /go/pkg/mod/github.com/gin-gonic/gin@v1.10.0/context.go:185 (0xa69dca)
-	(*Context).Next: c.handlers[c.index](c)
+    (*Context).Next: c.handlers[c.index](c)
 /go/pkg/mod/github.com/gin-gonic/gin@v1.10.0/gin.go:633 (0xa69767)
-	(*Engine).handleHTTPRequest: c.Next()
+    (*Engine).handleHTTPRequest: c.Next()
 /go/pkg/mod/github.com/gin-gonic/gin@v1.10.0/gin.go:589 (0xa693ec)
-	(*Engine).ServeHTTP: engine.handleHTTPRequest(c)
+    (*Engine).ServeHTTP: engine.handleHTTPRequest(c)
 /app/tmp/phase15901/backend/internal/handlers/episode_version_public_test.go:22 (0xd24e34)
-	TestEpisodeVersionPublicInvalidOptions.func1: w:=httptest.NewRecorder(); router.ServeHTTP(w,httptest.NewRequest("GET","/anime/1/episodes?"+query,nil))
+    TestEpisodeVersionPublicInvalidOptions.func1: w:=httptest.NewRecorder(); router.ServeHTTP(w,httptest.NewRequest("GET","/anime/1/episodes?"+query,nil))
 /usr/local/go/src/testing/testing.go:1934 (0x537e69)
-	tRunner: fn(t)
+    tRunner: fn(t)
 /usr/local/go/src/runtime/asm_amd64.s:1693 (0x4849c0)
-	goexit: BYTE	$0x90	// NOP
+    goexit: BYTE    $0x90   // NOP
 
 
 
 2026/09/13 21:59:15 [Recovery] 2026/09/13 - 21:59:15 panic recovered:
 runtime error: invalid memory address or nil pointer dereference
 /usr/local/go/src/runtime/panic.go:262 (0x47eb98)
-	panicmem: panic(memoryError)
+    panicmem: panic(memoryError)
 /usr/local/go/src/runtime/signal_unix.go:925 (0x47eb68)
-	sigpanic: panicmem()
+    sigpanic: panicmem()
 /app/tmp/phase15901/backend/internal/repository/episode_version_repository.go:361 (0x9029e6)
-	(*EpisodeVersionRepository).animeExists: if err := r.db.QueryRow(ctx, `SELECT EXISTS(SELECT 1 FROM anime WHERE id = $1)`, animeID).Scan(&exists); err != nil {
+    (*EpisodeVersionRepository).animeExists: if err := r.db.QueryRow(ctx, `SELECT EXISTS(SELECT 1 FROM anime WHERE id = $1)`, animeID).Scan(&exists); err != nil {
 /app/tmp/phase15901/backend/internal/repository/episode_version_repository.go:34 (0x9013a6)
-	(*EpisodeVersionRepository).ListGroupedByAnimeID: exists, err := r.animeExists(ctx, animeID)
+    (*EpisodeVersionRepository).ListGroupedByAnimeID: exists, err := r.animeExists(ctx, animeID)
 /app/tmp/phase15901/backend/internal/handlers/episode_version_reads.go:24 (0xc52b4a)
-	(*FansubHandler).ListGroupedEpisodes: data, err := h.episodeVersionRepo.ListGroupedByAnimeID(
+    (*FansubHandler).ListGroupedEpisodes: data, err := h.episodeVersionRepo.ListGroupedByAnimeID(
 /go/pkg/mod/github.com/gin-gonic/gin@v1.10.0/context.go:185 (0xa6b00e)
-	(*Context).Next: c.handlers[c.index](c)
+    (*Context).Next: c.handlers[c.index](c)
 /go/pkg/mod/github.com/gin-gonic/gin@v1.10.0/recovery.go:102 (0xa6affb)
-	CustomRecoveryWithWriter.func1: c.Next()
+    CustomRecoveryWithWriter.func1: c.Next()
 /go/pkg/mod/github.com/gin-gonic/gin@v1.10.0/context.go:185 (0xa69dca)
-	(*Context).Next: c.handlers[c.index](c)
+    (*Context).Next: c.handlers[c.index](c)
 /go/pkg/mod/github.com/gin-gonic/gin@v1.10.0/gin.go:633 (0xa69767)
-	(*Engine).handleHTTPRequest: c.Next()
+    (*Engine).handleHTTPRequest: c.Next()
 /go/pkg/mod/github.com/gin-gonic/gin@v1.10.0/gin.go:589 (0xa693ec)
-	(*Engine).ServeHTTP: engine.handleHTTPRequest(c)
+    (*Engine).ServeHTTP: engine.handleHTTPRequest(c)
 /app/tmp/phase15901/backend/internal/handlers/episode_version_public_test.go:22 (0xd24e34)
-	TestEpisodeVersionPublicInvalidOptions.func1: w:=httptest.NewRecorder(); router.ServeHTTP(w,httptest.NewRequest("GET","/anime/1/episodes?"+query,nil))
+    TestEpisodeVersionPublicInvalidOptions.func1: w:=httptest.NewRecorder(); router.ServeHTTP(w,httptest.NewRequest("GET","/anime/1/episodes?"+query,nil))
 /usr/local/go/src/testing/testing.go:1934 (0x537e69)
-	tRunner: fn(t)
+    tRunner: fn(t)
 /usr/local/go/src/runtime/asm_amd64.s:1693 (0x4849c0)
-	goexit: BYTE	$0x90	// NOP
+    goexit: BYTE    $0x90   // NOP
 
 
 
 2026/09/13 21:59:15 [Recovery] 2026/09/13 - 21:59:15 panic recovered:
 runtime error: invalid memory address or nil pointer dereference
 /usr/local/go/src/runtime/panic.go:262 (0x47eb98)
-	panicmem: panic(memoryError)
+    panicmem: panic(memoryError)
 /usr/local/go/src/runtime/signal_unix.go:925 (0x47eb68)
-	sigpanic: panicmem()
+    sigpanic: panicmem()
 /app/tmp/phase15901/backend/internal/repository/episode_version_repository.go:361 (0x9029e6)
-	(*EpisodeVersionRepository).animeExists: if err := r.db.QueryRow(ctx, `SELECT EXISTS(SELECT 1 FROM anime WHERE id = $1)`, animeID).Scan(&exists); err != nil {
+    (*EpisodeVersionRepository).animeExists: if err := r.db.QueryRow(ctx, `SELECT EXISTS(SELECT 1 FROM anime WHERE id = $1)`, animeID).Scan(&exists); err != nil {
 /app/tmp/phase15901/backend/internal/repository/episode_version_repository.go:34 (0x9013a6)
-	(*EpisodeVersionRepository).ListGroupedByAnimeID: exists, err := r.animeExists(ctx, animeID)
+    (*EpisodeVersionRepository).ListGroupedByAnimeID: exists, err := r.animeExists(ctx, animeID)
 /app/tmp/phase15901/backend/internal/handlers/episode_version_reads.go:24 (0xc52b4a)
-	(*FansubHandler).ListGroupedEpisodes: data, err := h.episodeVersionRepo.ListGroupedByAnimeID(
+    (*FansubHandler).ListGroupedEpisodes: data, err := h.episodeVersionRepo.ListGroupedByAnimeID(
 /go/pkg/mod/github.com/gin-gonic/gin@v1.10.0/context.go:185 (0xa6b00e)
-	(*Context).Next: c.handlers[c.index](c)
+    (*Context).Next: c.handlers[c.index](c)
 /go/pkg/mod/github.com/gin-gonic/gin@v1.10.0/recovery.go:102 (0xa6affb)
-	CustomRecoveryWithWriter.func1: c.Next()
+    CustomRecoveryWithWriter.func1: c.Next()
 /go/pkg/mod/github.com/gin-gonic/gin@v1.10.0/context.go:185 (0xa69dca)
-	(*Context).Next: c.handlers[c.index](c)
+    (*Context).Next: c.handlers[c.index](c)
 /go/pkg/mod/github.com/gin-gonic/gin@v1.10.0/gin.go:633 (0xa69767)
-	(*Engine).handleHTTPRequest: c.Next()
+    (*Engine).handleHTTPRequest: c.Next()
 /go/pkg/mod/github.com/gin-gonic/gin@v1.10.0/gin.go:589 (0xa693ec)
-	(*Engine).ServeHTTP: engine.handleHTTPRequest(c)
+    (*Engine).ServeHTTP: engine.handleHTTPRequest(c)
 /app/tmp/phase15901/backend/internal/handlers/episode_version_public_test.go:22 (0xd24e34)
-	TestEpisodeVersionPublicInvalidOptions.func1: w:=httptest.NewRecorder(); router.ServeHTTP(w,httptest.NewRequest("GET","/anime/1/episodes?"+query,nil))
+    TestEpisodeVersionPublicInvalidOptions.func1: w:=httptest.NewRecorder(); router.ServeHTTP(w,httptest.NewRequest("GET","/anime/1/episodes?"+query,nil))
 /usr/local/go/src/testing/testing.go:1934 (0x537e69)
-	tRunner: fn(t)
+    tRunner: fn(t)
 /usr/local/go/src/runtime/asm_amd64.s:1693 (0x4849c0)
-	goexit: BYTE	$0x90	// NOP
+    goexit: BYTE    $0x90   // NOP
 
 
 
 2026/09/13 21:59:15 [Recovery] 2026/09/13 - 21:59:15 panic recovered:
 runtime error: invalid memory address or nil pointer dereference
 /usr/local/go/src/runtime/panic.go:262 (0x47eb98)
-	panicmem: panic(memoryError)
+    panicmem: panic(memoryError)
 /usr/local/go/src/runtime/signal_unix.go:925 (0x47eb68)
-	sigpanic: panicmem()
+    sigpanic: panicmem()
 /app/tmp/phase15901/backend/internal/repository/episode_version_repository.go:361 (0x9029e6)
-	(*EpisodeVersionRepository).animeExists: if err := r.db.QueryRow(ctx, `SELECT EXISTS(SELECT 1 FROM anime WHERE id = $1)`, animeID).Scan(&exists); err != nil {
+    (*EpisodeVersionRepository).animeExists: if err := r.db.QueryRow(ctx, `SELECT EXISTS(SELECT 1 FROM anime WHERE id = $1)`, animeID).Scan(&exists); err != nil {
 /app/tmp/phase15901/backend/internal/repository/episode_version_repository.go:34 (0x9013a6)
-	(*EpisodeVersionRepository).ListGroupedByAnimeID: exists, err := r.animeExists(ctx, animeID)
+    (*EpisodeVersionRepository).ListGroupedByAnimeID: exists, err := r.animeExists(ctx, animeID)
 /app/tmp/phase15901/backend/internal/handlers/episode_version_reads.go:24 (0xc52b4a)
-	(*FansubHandler).ListGroupedEpisodes: data, err := h.episodeVersionRepo.ListGroupedByAnimeID(
+    (*FansubHandler).ListGroupedEpisodes: data, err := h.episodeVersionRepo.ListGroupedByAnimeID(
 /go/pkg/mod/github.com/gin-gonic/gin@v1.10.0/context.go:185 (0xa6b00e)
-	(*Context).Next: c.handlers[c.index](c)
+    (*Context).Next: c.handlers[c.index](c)
 /go/pkg/mod/github.com/gin-gonic/gin@v1.10.0/recovery.go:102 (0xa6affb)
-	CustomRecoveryWithWriter.func1: c.Next()
+    CustomRecoveryWithWriter.func1: c.Next()
 /go/pkg/mod/github.com/gin-gonic/gin@v1.10.0/context.go:185 (0xa69dca)
-	(*Context).Next: c.handlers[c.index](c)
+    (*Context).Next: c.handlers[c.index](c)
 /go/pkg/mod/github.com/gin-gonic/gin@v1.10.0/gin.go:633 (0xa69767)
-	(*Engine).handleHTTPRequest: c.Next()
+    (*Engine).handleHTTPRequest: c.Next()
 /go/pkg/mod/github.com/gin-gonic/gin@v1.10.0/gin.go:589 (0xa693ec)
-	(*Engine).ServeHTTP: engine.handleHTTPRequest(c)
+    (*Engine).ServeHTTP: engine.handleHTTPRequest(c)
 /app/tmp/phase15901/backend/internal/handlers/episode_version_public_test.go:22 (0xd24e34)
-	TestEpisodeVersionPublicInvalidOptions.func1: w:=httptest.NewRecorder(); router.ServeHTTP(w,httptest.NewRequest("GET","/anime/1/episodes?"+query,nil))
+    TestEpisodeVersionPublicInvalidOptions.func1: w:=httptest.NewRecorder(); router.ServeHTTP(w,httptest.NewRequest("GET","/anime/1/episodes?"+query,nil))
 /usr/local/go/src/testing/testing.go:1934 (0x537e69)
-	tRunner: fn(t)
+    tRunner: fn(t)
 /usr/local/go/src/runtime/asm_amd64.s:1693 (0x4849c0)
-	goexit: BYTE	$0x90	// NOP
+    goexit: BYTE    $0x90   // NOP
 
 
 
 2026/09/13 21:59:15 [Recovery] 2026/09/13 - 21:59:15 panic recovered:
 runtime error: invalid memory address or nil pointer dereference
 /usr/local/go/src/runtime/panic.go:262 (0x47eb98)
-	panicmem: panic(memoryError)
+    panicmem: panic(memoryError)
 /usr/local/go/src/runtime/signal_unix.go:925 (0x47eb68)
-	sigpanic: panicmem()
+    sigpanic: panicmem()
 /app/tmp/phase15901/backend/internal/repository/episode_version_repository.go:361 (0x9029e6)
-	(*EpisodeVersionRepository).animeExists: if err := r.db.QueryRow(ctx, `SELECT EXISTS(SELECT 1 FROM anime WHERE id = $1)`, animeID).Scan(&exists); err != nil {
+    (*EpisodeVersionRepository).animeExists: if err := r.db.QueryRow(ctx, `SELECT EXISTS(SELECT 1 FROM anime WHERE id = $1)`, animeID).Scan(&exists); err != nil {
 /app/tmp/phase15901/backend/internal/repository/episode_version_repository.go:34 (0x9013a6)
-	(*EpisodeVersionRepository).ListGroupedByAnimeID: exists, err := r.animeExists(ctx, animeID)
+    (*EpisodeVersionRepository).ListGroupedByAnimeID: exists, err := r.animeExists(ctx, animeID)
 /app/tmp/phase15901/backend/internal/handlers/episode_version_reads.go:24 (0xc52b4a)
-	(*FansubHandler).ListGroupedEpisodes: data, err := h.episodeVersionRepo.ListGroupedByAnimeID(
+    (*FansubHandler).ListGroupedEpisodes: data, err := h.episodeVersionRepo.ListGroupedByAnimeID(
 /go/pkg/mod/github.com/gin-gonic/gin@v1.10.0/context.go:185 (0xa6b00e)
-	(*Context).Next: c.handlers[c.index](c)
+    (*Context).Next: c.handlers[c.index](c)
 /go/pkg/mod/github.com/gin-gonic/gin@v1.10.0/recovery.go:102 (0xa6affb)
-	CustomRecoveryWithWriter.func1: c.Next()
+    CustomRecoveryWithWriter.func1: c.Next()
 /go/pkg/mod/github.com/gin-gonic/gin@v1.10.0/context.go:185 (0xa69dca)
-	(*Context).Next: c.handlers[c.index](c)
+    (*Context).Next: c.handlers[c.index](c)
 /go/pkg/mod/github.com/gin-gonic/gin@v1.10.0/gin.go:633 (0xa69767)
-	(*Engine).handleHTTPRequest: c.Next()
+    (*Engine).handleHTTPRequest: c.Next()
 /go/pkg/mod/github.com/gin-gonic/gin@v1.10.0/gin.go:589 (0xa693ec)
-	(*Engine).ServeHTTP: engine.handleHTTPRequest(c)
+    (*Engine).ServeHTTP: engine.handleHTTPRequest(c)
 /app/tmp/phase15901/backend/internal/handlers/episode_version_public_test.go:22 (0xd24e34)
-	TestEpisodeVersionPublicInvalidOptions.func1: w:=httptest.NewRecorder(); router.ServeHTTP(w,httptest.NewRequest("GET","/anime/1/episodes?"+query,nil))
+    TestEpisodeVersionPublicInvalidOptions.func1: w:=httptest.NewRecorder(); router.ServeHTTP(w,httptest.NewRequest("GET","/anime/1/episodes?"+query,nil))
 /usr/local/go/src/testing/testing.go:1934 (0x537e69)
-	tRunner: fn(t)
+    tRunner: fn(t)
 /usr/local/go/src/runtime/asm_amd64.s:1693 (0x4849c0)
-	goexit: BYTE	$0x90	// NOP
+    goexit: BYTE    $0x90   // NOP
 
 
 
 2026/09/13 21:59:15 [Recovery] 2026/09/13 - 21:59:15 panic recovered:
 runtime error: invalid memory address or nil pointer dereference
 /usr/local/go/src/runtime/panic.go:262 (0x47eb98)
-	panicmem: panic(memoryError)
+    panicmem: panic(memoryError)
 /usr/local/go/src/runtime/signal_unix.go:925 (0x47eb68)
-	sigpanic: panicmem()
+    sigpanic: panicmem()
 /app/tmp/phase15901/backend/internal/repository/episode_version_repository.go:361 (0x9029e6)
-	(*EpisodeVersionRepository).animeExists: if err := r.db.QueryRow(ctx, `SELECT EXISTS(SELECT 1 FROM anime WHERE id = $1)`, animeID).Scan(&exists); err != nil {
+    (*EpisodeVersionRepository).animeExists: if err := r.db.QueryRow(ctx, `SELECT EXISTS(SELECT 1 FROM anime WHERE id = $1)`, animeID).Scan(&exists); err != nil {
 /app/tmp/phase15901/backend/internal/repository/episode_version_repository.go:34 (0x9013a6)
-	(*EpisodeVersionRepository).ListGroupedByAnimeID: exists, err := r.animeExists(ctx, animeID)
+    (*EpisodeVersionRepository).ListGroupedByAnimeID: exists, err := r.animeExists(ctx, animeID)
 /app/tmp/phase15901/backend/internal/handlers/episode_version_reads.go:24 (0xc52b4a)
-	(*FansubHandler).ListGroupedEpisodes: data, err := h.episodeVersionRepo.ListGroupedByAnimeID(
+    (*FansubHandler).ListGroupedEpisodes: data, err := h.episodeVersionRepo.ListGroupedByAnimeID(
 /go/pkg/mod/github.com/gin-gonic/gin@v1.10.0/context.go:185 (0xa6b00e)
-	(*Context).Next: c.handlers[c.index](c)
+    (*Context).Next: c.handlers[c.index](c)
 /go/pkg/mod/github.com/gin-gonic/gin@v1.10.0/recovery.go:102 (0xa6affb)
-	CustomRecoveryWithWriter.func1: c.Next()
+    CustomRecoveryWithWriter.func1: c.Next()
 /go/pkg/mod/github.com/gin-gonic/gin@v1.10.0/context.go:185 (0xa69dca)
-	(*Context).Next: c.handlers[c.index](c)
+    (*Context).Next: c.handlers[c.index](c)
 /go/pkg/mod/github.com/gin-gonic/gin@v1.10.0/gin.go:633 (0xa69767)
-	(*Engine).handleHTTPRequest: c.Next()
+    (*Engine).handleHTTPRequest: c.Next()
 /go/pkg/mod/github.com/gin-gonic/gin@v1.10.0/gin.go:589 (0xa693ec)
-	(*Engine).ServeHTTP: engine.handleHTTPRequest(c)
+    (*Engine).ServeHTTP: engine.handleHTTPRequest(c)
 /app/tmp/phase15901/backend/internal/handlers/episode_version_public_test.go:22 (0xd24e34)
-	TestEpisodeVersionPublicInvalidOptions.func1: w:=httptest.NewRecorder(); router.ServeHTTP(w,httptest.NewRequest("GET","/anime/1/episodes?"+query,nil))
+    TestEpisodeVersionPublicInvalidOptions.func1: w:=httptest.NewRecorder(); router.ServeHTTP(w,httptest.NewRequest("GET","/anime/1/episodes?"+query,nil))
 /usr/local/go/src/testing/testing.go:1934 (0x537e69)
-	tRunner: fn(t)
+    tRunner: fn(t)
 /usr/local/go/src/runtime/asm_amd64.s:1693 (0x4849c0)
-	goexit: BYTE	$0x90	// NOP
+    goexit: BYTE    $0x90   // NOP
 
 
 
 2026/09/13 21:59:15 [Recovery] 2026/09/13 - 21:59:15 panic recovered:
 runtime error: invalid memory address or nil pointer dereference
 /usr/local/go/src/runtime/panic.go:262 (0x47eb98)
-	panicmem: panic(memoryError)
+    panicmem: panic(memoryError)
 /usr/local/go/src/runtime/signal_unix.go:925 (0x47eb68)
-	sigpanic: panicmem()
+    sigpanic: panicmem()
 /app/tmp/phase15901/backend/internal/repository/episode_version_repository.go:361 (0x9029e6)
-	(*EpisodeVersionRepository).animeExists: if err := r.db.QueryRow(ctx, `SELECT EXISTS(SELECT 1 FROM anime WHERE id = $1)`, animeID).Scan(&exists); err != nil {
+    (*EpisodeVersionRepository).animeExists: if err := r.db.QueryRow(ctx, `SELECT EXISTS(SELECT 1 FROM anime WHERE id = $1)`, animeID).Scan(&exists); err != nil {
 /app/tmp/phase15901/backend/internal/repository/episode_version_repository.go:34 (0x9013a6)
-	(*EpisodeVersionRepository).ListGroupedByAnimeID: exists, err := r.animeExists(ctx, animeID)
+    (*EpisodeVersionRepository).ListGroupedByAnimeID: exists, err := r.animeExists(ctx, animeID)
 /app/tmp/phase15901/backend/internal/handlers/episode_version_reads.go:24 (0xc52b4a)
-	(*FansubHandler).ListGroupedEpisodes: data, err := h.episodeVersionRepo.ListGroupedByAnimeID(
+    (*FansubHandler).ListGroupedEpisodes: data, err := h.episodeVersionRepo.ListGroupedByAnimeID(
 /go/pkg/mod/github.com/gin-gonic/gin@v1.10.0/context.go:185 (0xa6b00e)
-	(*Context).Next: c.handlers[c.index](c)
+    (*Context).Next: c.handlers[c.index](c)
 /go/pkg/mod/github.com/gin-gonic/gin@v1.10.0/recovery.go:102 (0xa6affb)
-	CustomRecoveryWithWriter.func1: c.Next()
+    CustomRecoveryWithWriter.func1: c.Next()
 /go/pkg/mod/github.com/gin-gonic/gin@v1.10.0/context.go:185 (0xa69dca)
-	(*Context).Next: c.handlers[c.index](c)
+    (*Context).Next: c.handlers[c.index](c)
 /go/pkg/mod/github.com/gin-gonic/gin@v1.10.0/gin.go:633 (0xa69767)
-	(*Engine).handleHTTPRequest: c.Next()
+    (*Engine).handleHTTPRequest: c.Next()
 /go/pkg/mod/github.com/gin-gonic/gin@v1.10.0/gin.go:589 (0xa693ec)
-	(*Engine).ServeHTTP: engine.handleHTTPRequest(c)
+    (*Engine).ServeHTTP: engine.handleHTTPRequest(c)
 /app/tmp/phase15901/backend/internal/handlers/episode_version_public_test.go:22 (0xd24e34)
-	TestEpisodeVersionPublicInvalidOptions.func1: w:=httptest.NewRecorder(); router.ServeHTTP(w,httptest.NewRequest("GET","/anime/1/episodes?"+query,nil))
+    TestEpisodeVersionPublicInvalidOptions.func1: w:=httptest.NewRecorder(); router.ServeHTTP(w,httptest.NewRequest("GET","/anime/1/episodes?"+query,nil))
 /usr/local/go/src/testing/testing.go:1934 (0x537e69)
-	tRunner: fn(t)
+    tRunner: fn(t)
 /usr/local/go/src/runtime/asm_amd64.s:1693 (0x4849c0)
-	goexit: BYTE	$0x90	// NOP
+    goexit: BYTE    $0x90   // NOP
 
 
 
 2026/09/13 21:59:15 [Recovery] 2026/09/13 - 21:59:15 panic recovered:
 runtime error: invalid memory address or nil pointer dereference
 /usr/local/go/src/runtime/panic.go:262 (0x47eb98)
-	panicmem: panic(memoryError)
+    panicmem: panic(memoryError)
 /usr/local/go/src/runtime/signal_unix.go:925 (0x47eb68)
-	sigpanic: panicmem()
+    sigpanic: panicmem()
 /app/tmp/phase15901/backend/internal/repository/episode_version_repository.go:361 (0x9029e6)
-	(*EpisodeVersionRepository).animeExists: if err := r.db.QueryRow(ctx, `SELECT EXISTS(SELECT 1 FROM anime WHERE id = $1)`, animeID).Scan(&exists); err != nil {
+    (*EpisodeVersionRepository).animeExists: if err := r.db.QueryRow(ctx, `SELECT EXISTS(SELECT 1 FROM anime WHERE id = $1)`, animeID).Scan(&exists); err != nil {
 /app/tmp/phase15901/backend/internal/repository/episode_version_repository.go:34 (0x9013a6)
-	(*EpisodeVersionRepository).ListGroupedByAnimeID: exists, err := r.animeExists(ctx, animeID)
+    (*EpisodeVersionRepository).ListGroupedByAnimeID: exists, err := r.animeExists(ctx, animeID)
 /app/tmp/phase15901/backend/internal/handlers/episode_version_reads.go:24 (0xc52b4a)
-	(*FansubHandler).ListGroupedEpisodes: data, err := h.episodeVersionRepo.ListGroupedByAnimeID(
+    (*FansubHandler).ListGroupedEpisodes: data, err := h.episodeVersionRepo.ListGroupedByAnimeID(
 /go/pkg/mod/github.com/gin-gonic/gin@v1.10.0/context.go:185 (0xa6b00e)
-	(*Context).Next: c.handlers[c.index](c)
+    (*Context).Next: c.handlers[c.index](c)
 /go/pkg/mod/github.com/gin-gonic/gin@v1.10.0/recovery.go:102 (0xa6affb)
-	CustomRecoveryWithWriter.func1: c.Next()
+    CustomRecoveryWithWriter.func1: c.Next()
 /go/pkg/mod/github.com/gin-gonic/gin@v1.10.0/context.go:185 (0xa69dca)
-	(*Context).Next: c.handlers[c.index](c)
+    (*Context).Next: c.handlers[c.index](c)
 /go/pkg/mod/github.com/gin-gonic/gin@v1.10.0/gin.go:633 (0xa69767)
-	(*Engine).handleHTTPRequest: c.Next()
+    (*Engine).handleHTTPRequest: c.Next()
 /go/pkg/mod/github.com/gin-gonic/gin@v1.10.0/gin.go:589 (0xa693ec)
-	(*Engine).ServeHTTP: engine.handleHTTPRequest(c)
+    (*Engine).ServeHTTP: engine.handleHTTPRequest(c)
 /app/tmp/phase15901/backend/internal/handlers/episode_version_public_test.go:22 (0xd24e34)
-	TestEpisodeVersionPublicInvalidOptions.func1: w:=httptest.NewRecorder(); router.ServeHTTP(w,httptest.NewRequest("GET","/anime/1/episodes?"+query,nil))
+    TestEpisodeVersionPublicInvalidOptions.func1: w:=httptest.NewRecorder(); router.ServeHTTP(w,httptest.NewRequest("GET","/anime/1/episodes?"+query,nil))
 /usr/local/go/src/testing/testing.go:1934 (0x537e69)
-	tRunner: fn(t)
+    tRunner: fn(t)
 /usr/local/go/src/runtime/asm_amd64.s:1693 (0x4849c0)
-	goexit: BYTE	$0x90	// NOP
+    goexit: BYTE    $0x90   // NOP
 
 
 
 2026/09/13 21:59:15 [Recovery] 2026/09/13 - 21:59:15 panic recovered:
 runtime error: invalid memory address or nil pointer dereference
 /usr/local/go/src/runtime/panic.go:262 (0x47eb98)
-	panicmem: panic(memoryError)
+    panicmem: panic(memoryError)
 /usr/local/go/src/runtime/signal_unix.go:925 (0x47eb68)
-	sigpanic: panicmem()
+    sigpanic: panicmem()
 /app/tmp/phase15901/backend/internal/repository/episode_version_repository.go:361 (0x9029e6)
-	(*EpisodeVersionRepository).animeExists: if err := r.db.QueryRow(ctx, `SELECT EXISTS(SELECT 1 FROM anime WHERE id = $1)`, animeID).Scan(&exists); err != nil {
+    (*EpisodeVersionRepository).animeExists: if err := r.db.QueryRow(ctx, `SELECT EXISTS(SELECT 1 FROM anime WHERE id = $1)`, animeID).Scan(&exists); err != nil {
 /app/tmp/phase15901/backend/internal/repository/episode_version_repository.go:34 (0x9013a6)
-	(*EpisodeVersionRepository).ListGroupedByAnimeID: exists, err := r.animeExists(ctx, animeID)
+    (*EpisodeVersionRepository).ListGroupedByAnimeID: exists, err := r.animeExists(ctx, animeID)
 /app/tmp/phase15901/backend/internal/handlers/episode_version_reads.go:24 (0xc52b4a)
-	(*FansubHandler).ListGroupedEpisodes: data, err := h.episodeVersionRepo.ListGroupedByAnimeID(
+    (*FansubHandler).ListGroupedEpisodes: data, err := h.episodeVersionRepo.ListGroupedByAnimeID(
 /go/pkg/mod/github.com/gin-gonic/gin@v1.10.0/context.go:185 (0xa6b00e)
-	(*Context).Next: c.handlers[c.index](c)
+    (*Context).Next: c.handlers[c.index](c)
 /go/pkg/mod/github.com/gin-gonic/gin@v1.10.0/recovery.go:102 (0xa6affb)
-	CustomRecoveryWithWriter.func1: c.Next()
+    CustomRecoveryWithWriter.func1: c.Next()
 /go/pkg/mod/github.com/gin-gonic/gin@v1.10.0/context.go:185 (0xa69dca)
-	(*Context).Next: c.handlers[c.index](c)
+    (*Context).Next: c.handlers[c.index](c)
 /go/pkg/mod/github.com/gin-gonic/gin@v1.10.0/gin.go:633 (0xa69767)
-	(*Engine).handleHTTPRequest: c.Next()
+    (*Engine).handleHTTPRequest: c.Next()
 /go/pkg/mod/github.com/gin-gonic/gin@v1.10.0/gin.go:589 (0xa693ec)
-	(*Engine).ServeHTTP: engine.handleHTTPRequest(c)
+    (*Engine).ServeHTTP: engine.handleHTTPRequest(c)
 /app/tmp/phase15901/backend/internal/handlers/episode_version_public_test.go:22 (0xd24e34)
-	TestEpisodeVersionPublicInvalidOptions.func1: w:=httptest.NewRecorder(); router.ServeHTTP(w,httptest.NewRequest("GET","/anime/1/episodes?"+query,nil))
+    TestEpisodeVersionPublicInvalidOptions.func1: w:=httptest.NewRecorder(); router.ServeHTTP(w,httptest.NewRequest("GET","/anime/1/episodes?"+query,nil))
 /usr/local/go/src/testing/testing.go:1934 (0x537e69)
-	tRunner: fn(t)
+    tRunner: fn(t)
 /usr/local/go/src/runtime/asm_amd64.s:1693 (0x4849c0)
-	goexit: BYTE	$0x90	// NOP
+    goexit: BYTE    $0x90   // NOP
+
+
+
+2026/09/13 21:59:15 [Recovery] 2026/09/13 - 21:59:15 panic recovered:
+runtime error: invalid memory address or nil pointer dereference
+/usr/local/go/src/runtime/panic.go:262 (0x47eb98)
+    panicmem: panic(memoryError)
+/usr/local/go/src/runtime/signal_unix.go:925 (0x47eb68)
+    sigpanic: panicmem()
+/app/tmp/phase15901/backend/internal/repository/episode_version_repository.go:361 (0x9029e6)
+    (*EpisodeVersionRepository).animeExists: if err := r.db.QueryRow(ctx, `SELECT EXISTS(SELECT 1 FROM anime WHERE id = $1)`, animeID).Scan(&exists); err != nil {
+/app/tmp/phase15901/backend/internal/repository/episode_version_repository.go:34 (0x9013a6)
+    (*EpisodeVersionRepository).ListGroupedByAnimeID: exists, err := r.animeExists(ctx, animeID)
+/app/tmp/phase15901/backend/internal/handlers/episode_version_reads.go:24 (0xc52b4a)
+    (*FansubHandler).ListGroupedEpisodes: data, err := h.episodeVersionRepo.ListGroupedByAnimeID(
+/go/pkg/mod/github.com/gin-gonic/gin@v1.10.0/context.go:185 (0xa6b00e)
+    (*Context).Next: c.handlers[c.index](c)
+/go/pkg/mod/github.com/gin-gonic/gin@v1.10.0/recovery.go:102 (0xa6affb)
+    CustomRecoveryWithWriter.func1: c.Next()
+/go/pkg/mod/github.com/gin-gonic/gin@v1.10.0/context.go:185 (0xa69dca)
+    (*Context).Next: c.handlers[c.index](c)
+/go/pkg/mod/github.com/gin-gonic/gin@v1.10.0/gin.go:633 (0xa69767)
+    (*Engine).handleHTTPRequest: c.Next()
+/go/pkg/mod/github.com/gin-gonic/gin@v1.10.0/gin.go:589 (0xa693ec)
+    (*Engine).ServeHTTP: engine.handleHTTPRequest(c)
+/app/tmp/phase15901/backend/internal/handlers/episode_version_public_test.go:22 (0xd24e34)
+    TestEpisodeVersionPublicInvalidOptions.func1: w:=httptest.NewRecorder(); router.ServeHTTP(w,httptest.NewRequest("GET","/anime/1/episodes?"+query,nil))
+/usr/local/go/src/testing/testing.go:1934 (0x537e69)
+    tRunner: fn(t)
+/usr/local/go/src/runtime/asm_amd64.s:1693 (0x4849c0)
+    goexit: BYTE    $0x90   // NOP
 
 --- FAIL: TestEpisodeVersionPublicInvalidOptions (0.04s)
     --- FAIL: TestEpisodeVersionPublicInvalidOptions/projection=unknown (0.01s)
         episode_version_public_test.go:23:
-            	Error Trace:	/app/tmp/phase15901/backend/internal/handlers/episode_version_public_test.go:23
-            	Error:      	Not equal:
-            	            	expected: 400
-            	            	actual  : 500
-            	Test:       	TestEpisodeVersionPublicInvalidOptions/projection=unknown
+                Error Trace:    /app/tmp/phase15901/backend/internal/handlers/episode_version_public_test.go:23
+                Error:          Not equal:
+                                expected: 400
+                                actual  : 500
+                Test:           TestEpisodeVersionPublicInvalidOptions/projection=unknown
     --- FAIL: TestEpisodeVersionPublicInvalidOptions/projection=public&limit=0 (0.00s)
         episode_version_public_test.go:23:
-            	Error Trace:	/app/tmp/phase15901/backend/internal/handlers/episode_version_public_test.go:23
-            	Error:      	Not equal:
-            	            	expected: 400
-            	            	actual  : 500
-            	Test:       	TestEpisodeVersionPublicInvalidOptions/projection=public&limit=0
+                Error Trace:    /app/tmp/phase15901/backend/internal/handlers/episode_version_public_test.go:23
+                Error:          Not equal:
+                                expected: 400
+                                actual  : 500
+                Test:           TestEpisodeVersionPublicInvalidOptions/projection=public&limit=0
     --- FAIL: TestEpisodeVersionPublicInvalidOptions/projection=public&limit=-1 (0.00s)
         episode_version_public_test.go:23:
-            	Error Trace:	/app/tmp/phase15901/backend/internal/handlers/episode_version_public_test.go:23
-            	Error:      	Not equal:
-            	            	expected: 400
-            	            	actual  : 500
-            	Test:       	TestEpisodeVersionPublicInvalidOptions/projection=public&limit=-1
+                Error Trace:    /app/tmp/phase15901/backend/internal/handlers/episode_version_public_test.go:23
+                Error:          Not equal:
+                                expected: 400
+                                actual  : 500
+                Test:           TestEpisodeVersionPublicInvalidOptions/projection=public&limit=-1
     --- FAIL: TestEpisodeVersionPublicInvalidOptions/projection=public&limit=101 (0.00s)
         episode_version_public_test.go:23:
-            	Error Trace:	/app/tmp/phase15901/backend/internal/handlers/episode_version_public_test.go:23
-            	Error:      	Not equal:
-            	            	expected: 400
-            	            	actual  : 500
-            	Test:       	TestEpisodeVersionPublicInvalidOptions/projection=public&limit=101
+                Error Trace:    /app/tmp/phase15901/backend/internal/handlers/episode_version_public_test.go:23
+                Error:          Not equal:
+                                expected: 400
+                                actual  : 500
+                Test:           TestEpisodeVersionPublicInvalidOptions/projection=public&limit=101
     --- FAIL: TestEpisodeVersionPublicInvalidOptions/projection=public&limit=1abc (0.01s)
         episode_version_public_test.go:23:
-            	Error Trace:	/app/tmp/phase15901/backend/internal/handlers/episode_version_public_test.go:23
-            	Error:      	Not equal:
-            	            	expected: 400
-            	            	actual  : 500
-            	Test:       	TestEpisodeVersionPublicInvalidOptions/projection=public&limit=1abc
+                Error Trace:    /app/tmp/phase15901/backend/internal/handlers/episode_version_public_test.go:23
+                Error:          Not equal:
+                                expected: 400
+                                actual  : 500
+                Test:           TestEpisodeVersionPublicInvalidOptions/projection=public&limit=1abc
     --- FAIL: TestEpisodeVersionPublicInvalidOptions/projection=public&limit=1.5 (0.00s)
         episode_version_public_test.go:23:
-            	Error Trace:	/app/tmp/phase15901/backend/internal/handlers/episode_version_public_test.go:23
-            	Error:      	Not equal:
-            	            	expected: 400
-            	            	actual  : 500
-            	Test:       	TestEpisodeVersionPublicInvalidOptions/projection=public&limit=1.5
+                Error Trace:    /app/tmp/phase15901/backend/internal/handlers/episode_version_public_test.go:23
+                Error:          Not equal:
+                                expected: 400
+                                actual  : 500
+                Test:           TestEpisodeVersionPublicInvalidOptions/projection=public&limit=1.5
     --- FAIL: TestEpisodeVersionPublicInvalidOptions/projection=public&limit= (0.00s)
         episode_version_public_test.go:23:
-            	Error Trace:	/app/tmp/phase15901/backend/internal/handlers/episode_version_public_test.go:23
-            	Error:      	Not equal:
-            	            	expected: 400
-            	            	actual  : 500
-            	Test:       	TestEpisodeVersionPublicInvalidOptions/projection=public&limit=
+                Error Trace:    /app/tmp/phase15901/backend/internal/handlers/episode_version_public_test.go:23
+                Error:          Not equal:
+                                expected: 400
+                                actual  : 500
+                Test:           TestEpisodeVersionPublicInvalidOptions/projection=public&limit=
     --- FAIL: TestEpisodeVersionPublicInvalidOptions/projection=public&limit=999999999999999999999999 (0.00s)
         episode_version_public_test.go:23:
-            	Error Trace:	/app/tmp/phase15901/backend/internal/handlers/episode_version_public_test.go:23
-            	Error:      	Not equal:
-            	            	expected: 400
-            	            	actual  : 500
-            	Test:       	TestEpisodeVersionPublicInvalidOptions/projection=public&limit=999999999999999999999999
+                Error Trace:    /app/tmp/phase15901/backend/internal/handlers/episode_version_public_test.go:23
+                Error:          Not equal:
+                                expected: 400
+                                actual  : 500
+                Test:           TestEpisodeVersionPublicInvalidOptions/projection=public&limit=999999999999999999999999
     --- FAIL: TestEpisodeVersionPublicInvalidOptions/limit=24 (0.00s)
         episode_version_public_test.go:23:
-            	Error Trace:	/app/tmp/phase15901/backend/internal/handlers/episode_version_public_test.go:23
-            	Error:      	Not equal:
-            	            	expected: 400
-            	            	actual  : 500
-            	Test:       	TestEpisodeVersionPublicInvalidOptions/limit=24
+                Error Trace:    /app/tmp/phase15901/backend/internal/handlers/episode_version_public_test.go:23
+                Error:          Not equal:
+                                expected: 400
+                                actual  : 500
+                Test:           TestEpisodeVersionPublicInvalidOptions/limit=24
     --- FAIL: TestEpisodeVersionPublicInvalidOptions/cursor=anything (0.00s)
         episode_version_public_test.go:23:
-            	Error Trace:	/app/tmp/phase15901/backend/internal/handlers/episode_version_public_test.go:23
-            	Error:      	Not equal:
-            	            	expected: 400
-            	            	actual  : 500
-            	Test:       	TestEpisodeVersionPublicInvalidOptions/cursor=anything
+                Error Trace:    /app/tmp/phase15901/backend/internal/handlers/episode_version_public_test.go:23
+                Error:          Not equal:
+                                expected: 400
+                                actual  : 500
+                Test:           TestEpisodeVersionPublicInvalidOptions/cursor=anything
     --- FAIL: TestEpisodeVersionPublicInvalidOptions/projection=public&includeVersions=false (0.00s)
         episode_version_public_test.go:23:
-            	Error Trace:	/app/tmp/phase15901/backend/internal/handlers/episode_version_public_test.go:23
-            	Error:      	Not equal:
-            	            	expected: 400
-            	            	actual  : 500
-            	Test:       	TestEpisodeVersionPublicInvalidOptions/projection=public&includeVersions=false
+                Error Trace:    /app/tmp/phase15901/backend/internal/handlers/episode_version_public_test.go:23
+                Error:          Not equal:
+                                expected: 400
+                                actual  : 500
+                Test:           TestEpisodeVersionPublicInvalidOptions/projection=public&includeVersions=false
     --- FAIL: TestEpisodeVersionPublicInvalidOptions/projection=public&includeFansubs=false (0.00s)
         episode_version_public_test.go:23:
-            	Error Trace:	/app/tmp/phase15901/backend/internal/handlers/episode_version_public_test.go:23
-            	Error:      	Not equal:
-            	            	expected: 400
-            	            	actual  : 500
-            	Test:       	TestEpisodeVersionPublicInvalidOptions/projection=public&includeFansubs=false
+                Error Trace:    /app/tmp/phase15901/backend/internal/handlers/episode_version_public_test.go:23
+                Error:          Not equal:
+                                expected: 400
+                                actual  : 500
+                Test:           TestEpisodeVersionPublicInvalidOptions/projection=public&includeFansubs=false
     --- FAIL: TestEpisodeVersionPublicInvalidOptions/projection=public&includeFansubs=TRUE (0.00s)
         episode_version_public_test.go:23:
-            	Error Trace:	/app/tmp/phase15901/backend/internal/handlers/episode_version_public_test.go:23
-            	Error:      	Not equal:
-            	            	expected: 400
-            	            	actual  : 500
-            	Test:       	TestEpisodeVersionPublicInvalidOptions/projection=public&includeFansubs=TRUE
+                Error Trace:    /app/tmp/phase15901/backend/internal/handlers/episode_version_public_test.go:23
+                Error:          Not equal:
+                                expected: 400
+                                actual  : 500
+                Test:           TestEpisodeVersionPublicInvalidOptions/projection=public&includeFansubs=TRUE
     --- FAIL: TestEpisodeVersionPublicInvalidOptions/projection=public&cursor=invalid (0.00s)
         episode_version_public_test.go:23:
-            	Error Trace:	/app/tmp/phase15901/backend/internal/handlers/episode_version_public_test.go:23
-            	Error:      	Not equal:
-            	            	expected: 400
-            	            	actual  : 500
-            	Test:       	TestEpisodeVersionPublicInvalidOptions/projection=public&cursor=invalid
+                Error Trace:    /app/tmp/phase15901/backend/internal/handlers/episode_version_public_test.go:23
+                Error:          Not equal:
+                                expected: 400
+                                actual  : 500
+                Test:           TestEpisodeVersionPublicInvalidOptions/projection=public&cursor=invalid
     --- FAIL: TestEpisodeVersionPublicInvalidOptions/projection=public&cursor=WzEsMSwxLDExLDBd (0.00s)
         episode_version_public_test.go:23:
-            	Error Trace:	/app/tmp/phase15901/backend/internal/handlers/episode_version_public_test.go:23
-            	Error:      	Not equal:
-            	            	expected: 400
-            	            	actual  : 500
-            	Test:       	TestEpisodeVersionPublicInvalidOptions/projection=public&cursor=WzEsMSwxLDExLDBd
+                Error Trace:    /app/tmp/phase15901/backend/internal/handlers/episode_version_public_test.go:23
+                Error:          Not equal:
+                                expected: 400
+                                actual  : 500
+                Test:           TestEpisodeVersionPublicInvalidOptions/projection=public&cursor=WzEsMSwxLDExLDBd
     --- FAIL: TestEpisodeVersionPublicInvalidOptions/projection=public&cursor=WzIsMSwxLDExLDEwMF0 (0.00s)
         episode_version_public_test.go:23:
-            	Error Trace:	/app/tmp/phase15901/backend/internal/handlers/episode_version_public_test.go:23
-            	Error:      	Not equal:
-            	            	expected: 400
-            	            	actual  : 500
-            	Test:       	TestEpisodeVersionPublicInvalidOptions/projection=public&cursor=WzIsMSwxLDExLDEwMF0
+                Error Trace:    /app/tmp/phase15901/backend/internal/handlers/episode_version_public_test.go:23
+                Error:          Not equal:
+                                expected: 400
+                                actual  : 500
+                Test:           TestEpisodeVersionPublicInvalidOptions/projection=public&cursor=WzIsMSwxLDExLDEwMF0
     --- FAIL: TestEpisodeVersionPublicInvalidOptions/projection=public&cursor=WzEsMiwxLDExLDEwMF0 (0.01s)
         episode_version_public_test.go:23:
-            	Error Trace:	/app/tmp/phase15901/backend/internal/handlers/episode_version_public_test.go:23
-            	Error:      	Not equal:
-            	            	expected: 400
-            	            	actual  : 500
-            	Test:       	TestEpisodeVersionPublicInvalidOptions/projection=public&cursor=WzEsMiwxLDExLDEwMF0
+                Error Trace:    /app/tmp/phase15901/backend/internal/handlers/episode_version_public_test.go:23
+                Error:          Not equal:
+                                expected: 400
+                                actual  : 500
+                Test:           TestEpisodeVersionPublicInvalidOptions/projection=public&cursor=WzEsMiwxLDExLDEwMF0
     --- FAIL: TestEpisodeVersionPublicInvalidOptions/projection=public&cursor=WzEsMSwtMSwxMSwxMDBd (0.00s)
         episode_version_public_test.go:23:
-            	Error Trace:	/app/tmp/phase15901/backend/internal/handlers/episode_version_public_test.go:23
-            	Error:      	Not equal:
-            	            	expected: 400
-            	            	actual  : 500
-            	Test:       	TestEpisodeVersionPublicInvalidOptions/projection=public&cursor=WzEsMSwtMSwxMSwxMDBd
+                Error Trace:    /app/tmp/phase15901/backend/internal/handlers/episode_version_public_test.go:23
+                Error:          Not equal:
+                                expected: 400
+                                actual  : 500
+                Test:           TestEpisodeVersionPublicInvalidOptions/projection=public&cursor=WzEsMSwtMSwxMSwxMDBd
     --- FAIL: TestEpisodeVersionPublicInvalidOptions/projection=public&cursor=WzEsMSwxLDAsMTAwXQ (0.00s)
         episode_version_public_test.go:23:
-            	Error Trace:	/app/tmp/phase15901/backend/internal/handlers/episode_version_public_test.go:23
-            	Error:      	Not equal:
-            	            	expected: 400
-            	            	actual  : 500
-            	Test:       	TestEpisodeVersionPublicInvalidOptions/projection=public&cursor=WzEsMSwxLDAsMTAwXQ
+                Error Trace:    /app/tmp/phase15901/backend/internal/handlers/episode_version_public_test.go:23
+                Error:          Not equal:
+                                expected: 400
+                                actual  : 500
+                Test:           TestEpisodeVersionPublicInvalidOptions/projection=public&cursor=WzEsMSwxLDAsMTAwXQ
     --- FAIL: TestEpisodeVersionPublicInvalidOptions/projection=public&cursor=WzEsMSwxLDExLC0xXQ (0.00s)
         episode_version_public_test.go:23:
-            	Error Trace:	/app/tmp/phase15901/backend/internal/handlers/episode_version_public_test.go:23
-            	Error:      	Not equal:
-            	            	expected: 400
-            	            	actual  : 500
-            	Test:       	TestEpisodeVersionPublicInvalidOptions/projection=public&cursor=WzEsMSwxLDExLC0xXQ
+                Error Trace:    /app/tmp/phase15901/backend/internal/handlers/episode_version_public_test.go:23
+                Error:          Not equal:
+                                expected: 400
+                                actual  : 500
+                Test:           TestEpisodeVersionPublicInvalidOptions/projection=public&cursor=WzEsMSwxLDExLC0xXQ
     --- FAIL: TestEpisodeVersionPublicInvalidOptions/projection=public&cursor=WzEsMSwxLDExLDEwMCw5OV0 (0.00s)
         episode_version_public_test.go:23:
-            	Error Trace:	/app/tmp/phase15901/backend/internal/handlers/episode_version_public_test.go:23
-            	Error:      	Not equal:
-            	            	expected: 400
-            	            	actual  : 500
-            	Test:       	TestEpisodeVersionPublicInvalidOptions/projection=public&cursor=WzEsMSwxLDExLDEwMCw5OV0
+                Error Trace:    /app/tmp/phase15901/backend/internal/handlers/episode_version_public_test.go:23
+                Error:          Not equal:
+                                expected: 400
+                                actual  : 500
+                Test:           TestEpisodeVersionPublicInvalidOptions/projection=public&cursor=WzEsMSwxLDExLDEwMCw5OV0
 FAIL
-FAIL	team4s.v3/backend/internal/handlers	0.045s
+FAIL    team4s.v3/backend/internal/handlers 0.045s
 FAIL
