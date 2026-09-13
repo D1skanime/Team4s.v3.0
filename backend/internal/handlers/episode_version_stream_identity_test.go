@@ -134,6 +134,10 @@ func TestReleaseStreamIdentityStrictSelectorsAndUnauthenticated(t *testing.T) {
 			got := streamIdentityRequest(h, "10", "variant_id="+url.QueryEscape(selector), grantEndpoint, true)
 			require.Equal(t, 400, got.Code, "selector %q grant=%t: %s", selector, grantEndpoint, got.Body.String())
 		}
+		for _, rawQuery := range []string{"variant_id=%ZZ", "variant_id=100;variant_id=10", "%76ariant_id=%ZZ"} {
+			got := streamIdentityRequest(h, "10", rawQuery, grantEndpoint, true)
+			require.Equal(t, 400, got.Code, "malformed selector cannot disappear into legacy lookup: %s", rawQuery)
+		}
 		got := streamIdentityRequest(h, "10", "variant_id=100&variant_id=10", grantEndpoint, true)
 		require.Equal(t, 400, got.Code)
 		for _, path := range []string{"10abc", "+10", " 10", "1.5", "9223372036854775808"} {

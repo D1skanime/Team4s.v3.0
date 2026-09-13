@@ -4,6 +4,7 @@ import (
 	"errors"
 	"log"
 	"net/http"
+	"net/url"
 	"strconv"
 	"strings"
 	"time"
@@ -100,8 +101,22 @@ func parseReleaseStreamSelection(c *gin.Context) (int64, []int64, error) {
 	if err != nil {
 		return 0, nil, err
 	}
-	values, present := c.Request.URL.Query()["variant_id"]
-	if !present {
+	// URL.Query discards malformed values. Inspect named selector pairs so a bad
+	// escape cannot silently downgrade an explicit request to the legacy lookup.
+	var values []string
+	for _, pair := range strings.Split(c.Request.URL.RawQuery, "&") {
+		rawKey, _, _ := strings.Cut(pair, "=")
+		key, decodeErr := url.QueryUnescape(rawKey)
+		if decodeErr != nil || key != "variant_id" {
+			continue
+		}
+		parsed, parseErr := url.ParseQuery(pair)
+		if parseErr != nil {
+			return 0, nil, strconv.ErrSyntax
+		}
+		values = append(values, parsed["variant_id"]...)
+	}
+	if len(values) == 0 {
 		return versionID, nil, nil
 	}
 	if len(values) != 1 {
