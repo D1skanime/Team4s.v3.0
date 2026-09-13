@@ -126,3 +126,32 @@ Live-UAT screenshots captured against `127.0.0.1:3300` after a fresh container r
 
 Task 4 remains an OPEN `checkpoint:human-verify gate="blocking"` — this fix pass does not
 constitute sign-off. `STATE.md`/`ROADMAP.md` intentionally left untouched.
+
+## 2026-09-13 — Plan 157-10 (GAP-01): two pre-existing full-suite failures unrelated to this plan
+
+A full `npx vitest run` (all 302 files) after Plan 157-10's three tasks reports `4 failed | 2332
+passed | 3 todo` across 2 failing test files. Neither file is in Plan 157-10's `files_modified`
+list, and `git log` confirms both were last touched by earlier, unrelated plans:
+
+- `frontend/src/lib/cssCustomProperties.guard.test.ts` > `the known-non-CSS-textual-mentions
+  allow-list stays exactly as small as documented` — expects `rawDead.length - dead.length` to be
+  `1` (the length of its own `KNOWN_NON_CSS_TEXTUAL_MENTIONS` allow-list), gets `0`. Root cause:
+  the allow-list hardcodes `{ file: 'lib/roleCatalog.accessibility.test.ts', line: 282, name:
+  '--surface-muted' }`, but that literal string now lives at line **268** in the current file (the
+  file was last modified by commit `1332686b`, "checkpoint uncommitted work of plans 157-07,
+  157-08 and 157-09" — three plans entirely before 157-10 and outside its scope), so the exact
+  line-number match silently stopped finding the known entry. This is a line-drift bug in a guard
+  test's hardcoded line number, not a real dead-custom-property regression; not fixed here per the
+  scope boundary (`roleCatalog.accessibility.test.ts` and `cssCustomProperties.guard.test.ts` are
+  both outside `projectMember`/this plan's `files_modified`).
+- `frontend/src/app/dev/ui-system/showcase/AchievementBadgeShowcase.test.tsx` — 2 tests
+  (`publishes gallery readiness only after a client layout effect`, `mounts the full 100/200-item
+  production FocalCarousel stress fixture`) time out at the default 5000ms under the full-suite's
+  parallel load. Last touched by commit `f4b8b560` ("wip(151): checkpoint implementation and
+  paused agent handoff"), Phase 151 — unrelated to Phase 157. Not fixed here; likely a
+  parallel-execution timing flake rather than a logic defect (out of this plan's file scope
+  either way).
+
+Plan 157-10's own scoped verification (targeted `vitest run` of
+`ProjectMemberNotesSection.test.tsx`, `tsc --noEmit`, `eslint` on the 3 touched files, and the live
+`shot-projectmember.mjs` script) is fully green — see `157-10-SUMMARY.md`.
