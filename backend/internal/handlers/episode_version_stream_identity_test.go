@@ -136,11 +136,22 @@ func TestReleaseStreamIdentityStrictSelectorsAndUnauthenticated(t *testing.T) {
 		}
 		got := streamIdentityRequest(h, "10", "variant_id=100&variant_id=10", grantEndpoint, true)
 		require.Equal(t, 400, got.Code)
-		for _, path := range []string{"10abc", "+10", " 10", "1.5", "9007199254740992"} {
+		for _, path := range []string{"10abc", "+10", " 10", "1.5", "9223372036854775808"} {
 			got = streamIdentityRequest(h, path, "variant_id=100", grantEndpoint, true)
 			require.Equal(t, 400, got.Code, "path %q", path)
 		}
 		got = streamIdentityRequest(h, "10", "variant_id=100", grantEndpoint, false)
 		require.Equal(t, 401, got.Code)
 	}
+}
+
+func TestReleaseStreamIdentityLegacyWithoutSelector(t *testing.T) {
+	h, _, targets := streamIdentityHandler(t)
+	token, _, err := auth.CreateReleaseStreamGrant(10, 7, "phase159-secret", time.Now(), time.Minute)
+	require.NoError(t, err)
+	result := streamIdentityRequest(h, "10", "grant="+url.QueryEscape(token), false, false)
+	require.Equal(t, 206, result.Code)
+	require.Equal(t, []string{"https://fixture.invalid/foreign"}, *targets, "no selector keeps the historical OR ordering")
+	result = streamIdentityRequest(h, "+10", "", true, true)
+	require.Equal(t, 201, result.Code, "legacy path parser remains unchanged without selector")
 }

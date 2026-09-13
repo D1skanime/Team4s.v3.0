@@ -4,6 +4,7 @@ import (
 	"errors"
 	"log"
 	"net/http"
+	"strconv"
 	"strings"
 	"time"
 
@@ -23,7 +24,7 @@ func (h *FansubHandler) CreateReleaseStreamGrant(c *gin.Context) {
 		return
 	}
 
-	versionID, err := parseEpisodeVersionID(c.Param("id"))
+	versionID, variantIDs, err := parseReleaseStreamSelection(c)
 	if err != nil {
 		badRequest(c, "ungültige release id")
 		return
@@ -33,7 +34,7 @@ func (h *FansubHandler) CreateReleaseStreamGrant(c *gin.Context) {
 		return
 	}
 
-	if _, err := h.episodeVersionRepo.GetReleaseStreamSource(c.Request.Context(), versionID); errors.Is(err, repository.ErrNotFound) {
+	if _, err := h.episodeVersionRepo.GetReleaseStreamSource(c.Request.Context(), versionID, variantIDs...); errors.Is(err, repository.ErrNotFound) {
 		c.JSON(http.StatusNotFound, gin.H{"error": gin.H{"message": "release nicht gefunden"}})
 		return
 	} else if err != nil {
@@ -89,4 +90,31 @@ func (h *FansubHandler) authorizeReleaseStream(c *gin.Context, versionID int64) 
 		actor = permissions.Actor{AppUserID: identity.AppUserID, Status: identity.AppUserStatus, IsPlatformAdmin: identity.IsPlatformAdmin}
 	}
 	return h.allowReleasePlayback(c, actor, versionID)
+}
+
+// parseReleaseStreamSelection shares the explicit contract between grant and stream.
+// Legacy paths retain their parser; selectors require complete decimal IDs and no duplicates.
+func parseReleaseStreamSelection(c *gin.Context) (int64, []int64, error) {
+	rawVersionID := c.Param("id")
+	versionID, err := parseEpisodeVersionID(rawVersionID)
+	if err != nil {
+		return 0, nil, err
+	}
+	values, present := c.Request.URL.Query()["variant_id"]
+	if !present {
+		return versionID, nil, nil
+	}
+	if len(values) != 1 {
+		return 0, nil, strconv.ErrSyntax
+	}
+	for _, raw := range []string{rawVersionID, values[0]} {
+		if raw == "" || strings.IndexFunc(raw, func(r rune) bool { return r < '0' || r > '9' }) >= 0 {
+			return 0, nil, strconv.ErrSyntax
+		}
+	}
+	variantID, err := parseEpisodeVersionID(values[0])
+	if err != nil {
+		return 0, nil, err
+	}
+	return versionID, []int64{variantID}, nil
 }

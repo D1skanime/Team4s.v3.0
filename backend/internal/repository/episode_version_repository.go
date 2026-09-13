@@ -405,7 +405,18 @@ func (r *EpisodeVersionRepository) UpsertByMediaSource(
 	return nil, false, phase20ReleaseImportDeferred("upsert release by media source", input.AnimeID)
 }
 
-func (r *EpisodeVersionRepository) GetReleaseStreamSource(ctx context.Context, versionID int64) (*models.ReleaseStreamSource, error) {
+func (r *EpisodeVersionRepository) GetReleaseStreamSource(ctx context.Context, versionID int64, variantIDs ...int64) (*models.ReleaseStreamSource, error) {
+	// Without a selector preserve the historical version-or-variant compatibility lookup.
+	// An explicit selector must belong to this exact canonical release version.
+	predicate := "rev.id = $1 OR rv.id = $1"
+	args := []any{versionID}
+	if len(variantIDs) > 1 || (len(variantIDs) == 1 && (variantIDs[0] <= 0 || versionID <= 0)) {
+		return nil, ErrValidation
+	}
+	if len(variantIDs) == 1 {
+		predicate = "rv.id = $2 AND rv.release_version_id = $1"
+		args = append(args, variantIDs[0])
+	}
 	var item models.ReleaseStreamSource
 	if err := r.db.QueryRow(ctx, `
 		SELECT
@@ -420,10 +431,10 @@ func (r *EpisodeVersionRepository) GetReleaseStreamSource(ctx context.Context, v
 		JOIN release_variants rv ON rv.release_version_id = rev.id
 		JOIN release_streams rs ON rs.variant_id = rv.id
 		JOIN stream_sources ss ON ss.id = rs.stream_source_id
-		WHERE rev.id = $1 OR rv.id = $1
+		WHERE `+predicate+`
 		ORDER BY rs.id ASC
 		LIMIT 1
-	`, versionID).Scan(
+	`, args...).Scan(
 		&item.ID,
 		&item.AnimeID,
 		&item.MediaProvider,

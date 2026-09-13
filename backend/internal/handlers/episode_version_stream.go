@@ -35,7 +35,7 @@ func appendReleaseStreamStartOffset(targetURL string, rawStartTimeTicks string) 
 
 // StreamRelease leitet den Videostream einer Release-Version nach Autorisierungsprüfung als Proxy weiter.
 func (h *FansubHandler) StreamRelease(c *gin.Context) {
-	versionID, err := parseEpisodeVersionID(c.Param("id"))
+	versionID, variantIDs, err := parseReleaseStreamSelection(c)
 	if err != nil {
 		badRequest(c, "ungültige release id")
 		return
@@ -45,7 +45,7 @@ func (h *FansubHandler) StreamRelease(c *gin.Context) {
 		return
 	}
 
-	release, err := h.episodeVersionRepo.GetReleaseStreamSource(c.Request.Context(), versionID)
+	release, err := h.episodeVersionRepo.GetReleaseStreamSource(c.Request.Context(), versionID, variantIDs...)
 	if errors.Is(err, repository.ErrNotFound) {
 		c.JSON(http.StatusNotFound, gin.H{"error": gin.H{"message": "release nicht gefunden"}})
 		return
