@@ -21,7 +21,7 @@ const anime: AnimeDetail = {
 beforeEach(() => { vi.mocked(getAnimeByID).mockReset() })
 
 describe('strict public anime detail resource', () => {
-  it.each(['1abc', '1.5', '0', '-1', '9007199254740992', '1e2', '+1', ' 1', '1 ', '', '0x10', '１']) (
+  it.each(['1abc', '1.5', '0', '-1', '9007199254740992', '1e2', '+1', ' 1', '1 ', '', '0x10', '１', '1\n', '1\r', '1\u2028', '1\u2029']) (
     'rejects %j before requesting any anime', async (id) => {
       await expect(loadAnimeDetail(id)).rejects.toThrow('NEXT_HTTP_ERROR_FALLBACK;404')
       expect(getAnimeByID).not.toHaveBeenCalled()

@@ -4,6 +4,8 @@ import Image from 'next/image'
 import Link from 'next/link'
 import { useEffect, useMemo, useState } from 'react'
 
+import { buildPublicFansubProjectPath } from '@/lib/fansubProjectRoutes'
+
 import { GroupedEpisode, EpisodeVersion } from '@/types/episodeVersion'
 import { AnimeFansubRelation } from '@/types/fansub'
 
@@ -11,6 +13,7 @@ import styles from './FansubVersionBrowser.module.css'
 
 interface FansubVersionBrowserProps {
   animeID: number
+  animeSlug?: string
   fansubs: AnimeFansubRelation[]
   episodes: GroupedEpisode[]
   onActiveFansubChange?: (fansubGroupId: number | null) => void
@@ -120,11 +123,15 @@ function getSummaryVersion(
   return preferred || episode.versions[0]
 }
 
-export function FansubVersionBrowser({ animeID, fansubs, episodes, onActiveFansubChange }: FansubVersionBrowserProps) {
+export function FansubVersionBrowser({ animeID, animeSlug, fansubs, episodes, onActiveFansubChange }: FansubVersionBrowserProps) {
   const [activeFansubGroupID, setActiveFansubGroupID] = useState<number | null>(() => resolveInitialActiveFansubGroupID(animeID, fansubs))
   const [expandedEpisodes, setExpandedEpisodes] = useState<Record<number, true>>({})
 
   const fansubOptions = useMemo(() => collectFansubOptions(fansubs), [fansubs])
+  const activeGroup = fansubOptions.find((relation) => relation.fansub_group?.id === activeFansubGroupID)?.fansub_group
+  const groupProjectHref = animeSlug?.trim() && activeGroup?.slug?.trim()
+    ? buildPublicFansubProjectPath(activeGroup.slug, animeSlug)
+    : `/anime/${animeID}/group/${activeFansubGroupID}`
 
   useEffect(() => {
     if (typeof window === 'undefined') return
@@ -176,7 +183,7 @@ export function FansubVersionBrowser({ animeID, fansubs, episodes, onActiveFansu
       {activeFansubGroupID !== null ? (
         <div className={styles.groupCtaRow}>
           <Link
-            href={`/anime/${animeID}/group/${activeFansubGroupID}`}
+            href={groupProjectHref}
             className={styles.groupButton}
             aria-label="Zum Gruppenbereich"
           >

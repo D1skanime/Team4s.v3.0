@@ -51,7 +51,7 @@
   left: 0;
   right: 0;
   height: 200px;
-  overflow: visible;
+  overflow: clip;
   z-index: 0;
 }
 
@@ -259,18 +259,6 @@
   font-weight: 600;
 }
 
-.posterRating {
-  display: flex;
-  align-items: center;
-  gap: 4px;
-}
-
-.ratingIcon {
-  color: #ffc107;
-  font-size: 16px;
-}
-
-.posterViews,
 .posterEpisodes {
   opacity: 0.9;
   font-size: 13px;
@@ -409,18 +397,6 @@
   gap: 20px;
   padding-top: 16px;
   border-top: 1px solid #e5e5e5;
-}
-
-.statItem {
-  display: flex;
-  align-items: center;
-  gap: 6px;
-  color: #666;
-  font-size: 14px;
-}
-
-.statItem svg {
-  opacity: 0.7;
 }
 
 .embyLink {
@@ -738,10 +714,6 @@
   .statsRow {
     justify-content: center;
     border-top-color: rgba(255, 255, 255, 0.15);
-  }
-
-  .statItem {
-    color: rgba(255, 255, 255, 0.7);
   }
 
   .divider {

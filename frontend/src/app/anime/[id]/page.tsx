@@ -2,8 +2,7 @@ import { Suspense } from 'react'
 import type { Metadata } from 'next'
 import Link from 'next/link'
 import Image from 'next/image'
-import { cookies } from 'next/headers'
-import { Download, ExternalLink, Eye, Play } from 'lucide-react'
+import { Download, ExternalLink, Play } from 'lucide-react'
 
 import { AnimeBackdropRotator } from '@/components/anime/AnimeBackdropRotator'
 import { AnimeContributionsSection } from '@/components/anime/AnimeContributionsSection'
@@ -17,13 +16,10 @@ import { StatusBadge } from '@/components/anime/StatusBadge'
 import { CommentSection } from '@/components/comments/CommentSection'
 import { WatchlistAddButton } from '@/components/watchlist/WatchlistAddButton'
 import {
-  AUTH_BEARER_TOKEN,
-  AUTH_TOKEN_COOKIE_NAME,
   getAnimeComments,
   getAnimeRelations,
   getAnimeFansubs,
   getGroupedEpisodes,
-  getWatchlistEntry,
 } from '@/lib/api'
 import { normalizeGridQuery } from '@/lib/animeGridContext'
 import { buildFansubStoryGroups } from '@/lib/fansub-summary'
@@ -73,10 +69,6 @@ async function AnimeDetailContent({ anime, searchParams }: {
     from?: string | string[]
     grid_query?: string | string[]
   }
-  const cookieStore = await cookies()
-  const authTokenFromCookie = (cookieStore.get(AUTH_TOKEN_COOKIE_NAME)?.value || '').trim()
-  const authToken = authTokenFromCookie || AUTH_BEARER_TOKEN
-
   const animeID = anime.id
   const breadcrumbItems = [
     { label: 'Anime', href: '/anime' },
@@ -87,12 +79,11 @@ async function AnimeDetailContent({ anime, searchParams }: {
   const gridQuery = normalizeGridQuery(rawGridQuery)
 
   const embySeriesUrl = getEmbySeriesUrlForAnime(anime.id)
-  const [animeFansubsResult, groupedEpisodesResult, commentsResult, watchlistResult, relationsResult] =
+  const [animeFansubsResult, groupedEpisodesResult, commentsResult, relationsResult] =
     await Promise.allSettled([
       getAnimeFansubs(anime.id),
       getGroupedEpisodes(anime.id),
       getAnimeComments(animeID, { page: 1, per_page: 10 }),
-      authToken ? getWatchlistEntry(animeID, authToken) : Promise.resolve(null),
       getAnimeRelations(anime.id),
     ])
 
@@ -103,7 +94,6 @@ async function AnimeDetailContent({ anime, searchParams }: {
 
   const commentsResponse = commentsResult.status === 'fulfilled' ? commentsResult.value : null
   const commentsError = commentsResult.status === 'rejected' ? 'Kommentare konnten nicht geladen werden.' : null
-  const inWatchlist = watchlistResult.status === 'fulfilled' && Boolean(watchlistResult.value)
   const relationsResponse = relationsResult.status === 'fulfilled' ? relationsResult.value : null
   const episodeCount = groupedEpisodesResponse?.data.episodes.length ?? anime.episodes.length
 
@@ -151,11 +141,6 @@ async function AnimeDetailContent({ anime, searchParams }: {
               />
               {/* Stats Overlay on Poster */}
               <div className={styles.posterStats}>
-                <span className={styles.posterRating}>
-                  <span className={styles.ratingIcon}>★</span>
-                  7.8
-                </span>
-                <span className={styles.posterViews}>{anime.view_count.toLocaleString('de-DE')}</span>
                 <span className={styles.posterEpisodes}>{anime.max_episodes ?? 0} Episodes</span>
               </div>
             </div>
@@ -164,7 +149,6 @@ async function AnimeDetailContent({ anime, searchParams }: {
             <div className={styles.posterMeta}>
               <WatchlistAddButton
                 animeID={anime.id}
-                initiallyInWatchlist={inWatchlist}
                 className={styles.watchlistButton}
                 activeClassName={styles.watchlistButtonActive}
               />
@@ -207,13 +191,8 @@ async function AnimeDetailContent({ anime, searchParams }: {
               {anime.description ?? 'Keine Beschreibung vorhanden.'}
             </p>
 
-            {/* Stats Row */}
-            <div className={styles.statsRow}>
-              <span className={styles.statItem}>
-                <Eye size={16} />
-                {anime.view_count.toLocaleString('de-DE')} Views
-              </span>
-              {embySeriesUrl && (
+            {embySeriesUrl && (
+              <div className={styles.statsRow}>
                 <a
                   className={styles.embyLink}
                   href={embySeriesUrl}
@@ -223,8 +202,8 @@ async function AnimeDetailContent({ anime, searchParams }: {
                   <ExternalLink size={14} />
                   Emby
                 </a>
-              )}
-            </div>
+              </div>
+            )}
 
             {/* Info Banner from Jellyfin */}
             <AnimeInfoBanner className={styles.infoBanner} dividerClassName={styles.divider} />
@@ -277,6 +256,7 @@ async function AnimeDetailContent({ anime, searchParams }: {
             <FansubVersionBrowser
               key={anime.id}
               animeID={anime.id}
+              animeSlug={anime.slug}
               fansubs={animeFansubsResponse?.data ?? []}
               episodes={groupedEpisodesResponse.data.episodes}
             />
