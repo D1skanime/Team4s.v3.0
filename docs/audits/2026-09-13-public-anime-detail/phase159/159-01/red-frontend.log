@@ -1,0 +1,157 @@
+
+> team4s-frontend@0.1.0 test
+> vitest run src/types/__tests__/episode-version-contract.test.ts src/lib/api.episode-versions.test.ts
+
+
+ RUN  v3.2.4 /app
+
+ ❯ src/types/__tests__/episode-version-contract.test.ts (2 tests | 2 failed) 10ms
+   × episode version public/full contract > documents plural groups and every preserved full field 8ms
+     → expected '      type: object\n      required:\n…' to contain '        variant_id:'
+   × episode version public/full contract > requires stable public episode identity and explicit bounded continuation 1ms
+     → expected '' to contain '- episode_id'
+ ❯ src/lib/api.episode-versions.test.ts (5 tests | 2 failed) 29ms
+   ✓ grouped episode API projections > keeps the complete default response and URL unchanged 13ms
+   × grouped episode API projections > sends the public projection, escaped cursor, limit and abort signal once 9ms
+     → expected {} to deeply equal { projection: 'public', …(2) }
+   × grouped episode API projections > leaves the server default limit implicit and preserves neutral empty arrays 2ms
+     → expected 'http://192.168.235.196:18092/api/v1/a…' to match /episodes\?projection=public$/
+   ✓ grouped episode API projections > preserves a next cursor without fetching another page automatically 2ms
+   ✓ grouped episode API projections > surfaces invalid scope and limit as the existing ApiError 2ms
+
+⎯⎯⎯⎯⎯⎯⎯ Failed Tests 4 ⎯⎯⎯⎯⎯⎯⎯
+
+ FAIL  src/lib/api.episode-versions.test.ts > grouped episode API projections > sends the public projection, escaped cursor, limit and abort signal once
+AssertionError: expected {} to deeply equal { projection: 'public', …(2) }
+
+- Expected
++ Received
+
+- {
+-   "cursor": "a+b/=&",
+-   "limit": "100",
+-   "projection": "public",
+- }
++ {}
+
+ ❯ src/lib/api.episode-versions.test.ts:27:39
+     25|     const [url, init] = fetchMock.mock.calls[0]
+     26|     const query = new URL(url, 'https://fixture.invalid').searchParams
+     27|     expect(Object.fromEntries(query)).toEqual({ projection: 'public', …
+       |                                       ^
+     28|     expect(init.signal).toBe(controller.signal)
+     29|     expect(init.cache).toBe('no-store')
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[1/4]⎯
+
+ FAIL  src/lib/api.episode-versions.test.ts > grouped episode API projections > leaves the server default limit implicit and preserves neutral empty arrays
+AssertionError: expected 'http://192.168.235.196:18092/api/v1/a…' to match /episodes\?projection=public$/
+
+- Expected:
+/episodes\?projection=public$/
+
++ Received:
+"http://192.168.235.196:18092/api/v1/anime/1/episodes"
+
+ ❯ src/lib/api.episode-versions.test.ts:36:40
+     34|     const fetchMock = vi.fn().mockResolvedValue(response(neutral)); vi…
+     35|     await expect(getGroupedEpisodes(1, { projection: 'public' })).reso…
+     36|     expect(fetchMock.mock.calls[0][0]).toMatch(/episodes\?projection=p…
+       |                                        ^
+     37|   })
+     38|
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[2/4]⎯
+
+ FAIL  src/types/__tests__/episode-version-contract.test.ts > episode version public/full contract > documents plural groups and every preserved full field
+AssertionError: expected '      type: object\n      required:\n…' to contain '        variant_id:'
+
+- Expected
++ Received
+
+-         variant_id:
++       type: object
++       required:
++         - id
++         - anime_id
++         - episode_number
++         - media_provider
++         - media_item_id
++         - created_at
++         - updated_at
++       properties:
++         id:
++           type: integer
++           format: int64
++         anime_id:
++           type: integer
++           format: int64
++         episode_number:
++           type: integer
++           format: int32
++         title:
++           type: string
++           nullable: true
++         fansub_group:
++           $ref: "#/components/schemas/FansubGroupSummary"
++         media_provider:
++           type: string
++           maxLength: 30
++         media_item_id:
++           type: string
++           maxLength: 120
++         video_quality:
++           type: string
++           maxLength: 20
++           nullable: true
++         subtitle_type:
++           type: string
++           enum: [hardsub, softsub]
++           nullable: true
++         release_date:
++           type: string
++           format: date-time
++           nullable: true
++         crc32:
++           type: string
++           pattern: "^[0-9A-F]{8}$"
++           nullable: true
++         stream_url:
++           type: string
++           nullable: true
++         created_at:
++           type: string
++           format: date-time
++         updated_at:
++           type: string
++           format: date-time
+
+ ❯ src/types/__tests__/episode-version-contract.test.ts:10:20
+
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[3/4]⎯
+
+ FAIL  src/types/__tests__/episode-version-contract.test.ts > episode version public/full contract > requires stable public episode identity and explicit bounded continuation
+AssertionError: expected '' to contain '- episode_id'
+
+- Expected
++ Received
+
+- - episode_id
+
+ ❯ src/types/__tests__/episode-version-contract.test.ts:16:74
+     14|   })
+     15|   it('requires stable public episode identity and explicit bounded con…
+     16|     expect(schema('PublicGroupedEpisode').split('      properties:')[0…
+       |                                                                          ^
+     17|     for (const field of ['has_more','next_cursor','row_limit']) expect…
+     18|     expect(schema('PublicEpisodeVersion')).not.toContain('        medi…
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[4/4]⎯
+
+
+ Test Files  2 failed (2)
+      Tests  4 failed | 3 passed (7)
+   Start at  22:09:52
+   Duration  779ms (transform 238ms, setup 144ms, collect 231ms, tests 39ms, environment 291ms, prepare 112ms)
+

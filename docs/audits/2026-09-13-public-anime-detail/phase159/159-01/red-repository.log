@@ -1,0 +1,44 @@
+--- FAIL: TestEpisodeVersionPublicMixedAndIdentity (0.07s)
+    episode_version_public_integration_test.go:140:
+        	Error Trace:	/app/tmp/phase15901/backend/internal/repository/episode_version_public_integration_test.go:140
+        	Error:      	Not equal:
+        	            	expected: 24
+        	            	actual  : 0
+        	Test:       	TestEpisodeVersionPublicMixedAndIdentity
+--- FAIL: TestEpisodeVersionPublicAtomicPages (0.10s)
+    --- FAIL: TestEpisodeVersionPublicAtomicPages/1 (0.01s)
+        episode_version_public_integration_test.go:177:
+            	Error Trace:	/app/tmp/phase15901/backend/internal/repository/episode_version_public_integration_test.go:177
+            	Error:      	Should be false
+            	Test:       	TestEpisodeVersionPublicAtomicPages/1
+    --- FAIL: TestEpisodeVersionPublicAtomicPages/24 (0.01s)
+        episode_version_public_integration_test.go:177:
+            	Error Trace:	/app/tmp/phase15901/backend/internal/repository/episode_version_public_integration_test.go:177
+            	Error:      	Should be false
+            	Test:       	TestEpisodeVersionPublicAtomicPages/24
+    --- FAIL: TestEpisodeVersionPublicAtomicPages/100 (0.01s)
+        episode_version_public_integration_test.go:177:
+            	Error Trace:	/app/tmp/phase15901/backend/internal/repository/episode_version_public_integration_test.go:177
+            	Error:      	Should be false
+            	Test:       	TestEpisodeVersionPublicAtomicPages/100
+    episode_version_public_integration_test.go:191:
+        	Error Trace:	/app/tmp/phase15901/backend/internal/repository/episode_version_public_integration_test.go:191
+        	Error:      	Expected value not to be nil.
+        	Test:       	TestEpisodeVersionPublicAtomicPages
+--- FAIL: TestEpisodeVersionPublicEmptyAndVisibility (0.07s)
+    episode_version_public_integration_test.go:201:
+        	Error Trace:	/app/tmp/phase15901/backend/internal/repository/episode_version_public_integration_test.go:129
+        	            				/app/tmp/phase15901/backend/internal/repository/episode_version_public_integration_test.go:201
+        	Error:      	"[0xc0005584f8 0xc000558528 0xc000558540 0xc000558558]" should have 2 item(s), but has 4
+        	Test:       	TestEpisodeVersionPublicEmptyAndVisibility
+        	Messages:   	existence plus one bounded query, including any metadata SQL
+--- FAIL: TestEpisodeVersionPublicFullAssignmentAndWrites (0.07s)
+    episode_version_public_integration_test.go:215:
+        	Error Trace:	/app/tmp/phase15901/backend/internal/repository/episode_version_public_integration_test.go:215
+        	Error:      	Not equal:
+        	            	expected: int(1)
+        	            	actual  : int32(0)
+        	Test:       	TestEpisodeVersionPublicFullAssignmentAndWrites
+FAIL
+FAIL	team4s.v3/backend/internal/repository	0.326s
+FAIL

@@ -37,7 +37,8 @@ key-decisions:
   - Reuse ExistsVisible, 24/100 cursor constants and trimCursorPage; public cursor validation is strictly anime-scoped.
   - Public count/default describe the complete episode; default is its smallest variant ID, stable across partial pages.
   - Full and public id remain variant aliases; canonical release_version_id is separate; playback collision resolution belongs to 159-02.
-requirements-completed: [P159-05, P159-06, P159-07]
+requirements-completed: [P159-05]
+requirements-addressed: [P159-06, P159-07]
 duration: 25min
 completed: 2026-09-13
 ---
@@ -95,6 +96,8 @@ Root completed the final live sync in one tarstream: all five source hashes matc
 ## Cleanup and readiness
 
 The only test PostgreSQL container, exact ID `59097488dd4d39da34bf7ae4c95b80b0ef733a7295e7df23859022f53bd08080`, was stopped and auto-removed. Its storage was tmpfs, with no host ports. The resolved owned `/app/tmp/phase15901` scratch directory was removed and absence verified. No live `.env`, media, volumes or database contents changed. `frontend/scripts/shot2.mjs` and root-owned evidence remain untouched by this plan's commits.
+
+P159-06/P159-07 are addressed here at the contract/repository boundary; cross-plan completion remains partial until the stream chain/UI adoption and 159-05 verification.
 
 159-02 can now consume explicit identities and prove playback selector ownership. Existing ambiguous OR-ID/default playback behavior is intentionally not claimed fixed here. 159-03 owns UI paging adoption; 159-05 owns full production/browser gates. The known unrelated full Next build export issue and baseline global lint/CSS-guard failures were not modified or reclassified. Human UAT 156/157/158 stays OPEN. Root owns STATE/ROADMAP/REQUIREMENTS updates.
 

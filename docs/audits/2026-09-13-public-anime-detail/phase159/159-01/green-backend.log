@@ -1,0 +1,236 @@
+=== RUN   TestScanEpisodeVersion_ReturnsGroupsList
+=== PAUSE TestScanEpisodeVersion_ReturnsGroupsList
+=== RUN   TestScanEpisodeVersion_ReturnsCRC32
+=== PAUSE TestScanEpisodeVersion_ReturnsCRC32
+=== RUN   TestListReleaseVariants_SegmentAggregationDoesNotSplitByGroupRow
+=== PAUSE TestListReleaseVariants_SegmentAggregationDoesNotSplitByGroupRow
+=== RUN   TestEpisodeVersionPublicMixedAndIdentity
+    episode_version_public_integration_test.go:189: SQL statements=2 returned rows=1+5 (inventory budget 24+1)
+    episode_version_public_integration_test.go:190: mixed payload bytes=1449
+    episode_version_public_integration_test.go:195: SQL statements=2 returned rows=1+1 (inventory budget 24+1)
+--- PASS: TestEpisodeVersionPublicMixedAndIdentity (0.09s)
+=== RUN   TestEpisodeVersionPublicAtomicPages
+=== RUN   TestEpisodeVersionPublicAtomicPages/1
+    episode_version_public_integration_test.go:229: SQL statements=2 returned rows=1+2 (inventory budget 1+1)
+    episode_version_public_integration_test.go:229: SQL statements=2 returned rows=1+2 (inventory budget 1+1)
+    episode_version_public_integration_test.go:229: SQL statements=2 returned rows=1+2 (inventory budget 1+1)
+    episode_version_public_integration_test.go:229: SQL statements=2 returned rows=1+2 (inventory budget 1+1)
+    episode_version_public_integration_test.go:229: SQL statements=2 returned rows=1+2 (inventory budget 1+1)
+    episode_version_public_integration_test.go:229: SQL statements=2 returned rows=1+2 (inventory budget 1+1)
+    episode_version_public_integration_test.go:229: SQL statements=2 returned rows=1+2 (inventory budget 1+1)
+    episode_version_public_integration_test.go:229: SQL statements=2 returned rows=1+2 (inventory budget 1+1)
+    episode_version_public_integration_test.go:229: SQL statements=2 returned rows=1+2 (inventory budget 1+1)
+    episode_version_public_integration_test.go:229: SQL statements=2 returned rows=1+2 (inventory budget 1+1)
+    episode_version_public_integration_test.go:229: SQL statements=2 returned rows=1+2 (inventory budget 1+1)
+    episode_version_public_integration_test.go:229: SQL statements=2 returned rows=1+2 (inventory budget 1+1)
+    episode_version_public_integration_test.go:229: SQL statements=2 returned rows=1+2 (inventory budget 1+1)
+    episode_version_public_integration_test.go:229: SQL statements=2 returned rows=1+2 (inventory budget 1+1)
+    episode_version_public_integration_test.go:229: SQL statements=2 returned rows=1+2 (inventory budget 1+1)
+    episode_version_public_integration_test.go:229: SQL statements=2 returned rows=1+2 (inventory budget 1+1)
+    episode_version_public_integration_test.go:229: SQL statements=2 returned rows=1+2 (inventory budget 1+1)
+    episode_version_public_integration_test.go:229: SQL statements=2 returned rows=1+2 (inventory budget 1+1)
+    episode_version_public_integration_test.go:229: SQL statements=2 returned rows=1+2 (inventory budget 1+1)
+    episode_version_public_integration_test.go:229: SQL statements=2 returned rows=1+2 (inventory budget 1+1)
+    episode_version_public_integration_test.go:229: SQL statements=2 returned rows=1+2 (inventory budget 1+1)
+    episode_version_public_integration_test.go:229: SQL statements=2 returned rows=1+2 (inventory budget 1+1)
+    episode_version_public_integration_test.go:229: SQL statements=2 returned rows=1+2 (inventory budget 1+1)
+    episode_version_public_integration_test.go:229: SQL statements=2 returned rows=1+2 (inventory budget 1+1)
+    episode_version_public_integration_test.go:229: SQL statements=2 returned rows=1+2 (inventory budget 1+1)
+    episode_version_public_integration_test.go:229: SQL statements=2 returned rows=1+2 (inventory budget 1+1)
+    episode_version_public_integration_test.go:229: SQL statements=2 returned rows=1+2 (inventory budget 1+1)
+    episode_version_public_integration_test.go:229: SQL statements=2 returned rows=1+2 (inventory budget 1+1)
+    episode_version_public_integration_test.go:229: SQL statements=2 returned rows=1+2 (inventory budget 1+1)
+    episode_version_public_integration_test.go:229: SQL statements=2 returned rows=1+2 (inventory budget 1+1)
+    episode_version_public_integration_test.go:229: SQL statements=2 returned rows=1+2 (inventory budget 1+1)
+    episode_version_public_integration_test.go:229: SQL statements=2 returned rows=1+2 (inventory budget 1+1)
+    episode_version_public_integration_test.go:229: SQL statements=2 returned rows=1+2 (inventory budget 1+1)
+    episode_version_public_integration_test.go:229: SQL statements=2 returned rows=1+2 (inventory budget 1+1)
+    episode_version_public_integration_test.go:229: SQL statements=2 returned rows=1+2 (inventory budget 1+1)
+    episode_version_public_integration_test.go:229: SQL statements=2 returned rows=1+2 (inventory budget 1+1)
+    episode_version_public_integration_test.go:229: SQL statements=2 returned rows=1+2 (inventory budget 1+1)
+    episode_version_public_integration_test.go:229: SQL statements=2 returned rows=1+2 (inventory budget 1+1)
+    episode_version_public_integration_test.go:229: SQL statements=2 returned rows=1+2 (inventory budget 1+1)
+    episode_version_public_integration_test.go:229: SQL statements=2 returned rows=1+2 (inventory budget 1+1)
+    episode_version_public_integration_test.go:229: SQL statements=2 returned rows=1+2 (inventory budget 1+1)
+    episode_version_public_integration_test.go:229: SQL statements=2 returned rows=1+2 (inventory budget 1+1)
+    episode_version_public_integration_test.go:229: SQL statements=2 returned rows=1+2 (inventory budget 1+1)
+    episode_version_public_integration_test.go:229: SQL statements=2 returned rows=1+2 (inventory budget 1+1)
+    episode_version_public_integration_test.go:229: SQL statements=2 returned rows=1+2 (inventory budget 1+1)
+    episode_version_public_integration_test.go:229: SQL statements=2 returned rows=1+2 (inventory budget 1+1)
+    episode_version_public_integration_test.go:229: SQL statements=2 returned rows=1+2 (inventory budget 1+1)
+    episode_version_public_integration_test.go:229: SQL statements=2 returned rows=1+2 (inventory budget 1+1)
+    episode_version_public_integration_test.go:229: SQL statements=2 returned rows=1+2 (inventory budget 1+1)
+    episode_version_public_integration_test.go:229: SQL statements=2 returned rows=1+2 (inventory budget 1+1)
+    episode_version_public_integration_test.go:229: SQL statements=2 returned rows=1+2 (inventory budget 1+1)
+    episode_version_public_integration_test.go:229: SQL statements=2 returned rows=1+2 (inventory budget 1+1)
+    episode_version_public_integration_test.go:229: SQL statements=2 returned rows=1+2 (inventory budget 1+1)
+    episode_version_public_integration_test.go:229: SQL statements=2 returned rows=1+2 (inventory budget 1+1)
+    episode_version_public_integration_test.go:229: SQL statements=2 returned rows=1+2 (inventory budget 1+1)
+    episode_version_public_integration_test.go:229: SQL statements=2 returned rows=1+2 (inventory budget 1+1)
+    episode_version_public_integration_test.go:229: SQL statements=2 returned rows=1+2 (inventory budget 1+1)
+    episode_version_public_integration_test.go:229: SQL statements=2 returned rows=1+2 (inventory budget 1+1)
+    episode_version_public_integration_test.go:229: SQL statements=2 returned rows=1+2 (inventory budget 1+1)
+    episode_version_public_integration_test.go:229: SQL statements=2 returned rows=1+2 (inventory budget 1+1)
+    episode_version_public_integration_test.go:229: SQL statements=2 returned rows=1+2 (inventory budget 1+1)
+    episode_version_public_integration_test.go:229: SQL statements=2 returned rows=1+2 (inventory budget 1+1)
+    episode_version_public_integration_test.go:229: SQL statements=2 returned rows=1+2 (inventory budget 1+1)
+    episode_version_public_integration_test.go:229: SQL statements=2 returned rows=1+2 (inventory budget 1+1)
+    episode_version_public_integration_test.go:229: SQL statements=2 returned rows=1+2 (inventory budget 1+1)
+    episode_version_public_integration_test.go:229: SQL statements=2 returned rows=1+2 (inventory budget 1+1)
+    episode_version_public_integration_test.go:229: SQL statements=2 returned rows=1+2 (inventory budget 1+1)
+    episode_version_public_integration_test.go:229: SQL statements=2 returned rows=1+2 (inventory budget 1+1)
+    episode_version_public_integration_test.go:229: SQL statements=2 returned rows=1+2 (inventory budget 1+1)
+    episode_version_public_integration_test.go:229: SQL statements=2 returned rows=1+2 (inventory budget 1+1)
+    episode_version_public_integration_test.go:229: SQL statements=2 returned rows=1+2 (inventory budget 1+1)
+    episode_version_public_integration_test.go:229: SQL statements=2 returned rows=1+2 (inventory budget 1+1)
+    episode_version_public_integration_test.go:229: SQL statements=2 returned rows=1+2 (inventory budget 1+1)
+    episode_version_public_integration_test.go:229: SQL statements=2 returned rows=1+2 (inventory budget 1+1)
+    episode_version_public_integration_test.go:229: SQL statements=2 returned rows=1+2 (inventory budget 1+1)
+    episode_version_public_integration_test.go:229: SQL statements=2 returned rows=1+2 (inventory budget 1+1)
+    episode_version_public_integration_test.go:229: SQL statements=2 returned rows=1+2 (inventory budget 1+1)
+    episode_version_public_integration_test.go:229: SQL statements=2 returned rows=1+2 (inventory budget 1+1)
+    episode_version_public_integration_test.go:229: SQL statements=2 returned rows=1+2 (inventory budget 1+1)
+    episode_version_public_integration_test.go:229: SQL statements=2 returned rows=1+2 (inventory budget 1+1)
+    episode_version_public_integration_test.go:229: SQL statements=2 returned rows=1+2 (inventory budget 1+1)
+    episode_version_public_integration_test.go:229: SQL statements=2 returned rows=1+2 (inventory budget 1+1)
+    episode_version_public_integration_test.go:229: SQL statements=2 returned rows=1+2 (inventory budget 1+1)
+    episode_version_public_integration_test.go:229: SQL statements=2 returned rows=1+2 (inventory budget 1+1)
+    episode_version_public_integration_test.go:229: SQL statements=2 returned rows=1+2 (inventory budget 1+1)
+    episode_version_public_integration_test.go:229: SQL statements=2 returned rows=1+2 (inventory budget 1+1)
+    episode_version_public_integration_test.go:229: SQL statements=2 returned rows=1+2 (inventory budget 1+1)
+    episode_version_public_integration_test.go:229: SQL statements=2 returned rows=1+2 (inventory budget 1+1)
+    episode_version_public_integration_test.go:229: SQL statements=2 returned rows=1+2 (inventory budget 1+1)
+    episode_version_public_integration_test.go:229: SQL statements=2 returned rows=1+2 (inventory budget 1+1)
+    episode_version_public_integration_test.go:229: SQL statements=2 returned rows=1+2 (inventory budget 1+1)
+    episode_version_public_integration_test.go:229: SQL statements=2 returned rows=1+2 (inventory budget 1+1)
+    episode_version_public_integration_test.go:229: SQL statements=2 returned rows=1+2 (inventory budget 1+1)
+    episode_version_public_integration_test.go:229: SQL statements=2 returned rows=1+2 (inventory budget 1+1)
+    episode_version_public_integration_test.go:229: SQL statements=2 returned rows=1+2 (inventory budget 1+1)
+    episode_version_public_integration_test.go:229: SQL statements=2 returned rows=1+2 (inventory budget 1+1)
+    episode_version_public_integration_test.go:229: SQL statements=2 returned rows=1+2 (inventory budget 1+1)
+    episode_version_public_integration_test.go:229: SQL statements=2 returned rows=1+2 (inventory budget 1+1)
+    episode_version_public_integration_test.go:229: SQL statements=2 returned rows=1+2 (inventory budget 1+1)
+    episode_version_public_integration_test.go:229: SQL statements=2 returned rows=1+2 (inventory budget 1+1)
+    episode_version_public_integration_test.go:229: SQL statements=2 returned rows=1+2 (inventory budget 1+1)
+    episode_version_public_integration_test.go:229: SQL statements=2 returned rows=1+2 (inventory budget 1+1)
+    episode_version_public_integration_test.go:229: SQL statements=2 returned rows=1+2 (inventory budget 1+1)
+    episode_version_public_integration_test.go:229: SQL statements=2 returned rows=1+2 (inventory budget 1+1)
+    episode_version_public_integration_test.go:229: SQL statements=2 returned rows=1+2 (inventory budget 1+1)
+    episode_version_public_integration_test.go:229: SQL statements=2 returned rows=1+2 (inventory budget 1+1)
+    episode_version_public_integration_test.go:229: SQL statements=2 returned rows=1+2 (inventory budget 1+1)
+    episode_version_public_integration_test.go:229: SQL statements=2 returned rows=1+2 (inventory budget 1+1)
+    episode_version_public_integration_test.go:229: SQL statements=2 returned rows=1+2 (inventory budget 1+1)
+    episode_version_public_integration_test.go:229: SQL statements=2 returned rows=1+2 (inventory budget 1+1)
+    episode_version_public_integration_test.go:229: SQL statements=2 returned rows=1+2 (inventory budget 1+1)
+    episode_version_public_integration_test.go:229: SQL statements=2 returned rows=1+2 (inventory budget 1+1)
+    episode_version_public_integration_test.go:229: SQL statements=2 returned rows=1+2 (inventory budget 1+1)
+    episode_version_public_integration_test.go:229: SQL statements=2 returned rows=1+2 (inventory budget 1+1)
+    episode_version_public_integration_test.go:229: SQL statements=2 returned rows=1+2 (inventory budget 1+1)
+    episode_version_public_integration_test.go:229: SQL statements=2 returned rows=1+2 (inventory budget 1+1)
+    episode_version_public_integration_test.go:229: SQL statements=2 returned rows=1+2 (inventory budget 1+1)
+    episode_version_public_integration_test.go:229: SQL statements=2 returned rows=1+2 (inventory budget 1+1)
+    episode_version_public_integration_test.go:229: SQL statements=2 returned rows=1+2 (inventory budget 1+1)
+    episode_version_public_integration_test.go:229: SQL statements=2 returned rows=1+2 (inventory budget 1+1)
+    episode_version_public_integration_test.go:229: SQL statements=2 returned rows=1+2 (inventory budget 1+1)
+    episode_version_public_integration_test.go:229: SQL statements=2 returned rows=1+2 (inventory budget 1+1)
+    episode_version_public_integration_test.go:229: SQL statements=2 returned rows=1+2 (inventory budget 1+1)
+    episode_version_public_integration_test.go:229: SQL statements=2 returned rows=1+2 (inventory budget 1+1)
+    episode_version_public_integration_test.go:229: SQL statements=2 returned rows=1+2 (inventory budget 1+1)
+    episode_version_public_integration_test.go:229: SQL statements=2 returned rows=1+1 (inventory budget 1+1)
+    episode_version_public_integration_test.go:244: limit=1 pages=126 atomic rows=126 total serialized bytes=72082
+=== RUN   TestEpisodeVersionPublicAtomicPages/24
+    episode_version_public_integration_test.go:229: SQL statements=2 returned rows=1+25 (inventory budget 24+1)
+    episode_version_public_integration_test.go:229: SQL statements=2 returned rows=1+25 (inventory budget 24+1)
+    episode_version_public_integration_test.go:229: SQL statements=2 returned rows=1+25 (inventory budget 24+1)
+    episode_version_public_integration_test.go:229: SQL statements=2 returned rows=1+25 (inventory budget 24+1)
+    episode_version_public_integration_test.go:229: SQL statements=2 returned rows=1+25 (inventory budget 24+1)
+    episode_version_public_integration_test.go:229: SQL statements=2 returned rows=1+6 (inventory budget 24+1)
+    episode_version_public_integration_test.go:244: limit=24 pages=6 atomic rows=126 total serialized bytes=39456
+=== RUN   TestEpisodeVersionPublicAtomicPages/100
+    episode_version_public_integration_test.go:229: SQL statements=2 returned rows=1+101 (inventory budget 100+1)
+    episode_version_public_integration_test.go:229: SQL statements=2 returned rows=1+26 (inventory budget 100+1)
+    episode_version_public_integration_test.go:244: limit=100 pages=2 atomic rows=126 total serialized bytes=38362
+--- PASS: TestEpisodeVersionPublicAtomicPages (0.17s)
+    --- PASS: TestEpisodeVersionPublicAtomicPages/1 (0.08s)
+    --- PASS: TestEpisodeVersionPublicAtomicPages/24 (0.01s)
+    --- PASS: TestEpisodeVersionPublicAtomicPages/100 (0.01s)
+=== RUN   TestEpisodeVersionPublicEmptyAndVisibility
+    episode_version_public_integration_test.go:262: SQL statements=2 returned rows=1+0 (inventory budget 24+1)
+    episode_version_public_integration_test.go:269: SQL statements=2 returned rows=1+1 (inventory budget 24+1)
+--- PASS: TestEpisodeVersionPublicEmptyAndVisibility (0.09s)
+=== RUN   TestEpisodeVersionPublicFullAssignmentAndWrites
+--- PASS: TestEpisodeVersionPublicFullAssignmentAndWrites (0.10s)
+=== CONT  TestScanEpisodeVersion_ReturnsGroupsList
+--- PASS: TestScanEpisodeVersion_ReturnsGroupsList (0.00s)
+=== CONT  TestListReleaseVariants_SegmentAggregationDoesNotSplitByGroupRow
+--- PASS: TestListReleaseVariants_SegmentAggregationDoesNotSplitByGroupRow (0.00s)
+=== CONT  TestScanEpisodeVersion_ReturnsCRC32
+--- PASS: TestScanEpisodeVersion_ReturnsCRC32 (0.00s)
+PASS
+ok  	team4s.v3/backend/internal/repository	0.467s
+=== RUN   TestEpisodeVersionPublicInvalidOptions
+=== RUN   TestEpisodeVersionPublicInvalidOptions/projection=unknown
+=== RUN   TestEpisodeVersionPublicInvalidOptions/projection=public&limit=1&limit=2
+=== RUN   TestEpisodeVersionPublicInvalidOptions/projection=public&cursor=&cursor=invalid
+=== RUN   TestEpisodeVersionPublicInvalidOptions/projection=public&limit=0
+=== RUN   TestEpisodeVersionPublicInvalidOptions/projection=public&limit=-1
+=== RUN   TestEpisodeVersionPublicInvalidOptions/projection=public&limit=101
+=== RUN   TestEpisodeVersionPublicInvalidOptions/projection=public&limit=1abc
+=== RUN   TestEpisodeVersionPublicInvalidOptions/projection=public&limit=1.5
+=== RUN   TestEpisodeVersionPublicInvalidOptions/projection=public&limit=
+=== RUN   TestEpisodeVersionPublicInvalidOptions/projection=public&limit=999999999999999999999999
+=== RUN   TestEpisodeVersionPublicInvalidOptions/limit=24
+=== RUN   TestEpisodeVersionPublicInvalidOptions/cursor=anything
+=== RUN   TestEpisodeVersionPublicInvalidOptions/projection=public&includeVersions=false
+=== RUN   TestEpisodeVersionPublicInvalidOptions/projection=public&includeFansubs=false
+=== RUN   TestEpisodeVersionPublicInvalidOptions/projection=public&includeFansubs=TRUE
+=== RUN   TestEpisodeVersionPublicInvalidOptions/projection=public&cursor=invalid
+=== RUN   TestEpisodeVersionPublicInvalidOptions/projection=public&cursor=eyJ2IjoyLCJhIjoxLCJuIjoxLCJlIjoxMSwiaSI6MTAwfQ
+=== RUN   TestEpisodeVersionPublicInvalidOptions/projection=public&cursor=eyJ2IjoxLCJhIjoyLCJuIjoxLCJlIjoxMSwiaSI6MTAwfQ
+=== RUN   TestEpisodeVersionPublicInvalidOptions/projection=public&cursor=eyJ2IjoxLCJhIjoxLCJuIjowLCJlIjoxMSwiaSI6MTAwfQ
+=== RUN   TestEpisodeVersionPublicInvalidOptions/projection=public&cursor=eyJ2IjoxLCJhIjoxLCJuIjoxLCJlIjowLCJpIjoxMDB9
+=== RUN   TestEpisodeVersionPublicInvalidOptions/projection=public&cursor=eyJ2IjoxLCJhIjoxLCJuIjoxLCJlIjoxMSwiaSI6LTF9
+=== RUN   TestEpisodeVersionPublicInvalidOptions/projection=public&cursor=eyJ2IjoxLCJhIjoxLCJuIjoxLCJlIjoxMX0
+=== RUN   TestEpisodeVersionPublicInvalidOptions/projection=public&cursor=eyJ2IjoxLCJhIjoxLCJuIjoxLCJlIjoxMSwiaSI6MTAwLCJ4IjowfQ
+=== RUN   TestEpisodeVersionPublicInvalidOptions/projection=public&cursor=eyJ2IjoxLCJhIjoxLCJuIjoxLCJlIjoxMSwiaSI6MTAwfSB7fQ
+=== RUN   TestEpisodeVersionPublicInvalidOptions/projection=public&cursor=WzEsMSwxLDExLDBd
+=== RUN   TestEpisodeVersionPublicInvalidOptions/projection=public&cursor=WzIsMSwxLDExLDEwMF0
+=== RUN   TestEpisodeVersionPublicInvalidOptions/projection=public&cursor=WzEsMiwxLDExLDEwMF0
+=== RUN   TestEpisodeVersionPublicInvalidOptions/projection=public&cursor=WzEsMSwtMSwxMSwxMDBd
+=== RUN   TestEpisodeVersionPublicInvalidOptions/projection=public&cursor=WzEsMSwxLDAsMTAwXQ
+=== RUN   TestEpisodeVersionPublicInvalidOptions/projection=public&cursor=WzEsMSwxLDExLC0xXQ
+=== RUN   TestEpisodeVersionPublicInvalidOptions/projection=public&cursor=WzEsMSwxLDExLDEwMCw5OV0
+--- PASS: TestEpisodeVersionPublicInvalidOptions (0.00s)
+    --- PASS: TestEpisodeVersionPublicInvalidOptions/projection=unknown (0.00s)
+    --- PASS: TestEpisodeVersionPublicInvalidOptions/projection=public&limit=1&limit=2 (0.00s)
+    --- PASS: TestEpisodeVersionPublicInvalidOptions/projection=public&cursor=&cursor=invalid (0.00s)
+    --- PASS: TestEpisodeVersionPublicInvalidOptions/projection=public&limit=0 (0.00s)
+    --- PASS: TestEpisodeVersionPublicInvalidOptions/projection=public&limit=-1 (0.00s)
+    --- PASS: TestEpisodeVersionPublicInvalidOptions/projection=public&limit=101 (0.00s)
+    --- PASS: TestEpisodeVersionPublicInvalidOptions/projection=public&limit=1abc (0.00s)
+    --- PASS: TestEpisodeVersionPublicInvalidOptions/projection=public&limit=1.5 (0.00s)
+    --- PASS: TestEpisodeVersionPublicInvalidOptions/projection=public&limit= (0.00s)
+    --- PASS: TestEpisodeVersionPublicInvalidOptions/projection=public&limit=999999999999999999999999 (0.00s)
+    --- PASS: TestEpisodeVersionPublicInvalidOptions/limit=24 (0.00s)
+    --- PASS: TestEpisodeVersionPublicInvalidOptions/cursor=anything (0.00s)
+    --- PASS: TestEpisodeVersionPublicInvalidOptions/projection=public&includeVersions=false (0.00s)
+    --- PASS: TestEpisodeVersionPublicInvalidOptions/projection=public&includeFansubs=false (0.00s)
+    --- PASS: TestEpisodeVersionPublicInvalidOptions/projection=public&includeFansubs=TRUE (0.00s)
+    --- PASS: TestEpisodeVersionPublicInvalidOptions/projection=public&cursor=invalid (0.00s)
+    --- PASS: TestEpisodeVersionPublicInvalidOptions/projection=public&cursor=eyJ2IjoyLCJhIjoxLCJuIjoxLCJlIjoxMSwiaSI6MTAwfQ (0.00s)
+    --- PASS: TestEpisodeVersionPublicInvalidOptions/projection=public&cursor=eyJ2IjoxLCJhIjoyLCJuIjoxLCJlIjoxMSwiaSI6MTAwfQ (0.00s)
+    --- PASS: TestEpisodeVersionPublicInvalidOptions/projection=public&cursor=eyJ2IjoxLCJhIjoxLCJuIjowLCJlIjoxMSwiaSI6MTAwfQ (0.00s)
+    --- PASS: TestEpisodeVersionPublicInvalidOptions/projection=public&cursor=eyJ2IjoxLCJhIjoxLCJuIjoxLCJlIjowLCJpIjoxMDB9 (0.00s)
+    --- PASS: TestEpisodeVersionPublicInvalidOptions/projection=public&cursor=eyJ2IjoxLCJhIjoxLCJuIjoxLCJlIjoxMSwiaSI6LTF9 (0.00s)
+    --- PASS: TestEpisodeVersionPublicInvalidOptions/projection=public&cursor=eyJ2IjoxLCJhIjoxLCJuIjoxLCJlIjoxMX0 (0.00s)
+    --- PASS: TestEpisodeVersionPublicInvalidOptions/projection=public&cursor=eyJ2IjoxLCJhIjoxLCJuIjoxLCJlIjoxMSwiaSI6MTAwLCJ4IjowfQ (0.00s)
+    --- PASS: TestEpisodeVersionPublicInvalidOptions/projection=public&cursor=eyJ2IjoxLCJhIjoxLCJuIjoxLCJlIjoxMSwiaSI6MTAwfSB7fQ (0.00s)
+    --- PASS: TestEpisodeVersionPublicInvalidOptions/projection=public&cursor=WzEsMSwxLDExLDBd (0.00s)
+    --- PASS: TestEpisodeVersionPublicInvalidOptions/projection=public&cursor=WzIsMSwxLDExLDEwMF0 (0.00s)
+    --- PASS: TestEpisodeVersionPublicInvalidOptions/projection=public&cursor=WzEsMiwxLDExLDEwMF0 (0.00s)
+    --- PASS: TestEpisodeVersionPublicInvalidOptions/projection=public&cursor=WzEsMSwtMSwxMSwxMDBd (0.00s)
+    --- PASS: TestEpisodeVersionPublicInvalidOptions/projection=public&cursor=WzEsMSwxLDAsMTAwXQ (0.00s)
+    --- PASS: TestEpisodeVersionPublicInvalidOptions/projection=public&cursor=WzEsMSwxLDExLC0xXQ (0.00s)
+    --- PASS: TestEpisodeVersionPublicInvalidOptions/projection=public&cursor=WzEsMSwxLDExLDEwMCw5OV0 (0.00s)
+PASS
+ok  	team4s.v3/backend/internal/handlers	0.018s
