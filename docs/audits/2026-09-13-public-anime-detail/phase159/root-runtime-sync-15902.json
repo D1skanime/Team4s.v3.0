@@ -1,0 +1,36 @@
+{
+  "at": "2026-09-13T22:35:38.213829+00:00",
+  "method": "one tarstream; normal Air hot reload, no container restart",
+  "product_commit": "a9d9bd12",
+  "sources": [
+    {
+      "file": "internal/repository/episode_version_repository.go",
+      "sha256": "c20f20a1240af474f89a76534f53704eaa2790449837fa2a2003afff96145b2f",
+      "matches": true
+    },
+    {
+      "file": "internal/handlers/episode_version_grants.go",
+      "sha256": "c3ebd69688b5cb76c71670e71c57ee25af9c576b3e8582f4beb062c966fbaa6d",
+      "matches": true
+    },
+    {
+      "file": "internal/handlers/episode_version_stream.go",
+      "sha256": "7457a0b05c2a09e79f5e0f3492ed85438b5931978391da4c720865eceaa51f6e",
+      "matches": true
+    }
+  ],
+  "http_probe": {
+    "url": "http://127.0.0.1:18092/api/v1/releases/27/stream?variant%5Fid=%ZZ",
+    "status": 400,
+    "body": "{\"error\":{\"message\":\"ungültige release id\"}}",
+    "note": "Malformed selector rejected before grant/source access; no real playback or grant creation."
+  },
+  "runtime": {
+    "old_api_child": 4408,
+    "new_api_child": 6008,
+    "current_executable": "/app/tmp/air/server",
+    "live_api_children": 1,
+    "container_restarted": false,
+    "migration_entrypoint_invoked": false
+  }
+}

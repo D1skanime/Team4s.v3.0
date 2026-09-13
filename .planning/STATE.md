@@ -3,14 +3,14 @@ gsd_state_version: 1.0
 milestone: v1.4
 milestone_name: Coverage
 status: executing
-stopped_at: 159-01 implemented and technically checked; next 159-02; Human-UAT 156/157/158 remains OPEN
-last_updated: '2026-09-13T22:18:01.152214+00:00'
+stopped_at: 159-01 and 159-02 technically checked; next 159-03; Human-UAT 156/157/158 remains OPEN
+last_updated: '2026-09-13T22:37:07.368526+00:00'
 last_activity: 2026-09-13
 progress:
   total_phases: 24
   completed_phases: 22
   total_plans: 225
-  completed_plans: 221
+  completed_plans: 222
   percent: 92
 ---
 
@@ -18,7 +18,7 @@ progress:
 
 ## Aktiver Zusatzauftrag — Anime158/159 (13.09.2026)
 
-Genau zwei Phasen sind angelegt: 158-public-anime-detail-reparatur und 159-public-anime-detail-konsolidierung. Phase 158 ist vollständig implementiert und im autorisierten Scope technisch verifiziert: 4/4 Plans, 9/9 Anforderungen, 33/33 Produktionsfixture-Prüfgruppen, unabhängiger Code-Review clean und 10/10 geplante Sicherheitsmaßnahmen belegt. Phase 159-01 ist implementiert und gezielt technisch geprüft (1/5 Plans): Publicprojektion mit zwei SQL-Statements und begrenzten Cursorseiten, Consumer-/ID-/Assignment-Vertrag und Admin-Kompatibilität belegt. Der laufende API-Prozess liefert die neue Projektion nach normalem Air-Hot-Reload aus. Als Nächstes folgt 159-02 für die explizite Streamidentität. Verbindlicher Phase-159-Ausgangscommit: `c3bfcb23781addca1ccd3931592535416f706787`. Human-UAT bleibt separat offen.
+Genau zwei Phasen sind angelegt: 158-public-anime-detail-reparatur und 159-public-anime-detail-konsolidierung. Phase 158 ist vollständig implementiert und im autorisierten Scope technisch verifiziert: 4/4 Plans, 9/9 Anforderungen, 33/33 Produktionsfixture-Prüfgruppen, unabhängiger Code-Review clean und 10/10 geplante Sicherheitsmaßnahmen belegt. Phase 159-01 und 159-02 sind implementiert und gezielt technisch geprüft (2/5 Plans): Publicprojektion mit zwei SQL-Statements und begrenzten Cursorseiten, Consumer-/ID-/Assignment-Vertrag und Admin-Kompatibilität belegt. Der laufende API-Prozess liefert die neue Projektion nach normalem Air-Hot-Reload aus. Die explizite Streamkette bindet Variante und kanonische Releaseversion durch Source, Grant und Relay; Kollisions-, Berechtigungs-, Retry- und strikte Parsingtests bestehen. Der alte No-selector-Compatibilitypfad bleibt ausdrücklich mehrdeutig. Als Nächstes folgt 159-03 für Gruppenzustand, Public-Paging und Gridnavigation. Verbindlicher Phase-159-Ausgangscommit: `c3bfcb23781addca1ccd3931592535416f706787`. Human-UAT bleibt separat offen.
 
 Der geprüfte Ausgangscommit ist `7c7e1c7d02ac870e7c68c02b66fd7f4b33f36b85`. Der Produktstand entsprach bei der Bestandsaufnahme dem Audit. Seither: Relationsprüfung auf zwei Datenstatements begrenzt, autoritativer Anime-Slug ergänzt, Session- und Fehlerzustände korrigiert. Einzelbelege und Commits stehen in den Plan-Summaries. Der vollständige Typecheck besteht. Die vollständige Frontendsuite hat 2459 bestandene Tests und zwei unveränderte CSS-Guard-Fehler; Lint behält 13 Fehler/331 Warnungen. Der vollständige Produktionsbuild scheitert am bereits vorhandenen Admin-Page-Export. Die elf betroffenen öffentlichen Routen bestehen den isolierten selektiven Produktionsbuild; keine globale Buildfreigabe.
 

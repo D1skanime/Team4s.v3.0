@@ -1,0 +1,30 @@
+{
+  "measured_at": "2026-09-13T22:24:29.787345+00:00",
+  "note": "Read-only direct live API response body bytes; same Anime 1 runtime data, no timing/SQL inference. UI adoption pending15903.",
+  "requests": [
+    {
+      "label": "full_default",
+      "url": "http://127.0.0.1:18092/api/v1/anime/1/episodes",
+      "status": 200,
+      "bytes": 10980,
+      "episode_groups": 13,
+      "variant_rows": 13,
+      "neutral_groups": 0,
+      "pagination": null
+    },
+    {
+      "label": "public_first24",
+      "url": "http://127.0.0.1:18092/api/v1/anime/1/episodes?projection=public&limit=24",
+      "status": 200,
+      "bytes": 5814,
+      "episode_groups": 13,
+      "variant_rows": 13,
+      "neutral_groups": 0,
+      "pagination": {
+        "has_more": false,
+        "next_cursor": null,
+        "row_limit": 24
+      }
+    }
+  ]
+}
