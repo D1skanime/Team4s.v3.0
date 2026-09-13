@@ -10,6 +10,8 @@ export interface AuthSessionState {
    * This is deliberately always empty and never carries a runtime token.
    */
   authToken: ''
+  accountIdentity: number | null
+  accountGeneration: number
   hasAccessToken: boolean
   hasRefreshToken: boolean
   displayName: string
@@ -20,6 +22,8 @@ function readAuthSessionState(isClientInitialized: boolean): AuthSessionState {
   const snapshot = getAuthSessionSnapshot()
   return {
     authToken: '',
+    accountIdentity: isClientInitialized ? snapshot.accountIdentity ?? null : null,
+    accountGeneration: 0,
     hasAccessToken: isClientInitialized && snapshot.hasAccessToken,
     hasRefreshToken: isClientInitialized && snapshot.hasRefreshToken,
     displayName: isClientInitialized ? snapshot.displayName : '',
@@ -31,7 +35,17 @@ export function useAuthSession(): AuthSessionState {
   const [state, setState] = useState<AuthSessionState>(() => readAuthSessionState(false))
 
   useEffect(() => {
-    const syncAuthState = () => setState(readAuthSessionState(true))
+    const syncAuthState = (event?: Event) => {
+      const next = readAuthSessionState(true)
+      setState((previous) => ({
+        ...next,
+        // With unreadable metadata an auth event is the only safe account boundary.
+        // Focus and ordinary rotation of a known account do not invalidate consumers.
+        accountGeneration: previous.accountGeneration + (
+          event?.type === AUTH_SESSION_CHANGED_EVENT && next.accountIdentity === null ? 1 : 0
+        ),
+      }))
+    }
     syncAuthState()
 
     window.addEventListener('focus', syncAuthState)

@@ -468,6 +468,7 @@ export interface RuntimeSessionSwitchEvent {
 }
 
 export interface AuthSessionSnapshot {
+  accountIdentity: number | null;
   hasAccessToken: boolean;
   hasRefreshToken: boolean;
   displayName: string;
@@ -1148,6 +1149,7 @@ export function getAuthSessionSnapshot(): AuthSessionSnapshot {
     hasAccessToken: accessToken.length > 0,
     hasRefreshToken: refreshToken.length > 0,
     displayName: getRuntimeDisplayName(),
+    accountIdentity: getRuntimeSessionMeta()?.app_user_id ?? null,
   };
 }
 
