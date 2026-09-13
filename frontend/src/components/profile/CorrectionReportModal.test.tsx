@@ -39,6 +39,8 @@ describe('CorrectionReportModal — Sichtbarkeits-Gate (D-18)', () => {
       hasRefreshToken: false,
       authToken: '',
       displayName: 'Testuser',
+      accountIdentity: null,
+      accountGeneration: 0,
       isClientInitialized: true,
     })
 
@@ -55,6 +57,8 @@ describe('CorrectionReportModal — Sichtbarkeits-Gate (D-18)', () => {
       hasRefreshToken: true,
       authToken: '',
       displayName: 'Testuser',
+      accountIdentity: null,
+      accountGeneration: 0,
       isClientInitialized: true,
     })
 
@@ -71,6 +75,8 @@ describe('CorrectionReportModal — Sichtbarkeits-Gate (D-18)', () => {
       hasRefreshToken: false,
       authToken: '',
       displayName: '',
+      accountIdentity: null,
+      accountGeneration: 0,
       isClientInitialized: true,
     })
 

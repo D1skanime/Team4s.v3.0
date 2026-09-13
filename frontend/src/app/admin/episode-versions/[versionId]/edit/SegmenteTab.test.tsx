@@ -91,6 +91,8 @@ beforeEach(() => {
     hasAccessToken: true,
     hasRefreshToken: true,
     displayName: '',
+    accountIdentity: null,
+    accountGeneration: 0,
     isClientInitialized: true,
   })
   mockedGetAnimeSegments.mockResolvedValue({ data: [] })
@@ -184,6 +186,8 @@ describe('useReleaseSegments auth contract', () => {
       hasAccessToken: false,
       hasRefreshToken: true,
       displayName: '',
+      accountIdentity: null,
+      accountGeneration: 0,
       isClientInitialized: true,
     })
 
