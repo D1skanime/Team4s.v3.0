@@ -11,7 +11,7 @@ import {
 } from "./projectPageData";
 
 interface GroupStoryPageProps {
-  params: { id: string; groupId: string } | Promise<{ id: string; groupId: string }>;
+  params: Promise<{ id: string; groupId: string }>;
 }
 
 export async function generateMetadata({ params }: GroupStoryPageProps): Promise<Metadata> {

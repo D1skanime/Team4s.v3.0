@@ -49,6 +49,7 @@ export interface EpisodeListItem {
 
 export interface AnimeDetail {
   id: number
+  slug?: string
   title: string
   title_de?: string
   title_en?: string

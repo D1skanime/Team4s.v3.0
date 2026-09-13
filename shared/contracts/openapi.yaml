@@ -964,6 +964,63 @@ paths:
             application/json:
               schema:
                 $ref: "#/components/schemas/ErrorResponse"
+  /api/v1/anime/{id}/relations:
+    get:
+      tags: [Anime]
+      summary: List public anime relations
+      operationId: getAnimeRelations
+      security: []
+      description: |
+        Requires a visible source anime (status other than disabled). Related
+        disabled anime are excluded; an anime without relations returns an empty array.
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+            format: int64
+            minimum: 1
+      responses:
+        "200":
+          description: Related anime, possibly empty
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/AnimeRelationsResponse"
+        "400":
+          description: Invalid anime id
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+              example:
+                error:
+                  message: ungültige anime-id
+        "404":
+          description: Source anime not found or disabled
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+              example:
+                error:
+                  message: anime nicht gefunden
+        "500":
+          description: Visibility or relations query failed
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+              examples:
+                visibilityFailure:
+                  value:
+                    error:
+                      message: interner fehler
+                relationsFailure:
+                  value:
+                    error:
+                      message: relationen konnten nicht geladen werden
   /api/v1/anime/{id}/backdrops:
     get:
       tags: [Anime]
@@ -10359,6 +10416,10 @@ components:
         id:
           type: integer
           format: int64
+        slug:
+          type: string
+          minLength: 1
+          description: Authoritative stored anime slug, trimmed and omitted when unavailable; never derived from the title.
         title:
           type: string
         title_de:
@@ -10432,6 +10493,40 @@ components:
       properties:
         data:
           $ref: "#/components/schemas/AnimeDetail"
+    AnimeRelation:
+      type: object
+      required:
+        - anime_id
+        - title
+        - relation_type
+        - cover_image
+        - year
+        - type
+      properties:
+        anime_id:
+          type: integer
+          format: int64
+        title:
+          type: string
+        relation_type:
+          type: string
+        cover_image:
+          type: string
+          nullable: true
+        year:
+          type: integer
+          format: int32
+          nullable: true
+        type:
+          type: string
+    AnimeRelationsResponse:
+      type: object
+      required: [data]
+      properties:
+        data:
+          type: array
+          items:
+            $ref: "#/components/schemas/AnimeRelation"
     AnimeBackdropManifest:
       type: object
       required:
