@@ -263,27 +263,27 @@ the phase's closing plan (155-07) rather than invented mid-phase by an individua
 
 Quelle: .planning/phases/158-public-anime-detail-reparatur/158-USER-REQUEST.md und 158-CONTEXT.md. Alle neuen Anforderungen sind offen; bestehende IDs und Status bleiben unverändert. Human-UAT156/157 wird hierdurch nicht geschlossen.
 
-- [ ] **P158-01**: Episodentitel auf weißen Karten und Contributionüberschrift auf dunkler Fläche lesbar; vorhandene globale Tokens.
-- [ ] **P158-02**: Hero ohne horizontalen Dokumentoverflow; lokale Begrenzung, Fokus/Slider/Controls erhalten.
-- [ ] **P158-03**: Access- oder Refreshsession mit Reaktion nach Mount; ausschließlich zentrale Session-/Refreshseam.
-- [ ] **P158-04**: Contributions: Laden/leer/Fehler; Watchlistunknown blockiert Mutationen; Aktionsfehler auch bei Custom-Styling sichtbar.
-- [ ] **P158-05**: Vollständig positive sichere Integer-ID; echte Next404; konsistente Metadaten ohne doppelten Animefetch.
-- [ ] **P158-06**: Keine erfundene7.8-Bewertung oder0Views; vorhandenes Anime22-/Emby-Mapping unverändert.
-- [ ] **P158-07**: Gruppenbereich über Pretty-Link aus autoritativen Slugs; gezielter Vertragsfix; numeric Compatibility erhalten.
-- [ ] **P158-08**: Relationsprüfung ohne Vollreload; Semantik aktiv/unbekannt/deaktiviert erhalten; höchstens zwei Datenstatements im Erfolgsfall.
-- [ ] **P158-09**: Vollständige technische Nutzermatrix, frische Gates und Browser-/HTTP-/Request-/SQLbelege; keine neue Regression; Alt-UAT offen.
+- [x] **P158-01**: Episodentitel auf weißen Karten und Contributionüberschrift auf dunkler Fläche lesbar; vorhandene globale Tokens.
+- [x] **P158-02**: Hero ohne horizontalen Dokumentoverflow; lokale Begrenzung, Fokus/Slider/Controls erhalten.
+- [x] **P158-03**: Access- oder Refreshsession mit Reaktion nach Mount; ausschließlich zentrale Session-/Refreshseam.
+- [x] **P158-04**: Contributions: Laden/leer/Fehler; Watchlistunknown blockiert Mutationen; Aktionsfehler auch bei Custom-Styling sichtbar.
+- [x] **P158-05**: Vollständig positive sichere Integer-ID; echte Next404; konsistente Metadaten ohne doppelten Animefetch.
+- [x] **P158-06**: Keine erfundene7.8-Bewertung oder0Views; vorhandenes Anime22-/Emby-Mapping unverändert.
+- [x] **P158-07**: Gruppenbereich über Pretty-Link aus autoritativen Slugs; gezielter Vertragsfix; numeric Compatibility erhalten.
+- [x] **P158-08**: Relationsprüfung ohne Vollreload; Semantik aktiv/unbekannt/deaktiviert erhalten; höchstens zwei Datenstatements im Erfolgsfall.
+- [x] **P158-09**: Vollständige technische Nutzermatrix, frische Gates und Browser-/HTTP-/Request-/SQLbelege; keine neue Regression; Alt-UAT offen.
 
 | Requirement | Phase | Status |
 |---|---|---|
-| P158-01 | Phase 158 | Pending |
-| P158-02 | Phase 158 | Pending |
-| P158-03 | Phase 158 | Pending |
-| P158-04 | Phase 158 | Pending |
-| P158-05 | Phase 158 | Pending |
-| P158-06 | Phase 158 | Pending |
-| P158-07 | Phase 158 | Pending |
-| P158-08 | Phase 158 | Pending |
-| P158-09 | Phase 158 | Pending |
+| P158-01 | Phase 158 | Complete (technical; human UAT pending) |
+| P158-02 | Phase 158 | Complete (technical; human UAT pending) |
+| P158-03 | Phase 158 | Complete (technical; human UAT pending) |
+| P158-04 | Phase 158 | Complete (technical; human UAT pending) |
+| P158-05 | Phase 158 | Complete (technical; human UAT pending) |
+| P158-06 | Phase 158 | Complete (technical; human UAT pending) |
+| P158-07 | Phase 158 | Complete (technical; human UAT pending) |
+| P158-08 | Phase 158 | Complete (technical; human UAT pending) |
+| P158-09 | Phase 158 | Complete (technical; human UAT pending) |
 
 ## Phase 159 — Additiver Anime-Scope (2026-09-13)
 

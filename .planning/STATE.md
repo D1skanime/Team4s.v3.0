@@ -3,24 +3,24 @@ gsd_state_version: 1.0
 milestone: v1.4
 milestone_name: Coverage
 status: executing
-stopped_at: Executing 158-04; Phase 159 gated on technical verification of 158; Human-UAT 156/157 remains OPEN
-last_updated: '2026-09-13T21:13:06.830812+00:00'
+stopped_at: Phase 158 technically verified; Phase 159 ready for authorized execution; Human-UAT 156/157/158 remains OPEN
+last_updated: '2026-09-13T21:49:00.348525+00:00'
 last_activity: 2026-09-13
 progress:
   total_phases: 24
-  completed_phases: 21
+  completed_phases: 22
   total_plans: 225
-  completed_plans: 219
-  percent: 88
+  completed_plans: 220
+  percent: 92
 ---
 
 # Project State
 
 ## Aktiver Zusatzauftrag — Anime158/159 (13.09.2026)
 
-Genau zwei Phasen sind angelegt: 158-public-anime-detail-reparatur und 159-public-anime-detail-konsolidierung. Die Plans 158-01 bis 158-03 sind implementiert und gezielt geprüft; aktiver Schritt ist die technische Gesamtverifikation 158-04. Phase 159 beginnt erst nach vollständiger Implementierung und technischer Verifikation von 158.
+Genau zwei Phasen sind angelegt: 158-public-anime-detail-reparatur und 159-public-anime-detail-konsolidierung. Phase 158 ist vollständig implementiert und im autorisierten Scope technisch verifiziert: 4/4 Plans, 9/9 Anforderungen, 33/33 Produktionsfixture-Prüfgruppen, unabhängiger Code-Review clean und 10/10 geplante Sicherheitsmaßnahmen belegt. Phase 159 ist für die ausdrücklich autorisierte Ausführung bereit. Human-UAT bleibt separat offen.
 
-Der geprüfte Ausgangscommit ist `7c7e1c7d02ac870e7c68c02b66fd7f4b33f36b85`. Der Produktstand entsprach bei der Bestandsaufnahme dem Audit. Seither: Relationsprüfung auf zwei Datenstatements begrenzt, autoritativer Anime-Slug ergänzt, Session- und Fehlerzustände korrigiert. Einzelbelege und Commits stehen in den Plan-Summaries. Der vollständige Typecheck besteht; die technische Gesamtprüfung der Phase steht aus.
+Der geprüfte Ausgangscommit ist `7c7e1c7d02ac870e7c68c02b66fd7f4b33f36b85`. Der Produktstand entsprach bei der Bestandsaufnahme dem Audit. Seither: Relationsprüfung auf zwei Datenstatements begrenzt, autoritativer Anime-Slug ergänzt, Session- und Fehlerzustände korrigiert. Einzelbelege und Commits stehen in den Plan-Summaries. Der vollständige Typecheck besteht. Die vollständige Frontendsuite hat 2459 bestandene Tests und zwei unveränderte CSS-Guard-Fehler; Lint behält 13 Fehler/331 Warnungen. Der vollständige Produktionsbuild scheitert am bereits vorhandenen Admin-Page-Export. Die elf betroffenen öffentlichen Routen bestehen den isolierten selektiven Produktionsbuild; keine globale Buildfreigabe.
 
 Human-UAT 156 GAP-02 mit 14 Origin-/Contributorprüfungen und 157-06 Task 4 bleiben ausdrücklich OPEN. Die nachfolgenden älteren Current-Position-/Milestoneabschnitte bleiben als Historie erhalten. Verbindlicher neuer Scope: 158/159-USER-REQUEST, CONTEXT, VALIDATION und REQUIREMENTS. Die historische GSD-Parseranzeige 129 und das ältere PROJECT-Dokument sind im Delta-Bericht eingeordnet; kein Milestone-Reset. Keine Live-Datenänderung.
 
