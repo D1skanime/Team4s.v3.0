@@ -53,7 +53,10 @@ func TestListReleaseVariants_SegmentAggregationDoesNotSplitByGroupRow(t *testing
 	if strings.Contains(source, "COALESCE(ts.fansub_group_id, 0) = COALESCE(rvg.fansub_group_id, 0)") {
 		t.Fatal("segment aggregation must not depend on the current release_version_groups row")
 	}
-	if !strings.Contains(source, "SELECT rvg_segment.fansub_group_id") {
-		t.Fatal("segment aggregation should scope through all groups connected to the release version")
+	if !strings.Contains(source, "WHERE tsa.release_version_id = rev.id") {
+		t.Fatal("segment aggregation must use canonical release-version assignments")
+	}
+	if strings.Contains(source, "SELECT rvg_segment.fansub_group_id") {
+		t.Fatal("range and group matching must not substitute for an assignment")
 	}
 }

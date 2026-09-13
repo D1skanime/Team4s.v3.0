@@ -9,6 +9,9 @@ import (
 // EpisodeVersion repräsentiert eine einzelne Release-Version einer Episode,
 // verknüpft mit einer Fansub-Gruppe und einem Medien-Provider (z.B. Jellyfin).
 type EpisodeVersion struct {
+	// ID remains the legacy variant alias; ReleaseVersionID addresses the canonical version.
+	VariantID             int64                `json:"variant_id"`
+	ReleaseVersionID      int64                `json:"release_version_id"`
 	ID                    int64                `json:"id"`
 	AnimeID               int64                `json:"anime_id"`
 	EpisodeNumber         int32                `json:"episode_number"`
@@ -145,4 +148,40 @@ type EpisodeVersionFolderScanResult struct {
 	AnimeID         int64                     `json:"anime_id"`
 	AnimeFolderPath *string                   `json:"anime_folder_path,omitempty"`
 	Files           []EpisodeVersionMediaFile `json:"files"`
+}
+
+// PublicEpisodeVersion exposes display metadata and explicit identities, never playback sources.
+type PublicEpisodeVersion struct {
+	ID               int64                `json:"id"`
+	VariantID        int64                `json:"variant_id"`
+	ReleaseVersionID int64                `json:"release_version_id"`
+	AnimeID          int64                `json:"anime_id"`
+	EpisodeNumber    int32                `json:"episode_number"`
+	Title            *string              `json:"title,omitempty"`
+	ReleaseVersion   *string              `json:"release_version,omitempty"`
+	FansubGroups     []FansubGroupSummary `json:"fansub_groups"`
+	VideoQuality     *string              `json:"video_quality,omitempty"`
+	SubtitleType     *string              `json:"subtitle_type,omitempty"`
+	ReleaseDate      *time.Time           `json:"release_date,omitempty"`
+}
+
+type PublicGroupedEpisode struct {
+	EpisodeID        int64                  `json:"episode_id"`
+	EpisodeNumber    int32                  `json:"episode_number"`
+	EpisodeTitle     *string                `json:"episode_title,omitempty"`
+	DefaultVersionID *int64                 `json:"default_version_id,omitempty"`
+	VersionCount     int32                  `json:"version_count"`
+	Versions         []PublicEpisodeVersion `json:"versions"`
+}
+
+type PublicEpisodePagination struct {
+	HasMore    bool    `json:"has_more"`
+	NextCursor *string `json:"next_cursor"`
+	RowLimit   int     `json:"row_limit"`
+}
+
+type PublicGroupedEpisodesData struct {
+	AnimeID    int64                   `json:"anime_id"`
+	Episodes   []PublicGroupedEpisode  `json:"episodes"`
+	Pagination PublicEpisodePagination `json:"pagination"`
 }

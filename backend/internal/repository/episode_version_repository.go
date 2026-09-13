@@ -70,6 +70,8 @@ func (r *EpisodeVersionRepository) GetByID(ctx context.Context, versionID int64)
 		SELECT
 			COALESCE(CAST(primary_episode.episode_number AS INTEGER), 0) AS group_episode_number,
 			rv.id,
+			rv.id AS variant_id,
+			rev.id AS release_version_id,
 			primary_episode.anime_id,
 			COALESCE(CAST(primary_episode.episode_number AS INTEGER), 0) AS episode_number,
 			COALESCE(rev.title, primary_episode.title) AS title,
@@ -110,27 +112,16 @@ func (r *EpisodeVersionRepository) GetByID(ctx context.Context, versionID int64)
 		LEFT JOIN release_version_groups rvg ON rvg.release_version_id = rev.id
 		LEFT JOIN fansub_groups fg ON fg.id = rvg.fansub_group_id
 		LEFT JOIN LATERAL (
-			SELECT
-				COUNT(ts.id)::INTEGER AS segment_count,
-				COALESCE(BOOL_OR(ts.source_type = 'release_asset' AND NULLIF(BTRIM(ts.source_ref), '') IS NOT NULL), FALSE) AS has_segment_asset
-			FROM theme_segments ts
-			JOIN themes t ON t.id = ts.theme_id
-			WHERE t.anime_id = primary_episode.anime_id
-			  AND (
-				ts.fansub_group_id IS NULL
-				OR ts.fansub_group_id IN (
-					SELECT rvg_segment.fansub_group_id
-					FROM release_version_groups rvg_segment
-					WHERE rvg_segment.release_version_id = rev.id
-				)
-			  )
-			  AND COALESCE(NULLIF(BTRIM(ts.version), ''), 'v1') = COALESCE(NULLIF(BTRIM(rev.version), ''), 'v1')
-			  AND (ts.start_episode IS NULL OR ts.start_episode <= CAST(primary_episode.episode_number AS INTEGER))
-			  AND (ts.end_episode IS NULL OR ts.end_episode >= CAST(primary_episode.episode_number AS INTEGER))
-		) seg ON TRUE
+            SELECT COUNT(ts.id)::INTEGER AS segment_count,
+                COALESCE(BOOL_OR(ts.source_type = 'release_asset' AND NULLIF(BTRIM(ts.source_ref), '') IS NOT NULL), FALSE) AS has_segment_asset
+            FROM theme_segment_assignments tsa
+            JOIN theme_segments ts ON ts.id = tsa.theme_segment_id
+            WHERE tsa.release_version_id = rev.id
+        ) seg ON TRUE
 		WHERE rv.id = $1 OR rev.id = $1
 		GROUP BY
 			rv.id,
+			rev.id,
 			primary_episode.anime_id,
 			primary_episode.episode_number,
 			primary_episode.title,
