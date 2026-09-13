@@ -66,10 +66,12 @@ func (h *FansubHandler) ResolveFansubProject(c *gin.Context) {
 
 	c.JSON(http.StatusOK, gin.H{
 		"data": gin.H{
-			"group_id":   resolved.GroupID,
-			"anime_id":   resolved.AnimeID,
-			"anime_slug": resolved.AnimeSlug,
-			"projects":   projects,
+			"group_id":    resolved.GroupID,
+			"anime_id":    resolved.AnimeID,
+			"anime_slug":  resolved.AnimeSlug,
+			"projects":    projects,
+			"banner_url":  resolved.BannerURL,
+			"cover_image": resolved.CoverImage,
 		},
 	})
 }

@@ -250,7 +250,7 @@ import type {
   GroupThemesResponse,
   GroupReleaseMediaResponse,
 } from "@/types/groupContributors";
-import type { ProjectMemberSummary, ProjectMemberNote, ProjectMemberMediaItem, ProjectMemberRelease } from "@/types/projectMember";
+import type { ProjectMemberSummary, ProjectMemberNote, ProjectMemberMediaItem } from "@/types/projectMember";
 import type {
   ReleaseDetailResponse,
   CursorPage,
@@ -10753,7 +10753,7 @@ export async function decideReleaseReview(
 }
 
 // --- Phase 122: Oeffentliche Projekt-Member-Seite (Member × Fansubgruppe × Anime) ---
-// Vier getrennte, cursor-faehige, abbrechbare Read-Helper (D-08). Public (kein Auth) -> plain fetch.
+// Summary und cursor-faehige, abbrechbare Notizen-/Medien-Helper ueber den zentralen API-Client.
 
 export interface ProjectMemberListOpts {
   cursor?: string;
@@ -10766,7 +10766,7 @@ function buildProjectMemberListURL(
   animeID: number,
   groupID: number,
   memberSlug: string,
-  sub: "notes" | "media" | "releases",
+  sub: "notes" | "media",
   opts: ProjectMemberListOpts,
 ): string {
   const query = new URLSearchParams();
@@ -10819,21 +10819,6 @@ export async function getProjectMemberMedia(
     throw new ApiError(response.status, message);
   }
   return response.json() as Promise<CursorPage<ProjectMemberMediaItem>>;
-}
-
-export async function getProjectMemberReleases(
-  animeID: number,
-  groupID: number,
-  memberSlug: string,
-  opts: ProjectMemberListOpts = {},
-): Promise<CursorPage<ProjectMemberRelease>> {
-  const url = buildProjectMemberListURL("", animeID, groupID, memberSlug, "releases", opts);
-  const response = await apiClientFetch(url, { cache: "no-store", signal: opts.signal });
-  if (!response.ok) {
-    const message = await parseApiError(response, `API request failed: ${response.status}`);
-    throw new ApiError(response.status, message);
-  }
-  return response.json() as Promise<CursorPage<ProjectMemberRelease>>;
 }
 
 

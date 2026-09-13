@@ -5,7 +5,6 @@ export interface ProjectMemberCounts {
   roles: number
   notes: number
   media: number
-  releases: number
   episodes: number
 }
 
@@ -44,12 +43,4 @@ export interface ProjectMemberMediaItem {
   created_at: string
   thumbnail_url: string
   preview_url: string
-}
-
-export interface ProjectMemberRelease {
-  release_version_id: number
-  episode_label: string
-  version_label: string
-  confirmed_at: string | null
-  role_labels: string[]
 }

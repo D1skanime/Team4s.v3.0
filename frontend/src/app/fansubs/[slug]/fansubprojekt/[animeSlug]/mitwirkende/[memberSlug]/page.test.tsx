@@ -25,6 +25,7 @@ vi.mock('@/lib/api', () => ({
   resolveFansubProject: mocks.resolveProject,
   getProjectMemberSummary: mocks.getProjectMemberSummary,
   getGroupDetail: mocks.getGroupDetail,
+  resolveApiUrl: (url: string) => url,
 }))
 
 import { ApiError } from '@/lib/api'
@@ -40,7 +41,7 @@ const summary = (overrides: Partial<ProjectMemberSummary> = {}): ProjectMemberSu
   member_avatar_url: null,
   is_verified: true,
   role_labels: ['Übersetzung', 'Timing'],
-  counts: { roles: 2, notes: 5, media: 8, releases: 3, episodes: 6 },
+  counts: { roles: 2, notes: 5, media: 8, episodes: 6 },
   ...overrides,
 })
 
@@ -59,14 +60,14 @@ const render = (over: Partial<ProjectMemberSummary> = {}) =>
   )
 
 describe('ProjectMemberPage', () => {
-  it('renders breadcrumb, hero, summary and sticky nav for a valid combination', () => {
+  it('renders roles, notes and media without a second release history', () => {
     const html = render()
     // Breadcrumb-Links
     expect(html).toContain('href="/fansubs/c-subs"')
     expect(html).toContain('href="/fansubs/c-subs/fansubprojekt/vipers-creed"')
     // Hero
     expect(html).toContain('CSubs Leader')
-    expect(html).toContain('Mitwirkung an Viper&#x27;s Creed · C-Subs')
+    expect(html).toContain('Viper&#x27;s Creed · C-Subs')
     expect(html).toContain('Übersetzung')
     // Hero-Absprünge (D-16 + allgemeines Profil)
     expect(html).toContain('href="/members/csubs-leader"')
@@ -77,13 +78,17 @@ describe('ProjectMemberPage', () => {
     expect(html).toContain('Schnellnavigation')
     expect(html).toContain('id="texte"')
     expect(html).toContain('id="bilder"')
-    expect(html).toContain('id="releases"')
+    expect(html).not.toContain('id="releases"')
+    expect(html).not.toContain('Mitwirkung an Releases')
+    expect(html).not.toContain('Releases')
     // Beitragszusammenfassung-Band (157-02, konsumiert den episodes-Count aus 157-01)
-    expect(html).toContain('dokumentierte Arbeitsnotizen')
+    expect(html).not.toContain('dokumentierte Arbeitsnotizen')
+    expect(html).not.toContain('summaryEntry')
+    expect(html).toContain('Projektbeiträge')
   })
 
-  it('shows an empty state (no sections, no sticky nav) when there are no public details', () => {
-    const html = render({ counts: { roles: 2, notes: 0, media: 0, releases: 0, episodes: 0 } })
+  it('shows an empty state (no sections, no sticky nav) for a member with roles but no public notes or media', () => {
+    const html = render({ counts: { roles: 2, notes: 0, media: 0, episodes: 0 } })
     expect(html).toContain('keine öffentlichen Detailbeiträge')
     expect(html).not.toContain('Schnellnavigation')
     expect(html).not.toContain('id="texte"')
@@ -118,6 +123,8 @@ describe('ProjectMemberRoute resolver wiring', () => {
         group_id: 4,
         anime_id: 9,
         anime_slug: 'vipers-creed',
+        banner_url: '/media/anime/9/banner.webp',
+        cover_image: '/covers/viper.jpg',
         projects: [{ id: 9, title: "Viper's Creed", anime_slug: 'vipers-creed' }],
       },
     })
@@ -126,7 +133,7 @@ describe('ProjectMemberRoute resolver wiring', () => {
     mocks.getProjectMemberSummary.mockResolvedValueOnce(summaryFixture)
 
     const result = (await ProjectMemberRoute({ params: routeParams() })) as {
-      props: { groupName: string; animeTitle: string; animeID: number; groupID: number; summary: ProjectMemberSummary }
+      props: { bannerUrl: string; coverImage: string; groupName: string; animeTitle: string; animeID: number; groupID: number; summary: ProjectMemberSummary }
     }
 
     expect(mocks.getProjectMemberSummary).toHaveBeenCalledWith(9, 4, 'csubs-leader')
@@ -136,6 +143,8 @@ describe('ProjectMemberRoute resolver wiring', () => {
     expect(result.props.animeID).toBe(9)
     expect(result.props.groupID).toBe(4)
     expect(result.props.summary).toBe(summaryFixture)
+    expect(result.props.bannerUrl).toBe('/media/anime/9/banner.webp')
+    expect(result.props.coverImage).toBe('/covers/viper.jpg')
   })
 
   it('returns notFound when the resolver projects list has no entry matching the current anime_slug, without calling getGroupDetail', async () => {

@@ -23,10 +23,9 @@ func NewProjectMemberPublicRepository(db *pgxpool.Pool) *ProjectMemberPublicRepo
 
 // ProjectMemberCounts sind die Summary-Kennzahlen (nur oeffentlich sichtbare Inhalte).
 type ProjectMemberCounts struct {
-	Roles    int `json:"roles"`
-	Notes    int `json:"notes"`
-	Media    int `json:"media"`
-	Releases int `json:"releases"`
+	Roles int `json:"roles"`
+	Notes int `json:"notes"`
+	Media int `json:"media"`
 	// Episodes ist additiv (Phase 157, Workstream D): Anzahl der Folgen, zu denen dieser
 	// Member in diesem Projekt mindestens einen oeffentlichen Textbeitrag ODER ein
 	// oeffentliches Medium hat. Gebildet aus countEpisodes, siehe dort.
@@ -184,9 +183,6 @@ func (r *ProjectMemberPublicRepository) GetSummary(ctx context.Context, animeID,
 	if s.Counts.Media, err = r.countMedia(ctx, animeID, groupID, memberID); err != nil {
 		return nil, err
 	}
-	if s.Counts.Releases, err = r.countReleases(ctx, animeID, groupID, memberID); err != nil {
-		return nil, err
-	}
 	if s.Counts.Episodes, err = r.countEpisodes(ctx, animeID, groupID, memberID); err != nil {
 		return nil, err
 	}
@@ -223,20 +219,6 @@ func (r *ProjectMemberPublicRepository) countMedia(ctx context.Context, animeID,
 		WHERE rvm.uploaded_by_user_id IN (SELECT uid FROM member_users)
 		  AND e.anime_id = $2 AND rvm.fansub_group_id = $3
 		  AND `+projectMemberPublicMediaPredicate+`
-	`, memberID, animeID, groupID).Scan(&n)
-	return n, err
-}
-
-func (r *ProjectMemberPublicRepository) countReleases(ctx context.Context, animeID, groupID, memberID int64) (int, error) {
-	var n int
-	err := r.db.QueryRow(ctx, `
-		SELECT COUNT(DISTINCT rv.id)
-		FROM release_member_roles rmr
-		JOIN fansub_releases fr ON fr.id = rmr.release_id
-		JOIN episodes e ON e.id = fr.episode_id
-		JOIN release_versions rv ON rv.release_id = fr.id
-		JOIN release_version_groups rvg ON rvg.release_version_id = rv.id
-		WHERE rmr.member_id = $1 AND e.anime_id = $2 AND rvg.fansub_group_id = $3
 	`, memberID, animeID, groupID).Scan(&n)
 	return n, err
 }

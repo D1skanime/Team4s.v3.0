@@ -1,0 +1,154 @@
+/* Shared, content-sized light hero. Geometry belongs here, never in a domain page. */
+.hero {
+  container: artwork-hero / inline-size;
+  min-width: 0;
+  --artwork-hero-avatar: 48px;
+  --artwork-hero-copy: 32rem;
+}
+
+.panel {
+  position: relative;
+  isolation: isolate;
+  display: grid;
+  grid-template-columns: var(--artwork-hero-avatar) minmax(0, 1fr);
+  gap: var(--space-2) var(--space-4);
+  padding: var(--space-4);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-md);
+  background: var(--surface-card);
+  box-shadow: var(--shadow-sm);
+  overflow: hidden;
+  min-width: 0;
+}
+
+.artwork {
+  position: absolute;
+  inset: 0;
+  z-index: -2;
+  pointer-events: none;
+}
+
+.artwork img {
+  object-fit: cover;
+  object-position: 75% center;
+  max-width: 100%;
+}
+
+.panel::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  z-index: -1;
+  pointer-events: none;
+  /* Open the upper-right artwork; keep identity left and the action row light. */
+  background:
+    linear-gradient(0deg,
+      var(--surface-card) 0%,
+      color-mix(in srgb, var(--surface-card) 98%, transparent) 35%,
+      transparent 70%),
+    linear-gradient(90deg,
+      var(--surface-card) 45%,
+      color-mix(in srgb, var(--surface-card) 94%, transparent) 65%,
+      color-mix(in srgb, var(--surface-card) 25%, transparent) 100%);
+}
+
+.avatar {
+  width: var(--artwork-hero-avatar);
+  height: var(--artwork-hero-avatar);
+  border-radius: 50%;
+  overflow: hidden;
+  display: grid;
+  place-items: center;
+  font-size: 1.25rem;
+  font-weight: 700;
+  background: var(--surface-sunken);
+  color: var(--accent-deep);
+}
+
+.avatar img {
+  width: 100%;
+  height: 100%;
+  max-width: 100%;
+  object-fit: cover;
+}
+
+.identity,
+.details {
+  min-width: 0;
+  max-width: var(--artwork-hero-copy);
+}
+
+.titleRow,
+.roles,
+.actions {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: var(--space-2);
+  min-width: 0;
+}
+
+.title {
+  margin: 0;
+  min-width: 0;
+  font-size: 1.5rem;
+  line-height: 1.2;
+  font-weight: 700;
+  color: var(--text-primary);
+  overflow-wrap: anywhere; /* User-chosen names can be a single unbroken string. */
+}
+
+.roles {
+  margin-top: var(--space-1);
+}
+
+.roles > * {
+  max-width: 100%;
+  white-space: normal;
+}
+
+.context {
+  margin: var(--space-1) 0 0;
+  color: var(--text-soft);
+  font-size: 0.875rem;
+  line-height: 1.5;
+  overflow-wrap: anywhere; /* Project/group names are user-provided. */
+}
+
+.details {
+  grid-column: 1 / -1;
+  display: grid;
+  gap: var(--space-2);
+}
+
+.actions > a {
+  max-width: 100%;
+  min-width: 0;
+  padding-block: var(--space-2);
+  line-height: 1.25;
+  text-align: center;
+}
+
+/* 48rem fits 64px avatar + 16px gap + 32rem copy + 48px padding and artwork context. */
+@container artwork-hero (min-width: 48rem) {
+  .artwork img {
+    object-position: right center;
+  }
+
+  .panel {
+    --artwork-hero-avatar: 64px;
+    padding: var(--space-5);
+  }
+
+  .details {
+    grid-column: 2;
+  }
+
+  .panel::after {
+    background: linear-gradient(90deg,
+      var(--surface-card) 0%,
+      color-mix(in srgb, var(--surface-card) 96%, transparent)
+        calc(var(--artwork-hero-copy) + var(--artwork-hero-avatar) + var(--space-4) + var(--space-5)),
+      transparent 100%);
+  }
+}

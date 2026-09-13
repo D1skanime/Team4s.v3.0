@@ -18,6 +18,7 @@ import { ProjectMemberNotesSection } from './ProjectMemberNotesSection'
 afterEach(() => {
   cleanup()
   vi.clearAllMocks()
+  vi.restoreAllMocks()
 })
 
 const note = (overrides: Partial<ProjectMemberNote> = {}): ProjectMemberNote => ({
@@ -73,7 +74,9 @@ describe('ProjectMemberNoteEntry', () => {
     expect(link.getAttribute('data-color-key')).toBe(boundedColorKey('#6b7f2a'))
   })
 
-  it('toggles Mehr/Weniger anzeigen for long text', () => {
+  it('toggles Mehr/Weniger anzeigen for overflowing text', () => {
+    vi.spyOn(HTMLElement.prototype, 'scrollHeight', 'get').mockReturnValue(240)
+    vi.spyOn(HTMLElement.prototype, 'clientHeight', 'get').mockReturnValue(106)
     render(
       <ProjectMemberNoteEntry
         note={note({ body_text: 'x'.repeat(300) })}
@@ -83,6 +86,37 @@ describe('ProjectMemberNoteEntry', () => {
     )
     fireEvent.click(screen.getByText('Mehr anzeigen'))
     expect(screen.getByText('Weniger anzeigen')).not.toBeNull()
+    fireEvent.click(screen.getByText('Weniger anzeigen'))
+    expect(screen.getByRole('button', { name: 'Mehr anzeigen' }).getAttribute('aria-expanded')).toBe('false')
+  })
+
+  it('allows a short multi-paragraph body to expand when its rendered height exceeds the preview', () => {
+    vi.spyOn(HTMLElement.prototype, 'scrollHeight', 'get').mockReturnValue(160)
+    vi.spyOn(HTMLElement.prototype, 'clientHeight', 'get').mockReturnValue(106)
+    render(<ProjectMemberNoteEntry note={note({ body_text: 'Eins Zwei Drei Vier Fünf', body_html: '<p>Eins</p><p>Zwei</p><p>Drei</p><p>Vier</p><p>Fünf</p>' })} projectPath="/p" hasMultipleRoles={false} />)
+    expect(screen.getByRole('button', { name: 'Mehr anzeigen' })).toBeTruthy()
+    expect(screen.getByText('Fünf')).toBeTruthy()
+  })
+
+  it('does not show a redundant expand control for text that fits on a wider screen', () => {
+    vi.spyOn(HTMLElement.prototype, 'scrollHeight', 'get').mockReturnValue(53)
+    vi.spyOn(HTMLElement.prototype, 'clientHeight', 'get').mockReturnValue(53)
+    render(<ProjectMemberNoteEntry note={note({ body_text: 'Wort '.repeat(50) })} projectPath="/p" hasMultipleRoles={false} />)
+    expect(screen.queryByRole('button', { name: 'Mehr anzeigen' })).toBeNull()
+  })
+
+  it('rechecks the preview after a width change and keeps collapse available while expanded', () => {
+    const height = vi.spyOn(HTMLElement.prototype, 'scrollHeight', 'get').mockReturnValue(80)
+    vi.spyOn(HTMLElement.prototype, 'clientHeight', 'get').mockReturnValue(106)
+    render(<ProjectMemberNoteEntry note={note({ body_text: 'Ein Text mit Umbrüchen.' })} projectPath="/p" hasMultipleRoles={false} />)
+    expect(screen.queryByRole('button', { name: 'Mehr anzeigen' })).toBeNull()
+    height.mockReturnValue(160)
+    fireEvent(window, new Event('resize'))
+    fireEvent.click(screen.getByRole('button', { name: 'Mehr anzeigen' }))
+    height.mockReturnValue(80)
+    fireEvent(window, new Event('resize'))
+    fireEvent.click(screen.getByRole('button', { name: 'Weniger anzeigen' }))
+    expect(screen.queryByRole('button', { name: 'Mehr anzeigen' })).toBeNull()
   })
 
   it('renders the optional title when present', () => {

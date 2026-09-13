@@ -64,6 +64,8 @@ export default async function ProjectMemberRoute({ params }: ProjectMemberRouteP
       groupName={groupDetail.data.fansub.name}
       groupSlug={fansubSlug}
       animeTitle={currentProject.title}
+      bannerUrl={resolution.data.banner_url}
+      coverImage={resolution.data.cover_image}
       animeID={resolution.data.anime_id}
       groupID={resolution.data.group_id}
       projectPath={buildPublicFansubProjectPath(fansubSlug, resolution.data.anime_slug)}

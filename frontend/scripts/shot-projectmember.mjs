@@ -25,6 +25,8 @@
 // Viewport-only-Screenshot (kein fullPage) zum Vergleich.
 import http from 'node:http'
 import { mkdirSync } from 'node:fs'
+import { createRequire } from 'node:module'
+const require = createRequire(import.meta.url)
 import { chromium } from 'playwright'
 
 const UPSTREAM_PORT = Number(process.env.SHOT_UPSTREAM_PORT || 3000)
@@ -61,8 +63,9 @@ await new Promise((resolve) => proxy.listen(PROXY_PORT, '127.0.0.1', resolve))
 const BASE = `http://127.0.0.1:${PROXY_PORT}`
 
 const viewports = [
-  ['mobile', 390, 1200],
-  ['desktop', 1440, 1000],
+  ['mobile', 390, 844],
+  ['tablet', 768, 1024],
+  ['desktop', 1440, 900],
 ]
 
 const browser = await chromium.launch()
@@ -70,6 +73,12 @@ try {
   for (const [name, width, height] of viewports) {
     const ctx = await browser.newContext({ viewport: { width, height }, deviceScaleFactor: 1 })
     const page = await ctx.newPage()
+    const releaseRequests = []
+    page.on('request', (request) => {
+      if (/\/api\/v1\/anime\/[^/]+\/group\/[^/]+\/members\/[^/]+\/releases(?:[?]|$)/.test(request.url())) {
+        releaseRequests.push(request.url())
+      }
+    })
     const consoleErrors = []
     page.on('console', (m) => {
       if (m.type() === 'error') consoleErrors.push(m.text())
@@ -79,7 +88,8 @@ try {
       waitUntil: 'networkidle',
       timeout: 90000,
     })
-    await page.waitForTimeout(3000)
+    await page.locator('section[aria-label="Projekt-Mitwirkung"] h1').waitFor()
+    await page.evaluate(() => document.fonts.ready)
 
     const file = `${OUT}/${LABEL}-${name}.png`
     await page.screenshot({ path: file, fullPage: true })
@@ -202,6 +212,14 @@ try {
         : null
 
       return {
+        heroHeight: h(heroSection),
+        contentTop: notes ? Math.round(notes.getBoundingClientRect().top) : null,
+        heroMetrics: heroSection?.querySelector('dl')?.textContent ?? null,
+        heroArtworkLoaded: Boolean(heroSection?.querySelector('[class*="artwork"] img')?.naturalWidth),
+        heroActionsInBounds: heroSection ? Array.from(heroSection.querySelectorAll('a')).every((el) => {
+          const rect = el.getBoundingClientRect()
+          return rect.left >= 0 && rect.right <= innerWidth && rect.height >= 36
+        }) : false,
         docHeight: document.documentElement.scrollHeight,
         horizontalOverflow:
           document.documentElement.scrollWidth > document.documentElement.clientWidth,
@@ -229,6 +247,104 @@ try {
       }
     })
 
+    facts.releaseRequests = releaseRequests
+    if (facts.releasesSectionHeight !== null || facts.buttonLabels.some((label) => /Release/.test(label)) || /Release/.test(facts.heroMetrics) || releaseRequests.length) {
+      throw new Error(`Project member release history must be absent: ${JSON.stringify(facts)}`)
+    }
+    facts.notePreviews = await page.locator('[data-note-entry] [class*="bodyClamped"]').evaluateAll((bodies) => bodies.map((body) => ({
+      height: body.getBoundingClientRect().height,
+      lineHeight: Number.parseFloat(getComputedStyle(body).lineHeight),
+      overflow: body.scrollHeight > body.clientHeight,
+      hasToggle: Boolean(body.parentElement.querySelector('button[aria-expanded="false"]')),
+    })))
+    if (facts.notePreviews.some((note) => note.height > 4 * note.lineHeight + 1 || note.overflow !== note.hasToggle)) {
+      throw new Error(`Inconsistent note preview at ${name}: ${JSON.stringify(facts.notePreviews)}`)
+    }
+    const expandableNote = page.locator('[data-note-entry]').filter({ has: page.getByRole('button', { name: 'Mehr anzeigen', exact: true }) }).first()
+    if (await expandableNote.count()) {
+      const beforeHeight = await expandableNote.locator('[class*="bodyClamped"]').evaluate((body) => body.getBoundingClientRect().height)
+      await expandableNote.getByRole('button', { name: 'Mehr anzeigen', exact: true }).click()
+      // The row no longer matches the collapsed filter after clicking; identify the expanded row.
+      const expandedNote = page.locator('[data-note-entry]').filter({ has: page.getByRole('button', { name: 'Weniger anzeigen', exact: true }) }).first()
+      const expandedHeight = await expandedNote.locator('[id]').evaluate((body) => ({ height: body.getBoundingClientRect().height, unclipped: body.scrollHeight <= body.clientHeight + 1 }))
+      if (!expandedHeight.unclipped || expandedHeight.height <= beforeHeight || page.url() !== BASE + PATH_UNDER_TEST) {
+        throw new Error(`Note expansion failed: ${JSON.stringify(expandedHeight)}`)
+      }
+      await expandedNote.getByRole('button', { name: 'Weniger anzeigen', exact: true }).click()
+      const collapsedHeight = await expandableNote.locator('[class*="bodyClamped"]').evaluate((body) => body.getBoundingClientRect().height)
+      if (Math.abs(collapsedHeight - beforeHeight) > 1) throw new Error('Note did not return to its preview height')
+      facts.noteToggle = { beforeHeight, expandedHeight: expandedHeight.height, collapsedHeight }
+      await page.evaluate(() => scrollTo(0, 0))
+    }
+    const normalConsoleErrors = [...consoleErrors]
+    if (process.env.SHOT_VERIFY_HERO === '1') {
+      if (facts.horizontalOverflow || !facts.heroActionsInBounds || facts.statBarEntryCount !== 0 || facts.summaryBandText !== null) {
+        throw new Error(`Hero layout regression at ${name}: ${JSON.stringify(facts)}`)
+      }
+      if (facts.contentTop > (width < 600 ? 530 : 440)) {
+        throw new Error(`Contribution content starts too late at ${name}: ${facts.contentTop}px`)
+      }
+    }
+    if (process.env.SHOT_VERIFY_HERO === '1' && name === 'desktop') {
+      await page.addScriptTag({ path: require.resolve('axe-core/axe.min.js') })
+      const accessibility = await page.evaluate(async () => {
+        const result = await window.axe.run(document.querySelector('section[aria-label="Projekt-Mitwirkung"]'), {
+          runOnly: { type: 'tag', values: ['wcag2a', 'wcag2aa'] },
+        })
+        return result.violations.map(({ id, description }) => ({ id, description }))
+      })
+      if (accessibility.length) throw new Error(JSON.stringify(accessibility))
+      facts.heroAccessibilityViolations = accessibility
+      const normalErrorCount = consoleErrors.length
+      await page.route('**/_next/image*', (route) => route.abort())
+      await page.reload({ waitUntil: 'networkidle' })
+      await page.locator('section[aria-label="Projekt-Mitwirkung"] [class*="artwork"] img').waitFor({ state: 'detached' })
+      facts.failedArtworkFallsBackToNeutral = await page.locator('section[aria-label="Projekt-Mitwirkung"] a').count() === 2
+      if (!facts.failedArtworkFallsBackToNeutral) throw new Error('Artwork failure removed hero actions')
+      await page.screenshot({ path: `${OUT}/${LABEL}-neutral.png`, fullPage: false })
+      facts.expectedImageFailureErrors = consoleErrors.splice(normalErrorCount)
+      facts.containerChecks = []
+      for (const containerWidth of [320, 767, 768, 769]) {
+        const geometry = await page.evaluate((targetWidth) => {
+          const hero = document.querySelector('section[aria-label="Projekt-Mitwirkung"]')
+          hero.style.width = `${targetWidth}px`
+          hero.querySelector('h1').textContent = 'SehrLangerZusammenhängenderMembernameFürLayoutprüfung'
+          hero.querySelector('p').textContent = 'Ein besonders langer Projektname mit mehreren Wörtern · Eine unabhängige Fansub-Gruppe'
+          hero.querySelector('[data-role-code]').textContent = 'Qualitätsprüfung und technische Nachkontrolle'
+          if (hero.querySelectorAll('[data-role-code]').length === 1) {
+            const extraRole = hero.querySelector('[data-role-code]').cloneNode(true)
+            extraRole.textContent = 'Übersetzung'
+            hero.querySelector('[data-role-code]').parentElement.append(extraRole)
+          }
+          for (const [index, dd] of Array.from(hero.querySelectorAll('dd')).entries()) {
+            dd.textContent = ['12.345 Folgen', '123.456 Beiträge', '1.234 Medien'][index]
+          }
+          const bounds = hero.getBoundingClientRect()
+          const outside = Array.from(hero.querySelectorAll('a,h1,p,dd,[data-role-code]')).filter((node) => {
+            const rect = node.getBoundingClientRect()
+            return rect.left < bounds.left || rect.right > bounds.right || node.scrollWidth > node.clientWidth + 1
+          }).map((node) => node.textContent)
+          return {
+            containerWidth: bounds.width,
+            viewportWidth: innerWidth,
+            detailsColumn: getComputedStyle(hero.querySelector('[class*="details"]')).gridColumnStart,
+            overflow: document.documentElement.scrollWidth > innerWidth,
+            outside,
+          }
+        }, containerWidth)
+        if (geometry.outside.length || geometry.overflow) throw new Error(JSON.stringify(geometry))
+        if (geometry.detailsColumn !== (containerWidth < 768 ? '1' : '2')) throw new Error(`Container query inactive: ${JSON.stringify(geometry)}`)
+        facts.containerChecks.push(geometry)
+      }
+      await page.screenshot({ path: `${OUT}/${LABEL}-embedded-long-labels.png`, fullPage: false })
+      // 1440px at 200% browser zoom has the same 720 CSS-pixel reflow width.
+      await page.setViewportSize({ width: 720, height: 450 })
+      await page.evaluate(() => {
+        document.querySelector('section[aria-label="Projekt-Mitwirkung"]').style.width = ''
+      })
+      facts.zoomReflowOverflow = await page.evaluate(() => document.documentElement.scrollWidth > innerWidth)
+      if (facts.zoomReflowOverflow) throw new Error('200% equivalent reflow overflow')
+    }
     console.log(
       JSON.stringify(
         {
@@ -237,7 +353,7 @@ try {
           file,
           viewportOnlyFile,
           facts,
-          consoleErrors,
+          consoleErrors: normalConsoleErrors,
         },
         null,
         2,

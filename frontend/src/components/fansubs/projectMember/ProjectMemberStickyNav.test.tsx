@@ -12,7 +12,7 @@ afterEach(() => {
   vi.unstubAllGlobals()
 })
 
-const counts: ProjectMemberCounts = { roles: 1, notes: 12, media: 2, releases: 0, episodes: 13 }
+const counts: ProjectMemberCounts = { roles: 1, notes: 12, media: 2, episodes: 13 }
 
 describe('ProjectMemberStickyNav', () => {
   it('highlights the section the IntersectionObserver reports as in view', () => {
@@ -60,8 +60,8 @@ describe('ProjectMemberStickyNav', () => {
 
     render(<ProjectMemberStickyNav counts={counts} />)
 
-    const releasesButton = screen.getByRole('button', { name: /Releases/ })
-    fireEvent.click(releasesButton)
-    expect(releasesButton.className).toContain('stickyNavItemActive')
+    const mediaButton = screen.getByRole('button', { name: /Bilder & Medien/ })
+    fireEvent.click(mediaButton)
+    expect(mediaButton.className).toContain('stickyNavItemActive')
   })
 })

@@ -288,7 +288,7 @@ func main() {
 		WithReleaseMetadataCreditService(services.NewReleaseMetadataCreditService(dbPool)).
 		WithPermissionDeps(permissionSvc, auditLogRepo).
 		WithReleasePlaybackEntitlements(repository.NewReleasePlaybackEntitlementRepository(dbPool, authzRepo)).
-		WithProjectResolverRepo(repository.NewFansubProjectResolverRepository(dbPool))
+		WithProjectResolverRepo(repository.NewFansubProjectResolverRepository(dbPool, cfg.MediaStorageDir))
 	groupRepo := repository.NewGroupRepository(dbPool)
 	groupHandler := handlers.NewGroupHandler(groupRepo)
 	groupContributorsRepo := repository.NewGroupContributorsRepository(dbPool)

@@ -181,6 +181,12 @@ func TestProjectMemberGetSummary_ReturnsEpisodesCount(t *testing.T) {
 	var body repository.ProjectMemberSummary
 	require.NoError(t, json.Unmarshal(recorder.Body.Bytes(), &body))
 	require.Equal(t, 13, body.Counts.Episodes)
+
+	var payload struct {
+		Counts map[string]int `json:"counts"`
+	}
+	require.NoError(t, json.Unmarshal(recorder.Body.Bytes(), &payload))
+	require.Equal(t, map[string]int{"roles": 0, "notes": 0, "media": 0, "episodes": 13}, payload.Counts)
 }
 
 func TestProjectMemberMissingRelationUsesNeutralUnavailable(t *testing.T) {

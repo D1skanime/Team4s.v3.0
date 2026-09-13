@@ -202,20 +202,6 @@ describe('restored role-accent formulas across Phase 148 (Plan 148-02, Task 2)',
     )
   })
 
-  describe('ProjectMemberReleasesSection.module.css .roleTag', () => {
-    chipTextSuite(
-      'ProjectMemberReleasesSection .roleTag',
-      'src/components/fansubs/projectMember/ProjectMemberReleasesSection.module.css',
-      'role-accent',
-      [],
-    )
-    chipBorderSuite(
-      'ProjectMemberReleasesSection .roleTag',
-      'src/components/fansubs/projectMember/ProjectMemberReleasesSection.module.css',
-      'role-accent',
-    )
-  })
-
   describe('MemberCurrentProjectsSection.module.css .roleChip', () => {
     chipTextSuite(
       'MemberCurrentProjectsSection .roleChip',

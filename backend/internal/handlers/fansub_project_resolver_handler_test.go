@@ -11,6 +11,7 @@ package handlers
 
 import (
 	"context"
+	"encoding/json"
 	"net/http"
 	"net/http/httptest"
 	"testing"
@@ -137,4 +138,34 @@ func TestResolveFansubProject_NavigationErrorFallsBackToEmptyProjects(t *testing
 
 	require.Equal(t, http.StatusOK, recorder.Code)
 	require.Contains(t, recorder.Body.String(), `"projects":[]`)
+}
+
+func TestResolveFansubProject_ArtworkPresentation(t *testing.T) {
+	gin.SetMode(gin.TestMode)
+	for _, artwork := range []string{
+		`{"banner_url":"/media/anime/7/banner.webp","cover_image":"/covers/7.jpg"}`,
+		`{"banner_url":null,"cover_image":null}`,
+	} {
+		t.Run(artwork, func(t *testing.T) {
+			resolved := &repository.ResolvedFansubProject{GroupID: 42, AnimeID: 7, AnimeSlug: "known-anime"}
+			require.NoError(t, json.Unmarshal([]byte(artwork), resolved))
+			fake := &fakeProjectResolverRepo{resolved: resolved, navigationItems: []repository.ProjectNavigationItem{}}
+			handler := &FansubHandler{projectResolverRepo: fake}
+			recorder, c := resolveFansubProjectTestContext("known-group", "known-anime")
+			handler.ResolveFansubProject(c)
+			require.Equal(t, http.StatusOK, recorder.Code)
+			var response struct {
+				Data map[string]any `json:"data"`
+			}
+			var expected map[string]any
+			require.NoError(t, json.Unmarshal(recorder.Body.Bytes(), &response))
+			require.NoError(t, json.Unmarshal([]byte(artwork), &expected))
+			for key, value := range expected {
+				require.Contains(t, response.Data, key)
+				require.Equal(t, value, response.Data[key])
+			}
+			require.Equal(t, 1, fake.resolveCalls)
+			require.Equal(t, 1, fake.navigationCalls)
+		})
+	}
 }

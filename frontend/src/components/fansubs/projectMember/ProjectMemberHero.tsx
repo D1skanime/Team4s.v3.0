@@ -1,8 +1,9 @@
-import { Users } from 'lucide-react'
+import { ArrowLeft, ArrowRight, Check } from 'lucide-react'
 import Image from 'next/image'
 
-import { Button } from '@/components/ui'
+import { ArtworkHero, Badge, Button, HeroMetrics } from '@/components/ui'
 import { resolveApiUrl } from '@/lib/api'
+import { getCoverUrl } from '@/lib/utils'
 import { presentationForRole } from '@/lib/roleCatalog'
 import { useRoleCatalog } from '@/providers/RoleCatalogProvider'
 import type { ProjectMemberSummary } from '@/types/projectMember'
@@ -16,18 +17,18 @@ interface ProjectMemberHeroProps {
   groupName: string
   animeTitle: string
   projectPath: string
+  bannerUrl?: string | null
+  coverImage?: string | null
 }
 
-// Kompakter Hero — bewusst NICHT das große allgemeine Memberprofil (Brief 6/26):
-// nur Avatar, Name, optionaler Verifiziert-Badge, Kontextzeile, Rollen-Chips (D-12) und
-// zwei Absprünge (allgemeines Profil + zurück zum Projekt, D-16). Die Rollen-Chips tragen die
-// globalen Team4s-Rollenfarben (data-color-key → --role-accent).
 export function ProjectMemberHero({
   summary,
   memberSlug,
   groupName,
   animeTitle,
   projectPath,
+  bannerUrl,
+  coverImage,
 }: ProjectMemberHeroProps) {
   const { roles } = useRoleCatalog('anime_contribution')
   const presentedRoles = summary.role_labels.map((value) => {
@@ -36,63 +37,43 @@ export function ProjectMemberHero({
       ? { code: role.code, label: role.label_de, order: role.sort_order }
       : { code: value, label: value, order: Number.MAX_SAFE_INTEGER }
   }).sort((left, right) => left.order - right.order)
+  const { counts } = summary
+  const metrics = [
+    { label: counts.episodes === 1 ? 'Folge' : 'Folgen', value: counts.episodes.toLocaleString('de-DE') },
+    { label: counts.notes === 1 ? 'Beitrag' : 'Beiträge', value: counts.notes.toLocaleString('de-DE') },
+    { label: counts.media === 1 ? 'Medium' : 'Medien', value: counts.media.toLocaleString('de-DE') },
+  ]
+
   return (
-    <section className={styles.hero} aria-label="Projekt-Mitwirkung">
-      <span className={styles.heroAvatar} aria-hidden="true">
-        {summary.member_avatar_url ? (
-          <Image
-            src={resolveApiUrl(summary.member_avatar_url)}
-            alt=""
-            width={72}
-            height={72}
-            className={styles.heroAvatarImg}
-            unoptimized
-          />
-        ) : (
-          getMemberInitials(summary.member_display_name)
-        )}
-      </span>
-      <div className={styles.heroBody}>
-        <div className={styles.heroNameRow}>
-          <h1 className={styles.heroName}>{summary.member_display_name}</h1>
-          {summary.is_verified ? <span className={styles.chip}>Verifiziert</span> : null}
-        </div>
-        <p className={styles.heroContext}>
-          Mitwirkung an {animeTitle} · {groupName}
-        </p>
-        {presentedRoles.length > 0 ? (
-          <div className={styles.heroChips}>
-            {presentedRoles.map((role) => (
-              <span
-                key={role.code}
-                className={styles.roleChip}
-                data-role-code={role.code}
-                data-color-key={presentationForRole(roles, role.code).colorKey}
-              >
-                {role.label}
-              </span>
-            ))}
-          </div>
-        ) : null}
-        <div className={styles.heroActions}>
-          <Button
-            href={`/members/${memberSlug}`}
-            variant="primary"
-            size="sm"
-            leftIcon={<Users size={16} />}
-          >
-            Vollständiges Memberprofil
-          </Button>
-          {/* 157-06 Operator-Politur (2. Runde, Punkt 1): "subtle" statt "secondary" -- gleiches
-              Touch-Ziel (size="sm" -> --control-height-sm, unveraendert), aber deutlich leichter,
-              damit "Vollständiges Memberprofil" klar die primaere Aktion bleibt. "subtle" ist
-              bereits das etablierte Muster fuer sekundaere href-Links in diesem Codebase (siehe
-              PublicReleaseBlock.tsx). */}
-          <Button href={projectPath} variant="subtle" size="sm">
-            ←&nbsp;Zurück zum Projekt
-          </Button>
-        </div>
-      </div>
-    </section>
+    <ArtworkHero
+      ariaLabel="Projekt-Mitwirkung"
+      title={summary.member_display_name}
+      imageUrl={bannerUrl?.trim() ? resolveApiUrl(bannerUrl) : null}
+      fallbackImageUrl={coverImage?.trim() ? getCoverUrl(coverImage) : null}
+      avatar={summary.member_avatar_url ? (
+        <Image src={resolveApiUrl(summary.member_avatar_url)} alt="" width={64} height={64} unoptimized />
+      ) : getMemberInitials(summary.member_display_name)}
+      status={summary.is_verified ? <Badge variant="success"><Check size={14} aria-hidden="true" />Verifiziert</Badge> : null}
+      roles={presentedRoles.length > 0 ? presentedRoles.map((role) => (
+        <Badge
+          key={role.code}
+          className={styles.roleChip}
+          data-role-code={role.code}
+          data-color-key={presentationForRole(roles, role.code).colorKey}
+        >
+          {role.label}
+        </Badge>
+      )) : null}
+      context={<>{animeTitle} · {groupName}</>}
+      metrics={<HeroMetrics items={metrics} ariaLabel="Projektbeiträge" variant="inline" />}
+      actions={<>
+        <Button href={projectPath} variant="subtle" size="sm" leftIcon={<ArrowLeft size={14} aria-hidden="true" />}>
+          Zurück zum Projekt
+        </Button>
+        <Button href={`/members/${memberSlug}`} aria-label="Vollständiges Memberprofil" variant="subtle" size="sm" rightIcon={<ArrowRight size={14} aria-hidden="true" />}>
+          Memberprofil
+        </Button>
+      </>}
+    />
   )
 }

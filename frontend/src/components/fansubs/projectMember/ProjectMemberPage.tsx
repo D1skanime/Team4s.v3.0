@@ -7,10 +7,7 @@ import type { ProjectMemberSummary } from '@/types/projectMember'
 import { ProjectMemberHero } from './ProjectMemberHero'
 import { ProjectMemberMediaGallery } from './ProjectMemberMediaGallery'
 import { ProjectMemberNotesSection } from './ProjectMemberNotesSection'
-import { ProjectMemberReleasesSection } from './ProjectMemberReleasesSection'
 import { ProjectMemberStickyNav } from './ProjectMemberStickyNav'
-import { ProjectMemberSummaryBar } from './ProjectMemberSummary'
-import { ProjectMemberSummaryBand } from './ProjectMemberSummaryBand'
 import styles from './ProjectMemberPage.module.css'
 
 export interface ProjectMemberPageProps {
@@ -22,18 +19,16 @@ export interface ProjectMemberPageProps {
   animeID: number
   groupID: number
   projectPath: string
+  bannerUrl?: string | null
+  coverImage?: string | null
 }
 
-// Informationsarchitektur der Projekt-Member-Seite (Brief 4): Breadcrumb → Hero → Summary →
-// Sticky-Nav → Sektionen. Die drei Detail-Sektionen (Texte/Bilder/Releases) werden in
-// 122-06/07/08 als eigenständige, unabhängig ladende Client-Sektionen eingehängt; hier stehen
-// vorerst Platzhalter mit den Ankern. Empty-State (D-13): ohne öffentliche Detailbeiträge nur
-// Hero + Rollen + Hinweistext, keine Sektionen und keine Sticky-Nav.
+// Breadcrumb → compact hero with metrics → navigation → notes and media.
 export function ProjectMemberPage(props: ProjectMemberPageProps) {
   const { summary, memberSlug, groupName, groupSlug, animeTitle, projectPath, animeID, groupID } =
     props
   const { counts } = summary
-  const isEmpty = counts.notes + counts.media + counts.releases === 0
+  const isEmpty = counts.notes + counts.media === 0
 
   return (
     <main className={styles.page}>
@@ -56,9 +51,9 @@ export function ProjectMemberPage(props: ProjectMemberPageProps) {
           groupName={groupName}
           animeTitle={animeTitle}
           projectPath={projectPath}
+          bannerUrl={props.bannerUrl}
+          coverImage={props.coverImage}
         />
-
-        <ProjectMemberSummaryBar counts={counts} />
 
         {isEmpty ? (
           <div className={styles.emptyState}>
@@ -68,8 +63,6 @@ export function ProjectMemberPage(props: ProjectMemberPageProps) {
         ) : (
           <>
             <ProjectMemberStickyNav counts={counts} />
-
-            <ProjectMemberSummaryBand summary={summary} />
 
             <ProjectMemberNotesSection
               animeID={animeID}
@@ -86,14 +79,6 @@ export function ProjectMemberPage(props: ProjectMemberPageProps) {
               memberSlug={memberSlug}
               projectPath={projectPath}
               count={counts.media}
-            />
-
-            <ProjectMemberReleasesSection
-              animeID={animeID}
-              groupID={groupID}
-              memberSlug={memberSlug}
-              projectPath={projectPath}
-              count={counts.releases}
             />
           </>
         )}

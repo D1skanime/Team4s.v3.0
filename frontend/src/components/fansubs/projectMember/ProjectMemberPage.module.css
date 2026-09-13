@@ -40,79 +40,6 @@
   color: var(--text-primary);
 }
 
-/* Hero — kompakt */
-.hero {
-  display: flex;
-  gap: 20px;
-  align-items: flex-start;
-  padding: 22px;
-  border-radius: var(--radius-md);
-  background: var(--surface-card);
-  border: 1px solid var(--color-border);
-  box-shadow: var(--shadow-sm);
-}
-.heroAvatar {
-  flex: 0 0 auto;
-  width: 72px;
-  height: 72px;
-  border-radius: 50%;
-  overflow: hidden;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  font-size: 1.5rem;
-  font-weight: 700;
-  background: var(--surface-sunken);
-  color: var(--accent-primary);
-}
-.heroAvatarImg {
-  width: 100%;
-  height: 100%;
-  object-fit: cover;
-}
-.heroBody {
-  flex: 1 1 auto;
-  min-width: 0;
-}
-.heroNameRow {
-  display: flex;
-  align-items: center;
-  gap: 10px;
-  flex-wrap: wrap;
-}
-.heroName {
-  font-size: 1.55rem;
-  font-weight: 700;
-  line-height: 1.15;
-  color: var(--text-primary);
-}
-.heroContext {
-  margin-top: 4px;
-  font-size: 0.95rem;
-  color: var(--text-muted);
-}
-.heroChips {
-  margin-top: 12px;
-  display: flex;
-  flex-wrap: wrap;
-  gap: 8px;
-}
-.chip {
-  font-size: 0.78rem;
-  font-weight: 600;
-  padding: 4px 10px;
-  border-radius: 999px;
-  background: var(--surface-sunken);
-  border: 1px solid var(--color-border);
-  color: var(--text-primary);
-}
-.heroActions {
-  margin-top: 16px;
-  display: flex;
-  flex-wrap: wrap;
-  gap: 10px;
-}
-
 /* Sektionen — eine zusammenhaengende weisse Karte je Sektion (Operator-Korrektur 3/5, 157-06):
    Kopfzeile UND Inhalt liegen jetzt in DERSELBEN Flaeche, statt dass nur einzelne Eintraege
    (Notiz-Zeilen, Medien-Kacheln) Karten sind. Wiederverwendet exakt dieselben Token-Werte wie die
@@ -194,31 +121,8 @@
   gap: 8px;
 }
 
-/* Responsive */
-/* Korrektur (Operator-Auftrag, 157-06 Nachbesserung Punkt 1): Avatar bleibt links neben Name/
-   Metadaten, auch auf schmalen Screens -- NUR die Aktionsbuttons duerfen stapeln. Vorher stapelte
-   `.hero { flex-direction: column }` die GESAMTE Hero-Zeile (Avatar ueber Name), was die Referenz
-   nicht vorsieht. */
-/* 2. Nachbesserungsrunde, Punkt 1: nur der PRIMAERE Button ("Vollständiges Memberprofil") ist auf
-   Mobile volle Breite -- der jetzt "subtle" gestaltete Zurueck-Link bleibt inhaltsbreit
-   (align-items: flex-start hebt den Default-Stretch der Spaltenrichtung auf), damit er sich
-   sichtbar nicht wie eine zweite gleichwertige Vollbreiten-Aktion anfuehlt. */
-@media (max-width: 640px) {
-  .heroActions {
-    flex-direction: column;
-    align-items: flex-start;
-  }
-  .heroActions > :first-child {
-    width: 100%;
-  }
-}
-
 /* Rollen-Chip mit Team4s-Rollenfarbe (data-color-key -> --role-accent aus globals.css). */
 .roleChip {
-  font-size: 0.78rem;
-  font-weight: 600;
-  padding: 4px 10px;
-  border-radius: 999px;
   border: 1px solid color-mix(in srgb, var(--role-accent) 34%, transparent);
   background: color-mix(in srgb, var(--role-accent) 14%, var(--surface-card));
   color: color-mix(in srgb, var(--role-accent) 82%, var(--text-primary));

@@ -1,16 +1,15 @@
 'use client'
 
 import Link from 'next/link'
-import { useState } from 'react'
+import { useId } from 'react'
 
 import { RichTextRenderer } from '@/components/editor/RichTextRenderer'
 import { Button, DisclosureIndicator } from '@/components/ui'
 import { boundedColorKey } from '@/lib/roleCatalog'
+import { useClampedOverflow } from '@/hooks/useClampedOverflow'
 import type { ProjectMemberNote } from '@/types/projectMember'
 
 import styles from './ProjectMemberNoteEntry.module.css'
-
-const CLAMP_THRESHOLD = 180
 
 function formatDate(iso: string): string {
   const date = new Date(iso)
@@ -38,13 +37,14 @@ export function ProjectMemberNoteEntry({
   projectPath: string
   hasMultipleRoles: boolean
 }) {
-  const [expanded, setExpanded] = useState(false)
+  const bodyId = useId()
 
   const hasRichBody = note.body_html != null && note.body_html.trim() !== ''
   const plainText =
     note.body_text && note.body_text.trim() !== '' ? note.body_text : stripHtml(note.body_html ?? '')
-  const expandable = plainText.length > CLAMP_THRESHOLD
-  const bodyClass = `${styles.body}${expandable && !expanded ? ` ${styles.bodyClamped}` : ''}`
+  const { contentRef, isExpanded, setIsExpanded, isOverflowing } =
+    useClampedOverflow(hasRichBody ? note.body_html : plainText)
+  const bodyClass = `${styles.body}${!isExpanded ? ` ${styles.bodyClamped}` : ''}`
 
   const metaLead = [`Folge ${note.episode_label}`, note.release_version_label, formatDate(note.created_at)]
     .filter(Boolean)
@@ -84,27 +84,28 @@ export function ProjectMemberNoteEntry({
           ) : null}
         </p>
         {note.title ? <p className={styles.title}>{note.title}</p> : null}
-        {hasRichBody ? (
-          <div className={bodyClass}>
+        <div id={bodyId} ref={contentRef} className={bodyClass}>
+          {hasRichBody ? (
             <RichTextRenderer bodyHtml={note.body_html} editorType="tiptap" contentSchemaVersion={1} />
-          </div>
-        ) : (
-          <p className={`${bodyClass} ${styles.bodyText}`}>{note.body_text}</p>
-        )}
-        {expandable ? (
+          ) : (
+            <p className={styles.bodyText}>{plainText}</p>
+          )}
+        </div>
+        {isOverflowing ? (
           <Button
             type="button"
             variant="ghost"
             size="sm"
             className={styles.toggle}
-            aria-expanded={expanded}
+            aria-expanded={isExpanded}
+            aria-controls={bodyId}
             onClick={(event) => {
               event.preventDefault()
               event.stopPropagation()
-              setExpanded((value) => !value)
+              setIsExpanded((value) => !value)
             }}
           >
-            {expanded ? 'Weniger anzeigen' : 'Mehr anzeigen'}
+            {isExpanded ? 'Weniger anzeigen' : 'Mehr anzeigen'}
           </Button>
         ) : null}
       </div>

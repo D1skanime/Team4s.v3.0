@@ -9,7 +9,6 @@ import styles from './ProjectMemberStickyNav.module.css'
 const NAV_ITEMS: { id: string; label: string; key: keyof ProjectMemberCounts }[] = [
   { id: 'texte', label: 'Texte & Notizen', key: 'notes' },
   { id: 'bilder', label: 'Bilder & Medien', key: 'media' },
-  { id: 'releases', label: 'Releases', key: 'releases' },
 ]
 
 // Lokale Sticky-Schnellnavigation (Brief 8, Referenzdesign 157-02, Workstream C): Desktop sticky,

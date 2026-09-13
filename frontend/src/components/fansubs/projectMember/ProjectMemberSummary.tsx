@@ -1,4 +1,4 @@
-import { FileText, Image as ImageIcon, type LucideIcon, Package, Users } from 'lucide-react'
+import { FileText, Image as ImageIcon, type LucideIcon, Users } from 'lucide-react'
 
 import type { ProjectMemberCounts } from '@/types/projectMember'
 
@@ -17,11 +17,10 @@ const SUMMARY_ENTRIES: {
   { key: 'roles', icon: Users, singular: 'Rolle', plural: 'Rollen' },
   { key: 'notes', icon: FileText, singular: 'Beitrag', plural: 'Beiträge' },
   { key: 'media', icon: ImageIcon, singular: 'Medium', plural: 'Medien' },
-  { key: 'releases', icon: Package, singular: 'Release', plural: 'Releases' },
 ]
 
-// Kompakte Statistikleiste (Referenzdesign 157-02, Workstream B): EINE Karte mit vier
-// Icon+Zahl+Label-Einträgen in der Reihenfolge Rolle(n)/Beiträge/Medien/Releases, korrektes
+// Kompakte Statistikleiste (Referenzdesign 157-02, Workstream B): EINE Karte mit drei
+// Icon+Zahl+Label-Einträgen in der Reihenfolge Rolle(n)/Beiträge/Medien, korrektes
 // deutsches Singular/Plural (0 und >1 nutzen jeweils die Pluralform).
 export function ProjectMemberSummaryBar({ counts }: { counts: ProjectMemberCounts }) {
   return (

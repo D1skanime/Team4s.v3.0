@@ -404,3 +404,11 @@ Geeignete Kandidaten:
 - Wann lohnt ein eigenes `Avatar`-Primitive?
 - Wann wird ein generisches Dropdown/Popover wirklich notwendig?
 - Soll `Breadcrumbs` später in die UI-Schicht ziehen oder im Navigation-Bereich bleiben?
+
+
+### ArtworkHero und Inline-Kennzahlen
+
+- `ArtworkHero` ist eine fachlogikfreie, inhaltshoch bemessene Identitätshülle mit Avatar, Titel, Status, Rollen-/Metadaten-Slots, Kennzahlen und Actions.
+- Bereits aufgelöste öffentliche Bild-URLs werden dekorativ angezeigt: primäres Artwork, vorhandenes Fallback-Artwork, neutrale Fläche. Ladefehler durchlaufen dieselbe Reihenfolge.
+- Die schmale Basis setzt ein starkes helles Overlay. Erst ab 48rem Containerbreite wird das Artwork rechts freigestellt, während die gesamte Textzone hell bleibt. Das Layout folgt der Einbettungsbreite, nicht dem Gerät.
+- `HeroMetrics variant="inline"` zeigt kompakte Zahl/Bezeichnung-Paare mit Umbruch zwischen den Kennzahlen. Die Domain-Komponente bestimmt Labels und die fachlich sinnvolle Auswahl; Standard-HeroMetrics bleiben unverändert.

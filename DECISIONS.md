@@ -919,3 +919,24 @@ explicitly asked to see on this exact release version.
 ### Follow-ups Required
 None (self-contained; the project page's own first-occurrence filter was already
 delivered by the preceding Plan 156-06).
+
+
+## 2026-09-13 — Project Member Hero (157-07)
+
+Die Projekt-Member-Seite konsolidiert Statistik und Summary im gemeinsamen hellen `ArtworkHero` mit `HeroMetrics variant="inline"`. Die allgemeinen Member-/Projekt-Heroes behalten ihre eigene Fachkomposition. Alle neue Hero-Geometrie einschließlich Gradient und Containerübergang liegt unter `components/ui`.
+
+Der schlanke Phase-155-Resolver erhält ausschließlich für das aktuelle Projekt die optionalen Präsentationsfelder `banner_url` und `cover_image`. Seine bestehende Einzelabfrage nutzt dieselben extrahierten SQL-Fragmente wie `listPublicFansubProjects` und denselben `publicMediaURLForPath`-Mapper. Anzahl der SQL-Abfragen, Slug-Wahrheit, Sibling-Projektion und Sichtbarkeit ändern sich nicht. Keine neue Datenhaltung oder zusätzliche Projekt-/Profilabfrage.
+
+`counts.releases` bleibt die Anzahl unterschiedlicher Crew-verknüpfter Release-Versionen. Null-Releases entfallen nur in den Hero-Kennzahlen; Navigation und Release-Sektion bleiben unverändert. `counts.episodes` bleibt die Anzahl unterschiedlicher Folgen mit öffentlichen Notizen/Medien. Kein Zusammenführen dieser Semantiken.
+
+## 2026-09-13 – Projekt-Member-Seite ohne zweite Release-Historie (157-08)
+
+Auf ausdrücklichen Nutzerauftrag zeigt diese Seite projektbezogene Rollen, Texte/Notizen und Medien. „Mitwirkung an Releases“, Release-Tab und Release-Zähler entfallen vollständig, auch bei positiven Release-Beteiligungen. Dies ersetzt die Release-Metrik-Entscheidung aus 157-07. Der ausschließlich dafür genutzte Frontend-Listenloader sowie die zusätzliche Release-Zählabfrage der Summary werden entfernt; `ProjectMemberCounts` enthält nur noch roles, notes, media und episodes. Die Folgenmetrik zählt weiterhin Folgen mit öffentlichen Notizen/Medien.
+
+Release-Daten, Tabellen, separat dokumentierter Backend-Listenendpunkt und notwendige Release-Verknüpfungen für Rollen, Relation-Gate, Notizen und Medien bleiben bestehen. Allgemeines Memberprofil und Projekt-Release-Historie sind nicht Teil dieser Änderung.
+
+## 2026-09-13 – Mobile Artwork und gemessene Notizvorschau (157-09)
+
+ArtworkHero zeigt auf schmalen Containern einen erkennbaren Ausschnitt bei `object-position: 75% center`. Links bleibt die Fläche deckend weiß, nach rechts sinkt die horizontale Weißüberlagerung bis auf 25 %. Ein zweiter vertikaler Verlauf schützt Kennzahlen und Actions. Ab 48rem Containerbreite bleiben der bestehende rechte Bildausschnitt und Desktop-Verlauf erhalten. Hero-Geometrie und Actions werden nicht weiter verkleinert.
+
+Alle eingeklappten Projekt-Member-Notizen haben dieselbe maximale Vorschauhöhe von vier Textzeilen; kurze Inhalte bekommen keine künstliche Mindesthöhe. Die frühere 180-Zeichen-Schwelle entfällt. Der Mehr-Button folgt dem gemessenen Überlauf, auch nach Breitenwechseln, und der vollständige Inhalt bleibt im DOM. Die vorhandene Überlaufmessung aus FansubStoryBlock wird als `useClampedOverflow` wiederverwendet; Story-Layout und allgemeines Memberprofil bleiben unverändert.

@@ -55,7 +55,6 @@ func TestProjectMemberRepo_MethodsAndDTOs(t *testing.T) {
 		`json:"roles"`,
 		`json:"notes"`,
 		`json:"media"`,
-		`json:"releases"`,
 	}
 	for _, frag := range required {
 		if !strings.Contains(src, frag) {
@@ -109,10 +108,6 @@ func TestProjectMemberRepo_CountsReusePredicates(t *testing.T) {
 		if strings.Count(src, name) < 2 {
 			t.Fatalf("Praedikat %q muss von Liste UND Count referenziert werden (>=2 Vorkommen)", name)
 		}
-	}
-	// countReleases zaehlt distinct release_versions.
-	if !strings.Contains(src, "count(distinct rv.id)") {
-		t.Fatalf("countReleases muss COUNT(DISTINCT rv.id) verwenden")
 	}
 }
 

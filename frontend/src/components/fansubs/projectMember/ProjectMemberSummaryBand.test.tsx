@@ -19,7 +19,7 @@ function summary(overrides: Partial<ProjectMemberSummary> = {}): ProjectMemberSu
     member_avatar_url: null,
     is_verified: false,
     role_labels: ['Typesetting'],
-    counts: { roles: 1, notes: 12, media: 2, releases: 0, episodes: 13 },
+    counts: { roles: 1, notes: 12, media: 2, episodes: 13 },
     ...overrides,
   }
 }
@@ -48,7 +48,7 @@ describe('ProjectMemberSummaryBand', () => {
   it('omits the Folgen clause entirely when episodes is 0', () => {
     render(
       <ProjectMemberSummaryBand
-        summary={summary({ counts: { roles: 1, notes: 12, media: 2, releases: 0, episodes: 0 } })}
+        summary={summary({ counts: { roles: 1, notes: 12, media: 2, episodes: 0 } })}
       />,
     )
     expect(

@@ -13029,6 +13029,14 @@ components:
           format: int64
         anime_slug:
           type: string
+        banner_url:
+          type: string
+          nullable: true
+          description: Current anime banner, using the same canonical media selection as PublicFansubProject. No additional resolver query.
+        cover_image:
+          type: string
+          nullable: true
+          description: Existing current anime cover for presentation fallback.
         projects:
           type: array
           items:
@@ -15367,13 +15375,12 @@ components:
           type: boolean
     ProjectMemberCounts:
       type: object
-      description: Summary-Kennzahlen der Projekt-Member-Seite (nur oeffentlich sichtbare Inhalte, Phase 122; episodes additiv aus Phase 157)
-      required: [roles, notes, media, releases, episodes]
+      description: Projektbezogene Rollen, öffentliche Notizen, Medien und Folgen mit Notizen/Medien; keine separate Release-Historie.
+      required: [roles, notes, media, episodes]
       properties:
         roles: {type: integer, format: int32}
         notes: {type: integer, format: int32}
         media: {type: integer, format: int32}
-        releases: {type: integer, format: int32}
         episodes: {type: integer, format: int32}
     ProjectMemberSummary:
       type: object

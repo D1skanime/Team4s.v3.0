@@ -23,21 +23,28 @@ import (
 // FansubProjectResolverRepository resolves fansub-slugs project identity and
 // a narrow sibling-project navigation list.
 type FansubProjectResolverRepository struct {
-	db *pgxpool.Pool
+	db              *pgxpool.Pool
+	mediaStorageDir string
 }
 
 // NewFansubProjectResolverRepository constructs a FansubProjectResolverRepository.
-func NewFansubProjectResolverRepository(db *pgxpool.Pool) *FansubProjectResolverRepository {
-	return &FansubProjectResolverRepository{db: db}
+func NewFansubProjectResolverRepository(db *pgxpool.Pool, mediaStorageDir ...string) *FansubProjectResolverRepository {
+	storageDir := ""
+	if len(mediaStorageDir) > 0 {
+		storageDir = mediaStorageDir[0]
+	}
+	return &FansubProjectResolverRepository{db: db, mediaStorageDir: storageDir}
 }
 
 // ResolvedFansubProject is the narrow identity a pretty route needs to
 // continue loading project detail -- deliberately NOT the full
 // PublicFansubProject/PublicFansubProfileResponse shape.
 type ResolvedFansubProject struct {
-	GroupID   int64  `json:"group_id"`
-	AnimeID   int64  `json:"anime_id"`
-	AnimeSlug string `json:"anime_slug"`
+	GroupID    int64   `json:"group_id"`
+	AnimeID    int64   `json:"anime_id"`
+	AnimeSlug  string  `json:"anime_slug"`
+	BannerURL  *string `json:"banner_url"`
+	CoverImage *string `json:"cover_image"`
 }
 
 // ProjectNavigationItem is the narrow sibling-project projection consumed by
@@ -58,20 +65,24 @@ type ProjectNavigationItem struct {
 // distinguish the two negative branches (T-155-01).
 func (r *FansubProjectResolverRepository) ResolveProject(ctx context.Context, groupSlug string, animeSlug string) (*ResolvedFansubProject, error) {
 	query := fmt.Sprintf(`
-		SELECT afg.fansub_group_id, a.id, %s AS anime_slug
+		SELECT afg.fansub_group_id, a.id, %s AS anime_slug, a.cover_image, %s AS banner_url
 		FROM fansub_groups fg
 		JOIN anime_fansub_groups afg ON afg.fansub_group_id = fg.id
 		JOIN anime a ON a.id = afg.anime_id
+		%s
 		WHERE fg.slug = $1
 		  AND %s = $2
 		  AND a.status <> 'disabled'
-	`, publicAnimeSlugSQL("a"), publicAnimeSlugSQL("a"))
+	`, publicAnimeSlugSQL("a"), publicProjectBannerSelectSQL, publicProjectBannerJoinSQL, publicAnimeSlugSQL("a"))
 
 	var resolved ResolvedFansubProject
+	var bannerPath *string
 	err := r.db.QueryRow(ctx, query, groupSlug, animeSlug).Scan(
 		&resolved.GroupID,
 		&resolved.AnimeID,
 		&resolved.AnimeSlug,
+		&resolved.CoverImage,
+		&bannerPath,
 	)
 	if errors.Is(err, pgx.ErrNoRows) {
 		return nil, ErrNotFound
@@ -80,6 +91,9 @@ func (r *FansubProjectResolverRepository) ResolveProject(ctx context.Context, gr
 		return nil, fmt.Errorf("resolve fansub project (group=%q, anime=%q): %w", groupSlug, animeSlug, err)
 	}
 
+	if bannerPath != nil {
+		resolved.BannerURL = publicMediaURLForPath(*bannerPath, r.mediaStorageDir)
+	}
 	return &resolved, nil
 }
 

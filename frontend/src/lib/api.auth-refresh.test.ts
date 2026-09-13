@@ -377,7 +377,6 @@ describe('authorized auth refresh flow', () => {
       'getProjectMemberSummary',
       'getProjectMemberNotes',
       'getProjectMemberMedia',
-      'getProjectMemberReleases',
     ]
 
     for (const helperName of helperNames) {

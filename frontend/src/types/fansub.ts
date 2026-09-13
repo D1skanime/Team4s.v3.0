@@ -180,6 +180,9 @@ export interface FansubProjectNavigationEntry {
 // needs to resolve groupSlug+animeSlug without loading the full public
 // fansub profile.
 export interface FansubProjectResolution {
+  /** Existing current-project artwork; same selection as PublicFansubProject. */
+  banner_url?: string | null;
+  cover_image?: string | null;
   group_id: number;
   anime_id: number;
   anime_slug: string;
