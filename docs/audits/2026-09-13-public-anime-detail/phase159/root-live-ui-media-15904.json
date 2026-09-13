@@ -1,0 +1,45 @@
+{
+  "observed_at_utc": "2026-09-13T23:34:31.195557+00:00",
+  "source_commit": "1f5dfa749a7a84c827321a033cec099bf293081b",
+  "environment": "shared Codex in-app browser; Windows SSH tunnel 127.0.0.1:3300; actual VM development runtime, real GET-only data",
+  "route": "/anime/1",
+  "cover_source": "http://192.168.235.196:18092/api/v1/media/image?item_id=46523903e0af5022d78af0368d89b805&kind=primary&provider=jellyfin&width=512&quality=75",
+  "checks": [
+    {
+      "viewport": 390,
+      "root_client_width": 375,
+      "document_scroll_width": 375,
+      "scroll_x": 0,
+      "episode": "closed and open",
+      "cover_rendered_width": 160,
+      "cover_rendered_height": 228,
+      "cover_natural_width": 512,
+      "cover_natural_height": 730
+    },
+    {
+      "viewport": 1440,
+      "root_client_width": 1425,
+      "document_scroll_width": 1425,
+      "scroll_x": 0,
+      "episode": "open",
+      "cover_rendered_width": 260,
+      "cover_natural_width": 512,
+      "cover_natural_height": 730
+    }
+  ],
+  "canonical": "/anime/1",
+  "play_link_observed_only": "/api/releases/27/stream?variant_id=27",
+  "visible_navigation": {
+    "label": "Zum Gruppenbereich",
+    "href": "/fansubs/new-subs/fansubprojekt/buddy-complex",
+    "destination_confirmed_in_dom_and_tab_url": true,
+    "destination_heading": "Buddy Complex",
+    "returned_via_visible_link": "Zurück zum Anime"
+  },
+  "boundaries": [
+    "No actual playback, watchlist or comments mutation",
+    "Viewport override reset",
+    "Provider bytes measured separately in root-live-media-baseline.json; not browser ResourceTiming",
+    "No claim for local/API-file/animated media; Plan04 correction and Plan05 production fixtures still pending"
+  ]
+}
