@@ -1,6 +1,9 @@
-import { existsSync } from 'node:fs'
+import { existsSync, readFileSync } from 'node:fs'
 import { join } from 'node:path'
-import { Suspense } from 'react'
+import { Children, isValidElement, Suspense, type ReactElement, type ReactNode } from 'react'
+import { cookies } from 'next/headers'
+import { FansubVersionBrowser } from '@/components/fansubs/FansubVersionBrowser'
+import { WatchlistAddButton } from '@/components/watchlist/WatchlistAddButton'
 import AnimeListPage from '../page'
 import { beforeEach, describe, expect, it, vi } from 'vitest'
 
@@ -8,14 +11,14 @@ vi.mock('react', async (importOriginal) => ({
   ...await importOriginal<typeof import('react')>(), cache: <T,>(fn: T): T => fn,
 }))
 vi.mock('next/navigation', () => ({ notFound: () => { throw new Error('NEXT_HTTP_ERROR_FALLBACK;404') } }))
-vi.mock('next/headers', () => ({ cookies: async () => ({ get: () => undefined }) }))
+vi.mock('next/headers', () => ({ cookies: vi.fn(async () => ({ get: () => ({ value: 'server-session-test' }) })) }))
 vi.mock('@/lib/api', async (importOriginal) => ({
   ...await importOriginal<typeof import('@/lib/api')>(),
   getAnimeList: vi.fn(), getAnimeByID: vi.fn(), getAnimeFansubs: vi.fn(), getGroupedEpisodes: vi.fn(),
   getAnimeComments: vi.fn(), getAnimeRelations: vi.fn(), getWatchlistEntry: vi.fn(),
 }))
 
-import { ApiError, getAnimeByID, getAnimeFansubs, getGroupedEpisodes, getAnimeComments, getAnimeRelations } from '@/lib/api'
+import { ApiError, getAnimeByID, getAnimeFansubs, getGroupedEpisodes, getAnimeComments, getAnimeRelations, getWatchlistEntry } from '@/lib/api'
 import type { AnimeDetail } from '@/types/anime'
 import AnimeDetailPage, { generateMetadata } from './page'
 
@@ -27,6 +30,10 @@ const paramsFor = (id: string) => ({ params: Promise.resolve({ id }) })
 beforeEach(() => {
   vi.clearAllMocks()
   vi.mocked(getAnimeByID).mockReset().mockResolvedValue({ data: anime })
+  vi.mocked(getAnimeFansubs).mockReset().mockResolvedValue({ data: [] })
+  vi.mocked(getGroupedEpisodes).mockReset().mockResolvedValue({ data: { anime_id: anime.id, episodes: [] } })
+  vi.mocked(getAnimeComments).mockReset().mockResolvedValue({ data: [], meta: { page: 1, per_page: 10, total: 0, total_pages: 0 } })
+  vi.mocked(getAnimeRelations).mockReset().mockResolvedValue({ data: [] })
 })
 
 describe('anime detail page and metadata', () => {
@@ -85,5 +92,73 @@ describe('loading boundaries follow resource validation', () => {
     expect(getGroupedEpisodes).not.toHaveBeenCalled()
     expect(getAnimeComments).not.toHaveBeenCalled()
     expect(getAnimeRelations).not.toHaveBeenCalled()
+  })
+})
+
+function elements(node: ReactNode): ReactElement<Record<string, unknown>>[] {
+  return Children.toArray(node).flatMap((child) => {
+    if (!isValidElement<Record<string, unknown>>(child)) return []
+    return [child, ...elements(child.props.children as ReactNode)]
+  })
+}
+function textContent(node: ReactNode): string {
+  return Children.toArray(node).map((child) =>
+    isValidElement<{ children?: ReactNode }>(child) ? textContent(child.props.children) : String(child),
+  ).join('')
+}
+async function loadContent(id = '22') {
+  const boundary = await AnimeDetailPage(paramsFor(id))
+  return boundary.props.children.type(boundary.props.children.props) as Promise<ReactNode>
+}
+
+describe('anime detail integration without invented data', () => {
+  it('keeps public SSR free from viewer cookies and watchlist status reads', async () => {
+    const content = await loadContent()
+    expect(cookies).not.toHaveBeenCalled()
+    expect(getWatchlistEntry).not.toHaveBeenCalled()
+    const button = elements(content).find((item) => item.type === WatchlistAddButton)
+    expect(button?.props.animeID).toBe(22)
+    expect(button?.props).not.toHaveProperty('initiallyInWatchlist')
+  })
+
+  it('passes the stored anime slug without an additional anime read', async () => {
+    const content = await loadContent()
+    const browser = elements(content).find((item) => item.type === FansubVersionBrowser)
+    expect(browser?.props.animeSlug).toBe('stored-slug')
+    expect(getAnimeByID).toHaveBeenCalledTimes(1)
+    expect(getAnimeFansubs).toHaveBeenCalledTimes(1)
+  })
+
+  it('removes the fabricated rating and anime view metrics while preserving the Anime 22 Emby target', async () => {
+    const content = await loadContent()
+    expect(textContent(content)).not.toMatch(/7\.8|Views/)
+    const embyLink = elements(content).find((item) => item.type === 'a' && textContent(item.props.children as ReactNode).includes('Emby'))
+    expect(embyLink?.props.href).toBe('https://anime.team4s.de/web/index.html#!/item?id=2112&serverId=8bc8ae6fe2d946fcbd21cb341832072d&context=tvshows')
+  })
+
+  it('does not leave an empty stats row for an anime without an Emby mapping', async () => {
+    vi.mocked(getAnimeByID).mockResolvedValue({ data: { ...anime, id: 23 } })
+    const content = await loadContent('23')
+    expect(elements(content).some((item) => String(item.props.className).includes('statsRow'))).toBe(false)
+    expect(textContent(content)).not.toContain('Emby')
+  })
+
+  it('preserves the real episode inventory and stored fallback episode counters', async () => {
+    vi.mocked(getAnimeByID).mockResolvedValue({ data: { ...anime, max_episodes: 12, episodes: [{
+      id: 73, episode_number: '1', title: 'Neutrale Folge', status: 'public', view_count: 3, download_count: 8,
+    }] } })
+    vi.mocked(getGroupedEpisodes).mockRejectedValue(new ApiError(500, 'Versionen nicht verfügbar'))
+    const text = textContent(await loadContent())
+    expect(text).toContain('12 Episodes')
+    expect(text).toContain('Episoden (1)')
+    expect(text).toContain('Neutrale Folge')
+    expect(text).toContain('Views: 3 | Downloads: 8')
+  })
+
+  it('clips only the decorative hero banner, leaving the hero controls outside its clipping boundary', () => {
+    const css = readFileSync(join(process.cwd(), 'src/app/anime/[id]/page.module.css'), 'utf8')
+    expect(css.match(/\.heroBanner\s*\{([^}]+)\}/)?.[1]).toMatch(/overflow:\s*(hidden|clip)/)
+    expect(css.match(/\.heroContainer\s*\{([^}]+)\}/)?.[1]).toMatch(/overflow:\s*visible/)
+    expect(css.match(/\.page\s*\{([^}]+)\}/)?.[1]).not.toMatch(/overflow/)
   })
 })

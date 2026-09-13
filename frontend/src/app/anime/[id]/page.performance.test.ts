@@ -9,8 +9,13 @@ describe('Anime-Detailseite Performance-Grenze', () => {
     const source = detailPageSource()
 
     expect(source).not.toMatch(/\bgetAnimeBackdrops\b/)
-    expect(source).not.toContain('backdropResult')
-    expect(source).toContain('<AnimeMediaProvider')
-    expect(source).toContain('<AnimeBackdropRotator coverImage={anime.cover_image} />')
+    expect(source).toMatch(/<AnimeMediaProvider\b/)
+    expect(source).toMatch(/<AnimeBackdropRotator\b/)
+  })
+
+  it('keeps viewer auth and extra link-resolution fetches outside the public server page', () => {
+    const source = detailPageSource()
+    expect(source).not.toMatch(/\b(cookies|AUTH_BEARER_TOKEN|AUTH_TOKEN_COOKIE_NAME|getWatchlistEntry|getWatchlistStatus)\b/)
+    expect(source).not.toMatch(/\b(getGroupDetail|getPublicFansubProfileBySlug|resolveFansubProject)\b/)
   })
 })
