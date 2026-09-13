@@ -4,7 +4,10 @@ import { readFileSync } from 'node:fs'
 import { join } from 'node:path'
 import { forwardRef, type ImgHTMLAttributes } from 'react'
 import { cleanup, render, screen } from '@testing-library/react'
-import { afterEach, describe, expect, it, vi } from 'vitest'
+import { afterEach, describe, expect, expectTypeOf, it, vi } from 'vitest'
+
+import GroupStoryPage, { generateMetadata } from './page'
+import * as projectPageData from './projectPageData'
 
 import { ProjectPage } from './ProjectPage'
 import { HeroSection } from './sections/HeroSection'
@@ -294,5 +297,40 @@ describe('HeroSection navigation (102-03)', () => {
     expect(screen.getByTitle('Akropolus')).toBeTruthy()
     expect(screen.getByTitle('Moonlight')).toBeTruthy()
     expect(screen.queryByRole('button')).toBeNull()
+  })
+})
+
+
+describe('numeric project page Promise params (158-01)', () => {
+  it('keeps the Next page and metadata props Promise-only', () => {
+    expectTypeOf<Parameters<typeof GroupStoryPage>[0]['params']>()
+      .toEqualTypeOf<Promise<{ id: string; groupId: string }>>()
+    expectTypeOf<Parameters<typeof generateMetadata>[0]['params']>()
+      .toEqualTypeOf<Promise<{ id: string; groupId: string }>>()
+  })
+
+  it('resolves numeric compatibility params and preserves the pretty canonical', async () => {
+    const canonical = vi.spyOn(projectPageData, 'resolvePublicFansubProjectCanonicalPath')
+      .mockResolvedValue('/fansubs/c-subs/fansubprojekt/stored-route')
+    try {
+      const metadata = await generateMetadata({ params: Promise.resolve({ id: '13', groupId: '1' }) })
+      expect(canonical).toHaveBeenCalledWith({ animeID: 13, groupID: 1 })
+      expect(metadata.alternates?.canonical).toBe('/fansubs/c-subs/fansubprojekt/stored-route')
+    } finally {
+      canonical.mockRestore()
+    }
+  })
+
+  it('loads the same numeric project and keeps its scoped error/back link', async () => {
+    const loader = vi.spyOn(projectPageData, 'loadPublicFansubProjectPageData')
+      .mockResolvedValue({ status: 'error', animeID: 13, groupID: 1, message: 'Projekt konnte nicht geladen werden.' })
+    try {
+      render(await GroupStoryPage({ params: Promise.resolve({ id: '13', groupId: '1' }) }))
+      expect(loader).toHaveBeenCalledWith({ animeID: 13, groupID: 1 })
+      expect(screen.getByText('Projekt konnte nicht geladen werden.')).toBeTruthy()
+      expect(screen.getByRole('link', { name: 'Zurück zum Anime' }).getAttribute('href')).toBe('/anime/13')
+    } finally {
+      loader.mockRestore()
+    }
   })
 })
