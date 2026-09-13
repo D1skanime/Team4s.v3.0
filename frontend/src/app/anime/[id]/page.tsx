@@ -81,7 +81,7 @@ async function AnimeDetailContent({ anime, searchParams }: {
   const [animeFansubsResult, groupedEpisodesResult, commentsResult, relationsResult] =
     await Promise.allSettled([
       getAnimeFansubs(anime.id),
-      getGroupedEpisodes(anime.id),
+      getGroupedEpisodes(anime.id, { projection: 'public', limit: 24 }),
       getAnimeComments(animeID, { page: 1, per_page: 10 }),
       getAnimeRelations(anime.id),
     ])
@@ -94,7 +94,7 @@ async function AnimeDetailContent({ anime, searchParams }: {
   const commentsResponse = commentsResult.status === 'fulfilled' ? commentsResult.value : null
   const commentsError = commentsResult.status === 'rejected' ? 'Kommentare konnten nicht geladen werden.' : null
   const relationsResponse = relationsResult.status === 'fulfilled' ? relationsResult.value : null
-  const episodeCount = groupedEpisodesResponse?.data.episodes.length ?? anime.episodes.length
+  const episodeCount = anime.episodes.length
 
   // Get cover image for banner background
   const coverUrl = getCoverUrl(anime.cover_image)
@@ -252,6 +252,7 @@ async function AnimeDetailContent({ anime, searchParams }: {
               fansubs={animeFansubsResponse?.data ?? []}
               storyGroups={fansubStoryGroups}
               episodes={groupedEpisodesResponse.data.episodes}
+              pagination={groupedEpisodesResponse.data.pagination}
             />
           ) : anime.episodes.length === 0 ? (
             <div className={styles.emptyEpisodes}>Noch keine Episoden vorhanden.</div>

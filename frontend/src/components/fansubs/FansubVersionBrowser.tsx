@@ -6,7 +6,10 @@ import { useEffect, useMemo, useRef, useState } from 'react'
 
 import { buildPublicFansubProjectPath } from '@/lib/fansubProjectRoutes'
 
-import { GroupedEpisode, EpisodeVersion } from '@/types/episodeVersion'
+import { getGroupedEpisodes } from '@/lib/api'
+import { Button } from '@/components/ui/Button'
+
+import { PublicGroupedEpisode, PublicEpisodeVersion, PublicGroupedEpisodesResponse } from '@/types/episodeVersion'
 import { ActiveFansubStory } from './ActiveFansubStory'
 import { AnimeFansubRelation, FansubGroupSummary } from '@/types/fansub'
 
@@ -16,7 +19,8 @@ interface FansubVersionBrowserProps {
   animeID: number
   animeSlug?: string
   fansubs: AnimeFansubRelation[]
-  episodes: GroupedEpisode[]
+  episodes: PublicGroupedEpisode[]
+  pagination?: PublicGroupedEpisodesResponse['data']['pagination']
   storyGroups?: FansubGroupSummary[]
   onActiveFansubChange?: (fansubGroupId: number | null) => void
 }
@@ -74,7 +78,7 @@ function formatReleaseDate(value?: string | null): string {
   })
 }
 
-function resolveEpisodeTitle(episode: GroupedEpisode, summaryVersion: EpisodeVersion | null): string {
+function resolveEpisodeTitle(episode: PublicGroupedEpisode, summaryVersion: PublicEpisodeVersion | null): string {
   const explicitTitle = (episode.episode_title || '').trim()
   if (explicitTitle) return explicitTitle
   const summaryTitle = (summaryVersion?.title || '').trim()
@@ -82,10 +86,10 @@ function resolveEpisodeTitle(episode: GroupedEpisode, summaryVersion: EpisodeVer
   return `Folge ${episode.episode_number}`
 }
 
-function resolveReleaseName(version: EpisodeVersion): string {
+function resolveReleaseName(version: PublicEpisodeVersion): string {
   const explicit = (version.title || '').trim()
   if (explicit) return explicit
-  return `Release #${version.id}`
+  return `Release #${version.release_version_id}`
 }
 
 function formatVersionCount(count: number): string {
@@ -93,13 +97,13 @@ function formatVersionCount(count: number): string {
 }
 
 function getSummaryVersion(
-  episode: GroupedEpisode,
+  episode: PublicGroupedEpisode,
   activeFansubGroupID: number | null,
-): EpisodeVersion | null {
+): PublicEpisodeVersion | null {
   if (episode.versions.length === 0) return null
   if (activeFansubGroupID === null) {
     if (episode.default_version_id) {
-      const defaultVersion = episode.versions.find((item) => item.id === episode.default_version_id)
+      const defaultVersion = episode.versions.find((item) => item.variant_id === episode.default_version_id)
       if (defaultVersion) return defaultVersion
     }
     return episode.versions[0]
@@ -109,12 +113,23 @@ function getSummaryVersion(
   return preferred || episode.versions[0]
 }
 
+function mergeEpisodes(current: PublicGroupedEpisode[], incoming: PublicGroupedEpisode[]): PublicGroupedEpisode[] {
+  const merged = new Map(current.map((episode) => [episode.episode_id, episode]))
+  for (const episode of incoming) {
+    const previous = merged.get(episode.episode_id)
+    const variants = new Map(previous?.versions.map((version) => [version.variant_id, version]) ?? [])
+    for (const version of episode.versions) variants.set(version.variant_id, version)
+    merged.set(episode.episode_id, { ...previous, ...episode, versions: Array.from(variants.values()) })
+  }
+  return Array.from(merged.values())
+}
+
 export function FansubVersionBrowser(props: FansubVersionBrowserProps) {
   // Route identity resets selection, expansion and pending callbacks together.
   return <FansubVersionBrowserContent key={props.animeID} {...props} />
 }
 
-function FansubVersionBrowserContent({ animeID, animeSlug, fansubs, episodes, storyGroups = [], onActiveFansubChange }: FansubVersionBrowserProps) {
+function FansubVersionBrowserContent({ animeID, animeSlug, fansubs, episodes, pagination, storyGroups = [], onActiveFansubChange }: FansubVersionBrowserProps) {
   const fansubOptions = useMemo(() => collectFansubOptions(fansubs), [fansubs])
   const validIDs = fansubOptions.map((relation) => relation.fansub_group!.id)
   const selectionScope = JSON.stringify(validIDs)
@@ -167,6 +182,49 @@ function FansubVersionBrowserContent({ animeID, animeSlug, fansubs, episodes, st
     onActiveFansubChange?.(groupID)
   }
 
+  const [inventory, setInventory] = useState({ source: episodes, episodes, pagination })
+  const [loadState, setLoadState] = useState<{ source: PublicGroupedEpisode[]; loading: boolean; error: string | null }>({
+    source: episodes, loading: false, error: null,
+  })
+  const requestRef = useRef<AbortController | null>(null)
+  const loadedEpisodes = inventory.source === episodes ? inventory.episodes : episodes
+  const page = inventory.source === episodes ? inventory.pagination : pagination
+  const isLoading = loadState.source === episodes && loadState.loading
+  const loadError = loadState.source === episodes ? loadState.error : null
+
+  useEffect(() => {
+    return () => {
+      requestRef.current?.abort()
+      requestRef.current = null
+    }
+  }, [episodes, pagination])
+
+  async function loadMore() {
+    if (!page?.has_more || !page.next_cursor || requestRef.current) return
+    const controller = new AbortController()
+    requestRef.current = controller
+    setLoadState({ source: episodes, loading: true, error: null })
+    try {
+      const response = await getGroupedEpisodes(animeID, {
+        projection: 'public', limit: 24, cursor: page.next_cursor, signal: controller.signal,
+      })
+      if (controller.signal.aborted || requestRef.current !== controller) return
+      setInventory({
+        source: episodes,
+        episodes: mergeEpisodes(loadedEpisodes, response.data.episodes),
+        pagination: response.data.pagination,
+      })
+    } catch {
+      if (controller.signal.aborted || requestRef.current !== controller) return
+      setLoadState({ source: episodes, loading: false, error: 'Weitere Episoden konnten nicht geladen werden.' })
+    } finally {
+      if (!controller.signal.aborted && requestRef.current === controller) {
+        requestRef.current = null
+        setLoadState((current) => ({ ...current, loading: false }))
+      }
+    }
+  }
+
   function toggleEpisode(episodeNumber: number) {
     setExpandedEpisodes((current) => {
       if (current[episodeNumber]) {
@@ -213,26 +271,26 @@ function FansubVersionBrowserContent({ animeID, animeSlug, fansubs, episodes, st
         </div>
       ) : null}
 
-      {episodes.length === 0 ? (
+      {loadedEpisodes.length === 0 ? (
         <div className={styles.emptyBox}>Keine Episoden-Versionen vorhanden.</div>
       ) : (
         <ul className={styles.episodeList}>
-          {episodes.map((episode) => {
-            const expanded = Boolean(expandedEpisodes[episode.episode_number])
+          {loadedEpisodes.map((episode) => {
+            const expanded = Boolean(expandedEpisodes[episode.episode_id])
             const summaryVersion = getSummaryVersion(episode, activeFansubGroupID)
             const groupMatchedVersions = activeFansubGroupID !== null
               ? episode.versions.filter((item) => item.fansub_groups?.some((g) => g.id === activeFansubGroupID))
               : episode.versions
             const hasNoMatchingVersion = activeFansubGroupID !== null && groupMatchedVersions.length === 0
-            const panelID = `episode-versions-${episode.episode_number}`
+            const panelID = `episode-versions-${animeID}-${episode.episode_id}`
             const episodeTitle = resolveEpisodeTitle(episode, summaryVersion)
 
             return (
-              <li key={episode.episode_number} className={styles.episodeCard}>
+              <li key={episode.episode_id} className={styles.episodeCard}>
                 <button
                   type="button"
                   className={styles.episodeHeader}
-                  onClick={() => toggleEpisode(episode.episode_number)}
+                  onClick={() => toggleEpisode(episode.episode_id)}
                   aria-expanded={expanded}
                   aria-controls={panelID}
                 >
@@ -247,14 +305,14 @@ function FansubVersionBrowserContent({ animeID, animeSlug, fansubs, episodes, st
                   <div id={panelID} className={styles.versionList}>
                     {hasNoMatchingVersion ? (
                       <div className={styles.noVersionHint}>
-                        <p className={styles.noVersionText}>Keine Version dieser Gruppe verfügbar.</p>
-                        <p className={styles.noVersionAction}>Wechseln Sie zu einer anderen Fansub-Gruppe.</p>
+                        <p className={styles.noVersionText}>{page?.has_more ? 'Im geladenen Ausschnitt ist noch keine Version dieser Gruppe vorhanden.' : 'Keine Version dieser Gruppe verfügbar.'}</p>
+                        <p className={styles.noVersionAction}>{page?.has_more ? 'Laden Sie weitere Episoden und Versionen oder wählen Sie eine andere Gruppe.' : 'Wechseln Sie zu einer anderen Fansub-Gruppe.'}</p>
                       </div>
                     ) : (
                       groupMatchedVersions.map((version) => {
                         const versionLogoURL = resolveLogoUrl(version.fansub_groups?.[0]?.logo_url)
                         return (
-                          <div key={version.id} className={styles.versionRow}>
+                          <div key={version.variant_id} className={styles.versionRow}>
                             <div className={styles.versionMeta}>
                               <div className={styles.versionIdentity}>
                                 {versionLogoURL ? (
@@ -283,7 +341,7 @@ function FansubVersionBrowserContent({ animeID, animeSlug, fansubs, episodes, st
                               </div>
                             </div>
                             <a
-                              href={`/api/releases/${version.id}/stream`}
+                              href={`/api/releases/${version.release_version_id}/stream?variant_id=${version.variant_id}`}
                               className={styles.playButton}
                               target="_blank"
                               rel="noreferrer"
@@ -302,6 +360,12 @@ function FansubVersionBrowserContent({ animeID, animeSlug, fansubs, episodes, st
           })}
         </ul>
       )}
+      {loadError ? <p role="alert">{loadError}</p> : null}
+      {page?.has_more ? (
+        <Button variant="secondary" loading={isLoading} onClick={() => void loadMore()}>
+          {loadError ? 'Erneut versuchen' : 'Weitere Episoden und Versionen laden'}
+        </Button>
+      ) : null}
     </section>
     </>
   )

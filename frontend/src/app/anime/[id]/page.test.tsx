@@ -19,8 +19,11 @@ vi.mock('@/lib/api', async (importOriginal) => ({
 }))
 
 import { ApiError, getAnimeByID, getAnimeFansubs, getGroupedEpisodes, getAnimeComments, getAnimeRelations, getWatchlistEntry } from '@/lib/api'
+import type { PublicGroupedEpisodesOptions, PublicGroupedEpisodesResponse } from '@/types/episodeVersion'
 import type { AnimeDetail } from '@/types/anime'
 import AnimeDetailPage, { generateMetadata } from './page'
+
+const groupedMock = vi.mocked(getGroupedEpisodes as (animeID: number, options: PublicGroupedEpisodesOptions) => Promise<PublicGroupedEpisodesResponse>)
 
 const anime: AnimeDetail = {
   id: 22, slug: 'stored-slug', title: 'Tatsächlicher Anime', type: 'tv',
@@ -31,7 +34,7 @@ beforeEach(() => {
   vi.clearAllMocks()
   vi.mocked(getAnimeByID).mockReset().mockResolvedValue({ data: anime })
   vi.mocked(getAnimeFansubs).mockReset().mockResolvedValue({ data: [] })
-  vi.mocked(getGroupedEpisodes).mockReset().mockResolvedValue({ data: { anime_id: anime.id, episodes: [] } })
+  groupedMock.mockReset().mockResolvedValue({ data: { anime_id: anime.id, episodes: [], pagination: { has_more: false, next_cursor: null, row_limit: 24 } } })
   vi.mocked(getAnimeComments).mockReset().mockResolvedValue({ data: [], meta: { page: 1, per_page: 10, total: 0, total_pages: 0 } })
   vi.mocked(getAnimeRelations).mockReset().mockResolvedValue({ data: [] })
 })
@@ -147,7 +150,7 @@ describe('anime detail integration without invented data', () => {
     vi.mocked(getAnimeByID).mockResolvedValue({ data: { ...anime, max_episodes: 12, episodes: [{
       id: 73, episode_number: '1', title: 'Neutrale Folge', status: 'public', view_count: 3, download_count: 8,
     }] } })
-    vi.mocked(getGroupedEpisodes).mockRejectedValue(new ApiError(500, 'Versionen nicht verfügbar'))
+    groupedMock.mockRejectedValue(new ApiError(500, 'Versionen nicht verfügbar'))
     const text = textContent(await loadContent())
     expect(text).toContain('12 Episodes')
     expect(text).toContain('Episoden (1)')
@@ -165,7 +168,7 @@ describe('anime detail integration without invented data', () => {
 
 describe('bounded public SSR inventory', () => {
   it('requests one 24-row public page and forwards cursor/story without claiming the slice is the total', async () => {
-    vi.mocked(getGroupedEpisodes).mockResolvedValue({ data: { anime_id: 22, episodes: [], pagination: { has_more: true, next_cursor: 'next', row_limit: 24 } } })
+    groupedMock.mockResolvedValue({ data: { anime_id: 22, episodes: [], pagination: { has_more: true, next_cursor: 'next', row_limit: 24 } } })
     vi.mocked(getAnimeByID).mockResolvedValue({ data: { ...anime, episodes: Array.from({ length: 30 }, (_, index) => ({
       id: index + 1, episode_number: String(index + 1), status: 'public' as const, view_count: 0, download_count: 0,
     })) } })
