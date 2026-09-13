@@ -3,14 +3,14 @@ gsd_state_version: 1.0
 milestone: v1.4
 milestone_name: Coverage
 status: executing
-stopped_at: Executing 158-02; Phase 159 gated on technical verification of 158; Human-UAT 156/157 remains OPEN
-last_updated: '2026-09-13T20:13:45.146Z'
+stopped_at: Executing 158-03; Phase 159 gated on technical verification of 158; Human-UAT 156/157 remains OPEN
+last_updated: '2026-09-13T20:58:39.213893+00:00'
 last_activity: 2026-09-13
 progress:
   total_phases: 24
   completed_phases: 21
   total_plans: 225
-  completed_plans: 217
+  completed_plans: 218
   percent: 88
 ---
 
@@ -18,9 +18,11 @@ progress:
 
 ## Aktiver Zusatzauftrag — Anime158/159 (13.09.2026)
 
-Genau zwei Phasen wurden über scripts/gsd-linux.sh additiv angelegt:158-public-anime-detail-reparatur und159-public-anime-detail-konsolidierung. Aktiver Schritt ist die Planung158.159 wird erst nach vollständiger Implementierung und technischer Verifikation158 ausgeführt. Der158-Ausgangscommit ist7c7e1c7d02ac870e7c68c02b66fd7f4b33f36b85; der Produktstand entspricht dem Audit. GSD-init-progress mit129 ist eine historische Summary-/Parserabweichung und wird nicht als heutige Phase verwendet. PROJECT bleibt als älteres Dokument im Delta-Bericht eingeordnet; kein Milestone-Reset.
+Genau zwei Phasen sind angelegt: 158-public-anime-detail-reparatur und 159-public-anime-detail-konsolidierung. Die Plans 158-01 und 158-02 sind implementiert und gezielt geprüft; aktiver Schritt ist 158-03. Phase 159 beginnt erst nach vollständiger Implementierung und technischer Verifikation von 158.
 
-Human-UAT156GAP-02 mit14Origin-/Contributorchecks und157-06 Task4 bleiben ausdrücklichOPEN. Neue Planung oder automatisierte Verifikation erteilt diesen Sign-off nicht. Die folgenden älteren Current-Position-/Milestoneabschnitte bleiben als Historie unverändert. Verbindlicher neuer Scope:158/159-USER-REQUEST,CONTEXT,VALIDATION sowie die offenen Anforderungszeilen in REQUIREMENTS. Keine Produkt-/DB-/Testdatenänderung durch dieses Grundgerüst.
+Der geprüfte Ausgangscommit ist `7c7e1c7d02ac870e7c68c02b66fd7f4b33f36b85`. Der Produktstand entsprach bei der Bestandsaufnahme dem Audit. Seither: Relationsprüfung auf zwei Datenstatements begrenzt, autoritativer Anime-Slug ergänzt, Session- und Fehlerzustände korrigiert. Einzelbelege und Commits stehen in den Plan-Summaries. Der vollständige Typecheck besteht; die technische Gesamtprüfung der Phase steht aus.
+
+Human-UAT 156 GAP-02 mit 14 Origin-/Contributorprüfungen und 157-06 Task 4 bleiben ausdrücklich OPEN. Die nachfolgenden älteren Current-Position-/Milestoneabschnitte bleiben als Historie erhalten. Verbindlicher neuer Scope: 158/159-USER-REQUEST, CONTEXT, VALIDATION und REQUIREMENTS. Die historische GSD-Parseranzeige 129 und das ältere PROJECT-Dokument sind im Delta-Bericht eingeordnet; kein Milestone-Reset. Keine Live-Datenänderung.
 
 ## Milestone v1.3: COMPLETE (2026-08-20, tag `v1.3`)
 
