@@ -134,7 +134,7 @@ func TestReleaseStreamIdentityStrictSelectorsAndUnauthenticated(t *testing.T) {
 			got := streamIdentityRequest(h, "10", "variant_id="+url.QueryEscape(selector), grantEndpoint, true)
 			require.Equal(t, 400, got.Code, "selector %q grant=%t: %s", selector, grantEndpoint, got.Body.String())
 		}
-		for _, rawQuery := range []string{"variant_id=%ZZ", "variant_id=100;variant_id=10", "%76ariant_id=%ZZ"} {
+		for _, rawQuery := range []string{"variant_id=%ZZ", "variant_id=100;variant_id=10", "%76ariant_id=%ZZ", "variant%5Fid=%ZZ"} {
 			got := streamIdentityRequest(h, "10", rawQuery, grantEndpoint, true)
 			require.Equal(t, 400, got.Code, "malformed selector cannot disappear into legacy lookup: %s", rawQuery)
 		}
@@ -156,6 +156,8 @@ func TestReleaseStreamIdentityLegacyWithoutSelector(t *testing.T) {
 	result := streamIdentityRequest(h, "10", "grant="+url.QueryEscape(token), false, false)
 	require.Equal(t, 206, result.Code)
 	require.Equal(t, []string{"https://fixture.invalid/foreign"}, *targets, "no selector keeps the historical OR ordering")
+	result = streamIdentityRequest(h, "10", "grant="+url.QueryEscape(token)+"&ignored=%ZZ", false, false)
+	require.Equal(t, 206, result.Code, "malformed unrelated parameter does not redefine legacy behavior")
 	result = streamIdentityRequest(h, "+10", "", true, true)
 	require.Equal(t, 201, result.Code, "legacy path parser remains unchanged without selector")
 }
