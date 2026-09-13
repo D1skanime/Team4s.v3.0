@@ -1,0 +1,17 @@
+{
+  "measured_at": "2026-09-13T22:52:25.562212+00:00",
+  "method": "Shared Codex browser: reload /anime/1, inspect actual DOM, expand first episode; no playback or writes.",
+  "route": "http://127.0.0.1:3300/anime/1",
+  "title": "Buddy Complex | Team4s",
+  "episode_heading": "Episoden (13)",
+  "selected_groups": [
+    "New-Subs"
+  ],
+  "play_links": [
+    "/api/releases/27/stream?variant_id=27"
+  ],
+  "viewport": 619,
+  "document_scroll_width": 604,
+  "viewport_override": false,
+  "scope": "Preliminary real UI wiring check before media plan; not the full phase159 browser matrix or Human UAT."
+}
