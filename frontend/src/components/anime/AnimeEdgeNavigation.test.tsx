@@ -11,7 +11,7 @@ vi.mock('next/navigation', () => ({ useRouter: () => ({ push }) }))
 vi.mock('@/lib/api', () => ({ getAnimeList: vi.fn() }))
 const filters = { per_page: 2, q: 'Ein Titel', letter: 'E', content_type: 'anime' as const, status: 'done' as const }
 const query = (page: number) => buildAnimeGridQuery({ ...filters, page })
-const item = (id: number): AnimeListItem => ({ id, title: `Anime ${id}`, type: 'tv', content_type: 'anime', status: 'done' })
+const item = (id: number): AnimeListItem => ({ id, title: `Anime ${id}`, type: 'tv', status: 'done' })
 function response(page: number, ids = [page * 2 - 1, page * 2]): PaginatedAnimeResponse {
   return { data: ids.map(item), meta: { page, per_page: 2, total: 6, total_pages: 3 } }
 }

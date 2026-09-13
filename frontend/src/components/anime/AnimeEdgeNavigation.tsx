@@ -1,6 +1,6 @@
 'use client'
 
-import { useCallback, useMemo, useRef, useState } from 'react'
+import { useEffect, useMemo, useRef, useState } from 'react'
 import Image from 'next/image'
 import { useRouter } from 'next/navigation'
 import { ChevronLeft, ChevronRight } from 'lucide-react'
@@ -8,6 +8,7 @@ import { ChevronLeft, ChevronRight } from 'lucide-react'
 import { getAnimeList } from '@/lib/api'
 import {
   buildAnimeDetailHref,
+  buildAnimeGridQuery,
   parseAnimeListParamsFromGridQuery,
 } from '@/lib/animeGridContext'
 import { getCoverUrl, shouldUseUnoptimizedImage } from '@/lib/utils'
@@ -33,94 +34,88 @@ function getTypeLabel(type: string): string {
   return type
 }
 
-export function AnimeEdgeNavigation({ currentAnimeID, gridQuery }: AnimeEdgeNavigationProps) {
+interface NeighborTarget { anime: AnimeListItem; page: number }
+interface Neighbors { prev: NeighborTarget | null; next: NeighborTarget | null }
+
+export function AnimeEdgeNavigation(props: AnimeEdgeNavigationProps) {
+  return <AnimeEdgeNavigationContext key={`${props.currentAnimeID}:${props.gridQuery}`} {...props} />
+}
+
+function AnimeEdgeNavigationContext({ currentAnimeID, gridQuery }: AnimeEdgeNavigationProps) {
   const router = useRouter()
-  const [previousAnime, setPreviousAnime] = useState<AnimeListItem | null>(null)
-  const [nextAnime, setNextAnime] = useState<AnimeListItem | null>(null)
+  const [neighbors, setNeighbors] = useState<Neighbors | null>(null)
   const [hoverDirection, setHoverDirection] = useState<Direction | null>(null)
   const [loadingDirection, setLoadingDirection] = useState<Direction | null>(null)
-  const [isLoadingNeighbors, setIsLoadingNeighbors] = useState(false)
-  const hasLoadedNeighborsRef = useRef(false)
-
+  const requestRef = useRef<{ controller: AbortController; promise: Promise<Neighbors | null> } | null>(null)
+  const navigationRef = useRef(false)
   const gridParams = useMemo(() => parseAnimeListParamsFromGridQuery(gridQuery), [gridQuery])
+  const previousAnime = neighbors?.prev?.anime ?? null
+  const nextAnime = neighbors?.next?.anime ?? null
   const previewAnime = hoverDirection === 'prev' ? previousAnime : hoverDirection === 'next' ? nextAnime : null
   const previewCoverUrl = previewAnime ? getCoverUrl(previewAnime.cover_image) : ''
 
-  const loadNeighbors = useCallback(async () => {
-    if (!gridParams) {
-      setPreviousAnime(null)
-      setNextAnime(null)
-      return
-    }
-    if (hasLoadedNeighborsRef.current || isLoadingNeighbors) {
-      return
-    }
+  useEffect(() => () => { requestRef.current?.controller.abort() }, [])
 
-    hasLoadedNeighborsRef.current = true
-    setIsLoadingNeighbors(true)
-
-    try {
-      const currentPage = gridParams.page ?? 1
-      const currentResponse = await getAnimeList(gridParams)
-
-      const items = currentResponse.data
-      const currentIndex = items.findIndex((item) => item.id === currentAnimeID)
-      if (currentIndex < 0) {
-        setPreviousAnime(null)
-        setNextAnime(null)
-        return
-      }
-
-      let prev = currentIndex > 0 ? items[currentIndex - 1] : null
-      let next = currentIndex < items.length - 1 ? items[currentIndex + 1] : null
-
-      if (!prev && currentPage > 1) {
-        const prevPageResponse = await getAnimeList({
-          ...gridParams,
-          page: currentPage - 1,
-        })
-        if (prevPageResponse.data.length > 0) {
-          prev = prevPageResponse.data[prevPageResponse.data.length - 1]
+  function loadNeighbors(): Promise<Neighbors | null> {
+    if (!gridParams) return Promise.resolve(null)
+    // Retain a successful promise for this route context. All actual interactions
+    // share it, including a click that arrives during a slow hover request.
+    if (requestRef.current) return requestRef.current.promise
+    const controller = new AbortController()
+    const currentPage = gridParams.page ?? 1
+    const promise = (async (): Promise<Neighbors | null> => {
+      try {
+        const current = await getAnimeList(gridParams, { signal: controller.signal })
+        if (controller.signal.aborted) return null
+        const index = current.data.findIndex((anime) => anime.id === currentAnimeID)
+        const result: Neighbors = { prev: null, next: null }
+        if (index >= 0) {
+          if (index > 0) result.prev = { anime: current.data[index - 1], page: currentPage }
+          else if (currentPage > 1) {
+            const previous = await getAnimeList({ ...gridParams, page: currentPage - 1 }, { signal: controller.signal })
+            if (controller.signal.aborted) return null
+            const anime = previous.data[previous.data.length - 1]
+            if (anime) result.prev = { anime, page: currentPage - 1 }
+          }
+          if (index < current.data.length - 1) result.next = { anime: current.data[index + 1], page: currentPage }
+          else if (currentPage < current.meta.total_pages) {
+            const next = await getAnimeList({ ...gridParams, page: currentPage + 1 }, { signal: controller.signal })
+            if (controller.signal.aborted) return null
+            if (next.data[0]) result.next = { anime: next.data[0], page: currentPage + 1 }
+          }
         }
-      }
-
-      if (!next && currentPage < currentResponse.meta.total_pages) {
-        const nextPageResponse = await getAnimeList({
-          ...gridParams,
-          page: currentPage + 1,
-        })
-        if (nextPageResponse.data.length > 0) {
-          next = nextPageResponse.data[0]
+        if (controller.signal.aborted) return null
+        setNeighbors(result)
+        return result
+      } catch {
+        if (!controller.signal.aborted && requestRef.current?.controller === controller) {
+          requestRef.current = null
         }
+        return null
       }
-
-      setPreviousAnime(prev)
-      setNextAnime(next)
-    } catch {
-      setPreviousAnime(null)
-      setNextAnime(null)
-      hasLoadedNeighborsRef.current = false
-    } finally {
-      setIsLoadingNeighbors(false)
-    }
-  }, [currentAnimeID, gridParams, isLoadingNeighbors])
-
-  if (!gridParams) {
-    return null
+    })()
+    requestRef.current = { controller, promise }
+    return promise
   }
 
+  if (!gridParams) return null
+
   async function handleNavigate(direction: Direction) {
-    if (loadingDirection) return
-
-    if (!hasLoadedNeighborsRef.current) {
-      await loadNeighbors()
-    }
-
-    const target = direction === 'prev' ? previousAnime : nextAnime
-    if (!target) return
-
+    if (navigationRef.current || !gridParams) return
+    navigationRef.current = true
     setLoadingDirection(direction)
-    router.push(buildAnimeDetailHref(target.id, gridQuery), { scroll: true })
+    const pending = loadNeighbors()
+    const request = requestRef.current
+    const result = await pending
+    if (!request || request.controller.signal.aborted) return
+    const target = result?.[direction]
+    if (!target) {
+      navigationRef.current = false
+      setLoadingDirection(null)
+      return
+    }
+    const targetQuery = buildAnimeGridQuery({ ...gridParams, page: target.page })
+    router.push(buildAnimeDetailHref(target.anime.id, targetQuery), { scroll: true })
   }
 
   return (
@@ -132,19 +127,19 @@ export function AnimeEdgeNavigation({ currentAnimeID, gridQuery }: AnimeEdgeNavi
           className={styles.navButton}
           onMouseEnter={() => {
             void loadNeighbors()
-            if (previousAnime) setHoverDirection('prev')
+            setHoverDirection('prev')
           }}
           onMouseLeave={() => setHoverDirection((current) => (current === 'prev' ? null : current))}
           onFocus={() => {
             void loadNeighbors()
-            if (previousAnime) setHoverDirection('prev')
+            setHoverDirection('prev')
           }}
           onTouchStart={() => {
             void loadNeighbors()
           }}
           onBlur={() => setHoverDirection((current) => (current === 'prev' ? null : current))}
           onClick={() => void handleNavigate('prev')}
-          disabled={(!previousAnime && hasLoadedNeighborsRef.current) || loadingDirection !== null || isLoadingNeighbors}
+          disabled={(neighbors !== null && !previousAnime) || loadingDirection !== null}
           aria-label="Vorheriger Anime"
         >
           <ChevronLeft size={22} />
@@ -175,19 +170,19 @@ export function AnimeEdgeNavigation({ currentAnimeID, gridQuery }: AnimeEdgeNavi
           className={styles.navButton}
           onMouseEnter={() => {
             void loadNeighbors()
-            if (nextAnime) setHoverDirection('next')
+            setHoverDirection('next')
           }}
           onMouseLeave={() => setHoverDirection((current) => (current === 'next' ? null : current))}
           onFocus={() => {
             void loadNeighbors()
-            if (nextAnime) setHoverDirection('next')
+            setHoverDirection('next')
           }}
           onTouchStart={() => {
             void loadNeighbors()
           }}
           onBlur={() => setHoverDirection((current) => (current === 'next' ? null : current))}
           onClick={() => void handleNavigate('next')}
-          disabled={(!nextAnime && hasLoadedNeighborsRef.current) || loadingDirection !== null || isLoadingNeighbors}
+          disabled={(neighbors !== null && !nextAnime) || loadingDirection !== null}
           aria-label="Nächster Anime"
         >
           <span>Weiter</span>

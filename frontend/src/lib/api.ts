@@ -1529,6 +1529,7 @@ function normalizeCurrentUserResponse(
 }
 
 interface AnimeListRequestOptions {
+  signal?: AbortSignal;
   cache?: RequestCache;
   revalidate?: number;
 }
@@ -1545,6 +1546,9 @@ export async function getAnimeList(
   const requestInit: AuthorizedRequestOptions & {
     next?: { revalidate: number };
   } = {};
+  if (options.signal) {
+    requestInit.signal = options.signal;
+  }
   if (options.cache) {
     requestInit.cache = options.cache;
   }
