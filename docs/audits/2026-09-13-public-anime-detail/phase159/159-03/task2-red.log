@@ -1,0 +1,472 @@
+
+> team4s-frontend@0.1.0 test
+> vitest run src/components/fansubs/FansubVersionBrowser.test.tsx src/app/anime/[id]/page.test.tsx
+
+
+ RUN  v3.2.4 /app
+
+ ❯ src/app/anime/[id]/page.test.tsx (19 tests | 1 failed) 32ms
+   ✓ anime detail page and metadata > uses the resource title and numeric canonical without the grid query 2ms
+   ✓ anime detail page and metadata > rejects 1abc in both resource consumers 2ms
+   ✓ anime detail page and metadata > rejects 1.5 in both resource consumers 1ms
+   ✓ anime detail page and metadata > rejects 0 in both resource consumers 0ms
+   ✓ anime detail page and metadata > rejects -1 in both resource consumers 1ms
+   ✓ anime detail page and metadata > rejects 9007199254740992 in both resource consumers 1ms
+   ✓ anime detail page and metadata > uses Next notFound for missing anime and metadata, which supplies robots noindex 0ms
+   ✓ anime detail page and metadata > does not relabel technical failures as missing content (Error: Serverfehler) 0ms
+   ✓ anime detail page and metadata > does not relabel technical failures as missing content (TypeError: Netzwerkfehler) 0ms
+   ✓ loading boundaries follow resource validation > does not inherit an automatic loading boundary on the anime detail route 0ms
+   ✓ loading boundaries follow resource validation > keeps the list loading UI in an explicit list-only Suspense 1ms
+   ✓ loading boundaries follow resource validation > validates the anime before returning its content boundary or starting secondary reads 2ms
+   ✓ anime detail integration without invented data > keeps public SSR free from viewer cookies and watchlist status reads 3ms
+   ✓ anime detail integration without invented data > passes the stored anime slug without an additional anime read 1ms
+   ✓ anime detail integration without invented data > removes the fabricated rating and anime view metrics while preserving the Anime 22 Emby target 1ms
+   ✓ anime detail integration without invented data > does not leave an empty stats row for an anime without an Emby mapping 1ms
+   ✓ anime detail integration without invented data > preserves the real episode inventory and stored fallback episode counters 6ms
+   ✓ anime detail integration without invented data > clips only the decorative hero banner, leaving the hero controls outside its clipping boundary 0ms
+   × bounded public SSR inventory > requests one 24-row public page and forwards cursor/story without claiming the slice is the total 10ms
+     → expected "spy" to be called once with arguments: [ 22, { projection: 'public', …(1) } ][90m
+
+Received: 
+
+[1m  1st spy call:
+
+[22m[2m  [[22m
+[2m    22,[22m
+[32m-   {[90m
+[32m-     "limit": 24,[90m
+[32m-     "projection": "public",[90m
+[32m-   },[90m
+[2m  ][22m
+[39m[90m
+
+Number of calls: [1m1[22m
+[39m
+ ❯ src/components/fansubs/FansubVersionBrowser.test.tsx (31 tests | 5 failed) 623ms
+   ✓ authoritative anime project navigation > links the primary and selected group via their stored slugs 75ms
+   ✓ authoritative anime project navigation > uses the existing encoder and trims authoritative slugs 6ms
+   ✓ authoritative anime project navigation > retains numeric compatibility when the anime slug is undefined 6ms
+   ✓ authoritative anime project navigation > retains numeric compatibility when the anime slug is "" 5ms
+   ✓ authoritative anime project navigation > retains numeric compatibility when the anime slug is "   " 7ms
+   ✓ authoritative anime project navigation > retains numeric compatibility when the selected group has no slug 10ms
+   ✓ authoritative anime project navigation > renders no invented group link without a group 2ms
+   ✓ authoritative anime project navigation > keeps real episode titles and expansion behavior 25ms
+   ✓ authoritative anime project navigation > gives the white episode card the existing dark text token inherited by its header 3ms
+   ✓ one deterministic group owner > changes story, pressed filter and variants together without polling or mount writes 41ms
+   ✓ one deterministic group owner > hydrates deterministic primary HTML then restores secondary in StrictMode without overwriting it 35ms
+   ✓ one deterministic group owner > uses last own-key event; ignores foreign keys and never writes back 34ms
+   ✓ one deterministic group owner > falls back on removed/invalid selection null 24ms
+   ✓ one deterministic group owner > falls back on removed/invalid selection oops 21ms
+   ✓ one deterministic group owner > falls back on removed/invalid selection null 18ms
+   ✓ one deterministic group owner > falls back on removed/invalid selection {} 24ms
+   ✓ one deterministic group owner > falls back on removed/invalid selection {"activeFansubGroupId":0} 21ms
+   ✓ one deterministic group owner > falls back on removed/invalid selection {"activeFansubGroupId":-1} 22ms
+   ✓ one deterministic group owner > falls back on removed/invalid selection {"activeFansubGroupId":1.5} 16ms
+   ✓ one deterministic group owner > falls back on removed/invalid selection {"activeFansubGroupId":9007199254740992} 17ms
+   ✓ one deterministic group owner > falls back on removed/invalid selection {"activeFansubGroupId":"9"} 16ms
+   ✓ one deterministic group owner > falls back on removed/invalid selection {"activeFansubGroupId":77} 17ms
+   ✓ one deterministic group owner > handles clear and validates removed groups/new anime props 49ms
+   ✓ one deterministic group owner > keeps selection usable when storage access is blocked 20ms
+   ✓ one deterministic group owner > keeps selection usable when storage read is blocked 25ms
+   ✓ one deterministic group owner > keeps selection usable when storage write is blocked 23ms
+   × bounded public inventory continuation > merges 125 variants over explicit pages by episode_id/variant_id, retaining counts and neutral equal-number episodes 37ms
+     → Unable to find an element with the text: /geladenen Ausschnitt/. This could be because the text is broken up by multiple elements. In this case, you can provide a function for your text matcher to make your matcher more flexible.
+
+Ignored nodes: comments, script, style
+[36m<body>[39m
+  [36m<div>[39m
+    [36m<section[39m
+      [33mclass[39m=[32m"_section_62cc84"[39m
+    [36m>[39m
+      [36m<div[39m
+        [33mclass[39m=[32m"_filterRow_62cc84"[39m
+      [36m>[39m
+        [36m<button[39m
+          [33maria-pressed[39m=[32m"false"[39m
+          [33mclass[39m=[32m"_filterChip_62cc84 "[39m
+          [33mtype[39m=[32m"button"[39m
+        [36m>[39m
+          [0mAnderer Gruppenname[0m
+        [36m</button>[39m
+        [36m<button[39m
+          [33maria-pressed[39m=[32m"true"[39m
+          [33mclass[39m=[32m"_filterChip_62cc84 _filterChipActive_62cc84"[39m
+          [33mtype[39m=[32m"button"[39m
+        [36m>[39m
+          [0mZweite Gruppe[0m
+        [36m</button>[39m
+      [36m</div>[39m
+      [36m<div[39m
+        [33mclass[39m=[32m"_groupCtaRow_62cc84"[39m
+      [36m>[39m
+        [36m<a[39m
+          [33maria-label[39m=[32m"Zum Gruppenbereich"[39m
+          [33mclass[39m=[32m"_groupButton_62cc84"[39m
+          [33mhref[39m=[32m"/anime/22/group/9"[39m
+        [36m>[39m
+          [0mGruppenbereich[0m
+        [36m</a>[39m
+      [36m</div>[39m
+      [36m<ul[39m
+        [33mclass[39m=[32m"_episodeList_62cc84"[39m
+      [36m>[39m
+        [36m<li[39m
+          [33mclass[39m=[32m"_episodeCard_62cc84"[39m
+        [36m>[39m
+          [36m<button[39m
+            [33maria-controls[39m=[32m"episode-versions-1"[39m
+            [33maria-expanded[39m=[32m"true"[39m
+            [33mclass[39m=[32m"_episodeHeader_62cc84"[39m
+            [33mtype[39m=[32m"button"[39m
+          [36m>[39m
+            [36m<div>[39m
+              [36m<p[39m
+                [33mclass[39m=[32m"_episodeNumber_62cc84"[39m
+              [36m>[39m
+                [0mFolge [0m
+                [0m1[0m
+              [36m</p>[39m
+              [36m<p[39m
+                [33mclass[39m=[32m"_summaryLine_62cc84"[39m
+              [36m>[39m
+                [0mGroße Folge[0m
+              [36m</p>[39m
+            [36m</div>[39m
+            [36m<span[39m
+              [33mclass[39m=[32m"_countBadge_62cc84"[39m
+            [36m>[39m
+              [0m+125 Versionen[0m
+            [36m</span>[39m
+          [36m</button>[39m
+          [36m<div[39m
+            [33mclass[39m=[32m"_versionList_62cc84"[39m
+            [33mid[39m=[32m"episode-versions-1"[39m
+          [36m>[39m
+            [36m<div[39m
+              [33mclass[39m=[32m"_noVersionHint_62cc84"[39m
+            [36m>[39m
+              [36m<p[39m
+                [33mclass[39m=[32m"_noVersionText_62cc84"[39m
+              [36m>[39m
+                [0mKeine Version dieser Gruppe verfügbar.[0m
+              [36m</p>[39m
+              [36m<p[39m
+                [33mclass[39m=[32m"_noVersionAction_62cc84"[39m
+              [36m>[39m
+                [0mWechseln Sie zu einer anderen Fansub-Gruppe.[0m
+              [36m</p>[39m
+            [36m</div>[39m
+          [36m</div>[39m
+        [36m</li>[39m
+      [36m</ul>[39m
+    [36m</section>[39m
+  [36m</div>[39m
+[36m</body>[39m
+   × bounded public inventory continuation > uses canonical version plus exact variant even when the legacy number collides 12ms
+     → expected [ '/api/releases/100/stream', …(1) ] to deeply equal [ …(2) ]
+   × bounded public inventory continuation > keeps a failed cursor retryable and deduplicates repeated pending clicks 5ms
+     → Unable to find an accessible element with the role "button" and name "Weitere Episoden und Versionen laden"
+
+There are no accessible roles. But there might be some inaccessible roles. If you wish to access them, then set the `hidden` option to `true`. Learn more about this here: https://testing-library.com/docs/dom-testing-library/api-queries#byrole
+
+Ignored nodes: comments, script, style
+[36m<body>[39m
+  [36m<div>[39m
+    [36m<section[39m
+      [33mclass[39m=[32m"_section_62cc84"[39m
+    [36m>[39m
+      [36m<div[39m
+        [33mclass[39m=[32m"_filterRow_62cc84"[39m
+      [36m/>[39m
+      [36m<div[39m
+        [33mclass[39m=[32m"_emptyBox_62cc84"[39m
+      [36m>[39m
+        [0mKeine Episoden-Versionen vorhanden.[0m
+      [36m</div>[39m
+    [36m</section>[39m
+  [36m</div>[39m
+[36m</body>[39m
+   × bounded public inventory continuation > aborts an old anime and ignores its late resolve while the new cursor is pending 3ms
+     → Unable to find an accessible element with the role "button" and name "Weitere Episoden und Versionen laden"
+
+There are no accessible roles. But there might be some inaccessible roles. If you wish to access them, then set the `hidden` option to `true`. Learn more about this here: https://testing-library.com/docs/dom-testing-library/api-queries#byrole
+
+Ignored nodes: comments, script, style
+[36m<body>[39m
+  [36m<div>[39m
+    [36m<section[39m
+      [33mclass[39m=[32m"_section_62cc84"[39m
+    [36m>[39m
+      [36m<div[39m
+        [33mclass[39m=[32m"_filterRow_62cc84"[39m
+      [36m/>[39m
+      [36m<div[39m
+        [33mclass[39m=[32m"_emptyBox_62cc84"[39m
+      [36m>[39m
+        [0mKeine Episoden-Versionen vorhanden.[0m
+      [36m</div>[39m
+    [36m</section>[39m
+  [36m</div>[39m
+[36m</body>[39m
+   × bounded public inventory continuation > aborts an old anime and ignores its late reject while the new cursor is pending 3ms
+     → Unable to find an accessible element with the role "button" and name "Weitere Episoden und Versionen laden"
+
+There are no accessible roles. But there might be some inaccessible roles. If you wish to access them, then set the `hidden` option to `true`. Learn more about this here: https://testing-library.com/docs/dom-testing-library/api-queries#byrole
+
+Ignored nodes: comments, script, style
+[36m<body>[39m
+  [36m<div>[39m
+    [36m<section[39m
+      [33mclass[39m=[32m"_section_62cc84"[39m
+    [36m>[39m
+      [36m<div[39m
+        [33mclass[39m=[32m"_filterRow_62cc84"[39m
+      [36m/>[39m
+      [36m<div[39m
+        [33mclass[39m=[32m"_emptyBox_62cc84"[39m
+      [36m>[39m
+        [0mKeine Episoden-Versionen vorhanden.[0m
+      [36m</div>[39m
+    [36m</section>[39m
+  [36m</div>[39m
+[36m</body>[39m
+
+⎯⎯⎯⎯⎯⎯⎯ Failed Tests 6 ⎯⎯⎯⎯⎯⎯⎯
+
+ FAIL  src/components/fansubs/FansubVersionBrowser.test.tsx > bounded public inventory continuation > merges 125 variants over explicit pages by episode_id/variant_id, retaining counts and neutral equal-number episodes
+TestingLibraryElementError: Unable to find an element with the text: /geladenen Ausschnitt/. This could be because the text is broken up by multiple elements. In this case, you can provide a function for your text matcher to make your matcher more flexible.
+
+Ignored nodes: comments, script, style
+[36m<body>[39m
+  [36m<div>[39m
+    [36m<section[39m
+      [33mclass[39m=[32m"_section_62cc84"[39m
+    [36m>[39m
+      [36m<div[39m
+        [33mclass[39m=[32m"_filterRow_62cc84"[39m
+      [36m>[39m
+        [36m<button[39m
+          [33maria-pressed[39m=[32m"false"[39m
+          [33mclass[39m=[32m"_filterChip_62cc84 "[39m
+          [33mtype[39m=[32m"button"[39m
+        [36m>[39m
+          [0mAnderer Gruppenname[0m
+        [36m</button>[39m
+        [36m<button[39m
+          [33maria-pressed[39m=[32m"true"[39m
+          [33mclass[39m=[32m"_filterChip_62cc84 _filterChipActive_62cc84"[39m
+          [33mtype[39m=[32m"button"[39m
+        [36m>[39m
+          [0mZweite Gruppe[0m
+        [36m</button>[39m
+      [36m</div>[39m
+      [36m<div[39m
+        [33mclass[39m=[32m"_groupCtaRow_62cc84"[39m
+      [36m>[39m
+        [36m<a[39m
+          [33maria-label[39m=[32m"Zum Gruppenbereich"[39m
+          [33mclass[39m=[32m"_groupButton_62cc84"[39m
+          [33mhref[39m=[32m"/anime/22/group/9"[39m
+        [36m>[39m
+          [0mGruppenbereich[0m
+        [36m</a>[39m
+      [36m</div>[39m
+      [36m<ul[39m
+        [33mclass[39m=[32m"_episodeList_62cc84"[39m
+      [36m>[39m
+        [36m<li[39m
+          [33mclass[39m=[32m"_episodeCard_62cc84"[39m
+        [36m>[39m
+          [36m<button[39m
+            [33maria-controls[39m=[32m"episode-versions-1"[39m
+            [33maria-expanded[39m=[32m"true"[39m
+            [33mclass[39m=[32m"_episodeHeader_62cc84"[39m
+            [33mtype[39m=[32m"button"[39m
+          [36m>[39m
+            [36m<div>[39m
+              [36m<p[39m
+                [33mclass[39m=[32m"_episodeNumber_62cc84"[39m
+              [36m>[39m
+                [0mFolge [0m
+                [0m1[0m
+              [36m</p>[39m
+              [36m<p[39m
+                [33mclass[39m=[32m"_summaryLine_62cc84"[39m
+              [36m>[39m
+                [0mGroße Folge[0m
+              [36m</p>[39m
+            [36m</div>[39m
+            [36m<span[39m
+              [33mclass[39m=[32m"_countBadge_62cc84"[39m
+            [36m>[39m
+              [0m+125 Versionen[0m
+            [36m</span>[39m
+          [36m</button>[39m
+          [36m<div[39m
+            [33mclass[39m=[32m"_versionList_62cc84"[39m
+            [33mid[39m=[32m"episode-versions-1"[39m
+          [36m>[39m
+            [36m<div[39m
+              [33mclass[39m=[32m"_noVersionHint_62cc84"[39m
+            [36m>[39m
+              [36m<p[39m
+                [33mclass[39m=[32m"_noVersionText_62cc84"[39m
+              [36m>[39m
+                [0mKeine Version dieser Gruppe verfügbar.[0m
+              [36m</p>[39m
+              [36m<p[39m
+                [33mclass[39m=[32m"_noVersionAction_62cc84"[39m
+              [36m>[39m
+                [0mWechseln Sie zu einer anderen Fansub-Gruppe.[0m
+              [36m</p>[39m
+            [36m</div>[39m
+          [36m</div>[39m
+        [36m</li>[39m
+      [36m</ul>[39m
+    [36m</section>[39m
+  [36m</div>[39m
+[36m</body>[39m
+ ❯ Object.getElementError node_modules/@testing-library/dom/dist/config.js:37:19
+ ❯ node_modules/@testing-library/dom/dist/query-helpers.js:76:38
+ ❯ node_modules/@testing-library/dom/dist/query-helpers.js:52:17
+ ❯ node_modules/@testing-library/dom/dist/query-helpers.js:95:19
+ ❯ src/components/fansubs/FansubVersionBrowser.test.tsx:206:19
+    204|     expect(screen.getByText('+125 Versionen')).toBeTruthy()
+    205|     fireEvent.click(screen.getByRole('button', { name: 'Zweite Gruppe'…
+    206|     expect(screen.getByText(/geladenen Ausschnitt/)).toBeTruthy()
+       |                   ^
+    207|     expect(getGroupedEpisodes).not.toHaveBeenCalled()
+    208|     fireEvent.click(screen.getByRole('button', { name: 'Anderer Gruppe…
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[1/6]⎯
+
+ FAIL  src/components/fansubs/FansubVersionBrowser.test.tsx > bounded public inventory continuation > uses canonical version plus exact variant even when the legacy number collides
+AssertionError: expected [ '/api/releases/100/stream', …(1) ] to deeply equal [ …(2) ]
+
+[32m- Expected[39m
+[31m+ Received[39m
+
+[2m  [[22m
+[32m-   "/api/releases/10/stream?variant_id=100",[39m
+[32m-   "/api/releases/20/stream?variant_id=10",[39m
+[31m+   "/api/releases/100/stream",[39m
+[31m+   "/api/releases/10/stream",[39m
+[2m  ][22m
+
+ ❯ src/components/fansubs/FansubVersionBrowser.test.tsx:233:113
+    231|     await act(async () => {})
+    232|     fireEvent.click(screen.getByRole('button', { name: /Folge 4/ }))
+    233|     expect(screen.getAllByRole('link', { name: 'Version abspielen' }).…
+       |                                                                                                                 ^
+    234|       '/api/releases/10/stream?variant_id=100', '/api/releases/20/stre…
+    235|     ])
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[2/6]⎯
+
+ FAIL  src/components/fansubs/FansubVersionBrowser.test.tsx > bounded public inventory continuation > keeps a failed cursor retryable and deduplicates repeated pending clicks
+TestingLibraryElementError: Unable to find an accessible element with the role "button" and name "Weitere Episoden und Versionen laden"
+
+There are no accessible roles. But there might be some inaccessible roles. If you wish to access them, then set the `hidden` option to `true`. Learn more about this here: https://testing-library.com/docs/dom-testing-library/api-queries#byrole
+
+Ignored nodes: comments, script, style
+[36m<body>[39m
+  [36m<div>[39m
+    [36m<section[39m
+      [33mclass[39m=[32m"_section_62cc84"[39m
+    [36m>[39m
+      [36m<div[39m
+        [33mclass[39m=[32m"_filterRow_62cc84"[39m
+      [36m/>[39m
+      [36m<div[39m
+        [33mclass[39m=[32m"_emptyBox_62cc84"[39m
+      [36m>[39m
+        [0mKeine Episoden-Versionen vorhanden.[0m
+      [36m</div>[39m
+    [36m</section>[39m
+  [36m</div>[39m
+[36m</body>[39m
+ ❯ Object.getElementError node_modules/@testing-library/dom/dist/config.js:37:19
+ ❯ node_modules/@testing-library/dom/dist/query-helpers.js:76:38
+ ❯ node_modules/@testing-library/dom/dist/query-helpers.js:52:17
+ ❯ node_modules/@testing-library/dom/dist/query-helpers.js:95:19
+ ❯ src/components/fansubs/FansubVersionBrowser.test.tsx:242:25
+    240|     render(<FansubVersionBrowser animeID={22} fansubs={[]} episodes={[…
+    241|     await act(async () => {})
+    242|     const load = screen.getByRole('button', { name: 'Weitere Episoden …
+       |                         ^
+    243|     fireEvent.click(load); fireEvent.click(load)
+    244|     expect(getGroupedEpisodes).toHaveBeenCalledTimes(1)
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[3/6]⎯
+
+ FAIL  src/components/fansubs/FansubVersionBrowser.test.tsx > bounded public inventory continuation > aborts an old anime and ignores its late resolve while the new cursor is pending
+ FAIL  src/components/fansubs/FansubVersionBrowser.test.tsx > bounded public inventory continuation > aborts an old anime and ignores its late reject while the new cursor is pending
+TestingLibraryElementError: Unable to find an accessible element with the role "button" and name "Weitere Episoden und Versionen laden"
+
+There are no accessible roles. But there might be some inaccessible roles. If you wish to access them, then set the `hidden` option to `true`. Learn more about this here: https://testing-library.com/docs/dom-testing-library/api-queries#byrole
+
+Ignored nodes: comments, script, style
+[36m<body>[39m
+  [36m<div>[39m
+    [36m<section[39m
+      [33mclass[39m=[32m"_section_62cc84"[39m
+    [36m>[39m
+      [36m<div[39m
+        [33mclass[39m=[32m"_filterRow_62cc84"[39m
+      [36m/>[39m
+      [36m<div[39m
+        [33mclass[39m=[32m"_emptyBox_62cc84"[39m
+      [36m>[39m
+        [0mKeine Episoden-Versionen vorhanden.[0m
+      [36m</div>[39m
+    [36m</section>[39m
+  [36m</div>[39m
+[36m</body>[39m
+ ❯ Object.getElementError node_modules/@testing-library/dom/dist/config.js:37:19
+ ❯ node_modules/@testing-library/dom/dist/query-helpers.js:76:38
+ ❯ node_modules/@testing-library/dom/dist/query-helpers.js:52:17
+ ❯ node_modules/@testing-library/dom/dist/query-helpers.js:95:19
+ ❯ src/components/fansubs/FansubVersionBrowser.test.tsx:257:28
+    255|     const { rerender, unmount } = render(<FansubVersionBrowser animeID…
+    256|     await act(async () => {})
+    257|     fireEvent.click(screen.getByRole('button', { name: 'Weitere Episod…
+       |                            ^
+    258|     const oldSignal = vi.mocked(getGroupedEpisodes).mock.calls[0][1]?.…
+    259|     rerender(<FansubVersionBrowser animeID={23} fansubs={[]} episodes=…
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[4/6]⎯
+
+ FAIL  src/app/anime/[id]/page.test.tsx > bounded public SSR inventory > requests one 24-row public page and forwards cursor/story without claiming the slice is the total
+AssertionError: expected "spy" to be called once with arguments: [ 22, { projection: 'public', …(1) } ][90m
+
+Received: 
+
+[1m  1st spy call:
+
+[22m[2m  [[22m
+[2m    22,[22m
+[32m-   {[90m
+[32m-     "limit": 24,[90m
+[32m-     "projection": "public",[90m
+[32m-   },[90m
+[2m  ][22m
+[39m[90m
+
+Number of calls: [1m1[22m
+[39m
+ ❯ src/app/anime/[id]/page.test.tsx:173:32
+    171|     })) } })
+    172|     const content = await loadContent()
+    173|     expect(getGroupedEpisodes).toHaveBeenCalledExactlyOnceWith(22, { p…
+       |                                ^
+    174|     const browser = elements(content).find((item) => item.type === Fan…
+    175|     expect(browser?.props.pagination).toEqual({ has_more: true, next_c…
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[5/6]⎯
+
+
+ Test Files  2 failed (2)
+      Tests  6 failed | 44 passed (50)
+   Start at  22:45:14
+   Duration  1.50s (transform 688ms, setup 143ms, collect 1.34s, tests 655ms, environment 332ms, prepare 116ms)
+

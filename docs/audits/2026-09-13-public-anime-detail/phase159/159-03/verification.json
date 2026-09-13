@@ -1,0 +1,89 @@
+{
+  "checked_at": "2026-09-13T22:52:22.963335+00:00",
+  "checks": {
+    "tests": {
+      "command": [
+        "docker",
+        "compose",
+        "exec",
+        "-T",
+        "team4sv30-frontend",
+        "npm",
+        "test",
+        "--",
+        "src/components/fansubs/FansubVersionBrowser.test.tsx",
+        "src/components/fansubs/__tests__/ActiveFansubStory.test.tsx",
+        "src/app/anime/[id]/page.test.tsx",
+        "src/components/anime/AnimeEdgeNavigation.test.tsx",
+        "src/lib/api.anime-list.test.ts",
+        "src/lib/animeGridContext.test.ts",
+        "src/lib/api.episode-versions.test.ts"
+      ],
+      "exit_code": 0,
+      "log": "tests.log"
+    },
+    "typecheck": {
+      "command": [
+        "docker",
+        "compose",
+        "exec",
+        "-T",
+        "team4sv30-frontend",
+        "npm",
+        "run",
+        "typecheck"
+      ],
+      "exit_code": 0,
+      "log": "typecheck.log"
+    },
+    "lint": {
+      "command": [
+        "docker",
+        "compose",
+        "exec",
+        "-T",
+        "team4sv30-frontend",
+        "npx",
+        "eslint",
+        "src/components/fansubs/FansubVersionBrowser.tsx",
+        "src/components/fansubs/ActiveFansubStory.tsx",
+        "src/app/anime/[id]/page.tsx",
+        "src/components/anime/AnimeEdgeNavigation.tsx",
+        "src/lib/api.ts",
+        "src/components/fansubs/FansubVersionBrowser.test.tsx",
+        "src/components/fansubs/__tests__/ActiveFansubStory.test.tsx",
+        "src/app/anime/[id]/page.test.tsx",
+        "src/components/anime/AnimeEdgeNavigation.test.tsx",
+        "src/lib/api.anime-list.test.ts",
+        "src/lib/animeGridContext.test.ts"
+      ],
+      "exit_code": 0,
+      "log": "lint.log"
+    },
+    "diffcheck": {
+      "command": [
+        "git",
+        "diff",
+        "--check"
+      ],
+      "exit_code": 0,
+      "log": "diffcheck.log"
+    }
+  },
+  "baseline": "c3bfcb23781addca1ccd3931592535416f706787",
+  "product_head": "7d63064094f40774572afb503e05933c3dbd9220",
+  "source_sha256": {
+    "frontend/src/app/anime/[id]/page.test.tsx": "dac2346cca4c4e3093c160a99aa1b492177a0166df45449378d18380bfaa4a65",
+    "frontend/src/app/anime/[id]/page.tsx": "0f1e6111ba7db2be5a4c784b02e2aedaf71b013efef83fc42b1260a91926b7c5",
+    "frontend/src/components/anime/AnimeEdgeNavigation.test.tsx": "0954fee87f69d98241841e1c69e8503f85465bab1e396e095bfde3ba07031a1b",
+    "frontend/src/components/anime/AnimeEdgeNavigation.tsx": "6780ea941cfeff8e25797569743e88bd452412d791b33b602c25b14b9fa2c8c7",
+    "frontend/src/components/fansubs/ActiveFansubStory.tsx": "e5e4616d0ed2cc5b19a5529ae5e3d4eb18c03aa4f45192f39cf2261b225ab85e",
+    "frontend/src/components/fansubs/FansubVersionBrowser.test.tsx": "9cbb922d5ca96b2c0ffc7219f9a70b56cfe0290fa5f8828db91622134e47f50c",
+    "frontend/src/components/fansubs/FansubVersionBrowser.tsx": "ad2e9b7c40da894673d77dd9075d9e07591b4ed12268654906bcf38158830de8",
+    "frontend/src/components/fansubs/__tests__/ActiveFansubStory.test.tsx": "b026fa3b55471598f5003a9e99e6c839277f46aee05071a8aa1cac6bc3f506f0",
+    "frontend/src/lib/animeGridContext.test.ts": "bfb64790de5cc73846026820b91cc858ba10dc82e87d10f04e1c4d70d6d06755",
+    "frontend/src/lib/api.anime-list.test.ts": "4d0a8b2439e52b87a8d0e95d7df687d4c0c879f9a894f8682135b789a95a8030",
+    "frontend/src/lib/api.ts": "432af7199ec527c4ea94c07691c938accae427e5757f75da97e4b999fd39eb96"
+  },
+  "scope": "Targeted 159-03 gates only; full phase gate and Human UAT remain open."
+}

@@ -1,0 +1,21 @@
+
+> team4s-frontend@0.1.0 test
+> vitest run src/components/fansubs/FansubVersionBrowser.test.tsx src/components/fansubs/__tests__/ActiveFansubStory.test.tsx src/app/anime/[id]/page.test.tsx src/components/anime/AnimeEdgeNavigation.test.tsx src/lib/api.anime-list.test.ts src/lib/animeGridContext.test.ts src/lib/api.episode-versions.test.ts
+
+
+ RUN  v3.2.4 /app
+
+ ✓ src/lib/api.episode-versions.test.ts (7 tests) 32ms
+ ✓ src/components/fansubs/__tests__/ActiveFansubStory.test.tsx (1 test) 24ms
+ ✓ src/components/anime/AnimeEdgeNavigation.test.tsx (13 tests) 733ms
+ ✓ src/components/fansubs/FansubVersionBrowser.test.tsx (32 tests) 1127ms
+   ✓ bounded public inventory continuation > merges 125 variants over explicit pages by episode_id/variant_id, retaining counts and neutral equal-number episodes  441ms
+ ✓ src/lib/api.anime-list.test.ts (3 tests) 26ms
+ ✓ src/lib/animeGridContext.test.ts (3 tests) 4ms
+ ✓ src/app/anime/[id]/page.test.tsx (19 tests) 20ms
+
+ Test Files  7 passed (7)
+      Tests  78 passed (78)
+   Start at  22:52:13
+   Duration  2.86s (transform 1.15s, setup 530ms, collect 2.34s, tests 1.97s, environment 1.48s, prepare 435ms)
+

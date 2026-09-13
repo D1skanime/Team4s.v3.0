@@ -1,0 +1,539 @@
+
+> team4s-frontend@0.1.0 test
+> vitest run src/components/anime/AnimeEdgeNavigation.test.tsx src/lib/api.anime-list.test.ts src/lib/animeGridContext.test.ts
+
+
+ RUN  v3.2.4 /app
+
+ ✓ src/lib/animeGridContext.test.ts (3 tests) 4ms
+ ❯ src/lib/api.anime-list.test.ts (3 tests | 3 failed) 35ms
+   × anime list AbortSignal transport > forwards the signal through the existing public/admin transport (admin=false) 28ms
+     → expected { cache: 'no-store' } to match object { …(2) }
+   × anime list AbortSignal transport > forwards the signal through the existing public/admin transport (admin=true) 2ms
+     → expected { cache: 'no-store', headers: {} } to match object { …(2) }
+(1 matching property omitted from actual)
+   × anime list AbortSignal transport > preserves revalidation and propagates abort without replacing it by a network error 5ms
+     → expected { next: { revalidate: 7 } } to deeply equal { …(2) }
+ ❯ src/components/anime/AnimeEdgeNavigation.test.tsx (13 tests | 9 failed) 2194ms
+   ✓ interaction-only grid navigation > makes zero mount requests and renders nothing for missing context 24ms
+   × interaction-only grid navigation > uses the first awaited result when the first click is slow 50ms
+     → expected "spy" to be called once with arguments: [ …(2) ][90m
+
+Number of calls: [1m0[22m
+[39m
+   × interaction-only grid navigation > shows the first slow mouseEnter preview and shares hover/focus/touch/click in-flight work 14ms
+     → expected true to be false // Object.is equality
+   × interaction-only grid navigation > shows the first slow focus preview and shares hover/focus/touch/click in-flight work 9ms
+     → expected true to be false // Object.is equality
+   × interaction-only grid navigation > accepts a click while a hover request is pending 9ms
+     → expected "spy" to be called once with arguments: [ …(2) ][90m
+
+Number of calls: [1m0[22m
+[39m
+   × interaction-only grid navigation > carries the actual page through three pages and the return path while retaining every filter 1013ms
+     → expected "spy" to be called once with arguments: [ …(2) ][90m
+
+Number of calls: [1m0[22m
+[39m
+
+Ignored nodes: comments, script, style
+[36m<html>[39m
+  [36m<head />[39m
+  [36m<body>[39m
+    [36m<div>[39m
+      [36m<div[39m
+        [33mclass[39m=[32m"_buttonWrapper_78a205"[39m
+      [36m>[39m
+        [36m<button[39m
+          [33maria-label[39m=[32m"Vorheriger Anime"[39m
+          [33mclass[39m=[32m"_navButton_78a205"[39m
+          [33mtype[39m=[32m"button"[39m
+        [36m>[39m
+          [36m<svg[39m
+            [33mclass[39m=[32m"lucide lucide-chevron-left"[39m
+            [33mfill[39m=[32m"none"[39m
+            [33mheight[39m=[32m"22"[39m
+            [33mstroke[39m=[32m"currentColor"[39m
+            [33mstroke-linecap[39m=[32m"round"[39m
+            [33mstroke-linejoin[39m=[32m"round"[39m
+            [33mstroke-width[39m=[32m"2"[39m
+            [33mviewBox[39m=[32m"0 0 24 24"[39m
+            [33mwidth[39m=[32m"22"[39m
+            [33mxmlns[39m=[32m"http://www.w3.org/2000/svg"[39m
+          [36m>[39m
+            [36m<path[39m
+              [33md[39m=[32m"m15 18-6-6 6-6"[39m
+            [36m/>[39m
+          [36m</svg>[39m
+          [36m<span>[39m
+            [0mZurück[0m
+          [36m</span>[39m
+        [36m</button>[39m
+      [36m</div>[39m
+      [36m<div[39m
+        [33mclass[39m=[32m"_buttonWrapper_78a205"[39m
+      [36m>[39m
+        [36m<button[39m
+          [33maria-label[39m=[32m"Nächster Anime"[39m
+          [33mclass[39m=[32m"_navButton_78a205"[39m
+          [33mtype[39m=[32m"button"[39m
+        [36m>[39m
+          [36m<span>[39m
+            [0mWeiter[0m
+          [36m</span>[39m
+          [36m<svg[39m
+            [33mclass[39m=[32m"lucide lucide-chevron-right"[39m
+            [33mfill[39m=[32m"none"[39m
+            [33mheight[39m=[32m"22"[39m
+            [33mstroke[39m=[32m"currentColor"[39m
+            [33mstroke-linecap[39m=[32m"round"[39m
+            [33mstroke-linejoin[39m=[32m"round"[39m
+            [33mstroke-width[39m=[32m"2"[39m
+            [33mviewBox[39m=[32m"0 0 24 24"[39m
+            [33mwidth[39m=[32m"22"[39m
+            [33mxmlns[39m=[32m"http://www.w3.org/2000/svg"[39m
+          [36m>[39m
+            [36m<path[39m
+              [33md[39m=[32m"m9 18 6-6-6-6"[39m
+            [36m/>[39m
+          [36m</svg>[39m
+        [36m</button>[39m
+      [36m</div>[39m
+    [36m</div>[39m
+  [36m</body>[39m
+[36m</html>[39m
+   ✓ interaction-only grid navigation > does not invent a neighbor at outer edge 1 11ms
+   ✓ interaction-only grid navigation > does not invent a neighbor at outer edge 6 14ms
+   ✓ interaction-only grid navigation > does not guess when the current ID is missing from the requested page 11ms
+   × interaction-only grid navigation > allows an explicit retry after a failed first click 1018ms
+     → expected "spy" to be called 1 times, but got 0 times
+
+Ignored nodes: comments, script, style
+[36m<html>[39m
+  [36m<head />[39m
+  [36m<body>[39m
+    [36m<div>[39m
+      [36m<div[39m
+        [33mclass[39m=[32m"_buttonWrapper_78a205"[39m
+      [36m>[39m
+        [36m<button[39m
+          [33maria-label[39m=[32m"Vorheriger Anime"[39m
+          [33mclass[39m=[32m"_navButton_78a205"[39m
+          [33mtype[39m=[32m"button"[39m
+        [36m>[39m
+          [36m<svg[39m
+            [33mclass[39m=[32m"lucide lucide-chevron-left"[39m
+            [33mfill[39m=[32m"none"[39m
+            [33mheight[39m=[32m"22"[39m
+            [33mstroke[39m=[32m"currentColor"[39m
+            [33mstroke-linecap[39m=[32m"round"[39m
+            [33mstroke-linejoin[39m=[32m"round"[39m
+            [33mstroke-width[39m=[32m"2"[39m
+            [33mviewBox[39m=[32m"0 0 24 24"[39m
+            [33mwidth[39m=[32m"22"[39m
+            [33mxmlns[39m=[32m"http://www.w3.org/2000/svg"[39m
+          [36m>[39m
+            [36m<path[39m
+              [33md[39m=[32m"m15 18-6-6 6-6"[39m
+            [36m/>[39m
+          [36m</svg>[39m
+          [36m<span>[39m
+            [0mZurück[0m
+          [36m</span>[39m
+        [36m</button>[39m
+      [36m</div>[39m
+      [36m<div[39m
+        [33mclass[39m=[32m"_buttonWrapper_78a205"[39m
+      [36m>[39m
+        [36m<button[39m
+          [33maria-label[39m=[32m"Nächster Anime"[39m
+          [33mclass[39m=[32m"_navButton_78a205"[39m
+          [33mtype[39m=[32m"button"[39m
+        [36m>[39m
+          [36m<span>[39m
+            [0mWeiter[0m
+          [36m</span>[39m
+          [36m<svg[39m
+            [33mclass[39m=[32m"lucide lucide-chevron-right"[39m
+            [33mfill[39m=[32m"none"[39m
+            [33mheight[39m=[32m"22"[39m
+            [33mstroke[39m=[32m"currentColor"[39m
+            [33mstroke-linecap[39m=[32m"round"[39m
+            [33mstroke-linejoin[39m=[32m"round"[39m
+            [33mstroke-width[39m=[32m"2"[39m
+            [33mviewBox[39m=[32m"0 0 24 24"[39m
+            [33mwidth[39m=[32m"22"[39m
+            [33mxmlns[39m=[32m"http://www.w3.org/2000/svg"[39m
+          [36m>[39m
+            [36m<path[39m
+              [33md[39m=[32m"m9 18 6-6-6-6"[39m
+            [36m/>[39m
+          [36m</svg>[39m
+        [36m</button>[39m
+      [36m</div>[39m
+    [36m</div>[39m
+  [36m</body>[39m
+[36m</html>[39m
+   × interaction-only grid navigation > aborts old context and ignores late resolve, including its finally and router continuation 10ms
+     → expected undefined to be true // Object.is equality
+   × interaction-only grid navigation > aborts old context and ignores late reject, including its finally and router continuation 5ms
+     → expected undefined to be true // Object.is equality
+   × interaction-only grid navigation > aborts when only the query changes, and when unmounted 6ms
+     → expected undefined to be true // Object.is equality
+
+⎯⎯⎯⎯⎯⎯ Failed Tests 12 ⎯⎯⎯⎯⎯⎯⎯
+
+ FAIL  src/lib/api.anime-list.test.ts > anime list AbortSignal transport > forwards the signal through the existing public/admin transport (admin=false)
+AssertionError: expected { cache: 'no-store' } to match object { …(2) }
+
+[32m- Expected[39m
+[31m+ Received[39m
+
+[2m  {[22m
+[2m    "cache": "no-store",[22m
+[32m-   "signal": AbortSignal {[39m
+[32m-     Symbol(kEvents): Map {},[39m
+[32m-     Symbol(events.maxEventTargetListeners): 10,[39m
+[32m-     Symbol(events.maxEventTargetListenersWarned): false,[39m
+[32m-     Symbol(kHandlers): Map {},[39m
+[32m-     Symbol(kAborted): false,[39m
+[32m-     Symbol(kReason): undefined,[39m
+[32m-     Symbol(kComposite): false,[39m
+[32m-   },[39m
+[2m  }[22m
+
+ ❯ src/lib/api.anime-list.test.ts:14:38
+     12|     expect(fetcher).toHaveBeenCalledTimes(1)
+     13|     expect(fetcher.mock.calls[0][0]).toContain(include_disabled ? '/ap…
+     14|     expect(fetcher.mock.calls[0][1]).toMatchObject({ signal, cache: 'n…
+       |                                      ^
+     15|     expect(fetcher.mock.calls[0][1]).not.toHaveProperty('next')
+     16|   })
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[1/12]⎯
+
+ FAIL  src/lib/api.anime-list.test.ts > anime list AbortSignal transport > forwards the signal through the existing public/admin transport (admin=true)
+AssertionError: expected { cache: 'no-store', headers: {} } to match object { …(2) }
+(1 matching property omitted from actual)
+
+[32m- Expected[39m
+[31m+ Received[39m
+
+[2m  {[22m
+[2m    "cache": "no-store",[22m
+[32m-   "signal": AbortSignal {[39m
+[32m-     Symbol(kEvents): Map {},[39m
+[32m-     Symbol(events.maxEventTargetListeners): 10,[39m
+[32m-     Symbol(events.maxEventTargetListenersWarned): false,[39m
+[32m-     Symbol(kHandlers): Map {},[39m
+[32m-     Symbol(kAborted): false,[39m
+[32m-     Symbol(kReason): undefined,[39m
+[32m-     Symbol(kComposite): false,[39m
+[32m-   },[39m
+[2m  }[22m
+
+ ❯ src/lib/api.anime-list.test.ts:14:38
+     12|     expect(fetcher).toHaveBeenCalledTimes(1)
+     13|     expect(fetcher.mock.calls[0][0]).toContain(include_disabled ? '/ap…
+     14|     expect(fetcher.mock.calls[0][1]).toMatchObject({ signal, cache: 'n…
+       |                                      ^
+     15|     expect(fetcher.mock.calls[0][1]).not.toHaveProperty('next')
+     16|   })
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[2/12]⎯
+
+ FAIL  src/lib/api.anime-list.test.ts > anime list AbortSignal transport > preserves revalidation and propagates abort without replacing it by a network error
+AssertionError: expected { next: { revalidate: 7 } } to deeply equal { …(2) }
+
+[32m- Expected[39m
+[31m+ Received[39m
+
+[2m  {[22m
+[2m    "next": {[22m
+[2m      "revalidate": 7,[22m
+[2m    },[22m
+[32m-   "signal": AbortSignal {[39m
+[32m-     Symbol(kEvents): Map {},[39m
+[32m-     Symbol(events.maxEventTargetListeners): 10,[39m
+[32m-     Symbol(events.maxEventTargetListenersWarned): false,[39m
+[32m-     Symbol(kHandlers): Map {},[39m
+[32m-     Symbol(kAborted): true,[39m
+[32m-     Symbol(kReason): AbortError {[39m
+[32m-       "message": "This operation was aborted",[39m
+[32m-     },[39m
+[32m-     Symbol(kComposite): false,[39m
+[32m-   },[39m
+[2m  }[22m
+
+ ❯ src/lib/api.anime-list.test.ts:24:38
+     22|     vi.stubGlobal('fetch', fetcher)
+     23|     await expect(getAnimeList({ page: 1 }, { signal: controller.signal…
+     24|     expect(fetcher.mock.calls[0][1]).toEqual({ signal: controller.sign…
+       |                                      ^
+     25|     expect(fetcher).toHaveBeenCalledTimes(1)
+     26|   })
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[3/12]⎯
+
+ FAIL  src/components/anime/AnimeEdgeNavigation.test.tsx > interaction-only grid navigation > uses the first awaited result when the first click is slow
+AssertionError: expected "spy" to be called once with arguments: [ …(2) ][90m
+
+Number of calls: [1m0[22m
+[39m
+ ❯ src/components/anime/AnimeEdgeNavigation.test.tsx:45:18
+     43|     expect(push).not.toHaveBeenCalled()
+     44|     await act(async () => pending.resolve(response(2)))
+     45|     expect(push).toHaveBeenCalledExactlyOnceWith(buildAnimeDetailHref(…
+       |                  ^
+     46|   })
+     47|   it.each(['mouseEnter', 'focus'] as const)('shows the first slow %s p…
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[4/12]⎯
+
+ FAIL  src/components/anime/AnimeEdgeNavigation.test.tsx > interaction-only grid navigation > shows the first slow mouseEnter preview and shares hover/focus/touch/click in-flight work
+ FAIL  src/components/anime/AnimeEdgeNavigation.test.tsx > interaction-only grid navigation > shows the first slow focus preview and shares hover/focus/touch/click in-flight work
+AssertionError: expected true to be false // Object.is equality
+
+[32m- Expected[39m
+[31m+ Received[39m
+
+[32m- false[39m
+[31m+ true[39m
+
+ ❯ src/components/anime/AnimeEdgeNavigation.test.tsx:54:43
+     52|     fireEvent[intent](next)
+     53|     fireEvent.focus(next); fireEvent.touchStart(next); fireEvent.mouse…
+     54|     expect(next.hasAttribute('disabled')).toBe(false)
+       |                                           ^
+     55|     expect(getAnimeList).toHaveBeenCalledTimes(1)
+     56|     await act(async () => pending.resolve(response(2)))
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[5/12]⎯
+
+ FAIL  src/components/anime/AnimeEdgeNavigation.test.tsx > interaction-only grid navigation > accepts a click while a hover request is pending
+AssertionError: expected "spy" to be called once with arguments: [ …(2) ][90m
+
+Number of calls: [1m0[22m
+[39m
+ ❯ src/components/anime/AnimeEdgeNavigation.test.tsx:69:18
+     67|     fireEvent.mouseEnter(next); fireEvent.click(next)
+     68|     await act(async () => pending.resolve(response(2)))
+     69|     expect(push).toHaveBeenCalledExactlyOnceWith(buildAnimeDetailHref(…
+       |                  ^
+     70|     expect(getAnimeList).toHaveBeenCalledTimes(2)
+     71|   })
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[6/12]⎯
+
+ FAIL  src/components/anime/AnimeEdgeNavigation.test.tsx > interaction-only grid navigation > carries the actual page through three pages and the return path while retaining every filter
+AssertionError: expected "spy" to be called once with arguments: [ …(2) ][90m
+
+Number of calls: [1m0[22m
+[39m
+
+Ignored nodes: comments, script, style
+[36m<html>[39m
+  [36m<head />[39m
+  [36m<body>[39m
+    [36m<div>[39m
+      [36m<div[39m
+        [33mclass[39m=[32m"_buttonWrapper_78a205"[39m
+      [36m>[39m
+        [36m<button[39m
+          [33maria-label[39m=[32m"Vorheriger Anime"[39m
+          [33mclass[39m=[32m"_navButton_78a205"[39m
+          [33mtype[39m=[32m"button"[39m
+        [36m>[39m
+          [36m<svg[39m
+            [33mclass[39m=[32m"lucide lucide-chevron-left"[39m
+            [33mfill[39m=[32m"none"[39m
+            [33mheight[39m=[32m"22"[39m
+            [33mstroke[39m=[32m"currentColor"[39m
+            [33mstroke-linecap[39m=[32m"round"[39m
+            [33mstroke-linejoin[39m=[32m"round"[39m
+            [33mstroke-width[39m=[32m"2"[39m
+            [33mviewBox[39m=[32m"0 0 24 24"[39m
+            [33mwidth[39m=[32m"22"[39m
+            [33mxmlns[39m=[32m"http://www.w3.org/2000/svg"[39m
+          [36m>[39m
+            [36m<path[39m
+              [33md[39m=[32m"m15 18-6-6 6-6"[39m
+            [36m/>[39m
+          [36m</svg>[39m
+          [36m<span>[39m
+            [0mZurück[0m
+          [36m</span>[39m
+        [36m</button>[39m
+      [36m</div>[39m
+      [36m<div[39m
+        [33mclass[39m=[32m"_buttonWrapper_78a205"[39m
+      [36m>[39m
+        [36m<button[39m
+          [33maria-label[39m=[32m"Nächster Anime"[39m
+          [33mclass[39m=[32m"_navButton_78a205"[39m
+          [33mtype[39m=[32m"button"[39m
+        [36m>[39m
+          [36m<span>[39m
+            [0mWeiter[0m
+          [36m</span>[39m
+          [36m<svg[39m
+            [33mclass[39m=[32m"lucide lucide-chevron-right"[39m
+            [33mfill[39m=[32m"none"[39m
+            [33mheight[39m=[32m"22"[39m
+            [33mstroke[39m=[32m"currentColor"[39m
+            [33mstroke-linecap[39m=[32m"round"[39m
+            [33mstroke-linejoin[39m=[32m"round"[39m
+            [33mstroke-width[39m=[32m"2"[39m
+            [33mviewBox[39m=[32m"0 0 24 24"[39m
+            [33mwidth[39m=[32m"22"[39m
+            [33mxmlns[39m=[32m"http://www.w3.org/2000/svg"[39m
+          [36m>[39m
+            [36m<path[39m
+              [33md[39m=[32m"m9 18 6-6-6-6"[39m
+            [36m/>[39m
+          [36m</svg>[39m
+        [36m</button>[39m
+      [36m</div>[39m
+    [36m</div>[39m
+  [36m</body>[39m
+[36m</html>[39m
+ ❯ src/components/anime/AnimeEdgeNavigation.test.tsx:81:40
+     79|       push.mockClear()
+     80|       fireEvent.click(screen.getByRole('button', { name: direction }))
+     81|       await waitFor(() => expect(push).toHaveBeenCalledExactlyOnceWith…
+       |                                        ^
+     82|     }
+     83|     for (const [params] of vi.mocked(getAnimeList).mock.calls) expect(…
+ ❯ runWithExpensiveErrorDiagnosticsDisabled node_modules/@testing-library/dom/dist/config.js:47:12
+ ❯ checkCallback node_modules/@testing-library/dom/dist/wait-for.js:124:77
+ ❯ Timeout.checkRealTimersCallback node_modules/@testing-library/dom/dist/wait-for.js:118:16
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[7/12]⎯
+
+ FAIL  src/components/anime/AnimeEdgeNavigation.test.tsx > interaction-only grid navigation > allows an explicit retry after a failed first click
+AssertionError: expected "spy" to be called 1 times, but got 0 times
+
+Ignored nodes: comments, script, style
+[36m<html>[39m
+  [36m<head />[39m
+  [36m<body>[39m
+    [36m<div>[39m
+      [36m<div[39m
+        [33mclass[39m=[32m"_buttonWrapper_78a205"[39m
+      [36m>[39m
+        [36m<button[39m
+          [33maria-label[39m=[32m"Vorheriger Anime"[39m
+          [33mclass[39m=[32m"_navButton_78a205"[39m
+          [33mtype[39m=[32m"button"[39m
+        [36m>[39m
+          [36m<svg[39m
+            [33mclass[39m=[32m"lucide lucide-chevron-left"[39m
+            [33mfill[39m=[32m"none"[39m
+            [33mheight[39m=[32m"22"[39m
+            [33mstroke[39m=[32m"currentColor"[39m
+            [33mstroke-linecap[39m=[32m"round"[39m
+            [33mstroke-linejoin[39m=[32m"round"[39m
+            [33mstroke-width[39m=[32m"2"[39m
+            [33mviewBox[39m=[32m"0 0 24 24"[39m
+            [33mwidth[39m=[32m"22"[39m
+            [33mxmlns[39m=[32m"http://www.w3.org/2000/svg"[39m
+          [36m>[39m
+            [36m<path[39m
+              [33md[39m=[32m"m15 18-6-6 6-6"[39m
+            [36m/>[39m
+          [36m</svg>[39m
+          [36m<span>[39m
+            [0mZurück[0m
+          [36m</span>[39m
+        [36m</button>[39m
+      [36m</div>[39m
+      [36m<div[39m
+        [33mclass[39m=[32m"_buttonWrapper_78a205"[39m
+      [36m>[39m
+        [36m<button[39m
+          [33maria-label[39m=[32m"Nächster Anime"[39m
+          [33mclass[39m=[32m"_navButton_78a205"[39m
+          [33mtype[39m=[32m"button"[39m
+        [36m>[39m
+          [36m<span>[39m
+            [0mWeiter[0m
+          [36m</span>[39m
+          [36m<svg[39m
+            [33mclass[39m=[32m"lucide lucide-chevron-right"[39m
+            [33mfill[39m=[32m"none"[39m
+            [33mheight[39m=[32m"22"[39m
+            [33mstroke[39m=[32m"currentColor"[39m
+            [33mstroke-linecap[39m=[32m"round"[39m
+            [33mstroke-linejoin[39m=[32m"round"[39m
+            [33mstroke-width[39m=[32m"2"[39m
+            [33mviewBox[39m=[32m"0 0 24 24"[39m
+            [33mwidth[39m=[32m"22"[39m
+            [33mxmlns[39m=[32m"http://www.w3.org/2000/svg"[39m
+          [36m>[39m
+            [36m<path[39m
+              [33md[39m=[32m"m9 18 6-6-6-6"[39m
+            [36m/>[39m
+          [36m</svg>[39m
+        [36m</button>[39m
+      [36m</div>[39m
+    [36m</div>[39m
+  [36m</body>[39m
+[36m</html>[39m
+ ❯ src/components/anime/AnimeEdgeNavigation.test.tsx:105:38
+    103|     await waitFor(() => expect(screen.getByRole('button', { name: 'Näc…
+    104|     fireEvent.click(screen.getByRole('button', { name: 'Nächster Anime…
+    105|     await waitFor(() => expect(push).toHaveBeenCalledTimes(1))
+       |                                      ^
+    106|   })
+    107|   it.each(['resolve', 'reject'] as const)('aborts old context and igno…
+ ❯ runWithExpensiveErrorDiagnosticsDisabled node_modules/@testing-library/dom/dist/config.js:47:12
+ ❯ checkCallback node_modules/@testing-library/dom/dist/wait-for.js:124:77
+ ❯ Timeout.checkRealTimersCallback node_modules/@testing-library/dom/dist/wait-for.js:118:16
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[8/12]⎯
+
+ FAIL  src/components/anime/AnimeEdgeNavigation.test.tsx > interaction-only grid navigation > aborts old context and ignores late resolve, including its finally and router continuation
+ FAIL  src/components/anime/AnimeEdgeNavigation.test.tsx > interaction-only grid navigation > aborts old context and ignores late reject, including its finally and router continuation
+AssertionError: expected undefined to be true // Object.is equality
+
+[32m- Expected:[39m 
+true
+
+[31m+ Received:[39m 
+undefined
+
+ ❯ src/components/anime/AnimeEdgeNavigation.test.tsx:115:29
+    113|     const signal = vi.mocked(getAnimeList).mock.calls[0][1]?.signal
+    114|     rerender(<AnimeEdgeNavigation currentAnimeID={5} gridQuery={query(…
+    115|     expect(signal?.aborted).toBe(true)
+       |                             ^
+    116|     fireEvent.click(screen.getByRole('button', { name: 'Nächster Anime…
+    117|     await act(async () => { if (outcome === 'resolve') old.resolve(res…
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[9/12]⎯
+
+ FAIL  src/components/anime/AnimeEdgeNavigation.test.tsx > interaction-only grid navigation > aborts when only the query changes, and when unmounted
+AssertionError: expected undefined to be true // Object.is equality
+
+[32m- Expected:[39m 
+true
+
+[31m+ Received:[39m 
+undefined
+
+ ❯ src/components/anime/AnimeEdgeNavigation.test.tsx:130:32
+    128|     const oldSignal = vi.mocked(getAnimeList).mock.calls[0][1]?.signal
+    129|     rerender(<AnimeEdgeNavigation currentAnimeID={3} gridQuery={query(…
+    130|     expect(oldSignal?.aborted).toBe(true)
+       |                                ^
+    131|     fireEvent.touchStart(screen.getByRole('button', { name: 'Nächster …
+    132|     const signal = vi.mocked(getAnimeList).mock.calls[1][1]?.signal
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[10/12]⎯
+
+
+ Test Files  2 failed | 1 passed (3)
+      Tests  12 failed | 7 passed (19)
+   Start at  22:49:32
+   Duration  3.03s (transform 358ms, setup 288ms, collect 665ms, tests 2.23s, environment 364ms, prepare 174ms)
+

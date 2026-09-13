@@ -1,0 +1,29 @@
+
+> team4s-frontend@0.1.0 test
+> vitest run src/components/fansubs/FansubVersionBrowser.test.tsx src/components/fansubs/__tests__/ActiveFansubStory.test.tsx
+
+
+ RUN  v3.2.4 /app
+
+ ✓ src/components/fansubs/__tests__/ActiveFansubStory.test.tsx (1 test) 31ms
+stderr | src/components/fansubs/FansubVersionBrowser.test.tsx > authoritative anime project navigation > keeps real episode titles and expansion behavior
+Warning: An update to FansubVersionBrowserContent inside a test was not wrapped in act(...).
+
+When testing, code that causes React state updates should be wrapped into act(...):
+
+act(() => {
+  /* fire events that update state */
+});
+/* assert on the output */
+
+This ensures that you're testing the behavior the user would see in the browser. Learn more at https://reactjs.org/link/wrap-tests-with-act
+    at FansubVersionBrowserContent (/app/src/components/fansubs/FansubVersionBrowser.tsx:93:40)
+    at FansubVersionBrowser (/app/src/components/fansubs/FansubVersionBrowser.tsx:87:108)
+
+ ✓ src/components/fansubs/FansubVersionBrowser.test.tsx (26 tests) 489ms
+
+ Test Files  2 passed (2)
+      Tests  27 passed (27)
+   Start at  22:43:24
+   Duration  1.31s (transform 138ms, setup 143ms, collect 457ms, tests 521ms, environment 609ms, prepare 104ms)
+
