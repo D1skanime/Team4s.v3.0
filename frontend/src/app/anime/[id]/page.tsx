@@ -1,3 +1,4 @@
+import type { Metadata } from 'next'
 import Link from 'next/link'
 import Image from 'next/image'
 import { cookies } from 'next/headers'
@@ -15,10 +16,8 @@ import { StatusBadge } from '@/components/anime/StatusBadge'
 import { CommentSection } from '@/components/comments/CommentSection'
 import { WatchlistAddButton } from '@/components/watchlist/WatchlistAddButton'
 import {
-  ApiError,
   AUTH_BEARER_TOKEN,
   AUTH_TOKEN_COOKIE_NAME,
-  getAnimeByID,
   getAnimeComments,
   getAnimeRelations,
   getAnimeFansubs,
@@ -30,12 +29,21 @@ import { buildFansubStoryGroups } from '@/lib/fansub-summary'
 import { getEmbySeriesUrlForAnime } from '@/lib/emby'
 import { getCoverUrl, shouldUseUnoptimizedImage } from '@/lib/utils'
 
+import { loadAnimeDetail } from './animeDetailData'
 import styles from './page.module.css'
 
 /** Props für die Anime-Detailseite mit URL-Parametern und optionalen Such-Parametern. */
 interface AnimeDetailPageProps {
   params: Promise<{ id: string }>
   searchParams?: Promise<{ from?: string | string[]; grid_query?: string | string[] }>
+}
+
+export async function generateMetadata({ params }: AnimeDetailPageProps): Promise<Metadata> {
+  const anime = await loadAnimeDetail((await params).id)
+  return {
+    title: `${anime.title} | Team4s`,
+    alternates: { canonical: `/anime/${anime.id}` },
+  }
 }
 
 /**
@@ -53,46 +61,8 @@ export default async function AnimeDetailPage({ params, searchParams }: AnimeDet
   const authTokenFromCookie = (cookieStore.get(AUTH_TOKEN_COOKIE_NAME)?.value || '').trim()
   const authToken = authTokenFromCookie || AUTH_BEARER_TOKEN
 
-  const resolvedParams = await params
-  const animeID = Number.parseInt(resolvedParams.id, 10)
-  if (Number.isNaN(animeID) || animeID <= 0) {
-    return (
-      <main className={styles.page}>
-        <div className={styles.errorPage}>
-          <p className={styles.backLink}>
-            <Link href="/anime">Zur Anime-Liste</Link>
-          </p>
-          <div className={styles.errorBox}>Ungültige Anime-ID.</div>
-        </div>
-      </main>
-    )
-  }
-
-  let response: Awaited<ReturnType<typeof getAnimeByID>> | null = null
-  let message: string | null = null
-  try {
-    response = await getAnimeByID(animeID)
-  } catch (error) {
-    message =
-      error instanceof ApiError && error.status === 404
-        ? 'Anime nicht gefunden.'
-        : 'Anime-Detailseite konnte nicht geladen werden.'
-  }
-
-  if (!response) {
-    return (
-      <main className={styles.page}>
-        <div className={styles.errorPage}>
-          <p className={styles.backLink}>
-            <Link href="/anime">Zur Anime-Liste</Link>
-          </p>
-          <div className={styles.errorBox}>{message ?? 'Anime-Detailseite konnte nicht geladen werden.'}</div>
-        </div>
-      </main>
-    )
-  }
-
-  const anime = response.data
+  const anime = await loadAnimeDetail((await params).id)
+  const animeID = anime.id
   const breadcrumbItems = [
     { label: 'Anime', href: '/anime' },
     { label: anime.title },

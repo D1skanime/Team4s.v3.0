@@ -18,7 +18,7 @@ const anime: AnimeDetail = {
   id: 22, slug: 'stored-slug', title: 'Ein ganz anderer Titel', type: 'tv',
   content_type: 'anime', status: 'done', view_count: 0, episodes: [],
 }
-beforeEach(() => vi.mocked(getAnimeByID).mockReset())
+beforeEach(() => { vi.mocked(getAnimeByID).mockReset() })
 
 describe('strict public anime detail resource', () => {
   it.each(['1abc', '1.5', '0', '-1', '9007199254740992', '1e2', '+1', ' 1', '1 ', '', '0x10', '１']) (
