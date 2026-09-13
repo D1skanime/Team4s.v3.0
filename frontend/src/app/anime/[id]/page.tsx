@@ -23,7 +23,7 @@ import {
 import { normalizeGridQuery } from '@/lib/animeGridContext'
 import { buildFansubStoryGroups } from '@/lib/fansub-summary'
 import { getEmbySeriesUrlForAnime } from '@/lib/emby'
-import { getCoverUrl, shouldUseUnoptimizedImage } from '@/lib/utils'
+import { resolveAnimeCoverURL } from '@/lib/animeBackdrops'
 
 import type { AnimeDetail } from '@/types/anime'
 
@@ -96,21 +96,20 @@ async function AnimeDetailContent({ anime, searchParams }: {
   const relationsResponse = relationsResult.status === 'fulfilled' ? relationsResult.value : null
   const episodeCount = anime.episodes.length
 
-  // Get cover image for banner background
-  const coverUrl = getCoverUrl(anime.cover_image)
-  const coverNeedsUnoptimized = shouldUseUnoptimizedImage(coverUrl)
+  // One already bounded source for the poster and every decorative cover consumer.
+  const coverUrl = resolveAnimeCoverURL(anime.cover_image)
 
   return (
     <AnimeMediaProvider key={anime.id} animeID={anime.id}>
       <main className={styles.page}>
       {/* Backdrop Rotator (Videos & Images from Jellyfin) */}
-      <AnimeBackdropRotator coverImage={anime.cover_image} />
+      <AnimeBackdropRotator fallbackImageURL={coverUrl} />
 
       {/* Banner with blurred background (fallback) */}
       <div className={styles.heroBanner}>
         <div
           className={styles.bannerImage}
-          style={{ backgroundImage: `url(${coverUrl})` }}
+          style={{ backgroundImage: `url("${coverUrl}")` }}
         />
         <div className={styles.bannerOverlay} />
       </div>
@@ -127,7 +126,7 @@ async function AnimeDetailContent({ anime, searchParams }: {
           <div className={styles.posterColumn}>
             <div
               className={styles.posterWrapper}
-              style={{ '--poster-image': `url(${coverUrl})` } as React.CSSProperties}
+              style={{ '--poster-image': `url("${coverUrl}")` } as React.CSSProperties}
             >
               <Image
                 src={coverUrl}
@@ -136,7 +135,7 @@ async function AnimeDetailContent({ anime, searchParams }: {
                 height={390}
                 className={styles.poster}
                 priority
-                unoptimized={coverNeedsUnoptimized}
+                unoptimized
               />
               {/* Stats Overlay on Poster */}
               <div className={styles.posterStats}>

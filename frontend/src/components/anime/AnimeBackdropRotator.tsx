@@ -1,22 +1,21 @@
 'use client'
 
-import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
+import { useCallback, useEffect, useRef, useState } from 'react'
 import { createPortal } from 'react-dom'
 
 import { normalizeBackdropImageURLs, normalizeThemeVideoURLs } from '@/lib/animeBackdrops'
-import { getCoverUrl } from '@/lib/utils'
 import { useAnimeMediaManifest } from './AnimeMediaProvider'
 import { shouldRenderEnableAudioButton } from './themeVideoAudio'
 
 import styles from './AnimeBackdropRotator.module.css'
 
 interface AnimeBackdropRotatorProps {
-  coverImage?: string
+  fallbackImageURL: string
 }
 
 const ROTATION_INTERVAL_MS = 9000
 
-export function AnimeBackdropRotator({ coverImage }: AnimeBackdropRotatorProps) {
+export function AnimeBackdropRotator({ fallbackImageURL }: AnimeBackdropRotatorProps) {
   const manifest = useAnimeMediaManifest()
   const [backdropUrls, setBackdropUrls] = useState<string[]>([])
   const [activeIndex, setActiveIndex] = useState(0)
@@ -25,8 +24,6 @@ export function AnimeBackdropRotator({ coverImage }: AnimeBackdropRotatorProps) 
   const [isThemeVideoMuted, setThemeVideoMuted] = useState(true)
   const [audioToggleError, setAudioToggleError] = useState<string | null>(null)
   const themeVideoRef = useRef<HTMLVideoElement | null>(null)
-
-  const fallbackUrl = useMemo(() => getCoverUrl(coverImage), [coverImage])
 
   const enableThemeVideoAudio = useCallback(async (showFailureMessage: boolean) => {
     const video = themeVideoRef.current
@@ -100,7 +97,7 @@ export function AnimeBackdropRotator({ coverImage }: AnimeBackdropRotatorProps) 
     }
   }, [showThemeVideo, activeThemeVideoUrl, isThemeVideoMuted, enableThemeVideoAudio])
 
-  const activeBackdrop = backdropUrls[activeIndex] || fallbackUrl
+  const activeBackdrop = backdropUrls[activeIndex] || fallbackImageURL
   const showEnableAudioButton = shouldRenderEnableAudioButton(showThemeVideo, activeThemeVideoUrl, isThemeVideoMuted)
 
   function finishThemeVideo(): void {

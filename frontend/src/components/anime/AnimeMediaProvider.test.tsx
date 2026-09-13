@@ -43,7 +43,7 @@ describe('AnimeMediaProvider', () => {
 
     const { container } = render(
       <AnimeMediaProvider animeID={1}>
-        <AnimeBackdropRotator coverImage="/cover.jpg" />
+        <AnimeBackdropRotator fallbackImageURL="/api/v1/media/image?item_id=cover&width=512&quality=75" />
         <AnimeTitleLogo title="Viper's Creed" />
         <AnimeInfoBanner />
       </AnimeMediaProvider>,
