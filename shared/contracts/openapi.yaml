@@ -7193,6 +7193,11 @@ paths:
     post:
       tags: [Releases]
       summary: Issue short-lived stream grant token for release playback
+      description: |
+        With variant_id, the path id is the canonical release version and the
+        selected variant must belong to that exact version. Entitlement and the
+        signed grant claim remain bound to the canonical release version.
+        Omitting variant_id preserves the existing version-or-variant compatibility lookup.
       operationId: createReleaseStreamGrant
       security:
         - bearerAuth: []
@@ -7204,6 +7209,14 @@ paths:
             type: integer
             format: int64
             minimum: 1
+        - name: variant_id
+          in: query
+          required: false
+          schema:
+            type: integer
+            format: int64
+            minimum: 1
+          description: Optional exact variant selector. Both IDs must be complete positive decimal integers; empty, duplicate or malformed selectors return 400. A foreign variant or missing selected stream returns 404 after authorization. The browser relay requires safe JavaScript integers.
       responses:
         "201":
           description: Stream grant created
@@ -7217,7 +7230,7 @@ paths:
               schema:
                 $ref: "#/components/schemas/ReleaseStreamGrantResponse"
         "400":
-          description: Invalid release id
+          description: Invalid release id or variant selector
           content:
             application/json:
               schema:
@@ -7231,7 +7244,7 @@ paths:
         "403":
           description: Effective release playback entitlement denied
         "404":
-          description: Release not found
+          description: Release or selected variant stream not found
           content:
             application/json:
               schema:
@@ -7252,6 +7265,11 @@ paths:
     get:
       tags: [Releases]
       summary: Stream episode release through backend proxy
+      description: |
+        With variant_id, the path id is the canonical release version and the
+        selected variant must belong to that exact version. Entitlement and the
+        signed grant claim remain bound to the canonical release version.
+        Omitting variant_id preserves the existing version-or-variant compatibility lookup.
       operationId: streamRelease
       parameters:
         - name: id
@@ -7267,6 +7285,14 @@ paths:
           schema:
             type: string
           description: Required short-lived release-version-bound grant token.
+        - name: variant_id
+          in: query
+          required: false
+          schema:
+            type: integer
+            format: int64
+            minimum: 1
+          description: Optional exact variant selector. Both IDs must be complete positive decimal integers; empty, duplicate or malformed selectors return 400. A foreign variant or missing selected stream returns 404 after authorization. The browser relay requires safe JavaScript integers.
       responses:
         "200":
           description: Stream payload
@@ -7279,6 +7305,12 @@ paths:
               schema:
                 type: string
                 format: binary
+        "400":
+          description: Invalid release id or variant selector
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
         "401":
           description: Authentication required
           content:
@@ -7292,7 +7324,7 @@ paths:
               schema:
                 $ref: "#/components/schemas/ErrorResponse"
         "404":
-          description: Release not found
+          description: Release or selected variant stream not found
           content:
             application/json:
               schema:

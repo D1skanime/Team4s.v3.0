@@ -36,7 +36,18 @@ function getApiBaseURL(): string {
 
 export async function GET(request: NextRequest, context: RouteContext): Promise<NextResponse> {
   const resolvedParams = await context.params
-  const releaseID = Number.parseInt((resolvedParams.id || '').trim(), 10)
+  const rawReleaseID = resolvedParams.id || ''
+  const releaseID = Number.parseInt(rawReleaseID.trim(), 10)
+  const selectors = request.nextUrl.searchParams.getAll('variant_id')
+  const hasSelector = request.nextUrl.searchParams.has('variant_id')
+  const variantID = hasSelector ? Number(selectors[0]) : undefined
+  if (hasSelector && (
+    selectors.length !== 1 || !/^\d+$/.test(selectors[0]) ||
+    !Number.isSafeInteger(variantID) || (variantID ?? 0) <= 0 ||
+    !/^\d+$/.test(rawReleaseID) || !Number.isSafeInteger(releaseID)
+  )) {
+    return NextResponse.json({ error: { message: 'ungültige Wiedergabeauswahl' } }, { status: 400 })
+  }
   if (!Number.isFinite(releaseID) || releaseID <= 0) {
     return NextResponse.json({ error: { message: 'ungültige release id' } }, { status: 400 })
   }
@@ -59,6 +70,8 @@ export async function GET(request: NextRequest, context: RouteContext): Promise<
     ''
   ).trim()
   const streamParams = new URLSearchParams()
+  if (variantID !== undefined) streamParams.set('variant_id', String(variantID))
+  const grantPath = `/api/v1/releases/${releaseID}/grant${variantID !== undefined ? `?variant_id=${variantID}` : ''}`
   if (/^\d+$/.test(startTimeTicks)) {
     streamParams.set('startTimeTicks', startTimeTicks)
   }
@@ -66,7 +79,7 @@ export async function GET(request: NextRequest, context: RouteContext): Promise<
   let relayTarget = await resolveStreamRelayTarget({
     apiBaseURL,
     streamPath,
-    grantPath: `/api/v1/releases/${releaseID}/grant`,
+    grantPath,
     providedGrant,
     accessToken: tokenFromCookie,
     fallbackAccessToken: AUTH_BEARER_TOKEN,
@@ -97,7 +110,7 @@ export async function GET(request: NextRequest, context: RouteContext): Promise<
     const unauthorizedRecoveryTarget = await resolveStreamRelayTarget({
       apiBaseURL,
       streamPath,
-      grantPath: `/api/v1/releases/${releaseID}/grant`,
+      grantPath,
       providedGrant: '',
       accessToken: relayTarget.authorizationToken && refreshTokenFromCookie ? '' : tokenFromCookie,
       fallbackAccessToken: relayTarget.authorizationToken && refreshTokenFromCookie ? '' : AUTH_BEARER_TOKEN,
