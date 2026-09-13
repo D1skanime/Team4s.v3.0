@@ -1,6 +1,6 @@
 'use client'
 
-import { useCallback, useEffect, useState } from 'react'
+import { useCallback, useEffect, useRef, useState } from 'react'
 
 import { AUTH_SESSION_CHANGED_EVENT, getAuthSessionSnapshot, logoutActiveAuthSession } from '@/lib/api'
 
@@ -10,6 +10,8 @@ export interface AuthSessionState {
    * This is deliberately always empty and never carries a runtime token.
    */
   authToken: ''
+  /** Rechecks the captured owner synchronously, including changes before React commits. */
+  isCurrentSession: () => boolean
   accountIdentity: number | null
   accountGeneration: number
   hasAccessToken: boolean
@@ -18,7 +20,9 @@ export interface AuthSessionState {
   isClientInitialized: boolean
 }
 
-function readAuthSessionState(isClientInitialized: boolean): AuthSessionState {
+type AuthSessionValues = Omit<AuthSessionState, 'isCurrentSession'>
+
+function readAuthSessionState(isClientInitialized: boolean): AuthSessionValues {
   const snapshot = getAuthSessionSnapshot()
   return {
     authToken: '',
@@ -32,19 +36,23 @@ function readAuthSessionState(isClientInitialized: boolean): AuthSessionState {
 }
 
 export function useAuthSession(): AuthSessionState {
-  const [state, setState] = useState<AuthSessionState>(() => readAuthSessionState(false))
+  const [state, setState] = useState<AuthSessionValues>(() => readAuthSessionState(false))
+
+  const currentSession = useRef(state)
 
   useEffect(() => {
     const syncAuthState = (event?: Event) => {
       const next = readAuthSessionState(true)
-      setState((previous) => ({
+      const updated = {
         ...next,
         // With unreadable metadata an auth event is the only safe account boundary.
         // Focus and ordinary rotation of a known account do not invalidate consumers.
-        accountGeneration: previous.accountGeneration + (
+        accountGeneration: currentSession.current.accountGeneration + (
           event?.type === AUTH_SESSION_CHANGED_EVENT && next.accountIdentity === null ? 1 : 0
         ),
-      }))
+      }
+      currentSession.current = updated
+      setState(updated)
     }
     syncAuthState()
 
@@ -61,7 +69,15 @@ export function useAuthSession(): AuthSessionState {
     }
   }, [])
 
-  return state
+  const hasSession = state.hasAccessToken || state.hasRefreshToken
+  const isCurrentSession = useCallback(() => {
+    const current = currentSession.current
+    return current.accountIdentity === state.accountIdentity
+      && current.accountGeneration === state.accountGeneration
+      && (current.hasAccessToken || current.hasRefreshToken) === hasSession
+  }, [state.accountIdentity, state.accountGeneration, hasSession])
+
+  return { ...state, isCurrentSession }
 }
 
 export function useLogoutAuthSession(): () => Promise<void> {

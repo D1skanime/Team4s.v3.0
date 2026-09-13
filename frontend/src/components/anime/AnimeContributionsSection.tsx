@@ -4,6 +4,7 @@ import { useState, useEffect } from 'react'
 
 import type { AnimeContributionGroup } from '@/types/contributions'
 import { getAnimeContributions } from '@/lib/api'
+import { Button } from '@/components/ui/Button'
 import { GroupContributionBlock } from './GroupContributionBlock'
 
 import styles from './AnimeContributionsSection.module.css'
@@ -13,8 +14,13 @@ interface AnimeContributionsSectionProps {
 }
 
 export function AnimeContributionsSection({ animeID }: AnimeContributionsSectionProps) {
+  return <AnimeContributionsContent key={animeID} animeID={animeID} />
+}
+
+function AnimeContributionsContent({ animeID }: AnimeContributionsSectionProps) {
   const [groups, setGroups] = useState<AnimeContributionGroup[]>([])
-  const [loading, setLoading] = useState(true)
+  const [status, setStatus] = useState<'loading' | 'ready' | 'error'>('loading')
+  const [retryGeneration, setRetryGeneration] = useState(0)
   const [expandedGroupId, setExpandedGroupId] = useState<number | null>(null)
 
   useEffect(() => {
@@ -25,32 +31,37 @@ export function AnimeContributionsSection({ animeID }: AnimeContributionsSection
         const data = await getAnimeContributions(animeID)
         if (!cancelled) {
           setGroups(data.groups)
+          setStatus('ready')
         }
       } catch {
-        // Fehler werden still ignoriert — Bereich wird einfach nicht angezeigt
-      } finally {
-        if (!cancelled) {
-          setLoading(false)
-        }
+        if (!cancelled) setStatus('error')
       }
     }
 
-    load()
+    void load()
 
     return () => {
       cancelled = true
     }
-  }, [animeID])
+  }, [animeID, retryGeneration])
 
-  if (loading) {
-    return null
+  function retry() {
+    setStatus('loading')
+    setRetryGeneration((generation) => generation + 1)
   }
 
   return (
-    <section className={styles.section}>
+    <section className={styles.section} aria-label="Mitwirkende Gruppen">
       <h2 className={styles.heading}>Mitwirkende Gruppen</h2>
-      {groups.length === 0 ? (
-        <p className={styles.empty}>Noch keine Mitwirkenden eingetragen.</p>
+      {status === 'loading' ? (
+        <p className={styles.status} role="status">Mitwirkende Gruppen werden geladen…</p>
+      ) : status === 'error' ? (
+        <div>
+          <p className={styles.status} role="alert">Mitwirkende Gruppen konnten nicht geladen werden.</p>
+          <Button variant="secondary" size="sm" onClick={retry}>Erneut versuchen</Button>
+        </div>
+      ) : groups.length === 0 ? (
+        <p className={styles.status} role="status">Noch keine Mitwirkenden eingetragen.</p>
       ) : (
         <div className={styles.groupList}>
           {groups.map((group) => (

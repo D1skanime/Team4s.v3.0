@@ -8,11 +8,11 @@
   font-size: 1.1rem;
   font-weight: 600;
   margin-bottom: 1rem;
-  color: var(--color-text-primary, #e0e0e0);
+  color: var(--color-white);
 }
 
-.empty {
-  color: var(--color-text-secondary, #999);
+.status {
+  color: var(--color-white);
   font-size: 0.9rem;
 }
 

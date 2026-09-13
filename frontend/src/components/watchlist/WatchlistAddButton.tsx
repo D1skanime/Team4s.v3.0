@@ -22,11 +22,11 @@ interface WatchlistAddButtonProps {
 type WatchlistStatus = 'unknown' | 'loading' | 'present' | 'absent' | 'error'
 
 export function WatchlistAddButton(props: WatchlistAddButtonProps) {
-  const { hasAccessToken, hasRefreshToken, accountIdentity, accountGeneration } = useAuthSession()
+  const { hasAccessToken, hasRefreshToken, accountIdentity, accountGeneration, isCurrentSession } = useAuthSession()
   const hasAuthSession = hasAccessToken || hasRefreshToken
   // A different owner gets a fresh action lifecycle, including all pending callbacks.
   const owner = JSON.stringify([props.animeID, accountIdentity, accountGeneration, hasAuthSession])
-  return <WatchlistAction key={owner} {...props} hasAuthSession={hasAuthSession} />
+  return <WatchlistAction key={owner} {...props} hasAuthSession={hasAuthSession} isCurrentSession={isCurrentSession} />
 }
 
 function WatchlistAction({
@@ -34,7 +34,8 @@ function WatchlistAction({
   className,
   activeClassName,
   hasAuthSession,
-}: WatchlistAddButtonProps & { hasAuthSession: boolean }) {
+  isCurrentSession,
+}: WatchlistAddButtonProps & { hasAuthSession: boolean; isCurrentSession: () => boolean }) {
   const [status, setStatus] = useState<WatchlistStatus>('unknown')
   const [isSubmitting, setIsSubmitting] = useState(false)
   const [message, setMessage] = useState<string | null>(null)
@@ -48,9 +49,9 @@ function WatchlistAction({
     setIsError(false)
     try {
       await getWatchlistEntry(animeID)
-      if (generation === requestGeneration.current) setStatus('present')
+      if (generation === requestGeneration.current && isCurrentSession()) setStatus('present')
     } catch (error) {
-      if (generation !== requestGeneration.current) return
+      if (generation !== requestGeneration.current || !isCurrentSession()) return
       if (error instanceof ApiError && error.status === 404) {
         setStatus('absent')
       } else {
@@ -59,7 +60,7 @@ function WatchlistAction({
         setMessage('Watchliststatus konnte nicht geladen werden. Bitte erneut prüfen.')
       }
     }
-  }, [animeID])
+  }, [animeID, isCurrentSession])
 
   useEffect(() => {
     if (hasAuthSession) void checkStatus()
@@ -67,7 +68,7 @@ function WatchlistAction({
   }, [hasAuthSession, checkStatus])
 
   async function handleToggle() {
-    if (!hasAuthSession || isSubmitting || (status !== 'present' && status !== 'absent')) return
+    if (!hasAuthSession || !isCurrentSession() || isSubmitting || (status !== 'present' && status !== 'absent')) return
 
     const generation = ++requestGeneration.current
     try {
@@ -76,21 +77,21 @@ function WatchlistAction({
       setIsError(false)
       if (status === 'present') {
         await removeWatchlistEntry(animeID)
-        if (generation !== requestGeneration.current) return
+        if (generation !== requestGeneration.current || !isCurrentSession()) return
         setStatus('absent')
         setMessage('Aus Watchlist entfernt.')
       } else {
         await addWatchlistEntry(animeID)
-        if (generation !== requestGeneration.current) return
+        if (generation !== requestGeneration.current || !isCurrentSession()) return
         setStatus('present')
         setMessage('Zur Watchlist hinzugefügt.')
       }
     } catch (error) {
-      if (generation !== requestGeneration.current) return
+      if (generation !== requestGeneration.current || !isCurrentSession()) return
       setIsError(true)
       setMessage(error instanceof ApiError ? error.message : 'Watchlist-Aktion fehlgeschlagen.')
     } finally {
-      if (generation === requestGeneration.current) setIsSubmitting(false)
+      if (generation === requestGeneration.current && isCurrentSession()) setIsSubmitting(false)
     }
   }
 
