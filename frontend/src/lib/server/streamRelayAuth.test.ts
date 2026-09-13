@@ -200,3 +200,15 @@ describe('resolveStreamRelayTarget', () => {
     expect(result.refreshedSession).toBeNull()
   })
 })
+
+
+describe('release selector preservation at the shared auth seam', () => {
+  it('keeps variant_id while adding a provided grant to an existing query', async () => {
+    const result = await resolveStreamRelayTarget({
+      apiBaseURL: 'http://backend.fixture', streamPath: '/api/v1/releases/10/stream?variant_id=100&startTimeTicks=500', grantPath: '/api/v1/releases/10/grant?variant_id=100', providedGrant: 'grant+10', accessToken: '', refreshToken: '',
+      fetchImpl: async () => { throw new Error('provided grant must not fetch') },
+    })
+    const target = new URL(result.targetURL)
+    expect(Object.fromEntries(target.searchParams)).toEqual({ variant_id: '100', startTimeTicks: '500', grant: 'grant+10' })
+  })
+})
