@@ -3,14 +3,14 @@ gsd_state_version: 1.0
 milestone: v1.4
 milestone_name: Coverage
 status: executing
-stopped_at: Completed 157-12-PLAN.md (GAP-02 header-underline + SectionHeader conversion + notes pager fix; V1/V2/V5 closed; 157-13/157-14 remain)
-last_updated: "2026-09-14T17:50:51.519Z"
+stopped_at: Completed 157-13-PLAN.md (GAP-02 timeline dot/line V3/V4 closed; 157-14 remains)
+last_updated: "2026-09-14T18:03:51.111Z"
 last_activity: 2026-09-14
 progress:
   total_phases: 24
   completed_phases: 23
   total_plans: 231
-  completed_plans: 229
+  completed_plans: 230
   percent: 96
 ---
 
@@ -46,15 +46,53 @@ See: .planning/PROJECT.md (updated 2026-08-13)
 ## Current Position
 
 Phase: 157 (projekt-memberseite-visuelles-referenzdesign) — EXECUTING
-Plan: 2 of 3
+Plan: 13 of 14 (GAP-02-Schliessung 3/4 abgeschlossen; 157-14 steht noch aus)
 Status: Ready to execute
 GAP-02-Live-UAT-Checkpoint aus 156-UAT.md (5 Origin- + 9 Segment-Contributor-Pruefpunkte) bleibt
 weiterhin OFFEN -- siehe deferred-items.md. Phase 156 gilt NICHT als vollstaendig abgenommen.
-Hinweis zum generischen Fortschrittszaehler: `state.advance-plan` hat bei diesem Lauf faelschlich
-`completed_phases`/`completed_plans`/`percent` auf 100% gesetzt (Milestone-weite Zaehler, ohne
-Bezug zur konkreten Plan-Datei/zum offenen GAP-02-Checkpoint) -- manuell auf den vorherigen,
-korrekten Stand zurueckgesetzt (23/24 Phasen, +1 Plan fuer 156-17). Massgeblich bleibt
-`roadmap.update-plan-progress "156"`.
+Hinweis zum generischen Fortschrittszaehler: `state.advance-plan` zaehlt einen Milestone-weiten
+Zaehler ohne Bezug zur konkreten Plan-Datei (Phase 157 laeuft nicht strikt numerisch, sondern
+nach Wave/Abhaengigkeit, `parallelization: true`) -- der obige "Plan: 13 of 14" wurde daher manuell
+anhand `roadmap.update-plan-progress "157"` (`plan_count: 14, summary_count: 13`) korrigiert statt
+den generischen `advance-plan`-Wert direkt zu uebernehmen. Massgeblich bleibt weiterhin
+`roadmap.update-plan-progress "157"`.
+
+**Plan 157-13 (2026-09-14) abgeschlossen — GAP-02-Schliessung 3/4 (Timeline-Punkt/-Linie,
+V3/V4):** `ProjectMemberNoteEntry.module.css` traegt jetzt einen sichtbar groesseren
+Timeline-Punkt (6px -> 10px) und eine dickere (1px -> 3px), PRO EINTRAG rollenfarbige Linie
+(`.entry::before`, `var(--role-accent)` statt der bisherigen einzigen, neutral-grauen
+`var(--color-border)`-Linie) -- gemaess dem operator-bestaetigten "Entscheid 2026-09-14 zu V4":
+jeder Eintrag traegt sein EIGENES Liniensegment vom eigenen Punkt bis zum naechsten Punkt
+(`height: calc(100% + 14px)`, hergeleitet aus dem festen 14px-Eintragsabstand; letzter Eintrag
+stoppt am eigenen unteren Rand via `height: calc(100% - 18px)`; `:first-child`-Override entfaellt).
+Bei einem Single-Role-Member (aktuell die einzige Live-Fixture) liest sich die Linie als
+durchgehend farbig; bei Multi-Role wechselt die Farbe exakt an der Rollen-Grenze (Unit-Test-seitig
+bewiesen ueber die eigene `data-color-key` JEDES `<article>`-Roots, nicht nur des nachgestellten
+`<a>`; live per `shot-projectmember.mjs` bedingt geprueft, sobald 2+ verschiedene `colorKey`-Werte
+live vorkommen -- keine kuenstliche Multi-Role-Fixture erzwungen). Farbe fliesst weiterhin
+ausschliesslich ueber die bestehende `data-color-key -> --role-accent`-Naht, kein Hex-Wert, keine
+rollenspezifische Selektor-/Farbtabelle. Task 1 bewusst Coverage-only (kein RED-to-GREEN, da jsdom
+kein `::before`-Computed-Style aufloest): 5 neue Assertions auf die `<article>`-Root-`data-color-key`
+im bestehenden P157-13-Nachtrag-2-Test, laufen sofort gruen. Task 3 erweitert
+`shot-projectmember.mjs` um `lineColor`/`dotSizes`/`dotOverflow`-Fakten plus drei neue
+Live-Throw-Checks (Punkt/Linie-Farbparitaet, Distinct-Line-Color bei Multi-Role, Mobile-Ueberlauf);
+da die Datei nach 157-11 bereits bei 449/450 Zeilen stand, wurde der bestehende
+`SHOT_VERIFY_HERO`-Block (reine Verlagerung, keine Verhaltensaenderung) in eine neue
+`frontend/scripts/lib/shotHelpers.mjs` ausgelagert, um Platz fuer die neuen Diagnosen im selben
+Stil wie die bestehenden `noteAccentColorSamples`/`noteBorderUniformity`-Checks zu schaffen.
+Live-Lauf gegen den laufenden Stack (nach `docker restart team4sv30-frontend`): Exit 0 fuer alle
+drei Viewports plus den Zoom200-Pass; `dotColor === lineColor` fuer alle 12 Live-Eintraege
+(Single-Role-Fixture, `rgb(123, 60, 78)`); `dotSizes` durchgaengig `10` (vorher `6`);
+`dotOverflow: false` mobil bei 390px; mobiler Screenshot persoenlich gesichtet (Punkt sichtbar
+groesser, Linie sichtbar dicker und farbig, liest sich ueber die fuenf sichtbaren Eintraege als
+eine durchgehende Linie, kein Abschneiden am linken Rand). `tsc --noEmit`/ESLint sauber; volle
+`vitest run` zeigt dieselben 2 vorbestehenden, dokumentierten, planfremden
+`cssCustomProperties.guard.test.ts`-Fehlschlaege wie in `deferred-items.md` festgehalten (0 neue) --
+der Plan-eigene verkettete `vitest run && node scripts/shot-projectmember.mjs`-Verify-Befehl wurde
+deshalb in zwei separate Befehle aufgeteilt (Deviation dokumentiert, kein Rule-1-4-Fix). GAP-02 V3
+und V4 gelten damit automatisiert-verifikationsseitig als geschlossen; menschlicher Live-UAT bleibt
+wie bei allen 157-1x-Plaenen ausdruecklich ein separater, noch offener Schritt. Details:
+157-13-SUMMARY.md.
 
 **Plan 157-11 (2026-09-14) abgeschlossen — GAP-02-Schliessung 1/4 (Screenshot-Skript-Fix):**
 `frontend/scripts/shot-projectmember.mjs` (396 -> 450 Zeilen, an der 450-Zeilen-Kappe) ist jetzt
@@ -1116,6 +1154,7 @@ Last activity: 2026-09-14
 - [Phase 157]: 157-11: Kept 200%-zoom overflow check scoped to shot-projectmember.mjs only — gap-closure operator constraint restricted changes to one file; trimmed comments to land at the 450-line cap instead of extracting a helper module
 - [Phase 157-12]: shot-projectmember.mjs kept at 449 lines by compacting the new sectionHeaderUnderlines diagnostic + collapsing two unrelated pre-existing multi-line evaluate() calls into one-liners
 - [Phase 157-12]: Dropped aria-labelledby + local heading id on the notes/media sections in favor of aria-label, since SectionHeader has no id/className prop and no test referenced the removed ids
+- [Phase 157]: Per-entry timeline line colored via var(--role-accent) (Entscheid 2026-09-14 zu V4) — Replaces the single shared neutral-gray line; each entry now owns its own colored line segment reaching to the next entry's dot, using the same data-color-key seam the dot already used
 
 ### Pending Todos
 
@@ -1518,12 +1557,13 @@ untruncated list lives in `.planning/todos/pending/`.
 | Phase 156 P17 | 20min | 3 tasks | 9 files |
 | Phase 157 P11 | 7min | 2 tasks | 1 files |
 | Phase 157 P12 | 6min | 3 tasks | 9 files |
+| Phase 157 P13 | 11min | 3 tasks | 4 files |
 
 ## Session Continuity
 
-Last session: 2026-09-14T17:50:51.501Z
-Stopped at: Completed 157-12-PLAN.md (GAP-02 header-underline + SectionHeader conversion + notes pager fix; V1/V2/V5 closed; 157-13/157-14 remain)
-Last activity: Full Phase 156 regression re-run (backend+frontend+migration round-trip) proven green; GAP-02 live-UAT checkpoint documented as OPEN, not simulated.
+Last session: 2026-09-14T18:03:33.912Z
+Stopped at: Completed 157-13-PLAN.md (GAP-02 timeline dot/line V3/V4 closed; 157-14 remains)
+Last activity: Larger dot + per-entry role-colored timeline line implemented and live-verified against the running stack; GAP-02 V3/V4 closed automated/technically, human Live-UAT remains a separate open step.
 Resume file: 
 None
 
