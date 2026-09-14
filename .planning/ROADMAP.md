@@ -1593,7 +1593,7 @@ ausdruecklich **kein** visuelles Redesign und kopiert keine Credits in Segmentta
 
 **Depends on:** Phase 155
 
-**Plans:** 17/17 plans complete
+**Plans:** 18/18 plans complete
 
 Plans:
 
@@ -1657,7 +1657,7 @@ Plans:
 
 **Post-hoc UAT gap-closure** (156-UAT.md, Live-UAT 2026-09-14, GAP-07)
 
-- [ ] 156-18-PLAN.md — Segment-Mitwirkende automatisch vorauswaehlen: neuer nullable Merker
+- [x] 156-18-PLAN.md — Segment-Mitwirkende automatisch vorauswaehlen: neuer nullable Merker
       `theme_segments.contributors_initialized_at`, zentrale Vorauswahl-Regel
       (`ensureThemeSegmentContributorsPreselectedTx`/`ensureThemeSegmentOriginAndContributorsTx`,
       komponiert mit dem unveraenderten `ensureThemeSegmentOriginTx` aus Plan 156-16), verdrahtet

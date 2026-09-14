@@ -3,15 +3,15 @@ gsd_state_version: 1.0
 milestone: v1.4
 milestone_name: Coverage
 status: executing
-stopped_at: "Completed 157-16-PLAN.md (GAP-03 F5 closed: ROADMAP.md P157-02/P157-04/P157-09 annotated as replaced-by-decision, DECISIONS.md 2026-09-14 entry added, 157-06 Task 4 flagged superseded, ProjectMemberSummary/SummaryBand orphaned components deleted; 157-VERIFICATION.md regeneration recorded as open follow-up; human Live-UAT sign-off remains OPEN)"
-last_updated: "2026-09-14T21:29:33.383Z"
+stopped_at: "Completed 156-18-PLAN.md (GAP-07 contributor preselection closed: central rule + 5 call-site swaps + migration 0165, live-verified against team4sv30-db and public API for releases 28/29; 156-UAT.md live-UAT checkpoint remains OPEN)"
+last_updated: "2026-09-14T22:10:12.518Z"
 last_activity: 2026-09-14
 progress:
   total_phases: 24
-  completed_phases: 23
+  completed_phases: 24
   total_plans: 234
-  completed_plans: 233
-  percent: 96
+  completed_plans: 234
+  percent: 100
 ---
 
 # Project State
@@ -41,12 +41,12 @@ Phase 135 and any future roadmap entries continue from here.
 See: .planning/PROJECT.md (updated 2026-08-13)
 
 **Core value:** Team4s presents fansub history and collaboration credibly while keeping identity, visibility, ownership, and permissions correct.
-**Current focus:** Phase 157 — projekt-memberseite-visuelles-referenzdesign
+**Current focus:** Phase 156 — segment-domain-konsistenz-und-oeffentliche-release-projektion
 
 ## Current Position
 
-Phase: 157 (projekt-memberseite-visuelles-referenzdesign) — EXECUTING
-Plan: 3 of 16
+Phase: 156 (segment-domain-konsistenz-und-oeffentliche-release-projektion) — EXECUTING
+Plan: 2 of 18
 dupliziertem ProjectMemberStickyNav; siehe 157-14-SUMMARY.md)
 Status: Ready to execute
 GAP-02-Live-UAT-Checkpoint aus 156-UAT.md (5 Origin- + 9 Segment-Contributor-Pruefpunkte) bleibt
@@ -1201,6 +1201,8 @@ Last activity: 2026-09-14
 - [Phase ?]: 157-15: Live focus-ring verification waits 200ms after a real Tab keypress before reading getComputedStyle to avoid a mid-CSS-transition box-shadow read
 - [Phase ?]: Phase 157 P157-02/P157-04/P157-09 sind durch Nutzerentscheid ersetzt/entfallen, nicht stillschweigend erfuellt
 - [Phase ?]: DECISIONS.md 2026-09-14 Eintrag ist auch die erste durable Aufzeichnung der 2026-09-13 Releases-Sektion-Entfernung (zuvor nur zitiert, nie geschrieben)
+- [Phase ?]: GAP-07 preselection composed via ensureThemeSegmentOriginAndContributorsTx, keeping ensureThemeSegmentOriginTx byte-identical
+- [Phase ?]: testsupport/phase117_postgres.go gained one ADD COLUMN IF NOT EXISTS line (Rule 3) to avoid breaking every Phase-117 test after the five call-site swaps
 
 ### Pending Todos
 
@@ -1607,11 +1609,12 @@ untruncated list lives in `.planning/todos/pending/`.
 | Phase 157 P14 | 11min | 4 tasks | 13 files |
 | Phase 157 P15 | 25min | 3 tasks | 14 files |
 | Phase 157 P16 | 15min | - tasks | - files |
+| Phase 156 P18 | 50min | 3 tasks | 16 files |
 
 ## Session Continuity
 
-Last session: 2026-09-14T19:27:04.345Z
-Stopped at: Completed 157-16-PLAN.md (GAP-03 F5 closed: ROADMAP.md P157-02/P157-04/P157-09 annotated as replaced-by-decision, DECISIONS.md 2026-09-14 entry added, 157-06 Task 4 flagged superseded, ProjectMemberSummary/SummaryBand orphaned components deleted; 157-VERIFICATION.md regeneration recorded as open follow-up; human Live-UAT sign-off remains OPEN)
+Last session: 2026-09-14T22:10:12.498Z
+Stopped at: Completed 156-18-PLAN.md (GAP-07 contributor preselection closed: central rule + 5 call-site swaps + migration 0165, live-verified against team4sv30-db and public API for releases 28/29; 156-UAT.md live-UAT checkpoint remains OPEN)
 Last activity: Larger dot + per-entry role-colored timeline line implemented and live-verified against the running stack; GAP-02 V3/V4 closed automated/technically, human Live-UAT remains a separate open step.
 Resume file: 
 None
