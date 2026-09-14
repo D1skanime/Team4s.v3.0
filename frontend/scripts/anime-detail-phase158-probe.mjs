@@ -4,10 +4,11 @@ import { mkdir, writeFile, rm } from 'node:fs/promises'
 import { chromium } from 'playwright'
 import { startFixtureServer, fixtureResponse, FIXTURE_ORIGIN, NEXT_ORIGIN, title, prettyPath } from './fixtures/anime-detail-fixture-server.mjs'
 
-const output = process.env.PHASE158_OUTPUT || '/tmp/team4s-phase158-evidence'
+const phase = process.env.PHASE159_FIXTURES === '1' ? 159 : 158
+const output = process.env.PHASE158_OUTPUT || '/tmp/team4s-phase' + phase + '-evidence'
 await mkdir(output, { recursive: true })
-assert.equal(process.cwd(), '/tmp/team4s-phase158-production')
-assert.equal(process.env.PHASE158_FIXTURES, '1')
+assert.equal(process.cwd(), '/tmp/team4s-phase' + phase + '-production')
+assert.equal(process.env.PHASE158_FIXTURES || process.env.PHASE159_FIXTURES, '1')
 assert.equal(process.env.API_INTERNAL_URL, FIXTURE_ORIGIN)
 // Reset only this guarded disposable build's fetch cache so every request count is cold.
 await rm('.next/cache/fetch-cache', { recursive: true, force: true })
@@ -15,6 +16,8 @@ const fixture = await startFixtureServer()
 const results = { measuredAt: new Date().toISOString(), mode: 'isolated-production', checks: [], geometry: [], requests: [], blockedExternal: [], fixtures: { next: NEXT_ORIGIN, api: FIXTURE_ORIGIN } }
 let browser
 const next = spawn(process.execPath, ['node_modules/next/dist/bin/next', 'start', '--hostname', '127.0.0.1', '--port', '3158'], { stdio: ['ignore', 'pipe', 'pipe'], env: { ...process.env, NODE_ENV: 'production' } })
+results.resources = { probePID: process.pid, nextPID: next.pid, cwd: process.cwd(), listeners: { next: NEXT_ORIGIN, fixture: FIXTURE_ORIGIN }, recordedAt: new Date().toISOString() }
+await writeFile(output + '/probe-resources.json', JSON.stringify(results.resources, null, 2))
 let serverLog = ''
 next.stdout.on('data', data => { serverLog += data })
 next.stderr.on('data', data => { serverLog += data })
@@ -38,9 +41,10 @@ function installSession({ access, refresh, id, expired = false }) {
   else localStorage.removeItem('team4s.auth.private_session_meta')
   window.dispatchEvent(new CustomEvent('team4s:auth-session-changed'))
 }
-async function createPage({ width = 390, session = 'none', watch = 404, contribution = 200, action = 500, comment = 500, refreshStatus = 200 } = {}) {
-  const context = await browser.newContext({ viewport: { width, height: width >= 768 ? 1024 : 844 }, userAgent: ua, serviceWorkers: 'block' })
+async function createPage({ width = 390, session = 'none', watch = 404, contribution = 200, action = 500, comment = 500, refreshStatus = 200, contextOptions = {}, init } = {}) {
+  const context = await browser.newContext({ viewport: { width, height: width >= 768 ? 1024 : 844 }, userAgent: ua, serviceWorkers: 'block', ...contextOptions })
   const state = { watch, contribution, action, comment, refreshStatus, requests: [], refreshes: 0, writes: 0, delayContribution: false }
+  if (init) await context.addInitScript(init)
   if (session !== 'none') await context.addInitScript(installSession, { access: session === 'refresh' ? '' : token(101, session === 'expired'), refresh: session === 'access' ? '' : 'fixture-refresh', id: 101, expired: session === 'expired' })
   await context.route('**/*', async route => {
     const request = route.request(), url = new URL(request.url()), method = request.method(), path = url.pathname
@@ -72,7 +76,8 @@ async function createPage({ width = 390, session = 'none', watch = 404, contribu
         if (state.contribution !== 200) return send(state.contribution, { error: { message: 'Fixture contribution failed' } })
       }
       if (method !== 'GET') { results.requests.push({ forbiddenWrite: method, path }); return route.abort() }
-      const result = fixtureResponse(path)
+      if (state.respond) { const handled = await state.respond(route, url); if (handled) return }
+      const result = fixtureResponse(path, url.searchParams)
       if (result.network) return route.abort()
       return send(result.status || 200, result.body)
     }
@@ -129,7 +134,7 @@ try {
     const { context, page } = await createPage({ width })
     try {
       await ready(page)
-      const toggle = page.locator('button[aria-controls="episode-versions-1"]')
+      const toggle = page.locator('button[aria-controls^="episode-versions-"]').first()
       for (const open of [false, true]) {
         if (open) await toggle.click()
         assert.equal(await toggle.getAttribute('aria-expanded'), String(open))
@@ -138,7 +143,7 @@ try {
         await page.keyboard.press('Tab')
         await page.keyboard.press('Shift+Tab')
         const geometry = await page.evaluate(() => {
-          const header = document.querySelector('button[aria-controls="episode-versions-1"]'), card = header.closest('li'), contribution = document.querySelector('section[aria-label="Mitwirkende Gruppen"] h2'), main = document.querySelector('main')
+          const header = document.querySelector('button[aria-controls^="episode-versions-"]'), card = header.closest('li'), contribution = document.querySelector('section[aria-label="Mitwirkende Gruppen"] h2'), main = document.querySelector('main')
           const colors = e => ({ color: getComputedStyle(e).color, background: getComputedStyle(e).backgroundColor })
           const control = document.querySelector('a[aria-label="Zum Gruppenbereich"]'), bounds = control.getBoundingClientRect(), focus = getComputedStyle(control), ancestors = []
           const ring = parseFloat(focus.outlineWidth) + parseFloat(focus.outlineOffset)
@@ -182,7 +187,7 @@ try {
       assert.equal(initialClient.filter(r => r.path.endsWith('/contributions')).length, 1)
       assert.equal(initialSSR.concat(initialClient).filter(r => r.path.includes('watchlist')).length, 0)
       const before = state.requests.length
-      await page.locator('button[aria-controls="episode-versions-1"]').click()
+      await page.locator('button[aria-controls^="episode-versions-"]').first().click()
       await page.getByRole('button', { name: 'Zweite Gruppe', exact: true }).click()
       await delay(500)
       assert.equal(state.requests.length, before)
@@ -299,6 +304,10 @@ try {
       assert.equal(await page.getByText('Kommentar gespeichert.', { exact: true }).count(), 0)
     } finally { await context.close() }
   })
+  if (phase === 159) {
+    const { runPhase159Checks } = await import('./anime-detail-phase159-probe.mjs')
+    await runPhase159Checks({ browser, createPage, ready, check, results, fixture, output, delay, ua })
+  }
 } finally {
   if (browser) await browser.close()
   next.kill('SIGTERM')
