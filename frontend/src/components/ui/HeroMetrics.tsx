@@ -1,11 +1,14 @@
 import type { ReactNode } from 'react'
 
+import { Button } from './Button'
 import { classNames } from './classNames'
 import styles from './ui.module.css'
 
 export interface HeroMetricItem {
   label: string
   value: ReactNode
+  onActivate?: () => void
+  activateLabel?: string
 }
 
 export interface HeroMetricsProps {
@@ -25,12 +28,28 @@ export function HeroMetrics({ items, ariaLabel, className, variant = 'default' }
           {variant === 'inline' ? (
             <>
               <dt className={styles.heroMetricInlineLabel}>{item.label}</dt>
-              <dd>{item.value}<span aria-hidden="true"> {item.label}</span></dd>
+              <dd>
+                {item.onActivate ? (
+                  <Button type="button" variant="text" onClick={item.onActivate} aria-label={item.activateLabel}>
+                    {item.value}<span aria-hidden="true"> {item.label}</span>
+                  </Button>
+                ) : (
+                  <>{item.value}<span aria-hidden="true"> {item.label}</span></>
+                )}
+              </dd>
             </>
           ) : (
             <>
               <dt>{item.label}</dt>
-              <dd>{item.value}</dd>
+              <dd>
+                {item.onActivate ? (
+                  <Button type="button" variant="text" onClick={item.onActivate} aria-label={item.activateLabel}>
+                    {item.value}
+                  </Button>
+                ) : (
+                  item.value
+                )}
+              </dd>
             </>
           )}
         </div>
