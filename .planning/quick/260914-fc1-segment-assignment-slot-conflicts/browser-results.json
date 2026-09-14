@@ -1,0 +1,136 @@
+{
+  "cases": 5,
+  "results": [
+    {
+      "width": 390,
+      "height": 844,
+      "session": "access",
+      "geometry": {
+        "viewport": 390,
+        "documentWidth": 390,
+        "tableWidth": 324,
+        "tableContainerWidth": 324
+      },
+      "fixtureWrites": 2,
+      "liveWrites": 0,
+      "refreshes": 0,
+      "checks": [
+        "range-only not active",
+        "409 keeps editor and values",
+        "no follow-up write after409",
+        "OP and ED UI flow",
+        "partial sync notice",
+        "actual episodes shown",
+        "no root overflow",
+        "no page errors",
+        "reopen uses assigned bounds",
+        "reload uses assigned bounds without writes"
+      ]
+    },
+    {
+      "width": 768,
+      "height": 1024,
+      "session": "access",
+      "geometry": {
+        "viewport": 768,
+        "documentWidth": 768,
+        "tableWidth": 688,
+        "tableContainerWidth": 688
+      },
+      "fixtureWrites": 2,
+      "liveWrites": 0,
+      "refreshes": 0,
+      "checks": [
+        "range-only not active",
+        "409 keeps editor and values",
+        "no follow-up write after409",
+        "OP and ED UI flow",
+        "partial sync notice",
+        "actual episodes shown",
+        "no root overflow",
+        "no page errors",
+        "reopen uses assigned bounds",
+        "reload uses assigned bounds without writes"
+      ]
+    },
+    {
+      "width": 1440,
+      "height": 900,
+      "session": "access",
+      "geometry": {
+        "viewport": 1440,
+        "documentWidth": 1440,
+        "tableWidth": 1136,
+        "tableContainerWidth": 1136
+      },
+      "fixtureWrites": 2,
+      "liveWrites": 0,
+      "refreshes": 0,
+      "checks": [
+        "range-only not active",
+        "409 keeps editor and values",
+        "no follow-up write after409",
+        "OP and ED UI flow",
+        "partial sync notice",
+        "actual episodes shown",
+        "no root overflow",
+        "no page errors",
+        "reopen uses assigned bounds",
+        "reload uses assigned bounds without writes"
+      ]
+    },
+    {
+      "width": 390,
+      "height": 844,
+      "session": "refresh-only",
+      "geometry": {
+        "viewport": 390,
+        "documentWidth": 390,
+        "tableWidth": 324,
+        "tableContainerWidth": 324
+      },
+      "fixtureWrites": 2,
+      "liveWrites": 0,
+      "refreshes": 1,
+      "checks": [
+        "range-only not active",
+        "409 keeps editor and values",
+        "no follow-up write after409",
+        "OP and ED UI flow",
+        "partial sync notice",
+        "actual episodes shown",
+        "no root overflow",
+        "no page errors",
+        "reopen uses assigned bounds",
+        "reload uses assigned bounds without writes"
+      ]
+    },
+    {
+      "width": 390,
+      "height": 844,
+      "session": "expired-access",
+      "geometry": {
+        "viewport": 390,
+        "documentWidth": 390,
+        "tableWidth": 324,
+        "tableContainerWidth": 324
+      },
+      "fixtureWrites": 2,
+      "liveWrites": 0,
+      "refreshes": 1,
+      "checks": [
+        "range-only not active",
+        "409 keeps editor and values",
+        "no follow-up write after409",
+        "OP and ED UI flow",
+        "partial sync notice",
+        "actual episodes shown",
+        "no root overflow",
+        "no page errors",
+        "reopen uses assigned bounds",
+        "reload uses assigned bounds without writes"
+      ]
+    }
+  ],
+  "liveWrites": 0
+}

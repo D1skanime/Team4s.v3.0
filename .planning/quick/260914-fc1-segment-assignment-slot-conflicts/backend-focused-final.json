@@ -1,0 +1,27 @@
+{
+  "exit_code": 0,
+  "elapsed_seconds": 19.31,
+  "tests": {
+    "pass": 76,
+    "fail": 0,
+    "skip": 0
+  },
+  "command": [
+    "docker",
+    "exec",
+    "-e",
+    "TEAM4S_PHASE117_TEST_DSN=postgres://postgres@team4s-quick-fc1-final-db:5432/team4s_phase117_test_fc1?sslmode=disable",
+    "team4s-quick-fc1-final-go",
+    "go",
+    "test",
+    "-p",
+    "1",
+    "./internal/handlers",
+    "./internal/repository",
+    "-run",
+    "SegmentSlot|ThemeSegmentAssignmentsAndOverrides|AssignThemeSegmentToEpisodeRange|UpsertReleaseVersionGroupAutoAssign|CreateAnimeSegment_|UpdateAnimeSegment_|ThemeSegmentPlaybackResolution|GetAnimeSegmentByID_Hydrates|ListAnimeSegmentsAssignedEpisodes|TestSetThemeSegmentOrigin|TestLoadReleaseSegmentsQueryBudgetIsConstant",
+    "-count=1",
+    "-json"
+  ],
+  "memory": "Go1400MiB/GOMEMLIMIT800MiB/GOMAXPROCS2/-p1; PostgreSQL384MiB/tmpfs256MiB"
+}

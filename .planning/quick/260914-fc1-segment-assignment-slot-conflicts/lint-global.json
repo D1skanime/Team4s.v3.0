@@ -1,0 +1,16 @@
+{
+  "exit_code": 1,
+  "errors": 13,
+  "warnings": 328,
+  "errors_by_file": {
+    "/app/capture-responsive.cjs": 2,
+    "/app/src/app/admin/episode-versions/[versionId]/edit/useEpisodeNeighborNavigation.ts": 1,
+    "/app/src/app/admin/episode-versions/[versionId]/edit/useReleaseVersionMedia.ts": 1,
+    "/app/src/app/admin/fansubs/[id]/edit/GroupMemberFormModals.tsx": 1,
+    "/app/src/app/admin/fansubs/[id]/edit/GroupRolesTab.tsx": 1,
+    "/app/src/app/admin/groups/AdminGroupsClient.tsx": 4,
+    "/app/src/app/admin/roles/RoleCapabilityDetail.tsx": 1,
+    "/app/src/app/admin/users/tabs/CapabilityDetailRow.tsx": 1,
+    "/app/src/app/admin/users/tabs/CapabilityHistoryPanel.tsx": 1
+  }
+}

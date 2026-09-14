@@ -1,0 +1,30 @@
+[
+  {
+    "file": "backend/internal/repository/theme_segment_assignment_slots.go",
+    "matches": true
+  },
+  {
+    "file": "backend/internal/repository/theme_segment_assignments.go",
+    "matches": true
+  },
+  {
+    "file": "backend/internal/repository/admin_content_anime_themes.go",
+    "matches": true
+  },
+  {
+    "file": "backend/internal/repository/episode_import_repository_release_autoassign.go",
+    "matches": true
+  },
+  {
+    "file": "backend/internal/handlers/admin_content_anime_theme_segments.go",
+    "matches": true
+  },
+  {
+    "file": "frontend/src/app/admin/episode-versions/[versionId]/edit/SegmenteTab.tsx",
+    "matches": true
+  },
+  {
+    "file": "frontend/src/app/admin/episode-versions/[versionId]/edit/SegmenteTab.formHelpers.ts",
+    "matches": true
+  }
+]

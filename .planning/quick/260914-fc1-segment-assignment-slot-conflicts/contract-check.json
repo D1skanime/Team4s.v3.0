@@ -1,0 +1,6 @@
+{
+  "canonical_openapi_parse": "pass",
+  "added_schema_count": 9,
+  "added_internal_references_resolved": 40,
+  "focused_contract": "new blocks parsed; pre-existing global syntax errors documented in CONSUMERS.md"
+}
