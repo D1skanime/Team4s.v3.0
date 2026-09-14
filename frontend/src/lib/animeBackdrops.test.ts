@@ -89,7 +89,7 @@ describe('bounded anime image delivery', () => {
     vi.stubGlobal('fetch', fetcher)
     const source = '/covers/missing-404.jpg'
     const output = resolveAnimeCoverURL(source)
-    expect(url(output).pathname).toBe(source + '/display')
+    expect(url(output).pathname).toBe(source.replace('/covers/', '/covers/display/'))
     expect(output).not.toBe(source)
     expect(fetcher).not.toHaveBeenCalled()
   })

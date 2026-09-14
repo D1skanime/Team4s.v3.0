@@ -4,7 +4,7 @@ import path from 'node:path'
 import { tmpdir } from 'node:os'
 import sharp from 'sharp'
 import { GET, HEAD } from './route'
-import { GET as original } from '../route'
+import { GET as original } from '@/app/covers/[file]/route'
 
 let directory: string
 let bytes: Buffer
@@ -20,7 +20,7 @@ afterAll(async () => rm(directory, { recursive: true, force: true }))
 function params(file = 'poster.png') { return { params: Promise.resolve({ file }) } }
 it('serves actual bounded cover bytes and HEAD while preserving original PNG/SVG routes', async () => {
   vi.spyOn(process, 'cwd').mockReturnValue(directory)
-  const request = new Request('http://local/covers/poster.png/display?display_width=512')
+  const request = new Request('http://local/covers/display/poster.png?display_width=512')
   const display = await GET(request, params())
   expect(display.status).toBe(200)
   expect((await sharp(Buffer.from(await display.arrayBuffer())).metadata()).width).toBe(512)
@@ -33,10 +33,10 @@ it('serves actual bounded cover bytes and HEAD while preserving original PNG/SVG
 })
 it('rejects invalid names, missing originals and absent/invalid display opt-in without fallback', async () => {
   vi.spyOn(process, 'cwd').mockReturnValue(directory)
-  const request = new Request('http://local/covers/poster.png/display?display_width=512')
+  const request = new Request('http://local/covers/display/poster.png?display_width=512')
   expect((await GET(request, params('../poster.png'))).status).toBe(404)
   expect((await GET(request, params('missing.png'))).status).toBe(404)
-  expect((await GET(new Request('http://local/covers/poster.png/display'), params())).status).toBe(400)
-  const head = await HEAD(new Request('http://local/covers/poster.png/display?display_width=1', { method: 'HEAD' }), params())
+  expect((await GET(new Request('http://local/covers/display/poster.png'), params())).status).toBe(400)
+  const head = await HEAD(new Request('http://local/covers/display/poster.png?display_width=1', { method: 'HEAD' }), params())
   expect(head.status).toBe(400); expect(await head.text()).toBe('')
 })

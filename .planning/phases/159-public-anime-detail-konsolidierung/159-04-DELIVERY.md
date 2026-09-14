@@ -13,7 +13,7 @@ Written before new product changes on 2026-09-14. The user authorized completing
 | Source / consumer | Existing owner and behavior | Additive bounded delivery |
 | --- | --- | --- |
 | Four anime cover uses, info logo/banner, backdrop | animeBackdrops resolver; source from existing DTO | Same-origin finished display URL; cover512, other slots760/1280/1920; no Image reoptimization |
-| /covers/{file} | Existing safe basename helper in route, public/covers file; static precedence | /covers/{file}/display?display_width=512; shared safe resolution, shared server transform |
+| /covers/{file} | Existing safe basename helper in route, public/covers file; static precedence | /covers/display/{file}?display_width=512; shared safe resolution, shared server transform |
 | /media/anime/** | Existing path/containment checks in /media/[...path]; read MEDIA_BASE_PATH; Range support | Same route plus display_width; local bounded reads, no HTTP source fetch |
 | /api/v1/media/files/{filename} | Existing generic frontend proxy to fixed internal API; backend filename lookup owns StoragePath | Exact GET/HEAD opt-in branch; existing proxy fetches original with display_width removed, then shared transform |
 | Provider /api/v1/media/image | Existing provider maxWidth/quality transport | Existing effective width/quality remains |
@@ -42,3 +42,5 @@ Sharp0.34.5 already exists under Next16.1.6; direct use declares that same versi
 Existing media/cover originals, backend services, env files and volumes are never rewritten. Fixtures live only in disposable test directories or isolated production source copies. Existing /media video206/416 and proxy tests remain regression gates. Real animated fixtures are verified in this plan; productive Next HTTP through a pre-existing static cover, private API files and animations is the explicit 15905 production gate before these findings are globally closed.
 
 Admission correction from cold-start review: four distinct parallel images must complete with 200 through two active transforms. At most eight waiters share the five-second request deadline; queued abort removes the waiter before source IO. Saturation beyond this finite bound returns 429.
+
+159-05 production-readiness correction: a child path below a real public cover file causes Next ENOTDIR before routing. The adapter is therefore /covers/display/{file}, with the original file route preserved. A real-byte fallback test also exposed the baseline corrupt placeholder.jpg; the anime display resolver uses a new neutral valid placeholder.png, leaving the historical JPG and other consumers unchanged.

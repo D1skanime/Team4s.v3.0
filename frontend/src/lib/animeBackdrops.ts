@@ -17,14 +17,14 @@ function isConfiguredApiURL(url: URL): boolean {
 function staticDisplayURL(url: URL, relative: boolean, width: number): string | null {
   const local = relative && url.origin === LOCAL_ORIGIN
   const apiFile = (local || isConfiguredApiURL(url)) && /^\/api\/v1\/media\/files\/[a-zA-Z0-9._-]+$/.test(url.pathname)
-  const cover = local && /^\/covers\/[a-zA-Z0-9._-]+(?:\/display)?$/.test(url.pathname)
+  const cover = local && /^\/covers\/(?:display\/)?[a-zA-Z0-9._-]+$/.test(url.pathname)
   const anime = local && url.pathname.startsWith('/media/anime/')
   if (!apiFile && !cover && !anime) return null
   // A completed display URL is idempotent. Other source queries have no documented semantics.
   if ([...url.searchParams.keys()].some((key) => key !== IMAGE_DISPLAY_QUERY)) return null
   if (url.search && parseImageDisplayWidth(url) === null) return null
   let pathname = url.pathname
-  if (cover && !pathname.endsWith('/display')) pathname += '/display'
+  if (cover && !pathname.startsWith('/covers/display/')) pathname = '/covers/display/' + pathname.slice('/covers/'.length)
   return pathname + '?' + IMAGE_DISPLAY_QUERY + '=' + width
 }
 
