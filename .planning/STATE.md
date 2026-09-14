@@ -3,14 +3,14 @@ gsd_state_version: 1.0
 milestone: v1.4
 milestone_name: Coverage
 status: executing
-stopped_at: Completed 157-11-PLAN.md (GAP-02 screenshot script settle-wait + 200%-zoom check; plans 157-12/13/14 depend on this)
-last_updated: "2026-09-14T16:58:37.666Z"
+stopped_at: Completed 157-12-PLAN.md (GAP-02 header-underline + SectionHeader conversion + notes pager fix; V1/V2/V5 closed; 157-13/157-14 remain)
+last_updated: "2026-09-14T17:50:51.519Z"
 last_activity: 2026-09-14
 progress:
   total_phases: 24
   completed_phases: 23
   total_plans: 231
-  completed_plans: 228
+  completed_plans: 229
   percent: 96
 ---
 
@@ -46,7 +46,7 @@ See: .planning/PROJECT.md (updated 2026-08-13)
 ## Current Position
 
 Phase: 157 (projekt-memberseite-visuelles-referenzdesign) — EXECUTING
-Plan: 2 of 14
+Plan: 2 of 3
 Status: Ready to execute
 GAP-02-Live-UAT-Checkpoint aus 156-UAT.md (5 Origin- + 9 Segment-Contributor-Pruefpunkte) bleibt
 weiterhin OFFEN -- siehe deferred-items.md. Phase 156 gilt NICHT als vollstaendig abgenommen.
@@ -1114,6 +1114,8 @@ Last activity: 2026-09-14
 - [Phase 156]: SegmentRoleLabel is computed inline inside applySegmentOriginCredits's existing filter loop (one call site) instead of a separate pass, keeping the two-condition filter and label derivation co-located
 - [Phase 156]: loadContributors (normal release contributor list) deliberately never calls SegmentCreditLabelForRoles, proven by a dedicated Postgres test asserting SegmentRoleLabel stays the Go zero value on every entry
 - [Phase 157]: 157-11: Kept 200%-zoom overflow check scoped to shot-projectmember.mjs only — gap-closure operator constraint restricted changes to one file; trimmed comments to land at the 450-line cap instead of extracting a helper module
+- [Phase 157-12]: shot-projectmember.mjs kept at 449 lines by compacting the new sectionHeaderUnderlines diagnostic + collapsing two unrelated pre-existing multi-line evaluate() calls into one-liners
+- [Phase 157-12]: Dropped aria-labelledby + local heading id on the notes/media sections in favor of aria-label, since SectionHeader has no id/className prop and no test referenced the removed ids
 
 ### Pending Todos
 
@@ -1515,11 +1517,12 @@ untruncated list lives in `.planning/todos/pending/`.
 | Phase 156 P16 | 35min | 3 tasks | 17 files |
 | Phase 156 P17 | 20min | 3 tasks | 9 files |
 | Phase 157 P11 | 7min | 2 tasks | 1 files |
+| Phase 157 P12 | 6min | 3 tasks | 9 files |
 
 ## Session Continuity
 
-Last session: 2026-09-14T16:58:37.648Z
-Stopped at: Completed 157-11-PLAN.md (GAP-02 screenshot script settle-wait + 200%-zoom check; plans 157-12/13/14 depend on this)
+Last session: 2026-09-14T17:50:51.501Z
+Stopped at: Completed 157-12-PLAN.md (GAP-02 header-underline + SectionHeader conversion + notes pager fix; V1/V2/V5 closed; 157-13/157-14 remain)
 Last activity: Full Phase 156 regression re-run (backend+frontend+migration round-trip) proven green; GAP-02 live-UAT checkpoint documented as OPEN, not simulated.
 Resume file: 
 None

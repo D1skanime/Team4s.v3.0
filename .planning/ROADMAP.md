@@ -1720,8 +1720,8 @@ Release-Notizliste, wo der Rollen-Header fachlich richtig ist.
 `157-CONTEXT.md` als Spezifikation in Worten hinterlegt. Eine zusaetzliche UI-SPEC-Runde ist damit
 nicht erforderlich; `plan-phase` mit `--skip-ui` fahren.
 
-**Plans:** 14 plans total (11/14 through gap-closure 157-11 executed; 157-12 through
-157-14 planned for GAP-02, not yet executed); phase-level human Live-UAT sign-off (157-06
+**Plans:** 14 plans total (12/14 executed through gap-closure 157-12; 157-13 and 157-14 still
+planned for GAP-02, not yet executed); phase-level human Live-UAT sign-off (157-06
 Task 4 checkpoint, plus a full re-run of 157-UAT.md GAP-02 points 1-9 after 157-11/12/13/14)
 remains OPEN — phase not yet marked done
 
@@ -1756,7 +1756,7 @@ Plans:
 "Entscheid 2026-09-14 zu V4"; Punkt 9 Browser-Zoom war zuvor ungeprueft)*
 
 - [x] 157-11-PLAN.md — Tooling: shot-projectmember.mjs scrollt/wartet vor dem fullPage-Screenshot, plus immer aktive 200%-Zoom-Overflow-Pruefung (schliesst Pruefpunkt 9)
-- [ ] 157-12-PLAN.md — V1+V2+V5: globale SectionHeader-Unterstreichung auf Projektseite + Texte-&-Notizen/Bilder-&-Medien-Kopfzeilen, redundanter "Alle N angezeigt"-Pagertext entfernt
+- [x] 157-12-PLAN.md — V1+V2+V5: globale SectionHeader-Unterstreichung auf Projektseite + Texte-&-Notizen/Bilder-&-Medien-Kopfzeilen, redundanter "Alle N angezeigt"-Pagertext entfernt
 - [ ] 157-13-PLAN.md — V3+V4: Timeline-Punkt deutlich groesser, Timeline-Linie deutlich dicker und je Eintrag in dessen eigener Rollenfarbe (Entscheid 2026-09-14 zu V4)
 - [ ] 157-14-PLAN.md — V6: Hero-Kennzahlen Beitraege/Medien als klickbare Sprungziele (additive HeroMetrics-API + geteilter scrollToSection-Helper), ProjectMemberStickyNav vollstaendig entfernt
 
