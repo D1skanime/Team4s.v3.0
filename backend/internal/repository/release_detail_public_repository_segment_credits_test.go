@@ -375,4 +375,63 @@ func TestReleaseDetailPublicSegmentOriginCredits(t *testing.T) {
 		require.Equal(t, CanonicalSegmentType("OP1"), found.Type)
 		require.Equal(t, "OP", found.Type)
 	})
+
+	t.Run("Test8: SegmentRoleLabel traegt die Karaoke-Beschriftung, RoleLabel bleibt die Release-Rolle (156-UAT.md GAP-06)", func(t *testing.T) {
+		originID := f.newReleaseVersion(t, ctx)
+		segmentID := f.newSegment(t, ctx, &originID)
+		f.assignSegment(t, ctx, segmentID, viewedReleaseVersionID)
+
+		memberID := f.allocID()
+		f.newContribution(t, ctx, memberID, originID, "translator")
+		f.selectContributor(t, ctx, segmentID, memberID)
+
+		segments, err := repo.loadReleaseSegments(ctx, f.animeID, f.fansubGroupID, viewedReleaseVersionID, "v1", "1", nil)
+		require.NoError(t, err)
+
+		found := findSegmentByID(segments, segmentID)
+		require.NotNil(t, found)
+		require.Len(t, found.Participants, 1)
+		require.Equal(t, "Karaoke-Übersetzung", found.Participants[0].SegmentRoleLabel)
+		require.Equal(t, "Übersetzung", found.Participants[0].RoleLabel, "RoleLabel muss unveraendert die Release-Rolle bleiben")
+	})
+
+	t.Run("Test9: Rollenkorrektur auf der Origin aendert SegmentRoleLabel sofort mit (kein Segment-Edit)", func(t *testing.T) {
+		originID := f.newReleaseVersion(t, ctx)
+		segmentID := f.newSegment(t, ctx, &originID)
+		f.assignSegment(t, ctx, segmentID, viewedReleaseVersionID)
+
+		memberID := f.allocID()
+		f.newContribution(t, ctx, memberID, originID, "translator")
+		f.selectContributor(t, ctx, segmentID, memberID)
+
+		before, err := repo.loadReleaseSegments(ctx, f.animeID, f.fansubGroupID, viewedReleaseVersionID, "v1", "1", nil)
+		require.NoError(t, err)
+		beforeSegment := findSegmentByID(before, segmentID)
+		require.NotNil(t, beforeSegment)
+		require.Len(t, beforeSegment.Participants, 1)
+		require.Equal(t, "Karaoke-Übersetzung", beforeSegment.Participants[0].SegmentRoleLabel)
+
+		_, err = pool.Exec(ctx, `UPDATE anime_contribution_roles SET role_code = 'timer' WHERE anime_contribution_id = (SELECT id FROM anime_contributions WHERE member_id = $1 AND release_version_id = $2)`, memberID, originID)
+		require.NoError(t, err)
+
+		after, err := repo.loadReleaseSegments(ctx, f.animeID, f.fansubGroupID, viewedReleaseVersionID, "v1", "1", nil)
+		require.NoError(t, err)
+		afterSegment := findSegmentByID(after, segmentID)
+		require.NotNil(t, afterSegment)
+		require.Len(t, afterSegment.Participants, 1)
+		require.Equal(t, "Karaoke-Timing", afterSegment.Participants[0].SegmentRoleLabel, "SegmentRoleLabel muss live nachziehen, ohne das Segment selbst anzufassen")
+	})
+
+	t.Run("Test10: loadContributors (normale Release-Mitwirkenden-Anzeige) liefert immer leeres SegmentRoleLabel", func(t *testing.T) {
+		originID := f.newReleaseVersion(t, ctx)
+		memberID := f.allocID()
+		f.newContribution(t, ctx, memberID, originID, "translator")
+
+		contributors, err := repo.loadContributors(ctx, originID)
+		require.NoError(t, err)
+		require.NotEmpty(t, contributors)
+		for _, c := range contributors {
+			require.Empty(t, c.SegmentRoleLabel, "loadContributors darf SegmentCreditLabelForRoles nie aufrufen -- die normale Anzeige bleibt unbeeinflusst")
+		}
+	})
 }
