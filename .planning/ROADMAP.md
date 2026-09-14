@@ -1646,7 +1646,7 @@ Plans:
 
 **Post-hoc UAT gap-closure** (156-UAT.md, Live-UAT 2026-09-14, GAP-06)
 
-- [ ] 156-17-PLAN.md — Segment-Credits mit Segment-Beschriftung: zentrale Rollen-Code-zu-Label-
+- [x] 156-17-PLAN.md — Segment-Credits mit Segment-Beschriftung: zentrale Rollen-Code-zu-Label-
       Zuordnung (`permissions/segment_credit_roles.go`, ausgelagert aus dem ueberlangen
       `permissions.go`), additives `SegmentRoleLabel`-Feld nur fuer Segment-Participants, ein-Zeilen-
       Frontend-Swap in `ThemeTimelineSegmentDetails.tsx`. Schliesst GAP-06 (Segment-Credit zeigte die

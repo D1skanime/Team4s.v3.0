@@ -3,14 +3,14 @@ gsd_state_version: 1.0
 milestone: v1.4
 milestone_name: Coverage
 status: executing
-stopped_at: Completed 156-16-PLAN.md (GAP-04/GAP-05 origin-sync closure; 156-UAT live checkpoint still pending)
-last_updated: "2026-09-14T15:37:10.030Z"
+stopped_at: Completed 156-17-PLAN.md (GAP-06 segment credit label closure; 156-UAT live checkpoint still pending)
+last_updated: "2026-09-14T15:58:34.503Z"
 last_activity: 2026-09-14
 progress:
   total_phases: 24
   completed_phases: 23
-  total_plans: 227
-  completed_plans: 226
+  total_plans: 228
+  completed_plans: 227
   percent: 96
 ---
 
@@ -45,11 +45,40 @@ See: .planning/PROJECT.md (updated 2026-08-13)
 
 ## Current Position
 
-Phase: 156 (segment-domain-konsistenz-und-oeffentliche-release-projektion) — 156-16 ausgefuehrt
-Plan: 16 of 16 (Post-hoc-UAT-Luecken-Schliessungsplan 156-16 abgeschlossen)
+Phase: 156 (segment-domain-konsistenz-und-oeffentliche-release-projektion) — 156-17 ausgefuehrt
+Plan: 17 of 17 (GAP-06-Schliessungsplan 156-17 abgeschlossen)
 Status: Ready to execute
 GAP-02-Live-UAT-Checkpoint aus 156-UAT.md (5 Origin- + 9 Segment-Contributor-Pruefpunkte) bleibt
 weiterhin OFFEN -- siehe deferred-items.md. Phase 156 gilt NICHT als vollstaendig abgenommen.
+Hinweis zum generischen Fortschrittszaehler: `state.advance-plan` hat bei diesem Lauf faelschlich
+`completed_phases`/`completed_plans`/`percent` auf 100% gesetzt (Milestone-weite Zaehler, ohne
+Bezug zur konkreten Plan-Datei/zum offenen GAP-02-Checkpoint) -- manuell auf den vorherigen,
+korrekten Stand zurueckgesetzt (23/24 Phasen, +1 Plan fuer 156-17). Massgeblich bleibt
+`roadmap.update-plan-progress "156"`.
+
+**Plan 156-17 (2026-09-14) abgeschlossen — GAP-06-Schliessung (Segment-Credits mit
+Segment-Beschriftung):** `permissions.SegmentCreditLabelForRoles` (neue Datei
+`segment_credit_roles.go`, `permissions.go` 950 -> 933 Zeilen) liefert jetzt die vom Auftraggeber
+am 2026-09-14 bestaetigte Rollen-Code -> Segment-Beschriftung-Zuordnung (z. B. `translator` ->
+„Karaoke-Übersetzung"), paarweise mit `SegmentCreditRoleCodes` in derselben Datei und per
+`require.ElementsMatch`-Test beidseitig deckungsgleich bewiesen. `PublicReleaseContributor` traegt
+ein additives `SegmentRoleLabel`-Feld (`omitempty`), gesetzt ausschliesslich in
+`applySegmentOriginCredits`s bestehender Filter-Schleife -- `loadContributors` (die normale
+„An diesem Release beteiligt"-Anzeige) ruft `SegmentCreditLabelForRoles` nie auf, bewiesen durch
+einen eigenen Test gegen echtes Postgres. `openapi.yaml`/TS-Typ tragen `segment_role_label`
+additiv (nicht in `required`); `ThemeTimelineSegmentDetails.tsx` rendert jetzt
+`participant.segment_role_label` statt `participant.role_label`, `ContributorsRow.tsx`/`.test.tsx`
+bytegleich unveraendert (leerer `git diff --stat`). Test-first (RED/GREEN) fuer alle drei Tasks;
+Backend-Suite: 10/10 neue/bestehende `TestReleaseDetailPublicSegmentOriginCredits`-Subtests gruen
+gegen eine isolierte Postgres-Testdatenbank, volle `internal/repository`-Suite zeigt dieselben 50
+vorbestehenden, umgebungsbedingten Fehlschlaege wie die 156-16-Baseline (0 neue). Frontend:
+`tsc --noEmit` sauber, `npx vitest run ThemeTimeline` 23/23 gruen, ESLint sauber. Beide Container
+(`team4sv30-backend`/`team4sv30-frontend`) neu gebaut; Live-`curl` gegen Release 40 bestaetigt im
+SELBEN Response beide geforderten woertlichen Werte: `segment_role_label: "Karaoke-Übersetzung"`
+fuer Segment 3 ("op")/Mitglied 8 ("Qc") UND `role_label: "Übersetzung"` fuer denselben Mitwirkenden
+im Top-Level-`contributors[]` (kein `segment_role_label` dort). Der gebuendelte
+`156-UAT.md`-Live-UAT-Checkpoint (GAP-02) wird durch diesen Plan AUSDRUECKLICH NICHT als bestanden
+behauptet -- er bleibt ein separater, offener Auftraggeber-Abnahmeschritt. Details: 156-17-SUMMARY.md.
 
 **Plan 156-16 (2026-09-14) abgeschlossen — GAP-04/GAP-05-Schliessung:** `ensureThemeSegmentOriginTx`
 (`theme_segment_origin_sync.go`) ist jetzt die EINE zentrale Origin-Gueltigkeitsregel, verdrahtet
@@ -1056,6 +1085,9 @@ Last activity: 2026-09-14
 - [Phase 157]: P157-13 Nachtrag 2 (mixed-role list) proven via a dedicated regression test in ProjectMemberNotesSection.test.tsx: distinct data-color-key per note's own role_color_key, both role-name chips, no large role header
 - [Phase ?]: Plan 157-10: CSS-only stretched-link pattern resolves nested-interactive markup without preventDefault/stopPropagation
 - [Phase 156]: ensureThemeSegmentOriginTx is the single central origin-validity rule reused by all three write call sites and migration 0164 — Prevents the GAP-04/GAP-05 root cause (origin only validated at explicit set-time) from recurring at any future write path
+- [Phase 156]: Relocated SegmentCreditRoleCodes verbatim into new segment_credit_roles.go (permissions.go 950->933 lines) instead of duplicating it, keeping the segment-relevant role list and its display-label map paired in one file
+- [Phase 156]: SegmentRoleLabel is computed inline inside applySegmentOriginCredits's existing filter loop (one call site) instead of a separate pass, keeping the two-condition filter and label derivation co-located
+- [Phase 156]: loadContributors (normal release contributor list) deliberately never calls SegmentCreditLabelForRoles, proven by a dedicated Postgres test asserting SegmentRoleLabel stays the Go zero value on every entry
 
 ### Pending Todos
 
@@ -1455,11 +1487,12 @@ untruncated list lives in `.planning/todos/pending/`.
 | Phase 157 P03 | 45min | 3 tasks | 5 files |
 | Phase 157 P10 | 27min | 3 tasks | 4 files |
 | Phase 156 P16 | 35min | 3 tasks | 17 files |
+| Phase 156 P17 | 20min | 3 tasks | 9 files |
 
 ## Session Continuity
 
-Last session: 2026-09-14T14:43:32.042Z
-Stopped at: Completed 156-16-PLAN.md (GAP-04/GAP-05 origin-sync closure; 156-UAT live checkpoint still pending)
+Last session: 2026-09-14T15:58:34.482Z
+Stopped at: Completed 156-17-PLAN.md (GAP-06 segment credit label closure; 156-UAT live checkpoint still pending)
 Last activity: Full Phase 156 regression re-run (backend+frontend+migration round-trip) proven green; GAP-02 live-UAT checkpoint documented as OPEN, not simulated.
 Resume file: 
 None
