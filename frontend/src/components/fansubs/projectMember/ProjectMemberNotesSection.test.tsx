@@ -176,6 +176,22 @@ describe('ProjectMemberNoteEntry', () => {
     expect(screen.queryByRole('heading', { name: 'Typesetting' })).toBeNull()
     expect(screen.queryByRole('heading', { name: 'Übersetzung' })).toBeNull()
     expect(screen.queryByText('Notiz zu Folge')).toBeNull()
+
+    // 157-13 GAP-02 V4 (Entscheid 2026-09-14): the CSS timeline line is a pseudo-element of the
+    // <article> root (.entry::before), not the trailing <a>, so it derives its color from the
+    // ARTICLE's own data-color-key -- not from the anchor's, which was already asserted above.
+    // This proves the DOM wiring the CSS per-entry line-color derivation depends on. The actual
+    // rendered pixel-color distinctness of the ::before line segment cannot be proven here: jsdom
+    // does not apply real stylesheet rules or resolve pseudo-element computed style (confirmed by
+    // an empty repo-wide search for getComputedStyle in any *.test.tsx file) -- it is proven live
+    // in shot-projectmember.mjs (Task 3 of plan 157-13) instead.
+    const entryRoots = screen.getAllByRole('article')
+    expect(entryRoots).toHaveLength(2)
+    expect(entryRoots[0].getAttribute('data-color-key')).toBe(boundedColorKey('#7b3c4e'))
+    expect(entryRoots[1].getAttribute('data-color-key')).toBe(boundedColorKey('#27664f'))
+    expect(entryRoots[0].getAttribute('data-color-key')).not.toBe(
+      entryRoots[1].getAttribute('data-color-key'),
+    )
   })
 
   it('renders no nested interactive markup even when the body contains a link', () => {
