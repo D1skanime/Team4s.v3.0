@@ -116,5 +116,15 @@ func autoAssignThemeSegmentsForNewReleaseVersion(ctx context.Context, tx pgx.Tx,
 	if _, err := tx.Exec(ctx, `INSERT INTO theme_segment_assignments (theme_segment_id, release_version_id) SELECT unnest($1::bigint[]), $2 ON CONFLICT (theme_segment_id, release_version_id) DO NOTHING`, toAssign, releaseVersionID); err != nil {
 		return fmt.Errorf("auto-assign segments release_version=%d: %w", releaseVersionID, err)
 	}
+	// Plan 156-16 (GAP-04/GAP-05): ein Segment, das hier seine erste Zuweisung erhaelt (NULL
+	// Origin, keine bisherigen Zuweisungen), bekommt sofort eine Origin. Ein Segment mit
+	// bereits gueltiger Origin bleibt unangetastet, selbst wenn diese neue Zuweisung eine
+	// niedrigere Episode traegt (Auftragspunkt 8) -- ensureThemeSegmentOriginTx entscheidet das
+	// zentral, nicht diese Schleife.
+	for _, segmentID := range toAssign {
+		if _, err := ensureThemeSegmentOriginTx(ctx, tx, segmentID); err != nil {
+			return fmt.Errorf("auto-assign segments release_version=%d: ensure origin segment=%d: %w", releaseVersionID, segmentID, err)
+		}
+	}
 	return nil
 }

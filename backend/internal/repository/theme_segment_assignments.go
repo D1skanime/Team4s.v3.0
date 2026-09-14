@@ -318,11 +318,25 @@ func (r *AdminContentRepository) assignThemeSegmentToEpisodeRangeTx(ctx context.
 		}
 	}
 
+	// Plan 156-16 (GAP-04/GAP-05): nach jeder Soll-Ist-Synchronisation die zentrale
+	// Origin-Gueltigkeitsregel anwenden -- eine gueltige Origin bleibt unangetastet, eine
+	// ungueltige/fehlende wird neu berechnet, mit atomarer Contributor-Bereinigung im selben
+	// Commit. Der unveraenderte Guard oberhalb (Zeile 132) hat den DB-Zugriff bereits VOR
+	// diesem Punkt fuer einen unvollstaendigen Bereich verhindert -- die Origin bleibt dadurch
+	// per Konstruktion ebenfalls unangetastet.
+	originOutcome, err := ensureThemeSegmentOriginTx(ctx, tx, segmentID)
+	if err != nil {
+		return nil, fmt.Errorf("assign theme segment to episode range segment=%d: ensure origin: %w", segmentID, err)
+	}
+
 	return &models.ThemeSegmentAssignmentSyncResult{
-		Added:               newlyAssigned,
-		Removed:             toRemove,
-		ProtectedByOverride: protectedByOverride,
-		SkippedConflicts:    skipped,
+		Added:                   newlyAssigned,
+		Removed:                 toRemove,
+		ProtectedByOverride:     protectedByOverride,
+		SkippedConflicts:        skipped,
+		OriginBefore:            originOutcome.Before,
+		OriginAfter:             originOutcome.After,
+		RemovedContributorCount: originOutcome.RemovedContributorCount,
 	}, nil
 }
 

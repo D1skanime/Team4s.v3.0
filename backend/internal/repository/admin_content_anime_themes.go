@@ -581,6 +581,19 @@ func (r *AdminContentRepository) CreateAnimeSegment(ctx context.Context, animeID
 		if _, err := assignThemeSegmentToReleaseVersionTx(ctx, tx, segID, currentReleaseVersionID); err != nil {
 			return nil, nil, err
 		}
+		// Plan 156-16 (GAP-05): eine neu angelegte Segment-Zuweisung ueber den impliziten
+		// Einzelzuweisungs-Pfad bekommt sofort eine Origin, ohne erzwungene Admin-Interaktion.
+		originOutcome, err := ensureThemeSegmentOriginTx(ctx, tx, segID)
+		if err != nil {
+			return nil, nil, fmt.Errorf("create anime segment anime=%d segment=%d: ensure origin: %w", animeID, segID, err)
+		}
+		if originOutcome.Changed {
+			rangeSync = &models.ThemeSegmentAssignmentSyncResult{
+				OriginBefore:            originOutcome.Before,
+				OriginAfter:             originOutcome.After,
+				RemovedContributorCount: originOutcome.RemovedContributorCount,
+			}
+		}
 	}
 
 	if err := r.syncThemeSegmentPlaybackSourceTx(ctx, tx, segID); err != nil {
