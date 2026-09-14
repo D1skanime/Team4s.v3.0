@@ -406,6 +406,7 @@ export function ReleaseVersionMediaSection({
         <div className={styles.mediaGrid}>
           {visibleItems.map((item) => {
             const badge = statusBadge(item)
+            const lastActivity = formatLastActivity(item.last_activity_at)
             return (
               <div key={item.id} className={`${styles.mediaCard} ${item.is_preview_candidate ? styles.mediaCardPreview : ''}`}>
                 <button type="button" className={styles.mediaCardOpen} onClick={() => openEditSheet(item)} aria-label={`${getAssetName(item)} ${(item.can_update ?? canUpdateMedia) ? 'bearbeiten' : 'ansehen'}${item.is_preview_candidate ? ', aktuelles Vorschaubild' : ''}`}>
@@ -425,20 +426,21 @@ export function ReleaseVersionMediaSection({
                   <span className={styles.mediaCardBody}>
                     <span className={styles.mediaName}>{getAssetName(item)}</span>
                     <Badge variant="muted" className={styles.mediaCategory}>{categoryLabel(item.category)}</Badge>
-                    {item.title && item.caption ? <span className={styles.helper}>{item.caption}</span> : null}
-                    <Badge variant={badge.variant} className={badge.className}>{badge.label}</Badge>
+                    {item.title && item.caption ? <span className={`${styles.helper} ${styles.mediaCaption}`}>{item.caption}</span> : null}
+                    <Badge variant={badge.variant} className={`${badge.className} ${styles.mediaStatus}`}>{badge.label}</Badge>
                     {item.review_state === 'confirmed' && item.visibility === 'oeffentlich' ? (
-                      <Badge variant="success">Öffentlich</Badge>
+                      <Badge variant="success" className={styles.mediaStatus}>Öffentlich</Badge>
                     ) : null}
-                    {formatLastActivity(item.last_activity_at) ? (
-                      <span className={styles.helper}>
-                        Letzte Aktivität: {formatLastActivity(item.last_activity_at)}
+                    {lastActivity ? (
+                      <span className={`${styles.helper} ${styles.mediaActivity}`}>
+                        Letzte Aktivität:
+                        <time dateTime={item.last_activity_at ?? undefined}>{lastActivity}</time>
                       </span>
                     ) : null}
                   </span>
                 </button>
                 {CATEGORY_ALLOWS_PREVIEW[item.category] && (item.can_update ?? canUpdateMedia) ? (
-                  <Button type="button" variant={item.is_preview_candidate ? 'success' : 'subtle'} size="sm" leftIcon={<Star size={14} aria-hidden="true" />} loading={previewSavingId === item.id} aria-pressed={item.is_preview_candidate} onClick={() => void handlePreviewChange(item, !item.is_preview_candidate)}>
+                  <Button type="button" className={styles.mediaPreviewAction} variant={item.is_preview_candidate ? 'success' : 'subtle'} size="sm" leftIcon={<Star size={14} aria-hidden="true" />} loading={previewSavingId === item.id} aria-pressed={item.is_preview_candidate} onClick={() => void handlePreviewChange(item, !item.is_preview_candidate)}>
                     {item.is_preview_candidate ? 'Vorschau entfernen' : 'Als Vorschau wählen'}
                   </Button>
                 ) : null}

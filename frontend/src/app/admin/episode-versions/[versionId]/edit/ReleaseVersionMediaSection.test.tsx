@@ -2,8 +2,6 @@
 
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
 import { cleanup, fireEvent, render, screen, waitFor, within } from '@testing-library/react'
-import { readFileSync } from 'node:fs'
-import { resolve } from 'node:path'
 
 import type {
   ReleaseVersionCapabilities,
@@ -26,7 +24,6 @@ const api = vi.hoisted(() => ({
 vi.mock('@/lib/api', () => ({ ApiError: class extends Error {}, ...api }))
 
 const NativeURL = URL
-const mediaSectionCSS = readFileSync(resolve(process.cwd(), 'src/app/admin/episode-versions/[versionId]/edit/ReleaseVersionMediaSection.module.css'), 'utf8')
 
 afterEach(() => {
   cleanup()
@@ -265,15 +262,43 @@ describe('ReleaseVersionMediaSection direct category upload', () => {
 })
 
 describe('ReleaseVersionMediaSection Phase 90 upload redesign', () => {
-  it('keeps the media-card opener reset and preview spacing outside the mobile query', () => {
-    const css = mediaSectionCSS
-    const mobileQuery = css.indexOf('@media (max-width: 760px)')
-    expect(css.indexOf('.mediaCardOpen')).toBeGreaterThan(-1)
-    expect(css.indexOf('.mediaCardOpen')).toBeLessThan(mobileQuery)
-    expect(css.indexOf('.mediaCard > :global(button:last-child)')).toBeLessThan(mobileQuery)
-    expect(css).toContain('width: 100%')
-    expect(css).toContain('font: inherit')
+  it('keeps full long gallery text in the existing detail drawer without a data request', () => {
+    const title = 'Karaoke und Typesetting: ausführliche Dokumentation der letzten Überarbeitung mit mehreren Schildern'
+    const caption = 'Diese ausführliche Beschreibung erklärt die Korrekturen an Schildern, Übergängen und Farben. '.repeat(6)
+    const media = makeMediaState({ items: [makeItem({ title, caption, last_activity_at: '2026-09-14T12:59:00Z' })] })
+    renderSection(media)
+    const opener = screen.getByRole('button', { name: `${title} bearbeiten` })
+    expect(within(opener).getByText(title)).not.toBeNull()
+    expect(within(opener).getByText(caption.trim())).not.toBeNull()
+    expect(opener.querySelector('time')?.dateTime).toBe('2026-09-14T12:59:00Z')
+    fireEvent.click(opener)
+    const dialog = within(screen.getByRole('dialog', { name: 'Medium bearbeiten' }))
+    expect(dialog.getByLabelText('Titel')).toHaveProperty('value', title)
+    expect(dialog.getByLabelText('Beschreibung')).toHaveProperty('value', caption)
+    expect(media.reload).not.toHaveBeenCalled()
+    expect(media.patchItem).not.toHaveBeenCalled()
   })
+
+  it('keeps all eleven mixed-category cards with only their permitted preview actions', () => {
+    const items = Array.from({ length: 11 }, (_, index) => makeItem({
+      id: index + 1,
+      title: `Medium ${index + 1}`,
+      category: index < 3 ? 'screenshot' : index === 3 ? 'typesetting_karaoke' : index < 7 ? 'fun_outtake' : 'other',
+      is_preview_candidate: index === 3,
+    }))
+    const media = makeMediaState({ items })
+    renderSection(media)
+    expect(screen.getByRole('heading', { name: 'Vorhandene Medien · 11' })).not.toBeNull()
+    expect(screen.getAllByRole('button', { name: /Medium \d+ bearbeiten/ })).toHaveLength(11)
+    expect(screen.getAllByRole('button', { name: 'Als Vorschau wählen' })).toHaveLength(3)
+    expect(screen.getAllByRole('button', { name: 'Vorschau entfernen' })).toHaveLength(1)
+    const withoutPreview = screen.getByRole('button', { name: 'Medium 5 bearbeiten' }).parentElement!
+    expect(within(withoutPreview).getAllByRole('button')).toHaveLength(1)
+    fireEvent.click(within(withoutPreview).getByRole('button'))
+    expect(screen.getByRole('dialog', { name: 'Medium bearbeiten' })).not.toBeNull()
+    expect(media.patchItem).not.toHaveBeenCalled()
+  })
+
   it('renders one category button group and no category dropdown', () => {
     renderSection(makeMediaState())
 
