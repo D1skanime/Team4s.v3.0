@@ -3,15 +3,15 @@ gsd_state_version: 1.0
 milestone: v1.4
 milestone_name: Coverage
 status: executing
-stopped_at: Completed 157-13-PLAN.md (GAP-02 timeline dot/line V3/V4 closed; 157-14 remains)
-last_updated: "2026-09-14T18:03:51.111Z"
+stopped_at: "Completed 157-14-PLAN.md (GAP-02 fully closed: 157-11/12/13/14 all executed; human Live-UAT sign-off remains OPEN)"
+last_updated: "2026-09-14T18:19:10.251Z"
 last_activity: 2026-09-14
 progress:
   total_phases: 24
-  completed_phases: 23
+  completed_phases: 24
   total_plans: 231
-  completed_plans: 230
-  percent: 96
+  completed_plans: 231
+  percent: 100
 ---
 
 # Project State
@@ -45,17 +45,57 @@ See: .planning/PROJECT.md (updated 2026-08-13)
 
 ## Current Position
 
-Phase: 157 (projekt-memberseite-visuelles-referenzdesign) — EXECUTING
-Plan: 13 of 14 (GAP-02-Schliessung 3/4 abgeschlossen; 157-14 steht noch aus)
-Status: Ready to execute
+Phase: 157 (projekt-memberseite-visuelles-referenzdesign) — ALLE 14 PLAENE AUSGEFUEHRT
+Plan: 14 of 14 (GAP-02-Schliessung 4/4 abgeschlossen mit 157-14 -- V6: Hero-Sprungziele statt
+dupliziertem ProjectMemberStickyNav; siehe 157-14-SUMMARY.md)
+Status: Alle Plaene automatisiert verifiziert; menschlicher Live-UAT-Sign-off steht noch aus.
 GAP-02-Live-UAT-Checkpoint aus 156-UAT.md (5 Origin- + 9 Segment-Contributor-Pruefpunkte) bleibt
 weiterhin OFFEN -- siehe deferred-items.md. Phase 156 gilt NICHT als vollstaendig abgenommen.
+Phase 157 gilt ebenfalls NICHT als vollstaendig abgenommen: der menschliche Live-UAT-Checkpoint
+(157-06 Task 4, plus ein voller Nachlauf der 157-UAT.md GAP-02-Punkte 1-9 nach 157-11/12/13/14)
+ist eine separate, noch ausstehende Auftraggeber-Abnahmehandlung -- keine Agentenpruefung ersetzt
+sie.
 Hinweis zum generischen Fortschrittszaehler: `state.advance-plan` zaehlt einen Milestone-weiten
-Zaehler ohne Bezug zur konkreten Plan-Datei (Phase 157 laeuft nicht strikt numerisch, sondern
-nach Wave/Abhaengigkeit, `parallelization: true`) -- der obige "Plan: 13 of 14" wurde daher manuell
-anhand `roadmap.update-plan-progress "157"` (`plan_count: 14, summary_count: 13`) korrigiert statt
-den generischen `advance-plan`-Wert direkt zu uebernehmen. Massgeblich bleibt weiterhin
-`roadmap.update-plan-progress "157"`.
+Zaehler ohne Bezug zur konkreten Plan-Datei; bei diesem Lauf landete er zufaellig korrekt bei
+14/14, weil Phase 157 tatsaechlich ihr letztes Plan-Dokument erreicht hat. Massgeblich fuer den
+tatsaechlichen Stand bleibt weiterhin `roadmap.update-plan-progress "157"`
+(`plan_count: 14, summary_count: 14, status: Complete` -- das bezieht sich NUR auf ausgefuehrte
+Plandateien, nicht auf menschliche Abnahme).
+
+**Plan 157-14 (2026-09-14) abgeschlossen — GAP-02-Schliessung 4/4 (V6: Hero-Sprungziele statt
+dupliziertem ProjectMemberStickyNav):** Die Hero-Kennzahlen „Beiträge"/„Medien" sind jetzt echte,
+tastaturbedienbare In-Page-Sprungziele zu `#texte`/`#bilder`, verdrahtet ueber einen neuen additiven
+`onActivate`/`activateLabel`-Zweig auf der globalen `HeroMetrics`-Primitive und eine neue additive
+`variant="text"` auf der globalen `Button`-Primitive (gemaess CLAUDE.mds Frontend-UI-Regel: ein
+NEUES interaktives Element geht IMMER ueber `Button`, keine native `<button>`-Ausnahme). „Folgen"
+bleibt bewusst reiner Text (keine zugehoerige Sektion). Beide Primitive-Erweiterungen sind additiv
+bewiesen: die anderen 6 `HeroMetrics`-Aufrufstellen und Buttons 6 bestehende Varianten sind per
+`git diff --stat`/eigenen Tests bytegleich unveraendert. Der duplizierte schmale
+`ProjectMemberStickyNav`-Tab-Card ("Texte & Notizen · 12"/"Bilder & Medien · 2" ein zweites Mal) ist
+vollstaendig aus Code UND Seite entfernt -- Komponente, CSS-Modul UND eigene Testdatei geloescht
+(`grep -rc` bestaetigt 0 Treffer im gesamten `frontend/src`-Baum). Ein neuer geteilter
+`frontend/src/lib/scrollToSection.ts`-Helfer (wortwoertlich aus dem bisherigen
+`ProjectMemberStickyNav`-Mechanismus extrahiert, inkl. `prefers-reduced-motion`-Beachtung) ersetzt
+die vorherige lokale Implementierung -- keine Kopie. Test-first (RED `4ad41cd3` -> GREEN
+`3b887f90`/`4fdede64`/`f17d9012`): 19/19 neue/bestehende Assertions gruen. `page.test.tsx` verliert
+die jetzt falsche "Schnellnavigation"-Assertion, gewinnt positive/negative Pruefungen auf beide
+neuen `aria-label`-Texte. `shot-projectmember.mjs` bekommt einen `stickyNavPresent`-Fakt mit
+werfendem Check (muss `false` sein) plus einen echten Klick-und-Scroll-Live-Beweis (Klick auf „Zu
+Texte & Notizen springen" bewegt `#texte` nachweislich an den Viewport-Rand). Live-Lauf gegen den
+neu gestarteten Stack: Exit 0 fuer alle drei Viewports plus den Zoom200-Pass, `stickyNavPresent:
+false` ueberall, `heroButtonLabels` enthaelt jetzt „12 Beiträge"/„2 Medien" als echte Button-Labels,
+`zoom200Overflow: false`, keine Konsolenfehler; Screenshot persoenlich gesichtet -- Kennzahlen sehen
+weiterhin wie reiner Inline-Text aus (kein sichtbares Button-Chrome), keine zweite Tab-Card mehr
+unter dem Hero. Volle Regression: `tsc --noEmit` sauber, ESLint sauber, volle `vitest run` gruen
+(321/323 Dateien, 2703/2708 Tests) mit denselben 2 vorbestehenden, dokumentierten,
+planfremden `cssCustomProperties.guard.test.ts`-Fehlschlaegen (0 neue). Zwei dokumentierte
+Rule-3-Testinfra-Fixes (jsdom implementiert `window.matchMedia` nicht) plus zwei
+Praezisierungshinweise (Umbenennung geloeschter Dateinamen in Kommentaren; HTML-Entity-Escaping
+`&amp;` in `renderToStaticMarkup`-Assertions) -- keine Produktionsverhaltensaenderung. GAP-02 gilt
+damit ueber alle vier Schliessungsplaene (157-11..14) hinweg automatisiert-verifikationsseitig als
+vollstaendig geschlossen; der menschliche Live-UAT-Checkpoint (157-06 Task 4 + voller
+157-UAT.md-Nachlauf) bleibt ausdruecklich ein separater, noch offener Schritt. Details:
+157-14-SUMMARY.md.
 
 **Plan 157-13 (2026-09-14) abgeschlossen — GAP-02-Schliessung 3/4 (Timeline-Punkt/-Linie,
 V3/V4):** `ProjectMemberNoteEntry.module.css` traegt jetzt einen sichtbar groesseren
@@ -1155,6 +1195,8 @@ Last activity: 2026-09-14
 - [Phase 157-12]: shot-projectmember.mjs kept at 449 lines by compacting the new sectionHeaderUnderlines diagnostic + collapsing two unrelated pre-existing multi-line evaluate() calls into one-liners
 - [Phase 157-12]: Dropped aria-labelledby + local heading id on the notes/media sections in favor of aria-label, since SectionHeader has no id/className prop and no test referenced the removed ids
 - [Phase 157]: Per-entry timeline line colored via var(--role-accent) (Entscheid 2026-09-14 zu V4) — Replaces the single shared neutral-gray line; each entry now owns its own colored line segment reaching to the next entry's dot, using the same data-color-key seam the dot already used
+- [Phase 157]: 157-14: Routed the new hero jump-metric interaction through the global Button primitive (variant="text") per CLAUDE.md's Frontend-UI rule — Extends Button/HeroMetrics additively instead of bypassing them for a shape mismatch; all 6 other HeroMetrics call sites and Button's 6 existing variants stay byte-identical
+- [Phase 157]: 157-14: 'Folgen' stays plain, non-interactive text in the hero — It has no matching page section, so it is intentionally not wired to scrollToSection
 
 ### Pending Todos
 
@@ -1558,11 +1600,12 @@ untruncated list lives in `.planning/todos/pending/`.
 | Phase 157 P11 | 7min | 2 tasks | 1 files |
 | Phase 157 P12 | 6min | 3 tasks | 9 files |
 | Phase 157 P13 | 11min | 3 tasks | 4 files |
+| Phase 157 P14 | 11min | 4 tasks | 13 files |
 
 ## Session Continuity
 
-Last session: 2026-09-14T18:03:33.912Z
-Stopped at: Completed 157-13-PLAN.md (GAP-02 timeline dot/line V3/V4 closed; 157-14 remains)
+Last session: 2026-09-14T18:19:10.233Z
+Stopped at: Completed 157-14-PLAN.md (GAP-02 fully closed: 157-11/12/13/14 all executed; human Live-UAT sign-off remains OPEN)
 Last activity: Larger dot + per-entry role-colored timeline line implemented and live-verified against the running stack; GAP-02 V3/V4 closed automated/technically, human Live-UAT remains a separate open step.
 Resume file: 
 None

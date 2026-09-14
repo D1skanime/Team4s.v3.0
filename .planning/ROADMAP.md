@@ -429,7 +429,7 @@ Milestone v1.4 closes Live-UAT Findings #29-#32 by making effective group rights
 - [x] **Phase 154: Public-Member-Profil: Aggregator-Duplikate, Bildbudget und Viewer-Aufloesung** - Die verbliebenen P2-Befunde der Messreihe vom 2026-09-09 sind geschlossen: vier redundante Faktenabfragen im Profil-Aggregator, ungegatetes Locked-Artwork samt schwerem Original-Fallback und die zu breite Viewer-Aufloesung ohne durchgereichtes Abbruchsignal. Dazu zwei Nachmessungen, die erst nach der Graphverkleinerung moeglich sind. (completed 2026-09-10)
 - [x] **Phase 155: Public-Fansub-Projektseite: Read-Model, Drill-down-Navigation und Query-Budget** - Die oeffentliche Fansub-Projektseite laedt ueber einen gezielten Project Resolver, eine schlanke Contributor-Summary und entflochtene Release-Pfade, ohne doppelten Profil-Load und ohne Vollinventar-Abfragen; Member-Klicks fuehren kanonisch auf die Projekt-Member-Route. (completed 2026-09-11)
 - [x] **Phase 156: Segment-Domain-Konsistenz und oeffentliche Release-Projektion** - `theme_segment_assignments` wird die kanonische Release-Segment-Wahrheit, Bereichsaenderungen und spaetere Releases halten die Assignments konsistent, Segment-Credits werden ueber stabile Rollen-Codes dynamisch aus einer korrigierbaren, um ein personenbezogenes Contributor-Subset (GAP-01) erweiterten Segment-Origin projiziert, und Projekt- wie Release-Seite lesen dieselbe Wahrheit. (automatisiert/funktional abgeschlossen 2026-09-12, voller Regressionslauf 156-15 gruen -- NICHT vollstaendig abgenommen: der gebuendelte Live-UAT-Checkpoint aus GAP-02 (5 Origin- + 9 Segment-Contributor-Pruefpunkte, 156-UAT.md) bleibt offen, siehe deferred-items.md)
-- [ ] **Phase 157: Projekt-Memberseite visuell auf Referenzdesign umbauen** - Die oeffentliche Projekt-Member-Seite folgt dem Referenzdesign des Auftraggebers: kompakter Profilkopf, eine Statistikleiste statt vier Karten, Tab-Navigation mit Aktivzustand, Beitragszusammenfassung, Notizen als kompakte Timeline ohne redundanten Rollen-Header und ein kompakter Releases-Empty-State. Alle 10 Plaene (inkl. Gap-Closure 157-10) sind ausgefuehrt; die Phase gilt ERST nach dem noch ausstehenden menschlichen Live-UAT-Sign-off (checkpoint:human-verify aus Plan 157-06 Task 4) als abgeschlossen.
+- [x] **Phase 157: Projekt-Memberseite visuell auf Referenzdesign umbauen** - Die oeffentliche Projekt-Member-Seite folgt dem Referenzdesign des Auftraggebers: kompakter Profilkopf, eine Statistikleiste statt vier Karten, Tab-Navigation mit Aktivzustand, Beitragszusammenfassung, Notizen als kompakte Timeline ohne redundanten Rollen-Header und ein kompakter Releases-Empty-State. Alle 14 Plaene (inkl. Gap-Closure 157-10 und der vierteiligen GAP-02-Schliessung 157-11..14 -- Screenshot-Beweisgrundlage, Sektions-Header-Primitive, Timeline-Punkt/-Linie-Farbe, Hero-Sprungziele statt dupliziertem ProjectMemberStickyNav) sind ausgefuehrt und automatisiert verifiziert; die Phase gilt ERST nach dem noch ausstehenden menschlichen Live-UAT-Sign-off (checkpoint:human-verify aus Plan 157-06 Task 4, plus ein voller Nachlauf der 157-UAT.md GAP-02-Punkte 1-9) als abgeschlossen. (completed 2026-09-14)
 
 ## Phase Details
 
@@ -1720,10 +1720,10 @@ Release-Notizliste, wo der Rollen-Header fachlich richtig ist.
 `157-CONTEXT.md` als Spezifikation in Worten hinterlegt. Eine zusaetzliche UI-SPEC-Runde ist damit
 nicht erforderlich; `plan-phase` mit `--skip-ui` fahren.
 
-**Plans:** 14 plans total (13/14 executed through gap-closure 157-13; 157-14 still planned for
-GAP-02, not yet executed); phase-level human Live-UAT sign-off (157-06
-Task 4 checkpoint, plus a full re-run of 157-UAT.md GAP-02 points 1-9 after 157-11/12/13/14)
-remains OPEN — phase not yet marked done
+**Plans:** 14/14 plans complete — 157-14 (V6: hero jump metrics replace ProjectMemberStickyNav)
+closes the last of GAP-02's four automated closure plans (157-11/12/13/14). Phase-level human
+Live-UAT sign-off (157-06 Task 4 checkpoint, plus a full re-run of 157-UAT.md GAP-02 points 1-9)
+remains OPEN — phase not yet marked done.
 
 Plans:
 
@@ -1758,7 +1758,7 @@ Plans:
 - [x] 157-11-PLAN.md — Tooling: shot-projectmember.mjs scrollt/wartet vor dem fullPage-Screenshot, plus immer aktive 200%-Zoom-Overflow-Pruefung (schliesst Pruefpunkt 9)
 - [x] 157-12-PLAN.md — V1+V2+V5: globale SectionHeader-Unterstreichung auf Projektseite + Texte-&-Notizen/Bilder-&-Medien-Kopfzeilen, redundanter "Alle N angezeigt"-Pagertext entfernt
 - [x] 157-13-PLAN.md — V3+V4: Timeline-Punkt deutlich groesser, Timeline-Linie deutlich dicker und je Eintrag in dessen eigener Rollenfarbe (Entscheid 2026-09-14 zu V4)
-- [ ] 157-14-PLAN.md — V6: Hero-Kennzahlen Beitraege/Medien als klickbare Sprungziele (additive HeroMetrics-API + geteilter scrollToSection-Helper), ProjectMemberStickyNav vollstaendig entfernt
+- [x] 157-14-PLAN.md — V6: Hero-Kennzahlen Beitraege/Medien als klickbare Sprungziele (additive HeroMetrics-API + geteilter scrollToSection-Helper), ProjectMemberStickyNav vollstaendig entfernt
 
 ### Phase 158: Public Anime Detail — Reparatur
 
