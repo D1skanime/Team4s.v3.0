@@ -24,30 +24,34 @@
   margin-top: 14px;
 }
 
+/* Entscheid 2026-09-14 zu V4 (157-UAT.md GAP-02): each entry owns its OWN line segment, colored
+   with ITS OWN role via the same data-color-key -> --role-accent seam the dot uses. The line
+   starts exactly at the dot's own top offset and extends per-entry down into the gap toward the
+   NEXT entry's dot, so a single-role member's timeline reads as one continuous colored line while
+   a multi-role member's line changes color exactly at role boundaries. See this plan's derivation:
+   the height formula below lands the bottom edge exactly at the next entry's own dot position,
+   independent of top's value, because the 14px inter-entry gap (.entry + .entry) is fixed and
+   every entry's dot sits at the identical top offset. */
 .entry::before {
   content: '';
   position: absolute;
-  left: -10px;
-  top: -14px;
-  bottom: -14px;
-  width: 1px;
-  background: var(--color-border);
-}
-
-.entry:first-child::before {
-  top: 50%;
+  left: -11.5px;
+  top: 18px;
+  width: 3px;
+  height: calc(100% + 14px);
+  background: var(--role-accent);
 }
 
 .entry:last-child::before {
-  bottom: 50%;
+  height: calc(100% - 18px);
 }
 
 .dot {
   position: absolute;
-  left: -13px;
-  top: 20px;
-  width: 6px;
-  height: 6px;
+  left: -15px;
+  top: 18px;
+  width: 10px;
+  height: 10px;
   border-radius: 50%;
   background: var(--role-accent);
 }
