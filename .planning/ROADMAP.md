@@ -1655,6 +1655,20 @@ Plans:
       selbst bleibt ausdruecklich separat und offen -- dieser Plan beansprucht ihn nicht als
       bestanden.
 
+**Post-hoc UAT gap-closure** (156-UAT.md, Live-UAT 2026-09-14, GAP-07)
+
+- [ ] 156-18-PLAN.md — Segment-Mitwirkende automatisch vorauswaehlen: neuer nullable Merker
+      `theme_segments.contributors_initialized_at`, zentrale Vorauswahl-Regel
+      (`ensureThemeSegmentContributorsPreselectedTx`/`ensureThemeSegmentOriginAndContributorsTx`,
+      komponiert mit dem unveraenderten `ensureThemeSegmentOriginTx` aus Plan 156-16), verdrahtet
+      in allen fuenf bestehenden Aufrufstellen plus dem manuellen Origin-Endpunkt und dem
+      Speichern der Mitwirkenden-Auswahl, Migration 0165 (Bestandsvorauswahl + SQL/Go-
+      Regel-Aequivalenzbeweis), optionaler Hinweistext im Admin-UI. Schliesst GAP-07
+      (Segment-Mitwirkende blieben nach Anlage leer, obwohl die Origin-Mitwirkenden bereits
+      bekannt waren) aus dem Live-UAT vom 2026-09-14, Auftraggeber-Entscheid "Ja, auch
+      bestehende". Der 156-UAT.md-Live-UAT-Checkpoint selbst bleibt ausdruecklich separat und
+      offen -- dieser Plan beansprucht ihn nicht als bestanden.
+
 **Plan-time read first**: `.planning/phases/156-segment-domain-konsistenz-und-oeffentliche-release-projektion/156-USER-REQUEST.md`,
 `156-CONTEXT.md`, `156-RESEARCH.md`, `156-PATTERNS.md`,
 `backend/internal/repository/theme_segment_assignments.go`,
