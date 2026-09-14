@@ -322,4 +322,41 @@ describe('ProjectMemberNotesSection', () => {
     // 15 + 10 - 1 Duplikat (id 15) = 24
     await waitFor(() => expect(screen.getAllByRole('link')).toHaveLength(24))
   })
+
+  it('renders the section header through the global SectionHeader primitive with underline (V2, 157-UAT GAP-02)', async () => {
+    getProjectMemberNotes.mockResolvedValueOnce(page([note()], null, false))
+
+    const { container } = render(
+      <ProjectMemberNotesSection
+        animeID={10}
+        groupID={20}
+        memberSlug="csubs-leader"
+        projectPath="/p"
+        count={1}
+        hasMultipleRoles={false}
+      />,
+    )
+
+    await screen.findByRole('heading', { name: 'Texte & Notizen' })
+    expect(container.querySelector('[class*="sectionHeaderUnderline"]')).not.toBeNull()
+  })
+
+  it('renders no redundant "Alle N angezeigt" pager text once every contribution is loaded (V5, 157-UAT GAP-02)', async () => {
+    const items = Array.from({ length: 3 }, (_, i) => note({ id: i + 1 }))
+    getProjectMemberNotes.mockResolvedValueOnce(page(items, null, false))
+
+    render(
+      <ProjectMemberNotesSection
+        animeID={10}
+        groupID={20}
+        memberSlug="csubs-leader"
+        projectPath="/p"
+        count={3}
+        hasMultipleRoles={false}
+      />,
+    )
+
+    await waitFor(() => expect(screen.getAllByRole('link')).toHaveLength(3))
+    expect(screen.queryByText(/Alle \d+ angezeigt/)).toBeNull()
+  })
 })

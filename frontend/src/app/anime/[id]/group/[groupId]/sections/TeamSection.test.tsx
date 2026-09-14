@@ -73,4 +73,12 @@ describe('TeamSection', () => {
     expect(html).toContain('Noch keine öffentlichen Projektrollen hinterlegt.')
     expect(html).not.toContain('Weitere Bereiche sind noch nicht')
   })
+
+  it('renders the global underline on the section header (V1, 157-UAT GAP-02)', () => {
+    const html = renderToStaticMarkup(
+      <TeamSection teamMembers={[makeTeamMember()]} externalContributors={[makeExternal()]} />,
+    )
+
+    expect(html).toContain('sectionHeaderUnderline')
+  })
 })

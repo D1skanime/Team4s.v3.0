@@ -117,4 +117,13 @@ describe('ProjectMemberMediaGallery', () => {
     await waitFor(() => expect(cards()).toHaveLength(3))
     expect(screen.queryByText(/Alle \d+ angezeigt/)).toBeNull()
   })
+
+  it('renders the section header through the global SectionHeader primitive with underline (V2, 157-UAT GAP-02)', async () => {
+    const item = media({ id: 1 })
+    getProjectMemberMedia.mockResolvedValueOnce(page([item], null, false))
+    const { container } = renderGallery()
+
+    await screen.findByRole('heading', { name: 'Bilder & Medien' })
+    expect(container.querySelector('[class*="sectionHeaderUnderline"]')).not.toBeNull()
+  })
 })
