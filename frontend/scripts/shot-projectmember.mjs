@@ -68,12 +68,10 @@ const viewports = [
   ['desktop', 1440, 900],
 ]
 
-// Plan 157-11 (GAP-02 script fix) -- the previous fullPage screenshot was taken immediately after
-// 'networkidle' plus hero-h1/fonts-ready, before the client-side Texte&Notizen/Bilder&Medien fetches
-// had necessarily painted and before below-the-fold lazy images had loaded -- producing a misleading
-// "Wird geladen" capture in the worst case. This helper scrolls the full document to trigger any
-// viewport-relative lazy loading, explicitly waits for every still-loading <img>, then returns to the
-// top and lets layout settle before the caller takes its fullPage screenshot.
+// Plan 157-11 (GAP-02): the previous fullPage capture ran right after 'networkidle' plus
+// hero-h1/fonts-ready, before client fetches and below-the-fold lazy images had necessarily
+// painted/loaded. This scrolls through the document to trigger lazy loading, waits for every
+// still-loading <img>, then returns to the top and settles layout before the caller screenshots.
 async function waitForSectionsSettled(page) {
   const docHeight = await page.evaluate(() => document.documentElement.scrollHeight)
   const viewportHeight = page.viewportSize()?.height ?? 800
@@ -407,6 +405,28 @@ try {
       })
       facts.zoomReflowOverflow = await page.evaluate(() => document.documentElement.scrollWidth > innerWidth)
       if (facts.zoomReflowOverflow) throw new Error('200% equivalent reflow overflow')
+    }
+    // Plan 157-11 (GAP-02): closes 157-UAT.md checklist point 9 (Browser-Zoom), previously
+    // unverified -- an always-on, page-wide 200%-zoom-equivalent overflow check, reusing the same
+    // 720x450 CSS-pixel equivalence used above for the hero-only, env-gated SHOT_VERIFY_HERO check.
+    if (name === 'desktop') {
+      await page.setViewportSize({ width: 720, height: 450 })
+      await waitForSectionsSettled(page)
+      const zoom200File = `${OUT}/${LABEL}-desktop-zoom200.png`
+      await page.screenshot({ path: zoom200File, fullPage: true })
+      const zoom200Overflow = await page.evaluate(
+        () => document.documentElement.scrollWidth > document.documentElement.clientWidth,
+      )
+      facts.zoom200Overflow = zoom200Overflow
+      if (zoom200Overflow) {
+        const { scrollWidth, clientWidth } = await page.evaluate(() => ({
+          scrollWidth: document.documentElement.scrollWidth,
+          clientWidth: document.documentElement.clientWidth,
+        }))
+        throw new Error(
+          `Horizontal overflow at desktop-zoom200: scrollWidth=${scrollWidth}, clientWidth=${clientWidth}`,
+        )
+      }
     }
     console.log(
       JSON.stringify(
