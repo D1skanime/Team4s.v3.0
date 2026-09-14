@@ -65,6 +65,7 @@ export function ProjectMemberMediaViewer({
   if (!item) return null
   const releaseHref = `${projectPath}/releases/${item.release_version_id}`
   const label = (CATEGORY_LABELS as Record<string, string>)[item.category] ?? item.category
+  const title = item.title?.trim()
 
   return (
     <div
@@ -89,7 +90,7 @@ export function ProjectMemberMediaViewer({
             {item.preview_url ? (
               <ResponsiveImage
                 src={item.preview_url}
-                alt={`${label} – Folge ${item.episode_label}`}
+                alt={`${title || label} – Folge ${item.episode_label}`}
                 width={1600}
                 height={900}
                 sizes="(max-width: 900px) 100vw, 68vw"
@@ -99,7 +100,8 @@ export function ProjectMemberMediaViewer({
           </div>
 
           <aside className={styles.viewerInfo}>
-            <p className={styles.viewerCategory}>{label}</p>
+            {title ? <h3 className={styles.viewerCategory}>{title}</h3> : null}
+            <p className={title ? styles.viewerMeta : styles.viewerCategory}>{label}</p>
             <p className={styles.viewerMeta}>
               Folge {item.episode_label} · {item.release_version_label}
             </p>

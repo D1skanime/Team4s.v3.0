@@ -12,6 +12,7 @@ func (r *MemberProfileRepository) loadRecentMedia(ctx context.Context, memberID 
 		SELECT
 			rvm.id,
 			rvm.category,
+			rvm.title,
 			COALESCE(NULLIF(BTRIM(rvm.caption), ''), ''),
 			COALESCE(mf_thumb.path, mf_orig.path, ''),
 			a.title,
@@ -52,6 +53,7 @@ func (r *MemberProfileRepository) loadRecentMedia(ctx context.Context, memberID 
 		if err := rows.Scan(
 			&item.ID,
 			&item.Category,
+			&item.Title,
 			&item.Caption,
 			&thumbnailPath,
 			&item.AnimeTitle,

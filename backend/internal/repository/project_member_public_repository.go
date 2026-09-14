@@ -64,6 +64,7 @@ type ProjectMemberMediaItem struct {
 	RelationID          int64     `json:"id"`
 	MediaAssetID        int64     `json:"media_asset_id"`
 	Category            string    `json:"category"`
+	Title               *string   `json:"title"`
 	Caption             *string   `json:"caption"`
 	EpisodeLabel        string    `json:"episode_label"`
 	ReleaseVersionLabel string    `json:"release_version_label"`
@@ -321,7 +322,7 @@ func (r *ProjectMemberPublicRepository) ListMedia(ctx context.Context, animeID, 
 	}
 	q := `
 		WITH ` + projectMemberUserIDsCTE + `
-		SELECT rvm.id, rvm.media_asset_id, rvm.category, rvm.caption,
+		SELECT rvm.id, rvm.media_asset_id, rvm.category, rvm.title, rvm.caption,
 		       COALESCE(e.episode_number, '') AS episode_label,
 		       COALESCE(rv.version, '') AS version_label,
 		       rvm.release_version_id, rvm.sort_order,
@@ -349,7 +350,7 @@ func (r *ProjectMemberPublicRepository) ListMedia(ctx context.Context, animeID, 
 	items := make([]ProjectMemberMediaItem, 0, limit+1)
 	for rows.Next() {
 		var m ProjectMemberMediaItem
-		if err := rows.Scan(&m.RelationID, &m.MediaAssetID, &m.Category, &m.Caption,
+		if err := rows.Scan(&m.RelationID, &m.MediaAssetID, &m.Category, &m.Title, &m.Caption,
 			&m.EpisodeLabel, &m.ReleaseVersionLabel, &m.ReleaseVersionID, &m.SortOrder, &m.EpisodeSort, &m.CreatedAt,
 			&m.ThumbFilePath, &m.OriginalFilePath); err != nil {
 			return nil, nil, false, fmt.Errorf("project member: media scan: %w", err)

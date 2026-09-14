@@ -62,6 +62,15 @@ function makeMediaItem(id: number): PublicMemberLatestContribution {
 }
 
 describe('LatestContributionsSection', () => {
+  it('keeps the projected media title and caption independent as plain text', async () => {
+    const { LatestContributionsSection } = await loadLatestContributionsSection()
+    const item = { ...makeMediaItem(1), title: '<b>Ending-Titel</b>', text_preview: '<em>Beschreibung des Bilds</em>' }
+    const { container } = render(<LatestContributionsSection items={[item]} referenceNow={FIXED_REFERENCE_NOW} />)
+    expect(screen.getByText(item.title).tagName).toBe('STRONG')
+    expect(screen.getByText(item.text_preview).tagName).toBe('P')
+    expect(container.querySelector('b, em')).toBeNull()
+  })
+
   it('renders exactly three non-empty latest public contribution cards and no archive link', async () => {
     const { LatestContributionsSection } = await loadLatestContributionsSection()
 

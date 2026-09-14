@@ -36,6 +36,7 @@ export interface ProjectMemberMediaItem {
   id: number
   media_asset_id: number
   category: string
+  title?: string | null
   caption: string | null
   episode_label: string
   release_version_label: string

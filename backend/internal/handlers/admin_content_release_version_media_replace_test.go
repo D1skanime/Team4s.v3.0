@@ -103,6 +103,7 @@ func openReplaceRVMHandlerFixture(t *testing.T) *pgxpool.Pool {
 			id BIGINT PRIMARY KEY
 		);
 		CREATE TABLE release_version_media (
+ title TEXT NULL,
 			id BIGINT PRIMARY KEY,
 			release_version_id BIGINT NOT NULL REFERENCES release_versions(id),
 			fansub_group_id BIGINT NULL REFERENCES fansub_groups(id),

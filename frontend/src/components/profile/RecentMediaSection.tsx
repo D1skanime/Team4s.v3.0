@@ -31,7 +31,7 @@ function formatMediaTitle(item: MemberProfileRecentMedia, fallback: string): str
     ?.replace(/^#{1,6}\s+/gm, '')
     .replace(/\s+/g, ' ')
     .trim() ?? ''
-  return caption || fallback
+  return item.title?.trim() || caption || fallback
 }
 
 function formatMediaCategory(category: string): string {
@@ -65,6 +65,7 @@ export function RecentMediaSection({ items, canView }: RecentMediaSectionProps) 
               <div className={styles.recentItemBody}>
                 <Badge variant="info">{categoryLabel}</Badge>
                 <strong>{mediaTitle}</strong>
+                {item.title?.trim() && item.caption?.trim() ? <span className={styles.recentMediaDescription}>{item.caption}</span> : null}
                 <span>{previewLabel}</span>
                 <span>{formatReleaseVersionTitle(item)}</span>
                 <span>{item.anime_title}</span>

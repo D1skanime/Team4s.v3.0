@@ -127,6 +127,7 @@ func openReleaseVersionMediaReplaceFixture(t *testing.T) *pgxpool.Pool {
 	`)
 	require.NoError(t, err)
 	testsupport.ApplySQLFile(t, pool, filepath.Join(migrations, "0135_release_review_lifecycle.up.sql"))
+	testsupport.ApplySQLFile(t, pool, filepath.Join(migrations, "0163_release_version_media_title.up.sql"))
 
 	return pool
 }

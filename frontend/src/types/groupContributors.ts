@@ -42,6 +42,7 @@ export interface GroupThemesResponse {
 export interface PublicReleaseMediaItem {
   id: number
   thumbnail_url: string | null
+  title?: string | null
   caption: string | null
   media_type: string
 }

@@ -98,6 +98,20 @@ describe('ReleaseGallery', () => {
     expect(loadImages).not.toHaveBeenCalled()
   })
 
+  it('keeps an individual title separate from the full caption in the card and lightbox', () => {
+    const item = { ...image(1), title: '<b>Individueller Titel</b>', caption: '<em>Eigene Beschreibung</em>' }
+    const { container } = render(<ReleaseGallery animeID={1} groupID={2} releaseVersionID={3} initialImages={[item]} categoryTotals={{ screenshot: 1, typesetting_karaoke: 0, fun_outtake: 0, other: 0 }} />)
+    const card = screen.getByTestId('release-image-grid')
+    expect(within(card).getByText(item.title).tagName).toBe('STRONG')
+    expect(within(card).getByText(item.caption).tagName).toBe('P')
+    fireEvent.click(screen.getByRole('button', { name: `${item.title} öffnen` }))
+    const dialog = screen.getByRole('dialog')
+    expect(within(dialog).getByRole('heading', { name: item.title })).toBeTruthy()
+    expect(within(dialog).getByText(item.caption)).toBeTruthy()
+    expect(container.querySelector('b, em')).toBeNull()
+    expect(dialog.querySelector('b, em')).toBeNull()
+  })
+
   it('does not repeat a caption that is identical to the category title in the lightbox', () => {
     const categoryCaption = image(1, 'typesetting_karaoke')
     categoryCaption.caption = 'Typesetting-/Karaoke-Beispiel'

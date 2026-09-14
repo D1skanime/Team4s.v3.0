@@ -25,6 +25,7 @@ func NewGroupReleaseMediaRepository(db *pgxpool.Pool, mediaStorageDir string) *G
 type PublicReleaseMediaItem struct {
 	ID           int64   `json:"id"`
 	ThumbnailURL *string `json:"thumbnail_url"`
+	Title        *string `json:"title"`
 	Caption      *string `json:"caption"`
 	MediaType    string  `json:"media_type"`
 }
@@ -49,7 +50,7 @@ func (r *GroupReleaseMediaRepository) GetPublicReleaseMedia(ctx context.Context,
 		SELECT
 			rvm.id AS item_id,
 			COALESCE(mt.name, ma.mime_type, 'media') AS media_type,
-			rvm.caption,
+			rvm.title, rvm.caption,
 			COALESCE(mf_thumb.path, mf_orig.path, ma.file_path) AS thumbnail_path
 		FROM release_version_media rvm
 		JOIN media_assets ma ON ma.id = rvm.media_asset_id
@@ -85,7 +86,7 @@ func (r *GroupReleaseMediaRepository) GetPublicReleaseMedia(ctx context.Context,
 		if err := rows.Scan(
 			&item.ID,
 			&item.MediaType,
-			&item.Caption,
+			&item.Title, &item.Caption,
 			&thumbnailPath,
 		); err != nil {
 			return nil, fmt.Errorf("group release media: scan: %w", err)

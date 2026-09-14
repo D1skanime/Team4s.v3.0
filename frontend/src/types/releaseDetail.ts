@@ -21,6 +21,8 @@ export interface PublicReleaseImage {
   category: ReleaseVersionMediaCategory;
   thumbnail_url: string | null;
   original_url: string | null;
+  /** Optional plain-text title of the release-version medium; separate from caption. */
+  title?: string | null;
   caption: string | null;
   /** Anzeigename des Hochladers, null wenn kein Hochlader hinterlegt/aufloesbar (AO4-18 Autor-Chip). */
   author_name: string | null;

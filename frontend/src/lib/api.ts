@@ -7650,6 +7650,7 @@ export interface ReplaceReleaseVersionMediaFileOptions {
   relationId: number;
   file: File;
   category?: ReleaseVersionMediaCategory;
+  title?: string | null;
   caption?: string | null;
   isPreviewCandidate?: boolean;
   sourceRevision?: number;
@@ -7675,6 +7676,9 @@ export async function replaceReleaseVersionMediaFile(
       body.set("file", options.file);
       if (options.category !== undefined) {
         body.set("category", options.category);
+      }
+      if (options.title !== undefined) {
+        body.set("title", options.title ?? "");
       }
       if (options.caption !== undefined) {
         body.set("caption", options.caption ?? "");

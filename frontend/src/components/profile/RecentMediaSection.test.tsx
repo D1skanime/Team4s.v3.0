@@ -33,6 +33,14 @@ function makeMedia(overrides: Partial<MemberProfileRecentMedia> = {}): MemberPro
 }
 
 describe('RecentMediaSection', () => {
+  it('renders an individual plain-text title separately from its description', () => {
+    const item = makeMedia({ title: '<b>Beschilderung</b>', caption: '<em>Eigener Text zur Aufnahme</em>' })
+    const { container } = render(<RecentMediaSection items={[item]} canView={true} />)
+    expect(screen.getByText(item.title!).tagName).toBe('STRONG')
+    expect(screen.getByText(item.caption!).tagName).toBe('SPAN')
+    expect(container.querySelector('b, em')).toBeNull()
+  })
+
   it('renders public media as visitor-facing image cards with unique preview labels', () => {
     const { container } = render(<RecentMediaSection items={[makeMedia()]} canView={true} isPublicView={true} />)
 

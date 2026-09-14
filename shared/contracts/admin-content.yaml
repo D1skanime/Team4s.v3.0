@@ -1356,6 +1356,7 @@ types:
     fansub_group_id: int64 | null
     media_asset_id: int64
     category: ReleaseVersionMediaCategory
+    title: "string | null (plain text, maximum 200 Unicode characters)"
     caption: string | null
     sort_order: int32
     is_preview_candidate: boolean
@@ -1387,6 +1388,7 @@ types:
     error_code: string (optional)
     message: string (optional)
   ReleaseVersionMediaPatchRequest:
+    title: "string | null (optional; missing unchanged; null or trimmed empty clears; maximum 200 Unicode characters)"
     caption: string | null
     is_preview_candidate: boolean (optional)
     source_revision: "int64 (optional, minimum: 1)"

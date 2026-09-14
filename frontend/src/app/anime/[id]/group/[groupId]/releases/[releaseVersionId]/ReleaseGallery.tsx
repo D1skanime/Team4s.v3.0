@@ -33,11 +33,12 @@ function mergeImages(previous: PublicReleaseImage[], incoming: PublicReleaseImag
 
 function toLightboxItem(image: PublicReleaseImage): PublicImageLightboxItem {
   const categoryLabel = CATEGORY_LABELS[image.category]
+  const title = image.title?.trim() || categoryLabel
   const description = image.caption?.trim()
   return {
     id: image.id,
-    title: categoryLabel,
-    description: description && description !== categoryLabel ? description : null,
+    title,
+    description: description && (image.title?.trim() || description !== categoryLabel) ? description : null,
     media_type: categoryLabel,
     original_url: image.original_url ?? image.thumbnail_url,
   }
@@ -90,7 +91,7 @@ export function ReleaseGallery({ animeID, groupID, releaseVersionID, initialImag
   const lightboxItems = items.map(toLightboxItem)
   const renderImage = (image: PublicReleaseImage) => {
     const src = image.thumbnail_url ?? image.original_url
-    const title = image.caption?.trim() || CATEGORY_LABELS[image.category]
+    const title = image.title?.trim() || image.caption?.trim() || CATEGORY_LABELS[image.category]
     const sourceGroupName = image.fansub_group_id ? groupNamesByID.get(image.fansub_group_id) : null
     return <article key={image.id} className={styles.card}>
       <Button type="button" variant="ghost" className={styles.imageButton} aria-label={`${title} öffnen`} onClick={() => setActiveIndex(items.findIndex(item => item.id === image.id))}>
@@ -100,7 +101,8 @@ export function ReleaseGallery({ animeID, groupID, releaseVersionID, initialImag
         </span>
       </Button>
       <div className={styles.meta}>
-        <p className={styles.caption}>{title}</p>
+        <p className={styles.caption}>{image.title?.trim() ? <strong>{title}</strong> : title}</p>
+        {image.title?.trim() && image.caption?.trim() ? <p className={styles.caption}>{image.caption}</p> : null}
         <div className={styles.metaRow}>
           <Badge variant="muted">{CATEGORY_LABELS[image.category]}</Badge>
           <span>Hochgeladen von {image.author_name ?? 'Unbekannt'}</span>

@@ -1,15 +1,16 @@
 'use client'
 
 import { ChangeEvent, DragEvent, KeyboardEvent, useEffect, useMemo, useRef, useState } from 'react'
-import { ImageIcon, RefreshCw, Star, Trash2 } from 'lucide-react'
+import { ImageIcon, Star, Trash2 } from 'lucide-react'
 
 import { CATEGORY_ALLOWS_PREVIEW, ReleaseVersionMediaCategory, ReleaseVersionMediaItem } from '@/types/releaseVersionMedia'
 
-import { Badge, Button, Drawer, FormField, Textarea } from '@/components/ui'
-import { UploadQueueItem, useReleaseVersionMedia, UseReleaseVersionMediaResult } from './useReleaseVersionMedia'
+import { Badge, Button, Drawer, FormField, Input, Textarea } from '@/components/ui'
+import { UploadFileDraft, useReleaseVersionMedia, UseReleaseVersionMediaResult } from './useReleaseVersionMedia'
+import { ReleaseVersionMediaUploadQueue } from './ReleaseVersionMediaUploadQueue'
 import { ReleaseVersionMediaReplaceControls } from './ReleaseVersionMediaReplaceControls'
 import { RELEASE_REVIEW_REJECTION_CATEGORY_LABELS } from '../../../fansubs/releaseReviewPresentation'
-import { CATEGORY_OPTIONS, buildLocalPreviewURL, buildSelectedItemSavePayload, fileKey, isTerminalStatus, resolveEditDrawerPrimaryLabel, statusClassName, statusLabel } from './ReleaseVersionMediaSection.helpers'
+import { CATEGORY_OPTIONS, buildLocalPreviewURL, buildSelectedItemSavePayload, fileKey, isTerminalStatus, resolveEditDrawerPrimaryLabel } from './ReleaseVersionMediaSection.helpers'
 import styles from './ReleaseVersionMediaSection.module.css'
 
 interface ReleaseVersionMediaSectionProps {
@@ -24,8 +25,8 @@ function categoryLabel(category: ReleaseVersionMediaCategory): string {
 }
 
 function getAssetName(item: ReleaseVersionMediaItem): string {
-  const caption = item.caption?.trim()
-  if (caption) return caption
+  const title = item.title?.trim() || item.caption?.trim()
+  if (title) return title
   return `Asset #${item.media_asset_id}`
 }
 
@@ -76,12 +77,12 @@ export function ReleaseVersionMediaSection({
 
   const [selectedCategory, setSelectedCategory] = useState<ReleaseVersionMediaCategory>('screenshot')
   const [isUploadOpen, setIsUploadOpen] = useState(false)
-  const [defaultCaption, setDefaultCaption] = useState('')
-  const [isPreviewCandidate, setIsPreviewCandidate] = useState(false)
-  const [selectedFiles, setSelectedFiles] = useState<File[]>([])
+  const [previewFileKey, setPreviewFileKey] = useState<string | null>(null)
+  const [selectedDrafts, setSelectedDrafts] = useState<UploadFileDraft[]>([])
   const [isDragActive, setIsDragActive] = useState(false)
   const [selectedItemId, setSelectedItemId] = useState<number | null>(null)
   const [uploadError, setUploadError] = useState<string | null>(null)
+  const [editTitle, setEditTitle] = useState('')
   const [editCaption, setEditCaption] = useState('')
   const [editPreviewCandidate, setEditPreviewCandidate] = useState(false)
   const [editCategory, setEditCategory] = useState<ReleaseVersionMediaCategory>('screenshot')
@@ -92,21 +93,6 @@ export function ReleaseVersionMediaSection({
   const [toast, setToast] = useState<string | null>(null)
   const fileInputRef = useRef<HTMLInputElement | null>(null)
   const replaceFileInputRef = useRef<HTMLInputElement | null>(null)
-
-  const selectedFilePreviews = useMemo(
-    () => selectedFiles.map((file) => ({ file, previewURL: buildLocalPreviewURL(file) })),
-    [selectedFiles],
-  )
-
-  useEffect(() => {
-    return () => {
-      for (const preview of selectedFilePreviews) {
-        if (preview.previewURL && typeof URL !== 'undefined' && typeof URL.revokeObjectURL === 'function') {
-          URL.revokeObjectURL(preview.previewURL)
-        }
-      }
-    }
-  }, [selectedFilePreviews])
 
   const stagedReplacePreviewURL = useMemo(() => (stagedReplaceFile ? buildLocalPreviewURL(stagedReplaceFile) : null), [stagedReplaceFile])
 
@@ -145,20 +131,6 @@ export function ReleaseVersionMediaSection({
     return () => window.clearTimeout(timeout)
   }, [toast])
 
-  const queueItems = useMemo<UploadQueueItem[]>(() => {
-    if (media.uploadItems.length > 0) {
-      return media.uploadItems
-    }
-
-    return selectedFiles.map((file) => ({
-      file,
-      status: 'idle',
-      progress: 0,
-      errorMessage: null,
-      resultId: null,
-    }))
-  }, [media.uploadItems, selectedFiles])
-
   const isBusy = media.uploadItems.some(
     (item) => item.status === 'uploading' || item.status === 'processing',
   )
@@ -168,13 +140,15 @@ export function ReleaseVersionMediaSection({
   const canDeleteMedia = media.capabilities?.can_delete_media ?? false
   const canDeleteOwnMedia = media.capabilities?.can_delete_own_media ?? false
   const canShowPreviewToggle = CATEGORY_ALLOWS_PREVIEW[selectedCategory]
-  const canChooseFiles = canUploadMedia && versionId > 0 && !isBusy
-  const canUpload = canChooseFiles && selectedFiles.length > 0
+  const uploadStarted = media.uploadItems.length > 0
+  const canChooseFiles = canUploadMedia && versionId > 0 && !isBusy && !uploadStarted
+  const canUpload = canChooseFiles && selectedDrafts.length > 0
   const canEditPreviewCandidate = selectedItem ? CATEGORY_ALLOWS_PREVIEW[selectedItem.category] : false
   const canEditSelectedItem = Boolean(selectedItem && (selectedItem.can_update ?? canUpdateMedia))
   const canDeleteSelectedItem = Boolean(selectedItem && (selectedItem.can_delete ?? (canDeleteMedia || canDeleteOwnMedia)))
   const isRejectedEditable = Boolean(selectedItem?.review_state === 'rejected' && canEditSelectedItem)
   const hasStagedChanges = Boolean(stagedReplaceFile) ||
+    (selectedItem != null && (editTitle.trim() || null) !== (selectedItem.title ?? null)) ||
     (selectedItem != null && editCategory !== selectedItem.category) ||
     (selectedItem != null && (editCaption.trim() || null) !== (selectedItem.caption ?? null))
   const uploadSummaryVisible =
@@ -186,6 +160,7 @@ export function ReleaseVersionMediaSection({
   }
 
   function openEditSheet(item: ReleaseVersionMediaItem) {
+    setEditTitle(item.title ?? '')
     setEditCaption(item.caption ?? '')
     setEditPreviewCandidate(item.is_preview_candidate)
     setEditCategory(item.category)
@@ -195,9 +170,8 @@ export function ReleaseVersionMediaSection({
   }
 
   function resetUploadDraft() {
-    setSelectedFiles([])
-    setDefaultCaption('')
-    setIsPreviewCandidate(false)
+    setSelectedDrafts([])
+    setPreviewFileKey(null)
     setUploadError(null)
     setIsDragActive(false)
     media.clearUploadQueue()
@@ -206,7 +180,7 @@ export function ReleaseVersionMediaSection({
   function selectCategory(category: ReleaseVersionMediaCategory) {
     if (isBusy) return
     setSelectedCategory(category)
-    if (!canChooseFiles) return
+    if (!canUploadMedia || versionId <= 0) return
     resetUploadDraft()
     setIsUploadOpen(true)
   }
@@ -218,20 +192,29 @@ export function ReleaseVersionMediaSection({
   }
 
   function handleFiles(nextFiles: File[]) {
-    setSelectedFiles((current) => {
+    if (!canChooseFiles) return
+    setSelectedDrafts((current) => {
       const merged = [...current]
-      const seen = new Set(current.map((file) => fileKey(file)))
-
+      const seen = new Set(current.map((draft) => fileKey(draft.file)))
       for (const file of nextFiles) {
         const key = fileKey(file)
         if (seen.has(key)) continue
         seen.add(key)
-        merged.push(file)
+        merged.push({ file, title: '', caption: '' })
       }
-
       return merged
     })
-    media.clearUploadQueue()
+  }
+
+  function changeDraft(key: string, field: 'title' | 'caption', value: string) {
+    if (uploadStarted) return
+    setSelectedDrafts((current) => current.map((draft) => fileKey(draft.file) === key ? { ...draft, [field]: value } : draft))
+  }
+
+  function removeDraft(key: string) {
+    if (uploadStarted) return
+    setSelectedDrafts((current) => current.filter((draft) => fileKey(draft.file) !== key))
+    setPreviewFileKey((current) => current === key ? null : current)
   }
 
   function onFileChange(event: ChangeEvent<HTMLInputElement>) {
@@ -295,16 +278,14 @@ export function ReleaseVersionMediaSection({
     try {
       const result = await media.startUpload(
         selectedCategory,
-        selectedFiles,
-        defaultCaption,
-        canShowPreviewToggle ? isPreviewCandidate : false,
+        selectedDrafts,
+        canShowPreviewToggle ? previewFileKey : null,
       )
       if (!result.allSucceeded) {
         return
       }
-      setSelectedFiles([])
-      setDefaultCaption('')
-      setIsPreviewCandidate(false)
+      setSelectedDrafts([])
+      setPreviewFileKey(null)
       setIsUploadOpen(false)
       showToast('Upload abgeschlossen.')
     } catch (error) {
@@ -324,6 +305,7 @@ export function ReleaseVersionMediaSection({
     const saveOp = buildSelectedItemSavePayload({
       selectedItem,
       editCategory,
+      editTitle,
       editCaption,
       canEditPreviewCandidate,
       editPreviewCandidate,
@@ -403,7 +385,7 @@ export function ReleaseVersionMediaSection({
                 key={option.value}
                 type="button"
                 aria-pressed={active}
-                aria-haspopup={canChooseFiles ? 'dialog' : undefined}
+                aria-haspopup={canUploadMedia && versionId > 0 && !isBusy ? 'dialog' : undefined}
                 disabled={isBusy}
                 className={`${styles.segmentButton} ${active ? styles.segmentButtonActive : ''}`}
                 onClick={() => selectCategory(option.value)}
@@ -454,6 +436,7 @@ export function ReleaseVersionMediaSection({
                   </span>
                   <span className={styles.mediaCardBody}>
                     <span className={styles.mediaName}>{getAssetName(item)}</span>
+                    {item.title && item.caption ? <span className={styles.helper}>{item.caption}</span> : null}
                     <Badge variant={badge.variant} className={badge.className}>{badge.label}</Badge>
                     {item.review_state === 'confirmed' && item.visibility === 'oeffentlich' ? (
                       <Badge variant="success">Öffentlich</Badge>
@@ -510,26 +493,6 @@ export function ReleaseVersionMediaSection({
           </div>
           {uploadError ? <div className={styles.errorBox}>{uploadError}</div> : null}
 
-          <FormField label="Standard-Beschreibung" hint="Optional für alle Dateien dieses Uploads.">
-            <Textarea
-              value={defaultCaption}
-              onChange={(event) => setDefaultCaption(event.target.value)}
-              placeholder="Kurze Beschreibung ergänzen"
-              rows={3}
-            />
-          </FormField>
-
-          {canShowPreviewToggle ? (
-            <label className={styles.checkboxRow}>
-              <input
-                type="checkbox"
-                checked={isPreviewCandidate}
-                onChange={(event) => setIsPreviewCandidate(event.target.checked)}
-              />
-              <span>Als Vorschau markieren</span>
-            </label>
-          ) : null}
-
           <div
             className={[
               styles.dropZone,
@@ -575,50 +538,20 @@ export function ReleaseVersionMediaSection({
             />
           </div>
 
-          {selectedFilePreviews.length > 0 ? (
-            <div className={styles.localPreviewGrid}>
-              {selectedFilePreviews.map(({ file, previewURL }) => (
-                <figure key={`${file.name}-${file.size}-${file.lastModified}`} className={styles.localPreviewCard}>
-                  {previewURL ? (
-                    <img className={styles.localPreviewImage} src={previewURL} alt={`Vorschau ${file.name}`} />
-                  ) : (
-                    <div className={styles.localPreviewFallback} aria-label={`Vorschau ${file.name}`}>
-                      Keine Vorschau
-                    </div>
-                  )}
-                  <figcaption className={styles.localPreviewCaption}>{file.name}</figcaption>
-                </figure>
-              ))}
-            </div>
-          ) : null}
-
-          {queueItems.length > 0 ? (
-            <div className={styles.queue}>
-              {queueItems.map((item, index) => (
-                <div key={fileKey(item.file)} className={styles.queueRow}>
-                  <div className={styles.queueMeta}>
-                    <span className={styles.filename}>{item.file.name}</span>
-                    <span className={`${styles.badge} ${statusClassName(item)}`}>{statusLabel(item)}</span>
-                    {item.errorMessage ? <p className={styles.errorText}>{item.errorMessage}</p> : null}
-                  </div>
-                  {item.status === 'failed' ? (
-                    <Button
-                      variant="ghost"
-                      size="sm"
-                      className={styles.ghostAction}
-                      leftIcon={<RefreshCw size={14} aria-hidden="true" />}
-                      onClick={() => handleRetryClick(index)}
-                    >
-                      Retry
-                    </Button>
-                  ) : null}
-                </div>
-              ))}
-
-              {uploadSummaryVisible ? (
-                <p className={styles.summaryRow}>{successCount} von {media.uploadItems.length} erfolgreich hochgeladen.</p>
-              ) : null}
-            </div>
+          <ReleaseVersionMediaUploadQueue
+            drafts={selectedDrafts}
+            items={media.uploadItems}
+            previewFileKey={previewFileKey}
+            allowsPreview={canShowPreviewToggle}
+            locked={uploadStarted}
+            busy={isBusy}
+            onChange={changeDraft}
+            onRemove={removeDraft}
+            onPreviewChange={setPreviewFileKey}
+            onRetry={handleRetryClick}
+          />
+          {uploadSummaryVisible ? (
+            <p className={styles.summaryRow}>{successCount} von {media.uploadItems.length} erfolgreich hochgeladen.</p>
           ) : null}
         </div>
       </Drawer>
@@ -701,8 +634,13 @@ export function ReleaseVersionMediaSection({
                 </div>
               </FormField>
             ) : null}
-            <FormField label="Beschreibung">
+            <FormField label="Titel" htmlFor="release-media-edit-title">
+              <Input id="release-media-edit-title" value={editTitle} maxLength={200}
+                onChange={(event) => setEditTitle(event.target.value)} disabled={!canEditSelectedItem} />
+            </FormField>
+            <FormField label="Beschreibung" htmlFor="release-media-edit-caption">
               <Textarea
+                id="release-media-edit-caption"
                 value={editCaption}
                 onChange={(event) => setEditCaption(event.target.value)}
                 placeholder="Kurze Beschreibung ergänzen"

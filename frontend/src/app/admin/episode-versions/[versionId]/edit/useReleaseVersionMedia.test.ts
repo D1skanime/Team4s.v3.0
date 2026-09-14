@@ -10,6 +10,7 @@ vi.mock('@/lib/api', () => ({ ApiError: class extends Error {}, ...api }))
 
 import { useReleaseVersionMedia } from './useReleaseVersionMedia'
 import type { UploadRunResult } from './useReleaseVersionMedia'
+import { fileKey } from './ReleaseVersionMediaSection.helpers'
 
 const item = (id: number, preview: boolean) => ({
   id, release_version_id: 1, media_asset_id: id, category: 'screenshot' as const, caption: null,
@@ -20,7 +21,7 @@ const item = (id: number, preview: boolean) => ({
 
 describe('useReleaseVersionMedia preview reconciliation', () => {
   beforeEach(() => {
-    vi.clearAllMocks()
+    vi.resetAllMocks()
     api.getReleaseVersionMedia.mockResolvedValue({ data: [item(1, true), item(2, false)] })
     api.getReleaseVersionCapabilities.mockResolvedValue({ data: { can_view_media: true, can_upload_media: true, can_update_media: true, can_delete_media: false, can_edit_notes: false, can_manage_segments: false } })
   })
@@ -45,7 +46,7 @@ describe('useReleaseVersionMedia preview reconciliation', () => {
 
       let uploadResult: UploadRunResult | undefined
       await act(async () => {
-        uploadResult = await result.current.startUpload(category, [file])
+        uploadResult = await result.current.startUpload(category, [{ file, title: '', caption: '' }])
       })
 
       const options = api.uploadReleaseVersionMedia.mock.calls.at(-1)?.[0]
@@ -68,7 +69,7 @@ describe('useReleaseVersionMedia preview reconciliation', () => {
     let caughtError: unknown
     await act(async () => {
       try {
-        await result.current.startUpload('screenshot', [file])
+        await result.current.startUpload('screenshot', [{ file, title: '', caption: '' }])
       } catch (error) {
         caughtError = error
       }
@@ -93,7 +94,7 @@ describe('useReleaseVersionMedia preview reconciliation', () => {
 
     let uploadResult: UploadRunResult | undefined
     await act(async () => {
-      uploadResult = await result.current.startUpload('screenshot', [file])
+      uploadResult = await result.current.startUpload('screenshot', [{ file, title: '', caption: '' }])
     })
 
     expect(uploadResult).toMatchObject({ allSucceeded: false })
@@ -115,7 +116,7 @@ describe('useReleaseVersionMedia preview reconciliation', () => {
 
     let uploadResult: UploadRunResult | undefined
     await act(async () => {
-      uploadResult = await result.current.startUpload('screenshot', [goodFile, badFile])
+      uploadResult = await result.current.startUpload('screenshot', [goodFile, badFile].map(file => ({ file, title: '', caption: '' })))
     })
 
     expect(uploadResult).toMatchObject({ allSucceeded: false })
@@ -157,4 +158,104 @@ describe('useReleaseVersionMedia preview reconciliation', () => {
       last_activity_at: '2026-07-23T18:15:00Z',
     })
   })
+  it('ordnet drei individuellen Titeln und Texten über die Batchposition ihre IDs zu und setzt nur das gewählte Preview', async () => {
+    // Same filenames deliberately prove filename-only response mapping is invalid.
+    const drafts = ['eins', 'zwei', 'drei'].map((value, index) => ({
+      file: new File([value], 'gleich.png', { type: 'image/png', lastModified: index + 1 }),
+      title: ` Titel ${index + 1} `,
+      caption: ` Text ${index + 1} `,
+    }))
+    api.uploadReleaseVersionMedia.mockResolvedValue({ results: drafts.map((draft, index) => ({
+      client_file_name: draft.file.name, status: 'ready', release_version_media_id: 101 + index, source_revision: 1,
+    })) })
+    api.patchReleaseVersionMediaItem.mockImplementation(async (_version, id) => ({ ...item(id, id === 102), source_revision: 2 }))
+    const { result } = renderHook(() => useReleaseVersionMedia(42))
+    await waitFor(() => expect(result.current.isLoading).toBe(false))
+
+    await act(async () => { await result.current.startUpload('screenshot', drafts, fileKey(drafts[1].file)) })
+
+    expect(api.uploadReleaseVersionMedia).toHaveBeenCalledTimes(1)
+    expect(api.uploadReleaseVersionMedia.mock.calls[0][0].files).toEqual(drafts.map(draft => draft.file))
+    expect(api.patchReleaseVersionMediaItem.mock.calls).toEqual([
+      [42, 101, { title: 'Titel 1', caption: 'Text 1', source_revision: 1 }],
+      [42, 102, { title: 'Titel 2', caption: 'Text 2', is_preview_candidate: true, source_revision: 1 }],
+      [42, 103, { title: 'Titel 3', caption: 'Text 3', source_revision: 1 }],
+    ])
+    expect(result.current.uploadItems.map(entry => entry.resultId)).toEqual([101, 102, 103])
+  })
+
+  it('lässt ohne neue Previewwahl die vorhandene Vorschau unverändert', async () => {
+    const file = new File(['asset'], 'asset.png', { type: 'image/png' })
+    api.uploadReleaseVersionMedia.mockResolvedValue({ results: [
+      { client_file_name: file.name, status: 'ready', release_version_media_id: 81, source_revision: 1 },
+    ] })
+    api.patchReleaseVersionMediaItem.mockResolvedValue(item(81, false))
+    const { result } = renderHook(() => useReleaseVersionMedia(42))
+    await waitFor(() => expect(result.current.items).toHaveLength(2))
+
+    await act(async () => { await result.current.startUpload('screenshot', [{ file, title: 'Nur Titel', caption: '' }]) })
+
+    expect(api.patchReleaseVersionMediaItem).toHaveBeenCalledWith(42, 81, { title: 'Nur Titel', source_revision: 1 })
+    expect(result.current.items.filter(entry => entry.is_preview_candidate).map(entry => entry.id)).toEqual([1])
+  })
+
+  it('überträgt die Vorschau bei fehlgeschlagenem Bild nicht und behält dessen Metadaten für Retry', async () => {
+    const drafts = ['good', 'bad'].map(value => ({
+      file: new File([value], `${value}.png`, { type: 'image/png' }), title: value, caption: `${value}-Text`,
+    }))
+    api.uploadReleaseVersionMedia.mockResolvedValueOnce({ results: [
+      { client_file_name: 'good.png', status: 'ready', release_version_media_id: 91, source_revision: 1 },
+      { client_file_name: 'bad.png', status: 'failed', error_code: 'UPLOAD_FAILED' },
+    ] }).mockResolvedValueOnce({ results: [
+      { client_file_name: 'bad.png', status: 'ready', release_version_media_id: 92, source_revision: 1 },
+    ] })
+    api.patchReleaseVersionMediaItem.mockImplementation(async (_version, id) => item(id, id === 92))
+    const { result } = renderHook(() => useReleaseVersionMedia(42))
+    await waitFor(() => expect(result.current.isLoading).toBe(false))
+
+    await act(async () => { await result.current.startUpload('screenshot', drafts, fileKey(drafts[1].file)) })
+    expect(api.patchReleaseVersionMediaItem).toHaveBeenCalledTimes(1)
+    expect(api.patchReleaseVersionMediaItem.mock.calls[0][2]).not.toHaveProperty('is_preview_candidate')
+
+    await act(async () => { await result.current.retryUpload(1) })
+    expect(api.uploadReleaseVersionMedia.mock.calls[1][0].files).toEqual([drafts[1].file])
+    expect(api.patchReleaseVersionMediaItem).toHaveBeenLastCalledWith(42, 92, {
+      title: 'bad', caption: 'bad-Text', is_preview_candidate: true, source_revision: 1,
+    })
+    expect(result.current.uploadItems.map(entry => entry.status)).toEqual(['ready', 'ready'])
+  })
+
+  it('wiederholt nach Metadatenfehler nur das PATCH auf derselben ID und Revision, niemals den Binärupload', async () => {
+    const file = new File(['asset'], 'asset.png', { type: 'image/png' })
+    api.uploadReleaseVersionMedia.mockResolvedValue({ results: [
+      { client_file_name: file.name, status: 'ready', release_version_media_id: 81, source_revision: 4 },
+    ] })
+    api.patchReleaseVersionMediaItem.mockRejectedValueOnce(new Error('Metadaten nicht gespeichert.'))
+      .mockResolvedValueOnce({ ...item(81, true), source_revision: 5 })
+    const { result } = renderHook(() => useReleaseVersionMedia(42))
+    await waitFor(() => expect(result.current.isLoading).toBe(false))
+
+    await act(async () => { await result.current.startUpload('screenshot', [{ file, title: 'Titel', caption: 'Text' }], fileKey(file)) })
+    expect(result.current.uploadItems[0]).toMatchObject({ status: 'failed', resultId: 81, sourceRevision: 4 })
+
+    await act(async () => { await result.current.retryUpload(0) })
+    expect(api.uploadReleaseVersionMedia).toHaveBeenCalledTimes(1)
+    expect(api.patchReleaseVersionMediaItem.mock.calls).toEqual([
+      [42, 81, { title: 'Titel', caption: 'Text', is_preview_candidate: true, source_revision: 4 }],
+      [42, 81, { title: 'Titel', caption: 'Text', is_preview_candidate: true, source_revision: 4 }],
+    ])
+    expect(result.current.uploadItems[0]).toMatchObject({ status: 'ready', resultId: 81, sourceRevision: 5 })
+  })
+
+  it.each(['fun_outtake', 'other'] as const)('setzt für %s trotz übergebenem Key keine unerlaubte Vorschau', async category => {
+    const file = new File(['asset'], 'asset.png', { type: 'image/png' })
+    api.uploadReleaseVersionMedia.mockResolvedValue({ results: [
+      { client_file_name: file.name, status: 'ready', release_version_media_id: 81, source_revision: 1 },
+    ] })
+    const { result } = renderHook(() => useReleaseVersionMedia(42))
+    await waitFor(() => expect(result.current.isLoading).toBe(false))
+    await act(async () => { await result.current.startUpload(category, [{ file, title: '', caption: '' }], fileKey(file)) })
+    expect(api.patchReleaseVersionMediaItem).not.toHaveBeenCalled()
+  })
+
 })

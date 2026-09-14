@@ -36,6 +36,9 @@ import {
   replaceReleaseCrew,
   upsertAnimeFansubProjectNote,
   uploadAdminAnimeMedia,
+  uploadReleaseVersionMedia,
+  patchReleaseVersionMediaItem,
+  replaceReleaseVersionMediaFile,
 } from './api'
 
 function makeResponse(body: unknown, init: { ok: boolean; status: number }) {
@@ -841,4 +844,77 @@ describe('authorized auth refresh flow', () => {
     expect(window.localStorage.getItem('team4s.auth.access_token')).toBeNull()
     expect(window.localStorage.getItem('team4s.auth.refresh_token')).toBeNull()
   })
+  it.each([seedRuntimeSessionMissingAccessToken, seedRuntimeSessionExpiredAccessToken])(
+    'refreshes centrally before a release batch and retains per-image title/caption PATCH transport (%s)',
+    async seed => {
+      seed()
+      refreshKeycloakTokenMock.mockResolvedValue(freshKeycloakBundle())
+      const fetchMock = vi.fn((input: RequestInfo | URL) => Promise.resolve(
+        String(input).endsWith('/api/v1/me') ? makeCurrentUserResponse() : makeResponse(
+          { id: 81, title: 'Eigenständiger Titel', caption: 'Eigener Text', source_revision: 2 },
+          { ok: true, status: 200 },
+        ),
+      ))
+      vi.stubGlobal('fetch', fetchMock)
+      const send = vi.fn()
+      const headers: Record<string, string> = {}
+      class ReleaseUploadXhr {
+        status = 200
+        responseText = JSON.stringify({ results: [{ client_file_name: 'asset.png', status: 'ready', release_version_media_id: 81, source_revision: 1 }] })
+        upload: { onprogress: ((event: ProgressEvent) => void) | null } = { onprogress: null }
+        onload: (() => void) | null = null
+        open = vi.fn()
+        setRequestHeader(name: string, value: string) { headers[name] = value }
+        send(body: FormData) { send(body); this.onload?.() }
+      }
+      vi.stubGlobal('XMLHttpRequest', ReleaseUploadXhr)
+      const file = new File(['asset'], 'asset.png', { type: 'image/png' })
+
+      await uploadReleaseVersionMedia({ versionId: 42, category: 'screenshot', files: [file] })
+      await patchReleaseVersionMediaItem(42, 81, {
+        title: 'Eigenständiger Titel', caption: 'Eigener Text', is_preview_candidate: true, source_revision: 1,
+      })
+
+      expect(refreshKeycloakTokenMock).toHaveBeenCalledTimes(1)
+      expect(send).toHaveBeenCalledTimes(1)
+      expect(send.mock.calls[0][0].getAll('files[]')).toEqual([file])
+      expect(headers.Authorization).toBe('Bearer new-access-token')
+      expect(fetchMock).toHaveBeenCalledWith(expect.stringContaining('/release-versions/42/media/81'),
+        expect.objectContaining({ method: 'PATCH', body: JSON.stringify({
+          title: 'Eigenständiger Titel', caption: 'Eigener Text', is_preview_candidate: true, source_revision: 1,
+        }), headers: expect.objectContaining({ Authorization: 'Bearer new-access-token' }) }))
+    },
+  )
+
+  it.each([
+    { title: undefined, expected: null },
+    { title: null, expected: '' },
+    { title: 'Neuer Titel', expected: 'Neuer Titel' },
+  ])('preserves missing/clear/set title semantics for file replacement ($title)', async ({ title, expected }) => {
+    const send = vi.fn()
+    class ReleaseReplaceXhr {
+      status = 200
+      responseText = JSON.stringify({ id: 81, title: title ?? null, caption: 'Eigener Text' })
+      upload: { onprogress: ((event: ProgressEvent) => void) | null } = { onprogress: null }
+      onload: (() => void) | null = null
+      open = vi.fn()
+      setRequestHeader = vi.fn()
+      send(body: FormData) { send(body); this.onload?.() }
+    }
+    vi.stubGlobal('XMLHttpRequest', ReleaseReplaceXhr)
+    const file = new File(['asset'], 'asset.png', { type: 'image/png' })
+
+    await replaceReleaseVersionMediaFile({
+      versionId: 42, relationId: 81, file, title, caption: 'Eigener Text', sourceRevision: 3,
+    })
+
+    const body = send.mock.calls[0][0] as FormData
+    expect(body.get('title')).toBe(expected)
+    expect(body.has('title')).toBe(title !== undefined)
+    expect(body.get('caption')).toBe('Eigener Text')
+    expect(body.get('source_revision')).toBe('3')
+    expect(body.get('file')).toBe(file)
+    expect(refreshKeycloakTokenMock).not.toHaveBeenCalled()
+  })
+
 })

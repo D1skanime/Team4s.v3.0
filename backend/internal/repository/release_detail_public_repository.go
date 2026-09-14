@@ -48,6 +48,7 @@ type PublicReleaseImage struct {
 	Category      string  `json:"category"`
 	ThumbnailURL  *string `json:"thumbnail_url"`
 	OriginalURL   *string `json:"original_url"`
+	Title         *string `json:"title"`
 	Caption       *string `json:"caption"`
 	// AuthorName ist der aufgeloeste Anzeigename des Hochladers (release_version_media.uploaded_by_user_id),
 	// nil wenn kein Hochlader hinterlegt oder kein Anzeigename ermittelbar ist (AO4-18 Autor-Chip).
@@ -357,7 +358,7 @@ func (r *ReleaseDetailPublicRepository) ListReleaseVersionImagesCursor(
 			rvm.id,
 			rvm.fansub_group_id,
 			rvm.category,
-			rvm.caption,
+			rvm.title, rvm.caption,
 			COALESCE(mf_thumb.path, '') AS thumbnail_path,
 			COALESCE(mf_orig.path, ma.file_path, '') AS original_path,
 			rvm.sort_order,
@@ -398,7 +399,7 @@ func (r *ReleaseDetailPublicRepository) ListReleaseVersionImagesCursor(
 			thumbnailPath *string
 			originalPath  *string
 		)
-		if err := rows.Scan(&row.image.ID, &row.image.FansubGroupID, &row.image.Category, &row.image.Caption, &thumbnailPath, &originalPath, &row.sortOrder, &row.image.AuthorName, &row.image.IsPreviewCandidate); err != nil {
+		if err := rows.Scan(&row.image.ID, &row.image.FansubGroupID, &row.image.Category, &row.image.Title, &row.image.Caption, &thumbnailPath, &originalPath, &row.sortOrder, &row.image.AuthorName, &row.image.IsPreviewCandidate); err != nil {
 			return nil, fmt.Errorf("release detail: scan image cursor row: %w", err)
 		}
 		if thumbnailPath != nil {

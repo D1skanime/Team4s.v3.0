@@ -39,6 +39,7 @@ export interface MemberProfileCredit {
 export interface MemberProfileRecentMedia {
   id: number
   category: string
+  title?: string | null
   caption?: string | null
   thumbnail_url?: string | null
   anime_title: string

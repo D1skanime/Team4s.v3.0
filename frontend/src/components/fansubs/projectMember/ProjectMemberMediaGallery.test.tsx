@@ -1,6 +1,6 @@
 // @vitest-environment jsdom
 
-import { cleanup, fireEvent, render, screen, waitFor } from '@testing-library/react'
+import { cleanup, fireEvent, render, screen, waitFor, within } from '@testing-library/react'
 import { afterEach, describe, expect, it, vi } from 'vitest'
 
 import type { ProjectMemberMediaItem } from '@/types/projectMember'
@@ -52,6 +52,21 @@ const renderGallery = () =>
   )
 
 describe('ProjectMemberMediaGallery', () => {
+  it('uses the individual title on its card and keeps the description separate in the viewer', async () => {
+    const item = media({ title: '<b>Abschlussschild</b>', caption: '<em>Übersetzung im Bild</em>' })
+    getProjectMemberMedia.mockResolvedValueOnce(page([item], null, false))
+    const { container } = renderGallery()
+    const card = await screen.findByRole('button', { name: '<b>Abschlussschild</b> – Folge 08 öffnen' })
+    expect(within(card).getByText(item.title!)).not.toBeNull()
+    fireEvent.click(card)
+    const dialog = screen.getByRole('dialog', { name: 'Medienansicht' })
+    expect(within(dialog).getByRole('heading', { name: item.title! })).not.toBeNull()
+    expect(within(dialog).getByText(item.caption!)).not.toBeNull()
+    expect(within(dialog).getByText('Fansub Screenshot')).not.toBeNull()
+    expect(container.querySelector('b, em')).toBeNull()
+    expect(getProjectMemberMedia).toHaveBeenCalledTimes(1)
+  })
+
   it('loads the initial page of media cards', async () => {
     const first = Array.from({ length: 24 }, (_, i) => media({ id: i + 1 }))
     getProjectMemberMedia.mockResolvedValueOnce(page(first, 'c1', true))

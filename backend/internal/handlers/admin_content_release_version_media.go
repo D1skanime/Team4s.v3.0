@@ -17,6 +17,7 @@ import (
 	"strconv"
 	"strings"
 	"time"
+	"unicode/utf8"
 
 	"team4s.v3/backend/internal/models"
 	"team4s.v3/backend/internal/permissions"
@@ -143,7 +144,11 @@ func generateRVMThumbnail(data []byte, mimeType string) ([]byte, int, int, error
 }
 
 func parseOptionalCaptionField(rawBody map[string]interface{}) (*string, bool, error) {
-	v, ok := rawBody["caption"]
+	return parseOptionalRVMStringField(rawBody, "caption")
+}
+
+func parseOptionalRVMStringField(rawBody map[string]interface{}, field string) (*string, bool, error) {
+	v, ok := rawBody[field]
 	if !ok {
 		return nil, false, nil
 	}
@@ -152,9 +157,29 @@ func parseOptionalCaptionField(rawBody map[string]interface{}) (*string, bool, e
 	}
 	s, ok := v.(string)
 	if !ok {
-		return nil, false, fmt.Errorf("caption muss string oder null sein")
+		return nil, false, fmt.Errorf("%s muss string oder null sein", field)
 	}
 	return &s, true, nil
+}
+
+// parseOptionalRVMTitleField keeps PATCH missing/null semantics and shares the string
+// parser with caption. Titles are plain text owned by the media relation.
+func parseOptionalRVMTitleField(rawBody map[string]interface{}) (*string, bool, error) {
+	value, present, err := parseOptionalRVMStringField(rawBody, "title")
+	if err != nil {
+		return nil, false, fmt.Errorf("Titel muss Text oder null sein.")
+	}
+	if !present || value == nil {
+		return value, present, nil
+	}
+	trimmed := strings.TrimSpace(*value)
+	if utf8.RuneCountInString(trimmed) > 200 {
+		return nil, false, fmt.Errorf("Titel darf höchstens 200 Zeichen enthalten.")
+	}
+	if trimmed == "" {
+		return nil, true, nil
+	}
+	return &trimmed, true, nil
 }
 
 // UploadReleaseVersionMedia handles POST /api/v1/admin/release-versions/:versionId/media.
@@ -851,6 +876,11 @@ func (h *AdminContentHandler) PatchReleaseVersionMedia(c *gin.Context) {
 		c.JSON(http.StatusBadRequest, gin.H{"error": gin.H{"message": "ungültige json body"}})
 		return
 	}
+	title, titleSet, err := parseOptionalRVMTitleField(rawBody)
+	if err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{"error": gin.H{"message": err.Error()}})
+		return
+	}
 	caption, captionSet, err := parseOptionalCaptionField(rawBody)
 	if err != nil {
 		c.JSON(http.StatusBadRequest, gin.H{"error": gin.H{"message": err.Error()}})
@@ -891,6 +921,8 @@ func (h *AdminContentHandler) PatchReleaseVersionMedia(c *gin.Context) {
 	}
 
 	patchInput := repository.ReleaseVersionMediaPatchInput{
+		Title:              title,
+		TitleSet:           titleSet,
 		Caption:            caption,
 		CaptionSet:         captionSet,
 		IsPreviewCandidate: isPreviewCandidate,

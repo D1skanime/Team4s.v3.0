@@ -92,8 +92,8 @@ export function buildPublicReleasePreview({
       return {
         id: image.id,
         src: resolvePublicApiUrl(src),
-        label: image.caption?.trim() || categoryLabel,
-        alt: image.caption?.trim() || categoryLabel,
+        label: image.title?.trim() || image.caption?.trim() || categoryLabel,
+        alt: image.title?.trim() || image.caption?.trim() || categoryLabel,
       };
     })
     .filter((image): image is NonNullable<typeof image> => Boolean(image));

@@ -7108,6 +7108,10 @@ paths:
                   format: binary
                 category:
                   $ref: "#/components/schemas/ReleaseVersionMediaCategory"
+                title:
+                  type: string
+                  maxLength: 200
+                  description: Optional title; trimmed empty text clears it, absence preserves it.
                 caption:
                   type: string
                   nullable: true
@@ -11938,6 +11942,11 @@ components:
           format: int64
         category:
           type: string
+        title:
+          type: string
+          nullable: true
+          maxLength: 200
+          description: Optional plain-text title of the release-version media relation, independent of caption.
         caption:
           type: string
           nullable: true
@@ -14502,6 +14511,7 @@ components:
         - release_version_id
         - media_asset_id
         - category
+        - title
         - caption
         - sort_order
         - is_preview_candidate
@@ -14529,6 +14539,11 @@ components:
           format: int64
         category:
           $ref: "#/components/schemas/ReleaseVersionMediaCategory"
+        title:
+          type: string
+          nullable: true
+          maxLength: 200
+          description: Optional plain-text title of the release-version media relation, independent of caption.
         caption:
           type: string
           nullable: true
@@ -14640,6 +14655,11 @@ components:
       type: object
       minProperties: 1
       properties:
+        title:
+          type: string
+          nullable: true
+          maxLength: 200
+          description: Missing leaves the title unchanged; null or trimmed empty text clears it. Maximum 200 Unicode characters.
         caption:
           type: string
           nullable: true
@@ -15376,6 +15396,11 @@ components:
         thumbnail_url:
           type: string
           nullable: true
+        title:
+          type: string
+          nullable: true
+          maxLength: 200
+          description: Optional plain-text title of the release-version media relation, independent of caption.
         caption:
           type: string
           nullable: true
@@ -15428,6 +15453,11 @@ components:
         original_url:
           type: string
           nullable: true
+        title:
+          type: string
+          nullable: true
+          maxLength: 200
+          description: Optional plain-text title of the release-version media relation, independent of caption.
         caption:
           type: string
           nullable: true
@@ -15730,6 +15760,7 @@ components:
         id: {type: integer, format: int64}
         media_asset_id: {type: integer, format: int64}
         category: {type: string}
+        title: {type: string, nullable: true, maxLength: 200}
         caption: {type: string, nullable: true}
         episode_label: {type: string}
         release_version_label: {type: string}

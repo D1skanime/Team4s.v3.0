@@ -244,3 +244,12 @@ describe("loadPublicFansubProjectPageData - bounded request count (Plan 155-04)"
     }
   });
 });
+
+it("keeps an individual image title in the existing project preview without additional requests", async () => {
+  mocks.getGroupReleaseListCursor.mockResolvedValue({ items: [{ id: 41, episode_number: 1 }], next_cursor: null, has_more: false });
+  mocks.getGroupReleaseDetail.mockResolvedValue({ images: [{ id: 9, category: "screenshot", title: "Eigenständiger Bildtitel", caption: "Andere Beschreibung", thumbnail_url: "/thumb.jpg" }] });
+  const result = await loadPublicFansubProjectPageData({ animeID: ANIME_ID, groupID: GROUP_ID });
+  if (result.status !== "ok") throw new Error("expected ok");
+  expect(result.data.publicReleasePreviews[0].imagePreviews?.[0]).toMatchObject({ label: "Eigenständiger Bildtitel", alt: "Eigenständiger Bildtitel" });
+  expect(mocks.getGroupReleaseDetail).toHaveBeenCalledTimes(1);
+});

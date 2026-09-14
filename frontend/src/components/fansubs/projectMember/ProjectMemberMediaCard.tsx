@@ -19,7 +19,8 @@ export function ProjectMemberMediaCard({
 }) {
   const label = (CATEGORY_LABELS as Record<string, string>)[item.category] ?? item.category
   const src = item.thumbnail_url || item.preview_url
-  const alt = `${label} – Folge ${item.episode_label}`
+  const title = item.title?.trim()
+  const alt = `${title || label} – Folge ${item.episode_label}`
 
   return (
     <button
@@ -42,7 +43,8 @@ export function ProjectMemberMediaCard({
         )}
       </span>
       <span className={styles.cardMeta}>
-        <span className={styles.cardType}>{label}</span>
+        <span className={styles.cardType}>{title || label}</span>
+        {title ? <span className={styles.cardContext}>{label}</span> : null}
         <span className={styles.cardContext}>
           Folge {item.episode_label} · {item.release_version_label}
         </span>

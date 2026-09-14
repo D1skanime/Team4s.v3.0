@@ -146,6 +146,15 @@ func (h *AdminContentHandler) ReplaceReleaseVersionMediaFile(c *gin.Context) {
 		categoryField = &trimmed
 	}
 
+	titleBody := map[string]interface{}{}
+	if rawTitle, present := c.GetPostForm("title"); present {
+		titleBody["title"] = rawTitle
+	}
+	title, titleSet, err := parseOptionalRVMTitleField(titleBody)
+	if err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{"error": gin.H{"message": err.Error()}})
+		return
+	}
 	caption, captionSet := parseRVMReplaceCaptionField(c)
 
 	var isPreviewCandidate *bool
@@ -311,8 +320,10 @@ func (h *AdminContentHandler) ReplaceReleaseVersionMediaFile(c *gin.Context) {
 		}
 	}
 
-	if categoryField != nil || captionSet || isPreviewCandidate != nil {
+	if categoryField != nil || titleSet || captionSet || isPreviewCandidate != nil {
 		patchInput := repository.ReleaseVersionMediaPatchInput{
+			Title:              title,
+			TitleSet:           titleSet,
 			Caption:            caption,
 			CaptionSet:         captionSet,
 			IsPreviewCandidate: isPreviewCandidate,

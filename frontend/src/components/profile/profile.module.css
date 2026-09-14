@@ -351,6 +351,14 @@
   -webkit-line-clamp: 3;
 }
 
+.recentMediaDescription {
+  display: -webkit-box;
+  overflow: hidden;
+  overflow-wrap: anywhere;
+  -webkit-box-orient: vertical;
+  -webkit-line-clamp: 3;
+}
+
 .recentMediaCard {
   grid-template-rows: auto auto;
   align-content: start;

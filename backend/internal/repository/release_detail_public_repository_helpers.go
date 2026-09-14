@@ -279,7 +279,7 @@ func (r *ReleaseDetailPublicRepository) loadImages(ctx context.Context, releaseV
 			thumbnailPath *string
 			originalPath  *string
 		)
-		if err := rows.Scan(&item.ID, &item.FansubGroupID, &item.Category, &item.Caption, &thumbnailPath, &originalPath, &item.AuthorName, &item.IsPreviewCandidate); err != nil {
+		if err := rows.Scan(&item.ID, &item.FansubGroupID, &item.Category, &item.Title, &item.Caption, &thumbnailPath, &originalPath, &item.AuthorName, &item.IsPreviewCandidate); err != nil {
 			return nil, fmt.Errorf("release detail: scan image row: %w", err)
 		}
 		if thumbnailPath != nil {
@@ -326,7 +326,7 @@ func (r *ReleaseDetailPublicRepository) imagesQuery() string {
 			rvm.id,
 			rvm.fansub_group_id,
 			rvm.category,
-			rvm.caption,
+			rvm.title, rvm.caption,
 			COALESCE(mf_thumb.path, '') AS thumbnail_path,
 			COALESCE(mf_orig.path, ma.file_path, '') AS original_path,
 			uploader_author.name AS author_name

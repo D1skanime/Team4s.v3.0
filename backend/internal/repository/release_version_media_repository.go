@@ -22,6 +22,7 @@ type ReleaseVersionMediaCreateInput struct {
 	FansubGroupID      *int64
 	MediaAssetID       int64
 	Category           string
+	Title              *string
 	Caption            *string
 	SortOrder          int
 	IsPreviewCandidate bool
@@ -30,9 +31,11 @@ type ReleaseVersionMediaCreateInput struct {
 
 // ReleaseVersionMediaPatchInput holds the patchable fields for a release_version_media row.
 // A nil pointer means "do not change this field".
-// CaptionSet=true with Caption=nil means explicitly clear the caption to NULL.
+// TitleSet/CaptionSet=true with a nil value explicitly clears that field to NULL.
 // Visibility and ReviewStatus target media_assets (the owner row) — nil = do not change (D-05/Lock G).
 type ReleaseVersionMediaPatchInput struct {
+	TitleSet           bool
+	Title              *string
 	Caption            *string
 	CaptionSet         bool
 	IsPreviewCandidate *bool
@@ -57,6 +60,7 @@ type ReleaseVersionMediaItem struct {
 	FansubGroupID      *int64     `json:"fansub_group_id"`
 	MediaAssetID       int64      `json:"media_asset_id"`
 	Category           string     `json:"category"`
+	Title              *string    `json:"title"`
 	Caption            *string    `json:"caption"`
 	SortOrder          int        `json:"sort_order"`
 	IsPreviewCandidate bool       `json:"is_preview_candidate"`
@@ -116,11 +120,11 @@ func (r *MediaRepository) CreateReleaseVersionMediaAsset(
 	var id int64
 	err := tx.QueryRow(ctx, `
 		INSERT INTO release_version_media
-			(release_version_id, fansub_group_id, media_asset_id, category, caption, sort_order,
+			(release_version_id, fansub_group_id, media_asset_id, category, title, caption, sort_order,
 			 is_preview_candidate, uploaded_by_user_id, created_at)
-		VALUES ($1, $2, $3, $4, $5, $6, $7, (SELECT id FROM users WHERE id = $8), NOW())
+		VALUES ($1, $2, $3, $4, $5, $6, $7, $8, (SELECT id FROM users WHERE id = $9), NOW())
 		RETURNING id
-	`, input.ReleaseVersionID, input.FansubGroupID, input.MediaAssetID, input.Category, input.Caption,
+	`, input.ReleaseVersionID, input.FansubGroupID, input.MediaAssetID, input.Category, input.Title, input.Caption,
 		input.SortOrder, input.IsPreviewCandidate, uploadedByUserID,
 	).Scan(&id)
 	if err != nil {
@@ -217,6 +221,7 @@ func (r *MediaRepository) ListReleaseVersionMedia(
 			rvm.fansub_group_id,
 			rvm.media_asset_id,
 			rvm.category,
+			rvm.title,
 			rvm.caption,
 			rvm.sort_order,
 			rvm.is_preview_candidate,
@@ -273,7 +278,7 @@ func (r *MediaRepository) ListReleaseVersionMedia(
 		var reviewStatusCode *string
 		if err := rows.Scan(
 			&item.ID, &item.ReleaseVersionID, &item.FansubGroupID, &item.MediaAssetID,
-			&item.Category, &item.Caption, &item.SortOrder,
+			&item.Category, &item.Title, &item.Caption, &item.SortOrder,
 			&item.IsPreviewCandidate, &item.UploadedByUserID,
 			&visibilityName, &reviewStatusCode,
 			&item.CreatedAt, &item.UpdatedAt,
@@ -307,7 +312,7 @@ func (r *MediaRepository) ListReleaseVersionMedia(
 	return items, nil
 }
 
-// PatchReleaseVersionMedia updates caption, is_preview_candidate, and/or category for a relation.
+// PatchReleaseVersionMedia updates title, caption, is_preview_candidate, and/or category for a relation.
 // Uses a transaction so the caller can combine with ClearPreviewCandidateForVersion.
 func (r *MediaRepository) PatchReleaseVersionMedia(
 	ctx context.Context,
@@ -318,13 +323,14 @@ func (r *MediaRepository) PatchReleaseVersionMedia(
 	tag, err := tx.Exec(ctx, `
 		UPDATE release_version_media
 		SET
+			title                = CASE WHEN $6 THEN $7 ELSE title END,
 			caption              = CASE WHEN $2 THEN $3 ELSE caption END,
 			is_preview_candidate = COALESCE($4, is_preview_candidate),
 			category             = COALESCE($5, category),
 			updated_at           = NOW()
 		WHERE id = $1
 		  AND deleted_at IS NULL
-	`, relationID, input.CaptionSet, input.Caption, input.IsPreviewCandidate, input.Category)
+	`, relationID, input.CaptionSet, input.Caption, input.IsPreviewCandidate, input.Category, input.TitleSet, input.Title)
 	if err != nil {
 		return fmt.Errorf("patch release_version_media %d: %w", relationID, err)
 	}
@@ -386,6 +392,15 @@ func (r *MediaRepository) ClearPreviewCandidateForVersion(
 	releaseVersionID int64,
 	excludeRelationID int64,
 ) error {
+	// Serialize preview changes for the whole version before touching any media row.
+	// Without this lock two concurrent requests can both observe no prior preview.
+	var lockedVersionID int64
+	if err := tx.QueryRow(ctx, `SELECT id FROM release_versions WHERE id = $1 FOR UPDATE`, releaseVersionID).Scan(&lockedVersionID); err != nil {
+		if errors.Is(err, pgx.ErrNoRows) {
+			return ErrNotFound
+		}
+		return fmt.Errorf("lock preview version %d: %w", releaseVersionID, err)
+	}
 	_, err := tx.Exec(ctx, `
 		UPDATE release_version_media
 		SET is_preview_candidate = false, updated_at = NOW()

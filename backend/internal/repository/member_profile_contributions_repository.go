@@ -54,7 +54,7 @@ func (r *MemberProfileRepository) loadLatestContributions(ctx context.Context, m
 				COALESCE(a.title_de, a.title_en, a.title, '') AS anime_title,
 				rv.id AS release_version_id,
 				COALESCE(NULLIF(rv.title, ''), NULLIF(rv.version, ''), CONCAT('#', rv.id::text)) AS release_version_label,
-				NULL::text AS contribution_title,
+				NULLIF(BTRIM(rvm.title), '') AS contribution_title,
 				NULLIF(BTRIM(COALESCE(rvm.caption, ma.caption, '')), '') AS text_preview,
 				NULL::text AS body_html,
 				mf.path AS image_path,

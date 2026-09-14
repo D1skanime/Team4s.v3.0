@@ -32,6 +32,8 @@ export interface ReleaseVersionMediaItem {
   fansub_group_id?: number | null
   media_asset_id: number
   category: ReleaseVersionMediaCategory
+  /** Optional plain-text title of this version-scoped image; independent of caption. */
+  title?: string | null
   caption: string | null
   sort_order: number
   is_preview_candidate: boolean
@@ -65,7 +67,7 @@ export interface ReleaseVersionMediaListResponse {
   data: ReleaseVersionMediaItem[]
 }
 
-/** Per-file result from the batch POST upload endpoint. */
+/** Per-file result from the batch POST endpoint, in the same order as multipart files[]. */
 export interface ReleaseVersionMediaUploadResult {
   client_file_name: string
   status: 'ready' | 'processing' | 'failed'
@@ -90,6 +92,8 @@ export type ReleaseVersionMediaReviewStatus =
   | 'entfernt'
 
 export interface ReleaseVersionMediaPatchRequest {
+  /** Missing leaves the title unchanged; null or blank clears it. Max. 200 Unicode characters. */
+  title?: string | null
   caption?: string | null
   sort_order?: number
   is_preview_candidate?: boolean
