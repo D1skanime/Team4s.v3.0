@@ -1593,7 +1593,7 @@ ausdruecklich **kein** visuelles Redesign und kopiert keine Credits in Segmentta
 
 **Depends on:** Phase 155
 
-**Plans:** 15/15 plans complete
+**Plans:** 16 plans (15/16 complete; 156-16 is a pending post-hoc UAT gap-closure plan)
 
 Plans:
 
@@ -1634,6 +1634,15 @@ Plans:
 - [x] 156-13-PLAN.md — GAP-01 oeffentliche Projektion (explizite Auswahl als Schnittmenge, Query-Budget erweitert, Regressionsmatrix A-J) + Admin-GET/PUT-Endpunkte
 - [x] 156-14-PLAN.md — GAP-01 Admin-UI: Dateigroessen-Extraktion (SegmentEditPanel.tsx/SegmenteTab.tsx) + „Mitwirkende am Segment"-Mehrfachauswahl
 - [x] 156-15-PLAN.md — Vollstaendiger Phase-156-Regressionslauf + gebuendelter Live-UAT-Checkpoint (GAP-02: 5 Origin- + 9 Segment-Contributor-Pruefpunkte)
+
+**Post-hoc UAT gap-closure** (156-UAT.md, Live-UAT 2026-09-14, GAP-04/GAP-05)
+
+- [ ] 156-16-PLAN.md — Zentrale Origin-Ensure-Funktion (ensureThemeSegmentOriginTx), verdrahtet in
+      Range-Sync/Segment-Anlage/Auto-Zuweisung, Migration 0164 (Bestandsreparatur), SQL/Go-Regel-
+      Aequivalenzbeweis. Schliesst GAP-04 (Origin veraltet nach Bereichsaenderung: Segment 3,
+      origin=29, aktuell nur 40/41 zugewiesen) und GAP-05 (Segmente 4/5 ohne Origin trotz
+      Zuweisungen) aus dem Live-UAT vom 2026-09-14. Der 156-UAT.md-Live-UAT-Checkpoint selbst bleibt
+      ausdruecklich separat und offen -- dieser Plan beansprucht ihn nicht als bestanden.
 
 **Plan-time read first**: `.planning/phases/156-segment-domain-konsistenz-und-oeffentliche-release-projektion/156-USER-REQUEST.md`,
 `156-CONTEXT.md`, `156-RESEARCH.md`, `156-PATTERNS.md`,
