@@ -110,15 +110,23 @@ func TestSetThemeSegmentOrigin(t *testing.T) {
 	_, err = repo.AssignThemeSegmentToReleaseVersion(ctx, segmentID, releaseVersionB)
 	require.NoError(t, err)
 
-	t.Run("vor dem Setzen ist die Origin in ListAnimeSegments und GetAnimeSegmentByID nil", func(t *testing.T) {
+	// CR-01 (156-REVIEW.md, Folge-Fix zu Plan 156-16): AssignThemeSegmentToReleaseVersion ruft
+	// seit diesem Fix selbst ensureThemeSegmentOriginTx auf, damit die manuelle Einzel-Zuweisung
+	// nicht mehr die GAP-05-Erscheinungsform reproduziert (frisches Segment bleibt fuer immer
+	// NULL). Die Vorbereitung oben (zwei AssignThemeSegmentToReleaseVersion-Aufrufe) setzt die
+	// Origin dadurch bereits VOR jedem expliziten SetThemeSegmentOrigin-Aufruf automatisch auf
+	// releaseVersionA (beide Ziele haben dieselbe Episode, release_version_id ASC entscheidet).
+	t.Run("die vorbereitenden manuellen Zuweisungen haben die Origin bereits automatisch gesetzt (CR-01)", func(t *testing.T) {
 		segments, err := repo.ListAnimeSegments(ctx, animeID, fansubGroupID, "v1", 0)
 		require.NoError(t, err)
 		require.Len(t, segments, 1)
-		require.Nil(t, segments[0].OriginReleaseVersionID, "Origin nicht bestimmt vor dem ersten Setzen darf nicht in Fehler oder Fantasiewert enden")
+		require.NotNil(t, segments[0].OriginReleaseVersionID, "die manuelle Einzel-Zuweisung muss die Origin automatisch gesetzt haben")
+		require.Equal(t, releaseVersionA, *segments[0].OriginReleaseVersionID)
 
 		got, err := repo.GetAnimeSegmentByID(ctx, animeID, segmentID, 0)
 		require.NoError(t, err)
-		require.Nil(t, got.OriginReleaseVersionID)
+		require.NotNil(t, got.OriginReleaseVersionID)
+		require.Equal(t, releaseVersionA, *got.OriginReleaseVersionID)
 	})
 
 	t.Run("Setzen auf eine zugewiesene release_version_id gelingt und ist danach lesbar", func(t *testing.T) {
