@@ -1,0 +1,586 @@
+{
+  "cases": 5,
+  "liveWrites": 0,
+  "results": [
+    {
+      "width": 390,
+      "height": 844,
+      "session": "access",
+      "geometry": {
+        "viewport": 390,
+        "documentWidth": 390
+      },
+      "fixtureMutations": [
+        {
+          "method": "PATCH",
+          "path": "/api/v1/episode-versions/28",
+          "body": {
+            "title": "Zeitprüfung",
+            "video_quality": null,
+            "subtitle_type": null,
+            "production_started_on": "2013-07-17T00:00:00.000Z",
+            "release_date": "2013-07-25T00:00:00.000Z",
+            "crc32": null,
+            "duration_seconds": null
+          },
+          "response": "success"
+        },
+        {
+          "method": "PATCH",
+          "path": "/api/v1/episode-versions/28",
+          "body": {
+            "title": "Zeitprüfung",
+            "video_quality": null,
+            "subtitle_type": null,
+            "production_started_on": null,
+            "release_date": "2013-07-25T00:00:00.000Z",
+            "crc32": null,
+            "duration_seconds": null
+          },
+          "response": "success"
+        },
+        {
+          "method": "PATCH",
+          "path": "/api/v1/episode-versions/28",
+          "body": {
+            "title": "Zeitprüfung",
+            "video_quality": null,
+            "subtitle_type": null,
+            "production_started_on": "2013-07-19T00:00:00.000Z",
+            "release_date": "2013-07-19T00:00:00.000Z",
+            "crc32": null,
+            "duration_seconds": null
+          },
+          "response": "success"
+        },
+        {
+          "method": "PATCH",
+          "path": "/api/v1/episode-versions/28",
+          "body": {
+            "title": "Zeitprüfung",
+            "video_quality": null,
+            "subtitle_type": null,
+            "production_started_on": "2013-07-19T00:00:00.000Z",
+            "release_date": "2013-07-19T00:00:00.000Z",
+            "crc32": null,
+            "duration_seconds": null
+          },
+          "response": "400"
+        },
+        {
+          "method": "PATCH",
+          "path": "/api/v1/episode-versions/28",
+          "body": {
+            "title": "Zeitprüfung",
+            "video_quality": null,
+            "subtitle_type": null,
+            "production_started_on": "2013-07-19T00:00:00.000Z",
+            "release_date": "2013-07-19T00:00:00.000Z",
+            "crc32": null,
+            "duration_seconds": null
+          },
+          "response": "500"
+        },
+        {
+          "method": "PATCH",
+          "path": "/api/v1/episode-versions/28",
+          "body": {
+            "title": "Zeitprüfung",
+            "video_quality": null,
+            "subtitle_type": null,
+            "production_started_on": "2013-07-19T00:00:00.000Z",
+            "release_date": "2013-07-19T00:00:00.000Z",
+            "crc32": null,
+            "duration_seconds": null
+          },
+          "response": "network"
+        }
+      ],
+      "unexpectedWrites": 0,
+      "refreshes": 0,
+      "rejectedAccesses": 0,
+      "initialContextReads": 1,
+      "extraContextReadsOnDateInteraction": 0,
+      "pageErrors": [],
+      "checks": [
+        "previous hint nonblocking save",
+        "known bounds 18 and 19 allowed",
+        "next hint after 19",
+        "real DatePicker touch/keyboard",
+        "clear sends null",
+        "same own day saves",
+        "API 400 visible",
+        "API 500 visible",
+        "network error visible",
+        "invalid own dates on reload inline error and no write",
+        "own error plus advisory text does not promise save eligibility",
+        "context failure visible and stale form absent",
+        "no root overflow including open calendar"
+      ]
+    },
+    {
+      "width": 768,
+      "height": 1024,
+      "session": "access",
+      "geometry": {
+        "viewport": 768,
+        "documentWidth": 768
+      },
+      "fixtureMutations": [
+        {
+          "method": "PATCH",
+          "path": "/api/v1/episode-versions/28",
+          "body": {
+            "title": "Zeitprüfung",
+            "video_quality": null,
+            "subtitle_type": null,
+            "production_started_on": "2013-07-17T00:00:00.000Z",
+            "release_date": "2013-07-25T00:00:00.000Z",
+            "crc32": null,
+            "duration_seconds": null
+          },
+          "response": "success"
+        },
+        {
+          "method": "PATCH",
+          "path": "/api/v1/episode-versions/28",
+          "body": {
+            "title": "Zeitprüfung",
+            "video_quality": null,
+            "subtitle_type": null,
+            "production_started_on": null,
+            "release_date": "2013-07-25T00:00:00.000Z",
+            "crc32": null,
+            "duration_seconds": null
+          },
+          "response": "success"
+        },
+        {
+          "method": "PATCH",
+          "path": "/api/v1/episode-versions/28",
+          "body": {
+            "title": "Zeitprüfung",
+            "video_quality": null,
+            "subtitle_type": null,
+            "production_started_on": "2013-07-19T00:00:00.000Z",
+            "release_date": "2013-07-19T00:00:00.000Z",
+            "crc32": null,
+            "duration_seconds": null
+          },
+          "response": "success"
+        },
+        {
+          "method": "PATCH",
+          "path": "/api/v1/episode-versions/28",
+          "body": {
+            "title": "Zeitprüfung",
+            "video_quality": null,
+            "subtitle_type": null,
+            "production_started_on": "2013-07-19T00:00:00.000Z",
+            "release_date": "2013-07-19T00:00:00.000Z",
+            "crc32": null,
+            "duration_seconds": null
+          },
+          "response": "400"
+        },
+        {
+          "method": "PATCH",
+          "path": "/api/v1/episode-versions/28",
+          "body": {
+            "title": "Zeitprüfung",
+            "video_quality": null,
+            "subtitle_type": null,
+            "production_started_on": "2013-07-19T00:00:00.000Z",
+            "release_date": "2013-07-19T00:00:00.000Z",
+            "crc32": null,
+            "duration_seconds": null
+          },
+          "response": "500"
+        },
+        {
+          "method": "PATCH",
+          "path": "/api/v1/episode-versions/28",
+          "body": {
+            "title": "Zeitprüfung",
+            "video_quality": null,
+            "subtitle_type": null,
+            "production_started_on": "2013-07-19T00:00:00.000Z",
+            "release_date": "2013-07-19T00:00:00.000Z",
+            "crc32": null,
+            "duration_seconds": null
+          },
+          "response": "network"
+        }
+      ],
+      "unexpectedWrites": 0,
+      "refreshes": 0,
+      "rejectedAccesses": 0,
+      "initialContextReads": 1,
+      "extraContextReadsOnDateInteraction": 0,
+      "pageErrors": [],
+      "checks": [
+        "previous hint nonblocking save",
+        "known bounds 18 and 19 allowed",
+        "next hint after 19",
+        "real DatePicker touch/keyboard",
+        "clear sends null",
+        "same own day saves",
+        "API 400 visible",
+        "API 500 visible",
+        "network error visible",
+        "invalid own dates on reload inline error and no write",
+        "own error plus advisory text does not promise save eligibility",
+        "context failure visible and stale form absent",
+        "no root overflow including open calendar"
+      ]
+    },
+    {
+      "width": 1440,
+      "height": 900,
+      "session": "access",
+      "geometry": {
+        "viewport": 1440,
+        "documentWidth": 1440
+      },
+      "fixtureMutations": [
+        {
+          "method": "PATCH",
+          "path": "/api/v1/episode-versions/28",
+          "body": {
+            "title": "Zeitprüfung",
+            "video_quality": null,
+            "subtitle_type": null,
+            "production_started_on": "2013-07-17T00:00:00.000Z",
+            "release_date": "2013-07-25T00:00:00.000Z",
+            "crc32": null,
+            "duration_seconds": null
+          },
+          "response": "success"
+        },
+        {
+          "method": "PATCH",
+          "path": "/api/v1/episode-versions/28",
+          "body": {
+            "title": "Zeitprüfung",
+            "video_quality": null,
+            "subtitle_type": null,
+            "production_started_on": null,
+            "release_date": "2013-07-25T00:00:00.000Z",
+            "crc32": null,
+            "duration_seconds": null
+          },
+          "response": "success"
+        },
+        {
+          "method": "PATCH",
+          "path": "/api/v1/episode-versions/28",
+          "body": {
+            "title": "Zeitprüfung",
+            "video_quality": null,
+            "subtitle_type": null,
+            "production_started_on": "2013-07-19T00:00:00.000Z",
+            "release_date": "2013-07-19T00:00:00.000Z",
+            "crc32": null,
+            "duration_seconds": null
+          },
+          "response": "success"
+        },
+        {
+          "method": "PATCH",
+          "path": "/api/v1/episode-versions/28",
+          "body": {
+            "title": "Zeitprüfung",
+            "video_quality": null,
+            "subtitle_type": null,
+            "production_started_on": "2013-07-19T00:00:00.000Z",
+            "release_date": "2013-07-19T00:00:00.000Z",
+            "crc32": null,
+            "duration_seconds": null
+          },
+          "response": "400"
+        },
+        {
+          "method": "PATCH",
+          "path": "/api/v1/episode-versions/28",
+          "body": {
+            "title": "Zeitprüfung",
+            "video_quality": null,
+            "subtitle_type": null,
+            "production_started_on": "2013-07-19T00:00:00.000Z",
+            "release_date": "2013-07-19T00:00:00.000Z",
+            "crc32": null,
+            "duration_seconds": null
+          },
+          "response": "500"
+        },
+        {
+          "method": "PATCH",
+          "path": "/api/v1/episode-versions/28",
+          "body": {
+            "title": "Zeitprüfung",
+            "video_quality": null,
+            "subtitle_type": null,
+            "production_started_on": "2013-07-19T00:00:00.000Z",
+            "release_date": "2013-07-19T00:00:00.000Z",
+            "crc32": null,
+            "duration_seconds": null
+          },
+          "response": "network"
+        }
+      ],
+      "unexpectedWrites": 0,
+      "refreshes": 0,
+      "rejectedAccesses": 0,
+      "initialContextReads": 1,
+      "extraContextReadsOnDateInteraction": 0,
+      "pageErrors": [],
+      "checks": [
+        "previous hint nonblocking save",
+        "known bounds 18 and 19 allowed",
+        "next hint after 19",
+        "real DatePicker touch/keyboard",
+        "clear sends null",
+        "same own day saves",
+        "API 400 visible",
+        "API 500 visible",
+        "network error visible",
+        "invalid own dates on reload inline error and no write",
+        "own error plus advisory text does not promise save eligibility",
+        "context failure visible and stale form absent",
+        "no root overflow including open calendar"
+      ]
+    },
+    {
+      "width": 390,
+      "height": 844,
+      "session": "refresh-only",
+      "geometry": {
+        "viewport": 390,
+        "documentWidth": 390
+      },
+      "fixtureMutations": [
+        {
+          "method": "PATCH",
+          "path": "/api/v1/episode-versions/28",
+          "body": {
+            "title": "Zeitprüfung",
+            "video_quality": null,
+            "subtitle_type": null,
+            "production_started_on": "2013-07-17T00:00:00.000Z",
+            "release_date": "2013-07-25T00:00:00.000Z",
+            "crc32": null,
+            "duration_seconds": null
+          },
+          "response": "success"
+        },
+        {
+          "method": "PATCH",
+          "path": "/api/v1/episode-versions/28",
+          "body": {
+            "title": "Zeitprüfung",
+            "video_quality": null,
+            "subtitle_type": null,
+            "production_started_on": null,
+            "release_date": "2013-07-25T00:00:00.000Z",
+            "crc32": null,
+            "duration_seconds": null
+          },
+          "response": "success"
+        },
+        {
+          "method": "PATCH",
+          "path": "/api/v1/episode-versions/28",
+          "body": {
+            "title": "Zeitprüfung",
+            "video_quality": null,
+            "subtitle_type": null,
+            "production_started_on": "2013-07-19T00:00:00.000Z",
+            "release_date": "2013-07-19T00:00:00.000Z",
+            "crc32": null,
+            "duration_seconds": null
+          },
+          "response": "success"
+        },
+        {
+          "method": "PATCH",
+          "path": "/api/v1/episode-versions/28",
+          "body": {
+            "title": "Zeitprüfung",
+            "video_quality": null,
+            "subtitle_type": null,
+            "production_started_on": "2013-07-19T00:00:00.000Z",
+            "release_date": "2013-07-19T00:00:00.000Z",
+            "crc32": null,
+            "duration_seconds": null
+          },
+          "response": "400"
+        },
+        {
+          "method": "PATCH",
+          "path": "/api/v1/episode-versions/28",
+          "body": {
+            "title": "Zeitprüfung",
+            "video_quality": null,
+            "subtitle_type": null,
+            "production_started_on": "2013-07-19T00:00:00.000Z",
+            "release_date": "2013-07-19T00:00:00.000Z",
+            "crc32": null,
+            "duration_seconds": null
+          },
+          "response": "500"
+        },
+        {
+          "method": "PATCH",
+          "path": "/api/v1/episode-versions/28",
+          "body": {
+            "title": "Zeitprüfung",
+            "video_quality": null,
+            "subtitle_type": null,
+            "production_started_on": "2013-07-19T00:00:00.000Z",
+            "release_date": "2013-07-19T00:00:00.000Z",
+            "crc32": null,
+            "duration_seconds": null
+          },
+          "response": "network"
+        }
+      ],
+      "unexpectedWrites": 0,
+      "refreshes": 1,
+      "rejectedAccesses": 0,
+      "initialContextReads": 1,
+      "extraContextReadsOnDateInteraction": 0,
+      "pageErrors": [],
+      "checks": [
+        "previous hint nonblocking save",
+        "known bounds 18 and 19 allowed",
+        "next hint after 19",
+        "real DatePicker touch/keyboard",
+        "clear sends null",
+        "same own day saves",
+        "API 400 visible",
+        "API 500 visible",
+        "network error visible",
+        "invalid own dates on reload inline error and no write",
+        "own error plus advisory text does not promise save eligibility",
+        "context failure visible and stale form absent",
+        "no root overflow including open calendar"
+      ]
+    },
+    {
+      "width": 390,
+      "height": 844,
+      "session": "expired-access",
+      "geometry": {
+        "viewport": 390,
+        "documentWidth": 390
+      },
+      "fixtureMutations": [
+        {
+          "method": "PATCH",
+          "path": "/api/v1/episode-versions/28",
+          "body": {
+            "title": "Zeitprüfung",
+            "video_quality": null,
+            "subtitle_type": null,
+            "production_started_on": "2013-07-17T00:00:00.000Z",
+            "release_date": "2013-07-25T00:00:00.000Z",
+            "crc32": null,
+            "duration_seconds": null
+          },
+          "response": "success"
+        },
+        {
+          "method": "PATCH",
+          "path": "/api/v1/episode-versions/28",
+          "body": {
+            "title": "Zeitprüfung",
+            "video_quality": null,
+            "subtitle_type": null,
+            "production_started_on": null,
+            "release_date": "2013-07-25T00:00:00.000Z",
+            "crc32": null,
+            "duration_seconds": null
+          },
+          "response": "success"
+        },
+        {
+          "method": "PATCH",
+          "path": "/api/v1/episode-versions/28",
+          "body": {
+            "title": "Zeitprüfung",
+            "video_quality": null,
+            "subtitle_type": null,
+            "production_started_on": "2013-07-19T00:00:00.000Z",
+            "release_date": "2013-07-19T00:00:00.000Z",
+            "crc32": null,
+            "duration_seconds": null
+          },
+          "response": "success"
+        },
+        {
+          "method": "PATCH",
+          "path": "/api/v1/episode-versions/28",
+          "body": {
+            "title": "Zeitprüfung",
+            "video_quality": null,
+            "subtitle_type": null,
+            "production_started_on": "2013-07-19T00:00:00.000Z",
+            "release_date": "2013-07-19T00:00:00.000Z",
+            "crc32": null,
+            "duration_seconds": null
+          },
+          "response": "400"
+        },
+        {
+          "method": "PATCH",
+          "path": "/api/v1/episode-versions/28",
+          "body": {
+            "title": "Zeitprüfung",
+            "video_quality": null,
+            "subtitle_type": null,
+            "production_started_on": "2013-07-19T00:00:00.000Z",
+            "release_date": "2013-07-19T00:00:00.000Z",
+            "crc32": null,
+            "duration_seconds": null
+          },
+          "response": "500"
+        },
+        {
+          "method": "PATCH",
+          "path": "/api/v1/episode-versions/28",
+          "body": {
+            "title": "Zeitprüfung",
+            "video_quality": null,
+            "subtitle_type": null,
+            "production_started_on": "2013-07-19T00:00:00.000Z",
+            "release_date": "2013-07-19T00:00:00.000Z",
+            "crc32": null,
+            "duration_seconds": null
+          },
+          "response": "network"
+        }
+      ],
+      "unexpectedWrites": 0,
+      "refreshes": 1,
+      "rejectedAccesses": 4,
+      "initialContextReads": 1,
+      "extraContextReadsOnDateInteraction": 0,
+      "pageErrors": [],
+      "checks": [
+        "previous hint nonblocking save",
+        "known bounds 18 and 19 allowed",
+        "next hint after 19",
+        "real DatePicker touch/keyboard",
+        "clear sends null",
+        "same own day saves",
+        "API 400 visible",
+        "API 500 visible",
+        "network error visible",
+        "invalid own dates on reload inline error and no write",
+        "own error plus advisory text does not promise save eligibility",
+        "context failure visible and stale form absent",
+        "no root overflow including open calendar"
+      ]
+    }
+  ]
+}

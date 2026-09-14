@@ -1,0 +1,62 @@
+[
+  {
+    "file": "backend/internal/handlers/admin_content_episode_version_editor_helpers.go",
+    "runtime_matches": true
+  },
+  {
+    "file": "backend/internal/handlers/episode_version_update.go",
+    "runtime_matches": true
+  },
+  {
+    "file": "backend/internal/handlers/episode_version_validation.go",
+    "runtime_matches": true
+  },
+  {
+    "file": "backend/internal/models/episode_version.go",
+    "runtime_matches": true
+  },
+  {
+    "file": "backend/internal/repository/episode_version_repository.go",
+    "runtime_matches": true
+  },
+  {
+    "file": "frontend/src/app/admin/episode-versions/[versionId]/edit/EpisodeVersionEditor.module.css",
+    "runtime_matches": true
+  },
+  {
+    "file": "frontend/src/app/admin/episode-versions/[versionId]/edit/EpisodeVersionEditorPage.tsx",
+    "runtime_matches": true
+  },
+  {
+    "file": "frontend/src/app/admin/episode-versions/[versionId]/edit/ReleaseVersionMediaSection.module.css",
+    "runtime_matches": true
+  },
+  {
+    "file": "frontend/src/app/admin/episode-versions/[versionId]/edit/ReleaseVersionMediaSection.tsx",
+    "runtime_matches": true
+  },
+  {
+    "file": "frontend/src/app/admin/episode-versions/[versionId]/edit/ReleaseVersionMetadataFields.tsx",
+    "runtime_matches": true
+  },
+  {
+    "file": "frontend/src/app/admin/episode-versions/[versionId]/edit/episodeVersionEditorUtils.ts",
+    "runtime_matches": true
+  },
+  {
+    "file": "frontend/src/app/admin/episode-versions/[versionId]/edit/useEpisodeVersionEditor.ts",
+    "runtime_matches": true
+  },
+  {
+    "file": "frontend/src/app/me/releases/[versionId]/workspace/page.tsx",
+    "runtime_matches": true
+  },
+  {
+    "file": "frontend/src/types/episodeVersion.ts",
+    "runtime_matches": true
+  },
+  {
+    "file": "backend/internal/repository/episode_version_date_neighbors.go",
+    "runtime_matches": true
+  }
+]

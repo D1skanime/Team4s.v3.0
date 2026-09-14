@@ -1,0 +1,28 @@
+{
+  "exit_code": 1,
+  "elapsed_seconds": 4.44,
+  "tests": {
+    "pass": 82,
+    "fail": 2,
+    "skip": 0
+  },
+  "command": [
+    "docker",
+    "exec",
+    "-e",
+    "TEAM4S_PHASE117_TEST_DSN=postgres://postgres@team4s-quick-gif-dates-db:5432/team4s_phase117_test_gif?sslmode=disable",
+    "team4s-quick-gif-dates-go",
+    "go",
+    "test",
+    "-p",
+    "1",
+    "./internal/models",
+    "./internal/handlers",
+    "./internal/repository",
+    "-run",
+    "EpisodeVersionDate|ValidateEpisodeVersionDates|EpisodeVersionPublic|ReleaseStreamIdentity",
+    "-count=1",
+    "-json"
+  ],
+  "memory": "Go1400MiB/GOMEMLIMIT800MiB/GOMAXPROCS2/-p1; PostgreSQL384MiB/tmpfs256MiB"
+}

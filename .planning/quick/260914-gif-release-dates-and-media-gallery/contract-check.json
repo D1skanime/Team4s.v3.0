@@ -1,0 +1,17 @@
+{
+  "canonical_yaml": "pass",
+  "date_anchor_fields": [
+    "fansub_group_id",
+    "field",
+    "direction",
+    "release_version_id",
+    "episode_number",
+    "date"
+  ],
+  "go_ts_openapi": "pass",
+  "focused_new_block": "pass",
+  "focused_baseline_error_unchanged": {
+    "line": 1136,
+    "problem": "expected <block end>, but found '<scalar>'"
+  }
+}

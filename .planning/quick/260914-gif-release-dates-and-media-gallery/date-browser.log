@@ -1,0 +1,5 @@
+{"width":390,"session":"access","status":"pass","refreshes":0,"fixtureMutations":6}
+{"width":768,"session":"access","status":"pass","refreshes":0,"fixtureMutations":6}
+{"width":1440,"session":"access","status":"pass","refreshes":0,"fixtureMutations":6}
+{"width":390,"session":"refresh-only","status":"pass","refreshes":1,"fixtureMutations":6}
+{"width":390,"session":"expired-access","status":"pass","refreshes":1,"fixtureMutations":6}

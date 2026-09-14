@@ -1,0 +1,16 @@
+
+> team4s-frontend@0.1.0 test
+> vitest run --maxWorkers=1 src/app/admin/episode-versions/[versionId]/edit/episodeVersionEditorUtils.test.ts src/app/admin/episode-versions/[versionId]/edit/useEpisodeVersionEditor.test.tsx src/app/admin/episode-versions/[versionId]/edit/page.test.tsx src/app/me/releases/[versionId]/workspace/page.test.tsx
+
+
+ RUN  v3.2.4 /app
+
+ ✓ src/app/admin/episode-versions/[versionId]/edit/page.test.tsx (15 tests) 520ms
+ ✓ src/app/me/releases/[versionId]/workspace/page.test.tsx (19 tests) 457ms
+ ✓ src/app/admin/episode-versions/[versionId]/edit/useEpisodeVersionEditor.test.tsx (4 tests) 283ms
+ ✓ src/app/admin/episode-versions/[versionId]/edit/episodeVersionEditorUtils.test.ts (26 tests) 7ms
+
+ Test Files  4 passed (4)
+      Tests  64 passed (64)
+   Start at  12:07:35
+   Duration  4.59s (transform 716ms, setup 279ms, collect 1.48s, tests 1.27s, environment 986ms, prepare 209ms)

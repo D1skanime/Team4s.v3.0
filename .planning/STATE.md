@@ -4,7 +4,7 @@ milestone: v1.4
 milestone_name: Coverage
 status: verifying
 stopped_at: Anime 158/159 technically verified; global baseline exceptions and Human-UAT 156/157/158/159 remain open
-last_updated: '2026-09-14T11:47:26.543136+00:00'
+last_updated: '2026-09-14T12:20:57.952337+00:00'
 last_activity: 2026-09-14
 progress:
   total_phases: 24
@@ -1048,6 +1048,7 @@ Last activity: 2026-09-14 — Quick 260914-fc1: OP-/ED-Konflikte atomisch verhin
 | 260914-dzk | Release-Mehrfachupload: Titel/Text pro Bild, eine Vorschau, gezielter Retry;128 Frontendtests, fokussierte PostgreSQL-/Browserchecks grün; additive Migration0163, Human-UAT offen | 2026-09-14 | 2f2d964f | [260914-dzk-release-media-per-file-metadata](./quick/260914-dzk-release-media-per-file-metadata/) |
 | 260914-f3k | Release-Medien: gemeinsame Galerie aller Kategorien mit Kategorie je Bild;93 Tests/36 Browserfälle grün | 2026-09-14 | d86083bd | [260914-f3k-release-media-all-images-gallery](./quick/260914-f3k-release-media-all-images-gallery/) |
 | 260914-fc1 | Segment-UAT: unabhängige OP-/ED-Plätze, atomischer Konfliktschutz und tatsächliche Zuordnungen; 76 Backend-/138 Frontendprüfungen, Human-UAT offen | 2026-09-14 | 646433be | [260914-fc1-segment-assignment-slot-conflicts](./quick/260914-fc1-segment-assignment-slot-conflicts/) |
+| 260914-gif | Release-Datumsvalidierung und nicht blockierende Folgehinweise; responsive Mediengalerie mit 2/3/4 Spalten; 103 Frontend-/84 Backendprüffälle und 15 Browserfälle bestanden; Altfehler/Human-UAT offen | 2026-09-14 | b62e777e | [260914-gif-release-dates-and-media-gallery](./quick/260914-gif-release-dates-and-media-gallery/)|
 
 | 260825-jc0 | Admin start page navigation cleanup | 2026-08-25 | pending | [260825-jc0-admin-startseite-von-redundanten-benutze](./quick/260825-jc0-admin-startseite-von-redundanten-benutze/) |
 | 260825-svs | Regression aus Phase 140 beheben: fehlende getReviewDelegations Export im api-Mock von UserGroupRightsTab.test.tsx nachgeruestet (test-only, keine Verhaltensaenderung) | 2026-08-25 | 6cddcb75 | [260825-svs-regression-aus-phase-140-beheben-fehlend](./quick/260825-svs-regression-aus-phase-140-beheben-fehlend/) |

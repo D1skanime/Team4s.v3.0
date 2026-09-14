@@ -1,0 +1,642 @@
+
+> team4s-frontend@0.1.0 test
+> vitest run --maxWorkers=1 --no-file-parallelism src/app/admin/episode-versions/[versionId]/edit/ReleaseVersionMediaSection.test.tsx
+
+
+ RUN  v3.2.4 /app
+
+stderr | src/app/admin/episode-versions/[versionId]/edit/ReleaseVersionMediaSection.test.tsx > ReleaseVersionMediaSection per-file upload metadata > removes only the selected draft and resets its preview choice without changing another draft
+Warning: An update to ReleaseVersionMediaSection inside a test was not wrapped in act(...).
+
+When testing, code that causes React state updates should be wrapped into act(...):
+
+act(() => {
+  /* fire events that update state */
+});
+/* assert on the output */
+
+This ensures that you're testing the behavior the user would see in the browser. Learn more at https://reactjs.org/link/wrap-tests-with-act
+    at ReleaseVersionMediaSection (/app/src/app/admin/episode-versions/[versionId]/edit/ReleaseVersionMediaSection.tsx:67:3)
+Warning: An update to ReleaseVersionMediaSection inside a test was not wrapped in act(...).
+
+When testing, code that causes React state updates should be wrapped into act(...):
+
+act(() => {
+  /* fire events that update state */
+});
+/* assert on the output */
+
+This ensures that you're testing the behavior the user would see in the browser. Learn more at https://reactjs.org/link/wrap-tests-with-act
+    at ReleaseVersionMediaSection (/app/src/app/admin/episode-versions/[versionId]/edit/ReleaseVersionMediaSection.tsx:67:3)
+
+stderr | src/app/admin/episode-versions/[versionId]/edit/ReleaseVersionMediaSection.test.tsx > ReleaseVersionMediaSection per-file upload metadata > removes only the selected draft and resets its preview choice without changing another draft
+Warning: An update to ReleaseVersionMediaSection inside a test was not wrapped in act(...).
+
+When testing, code that causes React state updates should be wrapped into act(...):
+
+act(() => {
+  /* fire events that update state */
+});
+/* assert on the output */
+
+This ensures that you're testing the behavior the user would see in the browser. Learn more at https://reactjs.org/link/wrap-tests-with-act
+    at ReleaseVersionMediaSection (/app/src/app/admin/episode-versions/[versionId]/edit/ReleaseVersionMediaSection.tsx:67:3)
+
+stderr | src/app/admin/episode-versions/[versionId]/edit/ReleaseVersionMediaSection.test.tsx > ReleaseVersionMediaSection per-file upload metadata > keeps retry errors inside the corresponding file row and prevents restarting successful files
+Warning: An update to ReleaseVersionMediaSection inside a test was not wrapped in act(...).
+
+When testing, code that causes React state updates should be wrapped into act(...):
+
+act(() => {
+  /* fire events that update state */
+});
+/* assert on the output */
+
+This ensures that you're testing the behavior the user would see in the browser. Learn more at https://reactjs.org/link/wrap-tests-with-act
+    at ReleaseVersionMediaSection (/app/src/app/admin/episode-versions/[versionId]/edit/ReleaseVersionMediaSection.tsx:67:3)
+Warning: An update to ReleaseVersionMediaSection inside a test was not wrapped in act(...).
+
+When testing, code that causes React state updates should be wrapped into act(...):
+
+act(() => {
+  /* fire events that update state */
+});
+/* assert on the output */
+
+This ensures that you're testing the behavior the user would see in the browser. Learn more at https://reactjs.org/link/wrap-tests-with-act
+    at ReleaseVersionMediaSection (/app/src/app/admin/episode-versions/[versionId]/edit/ReleaseVersionMediaSection.tsx:67:3)
+
+stderr | src/app/admin/episode-versions/[versionId]/edit/ReleaseVersionMediaSection.test.tsx > ReleaseVersionMediaSection per-file upload metadata > keeps retry errors inside the corresponding file row and prevents restarting successful files
+Warning: An update to ReleaseVersionMediaSection inside a test was not wrapped in act(...).
+
+When testing, code that causes React state updates should be wrapped into act(...):
+
+act(() => {
+  /* fire events that update state */
+});
+/* assert on the output */
+
+This ensures that you're testing the behavior the user would see in the browser. Learn more at https://reactjs.org/link/wrap-tests-with-act
+    at ReleaseVersionMediaSection (/app/src/app/admin/episode-versions/[versionId]/edit/ReleaseVersionMediaSection.tsx:67:3)
+
+stderr | src/app/admin/episode-versions/[versionId]/edit/ReleaseVersionMediaSection.test.tsx > ReleaseVersionMediaSection direct category upload > reopens the selected category with a fresh draft after cancelling
+Warning: An update to ReleaseVersionMediaSection inside a test was not wrapped in act(...).
+
+When testing, code that causes React state updates should be wrapped into act(...):
+
+act(() => {
+  /* fire events that update state */
+});
+/* assert on the output */
+
+This ensures that you're testing the behavior the user would see in the browser. Learn more at https://reactjs.org/link/wrap-tests-with-act
+    at ReleaseVersionMediaSection (/app/src/app/admin/episode-versions/[versionId]/edit/ReleaseVersionMediaSection.tsx:67:3)
+Warning: An update to ReleaseVersionMediaSection inside a test was not wrapped in act(...).
+
+When testing, code that causes React state updates should be wrapped into act(...):
+
+act(() => {
+  /* fire events that update state */
+});
+/* assert on the output */
+
+This ensures that you're testing the behavior the user would see in the browser. Learn more at https://reactjs.org/link/wrap-tests-with-act
+    at ReleaseVersionMediaSection (/app/src/app/admin/episode-versions/[versionId]/edit/ReleaseVersionMediaSection.tsx:67:3)
+
+stderr | src/app/admin/episode-versions/[versionId]/edit/ReleaseVersionMediaSection.test.tsx > ReleaseVersionMediaSection direct category upload > reopens the selected category with a fresh draft after cancelling
+Warning: An update to ReleaseVersionMediaSection inside a test was not wrapped in act(...).
+
+When testing, code that causes React state updates should be wrapped into act(...):
+
+act(() => {
+  /* fire events that update state */
+});
+/* assert on the output */
+
+This ensures that you're testing the behavior the user would see in the browser. Learn more at https://reactjs.org/link/wrap-tests-with-act
+    at ReleaseVersionMediaSection (/app/src/app/admin/episode-versions/[versionId]/edit/ReleaseVersionMediaSection.tsx:67:3)
+
+stderr | src/app/admin/episode-versions/[versionId]/edit/ReleaseVersionMediaSection.test.tsx > ReleaseVersionMediaSection direct category upload > shows all existing media to read-only viewers without category interaction
+Warning: An update to ReleaseVersionMediaSection inside a test was not wrapped in act(...).
+
+When testing, code that causes React state updates should be wrapped into act(...):
+
+act(() => {
+  /* fire events that update state */
+});
+/* assert on the output */
+
+This ensures that you're testing the behavior the user would see in the browser. Learn more at https://reactjs.org/link/wrap-tests-with-act
+    at ReleaseVersionMediaSection (/app/src/app/admin/episode-versions/[versionId]/edit/ReleaseVersionMediaSection.tsx:67:3)
+Warning: An update to ReleaseVersionMediaSection inside a test was not wrapped in act(...).
+
+When testing, code that causes React state updates should be wrapped into act(...):
+
+act(() => {
+  /* fire events that update state */
+});
+/* assert on the output */
+
+This ensures that you're testing the behavior the user would see in the browser. Learn more at https://reactjs.org/link/wrap-tests-with-act
+    at ReleaseVersionMediaSection (/app/src/app/admin/episode-versions/[versionId]/edit/ReleaseVersionMediaSection.tsx:67:3)
+
+stderr | src/app/admin/episode-versions/[versionId]/edit/ReleaseVersionMediaSection.test.tsx > ReleaseVersionMediaSection direct category upload > shows all existing media to read-only viewers without category interaction
+Warning: An update to ReleaseVersionMediaSection inside a test was not wrapped in act(...).
+
+When testing, code that causes React state updates should be wrapped into act(...):
+
+act(() => {
+  /* fire events that update state */
+});
+/* assert on the output */
+
+This ensures that you're testing the behavior the user would see in the browser. Learn more at https://reactjs.org/link/wrap-tests-with-act
+    at ReleaseVersionMediaSection (/app/src/app/admin/episode-versions/[versionId]/edit/ReleaseVersionMediaSection.tsx:67:3)
+
+stderr | src/app/admin/episode-versions/[versionId]/edit/ReleaseVersionMediaSection.test.tsx > ReleaseVersionMediaSection direct category upload > cannot switch categories or reset an active upload queue
+Warning: An update to ReleaseVersionMediaSection inside a test was not wrapped in act(...).
+
+When testing, code that causes React state updates should be wrapped into act(...):
+
+act(() => {
+  /* fire events that update state */
+});
+/* assert on the output */
+
+This ensures that you're testing the behavior the user would see in the browser. Learn more at https://reactjs.org/link/wrap-tests-with-act
+    at ReleaseVersionMediaSection (/app/src/app/admin/episode-versions/[versionId]/edit/ReleaseVersionMediaSection.tsx:67:3)
+Warning: An update to ReleaseVersionMediaSection inside a test was not wrapped in act(...).
+
+When testing, code that causes React state updates should be wrapped into act(...):
+
+act(() => {
+  /* fire events that update state */
+});
+/* assert on the output */
+
+This ensures that you're testing the behavior the user would see in the browser. Learn more at https://reactjs.org/link/wrap-tests-with-act
+    at ReleaseVersionMediaSection (/app/src/app/admin/episode-versions/[versionId]/edit/ReleaseVersionMediaSection.tsx:67:3)
+
+stderr | src/app/admin/episode-versions/[versionId]/edit/ReleaseVersionMediaSection.test.tsx > ReleaseVersionMediaSection direct category upload > cannot switch categories or reset an active upload queue
+Warning: An update to ReleaseVersionMediaSection inside a test was not wrapped in act(...).
+
+When testing, code that causes React state updates should be wrapped into act(...):
+
+act(() => {
+  /* fire events that update state */
+});
+/* assert on the output */
+
+This ensures that you're testing the behavior the user would see in the browser. Learn more at https://reactjs.org/link/wrap-tests-with-act
+    at ReleaseVersionMediaSection (/app/src/app/admin/episode-versions/[versionId]/edit/ReleaseVersionMediaSection.tsx:67:3)
+
+stderr | src/app/admin/episode-versions/[versionId]/edit/ReleaseVersionMediaSection.test.tsx > ReleaseVersionMediaSection Phase 90 upload redesign > keeps full long gallery text in the existing detail drawer without a data request
+Warning: An update to ReleaseVersionMediaSection inside a test was not wrapped in act(...).
+
+When testing, code that causes React state updates should be wrapped into act(...):
+
+act(() => {
+  /* fire events that update state */
+});
+/* assert on the output */
+
+This ensures that you're testing the behavior the user would see in the browser. Learn more at https://reactjs.org/link/wrap-tests-with-act
+    at ReleaseVersionMediaSection (/app/src/app/admin/episode-versions/[versionId]/edit/ReleaseVersionMediaSection.tsx:67:3)
+Warning: An update to ReleaseVersionMediaSection inside a test was not wrapped in act(...).
+
+When testing, code that causes React state updates should be wrapped into act(...):
+
+act(() => {
+  /* fire events that update state */
+});
+/* assert on the output */
+
+This ensures that you're testing the behavior the user would see in the browser. Learn more at https://reactjs.org/link/wrap-tests-with-act
+    at ReleaseVersionMediaSection (/app/src/app/admin/episode-versions/[versionId]/edit/ReleaseVersionMediaSection.tsx:67:3)
+
+stderr | src/app/admin/episode-versions/[versionId]/edit/ReleaseVersionMediaSection.test.tsx > ReleaseVersionMediaSection Phase 90 upload redesign > keeps full long gallery text in the existing detail drawer without a data request
+Warning: An update to ReleaseVersionMediaSection inside a test was not wrapped in act(...).
+
+When testing, code that causes React state updates should be wrapped into act(...):
+
+act(() => {
+  /* fire events that update state */
+});
+/* assert on the output */
+
+This ensures that you're testing the behavior the user would see in the browser. Learn more at https://reactjs.org/link/wrap-tests-with-act
+    at ReleaseVersionMediaSection (/app/src/app/admin/episode-versions/[versionId]/edit/ReleaseVersionMediaSection.tsx:67:3)
+
+stderr | src/app/admin/episode-versions/[versionId]/edit/ReleaseVersionMediaSection.test.tsx > ReleaseVersionMediaSection Phase 90 upload redesign > keeps all eleven mixed-category cards with only their permitted preview actions
+Warning: An update to ReleaseVersionMediaSection inside a test was not wrapped in act(...).
+
+When testing, code that causes React state updates should be wrapped into act(...):
+
+act(() => {
+  /* fire events that update state */
+});
+/* assert on the output */
+
+This ensures that you're testing the behavior the user would see in the browser. Learn more at https://reactjs.org/link/wrap-tests-with-act
+    at ReleaseVersionMediaSection (/app/src/app/admin/episode-versions/[versionId]/edit/ReleaseVersionMediaSection.tsx:67:3)
+Warning: An update to ReleaseVersionMediaSection inside a test was not wrapped in act(...).
+
+When testing, code that causes React state updates should be wrapped into act(...):
+
+act(() => {
+  /* fire events that update state */
+});
+/* assert on the output */
+
+This ensures that you're testing the behavior the user would see in the browser. Learn more at https://reactjs.org/link/wrap-tests-with-act
+    at ReleaseVersionMediaSection (/app/src/app/admin/episode-versions/[versionId]/edit/ReleaseVersionMediaSection.tsx:67:3)
+
+stderr | src/app/admin/episode-versions/[versionId]/edit/ReleaseVersionMediaSection.test.tsx > ReleaseVersionMediaSection Phase 90 upload redesign > keeps all eleven mixed-category cards with only their permitted preview actions
+Warning: An update to ReleaseVersionMediaSection inside a test was not wrapped in act(...).
+
+When testing, code that causes React state updates should be wrapped into act(...):
+
+act(() => {
+  /* fire events that update state */
+});
+/* assert on the output */
+
+This ensures that you're testing the behavior the user would see in the browser. Learn more at https://reactjs.org/link/wrap-tests-with-act
+    at ReleaseVersionMediaSection (/app/src/app/admin/episode-versions/[versionId]/edit/ReleaseVersionMediaSection.tsx:67:3)
+
+stderr | src/app/admin/episode-versions/[versionId]/edit/ReleaseVersionMediaSection.test.tsx > ReleaseVersionMediaSection Phase 90 upload redesign > renders one category button group and no category dropdown
+Warning: An update to ReleaseVersionMediaSection inside a test was not wrapped in act(...).
+
+When testing, code that causes React state updates should be wrapped into act(...):
+
+act(() => {
+  /* fire events that update state */
+});
+/* assert on the output */
+
+This ensures that you're testing the behavior the user would see in the browser. Learn more at https://reactjs.org/link/wrap-tests-with-act
+    at ReleaseVersionMediaSection (/app/src/app/admin/episode-versions/[versionId]/edit/ReleaseVersionMediaSection.tsx:67:3)
+Warning: An update to ReleaseVersionMediaSection inside a test was not wrapped in act(...).
+
+When testing, code that causes React state updates should be wrapped into act(...):
+
+act(() => {
+  /* fire events that update state */
+});
+/* assert on the output */
+
+This ensures that you're testing the behavior the user would see in the browser. Learn more at https://reactjs.org/link/wrap-tests-with-act
+    at ReleaseVersionMediaSection (/app/src/app/admin/episode-versions/[versionId]/edit/ReleaseVersionMediaSection.tsx:67:3)
+
+stderr | src/app/admin/episode-versions/[versionId]/edit/ReleaseVersionMediaSection.test.tsx > ReleaseVersionMediaSection Phase 90 upload redesign > renders one category button group and no category dropdown
+Warning: An update to ReleaseVersionMediaSection inside a test was not wrapped in act(...).
+
+When testing, code that causes React state updates should be wrapped into act(...):
+
+act(() => {
+  /* fire events that update state */
+});
+/* assert on the output */
+
+This ensures that you're testing the behavior the user would see in the browser. Learn more at https://reactjs.org/link/wrap-tests-with-act
+    at ReleaseVersionMediaSection (/app/src/app/admin/episode-versions/[versionId]/edit/ReleaseVersionMediaSection.tsx:67:3)
+
+stderr | src/app/admin/episode-versions/[versionId]/edit/ReleaseVersionMediaSection.test.tsx > ReleaseVersionMediaSection Phase 90 upload redesign > keeps all four images and their categories visible after every upload action
+Warning: An update to ReleaseVersionMediaSection inside a test was not wrapped in act(...).
+
+When testing, code that causes React state updates should be wrapped into act(...):
+
+act(() => {
+  /* fire events that update state */
+});
+/* assert on the output */
+
+This ensures that you're testing the behavior the user would see in the browser. Learn more at https://reactjs.org/link/wrap-tests-with-act
+    at ReleaseVersionMediaSection (/app/src/app/admin/episode-versions/[versionId]/edit/ReleaseVersionMediaSection.tsx:67:3)
+Warning: An update to ReleaseVersionMediaSection inside a test was not wrapped in act(...).
+
+When testing, code that causes React state updates should be wrapped into act(...):
+
+act(() => {
+  /* fire events that update state */
+});
+/* assert on the output */
+
+This ensures that you're testing the behavior the user would see in the browser. Learn more at https://reactjs.org/link/wrap-tests-with-act
+    at ReleaseVersionMediaSection (/app/src/app/admin/episode-versions/[versionId]/edit/ReleaseVersionMediaSection.tsx:67:3)
+
+stderr | src/app/admin/episode-versions/[versionId]/edit/ReleaseVersionMediaSection.test.tsx > ReleaseVersionMediaSection Phase 90 upload redesign > keeps all four images and their categories visible after every upload action
+Warning: An update to ReleaseVersionMediaSection inside a test was not wrapped in act(...).
+
+When testing, code that causes React state updates should be wrapped into act(...):
+
+act(() => {
+  /* fire events that update state */
+});
+/* assert on the output */
+
+This ensures that you're testing the behavior the user would see in the browser. Learn more at https://reactjs.org/link/wrap-tests-with-act
+    at ReleaseVersionMediaSection (/app/src/app/admin/episode-versions/[versionId]/edit/ReleaseVersionMediaSection.tsx:67:3)
+
+stderr | src/app/admin/episode-versions/[versionId]/edit/ReleaseVersionMediaSection.test.tsx > ReleaseVersionMediaSection Phase 90 upload redesign > preserves pending visibility and counts only the visible gallery items
+Warning: An update to ReleaseVersionMediaSection inside a test was not wrapped in act(...).
+
+When testing, code that causes React state updates should be wrapped into act(...):
+
+act(() => {
+  /* fire events that update state */
+});
+/* assert on the output */
+
+This ensures that you're testing the behavior the user would see in the browser. Learn more at https://reactjs.org/link/wrap-tests-with-act
+    at ReleaseVersionMediaSection (/app/src/app/admin/episode-versions/[versionId]/edit/ReleaseVersionMediaSection.tsx:67:3)
+Warning: An update to ReleaseVersionMediaSection inside a test was not wrapped in act(...).
+
+When testing, code that causes React state updates should be wrapped into act(...):
+
+act(() => {
+  /* fire events that update state */
+});
+/* assert on the output */
+
+This ensures that you're testing the behavior the user would see in the browser. Learn more at https://reactjs.org/link/wrap-tests-with-act
+    at ReleaseVersionMediaSection (/app/src/app/admin/episode-versions/[versionId]/edit/ReleaseVersionMediaSection.tsx:67:3)
+
+stderr | src/app/admin/episode-versions/[versionId]/edit/ReleaseVersionMediaSection.test.tsx > ReleaseVersionMediaSection Phase 90 upload redesign > preserves pending visibility and counts only the visible gallery items
+Warning: An update to ReleaseVersionMediaSection inside a test was not wrapped in act(...).
+
+When testing, code that causes React state updates should be wrapped into act(...):
+
+act(() => {
+  /* fire events that update state */
+});
+/* assert on the output */
+
+This ensures that you're testing the behavior the user would see in the browser. Learn more at https://reactjs.org/link/wrap-tests-with-act
+    at ReleaseVersionMediaSection (/app/src/app/admin/episode-versions/[versionId]/edit/ReleaseVersionMediaSection.tsx:67:3)
+
+stderr | src/app/admin/episode-versions/[versionId]/edit/ReleaseVersionMediaSection.test.tsx > ReleaseVersionMediaSection Phase 90 upload redesign > opens upload as a bottom-sheet without an editable status select
+Warning: An update to ReleaseVersionMediaSection inside a test was not wrapped in act(...).
+
+When testing, code that causes React state updates should be wrapped into act(...):
+
+act(() => {
+  /* fire events that update state */
+});
+/* assert on the output */
+
+This ensures that you're testing the behavior the user would see in the browser. Learn more at https://reactjs.org/link/wrap-tests-with-act
+    at ReleaseVersionMediaSection (/app/src/app/admin/episode-versions/[versionId]/edit/ReleaseVersionMediaSection.tsx:67:3)
+Warning: An update to ReleaseVersionMediaSection inside a test was not wrapped in act(...).
+
+When testing, code that causes React state updates should be wrapped into act(...):
+
+act(() => {
+  /* fire events that update state */
+});
+/* assert on the output */
+
+This ensures that you're testing the behavior the user would see in the browser. Learn more at https://reactjs.org/link/wrap-tests-with-act
+    at ReleaseVersionMediaSection (/app/src/app/admin/episode-versions/[versionId]/edit/ReleaseVersionMediaSection.tsx:67:3)
+
+stderr | src/app/admin/episode-versions/[versionId]/edit/ReleaseVersionMediaSection.test.tsx > ReleaseVersionMediaSection Phase 90 upload redesign > opens upload as a bottom-sheet without an editable status select
+Warning: An update to ReleaseVersionMediaSection inside a test was not wrapped in act(...).
+
+When testing, code that causes React state updates should be wrapped into act(...):
+
+act(() => {
+  /* fire events that update state */
+});
+/* assert on the output */
+
+This ensures that you're testing the behavior the user would see in the browser. Learn more at https://reactjs.org/link/wrap-tests-with-act
+    at ReleaseVersionMediaSection (/app/src/app/admin/episode-versions/[versionId]/edit/ReleaseVersionMediaSection.tsx:67:3)
+
+stderr | src/app/admin/episode-versions/[versionId]/edit/ReleaseVersionMediaSection.test.tsx > ReleaseVersionMediaSection Phase 90 upload redesign > renders compact status chips from existing visibility and review fields
+Warning: An update to ReleaseVersionMediaSection inside a test was not wrapped in act(...).
+
+When testing, code that causes React state updates should be wrapped into act(...):
+
+act(() => {
+  /* fire events that update state */
+});
+/* assert on the output */
+
+This ensures that you're testing the behavior the user would see in the browser. Learn more at https://reactjs.org/link/wrap-tests-with-act
+    at ReleaseVersionMediaSection (/app/src/app/admin/episode-versions/[versionId]/edit/ReleaseVersionMediaSection.tsx:67:3)
+Warning: An update to ReleaseVersionMediaSection inside a test was not wrapped in act(...).
+
+When testing, code that causes React state updates should be wrapped into act(...):
+
+act(() => {
+  /* fire events that update state */
+});
+/* assert on the output */
+
+This ensures that you're testing the behavior the user would see in the browser. Learn more at https://reactjs.org/link/wrap-tests-with-act
+    at ReleaseVersionMediaSection (/app/src/app/admin/episode-versions/[versionId]/edit/ReleaseVersionMediaSection.tsx:67:3)
+
+stderr | src/app/admin/episode-versions/[versionId]/edit/ReleaseVersionMediaSection.test.tsx > ReleaseVersionMediaSection Phase 90 upload redesign > renders compact status chips from existing visibility and review fields
+Warning: An update to ReleaseVersionMediaSection inside a test was not wrapped in act(...).
+
+When testing, code that causes React state updates should be wrapped into act(...):
+
+act(() => {
+  /* fire events that update state */
+});
+/* assert on the output */
+
+This ensures that you're testing the behavior the user would see in the browser. Learn more at https://reactjs.org/link/wrap-tests-with-act
+    at ReleaseVersionMediaSection (/app/src/app/admin/episode-versions/[versionId]/edit/ReleaseVersionMediaSection.tsx:67:3)
+
+stderr | src/app/admin/episode-versions/[versionId]/edit/ReleaseVersionMediaSection.test.tsx > ReleaseVersionMediaSection Phase 90 upload redesign > zeigt Pending und letzte Aktivität aus dem eigenen Lifecycle
+Warning: An update to ReleaseVersionMediaSection inside a test was not wrapped in act(...).
+
+When testing, code that causes React state updates should be wrapped into act(...):
+
+act(() => {
+  /* fire events that update state */
+});
+/* assert on the output */
+
+This ensures that you're testing the behavior the user would see in the browser. Learn more at https://reactjs.org/link/wrap-tests-with-act
+    at ReleaseVersionMediaSection (/app/src/app/admin/episode-versions/[versionId]/edit/ReleaseVersionMediaSection.tsx:67:3)
+Warning: An update to ReleaseVersionMediaSection inside a test was not wrapped in act(...).
+
+When testing, code that causes React state updates should be wrapped into act(...):
+
+act(() => {
+  /* fire events that update state */
+});
+/* assert on the output */
+
+This ensures that you're testing the behavior the user would see in the browser. Learn more at https://reactjs.org/link/wrap-tests-with-act
+    at ReleaseVersionMediaSection (/app/src/app/admin/episode-versions/[versionId]/edit/ReleaseVersionMediaSection.tsx:67:3)
+
+stderr | src/app/admin/episode-versions/[versionId]/edit/ReleaseVersionMediaSection.test.tsx > ReleaseVersionMediaSection Phase 90 upload redesign > zeigt Pending und letzte Aktivität aus dem eigenen Lifecycle
+Warning: An update to ReleaseVersionMediaSection inside a test was not wrapped in act(...).
+
+When testing, code that causes React state updates should be wrapped into act(...):
+
+act(() => {
+  /* fire events that update state */
+});
+/* assert on the output */
+
+This ensures that you're testing the behavior the user would see in the browser. Learn more at https://reactjs.org/link/wrap-tests-with-act
+    at ReleaseVersionMediaSection (/app/src/app/admin/episode-versions/[versionId]/edit/ReleaseVersionMediaSection.tsx:67:3)
+
+stderr | src/app/admin/episode-versions/[versionId]/edit/ReleaseVersionMediaSection.test.tsx > ReleaseVersionMediaSection Phase 90 upload redesign > blendet fremde offene Medien ohne passende Fähigkeit aus
+Warning: An update to ReleaseVersionMediaSection inside a test was not wrapped in act(...).
+
+When testing, code that causes React state updates should be wrapped into act(...):
+
+act(() => {
+  /* fire events that update state */
+});
+/* assert on the output */
+
+This ensures that you're testing the behavior the user would see in the browser. Learn more at https://reactjs.org/link/wrap-tests-with-act
+    at ReleaseVersionMediaSection (/app/src/app/admin/episode-versions/[versionId]/edit/ReleaseVersionMediaSection.tsx:67:3)
+Warning: An update to ReleaseVersionMediaSection inside a test was not wrapped in act(...).
+
+When testing, code that causes React state updates should be wrapped into act(...):
+
+act(() => {
+  /* fire events that update state */
+});
+/* assert on the output */
+
+This ensures that you're testing the behavior the user would see in the browser. Learn more at https://reactjs.org/link/wrap-tests-with-act
+    at ReleaseVersionMediaSection (/app/src/app/admin/episode-versions/[versionId]/edit/ReleaseVersionMediaSection.tsx:67:3)
+
+stderr | src/app/admin/episode-versions/[versionId]/edit/ReleaseVersionMediaSection.test.tsx > ReleaseVersionMediaSection Phase 90 upload redesign > blendet fremde offene Medien ohne passende Fähigkeit aus
+Warning: An update to ReleaseVersionMediaSection inside a test was not wrapped in act(...).
+
+When testing, code that causes React state updates should be wrapped into act(...):
+
+act(() => {
+  /* fire events that update state */
+});
+/* assert on the output */
+
+This ensures that you're testing the behavior the user would see in the browser. Learn more at https://reactjs.org/link/wrap-tests-with-act
+    at ReleaseVersionMediaSection (/app/src/app/admin/episode-versions/[versionId]/edit/ReleaseVersionMediaSection.tsx:67:3)
+
+stderr | src/app/admin/episode-versions/[versionId]/edit/ReleaseVersionMediaSection.test.tsx > ReleaseVersionMediaSection Phase 90 upload redesign > marks the current preview persistently on its card and exposes the removal action
+Warning: An update to ReleaseVersionMediaSection inside a test was not wrapped in act(...).
+
+When testing, code that causes React state updates should be wrapped into act(...):
+
+act(() => {
+  /* fire events that update state */
+});
+/* assert on the output */
+
+This ensures that you're testing the behavior the user would see in the browser. Learn more at https://reactjs.org/link/wrap-tests-with-act
+    at ReleaseVersionMediaSection (/app/src/app/admin/episode-versions/[versionId]/edit/ReleaseVersionMediaSection.tsx:67:3)
+Warning: An update to ReleaseVersionMediaSection inside a test was not wrapped in act(...).
+
+When testing, code that causes React state updates should be wrapped into act(...):
+
+act(() => {
+  /* fire events that update state */
+});
+/* assert on the output */
+
+This ensures that you're testing the behavior the user would see in the browser. Learn more at https://reactjs.org/link/wrap-tests-with-act
+    at ReleaseVersionMediaSection (/app/src/app/admin/episode-versions/[versionId]/edit/ReleaseVersionMediaSection.tsx:67:3)
+
+stderr | src/app/admin/episode-versions/[versionId]/edit/ReleaseVersionMediaSection.test.tsx > ReleaseVersionMediaSection Phase 90 upload redesign > marks the current preview persistently on its card and exposes the removal action
+Warning: An update to ReleaseVersionMediaSection inside a test was not wrapped in act(...).
+
+When testing, code that causes React state updates should be wrapped into act(...):
+
+act(() => {
+  /* fire events that update state */
+});
+/* assert on the output */
+
+This ensures that you're testing the behavior the user would see in the browser. Learn more at https://reactjs.org/link/wrap-tests-with-act
+    at ReleaseVersionMediaSection (/app/src/app/admin/episode-versions/[versionId]/edit/ReleaseVersionMediaSection.tsx:67:3)
+
+stderr | src/app/admin/episode-versions/[versionId]/edit/ReleaseVersionMediaSection.test.tsx > ReleaseVersionMediaSection Phase 90 upload redesign > hides preview selection for ineligible and readonly media
+Warning: An update to ReleaseVersionMediaSection inside a test was not wrapped in act(...).
+
+When testing, code that causes React state updates should be wrapped into act(...):
+
+act(() => {
+  /* fire events that update state */
+});
+/* assert on the output */
+
+This ensures that you're testing the behavior the user would see in the browser. Learn more at https://reactjs.org/link/wrap-tests-with-act
+    at ReleaseVersionMediaSection (/app/src/app/admin/episode-versions/[versionId]/edit/ReleaseVersionMediaSection.tsx:67:3)
+Warning: An update to ReleaseVersionMediaSection inside a test was not wrapped in act(...).
+
+When testing, code that causes React state updates should be wrapped into act(...):
+
+act(() => {
+  /* fire events that update state */
+});
+/* assert on the output */
+
+This ensures that you're testing the behavior the user would see in the browser. Learn more at https://reactjs.org/link/wrap-tests-with-act
+    at ReleaseVersionMediaSection (/app/src/app/admin/episode-versions/[versionId]/edit/ReleaseVersionMediaSection.tsx:67:3)
+
+stderr | src/app/admin/episode-versions/[versionId]/edit/ReleaseVersionMediaSection.test.tsx > ReleaseVersionMediaSection Phase 90 upload redesign > hides preview selection for ineligible and readonly media
+Warning: An update to ReleaseVersionMediaSection inside a test was not wrapped in act(...).
+
+When testing, code that causes React state updates should be wrapped into act(...):
+
+act(() => {
+  /* fire events that update state */
+});
+/* assert on the output */
+
+This ensures that you're testing the behavior the user would see in the browser. Learn more at https://reactjs.org/link/wrap-tests-with-act
+    at ReleaseVersionMediaSection (/app/src/app/admin/episode-versions/[versionId]/edit/ReleaseVersionMediaSection.tsx:67:3)
+
+stderr | src/app/admin/episode-versions/[versionId]/edit/ReleaseVersionMediaSection.test.tsx > ReleaseVersionMediaSection Phase 90 upload redesign > keeps failed upload retry rows inside the upload sheet
+Warning: An update to ReleaseVersionMediaSection inside a test was not wrapped in act(...).
+
+When testing, code that causes React state updates should be wrapped into act(...):
+
+act(() => {
+  /* fire events that update state */
+});
+/* assert on the output */
+
+This ensures that you're testing the behavior the user would see in the browser. Learn more at https://reactjs.org/link/wrap-tests-with-act
+    at ReleaseVersionMediaSection (/app/src/app/admin/episode-versions/[versionId]/edit/ReleaseVersionMediaSection.tsx:67:3)
+Warning: An update to ReleaseVersionMediaSection inside a test was not wrapped in act(...).
+
+When testing, code that causes React state updates should be wrapped into act(...):
+
+act(() => {
+  /* fire events that update state */
+});
+/* assert on the output */
+
+This ensures that you're testing the behavior the user would see in the browser. Learn more at https://reactjs.org/link/wrap-tests-with-act
+    at ReleaseVersionMediaSection (/app/src/app/admin/episode-versions/[versionId]/edit/ReleaseVersionMediaSection.tsx:67:3)
+
+stderr | src/app/admin/episode-versions/[versionId]/edit/ReleaseVersionMediaSection.test.tsx > ReleaseVersionMediaSection Phase 90 upload redesign > keeps failed upload retry rows inside the upload sheet
+Warning: An update to ReleaseVersionMediaSection inside a test was not wrapped in act(...).
+
+When testing, code that causes React state updates should be wrapped into act(...):
+
+act(() => {
+  /* fire events that update state */
+});
+/* assert on the output */
+
+This ensures that you're testing the behavior the user would see in the browser. Learn more at https://reactjs.org/link/wrap-tests-with-act
+    at ReleaseVersionMediaSection (/app/src/app/admin/episode-versions/[versionId]/edit/ReleaseVersionMediaSection.tsx:67:3)
+
+ ✓ src/app/admin/episode-versions/[versionId]/edit/ReleaseVersionMediaSection.test.tsx (38 tests) 1473ms
+
+ Test Files  1 passed (1)
+      Tests  38 passed (38)
+   Start at  11:58:54
+   Duration  2.64s (transform 353ms, setup 72ms, collect 637ms, tests 1.47s, environment 293ms, prepare 50ms)

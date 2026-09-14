@@ -1,0 +1,5554 @@
+{
+  "cases": 10,
+  "writes": 0,
+  "zoomNote": "CSS zoom=2 exercises gallery layout reflow only; it is not claimed as browser-chrome zoom. Existing fixed Drawer overlays do not emulate native browser zoom under CSS zoom, so detail interaction is verified in the nine unzoomed cases.",
+  "results": [
+    {
+      "name": "390",
+      "width": 390,
+      "height": 844,
+      "columns": 2,
+      "detailVerified": true,
+      "mediaReads": 2,
+      "extraMediaReadsOnDetail": 0,
+      "errors": [],
+      "geometry": {
+        "viewport": 390,
+        "documentWidth": 390,
+        "container": 324,
+        "columns": 2,
+        "cards": [
+          {
+            "card": {
+              "width": 156,
+              "height": 327.875,
+              "x": 33,
+              "y": 670.578125
+            },
+            "thumb": {
+              "width": 154,
+              "height": 115.5,
+              "x": 34,
+              "y": 671.578125
+            },
+            "title": {
+              "height": 18,
+              "lineHeight": 17.6,
+              "clamp": "2"
+            },
+            "caption": null,
+            "action": {
+              "width": 133.1875,
+              "height": 36,
+              "x": 44.390625,
+              "y": 951.0625
+            },
+            "opener": {
+              "width": 154,
+              "height": 279.484375,
+              "x": 34,
+              "y": 671.578125
+            },
+            "metadata": [
+              {
+                "text": "Screenshot",
+                "width": 84,
+                "scrollWidth": 84
+              },
+              {
+                "text": "Bestätigt",
+                "width": 71,
+                "scrollWidth": 71
+              },
+              {
+                "text": "Letzte Aktivität:14.09.2026, 12:59",
+                "width": 133,
+                "scrollWidth": 133
+              }
+            ]
+          },
+          {
+            "card": {
+              "width": 156,
+              "height": 327.875,
+              "x": 201,
+              "y": 670.578125
+            },
+            "thumb": {
+              "width": 154,
+              "height": 115.5,
+              "x": 202,
+              "y": 671.578125
+            },
+            "title": {
+              "height": 18,
+              "lineHeight": 17.6,
+              "clamp": "2"
+            },
+            "caption": null,
+            "action": {
+              "width": 133.1875,
+              "height": 36,
+              "x": 212.390625,
+              "y": 951.0625
+            },
+            "opener": {
+              "width": 154,
+              "height": 279.484375,
+              "x": 202,
+              "y": 671.578125
+            },
+            "metadata": [
+              {
+                "text": "Screenshot",
+                "width": 84,
+                "scrollWidth": 84
+              },
+              {
+                "text": "Bestätigt",
+                "width": 71,
+                "scrollWidth": 71
+              },
+              {
+                "text": "Letzte Aktivität:14.09.2026, 12:59",
+                "width": 133,
+                "scrollWidth": 133
+              }
+            ]
+          },
+          {
+            "card": {
+              "width": 156,
+              "height": 433.46875,
+              "x": 33,
+              "y": 1010.453125
+            },
+            "thumb": {
+              "width": 154,
+              "height": 115.5,
+              "x": 34,
+              "y": 1011.453125
+            },
+            "title": {
+              "height": 18,
+              "lineHeight": 17.6,
+              "clamp": "2"
+            },
+            "caption": null,
+            "action": {
+              "width": 133.1875,
+              "height": 36,
+              "x": 44.390625,
+              "y": 1396.53125
+            },
+            "opener": {
+              "width": 154,
+              "height": 279.484375,
+              "x": 34,
+              "y": 1011.453125
+            },
+            "metadata": [
+              {
+                "text": "Screenshot",
+                "width": 84,
+                "scrollWidth": 84
+              },
+              {
+                "text": "Bestätigt",
+                "width": 71,
+                "scrollWidth": 71
+              },
+              {
+                "text": "Letzte Aktivität:14.09.2026, 12:59",
+                "width": 133,
+                "scrollWidth": 133
+              }
+            ]
+          },
+          {
+            "card": {
+              "width": 156,
+              "height": 433.46875,
+              "x": 201,
+              "y": 1010.453125
+            },
+            "thumb": {
+              "width": 154,
+              "height": 115.5,
+              "x": 202,
+              "y": 1011.453125
+            },
+            "title": {
+              "height": 35,
+              "lineHeight": 17.6,
+              "clamp": "2"
+            },
+            "caption": {
+              "height": 65,
+              "lineHeight": 21.6,
+              "clamp": "3"
+            },
+            "action": {
+              "width": 133.1875,
+              "height": 36,
+              "x": 212.390625,
+              "y": 1396.53125
+            },
+            "opener": {
+              "width": 154,
+              "height": 385.078125,
+              "x": 202,
+              "y": 1011.453125
+            },
+            "metadata": [
+              {
+                "text": "Aktuelles Vorschaubild",
+                "width": 134,
+                "scrollWidth": 134
+              },
+              {
+                "text": "Typesetting / Karaoke",
+                "width": 131,
+                "scrollWidth": 131
+              },
+              {
+                "text": "Bestätigt",
+                "width": 71,
+                "scrollWidth": 71
+              },
+              {
+                "text": "Letzte Aktivität:14.09.2026, 12:59",
+                "width": 133,
+                "scrollWidth": 133
+              }
+            ]
+          },
+          {
+            "card": {
+              "width": 156,
+              "height": 355.109375,
+              "x": 33,
+              "y": 1455.921875
+            },
+            "thumb": {
+              "width": 154,
+              "height": 115.5,
+              "x": 34,
+              "y": 1456.921875
+            },
+            "title": {
+              "height": 18,
+              "lineHeight": 17.6,
+              "clamp": "2"
+            },
+            "caption": null,
+            "action": null,
+            "opener": {
+              "width": 154,
+              "height": 279.484375,
+              "x": 34,
+              "y": 1456.921875
+            },
+            "metadata": [
+              {
+                "text": "Fun / Outtake",
+                "width": 98,
+                "scrollWidth": 98
+              },
+              {
+                "text": "Bestätigt",
+                "width": 71,
+                "scrollWidth": 71
+              },
+              {
+                "text": "Letzte Aktivität:14.09.2026, 12:59",
+                "width": 133,
+                "scrollWidth": 133
+              }
+            ]
+          },
+          {
+            "card": {
+              "width": 156,
+              "height": 355.109375,
+              "x": 201,
+              "y": 1455.921875
+            },
+            "thumb": {
+              "width": 154,
+              "height": 115.5,
+              "x": 202,
+              "y": 1456.921875
+            },
+            "title": {
+              "height": 18,
+              "lineHeight": 17.6,
+              "clamp": "2"
+            },
+            "caption": {
+              "height": 65,
+              "lineHeight": 21.6,
+              "clamp": "3"
+            },
+            "action": null,
+            "opener": {
+              "width": 154,
+              "height": 353.109375,
+              "x": 202,
+              "y": 1456.921875
+            },
+            "metadata": [
+              {
+                "text": "Fun / Outtake",
+                "width": 98,
+                "scrollWidth": 98
+              },
+              {
+                "text": "Bestätigt",
+                "width": 71,
+                "scrollWidth": 71
+              },
+              {
+                "text": "Letzte Aktivität:14.09.2026, 12:59",
+                "width": 133,
+                "scrollWidth": 133
+              }
+            ]
+          },
+          {
+            "card": {
+              "width": 156,
+              "height": 355.109375,
+              "x": 33,
+              "y": 1823.03125
+            },
+            "thumb": {
+              "width": 154,
+              "height": 115.5,
+              "x": 34,
+              "y": 1824.03125
+            },
+            "title": {
+              "height": 18,
+              "lineHeight": 17.6,
+              "clamp": "2"
+            },
+            "caption": {
+              "height": 65,
+              "lineHeight": 21.6,
+              "clamp": "3"
+            },
+            "action": null,
+            "opener": {
+              "width": 154,
+              "height": 353.109375,
+              "x": 34,
+              "y": 1824.03125
+            },
+            "metadata": [
+              {
+                "text": "Fun / Outtake",
+                "width": 98,
+                "scrollWidth": 98
+              },
+              {
+                "text": "Bestätigt",
+                "width": 71,
+                "scrollWidth": 71
+              },
+              {
+                "text": "Letzte Aktivität:14.09.2026, 12:59",
+                "width": 133,
+                "scrollWidth": 133
+              }
+            ]
+          },
+          {
+            "card": {
+              "width": 156,
+              "height": 355.109375,
+              "x": 201,
+              "y": 1823.03125
+            },
+            "thumb": {
+              "width": 154,
+              "height": 115.5,
+              "x": 202,
+              "y": 1824.03125
+            },
+            "title": {
+              "height": 18,
+              "lineHeight": 17.6,
+              "clamp": "2"
+            },
+            "caption": {
+              "height": 65,
+              "lineHeight": 21.6,
+              "clamp": "3"
+            },
+            "action": null,
+            "opener": {
+              "width": 154,
+              "height": 353.109375,
+              "x": 202,
+              "y": 1824.03125
+            },
+            "metadata": [
+              {
+                "text": "Sonstiges",
+                "width": 76,
+                "scrollWidth": 76
+              },
+              {
+                "text": "Bestätigt",
+                "width": 71,
+                "scrollWidth": 71
+              },
+              {
+                "text": "Letzte Aktivität:14.09.2026, 12:59",
+                "width": 133,
+                "scrollWidth": 133
+              }
+            ]
+          },
+          {
+            "card": {
+              "width": 156,
+              "height": 355.109375,
+              "x": 33,
+              "y": 2190.140625
+            },
+            "thumb": {
+              "width": 154,
+              "height": 115.5,
+              "x": 34,
+              "y": 2191.140625
+            },
+            "title": {
+              "height": 18,
+              "lineHeight": 17.6,
+              "clamp": "2"
+            },
+            "caption": {
+              "height": 65,
+              "lineHeight": 21.6,
+              "clamp": "3"
+            },
+            "action": null,
+            "opener": {
+              "width": 154,
+              "height": 353.109375,
+              "x": 34,
+              "y": 2191.140625
+            },
+            "metadata": [
+              {
+                "text": "Sonstiges",
+                "width": 76,
+                "scrollWidth": 76
+              },
+              {
+                "text": "Bestätigt",
+                "width": 71,
+                "scrollWidth": 71
+              },
+              {
+                "text": "Letzte Aktivität:14.09.2026, 12:59",
+                "width": 133,
+                "scrollWidth": 133
+              }
+            ]
+          },
+          {
+            "card": {
+              "width": 156,
+              "height": 355.109375,
+              "x": 201,
+              "y": 2190.140625
+            },
+            "thumb": {
+              "width": 154,
+              "height": 115.5,
+              "x": 202,
+              "y": 2191.140625
+            },
+            "title": {
+              "height": 18,
+              "lineHeight": 17.6,
+              "clamp": "2"
+            },
+            "caption": {
+              "height": 65,
+              "lineHeight": 21.6,
+              "clamp": "3"
+            },
+            "action": null,
+            "opener": {
+              "width": 154,
+              "height": 353.109375,
+              "x": 202,
+              "y": 2191.140625
+            },
+            "metadata": [
+              {
+                "text": "Sonstiges",
+                "width": 76,
+                "scrollWidth": 76
+              },
+              {
+                "text": "Bestätigt",
+                "width": 71,
+                "scrollWidth": 71
+              },
+              {
+                "text": "Letzte Aktivität:14.09.2026, 12:59",
+                "width": 133,
+                "scrollWidth": 133
+              }
+            ]
+          },
+          {
+            "card": {
+              "width": 156,
+              "height": 355.109375,
+              "x": 33,
+              "y": 2557.25
+            },
+            "thumb": {
+              "width": 154,
+              "height": 115.5,
+              "x": 34,
+              "y": 2558.25
+            },
+            "title": {
+              "height": 18,
+              "lineHeight": 17.6,
+              "clamp": "2"
+            },
+            "caption": {
+              "height": 65,
+              "lineHeight": 21.6,
+              "clamp": "3"
+            },
+            "action": null,
+            "opener": {
+              "width": 154,
+              "height": 353.109375,
+              "x": 34,
+              "y": 2558.25
+            },
+            "metadata": [
+              {
+                "text": "Sonstiges",
+                "width": 76,
+                "scrollWidth": 76
+              },
+              {
+                "text": "Bestätigt",
+                "width": 71,
+                "scrollWidth": 71
+              },
+              {
+                "text": "Letzte Aktivität:14.09.2026, 12:59",
+                "width": 133,
+                "scrollWidth": 133
+              }
+            ]
+          }
+        ]
+      },
+      "status": "pass"
+    },
+    {
+      "name": "768",
+      "width": 768,
+      "height": 1024,
+      "columns": 2,
+      "detailVerified": true,
+      "mediaReads": 2,
+      "extraMediaReadsOnDetail": 0,
+      "errors": [],
+      "geometry": {
+        "viewport": 768,
+        "documentWidth": 768,
+        "container": 690,
+        "columns": 2,
+        "cards": [
+          {
+            "card": {
+              "width": 339,
+              "height": 469.953125,
+              "x": 39,
+              "y": 560.5
+            },
+            "thumb": {
+              "width": 337,
+              "height": 252.75,
+              "x": 40,
+              "y": 561.5
+            },
+            "title": {
+              "height": 18,
+              "lineHeight": 17.6,
+              "clamp": "2"
+            },
+            "caption": null,
+            "action": {
+              "width": 167.09375,
+              "height": 36,
+              "x": 52,
+              "y": 981.453125
+            },
+            "opener": {
+              "width": 337,
+              "height": 419.953125,
+              "x": 40,
+              "y": 561.5
+            },
+            "metadata": [
+              {
+                "text": "Screenshot",
+                "width": 84,
+                "scrollWidth": 84
+              },
+              {
+                "text": "Bestätigt",
+                "width": 71,
+                "scrollWidth": 71
+              },
+              {
+                "text": "Letzte Aktivität:14.09.2026, 12:59",
+                "width": 313,
+                "scrollWidth": 313
+              }
+            ]
+          },
+          {
+            "card": {
+              "width": 339,
+              "height": 469.953125,
+              "x": 390,
+              "y": 560.5
+            },
+            "thumb": {
+              "width": 337,
+              "height": 252.75,
+              "x": 391,
+              "y": 561.5
+            },
+            "title": {
+              "height": 18,
+              "lineHeight": 17.6,
+              "clamp": "2"
+            },
+            "caption": null,
+            "action": {
+              "width": 167.09375,
+              "height": 36,
+              "x": 403,
+              "y": 981.453125
+            },
+            "opener": {
+              "width": 337,
+              "height": 419.953125,
+              "x": 391,
+              "y": 561.5
+            },
+            "metadata": [
+              {
+                "text": "Screenshot",
+                "width": 84,
+                "scrollWidth": 84
+              },
+              {
+                "text": "Bestätigt",
+                "width": 71,
+                "scrollWidth": 71
+              },
+              {
+                "text": "Letzte Aktivität:14.09.2026, 12:59",
+                "width": 313,
+                "scrollWidth": 313
+              }
+            ]
+          },
+          {
+            "card": {
+              "width": 339,
+              "height": 561.171875,
+              "x": 39,
+              "y": 1042.453125
+            },
+            "thumb": {
+              "width": 337,
+              "height": 252.75,
+              "x": 40,
+              "y": 1043.453125
+            },
+            "title": {
+              "height": 18,
+              "lineHeight": 17.6,
+              "clamp": "2"
+            },
+            "caption": null,
+            "action": {
+              "width": 167.09375,
+              "height": 36,
+              "x": 52,
+              "y": 1554.625
+            },
+            "opener": {
+              "width": 337,
+              "height": 419.953125,
+              "x": 40,
+              "y": 1043.453125
+            },
+            "metadata": [
+              {
+                "text": "Screenshot",
+                "width": 84,
+                "scrollWidth": 84
+              },
+              {
+                "text": "Bestätigt",
+                "width": 71,
+                "scrollWidth": 71
+              },
+              {
+                "text": "Letzte Aktivität:14.09.2026, 12:59",
+                "width": 313,
+                "scrollWidth": 313
+              }
+            ]
+          },
+          {
+            "card": {
+              "width": 339,
+              "height": 561.171875,
+              "x": 390,
+              "y": 1042.453125
+            },
+            "thumb": {
+              "width": 337,
+              "height": 252.75,
+              "x": 391,
+              "y": 1043.453125
+            },
+            "title": {
+              "height": 35,
+              "lineHeight": 17.6,
+              "clamp": "2"
+            },
+            "caption": {
+              "height": 65,
+              "lineHeight": 21.6,
+              "clamp": "3"
+            },
+            "action": {
+              "width": 160.59375,
+              "height": 36,
+              "x": 403,
+              "y": 1554.625
+            },
+            "opener": {
+              "width": 337,
+              "height": 511.171875,
+              "x": 391,
+              "y": 1043.453125
+            },
+            "metadata": [
+              {
+                "text": "Aktuelles Vorschaubild",
+                "width": 164,
+                "scrollWidth": 164
+              },
+              {
+                "text": "Typesetting / Karaoke",
+                "width": 143,
+                "scrollWidth": 143
+              },
+              {
+                "text": "Bestätigt",
+                "width": 71,
+                "scrollWidth": 71
+              },
+              {
+                "text": "Letzte Aktivität:14.09.2026, 12:59",
+                "width": 313,
+                "scrollWidth": 313
+              }
+            ]
+          },
+          {
+            "card": {
+              "width": 339,
+              "height": 495.578125,
+              "x": 39,
+              "y": 1615.625
+            },
+            "thumb": {
+              "width": 337,
+              "height": 252.75,
+              "x": 40,
+              "y": 1616.625
+            },
+            "title": {
+              "height": 18,
+              "lineHeight": 17.6,
+              "clamp": "2"
+            },
+            "caption": null,
+            "action": null,
+            "opener": {
+              "width": 337,
+              "height": 419.953125,
+              "x": 40,
+              "y": 1616.625
+            },
+            "metadata": [
+              {
+                "text": "Fun / Outtake",
+                "width": 98,
+                "scrollWidth": 98
+              },
+              {
+                "text": "Bestätigt",
+                "width": 71,
+                "scrollWidth": 71
+              },
+              {
+                "text": "Letzte Aktivität:14.09.2026, 12:59",
+                "width": 313,
+                "scrollWidth": 313
+              }
+            ]
+          },
+          {
+            "card": {
+              "width": 339,
+              "height": 495.578125,
+              "x": 390,
+              "y": 1615.625
+            },
+            "thumb": {
+              "width": 337,
+              "height": 252.75,
+              "x": 391,
+              "y": 1616.625
+            },
+            "title": {
+              "height": 18,
+              "lineHeight": 17.6,
+              "clamp": "2"
+            },
+            "caption": {
+              "height": 65,
+              "lineHeight": 21.6,
+              "clamp": "3"
+            },
+            "action": null,
+            "opener": {
+              "width": 337,
+              "height": 493.578125,
+              "x": 391,
+              "y": 1616.625
+            },
+            "metadata": [
+              {
+                "text": "Fun / Outtake",
+                "width": 98,
+                "scrollWidth": 98
+              },
+              {
+                "text": "Bestätigt",
+                "width": 71,
+                "scrollWidth": 71
+              },
+              {
+                "text": "Letzte Aktivität:14.09.2026, 12:59",
+                "width": 313,
+                "scrollWidth": 313
+              }
+            ]
+          },
+          {
+            "card": {
+              "width": 339,
+              "height": 495.578125,
+              "x": 39,
+              "y": 2123.203125
+            },
+            "thumb": {
+              "width": 337,
+              "height": 252.75,
+              "x": 40,
+              "y": 2124.203125
+            },
+            "title": {
+              "height": 18,
+              "lineHeight": 17.6,
+              "clamp": "2"
+            },
+            "caption": {
+              "height": 65,
+              "lineHeight": 21.6,
+              "clamp": "3"
+            },
+            "action": null,
+            "opener": {
+              "width": 337,
+              "height": 493.578125,
+              "x": 40,
+              "y": 2124.203125
+            },
+            "metadata": [
+              {
+                "text": "Fun / Outtake",
+                "width": 98,
+                "scrollWidth": 98
+              },
+              {
+                "text": "Bestätigt",
+                "width": 71,
+                "scrollWidth": 71
+              },
+              {
+                "text": "Letzte Aktivität:14.09.2026, 12:59",
+                "width": 313,
+                "scrollWidth": 313
+              }
+            ]
+          },
+          {
+            "card": {
+              "width": 339,
+              "height": 495.578125,
+              "x": 390,
+              "y": 2123.203125
+            },
+            "thumb": {
+              "width": 337,
+              "height": 252.75,
+              "x": 391,
+              "y": 2124.203125
+            },
+            "title": {
+              "height": 18,
+              "lineHeight": 17.6,
+              "clamp": "2"
+            },
+            "caption": {
+              "height": 65,
+              "lineHeight": 21.6,
+              "clamp": "3"
+            },
+            "action": null,
+            "opener": {
+              "width": 337,
+              "height": 493.578125,
+              "x": 391,
+              "y": 2124.203125
+            },
+            "metadata": [
+              {
+                "text": "Sonstiges",
+                "width": 76,
+                "scrollWidth": 76
+              },
+              {
+                "text": "Bestätigt",
+                "width": 71,
+                "scrollWidth": 71
+              },
+              {
+                "text": "Letzte Aktivität:14.09.2026, 12:59",
+                "width": 313,
+                "scrollWidth": 313
+              }
+            ]
+          },
+          {
+            "card": {
+              "width": 339,
+              "height": 495.578125,
+              "x": 39,
+              "y": 2630.78125
+            },
+            "thumb": {
+              "width": 337,
+              "height": 252.75,
+              "x": 40,
+              "y": 2631.78125
+            },
+            "title": {
+              "height": 18,
+              "lineHeight": 17.6,
+              "clamp": "2"
+            },
+            "caption": {
+              "height": 65,
+              "lineHeight": 21.6,
+              "clamp": "3"
+            },
+            "action": null,
+            "opener": {
+              "width": 337,
+              "height": 493.578125,
+              "x": 40,
+              "y": 2631.78125
+            },
+            "metadata": [
+              {
+                "text": "Sonstiges",
+                "width": 76,
+                "scrollWidth": 76
+              },
+              {
+                "text": "Bestätigt",
+                "width": 71,
+                "scrollWidth": 71
+              },
+              {
+                "text": "Letzte Aktivität:14.09.2026, 12:59",
+                "width": 313,
+                "scrollWidth": 313
+              }
+            ]
+          },
+          {
+            "card": {
+              "width": 339,
+              "height": 495.578125,
+              "x": 390,
+              "y": 2630.78125
+            },
+            "thumb": {
+              "width": 337,
+              "height": 252.75,
+              "x": 391,
+              "y": 2631.78125
+            },
+            "title": {
+              "height": 18,
+              "lineHeight": 17.6,
+              "clamp": "2"
+            },
+            "caption": {
+              "height": 65,
+              "lineHeight": 21.6,
+              "clamp": "3"
+            },
+            "action": null,
+            "opener": {
+              "width": 337,
+              "height": 493.578125,
+              "x": 391,
+              "y": 2631.78125
+            },
+            "metadata": [
+              {
+                "text": "Sonstiges",
+                "width": 76,
+                "scrollWidth": 76
+              },
+              {
+                "text": "Bestätigt",
+                "width": 71,
+                "scrollWidth": 71
+              },
+              {
+                "text": "Letzte Aktivität:14.09.2026, 12:59",
+                "width": 313,
+                "scrollWidth": 313
+              }
+            ]
+          },
+          {
+            "card": {
+              "width": 339,
+              "height": 495.578125,
+              "x": 39,
+              "y": 3138.359375
+            },
+            "thumb": {
+              "width": 337,
+              "height": 252.75,
+              "x": 40,
+              "y": 3139.359375
+            },
+            "title": {
+              "height": 18,
+              "lineHeight": 17.6,
+              "clamp": "2"
+            },
+            "caption": {
+              "height": 65,
+              "lineHeight": 21.6,
+              "clamp": "3"
+            },
+            "action": null,
+            "opener": {
+              "width": 337,
+              "height": 493.578125,
+              "x": 40,
+              "y": 3139.359375
+            },
+            "metadata": [
+              {
+                "text": "Sonstiges",
+                "width": 76,
+                "scrollWidth": 76
+              },
+              {
+                "text": "Bestätigt",
+                "width": 71,
+                "scrollWidth": 71
+              },
+              {
+                "text": "Letzte Aktivität:14.09.2026, 12:59",
+                "width": 313,
+                "scrollWidth": 313
+              }
+            ]
+          }
+        ]
+      },
+      "status": "pass"
+    },
+    {
+      "name": "1440",
+      "width": 1440,
+      "height": 900,
+      "columns": 4,
+      "detailVerified": true,
+      "mediaReads": 2,
+      "extraMediaReadsOnDetail": 0,
+      "errors": [],
+      "geometry": {
+        "viewport": 1440,
+        "documentWidth": 1440,
+        "container": 1138,
+        "columns": 4,
+        "cards": [
+          {
+            "card": {
+              "width": 275.5,
+              "height": 513.546875,
+              "x": 159,
+              "y": 502.15625
+            },
+            "thumb": {
+              "width": 273.5,
+              "height": 205.125,
+              "x": 160,
+              "y": 503.15625
+            },
+            "title": {
+              "height": 18,
+              "lineHeight": 17.6,
+              "clamp": "2"
+            },
+            "caption": null,
+            "action": {
+              "width": 167.09375,
+              "height": 36,
+              "x": 172,
+              "y": 966.703125
+            },
+            "opener": {
+              "width": 273.5,
+              "height": 372.328125,
+              "x": 160,
+              "y": 503.15625
+            },
+            "metadata": [
+              {
+                "text": "Screenshot",
+                "width": 84,
+                "scrollWidth": 84
+              },
+              {
+                "text": "Bestätigt",
+                "width": 71,
+                "scrollWidth": 71
+              },
+              {
+                "text": "Letzte Aktivität:14.09.2026, 12:59",
+                "width": 250,
+                "scrollWidth": 250
+              }
+            ]
+          },
+          {
+            "card": {
+              "width": 275.5,
+              "height": 513.546875,
+              "x": 446.5,
+              "y": 502.15625
+            },
+            "thumb": {
+              "width": 273.5,
+              "height": 205.125,
+              "x": 447.5,
+              "y": 503.15625
+            },
+            "title": {
+              "height": 18,
+              "lineHeight": 17.6,
+              "clamp": "2"
+            },
+            "caption": null,
+            "action": {
+              "width": 167.09375,
+              "height": 36,
+              "x": 459.5,
+              "y": 966.703125
+            },
+            "opener": {
+              "width": 273.5,
+              "height": 372.328125,
+              "x": 447.5,
+              "y": 503.15625
+            },
+            "metadata": [
+              {
+                "text": "Screenshot",
+                "width": 84,
+                "scrollWidth": 84
+              },
+              {
+                "text": "Bestätigt",
+                "width": 71,
+                "scrollWidth": 71
+              },
+              {
+                "text": "Letzte Aktivität:14.09.2026, 12:59",
+                "width": 250,
+                "scrollWidth": 250
+              }
+            ]
+          },
+          {
+            "card": {
+              "width": 275.5,
+              "height": 513.546875,
+              "x": 734,
+              "y": 502.15625
+            },
+            "thumb": {
+              "width": 273.5,
+              "height": 205.125,
+              "x": 735,
+              "y": 503.15625
+            },
+            "title": {
+              "height": 18,
+              "lineHeight": 17.6,
+              "clamp": "2"
+            },
+            "caption": null,
+            "action": {
+              "width": 167.09375,
+              "height": 36,
+              "x": 747,
+              "y": 966.703125
+            },
+            "opener": {
+              "width": 273.5,
+              "height": 372.328125,
+              "x": 735,
+              "y": 503.15625
+            },
+            "metadata": [
+              {
+                "text": "Screenshot",
+                "width": 84,
+                "scrollWidth": 84
+              },
+              {
+                "text": "Bestätigt",
+                "width": 71,
+                "scrollWidth": 71
+              },
+              {
+                "text": "Letzte Aktivität:14.09.2026, 12:59",
+                "width": 250,
+                "scrollWidth": 250
+              }
+            ]
+          },
+          {
+            "card": {
+              "width": 275.5,
+              "height": 513.546875,
+              "x": 1021.5,
+              "y": 502.15625
+            },
+            "thumb": {
+              "width": 273.5,
+              "height": 205.125,
+              "x": 1022.5,
+              "y": 503.15625
+            },
+            "title": {
+              "height": 35,
+              "lineHeight": 17.6,
+              "clamp": "2"
+            },
+            "caption": {
+              "height": 65,
+              "lineHeight": 21.6,
+              "clamp": "3"
+            },
+            "action": {
+              "width": 160.59375,
+              "height": 36,
+              "x": 1034.5,
+              "y": 966.703125
+            },
+            "opener": {
+              "width": 273.5,
+              "height": 463.546875,
+              "x": 1022.5,
+              "y": 503.15625
+            },
+            "metadata": [
+              {
+                "text": "Aktuelles Vorschaubild",
+                "width": 164,
+                "scrollWidth": 164
+              },
+              {
+                "text": "Typesetting / Karaoke",
+                "width": 143,
+                "scrollWidth": 143
+              },
+              {
+                "text": "Bestätigt",
+                "width": 71,
+                "scrollWidth": 71
+              },
+              {
+                "text": "Letzte Aktivität:14.09.2026, 12:59",
+                "width": 250,
+                "scrollWidth": 250
+              }
+            ]
+          },
+          {
+            "card": {
+              "width": 275.5,
+              "height": 447.953125,
+              "x": 159,
+              "y": 1027.703125
+            },
+            "thumb": {
+              "width": 273.5,
+              "height": 205.125,
+              "x": 160,
+              "y": 1028.703125
+            },
+            "title": {
+              "height": 18,
+              "lineHeight": 17.6,
+              "clamp": "2"
+            },
+            "caption": null,
+            "action": null,
+            "opener": {
+              "width": 273.5,
+              "height": 372.328125,
+              "x": 160,
+              "y": 1028.703125
+            },
+            "metadata": [
+              {
+                "text": "Fun / Outtake",
+                "width": 98,
+                "scrollWidth": 98
+              },
+              {
+                "text": "Bestätigt",
+                "width": 71,
+                "scrollWidth": 71
+              },
+              {
+                "text": "Letzte Aktivität:14.09.2026, 12:59",
+                "width": 250,
+                "scrollWidth": 250
+              }
+            ]
+          },
+          {
+            "card": {
+              "width": 275.5,
+              "height": 447.953125,
+              "x": 446.5,
+              "y": 1027.703125
+            },
+            "thumb": {
+              "width": 273.5,
+              "height": 205.125,
+              "x": 447.5,
+              "y": 1028.703125
+            },
+            "title": {
+              "height": 18,
+              "lineHeight": 17.6,
+              "clamp": "2"
+            },
+            "caption": {
+              "height": 65,
+              "lineHeight": 21.6,
+              "clamp": "3"
+            },
+            "action": null,
+            "opener": {
+              "width": 273.5,
+              "height": 445.953125,
+              "x": 447.5,
+              "y": 1028.703125
+            },
+            "metadata": [
+              {
+                "text": "Fun / Outtake",
+                "width": 98,
+                "scrollWidth": 98
+              },
+              {
+                "text": "Bestätigt",
+                "width": 71,
+                "scrollWidth": 71
+              },
+              {
+                "text": "Letzte Aktivität:14.09.2026, 12:59",
+                "width": 250,
+                "scrollWidth": 250
+              }
+            ]
+          },
+          {
+            "card": {
+              "width": 275.5,
+              "height": 447.953125,
+              "x": 734,
+              "y": 1027.703125
+            },
+            "thumb": {
+              "width": 273.5,
+              "height": 205.125,
+              "x": 735,
+              "y": 1028.703125
+            },
+            "title": {
+              "height": 18,
+              "lineHeight": 17.6,
+              "clamp": "2"
+            },
+            "caption": {
+              "height": 65,
+              "lineHeight": 21.6,
+              "clamp": "3"
+            },
+            "action": null,
+            "opener": {
+              "width": 273.5,
+              "height": 445.953125,
+              "x": 735,
+              "y": 1028.703125
+            },
+            "metadata": [
+              {
+                "text": "Fun / Outtake",
+                "width": 98,
+                "scrollWidth": 98
+              },
+              {
+                "text": "Bestätigt",
+                "width": 71,
+                "scrollWidth": 71
+              },
+              {
+                "text": "Letzte Aktivität:14.09.2026, 12:59",
+                "width": 250,
+                "scrollWidth": 250
+              }
+            ]
+          },
+          {
+            "card": {
+              "width": 275.5,
+              "height": 447.953125,
+              "x": 1021.5,
+              "y": 1027.703125
+            },
+            "thumb": {
+              "width": 273.5,
+              "height": 205.125,
+              "x": 1022.5,
+              "y": 1028.703125
+            },
+            "title": {
+              "height": 18,
+              "lineHeight": 17.6,
+              "clamp": "2"
+            },
+            "caption": {
+              "height": 65,
+              "lineHeight": 21.6,
+              "clamp": "3"
+            },
+            "action": null,
+            "opener": {
+              "width": 273.5,
+              "height": 445.953125,
+              "x": 1022.5,
+              "y": 1028.703125
+            },
+            "metadata": [
+              {
+                "text": "Sonstiges",
+                "width": 76,
+                "scrollWidth": 76
+              },
+              {
+                "text": "Bestätigt",
+                "width": 71,
+                "scrollWidth": 71
+              },
+              {
+                "text": "Letzte Aktivität:14.09.2026, 12:59",
+                "width": 250,
+                "scrollWidth": 250
+              }
+            ]
+          },
+          {
+            "card": {
+              "width": 275.5,
+              "height": 447.953125,
+              "x": 159,
+              "y": 1487.65625
+            },
+            "thumb": {
+              "width": 273.5,
+              "height": 205.125,
+              "x": 160,
+              "y": 1488.65625
+            },
+            "title": {
+              "height": 18,
+              "lineHeight": 17.6,
+              "clamp": "2"
+            },
+            "caption": {
+              "height": 65,
+              "lineHeight": 21.6,
+              "clamp": "3"
+            },
+            "action": null,
+            "opener": {
+              "width": 273.5,
+              "height": 445.953125,
+              "x": 160,
+              "y": 1488.65625
+            },
+            "metadata": [
+              {
+                "text": "Sonstiges",
+                "width": 76,
+                "scrollWidth": 76
+              },
+              {
+                "text": "Bestätigt",
+                "width": 71,
+                "scrollWidth": 71
+              },
+              {
+                "text": "Letzte Aktivität:14.09.2026, 12:59",
+                "width": 250,
+                "scrollWidth": 250
+              }
+            ]
+          },
+          {
+            "card": {
+              "width": 275.5,
+              "height": 447.953125,
+              "x": 446.5,
+              "y": 1487.65625
+            },
+            "thumb": {
+              "width": 273.5,
+              "height": 205.125,
+              "x": 447.5,
+              "y": 1488.65625
+            },
+            "title": {
+              "height": 18,
+              "lineHeight": 17.6,
+              "clamp": "2"
+            },
+            "caption": {
+              "height": 65,
+              "lineHeight": 21.6,
+              "clamp": "3"
+            },
+            "action": null,
+            "opener": {
+              "width": 273.5,
+              "height": 445.953125,
+              "x": 447.5,
+              "y": 1488.65625
+            },
+            "metadata": [
+              {
+                "text": "Sonstiges",
+                "width": 76,
+                "scrollWidth": 76
+              },
+              {
+                "text": "Bestätigt",
+                "width": 71,
+                "scrollWidth": 71
+              },
+              {
+                "text": "Letzte Aktivität:14.09.2026, 12:59",
+                "width": 250,
+                "scrollWidth": 250
+              }
+            ]
+          },
+          {
+            "card": {
+              "width": 275.5,
+              "height": 447.953125,
+              "x": 734,
+              "y": 1487.65625
+            },
+            "thumb": {
+              "width": 273.5,
+              "height": 205.125,
+              "x": 735,
+              "y": 1488.65625
+            },
+            "title": {
+              "height": 18,
+              "lineHeight": 17.6,
+              "clamp": "2"
+            },
+            "caption": {
+              "height": 65,
+              "lineHeight": 21.6,
+              "clamp": "3"
+            },
+            "action": null,
+            "opener": {
+              "width": 273.5,
+              "height": 445.953125,
+              "x": 735,
+              "y": 1488.65625
+            },
+            "metadata": [
+              {
+                "text": "Sonstiges",
+                "width": 76,
+                "scrollWidth": 76
+              },
+              {
+                "text": "Bestätigt",
+                "width": 71,
+                "scrollWidth": 71
+              },
+              {
+                "text": "Letzte Aktivität:14.09.2026, 12:59",
+                "width": 250,
+                "scrollWidth": 250
+              }
+            ]
+          }
+        ]
+      },
+      "status": "pass"
+    },
+    {
+      "name": "three-below",
+      "width": 1440,
+      "height": 900,
+      "container": 703,
+      "columns": 2,
+      "detailVerified": true,
+      "mediaReads": 2,
+      "extraMediaReadsOnDetail": 0,
+      "errors": [],
+      "geometry": {
+        "viewport": 1440,
+        "documentWidth": 1440,
+        "container": 703,
+        "columns": 2,
+        "cards": [
+          {
+            "card": {
+              "width": 345.5,
+              "height": 474.828125,
+              "x": 159,
+              "y": 502.46875
+            },
+            "thumb": {
+              "width": 343.5,
+              "height": 257.625,
+              "x": 160,
+              "y": 503.46875
+            },
+            "title": {
+              "height": 18,
+              "lineHeight": 17.6,
+              "clamp": "2"
+            },
+            "caption": null,
+            "action": {
+              "width": 167.09375,
+              "height": 36,
+              "x": 172,
+              "y": 928.296875
+            },
+            "opener": {
+              "width": 343.5,
+              "height": 424.828125,
+              "x": 160,
+              "y": 503.46875
+            },
+            "metadata": [
+              {
+                "text": "Screenshot",
+                "width": 84,
+                "scrollWidth": 84
+              },
+              {
+                "text": "Bestätigt",
+                "width": 71,
+                "scrollWidth": 71
+              },
+              {
+                "text": "Letzte Aktivität:14.09.2026, 12:59",
+                "width": 320,
+                "scrollWidth": 320
+              }
+            ]
+          },
+          {
+            "card": {
+              "width": 345.5,
+              "height": 474.828125,
+              "x": 516.5,
+              "y": 502.46875
+            },
+            "thumb": {
+              "width": 343.5,
+              "height": 257.625,
+              "x": 517.5,
+              "y": 503.46875
+            },
+            "title": {
+              "height": 18,
+              "lineHeight": 17.6,
+              "clamp": "2"
+            },
+            "caption": null,
+            "action": {
+              "width": 167.09375,
+              "height": 36,
+              "x": 529.5,
+              "y": 928.296875
+            },
+            "opener": {
+              "width": 343.5,
+              "height": 424.828125,
+              "x": 517.5,
+              "y": 503.46875
+            },
+            "metadata": [
+              {
+                "text": "Screenshot",
+                "width": 84,
+                "scrollWidth": 84
+              },
+              {
+                "text": "Bestätigt",
+                "width": 71,
+                "scrollWidth": 71
+              },
+              {
+                "text": "Letzte Aktivität:14.09.2026, 12:59",
+                "width": 320,
+                "scrollWidth": 320
+              }
+            ]
+          },
+          {
+            "card": {
+              "width": 345.5,
+              "height": 566.046875,
+              "x": 159,
+              "y": 989.296875
+            },
+            "thumb": {
+              "width": 343.5,
+              "height": 257.625,
+              "x": 160,
+              "y": 990.296875
+            },
+            "title": {
+              "height": 18,
+              "lineHeight": 17.6,
+              "clamp": "2"
+            },
+            "caption": null,
+            "action": {
+              "width": 167.09375,
+              "height": 36,
+              "x": 172,
+              "y": 1506.34375
+            },
+            "opener": {
+              "width": 343.5,
+              "height": 424.828125,
+              "x": 160,
+              "y": 990.296875
+            },
+            "metadata": [
+              {
+                "text": "Screenshot",
+                "width": 84,
+                "scrollWidth": 84
+              },
+              {
+                "text": "Bestätigt",
+                "width": 71,
+                "scrollWidth": 71
+              },
+              {
+                "text": "Letzte Aktivität:14.09.2026, 12:59",
+                "width": 320,
+                "scrollWidth": 320
+              }
+            ]
+          },
+          {
+            "card": {
+              "width": 345.5,
+              "height": 566.046875,
+              "x": 516.5,
+              "y": 989.296875
+            },
+            "thumb": {
+              "width": 343.5,
+              "height": 257.625,
+              "x": 517.5,
+              "y": 990.296875
+            },
+            "title": {
+              "height": 35,
+              "lineHeight": 17.6,
+              "clamp": "2"
+            },
+            "caption": {
+              "height": 65,
+              "lineHeight": 21.6,
+              "clamp": "3"
+            },
+            "action": {
+              "width": 160.59375,
+              "height": 36,
+              "x": 529.5,
+              "y": 1506.34375
+            },
+            "opener": {
+              "width": 343.5,
+              "height": 516.046875,
+              "x": 517.5,
+              "y": 990.296875
+            },
+            "metadata": [
+              {
+                "text": "Aktuelles Vorschaubild",
+                "width": 164,
+                "scrollWidth": 164
+              },
+              {
+                "text": "Typesetting / Karaoke",
+                "width": 143,
+                "scrollWidth": 143
+              },
+              {
+                "text": "Bestätigt",
+                "width": 71,
+                "scrollWidth": 71
+              },
+              {
+                "text": "Letzte Aktivität:14.09.2026, 12:59",
+                "width": 320,
+                "scrollWidth": 320
+              }
+            ]
+          },
+          {
+            "card": {
+              "width": 345.5,
+              "height": 500.453125,
+              "x": 159,
+              "y": 1567.34375
+            },
+            "thumb": {
+              "width": 343.5,
+              "height": 257.625,
+              "x": 160,
+              "y": 1568.34375
+            },
+            "title": {
+              "height": 18,
+              "lineHeight": 17.6,
+              "clamp": "2"
+            },
+            "caption": null,
+            "action": null,
+            "opener": {
+              "width": 343.5,
+              "height": 424.828125,
+              "x": 160,
+              "y": 1568.34375
+            },
+            "metadata": [
+              {
+                "text": "Fun / Outtake",
+                "width": 98,
+                "scrollWidth": 98
+              },
+              {
+                "text": "Bestätigt",
+                "width": 71,
+                "scrollWidth": 71
+              },
+              {
+                "text": "Letzte Aktivität:14.09.2026, 12:59",
+                "width": 320,
+                "scrollWidth": 320
+              }
+            ]
+          },
+          {
+            "card": {
+              "width": 345.5,
+              "height": 500.453125,
+              "x": 516.5,
+              "y": 1567.34375
+            },
+            "thumb": {
+              "width": 343.5,
+              "height": 257.625,
+              "x": 517.5,
+              "y": 1568.34375
+            },
+            "title": {
+              "height": 18,
+              "lineHeight": 17.6,
+              "clamp": "2"
+            },
+            "caption": {
+              "height": 65,
+              "lineHeight": 21.6,
+              "clamp": "3"
+            },
+            "action": null,
+            "opener": {
+              "width": 343.5,
+              "height": 498.453125,
+              "x": 517.5,
+              "y": 1568.34375
+            },
+            "metadata": [
+              {
+                "text": "Fun / Outtake",
+                "width": 98,
+                "scrollWidth": 98
+              },
+              {
+                "text": "Bestätigt",
+                "width": 71,
+                "scrollWidth": 71
+              },
+              {
+                "text": "Letzte Aktivität:14.09.2026, 12:59",
+                "width": 320,
+                "scrollWidth": 320
+              }
+            ]
+          },
+          {
+            "card": {
+              "width": 345.5,
+              "height": 500.453125,
+              "x": 159,
+              "y": 2079.796875
+            },
+            "thumb": {
+              "width": 343.5,
+              "height": 257.625,
+              "x": 160,
+              "y": 2080.796875
+            },
+            "title": {
+              "height": 18,
+              "lineHeight": 17.6,
+              "clamp": "2"
+            },
+            "caption": {
+              "height": 65,
+              "lineHeight": 21.6,
+              "clamp": "3"
+            },
+            "action": null,
+            "opener": {
+              "width": 343.5,
+              "height": 498.453125,
+              "x": 160,
+              "y": 2080.796875
+            },
+            "metadata": [
+              {
+                "text": "Fun / Outtake",
+                "width": 98,
+                "scrollWidth": 98
+              },
+              {
+                "text": "Bestätigt",
+                "width": 71,
+                "scrollWidth": 71
+              },
+              {
+                "text": "Letzte Aktivität:14.09.2026, 12:59",
+                "width": 320,
+                "scrollWidth": 320
+              }
+            ]
+          },
+          {
+            "card": {
+              "width": 345.5,
+              "height": 500.453125,
+              "x": 516.5,
+              "y": 2079.796875
+            },
+            "thumb": {
+              "width": 343.5,
+              "height": 257.625,
+              "x": 517.5,
+              "y": 2080.796875
+            },
+            "title": {
+              "height": 18,
+              "lineHeight": 17.6,
+              "clamp": "2"
+            },
+            "caption": {
+              "height": 65,
+              "lineHeight": 21.6,
+              "clamp": "3"
+            },
+            "action": null,
+            "opener": {
+              "width": 343.5,
+              "height": 498.453125,
+              "x": 517.5,
+              "y": 2080.796875
+            },
+            "metadata": [
+              {
+                "text": "Sonstiges",
+                "width": 76,
+                "scrollWidth": 76
+              },
+              {
+                "text": "Bestätigt",
+                "width": 71,
+                "scrollWidth": 71
+              },
+              {
+                "text": "Letzte Aktivität:14.09.2026, 12:59",
+                "width": 320,
+                "scrollWidth": 320
+              }
+            ]
+          },
+          {
+            "card": {
+              "width": 345.5,
+              "height": 500.453125,
+              "x": 159,
+              "y": 2592.25
+            },
+            "thumb": {
+              "width": 343.5,
+              "height": 257.625,
+              "x": 160,
+              "y": 2593.25
+            },
+            "title": {
+              "height": 18,
+              "lineHeight": 17.6,
+              "clamp": "2"
+            },
+            "caption": {
+              "height": 65,
+              "lineHeight": 21.6,
+              "clamp": "3"
+            },
+            "action": null,
+            "opener": {
+              "width": 343.5,
+              "height": 498.453125,
+              "x": 160,
+              "y": 2593.25
+            },
+            "metadata": [
+              {
+                "text": "Sonstiges",
+                "width": 76,
+                "scrollWidth": 76
+              },
+              {
+                "text": "Bestätigt",
+                "width": 71,
+                "scrollWidth": 71
+              },
+              {
+                "text": "Letzte Aktivität:14.09.2026, 12:59",
+                "width": 320,
+                "scrollWidth": 320
+              }
+            ]
+          },
+          {
+            "card": {
+              "width": 345.5,
+              "height": 500.453125,
+              "x": 516.5,
+              "y": 2592.25
+            },
+            "thumb": {
+              "width": 343.5,
+              "height": 257.625,
+              "x": 517.5,
+              "y": 2593.25
+            },
+            "title": {
+              "height": 18,
+              "lineHeight": 17.6,
+              "clamp": "2"
+            },
+            "caption": {
+              "height": 65,
+              "lineHeight": 21.6,
+              "clamp": "3"
+            },
+            "action": null,
+            "opener": {
+              "width": 343.5,
+              "height": 498.453125,
+              "x": 517.5,
+              "y": 2593.25
+            },
+            "metadata": [
+              {
+                "text": "Sonstiges",
+                "width": 76,
+                "scrollWidth": 76
+              },
+              {
+                "text": "Bestätigt",
+                "width": 71,
+                "scrollWidth": 71
+              },
+              {
+                "text": "Letzte Aktivität:14.09.2026, 12:59",
+                "width": 320,
+                "scrollWidth": 320
+              }
+            ]
+          },
+          {
+            "card": {
+              "width": 345.5,
+              "height": 500.453125,
+              "x": 159,
+              "y": 3104.703125
+            },
+            "thumb": {
+              "width": 343.5,
+              "height": 257.625,
+              "x": 160,
+              "y": 3105.703125
+            },
+            "title": {
+              "height": 18,
+              "lineHeight": 17.6,
+              "clamp": "2"
+            },
+            "caption": {
+              "height": 65,
+              "lineHeight": 21.6,
+              "clamp": "3"
+            },
+            "action": null,
+            "opener": {
+              "width": 343.5,
+              "height": 498.453125,
+              "x": 160,
+              "y": 3105.703125
+            },
+            "metadata": [
+              {
+                "text": "Sonstiges",
+                "width": 76,
+                "scrollWidth": 76
+              },
+              {
+                "text": "Bestätigt",
+                "width": 71,
+                "scrollWidth": 71
+              },
+              {
+                "text": "Letzte Aktivität:14.09.2026, 12:59",
+                "width": 320,
+                "scrollWidth": 320
+              }
+            ]
+          }
+        ]
+      },
+      "status": "pass"
+    },
+    {
+      "name": "three-at",
+      "width": 1440,
+      "height": 900,
+      "container": 704,
+      "columns": 3,
+      "detailVerified": true,
+      "mediaReads": 2,
+      "extraMediaReadsOnDetail": 0,
+      "errors": [],
+      "geometry": {
+        "viewport": 1440,
+        "documentWidth": 1440,
+        "container": 704,
+        "columns": 3,
+        "cards": [
+          {
+            "card": {
+              "width": 226.65625,
+              "height": 385.703125,
+              "x": 159,
+              "y": 502.46875
+            },
+            "thumb": {
+              "width": 224.65625,
+              "height": 168.484375,
+              "x": 160,
+              "y": 503.46875
+            },
+            "title": {
+              "height": 18,
+              "lineHeight": 17.6,
+              "clamp": "2"
+            },
+            "caption": null,
+            "action": {
+              "width": 167.09375,
+              "height": 36,
+              "x": 172,
+              "y": 839.171875
+            },
+            "opener": {
+              "width": 224.65625,
+              "height": 335.6875,
+              "x": 160,
+              "y": 503.46875
+            },
+            "metadata": [
+              {
+                "text": "Screenshot",
+                "width": 84,
+                "scrollWidth": 84
+              },
+              {
+                "text": "Bestätigt",
+                "width": 71,
+                "scrollWidth": 71
+              },
+              {
+                "text": "Letzte Aktivität:14.09.2026, 12:59",
+                "width": 201,
+                "scrollWidth": 201
+              }
+            ]
+          },
+          {
+            "card": {
+              "width": 226.671875,
+              "height": 385.703125,
+              "x": 397.65625,
+              "y": 502.46875
+            },
+            "thumb": {
+              "width": 224.671875,
+              "height": 168.5,
+              "x": 398.65625,
+              "y": 503.46875
+            },
+            "title": {
+              "height": 18,
+              "lineHeight": 17.6,
+              "clamp": "2"
+            },
+            "caption": null,
+            "action": {
+              "width": 167.09375,
+              "height": 36,
+              "x": 410.65625,
+              "y": 839.171875
+            },
+            "opener": {
+              "width": 224.671875,
+              "height": 335.703125,
+              "x": 398.65625,
+              "y": 503.46875
+            },
+            "metadata": [
+              {
+                "text": "Screenshot",
+                "width": 84,
+                "scrollWidth": 84
+              },
+              {
+                "text": "Bestätigt",
+                "width": 71,
+                "scrollWidth": 71
+              },
+              {
+                "text": "Letzte Aktivität:14.09.2026, 12:59",
+                "width": 201,
+                "scrollWidth": 201
+              }
+            ]
+          },
+          {
+            "card": {
+              "width": 226.671875,
+              "height": 385.703125,
+              "x": 636.328125,
+              "y": 502.46875
+            },
+            "thumb": {
+              "width": 224.671875,
+              "height": 168.5,
+              "x": 637.328125,
+              "y": 503.46875
+            },
+            "title": {
+              "height": 18,
+              "lineHeight": 17.6,
+              "clamp": "2"
+            },
+            "caption": null,
+            "action": {
+              "width": 167.09375,
+              "height": 36,
+              "x": 649.328125,
+              "y": 839.171875
+            },
+            "opener": {
+              "width": 224.671875,
+              "height": 335.703125,
+              "x": 637.328125,
+              "y": 503.46875
+            },
+            "metadata": [
+              {
+                "text": "Screenshot",
+                "width": 84,
+                "scrollWidth": 84
+              },
+              {
+                "text": "Bestätigt",
+                "width": 71,
+                "scrollWidth": 71
+              },
+              {
+                "text": "Letzte Aktivität:14.09.2026, 12:59",
+                "width": 201,
+                "scrollWidth": 201
+              }
+            ]
+          },
+          {
+            "card": {
+              "width": 226.65625,
+              "height": 476.90625,
+              "x": 159,
+              "y": 900.171875
+            },
+            "thumb": {
+              "width": 224.65625,
+              "height": 168.484375,
+              "x": 160,
+              "y": 901.171875
+            },
+            "title": {
+              "height": 35,
+              "lineHeight": 17.6,
+              "clamp": "2"
+            },
+            "caption": {
+              "height": 65,
+              "lineHeight": 21.6,
+              "clamp": "3"
+            },
+            "action": {
+              "width": 160.59375,
+              "height": 36,
+              "x": 172,
+              "y": 1328.078125
+            },
+            "opener": {
+              "width": 224.65625,
+              "height": 426.90625,
+              "x": 160,
+              "y": 901.171875
+            },
+            "metadata": [
+              {
+                "text": "Aktuelles Vorschaubild",
+                "width": 164,
+                "scrollWidth": 164
+              },
+              {
+                "text": "Typesetting / Karaoke",
+                "width": 143,
+                "scrollWidth": 143
+              },
+              {
+                "text": "Bestätigt",
+                "width": 71,
+                "scrollWidth": 71
+              },
+              {
+                "text": "Letzte Aktivität:14.09.2026, 12:59",
+                "width": 201,
+                "scrollWidth": 201
+              }
+            ]
+          },
+          {
+            "card": {
+              "width": 226.671875,
+              "height": 476.90625,
+              "x": 397.65625,
+              "y": 900.171875
+            },
+            "thumb": {
+              "width": 224.671875,
+              "height": 168.5,
+              "x": 398.65625,
+              "y": 901.171875
+            },
+            "title": {
+              "height": 18,
+              "lineHeight": 17.6,
+              "clamp": "2"
+            },
+            "caption": null,
+            "action": null,
+            "opener": {
+              "width": 224.671875,
+              "height": 335.703125,
+              "x": 398.65625,
+              "y": 901.171875
+            },
+            "metadata": [
+              {
+                "text": "Fun / Outtake",
+                "width": 98,
+                "scrollWidth": 98
+              },
+              {
+                "text": "Bestätigt",
+                "width": 71,
+                "scrollWidth": 71
+              },
+              {
+                "text": "Letzte Aktivität:14.09.2026, 12:59",
+                "width": 201,
+                "scrollWidth": 201
+              }
+            ]
+          },
+          {
+            "card": {
+              "width": 226.671875,
+              "height": 476.90625,
+              "x": 636.328125,
+              "y": 900.171875
+            },
+            "thumb": {
+              "width": 224.671875,
+              "height": 168.5,
+              "x": 637.328125,
+              "y": 901.171875
+            },
+            "title": {
+              "height": 18,
+              "lineHeight": 17.6,
+              "clamp": "2"
+            },
+            "caption": {
+              "height": 65,
+              "lineHeight": 21.6,
+              "clamp": "3"
+            },
+            "action": null,
+            "opener": {
+              "width": 224.671875,
+              "height": 409.328125,
+              "x": 637.328125,
+              "y": 901.171875
+            },
+            "metadata": [
+              {
+                "text": "Fun / Outtake",
+                "width": 98,
+                "scrollWidth": 98
+              },
+              {
+                "text": "Bestätigt",
+                "width": 71,
+                "scrollWidth": 71
+              },
+              {
+                "text": "Letzte Aktivität:14.09.2026, 12:59",
+                "width": 201,
+                "scrollWidth": 201
+              }
+            ]
+          },
+          {
+            "card": {
+              "width": 226.65625,
+              "height": 411.328125,
+              "x": 159,
+              "y": 1389.078125
+            },
+            "thumb": {
+              "width": 224.65625,
+              "height": 168.484375,
+              "x": 160,
+              "y": 1390.078125
+            },
+            "title": {
+              "height": 18,
+              "lineHeight": 17.6,
+              "clamp": "2"
+            },
+            "caption": {
+              "height": 65,
+              "lineHeight": 21.6,
+              "clamp": "3"
+            },
+            "action": null,
+            "opener": {
+              "width": 224.65625,
+              "height": 409.3125,
+              "x": 160,
+              "y": 1390.078125
+            },
+            "metadata": [
+              {
+                "text": "Fun / Outtake",
+                "width": 98,
+                "scrollWidth": 98
+              },
+              {
+                "text": "Bestätigt",
+                "width": 71,
+                "scrollWidth": 71
+              },
+              {
+                "text": "Letzte Aktivität:14.09.2026, 12:59",
+                "width": 201,
+                "scrollWidth": 201
+              }
+            ]
+          },
+          {
+            "card": {
+              "width": 226.671875,
+              "height": 411.328125,
+              "x": 397.65625,
+              "y": 1389.078125
+            },
+            "thumb": {
+              "width": 224.671875,
+              "height": 168.5,
+              "x": 398.65625,
+              "y": 1390.078125
+            },
+            "title": {
+              "height": 18,
+              "lineHeight": 17.6,
+              "clamp": "2"
+            },
+            "caption": {
+              "height": 65,
+              "lineHeight": 21.6,
+              "clamp": "3"
+            },
+            "action": null,
+            "opener": {
+              "width": 224.671875,
+              "height": 409.328125,
+              "x": 398.65625,
+              "y": 1390.078125
+            },
+            "metadata": [
+              {
+                "text": "Sonstiges",
+                "width": 76,
+                "scrollWidth": 76
+              },
+              {
+                "text": "Bestätigt",
+                "width": 71,
+                "scrollWidth": 71
+              },
+              {
+                "text": "Letzte Aktivität:14.09.2026, 12:59",
+                "width": 201,
+                "scrollWidth": 201
+              }
+            ]
+          },
+          {
+            "card": {
+              "width": 226.671875,
+              "height": 411.328125,
+              "x": 636.328125,
+              "y": 1389.078125
+            },
+            "thumb": {
+              "width": 224.671875,
+              "height": 168.5,
+              "x": 637.328125,
+              "y": 1390.078125
+            },
+            "title": {
+              "height": 18,
+              "lineHeight": 17.6,
+              "clamp": "2"
+            },
+            "caption": {
+              "height": 65,
+              "lineHeight": 21.6,
+              "clamp": "3"
+            },
+            "action": null,
+            "opener": {
+              "width": 224.671875,
+              "height": 409.328125,
+              "x": 637.328125,
+              "y": 1390.078125
+            },
+            "metadata": [
+              {
+                "text": "Sonstiges",
+                "width": 76,
+                "scrollWidth": 76
+              },
+              {
+                "text": "Bestätigt",
+                "width": 71,
+                "scrollWidth": 71
+              },
+              {
+                "text": "Letzte Aktivität:14.09.2026, 12:59",
+                "width": 201,
+                "scrollWidth": 201
+              }
+            ]
+          },
+          {
+            "card": {
+              "width": 226.65625,
+              "height": 411.328125,
+              "x": 159,
+              "y": 1812.40625
+            },
+            "thumb": {
+              "width": 224.65625,
+              "height": 168.484375,
+              "x": 160,
+              "y": 1813.40625
+            },
+            "title": {
+              "height": 18,
+              "lineHeight": 17.6,
+              "clamp": "2"
+            },
+            "caption": {
+              "height": 65,
+              "lineHeight": 21.6,
+              "clamp": "3"
+            },
+            "action": null,
+            "opener": {
+              "width": 224.65625,
+              "height": 409.3125,
+              "x": 160,
+              "y": 1813.40625
+            },
+            "metadata": [
+              {
+                "text": "Sonstiges",
+                "width": 76,
+                "scrollWidth": 76
+              },
+              {
+                "text": "Bestätigt",
+                "width": 71,
+                "scrollWidth": 71
+              },
+              {
+                "text": "Letzte Aktivität:14.09.2026, 12:59",
+                "width": 201,
+                "scrollWidth": 201
+              }
+            ]
+          },
+          {
+            "card": {
+              "width": 226.671875,
+              "height": 411.328125,
+              "x": 397.65625,
+              "y": 1812.40625
+            },
+            "thumb": {
+              "width": 224.671875,
+              "height": 168.5,
+              "x": 398.65625,
+              "y": 1813.40625
+            },
+            "title": {
+              "height": 18,
+              "lineHeight": 17.6,
+              "clamp": "2"
+            },
+            "caption": {
+              "height": 65,
+              "lineHeight": 21.6,
+              "clamp": "3"
+            },
+            "action": null,
+            "opener": {
+              "width": 224.671875,
+              "height": 409.328125,
+              "x": 398.65625,
+              "y": 1813.40625
+            },
+            "metadata": [
+              {
+                "text": "Sonstiges",
+                "width": 76,
+                "scrollWidth": 76
+              },
+              {
+                "text": "Bestätigt",
+                "width": 71,
+                "scrollWidth": 71
+              },
+              {
+                "text": "Letzte Aktivität:14.09.2026, 12:59",
+                "width": 201,
+                "scrollWidth": 201
+              }
+            ]
+          }
+        ]
+      },
+      "status": "pass"
+    },
+    {
+      "name": "four-below",
+      "width": 1440,
+      "height": 900,
+      "container": 943,
+      "columns": 3,
+      "detailVerified": true,
+      "mediaReads": 2,
+      "extraMediaReadsOnDetail": 0,
+      "errors": [],
+      "geometry": {
+        "viewport": 1440,
+        "documentWidth": 1440,
+        "container": 943,
+        "columns": 3,
+        "cards": [
+          {
+            "card": {
+              "width": 306.328125,
+              "height": 445.453125,
+              "x": 159,
+              "y": 502.15625
+            },
+            "thumb": {
+              "width": 304.328125,
+              "height": 228.234375,
+              "x": 160,
+              "y": 503.15625
+            },
+            "title": {
+              "height": 18,
+              "lineHeight": 17.6,
+              "clamp": "2"
+            },
+            "caption": null,
+            "action": {
+              "width": 167.09375,
+              "height": 36,
+              "x": 172,
+              "y": 898.609375
+            },
+            "opener": {
+              "width": 304.328125,
+              "height": 395.4375,
+              "x": 160,
+              "y": 503.15625
+            },
+            "metadata": [
+              {
+                "text": "Screenshot",
+                "width": 84,
+                "scrollWidth": 84
+              },
+              {
+                "text": "Bestätigt",
+                "width": 71,
+                "scrollWidth": 71
+              },
+              {
+                "text": "Letzte Aktivität:14.09.2026, 12:59",
+                "width": 280,
+                "scrollWidth": 280
+              }
+            ]
+          },
+          {
+            "card": {
+              "width": 306.328125,
+              "height": 445.453125,
+              "x": 477.328125,
+              "y": 502.15625
+            },
+            "thumb": {
+              "width": 304.328125,
+              "height": 228.234375,
+              "x": 478.328125,
+              "y": 503.15625
+            },
+            "title": {
+              "height": 18,
+              "lineHeight": 17.6,
+              "clamp": "2"
+            },
+            "caption": null,
+            "action": {
+              "width": 167.09375,
+              "height": 36,
+              "x": 490.328125,
+              "y": 898.609375
+            },
+            "opener": {
+              "width": 304.328125,
+              "height": 395.4375,
+              "x": 478.328125,
+              "y": 503.15625
+            },
+            "metadata": [
+              {
+                "text": "Screenshot",
+                "width": 84,
+                "scrollWidth": 84
+              },
+              {
+                "text": "Bestätigt",
+                "width": 71,
+                "scrollWidth": 71
+              },
+              {
+                "text": "Letzte Aktivität:14.09.2026, 12:59",
+                "width": 280,
+                "scrollWidth": 280
+              }
+            ]
+          },
+          {
+            "card": {
+              "width": 306.34375,
+              "height": 445.453125,
+              "x": 795.65625,
+              "y": 502.15625
+            },
+            "thumb": {
+              "width": 304.34375,
+              "height": 228.25,
+              "x": 796.65625,
+              "y": 503.15625
+            },
+            "title": {
+              "height": 18,
+              "lineHeight": 17.6,
+              "clamp": "2"
+            },
+            "caption": null,
+            "action": {
+              "width": 167.09375,
+              "height": 36,
+              "x": 808.65625,
+              "y": 898.609375
+            },
+            "opener": {
+              "width": 304.34375,
+              "height": 395.453125,
+              "x": 796.65625,
+              "y": 503.15625
+            },
+            "metadata": [
+              {
+                "text": "Screenshot",
+                "width": 84,
+                "scrollWidth": 84
+              },
+              {
+                "text": "Bestätigt",
+                "width": 71,
+                "scrollWidth": 71
+              },
+              {
+                "text": "Letzte Aktivität:14.09.2026, 12:59",
+                "width": 280,
+                "scrollWidth": 280
+              }
+            ]
+          },
+          {
+            "card": {
+              "width": 306.328125,
+              "height": 536.65625,
+              "x": 159,
+              "y": 959.609375
+            },
+            "thumb": {
+              "width": 304.328125,
+              "height": 228.234375,
+              "x": 160,
+              "y": 960.609375
+            },
+            "title": {
+              "height": 35,
+              "lineHeight": 17.6,
+              "clamp": "2"
+            },
+            "caption": {
+              "height": 65,
+              "lineHeight": 21.6,
+              "clamp": "3"
+            },
+            "action": {
+              "width": 160.59375,
+              "height": 36,
+              "x": 172,
+              "y": 1447.265625
+            },
+            "opener": {
+              "width": 304.328125,
+              "height": 486.65625,
+              "x": 160,
+              "y": 960.609375
+            },
+            "metadata": [
+              {
+                "text": "Aktuelles Vorschaubild",
+                "width": 164,
+                "scrollWidth": 164
+              },
+              {
+                "text": "Typesetting / Karaoke",
+                "width": 143,
+                "scrollWidth": 143
+              },
+              {
+                "text": "Bestätigt",
+                "width": 71,
+                "scrollWidth": 71
+              },
+              {
+                "text": "Letzte Aktivität:14.09.2026, 12:59",
+                "width": 280,
+                "scrollWidth": 280
+              }
+            ]
+          },
+          {
+            "card": {
+              "width": 306.328125,
+              "height": 536.65625,
+              "x": 477.328125,
+              "y": 959.609375
+            },
+            "thumb": {
+              "width": 304.328125,
+              "height": 228.234375,
+              "x": 478.328125,
+              "y": 960.609375
+            },
+            "title": {
+              "height": 18,
+              "lineHeight": 17.6,
+              "clamp": "2"
+            },
+            "caption": null,
+            "action": null,
+            "opener": {
+              "width": 304.328125,
+              "height": 395.4375,
+              "x": 478.328125,
+              "y": 960.609375
+            },
+            "metadata": [
+              {
+                "text": "Fun / Outtake",
+                "width": 98,
+                "scrollWidth": 98
+              },
+              {
+                "text": "Bestätigt",
+                "width": 71,
+                "scrollWidth": 71
+              },
+              {
+                "text": "Letzte Aktivität:14.09.2026, 12:59",
+                "width": 280,
+                "scrollWidth": 280
+              }
+            ]
+          },
+          {
+            "card": {
+              "width": 306.34375,
+              "height": 536.65625,
+              "x": 795.65625,
+              "y": 959.609375
+            },
+            "thumb": {
+              "width": 304.34375,
+              "height": 228.25,
+              "x": 796.65625,
+              "y": 960.609375
+            },
+            "title": {
+              "height": 18,
+              "lineHeight": 17.6,
+              "clamp": "2"
+            },
+            "caption": {
+              "height": 65,
+              "lineHeight": 21.6,
+              "clamp": "3"
+            },
+            "action": null,
+            "opener": {
+              "width": 304.34375,
+              "height": 469.078125,
+              "x": 796.65625,
+              "y": 960.609375
+            },
+            "metadata": [
+              {
+                "text": "Fun / Outtake",
+                "width": 98,
+                "scrollWidth": 98
+              },
+              {
+                "text": "Bestätigt",
+                "width": 71,
+                "scrollWidth": 71
+              },
+              {
+                "text": "Letzte Aktivität:14.09.2026, 12:59",
+                "width": 280,
+                "scrollWidth": 280
+              }
+            ]
+          },
+          {
+            "card": {
+              "width": 306.328125,
+              "height": 471.078125,
+              "x": 159,
+              "y": 1508.265625
+            },
+            "thumb": {
+              "width": 304.328125,
+              "height": 228.234375,
+              "x": 160,
+              "y": 1509.265625
+            },
+            "title": {
+              "height": 18,
+              "lineHeight": 17.6,
+              "clamp": "2"
+            },
+            "caption": {
+              "height": 65,
+              "lineHeight": 21.6,
+              "clamp": "3"
+            },
+            "action": null,
+            "opener": {
+              "width": 304.328125,
+              "height": 469.0625,
+              "x": 160,
+              "y": 1509.265625
+            },
+            "metadata": [
+              {
+                "text": "Fun / Outtake",
+                "width": 98,
+                "scrollWidth": 98
+              },
+              {
+                "text": "Bestätigt",
+                "width": 71,
+                "scrollWidth": 71
+              },
+              {
+                "text": "Letzte Aktivität:14.09.2026, 12:59",
+                "width": 280,
+                "scrollWidth": 280
+              }
+            ]
+          },
+          {
+            "card": {
+              "width": 306.328125,
+              "height": 471.078125,
+              "x": 477.328125,
+              "y": 1508.265625
+            },
+            "thumb": {
+              "width": 304.328125,
+              "height": 228.234375,
+              "x": 478.328125,
+              "y": 1509.265625
+            },
+            "title": {
+              "height": 18,
+              "lineHeight": 17.6,
+              "clamp": "2"
+            },
+            "caption": {
+              "height": 65,
+              "lineHeight": 21.6,
+              "clamp": "3"
+            },
+            "action": null,
+            "opener": {
+              "width": 304.328125,
+              "height": 469.0625,
+              "x": 478.328125,
+              "y": 1509.265625
+            },
+            "metadata": [
+              {
+                "text": "Sonstiges",
+                "width": 76,
+                "scrollWidth": 76
+              },
+              {
+                "text": "Bestätigt",
+                "width": 71,
+                "scrollWidth": 71
+              },
+              {
+                "text": "Letzte Aktivität:14.09.2026, 12:59",
+                "width": 280,
+                "scrollWidth": 280
+              }
+            ]
+          },
+          {
+            "card": {
+              "width": 306.34375,
+              "height": 471.078125,
+              "x": 795.65625,
+              "y": 1508.265625
+            },
+            "thumb": {
+              "width": 304.34375,
+              "height": 228.25,
+              "x": 796.65625,
+              "y": 1509.265625
+            },
+            "title": {
+              "height": 18,
+              "lineHeight": 17.6,
+              "clamp": "2"
+            },
+            "caption": {
+              "height": 65,
+              "lineHeight": 21.6,
+              "clamp": "3"
+            },
+            "action": null,
+            "opener": {
+              "width": 304.34375,
+              "height": 469.078125,
+              "x": 796.65625,
+              "y": 1509.265625
+            },
+            "metadata": [
+              {
+                "text": "Sonstiges",
+                "width": 76,
+                "scrollWidth": 76
+              },
+              {
+                "text": "Bestätigt",
+                "width": 71,
+                "scrollWidth": 71
+              },
+              {
+                "text": "Letzte Aktivität:14.09.2026, 12:59",
+                "width": 280,
+                "scrollWidth": 280
+              }
+            ]
+          },
+          {
+            "card": {
+              "width": 306.328125,
+              "height": 471.0625,
+              "x": 159,
+              "y": 1991.34375
+            },
+            "thumb": {
+              "width": 304.328125,
+              "height": 228.234375,
+              "x": 160,
+              "y": 1992.34375
+            },
+            "title": {
+              "height": 18,
+              "lineHeight": 17.6,
+              "clamp": "2"
+            },
+            "caption": {
+              "height": 65,
+              "lineHeight": 21.6,
+              "clamp": "3"
+            },
+            "action": null,
+            "opener": {
+              "width": 304.328125,
+              "height": 469.0625,
+              "x": 160,
+              "y": 1992.34375
+            },
+            "metadata": [
+              {
+                "text": "Sonstiges",
+                "width": 76,
+                "scrollWidth": 76
+              },
+              {
+                "text": "Bestätigt",
+                "width": 71,
+                "scrollWidth": 71
+              },
+              {
+                "text": "Letzte Aktivität:14.09.2026, 12:59",
+                "width": 280,
+                "scrollWidth": 280
+              }
+            ]
+          },
+          {
+            "card": {
+              "width": 306.328125,
+              "height": 471.0625,
+              "x": 477.328125,
+              "y": 1991.34375
+            },
+            "thumb": {
+              "width": 304.328125,
+              "height": 228.234375,
+              "x": 478.328125,
+              "y": 1992.34375
+            },
+            "title": {
+              "height": 18,
+              "lineHeight": 17.6,
+              "clamp": "2"
+            },
+            "caption": {
+              "height": 65,
+              "lineHeight": 21.6,
+              "clamp": "3"
+            },
+            "action": null,
+            "opener": {
+              "width": 304.328125,
+              "height": 469.0625,
+              "x": 478.328125,
+              "y": 1992.34375
+            },
+            "metadata": [
+              {
+                "text": "Sonstiges",
+                "width": 76,
+                "scrollWidth": 76
+              },
+              {
+                "text": "Bestätigt",
+                "width": 71,
+                "scrollWidth": 71
+              },
+              {
+                "text": "Letzte Aktivität:14.09.2026, 12:59",
+                "width": 280,
+                "scrollWidth": 280
+              }
+            ]
+          }
+        ]
+      },
+      "status": "pass"
+    },
+    {
+      "name": "four-at",
+      "width": 1440,
+      "height": 900,
+      "container": 944,
+      "columns": 4,
+      "detailVerified": true,
+      "mediaReads": 2,
+      "extraMediaReadsOnDetail": 0,
+      "errors": [],
+      "geometry": {
+        "viewport": 1440,
+        "documentWidth": 1440,
+        "container": 944,
+        "columns": 4,
+        "cards": [
+          {
+            "card": {
+              "width": 227,
+              "height": 477.171875,
+              "x": 159,
+              "y": 502.15625
+            },
+            "thumb": {
+              "width": 225,
+              "height": 168.75,
+              "x": 160,
+              "y": 503.15625
+            },
+            "title": {
+              "height": 18,
+              "lineHeight": 17.6,
+              "clamp": "2"
+            },
+            "caption": null,
+            "action": {
+              "width": 167.09375,
+              "height": 36,
+              "x": 172,
+              "y": 930.328125
+            },
+            "opener": {
+              "width": 225,
+              "height": 335.953125,
+              "x": 160,
+              "y": 503.15625
+            },
+            "metadata": [
+              {
+                "text": "Screenshot",
+                "width": 84,
+                "scrollWidth": 84
+              },
+              {
+                "text": "Bestätigt",
+                "width": 71,
+                "scrollWidth": 71
+              },
+              {
+                "text": "Letzte Aktivität:14.09.2026, 12:59",
+                "width": 201,
+                "scrollWidth": 201
+              }
+            ]
+          },
+          {
+            "card": {
+              "width": 227,
+              "height": 477.171875,
+              "x": 398,
+              "y": 502.15625
+            },
+            "thumb": {
+              "width": 225,
+              "height": 168.75,
+              "x": 399,
+              "y": 503.15625
+            },
+            "title": {
+              "height": 18,
+              "lineHeight": 17.6,
+              "clamp": "2"
+            },
+            "caption": null,
+            "action": {
+              "width": 167.09375,
+              "height": 36,
+              "x": 411,
+              "y": 930.328125
+            },
+            "opener": {
+              "width": 225,
+              "height": 335.953125,
+              "x": 399,
+              "y": 503.15625
+            },
+            "metadata": [
+              {
+                "text": "Screenshot",
+                "width": 84,
+                "scrollWidth": 84
+              },
+              {
+                "text": "Bestätigt",
+                "width": 71,
+                "scrollWidth": 71
+              },
+              {
+                "text": "Letzte Aktivität:14.09.2026, 12:59",
+                "width": 201,
+                "scrollWidth": 201
+              }
+            ]
+          },
+          {
+            "card": {
+              "width": 227,
+              "height": 477.171875,
+              "x": 637,
+              "y": 502.15625
+            },
+            "thumb": {
+              "width": 225,
+              "height": 168.75,
+              "x": 638,
+              "y": 503.15625
+            },
+            "title": {
+              "height": 18,
+              "lineHeight": 17.6,
+              "clamp": "2"
+            },
+            "caption": null,
+            "action": {
+              "width": 167.09375,
+              "height": 36,
+              "x": 650,
+              "y": 930.328125
+            },
+            "opener": {
+              "width": 225,
+              "height": 335.953125,
+              "x": 638,
+              "y": 503.15625
+            },
+            "metadata": [
+              {
+                "text": "Screenshot",
+                "width": 84,
+                "scrollWidth": 84
+              },
+              {
+                "text": "Bestätigt",
+                "width": 71,
+                "scrollWidth": 71
+              },
+              {
+                "text": "Letzte Aktivität:14.09.2026, 12:59",
+                "width": 201,
+                "scrollWidth": 201
+              }
+            ]
+          },
+          {
+            "card": {
+              "width": 227,
+              "height": 477.171875,
+              "x": 876,
+              "y": 502.15625
+            },
+            "thumb": {
+              "width": 225,
+              "height": 168.75,
+              "x": 877,
+              "y": 503.15625
+            },
+            "title": {
+              "height": 35,
+              "lineHeight": 17.6,
+              "clamp": "2"
+            },
+            "caption": {
+              "height": 65,
+              "lineHeight": 21.6,
+              "clamp": "3"
+            },
+            "action": {
+              "width": 160.59375,
+              "height": 36,
+              "x": 889,
+              "y": 930.328125
+            },
+            "opener": {
+              "width": 225,
+              "height": 427.171875,
+              "x": 877,
+              "y": 503.15625
+            },
+            "metadata": [
+              {
+                "text": "Aktuelles Vorschaubild",
+                "width": 164,
+                "scrollWidth": 164
+              },
+              {
+                "text": "Typesetting / Karaoke",
+                "width": 143,
+                "scrollWidth": 143
+              },
+              {
+                "text": "Bestätigt",
+                "width": 71,
+                "scrollWidth": 71
+              },
+              {
+                "text": "Letzte Aktivität:14.09.2026, 12:59",
+                "width": 201,
+                "scrollWidth": 201
+              }
+            ]
+          },
+          {
+            "card": {
+              "width": 227,
+              "height": 411.578125,
+              "x": 159,
+              "y": 991.328125
+            },
+            "thumb": {
+              "width": 225,
+              "height": 168.75,
+              "x": 160,
+              "y": 992.328125
+            },
+            "title": {
+              "height": 18,
+              "lineHeight": 17.6,
+              "clamp": "2"
+            },
+            "caption": null,
+            "action": null,
+            "opener": {
+              "width": 225,
+              "height": 335.953125,
+              "x": 160,
+              "y": 992.328125
+            },
+            "metadata": [
+              {
+                "text": "Fun / Outtake",
+                "width": 98,
+                "scrollWidth": 98
+              },
+              {
+                "text": "Bestätigt",
+                "width": 71,
+                "scrollWidth": 71
+              },
+              {
+                "text": "Letzte Aktivität:14.09.2026, 12:59",
+                "width": 201,
+                "scrollWidth": 201
+              }
+            ]
+          },
+          {
+            "card": {
+              "width": 227,
+              "height": 411.578125,
+              "x": 398,
+              "y": 991.328125
+            },
+            "thumb": {
+              "width": 225,
+              "height": 168.75,
+              "x": 399,
+              "y": 992.328125
+            },
+            "title": {
+              "height": 18,
+              "lineHeight": 17.6,
+              "clamp": "2"
+            },
+            "caption": {
+              "height": 65,
+              "lineHeight": 21.6,
+              "clamp": "3"
+            },
+            "action": null,
+            "opener": {
+              "width": 225,
+              "height": 409.578125,
+              "x": 399,
+              "y": 992.328125
+            },
+            "metadata": [
+              {
+                "text": "Fun / Outtake",
+                "width": 98,
+                "scrollWidth": 98
+              },
+              {
+                "text": "Bestätigt",
+                "width": 71,
+                "scrollWidth": 71
+              },
+              {
+                "text": "Letzte Aktivität:14.09.2026, 12:59",
+                "width": 201,
+                "scrollWidth": 201
+              }
+            ]
+          },
+          {
+            "card": {
+              "width": 227,
+              "height": 411.578125,
+              "x": 637,
+              "y": 991.328125
+            },
+            "thumb": {
+              "width": 225,
+              "height": 168.75,
+              "x": 638,
+              "y": 992.328125
+            },
+            "title": {
+              "height": 18,
+              "lineHeight": 17.6,
+              "clamp": "2"
+            },
+            "caption": {
+              "height": 65,
+              "lineHeight": 21.6,
+              "clamp": "3"
+            },
+            "action": null,
+            "opener": {
+              "width": 225,
+              "height": 409.578125,
+              "x": 638,
+              "y": 992.328125
+            },
+            "metadata": [
+              {
+                "text": "Fun / Outtake",
+                "width": 98,
+                "scrollWidth": 98
+              },
+              {
+                "text": "Bestätigt",
+                "width": 71,
+                "scrollWidth": 71
+              },
+              {
+                "text": "Letzte Aktivität:14.09.2026, 12:59",
+                "width": 201,
+                "scrollWidth": 201
+              }
+            ]
+          },
+          {
+            "card": {
+              "width": 227,
+              "height": 411.578125,
+              "x": 876,
+              "y": 991.328125
+            },
+            "thumb": {
+              "width": 225,
+              "height": 168.75,
+              "x": 877,
+              "y": 992.328125
+            },
+            "title": {
+              "height": 18,
+              "lineHeight": 17.6,
+              "clamp": "2"
+            },
+            "caption": {
+              "height": 65,
+              "lineHeight": 21.6,
+              "clamp": "3"
+            },
+            "action": null,
+            "opener": {
+              "width": 225,
+              "height": 409.578125,
+              "x": 877,
+              "y": 992.328125
+            },
+            "metadata": [
+              {
+                "text": "Sonstiges",
+                "width": 76,
+                "scrollWidth": 76
+              },
+              {
+                "text": "Bestätigt",
+                "width": 71,
+                "scrollWidth": 71
+              },
+              {
+                "text": "Letzte Aktivität:14.09.2026, 12:59",
+                "width": 201,
+                "scrollWidth": 201
+              }
+            ]
+          },
+          {
+            "card": {
+              "width": 227,
+              "height": 411.578125,
+              "x": 159,
+              "y": 1414.90625
+            },
+            "thumb": {
+              "width": 225,
+              "height": 168.75,
+              "x": 160,
+              "y": 1415.90625
+            },
+            "title": {
+              "height": 18,
+              "lineHeight": 17.6,
+              "clamp": "2"
+            },
+            "caption": {
+              "height": 65,
+              "lineHeight": 21.6,
+              "clamp": "3"
+            },
+            "action": null,
+            "opener": {
+              "width": 225,
+              "height": 409.578125,
+              "x": 160,
+              "y": 1415.90625
+            },
+            "metadata": [
+              {
+                "text": "Sonstiges",
+                "width": 76,
+                "scrollWidth": 76
+              },
+              {
+                "text": "Bestätigt",
+                "width": 71,
+                "scrollWidth": 71
+              },
+              {
+                "text": "Letzte Aktivität:14.09.2026, 12:59",
+                "width": 201,
+                "scrollWidth": 201
+              }
+            ]
+          },
+          {
+            "card": {
+              "width": 227,
+              "height": 411.578125,
+              "x": 398,
+              "y": 1414.90625
+            },
+            "thumb": {
+              "width": 225,
+              "height": 168.75,
+              "x": 399,
+              "y": 1415.90625
+            },
+            "title": {
+              "height": 18,
+              "lineHeight": 17.6,
+              "clamp": "2"
+            },
+            "caption": {
+              "height": 65,
+              "lineHeight": 21.6,
+              "clamp": "3"
+            },
+            "action": null,
+            "opener": {
+              "width": 225,
+              "height": 409.578125,
+              "x": 399,
+              "y": 1415.90625
+            },
+            "metadata": [
+              {
+                "text": "Sonstiges",
+                "width": 76,
+                "scrollWidth": 76
+              },
+              {
+                "text": "Bestätigt",
+                "width": 71,
+                "scrollWidth": 71
+              },
+              {
+                "text": "Letzte Aktivität:14.09.2026, 12:59",
+                "width": 201,
+                "scrollWidth": 201
+              }
+            ]
+          },
+          {
+            "card": {
+              "width": 227,
+              "height": 411.578125,
+              "x": 637,
+              "y": 1414.90625
+            },
+            "thumb": {
+              "width": 225,
+              "height": 168.75,
+              "x": 638,
+              "y": 1415.90625
+            },
+            "title": {
+              "height": 18,
+              "lineHeight": 17.6,
+              "clamp": "2"
+            },
+            "caption": {
+              "height": 65,
+              "lineHeight": 21.6,
+              "clamp": "3"
+            },
+            "action": null,
+            "opener": {
+              "width": 225,
+              "height": 409.578125,
+              "x": 638,
+              "y": 1415.90625
+            },
+            "metadata": [
+              {
+                "text": "Sonstiges",
+                "width": 76,
+                "scrollWidth": 76
+              },
+              {
+                "text": "Bestätigt",
+                "width": 71,
+                "scrollWidth": 71
+              },
+              {
+                "text": "Letzte Aktivität:14.09.2026, 12:59",
+                "width": 201,
+                "scrollWidth": 201
+              }
+            ]
+          }
+        ]
+      },
+      "status": "pass"
+    },
+    {
+      "name": "embedded",
+      "width": 1440,
+      "height": 900,
+      "container": 340,
+      "columns": 2,
+      "detailVerified": true,
+      "mediaReads": 2,
+      "extraMediaReadsOnDetail": 0,
+      "errors": [],
+      "geometry": {
+        "viewport": 1440,
+        "documentWidth": 1440,
+        "container": 340,
+        "columns": 2,
+        "cards": [
+          {
+            "card": {
+              "width": 164,
+              "height": 333.875,
+              "x": 159,
+              "y": 568.546875
+            },
+            "thumb": {
+              "width": 162,
+              "height": 121.5,
+              "x": 160,
+              "y": 569.546875
+            },
+            "title": {
+              "height": 18,
+              "lineHeight": 17.6,
+              "clamp": "2"
+            },
+            "caption": null,
+            "action": {
+              "width": 141.1875,
+              "height": 36,
+              "x": 170.390625,
+              "y": 855.03125
+            },
+            "opener": {
+              "width": 162,
+              "height": 285.484375,
+              "x": 160,
+              "y": 569.546875
+            },
+            "metadata": [
+              {
+                "text": "Screenshot",
+                "width": 84,
+                "scrollWidth": 84
+              },
+              {
+                "text": "Bestätigt",
+                "width": 71,
+                "scrollWidth": 71
+              },
+              {
+                "text": "Letzte Aktivität:14.09.2026, 12:59",
+                "width": 141,
+                "scrollWidth": 141
+              }
+            ]
+          },
+          {
+            "card": {
+              "width": 164,
+              "height": 333.875,
+              "x": 335,
+              "y": 568.546875
+            },
+            "thumb": {
+              "width": 162,
+              "height": 121.5,
+              "x": 336,
+              "y": 569.546875
+            },
+            "title": {
+              "height": 18,
+              "lineHeight": 17.6,
+              "clamp": "2"
+            },
+            "caption": null,
+            "action": {
+              "width": 141.1875,
+              "height": 36,
+              "x": 346.390625,
+              "y": 855.03125
+            },
+            "opener": {
+              "width": 162,
+              "height": 285.484375,
+              "x": 336,
+              "y": 569.546875
+            },
+            "metadata": [
+              {
+                "text": "Screenshot",
+                "width": 84,
+                "scrollWidth": 84
+              },
+              {
+                "text": "Bestätigt",
+                "width": 71,
+                "scrollWidth": 71
+              },
+              {
+                "text": "Letzte Aktivität:14.09.2026, 12:59",
+                "width": 141,
+                "scrollWidth": 141
+              }
+            ]
+          },
+          {
+            "card": {
+              "width": 164,
+              "height": 439.46875,
+              "x": 159,
+              "y": 914.421875
+            },
+            "thumb": {
+              "width": 162,
+              "height": 121.5,
+              "x": 160,
+              "y": 915.421875
+            },
+            "title": {
+              "height": 18,
+              "lineHeight": 17.6,
+              "clamp": "2"
+            },
+            "caption": null,
+            "action": {
+              "width": 141.1875,
+              "height": 36,
+              "x": 170.390625,
+              "y": 1306.5
+            },
+            "opener": {
+              "width": 162,
+              "height": 285.484375,
+              "x": 160,
+              "y": 915.421875
+            },
+            "metadata": [
+              {
+                "text": "Screenshot",
+                "width": 84,
+                "scrollWidth": 84
+              },
+              {
+                "text": "Bestätigt",
+                "width": 71,
+                "scrollWidth": 71
+              },
+              {
+                "text": "Letzte Aktivität:14.09.2026, 12:59",
+                "width": 141,
+                "scrollWidth": 141
+              }
+            ]
+          },
+          {
+            "card": {
+              "width": 164,
+              "height": 439.46875,
+              "x": 335,
+              "y": 914.421875
+            },
+            "thumb": {
+              "width": 162,
+              "height": 121.5,
+              "x": 336,
+              "y": 915.421875
+            },
+            "title": {
+              "height": 35,
+              "lineHeight": 17.6,
+              "clamp": "2"
+            },
+            "caption": {
+              "height": 65,
+              "lineHeight": 21.6,
+              "clamp": "3"
+            },
+            "action": {
+              "width": 141.1875,
+              "height": 36,
+              "x": 346.390625,
+              "y": 1306.5
+            },
+            "opener": {
+              "width": 162,
+              "height": 391.078125,
+              "x": 336,
+              "y": 915.421875
+            },
+            "metadata": [
+              {
+                "text": "Aktuelles Vorschaubild",
+                "width": 142,
+                "scrollWidth": 142
+              },
+              {
+                "text": "Typesetting / Karaoke",
+                "width": 139,
+                "scrollWidth": 139
+              },
+              {
+                "text": "Bestätigt",
+                "width": 71,
+                "scrollWidth": 71
+              },
+              {
+                "text": "Letzte Aktivität:14.09.2026, 12:59",
+                "width": 141,
+                "scrollWidth": 141
+              }
+            ]
+          },
+          {
+            "card": {
+              "width": 164,
+              "height": 361.109375,
+              "x": 159,
+              "y": 1365.890625
+            },
+            "thumb": {
+              "width": 162,
+              "height": 121.5,
+              "x": 160,
+              "y": 1366.890625
+            },
+            "title": {
+              "height": 18,
+              "lineHeight": 17.6,
+              "clamp": "2"
+            },
+            "caption": null,
+            "action": null,
+            "opener": {
+              "width": 162,
+              "height": 285.484375,
+              "x": 160,
+              "y": 1366.890625
+            },
+            "metadata": [
+              {
+                "text": "Fun / Outtake",
+                "width": 98,
+                "scrollWidth": 98
+              },
+              {
+                "text": "Bestätigt",
+                "width": 71,
+                "scrollWidth": 71
+              },
+              {
+                "text": "Letzte Aktivität:14.09.2026, 12:59",
+                "width": 141,
+                "scrollWidth": 141
+              }
+            ]
+          },
+          {
+            "card": {
+              "width": 164,
+              "height": 361.109375,
+              "x": 335,
+              "y": 1365.890625
+            },
+            "thumb": {
+              "width": 162,
+              "height": 121.5,
+              "x": 336,
+              "y": 1366.890625
+            },
+            "title": {
+              "height": 18,
+              "lineHeight": 17.6,
+              "clamp": "2"
+            },
+            "caption": {
+              "height": 65,
+              "lineHeight": 21.6,
+              "clamp": "3"
+            },
+            "action": null,
+            "opener": {
+              "width": 162,
+              "height": 359.109375,
+              "x": 336,
+              "y": 1366.890625
+            },
+            "metadata": [
+              {
+                "text": "Fun / Outtake",
+                "width": 98,
+                "scrollWidth": 98
+              },
+              {
+                "text": "Bestätigt",
+                "width": 71,
+                "scrollWidth": 71
+              },
+              {
+                "text": "Letzte Aktivität:14.09.2026, 12:59",
+                "width": 141,
+                "scrollWidth": 141
+              }
+            ]
+          },
+          {
+            "card": {
+              "width": 164,
+              "height": 361.109375,
+              "x": 159,
+              "y": 1739
+            },
+            "thumb": {
+              "width": 162,
+              "height": 121.5,
+              "x": 160,
+              "y": 1740
+            },
+            "title": {
+              "height": 18,
+              "lineHeight": 17.6,
+              "clamp": "2"
+            },
+            "caption": {
+              "height": 65,
+              "lineHeight": 21.6,
+              "clamp": "3"
+            },
+            "action": null,
+            "opener": {
+              "width": 162,
+              "height": 359.109375,
+              "x": 160,
+              "y": 1740
+            },
+            "metadata": [
+              {
+                "text": "Fun / Outtake",
+                "width": 98,
+                "scrollWidth": 98
+              },
+              {
+                "text": "Bestätigt",
+                "width": 71,
+                "scrollWidth": 71
+              },
+              {
+                "text": "Letzte Aktivität:14.09.2026, 12:59",
+                "width": 141,
+                "scrollWidth": 141
+              }
+            ]
+          },
+          {
+            "card": {
+              "width": 164,
+              "height": 361.109375,
+              "x": 335,
+              "y": 1739
+            },
+            "thumb": {
+              "width": 162,
+              "height": 121.5,
+              "x": 336,
+              "y": 1740
+            },
+            "title": {
+              "height": 18,
+              "lineHeight": 17.6,
+              "clamp": "2"
+            },
+            "caption": {
+              "height": 65,
+              "lineHeight": 21.6,
+              "clamp": "3"
+            },
+            "action": null,
+            "opener": {
+              "width": 162,
+              "height": 359.109375,
+              "x": 336,
+              "y": 1740
+            },
+            "metadata": [
+              {
+                "text": "Sonstiges",
+                "width": 76,
+                "scrollWidth": 76
+              },
+              {
+                "text": "Bestätigt",
+                "width": 71,
+                "scrollWidth": 71
+              },
+              {
+                "text": "Letzte Aktivität:14.09.2026, 12:59",
+                "width": 141,
+                "scrollWidth": 141
+              }
+            ]
+          },
+          {
+            "card": {
+              "width": 164,
+              "height": 361.109375,
+              "x": 159,
+              "y": 2112.109375
+            },
+            "thumb": {
+              "width": 162,
+              "height": 121.5,
+              "x": 160,
+              "y": 2113.109375
+            },
+            "title": {
+              "height": 18,
+              "lineHeight": 17.6,
+              "clamp": "2"
+            },
+            "caption": {
+              "height": 65,
+              "lineHeight": 21.6,
+              "clamp": "3"
+            },
+            "action": null,
+            "opener": {
+              "width": 162,
+              "height": 359.109375,
+              "x": 160,
+              "y": 2113.109375
+            },
+            "metadata": [
+              {
+                "text": "Sonstiges",
+                "width": 76,
+                "scrollWidth": 76
+              },
+              {
+                "text": "Bestätigt",
+                "width": 71,
+                "scrollWidth": 71
+              },
+              {
+                "text": "Letzte Aktivität:14.09.2026, 12:59",
+                "width": 141,
+                "scrollWidth": 141
+              }
+            ]
+          },
+          {
+            "card": {
+              "width": 164,
+              "height": 361.109375,
+              "x": 335,
+              "y": 2112.109375
+            },
+            "thumb": {
+              "width": 162,
+              "height": 121.5,
+              "x": 336,
+              "y": 2113.109375
+            },
+            "title": {
+              "height": 18,
+              "lineHeight": 17.6,
+              "clamp": "2"
+            },
+            "caption": {
+              "height": 65,
+              "lineHeight": 21.6,
+              "clamp": "3"
+            },
+            "action": null,
+            "opener": {
+              "width": 162,
+              "height": 359.109375,
+              "x": 336,
+              "y": 2113.109375
+            },
+            "metadata": [
+              {
+                "text": "Sonstiges",
+                "width": 76,
+                "scrollWidth": 76
+              },
+              {
+                "text": "Bestätigt",
+                "width": 71,
+                "scrollWidth": 71
+              },
+              {
+                "text": "Letzte Aktivität:14.09.2026, 12:59",
+                "width": 141,
+                "scrollWidth": 141
+              }
+            ]
+          },
+          {
+            "card": {
+              "width": 164,
+              "height": 361.109375,
+              "x": 159,
+              "y": 2485.21875
+            },
+            "thumb": {
+              "width": 162,
+              "height": 121.5,
+              "x": 160,
+              "y": 2486.21875
+            },
+            "title": {
+              "height": 18,
+              "lineHeight": 17.6,
+              "clamp": "2"
+            },
+            "caption": {
+              "height": 65,
+              "lineHeight": 21.6,
+              "clamp": "3"
+            },
+            "action": null,
+            "opener": {
+              "width": 162,
+              "height": 359.109375,
+              "x": 160,
+              "y": 2486.21875
+            },
+            "metadata": [
+              {
+                "text": "Sonstiges",
+                "width": 76,
+                "scrollWidth": 76
+              },
+              {
+                "text": "Bestätigt",
+                "width": 71,
+                "scrollWidth": 71
+              },
+              {
+                "text": "Letzte Aktivität:14.09.2026, 12:59",
+                "width": 141,
+                "scrollWidth": 141
+              }
+            ]
+          }
+        ]
+      },
+      "status": "pass"
+    },
+    {
+      "name": "zoom-200",
+      "width": 1440,
+      "height": 900,
+      "zoom": 2,
+      "columns": 2,
+      "detailVerified": false,
+      "mediaReads": 2,
+      "extraMediaReadsOnDetail": 0,
+      "errors": [],
+      "geometry": {
+        "viewport": 1440,
+        "documentWidth": 1440,
+        "container": 626,
+        "columns": 2,
+        "cards": [
+          {
+            "card": {
+              "width": 614,
+              "height": 882.234375,
+              "x": 110,
+              "y": 506.90625
+            },
+            "thumb": {
+              "width": 610,
+              "height": 457.5,
+              "x": 112,
+              "y": 508.90625
+            },
+            "title": {
+              "height": 18,
+              "lineHeight": 17.6,
+              "clamp": "2"
+            },
+            "caption": null,
+            "action": {
+              "width": 334.1875,
+              "height": 72,
+              "x": 132.796875,
+              "y": 1294.34375
+            },
+            "opener": {
+              "width": 610,
+              "height": 785.4375,
+              "x": 112,
+              "y": 508.90625
+            },
+            "metadata": [
+              {
+                "text": "Screenshot",
+                "width": 84,
+                "scrollWidth": 84
+              },
+              {
+                "text": "Bestätigt",
+                "width": 71,
+                "scrollWidth": 71
+              },
+              {
+                "text": "Letzte Aktivität:14.09.2026, 12:59",
+                "width": 284,
+                "scrollWidth": 284
+              }
+            ]
+          },
+          {
+            "card": {
+              "width": 614,
+              "height": 882.234375,
+              "x": 748,
+              "y": 506.90625
+            },
+            "thumb": {
+              "width": 610,
+              "height": 457.5,
+              "x": 750,
+              "y": 508.90625
+            },
+            "title": {
+              "height": 18,
+              "lineHeight": 17.6,
+              "clamp": "2"
+            },
+            "caption": null,
+            "action": {
+              "width": 334.1875,
+              "height": 72,
+              "x": 770.796875,
+              "y": 1294.34375
+            },
+            "opener": {
+              "width": 610,
+              "height": 785.4375,
+              "x": 750,
+              "y": 508.90625
+            },
+            "metadata": [
+              {
+                "text": "Screenshot",
+                "width": 84,
+                "scrollWidth": 84
+              },
+              {
+                "text": "Bestätigt",
+                "width": 71,
+                "scrollWidth": 71
+              },
+              {
+                "text": "Letzte Aktivität:14.09.2026, 12:59",
+                "width": 284,
+                "scrollWidth": 284
+              }
+            ]
+          },
+          {
+            "card": {
+              "width": 614,
+              "height": 1064.578125,
+              "x": 110,
+              "y": 1413.140625
+            },
+            "thumb": {
+              "width": 610,
+              "height": 457.5,
+              "x": 112,
+              "y": 1415.140625
+            },
+            "title": {
+              "height": 18,
+              "lineHeight": 17.6,
+              "clamp": "2"
+            },
+            "caption": null,
+            "action": {
+              "width": 334.1875,
+              "height": 72,
+              "x": 132.796875,
+              "y": 2382.921875
+            },
+            "opener": {
+              "width": 610,
+              "height": 785.4375,
+              "x": 112,
+              "y": 1415.140625
+            },
+            "metadata": [
+              {
+                "text": "Screenshot",
+                "width": 84,
+                "scrollWidth": 84
+              },
+              {
+                "text": "Bestätigt",
+                "width": 71,
+                "scrollWidth": 71
+              },
+              {
+                "text": "Letzte Aktivität:14.09.2026, 12:59",
+                "width": 284,
+                "scrollWidth": 284
+              }
+            ]
+          },
+          {
+            "card": {
+              "width": 614,
+              "height": 1064.578125,
+              "x": 748,
+              "y": 1413.140625
+            },
+            "thumb": {
+              "width": 610,
+              "height": 457.5,
+              "x": 750,
+              "y": 1415.140625
+            },
+            "title": {
+              "height": 35,
+              "lineHeight": 17.6,
+              "clamp": "2"
+            },
+            "caption": {
+              "height": 65,
+              "lineHeight": 21.6,
+              "clamp": "3"
+            },
+            "action": {
+              "width": 321.1875,
+              "height": 72,
+              "x": 770.796875,
+              "y": 2382.921875
+            },
+            "opener": {
+              "width": 610,
+              "height": 967.78125,
+              "x": 750,
+              "y": 1415.140625
+            },
+            "metadata": [
+              {
+                "text": "Aktuelles Vorschaubild",
+                "width": 164,
+                "scrollWidth": 164
+              },
+              {
+                "text": "Typesetting / Karaoke",
+                "width": 143,
+                "scrollWidth": 143
+              },
+              {
+                "text": "Bestätigt",
+                "width": 71,
+                "scrollWidth": 71
+              },
+              {
+                "text": "Letzte Aktivität:14.09.2026, 12:59",
+                "width": 284,
+                "scrollWidth": 284
+              }
+            ]
+          },
+          {
+            "card": {
+              "width": 614,
+              "height": 936.59375,
+              "x": 110,
+              "y": 2501.71875
+            },
+            "thumb": {
+              "width": 610,
+              "height": 457.5,
+              "x": 112,
+              "y": 2503.71875
+            },
+            "title": {
+              "height": 18,
+              "lineHeight": 17.6,
+              "clamp": "2"
+            },
+            "caption": null,
+            "action": null,
+            "opener": {
+              "width": 610,
+              "height": 785.4375,
+              "x": 112,
+              "y": 2503.71875
+            },
+            "metadata": [
+              {
+                "text": "Fun / Outtake",
+                "width": 98,
+                "scrollWidth": 98
+              },
+              {
+                "text": "Bestätigt",
+                "width": 71,
+                "scrollWidth": 71
+              },
+              {
+                "text": "Letzte Aktivität:14.09.2026, 12:59",
+                "width": 284,
+                "scrollWidth": 284
+              }
+            ]
+          },
+          {
+            "card": {
+              "width": 614,
+              "height": 936.59375,
+              "x": 748,
+              "y": 2501.71875
+            },
+            "thumb": {
+              "width": 610,
+              "height": 457.5,
+              "x": 750,
+              "y": 2503.71875
+            },
+            "title": {
+              "height": 18,
+              "lineHeight": 17.6,
+              "clamp": "2"
+            },
+            "caption": {
+              "height": 65,
+              "lineHeight": 21.6,
+              "clamp": "3"
+            },
+            "action": null,
+            "opener": {
+              "width": 610,
+              "height": 932.59375,
+              "x": 750,
+              "y": 2503.71875
+            },
+            "metadata": [
+              {
+                "text": "Fun / Outtake",
+                "width": 98,
+                "scrollWidth": 98
+              },
+              {
+                "text": "Bestätigt",
+                "width": 71,
+                "scrollWidth": 71
+              },
+              {
+                "text": "Letzte Aktivität:14.09.2026, 12:59",
+                "width": 284,
+                "scrollWidth": 284
+              }
+            ]
+          },
+          {
+            "card": {
+              "width": 614,
+              "height": 936.59375,
+              "x": 110,
+              "y": 3462.3125
+            },
+            "thumb": {
+              "width": 610,
+              "height": 457.5,
+              "x": 112,
+              "y": 3464.3125
+            },
+            "title": {
+              "height": 18,
+              "lineHeight": 17.6,
+              "clamp": "2"
+            },
+            "caption": {
+              "height": 65,
+              "lineHeight": 21.6,
+              "clamp": "3"
+            },
+            "action": null,
+            "opener": {
+              "width": 610,
+              "height": 932.59375,
+              "x": 112,
+              "y": 3464.3125
+            },
+            "metadata": [
+              {
+                "text": "Fun / Outtake",
+                "width": 98,
+                "scrollWidth": 98
+              },
+              {
+                "text": "Bestätigt",
+                "width": 71,
+                "scrollWidth": 71
+              },
+              {
+                "text": "Letzte Aktivität:14.09.2026, 12:59",
+                "width": 284,
+                "scrollWidth": 284
+              }
+            ]
+          },
+          {
+            "card": {
+              "width": 614,
+              "height": 936.59375,
+              "x": 748,
+              "y": 3462.3125
+            },
+            "thumb": {
+              "width": 610,
+              "height": 457.5,
+              "x": 750,
+              "y": 3464.3125
+            },
+            "title": {
+              "height": 18,
+              "lineHeight": 17.6,
+              "clamp": "2"
+            },
+            "caption": {
+              "height": 65,
+              "lineHeight": 21.6,
+              "clamp": "3"
+            },
+            "action": null,
+            "opener": {
+              "width": 610,
+              "height": 932.59375,
+              "x": 750,
+              "y": 3464.3125
+            },
+            "metadata": [
+              {
+                "text": "Sonstiges",
+                "width": 76,
+                "scrollWidth": 76
+              },
+              {
+                "text": "Bestätigt",
+                "width": 71,
+                "scrollWidth": 71
+              },
+              {
+                "text": "Letzte Aktivität:14.09.2026, 12:59",
+                "width": 284,
+                "scrollWidth": 284
+              }
+            ]
+          },
+          {
+            "card": {
+              "width": 614,
+              "height": 936.59375,
+              "x": 110,
+              "y": 4422.90625
+            },
+            "thumb": {
+              "width": 610,
+              "height": 457.5,
+              "x": 112,
+              "y": 4424.90625
+            },
+            "title": {
+              "height": 18,
+              "lineHeight": 17.6,
+              "clamp": "2"
+            },
+            "caption": {
+              "height": 65,
+              "lineHeight": 21.6,
+              "clamp": "3"
+            },
+            "action": null,
+            "opener": {
+              "width": 610,
+              "height": 932.59375,
+              "x": 112,
+              "y": 4424.90625
+            },
+            "metadata": [
+              {
+                "text": "Sonstiges",
+                "width": 76,
+                "scrollWidth": 76
+              },
+              {
+                "text": "Bestätigt",
+                "width": 71,
+                "scrollWidth": 71
+              },
+              {
+                "text": "Letzte Aktivität:14.09.2026, 12:59",
+                "width": 284,
+                "scrollWidth": 284
+              }
+            ]
+          },
+          {
+            "card": {
+              "width": 614,
+              "height": 936.59375,
+              "x": 748,
+              "y": 4422.90625
+            },
+            "thumb": {
+              "width": 610,
+              "height": 457.5,
+              "x": 750,
+              "y": 4424.90625
+            },
+            "title": {
+              "height": 18,
+              "lineHeight": 17.6,
+              "clamp": "2"
+            },
+            "caption": {
+              "height": 65,
+              "lineHeight": 21.6,
+              "clamp": "3"
+            },
+            "action": null,
+            "opener": {
+              "width": 610,
+              "height": 932.59375,
+              "x": 750,
+              "y": 4424.90625
+            },
+            "metadata": [
+              {
+                "text": "Sonstiges",
+                "width": 76,
+                "scrollWidth": 76
+              },
+              {
+                "text": "Bestätigt",
+                "width": 71,
+                "scrollWidth": 71
+              },
+              {
+                "text": "Letzte Aktivität:14.09.2026, 12:59",
+                "width": 284,
+                "scrollWidth": 284
+              }
+            ]
+          },
+          {
+            "card": {
+              "width": 614,
+              "height": 936.59375,
+              "x": 110,
+              "y": 5383.5
+            },
+            "thumb": {
+              "width": 610,
+              "height": 457.5,
+              "x": 112,
+              "y": 5385.5
+            },
+            "title": {
+              "height": 18,
+              "lineHeight": 17.6,
+              "clamp": "2"
+            },
+            "caption": {
+              "height": 65,
+              "lineHeight": 21.6,
+              "clamp": "3"
+            },
+            "action": null,
+            "opener": {
+              "width": 610,
+              "height": 932.59375,
+              "x": 112,
+              "y": 5385.5
+            },
+            "metadata": [
+              {
+                "text": "Sonstiges",
+                "width": 76,
+                "scrollWidth": 76
+              },
+              {
+                "text": "Bestätigt",
+                "width": 71,
+                "scrollWidth": 71
+              },
+              {
+                "text": "Letzte Aktivität:14.09.2026, 12:59",
+                "width": 284,
+                "scrollWidth": 284
+              }
+            ]
+          }
+        ]
+      },
+      "status": "pass"
+    },
+    {
+      "name": "readonly",
+      "width": 768,
+      "height": 1024,
+      "readonly": true,
+      "columns": 2,
+      "detailVerified": true,
+      "mediaReads": 2,
+      "extraMediaReadsOnDetail": 0,
+      "errors": [],
+      "geometry": {
+        "viewport": 768,
+        "documentWidth": 768,
+        "container": 690,
+        "columns": 2,
+        "cards": [
+          {
+            "card": {
+              "width": 339,
+              "height": 421.953125,
+              "x": 39,
+              "y": 560.5
+            },
+            "thumb": {
+              "width": 337,
+              "height": 252.75,
+              "x": 40,
+              "y": 561.5
+            },
+            "title": {
+              "height": 18,
+              "lineHeight": 17.6,
+              "clamp": "2"
+            },
+            "caption": null,
+            "action": null,
+            "opener": {
+              "width": 337,
+              "height": 419.953125,
+              "x": 40,
+              "y": 561.5
+            },
+            "metadata": [
+              {
+                "text": "Screenshot",
+                "width": 84,
+                "scrollWidth": 84
+              },
+              {
+                "text": "Bestätigt",
+                "width": 71,
+                "scrollWidth": 71
+              },
+              {
+                "text": "Letzte Aktivität:14.09.2026, 12:59",
+                "width": 313,
+                "scrollWidth": 313
+              }
+            ]
+          },
+          {
+            "card": {
+              "width": 339,
+              "height": 421.953125,
+              "x": 390,
+              "y": 560.5
+            },
+            "thumb": {
+              "width": 337,
+              "height": 252.75,
+              "x": 391,
+              "y": 561.5
+            },
+            "title": {
+              "height": 18,
+              "lineHeight": 17.6,
+              "clamp": "2"
+            },
+            "caption": null,
+            "action": null,
+            "opener": {
+              "width": 337,
+              "height": 419.953125,
+              "x": 391,
+              "y": 561.5
+            },
+            "metadata": [
+              {
+                "text": "Screenshot",
+                "width": 84,
+                "scrollWidth": 84
+              },
+              {
+                "text": "Bestätigt",
+                "width": 71,
+                "scrollWidth": 71
+              },
+              {
+                "text": "Letzte Aktivität:14.09.2026, 12:59",
+                "width": 313,
+                "scrollWidth": 313
+              }
+            ]
+          },
+          {
+            "card": {
+              "width": 339,
+              "height": 513.171875,
+              "x": 39,
+              "y": 994.453125
+            },
+            "thumb": {
+              "width": 337,
+              "height": 252.75,
+              "x": 40,
+              "y": 995.453125
+            },
+            "title": {
+              "height": 18,
+              "lineHeight": 17.6,
+              "clamp": "2"
+            },
+            "caption": null,
+            "action": null,
+            "opener": {
+              "width": 337,
+              "height": 419.953125,
+              "x": 40,
+              "y": 995.453125
+            },
+            "metadata": [
+              {
+                "text": "Screenshot",
+                "width": 84,
+                "scrollWidth": 84
+              },
+              {
+                "text": "Bestätigt",
+                "width": 71,
+                "scrollWidth": 71
+              },
+              {
+                "text": "Letzte Aktivität:14.09.2026, 12:59",
+                "width": 313,
+                "scrollWidth": 313
+              }
+            ]
+          },
+          {
+            "card": {
+              "width": 339,
+              "height": 513.171875,
+              "x": 390,
+              "y": 994.453125
+            },
+            "thumb": {
+              "width": 337,
+              "height": 252.75,
+              "x": 391,
+              "y": 995.453125
+            },
+            "title": {
+              "height": 35,
+              "lineHeight": 17.6,
+              "clamp": "2"
+            },
+            "caption": {
+              "height": 65,
+              "lineHeight": 21.6,
+              "clamp": "3"
+            },
+            "action": null,
+            "opener": {
+              "width": 337,
+              "height": 511.171875,
+              "x": 391,
+              "y": 995.453125
+            },
+            "metadata": [
+              {
+                "text": "Aktuelles Vorschaubild",
+                "width": 164,
+                "scrollWidth": 164
+              },
+              {
+                "text": "Typesetting / Karaoke",
+                "width": 143,
+                "scrollWidth": 143
+              },
+              {
+                "text": "Bestätigt",
+                "width": 71,
+                "scrollWidth": 71
+              },
+              {
+                "text": "Letzte Aktivität:14.09.2026, 12:59",
+                "width": 313,
+                "scrollWidth": 313
+              }
+            ]
+          },
+          {
+            "card": {
+              "width": 339,
+              "height": 495.578125,
+              "x": 39,
+              "y": 1519.625
+            },
+            "thumb": {
+              "width": 337,
+              "height": 252.75,
+              "x": 40,
+              "y": 1520.625
+            },
+            "title": {
+              "height": 18,
+              "lineHeight": 17.6,
+              "clamp": "2"
+            },
+            "caption": null,
+            "action": null,
+            "opener": {
+              "width": 337,
+              "height": 419.953125,
+              "x": 40,
+              "y": 1520.625
+            },
+            "metadata": [
+              {
+                "text": "Fun / Outtake",
+                "width": 98,
+                "scrollWidth": 98
+              },
+              {
+                "text": "Bestätigt",
+                "width": 71,
+                "scrollWidth": 71
+              },
+              {
+                "text": "Letzte Aktivität:14.09.2026, 12:59",
+                "width": 313,
+                "scrollWidth": 313
+              }
+            ]
+          },
+          {
+            "card": {
+              "width": 339,
+              "height": 495.578125,
+              "x": 390,
+              "y": 1519.625
+            },
+            "thumb": {
+              "width": 337,
+              "height": 252.75,
+              "x": 391,
+              "y": 1520.625
+            },
+            "title": {
+              "height": 18,
+              "lineHeight": 17.6,
+              "clamp": "2"
+            },
+            "caption": {
+              "height": 65,
+              "lineHeight": 21.6,
+              "clamp": "3"
+            },
+            "action": null,
+            "opener": {
+              "width": 337,
+              "height": 493.578125,
+              "x": 391,
+              "y": 1520.625
+            },
+            "metadata": [
+              {
+                "text": "Fun / Outtake",
+                "width": 98,
+                "scrollWidth": 98
+              },
+              {
+                "text": "Bestätigt",
+                "width": 71,
+                "scrollWidth": 71
+              },
+              {
+                "text": "Letzte Aktivität:14.09.2026, 12:59",
+                "width": 313,
+                "scrollWidth": 313
+              }
+            ]
+          },
+          {
+            "card": {
+              "width": 339,
+              "height": 495.578125,
+              "x": 39,
+              "y": 2027.203125
+            },
+            "thumb": {
+              "width": 337,
+              "height": 252.75,
+              "x": 40,
+              "y": 2028.203125
+            },
+            "title": {
+              "height": 18,
+              "lineHeight": 17.6,
+              "clamp": "2"
+            },
+            "caption": {
+              "height": 65,
+              "lineHeight": 21.6,
+              "clamp": "3"
+            },
+            "action": null,
+            "opener": {
+              "width": 337,
+              "height": 493.578125,
+              "x": 40,
+              "y": 2028.203125
+            },
+            "metadata": [
+              {
+                "text": "Fun / Outtake",
+                "width": 98,
+                "scrollWidth": 98
+              },
+              {
+                "text": "Bestätigt",
+                "width": 71,
+                "scrollWidth": 71
+              },
+              {
+                "text": "Letzte Aktivität:14.09.2026, 12:59",
+                "width": 313,
+                "scrollWidth": 313
+              }
+            ]
+          },
+          {
+            "card": {
+              "width": 339,
+              "height": 495.578125,
+              "x": 390,
+              "y": 2027.203125
+            },
+            "thumb": {
+              "width": 337,
+              "height": 252.75,
+              "x": 391,
+              "y": 2028.203125
+            },
+            "title": {
+              "height": 18,
+              "lineHeight": 17.6,
+              "clamp": "2"
+            },
+            "caption": {
+              "height": 65,
+              "lineHeight": 21.6,
+              "clamp": "3"
+            },
+            "action": null,
+            "opener": {
+              "width": 337,
+              "height": 493.578125,
+              "x": 391,
+              "y": 2028.203125
+            },
+            "metadata": [
+              {
+                "text": "Sonstiges",
+                "width": 76,
+                "scrollWidth": 76
+              },
+              {
+                "text": "Bestätigt",
+                "width": 71,
+                "scrollWidth": 71
+              },
+              {
+                "text": "Letzte Aktivität:14.09.2026, 12:59",
+                "width": 313,
+                "scrollWidth": 313
+              }
+            ]
+          },
+          {
+            "card": {
+              "width": 339,
+              "height": 495.578125,
+              "x": 39,
+              "y": 2534.78125
+            },
+            "thumb": {
+              "width": 337,
+              "height": 252.75,
+              "x": 40,
+              "y": 2535.78125
+            },
+            "title": {
+              "height": 18,
+              "lineHeight": 17.6,
+              "clamp": "2"
+            },
+            "caption": {
+              "height": 65,
+              "lineHeight": 21.6,
+              "clamp": "3"
+            },
+            "action": null,
+            "opener": {
+              "width": 337,
+              "height": 493.578125,
+              "x": 40,
+              "y": 2535.78125
+            },
+            "metadata": [
+              {
+                "text": "Sonstiges",
+                "width": 76,
+                "scrollWidth": 76
+              },
+              {
+                "text": "Bestätigt",
+                "width": 71,
+                "scrollWidth": 71
+              },
+              {
+                "text": "Letzte Aktivität:14.09.2026, 12:59",
+                "width": 313,
+                "scrollWidth": 313
+              }
+            ]
+          },
+          {
+            "card": {
+              "width": 339,
+              "height": 495.578125,
+              "x": 390,
+              "y": 2534.78125
+            },
+            "thumb": {
+              "width": 337,
+              "height": 252.75,
+              "x": 391,
+              "y": 2535.78125
+            },
+            "title": {
+              "height": 18,
+              "lineHeight": 17.6,
+              "clamp": "2"
+            },
+            "caption": {
+              "height": 65,
+              "lineHeight": 21.6,
+              "clamp": "3"
+            },
+            "action": null,
+            "opener": {
+              "width": 337,
+              "height": 493.578125,
+              "x": 391,
+              "y": 2535.78125
+            },
+            "metadata": [
+              {
+                "text": "Sonstiges",
+                "width": 76,
+                "scrollWidth": 76
+              },
+              {
+                "text": "Bestätigt",
+                "width": 71,
+                "scrollWidth": 71
+              },
+              {
+                "text": "Letzte Aktivität:14.09.2026, 12:59",
+                "width": 313,
+                "scrollWidth": 313
+              }
+            ]
+          },
+          {
+            "card": {
+              "width": 339,
+              "height": 495.578125,
+              "x": 39,
+              "y": 3042.359375
+            },
+            "thumb": {
+              "width": 337,
+              "height": 252.75,
+              "x": 40,
+              "y": 3043.359375
+            },
+            "title": {
+              "height": 18,
+              "lineHeight": 17.6,
+              "clamp": "2"
+            },
+            "caption": {
+              "height": 65,
+              "lineHeight": 21.6,
+              "clamp": "3"
+            },
+            "action": null,
+            "opener": {
+              "width": 337,
+              "height": 493.578125,
+              "x": 40,
+              "y": 3043.359375
+            },
+            "metadata": [
+              {
+                "text": "Sonstiges",
+                "width": 76,
+                "scrollWidth": 76
+              },
+              {
+                "text": "Bestätigt",
+                "width": 71,
+                "scrollWidth": 71
+              },
+              {
+                "text": "Letzte Aktivität:14.09.2026, 12:59",
+                "width": 313,
+                "scrollWidth": 313
+              }
+            ]
+          }
+        ]
+      },
+      "status": "pass"
+    }
+  ]
+}
