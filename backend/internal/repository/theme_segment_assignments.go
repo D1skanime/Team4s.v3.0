@@ -43,6 +43,13 @@ func (r *AdminContentRepository) AssignThemeSegmentToReleaseVersion(
 	if err != nil {
 		return nil, err
 	}
+	// CR-01 (156-REVIEW.md, Folge-Fix zu Plan 156-16): ohne diesen Aufruf bekaeme ein frisches
+	// Segment ueber diesen Endpunkt niemals eine Origin (GAP-05). assignThemeSegmentToReleaseVersionTx
+	// bleibt bewusst unveraendert, weil CreateAnimeSegment denselben Helfer nutzt und danach schon
+	// separat ensureThemeSegmentOriginTx aufruft -- sonst liefe der Aufruf dort doppelt.
+	if _, err := ensureThemeSegmentOriginTx(ctx, tx, segmentID); err != nil {
+		return nil, fmt.Errorf("assign theme segment %d to release version %d: ensure origin: %w", segmentID, releaseVersionID, err)
+	}
 	if err := tx.Commit(ctx); err != nil {
 		return nil, err
 	}
@@ -345,6 +352,12 @@ func (r *AdminContentRepository) assignThemeSegmentToEpisodeRangeTx(ctx context.
 // Zeit-Override fuer dasselbe Paar wird durch die DB-seitige
 // ON DELETE CASCADE-FK (theme_segment_episode_overrides ->
 // theme_segment_assignments) automatisch mitentfernt.
+//
+// CR-01 (156-REVIEW.md, Folge-Fix zu 156-16, WR-02): lief vorher OHNE Transaktion/Domain-Sperre
+// und rief ensureThemeSegmentOriginTx nie auf -- das Entfernen der einzigen Zuweisung liess
+// origin_release_version_id dauerhaft haengen (GAP-04, exakt der von Migration 0164 reparierte
+// Fall). Jetzt: Transaktion + Domain-Sperre + Origin-Sync im selben Commit, wie die anderen
+// Schreiber in dieser Datei.
 func (r *AdminContentRepository) UnassignThemeSegmentFromReleaseVersion(
 	ctx context.Context,
 	segmentID int64,
@@ -354,7 +367,16 @@ func (r *AdminContentRepository) UnassignThemeSegmentFromReleaseVersion(
 		return ErrNotFound
 	}
 
-	tag, err := r.db.Exec(ctx, `
+	tx, err := r.db.Begin(ctx)
+	if err != nil {
+		return err
+	}
+	defer func() { _ = tx.Rollback(ctx) }()
+	if _, err := lockSegmentAssignmentDomainTx(ctx, tx, segmentID); err != nil {
+		return err
+	}
+
+	tag, err := tx.Exec(ctx, `
 		DELETE FROM theme_segment_assignments
 		WHERE theme_segment_id = $1 AND release_version_id = $2
 	`, segmentID, releaseVersionID)
@@ -364,7 +386,12 @@ func (r *AdminContentRepository) UnassignThemeSegmentFromReleaseVersion(
 	if tag.RowsAffected() == 0 {
 		return ErrNotFound
 	}
-	return nil
+
+	if _, err := ensureThemeSegmentOriginTx(ctx, tx, segmentID); err != nil {
+		return fmt.Errorf("unassign theme segment %d: ensure origin: %w", segmentID, err)
+	}
+
+	return tx.Commit(ctx)
 }
 
 // ListThemeSegmentAssignments liefert alle release_version_id-Werte, denen
