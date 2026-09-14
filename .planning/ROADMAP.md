@@ -1593,7 +1593,7 @@ ausdruecklich **kein** visuelles Redesign und kopiert keine Credits in Segmentta
 
 **Depends on:** Phase 155
 
-**Plans:** 16/16 plans complete
+**Plans:** 17/17 plans complete
 
 Plans:
 
@@ -1643,6 +1643,17 @@ Plans:
       origin=29, aktuell nur 40/41 zugewiesen) und GAP-05 (Segmente 4/5 ohne Origin trotz
       Zuweisungen) aus dem Live-UAT vom 2026-09-14. Der 156-UAT.md-Live-UAT-Checkpoint selbst bleibt
       ausdruecklich separat und offen -- dieser Plan beansprucht ihn nicht als bestanden.
+
+**Post-hoc UAT gap-closure** (156-UAT.md, Live-UAT 2026-09-14, GAP-06)
+
+- [ ] 156-17-PLAN.md — Segment-Credits mit Segment-Beschriftung: zentrale Rollen-Code-zu-Label-
+      Zuordnung (`permissions/segment_credit_roles.go`, ausgelagert aus dem ueberlangen
+      `permissions.go`), additives `SegmentRoleLabel`-Feld nur fuer Segment-Participants, ein-Zeilen-
+      Frontend-Swap in `ThemeTimelineSegmentDetails.tsx`. Schliesst GAP-06 (Segment-Credit zeigte die
+      unveraenderte Release-Rolle statt der vom Auftraggeber am 2026-09-14 bestaetigten
+      Segment-Beschriftung) aus dem Live-UAT vom 2026-09-14. Der 156-UAT.md-Live-UAT-Checkpoint
+      selbst bleibt ausdruecklich separat und offen -- dieser Plan beansprucht ihn nicht als
+      bestanden.
 
 **Plan-time read first**: `.planning/phases/156-segment-domain-konsistenz-und-oeffentliche-release-projektion/156-USER-REQUEST.md`,
 `156-CONTEXT.md`, `156-RESEARCH.md`, `156-PATTERNS.md`,
