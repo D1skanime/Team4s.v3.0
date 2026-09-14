@@ -3,14 +3,14 @@ gsd_state_version: 1.0
 milestone: v1.4
 milestone_name: Coverage
 status: executing
-stopped_at: Completed 156-17-PLAN.md (GAP-06 segment credit label closure; 156-UAT live checkpoint still pending)
-last_updated: "2026-09-14T16:48:06.695Z"
+stopped_at: Completed 157-11-PLAN.md (GAP-02 screenshot script settle-wait + 200%-zoom check; plans 157-12/13/14 depend on this)
+last_updated: "2026-09-14T16:58:37.666Z"
 last_activity: 2026-09-14
 progress:
   total_phases: 24
   completed_phases: 23
   total_plans: 231
-  completed_plans: 227
+  completed_plans: 228
   percent: 96
 ---
 
@@ -41,12 +41,12 @@ Phase 135 and any future roadmap entries continue from here.
 See: .planning/PROJECT.md (updated 2026-08-13)
 
 **Core value:** Team4s presents fansub history and collaboration credibly while keeping identity, visibility, ownership, and permissions correct.
-**Current focus:** Phase 156 — segment-domain-konsistenz-und-oeffentliche-release-projektion
+**Current focus:** Phase 157 — projekt-memberseite-visuelles-referenzdesign
 
 ## Current Position
 
-Phase: 156 (segment-domain-konsistenz-und-oeffentliche-release-projektion) — 156-17 ausgefuehrt
-Plan: 17 of 17 (GAP-06-Schliessungsplan 156-17 abgeschlossen)
+Phase: 157 (projekt-memberseite-visuelles-referenzdesign) — EXECUTING
+Plan: 2 of 14
 Status: Ready to execute
 GAP-02-Live-UAT-Checkpoint aus 156-UAT.md (5 Origin- + 9 Segment-Contributor-Pruefpunkte) bleibt
 weiterhin OFFEN -- siehe deferred-items.md. Phase 156 gilt NICHT als vollstaendig abgenommen.
@@ -55,6 +55,31 @@ Hinweis zum generischen Fortschrittszaehler: `state.advance-plan` hat bei diesem
 Bezug zur konkreten Plan-Datei/zum offenen GAP-02-Checkpoint) -- manuell auf den vorherigen,
 korrekten Stand zurueckgesetzt (23/24 Phasen, +1 Plan fuer 156-17). Massgeblich bleibt
 `roadmap.update-plan-progress "156"`.
+
+**Plan 157-11 (2026-09-14) abgeschlossen — GAP-02-Schliessung 1/4 (Screenshot-Skript-Fix):**
+`frontend/scripts/shot-projectmember.mjs` (396 -> 450 Zeilen, an der 450-Zeilen-Kappe) ist jetzt
+vertrauenswuerdige Beweisgrundlage fuer die drei nachfolgenden GAP-02-Inhaltsplaene (157-12/13/14).
+Task 1: neuer `waitForSectionsSettled(page)`-Helfer (progressives Scrollen durch das gesamte
+Dokument, explizites Warten auf jedes noch ladende `<img>` per `load`/`error`-Listener, Rueckkehr
+nach oben, Layout-Beruhigung per doppeltem `requestAnimationFrame`) -- genau einmal pro Viewport,
+unmittelbar vor jedem fullPage-Screenshot verdrahtet, behebt das Risiko einer fehlleitenden
+„Wird geladen"-Aufnahme vor dem Malen der Texte&Notizen-/Bilder&Medien-Client-Fetches. Task 2:
+neue, unbedingte (kein `SHOT_VERIFY_HERO`-Gate) 200%-Zoom-Aequivalenz-Pruefung nur fuer den
+Desktop-Viewport (720x450, dieselbe Ratio wie die bestehende Hero-only-Pruefung), die einen
+`*-desktop-zoom200.png`-Screenshot aufnimmt und `facts.zoom200Overflow` VOR dem bestehenden
+`console.log` setzt -- schliesst `157-UAT.md`s bisher unverifizierten Pruefpunkt 9
+(Browser-Zoom). Beide Automatisierungsgates bestanden: `node --check` sauber, `npx eslint`
+sauber, Live-Lauf gegen den laufenden Stack exit 0 fuer alle drei Viewports plus den neuen
+Zoom200-Pass, `zoom200Overflow: false` im gedruckten JSON, beide fullPage-Screenshots (Desktop,
+Desktop-Zoom200) persoenlich gesichtet -- zeigen vollstaendig geladene Inhalte (12 Notizen, 2
+Medien), keine „Wird geladen"-Platzhalter. Zwei dokumentierte Praezisierungen (keine
+Rule-1-4-Abweichung): der neue Zoom-Check-Block sitzt vor statt strikt hinter dem bestehenden
+`console.log`-Aufruf, damit `zoom200Overflow` tatsaechlich im gedruckten JSON erscheint (erfuellt
+die Plan-eigene Verifikationsanforderung); die 450-Zeilen-Kappe wurde durch Kommentarkuerzung statt
+durch Extraktion in ein neues `lib/shotHelpers.mjs`-Modul eingehalten, da der Gap-Closure-Auftrag
+fuer diesen Plan ausdruecklich nur `shot-projectmember.mjs` erlaubt. Keine funktionale/visuelle
+Aenderung an der Anwendung selbst -- kein eigener menschlicher Live-UAT-Bedarf durch diesen Plan.
+Details: 157-11-SUMMARY.md.
 
 **Plan 156-17 (2026-09-14) abgeschlossen — GAP-06-Schliessung (Segment-Credits mit
 Segment-Beschriftung):** `permissions.SegmentCreditLabelForRoles` (neue Datei
@@ -1088,6 +1113,7 @@ Last activity: 2026-09-14
 - [Phase 156]: Relocated SegmentCreditRoleCodes verbatim into new segment_credit_roles.go (permissions.go 950->933 lines) instead of duplicating it, keeping the segment-relevant role list and its display-label map paired in one file
 - [Phase 156]: SegmentRoleLabel is computed inline inside applySegmentOriginCredits's existing filter loop (one call site) instead of a separate pass, keeping the two-condition filter and label derivation co-located
 - [Phase 156]: loadContributors (normal release contributor list) deliberately never calls SegmentCreditLabelForRoles, proven by a dedicated Postgres test asserting SegmentRoleLabel stays the Go zero value on every entry
+- [Phase 157]: 157-11: Kept 200%-zoom overflow check scoped to shot-projectmember.mjs only — gap-closure operator constraint restricted changes to one file; trimmed comments to land at the 450-line cap instead of extracting a helper module
 
 ### Pending Todos
 
@@ -1488,11 +1514,12 @@ untruncated list lives in `.planning/todos/pending/`.
 | Phase 157 P10 | 27min | 3 tasks | 4 files |
 | Phase 156 P16 | 35min | 3 tasks | 17 files |
 | Phase 156 P17 | 20min | 3 tasks | 9 files |
+| Phase 157 P11 | 7min | 2 tasks | 1 files |
 
 ## Session Continuity
 
-Last session: 2026-09-14T15:58:34.482Z
-Stopped at: Completed 156-17-PLAN.md (GAP-06 segment credit label closure; 156-UAT live checkpoint still pending)
+Last session: 2026-09-14T16:58:37.648Z
+Stopped at: Completed 157-11-PLAN.md (GAP-02 screenshot script settle-wait + 200%-zoom check; plans 157-12/13/14 depend on this)
 Last activity: Full Phase 156 regression re-run (backend+frontend+migration round-trip) proven green; GAP-02 live-UAT checkpoint documented as OPEN, not simulated.
 Resume file: 
 None
