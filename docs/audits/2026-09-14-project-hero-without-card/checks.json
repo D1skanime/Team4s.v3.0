@@ -1,0 +1,23 @@
+[
+  {
+    "name": "tests",
+    "exit": 1,
+    "output": "ia sections 0ms\n   \u2713 ProjectPage removed section surfaces (102-06) > Test 6: does not render the old global empty-area summary 0ms\n   \u00d7 ProjectPage public hero styling > keeps the project backdrop soft like the public fansub hero instead of clipping the blur edge 28ms\n     \u2192 expected '.heroBackdrop {\\n  position: absolute\u2026' to contain 'filter: blur(34px) brightness(0.72) s\u2026'\n   \u2713 ProjectPage public hero styling > starts the reused fansub section band only at Alle Releases 1ms\n   \u2713 ProjectPage public hero styling > ordnet Projektidentit\u00e4t und globale Kennzahlen auf Desktop nebeneinander an 0ms\n   \u2713 HeroSection navigation (102-03) > rendert same-Fansub-Controls mit den exakten Accessible Labels 95ms\n   \u2713 HeroSection navigation (102-03) > rendert Kooperation nur einmal als Coop-Partner-Statistik 25ms\n   \u2713 HeroSection navigation (102-03) > rendert bei einem Banner nur eine Identit\u00e4t au\u00dferhalb des Bannerbilds 15ms\n   \u2713 HeroSection navigation (102-03) > rendert auch drei Coop-Gruppen ohne unn\u00f6tigen Aufklappbutton 9ms\n   \u2713 numeric project page Promise params (158-01) > keeps the Next page and metadata props Promise-only 0ms\n   \u2713 numeric project page Promise params (158-01) > resolves numeric compatibility params and preserves the pretty canonical 2ms\n   \u2713 numeric project page Promise params (158-01) > loads the same numeric project and keeps its scoped error/back link 7ms\n\n Test Files  1 failed | 3 passed (4)\n      Tests  1 failed | 27 passed (28)\n   Start at  09:31:51\n   Duration  2.46s (transform 1.15s, setup 464ms, collect 2.60s, tests 423ms, environment 1.09s, prepare 370ms)\n\nex: 0;\u001b[39m\n\u001b[31m+   background-size: cover;\u001b[39m\n\u001b[31m+   background-position: center;\u001b[39m\n\u001b[31m+   filter: blur(34px) saturate(1.25);\u001b[39m\n\u001b[31m+ \u001b[7m  transform: scal\u001b[27me(1.\u001b[7m1\u001b[27m5)\u001b[7m;\u001b[27m\u001b[39m\n\u001b[31m+ }\u001b[39m\n\n \u276f src/app/anime/[id]/group/[groupId]/page.test.tsx:131:31\n    129|     expect(heroBackdropBlock).toContain('left: calc(50% - 50vw)')\n    130|     expect(heroBackdropBlock).toContain('width: 100vw')\n    131|     expect(heroBackdropBlock).toContain('filter: blur(34px) brightness\u2026\n       |                               ^\n    132|   })\n    133| \n\n\u23af\u23af\u23af\u23af\u23af\u23af\u23af\u23af\u23af\u23af\u23af\u23af\u23af\u23af\u23af\u23af\u23af\u23af\u23af\u23af\u23af\u23af\u23af\u23af[1/1]\u23af\n\n"
+  },
+  {
+    "name": "typecheck",
+    "exit": 2,
+    "output": "\n> team4s-frontend@0.1.0 typecheck\n> tsc --noEmit\n\n.next/dev/types/app/anime/page.ts(36,29): error TS2344: Type 'AnimePageProps' does not satisfy the constraint 'PageProps'.\n  Types of property 'searchParams' are incompatible.\n    Type 'Promise<{ page?: string | string[] | undefined; per_page?: string | string[] | undefined; q?: string | string[] | undefined; letter?: string | string[] | undefined; content_type?: string | string[] | undefined; status?: string | ... 1 more ... | undefined; }> | { ...; } | undefined' is not assignable to type 'Promise<any> | undefined'.\n      Type '{ page?: string | string[] | undefined; per_page?: string | string[] | undefined; q?: string | string[] | undefined; letter?: string | string[] | undefined; content_type?: string | string[] | undefined; status?: string | ... 1 more ... | undefined; }' is missing the following properties from type 'Promise<any>': then, catch, finally, [Symbol.toStringTag]\n"
+  },
+  {
+    "name": "lint",
+    "exit": 1,
+    "errors": 13,
+    "warnings": 331
+  },
+  {
+    "name": "tests-final",
+    "exit": 0,
+    "output": "\n> team4s-frontend@0.1.0 test\n> vitest run src/app/fansubs/__tests__/publicProjectHeroMobileContract.test.ts src/app/anime/[id]/group/[groupId]/page.test.tsx src/app/anime/[id]/group/[groupId]/sections/ProjectStats.test.tsx src/app/fansubs/[slug]/fansubprojekt/[animeSlug]/page.test.tsx\n\n\n RUN  v3.2.4 /app\n\n \u2713 src/app/fansubs/[slug]/fansubprojekt/[animeSlug]/page.test.tsx (3 tests) 14ms\n \u2713 src/app/fansubs/__tests__/publicProjectHeroMobileContract.test.ts (2 tests) 3ms\n \u2713 src/app/anime/[id]/group/[groupId]/sections/ProjectStats.test.tsx (3 tests) 135ms\n \u2713 src/app/anime/[id]/group/[groupId]/page.test.tsx (20 tests) 119ms\n\n Test Files  4 passed (4)\n      Tests  28 passed (28)\n   Start at  09:33:54\n   Duration  1.53s (transform 649ms, setup 300ms, collect 1.62s, tests 272ms, environment 699ms, prepare 237ms)\n\n"
+  }
+]

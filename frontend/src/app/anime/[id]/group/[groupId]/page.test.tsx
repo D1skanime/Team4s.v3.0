@@ -128,7 +128,7 @@ describe('ProjectPage public hero styling', () => {
     expect(heroShellBlock).not.toContain('margin-left: calc(50% - 50vw)')
     expect(heroBackdropBlock).toContain('left: calc(50% - 50vw)')
     expect(heroBackdropBlock).toContain('width: 100vw')
-    expect(heroBackdropBlock).toContain('filter: blur(34px) brightness(0.72) saturate(1.25)')
+    expect(heroBackdropBlock).toContain('filter: blur(34px) saturate(1.25)')
   })
 
   it('starts the reused fansub section band only at Alle Releases', () => {

@@ -1,0 +1,41 @@
+[
+  {
+    "viewport": 390,
+    "documentWidth": 390,
+    "background": "rgba(0, 0, 0, 0)",
+    "border": "0px",
+    "radius": "0px",
+    "shadow": "none",
+    "backdropFilter": "none",
+    "title": "Buddy Complex",
+    "titleColor": "rgb(28, 28, 30)",
+    "bannerWidth": 302,
+    "heroWidth": 326
+  },
+  {
+    "viewport": 768,
+    "documentWidth": 768,
+    "background": "rgba(0, 0, 0, 0)",
+    "border": "0px",
+    "radius": "0px",
+    "shadow": "none",
+    "backdropFilter": "none",
+    "title": "Buddy Complex",
+    "titleColor": "rgb(28, 28, 30)",
+    "bannerWidth": 648.640625,
+    "heroWidth": 704
+  },
+  {
+    "viewport": 1440,
+    "documentWidth": 1556,
+    "background": "rgba(0, 0, 0, 0)",
+    "border": "0px",
+    "radius": "0px",
+    "shadow": "none",
+    "backdropFilter": "none",
+    "title": "Buddy Complex",
+    "titleColor": "rgb(28, 28, 30)",
+    "bannerWidth": 1000,
+    "heroWidth": 1312
+  }
+]

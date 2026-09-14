@@ -1,0 +1,4 @@
+{
+  "exit": 1,
+  "output": "\u25b2 Next.js 16.1.6 (webpack)\n\n  Creating an optimized production build ...\n\u2713 Compiled successfully in 20.9s\n  Running TypeScript ...\nFailed to compile.\n\nsrc/app/admin/anime/[id]/edit/page.tsx\nType error: Page \"src/app/admin/anime/[id]/edit/page.tsx\" does not match the required types of a Next.js Page.\n  \"formatEditLoadError\" is not a valid Page export field.\n\nNext.js build worker exited with code: 1 and signal: null\n"
+}
