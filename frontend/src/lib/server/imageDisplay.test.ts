@@ -271,7 +271,7 @@ it('expires stalled source reads and queued admission after five seconds', async
 it('serves the actual shared anime display placeholder as decodable bounded bytes', async () => {
   const { resolveAnimeCoverURL } = await import('@/lib/animeBackdrops')
   const cover = await import('@/app/covers/display/[file]/route')
-  const url = new URL(resolveAnimeCoverURL(), 'http://local')
+  const url = new URL(resolveAnimeCoverURL(undefined), 'http://local')
   const response = await cover.GET(new Request(url), { params: Promise.resolve({ file: url.pathname.split('/')[3] }) })
   expect(response.status).toBe(200)
   const bytes = Buffer.from(await response.arrayBuffer())
