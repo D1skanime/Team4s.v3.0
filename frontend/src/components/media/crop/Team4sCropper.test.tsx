@@ -1,6 +1,6 @@
 // @vitest-environment jsdom
 
-import type { ReactNode } from 'react'
+import { useState, type ReactNode } from 'react'
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
 import { cleanup, fireEvent, render, screen, waitFor } from '@testing-library/react'
 
@@ -94,6 +94,76 @@ describe('Team4sCropper', () => {
 
     expect(screen.getByTestId('react-easy-crop')).not.toBeNull()
     expect(onCancel).toHaveBeenCalledTimes(1)
+  })
+
+  it.each([
+    { title: 'Avatar zuschneiden', shape: 'circle' as const, aspectRatio: 1 },
+    { title: 'Hintergrundbild zuschneiden', shape: 'rectangle' as const, aspectRatio: 5 },
+  ])('exposes $title even when its owning tab is hidden', ({ title, shape, aspectRatio }) => {
+    const { unmount } = render(
+      <section aria-hidden="true" style={{ opacity: 0, overflow: 'hidden', height: 1, pointerEvents: 'none' }}>
+        <Team4sCropper
+          file={new File(['source'], 'source.png', { type: 'image/png' })}
+          title={title}
+          cropAriaLabel="Bildausschnitt wählen"
+          shape={shape}
+          aspectRatio={aspectRatio}
+          output={{ width: 512, height: 512, filename: 'crop.png' }}
+          onCancel={vi.fn()}
+          onApply={vi.fn()}
+        />
+      </section>,
+    )
+
+    const dialog = screen.getByRole('dialog', { name: title })
+    expect(dialog.closest('[aria-hidden="true"]')).toBeNull()
+    expect(dialog.closest('section')).toBeNull()
+    unmount()
+    expect(screen.queryByRole('dialog')).toBeNull()
+    expect(URL.revokeObjectURL).toHaveBeenCalledWith('blob:crop-source')
+  })
+
+  it('traps keyboard focus and restores the trigger after cancelling and reopening', async () => {
+    const onApply = vi.fn()
+    function Harness() {
+      const [open, setOpen] = useState(false)
+      return (
+        <>
+          <button onClick={() => setOpen(true)}>Banner ändern</button>
+          <section aria-hidden="true">
+            {open ? (
+              <Team4sCropper
+                file={new File(['source'], 'source.png', { type: 'image/png' })}
+                title="Hintergrundbild zuschneiden"
+                cropAriaLabel="Bildausschnitt wählen"
+                output={{ width: 1920, height: 384, filename: 'banner.jpg', mimeType: 'image/jpeg' }}
+                onCancel={() => setOpen(false)}
+                onApply={onApply}
+              />
+            ) : null}
+          </section>
+        </>
+      )
+    }
+    render(<Harness />)
+    const trigger = screen.getByRole('button', { name: 'Banner ändern' })
+    trigger.focus()
+    fireEvent.click(trigger)
+    const close = screen.getByRole('button', { name: 'Dialog schließen' })
+    await waitFor(() => expect(document.activeElement).toBe(close))
+    fireEvent.keyDown(close, { key: 'Tab', shiftKey: true })
+    expect(document.activeElement).toBe(screen.getByRole('button', { name: 'Ausschnitt übernehmen' }))
+    fireEvent.keyDown(document.activeElement!, { key: 'Tab' })
+    expect(document.activeElement).toBe(close)
+    fireEvent.keyDown(close, { key: 'Escape' })
+    expect(screen.queryByRole('dialog')).toBeNull()
+    expect(document.activeElement).toBe(trigger)
+    fireEvent.click(trigger)
+    await waitFor(() => expect(document.activeElement).toBe(screen.getByRole('button', { name: 'Dialog schließen' })))
+    fireEvent.click(screen.getByRole('button', { name: 'Abbrechen' }))
+    expect(screen.queryByRole('dialog')).toBeNull()
+    expect(document.activeElement).toBe(trigger)
+    expect(onApply).not.toHaveBeenCalled()
   })
 
   it('exports the selected pixels as the configured file', async () => {

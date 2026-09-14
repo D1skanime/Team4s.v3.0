@@ -2,6 +2,7 @@
 
 import type { KeyboardEvent } from 'react'
 import { useEffect, useId, useMemo, useRef, useState } from 'react'
+import { createPortal } from 'react-dom'
 import Cropper, { type Area, type Point } from 'react-easy-crop'
 import { X } from 'lucide-react'
 
@@ -129,11 +130,15 @@ export function Team4sCropper({
   }, [file])
 
   useEffect(() => {
+    const previousFocus = document.activeElement instanceof HTMLElement ? document.activeElement : null
     const frameID = window.requestAnimationFrame(() => {
       const firstFocusable = panelRef.current ? getFocusableElements(panelRef.current)[0] : null
       firstFocusable?.focus()
     })
-    return () => window.cancelAnimationFrame(frameID)
+    return () => {
+      window.cancelAnimationFrame(frameID)
+      if (previousFocus?.isConnected) previousFocus.focus()
+    }
   }, [])
 
   function onPanelKeyDown(event: KeyboardEvent<HTMLDivElement>) {
@@ -196,7 +201,7 @@ export function Team4sCropper({
   const busy = disabled || isApplying
   const isWideCrop = shape === 'rectangle' && aspectRatio > 1.5
 
-  return (
+  const dialog = (
     <div className={styles.dialogShell} role="presentation">
       <div className={styles.backdrop} aria-hidden="true" />
       <div
@@ -288,4 +293,7 @@ export function Team4sCropper({
       </div>
     </div>
   )
+
+  // Profile image inputs stay mounted inside inactive tabs; the dialog must escape their hidden ancestors.
+  return typeof document !== 'undefined' ? createPortal(dialog, document.body) : dialog
 }
