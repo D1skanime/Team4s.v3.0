@@ -54,7 +54,7 @@ function SegmentDetails({ segment, episodeNumber, projectPath }: { segment: Publ
               {projectPath && participant.member_slug
                 ? <Link href={`${projectPath}/mitwirkende/${encodeURIComponent(participant.member_slug)}`}>{participant.name}</Link>
                 : participant.name}
-              {` · ${participant.role_label}`}
+              {` · ${participant.segment_role_label}`}
             </Fragment>
           ))}
         </span>
