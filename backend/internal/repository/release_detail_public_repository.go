@@ -37,8 +37,13 @@ type PublicReleaseContributor struct {
 	Name          string   `json:"name"`
 	RoleLabel     string   `json:"role_label"`
 	RoleCodes     []string `json:"role_codes"`
-	MemberSlug    *string  `json:"member_slug"`
-	AvatarURL     *string  `json:"avatar_url"`
+	// SegmentRoleLabel ist die segmentspezifische deutsche Beschriftung
+	// (156-UAT.md GAP-06, Plan 156-17) -- nur fuer Teilnehmer von
+	// PublicReleaseSegment.Participants gesetzt (applySegmentOriginCredits),
+	// bei der normalen Contributors-Liste immer leer (Go-Nullwert).
+	SegmentRoleLabel string  `json:"segment_role_label,omitempty"`
+	MemberSlug       *string `json:"member_slug"`
+	AvatarURL        *string `json:"avatar_url"`
 }
 
 // PublicReleaseImage ist ein oeffentlich sichtbares Bild einer Release-Version.

@@ -89,6 +89,7 @@ func (r *ReleaseDetailPublicRepository) applySegmentOriginCredits(ctx context.Co
 			if _, selected := selectedMemberIDs[contributor.MemberID]; !selected {
 				continue
 			}
+			contributor.SegmentRoleLabel = permissions.SegmentCreditLabelForRoles(contributor.RoleCodes)
 			filtered = append(filtered, contributor)
 		}
 		items[i].Participants = filtered
