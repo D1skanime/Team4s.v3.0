@@ -68,6 +68,40 @@ const viewports = [
   ['desktop', 1440, 900],
 ]
 
+// Plan 157-11 (GAP-02 script fix) -- the previous fullPage screenshot was taken immediately after
+// 'networkidle' plus hero-h1/fonts-ready, before the client-side Texte&Notizen/Bilder&Medien fetches
+// had necessarily painted and before below-the-fold lazy images had loaded -- producing a misleading
+// "Wird geladen" capture in the worst case. This helper scrolls the full document to trigger any
+// viewport-relative lazy loading, explicitly waits for every still-loading <img>, then returns to the
+// top and lets layout settle before the caller takes its fullPage screenshot.
+async function waitForSectionsSettled(page) {
+  const docHeight = await page.evaluate(() => document.documentElement.scrollHeight)
+  const viewportHeight = page.viewportSize()?.height ?? 800
+  for (let y = 0; y < docHeight; y += viewportHeight) {
+    await page.evaluate((scrollY) => window.scrollTo(0, scrollY), y)
+    await page.waitForTimeout(120)
+  }
+  await page.evaluate(() => window.scrollTo(0, document.documentElement.scrollHeight))
+  await page.waitForLoadState('networkidle')
+  await page.evaluate(() =>
+    Promise.all(
+      Array.from(document.images)
+        .filter((img) => !img.complete)
+        .map(
+          (img) =>
+            new Promise((resolve) => {
+              img.addEventListener('load', resolve, { once: true })
+              img.addEventListener('error', resolve, { once: true })
+            }),
+        ),
+    ),
+  )
+  await page.evaluate(() => window.scrollTo(0, 0))
+  await page.evaluate(
+    () => new Promise((resolve) => requestAnimationFrame(() => requestAnimationFrame(resolve))),
+  )
+}
+
 const browser = await chromium.launch()
 try {
   for (const [name, width, height] of viewports) {
@@ -90,6 +124,7 @@ try {
     })
     await page.locator('section[aria-label="Projekt-Mitwirkung"] h1').waitFor()
     await page.evaluate(() => document.fonts.ready)
+    await waitForSectionsSettled(page)
 
     const file = `${OUT}/${LABEL}-${name}.png`
     await page.screenshot({ path: file, fullPage: true })
