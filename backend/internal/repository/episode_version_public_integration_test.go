@@ -336,3 +336,17 @@ func TestEpisodeVersionPublicFullAssignmentAndWrites(t *testing.T) {
 	require.Equal(t, &stream, patched.StreamURL)
 	require.True(t, patched.ProductionStartedOn.Equal(started))
 }
+
+func TestEpisodeVersionPublicRawQueryCompatibility(t *testing.T) {
+	pool, tr := openEpisodeVersionPublicFixture(t)
+	for _, suffix := range []string{"", "?ignored=%ZZ", "?includeVersions=true&includeFansubs=true&ignored=%ZZ"} {
+		_, full := episodePublicRequest(t, pool, "/anime/1/episodes"+suffix, 200)
+		require.NotEmpty(t, full.Data.Episodes)
+	}
+	_, first := episodePublicRequest(t, pool, "/anime/4/episodes?projection=public&limit=24&ignored=%ZZ", 200)
+	require.NotNil(t, first.Data.Pagination.NextCursor)
+	tr.reset()
+	_, second := episodePublicRequest(t, pool, "/anime/4/episodes?projection=public&limit=24&cursor="+url.QueryEscape(*first.Data.Pagination.NextCursor)+"&ignored=%ZZ", 200)
+	require.NotEqual(t, first.Data.Episodes[0].Versions[0]["variant_id"], second.Data.Episodes[0].Versions[0]["variant_id"])
+	assertPublicBudget(t, tr, 24)
+}
