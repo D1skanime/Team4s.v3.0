@@ -1084,6 +1084,26 @@
   letter-spacing: -0.015em;
 }
 
+/* Optional icon/counter slots inside the header's own title row (157-15, GAP-03 F1): kept
+   deliberately outside the mobile .sectionHeader column-wrap rule below so the counter never
+   wraps onto its own line, and inside the same top-level element as .sectionHeaderUnderline so
+   the underline still spans the full header width. */
+.sectionHeaderTitleRow {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.sectionHeaderIcon {
+  flex-shrink: 0;
+  display: inline-flex;
+  color: var(--text-primary);
+}
+
+.sectionHeaderCounter {
+  flex-shrink: 0;
+}
+
 .pageDescription,
 .sectionDescription {
   margin: 8px 0 0;
