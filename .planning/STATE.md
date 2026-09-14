@@ -667,7 +667,7 @@ timing flakiness, not a Phase 149 regression, and not yet root-caused.
 
 v1.4 remains complete; Phase 149 was appended additively (same pattern as 143-148), no new
 milestone was created.
-Last activity: 2026-09-13
+Last activity: 2026-09-14 — Quick 260914-ddc: Profil-Bilddialoge aus jedem Tab technisch verifiziert; bestehende Human-UAT bleibt offen.
 
 ## Accumulated Context
 
@@ -1043,6 +1043,7 @@ Last activity: 2026-09-13
 | 260824-ek3 | GAP-04/GAP-05 (138-HUMAN-UAT.md): Rollen und Capabilities zu einem Rollen-Arbeitsbereich unter /admin/roles zusammengefuehrt (Sketch 005, Nutzerentscheidung) - RoleRail.tsx (vollflaechig klickbare, registry-getriebene Liste, aria-current), RolesClient.tsx/RoleDetailPanel.tsx (Tabs Inhaber/Standardrechte, Deep-Link-Scroll), /admin/role-capabilities als serverseitige Weiterleitung, AdminMainNav/admin-page/resolveRoleLink umgestellt, D-01/D-08-Nachtrag datiert in 138-CONTEXT.md/138-HUMAN-UAT.md dokumentiert | 2026-08-24 | ec512897 | [260824-ek3-rollen-und-capabilities-zu-einem-rollen-](./quick/260824-ek3-rollen-und-capabilities-zu-einem-rollen-/) |
 | 260824-ike | Drei Live-Defekte im Rollen-Arbeitsbereich (Nachtrag zu 260824-ek3) behoben: RoleRail.tsx verlor das redundante Pro-Zeile-roleKindLabel-Badge (Ellipse bei 6/18 Namen); neue CountGroupRoleHolders-Bulk-Query + additives group_holder_count-Feld (Go/YAML/TS) beheben den Rail-vs-Detail-Panel-Widerspruch bei Gruppenrollen-Inhaberzahlen; resolveRoleLink()/GroupRolesSection.tsx/RolesClient.tsx/role-capabilities-Weiterleitung wurden um einen optionalen tab-Parameter erweitert, damit "Was darf diese Rolle?" immer den Standardrechte-Tab oeffnet statt des rollenart-abhaengigen Defaults | 2026-08-24 | 787df9f3 | [260824-ike-drei-live-defekte-im-rollen-arbeitsberei](./quick/260824-ike-drei-live-defekte-im-rollen-arbeitsberei/) |
 | 260824-nmt | Veraltete Rollen-Fixture in MemberCurrentProjectsSection.test.tsx repariert (Registry-Umstellung Altlast): color_key nutzte erfundene Kategorienamen ('technical'/'creative'/'language') statt echter ROLE_COLOR_KEYS-Hexwerte aus roleCatalog.ts; roleCatalog.ts unveraendert. Befund-Korrektur: von den 6 urspruenglich gemeldeten Testfehlern hatte nur 1 diese Ursache - die uebrigen 5 (MemberBadgeChain.test.tsx x4, MembershipsSection.test.tsx x1) sind unrelated (Badge-Special-Gruppe, CSS-Grid) und bleiben bewusst unangetastet | 2026-08-24 | 848f4bb8 | [260824-nmt-veraltete-rollen-fixtures-in-den-profil-](./quick/260824-nmt-veraltete-rollen-fixtures-in-den-profil-/) |
+| 260914-ddc | Profil: Avatar-/Banner-Cropper direkt aus jedem Tab sichtbar; Portal und Fokus-Rückgabe, 81 Tests und 24 Browserfälle grün | 2026-09-14 | 8dc5c8fe | [260914-ddc-profile-image-dialogs](./quick/260914-ddc-profile-image-dialogs/) |
 
 | 260825-jc0 | Admin start page navigation cleanup | 2026-08-25 | pending | [260825-jc0-admin-startseite-von-redundanten-benutze](./quick/260825-jc0-admin-startseite-von-redundanten-benutze/) |
 | 260825-svs | Regression aus Phase 140 beheben: fehlende getReviewDelegations Export im api-Mock von UserGroupRightsTab.test.tsx nachgeruestet (test-only, keine Verhaltensaenderung) | 2026-08-25 | 6cddcb75 | [260825-svs-regression-aus-phase-140-beheben-fehlend](./quick/260825-svs-regression-aus-phase-140-beheben-fehlend/) |
