@@ -3,15 +3,15 @@ gsd_state_version: 1.0
 milestone: v1.4
 milestone_name: Coverage
 status: executing
-stopped_at: Completed 157-10-PLAN.md (GAP-01 closure; Phase 157 human Live-UAT sign-off still pending)
-last_updated: "2026-09-14T13:36:55.877Z"
+stopped_at: Completed 156-16-PLAN.md (GAP-04/GAP-05 origin-sync closure; 156-UAT live checkpoint still pending)
+last_updated: "2026-09-14T14:43:32.065Z"
 last_activity: 2026-09-14
 progress:
   total_phases: 24
-  completed_phases: 23
+  completed_phases: 24
   total_plans: 226
-  completed_plans: 225
-  percent: 96
+  completed_plans: 226
+  percent: 100
 ---
 
 # Project State
@@ -41,16 +41,36 @@ Phase 135 and any future roadmap entries continue from here.
 See: .planning/PROJECT.md (updated 2026-08-13)
 
 **Core value:** Team4s presents fansub history and collaboration credibly while keeping identity, visibility, ownership, and permissions correct.
-**Current focus:** Phase 157 — projekt-memberseite-visuelles-referenzdesign
+**Current focus:** Phase 156 — segment-domain-konsistenz-und-oeffentliche-release-projektion
 
 ## Current Position
 
-Phase: 157 (projekt-memberseite-visuelles-referenzdesign) — EXECUTING, NICHT vollstaendig abgenommen
-Plan: 10 von 10 Plaenen ausgefuehrt (157-01 bis 157-09 plus Gap-Closure-Plan 157-10, 2026-09-13,
-GAP-01 aus 157-UAT.md). Der menschliche Live-UAT-Sign-off aus Plan 157-06 Task 4
-(`checkpoint:human-verify gate="blocking"`) bleibt weiterhin OFFEN -- Plan 157-10s eigene,
-automatisierte Verifikation (siehe unten) ist KEIN Ersatz dafuer.
-Status: Ready to execute
+Phase: 156 (segment-domain-konsistenz-und-oeffentliche-release-projektion) — 156-16 ausgefuehrt
+Plan: 16 of 16 (Post-hoc-UAT-Luecken-Schliessungsplan 156-16 abgeschlossen)
+Status: Plan 156-16 (GAP-04/GAP-05) automatisiert vollstaendig verifiziert; der gebuendelte
+GAP-02-Live-UAT-Checkpoint aus 156-UAT.md (5 Origin- + 9 Segment-Contributor-Pruefpunkte) bleibt
+weiterhin OFFEN -- siehe deferred-items.md. Phase 156 gilt NICHT als vollstaendig abgenommen.
+
+**Plan 156-16 (2026-09-14) abgeschlossen — GAP-04/GAP-05-Schliessung:** `ensureThemeSegmentOriginTx`
+(`theme_segment_origin_sync.go`) ist jetzt die EINE zentrale Origin-Gueltigkeitsregel, verdrahtet
+in alle drei Schreibpfade, die die Zuweisungsmenge eines Segments aendern koennen:
+`assignThemeSegmentToEpisodeRangeTx` (Bereichs-Sync), `CreateAnimeSegment`s impliziter
+Einzelzuweisungs-Zweig, und `autoAssignThemeSegmentsForNewReleaseVersion` (Auto-Zuweisung neuer
+Release-Versionen). Eine gueltige Origin (NULL oder eine aktuell zugewiesene Release-Version) wird
+NIE ueberschrieben (Auftragspunkt 8); eine ungueltige/fehlende Origin wird per derselben
+Backfill-Regel wie Migration 0161 neu berechnet, mit atomarer `theme_segment_contributors`-Bereinigung
+im selben Commit -- nie einer automatischen Neu-Auswahl. Migration 0164 (idempotent, dokumentiert
+No-op-Down nach 0117-Vorbild) hat die drei bewiesenen Live-Faelle in `team4s_v2` repariert: Segment 3
+(origin 29 -> 40, tatsaechlich 40/41 zugewiesen), Segmente 4/5 (NULL -> 28/42). Live per `psql`
+bestaetigt: beide Invarianzpruefungen (haengende Origin; fehlende Origin trotz Zuweisung) liefern 0
+Zeilen. Voller Regressionslauf nach dem Live-Migrationsrun: `internal/handlers`/`internal/permissions`
+100% gruen, `internal/repository` zeigt exakt dieselben 50 vorbestehenden/umgebungsbedingten
+Fehlschlaege wie vor diesem Plan (namentlich abgeglichen, 0 neue). Zwei Testinfrastruktur-Deviationen
+(Rule 1/3): der `anime_contributions`/`visibilities`-Schema-Shim wanderte in die geteilte
+`testsupport/phase117_postgres.go`-Fixture (die zentrale Funktion erreicht ihn jetzt aus weit mehr
+Aufrufpfaden als zuvor), und ein vorbestehender Query-Budget-Test wurde auf identische
+Origin-Ausgangszustaende zwischen seinen zwei Messpunkten korrigiert. `156-UAT.md`s Live-UAT-Checkpoint
+bleibt ausdruecklich NICHT bestanden-behauptet. Details: 156-16-SUMMARY.md.
 
 **Plan 157-10 (2026-09-13) abgeschlossen — GAP-01-Schliessung:** `ProjectMemberNoteEntry` rendert
 jetzt ein `<article>` statt eines die ganze Zeile umschliessenden `<Link>`; ein einziger
@@ -1012,6 +1032,7 @@ Last activity: 2026-09-14
 - [Phase 157]: 157-02: Beitragszusammenfassung als ein Text-Knoten (kein Bold/Regular-Split), damit exakte screen.getByText-Assertions gegen den ganzen Satz halten; lucide-react LucideIcon-Typ statt handgerolltem ComponentType<{size}> fuer die Statistikleisten-Icons.
 - [Phase 157]: P157-13 Nachtrag 2 (mixed-role list) proven via a dedicated regression test in ProjectMemberNotesSection.test.tsx: distinct data-color-key per note's own role_color_key, both role-name chips, no large role header
 - [Phase ?]: Plan 157-10: CSS-only stretched-link pattern resolves nested-interactive markup without preventDefault/stopPropagation
+- [Phase 156]: ensureThemeSegmentOriginTx is the single central origin-validity rule reused by all three write call sites and migration 0164 — Prevents the GAP-04/GAP-05 root cause (origin only validated at explicit set-time) from recurring at any future write path
 
 ### Pending Todos
 
@@ -1410,13 +1431,14 @@ untruncated list lives in `.planning/todos/pending/`.
 | Phase 157 P02 | 30min | 3 tasks | 11 files |
 | Phase 157 P03 | 45min | 3 tasks | 5 files |
 | Phase 157 P10 | 27min | 3 tasks | 4 files |
+| Phase 156 P16 | 35min | 3 tasks | 17 files |
 
 ## Session Continuity
 
-Last session: 2026-09-13T11:46:27.475Z
-Stopped at: Completed 157-10-PLAN.md (GAP-01 closure; Phase 157 human Live-UAT sign-off still pending)
+Last session: 2026-09-14T14:43:32.042Z
+Stopped at: Completed 156-16-PLAN.md (GAP-04/GAP-05 origin-sync closure; 156-UAT live checkpoint still pending)
 Last activity: Full Phase 156 regression re-run (backend+frontend+migration round-trip) proven green; GAP-02 live-UAT checkpoint documented as OPEN, not simulated.
 Resume file: 
-Structured state: .planning/HANDOFF.json
+None
 
 Plans 151-02/03/04 have implementation summaries. Plans 151-01 and 151-05 remain open until final artwork/composition review, complete browser evidence and independent verification; their missing summaries are intentional. No requirement or phase has been falsely marked complete.

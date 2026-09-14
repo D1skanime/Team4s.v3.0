@@ -1593,7 +1593,7 @@ ausdruecklich **kein** visuelles Redesign und kopiert keine Credits in Segmentta
 
 **Depends on:** Phase 155
 
-**Plans:** 16 plans (15/16 complete; 156-16 is a pending post-hoc UAT gap-closure plan)
+**Plans:** 16/16 plans complete
 
 Plans:
 
@@ -1637,7 +1637,7 @@ Plans:
 
 **Post-hoc UAT gap-closure** (156-UAT.md, Live-UAT 2026-09-14, GAP-04/GAP-05)
 
-- [ ] 156-16-PLAN.md — Zentrale Origin-Ensure-Funktion (ensureThemeSegmentOriginTx), verdrahtet in
+- [x] 156-16-PLAN.md — Zentrale Origin-Ensure-Funktion (ensureThemeSegmentOriginTx), verdrahtet in
       Range-Sync/Segment-Anlage/Auto-Zuweisung, Migration 0164 (Bestandsreparatur), SQL/Go-Regel-
       Aequivalenzbeweis. Schliesst GAP-04 (Origin veraltet nach Bereichsaenderung: Segment 3,
       origin=29, aktuell nur 40/41 zugewiesen) und GAP-05 (Segmente 4/5 ohne Origin trotz
