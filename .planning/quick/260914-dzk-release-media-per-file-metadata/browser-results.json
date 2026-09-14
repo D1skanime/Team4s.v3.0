@@ -1,0 +1,251 @@
+{
+  "results": [
+    {
+      "width": 390,
+      "height": 844,
+      "geometry": {
+        "viewport": 390,
+        "root": 390,
+        "dialog": 390,
+        "scroll": 390,
+        "client": 390,
+        "rows": [
+          {
+            "imageX": 30.59375,
+            "imageY": 197.71875,
+            "inputX": 30.59375,
+            "inputY": 432.515625,
+            "inputRight": 359.40625
+          },
+          {
+            "imageX": 30.59375,
+            "imageY": 810.484375,
+            "inputX": 30.59375,
+            "inputY": 1045.28125,
+            "inputRight": 359.40625
+          },
+          {
+            "imageX": 30.59375,
+            "imageY": 1423.25,
+            "inputX": 30.59375,
+            "inputY": 1658.046875,
+            "inputRight": 359.40625
+          }
+        ]
+      },
+      "uploads": 1,
+      "patches": [
+        {
+          "id": 101,
+          "patch": {
+            "title": "Bildtitel 1",
+            "caption": "Eigene Beschreibung für Bild 1.",
+            "source_revision": 1
+          }
+        },
+        {
+          "id": 102,
+          "patch": {
+            "title": "Bildtitel 3",
+            "caption": "Eigene Beschreibung für Bild 3.",
+            "source_revision": 1
+          }
+        },
+        {
+          "id": 103,
+          "patch": {
+            "title": "Bildtitel 2",
+            "caption": "Eigene Beschreibung für Bild 2.",
+            "is_preview_candidate": true,
+            "source_revision": 1
+          }
+        },
+        {
+          "id": 103,
+          "patch": {
+            "title": "Bildtitel 2",
+            "caption": "Eigene Beschreibung für Bild 2.",
+            "is_preview_candidate": true,
+            "source_revision": 1
+          }
+        },
+        {
+          "id": 101,
+          "patch": {
+            "title": "Nachbearbeiteter Titel",
+            "caption": "Eigene Beschreibung für Bild 1.",
+            "source_revision": 2
+          }
+        }
+      ],
+      "unexpectedWrites": 0,
+      "errors": [],
+      "pass": true
+    },
+    {
+      "width": 768,
+      "height": 1024,
+      "geometry": {
+        "viewport": 768,
+        "root": 768,
+        "dialog": 768,
+        "scroll": 768,
+        "client": 768,
+        "rows": [
+          {
+            "imageX": 67.59375,
+            "imageY": 346.21875,
+            "inputX": 193.1875,
+            "inputY": 407.421875,
+            "inputRight": 704.40625
+          },
+          {
+            "imageX": 67.59375,
+            "imageY": 739.796875,
+            "inputX": 193.1875,
+            "inputY": 801,
+            "inputRight": 704.40625
+          },
+          {
+            "imageX": 67.59375,
+            "imageY": 1133.375,
+            "inputX": 193.1875,
+            "inputY": 1194.578125,
+            "inputRight": 704.40625
+          }
+        ]
+      },
+      "uploads": 1,
+      "patches": [
+        {
+          "id": 101,
+          "patch": {
+            "title": "Bildtitel 1",
+            "caption": "Eigene Beschreibung für Bild 1.",
+            "source_revision": 1
+          }
+        },
+        {
+          "id": 102,
+          "patch": {
+            "title": "Bildtitel 3",
+            "caption": "Eigene Beschreibung für Bild 3.",
+            "source_revision": 1
+          }
+        },
+        {
+          "id": 103,
+          "patch": {
+            "title": "Bildtitel 2",
+            "caption": "Eigene Beschreibung für Bild 2.",
+            "is_preview_candidate": true,
+            "source_revision": 1
+          }
+        },
+        {
+          "id": 103,
+          "patch": {
+            "title": "Bildtitel 2",
+            "caption": "Eigene Beschreibung für Bild 2.",
+            "is_preview_candidate": true,
+            "source_revision": 1
+          }
+        },
+        {
+          "id": 101,
+          "patch": {
+            "title": "Nachbearbeiteter Titel",
+            "caption": "Eigene Beschreibung für Bild 1.",
+            "source_revision": 2
+          }
+        }
+      ],
+      "unexpectedWrites": 0,
+      "errors": [],
+      "pass": true
+    },
+    {
+      "width": 1440,
+      "height": 900,
+      "geometry": {
+        "viewport": 1440,
+        "root": 1440,
+        "dialog": 1440,
+        "scroll": 1440,
+        "client": 1440,
+        "rows": [
+          {
+            "imageX": 383.59375,
+            "imageY": 284.21875,
+            "inputX": 509.1875,
+            "inputY": 345.421875,
+            "inputRight": 1060.40625
+          },
+          {
+            "imageX": 383.59375,
+            "imageY": 677.796875,
+            "inputX": 509.1875,
+            "inputY": 739,
+            "inputRight": 1060.40625
+          },
+          {
+            "imageX": 383.59375,
+            "imageY": 1071.375,
+            "inputX": 509.1875,
+            "inputY": 1132.578125,
+            "inputRight": 1060.40625
+          }
+        ]
+      },
+      "uploads": 1,
+      "patches": [
+        {
+          "id": 101,
+          "patch": {
+            "title": "Bildtitel 1",
+            "caption": "Eigene Beschreibung für Bild 1.",
+            "source_revision": 1
+          }
+        },
+        {
+          "id": 102,
+          "patch": {
+            "title": "Bildtitel 3",
+            "caption": "Eigene Beschreibung für Bild 3.",
+            "source_revision": 1
+          }
+        },
+        {
+          "id": 103,
+          "patch": {
+            "title": "Bildtitel 2",
+            "caption": "Eigene Beschreibung für Bild 2.",
+            "is_preview_candidate": true,
+            "source_revision": 1
+          }
+        },
+        {
+          "id": 103,
+          "patch": {
+            "title": "Bildtitel 2",
+            "caption": "Eigene Beschreibung für Bild 2.",
+            "is_preview_candidate": true,
+            "source_revision": 1
+          }
+        },
+        {
+          "id": 101,
+          "patch": {
+            "title": "Nachbearbeiteter Titel",
+            "caption": "Eigene Beschreibung für Bild 1.",
+            "source_revision": 2
+          }
+        }
+      ],
+      "unexpectedWrites": 0,
+      "errors": [],
+      "pass": true
+    }
+  ],
+  "liveWrites": 0
+}

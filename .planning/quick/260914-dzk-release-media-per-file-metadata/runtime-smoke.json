@@ -1,0 +1,77 @@
+[
+  {
+    "path": "/health",
+    "status": 200,
+    "topKeys": [
+      "status"
+    ]
+  },
+  {
+    "path": "/api/v1/anime/1/group/1/releases/28",
+    "status": 200,
+    "topKeys": [
+      "release_version_id",
+      "episode_number",
+      "episode_title",
+      "title",
+      "version",
+      "groups",
+      "release_date",
+      "duration_seconds",
+      "resolution",
+      "container",
+      "video_codec",
+      "audio_codec",
+      "audio_language",
+      "subtitle_tracks",
+      "subtitle_type",
+      "preview_image",
+      "image_category_totals",
+      "segments",
+      "previous",
+      "next",
+      "images_count",
+      "notes_count",
+      "contributors_count",
+      "contributors",
+      "images",
+      "notes"
+    ]
+  },
+  {
+    "path": "/api/v1/anime/1/group/1/releases/49",
+    "status": 200,
+    "topKeys": [
+      "release_version_id",
+      "episode_number",
+      "episode_title",
+      "title",
+      "version",
+      "groups",
+      "release_date",
+      "duration_seconds",
+      "resolution",
+      "container",
+      "video_codec",
+      "audio_codec",
+      "audio_language",
+      "subtitle_tracks",
+      "subtitle_type",
+      "preview_image",
+      "image_category_totals",
+      "segments",
+      "previous",
+      "next",
+      "images_count",
+      "notes_count",
+      "contributors_count",
+      "contributors",
+      "images",
+      "notes"
+    ]
+  },
+  {
+    "path": "/api/v1/admin/release-versions/28/media",
+    "status": 401
+  }
+]

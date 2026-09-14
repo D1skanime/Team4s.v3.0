@@ -1,0 +1,27 @@
+{
+  "exit_code": 0,
+  "elapsed_seconds": 13.26,
+  "tests": {
+    "pass": 19,
+    "fail": 0,
+    "skip": 0
+  },
+  "command": [
+    "docker",
+    "exec",
+    "-e",
+    "TEAM4S_PHASE107_TEST_DSN=postgres://postgres@team4s-quick-dzk-final-db:5432/team4s_phase107_test_dzk?sslmode=disable",
+    "team4s-quick-dzk-final-go",
+    "go",
+    "test",
+    "-p",
+    "1",
+    "./internal/handlers",
+    "./internal/repository",
+    "-run",
+    "RVMTitle|ReleaseVersionMediaTitle|PreviewSerializes",
+    "-count=1",
+    "-json"
+  ],
+  "memory": "Go1400MiB/GOMEMLIMIT800MiB/GOMAXPROCS2/-p1; PostgreSQL384MiB/tmpfs256MiB"
+}

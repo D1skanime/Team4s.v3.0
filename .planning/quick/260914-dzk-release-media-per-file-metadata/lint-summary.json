@@ -1,0 +1,97 @@
+{
+  "errors": 13,
+  "warnings": 329,
+  "baseline": {
+    "errors": 13,
+    "warnings": 331
+  },
+  "warningRules": {
+    "@typescript-eslint/no-unused-vars": 26,
+    "react-hooks/exhaustive-deps": 10,
+    "no-restricted-syntax": 264,
+    "@next/next/no-img-element": 26,
+    "null": 1,
+    "jsx-a11y/alt-text": 2
+  },
+  "errorDiagnostics": [
+    {
+      "file": "/app/capture-responsive.cjs",
+      "line": 1,
+      "rule": "@typescript-eslint/no-require-imports",
+      "message": "A `require()` style import is forbidden."
+    },
+    {
+      "file": "/app/capture-responsive.cjs",
+      "line": 2,
+      "rule": "@typescript-eslint/no-require-imports",
+      "message": "A `require()` style import is forbidden."
+    },
+    {
+      "file": "/app/src/app/admin/episode-versions/[versionId]/edit/useEpisodeNeighborNavigation.ts",
+      "line": 44,
+      "rule": "react-hooks/set-state-in-effect",
+      "message": "Error: Calling setState synchronously within an effect can trigger cascading renders"
+    },
+    {
+      "file": "/app/src/app/admin/episode-versions/[versionId]/edit/useReleaseVersionMedia.ts",
+      "line": 352,
+      "rule": "react-hooks/set-state-in-effect",
+      "message": "Error: Calling setState synchronously within an effect can trigger cascading renders"
+    },
+    {
+      "file": "/app/src/app/admin/fansubs/[id]/edit/GroupMemberFormModals.tsx",
+      "line": 96,
+      "rule": "react-hooks/set-state-in-effect",
+      "message": "Error: Calling setState synchronously within an effect can trigger cascading renders"
+    },
+    {
+      "file": "/app/src/app/admin/fansubs/[id]/edit/GroupRolesTab.tsx",
+      "line": 88,
+      "rule": "react-hooks/set-state-in-effect",
+      "message": "Error: Calling setState synchronously within an effect can trigger cascading renders"
+    },
+    {
+      "file": "/app/src/app/admin/groups/AdminGroupsClient.tsx",
+      "line": 85,
+      "rule": "react-hooks/set-state-in-effect",
+      "message": "Error: Calling setState synchronously within an effect can trigger cascading renders"
+    },
+    {
+      "file": "/app/src/app/admin/groups/AdminGroupsClient.tsx",
+      "line": 195,
+      "rule": "react-hooks/set-state-in-effect",
+      "message": "Error: Calling setState synchronously within an effect can trigger cascading renders"
+    },
+    {
+      "file": "/app/src/app/admin/groups/AdminGroupsClient.tsx",
+      "line": 277,
+      "rule": "react-hooks/set-state-in-effect",
+      "message": "Error: Calling setState synchronously within an effect can trigger cascading renders"
+    },
+    {
+      "file": "/app/src/app/admin/groups/AdminGroupsClient.tsx",
+      "line": 351,
+      "rule": "react-hooks/set-state-in-effect",
+      "message": "Error: Calling setState synchronously within an effect can trigger cascading renders"
+    },
+    {
+      "file": "/app/src/app/admin/roles/RoleCapabilityDetail.tsx",
+      "line": 64,
+      "rule": "react-hooks/preserve-manual-memoization",
+      "message": "Compilation Skipped: Existing memoization could not be preserved"
+    },
+    {
+      "file": "/app/src/app/admin/users/tabs/CapabilityDetailRow.tsx",
+      "line": 77,
+      "rule": "react/no-unescaped-entities",
+      "message": "`\"` can be escaped with `&quot;`, `&ldquo;`, `&#34;`, `&rdquo;`."
+    },
+    {
+      "file": "/app/src/app/admin/users/tabs/CapabilityHistoryPanel.tsx",
+      "line": 54,
+      "rule": "react-hooks/set-state-in-effect",
+      "message": "Error: Calling setState synchronously within an effect can trigger cascading renders"
+    }
+  ],
+  "newUploadQueueDiagnostics": []
+}

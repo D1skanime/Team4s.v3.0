@@ -1,0 +1,84 @@
+{"Time":"2026-09-14T10:31:35.759055129Z","Action":"start","Package":"team4s.v3/backend/internal/handlers"}
+{"Time":"2026-09-14T10:31:35.768446796Z","Action":"run","Package":"team4s.v3/backend/internal/handlers","Test":"TestRVMTitleParser"}
+{"Time":"2026-09-14T10:31:35.76849126Z","Action":"output","Package":"team4s.v3/backend/internal/handlers","Test":"TestRVMTitleParser","Output":"=== RUN   TestRVMTitleParser\n"}
+{"Time":"2026-09-14T10:31:35.768501068Z","Action":"run","Package":"team4s.v3/backend/internal/handlers","Test":"TestRVMTitleParser/missing"}
+{"Time":"2026-09-14T10:31:35.768503152Z","Action":"output","Package":"team4s.v3/backend/internal/handlers","Test":"TestRVMTitleParser/missing","Output":"=== RUN   TestRVMTitleParser/missing\n"}
+{"Time":"2026-09-14T10:31:35.768510666Z","Action":"output","Package":"team4s.v3/backend/internal/handlers","Test":"TestRVMTitleParser/missing","Output":"--- PASS: TestRVMTitleParser/missing (0.00s)\n"}
+{"Time":"2026-09-14T10:31:35.768513171Z","Action":"pass","Package":"team4s.v3/backend/internal/handlers","Test":"TestRVMTitleParser/missing","Elapsed":0}
+{"Time":"2026-09-14T10:31:35.768518331Z","Action":"run","Package":"team4s.v3/backend/internal/handlers","Test":"TestRVMTitleParser/null"}
+{"Time":"2026-09-14T10:31:35.768520184Z","Action":"output","Package":"team4s.v3/backend/internal/handlers","Test":"TestRVMTitleParser/null","Output":"=== RUN   TestRVMTitleParser/null\n"}
+{"Time":"2026-09-14T10:31:35.768524272Z","Action":"output","Package":"team4s.v3/backend/internal/handlers","Test":"TestRVMTitleParser/null","Output":"--- PASS: TestRVMTitleParser/null (0.00s)\n"}
+{"Time":"2026-09-14T10:31:35.768526386Z","Action":"pass","Package":"team4s.v3/backend/internal/handlers","Test":"TestRVMTitleParser/null","Elapsed":0}
+{"Time":"2026-09-14T10:31:35.76852842Z","Action":"run","Package":"team4s.v3/backend/internal/handlers","Test":"TestRVMTitleParser/empty"}
+{"Time":"2026-09-14T10:31:35.768530173Z","Action":"output","Package":"team4s.v3/backend/internal/handlers","Test":"TestRVMTitleParser/empty","Output":"=== RUN   TestRVMTitleParser/empty\n"}
+{"Time":"2026-09-14T10:31:35.768532537Z","Action":"output","Package":"team4s.v3/backend/internal/handlers","Test":"TestRVMTitleParser/empty","Output":"--- PASS: TestRVMTitleParser/empty (0.00s)\n"}
+{"Time":"2026-09-14T10:31:35.768536455Z","Action":"pass","Package":"team4s.v3/backend/internal/handlers","Test":"TestRVMTitleParser/empty","Elapsed":0}
+{"Time":"2026-09-14T10:31:35.768538519Z","Action":"run","Package":"team4s.v3/backend/internal/handlers","Test":"TestRVMTitleParser/boolean"}
+{"Time":"2026-09-14T10:31:35.768540212Z","Action":"output","Package":"team4s.v3/backend/internal/handlers","Test":"TestRVMTitleParser/boolean","Output":"=== RUN   TestRVMTitleParser/boolean\n"}
+{"Time":"2026-09-14T10:31:35.76854437Z","Action":"output","Package":"team4s.v3/backend/internal/handlers","Test":"TestRVMTitleParser/boolean","Output":"--- PASS: TestRVMTitleParser/boolean (0.00s)\n"}
+{"Time":"2026-09-14T10:31:35.768546454Z","Action":"pass","Package":"team4s.v3/backend/internal/handlers","Test":"TestRVMTitleParser/boolean","Elapsed":0}
+{"Time":"2026-09-14T10:31:35.768549089Z","Action":"run","Package":"team4s.v3/backend/internal/handlers","Test":"TestRVMTitleParser/number"}
+{"Time":"2026-09-14T10:31:35.768550742Z","Action":"output","Package":"team4s.v3/backend/internal/handlers","Test":"TestRVMTitleParser/number","Output":"=== RUN   TestRVMTitleParser/number\n"}
+{"Time":"2026-09-14T10:31:35.768553607Z","Action":"output","Package":"team4s.v3/backend/internal/handlers","Test":"TestRVMTitleParser/number","Output":"--- PASS: TestRVMTitleParser/number (0.00s)\n"}
+{"Time":"2026-09-14T10:31:35.768555581Z","Action":"pass","Package":"team4s.v3/backend/internal/handlers","Test":"TestRVMTitleParser/number","Elapsed":0}
+{"Time":"2026-09-14T10:31:35.768558206Z","Action":"run","Package":"team4s.v3/backend/internal/handlers","Test":"TestRVMTitleParser/object"}
+{"Time":"2026-09-14T10:31:35.768576891Z","Action":"output","Package":"team4s.v3/backend/internal/handlers","Test":"TestRVMTitleParser/object","Output":"=== RUN   TestRVMTitleParser/object\n"}
+{"Time":"2026-09-14T10:31:35.76858143Z","Action":"output","Package":"team4s.v3/backend/internal/handlers","Test":"TestRVMTitleParser/object","Output":"--- PASS: TestRVMTitleParser/object (0.00s)\n"}
+{"Time":"2026-09-14T10:31:35.768583413Z","Action":"pass","Package":"team4s.v3/backend/internal/handlers","Test":"TestRVMTitleParser/object","Elapsed":0}
+{"Time":"2026-09-14T10:31:35.768585477Z","Action":"run","Package":"team4s.v3/backend/internal/handlers","Test":"TestRVMTitleParser/200_unicode_characters"}
+{"Time":"2026-09-14T10:31:35.768587451Z","Action":"output","Package":"team4s.v3/backend/internal/handlers","Test":"TestRVMTitleParser/200_unicode_characters","Output":"=== RUN   TestRVMTitleParser/200_unicode_characters\n"}
+{"Time":"2026-09-14T10:31:35.768593462Z","Action":"output","Package":"team4s.v3/backend/internal/handlers","Test":"TestRVMTitleParser/200_unicode_characters","Output":"--- PASS: TestRVMTitleParser/200_unicode_characters (0.00s)\n"}
+{"Time":"2026-09-14T10:31:35.768596618Z","Action":"pass","Package":"team4s.v3/backend/internal/handlers","Test":"TestRVMTitleParser/200_unicode_characters","Elapsed":0}
+{"Time":"2026-09-14T10:31:35.768601187Z","Action":"run","Package":"team4s.v3/backend/internal/handlers","Test":"TestRVMTitleParser/201_unicode_characters"}
+{"Time":"2026-09-14T10:31:35.76860305Z","Action":"output","Package":"team4s.v3/backend/internal/handlers","Test":"TestRVMTitleParser/201_unicode_characters","Output":"=== RUN   TestRVMTitleParser/201_unicode_characters\n"}
+{"Time":"2026-09-14T10:31:35.768606326Z","Action":"output","Package":"team4s.v3/backend/internal/handlers","Test":"TestRVMTitleParser/201_unicode_characters","Output":"--- PASS: TestRVMTitleParser/201_unicode_characters (0.00s)\n"}
+{"Time":"2026-09-14T10:31:35.76860847Z","Action":"pass","Package":"team4s.v3/backend/internal/handlers","Test":"TestRVMTitleParser/201_unicode_characters","Elapsed":0}
+{"Time":"2026-09-14T10:31:35.768611115Z","Action":"run","Package":"team4s.v3/backend/internal/handlers","Test":"TestRVMTitleParser/trimmed_distinct_title"}
+{"Time":"2026-09-14T10:31:35.768612899Z","Action":"output","Package":"team4s.v3/backend/internal/handlers","Test":"TestRVMTitleParser/trimmed_distinct_title","Output":"=== RUN   TestRVMTitleParser/trimmed_distinct_title\n"}
+{"Time":"2026-09-14T10:31:35.768618219Z","Action":"output","Package":"team4s.v3/backend/internal/handlers","Test":"TestRVMTitleParser/trimmed_distinct_title","Output":"--- PASS: TestRVMTitleParser/trimmed_distinct_title (0.00s)\n"}
+{"Time":"2026-09-14T10:31:35.768620343Z","Action":"pass","Package":"team4s.v3/backend/internal/handlers","Test":"TestRVMTitleParser/trimmed_distinct_title","Elapsed":0}
+{"Time":"2026-09-14T10:31:35.768623359Z","Action":"output","Package":"team4s.v3/backend/internal/handlers","Test":"TestRVMTitleParser","Output":"--- PASS: TestRVMTitleParser (0.00s)\n"}
+{"Time":"2026-09-14T10:31:35.768625623Z","Action":"pass","Package":"team4s.v3/backend/internal/handlers","Test":"TestRVMTitleParser","Elapsed":0}
+{"Time":"2026-09-14T10:31:35.768628188Z","Action":"run","Package":"team4s.v3/backend/internal/handlers","Test":"TestRVMTitlePatchPersistsIndependentMetadata"}
+{"Time":"2026-09-14T10:31:35.768629891Z","Action":"output","Package":"team4s.v3/backend/internal/handlers","Test":"TestRVMTitlePatchPersistsIndependentMetadata","Output":"=== RUN   TestRVMTitlePatchPersistsIndependentMetadata\n"}
+{"Time":"2026-09-14T10:31:35.879167669Z","Action":"output","Package":"team4s.v3/backend/internal/handlers","Test":"TestRVMTitlePatchPersistsIndependentMetadata","Output":"--- PASS: TestRVMTitlePatchPersistsIndependentMetadata (0.11s)\n"}
+{"Time":"2026-09-14T10:31:35.879201153Z","Action":"pass","Package":"team4s.v3/backend/internal/handlers","Test":"TestRVMTitlePatchPersistsIndependentMetadata","Elapsed":0.11}
+{"Time":"2026-09-14T10:31:35.879208697Z","Action":"run","Package":"team4s.v3/backend/internal/handlers","Test":"TestRVMTitleReplacePreservesAndEditsMetadata"}
+{"Time":"2026-09-14T10:31:35.879212554Z","Action":"output","Package":"team4s.v3/backend/internal/handlers","Test":"TestRVMTitleReplacePreservesAndEditsMetadata","Output":"=== RUN   TestRVMTitleReplacePreservesAndEditsMetadata\n"}
+{"Time":"2026-09-14T10:31:35.879214898Z","Action":"run","Package":"team4s.v3/backend/internal/handlers","Test":"TestRVMTitleReplacePreservesAndEditsMetadata/missing"}
+{"Time":"2026-09-14T10:31:35.879216682Z","Action":"output","Package":"team4s.v3/backend/internal/handlers","Test":"TestRVMTitleReplacePreservesAndEditsMetadata/missing","Output":"=== RUN   TestRVMTitleReplacePreservesAndEditsMetadata/missing\n"}
+{"Time":"2026-09-14T10:31:35.96256177Z","Action":"output","Package":"team4s.v3/backend/internal/handlers","Test":"TestRVMTitleReplacePreservesAndEditsMetadata/missing","Output":"--- PASS: TestRVMTitleReplacePreservesAndEditsMetadata/missing (0.08s)\n"}
+{"Time":"2026-09-14T10:31:35.962588551Z","Action":"pass","Package":"team4s.v3/backend/internal/handlers","Test":"TestRVMTitleReplacePreservesAndEditsMetadata/missing","Elapsed":0.08}
+{"Time":"2026-09-14T10:31:35.962600734Z","Action":"run","Package":"team4s.v3/backend/internal/handlers","Test":"TestRVMTitleReplacePreservesAndEditsMetadata/new"}
+{"Time":"2026-09-14T10:31:35.962603309Z","Action":"output","Package":"team4s.v3/backend/internal/handlers","Test":"TestRVMTitleReplacePreservesAndEditsMetadata/new","Output":"=== RUN   TestRVMTitleReplacePreservesAndEditsMetadata/new\n"}
+{"Time":"2026-09-14T10:31:36.048270002Z","Action":"output","Package":"team4s.v3/backend/internal/handlers","Test":"TestRVMTitleReplacePreservesAndEditsMetadata/new","Output":"--- PASS: TestRVMTitleReplacePreservesAndEditsMetadata/new (0.09s)\n"}
+{"Time":"2026-09-14T10:31:36.048295971Z","Action":"pass","Package":"team4s.v3/backend/internal/handlers","Test":"TestRVMTitleReplacePreservesAndEditsMetadata/new","Elapsed":0.09}
+{"Time":"2026-09-14T10:31:36.048304156Z","Action":"run","Package":"team4s.v3/backend/internal/handlers","Test":"TestRVMTitleReplacePreservesAndEditsMetadata/too_long"}
+{"Time":"2026-09-14T10:31:36.048306871Z","Action":"output","Package":"team4s.v3/backend/internal/handlers","Test":"TestRVMTitleReplacePreservesAndEditsMetadata/too_long","Output":"=== RUN   TestRVMTitleReplacePreservesAndEditsMetadata/too_long\n"}
+{"Time":"2026-09-14T10:31:36.118829218Z","Action":"output","Package":"team4s.v3/backend/internal/handlers","Test":"TestRVMTitleReplacePreservesAndEditsMetadata/too_long","Output":"--- PASS: TestRVMTitleReplacePreservesAndEditsMetadata/too_long (0.07s)\n"}
+{"Time":"2026-09-14T10:31:36.11885649Z","Action":"pass","Package":"team4s.v3/backend/internal/handlers","Test":"TestRVMTitleReplacePreservesAndEditsMetadata/too_long","Elapsed":0.07}
+{"Time":"2026-09-14T10:31:36.1188623Z","Action":"run","Package":"team4s.v3/backend/internal/handlers","Test":"TestRVMTitleReplacePreservesAndEditsMetadata/clear"}
+{"Time":"2026-09-14T10:31:36.118865256Z","Action":"output","Package":"team4s.v3/backend/internal/handlers","Test":"TestRVMTitleReplacePreservesAndEditsMetadata/clear","Output":"=== RUN   TestRVMTitleReplacePreservesAndEditsMetadata/clear\n"}
+{"Time":"2026-09-14T10:31:36.206121184Z","Action":"output","Package":"team4s.v3/backend/internal/handlers","Test":"TestRVMTitleReplacePreservesAndEditsMetadata/clear","Output":"--- PASS: TestRVMTitleReplacePreservesAndEditsMetadata/clear (0.09s)\n"}
+{"Time":"2026-09-14T10:31:36.206149487Z","Action":"pass","Package":"team4s.v3/backend/internal/handlers","Test":"TestRVMTitleReplacePreservesAndEditsMetadata/clear","Elapsed":0.09}
+{"Time":"2026-09-14T10:31:36.206155809Z","Action":"output","Package":"team4s.v3/backend/internal/handlers","Test":"TestRVMTitleReplacePreservesAndEditsMetadata","Output":"--- PASS: TestRVMTitleReplacePreservesAndEditsMetadata (0.33s)\n"}
+{"Time":"2026-09-14T10:31:36.206158865Z","Action":"pass","Package":"team4s.v3/backend/internal/handlers","Test":"TestRVMTitleReplacePreservesAndEditsMetadata","Elapsed":0.33}
+{"Time":"2026-09-14T10:31:36.211942112Z","Action":"output","Package":"team4s.v3/backend/internal/handlers","Output":"PASS\n"}
+{"Time":"2026-09-14T10:31:36.212825627Z","Action":"output","Package":"team4s.v3/backend/internal/handlers","Output":"ok  \tteam4s.v3/backend/internal/handlers\t0.454s\n"}
+{"Time":"2026-09-14T10:31:36.21284813Z","Action":"pass","Package":"team4s.v3/backend/internal/handlers","Elapsed":0.454}
+{"Time":"2026-09-14T10:31:40.915476881Z","Action":"start","Package":"team4s.v3/backend/internal/repository"}
+{"Time":"2026-09-14T10:31:40.932560362Z","Action":"run","Package":"team4s.v3/backend/internal/repository","Test":"TestReleaseVersionMediaTitleMigrationRoundTrip"}
+{"Time":"2026-09-14T10:31:40.932587313Z","Action":"output","Package":"team4s.v3/backend/internal/repository","Test":"TestReleaseVersionMediaTitleMigrationRoundTrip","Output":"=== RUN   TestReleaseVersionMediaTitleMigrationRoundTrip\n"}
+{"Time":"2026-09-14T10:31:41.013540815Z","Action":"output","Package":"team4s.v3/backend/internal/repository","Test":"TestReleaseVersionMediaTitleMigrationRoundTrip","Output":"--- PASS: TestReleaseVersionMediaTitleMigrationRoundTrip (0.08s)\n"}
+{"Time":"2026-09-14T10:31:41.013573296Z","Action":"pass","Package":"team4s.v3/backend/internal/repository","Test":"TestReleaseVersionMediaTitleMigrationRoundTrip","Elapsed":0.08}
+{"Time":"2026-09-14T10:31:41.01358576Z","Action":"run","Package":"team4s.v3/backend/internal/repository","Test":"TestReleaseVersionMediaPreviewSerializesConcurrentChoices"}
+{"Time":"2026-09-14T10:31:41.013590018Z","Action":"output","Package":"team4s.v3/backend/internal/repository","Test":"TestReleaseVersionMediaPreviewSerializesConcurrentChoices","Output":"=== RUN   TestReleaseVersionMediaPreviewSerializesConcurrentChoices\n"}
+{"Time":"2026-09-14T10:31:41.193827303Z","Action":"output","Package":"team4s.v3/backend/internal/repository","Test":"TestReleaseVersionMediaPreviewSerializesConcurrentChoices","Output":"--- PASS: TestReleaseVersionMediaPreviewSerializesConcurrentChoices (0.18s)\n"}
+{"Time":"2026-09-14T10:31:41.193869813Z","Action":"pass","Package":"team4s.v3/backend/internal/repository","Test":"TestReleaseVersionMediaPreviewSerializesConcurrentChoices","Elapsed":0.18}
+{"Time":"2026-09-14T10:31:41.193885572Z","Action":"run","Package":"team4s.v3/backend/internal/repository","Test":"TestReleaseVersionMediaTitlePublicProjections"}
+{"Time":"2026-09-14T10:31:41.193890091Z","Action":"output","Package":"team4s.v3/backend/internal/repository","Test":"TestReleaseVersionMediaTitlePublicProjections","Output":"=== RUN   TestReleaseVersionMediaTitlePublicProjections\n"}
+{"Time":"2026-09-14T10:31:41.298745292Z","Action":"output","Package":"team4s.v3/backend/internal/repository","Test":"TestReleaseVersionMediaTitlePublicProjections","Output":"--- PASS: TestReleaseVersionMediaTitlePublicProjections (0.10s)\n"}
+{"Time":"2026-09-14T10:31:41.298826565Z","Action":"pass","Package":"team4s.v3/backend/internal/repository","Test":"TestReleaseVersionMediaTitlePublicProjections","Elapsed":0.1}
+{"Time":"2026-09-14T10:31:41.299697065Z","Action":"output","Package":"team4s.v3/backend/internal/repository","Output":"PASS\n"}
+{"Time":"2026-09-14T10:31:41.30055402Z","Action":"output","Package":"team4s.v3/backend/internal/repository","Output":"ok  \tteam4s.v3/backend/internal/repository\t0.385s\n"}
+{"Time":"2026-09-14T10:31:41.300568657Z","Action":"pass","Package":"team4s.v3/backend/internal/repository","Elapsed":0.385}

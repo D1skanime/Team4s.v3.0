@@ -1,0 +1,23 @@
+[
+  "docker",
+  "exec",
+  "-e",
+  "NODE_OPTIONS=--max-old-space-size=640",
+  "-w",
+  "/app",
+  "team4sv30-frontend",
+  "npx",
+  "vitest",
+  "run",
+  "--maxWorkers=1",
+  "--no-file-parallelism",
+  "src/app/admin/episode-versions/[versionId]/edit/ReleaseVersionMediaSection.test.tsx",
+  "src/app/admin/episode-versions/[versionId]/edit/useReleaseVersionMedia.test.ts",
+  "src/app/anime/[id]/group/[groupId]/projectPageData.test.ts",
+  "src/app/anime/[id]/group/[groupId]/releases/[releaseVersionId]/ReleaseGallery.test.tsx",
+  "src/components/fansubs/projectMember/ProjectMemberMediaGallery.test.tsx",
+  "src/components/profile/LatestContributionsSection.test.tsx",
+  "src/components/profile/RecentMediaSection.test.tsx",
+  "src/lib/api.auth-refresh.test.ts",
+  "src/lib/api.no-token-boundary.test.ts"
+]

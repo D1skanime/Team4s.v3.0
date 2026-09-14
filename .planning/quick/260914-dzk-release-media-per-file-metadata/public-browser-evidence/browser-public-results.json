@@ -1,0 +1,121 @@
+{
+  "cases": 2,
+  "writes": 0,
+  "apiIsolation": "SSR fixture API_INTERNAL_URL and browser interception; no backend forwarding",
+  "results": [
+    {
+      "width": 390,
+      "height": 844,
+      "route": "/fansubs/new-subs/fansubprojekt/buddy-complex/releases/28",
+      "httpStatus": 200,
+      "input": "touch",
+      "titleAndDescriptionSeparate": true,
+      "threeItemsNavigable": true,
+      "untitledFallback": "Sonstiges",
+      "focusRestored": true,
+      "newApiReadsDuringViewer": 0,
+      "geometry": {
+        "before": {
+          "viewport": 390,
+          "documentWidth": 390
+        },
+        "after": {
+          "viewport": 390,
+          "documentWidth": 390
+        }
+      },
+      "pageErrors": [],
+      "status": "pass"
+    },
+    {
+      "width": 1440,
+      "height": 900,
+      "route": "/fansubs/new-subs/fansubprojekt/buddy-complex/releases/28",
+      "httpStatus": 200,
+      "input": "keyboard",
+      "titleAndDescriptionSeparate": true,
+      "threeItemsNavigable": true,
+      "untitledFallback": "Sonstiges",
+      "focusRestored": true,
+      "newApiReadsDuringViewer": 0,
+      "geometry": {
+        "before": {
+          "viewport": 1440,
+          "documentWidth": 1440
+        },
+        "after": {
+          "viewport": 1440,
+          "documentWidth": 1440
+        }
+      },
+      "pageErrors": [],
+      "status": "pass"
+    }
+  ],
+  "reads": [
+    {
+      "path": "/api/v1/role-definitions",
+      "method": "GET"
+    },
+    {
+      "path": "/api/v1/role-definitions",
+      "method": "GET"
+    },
+    {
+      "path": "/api/v1/role-definitions",
+      "method": "GET"
+    },
+    {
+      "path": "/api/v1/fansub-slugs/new-subs/projects/buddy-complex/resolve",
+      "method": "GET"
+    },
+    {
+      "path": "/api/v1/anime/1/group/1/releases/28",
+      "method": "GET"
+    },
+    {
+      "path": "/api/v1/anime/1/group/1",
+      "method": "GET"
+    },
+    {
+      "path": "/api/v1/anime/1/backdrops",
+      "method": "GET"
+    },
+    {
+      "path": "/api/v1/anime/1",
+      "method": "GET"
+    },
+    {
+      "path": "/api/v1/role-definitions",
+      "method": "GET"
+    },
+    {
+      "path": "/api/v1/role-definitions",
+      "method": "GET"
+    },
+    {
+      "path": "/api/v1/role-definitions",
+      "method": "GET"
+    },
+    {
+      "path": "/api/v1/fansub-slugs/new-subs/projects/buddy-complex/resolve",
+      "method": "GET"
+    },
+    {
+      "path": "/api/v1/anime/1/group/1/releases/28",
+      "method": "GET"
+    },
+    {
+      "path": "/api/v1/anime/1/group/1",
+      "method": "GET"
+    },
+    {
+      "path": "/api/v1/anime/1/backdrops",
+      "method": "GET"
+    },
+    {
+      "path": "/api/v1/anime/1",
+      "method": "GET"
+    }
+  ]
+}
