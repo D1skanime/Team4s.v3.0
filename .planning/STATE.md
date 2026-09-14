@@ -4,12 +4,12 @@ milestone: v1.4
 milestone_name: Coverage
 status: executing
 stopped_at: Completed 156-17-PLAN.md (GAP-06 segment credit label closure; 156-UAT live checkpoint still pending)
-last_updated: "2026-09-14T15:58:34.503Z"
+last_updated: "2026-09-14T16:48:06.695Z"
 last_activity: 2026-09-14
 progress:
   total_phases: 24
   completed_phases: 23
-  total_plans: 228
+  total_plans: 231
   completed_plans: 227
   percent: 96
 ---
