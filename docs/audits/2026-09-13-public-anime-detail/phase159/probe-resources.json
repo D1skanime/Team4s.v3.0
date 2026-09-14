@@ -1,0 +1,10 @@
+{
+  "probePID": 59109,
+  "nextPID": 59128,
+  "cwd": "/tmp/team4s-phase159-production",
+  "listeners": {
+    "next": "http://127.0.0.1:3158",
+    "fixture": "http://127.0.0.1:3159"
+  },
+  "recordedAt": "2026-09-14T05:46:48.143Z"
+}

@@ -1,0 +1,66 @@
+
+> team4s-frontend@0.1.0 test
+> vitest run src/lib/server/imageDisplay.test.ts -t actual shared anime display placeholder
+
+
+ RUN  v3.2.4 /app
+
+ ❯ src/lib/server/imageDisplay.test.ts (30 tests | 1 failed | 29 skipped) 208ms
+   ↓ explicit frontend display delivery > resizes actual local bytes, ignoring original Range/conditional headers
+   ↓ explicit frontend display delivery > routes API files through the fixed internal proxy and rewrites representation headers
+   ↓ real raster and resource limits > flattens real two-frame gif input to bounded transparent first-frame WebP
+   ↓ real raster and resource limits > flattens real two-frame webp input to bounded transparent first-frame WebP
+   ↓ real raster and resource limits > flattens real two-frame apng input to bounded transparent first-frame WebP
+   ↓ real raster and resource limits > bounds actual output dimensions and bytes for slot 512
+   ↓ real raster and resource limits > bounds actual output dimensions and bytes for slot 760
+   ↓ real raster and resource limits > bounds actual output dimensions and bytes for slot 1280
+   ↓ real raster and resource limits > bounds actual output dimensions and bytes for slot 1920
+   ↓ real raster and resource limits > does not enlarge a small image and HEAD describes the transformed representation
+   ↓ real raster and resource limits > rejects invalid width  before reading
+   ↓ real raster and resource limits > rejects invalid width 511 before reading
+   ↓ real raster and resource limits > rejects invalid width 512x before reading
+   ↓ real raster and resource limits > rejects invalid width 0512 before reading
+   ↓ real raster and resource limits > rejects invalid width 512&display_width=760 before reading
+   ↓ real raster and resource limits > rejects SVG and corrupt raster without falling through to originals
+   ↓ real raster and resource limits > bounds local input before reading and decoded pixels before resizing
+   ↓ real raster and resource limits > caps streamed bytes without Content-Length and cancels the source
+   ↓ real raster and resource limits > admits four distinct cold-start images through two active slots
+   ↓ real raster and resource limits > bounds pending admission and queued abort never starts a source read
+   ↓ real raster and resource limits > aborts a stalled stream, cancels its reader and releases capacity
+   ↓ real raster and resource limits > does not turn upstream 301 into image 200
+   ↓ real raster and resource limits > does not turn upstream 304 into image 200
+   ↓ real raster and resource limits > does not turn upstream 401 into image 200
+   ↓ real raster and resource limits > does not turn upstream 404 into image 200
+   ↓ real raster and resource limits > does not turn upstream 500 into image 200
+   ↓ real raster and resource limits > does not turn upstream 206 into image 200
+   ↓ rejects an advertised oversized source before pulling bytes
+   ↓ expires stalled source reads and queued admission after five seconds
+   × serves the actual shared anime display placeholder as decodable bounded bytes 175ms
+     → expected 415 to be 200 // Object.is equality
+
+⎯⎯⎯⎯⎯⎯⎯ Failed Tests 1 ⎯⎯⎯⎯⎯⎯⎯
+
+ FAIL  src/lib/server/imageDisplay.test.ts > serves the actual shared anime display placeholder as decodable bounded bytes
+AssertionError: expected 415 to be 200 // Object.is equality
+
+[32m- Expected[39m
+[31m+ Received[39m
+
+[32m- 200[39m
+[31m+ 415[39m
+
+ ❯ src/lib/server/imageDisplay.test.ts:276:27
+    274|   const url = new URL(resolveAnimeCoverURL(), 'http://local')
+    275|   const response = await cover.GET(new Request(url), { params: Promise…
+    276|   expect(response.status).toBe(200)
+       |                           ^
+    277|   const bytes = Buffer.from(await response.arrayBuffer())
+    278|   expect((await sharp(bytes).metadata()).width).toBeLessThanOrEqual(51…
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[1/1]⎯
+
+
+ Test Files  1 failed (1)
+      Tests  1 failed | 29 skipped (30)
+   Start at  00:03:14
+   Duration  553ms (transform 210ms, setup 67ms, collect 109ms, tests 208ms, environment 0ms, prepare 49ms)

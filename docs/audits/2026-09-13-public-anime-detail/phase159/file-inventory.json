@@ -1,0 +1,70 @@
+{
+  "backend": [
+    "backend/internal/handlers/episode_version_grants.go",
+    "backend/internal/handlers/episode_version_reads.go",
+    "backend/internal/handlers/episode_version_stream.go",
+    "backend/internal/models/episode_version.go",
+    "backend/internal/repository/episode_version_public_query.go",
+    "backend/internal/repository/episode_version_repository.go",
+    "backend/internal/repository/episode_version_repository_read_helpers.go"
+  ],
+  "tests": [
+    "backend/internal/handlers/episode_version_public_test.go",
+    "backend/internal/handlers/episode_version_stream_identity_test.go",
+    "backend/internal/repository/episode_version_public_integration_test.go",
+    "backend/internal/repository/episode_version_repository_read_helpers_test.go",
+    "backend/internal/repository/episode_version_stream_identity_test.go",
+    "frontend/src/app/admin/episode-versions/[versionId]/edit/episodeNeighborNavigation.test.ts",
+    "frontend/src/app/admin/episode-versions/[versionId]/edit/episodeVersionEditorUtils.test.ts",
+    "frontend/src/app/anime/[id]/page.performance.test.ts",
+    "frontend/src/app/anime/[id]/page.test.tsx",
+    "frontend/src/app/api/releases/[id]/stream/route.test.ts",
+    "frontend/src/app/api/v1/[...path]/route.test.ts",
+    "frontend/src/app/covers/display/[file]/route.test.ts",
+    "frontend/src/components/anime/AnimeEdgeNavigation.test.tsx",
+    "frontend/src/components/anime/AnimeMediaProvider.test.tsx",
+    "frontend/src/components/fansubs/FansubVersionBrowser.test.tsx",
+    "frontend/src/components/fansubs/__tests__/ActiveFansubStory.test.tsx",
+    "frontend/src/lib/animeBackdrops.test.ts",
+    "frontend/src/lib/animeGridContext.test.ts",
+    "frontend/src/lib/api.anime-list.test.ts",
+    "frontend/src/lib/api.anime-media.test.ts",
+    "frontend/src/lib/api.episode-versions.test.ts",
+    "frontend/src/lib/server/imageDisplay.test.ts",
+    "frontend/src/lib/server/streamRelayAuth.test.ts",
+    "frontend/src/types/__tests__/episode-version-contract.test.ts"
+  ],
+  "contracts": [
+    "docs/api/api-contracts.md",
+    "shared/contracts/openapi.yaml"
+  ],
+  "frontend": [
+    "frontend/package-lock.json",
+    "frontend/package.json",
+    "frontend/public/covers/placeholder.png",
+    "frontend/src/app/anime/[id]/page.tsx",
+    "frontend/src/app/api/releases/[id]/stream/route.ts",
+    "frontend/src/app/api/v1/[...path]/route.ts",
+    "frontend/src/app/covers/[file]/route.ts",
+    "frontend/src/app/covers/display/[file]/route.ts",
+    "frontend/src/app/media/[...path]/route.ts",
+    "frontend/src/components/anime/AnimeBackdropRotator.tsx",
+    "frontend/src/components/anime/AnimeEdgeNavigation.tsx",
+    "frontend/src/components/anime/AnimeMediaProvider.tsx",
+    "frontend/src/components/fansubs/ActiveFansubStory.tsx",
+    "frontend/src/components/fansubs/FansubVersionBrowser.tsx",
+    "frontend/src/lib/animeBackdrops.ts",
+    "frontend/src/lib/api.ts",
+    "frontend/src/lib/imageDisplayContract.ts",
+    "frontend/src/lib/server/apiProxy.ts",
+    "frontend/src/lib/server/coverFiles.ts",
+    "frontend/src/lib/server/imageDisplay.ts",
+    "frontend/src/types/episodeVersion.ts"
+  ],
+  "harness": [
+    "frontend/scripts/anime-detail-phase158-probe.mjs",
+    "frontend/scripts/anime-detail-phase159-probe.mjs",
+    "frontend/scripts/fixtures/anime-detail-fixture-server.mjs",
+    "scripts/verify-anime-detail-phase.sh"
+  ]
+}

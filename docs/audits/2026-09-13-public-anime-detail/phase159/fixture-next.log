@@ -1,0 +1,33 @@
+▲ Next.js 16.1.6
+- Local:         http://127.0.0.1:3158
+- Network:       http://127.0.0.1:3158
+
+✓ Starting...
+✓ Ready in 157ms
+⨯ Error: Fixture technical error
+    at H (.next/server/chunks/683.js:1:9381) {
+  status: 500,
+  retryAfterSeconds: null,
+  code: null,
+  details: null,
+  conflict: null,
+  digest: '585146841'
+}
+⨯ TypeError: fetch failed
+    at async H (.next/server/chunks/683.js:1:9297) {
+  digest: '188769031',
+  [cause]: Error [SocketError]: other side closed
+      at ignore-listed frames {
+    code: 'UND_ERR_SOCKET',
+    socket: {
+      localAddress: '127.0.0.1',
+      localPort: 34914,
+      remoteAddress: '127.0.0.1',
+      remotePort: 3159,
+      remoteFamily: 'IPv4',
+      timeout: undefined,
+      bytesWritten: 937,
+      bytesRead: 2244
+    }
+  }
+}

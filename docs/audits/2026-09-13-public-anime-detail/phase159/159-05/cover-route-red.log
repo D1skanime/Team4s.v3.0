@@ -1,0 +1,119 @@
+
+> team4s-frontend@0.1.0 test
+> vitest run src/lib/animeBackdrops.test.ts
+
+
+ RUN  v3.2.4 /app
+
+ ❯ src/lib/animeBackdrops.test.ts (26 tests | 16 failed) 30ms
+   ✓ bounded anime image delivery > bounds the real provider while retaining identity query parameters: /api/v1/media/image?item_id=series&kind=primary&provider=jellyfin&index=2&tag=original 4ms
+   ✓ bounded anime image delivery > bounds the real provider while retaining identity query parameters: http://192.168.235.196:18092/api/v1/media/image?item_id=series&kind=primary&provider=jellyfin&index=2&tag=original 1ms
+   ✓ bounded anime image delivery > replaces existing provider bounds without duplicate query keys 1ms
+   ✓ bounded anime image delivery > uses explicit same-origin bounded delivery: /media/anime/1/poster/asset/original.jpg 1ms
+   × bounded anime image delivery > uses explicit same-origin bounded delivery: /covers/anime.jpg 6ms
+     → expected '/covers/anime.jpg/display' to be '/covers/display/anime.jpg' // Object.is equality
+   ✓ bounded anime image delivery > keeps completed display sources unchanged and moves an old optimizer wrapper onto bounded delivery 1ms
+   ✓ bounded anime image delivery > keeps API-files same-origin and independent of private Next optimizer fetches: http://192.168.235.196:18092/api/v1/media/files/logo.png 1ms
+   ✓ bounded anime image delivery > keeps API-files same-origin and independent of private Next optimizer fetches: /api/v1/media/files/logo.png 0ms
+   × bounded anime image delivery > bounds the existing placeholder for an unusable cover and omits optional media: null 1ms
+     → expected '/covers/placeholder.png/display' to be '/covers/display/placeholder.png' // Object.is equality
+   × bounded anime image delivery > bounds the existing placeholder for an unusable cover and omits optional media: undefined 1ms
+     → expected '/covers/placeholder.png/display' to be '/covers/display/placeholder.png' // Object.is equality
+   × bounded anime image delivery > bounds the existing placeholder for an unusable cover and omits optional media:  1ms
+     → expected '/covers/placeholder.png/display' to be '/covers/display/placeholder.png' // Object.is equality
+   × bounded anime image delivery > bounds the existing placeholder for an unusable cover and omits optional media: https://untrusted.example/image.jpg 1ms
+     → expected '/covers/placeholder.png/display' to be '/covers/display/placeholder.png' // Object.is equality
+   × bounded anime image delivery > bounds the existing placeholder for an unusable cover and omits optional media: https://untrusted.example/api/v1/media/image?item_id=x 1ms
+     → expected '/covers/placeholder.png/display' to be '/covers/display/placeholder.png' // Object.is equality
+   × bounded anime image delivery > bounds the existing placeholder for an unusable cover and omits optional media: /\\untrusted.example/api/v1/media/image?item_id=x 1ms
+     → expected '/covers/placeholder.png/display' to be '/covers/display/placeholder.png' // Object.is equality
+   × bounded anime image delivery > bounds the existing placeholder for an unusable cover and omits optional media: http://user:pass@192.168.235.196:18092/api/v1/media/image?item_id=x 1ms
+     → expected '/covers/placeholder.png/display' to be '/covers/display/placeholder.png' // Object.is equality
+   × bounded anime image delivery > bounds the existing placeholder for an unusable cover and omits optional media: //untrusted.example/covers/image.jpg 1ms
+     → expected '/covers/placeholder.png/display' to be '/covers/display/placeholder.png' // Object.is equality
+   × bounded anime image delivery > bounds the existing placeholder for an unusable cover and omits optional media: http://[invalid 1ms
+     → expected '/covers/placeholder.png/display' to be '/covers/display/placeholder.png' // Object.is equality
+   × bounded anime image delivery > bounds the existing placeholder for an unusable cover and omits optional media: javascript:alert(1) 1ms
+     → expected '/covers/placeholder.png/display' to be '/covers/display/placeholder.png' // Object.is equality
+   × bounded anime image delivery > bounds the existing placeholder for an unusable cover and omits optional media: /media/admin/private/original.jpg 1ms
+     → expected '/covers/placeholder.png/display' to be '/covers/display/placeholder.png' // Object.is equality
+   × bounded anime image delivery > bounds the existing placeholder for an unusable cover and omits optional media: /covers/../private.jpg 2ms
+     → expected '/covers/placeholder.png/display' to be '/covers/display/placeholder.png' // Object.is equality
+   × bounded anime image delivery > bounds the existing placeholder for an unusable cover and omits optional media: /covers/local.jpg?width=512 0ms
+     → expected '/covers/placeholder.png/display' to be '/covers/display/placeholder.png' // Object.is equality
+   × bounded anime image delivery > bounds the existing placeholder for an unusable cover and omits optional media: /_next/image?url=https%3A%2F%2Funtrusted.example%2Fx.jpg&w=512&q=75 1ms
+     → expected '/covers/placeholder.png/display' to be '/covers/display/placeholder.png' // Object.is equality
+   × bounded anime image delivery > retains the existing bare cover filename convention without filename-derived variants 1ms
+     → expected '/covers/named-cover.jpg/display' to be '/covers/display/named-cover.jpg' // Object.is equality
+   ✓ bounded anime image delivery > keeps missing-file delivery bounded without prefetching or original fallback 1ms
+   ✓ bounded anime image delivery > bounds banner/logo/backdrop slots through the same delivery classes 1ms
+   ✓ bounded anime image delivery > does not add image parameters or alter the video resolver 0ms
+
+⎯⎯⎯⎯⎯⎯ Failed Tests 16 ⎯⎯⎯⎯⎯⎯⎯
+
+ FAIL  src/lib/animeBackdrops.test.ts > bounded anime image delivery > uses explicit same-origin bounded delivery: /covers/anime.jpg
+AssertionError: expected '/covers/anime.jpg/display' to be '/covers/display/anime.jpg' // Object.is equality
+
+Expected: [32m"/covers/[7mdisplay/[27manime.jpg"[39m
+Received: [31m"/covers/anime.jpg[7m/display[27m"[39m
+
+ ❯ src/lib/animeBackdrops.test.ts:50:29
+
+ Test Files  1 failed (1)
+      Tests  16 failed | 10 passed (26)
+   Start at  05:20:22
+   Duration  518ms (transform 227ms, setup 73ms, collect 246ms, tests 30ms, environment 0ms, prepare 54ms)
+
+     48|     const output = url(resolveAnimeCoverURL(source))
+     49|     expect(output.origin).toBe('http://team4s.local')
+     50|     expect(output.pathname).toBe(pathname)
+       |                             ^
+     51|     expect([...output.searchParams]).toEqual([['display_width', '512']…
+     52|   })
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[1/16]⎯
+
+ FAIL  src/lib/animeBackdrops.test.ts > bounded anime image delivery > bounds the existing placeholder for an unusable cover and omits optional media: null
+ FAIL  src/lib/animeBackdrops.test.ts > bounded anime image delivery > bounds the existing placeholder for an unusable cover and omits optional media: undefined
+ FAIL  src/lib/animeBackdrops.test.ts > bounded anime image delivery > bounds the existing placeholder for an unusable cover and omits optional media:
+ FAIL  src/lib/animeBackdrops.test.ts > bounded anime image delivery > bounds the existing placeholder for an unusable cover and omits optional media: https://untrusted.example/image.jpg
+ FAIL  src/lib/animeBackdrops.test.ts > bounded anime image delivery > bounds the existing placeholder for an unusable cover and omits optional media: https://untrusted.example/api/v1/media/image?item_id=x
+ FAIL  src/lib/animeBackdrops.test.ts > bounded anime image delivery > bounds the existing placeholder for an unusable cover and omits optional media: /\\untrusted.example/api/v1/media/image?item_id=x
+ FAIL  src/lib/animeBackdrops.test.ts > bounded anime image delivery > bounds the existing placeholder for an unusable cover and omits optional media: http://user:pass@192.168.235.196:18092/api/v1/media/image?item_id=x
+ FAIL  src/lib/animeBackdrops.test.ts > bounded anime image delivery > bounds the existing placeholder for an unusable cover and omits optional media: //untrusted.example/covers/image.jpg
+ FAIL  src/lib/animeBackdrops.test.ts > bounded anime image delivery > bounds the existing placeholder for an unusable cover and omits optional media: http://[invalid
+ FAIL  src/lib/animeBackdrops.test.ts > bounded anime image delivery > bounds the existing placeholder for an unusable cover and omits optional media: javascript:alert(1)
+ FAIL  src/lib/animeBackdrops.test.ts > bounded anime image delivery > bounds the existing placeholder for an unusable cover and omits optional media: /media/admin/private/original.jpg
+ FAIL  src/lib/animeBackdrops.test.ts > bounded anime image delivery > bounds the existing placeholder for an unusable cover and omits optional media: /covers/../private.jpg
+ FAIL  src/lib/animeBackdrops.test.ts > bounded anime image delivery > bounds the existing placeholder for an unusable cover and omits optional media: /covers/local.jpg?width=512
+ FAIL  src/lib/animeBackdrops.test.ts > bounded anime image delivery > bounds the existing placeholder for an unusable cover and omits optional media: /_next/image?url=https%3A%2F%2Funtrusted.example%2Fx.jpg&w=512&q=75
+AssertionError: expected '/covers/placeholder.png/display' to be '/covers/display/placeholder.png' // Object.is equality
+
+Expected: [32m"/covers/[7mdisplay/[27mplaceholder.png"[39m
+Received: [31m"/covers/placeholder.png[7m/display[27m"[39m
+
+ ❯ src/lib/animeBackdrops.test.ts:77:31
+     75|   ])('bounds the existing placeholder for an unusable cover and omits …
+     76|     const fallback = url(resolveAnimeCoverURL(source))
+     77|     expect(fallback.pathname).toBe('/covers/display/placeholder.png')
+       |                               ^
+     78|     expect(fallback.searchParams.get('display_width')).toBe('512')
+     79|     expect(resolveAnimeImageURL(source, 512)).toBeNull()
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[2/16]⎯
+
+ FAIL  src/lib/animeBackdrops.test.ts > bounded anime image delivery > retains the existing bare cover filename convention without filename-derived variants
+AssertionError: expected '/covers/named-cover.jpg/display' to be '/covers/display/named-cover.jpg' // Object.is equality
+
+Expected: [32m"/covers/[7mdisplay/[27mnamed-cover.jpg"[39m
+Received: [31m"/covers/named-cover.jpg[7m/display[27m"[39m
+
+ ❯ src/lib/animeBackdrops.test.ts:84:29
+     82|   it('retains the existing bare cover filename convention without file…
+     83|     const output = url(resolveAnimeCoverURL('named-cover.jpg'))
+     84|     expect(output.pathname).toBe('/covers/display/named-cover.jpg')
+       |                             ^
+     85|   })
+     86|
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[3/16]⎯

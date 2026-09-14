@@ -48,6 +48,8 @@ completed: 2026-09-14
 
 # Phase 159 Plan 04: Bounded manifest and image delivery
 
+**159-05 runtime correction:** the current cover display route is `/covers/display/[file]`, replacing the historical child route below a real public file that Next rejected with ENOTDIR. The anime-only fallback now uses a valid neutral PNG; the old JPG remains unchanged. See [current delivery contract](159-04-DELIVERY.md) and 159-05 results. The paths below record the original 159-04 implementation.
+
 The existing manifest cache now has a 60-second TTL, a 20-entry unused LRU bound and real
 request cancellation. Poster, reflection, hero and rotator share one bounded display URL.
 Local/API-file display requests produce static first-frame WebP through their authoritative

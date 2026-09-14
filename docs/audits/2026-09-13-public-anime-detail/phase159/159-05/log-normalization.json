@@ -1,0 +1,44 @@
+[
+  {
+    "path": "docs/audits/2026-09-13-public-anime-detail/phase159/production-selective-build.log",
+    "before": "bd070c9f155bee614a098b07346f9aa92ee4bd90330534cbe36aef14abf4b56b",
+    "after": "414e7d4637df11f77f7ed0a6f65421b74dd4f980c31270bb8ee541c3e2168ac0",
+    "operation": "Trailing whitespace/repeated empty EOF only; observations and statuses unchanged."
+  },
+  {
+    "path": "docs/audits/2026-09-13-public-anime-detail/phase159/159-05/cover-route-green.log",
+    "before": "4ec734ed56be1a5f89743cad0340931113b836c431d90f3498b7363d49d87dbb",
+    "after": "5db14d686d438ee3ffea65e752790efa46e16d43332f34b4d26adbf3dc285a5b",
+    "operation": "Trailing whitespace/repeated empty EOF only; observations and statuses unchanged."
+  },
+  {
+    "path": "docs/audits/2026-09-13-public-anime-detail/phase159/159-05/placeholder-green.log",
+    "before": "fa2fa28430ed0418026f93214508206e02f91298e193bc52d11a35a95084fefd",
+    "after": "aa8b644adea4ba62b5dda9bd68fcc473af12ceeff07a645c64501c136a0e94d8",
+    "operation": "Trailing whitespace/repeated empty EOF only; observations and statuses unchanged."
+  },
+  {
+    "path": "docs/audits/2026-09-13-public-anime-detail/phase159/159-05/placeholder-red.log",
+    "before": "68371fa042d4990d7d1e1e70a05336447476eb040d2ddde4a246322c36b97268",
+    "after": "9634012b88c34ef179f18b3d3b0b8e1d0d8d2396533ea0061d83b875b6b63056",
+    "operation": "Trailing whitespace/repeated empty EOF only; observations and statuses unchanged."
+  },
+  {
+    "path": "docs/audits/2026-09-13-public-anime-detail/phase159/159-05/cover-route-red.log",
+    "before": "d47abd1540bc5824c144a2e26893e0474704908657153a1b0209d848f1d9cf2a",
+    "after": "b445e65fbf85e0949407573ed54cb9401a2eebbf359558cdcefa3a2dacf9462f",
+    "operation": "Trailing whitespace/repeated empty EOF only; observations and statuses unchanged."
+  },
+  {
+    "path": "docs/audits/2026-09-13-public-anime-detail/phase159/159-05/f01-red.log",
+    "before": "d303b0c5821c4a73fc6b33ce6e8dc95a5029b1ecef4f43cb552583464a8dcb92",
+    "after": "783b3b5ca278e38e6c7846da11e0484f5f750e6be93063c67d1d6c0a88f8b0bf",
+    "operation": "Trailing whitespace/repeated empty EOF only; observations and statuses unchanged."
+  },
+  {
+    "path": "docs/audits/2026-09-13-public-anime-detail/phase159/159-05/f01-red.log",
+    "before": "783b3b5ca278e38e6c7846da11e0484f5f750e6be93063c67d1d6c0a88f8b0bf",
+    "after": "fcad54534d536a46aab6e89bfa8b13255ab16eec8396c0958d06960dfdb3449d",
+    "operation": "Leading indentation tabs expanded to spaces only; test messages, statuses and values unchanged."
+  }
+]

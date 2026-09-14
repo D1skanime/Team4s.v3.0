@@ -1,0 +1,79 @@
+[
+  {
+    "original": "/covers/cover_1775164698913_a216b01d-a000-4871-878d-46e3a41e08e8.jpg",
+    "display": "/covers/display/cover_1775164698913_a216b01d-a000-4871-878d-46e3a41e08e8.jpg?display_width=512",
+    "originalBytes": 50844,
+    "bytes": 20988,
+    "mime": "image/webp",
+    "cache": "public, max-age=60",
+    "width": 400,
+    "height": 578,
+    "pages": 1
+  },
+  {
+    "original": "/media/anime/phase159/static.png",
+    "display": "/media/anime/phase159/static.png?display_width=512",
+    "originalBytes": 4287084,
+    "bytes": 156718,
+    "mime": "image/webp",
+    "cache": "public, max-age=60",
+    "width": 512,
+    "height": 730,
+    "pages": 1
+  },
+  {
+    "original": "/api/v1/media/files/static.png",
+    "display": "/api/v1/media/files/static.png?display_width=512",
+    "originalBytes": 4287084,
+    "bytes": 156718,
+    "mime": "image/webp",
+    "cache": "private, no-store",
+    "width": 512,
+    "height": 730,
+    "pages": 1
+  },
+  {
+    "original": "/api/v1/media/files/animated.gif",
+    "display": "/api/v1/media/files/animated.gif?display_width=512",
+    "originalBytes": 8098,
+    "bytes": 708,
+    "mime": "image/webp",
+    "cache": "private, no-store",
+    "width": 512,
+    "height": 341,
+    "pages": 1
+  },
+  {
+    "original": "/api/v1/media/files/animated.webp",
+    "display": "/api/v1/media/files/animated.webp?display_width=512",
+    "originalBytes": 236,
+    "bytes": 706,
+    "mime": "image/webp",
+    "cache": "private, no-store",
+    "width": 512,
+    "height": 341,
+    "pages": 1
+  },
+  {
+    "original": "/api/v1/media/files/animated.png",
+    "display": "/api/v1/media/files/animated.png?display_width=512",
+    "originalBytes": 11327,
+    "bytes": 506,
+    "mime": "image/webp",
+    "cache": "private, no-store",
+    "width": 512,
+    "height": 341,
+    "pages": 1
+  },
+  {
+    "original": "/api/v1/media/files/static.avif",
+    "display": "/api/v1/media/files/static.avif?display_width=512",
+    "originalBytes": 1696597,
+    "bytes": 156034,
+    "mime": "image/webp",
+    "cache": "private, no-store",
+    "width": 512,
+    "height": 730,
+    "pages": 1
+  }
+]

@@ -1,0 +1,19 @@
+{
+  "at": "2026-09-14T05:48:32.420280+00:00",
+  "head": "d36b5b53bc4235757ccef1a88e351899d77cf821",
+  "product": "6ebfebf72019f337844b01fd7f7d832faaa71a74",
+  "checks": 91,
+  "exit": 0,
+  "hashes": {
+    "frontend/scripts/anime-detail-phase159-probe.mjs": "3d3914651ccc93acf8ae53e154ea84280aa8a4678e15476f84484f8edca3db3d",
+    "frontend/scripts/anime-detail-phase158-probe.mjs": "b0e1e83af5f700847bac19f923966b56bc6760b063b4eac081d774f7a654547f",
+    "frontend/scripts/fixtures/anime-detail-fixture-server.mjs": "c6e6040185af1f0093c423d3d131aa4c93e82e7651bf8752673a7147069edd66",
+    "scripts/verify-anime-detail-phase.sh": "8a823a736440711f5e44bd6545f9c247c54cb87c15d8630e679dbf8467289f42",
+    "docs/audits/2026-09-13-public-anime-detail/phase159/fixture-results.json": "22f7fc89df1933c957e31edfd1694fbb3ad429ce7936f5ad200e606023a5d7cf"
+  },
+  "harness_validation": {
+    "node_syntax": 0,
+    "shell_syntax": 0,
+    "scoped_eslint": 0
+  }
+}

@@ -1,0 +1,1 @@
+app/anime/**/page.tsx,app/fansubs/**/page.tsx,app/api/releases/**/route.ts,app/api/v1/**/route.ts,app/media/**/route.ts,app/covers/**/route.ts

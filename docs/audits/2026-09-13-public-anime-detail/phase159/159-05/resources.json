@@ -1,0 +1,106 @@
+{
+  "recorded_at": "2026-09-14T05:28:02.234508+00:00",
+  "postgres": {
+    "name": "team4s-phase15905-test",
+    "id": "4d3553f4677f3b9db568fa81b196f082df757b6d96b4910a997ba6f553c4d17a",
+    "database": "team4s_phase117_test_p15905",
+    "storage": "tmpfs /var/lib/postgresql/data",
+    "host_ports": [],
+    "network": "team4s_default",
+    "removed": true
+  },
+  "backend_source": {
+    "container": "team4sv30-backend",
+    "path": "/app/tmp/phase15905",
+    "air_excluded": true
+  },
+  "production_planned": {
+    "container": "team4sv30-frontend",
+    "path": "/tmp/team4s-phase159-production",
+    "marker": ".phase-owned=159",
+    "source_hash_marker": ".phase-source-sha"
+  },
+  "evidence_planned": "/tmp/team4s-phase159-evidence",
+  "fixture_media_planned": "/tmp/team4s-phase159-production/fixture-media",
+  "listeners_planned": {
+    "Next": "127.0.0.1:3158",
+    "GET_only_API": "127.0.0.1:3159",
+    "GET_only_browser_proxy": "127.0.0.1:3160"
+  },
+  "process_cleanup": "Probe finally closes browsers/proxy/fixture and terminates only its spawned Next child. Wrapper source copy excludes .env*, live .next and node_modules; dependency symlink points at /app/node_modules.",
+  "live_data_touched": false,
+  "additional_scratch": [
+    "/app/tmp/phase159-gates",
+    "/app/tmp/phase159-baseline"
+  ],
+  "last_gate_postgres": {
+    "name": "team4s-phase159-gate-test",
+    "id": "3deaf09a740a6836dd430ad9017cf67c1de2e501b717ec24d401633a18212de1",
+    "removed_by_EXIT_trap": true
+  },
+  "initial_probe": {
+    "probe_pid": 56020,
+    "next_pid": 56045,
+    "browser_main_pids": [
+      56056,
+      56506
+    ],
+    "aborted_at": "2026-09-14T05:40:45.113442+00:00",
+    "reason": "Unselected app-shell RSC prefetches keep generic networkidle pending; poster itself decoded 512px. Replace wait with actual completed media consumers; no product change."
+  },
+  "closed_probe_ports": [
+    {
+      "port": 3158,
+      "open": false
+    },
+    {
+      "port": 3159,
+      "open": false
+    },
+    {
+      "port": 3160,
+      "open": false
+    }
+  ],
+  "final_probe": {
+    "probePID": 59109,
+    "nextPID": 59128,
+    "cwd": "/tmp/team4s-phase159-production",
+    "listeners": {
+      "next": "http://127.0.0.1:3158",
+      "fixture": "http://127.0.0.1:3159"
+    },
+    "recordedAt": "2026-09-14T05:46:48.143Z"
+  },
+  "production_source_hash": "b1270c75da9dd25fc4ae0cd8565445d5f0697af3c1239d7970e57a28af56ff34",
+  "production_build_id": "qPT6ey0H2wEKJcPZBDcMg",
+  "cleanup_at": "2026-09-14T05:49:35.163186+00:00",
+  "cleaned": [
+    {
+      "container": "team4sv30-backend",
+      "resolved": "/app/tmp/phase15905",
+      "removed": true
+    },
+    {
+      "container": "team4sv30-backend",
+      "resolved": "/app/tmp/phase159-gates",
+      "removed": true
+    },
+    {
+      "container": "team4sv30-backend",
+      "resolved": "/app/tmp/phase159-baseline",
+      "removed": true
+    },
+    {
+      "container": "team4sv30-frontend",
+      "resolved": "/tmp/team4s-phase159-production",
+      "removed": true
+    },
+    {
+      "container": "team4sv30-frontend",
+      "resolved": "/tmp/team4s-phase159-evidence",
+      "removed": true
+    }
+  ],
+  "cleanup_recheck_at": "2026-09-14T05:50:13.430355+00:00"
+}

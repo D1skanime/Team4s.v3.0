@@ -1,0 +1,8 @@
+=== RUN   TestPhase159InitialPublicBudget
+    phase159_initial_budget_test.go:8: SQL statements=2 returned rows=1+25 (inventory budget 24+1)
+    phase159_initial_budget_test.go:11: PUBLIC_INITIAL limit=24 atomic_rows=24 bytes=7522 has_more=true
+    phase159_initial_budget_test.go:8: SQL statements=2 returned rows=1+101 (inventory budget 100+1)
+    phase159_initial_budget_test.go:11: PUBLIC_INITIAL limit=100 atomic_rows=100 bytes=30475 has_more=true
+--- PASS: TestPhase159InitialPublicBudget (0.10s)
+PASS
+ok  	team4s.v3/backend/internal/repository	0.107s

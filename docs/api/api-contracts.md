@@ -89,7 +89,7 @@ x-frontend-display metadata points here. No backend resize parameter is implied.
 
 | Frontend owner | Opt-in GET and HEAD URL | Authoritative source |
 | --- | --- | --- |
-| Covers child route | /covers/{filename}/display?display_width=512 | Existing public/covers basename resolution |
+| Covers child route | /covers/display/{filename}?display_width=512 | Existing public/covers basename resolution |
 | Existing local media route | /media/anime/{path}?display_width=512 | Existing validated MEDIA_BASE_PATH resolution |
 | Existing API relay, exact three segments | /api/v1/media/files/{filename}?display_width=512 | Existing internal API proxy and backend filename lookup |
 
@@ -123,7 +123,7 @@ statuses are preserved without original image bytes. Existing media traversal
 checks still return 403. Supported input raster families are JPEG, PNG/APNG, GIF,
 WebP and AVIF; SVG/video are not decoded by the opt-in display helper.
 
-Focused coverage: imageDisplay.test.ts, covers/[file]/display/route.test.ts,
+Focused coverage: imageDisplay.test.ts, covers/display/[file]/route.test.ts,
 api/v1/[...path]/route.test.ts, existing media Range tests and animeBackdrops.test.ts.
 
 Admission correction from cold-start review: four distinct parallel images must complete with 200 through two active transforms. At most eight waiters share the five-second request deadline; queued abort removes the waiter before source IO. Saturation beyond this finite bound returns 429.

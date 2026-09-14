@@ -1,0 +1,16 @@
+
+> team4s-frontend@0.1.0 test
+> vitest run src/lib/animeBackdrops.test.ts src/lib/server/imageDisplay.test.ts src/app/covers/display/[file]/route.test.ts
+
+
+ RUN  v3.2.4 /app
+
+ ✓ src/app/covers/display/[file]/route.test.ts (2 tests) 185ms
+ ✓ src/lib/animeBackdrops.test.ts (26 tests) 23ms
+ ✓ src/lib/server/imageDisplay.test.ts (30 tests) 1913ms
+   ✓ real raster and resource limits > bounds actual output dimensions and bytes for slot 1920  406ms
+
+ Test Files  3 passed (3)
+      Tests  58 passed (58)
+   Start at  05:21:17
+   Duration  2.40s (transform 519ms, setup 322ms, collect 654ms, tests 2.12s, environment 0ms, prepare 182ms)

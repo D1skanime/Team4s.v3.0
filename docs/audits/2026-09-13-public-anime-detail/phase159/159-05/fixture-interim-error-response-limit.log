@@ -1,0 +1,92 @@
+PASS fixture-rejects-nonGET
+PASS production-valid-metadata-and-request-count
+PASS production404-1abc
+PASS production404-1.5
+PASS production404-0
+PASS production404--1
+PASS production404-9007199254740992
+PASS production404-999999999
+PASS production-technical-error-500
+PASS production-technical-error-501
+PASS geometry-colors-focus-slider-360
+PASS geometry-colors-focus-slider-390
+PASS geometry-colors-focus-slider-767
+PASS geometry-colors-focus-slider-768
+PASS geometry-colors-focus-slider-1440
+PASS anonymous-initial-and-lazy-request-budget
+PASS empty-series
+PASS authoritative-visible-primary-secondary-pretty-and-numeric
+PASS session-none
+PASS session-access
+PASS session-refresh
+PASS session-expired
+PASS expired-refresh-denied
+PASS session-login-account-change-logout-after-mount
+PASS watchlist-unknown-retry-custom-action-401
+PASS watchlist-unknown-retry-custom-action-500
+PASS watchlist-unknown-retry-custom-action-network
+PASS contributions-loading-error-retry-empty-401
+PASS contributions-loading-error-retry-empty-500
+PASS contributions-loading-error-retry-empty-network
+PASS comment-error-401
+PASS comment-error-500
+PASS comment-error-network
+PASS 159-storage-native-two-tabs-reload-clear-invalid-removed
+PASS 159-storage-blocked-read
+PASS 159-storage-blocked-write
+PASS 159-public-125-variants-neutral-same-number-retry-counts
+PASS 159-neutral-only-and-invalid-foreign-cursor-http
+PASS 159-grid-three-pages-first-slow-click-hover-focus-touch-retry
+PASS 159-abort-old-grid-and-public-context
+PASS 159-manifest-SPA-TTL-focus-sharing-retry
+PASS 159-manifest-retention-more-than20-SPA-acquires
+PASS 159-production-media-original-display-animations-headers
+PASS 159-media-provider-390-dpr1
+PASS 159-media-cover-390-dpr1
+PASS 159-media-local-390-dpr1
+PASS 159-media-private-api-file-390-dpr1
+PASS 159-media-gif-390-dpr1
+PASS 159-media-apng-390-dpr1
+PASS 159-media-webp-390-dpr1
+PASS 159-media-avif-390-dpr1
+PASS 159-media-missing-cover-390-dpr1
+FAIL 159-media-provider-404-390-dpr1 identical cover URL must have at most one network body transfer: [{"url":"http://127.0.0.1:3158/api/v1/media/image?path=missing.png&width=512&quality=75","status":404,"mime":"application/json","diskCache":false,"serviceWorker":false,"memoryCache":false,"headers":{"transfer-encoding":"chunked","cache-control":"no-store","keep-alive":"timeout=5","date":"Mon, 14 Sep 2026 05:45:12 GMT","content-type":"application/json","vary":"rsc, next-router-state-tree, next-router-prefetch, next-router-segment-prefetch","connection":"keep-alive"},"requestId":"58646.39","transferBytes":25},{"url":"http://127.0.0.1:3158/api/v1/media/image?path=missing.png&width=512&quality=75","status":404,"mime":"application/json","diskCache":false,"serviceWorker":false,"memoryCache":false,"headers":{"transfer-encoding":"chunked","cache-control":"no-store","keep-alive":"timeout=5","date":"Mon, 14 Sep 2026 05:45:12 GMT","content-type":"application/json","vary":"rsc, next-router-state-tree, next-router-prefetch, next-router-segment-prefetch","connection":"keep-alive"},"requestId":"58646.45","transferBytes":25}]
+FAIL 159-media-provider-500-390-dpr1 identical cover URL must have at most one network body transfer: [{"url":"http://127.0.0.1:3158/api/v1/media/image?path=error.png&width=512&quality=75","status":500,"mime":"application/json","diskCache":false,"serviceWorker":false,"memoryCache":false,"headers":{"transfer-encoding":"chunked","cache-control":"no-store","keep-alive":"timeout=5","date":"Mon, 14 Sep 2026 05:45:13 GMT","content-type":"application/json","vary":"rsc, next-router-state-tree, next-router-prefetch, next-router-segment-prefetch","connection":"keep-alive"},"requestId":"58658.23","transferBytes":32},{"url":"http://127.0.0.1:3158/api/v1/media/image?path=error.png&width=512&quality=75","status":500,"mime":"application/json","diskCache":false,"serviceWorker":false,"memoryCache":false,"headers":{"transfer-encoding":"chunked","cache-control":"no-store","keep-alive":"timeout=5","date":"Mon, 14 Sep 2026 05:45:13 GMT","content-type":"application/json","vary":"rsc, next-router-state-tree, next-router-prefetch, next-router-segment-prefetch","connection":"keep-alive"},"requestId":"58658.45","transferBytes":32}]
+FAIL 159-media-local-404-390-dpr1 identical cover URL must have at most one network body transfer: [{"url":"http://127.0.0.1:3158/media/anime/phase159/absent.png?display_width=512","status":404,"mime":"text/plain","diskCache":false,"serviceWorker":false,"memoryCache":false,"headers":{"transfer-encoding":"chunked","cache-control":"no-store","connection":"keep-alive","x-content-type-options":"nosniff","keep-alive":"timeout=5","date":"Mon, 14 Sep 2026 05:45:13 GMT","content-type":"text/plain;charset=UTF-8","vary":"rsc, next-router-state-tree, next-router-prefetch, next-router-segment-prefetch"},"requestId":"58669.60","transferBytes":33},{"url":"http://127.0.0.1:3158/media/anime/phase159/absent.png?display_width=512","status":404,"mime":"text/plain","diskCache":false,"serviceWorker":false,"memoryCache":false,"headers":{"transfer-encoding":"chunked","cache-control":"no-store","connection":"keep-alive","x-content-type-options":"nosniff","keep-alive":"timeout=5","date":"Mon, 14 Sep 2026 05:45:13 GMT","content-type":"text/plain;charset=UTF-8","vary":"rsc, next-router-state-tree, next-router-prefetch, next-router-segment-prefetch"},"requestId":"58669.100","transferBytes":33}]
+PASS 159-media-provider-390-dpr2
+PASS 159-media-cover-390-dpr2
+PASS 159-media-local-390-dpr2
+PASS 159-media-private-api-file-390-dpr2
+PASS 159-media-gif-390-dpr2
+PASS 159-media-apng-390-dpr2
+PASS 159-media-webp-390-dpr2
+PASS 159-media-avif-390-dpr2
+PASS 159-media-missing-cover-390-dpr2
+FAIL 159-media-provider-404-390-dpr2 identical cover URL must have at most one network body transfer: [{"url":"http://127.0.0.1:3158/api/v1/media/image?path=missing.png&width=512&quality=75","status":404,"mime":"application/json","diskCache":false,"serviceWorker":false,"memoryCache":false,"headers":{"transfer-encoding":"chunked","cache-control":"no-store","keep-alive":"timeout=5","date":"Mon, 14 Sep 2026 05:45:16 GMT","content-type":"application/json","vary":"rsc, next-router-state-tree, next-router-prefetch, next-router-segment-prefetch","connection":"keep-alive"},"requestId":"58784.5","transferBytes":25},{"url":"http://127.0.0.1:3158/api/v1/media/image?path=missing.png&width=512&quality=75","status":404,"mime":"application/json","diskCache":false,"serviceWorker":false,"memoryCache":false,"headers":{"transfer-encoding":"chunked","cache-control":"no-store","keep-alive":"timeout=5","date":"Mon, 14 Sep 2026 05:45:16 GMT","content-type":"application/json","vary":"rsc, next-router-state-tree, next-router-prefetch, next-router-segment-prefetch","connection":"keep-alive"},"requestId":"58784.45","transferBytes":25}]
+FAIL 159-media-provider-500-390-dpr2 identical cover URL must have at most one network body transfer: [{"url":"http://127.0.0.1:3158/api/v1/media/image?path=error.png&width=512&quality=75","status":500,"mime":"application/json","diskCache":false,"serviceWorker":false,"memoryCache":false,"headers":{"transfer-encoding":"chunked","cache-control":"no-store","keep-alive":"timeout=5","date":"Mon, 14 Sep 2026 05:45:16 GMT","content-type":"application/json","vary":"rsc, next-router-state-tree, next-router-prefetch, next-router-segment-prefetch","connection":"keep-alive"},"requestId":"58794.60","transferBytes":32},{"url":"http://127.0.0.1:3158/api/v1/media/image?path=error.png&width=512&quality=75","status":500,"mime":"application/json","diskCache":false,"serviceWorker":false,"memoryCache":false,"headers":{"transfer-encoding":"chunked","cache-control":"no-store","keep-alive":"timeout=5","date":"Mon, 14 Sep 2026 05:45:16 GMT","content-type":"application/json","vary":"rsc, next-router-state-tree, next-router-prefetch, next-router-segment-prefetch","connection":"keep-alive"},"requestId":"58794.100","transferBytes":32}]
+FAIL 159-media-local-404-390-dpr2 identical cover URL must have at most one network body transfer: [{"url":"http://127.0.0.1:3158/media/anime/phase159/absent.png?display_width=512","status":404,"mime":"text/plain","diskCache":false,"serviceWorker":false,"memoryCache":false,"headers":{"transfer-encoding":"chunked","cache-control":"no-store","connection":"keep-alive","x-content-type-options":"nosniff","keep-alive":"timeout=5","date":"Mon, 14 Sep 2026 05:45:16 GMT","content-type":"text/plain;charset=UTF-8","vary":"rsc, next-router-state-tree, next-router-prefetch, next-router-segment-prefetch"},"requestId":"58805.58","transferBytes":33},{"url":"http://127.0.0.1:3158/media/anime/phase159/absent.png?display_width=512","status":404,"mime":"text/plain","diskCache":false,"serviceWorker":false,"memoryCache":false,"headers":{"transfer-encoding":"chunked","cache-control":"no-store","connection":"keep-alive","x-content-type-options":"nosniff","keep-alive":"timeout=5","date":"Mon, 14 Sep 2026 05:45:16 GMT","content-type":"text/plain;charset=UTF-8","vary":"rsc, next-router-state-tree, next-router-prefetch, next-router-segment-prefetch"},"requestId":"58805.98","transferBytes":33}]
+PASS 159-media-provider-1440-dpr1
+PASS 159-media-cover-1440-dpr1
+PASS 159-media-local-1440-dpr1
+PASS 159-media-private-api-file-1440-dpr1
+PASS 159-media-gif-1440-dpr1
+PASS 159-media-apng-1440-dpr1
+PASS 159-media-webp-1440-dpr1
+PASS 159-media-avif-1440-dpr1
+PASS 159-media-missing-cover-1440-dpr1
+FAIL 159-media-provider-404-1440-dpr1 identical cover URL must have at most one network body transfer: [{"url":"http://127.0.0.1:3158/api/v1/media/image?path=missing.png&width=512&quality=75","status":404,"mime":"application/json","diskCache":false,"serviceWorker":false,"memoryCache":false,"headers":{"transfer-encoding":"chunked","cache-control":"no-store","keep-alive":"timeout=5","date":"Mon, 14 Sep 2026 05:45:20 GMT","content-type":"application/json","vary":"rsc, next-router-state-tree, next-router-prefetch, next-router-segment-prefetch","connection":"keep-alive"},"requestId":"58921.5","transferBytes":25},{"url":"http://127.0.0.1:3158/api/v1/media/image?path=missing.png&width=512&quality=75","status":404,"mime":"application/json","diskCache":false,"serviceWorker":false,"memoryCache":false,"headers":{"transfer-encoding":"chunked","cache-control":"no-store","keep-alive":"timeout=5","date":"Mon, 14 Sep 2026 05:45:20 GMT","content-type":"application/json","vary":"rsc, next-router-state-tree, next-router-prefetch, next-router-segment-prefetch","connection":"keep-alive"},"requestId":"58921.45","transferBytes":25}]
+FAIL 159-media-provider-500-1440-dpr1 identical cover URL must have at most one network body transfer: [{"url":"http://127.0.0.1:3158/api/v1/media/image?path=error.png&width=512&quality=75","status":500,"mime":"application/json","diskCache":false,"serviceWorker":false,"memoryCache":false,"headers":{"transfer-encoding":"chunked","cache-control":"no-store","keep-alive":"timeout=5","date":"Mon, 14 Sep 2026 05:45:20 GMT","content-type":"application/json","vary":"rsc, next-router-state-tree, next-router-prefetch, next-router-segment-prefetch","connection":"keep-alive"},"requestId":"58932.55","transferBytes":32},{"url":"http://127.0.0.1:3158/api/v1/media/image?path=error.png&width=512&quality=75","status":500,"mime":"application/json","diskCache":false,"serviceWorker":false,"memoryCache":false,"headers":{"transfer-encoding":"chunked","cache-control":"no-store","keep-alive":"timeout=5","date":"Mon, 14 Sep 2026 05:45:20 GMT","content-type":"application/json","vary":"rsc, next-router-state-tree, next-router-prefetch, next-router-segment-prefetch","connection":"keep-alive"},"requestId":"58932.95","transferBytes":32}]
+FAIL 159-media-local-404-1440-dpr1 identical cover URL must have at most one network body transfer: [{"url":"http://127.0.0.1:3158/media/anime/phase159/absent.png?display_width=512","status":404,"mime":"text/plain","diskCache":false,"serviceWorker":false,"memoryCache":false,"headers":{"transfer-encoding":"chunked","cache-control":"no-store","connection":"keep-alive","x-content-type-options":"nosniff","keep-alive":"timeout=5","date":"Mon, 14 Sep 2026 05:45:20 GMT","content-type":"text/plain;charset=UTF-8","vary":"rsc, next-router-state-tree, next-router-prefetch, next-router-segment-prefetch"},"requestId":"58943.5","transferBytes":33},{"url":"http://127.0.0.1:3158/media/anime/phase159/absent.png?display_width=512","status":404,"mime":"text/plain","diskCache":false,"serviceWorker":false,"memoryCache":false,"headers":{"transfer-encoding":"chunked","cache-control":"no-store","connection":"keep-alive","x-content-type-options":"nosniff","keep-alive":"timeout=5","date":"Mon, 14 Sep 2026 05:45:20 GMT","content-type":"text/plain;charset=UTF-8","vary":"rsc, next-router-state-tree, next-router-prefetch, next-router-segment-prefetch"},"requestId":"58943.45","transferBytes":33}]
+PASS 159-media-provider-1440-dpr2
+PASS 159-media-cover-1440-dpr2
+PASS 159-media-local-1440-dpr2
+PASS 159-media-private-api-file-1440-dpr2
+PASS 159-media-gif-1440-dpr2
+PASS 159-media-apng-1440-dpr2
+PASS 159-media-webp-1440-dpr2
+PASS 159-media-avif-1440-dpr2
+PASS 159-media-missing-cover-1440-dpr2
+FAIL 159-media-provider-404-1440-dpr2 identical cover URL must have at most one network body transfer: [{"url":"http://127.0.0.1:3158/api/v1/media/image?path=missing.png&width=512&quality=75","status":404,"mime":"application/json","diskCache":false,"serviceWorker":false,"memoryCache":false,"headers":{"transfer-encoding":"chunked","cache-control":"no-store","keep-alive":"timeout=5","date":"Mon, 14 Sep 2026 05:45:24 GMT","content-type":"application/json","vary":"rsc, next-router-state-tree, next-router-prefetch, next-router-segment-prefetch","connection":"keep-alive"},"requestId":"59060.5","transferBytes":25},{"url":"http://127.0.0.1:3158/api/v1/media/image?path=missing.png&width=512&quality=75","status":404,"mime":"application/json","diskCache":false,"serviceWorker":false,"memoryCache":false,"headers":{"transfer-encoding":"chunked","cache-control":"no-store","keep-alive":"timeout=5","date":"Mon, 14 Sep 2026 05:45:24 GMT","content-type":"application/json","vary":"rsc, next-router-state-tree, next-router-prefetch, next-router-segment-prefetch","connection":"keep-alive"},"requestId":"59060.45","transferBytes":25}]
+FAIL 159-media-provider-500-1440-dpr2 identical cover URL must have at most one network body transfer: [{"url":"http://127.0.0.1:3158/api/v1/media/image?path=error.png&width=512&quality=75","status":500,"mime":"application/json","diskCache":false,"serviceWorker":false,"memoryCache":false,"headers":{"transfer-encoding":"chunked","cache-control":"no-store","keep-alive":"timeout=5","date":"Mon, 14 Sep 2026 05:45:24 GMT","content-type":"application/json","vary":"rsc, next-router-state-tree, next-router-prefetch, next-router-segment-prefetch","connection":"keep-alive"},"requestId":"59073.5","transferBytes":32},{"url":"http://127.0.0.1:3158/api/v1/media/image?path=error.png&width=512&quality=75","status":500,"mime":"application/json","diskCache":false,"serviceWorker":false,"memoryCache":false,"headers":{"transfer-encoding":"chunked","cache-control":"no-store","keep-alive":"timeout=5","date":"Mon, 14 Sep 2026 05:45:24 GMT","content-type":"application/json","vary":"rsc, next-router-state-tree, next-router-prefetch, next-router-segment-prefetch","connection":"keep-alive"},"requestId":"59073.45","transferBytes":32}]
+FAIL 159-media-local-404-1440-dpr2 identical cover URL must have at most one network body transfer: [{"url":"http://127.0.0.1:3158/media/anime/phase159/absent.png?display_width=512","status":404,"mime":"text/plain","diskCache":false,"serviceWorker":false,"memoryCache":false,"headers":{"transfer-encoding":"chunked","cache-control":"no-store","connection":"keep-alive","x-content-type-options":"nosniff","keep-alive":"timeout=5","date":"Mon, 14 Sep 2026 05:45:24 GMT","content-type":"text/plain;charset=UTF-8","vary":"rsc, next-router-state-tree, next-router-prefetch, next-router-segment-prefetch"},"requestId":"59085.5","transferBytes":33},{"url":"http://127.0.0.1:3158/media/anime/phase159/absent.png?display_width=512","status":404,"mime":"text/plain","diskCache":false,"serviceWorker":false,"memoryCache":false,"headers":{"transfer-encoding":"chunked","cache-control":"no-store","connection":"keep-alive","x-content-type-options":"nosniff","keep-alive":"timeout=5","date":"Mon, 14 Sep 2026 05:45:24 GMT","content-type":"text/plain;charset=UTF-8","vary":"rsc, next-router-state-tree, next-router-prefetch, next-router-segment-prefetch"},"requestId":"59085.45","transferBytes":33}]
+{"passed":false,"checks":91,"failed":["159-media-provider-404-390-dpr1","159-media-provider-500-390-dpr1","159-media-local-404-390-dpr1","159-media-provider-404-390-dpr2","159-media-provider-500-390-dpr2","159-media-local-404-390-dpr2","159-media-provider-404-1440-dpr1","159-media-provider-500-1440-dpr1","159-media-local-404-1440-dpr1","159-media-provider-404-1440-dpr2","159-media-provider-500-1440-dpr2","159-media-local-404-1440-dpr2"]}

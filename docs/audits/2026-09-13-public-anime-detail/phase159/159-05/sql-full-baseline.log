@@ -1,0 +1,8 @@
+=== RUN   TestPhase159FullBaselineBudget
+    phase159_budget_test.go:168: FULL anime=1 statements=4 returned_rows=11 serialized_bytes=2485
+    phase159_budget_test.go:168: FULL anime=4 statements=4 returned_rows=129 serialized_bytes=57773
+    phase159_budget_test.go:168: FULL anime=5 statements=4 returned_rows=2 serialized_bytes=122
+    phase159_budget_test.go:168: FULL anime=2 statements=4 returned_rows=1 serialized_bytes=37
+--- PASS: TestPhase159FullBaselineBudget (0.09s)
+PASS
+ok  	team4s.v3/backend/internal/repository	0.104s
