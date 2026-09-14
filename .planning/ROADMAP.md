@@ -1720,10 +1720,12 @@ Release-Notizliste, wo der Rollen-Header fachlich richtig ist.
 `157-CONTEXT.md` als Spezifikation in Worten hinterlegt. Eine zusaetzliche UI-SPEC-Runde ist damit
 nicht erforderlich; `plan-phase` mit `--skip-ui` fahren.
 
-**Plans:** 14/14 plans complete — 157-14 (V6: hero jump metrics replace ProjectMemberStickyNav)
-closes the last of GAP-02's four automated closure plans (157-11/12/13/14). Phase-level human
-Live-UAT sign-off (157-06 Task 4 checkpoint, plus a full re-run of 157-UAT.md GAP-02 points 1-9)
-remains OPEN — phase not yet marked done.
+**Plans:** 14/16 plans complete — 157-14 (V6: hero jump metrics replace ProjectMemberStickyNav)
+closed the last of GAP-02's four automated closure plans (157-11/12/13/14). GAP-03 (independent
+post-GAP-02 check, 157-UAT.md, 2026-09-14, findings F1-F5) added two further gap-closure plans,
+157-15 and 157-16, planned but not yet executed. Phase-level human Live-UAT sign-off (157-06 Task 4
+checkpoint, plus a full re-run of 157-UAT.md GAP-02 points 1-9 and GAP-03 F1-F5) remains OPEN —
+phase not yet marked done.
 
 Plans:
 
@@ -1759,6 +1761,18 @@ Plans:
 - [x] 157-12-PLAN.md — V1+V2+V5: globale SectionHeader-Unterstreichung auf Projektseite + Texte-&-Notizen/Bilder-&-Medien-Kopfzeilen, redundanter "Alle N angezeigt"-Pagertext entfernt
 - [x] 157-13-PLAN.md — V3+V4: Timeline-Punkt deutlich groesser, Timeline-Linie deutlich dicker und je Eintrag in dessen eigener Rollenfarbe (Entscheid 2026-09-14 zu V4)
 - [x] 157-14-PLAN.md — V6: Hero-Kennzahlen Beitraege/Medien als klickbare Sprungziele (additive HeroMetrics-API + geteilter scrollToSection-Helper), ProjectMemberStickyNav vollstaendig entfernt
+
+**Gap closure — Wave 7** *(GAP-03 aus 157-UAT.md: unabhaengige Nachkontrolle vom 2026-09-14 nach
+Abschluss der Plaene 157-11..14, Befunde F1-F5)*
+
+- [ ] 157-15-PLAN.md — F1+F2+F3+F4: globale SectionHeader-Icon/Zaehler-Erweiterung (volle
+  Unterstreichungsbreite, Zaehler bleibt in der Titelzeile), dauerhaft erkennbare klickbare
+  Hero-Kennzahlen mit sichtbarem Fokus, Tab-Kontrolle fuer abgeschnittene Notiz-Links (Review WR-03),
+  isolierter Stacking-Context der Notiz-Karte (Review WR-04)
+- [ ] 157-16-PLAN.md — F5: ROADMAP/DECISIONS-Abgleich (P157-02/04/09 als durch Nutzerentscheid
+  ersetzt/entfallen dokumentiert statt still erfuellt), verwaiste
+  ProjectMemberSummary/-Band-Komponenten entfernt, 157-VERIFICATION.md-Neulauf als Folgeschritt
+  festgehalten
 
 ### Phase 158: Public Anime Detail — Reparatur
 
