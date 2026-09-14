@@ -3101,10 +3101,10 @@ Ignored nodes: comments, script, style
  FAIL  src/components/fansubs/FansubVersionBrowser.test.tsx > one deterministic group owner > hydrates deterministic primary HTML then restores secondary in StrictMode without overwriting it
 AssertionError: expected '<section class="_section_62cc84"><div…' to match /aria-pressed="true"[^>]*>Anderer Grup…/
 
-[32m- Expected:[39m 
+[32m- Expected:[39m
 /aria-pressed="true"[^>]*>Anderer Gruppenname/
 
-[31m+ Received:[39m 
+[31m+ Received:[39m
 "<section class=\"_section_62cc84\"><div class=\"_filterRow_62cc84\"><button type=\"button\" class=\"_filterChip_62cc84 \" aria-pressed=\"false\">Anderer Gruppenname</button><button type=\"button\" class=\"_filterChip_62cc84 _filterChipActive_62cc84\" aria-pressed=\"true\">Zweite Gruppe</button></div><div class=\"_groupCtaRow_62cc84\"><a class=\"_groupButton_62cc84\" aria-label=\"Zum Gruppenbereich\" href=\"/anime/22/group/9\">Gruppenbereich</a></div><ul class=\"_episodeList_62cc84\"><li class=\"_episodeCard_62cc84\"><button type=\"button\" class=\"_episodeHeader_62cc84\" aria-expanded=\"false\" aria-controls=\"episode-versions-1\"><div><p class=\"_episodeNumber_62cc84\">Folge <!-- -->1</p><p class=\"_summaryLine_62cc84\">Gruppenfolge</p></div><span class=\"_countBadge_62cc84\">+2 Versionen</span></button></li></ul></section>"
 
  ❯ src/components/fansubs/FansubVersionBrowser.test.tsx:107:18
@@ -3685,4 +3685,3 @@ Error: blocked
       Tests  17 failed | 10 passed (27)
    Start at  22:41:59
    Duration  1.39s (transform 184ms, setup 141ms, collect 448ms, tests 617ms, environment 594ms, prepare 105ms)
-

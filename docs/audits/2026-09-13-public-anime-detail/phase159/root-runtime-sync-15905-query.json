@@ -1,0 +1,46 @@
+{
+  "observed_at": "2026-09-14T00:02:52.162711+00:00",
+  "source_commit": "157f318fa006694ed338dd916e50b0ed2fbc86bc",
+  "product_fix": "157f318f",
+  "container_before": "99df8d19de2a9e3c564b14892b4055db758c661a9b36f4354d514716124a27d8",
+  "container_after": "99df8d19de2a9e3c564b14892b4055db758c661a9b36f4354d514716124a27d8",
+  "api_process_before": "6476 /app/tmp/air/server",
+  "api_process_after": "6813 /app/tmp/air/server",
+  "hashes": [
+    {
+      "file": "backend/internal/handlers/episode_version_grants.go",
+      "source": "3783dab48aeac0e1b61fec67e32b2f88a8589b18b71871908962f1ab9f06e0cc",
+      "running_container_source": "3783dab48aeac0e1b61fec67e32b2f88a8589b18b71871908962f1ab9f06e0cc",
+      "matches": true
+    },
+    {
+      "file": "backend/internal/handlers/episode_version_reads.go",
+      "source": "4d3a075e2c44eb285074706f8bb51ab64009c3b47fe9574d02276a064b860712",
+      "running_container_source": "4d3a075e2c44eb285074706f8bb51ab64009c3b47fe9574d02276a064b860712",
+      "matches": true
+    }
+  ],
+  "http": [
+    {
+      "query": "projection=public&cursor=%ZZ",
+      "status": 400,
+      "body_bytes": 51
+    },
+    {
+      "query": "projection=public&limit=%ZZ",
+      "status": 400,
+      "body_bytes": 51
+    },
+    {
+      "query": "projection=public&limit=1",
+      "status": 200,
+      "body_bytes": 610
+    },
+    {
+      "query": "includeVersions=false&includeFansubs=false",
+      "status": 200,
+      "body_bytes": 1155
+    }
+  ],
+  "mechanism": "One tarstream source update and normal Air child reload; no container/PID1 restart or migration entrypoint; GET-only anonymous checks; no database/media mutation"
+}

@@ -27,7 +27,7 @@
    × bounded public SSR inventory > requests one 24-row public page and forwards cursor/story without claiming the slice is the total 10ms
      → expected "spy" to be called once with arguments: [ 22, { projection: 'public', …(1) } ][90m
 
-Received: 
+Received:
 
 [1m  1st spy call:
 
@@ -439,7 +439,7 @@ Ignored nodes: comments, script, style
  FAIL  src/app/anime/[id]/page.test.tsx > bounded public SSR inventory > requests one 24-row public page and forwards cursor/story without claiming the slice is the total
 AssertionError: expected "spy" to be called once with arguments: [ 22, { projection: 'public', …(1) } ][90m
 
-Received: 
+Received:
 
 [1m  1st spy call:
 
@@ -469,4 +469,3 @@ Number of calls: [1m1[22m
       Tests  6 failed | 44 passed (50)
    Start at  22:45:14
    Duration  1.50s (transform 688ms, setup 143ms, collect 1.34s, tests 655ms, environment 332ms, prepare 116ms)
-

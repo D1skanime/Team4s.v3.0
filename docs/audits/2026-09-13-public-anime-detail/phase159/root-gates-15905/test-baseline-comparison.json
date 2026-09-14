@@ -1,0 +1,16 @@
+{
+  "baseline_failures": [
+    "src/lib/cssCustomProperties.guard.test.ts > cssCustomProperties scanner (real frontend/src tree) > finds zero fallback-free dead custom-property references on the real, fixed tree (Success Criterion 1)",
+    "src/lib/cssCustomProperties.guard.test.ts > cssCustomProperties scanner (real frontend/src tree) > the known-non-CSS-textual-mentions allow-list stays exactly as small as documented (no silent growth)"
+  ],
+  "current_failures": [
+    "src/lib/cssCustomProperties.guard.test.ts > cssCustomProperties scanner (real frontend/src tree) > finds zero fallback-free dead custom-property references on the real, fixed tree (Success Criterion 1)",
+    "src/lib/cssCustomProperties.guard.test.ts > cssCustomProperties scanner (real frontend/src tree) > the known-non-CSS-textual-mentions allow-list stays exactly as small as documented (no silent growth)"
+  ],
+  "same_failures": true,
+  "summary_lines": [
+    "Test Files  1 failed | 319 passed | 1 skipped (321)",
+    "Tests  2 failed | 2616 passed | 3 todo (2621)",
+    "Duration  104.83s (transform 9.81s, setup 26.64s, collect 75.26s, tests 67.27s, environment 77.72s, prepare 22.94s)"
+  ]
+}

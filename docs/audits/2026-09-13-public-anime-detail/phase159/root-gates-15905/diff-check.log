@@ -1,0 +1,25 @@
+docs/audits/2026-09-13-public-anime-detail/phase159/159-03/task1-green.log:29: new blank line at EOF.
+docs/audits/2026-09-13-public-anime-detail/phase159/159-03/task1-red.log:3104: trailing whitespace.
++[32m- Expected:[39m
+docs/audits/2026-09-13-public-anime-detail/phase159/159-03/task1-red.log:3107: trailing whitespace.
++[31m+ Received:[39m
+docs/audits/2026-09-13-public-anime-detail/phase159/159-03/task1-red.log:3688: new blank line at EOF.
+docs/audits/2026-09-13-public-anime-detail/phase159/159-03/task2-green.log:16: new blank line at EOF.
+docs/audits/2026-09-13-public-anime-detail/phase159/159-03/task2-red.log:30: trailing whitespace.
++Received:
+docs/audits/2026-09-13-public-anime-detail/phase159/159-03/task2-red.log:442: trailing whitespace.
++Received:
+docs/audits/2026-09-13-public-anime-detail/phase159/159-03/task2-red.log:472: new blank line at EOF.
+docs/audits/2026-09-13-public-anime-detail/phase159/159-03/task3-green.log:16: new blank line at EOF.
+docs/audits/2026-09-13-public-anime-detail/phase159/159-03/task3-red.log:499: trailing whitespace.
++[32m- Expected:[39m
+docs/audits/2026-09-13-public-anime-detail/phase159/159-03/task3-red.log:502: trailing whitespace.
++[31m+ Received:[39m
+docs/audits/2026-09-13-public-anime-detail/phase159/159-03/task3-red.log:518: trailing whitespace.
++[32m- Expected:[39m
+docs/audits/2026-09-13-public-anime-detail/phase159/159-03/task3-red.log:521: trailing whitespace.
++[31m+ Received:[39m
+docs/audits/2026-09-13-public-anime-detail/phase159/159-03/task3-red.log:539: new blank line at EOF.
+docs/audits/2026-09-13-public-anime-detail/phase159/159-03/tests.log:21: new blank line at EOF.
+docs/audits/2026-09-13-public-anime-detail/phase159/159-03/typecheck-interim.log:4: new blank line at EOF.
+docs/audits/2026-09-13-public-anime-detail/phase159/159-03/typecheck.log:4: new blank line at EOF.

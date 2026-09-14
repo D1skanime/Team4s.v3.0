@@ -1,0 +1,40 @@
+{
+  "observed_at": "2026-09-14T05:35:46.726019+00:00",
+  "source_commit": "a76d9a8e434d2f70b5f87ea5b6e0588c9fb6f6c1",
+  "environment": "shared Codex in-app browser at real VM frontend via127.0.0.1:3300",
+  "route": "/anime/1",
+  "viewports": [
+    {
+      "width": 390,
+      "root_client_width": 375,
+      "document_scroll_width": 375,
+      "scroll_x": 0,
+      "episode": "opened by visible button",
+      "cover": {
+        "rendered_width": 160,
+        "rendered_height": 228,
+        "natural_width": 512,
+        "natural_height": 730
+      }
+    },
+    {
+      "width": 1440,
+      "root_client_width": 1425,
+      "document_scroll_width": 1425,
+      "scroll_x": 0,
+      "episode": "open",
+      "episode_title_color": "rgb(28,28,30)",
+      "episode_card_background": "rgb(255,255,255)"
+    }
+  ],
+  "contribution_heading_color": "rgb(255,255,255)",
+  "visible_play_href": "/api/releases/27/stream?variant_id=27",
+  "visible_project_href": "/fansubs/new-subs/fansubprojekt/buddy-complex",
+  "actual_pretty_navigation_proof": "root-live-ui-media-15904.json (same link remains observed in final UI)",
+  "viewport_override_reset": true,
+  "boundaries": [
+    "No playback, comment, watchlist or domain-data mutation",
+    "One real group available in this live example; two-group/storage/grid/error cases belong to isolated production fixtures",
+    "Source gates and live screenshots/DOM are technical evidence; Human-UAT is not signed off"
+  ]
+}

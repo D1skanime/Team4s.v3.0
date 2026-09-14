@@ -1,0 +1,25 @@
+{
+  "observed_at": "2026-09-14T00:05:17.235542+00:00",
+  "source_commit": "26faac702d79435cbb61e16810dc9ef5b1f59817",
+  "original_file": "frontend/public/covers/placeholder.jpg",
+  "size": 352,
+  "sha256": "14acbcadc59f51663a8e3a1b4d61547623522b97d9ddb44377f8f4d1adbbf453",
+  "identical_to_audit_baseline": true,
+  "decoder": "installed Sharp in existing frontend container, read-only metadata()",
+  "decode_error": "Input buffer has corrupt header: VipsJpeg: Corrupt JPEG data: 16 extraneous bytes before marker 0xc4; VipsJpeg: Invalid JPEG file structure: SOS before SOF",
+  "http": [
+    {
+      "path": "/covers/placeholder.jpg",
+      "status": 200,
+      "content_type": "image/jpeg",
+      "body_bytes": 352
+    },
+    {
+      "path": "/covers/placeholder.jpg/display?display_width=512",
+      "status": 500,
+      "content_type": "text/html; charset=utf-8",
+      "body_bytes": 2089
+    }
+  ],
+  "classification": "Pre-existing corrupt tracked fallback asset; Plan15905 fixes only anime display fallback with a valid source. Original asset and global getCoverUrl consumers untouched."
+}

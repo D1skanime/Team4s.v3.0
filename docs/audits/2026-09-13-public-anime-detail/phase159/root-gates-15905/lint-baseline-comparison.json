@@ -1,0 +1,16 @@
+{
+  "baseline_source": "phase158/lint.log",
+  "current_source": "root-gates-15905/lint.log",
+  "comparison": "file + severity + first diagnostic line, preserving multiplicity; locations ignored; multiline explanatory excerpts excluded; one terminal full stop normalized because ESLint stylish suppresses it whereas JSON preserves it",
+  "baseline_counts": {
+    "error": 13,
+    "warning": 331
+  },
+  "current_counts": {
+    "error": 13,
+    "warning": 331
+  },
+  "same_diagnostic_multiset": true,
+  "added": [],
+  "removed": []
+}

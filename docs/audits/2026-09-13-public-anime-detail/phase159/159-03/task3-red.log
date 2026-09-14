@@ -496,10 +496,10 @@ Ignored nodes: comments, script, style
  FAIL  src/components/anime/AnimeEdgeNavigation.test.tsx > interaction-only grid navigation > aborts old context and ignores late reject, including its finally and router continuation
 AssertionError: expected undefined to be true // Object.is equality
 
-[32m- Expected:[39m 
+[32m- Expected:[39m
 true
 
-[31m+ Received:[39m 
+[31m+ Received:[39m
 undefined
 
  ❯ src/components/anime/AnimeEdgeNavigation.test.tsx:115:29
@@ -515,10 +515,10 @@ undefined
  FAIL  src/components/anime/AnimeEdgeNavigation.test.tsx > interaction-only grid navigation > aborts when only the query changes, and when unmounted
 AssertionError: expected undefined to be true // Object.is equality
 
-[32m- Expected:[39m 
+[32m- Expected:[39m
 true
 
-[31m+ Received:[39m 
+[31m+ Received:[39m
 undefined
 
  ❯ src/components/anime/AnimeEdgeNavigation.test.tsx:130:32
@@ -536,4 +536,3 @@ undefined
       Tests  12 failed | 7 passed (19)
    Start at  22:49:32
    Duration  3.03s (transform 358ms, setup 288ms, collect 665ms, tests 2.23s, environment 364ms, prepare 174ms)
-

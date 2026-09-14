@@ -1,0 +1,40 @@
+{
+  "observed_at": "2026-09-14T05:22:08.671103+00:00",
+  "source_commit": "6ebfebf72019f337844b01fd7f7d832faaa71a74",
+  "environment": "live frontend development HTTP; actual existing public files; no file or DB writes",
+  "samples": [
+    {
+      "route": "/covers/display/placeholder.png?display_width=512",
+      "status": 200,
+      "headers": {
+        "Content-Type": "image/webp",
+        "Content-Length": "74",
+        "Cache-Control": "public, max-age=60"
+      },
+      "body_bytes": 74,
+      "decoded": {
+        "format": "webp",
+        "width": 64,
+        "height": 96,
+        "pages": 1
+      }
+    },
+    {
+      "route": "/covers/display/placeholder.jpg?display_width=512",
+      "status": 415,
+      "headers": {
+        "Content-Type": "text/plain;charset=UTF-8"
+      },
+      "body_bytes": 33
+    },
+    {
+      "route": "/covers/display/nonexistent.png?display_width=512",
+      "status": 404,
+      "headers": {
+        "Content-Type": "text/plain;charset=UTF-8"
+      },
+      "body_bytes": 33
+    }
+  ],
+  "boundary": "Production path/transfer proof still Plan15905. Original JPG remains the pre-existing corrupt asset; valid PNG is the anime display fallback."
+}

@@ -1,0 +1,31 @@
+{
+  "recorded_at": "2026-09-14T05:32:54.678572+00:00",
+  "method": "Trailing ASCII whitespace per line and multiple EOF newlines normalized only; original checksums retained. Test outcomes, diagnostic text and ANSI sequences preserved.",
+  "files": [
+    {
+      "log": "frontend-tests-final.log",
+      "original_sha256": "bb8e3408140c3cd81c6856eed4745f3c94ddac37ba880c2a6be2a7f3b406e32c",
+      "normalized_sha256": "1fec1cc5a60eb22da8bfbfd2b26a87e0c808e5d5f9350f446bd61e638596909e"
+    },
+    {
+      "log": "frontend-tests.log",
+      "original_sha256": "45a2ae726fde87b81573b3279a1d9c6d902590eeca12208b9456c57802df7cea",
+      "normalized_sha256": "d2cfa45123ca56049b25f6a270b1d7e7386390f17a548d7e54e9c57b5b57a00d"
+    },
+    {
+      "log": "route-expectation-green.log",
+      "original_sha256": "146fc61704d18011c5cc4c96bec3b638691c7e9a4acf4e7cec88836019563c5a",
+      "normalized_sha256": "e73e6b46c74496d8a653c8f660c61cf52ef492d3434e1b8c5d52bb39f14493d1"
+    },
+    {
+      "log": "typecheck-final.log",
+      "original_sha256": "68a3837900118f6548bb1b5adf1e3704a223709e31185d44f0d77dfa3f845f4d",
+      "normalized_sha256": "09ad47fa13cd14375bfcabd33de5971e0ecb9a4acd39ff126f8851841fade982"
+    },
+    {
+      "log": "diff-check.log",
+      "original_sha256": "e52f8fb71fde431ad9f9e80d6ff691bba1ec1d3f3350665773f7c71a971aca31",
+      "normalized_sha256": "ae60d56d9e19e21d53142ddaa5d5e1190dc4097c5965eb6d7886ad86f6f11232"
+    }
+  ]
+}

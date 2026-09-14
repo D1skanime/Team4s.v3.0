@@ -26,4 +26,3 @@ This ensures that you're testing the behavior the user would see in the browser.
       Tests  27 passed (27)
    Start at  22:43:24
    Duration  1.31s (transform 138ms, setup 143ms, collect 457ms, tests 521ms, environment 609ms, prepare 104ms)
-

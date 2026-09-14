@@ -1,0 +1,12 @@
+{
+  "observed_at": "2026-09-14T00:06:40.643109+00:00",
+  "source_commit": "26faac702d79435cbb61e16810dc9ef5b1f59817",
+  "environment": "live Linux frontend development server; GET-only",
+  "request": "GET /covers/placeholder.jpg/display?display_width=512",
+  "status": 500,
+  "response_content_type": "text/html; charset=utf-8",
+  "runtime_error": "ENOTDIR: not a directory, stat '/app/public/covers/placeholder.jpg/display'",
+  "cause": "Next development public-filesystem probe stats the nested URL below an existing public file before matching the dynamic route. The file cannot be a directory.",
+  "correction": "Plan15905 moves only the newly introduced display adapter to /covers/display/[file]; original /covers/[file] stays unchanged. Production proof still required.",
+  "classification": "Newly introduced route placement defect, distinct from the pre-existing corrupt JPEG placeholder; discovered in live HTTP before phase completion."
+}

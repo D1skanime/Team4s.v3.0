@@ -1,0 +1,5 @@
+
+> team4s-frontend@0.1.0 typecheck
+> tsc --noEmit
+
+src/lib/server/imageDisplay.test.ts(274,23): error TS2554: Expected 1 arguments, but got 0.

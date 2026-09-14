@@ -1,0 +1,63 @@
+{
+  "recorded_at": "2026-09-14T05:28:38.738603+00:00",
+  "original_evidence_commit": "f4743865",
+  "transformation": "Only trailing ASCII space/tab per line and multiple final newline removal. Text, results and ANSI sequences otherwise preserved. Original bytes remain in the named Git history.",
+  "reason": "Whole-scope git diff AUDITBASE --check detected generated output whitespace; prior15903 working-tree-only check did not cover previously committed logs. No source behavior or test outcomes changed.",
+  "files": [
+    {
+      "path": "docs/audits/2026-09-13-public-anime-detail/phase159/159-03/task1-green.log",
+      "original_sha256": "ad5b54d036470bf9ef43b3724a32c7bc1bb6bb6caa7f297f29958fe057de4acc",
+      "normalized_sha256": "46489111f0dd9732b8de45647f859e2b79cb7f96e40a3c236d780ade720304b8"
+    },
+    {
+      "path": "docs/audits/2026-09-13-public-anime-detail/phase159/159-03/typecheck.log",
+      "original_sha256": "68a3837900118f6548bb1b5adf1e3704a223709e31185d44f0d77dfa3f845f4d",
+      "normalized_sha256": "09ad47fa13cd14375bfcabd33de5971e0ecb9a4acd39ff126f8851841fade982"
+    },
+    {
+      "path": "docs/audits/2026-09-13-public-anime-detail/phase159/159-03/tests.log",
+      "original_sha256": "aef86cba3d2b2447017a2d99c421554e119ded12a291ce627e13208deaad4883",
+      "normalized_sha256": "d5b43ff76347f2ae84a30b4ddb7250d05848bc17c27591e6018b5804b8a19a4a"
+    },
+    {
+      "path": "docs/audits/2026-09-13-public-anime-detail/phase159/159-03/task3-green.log",
+      "original_sha256": "682b6f51b9a7f15eb43932bf94125508d3d7ee7acd0e4e8cdb4df4afb8dec3e6",
+      "normalized_sha256": "d27ca00e8319e9a2d24a4fad88d2b647b183f8c7b09cc5269063140af9683941"
+    },
+    {
+      "path": "docs/audits/2026-09-13-public-anime-detail/phase159/159-03/task2-green.log",
+      "original_sha256": "c129c4fa36dd42a1ae5c0e10ce9bddf515b6cd66a22a13a43cd011d7e687e33b",
+      "normalized_sha256": "0bea742acbb5e13931fc98a9fe05f7124413113015d3435c814ff19ea163aac4"
+    },
+    {
+      "path": "docs/audits/2026-09-13-public-anime-detail/phase159/159-03/task2-red.log",
+      "original_sha256": "c5e1f6a07cefc231723322b1829c6b7a5babb78da0d369ac7501bc9db6fe443b",
+      "normalized_sha256": "059333a81bcb07733d5f1c862430ffdb998dbef83da2d062d4dfa0e9f4dbbfc5"
+    },
+    {
+      "path": "docs/audits/2026-09-13-public-anime-detail/phase159/159-03/task1-red.log",
+      "original_sha256": "d87763c0805072f719fb82b8e8807f0d059664030e2b12b5cd0be55aee1b2ec8",
+      "normalized_sha256": "6e6bbaee7b348cf2c85338737c2b23ce7b9011e66a3d2b8caa4046545f8814af"
+    },
+    {
+      "path": "docs/audits/2026-09-13-public-anime-detail/phase159/159-03/diffcheck.log",
+      "original_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "normalized_sha256": "01ba4719c80b6fe911b091a7c05124b64eeece964e09c058ef8f9805daca546b"
+    },
+    {
+      "path": "docs/audits/2026-09-13-public-anime-detail/phase159/159-03/typecheck-interim.log",
+      "original_sha256": "68a3837900118f6548bb1b5adf1e3704a223709e31185d44f0d77dfa3f845f4d",
+      "normalized_sha256": "09ad47fa13cd14375bfcabd33de5971e0ecb9a4acd39ff126f8851841fade982"
+    },
+    {
+      "path": "docs/audits/2026-09-13-public-anime-detail/phase159/159-03/task3-red.log",
+      "original_sha256": "e485bd94713d2578ceb01387adad7f667a5561e9abb601209803c4ab19473c70",
+      "normalized_sha256": "b0f5c7c05b22d4dea572eed8fb73e246bea7dc8289495b78bc9c70772874a981"
+    },
+    {
+      "path": "docs/audits/2026-09-13-public-anime-detail/phase159/159-03/lint.log",
+      "original_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "normalized_sha256": "01ba4719c80b6fe911b091a7c05124b64eeece964e09c058ef8f9805daca546b"
+    }
+  ]
+}
