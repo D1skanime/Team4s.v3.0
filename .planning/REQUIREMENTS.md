@@ -287,24 +287,24 @@ Quelle: .planning/phases/158-public-anime-detail-reparatur/158-USER-REQUEST.md u
 
 ## Phase 159 — Additiver Anime-Scope (2026-09-13)
 
-Quelle: .planning/phases/159-public-anime-detail-konsolidierung/159-USER-REQUEST.md und 159-CONTEXT.md. Alle neuen Anforderungen sind offen; bestehende IDs und Status bleiben unverändert. Human-UAT156/157 wird hierdurch nicht geschlossen.
+Quelle: .planning/phases/159-public-anime-detail-konsolidierung/159-USER-REQUEST.md und 159-CONTEXT.md. Alle acht Anforderungen sind unabhängig technisch verifiziert; Nachweise in 159-INDEPENDENT-VERIFICATION.md und RESULTS.md. Bestehende IDs und historische Status bleiben unverändert. Human-UAT 156/157/158/159 bleibt offen.
 
-- [ ] **P159-01**: Ein SSR-deterministischer Clientbesitzer für Story/Filter/Versionen; sichere Persistierung/Multitabs; kein Poll oder Wechselrefetch.
-- [ ] **P159-02**: Gridnachbarn mit Zielanime und Gridseite; erster asynchroner Klick; Abort/Ignore; kein Initialrequest ohne Interaktion.
-- [ ] **P159-03**: Reales Coverbudget mobil/desktop über bestehende Medienmechanismen; lokale und Providerbilder; keine Scheintransformation.
-- [ ] **P159-04**: Ein geteilter Manifestrequest; begrenzte Lebensdauer/Größe; Consumerabort, Retry und SPA-Aktualisierung.
-- [ ] **P159-05**: Feld-/Consumer-Matrix und isolierte Fixtures vor riskanten Änderungen; neutrale Episodenfallbacks erhalten.
-- [ ] **P159-06**: Assignmentautorität bei Segmentbedarf; fansub_groups-Parität; eindeutige IDs; kontrollierte Streamcompatibility.
-- [ ] **P159-07**: Belegte Payload-/Rowgrenze oder passender Abrufmechanismus; keine Query pro Episode/Variante/Gruppe/Contributor.
-- [ ] **P159-08**: Volle Matrix für Storage/Multitab/Grid/Media/Cache/Kollision/Assignmentdivergenz und frische Gesamtgates.
+- [x] **P159-01**: Ein SSR-deterministischer Clientbesitzer für Story/Filter/Versionen; sichere Persistierung/Multitabs; kein Poll oder Wechselrefetch.
+- [x] **P159-02**: Gridnachbarn mit Zielanime und Gridseite; erster asynchroner Klick; Abort/Ignore; kein Initialrequest ohne Interaktion.
+- [x] **P159-03**: Reales Coverbudget mobil/desktop über bestehende Medienmechanismen; lokale und Providerbilder; keine Scheintransformation.
+- [x] **P159-04**: Ein geteilter Manifestrequest; begrenzte Lebensdauer/Größe; Consumerabort, Retry und SPA-Aktualisierung.
+- [x] **P159-05**: Feld-/Consumer-Matrix und isolierte Fixtures vor riskanten Änderungen; neutrale Episodenfallbacks erhalten.
+- [x] **P159-06**: Assignmentautorität bei Segmentbedarf; fansub_groups-Parität; eindeutige IDs; kontrollierte Streamcompatibility.
+- [x] **P159-07**: Belegte Payload-/Rowgrenze oder passender Abrufmechanismus; keine Query pro Episode/Variante/Gruppe/Contributor.
+- [x] **P159-08**: Volle Matrix für Storage/Multitab/Grid/Media/Cache/Kollision/Assignmentdivergenz und frische Gesamtgates.
 
 | Requirement | Phase | Status |
 |---|---|---|
-| P159-01 | Phase 159 | Pending |
-| P159-02 | Phase 159 | Pending |
-| P159-03 | Phase 159 | Pending |
-| P159-04 | Phase 159 | Pending |
-| P159-05 | Phase 159 | Pending |
-| P159-06 | Phase 159 | Pending |
-| P159-07 | Phase 159 | Pending |
-| P159-08 | Phase 159 | Pending |
+| P159-01 | Phase 159 | Complete (technical; human UAT pending) |
+| P159-02 | Phase 159 | Complete (technical; human UAT pending) |
+| P159-03 | Phase 159 | Complete (technical; human UAT pending) |
+| P159-04 | Phase 159 | Complete (technical; human UAT pending) |
+| P159-05 | Phase 159 | Complete (technical; human UAT pending) |
+| P159-06 | Phase 159 | Complete (technical; human UAT pending) |
+| P159-07 | Phase 159 | Complete (technical; human UAT pending) |
+| P159-08 | Phase 159 | Complete (technical; human UAT pending) |

@@ -42,7 +42,7 @@ key-decisions:
   - Place the display adapter outside descendants of a real public file.
   - Separate image transfers, cache reuse and tiny non-cacheable error responses.
 requirements-addressed: [P159-01, P159-02, P159-03, P159-04, P159-05, P159-06, P159-07, P159-08]
-requirements-completed: []
+requirements-completed: [P159-01, P159-02, P159-03, P159-04, P159-05, P159-06, P159-07, P159-08]
 completed: 2026-09-14
 ---
 
@@ -91,3 +91,7 @@ Root owns global tracking and independent final review/security/verification. Hu
 ## Self-Check: PASSED
 
 All listed artifacts and commits exist; evidence links resolve, no mandatory case is NOT_RUN, and cleanup is recorded. Only the intentional cover-adapter/test rename removed old tracked paths. Global tracking and foreign review/security files were not staged.
+
+## Orchestrator closeout — 2026-09-14
+
+All eight requirements are independently technically verified (159-INDEPENDENT-VERIFICATION.md). Final review is clean across 57 changed file identities; all 12 planned security mitigations are verified. ROADMAP, STATE, REQUIREMENTS and both validation documents now distinguish the technical completion from unchanged human UAT and global baseline exceptions. No additional product change was required after the final harness.

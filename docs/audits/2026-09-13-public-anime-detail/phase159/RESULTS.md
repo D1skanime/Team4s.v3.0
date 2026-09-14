@@ -13,7 +13,7 @@ Phase159 baseline c3bfcb23781addca1ccd3931592535416f706787; original audit7c7e1c
 | Global lint | 13errors/331warnings; exact baseline diagnostic multiset, no added/removed |
 | Harness Node/shell syntax / scoped ESLint | 0 / 0 |
 | Go build/vet/relevant repository-handler-model regression | PASS with actual isolated PostgreSQL |
-| Full Next webpack build | FAIL: unchanged admin formatEditLoadError invalid Page export |
+| Full Next production build | FAIL: unchanged admin formatEditLoadError invalid Page export |
 | Selective production build / full browser run | PASS /91 of91 |
 | Whole original audit baseline diff check | PASS after documented log whitespace normalization |
 

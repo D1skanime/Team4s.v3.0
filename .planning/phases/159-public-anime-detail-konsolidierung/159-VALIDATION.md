@@ -1,16 +1,21 @@
 ---
 phase: 159
-status: draft
+status: validated
 nyquist_compliant: false
-wave_0_complete: false
+wave_0_complete: true
 created: 2026-09-13
+updated: 2026-09-14
+technical_verified: true
+human_uat: pending
 ---
 
 # Phase159 — Validation
 
 ## Verbindliche Matrix
 
-Noch kein Punkt ist abgenommen. Quelle: vollständiger159-USER-REQUEST.md. Technische Nachweise ersetzen keine Human-Abnahme156/157.
+Die technische Pflichtmatrix ist vollständig und unabhängig verifiziert: 8/8 Anforderungen, 91/91 Produktionsprüffälle, 48 Medienkonfigurationen mit 96 kalten/warmen Beobachtungen. Verbindliche Nachweise: 159-VERIFICATION.md, 159-INDEPENDENT-VERIFICATION.md, 159-REVIEW.md, 159-SECURITY.md und docs/audits/2026-09-13-public-anime-detail/phase159/RESULTS.md. Typecheck/scoped Lint bestehen; globale Baselineausnahmen sind ausdrücklich dokumentiert.
+
+Wave-0-Testvoraussetzungen sind erfüllt. `nyquist_compliant` bleibt mangels separat ausgeführtem formalem Nyquist-Audit unverändert false; die vollständige technische Pflichtmatrix ist davon getrennt belegt. Kein technischer Nachweis ersetzt Human-UAT 156/157/158/159.
 
 | Bereich | Pflichtfälle | Beweisart |
 |---|---|---|

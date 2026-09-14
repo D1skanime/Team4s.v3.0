@@ -1,16 +1,21 @@
 ---
 phase: 158
-status: draft
+status: validated
 nyquist_compliant: false
-wave_0_complete: false
+wave_0_complete: true
 created: 2026-09-13
+updated: 2026-09-14
+technical_verified: true
+human_uat: pending
 ---
 
 # Phase158 — Validation
 
 ## Verbindliche Matrix
 
-Noch kein Punkt ist abgenommen. Quelle: vollständiger158-USER-REQUEST.md. Technische Nachweise ersetzen keine Human-Abnahme156/157.
+Die technische Pflichtmatrix ist vollständig verifiziert: 9/9 Anforderungen und 33/33 Produktionsfixture-Prüfgruppen. Quelle: vollständiger 158-USER-REQUEST.md; ausgeführte Nachweise in 158-VERIFICATION.md, 158-INDEPENDENT-VERIFICATION.md und docs/audits/2026-09-13-public-anime-detail/phase158/RESULTS.md. Phase 159 wiederholt alle 33 Browserregressionen erfolgreich. Technische Nachweise ersetzen keine Human-Abnahme für 156/157/158.
+
+Wave-0-Testvoraussetzungen sind erfüllt. `nyquist_compliant` bleibt mangels separat ausgeführtem formalem Nyquist-Audit unverändert false; daraus wird weder ein formaler Score noch ein fehlender technischer Pflichtfall abgeleitet.
 
 | Bereich | Pflichtfälle | Beweisart |
 |---|---|---|

@@ -2,27 +2,31 @@
 gsd_state_version: 1.0
 milestone: v1.4
 milestone_name: Coverage
-status: executing
-stopped_at: 159-01 through 159-04 implemented and targeted checked; next 159-05 plus strict query fix; production media and Human-UAT remain OPEN
-last_updated: '2026-09-13T23:57:33.085029+00:00'
+status: verifying
+stopped_at: Anime 158/159 technically verified; global baseline exceptions and Human-UAT 156/157/158/159 remain open
+last_updated: '2026-09-14T06:02:02.220860+00:00'
 last_activity: 2026-09-14
 progress:
   total_phases: 24
   completed_phases: 22
   total_plans: 225
-  completed_plans: 224
+  completed_plans: 225
   percent: 92
 ---
 
 # Project State
 
-## Aktiver Zusatzauftrag — Anime158/159 (13.09.2026)
+## Aktiver Zusatzauftrag — Anime 158/159: technisch abgeschlossen (14.09.2026)
 
-Genau zwei Phasen sind angelegt: 158-public-anime-detail-reparatur und 159-public-anime-detail-konsolidierung. Phase 158 ist vollständig implementiert und im autorisierten Scope technisch verifiziert: 4/4 Plans, 9/9 Anforderungen, 33/33 Produktionsfixture-Prüfgruppen, unabhängiger Code-Review clean und 10/10 geplante Sicherheitsmaßnahmen belegt. Phase 159-01 bis 159-04 sind implementiert und gezielt technisch geprüft (4/5 Plans): Publicprojektion mit zwei SQL-Statements und begrenzten Cursorseiten, Consumer-/ID-/Assignment-Vertrag und Admin-Kompatibilität belegt. Der laufende API-Prozess liefert die neue Projektion nach normalem Air-Hot-Reload aus. Die explizite Streamkette bindet Variante und kanonische Releaseversion durch Source, Grant und Relay; Kollisions-, Berechtigungs-, Retry- und strikte Parsingtests bestehen. Der alte No-selector-Compatibilitypfad bleibt ausdrücklich mehrdeutig. Ein gemeinsamer SSR-deterministischer Gruppenowner ersetzt Storagepolling; Public-Paging, stabile Episodenidentität, exakte Playlinks und lazy Gridnachbarn sind verdrahtet. 78 relevante UI-/API-Tests, Typecheck und scoped Lint bestehen; Live-Episode/Playlink geprüft. 159-04 ergänzt den geteilten Manifestcache um TTL/Retention/Abbruch und echte begrenzte Bildausgabe. Produktcommit `7d9dedb1`, 115/115 gezielte Tests, Typecheck und scoped Lint bestehen; echte Providerbilder und Pretty-Navigation bei 390/1440px live geprüft. Die unabhängige Prüfung hat einen noch offenen Malformed-Cursor-/Limit-Parsefehler in 159-01 gefunden. Als Nächstes behebt 159-05 diesen Fehler und führt den vorhandenen Produktions-/Browser-/SQL-Harness aus. Private API-Files, animierte Bilder und statische Covers über den neuen Display-Unterpfad benötigen noch die Produktions-HTTP-Bestätigung; kein Gesamt-Sign-off. Verbindlicher Phase-159-Ausgangscommit: `c3bfcb23781addca1ccd3931592535416f706787`. Human-UAT bleibt separat offen.
+Genau zwei Phasen tragen den Auftrag. Phase 158 ist vollständig implementiert und im autorisierten Scope technisch verifiziert: 4/4 Plans, 9/9 Anforderungen, 33/33 Produktionsfixture-Prüfgruppen, unabhängiger Code-Review clean und 10/10 geplante Sicherheitsmaßnahmen belegt. Ausgangscommit: `7c7e1c7d02ac870e7c68c02b66fd7f4b33f36b85`; technischer Abschluss und verbindlicher Phase-159-Start: `c3bfcb23781addca1ccd3931592535416f706787`.
 
-Der geprüfte Ausgangscommit ist `7c7e1c7d02ac870e7c68c02b66fd7f4b33f36b85`. Der Produktstand entsprach bei der Bestandsaufnahme dem Audit. Seither: Relationsprüfung auf zwei Datenstatements begrenzt, autoritativer Anime-Slug ergänzt, Session- und Fehlerzustände korrigiert. Einzelbelege und Commits stehen in den Plan-Summaries. Der vollständige Typecheck besteht. Die vollständige Frontendsuite hat 2459 bestandene Tests und zwei unveränderte CSS-Guard-Fehler; Lint behält 13 Fehler/331 Warnungen. Der vollständige Produktionsbuild scheitert am bereits vorhandenen Admin-Page-Export. Die elf betroffenen öffentlichen Routen bestehen den isolierten selektiven Produktionsbuild; keine globale Buildfreigabe.
+Phase 159 ist ebenfalls vollständig implementiert und unabhängig technisch verifiziert: 5/5 Plans, 8/8 Anforderungen, ein kohärenter Produktionslauf mit 91/91 Prüffällen einschließlich aller 33 Phase-158-Regressionen. Review: 57 geänderte Dateiidentitäten, keine offenen Findings. Security: 12/12 geplante Maßnahmen belegt. Die Consumer-Matrix, begrenzte Publicprojektion, explizite Varianten-/Versionsidentität, gemeinsame Gruppenauswahl, lazy Gridnachbarn, Manifestlebensdauer und echte Bildbegrenzung sind umgesetzt. Produktstand `6ebfebf7`, abschließende reine Testkorrekturen `d22da611`/`a76d9a8e`, finaler Harness `c1bd215c`; Plan-/Evidenzdokumente bis `e7e707f2`. Ergebnis-SHA256: `22f7fc89df1933c957e31edfd1694fbb3ad429ce7936f5ad200e606023a5d7cf`.
 
-Human-UAT 156 GAP-02 mit 14 Origin-/Contributorprüfungen und 157-06 Task 4 bleiben ausdrücklich OPEN. Die nachfolgenden älteren Current-Position-/Milestoneabschnitte bleiben als Historie erhalten. Verbindlicher neuer Scope: 158/159-USER-REQUEST, CONTEXT, VALIDATION und REQUIREMENTS. Die historische GSD-Parseranzeige 129 und das ältere PROJECT-Dokument sind im Delta-Bericht eingeordnet; kein Milestone-Reset. Keine Live-Datenänderung.
+Die volle Frontendsuite endet mit 2616 bestandenen Tests, denselben zwei bestehenden CSS-Guard-Fehlern und drei todo. Typecheck und scoped Lint bestehen; globales Lint bleibt exakt bei 13 Fehlern/331 Warnungen. Der vollständige Produktionsbuild reproduziert den bekannten Admin-Page-Exportblocker, während der selektive tatsächliche Produktionsbuild aller betroffenen Routen besteht. Dies ist keine globale Build-/Lint-/Testsuitefreigabe. Frische SQL- und Browser-/HTTP-/CDP-Belege sowie bereinigte isolierte Ressourcen stehen in `docs/audits/2026-09-13-public-anime-detail/phase159/RESULTS.md` und den unabhängigen Verifikationsberichten.
+
+F-08/F-14 sind im autorisierten Public-/Vertragsscope behandelt; die volle Adminprojektion, die unbeschränkte neutrale AnimeDetail-Fallbackliste und die alte mehrdeutige Stream-Compatibility ohne Variantenselector bleiben bewusst erhalten. Weitere ausgeschlossene Produktentscheidungen werden nicht nebenbei umgesetzt. Keine Live-Daten-, Migrations-, Medienoriginal-, Env- oder Volumenänderung; kein Push. Die fremde `frontend/scripts/shot2.mjs` bleibt unangetastet.
+
+Human-UAT 156 GAP-02 mit 14 Origin-/Contributorprüfungen, 157-06 Task 4 und die menschliche Anime-Abnahme für 158/159 bleiben ausdrücklich OPEN. Der implementierte Auftrag ist technisch abgeschlossen; fehlendes Human-Sign-off wird nicht durch Agentenprüfungen ersetzt. Die nachfolgenden Current-Position-/Milestoneabschnitte sowie historischen globalen Phasenzähler bleiben erhalten. Die historische GSD-Parseranzeige 129 und das ältere PROJECT-Dokument sind im Delta-Bericht eingeordnet; kein Milestone-Reset. Verbindlich für diesen Zusatzauftrag sind ROADMAP/REQUIREMENTS und die Artefakte der Phasen 158/159.
 
 ## Milestone v1.3: COMPLETE (2026-08-20, tag `v1.3`)
 
