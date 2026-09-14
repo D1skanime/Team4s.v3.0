@@ -240,13 +240,13 @@ describe('ReleaseVersionMediaSection direct category upload', () => {
     expect(media.startUpload).not.toHaveBeenCalled()
   })
 
-  it('lets read-only viewers switch existing media without opening uploads', () => {
+  it('shows all existing media to read-only viewers without category interaction', () => {
     const media = makeMediaState({
       capabilities: { ...makeMediaState().capabilities!, can_upload_media: false },
       items: [makeItem({ category: 'other', caption: 'Vorhandenes Medium', can_update: false, can_delete: false })],
     })
     renderSection(media)
-    fireEvent.click(screen.getByRole('button', { name: 'Sonstiges 1' }))
+    expect(screen.getByRole('button', { name: 'Sonstiges 1' })).toHaveProperty('disabled', true)
     expect(screen.getByRole('button', { name: 'Vorhandenes Medium ansehen' })).not.toBeNull()
     expect(screen.queryByRole('dialog')).toBeNull()
     expect(media.clearUploadQueue).not.toHaveBeenCalled()
@@ -280,27 +280,51 @@ describe('ReleaseVersionMediaSection Phase 90 upload redesign', () => {
     const categories = screen.getByRole('group', { name: 'Medienkategorie' })
 
     expect(within(categories).getAllByRole('button')).toHaveLength(4)
-    expect(within(categories).getByRole('button', { name: /Screenshot 0/i }).getAttribute('aria-pressed')).toBe('true')
+    expect(within(categories).getByRole('button', { name: /Screenshot 0/i }).getAttribute('aria-pressed')).toBeNull()
     expect(screen.queryByLabelText('Kategorie')).toBeNull()
   })
 
-  it('shows only assets from the active category and switches without reload', () => {
-    renderSection(
-      makeMediaState({
-        items: [
-          makeItem({ id: 11, category: 'screenshot', caption: 'Screenshot Asset' }),
-          makeItem({ id: 12, category: 'typesetting_karaoke', caption: 'Karaoke Asset' }),
-        ],
-      }),
-    )
+  it('keeps all four images and their categories visible after every upload action', () => {
+    const items = [
+      makeItem({ id: 11, title: 'Screenshot A' }),
+      makeItem({ id: 12, title: 'Screenshot B' }),
+      makeItem({ id: 13, title: 'Screenshot C' }),
+      makeItem({ id: 14, category: 'typesetting_karaoke', title: 'Karaoke', is_preview_candidate: true }),
+    ]
+    const media = makeMediaState({ items })
+    renderSection(media)
+    expect(screen.getByRole('heading', { name: 'Vorhandene Medien · 4' })).not.toBeNull()
+    expect(screen.queryByText('Aktive Kategorie')).toBeNull()
+    for (const item of items) {
+      const opener = screen.getByRole('button', { name: new RegExp(`${item.title} bearbeiten`) })
+      expect(within(opener).getByText(item.category === 'screenshot' ? 'Screenshot' : 'Typesetting / Karaoke')).not.toBeNull()
+    }
+    const categories = within(screen.getByRole('group', { name: 'Medienkategorie' }))
+    for (const option of CATEGORY_OPTIONS) {
+      const trigger = categories.getByRole('button', { name: new RegExp(option.label.replaceAll('/', '\\/')) })
+      expect(trigger.getAttribute('aria-pressed')).toBeNull()
+      fireEvent.click(trigger)
+      const dialog = screen.getByRole('dialog', { name: 'Medien hochladen' })
+      expect(within(dialog).getByText(`Kategorie: ${option.label}`)).not.toBeNull()
+      fireEvent.click(within(dialog).getByRole('button', { name: 'Abbrechen' }))
+      for (const item of items) expect(screen.getByRole('button', { name: new RegExp(`${item.title} bearbeiten`) })).not.toBeNull()
+      expect(trigger.getAttribute('aria-pressed')).toBeNull()
+    }
+    expect(screen.getAllByText('Aktuelles Vorschaubild')).toHaveLength(1)
+    expect(media.reload).not.toHaveBeenCalled()
+    expect(media.patchItem).not.toHaveBeenCalled()
+  })
 
-    expect(screen.getByRole('button', { name: /Screenshot Asset bearbeiten/i })).not.toBeNull()
-    expect(screen.queryByRole('button', { name: /Karaoke Asset bearbeiten/i })).toBeNull()
-
-    fireEvent.click(screen.getByRole('button', { name: /Typesetting \/ Karaoke 1/i }))
-
-    expect(screen.queryByRole('button', { name: /Screenshot Asset bearbeiten/i })).toBeNull()
-    expect(screen.getByRole('button', { name: /Karaoke Asset bearbeiten/i })).not.toBeNull()
+  it('preserves pending visibility and counts only the visible gallery items', () => {
+    renderSection(makeMediaState({ items: [
+      makeItem({ id: 11, title: 'Eigene Einreichung', review_state: 'pending', can_update: true }),
+      makeItem({ id: 12, title: 'Verborgene Einreichung', review_state: 'pending', can_update: false }),
+      makeItem({ id: 13, title: 'Freigegeben', category: 'other', review_state: 'confirmed', can_update: false }),
+    ] }))
+    expect(screen.getByRole('heading', { name: 'Vorhandene Medien · 2' })).not.toBeNull()
+    expect(screen.queryByText('Verborgene Einreichung')).toBeNull()
+    expect(screen.getByRole('button', { name: 'Screenshot 1' })).not.toBeNull()
+    expect(screen.getByRole('button', { name: 'Freigegeben ansehen' })).not.toBeNull()
   })
 
   it('opens upload as a bottom-sheet without an editable status select', () => {

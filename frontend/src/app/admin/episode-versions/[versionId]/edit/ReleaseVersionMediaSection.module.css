@@ -87,18 +87,14 @@
     transform 140ms ease;
 }
 
-.segmentButton:hover {
+.segmentButton:hover:not(:disabled) {
   border-color: color-mix(in srgb, var(--accent-primary) 24%, transparent);
   color: var(--text-primary);
 }
 
-.segmentButtonActive {
-  background: var(--accent-primary);
-  border-color: color-mix(in srgb, var(--accent-primary) 78%, #111827);
-  color: #fff;
-  box-shadow:
-    inset 0 1px 0 color-mix(in srgb, white 34%, transparent),
-    0 14px 26px -22px color-mix(in srgb, var(--accent-primary) 60%, transparent);
+.segmentButton:disabled {
+  cursor: default;
+  opacity: 0.6;
 }
 
 .segmentCount {
@@ -113,19 +109,11 @@
   font-weight: 800;
 }
 
-.activeCategoryHeader {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  gap: 1rem;
-}
-
-.categoryKicker {
-  margin: 0 0 0.2rem;
-  color: var(--text-secondary);
-  font-size: 0.72rem;
-  font-weight: 800;
-  text-transform: uppercase;
+.mediaCategory {
+  max-width: 100%;
+  min-width: 0;
+  padding-block: 0.25rem;
+  line-height: 1.35;
 }
 
 .mediaGrid {

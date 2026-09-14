@@ -75,7 +75,7 @@ export function ReleaseVersionMediaSection({
   const media = mediaState ?? internalMedia
   const persistedItems = Array.isArray(media.items) ? media.items : []
 
-  const [selectedCategory, setSelectedCategory] = useState<ReleaseVersionMediaCategory>('screenshot')
+  const [uploadCategory, setUploadCategory] = useState<ReleaseVersionMediaCategory>('screenshot')
   const [isUploadOpen, setIsUploadOpen] = useState(false)
   const [previewFileKey, setPreviewFileKey] = useState<string | null>(null)
   const [selectedDrafts, setSelectedDrafts] = useState<UploadFileDraft[]>([])
@@ -104,24 +104,21 @@ export function ReleaseVersionMediaSection({
     }
   }, [stagedReplacePreviewURL])
 
+  const visibleItems = useMemo(
+    () => persistedItems.filter((item) => !(item.review_state === 'pending' && item.can_update === false)),
+    [persistedItems],
+  )
+
   const categoryCounts = useMemo(() => {
     const counts = new Map<ReleaseVersionMediaCategory, number>()
     for (const option of CATEGORY_OPTIONS) {
       counts.set(option.value, 0)
     }
-    for (const item of persistedItems) {
+    for (const item of visibleItems) {
       counts.set(item.category, (counts.get(item.category) ?? 0) + 1)
     }
     return counts
-  }, [persistedItems])
-
-  const activeItems = useMemo(
-    () => persistedItems.filter((item) => (
-      item.category === selectedCategory &&
-      !(item.review_state === 'pending' && item.can_update === false)
-    )),
-    [persistedItems, selectedCategory],
-  )
+  }, [visibleItems])
 
   const selectedItem = persistedItems.find((item) => item.id === selectedItemId) ?? null
 
@@ -139,7 +136,7 @@ export function ReleaseVersionMediaSection({
   const canUpdateMedia = media.capabilities?.can_update_media ?? false
   const canDeleteMedia = media.capabilities?.can_delete_media ?? false
   const canDeleteOwnMedia = media.capabilities?.can_delete_own_media ?? false
-  const canShowPreviewToggle = CATEGORY_ALLOWS_PREVIEW[selectedCategory]
+  const canShowPreviewToggle = CATEGORY_ALLOWS_PREVIEW[uploadCategory]
   const uploadStarted = media.uploadItems.length > 0
   const canChooseFiles = canUploadMedia && versionId > 0 && !isBusy && !uploadStarted
   const canUpload = canChooseFiles && selectedDrafts.length > 0
@@ -177,10 +174,9 @@ export function ReleaseVersionMediaSection({
     media.clearUploadQueue()
   }
 
-  function selectCategory(category: ReleaseVersionMediaCategory) {
-    if (isBusy) return
-    setSelectedCategory(category)
-    if (!canUploadMedia || versionId <= 0) return
+  function openCategoryUpload(category: ReleaseVersionMediaCategory) {
+    if (isBusy || !canUploadMedia || versionId <= 0) return
+    setUploadCategory(category)
     resetUploadDraft()
     setIsUploadOpen(true)
   }
@@ -277,7 +273,7 @@ export function ReleaseVersionMediaSection({
     setUploadError(null)
     try {
       const result = await media.startUpload(
-        selectedCategory,
+        uploadCategory,
         selectedDrafts,
         canShowPreviewToggle ? previewFileKey : null,
       )
@@ -372,23 +368,21 @@ export function ReleaseVersionMediaSection({
             <p className={styles.helper}>
               {canUploadMedia
                 ? 'Wähle eine Kategorie, um direkt Medien hochzuladen.'
-                : 'Wähle eine Kategorie, um vorhandene Medien anzusehen.'}
+                : 'Alle vorhandenen Medien dieser Release-Version im Überblick.'}
             </p>
           </div>
         </div>
 
         <div className={styles.segmentedControl} role="group" aria-label="Medienkategorie">
           {CATEGORY_OPTIONS.map((option) => {
-            const active = selectedCategory === option.value
             return (
               <button
                 key={option.value}
                 type="button"
-                aria-pressed={active}
                 aria-haspopup={canUploadMedia && versionId > 0 && !isBusy ? 'dialog' : undefined}
-                disabled={isBusy}
-                className={`${styles.segmentButton} ${active ? styles.segmentButtonActive : ''}`}
-                onClick={() => selectCategory(option.value)}
+                disabled={isBusy || !canUploadMedia || versionId <= 0}
+                className={styles.segmentButton}
+                onClick={() => openCategoryUpload(option.value)}
               >
                 <span>{option.label}</span>
                 <span className={styles.segmentCount}>{categoryCounts.get(option.value) ?? 0}</span>
@@ -404,19 +398,13 @@ export function ReleaseVersionMediaSection({
       ) : null}
       {media.reorderError ? <div className={styles.errorBox}>Reorder-Fehler: {media.reorderError}</div> : null}
 
-      {activeItems.length > 0 ? (
-        <div className={styles.activeCategoryHeader}>
-          <div>
-            <p className={styles.categoryKicker}>Aktive Kategorie</p>
-            <h3 className={styles.categoryTitle}>{categoryLabel(selectedCategory)}</h3>
-          </div>
-          <Badge variant="muted">{activeItems.length} Medien</Badge>
-        </div>
+      {visibleItems.length > 0 ? (
+        <h3 className={styles.categoryTitle}>Vorhandene Medien · {visibleItems.length}</h3>
       ) : null}
 
-      {activeItems.length > 0 ? (
+      {visibleItems.length > 0 ? (
         <div className={styles.mediaGrid}>
-          {activeItems.map((item) => {
+          {visibleItems.map((item) => {
             const badge = statusBadge(item)
             return (
               <div key={item.id} className={`${styles.mediaCard} ${item.is_preview_candidate ? styles.mediaCardPreview : ''}`}>
@@ -436,6 +424,7 @@ export function ReleaseVersionMediaSection({
                   </span>
                   <span className={styles.mediaCardBody}>
                     <span className={styles.mediaName}>{getAssetName(item)}</span>
+                    <Badge variant="muted" className={styles.mediaCategory}>{categoryLabel(item.category)}</Badge>
                     {item.title && item.caption ? <span className={styles.helper}>{item.caption}</span> : null}
                     <Badge variant={badge.variant} className={badge.className}>{badge.label}</Badge>
                     {item.review_state === 'confirmed' && item.visibility === 'oeffentlich' ? (
@@ -469,7 +458,7 @@ export function ReleaseVersionMediaSection({
         open={isUploadOpen}
         onClose={closeUploadSheet}
         title="Medien hochladen"
-        description={`Kategorie: ${categoryLabel(selectedCategory)}`}
+        description={`Kategorie: ${categoryLabel(uploadCategory)}`}
         variant="responsiveSheet"
         footer={
           <>
@@ -523,7 +512,7 @@ export function ReleaseVersionMediaSection({
           >
             <div className={styles.dropZoneHeader}>
               <p className={styles.dropZoneCallout}>Dateien hier hineinziehen oder antippen.</p>
-              <p className={styles.helper}>Alle Dateien landen in „{categoryLabel(selectedCategory)}“.</p>
+              <p className={styles.helper}>Alle Dateien landen in „{categoryLabel(uploadCategory)}“.</p>
             </div>
             <input
               ref={fileInputRef}
