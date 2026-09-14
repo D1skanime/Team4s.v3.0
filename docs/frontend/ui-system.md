@@ -265,6 +265,13 @@ Sie ist ausdrücklich nicht:
 - `inline` liegt im normalen Seitenfluss, `floating` positioniert die Pills über Hero- oder Medienflächen
 - Labels bleiben fachlich in der Domain-Komponente; die UI-Komponente kennt nur `previous`, `next`, `href` und `label`
 
+### FocalCarousel
+
+- `presentation="focal"` ist die bestehende Standarddarstellung mit zentrierter Karte und Vorschau benachbarter Einträge.
+- `presentation="full-width"` nutzt für die aktive Karte die gesamte Containerbreite und positioniert die Pfeile darunter. Profil-Auszeichnungen verwenden sie, damit Rollen, Beiträge und Anime-Projekte dieselbe horizontale Ausrichtung erhalten.
+- Ein einzelner Eintrag bleibt ohne Pfeile, Zähler und Aufklappaktion. Scrollen, Tastatur, Fokus, Inert-Zustände und die ausgeklappte Übersicht verwenden dieselbe Komponente.
+- Die Variante ist im vorhandenen Badge-Karussell-Stresstest unter `/dev/ui-system/achievements` sichtbar; die Karten selbst reagieren weiterhin auf ihren `achievement-card`-Container.
+
 ### Public Release Surfaces
 
 - öffentliche Fansub-Projektseiten nutzen `PublicReleaseBlock` als definierbare Release-Referenzfläche

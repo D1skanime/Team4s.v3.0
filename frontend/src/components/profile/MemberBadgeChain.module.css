@@ -54,18 +54,9 @@
   container: member-badge-carousel / inline-size;
 }
 
-/* Consumer sizing remains a CSS custom property; FocalCarousel retains its implementation. */
+/* FocalCarousel owns full-width profile cards and their navigation geometry. */
 .chain {
   --focal-card-accent: var(--color-primary);
-  --focal-item-size: min(88%, 720px);
-}
-
-.group[data-badge-group="roles"] .chain {
-  --focal-item-size: min(98%, 720px);
-}
-
-.group[data-badge-group="contributions"] .chain {
-  --focal-item-size: min(98%, 720px);
 }
 
 .badgeWindow,
@@ -129,10 +120,4 @@
   clip: rect(0, 0, 0, 0);
   white-space: nowrap;
   border: 0;
-}
-
-@container member-badge-carousel (min-width: 562px) {
-  .group[data-badge-group="contributions"] .chain {
-    --focal-item-size: min(88%, 720px);
-  }
 }

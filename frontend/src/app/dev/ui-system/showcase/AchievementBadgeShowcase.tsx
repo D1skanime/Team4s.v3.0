@@ -220,6 +220,7 @@ function StressCarousel({ count }: { count: number }) {
       data-render-count="0"
     >
       <FocalCarousel
+        presentation="full-width"
         items={items}
         getItemKey={getItemKey}
         renderItem={renderItem}

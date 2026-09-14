@@ -192,6 +192,37 @@
   }
 }
 
+/* Full cards align with adjacent content sections; controls never inset the artwork. */
+.fullWidth .controls {
+  display: grid;
+  grid-template-columns: 44px minmax(0, 1fr) 44px;
+}
+
+.fullWidth .track {
+  --focal-item-size: 100%;
+  grid-column: 1 / -1;
+  grid-row: 1;
+  padding-block: 0;
+  scroll-padding-inline: 0;
+}
+
+.fullWidth .items::before,
+.fullWidth .items::after {
+  content: none;
+}
+
+.fullWidth .arrow {
+  grid-row: 2;
+}
+
+.fullWidth .arrow:first-child {
+  grid-column: 1;
+}
+
+.fullWidth .arrow:last-child {
+  grid-column: 3;
+}
+
 @media (prefers-reduced-motion: reduce) {
   .track {
     scroll-behavior: auto;

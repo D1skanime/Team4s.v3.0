@@ -1,0 +1,15 @@
+{
+  "before": {
+    "exit": 2,
+    "output": ".next/dev/types/app/anime/page.ts(36,29): error TS2344: Type 'AnimePageProps' does not satisfy the constraint 'PageProps'.\n  Types of property 'searchParams' are incompatible.\n    Type 'Promise<{ page?: string | string[] | undefined; per_page?: string | string[] | undefined; q?: string | string[] | undefined; letter?: string | string[] | undefined; content_type?: string | string[] | undefined; status?: string | ... 1 more ... | undefined; }> | { ...; } | undefined' is not assignable to type 'Promise<any> | undefined'.\n      Type '{ page?: string | string[] | undefined; per_page?: string | string[] | undefined; q?: string | string[] | undefined; letter?: string | string[] | undefined; content_type?: string | string[] | undefined; status?: string | ... 1 more ... | undefined; }' is missing the following properties from type 'Promise<any>': then, catch, finally, [Symbol.toStringTag]\n"
+  },
+  "after": {
+    "exit": 2,
+    "output": ".next/dev/types/app/anime/page.ts(36,29): error TS2344: Type 'AnimePageProps' does not satisfy the constraint 'PageProps'.\n  Types of property 'searchParams' are incompatible.\n    Type 'Promise<{ page?: string | string[] | undefined; per_page?: string | string[] | undefined; q?: string | string[] | undefined; letter?: string | string[] | undefined; content_type?: string | string[] | undefined; status?: string | ... 1 more ... | undefined; }> | { ...; } | undefined' is not assignable to type 'Promise<any> | undefined'.\n      Type '{ page?: string | string[] | undefined; per_page?: string | string[] | undefined; q?: string | string[] | undefined; letter?: string | string[] | undefined; content_type?: string | string[] | undefined; status?: string | ... 1 more ... | undefined; }' is missing the following properties from type 'Promise<any>': then, catch, finally, [Symbol.toStringTag]\n"
+  },
+  "build": {
+    "exit": 1,
+    "output": "\u25b2 Next.js 16.1.6 (webpack)\n\n  Creating an optimized production build ...\n\u2713 Compiled successfully in 20.4s\n  Running TypeScript ...\nFailed to compile.\n\nsrc/app/admin/anime/[id]/edit/page.tsx\nType error: Page \"src/app/admin/anime/[id]/edit/page.tsx\" does not match the required types of a Next.js Page.\n  \"formatEditLoadError\" is not a valid Page export field.\n\nNext.js build worker exited with code: 1 and signal: null\n"
+  },
+  "baselineTypecheckIdentical": true
+}

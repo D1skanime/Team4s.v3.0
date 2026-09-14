@@ -1,0 +1,15 @@
+{
+  "single": {
+    "roleX": 85,
+    "animeX": 85,
+    "roleWidth": 1286,
+    "animeWidth": 1286,
+    "rootWidth": 1440
+  },
+  "pointerDrag": "passed",
+  "longLabel": {
+    "width": 288,
+    "scrollWidth": 288,
+    "height": 29
+  }
+}

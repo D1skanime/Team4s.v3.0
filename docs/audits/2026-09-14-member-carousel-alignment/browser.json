@@ -1,0 +1,398 @@
+[
+  {
+    "viewport": 390,
+    "rootWidth": 390,
+    "role": {
+      "x": 41,
+      "width": 308,
+      "height": 687.265625
+    },
+    "anime": {
+      "x": 41,
+      "width": 308,
+      "height": 751.34375
+    },
+    "contribution": {
+      "x": 41,
+      "width": 308,
+      "height": 643.53125
+    },
+    "roleArt": {
+      "x": 99,
+      "width": 192,
+      "height": 192
+    },
+    "animeArt": {
+      "x": 99,
+      "width": 192,
+      "height": 192
+    },
+    "contributionArt": {
+      "x": 99,
+      "width": 192,
+      "height": 192
+    },
+    "columns": "274px",
+    "navigation": "arrows, Home/End, expand/collapse and focus restoration passed; contribution next/previous passed"
+  },
+  {
+    "viewport": 768,
+    "rootWidth": 768,
+    "role": {
+      "x": 61,
+      "width": 646,
+      "height": 418.203125
+    },
+    "anime": {
+      "x": 61,
+      "width": 646,
+      "height": 475.03125
+    },
+    "contribution": {
+      "x": 61,
+      "width": 646,
+      "height": 457.140625
+    },
+    "roleArt": {
+      "x": 78,
+      "width": 216,
+      "height": 216
+    },
+    "animeArt": {
+      "x": 78,
+      "width": 216,
+      "height": 216
+    },
+    "contributionArt": {
+      "x": 78,
+      "width": 216,
+      "height": 216
+    },
+    "columns": "216px 372px",
+    "navigation": "arrows, Home/End, expand/collapse and focus restoration passed; contribution next/previous passed"
+  },
+  {
+    "viewport": 1440,
+    "rootWidth": 1440,
+    "role": {
+      "x": 85,
+      "width": 1286,
+      "height": 442.203125
+    },
+    "anime": {
+      "x": 85,
+      "width": 1286,
+      "height": 499.03125
+    },
+    "contribution": {
+      "x": 85,
+      "width": 1286,
+      "height": 481.140625
+    },
+    "roleArt": {
+      "x": 102,
+      "width": 240,
+      "height": 240
+    },
+    "animeArt": {
+      "x": 102,
+      "width": 240,
+      "height": 240
+    },
+    "contributionArt": {
+      "x": 102,
+      "width": 240,
+      "height": 240
+    },
+    "columns": "240px 988px",
+    "navigation": "arrows, Home/End, expand/collapse and focus restoration passed; contribution next/previous passed"
+  },
+  {
+    "embeddedWidth": 390,
+    "viewport": 1440,
+    "rootWidth": 1440,
+    "role": {
+      "x": 85,
+      "width": 390,
+      "height": 687.265625
+    },
+    "anime": {
+      "x": 85,
+      "width": 390,
+      "height": 769.8125
+    },
+    "contribution": {
+      "x": 85,
+      "width": 390,
+      "height": 672.328125
+    },
+    "roleArt": {
+      "x": 184,
+      "width": 192,
+      "height": 192
+    },
+    "animeArt": {
+      "x": 184,
+      "width": 192,
+      "height": 192
+    },
+    "contributionArt": {
+      "x": 184,
+      "width": 192,
+      "height": 192
+    },
+    "columns": "356px"
+  },
+  {
+    "embeddedWidth": 561,
+    "viewport": 1440,
+    "rootWidth": 1440,
+    "role": {
+      "x": 85,
+      "width": 561,
+      "height": 559.0625
+    },
+    "anime": {
+      "x": 85,
+      "width": 561,
+      "height": 769.8125
+    },
+    "contribution": {
+      "x": 85,
+      "width": 561,
+      "height": 632.734375
+    },
+    "roleArt": {
+      "x": 269.5,
+      "width": 192,
+      "height": 192
+    },
+    "animeArt": {
+      "x": 269.5,
+      "width": 192,
+      "height": 192
+    },
+    "contributionArt": {
+      "x": 269.5,
+      "width": 192,
+      "height": 192
+    },
+    "columns": "527px"
+  },
+  {
+    "embeddedWidth": 562,
+    "viewport": 1440,
+    "rootWidth": 1440,
+    "role": {
+      "x": 85,
+      "width": 562,
+      "height": 418.203125
+    },
+    "anime": {
+      "x": 85,
+      "width": 562,
+      "height": 522.0625
+    },
+    "contribution": {
+      "x": 85,
+      "width": 562,
+      "height": 504.328125
+    },
+    "roleArt": {
+      "x": 102,
+      "width": 216,
+      "height": 216
+    },
+    "animeArt": {
+      "x": 102,
+      "width": 216,
+      "height": 216
+    },
+    "contributionArt": {
+      "x": 102,
+      "width": 216,
+      "height": 216
+    },
+    "columns": "216px 288px"
+  },
+  {
+    "embeddedWidth": 563,
+    "viewport": 1440,
+    "rootWidth": 1440,
+    "role": {
+      "x": 85,
+      "width": 563,
+      "height": 418.203125
+    },
+    "anime": {
+      "x": 85,
+      "width": 563,
+      "height": 522.0625
+    },
+    "contribution": {
+      "x": 85,
+      "width": 563,
+      "height": 504.328125
+    },
+    "roleArt": {
+      "x": 102,
+      "width": 216,
+      "height": 216
+    },
+    "animeArt": {
+      "x": 102,
+      "width": 216,
+      "height": 216
+    },
+    "contributionArt": {
+      "x": 102,
+      "width": 216,
+      "height": 216
+    },
+    "columns": "216px 289px"
+  },
+  {
+    "embeddedWidth": 657,
+    "viewport": 1440,
+    "rootWidth": 1440,
+    "role": {
+      "x": 85,
+      "width": 657,
+      "height": 418.203125
+    },
+    "anime": {
+      "x": 85,
+      "width": 657,
+      "height": 475.03125
+    },
+    "contribution": {
+      "x": 85,
+      "width": 657,
+      "height": 457.140625
+    },
+    "roleArt": {
+      "x": 102,
+      "width": 216,
+      "height": 216
+    },
+    "animeArt": {
+      "x": 102,
+      "width": 216,
+      "height": 216
+    },
+    "contributionArt": {
+      "x": 102,
+      "width": 216,
+      "height": 216
+    },
+    "columns": "216px 383px"
+  },
+  {
+    "embeddedWidth": 658,
+    "viewport": 1440,
+    "rootWidth": 1440,
+    "role": {
+      "x": 85,
+      "width": 658,
+      "height": 442.203125
+    },
+    "anime": {
+      "x": 85,
+      "width": 658,
+      "height": 499.03125
+    },
+    "contribution": {
+      "x": 85,
+      "width": 658,
+      "height": 481.140625
+    },
+    "roleArt": {
+      "x": 102,
+      "width": 240,
+      "height": 240
+    },
+    "animeArt": {
+      "x": 102,
+      "width": 240,
+      "height": 240
+    },
+    "contributionArt": {
+      "x": 102,
+      "width": 240,
+      "height": 240
+    },
+    "columns": "240px 360px"
+  },
+  {
+    "embeddedWidth": 659,
+    "viewport": 1440,
+    "rootWidth": 1440,
+    "role": {
+      "x": 85,
+      "width": 659,
+      "height": 442.203125
+    },
+    "anime": {
+      "x": 85,
+      "width": 659,
+      "height": 499.03125
+    },
+    "contribution": {
+      "x": 85,
+      "width": 659,
+      "height": 481.140625
+    },
+    "roleArt": {
+      "x": 102,
+      "width": 240,
+      "height": 240
+    },
+    "animeArt": {
+      "x": 102,
+      "width": 240,
+      "height": 240
+    },
+    "contributionArt": {
+      "x": 102,
+      "width": 240,
+      "height": 240
+    },
+    "columns": "240px 361px"
+  },
+  {
+    "cssZoom": 2,
+    "viewport": 1440,
+    "rootWidth": 1440,
+    "role": {
+      "x": 154,
+      "width": 1164,
+      "height": 836.421875
+    },
+    "anime": {
+      "x": 154,
+      "width": 1164,
+      "height": 950.03125
+    },
+    "contribution": {
+      "x": 154,
+      "width": 1164,
+      "height": 1008.671875
+    },
+    "roleArt": {
+      "x": 188,
+      "width": 432,
+      "height": 432
+    },
+    "animeArt": {
+      "x": 188,
+      "width": 432,
+      "height": 432
+    },
+    "contributionArt": {
+      "x": 188,
+      "width": 432,
+      "height": 432
+    },
+    "columns": "216px 308px"
+  }
+]

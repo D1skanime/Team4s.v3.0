@@ -209,6 +209,7 @@ export function MemberBadgeChain({
               ) : null}
               <div className={chainStyles.carouselShell}>
                 <FocalCarousel
+                  presentation="full-width"
                   items={group.rows}
                   getItemKey={(row) => row.key}
                   regionLabel={
@@ -357,6 +358,7 @@ export function MemberBadgeChain({
               ) : (
                 <div className={chainStyles.carouselShell}>
                   <FocalCarousel
+                    presentation="full-width"
                     items={group.families}
                     getItemKey={(family) => family.key}
                     regionLabel={`${group.label}-Karussell`}

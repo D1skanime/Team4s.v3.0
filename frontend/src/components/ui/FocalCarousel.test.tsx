@@ -300,10 +300,11 @@ describe('FocalCarousel', () => {
 })
 
 describe('FocalCarousel Phase 119 shared interaction contract', () => {
-  it('renders one item quietly without arrows, counter or disclosure controls', () => {
+  it.each(['focal', 'full-width'] as const)('renders one %s item quietly without arrows, counter or disclosure controls', (presentation) => {
     render(
       <FocalCarousel
         items={['Einzeln']}
+        presentation={presentation}
         getItemKey={(item) => item}
         renderItem={(item) => <span>{item}</span>}
         regionLabel="Einzel-Karussell"

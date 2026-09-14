@@ -29,6 +29,8 @@ export type FocalCarouselItemState = {
 export type FocalCarouselProps<T> = {
   items: readonly T[]
   carouselItems?: readonly T[]
+  /** Full-width cards with navigation below; focal keeps neighboring previews. */
+  presentation?: 'focal' | 'full-width'
   getItemKey: (item: T) => string | number
   renderItem: (item: T, state: FocalCarouselItemState) => ReactNode
   regionLabel: string
@@ -263,6 +265,7 @@ export function CollapsedCarousel<T>({
   activeIndex,
   lastIndex,
   quiet,
+  presentation = 'focal',
   interactionEnabled,
   isNavigating,
   showAll,
@@ -271,7 +274,11 @@ export function CollapsedCarousel<T>({
   trackHandlers,
 }: CollapsedCarouselProps<T>) {
   return (
-    <div ref={activationRef} className={classNames(styles.root, className)} style={style}>
+    <div
+      ref={activationRef}
+      className={classNames(styles.root, presentation === 'full-width' && styles.fullWidth, className)}
+      style={style}
+    >
       <div className={classNames(styles.controls, quiet && styles.controlsQuiet)}>
         {!quiet ? (
           <CarouselArrow

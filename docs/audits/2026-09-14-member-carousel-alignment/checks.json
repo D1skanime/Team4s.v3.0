@@ -1,0 +1,18 @@
+[
+  {
+    "check": "tests",
+    "exit": 0,
+    "output": "\n> team4s-frontend@0.1.0 test\n> vitest run src/components/ui/FocalCarousel.test.tsx src/components/profile/MemberBadgeChain.test.tsx\n\n\n RUN  v3.2.4 /app\n\n \u2713 src/components/ui/FocalCarousel.test.tsx (40 tests) 1435ms\n \u2713 src/components/profile/MemberBadgeChain.test.tsx (94 tests) 5017ms\n   \u2713 Phase 136 catalog-backed role badges > renders Karaoke-FX and a future role without a local valid-role list  777ms\n   \u2713 Phase 121 Rollenfamilien und Hero-Artwork > l\u00f6st alle f\u00fcnf Hero-R\u00e4nge aller 12 Familien auf und bewahrt direkte Timing-Quellen  814ms\n\n Test Files  2 passed (2)\n      Tests  134 passed (134)\n   Start at  09:17:38\n   Duration  6.56s (transform 982ms, setup 205ms, collect 1.41s, tests 6.45s, environment 1.11s, prepare 170ms)\n\norg/link/wrap-tests-with-act\n    at FocalCarousel (/app/src/components/ui/FocalCarousel.tsx:16:5)\n\nstderr | src/components/ui/FocalCarousel.test.tsx > FocalCarousel Phase 119 shared interaction contract > leaves vertical page scrolling untouched while handling horizontal wheel gestures\nWarning: An update to FocalCarousel inside a test was not wrapped in act(...).\n\nWhen testing, code that causes React state updates should be wrapped into act(...):\n\nact(() => {\n  /* fire events that update state */\n});\n/* assert on the output */\n\nThis ensures that you're testing the behavior the user would see in the browser. Learn more at https://reactjs.org/link/wrap-tests-with-act\n    at FocalCarousel (/app/src/components/ui/FocalCarousel.tsx:16:5)\nWarning: An update to FocalCarousel inside a test was not wrapped in act(...).\n\nWhen testing, code that causes React state updates should be wrapped into act(...):\n\nact(() => {\n  /* fire events that update state */\n});\n/* assert on the output */\n\nThis ensures that you're testing the behavior the user would see in the browser. Learn more at https://reactjs.org/link/wrap-tests-with-act\n    at FocalCarousel (/app/src/components/ui/FocalCarousel.tsx:16:5)\n\n"
+  },
+  {
+    "check": "typecheck",
+    "exit": 2,
+    "output": "\n> team4s-frontend@0.1.0 typecheck\n> tsc --noEmit\n\n.next/dev/types/app/anime/page.ts(36,29): error TS2344: Type 'AnimePageProps' does not satisfy the constraint 'PageProps'.\n  Types of property 'searchParams' are incompatible.\n    Type 'Promise<{ page?: string | string[] | undefined; per_page?: string | string[] | undefined; q?: string | string[] | undefined; letter?: string | string[] | undefined; content_type?: string | string[] | undefined; status?: string | ... 1 more ... | undefined; }> | { ...; } | undefined' is not assignable to type 'Promise<any> | undefined'.\n      Type '{ page?: string | string[] | undefined; per_page?: string | string[] | undefined; q?: string | string[] | undefined; letter?: string | string[] | undefined; content_type?: string | string[] | undefined; status?: string | ... 1 more ... | undefined; }' is missing the following properties from type 'Promise<any>': then, catch, finally, [Symbol.toStringTag]\n"
+  },
+  {
+    "check": "lint",
+    "exit": 1,
+    "errors": 13,
+    "warnings": 331
+  }
+]
