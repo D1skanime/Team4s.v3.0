@@ -1731,7 +1731,7 @@ Release-Notizliste, wo der Rollen-Header fachlich richtig ist.
 `157-CONTEXT.md` als Spezifikation in Worten hinterlegt. Eine zusaetzliche UI-SPEC-Runde ist damit
 nicht erforderlich; `plan-phase` mit `--skip-ui` fahren.
 
-**Plans:** 15/16 plans executed
+**Plans:** 16/16 plans complete
 closed the last of GAP-02's four automated closure plans (157-11/12/13/14). GAP-03 (independent
 post-GAP-02 check, 157-UAT.md, 2026-09-14, findings F1-F5) added two further gap-closure plans,
 157-15 and 157-16, planned but not yet executed. Phase-level human Live-UAT sign-off (157-06 Task 4
@@ -1780,7 +1780,7 @@ Abschluss der Plaene 157-11..14, Befunde F1-F5)*
   Unterstreichungsbreite, Zaehler bleibt in der Titelzeile), dauerhaft erkennbare klickbare
   Hero-Kennzahlen mit sichtbarem Fokus, Tab-Kontrolle fuer abgeschnittene Notiz-Links (Review WR-03),
   isolierter Stacking-Context der Notiz-Karte (Review WR-04)
-- [ ] 157-16-PLAN.md — F5: ROADMAP/DECISIONS-Abgleich (P157-02/04/09 als durch Nutzerentscheid
+- [x] 157-16-PLAN.md — F5: ROADMAP/DECISIONS-Abgleich (P157-02/04/09 als durch Nutzerentscheid
   ersetzt/entfallen dokumentiert statt still erfuellt), verwaiste
   ProjectMemberSummary/-Band-Komponenten entfernt, 157-VERIFICATION.md-Neulauf als Folgeschritt
   festgehalten

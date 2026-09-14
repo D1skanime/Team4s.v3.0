@@ -3,15 +3,15 @@ gsd_state_version: 1.0
 milestone: v1.4
 milestone_name: Coverage
 status: executing
-stopped_at: "Completed 157-15-PLAN.md (GAP-03 F1-F4 closed: SectionHeader icon/counter slots, wired consumers, permanent hero-metric affordance + focus ring, clamped-link tab containment, isolated note stacking context; human Live-UAT sign-off remains OPEN)"
-last_updated: "2026-09-14T19:20:35.837Z"
+stopped_at: "Completed 157-16-PLAN.md (GAP-03 F5 closed: ROADMAP.md P157-02/P157-04/P157-09 annotated as replaced-by-decision, DECISIONS.md 2026-09-14 entry added, 157-06 Task 4 flagged superseded, ProjectMemberSummary/SummaryBand orphaned components deleted; 157-VERIFICATION.md regeneration recorded as open follow-up; human Live-UAT sign-off remains OPEN)"
+last_updated: "2026-09-14T19:27:04.362Z"
 last_activity: 2026-09-14
 progress:
   total_phases: 24
-  completed_phases: 23
+  completed_phases: 24
   total_plans: 233
-  completed_plans: 232
-  percent: 96
+  completed_plans: 233
+  percent: 100
 ---
 
 # Project State
@@ -46,7 +46,7 @@ See: .planning/PROJECT.md (updated 2026-08-13)
 ## Current Position
 
 Phase: 157 (projekt-memberseite-visuelles-referenzdesign) — EXECUTING
-Plan: 2 of 16
+Plan: 3 of 16
 dupliziertem ProjectMemberStickyNav; siehe 157-14-SUMMARY.md)
 Status: Ready to execute
 GAP-02-Live-UAT-Checkpoint aus 156-UAT.md (5 Origin- + 9 Segment-Contributor-Pruefpunkte) bleibt
@@ -1199,6 +1199,8 @@ Last activity: 2026-09-14
 - [Phase 157]: 157-14: 'Folgen' stays plain, non-interactive text in the hero — It has no matching page section, so it is intentionally not wired to scrollToSection
 - [Phase ?]: 157-15: Matched .sectionHeaderCounter's line-height to .sectionTitle's (1.15) to fix a live ~2.8px vertical misalignment against the section header heading
 - [Phase ?]: 157-15: Live focus-ring verification waits 200ms after a real Tab keypress before reading getComputedStyle to avoid a mid-CSS-transition box-shadow read
+- [Phase ?]: Phase 157 P157-02/P157-04/P157-09 sind durch Nutzerentscheid ersetzt/entfallen, nicht stillschweigend erfuellt
+- [Phase ?]: DECISIONS.md 2026-09-14 Eintrag ist auch die erste durable Aufzeichnung der 2026-09-13 Releases-Sektion-Entfernung (zuvor nur zitiert, nie geschrieben)
 
 ### Pending Todos
 
@@ -1604,11 +1606,12 @@ untruncated list lives in `.planning/todos/pending/`.
 | Phase 157 P13 | 11min | 3 tasks | 4 files |
 | Phase 157 P14 | 11min | 4 tasks | 13 files |
 | Phase 157 P15 | 25min | 3 tasks | 14 files |
+| Phase 157 P16 | 15min | - tasks | - files |
 
 ## Session Continuity
 
-Last session: 2026-09-14T19:20:35.820Z
-Stopped at: Completed 157-15-PLAN.md (GAP-03 F1-F4 closed: SectionHeader icon/counter slots, wired consumers, permanent hero-metric affordance + focus ring, clamped-link tab containment, isolated note stacking context; human Live-UAT sign-off remains OPEN)
+Last session: 2026-09-14T19:27:04.345Z
+Stopped at: Completed 157-16-PLAN.md (GAP-03 F5 closed: ROADMAP.md P157-02/P157-04/P157-09 annotated as replaced-by-decision, DECISIONS.md 2026-09-14 entry added, 157-06 Task 4 flagged superseded, ProjectMemberSummary/SummaryBand orphaned components deleted; 157-VERIFICATION.md regeneration recorded as open follow-up; human Live-UAT sign-off remains OPEN)
 Last activity: Larger dot + per-entry role-colored timeline line implemented and live-verified against the running stack; GAP-02 V3/V4 closed automated/technically, human Live-UAT remains a separate open step.
 Resume file: 
 None
