@@ -15,7 +15,7 @@ export function TeamSection({ teamMembers, externalContributors, canonicalProjec
 
   return (
     <div id="team" className={styles.teamSection}>
-      <SectionHeader title="Mitwirkende am Fansub-Projekt" />
+      <SectionHeader title="Mitwirkende am Fansub-Projekt" underline />
       {hasMembers ? (
         <ProjectMemberRows
           teamMembers={teamMembers}

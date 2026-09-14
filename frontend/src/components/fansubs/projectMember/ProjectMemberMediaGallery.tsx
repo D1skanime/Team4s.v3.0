@@ -3,7 +3,7 @@
 import { Image as ImageIcon } from 'lucide-react'
 import { useCallback, useRef, useState } from 'react'
 
-import { Button } from '@/components/ui'
+import { Button, SectionHeader } from '@/components/ui'
 import { getProjectMemberMedia } from '@/lib/api'
 import type { ProjectMemberMediaItem } from '@/types/projectMember'
 
@@ -67,15 +67,16 @@ export function ProjectMemberMediaGallery({
   }, [])
 
   return (
-    <section id="bilder" className={pageStyles.section} aria-labelledby="pm-bilder-title">
-      <div className={pageStyles.sectionHead}>
-        <span className={styles.titleGroup}>
-          <ImageIcon size={18} aria-hidden="true" />
-          <h2 id="pm-bilder-title" className={pageStyles.sectionTitle}>
-            Bilder &amp; Medien
-          </h2>
-        </span>
-        <span className={pageStyles.sectionCount}>{count}</span>
+    <section id="bilder" className={pageStyles.section} aria-label="Bilder & Medien">
+      <div className={styles.sectionHeadRow}>
+        <ImageIcon size={18} aria-hidden="true" className={styles.sectionHeadIcon} />
+        <div className={styles.sectionHeadRowContent}>
+          <SectionHeader
+            title="Bilder & Medien"
+            underline
+            actions={<span className={pageStyles.sectionCount}>{count}</span>}
+          />
+        </div>
       </div>
       {error ? <p className={styles.error}>Die Medien konnten nicht geladen werden.</p> : null}
       <div className={styles.grid}>

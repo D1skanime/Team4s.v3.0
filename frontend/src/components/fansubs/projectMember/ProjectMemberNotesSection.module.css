@@ -2,14 +2,22 @@
    einspaltige Timeline (kein 2-Spalten-Grid mehr) — die Zeilen-Optik lebt in
    ProjectMemberNoteEntry.module.css. */
 
-/* Kopfzeile mit Icon (Operator-Korrektur 2/5, 157-06): identisch zum bereits vorhandenen Muster
-   aus ProjectMemberMediaGallery.module.css, damit alle drei Sektionsköpfe (Texte/Bilder/
-   Releases) dieselbe Icon+Titel-Struktur teilen. */
-.titleGroup {
+/* Kopfzeile mit Icon + globalem SectionHeader (157-12, GAP-02 V2): identisch zum bereits
+   vorhandenen Muster aus ProjectMemberMediaGallery.module.css, damit alle drei Sektionsköpfe
+   (Texte/Bilder/Releases) dieselbe Icon+Titel-Struktur teilen. */
+.sectionHeadRow {
   display: flex;
-  align-items: center;
+  align-items: flex-start;
   gap: 8px;
+}
+.sectionHeadIcon {
+  flex-shrink: 0;
+  margin-top: 2px;
   color: var(--text-primary);
+}
+.sectionHeadRowContent {
+  flex: 1;
+  min-width: 0;
 }
 
 .notesGrid {

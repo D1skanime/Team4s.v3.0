@@ -3,7 +3,7 @@
 import { FileText } from 'lucide-react'
 import { useCallback } from 'react'
 
-import { Button } from '@/components/ui'
+import { Button, SectionHeader } from '@/components/ui'
 import { getProjectMemberNotes } from '@/lib/api'
 import type { ProjectMemberNote } from '@/types/projectMember'
 
@@ -49,15 +49,16 @@ export function ProjectMemberNotesSection({
     })
 
   return (
-    <section id="texte" className={pageStyles.section} aria-labelledby="pm-texte-title">
-      <div className={pageStyles.sectionHead}>
-        <span className={styles.titleGroup}>
-          <FileText size={18} aria-hidden="true" />
-          <h2 id="pm-texte-title" className={pageStyles.sectionTitle}>
-            Texte &amp; Notizen
-          </h2>
-        </span>
-        <span className={pageStyles.sectionCount}>{count}</span>
+    <section id="texte" className={pageStyles.section} aria-label="Texte & Notizen">
+      <div className={styles.sectionHeadRow}>
+        <FileText size={18} aria-hidden="true" className={styles.sectionHeadIcon} />
+        <div className={styles.sectionHeadRowContent}>
+          <SectionHeader
+            title="Texte & Notizen"
+            underline
+            actions={<span className={pageStyles.sectionCount}>{count}</span>}
+          />
+        </div>
       </div>
       <p className={pageStyles.sectionIntro}>
         Alle öffentlichen Textbeiträge dieses Members zu diesem Projekt.
@@ -77,9 +78,9 @@ export function ProjectMemberNotesSection({
       </div>
       {loading ? <p className={styles.loadingText}>Wird geladen …</p> : null}
       <div className={pageStyles.pager}>
-        <span className={pageStyles.pagerInfo}>
-          {canShowMore ? `${shown.length} von ${count} angezeigt` : `Alle ${count} angezeigt`}
-        </span>
+        {canShowMore ? (
+          <span className={pageStyles.pagerInfo}>{`${shown.length} von ${count} angezeigt`}</span>
+        ) : null}
         <div className={pageStyles.pagerButtons}>
           {canShowLess ? (
             <Button type="button" variant="ghost" size="sm" onClick={showLess}>
