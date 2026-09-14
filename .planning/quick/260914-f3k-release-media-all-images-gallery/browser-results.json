@@ -1,0 +1,439 @@
+{
+  "cases": 36,
+  "writes": 0,
+  "extraMediaReadsOnCategoryChange": 0,
+  "results": [
+    {
+      "width": 390,
+      "height": 844,
+      "mode": "empty",
+      "category": "Screenshot",
+      "input": "touch",
+      "geometry": {
+        "viewport": 390,
+        "documentWidth": 390
+      },
+      "status": "pass"
+    },
+    {
+      "width": 390,
+      "height": 844,
+      "mode": "empty",
+      "category": "Typesetting / Karaoke",
+      "input": "touch",
+      "geometry": {
+        "viewport": 390,
+        "documentWidth": 390
+      },
+      "status": "pass"
+    },
+    {
+      "width": 390,
+      "height": 844,
+      "mode": "empty",
+      "category": "Fun / Outtake",
+      "input": "touch",
+      "geometry": {
+        "viewport": 390,
+        "documentWidth": 390
+      },
+      "status": "pass"
+    },
+    {
+      "width": 390,
+      "height": 844,
+      "mode": "empty",
+      "category": "Sonstiges",
+      "input": "touch",
+      "geometry": {
+        "viewport": 390,
+        "documentWidth": 390
+      },
+      "status": "pass"
+    },
+    {
+      "width": 390,
+      "height": 844,
+      "mode": "populated",
+      "category": "Screenshot",
+      "input": "touch",
+      "geometry": {
+        "viewport": 390,
+        "documentWidth": 390
+      },
+      "status": "pass"
+    },
+    {
+      "width": 390,
+      "height": 844,
+      "mode": "populated",
+      "category": "Typesetting / Karaoke",
+      "input": "touch",
+      "geometry": {
+        "viewport": 390,
+        "documentWidth": 390
+      },
+      "status": "pass"
+    },
+    {
+      "width": 390,
+      "height": 844,
+      "mode": "populated",
+      "category": "Fun / Outtake",
+      "input": "touch",
+      "geometry": {
+        "viewport": 390,
+        "documentWidth": 390
+      },
+      "status": "pass"
+    },
+    {
+      "width": 390,
+      "height": 844,
+      "mode": "populated",
+      "category": "Sonstiges",
+      "input": "touch",
+      "geometry": {
+        "viewport": 390,
+        "documentWidth": 390
+      },
+      "status": "pass"
+    },
+    {
+      "width": 390,
+      "height": 844,
+      "mode": "readonly",
+      "category": "Screenshot",
+      "input": "touch",
+      "geometry": {
+        "viewport": 390,
+        "documentWidth": 390
+      },
+      "status": "pass"
+    },
+    {
+      "width": 390,
+      "height": 844,
+      "mode": "readonly",
+      "category": "Typesetting / Karaoke",
+      "input": "touch",
+      "geometry": {
+        "viewport": 390,
+        "documentWidth": 390
+      },
+      "status": "pass"
+    },
+    {
+      "width": 390,
+      "height": 844,
+      "mode": "readonly",
+      "category": "Fun / Outtake",
+      "input": "touch",
+      "geometry": {
+        "viewport": 390,
+        "documentWidth": 390
+      },
+      "status": "pass"
+    },
+    {
+      "width": 390,
+      "height": 844,
+      "mode": "readonly",
+      "category": "Sonstiges",
+      "input": "touch",
+      "geometry": {
+        "viewport": 390,
+        "documentWidth": 390
+      },
+      "status": "pass"
+    },
+    {
+      "width": 768,
+      "height": 1024,
+      "mode": "empty",
+      "category": "Screenshot",
+      "input": "keyboard",
+      "geometry": {
+        "viewport": 768,
+        "documentWidth": 768
+      },
+      "status": "pass"
+    },
+    {
+      "width": 768,
+      "height": 1024,
+      "mode": "empty",
+      "category": "Typesetting / Karaoke",
+      "input": "keyboard",
+      "geometry": {
+        "viewport": 768,
+        "documentWidth": 768
+      },
+      "status": "pass"
+    },
+    {
+      "width": 768,
+      "height": 1024,
+      "mode": "empty",
+      "category": "Fun / Outtake",
+      "input": "keyboard",
+      "geometry": {
+        "viewport": 768,
+        "documentWidth": 768
+      },
+      "status": "pass"
+    },
+    {
+      "width": 768,
+      "height": 1024,
+      "mode": "empty",
+      "category": "Sonstiges",
+      "input": "keyboard",
+      "geometry": {
+        "viewport": 768,
+        "documentWidth": 768
+      },
+      "status": "pass"
+    },
+    {
+      "width": 768,
+      "height": 1024,
+      "mode": "populated",
+      "category": "Screenshot",
+      "input": "keyboard",
+      "geometry": {
+        "viewport": 768,
+        "documentWidth": 768
+      },
+      "status": "pass"
+    },
+    {
+      "width": 768,
+      "height": 1024,
+      "mode": "populated",
+      "category": "Typesetting / Karaoke",
+      "input": "keyboard",
+      "geometry": {
+        "viewport": 768,
+        "documentWidth": 768
+      },
+      "status": "pass"
+    },
+    {
+      "width": 768,
+      "height": 1024,
+      "mode": "populated",
+      "category": "Fun / Outtake",
+      "input": "keyboard",
+      "geometry": {
+        "viewport": 768,
+        "documentWidth": 768
+      },
+      "status": "pass"
+    },
+    {
+      "width": 768,
+      "height": 1024,
+      "mode": "populated",
+      "category": "Sonstiges",
+      "input": "keyboard",
+      "geometry": {
+        "viewport": 768,
+        "documentWidth": 768
+      },
+      "status": "pass"
+    },
+    {
+      "width": 768,
+      "height": 1024,
+      "mode": "readonly",
+      "category": "Screenshot",
+      "input": "keyboard",
+      "geometry": {
+        "viewport": 768,
+        "documentWidth": 768
+      },
+      "status": "pass"
+    },
+    {
+      "width": 768,
+      "height": 1024,
+      "mode": "readonly",
+      "category": "Typesetting / Karaoke",
+      "input": "keyboard",
+      "geometry": {
+        "viewport": 768,
+        "documentWidth": 768
+      },
+      "status": "pass"
+    },
+    {
+      "width": 768,
+      "height": 1024,
+      "mode": "readonly",
+      "category": "Fun / Outtake",
+      "input": "keyboard",
+      "geometry": {
+        "viewport": 768,
+        "documentWidth": 768
+      },
+      "status": "pass"
+    },
+    {
+      "width": 768,
+      "height": 1024,
+      "mode": "readonly",
+      "category": "Sonstiges",
+      "input": "keyboard",
+      "geometry": {
+        "viewport": 768,
+        "documentWidth": 768
+      },
+      "status": "pass"
+    },
+    {
+      "width": 1440,
+      "height": 900,
+      "mode": "empty",
+      "category": "Screenshot",
+      "input": "mouse",
+      "geometry": {
+        "viewport": 1440,
+        "documentWidth": 1440
+      },
+      "status": "pass"
+    },
+    {
+      "width": 1440,
+      "height": 900,
+      "mode": "empty",
+      "category": "Typesetting / Karaoke",
+      "input": "mouse",
+      "geometry": {
+        "viewport": 1440,
+        "documentWidth": 1440
+      },
+      "status": "pass"
+    },
+    {
+      "width": 1440,
+      "height": 900,
+      "mode": "empty",
+      "category": "Fun / Outtake",
+      "input": "mouse",
+      "geometry": {
+        "viewport": 1440,
+        "documentWidth": 1440
+      },
+      "status": "pass"
+    },
+    {
+      "width": 1440,
+      "height": 900,
+      "mode": "empty",
+      "category": "Sonstiges",
+      "input": "mouse",
+      "geometry": {
+        "viewport": 1440,
+        "documentWidth": 1440
+      },
+      "status": "pass"
+    },
+    {
+      "width": 1440,
+      "height": 900,
+      "mode": "populated",
+      "category": "Screenshot",
+      "input": "mouse",
+      "geometry": {
+        "viewport": 1440,
+        "documentWidth": 1440
+      },
+      "status": "pass"
+    },
+    {
+      "width": 1440,
+      "height": 900,
+      "mode": "populated",
+      "category": "Typesetting / Karaoke",
+      "input": "mouse",
+      "geometry": {
+        "viewport": 1440,
+        "documentWidth": 1440
+      },
+      "status": "pass"
+    },
+    {
+      "width": 1440,
+      "height": 900,
+      "mode": "populated",
+      "category": "Fun / Outtake",
+      "input": "mouse",
+      "geometry": {
+        "viewport": 1440,
+        "documentWidth": 1440
+      },
+      "status": "pass"
+    },
+    {
+      "width": 1440,
+      "height": 900,
+      "mode": "populated",
+      "category": "Sonstiges",
+      "input": "mouse",
+      "geometry": {
+        "viewport": 1440,
+        "documentWidth": 1440
+      },
+      "status": "pass"
+    },
+    {
+      "width": 1440,
+      "height": 900,
+      "mode": "readonly",
+      "category": "Screenshot",
+      "input": "mouse",
+      "geometry": {
+        "viewport": 1440,
+        "documentWidth": 1440
+      },
+      "status": "pass"
+    },
+    {
+      "width": 1440,
+      "height": 900,
+      "mode": "readonly",
+      "category": "Typesetting / Karaoke",
+      "input": "mouse",
+      "geometry": {
+        "viewport": 1440,
+        "documentWidth": 1440
+      },
+      "status": "pass"
+    },
+    {
+      "width": 1440,
+      "height": 900,
+      "mode": "readonly",
+      "category": "Fun / Outtake",
+      "input": "mouse",
+      "geometry": {
+        "viewport": 1440,
+        "documentWidth": 1440
+      },
+      "status": "pass"
+    },
+    {
+      "width": 1440,
+      "height": 900,
+      "mode": "readonly",
+      "category": "Sonstiges",
+      "input": "mouse",
+      "geometry": {
+        "viewport": 1440,
+        "documentWidth": 1440
+      },
+      "status": "pass"
+    }
+  ]
+}

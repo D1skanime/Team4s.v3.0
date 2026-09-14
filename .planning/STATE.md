@@ -4,7 +4,7 @@ milestone: v1.4
 milestone_name: Coverage
 status: verifying
 stopped_at: Anime 158/159 technically verified; global baseline exceptions and Human-UAT 156/157/158/159 remain open
-last_updated: '2026-09-14T10:36:24.089461+00:00'
+last_updated: '2026-09-14T11:01:54.768894+00:00'
 last_activity: 2026-09-14
 progress:
   total_phases: 24
@@ -667,7 +667,7 @@ timing flakiness, not a Phase 149 regression, and not yet root-caused.
 
 v1.4 remains complete; Phase 149 was appended additively (same pattern as 143-148), no new
 milestone was created.
-Last activity: 2026-09-14 — Quick 260914-dzk: Release-Medien mit individuellen Titeln/Texten und eindeutiger Vorschau technisch verifiziert; Migration0163 angewendet, Human-UAT offen.
+Last activity: 2026-09-14 — Quick 260914-f3k: Alle Release-Medien unter Uploadkategorien sichtbar;93 Tests/36 Browserfälle grün, Human-UAT offen.
 
 ## Accumulated Context
 
@@ -1046,6 +1046,7 @@ Last activity: 2026-09-14 — Quick 260914-dzk: Release-Medien mit individuellen
 | 260914-ddc | Profil: Avatar-/Banner-Cropper direkt aus jedem Tab sichtbar; Portal und Fokus-Rückgabe, 81 Tests und 24 Browserfälle grün | 2026-09-14 | 8dc5c8fe | [260914-ddc-profile-image-dialogs](./quick/260914-ddc-profile-image-dialogs/) |
 | 260914-dov | Release-Medien: Kategorie öffnet Upload direkt; doppelte Uploadbuttons und leere Card entfernt; 63 Tests und 36 Browserfälle grün | 2026-09-14 | b819698f | [260914-dov-release-category-upload](./quick/260914-dov-release-category-upload/) |
 | 260914-dzk | Release-Mehrfachupload: Titel/Text pro Bild, eine Vorschau, gezielter Retry;128 Frontendtests, fokussierte PostgreSQL-/Browserchecks grün; additive Migration0163, Human-UAT offen | 2026-09-14 | 2f2d964f | [260914-dzk-release-media-per-file-metadata](./quick/260914-dzk-release-media-per-file-metadata/) |
+| 260914-f3k | Release-Medien: gemeinsame Galerie aller Kategorien mit Kategorie je Bild;93 Tests/36 Browserfälle grün | 2026-09-14 | d86083bd | [260914-f3k-release-media-all-images-gallery](./quick/260914-f3k-release-media-all-images-gallery/) |
 
 | 260825-jc0 | Admin start page navigation cleanup | 2026-08-25 | pending | [260825-jc0-admin-startseite-von-redundanten-benutze](./quick/260825-jc0-admin-startseite-von-redundanten-benutze/) |
 | 260825-svs | Regression aus Phase 140 beheben: fehlende getReviewDelegations Export im api-Mock von UserGroupRightsTab.test.tsx nachgeruestet (test-only, keine Verhaltensaenderung) | 2026-08-25 | 6cddcb75 | [260825-svs-regression-aus-phase-140-beheben-fehlend](./quick/260825-svs-regression-aus-phase-140-beheben-fehlend/) |
