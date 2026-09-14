@@ -176,6 +176,15 @@ type ThemeSegmentAssignmentSyncResult struct {
 	Removed             []int64                          `json:"removed"`
 	ProtectedByOverride []int64                          `json:"protected_by_override"`
 	SkippedConflicts    []ThemeSegmentAssignmentConflict `json:"skipped_conflicts"`
+	// OriginBefore ist die Herkunfts-Release-Version vor diesem Aufruf (nil == "Origin nicht
+	// bestimmt") -- Phase 156, Plan 156-16, GAP-04/GAP-05, P156-05/P156-06.
+	OriginBefore *int64 `json:"origin_before,omitempty"`
+	// OriginAfter ist die Herkunfts-Release-Version nach diesem Aufruf, nachdem
+	// ensureThemeSegmentOriginTx die zentrale Gueltigkeitsregel angewandt hat.
+	OriginAfter *int64 `json:"origin_after,omitempty"`
+	// RemovedContributorCount zaehlt die theme_segment_contributors-Zeilen, die als atomare
+	// Nebenwirkung eines tatsaechlichen Origin-Wechsels in diesem Aufruf entfernt wurden.
+	RemovedContributorCount int `json:"removed_contributor_count"`
 }
 
 // ThemeSegmentAssignmentConflict describes an occupied slot without changing its assignment.
