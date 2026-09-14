@@ -101,21 +101,11 @@ func parseReleaseStreamSelection(c *gin.Context) (int64, []int64, error) {
 	if err != nil {
 		return 0, nil, err
 	}
-	// URL.Query discards malformed values. Inspect named selector pairs so a bad
-	// escape cannot silently downgrade an explicit request to the legacy lookup.
-	var values []string
-	for _, pair := range strings.Split(c.Request.URL.RawQuery, "&") {
-		rawKey, _, _ := strings.Cut(pair, "=")
-		key, decodeErr := url.QueryUnescape(rawKey)
-		if decodeErr != nil || key != "variant_id" {
-			continue
-		}
-		parsed, parseErr := url.ParseQuery(pair)
-		if parseErr != nil {
-			return 0, nil, strconv.ErrSyntax
-		}
-		values = append(values, parsed["variant_id"]...)
+	query, err := parseStrictNamedQuery(c.Request.URL.RawQuery, "variant_id")
+	if err != nil {
+		return 0, nil, err
 	}
+	values := query["variant_id"]
 	if len(values) == 0 {
 		return versionID, nil, nil
 	}
@@ -132,4 +122,29 @@ func parseReleaseStreamSelection(c *gin.Context) (int64, []int64, error) {
 		return 0, nil, err
 	}
 	return versionID, []int64{variantID}, nil
+}
+
+// parseStrictNamedQuery preserves malformed values at selected contract boundaries.
+// Unknown pairs retain URL.Query compatibility; callers own duplicates and value semantics.
+func parseStrictNamedQuery(rawQuery string, names ...string) (url.Values, error) {
+	values := make(url.Values)
+	for _, pair := range strings.Split(rawQuery, "&") {
+		rawKey, _, _ := strings.Cut(pair, "=")
+		key, decodeErr := url.QueryUnescape(rawKey)
+		if decodeErr != nil {
+			continue
+		}
+		for _, name := range names {
+			if key != name {
+				continue
+			}
+			parsed, parseErr := url.ParseQuery(pair)
+			if parseErr != nil {
+				return nil, strconv.ErrSyntax
+			}
+			values[key] = append(values[key], parsed[key]...)
+			break
+		}
+	}
+	return values, nil
 }

@@ -6107,7 +6107,7 @@ paths:
                   - $ref: "#/components/schemas/GroupedEpisodesResponse"
                   - $ref: "#/components/schemas/PublicGroupedEpisodesResponse"
         "400":
-          description: Invalid anime id, projection, limit, cursor, duplicate public options or contradictory include flags
+          description: Invalid anime id, projection, limit, cursor, duplicate public options or contradictory include flags. Malformed URL-encoded values for projection/limit/cursor (including encoded names) and public include flags return 400 before repository access; unrelated malformed parameters retain default parsing compatibility.
           content:
             application/json:
               schema:

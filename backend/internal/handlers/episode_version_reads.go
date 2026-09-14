@@ -20,10 +20,19 @@ func (h *FansubHandler) ListGroupedEpisodes(c *gin.Context) {
 		return
 	}
 
-	query := c.Request.URL.Query()
+	query, err := parseStrictNamedQuery(c.Request.URL.RawQuery, "projection", "limit", "cursor")
+	if err != nil {
+		badRequest(c, "ungültige Episodenoptionen")
+		return
+	}
 	projection := query.Get("projection")
 	var data any
 	if projection == "public" {
+		query, err = parseStrictNamedQuery(c.Request.URL.RawQuery, "projection", "limit", "cursor", "includeVersions", "includeFansubs")
+		if err != nil {
+			badRequest(c, "ungültige Episodenoptionen")
+			return
+		}
 		for _, key := range []string{"projection", "limit", "cursor", "includeVersions", "includeFansubs"} {
 			if len(query[key]) > 1 {
 				badRequest(c, "ungültige Episodenoptionen")
