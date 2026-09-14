@@ -81,3 +81,32 @@ This decision applies to Phase 140 and constrains Phase 141 (which must not re-o
 grant path or assume delegation is the only source of an effective review allow — the
 personal-deny override remains a second live source of `review_deny` regardless of
 delegation state). Full context: `.planning/phases/140-review-delegation-management/140-CONTEXT.md`.
+
+## 2026-09-14: Phase 157 Statistikleiste and Beitragszusammenfassung superseded by Hero-inline metrics; Releases-section removal recorded retroactively
+
+The 2026-09-13 user order's binding starting point for Phase 157's stat surface was, verbatim,
+"Kennzahlen direkt im Hero: Folgen / Beiträge / Medien" — metrics directly inside the hero rather
+than a separate Statistikleiste card and a separate Beitragszusammenfassung band. Plan 157-07
+implemented this by folding P157-02 (Statistikleiste) and P157-04 (Beitragszusammenfassung) into
+`ProjectMemberHero`/`HeroMetrics`. The 2026-09-14 V6 decision (Plan 157-14) confirmed and extended
+the same direction: the hero metrics became clickable in-page jump targets, and the separate
+tab-card affordance was removed entirely. Neither P157-02 nor P157-04 is a functional regression;
+both are superseded requirements whose intent now lives in the hero.
+
+The resulting dead code is `ProjectMemberSummary.tsx` (export `ProjectMemberSummaryBar`) and
+`ProjectMemberSummaryBand.tsx`, both confirmed via `grep` to have zero importers anywhere in
+`frontend/src` outside their own test files, and both deleted by this same plan (157-16). The
+`episodes` count added in Plan 157-01 is explicitly unaffected by this decision or the deletion —
+it continues to feed the hero's "13 Folgen" figure exactly as before.
+
+This entry is also, per a discrepancy found during the GAP-03 independent post-GAP-02 check
+(157-UAT.md, F5), the FIRST durable log entry for the 2026-09-13 Releases-section removal
+(Plan 157-08, P157-09). Both `157-UAT.md`'s F5 text and `157-VERIFICATION.md`'s P157-09 gap entry
+cite "DECISIONS.md, Eintrag 2026-09-13" for that removal, but no such entry ever actually existed
+in this file prior to today — it was cited by name in multiple places without ever being written.
+This entry is dated honestly at its actual authorship time, 2026-09-14, and is an explicit
+retroactive record of a user order first given 2026-09-13, not a backdated entry.
+
+`157-VERIFICATION.md`'s 2026-09-13 `gaps_found` (10/13) snapshot predates this decision and is
+superseded by the next `/gsd:verify-phase 157` run, which must regenerate it so the stale snapshot
+stops being read as current truth.

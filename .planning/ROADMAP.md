@@ -1685,18 +1685,29 @@ P157-10, P157-11, P157-12, P157-13
 | ID | Auftragsabschnitt | Inhalt |
 |----|-------------------|--------|
 | P157-01 | 1 | Hero mit Avatar links, Name/Verifiziert/Projektzeile/Rollen-Chip rechts, beide Aktionsbuttons nebeneinander (auf schmalen Screens stapelnd); angezeigte Daten unveraendert |
-| P157-02 | 2 | Eine kompakte Statistikleiste mit Icon+Zahl+Label in Referenz-Reihenfolge (Rolle, Beitraege, Medien, Releases), korrekter Singular/Plural; keine vier grossen Boxen |
+| P157-02 | 2 | Eine kompakte Statistikleiste mit Icon+Zahl+Label in Referenz-Reihenfolge (Rolle, Beitraege, Medien, Releases), korrekter Singular/Plural; keine vier grossen Boxen — **Ersetzt** durch Nutzerentscheid (Hero-Kennzahlen ersetzen Statistikleiste/Beitragszusammenfassung, siehe Aufträge vom 2026-09-13/2026-09-14 und `DECISIONS.md`). |
 | P157-03 | 3 | Tab-/Jump-Navigation kompakt mit sichtbar hervorgehobenem aktivem Bereich; bestehende Anchor-/Scroll-Mechanik wiederverwendet; kein Abschneiden auf 390 px |
-| P157-04 | 4 | Beitragszusammenfassung „Rolle fuer N Folgen · M dokumentierte Arbeitsnotizen · K Medien"; der Folgen-Zaehler ist definiert als Folgen mit mindestens einer oeffentlichen Notiz ODER einem oeffentlichen Medium, gebildet mit den vorhandenen Public-Praedikaten — keine erfundene Zahl |
+| P157-04 | 4 | Beitragszusammenfassung „Rolle fuer N Folgen · M dokumentierte Arbeitsnotizen · K Medien"; der Folgen-Zaehler ist definiert als Folgen mit mindestens einer oeffentlichen Notiz ODER einem oeffentlichen Medium, gebildet mit den vorhandenen Public-Praedikaten — keine erfundene Zahl — **Ersetzt** durch Nutzerentscheid (Hero-Kennzahlen ersetzen Statistikleiste/Beitragszusammenfassung, siehe Aufträge vom 2026-09-13/2026-09-14 und `DECISIONS.md`). |
 | P157-05 | 5 | Notizen als kompakte Timeline-Zeilen: Meta-Zeile Folge · Version · Datum, Titel darunter, 2–4 Zeilen Text, optional „Mehr anzeigen"; kein Rollen-Header, keine doppelte Folgenangabe, keine grossen farbigen Karten |
 | P157-06 | 6 | Bei genau einer Projektrolle erscheint die Rolle nur im Header; bei mehreren Rollen ist ein kleiner Chip in der Meta-Zeile zulaessig; keine Wiederholung ohne Mehrwert |
 | P157-07 | 7 | Pager nennt die tatsaechliche naechste Anzahl („Weitere N Beitraege anzeigen") neben „X von Y angezeigt"; bestehende Lazy-Load-Mechanik unveraendert |
 | P157-08 | 8 | Medienbereich nach Referenz: Kopfzeile mit Anzahl rechts, responsive Galerie mit Bild, Titel, Folge/Version; bestehende Lightbox und Medienlogik unveraendert |
-| P157-09 | 9 | Bei 0 Releases kompakter Empty-State statt grosser Leerflaeche; keine Doppelinformation aus Zaehler und „Alle 0 angezeigt" |
+| P157-09 | 9 | Bei 0 Releases kompakter Empty-State statt grosser Leerflaeche; keine Doppelinformation aus Zaehler und „Alle 0 angezeigt" — **Entfällt**: Releases-Sektion auf ausdrücklichen Nutzerauftrag vom 2026-09-13 vollständig entfernt (Plan 157-08), siehe `DECISIONS.md`. |
 | P157-10 | 10, 11 | Informationshierarchie Person → Rolle → Umfang → Beitraege → Medien → Releases; sauberes Verhalten von 320 bis 1440 px ohne horizontale Scrollbar |
 | P157-11 | 12, 13 | Team4s-Designsprache und globale Primitives/Tokens erhalten, keine neuen Tokens; keine Regression bei Sichtbarkeit, Slug-Verlinkung, Release-Zuordnung, Medien-Sichtbarkeit, Pagination, API-Semantik, Rollenberechnung; keine Backend-Parallelstruktur |
 | P157-12 | 15, 16, 17 | Testmatrix angepasst statt geloescht und vollstaendig gruen; Live-UAT mit Vorher/Nachher-Screenshots (Header+Statistik, Beitraege, Medien, Releases, Desktop, schmaler Viewport) gegen die Referenz geprueft und Abweichungen dokumentiert |
 | P157-13 | Nachtrag 2026-09-12 | Bestehende Rollenfarb-Semantik bleibt vollstaendig erhalten: die Rollenfarbe ist an JEDEM Beitrag sichtbar (unabhaengig von der Rollenzahl), ausschliesslich ueber die zentrale Naht role_color_key -> boundedColorKey() -> data-color-key -> globals.css:271-293 -> --role-accent; keine Hex-Werte im Komponenten-CSS, kein zweites Farbmapping; Referenzbild ist in diesem Punkt (neutrale Karten) ausdruecklich nicht verbindlich, Struktur/Reihenfolge/Proportionen bleiben es |
+
+**Nachtrag GAP-03 F5 (2026-09-14):** P157-02, P157-04 und P157-09 sind NICHT stillschweigend als
+erfüllt zu lesen — sie sind durch spätere, explizite Nutzerentscheidungen ersetzt bzw. entfallen.
+P157-02 (Statistikleiste) und P157-04 (Beitragszusammenfassung) wurden durch den Nutzerauftrag vom
+2026-09-13 („Kennzahlen direkt im Hero: Folgen / Beiträge / Medien") und dessen Bestätigung/
+Erweiterung durch den Nutzerauftrag vom 2026-09-14 (V6, klickbare Hero-Kennzahlen, separate Tab-Card
+entfällt) ersetzt. P157-09 (Releases-Empty-State) entfällt, weil die Releases-Sektion auf
+ausdrücklichen Nutzerauftrag vom 2026-09-13 vollständig entfernt wurde (Plan 157-08). Die durable
+Aufzeichnung beider Entscheidungen steht in `DECISIONS.md`, Eintrag „2026-09-14: Phase 157
+Statistikleiste and Beitragszusammenfassung superseded by Hero-inline metrics; Releases-section
+removal recorded retroactively".
 
 **Faktenbasis:** `157-USER-REQUEST.md` als verbindliche Auftragsquelle, `157-CONTEXT.md` mit
 Implementation Map, gemessenem Ist-Zustand und der Referenz-Spezifikation in Worten (das Bild liegt
