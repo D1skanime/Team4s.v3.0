@@ -60,11 +60,11 @@ func TestProjectMemberEpisodesCountUnionDedup(t *testing.T) {
 			claim_status VARCHAR(20) NOT NULL DEFAULT 'pending'
 		);
 
-		CREATE TABLE visibilities (
+		CREATE TABLE IF NOT EXISTS visibilities (
 			id BIGSERIAL PRIMARY KEY,
 			name VARCHAR(40) NOT NULL UNIQUE
 		);
-		INSERT INTO visibilities (name) VALUES ('public');
+		INSERT INTO visibilities (name) VALUES ('public') ON CONFLICT (name) DO NOTHING;
 
 		CREATE TABLE review_statuses (
 			id BIGSERIAL PRIMARY KEY,

@@ -40,23 +40,25 @@ import (
 // anime_contribution_roles/visibilities, members.profile_visibility/public_slug) --
 // loadPublicEffectiveContributors needs these tables to resolve who is an effective
 // Origin contributor. Mirrors Plan 156-03's precedent of a local, per-test-file fixture
-// addendum instead of changing the shared testsupport/phase117_postgres.go fixture.
+// addendum. Plan 156-16 also added the identical shim to testsupport/phase117_postgres.go's
+// createPhase117Prerequisites (ensureThemeSegmentOriginTx now reaches it from more call
+// sites) -- IF NOT EXISTS/ON CONFLICT keep this local copy collision-free either way.
 func newSegmentContributorsFixture(t *testing.T) (*pgxpool.Pool, context.Context) {
 	t.Helper()
 	pool := testsupport.OpenPhase117Postgres(t)
 	ctx := context.Background()
 
 	_, err := pool.Exec(ctx, `
-		CREATE TABLE visibilities (
+		CREATE TABLE IF NOT EXISTS visibilities (
 			id BIGSERIAL PRIMARY KEY,
 			name TEXT NOT NULL UNIQUE
 		);
-		INSERT INTO visibilities (name) VALUES ('public');
+		INSERT INTO visibilities (name) VALUES ('public') ON CONFLICT (name) DO NOTHING;
 
 		ALTER TABLE members ADD COLUMN IF NOT EXISTS profile_visibility TEXT NOT NULL DEFAULT 'members_only';
 		ALTER TABLE members ADD COLUMN IF NOT EXISTS public_slug TEXT;
 
-		CREATE TABLE anime_contributions (
+		CREATE TABLE IF NOT EXISTS anime_contributions (
 			id BIGSERIAL PRIMARY KEY,
 			fansub_group_id BIGINT NOT NULL,
 			anime_id BIGINT NOT NULL,
@@ -66,7 +68,7 @@ func newSegmentContributorsFixture(t *testing.T) (*pgxpool.Pool, context.Context
 			visibility_id BIGINT NULL REFERENCES visibilities(id)
 		);
 
-		CREATE TABLE anime_contribution_roles (
+		CREATE TABLE IF NOT EXISTS anime_contribution_roles (
 			id BIGSERIAL PRIMARY KEY,
 			anime_contribution_id BIGINT NOT NULL REFERENCES anime_contributions(id) ON DELETE CASCADE,
 			role_code TEXT NOT NULL

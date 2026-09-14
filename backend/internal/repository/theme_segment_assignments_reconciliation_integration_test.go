@@ -8,6 +8,7 @@ import (
 	"team4s.v3/backend/internal/models"
 	"team4s.v3/backend/internal/testsupport"
 
+	"github.com/jackc/pgx/v5/pgxpool"
 	"github.com/stretchr/testify/require"
 )
 
@@ -71,6 +72,13 @@ func TestAssignThemeSegmentToEpisodeRangeGuardNeverDeletesOnIncompleteRange(t *t
 	require.NotNil(t, result)
 	require.Len(t, result.Added, 3, "Vorbereitung: alle drei Folgen muessen zunaechst zugewiesen sein")
 
+	// Plan 156-16: die Vorbereitung oben laeuft jetzt (via ensureThemeSegmentOriginTx) ebenfalls
+	// durch die Origin-Synchronisation und hat bereits eine Origin gesetzt (niedrigste Episode) --
+	// diese muss byte-identisch bleiben, auch wenn jeder nachfolgende Aufruf ein unvollstaendiger
+	// Bereich ist, der den DB-Zugriff laut Guard NIE erreicht.
+	originBeforeGuardCases := readThemeSegmentOrigin(t, pool, ctx, segmentID)
+	require.NotNil(t, originBeforeGuardCases, "Vorbereitung: die Origin muss durch die vollstaendige Bereichszuweisung automatisch gesetzt worden sein")
+
 	incompleteRangeCases := []struct {
 		name          string
 		segmentID     int64
@@ -95,8 +103,24 @@ func TestAssignThemeSegmentToEpisodeRangeGuardNeverDeletesOnIncompleteRange(t *t
 			require.NoError(t, err)
 			require.ElementsMatch(t, []int64{releaseVersionIDs[1], releaseVersionIDs[2], releaseVersionIDs[3]}, ids,
 				"ein unvollstaendiger Bereich (%s) darf NULL Zuweisungen loeschen", tc.name)
+
+			// Plan 156-16: der Guard laesst per Konstruktion auch die Origin unangetastet -- eine
+			// zusaetzliche Assertion, keine Umstrukturierung des Guards selbst.
+			originAfter := readThemeSegmentOrigin(t, pool, ctx, segmentID)
+			require.Equal(t, originBeforeGuardCases, originAfter,
+				"ein unvollstaendiger Bereich (%s) darf die Origin nicht veraendern", tc.name)
 		})
 	}
+}
+
+// readThemeSegmentOrigin liest origin_release_version_id direkt aus der Datenbank -- ein
+// wiederverwendeter Test-Helfer fuer die in Plan 156-16 hinzugefuegten Origin-Assertions in
+// dieser Datei.
+func readThemeSegmentOrigin(t *testing.T, pool *pgxpool.Pool, ctx context.Context, segmentID int64) *int64 {
+	t.Helper()
+	var origin *int64
+	require.NoError(t, pool.QueryRow(ctx, `SELECT origin_release_version_id FROM theme_segments WHERE id = $1`, segmentID).Scan(&origin))
+	return origin
 }
 
 // TestAssignThemeSegmentToEpisodeRange proves the reconciling, idempotent, version-scoped
@@ -302,4 +326,221 @@ func TestAssignThemeSegmentToEpisodeRange(t *testing.T) {
 		require.Contains(t, idsAfter, foreignReleaseVersion, "die fremde Zuweisung muss nach dem Aufruf UNVERAENDERT bestehen bleiben")
 		require.ElementsMatch(t, []int64{releaseVersionIDs[1], foreignReleaseVersion}, idsAfter)
 	})
+}
+
+// TestAssignThemeSegmentToEpisodeRangeOriginRecomputesOnShrink proves the "range shrink" behavior
+// from 156-16-PLAN.md: a segment assigned to releases at episodes {4,5}, whose origin is the
+// release at the lower episode of that set, gets its origin recomputed to the remaining
+// assignment once a range shrink removes the release the origin pointed to.
+func TestAssignThemeSegmentToEpisodeRangeOriginRecomputesOnShrink(t *testing.T) {
+	pool := testsupport.OpenPhase117Postgres(t)
+	ctx := context.Background()
+	repo := NewAdminContentRepository(pool)
+
+	const (
+		animeID       = int64(51)
+		fansubGroupID = int64(51)
+		themeTypeID   = int64(51)
+		themeID       = int64(51)
+	)
+	_, err := pool.Exec(ctx, `INSERT INTO anime (id) VALUES ($1)`, animeID)
+	require.NoError(t, err)
+	_, err = pool.Exec(ctx, `INSERT INTO fansub_groups (id) VALUES ($1)`, fansubGroupID)
+	require.NoError(t, err)
+	_, err = pool.Exec(ctx, `INSERT INTO theme_types (id, name) VALUES ($1, 'OP1')`, themeTypeID)
+	require.NoError(t, err)
+	_, err = pool.Exec(ctx, `INSERT INTO themes (id, anime_id, theme_type_id) VALUES ($1, $2, $3)`, themeID, animeID, themeTypeID)
+	require.NoError(t, err)
+
+	releaseVersionIDs := make(map[int]int64, 2)
+	for _, episodeNum := range []int{4, 5} {
+		episodeID := int64(5100 + episodeNum)
+		releaseID := int64(5200 + episodeNum)
+		releaseVersionID := int64(5300 + episodeNum)
+		_, err = pool.Exec(ctx, `INSERT INTO episodes (id, anime_id, sort_index, episode_number) VALUES ($1, $2, $3, $4)`,
+			episodeID, animeID, episodeNum, fmt.Sprint(episodeNum))
+		require.NoError(t, err)
+		_, err = pool.Exec(ctx, `INSERT INTO fansub_releases (id, episode_id) VALUES ($1, $2)`, releaseID, episodeID)
+		require.NoError(t, err)
+		_, err = pool.Exec(ctx, `INSERT INTO release_versions (id, release_id, version) VALUES ($1, $2, 'v1')`, releaseVersionID, releaseID)
+		require.NoError(t, err)
+		_, err = pool.Exec(ctx, `INSERT INTO release_version_groups (release_version_id, fansub_group_id) VALUES ($1, $2)`, releaseVersionID, fansubGroupID)
+		require.NoError(t, err)
+		releaseVersionIDs[episodeNum] = releaseVersionID
+	}
+
+	var segmentID int64
+	err = pool.QueryRow(ctx, `
+		INSERT INTO theme_segments (theme_id, fansub_group_id, version, start_episode, end_episode)
+		VALUES ($1, $2, 'v1', 4, 5)
+		RETURNING id
+	`, themeID, fansubGroupID).Scan(&segmentID)
+	require.NoError(t, err)
+
+	result, err := repo.AssignThemeSegmentToEpisodeRange(ctx, segmentID, animeID, fansubGroupID, "v1", 4, 5)
+	require.NoError(t, err)
+	require.NotNil(t, result)
+	require.ElementsMatch(t, []int64{releaseVersionIDs[4], releaseVersionIDs[5]}, result.Added)
+	require.Nil(t, result.OriginBefore)
+	require.NotNil(t, result.OriginAfter)
+	require.Equal(t, releaseVersionIDs[4], *result.OriginAfter, "die niedrigste Episode im Bereich muss automatisch zur Origin werden")
+	require.Equal(t, releaseVersionIDs[4], *readThemeSegmentOrigin(t, pool, ctx, segmentID))
+
+	shrinkResult, err := repo.AssignThemeSegmentToEpisodeRange(ctx, segmentID, animeID, fansubGroupID, "v1", 5, 5)
+	require.NoError(t, err)
+	require.NotNil(t, shrinkResult)
+	require.ElementsMatch(t, []int64{releaseVersionIDs[4]}, shrinkResult.Removed)
+	require.NotNil(t, shrinkResult.OriginBefore)
+	require.Equal(t, releaseVersionIDs[4], *shrinkResult.OriginBefore)
+	require.NotNil(t, shrinkResult.OriginAfter)
+	require.Equal(t, releaseVersionIDs[5], *shrinkResult.OriginAfter, "die Origin muss auf die verbleibende Zuweisung neu berechnet werden")
+	require.Equal(t, releaseVersionIDs[5], *readThemeSegmentOrigin(t, pool, ctx, segmentID))
+}
+
+// TestAssignThemeSegmentToEpisodeRangeOriginClearsToNullWhenRangeEmpties proves the
+// "range-to-empty" behavior from 156-16-PLAN.md: a range change that removes every assignment
+// clears the origin to NULL and removes all theme_segment_contributors rows for the segment.
+func TestAssignThemeSegmentToEpisodeRangeOriginClearsToNullWhenRangeEmpties(t *testing.T) {
+	pool := testsupport.OpenPhase117Postgres(t)
+	ctx := context.Background()
+	repo := NewAdminContentRepository(pool)
+
+	const (
+		animeID       = int64(52)
+		fansubGroupID = int64(52)
+		themeTypeID   = int64(52)
+		themeID       = int64(52)
+	)
+	_, err := pool.Exec(ctx, `INSERT INTO anime (id) VALUES ($1)`, animeID)
+	require.NoError(t, err)
+	_, err = pool.Exec(ctx, `INSERT INTO fansub_groups (id) VALUES ($1)`, fansubGroupID)
+	require.NoError(t, err)
+	_, err = pool.Exec(ctx, `INSERT INTO theme_types (id, name) VALUES ($1, 'OP1')`, themeTypeID)
+	require.NoError(t, err)
+	_, err = pool.Exec(ctx, `INSERT INTO themes (id, anime_id, theme_type_id) VALUES ($1, $2, $3)`, themeID, animeID, themeTypeID)
+	require.NoError(t, err)
+
+	const episodeNum = 1
+	episodeID := int64(6100)
+	releaseID := int64(6200)
+	releaseVersionID := int64(6300)
+	_, err = pool.Exec(ctx, `INSERT INTO episodes (id, anime_id, sort_index, episode_number) VALUES ($1, $2, $3, $4)`,
+		episodeID, animeID, episodeNum, fmt.Sprint(episodeNum))
+	require.NoError(t, err)
+	_, err = pool.Exec(ctx, `INSERT INTO fansub_releases (id, episode_id) VALUES ($1, $2)`, releaseID, episodeID)
+	require.NoError(t, err)
+	_, err = pool.Exec(ctx, `INSERT INTO release_versions (id, release_id, version) VALUES ($1, $2, 'v1')`, releaseVersionID, releaseID)
+	require.NoError(t, err)
+	_, err = pool.Exec(ctx, `INSERT INTO release_version_groups (release_version_id, fansub_group_id) VALUES ($1, $2)`, releaseVersionID, fansubGroupID)
+	require.NoError(t, err)
+
+	var segmentID int64
+	err = pool.QueryRow(ctx, `
+		INSERT INTO theme_segments (theme_id, fansub_group_id, version, start_episode, end_episode)
+		VALUES ($1, $2, 'v1', 1, 1)
+		RETURNING id
+	`, themeID, fansubGroupID).Scan(&segmentID)
+	require.NoError(t, err)
+
+	result, err := repo.AssignThemeSegmentToEpisodeRange(ctx, segmentID, animeID, fansubGroupID, "v1", 1, 1)
+	require.NoError(t, err)
+	require.NotNil(t, result)
+	require.NotNil(t, result.OriginAfter)
+	require.Equal(t, releaseVersionID, *result.OriginAfter)
+
+	// A member selection carried over from the (still valid, non-empty) origin -- must be cleared
+	// once the origin itself becomes NULL, not just left dangling.
+	const memberID = int64(52901)
+	_, err = pool.Exec(ctx, `INSERT INTO members (id) VALUES ($1)`, memberID)
+	require.NoError(t, err)
+	_, err = pool.Exec(ctx, `INSERT INTO theme_segment_contributors (theme_segment_id, member_id) VALUES ($1, $2)`, segmentID, memberID)
+	require.NoError(t, err)
+
+	// A range that matches no actual episode empties the assignment set entirely.
+	emptyResult, err := repo.AssignThemeSegmentToEpisodeRange(ctx, segmentID, animeID, fansubGroupID, "v1", 99, 99)
+	require.NoError(t, err)
+	require.NotNil(t, emptyResult)
+	require.ElementsMatch(t, []int64{releaseVersionID}, emptyResult.Removed)
+	require.NotNil(t, emptyResult.OriginBefore)
+	require.Equal(t, releaseVersionID, *emptyResult.OriginBefore)
+	require.Nil(t, emptyResult.OriginAfter)
+	require.Equal(t, 1, emptyResult.RemovedContributorCount)
+
+	require.Nil(t, readThemeSegmentOrigin(t, pool, ctx, segmentID))
+	repo2 := NewAdminContentRepository(pool)
+	ids, err := repo2.GetThemeSegmentContributorMemberIDs(ctx, segmentID)
+	require.NoError(t, err)
+	require.Empty(t, ids)
+}
+
+// TestAssignThemeSegmentToEpisodeRangeOriginNeverOverwritesValidOnExpand proves Auftragspunkt 8
+// at the integration-call-site level (156-16-PLAN.md): a valid origin already pointing at the
+// lowest-episode release stays UNCHANGED even when the range expands to include an ADDITIONAL
+// release with a LOWER episode number.
+func TestAssignThemeSegmentToEpisodeRangeOriginNeverOverwritesValidOnExpand(t *testing.T) {
+	pool := testsupport.OpenPhase117Postgres(t)
+	ctx := context.Background()
+	repo := NewAdminContentRepository(pool)
+
+	const (
+		animeID       = int64(53)
+		fansubGroupID = int64(53)
+		themeTypeID   = int64(53)
+		themeID       = int64(53)
+	)
+	_, err := pool.Exec(ctx, `INSERT INTO anime (id) VALUES ($1)`, animeID)
+	require.NoError(t, err)
+	_, err = pool.Exec(ctx, `INSERT INTO fansub_groups (id) VALUES ($1)`, fansubGroupID)
+	require.NoError(t, err)
+	_, err = pool.Exec(ctx, `INSERT INTO theme_types (id, name) VALUES ($1, 'OP1')`, themeTypeID)
+	require.NoError(t, err)
+	_, err = pool.Exec(ctx, `INSERT INTO themes (id, anime_id, theme_type_id) VALUES ($1, $2, $3)`, themeID, animeID, themeTypeID)
+	require.NoError(t, err)
+
+	releaseVersionIDs := make(map[int]int64, 3)
+	for episodeNum := 1; episodeNum <= 3; episodeNum++ {
+		episodeID := int64(7100 + episodeNum)
+		releaseID := int64(7200 + episodeNum)
+		releaseVersionID := int64(7300 + episodeNum)
+		_, err = pool.Exec(ctx, `INSERT INTO episodes (id, anime_id, sort_index, episode_number) VALUES ($1, $2, $3, $4)`,
+			episodeID, animeID, episodeNum, fmt.Sprint(episodeNum))
+		require.NoError(t, err)
+		_, err = pool.Exec(ctx, `INSERT INTO fansub_releases (id, episode_id) VALUES ($1, $2)`, releaseID, episodeID)
+		require.NoError(t, err)
+		_, err = pool.Exec(ctx, `INSERT INTO release_versions (id, release_id, version) VALUES ($1, $2, 'v1')`, releaseVersionID, releaseID)
+		require.NoError(t, err)
+		_, err = pool.Exec(ctx, `INSERT INTO release_version_groups (release_version_id, fansub_group_id) VALUES ($1, $2)`, releaseVersionID, fansubGroupID)
+		require.NoError(t, err)
+		releaseVersionIDs[episodeNum] = releaseVersionID
+	}
+
+	var segmentID int64
+	err = pool.QueryRow(ctx, `
+		INSERT INTO theme_segments (theme_id, fansub_group_id, version, start_episode, end_episode)
+		VALUES ($1, $2, 'v1', 3, 3)
+		RETURNING id
+	`, themeID, fansubGroupID).Scan(&segmentID)
+	require.NoError(t, err)
+
+	// Only episode 3 is assigned initially -- origin is automatically set to it (the only
+	// assignment).
+	result, err := repo.AssignThemeSegmentToEpisodeRange(ctx, segmentID, animeID, fansubGroupID, "v1", 3, 3)
+	require.NoError(t, err)
+	require.NotNil(t, result)
+	require.NotNil(t, result.OriginAfter)
+	require.Equal(t, releaseVersionIDs[3], *result.OriginAfter)
+	require.Equal(t, releaseVersionIDs[3], *readThemeSegmentOrigin(t, pool, ctx, segmentID))
+
+	// Expand the range to include episodes 1 and 2 -- both LOWER episode numbers than the current
+	// origin. Auftragspunkt 8: the already-valid origin must stay exactly as it is.
+	expandResult, err := repo.AssignThemeSegmentToEpisodeRange(ctx, segmentID, animeID, fansubGroupID, "v1", 1, 3)
+	require.NoError(t, err)
+	require.NotNil(t, expandResult)
+	require.ElementsMatch(t, []int64{releaseVersionIDs[1], releaseVersionIDs[2]}, expandResult.Added)
+	require.False(t, expandResult.OriginBefore == nil, "die Origin war bereits gueltig gesetzt")
+	require.NotNil(t, expandResult.OriginBefore)
+	require.Equal(t, releaseVersionIDs[3], *expandResult.OriginBefore)
+	require.NotNil(t, expandResult.OriginAfter)
+	require.Equal(t, releaseVersionIDs[3], *expandResult.OriginAfter, "Auftragspunkt 8: eine gueltige Origin darf nicht durch eine niedrigere Episode ueberschrieben werden")
+	require.Equal(t, releaseVersionIDs[3], *readThemeSegmentOrigin(t, pool, ctx, segmentID))
 }

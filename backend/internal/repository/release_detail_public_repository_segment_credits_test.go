@@ -60,17 +60,22 @@ type segmentCreditsFixture struct {
 func newSegmentCreditsFixture(t *testing.T, ctx context.Context, pool *pgxpool.Pool) *segmentCreditsFixture {
 	t.Helper()
 
+	// Plan 156-16: dieser Shim lebt inzwischen auch in testsupport/phase117_postgres.go's
+	// createPhase117Prerequisites (ensureThemeSegmentOriginTx braucht ihn jetzt aus mehr
+	// Aufrufpfaden als nur SetThemeSegmentOrigin) -- IF NOT EXISTS/ON CONFLICT halten diese
+	// lokale Kopie damit kollisionsfrei, statt sie zu entfernen und implizit von der
+	// Aufrufreihenfolge abhaengig zu werden.
 	_, err := pool.Exec(ctx, `
-		CREATE TABLE visibilities (
+		CREATE TABLE IF NOT EXISTS visibilities (
 			id BIGSERIAL PRIMARY KEY,
 			name TEXT NOT NULL UNIQUE
 		);
-		INSERT INTO visibilities (name) VALUES ('public');
+		INSERT INTO visibilities (name) VALUES ('public') ON CONFLICT (name) DO NOTHING;
 
 		ALTER TABLE members ADD COLUMN IF NOT EXISTS profile_visibility TEXT NOT NULL DEFAULT 'members_only';
 		ALTER TABLE members ADD COLUMN IF NOT EXISTS public_slug TEXT;
 
-		CREATE TABLE anime_contributions (
+		CREATE TABLE IF NOT EXISTS anime_contributions (
 			id BIGSERIAL PRIMARY KEY,
 			fansub_group_id BIGINT NOT NULL,
 			anime_id BIGINT NOT NULL,
@@ -80,7 +85,7 @@ func newSegmentCreditsFixture(t *testing.T, ctx context.Context, pool *pgxpool.P
 			visibility_id BIGINT NULL REFERENCES visibilities(id)
 		);
 
-		CREATE TABLE anime_contribution_roles (
+		CREATE TABLE IF NOT EXISTS anime_contribution_roles (
 			id BIGSERIAL PRIMARY KEY,
 			anime_contribution_id BIGINT NOT NULL REFERENCES anime_contributions(id) ON DELETE CASCADE,
 			role_code TEXT NOT NULL

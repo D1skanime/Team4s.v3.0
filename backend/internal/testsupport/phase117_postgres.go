@@ -152,6 +152,38 @@ CREATE TABLE release_version_notes (
     sort_order INT NOT NULL DEFAULT 0,
     created_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
     deleted_at TIMESTAMPTZ NULL
+);
+-- Plan 156-16 (GAP-04/GAP-05): ensureThemeSegmentOriginTx now reaches
+-- loadPublicEffectiveContributors from every write path that can change a segment's origin
+-- (range sync, segment creation, release-version auto-assignment) -- not just the previously
+-- opt-in SetThemeSegmentOrigin call. Every Phase-117 test that ends up with a non-NULL origin
+-- therefore needs this shim, so it moved here instead of staying copy-pasted per test file
+-- (theme_segment_origin_integration_test.go's original precedent). IF NOT EXISTS / ON CONFLICT
+-- keep this safe to combine with a test file that still seeds its own (now redundant) copy --
+-- those copies were converted to the same IF NOT EXISTS shape in this same plan.
+CREATE TABLE IF NOT EXISTS visibilities (
+    id BIGSERIAL PRIMARY KEY,
+    name TEXT NOT NULL UNIQUE
+);
+INSERT INTO visibilities (name) VALUES ('public') ON CONFLICT (name) DO NOTHING;
+
+ALTER TABLE members ADD COLUMN IF NOT EXISTS profile_visibility TEXT NOT NULL DEFAULT 'members_only';
+ALTER TABLE members ADD COLUMN IF NOT EXISTS public_slug TEXT;
+
+CREATE TABLE IF NOT EXISTS anime_contributions (
+    id BIGSERIAL PRIMARY KEY,
+    fansub_group_id BIGINT NOT NULL,
+    anime_id BIGINT NOT NULL,
+    member_id BIGINT NOT NULL REFERENCES members(id),
+    release_version_id BIGINT NULL REFERENCES release_versions(id),
+    is_public_on_anime_page BOOLEAN NOT NULL DEFAULT false,
+    visibility_id BIGINT NULL REFERENCES visibilities(id)
+);
+
+CREATE TABLE IF NOT EXISTS anime_contribution_roles (
+    id BIGSERIAL PRIMARY KEY,
+    anime_contribution_id BIGINT NOT NULL REFERENCES anime_contributions(id) ON DELETE CASCADE,
+    role_code TEXT NOT NULL
 );`
 	if err := validatePhase106SQL(sql); err != nil {
 		t.Fatal(err)

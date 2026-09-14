@@ -264,3 +264,81 @@ func TestUpsertReleaseVersionGroupAutoAssign_OutOfRangeGetsNoAssignment(t *testi
 	require.NotContains(t, assigned, releaseVersionID, "a release version outside the segment's range must not be auto-assigned")
 	require.Empty(t, assigned, "no assignment should exist at all for a segment whose range never matched any created release version")
 }
+
+// readAutoAssignSegmentOrigin reads origin_release_version_id directly -- a small local helper
+// for the two Plan 156-16 (GAP-04/GAP-05) origin-wiring tests below.
+func readAutoAssignSegmentOrigin(t *testing.T, pool *pgxpool.Pool, ctx context.Context, segmentID int64) *int64 {
+	t.Helper()
+	var origin *int64
+	require.NoError(t, pool.QueryRow(ctx, `SELECT origin_release_version_id FROM theme_segments WHERE id = $1`, segmentID).Scan(&origin))
+	return origin
+}
+
+// TestUpsertReleaseVersionGroupAutoAssign_SetsOriginOnFirstAssignment proves the "Auto-assign sets
+// origin" behavior from 156-16-PLAN.md: a segment with NULL origin and zero assignments that
+// receives its first assignment via autoAssignThemeSegmentsForNewReleaseVersion gets that release
+// version as its origin, with no forced admin interaction.
+func TestUpsertReleaseVersionGroupAutoAssign_SetsOriginOnFirstAssignment(t *testing.T) {
+	pool := testsupport.OpenPhase117Postgres(t)
+	ctx := context.Background()
+
+	const (
+		animeID     = int64(1)
+		themeTypeID = int64(1)
+		themeID     = int64(1)
+		groupID     = int64(1)
+	)
+	seedAutoAssignBaseFixture(t, pool, ctx, animeID, themeTypeID, themeID)
+	seedAutoAssignFansubGroup(t, pool, ctx, groupID)
+
+	segmentID := seedAutoAssignThemeSegment(t, pool, ctx, themeID, groupID, 1, 3)
+	require.Nil(t, readAutoAssignSegmentOrigin(t, pool, ctx, segmentID), "Vorbereitung: frisches Segment hat keine Origin")
+
+	releaseVersionID := createAutoAssignReleaseVersion(t, pool, ctx, 102)
+	callUpsertReleaseVersionGroup(t, pool, ctx, releaseVersionID, groupID)
+
+	assigned := assignedReleaseVersionIDsForSegment(t, pool, ctx, segmentID)
+	require.Contains(t, assigned, releaseVersionID)
+
+	origin := readAutoAssignSegmentOrigin(t, pool, ctx, segmentID)
+	require.NotNil(t, origin, "die erste automatische Zuweisung muss sofort eine Origin setzen")
+	require.Equal(t, releaseVersionID, *origin)
+}
+
+// TestUpsertReleaseVersionGroupAutoAssign_NeverOverwritesValidOrigin proves "Auto-assign never
+// overwrites" from 156-16-PLAN.md (Auftragspunkt 8): a segment with an already-valid origin that
+// receives an ADDITIONAL assignment via auto-assign whose episode is LOWER than the origin's
+// episode keeps its origin unchanged.
+func TestUpsertReleaseVersionGroupAutoAssign_NeverOverwritesValidOrigin(t *testing.T) {
+	pool := testsupport.OpenPhase117Postgres(t)
+	ctx := context.Background()
+
+	const (
+		animeID     = int64(1)
+		themeTypeID = int64(1)
+		themeID     = int64(1)
+		groupID     = int64(1)
+	)
+	seedAutoAssignBaseFixture(t, pool, ctx, animeID, themeTypeID, themeID)
+	seedAutoAssignFansubGroup(t, pool, ctx, groupID)
+
+	segmentID := seedAutoAssignThemeSegment(t, pool, ctx, themeID, groupID, 1, 3)
+
+	// First assignment: episode 3 -- becomes the origin (only assignment so far).
+	releaseVersionEp3 := createAutoAssignReleaseVersion(t, pool, ctx, 103)
+	callUpsertReleaseVersionGroup(t, pool, ctx, releaseVersionEp3, groupID)
+	originAfterFirst := readAutoAssignSegmentOrigin(t, pool, ctx, segmentID)
+	require.NotNil(t, originAfterFirst)
+	require.Equal(t, releaseVersionEp3, *originAfterFirst)
+
+	// Second assignment: episode 1 -- a LOWER episode than the current, already-valid origin.
+	releaseVersionEp1 := createAutoAssignReleaseVersion(t, pool, ctx, 101)
+	callUpsertReleaseVersionGroup(t, pool, ctx, releaseVersionEp1, groupID)
+
+	assigned := assignedReleaseVersionIDsForSegment(t, pool, ctx, segmentID)
+	require.ElementsMatch(t, []int64{releaseVersionEp3, releaseVersionEp1}, assigned, "beide Zuweisungen muessen bestehen")
+
+	originAfterSecond := readAutoAssignSegmentOrigin(t, pool, ctx, segmentID)
+	require.NotNil(t, originAfterSecond)
+	require.Equal(t, releaseVersionEp3, *originAfterSecond, "Auftragspunkt 8: eine gueltige Origin darf durch eine neue, niedrigere Zuweisung nicht ueberschrieben werden")
+}

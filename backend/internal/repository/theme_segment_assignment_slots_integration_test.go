@@ -262,6 +262,14 @@ func TestSegmentSlotRangeHasBoundedAssignmentStatements(t *testing.T) {
 	one := counter.count()
 	_, err = f.pool.Exec(f.ctx, `DELETE FROM theme_segment_assignments WHERE theme_segment_id=$1`, segment)
 	require.NoError(t, err)
+	// Plan 156-16: ensureThemeSegmentOriginTx already set the origin after the first call above.
+	// Resetting it to NULL here (not just deleting the assignment row) keeps both measurement
+	// points on the SAME origin-recompute code path (Changed=true) -- otherwise the second call
+	// would find its just-reinserted origin still valid and short-circuit with fewer queries,
+	// which would test state-dependent branching, not the actual per-target scaling this test
+	// exists to prove.
+	_, err = f.pool.Exec(f.ctx, `UPDATE theme_segments SET origin_release_version_id = NULL WHERE id=$1`, segment)
+	require.NoError(t, err)
 	counter.reset()
 	result, err = repo.AssignThemeSegmentToEpisodeRange(f.ctx, segment, 1, 1, "v1", 1, 100)
 	require.NoError(t, err)
@@ -369,4 +377,53 @@ func TestSegmentSlotCompleteRangeRejectsForeignEditorContext(t *testing.T) {
 	var assignments int
 	require.NoError(t, f.pool.QueryRow(f.ctx, `SELECT count(*) FROM theme_segment_assignments`).Scan(&assignments))
 	require.Zero(t, assignments, "even the otherwise valid local range must not be assigned")
+}
+
+// TestCreateAnimeSegmentOriginBehavior proves the three CreateAnimeSegment-related GAP-05
+// behaviors from 156-16-PLAN.md Task 2, using theme 4 ("Insert", not an OP/ED slot type, so these
+// new segments never compete for occupancy with the fixture's other segments).
+func TestCreateAnimeSegmentOriginBehavior(t *testing.T) {
+	f := newSegmentSlotFixture(t)
+	const insertThemeID = int64(4)
+	const groupID = int64(1)
+
+	t.Run("complete range with assignments gets a non-NULL origin automatically", func(t *testing.T) {
+		start, end := 1, 2
+		created, result, err := f.repo.CreateAnimeSegment(f.ctx, 1, models.AdminThemeSegmentCreateInput{
+			ThemeID: insertThemeID, FansubGroupID: &[]int64{groupID}[0], Version: "v1", StartEpisode: &start, EndEpisode: &end,
+		}, 0)
+		require.NoError(t, err)
+		require.NotNil(t, created)
+		require.NotNil(t, result)
+		require.ElementsMatch(t, []int64{f.versions[0], f.versions[1]}, result.Added)
+		require.NotNil(t, result.OriginAfter)
+		require.Equal(t, f.versions[0], *result.OriginAfter, "die niedrigste Episode im Bereich muss zur Origin werden")
+		require.NotNil(t, created.OriginReleaseVersionID)
+		require.Equal(t, f.versions[0], *created.OriginReleaseVersionID)
+	})
+
+	t.Run("no complete range and no editor release leaves origin NULL", func(t *testing.T) {
+		created, result, err := f.repo.CreateAnimeSegment(f.ctx, 1, models.AdminThemeSegmentCreateInput{
+			ThemeID: insertThemeID, FansubGroupID: &[]int64{groupID}[0], Version: "v1",
+		}, 0)
+		require.NoError(t, err)
+		require.NotNil(t, created)
+		require.Nil(t, result, "ohne Bereich und ohne Editor-Release gibt es nichts zu synchronisieren")
+		require.Nil(t, created.OriginReleaseVersionID)
+	})
+
+	t.Run("implicit single-assignment path (no complete range, editor's current release) sets origin", func(t *testing.T) {
+		created, result, err := f.repo.CreateAnimeSegment(f.ctx, 1, models.AdminThemeSegmentCreateInput{
+			ThemeID: insertThemeID, FansubGroupID: &[]int64{groupID}[0], Version: "v1",
+		}, f.versions[2])
+		require.NoError(t, err)
+		require.NotNil(t, created)
+		require.NotNil(t, result, "die implizite Einzelzuweisung muss jetzt ein rangeSync-Ergebnis mit den Origin-Feldern liefern")
+		require.Nil(t, result.OriginBefore)
+		require.NotNil(t, result.OriginAfter)
+		require.Equal(t, f.versions[2], *result.OriginAfter)
+		require.Empty(t, result.Added, "die implizite Zuweisung selbst ist kein Range-Sync-Added-Eintrag")
+		require.NotNil(t, created.OriginReleaseVersionID)
+		require.Equal(t, f.versions[2], *created.OriginReleaseVersionID)
+	})
 }
