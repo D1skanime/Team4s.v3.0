@@ -282,7 +282,12 @@ try {
           }
         : null
 
+      // GAP-02 V6 (157-14): the separate narrow ProjectMemberStickyNav tab card must be fully
+      // gone -- its metrics now live as clickable jump targets inside the hero itself.
+      const stickyNavPresent = Boolean(document.querySelector('[class*="stickyNav"]'))
+
       return {
+        stickyNavPresent,
         heroHeight: h(heroSection),
         contentTop: notes ? Math.round(notes.getBoundingClientRect().top) : null,
         heroMetrics: heroSection?.querySelector('dl')?.textContent ?? null,
@@ -326,6 +331,9 @@ try {
     facts.releaseRequests = releaseRequests
     if (facts.releasesSectionHeight !== null || facts.buttonLabels.some((label) => /Release/.test(label)) || /Release/.test(facts.heroMetrics) || releaseRequests.length) {
       throw new Error(`Project member release history must be absent: ${JSON.stringify(facts)}`)
+    }
+    if (facts.stickyNavPresent) {
+      throw new Error(`ProjectMemberStickyNav duplicate tab card must be gone at ${name}: stickyNavPresent=${facts.stickyNavPresent}`)
     }
     if (Object.values(facts.sectionHeaderUnderlines).some((hasUnderline) => !hasUnderline)) throw new Error(`Section header underline missing at ${name}: ${JSON.stringify(facts.sectionHeaderUnderlines)}`)
     facts.notePreviews = await page.locator('[data-note-entry] [class*="bodyClamped"]').evaluateAll((bodies) => bodies.map((body) => ({
@@ -384,6 +392,21 @@ try {
     // pass moved to lib/shotHelpers.mjs (straight relocation, no behavior change) to keep this
     // file under the 450-line production cap while adding the GAP-02 V3/V4 diagnostics below.
     await runHeroVerification({ page, facts, name, width, require, consoleErrors, OUT, LABEL })
+    // 157-14 (GAP-02 V6): live proof that clicking the hero's "Beiträge" jump metric really
+    // scrolls the page -- not just that the button/aria-label exist, but that the click actually
+    // moves #texte near the viewport top in a real browser.
+    if (name === 'desktop') {
+      const jumpButton = page.getByRole('button', { name: 'Zu Texte & Notizen springen' })
+      if (await jumpButton.count()) {
+        await jumpButton.click()
+        await page.waitForTimeout(400)
+        const texteTop = await page.evaluate(() => document.getElementById('texte').getBoundingClientRect().top)
+        if (Math.abs(texteTop) > 100) {
+          throw new Error(`Clicking the hero jump metric did not scroll #texte near the viewport top: texteTop=${texteTop}`)
+        }
+        await page.evaluate(() => scrollTo(0, 0))
+      }
+    }
     // Plan 157-11 (GAP-02): closes 157-UAT.md checklist point 9 (Browser-Zoom), previously
     // unverified -- an always-on, page-wide 200%-zoom-equivalent overflow check, reusing the same
     // 720x450 CSS-pixel equivalence used above for the hero-only, env-gated SHOT_VERIFY_HERO check.

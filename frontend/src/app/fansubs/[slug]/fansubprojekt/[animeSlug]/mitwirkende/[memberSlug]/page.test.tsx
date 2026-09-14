@@ -73,9 +73,10 @@ describe('ProjectMemberPage', () => {
     expect(html).toContain('href="/members/csubs-leader"')
     expect(html).toContain('Vollständiges Memberprofil')
     expect(html).toContain('Zurück zum Projekt')
-    // Summary-Werte + Sticky-Nav + Sektionsanker
+    // Summary-Werte + Sektionsanker
     expect(html).toContain('Textbeiträge')
-    expect(html).toContain('Schnellnavigation')
+    expect(html).toContain('aria-label="Zu Texte &amp; Notizen springen"')
+    expect(html).toContain('aria-label="Zu Bilder &amp; Medien springen"')
     expect(html).toContain('id="texte"')
     expect(html).toContain('id="bilder"')
     expect(html).not.toContain('id="releases"')
@@ -87,10 +88,11 @@ describe('ProjectMemberPage', () => {
     expect(html).toContain('Projektbeiträge')
   })
 
-  it('shows an empty state (no sections, no sticky nav) for a member with roles but no public notes or media', () => {
+  it('shows an empty state (no interactive jump metrics) for a member with roles but no public notes or media', () => {
     const html = render({ counts: { roles: 2, notes: 0, media: 0, episodes: 0 } })
     expect(html).toContain('keine öffentlichen Detailbeiträge')
-    expect(html).not.toContain('Schnellnavigation')
+    expect(html).not.toContain('aria-label="Zu Texte &amp; Notizen springen"')
+    expect(html).not.toContain('aria-label="Zu Bilder &amp; Medien springen"')
     expect(html).not.toContain('id="texte"')
     // Beitragszusammenfassung-Band existiert nur im nicht-leeren Zweig (ProjectMemberPage.tsx)
     expect(html).not.toContain('dokumentierte Arbeitsnotizen')
