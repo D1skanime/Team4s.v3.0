@@ -13,6 +13,7 @@ import {
   uploadSegmentAsset,
 } from '@/lib/api'
 import { SegmenteTab } from './SegmenteTab'
+import { segmentFormFromExisting } from './SegmenteTab.formHelpers'
 
 vi.mock('@/lib/useAuthSession', () => ({ useAuthSession: vi.fn() }))
 vi.mock('@/lib/api', () => ({
@@ -226,5 +227,78 @@ describe('Segment assignment conflict feedback', () => {
     expect(await screen.findByText(/Segment gespeichert.*aktuelle Folge.*nicht zugewiesen/)).toBeTruthy()
     expect(upsertAnimeSegmentEpisodeOverride).not.toHaveBeenCalled()
     expect(screen.getByText('Segment bearbeiten')).toBeTruthy()
+  })
+})
+
+
+describe('Assignment bounds when reopening the editor', () => {
+  it('uses actual episode labels and numeric ordering, preserving gaps in the assignment list', () => {
+    const saved = segment({ start_episode: 2, end_episode: 15,
+      assigned_release_version_ids: [9010, 906],
+      assigned_episodes: [
+        { release_version_id: 9010, episode_number: '10', has_override: false },
+        { release_version_id: 906, episode_number: '6', has_override: false },
+      ],
+    })
+    expect(segmentFormFromExisting(saved)).toMatchObject({ startEpisode: '6', endEpisode: '10' })
+    expect(saved.start_episode).toBe(2)
+    expect(saved.assigned_episodes?.map((ep) => ep.episode_number)).toEqual(['10', '6'])
+  })
+
+  it.each([
+    { assigned_release_version_ids: [], assigned_episodes: [] },
+    { assigned_release_version_ids: [901], assigned_episodes: undefined },
+    { assigned_release_version_ids: [901, 903], assigned_episodes: [
+      { release_version_id: 901, episode_number: '1', has_override: false },
+    ] },
+    { assigned_release_version_ids: [901], assigned_episodes: [
+      { release_version_id: 999, episode_number: '6', has_override: false },
+    ] },
+    { assigned_release_version_ids: [901], assigned_episodes: [
+      { release_version_id: 901, episode_number: '6.5', has_override: false },
+    ] },
+    { assigned_release_version_ids: [901], assigned_episodes: [
+      { release_version_id: 901, episode_number: 'Special', has_override: false },
+    ] },
+  ])('does not invent bounds for unavailable or noninteger assignment labels: %j', (metadata) => {
+    expect(segmentFormFromExisting(segment(metadata))).toMatchObject({ startEpisode: '1', endEpisode: '4' })
+  })
+
+  it('reopens a partial save and a fresh load with Von 6 / Bis 6 without a second write', async () => {
+    const saved = segment({ start_episode: 2, end_episode: 6, is_shared: false,
+      assigned_release_version_ids: [906],
+      assigned_episodes: [{ release_version_id: 906, episode_number: '6', has_override: false }],
+    })
+    vi.mocked(createAnimeSegment).mockResolvedValue({ data: saved,
+      range_sync: { added: [906], removed: [], protected_by_override: [], skipped_conflicts: [
+        { release_version_id: 902, episode_number: '2', existing_segment_id: 77 },
+        { release_version_id: 903, episode_number: '3', existing_segment_id: 77 },
+        { release_version_id: 904, episode_number: '4', existing_segment_id: 78 },
+        { release_version_id: 905, episode_number: '5', existing_segment_id: 78 },
+      ] },
+    })
+    const view = renderEditor(906, 6)
+    await screen.findByRole('table')
+    fireEvent.click(screen.getByRole('button', { name: 'Segment hinzufügen' }))
+    fireEvent.change(await screen.findByLabelText('Von'), { target: { value: '2' } })
+    fireEvent.click(screen.getByRole('button', { name: 'Speichern' }))
+    await screen.findByText(/übersprungen: 2, 3, 4, 5/)
+    fireEvent.click(within(screen.getByRole('table')).getByTitle('Bearbeiten'))
+    expect((await screen.findByLabelText('Von') as HTMLInputElement).value).toBe('6')
+    expect((screen.getByLabelText('Bis') as HTMLInputElement).value).toBe('6')
+    expect(createAnimeSegment).toHaveBeenCalledOnce()
+    expect(updateAnimeSegment).not.toHaveBeenCalled()
+    view.unmount()
+    vi.mocked(getAnimeSegments).mockResolvedValue({ data: [saved] })
+    renderEditor(906, 6)
+    fireEvent.click(within(await screen.findByRole('table')).getByTitle('Bearbeiten'))
+    expect((await screen.findByLabelText('Von') as HTMLInputElement).value).toBe('6')
+    expect((screen.getByLabelText('Bis') as HTMLInputElement).value).toBe('6')
+    expect(updateAnimeSegment).not.toHaveBeenCalled()
+    vi.mocked(updateAnimeSegment).mockResolvedValue({ data: { ...saved, start_episode: 6, end_episode: 6 } })
+    fireEvent.click(screen.getByRole('button', { name: 'Speichern' }))
+    await waitFor(() => expect(updateAnimeSegment).toHaveBeenCalledWith(
+      1, saved.id, expect.objectContaining({ start_episode: 6, end_episode: 6 }), undefined, 906,
+    ))
   })
 })

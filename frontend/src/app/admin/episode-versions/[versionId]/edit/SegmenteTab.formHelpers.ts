@@ -30,6 +30,18 @@ export function getDefaultSegmentEndSeconds(durationSeconds?: number | null): nu
 }
 
 export function segmentFormFromExisting(segment: AdminThemeSegment): FormState {
+  // Reopen from actual assignments, including after a partial range save. Use real
+  // episode labels, never release IDs; retain the planned range if metadata is incomplete.
+  const labelsByVersion = new Map((segment.assigned_episodes ?? []).map((episode) => [
+    episode.release_version_id, episode.episode_number,
+  ]))
+  const assignedNumbers = (segment.assigned_release_version_ids ?? []).map((id) =>
+    parsePositiveEpisodeInput(labelsByVersion.get(id) ?? ''),
+  )
+  const completeNumbers = assignedNumbers.filter((number): number is number => number != null)
+  const hasAssignedBounds = completeNumbers.length > 0 && completeNumbers.length === assignedNumbers.length
+  const startEpisode = hasAssignedBounds ? Math.min(...completeNumbers) : segment.start_episode
+  const endEpisode = hasAssignedBounds ? Math.max(...completeNumbers) : segment.end_episode
   return {
     themeKind:
       segment.theme_type_name.toUpperCase().includes('OP')
@@ -42,8 +54,8 @@ export function segmentFormFromExisting(segment: AdminThemeSegment): FormState {
               ? 'outro'
               : '',
     themeTitle: segment.theme_title ?? '',
-    startEpisode: segment.start_episode != null ? String(segment.start_episode) : '',
-    endEpisode: segment.end_episode != null ? String(segment.end_episode) : '',
+    startEpisode: startEpisode != null ? String(startEpisode) : '',
+    endEpisode: endEpisode != null ? String(endEpisode) : '',
     startTime: segment.start_time ?? '',
     endTime: segment.end_time ?? '',
     sourceType: segment.source_type ?? (segment.source_jellyfin_item_id ? 'jellyfin_theme' : 'none'),
