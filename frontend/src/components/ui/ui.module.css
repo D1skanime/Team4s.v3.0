@@ -136,6 +136,11 @@
   font-weight: inherit;
   line-height: inherit;
   color: inherit;
+  /* GAP-03 F2 (157-15): a permanent, hover-independent affordance -- the underline must be
+     visible before any hover/focus interaction, not just appear on :hover. */
+  text-decoration: underline;
+  text-decoration-color: color-mix(in srgb, var(--accent-primary) 45%, transparent);
+  text-underline-offset: 3px;
 }
 
 .buttonText:hover {
@@ -144,6 +149,13 @@
   background: none;
   color: color-mix(in srgb, var(--accent-primary) 52%, var(--text-strong) 48%);
   text-decoration: underline;
+  text-decoration-color: currentColor;
+}
+
+.buttonText:focus-visible {
+  outline: none;
+  box-shadow: var(--focus-ring);
+  border-radius: 4px;
 }
 
 .buttonIcon {

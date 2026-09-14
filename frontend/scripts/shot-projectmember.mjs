@@ -28,7 +28,7 @@ import { mkdirSync } from 'node:fs'
 import { createRequire } from 'node:module'
 const require = createRequire(import.meta.url)
 import { chromium } from 'playwright'
-import { runHeroVerification, runSectionHeaderRowAlignmentCheck } from './lib/shotHelpers.mjs'
+import { runHeroVerification, runSectionHeaderRowAlignmentCheck, runHeroMetricFocusAffordanceCheck } from './lib/shotHelpers.mjs'
 
 const UPSTREAM_PORT = Number(process.env.SHOT_UPSTREAM_PORT || 3000)
 const PROXY_PORT = Number(process.env.SHOT_PROXY_PORT || 3300)
@@ -393,6 +393,9 @@ try {
     // pass moved to lib/shotHelpers.mjs (straight relocation, no behavior change) to keep this
     // file under the 450-line production cap while adding the GAP-02 V3/V4 diagnostics below.
     await runHeroVerification({ page, facts, name, width, require, consoleErrors, OUT, LABEL })
+    // 157-15 (GAP-03 F2): before any hover/click, prove the permanent affordance + a real-Tab
+    // focus ring live in a real browser.
+    facts.heroMetricFocusAffordance = await runHeroMetricFocusAffordanceCheck(page, name)
     // 157-14 (GAP-02 V6): live proof that clicking the hero's "Beiträge" jump metric really
     // scrolls the page -- not just that the button/aria-label exist, but that the click actually
     // moves #texte near the viewport top in a real browser.

@@ -1,5 +1,6 @@
 // @vitest-environment jsdom
 
+import { readFileSync } from 'node:fs'
 import { cleanup, fireEvent, render, screen, waitFor } from '@testing-library/react'
 import { afterEach, describe, expect, it, vi } from 'vitest'
 
@@ -228,6 +229,47 @@ describe('ProjectMemberNoteEntry', () => {
     const entryLink = screen.getByRole('link', { name: /Beitrag ansehen/ })
     expect(bodyLink).not.toBe(entryLink)
     expect(screen.getAllByRole('link')).toHaveLength(2)
+  })
+
+  // 157-15 (GAP-03 F3, WR-03): a fully clipped link inside a collapsed note preview must not be
+  // reachable by Tab -- it becomes reachable again once the note is expanded, and unreachable
+  // again once it is collapsed back.
+  it('removes a clamped-preview body link from the tab order while collapsed and restores it on expand/collapse (F3)', () => {
+    vi.spyOn(HTMLElement.prototype, 'scrollHeight', 'get').mockReturnValue(240)
+    vi.spyOn(HTMLElement.prototype, 'clientHeight', 'get').mockReturnValue(106)
+    render(
+      <ProjectMemberNoteEntry
+        note={note({
+          body_html: '<p>Text mit <a href="https://example.com">Link</a></p>',
+          body_text: 'Text mit Link',
+        })}
+        projectPath="/p"
+        hasMultipleRoles={false}
+      />,
+    )
+
+    const bodyLink = screen.getByRole('link', { name: 'Link' })
+    expect(bodyLink.getAttribute('tabindex')).toBe('-1')
+
+    fireEvent.click(screen.getByRole('button', { name: 'Mehr anzeigen' }))
+    expect(bodyLink.getAttribute('tabindex')).toBeNull()
+
+    fireEvent.click(screen.getByRole('button', { name: 'Weniger anzeigen' }))
+    expect(bodyLink.getAttribute('tabindex')).toBe('-1')
+  })
+
+  // 157-15 (GAP-03 F4, WR-04): .entry scopes its own stacking context so z-index values used for
+  // the stretched-link overlay/body-link/toggle (GAP-01) never leak into or collide with siblings
+  // elsewhere on the page -- CSS-source assertion since jsdom does not resolve stacking-context
+  // semantics.
+  it('scopes the entry card in its own stacking context without touching existing z-index values (F4)', () => {
+    const css = readFileSync('src/components/fansubs/projectMember/ProjectMemberNoteEntry.module.css', 'utf8')
+    const entryRule = css.match(/^\.entry\s*\{[^}]+\}/m)?.[0]
+
+    expect(entryRule).toContain('isolation: isolate')
+    expect(css).toContain('.entryLink::after')
+    expect(css.match(/z-index:\s*1;/)).not.toBeNull()
+    expect(css.match(/z-index:\s*2;/g)?.length).toBe(2)
   })
 
   it('renders a very short entry compactly', () => {

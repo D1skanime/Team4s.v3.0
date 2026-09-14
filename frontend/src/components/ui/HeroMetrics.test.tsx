@@ -1,4 +1,5 @@
 // @vitest-environment jsdom
+import { readFileSync } from 'node:fs'
 import { fireEvent, render, screen } from '@testing-library/react'
 import { describe, expect, it, vi } from 'vitest'
 
@@ -58,5 +59,20 @@ describe('HeroMetrics', () => {
     )
 
     expect(screen.queryByRole('button')).toBeNull()
+  })
+
+  // 157-15 (GAP-03 F2): jsdom cannot compute real pseudo-class styles (no live :hover/
+  // :focus-visible rendering), so this CSS-source assertion is the sanctioned way to prove the
+  // hero-metric text-button affordance is permanent (base rule, not hover-gated) and carries a
+  // visible keyboard focus ring. The live, real-browser proof of the same affordance runs in
+  // shot-projectmember.mjs.
+  it('gives .buttonText a permanent (non-hover-only) underline affordance and a focus-visible ring (F2)', () => {
+    const css = readFileSync('src/components/ui/ui.module.css', 'utf8')
+    const baseRule = css.match(/\.buttonText\s*\{[^}]+\}/)?.[0]
+    const focusVisibleRule = css.match(/\.buttonText:focus-visible\s*\{[^}]+\}/)?.[0]
+
+    expect(baseRule).toContain('text-decoration')
+    expect(focusVisibleRule).not.toBeUndefined()
+    expect(focusVisibleRule).toContain('var(--focus-ring)')
   })
 })

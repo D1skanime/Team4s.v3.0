@@ -13,6 +13,11 @@
   border: 1px solid var(--border-subtle);
   border-radius: var(--radius-md);
   background: var(--surface-card);
+  /* GAP-03 F4 (157-15, WR-04): scope this card's z-index/stacking-order to itself -- the
+     entryLink::after overlay, body links, and toggle button keep their existing z-index values
+     (unchanged below), but they can no longer collide with unrelated stacking contexts elsewhere
+     on the page. Purely a CSS-hygiene boundary; card click/toggle/link behavior is unaffected. */
+  isolation: isolate;
 }
 
 .entry:focus-within {

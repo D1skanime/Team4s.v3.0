@@ -107,3 +107,45 @@ export async function runSectionHeaderRowAlignmentCheck(page, facts, name, facts
     throw new Error(`Section header counter is not on the same row as the title at ${name}: ${JSON.stringify(alignment)}`)
   }
 }
+
+// 157-15 (GAP-03 F2): live, real-browser proof (complementing the CSS-source unit test) that the
+// hero jump-metric's underline affordance is visible BEFORE any hover, and that a real Tab
+// keypress reaches it with a visible focus ring. Desktop-only, matching the plan's own scope.
+export async function runHeroMetricFocusAffordanceCheck(page, name) {
+  if (name !== 'desktop') return null
+  const label = 'Zu Texte & Notizen springen'
+  const button = page.getByRole('button', { name: label })
+  if (!(await button.count())) return null
+  const beforeHoverDecoration = await button.evaluate((el) => getComputedStyle(el).textDecorationLine)
+  // Focus the immediately-preceding tab stop, then send one real Tab keypress -- reaches the
+  // button via genuine keyboard navigation (reliably triggers :focus-visible), without an
+  // unbounded from-page-top Tab loop that would be fragile against unrelated nav-link count drift.
+  const hadPrecedingFocusable = await page.evaluate((targetLabel) => {
+    const focusable = Array.from(
+      document.querySelectorAll('a[href], button:not([disabled]), input, textarea, select, [tabindex]'),
+    ).filter((el) => el.tabIndex >= 0)
+    const target = focusable.find((el) => el.getAttribute('aria-label') === targetLabel)
+    const idx = focusable.indexOf(target)
+    const prev = focusable[idx - 1]
+    prev?.focus()
+    return Boolean(prev)
+  }, label)
+  if (!hadPrecedingFocusable) throw new Error('No preceding tab stop found before the hero jump metric')
+  await page.keyboard.press('Tab')
+  const reached = await button.evaluate((el) => el === document.activeElement)
+  if (!reached) throw new Error('Could not reach the hero jump metric via a real Tab keypress')
+  // .button has `transition: box-shadow 120ms ease`; reading getComputedStyle immediately after
+  // the keypress can catch a mid-transition interpolated value instead of the settled ring.
+  await page.waitForTimeout(200)
+  const focusStyle = await button.evaluate((el) => {
+    const cs = getComputedStyle(el)
+    return { boxShadow: cs.boxShadow, outline: cs.outline }
+  })
+  const hasVisibleFocus =
+    (focusStyle.boxShadow && focusStyle.boxShadow !== 'none') ||
+    (focusStyle.outline && focusStyle.outline !== 'none' && !focusStyle.outline.startsWith('0px'))
+  if (beforeHoverDecoration !== 'underline' || !hasVisibleFocus) {
+    throw new Error(`Hero metric affordance regression: beforeHoverDecoration=${beforeHoverDecoration} focusStyle=${JSON.stringify(focusStyle)}`)
+  }
+  return { beforeHoverDecoration, focusStyle }
+}

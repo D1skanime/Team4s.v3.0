@@ -1,7 +1,7 @@
 'use client'
 
 import Link from 'next/link'
-import { useId } from 'react'
+import { useEffect, useId } from 'react'
 
 import { RichTextRenderer } from '@/components/editor/RichTextRenderer'
 import { Button, DisclosureIndicator } from '@/components/ui'
@@ -45,6 +45,21 @@ export function ProjectMemberNoteEntry({
   const { contentRef, isExpanded, setIsExpanded, isOverflowing } =
     useClampedOverflow(hasRichBody ? note.body_html : plainText)
   const bodyClass = `${styles.body}${!isExpanded ? ` ${styles.bodyClamped}` : ''}`
+
+  // GAP-03 F3 (157-15, WR-03): a link fully clipped by the collapsed 3-line preview must not be
+  // reachable by Tab -- it becomes reachable again once the note expands. `useClampedOverflow`
+  // itself is a shared hook (also used elsewhere) and stays untouched; this only toggles the
+  // `tabindex` DOM attribute on already-rendered, already-sanitized RichTextRenderer output.
+  useEffect(() => {
+    const anchors = contentRef.current?.querySelectorAll('a') ?? []
+    anchors.forEach((anchor) => {
+      if (!isExpanded && isOverflowing) {
+        anchor.setAttribute('tabindex', '-1')
+      } else {
+        anchor.removeAttribute('tabindex')
+      }
+    })
+  }, [contentRef, isExpanded, isOverflowing])
 
   const metaLead = [`Folge ${note.episode_label}`, note.release_version_label, formatDate(note.created_at)]
     .filter(Boolean)
