@@ -357,6 +357,32 @@ describe('ProjectMemberNotesSection', () => {
     expect(container.querySelector('[class*="sectionHeaderUnderline"]')).not.toBeNull()
   })
 
+  it('uses the global SectionHeader icon/counter slots exclusively — no local sectionHeadRow wrapper markup (157-15, GAP-03 F1)', async () => {
+    getProjectMemberNotes.mockResolvedValueOnce(page([note()], null, false))
+
+    const { container } = render(
+      <ProjectMemberNotesSection
+        animeID={10}
+        groupID={20}
+        memberSlug="csubs-leader"
+        projectPath="/p"
+        count={7}
+        hasMultipleRoles={false}
+      />,
+    )
+
+    const heading = await screen.findByRole('heading', { name: 'Texte & Notizen' })
+    expect(container.querySelector('[class*="sectionHeadRow"]')).toBeNull()
+    expect(container.querySelector('[class*="sectionHeadIcon"]')).toBeNull()
+    expect(container.querySelector('[class*="sectionHeadRowContent"]')).toBeNull()
+
+    const titleRow = container.querySelector('[class*="sectionHeaderTitleRow"]')
+    expect(titleRow).not.toBeNull()
+    expect(titleRow?.contains(heading)).toBe(true)
+    expect(titleRow?.querySelector('svg')).not.toBeNull()
+    expect(titleRow?.textContent).toContain('7')
+  })
+
   it('renders no redundant "Alle N angezeigt" pager text once every contribution is loaded (V5, 157-UAT GAP-02)', async () => {
     const items = Array.from({ length: 3 }, (_, i) => note({ id: i + 1 }))
     getProjectMemberNotes.mockResolvedValueOnce(page(items, null, false))

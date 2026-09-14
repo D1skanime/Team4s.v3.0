@@ -1102,6 +1102,10 @@
 
 .sectionHeaderCounter {
   flex-shrink: 0;
+  /* Matches .sectionTitle's line-height (not the inherited 1.5 body default) so the flex-centered
+     counter's own line box is the same height as the heading's -- otherwise align-items: center
+     visibly offsets the two baselines by a few pixels even though both sit in the same row. */
+  line-height: 1.15;
 }
 
 .pageDescription,

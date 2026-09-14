@@ -68,16 +68,12 @@ export function ProjectMemberMediaGallery({
 
   return (
     <section id="bilder" className={pageStyles.section} aria-label="Bilder & Medien">
-      <div className={styles.sectionHeadRow}>
-        <ImageIcon size={18} aria-hidden="true" className={styles.sectionHeadIcon} />
-        <div className={styles.sectionHeadRowContent}>
-          <SectionHeader
-            title="Bilder & Medien"
-            underline
-            actions={<span className={pageStyles.sectionCount}>{count}</span>}
-          />
-        </div>
-      </div>
+      <SectionHeader
+        title="Bilder & Medien"
+        underline
+        icon={<ImageIcon size={18} aria-hidden="true" />}
+        counter={<span className={pageStyles.sectionCount}>{count}</span>}
+      />
       {error ? <p className={styles.error}>Die Medien konnten nicht geladen werden.</p> : null}
       <div className={styles.grid}>
         {shown.map((item, i) => (

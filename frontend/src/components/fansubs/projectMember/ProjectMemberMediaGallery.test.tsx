@@ -126,4 +126,21 @@ describe('ProjectMemberMediaGallery', () => {
     await screen.findByRole('heading', { name: 'Bilder & Medien' })
     expect(container.querySelector('[class*="sectionHeaderUnderline"]')).not.toBeNull()
   })
+
+  it('uses the global SectionHeader icon/counter slots exclusively — no local sectionHeadRow wrapper markup (157-15, GAP-03 F1)', async () => {
+    const item = media({ id: 1 })
+    getProjectMemberMedia.mockResolvedValueOnce(page([item], null, false))
+    const { container } = renderGallery()
+
+    const heading = await screen.findByRole('heading', { name: 'Bilder & Medien' })
+    expect(container.querySelector('[class*="sectionHeadRow"]')).toBeNull()
+    expect(container.querySelector('[class*="sectionHeadIcon"]')).toBeNull()
+    expect(container.querySelector('[class*="sectionHeadRowContent"]')).toBeNull()
+
+    const titleRow = container.querySelector('[class*="sectionHeaderTitleRow"]')
+    expect(titleRow).not.toBeNull()
+    expect(titleRow?.contains(heading)).toBe(true)
+    expect(titleRow?.querySelector('svg')).not.toBeNull()
+    expect(titleRow?.textContent).toContain('30')
+  })
 })

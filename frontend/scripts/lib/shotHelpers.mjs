@@ -81,3 +81,29 @@ export async function runHeroVerification({ page, facts, name, width, require, c
     if (facts.zoomReflowOverflow) throw new Error('200% equivalent reflow overflow')
   }
 }
+
+// 157-15 (GAP-03 F1 consumers): the counter must stay on the SAME row as its section title --
+// never wrap onto its own line on mobile/tablet/desktop or at 200% browser zoom. Compares the
+// heading's and counter's own top offset per labeled section (a wrap would push the counter well
+// below the heading); throws (not just records) on any >2px delta or a missing element.
+export async function runSectionHeaderRowAlignmentCheck(page, facts, name, factsKey = 'sectionHeaderTitleRowAlignment') {
+  const alignment = await page.evaluate(() => {
+    const labels = ['Texte & Notizen', 'Bilder & Medien']
+    return Object.fromEntries(
+      labels.map((label) => {
+        const heading = Array.from(document.querySelectorAll('h2')).find((h) => h.textContent.trim() === label)
+        const row = heading?.closest('[class*="sectionHeaderTitleRow"]')
+        const counter = row?.querySelector('[class*="sectionHeaderCounter"]') ?? null
+        if (!heading || !counter) return [label, null]
+        const headingTop = heading.getBoundingClientRect().top
+        const counterTop = counter.getBoundingClientRect().top
+        return [label, { headingTop, counterTop, delta: Math.abs(headingTop - counterTop) }]
+      }),
+    )
+  })
+  facts[factsKey] = alignment
+  const offenders = Object.entries(alignment).filter(([, v]) => v === null || v.delta > 2)
+  if (offenders.length) {
+    throw new Error(`Section header counter is not on the same row as the title at ${name}: ${JSON.stringify(alignment)}`)
+  }
+}

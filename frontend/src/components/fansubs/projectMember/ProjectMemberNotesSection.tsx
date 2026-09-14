@@ -50,16 +50,12 @@ export function ProjectMemberNotesSection({
 
   return (
     <section id="texte" className={pageStyles.section} aria-label="Texte & Notizen">
-      <div className={styles.sectionHeadRow}>
-        <FileText size={18} aria-hidden="true" className={styles.sectionHeadIcon} />
-        <div className={styles.sectionHeadRowContent}>
-          <SectionHeader
-            title="Texte & Notizen"
-            underline
-            actions={<span className={pageStyles.sectionCount}>{count}</span>}
-          />
-        </div>
-      </div>
+      <SectionHeader
+        title="Texte & Notizen"
+        underline
+        icon={<FileText size={18} aria-hidden="true" />}
+        counter={<span className={pageStyles.sectionCount}>{count}</span>}
+      />
       <p className={pageStyles.sectionIntro}>
         Alle öffentlichen Textbeiträge dieses Members zu diesem Projekt.
       </p>

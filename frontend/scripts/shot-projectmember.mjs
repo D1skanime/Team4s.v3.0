@@ -28,7 +28,7 @@ import { mkdirSync } from 'node:fs'
 import { createRequire } from 'node:module'
 const require = createRequire(import.meta.url)
 import { chromium } from 'playwright'
-import { runHeroVerification } from './lib/shotHelpers.mjs'
+import { runHeroVerification, runSectionHeaderRowAlignmentCheck } from './lib/shotHelpers.mjs'
 
 const UPSTREAM_PORT = Number(process.env.SHOT_UPSTREAM_PORT || 3000)
 const PROXY_PORT = Number(process.env.SHOT_PROXY_PORT || 3300)
@@ -336,6 +336,7 @@ try {
       throw new Error(`ProjectMemberStickyNav duplicate tab card must be gone at ${name}: stickyNavPresent=${facts.stickyNavPresent}`)
     }
     if (Object.values(facts.sectionHeaderUnderlines).some((hasUnderline) => !hasUnderline)) throw new Error(`Section header underline missing at ${name}: ${JSON.stringify(facts.sectionHeaderUnderlines)}`)
+    await runSectionHeaderRowAlignmentCheck(page, facts, name)
     facts.notePreviews = await page.locator('[data-note-entry] [class*="bodyClamped"]').evaluateAll((bodies) => bodies.map((body) => ({
       height: body.getBoundingClientRect().height,
       lineHeight: Number.parseFloat(getComputedStyle(body).lineHeight),
@@ -421,6 +422,7 @@ try {
         const { scrollWidth, clientWidth } = await page.evaluate(() => ({ scrollWidth: document.documentElement.scrollWidth, clientWidth: document.documentElement.clientWidth }))
         throw new Error(`Horizontal overflow at desktop-zoom200: scrollWidth=${scrollWidth}, clientWidth=${clientWidth}`)
       }
+      await runSectionHeaderRowAlignmentCheck(page, facts, 'desktop-zoom200', 'sectionHeaderTitleRowAlignmentZoom200')
     }
     console.log(
       JSON.stringify(
