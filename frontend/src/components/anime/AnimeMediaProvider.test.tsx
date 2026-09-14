@@ -339,7 +339,7 @@ it('keeps a failed optional image on its bounded source without an original retr
   render(<AnimeMediaProvider animeID={112}><AnimeTitleLogo title="Missing" /></AnimeMediaProvider>)
   const logo = await screen.findByAltText('Missing Logo')
   const source = logo.getAttribute('src')
-  expect(source).toContain('/display?display_width=760')
+  expect(source).toBe('/covers/display/missing-404.png?display_width=760')
   expect(source).not.toBe('/covers/missing-404.png')
   fireEvent.error(logo)
   expect(logo.getAttribute('src')).toBe(source)
