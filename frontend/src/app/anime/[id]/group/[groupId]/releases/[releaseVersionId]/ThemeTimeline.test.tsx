@@ -36,7 +36,7 @@ const segments: PublicReleaseSegment[] = [{
   end_seconds: 120,
   duration_seconds: 90,
   readiness: 'ready' as const,
-  participants: [{ member_id: 41, name: 'Mia', role_label: 'Karaoke', role_codes: ['karaoke_fx'], member_slug: 'mia', avatar_url: null }],
+  participants: [{ member_id: 41, name: 'Mia', role_label: 'Karaoke', segment_role_label: 'Karaoke-FX', role_codes: ['karaoke_fx'], member_slug: 'mia', avatar_url: null }],
   preview_url: null,
 }, {
   theme_segment_id: 8,
@@ -46,7 +46,7 @@ const segments: PublicReleaseSegment[] = [{
   end_seconds: 1_290,
   duration_seconds: 90,
   readiness: 'ready' as const,
-  participants: [{ member_id: 42, name: 'Noah', role_label: 'Typesetting', role_codes: ['typesetter'], member_slug: null, avatar_url: null }],
+  participants: [{ member_id: 42, name: 'Noah', role_label: 'Typesetting', segment_role_label: 'Typesetting / Logo', role_codes: ['typesetter'], member_slug: null, avatar_url: null }],
   preview_url: null,
 }, {
   theme_segment_id: 9,
@@ -98,7 +98,7 @@ describe('ThemeTimeline Phase 105 session matrix', () => {
     expect(screen.getAllByText('Moonlight OP').length).toBeGreaterThan(0)
     expect(screen.getAllByText('Opening').length).toBeGreaterThan(0)
     expect(screen.getAllByText(/0:30/).length).toBeGreaterThan(0)
-    expect(screen.getByText(/Mia.*Karaoke/)).not.toBeNull()
+    expect(screen.getByText(/Mia.*Karaoke-FX/)).not.toBeNull()
     expect(screen.queryByRole('button', { name: /Kara abspielen/i })).toBeNull()
     expect(screen.queryAllByRole('button', { name: /^Abspielen$/i })).toHaveLength(0)
     expect(screen.getAllByRole('link', { name: 'Anmelden zum Abspielen' })).toHaveLength(2)
@@ -262,31 +262,31 @@ describe('ThemeTimeline Phase 156-08 project-context member links', () => {
   it('renders a participant with a member_slug as a link to the project-context member route when projectPath is provided (P156-14)', () => {
     renderTimeline({
       projectPath: '/fansubs/csubs/fansubprojekt/moonlight',
-      segments: [{ ...segments[0], participants: [{ member_id: 41, name: 'Mia', role_label: 'Karaoke', role_codes: ['karaoke_fx'], member_slug: 'mia', avatar_url: null }] }],
+      segments: [{ ...segments[0], participants: [{ member_id: 41, name: 'Mia', role_label: 'Karaoke', segment_role_label: 'Karaoke-FX', role_codes: ['karaoke_fx'], member_slug: 'mia', avatar_url: null }] }],
     })
 
     const link = screen.getAllByRole('link', { name: 'Mia' })[0]
     expect(link.getAttribute('href')).toBe('/fansubs/csubs/fansubprojekt/moonlight/mitwirkende/mia')
-    expect(document.querySelector(`.${styles.participants}`)?.textContent).toContain('Mia · Karaoke')
+    expect(document.querySelector(`.${styles.participants}`)?.textContent).toContain('Mia · Karaoke-FX')
   })
 
   it('renders a participant with member_slug as plain text (no link) when no projectPath is supplied', () => {
     renderTimeline({
-      segments: [{ ...segments[0], participants: [{ member_id: 41, name: 'Mia', role_label: 'Karaoke', role_codes: ['karaoke_fx'], member_slug: 'mia', avatar_url: null }] }],
+      segments: [{ ...segments[0], participants: [{ member_id: 41, name: 'Mia', role_label: 'Karaoke', segment_role_label: 'Karaoke-FX', role_codes: ['karaoke_fx'], member_slug: 'mia', avatar_url: null }] }],
     })
 
     expect(screen.queryByRole('link', { name: 'Mia' })).toBeNull()
-    expect(screen.getAllByText(/Mia.*Karaoke/).length).toBeGreaterThan(0)
+    expect(screen.getAllByText(/Mia.*Karaoke-FX/).length).toBeGreaterThan(0)
   })
 
   it('renders a participant with member_slug null as plain text (no link) even when projectPath is provided', () => {
     renderTimeline({
       projectPath: '/fansubs/csubs/fansubprojekt/moonlight',
-      segments: [{ ...segments[0], participants: [{ member_id: 42, name: 'Noah', role_label: 'Typesetting', role_codes: ['typesetter'], member_slug: null, avatar_url: null }] }],
+      segments: [{ ...segments[0], participants: [{ member_id: 42, name: 'Noah', role_label: 'Typesetting', segment_role_label: 'Typesetting / Logo', role_codes: ['typesetter'], member_slug: null, avatar_url: null }] }],
     })
 
     expect(screen.queryByRole('link', { name: 'Noah' })).toBeNull()
-    expect(screen.getAllByText(/Noah.*Typesetting/).length).toBeGreaterThan(0)
+    expect(screen.getAllByText(/Noah.*Typesetting \/ Logo/).length).toBeGreaterThan(0)
   })
 })
 

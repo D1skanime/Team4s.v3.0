@@ -16024,6 +16024,13 @@ components:
         role_label:
           type: string
           description: Kommagetrennte deutsche Rollen-Labels des Beteiligten
+        segment_role_label:
+          type: string
+          description: >-
+            Segmentspezifische deutsche Beschriftung (156-UAT.md GAP-06, Plan
+            156-17), abgeleitet aus stabilen Rollen-Codes. Nur fuer
+            Teilnehmer von PublicReleaseSegment.participants gesetzt; bei der
+            normalen release-weiten contributors-Liste abwesend oder leer.
         avatar_url:
           type: string
           nullable: true
