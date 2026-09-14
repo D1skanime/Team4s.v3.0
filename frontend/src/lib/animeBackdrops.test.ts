@@ -74,7 +74,7 @@ describe('bounded anime image delivery', () => {
     '/_next/image?url=https%3A%2F%2Funtrusted.example%2Fx.jpg&w=512&q=75',
   ])('bounds the existing placeholder for an unusable cover and omits optional media: %s', (source) => {
     const fallback = url(resolveAnimeCoverURL(source))
-    expect(fallback.pathname).toBe('/covers/placeholder.jpg/display')
+    expect(fallback.pathname).toBe('/covers/placeholder.png/display')
     expect(fallback.searchParams.get('display_width')).toBe('512')
     expect(resolveAnimeImageURL(source, 512)).toBeNull()
   })

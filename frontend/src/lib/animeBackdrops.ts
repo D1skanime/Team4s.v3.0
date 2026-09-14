@@ -56,7 +56,7 @@ export function resolveAnimeCoverURL(source: string | null | undefined): string 
   const value = source?.trim() || ''
   const normalized = /^[^:/\\?#]+\.(?:jpe?g|png|webp|avif|gif)$/i.test(value) ? getCoverUrl(value) : value
   const display = resolveAnimeImageURL(normalized, COVER_WIDTH) ??
-    resolveAnimeImageURL(getCoverUrl(), COVER_WIDTH)
+    resolveAnimeImageURL('/covers/placeholder.png', COVER_WIDTH)
   if (!display) throw new Error('Kein begrenzter Cover-Platzhalter verfügbar.')
   return display
 }
