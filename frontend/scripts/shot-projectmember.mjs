@@ -207,6 +207,10 @@ try {
       const mediaText = media ? (media.textContent || '') : ''
       const mediaAllShownTextPresent = /Alle\s+\d+\s+angezeigt/.test(mediaText)
 
+      // Plan 157-12 (GAP-02 V2) -- Kopfzeilen muessen ueber die globale SectionHeader-Primitive
+      // mit dem Wein-Unterstrich rendern, nicht ueber ein lokales h2.
+      const sectionHeaderUnderlines = Object.fromEntries(['Texte & Notizen', 'Bilder & Medien'].map((label) => [label, Boolean(Array.from(document.querySelectorAll('h2')).find((h) => h.textContent.trim() === label)?.closest('[class*="sectionHeaderUnderline"]'))]))
+
       // Workstream H -- Releases: kompakter Empty-State statt Doppelinformation bei 0.
       const releasesText = releases ? (releases.textContent || '').trim() : ''
       const releasesEmptyStateText = releasesText.includes(
@@ -292,6 +296,7 @@ try {
         noteBorderUniformity,
         noteNestedInteractiveViolations,
         mediaAllShownTextPresent,
+        sectionHeaderUnderlines,
         releasesEmptyStateText,
         releasesText: releasesText.slice(0, 200),
         elementAtStripePoint,
@@ -306,6 +311,7 @@ try {
     if (facts.releasesSectionHeight !== null || facts.buttonLabels.some((label) => /Release/.test(label)) || /Release/.test(facts.heroMetrics) || releaseRequests.length) {
       throw new Error(`Project member release history must be absent: ${JSON.stringify(facts)}`)
     }
+    if (Object.values(facts.sectionHeaderUnderlines).some((hasUnderline) => !hasUnderline)) throw new Error(`Section header underline missing at ${name}: ${JSON.stringify(facts.sectionHeaderUnderlines)}`)
     facts.notePreviews = await page.locator('[data-note-entry] [class*="bodyClamped"]').evaluateAll((bodies) => bodies.map((body) => ({
       height: body.getBoundingClientRect().height,
       lineHeight: Number.parseFloat(getComputedStyle(body).lineHeight),
@@ -414,18 +420,11 @@ try {
       await waitForSectionsSettled(page)
       const zoom200File = `${OUT}/${LABEL}-desktop-zoom200.png`
       await page.screenshot({ path: zoom200File, fullPage: true })
-      const zoom200Overflow = await page.evaluate(
-        () => document.documentElement.scrollWidth > document.documentElement.clientWidth,
-      )
+      const zoom200Overflow = await page.evaluate(() => document.documentElement.scrollWidth > document.documentElement.clientWidth)
       facts.zoom200Overflow = zoom200Overflow
       if (zoom200Overflow) {
-        const { scrollWidth, clientWidth } = await page.evaluate(() => ({
-          scrollWidth: document.documentElement.scrollWidth,
-          clientWidth: document.documentElement.clientWidth,
-        }))
-        throw new Error(
-          `Horizontal overflow at desktop-zoom200: scrollWidth=${scrollWidth}, clientWidth=${clientWidth}`,
-        )
+        const { scrollWidth, clientWidth } = await page.evaluate(() => ({ scrollWidth: document.documentElement.scrollWidth, clientWidth: document.documentElement.clientWidth }))
+        throw new Error(`Horizontal overflow at desktop-zoom200: scrollWidth=${scrollWidth}, clientWidth=${clientWidth}`)
       }
     }
     console.log(
