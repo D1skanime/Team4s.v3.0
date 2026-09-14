@@ -213,3 +213,60 @@ checklists close together), and `requirements.mark-complete P156-18` should be r
 
 **Status:** OPEN — neither passed nor failed. Phase 156 must NOT be declared fully accepted while
 this item remains open.
+
+
+---
+
+## Live-UAT-Ergebnis 2026-09-14 (gebündelter Pass GAP-02)
+
+Durchgeführt vom Auftraggeber live über `http://127.0.0.1:3300`.
+
+| Punkt | Ergebnis |
+|---|---|
+| Origin 1–5 | **bestanden** |
+| Segment-Mitwirkende 6–9 | **bestanden** |
+| 10 Auswahl erscheint auf der öffentlichen Release-Seite | **nicht bestanden** |
+| 11 nicht ausgewählte QCs erscheinen nicht | nicht prüfbar (nichts erschienen) |
+| 12 Editor auswählbar und angezeigt | nicht prüfbar (nichts erschienen) |
+| 13 Encoder erscheint nie | nicht beurteilbar |
+| 14 Origin-Wechsel ohne inkonsistenten Zustand | **bestanden** |
+
+**Status bleibt OPEN.** Phase 156 ist nicht vollständig abgenommen.
+
+### Diagnose zu Punkt 10 (am Livebestand belegt)
+
+Geprüft wurde `/fansubs/new-subs/fansubprojekt/buddy-complex/releases/29`.
+
+- Die gespeicherte Auswahl (`theme_segment_contributors`) ist genau eine Zeile: Segment **3**
+  („op"), Member 8 „Qc".
+- Release 29 ist nur Segment **4** („Buddy Opening 2") zugewiesen. Die öffentliche API liefert
+  für Release 29 genau dieses Segment mit `origin_release_version_id: null` und
+  `participants: []`. Die Anzeige ist damit korrekt leer: Segment 4 hat weder Origin noch
+  Auswahl. Das Frontend rendert Teilnehmende, sobald welche geliefert werden
+  (`ThemeTimelineSegmentDetails.tsx:49`).
+
+Punkt 10 wurde also am falschen Segment geprüft. Dahinter stehen aber **zwei echte Befunde**:
+
+**F156-UAT-1 — Origin veraltet bei Bereichsänderung (Datenintegrität, Defekt).**
+Segment 3 hat Bereich 4–5, ist den Releases **40 und 41** zugewiesen, trägt aber
+**Origin 29** — ein Release, dem es gar nicht mehr zugewiesen ist. `SetThemeSegmentOrigin`
+prüft die Zuweisung nur beim Setzen. Die Soll-Ist-Synchronisation in
+`theme_segment_assignments.go` fasst die Origin nicht an. Entfernt eine Bereichsänderung das
+Origin-Release aus den Zuweisungen, bleibt die Origin stehen. Die Kandidatenliste der
+Segment-Mitwirkenden stammt dann aus einem Release, auf dem das Segment nicht mehr verwendet
+wird. Die Invariante „Origin ist ein zugewiesenes Release" ist im Livebestand verletzt.
+
+**F156-UAT-2 — Neue Segmente bekommen keine Origin (Lücke).**
+Die Segmente 4 und 5 wurden nach der Migration 0161 angelegt und haben `origin = NULL`. Die
+Segment-Anlage setzt keine Origin. Solche Segmente können keine Credits zeigen, bis ein Admin
+die Origin von Hand setzt. Auftragspunkt 23 aus `156-USER-REQUEST.md` sah vor, dass die Origin
+„automatisch sinnvoll vorgeschlagen" wird, wenn sie eindeutig ableitbar ist. Das ist nicht
+umgesetzt.
+
+### Datenlage für den Nachtest 10–13
+
+Die effektiven Mitwirkenden von Release 29 (Projektseite) sind: Desi (Design), Jeahn45
+(Encoding), Qc (**Übersetzung**, trotz des Namens), Raw (Raw-Bereitstellung), timer (Timing),
+Type (Typesetting), Über (Übersetzung). **Es gibt dort keine Rolle Qualitätsprüfung und keine
+Rolle Edit.** Die Punkte 11 und 12 lassen sich erst nach dem Nachtragen solcher
+Contributions am Release prüfen. Punkt 13 lässt sich mit Jeahn45 (Encoding) prüfen.
