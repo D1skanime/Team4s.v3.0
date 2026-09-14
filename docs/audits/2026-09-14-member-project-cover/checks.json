@@ -1,0 +1,16 @@
+[
+  {
+    "check": "tests",
+    "exit": 0
+  },
+  {
+    "check": "typecheck",
+    "exit": 0
+  },
+  {
+    "check": "lint",
+    "exit": 1,
+    "errors": 13,
+    "warnings": 331
+  }
+]

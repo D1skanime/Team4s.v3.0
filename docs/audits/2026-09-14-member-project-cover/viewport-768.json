@@ -1,0 +1,14 @@
+{
+  "viewport": 768,
+  "rootWidth": 768,
+  "cover": {
+    "width": 90,
+    "height": 135
+  },
+  "objectFit": "contain",
+  "natural": [
+    89,
+    128
+  ],
+  "complete": true
+}

@@ -1,0 +1,14 @@
+{
+  "viewport": 360,
+  "rootWidth": 360,
+  "cover": {
+    "width": 68,
+    "height": 102
+  },
+  "objectFit": "contain",
+  "natural": [
+    68,
+    97
+  ],
+  "complete": true
+}
