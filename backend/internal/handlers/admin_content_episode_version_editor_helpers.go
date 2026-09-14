@@ -33,11 +33,17 @@ func (h *AdminContentHandler) loadEpisodeVersionEditorContext(
 		}
 	}
 
+	dateNeighbors, err := h.episodeVersionRepo.ListDateNeighbors(ctx, version.ReleaseVersionID)
+	if err != nil {
+		return nil, err
+	}
+
 	return &models.EpisodeVersionEditorContext{
 		Version:         version,
 		AnimeTitle:      resolved.animeSource.Title,
 		AnimeFolderPath: resolved.animeFolderPath,
 		SelectedGroups:  resolved.selectedGroups,
+		DateNeighbors:   dateNeighbors,
 	}, nil
 }
 
@@ -60,6 +66,8 @@ func (h *AdminContentHandler) loadEpisodeVersionContributorContext(
 
 	safeVersion := models.EpisodeVersion{
 		ID:                  version.ID,
+		VariantID:           version.VariantID,
+		ReleaseVersionID:    version.ReleaseVersionID,
 		AnimeID:             version.AnimeID,
 		EpisodeNumber:       version.EpisodeNumber,
 		Title:               version.Title,
@@ -80,10 +88,16 @@ func (h *AdminContentHandler) loadEpisodeVersionContributorContext(
 		return nil, err
 	}
 
+	dateNeighbors, err := h.episodeVersionRepo.ListDateNeighbors(ctx, version.ReleaseVersionID)
+	if err != nil {
+		return nil, err
+	}
+
 	return &models.EpisodeVersionEditorContext{
 		Version:        safeVersion,
 		AnimeTitle:     animeSource.Title,
 		SelectedGroups: selectedGroups,
+		DateNeighbors:  dateNeighbors,
 	}, nil
 }
 

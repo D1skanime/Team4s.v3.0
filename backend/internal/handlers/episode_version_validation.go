@@ -162,8 +162,10 @@ func validateEpisodeVersionPatchRequest(req models.EpisodeVersionPatchInput) (mo
 			}
 		}
 	}
-	if req.ProductionStartedOn.Set && req.ProductionStartedOn.Value != nil && req.ReleaseDate.Set && req.ReleaseDate.Value != nil && req.ReleaseDate.Value.Before(*req.ProductionStartedOn.Value) {
-		return models.EpisodeVersionPatchInput{}, "release-datum darf nicht vor dem bearbeitungsbeginn liegen"
+	if req.ProductionStartedOn.Set && req.ReleaseDate.Set {
+		if err := models.ValidateEpisodeVersionDates(req.ProductionStartedOn.Value, req.ReleaseDate.Value); err != nil {
+			return models.EpisodeVersionPatchInput{}, err.Error()
+		}
 	}
 	if req.CRC32.Set {
 		crc32, crcMessage := normalizeCRC32(req.CRC32.Value)

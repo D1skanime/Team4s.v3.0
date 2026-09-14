@@ -8,6 +8,8 @@ import {
   normalizeCRC32Draft,
   parseDurationInput,
   toDateInputValue,
+  releaseDateOrderHints,
+  validateReleaseDateOrder,
 } from './episodeVersionEditorUtils'
 
 describe('parseDurationInput', () => {
@@ -74,6 +76,7 @@ describe('release version crc32 helpers', () => {
       },
       anime_title: 'Vipers Creed',
       selected_groups: [],
+      date_neighbors: [],
     })
 
     expect(formState.crc32).toBe('1CC0A2E3')
@@ -93,5 +96,62 @@ describe('release version date helpers', () => {
   it('rejects malformed date-only values', () => {
     expect(fromDateInputValue('2010-99-99')).toBeNull()
     expect(fromDateInputValue('14.11.2010')).toBeNull()
+  })
+})
+
+
+describe('own release calendar order', () => {
+  it.each([
+    ['2013-07-18', '2013-07-17', true],
+    ['2013-07-18', '2013-07-18', false],
+    ['2013-07-18', '2013-07-19', false],
+    ['', '2013-07-17', false],
+    ['2013-07-18', '', false],
+    ['', '', false],
+    ['2013-02-30', '', true],
+  ])('validates %s through %s (invalid=%s)', (productionStartedOn, releaseDate, invalid) => {
+    expect(Boolean(validateReleaseDateOrder({ productionStartedOn, releaseDate }))).toBe(invalid)
+  })
+})
+
+describe('cross-episode date advice', () => {
+  const context = {
+    anime_title: 'Fixture',
+    version: { id: 3, variant_id: 3, release_version_id: 903, anime_id: 1, episode_number: 3,
+      media_provider: '', media_item_id: '', segment_count: 0, has_segment_asset: false,
+      created_at: '', updated_at: '' },
+    selected_groups: [{ id: 1, name: 'Gruppe A', slug: 'gruppe-a', logo_url: null }],
+    date_neighbors: [
+      { fansub_group_id: 1, field: 'production_started_on' as const, direction: 'previous' as const,
+        release_version_id: 902, episode_number: '2', date: '2013-07-18' },
+      { fansub_group_id: 1, field: 'production_started_on' as const, direction: 'next' as const,
+        release_version_id: 906, episode_number: '6', date: '2013-07-19' },
+    ],
+  }
+  it.each(['2013-07-18', '2013-07-19', ''])('allows missing dates and inclusive anchors: %s', (productionStartedOn) => {
+    expect(releaseDateOrderHints(context, { productionStartedOn, releaseDate: '' })).toEqual([])
+  })
+  it('names the actual earlier dated episode across gaps without blocking a valid own pair', () => {
+    const form = { productionStartedOn: '2013-07-17', releaseDate: '2013-07-20' }
+    expect(releaseDateOrderHints(context, form)).toEqual([
+      'Bearbeitungsbeginn: Das Datum liegt vor dem Beginn von Folge 2 (Gruppe A) am 18.07.2013.',
+    ])
+    expect(validateReleaseDateOrder(form)).toBeNull()
+  })
+  it('uses the later anchor across missing episodes', () => {
+    expect(releaseDateOrderHints(context, { productionStartedOn: '2013-07-20', releaseDate: '' })[0])
+      .toContain('nach dem Beginn von Folge 6 (Gruppe A) am 19.07.2013')
+  })
+  it('never compares completion with start or removed groups', () => {
+    expect(releaseDateOrderHints(context, { productionStartedOn: '', releaseDate: '2013-07-01' })).toEqual([])
+    expect(releaseDateOrderHints(context, { productionStartedOn: '2013-07-01', releaseDate: '' }, [])).toEqual([])
+  })
+  it('uses completion anchors only for completion and leaves the input unchanged', () => {
+    const form = { productionStartedOn: '', releaseDate: '2013-07-17' }
+    const completionContext = { ...context, date_neighbors: context.date_neighbors.map(anchor => ({
+      ...anchor, field: 'release_date' as const,
+    })) }
+    expect(releaseDateOrderHints(completionContext, form)[0]).toContain('vor dem Abschluss von Folge 2')
+    expect(form).toEqual({ productionStartedOn: '', releaseDate: '2013-07-17' })
   })
 })

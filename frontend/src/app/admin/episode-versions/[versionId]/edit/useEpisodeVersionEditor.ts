@@ -24,6 +24,7 @@ import {
   normalizeOptional,
   parsePositiveInt,
   parseDurationInput,
+  validateReleaseDateOrder,
   FormState,
 } from './episodeVersionEditorUtils'
 
@@ -64,6 +65,8 @@ export function useEpisodeVersionEditor() {
   const [successMessage, setSuccessMessage] = useState<string | null>(null)
   const [searchMessage, setSearchMessage] = useState<string | null>(null)
   const baselineRef = useRef('')
+  const contextGeneration = useRef(0)
+  const loadedRouteVersionId = useRef<number | null>(null)
 
   const hasUnsavedChanges = useMemo(
     () => baselineRef.current !== '' && buildSnapshot(formState, selectedGroups) !== baselineRef.current,
@@ -71,6 +74,14 @@ export function useEpisodeVersionEditor() {
   )
 
   useEffect(() => {
+    let cancelled = false
+    contextGeneration.current += 1
+    loadedRouteVersionId.current = null
+    baselineRef.current = ''
+    setContextData(null)
+    setSelectedGroups([])
+    setSelectedFile(null)
+    setIsSaving(false)
     async function loadData() {
       if (!versionID) {
         setErrorMessage('Ungültige Version-ID.')
@@ -90,6 +101,8 @@ export function useEpisodeVersionEditor() {
       setErrorMessage(null)
       try {
         const response = await getEpisodeVersionEditorContext(versionID)
+        if (cancelled) return
+        loadedRouteVersionId.current = versionID
         const nextContext = response.data
         const nextFormState = buildInitialFormState(nextContext)
 
@@ -107,13 +120,17 @@ export function useEpisodeVersionEditor() {
         setSuccessMessage(null)
         baselineRef.current = buildSnapshot(nextFormState, nextContext.selected_groups)
       } catch (error) {
-        setErrorMessage(formatError(error))
+        if (!cancelled) setErrorMessage(formatError(error))
       } finally {
-        setIsLoading(false)
+        if (!cancelled) setIsLoading(false)
       }
     }
 
     void loadData()
+    return () => {
+      cancelled = true
+      contextGeneration.current += 1
+    }
   }, [hasAuthSession, isClientInitialized, versionID])
 
   useEffect(() => {
@@ -216,10 +233,13 @@ export function useEpisodeVersionEditor() {
       setErrorMessage('Anmeldung erforderlich. Bitte zuerst anmelden.')
       return
     }
+    if (!contextData || loadedRouteVersionId.current !== versionID) return
     if (!metadataOnly && (!formState.mediaProvider.trim() || !formState.mediaItemID.trim())) {
       setErrorMessage('Bitte zuerst eine Mediendatei aus dem Ordner wählen oder den Advanced-Bereich ausfuellen.')
       return
     }
+    if (validateReleaseDateOrder(formState)) return
+
     const rawDurationInput = formState.durationSeconds.trim()
     const parsedDurationSeconds = parseDurationInput(formState.durationSeconds)
     if (rawDurationInput && parsedDurationSeconds == null) {
@@ -227,6 +247,7 @@ export function useEpisodeVersionEditor() {
       return
     }
 
+    const generation = contextGeneration.current
     setIsSaving(true)
     try {
       const patch = metadataOnly
@@ -253,6 +274,7 @@ export function useEpisodeVersionEditor() {
             duration_seconds: parsedDurationSeconds,
           }
       const response = await updateEpisodeVersion(versionID, patch)
+      if (generation !== contextGeneration.current) return
 
       if (contextData) {
         setContextData({
@@ -264,9 +286,9 @@ export function useEpisodeVersionEditor() {
       baselineRef.current = buildSnapshot(formState, selectedGroups)
       setSuccessMessage('Version gespeichert.')
     } catch (error) {
-      setErrorMessage(formatError(error))
+      if (generation === contextGeneration.current) setErrorMessage(formatError(error))
     } finally {
-      setIsSaving(false)
+      if (generation === contextGeneration.current) setIsSaving(false)
     }
   }
 

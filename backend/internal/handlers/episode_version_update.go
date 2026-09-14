@@ -1,4 +1,4 @@
-﻿package handlers
+package handlers
 
 import (
 	"errors"
@@ -56,6 +56,10 @@ func (h *FansubHandler) UpdateEpisodeVersion(c *gin.Context) {
 	}
 
 	item, err := h.episodeVersionRepo.Update(c.Request.Context(), versionID, input)
+	if errors.Is(err, models.ErrEpisodeVersionDateOrder) {
+		badRequest(c, models.ErrEpisodeVersionDateOrder.Error())
+		return
+	}
 	if errors.Is(err, repository.ErrNotFound) {
 		c.JSON(http.StatusNotFound, gin.H{"error": gin.H{"message": "episodenversion nicht gefunden"}})
 		return

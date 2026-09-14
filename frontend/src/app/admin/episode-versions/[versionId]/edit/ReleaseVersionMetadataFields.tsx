@@ -9,6 +9,8 @@ import {
   formatDurationInput,
   normalizeCRC32Draft,
   parseDurationInput,
+  releaseDateOrderHints,
+  validateReleaseDateOrder,
   type FormState,
 } from './episodeVersionEditorUtils'
 import styles from './EpisodeVersionEditor.module.css'
@@ -18,6 +20,7 @@ interface ReleaseVersionMetadataFieldsProps {
   formState: FormState
   setFormState: Dispatch<SetStateAction<FormState>>
   projectTimeline: AnimeFansubProjectTimeline | null
+  selectedGroupIds?: readonly number[]
 }
 
 export function ReleaseVersionMetadataFields({
@@ -25,7 +28,10 @@ export function ReleaseVersionMetadataFields({
   formState,
   setFormState,
   projectTimeline,
+  selectedGroupIds,
 }: ReleaseVersionMetadataFieldsProps) {
+  const dateError = validateReleaseDateOrder(formState)
+  const dateHints = releaseDateOrderHints(context, formState, selectedGroupIds)
   return (
     <>
       <div className={styles.grid}>
@@ -61,6 +67,7 @@ export function ReleaseVersionMetadataFields({
             id="production-started-on"
             label="Bearbeitung begonnen am"
             value={formState.productionStartedOn}
+            invalid={Boolean(dateError)}
             minYear={1900}
             maxYear={2100}
             minDate={projectTimeline?.productionStartedOn ?? undefined}
@@ -76,6 +83,7 @@ export function ReleaseVersionMetadataFields({
             id="release-date"
             label="Bearbeitung abgeschlossen am"
             value={formState.releaseDate}
+            invalid={Boolean(dateError)}
             minYear={1900}
             maxYear={2100}
             minDate={formState.productionStartedOn || projectTimeline?.productionStartedOn || undefined}
@@ -86,6 +94,13 @@ export function ReleaseVersionMetadataFields({
             }
           />
         </div>
+        {dateError ? <p className={styles.dateError} role="alert">{dateError}</p> : null}
+        {dateHints.length > 0 ? (
+          <div className={styles.dateHints} role="status" aria-label="Hinweise zur Datumsreihenfolge">
+            {dateHints.map((hint) => <p key={hint}>{hint}</p>)}
+            <p>Bitte prüfe die Angaben. Parallele Bearbeitung ist möglich; Abweichungen zwischen Folgen verhindern das Speichern nicht.</p>
+          </div>
+        ) : null}
         <FormField label="Auflösung" htmlFor="video-quality">
           <Input
             id="video-quality"

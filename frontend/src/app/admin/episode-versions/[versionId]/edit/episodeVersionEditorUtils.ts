@@ -84,6 +84,45 @@ export function fromDateInputValue(value: string): string | null {
   return parsed.toISOString()
 }
 
+/** Own dates are a hard constraint; unknown dates remain unknown. */
+export function validateReleaseDateOrder(form: Pick<FormState, 'productionStartedOn' | 'releaseDate'>): string | null {
+  const start = fromDateInputValue(form.productionStartedOn)
+  const end = fromDateInputValue(form.releaseDate)
+  if ((form.productionStartedOn && !start) || (form.releaseDate && !end)) {
+    return 'Bitte gültige Datumsangaben für Beginn und Abschluss verwenden.'
+  }
+  return start && end && end < start
+    ? 'Der Bearbeitungsabschluss darf nicht vor dem Bearbeitungsbeginn liegen.'
+    : null
+}
+
+/** Existing editor context supplies bounded anchors; typing never issues a request. */
+export function releaseDateOrderHints(
+  context: EpisodeVersionEditorContext,
+  form: Pick<FormState, 'productionStartedOn' | 'releaseDate'>,
+  selectedGroupIds: readonly number[] = context.selected_groups.map((group) => group.id),
+): string[] {
+  const groups = new Map(context.selected_groups
+    .filter((group) => selectedGroupIds.includes(group.id))
+    .map((group) => [group.id, group.name]))
+  const hints: string[] = []
+  for (const anchor of context.date_neighbors ?? []) {
+    const groupName = groups.get(anchor.fansub_group_id)
+    if (!groupName) continue
+    const isStart = anchor.field === 'production_started_on'
+    const current = fromDateInputValue(isStart ? form.productionStartedOn : form.releaseDate)
+    const compared = fromDateInputValue(anchor.date)
+    if (!current || !compared) continue
+    const isEarlier = anchor.direction === 'previous' && current < compared
+    const isLater = anchor.direction === 'next' && current > compared
+    if (!isEarlier && !isLater) continue
+    const label = isStart ? 'Bearbeitungsbeginn' : 'Bearbeitungsabschluss'
+    const [year, month, day] = anchor.date.split('-')
+    hints.push(`${label}: Das Datum liegt ${isEarlier ? 'vor' : 'nach'} dem ${isStart ? 'Beginn' : 'Abschluss'} von Folge ${anchor.episode_number} (${groupName}) am ${day}.${month}.${year}.`)
+  }
+  return [...new Set(hints)]
+}
+
 export function formatDateTime(value?: string | null): string {
   if (!value) return 'n/a'
   const parsed = new Date(value)

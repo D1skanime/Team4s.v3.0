@@ -716,6 +716,7 @@ export function EpisodeVersionEditorPage() {
                   </div>
                   <ReleaseVersionMetadataFields
                     context={editor.contextData}
+                    selectedGroupIds={editor.selectedGroups.map((group) => group.id)}
                     formState={editor.formState}
                     setFormState={editor.setFormState}
                     projectTimeline={projectTimeline}

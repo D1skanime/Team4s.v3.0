@@ -267,6 +267,13 @@ func (r *EpisodeVersionRepository) Update(
 	if input.ReleaseDate.Set {
 		releaseDate = input.ReleaseDate.Value
 	}
+	// Validate the merged state under the existing row locks. Unrelated metadata
+	// patches must not be blocked by pre-existing incomplete/invalid date data.
+	if input.ProductionStartedOn.Set || input.ReleaseDate.Set {
+		if err := models.ValidateEpisodeVersionDates(productionStartedOn, releaseDate); err != nil {
+			return nil, err
+		}
+	}
 	if input.Title.Set || input.ProductionStartedOn.Set || input.ReleaseDate.Set {
 		if err := applyEpisodeVersionReleaseMetadata(ctx, tx, state.ReleaseVersionID, title, productionStartedOn, releaseDate); err != nil {
 			return nil, err

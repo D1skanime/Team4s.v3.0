@@ -1,6 +1,6 @@
 // @vitest-environment jsdom
 
-import { cleanup, fireEvent, render, screen, waitFor } from '@testing-library/react'
+import { act, cleanup, fireEvent, render, screen, waitFor } from '@testing-library/react'
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
 
 const getAnimeFansubProjectTimelineMock = vi.fn()
@@ -10,11 +10,12 @@ const getOwnProfileMock = vi.fn()
 const getReleaseVersionCapabilitiesMock = vi.fn()
 const updateEpisodeVersionMock = vi.fn()
 const segmenteTabMock = vi.fn()
+const routeMock = vi.hoisted(() => ({ versionId: '42' }))
 const searchParamsMock = vi.hoisted(() => vi.fn())
 const useAuthSessionMock = vi.hoisted(() => vi.fn())
 
 vi.mock('next/navigation', () => ({
-  useParams: () => ({ versionId: '42' }),
+  useParams: () => routeMock,
   useSearchParams: () => searchParamsMock(),
 }))
 
@@ -85,6 +86,7 @@ function mockWorkspaceData(capabilityOverrides: Partial<{
   getEpisodeVersionEditorContextMock.mockResolvedValue({
     data: {
       anime_title: 'Naruto',
+      date_neighbors: [],
       anime_folder_path: null,
       selected_groups: [{ id: 1, name: 'Team 4S', slug: 'team-4s', logo_url: null }],
       version: {
@@ -175,6 +177,7 @@ function mockWorkspaceData(capabilityOverrides: Partial<{
 }
 
 beforeEach(() => {
+  routeMock.versionId = '42'
   searchParamsMock.mockReturnValue(new URLSearchParams('return_to=/me/projects/10/group/1'))
   useAuthSessionMock.mockReturnValue({
     hasAccessToken: false,
@@ -351,5 +354,67 @@ describe('MeReleaseWorkspacePage', () => {
 
     expect(await screen.findByText('Release-Navigation konnte nicht geladen werden.')).toBeTruthy()
     expect(screen.getByTestId('media-section')).toBeTruthy()
+  })
+})
+
+
+describe('release date metadata behaviour', () => {
+  async function dateFixture(start: string, end: string) {
+    mockWorkspaceData({ can_edit_metadata: true })
+    const response = await getEpisodeVersionEditorContextMock()
+    response.data.version.production_started_on = start ? `${start}T00:00:00Z` : null
+    response.data.version.release_date = end ? `${end}T00:00:00Z` : null
+    response.data.date_neighbors = [{ fansub_group_id: 1, field: 'production_started_on', direction: 'previous',
+      release_version_id: 9002, episode_number: '2', date: '2013-07-18' }]
+    getEpisodeVersionEditorContextMock.mockClear().mockResolvedValue(response)
+    getAnimeFansubProjectTimelineMock.mockResolvedValue({ productionStartedOn: null, productionCompletedOn: null })
+    updateEpisodeVersionMock.mockResolvedValue({ data: response.data.version })
+    return response
+  }
+  it('shows advisory chronology and still saves through a refresh-only session without extra context requests', async () => {
+    await dateFixture('2013-07-17', '2013-07-20')
+    render(<MeReleaseWorkspacePage />)
+    expect(await screen.findByText(/vor dem Beginn von Folge 2/)).toBeTruthy()
+    expect(screen.getByText(/Abweichungen zwischen Folgen verhindern das Speichern nicht/)).toBeTruthy()
+    fireEvent.click(screen.getByRole('button', { name: 'Basisdaten speichern' }))
+    expect(await screen.findByText('Basisdaten gespeichert.')).toBeTruthy()
+    expect(updateEpisodeVersionMock).toHaveBeenCalledWith(42, expect.objectContaining({ production_started_on: '2013-07-17T00:00:00.000Z' }))
+    expect(getEpisodeVersionEditorContextMock).toHaveBeenCalledTimes(1)
+  })
+  it('shows the own-date error and prevents an invalid request', async () => {
+    await dateFixture('2013-07-18', '2013-07-17')
+    render(<MeReleaseWorkspacePage />)
+    expect(await screen.findByRole('alert')).toHaveProperty('textContent', 'Der Bearbeitungsabschluss darf nicht vor dem Bearbeitungsbeginn liegen.')
+    fireEvent.click(screen.getByRole('button', { name: 'Basisdaten speichern' }))
+    expect(updateEpisodeVersionMock).not.toHaveBeenCalled()
+  })
+  it.each(['Server nicht erreichbar', 'Verbindung unterbrochen'])('keeps a save error visible: %s', async (message) => {
+    await dateFixture('2013-07-18', '2013-07-18')
+    updateEpisodeVersionMock.mockRejectedValueOnce(new Error(message))
+    render(<MeReleaseWorkspacePage />)
+    fireEvent.click(await screen.findByRole('button', { name: 'Basisdaten speichern' }))
+    expect(await screen.findByText(message)).toBeTruthy()
+  })
+  it('shows context failures rather than a form with missing date anchors', async () => {
+    getEpisodeVersionEditorContextMock.mockRejectedValueOnce(new Error('Datumsbezug konnte nicht geladen werden.'))
+    render(<MeReleaseWorkspacePage />)
+    expect(await screen.findByText('Datumsbezug konnte nicht geladen werden.')).toBeTruthy()
+    expect(screen.queryByRole('button', { name: 'Basisdaten speichern' })).toBeNull()
+  })
+  it('hides old hints while changing release and ignores a late save', async () => {
+    const oldResponse = await dateFixture('2013-07-17', '2013-07-20')
+    let resolveSave!: (value: unknown) => void
+    updateEpisodeVersionMock.mockImplementationOnce(() => new Promise(resolve => { resolveSave = resolve }))
+    const { rerender } = render(<MeReleaseWorkspacePage />)
+    fireEvent.click(await screen.findByRole('button', { name: 'Basisdaten speichern' }))
+    routeMock.versionId = '43'
+    const nextResponse = { data: { ...oldResponse.data, date_neighbors: [], anime_title: 'Nächste Folge', version: { ...oldResponse.data.version, id: 43 } } }
+    getEpisodeVersionEditorContextMock.mockResolvedValue(nextResponse)
+    rerender(<MeReleaseWorkspacePage />)
+    await screen.findByRole('heading', { name: 'Nächste Folge' })
+    await act(async () => resolveSave({ data: oldResponse.data.version }))
+    expect(screen.queryByText(/vor dem Beginn von Folge 2/)).toBeNull()
+    expect(screen.queryByText('Basisdaten gespeichert.')).toBeNull()
+    expect(screen.getByRole('heading', { name: 'Nächste Folge' })).toBeTruthy()
   })
 })

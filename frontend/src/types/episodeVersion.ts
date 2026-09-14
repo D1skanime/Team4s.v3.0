@@ -50,11 +50,24 @@ export interface EpisodeVersionResponse {
   data: EpisodeVersion
 }
 
+/** Advisory calendar-date anchor; never a cross-episode save constraint. */
+export interface EpisodeVersionDateNeighbor {
+  fansub_group_id: number
+  field: 'production_started_on' | 'release_date'
+  direction: 'previous' | 'next'
+  release_version_id: number
+  episode_number: string
+  /** UTC calendar day (YYYY-MM-DD), matching the editor's date-only conversion. */
+  date: string
+}
+
 export interface EpisodeVersionEditorContext {
   version: EpisodeVersion
   anime_title: string
   anime_folder_path?: string | null
   selected_groups: FansubGroupSummary[]
+  /** At most four anchors per selected group, matching anime and version label. */
+  date_neighbors: EpisodeVersionDateNeighbor[]
 }
 
 export interface EpisodeVersionEditorContextResponse {

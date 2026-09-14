@@ -2063,3 +2063,27 @@ types:
     release_overrides: AdminContributionItem[] (release_version_id IS NOT NULL)
     open_disputes: AdminContributionItem[] (dispute_state='open')
     legacy_historical: AdminContributionItem[] (via fansub_group_member_id ohne member_id)
+
+
+release_metadata_date_rules:
+  canonical_contract: shared/contracts/openapi.yaml
+  context_path: /api/v1/admin/episode-versions/{versionId}/editor-context
+  update_path: /api/v1/episode-versions/{versionId}
+  authorization: Existing admin or scoped contributor metadata permissions; no new auth flow.
+  date_neighbors:
+    schema: EpisodeVersionDateNeighbor
+    fields: [fansub_group_id, field, direction, release_version_id, episode_number, date]
+    bound: Four entries per persisted selected group; one set-based query.
+    identity: Real resolved release_versions.id; same anime, group and exact trimmed version label.
+    semantics: Latest prior and earliest following UTC calendar day per date field; no interpolation.
+    failure: Context lookup failure returns 500; never a silently empty successful snapshot.
+  own_date_order:
+    rule: Completion on or after start by UTC calendar day; same day allowed; null is unknown.
+    partial_patch: Validate merged persisted and incoming values under the existing transaction lock.
+    status: 400
+    error_message: Der Bearbeitungsabschluss darf nicht vor dem Bearbeitungsbeginn liegen.
+    cross_episode: Advisory only; never rejects saving or changes another episode.
+  field_semantics: >-
+    production_started_on is Bearbeitung begonnen am. release_date remains the existing
+    Bearbeitung abgeschlossen am mapping from Phase 143. Public release semantics and
+    the existing persistence seam remain unchanged; no new publication-date field.

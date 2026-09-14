@@ -6462,7 +6462,9 @@ paths:
               schema:
                 $ref: "#/components/schemas/EpisodeVersionResponse"
         "400":
-          description: Invalid request body or validation failure
+          description: >-
+            Invalid request body or validation failure, including completion before start by
+            UTC calendar day after merging a partial date patch with persisted values.
           content:
             application/json:
               schema:
@@ -14661,6 +14663,11 @@ components:
     EpisodeVersionPatchRequest:
       type: object
       minProperties: 1
+      description: >-
+        Date fields merge with persisted values under the existing release-version lock.
+        When either date is patched, a non-null completion must not precede a non-null
+        start by UTC calendar day. Equal days and explicit null (unknown) are allowed.
+        Episode-to-episode chronological differences are advisory only and never reject a save.
       properties:
         title:
           type: string
@@ -14686,7 +14693,16 @@ components:
           type: string
           enum: [hardsub, softsub]
           nullable: true
+        production_started_on:
+          type: string
+          format: date-time
+          nullable: true
+          description: Bearbeitung begonnen am; omission preserves, null clears the date.
         release_date:
+          description: >-
+            Existing release_date field, labelled Bearbeitung abgeschlossen am in the editor
+            since Phase 143. No separate publication date or change to public release semantics.
+            Omission preserves, null clears the date.
           type: string
           format: date-time
           nullable: true
@@ -14699,7 +14715,7 @@ components:
           nullable: true
     EpisodeVersionEditorContext:
       type: object
-      required: [version, anime_title, selected_groups]
+      required: [version, anime_title, selected_groups, date_neighbors]
       properties:
         version:
           $ref: "#/components/schemas/EpisodeVersion"
@@ -14716,6 +14732,42 @@ components:
           type: array
           items:
             $ref: "#/components/schemas/FansubGroupSummary"
+        date_neighbors:
+          type: array
+          description: >-
+            Advisory snapshot, empty when no dated comparison exists. At most four entries
+            per persisted selected group (each date field, previous/next direction). Same anime,
+            same group, exact trimmed version label (blank only matches blank), other real
+            release versions, strictly lower/higher numeric episode numbers. Previous selects
+            the latest known UTC day, next the earliest; ties use episode proximity then ID.
+            Missing dates and nonnumeric episodes do not create anchors. Loaded by one set-based
+            query with the existing editor request; lookup failure fails the context response.
+          items:
+            $ref: "#/components/schemas/EpisodeVersionDateNeighbor"
+    EpisodeVersionDateNeighbor:
+      type: object
+      required: [fansub_group_id, field, direction, release_version_id, episode_number, date]
+      properties:
+        fansub_group_id:
+          type: integer
+          format: int64
+        field:
+          type: string
+          enum: [production_started_on, release_date]
+        direction:
+          type: string
+          enum: [previous, next]
+        release_version_id:
+          type: integer
+          format: int64
+          description: Real release_versions.id, never a variant alias or episode ID.
+        episode_number:
+          type: string
+          description: Stored display label of the dated episode, including leading zeroes.
+        date:
+          type: string
+          format: date
+          description: UTC calendar day (YYYY-MM-DD); no inferred or interpolated date.
     EpisodeVersionEditorContextResponse:
       type: object
       required: [data]

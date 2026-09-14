@@ -3,6 +3,7 @@ package models
 import (
 	"bytes"
 	"encoding/json"
+	"errors"
 	"time"
 )
 
@@ -118,13 +119,36 @@ type ReleaseStreamSource struct {
 	StreamURL     *string
 }
 
+// EpisodeVersionDateNeighbor is an advisory same-field date anchor in the
+// persisted anime/group/version context; its version ID is never a variant alias.
+type EpisodeVersionDateNeighbor struct {
+	FansubGroupID    int64  `json:"fansub_group_id"`
+	Field            string `json:"field"`
+	Direction        string `json:"direction"`
+	ReleaseVersionID int64  `json:"release_version_id"`
+	EpisodeNumber    string `json:"episode_number"`
+	Date             string `json:"date"`
+}
+
+var ErrEpisodeVersionDateOrder = errors.New("Der Bearbeitungsabschluss darf nicht vor dem Bearbeitungsbeginn liegen.")
+
+// ValidateEpisodeVersionDates compares UTC calendar days, matching the editor's
+// date-only controls. Unknown dates and equal days are valid; timestamps are not rewritten.
+func ValidateEpisodeVersionDates(start, completion *time.Time) error {
+	if start != nil && completion != nil && completion.UTC().Format(time.DateOnly) < start.UTC().Format(time.DateOnly) {
+		return ErrEpisodeVersionDateOrder
+	}
+	return nil
+}
+
 // EpisodeVersionEditorContext liefert alle Kontextdaten für den Admin-Editor
 // einer Episodenversion, inklusive Anime-Pfad und verfügbare Fansub-Gruppen.
 type EpisodeVersionEditorContext struct {
-	Version         EpisodeVersion       `json:"version"`
-	AnimeTitle      string               `json:"anime_title"`
-	AnimeFolderPath *string              `json:"anime_folder_path,omitempty"`
-	SelectedGroups  []FansubGroupSummary `json:"selected_groups"`
+	Version         EpisodeVersion               `json:"version"`
+	AnimeTitle      string                       `json:"anime_title"`
+	AnimeFolderPath *string                      `json:"anime_folder_path,omitempty"`
+	SelectedGroups  []FansubGroupSummary         `json:"selected_groups"`
+	DateNeighbors   []EpisodeVersionDateNeighbor `json:"date_neighbors"`
 }
 
 // EpisodeVersionMediaFile repräsentiert eine einzelne Mediendatei aus einem

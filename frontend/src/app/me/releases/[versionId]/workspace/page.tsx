@@ -1,6 +1,6 @@
 'use client'
 
-import { useEffect, useState, type FormEvent } from 'react'
+import { useEffect, useRef, useState, type FormEvent } from 'react'
 import Link from 'next/link'
 import { useParams, useSearchParams } from 'next/navigation'
 import { ArrowLeft } from 'lucide-react'
@@ -29,6 +29,7 @@ import {
   normalizeCRC32Draft,
   normalizeOptional,
   parseDurationInput,
+  validateReleaseDateOrder,
   type FormState,
 } from '@/app/admin/episode-versions/[versionId]/edit/episodeVersionEditorUtils'
 import {
@@ -60,6 +61,7 @@ function MeReleaseWorkspacePage() {
       ? 'Bitte einloggen, um deinen Projektbereich zu öffnen.'
       : null
 
+  const contextGeneration = useRef(0)
   const [context, setContext] = useState<EpisodeVersionEditorContext | null>(null)
   const [capabilities, setCapabilities] = useState<ReleaseVersionCapabilities | null>(null)
   const [memberId, setMemberId] = useState<number | null>(null)
@@ -82,6 +84,14 @@ function MeReleaseWorkspacePage() {
     if (!versionId || routeErrorMessage) return
 
     let cancelled = false
+    contextGeneration.current += 1
+    setIsLoading(true)
+    setContext(null)
+    setProjectTimeline(null)
+    setErrorMessage(null)
+    setMetadataError(null)
+    setMetadataSuccess(null)
+    setIsSavingMetadata(false)
 
     void Promise.all([
       getEpisodeVersionEditorContext(versionId),
@@ -107,6 +117,7 @@ function MeReleaseWorkspacePage() {
 
     return () => {
       cancelled = true
+      contextGeneration.current += 1
     }
   }, [isClientInitialized, routeErrorMessage, versionId])
 
@@ -136,6 +147,12 @@ function MeReleaseWorkspacePage() {
     event.preventDefault()
     if (!versionId || !metadataForm) return
 
+    if (validateReleaseDateOrder(metadataForm)) {
+      setMetadataError(null)
+      setMetadataSuccess(null)
+      return
+    }
+
     const durationSeconds = parseDurationInput(metadataForm.durationSeconds)
     if (metadataForm.durationSeconds.trim() && durationSeconds == null) {
       setMetadataError('Gesamtdauer ist ungültig. Erlaubt sind Sekunden, m:ss, hh:mm:ss sowie Kurzformen wie 2m oder 1m30s.')
@@ -143,6 +160,7 @@ function MeReleaseWorkspacePage() {
       return
     }
 
+    const generation = contextGeneration.current
     setIsSavingMetadata(true)
     setMetadataError(null)
     setMetadataSuccess(null)
@@ -156,12 +174,15 @@ function MeReleaseWorkspacePage() {
         crc32: normalizeOptional(normalizeCRC32Draft(metadataForm.crc32)),
         duration_seconds: durationSeconds,
       })
+      if (generation !== contextGeneration.current) return
       setContext((current) => current ? { ...current, version: response.data } : current)
       setMetadataSuccess('Basisdaten gespeichert.')
     } catch (error) {
-      setMetadataError(readErrorMessage(error, 'Basisdaten konnten nicht gespeichert werden.'))
+      if (generation === contextGeneration.current) {
+        setMetadataError(readErrorMessage(error, 'Basisdaten konnten nicht gespeichert werden.'))
+      }
     } finally {
-      setIsSavingMetadata(false)
+      if (generation === contextGeneration.current) setIsSavingMetadata(false)
     }
   }
 
