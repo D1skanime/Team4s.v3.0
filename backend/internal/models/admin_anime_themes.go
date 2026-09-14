@@ -185,6 +185,11 @@ type ThemeSegmentAssignmentSyncResult struct {
 	// RemovedContributorCount zaehlt die theme_segment_contributors-Zeilen, die als atomare
 	// Nebenwirkung eines tatsaechlichen Origin-Wechsels in diesem Aufruf entfernt wurden.
 	RemovedContributorCount int `json:"removed_contributor_count"`
+	// PreselectedContributorCount zaehlt die theme_segment_contributors-Zeilen, die als
+	// einmalige GAP-07-Vorauswahl (Phase 156, Plan 156-18, 156-UAT.md GAP-07) in diesem Aufruf
+	// NEU eingefuegt wurden -- 0, wenn das Segment bereits initialisiert war, die Origin nil
+	// blieb, oder kein effektiver Contributor der Origin eine segment-relevante Rolle haelt.
+	PreselectedContributorCount int `json:"preselected_contributor_count"`
 }
 
 // ThemeSegmentAssignmentConflict describes an occupied slot without changing its assignment.

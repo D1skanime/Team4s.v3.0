@@ -583,15 +583,19 @@ func (r *AdminContentRepository) CreateAnimeSegment(ctx context.Context, animeID
 		}
 		// Plan 156-16 (GAP-05): eine neu angelegte Segment-Zuweisung ueber den impliziten
 		// Einzelzuweisungs-Pfad bekommt sofort eine Origin, ohne erzwungene Admin-Interaktion.
-		originOutcome, err := ensureThemeSegmentOriginTx(ctx, tx, segID)
+		// Plan 156-18 (GAP-07): dieselbe Stelle liefert jetzt zusaetzlich die einmalige
+		// Vorauswahl der Origin-Contributor -- preselectedCount wird unabhaengig von
+		// originOutcome.Changed gemeldet (die Vorauswahl selbst ist nie an Changed gekoppelt).
+		originOutcome, preselectedCount, err := ensureThemeSegmentOriginAndContributorsTx(ctx, tx, segID)
 		if err != nil {
 			return nil, nil, fmt.Errorf("create anime segment anime=%d segment=%d: ensure origin: %w", animeID, segID, err)
 		}
 		if originOutcome.Changed {
 			rangeSync = &models.ThemeSegmentAssignmentSyncResult{
-				OriginBefore:            originOutcome.Before,
-				OriginAfter:             originOutcome.After,
-				RemovedContributorCount: originOutcome.RemovedContributorCount,
+				OriginBefore:                originOutcome.Before,
+				OriginAfter:                 originOutcome.After,
+				RemovedContributorCount:     originOutcome.RemovedContributorCount,
+				PreselectedContributorCount: preselectedCount,
 			}
 		}
 	}

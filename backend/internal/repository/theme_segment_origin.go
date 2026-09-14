@@ -105,6 +105,18 @@ func (r *AdminContentRepository) SetThemeSegmentOrigin(ctx context.Context, segm
 	}
 	removedContributorCount := int(cleanupTag.RowsAffected())
 
+	// Plan 156-18 (GAP-07): der EINE Schreibpfad, der ensureThemeSegmentOriginTx nie durchlaeuft
+	// (die manuelle Origin-Korrektur), bekommt die Vorauswahl hier direkt verdrahtet -- nach dem
+	// Cleanup, vor dem Commit, in derselben Transaktion. Der bereits validierte
+	// releaseVersionID-Parameter ist die neue Origin; ensureThemeSegmentContributorsPreselectedTx
+	// selbst entscheidet per Marker, ob ueberhaupt etwas zu tun ist (kein erneutes Preselect nach
+	// einem spaeteren Origin-Wechsel). Die zurueckgegebene Anzahl wird bewusst nicht
+	// weitergereicht -- die Signatur bleibt (int, error), der Admin sieht das Ergebnis ueber den
+	// naechsten Kandidaten-Fetch.
+	if _, err := ensureThemeSegmentContributorsPreselectedTx(ctx, tx, segmentID, &releaseVersionID); err != nil {
+		return 0, fmt.Errorf("set theme segment origin segment=%d release_version=%d: preselect contributors: %w", segmentID, releaseVersionID, err)
+	}
+
 	if err := tx.Commit(ctx); err != nil {
 		return 0, fmt.Errorf("commit set theme segment origin segment=%d release_version=%d: %w", segmentID, releaseVersionID, err)
 	}

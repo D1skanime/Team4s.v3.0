@@ -184,7 +184,15 @@ CREATE TABLE IF NOT EXISTS anime_contribution_roles (
     id BIGSERIAL PRIMARY KEY,
     anime_contribution_id BIGINT NOT NULL REFERENCES anime_contributions(id) ON DELETE CASCADE,
     role_code TEXT NOT NULL
-);`
+);
+
+-- Plan 156-18 (GAP-07): ensureThemeSegmentOriginAndContributorsTx now reaches
+-- ensureThemeSegmentContributorsPreselectedTx from every one of the FIVE former
+-- ensureThemeSegmentOriginTx call sites -- every Phase-117 test exercising any of those call
+-- sites needs this marker column, not just the four integration-test files this plan otherwise
+-- touches. ADD COLUMN IF NOT EXISTS keeps this compatible once migration 0165 (created later in
+-- this same plan) also runs against the same schema.
+ALTER TABLE theme_segments ADD COLUMN IF NOT EXISTS contributors_initialized_at TIMESTAMPTZ NULL;`
 	if err := validatePhase106SQL(sql); err != nil {
 		t.Fatal(err)
 	}

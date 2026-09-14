@@ -473,6 +473,110 @@ func TestAssignThemeSegmentToEpisodeRangeOriginClearsToNullWhenRangeEmpties(t *t
 	require.Empty(t, ids)
 }
 
+// TestAssignThemeSegmentToEpisodeRangeNeverPreselectsWhenOriginStaysNil proves the last GAP-07
+// behavior case (156-18-PLAN.md Task 2) through the FULL assignThemeSegmentToEpisodeRangeTx call
+// path (not just Task 1's unit-level wrapper test): a segment whose origin recompute yields nil
+// (a range matching zero actual release versions) never gets its contributors_initialized_at
+// marker set and never gets a theme_segment_contributors row inserted.
+func TestAssignThemeSegmentToEpisodeRangeNeverPreselectsWhenOriginStaysNil(t *testing.T) {
+	pool := testsupport.OpenPhase117Postgres(t)
+	ctx := context.Background()
+	repo := NewAdminContentRepository(pool)
+
+	const (
+		animeID       = int64(55)
+		fansubGroupID = int64(55)
+		themeTypeID   = int64(55)
+		themeID       = int64(55)
+	)
+	_, err := pool.Exec(ctx, `INSERT INTO anime (id) VALUES ($1)`, animeID)
+	require.NoError(t, err)
+	_, err = pool.Exec(ctx, `INSERT INTO fansub_groups (id) VALUES ($1)`, fansubGroupID)
+	require.NoError(t, err)
+	_, err = pool.Exec(ctx, `INSERT INTO theme_types (id, name) VALUES ($1, 'OP1')`, themeTypeID)
+	require.NoError(t, err)
+	_, err = pool.Exec(ctx, `INSERT INTO themes (id, anime_id, theme_type_id) VALUES ($1, $2, $3)`, themeID, animeID, themeTypeID)
+	require.NoError(t, err)
+
+	var segmentID int64
+	err = pool.QueryRow(ctx, `
+		INSERT INTO theme_segments (theme_id, fansub_group_id, version, start_episode, end_episode)
+		VALUES ($1, $2, 'v1', 1, 1)
+		RETURNING id
+	`, themeID, fansubGroupID).Scan(&segmentID)
+	require.NoError(t, err)
+
+	// A complete, valid range that matches ZERO actual release versions (no episode/release
+	// exists for this anime/group/version at all) -- the origin recompute stays nil.
+	result, err := repo.AssignThemeSegmentToEpisodeRange(ctx, segmentID, animeID, fansubGroupID, "v1", 1, 1)
+	require.NoError(t, err)
+	require.NotNil(t, result)
+	require.Empty(t, result.Added)
+	require.Nil(t, result.OriginAfter)
+	require.Zero(t, result.PreselectedContributorCount)
+
+	require.Nil(t, readThemeSegmentOrigin(t, pool, ctx, segmentID))
+	var marker *string
+	require.NoError(t, pool.QueryRow(ctx, `SELECT contributors_initialized_at::text FROM theme_segments WHERE id = $1`, segmentID).Scan(&marker))
+	require.Nil(t, marker, "ohne gueltige Origin darf der Vorauswahl-Merker nie gesetzt werden")
+
+	ids, err := repo.GetThemeSegmentContributorMemberIDs(ctx, segmentID)
+	require.NoError(t, err)
+	require.Empty(t, ids)
+}
+
+// TestAutoAssignThemeSegmentsForNewReleaseVersionPreselectsContributorsOnce proves the GAP-07
+// behavior case for autoAssignThemeSegmentsForNewReleaseVersion (156-18-PLAN.md Task 2): a
+// never-initialized segment that gets its FIRST assignment through the release-version
+// auto-assignment path is preselected exactly once, with only its segment-relevant contributor
+// inserted.
+func TestAutoAssignThemeSegmentsForNewReleaseVersionPreselectsContributorsOnce(t *testing.T) {
+	pool := testsupport.OpenPhase117Postgres(t)
+	ctx := context.Background()
+
+	const (
+		animeID     = int64(1)
+		themeTypeID = int64(1)
+		themeID     = int64(1)
+		groupID     = int64(1)
+	)
+	seedAutoAssignBaseFixture(t, pool, ctx, animeID, themeTypeID, themeID)
+	seedAutoAssignFansubGroup(t, pool, ctx, groupID)
+
+	segmentID := seedAutoAssignThemeSegment(t, pool, ctx, themeID, groupID, 1, 3)
+	releaseVersionID := createAutoAssignReleaseVersion(t, pool, ctx, 102)
+
+	const translatorID = int64(55901)
+	const encoderOnlyID = int64(55902)
+	_, err := pool.Exec(ctx, `INSERT INTO members (id) VALUES ($1), ($2)`, translatorID, encoderOnlyID)
+	require.NoError(t, err)
+	const publicVisibilityID = int64(1)
+	for _, seed := range []struct {
+		memberID int64
+		roleCode string
+	}{{translatorID, "translator"}, {encoderOnlyID, "encoder"}} {
+		var contributionID int64
+		require.NoError(t, pool.QueryRow(ctx, `
+			INSERT INTO anime_contributions (fansub_group_id, anime_id, member_id, release_version_id, is_public_on_anime_page, visibility_id)
+			VALUES ($1, $2, $3, $4, true, $5)
+			RETURNING id
+		`, groupID, animeID, seed.memberID, releaseVersionID, publicVisibilityID).Scan(&contributionID))
+		_, err = pool.Exec(ctx, `INSERT INTO anime_contribution_roles (anime_contribution_id, role_code) VALUES ($1, $2)`, contributionID, seed.roleCode)
+		require.NoError(t, err)
+	}
+
+	callUpsertReleaseVersionGroup(t, pool, ctx, releaseVersionID, groupID)
+
+	origin := readAutoAssignSegmentOrigin(t, pool, ctx, segmentID)
+	require.NotNil(t, origin)
+	require.Equal(t, releaseVersionID, *origin)
+
+	repo := NewAdminContentRepository(pool)
+	ids, err := repo.GetThemeSegmentContributorMemberIDs(ctx, segmentID)
+	require.NoError(t, err)
+	require.Equal(t, []int64{translatorID}, ids, "nur der Uebersetzer wird vorausgewaehlt, der Encoder-only nie")
+}
+
 // TestAssignThemeSegmentToEpisodeRangeOriginNeverOverwritesValidOnExpand proves Auftragspunkt 8
 // at the integration-call-site level (156-16-PLAN.md): a valid origin already pointing at the
 // lowest-episode release stays UNCHANGED even when the range expands to include an ADDITIONAL

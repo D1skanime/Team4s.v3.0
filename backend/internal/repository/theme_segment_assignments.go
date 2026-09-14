@@ -46,8 +46,11 @@ func (r *AdminContentRepository) AssignThemeSegmentToReleaseVersion(
 	// CR-01 (156-REVIEW.md, Folge-Fix zu Plan 156-16): ohne diesen Aufruf bekaeme ein frisches
 	// Segment ueber diesen Endpunkt niemals eine Origin (GAP-05). assignThemeSegmentToReleaseVersionTx
 	// bleibt bewusst unveraendert, weil CreateAnimeSegment denselben Helfer nutzt und danach schon
-	// separat ensureThemeSegmentOriginTx aufruft -- sonst liefe der Aufruf dort doppelt.
-	if _, err := ensureThemeSegmentOriginTx(ctx, tx, segmentID); err != nil {
+	// separat die zentrale Origin/Contributor-Regel aufruft -- sonst liefe der Aufruf dort doppelt.
+	// Plan 156-18 (GAP-07): ensureThemeSegmentOriginAndContributorsTx statt der reinen
+	// Origin-Regel, damit ein hierueber erstmals gueltig zugewiesenes Segment sofort seine
+	// Vorauswahl bekommt.
+	if _, _, err := ensureThemeSegmentOriginAndContributorsTx(ctx, tx, segmentID); err != nil {
 		return nil, fmt.Errorf("assign theme segment %d to release version %d: ensure origin: %w", segmentID, releaseVersionID, err)
 	}
 	if err := tx.Commit(ctx); err != nil {
@@ -330,20 +333,22 @@ func (r *AdminContentRepository) assignThemeSegmentToEpisodeRangeTx(ctx context.
 	// ungueltige/fehlende wird neu berechnet, mit atomarer Contributor-Bereinigung im selben
 	// Commit. Der unveraenderte Guard oberhalb (Zeile 132) hat den DB-Zugriff bereits VOR
 	// diesem Punkt fuer einen unvollstaendigen Bereich verhindert -- die Origin bleibt dadurch
-	// per Konstruktion ebenfalls unangetastet.
-	originOutcome, err := ensureThemeSegmentOriginTx(ctx, tx, segmentID)
+	// per Konstruktion ebenfalls unangetastet. Plan 156-18 (GAP-07): dieselbe Stelle liefert jetzt
+	// zusaetzlich die einmalige Vorauswahl der Origin-Contributor.
+	originOutcome, preselectedCount, err := ensureThemeSegmentOriginAndContributorsTx(ctx, tx, segmentID)
 	if err != nil {
 		return nil, fmt.Errorf("assign theme segment to episode range segment=%d: ensure origin: %w", segmentID, err)
 	}
 
 	return &models.ThemeSegmentAssignmentSyncResult{
-		Added:                   newlyAssigned,
-		Removed:                 toRemove,
-		ProtectedByOverride:     protectedByOverride,
-		SkippedConflicts:        skipped,
-		OriginBefore:            originOutcome.Before,
-		OriginAfter:             originOutcome.After,
-		RemovedContributorCount: originOutcome.RemovedContributorCount,
+		Added:                       newlyAssigned,
+		Removed:                     toRemove,
+		ProtectedByOverride:         protectedByOverride,
+		SkippedConflicts:            skipped,
+		OriginBefore:                originOutcome.Before,
+		OriginAfter:                 originOutcome.After,
+		RemovedContributorCount:     originOutcome.RemovedContributorCount,
+		PreselectedContributorCount: preselectedCount,
 	}, nil
 }
 
@@ -387,7 +392,9 @@ func (r *AdminContentRepository) UnassignThemeSegmentFromReleaseVersion(
 		return ErrNotFound
 	}
 
-	if _, err := ensureThemeSegmentOriginTx(ctx, tx, segmentID); err != nil {
+	// Plan 156-18 (GAP-07): ein Unassign kann eine noch nicht initialisierte, verbliebene
+	// Zuweisung erstmals zur gueltigen Origin machen und muss deshalb ebenfalls preselecten koennen.
+	if _, _, err := ensureThemeSegmentOriginAndContributorsTx(ctx, tx, segmentID); err != nil {
 		return fmt.Errorf("unassign theme segment %d: ensure origin: %w", segmentID, err)
 	}
 

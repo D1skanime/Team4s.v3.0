@@ -295,6 +295,43 @@ func TestSetThemeSegmentContributors(t *testing.T) {
 		require.NoError(t, err)
 		require.Empty(t, ids)
 	})
+
+	// Plan 156-18 (GAP-07): jedes erfolgreiche Speichern -- auch eine LEERE Auswahl -- setzt den
+	// Vorauswahl-Merker. Ein bewusst leer gespeichertes Segment darf danach durch KEINEN
+	// nachfolgenden Origin-Wechsel wieder aufgefuellt werden.
+	t.Run("GAP-07: eine leer gespeicherte Auswahl setzt den Merker und wird durch einen spaeteren Origin-Wechsel nicht wieder aufgefuellt", func(t *testing.T) {
+		originID := newReleaseVersion(t)
+		segmentID := newSegment(t, &originID)
+		memberA := newMember(t)
+		newContribution(t, memberA, originID, "translator")
+
+		var markerBefore *string
+		require.NoError(t, pool.QueryRow(ctx, `SELECT contributors_initialized_at::text FROM theme_segments WHERE id = $1`, segmentID).Scan(&markerBefore))
+		require.Nil(t, markerBefore, "vor dem ersten Speichern ist der Merker NULL")
+
+		_, _, err := repo.SetThemeSegmentContributors(ctx, segmentID, []int64{})
+		require.NoError(t, err)
+
+		var markerAfter *string
+		require.NoError(t, pool.QueryRow(ctx, `SELECT contributors_initialized_at::text FROM theme_segments WHERE id = $1`, segmentID).Scan(&markerAfter))
+		require.NotNil(t, markerAfter, "auch eine leer gespeicherte Auswahl setzt den Merker")
+
+		// Ein spaeterer Origin-Wechsel (direkt, wie ensureThemeSegmentContributorsPreselectedTx es
+		// selbst pruefen wuerde) darf die bewusst geleerte Auswahl nicht wieder auffuellen.
+		newOriginID := newReleaseVersion(t)
+		newContribution(t, memberA, newOriginID, "translator")
+		tx, err := pool.Begin(ctx)
+		require.NoError(t, err)
+		defer func() { _ = tx.Rollback(ctx) }()
+		count, err := ensureThemeSegmentContributorsPreselectedTx(ctx, tx, segmentID, &newOriginID)
+		require.NoError(t, err)
+		require.Equal(t, 0, count, "kein Auto-Refill nach bewusst leerer Speicherung")
+		require.NoError(t, tx.Commit(ctx))
+
+		ids, err := repo.GetThemeSegmentContributorMemberIDs(ctx, segmentID)
+		require.NoError(t, err)
+		require.Empty(t, ids)
+	})
 }
 
 func TestListThemeSegmentContributorCandidates(t *testing.T) {

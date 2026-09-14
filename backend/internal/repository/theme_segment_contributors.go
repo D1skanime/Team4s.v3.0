@@ -124,6 +124,17 @@ func (r *AdminContentRepository) SetThemeSegmentContributors(
 	}
 	removed = int(tag.RowsAffected())
 
+	// Plan 156-18 (GAP-07): jedes erfolgreiche Speichern setzt den Vorauswahl-Merker --
+	// unbedingt, auch bei einer leer gespeicherten Auswahl (memberIDs: []). COALESCE haelt einen
+	// bereits gesetzten Merker unveraendert (idempotent bei wiederholtem Speichern); ein Admin,
+	// der bewusst leer speichert, verhindert damit dauerhaft jede spaetere automatische
+	// Vorauswahl (kein Auto-Refill, 156-UAT.md GAP-07 decision 3).
+	if _, err := tx.Exec(ctx, `
+		UPDATE theme_segments SET contributors_initialized_at = COALESCE(contributors_initialized_at, NOW()) WHERE id = $1
+	`, segmentID); err != nil {
+		return 0, 0, fmt.Errorf("set theme segment contributors segment=%d: set initialized marker: %w", segmentID, err)
+	}
+
 	if err := tx.Commit(ctx); err != nil {
 		return 0, 0, fmt.Errorf("commit set theme segment contributors segment=%d: %w", segmentID, err)
 	}

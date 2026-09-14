@@ -119,10 +119,13 @@ func autoAssignThemeSegmentsForNewReleaseVersion(ctx context.Context, tx pgx.Tx,
 	// Plan 156-16 (GAP-04/GAP-05): ein Segment, das hier seine erste Zuweisung erhaelt (NULL
 	// Origin, keine bisherigen Zuweisungen), bekommt sofort eine Origin. Ein Segment mit
 	// bereits gueltiger Origin bleibt unangetastet, selbst wenn diese neue Zuweisung eine
-	// niedrigere Episode traegt (Auftragspunkt 8) -- ensureThemeSegmentOriginTx entscheidet das
-	// zentral, nicht diese Schleife.
+	// niedrigere Episode traegt (Auftragspunkt 8) -- die zentrale Regel entscheidet das
+	// zentral, nicht diese Schleife. Plan 156-18 (GAP-07): ensureThemeSegmentOriginAndContributorsTx
+	// preselectet zusaetzlich, wenn dieser Aufruf die Origin erstmals gueltig macht -- die
+	// preselectedCount selbst wird hier bewusst nicht weitergereicht (diese Funktion bleibt
+	// error-only, siehe Signatur).
 	for _, segmentID := range toAssign {
-		if _, err := ensureThemeSegmentOriginTx(ctx, tx, segmentID); err != nil {
+		if _, _, err := ensureThemeSegmentOriginAndContributorsTx(ctx, tx, segmentID); err != nil {
 			return fmt.Errorf("auto-assign segments release_version=%d: ensure origin segment=%d: %w", releaseVersionID, segmentID, err)
 		}
 	}

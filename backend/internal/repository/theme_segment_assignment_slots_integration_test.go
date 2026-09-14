@@ -270,6 +270,14 @@ func TestSegmentSlotRangeHasBoundedAssignmentStatements(t *testing.T) {
 	// exists to prove.
 	_, err = f.pool.Exec(f.ctx, `UPDATE theme_segments SET origin_release_version_id = NULL WHERE id=$1`, segment)
 	require.NoError(t, err)
+	// Plan 156-18 (GAP-07): ensureThemeSegmentOriginAndContributorsTx now also reads/writes
+	// contributors_initialized_at on the SAME code path -- the first call above already left the
+	// marker non-NULL (0 rows inserted, since this fixture seeds no anime_contributions, but the
+	// marker is still unconditionally set). Resetting it here alongside the origin reset keeps
+	// both measurement points on the SAME preselection-attempt code path, mirroring 156-16's own
+	// origin-reset precedent for the identical class of measurement-asymmetry bug.
+	_, err = f.pool.Exec(f.ctx, `UPDATE theme_segments SET contributors_initialized_at = NULL WHERE id=$1`, segment)
+	require.NoError(t, err)
 	counter.reset()
 	result, err = repo.AssignThemeSegmentToEpisodeRange(f.ctx, segment, 1, 1, "v1", 1, 100)
 	require.NoError(t, err)
@@ -426,4 +434,73 @@ func TestCreateAnimeSegmentOriginBehavior(t *testing.T) {
 		require.NotNil(t, created.OriginReleaseVersionID)
 		require.Equal(t, f.versions[2], *created.OriginReleaseVersionID)
 	})
+
+	// Plan 156-18 (GAP-07): dieselben zwei Pfade (kompletter Bereich, implizite
+	// Einzelzuweisung) muessen jetzt auch die Vorauswahl der Origin-Contributor liefern.
+	// Getrennte Segmente/Origins von den drei Subtests oben, um Contributor-Fixtures nicht zu
+	// vermischen.
+	t.Run("kompletter Bereich preselectet die zwei Uebersetzer der Origin, nie den Encoder-only", func(t *testing.T) {
+		start, end := 3, 4
+		translatorA := int64(90101)
+		translatorB := int64(90102)
+		encoderOnly := int64(90103)
+		_, err := f.pool.Exec(f.ctx, `INSERT INTO members (id) VALUES ($1), ($2), ($3)`, translatorA, translatorB, encoderOnly)
+		require.NoError(t, err)
+		insertPreselectionContribution(t, f.pool, f.ctx, translatorA, groupID, 1, &f.versions[2], "translator")
+		insertPreselectionContribution(t, f.pool, f.ctx, translatorB, groupID, 1, &f.versions[2], "translator")
+		insertPreselectionContribution(t, f.pool, f.ctx, encoderOnly, groupID, 1, &f.versions[2], "encoder")
+
+		created, result, err := f.repo.CreateAnimeSegment(f.ctx, 1, models.AdminThemeSegmentCreateInput{
+			ThemeID: insertThemeID, FansubGroupID: &[]int64{groupID}[0], Version: "v1", StartEpisode: &start, EndEpisode: &end,
+		}, 0)
+		require.NoError(t, err)
+		require.NotNil(t, result)
+		require.NotNil(t, result.OriginAfter)
+		require.Equal(t, f.versions[2], *result.OriginAfter, "die niedrigste Episode im Bereich (3) muss zur Origin werden")
+		require.Equal(t, 2, result.PreselectedContributorCount)
+
+		ids, err := f.repo.GetThemeSegmentContributorMemberIDs(f.ctx, created.ID)
+		require.NoError(t, err)
+		require.ElementsMatch(t, []int64{translatorA, translatorB}, ids, "beide Uebersetzer werden vorausgewaehlt, der Encoder-only nie")
+	})
+
+	t.Run("implizite Einzelzuweisung liefert PreselectedContributorCount==2 im rangeSync", func(t *testing.T) {
+		translatorA := int64(90201)
+		translatorB := int64(90202)
+		_, err := f.pool.Exec(f.ctx, `INSERT INTO members (id) VALUES ($1), ($2)`, translatorA, translatorB)
+		require.NoError(t, err)
+		insertPreselectionContribution(t, f.pool, f.ctx, translatorA, groupID, 1, &f.versions[3], "translator")
+		insertPreselectionContribution(t, f.pool, f.ctx, translatorB, groupID, 1, &f.versions[3], "timer")
+
+		created, result, err := f.repo.CreateAnimeSegment(f.ctx, 1, models.AdminThemeSegmentCreateInput{
+			ThemeID: insertThemeID, FansubGroupID: &[]int64{groupID}[0], Version: "v1",
+		}, f.versions[3])
+		require.NoError(t, err)
+		require.NotNil(t, result)
+		require.Equal(t, 2, result.PreselectedContributorCount)
+
+		ids, err := f.repo.GetThemeSegmentContributorMemberIDs(f.ctx, created.ID)
+		require.NoError(t, err)
+		require.ElementsMatch(t, []int64{translatorA, translatorB}, ids)
+	})
+}
+
+// insertPreselectionContribution seeds one anime_contributions + anime_contribution_roles row
+// (public, single role) -- shared by the new Plan 156-18 (GAP-07) subtests in this file. The
+// shared Phase-117 fixture (testsupport.OpenPhase117Postgres) already provides
+// anime_contributions/anime_contribution_roles/visibilities and members.profile_visibility since
+// Plan 156-16, so no additional local schema shim is needed here.
+func insertPreselectionContribution(t *testing.T, pool *pgxpool.Pool, ctx context.Context, memberID, fansubGroupID, animeID int64, releaseVersionID *int64, roleCode string) {
+	t.Helper()
+	// The shared Phase-117 fixture seeds visibilities id=1 as 'public' (createPhase117Prerequisites).
+	const publicVisibilityID = int64(1)
+	var contributionID int64
+	err := pool.QueryRow(ctx, `
+		INSERT INTO anime_contributions (fansub_group_id, anime_id, member_id, release_version_id, is_public_on_anime_page, visibility_id)
+		VALUES ($1, $2, $3, $4, true, $5)
+		RETURNING id
+	`, fansubGroupID, animeID, memberID, releaseVersionID, publicVisibilityID).Scan(&contributionID)
+	require.NoError(t, err)
+	_, err = pool.Exec(ctx, `INSERT INTO anime_contribution_roles (anime_contribution_id, role_code) VALUES ($1, $2)`, contributionID, roleCode)
+	require.NoError(t, err)
 }

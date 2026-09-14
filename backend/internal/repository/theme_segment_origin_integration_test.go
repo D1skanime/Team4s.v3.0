@@ -216,4 +216,73 @@ func TestSetThemeSegmentOrigin(t *testing.T) {
 		require.NoError(t, err)
 		require.Empty(t, ids, "die jetzt ungueltige Auswahl muss entfernt sein")
 	})
+
+	// Plan 156-18 (GAP-07): SetThemeSegmentOrigin ist der EINE Schreibpfad, der
+	// ensureThemeSegmentOriginTx nie durchlaeuft -- die Vorauswahl ist hier direkt verdrahtet und
+	// wird deshalb direkt gegen SetThemeSegmentOrigin selbst bewiesen, nicht nur gegen Task 1s
+	// Wrapper-Test. Eigenes Segment/eigene Fixture, damit der obige Case-H-Zustand nicht
+	// vermischt wird.
+	t.Run("GAP-07: das ERSTE manuelle Setzen einer gueltigen Origin auf einem frischen Segment preselectet, ein ZWEITER Origin-Wechsel preselectet nicht erneut", func(t *testing.T) {
+		// Zwei EIGENE, bisher unberuehrte Release-Versionen -- vermeidet jede Ueberschneidung mit
+		// den anime_contributions-Zeilen der vorigen Subtests (z.B. Case Hs Mitglied 555 auf A).
+		const releaseVersionGap07First = int64(40)
+		const releaseVersionGap07Second = int64(50)
+		_, err := pool.Exec(ctx, `
+			INSERT INTO release_versions (id, release_id, version) VALUES ($1, $3, 'v1'), ($2, $3, 'v1')
+		`, releaseVersionGap07First, releaseVersionGap07Second, fansubReleaseID)
+		require.NoError(t, err)
+		_, err = pool.Exec(ctx, `
+			INSERT INTO release_version_groups (release_version_id, fansub_group_id) VALUES ($1, $3), ($2, $3)
+		`, releaseVersionGap07First, releaseVersionGap07Second, fansubGroupID)
+		require.NoError(t, err)
+
+		var freshSegmentID int64
+		require.NoError(t, pool.QueryRow(ctx, `
+			INSERT INTO theme_segments (theme_id, fansub_group_id, version, start_episode, end_episode)
+			VALUES ($1, $2, 'v1', 1, 1) RETURNING id
+		`, themeID, fansubGroupID).Scan(&freshSegmentID))
+		// Rohe Zuweisung, die die Origin-Spalte bewusst NULL laesst -- der Admin muss die Origin
+		// gleich manuell setzen (frisches Segment, keine automatische Regel bereits durchlaufen).
+		_, err = pool.Exec(ctx, `INSERT INTO theme_segment_assignments (theme_segment_id, release_version_id) VALUES ($1, $2)`, freshSegmentID, releaseVersionGap07First)
+		require.NoError(t, err)
+
+		const gap07MemberID = int64(556)
+		_, err = pool.Exec(ctx, `INSERT INTO members (id) VALUES ($1)`, gap07MemberID)
+		require.NoError(t, err)
+		var contributionID int64
+		require.NoError(t, pool.QueryRow(ctx, `
+			INSERT INTO anime_contributions (fansub_group_id, anime_id, member_id, release_version_id, is_public_on_anime_page, visibility_id)
+			VALUES ($1, $2, $3, $4, true, 1) RETURNING id
+		`, fansubGroupID, animeID, gap07MemberID, releaseVersionGap07First).Scan(&contributionID))
+		_, err = pool.Exec(ctx, `INSERT INTO anime_contribution_roles (anime_contribution_id, role_code) VALUES ($1, 'translator')`, contributionID)
+		require.NoError(t, err)
+
+		_, err = repo.SetThemeSegmentOrigin(ctx, freshSegmentID, releaseVersionGap07First)
+		require.NoError(t, err)
+		ids, err := repo.GetThemeSegmentContributorMemberIDs(ctx, freshSegmentID)
+		require.NoError(t, err)
+		require.Equal(t, []int64{gap07MemberID}, ids, "das ERSTE manuelle Origin-Setzen muss preselecten")
+
+		// Der Admin waehlt die Vorauswahl bewusst ab (leere Auswahl speichern).
+		_, _, err = repo.SetThemeSegmentContributors(ctx, freshSegmentID, []int64{})
+		require.NoError(t, err)
+
+		// Zweiter Origin-Wechsel auf eine ANDERE, ebenfalls gueltige Origin -- darf NICHT erneut
+		// preselecten (Merker bereits gesetzt).
+		_, err = pool.Exec(ctx, `INSERT INTO theme_segment_assignments (theme_segment_id, release_version_id) VALUES ($1, $2)`, freshSegmentID, releaseVersionGap07Second)
+		require.NoError(t, err)
+		var contributionID2 int64
+		require.NoError(t, pool.QueryRow(ctx, `
+			INSERT INTO anime_contributions (fansub_group_id, anime_id, member_id, release_version_id, is_public_on_anime_page, visibility_id)
+			VALUES ($1, $2, $3, $4, true, 1) RETURNING id
+		`, fansubGroupID, animeID, gap07MemberID, releaseVersionGap07Second).Scan(&contributionID2))
+		_, err = pool.Exec(ctx, `INSERT INTO anime_contribution_roles (anime_contribution_id, role_code) VALUES ($1, 'translator')`, contributionID2)
+		require.NoError(t, err)
+
+		_, err = repo.SetThemeSegmentOrigin(ctx, freshSegmentID, releaseVersionGap07Second)
+		require.NoError(t, err)
+		idsAfterSecondChange, err := repo.GetThemeSegmentContributorMemberIDs(ctx, freshSegmentID)
+		require.NoError(t, err)
+		require.Empty(t, idsAfterSecondChange, "der zweite Origin-Wechsel darf die bewusst geleerte Auswahl nicht wieder auffuellen")
+	})
 }
