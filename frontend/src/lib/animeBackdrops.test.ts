@@ -43,7 +43,7 @@ describe('bounded anime image delivery', () => {
 
   it.each([
     ['/media/anime/1/poster/asset/original.jpg', '/media/anime/1/poster/asset/original.jpg'],
-    ['/covers/anime.jpg', '/covers/anime.jpg/display'],
+    ['/covers/anime.jpg', '/covers/display/anime.jpg'],
   ])('uses explicit same-origin bounded delivery: %s', (source, pathname) => {
     const output = url(resolveAnimeCoverURL(source))
     expect(output.origin).toBe('http://team4s.local')
@@ -74,14 +74,14 @@ describe('bounded anime image delivery', () => {
     '/_next/image?url=https%3A%2F%2Funtrusted.example%2Fx.jpg&w=512&q=75',
   ])('bounds the existing placeholder for an unusable cover and omits optional media: %s', (source) => {
     const fallback = url(resolveAnimeCoverURL(source))
-    expect(fallback.pathname).toBe('/covers/placeholder.png/display')
+    expect(fallback.pathname).toBe('/covers/display/placeholder.png')
     expect(fallback.searchParams.get('display_width')).toBe('512')
     expect(resolveAnimeImageURL(source, 512)).toBeNull()
   })
 
   it('retains the existing bare cover filename convention without filename-derived variants', () => {
     const output = url(resolveAnimeCoverURL('named-cover.jpg'))
-    expect(output.pathname).toBe('/covers/named-cover.jpg/display')
+    expect(output.pathname).toBe('/covers/display/named-cover.jpg')
   })
 
   it('keeps missing-file delivery bounded without prefetching or original fallback', () => {
