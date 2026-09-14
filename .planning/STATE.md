@@ -3,7 +3,7 @@ gsd_state_version: 1.0
 milestone: v1.4
 milestone_name: Coverage
 status: executing
-stopped_at: Completed 156-16-PLAN.md (GAP-04/GAP-05 origin-sync closure; 156-UAT live checkpoint still pending)
+stopped_at: Completed 156-16-PLAN.md + CR-01 code-review follow-up + phase verification (GAP-04/GAP-05 origin-sync closure; 3 GAP-02 live-UAT items still pending, see 156-HUMAN-UAT.md)
 last_updated: "2026-09-14T14:43:32.065Z"
 last_activity: 2026-09-14
 progress:
@@ -71,6 +71,29 @@ Fehlschlaege wie vor diesem Plan (namentlich abgeglichen, 0 neue). Zwei Testinfr
 Aufrufpfaden als zuvor), und ein vorbestehender Query-Budget-Test wurde auf identische
 Origin-Ausgangszustaende zwischen seinen zwei Messpunkten korrigiert. `156-UAT.md`s Live-UAT-Checkpoint
 bleibt ausdruecklich NICHT bestanden-behauptet. Details: 156-16-SUMMARY.md.
+
+**CR-01-Nachschliessung (2026-09-14, Commits 4dcdc75d/380262d3):** Der Pflicht-Code-Review nach
+156-16 fand einen echten kritischen Rest: `AssignThemeSegmentToReleaseVersion` und
+`UnassignThemeSegmentFromReleaseVersion` (die manuellen Admin-Endpunkte hinter
+`POST/DELETE .../segments/:id/assignments[...]`) mutierten `theme_segment_assignments` direkt, ohne
+je `ensureThemeSegmentOriginTx` aufzurufen -- das haette GAP-04/GAP-05 exakt ueber diese zwei
+lebenden Routen wieder oeffnen koennen. Behoben: beide rufen die zentrale Regel jetzt innerhalb
+derselben Transaktion auf; `Unassign` bekam zusaetzlich die bisher fehlende
+`lockSegmentAssignmentDomainTx`-Sperre (WR-02). Drei neue Tests am echten Postgres beweisen beide
+zuvor offenen Faelle plus einen Nie-ueberschreiben-Beweis fuer den Unassign-Pfad. Voller
+Regressionslauf danach erneut namentlich abgeglichen: 0 neue Fehlschlaege. Siehe 156-REVIEW.md
+(CR-01/WR-01/WR-02) und den Nachtrag in 156-16-SUMMARY.md.
+
+**Phasenweite Verifikation (2026-09-14, 156-VERIFICATION.md):** `gsd-verifier` hat alle 19
+P156-Anforderungen unabhaengig am Code und live an `team4s_v2`/den Testsuiten nachgeprueft.
+Ergebnis: 18/19 VERIFIED, P156-18 bleibt PARTIAL -- automatisiert vollstaendig belegt, aber der
+gebuendelte Live-UAT-Checkpoint (156-UAT.md GAP-02) ist weiterhin nicht als bestanden erklaert.
+Von den urspruenglich 14 GAP-02-Punkten waren am 2026-09-14 bereits 9 bestanden; 3 konkrete Punkte
+bleiben offen (Items 10-13 wurden am falschen Segment/Release ohne Origin/Auswahl geprueft; Item 14
+bestand vor dem CR-01-Fix und muss dagegen erneut gegengeprueft werden; Items 11-12 brauchen erst
+QC-/Editor-Live-Daten auf der Testrelease). Diese drei Punkte sind jetzt in `156-HUMAN-UAT.md`
+(status: partial) festgehalten. Phase 156 gilt weiterhin NICHT als vollstaendig abgenommen, bis der
+Auftraggeber diese drei Punkte live bestaetigt.
 
 **Plan 157-10 (2026-09-13) abgeschlossen — GAP-01-Schliessung:** `ProjectMemberNoteEntry` rendert
 jetzt ein `<article>` statt eines die ganze Zeile umschliessenden `<Link>`; ein einziger
