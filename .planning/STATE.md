@@ -3,14 +3,14 @@ gsd_state_version: 1.0
 milestone: v1.4
 milestone_name: Coverage
 status: executing
-stopped_at: "Completed 157-14-PLAN.md (GAP-02 fully closed: 157-11/12/13/14 all executed; human Live-UAT sign-off remains OPEN)"
-last_updated: "2026-09-14T18:56:52.931Z"
+stopped_at: "Completed 157-15-PLAN.md (GAP-03 F1-F4 closed: SectionHeader icon/counter slots, wired consumers, permanent hero-metric affordance + focus ring, clamped-link tab containment, isolated note stacking context; human Live-UAT sign-off remains OPEN)"
+last_updated: "2026-09-14T19:20:35.837Z"
 last_activity: 2026-09-14
 progress:
   total_phases: 24
   completed_phases: 23
   total_plans: 233
-  completed_plans: 231
+  completed_plans: 232
   percent: 96
 ---
 
@@ -45,8 +45,8 @@ See: .planning/PROJECT.md (updated 2026-08-13)
 
 ## Current Position
 
-Phase: 157 (projekt-memberseite-visuelles-referenzdesign) — ALLE 14 PLAENE AUSGEFUEHRT
-Plan: 14 of 14 (GAP-02-Schliessung 4/4 abgeschlossen mit 157-14 -- V6: Hero-Sprungziele statt
+Phase: 157 (projekt-memberseite-visuelles-referenzdesign) — EXECUTING
+Plan: 2 of 16
 dupliziertem ProjectMemberStickyNav; siehe 157-14-SUMMARY.md)
 Status: Ready to execute
 GAP-02-Live-UAT-Checkpoint aus 156-UAT.md (5 Origin- + 9 Segment-Contributor-Pruefpunkte) bleibt
@@ -1197,6 +1197,8 @@ Last activity: 2026-09-14
 - [Phase 157]: Per-entry timeline line colored via var(--role-accent) (Entscheid 2026-09-14 zu V4) — Replaces the single shared neutral-gray line; each entry now owns its own colored line segment reaching to the next entry's dot, using the same data-color-key seam the dot already used
 - [Phase 157]: 157-14: Routed the new hero jump-metric interaction through the global Button primitive (variant="text") per CLAUDE.md's Frontend-UI rule — Extends Button/HeroMetrics additively instead of bypassing them for a shape mismatch; all 6 other HeroMetrics call sites and Button's 6 existing variants stay byte-identical
 - [Phase 157]: 157-14: 'Folgen' stays plain, non-interactive text in the hero — It has no matching page section, so it is intentionally not wired to scrollToSection
+- [Phase ?]: 157-15: Matched .sectionHeaderCounter's line-height to .sectionTitle's (1.15) to fix a live ~2.8px vertical misalignment against the section header heading
+- [Phase ?]: 157-15: Live focus-ring verification waits 200ms after a real Tab keypress before reading getComputedStyle to avoid a mid-CSS-transition box-shadow read
 
 ### Pending Todos
 
@@ -1601,11 +1603,12 @@ untruncated list lives in `.planning/todos/pending/`.
 | Phase 157 P12 | 6min | 3 tasks | 9 files |
 | Phase 157 P13 | 11min | 3 tasks | 4 files |
 | Phase 157 P14 | 11min | 4 tasks | 13 files |
+| Phase 157 P15 | 25min | 3 tasks | 14 files |
 
 ## Session Continuity
 
-Last session: 2026-09-14T18:19:10.233Z
-Stopped at: Completed 157-14-PLAN.md (GAP-02 fully closed: 157-11/12/13/14 all executed; human Live-UAT sign-off remains OPEN)
+Last session: 2026-09-14T19:20:35.820Z
+Stopped at: Completed 157-15-PLAN.md (GAP-03 F1-F4 closed: SectionHeader icon/counter slots, wired consumers, permanent hero-metric affordance + focus ring, clamped-link tab containment, isolated note stacking context; human Live-UAT sign-off remains OPEN)
 Last activity: Larger dot + per-entry role-colored timeline line implemented and live-verified against the running stack; GAP-02 V3/V4 closed automated/technically, human Live-UAT remains a separate open step.
 Resume file: 
 None
