@@ -55,24 +55,29 @@ type rangeAutoAssignThemeRepo struct {
 	getSegmentByIDCalls int
 }
 
-func (f *rangeAutoAssignThemeRepo) CreateAnimeSegment(ctx context.Context, animeID int64, input models.AdminThemeSegmentCreateInput, currentReleaseVersionID int64) (*models.AdminThemeSegment, error) {
+func (f *rangeAutoAssignThemeRepo) CreateAnimeSegment(ctx context.Context, animeID int64, input models.AdminThemeSegmentCreateInput, currentReleaseVersionID int64) (*models.AdminThemeSegment, *models.ThemeSegmentAssignmentSyncResult, error) {
 	if f.createErr != nil {
-		return nil, f.createErr
+		return nil, nil, f.createErr
 	}
-	return &models.AdminThemeSegment{
-		ID:            f.segment.ID,
-		ThemeID:       input.ThemeID,
-		AnimeID:       animeID,
-		ThemeTypeName: "OP1",
-		FansubGroupID: input.FansubGroupID,
-		Version:       input.Version,
-		StartEpisode:  input.StartEpisode,
-		EndEpisode:    input.EndEpisode,
-	}, nil
+	if f.rangeErr != nil {
+		return nil, nil, f.rangeErr
+	}
+	result := *f.segment
+	result.RenderStatus = nil // Repository snapshot precedes render queue preparation.
+	result.ThemeID = input.ThemeID
+	result.AnimeID = animeID
+	result.FansubGroupID = input.FansubGroupID
+	result.Version = input.Version
+	result.StartEpisode = input.StartEpisode
+	result.EndEpisode = input.EndEpisode
+	return &result, f.rangeResult, nil
 }
 
-func (f *rangeAutoAssignThemeRepo) UpdateAnimeSegment(ctx context.Context, segmentID int64, input models.AdminThemeSegmentPatchInput) error {
-	return f.updateErr
+func (f *rangeAutoAssignThemeRepo) UpdateAnimeSegment(ctx context.Context, segmentID int64, input models.AdminThemeSegmentPatchInput) (*models.ThemeSegmentAssignmentSyncResult, error) {
+	if f.updateErr != nil {
+		return nil, f.updateErr
+	}
+	return f.rangeResult, f.rangeErr
 }
 
 func (f *rangeAutoAssignThemeRepo) GetAnimeSegmentByID(ctx context.Context, animeID int64, segmentID int64, currentReleaseVersionID int64) (*models.AdminThemeSegment, error) {
@@ -140,9 +145,11 @@ func TestCreateAnimeSegment_RangeAutoAssignsAllEpisodesInRange(t *testing.T) {
 	gin.SetMode(gin.TestMode)
 
 	fansubGroupID := int64(3)
+	queued := "queued"
 	stub := &rangeAutoAssignThemeRepo{
 		segment: &models.AdminThemeSegment{
 			ID:                        99,
+			RenderStatus:              &queued,
 			AnimeID:                   10,
 			ThemeTypeName:             "OP1",
 			FansubGroupID:             &fansubGroupID,
@@ -164,7 +171,9 @@ func TestCreateAnimeSegment_RangeAutoAssignsAllEpisodesInRange(t *testing.T) {
 	))
 	c.Request.Header.Set("Content-Type", "application/json")
 	c.Params = gin.Params{{Key: "id", Value: "10"}}
-	c.Set("auth_identity", segmentAssignmentAuthIdentity())
+	identity := segmentAssignmentAuthIdentity()
+	identity.IsPlatformAdmin = true // This test isolates atomic repository response handling.
+	c.Set("auth_identity", identity)
 
 	handler.CreateAnimeSegment(c)
 
@@ -172,12 +181,8 @@ func TestCreateAnimeSegment_RangeAutoAssignsAllEpisodesInRange(t *testing.T) {
 		t.Fatalf("expected 201, got %d body=%s", recorder.Code, recorder.Body.String())
 	}
 
-	if stub.rangeCall == nil {
-		t.Fatal("expected AssignThemeSegmentToEpisodeRange to be called")
-	}
-	want := rangeAutoAssignCall{segmentID: 99, animeID: 10, fansubGroupID: 3, version: "v1", startEpisode: 1, endEpisode: 3}
-	if *stub.rangeCall != want {
-		t.Fatalf("unexpected AssignThemeSegmentToEpisodeRange call: got %+v, want %+v", *stub.rangeCall, want)
+	if stub.rangeCall != nil {
+		t.Fatal("handler must not run a second independent range transaction")
 	}
 
 	var resp struct {
@@ -186,11 +191,14 @@ func TestCreateAnimeSegment_RangeAutoAssignsAllEpisodesInRange(t *testing.T) {
 	if err := json.Unmarshal(recorder.Body.Bytes(), &resp); err != nil {
 		t.Fatalf("decode response: %v", err)
 	}
+	if resp.Data.RenderStatus == nil || *resp.Data.RenderStatus != "queued" {
+		t.Fatalf("response must expose newly prepared render: %+v", resp.Data)
+	}
 	if !resp.Data.IsShared || len(resp.Data.AssignedReleaseVersionIDs) != 3 {
 		t.Fatalf("expected the reloaded, fully hydrated segment (3 assignments) in the response, got %+v", resp.Data)
 	}
 	if stub.getSegmentByIDCalls != 1 {
-		t.Fatalf("expected exactly one reload after a non-empty range assignment, got %d calls", stub.getSegmentByIDCalls)
+		t.Fatalf("expected one reload after render preparation, got %d calls", stub.getSegmentByIDCalls)
 	}
 }
 
@@ -224,26 +232,26 @@ func TestCreateAnimeSegment_RangeAutoAssignIdempotentSkipsReload(t *testing.T) {
 	))
 	c.Request.Header.Set("Content-Type", "application/json")
 	c.Params = gin.Params{{Key: "id", Value: "10"}}
-	c.Set("auth_identity", segmentAssignmentAuthIdentity())
+	identity := segmentAssignmentAuthIdentity()
+	identity.IsPlatformAdmin = true // This test isolates atomic repository response handling.
+	c.Set("auth_identity", identity)
 
 	handler.CreateAnimeSegment(c)
 
 	if recorder.Code != http.StatusCreated {
 		t.Fatalf("expected 201, got %d body=%s", recorder.Code, recorder.Body.String())
 	}
-	if stub.rangeCall == nil {
-		t.Fatal("expected AssignThemeSegmentToEpisodeRange to still be called (idempotent no-op check happens inside the repo)")
+	if stub.rangeCall != nil {
+		t.Fatal("handler must not run a second independent range transaction")
 	}
+
 	if stub.getSegmentByIDCalls != 0 {
 		t.Fatalf("expected NO reload when the range assignment returned no new assignments, got %d calls", stub.getSegmentByIDCalls)
 	}
 }
 
-// TestCreateAnimeSegment_RangeAutoAssignFailureIsNonFatal beweist, dass ein Fehler bei der
-// Bereich-Auto-Zuweisung NICHT die erfolgreiche Create-Response zerstoert -- das Segment wurde
-// bereits angelegt, ein 500 hier waere irrefuehrend und ein Retry wuerde ein Duplikat-Segment
-// anlegen (Quick-Task 260819-lm5, non-fatal Fehlerbehandlung).
-func TestCreateAnimeSegment_RangeAutoAssignFailureIsNonFatal(t *testing.T) {
+// Atomic range failures must report failure rather than a partially successful save.
+func TestCreateAnimeSegment_AtomicRangeFailureIsFatal(t *testing.T) {
 	gin.SetMode(gin.TestMode)
 
 	fansubGroupID := int64(3)
@@ -269,12 +277,14 @@ func TestCreateAnimeSegment_RangeAutoAssignFailureIsNonFatal(t *testing.T) {
 	))
 	c.Request.Header.Set("Content-Type", "application/json")
 	c.Params = gin.Params{{Key: "id", Value: "10"}}
-	c.Set("auth_identity", segmentAssignmentAuthIdentity())
+	identity := segmentAssignmentAuthIdentity()
+	identity.IsPlatformAdmin = true // This test isolates atomic repository response handling.
+	c.Set("auth_identity", identity)
 
 	handler.CreateAnimeSegment(c)
 
-	if recorder.Code != http.StatusCreated {
-		t.Fatalf("expected 201 despite range auto-assign failure (non-fatal), got %d body=%s", recorder.Code, recorder.Body.String())
+	if recorder.Code != http.StatusInternalServerError {
+		t.Fatalf("expected 500 for rolled-back assignment failure, got %d body=%s", recorder.Code, recorder.Body.String())
 	}
 }
 
@@ -313,7 +323,9 @@ func TestUpdateAnimeSegment_RangeAutoAssignUsesEffectivePatchedValues(t *testing
 	c.Request = httptest.NewRequest(http.MethodPatch, "/api/v1/admin/anime/10/segments/7?release_variant_id=481", strings.NewReader(`{"theme_id":5}`))
 	c.Request.Header.Set("Content-Type", "application/json")
 	c.Params = gin.Params{{Key: "id", Value: "10"}, {Key: "segmentId", Value: "7"}}
-	c.Set("auth_identity", segmentAssignmentAuthIdentity())
+	identity := segmentAssignmentAuthIdentity()
+	identity.IsPlatformAdmin = true // This test isolates atomic repository response handling.
+	c.Set("auth_identity", identity)
 
 	handler.UpdateAnimeSegment(c)
 
@@ -321,12 +333,8 @@ func TestUpdateAnimeSegment_RangeAutoAssignUsesEffectivePatchedValues(t *testing
 		t.Fatalf("expected 200, got %d body=%s", recorder.Code, recorder.Body.String())
 	}
 
-	if stub.rangeCall == nil {
-		t.Fatal("expected AssignThemeSegmentToEpisodeRange to be called")
-	}
-	want := rangeAutoAssignCall{segmentID: 7, animeID: 10, fansubGroupID: 3, version: "v1", startEpisode: 1, endEpisode: 12}
-	if *stub.rangeCall != want {
-		t.Fatalf("unexpected AssignThemeSegmentToEpisodeRange call: got %+v, want %+v (must use effective/patched values, not raw request fields)", *stub.rangeCall, want)
+	if stub.rangeCall != nil {
+		t.Fatal("handler must not run a second independent range transaction")
 	}
 
 	var resp struct {

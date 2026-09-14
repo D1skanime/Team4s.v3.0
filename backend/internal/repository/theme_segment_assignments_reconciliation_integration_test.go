@@ -279,7 +279,9 @@ func TestAssignThemeSegmentToEpisodeRange(t *testing.T) {
 		_, err = pool.Exec(ctx, `INSERT INTO release_version_groups (release_version_id, fansub_group_id) VALUES ($1, $2)`, foreignReleaseVersion, foreignFansubGroupID)
 		require.NoError(t, err)
 
-		_, err = repo.AssignThemeSegmentToReleaseVersion(ctx, segmentID, foreignReleaseVersion)
+		// Deliberately seed historical invalid data: new direct writes reject a
+		// different anime, but reconciliation must still never erase foreign rows.
+		_, err = pool.Exec(ctx, `INSERT INTO theme_segment_assignments(theme_segment_id,release_version_id) VALUES($1,$2)`, segmentID, foreignReleaseVersion)
 		require.NoError(t, err)
 
 		idsBefore, err := repo.ListThemeSegmentAssignments(ctx, segmentID)

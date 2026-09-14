@@ -209,6 +209,9 @@ func (h *AdminContentHandler) UpdateAnimeTheme(c *gin.Context) {
 	}
 
 	err = h.themeRepo.UpdateAdminAnimeTheme(c.Request.Context(), themeID, input)
+	if writeSegmentAssignmentConflict(c, err) {
+		return
+	}
 	if errors.Is(err, repository.ErrNotFound) {
 		c.JSON(http.StatusNotFound, gin.H{"error": gin.H{"message": "theme nicht gefunden"}})
 		return

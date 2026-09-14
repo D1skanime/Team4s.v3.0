@@ -92,8 +92,8 @@ export function SegmentBasicFieldsSection({
           Von und Bis werden gespeichert. Für eine einzelne Folge beide Felder gleich setzen.
         </span>
         <span className={styles.sourceHelpText}>
-          Wird beim Speichern automatisch allen Folgen im Bereich zugewiesen — pro Ausreißer-Folge
-          kann die Startzeit einzeln überschrieben werden.
+          Wird den freien Folgen im Bereich zugewiesen. Bereits belegte Folgen für denselben Typ
+          werden übersprungen und nach dem Speichern angezeigt. OP und ED sind unabhängig.
         </span>
       </div>
       <div className={styles.panelFieldRow}>

@@ -20,6 +20,7 @@ import { useAuthSession } from '@/lib/useAuthSession'
 import type {
   AdminThemeSegment,
   AdminThemeSegmentCreateRequest,
+  AdminThemeSegmentMutationResponse,
   AdminThemeSegmentPatchRequest,
   AdminThemeSegmentOverrideRequest,
   AdminAnimeTheme,
@@ -166,31 +167,23 @@ export function useReleaseSegments({ animeId, groupId, version, releaseVariantId
     return response.data.id
   }
 
-  async function create(input: AdminThemeSegmentCreateRequest): Promise<AdminThemeSegment | null> {
+  async function create(input: AdminThemeSegmentCreateRequest): Promise<AdminThemeSegmentMutationResponse | null> {
     if (!animeId || !hasAuthSession) return null
-    try {
-      const res = await createAnimeSegment(animeId, input, undefined, releaseVariantId)
-      setSegments((current) => [...current, res.data])
-      return res.data
-    } catch (error) {
-      setErrorMessage(error instanceof Error ? error.message : 'Segment konnte nicht angelegt werden.')
-      return null
-    }
+    setErrorMessage(null)
+    const res = await createAnimeSegment(animeId, input, undefined, releaseVariantId)
+    setSegments((current) => [...current, res.data])
+    return res
   }
 
-  async function update(segmentId: number, input: AdminThemeSegmentPatchRequest): Promise<{ data: AdminThemeSegment } | null> {
+  async function update(segmentId: number, input: AdminThemeSegmentPatchRequest): Promise<AdminThemeSegmentMutationResponse | null> {
     if (!animeId || !hasAuthSession) return null
-    try {
-      const res = await updateAnimeSegment(animeId, segmentId, input, undefined, releaseVariantId)
-      await load()
-      if (res.data.render_status === 'queued' || res.data.render_status === 'rendering') {
-        void pollSegmentRenderStatus(segmentId)
-      }
-      return res
-    } catch (error) {
-      setErrorMessage(error instanceof Error ? error.message : 'Segment konnte nicht aktualisiert werden.')
-      return null
+    setErrorMessage(null)
+    const res = await updateAnimeSegment(animeId, segmentId, input, undefined, releaseVariantId)
+    await load()
+    if (res.data.render_status === 'queued' || res.data.render_status === 'rendering') {
+      void pollSegmentRenderStatus(segmentId)
     }
+    return res
   }
 
   async function remove(segmentId: number): Promise<boolean> {

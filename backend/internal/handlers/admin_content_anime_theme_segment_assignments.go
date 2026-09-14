@@ -81,6 +81,9 @@ func (h *AdminContentHandler) AssignAnimeSegment(c *gin.Context) {
 	}
 
 	if _, err := h.themeRepo.AssignThemeSegmentToReleaseVersion(c.Request.Context(), segmentID, req.ReleaseVersionID); err != nil {
+		if writeSegmentAssignmentConflict(c, err) {
+			return
+		}
 		if errors.Is(err, repository.ErrConflict) {
 			c.JSON(http.StatusConflict, gin.H{"error": gin.H{"message": "zuweisung konnte nicht angelegt werden", "code": "assignment_conflict"}})
 			return
@@ -300,4 +303,16 @@ func (h *AdminContentHandler) DeleteAnimeSegmentEpisodeOverride(c *gin.Context) 
 	}
 
 	c.JSON(http.StatusOK, gin.H{"data": segment})
+}
+
+// All mutation surfaces report the same actionable slot conflict.
+func writeSegmentAssignmentConflict(c *gin.Context, err error) bool {
+	if !errors.Is(err, repository.ErrSegmentAssignmentConflict) {
+		return false
+	}
+	c.JSON(http.StatusConflict, gin.H{"error": gin.H{
+		"code":    "segment_assignment_conflict",
+		"message": "Für die gewählten Folgen ist bereits ein Segment desselben Typs zugewiesen. Wähle einen freien Bereich oder bearbeite das vorhandene Segment.",
+	}})
+	return true
 }

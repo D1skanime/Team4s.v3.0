@@ -221,9 +221,11 @@ func TestUpsertReleaseVersionGroupAutoAssign_MultiGroup(t *testing.T) {
 	seedAutoAssignFansubGroup(t, pool, ctx, groupA)
 	seedAutoAssignFansubGroup(t, pool, ctx, groupB)
 
-	// A matching segment exists for EACH group separately, both covering episode 2.
+	// Independent OP and ED slots may come from different selected groups.
+	_, err := pool.Exec(ctx, `INSERT INTO theme_types(id,name) VALUES(2,'ED Kara'); INSERT INTO themes(id,anime_id,theme_type_id) VALUES(2,1,2)`)
+	require.NoError(t, err)
 	segmentA := seedAutoAssignThemeSegment(t, pool, ctx, themeID, groupA, 1, 3)
-	segmentB := seedAutoAssignThemeSegment(t, pool, ctx, themeID, groupB, 1, 3)
+	segmentB := seedAutoAssignThemeSegment(t, pool, ctx, 2, groupB, 1, 3)
 
 	// One release version for episode 2, resolving to BOTH groups (multi-group import).
 	releaseVersionID := createAutoAssignReleaseVersion(t, pool, ctx, 102)

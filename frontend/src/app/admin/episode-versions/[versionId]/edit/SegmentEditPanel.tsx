@@ -54,7 +54,6 @@ interface SegmentEditPanelProps {
   reuseError: string | null
   previewStreamHref?: string | null
   currentReleaseVersionId: number | null
-  onSaveOverride: (input: { startTime: string; endTime: string }) => void
   onRemoveOverride: () => void
   isSavingOverride: boolean
   overrideError: string | null
@@ -69,7 +68,7 @@ interface SegmentEditPanelProps {
   onClose: () => void
   onFormChange: (patch: Partial<FormState>) => void
   onPendingUploadFileChange: (file: File | null) => void
-  onSave: () => void
+  onSave: (override?: { startTime: string; endTime: string }) => void
   onAssetUpload: (file: File) => void
   onAssetDelete: () => void
   onAttachReuseCandidate: (candidate: AdminSegmentLibraryCandidate) => void
@@ -92,7 +91,6 @@ export function SegmentEditPanel({
   reuseError,
   previewStreamHref,
   currentReleaseVersionId,
-  onSaveOverride,
   onRemoveOverride,
   isSavingOverride,
   overrideError,
@@ -210,10 +208,10 @@ export function SegmentEditPanel({
   }
 
   function handleSaveClick() {
-    onSave()
-    if (isSharedSegment && overrideEnabled && overrideStartSeconds != null && computedOverrideEndTime != null) {
-      onSaveOverride({ startTime: formatTimeInput(overrideStartSeconds), endTime: computedOverrideEndTime })
-    }
+    const override = isSharedSegment && overrideEnabled && overrideStartSeconds != null && computedOverrideEndTime != null
+      ? { startTime: formatTimeInput(overrideStartSeconds), endTime: computedOverrideEndTime }
+      : undefined
+    onSave(override)
   }
 
   const saveDisabled =
@@ -244,9 +242,11 @@ export function SegmentEditPanel({
               ? 'Veraltet'
               : 'Nicht vorbereitet'
 
-  // Parse backend validation errors for start_time/end_time from formError
-  const isStartTimeError = formError != null && (formError.toLowerCase().includes('start') || formError.toLowerCase().includes('start_time'))
-  const isEndTimeError = formError != null && (formError.toLowerCase().includes('end') || formError.toLowerCase().includes('end_time') || formError.toLowerCase().includes('ende'))
+  // Only explicit time-field errors belong beside a time input. Assignment conflicts may
+  // mention an existing ending segment without being an end_time validation error.
+  const isTimeOrderError = formError === 'Ende muss nach dem Start liegen.'
+  const isStartTimeError = isTimeOrderError || /\bstart_time\b|^Start-Zeit\b/i.test(formError ?? '')
+  const isEndTimeError = isTimeOrderError || /\bend_time\b|^End-Zeit\b/i.test(formError ?? '')
 
   return (
     <>

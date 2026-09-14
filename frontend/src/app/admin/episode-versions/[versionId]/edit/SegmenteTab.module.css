@@ -285,6 +285,17 @@
   margin-bottom: 0.75rem;
 }
 
+.saveNotice {
+  margin: 0;
+  padding: 12px;
+  border: 1px solid var(--color-warning);
+  border-radius: 6px;
+  background: color-mix(in srgb, var(--color-warning) 12%, var(--surface-color));
+  color: var(--text-primary);
+  font-size: 14px;
+  line-height: 1.5;
+}
+
 .panelActions {
   display: flex;
   gap: 10px;
@@ -717,6 +728,7 @@
   .tableWrapper table {
     display: block;
     width: 100%;
+    min-width: 0;
   }
 
   .tableWrapper thead {

@@ -407,6 +407,68 @@ endpoints:
       status: 201
       type: AdminAnimeThemeCreateResponse
 
+  - name: adminCreateAnimeSegment
+    method: POST
+    path: /api/v1/admin/anime/:id/segments
+    auth:
+      required: true
+      notes:
+      - Requires release_version.segments.manage for the real release-version editor context (platform admins may
+        omit it). Range targets use anime, group, normalized version and episode position. Actual theme_segment_assignments
+        are authoritative. Existing assignments of another segment in the same canonical OP or ED family are skipped
+        and listed in range_sync.skipped_conflicts; OP and ED are independent. Reassigning the same segment is idempotent.
+        A single occupied target or an entirely occupied target set returns 409 without committing metadata or assignments.
+        Incomplete ranges never delete assignments. Existing overrides protect assignments outside a changed range.
+        Origin and contributors are not reassigned implicitly.
+    request_body:
+      required: true
+      type: AdminThemeSegmentCreateRequest
+    response:
+      status: 201
+      type: AdminThemeSegmentMutationResponse
+    conflict:
+      status: 409
+      code: segment_assignment_conflict
+  - name: adminUpdateAnimeSegment
+    method: PATCH
+    path: /api/v1/admin/anime/:id/segments/:segmentId
+    auth:
+      required: true
+      notes:
+      - Requires release_version.segments.manage for the real release-version editor context (platform admins may
+        omit it). Range targets use anime, group, normalized version and episode position. Actual theme_segment_assignments
+        are authoritative. Existing assignments of another segment in the same canonical OP or ED family are skipped
+        and listed in range_sync.skipped_conflicts; OP and ED are independent. Reassigning the same segment is idempotent.
+        A single occupied target or an entirely occupied target set returns 409 without committing metadata or assignments.
+        Incomplete ranges never delete assignments. Existing overrides protect assignments outside a changed range.
+        Origin and contributors are not reassigned implicitly.
+    request_body:
+      required: true
+      type: AdminThemeSegmentPatchRequest
+    response:
+      status: 200
+      type: AdminThemeSegmentMutationResponse
+    conflict:
+      status: 409
+      code: segment_assignment_conflict
+  - name: adminUpdateAnimeTheme
+    method: PATCH
+    path: /api/v1/admin/anime/:id/themes/:themeId
+    auth:
+      required: true
+      notes:
+      - Platform-admin operation. Changing theme_type_id cannot introduce conflicting OP/ED assignments for any segment
+        of this theme; conflicts roll back the entire theme change.
+    request_body:
+      required: true
+      type: AdminAnimeThemePatchRequest
+    response:
+      status: 204
+      type: none
+    conflict:
+      status: 409
+      code: segment_assignment_conflict
+
   - name: admin-segment-assign
     method: POST
     path: /api/v1/admin/anime/:id/segments/:segmentId/assignments
@@ -418,6 +480,7 @@ endpoints:
       notes:
         - Requires release_version.segments.manage for the given release_version_id (Phase 117, D-03).
         - Assigns a shared Kara segment to an additional release version; idempotent on repeat calls.
+        - Occupied same-family OP/ED slot returns 409 segment_assignment_conflict without replacing its existing assignment.
     path_params:
       - name: id
         type: int64
@@ -1484,11 +1547,51 @@ types:
   AdminThemeSegmentEpisodeOverrideRequest:
     start_time: "string (required, format: HH:MM:SS or MM:SS)"
     end_time: "string (required, format: HH:MM:SS or MM:SS)"
+  AdminThemeSegmentMutationResponse:
+    data: AdminThemeSegment
+    range_sync: ThemeSegmentAssignmentSyncResult | null
+  ThemeSegmentAssignmentSyncResult:
+    added: int64[]
+    removed: int64[]
+    protected_by_override: int64[]
+    skipped_conflicts: AdminThemeSegmentAssignmentConflict[]
+  AdminThemeSegmentAssignmentConflict:
+    release_version_id: int64
+    episode_number: string
+    existing_segment_id: int64
+  AdminThemeSegmentCreateRequest:
+    theme_id: int64 (required)
+    fansub_group_id: int64 | null (optional)
+    version: string (optional)
+    start_episode: int32 | null (optional)
+    end_episode: int32 | null (optional)
+    start_time: string | null (optional)
+    end_time: string | null (optional)
+    source_jellyfin_item_id: string | null (optional)
+    source_type: string | null (optional)
+    source_ref: string | null (optional)
+    source_label: string | null (optional)
+  AdminThemeSegmentPatchRequest:
+    theme_id: int64 | null (optional)
+    fansub_group_id: int64 | null (optional)
+    version: string | null (optional)
+    start_episode: int32 | null (optional)
+    end_episode: int32 | null (optional)
+    start_time: string | null (optional)
+    end_time: string | null (optional)
+    source_jellyfin_item_id: string | null (optional)
+    source_type: string | null (optional)
+    source_ref: string | null (optional)
+    source_label: string | null (optional)
+  AdminAnimeThemePatchRequest:
+    theme_type_id: int64 | null (optional)
+    title: string | null (optional)
   AdminAnimeSegmentResponse:
     data: AdminThemeSegment
   AdminThemeSegmentAssignmentEpisode:
     release_version_id: int64
     episode_number: string
+    has_override: boolean
   AdminThemeSegment:
     id: int64
     theme_id: int64
@@ -1535,6 +1638,7 @@ types:
     is_shared: boolean
     has_episode_override: boolean
     assigned_episodes: AdminThemeSegmentAssignmentEpisode[] (optional)
+    origin_release_version_id: int64 | null
   AdminAnimeTheme:
     id: int64
     anime_id: int64

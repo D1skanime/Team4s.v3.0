@@ -256,7 +256,7 @@ export function useSegmentOverrideHandlers({
   const [overrideError, setOverrideError] = useState<string | null>(null)
 
   async function handleSaveOverride(input: { startTime: string; endTime: string }) {
-    if (!editingSegment || releaseVariantId == null) return
+    if (!editingSegment || releaseVariantId == null) return false
     setIsSavingOverride(true)
     setOverrideError(null)
     const result = await setSegmentOverride(editingSegment.id, releaseVariantId, {
@@ -267,6 +267,7 @@ export function useSegmentOverrideHandlers({
       setOverrideError('Zeit-Override konnte nicht gespeichert werden. Bitte erneut versuchen.')
     }
     setIsSavingOverride(false)
+    return result != null
   }
 
   async function handleRemoveOverride() {

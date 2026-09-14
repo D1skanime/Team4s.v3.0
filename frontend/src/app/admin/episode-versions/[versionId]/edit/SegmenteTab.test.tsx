@@ -22,6 +22,7 @@ import {
 } from './SegmenteTab.helpers'
 import { useReleaseSegments } from './useReleaseSegments'
 import { SegmentEditPanel } from './SegmentEditPanel'
+import { SegmentAssignmentsRow } from './SegmentAssignmentsRow'
 import {
   getAdminAnimeThemes,
   getAdminThemeTypes,
@@ -99,7 +100,10 @@ beforeEach(() => {
   mockedGetAnimeSegments.mockResolvedValue({ data: [] })
   mockedGetAnimeSegmentSuggestions.mockResolvedValue({ data: [] })
   mockedGetAdminAnimeThemes.mockResolvedValue({ data: [] })
-  mockedGetAdminThemeTypes.mockResolvedValue({ data: [] })
+  mockedGetAdminThemeTypes.mockResolvedValue({ data: [
+    { id: 17, name: 'OP Kara' },
+    { id: 23, name: 'ED Kara' },
+  ] })
   mockedGetThemeSegmentContributorCandidates.mockResolvedValue({ data: [], origin_release_version_id: null })
   mockedCreateAdminAnimeTheme.mockResolvedValue({
     data: {
@@ -254,6 +258,7 @@ describe('SegmenteTab table', () => {
       data: [
         makeSegment({
           id: 22,
+          assigned_release_version_ids: [9],
           theme_title: 'Sakura OP',
           start_episode: 1,
           end_episode: 3,
@@ -289,12 +294,12 @@ describe('SegmenteTab table', () => {
     expect(await screen.findByText('Segment bearbeiten')).toBeTruthy()
   })
 
-  it('blendet Segmente aus, deren Episodenbereich die aktuelle Folge nicht abdeckt (Regression Folge-1 auf Folge-5)', async () => {
+  it('zeigt nur tatsächlich zugewiesene Segmente der aktuellen Release-Version', async () => {
     mockedGetAnimeSegments.mockResolvedValue({
       data: [
         makeSegment({ id: 91, theme_title: 'Folge1 OP', start_episode: 1, end_episode: 1 }),
         makeSegment({ id: 92, theme_title: 'Folge1 ED', start_episode: 1, end_episode: 1 }),
-        makeSegment({ id: 93, theme_title: 'Folge5 Insert', start_episode: 5, end_episode: 5 }),
+        makeSegment({ id: 93, theme_title: 'Folge5 Insert', start_episode: 5, end_episode: 5, assigned_release_version_ids: [9] }),
       ],
     })
 
@@ -384,6 +389,8 @@ describe('SegmenteTab table', () => {
       data: [
         makeSegment({
           id: 34,
+          assigned_release_version_ids: [481],
+          assigned_episodes: [{ release_version_id: 481, episode_number: '1', has_override: false }],
           theme_title: 'Solo OP',
           start_episode: 1,
           end_episode: 1,
@@ -412,7 +419,8 @@ describe('SegmenteTab table', () => {
     const toggle = screen.getByRole('button', { name: 'Zugewiesene Folgen anzeigen/ausblenden' })
     fireEvent.click(toggle)
 
-    expect(await screen.findByRole('button', { name: 'Diese Folge (1) zuweisen' })).toBeTruthy()
+    expect(screen.getByText('Folge 1')).toBeTruthy()
+    expect(screen.queryByRole('button', { name: 'Diese Folge (1) zuweisen' })).toBeNull()
   })
 
   it('zeigt den Override-Switch im Bearbeiten-Panel für ein geteiltes Segment (UI-SPEC Surface 1)', async () => {
@@ -456,6 +464,7 @@ describe('SegmenteTab table', () => {
       data: [
         makeSegment({
           id: 42,
+          assigned_release_version_ids: [481],
           theme_title: 'Solo OP',
           start_episode: 1,
           end_episode: 1,
@@ -533,23 +542,18 @@ describe('SegmenteTab Vorschlag-Übernahme (Gap 1: assign statt Duplikat)', () =
 })
 
 describe('SegmentAssignmentsRow (Gap 2: Zuweisen/Entfernen für jedes Segment)', () => {
-  it('ruft assignAnimeSegment auf, wenn "Diese Folge zuweisen" für ein noch nicht zugewiesenes Segment geklickt wird', async () => {
-    mockedGetAnimeSegments.mockResolvedValue({
-      data: [makeSegment({ id: 52, theme_title: 'Solo ED', start_episode: 5, end_episode: 5 })],
-    })
-    mockedAssignAnimeSegment.mockResolvedValue({
-      data: makeSegment({ id: 52, is_shared: true, assigned_release_version_ids: [9] }),
-    })
-
-    render(<SegmenteTab animeId={1} groupId={2} version="v1" episodeNumber={5} releaseVariantId={9} />)
-
-    const table = await screen.findByRole('table')
-    fireEvent.click(within(table).getByRole('button', { name: 'Zugewiesene Folgen anzeigen/ausblenden' }))
-    fireEvent.click(await screen.findByRole('button', { name: 'Diese Folge (5) zuweisen' }))
-
-    await waitFor(() => {
-      expect(mockedAssignAnimeSegment).toHaveBeenCalledWith(1, 52, 9)
-    })
+  it('bietet für nicht zugewiesene Segmente die explizite Zuweisungsaktion an', () => {
+    const onAssignCurrent = vi.fn()
+    render(<SegmentAssignmentsRow
+      segment={makeSegment({ id: 52, assigned_release_version_ids: [10] })}
+      currentReleaseVersionId={9}
+      currentEpisodeNumber={5}
+      onAssignCurrent={onAssignCurrent}
+      onUnassign={vi.fn()}
+      isBusy={false}
+    />)
+    fireEvent.click(screen.getByRole('button', { name: 'Diese Folge (5) zuweisen' }))
+    expect(onAssignCurrent).toHaveBeenCalledOnce()
   })
 
   it('ruft unassignAnimeSegment für den NICHT-aktuellen Chip auf, wenn dessen Entfernen-Aktion geklickt wird', async () => {
@@ -713,7 +717,7 @@ describe('SegmentEditPanel Start-only Override (Gap 3)', () => {
   it('sendet start_time und automatisch berechnete end_time formatiert an den Override-Endpoint', async () => {
     mockSharedSegment()
     mockedUpdateAnimeSegment.mockResolvedValue({
-      data: makeSegment({ id: 61, is_shared: true, render_status: 'ready' }),
+      data: makeSegment({ id: 61, is_shared: true, render_status: 'ready', assigned_release_version_ids: [481, 482] }),
     })
     mockedUpsertAnimeSegmentEpisodeOverride.mockResolvedValue({
       data: makeSegment({ id: 61, is_shared: true, has_episode_override: true }),
@@ -811,7 +815,6 @@ describe('SegmentEditPanel validation', () => {
         reuseError={null}
         previewStreamHref={null}
         currentReleaseVersionId={null}
-        onSaveOverride={vi.fn()}
         onRemoveOverride={vi.fn()}
         isSavingOverride={false}
         overrideError={null}
@@ -867,7 +870,6 @@ describe('SegmentEditPanel validation', () => {
         reuseError={null}
         previewStreamHref={null}
         currentReleaseVersionId={null}
-        onSaveOverride={vi.fn()}
         onRemoveOverride={vi.fn()}
         isSavingOverride={false}
         overrideError={null}
@@ -1382,7 +1384,7 @@ describe('formatAssignmentChipLabel', () => {
 describe('SegmenteTab deletion action', () => {
   it('zeigt den Löschvorgang als direkten Papierkorb statt in einem Mehr-Menü', async () => {
     mockedGetAnimeSegments.mockResolvedValue({
-      data: [makeSegment({ id: 44, theme_title: 'Direkt löschbares Segment' })],
+      data: [makeSegment({ id: 44, theme_title: 'Direkt löschbares Segment', assigned_release_version_ids: [9] })],
     })
 
     render(<SegmenteTab animeId={1} groupId={2} version="v1" episodeNumber={1} releaseVariantId={9} />)

@@ -4,7 +4,7 @@ import { useEffect, useState } from 'react'
 import { Plus } from 'lucide-react'
 
 import { useReleaseSegments } from './useReleaseSegments'
-import { isSegmentActiveForEpisode, useSegmentOverrideHandlers } from './SegmenteTab.helpers'
+import { isCurrentEpisodeAssigned, isSegmentActiveForEpisode, useSegmentOverrideHandlers } from './SegmenteTab.helpers'
 import {
   EMPTY_FORM,
   getDefaultSegmentEndSeconds,
@@ -24,6 +24,7 @@ import type {
   AdminThemeSegment,
   AdminThemeSegmentCreateRequest,
   AdminThemeSegmentPatchRequest,
+  AdminThemeSegmentMutationResponse,
 } from '@/types/admin'
 import styles from './SegmenteTab.module.css'
 
@@ -72,6 +73,7 @@ export function SegmenteTab({ animeId, groupId, version, episodeNumber, duration
   const [pendingUploadFile, setPendingUploadFile] = useState<File | null>(null)
   const [isSaving, setIsSaving] = useState(false)
   const [formError, setFormError] = useState<string | null>(null)
+  const [saveNotice, setSaveNotice] = useState<string | null>(null)
   const [renderingSegmentId, setRenderingSegmentId] = useState<number | null>(null)
   const { isSavingOverride, overrideError, handleSaveOverride, handleRemoveOverride, resetOverrideError } =
     useSegmentOverrideHandlers({ editingSegment, releaseVariantId: releaseVariantId ?? null, setSegmentOverride, removeSegmentOverride })
@@ -199,7 +201,7 @@ export function SegmenteTab({ animeId, groupId, version, episodeNumber, duration
     }
   }
 
-  async function handleSave() {
+  async function handleSave(override?: { startTime: string; endTime: string }) {
     if (!animeId) {
       setFormError('Anime-Kontext fehlt.')
       return
@@ -211,6 +213,7 @@ export function SegmenteTab({ animeId, groupId, version, episodeNumber, duration
 
     setIsSaving(true)
     setFormError(null)
+    setSaveNotice(null)
 
     const normalizedSourceRef = formState.sourceRef.trim() || null
     const normalizedSourceLabel =
@@ -235,6 +238,7 @@ export function SegmenteTab({ animeId, groupId, version, episodeNumber, duration
         return
       }
 
+      let result: AdminThemeSegmentMutationResponse | null
       if (editingSegment) {
         const patch: AdminThemeSegmentPatchRequest = {
           theme_id: resolvedThemeID,
@@ -250,9 +254,7 @@ export function SegmenteTab({ animeId, groupId, version, episodeNumber, duration
           source_ref: normalizedSourceRef,
           source_label: normalizedSourceLabel,
         }
-        const result = await update(editingSegment.id, patch)
-        if (result) closePanel()
-        else setFormError('Segment konnte nicht aktualisiert werden.')
+        result = await update(editingSegment.id, patch)
       } else {
         const input: AdminThemeSegmentCreateRequest = {
           theme_id: resolvedThemeID,
@@ -267,18 +269,35 @@ export function SegmenteTab({ animeId, groupId, version, episodeNumber, duration
           source_ref: normalizedSourceRef,
           source_label: normalizedSourceLabel,
         }
-        const createdSegment = await create(input)
-        if (!createdSegment) {
-          setFormError('Segment konnte nicht angelegt werden.')
+        result = await create(input)
+      }
+      if (!result) {
+        setFormError('Segment konnte nicht gespeichert werden.')
+        return
+      }
+      setEditingSegment(result.data)
+      const skipped = result.range_sync?.skipped_conflicts ?? []
+      if (skipped.length > 0) {
+        const episodeLabels = [...new Set(skipped.map((conflict) => conflict.episode_number))]
+        setSaveNotice(`Segment gespeichert. Bereits belegte Folgen für diesen Typ wurden übersprungen: ${episodeLabels.join(', ')}. Die bestehenden Segmente bleiben zugewiesen.`)
+      }
+      if (pendingUploadFile && formState.sourceType === 'release_asset') {
+        const res = await uploadSegmentAsset(animeId, result.data.id, pendingUploadFile, undefined, releaseVariantId)
+        await reload()
+        setEditingSegment(res.data)
+        setPendingUploadFile(null)
+      }
+      if (override) {
+        if (!isCurrentEpisodeAssigned(result.data, releaseVariantId ?? null)) {
+          setFormError('Segment gespeichert. Die aktuelle Folge ist diesem Segment nicht zugewiesen; ihre Zeitabweichung wurde nicht gespeichert.')
           return
         }
-        if (pendingUploadFile && formState.sourceType === 'release_asset') {
-          const res = await uploadSegmentAsset(animeId, createdSegment.id, pendingUploadFile, undefined, releaseVariantId)
-          await reload()
-          setEditingSegment(res.data)
+        if (!await handleSaveOverride(override)) {
+          setFormError('Segment gespeichert, aber die Zeitabweichung konnte nicht gespeichert werden. Bitte erneut versuchen.')
+          return
         }
-        closePanel()
       }
+      closePanel()
     } catch (error) {
       setFormError(error instanceof Error ? error.message : 'Segment konnte nicht gespeichert werden.')
     } finally {
@@ -318,15 +337,21 @@ export function SegmenteTab({ animeId, groupId, version, episodeNumber, duration
 
   const episodeLabel = episodeNumber != null ? `Aktive Segmente für Episode ${episodeNumber}` : 'Segmente verwalten'
   const episodeSubtitle = episodeNumber != null
-    ? `Zeigt alle Segmente, deren Episodenbereich Episode ${episodeNumber} abdeckt.`
+    ? `Zeigt alle Segmente, die dieser Release-Version von Episode ${episodeNumber} zugewiesen sind.`
     : 'OP/ED-Timing für diese Gruppe und Version.'
 
-  // Nur Segmente zeigen, deren Episodenbereich die aktuelle Folge abdeckt (matcht die Ueberschrift).
-  // Ohne Episodenkontext (episodeNumber == null) die gesamte Bibliothek.
-  const visibleSegments =
-    episodeNumber == null
-      ? segments
-      : segments.filter((segment) => isSegmentActiveForEpisode(segment, episodeNumber))
+  // Assignments remain authoritative when a range contains skipped or protected releases.
+  const visibleSegments = releaseVariantId == null
+    ? segments
+    : segments.filter((segment) => isCurrentEpisodeAssigned(segment, releaseVariantId))
+
+  // A matching range can suggest a reuse candidate; it never proves an assignment.
+  const localCandidates = releaseVariantId != null && episodeNumber != null
+    ? segments.filter((segment) => !isCurrentEpisodeAssigned(segment, releaseVariantId) && isSegmentActiveForEpisode(segment, episodeNumber))
+    : []
+  const assignmentSuggestions = [...new Map([...localCandidates, ...suggestions]
+    .filter((segment) => !isCurrentEpisodeAssigned(segment, releaseVariantId ?? null))
+    .map((segment) => [segment.id, segment])).values()]
 
   return (
     <div className={styles.tabContent}>
@@ -342,12 +367,14 @@ export function SegmenteTab({ animeId, groupId, version, episodeNumber, duration
         </button>
       </div>
 
+      {saveNotice ? <p role="status" className={styles.saveNotice}>{saveNotice}</p> : null}
+
       <SegmentsListSection
         segments={segments}
         visibleSegments={visibleSegments}
         episodeNumber={episodeNumber}
         durationSeconds={durationSeconds}
-        suggestions={suggestions}
+        suggestions={assignmentSuggestions}
         suggestionsLoading={suggestionsLoading}
         errorMessage={errorMessage}
         isLoading={isLoading}
@@ -381,7 +408,6 @@ export function SegmenteTab({ animeId, groupId, version, episodeNumber, duration
           reuseError={reuseError}
           previewStreamHref={buildSegmentPreviewStreamHref(editingSegment, releaseVariantId)}
           currentReleaseVersionId={releaseVariantId ?? null}
-          onSaveOverride={(input) => void handleSaveOverride(input)}
           onRemoveOverride={() => void handleRemoveOverride()}
           isSavingOverride={isSavingOverride}
           overrideError={overrideError}
@@ -401,7 +427,7 @@ export function SegmenteTab({ animeId, groupId, version, episodeNumber, duration
             setFormState((s) => ({ ...s, ...patch }))
           }}
           onPendingUploadFileChange={setPendingUploadFile}
-          onSave={() => void handleSave()}
+          onSave={(override) => void handleSave(override)}
           onAssetUpload={(file) => void handleAssetUpload(file)}
           onAssetDelete={() => void handleAssetDelete()}
           onAttachReuseCandidate={(candidate) => void handleAttachReuseCandidate(candidate)}

@@ -97,7 +97,7 @@ func TestThemeSegmentPlaybackResolution(t *testing.T) {
 	endTime := "00:01:30"
 	version := "v1"
 
-	segment, err := repo.CreateAnimeSegment(ctx, animeID, models.AdminThemeSegmentCreateInput{
+	segment, _, err := repo.CreateAnimeSegment(ctx, animeID, models.AdminThemeSegmentCreateInput{
 		ThemeID:       themeID,
 		FansubGroupID: ptrInt64(fansubGroupID),
 		Version:       version,
@@ -117,7 +117,7 @@ func TestThemeSegmentPlaybackResolution(t *testing.T) {
 	// ein Admin ueber PATCH .../segments/:id in der Praxis durchlaeuft.
 	resyncSegment := func(t *testing.T) {
 		t.Helper()
-		err := repo.UpdateAnimeSegment(ctx, segmentID, models.AdminThemeSegmentPatchInput{Version: &version})
+		_, err := repo.UpdateAnimeSegment(ctx, segmentID, models.AdminThemeSegmentPatchInput{Version: &version})
 		require.NoError(t, err)
 	}
 	resyncSegment(t)

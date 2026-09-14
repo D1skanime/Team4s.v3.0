@@ -9,7 +9,6 @@ import (
 	"team4s.v3/backend/internal/models"
 
 	"github.com/jackc/pgx/v5"
-	"github.com/jackc/pgx/v5/pgconn"
 )
 
 const themeSegmentAssignmentColumns = `
@@ -32,24 +31,20 @@ func (r *AdminContentRepository) AssignThemeSegmentToReleaseVersion(
 		return nil, ErrConflict
 	}
 
-	row := r.db.QueryRow(ctx, `
-		INSERT INTO theme_segment_assignments (theme_segment_id, release_version_id)
-		VALUES ($1, $2)
-		ON CONFLICT (theme_segment_id, release_version_id) DO UPDATE SET
-			theme_segment_id = EXCLUDED.theme_segment_id
-		RETURNING `+themeSegmentAssignmentColumns,
-		segmentID, releaseVersionID,
-	)
-	assignment, err := scanThemeSegmentAssignment(row)
+	tx, err := r.db.Begin(ctx)
 	if err != nil {
-		var pgErr *pgconn.PgError
-		if errors.As(err, &pgErr) && pgErr.Code == "23503" {
-			return nil, ErrConflict
-		}
-		if errors.Is(err, ErrNotFound) {
-			return nil, fmt.Errorf("assign theme segment %d to release version %d: unexpected empty result", segmentID, releaseVersionID)
-		}
-		return nil, fmt.Errorf("assign theme segment %d to release version %d: %w", segmentID, releaseVersionID, err)
+		return nil, err
+	}
+	defer func() { _ = tx.Rollback(ctx) }()
+	if _, err := lockSegmentAssignmentDomainTx(ctx, tx, segmentID); err != nil {
+		return nil, err
+	}
+	assignment, err := assignThemeSegmentToReleaseVersionTx(ctx, tx, segmentID, releaseVersionID)
+	if err != nil {
+		return nil, err
+	}
+	if err := tx.Commit(ctx); err != nil {
+		return nil, err
 	}
 	return assignment, nil
 }
@@ -105,7 +100,9 @@ func collectInt64Column(rows pgx.Rows) ([]int64, error) {
 // Kara-Segment und den ihm zugewiesenen Release-Versionen (Phase 156, Workstream A -- ersetzt die
 // rein additive Semantik aus Quick-Task 260819-lm5). Ein Aufruf stellt sicher, dass GENAU die
 // release_version_id's zugewiesen sind, deren Episode im angegebenen Bereich [startEpisode,
-// endEpisode] liegt (gleiche Fansub-Gruppe + Version): fehlende werden ergaenzt (Added), ueberzaehlige
+// endEpisode] liegt (gleiche Fansub-Gruppe + Version), soweit ihr OP-/ED-Platz frei ist.
+// Belegte Ziele werden als SkippedConflicts gemeldet; eigene Zuweisungen bleiben idempotent.
+// Fehlende freie Ziele werden ergaenzt (Added), ueberzaehlige
 // werden entfernt (Removed) -- AUSSER ein Assignment traegt einen aktiven
 // theme_segment_episode_overrides-Eintrag; ein solches Assignment wird NICHT geloescht und stattdessen
 // sichtbar als ProtectedByOverride gemeldet (P156-03), weil ein Override der einzige heute vorhandene
@@ -149,6 +146,24 @@ func (r *AdminContentRepository) AssignThemeSegmentToEpisodeRange(
 		_ = tx.Rollback(ctx)
 	}()
 
+	actualAnimeID, err := lockSegmentAssignmentDomainTx(ctx, tx, segmentID)
+	if err != nil {
+		return nil, err
+	}
+	if actualAnimeID != animeID {
+		return nil, ErrConflict
+	}
+	result, err := r.assignThemeSegmentToEpisodeRangeTx(ctx, tx, segmentID, animeID, fansubGroupID, normalizedVersion, startEpisode, endEpisode)
+	if err != nil {
+		return nil, err
+	}
+	if err := tx.Commit(ctx); err != nil {
+		return nil, err
+	}
+	return result, nil
+}
+
+func (r *AdminContentRepository) assignThemeSegmentToEpisodeRangeTx(ctx context.Context, tx pgx.Tx, segmentID, animeID, fansubGroupID int64, normalizedVersion string, startEpisode, endEpisode int) (*models.ThemeSegmentAssignmentSyncResult, error) {
 	targetRows, err := tx.Query(ctx, themeSegmentRangeTargetQuery, animeID, fansubGroupID, normalizedVersion, startEpisode, endEpisode)
 	if err != nil {
 		return nil, fmt.Errorf("assign theme segment to episode range segment=%d: enumerate targets: %w", segmentID, err)
@@ -186,21 +201,37 @@ func (r *AdminContentRepository) AssignThemeSegmentToEpisodeRange(
 		existingSet[id] = true
 	}
 
+	slotType, err := segmentAssignmentTypeTx(ctx, tx, segmentID)
+	if err != nil {
+		return nil, err
+	}
+	conflicts, err := segmentAssignmentConflictsTx(ctx, tx, []int64{segmentID}, slotType, targetReleaseVersionIDs)
+	if err != nil {
+		return nil, err
+	}
+	skipped := make([]models.ThemeSegmentAssignmentConflict, 0, len(conflicts))
+	occupied := make(map[int64]bool, len(conflicts))
+	for _, conflict := range conflicts {
+		if !existingSet[conflict.ReleaseVersionID] {
+			occupied[conflict.ReleaseVersionID] = true
+			skipped = append(skipped, conflict)
+		}
+	}
+	if len(targetReleaseVersionIDs) > 0 && len(occupied) == len(targetReleaseVersionIDs) {
+		return nil, ErrSegmentAssignmentConflict
+	}
 	newlyAssigned := make([]int64, 0)
 	for _, id := range targetReleaseVersionIDs {
-		if existingSet[id] {
-			continue
+		if !existingSet[id] && !occupied[id] {
+			newlyAssigned = append(newlyAssigned, id)
 		}
-		newlyAssigned = append(newlyAssigned, id)
 	}
-
-	for _, id := range newlyAssigned {
+	if len(newlyAssigned) > 0 {
 		if _, err := tx.Exec(ctx, `
-			INSERT INTO theme_segment_assignments (theme_segment_id, release_version_id)
-			VALUES ($1, $2)
-			ON CONFLICT (theme_segment_id, release_version_id) DO NOTHING
-		`, segmentID, id); err != nil {
-			return nil, fmt.Errorf("assign theme segment to episode range segment=%d release_version=%d: %w", segmentID, id, err)
+            INSERT INTO theme_segment_assignments (theme_segment_id, release_version_id)
+            SELECT $1, unnest($2::bigint[])
+            ON CONFLICT (theme_segment_id, release_version_id) DO NOTHING`, segmentID, newlyAssigned); err != nil {
+			return nil, fmt.Errorf("assign segment range segment=%d: %w", segmentID, err)
 		}
 	}
 
@@ -287,14 +318,11 @@ func (r *AdminContentRepository) AssignThemeSegmentToEpisodeRange(
 		}
 	}
 
-	if err := tx.Commit(ctx); err != nil {
-		return nil, fmt.Errorf("commit assign theme segment to episode range segment=%d: %w", segmentID, err)
-	}
-
 	return &models.ThemeSegmentAssignmentSyncResult{
 		Added:               newlyAssigned,
 		Removed:             toRemove,
 		ProtectedByOverride: protectedByOverride,
+		SkippedConflicts:    skipped,
 	}, nil
 }
 

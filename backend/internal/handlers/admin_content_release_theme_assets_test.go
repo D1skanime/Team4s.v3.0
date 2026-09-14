@@ -84,11 +84,11 @@ func (s *releaseThemeAssetRepoStub) ListAnimeSegmentSuggestions(context.Context,
 func (s *releaseThemeAssetRepoStub) ListSegmentLibraryCandidates(context.Context, int64, int64, string, string) ([]models.SegmentLibraryCandidate, error) {
 	return nil, nil
 }
-func (s *releaseThemeAssetRepoStub) CreateAnimeSegment(context.Context, int64, models.AdminThemeSegmentCreateInput, int64) (*models.AdminThemeSegment, error) {
-	return nil, nil
+func (s *releaseThemeAssetRepoStub) CreateAnimeSegment(context.Context, int64, models.AdminThemeSegmentCreateInput, int64) (*models.AdminThemeSegment, *models.ThemeSegmentAssignmentSyncResult, error) {
+	return nil, nil, nil
 }
-func (s *releaseThemeAssetRepoStub) UpdateAnimeSegment(context.Context, int64, models.AdminThemeSegmentPatchInput) error {
-	return nil
+func (s *releaseThemeAssetRepoStub) UpdateAnimeSegment(context.Context, int64, models.AdminThemeSegmentPatchInput) (*models.ThemeSegmentAssignmentSyncResult, error) {
+	return nil, nil
 }
 func (s *releaseThemeAssetRepoStub) DeleteAnimeSegment(context.Context, int64) error { return nil }
 func (s *releaseThemeAssetRepoStub) GetAnimeSegmentByID(context.Context, int64, int64, int64) (*models.AdminThemeSegment, error) {

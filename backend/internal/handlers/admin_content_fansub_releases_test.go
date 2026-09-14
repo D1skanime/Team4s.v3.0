@@ -90,11 +90,11 @@ func (s *fansubReleaseThemeRepoStub) ListAnimeSegmentSuggestions(ctx context.Con
 func (s *fansubReleaseThemeRepoStub) ListSegmentLibraryCandidates(ctx context.Context, animeID int64, fansubGroupID int64, segmentKind string, segmentName string) ([]models.SegmentLibraryCandidate, error) {
 	return nil, nil
 }
-func (s *fansubReleaseThemeRepoStub) CreateAnimeSegment(ctx context.Context, animeID int64, input models.AdminThemeSegmentCreateInput, currentReleaseVersionID int64) (*models.AdminThemeSegment, error) {
-	return nil, nil
+func (s *fansubReleaseThemeRepoStub) CreateAnimeSegment(ctx context.Context, animeID int64, input models.AdminThemeSegmentCreateInput, currentReleaseVersionID int64) (*models.AdminThemeSegment, *models.ThemeSegmentAssignmentSyncResult, error) {
+	return nil, nil, nil
 }
-func (s *fansubReleaseThemeRepoStub) UpdateAnimeSegment(ctx context.Context, segmentID int64, input models.AdminThemeSegmentPatchInput) error {
-	return nil
+func (s *fansubReleaseThemeRepoStub) UpdateAnimeSegment(ctx context.Context, segmentID int64, input models.AdminThemeSegmentPatchInput) (*models.ThemeSegmentAssignmentSyncResult, error) {
+	return nil, nil
 }
 func (s *fansubReleaseThemeRepoStub) DeleteAnimeSegment(ctx context.Context, segmentID int64) error {
 	return nil

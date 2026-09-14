@@ -172,9 +172,17 @@ type AdminThemeSegmentEpisodeOverrideUpsertInput struct {
 // enthaelt release_version_id's, die ausserhalb des neuen Bereichs liegen, aber WEGEN eines
 // aktiven Overrides NICHT entfernt wurden -- sichtbar gemeldet statt still geloescht (P156-03).
 type ThemeSegmentAssignmentSyncResult struct {
-	Added               []int64 `json:"added"`
-	Removed             []int64 `json:"removed"`
-	ProtectedByOverride []int64 `json:"protected_by_override"`
+	Added               []int64                          `json:"added"`
+	Removed             []int64                          `json:"removed"`
+	ProtectedByOverride []int64                          `json:"protected_by_override"`
+	SkippedConflicts    []ThemeSegmentAssignmentConflict `json:"skipped_conflicts"`
+}
+
+// ThemeSegmentAssignmentConflict describes an occupied slot without changing its assignment.
+type ThemeSegmentAssignmentConflict struct {
+	ReleaseVersionID  int64  `json:"release_version_id"`
+	EpisodeNumber     string `json:"episode_number"`
+	ExistingSegmentID int64  `json:"existing_segment_id"`
 }
 
 // AdminThemeSegmentContributorCandidate ist ein Eintrag der Admin-Kandidatenliste fuer

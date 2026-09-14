@@ -11,7 +11,7 @@ import {
   resolveSegmentProvenanceDetails,
   resolveSegmentProvenance,
   resolveSourceLabel,
-  isSegmentActiveForEpisode,
+  isCurrentEpisodeAssigned,
   SegmentTimeline,
 } from './SegmenteTab.helpers'
 import { renderStatusLabel } from './SegmenteTab.formHelpers'
@@ -87,7 +87,7 @@ export function SegmentsListSection({
       ) : suggestions.length > 0 ? (
         <div className={styles.suggestionsBar}>
           <span className={styles.suggestionsLabel}>
-            Vorschläge aus anderen Releases für Episode {episodeNumber}:
+            Weitere Segmente für Episode {episodeNumber} zuweisen:
           </span>
           <div className={styles.suggestionsList}>
             {suggestions.map((s) => (
@@ -140,13 +140,13 @@ export function SegmentsListSection({
                 <TableRow>
                   <TableCell colSpan={6} className={styles.emptyState}>
                     {episodeNumber != null && segments.length > 0
-                      ? `Kein Segment deckt Episode ${episodeNumber} ab. Andere Folgen können eigene Segmente haben.`
+                      ? `Dieser Release-Version von Episode ${episodeNumber} ist kein Segment zugewiesen. Andere Folgen können eigene Segmente haben.`
                       : 'Noch keine Segmente vorhanden. Klicke „Segment hinzufügen", um zu beginnen.'}
                   </TableCell>
                 </TableRow>
               ) : (
                 visibleSegments.map((segment) => {
-                  const isActive = episodeNumber != null && isSegmentActiveForEpisode(segment, episodeNumber)
+                  const isActive = isCurrentEpisodeAssigned(segment, releaseVariantId ?? null)
                   const assignmentsOpen = openAssignmentsFor === segment.id
                   return (
                     <Fragment key={segment.id}>
@@ -167,7 +167,7 @@ export function SegmentsListSection({
                           {segment.is_shared && segment.has_episode_override ? (
                             <Badge variant="warning">Zeit hier überschrieben</Badge>
                           ) : null}
-                          <span>{formatEpisodeRange(segment.start_episode, segment.end_episode)}</span>
+                          <span>{[...new Set((segment.assigned_episodes ?? []).map((episode) => episode.episode_number))].join(', ') || '—'}</span>
                           <button
                             type="button"
                             className={styles.actionButton}

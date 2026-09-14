@@ -29,19 +29,33 @@ func upsertImportReleaseGraph(
 	media models.EpisodeImportMediaCandidate,
 	episodeIDsByNumber map[int32]int64,
 ) (bool, error) {
-	var variantID int64
+	var variantID, existingAnimeID int64
 	err := tx.QueryRow(ctx, `
-		SELECT rv.id
+		SELECT rv.id, ep.anime_id
 		FROM stream_sources ss
 		JOIN release_streams rs ON rs.stream_source_id = ss.id
 		JOIN release_variants rv ON rv.id = rs.variant_id
+        JOIN release_versions rev ON rev.id=rv.release_version_id
+        JOIN fansub_releases fr ON fr.id=rev.release_id
+        JOIN episodes ep ON ep.id=fr.episode_id
 		WHERE ss.provider_type = 'jellyfin' AND ss.external_id = $1
 		ORDER BY rv.id ASC
 		LIMIT 1
-		FOR UPDATE
-	`, mapping.MediaItemID).Scan(&variantID)
+	`, mapping.MediaItemID).Scan(&variantID, &existingAnimeID)
 	if err != nil && !errors.Is(err, pgx.ErrNoRows) {
 		return false, fmt.Errorf("query existing release variant media=%s: %w", mapping.MediaItemID, err)
+	}
+
+	if err == nil {
+		// The apply transaction already owns the input anime lock. Reject another
+		// anime before touching its variant lock, preventing inverted lock order
+		// and avoiding cross-anime media/assignment ownership changes.
+		if existingAnimeID != ids.AnimeID {
+			return false, ErrConflict
+		}
+		if lockErr := tx.QueryRow(ctx, `SELECT id FROM release_variants WHERE id=$1 FOR UPDATE`, variantID).Scan(&variantID); lockErr != nil {
+			return false, lockErr
+		}
 	}
 
 	created := false
@@ -227,6 +241,14 @@ func upsertReleaseVersionGroup(
 		return err
 	}
 
+	animeID, err := lookupAnimeIDByReleaseVersion(ctx, tx, releaseVersionID)
+	if err != nil {
+		return err
+	}
+	if err := lockSegmentAssignmentAnimeTx(ctx, tx, animeID); err != nil {
+		return err
+	}
+
 	newIDs := make([]int64, len(memberGroups))
 	for i, g := range memberGroups {
 		newIDs[i] = g.ID
@@ -255,15 +277,11 @@ func upsertReleaseVersionGroup(
 		`, releaseVersionID, group.ID); err != nil {
 			return fmt.Errorf("upsert release version group version=%d group=%d: %w", releaseVersionID, group.ID, err)
 		}
-		if err := autoAssignThemeSegmentsForNewReleaseVersion(ctx, tx, releaseVersionID, group.ID, normalizedVersion, episodeSortIndex); err != nil {
-			return err
-		}
 	}
-
-	animeID, err := lookupAnimeIDByReleaseVersion(ctx, tx, releaseVersionID)
-	if err != nil {
+	if err := autoAssignThemeSegmentsForNewReleaseVersion(ctx, tx, releaseVersionID, newIDs, normalizedVersion, episodeSortIndex); err != nil {
 		return err
 	}
+
 	return ensureAnimeFansubGroupLinksForMembers(ctx, tx, animeID, memberGroups)
 }
 

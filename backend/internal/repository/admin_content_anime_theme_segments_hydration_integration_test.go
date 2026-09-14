@@ -87,7 +87,7 @@ func TestGetAnimeSegmentByID_HydratesPlaybackForRequestedReleaseVersion(t *testi
 	endTime := "00:01:30"
 	version := "v1"
 
-	segment, err := repo.CreateAnimeSegment(ctx, animeID, models.AdminThemeSegmentCreateInput{
+	segment, _, err := repo.CreateAnimeSegment(ctx, animeID, models.AdminThemeSegmentCreateInput{
 		ThemeID:       themeID,
 		FansubGroupID: ptrInt64(fansubGroupID),
 		Version:       version,
@@ -103,7 +103,8 @@ func TestGetAnimeSegmentByID_HydratesPlaybackForRequestedReleaseVersion(t *testi
 	require.NoError(t, err)
 	// Ein echter Patch loest syncThemeSegmentPlaybackSourceTx fuer BEIDE Zuweisungen aus, sodass
 	// zwei theme_segment_playback_sources-Zeilen mit unterschiedlichen release_variant_id existieren.
-	require.NoError(t, repo.UpdateAnimeSegment(ctx, segmentID, models.AdminThemeSegmentPatchInput{Version: &version}))
+	_, err = repo.UpdateAnimeSegment(ctx, segmentID, models.AdminThemeSegmentPatchInput{Version: &version})
+	require.NoError(t, err)
 
 	t.Run("currentReleaseVersionID=B liefert die Playback-Variante von B, nicht von A", func(t *testing.T) {
 		got, err := repo.GetAnimeSegmentByID(ctx, animeID, segmentID, releaseVersionB)

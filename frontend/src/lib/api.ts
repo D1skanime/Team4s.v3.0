@@ -47,6 +47,7 @@ import {
   AdminSegmentSuggestionsResponse,
   AdminThemeSegment,
   AdminThemeSegmentCreateRequest,
+  AdminThemeSegmentMutationResponse,
   AdminThemeSegmentRenderResponse,
   AdminThemeSegmentPatchRequest,
   AdminThemeSegmentOverrideRequest,
@@ -6964,7 +6965,7 @@ export async function createAnimeSegment(
   input: AdminThemeSegmentCreateRequest,
   authToken?: string,
   releaseVariantId?: number | null,
-): Promise<{ data: AdminThemeSegment }> {
+): Promise<AdminThemeSegmentMutationResponse> {
   const API_BASE_URL = getApiBaseUrl();
   const params = new URLSearchParams();
   if (releaseVariantId != null)
@@ -6996,7 +6997,7 @@ export async function createAnimeSegment(
     );
   }
 
-  return response.json() as Promise<{ data: AdminThemeSegment }>;
+  return response.json() as Promise<AdminThemeSegmentMutationResponse>;
 }
 
 export async function updateAnimeSegment(
@@ -7005,7 +7006,7 @@ export async function updateAnimeSegment(
   input: AdminThemeSegmentPatchRequest,
   authToken?: string,
   releaseVariantId?: number | null,
-): Promise<{ data: AdminThemeSegment }> {
+): Promise<AdminThemeSegmentMutationResponse> {
   const API_BASE_URL = getApiBaseUrl();
   const params = new URLSearchParams();
   if (releaseVariantId != null)
@@ -7037,7 +7038,7 @@ export async function updateAnimeSegment(
     );
   }
 
-  return response.json() as Promise<{ data: AdminThemeSegment }>;
+  return response.json() as Promise<AdminThemeSegmentMutationResponse>;
 }
 
 export async function deleteAnimeSegment(

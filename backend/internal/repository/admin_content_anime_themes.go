@@ -336,7 +336,26 @@ func (r *AdminContentRepository) UpdateAdminAnimeTheme(ctx context.Context, them
 	args = append(args, themeID)
 	query := fmt.Sprintf("UPDATE themes SET %s WHERE id = $%d", strings.Join(setClauses, ", "), argIdx)
 
-	tag, err := r.db.Exec(ctx, query, args...)
+	tx, err := r.db.Begin(ctx)
+	if err != nil {
+		return err
+	}
+	defer func() { _ = tx.Rollback(ctx) }()
+	var animeID int64
+	if err := tx.QueryRow(ctx, `SELECT anime_id FROM themes WHERE id=$1`, themeID).Scan(&animeID); err != nil {
+		if errors.Is(err, pgx.ErrNoRows) {
+			return ErrNotFound
+		}
+		return err
+	}
+	if err := lockSegmentAssignmentAnimeTx(ctx, tx, animeID); err != nil {
+		return err
+	}
+	var oldTypeName string
+	if err := tx.QueryRow(ctx, `SELECT tt.name FROM themes t JOIN theme_types tt ON tt.id=t.theme_type_id WHERE t.id=$1`, themeID).Scan(&oldTypeName); err != nil {
+		return err
+	}
+	tag, err := tx.Exec(ctx, query, args...)
 	if err != nil {
 		var pgErr *pgconn.PgError
 		if errors.As(err, &pgErr) && pgErr.Code == "23503" {
@@ -348,7 +367,26 @@ func (r *AdminContentRepository) UpdateAdminAnimeTheme(ctx context.Context, them
 		return ErrNotFound
 	}
 
-	return nil
+	if input.ThemeTypeID != nil {
+		var newTypeName string
+		if err := tx.QueryRow(ctx, `SELECT name FROM theme_types WHERE id=$1`, *input.ThemeTypeID).Scan(&newTypeName); err != nil {
+			return err
+		}
+		if segmentAssignmentSlotType(oldTypeName) != segmentAssignmentSlotType(newTypeName) {
+			rows, err := tx.Query(ctx, `SELECT id FROM theme_segments WHERE theme_id=$1`, themeID)
+			if err != nil {
+				return err
+			}
+			ids, err := collectInt64Column(rows)
+			if err != nil {
+				return err
+			}
+			if err := validateSegmentAssignmentTypeChangeTx(ctx, tx, ids, segmentAssignmentSlotType(newTypeName)); err != nil {
+				return err
+			}
+		}
+	}
+	return tx.Commit(ctx)
 }
 
 // DeleteAdminAnimeTheme löscht ein Theme anhand seiner ID.
@@ -474,40 +512,38 @@ func (r *AdminContentRepository) ListAnimeSegments(ctx context.Context, animeID 
 	return segments, nil
 }
 
-// CreateAnimeSegment legt ein neues Segment an.
-// Prueft ob das Theme zum animeID gehoert. currentReleaseVersionID legt -- sofern > 0 --
-// unmittelbar nach dem Insert innerhalb derselben Transaktion die Erstzuweisung
-// (theme_segment_assignments) an, BEVOR syncThemeSegmentPlaybackSourceTx laeuft
-// (Phase 117, D-03). currentReleaseVersionID <= 0 ueberspringt die Erstzuweisung
-// bewusst ohne Fehler -- die Handler-seitige Aufloesung der tatsaechlichen
-// release_version_id aus dem heute bereits vorhandenen releaseVariantID-Query-Parameter
-// (parseReleaseVariantIDQuery) landet in Plan 117-04/117-05; diese Repository-Methode
-// akzeptiert den Parameter bereits jetzt, damit dort nur noch der Call-Site angepasst
-// werden muss.
-func (r *AdminContentRepository) CreateAnimeSegment(ctx context.Context, animeID int64, input models.AdminThemeSegmentCreateInput, currentReleaseVersionID int64) (*models.AdminThemeSegment, error) {
+// CreateAnimeSegment commits metadata, free range assignments and playback sources
+// atomically. A complete range determines membership; without one, the supplied
+// real release version is the initial assignment. An occupied complete target set
+// rolls back the new segment instead of leaving an orphan or misleading success.
+func (r *AdminContentRepository) CreateAnimeSegment(ctx context.Context, animeID int64, input models.AdminThemeSegmentCreateInput, currentReleaseVersionID int64) (*models.AdminThemeSegment, *models.ThemeSegmentAssignmentSyncResult, error) {
 	if animeID <= 0 {
-		return nil, ErrNotFound
+		return nil, nil, ErrNotFound
 	}
 
 	// Sicherstellen dass Theme existiert und zum Anime gehoert
 	var themeAnimeID int64
 	if err := r.db.QueryRow(ctx, `SELECT anime_id FROM themes WHERE id = $1`, input.ThemeID).Scan(&themeAnimeID); err != nil {
 		if errors.Is(err, pgx.ErrNoRows) {
-			return nil, ErrNotFound
+			return nil, nil, ErrNotFound
 		}
-		return nil, fmt.Errorf("check theme anime id theme=%d: %w", input.ThemeID, err)
+		return nil, nil, fmt.Errorf("check theme anime id theme=%d: %w", input.ThemeID, err)
 	}
 	if themeAnimeID != animeID {
-		return nil, ErrNotFound
+		return nil, nil, ErrNotFound
 	}
 
 	tx, err := r.db.Begin(ctx)
 	if err != nil {
-		return nil, fmt.Errorf("begin create anime segment anime=%d: %w", animeID, err)
+		return nil, nil, fmt.Errorf("begin create anime segment anime=%d: %w", animeID, err)
 	}
 	defer func() {
 		_ = tx.Rollback(ctx)
 	}()
+
+	if err := lockSegmentAssignmentAnimeTx(ctx, tx, animeID); err != nil {
+		return nil, nil, err
+	}
 
 	var segID int64
 	encodedSource := encodeThemeSegmentSource(input.SourceType, input.SourceRef, input.SourceLabel, input.SourceJellyfinItemID)
@@ -521,40 +557,47 @@ func (r *AdminContentRepository) CreateAnimeSegment(ctx context.Context, animeID
 		var pgErr *pgconn.PgError
 		if errors.As(err, &pgErr) {
 			if pgErr.Code == "23503" || pgErr.Code == "23514" {
-				return nil, ErrConflict
+				return nil, nil, ErrConflict
 			}
 		}
-		return nil, fmt.Errorf("create anime segment anime=%d: %w", animeID, err)
+		return nil, nil, fmt.Errorf("create anime segment anime=%d: %w", animeID, err)
 	}
 
+	// The permission gate uses the editor's real release version. Its anime must
+	// match even when a complete range skips the implicit initial assignment.
 	if currentReleaseVersionID > 0 {
-		if _, err := tx.Exec(ctx, `
-			INSERT INTO theme_segment_assignments (theme_segment_id, release_version_id)
-			VALUES ($1, $2)
-			ON CONFLICT (theme_segment_id, release_version_id) DO NOTHING
-		`, segID, currentReleaseVersionID); err != nil {
-			var pgErr *pgconn.PgError
-			if errors.As(err, &pgErr) && pgErr.Code == "23503" {
-				return nil, ErrConflict
-			}
-			return nil, fmt.Errorf("assign anime segment anime=%d segment=%d release_version=%d: %w", animeID, segID, currentReleaseVersionID, err)
+		if err := validateSegmentAssignmentTargetTx(ctx, tx, segID, currentReleaseVersionID); err != nil {
+			return nil, nil, err
+		}
+	}
+
+	rangeSync, err := r.syncSegmentAssignmentRangeTx(ctx, tx, segID)
+	if err != nil {
+		return nil, nil, err
+	}
+	// With a complete range, only actual free range targets are assigned. The
+	// editor release is not an extra implicit target outside that range.
+	if rangeSync == nil && currentReleaseVersionID > 0 {
+		if _, err := assignThemeSegmentToReleaseVersionTx(ctx, tx, segID, currentReleaseVersionID); err != nil {
+			return nil, nil, err
 		}
 	}
 
 	if err := r.syncThemeSegmentPlaybackSourceTx(ctx, tx, segID); err != nil {
-		return nil, err
+		return nil, nil, err
 	}
 	if err := tx.Commit(ctx); err != nil {
-		return nil, fmt.Errorf("commit create anime segment anime=%d segment=%d: %w", animeID, segID, err)
+		return nil, nil, fmt.Errorf("commit create anime segment anime=%d segment=%d: %w", animeID, segID, err)
 	}
 
-	return loadSegmentByID(ctx, r, segID, currentReleaseVersionID)
+	segment, err := loadSegmentByID(ctx, r, segID, currentReleaseVersionID)
+	return segment, rangeSync, err
 }
 
 // UpdateAnimeSegment aktualisiert ein Segment (partieller Patch).
-func (r *AdminContentRepository) UpdateAnimeSegment(ctx context.Context, segmentID int64, input models.AdminThemeSegmentPatchInput) error {
+func (r *AdminContentRepository) UpdateAnimeSegment(ctx context.Context, segmentID int64, input models.AdminThemeSegmentPatchInput) (*models.ThemeSegmentAssignmentSyncResult, error) {
 	if segmentID <= 0 {
-		return ErrNotFound
+		return nil, ErrNotFound
 	}
 
 	setClauses := make([]string, 0, 8)
@@ -638,16 +681,10 @@ func (r *AdminContentRepository) UpdateAnimeSegment(ctx context.Context, segment
 		}
 	}
 
+	// Even an empty patch must reconcile the saved range in the same atomic
+	// path. The neutral no-op assignment keeps SQL construction deterministic.
 	if len(setClauses) == 0 {
-		// Nichts zu aktualisieren — pruefen ob Segment existiert
-		var exists bool
-		if err := r.db.QueryRow(ctx, `SELECT EXISTS(SELECT 1 FROM theme_segments WHERE id = $1)`, segmentID).Scan(&exists); err != nil {
-			return fmt.Errorf("check segment existence id=%d: %w", segmentID, err)
-		}
-		if !exists {
-			return ErrNotFound
-		}
-		return nil
+		setClauses = append(setClauses, "id = id")
 	}
 
 	args = append(args, segmentID)
@@ -655,32 +692,66 @@ func (r *AdminContentRepository) UpdateAnimeSegment(ctx context.Context, segment
 
 	tx, err := r.db.Begin(ctx)
 	if err != nil {
-		return fmt.Errorf("begin update anime segment id=%d: %w", segmentID, err)
+		return nil, fmt.Errorf("begin update anime segment id=%d: %w", segmentID, err)
 	}
 	defer func() {
 		_ = tx.Rollback(ctx)
 	}()
 
+	animeID, err := lockSegmentAssignmentDomainTx(ctx, tx, segmentID)
+	if err != nil {
+		return nil, err
+	}
+	oldType, err := segmentAssignmentTypeTx(ctx, tx, segmentID)
+	if err != nil {
+		return nil, err
+	}
+	if input.ThemeID != nil {
+		var targetAnimeID int64
+		if err := tx.QueryRow(ctx, `SELECT anime_id FROM themes WHERE id=$1`, *input.ThemeID).Scan(&targetAnimeID); err != nil {
+			if errors.Is(err, pgx.ErrNoRows) {
+				return nil, ErrNotFound
+			}
+			return nil, err
+		}
+		if targetAnimeID != animeID {
+			return nil, ErrConflict
+		}
+	}
 	tag, err := tx.Exec(ctx, query, args...)
 	if err != nil {
 		var pgErr *pgconn.PgError
 		if errors.As(err, &pgErr) && pgErr.Code == "23514" {
-			return ErrConflict
+			return nil, ErrConflict
 		}
-		return fmt.Errorf("update anime segment id=%d: %w", segmentID, err)
+		return nil, fmt.Errorf("update anime segment id=%d: %w", segmentID, err)
 	}
 	if tag.RowsAffected() == 0 {
-		return ErrNotFound
+		return nil, ErrNotFound
+	}
+
+	rangeSync, err := r.syncSegmentAssignmentRangeTx(ctx, tx, segmentID)
+	if err != nil {
+		return nil, err
+	}
+	newType, err := segmentAssignmentTypeTx(ctx, tx, segmentID)
+	if err != nil {
+		return nil, err
+	}
+	if oldType != newType {
+		if err := validateSegmentAssignmentTypeChangeTx(ctx, tx, []int64{segmentID}, newType); err != nil {
+			return nil, err
+		}
 	}
 
 	if err := r.syncThemeSegmentPlaybackSourceTx(ctx, tx, segmentID); err != nil {
-		return err
+		return nil, err
 	}
 	if err := tx.Commit(ctx); err != nil {
-		return fmt.Errorf("commit update anime segment id=%d: %w", segmentID, err)
+		return nil, fmt.Errorf("commit update anime segment id=%d: %w", segmentID, err)
 	}
 
-	return nil
+	return rangeSync, nil
 }
 
 // DeleteAnimeSegment loescht ein Segment anhand seiner ID.
@@ -1053,7 +1124,13 @@ func loadSegmentByID(ctx context.Context, r *AdminContentRepository, segID int64
 	if err := r.hydrateSegmentLibraryMetadata(ctx, &seg); err != nil {
 		return nil, err
 	}
-	return &seg, nil
+	// Single-item writes/readbacks need the same authoritative sparse assignment
+	// projection as the list; ranges are not a substitute for actual membership.
+	segments := []models.AdminThemeSegment{seg}
+	if err := r.hydrateSegmentAssignmentMetadataList(ctx, segments); err != nil {
+		return nil, err
+	}
+	return &segments[0], nil
 }
 
 // GetAnimeSegmentByID laedt ein Segment und prueft, dass es zum angegebenen Anime gehoert.

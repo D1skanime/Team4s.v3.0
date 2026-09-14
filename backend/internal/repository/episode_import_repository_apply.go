@@ -27,6 +27,10 @@ func (r *EpisodeImportRepository) applyReleaseNative(
 	}
 	defer func() { _ = tx.Rollback(ctx) }()
 
+	if err := lockSegmentAssignmentAnimeTx(ctx, tx, input.AnimeID); err != nil {
+		return nil, err
+	}
+
 	episodeTypeID, err := lookupIDByName(ctx, tx, "episode_types", "episode")
 	if err != nil {
 		return nil, err
@@ -69,6 +73,7 @@ func (r *EpisodeImportRepository) applyReleaseNative(
 		}
 		media := plan.mediaByID[mapping.MediaItemID]
 		releaseIDs := episodeImportReleaseIDs{
+			AnimeID:          input.AnimeID,
 			PrimaryEpisodeID: episodeIDsByNumber[mapping.TargetEpisodeNumbers[0]],
 			ReleaseSourceID:  releaseSourceID,
 			StreamTypeID:     streamTypeID,
@@ -92,6 +97,7 @@ func (r *EpisodeImportRepository) applyReleaseNative(
 }
 
 type episodeImportReleaseIDs struct {
+	AnimeID          int64
 	PrimaryEpisodeID int64
 	ReleaseSourceID  int64
 	StreamTypeID     int64

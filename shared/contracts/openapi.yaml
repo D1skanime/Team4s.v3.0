@@ -1975,6 +1975,201 @@ paths:
             application/json:
               schema:
                 $ref: "#/components/schemas/ErrorResponse"
+  /api/v1/admin/anime/{id}/segments:
+    post:
+      tags:
+      - Admin
+      summary: Create a segment and atomically assign available range targets
+      operationId: adminCreateAnimeSegment
+      security:
+      - bearerAuth: []
+      parameters:
+      - &id001
+        $ref: '#/components/parameters/AdminAnimeId'
+      - &id002
+        name: release_variant_id
+        in: query
+        required: false
+        schema:
+          type: integer
+          format: int64
+          minimum: 1
+        description: 'Historical parameter name: the segment editor passes the real release_versions.id. Required
+          for non-admin segment management; no client-side ID conversion.'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/AdminThemeSegmentCreateRequest'
+      responses:
+        '201':
+          description: Saved segment with authoritative assignments and range synchronization
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/AdminThemeSegmentMutationResponse'
+        '400': &id003
+          description: Invalid request
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '401': &id004
+          description: Authentication required
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '403': &id005
+          description: Segment management permission denied
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '404': &id006
+          description: Anime, theme, segment, or release context not found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '409': &id007
+          description: 'Occupied OP/ED slot: error.code segment_assignment_conflict. No segment metadata or assignment
+            changes are committed. Other validation conflicts retain their existing codes.'
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '500': &id008
+          description: Internal server error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+      description: Requires release_version.segments.manage for the real release-version editor context (platform
+        admins may omit it). Range targets use anime, group, normalized version and episode position. Actual theme_segment_assignments
+        are authoritative. Existing assignments of another segment in the same canonical OP or ED family are skipped
+        and listed in range_sync.skipped_conflicts; OP and ED are independent. Reassigning the same segment is idempotent.
+        A single occupied target or an entirely occupied target set returns 409 without committing metadata or assignments.
+        Incomplete ranges never delete assignments. Existing overrides protect assignments outside a changed range.
+        Origin and contributors are not reassigned implicitly.
+  /api/v1/admin/anime/{id}/segments/{segmentId}:
+    patch:
+      tags:
+      - Admin
+      summary: Update a segment and atomically reconcile its range assignments
+      operationId: adminUpdateAnimeSegment
+      security:
+      - bearerAuth: []
+      parameters:
+      - *id001
+      - name: segmentId
+        in: path
+        required: true
+        schema:
+          type: integer
+          format: int64
+          minimum: 1
+      - *id002
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/AdminThemeSegmentPatchRequest'
+      responses:
+        '200':
+          description: Saved segment with authoritative assignments and range synchronization
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/AdminThemeSegmentMutationResponse'
+        '400': *id003
+        '401': *id004
+        '403': *id005
+        '404': *id006
+        '409': *id007
+        '500': *id008
+      description: Requires release_version.segments.manage for the real release-version editor context (platform
+        admins may omit it). Range targets use anime, group, normalized version and episode position. Actual theme_segment_assignments
+        are authoritative. Existing assignments of another segment in the same canonical OP or ED family are skipped
+        and listed in range_sync.skipped_conflicts; OP and ED are independent. Reassigning the same segment is idempotent.
+        A single occupied target or an entirely occupied target set returns 409 without committing metadata or assignments.
+        Incomplete ranges never delete assignments. Existing overrides protect assignments outside a changed range.
+        Origin and contributors are not reassigned implicitly.
+  /api/v1/admin/anime/{id}/segments/{segmentId}/assignments:
+    post:
+      tags:
+      - Admin
+      summary: Assign one segment to a real release version
+      operationId: adminAssignAnimeSegment
+      security:
+      - bearerAuth: []
+      parameters:
+      - *id001
+      - name: segmentId
+        in: path
+        required: true
+        schema:
+          type: integer
+          format: int64
+          minimum: 1
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/AdminThemeSegmentAssignmentRequest'
+      responses:
+        '201':
+          description: Saved segment with authoritative assignments and range synchronization
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/AdminAnimeSegmentResponse'
+        '400': *id003
+        '401': *id004
+        '403': *id005
+        '404': *id006
+        '409': *id007
+        '500': *id008
+      description: Requires release_version.segments.manage for body.release_version_id. Same-segment repeat is idempotent.
+        A different assigned segment of the same canonical OP or ED family returns409 segment_assignment_conflict;
+        no existing assignment is replaced.
+  /api/v1/admin/anime/{id}/themes/{themeId}:
+    patch:
+      tags:
+      - Admin
+      summary: Update an anime theme anchor
+      operationId: adminUpdateAnimeTheme
+      security:
+      - bearerAuth: []
+      parameters:
+      - *id001
+      - name: themeId
+        in: path
+        required: true
+        schema:
+          type: integer
+          format: int64
+          minimum: 1
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/AdminAnimeThemePatchRequest'
+      responses:
+        '204':
+          description: Theme updated; no response body
+        '400': *id003
+        '401': *id004
+        '403': *id005
+        '404': *id006
+        '409': *id007
+        '500': *id008
+      description: Platform-admin operation. Changing theme_type_id cannot introduce conflicting OP/ED assignments
+        for any segment of this theme; conflicts roll back the entire theme change.
   /api/v1/admin/anime/{id}/assets/cover:
     put:
       tags: [Admin]
@@ -11092,6 +11287,354 @@ components:
       properties:
         data:
           $ref: "#/components/schemas/AdminAnimeTheme"
+    AdminThemeSegmentCreateRequest:
+      type: object
+      required:
+      - theme_id
+      properties:
+        theme_id:
+          type: integer
+          format: int64
+        fansub_group_id:
+          type: integer
+          format: int64
+          nullable: true
+        version:
+          type: string
+        start_episode:
+          type: integer
+          format: int32
+          nullable: true
+        end_episode:
+          type: integer
+          format: int32
+          nullable: true
+        start_time:
+          type: string
+          nullable: true
+        end_time:
+          type: string
+          nullable: true
+        source_jellyfin_item_id:
+          type: string
+          nullable: true
+        source_type:
+          type: string
+          nullable: true
+        source_ref:
+          type: string
+          nullable: true
+        source_label:
+          type: string
+          nullable: true
+    AdminThemeSegmentPatchRequest:
+      type: object
+      properties:
+        theme_id:
+          type: integer
+          format: int64
+          nullable: true
+        fansub_group_id:
+          type: integer
+          format: int64
+          nullable: true
+        version:
+          type: string
+          nullable: true
+        start_episode:
+          type: integer
+          format: int32
+          nullable: true
+        end_episode:
+          type: integer
+          format: int32
+          nullable: true
+        start_time:
+          type: string
+          nullable: true
+        end_time:
+          type: string
+          nullable: true
+        source_jellyfin_item_id:
+          type: string
+          nullable: true
+        source_type:
+          type: string
+          nullable: true
+        source_ref:
+          type: string
+          nullable: true
+        source_label:
+          type: string
+          nullable: true
+    AdminAnimeThemePatchRequest:
+      type: object
+      properties:
+        theme_type_id:
+          type: integer
+          format: int64
+          nullable: true
+        title:
+          type: string
+          nullable: true
+    AdminThemeSegment:
+      type: object
+      required:
+      - id
+      - theme_id
+      - anime_id
+      - theme_title
+      - theme_type_name
+      - fansub_group_id
+      - origin_release_version_id
+      - version
+      - start_episode
+      - end_episode
+      - start_time
+      - end_time
+      - source_jellyfin_item_id
+      - can_retry_render
+      - created_at
+      - is_shared
+      - has_episode_override
+      properties:
+        id:
+          type: integer
+          format: int64
+        theme_id:
+          type: integer
+          format: int64
+        anime_id:
+          type: integer
+          format: int64
+        theme_title:
+          type: string
+          nullable: true
+        theme_type_name:
+          type: string
+        fansub_group_id:
+          type: integer
+          format: int64
+          nullable: true
+        origin_release_version_id:
+          type: integer
+          format: int64
+          nullable: true
+        version:
+          type: string
+        start_episode:
+          type: integer
+          format: int32
+          nullable: true
+        end_episode:
+          type: integer
+          format: int32
+          nullable: true
+        start_time:
+          type: string
+          nullable: true
+        end_time:
+          type: string
+          nullable: true
+        source_jellyfin_item_id:
+          type: string
+          nullable: true
+        source_type:
+          type: string
+          nullable: true
+        source_ref:
+          type: string
+          nullable: true
+        source_label:
+          type: string
+          nullable: true
+        playback_source_id:
+          type: integer
+          format: int64
+          nullable: true
+        playback_source_kind:
+          type: string
+          nullable: true
+        playback_release_variant_id:
+          type: integer
+          format: int64
+          nullable: true
+        playback_jellyfin_item_id:
+          type: string
+          nullable: true
+        playback_media_asset_id:
+          type: integer
+          format: int64
+          nullable: true
+        playback_source_label:
+          type: string
+          nullable: true
+        playback_start_offset_seconds:
+          type: integer
+          format: int32
+          nullable: true
+        playback_end_offset_seconds:
+          type: integer
+          format: int32
+          nullable: true
+        playback_duration_seconds:
+          type: integer
+          format: int32
+          nullable: true
+        render_cache_id:
+          type: integer
+          format: int64
+          nullable: true
+        render_cache_key:
+          type: string
+          nullable: true
+        render_status:
+          type: string
+          nullable: true
+        render_error_message:
+          type: string
+          nullable: true
+        render_duration_seconds:
+          type: integer
+          format: int32
+          nullable: true
+        render_completed_at:
+          type: string
+          format: date-time
+          nullable: true
+        can_retry_render:
+          type: boolean
+        library_definition_id:
+          type: integer
+          format: int64
+          nullable: true
+        library_asset_id:
+          type: integer
+          format: int64
+          nullable: true
+        library_segment_kind:
+          type: string
+          nullable: true
+        library_segment_name:
+          type: string
+          nullable: true
+        library_anime_source_provider:
+          type: string
+          nullable: true
+        library_anime_source_external_id:
+          type: string
+          nullable: true
+        library_identity_status:
+          type: string
+          nullable: true
+        library_ownership_scope:
+          type: string
+          nullable: true
+        library_attach_source:
+          type: string
+          nullable: true
+        created_at:
+          type: string
+          format: date-time
+        assigned_release_version_ids:
+          type: array
+          items:
+            type: integer
+            format: int64
+        is_shared:
+          type: boolean
+        has_episode_override:
+          type: boolean
+        assigned_episodes:
+          type: array
+          items:
+            $ref: '#/components/schemas/AdminThemeSegmentAssignmentEpisode'
+    AdminThemeSegmentAssignmentEpisode:
+      type: object
+      required:
+      - release_version_id
+      - episode_number
+      - has_override
+      properties:
+        release_version_id:
+          type: integer
+          format: int64
+        episode_number:
+          type: string
+        has_override:
+          type: boolean
+    AdminThemeSegmentAssignmentRequest:
+      type: object
+      required:
+      - release_version_id
+      properties:
+        release_version_id:
+          type: integer
+          format: int64
+          minimum: 1
+    AdminThemeSegmentAssignmentConflict:
+      type: object
+      required:
+      - release_version_id
+      - episode_number
+      - existing_segment_id
+      properties:
+        release_version_id:
+          type: integer
+          format: int64
+        episode_number:
+          type: string
+        existing_segment_id:
+          type: integer
+          format: int64
+    ThemeSegmentAssignmentSyncResult:
+      type: object
+      description: Actual changes only. Skipped targets remain assigned to their existing segment. Empty result lists
+        are arrays, never null.
+      required:
+      - added
+      - removed
+      - protected_by_override
+      - skipped_conflicts
+      properties:
+        added:
+          type: array
+          items:
+            type: integer
+            format: int64
+        removed:
+          type: array
+          items:
+            type: integer
+            format: int64
+        protected_by_override:
+          type: array
+          items:
+            type: integer
+            format: int64
+        skipped_conflicts:
+          type: array
+          items:
+            $ref: '#/components/schemas/AdminThemeSegmentAssignmentConflict'
+    AdminAnimeSegmentResponse:
+      type: object
+      required:
+      - data
+      properties:
+        data:
+          $ref: '#/components/schemas/AdminThemeSegment'
+    AdminThemeSegmentMutationResponse:
+      type: object
+      required:
+      - data
+      - range_sync
+      properties:
+        data:
+          $ref: '#/components/schemas/AdminThemeSegment'
+        range_sync:
+          allOf:
+          - $ref: '#/components/schemas/ThemeSegmentAssignmentSyncResult'
+          nullable: true
     AdminUploadAssetType:
       type: string
       enum: [poster, banner, logo, gallery, background, video, background_video]

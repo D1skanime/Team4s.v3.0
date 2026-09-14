@@ -900,6 +900,21 @@ export interface AdminThemeSegment {
   created_at: string
 }
 
+/** Authoritative result of a segment save and its range assignment reconciliation. */
+export interface AdminThemeSegmentMutationResponse {
+  data: AdminThemeSegment
+  range_sync?: {
+    added: number[]
+    removed: number[]
+    protected_by_override: number[]
+    skipped_conflicts?: {
+      release_version_id: number
+      episode_number: string
+      existing_segment_id: number
+    }[]
+  } | null
+}
+
 /** API-Response für Segment-Listen. */
 export interface AdminAnimeSegmentsResponse {
   data: AdminThemeSegment[]
