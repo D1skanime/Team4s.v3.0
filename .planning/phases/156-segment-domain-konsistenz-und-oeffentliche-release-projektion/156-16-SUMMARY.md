@@ -209,3 +209,107 @@ None - no external service configuration required.
 All 14 created/modified files listed above confirmed present on disk. All 6 task commit hashes
 (`b936c3f8`, `d23e1981`, `6af239a4`, `b141b726`, `f9b67bf3`, `c8ac1613`) confirmed present in
 `git log`.
+
+---
+
+## Addendum (2026-09-14): CR-01 follow-up fix
+
+**A code review of this plan (`156-REVIEW.md`) found a critical gap this plan's own enumeration
+missed: two live, admin-reachable repository methods, `AssignThemeSegmentToReleaseVersion` and
+`UnassignThemeSegmentFromReleaseVersion`, mutated `theme_segment_assignments` directly without
+ever calling `ensureThemeSegmentOriginTx`, reopening the exact GAP-04/GAP-05 defect class this
+plan exists to close. This addendum documents the follow-up fix that closed that gap.**
+
+### What was found (CR-01, WR-02)
+
+- `AssignThemeSegmentToReleaseVersion` (backs `POST /api/v1/admin/anime/:id/segments/:segmentId/assignments`)
+  called the shared `assignThemeSegmentToReleaseVersionTx` helper and committed without ever
+  syncing the origin -- a fresh segment assigned via this endpoint instead of a range save kept
+  `origin_release_version_id = NULL` forever (GAP-05 shape).
+- `UnassignThemeSegmentFromReleaseVersion` (backs `DELETE /api/v1/admin/anime/:id/segments/:segmentId/assignments/:releaseVersionId`)
+  ran a single bare `r.db.Exec(...)` with NO transaction and NO domain lock (unlike every other
+  writer in the file), and never called `ensureThemeSegmentOriginTx` either -- removing a
+  segment's only assignment via this endpoint left `origin_release_version_id` dangling on the
+  now-unassigned release (GAP-04 shape, exactly the segment-3 live case migration 0164 repaired).
+
+### What changed
+
+- `AssignThemeSegmentToReleaseVersion`: added an `ensureThemeSegmentOriginTx` call inside its
+  existing transaction, after `assignThemeSegmentToReleaseVersionTx` succeeds and before commit.
+  The shared low-level helper `assignThemeSegmentToReleaseVersionTx` was deliberately left
+  unchanged -- `CreateAnimeSegment` already calls the same helper and separately invokes
+  `ensureThemeSegmentOriginTx` itself right after, so moving the call into the helper would
+  double-invoke it there (idempotent but redundant, a larger diff than needed to close CR-01's
+  concrete defect). This is the minimal-diff option the review explicitly flagged as acceptable in
+  lieu of WR-01's more invasive helper-level generalization; see `156-REVIEW.md`'s WR-01 resolution
+  note for the full rationale and the accepted residual risk (a hypothetical future third caller of
+  `assignThemeSegmentToReleaseVersionTx` would need to remember this invariant itself).
+- `UnassignThemeSegmentFromReleaseVersion`: rewritten to begin a transaction, call
+  `lockSegmentAssignmentDomainTx` before the DELETE (closing WR-02), and call
+  `ensureThemeSegmentOriginTx` after a successful removal, before commit -- identical discipline to
+  `AssignThemeSegmentToReleaseVersion`/`assignThemeSegmentToEpisodeRangeTx`.
+- Neither the never-overwrite-a-valid-origin rule (Auftragspunkt 8) nor the no-auto-contributor-
+  selection rule needed any new guard code -- both fall out for free from `ensureThemeSegmentOriginTx`'s
+  existing, unmodified behavior.
+- Migration 0164 and `ensureThemeSegmentOriginTx` itself were NOT touched.
+
+### Deviations from the fix scope
+
+**1. [Rule 1 - Bug in test] `TestSetThemeSegmentOrigin`'s stale nil-origin precondition**
+- **Found during:** full Phase-156 regression re-run after the fix.
+- **Issue:** This pre-existing test's first subtest asserted the origin stayed `NULL` after two
+  preparatory `AssignThemeSegmentToReleaseVersion` calls -- true only because that call site did
+  not yet sync the origin. With CR-01's fix wired in, those same two calls now correctly
+  auto-set the origin to `releaseVersionA`, making the old assertion false by construction (the
+  fix restores the exact invariant this precondition was accidentally relying on being broken).
+- **Fix:** Updated the subtest to assert the new, correct post-condition (origin already set to
+  `releaseVersionA` before any explicit `SetThemeSegmentOrigin` call). Every other subtest in the
+  file already only depended on the origin being `releaseVersionA` at that point, which is
+  unchanged, so no other assertion needed updating.
+- **Files modified:** `backend/internal/repository/theme_segment_origin_integration_test.go`.
+- **Verification:** `TestSetThemeSegmentOrigin` full suite (6 subtests) green after the fix.
+- **Committed in:** `8ae410f8`.
+
+### Verification evidence
+
+- `go build ./...` and `go vet ./...` clean from `backend/` (golang:1.25-alpine,
+  `team4s_default` network).
+- `gofmt -l` clean on all three touched files.
+- New tests green against real Postgres (`TEAM4S_PHASE117_TEST_DSN=team4s_phase117_test_cr01`):
+  `TestAssignThemeSegmentToReleaseVersionSetsOriginOnFreshSegment`,
+  `TestUnassignThemeSegmentFromReleaseVersionClearsOriginAndContributorsOnLastAssignment`,
+  `TestUnassignThemeSegmentFromReleaseVersionNeverOverwritesValidOriginOnDifferentRelease` --
+  confirmed RED before the fix (commit `bb756d7b`), GREEN after (commit `4dcdc75d`).
+- All 10 pre-existing behavior cases from Plan 156-16 Task 2 (`TestAssignThemeSegmentToEpisodeRange*`,
+  `TestUpsertReleaseVersionGroupAutoAssign_*`, `TestCreateAnimeSegmentOriginBehavior`) plus
+  `TestThemeSegmentAssignmentsAndOverrides` and the updated `TestSetThemeSegmentOrigin` remain
+  green.
+- Full Phase-156 regression matrix (`go test ./internal/repository/... ./internal/handlers/...
+  ./internal/permissions/... -count=1`), re-run after the fix: `internal/handlers` and
+  `internal/permissions` 100% green; `internal/repository` shows exactly the same **50**
+  pre-existing/environmental `--- FAIL` entries documented in this SUMMARY's own "Live Verification
+  Evidence" section above (35 `TEAM4S_PHASE128_TEST_DSN`-dependent, 9 `TestPhase134Matrix*`
+  Keycloak/live-backend-dependent, 6 unrelated pre-existing failures) -- name-diffed against the
+  first run (which additionally showed `TestSetThemeSegmentOrigin` failing before its own test was
+  updated), zero new failures in the final run.
+- `backend/internal/repository/theme_segment_assignments.go` stays at 443/450 lines after the fix.
+- `theme_segment_assignments.go` gofmt-clean; no untracked files left behind by the test run
+  besides the (already `.gitignore`d, ephemeral) test-only Postgres database
+  `team4s_phase117_test_cr01` inside the `team4sv30-db` container.
+
+### Explicit non-claim
+
+The `156-UAT.md` live-UAT human checkpoint is still NOT run and NOT claimed as passed by this
+follow-up fix, unchanged from the original plan's own non-claim above.
+
+### Commits (this addendum)
+
+1. `bb756d7b` (test): 3 failing regression tests proving CR-01's two scenarios plus the
+   never-overwrite proof on the unassign path.
+2. `4dcdc75d` (feat): wired `ensureThemeSegmentOriginTx` into `AssignThemeSegmentToReleaseVersion`
+   and `UnassignThemeSegmentFromReleaseVersion` (with transaction + domain lock added to the
+   latter) -- all 3 new tests green, no regressions in the directly-related test suites.
+3. `8ae410f8` (test): fixed `TestSetThemeSegmentOrigin`'s now-stale nil-origin precondition,
+   discovered during the full regression re-run.
+
+See `156-REVIEW.md`'s CR-01/WR-01/WR-02 "Resolution" notes for the review-side record of this fix.
