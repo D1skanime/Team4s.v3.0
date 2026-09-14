@@ -128,3 +128,7 @@ This matches the plan's confirmed live fixture exactly and proves the fix end-to
 ---
 *Phase: 156-segment-domain-konsistenz-und-oeffentliche-release-projektion*
 *Completed: 2026-09-14*
+
+## Self-Check: PASSED
+
+All created/modified key files found on disk; all 7 task/summary commit hashes (`c8b789e0`, `1d4082b5`, `fb9b8f4d`, `b19d595f`, `8e8a57c8`, `f304d66c`, `fed6fdfa`) verified present in `git log`.
