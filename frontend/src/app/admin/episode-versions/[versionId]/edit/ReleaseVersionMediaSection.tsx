@@ -1,11 +1,11 @@
 'use client'
 
 import { ChangeEvent, DragEvent, KeyboardEvent, useEffect, useMemo, useRef, useState } from 'react'
-import { ImageIcon, RefreshCw, Star, Trash2, Upload } from 'lucide-react'
+import { ImageIcon, RefreshCw, Star, Trash2 } from 'lucide-react'
 
 import { CATEGORY_ALLOWS_PREVIEW, ReleaseVersionMediaCategory, ReleaseVersionMediaItem } from '@/types/releaseVersionMedia'
 
-import { Badge, Button, Drawer, EmptyState, FormField, Textarea } from '@/components/ui'
+import { Badge, Button, Drawer, FormField, Textarea } from '@/components/ui'
 import { UploadQueueItem, useReleaseVersionMedia, UseReleaseVersionMediaResult } from './useReleaseVersionMedia'
 import { ReleaseVersionMediaReplaceControls } from './ReleaseVersionMediaReplaceControls'
 import { RELEASE_REVIEW_REJECTION_CATEGORY_LABELS } from '../../../fansubs/releaseReviewPresentation'
@@ -203,7 +203,10 @@ export function ReleaseVersionMediaSection({
     media.clearUploadQueue()
   }
 
-  function openUploadSheet() {
+  function selectCategory(category: ReleaseVersionMediaCategory) {
+    if (isBusy) return
+    setSelectedCategory(category)
+    if (!canChooseFiles) return
     resetUploadDraft()
     setIsUploadOpen(true)
   }
@@ -385,31 +388,25 @@ export function ReleaseVersionMediaSection({
           <div>
             <h2 className={styles.headline}>Media / Assets verwalten</h2>
             <p className={styles.helper}>
-              Wähle eine Kategorie, prüfe die vorhandenen Assets und lade neue Medien gezielt in diese Kategorie.
+              {canUploadMedia
+                ? 'Wähle eine Kategorie, um direkt Medien hochzuladen.'
+                : 'Wähle eine Kategorie, um vorhandene Medien anzusehen.'}
             </p>
           </div>
-          <Button
-            variant="ghost"
-            className={styles.accentButton}
-            leftIcon={<Upload size={16} aria-hidden="true" />}
-            onClick={openUploadSheet}
-            disabled={!canUploadMedia || isBusy}
-          >
-            Hochladen
-          </Button>
         </div>
 
-        <div className={styles.segmentedControl} role="tablist" aria-label="Medienkategorie">
+        <div className={styles.segmentedControl} role="group" aria-label="Medienkategorie">
           {CATEGORY_OPTIONS.map((option) => {
             const active = selectedCategory === option.value
             return (
               <button
                 key={option.value}
                 type="button"
-                role="tab"
-                aria-selected={active}
+                aria-pressed={active}
+                aria-haspopup={canChooseFiles ? 'dialog' : undefined}
+                disabled={isBusy}
                 className={`${styles.segmentButton} ${active ? styles.segmentButtonActive : ''}`}
-                onClick={() => setSelectedCategory(option.value)}
+                onClick={() => selectCategory(option.value)}
               >
                 <span>{option.label}</span>
                 <span className={styles.segmentCount}>{categoryCounts.get(option.value) ?? 0}</span>
@@ -425,13 +422,15 @@ export function ReleaseVersionMediaSection({
       ) : null}
       {media.reorderError ? <div className={styles.errorBox}>Reorder-Fehler: {media.reorderError}</div> : null}
 
-      <div className={styles.activeCategoryHeader}>
-        <div>
-          <p className={styles.categoryKicker}>Aktive Kategorie</p>
-          <h3 className={styles.categoryTitle}>{categoryLabel(selectedCategory)}</h3>
+      {activeItems.length > 0 ? (
+        <div className={styles.activeCategoryHeader}>
+          <div>
+            <p className={styles.categoryKicker}>Aktive Kategorie</p>
+            <h3 className={styles.categoryTitle}>{categoryLabel(selectedCategory)}</h3>
+          </div>
+          <Badge variant="muted">{activeItems.length} Medien</Badge>
         </div>
-        <Badge variant="muted">{activeItems.length} Medien</Badge>
-      </div>
+      ) : null}
 
       {activeItems.length > 0 ? (
         <div className={styles.mediaGrid}>
@@ -475,25 +474,7 @@ export function ReleaseVersionMediaSection({
             )
           })}
         </div>
-      ) : (
-        <EmptyState
-          variant="compact"
-          title="Noch keine Medien"
-          description="In dieser Kategorie gibt es für diese Release-Version noch keine Assets."
-          action={
-            canUploadMedia ? (
-              <Button
-                variant="ghost"
-                className={styles.ghostAction}
-                leftIcon={<Upload size={16} aria-hidden="true" />}
-                onClick={openUploadSheet}
-              >
-                Jetzt hochladen
-              </Button>
-            ) : null
-          }
-        />
-      )}
+      ) : null}
 
       {!canUploadMedia && canViewMedia ? (
         <p className={styles.helper}>Du darfst Medien dieser Release-Version ansehen, aber nicht hochladen.</p>

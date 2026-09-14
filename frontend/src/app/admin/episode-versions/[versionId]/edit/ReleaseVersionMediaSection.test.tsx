@@ -11,6 +11,7 @@ import type {
 } from '@/types/releaseVersionMedia'
 
 import { ReleaseVersionMediaSection } from './ReleaseVersionMediaSection'
+import { CATEGORY_OPTIONS } from './ReleaseVersionMediaSection.helpers'
 import type { UploadQueueItem, UploadRunResult, UseReleaseVersionMediaResult } from './useReleaseVersionMedia'
 
 const api = vi.hoisted(() => ({
@@ -132,8 +133,64 @@ function renderSection(mediaState?: UseReleaseVersionMediaResult) {
 }
 
 function openUploadSheet() {
-  fireEvent.click(screen.getByRole('button', { name: /^Hochladen$/ }))
+  fireEvent.click(screen.getByRole('button', { name: /^Screenshot \d+$/ }))
 }
+
+describe('ReleaseVersionMediaSection direct category upload', () => {
+  it.each(CATEGORY_OPTIONS)('opens $label directly and uploads with its category code', async ({ value, label }) => {
+    const media = makeMediaState()
+    renderSection(media)
+    expect(screen.queryByRole('dialog')).toBeNull()
+    expect(screen.queryByRole('button', { name: /^(Hochladen|Jetzt hochladen)$/ })).toBeNull()
+    expect(screen.queryByText('Noch keine Medien')).toBeNull()
+    expect(screen.queryByText('Aktive Kategorie')).toBeNull()
+    fireEvent.click(screen.getByRole('button', { name: `${label} 0` }))
+    const dialog = screen.getByRole('dialog', { name: 'Medien hochladen' })
+    expect(within(dialog).getByText(`Kategorie: ${label}`)).not.toBeNull()
+    expect(media.startUpload).not.toHaveBeenCalled()
+    const file = new File(['demo'], 'category.png', { type: 'image/png' })
+    fireEvent.change(within(dialog).getByLabelText('Dateien'), { target: { files: [file] } })
+    fireEvent.click(within(dialog).getByRole('button', { name: 'Upload starten' }))
+    await waitFor(() => expect(media.startUpload).toHaveBeenCalledWith(value, [file], '', false))
+  })
+
+  it('reopens the selected category with a fresh draft after cancelling', () => {
+    const media = makeMediaState()
+    renderSection(media)
+    openUploadSheet()
+    fireEvent.change(screen.getByLabelText('Dateien'), { target: { files: [new File(['x'], 'old.png', { type: 'image/png' })] } })
+    fireEvent.change(screen.getByRole('textbox'), { target: { value: 'Alter Entwurf' } })
+    fireEvent.click(screen.getByRole('button', { name: 'Abbrechen' }))
+    openUploadSheet()
+    expect(screen.getByRole('textbox')).toHaveProperty('value', '')
+    expect(screen.queryByText('old.png')).toBeNull()
+    expect(screen.getByRole('button', { name: 'Upload starten' })).toHaveProperty('disabled', true)
+    expect(media.startUpload).not.toHaveBeenCalled()
+  })
+
+  it('lets read-only viewers switch existing media without opening uploads', () => {
+    const media = makeMediaState({
+      capabilities: { ...makeMediaState().capabilities!, can_upload_media: false },
+      items: [makeItem({ category: 'other', caption: 'Vorhandenes Medium', can_update: false, can_delete: false })],
+    })
+    renderSection(media)
+    fireEvent.click(screen.getByRole('button', { name: 'Sonstiges 1' }))
+    expect(screen.getByRole('button', { name: 'Vorhandenes Medium ansehen' })).not.toBeNull()
+    expect(screen.queryByRole('dialog')).toBeNull()
+    expect(media.clearUploadQueue).not.toHaveBeenCalled()
+    expect(media.startUpload).not.toHaveBeenCalled()
+  })
+
+  it('cannot switch categories or reset an active upload queue', () => {
+    const media = makeMediaState({ uploadItems: [makeQueueItem({ status: 'uploading' })] })
+    renderSection(media)
+    const category = screen.getByRole('button', { name: 'Sonstiges 0' })
+    expect(category).toHaveProperty('disabled', true)
+    fireEvent.click(category)
+    expect(screen.queryByRole('dialog')).toBeNull()
+    expect(media.clearUploadQueue).not.toHaveBeenCalled()
+  })
+})
 
 describe('ReleaseVersionMediaSection Phase 90 upload redesign', () => {
   it('keeps the media-card opener reset and preview spacing outside the mobile query', () => {
@@ -145,13 +202,13 @@ describe('ReleaseVersionMediaSection Phase 90 upload redesign', () => {
     expect(css).toContain('width: 100%')
     expect(css).toContain('font: inherit')
   })
-  it('renders one segmented category control and no category dropdown', () => {
+  it('renders one category button group and no category dropdown', () => {
     renderSection(makeMediaState())
 
-    const tablist = screen.getByRole('tablist', { name: 'Medienkategorie' })
+    const categories = screen.getByRole('group', { name: 'Medienkategorie' })
 
-    expect(within(tablist).getAllByRole('tab')).toHaveLength(4)
-    expect(within(tablist).getByRole('tab', { name: /Screenshot 0/i }).getAttribute('aria-selected')).toBe('true')
+    expect(within(categories).getAllByRole('button')).toHaveLength(4)
+    expect(within(categories).getByRole('button', { name: /Screenshot 0/i }).getAttribute('aria-pressed')).toBe('true')
     expect(screen.queryByLabelText('Kategorie')).toBeNull()
   })
 
@@ -168,7 +225,7 @@ describe('ReleaseVersionMediaSection Phase 90 upload redesign', () => {
     expect(screen.getByRole('button', { name: /Screenshot Asset bearbeiten/i })).not.toBeNull()
     expect(screen.queryByRole('button', { name: /Karaoke Asset bearbeiten/i })).toBeNull()
 
-    fireEvent.click(screen.getByRole('tab', { name: /Typesetting \/ Karaoke 1/i }))
+    fireEvent.click(screen.getByRole('button', { name: /Typesetting \/ Karaoke 1/i }))
 
     expect(screen.queryByRole('button', { name: /Screenshot Asset bearbeiten/i })).toBeNull()
     expect(screen.getByRole('button', { name: /Karaoke Asset bearbeiten/i })).not.toBeNull()
@@ -569,7 +626,7 @@ describe('ReleaseVersionMediaSection CR-01 upload failure gating (real hook, moc
   async function openLiveUploadSheetWithFiles(files: File[]) {
     renderLiveSection()
     await waitFor(() => {
-      expect(screen.getByRole('button', { name: /^Hochladen$/ })).toHaveProperty('disabled', false)
+      expect(screen.getByRole('button', { name: /^Screenshot \d+$/ }).getAttribute('aria-haspopup')).toBe('dialog')
     })
     openUploadSheet()
     fireEvent.change(screen.getByLabelText('Dateien'), { target: { files } })
