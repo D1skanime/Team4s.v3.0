@@ -7,6 +7,13 @@ import { ProjectMemberHero } from './ProjectMemberHero'
 vi.mock('@/providers/RoleCatalogProvider', () => ({
   useRoleCatalog: () => ({ roles: [], error: null }),
 }))
+
+// jsdom implementiert Element.prototype.scrollIntoView nicht -- reiner Test-Infra-Stub fuer den
+// scrollToSection-Aufruf der neuen Hero-Sprungmetriken (GAP-02 V6), keine Produktionsaenderung.
+if (typeof Element.prototype.scrollIntoView !== 'function') {
+  Element.prototype.scrollIntoView = vi.fn()
+}
+
 afterEach(cleanup)
 const summary: ProjectMemberSummary = {
   member_id: 1, member_slug: 'example', member_display_name: 'Example Member',
@@ -15,7 +22,7 @@ const summary: ProjectMemberSummary = {
 }
 const props = {
   summary, memberSlug: 'example', groupName: 'Andere Gruppe', animeTitle: 'Anderes Projekt',
-  projectPath: '/fansubs/andere/fansubprojekt/anderes',
+  projectPath: '/fansubs/andere/fansubprojekt/anderes', sectionsRendered: true,
 }
 
 describe('ProjectMemberHero', () => {
@@ -69,5 +76,27 @@ describe('ProjectMemberHero', () => {
     const text = screen.getByLabelText('Projektbeiträge').textContent
     for (const label of labels) expect(text).toContain(label)
     expect(text).not.toContain('Release')
+  })
+
+  it('exposes the notes/media metrics as jump buttons when sectionsRendered is true, and keeps "Folgen" plain text', () => {
+    document.body.innerHTML = '<div id="texte"></div><div id="bilder"></div>'
+    render(<ProjectMemberHero {...props} />)
+    expect(screen.getByRole('button', { name: 'Zu Texte & Notizen springen' })).toBeTruthy()
+    expect(screen.getByRole('button', { name: 'Zu Bilder & Medien springen' })).toBeTruthy()
+    expect(screen.queryByRole('button', { name: /Folgen/ })).toBeNull()
+  })
+
+  it('renders no metric jump buttons at all when sectionsRendered is false', () => {
+    render(<ProjectMemberHero {...props} sectionsRendered={false} />)
+    expect(screen.queryByRole('button')).toBeNull()
+  })
+
+  it('scrolls #texte into view when the "Zu Texte & Notizen springen" button is clicked', () => {
+    document.body.innerHTML = '<div id="texte"></div><div id="bilder"></div>'
+    const texteEl = document.getElementById('texte')!
+    const scrollSpy = vi.spyOn(texteEl, 'scrollIntoView')
+    render(<ProjectMemberHero {...props} />)
+    fireEvent.click(screen.getByRole('button', { name: 'Zu Texte & Notizen springen' }))
+    expect(scrollSpy).toHaveBeenCalled()
   })
 })

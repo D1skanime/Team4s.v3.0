@@ -1,8 +1,9 @@
 // @vitest-environment jsdom
-import { render, screen } from '@testing-library/react'
-import { describe, expect, it } from 'vitest'
+import { fireEvent, render, screen } from '@testing-library/react'
+import { describe, expect, it, vi } from 'vitest'
 
 import { HeroMetrics } from './HeroMetrics'
+import styles from './ui.module.css'
 
 describe('HeroMetrics', () => {
   it('ordnet Bezeichnungen vor den hervorgehobenen Werten an', () => {
@@ -26,4 +27,36 @@ describe('HeroMetrics', () => {
     expect(container.querySelector('dd span')?.getAttribute('aria-hidden')).toBe('true')
   })
 
+  it('renders an item with onActivate as a real Button (variant="text"), clickable and keyboard-focusable', () => {
+    const onActivate = vi.fn()
+    render(
+      <HeroMetrics
+        ariaLabel="Sprung"
+        variant="inline"
+        items={[{ label: 'Beiträge', value: 12, onActivate, activateLabel: 'Zu Beiträge springen' }]}
+      />,
+    )
+
+    const button = screen.getByRole('button', { name: 'Zu Beiträge springen' })
+    fireEvent.click(button)
+    expect(onActivate).toHaveBeenCalledTimes(1)
+
+    button.focus()
+    expect(document.activeElement).toBe(button)
+
+    expect(button.classList.contains(styles.button)).toBe(true)
+    expect(button.classList.contains(styles.buttonText)).toBe(true)
+  })
+
+  it('renders an item without onActivate as plain text, no button at all', () => {
+    render(
+      <HeroMetrics
+        ariaLabel="Kein Sprung"
+        variant="inline"
+        items={[{ label: 'Folgen', value: 13 }]}
+      />,
+    )
+
+    expect(screen.queryByRole('button')).toBeNull()
+  })
 })
