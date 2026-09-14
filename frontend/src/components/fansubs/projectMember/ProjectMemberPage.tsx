@@ -7,7 +7,6 @@ import type { ProjectMemberSummary } from '@/types/projectMember'
 import { ProjectMemberHero } from './ProjectMemberHero'
 import { ProjectMemberMediaGallery } from './ProjectMemberMediaGallery'
 import { ProjectMemberNotesSection } from './ProjectMemberNotesSection'
-import { ProjectMemberStickyNav } from './ProjectMemberStickyNav'
 import styles from './ProjectMemberPage.module.css'
 
 export interface ProjectMemberPageProps {
@@ -23,7 +22,7 @@ export interface ProjectMemberPageProps {
   coverImage?: string | null
 }
 
-// Breadcrumb → compact hero with metrics → navigation → notes and media.
+// Breadcrumb → compact hero with clickable jump metrics → notes and media.
 export function ProjectMemberPage(props: ProjectMemberPageProps) {
   const { summary, memberSlug, groupName, groupSlug, animeTitle, projectPath, animeID, groupID } =
     props
@@ -53,6 +52,7 @@ export function ProjectMemberPage(props: ProjectMemberPageProps) {
           projectPath={projectPath}
           bannerUrl={props.bannerUrl}
           coverImage={props.coverImage}
+          sectionsRendered={!isEmpty}
         />
 
         {isEmpty ? (
@@ -62,8 +62,6 @@ export function ProjectMemberPage(props: ProjectMemberPageProps) {
           </div>
         ) : (
           <>
-            <ProjectMemberStickyNav counts={counts} />
-
             <ProjectMemberNotesSection
               animeID={animeID}
               groupID={groupID}

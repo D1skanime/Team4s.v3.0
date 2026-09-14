@@ -14,6 +14,17 @@ if (typeof Element.prototype.scrollIntoView !== 'function') {
   Element.prototype.scrollIntoView = vi.fn()
 }
 
+// jsdom implementiert window.matchMedia ebenfalls nicht -- gleicher Test-Infra-Grund, da
+// scrollToSection() das prefers-reduced-motion-Feature abfragt.
+if (typeof window.matchMedia !== 'function') {
+  window.matchMedia = ((query: string) => ({
+    matches: false,
+    media: query,
+    addEventListener: vi.fn(),
+    removeEventListener: vi.fn(),
+  })) as typeof window.matchMedia
+}
+
 afterEach(cleanup)
 const summary: ProjectMemberSummary = {
   member_id: 1, member_slug: 'example', member_display_name: 'Example Member',

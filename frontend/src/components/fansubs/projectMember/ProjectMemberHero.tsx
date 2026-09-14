@@ -5,6 +5,7 @@ import { ArtworkHero, Badge, Button, HeroMetrics } from '@/components/ui'
 import { resolveApiUrl } from '@/lib/api'
 import { getCoverUrl } from '@/lib/utils'
 import { presentationForRole } from '@/lib/roleCatalog'
+import { scrollToSection } from '@/lib/scrollToSection'
 import { useRoleCatalog } from '@/providers/RoleCatalogProvider'
 import type { ProjectMemberSummary } from '@/types/projectMember'
 
@@ -19,6 +20,7 @@ interface ProjectMemberHeroProps {
   projectPath: string
   bannerUrl?: string | null
   coverImage?: string | null
+  sectionsRendered: boolean
 }
 
 export function ProjectMemberHero({
@@ -29,6 +31,7 @@ export function ProjectMemberHero({
   projectPath,
   bannerUrl,
   coverImage,
+  sectionsRendered,
 }: ProjectMemberHeroProps) {
   const { roles } = useRoleCatalog('anime_contribution')
   const presentedRoles = summary.role_labels.map((value) => {
@@ -40,8 +43,18 @@ export function ProjectMemberHero({
   const { counts } = summary
   const metrics = [
     { label: counts.episodes === 1 ? 'Folge' : 'Folgen', value: counts.episodes.toLocaleString('de-DE') },
-    { label: counts.notes === 1 ? 'Beitrag' : 'Beiträge', value: counts.notes.toLocaleString('de-DE') },
-    { label: counts.media === 1 ? 'Medium' : 'Medien', value: counts.media.toLocaleString('de-DE') },
+    {
+      label: counts.notes === 1 ? 'Beitrag' : 'Beiträge',
+      value: counts.notes.toLocaleString('de-DE'),
+      onActivate: sectionsRendered ? () => scrollToSection('texte') : undefined,
+      activateLabel: 'Zu Texte & Notizen springen',
+    },
+    {
+      label: counts.media === 1 ? 'Medium' : 'Medien',
+      value: counts.media.toLocaleString('de-DE'),
+      onActivate: sectionsRendered ? () => scrollToSection('bilder') : undefined,
+      activateLabel: 'Zu Bilder & Medien springen',
+    },
   ]
 
   return (

@@ -47,10 +47,10 @@
    -- keine neuen Werte. */
 /* 2. Nachbesserungsrunde, Punkt 3: --surface-card (#fff) liegt sehr nah an --surface-canvas
    (#f6f4ef, der Seitenhintergrund) -- Rand allein reicht nicht zur Abgrenzung. `--shadow-sm` ist
-   bereits exakt der Wert, den .hero/.summary (Statistikleiste)/.stickyNav fuer denselben Zweck
-   nutzen (siehe ProjectMemberStickyNav.module.css) -- kein neuer Wert, nur dieselbe Konsistenz
-   auch fuer die drei Inhaltssektionen. Erzeugt KEIN Card-in-Card: die Notiz-Zeilen/Medien-Kacheln
-   behalten ihre eigene, unveraenderte Optik innerhalb dieser Flaeche. */
+   bereits exakt der Wert, den .hero/.summary (Statistikleiste) fuer denselben Zweck nutzen --
+   kein neuer Wert, nur dieselbe Konsistenz auch fuer die drei Inhaltssektionen. Erzeugt KEIN
+   Card-in-Card: die Notiz-Zeilen/Medien-Kacheln behalten ihre eigene, unveraenderte Optik
+   innerhalb dieser Flaeche. */
 .section {
   margin-top: 32px;
   scroll-margin-top: 72px;
