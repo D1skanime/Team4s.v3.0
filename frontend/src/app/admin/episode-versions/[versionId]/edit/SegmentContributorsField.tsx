@@ -36,7 +36,7 @@ export function SegmentContributorsField({
       <SectionHeader
         level={3}
         title="Mitwirkende am Segment"
-        description="Nur Personen der gewählten Origin sind wählbar. Die Rolle stammt aus dem Origin-Release."
+        description="Nur Personen der gewählten Origin sind wählbar. Die Rolle stammt aus dem Origin-Release. Beim ersten Zuweisen einer gültigen Origin wird die Auswahl automatisch aus deren Mitwirkenden vorbefüllt und bleibt danach frei abwählbar."
       />
       {error ? <p role="alert">{error}</p> : null}
       {isLoading ? (
