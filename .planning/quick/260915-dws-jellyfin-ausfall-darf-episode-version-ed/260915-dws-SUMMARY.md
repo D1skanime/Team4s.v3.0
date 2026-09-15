@@ -35,7 +35,7 @@ key-files:
 key-decisions:
   - "resolveEpisodeVersionFolderPath's Jellyfin-error branch now logs and falls through to the folder_name fallback instead of returning the error, exactly mirroring resolveEpisodeVersionDuration's existing tolerance shape"
   - "jellyfin_enrichment_degraded is additive/omitempty on both the Go struct and the OpenAPI schema (not in required[]), so not-configured and success cases stay byte-identical to pre-plan behavior"
-  - "Live verification token acquired via the real platform-admin fixture account 'admin' (app_user_id=1, admin@team4s.de) with password '123', since the plan's originally-referenced csubs-leader@team4s.local fixture no longer exists in this Keycloak realm (Deviation, Rule 3 equivalent judgment call, no new credentials created)"
+  - "Live verification token acquired via the real platform-admin fixture account 'admin' (app_user_id=1, admin@team4s.de) with the fixture password, since the plan's originally-referenced csubs-leader@team4s.local fixture no longer exists in this Keycloak realm (Deviation, Rule 3 equivalent judgment call, no new credentials created)"
 
 patterns-established:
   - "Any future Jellyfin-optional-enrichment code should follow this same tolerate-and-degrade-with-boolean-flag shape rather than propagating upstream errors as 500s"
@@ -91,7 +91,7 @@ _Note: TDD tasks used a RED-then-GREEN commit-at-GREEN pattern per task, matchin
 
 ## Decisions Made
 - Followed the plan's exact interfaces for the Go signature change, the test fixture (Phase-117 Postgres schema extension with the documented ALTER/CREATE statements plus one addition — `anime_source_links` table — that the plan's own fallback instruction anticipated might be needed and which was in fact required, since `GetAnimeSyncSource`'s plain branch unconditionally calls `loadAnimeSourceLinks`), and the frontend wiring point.
-- Live-verification token: the plan's originally-specified fixture account (`csubs-leader@team4s.local` / `123`) no longer exists in this environment's Keycloak `team4s` realm (confirmed via Keycloak admin API: current realm users are `admin`, `coleader`, `d1sk`, `founder`, `jeahn45`, `qcs`, `timer`, `type`, `über` — a different fixture set than when the referenced prior plans 129-01/139-06 were executed). Used the real platform-admin account `admin` (`app_user_id=1`, `admin@team4s.de`, `is_platform_admin=true`, password `123`, confirmed via `GET /api/v1/me`) instead — no new credentials were created, matching the threat model's `T-260915-04` constraint.
+- Live-verification token: the plan's originally-specified fixture account (`csubs-leader@team4s.local` / `<Fixture-Passwort>`) no longer exists in this environment's Keycloak `team4s` realm (confirmed via Keycloak admin API: current realm users are `admin`, `coleader`, `d1sk`, `founder`, `jeahn45`, `qcs`, `timer`, `type`, `über` — a different fixture set than when the referenced prior plans 129-01/139-06 were executed). Used the real platform-admin account `admin` (`app_user_id=1`, `admin@team4s.de`, `is_platform_admin=true`, password `123`, confirmed via `GET /api/v1/me`) instead — no new credentials were created, matching the threat model's `T-260915-04` constraint.
 
 ## Deviations from Plan
 

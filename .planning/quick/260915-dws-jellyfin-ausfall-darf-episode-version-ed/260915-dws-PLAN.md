@@ -297,7 +297,7 @@ type episodeVersionEditorResolved struct {
     failures). Run `npm run typecheck` and `npm run lint` inside team4sv30-frontend and confirm no new errors.
     For the live proof: obtain a platform-admin access token via the existing Keycloak direct-grant pattern
     (POST http://192.168.235.196:18081/realms/team4s/protocol/openid-connect/token, grant_type=password,
-    client_id=team4s-frontend, username=csubs-leader@team4s.local, password=123 — this is the project's
+    client_id=team4s-frontend, username=csubs-leader@team4s.local, password=<Fixture-Passwort> — this is the project's
     existing, already-provisioned real-database admin fixture account, reused verbatim from prior plans'
     live-verification steps, e.g. 129-01-PLAN.md/139-06-PLAN.md), then curl
     http://192.168.235.196:18092/api/v1/admin/episode-versions/27/editor-context with that bearer token and
