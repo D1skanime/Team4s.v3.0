@@ -3,6 +3,7 @@ package handlers
 import (
 	"bytes"
 	"context"
+	"encoding/json"
 	"errors"
 	"fmt"
 	"io"
@@ -129,5 +130,79 @@ func TestJellyfin12MetadataAdminPreservesLegacyEncoding(t *testing.T) {
 	_, err := jellyfin12MetadataCaller("admin", server.Client(), server.URL)(context.Background(), &target)
 	if err != nil || target.Name != "Prüfung" {
 		t.Fatalf("normalization changed: %q %v", target.Name, err)
+	}
+}
+
+func TestJellyfin12MetadataSeriesExactIDAndBoundedSearch(t *testing.T) {
+	for _, mode := range []string{"lookup", "intake", "search"} {
+		for _, id := range []string{"wanted", "wrong", ""} {
+			t.Run(mode+"/"+id, func(t *testing.T) {
+				calls := 0
+				server := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+					calls++
+					q := r.URL.Query()
+					if q.Get("Recursive") != "true" || q.Get("IncludeItemTypes") != "Series" {
+						t.Error("series scope changed")
+					}
+					fields := q.Get("Fields")
+					for _, invalid := range []string{"ProductionYear", "ImageTags", "BackdropImageTags", "RunTimeTicks"} {
+						if strings.Contains(fields, invalid) {
+							t.Errorf("invalid ItemFields: %s", fields)
+						}
+					}
+					if mode == "search" {
+						if q.Get("Limit") != "7" || q.Get("SearchTerm") != "fixture" {
+							t.Error("bounded title search changed")
+						}
+					} else if q.Get("Ids") != "wanted" || q.Get("Limit") != "1" {
+						t.Error("exact lookup scope changed")
+					}
+					items := []jellyfinSeriesItem{}
+					if id != "" {
+						items = append(items, jellyfinSeriesItem{ID: id, Name: "fixture", ProductionYear: intPtr(2024), ImageTags: map[string]string{"Primary": "tag"}})
+					}
+					json.NewEncoder(w).Encode(map[string]any{"Items": items})
+				}))
+				defer server.Close()
+				h := &AdminContentHandler{httpClient: server.Client(), jellyfinBaseURL: server.URL, jellyfinAPIKey: jellyfin12TestKey}
+				switch mode {
+				case "lookup":
+					item, err := h.getJellyfinSeriesByID(context.Background(), "wanted")
+					if err != nil {
+						t.Fatal(err)
+					}
+					if id == "wanted" {
+						if item == nil || item.ID != "wanted" || item.ProductionYear == nil {
+							t.Fatal("exact series missing")
+						}
+					} else if item != nil {
+						t.Fatal("wrong series accepted")
+					}
+				case "intake":
+					item, err := h.getJellyfinSeriesIntakeDetail(context.Background(), "wanted")
+					if err != nil {
+						t.Fatal(err)
+					}
+					if id == "wanted" {
+						if item == nil || item.ID != "wanted" || item.ImageTags["Primary"] != "tag" {
+							t.Fatal("intake fields missing")
+						}
+					} else if item != nil {
+						t.Fatal("wrong intake series accepted")
+					}
+				case "search":
+					items, err := h.searchJellyfinSeries(context.Background(), " fixture ", 7)
+					if err != nil {
+						t.Fatal(err)
+					}
+					if id != "" && len(items) != 1 {
+						t.Fatal("bounded search results lost")
+					}
+				}
+				if calls != 1 {
+					t.Fatalf("request count=%d", calls)
+				}
+			})
+		}
 	}
 }
