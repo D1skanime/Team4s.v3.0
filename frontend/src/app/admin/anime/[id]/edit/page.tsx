@@ -2,7 +2,7 @@
 
 import Image from "next/image";
 import Link from "next/link";
-import { useEffect, useMemo, useState } from "react";
+import { useCallback, useEffect, useMemo, useState } from "react";
 import { useParams } from "next/navigation";
 
 import { getAnimeByID, getAnimeFansubs, getFansubBySlug } from "@/lib/api";
@@ -67,7 +67,7 @@ function AdminAnimeEditContent() {
     void loadAnime();
   }, [animeID]);
 
-  async function loadFansubs() {
+  const loadFansubs = useCallback(async () => {
     if (!animeID) {
       setFansubs([]);
       return;
@@ -99,11 +99,11 @@ function AdminAnimeEditContent() {
     } finally {
       setIsLoadingFansubs(false);
     }
-  }
+  }, [animeID]);
 
   useEffect(() => {
     void loadFansubs();
-  }, [animeID]);
+  }, [loadFansubs]);
 
   return (
     <main className={styles.page}>

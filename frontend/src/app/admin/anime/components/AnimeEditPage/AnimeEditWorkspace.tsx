@@ -179,28 +179,31 @@ export function AnimeEditWorkspace({
     }
   }, [anime.id, onError])
 
+  const { resetFromAnime } = patch
+  const { candidates: jellyfinCandidates, reviewCandidate } = jellyfinIntake
+
   useEffect(() => {
-    patch.resetFromAnime(anime)
+    resetFromAnime(anime)
     setPersistedAssets(hydratedState.persistedAssets)
     setJellyfinContext(null)
     setVisibleJellyfinAssetSlots(null)
-  }, [anime, hydratedState.persistedAssets, patch.resetFromAnime])
+  }, [anime, hydratedState.persistedAssets, resetFromAnime])
 
   useEffect(() => {
     setVisibleJellyfinAssetSlots(
       jellyfinContext?.asset_slots ? cloneJellyfinAssetSlots(jellyfinContext.asset_slots) : null,
     )
-  }, [jellyfinContext?.source, jellyfinContext?.jellyfin_series_id])
+  }, [jellyfinContext?.source, jellyfinContext?.jellyfin_series_id, jellyfinContext?.asset_slots])
 
   useEffect(() => {
     void refreshAssetContext()
   }, [refreshAssetContext])
 
   useEffect(() => {
-    if (jellyfinIntake.candidates.length === 1) {
-      jellyfinIntake.reviewCandidate(jellyfinIntake.candidates[0].jellyfin_series_id)
+    if (jellyfinCandidates.length === 1) {
+      reviewCandidate(jellyfinCandidates[0].jellyfin_series_id)
     }
-  }, [jellyfinIntake.candidates, jellyfinIntake.reviewCandidate])
+  }, [jellyfinCandidates, reviewCandidate])
 
   const reviewMissingFields: string[] = []
   if (!patch.values.title.trim()) reviewMissingFields.push('Titel')
