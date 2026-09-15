@@ -1516,8 +1516,8 @@ describe('current-file chapter creation assistance', () => {
   }
   it('shows exact timestamps but deliberately adopts nearest seconds in one field without saving', async () => {
     await openChapterCreation()
-    const start = screen.getByRole('combobox', { name: 'Kapitel als Start' })
-    const end = screen.getByRole('combobox', { name: 'Kapitel als Ende' })
+    const start = screen.getByRole('combobox', { name: 'Kapitelmarke als Start' })
+    const end = screen.getByRole('combobox', { name: 'Kapitelmarke als Ende' })
     expect(within(start).getByRole('option', { name: '00:21:38.047 · Ending' })).toBeTruthy()
     expect(within(end).getByRole('option', { name: '00:22:58.043 · Preview' })).toBeTruthy()
     expect(within(start).getByRole('option', { name: '00:00:00.000 · Kapitel 1' })).toBeTruthy()
@@ -1540,10 +1540,86 @@ describe('current-file chapter creation assistance', () => {
     fireEvent.change(start, { target: { value: '0' } })
     expect((screen.getByLabelText('Start') as HTMLInputElement).value).toBe('00:00:00')
   })
+  it('takes the complete Einspiel interval and keeps chosen labels without changing other fields or saving', async () => {
+    await openChapterCreation([{ name: 'Einspiel', start_ms: 0 }, { name: 'Werbung', start_ms: 187395 }])
+    fireEvent.change(screen.getByLabelText('Name (optional)'), { target: { value: 'Eigener Name' } })
+    const type = (screen.getByLabelText('Typ') as HTMLSelectElement).value
+    const range = screen.getByLabelText('Kapitelabschnitt übernehmen') as HTMLSelectElement
+    expect(within(range).getByRole('option', { name: /Einspiel.*00:00:00.000.*00:03:07.395/ })).toBeTruthy()
+    fireEvent.change(range, { target: { value: '0' } })
+    expect((screen.getByLabelText('Start') as HTMLInputElement).value).toBe('00:00:00')
+    expect((screen.getByLabelText('Ende') as HTMLInputElement).value).toBe('00:03:07')
+    expect(range.value).toBe('0')
+    expect((screen.getByLabelText('Kapitelmarke als Start') as HTMLSelectElement).value).toBe('0')
+    expect((screen.getByLabelText('Kapitelmarke als Ende') as HTMLSelectElement).value).toBe('1')
+    expect((screen.getByLabelText('Typ') as HTMLSelectElement).value).toBe(type)
+    expect((screen.getByLabelText('Name (optional)') as HTMLInputElement).value).toBe('Eigener Name')
+    expect((screen.getByLabelText('Von') as HTMLInputElement).value).toBe('3')
+    expect((screen.getByLabelText('Bis') as HTMLInputElement).value).toBe('3')
+    expect(screen.queryByText('Ende muss nach dem Start liegen.')).toBeNull()
+    expect(mockedCreateAnimeSegment).not.toHaveBeenCalled()
+    expect(mockedCreateAdminAnimeTheme).not.toHaveBeenCalled()
+    fireEvent.change(screen.getByLabelText('Ende'), { target: { value: '2:30' } })
+    expect(range.value).toBe('')
+    expect((screen.getByLabelText('Kapitelmarke als Ende') as HTMLSelectElement).value).toBe('')
+    expect((screen.getByLabelText('Kapitelmarke als Start') as HTMLSelectElement).value).toBe('0')
+  })
+  it('retains individual chosen markers and disables an end at or before Start', async () => {
+    await openChapterCreation()
+    const start = screen.getByLabelText('Kapitelmarke als Start') as HTMLSelectElement
+    const end = screen.getByLabelText('Kapitelmarke als Ende') as HTMLSelectElement
+    expect((within(end).getByRole('option', { name: /Kapitel 1/ }) as HTMLOptionElement).disabled).toBe(true)
+    fireEvent.change(start, { target: { value: '1' } })
+    fireEvent.change(end, { target: { value: '2' } })
+    expect(start.value).toBe('1')
+    expect(end.value).toBe('2')
+    fireEvent.change(screen.getByLabelText('Start'), { target: { value: '5' } })
+    expect(start.value).toBe('')
+    expect(end.value).toBe('2')
+  })
+  it.each([1500, undefined])('uses only a known runtime for the last chapter (%s)', async duration => {
+    render(<SegmenteTab animeId={1} groupId={2} version="v1" episodeNumber={3} releaseVariantId={481} durationSeconds={duration} chapterHints={[{ name: 'Preview', start_ms: 1378043 }]} />)
+    fireEvent.click(await screen.findByRole('button', { name: /Segment hinzufügen/ }))
+    const range = screen.getByLabelText('Kapitelabschnitt übernehmen') as HTMLSelectElement
+    const option = within(range).getByRole('option', { name: /Preview/ }) as HTMLOptionElement
+    expect(option.disabled).toBe(duration == null)
+    if (duration != null) {
+      fireEvent.change(range, { target: { value: '0' } })
+      expect((screen.getByLabelText('Start') as HTMLInputElement).value).toBe('00:22:58')
+      expect((screen.getByLabelText('Ende') as HTMLInputElement).value).toBe('00:25:00')
+      expect(range.value).toBe('0')
+    } else {
+      expect(option.textContent).toContain('Ende unbekannt')
+    }
+    expect(mockedCreateAnimeSegment).not.toHaveBeenCalled()
+  })
+  it('skips equal chapter timestamps, preserves the chosen duplicate and rejects rounded-empty intervals', async () => {
+    await openChapterCreation([{ name: 'A', start_ms: 0 }, { name: 'B', start_ms: 0 }, { name: 'Tiny', start_ms: 187100 }, { name: 'Next', start_ms: 187200 }])
+    const range = screen.getByLabelText('Kapitelabschnitt übernehmen') as HTMLSelectElement
+    fireEvent.change(range, { target: { value: '1' } })
+    expect((screen.getByLabelText('Ende') as HTMLInputElement).value).toBe('00:03:07')
+    expect(range.value).toBe('1')
+    expect((screen.getByLabelText('Kapitelmarke als Start') as HTMLSelectElement).value).toBe('1')
+    expect((within(range).getByRole('option', { name: /Tiny/ }) as HTMLOptionElement).disabled).toBe(true)
+  })
+  it('keeps the segment window guard instead of silently truncating a long chapter', async () => {
+    await openChapterCreation([{ name: 'Long', start_ms: 0 }, { name: 'Next', start_ms: 500000 }])
+    fireEvent.change(screen.getByLabelText('Kapitelabschnitt übernehmen'), { target: { value: '0' } })
+    expect((screen.getByLabelText('Ende') as HTMLInputElement).value).toBe('00:08:20')
+    expect(screen.getByText('Segment-Zeitbereich darf maximal 4 Minuten lang sein.')).toBeTruthy()
+    expect((screen.getByRole('button', { name: 'Speichern' }) as HTMLButtonElement).disabled).toBe(true)
+  })
+  it('does not retain a selected chapter identity after hints are replaced', async () => {
+    const view = await openChapterCreation([{ name: 'A', start_ms: 0 }, { name: 'B', start_ms: 100000 }])
+    fireEvent.change(screen.getByLabelText('Kapitelabschnitt übernehmen'), { target: { value: '0' } })
+    await act(async () => { view.rerender(<SegmenteTab animeId={1} groupId={2} version="v1" episodeNumber={3} releaseVariantId={481} durationSeconds={1500} chapterHints={[{ name: 'Other', start_ms: 0 }, { name: 'Changed', start_ms: 100000 }]} />) })
+    expect((screen.getByLabelText('Kapitelabschnitt übernehmen') as HTMLSelectElement).value).toBe('')
+    expect((screen.getByLabelText('Kapitelmarke als Start') as HTMLSelectElement).value).toBe('')
+  })
   it.each([null, []])('distinguishes unavailable versus empty chapters (%s)', async hints => {
     await openChapterCreation(hints)
     expect(screen.getByText(hints === null ? 'Für diese Datei sind keine verlässlichen Kapitelzeiten verfügbar.' : 'Diese Datei enthält keine Kapitel.')).toBeTruthy()
-    expect(screen.queryByRole('combobox', { name: 'Kapitel als Start' })).toBeNull()
+    expect(screen.queryByRole('combobox', { name: 'Kapitelmarke als Start' })).toBeNull()
   })
   it('resets the open creation drawer when the persisted variant changes', async () => {
     const view = await openChapterCreation()
@@ -1554,19 +1630,19 @@ describe('current-file chapter creation assistance', () => {
     mockedGetAnimeSegments.mockResolvedValue({ data: [makeSegment({ id: 61, start_time: '00:00:10', end_time: '00:01:40', source_type: 'none', is_shared: true, assigned_release_version_ids: [481] })] })
     render(<SegmenteTab animeId={1} groupId={2} version="v1" episodeNumber={3} releaseVariantId={481} chapterHints={chapterHints} />)
     fireEvent.click(within(await screen.findByRole('table')).getByTitle('Bearbeiten'))
-    expect(screen.queryByRole('combobox', { name: 'Kapitel als Start' })).toBeNull()
+    expect(screen.queryByRole('combobox', { name: 'Kapitelmarke als Start' })).toBeNull()
     expect(screen.queryByText(/verlässlichen Kapitelzeiten/)).toBeNull()
   })
   it.each(['release_asset', 'jellyfin_theme'])('withholds hints for another playback source (%s)', async sourceType => {
     await openChapterCreation()
     fireEvent.change(screen.getByLabelText('Provenance / Fallback-Wahl'), { target: { value: sourceType } })
-    expect(screen.queryByRole('combobox', { name: 'Kapitel als Start' })).toBeNull()
+    expect(screen.queryByRole('combobox', { name: 'Kapitelmarke als Start' })).toBeNull()
     expect(screen.queryByText(/verlässlichen Kapitelzeiten/)).toBeNull()
     expect(mockedCreateAnimeSegment).not.toHaveBeenCalled()
   })
   it('keeps manual inputs and makes the existing runtime clamp visible', async () => {
     await openChapterCreation([{ name: 'End boundary', start_ms: 1500500 }])
-    fireEvent.change(screen.getByRole('combobox', { name: 'Kapitel als Ende' }), { target: { value: '0' } })
+    fireEvent.change(screen.getByRole('combobox', { name: 'Kapitelmarke als Ende' }), { target: { value: '0' } })
     expect((screen.getByLabelText('Ende') as HTMLInputElement).value).toBe('00:25:01')
     expect(screen.getByText(/Ende liegt über der bekannten Videodauer/)).toBeTruthy()
     fireEvent.blur(screen.getByLabelText('Ende'))

@@ -4,7 +4,7 @@ milestone: v1.4
 milestone_name: Coverage
 status: verifying
 stopped_at: "Quick 260915-m2h technically complete and admin-live verified; Phase 161 human checks unchanged"
-last_updated: "2026-09-15T16:41:56Z"
+last_updated: "2026-09-15T17:18:30Z"
 last_activity: 2026-09-15
 progress:
   total_phases: 24
@@ -18,7 +18,7 @@ progress:
 
 ## Abgeschlossener Quick 260915-m2h — Kapitelhilfe und Dateigröße (15.09.2026)
 
-Jellyfin-Kapitel der eindeutig zugeordneten gespeicherten Datei lassen sich bei neuen Segmenten ausdrücklich als Start/Ende übernehmen; Originalzeit mit Millisekunden, Übernahme gerundet auf ganze Sekunden. Dateigröße kommt aus der gewählten MediaSource. Admin-Editor und persönlicher Release-Workspace sind angebunden, ohne neue SQL-Abfragen oder zusätzliche Requests beim Auswählen. 228 unterschiedliche Frontendtests und 254 Go-Testfälle einschließlich Untertests bestanden; Build/Vet Go bestanden. Nur bekannte globale Typ-/Lint-/Frontend-Buildfehler bleiben. Live mit Admin-Sitzung: Editor 28/43, Workspace 28, 320/390/768/1440px ohne Rootoverflow, Auswählen und Abbrechen ohne Datenänderung. Contributor-Liveprüfung, Browserzoom und reguläre Dashboard-Navigation bleiben eingeschränkt/offen; kein Human-UAT-Sign-off. Details: quick/260915-m2h-kapitelhilfe-und-dateigroesse-im-release/260915-m2h-SUMMARY.md. Codeabschluss 2cee78c9; kein Push.
+Jellyfin-Kapitel der eindeutig zugeordneten gespeicherten Datei lassen sich bei neuen Segmenten ausdrücklich als Start/Ende übernehmen; Originalzeit mit Millisekunden, Übernahme gerundet auf ganze Sekunden. Dateigröße kommt aus der gewählten MediaSource. Admin-Editor und persönlicher Release-Workspace sind angebunden, ohne neue SQL-Abfragen oder zusätzliche Requests beim Auswählen. 228 unterschiedliche Frontendtests und 254 Go-Testfälle einschließlich Untertests bestanden; Build/Vet Go bestanden. Nur bekannte globale Typ-/Lint-/Frontend-Buildfehler bleiben. Live mit Admin-Sitzung: Editor 28/43, Workspace 28, 320/390/768/1440px ohne Rootoverflow, Auswählen und Abbrechen ohne Datenänderung. Contributor-Liveprüfung, Browserzoom und reguläre Dashboard-Navigation bleiben eingeschränkt/offen; kein Human-UAT-Sign-off. Details: quick/260915-m2h-kapitelhilfe-und-dateigroesse-im-release/260915-m2h-SUMMARY.md. Codeabschluss 2cee78c9; kein Push. Bestätigter UAT-Nachtrag: ganze Kapitelabschnitte sowie einzelne Marken getrennt übernehmen; Einspiel ergibt 00:00:00–00:03:07, Auswahl bleibt sichtbar. 167 gezielte Frontend-/Auth-Tests bestanden, Live 320/390/768/1440px geprüft; keine Speicherung oder neue Human-UAT-Abnahme.
 
 ## Aktiver Auftrag — Phase 161: Jellyfin 12 technisch abgeschlossen (15.09.2026)
 
@@ -1640,9 +1640,9 @@ untruncated list lives in `.planning/todos/pending/`.
 
 ## Session Continuity
 
-Last session: 2026-09-15T16:41:56Z
+Last session: 2026-09-15T17:18:30Z
 Stopped at: Quick 260915-m2h completed technically and verified live as admin; Phase 161 independent closure and human checks preserved.
-Last activity: Completed chapter/size quick including direct workspace consumer, responsive editor, focused checks and live admin evidence; all other phase UAT states preserved.
+Last activity: Completed approved chapter-range UAT follow-up: persistent mark selection, whole sections and live Einspiel verification; no application save or push, other phase UAT states preserved.
 Resume file: 
 None
 

@@ -1,5 +1,6 @@
 'use client'
 
+import { useState } from 'react'
 import { Select } from '@/components/ui'
 import type { EpisodeVersionChapterHint } from '@/types/episodeVersion'
 import type { GenericSegmentThemeOption } from './useReleaseSegments'
@@ -34,8 +35,8 @@ interface SegmentBasicFieldsSectionProps {
 /**
  * Typ/Name-Felder plus Episoden- und Zeitbereich (samt Validierungsmeldungen), aus
  * SegmentEditPanel.tsx extrahiert (Phase 156, Plan 156-14, Dateigroessen-Vorgabe aus
- * 156-UAT.md). Reine Praesentationskomponente -- alle Validierungs-Flags werden fertig aus
- * SegmentEditPanel.tsx uebergeben, hier findet keine eigene Berechnung statt.
+ * 156-UAT.md). Validierungs-Flags kommen aus SegmentEditPanel.tsx. Kapitelhilfen
+ * setzen nur Formularzeiten; lokale Auswahlidentitaeten sind keine gespeicherten Segmentdaten.
  */
 export function SegmentBasicFieldsSection({
   chapterHints,
@@ -60,6 +61,53 @@ export function SegmentBasicFieldsSection({
   endSeconds,
   exceedsMaxSegmentWindow,
 }: SegmentBasicFieldsSectionProps) {
+  const [chosen, setChosen] = useState<{
+    start: EpisodeVersionChapterHint | null
+    end: EpisodeVersionChapterHint | null
+    range: EpisodeVersionChapterHint | null
+  }>({ start: null, end: null, range: null })
+  const chapters = chapterHints ?? []
+  const ranges = chapters.map((chapter) => {
+    // Equal markers name the same boundary. Use the next strictly later boundary.
+    const next = chapters.reduce<number | null>((earliest, candidate) =>
+      candidate.start_ms > chapter.start_ms && (earliest == null || candidate.start_ms < earliest)
+        ? candidate.start_ms : earliest, null)
+    const endMs = next ?? (effectiveDuration != null ? effectiveDuration * 1000 : null)
+    const start = Math.round(chapter.start_ms / 1000)
+    const end = endMs == null ? null : Math.round(endMs / 1000)
+    return { chapter, endMs, start, end, available: end != null && end > start && (effectiveDuration == null || end <= effectiveDuration) }
+  })
+  const selectedMark = (chapter: EpisodeVersionChapterHint | null, seconds: number | null) => {
+    const index = chapter == null ? -1 : chapters.indexOf(chapter)
+    return index >= 0 && seconds === Math.round(chapter!.start_ms / 1000) ? String(index) : ''
+  }
+  const selectedRange = ranges.findIndex((range) => range.chapter === chosen.range && range.available && range.start === startSeconds && range.end === endSeconds)
+  const markerSelect = (field: 'start' | 'end') => (
+    <>
+      <label htmlFor={`seg-chapter-${field}`}>Kapitelmarke als {field === 'start' ? 'Start' : 'Ende'}</label>
+      <Select
+        id={`seg-chapter-${field}`}
+        className={styles.chapterSelect}
+        value={selectedMark(chosen[field], field === 'start' ? startSeconds : endSeconds)}
+        onChange={(event) => {
+          if (event.target.value === '') return
+          const chapter = chapters[Number(event.target.value)]
+          if (!chapter) return
+          const seconds = Math.round(chapter.start_ms / 1000)
+          if (field === 'end' && startSeconds != null && seconds <= startSeconds) return
+          setChosen((previous) => ({ ...previous, [field]: chapter, range: null }))
+          onFormChange({ [field === 'start' ? 'startTime' : 'endTime']: formatTimeInput(seconds) })
+        }}
+      >
+        <option value="">Kapitelmarke auswählen</option>
+        {chapters.map((chapter, index) => (
+          <option key={index} value={index} disabled={field === 'end' && startSeconds != null && Math.round(chapter.start_ms / 1000) <= startSeconds}>
+            {formatTimeInput(chapter.start_ms / 1000, true)} · {chapter.name?.trim() ? chapter.name : `Kapitel ${index + 1}`}
+          </option>
+        ))}
+      </Select>
+    </>
+  )
   return (
     <>
       <div className={styles.panelField}>
@@ -149,6 +197,33 @@ export function SegmentBasicFieldsSection({
             : 'Keine reale Laufzeit bekannt — Zeitbereich kann frei eingegeben werden.'}
         </span>
       </div>
+      {showChapterHints && chapters.length > 0 ? (
+        <div className={styles.panelField}>
+          <label htmlFor="seg-chapter-range">Kapitelabschnitt übernehmen</label>
+          <Select
+            id="seg-chapter-range"
+            className={styles.chapterSelect}
+            value={selectedRange >= 0 ? String(selectedRange) : ''}
+            onChange={(event) => {
+              if (event.target.value === '') return
+              const range = ranges[Number(event.target.value)]
+              if (!range?.available || range.end == null) return
+              setChosen({ start: range.chapter, end: chapters.find((chapter) => chapter.start_ms === range.endMs) ?? null, range: range.chapter })
+              onFormChange({ startTime: formatTimeInput(range.start), endTime: formatTimeInput(range.end) })
+            }}
+          >
+            <option value="">Kapitelabschnitt auswählen</option>
+            {ranges.map((range, index) => (
+              <option key={index} value={index} disabled={!range.available}>
+                {range.chapter.name?.trim() ? range.chapter.name : `Kapitel ${index + 1}`} · {formatTimeInput(range.chapter.start_ms / 1000, true)} → {range.endMs == null ? 'Ende unbekannt' : formatTimeInput(range.endMs / 1000, true)}{range.endMs != null && !range.available ? ' (kein gültiger Zeitbereich)' : ''}
+              </option>
+            ))}
+          </Select>
+          <span className={styles.sourceHelpText}>
+            Setzt Start und Ende bis zur nächsten Kapitelmarke. Beim letzten Kapitel wird die bekannte Videodauer verwendet.
+          </span>
+        </div>
+      ) : null}
       <div className={styles.panelFieldRow}>
         <div className={styles.panelField}>
           <label htmlFor="seg-time-start">Start</label>
@@ -165,28 +240,7 @@ export function SegmentBasicFieldsSection({
             }}
             style={isStartTimeError ? { borderColor: '#c0392b' } : undefined}
           />
-          {showChapterHints && chapterHints && chapterHints.length > 0 ? (
-            <>
-              <label htmlFor="seg-chapter-start">Kapitel als Start</label>
-              <Select
-                id="seg-chapter-start"
-                className={styles.chapterSelect}
-                value=""
-                onChange={(event) => {
-                  if (event.target.value === '') return
-                  const chapter = chapterHints[Number(event.target.value)]
-                  if (chapter) onFormChange({ startTime: formatTimeInput(Math.round(chapter.start_ms / 1000)) })
-                }}
-              >
-                <option value="">Kapitel auswählen</option>
-                {chapterHints.map((chapter, index) => (
-                  <option key={index} value={index}>
-                    {formatTimeInput(chapter.start_ms / 1000, true)} · {chapter.name?.trim() ? chapter.name : `Kapitel ${index + 1}`}
-                  </option>
-                ))}
-              </Select>
-            </>
-          ) : null}
+          {showChapterHints && chapters.length > 0 ? markerSelect('start') : null}
           {isStartTimeError ? (
             <span className={styles.assetError} style={{ display: 'block', marginTop: 4 }}>{formError}</span>
           ) : null}
@@ -208,28 +262,7 @@ export function SegmentBasicFieldsSection({
             }}
             style={isEndTimeError ? { borderColor: '#c0392b' } : undefined}
           />
-          {showChapterHints && chapterHints && chapterHints.length > 0 ? (
-            <>
-              <label htmlFor="seg-chapter-end">Kapitel als Ende</label>
-              <Select
-                id="seg-chapter-end"
-                className={styles.chapterSelect}
-                value=""
-                onChange={(event) => {
-                  if (event.target.value === '') return
-                  const chapter = chapterHints[Number(event.target.value)]
-                  if (chapter) onFormChange({ endTime: formatTimeInput(Math.round(chapter.start_ms / 1000)) })
-                }}
-              >
-                <option value="">Kapitel auswählen</option>
-                {chapterHints.map((chapter, index) => (
-                  <option key={index} value={index}>
-                    {formatTimeInput(chapter.start_ms / 1000, true)} · {chapter.name?.trim() ? chapter.name : `Kapitel ${index + 1}`}
-                  </option>
-                ))}
-              </Select>
-            </>
-          ) : null}
+          {showChapterHints && chapters.length > 0 ? markerSelect('end') : null}
           {isEndTimeError ? (
             <span className={styles.assetError} style={{ display: 'block', marginTop: 4 }}>{formError}</span>
           ) : null}
@@ -241,7 +274,7 @@ export function SegmentBasicFieldsSection({
             ? 'Für diese Datei sind keine verlässlichen Kapitelzeiten verfügbar.'
             : chapterHints.length === 0
               ? 'Diese Datei enthält keine Kapitel.'
-              : 'Bei der Übernahme wird auf ganze Sekunden gerundet (z. B. 21:38.047 → 21:38).'}
+              : 'Bei der Übernahme wird auf ganze Sekunden gerundet (z. B. 21:38.047 → 21:38). Endmarken müssen nach dem Start liegen.'}
         </p>
       ) : null}
       {isMissingTimeRange ? (
