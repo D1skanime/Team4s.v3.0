@@ -1505,3 +1505,56 @@ describe('SegmenteTab deletion action', () => {
     expect(screen.queryByTitle('Mehr Aktionen')).toBeNull()
   })
 })
+
+
+describe('current-file chapter creation assistance', () => {
+  const chapterHints = [{ name: null, start_ms: 0 }, { name: 'Ending', start_ms: 1298047 }, { name: 'Preview', start_ms: 1378043 }, { name: 'Half', start_ms: 100500 }]
+  async function openChapterCreation(hints: typeof chapterHints | null = chapterHints) {
+    const view = render(<SegmenteTab animeId={1} groupId={2} version="v1" episodeNumber={3} releaseVariantId={481} durationSeconds={1500} chapterHints={hints} />)
+    fireEvent.click(await screen.findByRole('button', { name: /Segment hinzufügen/ }))
+    return view
+  }
+  it('shows exact timestamps but deliberately adopts nearest seconds in one field without saving', async () => {
+    await openChapterCreation()
+    const start = screen.getByRole('combobox', { name: 'Kapitel als Start' })
+    const end = screen.getByRole('combobox', { name: 'Kapitel als Ende' })
+    expect(within(start).getByRole('option', { name: '00:21:38.047 · Ending' })).toBeTruthy()
+    expect(within(end).getByRole('option', { name: '00:22:58.043 · Preview' })).toBeTruthy()
+    expect(within(start).getByRole('option', { name: '00:00:00.000 · Kapitel 1' })).toBeTruthy()
+    expect(screen.getByText(/Bei der Übernahme wird auf ganze Sekunden gerundet/)).toBeTruthy()
+    fireEvent.change(screen.getByRole('textbox', { name: 'Name (optional)' }), { target: { value: 'Eigener Name' } })
+    const type = (screen.getByLabelText('Typ') as HTMLSelectElement).value
+    fireEvent.change(start, { target: { value: '1' } })
+    expect((screen.getByLabelText('Start') as HTMLInputElement).value).toBe('00:21:38')
+    expect((screen.getByLabelText('Ende') as HTMLInputElement).value).toBe('00:01:20')
+    fireEvent.change(end, { target: { value: '2' } })
+    expect((screen.getByLabelText('Ende') as HTMLInputElement).value).toBe('00:22:58')
+    expect((screen.getByLabelText('Typ') as HTMLSelectElement).value).toBe(type)
+    expect((screen.getByLabelText('Name (optional)') as HTMLInputElement).value).toBe('Eigener Name')
+    expect((screen.getByLabelText('Von') as HTMLInputElement).value).toBe('3')
+    expect(mockedCreateAnimeSegment).not.toHaveBeenCalled()
+    expect(mockedUpdateAnimeSegment).not.toHaveBeenCalled()
+    expect(mockedCreateAdminAnimeTheme).not.toHaveBeenCalled()
+    fireEvent.change(start, { target: { value: '3' } })
+    expect((screen.getByLabelText('Start') as HTMLInputElement).value).toBe('00:01:41')
+    fireEvent.change(start, { target: { value: '0' } })
+    expect((screen.getByLabelText('Start') as HTMLInputElement).value).toBe('00:00:00')
+  })
+  it.each([null, []])('distinguishes unavailable versus empty chapters (%s)', async hints => {
+    await openChapterCreation(hints)
+    expect(screen.getByText(hints === null ? 'Für diese Datei sind keine verlässlichen Kapitelzeiten verfügbar.' : 'Diese Datei enthält keine Kapitel.')).toBeTruthy()
+    expect(screen.queryByRole('combobox', { name: 'Kapitel als Start' })).toBeNull()
+  })
+  it('resets the open creation drawer when the persisted variant changes', async () => {
+    const view = await openChapterCreation()
+    view.rerender(<SegmenteTab animeId={1} groupId={2} version="v1" episodeNumber={4} releaseVariantId={482} chapterHints={chapterHints} />)
+    expect(screen.queryByLabelText('Start')).toBeNull()
+  })
+  it('omits current-file hints for existing shared segments', async () => {
+    mockedGetAnimeSegments.mockResolvedValue({ data: [makeSegment({ id: 61, start_time: '00:00:10', end_time: '00:01:40', source_type: 'none', is_shared: true, assigned_release_version_ids: [481] })] })
+    render(<SegmenteTab animeId={1} groupId={2} version="v1" episodeNumber={3} releaseVariantId={481} chapterHints={chapterHints} />)
+    fireEvent.click(within(await screen.findByRole('table')).getByTitle('Bearbeiten'))
+    expect(screen.queryByRole('combobox', { name: 'Kapitel als Start' })).toBeNull()
+    expect(screen.queryByText(/verlässlichen Kapitelzeiten/)).toBeNull()
+  })
+})
