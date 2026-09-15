@@ -1,0 +1,62 @@
+{
+  "workspace-and-segment-tests": {
+    "command": [
+      "docker",
+      "exec",
+      "-w",
+      "/app",
+      "team4sv30-frontend",
+      "npx",
+      "vitest",
+      "run",
+      "src/app/me/releases/[versionId]/workspace/page.test.tsx",
+      "src/app/admin/episode-versions/[versionId]/edit/SegmenteTab.test.tsx"
+    ],
+    "exit": 0,
+    "seconds": 3.36,
+    "tail": "\n RUN  v3.2.4 /app\n\n ✓ src/app/me/releases/[versionId]/workspace/page.test.tsx (20 tests) 519ms\n ✓ src/app/admin/episode-versions/[versionId]/edit/SegmenteTab.test.tsx (99 tests) 1387ms\n\n Test Files  2 passed (2)\n      Tests  119 passed (119)\n   Start at  16:39:56\n   Duration  2.73s (transform 663ms, setup 155ms, collect 1.50s, tests 1.91s, environment 609ms, prepare 111ms)\n\n"
+  },
+  "workspace-lint": {
+    "command": [
+      "docker",
+      "exec",
+      "-w",
+      "/app",
+      "team4sv30-frontend",
+      "npx",
+      "eslint",
+      "src/app/me/releases/[versionId]/workspace/page.tsx",
+      "src/app/me/releases/[versionId]/workspace/page.test.tsx"
+    ],
+    "exit": 0,
+    "seconds": 2.1,
+    "tail": "\n/app/src/app/me/releases/[versionId]/workspace/page.tsx\n  36:3  warning  'AdjacentReleases' is defined but never used  @typescript-eslint/no-unused-vars\n\n✖ 1 problem (0 errors, 1 warning)\n\n"
+  },
+  "typecheck": {
+    "command": [
+      "docker",
+      "exec",
+      "-w",
+      "/app",
+      "team4sv30-frontend",
+      "npm",
+      "run",
+      "typecheck"
+    ],
+    "exit": 1,
+    "seconds": 2.97,
+    "tail": "\n> team4s-frontend@0.1.0 typecheck\n> tsc --noEmit\n\n.next/dev/types/app/admin/anime/[id]/edit/page.ts(14,13): error TS2344: Type 'OmitWithTag<typeof import(\"/app/src/app/admin/anime/[id]/edit/page\"), \"default\" | \"revalidate\" | \"metadata\" | \"viewport\" | \"dynamic\" | \"runtime\" | \"config\" | \"generateStaticParams\" | \"unstable_prefetch\" | ... 5 more ... | \"generateViewport\", \"\">' does not satisfy the constraint '{ [x: string]: never; }'.\n  Property 'formatEditLoadError' is incompatible with index signature.\n    Type '(error: unknown) => string' is not assignable to type 'never'.\n.next/dev/types/app/admin/anime/page.ts(36,29): error TS2344: Type 'AdminAnimePageProps | undefined' does not satisfy the constraint 'PageProps'.\n  Type 'undefined' is not assignable to type 'PageProps'.\n"
+  },
+  "diff-check": {
+    "command": [
+      "git",
+      "diff",
+      "--check"
+    ],
+    "exit": 0,
+    "seconds": 0.01,
+    "tail": ""
+  },
+  "revision": "2cee78c942eea5f972af37e39a793fe68c18d5d9",
+  "scope": "Root consumer fix and narrow editor CSS follow-up; original frontend/backend/build evidence remains separately revision-scoped. No full lint or production build repeated for these final scoped changes."
+}

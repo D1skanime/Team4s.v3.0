@@ -1,0 +1,22 @@
+{
+  "command": [
+    "docker",
+    "exec",
+    "-w",
+    "/app",
+    "team4sv30-frontend",
+    "npm",
+    "test",
+    "--",
+    "src/app/admin/episode-versions/[versionId]/edit/useEpisodeVersionEditor.test.tsx",
+    "src/app/admin/episode-versions/[versionId]/edit/SegmenteTab.test.tsx",
+    "src/app/admin/episode-versions/[versionId]/edit/episodeVersionEditorUtils.test.ts",
+    "src/lib/api.no-token-boundary.test.ts",
+    "src/types/__tests__/episode-version-contract.test.ts",
+    "src/lib/api.episode-versions.test.ts",
+    "src/lib/api.auth-refresh.test.ts"
+  ],
+  "exit": 0,
+  "seconds": 9.38,
+  "tail": "\n> team4s-frontend@0.1.0 test\n> vitest run src/app/admin/episode-versions/[versionId]/edit/useEpisodeVersionEditor.test.tsx src/app/admin/episode-versions/[versionId]/edit/SegmenteTab.test.tsx src/app/admin/episode-versions/[versionId]/edit/episodeVersionEditorUtils.test.ts src/lib/api.no-token-boundary.test.ts src/types/__tests__/episode-version-contract.test.ts src/lib/api.episode-versions.test.ts src/lib/api.auth-refresh.test.ts\n\n\n RUN  v3.2.4 /app\n\n \u2713 src/lib/api.auth-refresh.test.ts (32 tests) 545ms\n   \u2713 authorized auth refresh flow > retries an idempotent request once after a transient network failure  315ms\n \u2713 src/app/admin/episode-versions/[versionId]/edit/useEpisodeVersionEditor.test.tsx (29 tests) 1919ms\n \u2713 src/lib/api.episode-versions.test.ts (9 tests) 74ms\n \u2713 src/app/admin/episode-versions/[versionId]/edit/episodeVersionEditorUtils.test.ts (26 tests) 12ms\n \u2713 src/lib/api.no-token-boundary.test.ts (9 tests) 519ms\n \u2713 src/types/__tests__/episode-version-contract.test.ts (4 tests) 6ms\n \u2713 src/app/admin/episode-versions/[versionId]/edit/SegmenteTab.test.tsx (99 tests) 4896ms\n   \u2713 SegmenteTab Vorschlag-\u00dcbernahme (Gap 1: assign statt Duplikat) > entfernt den Vorschlag NICHT und legt kein Duplikat an, wenn die Zuweisung fehlschl\u00e4gt  1029ms\n\n Test Files  7 passed (7)\n      Tests  208 passed (208)\n   Start at  16:22:51\n   Duration  8.48s (transform 2.56s, setup 2.97s, collect 5.10s, tests 7.97s, environment 2.51s, prepare 1.48s)\n\n"
+}

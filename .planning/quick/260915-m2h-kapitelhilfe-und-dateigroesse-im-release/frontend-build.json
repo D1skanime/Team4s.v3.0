@@ -1,0 +1,15 @@
+{
+  "command": [
+    "docker",
+    "exec",
+    "-w",
+    "/app",
+    "team4sv30-frontend",
+    "node",
+    "-e",
+    "const fs=require('node:fs'),path=require('node:path'),cp=require('node:child_process');\nconst root=fs.mkdtempSync('/tmp/team4s-quick-m2h-build-');\ntry { for(const e of fs.readdirSync('/app',{withFileTypes:true})) {\n if(['node_modules','.next','.git'].includes(e.name)||e.name.startsWith('.env')) continue;\n fs.cpSync(path.join('/app',e.name),path.join(root,e.name),{recursive:true}); }\n fs.symlinkSync('/app/node_modules',path.join(root,'node_modules'),'dir');\n const r=cp.spawnSync('npm',['run','build','--','--webpack'],{cwd:root,stdio:'inherit',env:{...process.env,NODE_ENV:'production'}});process.exitCode=r.status??1;\n} finally { const resolved=fs.realpathSync(root); if(!resolved.startsWith('/tmp/team4s-quick-m2h-build-')||path.dirname(resolved)!='/tmp') throw new Error('Unsafe build cleanup target');fs.rmSync(resolved,{recursive:true,force:true}); }\n"
+  ],
+  "exit": 1,
+  "seconds": 63.6,
+  "tail": "\n> team4s-frontend@0.1.0 build\n> next build --webpack\n\n\u25b2 Next.js 16.1.6 (webpack)\n\n  Creating an optimized production build ...\n\u2713 Compiled successfully in 31.5s\n  Running TypeScript ...\nFailed to compile.\n\nsrc/app/admin/anime/[id]/edit/page.tsx\nType error: Page \"src/app/admin/anime/[id]/edit/page.tsx\" does not match the required types of a Next.js Page.\n  \"formatEditLoadError\" is not a valid Page export field.\n\nNext.js build worker exited with code: 1 and signal: null\n"
+}

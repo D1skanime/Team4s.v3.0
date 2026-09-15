@@ -3,8 +3,8 @@ gsd_state_version: 1.0
 milestone: v1.4
 milestone_name: Coverage
 status: verifying
-stopped_at: "Phase 161 technically complete; independent 16/16; human live checks pending"
-last_updated: "2026-09-15T16:20:58Z"
+stopped_at: "Quick 260915-m2h technically complete and admin-live verified; Phase 161 human checks unchanged"
+last_updated: "2026-09-15T16:41:56Z"
 last_activity: 2026-09-15
 progress:
   total_phases: 24
@@ -15,6 +15,10 @@ progress:
 ---
 
 # Project State
+
+## Abgeschlossener Quick 260915-m2h — Kapitelhilfe und Dateigröße (15.09.2026)
+
+Jellyfin-Kapitel der eindeutig zugeordneten gespeicherten Datei lassen sich bei neuen Segmenten ausdrücklich als Start/Ende übernehmen; Originalzeit mit Millisekunden, Übernahme gerundet auf ganze Sekunden. Dateigröße kommt aus der gewählten MediaSource. Admin-Editor und persönlicher Release-Workspace sind angebunden, ohne neue SQL-Abfragen oder zusätzliche Requests beim Auswählen. 228 unterschiedliche Frontendtests und 254 Go-Testfälle einschließlich Untertests bestanden; Build/Vet Go bestanden. Nur bekannte globale Typ-/Lint-/Frontend-Buildfehler bleiben. Live mit Admin-Sitzung: Editor 28/43, Workspace 28, 320/390/768/1440px ohne Rootoverflow, Auswählen und Abbrechen ohne Datenänderung. Contributor-Liveprüfung, Browserzoom und reguläre Dashboard-Navigation bleiben eingeschränkt/offen; kein Human-UAT-Sign-off. Details: quick/260915-m2h-kapitelhilfe-und-dateigroesse-im-release/260915-m2h-SUMMARY.md. Codeabschluss 2cee78c9; kein Push.
 
 ## Aktiver Auftrag — Phase 161: Jellyfin 12 technisch abgeschlossen (15.09.2026)
 
@@ -1277,6 +1281,8 @@ Last activity: 2026-09-15
 | 260904-kwf | Falsche Verlinkung im Admin-Medien-Tab behoben: Button "Release-Medien oeffnen" in UserMediaTab.tsx verlinkte auf den Mitwirkenden-Workspace (/me/releases/.../workspace), der ein verifiziertes Member-Profil voraussetzt und fuer reine Plattform-Admins (z. B. app_user_id=1, admin@team4s.de) mit 404/fehlendem Notizen-Tab scheiterte; href auf den bereits vollstaendigen Admin-Editor /admin/episode-versions/.../edit umgestellt (gleicher getEpisodeVersionEditorContext-Endpunkt, gleiche Version-ID), Test in UserMediaTab.test.tsx nachgezogen; die vier Mitwirkenden-seitigen Workspace-Links bewusst unangetastet gelassen | 2026-09-04 | f6a24225 | [260904-kwf-falsche-verlinkung-im-admin-medien-tab-p](./quick/260904-kwf-falsche-verlinkung-im-admin-medien-tab-p/) |
 | 260910-s1b | RFC 7233 Range-Unterstuetzung fuer die Medien-Route ergaenzt (schliesst T-154-F-01/deferred-items.md): parseByteRange-Helfer parst einzelne bytes=-Ranges (geschlossen/offen/Suffix), 206-Antworten streamen per fs.createReadStream+Readable.toWeb statt readFile+Slice, 416 mit Content-Range: bytes */<size> ohne Dateiinhalt bei unerfuellbaren Ranges, Accept-Ranges: bytes neu auf allen Erfolgsantworten, resolvedBase-Pfadpruefung separatoraware gehaertet; isAnimatedWebpSource liest den Body nur noch bei status===206 (WR-01, 154-REVIEW.md) statt bei jedem ok:true. Live-Beweis gegen timers echten animierten Avatar: vorher 200/411828 Bytes, nachher 206/64 Bytes mit Content-Range, plus 416 fuer eine unerfuellbare Range auf derselben Datei. Volle Vitest-Suite 296/1 uebersprungen Dateien, 2285/3 todo Tests, 0 Fehler; Produktionsbuild exit 0. | 2026-09-10 | 7ec8981f | [260910-s1b-http-range-unterst-tzung-f-r-die-medien-](./quick/260910-s1b-http-range-unterst-tzung-f-r-die-medien-/) |
 | 260915-dws | Jellyfin-Ausfall darf den Episode-Version-Editor nicht mehr blockieren: resolveEpisodeVersionFolderPath toleriert jetzt jede Art Jellyfin-Upstream-Fehler (401/403/5xx/Timeout/Netzwerk) statt sie als 500 durchzureichen (Vorbild: resolveEpisodeVersionDuration), faellt auf anime.folder_name zurueck und meldet ein additives jellyfin_enrichment_degraded (Go-Modell, openapi.yaml, TS-Typ); scanEpisodeVersionFolder degradiert bei derselben Stoerung sauber auf 502 statt 500; neues Admin-Editor-Hinweis-Panel JellyfinEnrichmentNotice.tsx zeigt deutschen Text mit echten Umlauten nur bei degraded=true. RED/GREEN je Task bewiesen (4 neue Backend-Subtests, 2 neue Frontend-Tests inkl. temporaerer Wiring-Entfernung fuer echten RED-Nachweis); volle Regression: Backend 666/0/37 (0 neu), Frontend 2714 bestanden/2 vorbestehende dokumentierte cssCustomProperties-Fehlschlaege (0 neu), tsc/ESLint ohne neue Fehler. Live-Beweis gegen die real kaputte Episode-Version 27: HTTP 200 mit jellyfin_enrichment_degraded:true, Backend-Log bestaetigt denselben Vorfall unabhaengig; das im Plan referenzierte Fixture-Konto csubs-leader existierte in diesem Keycloak-Realm nicht mehr, echtes Platform-Admin-Konto admin (app_user_id=1) stattdessen verwendet, keine neuen Credentials angelegt. Browser-Visual-UAT des Hinweis-Panels bewusst nicht durchgefuehrt (offener menschlicher Schritt).; Human-UAT abgenommen 2026-09-15 | 2026-09-15 | b0606257, 062ab76c | [260915-dws-jellyfin-ausfall-darf-episode-version-ed](./quick/260915-dws-jellyfin-ausfall-darf-episode-version-ed/) |
+| 260915-m2h | Kapitel als Start/Ende bei Segmenterstellung anbieten, tatsächliche MediaSource-Dateigröße anzeigen; beide Editoroberflächen, sichere Source-Zuordnung und schmale responsive Korrektur. Technisch und Admin-live geprüft; Contributor-/Zoom-/Navigationsgrenzen dokumentiert. | 2026-09-15 | c7e08f1e, 9d85f8b2, 2cee78c9 | [260915-m2h-kapitelhilfe-und-dateigroesse-im-release](./quick/260915-m2h-kapitelhilfe-und-dateigroesse-im-release/) |
+
 
 ### Verification Baseline
 
@@ -1634,9 +1640,9 @@ untruncated list lives in `.planning/todos/pending/`.
 
 ## Session Continuity
 
-Last session: 2026-09-15T16:20:58Z
-Stopped at: Phase 161 completed technically; independent 16/16; human live checks remain explicit.
-Last activity: Closed Jellyfin 12 source/auth/API gates and both independent findings; separate chapter/size follow-up and all other phase UAT states preserved.
+Last session: 2026-09-15T16:41:56Z
+Stopped at: Quick 260915-m2h completed technically and verified live as admin; Phase 161 independent closure and human checks preserved.
+Last activity: Completed chapter/size quick including direct workspace consumer, responsive editor, focused checks and live admin evidence; all other phase UAT states preserved.
 Resume file: 
 None
 

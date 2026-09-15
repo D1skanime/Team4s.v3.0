@@ -1,0 +1,114 @@
+{
+  "date": "2026-09-15",
+  "method": "Live Codex in-app browser; direct observation and DOM measurements; screenshots inspected inline, not saved as files.",
+  "session": "Existing platform-admin session. A distinct contributor session was not available; no impersonation or account changes.",
+  "application_writes": false,
+  "editor_43": {
+    "route": "/admin/episode-versions/43/edit?tab=segmente",
+    "episode": 7,
+    "file_size_display": "323 MB",
+    "chapter_count": 5,
+    "selected_original_start": "00:22:24.969",
+    "selected_original_end": "00:23:44.965",
+    "result_start": "00:22:25",
+    "result_end": "00:23:45",
+    "save_clicked": false,
+    "draft_cancelled": true
+  },
+  "editor_28": {
+    "route": "/admin/episode-versions/28/edit?tab=segmente",
+    "episode": 2,
+    "file_size_display": "493 MB",
+    "chapter_count": 4,
+    "selected_original_start": "00:00:17.934",
+    "selected_original_end": "00:01:57.951",
+    "result_start": "00:00:18",
+    "result_end": "00:01:58",
+    "title_remained_empty": true,
+    "episode_range_remained": [
+      2,
+      2
+    ],
+    "save_clicked": false,
+    "draft_cancelled": true,
+    "long_provider_title": "Observed; text intentionally omitted from this evidence. Provider labels are inert text, not episode identity."
+  },
+  "responsive": {
+    "editor": 43,
+    "before_fix": {
+      "viewport_width": 390,
+      "document_scroll_width": 723,
+      "overflow_also_present_with_dialog_closed": true
+    },
+    "after_fix": [
+      {
+        "viewport": [
+          320,
+          844
+        ],
+        "document_scroll_width": 305,
+        "chapter_fields": "stacked; approximately 257px wide; End choice works after panel scrolling"
+      },
+      {
+        "viewport": [
+          390,
+          844
+        ],
+        "document_scroll_width": 375,
+        "chapter_fields": "fit; tab strip scrolls locally"
+      },
+      {
+        "viewport": [
+          768,
+          1024
+        ],
+        "document_scroll_width": 753,
+        "visual": "full-page screenshot inspected"
+      },
+      {
+        "viewport": [
+          1440,
+          900
+        ],
+        "document_scroll_width": 1440,
+        "visual": "full-page screenshot inspected"
+      }
+    ],
+    "viewport_overrides_reset": true,
+    "browser_zoom_tested": false
+  },
+  "workspace_28": {
+    "route": "/me/releases/28/workspace?return_to=%2Fme%2Fprojects%2F1%2Fgroup%2F1",
+    "actor": "admin",
+    "chapter_count": 4,
+    "start_choice": "00:00:17.934 -> 00:00:18",
+    "episode_range": [
+      2,
+      2
+    ],
+    "draft_cancelled": true,
+    "warnings_observed": [
+      "Release-Navigation konnte nicht geladen werden",
+      "Member-Profil fehlt"
+    ],
+    "distinct_contributor_live_uat": false
+  },
+  "navigation_limit": {
+    "route": "/me/dashboard",
+    "message": "Dashboard konnte nicht geladen werden",
+    "consequence": "Normal dashboard discovery could not be verified. Existing user-known workspace URL was used. Cause not investigated in this quick; not claimed as a proven pre-existing defect."
+  },
+  "not_performed": [
+    "Save",
+    "Import",
+    "Relink",
+    "Rescan",
+    "Playback",
+    "Render",
+    "Database mutation",
+    "Browser zoom",
+    "Distinct contributor live sign-off"
+  ],
+  "final_browser_route": "/admin/episode-versions/43/edit?tab=segmente",
+  "rounding": "Optional precision question received no reply; previously announced nearest-second working default applied. Exact original milliseconds remain visible. No persisted precision migration."
+}

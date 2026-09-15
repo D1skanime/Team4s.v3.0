@@ -1,0 +1,41 @@
+{
+  "typecheck": {
+    "command": [
+      "docker",
+      "exec",
+      "-w",
+      "/app",
+      "team4sv30-frontend",
+      "npm",
+      "run",
+      "typecheck"
+    ],
+    "exit": 2,
+    "seconds": 28.53,
+    "tail": "\n> team4s-frontend@0.1.0 typecheck\n> tsc --noEmit\n\n.next/dev/types/app/admin/anime/[id]/edit/page.ts(14,13): error TS2344: Type 'OmitWithTag<typeof import(\"/app/src/app/admin/anime/[id]/edit/page\"), \"default\" | \"revalidate\" | \"metadata\" | \"viewport\" | \"dynamic\" | \"runtime\" | \"config\" | \"generateStaticParams\" | \"unstable_prefetch\" | ... 5 more ... | \"generateViewport\", \"\">' does not satisfy the constraint '{ [x: string]: never; }'.\n  Property 'formatEditLoadError' is incompatible with index signature.\n    Type '(error: unknown) => string' is not assignable to type 'never'.\n.next/dev/types/app/admin/anime/page.ts(36,29): error TS2344: Type 'AdminAnimePageProps | undefined' does not satisfy the constraint 'PageProps'.\n  Type 'undefined' is not assignable to type 'PageProps'.\n"
+  },
+  "scoped-lint": {
+    "command": [
+      "docker",
+      "exec",
+      "-w",
+      "/app",
+      "team4sv30-frontend",
+      "./node_modules/.bin/eslint",
+      "src/app/admin/episode-versions/[versionId]/edit/useEpisodeVersionEditor.ts",
+      "src/app/admin/episode-versions/[versionId]/edit/useEpisodeVersionEditor.test.tsx",
+      "src/app/admin/episode-versions/[versionId]/edit/EpisodeVersionEditorPage.tsx",
+      "src/app/admin/episode-versions/[versionId]/edit/SegmenteTab.tsx",
+      "src/app/admin/episode-versions/[versionId]/edit/SegmentEditPanel.tsx",
+      "src/app/admin/episode-versions/[versionId]/edit/SegmentBasicFieldsSection.tsx",
+      "src/app/admin/episode-versions/[versionId]/edit/SegmenteTab.helpers.tsx",
+      "src/app/admin/episode-versions/[versionId]/edit/SegmenteTab.test.tsx",
+      "src/types/episodeVersion.ts",
+      "src/types/__tests__/episode-version-contract.test.ts",
+      "src/lib/api.episode-versions.test.ts"
+    ],
+    "exit": 0,
+    "seconds": 4.61,
+    "tail": "\n/app/src/app/admin/episode-versions/[versionId]/edit/EpisodeVersionEditorPage.tsx\n  586:19  warning  Natives <input> verboten \u2014 nutze <Input> aus @/components/ui (Referenz: /dev/ui-system)  no-restricted-syntax\n  681:23  warning  Natives <input> verboten \u2014 nutze <Input> aus @/components/ui (Referenz: /dev/ui-system)  no-restricted-syntax\n  693:23  warning  Natives <input> verboten \u2014 nutze <Input> aus @/components/ui (Referenz: /dev/ui-system)  no-restricted-syntax\n  743:21  warning  Natives <input> verboten \u2014 nutze <Input> aus @/components/ui (Referenz: /dev/ui-system)  no-restricted-syntax\n  763:21  warning  Natives <input> verboten \u2014 nutze <Input> aus @/components/ui (Referenz: /dev/ui-system)  no-restricted-syntax\n\n/app/src/app/admin/episode-versions/[versionId]/edit/SegmentBasicFieldsSection.tsx\n   67:9   warning  Natives <select> verboten \u2014 nutze <Select> aus @/components/ui (Referenz: /dev/ui-system)  no-restricted-syntax\n   83:9   warning  Natives <input> verboten \u2014 nutze <Input> aus @/components/ui (Referenz: /dev/ui-system)    no-restricted-syntax\n  108:11  warning  Natives <input> verboten \u2014 nutze <Input> aus @/components/ui (Referenz: /dev/ui-system)    no-restricted-syntax\n  119:11  warning  Natives <input> verboten \u2014 nutze <Input> aus @/components/ui (Referenz: /dev/ui-system)    no-restricted-syntax\n  155:11  warning  Natives <input> verboten \u2014 nutze <Input> aus @/components/ui (Referenz: /dev/ui-system)    no-restricted-syntax\n  196:11  warning  Natives <input> verboten \u2014 nutze <Input> aus @/components/ui (Referenz: /dev/ui-system)    no-restricted-syntax\n\n\u2716 11 problems (0 errors, 11 warnings)\n\n"
+  }
+}

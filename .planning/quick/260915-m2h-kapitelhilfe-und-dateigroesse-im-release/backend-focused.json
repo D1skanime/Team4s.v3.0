@@ -1,0 +1,63 @@
+{
+  "focused": {
+    "command": [
+      "docker",
+      "exec",
+      "-e",
+      "TEAM4S_PHASE117_TEST_DSN",
+      "-w",
+      "/app",
+      "team4sv30-backend",
+      "go",
+      "test",
+      "./internal/handlers",
+      "./internal/models",
+      "-run",
+      "Test.*(Jellyfin|EpisodeVersionSource|EpisodeVersionEditorContext|EpisodeVersionContributorContext|EpisodeVersionMediaFiles)",
+      "-count=1",
+      "-timeout=60s",
+      "-json"
+    ],
+    "exit": 0,
+    "seconds": 10.94,
+    "pass": 254,
+    "fail": 0,
+    "skip": 0,
+    "failures": [],
+    "tail": ""
+  },
+  "build": {
+    "command": [
+      "docker",
+      "exec",
+      "-e",
+      "TEAM4S_PHASE117_TEST_DSN",
+      "-w",
+      "/app",
+      "team4sv30-backend",
+      "go",
+      "build",
+      "./..."
+    ],
+    "exit": 0,
+    "seconds": 2.37,
+    "tail": ""
+  },
+  "vet": {
+    "command": [
+      "docker",
+      "exec",
+      "-e",
+      "TEAM4S_PHASE117_TEST_DSN",
+      "-w",
+      "/app",
+      "team4sv30-backend",
+      "go",
+      "vet",
+      "./..."
+    ],
+    "exit": 0,
+    "seconds": 10.66,
+    "tail": ""
+  }
+}
