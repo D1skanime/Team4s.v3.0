@@ -1906,8 +1906,8 @@ Plans:
 
 **Goal:** Die tatsächlich verwendeten Team4s-Jellyfin-Zugriffe funktionieren unter Jellyfin 12 und importieren eine deterministisch zugeordnete MediaSource samt zugehörigem Container, Audio und Untertiteln; keine Secret-URLs, kein N+1 und keine Änderungen anderer Provider.
 **Requirements**: P161-AUTH, P161-API, P161-ITEMS, P161-SOURCE, P161-METADATA, P161-REGRESSION
-**Depends on:** Implementierter Stand 159 und aktueller Repository-Baseline b3b07ff0; Phase 160 wartet ausdrücklich auf diese Reparatur und ist keine Voraussetzung.
-**Plans:** 9 Plans in 8 technischen Wellen; sequenzielle Ausführung im kanonischen Checkout. Discovery und unabhängige Planprüfung abgeschlossen; 6/9 Plans verifiziert, Plan 07 läuft.
+**Depends on:** Implementierter Stand 159 und Repository-Baseline b3b07ff0; Phase 160 war keine Voraussetzung und wurde nicht ausgeführt.
+**Plans:** 9/9 technisch abgeschlossen; unabhängige Verifikation 16/16, keine offene Implementierungslücke. human_needed hält nicht ausgeführte Live-Import-/Relink-/Rescan-/Wiedergabeprüfungen offen.
 
 - [x] 161-01 — Jellyfin-Transport und korrekte Metadatenabfragen
 - [x] 161-02 — Typisierte Quellenbindung und deterministische Auswahl
@@ -1916,7 +1916,8 @@ Plans:
 - [x] 161-05 — Import serverseitig prüfen und atomar speichern
 - [x] 161-06 — Technische Metadaten bei Bearbeitung und Relink erhalten
 - [x] 161-07 — Quellenidentität in Playback, Untertiteln und Rendercache
-- [ ] 161-08 — Öffentliche Metadaten aus derselben Quelle projizieren
-- [ ] 161-09 — Integrierte Verifikation, Live-Belege und Abschlussbericht
+- [x] 161-08 — Öffentliche Metadaten aus derselben Quelle projizieren
+- [x] 161-09 — Integrierte Verifikation, Live-Belege und Abschlussbericht
 **Source:** `.planning/phases/161-jellyfin-12-kompatibilitaet-und-mediasource-import/161-USER-REQUEST.md`
+**Verification:** 161-VERIFICATION.md, 161-VALIDATION.md und docs/audits/2026-09-15-jellyfin12/RESULTS.md. Backendgates 64340e93, Frontendgates 3e410901, gezielte öffentliche DTO-Korrektur 718ebf57; nur bekannte globale Baselinefehler. Kapitel/Dateigröße sind separate Folgearbeit.
 **UI hint:** no redesign; existing release metadata projection only.

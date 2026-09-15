@@ -1,0 +1,462 @@
+{
+  "revision": "64340e93cd30ab19295da74fa32d62fc52af1a45",
+  "case_insensitive": true,
+  "occurrences": [
+    {
+      "file": ".env.example",
+      "line": 25,
+      "classification": "Non-runtime documentation, configuration or tooling reference"
+    },
+    {
+      "file": ".env.example",
+      "line": 30,
+      "classification": "Non-runtime documentation, configuration or tooling reference"
+    },
+    {
+      "file": ".env.example",
+      "line": 39,
+      "classification": "Non-runtime documentation, configuration or tooling reference"
+    },
+    {
+      "file": ".env.example",
+      "line": 43,
+      "classification": "Non-runtime documentation, configuration or tooling reference"
+    },
+    {
+      "file": ".planning/milestones/pre-v1.3-recovery-2026-08-13/phases/03-jellyfin-assisted-intake/03-RESEARCH.md",
+      "line": 313,
+      "classification": "Non-runtime documentation, configuration or tooling reference"
+    },
+    {
+      "file": ".planning/milestones/pre-v1.3-recovery-2026-08-13/phases/98-segmentstream-serverseitig-begrenzter-hls-jellyfin-playback-/98-02-SUMMARY.md",
+      "line": 27,
+      "classification": "Non-runtime documentation, configuration or tooling reference"
+    },
+    {
+      "file": ".planning/milestones/pre-v1.3-recovery-2026-08-13/phases/98-segmentstream-serverseitig-begrenzter-hls-jellyfin-playback-/98-02-SUMMARY.md",
+      "line": 89,
+      "classification": "Non-runtime documentation, configuration or tooling reference"
+    },
+    {
+      "file": ".planning/phases/161-jellyfin-12-kompatibilitaet-und-mediasource-import/161-03-PLAN.md",
+      "line": 76,
+      "classification": "Non-runtime documentation, configuration or tooling reference"
+    },
+    {
+      "file": ".planning/phases/161-jellyfin-12-kompatibilitaet-und-mediasource-import/161-03-PLAN.md",
+      "line": 118,
+      "classification": "Non-runtime documentation, configuration or tooling reference"
+    },
+    {
+      "file": ".planning/phases/161-jellyfin-12-kompatibilitaet-und-mediasource-import/161-09-PLAN.md",
+      "line": 98,
+      "classification": "Non-runtime documentation, configuration or tooling reference"
+    },
+    {
+      "file": ".planning/phases/161-jellyfin-12-kompatibilitaet-und-mediasource-import/161-CALLERS.md",
+      "line": 7,
+      "classification": "Non-runtime documentation, configuration or tooling reference"
+    },
+    {
+      "file": ".planning/phases/161-jellyfin-12-kompatibilitaet-und-mediasource-import/161-CALLERS.md",
+      "line": 48,
+      "classification": "Non-runtime documentation, configuration or tooling reference"
+    },
+    {
+      "file": ".planning/phases/161-jellyfin-12-kompatibilitaet-und-mediasource-import/161-CONTEXT.md",
+      "line": 13,
+      "classification": "Non-runtime documentation, configuration or tooling reference"
+    },
+    {
+      "file": ".planning/phases/161-jellyfin-12-kompatibilitaet-und-mediasource-import/161-PATTERNS.md",
+      "line": 92,
+      "classification": "Non-runtime documentation, configuration or tooling reference"
+    },
+    {
+      "file": ".planning/phases/161-jellyfin-12-kompatibilitaet-und-mediasource-import/161-SOURCE-AUDIT.md",
+      "line": 72,
+      "classification": "Non-runtime documentation, configuration or tooling reference"
+    },
+    {
+      "file": ".planning/phases/161-jellyfin-12-kompatibilitaet-und-mediasource-import/161-USER-REQUEST.md",
+      "line": 16,
+      "classification": "Non-runtime documentation, configuration or tooling reference"
+    },
+    {
+      "file": ".planning/phases/161-jellyfin-12-kompatibilitaet-und-mediasource-import/161-USER-REQUEST.md",
+      "line": 21,
+      "classification": "Non-runtime documentation, configuration or tooling reference"
+    },
+    {
+      "file": ".planning/phases/161-jellyfin-12-kompatibilitaet-und-mediasource-import/161-USER-REQUEST.md",
+      "line": 32,
+      "classification": "Non-runtime documentation, configuration or tooling reference"
+    },
+    {
+      "file": ".planning/phases/161-jellyfin-12-kompatibilitaet-und-mediasource-import/161-USER-REQUEST.md",
+      "line": 77,
+      "classification": "Non-runtime documentation, configuration or tooling reference"
+    },
+    {
+      "file": ".planning/phases/161-jellyfin-12-kompatibilitaet-und-mediasource-import/161-USER-REQUEST.md",
+      "line": 104,
+      "classification": "Non-runtime documentation, configuration or tooling reference"
+    },
+    {
+      "file": ".planning/phases/161-jellyfin-12-kompatibilitaet-und-mediasource-import/161-USER-REQUEST.md",
+      "line": 129,
+      "classification": "Non-runtime documentation, configuration or tooling reference"
+    },
+    {
+      "file": ".planning/phases/161-jellyfin-12-kompatibilitaet-und-mediasource-import/161-USER-REQUEST.md",
+      "line": 380,
+      "classification": "Non-runtime documentation, configuration or tooling reference"
+    },
+    {
+      "file": ".planning/phases/161-jellyfin-12-kompatibilitaet-und-mediasource-import/161-USER-REQUEST.md",
+      "line": 465,
+      "classification": "Non-runtime documentation, configuration or tooling reference"
+    },
+    {
+      "file": ".planning/phases/161-jellyfin-12-kompatibilitaet-und-mediasource-import/161-USER-REQUEST.md",
+      "line": 511,
+      "classification": "Non-runtime documentation, configuration or tooling reference"
+    },
+    {
+      "file": ".planning/phases/161-jellyfin-12-kompatibilitaet-und-mediasource-import/161-USER-REQUEST.md",
+      "line": 620,
+      "classification": "Non-runtime documentation, configuration or tooling reference"
+    },
+    {
+      "file": "README.md",
+      "line": 134,
+      "classification": "Non-runtime documentation, configuration or tooling reference"
+    },
+    {
+      "file": "README.md",
+      "line": 142,
+      "classification": "Non-runtime documentation, configuration or tooling reference"
+    },
+    {
+      "file": "backend/docs/asset-stream-proxy.md",
+      "line": 32,
+      "classification": "Non-runtime documentation, configuration or tooling reference"
+    },
+    {
+      "file": "backend/docs/asset-stream-proxy.md",
+      "line": 69,
+      "classification": "Non-runtime documentation, configuration or tooling reference"
+    },
+    {
+      "file": "backend/docs/asset-stream-proxy.md",
+      "line": 191,
+      "classification": "Non-runtime documentation, configuration or tooling reference"
+    },
+    {
+      "file": "backend/internal/config/config.go",
+      "line": 94,
+      "classification": "Configuration variable/diagnostic name; no credential value or query authentication"
+    },
+    {
+      "file": "backend/internal/config/config.go",
+      "line": 98,
+      "classification": "Configuration variable/diagnostic name; no credential value or query authentication"
+    },
+    {
+      "file": "backend/internal/config/config.go",
+      "line": 130,
+      "classification": "Configuration variable/diagnostic name; no credential value or query authentication"
+    },
+    {
+      "file": "backend/internal/config/config.go",
+      "line": 131,
+      "classification": "Configuration variable/diagnostic name; no credential value or query authentication"
+    },
+    {
+      "file": "backend/internal/handlers/admin_content_test.go",
+      "line": 979,
+      "classification": "Test/fixture; synthetic credentials and provider-specific assertions"
+    },
+    {
+      "file": "backend/internal/handlers/admin_content_test.go",
+      "line": 1008,
+      "classification": "Test/fixture; synthetic credentials and provider-specific assertions"
+    },
+    {
+      "file": "backend/internal/handlers/admin_episode_import_test.go",
+      "line": 591,
+      "classification": "Test/fixture; synthetic credentials and provider-specific assertions"
+    },
+    {
+      "file": "backend/internal/handlers/admin_episode_import_test.go",
+      "line": 695,
+      "classification": "Test/fixture; synthetic credentials and provider-specific assertions"
+    },
+    {
+      "file": "backend/internal/handlers/episode_playback_proxy.go",
+      "line": 36,
+      "classification": "Emby-only playback; unchanged"
+    },
+    {
+      "file": "backend/internal/handlers/episode_version_source_hydration_test.go",
+      "line": 85,
+      "classification": "Test/fixture; synthetic credentials and provider-specific assertions"
+    },
+    {
+      "file": "backend/internal/handlers/episode_version_source_hydration_test.go",
+      "line": 236,
+      "classification": "Test/fixture; synthetic credentials and provider-specific assertions"
+    },
+    {
+      "file": "backend/internal/handlers/episode_version_stream_identity_test.go",
+      "line": 187,
+      "classification": "Test/fixture; synthetic credentials and provider-specific assertions"
+    },
+    {
+      "file": "backend/internal/handlers/episode_version_stream_identity_test.go",
+      "line": 206,
+      "classification": "Test/fixture; synthetic credentials and provider-specific assertions"
+    },
+    {
+      "file": "backend/internal/handlers/fansub_admin.go",
+      "line": 275,
+      "classification": "Emby branch/generic builder used by Emby; Jellyfin uses its shared builder"
+    },
+    {
+      "file": "backend/internal/handlers/fansub_admin.go",
+      "line": 358,
+      "classification": "Emby branch/generic builder used by Emby; Jellyfin uses its shared builder"
+    },
+    {
+      "file": "backend/internal/handlers/jellyfin12_metadata_test.go",
+      "line": 54,
+      "classification": "Test/fixture; synthetic credentials and provider-specific assertions"
+    },
+    {
+      "file": "backend/internal/handlers/jellyfin12_metadata_test.go",
+      "line": 94,
+      "classification": "Test/fixture; synthetic credentials and provider-specific assertions"
+    },
+    {
+      "file": "backend/internal/handlers/jellyfin_search.go",
+      "line": 147,
+      "classification": "Configuration variable/diagnostic name; no credential value or query authentication"
+    },
+    {
+      "file": "backend/internal/handlers/jellyfin_source_batch_test.go",
+      "line": 31,
+      "classification": "Test/fixture; synthetic credentials and provider-specific assertions"
+    },
+    {
+      "file": "backend/internal/handlers/media_proxy_test.go",
+      "line": 43,
+      "classification": "Test/fixture; synthetic credentials and provider-specific assertions"
+    },
+    {
+      "file": "backend/internal/handlers/media_proxy_test.go",
+      "line": 107,
+      "classification": "Test/fixture; synthetic credentials and provider-specific assertions"
+    },
+    {
+      "file": "backend/internal/handlers/media_proxy_test.go",
+      "line": 246,
+      "classification": "Test/fixture; synthetic credentials and provider-specific assertions"
+    },
+    {
+      "file": "backend/internal/handlers/media_proxy_test.go",
+      "line": 370,
+      "classification": "Test/fixture; synthetic credentials and provider-specific assertions"
+    },
+    {
+      "file": "backend/internal/handlers/media_proxy_test.go",
+      "line": 376,
+      "classification": "Test/fixture; synthetic credentials and provider-specific assertions"
+    },
+    {
+      "file": "backend/internal/handlers/media_proxy_test.go",
+      "line": 477,
+      "classification": "Test/fixture; synthetic credentials and provider-specific assertions"
+    },
+    {
+      "file": "backend/internal/handlers/media_proxy_test.go",
+      "line": 529,
+      "classification": "Test/fixture; synthetic credentials and provider-specific assertions"
+    },
+    {
+      "file": "backend/internal/handlers/segment_render_subtitles.go",
+      "line": 219,
+      "classification": "Secret redaction/comment; retained"
+    },
+    {
+      "file": "backend/internal/handlers/segment_render_subtitles_test.go",
+      "line": 205,
+      "classification": "Test/fixture; synthetic credentials and provider-specific assertions"
+    },
+    {
+      "file": "backend/internal/handlers/segment_render_subtitles_test.go",
+      "line": 274,
+      "classification": "Test/fixture; synthetic credentials and provider-specific assertions"
+    },
+    {
+      "file": "backend/internal/handlers/segment_render_worker_test.go",
+      "line": 376,
+      "classification": "Test/fixture; synthetic credentials and provider-specific assertions"
+    },
+    {
+      "file": "backend/internal/handlers/segment_render_worker_test.go",
+      "line": 381,
+      "classification": "Test/fixture; synthetic credentials and provider-specific assertions"
+    },
+    {
+      "file": "backend/internal/jellyfin/request.go",
+      "line": 180,
+      "classification": "Credential stripping allowlist; no credential construction"
+    },
+    {
+      "file": "backend/internal/jellyfin/request_test.go",
+      "line": 39,
+      "classification": "Test/fixture; synthetic credentials and provider-specific assertions"
+    },
+    {
+      "file": "backend/internal/jellyfin/request_test.go",
+      "line": 46,
+      "classification": "Test/fixture; synthetic credentials and provider-specific assertions"
+    },
+    {
+      "file": "backend/internal/jellyfin/request_test.go",
+      "line": 47,
+      "classification": "Test/fixture; synthetic credentials and provider-specific assertions"
+    },
+    {
+      "file": "backend/internal/jellyfin/request_test.go",
+      "line": 63,
+      "classification": "Test/fixture; synthetic credentials and provider-specific assertions"
+    },
+    {
+      "file": "backend/internal/jellyfin/request_test.go",
+      "line": 81,
+      "classification": "Test/fixture; synthetic credentials and provider-specific assertions"
+    },
+    {
+      "file": "backend/internal/jellyfin/request_test.go",
+      "line": 100,
+      "classification": "Test/fixture; synthetic credentials and provider-specific assertions"
+    },
+    {
+      "file": "backend/internal/jellyfin/request_test.go",
+      "line": 142,
+      "classification": "Test/fixture; synthetic credentials and provider-specific assertions"
+    },
+    {
+      "file": "backend/internal/jellyfin/request_test.go",
+      "line": 311,
+      "classification": "Test/fixture; synthetic credentials and provider-specific assertions"
+    },
+    {
+      "file": "backend/internal/jellyfin/request_test.go",
+      "line": 333,
+      "classification": "Test/fixture; synthetic credentials and provider-specific assertions"
+    },
+    {
+      "file": "backend/internal/repository/episode_version_stream_identity_test.go",
+      "line": 85,
+      "classification": "Test/fixture; synthetic credentials and provider-specific assertions"
+    },
+    {
+      "file": "backend/internal/repository/episode_version_stream_identity_test.go",
+      "line": 88,
+      "classification": "Test/fixture; synthetic credentials and provider-specific assertions"
+    },
+    {
+      "file": "backend/internal/repository/episode_version_stream_identity_test.go",
+      "line": 89,
+      "classification": "Test/fixture; synthetic credentials and provider-specific assertions"
+    },
+    {
+      "file": "backend/internal/repository/episode_version_stream_identity_test.go",
+      "line": 90,
+      "classification": "Test/fixture; synthetic credentials and provider-specific assertions"
+    },
+    {
+      "file": "backend/internal/repository/episode_version_stream_identity_test.go",
+      "line": 91,
+      "classification": "Test/fixture; synthetic credentials and provider-specific assertions"
+    },
+    {
+      "file": "backend/internal/repository/episode_version_stream_identity_test.go",
+      "line": 140,
+      "classification": "Test/fixture; synthetic credentials and provider-specific assertions"
+    },
+    {
+      "file": "backend/internal/services/anime_create_enrichment.go",
+      "line": 474,
+      "classification": "Fanart authentication; unchanged"
+    },
+    {
+      "file": "backend/internal/services/segment_render_service.go",
+      "line": 178,
+      "classification": "Secret redaction/comment; retained"
+    },
+    {
+      "file": "backend/internal/services/segment_render_service.go",
+      "line": 179,
+      "classification": "Secret redaction/comment; retained"
+    },
+    {
+      "file": "backend/internal/services/segment_render_service_test.go",
+      "line": 119,
+      "classification": "Test/fixture; synthetic credentials and provider-specific assertions"
+    },
+    {
+      "file": "backend/internal/services/segment_render_service_test.go",
+      "line": 124,
+      "classification": "Test/fixture; synthetic credentials and provider-specific assertions"
+    },
+    {
+      "file": "backend/internal/services/segment_render_service_test.go",
+      "line": 125,
+      "classification": "Test/fixture; synthetic credentials and provider-specific assertions"
+    },
+    {
+      "file": "docker-compose.yml",
+      "line": 133,
+      "classification": "Non-runtime documentation, configuration or tooling reference"
+    },
+    {
+      "file": "docker-compose.yml",
+      "line": 137,
+      "classification": "Non-runtime documentation, configuration or tooling reference"
+    },
+    {
+      "file": "docker-compose.yml",
+      "line": 140,
+      "classification": "Non-runtime documentation, configuration or tooling reference"
+    },
+    {
+      "file": "docker-compose.yml",
+      "line": 141,
+      "classification": "Non-runtime documentation, configuration or tooling reference"
+    },
+    {
+      "file": "docs/audits/2026-09-15-jellyfin12/RESULTS.md",
+      "line": 7,
+      "classification": "Non-runtime documentation, configuration or tooling reference"
+    },
+    {
+      "file": "docs/audits/2026-09-15-jellyfin12/RESULTS.md",
+      "line": 32,
+      "classification": "Non-runtime documentation, configuration or tooling reference"
+    },
+    {
+      "file": "docs/operations/mail-delivery.md",
+      "line": 159,
+      "classification": "Non-runtime documentation, configuration or tooling reference"
+    },
+    {
+      "file": "scripts/check-jellyfin12.py",
+      "line": 39,
+      "classification": "Non-runtime documentation, configuration or tooling reference"
+    }
+  ],
+  "note": "Path/line/classification only; no source text, actual URL, header or key is serialized."
+}

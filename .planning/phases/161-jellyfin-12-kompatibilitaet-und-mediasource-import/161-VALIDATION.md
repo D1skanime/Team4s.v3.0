@@ -1,36 +1,60 @@
 ---
 phase: 161
-status: draft
-nyquist_compliant: false
-wave_0_complete: false
+status: complete
+nyquist_compliant: true
+wave_0_complete: true
+independent_verification: passed
+independent_score: 16/16
+gsd_verification_status: human_needed
+human_uat: pending
+backend_validated_revision: 64340e93cd30ab19295da74fa32d62fc52af1a45
+frontend_validated_revision: 3e4109010268f5dced7c3deb40d4216d238d8cc2
+public_boundary_validated_revision: 718ebf5757693876ec6093f715328298cb6990a9
 ---
-# Validation strategy
+# Phase 161 Validation
 
-The initial focused handler baseline passed with:
-`docker exec -w /app team4sv30-backend go test ./internal/handlers -run 'Test.*(Jellyfin|MediaProxy|GroupAssets|Subtitle|EpisodeImport)' -count=1`.
-Full baseline results are recorded in `docs/audits/2026-09-15-jellyfin12/checks-baseline.json`.
+All required implementation gates executed on the canonical Linux checkout using the existing Compose containers. Phase scope is technically covered; independent verification passed 16/16 with no gaps; human UAT is not signed off. Global failures are compared to the original baseline, not hidden.
 
-## Required gates
+## Required gate results
 
-- Auth, proxy and GetItems httptest assertions, including errors and secret handling.
-- Pure source selection fixtures and the sanitized live 11eyes Episode 1 response.
-- Guarded isolated PostgreSQL persistence/update/read round trips; no application database writes.
-- Public and import contracts, frontend serialization and refresh-only session regressions.
-- Relevant backend tests, build and vet; frontend typecheck, scoped/full lint, tests and isolated build; git diff --check.
-- Read-only live API, semantic GetItems, image, video Range and subtitle checks; shared browser review.
+| Boundary | Executed evidence | Result |
+|---|---|---|
+| Auth/origin/redirect/errors | Shared request, actual metadata/proxy callers and installed FFmpeg tests | PASS; foreign FFmpeg target gets zero requests |
+| Exact source identity | A/B, poisoned item streams, reordered sources, stored-path recovery, vanished/ambiguous source, complete/omitted tracks and all 27 actual 11eyes items | PASS |
+| Import persistence | Guarded PostgreSQL actual graph writes, repeat import, 11-table rollback, ownership and source locks | PASS; no required skip |
+| Editor mutation | Guarded create/relink/metadata-only requests, malicious/foreign/stale input, source scan and frontend race cases | PASS; ordinary metadata save has zero provider requests |
+| Playback/cache | Owned default/explicit source, same video/subtitle/duration, source key before lookup, cachedA/B isolation and worker drift before FFmpeg | PASS |
+| Public technical facts | One selected SQL snapshot, no sibling tracks, 0/1/201 tracks, no-snapshot read and raw unknown language | PASS; one query/one row per consumer |
+| Contracts/UI/auth session | Four changed frontend test files plus central refresh/token-boundary files | 127 PASS; known audio wins, only unknown audio displays Japanisch |
+| Stored URL output | Shared Jellyfin-only sanitizer and DTO mapper; actual Get/List/Create/Update fixtures and authenticated editor read | PASS; stored rows unchanged |
+| Save response reconciliation | Actual server duration/quality on next full/metadata save; preserve in-flight edits and newer file/group drafts | 20 hook + 41 auth tests PASS |
+| Public source-selector privacy | Real bound-row public GET omits selector, authorized source create/update still retains it | 4 top-level / 61 pass events, no skips; contract parse and handler vet PASS |
+| Integrated backend | Six packages, all 277 selected top-level tests from touched files | 554 pass events; 0 fail/skip/not-executed |
+| Integrated frontend | Full suite | 2748 pass; 2 exact baseline CSS failures; 3 existing TODOs |
+| Static/build gates | Backend build/vet, frontend typecheck/lint and isolated production build | No added failures; see baseline table |
+| Live actual API/semantics | 26 bounded GETs; 13 Buddy episodes; 11eyes 27 items / 38 sources / 11 non-items; real distinct MKV/MP4 Range responses | PASS; no live mutation |
+| Runtime/data | 818 backend source/module files at 64340e93 and six audited application table fingerprints | Matched that frozen runtime; tables unchanged |
+| Diagnostic boundaries | Four Python stdlib tests | PASS |
+| Diff | git diff --check | PASS |
 
-## Critical fixtures
+## Baseline accounting
 
-Contrast source A/B and poison item-level streams. Reorder sources; preserve stored binding across ID churn with a unique stable path. Reject vanished or ambiguous bindings. Preserve unknown-language subtitle tracks. Cover files without audio/subtitles, more than 200 group children, mismatched returned IDs, secret-bearing errors/redirects and unaffected Fanart/Emby.
+- Backend broad handlers/repository/services: exactly the original 50 top-level failure headings, none added/removed; 2015 pass events and 277 existing skips. The original baseline and after-06 comparison agree.
+- Frontend typecheck: two unchanged generated Next TS2344 errors (formatEditLoadError export and AdminAnimePageProps).
+- Full lint: identical 341 normalized diagnostics (13 errors / 328 warnings). Changed-file lint: 0 errors / 2 preexisting warnings.
+- Frontend full tests: same two cssCustomProperties.guard.test.ts failures; no new failure.
+- Isolated NODE_ENV=production build compiles and then hits the same preexisting formatEditLoadError Page-export failure.
+- First failed final-gate attempts and corrections 37a9fed0/64340e93 are preserved. No production compatibility code was added for incomplete test schemas.
 
-11eyes Episode 1 must yield three own-source candidates without duplicates. The full live inventory has 27 items and 38 sources; 11 source IDs are not independently addressable items. Do not represent those source IDs as item IDs.
+## Reproducible evidence
 
-## Budgets and evidence limits
+Canonical report: [RESULTS.md](../../../docs/audits/2026-09-15-jellyfin12/RESULTS.md).
+Final exact commands, selected test names, skips, errors and revision: backend-final-checks.json / frontend-final-checks.json in that audit directory. regression-comparison.json records exact failure identity and frontend diagnostics comparison.
 
-No HTTP request per source or stream. Revalidate submitted imports with a bounded batch and document the additional request. Public metadata remains DB-only. Database fixture assertions must execute; skipped tests do not establish persistence correctness.
+Read-only live command: `python3 scripts/check-jellyfin12.py --read-only`. Local boundary command: `PYTHONDONTWRITEBYTECODE=1 python3 -m unittest discover -s scripts/tests -p test_check_jellyfin12.py -v`.
 
-No real provider rescan or live import is authorized. Simulated source-ID churn with stable paths tests the recovery rule but does not prove every possible scan/move. Preserve unrelated human UAT records. Record any remaining human verification separately from technical completion.
+DB tests require TEAM4S_PHASE117_TEST_DSN targeting team4s_phase117_test_161, built from inspected credentials only in memory and passed through the host subprocess environment to `docker exec -e TEAM4S_PHASE117_TEST_DSN`. Fixtures use testsupport.OpenPhase117Postgres and unique guarded schemas. No application data or runtime secrets are copied into evidence.
 
-## D-16 audio fallback regression
+## Limits and independent follow-up
 
-Assert that unknown audio remains null through resolver and persistence but renders as Japanisch in the existing hero. Known audio language wins. Unknown subtitle language receives no Japanese fallback. This presentation default must not be reported as restored provider metadata in the live result.
+No live import/relink/rescan, no automatic all 38-file import, no restoration of old missing snapshots, no human-UAT sign-off. The cold subtitle timeout remains recorded. Source drift is covered; preexisting queued-window/profile drift is not. Browser active-session proof and automated refresh-only-session proof are distinct. Filesize/chapter work is a separate follow-up. [Independent 161-VERIFICATION.md](161-VERIFICATION.md) was written by a verifier who did not implement Phase 161. V161-01 (editor reconciliation) and V161-02 (public selector) are independently closed after their RED/GREEN corrections. Final score: 16/16, technical_status passed, gaps empty; human_needed preserves only the stated live checks. Existing human sign-offs for 156/157 remain valid; open anime UAT for 158/159 remains unchanged.

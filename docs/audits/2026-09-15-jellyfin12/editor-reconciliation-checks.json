@@ -1,0 +1,30 @@
+{
+  "revision": "3e4109010268f5dced7c3deb40d4216d238d8cc2",
+  "red_commit": "e4548ae4",
+  "red": {
+    "tests": 20,
+    "failed": 3,
+    "passed": 17
+  },
+  "green": {
+    "hook_tests": 20,
+    "auth_refresh_tests": 32,
+    "token_boundary_tests": 9,
+    "passed": 61,
+    "failed": 0,
+    "skipped": 0
+  },
+  "scoped_eslint": {
+    "errors": 0,
+    "warnings": 0
+  },
+  "typecheck": "Two existing Next TS2344 errors only; no new errors",
+  "diff_check": "pass",
+  "cases": [
+    "Source A duration10, B serverduration20 and quality2160p: second full and metadata-only save preserve20/2160p and omit binding",
+    "Later title/duration edits stay dirty while untouched fields and baseline use server response",
+    "New file C stays pending even where its fields equal submitted B",
+    "Metadata-only response preserves pending binding/group drafts"
+  ],
+  "limits": "Controlled frontend API response tests; no application data written; existing context-generation route guard retained."
+}

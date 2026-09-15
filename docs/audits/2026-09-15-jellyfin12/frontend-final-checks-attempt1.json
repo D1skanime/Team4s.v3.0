@@ -1,0 +1,103 @@
+{
+  "frontend-typecheck": {
+    "command": [
+      "docker",
+      "exec",
+      "-w",
+      "/app",
+      "team4sv30-frontend",
+      "npm",
+      "run",
+      "typecheck"
+    ],
+    "exit": 2,
+    "seconds": 6.03,
+    "revision": "a4be02240bbd167227efd9eb9e46992fc724faf7",
+    "log": "frontend-typecheck-after.log",
+    "tail": "\n> team4s-frontend@0.1.0 typecheck\n> tsc --noEmit\n\n.next/dev/types/app/admin/anime/[id]/edit/page.ts(14,13): error TS2344: Type 'OmitWithTag<typeof import(\"/app/src/app/admin/anime/[id]/edit/page\"), \"default\" | \"revalidate\" | \"metadata\" | \"viewport\" | \"dynamic\" | \"runtime\" | \"config\" | \"generateStaticParams\" | \"unstable_prefetch\" | ... 5 more ... | \"generateViewport\", \"\">' does not satisfy the constraint '{ [x: string]: never; }'.\n  Property 'formatEditLoadError' is incompatible with index signature.\n    Type '(error: unknown) => string' is not assignable to type 'never'.\n.next/dev/types/app/admin/anime/page.ts(36,29): error TS2344: Type 'AdminAnimePageProps | undefined' does not satisfy the constraint 'PageProps'.\n  Type 'undefined' is not assignable to type 'PageProps'.\n"
+  },
+  "frontend-scoped-lint": {
+    "command": [
+      "docker",
+      "exec",
+      "-w",
+      "/app",
+      "team4sv30-frontend",
+      "npx",
+      "eslint",
+      "src/app/admin/anime/[id]/episodes/import/episodeImportMapping.test.ts",
+      "src/app/admin/anime/[id]/episodes/import/episodeImportMapping.ts",
+      "src/app/admin/anime/[id]/episodes/import/useEpisodeImportBuilder.ts",
+      "src/app/admin/episode-versions/[versionId]/edit/episodeVersionEditorUtils.ts",
+      "src/app/admin/episode-versions/[versionId]/edit/useEpisodeVersionEditor.test.tsx",
+      "src/app/admin/episode-versions/[versionId]/edit/useEpisodeVersionEditor.ts",
+      "src/app/anime/[id]/group/[groupId]/releases/[releaseVersionId]/ReleaseDetailHero.test.tsx",
+      "src/app/anime/[id]/group/[groupId]/releases/[releaseVersionId]/ReleaseDetailHero.tsx",
+      "src/types/episodeImport.ts",
+      "src/types/episodeVersion.ts"
+    ],
+    "exit": 0,
+    "seconds": 3.77,
+    "revision": "a4be02240bbd167227efd9eb9e46992fc724faf7",
+    "log": "frontend-scoped-lint-after.log",
+    "tail": "",
+    "counts": null
+  },
+  "frontend-lint": {
+    "command": [
+      "docker",
+      "exec",
+      "-w",
+      "/app",
+      "team4sv30-frontend",
+      "npm",
+      "run",
+      "lint"
+    ],
+    "exit": 1,
+    "seconds": 46.29,
+    "revision": "a4be02240bbd167227efd9eb9e46992fc724faf7",
+    "log": "frontend-lint-after.log",
+    "tail": "dev/ui-system)  no-restricted-syntax\n\n/app/src/components/contributions/ProposalForm.tsx\n  7:18  warning  'FormField' is defined but never used  @typescript-eslint/no-unused-vars\n\n/app/src/components/editor/RichTextEditor.test.tsx\n  6:30  warning  'config' is defined but never used  @typescript-eslint/no-unused-vars\n\n/app/src/components/editor/StoryImageNodeView.tsx\n  111:11  warning  img elements must have an alt prop, either with meaningful text, or an empty string for decorative images  jsx-a11y/alt-text\n\n/app/src/components/editor/StoryImageToolbarButton.tsx\n  54:9  warning  Image elements must have an alt prop, either with meaningful text, or an empty string for decorative images  jsx-a11y/alt-text\n  57:7  warning  Natives <input> verboten \u2014 nutze <Input> aus @/components/ui (Referenz: /dev/ui-system)                      no-restricted-syntax\n\n/app/src/components/groups/GroupAssetsExperience.tsx\n  162:25  warning  Using `<img>` could result in slower LCP and higher bandwidth. Consider using `<Image />` from `next/image` or a custom image loader to automatically optimize images. This may incur additional usage or cost from your provider. See: https://nextjs.org/docs/messages/no-img-element  @next/next/no-img-element\n  186:29  warning  Using `<img>` could result in slower LCP and higher bandwidth. Consider using `<Image />` from `next/image` or a custom image loader to automatically optimize images. This may incur additional usage or cost from your provider. See: https://nextjs.org/docs/messages/no-img-element  @next/next/no-img-element\n  214:13  warning  Using `<img>` could result in slower LCP and higher bandwidth. Consider using `<Image />` from `next/image` or a custom image loader to automatically optimize images. This may incur additional usage or cost from your provider. See: https://nextjs.org/docs/messages/no-img-element  @next/next/no-img-element\n\n/app/src/components/groups/GroupHistoryForm.tsx\n  173:25  warning  Using `<img>` could result in slower LCP and higher bandwidth. Consider using `<Image />` from `next/image` or a custom image loader to automatically optimize images. This may incur additional usage or cost from your provider. See: https://nextjs.org/docs/messages/no-img-element  @next/next/no-img-element\n\n/app/src/components/groups/GroupHistorySection.tsx\n  603:17  warning  Using `<img>` could result in slower LCP and higher bandwidth. Consider using `<Image />` from `next/image` or a custom image loader to automatically optimize images. This may incur additional usage or cost from your provider. See: https://nextjs.org/docs/messages/no-img-element  @next/next/no-img-element\n\n/app/src/components/media/crop/Team4sCropper.tsx\n  257:13  warning  Natives <input> verboten \u2014 nutze <Input> aus @/components/ui (Referenz: /dev/ui-system)  no-restricted-syntax\n\n/app/src/lib/api.phase108.test.ts\n  6:3  warning  'ApiError' is defined but never used  @typescript-eslint/no-unused-vars\n\n/app/src/types/__tests__/v12-projection-contract.test.ts\n  108:7  warning  'roleProgressTiers' is assigned a value but only used as a type      @typescript-eslint/no-unused-vars\n  115:7  warning  'publicMemberBadgeKeys' is assigned a value but only used as a type  @typescript-eslint/no-unused-vars\n\n/app/tmp-playwright-phase4/cover-ui-smoke.mjs\n  13:16  warning  'waitForText' is defined but never used  @typescript-eslint/no-unused-vars\n\n\u2716 341 problems (13 errors, 328 warnings)\n  0 errors and 1 warning potentially fixable with the `--fix` option.\n\n",
+    "counts": {
+      "total": 341,
+      "errors": 13,
+      "warnings": 328
+    }
+  },
+  "frontend-tests": {
+    "command": [
+      "docker",
+      "exec",
+      "-w",
+      "/app",
+      "team4sv30-frontend",
+      "npm",
+      "test",
+      "--",
+      "--reporter=verbose"
+    ],
+    "exit": 1,
+    "seconds": 109.77,
+    "revision": "a4be02240bbd167227efd9eb9e46992fc724faf7",
+    "log": "frontend-tests-after.log",
+    "tail": ": [\\\"Admin\\\"]\n      summary: \\\"Apply episode import\\\"\n      operationId: \\\"applyEpisodeImport\\\"\n      description: \\\"One selected source per actual Jellyfin item; alternate files without separate items are not guaranteed to be imported. Source path, container, codecs and tracks are provider-derived and server-revalidated at apply/relink. Posted URLs, codecs and languages are not authoritative. Missing projection is incomplete; with streams_complete=true an empty subtitle_tracks array means known no subtitles. Unknown raw language remains null.\\\"\n      security: [{\\\"bearerAuth\\\": []}]\n      parameters: [{\\\"name\\\": \\\"id\\\", \\\"in\\\": \\\"path\\\", \\\"required\\\": true, \\\"schema\\\": {\\\"type\\\": \\\"integer\\\", \\\"format\\\": \\\"int64\\\", \\\"minimum\\\": 1}}]\n      requestBody:\n        required: true\n        content:\n          application/json:\n            schema:\n              $ref: \\\"#/components/schemas/EpisodeImportApplyInput\\\"\n      responses:\n        \\\"200\\\":\n          description: \\\"Episode import apply payload.\\\"\n          content:\n            application/json:\n              schema:\n                $ref: \\\"#/components/schemas/EpisodeImportApplyResponse\\\"\n        \\\"400\\\":\n          description: \\\"Invalid payload or selector.\\\"\n          content:\n            application/json:\n              schema:\n                $ref: \\\"#/components/schemas/ErrorResponse\\\"\n        \\\"401\\\":\n          description: \\\"Authentication required.\\\"\n          content:\n            application/json:\n              schema:\n                $ref: \\\"#/components/schemas/ErrorResponse\\\"\n        \\\"403\\\":\n          description: \\\"Admin permission required.\\\"\n          content:\n            application/json:\n              schema:\n                $ref: \\\"#/components/schemas/ErrorResponse\\\"\n        \\\"404\\\":\n          description: \\\"Anime or episode version not found.\\\"\n          content:\n            application/json:\n              schema:\n                $ref: \\\"#/components/schemas/ErrorResponse\\\"\n        \\\"409\\\":\n          description: \\\"Stale, missing or ambiguous reviewed source; refresh the preview before applying.\\\"\n          content:\n            application/json:\n              schema:\n                $ref: \\\"#/components/schemas/ErrorResponse\\\"\n        \\\"500\\\":\n          description: \\\"Internal server error.\\\"\n          content:\n            application/json:\n              schema:\n                $ref: \\\"#/components/schemas/ErrorResponse\\\"\n        \\\"502\\\":\n          description: \\\"Configured provider request failed.\\\"\n          content:\n            application/json:\n              schema:\n                $ref: \\\"#/components/schemas/ErrorResponse\\\"\n        \\\"503\\\":\n          description: \\\"Required provider or authorization state unavailable.\\\"\n          content:\n            application/json:\n              schema:\n                $ref: \\\"#/components/schemas/ErrorResponse\\\"\"\n\n \u276f src/types/__tests__/v12-projection-contract.test.ts:294:27\n    292|     expect(mediaPath).toContain(\"$ref: \\\"#/components/schemas/MediaOwn\u2026\n    293|     expect(mediaPath).not.toMatch(/\\n\\s+data:/);\n    294|     expect(mediaPath).not.toMatch(/\\n\\s+(post|patch|put|delete):/);\n       |                           ^\n    295|   });\n    296| \n\n\u23af\u23af\u23af\u23af\u23af\u23af\u23af\u23af\u23af\u23af\u23af\u23af\u23af\u23af\u23af\u23af\u23af\u23af\u23af\u23af\u23af\u23af\u23af\u23af[3/3]\u23af\n\n\n Test Files  2 failed | 319 passed | 1 skipped (322)\n      Tests  3 failed | 2742 passed | 3 todo (2748)\n   Start at  15:40:09\n   Duration  109.22s (transform 10.77s, setup 28.52s, collect 79.56s, tests 72.14s, environment 80.24s, prepare 22.81s)\n\n"
+  },
+  "frontend-build": {
+    "command": [
+      "docker",
+      "exec",
+      "-w",
+      "/app",
+      "team4sv30-frontend",
+      "node",
+      "-e",
+      "const fs=require('node:fs'),os=require('node:os'),path=require('node:path'),cp=require('node:child_process');\nconst root=fs.mkdtempSync('/tmp/team4s161-final-build-');\ntry { for(const e of fs.readdirSync('/app',{withFileTypes:true})) {\n if(['node_modules','.next','.git'].includes(e.name)||e.name.startsWith('.env')) continue;\n fs.cpSync(path.join('/app',e.name),path.join(root,e.name),{recursive:true}); }\n fs.symlinkSync('/app/node_modules',path.join(root,'node_modules'),'dir');\n const r=cp.spawnSync('npm',['run','build','--','--webpack'],{cwd:root,stdio:'inherit',env:process.env});process.exitCode=r.status??1;\n} finally { const resolved=fs.realpathSync(root); if(!resolved.startsWith('/tmp/team4s161-final-build-')||path.dirname(resolved)!='/tmp') throw new Error('Unsafe build cleanup target');fs.rmSync(resolved,{recursive:true,force:true}); }\n"
+    ],
+    "exit": 1,
+    "seconds": 45.08,
+    "revision": "a4be02240bbd167227efd9eb9e46992fc724faf7",
+    "log": "frontend-build-after.log",
+    "tail": "\n> team4s-frontend@0.1.0 build\n> next build --webpack\n\n\u26a0 You are using a non-standard \"NODE_ENV\" value in your environment. This creates inconsistencies in the project and is strongly advised against. Read more: https://nextjs.org/docs/messages/non-standard-node-env\n\u25b2 Next.js 16.1.6 (webpack)\n\n  Creating an optimized production build ...\n\u2713 Compiled successfully in 21.1s\n  Running TypeScript ...\nFailed to compile.\n\nsrc/app/admin/anime/[id]/edit/page.tsx\nType error: Page \"src/app/admin/anime/[id]/edit/page.tsx\" does not match the required types of a Next.js Page.\n  \"formatEditLoadError\" is not a valid Page export field.\n\nNext.js build worker exited with code: 1 and signal: null\n"
+  }
+}

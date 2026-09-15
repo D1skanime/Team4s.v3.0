@@ -1,0 +1,7 @@
+{
+  "revision": "64340e93cd30ab19295da74fa32d62fc52af1a45",
+  "checked_files": 818,
+  "mismatches": [],
+  "source_tree_sha256": "fd5c9e1ce6f08432107079b86a7fa382bf2419c25f40714dc4abe7dd9ccd6d86",
+  "scope": "All tracked backend Go files plus go.mod/go.sum versus active container /app; no config/media content read."
+}

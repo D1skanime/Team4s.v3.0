@@ -1,0 +1,809 @@
+{
+  "baseline": "b3b07ff0",
+  "commits": [
+    {
+      "commit": "d50b00f392b1e1c92405ebb2ff01fba500a83afa",
+      "subject": "docs(161): verify Jellyfin 12 discovery and execution plans",
+      "files": [
+        ".planning/REQUIREMENTS.md",
+        ".planning/ROADMAP.md",
+        ".planning/STATE.md",
+        ".planning/phases/161-jellyfin-12-kompatibilitaet-und-mediasource-import/.gitkeep",
+        ".planning/phases/161-jellyfin-12-kompatibilitaet-und-mediasource-import/161-01-PLAN.md",
+        ".planning/phases/161-jellyfin-12-kompatibilitaet-und-mediasource-import/161-02-PLAN.md",
+        ".planning/phases/161-jellyfin-12-kompatibilitaet-und-mediasource-import/161-03-PLAN.md",
+        ".planning/phases/161-jellyfin-12-kompatibilitaet-und-mediasource-import/161-04-PLAN.md",
+        ".planning/phases/161-jellyfin-12-kompatibilitaet-und-mediasource-import/161-05-PLAN.md",
+        ".planning/phases/161-jellyfin-12-kompatibilitaet-und-mediasource-import/161-06-PLAN.md",
+        ".planning/phases/161-jellyfin-12-kompatibilitaet-und-mediasource-import/161-07-PLAN.md",
+        ".planning/phases/161-jellyfin-12-kompatibilitaet-und-mediasource-import/161-08-PLAN.md",
+        ".planning/phases/161-jellyfin-12-kompatibilitaet-und-mediasource-import/161-09-PLAN.md",
+        ".planning/phases/161-jellyfin-12-kompatibilitaet-und-mediasource-import/161-CALLERS.md",
+        ".planning/phases/161-jellyfin-12-kompatibilitaet-und-mediasource-import/161-CONTEXT.md",
+        ".planning/phases/161-jellyfin-12-kompatibilitaet-und-mediasource-import/161-MEDIASOURCE-RESEARCH.md",
+        ".planning/phases/161-jellyfin-12-kompatibilitaet-und-mediasource-import/161-PATTERNS.md",
+        ".planning/phases/161-jellyfin-12-kompatibilitaet-und-mediasource-import/161-PLAN-CHECK.md",
+        ".planning/phases/161-jellyfin-12-kompatibilitaet-und-mediasource-import/161-RESEARCH.md",
+        ".planning/phases/161-jellyfin-12-kompatibilitaet-und-mediasource-import/161-SOURCE-AUDIT.md",
+        ".planning/phases/161-jellyfin-12-kompatibilitaet-und-mediasource-import/161-UI-SPEC.md",
+        ".planning/phases/161-jellyfin-12-kompatibilitaet-und-mediasource-import/161-USER-REQUEST.md",
+        ".planning/phases/161-jellyfin-12-kompatibilitaet-und-mediasource-import/161-VALIDATION.md",
+        "docs/audits/2026-09-15-jellyfin12/BASELINE.md",
+        "docs/audits/2026-09-15-jellyfin12/api-key-occurrences.json",
+        "docs/audits/2026-09-15-jellyfin12/backend-gates-baseline.json",
+        "docs/audits/2026-09-15-jellyfin12/browser-baseline.json",
+        "docs/audits/2026-09-15-jellyfin12/checks-baseline.json",
+        "docs/audits/2026-09-15-jellyfin12/discovery-11eyes-completeness.json",
+        "docs/audits/2026-09-15-jellyfin12/discovery-11eyes-coverage.json",
+        "docs/audits/2026-09-15-jellyfin12/discovery-11eyes.json",
+        "docs/audits/2026-09-15-jellyfin12/discovery-live.json",
+        "docs/audits/2026-09-15-jellyfin12/discovery-media-requests.json",
+        "docs/audits/2026-09-15-jellyfin12/extended-checks-baseline.json",
+        "docs/audits/2026-09-15-jellyfin12/ffmpeg-http-options.txt",
+        "docs/audits/2026-09-15-jellyfin12/ffmpeg-redirect-baseline.json",
+        "docs/audits/2026-09-15-jellyfin12/fixtures/11eyes-episode1.json",
+        "docs/audits/2026-09-15-jellyfin12/fixtures/11eyes-series.json",
+        "docs/audits/2026-09-15-jellyfin12/openapi-used-endpoints.json"
+      ]
+    },
+    {
+      "commit": "9412efbe96c8f8ecaf6abe3bca8fcbb7222af354",
+      "subject": "test(161-01): define Jellyfin request security boundary",
+      "files": [
+        "backend/internal/jellyfin/request_test.go"
+      ]
+    },
+    {
+      "commit": "8b940181fb0d0842782eb6242899e3bbcc51e115",
+      "subject": "feat(161-01): implement origin-bound Jellyfin header authentication",
+      "files": [
+        "backend/internal/jellyfin/request.go",
+        "backend/internal/jellyfin/request_test.go"
+      ]
+    },
+    {
+      "commit": "972b26adfab489fd28f5574a9c2dcb3985e0c0cd",
+      "subject": "test(161-01): capture metadata owner authentication and failures",
+      "files": [
+        "backend/internal/handlers/jellyfin12_metadata_test.go"
+      ]
+    },
+    {
+      "commit": "cb8603b8778ba5db28db7bcc998d7b86ee6d996e",
+      "subject": "feat(161-01): route metadata owners through Jellyfin header transport",
+      "files": [
+        "backend/internal/handlers/anime_backdrops_client.go",
+        "backend/internal/handlers/group_assets_jellyfin.go",
+        "backend/internal/handlers/group_assets_jellyfin_test.go",
+        "backend/internal/handlers/jellyfin_client.go"
+      ]
+    },
+    {
+      "commit": "9c38ef568772e5fd22bb4bea6c80bbf727034eee",
+      "subject": "test(161-01): expose group paging and exact item query regressions",
+      "files": [
+        "backend/internal/handlers/group_assets_jellyfin_test.go",
+        "backend/internal/handlers/jellyfin12_metadata_test.go"
+      ]
+    },
+    {
+      "commit": "29a0ab7f029d458e893ef3fd5c9a0b92439c9dd0",
+      "subject": "feat(161-01): enforce complete group pagination and exact item lookup",
+      "files": [
+        "backend/internal/handlers/admin_content_test.go",
+        "backend/internal/handlers/group_assets_jellyfin.go",
+        "backend/internal/handlers/jellyfin_client_series.go"
+      ]
+    },
+    {
+      "commit": "9818a5a134e22a2fac032225a5a5851841c9f03b",
+      "subject": "docs(161-01): complete Jellyfin authentication and query plan",
+      "files": [
+        ".planning/phases/161-jellyfin-12-kompatibilitaet-und-mediasource-import/161-01-SUMMARY.md"
+      ]
+    },
+    {
+      "commit": "47f41b66451503aab07d0dfc99554a1d9960efa7",
+      "subject": "docs(161): record transport verification and audio display default",
+      "files": [
+        ".planning/REQUIREMENTS.md",
+        ".planning/ROADMAP.md",
+        ".planning/STATE.md",
+        ".planning/phases/161-jellyfin-12-kompatibilitaet-und-mediasource-import/161-02-PLAN.md",
+        ".planning/phases/161-jellyfin-12-kompatibilitaet-und-mediasource-import/161-04-PLAN.md",
+        ".planning/phases/161-jellyfin-12-kompatibilitaet-und-mediasource-import/161-08-PLAN.md",
+        ".planning/phases/161-jellyfin-12-kompatibilitaet-und-mediasource-import/161-CONTEXT.md",
+        ".planning/phases/161-jellyfin-12-kompatibilitaet-und-mediasource-import/161-PLAN-CHECK.md",
+        ".planning/phases/161-jellyfin-12-kompatibilitaet-und-mediasource-import/161-RESEARCH.md",
+        ".planning/phases/161-jellyfin-12-kompatibilitaet-und-mediasource-import/161-SOURCE-AUDIT.md",
+        ".planning/phases/161-jellyfin-12-kompatibilitaet-und-mediasource-import/161-UI-SPEC.md",
+        ".planning/phases/161-jellyfin-12-kompatibilitaet-und-mediasource-import/161-VALIDATION.md",
+        "DECISIONS.md",
+        "docs/audits/2026-09-15-jellyfin12/backend-runtime-source-comparison.json",
+        "docs/audits/2026-09-15-jellyfin12/team4s-api-baseline.json"
+      ]
+    },
+    {
+      "commit": "2bdfc47031034b0b47d55291fac966d737280011",
+      "subject": "test(161-02): define coherent source snapshots and resolution rules",
+      "files": [
+        "backend/internal/handlers/jellyfin_media_source_test.go",
+        "backend/internal/models/jellyfin_source_test.go"
+      ]
+    },
+    {
+      "commit": "3fb37cd1e6ced7c4bbd32502336b5476131ae1f0",
+      "subject": "feat(161-02): resolve and snapshot one coherent Jellyfin source",
+      "files": [
+        "backend/internal/handlers/jellyfin_client.go",
+        "backend/internal/handlers/jellyfin_media_source.go",
+        "backend/internal/handlers/jellyfin_media_source_test.go",
+        "backend/internal/models/jellyfin_source.go",
+        "backend/internal/models/jellyfin_source_test.go"
+      ]
+    },
+    {
+      "commit": "0dc462003b9250ca43fd5cb15265248eac6cfc9b",
+      "subject": "style(161-02): format source resolver and fixture coverage",
+      "files": [
+        "backend/internal/handlers/jellyfin_client.go",
+        "backend/internal/handlers/jellyfin_media_source.go",
+        "backend/internal/handlers/jellyfin_media_source_test.go",
+        "backend/internal/models/jellyfin_source.go"
+      ]
+    },
+    {
+      "commit": "52c402db12f35f1ef744ae5de9a3a6e9f722e82f",
+      "subject": "test(161-02): define exact bounded source hydration and duration",
+      "files": [
+        "backend/internal/handlers/jellyfin_source_batch_test.go"
+      ]
+    },
+    {
+      "commit": "a72737f46f5d34f2fcf31030cd2c21c003e20f62",
+      "subject": "feat(161-02): hydrate exact Jellyfin items in bounded source batches",
+      "files": [
+        "backend/internal/handlers/admin_content_test.go",
+        "backend/internal/handlers/jellyfin_client.go",
+        "backend/internal/handlers/jellyfin_source_batch.go"
+      ]
+    },
+    {
+      "commit": "c674e12329a49e4c24fe7caec2e307689bb2f9a8",
+      "subject": "docs(161-02): verify source hydration and record isolated database checks",
+      "files": [
+        ".planning/ROADMAP.md",
+        ".planning/STATE.md",
+        ".planning/phases/161-jellyfin-12-kompatibilitaet-und-mediasource-import/161-02-SUMMARY.md",
+        ".planning/phases/161-jellyfin-12-kompatibilitaet-und-mediasource-import/161-EXECUTION-NOTES.md",
+        "docs/audits/2026-09-15-jellyfin12/11eyes-ownership-fields.json",
+        "docs/audits/2026-09-15-jellyfin12/plan02-checks.json"
+      ]
+    },
+    {
+      "commit": "dee7e0fabaddbf7c17def1f4a3103e54b71b1359",
+      "subject": "test(161-03): cover provider-specific proxy authentication and redirects",
+      "files": [
+        "backend/internal/handlers/media_proxy_test.go"
+      ]
+    },
+    {
+      "commit": "20ed14fe3f7099d3ce0214d03308a1bf8a20e05d",
+      "subject": "feat(161-03): authenticate Jellyfin image and video proxies by origin",
+      "files": [
+        "backend/internal/handlers/episode_version_media_image.go",
+        "backend/internal/handlers/episode_version_media_video.go",
+        "backend/internal/handlers/fansub_admin.go",
+        "backend/internal/jellyfin/request.go",
+        "backend/internal/jellyfin/request_test.go"
+      ]
+    },
+    {
+      "commit": "89d4d377b3ceff4239d3fd3213987fd1b3a27034",
+      "subject": "docs(161): record runtime watcher and application data fingerprints",
+      "files": [
+        ".planning/phases/161-jellyfin-12-kompatibilitaet-und-mediasource-import/161-01-SUMMARY.md",
+        ".planning/phases/161-jellyfin-12-kompatibilitaet-und-mediasource-import/161-02-SUMMARY.md",
+        ".planning/phases/161-jellyfin-12-kompatibilitaet-und-mediasource-import/161-EXECUTION-NOTES.md",
+        "docs/audits/2026-09-15-jellyfin12/application-rows-before.json",
+        "docs/audits/2026-09-15-jellyfin12/runtime-source-watch.json"
+      ]
+    },
+    {
+      "commit": "000c9b8cfd037e1e0c5f9029bedf4dd655a51577",
+      "subject": "test(161-03): prove streaming auth without weakening grants or ownership",
+      "files": [
+        "backend/internal/handlers/episode_version_stream_identity_test.go",
+        "backend/internal/handlers/media_proxy_test.go"
+      ]
+    },
+    {
+      "commit": "e83461aba49accae86b88ee6b1b827f18bb54f5f",
+      "subject": "feat(161-03): authenticate release and protected asset streaming",
+      "files": [
+        "backend/internal/handlers/asset_stream_handler.go",
+        "backend/internal/handlers/episode_version_stream.go"
+      ]
+    },
+    {
+      "commit": "60e7dfab8a8820b961e9e86ddfc3743333561109",
+      "subject": "test(161-03): prove subtitle and executable FFmpeg auth boundaries",
+      "files": [
+        "backend/internal/handlers/segment_render_subtitles_test.go",
+        "backend/internal/handlers/segment_render_worker_test.go",
+        "backend/internal/services/segment_render_service_test.go"
+      ]
+    },
+    {
+      "commit": "bf382ebdcc7e2eaff38a048e4a6d42473b0ab2c8",
+      "subject": "feat(161-03): authenticate subtitle and FFmpeg inputs without redirects",
+      "files": [
+        "backend/internal/handlers/admin_content_episode_version_editor_helpers.go",
+        "backend/internal/handlers/admin_content_test.go",
+        "backend/internal/handlers/segment_render_subtitles.go",
+        "backend/internal/handlers/segment_render_worker.go",
+        "backend/internal/services/segment_render_service.go"
+      ]
+    },
+    {
+      "commit": "2ab2713b75cc7921a56b2f6c1032ffa42e32aaf8",
+      "subject": "fix(161-03): reject credential-bearing foreign Jellyfin fallbacks",
+      "files": [
+        "backend/internal/handlers/fansub_admin.go",
+        "backend/internal/handlers/media_proxy_test.go"
+      ]
+    },
+    {
+      "commit": "cc8ba6724fd81795a94f5717697339d0262c36ce",
+      "subject": "docs(161-03): complete binary and renderer authentication plan",
+      "files": [
+        ".planning/phases/161-jellyfin-12-kompatibilitaet-und-mediasource-import/161-03-SUMMARY.md"
+      ]
+    },
+    {
+      "commit": "3f1a8252d2c5e65453ef953c04da24f76fdfb609",
+      "subject": "docs(161): advance verified transport work to import contracts",
+      "files": [
+        ".planning/ROADMAP.md",
+        ".planning/STATE.md"
+      ]
+    },
+    {
+      "commit": "fb69c3742c0ef7956c80387940418b7a9a4b1e31",
+      "subject": "docs(161): classify remaining provider query authentication",
+      "files": [
+        "docs/audits/2026-09-15-jellyfin12/transport-source-coverage.json"
+      ]
+    },
+    {
+      "commit": "de3b2f9b649be1d7aa053516cc9a07b4accad8e1",
+      "subject": "test(161-04): specify reviewed source and private hydration contracts",
+      "files": [
+        "backend/internal/models/jellyfin_source_contract_test.go"
+      ]
+    },
+    {
+      "commit": "4596c16b15a825d31deab192ccd01506705a8608",
+      "subject": "feat(161-04): add reviewed source DTOs and server-only hydration",
+      "files": [
+        "backend/internal/models/episode_import.go",
+        "backend/internal/models/episode_version.go",
+        "backend/internal/models/jellyfin_source_contract_test.go",
+        "frontend/src/types/episodeImport.ts",
+        "frontend/src/types/episodeVersion.ts"
+      ]
+    },
+    {
+      "commit": "236817ae5260997634ef5a51c80dc548f517cda7",
+      "subject": "test(161-04): require source parity across API schemas and TypeScript",
+      "files": [
+        "backend/internal/models/jellyfin_source_contract_test.go"
+      ]
+    },
+    {
+      "commit": "40d971ad7bcddb0f3542e8d6108f457654097f16",
+      "subject": "feat(161-04): align import and editor source API contracts",
+      "files": [
+        "backend/internal/models/jellyfin_source_contract_test.go",
+        "shared/contracts/admin-content.yaml",
+        "shared/contracts/episode-versions.yaml",
+        "shared/contracts/openapi.yaml"
+      ]
+    },
+    {
+      "commit": "25e1a727dcedda2cb27f4473bcb4fe572d2416f7",
+      "subject": "test(161-04): require reviewed sources through import builder round trip",
+      "files": [
+        "frontend/src/app/admin/anime/[id]/episodes/import/episodeImportMapping.test.ts"
+      ]
+    },
+    {
+      "commit": "8ce8915204e2065db3ca4e3f1fbd95de918bc1ae",
+      "subject": "feat(161-04): preserve and validate reviewed import source identity",
+      "files": [
+        "frontend/src/app/admin/anime/[id]/episodes/import/episodeImportMapping.test.ts",
+        "frontend/src/app/admin/anime/[id]/episodes/import/episodeImportMapping.ts",
+        "frontend/src/app/admin/anime/[id]/episodes/import/useEpisodeImportBuilder.ts"
+      ]
+    },
+    {
+      "commit": "bc25a5b531a72ed63c9a608b47b559d58102c151",
+      "subject": "fix(161-04): align nullable unresolved source selectors",
+      "files": [
+        "backend/internal/models/jellyfin_source_contract_test.go",
+        "shared/contracts/admin-content.yaml",
+        "shared/contracts/openapi.yaml"
+      ]
+    },
+    {
+      "commit": "b22f5208ecb63065655f89278668d829753a436f",
+      "subject": "docs(161-04): complete source contracts and builder identity plan",
+      "files": [
+        ".planning/phases/161-jellyfin-12-kompatibilitaet-und-mediasource-import/161-04-SUMMARY.md"
+      ]
+    },
+    {
+      "commit": "2cfad484621949ac751bbff82e1c967e952c0d70",
+      "subject": "docs(161): advance source contracts and prepare independent live verification",
+      "files": [
+        ".planning/ROADMAP.md",
+        ".planning/STATE.md",
+        ".planning/phases/161-jellyfin-12-kompatibilitaet-und-mediasource-import/161-EXECUTION-NOTES.md"
+      ]
+    },
+    {
+      "commit": "26e80f15a27ac5d8f029edb5855e373d440be0f5",
+      "subject": "test(161-05): define source snapshot persistence and binding guards",
+      "files": [
+        "backend/internal/repository/jellyfin_source_fixture_test.go"
+      ]
+    },
+    {
+      "commit": "5b886230d703c04bd4f792b0b9ed4174b8daaf09",
+      "subject": "feat(161-05): persist guarded Jellyfin source snapshots",
+      "files": [
+        "backend/internal/repository/episode_version_repository_write_helpers.go",
+        "backend/internal/repository/jellyfin_source_fixture_test.go",
+        "backend/internal/repository/jellyfin_source_repository.go"
+      ]
+    },
+    {
+      "commit": "7ac0ae94be49f1392441198112a7265e85e658bb",
+      "subject": "test(161-05): cover atomic source-coherent repeat imports",
+      "files": [
+        "backend/internal/repository/episode_import_source_integration_test.go"
+      ]
+    },
+    {
+      "commit": "285db87c40523e4be9aa6f14903fc51f7d8408d9",
+      "subject": "feat(161-05): persist coherent sources in atomic episode imports",
+      "files": [
+        "backend/internal/repository/episode_import_repository.go",
+        "backend/internal/repository/episode_import_repository_release_helpers.go",
+        "backend/internal/repository/episode_import_repository_test.go",
+        "backend/internal/repository/episode_import_source_integration_test.go"
+      ]
+    },
+    {
+      "commit": "5c3afcbf498c1d8567c1f0c6533e04dca47f5dc5",
+      "subject": "test(161-05): reject unverified import sources before writes",
+      "files": [
+        "backend/internal/handlers/admin_episode_import_test.go"
+      ]
+    },
+    {
+      "commit": "a9086c6ad3a5bc7ac6127e03b7808f5e5f4d8d19",
+      "subject": "test(161): prepare bounded live verification and prove library parent semantics",
+      "files": [
+        ".planning/phases/161-jellyfin-12-kompatibilitaet-und-mediasource-import/161-EXECUTION-NOTES.md",
+        "docs/audits/2026-09-15-jellyfin12/group-parent-followup.json",
+        "docs/audits/2026-09-15-jellyfin12/group-parent-semantics.json",
+        "docs/audits/2026-09-15-jellyfin12/live-preflight.json",
+        "scripts/check-jellyfin12.py",
+        "scripts/tests/test_check_jellyfin12.py"
+      ]
+    },
+    {
+      "commit": "bdce4e66f1f49cb729b961235d3c791d41489a24",
+      "subject": "docs(161-07): include bound-source editor duration regression",
+      "files": [
+        ".planning/phases/161-jellyfin-12-kompatibilitaet-und-mediasource-import/161-07-PLAN.md",
+        ".planning/phases/161-jellyfin-12-kompatibilitaet-und-mediasource-import/161-EXECUTION-NOTES.md"
+      ]
+    },
+    {
+      "commit": "ce7967b4953a490e8a27f64f76836cd07d193f51",
+      "subject": "test(161-05): distinguish empty and omitted source streams",
+      "files": [
+        "backend/internal/repository/episode_import_source_integration_test.go"
+      ]
+    },
+    {
+      "commit": "080df3fe00dd2656001cf28dc118b96a510a69f2",
+      "subject": "fix(161-05): clear stale technical streams on complete refresh",
+      "files": [
+        "backend/internal/repository/episode_import_repository_release_helpers.go",
+        "backend/internal/repository/episode_import_source_integration_test.go",
+        "backend/internal/repository/jellyfin_source_fixture_test.go"
+      ]
+    },
+    {
+      "commit": "c3fa6cd4b2ef217b5a58669ec1d109564d8b6328",
+      "subject": "feat(161-05): rehydrate reviewed import sources before writes",
+      "files": [
+        "backend/internal/handlers/admin_content_handler.go",
+        "backend/internal/handlers/admin_episode_import.go",
+        "backend/internal/handlers/admin_episode_import_test.go",
+        "backend/internal/handlers/admin_episode_import_validation.go"
+      ]
+    },
+    {
+      "commit": "ec78ca12eb6c29cf0e2739f5c43324d90d02cfec",
+      "subject": "docs(161-05): complete source-coherent import plan",
+      "files": [
+        ".planning/phases/161-jellyfin-12-kompatibilitaet-und-mediasource-import/161-05-SUMMARY.md"
+      ]
+    },
+    {
+      "commit": "3f1afc6920e00216244115e41e8c124dd286dc57",
+      "subject": "docs(161): track verified source import and editor execution",
+      "files": [
+        ".planning/ROADMAP.md",
+        ".planning/STATE.md"
+      ]
+    },
+    {
+      "commit": "75c868b026922cb5bd079696c5a6b1569d4240cd",
+      "subject": "docs(161-09): assemble verified compatibility evidence draft",
+      "files": [
+        "docs/audits/2026-09-15-jellyfin12/RESULTS.md"
+      ]
+    },
+    {
+      "commit": "1ae6b9136f23503ecd3f2dc905d66451d85ce8d9",
+      "subject": "test(161-06): reproduce technical metadata loss and unsafe relinks",
+      "files": [
+        "backend/internal/repository/episode_version_source_integration_test.go"
+      ]
+    },
+    {
+      "commit": "96f38a93b64ff35f37b18581f98f12bf32efc871",
+      "subject": "fix(161-06): preserve file metadata and atomically relink verified sources",
+      "files": [
+        "backend/internal/repository/episode_version_public_integration_test.go",
+        "backend/internal/repository/episode_version_repository.go",
+        "backend/internal/repository/episode_version_repository_write_helpers.go",
+        "backend/internal/repository/episode_version_source_integration_test.go"
+      ]
+    },
+    {
+      "commit": "30aa052053c223d1ee97163b0a50be3e23f46822",
+      "subject": "docs(161): clarify current runtime and fixture boundaries",
+      "files": [
+        ".planning/phases/161-jellyfin-12-kompatibilitaet-und-mediasource-import/161-EXECUTION-NOTES.md"
+      ]
+    },
+    {
+      "commit": "9622210962c9741b1d955c6ca916a5aa42d49f9e",
+      "subject": "test(161-06): cover source authorization and provider hydration boundaries",
+      "files": [
+        "backend/internal/handlers/episode_version_source_hydration_test.go"
+      ]
+    },
+    {
+      "commit": "a73ffe8c8188ab459ebe6bf8d69a09a44d8a17e1",
+      "subject": "docs(161): capture original release metadata example before projection",
+      "files": [
+        "docs/audits/2026-09-15-jellyfin12/release48-pre-projection.json"
+      ]
+    },
+    {
+      "commit": "53d4fbf92babbba2aca3233b9463eeca37358d63",
+      "subject": "docs(161-09): include both reported release examples in final probe",
+      "files": [
+        "docs/audits/2026-09-15-jellyfin12/RESULTS.md",
+        "scripts/check-jellyfin12.py"
+      ]
+    },
+    {
+      "commit": "d317a6fd69546aae0783c1273e9157b417061b07",
+      "subject": "fix(161-06): hydrate authorized source changes without provider calls for metadata",
+      "files": [
+        "backend/internal/handlers/admin_episode_import.go",
+        "backend/internal/handlers/episode_version_create.go",
+        "backend/internal/handlers/episode_version_source_hydration.go",
+        "backend/internal/handlers/episode_version_source_hydration_test.go",
+        "backend/internal/handlers/episode_version_update.go",
+        "backend/internal/handlers/episode_version_validation.go",
+        "backend/internal/repository/episode_version_repository.go",
+        "shared/contracts/episode-versions.yaml",
+        "shared/contracts/openapi.yaml"
+      ]
+    },
+    {
+      "commit": "eccb458431e548f404d7f0855c25467bc8fb859b",
+      "subject": "test(161-06): cover explicit source selection and metadata-only editor saves",
+      "files": [
+        "frontend/src/app/admin/episode-versions/[versionId]/edit/useEpisodeVersionEditor.test.tsx"
+      ]
+    },
+    {
+      "commit": "e42ce033732619386e55497bf2e6fff236e135da",
+      "subject": "test(161-06): reproduce folder scan source selection and ownership gaps",
+      "files": [
+        "backend/internal/handlers/episode_version_source_hydration_test.go"
+      ]
+    },
+    {
+      "commit": "6654871db66890eada485c7ed2ac23ef7103e3d4",
+      "subject": "fix(161-06): scan verified own sources through the shared binding resolver",
+      "files": [
+        "backend/internal/handlers/admin_content_episode_version_editor_scan.go",
+        "backend/internal/handlers/episode_version_source_hydration_test.go"
+      ]
+    },
+    {
+      "commit": "ada632e1186f6f0fae68924edd7dce317d87f17b",
+      "subject": "fix(161-06): preserve reviewed source choice without implicit editor relinks",
+      "files": [
+        "frontend/src/app/admin/episode-versions/[versionId]/edit/episodeVersionEditorUtils.ts",
+        "frontend/src/app/admin/episode-versions/[versionId]/edit/useEpisodeVersionEditor.test.tsx",
+        "frontend/src/app/admin/episode-versions/[versionId]/edit/useEpisodeVersionEditor.ts"
+      ]
+    },
+    {
+      "commit": "3094355f7fdecdcb515e2187ba03b26583cb2602",
+      "subject": "style(161-06): format source write helpers",
+      "files": [
+        "backend/internal/repository/episode_version_repository_write_helpers.go"
+      ]
+    },
+    {
+      "commit": "2829369a3fae560ea69395f638a99840e30c069c",
+      "subject": "docs(161-06): record unchanged broad backend failure baseline",
+      "files": [
+        "docs/audits/2026-09-15-jellyfin12/backend-after06.json"
+      ]
+    },
+    {
+      "commit": "16e152a7ebc7201a95f7bd3763eff0320ad23d13",
+      "subject": "docs(161-06): complete source-safe release editing plan",
+      "files": [
+        ".planning/phases/161-jellyfin-12-kompatibilitaet-und-mediasource-import/161-06-SUMMARY.md"
+      ]
+    },
+    {
+      "commit": "c28cac699f72e38414fad025c6b9a29fe4e1e558",
+      "subject": "docs(161): track verified editor plan and playback execution",
+      "files": [
+        ".planning/ROADMAP.md",
+        ".planning/STATE.md",
+        ".planning/phases/161-jellyfin-12-kompatibilitaet-und-mediasource-import/161-EXECUTION-NOTES.md"
+      ]
+    },
+    {
+      "commit": "dc388b9743daa4bf30096c4a05ee6989dcc2ae6d",
+      "subject": "test(161-09): verify distinct live 11eyes source streams",
+      "files": [
+        "docs/audits/2026-09-15-jellyfin12/11eyes-source-streams.json",
+        "docs/audits/2026-09-15-jellyfin12/RESULTS.md",
+        "scripts/check-jellyfin12.py"
+      ]
+    },
+    {
+      "commit": "60e5c87a8f79bbb0e83e99cf55471a2b3bf71ea6",
+      "subject": "test(161-07): expose unowned default and missing source binding",
+      "files": [
+        "backend/internal/repository/episode_version_stream_identity_test.go"
+      ]
+    },
+    {
+      "commit": "2e1034449d2c67842520c4339346f1a2384e1a7e",
+      "subject": "feat(161-07): share owned variant and selected source reads",
+      "files": [
+        "backend/internal/models/theme_segment_render_cache.go",
+        "backend/internal/repository/episode_version_repository.go",
+        "backend/internal/repository/episode_version_stream_identity_test.go",
+        "backend/internal/repository/release_variant_source_repository.go",
+        "backend/internal/repository/theme_segment_playback_resolution.go",
+        "backend/internal/repository/theme_segment_playback_resolution_integration_test.go",
+        "backend/internal/repository/theme_segment_render_cache.go"
+      ]
+    },
+    {
+      "commit": "42b931fa9afb672d5a7cca503a1a7efd305f503a",
+      "subject": "docs(161-08): require atomic selected-source technical projection",
+      "files": [
+        ".planning/phases/161-jellyfin-12-kompatibilitaet-und-mediasource-import/161-08-PLAN.md",
+        ".planning/phases/161-jellyfin-12-kompatibilitaet-und-mediasource-import/161-EXECUTION-NOTES.md"
+      ]
+    },
+    {
+      "commit": "54158ae98eb238b2998304403288926ddc502582",
+      "subject": "test(161-07): pin subtitle and editor duration to bound source",
+      "files": [
+        "backend/internal/handlers/admin_content_test.go",
+        "backend/internal/handlers/segment_render_subtitles_test.go"
+      ]
+    },
+    {
+      "commit": "b46270f05d470686d117499110ab333d0579c53c",
+      "subject": "feat(161-07): pin video subtitle and duration to selected source",
+      "files": [
+        "backend/internal/handlers/admin_content_episode_version_editor_helpers.go",
+        "backend/internal/handlers/admin_content_test.go",
+        "backend/internal/handlers/episode_version_stream.go",
+        "backend/internal/handlers/episode_version_stream_identity_test.go",
+        "backend/internal/handlers/segment_render_subtitles.go",
+        "backend/internal/handlers/segment_render_subtitles_test.go",
+        "backend/internal/handlers/segment_render_worker.go",
+        "backend/internal/models/episode_version.go",
+        "backend/internal/repository/episode_version_repository.go"
+      ]
+    },
+    {
+      "commit": "fb0ae1efcd1756e609de74a7f27fc97d1e2a97f5",
+      "subject": "test(161-07): expose source cache collision and worker identity drift",
+      "files": [
+        "backend/internal/handlers/segment_render_worker_test.go"
+      ]
+    },
+    {
+      "commit": "5f247e0b0ae465059082284a7d03c5332eb1ff20",
+      "subject": "feat(161-07): isolate selected-source caches and reject worker drift",
+      "files": [
+        "backend/internal/handlers/episode_version_stream_identity_test.go",
+        "backend/internal/handlers/segment_render_refresh.go",
+        "backend/internal/handlers/segment_render_subtitles.go",
+        "backend/internal/handlers/segment_render_worker.go",
+        "backend/internal/handlers/segment_render_worker_test.go",
+        "backend/internal/handlers/segment_stream.go",
+        "backend/internal/handlers/segment_stream_test.go",
+        "shared/contracts/openapi.yaml"
+      ]
+    },
+    {
+      "commit": "80b9a6906dd8759abd4a0457c00e436013ea5d8a",
+      "subject": "docs(161-07): complete selected-source playback plan",
+      "files": [
+        ".planning/phases/161-jellyfin-12-kompatibilitaet-und-mediasource-import/161-07-SUMMARY.md"
+      ]
+    },
+    {
+      "commit": "36dd6e92fb7bba4bda302046bc3bfc7e6a97c8b0",
+      "subject": "docs(161): track completed playback plan and public projection execution",
+      "files": [
+        ".planning/ROADMAP.md",
+        ".planning/STATE.md",
+        ".planning/phases/161-jellyfin-12-kompatibilitaet-und-mediasource-import/161-EXECUTION-NOTES.md"
+      ]
+    },
+    {
+      "commit": "9b0e54ecefc92353e2c2440f92bcf1f82973e9b5",
+      "subject": "test(161-08): specify audio-only Japanese display fallback",
+      "files": [
+        "frontend/src/app/anime/[id]/group/[groupId]/releases/[releaseVersionId]/ReleaseDetailHero.test.tsx"
+      ]
+    },
+    {
+      "commit": "25303b7d69b653872327f69065dea216570ca906",
+      "subject": "fix(161-08): default unknown public audio display to Japanese",
+      "files": [
+        "frontend/src/app/anime/[id]/group/[groupId]/releases/[releaseVersionId]/ReleaseDetailHero.tsx"
+      ]
+    },
+    {
+      "commit": "b8421cc76008192631e3e43e0f58c7bb66cfd6bf",
+      "subject": "test(161-08): expose public source mixing and per-variant aggregation",
+      "files": [
+        "backend/internal/repository/release_detail_public_source_integration_test.go"
+      ]
+    },
+    {
+      "commit": "147841b7ae649192a1f8781ede69d62d46f63801",
+      "subject": "docs(161): record live editor credential output gap and bounded fix",
+      "files": [
+        ".planning/phases/161-jellyfin-12-kompatibilitaet-und-mediasource-import/161-EXECUTION-NOTES.md"
+      ]
+    },
+    {
+      "commit": "46c6867ec6c03ca73696255551c82cc884111925",
+      "subject": "fix(161-08): project technical facts from one selected source snapshot",
+      "files": [
+        "backend/internal/handlers/episode_version_source_hydration_test.go",
+        "backend/internal/repository/episode_import_source_integration_test.go",
+        "backend/internal/repository/episode_version_public_integration_test.go",
+        "backend/internal/repository/release_detail_public_repository_helpers.go",
+        "backend/internal/repository/release_detail_public_source_integration_test.go",
+        "backend/internal/repository/release_variant_source_repository.go",
+        "backend/internal/testsupport/phase117_postgres.go"
+      ]
+    },
+    {
+      "commit": "47b0489422847628b6c7b98d196ab48b8ba0b265",
+      "subject": "test(161-08): expose stored Jellyfin credentials in release DTOs",
+      "files": [
+        "backend/internal/repository/episode_version_stream_identity_test.go"
+      ]
+    },
+    {
+      "commit": "2f5f01ed2af55dfe8bfa9188cd5cb602806b4d23",
+      "subject": "test(161-08): prove playback public projection and cache source coherence",
+      "files": [
+        "backend/internal/repository/release_detail_public_source_integration_test.go",
+        "backend/internal/repository/theme_segment_playback_resolution_integration_test.go"
+      ]
+    },
+    {
+      "commit": "a4be02240bbd167227efd9eb9e46992fc724faf7",
+      "subject": "fix(161-08): sanitize stored Jellyfin URLs at release projection",
+      "files": [
+        "backend/internal/jellyfin/request.go",
+        "backend/internal/jellyfin/request_test.go",
+        "backend/internal/repository/episode_version_repository_read_helpers.go",
+        "backend/internal/repository/episode_version_stream_identity_test.go",
+        "shared/contracts/episode-versions.yaml",
+        "shared/contracts/openapi.yaml"
+      ]
+    },
+    {
+      "commit": "1f55d9c6cb35b311bdc88a403aad81130a200f44",
+      "subject": "docs(161-08): complete coherent public source projection plan",
+      "files": [
+        ".planning/phases/161-jellyfin-12-kompatibilitaet-und-mediasource-import/161-08-SUMMARY.md"
+      ]
+    },
+    {
+      "commit": "37a9fed08348977446585da080627c522b5d65ec",
+      "subject": "test(161-09): align playback fixtures and guards with shared source read",
+      "files": [
+        "backend/internal/repository/admin_content_anime_theme_segments_hydration_integration_test.go",
+        "backend/internal/repository/runtime_authority_test.go",
+        "backend/internal/repository/segment_playback_resolution_test.go",
+        "backend/internal/repository/theme_segment_assignment_slots_integration_test.go",
+        "backend/internal/repository/theme_segment_render_cache_test.go"
+      ]
+    },
+    {
+      "commit": "64340e93cd30ab19295da74fa32d62fc52af1a45",
+      "subject": "test(161-09): bound projection assertions to their OpenAPI path",
+      "files": [
+        "frontend/src/types/__tests__/v12-projection-contract.test.ts"
+      ]
+    },
+    {
+      "commit": "e4548ae444293657c7aa8f0ce5d6f6c71c49c7da",
+      "subject": "test(161-09): expose stale editor values after source relink",
+      "files": [
+        "frontend/src/app/admin/episode-versions/[versionId]/edit/useEpisodeVersionEditor.test.tsx"
+      ]
+    },
+    {
+      "commit": "3e4109010268f5dced7c3deb40d4216d238d8cc2",
+      "subject": "fix(161-09): reconcile saved source facts without losing newer edits",
+      "files": [
+        "frontend/src/app/admin/episode-versions/[versionId]/edit/useEpisodeVersionEditor.ts"
+      ]
+    },
+    {
+      "commit": "6d6eaf599990f1e400b84712238023ce929ff56c",
+      "subject": "test(161-09): expose private source selector on public version read",
+      "files": [
+        "backend/internal/handlers/episode_version_public_test.go"
+      ]
+    },
+    {
+      "commit": "718ebf5757693876ec6093f715328298cb6990a9",
+      "subject": "fix(161-09): keep source selectors out of public version responses",
+      "files": [
+        "backend/internal/handlers/episode_version_reads.go",
+        "shared/contracts/episode-versions.yaml",
+        "shared/contracts/openapi.yaml"
+      ]
+    }
+  ],
+  "backend_gate_revision": "64340e93cd30ab19295da74fa32d62fc52af1a45",
+  "frontend_gate_revision": "3e4109010268f5dced7c3deb40d4216d238d8cc2",
+  "final_phase161_application_commit": "718ebf57",
+  "scope_note": "Only Phase161 commits added after the frozen backend gate; later separate quick changes are excluded."
+}

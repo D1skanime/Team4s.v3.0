@@ -1,0 +1,54 @@
+{
+  "revision": "47b0489422847628b6c7b98d196ab48b8ba0b265",
+  "surface": "Codex in-app browser, user-authenticated session",
+  "actions": "Read-only navigation and expansion; no form values changed, no save/import/sync/playback action",
+  "navigation": [
+    "/me/profile",
+    "/admin",
+    "/admin/anime",
+    "/admin/anime/1/edit",
+    "/admin/anime/1/episodes",
+    "/admin/episode-versions/28/edit",
+    "/admin/episode-versions/28/edit?tab=dateien",
+    "/fansubs/new-subs/fansubprojekt/buddy-complex/releases/40"
+  ],
+  "editor": {
+    "loaded": true,
+    "episode": 2,
+    "title": "Nice Coupling",
+    "quality": "720p",
+    "duration": "23:59",
+    "credential_output_gap": "Initially observed stored URL credential exposure; fixed by a4be0224. Revisited files panel in authenticated in-app browser: visible URL input has no credential query parameter. URL value deliberately not recorded.",
+    "credential_query_parameters_present_after": false,
+    "filesize_display": "n/a; selected source supplies 516683140 bytes, documented separate follow-up"
+  },
+  "public": {
+    "viewport": {
+      "width": 1062,
+      "height": 980
+    },
+    "root_scroll_width": 1047,
+    "details_open": true,
+    "container": "mkv",
+    "video_codec": "H.264",
+    "audio_codec": "AAC",
+    "audio_language_display": "Japanisch",
+    "subtitle_tracks_display": "Nicht hinterlegt",
+    "layout": "Existing hero and technical-details hierarchy retained; screenshot inspected inline.",
+    "second_route": {
+      "path": "/fansubs/new-subs/fansubprojekt/buddy-complex/releases/48",
+      "episode": 12,
+      "title": "Das Band zwischen ihnen",
+      "container": "mkv",
+      "audio_language_display": "Japanisch",
+      "subtitle_tracks_display": "Nicht hinterlegt"
+    }
+  },
+  "limits": [
+    "Active user session verified, not forced refresh-only browser state. Automated central-session tests cover missing/expired access with valid refresh.",
+    "No real import/relink/save or library rescan performed.",
+    "Audio fallback is presentation only, not a provider-data restoration.",
+    "Current release48 identifies episode12, unlike the older user screenshot title Nice Coupling. The current editor maps Nice Coupling to variant28/episode2; no identity rewrite was performed. Original screenshot values are not silently treated as current database facts."
+  ],
+  "credential_fix_verified_revision": "64340e93cd30ab19295da74fa32d62fc52af1a45"
+}

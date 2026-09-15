@@ -311,20 +311,20 @@ Quelle: .planning/phases/159-public-anime-detail-konsolidierung/159-USER-REQUEST
 
 ## Phase 161 — Jellyfin 12 compatibility (2026-09-15)
 
-Source: `161-USER-REQUEST.md`, with decisions D-01 through D-15 in `161-CONTEXT.md`. Implementation and verification pending.
+Source: `161-USER-REQUEST.md`, with decisions D-01 through D-16 in 161-CONTEXT.md. All six requirements are technically complete and independently verified (16/16, no open gaps). 161-VERIFICATION.md retains human_needed for unperformed live import/relink/rescan/playback checks; no human UAT sign-off is inferred.
 
-- [ ] **P161-AUTH**: Every actual Jellyfin request uses header authentication without secret leakage; Fanart and Emby retain their own authentication.
-- [ ] **P161-API**: All used Jellyfin endpoints are inventoried and checked against the running version 12 contract; confirmed incompatibilities are corrected.
-- [ ] **P161-ITEMS**: GetItems filtering, direct versus recursive scope, exact identity and pagination are semantically verified.
-- [ ] **P161-SOURCE**: Deterministic item/source binding remains coherent through import, playback, subtitles and render identity, including the real 11eyes case.
-- [ ] **P161-METADATA**: Selected-source container and consumer-backed audio/subtitle fields persist and render coherently; ordinary editing preserves technical identity. Per D-16, only unknown audio language displays Japanisch as a fallback, while provider facts and subtitle languages remain unchanged.
-- [ ] **P161-REGRESSION**: Focused unit/integration/contract tests, live read-only evidence, request budgets and existing-regression comparison support the final compatibility report.
+- [x] **P161-AUTH**: Every actual Jellyfin request uses header authentication without secret leakage; Fanart and Emby retain their own authentication.
+- [x] **P161-API**: All used Jellyfin endpoints are inventoried and checked against the running version 12 contract; confirmed incompatibilities are corrected.
+- [x] **P161-ITEMS**: GetItems filtering, direct versus recursive scope, exact identity and pagination are semantically verified.
+- [x] **P161-SOURCE**: Deterministic item/source binding remains coherent through import, playback, subtitles and render identity, including the real 11eyes case.
+- [x] **P161-METADATA**: Selected-source container and consumer-backed audio/subtitle fields persist and render coherently; ordinary editing preserves technical identity. Per D-16, only unknown audio language displays Japanisch as a fallback, while provider facts and subtitle languages remain unchanged.
+- [x] **P161-REGRESSION**: Focused unit/integration/contract tests, live read-only evidence, request budgets and existing-regression comparison support the final compatibility report.
 
 | Requirement | Phase | Status |
 |---|---|---|
-| P161-AUTH | Phase 161 | Planned |
-| P161-API | Phase 161 | Planned |
-| P161-ITEMS | Phase 161 | Planned |
-| P161-SOURCE | Phase 161 | Planned |
-| P161-METADATA | Phase 161 | Planned |
-| P161-REGRESSION | Phase 161 | Planned |
+| P161-AUTH | Phase 161 | Complete (technical; human live checks pending) |
+| P161-API | Phase 161 | Complete (technical; human live checks pending) |
+| P161-ITEMS | Phase 161 | Complete (technical; human live checks pending) |
+| P161-SOURCE | Phase 161 | Complete (technical; human live checks pending) |
+| P161-METADATA | Phase 161 | Complete (technical; human live checks pending) |
+| P161-REGRESSION | Phase 161 | Complete (technical; human live checks pending) |

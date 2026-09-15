@@ -1,0 +1,202 @@
+{
+  "baseline_revision": "b3b07ff0",
+  "backend": {
+    "original_baseline_failure_headings": [
+      "TestArchivePaginationBounds",
+      "TestArchiveRoleFilter",
+      "TestArchiveUsesCanonicalStoredMemberSlug",
+      "TestArchiveVisibilityFilterExcludesNonPublicRows",
+      "TestClaimBlockDeniedAuditOutcomeColocated",
+      "TestClaimBlockWritesDeniedAudit",
+      "TestClaimSubmitBlockedForMemorialProfile",
+      "TestEvaluateMemberMutationConflictBlocksLastActiveManager",
+      "TestFansubRepository_PublicProfileSourceInvariants",
+      "TestGetOwnDashboardPostgresImagesAndContributionsCountsUsePitfall2Sources",
+      "TestGetOwnDashboardPostgresPointMilestoneIncrementsBadgesCount",
+      "TestGetOwnDashboardPostgresPointsProgressUsesRegistry",
+      "TestGetOwnDashboardPostgresProjectsCountDivergesFromFamilyOneRawCount",
+      "TestGetOwnDashboardPostgresRoleVolumeEntryCarriesRegistryTierAndThreshold",
+      "TestGetOwnDashboardPostgresRoleVolumeRawEntriesVersusBadgesCount",
+      "TestGetOwnDashboardPostgresZeroStateForMemberWithoutActivity",
+      "TestGetPublicMemberProfilePostgresIncludesTotalPoints",
+      "TestLoadBadgeProgressPostgresIncludesRoleVolumeEntryPerRoleWithSynthesizedEntryStage",
+      "TestLoadBadgeProgressPostgresZeroAwardedRolesProducesNoRoleVolumeEntries",
+      "TestLoadContributionBadgesArchivistCountPostgresMatchesRawValueAndBadgeDerivation",
+      "TestLoadContributionBadgesChronicleCountPostgresMatchesRawValueAndBadgeDerivation",
+      "TestLoadContributionBadgesPostgres",
+      "TestLoadContributionBadgesProjectsCountPostgresMatchesRawValueAndBadgeDerivation",
+      "TestLoadPublicBadgesPostgresKaraokeFXAwardedVisible",
+      "TestLoadPublicBadgesPostgresNonEligibleRoleNeverAppears",
+      "TestLoadPublicBadgesPostgresRoleEntryAwardedVisible",
+      "TestLoadPublicBadgesPostgresRoleEntryReversedHidden",
+      "TestLoadPublicBadgesPostgresRoleVolume",
+      "TestLoadRoleVolumeBadgesPostgresKeepsRolesIndependentAndReversesLive",
+      "TestLoadRoleVolumeBadgesPostgresProgressBoundaries",
+      "TestLoadRoleVolumeCountsPostgresEmptyForMemberWithoutCredits",
+      "TestLoadRoleVolumeCountsPostgresMatchesRawValueAndBadgeDerivation",
+      "TestMemberClaimsRepositoryBlocksAlreadyAssignedMembers",
+      "TestMemberPointTotalsPostgresConcurrentAwardsSumCorrectly",
+      "TestMemberPointTotalsPostgresRetrySameAwardDoesNotDoubleCount",
+      "TestMemberPointTotalsPostgresReversalLowersTotal",
+      "TestMemberPointTotalsRankingOrderAndTieBreak",
+      "TestMemberPointTotalsRankingPageBounds",
+      "TestMemberPointTotalsRankingUsesCanonicalStoredSlug",
+      "TestPhase128MemberSlugConcurrentAllocationScenarios",
+      "TestPhase128VisibilityFirstReferenceMatrix",
+      "TestPhase134MatrixAnonymousPublicProfile",
+      "TestPhase134MatrixDenseProfileMatchesManifest",
+      "TestPhase134MatrixErrorMalformedSlugDoesNotPanic",
+      "TestPhase134MatrixHiddenProfileIsIndistinguishableFromMissing",
+      "TestPhase134MatrixMissingProfile",
+      "TestPhase134MatrixOwnerPreviewOfHiddenProfile",
+      "TestPhase134MatrixPaginationHonestAcrossPages",
+      "TestPhase134MatrixRefreshOnlyOwnerAccess",
+      "TestPhase134MatrixSparseProfileMatchesManifest"
+    ],
+    "final_failure_headings": [
+      "TestArchivePaginationBounds",
+      "TestArchiveRoleFilter",
+      "TestArchiveUsesCanonicalStoredMemberSlug",
+      "TestArchiveVisibilityFilterExcludesNonPublicRows",
+      "TestClaimBlockDeniedAuditOutcomeColocated",
+      "TestClaimBlockWritesDeniedAudit",
+      "TestClaimSubmitBlockedForMemorialProfile",
+      "TestEvaluateMemberMutationConflictBlocksLastActiveManager",
+      "TestFansubRepository_PublicProfileSourceInvariants",
+      "TestGetOwnDashboardPostgresImagesAndContributionsCountsUsePitfall2Sources",
+      "TestGetOwnDashboardPostgresPointMilestoneIncrementsBadgesCount",
+      "TestGetOwnDashboardPostgresPointsProgressUsesRegistry",
+      "TestGetOwnDashboardPostgresProjectsCountDivergesFromFamilyOneRawCount",
+      "TestGetOwnDashboardPostgresRoleVolumeEntryCarriesRegistryTierAndThreshold",
+      "TestGetOwnDashboardPostgresRoleVolumeRawEntriesVersusBadgesCount",
+      "TestGetOwnDashboardPostgresZeroStateForMemberWithoutActivity",
+      "TestGetPublicMemberProfilePostgresIncludesTotalPoints",
+      "TestLoadBadgeProgressPostgresIncludesRoleVolumeEntryPerRoleWithSynthesizedEntryStage",
+      "TestLoadBadgeProgressPostgresZeroAwardedRolesProducesNoRoleVolumeEntries",
+      "TestLoadContributionBadgesArchivistCountPostgresMatchesRawValueAndBadgeDerivation",
+      "TestLoadContributionBadgesChronicleCountPostgresMatchesRawValueAndBadgeDerivation",
+      "TestLoadContributionBadgesPostgres",
+      "TestLoadContributionBadgesProjectsCountPostgresMatchesRawValueAndBadgeDerivation",
+      "TestLoadPublicBadgesPostgresKaraokeFXAwardedVisible",
+      "TestLoadPublicBadgesPostgresNonEligibleRoleNeverAppears",
+      "TestLoadPublicBadgesPostgresRoleEntryAwardedVisible",
+      "TestLoadPublicBadgesPostgresRoleEntryReversedHidden",
+      "TestLoadPublicBadgesPostgresRoleVolume",
+      "TestLoadRoleVolumeBadgesPostgresKeepsRolesIndependentAndReversesLive",
+      "TestLoadRoleVolumeBadgesPostgresProgressBoundaries",
+      "TestLoadRoleVolumeCountsPostgresEmptyForMemberWithoutCredits",
+      "TestLoadRoleVolumeCountsPostgresMatchesRawValueAndBadgeDerivation",
+      "TestMemberClaimsRepositoryBlocksAlreadyAssignedMembers",
+      "TestMemberPointTotalsPostgresConcurrentAwardsSumCorrectly",
+      "TestMemberPointTotalsPostgresRetrySameAwardDoesNotDoubleCount",
+      "TestMemberPointTotalsPostgresReversalLowersTotal",
+      "TestMemberPointTotalsRankingOrderAndTieBreak",
+      "TestMemberPointTotalsRankingPageBounds",
+      "TestMemberPointTotalsRankingUsesCanonicalStoredSlug",
+      "TestPhase128MemberSlugConcurrentAllocationScenarios",
+      "TestPhase128VisibilityFirstReferenceMatrix",
+      "TestPhase134MatrixAnonymousPublicProfile",
+      "TestPhase134MatrixDenseProfileMatchesManifest",
+      "TestPhase134MatrixErrorMalformedSlugDoesNotPanic",
+      "TestPhase134MatrixHiddenProfileIsIndistinguishableFromMissing",
+      "TestPhase134MatrixMissingProfile",
+      "TestPhase134MatrixOwnerPreviewOfHiddenProfile",
+      "TestPhase134MatrixPaginationHonestAcrossPages",
+      "TestPhase134MatrixRefreshOnlyOwnerAccess",
+      "TestPhase134MatrixSparseProfileMatchesManifest"
+    ],
+    "added": [],
+    "removed": [],
+    "focused_top_level": 277,
+    "focused_pass_events": 554,
+    "focused_skips": 0,
+    "focused_not_executed": []
+  },
+  "frontend": {
+    "typecheck": "Same two TS2344 generated Next page errors: formatEditLoadError and AdminAnimePageProps; union-member ordering is nondeterministic.",
+    "lint_identical_normalized_diagnostics": true,
+    "lint_normalization": "Compare file, severity, message and rule; ignore line/column positions.",
+    "lint_counts": {
+      "total": 341,
+      "errors": 13,
+      "warnings": 328
+    },
+    "scoped_lint_counts": {
+      "total": 2,
+      "errors": 0,
+      "warnings": 2
+    },
+    "baseline_failure_names": [
+      "src/lib/cssCustomProperties.guard.test.ts > cssCustomProperties scanner (real frontend/src tree) > finds zero fallback-free dead custom-property references on the real, fixed tree (Success Criterion 1)",
+      "src/lib/cssCustomProperties.guard.test.ts > cssCustomProperties scanner (real frontend/src tree) > the known-non-CSS-textual-mentions allow-list stays exactly as small as documented (no silent growth)"
+    ],
+    "final_failure_names": [
+      "src/lib/cssCustomProperties.guard.test.ts > cssCustomProperties scanner (real frontend/src tree) > finds zero fallback-free dead custom-property references on the real, fixed tree (Success Criterion 1)",
+      "src/lib/cssCustomProperties.guard.test.ts > cssCustomProperties scanner (real frontend/src tree) > the known-non-CSS-textual-mentions allow-list stays exactly as small as documented (no silent growth)"
+    ],
+    "added_test_failures": [],
+    "removed_test_failures": [],
+    "tests": {
+      "passed": 2748,
+      "failed": 2,
+      "todo": 3,
+      "files_passed": 320,
+      "files_failed": 1,
+      "files_skipped": 1
+    },
+    "focused_files": {
+      "src/app/admin/anime/[id]/episodes/import/episodeImportMapping.test.ts": {
+        "pass": 43,
+        "fail": 0
+      },
+      "src/app/admin/episode-versions/[versionId]/edit/useEpisodeVersionEditor.test.tsx": {
+        "pass": 20,
+        "fail": 0
+      },
+      "src/app/anime/[id]/group/[groupId]/releases/[releaseVersionId]/ReleaseDetailHero.test.tsx": {
+        "pass": 17,
+        "fail": 0
+      },
+      "src/types/__tests__/v12-projection-contract.test.ts": {
+        "pass": 6,
+        "fail": 0
+      },
+      "src/lib/api.auth-refresh.test.ts": {
+        "pass": 32,
+        "fail": 0
+      },
+      "src/lib/api.no-token-boundary.test.ts": {
+        "pass": 9,
+        "fail": 0
+      }
+    },
+    "focused_passes": 127,
+    "production_build": "NODE_ENV=production; compilation succeeds, then same baseline formatEditLoadError Next Page export failure."
+  },
+  "attempt1": {
+    "preserved": true,
+    "backend_new_failures": [
+      "TestCreateAnimeSegmentOriginBehavior",
+      "TestGetAnimeSegmentByID_HydratesPlaybackForRequestedReleaseVersion",
+      "TestLoadThemeSegmentPlaybackSnapshotTx_ContainsReleaseVariantJoins",
+      "TestReleaseRuntimeAuthorityUsesReleaseNativeTables",
+      "TestSegmentSlotAtomicCreateAndUpdate",
+      "TestSegmentSlotConcurrentCreateAndTypeChange",
+      "TestThemeSegmentRenderSourceResolvesStoredPlaybackSource"
+    ],
+    "corrections": [
+      "37a9fed0: two real metadata fixture schemas and three guards following shared SQL ownership",
+      "64340e93: restrict existing OpenAPI path test to its own operation boundary",
+      "Build harness sets NODE_ENV=production to reproduce original production baseline"
+    ]
+  },
+  "raw_logs": "*.log artifacts remain local and gitignored, matching discovery baseline practice; committed JSON contains commands, names, outcomes and sanitized diagnostic tails.",
+  "backend_gate_revision": "64340e93cd30ab19295da74fa32d62fc52af1a45",
+  "frontend_gate_revision": "3e4109010268f5dced7c3deb40d4216d238d8cc2",
+  "public_response_correction_revision": "718ebf57",
+  "additional_acceptance": {
+    "editor_reconciliation": "editor-reconciliation-checks.json",
+    "public_selector": "public-selector-regression.json",
+    "scope": "No whole-tree final rerun after the separate chapter/size quick began. Broad backend64340e93, broad frontend3e410901, public boundary scoped718ebf57 are recorded separately."
+  }
+}

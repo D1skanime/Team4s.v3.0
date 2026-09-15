@@ -3,8 +3,8 @@ gsd_state_version: 1.0
 milestone: v1.4
 milestone_name: Coverage
 status: verifying
-stopped_at: "Completed 156-21-PLAN.md (GAP-09 encoder/designer wiring: preselection filter repointed, public projection tests corrected, stale doc comments fixed)"
-last_updated: "2026-09-15T09:46:28.485Z"
+stopped_at: "Phase 161 technically complete; independent 16/16; human live checks pending"
+last_updated: "2026-09-15T16:20:58Z"
 last_activity: 2026-09-15
 progress:
   total_phases: 24
@@ -16,13 +16,15 @@ progress:
 
 # Project State
 
-## Aktiver Auftrag — Phase 161: Jellyfin 12 (15.09.2026)
+## Aktiver Auftrag — Phase 161: Jellyfin 12 technisch abgeschlossen (15.09.2026)
 
-Ausgangscommit `b3b07ff0`, kanonischer Linux-Stand. Discovery und unabhängige Planprüfung abgeschlossen: 9 Plans, 25 Tasks, 6 Anforderungen. Plans 161-01 bis 161-07 sind implementiert und verifiziert; 7/9 Plans abgeschlossen, Plan 161-08 läuft. Plan07 bindet Video, Untertitel, Laufzeit und Cache an dieselbe Quelle; fokussierte echte DB-/Handler-/Servicegates ohne Skips, Build/Vet grün. Abschlusscommit 80b9a690. Plan08 projiziert öffentliche technische Metadaten aus derselben SQL-Zeilenauswahl. D-16: Unbekannte Audio-Sprache erhält Japanisch als Anzeigestandard; Quellwerte und Untertitel bleiben unverändert. Integrierte Abschlussprüfung folgt in Plan09. Unabhängige Human-UAT wird nicht ersetzt.
+Ausgangscommit b3b07ff0; 9/9 Plans, 25 Tasks und 6/6 Anforderungen technisch abgeschlossen. Unabhängige Verifikation: 16/16 Ziele, technical_status passed, gaps leer. Zwei echte Reviewbefunde wurden mit RED/GREEN geschlossen: Formular übernimmt bestätigte Sourcewerte ohne spätere Entwürfe zu verlieren (3e410901); öffentliche Einzelversion gibt den internen Source-Selector nicht aus (718ebf57). GSD-Status human_needed betrifft ausdrücklich nicht ausgeführte Live-Import-/Relink-/Rescan-/Wiedergabeprüfungen, keine verbleibende Implementierungslücke.
 
-Der gewünschte Live-Fall 11eyes ist geprüft: 27 Items, 38 Quellen, elf Quellen ohne eigenständiges Item. Item- und Source-ID bleiben getrennt; diese Phase erweitert den Import nicht auf alle Alternativdateien. Bestehende JSONB-Metadaten reichen für die gewählte Quelle aus. Keine App-Daten, Medien, Secrets oder Migrationen wurden geändert. Eine separate Testdatenbank `team4s_phase117_test_161` ist für schemaisolierte Integrationstests vorbereitet.
+Feste Gate-Stände: Backend 64340e93 mit 277 ausgeführten Top-Leveltests / 554 Passereignissen und 0 Pflicht-Skips; breite Suite exakt 50 ursprüngliche Fehlerüberschriften, Build/Vet bestanden. Frontend 3e410901 mit 2748 bestandenen Tests, nur 2 bekannten CSS-Fehlern / 3 TODOs; dieselben 2 Next-Typfehler, 13 Lintfehler / 328 Warnungen und bestehender Build-Pageexportfehler. Gezielte öffentliche DTO-Abnahme 718ebf57: 4 Top-Leveltests / 61 Passereignisse, 0 Skips. Es wird kein späterer kohärenter Gesamtlauf nach Beginn der separaten Quick-Arbeit behauptet.
 
-Phase 160 wartet auf diese Reparatur. Die frischen UAT-Abnahmen von 156/157 und offenen menschlichen Anime-Prüfungen 158/159 bleiben unverändert. Maßgeblich für Phase 161 sind deren eigene Artefakte, ROADMAP und REQUIREMENTS; historische Milestone-Zähler werden nicht pauschal umgeschrieben.
+Read-only-Belege: 26 GETs ohne Fehler, Buddy 13 mit korrekten Seiten 5+5+3, 11eyes 27 echte Items / 38 Sources / 11 Nicht-Item-Alternativen. Beide Source-Selector liefern am selben 11eyes-Item verschiedene MKV-/MP4-Präfixe. 818 Backenddateien stimmten am 64340e93 mit dem aktiven Container überein; sechs geprüfte Anwendungstabellen behielten ihre 13 Zeilen und Inhaltsfingerprints. Keine Liveimporte, Backfills, Relinks, Rescans, Migrationen oder Medienänderungen in Phase 161. Bestehende fehlende Snapshots bleiben unverändert; Japanisch ist nur Audioanzeige.
+
+Maßgeblich: phases/161-jellyfin-12-kompatibilitaet-und-mediasource-import/161-09-SUMMARY.md, 161-VERIFICATION.md, 161-VALIDATION.md und docs/audits/2026-09-15-jellyfin12/RESULTS.md. Dateigröße/Kapitel gehören zum separaten Folgeauftrag; dessen Ausführung und Status werden getrennt geführt. Phase 160 wurde nicht gestartet. Die vorhandenen frischen menschlichen Abnahmen 156/157 bleiben gültig; offene Anime-UAT 158/159 bleibt unverändert. Historische Milestone-Zähler werden nicht pauschal umgeschrieben.
 
 ## Aktiver Zusatzauftrag — Anime 158/159: technisch abgeschlossen (14.09.2026)
 
@@ -1632,9 +1634,9 @@ untruncated list lives in `.planning/todos/pending/`.
 
 ## Session Continuity
 
-Last session: 2026-09-15T09:46:28.467Z
-Stopped at: Completed 156-21-PLAN.md (GAP-09 encoder/designer wiring: preselection filter repointed, public projection tests corrected, stale doc comments fixed)
-Last activity: Larger dot + per-entry role-colored timeline line implemented and live-verified against the running stack; GAP-02 V3/V4 closed automated/technically, human Live-UAT remains a separate open step.
+Last session: 2026-09-15T16:20:58Z
+Stopped at: Phase 161 completed technically; independent 16/16; human live checks remain explicit.
+Last activity: Closed Jellyfin 12 source/auth/API gates and both independent findings; separate chapter/size follow-up and all other phase UAT states preserved.
 Resume file: 
 None
 

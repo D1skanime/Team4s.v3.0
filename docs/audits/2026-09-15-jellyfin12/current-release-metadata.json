@@ -1,0 +1,69 @@
+{
+  "mode": "read-only",
+  "bindings": [
+    {
+      "requested_kind": "editor_variant_28",
+      "variant_id": 28,
+      "release_version_id": 28,
+      "episode_number": "2",
+      "item_id": "1efa632b6ed80a47941aef7ac9779c8d",
+      "stored_source_id": null,
+      "stored_snapshot_present": false,
+      "stored_container": null,
+      "stored_audio_codec": "aac",
+      "selection_matches": 1,
+      "provider_source_id": "1efa632b6ed80a47941aef7ac9779c8d",
+      "provider_container": "mkv",
+      "provider_size_bytes": 516683140,
+      "provider_item_size_bytes": null,
+      "provider_subtitles": [
+        {
+          "Index": 1,
+          "Codec": "ass",
+          "Language": "deu",
+          "DisplayTitle": "Buddy Complex  02 Sub [NS] - German - Standard - ASS",
+          "IsDefault": true,
+          "IsForced": false
+        }
+      ]
+    },
+    {
+      "requested_kind": "public_release_48",
+      "variant_id": 48,
+      "release_version_id": 48,
+      "episode_number": "12",
+      "item_id": "fdfbf66f2b44059fd478b4b9848f43da",
+      "stored_source_id": null,
+      "stored_snapshot_present": false,
+      "stored_container": "mkv",
+      "stored_audio_codec": "aac",
+      "selection_matches": 1,
+      "provider_source_id": "fdfbf66f2b44059fd478b4b9848f43da",
+      "provider_container": "mkv",
+      "provider_size_bytes": 613136455,
+      "provider_item_size_bytes": null,
+      "provider_subtitles": [
+        {
+          "Index": 2,
+          "Codec": "ass",
+          "Language": null,
+          "DisplayTitle": "Undefiniert - Standard - ASS",
+          "IsDefault": true,
+          "IsForced": false
+        }
+      ]
+    }
+  ],
+  "requests": [
+    {
+      "label": "exact-current-editor-and-public-items",
+      "surface": "provider",
+      "status": 200,
+      "bytes_read": 16027,
+      "content_type": "application/json",
+      "body_sha256": "b72afbf2f8bf6c3ddeb01fcc9d0a09c84c07ba0dcfa76e71157c2fd24732486b",
+      "elapsed_ms": 45
+    }
+  ],
+  "failures": []
+}

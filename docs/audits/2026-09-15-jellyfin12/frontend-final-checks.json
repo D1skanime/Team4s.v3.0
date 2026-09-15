@@ -1,0 +1,108 @@
+{
+  "frontend-typecheck": {
+    "command": [
+      "docker",
+      "exec",
+      "-w",
+      "/app",
+      "team4sv30-frontend",
+      "npm",
+      "run",
+      "typecheck"
+    ],
+    "exit": 1,
+    "seconds": 2.91,
+    "revision": "3e4109010268f5dced7c3deb40d4216d238d8cc2",
+    "log": "frontend-typecheck-after.log",
+    "tail": "\n> team4s-frontend@0.1.0 typecheck\n> tsc --noEmit\n\n.next/dev/types/app/admin/anime/[id]/edit/page.ts(14,13): error TS2344: Type 'OmitWithTag<typeof import(\"/app/src/app/admin/anime/[id]/edit/page\"), \"default\" | \"revalidate\" | \"metadata\" | \"viewport\" | \"dynamic\" | \"runtime\" | \"config\" | \"generateStaticParams\" | \"unstable_prefetch\" | ... 5 more ... | \"generateViewport\", \"\">' does not satisfy the constraint '{ [x: string]: never; }'.\n  Property 'formatEditLoadError' is incompatible with index signature.\n    Type '(error: unknown) => string' is not assignable to type 'never'.\n.next/dev/types/app/admin/anime/page.ts(36,29): error TS2344: Type 'AdminAnimePageProps | undefined' does not satisfy the constraint 'PageProps'.\n  Type 'undefined' is not assignable to type 'PageProps'.\n"
+  },
+  "frontend-scoped-lint": {
+    "command": [
+      "docker",
+      "exec",
+      "-w",
+      "/app",
+      "team4sv30-frontend",
+      "npx",
+      "eslint",
+      "src/app/admin/anime/[id]/episodes/import/episodeImportMapping.test.ts",
+      "src/app/admin/anime/[id]/episodes/import/episodeImportMapping.ts",
+      "src/app/admin/anime/[id]/episodes/import/useEpisodeImportBuilder.ts",
+      "src/app/admin/episode-versions/[versionId]/edit/episodeVersionEditorUtils.ts",
+      "src/app/admin/episode-versions/[versionId]/edit/useEpisodeVersionEditor.test.tsx",
+      "src/app/admin/episode-versions/[versionId]/edit/useEpisodeVersionEditor.ts",
+      "src/app/anime/[id]/group/[groupId]/releases/[releaseVersionId]/ReleaseDetailHero.test.tsx",
+      "src/app/anime/[id]/group/[groupId]/releases/[releaseVersionId]/ReleaseDetailHero.tsx",
+      "src/types/__tests__/v12-projection-contract.test.ts",
+      "src/types/episodeImport.ts",
+      "src/types/episodeVersion.ts"
+    ],
+    "exit": 0,
+    "seconds": 2.84,
+    "revision": "3e4109010268f5dced7c3deb40d4216d238d8cc2",
+    "log": "frontend-scoped-lint-after.log",
+    "tail": "\n/app/src/types/__tests__/v12-projection-contract.test.ts\n  108:7  warning  'roleProgressTiers' is assigned a value but only used as a type      @typescript-eslint/no-unused-vars\n  115:7  warning  'publicMemberBadgeKeys' is assigned a value but only used as a type  @typescript-eslint/no-unused-vars\n\n\u2716 2 problems (0 errors, 2 warnings)\n\n",
+    "counts": {
+      "total": 2,
+      "errors": 0,
+      "warnings": 2
+    }
+  },
+  "frontend-lint": {
+    "command": [
+      "docker",
+      "exec",
+      "-w",
+      "/app",
+      "team4sv30-frontend",
+      "npm",
+      "run",
+      "lint"
+    ],
+    "exit": 1,
+    "seconds": 37.72,
+    "revision": "3e4109010268f5dced7c3deb40d4216d238d8cc2",
+    "log": "frontend-lint-after.log",
+    "tail": "dev/ui-system)  no-restricted-syntax\n\n/app/src/components/contributions/ProposalForm.tsx\n  7:18  warning  'FormField' is defined but never used  @typescript-eslint/no-unused-vars\n\n/app/src/components/editor/RichTextEditor.test.tsx\n  6:30  warning  'config' is defined but never used  @typescript-eslint/no-unused-vars\n\n/app/src/components/editor/StoryImageNodeView.tsx\n  111:11  warning  img elements must have an alt prop, either with meaningful text, or an empty string for decorative images  jsx-a11y/alt-text\n\n/app/src/components/editor/StoryImageToolbarButton.tsx\n  54:9  warning  Image elements must have an alt prop, either with meaningful text, or an empty string for decorative images  jsx-a11y/alt-text\n  57:7  warning  Natives <input> verboten \u2014 nutze <Input> aus @/components/ui (Referenz: /dev/ui-system)                      no-restricted-syntax\n\n/app/src/components/groups/GroupAssetsExperience.tsx\n  162:25  warning  Using `<img>` could result in slower LCP and higher bandwidth. Consider using `<Image />` from `next/image` or a custom image loader to automatically optimize images. This may incur additional usage or cost from your provider. See: https://nextjs.org/docs/messages/no-img-element  @next/next/no-img-element\n  186:29  warning  Using `<img>` could result in slower LCP and higher bandwidth. Consider using `<Image />` from `next/image` or a custom image loader to automatically optimize images. This may incur additional usage or cost from your provider. See: https://nextjs.org/docs/messages/no-img-element  @next/next/no-img-element\n  214:13  warning  Using `<img>` could result in slower LCP and higher bandwidth. Consider using `<Image />` from `next/image` or a custom image loader to automatically optimize images. This may incur additional usage or cost from your provider. See: https://nextjs.org/docs/messages/no-img-element  @next/next/no-img-element\n\n/app/src/components/groups/GroupHistoryForm.tsx\n  173:25  warning  Using `<img>` could result in slower LCP and higher bandwidth. Consider using `<Image />` from `next/image` or a custom image loader to automatically optimize images. This may incur additional usage or cost from your provider. See: https://nextjs.org/docs/messages/no-img-element  @next/next/no-img-element\n\n/app/src/components/groups/GroupHistorySection.tsx\n  603:17  warning  Using `<img>` could result in slower LCP and higher bandwidth. Consider using `<Image />` from `next/image` or a custom image loader to automatically optimize images. This may incur additional usage or cost from your provider. See: https://nextjs.org/docs/messages/no-img-element  @next/next/no-img-element\n\n/app/src/components/media/crop/Team4sCropper.tsx\n  257:13  warning  Natives <input> verboten \u2014 nutze <Input> aus @/components/ui (Referenz: /dev/ui-system)  no-restricted-syntax\n\n/app/src/lib/api.phase108.test.ts\n  6:3  warning  'ApiError' is defined but never used  @typescript-eslint/no-unused-vars\n\n/app/src/types/__tests__/v12-projection-contract.test.ts\n  108:7  warning  'roleProgressTiers' is assigned a value but only used as a type      @typescript-eslint/no-unused-vars\n  115:7  warning  'publicMemberBadgeKeys' is assigned a value but only used as a type  @typescript-eslint/no-unused-vars\n\n/app/tmp-playwright-phase4/cover-ui-smoke.mjs\n  13:16  warning  'waitForText' is defined but never used  @typescript-eslint/no-unused-vars\n\n\u2716 341 problems (13 errors, 328 warnings)\n  0 errors and 1 warning potentially fixable with the `--fix` option.\n\n",
+    "counts": {
+      "total": 341,
+      "errors": 13,
+      "warnings": 328
+    }
+  },
+  "frontend-tests": {
+    "command": [
+      "docker",
+      "exec",
+      "-w",
+      "/app",
+      "team4sv30-frontend",
+      "npm",
+      "test",
+      "--",
+      "--reporter=verbose"
+    ],
+    "exit": 1,
+    "seconds": 130.43,
+    "revision": "3e4109010268f5dced7c3deb40d4216d238d8cc2",
+    "log": "frontend-tests-after.log",
+    "tail": "ter > rendert die \"Zugriff verweigert\"-Satzform f\u00fcr jeden *.denied event_type 0ms\n \u2713 src/components/profile/CorrectionReportModal.test.tsx > CorrectionReportModal \u2014 Sichtbarkeits-Gate (D-18) > zeigt den Trigger-Button f\u00fcr eingeloggte User (hasAccessToken=true) 5ms\n \u2713 src/components/profile/CorrectionReportModal.test.tsx > CorrectionReportModal \u2014 Sichtbarkeits-Gate (D-18) > zeigt den Trigger-Button auch wenn nur hasRefreshToken=true 1ms\n \u2713 src/components/profile/CorrectionReportModal.test.tsx > CorrectionReportModal \u2014 Sichtbarkeits-Gate (D-18) > blendet den Trigger-Button f\u00fcr anonyme Besucher aus (hasAccessToken=false, hasRefreshToken=false) 0ms\n \u2713 src/lib/registrationCompletion.test.ts > registrationCompletion one-shot marker > is absent by default 1ms\n \u2713 src/lib/registrationCompletion.test.ts > registrationCompletion one-shot marker > becomes pending after marking, without being consumed by a peek 0ms\n \u2713 src/lib/registrationCompletion.test.ts > registrationCompletion one-shot marker > is consumed exactly once 0ms\n \u2713 src/lib/registrationCompletion.test.ts > registrationCompletion one-shot marker > does not survive an explicit clear, e.g. on cancellation or a failed exchange 0ms\n \u2713 src/lib/registrationCompletion.test.ts > registrationCompletion one-shot marker > clearing an already-absent marker is a safe no-op 1ms\n \u2713 src/lib/registrationCompletion.test.ts > registrationCompletion one-shot marker > stores the marker under a session-scoped key that is not shared with persistent storage 0ms\n\n\u23af\u23af\u23af\u23af\u23af\u23af\u23af Failed Tests 2 \u23af\u23af\u23af\u23af\u23af\u23af\u23af\n\n FAIL  src/lib/cssCustomProperties.guard.test.ts > cssCustomProperties scanner (real frontend/src tree) > finds zero fallback-free dead custom-property references on the real, fixed tree (Success Criterion 1)\nAssertionError: Dead custom-property references found:\n--surface-muted at lib/roleCatalog.accessibility.test.ts:268 (no fallback): expected [ { \u2026(5) } ] to deeply equal []\n\n\u001b[32m- Expected\u001b[39m\n\u001b[31m+ Received\u001b[39m\n\n\u001b[32m- []\u001b[39m\n\u001b[31m+ [\u001b[39m\n\u001b[31m+   {\u001b[39m\n\u001b[31m+     \"fallbackVarName\": undefined,\u001b[39m\n\u001b[31m+     \"file\": \"lib/roleCatalog.accessibility.test.ts\",\u001b[39m\n\u001b[31m+     \"hasFallback\": false,\u001b[39m\n\u001b[31m+     \"line\": 268,\u001b[39m\n\u001b[31m+     \"name\": \"--surface-muted\",\u001b[39m\n\u001b[31m+   },\u001b[39m\n\u001b[31m+ ]\u001b[39m\n\n \u276f src/lib/cssCustomProperties.guard.test.ts:138:72\n    136|       .join('\\n')\n    137| \n    138|     expect(dead, `Dead custom-property references found:\\n${message}`)\u2026\n       |                                                                        ^\n    139|   })\n    140| \n\n\u23af\u23af\u23af\u23af\u23af\u23af\u23af\u23af\u23af\u23af\u23af\u23af\u23af\u23af\u23af\u23af\u23af\u23af\u23af\u23af\u23af\u23af\u23af\u23af[1/2]\u23af\n\n FAIL  src/lib/cssCustomProperties.guard.test.ts > cssCustomProperties scanner (real frontend/src tree) > the known-non-CSS-textual-mentions allow-list stays exactly as small as documented (no silent growth)\nAssertionError: expected +0 to be 1 // Object.is equality\n\n\u001b[32m- Expected\u001b[39m\n\u001b[31m+ Received\u001b[39m\n\n\u001b[32m- 1\u001b[39m\n\u001b[31m+ 0\u001b[39m\n\n \u276f src/lib/cssCustomProperties.guard.test.ts:142:42\n    140| \n    141|   it('the known-non-CSS-textual-mentions allow-list stays exactly as s\u2026\n    142|     expect(rawDead.length - dead.length).toBe(KNOWN_NON_CSS_TEXTUAL_ME\u2026\n       |                                          ^\n    143|   })\n    144| \n\n\u23af\u23af\u23af\u23af\u23af\u23af\u23af\u23af\u23af\u23af\u23af\u23af\u23af\u23af\u23af\u23af\u23af\u23af\u23af\u23af\u23af\u23af\u23af\u23af[2/2]\u23af\n\n\n Test Files  1 failed | 320 passed | 1 skipped (322)\n      Tests  2 failed | 2748 passed | 3 todo (2753)\n   Start at  16:07:32\n   Duration  129.92s (transform 10.42s, setup 28.23s, collect 91.89s, tests 80.86s, environment 109.82s, prepare 29.06s)\n\n"
+  },
+  "frontend-build": {
+    "command": [
+      "docker",
+      "exec",
+      "-w",
+      "/app",
+      "team4sv30-frontend",
+      "node",
+      "-e",
+      "const fs=require('node:fs'),os=require('node:os'),path=require('node:path'),cp=require('node:child_process');\nconst root=fs.mkdtempSync('/tmp/team4s161-final-build-');\ntry { for(const e of fs.readdirSync('/app',{withFileTypes:true})) {\n if(['node_modules','.next','.git'].includes(e.name)||e.name.startsWith('.env')) continue;\n fs.cpSync(path.join('/app',e.name),path.join(root,e.name),{recursive:true}); }\n fs.symlinkSync('/app/node_modules',path.join(root,'node_modules'),'dir');\n const r=cp.spawnSync('npm',['run','build','--','--webpack'],{cwd:root,stdio:'inherit',env:{...process.env,NODE_ENV:'production'}});process.exitCode=r.status??1;\n} finally { const resolved=fs.realpathSync(root); if(!resolved.startsWith('/tmp/team4s161-final-build-')||path.dirname(resolved)!='/tmp') throw new Error('Unsafe build cleanup target');fs.rmSync(resolved,{recursive:true,force:true}); }\n"
+    ],
+    "exit": 1,
+    "seconds": 49.43,
+    "revision": "3e4109010268f5dced7c3deb40d4216d238d8cc2",
+    "log": "frontend-build-after.log",
+    "tail": "\n> team4s-frontend@0.1.0 build\n> next build --webpack\n\n\u25b2 Next.js 16.1.6 (webpack)\n\n  Creating an optimized production build ...\n\u2713 Compiled successfully in 21.9s\n  Running TypeScript ...\nFailed to compile.\n\nsrc/app/admin/anime/[id]/edit/page.tsx\nType error: Page \"src/app/admin/anime/[id]/edit/page.tsx\" does not match the required types of a Next.js Page.\n  \"formatEditLoadError\" is not a valid Page export field.\n\nNext.js build worker exited with code: 1 and signal: null\n"
+  }
+}

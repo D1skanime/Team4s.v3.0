@@ -1,0 +1,35 @@
+{
+  "command": [
+    "docker",
+    "exec",
+    "-e",
+    "TEAM4S_PHASE117_TEST_DSN",
+    "-w",
+    "/app",
+    "team4sv30-backend",
+    "go",
+    "test",
+    "./internal/handlers",
+    "-run",
+    "^Test(EpisodeVersionPublicHidesPrivateSourceSelector|EpisodeVersionSourceHydrationEndpoints|EpisodeVersionSourceHydrationCreate|EpisodeVersionPublicInvalidOptions)$",
+    "-count=1",
+    "-json"
+  ],
+  "exit": 0,
+  "test_events": {
+    "run": 61,
+    "output": 134,
+    "pass": 61
+  },
+  "top_level_passes": [
+    "TestEpisodeVersionPublicInvalidOptions",
+    "TestEpisodeVersionPublicHidesPrivateSourceSelector",
+    "TestEpisodeVersionSourceHydrationEndpoints",
+    "TestEpisodeVersionSourceHydrationCreate"
+  ],
+  "failures": [],
+  "red_revision": "6d6eaf59",
+  "green_revision": "718ebf5757693876ec6093f715328298cb6990a9",
+  "source_note": "Scoped guarded endpoint fixture; unrelated chapter quick source/model additions may be present in shared container. Public handler, repository ownership and auth create/update fixtures directly exercised; no application writes.",
+  "vet": "go vet ./internal/handlers passed"
+}
