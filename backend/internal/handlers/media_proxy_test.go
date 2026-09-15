@@ -13,6 +13,8 @@ import (
 	"sync/atomic"
 	"testing"
 
+	"team4s.v3/backend/internal/middleware"
+
 	"github.com/gin-gonic/gin"
 )
 
@@ -462,5 +464,62 @@ func TestMediaProxyRedirectAndCancellationDoNotLeak(t *testing.T) {
 	}
 	if foreignCalls.Load() != 0 {
 		t.Fatal("foreign redirect received requests")
+	}
+}
+
+func TestStreamAssetHeaderAuthPreservesAccessRangeAndStatuses(t *testing.T) {
+	gin.SetMode(gin.TestMode)
+	for _, status := range []int{206, 401, 404, 503} {
+		t.Run(fmt.Sprint(status), func(t *testing.T) {
+			calls := 0
+			upstream := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+				calls++
+				if r.Header.Get("Authorization") != "MediaBrowser Token=\"media-key\"" || r.URL.Query().Has("api_key") {
+					t.Error("asset auth boundary")
+				}
+				if r.URL.Path != "/jellyfin/Videos/item/stream" || r.URL.Query().Get("static") != "true" {
+					t.Error("asset path/query changed")
+				}
+				if r.Header.Get("Range") != "bytes=0-3" || r.Header.Get("User-Agent") != "fixture-agent" {
+					t.Error("asset proxy headers lost")
+				}
+				w.Header().Set("Content-Type", "video/mp4")
+				w.Header().Set("Content-Range", "bytes 0-3/8")
+				w.WriteHeader(status)
+				w.Write([]byte("data"))
+			}))
+			defer upstream.Close()
+			h := NewAssetStreamHandler(AssetStreamConfig{JellyfinAPIKey: "media-key", JellyfinBaseURL: upstream.URL + "/jellyfin"})
+			h.httpClient = upstream.Client()
+			for _, authorized := range []bool{false, true} {
+				w := httptest.NewRecorder()
+				c, _ := gin.CreateTestContext(w)
+				c.Request = httptest.NewRequest("GET", "/asset/item", nil)
+				c.Params = gin.Params{{Key: "assetId", Value: "item"}}
+				c.Request.Header.Set("Range", "bytes=0-3")
+				c.Request.Header.Set("User-Agent", "fixture-agent")
+				if authorized {
+					c.Set("auth_identity", middleware.AuthIdentity{UserID: 7, AppUserID: 7, AppUserStatus: "active", DisplayName: "Fixture"})
+				}
+				h.StreamAsset(c)
+				want := status
+				if !authorized {
+					want = 401
+				} else if status >= 500 {
+					want = 500
+				}
+				if w.Code != want {
+					t.Fatalf("status=%d want=%d", w.Code, want)
+				}
+				if authorized && status == 206 {
+					if w.Body.String() != "data" || w.Header().Get("Content-Range") != "bytes 0-3/8" {
+						t.Error("asset range response changed")
+					}
+				}
+			}
+			if calls != 1 {
+				t.Fatalf("upstream calls=%d", calls)
+			}
+		})
 	}
 }

@@ -3,6 +3,7 @@ package handlers
 import (
 	"context"
 	"encoding/json"
+	"fmt"
 	"io"
 	"net/http"
 	"net/http/httptest"
@@ -34,7 +35,7 @@ type streamIdentityTransport func(*http.Request) (*http.Response, error)
 
 func (fn streamIdentityTransport) RoundTrip(r *http.Request) (*http.Response, error) { return fn(r) }
 
-func streamIdentityHandler(t *testing.T) (*FansubHandler, *streamIdentityEntitlement, *[]string) {
+func streamIdentityHandler(t *testing.T, sourceConfig ...string) (*FansubHandler, *streamIdentityEntitlement, *[]string) {
 	t.Helper()
 	pool := testsupport.OpenPhase117Postgres(t)
 	_, err := pool.Exec(context.Background(), `
@@ -48,6 +49,10 @@ func streamIdentityHandler(t *testing.T) (*FansubHandler, *streamIdentityEntitle
  INSERT INTO release_streams (id,variant_id,stream_source_id) VALUES (1,10,1),(2,100,2),(3,101,3);
  `)
 	require.NoError(t, err)
+	if len(sourceConfig) == 2 {
+		_, err = pool.Exec(context.Background(), "UPDATE stream_sources SET provider_type=$1, url=$2 WHERE id=2", sourceConfig[0], sourceConfig[1])
+		require.NoError(t, err)
+	}
 	entitlement := &streamIdentityEntitlement{allowed: true}
 	targets := []string{}
 	h := &FansubHandler{episodeVersionRepo: repository.NewEpisodeVersionRepository(pool), releaseGrantSecret: "phase159-secret", releaseGrantTTL: time.Minute, releasePlaybackEntitlements: entitlement}
@@ -160,4 +165,59 @@ func TestReleaseStreamIdentityLegacyWithoutSelector(t *testing.T) {
 	require.Equal(t, 206, result.Code, "malformed unrelated parameter does not redefine legacy behavior")
 	result = streamIdentityRequest(h, "+10", "", true, true)
 	require.Equal(t, 201, result.Code, "legacy path parser remains unchanged without selector")
+}
+
+func TestReleaseStreamJellyfinAuthenticationPreservesGrantsAndFallbacks(t *testing.T) {
+	gin.SetMode(gin.TestMode)
+	for _, foreign := range []bool{false, true} {
+		for _, status := range []int{206, 401, 503} {
+			t.Run(fmt.Sprintf("foreign=%t/status=%d", foreign, status), func(t *testing.T) {
+				calls := 0
+				upstream := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+					calls++
+					if foreign {
+						require.Empty(t, r.Header.Get("Authorization"))
+					} else {
+						require.Equal(t, "MediaBrowser Token=\"media-key\"", r.Header.Get("Authorization"))
+						require.False(t, r.URL.Query().Has("api_key"))
+					}
+					require.Equal(t, "bytes=0-3", r.Header.Get("Range"))
+					require.Equal(t, "fixture-agent", r.Header.Get("User-Agent"))
+					require.Equal(t, "500", r.URL.Query().Get("startTimeTicks"))
+					require.Equal(t, "kept", r.URL.Query().Get("custom"))
+					w.Header().Set("Content-Type", "video/mp4")
+					w.Header().Set("Content-Range", "bytes 0-3/8")
+					w.WriteHeader(status)
+					w.Write([]byte("data"))
+				}))
+				defer upstream.Close()
+				stored := upstream.URL + "/jellyfin/own?custom=kept"
+				if !foreign {
+					stored += "&api_key=media-key"
+				}
+				h, entitlement, _ := streamIdentityHandler(t, "jellyfin", stored)
+				h.jellyfinBaseURL = upstream.URL + "/jellyfin"
+				if foreign {
+					h.jellyfinBaseURL = "https://configured.invalid/jellyfin"
+				}
+				h.jellyfinAPIKey = "media-key"
+				h.httpClient = upstream.Client()
+				grant, _, err := auth.CreateReleaseStreamGrant(10, 7, "phase159-secret", time.Now(), time.Minute)
+				require.NoError(t, err)
+				query := "variant_id=100&grant=" + url.QueryEscape(grant) + "&startTimeTicks=500"
+				rec := streamIdentityRequest(h, "10", query, false, false)
+				require.Equal(t, status, rec.Code, rec.Body.String())
+				require.Equal(t, "data", rec.Body.String())
+				require.Equal(t, 1, calls)
+				denied := streamIdentityRequest(h, "10", "variant_id=100", false, false)
+				require.Equal(t, 401, denied.Code)
+				wrong := streamIdentityRequest(h, "10", "variant_id=10&grant="+url.QueryEscape(grant), false, false)
+				require.Equal(t, 404, wrong.Code)
+				entitlement.allowed = false
+				denied = streamIdentityRequest(h, "10", query, false, false)
+				require.Equal(t, 403, denied.Code)
+				require.Equal(t, 1, calls, "denied requests must never contact upstream")
+			})
+		}
+	}
 }
