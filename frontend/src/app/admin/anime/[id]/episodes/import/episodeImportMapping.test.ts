@@ -644,3 +644,85 @@ describe('episodeImportMapping', () => {
     expect(result.mappings[0].fansub_groups).toEqual([{ name: 'New-Subs', slug: null }])
 })
 })
+
+
+describe('reviewed Jellyfin source identity', () => {
+  function sourcePreview(): EpisodeImportPreviewResult {
+    return {
+      anime_id: 11, anime_title: '11eyes',
+      canonical_episodes: [{ episode_number: 1 }],
+      media_candidates: ['a', 'b', 'c'].map((suffix) => ({
+        media_item_id: `11eyes-item-${suffix}`,
+        media_source_id: `11eyes-source-${suffix}`,
+        file_name: `11eyes-${suffix}.mkv`, path: `/11eyes/${suffix}.mkv`,
+        streams_complete: true, selected_audio_index: null,
+        audio_tracks: [], subtitle_tracks: [],
+      })),
+      mappings: ['a', 'b', 'c'].map((suffix) => ({
+        media_item_id: `11eyes-item-${suffix}`,
+        target_episode_numbers: [1], suggested_episode_numbers: [1],
+        status: 'suggested',
+      })),
+    }
+  }
+
+  it('retains all three 11eyes source IDs through grouping, edits, confirmation and apply JSON', () => {
+    const preview = normalizePreviewResult(sourcePreview())
+    let rows = confirmEpisodeMappingRows(preview.mappings, 1)
+    rows = applyFansubGroupToEpisodeRows(rows, 1, [{ id: 7, name: 'Reviewed Subs' }])
+    rows = setMappingTargets(rows, '11eyes-item-b', '1,2')
+    const payload = JSON.parse(JSON.stringify(buildEpisodeImportApplyInput(11, preview, rows)))
+    expect(rows.map(resolveMappingGroupEpisodeNumber)).toEqual([1, 1, 1])
+    expect(payload.mappings.map((row: EpisodeImportMappingRow) => [row.media_item_id, row.media_source_id]))
+      .toEqual(['a', 'b', 'c'].map((suffix) => [`11eyes-item-${suffix}`, `11eyes-source-${suffix}`]))
+    expect(payload.mappings[1].target_episode_numbers).toEqual([1, 2])
+    expect(payload.mappings[1].fansub_group_id).toBe(7)
+    expect(payload.media_candidates).toHaveLength(3)
+  })
+
+  it.each([undefined, null, '', '11eyes-source-b'])('rejects lost or swapped source A selector %s at apply', (sourceID) => {
+    const preview = normalizePreviewResult(sourcePreview())
+    const rows = markAllSuggestedConfirmed(preview.mappings)
+    rows[0] = { ...rows[0], media_source_id: sourceID }
+    expect(() => buildEpisodeImportApplyInput(11, preview, rows)).toThrow(/Quelle.*Vorschau/)
+  })
+
+  it('does not confirm an unresolved source through any existing confirmation helper', () => {
+    const raw = sourcePreview()
+    delete raw.media_candidates[0].media_source_id
+    const preview = normalizePreviewResult(raw)
+    expect(markAllSuggestedConfirmed(preview.mappings)[0].status).toBe('conflict')
+    expect(confirmEpisodeMappingRows(preview.mappings, 1)[0].status).toBe('conflict')
+    expect(setMappingTargets(preview.mappings, '11eyes-item-a', '1')[0].status).toBe('conflict')
+    expect(() => buildEpisodeImportApplyInput(11, preview, preview.mappings)).toThrow(/Quelle.*Vorschau/)
+  })
+
+  it('keeps skipped unresolved rows non-persistent while complete rows remain applicable', () => {
+    const raw = sourcePreview()
+    delete raw.media_candidates[0].media_source_id
+    const preview = normalizePreviewResult(raw)
+    const rows = markAllSuggestedConfirmed(markMappingSkipped(preview.mappings, '11eyes-item-a'))
+    expect(buildEpisodeImportApplyInput(11, preview, rows).mappings[0].status).toBe('skipped')
+  })
+
+  it('does not reinterpret a mismatched reviewed mapping as the candidate source', () => {
+    const raw = sourcePreview()
+    raw.mappings[0].media_source_id = 'different-source'
+    const preview = normalizePreviewResult(raw)
+    expect(preview.mappings[0]).toMatchObject({ media_source_id: 'different-source', status: 'conflict' })
+    expect(() => buildEpisodeImportApplyInput(11, preview, markAllSuggestedConfirmed(preview.mappings)))
+      .toThrow(/Quelle.*Vorschau/)
+  })
+
+  it('rejects a source candidate with omitted projection or duplicate item identity', () => {
+    for (const kind of ['incomplete', 'duplicate']) {
+      const raw = sourcePreview()
+      if (kind === 'incomplete') delete raw.media_candidates[0].streams_complete
+      else raw.media_candidates.push({ ...raw.media_candidates[0], media_source_id: 'alternate-a' })
+      const preview = normalizePreviewResult(raw)
+      expect(preview.mappings[0].status).toBe('conflict')
+      expect(() => buildEpisodeImportApplyInput(11, preview, markAllSuggestedConfirmed(preview.mappings)))
+        .toThrow(/Quelle.*Vorschau/)
+    }
+  })
+})
