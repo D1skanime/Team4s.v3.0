@@ -1,6 +1,7 @@
 import type {
   EpisodeImportCanonicalEpisode,
   EpisodeImportMappingRow,
+  EpisodeImportMediaCandidate,
   EpisodeImportSelectedFansubGroup,
   EpisodeImportPreviewResult,
   EpisodeImportPreviewSummary,
@@ -145,10 +146,27 @@ export function skipEpisodeMappingRows(
   )
 }
 
-export function detectMappingConflicts(rows: EpisodeImportMappingRow[]): EpisodeImportMappingRow[] {
+/** Validate the reviewed item/source pair against the original preview projection. */
+export function hasReviewedMediaSource(
+  row: EpisodeImportMappingRow,
+  candidates: EpisodeImportMediaCandidate[],
+): boolean {
+  const matches = candidates.filter((candidate) => candidate.media_item_id === row.media_item_id)
+  return matches.length === 1 &&
+    matches[0].streams_complete === true &&
+    Boolean(row.media_source_id?.trim()) &&
+    row.media_source_id === matches[0].media_source_id
+}
+
+export function detectMappingConflicts(
+  rows: EpisodeImportMappingRow[],
+  candidates?: EpisodeImportMediaCandidate[],
+): EpisodeImportMappingRow[] {
   return rows.map((row) => {
     if (row.status === 'skipped') return row
-    if (row.status === 'conflict') return { ...row, status: 'confirmed' }
+    if (!row.media_source_id?.trim() || (candidates && !hasReviewedMediaSource(row, candidates))) {
+      return { ...row, status: 'conflict' }
+    }
     return row
   })
 }

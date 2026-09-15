@@ -23,7 +23,7 @@ import { buildEpisodeImportApplyInput, normalizePreviewResult } from './useEpiso
 describe('episodeImportMapping', () => {
   it('confirms one media candidate for multiple canonical episodes without duplicating the row', () => {
     const rows: EpisodeImportMappingRow[] = [{
-      media_item_id: 'jellyfin-naruto-009-010',
+      media_item_id: 'jellyfin-naruto-009-010', media_source_id: 'source-jellyfin-naruto-009-010',
       target_episode_numbers: [9],
       suggested_episode_numbers: [9],
       status: 'suggested',
@@ -33,7 +33,7 @@ describe('episodeImportMapping', () => {
 
     expect(result).toHaveLength(1)
     expect(result[0]).toMatchObject({
-      media_item_id: 'jellyfin-naruto-009-010',
+      media_item_id: 'jellyfin-naruto-009-010', media_source_id: 'source-jellyfin-naruto-009-010',
       target_episode_numbers: [9, 10],
       status: 'confirmed',
     })
@@ -41,7 +41,7 @@ describe('episodeImportMapping', () => {
 
   it('marks skipped rows as allowed non-persistent mappings', () => {
     const rows: EpisodeImportMappingRow[] = [{
-      media_item_id: 'jellyfin-extra-creditless-op',
+      media_item_id: 'jellyfin-extra-creditless-op', media_source_id: 'source-jellyfin-extra-creditless-op',
       target_episode_numbers: [1],
       suggested_episode_numbers: [1],
       status: 'suggested',
@@ -58,13 +58,13 @@ describe('episodeImportMapping', () => {
   it('allows different active media rows to claim the same canonical episode as parallel releases', () => {
     const rows: EpisodeImportMappingRow[] = [
       {
-        media_item_id: 'jellyfin-a',
+        media_item_id: 'jellyfin-a', media_source_id: 'source-jellyfin-a',
         target_episode_numbers: [9],
         suggested_episode_numbers: [9],
         status: 'confirmed',
       },
       {
-        media_item_id: 'jellyfin-b',
+        media_item_id: 'jellyfin-b', media_source_id: 'source-jellyfin-b',
         target_episode_numbers: [9],
         suggested_episode_numbers: [9],
         status: 'confirmed',
@@ -82,10 +82,10 @@ describe('episodeImportMapping', () => {
       anime_title: 'Test Anime',
       canonical_episodes: [{ episode_number: 1 }, { episode_number: 2 }],
       media_candidates: [
-        { media_item_id: 'jellyfin-1', file_name: 'Episode 1.mkv', path: '/anime/Episode 1.mkv' },
+        { media_item_id: 'jellyfin-1', media_source_id: 'source-jellyfin-1', file_name: 'Episode 1.mkv', path: '/anime/Episode 1.mkv' },
       ],
       mappings: [{
-        media_item_id: 'jellyfin-1',
+        media_item_id: 'jellyfin-1', media_source_id: 'source-jellyfin-1',
         target_episode_numbers: [1],
         suggested_episode_numbers: [1],
         status: 'suggested',
@@ -108,19 +108,19 @@ describe('episodeImportMapping', () => {
   it('markAllSuggestedSkipped skips every suggested row without touching confirmed or already-skipped rows', () => {
     const rows: EpisodeImportMappingRow[] = [
       {
-        media_item_id: 'file-a',
+        media_item_id: 'file-a', media_source_id: 'source-file-a',
         target_episode_numbers: [1],
         suggested_episode_numbers: [1],
         status: 'suggested',
       },
       {
-        media_item_id: 'file-b',
+        media_item_id: 'file-b', media_source_id: 'source-file-b',
         target_episode_numbers: [2],
         suggested_episode_numbers: [2],
         status: 'confirmed',
       },
       {
-        media_item_id: 'file-c',
+        media_item_id: 'file-c', media_source_id: 'source-file-c',
         target_episode_numbers: [],
         suggested_episode_numbers: [3],
         status: 'skipped',
@@ -137,13 +137,13 @@ describe('episodeImportMapping', () => {
   it('markAllSuggestedConfirmed confirms every suggested row using its existing target episode numbers', () => {
     const rows: EpisodeImportMappingRow[] = [
       {
-        media_item_id: 'file-a',
+        media_item_id: 'file-a', media_source_id: 'source-file-a',
         target_episode_numbers: [1],
         suggested_episode_numbers: [1],
         status: 'suggested',
       },
       {
-        media_item_id: 'file-b',
+        media_item_id: 'file-b', media_source_id: 'source-file-b',
         target_episode_numbers: [2],
         suggested_episode_numbers: [2],
         status: 'suggested',
@@ -159,13 +159,13 @@ describe('episodeImportMapping', () => {
     // Two different files both suggested for episode 1 (parallel releases)
     const rows: EpisodeImportMappingRow[] = [
       {
-        media_item_id: 'release-group-a-ep1',
+        media_item_id: 'release-group-a-ep1', media_source_id: 'source-release-group-a-ep1',
         target_episode_numbers: [1],
         suggested_episode_numbers: [1],
         status: 'suggested',
       },
       {
-        media_item_id: 'release-group-b-ep1',
+        media_item_id: 'release-group-b-ep1', media_source_id: 'source-release-group-b-ep1',
         target_episode_numbers: [1],
         suggested_episode_numbers: [1],
         status: 'suggested',
@@ -180,13 +180,13 @@ describe('episodeImportMapping', () => {
   it('confirmEpisodeMappingRows confirms only rows suggested for that episode number', () => {
     const rows: EpisodeImportMappingRow[] = [
       {
-        media_item_id: 'file-ep1',
+        media_item_id: 'file-ep1', media_source_id: 'source-file-ep1',
         target_episode_numbers: [1],
         suggested_episode_numbers: [1],
         status: 'suggested',
       },
       {
-        media_item_id: 'file-ep2',
+        media_item_id: 'file-ep2', media_source_id: 'source-file-ep2',
         target_episode_numbers: [2],
         suggested_episode_numbers: [2],
         status: 'suggested',
@@ -202,13 +202,13 @@ describe('episodeImportMapping', () => {
   it('skipEpisodeMappingRows skips only rows suggested for that episode number', () => {
     const rows: EpisodeImportMappingRow[] = [
       {
-        media_item_id: 'file-ep1',
+        media_item_id: 'file-ep1', media_source_id: 'source-file-ep1',
         target_episode_numbers: [1],
         suggested_episode_numbers: [1],
         status: 'suggested',
       },
       {
-        media_item_id: 'file-ep3',
+        media_item_id: 'file-ep3', media_source_id: 'source-file-ep3',
         target_episode_numbers: [3],
         suggested_episode_numbers: [3],
         status: 'confirmed',
@@ -279,7 +279,7 @@ describe('episodeImportMapping', () => {
 
   it('setMappingTargets preserves existing fansub groups and release_version on the row', () => {
     const rows: EpisodeImportMappingRow[] = [{
-      media_item_id: 'jellyfin-ep1',
+      media_item_id: 'jellyfin-ep1', media_source_id: 'source-jellyfin-ep1',
       target_episode_numbers: [1],
       suggested_episode_numbers: [1],
       status: 'suggested',
@@ -299,7 +299,7 @@ describe('episodeImportMapping', () => {
 
   it('markMappingSkipped preserves release metadata on the skipped row', () => {
     const rows: EpisodeImportMappingRow[] = [{
-      media_item_id: 'jellyfin-ep5',
+      media_item_id: 'jellyfin-ep5', media_source_id: 'source-jellyfin-ep5',
       target_episode_numbers: [5],
       suggested_episode_numbers: [5],
       status: 'suggested',
@@ -315,7 +315,7 @@ describe('episodeImportMapping', () => {
 
   it('toggleMappingSkipped reactivates skipped rows with their suggested episode target', () => {
     const rows: EpisodeImportMappingRow[] = [{
-      media_item_id: 'jellyfin-ep7',
+      media_item_id: 'jellyfin-ep7', media_source_id: 'source-jellyfin-ep7',
       target_episode_numbers: [],
       suggested_episode_numbers: [7],
       status: 'skipped',
@@ -333,7 +333,7 @@ describe('episodeImportMapping', () => {
 
   it('toggleMappingSkipped reactivates unmapped rows so the operator can assign an episode manually', () => {
     const rows: EpisodeImportMappingRow[] = [{
-      media_item_id: 'jellyfin-unmapped',
+      media_item_id: 'jellyfin-unmapped', media_source_id: 'source-jellyfin-unmapped',
       target_episode_numbers: [],
       suggested_episode_numbers: [],
       status: 'skipped',
@@ -349,7 +349,7 @@ describe('episodeImportMapping', () => {
 
   it('resolveMappingGroupEpisodeNumber uses manual targets for active rows without suggestions', () => {
     expect(resolveMappingGroupEpisodeNumber({
-      media_item_id: 'manual-ep12',
+      media_item_id: 'manual-ep12', media_source_id: 'source-manual-ep12',
       target_episode_numbers: [12],
       suggested_episode_numbers: [],
       status: 'confirmed',
@@ -362,13 +362,13 @@ describe('episodeImportMapping', () => {
     // Simulates a Naruto combined file covering episodes 9 and 10
     const rows: EpisodeImportMappingRow[] = [
       {
-        media_item_id: 'naruto-s01e09-010',
+        media_item_id: 'naruto-s01e09-010', media_source_id: 'source-naruto-s01e09-010',
         target_episode_numbers: [9, 10],
         suggested_episode_numbers: [9],
         status: 'suggested',
       },
       {
-        media_item_id: 'naruto-s01e011',
+        media_item_id: 'naruto-s01e011', media_source_id: 'source-naruto-s01e011',
         target_episode_numbers: [11],
         suggested_episode_numbers: [11],
         status: 'suggested',
@@ -388,13 +388,13 @@ describe('episodeImportMapping', () => {
   it('markAllSuggestedSkipped does not affect already-confirmed multi-target rows', () => {
     const rows: EpisodeImportMappingRow[] = [
       {
-        media_item_id: 'naruto-s01e09-010',
+        media_item_id: 'naruto-s01e09-010', media_source_id: 'source-naruto-s01e09-010',
         target_episode_numbers: [9, 10],
         suggested_episode_numbers: [9],
         status: 'confirmed',
       },
       {
-        media_item_id: 'naruto-s01e012',
+        media_item_id: 'naruto-s01e012', media_source_id: 'source-naruto-s01e012',
         target_episode_numbers: [12],
         suggested_episode_numbers: [12],
         status: 'suggested',
@@ -413,9 +413,9 @@ describe('episodeImportMapping', () => {
   it('canApply equivalent: all rows confirmed or skipped enables apply', () => {
     // Simulates the canApply condition from the hook
     const rows: EpisodeImportMappingRow[] = [
-      { media_item_id: 'ep1', target_episode_numbers: [1], suggested_episode_numbers: [1], status: 'confirmed' },
-      { media_item_id: 'ep2', target_episode_numbers: [2, 3], suggested_episode_numbers: [2], status: 'confirmed' },
-      { media_item_id: 'ep4', target_episode_numbers: [], suggested_episode_numbers: [4], status: 'skipped' },
+      { media_item_id: 'ep1', media_source_id: 'source-ep1', target_episode_numbers: [1], suggested_episode_numbers: [1], status: 'confirmed' },
+      { media_item_id: 'ep2', media_source_id: 'source-ep2', target_episode_numbers: [2, 3], suggested_episode_numbers: [2], status: 'confirmed' },
+      { media_item_id: 'ep4', media_source_id: 'source-ep4', target_episode_numbers: [], suggested_episode_numbers: [4], status: 'skipped' },
     ]
 
     const canApply = rows.every((r) => r.status === 'confirmed' || r.status === 'skipped')
@@ -424,8 +424,8 @@ describe('episodeImportMapping', () => {
 
   it('canApply equivalent: rows with suggested status block apply', () => {
     const rows: EpisodeImportMappingRow[] = [
-      { media_item_id: 'ep1', target_episode_numbers: [1], suggested_episode_numbers: [1], status: 'confirmed' },
-      { media_item_id: 'ep2', target_episode_numbers: [2], suggested_episode_numbers: [2], status: 'suggested' },
+      { media_item_id: 'ep1', media_source_id: 'source-ep1', target_episode_numbers: [1], suggested_episode_numbers: [1], status: 'confirmed' },
+      { media_item_id: 'ep2', media_source_id: 'source-ep2', target_episode_numbers: [2], suggested_episode_numbers: [2], status: 'suggested' },
     ]
 
     const canApply = rows.every((r) => r.status === 'confirmed' || r.status === 'skipped')
@@ -459,7 +459,7 @@ describe('episodeImportMapping', () => {
   it('setMappingTargets accepts comma-list season-offset corrections like "141" from a season-split library', () => {
     // Simulates operator correcting a Jellyfin Season 6 Episode 1 to canonical episode 141
     const rows: EpisodeImportMappingRow[] = [{
-      media_item_id: 'naruto-s06e01',
+      media_item_id: 'naruto-s06e01', media_source_id: 'source-naruto-s06e01',
       target_episode_numbers: [127], // wrong: season-indexed suggestion
       suggested_episode_numbers: [127],
       status: 'suggested',
@@ -474,21 +474,21 @@ describe('episodeImportMapping', () => {
   it('applyFansubGroupToEpisodeRows limits the patch to one canonical episode group', () => {
     const rows: EpisodeImportMappingRow[] = [
       {
-        media_item_id: 'ep-100-a',
+        media_item_id: 'ep-100-a', media_source_id: 'source-ep-100-a',
         target_episode_numbers: [100],
         suggested_episode_numbers: [100],
         status: 'confirmed',
         fansub_groups: [{ name: 'OldA' }],
       },
       {
-        media_item_id: 'ep-100-b',
+        media_item_id: 'ep-100-b', media_source_id: 'source-ep-100-b',
         target_episode_numbers: [100],
         suggested_episode_numbers: [100],
         status: 'confirmed',
         fansub_groups: [{ name: 'OldB' }],
       },
       {
-        media_item_id: 'ep-101-a',
+        media_item_id: 'ep-101-a', media_source_id: 'source-ep-101-a',
         target_episode_numbers: [101],
         suggested_episode_numbers: [101],
         status: 'confirmed',
@@ -512,7 +512,7 @@ describe('episodeImportMapping', () => {
   it('applyFansubGroupToEpisodeRows keeps chip order stable while deduplicating repeated groups', () => {
     const rows: EpisodeImportMappingRow[] = [
       {
-        media_item_id: 'ep-200-a',
+        media_item_id: 'ep-200-a', media_source_id: 'source-ep-200-a',
         target_episode_numbers: [200],
         suggested_episode_numbers: [200],
         status: 'confirmed',
@@ -535,28 +535,28 @@ describe('episodeImportMapping', () => {
   it('applyFansubGroupFromEpisodeDown patches only the current episode and later groups', () => {
     const rows: EpisodeImportMappingRow[] = [
       {
-        media_item_id: 'ep-099-a',
+        media_item_id: 'ep-099-a', media_source_id: 'source-ep-099-a',
         target_episode_numbers: [99],
         suggested_episode_numbers: [99],
         status: 'confirmed',
         fansub_groups: [{ name: 'AnimeOwnage' }],
       },
       {
-        media_item_id: 'ep-100-a',
+        media_item_id: 'ep-100-a', media_source_id: 'source-ep-100-a',
         target_episode_numbers: [100],
         suggested_episode_numbers: [100],
         status: 'confirmed',
         fansub_groups: [{ name: 'AnimeOwnage' }],
       },
       {
-        media_item_id: 'ep-101-a',
+        media_item_id: 'ep-101-a', media_source_id: 'source-ep-101-a',
         target_episode_numbers: [101],
         suggested_episode_numbers: [101],
         status: 'confirmed',
         fansub_groups: [{ name: 'Broken' }],
       },
       {
-        media_item_id: 'ep-102-a',
+        media_item_id: 'ep-102-a', media_source_id: 'source-ep-102-a',
         target_episode_numbers: [102],
         suggested_episode_numbers: [102],
         status: 'confirmed',
@@ -583,13 +583,13 @@ describe('episodeImportMapping', () => {
       anime_id: 42,
       anime_title: 'Test Anime',
       canonical_episodes: [{ episode_number: 12 }],
-      media_candidates: [{ media_item_id: 'episode-12', file_name: 'Episode 12.mkv', path: '/test/Episode 12.mkv' }],
+      media_candidates: [{ media_item_id: 'episode-12', media_source_id: 'source-episode-12', streams_complete: true, file_name: 'Episode 12.mkv', path: '/test/Episode 12.mkv' }],
       mappings: [],
     }
 
     const editedRows = setMappingTargets(
       [{
-        media_item_id: 'episode-12',
+        media_item_id: 'episode-12', media_source_id: 'source-episode-12',
         target_episode_numbers: [12],
         suggested_episode_numbers: [12],
         status: 'confirmed',
@@ -612,7 +612,7 @@ describe('episodeImportMapping', () => {
 
   it('clears an automatically detected group when the operator removes its chip', () => {
     const rows: EpisodeImportMappingRow[] = [{
-      media_item_id: 'episode-2',
+      media_item_id: 'episode-2', media_source_id: 'source-episode-2',
       target_episode_numbers: [2],
       suggested_episode_numbers: [2],
       status: 'suggested',
@@ -633,7 +633,7 @@ describe('episodeImportMapping', () => {
       canonical_episodes: [],
       media_candidates: [],
       mappings: [{
-        media_item_id: 'episode-2',
+        media_item_id: 'episode-2', media_source_id: 'source-episode-2',
         target_episode_numbers: [2],
         suggested_episode_numbers: [2],
         status: 'suggested',

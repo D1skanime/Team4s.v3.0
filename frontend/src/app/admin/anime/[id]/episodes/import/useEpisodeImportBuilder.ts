@@ -23,6 +23,7 @@ import {
   applyFansubGroupToEpisodeRows,
   confirmEpisodeMappingRows,
   detectMappingConflicts,
+  hasReviewedMediaSource,
   markAllSuggestedConfirmed,
   markAllSuggestedSkipped,
   resolveEpisodeDisplayTitle,
@@ -93,7 +94,11 @@ interface UseEpisodeImportBuilderState {
 export function useEpisodeImportBuilder(animeID: number | null): UseEpisodeImportBuilderState {
   const [context, setContext] = useState<EpisodeImportContextResult | null>(null)
   const [preview, setPreview] = useState<EpisodeImportPreviewResult | null>(null)
-  const [mappings, setMappings] = useState<EpisodeImportMappingRow[]>([])
+  const [mappingRows, setMappings] = useState<EpisodeImportMappingRow[]>([])
+  const mappings = useMemo(
+    () => detectMappingConflicts(mappingRows, preview?.media_candidates),
+    [mappingRows, preview],
+  )
   const [applyResult, setApplyResult] = useState<EpisodeImportApplyResult | null>(null)
   const [anisearchID, setAniSearchID] = useState('')
   const [seasonOffset, setSeasonOffset] = useState('0')
@@ -215,7 +220,7 @@ export function useEpisodeImportBuilder(animeID: number | null): UseEpisodeImpor
       )
       const normalizedPreview = normalizePreviewResult(response.data)
       setPreview(normalizedPreview)
-      setMappings(detectMappingConflicts(normalizedPreview.mappings))
+      setMappings(normalizedPreview.mappings)
     } catch (error) {
       setErrorMessage(formatEpisodeImportError(error, 'Vorschau konnte nicht geladen werden.'))
     } finally {
@@ -340,6 +345,12 @@ export function buildEpisodeImportApplyInput(
   preview: EpisodeImportPreviewResult,
   mappings: EpisodeImportMappingRow[],
 ): EpisodeImportApplyInput {
+  for (const row of mappings) {
+    if (row.status === 'skipped') continue
+    if (row.status !== 'confirmed' || !hasReviewedMediaSource(row, preview.media_candidates ?? [])) {
+      throw new Error('Die geprüfte Quelle fehlt oder wurde geändert. Bitte die Vorschau erneut laden.')
+    }
+  }
   return {
     anime_id: animeID,
     canonical_episodes: preview.canonical_episodes,
@@ -353,14 +364,22 @@ export function normalizePreviewResult(preview: EpisodeImportPreviewResult): Epi
     ...preview,
     canonical_episodes: preview.canonical_episodes ?? [],
     media_candidates: preview.media_candidates ?? [],
-    mappings: (preview.mappings ?? []).map((row) => {
-      const detectedGroupName = row.fansub_group_name?.trim()
-      if ((row.fansub_groups?.length ?? 0) > 0 || !detectedGroupName) return row
-      return serializeEpisodeImportMappingRow({
+    mappings: detectMappingConflicts((preview.mappings ?? []).map((row) => {
+      const candidates = (preview.media_candidates ?? []).filter(
+        (candidate) => candidate.media_item_id === row.media_item_id,
+      )
+      // Seed only at the preview boundary. Apply must never repair a lost selector.
+      const reviewedRow = {
         ...row,
+        media_source_id: row.media_source_id ?? (candidates.length === 1 ? candidates[0].media_source_id : null),
+      }
+      const detectedGroupName = row.fansub_group_name?.trim()
+      if ((row.fansub_groups?.length ?? 0) > 0 || !detectedGroupName) return reviewedRow
+      return serializeEpisodeImportMappingRow({
+        ...reviewedRow,
         fansub_groups: [{ name: detectedGroupName }],
       })
-    }),
+    }), preview.media_candidates ?? []),
     unmapped_episodes: preview.unmapped_episodes ?? [],
     unmapped_media_item_ids: preview.unmapped_media_item_ids ?? [],
   }
