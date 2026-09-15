@@ -1,0 +1,15 @@
+{
+  "scope": "Additional read-only check of originally reported release48 before public projection change",
+  "status": 200,
+  "commit": "9622210962c9741b1d955c6ca916a5aa42d49f9e",
+  "route": "/anime/1/group/1/releases/48",
+  "technical": {
+    "release_version_id": 48,
+    "container": "mkv",
+    "video_codec": "h264",
+    "audio_codec": "aac",
+    "audio_language": null,
+    "subtitle_type": null,
+    "subtitle_tracks": []
+  }
+}
