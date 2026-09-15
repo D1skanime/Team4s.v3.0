@@ -58,3 +58,7 @@ If an old integration fixture lacks stream_sources.metadata, extend that guarded
 ## Plan06 same-plan ownership split
 
 Root implemented Task3 frontend hook/tests and one fallback-helper line while the executor finished Task2/backend scan; ownership was explicitly transferred before edits. This did not overlap application plans06/07. Source summaries record all commits and99 frontend test passes. Intermediate broad Go result repeats exactly50 existing failures; final coherent gates still follow08.
+
+## Plan08 selected-record extension
+
+Plan07 Task1 implements the shared six-field playback record (variant/duration/provider/item/URL/binding), commit2e103444. Root and executor agreed08 must extend this same SQL/record with public technical scalars, rather than read them later in another unlocked statement. Otherwise a concurrent relink can combine different row snapshots.08file ownership now explicitly includes release_variant_source_repository.go; no extra table, selection seam or transaction is introduced.
