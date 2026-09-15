@@ -1593,7 +1593,7 @@ ausdruecklich **kein** visuelles Redesign und kopiert keine Credits in Segmentta
 
 **Depends on:** Phase 155
 
-**Plans:** 21/22 plans executed
+**Plans:** 22/22 plans complete
 
 Plans:
 
@@ -1689,7 +1689,7 @@ Plans:
       `permissions.SegmentCreditPreselectionRoleCodes` traegt weiterhin nur die alten sechs
       Codes (echte Teilmenge, per Test bewiesen), `typesetter`-Label auf "Karaoke-Typesetting"
       umbenannt, neue Labels "Karaoke-Encoding"/"Logo".
-- [ ] 156-21-PLAN.md — Wiring + Testkorrektur: automatische Vorauswahl liest jetzt die neue
+- [x] 156-21-PLAN.md — Wiring + Testkorrektur: automatische Vorauswahl liest jetzt die neue
       Preselection-Liste (Encoder/Designer weiterhin nie vorausgewaehlt), Migration-0165-
       Aequivalenztest zeigt auf dieselbe Liste (Migration selbst unveraendert), oeffentliche
       Projektions- und Rollenfilter-Tests fachlich korrigiert (nicht geloescht) fuer die neue

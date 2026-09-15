@@ -2,16 +2,16 @@
 gsd_state_version: 1.0
 milestone: v1.4
 milestone_name: Coverage
-status: executing
-stopped_at: "Completed 156-22-PLAN.md (GAP-09 frontend closure: editor hint + Karaoke-Typesetting fixture)"
-last_updated: "2026-09-15T09:29:37.416Z"
+status: verifying
+stopped_at: "Completed 156-21-PLAN.md (GAP-09 encoder/designer wiring: preselection filter repointed, public projection tests corrected, stale doc comments fixed)"
+last_updated: "2026-09-15T09:46:28.485Z"
 last_activity: 2026-09-15
 progress:
   total_phases: 24
-  completed_phases: 23
+  completed_phases: 24
   total_plans: 238
-  completed_plans: 237
-  percent: 96
+  completed_plans: 238
+  percent: 100
 ---
 
 # Project State
@@ -48,7 +48,7 @@ See: .planning/PROJECT.md (updated 2026-08-13)
 Phase: 156 (segment-domain-konsistenz-und-oeffentliche-release-projektion) — EXECUTING
 Plan: 3 of 3
 dupliziertem ProjectMemberStickyNav; siehe 157-14-SUMMARY.md)
-Status: Ready to execute
+Status: Phase complete — ready for verification
 GAP-02-Live-UAT-Checkpoint aus 156-UAT.md (5 Origin- + 9 Segment-Contributor-Pruefpunkte) bleibt
 weiterhin OFFEN -- siehe deferred-items.md. Phase 156 gilt NICHT als vollstaendig abgenommen.
 Phase 157 gilt ebenfalls NICHT als vollstaendig abgenommen: der menschliche Live-UAT-Checkpoint
@@ -1205,6 +1205,8 @@ Last activity: 2026-09-15
 - [Phase ?]: testsupport/phase117_postgres.go gained one ADD COLUMN IF NOT EXISTS line (Rule 3) to avoid breaking every Phase-117 test after the five call-site swaps
 - [Phase ?]: GAP-08: SegmentContributorsField-Gate auf origin_release_version_id != null verengt (isSharedSegment-Bedingung entfernt)
 - [Phase ?]: 156-22: pure text-only edits (GAP-09 editor hint + Karaoke-Typesetting fixture), no UI-SPEC gate per explicit run instruction
+- [Phase 156-21]: GAP-09 preselection filter repointed to permissions.SegmentCreditPreselectionRoleCodes; public projection proven live to show encoder/designer only when explicitly selected, raw_provider never
+- [Phase 156-21]: Fixed two undocumented subset-matrix test regressions (F, K_inherited_default_overridden_to_irrelevant_role) that used encoder as a non-segment-relevant example, retargeted to raw_provider
 
 ### Pending Todos
 
@@ -1615,11 +1617,12 @@ untruncated list lives in `.planning/todos/pending/`.
 | Phase 156 P19 | 20min | 1 tasks | 2 files |
 | Phase 156 P20 | 15min | 1 tasks | 2 files |
 | Phase 156 P22 | 12min | 1 tasks | 2 files |
+| Phase 156 P21 | ~50min | 3 tasks | 9 files |
 
 ## Session Continuity
 
-Last session: 2026-09-15T09:29:37.397Z
-Stopped at: Completed 156-22-PLAN.md (GAP-09 frontend closure: editor hint + Karaoke-Typesetting fixture)
+Last session: 2026-09-15T09:46:28.467Z
+Stopped at: Completed 156-21-PLAN.md (GAP-09 encoder/designer wiring: preselection filter repointed, public projection tests corrected, stale doc comments fixed)
 Last activity: Larger dot + per-entry role-colored timeline line implemented and live-verified against the running stack; GAP-02 V3/V4 closed automated/technically, human Live-UAT remains a separate open step.
 Resume file: 
 None
