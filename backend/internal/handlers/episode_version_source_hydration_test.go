@@ -224,7 +224,9 @@ func TestEpisodeVersionSourceHydrationFolderScan(t *testing.T) {
 				itemPath = "/private/foreign/b.webm"
 			}
 			nextSources := []any{next, alternate}
-			if scenario == "outside source" { nextSources = []any{next} }
+			if scenario == "outside source" {
+				nextSources = []any{next}
+			}
 			if scenario == "ambiguous" {
 				itemPath = root + "/missing.webm"
 			}

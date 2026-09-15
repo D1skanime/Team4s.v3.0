@@ -4,8 +4,6 @@ import (
 	"context"
 	"fmt"
 	"net/http"
-	"os"
-	"path"
 	"path/filepath"
 	"sort"
 	"strings"
@@ -34,7 +32,19 @@ func (h *AdminContentHandler) scanEpisodeVersionFolder(
 		return nil, http.StatusBadGateway, fmt.Errorf("ordner konnte nicht synchronisiert werden")
 	}
 
-	files := buildEpisodeVersionMediaFiles(items, resolved.animeFolderPath, h.buildJellyfinEditorStreamURL)
+	itemIDs := make([]string, 0, len(items))
+	for _, item := range items {
+		itemIDs = append(itemIDs, item.ID)
+	}
+	// One existing batch reader, regardless of the number of nested sources.
+	bindings, err := h.episodeVersionRepo.GetJellyfinSourceBindings(ctx, itemIDs)
+	if err != nil {
+		return nil, sourceHydrationRepositoryStatus(err), fmt.Errorf("Die gespeicherten Jellyfin-Quellen konnten nicht geladen werden.")
+	}
+	files, err := buildEpisodeVersionMediaFiles(items, resolved.jellyfinSeriesID, resolved.animeFolderPath, bindings, h.buildJellyfinEditorStreamURL)
+	if err != nil {
+		return nil, http.StatusConflict, err
+	}
 	return &models.EpisodeVersionFolderScanResult{
 		VersionID:       resolved.version.ID,
 		AnimeID:         resolved.version.AnimeID,
@@ -46,9 +56,11 @@ func (h *AdminContentHandler) scanEpisodeVersionFolder(
 // buildEpisodeVersionMediaFiles erstellt aus einer Liste von Jellyfin-Episoden eine sortierte Liste von Mediendatei-Einträgen für den Editor.
 func buildEpisodeVersionMediaFiles(
 	items []jellyfinEpisodeItem,
+	seriesID string,
 	folderPath *string,
+	bindings map[string]models.JellyfinSourceSnapshot,
 	streamURLBuilder func(string) *string,
-) []models.EpisodeVersionMediaFile {
+) ([]models.EpisodeVersionMediaFile, error) {
 	normalizedFolderPath := normalizeJellyfinPath(folderPath)
 	files := make([]models.EpisodeVersionMediaFile, 0, len(items))
 	for _, item := range items {
@@ -61,25 +73,29 @@ func buildEpisodeVersionMediaFiles(
 			continue
 		}
 
-		entry := models.EpisodeVersionMediaFile{
-			FileName:     path.Base(strings.ReplaceAll(itemPath, "\\", "/")),
-			Path:         itemPath,
-			MediaItemID:  itemID,
-			StreamURL:    streamURLBuilder(itemID),
-			VideoQuality: jellyfinVideoQuality(item.MediaStreams),
+		var stored *models.JellyfinSourceSnapshot
+		if binding, ok := bindings[itemID]; ok {
+			stored = &binding
 		}
-		if releaseName := normalizeNullableStringPtr(fileBaseWithoutExt(itemPath)); releaseName != nil {
+		source, err := resolveReviewedJellyfinSource(item, itemID, "", seriesID, normalizedFolderPath, stored)
+		if err != nil {
+			return nil, err
+		}
+		entry := models.EpisodeVersionMediaFile{
+			FileName:      source.FileName,
+			Path:          source.Snapshot.SourcePath,
+			MediaItemID:   itemID,
+			MediaSourceID: &source.Snapshot.MediaSourceID,
+			StreamURL:     streamURLBuilder(itemID),
+			VideoQuality:  source.VideoQuality,
+		}
+		if releaseName := normalizeNullableStringPtr(fileBaseWithoutExt(source.FileName)); releaseName != nil {
 			entry.ReleaseName = releaseName
 		}
 		if episodeNumber := jellyfinEpisodeNumber(item.IndexNumber); episodeNumber > 0 {
 			entry.DetectedEpisodeNumber = &episodeNumber
 		}
-		if fileInfo, err := os.Stat(itemPath); err == nil && !fileInfo.IsDir() {
-			size := fileInfo.Size()
-			modifiedAt := fileInfo.ModTime().UTC()
-			entry.FileSizeBytes = &size
-			entry.LastModified = &modifiedAt
-		}
+
 		files = append(files, entry)
 	}
 
@@ -98,7 +114,7 @@ func buildEpisodeVersionMediaFiles(
 		return strings.ToLower(files[i].FileName) < strings.ToLower(files[j].FileName)
 	})
 
-	return files
+	return files, nil
 }
 
 // extractJellyfinSourceID extrahiert die Jellyfin-Serien-ID aus einem Anime-Quellbezeichner im Format "jellyfin:<id>".
