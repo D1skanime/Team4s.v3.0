@@ -194,3 +194,96 @@ func TestEpisodeVersionSourceHydrationCreate(t *testing.T) {
 	require.NoError(t, pool.QueryRow(context.Background(), "SELECT filename FROM release_variants WHERE id=$1", item.Data.VariantID).Scan(&filename))
 	require.Equal(t, "b.mkv", filename)
 }
+
+// The scan must use the same selected source as the mutation boundary, without
+// turning alternate MediaSources into extra episode/file choices.
+func TestEpisodeVersionSourceHydrationFolderScan(t *testing.T) {
+	for _, scenario := range []string{"own source", "reverse sources", "complete empty", "same source incomplete", "new source incomplete", "ambiguous", "outside source", "wrong series", "outside item"} {
+		t.Run(scenario, func(t *testing.T) {
+			pool := openVersionHydrationFixture(t)
+			root := "/data/anime/FixtureFallback"
+			own := map[string]any{"Id": "source-a", "Path": root + "/a.mkv", "MediaStreams": []any{map[string]any{"Index": 0, "Type": "Video", "Height": 720}}}
+			alternate := map[string]any{"Id": "alternate", "Path": root + "/alternate.mp4", "MediaStreams": []any{map[string]any{"Index": 0, "Type": "Video", "Height": 2160}}}
+			next := map[string]any{"Id": "source-b", "Path": root + "/b.webm", "MediaStreams": []any{map[string]any{"Index": 0, "Type": "Video", "Height": 1080}}}
+			sources := []any{alternate, own}
+			itemPath, series := root+"/b.webm", "series-401"
+			switch scenario {
+			case "reverse sources":
+				sources = []any{own, alternate}
+			case "complete empty":
+				own["MediaStreams"] = []any{}
+			case "same source incomplete":
+				delete(own, "MediaStreams")
+			case "new source incomplete":
+				delete(next, "MediaStreams")
+			case "outside source":
+				next["Path"] = "/private/foreign/b.webm"
+			case "wrong series":
+				series = "foreign"
+			case "outside item":
+				itemPath = "/private/foreign/b.webm"
+			}
+			nextSources := []any{next, alternate}
+			if scenario == "outside source" { nextSources = []any{next} }
+			if scenario == "ambiguous" {
+				itemPath = root + "/missing.webm"
+			}
+			requests := 0
+			server := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+				requests++
+				require.Empty(t, r.URL.Query().Get("api_key"))
+				require.Contains(t, r.Header.Get("Authorization"), "MediaBrowser")
+				if r.URL.Path == "/Items" {
+					require.Equal(t, "series-401", r.URL.Query().Get("Ids"))
+					json.NewEncoder(w).Encode(map[string]any{"Items": []any{map[string]any{"Id": "series-401", "Path": root}}})
+					return
+				}
+				require.Equal(t, "/Shows/series-401/Episodes", r.URL.Path)
+				require.Contains(t, r.URL.Query().Get("Fields"), "MediaSources")
+				json.NewEncoder(w).Encode(map[string]any{"TotalRecordCount": 2, "Items": []any{
+					map[string]any{"Id": "item-b", "Type": "Episode", "SeriesId": series, "Path": itemPath, "IndexNumber": 2, "MediaSources": nextSources},
+					map[string]any{"Id": "item-a", "Type": "Episode", "SeriesId": "series-401", "Path": root + "/alternate.mp4", "IndexNumber": 1, "MediaSources": sources, "MediaStreams": []any{map[string]any{"Index": 0, "Type": "Video", "Height": 480}}},
+				}})
+			}))
+			defer server.Close()
+			h := evecFixtureHandler(pool, server.URL, "fixture-key")
+			before := hydrationState(t, pool)
+			files, status, err := h.scanEpisodeVersionFolder(context.Background(), 3301)
+			require.Equal(t, 2, requests, "one context lookup plus one collection request, no per-item hydration")
+			require.Equal(t, before, hydrationState(t, pool), "folder scan is read-only")
+			switch scenario {
+			case "new source incomplete", "ambiguous", "outside source", "wrong series":
+				require.Error(t, err)
+				require.Equal(t, 409, status)
+				require.NotContains(t, err.Error(), "/private")
+				return
+			}
+			require.NoError(t, err)
+			expected := 2
+			if scenario == "outside item" {
+				expected = 1
+			}
+			require.Len(t, files.Files, expected)
+			a := files.Files[0]
+			require.Equal(t, "item-a", a.MediaItemID)
+			require.Equal(t, "source-a", derefString(a.MediaSourceID))
+			require.Equal(t, "a.mkv", a.FileName)
+			require.Equal(t, root+"/a.mkv", a.Path)
+			require.Equal(t, "a", derefString(a.ReleaseName))
+			if scenario == "complete empty" || scenario == "same source incomplete" {
+				require.Nil(t, a.VideoQuality)
+			} else {
+				require.Equal(t, "720p", derefString(a.VideoQuality))
+			}
+			require.Nil(t, a.FileSizeBytes)
+			require.Nil(t, a.LastModified)
+			if expected == 2 {
+				b := files.Files[1]
+				require.Equal(t, "item-b", b.MediaItemID)
+				require.Equal(t, "source-b", derefString(b.MediaSourceID))
+				require.Equal(t, "b.webm", b.FileName)
+				require.Equal(t, "1080p", derefString(b.VideoQuality))
+			}
+		})
+	}
+}
