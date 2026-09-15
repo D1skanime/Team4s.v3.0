@@ -2,6 +2,14 @@ package services
 
 import (
 	"strings"
+	"context"
+	"net/http"
+	"net/http/httptest"
+	"os/exec"
+	"path/filepath"
+	"slices"
+	"sync/atomic"
+	"time"
 	"testing"
 )
 
@@ -75,7 +83,8 @@ func TestSelectSegmentSubtitleStreamPrefersDefaultSuitableSubtitle(t *testing.T)
 func TestBuildFFmpegSegmentArgsMapsVideoAudioAndBurnsSubtitle(t *testing.T) {
 	args, err := BuildFFmpegSegmentArgs(SegmentRenderCommandInput{
 		FFmpegPath:       "/usr/bin/ffmpeg",
-		StreamURL:        "http://jellyfin/Videos/abc/stream?api_key=secret",
+		StreamURL:        "http://jellyfin/Videos/abc/stream",
+		HTTPHeaders: http.Header{"Authorization": []string{"MediaBrowser Token=\"synthetic-key\""}},
 		SubtitleFilePath: "/work/ep01.ass",
 		OutputPath:       "/cache/clip.mp4",
 		StartSeconds:     10,
@@ -123,4 +132,58 @@ func TestSanitizeSegmentRenderLogRedactsEmbyToken(t *testing.T) {
 	if strings.Contains(clean, "emby-secret-value") {
 		t.Fatalf("expected X-Emby-Token redacted, got %q", clean)
 	}
+}
+
+func TestBuildFFmpegHeadersAndRedirectOptionsPrecedeInput(t *testing.T) {
+ input:=SegmentRenderCommandInput{StreamURL:"http://jellyfin/stream",HTTPHeaders:http.Header{"Authorization":{"MediaBrowser Token=\"fixture-key\""}},OutputPath:"/tmp/fixture.mp4",DurationSeconds:1}
+ args,err:=BuildFFmpegSegmentArgs(input)
+ if err!=nil {t.Fatal(err)}
+ index:=slices.Index(args,"-i")
+ headers:=slices.Index(args,"-headers")
+ redirects:=slices.Index(args,"-max_redirects")
+ if headers<0||redirects<0||headers>=index||redirects>=index||args[redirects+1]!="0" {t.Fatal("missing bounded authenticated input options")}
+ if args[headers+1]!="Authorization: MediaBrowser Token=\"fixture-key\"\r\n"||args[index+1]!=input.StreamURL {t.Fatal("headers not separated from key-free URL")}
+ input.HTTPHeaders.Set("Authorization","safe\r\nInjected: bad")
+ if _,err=BuildFFmpegSegmentArgs(input);err==nil {t.Fatal("header injection accepted")}
+}
+
+func TestSanitizeSegmentRenderLogRedactsModernAuthorization(t *testing.T) {
+ for _,raw:=range []string{
+  "Authorization: MediaBrowser Token=\"private token with spaces\"\r\nnext",
+  "authorization: mediabrowser Client=\"Team4s\", Token = \"private token with spaces\"",
+  "Authorization: MediaBrowser Token=\"private\\\"quoted-token\"",
+ } {
+  clean:=SanitizeSegmentRenderLog(raw)
+  if strings.Contains(clean,"private")||strings.Contains(clean,"quoted-token")||strings.Contains(clean,"with spaces") {t.Fatal("modern authorization leaked")}
+ }
+}
+
+func TestFFmpegExecutableAuthenticatedInputRejectsCrossOriginRedirect(t *testing.T) {
+ binary,err:=exec.LookPath("ffmpeg")
+ if err!=nil {t.Fatal("installed FFmpeg is required for redirect proof")}
+ dir:=t.TempDir()
+ fixture:=filepath.Join(dir,"fixture.mp4")
+ ctx,cancel:=context.WithTimeout(context.Background(),20*time.Second);defer cancel()
+ generate:=exec.CommandContext(ctx,binary,"-hide_banner","-loglevel","error","-f","lavfi","-i","color=c=black:s=16x16:r=1","-f","lavfi","-i","anullsrc=r=8000:cl=mono","-t","1","-c:v","libx264","-pix_fmt","yuv420p","-c:a","aac","-movflags","+faststart",fixture)
+ if output,err:=generate.CombinedOutput();err!=nil {t.Fatalf("generate tiny fixture: %v %s",err,output)}
+ var foreignCalls,authenticatedCalls,redirectCalls atomic.Int32
+ foreign:=httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter,r *http.Request){foreignCalls.Add(1);http.ServeFile(w,r,fixture)}))
+ defer foreign.Close()
+ source:=httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter,r *http.Request){
+  if r.Header.Get("Authorization")!="MediaBrowser Token=\"ffmpeg-fixture-secret\"" {t.Error("FFmpeg input missing auth")}
+  if strings.Contains(r.URL.String(),"ffmpeg-fixture-secret") {t.Error("credential in FFmpeg URL")}
+  authenticatedCalls.Add(1)
+  if r.URL.Path=="/redirect" {redirectCalls.Add(1);http.Redirect(w,r,foreign.URL+"/fixture",http.StatusFound);return}
+  http.ServeFile(w,r,fixture)
+ }))
+ defer source.Close()
+ for _,path:=range []string{"direct","redirect"} {
+  input:=SegmentRenderCommandInput{FFmpegPath:binary,StreamURL:source.URL+"/"+path,HTTPHeaders:http.Header{"Authorization":{"MediaBrowser Token=\"ffmpeg-fixture-secret\""}},OutputPath:filepath.Join(dir,path+".mp4"),DurationSeconds:1}
+  args,err:=BuildFFmpegSegmentArgs(input);if err!=nil {t.Fatal(err)}
+  output,err:=exec.CommandContext(ctx,args[0],args[1:]...).CombinedOutput()
+  if path=="direct"&&err!=nil {t.Fatalf("authenticated render failed: %v %s",err,SanitizeSegmentRenderLog(string(output),"ffmpeg-fixture-secret"))}
+  if path=="redirect"&&err==nil {t.Fatal("redirect input unexpectedly rendered")}
+  if strings.Contains(SanitizeSegmentRenderLog(string(output),"ffmpeg-fixture-secret"),"ffmpeg-fixture-secret") {t.Fatal("stderr leaks key")}
+ }
+ if authenticatedCalls.Load()<2||redirectCalls.Load()!=1||foreignCalls.Load()!=0 {t.Fatalf("source calls=%d redirect=%d foreign=%d",authenticatedCalls.Load(),redirectCalls.Load(),foreignCalls.Load())}
 }

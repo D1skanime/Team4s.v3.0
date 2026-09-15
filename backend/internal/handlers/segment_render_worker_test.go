@@ -4,6 +4,8 @@ import (
 	"context"
 	"encoding/json"
 	"net/http"
+	"os"
+	"path/filepath"
 	"net/http/httptest"
 	"strings"
 	"testing"
@@ -29,6 +31,7 @@ type fakeSegmentStreamThemeRepo struct {
 	upsertErr    error
 
 	claimCalled bool
+	failureMessages []string
 }
 
 func (f *fakeSegmentStreamThemeRepo) GetThemeSegmentRenderSource(ctx context.Context, segmentID int64, releaseVersionID int64) (*models.ThemeSegmentRenderSource, error) {
@@ -88,6 +91,7 @@ func (f *fakeSegmentStreamThemeRepo) MarkThemeSegmentRenderCacheReady(ctx contex
 }
 
 func (f *fakeSegmentStreamThemeRepo) MarkThemeSegmentRenderCacheFailed(ctx context.Context, cacheKey string, errorCode string, errorMessage string) error {
+	f.failureMessages=append(f.failureMessages,errorMessage)
 	return nil
 }
 
@@ -348,4 +352,20 @@ func TestAttachSegmentLibraryAsset_QueuesRenderForAllAssignedReleaseVersions(t *
 			t.Fatalf("expected release_version_id=%d to have a queued render cache entry, upserted=%v", releaseVersionID, repoStub.upsertedReleaseVersionIDs)
 		}
 	}
+}
+
+func TestFFmpegWorkerUsesSeparateAuthAndRedactsFailures(t *testing.T) {
+ dir:=t.TempDir()
+ binary:=filepath.Join(dir,"fixture-ffmpeg")
+ script := "#!/bin/sh\ncase \"$*\" in *'Authorization: MediaBrowser Token=\"worker-private-token\"'*) ;; *) exit 7 ;; esac\ncase \"$*\" in *'api_key='*) exit 8 ;; esac\nprintf '%s\\n' 'Authorization: MediaBrowser Token=\"worker-private-token\" failure' >&2\nexit 1\n"
+ if err:=os.WriteFile(binary,[]byte(script),0700);err!=nil {t.Fatal(err)}
+ source:=segmentRenderTestSource()
+ stream:="https://jellyfin.example/stream?api_key=worker-private-token"
+ source.StreamURL=&stream
+ repo:=&fakeSegmentStreamThemeRepo{source:source}
+ h:=&AdminContentHandler{themeRepo:repo,jellyfinBaseURL:"https://jellyfin.example",jellyfinAPIKey:"worker-private-token",segmentRenderDir:dir,segmentRenderFFmpegPath:binary}
+ err:=h.executeSegmentRender(context.Background(),&models.ThemeSegmentRenderCache{CacheKey:"fixture",ThemeSegmentID:42},source)
+ if err==nil||len(repo.failureMessages)!=1 {t.Fatal("expected controlled render failure")}
+ message:=repo.failureMessages[0]
+ if !strings.Contains(message,"[REDACTED]")||strings.Contains(message,"worker-private-token")||strings.Contains(err.Error(),"worker-private-token") {t.Fatal("worker authentication missing or failure not sanitized")}
 }

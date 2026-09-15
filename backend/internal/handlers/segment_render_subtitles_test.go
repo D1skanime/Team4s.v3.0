@@ -2,6 +2,8 @@ package handlers
 
 import (
 	"context"
+	"fmt"
+	"errors"
 	"net/http"
 	"net/http/httptest"
 	"os"
@@ -198,8 +200,8 @@ func TestDownloadJellyfinSubtitle_WritesControlledTempFile(t *testing.T) {
 		if !strings.HasPrefix(r.URL.Path, "/Videos/item-4/item-4/Subtitles/3/Stream.ass") {
 			t.Fatalf("unexpected subtitle request path: %s", r.URL.Path)
 		}
-		if got := r.URL.Query().Get("api_key"); got != "test-key" {
-			t.Fatalf("expected api_key query param, got %q", got)
+		if r.URL.Query().Has("api_key") || r.Header.Get("Authorization") != "MediaBrowser Token=\"test-key\"" {
+			t.Fatal("expected header-only subtitle auth")
 		}
 		_, _ = w.Write([]byte("[Script Info]\ntest\n"))
 	}))
@@ -261,4 +263,22 @@ func TestSegmentSubtitleTempDir(t *testing.T) {
 	if got != want {
 		t.Fatalf("expected %q, got %q", want, got)
 	}
+}
+
+func TestSegmentSubtitleAuthStatusAndCancellation(t *testing.T) {
+ for _,status:=range []int{200,401,503} {t.Run(fmt.Sprint(status),func(t *testing.T){
+  server:=httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter,r *http.Request){
+   if r.Header.Get("Authorization")!="MediaBrowser Token=\"subtitle-key\""||r.URL.Query().Has("api_key") {t.Error("subtitle auth boundary")}
+   if r.URL.Path!="/prefix/Videos/item/source/Subtitles/2/Stream.ass" {t.Error("subtitle path changed")}
+   w.WriteHeader(status);w.Write([]byte("[Script Info]"))
+  }))
+  defer server.Close()
+  h:=&AdminContentHandler{jellyfinAPIKey:"subtitle-key",jellyfinBaseURL:server.URL+"/prefix",httpClient:server.Client()}
+  path,err:=h.downloadJellyfinSubtitle(context.Background(),"item","source",2,t.TempDir())
+  if (err!=nil)!=(status>=400) {t.Fatalf("status handling: %v",err)}
+  if status==200&&path=="" {t.Fatal("missing subtitle file")}
+ })}
+ h:=&AdminContentHandler{jellyfinAPIKey:"subtitle-key",jellyfinBaseURL:"https://jellyfin.test",httpClient:&http.Client{Transport:roundTripFunc(func(*http.Request)(*http.Response,error){return nil,fmt.Errorf("subtitle-key: %w",context.Canceled)})}}
+ _,err:=h.downloadJellyfinSubtitle(context.Background(),"item","source",2,t.TempDir())
+ if err==nil||strings.Contains(err.Error(),"subtitle-key")||!errors.Is(err,context.Canceled) {t.Fatal("unsafe subtitle transport failure")}
 }
