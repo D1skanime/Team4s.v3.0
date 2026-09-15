@@ -5,7 +5,6 @@ import (
 	"errors"
 	"fmt"
 	"path"
-	"path/filepath"
 	"regexp"
 	"sort"
 	"strings"
@@ -29,6 +28,15 @@ func upsertImportReleaseGraph(
 	media models.EpisodeImportMediaCandidate,
 	episodeIDsByNumber map[int32]int64,
 ) (bool, error) {
+	// Lock the provider/item row before looking up ownership so concurrent imports
+	// into different anime cannot both observe an unbound item and create graphs.
+	snapshot := models.JellyfinSourceSnapshot{Version: 1, MediaSourceID: media.MediaSourceID,
+		SourcePath: media.Path, StreamsComplete: media.StreamsComplete,
+		SelectedAudioIndex: media.SelectedAudioIndex, AudioTracks: media.AudioTracks, SubtitleTracks: media.SubtitleTracks}
+	streamSourceID, sourceErr := upsertStreamSourceSnapshot(ctx, tx, "jellyfin", mapping.MediaItemID, media.StreamURL, &snapshot)
+	if sourceErr != nil {
+		return false, sourceErr
+	}
 	var variantID, existingAnimeID int64
 	err := tx.QueryRow(ctx, `
 		SELECT rv.id, ep.anime_id
@@ -73,9 +81,6 @@ func upsertImportReleaseGraph(
 		if err != nil {
 			return false, err
 		}
-		if err := createReleaseStream(ctx, tx, variantID, ids.StreamTypeID, mapping, media); err != nil {
-			return false, err
-		}
 		created = true
 	} else {
 		if err := tx.QueryRow(ctx, `SELECT release_version_id FROM release_variants WHERE id = $1`, variantID).Scan(&releaseVersionID); err != nil {
@@ -89,14 +94,18 @@ func upsertImportReleaseGraph(
 			    video_codec = COALESCE($4, video_codec),
 			    audio_codec = COALESCE($5, audio_codec),
 			    duration_seconds = COALESCE($6, duration_seconds),
+			    container = COALESCE($7, container),
 			    updated_at = NOW(),
 			    modified_at = NOW()
 			WHERE id = $3
-		`, episodeImportFilename(media), media.VideoQuality, variantID, media.VideoCodec, media.AudioCodec, media.DurationSeconds); err != nil {
+		`, episodeImportFilename(media), media.VideoQuality, variantID, media.VideoCodec, media.AudioCodec, media.DurationSeconds, media.Container); err != nil {
 			return false, fmt.Errorf("update release variant=%d: %w", variantID, err)
 		}
 	}
 
+	if err := upsertNormalizedReleaseStream(ctx, tx, variantID, ids.StreamTypeID, streamSourceID, mapping.MediaItemID); err != nil {
+		return false, err
+	}
 	if err := upsertReleaseVersionGroup(ctx, tx, releaseVersionID, mapping, media); err != nil {
 		return false, err
 	}
@@ -185,7 +194,7 @@ func createReleaseVersion(ctx context.Context, tx pgx.Tx, releaseID int64, versi
 
 func createReleaseVariant(ctx context.Context, tx pgx.Tx, releaseVersionID int64, media models.EpisodeImportMediaCandidate) (int64, error) {
 	filename := episodeImportFilename(media)
-	container := strings.TrimPrefix(strings.ToLower(filepath.Ext(filename)), ".")
+	container := media.Container
 	var id int64
 	if err := tx.QueryRow(ctx, `
 		INSERT INTO release_variants (release_version_id, container, resolution, video_quality, video_codec, audio_codec, filename, duration_seconds, modified_at)
@@ -193,38 +202,6 @@ func createReleaseVariant(ctx context.Context, tx pgx.Tx, releaseVersionID int64
 		RETURNING id
 	`, releaseVersionID, container, media.VideoQuality, media.VideoCodec, media.AudioCodec, filename, media.DurationSeconds).Scan(&id); err != nil {
 		return 0, fmt.Errorf("create release variant version=%d: %w", releaseVersionID, err)
-	}
-	return id, nil
-}
-
-func createReleaseStream(
-	ctx context.Context,
-	tx pgx.Tx,
-	variantID int64,
-	streamTypeID int64,
-	mapping models.EpisodeImportMappingRow,
-	media models.EpisodeImportMediaCandidate,
-) error {
-	streamSourceID, err := upsertStreamSource(ctx, tx, mapping.MediaItemID, media.StreamURL)
-	if err != nil {
-		return err
-	}
-	if err := upsertNormalizedReleaseStream(ctx, tx, variantID, streamTypeID, streamSourceID, mapping.MediaItemID); err != nil {
-		return fmt.Errorf("create release stream variant=%d media=%s: %w", variantID, mapping.MediaItemID, err)
-	}
-	return nil
-}
-
-func upsertStreamSource(ctx context.Context, tx pgx.Tx, mediaItemID string, streamURL *string) (int64, error) {
-	var id int64
-	if err := tx.QueryRow(ctx, `
-		INSERT INTO stream_sources (provider_type, external_id, url)
-		VALUES ('jellyfin', $1, $2)
-		ON CONFLICT (provider_type, external_id) DO UPDATE
-		SET url = COALESCE(EXCLUDED.url, stream_sources.url)
-		RETURNING id
-	`, mediaItemID, streamURL).Scan(&id); err != nil {
-		return 0, fmt.Errorf("upsert stream source media=%s: %w", mediaItemID, err)
 	}
 	return id, nil
 }

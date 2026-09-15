@@ -107,6 +107,9 @@ func buildEpisodeImportApplyPlan(input models.EpisodeImportApplyInput) (episodeI
 		if mediaID == "" {
 			return episodeImportApplyPlan{}, fmt.Errorf("media_item_id is required")
 		}
+		if _, exists := plan.mediaByID[mediaID]; exists {
+			return episodeImportApplyPlan{}, fmt.Errorf("duplicate media_item_id %s in candidates", mediaID)
+		}
 		media.MediaItemID = mediaID
 		plan.mediaByID[mediaID] = media
 	}
@@ -139,8 +142,12 @@ func buildEpisodeImportApplyPlan(input models.EpisodeImportApplyInput) (episodeI
 			return episodeImportApplyPlan{}, fmt.Errorf("mapping %s: %w", mapping.MediaItemID, err)
 		}
 		mapping.TargetEpisodeNumbers = targets
-		if _, ok := plan.mediaByID[mapping.MediaItemID]; !ok {
-			plan.mediaByID[mapping.MediaItemID] = models.EpisodeImportMediaCandidate{MediaItemID: mapping.MediaItemID}
+		media, ok := plan.mediaByID[mapping.MediaItemID]
+		if !ok {
+			return episodeImportApplyPlan{}, fmt.Errorf("confirmed candidate is missing")
+		}
+		if strings.TrimSpace(mapping.MediaSourceID) == "" || mapping.MediaSourceID != media.MediaSourceID {
+			return episodeImportApplyPlan{}, ErrConflict
 		}
 		for _, episodeNumber := range targets {
 			if _, ok := plan.canonicalByNumber[episodeNumber]; !ok {

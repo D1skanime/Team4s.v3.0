@@ -17,7 +17,9 @@ func TestEpisodeImportApply_CreatesCoverageJoinRowsForMultiEpisodeMedia(t *testi
 			{EpisodeNumber: 9},
 			{EpisodeNumber: 10},
 		},
+		MediaCandidates: []models.EpisodeImportMediaCandidate{{MediaItemID: "jellyfin-naruto-009-010", MediaSourceID: "source-a", StreamsComplete: true}},
 		Mappings: []models.EpisodeImportMappingRow{{
+			MediaSourceID:        "source-a",
 			MediaItemID:          "jellyfin-naruto-009-010",
 			TargetEpisodeNumbers: []int32{9, 10},
 			Status:               models.EpisodeImportMappingStatusConfirmed,
@@ -200,7 +202,11 @@ func TestEpisodeImportApply_UsesReleaseNativeTablesOnly(t *testing.T) {
 	if err != nil {
 		t.Fatalf("read stream helper source: %v", err)
 	}
-	normalized := strings.ToLower(string(applyContent) + "\n" + string(releaseContent) + "\n" + string(streamContent))
+	sourceContent, err := os.ReadFile("jellyfin_source_repository.go")
+	if err != nil {
+		t.Fatal(err)
+	}
+	normalized := strings.ToLower(string(sourceContent) + "\n" + string(applyContent) + "\n" + string(releaseContent) + "\n" + string(streamContent))
 	// Nach Phase 81: fansub_collaboration_members und FansubGroupTypeCollaboration sind entfernt (D-02).
 	required := []string{
 		"insert into episodes",
@@ -232,15 +238,18 @@ func TestEpisodeImportApply_AllowsParallelReleasesForSameEpisode(t *testing.T) {
 	// Multiple distinct Jellyfin files (different release groups) covering the
 	// same canonical episode are valid parallel versions and must not be rejected.
 	plan, err := buildEpisodeImportApplyPlan(models.EpisodeImportApplyInput{
-		AnimeID: 42,
+		AnimeID:         42,
+		MediaCandidates: []models.EpisodeImportMediaCandidate{{MediaItemID: "jellyfin-group-a", MediaSourceID: "source-a"}, {MediaItemID: "jellyfin-group-b", MediaSourceID: "source-a"}, {MediaItemID: "jellyfin-same-id", MediaSourceID: "source-a"}},
 		Mappings: []models.EpisodeImportMappingRow{
 			{
 				MediaItemID:          "jellyfin-group-a",
+				MediaSourceID:        "source-a",
 				TargetEpisodeNumbers: []int32{9},
 				Status:               models.EpisodeImportMappingStatusConfirmed,
 			},
 			{
 				MediaItemID:          "jellyfin-group-b",
+				MediaSourceID:        "source-a",
 				TargetEpisodeNumbers: []int32{9},
 				Status:               models.EpisodeImportMappingStatusConfirmed,
 			},
@@ -260,15 +269,18 @@ func TestEpisodeImportApply_RejectsDuplicateMediaItemID(t *testing.T) {
 	// The same media_item_id appearing twice in the mappings list is a structural
 	// error (not a legitimate parallel version), so the plan builder must reject it.
 	_, err := buildEpisodeImportApplyPlan(models.EpisodeImportApplyInput{
-		AnimeID: 42,
+		AnimeID:         42,
+		MediaCandidates: []models.EpisodeImportMediaCandidate{{MediaItemID: "jellyfin-group-a", MediaSourceID: "source-a"}, {MediaItemID: "jellyfin-group-b", MediaSourceID: "source-a"}, {MediaItemID: "jellyfin-same-id", MediaSourceID: "source-a"}},
 		Mappings: []models.EpisodeImportMappingRow{
 			{
 				MediaItemID:          "jellyfin-same-id",
+				MediaSourceID:        "source-a",
 				TargetEpisodeNumbers: []int32{9},
 				Status:               models.EpisodeImportMappingStatusConfirmed,
 			},
 			{
 				MediaItemID:          "jellyfin-same-id",
+				MediaSourceID:        "source-a",
 				TargetEpisodeNumbers: []int32{10},
 				Status:               models.EpisodeImportMappingStatusConfirmed,
 			},
