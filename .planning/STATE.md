@@ -3,14 +3,14 @@ gsd_state_version: 1.0
 milestone: v1.4
 milestone_name: Coverage
 status: executing
-stopped_at: "Completed 156-20-PLAN.md (GAP-09 encoder/designer segment credit role/label extension: SegmentCreditRoleCodes 6->8, new SegmentCreditPreselectionRoleCodes)"
-last_updated: "2026-09-15T09:25:26.426Z"
+stopped_at: "Completed 156-22-PLAN.md (GAP-09 frontend closure: editor hint + Karaoke-Typesetting fixture)"
+last_updated: "2026-09-15T09:29:37.416Z"
 last_activity: 2026-09-15
 progress:
   total_phases: 24
   completed_phases: 23
   total_plans: 238
-  completed_plans: 236
+  completed_plans: 237
   percent: 96
 ---
 
@@ -46,7 +46,7 @@ See: .planning/PROJECT.md (updated 2026-08-13)
 ## Current Position
 
 Phase: 156 (segment-domain-konsistenz-und-oeffentliche-release-projektion) — EXECUTING
-Plan: 2 of 3
+Plan: 3 of 3
 dupliziertem ProjectMemberStickyNav; siehe 157-14-SUMMARY.md)
 Status: Ready to execute
 GAP-02-Live-UAT-Checkpoint aus 156-UAT.md (5 Origin- + 9 Segment-Contributor-Pruefpunkte) bleibt
@@ -1204,6 +1204,7 @@ Last activity: 2026-09-15
 - [Phase ?]: GAP-07 preselection composed via ensureThemeSegmentOriginAndContributorsTx, keeping ensureThemeSegmentOriginTx byte-identical
 - [Phase ?]: testsupport/phase117_postgres.go gained one ADD COLUMN IF NOT EXISTS line (Rule 3) to avoid breaking every Phase-117 test after the five call-site swaps
 - [Phase ?]: GAP-08: SegmentContributorsField-Gate auf origin_release_version_id != null verengt (isSharedSegment-Bedingung entfernt)
+- [Phase ?]: 156-22: pure text-only edits (GAP-09 editor hint + Karaoke-Typesetting fixture), no UI-SPEC gate per explicit run instruction
 
 ### Pending Todos
 
@@ -1613,11 +1614,12 @@ untruncated list lives in `.planning/todos/pending/`.
 | Phase 156 P18 | 50min | 3 tasks | 16 files |
 | Phase 156 P19 | 20min | 1 tasks | 2 files |
 | Phase 156 P20 | 15min | 1 tasks | 2 files |
+| Phase 156 P22 | 12min | 1 tasks | 2 files |
 
 ## Session Continuity
 
-Last session: 2026-09-15T09:25:26.409Z
-Stopped at: Completed 156-20-PLAN.md (GAP-09 encoder/designer segment credit role/label extension: SegmentCreditRoleCodes 6->8, new SegmentCreditPreselectionRoleCodes)
+Last session: 2026-09-15T09:29:37.397Z
+Stopped at: Completed 156-22-PLAN.md (GAP-09 frontend closure: editor hint + Karaoke-Typesetting fixture)
 Last activity: Larger dot + per-entry role-colored timeline line implemented and live-verified against the running stack; GAP-02 V3/V4 closed automated/technically, human Live-UAT remains a separate open step.
 Resume file: 
 None

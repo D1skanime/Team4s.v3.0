@@ -1593,7 +1593,7 @@ ausdruecklich **kein** visuelles Redesign und kopiert keine Credits in Segmentta
 
 **Depends on:** Phase 155
 
-**Plans:** 20/22 plans executed
+**Plans:** 21/22 plans executed
 
 Plans:
 
@@ -1694,7 +1694,7 @@ Plans:
       Aequivalenztest zeigt auf dieselbe Liste (Migration selbst unveraendert), oeffentliche
       Projektions- und Rollenfilter-Tests fachlich korrigiert (nicht geloescht) fuer die neue
       "Encoder/Designer nur bei Auswahl sichtbar"-Regel, zwei stale Doku-Kommentare korrigiert.
-- [ ] 156-22-PLAN.md — Frontend: Editor-Hinweistext in `SegmentContributorsField.tsx` (Encoding/
+- [x] 156-22-PLAN.md — Frontend: Editor-Hinweistext in `SegmentContributorsField.tsx` (Encoding/
       Design werden nie automatisch vorausgewaehlt), `ThemeTimeline.test.tsx`-Fixture von
       "Typesetting / Logo" auf "Karaoke-Typesetting" nachgezogen. Schliesst GAP-09 (vom
       Auftraggeber im Chat am 2026-09-15 entschieden, ersetzt ausdruecklich die alte "Encoder
