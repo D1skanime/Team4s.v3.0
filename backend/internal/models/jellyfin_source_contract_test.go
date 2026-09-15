@@ -2,12 +2,12 @@ package models
 
 import (
 	"encoding/json"
+	"gopkg.in/yaml.v3"
+	"os"
+	"path/filepath"
 	"reflect"
- "os"
- "path/filepath"
- "runtime"
- "strings"
- "gopkg.in/yaml.v3"
+	"runtime"
+	"strings"
 	"testing"
 )
 
@@ -106,82 +106,128 @@ func TestJellyfinSourceContractHydrationIsServerOnly(t *testing.T) {
 }
 
 func TestJellyfinSourceContractSchemas(t *testing.T) {
- _, current, _, _ := runtime.Caller(0)
- root := filepath.Clean(filepath.Join(filepath.Dir(current), "../../.."))
- read := func(name string) map[string]any {
-  t.Helper()
-  raw, err := os.ReadFile(filepath.Join(root, "shared/contracts", name)); if err != nil { t.Fatal(err) }
-  // Focused legacy contracts include unrelated non-YAML prose. Parse only the
-  // affected schema fragments, as the plan's contract gate requires.
-  if name != "openapi.yaml" {
-   selected := map[string]bool{"EpisodeImportMediaCandidate":true,"EpisodeImportMappingRow":true,"EpisodeVersion":true,"EpisodeVersionMediaFile":true,"EpisodeVersionCreateRequest":true,"EpisodeVersionPatchRequest":true}
-   var fragment strings.Builder; fragment.WriteString("types:\n")
-   active := false
-   for _, line := range strings.Split(string(raw),"\n") {
-    if strings.HasPrefix(line,"  ") && !strings.HasPrefix(line,"   ") { active = selected[strings.TrimSuffix(strings.TrimSpace(line),":")] }
-    if !strings.HasPrefix(line," ") && strings.TrimSpace(line)!="" {active=false}
-    if active {
-     // Existing focused scalar annotations contain colon-space; quote them
-     // only for parsing, preserving their exact string semantics.
-     if strings.HasPrefix(line,"    ") && strings.Count(line,": ") > 1 {
-      key, value, _ := strings.Cut(line,": "); encoded,_:=json.Marshal(value); line=key+": "+string(encoded)
-     }
-     fragment.WriteString(line+"\n")
-    }
-   }
-   raw=[]byte(fragment.String())
-  }
-  var doc map[string]any; if err := yaml.Unmarshal(raw, &doc); err != nil { t.Fatalf("%s: %v",name,err) }; return doc
- }
- canonical, admin, editor := read("openapi.yaml"), read("admin-content.yaml"), read("episode-versions.yaml")
- cases := []struct{schema, tsFile, tsName string; focused map[string]any; fields []string}{
-  {"EpisodeImportMediaCandidate", "episodeImport.ts", "EpisodeImportMediaCandidate", admin, []string{"media_source_id","container","streams_complete","selected_audio_index","audio_tracks","subtitle_tracks"}},
-  {"EpisodeImportMappingRow", "episodeImport.ts", "EpisodeImportMappingRow", admin, []string{"media_source_id"}},
-  {"EpisodeVersion","episodeVersion.ts","EpisodeVersion",editor,[]string{"media_source_id"}},
-  {"EpisodeVersionMediaFile","episodeVersion.ts","EpisodeVersionMediaFile",editor,[]string{"media_source_id"}},
-  {"EpisodeVersionCreateRequest","episodeVersion.ts","EpisodeVersionCreateRequest",editor,[]string{"media_source_id"}},
-  {"EpisodeVersionPatchRequest","episodeVersion.ts","EpisodeVersionPatchRequest",editor,[]string{"media_source_id"}},
- }
- for _, tc := range cases { t.Run(tc.schema, func(t *testing.T) {
-  props := jellyfinContractObject(t, canonical,"components","schemas",tc.schema,"properties")
-  focused := jellyfinContractObject(t,tc.focused,"types",tc.schema)
-  ts, err := os.ReadFile(filepath.Join(root,"frontend/src/types",tc.tsFile)); if err != nil {t.Fatal(err)}
-  _, declaration, found := strings.Cut(string(ts),"export interface "+tc.tsName+" {")
-  if !found { t.Fatal("missing TypeScript interface") }
-  declaration, _, _ = strings.Cut(declaration,"\n}")
-  for _, field := range tc.fields {
-   if props[field] == nil || focused[field] == nil || !strings.Contains(declaration,"\n  "+field) {t.Errorf("missing aligned field %s",field)}
-  }
- }) }
- candidate := jellyfinContractObject(t,canonical,"components","schemas","EpisodeImportMediaCandidate","properties")
- for _, field := range []string{"selected_audio_index","audio_tracks","subtitle_tracks"} {
-  if jellyfinContractObject(t,candidate,field)["nullable"] != true { t.Errorf("%s must allow incomplete null",field) }
- }
- for _, track := range []string{"JellyfinAudioTrack","JellyfinSubtitleTrack"} {
-  props := jellyfinContractObject(t,canonical,"components","schemas",track,"properties")
-  if jellyfinContractObject(t,props,"language")["nullable"] != true { t.Errorf("%s language must be nullable",track) }
-  if _, exists := jellyfinContractObject(t,props,"language")["default"]; exists {t.Errorf("%s fabricates provider language",track)}
- }
- public := jellyfinContractObject(t,canonical,"components","schemas","PublicReleaseSubtitleTrack","properties")
- if len(public) != 5 { t.Errorf("public subtitle shape changed: %v", public) }
- for _, field := range []string{"language","label","format","forced","default"} {if public[field] == nil {t.Errorf("public field %s missing",field)}}
- for _, route := range []struct{path,method string}{
-  {"/api/v1/admin/anime/{id}/episode-import/preview","post"},
-  {"/api/v1/admin/anime/{id}/episode-import/apply","post"},
-  {"/api/v1/admin/episode-versions/{versionId}/folder-scan","post"},
-  {"/api/v1/anime/{animeId}/episodes/{episodeNumber}/versions","post"},
-  {"/api/v1/episode-versions/{versionId}","patch"},
- } {
-  responses:=jellyfinContractObject(t,canonical,"paths",route.path,route.method,"responses")
-  for _, status := range []string{"400","409","502","503"} {if responses[status] == nil {t.Errorf("%s missing %s",route.path,status)}}
- }
+	_, current, _, _ := runtime.Caller(0)
+	root := filepath.Clean(filepath.Join(filepath.Dir(current), "../../.."))
+	read := func(name string) map[string]any {
+		t.Helper()
+		raw, err := os.ReadFile(filepath.Join(root, "shared/contracts", name))
+		if err != nil {
+			t.Fatal(err)
+		}
+		// Focused legacy contracts include unrelated non-YAML prose. Parse only the
+		// affected schema fragments, as the plan's contract gate requires.
+		if name != "openapi.yaml" {
+			selected := map[string]bool{"EpisodeImportMediaCandidate": true, "EpisodeImportMappingRow": true, "EpisodeVersion": true, "EpisodeVersionMediaFile": true, "EpisodeVersionCreateRequest": true, "EpisodeVersionPatchRequest": true}
+			var fragment strings.Builder
+			fragment.WriteString("types:\n")
+			active := false
+			for _, line := range strings.Split(string(raw), "\n") {
+				if strings.HasPrefix(line, "  ") && !strings.HasPrefix(line, "   ") {
+					active = selected[strings.TrimSuffix(strings.TrimSpace(line), ":")]
+				}
+				if !strings.HasPrefix(line, " ") && strings.TrimSpace(line) != "" {
+					active = false
+				}
+				if active {
+					// Existing focused scalar annotations contain colon-space; quote them
+					// only for parsing, preserving their exact string semantics.
+					if strings.HasPrefix(line, "    ") && strings.Count(line, ": ") > 1 {
+						key, value, _ := strings.Cut(line, ": ")
+						encoded, _ := json.Marshal(value)
+						line = key + ": " + string(encoded)
+					}
+					fragment.WriteString(line + "\n")
+				}
+			}
+			raw = []byte(fragment.String())
+		}
+		var doc map[string]any
+		if err := yaml.Unmarshal(raw, &doc); err != nil {
+			t.Fatalf("%s: %v", name, err)
+		}
+		return doc
+	}
+	canonical, admin, editor := read("openapi.yaml"), read("admin-content.yaml"), read("episode-versions.yaml")
+	cases := []struct {
+		schema, tsFile, tsName string
+		focused                map[string]any
+		fields                 []string
+	}{
+		{"EpisodeImportMediaCandidate", "episodeImport.ts", "EpisodeImportMediaCandidate", admin, []string{"media_source_id", "container", "streams_complete", "selected_audio_index", "audio_tracks", "subtitle_tracks"}},
+		{"EpisodeImportMappingRow", "episodeImport.ts", "EpisodeImportMappingRow", admin, []string{"media_source_id"}},
+		{"EpisodeVersion", "episodeVersion.ts", "EpisodeVersion", editor, []string{"media_source_id"}},
+		{"EpisodeVersionMediaFile", "episodeVersion.ts", "EpisodeVersionMediaFile", editor, []string{"media_source_id"}},
+		{"EpisodeVersionCreateRequest", "episodeVersion.ts", "EpisodeVersionCreateRequest", editor, []string{"media_source_id"}},
+		{"EpisodeVersionPatchRequest", "episodeVersion.ts", "EpisodeVersionPatchRequest", editor, []string{"media_source_id"}},
+	}
+	for _, tc := range cases {
+		t.Run(tc.schema, func(t *testing.T) {
+			props := jellyfinContractObject(t, canonical, "components", "schemas", tc.schema, "properties")
+			focused := jellyfinContractObject(t, tc.focused, "types", tc.schema)
+			ts, err := os.ReadFile(filepath.Join(root, "frontend/src/types", tc.tsFile))
+			if err != nil {
+				t.Fatal(err)
+			}
+			_, declaration, found := strings.Cut(string(ts), "export interface "+tc.tsName+" {")
+			if !found {
+				t.Fatal("missing TypeScript interface")
+			}
+			declaration, _, _ = strings.Cut(declaration, "\n}")
+			for _, field := range tc.fields {
+				if props[field] == nil || focused[field] == nil || !strings.Contains(declaration, "\n  "+field) {
+					t.Errorf("missing aligned field %s", field)
+				}
+			}
+		})
+	}
+	candidate := jellyfinContractObject(t, canonical, "components", "schemas", "EpisodeImportMediaCandidate", "properties")
+	for _, field := range []string{"selected_audio_index", "audio_tracks", "subtitle_tracks"} {
+		if jellyfinContractObject(t, candidate, field)["nullable"] != true {
+			t.Errorf("%s must allow incomplete null", field)
+		}
+	}
+	for _, track := range []string{"JellyfinAudioTrack", "JellyfinSubtitleTrack"} {
+		props := jellyfinContractObject(t, canonical, "components", "schemas", track, "properties")
+		if jellyfinContractObject(t, props, "language")["nullable"] != true {
+			t.Errorf("%s language must be nullable", track)
+		}
+		if _, exists := jellyfinContractObject(t, props, "language")["default"]; exists {
+			t.Errorf("%s fabricates provider language", track)
+		}
+	}
+	public := jellyfinContractObject(t, canonical, "components", "schemas", "PublicReleaseSubtitleTrack", "properties")
+	if len(public) != 5 {
+		t.Errorf("public subtitle shape changed: %v", public)
+	}
+	for _, field := range []string{"language", "label", "format", "forced", "default"} {
+		if public[field] == nil {
+			t.Errorf("public field %s missing", field)
+		}
+	}
+	for _, route := range []struct{ path, method string }{
+		{"/api/v1/admin/anime/{id}/episode-import/preview", "post"},
+		{"/api/v1/admin/anime/{id}/episode-import/apply", "post"},
+		{"/api/v1/admin/episode-versions/{versionId}/folder-scan", "post"},
+		{"/api/v1/anime/{animeId}/episodes/{episodeNumber}/versions", "post"},
+		{"/api/v1/episode-versions/{versionId}", "patch"},
+	} {
+		responses := jellyfinContractObject(t, canonical, "paths", route.path, route.method, "responses")
+		for _, status := range []string{"400", "409", "502", "503"} {
+			if responses[status] == nil {
+				t.Errorf("%s missing %s", route.path, status)
+			}
+		}
+	}
 }
 
 func jellyfinContractObject(t *testing.T, value map[string]any, keys ...string) map[string]any {
- t.Helper()
- for _, key := range keys {
-  next, ok := value[key].(map[string]any); if !ok {t.Fatalf("missing contract object %s", strings.Join(keys,"."))}
-  value = next
- }
- return value
+	t.Helper()
+	for _, key := range keys {
+		next, ok := value[key].(map[string]any)
+		if !ok {
+			t.Fatalf("missing contract object %s", strings.Join(keys, "."))
+		}
+		value = next
+	}
+	return value
 }

@@ -1,5 +1,47 @@
 feature: admin-content-management
 endpoints:
+  - name: episode-import-preview
+    method: POST
+    path: /api/v1/admin/anime/:id/episode-import/preview
+    auth:
+      required: true
+      permission: platform_admin
+    request_body:
+      required: true
+      type: EpisodeImportPreviewRequest
+    response:
+      status: 200
+      type: EpisodeImportPreviewResponse
+    errors:
+      "400": "Invalid payload or selector."
+      "401": "Authentication required."
+      "403": "Admin permission required."
+      "404": "Anime or episode version not found."
+      "409": "Stale, missing or ambiguous reviewed source; refresh the preview before applying."
+      "500": "Internal server error."
+      "502": "Configured provider request failed."
+      "503": "Required provider or authorization state unavailable."
+  - name: episode-import-apply
+    method: POST
+    path: /api/v1/admin/anime/:id/episode-import/apply
+    auth:
+      required: true
+      permission: platform_admin
+    request_body:
+      required: true
+      type: EpisodeImportApplyInput
+    response:
+      status: 200
+      type: EpisodeImportApplyResponse
+    errors:
+      "400": "Invalid payload or selector."
+      "401": "Authentication required."
+      "403": "Admin permission required."
+      "404": "Anime or episode version not found."
+      "409": "Stale, missing or ambiguous reviewed source; refresh the preview before applying."
+      "500": "Internal server error."
+      "502": "Configured provider request failed."
+      "503": "Required provider or authorization state unavailable."
   - name: admin-anime-create
     method: POST
     path: /api/v1/admin/anime
@@ -1713,7 +1755,84 @@ types:
     title: string | null
     premiere_date: timestamp | null
     video_quality: string | null
+  JellyfinAudioTrack:
+    index: "int32"
+    codec: "string"
+    language: "string | null"
+    default: "boolean"
+  JellyfinSubtitleTrack:
+    index: "int32"
+    codec: "string"
+    language: "string | null"
+    default: "boolean"
+    display_title: "string"
+    forced: "boolean"
+  EpisodeImportMappingRow:
+    media_item_id: "string"
+    media_source_id: "string"
+    file_name: "string"
+    display_path: "string"
+    target_episode_numbers: "integer[]"
+    suggested_episode_numbers: "integer[]"
+    status: "string"
+    fansub_groups: "EpisodeImportSelectedFansubGroup[]"
+    fansub_group_id: "int64 | null"
+    fansub_group_name: "string | null"
+    release_version: "string | null"
+  EpisodeImportCanonicalEpisode:
+    episode_number: "int32"
+    title: "string | null"
+    titles_by_language: "object | null"
+    filler_type: "string | null"
+    filler_source: "string | null"
+    filler_note: "string | null"
+    anisearch_episode_id: "string | null"
+    existing_title: "string | null"
+    existing_episode_id: "int64 | null"
+  EpisodeImportSelectedFansubGroup:
+    id: "int64 | null"
+    name: "string | null"
+    slug: "string | null"
+  EpisodeImportPreviewRequest:
+    anisearch_id: "string"
+    jellyfin_series_id: "string"
+    season_offset: "int32"
+  EpisodeImportPreviewResult:
+    anime_id: "int64"
+    anime_title: "string"
+    anisearch_id: "string | null"
+    jellyfin_series_id: "string | null"
+    folder_path: "string | null"
+    canonical_episodes: "EpisodeImportCanonicalEpisode[]"
+    media_candidates: "EpisodeImportMediaCandidate[]"
+    mappings: "EpisodeImportMappingRow[]"
+    unmapped_episodes: "integer[]"
+    unmapped_media_item_ids: "string[]"
+  EpisodeImportApplyInput:
+    anime_id: "int64"
+    canonical_episodes: "EpisodeImportCanonicalEpisode[]"
+    media_candidates: "EpisodeImportMediaCandidate[]"
+    mappings: "EpisodeImportMappingRow[]"
+  EpisodeImportApplyResult:
+    anime_id: "int64"
+    episodes_created: "int32"
+    episodes_existing: "int32"
+    versions_created: "int32"
+    versions_updated: "int32"
+    mappings_applied: "int32"
+    skipped: "int32"
+    conflicts: "int32"
+  EpisodeImportPreviewResponse:
+    data: "EpisodeImportPreviewResult"
+  EpisodeImportApplyResponse:
+    data: "EpisodeImportApplyResult"
   EpisodeImportMediaCandidate:
+    media_source_id: string | null (optional; reviewed source identity)
+    container: string | null
+    streams_complete: boolean (optional; omitted or false means incomplete)
+    selected_audio_index: int32 | null
+    audio_tracks: JellyfinAudioTrack[] | null
+    subtitle_tracks: JellyfinSubtitleTrack[] | null
     media_item_id: string
     file_name: string
     path: string
@@ -2087,3 +2206,8 @@ release_metadata_date_rules:
     production_started_on is Bearbeitung begonnen am. release_date remains the existing
     Bearbeitung abgeschlossen am mapping from Phase 143. Public release semantics and
     the existing persistence seam remain unchanged; no new publication-date field.
+
+jellyfin_source_contract:
+  semantics: "One selected source per actual Jellyfin item; alternate files without separate items are not guaranteed to be imported. Source path, container, codecs and tracks are provider-derived and server-revalidated at apply/relink. Posted URLs, codecs and languages are not authoritative. Missing projection is incomplete; with streams_complete=true an empty subtitle_tracks array means known no subtitles. Unknown raw language remains null."
+  source_selector: "Reviewed Jellyfin MediaSource identity, distinct from media_item_id. Optional for old records; required for confirmation of a new candidate. Server revalidates on apply/relink."
+  raw_language: "Audio and subtitle language remain nullable; unknown audio DISPLAY alone defaults to Japanisch, never a provider ja value."

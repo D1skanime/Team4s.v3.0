@@ -6379,7 +6379,7 @@ paths:
               schema:
                 $ref: "#/components/schemas/ErrorResponse"
         "409":
-          description: Version identity already exists
+          description: Version identity already exists, or reviewed source is stale or ambiguous
           content:
             application/json:
               schema:
@@ -6392,6 +6392,18 @@ paths:
                 $ref: "#/components/schemas/ErrorResponse"
         "500":
           description: Internal server error
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+        "502":
+          description: "Configured provider request failed."
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+        "503":
+          description: "Required provider or authorization state unavailable."
           content:
             application/json:
               schema:
@@ -6488,7 +6500,7 @@ paths:
               schema:
                 $ref: "#/components/schemas/ErrorResponse"
         "409":
-          description: Version identity already exists
+          description: Version identity already exists, or reviewed source is stale or ambiguous
           content:
             application/json:
               schema:
@@ -6501,6 +6513,18 @@ paths:
                 $ref: "#/components/schemas/ErrorResponse"
         "500":
           description: Internal server error
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+        "502":
+          description: "Configured provider request failed."
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+        "503":
+          description: "Required provider or authorization state unavailable."
           content:
             application/json:
               schema:
@@ -6658,6 +6682,12 @@ paths:
                 $ref: "#/components/schemas/ErrorResponse"
         "503":
           description: Jellyfin unavailable
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+        "409":
+          description: "Stale, missing or ambiguous reviewed source; refresh the preview before applying."
           content:
             application/json:
               schema:
@@ -9489,6 +9519,144 @@ paths:
           content:
             application/json:
               schema: { $ref: "#/components/schemas/ErrorResponse" }
+  /api/v1/admin/anime/{id}/episode-import/preview:
+    post:
+      tags: ["Admin"]
+      summary: "Preview episode import"
+      operationId: "previewEpisodeImport"
+      description: "One selected source per actual Jellyfin item; alternate files without separate items are not guaranteed to be imported. Source path, container, codecs and tracks are provider-derived and server-revalidated at apply/relink. Posted URLs, codecs and languages are not authoritative. Missing projection is incomplete; with streams_complete=true an empty subtitle_tracks array means known no subtitles. Unknown raw language remains null."
+      security: [{"bearerAuth": []}]
+      parameters: [{"name": "id", "in": "path", "required": true, "schema": {"type": "integer", "format": "int64", "minimum": 1}}]
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/EpisodeImportPreviewRequest"
+      responses:
+        "200":
+          description: "Episode import preview payload."
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/EpisodeImportPreviewResponse"
+        "400":
+          description: "Invalid payload or selector."
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+        "401":
+          description: "Authentication required."
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+        "403":
+          description: "Admin permission required."
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+        "404":
+          description: "Anime or episode version not found."
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+        "409":
+          description: "Stale, missing or ambiguous reviewed source; refresh the preview before applying."
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+        "500":
+          description: "Internal server error."
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+        "502":
+          description: "Configured provider request failed."
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+        "503":
+          description: "Required provider or authorization state unavailable."
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+  /api/v1/admin/anime/{id}/episode-import/apply:
+    post:
+      tags: ["Admin"]
+      summary: "Apply episode import"
+      operationId: "applyEpisodeImport"
+      description: "One selected source per actual Jellyfin item; alternate files without separate items are not guaranteed to be imported. Source path, container, codecs and tracks are provider-derived and server-revalidated at apply/relink. Posted URLs, codecs and languages are not authoritative. Missing projection is incomplete; with streams_complete=true an empty subtitle_tracks array means known no subtitles. Unknown raw language remains null."
+      security: [{"bearerAuth": []}]
+      parameters: [{"name": "id", "in": "path", "required": true, "schema": {"type": "integer", "format": "int64", "minimum": 1}}]
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/EpisodeImportApplyInput"
+      responses:
+        "200":
+          description: "Episode import apply payload."
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/EpisodeImportApplyResponse"
+        "400":
+          description: "Invalid payload or selector."
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+        "401":
+          description: "Authentication required."
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+        "403":
+          description: "Admin permission required."
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+        "404":
+          description: "Anime or episode version not found."
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+        "409":
+          description: "Stale, missing or ambiguous reviewed source; refresh the preview before applying."
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+        "500":
+          description: "Internal server error."
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+        "502":
+          description: "Configured provider request failed."
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+        "503":
+          description: "Required provider or authorization state unavailable."
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
 components:
   responses:
     ReleaseReviewBadRequest:
@@ -14376,6 +14544,298 @@ components:
       properties:
         data:
           $ref: "#/components/schemas/MergeFansubsPreviewResult"
+    JellyfinAudioTrack:
+      type: "object"
+      required: ["index", "codec", "language", "default"]
+      properties:
+        index:
+          type: "integer"
+          format: "int32"
+        codec:
+          type: "string"
+        language:
+          type: "string"
+          nullable: true
+          description: "Raw provider language; unknown remains null. No inferred Japanese language."
+        default:
+          type: "boolean"
+    JellyfinSubtitleTrack:
+      type: "object"
+      required: ["index", "codec", "language", "default", "display_title", "forced"]
+      properties:
+        index:
+          type: "integer"
+          format: "int32"
+        codec:
+          type: "string"
+        language:
+          type: "string"
+          nullable: true
+          description: "Raw provider language; unknown remains null. No inferred Japanese language."
+        default:
+          type: "boolean"
+        display_title:
+          type: "string"
+        forced:
+          type: "boolean"
+    EpisodeImportMediaCandidate:
+      type: "object"
+      description: "One selected source per actual Jellyfin item; alternate files without separate items are not guaranteed to be imported. Source path, container, codecs and tracks are provider-derived and server-revalidated at apply/relink. Posted URLs, codecs and languages are not authoritative. Missing projection is incomplete; with streams_complete=true an empty subtitle_tracks array means known no subtitles. Unknown raw language remains null."
+      required: ["media_item_id", "file_name", "path"]
+      properties:
+        media_item_id:
+          type: "string"
+        media_source_id:
+          type: "string"
+          description: "Reviewed Jellyfin MediaSource identity, distinct from media_item_id. Optional for old records; required for confirmation of a new candidate. Server revalidates on apply/relink."
+        file_name:
+          type: "string"
+        path:
+          type: "string"
+          description: "Selected source path; authorized admin payload only."
+        container:
+          type: "string"
+          nullable: true
+        streams_complete:
+          type: "boolean"
+          description: "Omitted or false means incomplete, never known-empty."
+        selected_audio_index:
+          type: "integer"
+          nullable: true
+          format: "int32"
+        audio_tracks:
+          type: "array"
+          nullable: true
+          items:
+            $ref: "#/components/schemas/JellyfinAudioTrack"
+        subtitle_tracks:
+          type: "array"
+          nullable: true
+          items:
+            $ref: "#/components/schemas/JellyfinSubtitleTrack"
+        jellyfin_season_number:
+          type: "integer"
+          nullable: true
+          format: "int32"
+        jellyfin_episode_number:
+          type: "integer"
+          nullable: true
+          format: "int32"
+        duration_seconds:
+          type: "integer"
+          nullable: true
+          format: "int32"
+        stream_url:
+          type: "string"
+          nullable: true
+        video_quality:
+          type: "string"
+          nullable: true
+        video_codec:
+          type: "string"
+          nullable: true
+        audio_codec:
+          type: "string"
+          nullable: true
+    EpisodeImportSelectedFansubGroup:
+      type: "object"
+      properties:
+        id:
+          type: "integer"
+          nullable: true
+          format: "int64"
+        name:
+          type: "string"
+          nullable: true
+        slug:
+          type: "string"
+          nullable: true
+    EpisodeImportMappingRow:
+      type: "object"
+      description: "Rows remain keyed by media_item_id. A confirmed row must carry the reviewed candidate media_source_id; unresolved, changed or lost selection requires a new preview. Apply accepts only confirmed or skipped rows."
+      required: ["media_item_id", "target_episode_numbers", "suggested_episode_numbers", "status"]
+      properties:
+        media_item_id:
+          type: "string"
+        media_source_id:
+          type: "string"
+          description: "Reviewed Jellyfin MediaSource identity, distinct from media_item_id. Optional for old records; required for confirmation of a new candidate. Server revalidates on apply/relink."
+        file_name:
+          type: "string"
+        display_path:
+          type: "string"
+        target_episode_numbers:
+          type: "array"
+          items:
+            type: "integer"
+            format: "int32"
+        suggested_episode_numbers:
+          type: "array"
+          items:
+            type: "integer"
+            format: "int32"
+        status:
+          type: "string"
+          enum: ["suggested", "confirmed", "conflict", "skipped"]
+        fansub_groups:
+          type: "array"
+          items:
+            $ref: "#/components/schemas/EpisodeImportSelectedFansubGroup"
+        fansub_group_id:
+          type: "integer"
+          nullable: true
+          format: "int64"
+        fansub_group_name:
+          type: "string"
+          nullable: true
+        release_version:
+          type: "string"
+          nullable: true
+    EpisodeImportCanonicalEpisode:
+      type: "object"
+      description: "AniSearch canonical episode numbering; provider season/index are suggestion evidence only."
+      required: ["episode_number"]
+      properties:
+        episode_number:
+          type: "integer"
+          format: "int32"
+        title:
+          type: "string"
+          nullable: true
+        titles_by_language:
+          type: "object"
+          nullable: true
+          additionalProperties:
+            type: "string"
+        filler_type:
+          type: "string"
+          nullable: true
+        filler_source:
+          type: "string"
+          nullable: true
+        filler_note:
+          type: "string"
+          nullable: true
+        anisearch_episode_id:
+          type: "string"
+          nullable: true
+        existing_title:
+          type: "string"
+          nullable: true
+        existing_episode_id:
+          type: "integer"
+          nullable: true
+          format: "int64"
+    EpisodeImportPreviewRequest:
+      type: "object"
+      properties:
+        anisearch_id:
+          type: "string"
+        jellyfin_series_id:
+          type: "string"
+        season_offset:
+          type: "integer"
+          format: "int32"
+    EpisodeImportPreviewResult:
+      type: "object"
+      required: ["anime_id", "anime_title", "canonical_episodes", "media_candidates", "mappings"]
+      properties:
+        anime_id:
+          type: "integer"
+          format: "int64"
+        anime_title:
+          type: "string"
+        anisearch_id:
+          type: "string"
+          nullable: true
+        jellyfin_series_id:
+          type: "string"
+          nullable: true
+        folder_path:
+          type: "string"
+          nullable: true
+        canonical_episodes:
+          type: "array"
+          items:
+            $ref: "#/components/schemas/EpisodeImportCanonicalEpisode"
+        media_candidates:
+          type: "array"
+          items:
+            $ref: "#/components/schemas/EpisodeImportMediaCandidate"
+        mappings:
+          type: "array"
+          items:
+            $ref: "#/components/schemas/EpisodeImportMappingRow"
+        unmapped_episodes:
+          type: "array"
+          items:
+            type: "integer"
+            format: "int32"
+        unmapped_media_item_ids:
+          type: "array"
+          items:
+            type: "string"
+    EpisodeImportApplyInput:
+      type: "object"
+      description: "One selected source per actual Jellyfin item; alternate files without separate items are not guaranteed to be imported. Source path, container, codecs and tracks are provider-derived and server-revalidated at apply/relink. Posted URLs, codecs and languages are not authoritative. Missing projection is incomplete; with streams_complete=true an empty subtitle_tracks array means known no subtitles. Unknown raw language remains null."
+      required: ["canonical_episodes", "mappings"]
+      properties:
+        anime_id:
+          type: "integer"
+          format: "int64"
+          description: "Path anime ID is authoritative."
+        canonical_episodes:
+          type: "array"
+          items:
+            $ref: "#/components/schemas/EpisodeImportCanonicalEpisode"
+        media_candidates:
+          type: "array"
+          items:
+            $ref: "#/components/schemas/EpisodeImportMediaCandidate"
+        mappings:
+          type: "array"
+          items:
+            $ref: "#/components/schemas/EpisodeImportMappingRow"
+    EpisodeImportApplyResult:
+      type: "object"
+      required: ["anime_id", "episodes_created", "episodes_existing", "versions_created", "versions_updated", "mappings_applied", "skipped", "conflicts"]
+      properties:
+        anime_id:
+          type: "integer"
+          format: "int64"
+        episodes_created:
+          type: "integer"
+          format: "int32"
+        episodes_existing:
+          type: "integer"
+          format: "int32"
+        versions_created:
+          type: "integer"
+          format: "int32"
+        versions_updated:
+          type: "integer"
+          format: "int32"
+        mappings_applied:
+          type: "integer"
+          format: "int32"
+        skipped:
+          type: "integer"
+          format: "int32"
+        conflicts:
+          type: "integer"
+          format: "int32"
+    EpisodeImportPreviewResponse:
+      type: "object"
+      required: ["data"]
+      properties:
+        data:
+          $ref: "#/components/schemas/EpisodeImportPreviewResult"
+    EpisodeImportApplyResponse:
+      type: "object"
+      required: ["data"]
+      properties:
+        data:
+          $ref: "#/components/schemas/EpisodeImportApplyResult"
     EpisodeVersion:
       type: object
       required:
@@ -14391,6 +14851,10 @@ components:
         - created_at
         - updated_at
       properties:
+        media_source_id:
+          type: "string"
+          nullable: true
+          description: "Reviewed Jellyfin MediaSource identity, distinct from media_item_id. Optional for old records; required for confirmation of a new candidate. Server revalidates on apply/relink."
         id:
           type: integer
           format: int64
@@ -14625,6 +15089,10 @@ components:
       type: object
       required: [media_provider, media_item_id]
       properties:
+        media_source_id:
+          type: "string"
+          nullable: true
+          description: "Reviewed Jellyfin MediaSource identity, distinct from media_item_id. Optional for old records; required for confirmation of a new candidate. Server revalidates on apply/relink."
         title:
           type: string
           maxLength: 255
@@ -14669,6 +15137,10 @@ components:
         start by UTC calendar day. Equal days and explicit null (unknown) are allowed.
         Episode-to-episode chronological differences are advisory only and never reject a save.
       properties:
+        media_source_id:
+          type: "string"
+          nullable: true
+          description: "Reviewed Jellyfin MediaSource identity, distinct from media_item_id. Optional for old records; required for confirmation of a new candidate. Server revalidates on apply/relink. Source selection is an admin media-binding mutation, not a contributor metadata-only patch. Omission preserves the current binding."
         title:
           type: string
           maxLength: 255
@@ -14786,6 +15258,10 @@ components:
       type: object
       required: [file_name, path, media_item_id]
       properties:
+        media_source_id:
+          type: "string"
+          nullable: true
+          description: "Reviewed Jellyfin MediaSource identity, distinct from media_item_id. Optional for old records; required for confirmation of a new candidate. Server revalidates on apply/relink."
         file_name:
           type: string
         path:
@@ -16172,6 +16648,7 @@ components:
         audio_language:
           type: string
           nullable: true
+          description: Raw provider language remains null when unknown. Only unknown audio DISPLAY defaults to Japanisch; a known language takes precedence. Subtitle language has no display default.
         subtitle_tracks:
           type: array
           items:
@@ -16265,6 +16742,7 @@ components:
         name: {type: string}
         logo_url: {type: string, nullable: true}
     PublicReleaseSubtitleTrack:
+      description: Selected-source subtitle tracks; format means codec, language may be unknown, default and forced are real provider flags. No private source ID, path or URL is exposed.
       type: object
       required: [language, label, format, forced, default]
       properties:
