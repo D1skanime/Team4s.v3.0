@@ -32,6 +32,8 @@ import (
 func TestThemeSegmentPlaybackResolution(t *testing.T) {
 	pool := testsupport.OpenPhase117Postgres(t)
 	ctx := context.Background()
+	_, schemaErr := pool.Exec(ctx, `ALTER TABLE stream_sources ADD COLUMN metadata JSONB NOT NULL DEFAULT '{}'`)
+	require.NoError(t, schemaErr)
 	repo := repository.NewAdminContentRepository(pool)
 
 	const (

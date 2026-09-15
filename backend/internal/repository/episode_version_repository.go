@@ -480,44 +480,34 @@ func (r *EpisodeVersionRepository) UpsertByMediaSource(
 }
 
 func (r *EpisodeVersionRepository) GetReleaseStreamSource(ctx context.Context, versionID int64, variantIDs ...int64) (*models.ReleaseStreamSource, error) {
-	// Without a selector preserve the historical version-or-variant compatibility lookup.
-	// An explicit selector must belong to this exact canonical release version.
-	predicate := "rev.id = $1 OR rv.id = $1"
-	args := []any{versionID}
-	if len(variantIDs) > 1 || (len(variantIDs) == 1 && (variantIDs[0] <= 0 || versionID <= 0)) {
+	if versionID <= 0 || len(variantIDs) > 1 || (len(variantIDs) == 1 && variantIDs[0] <= 0) {
 		return nil, ErrValidation
 	}
+	variantID := int64(0)
 	if len(variantIDs) == 1 {
-		predicate = "rv.id = $2 AND rv.release_version_id = $1"
-		args = append(args, variantIDs[0])
+		variantID = variantIDs[0]
 	}
 	var item models.ReleaseStreamSource
-	if err := r.db.QueryRow(ctx, `
-		SELECT
-			COALESCE(rev.id, rv.id),
-			e.anime_id,
-			ss.provider_type,
-			COALESCE(ss.external_id, rs.jellyfin_item_id, ''),
-			ss.url
-		FROM release_versions rev
-		JOIN fansub_releases fr ON fr.id = rev.release_id
-		JOIN episodes e ON e.id = fr.episode_id
-		JOIN release_variants rv ON rv.release_version_id = rev.id
-		JOIN release_streams rs ON rs.variant_id = rv.id
-		JOIN stream_sources ss ON ss.id = rs.stream_source_id
-		WHERE `+predicate+`
-		ORDER BY rs.id ASC
-		LIMIT 1
-	`, args...).Scan(
-		&item.ID,
-		&item.AnimeID,
-		&item.MediaProvider,
-		&item.MediaItemID,
-		&item.StreamURL,
-	); errors.Is(err, pgx.ErrNoRows) {
+	var raw []byte
+	err := r.db.QueryRow(ctx, `
+ SELECT rev.id,e.anime_id,selected.provider_type,selected.external_id,selected.url,selected.binding
+ FROM release_versions rev JOIN fansub_releases fr ON fr.id=rev.release_id
+ JOIN episodes e ON e.id=fr.episode_id
+ JOIN LATERAL (`+selectedReleaseVariantSourceSQL+`) selected ON TRUE
+ WHERE rev.id=$1 AND selected.provider_type IS NOT NULL
+ `, versionID, variantID).Scan(&item.ID, &item.AnimeID, &item.MediaProvider, &item.MediaItemID, &item.StreamURL, &raw)
+	if errors.Is(err, pgx.ErrNoRows) {
 		return nil, ErrNotFound
-	} else if err != nil {
+	}
+	if err != nil {
 		return nil, fmt.Errorf("get release stream source %d: %w", versionID, err)
+	}
+	item.JellyfinSource, err = decodeSelectedJellyfinSource(raw)
+	if err != nil {
+		return nil, err
+	}
+	if item.JellyfinSource != nil {
+		item.MediaSourceID = &item.JellyfinSource.MediaSourceID
 	}
 
 	return &item, nil

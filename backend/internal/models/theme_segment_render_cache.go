@@ -62,6 +62,9 @@ type ThemeSegmentRenderCacheReadyInput struct {
 }
 
 type ThemeSegmentRenderSource struct {
+	MediaSourceID  *string                 `json:"-"`
+	JellyfinSource *JellyfinSourceSnapshot `json:"-"`
+
 	SegmentID           int64   `json:"theme_segment_id"`
 	AnimeID             int64   `json:"anime_id"`
 	PlaybackSourceID    int64   `json:"playback_source_id"`

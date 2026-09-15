@@ -224,6 +224,7 @@ func (r *AdminContentRepository) GetThemeSegmentRenderSource(
 	}
 
 	var item models.ThemeSegmentRenderSource
+	var rawBinding []byte
 	if err := r.db.QueryRow(ctx, `
 		SELECT
 			ts.id,
@@ -239,23 +240,22 @@ func (r *AdminContentRepository) GetThemeSegmentRenderSource(
 			tps.start_offset_seconds,
 			tps.end_offset_seconds,
 			tps.duration_seconds,
-			ss.provider_type,
-			COALESCE(NULLIF(ss.external_id, ''), NULLIF(rs.jellyfin_item_id, '')),
-			ss.url,
-			rev.title
+			selected.provider_type,
+ selected.external_id,
+ selected.url,
+ rev.title,
+ selected.binding
 		FROM theme_segments ts
 		JOIN themes t ON t.id = ts.theme_id
 		JOIN theme_segment_playback_sources tps ON tps.theme_segment_id = ts.id
-		LEFT JOIN release_variants rv ON rv.id = tps.release_variant_id
-		LEFT JOIN release_versions rev ON rev.id = rv.release_version_id
-		LEFT JOIN release_streams rs ON rs.variant_id = rv.id
-		LEFT JOIN stream_sources ss ON ss.id = rs.stream_source_id
+		LEFT JOIN release_versions rev ON rev.id = tps.release_version_id
+ LEFT JOIN LATERAL (
+ `+strings.ReplaceAll(strings.ReplaceAll(selectedReleaseVariantSourceSQL, "$1", "tps.release_version_id"), "$2", "COALESCE(tps.release_variant_id,0)")+`
+ ) selected ON tps.source_kind='episode_version'
 		LEFT JOIN media_assets ma ON ma.id = tps.media_asset_id
 		WHERE ts.id = $1
 		  AND tps.release_version_id = $2
-		ORDER BY
-			CASE WHEN ss.provider_type = 'jellyfin' THEN 0 ELSE 1 END,
-			rs.id ASC NULLS LAST
+		ORDER BY tps.id
 		LIMIT 1
 	`, segmentID, releaseVersionID).Scan(
 		&item.SegmentID,
@@ -275,6 +275,7 @@ func (r *AdminContentRepository) GetThemeSegmentRenderSource(
 		&item.StreamExternalID,
 		&item.StreamURL,
 		&item.ReleaseVariantTitle,
+		&rawBinding,
 	); err != nil {
 		if errors.Is(err, pgx.ErrNoRows) {
 			return nil, ErrNotFound
@@ -282,6 +283,17 @@ func (r *AdminContentRepository) GetThemeSegmentRenderSource(
 		return nil, fmt.Errorf("get theme segment render source segment=%d release_version=%d: %w", segmentID, releaseVersionID, err)
 	}
 
+	var err error
+	item.JellyfinSource, err = decodeSelectedJellyfinSource(rawBinding)
+	if err != nil {
+		return nil, err
+	}
+	if item.JellyfinSource != nil {
+		item.MediaSourceID = &item.JellyfinSource.MediaSourceID
+	}
+	if item.SourceKind == "episode_version" && item.StreamProvider == nil {
+		return nil, ErrNotFound
+	}
 	return &item, nil
 }
 

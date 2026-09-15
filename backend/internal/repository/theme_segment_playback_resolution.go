@@ -44,32 +44,17 @@ func resolveThemeSegmentReleaseVariantTx(ctx context.Context, tx pgx.Tx, segment
 		return nil, nil
 	}
 
-	var result resolvedSegmentVariant
-	err := tx.QueryRow(ctx, `
-		SELECT
-			rv.id,
-			rv.duration_seconds,
-			ss.external_id,
-			ss.url
-		FROM release_variants rv
-		LEFT JOIN release_streams rs ON rs.variant_id = rv.id
-		LEFT JOIN stream_sources ss ON ss.id = rs.stream_source_id AND ss.provider_type = 'jellyfin'
-		WHERE rv.release_version_id = $1
-		ORDER BY
-			CASE WHEN ss.external_id IS NOT NULL THEN 0 ELSE 1 END,
-			rv.id ASC
-		LIMIT 1
-	`, releaseVersionID).Scan(
-		&result.ReleaseVariantID,
-		&result.DurationSeconds,
-		&result.JellyfinExternalID,
-		&result.JellyfinStreamURL,
-	)
+	selected, err := selectReleaseVariantSource(ctx, tx, releaseVersionID, 0)
+	if errors.Is(err, ErrNotFound) {
+		return nil, nil
+	}
 	if err != nil {
-		if errors.Is(err, pgx.ErrNoRows) {
-			return nil, nil
-		}
 		return nil, fmt.Errorf("resolve theme segment release variant segment=%d release_version=%d: %w", segmentID, releaseVersionID, err)
+	}
+	result := resolvedSegmentVariant{ReleaseVariantID: selected.VariantID, DurationSeconds: selected.DurationSeconds}
+	if selected.Provider != nil && *selected.Provider == "jellyfin" {
+		result.JellyfinExternalID = selected.ItemID
+		result.JellyfinStreamURL = selected.URL
 	}
 	return &result, nil
 }
