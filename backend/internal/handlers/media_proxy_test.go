@@ -1,10 +1,16 @@
-﻿package handlers
+package handlers
 
 import (
+	"bytes"
+	"context"
 	"encoding/json"
+	"fmt"
+	"log"
 	"net/http"
 	"net/http/httptest"
 	"net/url"
+	"strings"
+	"sync/atomic"
 	"testing"
 
 	"github.com/gin-gonic/gin"
@@ -32,8 +38,8 @@ func TestBuildProviderImageURL_IncludesResizeAndQuality(t *testing.T) {
 		t.Fatalf("unexpected path: %q", parsed.Path)
 	}
 	query := parsed.Query()
-	if query.Get("api_key") != "media-key" {
-		t.Fatalf("expected api key in query, got %q", query.Get("api_key"))
+	if query.Has("api_key") {
+		t.Fatal("Jellyfin URL must be credential-free")
 	}
 	if query.Get("maxWidth") != "640" {
 		t.Fatalf("expected maxWidth=640, got %q", query.Get("maxWidth"))
@@ -96,8 +102,8 @@ func TestMediaImage_ProxiesAndSetsCachingHeaders(t *testing.T) {
 			t.Fatalf("unexpected upstream path: %q", r.URL.Path)
 		}
 		query := r.URL.Query()
-		if query.Get("api_key") != "media-key" {
-			t.Fatalf("missing upstream api key")
+		if query.Has("api_key") || r.Header.Get("Authorization") != "MediaBrowser Token=\"media-key\"" {
+			t.Fatal("expected header-only Jellyfin authentication")
 		}
 		if query.Get("maxWidth") != "480" {
 			t.Fatalf("unexpected maxWidth: %q", query.Get("maxWidth"))
@@ -235,8 +241,8 @@ func TestMediaVideo_ProxiesRangeRequests(t *testing.T) {
 			t.Fatalf("unexpected upstream path: %q", r.URL.Path)
 		}
 		query := r.URL.Query()
-		if query.Get("api_key") != "media-key" {
-			t.Fatalf("missing upstream api key")
+		if query.Has("api_key") || r.Header.Get("Authorization") != "MediaBrowser Token=\"media-key\"" {
+			t.Fatal("expected header-only Jellyfin authentication")
 		}
 		if query.Get("static") != "true" {
 			t.Fatalf("expected static=true")
@@ -347,4 +353,114 @@ func decodeErrorMessage(t *testing.T, body []byte) string {
 		t.Fatalf("decode error payload: %v", err)
 	}
 	return payload.Error.Message
+}
+
+func TestMediaProxyProviderAuthenticationAndStatuses(t *testing.T) {
+	gin.SetMode(gin.TestMode)
+	for _, provider := range []string{"jellyfin", "emby"} {
+		for _, kind := range []string{"image", "video"} {
+			for _, status := range []int{200, 206, 401, 503} {
+				t.Run(fmt.Sprintf("%s/%s/%d", provider, kind, status), func(t *testing.T) {
+					calls := 0
+					upstream := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+						calls++
+						if provider == "jellyfin" {
+							if r.Header.Get("Authorization") != "MediaBrowser Token=\"media-key\"" || r.URL.Query().Has("api_key") {
+								t.Error("Jellyfin auth boundary")
+							}
+							if !strings.HasPrefix(r.URL.Path, "/jellyfin/") {
+								t.Error("base prefix lost")
+							}
+						} else if r.URL.Query().Get("api_key") != "emby-key" || r.Header.Get("Authorization") != "" {
+							t.Error("Emby authentication changed")
+						}
+						if kind == "video" && (r.Header.Get("Range") != "bytes=0-3" || r.Header.Get("User-Agent") != "fixture-agent") {
+							t.Error("proxy headers lost")
+						}
+						w.Header().Set("Content-Type", kind+"/fixture")
+						w.Header().Set("Content-Range", "bytes 0-3/8")
+						w.WriteHeader(status)
+						w.Write([]byte("data"))
+					}))
+					defer upstream.Close()
+					h := NewFansubHandler(nil, nil, nil, "", FansubProxyConfig{JellyfinAPIKey: "media-key", JellyfinBaseURL: upstream.URL + "/jellyfin", EmbyAPIKey: "emby-key", EmbyBaseURL: upstream.URL})
+					h.httpClient = upstream.Client()
+					w := httptest.NewRecorder()
+					c, _ := gin.CreateTestContext(w)
+					c.Request = httptest.NewRequest("GET", "/media/"+kind+"?provider="+provider+"&item_id=fixture", nil)
+					c.Request.Header.Set("Range", "bytes=0-3")
+					c.Request.Header.Set("User-Agent", "fixture-agent")
+					if kind == "image" {
+						h.MediaImage(c)
+					} else {
+						h.MediaVideo(c)
+					}
+					want := status
+					if kind == "video" && status >= 500 {
+						want = 502
+					}
+					if w.Code != want {
+						t.Fatalf("status=%d want=%d", w.Code, want)
+					}
+					if status < 500 && w.Body.String() != "data" {
+						t.Fatalf("binary response changed: %q", w.Body.String())
+					}
+					if status == 206 && kind == "video" && w.Header().Get("Content-Range") != "bytes 0-3/8" {
+						t.Error("content range lost")
+					}
+					if calls != 1 {
+						t.Fatalf("calls=%d", calls)
+					}
+				})
+			}
+		}
+	}
+}
+
+func TestMediaProxyRedirectAndCancellationDoNotLeak(t *testing.T) {
+	gin.SetMode(gin.TestMode)
+	var foreignCalls atomic.Int32
+	foreign := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) { foreignCalls.Add(1) }))
+	defer foreign.Close()
+	for _, kind := range []string{"image", "video"} {
+		for _, failure := range []string{"redirect", "canceled", "transport"} {
+			t.Run(kind+"/"+failure, func(t *testing.T) {
+				upstream := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) { http.Redirect(w, r, foreign.URL, http.StatusFound) }))
+				defer upstream.Close()
+				h := NewFansubHandler(nil, nil, nil, "", FansubProxyConfig{JellyfinAPIKey: "media-key", JellyfinBaseURL: upstream.URL})
+				h.httpClient = upstream.Client()
+				if failure == "transport" {
+					h.httpClient = &http.Client{Transport: roundTripFunc(func(*http.Request) (*http.Response, error) {
+						return nil, fmt.Errorf("private media-key: %w", context.Canceled)
+					})}
+				}
+				var diagnostics bytes.Buffer
+				prev := log.Writer()
+				log.SetOutput(&diagnostics)
+				defer log.SetOutput(prev)
+				w := httptest.NewRecorder()
+				c, _ := gin.CreateTestContext(w)
+				c.Request = httptest.NewRequest("GET", "/media/"+kind+"?provider=jellyfin&item_id=fixture", nil)
+				if failure == "canceled" {
+					ctx, cancel := context.WithCancel(c.Request.Context())
+					cancel()
+					c.Request = c.Request.WithContext(ctx)
+				}
+				if kind == "image" {
+					h.MediaImage(c)
+				} else {
+					h.MediaVideo(c)
+				}
+				if w.Code < 400 {
+					t.Fatalf("unsafe upstream failure reported success: %d", w.Code)
+				}
+				if strings.Contains(diagnostics.String()+w.Body.String(), "media-key") {
+					t.Fatal("credential leaked in diagnostics")
+				}
+			})
+		}
+	}
+	if foreignCalls.Load() != 0 {
+		t.Fatal("foreign redirect received requests")
+	}
 }
