@@ -46,6 +46,12 @@ type jellyfinEpisodeItem struct {
 // zwangslaeufig gleich der Item-Id (Multi-Version-Items).
 type jellyfinMediaSource struct {
 	ID string `json:"Id"`
+ Path string `json:"Path"`
+ Container string `json:"Container"`
+ RunTimeTicks *int64 `json:"RunTimeTicks"`
+ DefaultAudioStreamIndex *int32 `json:"DefaultAudioStreamIndex"`
+ // nil means omitted/null; an explicitly empty array is complete.
+ MediaStreams []jellyfinMediaStream `json:"MediaStreams"`
 }
 
 // jellyfinMediaStream repräsentiert einen Medien-Stream (Video, Audio, Untertitel) innerhalb einer Jellyfin-Episode.
@@ -56,6 +62,18 @@ type jellyfinMediaStream struct {
 	Height    *int   `json:"Height"`
 	IsDefault bool   `json:"IsDefault"`
 	IsForced  bool   `json:"IsForced"`
+ Language string `json:"Language"`
+ DisplayTitle string `json:"DisplayTitle"`
+}
+
+// UnmarshalJSON keeps an absent/null stream index unusable, while preserving
+// a real index zero and existing explicitly constructed stream DTOs.
+func (s *jellyfinMediaStream) UnmarshalJSON(data []byte) error {
+ type streamAlias jellyfinMediaStream
+ decoded:=streamAlias{Index:-1}
+ if err:=json.Unmarshal(data,&decoded);err!=nil { return err }
+ *s=jellyfinMediaStream(decoded)
+ return nil
 }
 
 // listJellyfinEpisodes fetches all episodes for a series.

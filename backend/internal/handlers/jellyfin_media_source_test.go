@@ -138,18 +138,43 @@ func Test11eyesSourceSelection_AllActualItemsAndPermutations(t *testing.T) {
    if err!=nil || chosen.Snapshot.SourcePath!=item.Path || chosen.JellyfinItemID!=item.ID { t.Fatalf("own source mismatch: %+v %v",chosen,err) }
    if ownPaths[chosen.Snapshot.SourcePath] { t.Fatal("duplicated own file") };ownPaths[chosen.Snapshot.SourcePath]=true
    item.MediaStreams=[]jellyfinMediaStream{{Index:0,Type:"Audio",Codec:"poison"}}
-   for n:=0;n<len(item.MediaSources)*2;n++ {
-    slices.Reverse(item.MediaSources)
+   forEachJellyfinSourceOrder(item.MediaSources,func(order []jellyfinMediaSource){
+    item.MediaSources=order
     for i:=range item.MediaSources { slices.Reverse(item.MediaSources[i].MediaStreams) }
     got,err:=resolveJellyfinMediaSource(item,nil)
     if err!=nil || !reflect.DeepEqual(got,chosen) { t.Fatalf("real fixture reordered: %+v / %v",got,err) }
-    // Rotate as well as reverse so three-source permutations are all visited.
-    if len(item.MediaSources)>1 { item.MediaSources=append(item.MediaSources[1:],item.MediaSources[0]) }
-   }
+   })
    if strings.Contains(item.Path,"FlameHazeSubs") && (len(chosen.Snapshot.AudioTracks)!=1 || chosen.Snapshot.AudioTracks[0].Language!=nil || len(chosen.Snapshot.SubtitleTracks)!=0 || derefString(chosen.Container)!="mp4" || derefString(chosen.AudioCodec)!="aac") { t.Fatalf("FHS unknown/raw metadata changed: %+v",chosen) }
   }
   nonItems:=0
   for id:=range sourceIDs { if !itemIDs[id] { nonItems++ } }
   if len(sourceIDs)!=tt.sources || nonItems!=tt.nonItems || len(ownPaths)!=tt.items { t.Fatalf("inventory items=%d sources=%d non-items=%d",len(ownPaths),len(sourceIDs),nonItems) }
  }) }
+}
+
+
+// Visit every permutation, not merely two reversals of a three-source array.
+func forEachJellyfinSourceOrder(sources []jellyfinMediaSource,visit func([]jellyfinMediaSource)) {
+ order:=slices.Clone(sources)
+ var permute func(int)
+ permute=func(i int) {
+  if i==len(order) { visit(slices.Clone(order)); return }
+  for j:=i;j<len(order);j++ {
+   order[i],order[j]=order[j],order[i]
+   permute(i+1)
+   order[i],order[j]=order[j],order[i]
+  }
+ }
+ permute(0)
+}
+
+func TestResolveJellyfinMediaSource_IncompleteTracksStayOnStoredBinding(t *testing.T) {
+ previous,err:=resolveJellyfinMediaSource(jellyfinSourceTestItem(t,jellyfinCoherentSourceFixture),nil)
+ if err!=nil { t.Fatal(err) }
+ changed:=jellyfinSourceTestItem(t,`{"Id":"item","Path":"/fixture/b.mp4","MediaSources":[{"Id":"b","Path":"/fixture/b.mp4"}]}`)
+ if _,err=resolveJellyfinMediaSource(changed,&previous.Snapshot);err==nil { t.Fatal("A tracks transferred onto incomplete B") }
+ changed.MediaSources[0].ID="new-a"
+ changed.MediaSources[0].Path="/fixture/a.mkv"
+ recovered,err:=resolveJellyfinMediaSource(changed,&previous.Snapshot)
+ if err!=nil || recovered.Snapshot.MediaSourceID!="new-a" || recovered.Snapshot.StreamsComplete || !reflect.DeepEqual(recovered.Snapshot.AudioTracks,previous.Snapshot.AudioTracks) { t.Fatalf("same-path incomplete recovery: %+v %v",recovered,err) }
 }
