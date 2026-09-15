@@ -253,6 +253,11 @@ def run(probe):
                 ['container', 'video_codec', 'audio_codec', 'audio_language', 'subtitle_type', 'subtitle_tracks']}
         if parsed.path.endswith('/backdrops') and result:
             report['manifest_provider'] = result.get('data', {}).get('provider')
+    original = json.loads((EVIDENCE / 'release48-pre-projection.json').read_text())
+    original_result = probe.get('team4s-original-release48', original['route'], backend=True)
+    if original_result:
+        report['original_release48_technical'] = {key: original_result.get(key) for key in
+            ['container', 'video_codec', 'audio_codec', 'audio_language', 'subtitle_type', 'subtitle_tracks']}
     report['requests'], report['failures'] = probe.requests, probe.failures
     report['request_count'] = len(probe.requests)
     return report
