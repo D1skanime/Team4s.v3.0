@@ -8,16 +8,17 @@ import (
 
 // TestSegmentCreditRoleCodes proves the single central definition of
 // segment-relevant contributor role codes (Phase 156, Workstream D,
-// P156-08/P156-09, extended by Plan 156-12/GAP-01): exactly {translator,
-// timer, karaoke_fx, typesetter, editor, quality_checker}, excluding encoder,
-// defined once in this package.
+// P156-08/P156-09, extended by Plan 156-12/GAP-01, extended by Plan
+// 156-20/GAP-09): exactly {translator, timer, karaoke_fx, typesetter, editor,
+// quality_checker, encoder, designer}, defined once in this package.
 func TestSegmentCreditRoleCodes(t *testing.T) {
-	t.Run("contains exactly the six segment-relevant role codes", func(t *testing.T) {
-		require.ElementsMatch(t, []string{"translator", "timer", "karaoke_fx", "typesetter", "editor", "quality_checker"}, SegmentCreditRoleCodes)
+	t.Run("contains exactly the eight segment-relevant role codes", func(t *testing.T) {
+		require.ElementsMatch(t, []string{"translator", "timer", "karaoke_fx", "typesetter", "editor", "quality_checker", "encoder", "designer"}, SegmentCreditRoleCodes)
 	})
 
-	t.Run("never contains encoder", func(t *testing.T) {
-		require.NotContains(t, SegmentCreditRoleCodes, "encoder")
+	t.Run("contains encoder and designer as of 156-UAT.md GAP-09", func(t *testing.T) {
+		require.Contains(t, SegmentCreditRoleCodes, "encoder")
+		require.Contains(t, SegmentCreditRoleCodes, "designer")
 	})
 
 	t.Run("contains editor and quality_checker as of Plan 156-12", func(t *testing.T) {
@@ -32,9 +33,31 @@ func TestSegmentCreditRoleCodes(t *testing.T) {
 	})
 }
 
+// TestSegmentCreditPreselectionRoleCodes proves 156-UAT.md GAP-09's second,
+// narrower list: SegmentCreditPreselectionRoleCodes carries only the original
+// six codes (never encoder/designer) and is a true (strictly smaller)
+// subset of SegmentCreditRoleCodes -- consumed by Plan 156-21's
+// ensureThemeSegmentContributorsPreselectedTx wiring, not by this plan.
+func TestSegmentCreditPreselectionRoleCodes(t *testing.T) {
+	t.Run("contains exactly the six preselection role codes", func(t *testing.T) {
+		require.ElementsMatch(t, []string{"translator", "timer", "karaoke_fx", "typesetter", "editor", "quality_checker"}, SegmentCreditPreselectionRoleCodes)
+	})
+
+	t.Run("never contains encoder or designer", func(t *testing.T) {
+		require.NotContains(t, SegmentCreditPreselectionRoleCodes, "encoder")
+		require.NotContains(t, SegmentCreditPreselectionRoleCodes, "designer")
+	})
+
+	t.Run("is a true subset of SegmentCreditRoleCodes", func(t *testing.T) {
+		require.Subset(t, SegmentCreditRoleCodes, SegmentCreditPreselectionRoleCodes)
+		require.Less(t, len(SegmentCreditPreselectionRoleCodes), len(SegmentCreditRoleCodes))
+	})
+}
+
 // TestSegmentCreditLabelForRoles proves 156-UAT.md GAP-06's confirmed
-// Rollen-Code -> Segment-Beschriftung mapping: each of the six segment-relevant
-// role codes resolves to its exact confirmed German label.
+// Rollen-Code -> Segment-Beschriftung mapping, extended by GAP-09 (Plan
+// 156-20): each of the eight segment-relevant role codes resolves to its
+// exact confirmed German label.
 func TestSegmentCreditLabelForRoles(t *testing.T) {
 	cases := []struct {
 		name      string
@@ -44,9 +67,11 @@ func TestSegmentCreditLabelForRoles(t *testing.T) {
 		{"translator", []string{"translator"}, "Karaoke-Übersetzung"},
 		{"timer", []string{"timer"}, "Karaoke-Timing"},
 		{"karaoke_fx", []string{"karaoke_fx"}, "Karaoke-FX"},
-		{"typesetter", []string{"typesetter"}, "Typesetting / Logo"},
+		{"typesetter", []string{"typesetter"}, "Karaoke-Typesetting"},
 		{"editor", []string{"editor"}, "Karaoke-Edit"},
 		{"quality_checker", []string{"quality_checker"}, "Karaoke-Qualitätsprüfung"},
+		{"encoder", []string{"encoder"}, "Karaoke-Encoding"},
+		{"designer", []string{"designer"}, "Logo"},
 	}
 
 	for _, tc := range cases {
@@ -59,16 +84,27 @@ func TestSegmentCreditLabelForRoles(t *testing.T) {
 // TestSegmentCreditLabelForRolesFixedOrder proves a person with two
 // segment-relevant roles supplied in reversed order relative to
 // SegmentCreditRoleCodes gets the output in SegmentCreditRoleCodes's fixed
-// order, not input order.
+// order, not input order -- extended by 156-UAT.md GAP-09's literal
+// Pflichttest "Person mit Übersetzung und Encoding ausgewählt", proving
+// encoder lands at the end of the output because it is the second-to-last
+// element of SegmentCreditRoleCodes.
 func TestSegmentCreditLabelForRolesFixedOrder(t *testing.T) {
 	got := SegmentCreditLabelForRoles([]string{"quality_checker", "translator"})
 	require.Equal(t, "Karaoke-Übersetzung, Karaoke-Qualitätsprüfung", got)
+
+	gotEncoder := SegmentCreditLabelForRoles([]string{"encoder", "translator"})
+	require.Equal(t, "Karaoke-Übersetzung, Karaoke-Encoding", gotEncoder)
 }
 
-// TestSegmentCreditLabelForRolesExcludesEncoder proves encoder never appears
-// in the segment label output, even alongside a segment-relevant role.
-func TestSegmentCreditLabelForRolesExcludesEncoder(t *testing.T) {
-	got := SegmentCreditLabelForRoles([]string{"encoder", "translator"})
+// TestSegmentCreditLabelForRolesExcludesUnapprovedRoles proves 156-UAT.md
+// GAP-09's literal Pflichttest "nur raw_provider ausgewählt -> erscheint
+// nicht": raw_provider is the standing example of a role that is genuinely,
+// permanently excluded from the segment-credit label output (unlike encoder
+// and designer, which GAP-09 approved for segment credits).
+func TestSegmentCreditLabelForRolesExcludesUnapprovedRoles(t *testing.T) {
+	require.Equal(t, "", SegmentCreditLabelForRoles([]string{"raw_provider"}))
+
+	got := SegmentCreditLabelForRoles([]string{"raw_provider", "translator"})
 	require.Equal(t, "Karaoke-Übersetzung", got)
 }
 
