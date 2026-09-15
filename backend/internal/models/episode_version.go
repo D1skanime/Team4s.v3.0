@@ -163,30 +163,40 @@ func ValidateEpisodeVersionDates(start, completion *time.Time) error {
 // EpisodeVersionEditorContext liefert alle Kontextdaten für den Admin-Editor
 // einer Episodenversion, inklusive Anime-Pfad und verfügbare Fansub-Gruppen.
 type EpisodeVersionEditorContext struct {
+	SelectedFile    *EpisodeVersionMediaFile     `json:"selected_file"`
 	Version         EpisodeVersion               `json:"version"`
 	AnimeTitle      string                       `json:"anime_title"`
 	AnimeFolderPath *string                      `json:"anime_folder_path,omitempty"`
 	SelectedGroups  []FansubGroupSummary         `json:"selected_groups"`
 	DateNeighbors   []EpisodeVersionDateNeighbor `json:"date_neighbors"`
 	// JellyfinEnrichmentDegraded is true only when a configured Jellyfin connection was
-	// attempted while resolving the folder path and failed (any upstream error kind); the
-	// admin-facing response still succeeds with the anime source's folder_name fallback.
+	// attempted for folder or selected-file enrichment and failed; ordinary editing
+	// remains usable with unavailable optional metadata.
 	JellyfinEnrichmentDegraded bool `json:"jellyfin_enrichment_degraded,omitempty"`
+}
+
+// EpisodeVersionChapterHint is advisory display metadata, never a persisted segment time.
+// StartMS excludes sub-millisecond tick remainder, without whole-second rounding.
+type EpisodeVersionChapterHint struct {
+	Name    *string `json:"name"`
+	StartMS int64   `json:"start_ms"`
 }
 
 // EpisodeVersionMediaFile repräsentiert eine einzelne Mediendatei aus einem
 // Jellyfin-Ordner-Scan, inklusive erkannter Episodennummer und Qualitätsinformationen.
 type EpisodeVersionMediaFile struct {
-	FileName              string     `json:"file_name"`
-	Path                  string     `json:"path"`
-	MediaItemID           string     `json:"media_item_id"`
-	MediaSourceID         *string    `json:"media_source_id,omitempty"`
-	StreamURL             *string    `json:"stream_url,omitempty"`
-	VideoQuality          *string    `json:"video_quality,omitempty"`
-	FileSizeBytes         *int64     `json:"file_size_bytes,omitempty"`
-	LastModified          *time.Time `json:"last_modified,omitempty"`
-	DetectedEpisodeNumber *int32     `json:"detected_episode_number,omitempty"`
-	ReleaseName           *string    `json:"release_name,omitempty"`
+	// Nil pointer: not requested (scans); pointer to nil slice: unavailable; empty slice: proven empty.
+	ChapterHints          *[]EpisodeVersionChapterHint `json:"chapter_hints,omitempty"`
+	FileName              string                       `json:"file_name"`
+	Path                  string                       `json:"path"`
+	MediaItemID           string                       `json:"media_item_id"`
+	MediaSourceID         *string                      `json:"media_source_id,omitempty"`
+	StreamURL             *string                      `json:"stream_url,omitempty"`
+	VideoQuality          *string                      `json:"video_quality,omitempty"`
+	FileSizeBytes         *int64                       `json:"file_size_bytes,omitempty"`
+	LastModified          *time.Time                   `json:"last_modified,omitempty"`
+	DetectedEpisodeNumber *int32                       `json:"detected_episode_number,omitempty"`
+	ReleaseName           *string                      `json:"release_name,omitempty"`
 }
 
 // EpisodeVersionFolderScanResult enthält das Ergebnis eines Ordner-Scans

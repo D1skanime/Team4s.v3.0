@@ -63,6 +63,8 @@ export interface EpisodeVersionDateNeighbor {
 }
 
 export interface EpisodeVersionEditorContext {
+  /** Saved selected-file read projection; null when unavailable. Contributor provider fields are redacted. */
+  selected_file?: EpisodeVersionMediaFile | null
   version: EpisodeVersion
   anime_title: string
   anime_folder_path?: string | null
@@ -70,9 +72,8 @@ export interface EpisodeVersionEditorContext {
   /** At most four anchors per selected group, matching anime and version label. */
   date_neighbors: EpisodeVersionDateNeighbor[]
   /**
-   * True only when a configured Jellyfin connection was attempted while resolving the
-   * anime folder path and failed (401/403/5xx/timeout/network error); anime_folder_path
-   * still falls back to the anime source's stored folder_name in that case.
+   * True when configured optional folder/selected-file enrichment was attempted and failed.
+   * Ordinary context remains usable; missing configuration is not a failed attempt.
    */
   jellyfin_enrichment_degraded?: boolean
 }
@@ -81,7 +82,16 @@ export interface EpisodeVersionEditorContextResponse {
   data: EpisodeVersionEditorContext
 }
 
+export interface EpisodeVersionChapterHint {
+  /** Inert provider name; never episode or source identity. */
+  name: string | null
+  /** Nonnegative safe integer milliseconds; raw ticks / 10000, excluding sub-ms remainder only. */
+  start_ms: number
+}
+
 export interface EpisodeVersionMediaFile {
+  /** Omitted: not requested; null: unsafe/unavailable; []: proven empty. At most 256 hints. */
+  chapter_hints?: EpisodeVersionChapterHint[] | null
   file_name: string
   path: string
   media_item_id: string

@@ -15,6 +15,8 @@ import (
 // resolvedJellyfinMediaSource is server-only: source paths never belong in a
 // public response. All technical values describe Snapshot.MediaSourceID.
 type resolvedJellyfinMediaSource struct {
+	FileSizeBytes   *int64
+	ChapterHints    []models.EpisodeVersionChapterHint
 	JellyfinItemID  string
 	Snapshot        models.JellyfinSourceSnapshot
 	FileName        string
@@ -107,6 +109,10 @@ func resolveJellyfinMediaSource(item jellyfinEpisodeItem, stored *models.Jellyfi
 		Container:       jellyfinSourceString(source.Container),
 		DurationSeconds: jellyfinRuntimeTicksToSeconds(source.RunTimeTicks),
 	}
+	if source.Size != nil && *source.Size > 0 {
+		result.FileSizeBytes = source.Size
+	}
+	result.ChapterHints = resolveJellyfinChapterHints(item, source)
 	if source.Path != "" {
 		result.FileName = path.Base(source.Path)
 	}
@@ -220,4 +226,43 @@ func normalizeJellyfinSourceLanguage(raw string) *string {
 		return nil
 	}
 	return &value
+}
+
+// Item chapters describe only the unique own-path source, never an alternate.
+// Raw ticks remain int64 for validation and stable ordering; only the display DTO loses sub-ms remainder.
+func resolveJellyfinChapterHints(item jellyfinEpisodeItem, source jellyfinMediaSource) []models.EpisodeVersionChapterHint {
+	ownPath := normalizeJellyfinSourcePath(item.Path)
+	if ownPath == "" || source.Path != ownPath || item.Chapters == nil || len(item.Chapters) > 256 {
+		return nil
+	}
+	matches := 0
+	for _, candidate := range item.MediaSources {
+		if normalizeJellyfinSourcePath(candidate.Path) == ownPath {
+			matches++
+		}
+	}
+	if matches != 1 {
+		return nil
+	}
+	if len(item.Chapters) == 0 {
+		return []models.EpisodeVersionChapterHint{}
+	}
+	if source.RunTimeTicks == nil || *source.RunTimeTicks <= 0 {
+		return nil
+	}
+	valid := make([]jellyfinChapter, 0, len(item.Chapters))
+	for _, chapter := range item.Chapters {
+		if chapter.StartPositionTicks != nil && *chapter.StartPositionTicks >= 0 && *chapter.StartPositionTicks <= *source.RunTimeTicks {
+			valid = append(valid, chapter)
+		}
+	}
+	if len(valid) == 0 {
+		return nil
+	}
+	slices.SortStableFunc(valid, func(a, b jellyfinChapter) int { return cmp.Compare(*a.StartPositionTicks, *b.StartPositionTicks) })
+	hints := make([]models.EpisodeVersionChapterHint, 0, len(valid))
+	for _, chapter := range valid {
+		hints = append(hints, models.EpisodeVersionChapterHint{Name: chapter.Name, StartMS: *chapter.StartPositionTicks / 10_000})
+	}
+	return hints
 }

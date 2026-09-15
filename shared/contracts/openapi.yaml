@@ -15220,6 +15220,16 @@ components:
       type: object
       required: [version, anime_title, selected_groups, date_neighbors]
       properties:
+        selected_file:
+          allOf:
+            - $ref: "#/components/schemas/EpisodeVersionMediaFile"
+          nullable: true
+          description: >-
+            Optional saved selected-file metadata, null when unavailable. Both authorized
+            admin and contributor branches use one exact-item read shared with duration,
+            zero new SQL. Contributor allowlist contains basename file_name, positive
+            file_size_bytes and chapter_hints; required path/media_item_id are empty,
+            media_source_id/stream_url and other provider details are omitted.
         version:
           $ref: "#/components/schemas/EpisodeVersion"
         anime_title:
@@ -15250,11 +15260,9 @@ components:
         jellyfin_enrichment_degraded:
           type: boolean
           description: >-
-            True only when a configured Jellyfin connection was attempted while resolving
-            the anime folder path and failed (any upstream error kind: 401/403/5xx/timeout/
-            network error); anime_folder_path still falls back to the anime source's stored
-            folder_name in that case. Absent or false when Jellyfin is not configured, or
-            when the Jellyfin lookup succeeds.
+            True when configured optional folder or selected-file enrichment was attempted
+            and failed (401/403/5xx/timeout/network, missing identity or failed ownership).
+            Ordinary editing remains usable. Absent or false when not configured or successful.
     EpisodeVersionDateNeighbor:
       type: object
       required: [fansub_group_id, field, direction, release_version_id, episode_number, date]
@@ -15285,10 +15293,40 @@ components:
       properties:
         data:
           $ref: "#/components/schemas/EpisodeVersionEditorContext"
+    EpisodeVersionChapterHint:
+      type: object
+      required: [name, start_ms]
+      properties:
+        name:
+          type: string
+          nullable: true
+          description: Inert provider label, never episode/source identity or segment classification.
+        start_ms:
+          type: integer
+          format: int64
+          minimum: 0
+          maximum: 9007199254740991
+          description: >-
+            Milliseconds from validated int64 ticks divided by 10000, excluding sub-ms remainder
+            only. No whole-second server rounding. UI shows exact milliseconds and explicitly
+            adopts Math.round(start_ms / 1000) into the existing whole-second segment form.
     EpisodeVersionMediaFile:
       type: object
       required: [file_name, path, media_item_id]
       properties:
+        chapter_hints:
+          type: array
+          nullable: true
+          maxItems: 256
+          description: >-
+            Omitted means not requested (scans); null means unavailable/unsafe; [] means
+            proven no chapters. Item chapters require exact item/anime ownership and one
+            nonempty case-sensitive normalized source path matching Item.Path. Alternate
+            sources may expose their Size but never borrow own-item chapters. Stable raw-tick
+            order, invalid positions discarded against selected raw runtime; no trustworthy
+            runtime, all-invalid nonempty or oversized lists are unavailable.
+          items:
+            $ref: "#/components/schemas/EpisodeVersionChapterHint"
         media_source_id:
           type: "string"
           nullable: true
@@ -15308,6 +15346,8 @@ components:
           maxLength: 20
           nullable: true
         file_size_bytes:
+          description: Positive Size from the selected MediaSource only.
+          minimum: 1
           type: integer
           format: int64
           nullable: true

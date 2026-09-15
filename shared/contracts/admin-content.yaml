@@ -2211,3 +2211,23 @@ jellyfin_source_contract:
   semantics: "One selected source per actual Jellyfin item; alternate files without separate items are not guaranteed to be imported. Source path, container, codecs and tracks are provider-derived and server-revalidated at apply/relink. Posted URLs, codecs and languages are not authoritative. Missing projection is incomplete; with streams_complete=true an empty subtitle_tracks array means known no subtitles. Unknown raw language remains null."
   source_selector: "Reviewed Jellyfin MediaSource identity, distinct from media_item_id. Optional for old records; required for confirmation of a new candidate. Server revalidates on apply/relink."
   raw_language: "Audio and subtitle language remain nullable; unknown audio DISPLAY alone defaults to Japanisch, never a provider ja value."
+
+
+release_selected_file_metadata:
+  canonical_contract: shared/contracts/openapi.yaml
+  context_path: /api/v1/admin/episode-versions/{versionId}/editor-context
+  authorization: Existing admin and scoped contributor context permissions; unchanged envelope and statuses.
+  selected_file: Optional nullable EpisodeVersionMediaFile for the saved variant, null when unavailable.
+  contributor_projection: Explicit allowlist of basename file_name, positive file_size_bytes and chapter_hints; required path/media_item_id are empty; media_source_id/stream_url and other provider details omitted.
+  file_size_bytes: Positive selected MediaSource Size only; no item-level inference or filesystem access.
+  chapter_hints:
+    schema: EpisodeVersionChapterHint
+    fields: [name, start_ms]
+    name: Required nullable inert provider string; never file identity or segment classification.
+    start_ms: Nonnegative safe integer milliseconds; int64 ticks divided by 10000 after raw-tick validation, excluding sub-millisecond remainder only; no server whole-second rounding.
+    presence: Omitted means not requested (scans); null means unavailable or unsafe; [] means proven no chapters.
+    bound: At most 256 entries; stable raw-tick order; null/negative/out-of-runtime positions discarded; all-invalid nonempty or oversized lists unavailable.
+    identity: Exact requested item, authorized anime/series/folder and unique nonempty case-sensitive normalized own-path match; alternate source size may survive unavailable chapters.
+    adoption: Creation from saved current file only; explicit Math.round(start_ms / 1000) with visible copy; no automatic mutation, title/type/end/range inference.
+  failure: Optional attempted provider or ownership failure sets jellyfin_enrichment_degraded; missing configuration leaves it false. Ordinary context stays usable.
+  budget: Zero new SQL; at most one exact-file GET shared with duration, zero calls per chapter and zero additional scan GETs. Only selected-item read requests Chapters.

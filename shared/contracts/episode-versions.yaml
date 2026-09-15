@@ -411,6 +411,8 @@ types:
     created_at: datetime
     updated_at: datetime
   EpisodeVersionEditorContext:
+    selected_file: EpisodeVersionMediaFile | null # Optional saved file; contributor path/media_item_id empty, selectors/URLs omitted.
+    jellyfin_enrichment_degraded: boolean # Optional failed folder/file enrichment; no configured provider is not a failure.
     version: EpisodeVersion
     anime_title: string
     anime_folder_path: string | null
@@ -420,7 +422,11 @@ types:
     anime_id: int64
     anime_folder_path: string | null
     files: EpisodeVersionMediaFile[]
+  EpisodeVersionChapterHint:
+    name: string | null # Required inert provider label.
+    start_ms: int64 # Required nonnegative safe integer milliseconds; raw ticks / 10000, no whole-second rounding.
   EpisodeVersionMediaFile:
+    chapter_hints: EpisodeVersionChapterHint[] | null # Optional/not requested; null unsafe/unavailable; [] proven empty; maximum 256, unique selected own-path only.
     media_source_id: string | null (optional; reviewed source identity)
     file_name: string
     path: string

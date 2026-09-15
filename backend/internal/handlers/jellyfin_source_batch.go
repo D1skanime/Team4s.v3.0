@@ -35,7 +35,11 @@ func (h *FansubHandler) getJellyfinSourceItems(ctx context.Context, itemIDs []st
 
 // fetchJellyfinSourceBatch hydrates real Item IDs only. Nested source IDs never
 // trigger discovery requests. Every chunk must match its exact requested set.
-func fetchJellyfinSourceBatch(ctx context.Context, client *http.Client, baseURL, apiKey string, itemIDs []string) (map[string]jellyfinEpisodeItem, error) {
+func fetchJellyfinSourceBatch(ctx context.Context, client *http.Client, baseURL, apiKey string, itemIDs []string, includeChapters ...bool) (map[string]jellyfinEpisodeItem, error) {
+	fields := jellyfinSourceFields
+	if len(includeChapters) > 0 && includeChapters[0] {
+		fields += ",Chapters"
+	}
 	unique := make([]string, 0, len(itemIDs))
 	seen := make(map[string]bool, len(itemIDs))
 	for _, raw := range itemIDs {
@@ -57,7 +61,7 @@ func fetchJellyfinSourceBatch(ctx context.Context, client *http.Client, baseURL,
 		chunk := unique[start:end]
 		query := url.Values{
 			"Ids": {strings.Join(chunk, ",")}, "Limit": {strconv.Itoa(len(chunk))},
-			"Fields": {jellyfinSourceFields}, "EnableUserData": {"false"}, "EnableTotalRecordCount": {"true"},
+			"Fields": {fields}, "EnableUserData": {"false"}, "EnableTotalRecordCount": {"true"},
 		}
 		var payload jellyfinEpisodeListResponse
 		if _, err := fetchJellyfinJSON(ctx, client, baseURL, apiKey, "/Items", query, &payload); err != nil {

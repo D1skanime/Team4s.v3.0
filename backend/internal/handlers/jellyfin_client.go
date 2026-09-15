@@ -32,6 +32,7 @@ type jellyfinEpisodeListResponse struct {
 
 // jellyfinEpisodeItem repräsentiert eine einzelne Episode aus der Jellyfin-API.
 type jellyfinEpisodeItem struct {
+	Chapters          []jellyfinChapter     `json:"Chapters"`
 	ID                string                `json:"Id"`
 	Type              string                `json:"Type"`
 	SeriesID          string                `json:"SeriesId"`
@@ -49,7 +50,13 @@ type jellyfinEpisodeItem struct {
 // jellyfinMediaSource repräsentiert eine Media-Source eines Jellyfin-Items. Die Id wird fuer den
 // Subtitle-Download-Pfad (/Videos/{itemId}/{mediaSourceId}/Subtitles/...) benoetigt und ist nicht
 // zwangslaeufig gleich der Item-Id (Multi-Version-Items).
+type jellyfinChapter struct {
+	Name               *string `json:"Name"`
+	StartPositionTicks *int64  `json:"StartPositionTicks"`
+}
+
 type jellyfinMediaSource struct {
+	Size                    *int64 `json:"Size"`
 	ID                      string `json:"Id"`
 	Path                    string `json:"Path"`
 	Container               string `json:"Container"`

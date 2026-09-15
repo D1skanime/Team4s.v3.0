@@ -275,3 +275,27 @@ func TestJellyfinSourceBatch_ServerFailure(t *testing.T) {
 
 // Compile-time proof the shared JSON decoder retains its existing signature.
 var _ func(context.Context, string, url.Values, any) (int, error) = (*AdminContentHandler)(nil).fetchJellyfinJSON
+
+func TestJellyfinSourceBatch_ChapterFieldsOptInOnly(t *testing.T) {
+	calls := 0
+	server := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		calls++
+		fields := jellyfinSourceFields
+		if calls == 1 {
+			fields += ",Chapters"
+		}
+		if r.URL.Query().Get("Fields") != fields || r.URL.Query().Get("Ids") != "item" {
+			t.Errorf("unexpected exact-item request: %s", r.URL.RequestURI())
+		}
+		fmt.Fprint(w, `{"Items":[{"Id":"item","Chapters":[]}],"TotalRecordCount":1}`)
+	}))
+	defer server.Close()
+	items, err := fetchJellyfinSourceBatch(context.Background(), server.Client(), server.URL, "key", []string{"item"}, true)
+	if err != nil || items["item"].Chapters == nil {
+		t.Fatalf("chapter field missing: %v", err)
+	}
+	_, err = fetchJellyfinSourceBatch(context.Background(), server.Client(), server.URL, "key", []string{"item"})
+	if err != nil || calls != 2 {
+		t.Fatalf("request count=%d error=%v", calls, err)
+	}
+}
