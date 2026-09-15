@@ -39,3 +39,7 @@ Implementation a72737f4; coordinator repeated expanded source/JSON tests with de
 ## Runtime correction after Plan 02
 
 The backend runs Air (PID1), whose .air.toml watches production Go sources. Copying source into /app can rebuild/restart the live server automatically. Earlier statements that the running server necessarily remained unchanged were not verified and are superseded by this observation. Test-only files are excluded from the watcher. Source synchronization must remain coherent; final verification must establish the actual running code. Compose recreation executes migrate up first, so check pending migrations before any recreation.
+
+## Coordinator verification preparation
+
+Application implementation remains sequential through Plans01–08. While Plan05 owns repository changes, the coordinator may prepare the read-only Plan09 verification script independently (no shared application files, no DB writes). This is preparation only: final execution, integrated evidence and Plan09 completion remain gated on Plan08. This bounded scheduling adjustment avoids idle coordination without weakening the phase gates.
