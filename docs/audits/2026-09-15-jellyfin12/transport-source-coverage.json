@@ -1,0 +1,42 @@
+{
+  "scope": "Intermediate transport source inventory after Plans01/03; not full phase verification",
+  "commit": "3f1a8252d2c5e65453ef953c04da24f76fdfb609",
+  "remaining_occurrences": [
+    {
+      "path": "backend/internal/handlers/episode_playback_proxy.go",
+      "line": 36,
+      "classification": "Existing Emby-only playback, unchanged"
+    },
+    {
+      "path": "backend/internal/handlers/segment_render_subtitles.go",
+      "line": 178,
+      "classification": "Diagnostic redaction or comment, retained"
+    },
+    {
+      "path": "backend/internal/handlers/fansub_admin.go",
+      "line": 275,
+      "classification": "Existing Emby branch/generic builder now called only by Emby"
+    },
+    {
+      "path": "backend/internal/handlers/fansub_admin.go",
+      "line": 358,
+      "classification": "Existing Emby branch/generic builder now called only by Emby"
+    },
+    {
+      "path": "backend/internal/services/anime_create_enrichment.go",
+      "line": 474,
+      "classification": "Fanart provider, unchanged"
+    },
+    {
+      "path": "backend/internal/services/segment_render_service.go",
+      "line": 178,
+      "classification": "Diagnostic redaction or comment, retained"
+    },
+    {
+      "path": "backend/internal/services/segment_render_service.go",
+      "line": 179,
+      "classification": "Diagnostic redaction or comment, retained"
+    }
+  ],
+  "verified_call_graph": "Generic buildProviderStreamURL is called only by the Emby branch; Jellyfin editor and asset paths use buildJellyfinStreamURL. All remaining auth-query occurrences classified; no global replacement."
+}
