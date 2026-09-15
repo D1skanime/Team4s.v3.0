@@ -28,6 +28,9 @@ func segmentRenderInputsChanged(before *models.ThemeSegmentRenderSource, after *
 		return true
 	}
 	return stringPtrValue(before.StreamExternalID) != stringPtrValue(after.StreamExternalID) ||
+		stringPtrValue(before.MediaSourceID) != stringPtrValue(after.MediaSourceID) ||
+		selectedSegmentBindingID(before) != selectedSegmentBindingID(after) ||
+		stringPtrValue(before.JellyfinItemID) != stringPtrValue(after.JellyfinItemID) ||
 		int32PtrValue(before.StartOffsetSeconds) != int32PtrValue(after.StartOffsetSeconds) ||
 		int32PtrValue(before.EndOffsetSeconds) != int32PtrValue(after.EndOffsetSeconds) ||
 		before.SourceKind != after.SourceKind ||
@@ -115,33 +118,12 @@ func (h *AdminContentHandler) buildQueuedSegmentRenderCache(
 	segmentID int64,
 	source *models.ThemeSegmentRenderSource,
 ) (*models.ThemeSegmentRenderCache, *segmentRenderPrepareError) {
-	if source.StartOffsetSeconds == nil || source.EndOffsetSeconds == nil {
-		return nil, &segmentRenderPrepareError{status: http.StatusConflict, message: "segment hat kein vollständiges Zeitfenster", code: "segment_window_missing"}
+	cacheKey, sourceIdentity, prepareErr := h.segmentSourceCacheKey(ctx, segmentID, source)
+	if prepareErr != nil {
+		return nil, prepareErr
 	}
-	if err := services.ValidateDerivedSegmentWindow(*source.StartOffsetSeconds, *source.EndOffsetSeconds, h.segmentRenderMaxSeconds); err != nil {
-		return nil, &segmentRenderPrepareError{status: http.StatusConflict, message: "segment-zeitfenster ist ungültig", code: "segment_window_invalid", err: err}
-	}
-	if source.StreamURL == nil || strings.TrimSpace(*source.StreamURL) == "" {
-		return nil, &segmentRenderPrepareError{status: http.StatusConflict, message: "segment hat keine stream-quelle", code: "segment_source_missing"}
-	}
+	sourceFingerprint := services.SanitizeSegmentRenderLog(sourceIdentity, h.segmentGrantSecret, h.jellyfinAPIKey)
 
-	sourceIdentity := strings.TrimSpace(derefString(source.StreamExternalID))
-	if sourceIdentity == "" {
-		sourceIdentity = strings.TrimSpace(*source.StreamURL)
-	}
-	cacheKey, err := services.BuildSegmentRenderCacheKey(services.SegmentRenderWindow{
-		SegmentID:      segmentID,
-		SourceKind:     source.SourceKind,
-		SourceIdentity: sourceIdentity,
-		StartSeconds:   *source.StartOffsetSeconds,
-		EndSeconds:     *source.EndOffsetSeconds,
-		RenderProfile:  services.DefaultSegmentRenderProfile,
-	})
-	if err != nil {
-		return nil, &segmentRenderPrepareError{status: http.StatusInternalServerError, message: "interner serverfehler", err: err}
-	}
-
-	sourceFingerprint := services.SanitizeSegmentRenderLog(sourceIdentity, h.segmentGrantSecret)
 	cache, err := themeRepo.UpsertThemeSegmentRenderCacheQueued(ctx, models.ThemeSegmentRenderCacheUpsertInput{
 		ThemeSegmentID:    segmentID,
 		PlaybackSourceID:  &source.PlaybackSourceID,
@@ -180,4 +162,50 @@ func int32PtrValue(value *int32) int32 {
 		return 0
 	}
 	return *value
+}
+
+func selectedSegmentBindingID(source *models.ThemeSegmentRenderSource) string {
+	if source.JellyfinSource != nil {
+		return source.JellyfinSource.MediaSourceID
+	}
+	return ""
+}
+
+// Shared by explicit render, refresh, grant and stream lookups. Resolving an
+// unbound source here is read-only and happens before any cache access.
+func (h *AdminContentHandler) segmentSourceCacheKey(ctx context.Context, segmentID int64, source *models.ThemeSegmentRenderSource) (string, string, *segmentRenderPrepareError) {
+	if source.StartOffsetSeconds == nil || source.EndOffsetSeconds == nil {
+		return "", "", &segmentRenderPrepareError{status: http.StatusConflict, message: "segment hat kein vollständiges Zeitfenster", code: "segment_window_missing"}
+	}
+	if err := services.ValidateDerivedSegmentWindow(*source.StartOffsetSeconds, *source.EndOffsetSeconds, h.segmentRenderMaxSeconds); err != nil {
+		return "", "", &segmentRenderPrepareError{status: http.StatusConflict, message: "segment-zeitfenster ist ungültig", code: "segment_window_invalid", err: err}
+	}
+	identity, _, err := h.prepareSegmentSource(ctx, source, false)
+	if err != nil {
+		return "", "", &segmentRenderPrepareError{status: http.StatusConflict, message: "Segment-Quelle konnte nicht aufgelöst werden.", code: "segment_source_missing", err: err}
+	}
+	key, err := services.BuildSegmentRenderCacheKey(services.SegmentRenderWindow{SegmentID: segmentID, SourceKind: source.SourceKind, SourceIdentity: identity, StartSeconds: *source.StartOffsetSeconds, EndSeconds: *source.EndOffsetSeconds, RenderProfile: services.DefaultSegmentRenderProfile})
+	if err != nil {
+		return "", "", &segmentRenderPrepareError{status: http.StatusInternalServerError, message: "interner serverfehler", err: err}
+	}
+	return key, identity, nil
+}
+
+func (h *AdminContentHandler) selectedSegmentRenderCache(ctx context.Context, repo segmentStreamThemeRepository, source *models.ThemeSegmentRenderSource) (*models.ThemeSegmentRenderCache, error) {
+	key, _, prepareErr := h.segmentSourceCacheKey(ctx, source.SegmentID, source)
+	if prepareErr != nil {
+		return nil, repository.ErrNotFound
+	}
+	cache, err := repo.GetThemeSegmentRenderCacheByKey(ctx, key)
+	if err != nil {
+		return nil, err
+	}
+	if cache.InvalidatedAt != nil || cache.ThemeSegmentID != source.SegmentID || cache.ReleaseVersionID == nil || source.ReleaseVersionID == nil || *cache.ReleaseVersionID != *source.ReleaseVersionID {
+		return nil, repository.ErrNotFound
+	}
+	if cache.Status != models.ThemeSegmentRenderStatusReady {
+		return cache, repository.ErrNotFound
+	}
+
+	return cache, nil
 }

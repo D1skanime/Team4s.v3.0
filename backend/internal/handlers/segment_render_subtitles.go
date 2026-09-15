@@ -89,19 +89,21 @@ func (h *AdminContentHandler) resolveSegmentSubtitleForRender(
 	cacheKey string,
 	source *models.ThemeSegmentRenderSource,
 ) segmentSubtitleSelection {
-	jellyfinItemID := strings.TrimSpace(derefString(source.JellyfinItemID))
 	if source.SourceKind != "episode_version" && source.SourceKind != "jellyfin_theme" {
 		return segmentSubtitleSelection{}
 	}
-	if jellyfinItemID == "" {
+	if strings.TrimSpace(derefString(source.StreamExternalID)) == "" && strings.TrimSpace(derefString(source.JellyfinItemID)) == "" {
 		return segmentSubtitleSelection{}
 	}
-
-	selected, err := fetchJellyfinPlaybackSource(ctx, h.httpClient, h.jellyfinBaseURL, h.jellyfinAPIKey, jellyfinItemID, source.JellyfinSource)
+	_, selected, err := h.prepareSegmentSource(ctx, source, true)
 	if err != nil {
 		return segmentSubtitleSelection{Diagnostic: "untertitel-spuren konnten nicht geladen werden"}
 	}
-	subtitle := h.downloadSegmentSubtitleSelection(ctx, jellyfinItemID, selected.Snapshot.MediaSourceID, selected.MediaStreams, segmentSubtitleTempDir(h.segmentRenderDir))
+	if selected == nil {
+		return segmentSubtitleSelection{}
+	}
+	subtitle := h.downloadSegmentSubtitleSelection(ctx, selected.JellyfinItemID, selected.Snapshot.MediaSourceID, selected.MediaStreams, segmentSubtitleTempDir(h.segmentRenderDir))
+
 	if subtitle.SubtitleFilePath == "" && strings.TrimSpace(subtitle.Diagnostic) != "" {
 		log.Printf(
 			"segment_render_subtitles: %s (segment_id=%d, cache_key=%s)",
@@ -154,6 +156,9 @@ func (h *AdminContentHandler) prepareSegmentSource(ctx context.Context, source *
 		}
 	}
 	if !isJellyfin {
+		if source.StreamURL == nil || strings.TrimSpace(*source.StreamURL) == "" {
+			return "", nil, fmt.Errorf("segment stream source missing")
+		}
 		identity := strings.TrimSpace(derefString(source.StreamExternalID))
 		if identity == "" {
 			identity = strings.TrimSpace(derefString(source.StreamURL))

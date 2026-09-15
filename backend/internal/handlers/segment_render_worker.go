@@ -127,16 +127,22 @@ func (h *AdminContentHandler) executeSegmentRender(
 		return errors.New("segment render worker: theme repo does not implement segment stream repository")
 	}
 
-	if source.StartOffsetSeconds == nil || source.EndOffsetSeconds == nil || source.StreamURL == nil || strings.TrimSpace(*source.StreamURL) == "" {
+	if source.StartOffsetSeconds == nil || source.EndOffsetSeconds == nil {
 		_ = themeRepo.MarkThemeSegmentRenderCacheFailed(ctx, cache.CacheKey, "segment_source_missing", "Segment hat keine gueltige Render-Quelle.")
 		return errors.New("segment render worker: incomplete render source")
 	}
 
-	_, selected, err := h.prepareSegmentSource(ctx, source, true)
+	identity, selected, err := h.prepareSegmentSource(ctx, source, true)
 	if err != nil {
 		_ = themeRepo.MarkThemeSegmentRenderCacheFailed(ctx, cache.CacheKey, "segment_source_missing", "Segment-Quelle konnte nicht aufgelöst werden.")
 		return err
 	}
+	fingerprint := services.SanitizeSegmentRenderLog(identity, h.segmentGrantSecret, h.jellyfinAPIKey)
+	if fingerprint != cache.SourceFingerprint {
+		_ = themeRepo.MarkThemeSegmentRenderCacheFailed(ctx, cache.CacheKey, "segment_source_stale", "Segment-Quelle wurde seit der Vorbereitung geändert.")
+		return errors.New("segment render worker: source identity changed")
+	}
+
 	outputRel := cache.CacheKey + ".mp4"
 	outputPath, ok := resolveControlledFilePath(h.segmentRenderDir, outputRel)
 	if !ok {

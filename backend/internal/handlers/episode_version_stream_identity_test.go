@@ -50,9 +50,13 @@ func streamIdentityHandler(t *testing.T, sourceConfig ...string) (*FansubHandler
  INSERT INTO release_streams (id,variant_id,stream_source_id) VALUES (1,10,1),(2,100,2),(3,101,3);
  `)
 	require.NoError(t, err)
-	if len(sourceConfig) == 2 {
+	if len(sourceConfig) >= 2 {
 		_, err = pool.Exec(context.Background(), `UPDATE stream_sources SET provider_type=$1, url=$2, metadata='{"jellyfin_source":{"version":1,"media_source_id":"B","source_path":"/B.mkv","streams_complete":true}}' WHERE id=2`, sourceConfig[0], sourceConfig[1])
 		require.NoError(t, err)
+		if len(sourceConfig) == 3 {
+			_, err = pool.Exec(context.Background(), `UPDATE stream_sources SET metadata='{}' WHERE id=2`)
+			require.NoError(t, err)
+		}
 	}
 	entitlement := &streamIdentityEntitlement{allowed: true}
 	targets := []string{}
@@ -229,5 +233,44 @@ func TestReleaseStreamJellyfinAuthenticationPreservesGrantsAndFallbacks(t *testi
 				require.Equal(t, 1, calls, "denied requests must never contact upstream")
 			})
 		}
+	}
+}
+
+func TestReleaseStreamIdentityUnboundExactSource(t *testing.T) {
+	for _, wrong := range []bool{false, true} {
+		t.Run(fmt.Sprint(wrong), func(t *testing.T) {
+			h, _, _ := streamIdentityHandler(t, "jellyfin", "http://fixture.invalid/foreign", "unbound")
+			h.jellyfinBaseURL = "https://jellyfin.fixture"
+			h.jellyfinAPIKey = "fixture"
+			metadata, video := 0, 0
+			h.httpClient = &http.Client{Transport: streamIdentityTransport(func(r *http.Request) (*http.Response, error) {
+				if r.URL.Path == "/Items" {
+					metadata++
+					require.Equal(t, "own", r.URL.Query().Get("Ids"))
+					id := "own"
+					if wrong {
+						id = "foreign"
+					}
+					body := fmt.Sprintf(`{"Items":[{"Id":%q,"Path":"/B","MediaSources":[{"Id":"A","Path":"/A"},{"Id":"B","Path":"/B"}]}]}`, id)
+					return &http.Response{StatusCode: 200, Header: http.Header{}, Body: io.NopCloser(strings.NewReader(body))}, nil
+				}
+				video++
+				require.Equal(t, "/Videos/own/stream", r.URL.Path)
+				require.Equal(t, "B", r.URL.Query().Get("MediaSourceId"))
+				require.Equal(t, "MediaBrowser Token=\"fixture\"", r.Header.Get("Authorization"))
+				return &http.Response{StatusCode: 206, Header: http.Header{}, Body: io.NopCloser(strings.NewReader("data"))}, nil
+			})}
+			token, _, err := auth.CreateReleaseStreamGrant(10, 7, "phase159-secret", time.Now(), time.Minute)
+			require.NoError(t, err)
+			result := streamIdentityRequest(h, "10", "variant_id=100&grant="+url.QueryEscape(token), false, false)
+			require.Equal(t, 1, metadata)
+			if wrong {
+				require.Equal(t, 404, result.Code)
+				require.Zero(t, video)
+			} else {
+				require.Equal(t, 206, result.Code)
+				require.Equal(t, 1, video)
+			}
+		})
 	}
 }

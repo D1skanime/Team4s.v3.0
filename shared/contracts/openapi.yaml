@@ -7438,7 +7438,11 @@ paths:
         With variant_id, the path id is the canonical release version and the
         selected variant must belong to that exact version. Entitlement and the
         signed grant claim remain bound to the canonical release version.
-        Omitting variant_id preserves the existing version-or-variant compatibility lookup.
+        Omitting variant_id selects the lowest owned variant id, then its preferred
+        stream, within the canonical release version. Jellyfin playback uses the
+        stored MediaSourceId; an unbound record resolves one exact item/source at
+        runtime without persisting metadata. Missing or ambiguous sources do not
+        fall back to another item or file.
       operationId: createReleaseStreamGrant
       security:
         - bearerAuth: []
@@ -7510,7 +7514,11 @@ paths:
         With variant_id, the path id is the canonical release version and the
         selected variant must belong to that exact version. Entitlement and the
         signed grant claim remain bound to the canonical release version.
-        Omitting variant_id preserves the existing version-or-variant compatibility lookup.
+        Omitting variant_id selects the lowest owned variant id, then its preferred
+        stream, within the canonical release version. Jellyfin playback uses the
+        stored MediaSourceId; an unbound record resolves one exact item/source at
+        runtime without persisting metadata. Missing or ambiguous sources do not
+        fall back to another item or file.
       operationId: streamRelease
       parameters:
         - name: id
@@ -7586,6 +7594,8 @@ paths:
         from persisted theme segment data and server-side render cache state.
         Any authenticated app session may request playback, but the required
         release_version_id must match the segment's persisted release source.
+        A derived cache must match the currently selected Jellyfin item/source,
+        window and render profile. A ready cache from another source is unavailable.
       operationId: createSegmentStreamGrant
       security:
         - bearerAuth: []
@@ -7654,6 +7664,9 @@ paths:
         Public and session-independent. The signed grant is bound to the persisted
         segment id, release_version_id and current cache context. It cannot be used
         by full-release playback endpoints and accepts no free-form time offsets.
+        Readiness uses the selected item/source cache key, not another source's
+        latest ready artifact. An unresolved source returns the existing 409
+        segment_unavailable response.
       operationId: createPublicSegmentStreamGrant
       security: []
       parameters:
@@ -7689,9 +7702,11 @@ paths:
       tags: [Releases]
       summary: Prepare a server-side bounded theme segment artifact
       description: |
-        Renders the persisted theme segment window from its canonical playback source
-        into the server-side segment render cache. Uploaded fallback assets do not
-        require rendering and are rejected by this endpoint.
+        Enqueues the persisted theme segment window from its canonical playback source.
+        Item and selected MediaSourceId are resolved before hashing. The worker
+        rejects source_fingerprint drift as segment_source_stale before FFmpeg.
+        Missing or ambiguous sources return 409 segment_source_missing.
+        Uploaded fallback assets do not require rendering and are rejected.
       operationId: renderSegment
       security:
         - bearerAuth: []
@@ -7704,8 +7719,8 @@ paths:
             format: int64
             minimum: 1
       responses:
-        "200":
-          description: Segment render cache entry
+        "202":
+          description: Queued segment render cache entry
           content:
             application/json:
               schema:
@@ -7758,8 +7773,9 @@ paths:
       summary: Stream a server-side bounded theme segment
       description: |
         Streams the ready server-rendered segment artifact or the explicit uploaded
-        fallback for the persisted theme segment id. Free-form start/end/duration
-        query parameters are rejected.
+        fallback for the persisted theme segment id. The derived artifact must match
+        the current selected item/source and the grant cache key; another source's
+        cache is never served. Free-form start/end/duration query parameters are rejected.
       operationId: streamSegment
       parameters:
         - name: id
@@ -15939,6 +15955,7 @@ components:
           type: string
         source_fingerprint:
           type: string
+          description: Internal prepared source identity; Jellyfin includes item and selected MediaSourceId. The worker rejects identity drift before rendering.
         render_profile:
           type: string
         status:

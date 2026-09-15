@@ -3,14 +3,15 @@ package handlers
 import (
 	"context"
 	"encoding/json"
+	"fmt"
 	"net/http"
+	"net/http/httptest"
 	"os"
 	"path/filepath"
-	"net/http/httptest"
 	"strings"
+	"team4s.v3/backend/internal/services"
 	"testing"
- "time"
- "team4s.v3/backend/internal/services"
+	"time"
 
 	"team4s.v3/backend/internal/middleware"
 	"team4s.v3/backend/internal/models"
@@ -32,11 +33,11 @@ type fakeSegmentStreamThemeRepo struct {
 	upsertResult *models.ThemeSegmentRenderCache
 	upsertErr    error
 
-	upsertInputs []models.ThemeSegmentRenderCacheUpsertInput
- cacheLookups []string
- failureCodes []string
- readyInputs []models.ThemeSegmentRenderCacheReadyInput
- claimCalled bool
+	upsertInputs    []models.ThemeSegmentRenderCacheUpsertInput
+	cacheLookups    []string
+	failureCodes    []string
+	readyInputs     []models.ThemeSegmentRenderCacheReadyInput
+	claimCalled     bool
 	failureMessages []string
 }
 
@@ -45,13 +46,15 @@ func (f *fakeSegmentStreamThemeRepo) GetThemeSegmentRenderSource(ctx context.Con
 		return nil, repository.ErrNotFound
 	}
 	copy := *f.source
- return &copy, nil
+	return &copy, nil
 }
 
 func (f *fakeSegmentStreamThemeRepo) GetThemeSegmentRenderCacheByKey(ctx context.Context, cacheKey string) (*models.ThemeSegmentRenderCache, error) {
- f.cacheLookups=append(f.cacheLookups,cacheKey)
- if f.readyCache!=nil && f.readyCache.CacheKey==cacheKey {return f.readyCache,nil}
- return nil, repository.ErrNotFound
+	f.cacheLookups = append(f.cacheLookups, cacheKey)
+	if f.readyCache != nil && f.readyCache.CacheKey == cacheKey {
+		return f.readyCache, nil
+	}
+	return nil, repository.ErrNotFound
 }
 
 func (f *fakeSegmentStreamThemeRepo) GetReadyThemeSegmentRenderCache(ctx context.Context, segmentID int64, releaseVersionID int64) (*models.ThemeSegmentRenderCache, error) {
@@ -75,7 +78,7 @@ func (f *fakeSegmentStreamThemeRepo) DeleteThemeSegmentRenderCaches(ctx context.
 
 func (f *fakeSegmentStreamThemeRepo) UpsertThemeSegmentRenderCacheQueued(ctx context.Context, input models.ThemeSegmentRenderCacheUpsertInput) (*models.ThemeSegmentRenderCache, error) {
 	f.upsertCalled = true
- f.upsertInputs=append(f.upsertInputs,input)
+	f.upsertInputs = append(f.upsertInputs, input)
 	if f.upsertErr != nil {
 		return nil, f.upsertErr
 	}
@@ -83,12 +86,12 @@ func (f *fakeSegmentStreamThemeRepo) UpsertThemeSegmentRenderCacheQueued(ctx con
 		return f.upsertResult, nil
 	}
 	return &models.ThemeSegmentRenderCache{
-		ID:             1,
-		ThemeSegmentID: input.ThemeSegmentID,
-		CacheKey:       input.CacheKey,
- SourceFingerprint:input.SourceFingerprint,
-		SourceKind:     input.SourceKind,
-		Status:         models.ThemeSegmentRenderStatusQueued,
+		ID:                1,
+		ThemeSegmentID:    input.ThemeSegmentID,
+		CacheKey:          input.CacheKey,
+		SourceFingerprint: input.SourceFingerprint,
+		SourceKind:        input.SourceKind,
+		Status:            models.ThemeSegmentRenderStatusQueued,
 	}, nil
 }
 
@@ -98,13 +101,13 @@ func (f *fakeSegmentStreamThemeRepo) ClaimNextQueuedThemeSegmentRender(ctx conte
 }
 
 func (f *fakeSegmentStreamThemeRepo) MarkThemeSegmentRenderCacheReady(ctx context.Context, input models.ThemeSegmentRenderCacheReadyInput) error {
- f.readyInputs=append(f.readyInputs,input)
- return nil
+	f.readyInputs = append(f.readyInputs, input)
+	return nil
 }
 
 func (f *fakeSegmentStreamThemeRepo) MarkThemeSegmentRenderCacheFailed(ctx context.Context, cacheKey string, errorCode string, errorMessage string) error {
-	f.failureCodes=append(f.failureCodes,errorCode)
- f.failureMessages=append(f.failureMessages,errorMessage)
+	f.failureCodes = append(f.failureCodes, errorCode)
+	f.failureMessages = append(f.failureMessages, errorMessage)
 	return nil
 }
 
@@ -115,7 +118,7 @@ func segmentRenderTestSource() *models.ThemeSegmentRenderSource {
 	return &models.ThemeSegmentRenderSource{
 		SegmentID:          42,
 		PlaybackSourceID:   7,
-		SourceKind:         "jellyfin_theme",
+		SourceKind:         "episode_version",
 		StartOffsetSeconds: &start,
 		EndOffsetSeconds:   &end,
 		StreamURL:          &streamURL,
@@ -368,89 +371,179 @@ func TestAttachSegmentLibraryAsset_QueuesRenderForAllAssignedReleaseVersions(t *
 }
 
 func TestFFmpegWorkerUsesSeparateAuthAndRedactsFailures(t *testing.T) {
- dir:=t.TempDir()
- binary:=filepath.Join(dir,"fixture-ffmpeg")
- script := "#!/bin/sh\ncase \"$*\" in *'Authorization: MediaBrowser Token=\"worker-private-token\"'*) ;; *) exit 7 ;; esac\ncase \"$*\" in *'api_key='*) exit 8 ;; esac\nprintf '%s\\n' 'Authorization: MediaBrowser Token=\"worker-private-token\" failure' >&2\nexit 1\n"
- if err:=os.WriteFile(binary,[]byte(script),0700);err!=nil {t.Fatal(err)}
- source:=segmentRenderTestSource()
- stream:="https://jellyfin.example/stream?api_key=worker-private-token"
- source.StreamURL=&stream
- repo:=&fakeSegmentStreamThemeRepo{source:source}
- h:=&AdminContentHandler{themeRepo:repo,jellyfinBaseURL:"https://jellyfin.example",jellyfinAPIKey:"worker-private-token",segmentRenderDir:dir,segmentRenderFFmpegPath:binary}
- err:=h.executeSegmentRender(context.Background(),&models.ThemeSegmentRenderCache{CacheKey:"fixture",ThemeSegmentID:42},source)
- if err==nil||len(repo.failureMessages)!=1 {t.Fatal("expected controlled render failure")}
- message:=repo.failureMessages[0]
- if !strings.Contains(message,"[REDACTED]")||strings.Contains(message,"worker-private-token")||strings.Contains(err.Error(),"worker-private-token") {t.Fatal("worker authentication missing or failure not sanitized")}
+	dir := t.TempDir()
+	binary := filepath.Join(dir, "fixture-ffmpeg")
+	script := "#!/bin/sh\ncase \"$*\" in *'Authorization: MediaBrowser Token=\"worker-private-token\"'*) ;; *) exit 7 ;; esac\ncase \"$*\" in *'api_key='*) exit 8 ;; esac\nprintf '%s\\n' 'Authorization: MediaBrowser Token=\"worker-private-token\" failure' >&2\nexit 1\n"
+	if err := os.WriteFile(binary, []byte(script), 0700); err != nil {
+		t.Fatal(err)
+	}
+	source := segmentRenderTestSource()
+	stream := "https://jellyfin.example/stream?api_key=worker-private-token"
+	source.StreamURL = &stream
+	repo := &fakeSegmentStreamThemeRepo{source: source}
+	h := &AdminContentHandler{themeRepo: repo, jellyfinBaseURL: "https://jellyfin.example", jellyfinAPIKey: "worker-private-token", segmentRenderDir: dir, segmentRenderFFmpegPath: binary}
+	err := h.executeSegmentRender(context.Background(), &models.ThemeSegmentRenderCache{CacheKey: "fixture", ThemeSegmentID: 42, SourceFingerprint: services.SanitizeSegmentRenderLog(stream, "worker-private-token")}, source)
+	if err == nil || len(repo.failureMessages) != 1 {
+		t.Fatal("expected controlled render failure")
+	}
+	message := repo.failureMessages[0]
+	if !strings.Contains(message, "[REDACTED]") || strings.Contains(message, "worker-private-token") || strings.Contains(err.Error(), "worker-private-token") {
+		t.Fatal("worker authentication missing or failure not sanitized")
+	}
 }
 
 func TestSegmentSourceIdentityActualQueueAndCachedIsolation(t *testing.T) {
- gin.SetMode(gin.TestMode)
- item,provider,oldURL:="item","jellyfin","http://jellyfin.invalid/old"
- version:=int64(17)
- source:=segmentRenderTestSource()
- source.SourceKind="episode_version";source.StreamProvider=&provider;source.StreamExternalID=&item;source.StreamURL=&oldURL;source.ReleaseVersionID=&version
- source.JellyfinSource=&models.JellyfinSourceSnapshot{Version:1,MediaSourceID:"A"}
- repo:=&fakeSegmentStreamThemeRepo{source:source}
- h:=&AdminContentHandler{themeRepo:repo,jellyfinBaseURL:"http://jellyfin.invalid",jellyfinAPIKey:"fixture",segmentRenderEnabled:true,segmentRenderDir:t.TempDir(),segmentGrantSecret:"secret",segmentGrantTTL:time.Minute}
- a,err:=h.buildQueuedSegmentRenderCache(context.Background(),repo,42,source)
- if err!=nil {t.Fatal(err)}
- repo.readyCache=&models.ThemeSegmentRenderCache{ThemeSegmentID:42,ReleaseVersionID:&version,CacheKey:a.CacheKey,SourceFingerprint:a.SourceFingerprint,Status:models.ThemeSegmentRenderStatusReady}
- source.JellyfinSource=&models.JellyfinSourceSnapshot{Version:1,MediaSourceID:"B"}
- source.MediaSourceID=nil
- w:=httptest.NewRecorder();c,_:=gin.CreateTestContext(w)
- c.Request=httptest.NewRequest("POST","/segments/42/render?release_version_id=17",nil);c.Params=gin.Params{{Key:"id",Value:"42"}}
- c.Set("auth_identity",middleware.AuthIdentity{UserID:1,AppUserID:1,DisplayName:"Admin",IsPlatformAdmin:true})
- h.RenderSegment(c)
- if w.Code!=202 || len(repo.upsertInputs)!=2 {t.Fatalf("queue: %d %s",w.Code,w.Body)}
- b:=repo.upsertInputs[1]
- if a.CacheKey==b.CacheKey || a.SourceFingerprint==b.SourceFingerprint {t.Fatal("A and B shared cache identity")}
- for _,public:=range []bool{true,false} {
-  var result *httptest.ResponseRecorder
-  if public {result=publicSegmentGrantContext(h,"/segments/42/grant?release_version_id=17")} else {result=segmentGrantContext(t,h,"/segments/42/grant?release_version_id=17",true)}
-  if result.Code!=409 {t.Fatalf("cached A leaked into B grant: %d",result.Code)}
- }
- if len(repo.cacheLookups)!=2 || repo.cacheLookups[0]!=b.CacheKey || repo.cacheLookups[1]!=b.CacheKey {t.Fatalf("lookup happened before source identity: %v",repo.cacheLookups)}
+	gin.SetMode(gin.TestMode)
+	item, provider, oldURL := "item", "jellyfin", "http://jellyfin.invalid/old"
+	version := int64(17)
+	source := segmentRenderTestSource()
+	source.SourceKind = "episode_version"
+	source.StreamProvider = &provider
+	source.StreamExternalID = &item
+	source.StreamURL = &oldURL
+	source.ReleaseVersionID = &version
+	source.JellyfinSource = &models.JellyfinSourceSnapshot{Version: 1, MediaSourceID: "A"}
+	repo := &fakeSegmentStreamThemeRepo{source: source}
+	h := &AdminContentHandler{themeRepo: repo, jellyfinBaseURL: "http://jellyfin.invalid", jellyfinAPIKey: "fixture", segmentRenderEnabled: true, segmentRenderDir: t.TempDir(), segmentGrantSecret: "secret", segmentGrantTTL: time.Minute}
+	a, err := h.buildQueuedSegmentRenderCache(context.Background(), repo, 42, source)
+	if err != nil {
+		t.Fatal(err)
+	}
+	repo.readyCache = &models.ThemeSegmentRenderCache{ThemeSegmentID: 42, ReleaseVersionID: &version, CacheKey: a.CacheKey, SourceFingerprint: a.SourceFingerprint, Status: models.ThemeSegmentRenderStatusReady}
+	source.JellyfinSource = &models.JellyfinSourceSnapshot{Version: 1, MediaSourceID: "B"}
+	source.MediaSourceID = nil
+	w := httptest.NewRecorder()
+	c, _ := gin.CreateTestContext(w)
+	c.Request = httptest.NewRequest("POST", "/segments/42/render?release_version_id=17", nil)
+	c.Params = gin.Params{{Key: "id", Value: "42"}}
+	c.Set("auth_identity", middleware.AuthIdentity{UserID: 1, AppUserID: 1, DisplayName: "Admin", IsPlatformAdmin: true})
+	h.RenderSegment(c)
+	if w.Code != 202 || len(repo.upsertInputs) != 2 {
+		t.Fatalf("queue: %d %s", w.Code, w.Body)
+	}
+	b := repo.upsertInputs[1]
+	if a.CacheKey == b.CacheKey || a.SourceFingerprint == b.SourceFingerprint {
+		t.Fatal("A and B shared cache identity")
+	}
+	for _, public := range []bool{true, false} {
+		var result *httptest.ResponseRecorder
+		if public {
+			result = publicSegmentGrantContext(h, "/segments/42/grant?release_version_id=17")
+		} else {
+			result = segmentGrantContext(t, h, "/segments/42/grant?release_version_id=17", true)
+		}
+		if result.Code != 409 {
+			t.Fatalf("cached A leaked into B grant: %d", result.Code)
+		}
+	}
+	if len(repo.cacheLookups) != 2 || repo.cacheLookups[0] != b.CacheKey || repo.cacheLookups[1] != b.CacheKey {
+		t.Fatalf("lookup happened before source identity: %v", repo.cacheLookups)
+	}
 }
 
 func TestSegmentRenderWorkerRejectsSourceDriftBeforeFFmpeg(t *testing.T) {
- metadata:=0
- server:=httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter,r *http.Request){
-  metadata++
-  w.Write([]byte(`{"Items":[{"Id":"item","MediaSources":[{"Id":"B","Path":"/B","MediaStreams":[]}]}]}`))
- }))
- defer server.Close()
- item,provider:="item","jellyfin"
- source:=segmentRenderTestSource()
- source.SourceKind="episode_version";source.StreamExternalID=&item;source.StreamProvider=&provider
- source.JellyfinSource=&models.JellyfinSourceSnapshot{Version:1,MediaSourceID:"B",SourcePath:"/B"}
- repo:=&fakeSegmentStreamThemeRepo{source:source}
- h:=&AdminContentHandler{themeRepo:repo,jellyfinBaseURL:server.URL,jellyfinAPIKey:"fixture",httpClient:server.Client(),segmentRenderDir:t.TempDir(),segmentRenderFFmpegPath:"/must-not-run"}
- cache:=&models.ThemeSegmentRenderCache{CacheKey:"cached-A",ThemeSegmentID:42,SourceFingerprint:"jellyfin:4:item:A"}
- if err:=h.executeSegmentRender(context.Background(),cache,source);err==nil {t.Fatal("expected drift failure")}
- if metadata!=1 || len(repo.failureCodes)!=1 || repo.failureCodes[0]!="segment_source_stale" || len(repo.readyInputs)!=0 {t.Fatalf("drift was not rejected before FFmpeg: %v metadata=%d",repo.failureCodes,metadata)}
+	metadata := 0
+	server := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		metadata++
+		w.Write([]byte(`{"Items":[{"Id":"item","MediaSources":[{"Id":"B","Path":"/B","MediaStreams":[]}]}]}`))
+	}))
+	defer server.Close()
+	item, provider := "item", "jellyfin"
+	source := segmentRenderTestSource()
+	source.SourceKind = "episode_version"
+	source.StreamExternalID = &item
+	source.StreamProvider = &provider
+	source.JellyfinSource = &models.JellyfinSourceSnapshot{Version: 1, MediaSourceID: "B", SourcePath: "/B"}
+	repo := &fakeSegmentStreamThemeRepo{source: source}
+	h := &AdminContentHandler{themeRepo: repo, jellyfinBaseURL: server.URL, jellyfinAPIKey: "fixture", httpClient: server.Client(), segmentRenderDir: t.TempDir(), segmentRenderFFmpegPath: "/must-not-run"}
+	cache := &models.ThemeSegmentRenderCache{CacheKey: "cached-A", ThemeSegmentID: 42, SourceFingerprint: "jellyfin:4:item:A"}
+	if err := h.executeSegmentRender(context.Background(), cache, source); err == nil {
+		t.Fatal("expected drift failure")
+	}
+	if metadata != 1 || len(repo.failureCodes) != 1 || repo.failureCodes[0] != "segment_source_stale" || len(repo.readyInputs) != 0 {
+		t.Fatalf("drift was not rejected before FFmpeg: %v metadata=%d", repo.failureCodes, metadata)
+	}
 }
 
 func TestSegmentRenderWorkerSelectedVideoAndSubtitleSingleRead(t *testing.T) {
- metadata,subtitles:=0,0
- server:=httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter,r *http.Request){
-  if r.URL.Path=="/Items" {metadata++;w.Write([]byte(`{"Items":[{"Id":"item","Path":"/A","MediaSources":[{"Id":"A","Path":"/A","MediaStreams":[{"Index":2,"Type":"Subtitle","Codec":"ass"}]},{"Id":"B","Path":"/B","MediaStreams":[{"Index":8,"Type":"Subtitle","Codec":"ass"}]}]}]}`));return}
-  if r.URL.Path=="/Videos/item/B/Subtitles/8/Stream.ass" {subtitles++;w.Write([]byte("[Script Info]"));return}
-  t.Errorf("unexpected request %s",r.URL.Path)
- }))
- defer server.Close()
- dir:=t.TempDir();binary:=filepath.Join(dir,"ffmpeg-fixture")
- script:="#!/bin/sh\ncase \"$*\" in *'MediaSourceId=B'*'subtitles='*) exit 0;; *) exit 5;; esac\n"
- if err:=os.WriteFile(binary,[]byte(script),0700);err!=nil {t.Fatal(err)}
- item,provider:="item","jellyfin"
- source:=segmentRenderTestSource();source.SourceKind="episode_version";source.StreamExternalID=&item;source.StreamProvider=&provider
- source.JellyfinSource=&models.JellyfinSourceSnapshot{Version:1,MediaSourceID:"B",SourcePath:"/B"}
- repo:=&fakeSegmentStreamThemeRepo{source:source}
- h:=&AdminContentHandler{themeRepo:repo,jellyfinBaseURL:server.URL,jellyfinAPIKey:"fixture",httpClient:server.Client(),segmentRenderDir:dir,segmentRenderFFmpegPath:binary}
- cache:=&models.ThemeSegmentRenderCache{CacheKey:"cached-B",ThemeSegmentID:42,SourceFingerprint:"jellyfin:4:item:B"}
- if err:=h.executeSegmentRender(context.Background(),cache,source);err!=nil {t.Fatal(err)}
- if metadata!=1 || subtitles!=1 || len(repo.readyInputs)!=1 || *repo.readyInputs[0].SubtitleStreamIndex!=8 {t.Fatalf("mixed source/fanout metadata=%d subtitles=%d ready=%v",metadata,subtitles,repo.readyInputs)}
- // The existing service hashes exactly the prepared selected-source fingerprint.
- a,_:=services.BuildSegmentRenderCacheKey(services.SegmentRenderWindow{SegmentID:42,SourceKind:"episode_version",SourceIdentity:"jellyfin:4:item:A",StartSeconds:10,EndSeconds:30})
- b,_:=services.BuildSegmentRenderCacheKey(services.SegmentRenderWindow{SegmentID:42,SourceKind:"episode_version",SourceIdentity:cache.SourceFingerprint,StartSeconds:10,EndSeconds:30})
- if a==b {t.Fatal("same key")}
+	metadata, subtitles := 0, 0
+	server := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		if r.URL.Path == "/Items" {
+			metadata++
+			w.Write([]byte(`{"Items":[{"Id":"item","Path":"/A","MediaSources":[{"Id":"A","Path":"/A","MediaStreams":[{"Index":2,"Type":"Subtitle","Codec":"ass"}]},{"Id":"B","Path":"/B","MediaStreams":[{"Index":8,"Type":"Subtitle","Codec":"ass"}]}]}]}`))
+			return
+		}
+		if r.URL.Path == "/Videos/item/B/Subtitles/8/Stream.ass" {
+			subtitles++
+			w.Write([]byte("[Script Info]"))
+			return
+		}
+		t.Errorf("unexpected request %s", r.URL.Path)
+	}))
+	defer server.Close()
+	dir := t.TempDir()
+	binary := filepath.Join(dir, "ffmpeg-fixture")
+	script := "#!/bin/sh\ncase \"$*\" in *'MediaSourceId=B'*'subtitles='*) exit 0;; *) exit 5;; esac\n"
+	if err := os.WriteFile(binary, []byte(script), 0700); err != nil {
+		t.Fatal(err)
+	}
+	item, provider := "item", "jellyfin"
+	source := segmentRenderTestSource()
+	source.SourceKind = "episode_version"
+	source.StreamExternalID = &item
+	source.StreamProvider = &provider
+	source.JellyfinSource = &models.JellyfinSourceSnapshot{Version: 1, MediaSourceID: "B", SourcePath: "/B"}
+	repo := &fakeSegmentStreamThemeRepo{source: source}
+	h := &AdminContentHandler{themeRepo: repo, jellyfinBaseURL: server.URL, jellyfinAPIKey: "fixture", httpClient: server.Client(), segmentRenderDir: dir, segmentRenderFFmpegPath: binary}
+	cache := &models.ThemeSegmentRenderCache{CacheKey: "cached-B", ThemeSegmentID: 42, SourceFingerprint: "jellyfin:4:item:B"}
+	if err := h.executeSegmentRender(context.Background(), cache, source); err != nil {
+		t.Fatal(err)
+	}
+	if metadata != 1 || subtitles != 1 || len(repo.readyInputs) != 1 || *repo.readyInputs[0].SubtitleStreamIndex != 8 {
+		t.Fatalf("mixed source/fanout metadata=%d subtitles=%d ready=%v", metadata, subtitles, repo.readyInputs)
+	}
+	// The existing service hashes exactly the prepared selected-source fingerprint.
+	a, _ := services.BuildSegmentRenderCacheKey(services.SegmentRenderWindow{SegmentID: 42, SourceKind: "episode_version", SourceIdentity: "jellyfin:4:item:A", StartSeconds: 10, EndSeconds: 30})
+	b, _ := services.BuildSegmentRenderCacheKey(services.SegmentRenderWindow{SegmentID: 42, SourceKind: "episode_version", SourceIdentity: cache.SourceFingerprint, StartSeconds: 10, EndSeconds: 30})
+	if a == b {
+		t.Fatal("same key")
+	}
+}
+
+func TestSegmentSourceIdentityUnboundBeforeCacheLookup(t *testing.T) {
+	for _, ambiguous := range []bool{false, true} {
+		t.Run(fmt.Sprint(ambiguous), func(t *testing.T) {
+			calls := 0
+			server := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+				calls++
+				path := "/A"
+				if ambiguous {
+					path = ""
+				}
+				json.NewEncoder(w).Encode(jellyfinEpisodeListResponse{Items: []jellyfinEpisodeItem{{ID: "item", Path: path, MediaSources: []jellyfinMediaSource{{ID: "B", Path: "/B"}, {ID: "A", Path: "/A"}}}}})
+			}))
+			defer server.Close()
+			item, provider := "item", "jellyfin"
+			version := int64(17)
+			source := segmentRenderTestSource()
+			source.StreamExternalID = &item
+			source.StreamProvider = &provider
+			source.ReleaseVersionID = &version
+			repo := &fakeSegmentStreamThemeRepo{source: source}
+			h := &AdminContentHandler{themeRepo: repo, jellyfinBaseURL: server.URL, jellyfinAPIKey: "fixture", httpClient: server.Client(), segmentGrantSecret: "secret", segmentGrantTTL: time.Minute}
+			got := publicSegmentGrantContext(h, "/segments/42/grant?release_version_id=17")
+			if got.Code != 409 || calls != 1 {
+				t.Fatalf("unbound lookup: status=%d requests=%d", got.Code, calls)
+			}
+			if ambiguous && len(repo.cacheLookups) != 0 {
+				t.Fatal("ambiguous source reached cache")
+			}
+			if !ambiguous && len(repo.cacheLookups) != 1 {
+				t.Fatal("resolved source missing one cache lookup")
+			}
+			if source.JellyfinSource != nil {
+				t.Fatal("read persisted a runtime binding")
+			}
+		})
+	}
 }

@@ -17,7 +17,6 @@ import (
 	"team4s.v3/backend/internal/models"
 	"team4s.v3/backend/internal/permissions"
 	"team4s.v3/backend/internal/repository"
-	"team4s.v3/backend/internal/services"
 
 	"github.com/gin-gonic/gin"
 )
@@ -150,7 +149,7 @@ func (h *AdminContentHandler) createSegmentStreamGrant(c *gin.Context, userID *i
 	}
 
 	cacheKey := ""
-	if cache, err := themeRepo.GetReadyThemeSegmentRenderCache(c.Request.Context(), segmentID, releaseVersionID); err == nil {
+	if cache, err := h.selectedSegmentRenderCache(c.Request.Context(), themeRepo, source); err == nil {
 		cacheKey = cache.CacheKey
 	} else if errors.Is(err, repository.ErrNotFound) {
 		// Uploaded fallbacks are curated, already-cut sources and therefore do not
@@ -243,50 +242,9 @@ func (h *AdminContentHandler) RenderSegment(c *gin.Context) {
 		c.JSON(http.StatusConflict, gin.H{"error": gin.H{"message": "hochgeladene Segment-Dateien müssen nicht vorbereitet werden", "code": "segment_render_not_required"}})
 		return
 	}
-	if source.StartOffsetSeconds == nil || source.EndOffsetSeconds == nil {
-		c.JSON(http.StatusConflict, gin.H{"error": gin.H{"message": "segment hat kein vollständiges Zeitfenster", "code": "segment_window_missing"}})
-		return
-	}
-	if err := services.ValidateDerivedSegmentWindow(*source.StartOffsetSeconds, *source.EndOffsetSeconds, h.segmentRenderMaxSeconds); err != nil {
-		c.JSON(http.StatusConflict, gin.H{"error": gin.H{"message": "segment-zeitfenster ist ungültig", "code": "segment_window_invalid"}})
-		return
-	}
-	if source.StreamURL == nil || strings.TrimSpace(*source.StreamURL) == "" {
-		c.JSON(http.StatusConflict, gin.H{"error": gin.H{"message": "segment hat keine stream-quelle", "code": "segment_source_missing"}})
-		return
-	}
-
-	sourceIdentity := strings.TrimSpace(derefString(source.StreamExternalID))
-	if sourceIdentity == "" {
-		sourceIdentity = strings.TrimSpace(*source.StreamURL)
-	}
-	sourceFingerprint := services.SanitizeSegmentRenderLog(sourceIdentity, h.segmentGrantSecret)
-	cacheKey, err := services.BuildSegmentRenderCacheKey(services.SegmentRenderWindow{
-		SegmentID:      segmentID,
-		SourceKind:     source.SourceKind,
-		SourceIdentity: sourceIdentity,
-		StartSeconds:   *source.StartOffsetSeconds,
-		EndSeconds:     *source.EndOffsetSeconds,
-		RenderProfile:  services.DefaultSegmentRenderProfile,
-	})
-	if err != nil {
-		log.Printf("segment render: cache key build failed (segment_id=%d, user_id=%d): %v", segmentID, identity.UserID, err)
-		writeInternalErrorResponse(c, "interner serverfehler", err, "Segment-Render-Key konnte nicht erstellt werden.")
-		return
-	}
-
-	cache, err := themeRepo.UpsertThemeSegmentRenderCacheQueued(c.Request.Context(), models.ThemeSegmentRenderCacheUpsertInput{
-		ThemeSegmentID:    segmentID,
-		PlaybackSourceID:  &source.PlaybackSourceID,
-		ReleaseVersionID:  source.ReleaseVersionID,
-		CacheKey:          cacheKey,
-		SourceKind:        source.SourceKind,
-		SourceFingerprint: sourceFingerprint,
-		RenderProfile:     services.DefaultSegmentRenderProfile,
-	})
-	if err != nil {
-		log.Printf("segment render: queue upsert failed (segment_id=%d, user_id=%d, playback_source_id=%d): %v", segmentID, identity.UserID, source.PlaybackSourceID, err)
-		writeInternalErrorResponse(c, "interner serverfehler", err, "Segment-Render konnte nicht vorbereitet werden.")
+	cache, prepareErr := h.buildQueuedSegmentRenderCache(c.Request.Context(), themeRepo, segmentID, source)
+	if prepareErr != nil {
+		c.JSON(prepareErr.status, gin.H{"error": gin.H{"message": prepareErr.message, "code": prepareErr.code}})
 		return
 	}
 
@@ -354,11 +312,10 @@ func (h *AdminContentHandler) StreamSegment(c *gin.Context) {
 		return
 	}
 
-	cache, err := themeRepo.GetReadyThemeSegmentRenderCache(c.Request.Context(), segmentID, releaseVersionID)
+	cache, err := h.selectedSegmentRenderCache(c.Request.Context(), themeRepo, source)
 	if errors.Is(err, repository.ErrNotFound) {
-		latest, latestErr := themeRepo.GetLatestThemeSegmentRenderCache(c.Request.Context(), segmentID, releaseVersionID)
-		if latestErr == nil {
-			c.JSON(http.StatusConflict, gin.H{"error": gin.H{"message": "segment ist noch nicht bereit", "code": "segment_render_" + string(latest.Status), "status": latest.Status}})
+		if cache != nil {
+			c.JSON(http.StatusConflict, gin.H{"error": gin.H{"message": "segment ist noch nicht bereit", "code": "segment_render_" + string(cache.Status), "status": cache.Status}})
 			return
 		}
 		c.JSON(http.StatusConflict, gin.H{"error": gin.H{"message": "segment ist noch nicht vorbereitet", "code": "segment_render_missing"}})

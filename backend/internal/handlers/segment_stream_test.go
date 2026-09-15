@@ -6,12 +6,14 @@ import (
 	"net/http/httptest"
 	"os"
 	"path/filepath"
+	"strings"
 	"testing"
 	"time"
 
 	"team4s.v3/backend/internal/auth"
 	"team4s.v3/backend/internal/middleware"
 	"team4s.v3/backend/internal/models"
+	"team4s.v3/backend/internal/services"
 
 	"github.com/gin-gonic/gin"
 )
@@ -50,8 +52,8 @@ func TestCreateSegmentStreamGrantRequiresAuthenticatedSession(t *testing.T) {
 func TestCreateSegmentStreamGrantAllowsOrdinaryUserForReadyReleaseBoundSegment(t *testing.T) {
 	versionID := int64(17)
 	repo := &fakeSegmentStreamThemeRepo{
-		source:     &models.ThemeSegmentRenderSource{SegmentID: 42, ReleaseVersionID: &versionID, SourceKind: "episode_version"},
-		readyCache: &models.ThemeSegmentRenderCache{ThemeSegmentID: 42, CacheKey: "ready-cache", Status: models.ThemeSegmentRenderStatusReady},
+		source:     segmentGrantFixtureSource(versionID),
+		readyCache: &models.ThemeSegmentRenderCache{ThemeSegmentID: 42, ReleaseVersionID: &versionID, CacheKey: segmentGrantFixtureCacheKey(), Status: models.ThemeSegmentRenderStatusReady},
 	}
 	h := &AdminContentHandler{themeRepo: repo, segmentGrantSecret: "test-secret", segmentGrantTTL: time.Minute}
 	got := segmentGrantContext(t, h, "/api/v1/segments/42/grant?release_version_id=17", true)
@@ -62,7 +64,7 @@ func TestCreateSegmentStreamGrantAllowsOrdinaryUserForReadyReleaseBoundSegment(t
 
 func TestCreateSegmentStreamGrantRejectsCrossReleaseAndUnavailable(t *testing.T) {
 	versionID := int64(17)
-	repo := &fakeSegmentStreamThemeRepo{source: &models.ThemeSegmentRenderSource{SegmentID: 42, ReleaseVersionID: &versionID, SourceKind: "episode_version"}}
+	repo := &fakeSegmentStreamThemeRepo{source: segmentGrantFixtureSource(versionID)}
 	h := &AdminContentHandler{themeRepo: repo, segmentGrantSecret: "test-secret", segmentGrantTTL: time.Minute}
 	if got := segmentGrantContext(t, h, "/api/v1/segments/42/grant?release_version_id=18", true); got.Code != http.StatusNotFound {
 		t.Fatalf("cross-release: want 404, got %d", got.Code)
@@ -75,8 +77,8 @@ func TestCreateSegmentStreamGrantRejectsCrossReleaseAndUnavailable(t *testing.T)
 func TestCreatePublicSegmentStreamGrantNeedsNoSessionAndBindsReleaseAndCache(t *testing.T) {
 	versionID := int64(17)
 	repo := &fakeSegmentStreamThemeRepo{
-		source:     &models.ThemeSegmentRenderSource{SegmentID: 42, ReleaseVersionID: &versionID, SourceKind: "episode_version"},
-		readyCache: &models.ThemeSegmentRenderCache{ThemeSegmentID: 42, CacheKey: "ready-cache", Status: models.ThemeSegmentRenderStatusReady},
+		source:     segmentGrantFixtureSource(versionID),
+		readyCache: &models.ThemeSegmentRenderCache{ThemeSegmentID: 42, ReleaseVersionID: &versionID, CacheKey: segmentGrantFixtureCacheKey(), Status: models.ThemeSegmentRenderStatusReady},
 	}
 	h := &AdminContentHandler{themeRepo: repo, segmentGrantSecret: "test-secret", segmentGrantTTL: time.Minute}
 	got := publicSegmentGrantContext(h, "/api/v1/public/segments/42/grant?release_version_id=17")
@@ -100,14 +102,14 @@ func TestCreatePublicSegmentStreamGrantNeedsNoSessionAndBindsReleaseAndCache(t *
 	if err != nil {
 		t.Fatalf("verify public token: %v", err)
 	}
-	if claims.SegmentID != 42 || claims.ReleaseVersionID != 17 || claims.CacheKey != "ready-cache" {
+	if claims.SegmentID != 42 || claims.ReleaseVersionID != 17 || claims.CacheKey != segmentGrantFixtureCacheKey() {
 		t.Fatalf("unexpected public claims: %+v", claims)
 	}
 }
 
 func TestCreatePublicSegmentStreamGrantRejectsCrossReleaseAndUnavailable(t *testing.T) {
 	versionID := int64(17)
-	repo := &fakeSegmentStreamThemeRepo{source: &models.ThemeSegmentRenderSource{SegmentID: 42, ReleaseVersionID: &versionID, SourceKind: "episode_version"}}
+	repo := &fakeSegmentStreamThemeRepo{source: segmentGrantFixtureSource(versionID)}
 	h := &AdminContentHandler{themeRepo: repo, segmentGrantSecret: "test-secret", segmentGrantTTL: time.Minute}
 	if got := publicSegmentGrantContext(h, "/api/v1/public/segments/42/grant?release_version_id=18"); got.Code != http.StatusNotFound {
 		t.Fatalf("cross-release: want 404, got %d", got.Code)
@@ -120,8 +122,8 @@ func TestCreatePublicSegmentStreamGrantRejectsCrossReleaseAndUnavailable(t *test
 func TestCreatePublicSegmentStreamGrantRejectsInvalidBindingAndMissingConfig(t *testing.T) {
 	versionID := int64(17)
 	repo := &fakeSegmentStreamThemeRepo{
-		source:     &models.ThemeSegmentRenderSource{SegmentID: 42, ReleaseVersionID: &versionID, SourceKind: "episode_version"},
-		readyCache: &models.ThemeSegmentRenderCache{ThemeSegmentID: 42, CacheKey: "ready-cache", Status: models.ThemeSegmentRenderStatusReady},
+		source:     segmentGrantFixtureSource(versionID),
+		readyCache: &models.ThemeSegmentRenderCache{ThemeSegmentID: 42, ReleaseVersionID: &versionID, CacheKey: segmentGrantFixtureCacheKey(), Status: models.ThemeSegmentRenderStatusReady},
 	}
 	h := &AdminContentHandler{themeRepo: repo}
 	if got := publicSegmentGrantContext(h, "/api/v1/public/segments/42/grant?release_version_id=nope"); got.Code != http.StatusBadRequest {
@@ -141,14 +143,14 @@ func TestStreamSegmentAcceptsMatchingPublicGrant(t *testing.T) {
 		t.Fatalf("write segment fixture: %v", err)
 	}
 	repo := &fakeSegmentStreamThemeRepo{
-		source: &models.ThemeSegmentRenderSource{SegmentID: 42, ReleaseVersionID: &versionID, SourceKind: "episode_version"},
+		source: segmentGrantFixtureSource(versionID),
 		readyCache: &models.ThemeSegmentRenderCache{
-			ThemeSegmentID: 42, CacheKey: "current-cache", Status: models.ThemeSegmentRenderStatusReady,
+			ThemeSegmentID: 42, ReleaseVersionID: &versionID, CacheKey: segmentGrantFixtureCacheKey(), Status: models.ThemeSegmentRenderStatusReady,
 			OutputPath: &outputPath, MimeType: &mimeType,
 		},
 	}
 	h := &AdminContentHandler{themeRepo: repo, segmentGrantSecret: "test-secret", segmentRenderDir: dir}
-	token, _, err := auth.CreatePublicSegmentStreamGrant(42, 17, "current-cache", "test-secret", time.Now(), time.Minute)
+	token, _, err := auth.CreatePublicSegmentStreamGrant(42, 17, segmentGrantFixtureCacheKey(), "test-secret", time.Now(), time.Minute)
 	if err != nil {
 		t.Fatalf("create public grant: %v", err)
 	}
@@ -165,8 +167,8 @@ func TestStreamSegmentAcceptsMatchingPublicGrant(t *testing.T) {
 func TestStreamSegmentRejectsPublicGrantAcrossReleaseOrStaleCache(t *testing.T) {
 	versionID := int64(17)
 	repo := &fakeSegmentStreamThemeRepo{
-		source:     &models.ThemeSegmentRenderSource{SegmentID: 42, ReleaseVersionID: &versionID, SourceKind: "episode_version"},
-		readyCache: &models.ThemeSegmentRenderCache{ThemeSegmentID: 42, CacheKey: "current-cache", Status: models.ThemeSegmentRenderStatusReady},
+		source:     segmentGrantFixtureSource(versionID),
+		readyCache: &models.ThemeSegmentRenderCache{ThemeSegmentID: 42, ReleaseVersionID: &versionID, CacheKey: segmentGrantFixtureCacheKey(), Status: models.ThemeSegmentRenderStatusReady},
 	}
 	h := &AdminContentHandler{themeRepo: repo, segmentGrantSecret: "test-secret"}
 
@@ -174,7 +176,7 @@ func TestStreamSegmentRejectsPublicGrantAcrossReleaseOrStaleCache(t *testing.T) 
 		releaseID int64
 		cacheKey  string
 	}{
-		"cross release": {releaseID: 18, cacheKey: "current-cache"},
+		"cross release": {releaseID: 18, cacheKey: segmentGrantFixtureCacheKey()},
 		"stale cache":   {releaseID: 17, cacheKey: "stale-cache"},
 	} {
 		t.Run(name, func(t *testing.T) {
@@ -202,5 +204,35 @@ func TestRejectsCallerControlledSegmentBounds(t *testing.T) {
 	(&AdminContentHandler{}).StreamSegment(c)
 	if recorder.Code != http.StatusBadRequest {
 		t.Fatalf("want 400, got %d", recorder.Code)
+	}
+}
+
+func segmentGrantFixtureSource(versionID int64) *models.ThemeSegmentRenderSource {
+	source := segmentRenderTestSource()
+	source.ReleaseVersionID = &versionID
+	return source
+}
+
+func segmentGrantFixtureCacheKey() string {
+	key, _ := services.BuildSegmentRenderCacheKey(services.SegmentRenderWindow{SegmentID: 42, SourceKind: "episode_version", SourceIdentity: "https://jellyfin.example/stream", StartSeconds: 10, EndSeconds: 30})
+	return key
+}
+
+func TestStreamSegmentReportsOnlySelectedCacheStatus(t *testing.T) {
+	version := int64(17)
+	key := segmentGrantFixtureCacheKey()
+	repo := &fakeSegmentStreamThemeRepo{source: segmentGrantFixtureSource(version), readyCache: &models.ThemeSegmentRenderCache{ThemeSegmentID: 42, ReleaseVersionID: &version, CacheKey: key, Status: models.ThemeSegmentRenderStatusQueued}}
+	h := &AdminContentHandler{themeRepo: repo, segmentGrantSecret: "secret"}
+	token, _, err := auth.CreatePublicSegmentStreamGrant(42, 17, key, "secret", time.Now(), time.Minute)
+	if err != nil {
+		t.Fatal(err)
+	}
+	w := httptest.NewRecorder()
+	c, _ := gin.CreateTestContext(w)
+	c.Request = httptest.NewRequest("GET", "/segments/42/stream?grant="+token, nil)
+	c.Params = gin.Params{{Key: "id", Value: "42"}}
+	h.StreamSegment(c)
+	if w.Code != 409 || !strings.Contains(w.Body.String(), "segment_render_queued") || len(repo.cacheLookups) != 1 {
+		t.Fatalf("selected status: %d %s lookups=%v", w.Code, w.Body, repo.cacheLookups)
 	}
 }
