@@ -282,3 +282,24 @@ func TestSegmentSubtitleAuthStatusAndCancellation(t *testing.T) {
  _,err:=h.downloadJellyfinSubtitle(context.Background(),"item","source",2,t.TempDir())
  if err==nil||strings.Contains(err.Error(),"subtitle-key")||!errors.Is(err,context.Canceled) {t.Fatal("unsafe subtitle transport failure")}
 }
+
+func TestSegmentSubtitleUsesBoundSourceTracks(t *testing.T) {
+ metadata,downloads := 0,0
+ server:=httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter,r *http.Request){
+  switch r.URL.Path {
+  case "/Items":
+   metadata++
+   w.Write([]byte(`{"Items":[{"Id":"item","Path":"/A.mkv","MediaStreams":[{"Index":1,"Type":"Subtitle","Codec":"ass"}],"MediaSources":[{"Id":"A","Path":"/A.mkv","MediaStreams":[{"Index":2,"Type":"Subtitle","Codec":"ass"}]},{"Id":"B","Path":"/B.mkv","MediaStreams":[{"Index":8,"Type":"Subtitle","Codec":"ass"}]}]}]}`))
+  case "/Videos/item/B/Subtitles/8/Stream.ass":
+   downloads++
+   w.Write([]byte("[Script Info]"))
+  default: t.Errorf("unexpected request: %s",r.URL.Path);w.WriteHeader(404)
+  }
+ }))
+ defer server.Close()
+ item:="item"
+ h:=&AdminContentHandler{jellyfinBaseURL:server.URL,jellyfinAPIKey:"fixture",httpClient:server.Client(),segmentRenderDir:t.TempDir()}
+ source:=&models.ThemeSegmentRenderSource{SourceKind:"episode_version",JellyfinItemID:&item,StreamExternalID:&item,JellyfinSource:&models.JellyfinSourceSnapshot{Version:1,MediaSourceID:"B",SourcePath:"/B.mkv"}}
+ result:=h.resolveSegmentSubtitleForRender(context.Background(),1,"fixture",source)
+ if result.StreamIndex==nil || *result.StreamIndex!=8 || metadata!=1 || downloads!=1 {t.Fatalf("wrong bound subtitle or fanout: %+v metadata=%d downloads=%d",result,metadata,downloads)}
+}
