@@ -27,7 +27,7 @@ interface AdminAnimePageProps {
  */
 export default async function AdminAnimePage({
   searchParams,
-}: AdminAnimePageProps = {}) {
+}: AdminAnimePageProps) {
   const resolvedSearchParams = searchParams ? await searchParams : undefined;
   const createdID = Number.parseInt(resolvedSearchParams?.created || "", 10);
   const animeItems: AnimeListItem[] = [];

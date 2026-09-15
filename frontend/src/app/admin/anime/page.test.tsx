@@ -56,7 +56,7 @@ vi.mock('next/navigation', () => ({
 
 describe('AdminAnimePage', () => {
   it('renders the anime overview shell with the live create CTA text', async () => {
-    const markup = renderToStaticMarkup(await AdminAnimePage())
+    const markup = renderToStaticMarkup(await AdminAnimePage({ searchParams: Promise.resolve({}) }))
 
     expect(markup).toContain('Anime erstellen')
     expect(markup).toContain('Vorhandene Anime')
@@ -79,7 +79,7 @@ describe('AdminAnimePage', () => {
   })
 
   it('keeps Jellyfin intake controls out of the anime overview route', async () => {
-    const markup = renderToStaticMarkup(await AdminAnimePage())
+    const markup = renderToStaticMarkup(await AdminAnimePage({ searchParams: Promise.resolve({}) }))
 
     expect(markup).not.toContain('Titel suchen...')
     expect(markup).not.toContain('Treffer suchen, dann Vorschau laden')
