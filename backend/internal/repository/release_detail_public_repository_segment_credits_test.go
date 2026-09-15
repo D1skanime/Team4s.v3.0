@@ -12,9 +12,13 @@ package repository
 //     Segment selbst anzufassen) wirkt sich sofort auf den NAECHSTEN Aufruf aus (live)
 //   - ein neu hinzugefuegter, explizit ausgewaehlter Beteiligter auf der ORIGIN-Release-
 //     Version erscheint beim naechsten Aufruf
-//   - ein Encoder erscheint NIE als Segment-Credit, auch nicht bei expliziter Auswahl;
-//     ein explizit ausgewaehlter Quality-Checker erscheint dagegen (korrigierte Regel,
-//     Plan 156-13, 156-UAT.md Auftragspunkt 17 -- die alte "QC nie"-Annahme war falsch)
+//   - ein explizit ausgewaehlter Encoder erscheint als "Karaoke-Encoding", ein explizit
+//     ausgewaehlter Designer als "Logo" (GAP-09, Plan 156-21, Auftraggeber-Entscheidung
+//     im Chat, 2026-09-15 -- ersetzt die aeltere "Encoder nie"-Regel aus
+//     156-UAT.md Regressionsfall D); ein explizit ausgewaehlter raw_provider erscheint
+//     dagegen weiterhin NIE, unabhaengig von der Auswahl; ohne explizite Auswahl
+//     erscheinen weder Encoder noch Designer, genau wie jede andere Rolle ("keine
+//     Auswahl = keine Credits")
 //   - origin_release_version_id IS NULL liefert eine leere Participants-Liste, keinen
 //     Fehler und keine geratene Ersatzquelle
 //   - Type entspricht CanonicalSegmentType(rawTypeName), kein roher Passthrough
@@ -101,7 +105,9 @@ func newSegmentCreditsFixture(t *testing.T, ctx context.Context, pool *pgxpool.P
 			('karaoke_fx', 'Karaoke-Effekte'),
 			('editor', 'Editing'),
 			('encoder', 'Encoding'),
-			('quality_checker', 'Qualitätsprüfung')
+			('quality_checker', 'Qualitätsprüfung'),
+			('designer', 'Design'),
+			('raw_provider', 'Raw Provider')
 	`)
 	require.NoError(t, err)
 
@@ -288,9 +294,11 @@ func TestReleaseDetailPublicSegmentOriginCredits(t *testing.T) {
 		require.Len(t, beforeSegment.Participants, 1, "vor der Korrektur: der Uebersetzer ist segmentrelevant UND ausgewaehlt")
 
 		// Korrektur direkt auf der Origin, OHNE das Segment anzufassen: die Rolle
-		// wechselt von 'translator' (segmentrelevant) auf 'encoder' (NICHT
-		// segmentrelevant) -- der Beitragende hat keine andere relevante Rolle mehr.
-		_, err = pool.Exec(ctx, `UPDATE anime_contribution_roles SET role_code = 'encoder' WHERE anime_contribution_id = (SELECT id FROM anime_contributions WHERE member_id = $1 AND release_version_id = $2)`, memberID, originID)
+		// wechselt von 'translator' (segmentrelevant) auf 'raw_provider' (dauerhaft
+		// NICHT segmentrelevant, GAP-09) -- der Beitragende hat keine andere relevante
+		// Rolle mehr. 'encoder' waere seit GAP-09 kein taugliches Beispiel mehr, da es
+		// jetzt selbst segmentrelevant ist.
+		_, err = pool.Exec(ctx, `UPDATE anime_contribution_roles SET role_code = 'raw_provider' WHERE anime_contribution_id = (SELECT id FROM anime_contributions WHERE member_id = $1 AND release_version_id = $2)`, memberID, originID)
 		require.NoError(t, err)
 
 		after, err := repo.loadReleaseSegments(ctx, f.animeID, f.fansubGroupID, viewedReleaseVersionID, "v1", "1", nil)
@@ -320,23 +328,26 @@ func TestReleaseDetailPublicSegmentOriginCredits(t *testing.T) {
 		require.Equal(t, newMemberID, afterSegment.Participants[0].MemberID)
 	})
 
-	t.Run("Test5: Encoder erscheint nie, Quality-Checker nur wenn explizit ausgewaehlt und aufloesbar", func(t *testing.T) {
+	t.Run("Test5: Encoder und Designer erscheinen mit ihrer Karaoke-Beschriftung, wenn explizit ausgewaehlt; raw_provider nie (GAP-09)", func(t *testing.T) {
 		originID := f.newReleaseVersion(t, ctx)
 		segmentID := f.newSegment(t, ctx, &originID)
 		f.assignSegment(t, ctx, segmentID, viewedReleaseVersionID)
 
 		encoderMemberID := f.allocID()
-		qcMemberID := f.allocID()
+		designerMemberID := f.allocID()
 		translatorMemberID := f.allocID()
+		rawProviderMemberID := f.allocID()
 		f.newContribution(t, ctx, encoderMemberID, originID, "encoder")
-		f.newContribution(t, ctx, qcMemberID, originID, "quality_checker")
+		f.newContribution(t, ctx, designerMemberID, originID, "designer")
 		f.newContribution(t, ctx, translatorMemberID, originID, "translator")
-		// Alle DREI werden explizit als Segment-Contributor ausgewaehlt -- der Encoder
-		// darf trotzdem NIE erscheinen (Rollen-Katalog-Ausschluss gewinnt sogar gegen
-		// explizite Auswahl, 156-UAT.md Regressionsfall D).
+		f.newContribution(t, ctx, rawProviderMemberID, originID, "raw_provider")
+		// Alle VIER werden explizit als Segment-Contributor ausgewaehlt -- Encoder,
+		// Designer und Uebersetzer erscheinen jetzt (GAP-09), raw_provider erscheint
+		// weiterhin NIE, unabhaengig von der Auswahl.
 		f.selectContributor(t, ctx, segmentID, encoderMemberID)
-		f.selectContributor(t, ctx, segmentID, qcMemberID)
+		f.selectContributor(t, ctx, segmentID, designerMemberID)
 		f.selectContributor(t, ctx, segmentID, translatorMemberID)
+		f.selectContributor(t, ctx, segmentID, rawProviderMemberID)
 
 		segments, err := repo.loadReleaseSegments(ctx, f.animeID, f.fansubGroupID, viewedReleaseVersionID, "v1", "1", nil)
 		require.NoError(t, err)
@@ -344,10 +355,35 @@ func TestReleaseDetailPublicSegmentOriginCredits(t *testing.T) {
 		found := findSegmentByID(segments, segmentID)
 		require.NotNil(t, found)
 		gotMemberIDs := make([]int64, 0, len(found.Participants))
+		labelsByMemberID := make(map[int64]string, len(found.Participants))
 		for _, p := range found.Participants {
 			gotMemberIDs = append(gotMemberIDs, p.MemberID)
+			labelsByMemberID[p.MemberID] = p.SegmentRoleLabel
 		}
-		require.ElementsMatch(t, []int64{qcMemberID, translatorMemberID}, gotMemberIDs, "Encoder erscheint nie, QC und Uebersetzer erscheinen (beide explizit ausgewaehlt und aufloesbar)")
+		require.ElementsMatch(t, []int64{encoderMemberID, designerMemberID, translatorMemberID}, gotMemberIDs,
+			"Encoder, Designer und Uebersetzer erscheinen (alle explizit ausgewaehlt und aufloesbar); raw_provider erscheint nie")
+		require.Equal(t, "Karaoke-Encoding", labelsByMemberID[encoderMemberID])
+		require.Equal(t, "Logo", labelsByMemberID[designerMemberID])
+	})
+
+	t.Run("Test5b: Encoder und Designer erscheinen NICHT, wenn sie auf der Origin nur die Rolle halten, aber nicht explizit ausgewaehlt sind (GAP-09)", func(t *testing.T) {
+		originID := f.newReleaseVersion(t, ctx)
+		segmentID := f.newSegment(t, ctx, &originID)
+		f.assignSegment(t, ctx, segmentID, viewedReleaseVersionID)
+
+		encoderMemberID := f.allocID()
+		designerMemberID := f.allocID()
+		f.newContribution(t, ctx, encoderMemberID, originID, "encoder")
+		f.newContribution(t, ctx, designerMemberID, originID, "designer")
+		// Keine selectContributor-Aufrufe -- "keine Auswahl = keine Credits" gilt fuer
+		// Encoder/Designer exakt wie fuer jede andere Rolle.
+
+		segments, err := repo.loadReleaseSegments(ctx, f.animeID, f.fansubGroupID, viewedReleaseVersionID, "v1", "1", nil)
+		require.NoError(t, err)
+
+		found := findSegmentByID(segments, segmentID)
+		require.NotNil(t, found)
+		require.Empty(t, found.Participants, "ohne explizite Auswahl erscheinen weder Encoder noch Designer, obwohl beide auf der Origin segmentrelevant sind")
 	})
 
 	t.Run("Test6: origin_release_version_id IS NULL liefert leere Participants, kein Fehler", func(t *testing.T) {

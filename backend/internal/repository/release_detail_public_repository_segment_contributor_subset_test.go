@@ -93,7 +93,7 @@ func TestSegmentContributorSubsetMatrix(t *testing.T) {
 		}
 	})
 
-	t.Run("D_encoder_is_origin_contributor_and_explicitly_selected_never_appears", func(t *testing.T) {
+	t.Run("D_encoder_is_origin_contributor_and_explicitly_selected_appears_as_karaoke_encoding", func(t *testing.T) {
 		originID := f.newReleaseVersion(t, ctx)
 		segmentID := f.newSegment(t, ctx, &originID)
 		f.assignSegment(t, ctx, segmentID, viewedReleaseVersionID)
@@ -103,7 +103,53 @@ func TestSegmentContributorSubsetMatrix(t *testing.T) {
 
 		found := findSegmentByID(load(t), segmentID)
 		require.NotNil(t, found)
-		require.Empty(t, found.Participants, "Rollen-Katalog-Ausschluss gewinnt sogar gegen explizite Auswahl")
+		require.Len(t, found.Participants, 1, "GAP-09 (Plan 156-21): ein explizit ausgewaehlter Encoder erscheint jetzt als Segment-Credit")
+		require.Equal(t, encoderID, found.Participants[0].MemberID)
+		require.Equal(t, "Karaoke-Encoding", found.Participants[0].SegmentRoleLabel)
+	})
+
+	t.Run("D2_designer_is_origin_contributor_and_explicitly_selected_appears_as_logo", func(t *testing.T) {
+		originID := f.newReleaseVersion(t, ctx)
+		segmentID := f.newSegment(t, ctx, &originID)
+		f.assignSegment(t, ctx, segmentID, viewedReleaseVersionID)
+		designerID := f.allocID()
+		f.newContribution(t, ctx, designerID, originID, "designer")
+		f.selectContributor(t, ctx, segmentID, designerID)
+
+		found := findSegmentByID(load(t), segmentID)
+		require.NotNil(t, found)
+		require.Len(t, found.Participants, 1, "GAP-09 (Plan 156-21): ein explizit ausgewaehlter Designer erscheint jetzt als Segment-Credit")
+		require.Equal(t, designerID, found.Participants[0].MemberID)
+		require.Equal(t, "Logo", found.Participants[0].SegmentRoleLabel)
+	})
+
+	t.Run("D3_encoder_and_designer_not_selected_do_not_appear_despite_segment_relevant_origin_role", func(t *testing.T) {
+		originID := f.newReleaseVersion(t, ctx)
+		segmentID := f.newSegment(t, ctx, &originID)
+		f.assignSegment(t, ctx, segmentID, viewedReleaseVersionID)
+		encoderID := f.allocID()
+		designerID := f.allocID()
+		f.newContribution(t, ctx, encoderID, originID, "encoder")
+		f.newContribution(t, ctx, designerID, originID, "designer")
+		// Bewusst KEIN selectContributor-Aufruf -- "keine Auswahl = keine Credits" gilt
+		// fuer Encoder/Designer exakt wie fuer jede andere Rolle (GAP-09).
+
+		found := findSegmentByID(load(t), segmentID)
+		require.NotNil(t, found)
+		require.Empty(t, found.Participants, "ohne explizite Auswahl erscheinen weder Encoder noch Designer")
+	})
+
+	t.Run("D4_raw_provider_explicitly_selected_never_appears", func(t *testing.T) {
+		originID := f.newReleaseVersion(t, ctx)
+		segmentID := f.newSegment(t, ctx, &originID)
+		f.assignSegment(t, ctx, segmentID, viewedReleaseVersionID)
+		rawProviderID := f.allocID()
+		f.newContribution(t, ctx, rawProviderID, originID, "raw_provider")
+		f.selectContributor(t, ctx, segmentID, rawProviderID)
+
+		found := findSegmentByID(load(t), segmentID)
+		require.NotNil(t, found)
+		require.Empty(t, found.Participants, "raw_provider bleibt dauerhaft ausgeschlossen, unabhaengig von expliziter Auswahl (Rollen-Katalog-Ausschluss gewinnt sogar gegen explizite Auswahl)")
 	})
 
 	t.Run("E_role_change_qc_to_editor_reflects_automatically_without_segment_edit", func(t *testing.T) {
@@ -129,7 +175,10 @@ func TestSegmentContributorSubsetMatrix(t *testing.T) {
 		require.NotContains(t, after.Participants[0].RoleCodes, "quality_checker")
 	})
 
-	t.Run("F_role_change_qc_to_encoder_removes_person_from_segment_credits", func(t *testing.T) {
+	t.Run("F_role_change_qc_to_raw_provider_removes_person_from_segment_credits", func(t *testing.T) {
+		// GAP-09 (Plan 156-21): 'encoder' waere hier kein taugliches Beispiel mehr, da es
+		// jetzt selbst segmentrelevant ist -- 'raw_provider' ist der neue, dauerhafte
+		// Standardbeispiel-Fall fuer eine NICHT-segmentrelevante Rolle.
 		originID := f.newReleaseVersion(t, ctx)
 		segmentID := f.newSegment(t, ctx, &originID)
 		f.assignSegment(t, ctx, segmentID, viewedReleaseVersionID)
@@ -141,12 +190,12 @@ func TestSegmentContributorSubsetMatrix(t *testing.T) {
 		require.NotNil(t, before)
 		require.Len(t, before.Participants, 1)
 
-		_, err := pool.Exec(ctx, `UPDATE anime_contribution_roles SET role_code = 'encoder' WHERE anime_contribution_id = (SELECT id FROM anime_contributions WHERE member_id = $1 AND release_version_id = $2)`, memberID, originID)
+		_, err := pool.Exec(ctx, `UPDATE anime_contribution_roles SET role_code = 'raw_provider' WHERE anime_contribution_id = (SELECT id FROM anime_contributions WHERE member_id = $1 AND release_version_id = $2)`, memberID, originID)
 		require.NoError(t, err)
 
 		after := findSegmentByID(load(t), segmentID)
 		require.NotNil(t, after)
-		require.Empty(t, after.Participants, "QC->Encoder: Person verschwindet, kein Fehler, kein Zombie-Credit")
+		require.Empty(t, after.Participants, "QC->raw_provider: Person verschwindet, kein Fehler, kein Zombie-Credit")
 	})
 
 	t.Run("G_origin_contribution_row_deleted_no_crash_no_credit_no_inconsistent_role", func(t *testing.T) {
@@ -261,9 +310,11 @@ func TestSegmentContributorSubsetMatrix(t *testing.T) {
 		require.Len(t, before.Participants, 1, "vererbter Anime-Default macht die Person effektiv und segmentrelevant")
 
 		// Spaeter: Release-Level-Override auf eine NICHT-segmentrelevante Rolle
-		// (translator -> encoder). Dieselbe theme_segment_contributors-Zeile bleibt
+		// (translator -> raw_provider, GAP-09s neues dauerhaftes Beispiel -- 'encoder'
+		// waere hier seit GAP-09 kein taugliches Beispiel mehr, da es jetzt selbst
+		// segmentrelevant ist). Dieselbe theme_segment_contributors-Zeile bleibt
 		// unveraendert bestehen.
-		f.newContribution(t, ctx, memberID, originID, "encoder")
+		f.newContribution(t, ctx, memberID, originID, "raw_provider")
 
 		after := findSegmentByID(load(t), segmentID)
 		require.NotNil(t, after)
