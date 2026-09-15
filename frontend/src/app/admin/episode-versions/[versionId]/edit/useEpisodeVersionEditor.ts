@@ -11,7 +11,7 @@ import {
   updateEpisodeVersion,
 } from '@/lib/api'
 import { useAuthSession } from '@/lib/useAuthSession'
-import { EpisodeVersionEditorContext, EpisodeVersionMediaFile } from '@/types/episodeVersion'
+import { EpisodeVersionEditorContext, EpisodeVersionMediaFile, EpisodeVersionPatchRequest } from '@/types/episodeVersion'
 import { FansubGroup, FansubGroupSummary } from '@/types/fansub'
 
 import {
@@ -52,6 +52,8 @@ export function useEpisodeVersionEditor() {
   const [folderPath, setFolderPath] = useState('')
   const [availableFiles, setAvailableFiles] = useState<EpisodeVersionMediaFile[]>([])
   const [selectedFile, setSelectedFile] = useState<EpisodeVersionMediaFile | null>(null)
+  const [hasPendingFileSelection, setHasPendingFileSelection] = useState(false)
+  const fileSelectionRevision = useRef(0)
   const [showFilePanel, setShowFilePanel] = useState(false)
   const [advancedMode, setAdvancedMode] = useState(false)
   const [groupQuery, setGroupQuery] = useState('')
@@ -68,10 +70,8 @@ export function useEpisodeVersionEditor() {
   const contextGeneration = useRef(0)
   const loadedRouteVersionId = useRef<number | null>(null)
 
-  const hasUnsavedChanges = useMemo(
-    () => baselineRef.current !== '' && buildSnapshot(formState, selectedGroups) !== baselineRef.current,
-    [formState, selectedGroups],
-  )
+  const hasUnsavedChanges = baselineRef.current !== '' && (hasPendingFileSelection ||
+    buildSnapshot(formState, selectedGroups) !== baselineRef.current)
 
   useEffect(() => {
     let cancelled = false
@@ -81,6 +81,11 @@ export function useEpisodeVersionEditor() {
     setContextData(null)
     setSelectedGroups([])
     setSelectedFile(null)
+    setHasPendingFileSelection(false)
+    fileSelectionRevision.current += 1
+    setAvailableFiles([])
+    setShowFilePanel(false)
+    setIsScanning(false)
     setIsSaving(false)
     async function loadData() {
       if (!versionID) {
@@ -173,29 +178,39 @@ export function useEpisodeVersionEditor() {
       return
     }
 
+    const generation = contextGeneration.current
     setIsScanning(true)
     setErrorMessage(null)
     setSuccessMessage(null)
     try {
       const response = await scanEpisodeVersionFolder(versionID)
+      if (generation !== contextGeneration.current) return
       const files = response.data.files
-      const matchedFile = files.find((file) => file.media_item_id === formState.mediaItemID) || selectedFile
 
       setFolderPath(response.data.anime_folder_path || '')
       setAvailableFiles(files)
-      setSelectedFile(matchedFile)
+      setSelectedFile((current) => current && (files.find((file) =>
+        file.media_item_id === current.media_item_id &&
+        (!current.media_source_id || file.media_source_id === current.media_source_id),
+      ) || current))
       setShowFilePanel(true)
       if (files.length === 0) {
         setSuccessMessage('Keine passenden Mediendateien im verknüpften Ordner gefunden.')
       }
     } catch (error) {
-      setErrorMessage(formatError(error))
+      if (generation === contextGeneration.current) setErrorMessage(formatError(error))
     } finally {
-      setIsScanning(false)
+      if (generation === contextGeneration.current) setIsScanning(false)
     }
   }
 
   function applyFile(file: EpisodeVersionMediaFile) {
+    if (!file.media_source_id?.trim()) {
+      setErrorMessage('Die Quelle der Datei fehlt. Bitte die Dateiliste erneut laden.')
+      return
+    }
+    fileSelectionRevision.current += 1
+    setHasPendingFileSelection(true)
     setSelectedFile(file)
     setShowFilePanel(false)
     setFormState((current) => ({
@@ -203,8 +218,8 @@ export function useEpisodeVersionEditor() {
       title: current.title.trim() ? current.title : file.release_name || current.title,
       mediaProvider: 'jellyfin',
       mediaItemID: file.media_item_id,
-      videoQuality: file.video_quality || current.videoQuality,
-      streamURL: file.stream_url || current.streamURL,
+      videoQuality: file.video_quality || '',
+      streamURL: file.stream_url || '',
     }))
     setSuccessMessage('Datei übernommen. Änderungen jetzt speichern.')
     setErrorMessage(null)
@@ -235,7 +250,7 @@ export function useEpisodeVersionEditor() {
     }
     if (!contextData || loadedRouteVersionId.current !== versionID) return
     if (!metadataOnly && (!formState.mediaProvider.trim() || !formState.mediaItemID.trim())) {
-      setErrorMessage('Bitte zuerst eine Mediendatei aus dem Ordner wählen oder den Advanced-Bereich ausfuellen.')
+      setErrorMessage('Bitte zuerst eine Mediendatei aus dem Ordner wählen oder den Advanced-Bereich ausfüllen.')
       return
     }
     if (validateReleaseDateOrder(formState)) return
@@ -248,31 +263,36 @@ export function useEpisodeVersionEditor() {
     }
 
     const generation = contextGeneration.current
+    const selectionRevision = fileSelectionRevision.current
     setIsSaving(true)
     try {
-      const patch = metadataOnly
-        ? {
-            title: normalizeOptional(formState.title),
-            video_quality: normalizeOptional(formState.videoQuality),
-            subtitle_type: formState.subtitleType || null,
-            production_started_on: fromDateInputValue(formState.productionStartedOn),
-            release_date: fromDateInputValue(formState.releaseDate),
-            crc32: normalizeOptional(normalizeCRC32Draft(formState.crc32)),
-            duration_seconds: parsedDurationSeconds,
-          }
-        : {
-            title: normalizeOptional(formState.title),
-            fansub_groups: selectedGroups.map((group) => ({ id: group.id })),
-            media_provider: formState.mediaProvider.trim(),
-            media_item_id: formState.mediaItemID.trim(),
-            video_quality: normalizeOptional(formState.videoQuality),
-            subtitle_type: formState.subtitleType || null,
-            production_started_on: fromDateInputValue(formState.productionStartedOn),
-            release_date: fromDateInputValue(formState.releaseDate),
-            crc32: normalizeOptional(normalizeCRC32Draft(formState.crc32)),
-            stream_url: normalizeOptional(formState.streamURL),
-            duration_seconds: parsedDurationSeconds,
-          }
+      const patch: EpisodeVersionPatchRequest = {
+        title: normalizeOptional(formState.title),
+        video_quality: normalizeOptional(formState.videoQuality),
+        subtitle_type: formState.subtitleType || null,
+        production_started_on: fromDateInputValue(formState.productionStartedOn),
+        release_date: fromDateInputValue(formState.releaseDate),
+        crc32: normalizeOptional(normalizeCRC32Draft(formState.crc32)),
+        duration_seconds: parsedDurationSeconds,
+      }
+      if (!metadataOnly) {
+        const previous = contextData.version
+        const reviewedFile = hasPendingFileSelection && formState.mediaProvider.trim() === 'jellyfin' &&
+          selectedFile?.media_item_id === formState.mediaItemID.trim() ? selectedFile : null
+        const bindingChanged = formState.mediaProvider.trim() !== previous.media_provider ||
+          formState.mediaItemID.trim() !== previous.media_item_id ||
+          normalizeOptional(formState.streamURL) !== normalizeOptional(previous.stream_url || '')
+        if (bindingChanged || reviewedFile) {
+          patch.media_provider = formState.mediaProvider.trim()
+          patch.media_item_id = formState.mediaItemID.trim()
+          patch.stream_url = normalizeOptional(formState.streamURL)
+          if (reviewedFile?.media_source_id) patch.media_source_id = reviewedFile.media_source_id
+        }
+        const previousGroups = new Set(contextData.selected_groups.map((group) => group.id))
+        if (selectedGroups.length !== previousGroups.size || selectedGroups.some((group) => !previousGroups.has(group.id))) {
+          patch.fansub_groups = selectedGroups.map((group) => ({ id: group.id }))
+        }
+      }
       const response = await updateEpisodeVersion(versionID, patch)
       if (generation !== contextGeneration.current) return
 
@@ -280,10 +300,17 @@ export function useEpisodeVersionEditor() {
         setContextData({
           ...contextData,
           version: response.data,
-          selected_groups: selectedGroups,
+          selected_groups: metadataOnly ? contextData.selected_groups : selectedGroups,
         })
       }
-      baselineRef.current = buildSnapshot(formState, selectedGroups)
+      const savedForm = metadataOnly ? {
+        ...formState,
+        mediaProvider: response.data.media_provider || '',
+        mediaItemID: response.data.media_item_id || '',
+        streamURL: response.data.stream_url || '',
+      } : formState
+      baselineRef.current = buildSnapshot(savedForm, metadataOnly ? contextData.selected_groups : selectedGroups)
+      if (!metadataOnly && selectionRevision === fileSelectionRevision.current) setHasPendingFileSelection(false)
       setSuccessMessage('Version gespeichert.')
     } catch (error) {
       if (generation === contextGeneration.current) setErrorMessage(formatError(error))

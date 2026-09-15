@@ -159,6 +159,36 @@ describe('reviewed Jellyfin file selection', () => {
     expect(mocks.update.mock.calls[0][1].media_item_id).toBe('manual-item')
     expect(mocks.update.mock.calls[0][1]).not.toHaveProperty('media_source_id')
   })
+  it('keeps a later file choice pending when an earlier save finishes', async () => {
+    let resolveSave!: (value: unknown) => void
+    mocks.update.mockImplementationOnce(() => new Promise(resolve => { resolveSave = resolve }))
+    const { result } = renderHook(useEpisodeVersionEditor)
+    await waitFor(() => expect(result.current.isLoading).toBe(false))
+    act(() => result.current.applyFile(mediaFile()))
+    let pending!: Promise<void>
+    act(() => { pending = result.current.handleSave(event) })
+    act(() => result.current.applyFile(mediaFile('item-c', 'source-c')))
+    await act(async () => {
+      resolveSave({ data: { ...response().data.version, media_item_id: 'item-b', media_source_id: 'source-b' } })
+      await pending
+    })
+    expect(result.current.selectedFile?.media_source_id).toBe('source-c')
+    expect(result.current.hasUnsavedChanges).toBe(true)
+    await act(() => result.current.handleSave(event))
+    expect(mocks.update.mock.calls[1][1]).toMatchObject({ media_item_id: 'item-c', media_source_id: 'source-c' })
+  })
+  it('does not bind an unbound existing file merely because scanning reveals its source', async () => {
+    const unbound = response()
+    mocks.context.mockResolvedValue({ data: { ...unbound.data, version: { ...unbound.data.version, media_source_id: null } } })
+    const { result } = renderHook(useEpisodeVersionEditor)
+    await waitFor(() => expect(result.current.isLoading).toBe(false))
+    mocks.scan.mockResolvedValue({ data: { files: [mediaFile('fixture', 'source-a')] } })
+    await act(() => result.current.handleScanFolder())
+    expect(result.current.selectedFile?.media_source_id).toBe('source-a')
+    expect(result.current.hasUnsavedChanges).toBe(false)
+    await act(() => result.current.handleSave(event))
+    expect(mocks.update.mock.calls[0][1]).not.toHaveProperty('media_source_id')
+  })
   it('ignores a late folder response after navigating to another release', async () => {
     let resolveScan!: (value: unknown) => void
     mocks.scan.mockImplementation(() => new Promise(resolve => { resolveScan = resolve }))

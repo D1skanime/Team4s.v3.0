@@ -179,6 +179,7 @@ export function buildFallbackMediaFile(context: EpisodeVersionEditorContext): Ep
     file_name: context.version.title || itemID,
     path: context.anime_folder_path || '',
     media_item_id: itemID,
+    media_source_id: context.version.media_source_id,
     stream_url: context.version.stream_url || null,
     video_quality: context.version.video_quality || null,
     detected_episode_number: context.version.episode_number,
