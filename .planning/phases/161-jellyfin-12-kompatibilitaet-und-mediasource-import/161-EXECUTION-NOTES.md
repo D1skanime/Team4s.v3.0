@@ -4,7 +4,7 @@
 
 Canonical checkout: /home/d1sk/team4s through ssh team4s-linux. Branch main, no worktrees; execute the approved plans sequentially. All Go and frontend commands run in existing Compose containers. Phase 160 waits for this repair.
 
-The backend /app source is copied into its image, not bind-mounted. Synchronize only the currently owned changed files into /app with docker cp before testing. A comparison of 800 Go/module files against baseline b3b07ff0 matched before the first runtime changes. Source synchronization does not replace the running go-run process; no backend restart has occurred through Plan 01. Final live verification must rebuild/restart the backend deliberately after all changes and recheck the actual runtime. Never count tests against stale image files as current-source verification.
+The backend /app source is copied into its image, not bind-mounted. Synchronize only the currently owned changed files into /app with docker cp before testing. A comparison of 800 Go/module files against baseline b3b07ff0 matched before the first runtime changes. Air watches production Go files and may rebuild/restart the actual server when source is copied. Synchronize coherent source sets. Final live verification must establish source parity and actual running-code behavior; do not force Compose recreation merely to test, because recreation runs migrations first. Never count tests against stale image files as current-source verification.
 
 Frontend /app is bind-mounted. Its node_modules and .next are volumes. Production builds must use a separate directory in the frontend container, never the active .next. The complete baseline build compiled and then reproduced the existing Next Page export error.
 
@@ -30,11 +30,10 @@ Unknown audio language displays Japanisch only in the existing UI field. Known a
 
 ## Progress
 
-Plan 01 complete, summary commit 9818a5a1; phase bookkeeping and D-16 commit 47f41b66. Plan 02 is the current executor slice. Its files are owned by jellyfin161_execute02; root owns audit/bookkeeping documents. Do not stage another owner's files. Next: finish 02, execute 03, then 04–09 and independent phase verification. No push or human UAT sign-off has been performed.
-
+Plans01–05 are complete; Plan06 is active, owned by jellyfin161_execute04. Root owns bookkeeping and Plan09 preparation. Finish06 before07, then08, integrated09 gates and independent verification. No push or Human-UAT sign-off. Current verified summaries are authoritative; STATE/ROADMAP track5/9.
 ## Plan 02 verification completed
 
-Implementation a72737f4; coordinator repeated expanded source/JSON tests with dedicated DB DSN: 174 pass, zero fail/skip. Summary and machine-readable plan02-checks.json record exact limits. Plan03 proceeds; application process remains unrestarted.
+Implementation a72737f4; coordinator repeated expanded source/JSON tests with dedicated DB DSN: 174 pass, zero fail/skip. Summary and machine-readable plan02-checks.json record exact limits. The earlier runtime-restart inference is corrected below.
 
 ## Runtime correction after Plan 02
 
@@ -51,3 +50,7 @@ Prepared scripts/check-jellyfin12.py and four local stdlib boundary tests (reque
 ## Bounded Plan07 source-consumer correction
 
 Coordinator consumer review found resolveEpisodeVersionDuration still calls getJellyfinEpisodeDurationSeconds(itemID), which passes nil stored binding. A future bound alternative B with missing duration could therefore borrow own-source A runtime. Plan07 already owns the editor helper and shared source wiring; its Task2 now explicitly covers this consumer and a bound-B/own-A regression in existing admin_content_test.go. This is D-07 source coherence, not a new feature; no read-side persistence or unrelated editor redesign.
+
+## Plan06 fixture boundary
+
+If an old integration fixture lacks stream_sources.metadata, extend that guarded fixture to the actual existing schema. Do not introduce to_jsonb(row) schema-compatibility reads solely to keep incomplete test schemas working. A bounded editor source lookup is permitted and must report its fixed query cost; reuse the existing binding reader instead of duplicating SQL.
