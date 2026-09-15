@@ -43,3 +43,7 @@ The backend runs Air (PID1), whose .air.toml watches production Go sources. Copy
 ## Coordinator verification preparation
 
 Application implementation remains sequential through Plans01–08. While Plan05 owns repository changes, the coordinator may prepare the read-only Plan09 verification script independently (no shared application files, no DB writes). This is preparation only: final execution, integrated evidence and Plan09 completion remain gated on Plan08. This bounded scheduling adjustment avoids idle coordination without weakening the phase gates.
+
+## Read-only verifier preparation and preflight
+
+Prepared scripts/check-jellyfin12.py and four local stdlib boundary tests (requests/bytes, no redirects, no secret output, evidence-only destination). First preflight: 22 GETs, all HTTP checks successful, live12.0.0 schema matches all11 inventoried paths; Buddy13 matches pages5+5+3, 11eyes27/38/11 unchanged. One diagnostic assertion failed: it assumed returned ParentId equals queried library ID. Focused follow-up proved CollectionFolder Groups and physical Folder Subgroups have different IDs but exactly the same direct child set. Removed that invalid assertion, retained complete/direct-vs-descendant set checks and recorded parent IDs; added explicit library enumeration. Original failed preflight remains evidence, not rewritten as a pass. Final full run still follows Plan08. No app source or rows changed by this preparation.

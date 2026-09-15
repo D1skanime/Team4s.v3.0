@@ -1,0 +1,1380 @@
+{
+  "timestamp": "2026-09-15T14:28:10.605404+00:00",
+  "mode": "read-only",
+  "commit": "7ac0ae94be49f1392441198112a7265e85e658bb",
+  "limits": {
+    "requests": 64,
+    "response_bytes": 16777216
+  },
+  "notes": [
+    "This probe verifies live responses, not database writes or Human-UAT.",
+    "Production source selection is tested separately by the Go fixture suite.",
+    "Legacy query401/header200 evidence remains in discovery-live.json.",
+    "No library rescan, live import, relink or backfill is performed."
+  ],
+  "server_version": "12.0.0",
+  "schema": {
+    "version": "12.0.0",
+    "used_paths": {
+      "/Items/{itemId}/Images/{imageType}": {
+        "present": true,
+        "deprecated": false
+      },
+      "/Items/{itemId}/Images/{imageType}/{imageIndex}": {
+        "present": true,
+        "deprecated": false
+      },
+      "/Items": {
+        "present": true,
+        "deprecated": false
+      },
+      "/Items/{itemId}": {
+        "present": true,
+        "deprecated": false
+      },
+      "/Items/{itemId}/ThemeVideos": {
+        "present": true,
+        "deprecated": false
+      },
+      "/Library/MediaFolders": {
+        "present": true,
+        "deprecated": false
+      },
+      "/Videos/{routeItemId}/{routeMediaSourceId}/Subtitles/{routeIndex}/{routeStartPositionTicks}/Stream.{routeFormat}": {
+        "present": true,
+        "deprecated": false
+      },
+      "/Videos/{routeItemId}/{routeMediaSourceId}/Subtitles/{routeIndex}/Stream.{routeFormat}": {
+        "present": true,
+        "deprecated": false
+      },
+      "/System/Info": {
+        "present": true,
+        "deprecated": false
+      },
+      "/Shows/{seriesId}/Episodes": {
+        "present": true,
+        "deprecated": false
+      },
+      "/Videos/{itemId}/stream": {
+        "present": true,
+        "deprecated": false
+      }
+    },
+    "requested_fields_valid": true
+  },
+  "series": {
+    "Buddy Complex": {
+      "items": 13,
+      "total": 13,
+      "unique_items": 13,
+      "unique_sources": 13,
+      "non_item_sources": 0,
+      "all_unique_own_path": true,
+      "bindings": [
+        {
+          "item_id": "71b6336e7dc1527c5156e87f0bc8b4b3",
+          "episode": 1,
+          "season": 1,
+          "own_path_matches": 1,
+          "source_count": 1,
+          "source_id": "71b6336e7dc1527c5156e87f0bc8b4b3",
+          "container": "mkv",
+          "streams_complete": true,
+          "tracks": [
+            {
+              "index": 1,
+              "type": "Subtitle",
+              "codec": "ass",
+              "language": "deu",
+              "default": true,
+              "forced": false
+            },
+            {
+              "index": 2,
+              "type": "Audio",
+              "codec": "ac3",
+              "language": "jpn",
+              "default": true,
+              "forced": false
+            }
+          ]
+        },
+        {
+          "item_id": "1efa632b6ed80a47941aef7ac9779c8d",
+          "episode": 2,
+          "season": 1,
+          "own_path_matches": 1,
+          "source_count": 1,
+          "source_id": "1efa632b6ed80a47941aef7ac9779c8d",
+          "container": "mkv",
+          "streams_complete": true,
+          "tracks": [
+            {
+              "index": 1,
+              "type": "Subtitle",
+              "codec": "ass",
+              "language": "deu",
+              "default": true,
+              "forced": false
+            },
+            {
+              "index": 2,
+              "type": "Audio",
+              "codec": "aac",
+              "language": "jpn",
+              "default": true,
+              "forced": false
+            }
+          ]
+        },
+        {
+          "item_id": "107f2edc80eefc2ac6b0d96664f3fce2",
+          "episode": 3,
+          "season": 1,
+          "own_path_matches": 1,
+          "source_count": 1,
+          "source_id": "107f2edc80eefc2ac6b0d96664f3fce2",
+          "container": "mkv",
+          "streams_complete": true,
+          "tracks": [
+            {
+              "index": 1,
+              "type": "Audio",
+              "codec": "aac",
+              "language": "jpn",
+              "default": true,
+              "forced": false
+            },
+            {
+              "index": 2,
+              "type": "Subtitle",
+              "codec": "ass",
+              "language": null,
+              "default": true,
+              "forced": false
+            }
+          ]
+        },
+        {
+          "item_id": "eaa67280d31505a006db2902e4dae259",
+          "episode": 4,
+          "season": 1,
+          "own_path_matches": 1,
+          "source_count": 1,
+          "source_id": "eaa67280d31505a006db2902e4dae259",
+          "container": "mkv",
+          "streams_complete": true,
+          "tracks": [
+            {
+              "index": 0,
+              "type": "Subtitle",
+              "codec": "ass",
+              "language": "deu",
+              "default": true,
+              "forced": false
+            },
+            {
+              "index": 2,
+              "type": "Audio",
+              "codec": "aac",
+              "language": "jpn",
+              "default": true,
+              "forced": false
+            }
+          ]
+        },
+        {
+          "item_id": "451dd78199ca70cda83dcfc9e756ad45",
+          "episode": 5,
+          "season": 1,
+          "own_path_matches": 1,
+          "source_count": 1,
+          "source_id": "451dd78199ca70cda83dcfc9e756ad45",
+          "container": "mkv",
+          "streams_complete": true,
+          "tracks": [
+            {
+              "index": 0,
+              "type": "Subtitle",
+              "codec": "ass",
+              "language": "deu",
+              "default": true,
+              "forced": false
+            },
+            {
+              "index": 2,
+              "type": "Audio",
+              "codec": "aac",
+              "language": "jpn",
+              "default": true,
+              "forced": false
+            }
+          ]
+        },
+        {
+          "item_id": "8782d0943614ee834d2692eeacede2fd",
+          "episode": 6,
+          "season": 1,
+          "own_path_matches": 1,
+          "source_count": 1,
+          "source_id": "8782d0943614ee834d2692eeacede2fd",
+          "container": "mkv",
+          "streams_complete": true,
+          "tracks": [
+            {
+              "index": 0,
+              "type": "Audio",
+              "codec": "aac",
+              "language": "jpn",
+              "default": true,
+              "forced": false
+            },
+            {
+              "index": 1,
+              "type": "Subtitle",
+              "codec": "ass",
+              "language": null,
+              "default": true,
+              "forced": false
+            }
+          ]
+        },
+        {
+          "item_id": "5d6a447ccf7c754ebaaea04dfcf33c8f",
+          "episode": 7,
+          "season": 1,
+          "own_path_matches": 1,
+          "source_count": 1,
+          "source_id": "5d6a447ccf7c754ebaaea04dfcf33c8f",
+          "container": "mkv",
+          "streams_complete": true,
+          "tracks": [
+            {
+              "index": 1,
+              "type": "Audio",
+              "codec": "aac",
+              "language": "jpn",
+              "default": true,
+              "forced": false
+            },
+            {
+              "index": 2,
+              "type": "Subtitle",
+              "codec": "ass",
+              "language": null,
+              "default": true,
+              "forced": false
+            }
+          ]
+        },
+        {
+          "item_id": "11e0d3bfbde075c42e7af071a5d38f27",
+          "episode": 8,
+          "season": 1,
+          "own_path_matches": 1,
+          "source_count": 1,
+          "source_id": "11e0d3bfbde075c42e7af071a5d38f27",
+          "container": "mkv",
+          "streams_complete": true,
+          "tracks": [
+            {
+              "index": 1,
+              "type": "Audio",
+              "codec": "aac",
+              "language": "jpn",
+              "default": true,
+              "forced": false
+            },
+            {
+              "index": 2,
+              "type": "Subtitle",
+              "codec": "ass",
+              "language": null,
+              "default": true,
+              "forced": false
+            }
+          ]
+        },
+        {
+          "item_id": "b323564f4569f479af4132ebf0a38ce0",
+          "episode": 9,
+          "season": 1,
+          "own_path_matches": 1,
+          "source_count": 1,
+          "source_id": "b323564f4569f479af4132ebf0a38ce0",
+          "container": "mkv",
+          "streams_complete": true,
+          "tracks": [
+            {
+              "index": 1,
+              "type": "Audio",
+              "codec": "flac",
+              "language": null,
+              "default": true,
+              "forced": false
+            },
+            {
+              "index": 2,
+              "type": "Subtitle",
+              "codec": "ass",
+              "language": null,
+              "default": true,
+              "forced": false
+            }
+          ]
+        },
+        {
+          "item_id": "33f4fbdca43f75e8d90b0675fae89841",
+          "episode": 10,
+          "season": 1,
+          "own_path_matches": 1,
+          "source_count": 1,
+          "source_id": "33f4fbdca43f75e8d90b0675fae89841",
+          "container": "mkv",
+          "streams_complete": true,
+          "tracks": [
+            {
+              "index": 1,
+              "type": "Audio",
+              "codec": "aac",
+              "language": "jpn",
+              "default": true,
+              "forced": false
+            },
+            {
+              "index": 2,
+              "type": "Subtitle",
+              "codec": "ass",
+              "language": null,
+              "default": true,
+              "forced": false
+            }
+          ]
+        },
+        {
+          "item_id": "c9284a38a34a2658cd6d5c8630b38698",
+          "episode": 11,
+          "season": 1,
+          "own_path_matches": 1,
+          "source_count": 1,
+          "source_id": "c9284a38a34a2658cd6d5c8630b38698",
+          "container": "mkv",
+          "streams_complete": true,
+          "tracks": [
+            {
+              "index": 1,
+              "type": "Subtitle",
+              "codec": "ass",
+              "language": "deu",
+              "default": true,
+              "forced": false
+            },
+            {
+              "index": 2,
+              "type": "Subtitle",
+              "codec": "ass",
+              "language": null,
+              "default": false,
+              "forced": false
+            }
+          ]
+        },
+        {
+          "item_id": "fdfbf66f2b44059fd478b4b9848f43da",
+          "episode": 12,
+          "season": 1,
+          "own_path_matches": 1,
+          "source_count": 1,
+          "source_id": "fdfbf66f2b44059fd478b4b9848f43da",
+          "container": "mkv",
+          "streams_complete": true,
+          "tracks": [
+            {
+              "index": 1,
+              "type": "Audio",
+              "codec": "aac",
+              "language": "jpn",
+              "default": true,
+              "forced": false
+            },
+            {
+              "index": 2,
+              "type": "Subtitle",
+              "codec": "ass",
+              "language": null,
+              "default": true,
+              "forced": false
+            }
+          ]
+        },
+        {
+          "item_id": "bb4246e6b926f1a36804262574ed4913",
+          "episode": 13,
+          "season": 1,
+          "own_path_matches": 1,
+          "source_count": 1,
+          "source_id": "bb4246e6b926f1a36804262574ed4913",
+          "container": "mkv",
+          "streams_complete": true,
+          "tracks": [
+            {
+              "index": 1,
+              "type": "Audio",
+              "codec": "aac",
+              "language": null,
+              "default": true,
+              "forced": false
+            },
+            {
+              "index": 2,
+              "type": "Subtitle",
+              "codec": "ass",
+              "language": null,
+              "default": true,
+              "forced": false
+            }
+          ]
+        }
+      ],
+      "series_matches": 1,
+      "series_id": "46523903e0af5022d78af0368d89b805"
+    },
+    "11eyes": {
+      "items": 27,
+      "total": 27,
+      "unique_items": 27,
+      "unique_sources": 38,
+      "non_item_sources": 11,
+      "all_unique_own_path": true,
+      "bindings": [
+        {
+          "item_id": "16da3e84cfbe95cb9eb427d347c6c68b",
+          "episode": 1,
+          "season": 0,
+          "own_path_matches": 1,
+          "source_count": 2,
+          "source_id": "16da3e84cfbe95cb9eb427d347c6c68b",
+          "container": "mkv",
+          "streams_complete": true,
+          "tracks": [
+            {
+              "index": 1,
+              "type": "Audio",
+              "codec": "flac",
+              "language": "jpn",
+              "default": true,
+              "forced": false
+            },
+            {
+              "index": 2,
+              "type": "Subtitle",
+              "codec": "ass",
+              "language": "deu",
+              "default": true,
+              "forced": false
+            }
+          ]
+        },
+        {
+          "item_id": "286e58916c74b0386d0da71fe837e114",
+          "episode": 1,
+          "season": 0,
+          "own_path_matches": 1,
+          "source_count": 1,
+          "source_id": "286e58916c74b0386d0da71fe837e114",
+          "container": "mp4",
+          "streams_complete": true,
+          "tracks": [
+            {
+              "index": 1,
+              "type": "Audio",
+              "codec": "aac",
+              "language": "und",
+              "default": true,
+              "forced": false
+            }
+          ]
+        },
+        {
+          "item_id": "0a927ea6b67379b9f19850464a6b0ab1",
+          "episode": 1,
+          "season": 1,
+          "own_path_matches": 1,
+          "source_count": 3,
+          "source_id": "0a927ea6b67379b9f19850464a6b0ab1",
+          "container": "mkv",
+          "streams_complete": true,
+          "tracks": [
+            {
+              "index": 1,
+              "type": "Audio",
+              "codec": "flac",
+              "language": "jpn",
+              "default": true,
+              "forced": false
+            },
+            {
+              "index": 2,
+              "type": "Subtitle",
+              "codec": "ass",
+              "language": "deu",
+              "default": true,
+              "forced": false
+            }
+          ]
+        },
+        {
+          "item_id": "784bcddf47e35fb4d0ba911903002f17",
+          "episode": 1,
+          "season": 1,
+          "own_path_matches": 1,
+          "source_count": 1,
+          "source_id": "784bcddf47e35fb4d0ba911903002f17",
+          "container": "mp4",
+          "streams_complete": true,
+          "tracks": [
+            {
+              "index": 1,
+              "type": "Audio",
+              "codec": "aac",
+              "language": "und",
+              "default": true,
+              "forced": false
+            }
+          ]
+        },
+        {
+          "item_id": "b0178014fa4e5a8b26f432bb99719372",
+          "episode": 1,
+          "season": 1,
+          "own_path_matches": 1,
+          "source_count": 1,
+          "source_id": "b0178014fa4e5a8b26f432bb99719372",
+          "container": "mkv",
+          "streams_complete": true,
+          "tracks": [
+            {
+              "index": 1,
+              "type": "Audio",
+              "codec": "vorbis",
+              "language": "jpn",
+              "default": true,
+              "forced": false
+            },
+            {
+              "index": 2,
+              "type": "Subtitle",
+              "codec": "ass",
+              "language": "deu",
+              "default": true,
+              "forced": false
+            }
+          ]
+        },
+        {
+          "item_id": "8ecfdc1bef67653980da6e070c46b8a5",
+          "episode": 2,
+          "season": 1,
+          "own_path_matches": 1,
+          "source_count": 3,
+          "source_id": "8ecfdc1bef67653980da6e070c46b8a5",
+          "container": "mkv",
+          "streams_complete": true,
+          "tracks": [
+            {
+              "index": 1,
+              "type": "Audio",
+              "codec": "flac",
+              "language": "jpn",
+              "default": true,
+              "forced": false
+            },
+            {
+              "index": 2,
+              "type": "Subtitle",
+              "codec": "ass",
+              "language": "deu",
+              "default": true,
+              "forced": false
+            }
+          ]
+        },
+        {
+          "item_id": "e7851e5ed49c3efd3bda4bfad2211b13",
+          "episode": 3,
+          "season": 1,
+          "own_path_matches": 1,
+          "source_count": 3,
+          "source_id": "e7851e5ed49c3efd3bda4bfad2211b13",
+          "container": "mkv",
+          "streams_complete": true,
+          "tracks": [
+            {
+              "index": 1,
+              "type": "Audio",
+              "codec": "flac",
+              "language": "jpn",
+              "default": true,
+              "forced": false
+            },
+            {
+              "index": 2,
+              "type": "Subtitle",
+              "codec": "ass",
+              "language": "deu",
+              "default": true,
+              "forced": false
+            }
+          ]
+        },
+        {
+          "item_id": "037cb1f93b556b328c90ff9c9a279d4c",
+          "episode": 4,
+          "season": 1,
+          "own_path_matches": 1,
+          "source_count": 3,
+          "source_id": "037cb1f93b556b328c90ff9c9a279d4c",
+          "container": "mkv",
+          "streams_complete": true,
+          "tracks": [
+            {
+              "index": 1,
+              "type": "Audio",
+              "codec": "flac",
+              "language": "jpn",
+              "default": true,
+              "forced": false
+            },
+            {
+              "index": 2,
+              "type": "Subtitle",
+              "codec": "ass",
+              "language": "deu",
+              "default": true,
+              "forced": false
+            }
+          ]
+        },
+        {
+          "item_id": "638abbede2dbcdeed3dbf7b58bcfef7d",
+          "episode": 4,
+          "season": 1,
+          "own_path_matches": 1,
+          "source_count": 1,
+          "source_id": "638abbede2dbcdeed3dbf7b58bcfef7d",
+          "container": "mp4",
+          "streams_complete": true,
+          "tracks": [
+            {
+              "index": 1,
+              "type": "Audio",
+              "codec": "aac",
+              "language": "und",
+              "default": true,
+              "forced": false
+            }
+          ]
+        },
+        {
+          "item_id": "692faa2f7c8336c309b6fb7a17aeb1f7",
+          "episode": 4,
+          "season": 1,
+          "own_path_matches": 1,
+          "source_count": 1,
+          "source_id": "692faa2f7c8336c309b6fb7a17aeb1f7",
+          "container": "mkv",
+          "streams_complete": true,
+          "tracks": [
+            {
+              "index": 1,
+              "type": "Audio",
+              "codec": "vorbis",
+              "language": "jpn",
+              "default": true,
+              "forced": false
+            },
+            {
+              "index": 2,
+              "type": "Subtitle",
+              "codec": "ass",
+              "language": "deu",
+              "default": true,
+              "forced": false
+            }
+          ]
+        },
+        {
+          "item_id": "169007e99fa800b5e806d9eeeecafed0",
+          "episode": 5,
+          "season": 1,
+          "own_path_matches": 1,
+          "source_count": 3,
+          "source_id": "169007e99fa800b5e806d9eeeecafed0",
+          "container": "mkv",
+          "streams_complete": true,
+          "tracks": [
+            {
+              "index": 1,
+              "type": "Audio",
+              "codec": "flac",
+              "language": "jpn",
+              "default": true,
+              "forced": false
+            },
+            {
+              "index": 2,
+              "type": "Subtitle",
+              "codec": "ass",
+              "language": "deu",
+              "default": true,
+              "forced": false
+            }
+          ]
+        },
+        {
+          "item_id": "88b644703ef7bf1497175a47c2fb3500",
+          "episode": 5,
+          "season": 1,
+          "own_path_matches": 1,
+          "source_count": 1,
+          "source_id": "88b644703ef7bf1497175a47c2fb3500",
+          "container": "mkv",
+          "streams_complete": true,
+          "tracks": [
+            {
+              "index": 1,
+              "type": "Audio",
+              "codec": "vorbis",
+              "language": "jpn",
+              "default": true,
+              "forced": false
+            },
+            {
+              "index": 2,
+              "type": "Subtitle",
+              "codec": "ass",
+              "language": "deu",
+              "default": true,
+              "forced": false
+            }
+          ]
+        },
+        {
+          "item_id": "c51b864c4c3d06c81cfcece6df136aae",
+          "episode": 5,
+          "season": 1,
+          "own_path_matches": 1,
+          "source_count": 1,
+          "source_id": "c51b864c4c3d06c81cfcece6df136aae",
+          "container": "mp4",
+          "streams_complete": true,
+          "tracks": [
+            {
+              "index": 1,
+              "type": "Audio",
+              "codec": "aac",
+              "language": "und",
+              "default": true,
+              "forced": false
+            }
+          ]
+        },
+        {
+          "item_id": "afda91e2bebc54df4d36c1b712aa7a85",
+          "episode": 6,
+          "season": 1,
+          "own_path_matches": 1,
+          "source_count": 3,
+          "source_id": "afda91e2bebc54df4d36c1b712aa7a85",
+          "container": "mkv",
+          "streams_complete": true,
+          "tracks": [
+            {
+              "index": 1,
+              "type": "Audio",
+              "codec": "flac",
+              "language": "jpn",
+              "default": true,
+              "forced": false
+            },
+            {
+              "index": 2,
+              "type": "Subtitle",
+              "codec": "ass",
+              "language": "deu",
+              "default": true,
+              "forced": false
+            }
+          ]
+        },
+        {
+          "item_id": "50a111ef07f5de5d9fe214ab2c465b00",
+          "episode": 7,
+          "season": 1,
+          "own_path_matches": 1,
+          "source_count": 3,
+          "source_id": "50a111ef07f5de5d9fe214ab2c465b00",
+          "container": "mkv",
+          "streams_complete": true,
+          "tracks": [
+            {
+              "index": 1,
+              "type": "Audio",
+              "codec": "flac",
+              "language": "jpn",
+              "default": true,
+              "forced": false
+            },
+            {
+              "index": 2,
+              "type": "Subtitle",
+              "codec": "ass",
+              "language": "deu",
+              "default": true,
+              "forced": false
+            }
+          ]
+        },
+        {
+          "item_id": "64cd74861acddc92b4a3fd4ebd57643f",
+          "episode": 7,
+          "season": 1,
+          "own_path_matches": 1,
+          "source_count": 1,
+          "source_id": "64cd74861acddc92b4a3fd4ebd57643f",
+          "container": "mp4",
+          "streams_complete": true,
+          "tracks": [
+            {
+              "index": 1,
+              "type": "Audio",
+              "codec": "aac",
+              "language": "und",
+              "default": true,
+              "forced": false
+            }
+          ]
+        },
+        {
+          "item_id": "a25f327931960190677ffa92fa6c050e",
+          "episode": 7,
+          "season": 1,
+          "own_path_matches": 1,
+          "source_count": 1,
+          "source_id": "a25f327931960190677ffa92fa6c050e",
+          "container": "mkv",
+          "streams_complete": true,
+          "tracks": [
+            {
+              "index": 1,
+              "type": "Audio",
+              "codec": "vorbis",
+              "language": "jpn",
+              "default": true,
+              "forced": false
+            },
+            {
+              "index": 2,
+              "type": "Subtitle",
+              "codec": "ass",
+              "language": "deu",
+              "default": true,
+              "forced": false
+            }
+          ]
+        },
+        {
+          "item_id": "6d25c2ac0e30c69e8685a93ab004ba83",
+          "episode": 8,
+          "season": 1,
+          "own_path_matches": 1,
+          "source_count": 3,
+          "source_id": "6d25c2ac0e30c69e8685a93ab004ba83",
+          "container": "mkv",
+          "streams_complete": true,
+          "tracks": [
+            {
+              "index": 1,
+              "type": "Audio",
+              "codec": "flac",
+              "language": "jpn",
+              "default": true,
+              "forced": false
+            },
+            {
+              "index": 2,
+              "type": "Subtitle",
+              "codec": "ass",
+              "language": "deu",
+              "default": true,
+              "forced": false
+            }
+          ]
+        },
+        {
+          "item_id": "ba84f7564a8f17bc32c2047cb1153640",
+          "episode": 8,
+          "season": 1,
+          "own_path_matches": 1,
+          "source_count": 1,
+          "source_id": "ba84f7564a8f17bc32c2047cb1153640",
+          "container": "mp4",
+          "streams_complete": true,
+          "tracks": [
+            {
+              "index": 1,
+              "type": "Audio",
+              "codec": "aac",
+              "language": "und",
+              "default": true,
+              "forced": false
+            }
+          ]
+        },
+        {
+          "item_id": "872dd974f80a30a6af6e5aa0e2fc238c",
+          "episode": 9,
+          "season": 1,
+          "own_path_matches": 1,
+          "source_count": 3,
+          "source_id": "872dd974f80a30a6af6e5aa0e2fc238c",
+          "container": "mkv",
+          "streams_complete": true,
+          "tracks": [
+            {
+              "index": 1,
+              "type": "Audio",
+              "codec": "flac",
+              "language": "jpn",
+              "default": true,
+              "forced": false
+            },
+            {
+              "index": 2,
+              "type": "Subtitle",
+              "codec": "ass",
+              "language": "deu",
+              "default": true,
+              "forced": false
+            }
+          ]
+        },
+        {
+          "item_id": "a4997d78863ba8013df4040bc30c43c2",
+          "episode": 10,
+          "season": 1,
+          "own_path_matches": 1,
+          "source_count": 3,
+          "source_id": "a4997d78863ba8013df4040bc30c43c2",
+          "container": "mkv",
+          "streams_complete": true,
+          "tracks": [
+            {
+              "index": 1,
+              "type": "Audio",
+              "codec": "flac",
+              "language": "jpn",
+              "default": true,
+              "forced": false
+            },
+            {
+              "index": 2,
+              "type": "Subtitle",
+              "codec": "ass",
+              "language": "deu",
+              "default": true,
+              "forced": false
+            }
+          ]
+        },
+        {
+          "item_id": "b1026435cec2a4d53ab97329e634551d",
+          "episode": 10,
+          "season": 1,
+          "own_path_matches": 1,
+          "source_count": 1,
+          "source_id": "b1026435cec2a4d53ab97329e634551d",
+          "container": "mkv",
+          "streams_complete": true,
+          "tracks": [
+            {
+              "index": 1,
+              "type": "Audio",
+              "codec": "vorbis",
+              "language": "jpn",
+              "default": true,
+              "forced": false
+            },
+            {
+              "index": 2,
+              "type": "Subtitle",
+              "codec": "ass",
+              "language": "deu",
+              "default": true,
+              "forced": false
+            }
+          ]
+        },
+        {
+          "item_id": "cb74b08d2a68c9db4f8fcf4dad6ce004",
+          "episode": 10,
+          "season": 1,
+          "own_path_matches": 1,
+          "source_count": 1,
+          "source_id": "cb74b08d2a68c9db4f8fcf4dad6ce004",
+          "container": "mp4",
+          "streams_complete": true,
+          "tracks": [
+            {
+              "index": 1,
+              "type": "Audio",
+              "codec": "aac",
+              "language": "und",
+              "default": true,
+              "forced": false
+            }
+          ]
+        },
+        {
+          "item_id": "d1d4bd9a4e614f93a1339475c8c3eb00",
+          "episode": 11,
+          "season": 1,
+          "own_path_matches": 1,
+          "source_count": 3,
+          "source_id": "d1d4bd9a4e614f93a1339475c8c3eb00",
+          "container": "mkv",
+          "streams_complete": true,
+          "tracks": [
+            {
+              "index": 1,
+              "type": "Audio",
+              "codec": "flac",
+              "language": "jpn",
+              "default": true,
+              "forced": false
+            },
+            {
+              "index": 2,
+              "type": "Subtitle",
+              "codec": "ass",
+              "language": "deu",
+              "default": true,
+              "forced": false
+            }
+          ]
+        },
+        {
+          "item_id": "76053216ff55d31f437c3f04cfeb4820",
+          "episode": 12,
+          "season": 1,
+          "own_path_matches": 1,
+          "source_count": 3,
+          "source_id": "76053216ff55d31f437c3f04cfeb4820",
+          "container": "mkv",
+          "streams_complete": true,
+          "tracks": [
+            {
+              "index": 1,
+              "type": "Audio",
+              "codec": "flac",
+              "language": "jpn",
+              "default": true,
+              "forced": false
+            },
+            {
+              "index": 2,
+              "type": "Subtitle",
+              "codec": "ass",
+              "language": "deu",
+              "default": true,
+              "forced": false
+            }
+          ]
+        },
+        {
+          "item_id": "83c409d6286b0de77496199430e0ac9e",
+          "episode": 12,
+          "season": 1,
+          "own_path_matches": 1,
+          "source_count": 1,
+          "source_id": "83c409d6286b0de77496199430e0ac9e",
+          "container": "mp4",
+          "streams_complete": true,
+          "tracks": [
+            {
+              "index": 1,
+              "type": "Audio",
+              "codec": "aac",
+              "language": "und",
+              "default": true,
+              "forced": false
+            }
+          ]
+        },
+        {
+          "item_id": "d82c77a5c1e9d93799da0240e9bd0b15",
+          "episode": 12,
+          "season": 1,
+          "own_path_matches": 1,
+          "source_count": 1,
+          "source_id": "d82c77a5c1e9d93799da0240e9bd0b15",
+          "container": "mkv",
+          "streams_complete": true,
+          "tracks": [
+            {
+              "index": 1,
+              "type": "Audio",
+              "codec": "vorbis",
+              "language": "jpn",
+              "default": true,
+              "forced": false
+            },
+            {
+              "index": 2,
+              "type": "Subtitle",
+              "codec": "ass",
+              "language": "deu",
+              "default": true,
+              "forced": false
+            }
+          ]
+        }
+      ],
+      "series_matches": 2,
+      "series_id": "68546f5d1871ad1c42d8d674376e83e6",
+      "matches_recorded_inventory": true
+    }
+  },
+  "buddy_paging": {
+    "ordered_equal": true,
+    "pages": 3,
+    "totals": [
+      13,
+      13,
+      13
+    ],
+    "unique_ids": 13
+  },
+  "groups": {
+    "direct": 1,
+    "descendants": 3
+  },
+  "manifest_provider": "persisted",
+  "public_technical": {
+    "container": "mkv",
+    "video_codec": "h264",
+    "audio_codec": "aac",
+    "audio_language": null,
+    "subtitle_type": null,
+    "subtitle_tracks": []
+  },
+  "requests": [
+    {
+      "label": "server-info",
+      "surface": "provider",
+      "status": 200,
+      "bytes_read": 40887,
+      "content_type": "application/json",
+      "body_sha256": "7f9bef75ebf316b9acf9ccebe1b823739e5ec67c92a112bb4a966f2e2d9f6c1a",
+      "elapsed_ms": 161
+    },
+    {
+      "label": "running-openapi",
+      "surface": "provider",
+      "status": 200,
+      "bytes_read": 1895990,
+      "content_type": "application/json",
+      "body_sha256": "cdef16618df86801230b5767ee42628fc5cf6c1c752aaf103ab652e05d25f672",
+      "elapsed_ms": 1901
+    },
+    {
+      "label": "search-Buddy Complex",
+      "surface": "provider",
+      "status": 200,
+      "bytes_read": 1905,
+      "content_type": "application/json",
+      "body_sha256": "2aa4b2538e93e4856ec3b5964e74678bae643292e19ba07259efb0b89d6a0f86",
+      "elapsed_ms": 871
+    },
+    {
+      "label": "episodes-Buddy Complex",
+      "surface": "provider",
+      "status": 200,
+      "bytes_read": 94068,
+      "content_type": "application/json",
+      "body_sha256": "34ae3a156cc3ce597e56a3c2d472dc546b46b4c0caf654bc0e8bef3cc789d07c",
+      "elapsed_ms": 783
+    },
+    {
+      "label": "search-11eyes",
+      "surface": "provider",
+      "status": 200,
+      "bytes_read": 3741,
+      "content_type": "application/json",
+      "body_sha256": "7bd9073e265445455efb11b4404fe86fc648f58802a5ad13bee271a3d132d036",
+      "elapsed_ms": 31
+    },
+    {
+      "label": "episodes-11eyes",
+      "surface": "provider",
+      "status": 200,
+      "bytes_read": 290538,
+      "content_type": "application/json",
+      "body_sha256": "9419837b2d4d36b412fde8b8e1ec6b6041e5ca8c2a344d55fb6c0af480e6039d",
+      "elapsed_ms": 1222
+    },
+    {
+      "label": "buddy-page-0",
+      "surface": "provider",
+      "status": 200,
+      "bytes_read": 39030,
+      "content_type": "application/json",
+      "body_sha256": "e741d59ac8743f494235bbd1cc5a17ab65ea842393469585d9d9da99c044f692",
+      "elapsed_ms": 11
+    },
+    {
+      "label": "buddy-page-5",
+      "surface": "provider",
+      "status": 200,
+      "bytes_read": 34934,
+      "content_type": "application/json",
+      "body_sha256": "96cb40a8deb7cb29b809983c89ac21be6b7f5ca50cabce9a302320be1145da7d",
+      "elapsed_ms": 8
+    },
+    {
+      "label": "buddy-page-10",
+      "surface": "provider",
+      "status": 200,
+      "bytes_read": 20201,
+      "content_type": "application/json",
+      "body_sha256": "53f04b3af22be3aabfa6ec5ba5532116208c698b307f9fa26d0c68e98e1f82a2",
+      "elapsed_ms": 6
+    },
+    {
+      "label": "exact-item-batch",
+      "surface": "provider",
+      "status": 200,
+      "bytes_read": 94068,
+      "content_type": "application/json",
+      "body_sha256": "34ae3a156cc3ce597e56a3c2d472dc546b46b4c0caf654bc0e8bef3cc789d07c",
+      "elapsed_ms": 20
+    },
+    {
+      "label": "provider-primary",
+      "surface": "provider",
+      "status": 200,
+      "bytes_read": 1743,
+      "content_type": "image/jpeg",
+      "body_sha256": "4cd53fea8f29d53918205a6ef223e70bb7763de1898b157c5bfa0cc5a6a54bff",
+      "elapsed_ms": 59
+    },
+    {
+      "label": "provider-logo",
+      "surface": "provider",
+      "status": 200,
+      "bytes_read": 3286,
+      "content_type": "image/png",
+      "body_sha256": "1cf924856cf966e45b677d73b2b2538f76d25fd89baaa51c12c84c6e540922fa",
+      "elapsed_ms": 34
+    },
+    {
+      "label": "provider-theme-videos",
+      "surface": "provider",
+      "status": 200,
+      "bytes_read": 93,
+      "content_type": "application/json",
+      "body_sha256": "62b5b9b62fcd1d4793b9848e0fcc970b329b4f1a8e49510c4cc123c0f1fa6227",
+      "elapsed_ms": 19
+    },
+    {
+      "label": "provider-video-range",
+      "surface": "provider",
+      "status": 206,
+      "bytes_read": 64,
+      "content_type": "video/x-matroska",
+      "body_sha256": "382592f3fd5a812070df8ba938b3c09fda031a8c5ef784774fce7582f23103cc",
+      "prefix_only": true,
+      "content_range": "bytes 0-63/536423925",
+      "elapsed_ms": 126
+    },
+    {
+      "label": "provider-subtitle",
+      "surface": "provider",
+      "status": 200,
+      "bytes_read": 46559,
+      "content_type": "text/x-ssa",
+      "body_sha256": "d9d2d37c2f7931182c9f821491b3568b4c67e78af24063229435ebe880c15a17",
+      "elapsed_ms": 5881
+    },
+    {
+      "label": "team4s-video-range",
+      "surface": "team4s",
+      "status": 206,
+      "bytes_read": 64,
+      "content_type": "video/x-matroska",
+      "body_sha256": "382592f3fd5a812070df8ba938b3c09fda031a8c5ef784774fce7582f23103cc",
+      "prefix_only": true,
+      "content_range": "bytes 0-63/536423925",
+      "elapsed_ms": 5
+    },
+    {
+      "label": "group-direct-roots",
+      "surface": "provider",
+      "status": 200,
+      "bytes_read": 845,
+      "content_type": "application/json",
+      "body_sha256": "6a2d696199e8fd3be6d84c312f61f306dd2918093703f658f82a4f354e3d31d8",
+      "elapsed_ms": 87
+    },
+    {
+      "label": "group-recursive-children",
+      "surface": "provider",
+      "status": 200,
+      "bytes_read": 2341,
+      "content_type": "application/json",
+      "body_sha256": "acac8ac73221fb350ca60fc1c0766a76ba5bb3e93fb7b2fccb7b59d7f6d64a6d",
+      "elapsed_ms": 28
+    },
+    {
+      "label": "team4s-baseline-0",
+      "surface": "team4s",
+      "status": 200,
+      "bytes_read": 832,
+      "content_type": "application/json",
+      "body_sha256": "dbc9e27bfb8fb701aab5281f1d2502473055f1c121a48ba6740546f37f0f4f4c",
+      "elapsed_ms": 11
+    },
+    {
+      "label": "team4s-baseline-1",
+      "surface": "team4s",
+      "status": 200,
+      "bytes_read": 77,
+      "content_type": "application/json",
+      "body_sha256": "b202ede3dabeca3b45a12383690e42000143f2e5da4b6950cf17907669051f56",
+      "elapsed_ms": 2643
+    },
+    {
+      "label": "team4s-baseline-2",
+      "surface": "team4s",
+      "status": 200,
+      "bytes_read": 3439,
+      "content_type": "application/json",
+      "body_sha256": "5536ff0568bd104360648f29e4310fe54130e968aba27c6347455be8c8e9de7a",
+      "elapsed_ms": 26
+    },
+    {
+      "label": "team4s-baseline-3",
+      "surface": "team4s",
+      "status": 200,
+      "bytes_read": 3286,
+      "content_type": "image/png",
+      "body_sha256": "1cf924856cf966e45b677d73b2b2538f76d25fd89baaa51c12c84c6e540922fa",
+      "elapsed_ms": 7
+    }
+  ],
+  "failures": [
+    "direct roots must have requested parent"
+  ],
+  "request_count": 22
+}

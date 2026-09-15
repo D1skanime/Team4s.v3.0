@@ -1,0 +1,42 @@
+{
+  "requested_parent": "0c02af44b121c99f7249e3e7d80401db",
+  "roots": [
+    {
+      "Id": "9790a9705f07c5a98c2930fe0392a4fa",
+      "ParentId": "901a071b2e995bc4dfedb395e852d90b",
+      "Type": "PhotoAlbum",
+      "Name": "25_11 eyes_strawhat-subs",
+      "CollectionType": null
+    }
+  ],
+  "libraries": [
+    {
+      "Id": "5f65d0c8bdd71b782fc98205814a0d76",
+      "ParentId": "e9d5075a555c1cbc394eec4cef295274",
+      "Type": "CollectionFolder",
+      "Name": "Fansubs",
+      "CollectionType": "tvshows"
+    },
+    {
+      "Id": "0c02af44b121c99f7249e3e7d80401db",
+      "ParentId": "e9d5075a555c1cbc394eec4cef295274",
+      "Type": "CollectionFolder",
+      "Name": "Groups",
+      "CollectionType": "homevideos"
+    },
+    {
+      "Id": "ac675b01e9e42eaeb6099b87f267ebb2",
+      "ParentId": "e9d5075a555c1cbc394eec4cef295274",
+      "Type": "CollectionFolder",
+      "Name": "Musikvideos",
+      "CollectionType": "musicvideos"
+    },
+    {
+      "Id": "1071671e7bffa0532e930debee501d2e",
+      "ParentId": "f27caa37e5142225cceded48f6553502",
+      "Type": "ManualPlaylistsFolder",
+      "Name": "Playlists",
+      "CollectionType": "playlists"
+    }
+  ]
+}

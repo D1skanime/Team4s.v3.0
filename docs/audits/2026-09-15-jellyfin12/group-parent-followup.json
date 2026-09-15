@@ -1,0 +1,23 @@
+{
+  "parent_items": [
+    {
+      "Id": "0c02af44b121c99f7249e3e7d80401db",
+      "ParentId": "e9d5075a555c1cbc394eec4cef295274",
+      "Type": "CollectionFolder",
+      "Name": "Groups"
+    },
+    {
+      "Id": "901a071b2e995bc4dfedb395e852d90b",
+      "ParentId": "f27caa37e5142225cceded48f6553502",
+      "Type": "Folder",
+      "Name": "Subgroups"
+    }
+  ],
+  "physical_children_ids": [
+    "9790a9705f07c5a98c2930fe0392a4fa"
+  ],
+  "library_children_ids": [
+    "9790a9705f07c5a98c2930fe0392a4fa"
+  ],
+  "same_direct_set": true
+}
