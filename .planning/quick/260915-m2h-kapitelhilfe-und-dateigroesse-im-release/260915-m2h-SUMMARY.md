@@ -30,7 +30,9 @@ duration: implementation, integration and live verification in the same session
 completed: 2026-09-15
 status: complete
 technical_status: passed
-human_uat: partial-admin-live-only
+human_uat: chapter-selection-approved
+human_uat_date: 2026-09-15
+human_uat_revision: 1f3573b0
 ---
 
 # Quick 260915-m2h Plan 01: Chapter choices and selected-file size Summary
@@ -154,7 +156,7 @@ Normal workspace discovery could not be verified: `/me/dashboard` displayed “D
 
 ## Self-Check: PASSED
 
-All 27 changed application/contract/test files exist. All six task commits and three root follow-up commits exist. Each functional task has RED before GREEN; the low-impact CSS correction has measured before/after browser evidence. No implementation or focused regression test remains pending. Live admin checks passed; the explicitly listed contributor/zoom/discoverability limitations and human sign-off remain open. No unauthorized product expansion, database/schema change or application-data mutation occurred.
+All 27 changed application/contract/test files exist. All six task commits and three root follow-up commits exist. Each functional task has RED before GREEN; the low-impact CSS correction has measured before/after browser evidence. No implementation or focused regression test remains pending. Live admin checks passed; the explicitly listed contributor/zoom/discoverability limitations remain open. The later user sign-off for chapter selection is recorded below. No unauthorized product expansion, database/schema change or application-data mutation occurred.
 
 ## Approved UAT follow-up: complete chapter intervals (2026-09-15)
 
@@ -167,3 +169,11 @@ Baseline `0c688981`. User reproduced Einspiel as an end at 00:00:00, then explic
 **Live:** On admin editor 43 / episode 7, choosing Einspiel produces **00:00:00–00:03:07**, both markers and the section remain visibly selected, and the zero-length error disappears. Choosing the last chapter Vorschau gives **00:23:45–00:24:00**. Manually changing End to 2:30 clears the section/end-marker selection while preserving the Start marker. Finally Einspiel was selected again for the user; the unsaved dialog remains open. No Save or application-data operation was performed. Widths 320/390/768/1440 yielded document scrollWidth 305/375/753/1440. Full-page screenshots were inspected inline. Viewport overrides reset. This is live admin-session evidence, not a new contributor or human sign-off; browser zoom was not exercised.
 
 **Files for this follow-up:** `SegmentBasicFieldsSection.tsx`, `SegmenteTab.test.tsx`, this quick's plan/summary and `chapter-range-checks.json`, `.planning/STATE.md`, `DECISIONS.md`. New request/SQL count: zero; all input is already present in the authorized context. No production/test application data, dependency, CSS registry, route, API contract or database schema was changed. No push.
+
+## Human-UAT sign-off — chapter selection (2026-09-15)
+
+The user explicitly replied **“approved”** after reviewing the implemented chapter-mark/whole-section behavior at `/admin/episode-versions/43/edit?tab=segmente`. Accepted implementation: `1f3573b0`.
+
+Accepted scope: distinguish a single chapter timestamp from a whole chapter interval; Einspiel sets 00:00:00–00:03:07; chosen labels remain visible; the final chapter may use a known runtime. This records acceptance of the presented feature, not evidence of additional browser checks or a saved segment.
+
+The existing contributor-session, browser-zoom and dashboard-discoverability verification limitations remain documented. No other phase or UAT status is closed by this approval, including Phase 161 live import/relink/rescan/playback checks. No application Save or Git push was performed. Documentation-only change; `git diff --check` is the relevant check and code suites are not repeated.
