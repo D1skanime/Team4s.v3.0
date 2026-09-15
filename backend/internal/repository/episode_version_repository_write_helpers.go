@@ -32,8 +32,10 @@ type episodeVersionWriteState struct {
 
 func loadEpisodeVersionStateForUpdate(ctx context.Context, tx pgx.Tx, versionID int64, lock bool) (*episodeVersionWriteState, error) {
 	state := episodeVersionWriteState{}
- lockClause := ""
- if lock { lockClause = " FOR UPDATE OF rv, rev, fr" }
+	lockClause := ""
+	if lock {
+		lockClause = " FOR UPDATE OF rv, rev, fr"
+	}
 	if err := tx.QueryRow(ctx, `
 		SELECT
 			rv.id,
@@ -428,21 +430,28 @@ func phase20ReleaseImportDeferred(action string, id int64) error {
 // Lock the source before any variant lock. Item bindings shared by another anime
 // cannot be attached to this anime, and the shared namespace helper rejects a
 // different nested source even if other versions happen to share the item.
-func prepareEpisodeVersionSource(ctx context.Context, tx pgx.Tx, animeID int64, provider, itemID string, url *string, snapshot *models.JellyfinSourceSnapshot) (int64,error) {
- id,err:=upsertStreamSourceSnapshot(ctx,tx,provider,itemID,url,snapshot)
- if err!=nil{return 0,err}
- var foreign bool
- if err=tx.QueryRow(ctx,`SELECT EXISTS(SELECT 1 FROM release_streams rs
+func prepareEpisodeVersionSource(ctx context.Context, tx pgx.Tx, animeID int64, provider, itemID string, url *string, snapshot *models.JellyfinSourceSnapshot) (int64, error) {
+	id, err := upsertStreamSourceSnapshot(ctx, tx, provider, itemID, url, snapshot)
+	if err != nil {
+		return 0, err
+	}
+	var foreign bool
+	if err = tx.QueryRow(ctx, `SELECT EXISTS(SELECT 1 FROM release_streams rs
  JOIN release_variants rv ON rv.id=rs.variant_id JOIN release_versions rev ON rev.id=rv.release_version_id
  JOIN fansub_releases fr ON fr.id=rev.release_id JOIN episodes e ON e.id=fr.episode_id
- WHERE rs.stream_source_id=$1 AND e.anime_id<>$2)`,id,animeID).Scan(&foreign);err!=nil{return 0,err}
- if foreign{return 0,ErrConflict};return id,nil
+ WHERE rs.stream_source_id=$1 AND e.anime_id<>$2)`, id, animeID).Scan(&foreign); err != nil {
+		return 0, err
+	}
+	if foreign {
+		return 0, ErrConflict
+	}
+	return id, nil
 }
 
-func applyEpisodeVersionSourceTechnicalFields(ctx context.Context,tx pgx.Tx,variantID int64,
- filename,container,videoCodec,audioCodec,quality *string,duration *int32) error {
- _,err:=tx.Exec(ctx,`UPDATE release_variants SET filename=$1,container=$2,video_codec=$3,audio_codec=$4,
+func applyEpisodeVersionSourceTechnicalFields(ctx context.Context, tx pgx.Tx, variantID int64,
+	filename, container, videoCodec, audioCodec, quality *string, duration *int32) error {
+	_, err := tx.Exec(ctx, `UPDATE release_variants SET filename=$1,container=$2,video_codec=$3,audio_codec=$4,
  resolution=$5,video_quality=$5,duration_seconds=$6,updated_at=NOW(),modified_at=NOW() WHERE id=$7`,
- filename,container,videoCodec,audioCodec,quality,duration,variantID)
- return err
+		filename, container, videoCodec, audioCodec, quality, duration, variantID)
+	return err
 }
