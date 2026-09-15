@@ -25,6 +25,7 @@ import { ReleaseVersionNotesTab } from "./ReleaseVersionNotesTab";
 import { useEpisodeNeighborNavigation } from "./useEpisodeNeighborNavigation";
 import { useEpisodeVersionEditor } from "./useEpisodeVersionEditor";
 import { SegmenteTab } from "./SegmenteTab";
+import { JellyfinEnrichmentNotice } from "./JellyfinEnrichmentNotice";
 import styles from "./EpisodeVersionEditor.module.css";
 import { Button } from "@/components/ui/Button";
 import { ReleaseVersionMetadataFields } from "./ReleaseVersionMetadataFields";
@@ -364,6 +365,9 @@ export function EpisodeVersionEditorPage() {
         ) : null}
         {editor.successMessage ? (
           <div className={styles.successBox}>{editor.successMessage}</div>
+        ) : null}
+        {editor.contextData?.jellyfin_enrichment_degraded ? (
+          <JellyfinEnrichmentNotice />
         ) : null}
 
         {editor.isLoading ? (

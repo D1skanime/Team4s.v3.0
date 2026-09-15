@@ -297,6 +297,42 @@ describe("EpisodeVersionEditorPage media tab", () => {
     ).not.toBeNull();
   });
 
+  it("shows the Jellyfin degraded notice when jellyfin_enrichment_degraded is true", async () => {
+    mockPlatformAdminScope();
+    const degradedState = makeEditorState();
+    useEpisodeVersionEditorMock.mockReturnValue({
+      ...degradedState,
+      contextData: {
+        ...degradedState.contextData,
+        jellyfin_enrichment_degraded: true,
+      },
+    });
+    useReleaseVersionMediaMock.mockReturnValue(makeMediaState());
+
+    render(<EpisodeVersionEditorPage />);
+
+    expect(
+      await screen.findByText(
+        "Jellyfin ist gerade nicht erreichbar. Ordnerpfad und Laufzeit können fehlen.",
+      ),
+    ).not.toBeNull();
+  });
+
+  it("does not show the Jellyfin degraded notice when jellyfin_enrichment_degraded is absent", async () => {
+    mockPlatformAdminScope();
+    useEpisodeVersionEditorMock.mockReturnValue(makeEditorState());
+    useReleaseVersionMediaMock.mockReturnValue(makeMediaState());
+
+    render(<EpisodeVersionEditorPage />);
+    await screen.findByRole("button", { name: "Informationen" });
+
+    expect(
+      screen.queryByText(
+        "Jellyfin ist gerade nicht erreichbar. Ordnerpfad und Laufzeit können fehlen.",
+      ),
+    ).toBeNull();
+  });
+
   it("loads release capabilities when only a refresh session is present", async () => {
     getAuthSessionSnapshotMock.mockReturnValue({
       hasAccessToken: false,

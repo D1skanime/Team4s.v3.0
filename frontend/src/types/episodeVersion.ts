@@ -68,6 +68,12 @@ export interface EpisodeVersionEditorContext {
   selected_groups: FansubGroupSummary[]
   /** At most four anchors per selected group, matching anime and version label. */
   date_neighbors: EpisodeVersionDateNeighbor[]
+  /**
+   * True only when a configured Jellyfin connection was attempted while resolving the
+   * anime folder path and failed (401/403/5xx/timeout/network error); anime_folder_path
+   * still falls back to the anime source's stored folder_name in that case.
+   */
+  jellyfin_enrichment_degraded?: boolean
 }
 
 export interface EpisodeVersionEditorContextResponse {
