@@ -6,14 +6,14 @@ wave_0_complete: true
 independent_verification: passed
 independent_score: 16/16
 gsd_verification_status: human_needed
-human_uat: pending
+human_uat: partial
 backend_validated_revision: 64340e93cd30ab19295da74fa32d62fc52af1a45
 frontend_validated_revision: 3e4109010268f5dced7c3deb40d4216d238d8cc2
 public_boundary_validated_revision: 718ebf5757693876ec6093f715328298cb6990a9
 ---
 # Phase 161 Validation
 
-All required implementation gates executed on the canonical Linux checkout using the existing Compose containers. Phase scope is technically covered; independent verification passed 16/16 with no gaps; human UAT is not signed off. Global failures are compared to the original baseline, not hidden.
+All required implementation gates executed on the canonical Linux checkout using the existing Compose containers. Phase scope is technically covered; independent verification passed 16/16 with no gaps; human UAT is partially signed off for the Release-27 metadata case; see 161-HUMAN-UAT.md. The remaining live checks are still open. Global failures are compared to the original baseline, not hidden.
 
 ## Required gate results
 
@@ -57,4 +57,4 @@ DB tests require TEAM4S_PHASE117_TEST_DSN targeting team4s_phase117_test_161, bu
 
 ## Limits and independent follow-up
 
-No live import/relink/rescan, no automatic all 38-file import, no restoration of old missing snapshots, no human-UAT sign-off. The cold subtitle timeout remains recorded. Source drift is covered; preexisting queued-window/profile drift is not. Browser active-session proof and automated refresh-only-session proof are distinct. Filesize/chapter work is a separate follow-up. [Independent 161-VERIFICATION.md](161-VERIFICATION.md) was written by a verifier who did not implement Phase 161. V161-01 (editor reconciliation) and V161-02 (public selector) are independently closed after their RED/GREEN corrections. Final score: 16/16, technical_status passed, gaps empty; human_needed preserves only the stated live checks. Existing human sign-offs for 156/157 remain valid; open anime UAT for 158/159 remains unchanged.
+No live import/relink/rescan, no automatic all 38-file import, no restoration of old missing snapshots, no blanket phase-wide human-UAT sign-off. Release-27 user acceptance was recorded separately after these technical gates in 161-HUMAN-UAT.md. The cold subtitle timeout remains recorded. Source drift is covered; preexisting queued-window/profile drift is not. Browser active-session proof and automated refresh-only-session proof are distinct. Filesize/chapter work is a separate follow-up. [Independent 161-VERIFICATION.md](161-VERIFICATION.md) was written by a verifier who did not implement Phase 161. V161-01 (editor reconciliation) and V161-02 (public selector) are independently closed after their RED/GREEN corrections. Final score: 16/16, technical_status passed, gaps empty; human_needed preserves only the stated live checks. Existing human sign-offs for 156/157 remain valid; open anime UAT for 158/159 remains unchanged.

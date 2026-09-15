@@ -3,8 +3,8 @@ gsd_state_version: 1.0
 milestone: v1.4
 milestone_name: Coverage
 status: verifying
-stopped_at: "Quick 260915-m2h chapter selection approved by user; other verification limits and Phase 161 human checks unchanged"
-last_updated: "2026-09-15T17:30:11Z"
+stopped_at: "Phase 161 Release-27 metadata UAT accepted by user; other live checks remain open"
+last_updated: "2026-09-15T17:39:24Z"
 last_activity: 2026-09-15
 progress:
   total_phases: 24
@@ -21,6 +21,8 @@ progress:
 Jellyfin-Kapitel der eindeutig zugeordneten gespeicherten Datei lassen sich bei neuen Segmenten ausdrücklich als Start/Ende übernehmen; Originalzeit mit Millisekunden, Übernahme gerundet auf ganze Sekunden. Dateigröße kommt aus der gewählten MediaSource. Admin-Editor und persönlicher Release-Workspace sind angebunden, ohne neue SQL-Abfragen oder zusätzliche Requests beim Auswählen. 228 unterschiedliche Frontendtests und 254 Go-Testfälle einschließlich Untertests bestanden; Build/Vet Go bestanden. Nur bekannte globale Typ-/Lint-/Frontend-Buildfehler bleiben. Live mit Admin-Sitzung: Editor 28/43, Workspace 28, 320/390/768/1440px ohne Rootoverflow, Auswählen und Abbrechen ohne Datenänderung. Contributor-Liveprüfung, Browserzoom und reguläre Dashboard-Navigation bleiben eingeschränkt/offen; Kapitel-Auswahl gesondert vom Nutzer abgenommen (siehe unten). Details: quick/260915-m2h-kapitelhilfe-und-dateigroesse-im-release/260915-m2h-SUMMARY.md. Codeabschluss 2cee78c9; kein Push. Bestätigter UAT-Nachtrag: ganze Kapitelabschnitte sowie einzelne Marken getrennt übernehmen; Einspiel ergibt 00:00:00–00:03:07, Auswahl bleibt sichtbar. 167 gezielte Frontend-/Auth-Tests bestanden, Live 320/390/768/1440px geprüft; keine Speicherung. Nutzerabnahme am 15.09.2026 ausdrücklich „approved“ für Kapitelmarken-/Kapitelabschnitt-Auswahl auf Stand 1f3573b0; keine Abnahme anderer offener Prüfungen.
 
 ## Aktiver Auftrag — Phase 161: Jellyfin 12 technisch abgeschlossen (15.09.2026)
+
+**Nutzerabnahme 15.09.2026:** Release-27-Metadaten-/Anzeige-UAT ausdrücklich „uat abgenommen“. Öffentliche API zuvor gelesen: MKV, H.264, AC3/ja, deutsche ASS-Standardspur, Softsub. Teilabnahme dokumentiert in `phases/161-jellyfin-12-kompatibilitaet-und-mediasource-import/161-HUMAN-UAT.md`; kein pauschaler Abschluss von Import-/Relink-, Library-Rescan- oder Kaltstart-/Segmentwiedergabeprüfungen.
 
 Ausgangscommit b3b07ff0; 9/9 Plans, 25 Tasks und 6/6 Anforderungen technisch abgeschlossen. Unabhängige Verifikation: 16/16 Ziele, technical_status passed, gaps leer. Zwei echte Reviewbefunde wurden mit RED/GREEN geschlossen: Formular übernimmt bestätigte Sourcewerte ohne spätere Entwürfe zu verlieren (3e410901); öffentliche Einzelversion gibt den internen Source-Selector nicht aus (718ebf57). GSD-Status human_needed betrifft ausdrücklich nicht ausgeführte Live-Import-/Relink-/Rescan-/Wiedergabeprüfungen, keine verbleibende Implementierungslücke.
 
@@ -1640,9 +1642,9 @@ untruncated list lives in `.planning/todos/pending/`.
 
 ## Session Continuity
 
-Last session: 2026-09-15T17:30:11Z
-Stopped at: User approved chapter selection at 1f3573b0; other quick verification limits and Phase 161 human checks preserved.
-Last activity: Recorded explicit user approval of chapter-mark/whole-section selection; documentation only, no application save or push, other phase UAT states preserved.
+Last session: 2026-09-15T17:39:24Z
+Stopped at: User accepted Phase-161 Release-27 metadata UAT; remaining live checks and all other phase states preserved.
+Last activity: Recorded explicit Release-27 user UAT acceptance as partial Phase-161 sign-off; documentation only, no application save or push.
 Resume file: 
 None
 

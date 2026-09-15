@@ -171,6 +171,8 @@ D01–D05: vollständige Caller-/API-/GetItemsprüfung und Sourceauswahl. D06–
 
 ## Noch menschlich bzw. live zu bestätigen
 
+**Koordinator-Nachtrag 15.09.2026:** Der Nutzer hat den besprochenen Release-27-Metadaten-/Anzeige-Fall mit „uat abgenommen“ bestätigt. Maßgeblich für diese spätere Teilabnahme ist [161-HUMAN-UAT.md](161-HUMAN-UAT.md). Die nachstehende ursprüngliche Verifikationsliste bleibt als Prüfgrenze erhalten; ein tatsächlicher Import/Relink, Library-Rescan oder kalter Playbacktest wird dadurch nicht als beobachtet ausgegeben.
+
 1. Nach technischem Abschluss: Einen ausdrücklich autorisierten echten Import oder Relink über den vorhandenen sichtbaren Adminflow durchführen und anschließend Publicdetails sowie Wiedergabe derselben Datei beurteilen. Isolierte DBtests ersetzen keine Behauptung eines bereits erfolgten Liveimports; derzeitige Altzeilen haben bewusst keinen neuen Snapshot erhalten.
 2. Reale Rescan-Stabilität wurde nicht durch einen Library-Rescan getestet. Automatisiert sind Reorder, gespeicherteID, eindeutigePfad-Recovery und Verlust/Mehrdeutigkeit abgedeckt. Wenn ID und Pfad zugleich verloren sind, wird explizit abgebrochen.
 3. Erster kalter Subtitle-Request hatte einen Timeout; der warme Nachlauf200 ist kein Beweis gegen jedes Kaltstartproblem. Untertitel und Segmentwiedergabe visuell/akustisch am gewünschten echten Release prüfen, wenn entsprechende Aktionen autorisiert werden.
