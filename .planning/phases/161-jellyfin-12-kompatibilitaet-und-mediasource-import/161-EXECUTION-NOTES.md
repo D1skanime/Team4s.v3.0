@@ -30,7 +30,7 @@ Unknown audio language displays Japanisch only in the existing UI field. Known a
 
 ## Progress
 
-Plans01–06 are complete; Plan07 is active, owned by jellyfin161_execute07. Root owns bookkeeping and Plan09 preparation. Finish07, then08, integrated09 gates and independent verification. No push or Human-UAT sign-off. Current verified summaries are authoritative; STATE/ROADMAP track6/9.
+Plans01–07 are complete; Plan08 is active. execute04 owns08 backend Tasks1/3; root owns Task2 frontend and bookkeeping/09 preparation. Finish08, then integrated09 gates and independent verification. No push or Human-UAT sign-off. STATE/ROADMAP track7/9.
 ## Plan 02 verification completed
 
 Implementation a72737f4; coordinator repeated expanded source/JSON tests with dedicated DB DSN: 174 pass, zero fail/skip. Summary and machine-readable plan02-checks.json record exact limits. The earlier runtime-restart inference is corrected below.
@@ -62,3 +62,7 @@ Root implemented Task3 frontend hook/tests and one fallback-helper line while th
 ## Plan08 selected-record extension
 
 Plan07 Task1 implements the shared six-field playback record (variant/duration/provider/item/URL/binding), commit2e103444. Root and executor agreed08 must extend this same SQL/record with public technical scalars, rather than read them later in another unlocked statement. Otherwise a concurrent relink can combine different row snapshots.08file ownership now explicitly includes release_variant_source_repository.go; no extra table, selection seam or transaction is introduced.
+
+## Plan08 same-plan ownership split
+
+After07 application commit5f247e0b and zero-skip focused gates, summary80b9a690 closes07. execute04 implements08 backend Tasks1/3; root implements the isolated Task2 public audio display and tests. Shared application plans remain sequential. The user has signed in for final read-only protected browser verification.

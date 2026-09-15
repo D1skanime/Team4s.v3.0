@@ -1915,7 +1915,7 @@ Plans:
 - [x] 161-04 — Import-/Editorverträge und Frontend-Übertragung
 - [x] 161-05 — Import serverseitig prüfen und atomar speichern
 - [x] 161-06 — Technische Metadaten bei Bearbeitung und Relink erhalten
-- [ ] 161-07 — Quellenidentität in Playback, Untertiteln und Rendercache
+- [x] 161-07 — Quellenidentität in Playback, Untertiteln und Rendercache
 - [ ] 161-08 — Öffentliche Metadaten aus derselben Quelle projizieren
 - [ ] 161-09 — Integrierte Verifikation, Live-Belege und Abschlussbericht
 **Source:** `.planning/phases/161-jellyfin-12-kompatibilitaet-und-mediasource-import/161-USER-REQUEST.md`
