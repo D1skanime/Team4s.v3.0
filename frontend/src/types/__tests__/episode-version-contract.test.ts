@@ -1,7 +1,7 @@
 import { readFileSync } from 'node:fs'
 import { describe, expect, expectTypeOf, it } from 'vitest'
 import { getGroupedEpisodes } from '@/lib/api'
-import type { GroupedEpisodesResponse, PublicGroupedEpisodesResponse, PublicEpisodeVersion } from '../episodeVersion'
+import type { GroupedEpisodesResponse, PublicGroupedEpisodesResponse, PublicEpisodeVersion, EpisodeVersionChapterHint, EpisodeVersionEditorContext } from '../episodeVersion'
 
 const openapi = readFileSync(new URL('../../../../shared/contracts/openapi.yaml', import.meta.url), 'utf8').replace(/\r\n/g, '\n')
 const schema = (name: string) => openapi.split(`    ${name}:\n`)[1]?.split(/\n    \w+:/)[0] ?? ''
@@ -28,5 +28,19 @@ describe('episode version public/full contract', () => {
     expect(schema('PublicEpisodeVersion')).not.toContain('        media_provider:')
     expect(schema('PublicEpisodeVersion')).not.toContain('        segment_count:')
     expect(schema('GroupedEpisode').split('      properties:')[0]).not.toContain('- default_version_id')
+  })
+})
+
+
+describe('selected-file chapter display contract', () => {
+  it('documents bounded nullable hints and explicit millisecond adoption', () => {
+    expectTypeOf<EpisodeVersionChapterHint>().toEqualTypeOf<{ name: string | null; start_ms: number }>()
+    expectTypeOf<EpisodeVersionEditorContext>().toHaveProperty('selected_file')
+    expect(schema('EpisodeVersionEditorContext')).toContain('        selected_file:')
+    expect(schema('EpisodeVersionEditorContext')).toContain('Contributor allowlist')
+    expect(schema('EpisodeVersionMediaFile')).toContain('maxItems: 256')
+    expect(schema('EpisodeVersionMediaFile')).toContain('Omitted means not requested')
+    expect(schema('EpisodeVersionChapterHint')).toContain('required: [name, start_ms]')
+    expect(schema('EpisodeVersionChapterHint')).toContain('Math.round(start_ms / 1000)')
   })
 })

@@ -1,7 +1,7 @@
 // @vitest-environment jsdom
 
 import { afterEach, describe, expect, it, vi } from 'vitest'
-import { ApiError, clearAuthSession, getGroupedEpisodes, persistAuthSession } from './api'
+import { ApiError, clearAuthSession, getGroupedEpisodes, getEpisodeVersionEditorContext, persistAuthSession } from './api'
 
 const { refreshKeycloakToken } = vi.hoisted(() => ({ refreshKeycloakToken: vi.fn() }))
 vi.mock('@/lib/keycloakAuth', () => ({ isKeycloakEnabled: () => true, refreshKeycloakToken, logoutFromKeycloak: vi.fn() }))
@@ -63,5 +63,24 @@ describe('grouped episode API projections', () => {
     const request = getGroupedEpisodes(1, { projection: 'public', limit: 101 })
     await expect(request).rejects.toBeInstanceOf(ApiError)
     await expect(request).rejects.toMatchObject({ status: 400, message: 'ungültige Episodenoptionen' })
+  })
+})
+
+
+describe('editor selected-file metadata through central refresh seam', () => {
+  afterEach(() => { clearAuthSession({ broadcast: false }); vi.unstubAllGlobals() })
+
+  it.each(['missing', 'expired'] as const)('keeps safe chapter null/empty values with %s access token', async (state) => {
+    const now = Math.floor(Date.now() / 1000)
+    persistAuthSession({ token_type: 'Bearer', access_token: state === 'missing' ? '' : 'expired', access_token_expires_at: now - 100, access_token_expires_in: state === 'missing' ? 0 : 300, refresh_token: 'valid-refresh', refresh_token_expires_at: now + 7200, refresh_token_expires_in: 7200, user_id: 7, display_name: 'Fixture' })
+    refreshKeycloakToken.mockResolvedValue({ accessToken: 'fresh-access', accessTokenExpiresAt: now + 3600, accessTokenExpiresIn: 3600, refreshToken: 'new-refresh', refreshTokenExpiresAt: now + 7200, refreshTokenExpiresIn: 7200, tokenType: 'Bearer' })
+    const payload = { data: { version: { id: 28 }, selected_file: { file_name: 'a.mkv', path: '', media_item_id: '', file_size_bytes: 111, chapter_hints: state === 'missing' ? null : [] } } }
+    const fetchMock = vi.fn().mockResolvedValueOnce(response({ data: { app_user_id: 7, legacy_user_id: 7, display_name: 'Fixture', email: 'fixture@example.invalid', keycloak_subject: 'fixture-7', status: 'active', global_roles: [], is_platform_admin: false, session_id: 'fixture-session' } })).mockResolvedValueOnce(response(payload))
+    vi.stubGlobal('fetch', fetchMock)
+    await expect(getEpisodeVersionEditorContext(28)).resolves.toEqual(payload)
+    expect(refreshKeycloakToken).toHaveBeenLastCalledWith('valid-refresh')
+    expect(fetchMock).toHaveBeenCalledTimes(2)
+    expect(fetchMock.mock.calls[1][0]).toMatch(/episode-versions\/28\/editor-context$/)
+    expect(fetchMock.mock.calls[1][1].headers.Authorization).toBe('Bearer fresh-access')
   })
 })
