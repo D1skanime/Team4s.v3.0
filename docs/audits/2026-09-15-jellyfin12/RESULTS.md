@@ -1,6 +1,6 @@
 # Jellyfin-12 Compatibility Result
 
-**Arbeitsstand, noch kein Phasenabschluss:** Plans 161-01 bis 161-05 technisch verifiziert. Editor, Playback, öffentliche Projektion und abschließende Gesamtprüfung folgen. Ausgangscommit `b3b07ff0`; kanonisches Repository `/home/d1sk/team4s`, Branch `main`. Alle Belege in diesem Verzeichnis sind bereinigt; Quellpfade, Header und echte Zugangsdaten gehören nicht in diesen Bericht.
+**Arbeitsstand, noch kein Phasenabschluss:** Plans 161-01 bis 161-06 technisch verifiziert. Playback, öffentliche Projektion und abschließende Gesamtprüfung folgen. Ausgangscommit `b3b07ff0`; kanonisches Repository `/home/d1sk/team4s`, Branch `main`. Alle Belege in diesem Verzeichnis sind bereinigt; Quellpfade, Header und echte Zugangsdaten gehören nicht in diesen Bericht.
 
 ## Auth
 
@@ -74,7 +74,7 @@ Die bestätigte Produktentscheidung D-16 lautet: **Japanisch als Anzeigestandard
 | Ein Importgraph nach Wiederholung | bisherige Graphlogik | weiterhin je 1 kanonische Graphzeile | echte Transaktion/11 Tabellencounts/7 Rollbackfälle |
 | Binäre Proxy-/Subtitleoperation | ein Upstreamaufruf | weiterhin ein erfolgreicher Upstreamaufruf | Request-Capture/Range-/Grant-Tests |
 
-Revalidierung erhöht die Apply-Kosten bewusst um begrenzte Batches. Keine HTTP-Abfrage pro Source oder Spur. Die Zahl aller SQL-Statements der vollständigen Importtransaktion wird nicht als gemessen ausgegeben. Editor-/Playback-/Publicbudgets folgen nach deren Implementierung.
+Revalidierung erhöht die Apply-Kosten bewusst um begrenzte Batches. Keine HTTP-Abfrage pro Source oder Spur. Die Zahl aller SQL-Statements der vollständigen Importtransaktion wird nicht als gemessen ausgegeben. Editor: normale und redundante Same-binding-Saves0Providerabrufe; expliziter Relink1exakter Itemabruf. GetByID ergänzt für Jellyfin1Binding-Abfrage. Folder-Scan1Kontextabfrage+1Collectionabruf und1Binding-Batch im kontrollierten Test; keine Aufrufe pro Item. Playback-/Publicbudgets folgen nach deren Implementierung.
 
 ## Tests und verbleibende Schritte
 
@@ -85,3 +85,7 @@ Die abschließenden fokussierten und breiten Gates, Produktionsbuild, Browserpr�
 Keine Live-Imports, Backfills, Relinks, Library-Scans, DB-Resets oder Migrationen durchgeführt. Vorhandene fehlende Metadaten werden durch reine Leseaufrufe nicht repariert. Docker Air kann beim Synchronisieren geänderter Go-Dateien den laufenden Backendprozess neu bauen/starten; ein unveränderter Runtimezustand wird nicht behauptet. Menschliche UAT bleibt eine separate Abnahme.
 
 Zusätzlicher Read-only-Abgleich des ursprünglich gemeldeten Releases 48 vor Plan08: API200, Container bereits `mkv`, Audio-Sprache null, Untertitelspuren leer. Der damalige fehlende Container ist an diesem aktuellen Datensatz nicht mehr reproduzierbar; der generische Writerfehler wurde unabhängig mit echten DB-Fixtures reproduziert. `release48-pre-projection.json` hält diesen Unterschied fest; der finale Verifier prüft beide gemeldeten Releases40/48.
+
+Live-Zusatzbeweis `11eyes-source-streams.json`: Dasselbe Episode-1-Item liefert mit eigener Source-ID HTTP206/video-x-matroska, mit alternativer Source-ID HTTP206/video-mp4. Jeweils64Bytes gelesen; verschiedene Prefix-Hashes und Dateigrößen (2.423.118.467 gegenüber257.305.877Bytes). Damit ist die reale MediaSourceId-Wirkung belegt; es wurde weder eine Episode noch ein Clip importiert oder gerendert. Der finale Verifier wiederholt diese beiden begrenzten Requests.
+
+Plan06-Abschluss: Der Titel-zu-Dateiname/Container-Schreibpfad ist entfernt. Explizite Relinks schreiben vollständig verifizierte technische Daten atomar, Metadata-only-Saves kontaktieren Jellyfin nicht. Hook/Scan übertragen die geprüfte Quelle und verhindern implizite Bindung durch bloßes Scannen oder verspätete Antworten.99 unterschiedliche Frontendtests bestanden; fokussierte echte DB-/Handlergates ohne Pflicht-Skips. Zwischenlauf1972Passereignisse/277breiteSkips und exakt50bekannte Fehlerüberschriften (`backend-after06.json`). Abschließende kohärente Gates stehen weiterhin aus.

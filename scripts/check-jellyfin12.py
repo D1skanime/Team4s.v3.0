@@ -142,6 +142,39 @@ def inventory(payload):
             'bindings': bindings}
 
 
+def probe_source_contrast(probe, items):
+    """Read two bounded prefixes for the user's same-item multi-source case."""
+    for item in items:
+        if item.get('IndexNumber') != 1 or item.get('ParentIndexNumber') != 1:
+            continue
+        sources = item.get('MediaSources', [])
+        own = [source for source in sources if path_identity(item.get('Path')) and
+               path_identity(source.get('Path')) == path_identity(item.get('Path'))]
+        if len(own) != 1:
+            continue
+        other = next((source for source in sources if source.get('Container') and
+                      source.get('Container') != own[0].get('Container')), None)
+        if other is None:
+            continue
+        iid = item_id(item['Id'])
+        result = {'item_id': iid, 'sources': []}
+        records = []
+        for label, source in [('own', own[0]), ('alternative', other)]:
+            sid = item_id(source['Id'])
+            probe.get('11eyes-episode1-' + label + '-range', '/Videos/' + iid + '/stream',
+                      {'static': 'true', 'MediaSourceId': sid}, binary=True, prefix=64, expected=(206,))
+            record = probe.requests[-1]
+            records.append(record)
+            result['sources'].append({'source_id': sid, 'container': source.get('Container'),
+                                      'request_label': record['label']})
+        result['different_prefixes'] = all(record.get('status') == 206 and record.get('bytes_read') == 64
+                                           for record in records) and records[0].get('body_sha256') != records[1].get('body_sha256')
+        probe.require('11eyes source selector must deliver distinct MKV/MP4 file prefixes', result['different_prefixes'])
+        return result
+    probe.require('11eyes Episode1 contrasting-source sample is available', False)
+    return None
+
+
 def run(probe):
     baseline = json.loads((EVIDENCE / 'discovery-live.json').read_text())
     api_baseline = json.loads((EVIDENCE / 'openapi-used-endpoints.json').read_text())
@@ -190,6 +223,7 @@ def run(probe):
                 observed['items'] == old['items'], observed['unique_sources'] == old['unique_sources'],
                 observed['non_item_sources'] == old['nested_sources_absent_as_items']])
             probe.require('11eyes: recorded inventory changed; investigate before comparing', observed['matches_recorded_inventory'])
+            report['11eyes_source_streams'] = probe_source_contrast(probe, (episodes or {}).get('Items', []))
         else:
             buddy_items, buddy_id = (episodes or {}).get('Items', []), series_id
     if buddy_id and buddy_items:

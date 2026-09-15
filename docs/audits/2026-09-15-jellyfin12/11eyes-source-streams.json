@@ -1,0 +1,53 @@
+{
+  "scope": "Provider-only GET verification; no import/render/job or application rows changed",
+  "source_contrast": {
+    "item_id": "0a927ea6b67379b9f19850464a6b0ab1",
+    "sources": [
+      {
+        "source_id": "0a927ea6b67379b9f19850464a6b0ab1",
+        "container": "mkv",
+        "request_label": "11eyes-episode1-own-range"
+      },
+      {
+        "source_id": "784bcddf47e35fb4d0ba911903002f17",
+        "container": "mp4",
+        "request_label": "11eyes-episode1-alternative-range"
+      }
+    ],
+    "different_prefixes": true
+  },
+  "requests": [
+    {
+      "label": "exact-11eyes-episode1",
+      "surface": "provider",
+      "status": 200,
+      "bytes_read": 15912,
+      "content_type": "application/json",
+      "body_sha256": "385828671fd8db7be8d5aaf980789cae9883c8029b0e358222654c7c4fda18b2",
+      "elapsed_ms": 166
+    },
+    {
+      "label": "11eyes-episode1-own-range",
+      "surface": "provider",
+      "status": 206,
+      "bytes_read": 64,
+      "content_type": "video/x-matroska",
+      "body_sha256": "5b608faed166968f14f6cd7d794a15c43b9bc5b7ec9e6237426f330674cf12e9",
+      "prefix_only": true,
+      "content_range": "bytes 0-63/2423118467",
+      "elapsed_ms": 76
+    },
+    {
+      "label": "11eyes-episode1-alternative-range",
+      "surface": "provider",
+      "status": 206,
+      "bytes_read": 64,
+      "content_type": "video/mp4",
+      "body_sha256": "ebdd4f3a4c8255e6c66d2f0b08e7404a08f32b519f4155b3b11158747689f4c7",
+      "prefix_only": true,
+      "content_range": "bytes 0-63/257305877",
+      "elapsed_ms": 72
+    }
+  ],
+  "failures": []
+}
