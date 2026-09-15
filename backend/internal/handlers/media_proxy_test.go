@@ -523,3 +523,20 @@ func TestStreamAssetHeaderAuthPreservesAccessRangeAndStatuses(t *testing.T) {
 		})
 	}
 }
+
+func TestMediaProxyRejectsCredentialBearingOrMalformedForeignJellyfinFallback(t *testing.T) {
+	h := &FansubHandler{jellyfinBaseURL: "https://configured.test", jellyfinAPIKey: "media-key"}
+	for _, target := range []string{"https://foreign.test/stream?api_key=media-key", "http://[media-key", "https://foreign.test/stream?custom=media-key"} {
+		req, err := h.newProviderRequest(context.Background(), "jellyfin", target)
+		if err == nil || req != nil {
+			t.Fatal("unsafe foreign fallback accepted")
+		}
+		if strings.Contains(err.Error(), "media-key") {
+			t.Fatal("fallback constructor leaked key")
+		}
+	}
+	req, err := h.newProviderRequest(context.Background(), "jellyfin", "https://foreign.test/stream?custom=kept")
+	if err != nil || req.Header.Get("Authorization") != "" {
+		t.Fatal("credential-free foreign fallback changed")
+	}
+}

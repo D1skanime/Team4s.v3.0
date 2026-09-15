@@ -223,10 +223,25 @@ func buildJellyfinStreamURL(baseURL, pathTemplate, apiKey, itemID string) (strin
 
 // newProviderRequest retains uncredentialed foreign fallbacks and existing Emby transport.
 func (h *FansubHandler) newProviderRequest(ctx context.Context, provider, targetURL string) (*http.Request, error) {
-	if strings.EqualFold(strings.TrimSpace(provider), "jellyfin") && jellyfin.IsConfiguredOrigin(targetURL, h.jellyfinBaseURL) {
+	isJellyfin := strings.EqualFold(strings.TrimSpace(provider), "jellyfin")
+	if isJellyfin && jellyfin.IsConfiguredOrigin(targetURL, h.jellyfinBaseURL) {
 		return jellyfin.NewRequest(ctx, http.MethodGet, targetURL, h.jellyfinBaseURL, h.jellyfinAPIKey)
 	}
-	return http.NewRequestWithContext(ctx, http.MethodGet, targetURL, nil)
+	if isJellyfin {
+		key := strings.TrimSpace(h.jellyfinAPIKey)
+		if key != "" {
+			for _, value := range []string{key, url.QueryEscape(key), url.PathEscape(key)} {
+				if strings.Contains(targetURL, value) {
+					return nil, fmt.Errorf("jellyfin credential-bearing fallback rejected")
+				}
+			}
+		}
+	}
+	req, err := http.NewRequestWithContext(ctx, http.MethodGet, targetURL, nil)
+	if err != nil && isJellyfin {
+		return nil, fmt.Errorf("invalid jellyfin fallback request")
+	}
+	return req, err
 }
 
 func (h *FansubHandler) doProviderRequest(provider string, req *http.Request) (*http.Response, error) {
