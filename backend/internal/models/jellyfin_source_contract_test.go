@@ -181,10 +181,13 @@ func TestJellyfinSourceContractSchemas(t *testing.T) {
 		})
 	}
 	candidate := jellyfinContractObject(t, canonical, "components", "schemas", "EpisodeImportMediaCandidate", "properties")
-	for _, field := range []string{"selected_audio_index", "audio_tracks", "subtitle_tracks"} {
+	for _, field := range []string{"media_source_id", "selected_audio_index", "audio_tracks", "subtitle_tracks"} {
 		if jellyfinContractObject(t, candidate, field)["nullable"] != true {
 			t.Errorf("%s must allow incomplete null", field)
 		}
+	}
+	if jellyfinContractObject(t, canonical, "components", "schemas", "EpisodeImportMappingRow", "properties", "media_source_id")["nullable"] != true {
+		t.Error("unresolved mapping source must remain nullable")
 	}
 	for _, track := range []string{"JellyfinAudioTrack", "JellyfinSubtitleTrack"} {
 		props := jellyfinContractObject(t, canonical, "components", "schemas", track, "properties")
