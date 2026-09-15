@@ -73,13 +73,14 @@ export function ReleaseDetailHero(props: ReleaseDetailHeroProps) {
   const groupLine = groupNames.length > 1
     ? `Fansub-Coop: ${groupNames.join(' × ')}`
     : `Fansubgruppe: ${groupNames[0] ?? 'Nicht hinterlegt'}`
+  const audioLanguage = props.audio_language?.trim()
   const technicalFacts = [
     ['Veröffentlicht', displayValue(formatDate(props.release_date))],
     ['Auflösung', displayValue(props.resolution)],
     ['Container', displayValue(props.container)],
     ['Video-Codec', displayValue(formatCodec(props.video_codec))],
     ['Audio-Codec', displayValue(formatCodec(props.audio_codec))],
-    ['Audio-Sprache', displayValue(props.audio_language)],
+    ['Audio-Sprache', !audioLanguage || audioLanguage.toLowerCase() === 'und' ? 'Japanisch' : audioLanguage],
     ['Untertiteltyp', subtitleType(props.subtitle_type)],
     ['Untertitelspuren', formatSubtitleTracks(props)],
   ]
