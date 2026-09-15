@@ -26,7 +26,7 @@ Die volle Frontendsuite endet mit 2616 bestandenen Tests, denselben zwei bestehe
 
 F-08/F-14 sind im autorisierten Public-/Vertragsscope behandelt; die volle Adminprojektion, die unbeschränkte neutrale AnimeDetail-Fallbackliste und die alte mehrdeutige Stream-Compatibility ohne Variantenselector bleiben bewusst erhalten. Weitere ausgeschlossene Produktentscheidungen werden nicht nebenbei umgesetzt. Keine Live-Daten-, Migrations-, Medienoriginal-, Env- oder Volumenänderung; kein Push. Die fremde `frontend/scripts/shot2.mjs` bleibt unangetastet.
 
-Human-UAT 156 GAP-02 mit 14 Origin-/Contributorprüfungen, 157-06 Task 4 und die menschliche Anime-Abnahme für 158/159 bleiben ausdrücklich OPEN. Der implementierte Auftrag ist technisch abgeschlossen; fehlendes Human-Sign-off wird nicht durch Agentenprüfungen ersetzt. Die nachfolgenden Current-Position-/Milestoneabschnitte sowie historischen globalen Phasenzähler bleiben erhalten. Die historische GSD-Parseranzeige 129 und das ältere PROJECT-Dokument sind im Delta-Bericht eingeordnet; kein Milestone-Reset. Verbindlich für diesen Zusatzauftrag sind ROADMAP/REQUIREMENTS und die Artefakte der Phasen 158/159.
+Human-UAT 156 (inkl. GAP-08/GAP-09) und 157-06 Task 4 sind am 2026-09-15 vom Auftraggeber live abgenommen. Die menschliche Anime-Abnahme für 158/159 bleibt ausdrücklich OPEN. Der implementierte Auftrag ist technisch abgeschlossen; fehlendes Human-Sign-off wird nicht durch Agentenprüfungen ersetzt. Die nachfolgenden Current-Position-/Milestoneabschnitte sowie historischen globalen Phasenzähler bleiben erhalten. Die historische GSD-Parseranzeige 129 und das ältere PROJECT-Dokument sind im Delta-Bericht eingeordnet; kein Milestone-Reset. Verbindlich für diesen Zusatzauftrag sind ROADMAP/REQUIREMENTS und die Artefakte der Phasen 158/159.
 
 ## Milestone v1.3: COMPLETE (2026-08-20, tag `v1.3`)
 
@@ -45,12 +45,12 @@ See: .planning/PROJECT.md (updated 2026-08-13)
 
 ## Current Position
 
-Phase: 156 (segment-domain-konsistenz-und-oeffentliche-release-projektion) — EXECUTING
+Phase: 156 (segment-domain-konsistenz-und-oeffentliche-release-projektion) — COMPLETE (live abgenommen 2026-09-15)
 Plan: 3 of 3
 dupliziertem ProjectMemberStickyNav; siehe 157-14-SUMMARY.md)
 Status: Phase complete — ready for verification
-GAP-02-Live-UAT-Checkpoint aus 156-UAT.md (5 Origin- + 9 Segment-Contributor-Pruefpunkte) bleibt
-weiterhin OFFEN -- siehe deferred-items.md. Phase 156 gilt NICHT als vollstaendig abgenommen.
+GAP-02-Live-UAT-Checkpoint aus 156-UAT.md (5 Origin- + 9 Segment-Contributor-Pruefpunkte) wurde
+am 2026-09-15 vom Auftraggeber live abgenommen (inkl. GAP-08/GAP-09). Phase 156 ist vollstaendig abgenommen.
 Phase 157 gilt ebenfalls NICHT als vollstaendig abgenommen: der menschliche Live-UAT-Checkpoint
 (157-06 Task 4, plus ein voller Nachlauf der 157-UAT.md GAP-02-Punkte 1-9 nach 157-11/12/13/14)
 ist eine separate, noch ausstehende Auftraggeber-Abnahmehandlung -- keine Agentenpruefung ersetzt
@@ -1240,10 +1240,10 @@ Last activity: 2026-09-15
 | 260824-nmt | Veraltete Rollen-Fixture in MemberCurrentProjectsSection.test.tsx repariert (Registry-Umstellung Altlast): color_key nutzte erfundene Kategorienamen ('technical'/'creative'/'language') statt echter ROLE_COLOR_KEYS-Hexwerte aus roleCatalog.ts; roleCatalog.ts unveraendert. Befund-Korrektur: von den 6 urspruenglich gemeldeten Testfehlern hatte nur 1 diese Ursache - die uebrigen 5 (MemberBadgeChain.test.tsx x4, MembershipsSection.test.tsx x1) sind unrelated (Badge-Special-Gruppe, CSS-Grid) und bleiben bewusst unangetastet | 2026-08-24 | 848f4bb8 | [260824-nmt-veraltete-rollen-fixtures-in-den-profil-](./quick/260824-nmt-veraltete-rollen-fixtures-in-den-profil-/) |
 | 260914-ddc | Profil: Avatar-/Banner-Cropper direkt aus jedem Tab sichtbar; Portal und Fokus-Rückgabe, 81 Tests und 24 Browserfälle grün | 2026-09-14 | 8dc5c8fe | [260914-ddc-profile-image-dialogs](./quick/260914-ddc-profile-image-dialogs/) |
 | 260914-dov | Release-Medien: Kategorie öffnet Upload direkt; doppelte Uploadbuttons und leere Card entfernt; 63 Tests und 36 Browserfälle grün | 2026-09-14 | b819698f | [260914-dov-release-category-upload](./quick/260914-dov-release-category-upload/) |
-| 260914-dzk | Release-Mehrfachupload: Titel/Text pro Bild, eine Vorschau, gezielter Retry;128 Frontendtests, fokussierte PostgreSQL-/Browserchecks grün; additive Migration0163, Human-UAT offen | 2026-09-14 | 2f2d964f | [260914-dzk-release-media-per-file-metadata](./quick/260914-dzk-release-media-per-file-metadata/) |
+| 260914-dzk | Release-Mehrfachupload: Titel/Text pro Bild, eine Vorschau, gezielter Retry;128 Frontendtests, fokussierte PostgreSQL-/Browserchecks grün; additive Migration0163, Human-UAT abgenommen 2026-09-15 | 2026-09-14 | 2f2d964f | [260914-dzk-release-media-per-file-metadata](./quick/260914-dzk-release-media-per-file-metadata/) |
 | 260914-f3k | Release-Medien: gemeinsame Galerie aller Kategorien mit Kategorie je Bild;93 Tests/36 Browserfälle grün | 2026-09-14 | d86083bd | [260914-f3k-release-media-all-images-gallery](./quick/260914-f3k-release-media-all-images-gallery/) |
-| 260914-fc1 | Segment-UAT: unabhängige OP-/ED-Plätze, atomischer Konfliktschutz und tatsächliche Zuordnungen; 76 Backend-/138 Frontendprüfungen, Human-UAT offen | 2026-09-14 | 646433be | [260914-fc1-segment-assignment-slot-conflicts](./quick/260914-fc1-segment-assignment-slot-conflicts/) |
-| 260914-gif | Release-Datumsvalidierung und nicht blockierende Folgehinweise; responsive Mediengalerie mit 2/3/4 Spalten; 103 Frontend-/84 Backendprüffälle und 15 Browserfälle bestanden; Altfehler/Human-UAT offen | 2026-09-14 | b62e777e | [260914-gif-release-dates-and-media-gallery](./quick/260914-gif-release-dates-and-media-gallery/)|
+| 260914-fc1 | Segment-UAT: unabhängige OP-/ED-Plätze, atomischer Konfliktschutz und tatsächliche Zuordnungen; 76 Backend-/138 Frontendprüfungen, Human-UAT abgenommen 2026-09-15 | 2026-09-14 | 646433be | [260914-fc1-segment-assignment-slot-conflicts](./quick/260914-fc1-segment-assignment-slot-conflicts/) |
+| 260914-gif | Release-Datumsvalidierung und nicht blockierende Folgehinweise; responsive Mediengalerie mit 2/3/4 Spalten; 103 Frontend-/84 Backendprüffälle und 15 Browserfälle bestanden; Altfehler offen, Human-UAT abgenommen 2026-09-15 | 2026-09-14 | b62e777e | [260914-gif-release-dates-and-media-gallery](./quick/260914-gif-release-dates-and-media-gallery/)|
 
 | 260825-jc0 | Admin start page navigation cleanup | 2026-08-25 | pending | [260825-jc0-admin-startseite-von-redundanten-benutze](./quick/260825-jc0-admin-startseite-von-redundanten-benutze/) |
 | 260825-svs | Regression aus Phase 140 beheben: fehlende getReviewDelegations Export im api-Mock von UserGroupRightsTab.test.tsx nachgeruestet (test-only, keine Verhaltensaenderung) | 2026-08-25 | 6cddcb75 | [260825-svs-regression-aus-phase-140-beheben-fehlend](./quick/260825-svs-regression-aus-phase-140-beheben-fehlend/) |

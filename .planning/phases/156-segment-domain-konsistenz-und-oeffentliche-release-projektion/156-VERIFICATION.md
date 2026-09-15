@@ -1,8 +1,8 @@
 ---
 phase: 156-segment-domain-konsistenz-und-oeffentliche-release-projektion
 verified: 2026-09-14T15:11:11Z
-status: human_needed
-score: 18/19 must-haves verified (P156-18 partially blocked on outstanding live-UAT items)
+status: passed
+score: 19/19 must-haves verified (P156-18 live-UAT signed off by operator 2026-09-15)
 overrides_applied: 0
 human_verification:
   - test: "GAP-02 bundled live-UAT checklist, items 10-13 (public-page rendering of segment-contributor selections after the GAP-04/GAP-05 origin fix)"
@@ -235,3 +235,16 @@ Auftraggeber, and this verification does not fabricate a pass for it.
 
 *Verified: 2026-09-14T15:11:11Z*
 *Verifier: Claude (gsd-verifier)*
+
+## Live-Abnahme 2026-09-15
+
+Die unter „Human Verification Required" gefuehrten drei Punkte wurden am 2026-09-15 vom Auftraggeber
+live abgenommen („uat passt"), siehe `156-HUMAN-UAT.md` (status: passed). Damit ist P156-18 VERIFIED
+und die Phase 19/19.
+
+Nachtraegliche Gap-Schliessungen vor der Abnahme: GAP-08 (Plan 156-19) und GAP-09 (Plaene 156-20 bis
+156-22). GAP-09 ersetzt ausdruecklich die in diesem Bericht zitierte Erwartung „encoder never appears as
+a segment credit": Encoder und Designer sind jetzt Segment-Credits, sichtbar nur bei manueller Auswahl,
+nie vorausgewaehlt. Eigene Nachpruefung am 2026-09-15: `internal/permissions` SegmentCredit-Tests 7/7
+gruen, 10 GAP-09-Repository-Integrationstests gegen Postgres gruen, Migration 0165 unveraendert,
+oeffentliche API von Release 27 zeigt die neuen Beschriftungen.

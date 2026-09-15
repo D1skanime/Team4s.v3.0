@@ -2,7 +2,8 @@
 quick_id: 260914-fc1
 status: complete
 technical_verification: passed_with_existing_global_baseline_exceptions
-human_uat: open
+human_uat: passed
+human_uat_signed_off: 2026-09-15
 baseline: d06644a1
 code_commit: 646433be3ecc193a392446dc6badde727c586c9a
 date: 2026-09-14

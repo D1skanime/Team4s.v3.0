@@ -2,7 +2,8 @@
 quick_id: 260914-gif
 status: complete
 technical_verification: passed_with_existing_global_baseline_exceptions
-human_uat: open
+human_uat: passed
+human_uat_signed_off: 2026-09-15
 baseline: cbfec666b25c1b12f0ade4f6f9f0693820c0e2a7
 gallery_commit: 619bb147058b5fb333259077f41b347c633c3614
 code_commit: b62e777e6380a866a8fdb6c2927ed436c6a55bf3

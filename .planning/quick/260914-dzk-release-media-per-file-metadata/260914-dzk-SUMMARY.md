@@ -3,7 +3,8 @@ phase: quick-260914-dzk
 plan: 01
 status: complete
 completed: 2026-09-14
-human_uat: open
+human_uat: passed
+human_uat_signed_off: 2026-09-15
 ---
 # Release-Mehrfachupload: eigene Titel/Texte und eindeutige Vorschau
 

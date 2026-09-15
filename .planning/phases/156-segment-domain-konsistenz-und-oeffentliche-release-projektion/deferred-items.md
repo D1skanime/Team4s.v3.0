@@ -270,3 +270,8 @@ Die effektiven Mitwirkenden von Release 29 (Projektseite) sind: Desi (Design), J
 Type (Typesetting), Über (Übersetzung). **Es gibt dort keine Rolle Qualitätsprüfung und keine
 Rolle Edit.** Die Punkte 11 und 12 lassen sich erst nach dem Nachtragen solcher
 Contributions am Release prüfen. Punkt 13 lässt sich mit Jeahn45 (Encoding) prüfen.
+
+## Live-Abnahme 2026-09-15 — deferred Live-UAT geschlossen
+
+Der unter 156-11 Task 2 und im GAP-02-Checkpoint gefuehrte Live-UAT ist am 2026-09-15 vom Auftraggeber
+abgenommen. Siehe `156-HUMAN-UAT.md` (status: passed) und `156-VERIFICATION.md` (status: passed).
