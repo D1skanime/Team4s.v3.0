@@ -8,7 +8,7 @@ import styles from "./JellyfinEnrichmentNotice.module.css";
  */
 export function JellyfinEnrichmentNotice() {
   return (
-    <div className={styles.notice}>
+    <div className={styles.notice} role="status">
       Jellyfin ist gerade nicht erreichbar. Ordnerpfad und Laufzeit können
       fehlen.
     </div>

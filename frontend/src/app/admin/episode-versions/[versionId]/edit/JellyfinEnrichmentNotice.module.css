@@ -1,8 +1,9 @@
 .notice {
-  border-radius: 12px;
-  padding: 16px;
-  font-size: 14px;
-  border: 1px solid #f0ad4e;
-  background: #fff8ec;
-  color: #8a5a00;
+  padding: var(--space-3) var(--space-4);
+  font-size: 0.875rem;
+  line-height: 1.5;
+  border: 1px solid color-mix(in srgb, var(--color-warning) 50%, transparent);
+  border-radius: var(--radius-sm);
+  background: color-mix(in srgb, var(--color-warning) 10%, var(--bg-card));
+  color: var(--text-primary);
 }
