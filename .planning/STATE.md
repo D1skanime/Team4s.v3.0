@@ -848,6 +848,8 @@ Last activity: 2026-09-15
 
 ### Roadmap Evolution
 
+- Phase 160 angelegt (2026-09-15): Öffentliche Anime-Detailseite nachschärfen — Tags anzeigen, Gruppenlinks klar benennen, Coop sichtbar machen. Depends on Phase 159; erst planen, wenn die separate Jellyfin-Reparatur abgeschlossen ist. Befunde/Entscheidungen in `160-LIVE-UAT-BEFUNDE.md` (mehrere Punkte dort noch offen, Klärung in discuss-phase). Menschliche Abnahme 158/159 bleibt bis zur Umsetzung dieser Phase offen. Nur add-phase — kein discuss-phase, kein plan-phase, keine Codeänderung.
+
 - 2026-09-13: Genau158 (Public Anime Detail Reparatur) und159 (Konsolidierung) additiv angelegt.159 folgt erst nach dem technischen158-Gate. Human-UAT156/157 bleibt offen. Keine Produktänderung oder DBwrites durch Planung.
 
 - Phase 151 current reviewed structure: 5 plans / 3 waves. Plans 151-01/02/03 are Wave 1, CSS consolidation 151-04 is Wave 2, gallery/evidence/signoff 151-05 is Wave 3. This is the existing plan structure; no replan was performed during pause. Implementation paused by user for handoff on 2026-09-07.

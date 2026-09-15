@@ -1889,3 +1889,15 @@ Abschluss der Plaene 157-11..14, Befunde F1-F5)*
 **Verbindliche Quellen:** .planning/phases/159-public-anime-detail-konsolidierung/159-USER-REQUEST.md und159-CONTEXT.md (D-01 bisD-09); vollständige Abnahme in159-VALIDATION.md. Riskante Vertragsänderungen erst nach Feld-/Consumer-Matrix und isoliertenFixtures.
 **Scopegrenze:** gemeinsame Ausschlüsse aus158 bleiben bindend; Streamcompatibility und fachliche Daten-/Medienownership erhalten.
 **Technisches Gate:** volle Storage/Multitab/SSR/Grid/Media/Cache/Vertrags-/ID-/Assignmentmatrix; atomareRow-/Payloadgrenze, keinN+1, frische Gesamtgates und belegte Vorher/Nachherwerte; offene Human-UAT 156/157 nicht schließen.
+
+### Phase 160: Öffentliche Anime-Detailseite nachschärfen: Tags anzeigen, Gruppenlinks klar benennen, Coop sichtbar machen
+
+**Goal:** Die öffentliche Anime-Detailseite zeigt Tags unter der Beschreibung, die Gruppenbereich-Links sind eindeutig benannt ohne doppelte gleich aussehende Gruppen-Buttons, und Coop-Versionen sind erkennbar.
+**Requirements**: TBD (in discuss-phase zu klären)
+**Depends on:** Phase 159; erst planen, wenn die separate Jellyfin-Reparatur (andere KI, parallel) abgeschlossen ist — Banner, Logo und Laufzeit der Detailseite hängen am Jellyfin-Medien-Manifest.
+**Verbindliche Quelle:** .planning/phases/160-oeffentliche-anime-detailseite-nachschaerfen-tags-anzeigen-g/160-LIVE-UAT-BEFUNDE.md — Live-UAT-Befunde und Entscheidungen des Auftraggebers vom 2026-09-15. Mehrere Punkte sind dort als offen markiert und werden in discuss-phase geklärt.
+**Hinweis:** Die menschliche Abnahme von Phase 158/159 bleibt bis zur Umsetzung dieser Phase ausdrücklich offen.
+**Plans:** 0 plans
+
+Plans:
+- [ ] TBD (run /gsd-plan-phase 160 to break down)
