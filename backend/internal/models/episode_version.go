@@ -10,6 +10,7 @@ import (
 // EpisodeVersion repräsentiert eine einzelne Release-Version einer Episode,
 // verknüpft mit einer Fansub-Gruppe und einem Medien-Provider (z.B. Jellyfin).
 type EpisodeVersion struct {
+	JellyfinSource *JellyfinSourceSnapshot `json:"-"`
 	// ID remains the legacy variant alias; ReleaseVersionID addresses the canonical version.
 	VariantID             int64                `json:"variant_id"`
 	ReleaseVersionID      int64                `json:"release_version_id"`

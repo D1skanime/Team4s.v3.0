@@ -50,6 +50,10 @@ func (h *AdminContentHandler) resolveSegmentSubtitle(ctx context.Context, itemID
 		return segmentSubtitleSelection{Diagnostic: "untertitel-spuren konnten nicht geladen werden"}
 	}
 
+	return h.downloadSegmentSubtitleSelection(ctx, trimmedItemID, mediaSourceID, streams, tempDir)
+}
+
+func (h *AdminContentHandler) downloadSegmentSubtitleSelection(ctx context.Context, trimmedItemID, mediaSourceID string, streams []jellyfinMediaStream, tempDir string) segmentSubtitleSelection {
 	probeStreams := mapJellyfinMediaStreamsToSegmentProbe(streams)
 	selected := services.SelectSegmentSubtitleStream(probeStreams)
 	if selected == nil {
@@ -93,7 +97,11 @@ func (h *AdminContentHandler) resolveSegmentSubtitleForRender(
 		return segmentSubtitleSelection{}
 	}
 
-	subtitle := h.resolveSegmentSubtitle(ctx, jellyfinItemID, segmentSubtitleTempDir(h.segmentRenderDir))
+	selected, err := fetchJellyfinPlaybackSource(ctx, h.httpClient, h.jellyfinBaseURL, h.jellyfinAPIKey, jellyfinItemID, source.JellyfinSource)
+	if err != nil {
+		return segmentSubtitleSelection{Diagnostic: "untertitel-spuren konnten nicht geladen werden"}
+	}
+	subtitle := h.downloadSegmentSubtitleSelection(ctx, jellyfinItemID, selected.Snapshot.MediaSourceID, selected.MediaStreams, segmentSubtitleTempDir(h.segmentRenderDir))
 	if subtitle.SubtitleFilePath == "" && strings.TrimSpace(subtitle.Diagnostic) != "" {
 		log.Printf(
 			"segment_render_subtitles: %s (segment_id=%d, cache_key=%s)",
@@ -105,58 +113,86 @@ func (h *AdminContentHandler) resolveSegmentSubtitleForRender(
 	return subtitle
 }
 
-// getJellyfinItemMediaStreams laedt die MediaStreams eines einzelnen Jellyfin-Items und liefert
-// zusaetzlich die MediaSource-Id fuer den Subtitle-Download. Faellt die Item-Antwort ohne MediaSource
-// zurueck, wird die Item-Id als MediaSource-Id verwendet (Single-Version-Items).
+// A single exact-item read resolves only its selected source; item-level streams
+// and first-item/first-source fallbacks are intentionally excluded.
 func (h *AdminContentHandler) getJellyfinItemMediaStreams(ctx context.Context, itemID string) ([]jellyfinMediaStream, string, error) {
-	trimmedItemID := strings.TrimSpace(itemID)
-	if trimmedItemID == "" {
-		return nil, "", fmt.Errorf("jellyfin item id is required")
-	}
-
-	values := url.Values{}
-	values.Set("Ids", trimmedItemID)
-	values.Set("Limit", "1")
-	values.Set("Fields", "MediaStreams,MediaSources")
-
-	var payload jellyfinEpisodeListResponse
-	statusCode, err := h.fetchJellyfinJSON(ctx, "/Items", values, &payload)
-	if statusCode == http.StatusNotFound {
-		return nil, "", nil
-	}
+	selected, err := fetchJellyfinPlaybackSource(ctx, h.httpClient, h.jellyfinBaseURL, h.jellyfinAPIKey, itemID, nil)
 	if err != nil {
 		return nil, "", err
 	}
-
-	item := findJellyfinItem(payload.Items, trimmedItemID)
-	if item == nil {
-		return nil, "", nil
-	}
-	return item.MediaStreams, resolveJellyfinMediaSourceID(item, trimmedItemID), nil
+	return selected.MediaStreams, selected.Snapshot.MediaSourceID, nil
 }
 
-// findJellyfinItem waehlt das passende Item aus der Antwort (bevorzugt exakte Id-Uebereinstimmung).
-func findJellyfinItem(items []jellyfinEpisodeItem, itemID string) *jellyfinEpisodeItem {
-	for i := range items {
-		if strings.TrimSpace(items[i].ID) == itemID {
-			return &items[i]
-		}
+func fetchJellyfinPlaybackSource(ctx context.Context, client *http.Client, baseURL, apiKey, itemID string, stored *models.JellyfinSourceSnapshot) (*resolvedJellyfinMediaSource, error) {
+	id := strings.TrimSpace(itemID)
+	items, err := fetchJellyfinSourceBatch(ctx, client, baseURL, apiKey, []string{id})
+	if err != nil {
+		return nil, err
 	}
-	if len(items) > 0 {
-		return &items[0]
+	selected, err := resolveJellyfinMediaSource(items[id], stored)
+	if err != nil {
+		return nil, err
 	}
-	return nil
+	return &selected, nil
 }
 
-// resolveJellyfinMediaSourceID liefert die erste MediaSource-Id des Items; ohne MediaSource faellt
-// sie auf die Item-Id zurueck (bei Single-Version-Items sind beide identisch).
-func resolveJellyfinMediaSourceID(item *jellyfinEpisodeItem, itemID string) string {
-	for _, source := range item.MediaSources {
-		if id := strings.TrimSpace(source.ID); id != "" {
-			return id
+// prepareSegmentSource resolves identity before hashing and, at worker execution,
+// returns the same metadata used for both video input and subtitle selection.
+func (h *AdminContentHandler) prepareSegmentSource(ctx context.Context, source *models.ThemeSegmentRenderSource, fresh bool) (string, *resolvedJellyfinMediaSource, error) {
+	if source.SourceKind == "uploaded_asset" {
+		return strings.TrimSpace(derefString(source.MediaAssetPath)), nil, nil
+	}
+	itemID := strings.TrimSpace(derefString(source.StreamExternalID))
+	isJellyfin := strings.EqualFold(derefString(source.StreamProvider), "jellyfin")
+	if source.SourceKind == "jellyfin_theme" {
+		itemID = strings.TrimSpace(derefString(source.JellyfinItemID))
+		isJellyfin = true
+	} else if source.StreamProvider == nil && (itemID != "" || source.JellyfinItemID != nil) {
+		isJellyfin = true
+		if itemID == "" {
+			itemID = strings.TrimSpace(derefString(source.JellyfinItemID))
 		}
 	}
-	return itemID
+	if !isJellyfin {
+		identity := strings.TrimSpace(derefString(source.StreamExternalID))
+		if identity == "" {
+			identity = strings.TrimSpace(derefString(source.StreamURL))
+		}
+		return identity, nil, nil
+	}
+	if itemID == "" {
+		return "", nil, fmt.Errorf("jellyfin item identity missing")
+	}
+	binding := source.JellyfinSource
+	if binding == nil && source.MediaSourceID != nil {
+		binding = &models.JellyfinSourceSnapshot{Version: 1, MediaSourceID: *source.MediaSourceID}
+	}
+	var selected *resolvedJellyfinMediaSource
+	var err error
+	if fresh || binding == nil {
+		selected, err = fetchJellyfinPlaybackSource(ctx, h.httpClient, h.jellyfinBaseURL, h.jellyfinAPIKey, itemID, binding)
+		if err != nil {
+			return "", nil, err
+		}
+		binding = &selected.Snapshot
+	}
+	if strings.TrimSpace(binding.MediaSourceID) == "" {
+		return "", nil, fmt.Errorf("jellyfin source identity missing")
+	}
+	target, err := buildJellyfinStreamURL(h.jellyfinBaseURL, normalizeStreamPathTemplate(h.jellyfinStreamPath), h.jellyfinAPIKey, itemID)
+	if err != nil {
+		return "", nil, err
+	}
+	target, err = withJellyfinMediaSourceID(target, binding.MediaSourceID)
+	if err != nil {
+		return "", nil, err
+	}
+	source.StreamURL = &target
+	source.MediaSourceID = &binding.MediaSourceID
+	source.JellyfinSource = binding
+	// Length-prefix item identity avoids delimiter collisions without exposing paths.
+	identity := fmt.Sprintf("jellyfin:%d:%s:%s", len(itemID), itemID, binding.MediaSourceID)
+	return identity, selected, nil
 }
 
 // mapJellyfinMediaStreamsToSegmentProbe wandelt Jellyfin-MediaStreams in das service-neutrale Probe-Format um.

@@ -181,6 +181,9 @@ func (h *AdminContentHandler) resolveEpisodeVersionDuration(
 	if version == nil {
 		return nil, nil
 	}
+	if version.DurationSeconds != nil {
+		return version.DurationSeconds, nil
+	}
 	if !strings.EqualFold(strings.TrimSpace(version.MediaProvider), "jellyfin") {
 		return nil, nil
 	}
@@ -188,7 +191,11 @@ func (h *AdminContentHandler) resolveEpisodeVersionDuration(
 	if mediaItemID == "" || !h.ensureJellyfinConfiguredForEditor() {
 		return nil, nil
 	}
-	return h.getJellyfinEpisodeDurationSeconds(ctx, mediaItemID)
+	binding := version.JellyfinSource
+	if binding == nil && version.MediaSourceID != nil {
+		binding = &models.JellyfinSourceSnapshot{Version: 1, MediaSourceID: *version.MediaSourceID}
+	}
+	return h.getJellyfinSourceDurationSeconds(ctx, mediaItemID, binding)
 }
 
 // resolveEpisodeVersionSelectedGroups gibt die FansubGroups der Episodenversion zurück.

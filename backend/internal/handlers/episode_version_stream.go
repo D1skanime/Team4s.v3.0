@@ -1,6 +1,7 @@
 package handlers
 
 import (
+	"context"
 	"errors"
 	"io"
 	"log"
@@ -8,6 +9,7 @@ import (
 	"net/url"
 	"strconv"
 	"strings"
+	"team4s.v3/backend/internal/models"
 
 	"team4s.v3/backend/internal/repository"
 
@@ -56,7 +58,7 @@ func (h *FansubHandler) StreamRelease(c *gin.Context) {
 		return
 	}
 
-	targetURL, err := h.buildProviderStreamURL(release.MediaProvider, release.MediaItemID, release.StreamURL)
+	targetURL, err := h.buildReleaseSourceStreamURL(c.Request.Context(), release)
 	if err != nil || strings.TrimSpace(targetURL) == "" {
 		log.Printf("release stream: unable to build stream url (release_id=%d, provider=%q): %v", versionID, release.MediaProvider, err)
 		c.JSON(http.StatusNotFound, gin.H{"error": gin.H{"message": "stream nicht gefunden"}})
@@ -86,4 +88,39 @@ func (h *FansubHandler) StreamRelease(c *gin.Context) {
 	if _, err := io.Copy(c.Writer, resp.Body); err != nil {
 		log.Printf("release stream: proxy copy failed (release_id=%d): %v", versionID, err)
 	}
+}
+
+// Bound video requests use their stored identity without an extra metadata read.
+// Existing unbound rows resolve at playback time and are never persisted here.
+func (h *FansubHandler) buildReleaseSourceStreamURL(ctx context.Context, source *models.ReleaseStreamSource) (string, error) {
+	if !strings.EqualFold(strings.TrimSpace(source.MediaProvider), "jellyfin") {
+		return h.buildProviderStreamURL(source.MediaProvider, source.MediaItemID, source.StreamURL)
+	}
+	target, err := buildJellyfinStreamURL(h.jellyfinBaseURL, h.jellyfinStreamPath, h.jellyfinAPIKey, source.MediaItemID)
+	if err != nil {
+		return "", err
+	}
+	id := strings.TrimSpace(derefString(source.MediaSourceID))
+	if source.JellyfinSource != nil {
+		id = strings.TrimSpace(source.JellyfinSource.MediaSourceID)
+	}
+	if id == "" {
+		selected, err := fetchJellyfinPlaybackSource(ctx, h.httpClient, h.jellyfinBaseURL, h.jellyfinAPIKey, source.MediaItemID, source.JellyfinSource)
+		if err != nil {
+			return "", err
+		}
+		id = selected.Snapshot.MediaSourceID
+	}
+	return withJellyfinMediaSourceID(target, id)
+}
+
+func withJellyfinMediaSourceID(target, sourceID string) (string, error) {
+	parsed, err := url.Parse(target)
+	if err != nil {
+		return "", err
+	}
+	query := parsed.Query()
+	query.Set("MediaSourceId", sourceID)
+	parsed.RawQuery = query.Encode()
+	return parsed.String(), nil
 }

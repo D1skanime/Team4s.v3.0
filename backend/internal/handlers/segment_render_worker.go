@@ -132,6 +132,11 @@ func (h *AdminContentHandler) executeSegmentRender(
 		return errors.New("segment render worker: incomplete render source")
 	}
 
+	_, selected, err := h.prepareSegmentSource(ctx, source, true)
+	if err != nil {
+		_ = themeRepo.MarkThemeSegmentRenderCacheFailed(ctx, cache.CacheKey, "segment_source_missing", "Segment-Quelle konnte nicht aufgelöst werden.")
+		return err
+	}
 	outputRel := cache.CacheKey + ".mp4"
 	outputPath, ok := resolveControlledFilePath(h.segmentRenderDir, outputRel)
 	if !ok {
@@ -144,7 +149,10 @@ func (h *AdminContentHandler) executeSegmentRender(
 	}
 	_ = os.Remove(outputPath)
 
-	subtitle := h.resolveSegmentSubtitleForRender(ctx, cache.ThemeSegmentID, cache.CacheKey, source)
+	subtitle := segmentSubtitleSelection{}
+	if selected != nil {
+		subtitle = h.downloadSegmentSubtitleSelection(ctx, selected.JellyfinItemID, selected.Snapshot.MediaSourceID, selected.MediaStreams, segmentSubtitleTempDir(h.segmentRenderDir))
+	}
 	if subtitle.SubtitleFilePath != "" {
 		defer func(path string) { _ = os.Remove(path) }(subtitle.SubtitleFilePath)
 	}

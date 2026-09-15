@@ -39,6 +39,7 @@ func streamIdentityHandler(t *testing.T, sourceConfig ...string) (*FansubHandler
 	t.Helper()
 	pool := testsupport.OpenPhase117Postgres(t)
 	_, err := pool.Exec(context.Background(), `
+ ALTER TABLE stream_sources ADD COLUMN metadata JSONB NOT NULL DEFAULT '{}';
  INSERT INTO anime VALUES (1),(2);
  INSERT INTO episodes (id,anime_id,episode_number) VALUES (1,1,'1'),(2,2,'1');
  INSERT INTO fansub_releases (id,episode_id) VALUES (1,1),(2,2);
@@ -50,7 +51,7 @@ func streamIdentityHandler(t *testing.T, sourceConfig ...string) (*FansubHandler
  `)
 	require.NoError(t, err)
 	if len(sourceConfig) == 2 {
-		_, err = pool.Exec(context.Background(), "UPDATE stream_sources SET provider_type=$1, url=$2 WHERE id=2", sourceConfig[0], sourceConfig[1])
+		_, err = pool.Exec(context.Background(), `UPDATE stream_sources SET provider_type=$1, url=$2, metadata='{"jellyfin_source":{"version":1,"media_source_id":"B","source_path":"/B.mkv","streams_complete":true}}' WHERE id=2`, sourceConfig[0], sourceConfig[1])
 		require.NoError(t, err)
 	}
 	entitlement := &streamIdentityEntitlement{allowed: true}
@@ -160,7 +161,7 @@ func TestReleaseStreamIdentityLegacyWithoutSelector(t *testing.T) {
 	require.NoError(t, err)
 	result := streamIdentityRequest(h, "10", "grant="+url.QueryEscape(token), false, false)
 	require.Equal(t, 206, result.Code)
-	require.Equal(t, []string{"https://fixture.invalid/foreign"}, *targets, "no selector keeps the historical OR ordering")
+	require.Equal(t, []string{"https://fixture.invalid/own"}, *targets, "default selector owns the canonical release version")
 	result = streamIdentityRequest(h, "10", "grant="+url.QueryEscape(token)+"&ignored=%ZZ", false, false)
 	require.Equal(t, 206, result.Code, "malformed unrelated parameter does not redefine legacy behavior")
 	result = streamIdentityRequest(h, "+10", "", true, true)
@@ -184,7 +185,12 @@ func TestReleaseStreamJellyfinAuthenticationPreservesGrantsAndFallbacks(t *testi
 					require.Equal(t, "bytes=0-3", r.Header.Get("Range"))
 					require.Equal(t, "fixture-agent", r.Header.Get("User-Agent"))
 					require.Equal(t, "500", r.URL.Query().Get("startTimeTicks"))
-					require.Equal(t, "kept", r.URL.Query().Get("custom"))
+					if foreign {
+						require.Equal(t, "kept", r.URL.Query().Get("custom"))
+					} else {
+						require.Equal(t, "/jellyfin/Videos/own/stream", r.URL.Path)
+						require.Equal(t, "B", r.URL.Query().Get("MediaSourceId"))
+					}
 					w.Header().Set("Content-Type", "video/mp4")
 					w.Header().Set("Content-Range", "bytes 0-3/8")
 					w.WriteHeader(status)
@@ -195,7 +201,11 @@ func TestReleaseStreamJellyfinAuthenticationPreservesGrantsAndFallbacks(t *testi
 				if !foreign {
 					stored += "&api_key=media-key"
 				}
-				h, entitlement, _ := streamIdentityHandler(t, "jellyfin", stored)
+				provider := "jellyfin"
+				if foreign {
+					provider = "external"
+				}
+				h, entitlement, _ := streamIdentityHandler(t, provider, stored)
 				h.jellyfinBaseURL = upstream.URL + "/jellyfin"
 				if foreign {
 					h.jellyfinBaseURL = "https://configured.invalid/jellyfin"

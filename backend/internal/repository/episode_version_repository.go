@@ -169,6 +169,7 @@ func (r *EpisodeVersionRepository) GetByID(ctx context.Context, versionID int64)
 		}
 		if binding, ok := bindings[item.MediaItemID]; ok {
 			item.MediaSourceID = &binding.MediaSourceID
+			item.JellyfinSource = &binding
 		}
 	}
 	return item, nil

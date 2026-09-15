@@ -1929,20 +1929,26 @@ func readHandlerSource(t *testing.T, name string) string {
 }
 
 func TestEpisodeVersionSourceDurationHonorsBoundSource(t *testing.T) {
- calls := 0
- server := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter,r *http.Request) {
-  calls++
-  if r.URL.Query().Get("Ids")!="episode" { t.Error("wrong item") }
-  w.Write([]byte(`{"Items":[{"Id":"episode","Path":"/A.mkv","MediaSources":[{"Id":"A","Path":"/A.mkv","RunTimeTicks":100000000,"MediaStreams":[]},{"Id":"B","Path":"/B.mkv","RunTimeTicks":200000000,"MediaStreams":[]}]}]}`))
- }))
- defer server.Close()
- h := &AdminContentHandler{jellyfinBaseURL:server.URL,jellyfinAPIKey:"fixture",httpClient:server.Client()}
- bindingID := "B"
- version := &models.EpisodeVersion{MediaProvider:"jellyfin",MediaItemID:"episode",MediaSourceID:&bindingID}
- duration,err := h.resolveEpisodeVersionDuration(context.Background(),version)
- if err!=nil || duration==nil || *duration!=20 { t.Fatalf("bound B duration: %v %v",duration,err) }
- existing:=int32(99)
- version.DurationSeconds=&existing
- duration,err=h.resolveEpisodeVersionDuration(context.Background(),version)
- if err!=nil || duration==nil || *duration!=99 || calls!=1 { t.Fatalf("existing duration triggered enrichment: calls=%d duration=%v err=%v",calls,duration,err) }
+	calls := 0
+	server := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		calls++
+		if r.URL.Query().Get("Ids") != "episode" {
+			t.Error("wrong item")
+		}
+		w.Write([]byte(`{"Items":[{"Id":"episode","Path":"/A.mkv","MediaSources":[{"Id":"A","Path":"/A.mkv","RunTimeTicks":100000000,"MediaStreams":[]},{"Id":"B","Path":"/B.mkv","RunTimeTicks":200000000,"MediaStreams":[]}]}]}`))
+	}))
+	defer server.Close()
+	h := &AdminContentHandler{jellyfinBaseURL: server.URL, jellyfinAPIKey: "fixture", httpClient: server.Client()}
+	bindingID := "B"
+	version := &models.EpisodeVersion{MediaProvider: "jellyfin", MediaItemID: "episode", MediaSourceID: &bindingID}
+	duration, err := h.resolveEpisodeVersionDuration(context.Background(), version)
+	if err != nil || duration == nil || *duration != 20 {
+		t.Fatalf("bound B duration: %v %v", duration, err)
+	}
+	existing := int32(99)
+	version.DurationSeconds = &existing
+	duration, err = h.resolveEpisodeVersionDuration(context.Background(), version)
+	if err != nil || duration == nil || *duration != 99 || calls != 1 {
+		t.Fatalf("existing duration triggered enrichment: calls=%d duration=%v err=%v", calls, duration, err)
+	}
 }
