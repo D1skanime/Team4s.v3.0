@@ -296,20 +296,30 @@ export function useEpisodeVersionEditor() {
       const response = await updateEpisodeVersion(versionID, patch)
       if (generation !== contextGeneration.current) return
 
-      if (contextData) {
-        setContextData({
-          ...contextData,
-          version: response.data,
-          selected_groups: metadataOnly ? contextData.selected_groups : selectedGroups,
-        })
-      }
-      const savedForm = metadataOnly ? {
-        ...formState,
-        mediaProvider: response.data.media_provider || '',
-        mediaItemID: response.data.media_item_id || '',
-        streamURL: response.data.stream_url || '',
-      } : formState
-      baselineRef.current = buildSnapshot(savedForm, metadataOnly ? contextData.selected_groups : selectedGroups)
+      const submittedGroups = metadataOnly ? contextData.selected_groups : selectedGroups
+      const savedGroups = response.data.fansub_groups ?? submittedGroups
+      const savedContext = { ...contextData, version: response.data, selected_groups: savedGroups }
+      const savedForm = buildInitialFormState(savedContext)
+      setContextData(savedContext)
+      baselineRef.current = buildSnapshot(savedForm, savedGroups)
+      setFormState((current) => {
+        const keepFileDraft = selectionRevision !== fileSelectionRevision.current ||
+          (metadataOnly && hasPendingFileSelection)
+        const bindingFields: (keyof FormState)[] = ['mediaProvider', 'mediaItemID', 'streamURL']
+        const sourceFields: (keyof FormState)[] = [...bindingFields, 'videoQuality', 'subtitleType', 'durationSeconds']
+        let next = { ...current }
+        for (const field of Object.keys(savedForm) as (keyof FormState)[]) {
+          // Apply server normalization only where the submitted draft is still current.
+          if (current[field] !== formState[field] ||
+            (metadataOnly && bindingFields.includes(field)) ||
+            (keepFileDraft && sourceFields.includes(field))) continue
+          next = { ...next, [field]: savedForm[field] }
+        }
+        return next
+      })
+      setSelectedGroups((current) => current.length === submittedGroups.length &&
+        current.every(group => submittedGroups.some(submitted => submitted.id === group.id))
+        ? savedGroups : current)
       if (!metadataOnly && selectionRevision === fileSelectionRevision.current) setHasPendingFileSelection(false)
       setSuccessMessage('Version gespeichert.')
     } catch (error) {
