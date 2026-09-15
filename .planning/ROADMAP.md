@@ -1901,3 +1901,22 @@ Abschluss der Plaene 157-11..14, Befunde F1-F5)*
 
 Plans:
 - [ ] TBD (run /gsd-plan-phase 160 to break down)
+
+### Phase 161: Jellyfin 12 Kompatibilitaet und MediaSource-Import
+
+**Goal:** Die tatsächlich verwendeten Team4s-Jellyfin-Zugriffe funktionieren unter Jellyfin 12 und importieren eine deterministisch zugeordnete MediaSource samt zugehörigem Container, Audio und Untertiteln; keine Secret-URLs, kein N+1 und keine Änderungen anderer Provider.
+**Requirements**: P161-AUTH, P161-API, P161-ITEMS, P161-SOURCE, P161-METADATA, P161-REGRESSION
+**Depends on:** Implementierter Stand 159 und aktueller Repository-Baseline b3b07ff0; Phase 160 wartet ausdrücklich auf diese Reparatur und ist keine Voraussetzung.
+**Plans:** 9 Plans in 8 technischen Wellen; sequenzielle Ausführung im kanonischen Checkout. Discovery und unabhängige Planprüfung abgeschlossen; Ausführung beginnt.
+
+- [ ] 161-01 — Jellyfin-Transport und korrekte Metadatenabfragen
+- [ ] 161-02 — Typisierte Quellenbindung und deterministische Auswahl
+- [ ] 161-03 — Medienproxies, Untertitel und FFmpeg authentifizieren
+- [ ] 161-04 — Import-/Editorverträge und Frontend-Übertragung
+- [ ] 161-05 — Import serverseitig prüfen und atomar speichern
+- [ ] 161-06 — Technische Metadaten bei Bearbeitung und Relink erhalten
+- [ ] 161-07 — Quellenidentität in Playback, Untertiteln und Rendercache
+- [ ] 161-08 — Öffentliche Metadaten aus derselben Quelle projizieren
+- [ ] 161-09 — Integrierte Verifikation, Live-Belege und Abschlussbericht
+**Source:** `.planning/phases/161-jellyfin-12-kompatibilitaet-und-mediasource-import/161-USER-REQUEST.md`
+**UI hint:** no redesign; existing release metadata projection only.

@@ -1,0 +1,14 @@
+{
+  "route": "http://127.0.0.1:3300/fansubs/new-subs/fansubprojekt/buddy-complex/releases/40",
+  "surface": "Codex in-app browser",
+  "action": "Expanded Details through visible button",
+  "title": "Zeit für Entschlossenheit",
+  "container": "mkv",
+  "video_codec": "H.264",
+  "audio_codec": "AAC",
+  "audio_language": "Nicht hinterlegt",
+  "subtitle_type": "Nicht hinterlegt",
+  "subtitle_tracks": "Nicht hinterlegt",
+  "viewer": "Anmelden link shown (anonymous)",
+  "live_rows_mutated": false
+}

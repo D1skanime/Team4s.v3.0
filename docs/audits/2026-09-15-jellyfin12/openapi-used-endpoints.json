@@ -1,0 +1,3139 @@
+{
+  "version": "12.0.0",
+  "spec_sha256": "cdef16618df86801230b5767ee42628fc5cf6c1c752aaf103ab652e05d25f672",
+  "endpoints": {
+    "/Items/{itemId}/Images/{imageType}": {
+      "get": {
+        "operationId": "GetItemImage",
+        "deprecated": false,
+        "parameters": [
+          {
+            "name": "itemId",
+            "in": "path",
+            "description": "Item id.",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          },
+          {
+            "name": "imageType",
+            "in": "path",
+            "description": "Image type.",
+            "required": true,
+            "schema": {
+              "enum": [
+                "Primary",
+                "Art",
+                "Backdrop",
+                "Banner",
+                "Logo",
+                "Thumb",
+                "Disc",
+                "Box",
+                "Screenshot",
+                "Menu",
+                "Chapter",
+                "BoxRear",
+                "Profile"
+              ],
+              "allOf": [
+                {
+                  "$ref": "#/components/schemas/ImageType"
+                }
+              ],
+              "description": "Enum ImageType."
+            }
+          },
+          {
+            "name": "maxWidth",
+            "in": "query",
+            "description": "The maximum image width to return.",
+            "schema": {
+              "type": "integer",
+              "format": "int32"
+            }
+          },
+          {
+            "name": "maxHeight",
+            "in": "query",
+            "description": "The maximum image height to return.",
+            "schema": {
+              "type": "integer",
+              "format": "int32"
+            }
+          },
+          {
+            "name": "width",
+            "in": "query",
+            "description": "The fixed image width to return.",
+            "schema": {
+              "type": "integer",
+              "format": "int32"
+            }
+          },
+          {
+            "name": "height",
+            "in": "query",
+            "description": "The fixed image height to return.",
+            "schema": {
+              "type": "integer",
+              "format": "int32"
+            }
+          },
+          {
+            "name": "quality",
+            "in": "query",
+            "description": "Optional. Quality setting, from 0-100. Defaults to 90 and should suffice in most cases.",
+            "schema": {
+              "type": "integer",
+              "format": "int32"
+            }
+          },
+          {
+            "name": "fillWidth",
+            "in": "query",
+            "description": "Width of box to fill.",
+            "schema": {
+              "type": "integer",
+              "format": "int32"
+            }
+          },
+          {
+            "name": "fillHeight",
+            "in": "query",
+            "description": "Height of box to fill.",
+            "schema": {
+              "type": "integer",
+              "format": "int32"
+            }
+          },
+          {
+            "name": "tag",
+            "in": "query",
+            "description": "Optional. Supply the cache tag from the item object to receive strong caching headers.",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "format",
+            "in": "query",
+            "description": "Optional. The MediaBrowser.Model.Drawing.ImageFormat of the returned image.",
+            "schema": {
+              "enum": [
+                "Bmp",
+                "Gif",
+                "Jpg",
+                "Png",
+                "Webp",
+                "Svg"
+              ],
+              "allOf": [
+                {
+                  "$ref": "#/components/schemas/ImageFormat"
+                }
+              ]
+            }
+          },
+          {
+            "name": "percentPlayed",
+            "in": "query",
+            "description": "Optional. Percent to render for the percent played overlay.",
+            "schema": {
+              "type": "number",
+              "format": "double"
+            }
+          },
+          {
+            "name": "unplayedCount",
+            "in": "query",
+            "description": "Optional. Unplayed count overlay to render.",
+            "schema": {
+              "type": "integer",
+              "format": "int32"
+            }
+          },
+          {
+            "name": "blur",
+            "in": "query",
+            "description": "Optional. Blur image.",
+            "schema": {
+              "type": "integer",
+              "format": "int32"
+            }
+          },
+          {
+            "name": "backgroundColor",
+            "in": "query",
+            "description": "Optional. Apply a background color for transparent images.",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "foregroundLayer",
+            "in": "query",
+            "description": "Optional. Apply a foreground layer on top of the image.",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "imageIndex",
+            "in": "query",
+            "description": "Image index.",
+            "schema": {
+              "type": "integer",
+              "format": "int32"
+            }
+          }
+        ]
+      },
+      "head": {
+        "operationId": "HeadItemImage",
+        "deprecated": false,
+        "parameters": [
+          {
+            "name": "itemId",
+            "in": "path",
+            "description": "Item id.",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          },
+          {
+            "name": "imageType",
+            "in": "path",
+            "description": "Image type.",
+            "required": true,
+            "schema": {
+              "enum": [
+                "Primary",
+                "Art",
+                "Backdrop",
+                "Banner",
+                "Logo",
+                "Thumb",
+                "Disc",
+                "Box",
+                "Screenshot",
+                "Menu",
+                "Chapter",
+                "BoxRear",
+                "Profile"
+              ],
+              "allOf": [
+                {
+                  "$ref": "#/components/schemas/ImageType"
+                }
+              ],
+              "description": "Enum ImageType."
+            }
+          },
+          {
+            "name": "maxWidth",
+            "in": "query",
+            "description": "The maximum image width to return.",
+            "schema": {
+              "type": "integer",
+              "format": "int32"
+            }
+          },
+          {
+            "name": "maxHeight",
+            "in": "query",
+            "description": "The maximum image height to return.",
+            "schema": {
+              "type": "integer",
+              "format": "int32"
+            }
+          },
+          {
+            "name": "width",
+            "in": "query",
+            "description": "The fixed image width to return.",
+            "schema": {
+              "type": "integer",
+              "format": "int32"
+            }
+          },
+          {
+            "name": "height",
+            "in": "query",
+            "description": "The fixed image height to return.",
+            "schema": {
+              "type": "integer",
+              "format": "int32"
+            }
+          },
+          {
+            "name": "quality",
+            "in": "query",
+            "description": "Optional. Quality setting, from 0-100. Defaults to 90 and should suffice in most cases.",
+            "schema": {
+              "type": "integer",
+              "format": "int32"
+            }
+          },
+          {
+            "name": "fillWidth",
+            "in": "query",
+            "description": "Width of box to fill.",
+            "schema": {
+              "type": "integer",
+              "format": "int32"
+            }
+          },
+          {
+            "name": "fillHeight",
+            "in": "query",
+            "description": "Height of box to fill.",
+            "schema": {
+              "type": "integer",
+              "format": "int32"
+            }
+          },
+          {
+            "name": "tag",
+            "in": "query",
+            "description": "Optional. Supply the cache tag from the item object to receive strong caching headers.",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "format",
+            "in": "query",
+            "description": "Optional. The MediaBrowser.Model.Drawing.ImageFormat of the returned image.",
+            "schema": {
+              "enum": [
+                "Bmp",
+                "Gif",
+                "Jpg",
+                "Png",
+                "Webp",
+                "Svg"
+              ],
+              "allOf": [
+                {
+                  "$ref": "#/components/schemas/ImageFormat"
+                }
+              ]
+            }
+          },
+          {
+            "name": "percentPlayed",
+            "in": "query",
+            "description": "Optional. Percent to render for the percent played overlay.",
+            "schema": {
+              "type": "number",
+              "format": "double"
+            }
+          },
+          {
+            "name": "unplayedCount",
+            "in": "query",
+            "description": "Optional. Unplayed count overlay to render.",
+            "schema": {
+              "type": "integer",
+              "format": "int32"
+            }
+          },
+          {
+            "name": "blur",
+            "in": "query",
+            "description": "Optional. Blur image.",
+            "schema": {
+              "type": "integer",
+              "format": "int32"
+            }
+          },
+          {
+            "name": "backgroundColor",
+            "in": "query",
+            "description": "Optional. Apply a background color for transparent images.",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "foregroundLayer",
+            "in": "query",
+            "description": "Optional. Apply a foreground layer on top of the image.",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "imageIndex",
+            "in": "query",
+            "description": "Image index.",
+            "schema": {
+              "type": "integer",
+              "format": "int32"
+            }
+          }
+        ]
+      }
+    },
+    "/Items/{itemId}/Images/{imageType}/{imageIndex}": {
+      "get": {
+        "operationId": "GetItemImageByIndex",
+        "deprecated": false,
+        "parameters": [
+          {
+            "name": "itemId",
+            "in": "path",
+            "description": "Item id.",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          },
+          {
+            "name": "imageType",
+            "in": "path",
+            "description": "Image type.",
+            "required": true,
+            "schema": {
+              "enum": [
+                "Primary",
+                "Art",
+                "Backdrop",
+                "Banner",
+                "Logo",
+                "Thumb",
+                "Disc",
+                "Box",
+                "Screenshot",
+                "Menu",
+                "Chapter",
+                "BoxRear",
+                "Profile"
+              ],
+              "allOf": [
+                {
+                  "$ref": "#/components/schemas/ImageType"
+                }
+              ],
+              "description": "Enum ImageType."
+            }
+          },
+          {
+            "name": "imageIndex",
+            "in": "path",
+            "description": "Image index.",
+            "required": true,
+            "schema": {
+              "type": "integer",
+              "format": "int32"
+            }
+          },
+          {
+            "name": "maxWidth",
+            "in": "query",
+            "description": "The maximum image width to return.",
+            "schema": {
+              "type": "integer",
+              "format": "int32"
+            }
+          },
+          {
+            "name": "maxHeight",
+            "in": "query",
+            "description": "The maximum image height to return.",
+            "schema": {
+              "type": "integer",
+              "format": "int32"
+            }
+          },
+          {
+            "name": "width",
+            "in": "query",
+            "description": "The fixed image width to return.",
+            "schema": {
+              "type": "integer",
+              "format": "int32"
+            }
+          },
+          {
+            "name": "height",
+            "in": "query",
+            "description": "The fixed image height to return.",
+            "schema": {
+              "type": "integer",
+              "format": "int32"
+            }
+          },
+          {
+            "name": "quality",
+            "in": "query",
+            "description": "Optional. Quality setting, from 0-100. Defaults to 90 and should suffice in most cases.",
+            "schema": {
+              "type": "integer",
+              "format": "int32"
+            }
+          },
+          {
+            "name": "fillWidth",
+            "in": "query",
+            "description": "Width of box to fill.",
+            "schema": {
+              "type": "integer",
+              "format": "int32"
+            }
+          },
+          {
+            "name": "fillHeight",
+            "in": "query",
+            "description": "Height of box to fill.",
+            "schema": {
+              "type": "integer",
+              "format": "int32"
+            }
+          },
+          {
+            "name": "tag",
+            "in": "query",
+            "description": "Optional. Supply the cache tag from the item object to receive strong caching headers.",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "format",
+            "in": "query",
+            "description": "Optional. The MediaBrowser.Model.Drawing.ImageFormat of the returned image.",
+            "schema": {
+              "enum": [
+                "Bmp",
+                "Gif",
+                "Jpg",
+                "Png",
+                "Webp",
+                "Svg"
+              ],
+              "allOf": [
+                {
+                  "$ref": "#/components/schemas/ImageFormat"
+                }
+              ]
+            }
+          },
+          {
+            "name": "percentPlayed",
+            "in": "query",
+            "description": "Optional. Percent to render for the percent played overlay.",
+            "schema": {
+              "type": "number",
+              "format": "double"
+            }
+          },
+          {
+            "name": "unplayedCount",
+            "in": "query",
+            "description": "Optional. Unplayed count overlay to render.",
+            "schema": {
+              "type": "integer",
+              "format": "int32"
+            }
+          },
+          {
+            "name": "blur",
+            "in": "query",
+            "description": "Optional. Blur image.",
+            "schema": {
+              "type": "integer",
+              "format": "int32"
+            }
+          },
+          {
+            "name": "backgroundColor",
+            "in": "query",
+            "description": "Optional. Apply a background color for transparent images.",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "foregroundLayer",
+            "in": "query",
+            "description": "Optional. Apply a foreground layer on top of the image.",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ]
+      },
+      "head": {
+        "operationId": "HeadItemImageByIndex",
+        "deprecated": false,
+        "parameters": [
+          {
+            "name": "itemId",
+            "in": "path",
+            "description": "Item id.",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          },
+          {
+            "name": "imageType",
+            "in": "path",
+            "description": "Image type.",
+            "required": true,
+            "schema": {
+              "enum": [
+                "Primary",
+                "Art",
+                "Backdrop",
+                "Banner",
+                "Logo",
+                "Thumb",
+                "Disc",
+                "Box",
+                "Screenshot",
+                "Menu",
+                "Chapter",
+                "BoxRear",
+                "Profile"
+              ],
+              "allOf": [
+                {
+                  "$ref": "#/components/schemas/ImageType"
+                }
+              ],
+              "description": "Enum ImageType."
+            }
+          },
+          {
+            "name": "imageIndex",
+            "in": "path",
+            "description": "Image index.",
+            "required": true,
+            "schema": {
+              "type": "integer",
+              "format": "int32"
+            }
+          },
+          {
+            "name": "maxWidth",
+            "in": "query",
+            "description": "The maximum image width to return.",
+            "schema": {
+              "type": "integer",
+              "format": "int32"
+            }
+          },
+          {
+            "name": "maxHeight",
+            "in": "query",
+            "description": "The maximum image height to return.",
+            "schema": {
+              "type": "integer",
+              "format": "int32"
+            }
+          },
+          {
+            "name": "width",
+            "in": "query",
+            "description": "The fixed image width to return.",
+            "schema": {
+              "type": "integer",
+              "format": "int32"
+            }
+          },
+          {
+            "name": "height",
+            "in": "query",
+            "description": "The fixed image height to return.",
+            "schema": {
+              "type": "integer",
+              "format": "int32"
+            }
+          },
+          {
+            "name": "quality",
+            "in": "query",
+            "description": "Optional. Quality setting, from 0-100. Defaults to 90 and should suffice in most cases.",
+            "schema": {
+              "type": "integer",
+              "format": "int32"
+            }
+          },
+          {
+            "name": "fillWidth",
+            "in": "query",
+            "description": "Width of box to fill.",
+            "schema": {
+              "type": "integer",
+              "format": "int32"
+            }
+          },
+          {
+            "name": "fillHeight",
+            "in": "query",
+            "description": "Height of box to fill.",
+            "schema": {
+              "type": "integer",
+              "format": "int32"
+            }
+          },
+          {
+            "name": "tag",
+            "in": "query",
+            "description": "Optional. Supply the cache tag from the item object to receive strong caching headers.",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "format",
+            "in": "query",
+            "description": "Optional. The MediaBrowser.Model.Drawing.ImageFormat of the returned image.",
+            "schema": {
+              "enum": [
+                "Bmp",
+                "Gif",
+                "Jpg",
+                "Png",
+                "Webp",
+                "Svg"
+              ],
+              "allOf": [
+                {
+                  "$ref": "#/components/schemas/ImageFormat"
+                }
+              ]
+            }
+          },
+          {
+            "name": "percentPlayed",
+            "in": "query",
+            "description": "Optional. Percent to render for the percent played overlay.",
+            "schema": {
+              "type": "number",
+              "format": "double"
+            }
+          },
+          {
+            "name": "unplayedCount",
+            "in": "query",
+            "description": "Optional. Unplayed count overlay to render.",
+            "schema": {
+              "type": "integer",
+              "format": "int32"
+            }
+          },
+          {
+            "name": "blur",
+            "in": "query",
+            "description": "Optional. Blur image.",
+            "schema": {
+              "type": "integer",
+              "format": "int32"
+            }
+          },
+          {
+            "name": "backgroundColor",
+            "in": "query",
+            "description": "Optional. Apply a background color for transparent images.",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "foregroundLayer",
+            "in": "query",
+            "description": "Optional. Apply a foreground layer on top of the image.",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ]
+      }
+    },
+    "/Items": {
+      "get": {
+        "operationId": "GetItems",
+        "deprecated": false,
+        "parameters": [
+          {
+            "name": "userId",
+            "in": "query",
+            "description": "The user id supplied as query parameter; this is required when not using an API key.",
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          },
+          {
+            "name": "maxOfficialRating",
+            "in": "query",
+            "description": "Optional filter by maximum official rating (PG, PG-13, TV-MA, etc).",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "hasThemeSong",
+            "in": "query",
+            "description": "Optional filter by items with theme songs.",
+            "schema": {
+              "type": "boolean"
+            }
+          },
+          {
+            "name": "hasThemeVideo",
+            "in": "query",
+            "description": "Optional filter by items with theme videos.",
+            "schema": {
+              "type": "boolean"
+            }
+          },
+          {
+            "name": "hasSubtitles",
+            "in": "query",
+            "description": "Optional filter by items with subtitles.",
+            "schema": {
+              "type": "boolean"
+            }
+          },
+          {
+            "name": "hasSpecialFeature",
+            "in": "query",
+            "description": "Optional filter by items with special features.",
+            "schema": {
+              "type": "boolean"
+            }
+          },
+          {
+            "name": "hasTrailer",
+            "in": "query",
+            "description": "Optional filter by items with trailers.",
+            "schema": {
+              "type": "boolean"
+            }
+          },
+          {
+            "name": "adjacentTo",
+            "in": "query",
+            "description": "Optional. Return items that are siblings of a supplied item.",
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          },
+          {
+            "name": "indexNumber",
+            "in": "query",
+            "description": "Optional filter by index number.",
+            "schema": {
+              "type": "integer",
+              "format": "int32"
+            }
+          },
+          {
+            "name": "parentIndexNumber",
+            "in": "query",
+            "description": "Optional filter by parent index number.",
+            "schema": {
+              "type": "integer",
+              "format": "int32"
+            }
+          },
+          {
+            "name": "hasParentalRating",
+            "in": "query",
+            "description": "Optional filter by items that have or do not have a parental rating.",
+            "schema": {
+              "type": "boolean"
+            }
+          },
+          {
+            "name": "isHd",
+            "in": "query",
+            "description": "Optional filter by items that are HD or not.",
+            "schema": {
+              "type": "boolean"
+            }
+          },
+          {
+            "name": "is4K",
+            "in": "query",
+            "description": "Optional filter by items that are 4K or not.",
+            "schema": {
+              "type": "boolean"
+            }
+          },
+          {
+            "name": "locationTypes",
+            "in": "query",
+            "description": "Optional. If specified, results will be filtered based on LocationType. This allows multiple, comma delimited.",
+            "schema": {
+              "type": "array",
+              "items": {
+                "$ref": "#/components/schemas/LocationType"
+              }
+            }
+          },
+          {
+            "name": "excludeLocationTypes",
+            "in": "query",
+            "description": "Optional. If specified, results will be filtered based on the LocationType. This allows multiple, comma delimited.",
+            "schema": {
+              "type": "array",
+              "items": {
+                "$ref": "#/components/schemas/LocationType"
+              }
+            }
+          },
+          {
+            "name": "isMissing",
+            "in": "query",
+            "description": "Optional filter by items that are missing episodes or not.",
+            "schema": {
+              "type": "boolean"
+            }
+          },
+          {
+            "name": "isUnaired",
+            "in": "query",
+            "description": "Optional filter by items that are unaired episodes or not.",
+            "schema": {
+              "type": "boolean"
+            }
+          },
+          {
+            "name": "minCommunityRating",
+            "in": "query",
+            "description": "Optional filter by minimum community rating.",
+            "schema": {
+              "type": "number",
+              "format": "double"
+            }
+          },
+          {
+            "name": "minCriticRating",
+            "in": "query",
+            "description": "Optional filter by minimum critic rating.",
+            "schema": {
+              "type": "number",
+              "format": "double"
+            }
+          },
+          {
+            "name": "minPremiereDate",
+            "in": "query",
+            "description": "Optional. The minimum premiere date. Format = ISO.",
+            "schema": {
+              "type": "string",
+              "format": "date-time"
+            }
+          },
+          {
+            "name": "minDateLastSaved",
+            "in": "query",
+            "description": "Optional. The minimum last saved date. Format = ISO.",
+            "schema": {
+              "type": "string",
+              "format": "date-time"
+            }
+          },
+          {
+            "name": "minDateLastSavedForUser",
+            "in": "query",
+            "description": "Optional. The minimum last saved date for the current user. Format = ISO.",
+            "schema": {
+              "type": "string",
+              "format": "date-time"
+            }
+          },
+          {
+            "name": "maxPremiereDate",
+            "in": "query",
+            "description": "Optional. The maximum premiere date. Format = ISO.",
+            "schema": {
+              "type": "string",
+              "format": "date-time"
+            }
+          },
+          {
+            "name": "hasOverview",
+            "in": "query",
+            "description": "Optional filter by items that have an overview or not.",
+            "schema": {
+              "type": "boolean"
+            }
+          },
+          {
+            "name": "hasImdbId",
+            "in": "query",
+            "description": "Optional filter by items that have an IMDb id or not.",
+            "schema": {
+              "type": "boolean"
+            }
+          },
+          {
+            "name": "hasTmdbId",
+            "in": "query",
+            "description": "Optional filter by items that have a TMDb id or not.",
+            "schema": {
+              "type": "boolean"
+            }
+          },
+          {
+            "name": "hasTvdbId",
+            "in": "query",
+            "description": "Optional filter by items that have a TVDb id or not.",
+            "schema": {
+              "type": "boolean"
+            }
+          },
+          {
+            "name": "isMovie",
+            "in": "query",
+            "description": "Optional filter for live tv movies.",
+            "schema": {
+              "type": "boolean"
+            }
+          },
+          {
+            "name": "isSeries",
+            "in": "query",
+            "description": "Optional filter for live tv series.",
+            "schema": {
+              "type": "boolean"
+            }
+          },
+          {
+            "name": "isNews",
+            "in": "query",
+            "description": "Optional filter for live tv news.",
+            "schema": {
+              "type": "boolean"
+            }
+          },
+          {
+            "name": "isKids",
+            "in": "query",
+            "description": "Optional filter for live tv kids.",
+            "schema": {
+              "type": "boolean"
+            }
+          },
+          {
+            "name": "isSports",
+            "in": "query",
+            "description": "Optional filter for live tv sports.",
+            "schema": {
+              "type": "boolean"
+            }
+          },
+          {
+            "name": "excludeItemIds",
+            "in": "query",
+            "description": "Optional. If specified, results will be filtered by excluding item ids. This allows multiple, comma delimited.",
+            "schema": {
+              "type": "array",
+              "items": {
+                "type": "string",
+                "format": "uuid"
+              }
+            }
+          },
+          {
+            "name": "startIndex",
+            "in": "query",
+            "description": "Optional. The record index to start at. All items with a lower index will be dropped from the results.",
+            "schema": {
+              "type": "integer",
+              "format": "int32"
+            }
+          },
+          {
+            "name": "limit",
+            "in": "query",
+            "description": "Optional. The maximum number of records to return.",
+            "schema": {
+              "type": "integer",
+              "format": "int32"
+            }
+          },
+          {
+            "name": "recursive",
+            "in": "query",
+            "description": "When searching within folders, this determines whether or not the search will be recursive. true/false.",
+            "schema": {
+              "type": "boolean"
+            }
+          },
+          {
+            "name": "searchTerm",
+            "in": "query",
+            "description": "Optional. Filter based on a search term.",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "sortOrder",
+            "in": "query",
+            "description": "Sort Order - Ascending, Descending.",
+            "schema": {
+              "type": "array",
+              "items": {
+                "$ref": "#/components/schemas/SortOrder"
+              }
+            }
+          },
+          {
+            "name": "parentId",
+            "in": "query",
+            "description": "Specify this to localize the search to a specific item or folder. Omit to use the root.",
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          },
+          {
+            "name": "fields",
+            "in": "query",
+            "description": "Optional. Specify additional fields of information to return in the output. This allows multiple, comma delimited. Options: Budget, Chapters, DateCreated, Genres, HomePageUrl, IndexOptions, MediaStreams, Overview, ParentId, Path, People, ProviderIds, PrimaryImageAspectRatio, Revenue, SortName, Studios, Taglines.",
+            "schema": {
+              "type": "array",
+              "items": {
+                "$ref": "#/components/schemas/ItemFields"
+              }
+            }
+          },
+          {
+            "name": "excludeItemTypes",
+            "in": "query",
+            "description": "Optional. If specified, results will be filtered based on item type. This allows multiple, comma delimited.",
+            "schema": {
+              "type": "array",
+              "items": {
+                "$ref": "#/components/schemas/BaseItemKind"
+              }
+            }
+          },
+          {
+            "name": "includeItemTypes",
+            "in": "query",
+            "description": "Optional. If specified, results will be filtered based on the item type. This allows multiple, comma delimited.",
+            "schema": {
+              "type": "array",
+              "items": {
+                "$ref": "#/components/schemas/BaseItemKind"
+              }
+            }
+          },
+          {
+            "name": "filters",
+            "in": "query",
+            "description": "Optional. Specify additional filters to apply. This allows multiple, comma delimited. Options: IsFolder, IsNotFolder, IsUnplayed, IsPlayed, IsFavorite, IsResumable, Likes, Dislikes.",
+            "schema": {
+              "type": "array",
+              "items": {
+                "$ref": "#/components/schemas/ItemFilter"
+              }
+            }
+          },
+          {
+            "name": "isFavorite",
+            "in": "query",
+            "description": "Optional filter by items that are marked as favorite, or not.",
+            "schema": {
+              "type": "boolean"
+            }
+          },
+          {
+            "name": "mediaTypes",
+            "in": "query",
+            "description": "Optional filter by MediaType. Allows multiple, comma delimited.",
+            "schema": {
+              "type": "array",
+              "items": {
+                "$ref": "#/components/schemas/MediaType"
+              }
+            }
+          },
+          {
+            "name": "imageTypes",
+            "in": "query",
+            "description": "Optional. If specified, results will be filtered based on those containing image types. This allows multiple, comma delimited.",
+            "schema": {
+              "type": "array",
+              "items": {
+                "$ref": "#/components/schemas/ImageType"
+              }
+            }
+          },
+          {
+            "name": "sortBy",
+            "in": "query",
+            "description": "Optional. Specify one or more sort orders, comma delimited. Options: Album, AlbumArtist, Artist, Budget, CommunityRating, CriticRating, DateCreated, DatePlayed, PlayCount, PremiereDate, ProductionYear, SortName, Random, Revenue, Runtime.",
+            "schema": {
+              "type": "array",
+              "items": {
+                "$ref": "#/components/schemas/ItemSortBy"
+              }
+            }
+          },
+          {
+            "name": "isPlayed",
+            "in": "query",
+            "description": "Optional filter by items that are played, or not.",
+            "schema": {
+              "type": "boolean"
+            }
+          },
+          {
+            "name": "genres",
+            "in": "query",
+            "description": "Optional. If specified, results will be filtered based on genre. This allows multiple, pipe delimited.",
+            "schema": {
+              "type": "array",
+              "items": {
+                "type": "string"
+              }
+            }
+          },
+          {
+            "name": "officialRatings",
+            "in": "query",
+            "description": "Optional. If specified, results will be filtered based on OfficialRating. This allows multiple, pipe delimited.",
+            "schema": {
+              "type": "array",
+              "items": {
+                "type": "string"
+              }
+            }
+          },
+          {
+            "name": "tags",
+            "in": "query",
+            "description": "Optional. If specified, results will be filtered based on tag. This allows multiple, pipe delimited.",
+            "schema": {
+              "type": "array",
+              "items": {
+                "type": "string"
+              }
+            }
+          },
+          {
+            "name": "years",
+            "in": "query",
+            "description": "Optional. If specified, results will be filtered based on production year. This allows multiple, comma delimited.",
+            "schema": {
+              "type": "array",
+              "items": {
+                "type": "integer",
+                "format": "int32"
+              }
+            }
+          },
+          {
+            "name": "enableUserData",
+            "in": "query",
+            "description": "Optional, include user data.",
+            "schema": {
+              "type": "boolean"
+            }
+          },
+          {
+            "name": "imageTypeLimit",
+            "in": "query",
+            "description": "Optional, the max number of images to return, per image type.",
+            "schema": {
+              "type": "integer",
+              "format": "int32"
+            }
+          },
+          {
+            "name": "enableImageTypes",
+            "in": "query",
+            "description": "Optional. The image types to include in the output.",
+            "schema": {
+              "type": "array",
+              "items": {
+                "$ref": "#/components/schemas/ImageType"
+              }
+            }
+          },
+          {
+            "name": "person",
+            "in": "query",
+            "description": "Optional. If specified, results will be filtered to include only those containing the specified person.",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "personIds",
+            "in": "query",
+            "description": "Optional. If specified, results will be filtered to include only those containing the specified person id.",
+            "schema": {
+              "type": "array",
+              "items": {
+                "type": "string",
+                "format": "uuid"
+              }
+            }
+          },
+          {
+            "name": "personTypes",
+            "in": "query",
+            "description": "Optional. If specified, along with Person, results will be filtered to include only those containing the specified person and PersonType. Allows multiple, comma-delimited.",
+            "schema": {
+              "type": "array",
+              "items": {
+                "type": "string"
+              }
+            }
+          },
+          {
+            "name": "studios",
+            "in": "query",
+            "description": "Optional. If specified, results will be filtered based on studio. This allows multiple, pipe delimited.",
+            "schema": {
+              "type": "array",
+              "items": {
+                "type": "string"
+              }
+            }
+          },
+          {
+            "name": "artists",
+            "in": "query",
+            "description": "Optional. If specified, results will be filtered based on artists. This allows multiple, pipe delimited.",
+            "schema": {
+              "type": "array",
+              "items": {
+                "type": "string"
+              }
+            }
+          },
+          {
+            "name": "excludeArtistIds",
+            "in": "query",
+            "description": "Optional. If specified, results will be filtered based on artist id. This allows multiple, pipe delimited.",
+            "schema": {
+              "type": "array",
+              "items": {
+                "type": "string",
+                "format": "uuid"
+              }
+            }
+          },
+          {
+            "name": "artistIds",
+            "in": "query",
+            "description": "Optional. If specified, results will be filtered to include only those containing the specified artist id.",
+            "schema": {
+              "type": "array",
+              "items": {
+                "type": "string",
+                "format": "uuid"
+              }
+            }
+          },
+          {
+            "name": "albumArtistIds",
+            "in": "query",
+            "description": "Optional. If specified, results will be filtered to include only those containing the specified album artist id.",
+            "schema": {
+              "type": "array",
+              "items": {
+                "type": "string",
+                "format": "uuid"
+              }
+            }
+          },
+          {
+            "name": "contributingArtistIds",
+            "in": "query",
+            "description": "Optional. If specified, results will be filtered to include only those containing the specified contributing artist id.",
+            "schema": {
+              "type": "array",
+              "items": {
+                "type": "string",
+                "format": "uuid"
+              }
+            }
+          },
+          {
+            "name": "albums",
+            "in": "query",
+            "description": "Optional. If specified, results will be filtered based on album. This allows multiple, pipe delimited.",
+            "schema": {
+              "type": "array",
+              "items": {
+                "type": "string"
+              }
+            }
+          },
+          {
+            "name": "albumIds",
+            "in": "query",
+            "description": "Optional. If specified, results will be filtered based on album id. This allows multiple, pipe delimited.",
+            "schema": {
+              "type": "array",
+              "items": {
+                "type": "string",
+                "format": "uuid"
+              }
+            }
+          },
+          {
+            "name": "ids",
+            "in": "query",
+            "description": "Optional. If specific items are needed, specify a list of item id's to retrieve. This allows multiple, comma delimited.",
+            "schema": {
+              "type": "array",
+              "items": {
+                "type": "string",
+                "format": "uuid"
+              }
+            }
+          },
+          {
+            "name": "videoTypes",
+            "in": "query",
+            "description": "Optional filter by VideoType (videofile, dvd, bluray, iso). Allows multiple, comma delimited.",
+            "schema": {
+              "type": "array",
+              "items": {
+                "$ref": "#/components/schemas/VideoType"
+              }
+            }
+          },
+          {
+            "name": "minOfficialRating",
+            "in": "query",
+            "description": "Optional filter by minimum official rating (PG, PG-13, TV-MA, etc).",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "isLocked",
+            "in": "query",
+            "description": "Optional filter by items that are locked.",
+            "schema": {
+              "type": "boolean"
+            }
+          },
+          {
+            "name": "isPlaceHolder",
+            "in": "query",
+            "description": "Optional filter by items that are placeholders.",
+            "schema": {
+              "type": "boolean"
+            }
+          },
+          {
+            "name": "hasOfficialRating",
+            "in": "query",
+            "description": "Optional filter by items that have official ratings.",
+            "schema": {
+              "type": "boolean"
+            }
+          },
+          {
+            "name": "collapseBoxSetItems",
+            "in": "query",
+            "description": "Whether or not to hide items behind their boxsets.",
+            "schema": {
+              "type": "boolean"
+            }
+          },
+          {
+            "name": "minWidth",
+            "in": "query",
+            "description": "Optional. Filter by the minimum width of the item.",
+            "schema": {
+              "type": "integer",
+              "format": "int32"
+            }
+          },
+          {
+            "name": "minHeight",
+            "in": "query",
+            "description": "Optional. Filter by the minimum height of the item.",
+            "schema": {
+              "type": "integer",
+              "format": "int32"
+            }
+          },
+          {
+            "name": "maxWidth",
+            "in": "query",
+            "description": "Optional. Filter by the maximum width of the item.",
+            "schema": {
+              "type": "integer",
+              "format": "int32"
+            }
+          },
+          {
+            "name": "maxHeight",
+            "in": "query",
+            "description": "Optional. Filter by the maximum height of the item.",
+            "schema": {
+              "type": "integer",
+              "format": "int32"
+            }
+          },
+          {
+            "name": "is3D",
+            "in": "query",
+            "description": "Optional filter by items that are 3D, or not.",
+            "schema": {
+              "type": "boolean"
+            }
+          },
+          {
+            "name": "seriesStatus",
+            "in": "query",
+            "description": "Optional filter by Series Status. Allows multiple, comma delimited.",
+            "schema": {
+              "type": "array",
+              "items": {
+                "$ref": "#/components/schemas/SeriesStatus"
+              }
+            }
+          },
+          {
+            "name": "nameStartsWithOrGreater",
+            "in": "query",
+            "description": "Optional filter by items whose name is sorted equally or greater than a given input string.",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "nameStartsWith",
+            "in": "query",
+            "description": "Optional filter by items whose name is sorted equally than a given input string.",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "nameLessThan",
+            "in": "query",
+            "description": "Optional filter by items whose name is equally or lesser than a given input string.",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "studioIds",
+            "in": "query",
+            "description": "Optional. If specified, results will be filtered based on studio id. This allows multiple, pipe delimited.",
+            "schema": {
+              "type": "array",
+              "items": {
+                "type": "string",
+                "format": "uuid"
+              }
+            }
+          },
+          {
+            "name": "genreIds",
+            "in": "query",
+            "description": "Optional. If specified, results will be filtered based on genre id. This allows multiple, pipe delimited.",
+            "schema": {
+              "type": "array",
+              "items": {
+                "type": "string",
+                "format": "uuid"
+              }
+            }
+          },
+          {
+            "name": "audioLanguages",
+            "in": "query",
+            "description": "Optional. If specified, results will be filtered based on audio language. This allows multiple, comma delimited values.",
+            "schema": {
+              "type": "array",
+              "items": {
+                "type": "string"
+              }
+            }
+          },
+          {
+            "name": "subtitleLanguages",
+            "in": "query",
+            "description": "Optional. If specified, results will be filtered based on subtitle language. This allows multiple, comma delimited values.",
+            "schema": {
+              "type": "array",
+              "items": {
+                "type": "string"
+              }
+            }
+          },
+          {
+            "name": "enableTotalRecordCount",
+            "in": "query",
+            "description": "Optional. Enable the total record count.",
+            "schema": {
+              "type": "boolean",
+              "default": true
+            }
+          },
+          {
+            "name": "enableImages",
+            "in": "query",
+            "description": "Optional, include image information in output.",
+            "schema": {
+              "type": "boolean",
+              "default": true
+            }
+          }
+        ]
+      }
+    },
+    "/Items/{itemId}": {
+      "get": {
+        "operationId": "GetItem",
+        "deprecated": false,
+        "parameters": [
+          {
+            "name": "userId",
+            "in": "query",
+            "description": "User id.",
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          },
+          {
+            "name": "itemId",
+            "in": "path",
+            "description": "Item id.",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          }
+        ]
+      }
+    },
+    "/Items/{itemId}/ThemeVideos": {
+      "get": {
+        "operationId": "GetThemeVideos",
+        "deprecated": false,
+        "parameters": [
+          {
+            "name": "itemId",
+            "in": "path",
+            "description": "The item id.",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          },
+          {
+            "name": "userId",
+            "in": "query",
+            "description": "Optional. Filter by user id, and attach user data.",
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          },
+          {
+            "name": "inheritFromParent",
+            "in": "query",
+            "description": "Optional. Determines whether or not parent items should be searched for theme media.",
+            "schema": {
+              "type": "boolean",
+              "default": false
+            }
+          },
+          {
+            "name": "sortBy",
+            "in": "query",
+            "description": "Optional. Specify one or more sort orders, comma delimited. Options: Album, AlbumArtist, Artist, Budget, CommunityRating, CriticRating, DateCreated, DatePlayed, PlayCount, PremiereDate, ProductionYear, SortName, Random, Revenue, Runtime.",
+            "schema": {
+              "type": "array",
+              "items": {
+                "$ref": "#/components/schemas/ItemSortBy"
+              }
+            }
+          },
+          {
+            "name": "sortOrder",
+            "in": "query",
+            "description": "Optional. Sort Order - Ascending, Descending.",
+            "schema": {
+              "type": "array",
+              "items": {
+                "$ref": "#/components/schemas/SortOrder"
+              }
+            }
+          }
+        ]
+      }
+    },
+    "/Library/MediaFolders": {
+      "get": {
+        "operationId": "GetMediaFolders",
+        "deprecated": false,
+        "parameters": [
+          {
+            "name": "isHidden",
+            "in": "query",
+            "description": "Optional. Filter by folders that are marked hidden, or not.",
+            "schema": {
+              "type": "boolean"
+            }
+          }
+        ]
+      }
+    },
+    "/Videos/{routeItemId}/{routeMediaSourceId}/Subtitles/{routeIndex}/{routeStartPositionTicks}/Stream.{routeFormat}": {
+      "get": {
+        "operationId": "GetSubtitleWithTicks",
+        "deprecated": false,
+        "parameters": [
+          {
+            "name": "routeItemId",
+            "in": "path",
+            "description": "The (route) item id.",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          },
+          {
+            "name": "routeMediaSourceId",
+            "in": "path",
+            "description": "The (route) media source id.",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "routeIndex",
+            "in": "path",
+            "description": "The (route) subtitle stream index.",
+            "required": true,
+            "schema": {
+              "type": "integer",
+              "format": "int32"
+            }
+          },
+          {
+            "name": "routeStartPositionTicks",
+            "in": "path",
+            "description": "The (route) start position of the subtitle in ticks.",
+            "required": true,
+            "schema": {
+              "type": "integer",
+              "format": "int64"
+            }
+          },
+          {
+            "name": "routeFormat",
+            "in": "path",
+            "description": "The (route) format of the returned subtitle.",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "itemId",
+            "in": "query",
+            "description": "The item id.",
+            "deprecated": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          },
+          {
+            "name": "mediaSourceId",
+            "in": "query",
+            "description": "The media source id.",
+            "deprecated": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "index",
+            "in": "query",
+            "description": "The subtitle stream index.",
+            "deprecated": true,
+            "schema": {
+              "type": "integer",
+              "format": "int32"
+            }
+          },
+          {
+            "name": "startPositionTicks",
+            "in": "query",
+            "description": "The start position of the subtitle in ticks.",
+            "deprecated": true,
+            "schema": {
+              "type": "integer",
+              "format": "int64"
+            }
+          },
+          {
+            "name": "format",
+            "in": "query",
+            "description": "The format of the returned subtitle.",
+            "deprecated": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "endPositionTicks",
+            "in": "query",
+            "description": "Optional. The end position of the subtitle in ticks.",
+            "schema": {
+              "type": "integer",
+              "format": "int64"
+            }
+          },
+          {
+            "name": "copyTimestamps",
+            "in": "query",
+            "description": "Optional. Whether to copy the timestamps.",
+            "schema": {
+              "type": "boolean",
+              "default": false
+            }
+          },
+          {
+            "name": "addVttTimeMap",
+            "in": "query",
+            "description": "Optional. Whether to add a VTT time map.",
+            "schema": {
+              "type": "boolean",
+              "default": false
+            }
+          }
+        ]
+      }
+    },
+    "/Videos/{routeItemId}/{routeMediaSourceId}/Subtitles/{routeIndex}/Stream.{routeFormat}": {
+      "get": {
+        "operationId": "GetSubtitle",
+        "deprecated": false,
+        "parameters": [
+          {
+            "name": "routeItemId",
+            "in": "path",
+            "description": "The (route) item id.",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          },
+          {
+            "name": "routeMediaSourceId",
+            "in": "path",
+            "description": "The (route) media source id.",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "routeIndex",
+            "in": "path",
+            "description": "The (route) subtitle stream index.",
+            "required": true,
+            "schema": {
+              "type": "integer",
+              "format": "int32"
+            }
+          },
+          {
+            "name": "routeFormat",
+            "in": "path",
+            "description": "The (route) format of the returned subtitle.",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "itemId",
+            "in": "query",
+            "description": "The item id.",
+            "deprecated": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          },
+          {
+            "name": "mediaSourceId",
+            "in": "query",
+            "description": "The media source id.",
+            "deprecated": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "index",
+            "in": "query",
+            "description": "The subtitle stream index.",
+            "deprecated": true,
+            "schema": {
+              "type": "integer",
+              "format": "int32"
+            }
+          },
+          {
+            "name": "format",
+            "in": "query",
+            "description": "The format of the returned subtitle.",
+            "deprecated": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "endPositionTicks",
+            "in": "query",
+            "description": "Optional. The end position of the subtitle in ticks.",
+            "schema": {
+              "type": "integer",
+              "format": "int64"
+            }
+          },
+          {
+            "name": "copyTimestamps",
+            "in": "query",
+            "description": "Optional. Whether to copy the timestamps.",
+            "schema": {
+              "type": "boolean",
+              "default": false
+            }
+          },
+          {
+            "name": "addVttTimeMap",
+            "in": "query",
+            "description": "Optional. Whether to add a VTT time map.",
+            "schema": {
+              "type": "boolean",
+              "default": false
+            }
+          },
+          {
+            "name": "startPositionTicks",
+            "in": "query",
+            "description": "The start position of the subtitle in ticks.",
+            "schema": {
+              "type": "integer",
+              "format": "int64",
+              "default": 0
+            }
+          }
+        ]
+      }
+    },
+    "/System/Info": {
+      "get": {
+        "operationId": "GetSystemInfo",
+        "deprecated": false,
+        "parameters": []
+      }
+    },
+    "/Shows/{seriesId}/Episodes": {
+      "get": {
+        "operationId": "GetEpisodes",
+        "deprecated": false,
+        "parameters": [
+          {
+            "name": "seriesId",
+            "in": "path",
+            "description": "The series id.",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          },
+          {
+            "name": "userId",
+            "in": "query",
+            "description": "The user id.",
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          },
+          {
+            "name": "fields",
+            "in": "query",
+            "description": "Optional. Specify additional fields of information to return in the output. This allows multiple, comma delimited. Options: Budget, Chapters, DateCreated, Genres, HomePageUrl, IndexOptions, MediaStreams, Overview, ParentId, Path, People, ProviderIds, PrimaryImageAspectRatio, Revenue, SortName, Studios, Taglines, TrailerUrls.",
+            "schema": {
+              "type": "array",
+              "items": {
+                "$ref": "#/components/schemas/ItemFields"
+              }
+            }
+          },
+          {
+            "name": "season",
+            "in": "query",
+            "description": "Optional filter by season number.",
+            "schema": {
+              "type": "integer",
+              "format": "int32"
+            }
+          },
+          {
+            "name": "seasonId",
+            "in": "query",
+            "description": "Optional. Filter by season id.",
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          },
+          {
+            "name": "isMissing",
+            "in": "query",
+            "description": "Optional. Filter by items that are missing episodes or not.",
+            "schema": {
+              "type": "boolean"
+            }
+          },
+          {
+            "name": "adjacentTo",
+            "in": "query",
+            "description": "Optional. Return items that are siblings of a supplied item.",
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          },
+          {
+            "name": "startItemId",
+            "in": "query",
+            "description": "Optional. Skip through the list until a given item is found.",
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          },
+          {
+            "name": "startIndex",
+            "in": "query",
+            "description": "Optional. The record index to start at. All items with a lower index will be dropped from the results.",
+            "schema": {
+              "type": "integer",
+              "format": "int32"
+            }
+          },
+          {
+            "name": "limit",
+            "in": "query",
+            "description": "Optional. The maximum number of records to return.",
+            "schema": {
+              "type": "integer",
+              "format": "int32"
+            }
+          },
+          {
+            "name": "enableImages",
+            "in": "query",
+            "description": "Optional, include image information in output.",
+            "schema": {
+              "type": "boolean"
+            }
+          },
+          {
+            "name": "imageTypeLimit",
+            "in": "query",
+            "description": "Optional, the max number of images to return, per image type.",
+            "schema": {
+              "type": "integer",
+              "format": "int32"
+            }
+          },
+          {
+            "name": "enableImageTypes",
+            "in": "query",
+            "description": "Optional. The image types to include in the output.",
+            "schema": {
+              "type": "array",
+              "items": {
+                "$ref": "#/components/schemas/ImageType"
+              }
+            }
+          },
+          {
+            "name": "enableUserData",
+            "in": "query",
+            "description": "Optional. Include user data.",
+            "schema": {
+              "type": "boolean"
+            }
+          },
+          {
+            "name": "sortBy",
+            "in": "query",
+            "description": "Optional. Specify one or more sort orders, comma delimited. Options: Album, AlbumArtist, Artist, Budget, CommunityRating, CriticRating, DateCreated, DatePlayed, PlayCount, PremiereDate, ProductionYear, SortName, Random, Revenue, Runtime.",
+            "schema": {
+              "enum": [
+                "Default",
+                "AiredEpisodeOrder",
+                "Album",
+                "AlbumArtist",
+                "Artist",
+                "DateCreated",
+                "OfficialRating",
+                "DatePlayed",
+                "PremiereDate",
+                "StartDate",
+                "SortName",
+                "Name",
+                "Random",
+                "Runtime",
+                "CommunityRating",
+                "ProductionYear",
+                "PlayCount",
+                "CriticRating",
+                "IsFolder",
+                "IsUnplayed",
+                "IsPlayed",
+                "SeriesSortName",
+                "VideoBitRate",
+                "AirTime",
+                "Studio",
+                "IsFavoriteOrLiked",
+                "DateLastContentAdded",
+                "SeriesDatePlayed",
+                "ParentIndexNumber",
+                "IndexNumber"
+              ],
+              "allOf": [
+                {
+                  "$ref": "#/components/schemas/ItemSortBy"
+                }
+              ]
+            }
+          }
+        ]
+      }
+    },
+    "/Videos/{itemId}/stream": {
+      "get": {
+        "operationId": "GetVideoStream",
+        "deprecated": false,
+        "parameters": [
+          {
+            "name": "itemId",
+            "in": "path",
+            "description": "The item id.",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          },
+          {
+            "name": "container",
+            "in": "query",
+            "description": "The video container. Possible values are: ts, webm, asf, wmv, ogv, mp4, m4v, mkv, mpeg, mpg, avi, 3gp, wmv, wtv, m2ts, mov, iso, flv.",
+            "schema": {
+              "pattern": "^[a-zA-Z0-9\\-\\._,|]{0,40}$",
+              "type": "string"
+            }
+          },
+          {
+            "name": "static",
+            "in": "query",
+            "description": "Optional. If true, the original file will be streamed statically without any encoding. Use either no url extension or the original file extension. true/false.",
+            "schema": {
+              "type": "boolean"
+            }
+          },
+          {
+            "name": "params",
+            "in": "query",
+            "description": "The streaming parameters.",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "tag",
+            "in": "query",
+            "description": "The tag.",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "deviceProfileId",
+            "in": "query",
+            "description": "Optional. The dlna device profile id to utilize.",
+            "deprecated": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "playSessionId",
+            "in": "query",
+            "description": "The play session id.",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "segmentContainer",
+            "in": "query",
+            "description": "The segment container.",
+            "schema": {
+              "pattern": "^[a-zA-Z0-9\\-\\._,|]{0,40}$",
+              "type": "string"
+            }
+          },
+          {
+            "name": "segmentLength",
+            "in": "query",
+            "description": "The segment length.",
+            "schema": {
+              "type": "integer",
+              "format": "int32"
+            }
+          },
+          {
+            "name": "minSegments",
+            "in": "query",
+            "description": "The minimum number of segments.",
+            "schema": {
+              "type": "integer",
+              "format": "int32"
+            }
+          },
+          {
+            "name": "mediaSourceId",
+            "in": "query",
+            "description": "The media version id, if playing an alternate version.",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "deviceId",
+            "in": "query",
+            "description": "The device id of the client requesting. Used to stop encoding processes when needed.",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "audioCodec",
+            "in": "query",
+            "description": "Optional. Specify an audio codec to encode to, e.g. mp3. If omitted the server will auto-select using the url's extension.",
+            "schema": {
+              "pattern": "^[a-zA-Z0-9\\-\\._,|]{0,40}$",
+              "type": "string"
+            }
+          },
+          {
+            "name": "enableAutoStreamCopy",
+            "in": "query",
+            "description": "Whether or not to allow automatic stream copy if requested values match the original source. Defaults to true.",
+            "schema": {
+              "type": "boolean"
+            }
+          },
+          {
+            "name": "allowVideoStreamCopy",
+            "in": "query",
+            "description": "Whether or not to allow copying of the video stream url.",
+            "schema": {
+              "type": "boolean"
+            }
+          },
+          {
+            "name": "allowAudioStreamCopy",
+            "in": "query",
+            "description": "Whether or not to allow copying of the audio stream url.",
+            "schema": {
+              "type": "boolean"
+            }
+          },
+          {
+            "name": "audioSampleRate",
+            "in": "query",
+            "description": "Optional. Specify a specific audio sample rate, e.g. 44100.",
+            "schema": {
+              "type": "integer",
+              "format": "int32"
+            }
+          },
+          {
+            "name": "maxAudioBitDepth",
+            "in": "query",
+            "description": "Optional. The maximum audio bit depth.",
+            "schema": {
+              "type": "integer",
+              "format": "int32"
+            }
+          },
+          {
+            "name": "audioBitRate",
+            "in": "query",
+            "description": "Optional. Specify an audio bitrate to encode to, e.g. 128000. If omitted this will be left to encoder defaults.",
+            "schema": {
+              "type": "integer",
+              "format": "int32"
+            }
+          },
+          {
+            "name": "audioChannels",
+            "in": "query",
+            "description": "Optional. Specify a specific number of audio channels to encode to, e.g. 2.",
+            "schema": {
+              "type": "integer",
+              "format": "int32"
+            }
+          },
+          {
+            "name": "maxAudioChannels",
+            "in": "query",
+            "description": "Optional. Specify a maximum number of audio channels to encode to, e.g. 2.",
+            "schema": {
+              "type": "integer",
+              "format": "int32"
+            }
+          },
+          {
+            "name": "profile",
+            "in": "query",
+            "description": "Optional. Specify a specific an encoder profile (varies by encoder), e.g. main, baseline, high.",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "level",
+            "in": "query",
+            "description": "Optional. Specify a level for the encoder profile (varies by encoder), e.g. 3, 3.1.",
+            "schema": {
+              "pattern": "-?[0-9]+(?:\\.[0-9]+)?",
+              "type": "string"
+            }
+          },
+          {
+            "name": "framerate",
+            "in": "query",
+            "description": "Optional. A specific video framerate to encode to, e.g. 23.976. Generally this should be omitted unless the device has specific requirements.",
+            "schema": {
+              "type": "number",
+              "format": "float"
+            }
+          },
+          {
+            "name": "maxFramerate",
+            "in": "query",
+            "description": "Optional. A specific maximum video framerate to encode to, e.g. 23.976. Generally this should be omitted unless the device has specific requirements.",
+            "schema": {
+              "type": "number",
+              "format": "float"
+            }
+          },
+          {
+            "name": "copyTimestamps",
+            "in": "query",
+            "description": "Whether or not to copy timestamps when transcoding with an offset. Defaults to false.",
+            "schema": {
+              "type": "boolean"
+            }
+          },
+          {
+            "name": "startTimeTicks",
+            "in": "query",
+            "description": "Optional. Specify a starting offset, in ticks. 1 tick = 10000 ms.",
+            "schema": {
+              "type": "integer",
+              "format": "int64"
+            }
+          },
+          {
+            "name": "width",
+            "in": "query",
+            "description": "Optional. The fixed horizontal resolution of the encoded video.",
+            "schema": {
+              "type": "integer",
+              "format": "int32"
+            }
+          },
+          {
+            "name": "height",
+            "in": "query",
+            "description": "Optional. The fixed vertical resolution of the encoded video.",
+            "schema": {
+              "type": "integer",
+              "format": "int32"
+            }
+          },
+          {
+            "name": "maxWidth",
+            "in": "query",
+            "description": "Optional. The maximum horizontal resolution of the encoded video.",
+            "schema": {
+              "type": "integer",
+              "format": "int32"
+            }
+          },
+          {
+            "name": "maxHeight",
+            "in": "query",
+            "description": "Optional. The maximum vertical resolution of the encoded video.",
+            "schema": {
+              "type": "integer",
+              "format": "int32"
+            }
+          },
+          {
+            "name": "videoBitRate",
+            "in": "query",
+            "description": "Optional. Specify a video bitrate to encode to, e.g. 500000. If omitted this will be left to encoder defaults.",
+            "schema": {
+              "type": "integer",
+              "format": "int32"
+            }
+          },
+          {
+            "name": "subtitleStreamIndex",
+            "in": "query",
+            "description": "Optional. The index of the subtitle stream to use. If omitted no subtitles will be used.",
+            "schema": {
+              "type": "integer",
+              "format": "int32"
+            }
+          },
+          {
+            "name": "subtitleMethod",
+            "in": "query",
+            "description": "Optional. Specify the subtitle delivery method.",
+            "schema": {
+              "enum": [
+                "Encode",
+                "Embed",
+                "External",
+                "Hls",
+                "Drop"
+              ],
+              "allOf": [
+                {
+                  "$ref": "#/components/schemas/SubtitleDeliveryMethod"
+                }
+              ]
+            }
+          },
+          {
+            "name": "maxRefFrames",
+            "in": "query",
+            "description": "Optional.",
+            "schema": {
+              "type": "integer",
+              "format": "int32"
+            }
+          },
+          {
+            "name": "maxVideoBitDepth",
+            "in": "query",
+            "description": "Optional. The maximum video bit depth.",
+            "schema": {
+              "type": "integer",
+              "format": "int32"
+            }
+          },
+          {
+            "name": "requireAvc",
+            "in": "query",
+            "description": "Optional. Whether to require avc.",
+            "schema": {
+              "type": "boolean"
+            }
+          },
+          {
+            "name": "deInterlace",
+            "in": "query",
+            "description": "Optional. Whether to deinterlace the video.",
+            "schema": {
+              "type": "boolean"
+            }
+          },
+          {
+            "name": "requireNonAnamorphic",
+            "in": "query",
+            "description": "Optional. Whether to require a non anamorphic stream.",
+            "schema": {
+              "type": "boolean"
+            }
+          },
+          {
+            "name": "transcodingMaxAudioChannels",
+            "in": "query",
+            "description": "Optional. The maximum number of audio channels to transcode.",
+            "schema": {
+              "type": "integer",
+              "format": "int32"
+            }
+          },
+          {
+            "name": "cpuCoreLimit",
+            "in": "query",
+            "description": "Optional. The limit of how many cpu cores to use.",
+            "schema": {
+              "type": "integer",
+              "format": "int32"
+            }
+          },
+          {
+            "name": "liveStreamId",
+            "in": "query",
+            "description": "The live stream id.",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "enableMpegtsM2TsMode",
+            "in": "query",
+            "description": "Optional. Whether to enable the MpegtsM2Ts mode.",
+            "schema": {
+              "type": "boolean"
+            }
+          },
+          {
+            "name": "videoCodec",
+            "in": "query",
+            "description": "Optional. Specify a video codec to encode to, e.g. h264. If omitted the server will auto-select using the url's extension.",
+            "schema": {
+              "pattern": "^[a-zA-Z0-9\\-\\._,|]{0,40}$",
+              "type": "string"
+            }
+          },
+          {
+            "name": "subtitleCodec",
+            "in": "query",
+            "description": "Optional. Specify a subtitle codec to encode to.",
+            "schema": {
+              "pattern": "^[a-zA-Z0-9\\-\\._,|]{0,40}$",
+              "type": "string"
+            }
+          },
+          {
+            "name": "transcodeReasons",
+            "in": "query",
+            "description": "Optional. The transcoding reason.",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "audioStreamIndex",
+            "in": "query",
+            "description": "Optional. The index of the audio stream to use. If omitted the first audio stream will be used.",
+            "schema": {
+              "type": "integer",
+              "format": "int32"
+            }
+          },
+          {
+            "name": "videoStreamIndex",
+            "in": "query",
+            "description": "Optional. The index of the video stream to use. If omitted the first video stream will be used.",
+            "schema": {
+              "type": "integer",
+              "format": "int32"
+            }
+          },
+          {
+            "name": "context",
+            "in": "query",
+            "description": "Optional. The MediaBrowser.Model.Dlna.EncodingContext.",
+            "schema": {
+              "enum": [
+                "Streaming",
+                "Static"
+              ],
+              "allOf": [
+                {
+                  "$ref": "#/components/schemas/EncodingContext"
+                }
+              ]
+            }
+          },
+          {
+            "name": "streamOptions",
+            "in": "query",
+            "description": "Optional. The streaming options.",
+            "style": "deepObject",
+            "schema": {
+              "type": "object",
+              "additionalProperties": {
+                "type": "string",
+                "nullable": true
+              }
+            }
+          },
+          {
+            "name": "enableAudioVbrEncoding",
+            "in": "query",
+            "description": "Optional. Whether to enable Audio Encoding.",
+            "schema": {
+              "type": "boolean",
+              "default": true
+            }
+          }
+        ]
+      },
+      "head": {
+        "operationId": "HeadVideoStream",
+        "deprecated": false,
+        "parameters": [
+          {
+            "name": "itemId",
+            "in": "path",
+            "description": "The item id.",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          },
+          {
+            "name": "container",
+            "in": "query",
+            "description": "The video container. Possible values are: ts, webm, asf, wmv, ogv, mp4, m4v, mkv, mpeg, mpg, avi, 3gp, wmv, wtv, m2ts, mov, iso, flv.",
+            "schema": {
+              "pattern": "^[a-zA-Z0-9\\-\\._,|]{0,40}$",
+              "type": "string"
+            }
+          },
+          {
+            "name": "static",
+            "in": "query",
+            "description": "Optional. If true, the original file will be streamed statically without any encoding. Use either no url extension or the original file extension. true/false.",
+            "schema": {
+              "type": "boolean"
+            }
+          },
+          {
+            "name": "params",
+            "in": "query",
+            "description": "The streaming parameters.",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "tag",
+            "in": "query",
+            "description": "The tag.",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "deviceProfileId",
+            "in": "query",
+            "description": "Optional. The dlna device profile id to utilize.",
+            "deprecated": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "playSessionId",
+            "in": "query",
+            "description": "The play session id.",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "segmentContainer",
+            "in": "query",
+            "description": "The segment container.",
+            "schema": {
+              "pattern": "^[a-zA-Z0-9\\-\\._,|]{0,40}$",
+              "type": "string"
+            }
+          },
+          {
+            "name": "segmentLength",
+            "in": "query",
+            "description": "The segment length.",
+            "schema": {
+              "type": "integer",
+              "format": "int32"
+            }
+          },
+          {
+            "name": "minSegments",
+            "in": "query",
+            "description": "The minimum number of segments.",
+            "schema": {
+              "type": "integer",
+              "format": "int32"
+            }
+          },
+          {
+            "name": "mediaSourceId",
+            "in": "query",
+            "description": "The media version id, if playing an alternate version.",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "deviceId",
+            "in": "query",
+            "description": "The device id of the client requesting. Used to stop encoding processes when needed.",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "audioCodec",
+            "in": "query",
+            "description": "Optional. Specify an audio codec to encode to, e.g. mp3. If omitted the server will auto-select using the url's extension.",
+            "schema": {
+              "pattern": "^[a-zA-Z0-9\\-\\._,|]{0,40}$",
+              "type": "string"
+            }
+          },
+          {
+            "name": "enableAutoStreamCopy",
+            "in": "query",
+            "description": "Whether or not to allow automatic stream copy if requested values match the original source. Defaults to true.",
+            "schema": {
+              "type": "boolean"
+            }
+          },
+          {
+            "name": "allowVideoStreamCopy",
+            "in": "query",
+            "description": "Whether or not to allow copying of the video stream url.",
+            "schema": {
+              "type": "boolean"
+            }
+          },
+          {
+            "name": "allowAudioStreamCopy",
+            "in": "query",
+            "description": "Whether or not to allow copying of the audio stream url.",
+            "schema": {
+              "type": "boolean"
+            }
+          },
+          {
+            "name": "audioSampleRate",
+            "in": "query",
+            "description": "Optional. Specify a specific audio sample rate, e.g. 44100.",
+            "schema": {
+              "type": "integer",
+              "format": "int32"
+            }
+          },
+          {
+            "name": "maxAudioBitDepth",
+            "in": "query",
+            "description": "Optional. The maximum audio bit depth.",
+            "schema": {
+              "type": "integer",
+              "format": "int32"
+            }
+          },
+          {
+            "name": "audioBitRate",
+            "in": "query",
+            "description": "Optional. Specify an audio bitrate to encode to, e.g. 128000. If omitted this will be left to encoder defaults.",
+            "schema": {
+              "type": "integer",
+              "format": "int32"
+            }
+          },
+          {
+            "name": "audioChannels",
+            "in": "query",
+            "description": "Optional. Specify a specific number of audio channels to encode to, e.g. 2.",
+            "schema": {
+              "type": "integer",
+              "format": "int32"
+            }
+          },
+          {
+            "name": "maxAudioChannels",
+            "in": "query",
+            "description": "Optional. Specify a maximum number of audio channels to encode to, e.g. 2.",
+            "schema": {
+              "type": "integer",
+              "format": "int32"
+            }
+          },
+          {
+            "name": "profile",
+            "in": "query",
+            "description": "Optional. Specify a specific an encoder profile (varies by encoder), e.g. main, baseline, high.",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "level",
+            "in": "query",
+            "description": "Optional. Specify a level for the encoder profile (varies by encoder), e.g. 3, 3.1.",
+            "schema": {
+              "pattern": "-?[0-9]+(?:\\.[0-9]+)?",
+              "type": "string"
+            }
+          },
+          {
+            "name": "framerate",
+            "in": "query",
+            "description": "Optional. A specific video framerate to encode to, e.g. 23.976. Generally this should be omitted unless the device has specific requirements.",
+            "schema": {
+              "type": "number",
+              "format": "float"
+            }
+          },
+          {
+            "name": "maxFramerate",
+            "in": "query",
+            "description": "Optional. A specific maximum video framerate to encode to, e.g. 23.976. Generally this should be omitted unless the device has specific requirements.",
+            "schema": {
+              "type": "number",
+              "format": "float"
+            }
+          },
+          {
+            "name": "copyTimestamps",
+            "in": "query",
+            "description": "Whether or not to copy timestamps when transcoding with an offset. Defaults to false.",
+            "schema": {
+              "type": "boolean"
+            }
+          },
+          {
+            "name": "startTimeTicks",
+            "in": "query",
+            "description": "Optional. Specify a starting offset, in ticks. 1 tick = 10000 ms.",
+            "schema": {
+              "type": "integer",
+              "format": "int64"
+            }
+          },
+          {
+            "name": "width",
+            "in": "query",
+            "description": "Optional. The fixed horizontal resolution of the encoded video.",
+            "schema": {
+              "type": "integer",
+              "format": "int32"
+            }
+          },
+          {
+            "name": "height",
+            "in": "query",
+            "description": "Optional. The fixed vertical resolution of the encoded video.",
+            "schema": {
+              "type": "integer",
+              "format": "int32"
+            }
+          },
+          {
+            "name": "maxWidth",
+            "in": "query",
+            "description": "Optional. The maximum horizontal resolution of the encoded video.",
+            "schema": {
+              "type": "integer",
+              "format": "int32"
+            }
+          },
+          {
+            "name": "maxHeight",
+            "in": "query",
+            "description": "Optional. The maximum vertical resolution of the encoded video.",
+            "schema": {
+              "type": "integer",
+              "format": "int32"
+            }
+          },
+          {
+            "name": "videoBitRate",
+            "in": "query",
+            "description": "Optional. Specify a video bitrate to encode to, e.g. 500000. If omitted this will be left to encoder defaults.",
+            "schema": {
+              "type": "integer",
+              "format": "int32"
+            }
+          },
+          {
+            "name": "subtitleStreamIndex",
+            "in": "query",
+            "description": "Optional. The index of the subtitle stream to use. If omitted no subtitles will be used.",
+            "schema": {
+              "type": "integer",
+              "format": "int32"
+            }
+          },
+          {
+            "name": "subtitleMethod",
+            "in": "query",
+            "description": "Optional. Specify the subtitle delivery method.",
+            "schema": {
+              "enum": [
+                "Encode",
+                "Embed",
+                "External",
+                "Hls",
+                "Drop"
+              ],
+              "allOf": [
+                {
+                  "$ref": "#/components/schemas/SubtitleDeliveryMethod"
+                }
+              ]
+            }
+          },
+          {
+            "name": "maxRefFrames",
+            "in": "query",
+            "description": "Optional.",
+            "schema": {
+              "type": "integer",
+              "format": "int32"
+            }
+          },
+          {
+            "name": "maxVideoBitDepth",
+            "in": "query",
+            "description": "Optional. The maximum video bit depth.",
+            "schema": {
+              "type": "integer",
+              "format": "int32"
+            }
+          },
+          {
+            "name": "requireAvc",
+            "in": "query",
+            "description": "Optional. Whether to require avc.",
+            "schema": {
+              "type": "boolean"
+            }
+          },
+          {
+            "name": "deInterlace",
+            "in": "query",
+            "description": "Optional. Whether to deinterlace the video.",
+            "schema": {
+              "type": "boolean"
+            }
+          },
+          {
+            "name": "requireNonAnamorphic",
+            "in": "query",
+            "description": "Optional. Whether to require a non anamorphic stream.",
+            "schema": {
+              "type": "boolean"
+            }
+          },
+          {
+            "name": "transcodingMaxAudioChannels",
+            "in": "query",
+            "description": "Optional. The maximum number of audio channels to transcode.",
+            "schema": {
+              "type": "integer",
+              "format": "int32"
+            }
+          },
+          {
+            "name": "cpuCoreLimit",
+            "in": "query",
+            "description": "Optional. The limit of how many cpu cores to use.",
+            "schema": {
+              "type": "integer",
+              "format": "int32"
+            }
+          },
+          {
+            "name": "liveStreamId",
+            "in": "query",
+            "description": "The live stream id.",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "enableMpegtsM2TsMode",
+            "in": "query",
+            "description": "Optional. Whether to enable the MpegtsM2Ts mode.",
+            "schema": {
+              "type": "boolean"
+            }
+          },
+          {
+            "name": "videoCodec",
+            "in": "query",
+            "description": "Optional. Specify a video codec to encode to, e.g. h264. If omitted the server will auto-select using the url's extension.",
+            "schema": {
+              "pattern": "^[a-zA-Z0-9\\-\\._,|]{0,40}$",
+              "type": "string"
+            }
+          },
+          {
+            "name": "subtitleCodec",
+            "in": "query",
+            "description": "Optional. Specify a subtitle codec to encode to.",
+            "schema": {
+              "pattern": "^[a-zA-Z0-9\\-\\._,|]{0,40}$",
+              "type": "string"
+            }
+          },
+          {
+            "name": "transcodeReasons",
+            "in": "query",
+            "description": "Optional. The transcoding reason.",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "audioStreamIndex",
+            "in": "query",
+            "description": "Optional. The index of the audio stream to use. If omitted the first audio stream will be used.",
+            "schema": {
+              "type": "integer",
+              "format": "int32"
+            }
+          },
+          {
+            "name": "videoStreamIndex",
+            "in": "query",
+            "description": "Optional. The index of the video stream to use. If omitted the first video stream will be used.",
+            "schema": {
+              "type": "integer",
+              "format": "int32"
+            }
+          },
+          {
+            "name": "context",
+            "in": "query",
+            "description": "Optional. The MediaBrowser.Model.Dlna.EncodingContext.",
+            "schema": {
+              "enum": [
+                "Streaming",
+                "Static"
+              ],
+              "allOf": [
+                {
+                  "$ref": "#/components/schemas/EncodingContext"
+                }
+              ]
+            }
+          },
+          {
+            "name": "streamOptions",
+            "in": "query",
+            "description": "Optional. The streaming options.",
+            "style": "deepObject",
+            "schema": {
+              "type": "object",
+              "additionalProperties": {
+                "type": "string",
+                "nullable": true
+              }
+            }
+          },
+          {
+            "name": "enableAudioVbrEncoding",
+            "in": "query",
+            "description": "Optional. Whether to enable Audio Encoding.",
+            "schema": {
+              "type": "boolean",
+              "default": true
+            }
+          }
+        ]
+      }
+    }
+  },
+  "item_fields": [
+    "AirTime",
+    "CanDelete",
+    "CanDownload",
+    "ChannelInfo",
+    "Chapters",
+    "Trickplay",
+    "ChildCount",
+    "CumulativeRunTimeTicks",
+    "CustomRating",
+    "DateCreated",
+    "DateLastMediaAdded",
+    "DisplayPreferencesId",
+    "Etag",
+    "ExternalUrls",
+    "Genres",
+    "ItemCounts",
+    "MediaSourceCount",
+    "MediaSources",
+    "OriginalTitle",
+    "Overview",
+    "ParentId",
+    "Path",
+    "People",
+    "PlayAccess",
+    "ProductionLocations",
+    "ProviderIds",
+    "PrimaryImageAspectRatio",
+    "RecursiveItemCount",
+    "Settings",
+    "SeriesStudio",
+    "SortName",
+    "SpecialEpisodeNumbers",
+    "Studios",
+    "Taglines",
+    "Tags",
+    "RemoteTrailers",
+    "MediaStreams",
+    "SeasonUserData",
+    "DateLastRefreshed",
+    "DateLastSaved",
+    "RefreshState",
+    "ChannelImage",
+    "EnableMediaSourceDisplay",
+    "Width",
+    "Height",
+    "ExtraIds",
+    "LocalTrailerCount",
+    "IsHD",
+    "SpecialFeatureCount"
+  ]
+}

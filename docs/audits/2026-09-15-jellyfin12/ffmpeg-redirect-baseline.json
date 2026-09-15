@@ -1,0 +1,12 @@
+[
+  {
+    "foreign_received_auth": true,
+    "foreign_requests": 1,
+    "max_redirects": "8"
+  },
+  {
+    "foreign_received_auth": false,
+    "foreign_requests": 0,
+    "max_redirects": "0"
+  }
+]

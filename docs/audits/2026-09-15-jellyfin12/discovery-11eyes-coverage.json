@@ -1,0 +1,7 @@
+{
+  "items": 27,
+  "unique_sources": 38,
+  "nested_sources_absent_as_items": 11,
+  "all_items_have_one_exact_path_source": true,
+  "sanitized_episode1_fixture": "fixtures/11eyes-episode1.json"
+}

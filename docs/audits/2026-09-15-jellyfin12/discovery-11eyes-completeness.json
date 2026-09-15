@@ -1,0 +1,12 @@
+{
+  "shows_items": 27,
+  "unique_source_ids": 38,
+  "missing_as_items": 11,
+  "explicit_ids_count": 0,
+  "explicit_ids_total": 0,
+  "explicit_ids_match_requested": false,
+  "recursive_items_count": 27,
+  "recursive_total": 27,
+  "recursive_unique_ids": 27,
+  "explicit_missing_items": []
+}

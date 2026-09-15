@@ -1,0 +1,3137 @@
+{
+  "series": [
+    {
+      "id": "68546f5d1871ad1c42d8d674376e83e6",
+      "name": "11eyes",
+      "episode_count": 27,
+      "inspected_episodes": [
+        {
+          "item_id": "16da3e84cfbe95cb9eb427d347c6c68b",
+          "name": "Rosarote Traumgeschichte",
+          "season": 0,
+          "episode": 1,
+          "item_file": "11 eyes OVA.Bonus.S00E01-B-SH.mkv",
+          "item_container": "mkv",
+          "source_count": 2,
+          "sources": [
+            {
+              "id": "16da3e84cfbe95cb9eb427d347c6c68b",
+              "name": "B-SH",
+              "file": "11 eyes OVA.Bonus.S00E01-B-SH.mkv",
+              "path_matches_item": true,
+              "container": "mkv",
+              "size": 2298165570,
+              "default_audio_index": null,
+              "default_subtitle_index": null,
+              "tracks": [
+                {
+                  "Type": "Audio",
+                  "Index": 1,
+                  "Codec": "flac",
+                  "Language": "jpn",
+                  "Title": "Japaese, flac, 48.0 kHz, 2 Ch, 699 kbit/s",
+                  "DisplayTitle": "Japaese, flac, 48.0 kHz, 2 Ch, 699 kbit/s - Japanese - Stereo - Standard",
+                  "Channels": 2,
+                  "ChannelLayout": "stereo",
+                  "IsDefault": true,
+                  "IsForced": false,
+                  "IsExternal": false
+                },
+                {
+                  "Type": "Subtitle",
+                  "Index": 2,
+                  "Codec": "ass",
+                  "Language": "deu",
+                  "Title": "German, Subtitle (ass)",
+                  "DisplayTitle": "German, Subtitle (ass) - Standard",
+                  "Channels": null,
+                  "ChannelLayout": null,
+                  "IsDefault": true,
+                  "IsForced": false,
+                  "IsExternal": false
+                }
+              ]
+            },
+            {
+              "id": "286e58916c74b0386d0da71fe837e114",
+              "name": "strawhat",
+              "file": "11 eyes OVA.Bonus.S00E01-strawhat.mp4",
+              "path_matches_item": false,
+              "container": "mp4",
+              "size": 167862121,
+              "default_audio_index": null,
+              "default_subtitle_index": null,
+              "tracks": [
+                {
+                  "Type": "Audio",
+                  "Index": 1,
+                  "Codec": "aac",
+                  "Language": "und",
+                  "Title": "GPAC ISO Audio Handler",
+                  "DisplayTitle": "GPAC ISO Audio Handler - AAC - Stereo - Standard",
+                  "Channels": 2,
+                  "ChannelLayout": "stereo",
+                  "IsDefault": true,
+                  "IsForced": false,
+                  "IsExternal": false
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "item_id": "286e58916c74b0386d0da71fe837e114",
+          "name": "Rosarote Traumgeschichte",
+          "season": 0,
+          "episode": 1,
+          "item_file": "11 eyes OVA.Bonus.S00E01-strawhat.mp4",
+          "item_container": "mov,mp4,m4a,3gp,3g2,mj2",
+          "source_count": 1,
+          "sources": [
+            {
+              "id": "286e58916c74b0386d0da71fe837e114",
+              "name": "11 eyes OVA.Bonus.S00E01-strawhat",
+              "file": "11 eyes OVA.Bonus.S00E01-strawhat.mp4",
+              "path_matches_item": true,
+              "container": "mp4",
+              "size": 167862121,
+              "default_audio_index": null,
+              "default_subtitle_index": null,
+              "tracks": [
+                {
+                  "Type": "Audio",
+                  "Index": 1,
+                  "Codec": "aac",
+                  "Language": "und",
+                  "Title": "GPAC ISO Audio Handler",
+                  "DisplayTitle": "GPAC ISO Audio Handler - AAC - Stereo - Standard",
+                  "Channels": 2,
+                  "ChannelLayout": "stereo",
+                  "IsDefault": true,
+                  "IsForced": false,
+                  "IsExternal": false
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "item_id": "0a927ea6b67379b9f19850464a6b0ab1",
+          "name": "Rote Nacht",
+          "season": 1,
+          "episode": 1,
+          "item_file": "11eyes.S01E01-B-SH.mkv",
+          "item_container": "mkv,webm",
+          "source_count": 3,
+          "sources": [
+            {
+              "id": "0a927ea6b67379b9f19850464a6b0ab1",
+              "name": "B-SH",
+              "file": "11eyes.S01E01-B-SH.mkv",
+              "path_matches_item": true,
+              "container": "mkv",
+              "size": 2423118467,
+              "default_audio_index": null,
+              "default_subtitle_index": null,
+              "tracks": [
+                {
+                  "Type": "Audio",
+                  "Index": 1,
+                  "Codec": "flac",
+                  "Language": "jpn",
+                  "Title": "Japaese, flac, 48.0 kHz, 2 Ch, 724 kbit/s",
+                  "DisplayTitle": "Japaese, flac, 48.0 kHz, 2 Ch, 724 kbit/s - Japanese - Stereo - Standard",
+                  "Channels": 2,
+                  "ChannelLayout": "stereo",
+                  "IsDefault": true,
+                  "IsForced": false,
+                  "IsExternal": false
+                },
+                {
+                  "Type": "Subtitle",
+                  "Index": 2,
+                  "Codec": "ass",
+                  "Language": "deu",
+                  "Title": "German, Subtitle (ass)",
+                  "DisplayTitle": "German, Subtitle (ass) - Standard",
+                  "Channels": null,
+                  "ChannelLayout": null,
+                  "IsDefault": true,
+                  "IsForced": false,
+                  "IsExternal": false
+                }
+              ]
+            },
+            {
+              "id": "784bcddf47e35fb4d0ba911903002f17",
+              "name": "FlameHazeSubs",
+              "file": "11eyes.S01E01-FlameHazeSubs.mp4",
+              "path_matches_item": false,
+              "container": "mp4",
+              "size": 257305877,
+              "default_audio_index": null,
+              "default_subtitle_index": null,
+              "tracks": [
+                {
+                  "Type": "Audio",
+                  "Index": 1,
+                  "Codec": "aac",
+                  "Language": "und",
+                  "Title": "GPAC ISO Audio Handler",
+                  "DisplayTitle": "GPAC ISO Audio Handler - HE-AAC - Stereo - Standard",
+                  "Channels": 2,
+                  "ChannelLayout": "stereo",
+                  "IsDefault": true,
+                  "IsForced": false,
+                  "IsExternal": false
+                }
+              ]
+            },
+            {
+              "id": "b0178014fa4e5a8b26f432bb99719372",
+              "name": "Strawhat",
+              "file": "11eyes.S01E01-Strawhat.mkv",
+              "path_matches_item": false,
+              "container": "mkv",
+              "size": 371085805,
+              "default_audio_index": null,
+              "default_subtitle_index": null,
+              "tracks": [
+                {
+                  "Type": "Audio",
+                  "Index": 1,
+                  "Codec": "vorbis",
+                  "Language": "jpn",
+                  "Title": null,
+                  "DisplayTitle": "Japanese - VORBIS - Stereo - Standard",
+                  "Channels": 2,
+                  "ChannelLayout": "stereo",
+                  "IsDefault": true,
+                  "IsForced": false,
+                  "IsExternal": false
+                },
+                {
+                  "Type": "Subtitle",
+                  "Index": 2,
+                  "Codec": "ass",
+                  "Language": "deu",
+                  "Title": null,
+                  "DisplayTitle": "German - Standard - ASS",
+                  "Channels": null,
+                  "ChannelLayout": null,
+                  "IsDefault": true,
+                  "IsForced": false,
+                  "IsExternal": false
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "item_id": "784bcddf47e35fb4d0ba911903002f17",
+          "name": "Rote Nacht",
+          "season": 1,
+          "episode": 1,
+          "item_file": "11eyes.S01E01-FlameHazeSubs.mp4",
+          "item_container": "mov,mp4,m4a,3gp,3g2,mj2",
+          "source_count": 1,
+          "sources": [
+            {
+              "id": "784bcddf47e35fb4d0ba911903002f17",
+              "name": "11eyes.S01E01-FlameHazeSubs",
+              "file": "11eyes.S01E01-FlameHazeSubs.mp4",
+              "path_matches_item": true,
+              "container": "mp4",
+              "size": 257305877,
+              "default_audio_index": null,
+              "default_subtitle_index": null,
+              "tracks": [
+                {
+                  "Type": "Audio",
+                  "Index": 1,
+                  "Codec": "aac",
+                  "Language": "und",
+                  "Title": "GPAC ISO Audio Handler",
+                  "DisplayTitle": "GPAC ISO Audio Handler - HE-AAC - Stereo - Standard",
+                  "Channels": 2,
+                  "ChannelLayout": "stereo",
+                  "IsDefault": true,
+                  "IsForced": false,
+                  "IsExternal": false
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "item_id": "b0178014fa4e5a8b26f432bb99719372",
+          "name": "Rote Nacht",
+          "season": 1,
+          "episode": 1,
+          "item_file": "11eyes.S01E01-Strawhat.mkv",
+          "item_container": "mkv,webm",
+          "source_count": 1,
+          "sources": [
+            {
+              "id": "b0178014fa4e5a8b26f432bb99719372",
+              "name": "11eyes.S01E01-Strawhat",
+              "file": "11eyes.S01E01-Strawhat.mkv",
+              "path_matches_item": true,
+              "container": "mkv",
+              "size": 371085805,
+              "default_audio_index": null,
+              "default_subtitle_index": null,
+              "tracks": [
+                {
+                  "Type": "Audio",
+                  "Index": 1,
+                  "Codec": "vorbis",
+                  "Language": "jpn",
+                  "Title": null,
+                  "DisplayTitle": "Japanese - VORBIS - Stereo - Standard",
+                  "Channels": 2,
+                  "ChannelLayout": "stereo",
+                  "IsDefault": true,
+                  "IsForced": false,
+                  "IsExternal": false
+                },
+                {
+                  "Type": "Subtitle",
+                  "Index": 2,
+                  "Codec": "ass",
+                  "Language": "deu",
+                  "Title": null,
+                  "DisplayTitle": "German - Standard - ASS",
+                  "Channels": null,
+                  "ChannelLayout": null,
+                  "IsDefault": true,
+                  "IsForced": false,
+                  "IsExternal": false
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "item_id": "8ecfdc1bef67653980da6e070c46b8a5",
+          "name": "Das Kristallmädchen",
+          "season": 1,
+          "episode": 2,
+          "item_file": "11eyes.S01E02-B-SH.mkv",
+          "item_container": "mkv,webm",
+          "source_count": 3,
+          "sources": [
+            {
+              "id": "8ecfdc1bef67653980da6e070c46b8a5",
+              "name": "B-SH",
+              "file": "11eyes.S01E02-B-SH.mkv",
+              "path_matches_item": true,
+              "container": "mkv",
+              "size": 2420184712,
+              "default_audio_index": null,
+              "default_subtitle_index": null,
+              "tracks": [
+                {
+                  "Type": "Audio",
+                  "Index": 1,
+                  "Codec": "flac",
+                  "Language": "jpn",
+                  "Title": "Japaese, flac, 48.0 kHz, 2 Ch, 733 kbit/s",
+                  "DisplayTitle": "Japaese, flac, 48.0 kHz, 2 Ch, 733 kbit/s - Japanese - Stereo - Standard",
+                  "Channels": 2,
+                  "ChannelLayout": "stereo",
+                  "IsDefault": true,
+                  "IsForced": false,
+                  "IsExternal": false
+                },
+                {
+                  "Type": "Subtitle",
+                  "Index": 2,
+                  "Codec": "ass",
+                  "Language": "deu",
+                  "Title": "German, Subtitle (ass)",
+                  "DisplayTitle": "German, Subtitle (ass) - Standard",
+                  "Channels": null,
+                  "ChannelLayout": null,
+                  "IsDefault": true,
+                  "IsForced": false,
+                  "IsExternal": false
+                }
+              ]
+            },
+            {
+              "id": "040f9c01d009765bc105b50e8150ae91",
+              "name": "FlameHazeSubs",
+              "file": "11eyes.S01E02-FlameHazeSubs.mp4",
+              "path_matches_item": false,
+              "container": "mp4",
+              "size": 207064163,
+              "default_audio_index": null,
+              "default_subtitle_index": null,
+              "tracks": [
+                {
+                  "Type": "Audio",
+                  "Index": 1,
+                  "Codec": "aac",
+                  "Language": "und",
+                  "Title": "GPAC ISO Audio Handler",
+                  "DisplayTitle": "GPAC ISO Audio Handler - HE-AAC - Stereo - Standard",
+                  "Channels": 2,
+                  "ChannelLayout": "stereo",
+                  "IsDefault": true,
+                  "IsForced": false,
+                  "IsExternal": false
+                }
+              ]
+            },
+            {
+              "id": "0b5acbba736163c38bf47b94bc434fb5",
+              "name": "Strawhat",
+              "file": "11eyes.S01E02-Strawhat.mkv",
+              "path_matches_item": false,
+              "container": "mkv",
+              "size": 371608149,
+              "default_audio_index": null,
+              "default_subtitle_index": null,
+              "tracks": [
+                {
+                  "Type": "Audio",
+                  "Index": 1,
+                  "Codec": "vorbis",
+                  "Language": "jpn",
+                  "Title": null,
+                  "DisplayTitle": "Japanese - VORBIS - Stereo - Standard",
+                  "Channels": 2,
+                  "ChannelLayout": "stereo",
+                  "IsDefault": true,
+                  "IsForced": false,
+                  "IsExternal": false
+                },
+                {
+                  "Type": "Subtitle",
+                  "Index": 2,
+                  "Codec": "ass",
+                  "Language": "deu",
+                  "Title": null,
+                  "DisplayTitle": "German - Standard - ASS",
+                  "Channels": null,
+                  "ChannelLayout": null,
+                  "IsDefault": true,
+                  "IsForced": false,
+                  "IsExternal": false
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "item_id": "e7851e5ed49c3efd3bda4bfad2211b13",
+          "name": "Einsamer Stolz",
+          "season": 1,
+          "episode": 3,
+          "item_file": "11eyes.S01E03-B-SH.mkv",
+          "item_container": "mkv,webm",
+          "source_count": 3,
+          "sources": [
+            {
+              "id": "e7851e5ed49c3efd3bda4bfad2211b13",
+              "name": "B-SH",
+              "file": "11eyes.S01E03-B-SH.mkv",
+              "path_matches_item": true,
+              "container": "mkv",
+              "size": 2411451117,
+              "default_audio_index": null,
+              "default_subtitle_index": null,
+              "tracks": [
+                {
+                  "Type": "Audio",
+                  "Index": 1,
+                  "Codec": "flac",
+                  "Language": "jpn",
+                  "Title": "Japaese, flac, 48.0 kHz, 2 Ch, 707 kbit/s",
+                  "DisplayTitle": "Japaese, flac, 48.0 kHz, 2 Ch, 707 kbit/s - Japanese - Stereo - Standard",
+                  "Channels": 2,
+                  "ChannelLayout": "stereo",
+                  "IsDefault": true,
+                  "IsForced": false,
+                  "IsExternal": false
+                },
+                {
+                  "Type": "Subtitle",
+                  "Index": 2,
+                  "Codec": "ass",
+                  "Language": "deu",
+                  "Title": "German, Subtitle (ass)",
+                  "DisplayTitle": "German, Subtitle (ass) - Standard",
+                  "Channels": null,
+                  "ChannelLayout": null,
+                  "IsDefault": true,
+                  "IsForced": false,
+                  "IsExternal": false
+                }
+              ]
+            },
+            {
+              "id": "dace4125199d572415b64150374c456b",
+              "name": "FlameHazeSubs",
+              "file": "11eyes.S01E03-FlameHazeSubs.mp4",
+              "path_matches_item": false,
+              "container": "mp4",
+              "size": 220341659,
+              "default_audio_index": null,
+              "default_subtitle_index": null,
+              "tracks": [
+                {
+                  "Type": "Audio",
+                  "Index": 1,
+                  "Codec": "aac",
+                  "Language": "und",
+                  "Title": "GPAC ISO Audio Handler",
+                  "DisplayTitle": "GPAC ISO Audio Handler - HE-AAC - Stereo - Standard",
+                  "Channels": 2,
+                  "ChannelLayout": "stereo",
+                  "IsDefault": true,
+                  "IsForced": false,
+                  "IsExternal": false
+                }
+              ]
+            },
+            {
+              "id": "71759fb1fc9a3f7dc0f822354a0fd125",
+              "name": "Strawhat",
+              "file": "11eyes.S01E03-Strawhat.mkv",
+              "path_matches_item": false,
+              "container": "mkv",
+              "size": 234881373,
+              "default_audio_index": null,
+              "default_subtitle_index": null,
+              "tracks": [
+                {
+                  "Type": "Audio",
+                  "Index": 1,
+                  "Codec": "vorbis",
+                  "Language": "jpn",
+                  "Title": null,
+                  "DisplayTitle": "Japanese - VORBIS - Stereo - Standard",
+                  "Channels": 2,
+                  "ChannelLayout": "stereo",
+                  "IsDefault": true,
+                  "IsForced": false,
+                  "IsExternal": false
+                },
+                {
+                  "Type": "Subtitle",
+                  "Index": 2,
+                  "Codec": "ass",
+                  "Language": "deu",
+                  "Title": null,
+                  "DisplayTitle": "German - Standard - ASS",
+                  "Channels": null,
+                  "ChannelLayout": null,
+                  "IsDefault": true,
+                  "IsForced": false,
+                  "IsExternal": false
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "item_id": "037cb1f93b556b328c90ff9c9a279d4c",
+          "name": "Maskiertes Lächeln",
+          "season": 1,
+          "episode": 4,
+          "item_file": "11eyes.S01E04-B-SH.mkv",
+          "item_container": "mkv,webm",
+          "source_count": 3,
+          "sources": [
+            {
+              "id": "037cb1f93b556b328c90ff9c9a279d4c",
+              "name": "B-SH",
+              "file": "11eyes.S01E04-B-SH.mkv",
+              "path_matches_item": true,
+              "container": "mkv",
+              "size": 2438155037,
+              "default_audio_index": null,
+              "default_subtitle_index": null,
+              "tracks": [
+                {
+                  "Type": "Audio",
+                  "Index": 1,
+                  "Codec": "flac",
+                  "Language": "jpn",
+                  "Title": "Japaese, flac, 48.0 kHz, 2 Ch, 755 kbit/s",
+                  "DisplayTitle": "Japaese, flac, 48.0 kHz, 2 Ch, 755 kbit/s - Japanese - Stereo - Standard",
+                  "Channels": 2,
+                  "ChannelLayout": "stereo",
+                  "IsDefault": true,
+                  "IsForced": false,
+                  "IsExternal": false
+                },
+                {
+                  "Type": "Subtitle",
+                  "Index": 2,
+                  "Codec": "ass",
+                  "Language": "deu",
+                  "Title": "German, Subtitle (ass)",
+                  "DisplayTitle": "German, Subtitle (ass) - Standard",
+                  "Channels": null,
+                  "ChannelLayout": null,
+                  "IsDefault": true,
+                  "IsForced": false,
+                  "IsExternal": false
+                }
+              ]
+            },
+            {
+              "id": "638abbede2dbcdeed3dbf7b58bcfef7d",
+              "name": "FlameHazeSubs",
+              "file": "11eyes.S01E04-FlameHazeSubs.mp4",
+              "path_matches_item": false,
+              "container": "mp4",
+              "size": 255126114,
+              "default_audio_index": null,
+              "default_subtitle_index": null,
+              "tracks": [
+                {
+                  "Type": "Audio",
+                  "Index": 1,
+                  "Codec": "aac",
+                  "Language": "und",
+                  "Title": "GPAC ISO Audio Handler",
+                  "DisplayTitle": "GPAC ISO Audio Handler - HE-AAC - Stereo - Standard",
+                  "Channels": 2,
+                  "ChannelLayout": "stereo",
+                  "IsDefault": true,
+                  "IsForced": false,
+                  "IsExternal": false
+                }
+              ]
+            },
+            {
+              "id": "692faa2f7c8336c309b6fb7a17aeb1f7",
+              "name": "Strawhat",
+              "file": "11eyes.S01E04-Strawhat.mkv",
+              "path_matches_item": false,
+              "container": "mkv",
+              "size": 263439354,
+              "default_audio_index": null,
+              "default_subtitle_index": null,
+              "tracks": [
+                {
+                  "Type": "Audio",
+                  "Index": 1,
+                  "Codec": "vorbis",
+                  "Language": "jpn",
+                  "Title": null,
+                  "DisplayTitle": "Japanese - VORBIS - Stereo - Standard",
+                  "Channels": 2,
+                  "ChannelLayout": "stereo",
+                  "IsDefault": true,
+                  "IsForced": false,
+                  "IsExternal": false
+                },
+                {
+                  "Type": "Subtitle",
+                  "Index": 2,
+                  "Codec": "ass",
+                  "Language": "deu",
+                  "Title": null,
+                  "DisplayTitle": "German - Standard - ASS",
+                  "Channels": null,
+                  "ChannelLayout": null,
+                  "IsDefault": true,
+                  "IsForced": false,
+                  "IsExternal": false
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "item_id": "169007e99fa800b5e806d9eeeecafed0",
+          "name": "Für meine Freunde und für einen Morgen",
+          "season": 1,
+          "episode": 5,
+          "item_file": "11eyes.S01E05-B-SH.mkv",
+          "item_container": "mkv,webm",
+          "source_count": 3,
+          "sources": [
+            {
+              "id": "169007e99fa800b5e806d9eeeecafed0",
+              "name": "B-SH",
+              "file": "11eyes.S01E05-B-SH.mkv",
+              "path_matches_item": true,
+              "container": "mkv",
+              "size": 2419609117,
+              "default_audio_index": null,
+              "default_subtitle_index": null,
+              "tracks": [
+                {
+                  "Type": "Audio",
+                  "Index": 1,
+                  "Codec": "flac",
+                  "Language": "jpn",
+                  "Title": "Japaese, flac, 48.0 kHz, 2 Ch, 701 kbit/s",
+                  "DisplayTitle": "Japaese, flac, 48.0 kHz, 2 Ch, 701 kbit/s - Japanese - Stereo - Standard",
+                  "Channels": 2,
+                  "ChannelLayout": "stereo",
+                  "IsDefault": true,
+                  "IsForced": false,
+                  "IsExternal": false
+                },
+                {
+                  "Type": "Subtitle",
+                  "Index": 2,
+                  "Codec": "ass",
+                  "Language": "deu",
+                  "Title": "German, Subtitle (ass)",
+                  "DisplayTitle": "German, Subtitle (ass) - Standard",
+                  "Channels": null,
+                  "ChannelLayout": null,
+                  "IsDefault": true,
+                  "IsForced": false,
+                  "IsExternal": false
+                }
+              ]
+            },
+            {
+              "id": "c51b864c4c3d06c81cfcece6df136aae",
+              "name": "FlameHazeSubs",
+              "file": "11eyes.S01E05-FlameHazeSubs.mp4",
+              "path_matches_item": false,
+              "container": "mp4",
+              "size": 210676110,
+              "default_audio_index": null,
+              "default_subtitle_index": null,
+              "tracks": [
+                {
+                  "Type": "Audio",
+                  "Index": 1,
+                  "Codec": "aac",
+                  "Language": "und",
+                  "Title": "GPAC ISO Audio Handler",
+                  "DisplayTitle": "GPAC ISO Audio Handler - HE-AAC - Stereo - Standard",
+                  "Channels": 2,
+                  "ChannelLayout": "stereo",
+                  "IsDefault": true,
+                  "IsForced": false,
+                  "IsExternal": false
+                }
+              ]
+            },
+            {
+              "id": "88b644703ef7bf1497175a47c2fb3500",
+              "name": "Strawhat",
+              "file": "11eyes.S01E05-Strawhat.mkv",
+              "path_matches_item": false,
+              "container": "mkv",
+              "size": 232479828,
+              "default_audio_index": null,
+              "default_subtitle_index": null,
+              "tracks": [
+                {
+                  "Type": "Audio",
+                  "Index": 1,
+                  "Codec": "vorbis",
+                  "Language": "jpn",
+                  "Title": null,
+                  "DisplayTitle": "Japanese - VORBIS - Stereo - Standard",
+                  "Channels": 2,
+                  "ChannelLayout": "stereo",
+                  "IsDefault": true,
+                  "IsForced": false,
+                  "IsExternal": false
+                },
+                {
+                  "Type": "Subtitle",
+                  "Index": 2,
+                  "Codec": "ass",
+                  "Language": "deu",
+                  "Title": null,
+                  "DisplayTitle": "German - Standard - ASS",
+                  "Channels": null,
+                  "ChannelLayout": null,
+                  "IsDefault": true,
+                  "IsForced": false,
+                  "IsExternal": false
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "item_id": "afda91e2bebc54df4d36c1b712aa7a85",
+          "name": "Verstörte Gemüter",
+          "season": 1,
+          "episode": 6,
+          "item_file": "11eyes.S01E06-B-SH.mkv",
+          "item_container": "mkv,webm",
+          "source_count": 3,
+          "sources": [
+            {
+              "id": "afda91e2bebc54df4d36c1b712aa7a85",
+              "name": "B-SH",
+              "file": "11eyes.S01E06-B-SH.mkv",
+              "path_matches_item": true,
+              "container": "mkv",
+              "size": 2424776844,
+              "default_audio_index": null,
+              "default_subtitle_index": null,
+              "tracks": [
+                {
+                  "Type": "Audio",
+                  "Index": 1,
+                  "Codec": "flac",
+                  "Language": "jpn",
+                  "Title": "Japaese, flac, 48.0 kHz, 2 Ch, 724 kbit/s",
+                  "DisplayTitle": "Japaese, flac, 48.0 kHz, 2 Ch, 724 kbit/s - Japanese - Stereo - Standard",
+                  "Channels": 2,
+                  "ChannelLayout": "stereo",
+                  "IsDefault": true,
+                  "IsForced": false,
+                  "IsExternal": false
+                },
+                {
+                  "Type": "Subtitle",
+                  "Index": 2,
+                  "Codec": "ass",
+                  "Language": "deu",
+                  "Title": "German, Subtitle (ass)",
+                  "DisplayTitle": "German, Subtitle (ass) - Standard",
+                  "Channels": null,
+                  "ChannelLayout": null,
+                  "IsDefault": true,
+                  "IsForced": false,
+                  "IsExternal": false
+                }
+              ]
+            },
+            {
+              "id": "ac2d86bdb3de9f223946f3cacd34fc34",
+              "name": "FlameHazeSubs",
+              "file": "11eyes.S01E06-FlameHazeSubs.mp4",
+              "path_matches_item": false,
+              "container": "mp4",
+              "size": 211098240,
+              "default_audio_index": null,
+              "default_subtitle_index": null,
+              "tracks": [
+                {
+                  "Type": "Audio",
+                  "Index": 1,
+                  "Codec": "aac",
+                  "Language": "und",
+                  "Title": "GPAC ISO Audio Handler",
+                  "DisplayTitle": "GPAC ISO Audio Handler - HE-AAC - Stereo - Standard",
+                  "Channels": 2,
+                  "ChannelLayout": "stereo",
+                  "IsDefault": true,
+                  "IsForced": false,
+                  "IsExternal": false
+                }
+              ]
+            },
+            {
+              "id": "90b3fb27603e5a750620326a4c453854",
+              "name": "Strawhat",
+              "file": "11eyes.S01E06-Strawhat.mkv",
+              "path_matches_item": false,
+              "container": "mkv",
+              "size": 229016400,
+              "default_audio_index": null,
+              "default_subtitle_index": null,
+              "tracks": [
+                {
+                  "Type": "Audio",
+                  "Index": 1,
+                  "Codec": "vorbis",
+                  "Language": "jpn",
+                  "Title": null,
+                  "DisplayTitle": "Japanese - VORBIS - Stereo - Standard",
+                  "Channels": 2,
+                  "ChannelLayout": "stereo",
+                  "IsDefault": true,
+                  "IsForced": false,
+                  "IsExternal": false
+                },
+                {
+                  "Type": "Subtitle",
+                  "Index": 2,
+                  "Codec": "ass",
+                  "Language": "deu",
+                  "Title": null,
+                  "DisplayTitle": "German - Standard - ASS",
+                  "Channels": null,
+                  "ChannelLayout": null,
+                  "IsDefault": true,
+                  "IsForced": false,
+                  "IsExternal": false
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "item_id": "50a111ef07f5de5d9fe214ab2c465b00",
+          "name": "Verzerrtes Erwachen",
+          "season": 1,
+          "episode": 7,
+          "item_file": "11eyes.S01E07-B-SH.mkv",
+          "item_container": "mkv,webm",
+          "source_count": 3,
+          "sources": [
+            {
+              "id": "50a111ef07f5de5d9fe214ab2c465b00",
+              "name": "B-SH",
+              "file": "11eyes.S01E07-B-SH.mkv",
+              "path_matches_item": true,
+              "container": "mkv",
+              "size": 2408339382,
+              "default_audio_index": null,
+              "default_subtitle_index": null,
+              "tracks": [
+                {
+                  "Type": "Audio",
+                  "Index": 1,
+                  "Codec": "flac",
+                  "Language": "jpn",
+                  "Title": "Japaese, flac, 48.0 kHz, 2 Ch, 761 kbit/s",
+                  "DisplayTitle": "Japaese, flac, 48.0 kHz, 2 Ch, 761 kbit/s - Japanese - Stereo - Standard",
+                  "Channels": 2,
+                  "ChannelLayout": "stereo",
+                  "IsDefault": true,
+                  "IsForced": false,
+                  "IsExternal": false
+                },
+                {
+                  "Type": "Subtitle",
+                  "Index": 2,
+                  "Codec": "ass",
+                  "Language": "deu",
+                  "Title": "German, Subtitle (ass)",
+                  "DisplayTitle": "German, Subtitle (ass) - Standard",
+                  "Channels": null,
+                  "ChannelLayout": null,
+                  "IsDefault": true,
+                  "IsForced": false,
+                  "IsExternal": false
+                }
+              ]
+            },
+            {
+              "id": "64cd74861acddc92b4a3fd4ebd57643f",
+              "name": "FlameHazeSubs",
+              "file": "11eyes.S01E07-FlameHazeSubs.mp4",
+              "path_matches_item": false,
+              "container": "mp4",
+              "size": 238785803,
+              "default_audio_index": null,
+              "default_subtitle_index": null,
+              "tracks": [
+                {
+                  "Type": "Audio",
+                  "Index": 1,
+                  "Codec": "aac",
+                  "Language": "und",
+                  "Title": "GPAC ISO Audio Handler",
+                  "DisplayTitle": "GPAC ISO Audio Handler - HE-AAC - Stereo - Standard",
+                  "Channels": 2,
+                  "ChannelLayout": "stereo",
+                  "IsDefault": true,
+                  "IsForced": false,
+                  "IsExternal": false
+                }
+              ]
+            },
+            {
+              "id": "a25f327931960190677ffa92fa6c050e",
+              "name": "Strawhat",
+              "file": "11eyes.S01E07-Strawhat.mkv",
+              "path_matches_item": false,
+              "container": "mkv",
+              "size": 247430586,
+              "default_audio_index": null,
+              "default_subtitle_index": null,
+              "tracks": [
+                {
+                  "Type": "Audio",
+                  "Index": 1,
+                  "Codec": "vorbis",
+                  "Language": "jpn",
+                  "Title": null,
+                  "DisplayTitle": "Japanese - VORBIS - Stereo - Standard",
+                  "Channels": 2,
+                  "ChannelLayout": "stereo",
+                  "IsDefault": true,
+                  "IsForced": false,
+                  "IsExternal": false
+                },
+                {
+                  "Type": "Subtitle",
+                  "Index": 2,
+                  "Codec": "ass",
+                  "Language": "deu",
+                  "Title": null,
+                  "DisplayTitle": "German - Standard - ASS",
+                  "Channels": null,
+                  "ChannelLayout": null,
+                  "IsDefault": true,
+                  "IsForced": false,
+                  "IsExternal": false
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "item_id": "6d25c2ac0e30c69e8685a93ab004ba83",
+          "name": "Verzauberte Stunde",
+          "season": 1,
+          "episode": 8,
+          "item_file": "11eyes.S01E08-B-SH.mkv",
+          "item_container": "mkv,webm",
+          "source_count": 3,
+          "sources": [
+            {
+              "id": "6d25c2ac0e30c69e8685a93ab004ba83",
+              "name": "B-SH",
+              "file": "11eyes.S01E08-B-SH.mkv",
+              "path_matches_item": true,
+              "container": "mkv",
+              "size": 2412037158,
+              "default_audio_index": null,
+              "default_subtitle_index": null,
+              "tracks": [
+                {
+                  "Type": "Audio",
+                  "Index": 1,
+                  "Codec": "flac",
+                  "Language": "jpn",
+                  "Title": "Japaese, flac, 48.0 kHz, 2 Ch, 628 kbit/s",
+                  "DisplayTitle": "Japaese, flac, 48.0 kHz, 2 Ch, 628 kbit/s - Japanese - Stereo - Standard",
+                  "Channels": 2,
+                  "ChannelLayout": "stereo",
+                  "IsDefault": true,
+                  "IsForced": false,
+                  "IsExternal": false
+                },
+                {
+                  "Type": "Subtitle",
+                  "Index": 2,
+                  "Codec": "ass",
+                  "Language": "deu",
+                  "Title": "German, Subtitle (ass)",
+                  "DisplayTitle": "German, Subtitle (ass) - Standard",
+                  "Channels": null,
+                  "ChannelLayout": null,
+                  "IsDefault": true,
+                  "IsForced": false,
+                  "IsExternal": false
+                }
+              ]
+            },
+            {
+              "id": "ba84f7564a8f17bc32c2047cb1153640",
+              "name": "FlameHazeSubs",
+              "file": "11eyes.S01E08-FlameHazeSubs.mp4",
+              "path_matches_item": false,
+              "container": "mp4",
+              "size": 205310135,
+              "default_audio_index": null,
+              "default_subtitle_index": null,
+              "tracks": [
+                {
+                  "Type": "Audio",
+                  "Index": 1,
+                  "Codec": "aac",
+                  "Language": "und",
+                  "Title": "GPAC ISO Audio Handler",
+                  "DisplayTitle": "GPAC ISO Audio Handler - HE-AAC - Stereo - Standard",
+                  "Channels": 2,
+                  "ChannelLayout": "stereo",
+                  "IsDefault": true,
+                  "IsForced": false,
+                  "IsExternal": false
+                }
+              ]
+            },
+            {
+              "id": "68eee6862a786b1203871c7395db8ef5",
+              "name": "Strawhat",
+              "file": "11eyes.S01E08-Strawhat.mkv",
+              "path_matches_item": false,
+              "container": "mkv",
+              "size": 214839029,
+              "default_audio_index": null,
+              "default_subtitle_index": null,
+              "tracks": [
+                {
+                  "Type": "Audio",
+                  "Index": 1,
+                  "Codec": "vorbis",
+                  "Language": "jpn",
+                  "Title": null,
+                  "DisplayTitle": "Japanese - VORBIS - Stereo - Standard",
+                  "Channels": 2,
+                  "ChannelLayout": "stereo",
+                  "IsDefault": true,
+                  "IsForced": false,
+                  "IsExternal": false
+                },
+                {
+                  "Type": "Subtitle",
+                  "Index": 2,
+                  "Codec": "ass",
+                  "Language": null,
+                  "Title": null,
+                  "DisplayTitle": "Undefiniert - Standard - ASS",
+                  "Channels": null,
+                  "ChannelLayout": null,
+                  "IsDefault": true,
+                  "IsForced": false,
+                  "IsExternal": false
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "item_id": "872dd974f80a30a6af6e5aa0e2fc238c",
+          "name": "Zerbrochene Bindung",
+          "season": 1,
+          "episode": 9,
+          "item_file": "11eyes.S01E09-B-SH.mkv",
+          "item_container": "mkv,webm",
+          "source_count": 3,
+          "sources": [
+            {
+              "id": "872dd974f80a30a6af6e5aa0e2fc238c",
+              "name": "B-SH",
+              "file": "11eyes.S01E09-B-SH.mkv",
+              "path_matches_item": true,
+              "container": "mkv",
+              "size": 2411998305,
+              "default_audio_index": null,
+              "default_subtitle_index": null,
+              "tracks": [
+                {
+                  "Type": "Audio",
+                  "Index": 1,
+                  "Codec": "flac",
+                  "Language": "jpn",
+                  "Title": "Japaese, flac, 48.0 kHz, 2 Ch, 809 kbit/s",
+                  "DisplayTitle": "Japaese, flac, 48.0 kHz, 2 Ch, 809 kbit/s - Japanese - Stereo - Standard",
+                  "Channels": 2,
+                  "ChannelLayout": "stereo",
+                  "IsDefault": true,
+                  "IsForced": false,
+                  "IsExternal": false
+                },
+                {
+                  "Type": "Subtitle",
+                  "Index": 2,
+                  "Codec": "ass",
+                  "Language": "deu",
+                  "Title": "German, Subtitle (ass)",
+                  "DisplayTitle": "German, Subtitle (ass) - Standard",
+                  "Channels": null,
+                  "ChannelLayout": null,
+                  "IsDefault": true,
+                  "IsForced": false,
+                  "IsExternal": false
+                }
+              ]
+            },
+            {
+              "id": "6037306ec823e4af48a6ea61cfd30d88",
+              "name": "FlameHazeSubs",
+              "file": "11eyes.S01E09-FlameHazeSubs.mp4",
+              "path_matches_item": false,
+              "container": "mp4",
+              "size": 264525651,
+              "default_audio_index": null,
+              "default_subtitle_index": null,
+              "tracks": [
+                {
+                  "Type": "Audio",
+                  "Index": 1,
+                  "Codec": "aac",
+                  "Language": "und",
+                  "Title": "GPAC ISO Audio Handler",
+                  "DisplayTitle": "GPAC ISO Audio Handler - HE-AAC - Stereo - Standard",
+                  "Channels": 2,
+                  "ChannelLayout": "stereo",
+                  "IsDefault": true,
+                  "IsForced": false,
+                  "IsExternal": false
+                }
+              ]
+            },
+            {
+              "id": "70558a7adedf2fd76e39a84ad9fbed2a",
+              "name": "Strawhat",
+              "file": "11eyes.S01E09-Strawhat.mkv",
+              "path_matches_item": false,
+              "container": "mkv",
+              "size": 287215470,
+              "default_audio_index": null,
+              "default_subtitle_index": null,
+              "tracks": [
+                {
+                  "Type": "Audio",
+                  "Index": 1,
+                  "Codec": "vorbis",
+                  "Language": "jpn",
+                  "Title": null,
+                  "DisplayTitle": "Japanese - VORBIS - Stereo - Standard",
+                  "Channels": 2,
+                  "ChannelLayout": "stereo",
+                  "IsDefault": true,
+                  "IsForced": false,
+                  "IsExternal": false
+                },
+                {
+                  "Type": "Subtitle",
+                  "Index": 2,
+                  "Codec": "ass",
+                  "Language": "deu",
+                  "Title": null,
+                  "DisplayTitle": "German - Standard - ASS",
+                  "Channels": null,
+                  "ChannelLayout": null,
+                  "IsDefault": true,
+                  "IsForced": false,
+                  "IsExternal": false
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "item_id": "a4997d78863ba8013df4040bc30c43c2",
+          "name": "Das Erwachen der Hexe",
+          "season": 1,
+          "episode": 10,
+          "item_file": "11eyes.S01E10-B-SH.mkv",
+          "item_container": "mkv,webm",
+          "source_count": 3,
+          "sources": [
+            {
+              "id": "a4997d78863ba8013df4040bc30c43c2",
+              "name": "B-SH",
+              "file": "11eyes.S01E10-B-SH.mkv",
+              "path_matches_item": true,
+              "container": "mkv",
+              "size": 2422463087,
+              "default_audio_index": null,
+              "default_subtitle_index": null,
+              "tracks": [
+                {
+                  "Type": "Audio",
+                  "Index": 1,
+                  "Codec": "flac",
+                  "Language": "jpn",
+                  "Title": "Japaese, flac, 48.0 kHz, 2 Ch, 685 kbit/s",
+                  "DisplayTitle": "Japaese, flac, 48.0 kHz, 2 Ch, 685 kbit/s - Japanese - Stereo - Standard",
+                  "Channels": 2,
+                  "ChannelLayout": "stereo",
+                  "IsDefault": true,
+                  "IsForced": false,
+                  "IsExternal": false
+                },
+                {
+                  "Type": "Subtitle",
+                  "Index": 2,
+                  "Codec": "ass",
+                  "Language": "deu",
+                  "Title": "German, Subtitle (ass)",
+                  "DisplayTitle": "German, Subtitle (ass) - Standard",
+                  "Channels": null,
+                  "ChannelLayout": null,
+                  "IsDefault": true,
+                  "IsForced": false,
+                  "IsExternal": false
+                }
+              ]
+            },
+            {
+              "id": "cb74b08d2a68c9db4f8fcf4dad6ce004",
+              "name": "FlameHazeSubs",
+              "file": "11eyes.S01E10-FlameHazeSubs.mp4",
+              "path_matches_item": false,
+              "container": "mp4",
+              "size": 217748640,
+              "default_audio_index": null,
+              "default_subtitle_index": null,
+              "tracks": [
+                {
+                  "Type": "Audio",
+                  "Index": 1,
+                  "Codec": "aac",
+                  "Language": "und",
+                  "Title": "GPAC ISO Audio Handler",
+                  "DisplayTitle": "GPAC ISO Audio Handler - HE-AAC - Stereo - Standard",
+                  "Channels": 2,
+                  "ChannelLayout": "stereo",
+                  "IsDefault": true,
+                  "IsForced": false,
+                  "IsExternal": false
+                }
+              ]
+            },
+            {
+              "id": "b1026435cec2a4d53ab97329e634551d",
+              "name": "Strawhat",
+              "file": "11eyes.S01E10-Strawhat.mkv",
+              "path_matches_item": false,
+              "container": "mkv",
+              "size": 334730117,
+              "default_audio_index": null,
+              "default_subtitle_index": null,
+              "tracks": [
+                {
+                  "Type": "Audio",
+                  "Index": 1,
+                  "Codec": "vorbis",
+                  "Language": "jpn",
+                  "Title": null,
+                  "DisplayTitle": "Japanese - VORBIS - Stereo - Standard",
+                  "Channels": 2,
+                  "ChannelLayout": "stereo",
+                  "IsDefault": true,
+                  "IsForced": false,
+                  "IsExternal": false
+                },
+                {
+                  "Type": "Subtitle",
+                  "Index": 2,
+                  "Codec": "ass",
+                  "Language": "deu",
+                  "Title": null,
+                  "DisplayTitle": "German - Standard - ASS",
+                  "Channels": null,
+                  "ChannelLayout": null,
+                  "IsDefault": true,
+                  "IsForced": false,
+                  "IsExternal": false
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "item_id": "d1d4bd9a4e614f93a1339475c8c3eb00",
+          "name": "Die Wahl heißt Zerstörung",
+          "season": 1,
+          "episode": 11,
+          "item_file": "11eyes.S01E11-B-SH.mkv",
+          "item_container": "mkv,webm",
+          "source_count": 3,
+          "sources": [
+            {
+              "id": "d1d4bd9a4e614f93a1339475c8c3eb00",
+              "name": "B-SH",
+              "file": "11eyes.S01E11-B-SH.mkv",
+              "path_matches_item": true,
+              "container": "mkv",
+              "size": 2412154005,
+              "default_audio_index": null,
+              "default_subtitle_index": null,
+              "tracks": [
+                {
+                  "Type": "Audio",
+                  "Index": 1,
+                  "Codec": "flac",
+                  "Language": "jpn",
+                  "Title": "Japaese, flac, 48.0 kHz, 2 Ch, 754 kbit/s",
+                  "DisplayTitle": "Japaese, flac, 48.0 kHz, 2 Ch, 754 kbit/s - Japanese - Stereo - Standard",
+                  "Channels": 2,
+                  "ChannelLayout": "stereo",
+                  "IsDefault": true,
+                  "IsForced": false,
+                  "IsExternal": false
+                },
+                {
+                  "Type": "Subtitle",
+                  "Index": 2,
+                  "Codec": "ass",
+                  "Language": "deu",
+                  "Title": "German, Subtitle (ass)",
+                  "DisplayTitle": "German, Subtitle (ass) - Standard",
+                  "Channels": null,
+                  "ChannelLayout": null,
+                  "IsDefault": true,
+                  "IsForced": false,
+                  "IsExternal": false
+                }
+              ]
+            },
+            {
+              "id": "6728ac5aa0cdd4bbdcae2ac84fb8f430",
+              "name": "FlameHazeSubs",
+              "file": "11eyes.S01E11-FlameHazeSubs.mp4",
+              "path_matches_item": false,
+              "container": "mp4",
+              "size": 251217566,
+              "default_audio_index": null,
+              "default_subtitle_index": null,
+              "tracks": [
+                {
+                  "Type": "Audio",
+                  "Index": 1,
+                  "Codec": "aac",
+                  "Language": "und",
+                  "Title": "GPAC ISO Audio Handler",
+                  "DisplayTitle": "GPAC ISO Audio Handler - HE-AAC - Stereo - Standard",
+                  "Channels": 2,
+                  "ChannelLayout": "stereo",
+                  "IsDefault": true,
+                  "IsForced": false,
+                  "IsExternal": false
+                }
+              ]
+            },
+            {
+              "id": "0f7ac28a793db2795abc2958617adfea",
+              "name": "Strawhat",
+              "file": "11eyes.S01E11-Strawhat.mkv",
+              "path_matches_item": false,
+              "container": "mkv",
+              "size": 336835530,
+              "default_audio_index": null,
+              "default_subtitle_index": null,
+              "tracks": [
+                {
+                  "Type": "Audio",
+                  "Index": 1,
+                  "Codec": "vorbis",
+                  "Language": "jpn",
+                  "Title": null,
+                  "DisplayTitle": "Japanese - VORBIS - Stereo - Standard",
+                  "Channels": 2,
+                  "ChannelLayout": "stereo",
+                  "IsDefault": true,
+                  "IsForced": false,
+                  "IsExternal": false
+                },
+                {
+                  "Type": "Subtitle",
+                  "Index": 2,
+                  "Codec": "ass",
+                  "Language": "deu",
+                  "Title": null,
+                  "DisplayTitle": "German - Standard - ASS",
+                  "Channels": null,
+                  "ChannelLayout": null,
+                  "IsDefault": true,
+                  "IsForced": false,
+                  "IsExternal": false
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "item_id": "76053216ff55d31f437c3f04cfeb4820",
+          "name": "Beginn der Schwarzen Nacht",
+          "season": 1,
+          "episode": 12,
+          "item_file": "11eyes.S01E12-B-SH.mkv",
+          "item_container": "mkv,webm",
+          "source_count": 3,
+          "sources": [
+            {
+              "id": "76053216ff55d31f437c3f04cfeb4820",
+              "name": "B-SH",
+              "file": "11eyes.S01E12-B-SH.mkv",
+              "path_matches_item": true,
+              "container": "mkv",
+              "size": 2410980896,
+              "default_audio_index": null,
+              "default_subtitle_index": null,
+              "tracks": [
+                {
+                  "Type": "Audio",
+                  "Index": 1,
+                  "Codec": "flac",
+                  "Language": "jpn",
+                  "Title": "Japaese, flac, 48.0 kHz, 2 Ch, 760 kbit/s",
+                  "DisplayTitle": "Japaese, flac, 48.0 kHz, 2 Ch, 760 kbit/s - Japanese - Stereo - Standard",
+                  "Channels": 2,
+                  "ChannelLayout": "stereo",
+                  "IsDefault": true,
+                  "IsForced": false,
+                  "IsExternal": false
+                },
+                {
+                  "Type": "Subtitle",
+                  "Index": 2,
+                  "Codec": "ass",
+                  "Language": "deu",
+                  "Title": "German, Subtitle (ass)",
+                  "DisplayTitle": "German, Subtitle (ass) - Standard",
+                  "Channels": null,
+                  "ChannelLayout": null,
+                  "IsDefault": true,
+                  "IsForced": false,
+                  "IsExternal": false
+                }
+              ]
+            },
+            {
+              "id": "83c409d6286b0de77496199430e0ac9e",
+              "name": "FlameHazeSubs",
+              "file": "11eyes.S01E12-FlameHazeSubs.mp4",
+              "path_matches_item": false,
+              "container": "mp4",
+              "size": 272249605,
+              "default_audio_index": null,
+              "default_subtitle_index": null,
+              "tracks": [
+                {
+                  "Type": "Audio",
+                  "Index": 1,
+                  "Codec": "aac",
+                  "Language": "und",
+                  "Title": "GPAC ISO Audio Handler",
+                  "DisplayTitle": "GPAC ISO Audio Handler - HE-AAC - Stereo - Standard",
+                  "Channels": 2,
+                  "ChannelLayout": "stereo",
+                  "IsDefault": true,
+                  "IsForced": false,
+                  "IsExternal": false
+                }
+              ]
+            },
+            {
+              "id": "d82c77a5c1e9d93799da0240e9bd0b15",
+              "name": "Strawhat",
+              "file": "11eyes.S01E12-Strawhat.mkv",
+              "path_matches_item": false,
+              "container": "mkv",
+              "size": 360005823,
+              "default_audio_index": null,
+              "default_subtitle_index": null,
+              "tracks": [
+                {
+                  "Type": "Audio",
+                  "Index": 1,
+                  "Codec": "vorbis",
+                  "Language": "jpn",
+                  "Title": null,
+                  "DisplayTitle": "Japanese - VORBIS - Stereo - Standard",
+                  "Channels": 2,
+                  "ChannelLayout": "stereo",
+                  "IsDefault": true,
+                  "IsForced": false,
+                  "IsExternal": false
+                },
+                {
+                  "Type": "Subtitle",
+                  "Index": 2,
+                  "Codec": "ass",
+                  "Language": "deu",
+                  "Title": null,
+                  "DisplayTitle": "German - Standard - ASS",
+                  "Channels": null,
+                  "ChannelLayout": null,
+                  "IsDefault": true,
+                  "IsForced": false,
+                  "IsExternal": false
+                }
+              ]
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "b755bdbede26777c538d4d89175336a1",
+      "name": "11eyes",
+      "episode_count": 27,
+      "inspected_episodes": [
+        {
+          "item_id": "16da3e84cfbe95cb9eb427d347c6c68b",
+          "name": "Rosarote Traumgeschichte",
+          "season": 0,
+          "episode": 1,
+          "item_file": "11 eyes OVA.Bonus.S00E01-B-SH.mkv",
+          "item_container": "mkv",
+          "source_count": 2,
+          "sources": [
+            {
+              "id": "16da3e84cfbe95cb9eb427d347c6c68b",
+              "name": "B-SH",
+              "file": "11 eyes OVA.Bonus.S00E01-B-SH.mkv",
+              "path_matches_item": true,
+              "container": "mkv",
+              "size": 2298165570,
+              "default_audio_index": null,
+              "default_subtitle_index": null,
+              "tracks": [
+                {
+                  "Type": "Audio",
+                  "Index": 1,
+                  "Codec": "flac",
+                  "Language": "jpn",
+                  "Title": "Japaese, flac, 48.0 kHz, 2 Ch, 699 kbit/s",
+                  "DisplayTitle": "Japaese, flac, 48.0 kHz, 2 Ch, 699 kbit/s - Japanese - Stereo - Standard",
+                  "Channels": 2,
+                  "ChannelLayout": "stereo",
+                  "IsDefault": true,
+                  "IsForced": false,
+                  "IsExternal": false
+                },
+                {
+                  "Type": "Subtitle",
+                  "Index": 2,
+                  "Codec": "ass",
+                  "Language": "deu",
+                  "Title": "German, Subtitle (ass)",
+                  "DisplayTitle": "German, Subtitle (ass) - Standard",
+                  "Channels": null,
+                  "ChannelLayout": null,
+                  "IsDefault": true,
+                  "IsForced": false,
+                  "IsExternal": false
+                }
+              ]
+            },
+            {
+              "id": "286e58916c74b0386d0da71fe837e114",
+              "name": "strawhat",
+              "file": "11 eyes OVA.Bonus.S00E01-strawhat.mp4",
+              "path_matches_item": false,
+              "container": "mp4",
+              "size": 167862121,
+              "default_audio_index": null,
+              "default_subtitle_index": null,
+              "tracks": [
+                {
+                  "Type": "Audio",
+                  "Index": 1,
+                  "Codec": "aac",
+                  "Language": "und",
+                  "Title": "GPAC ISO Audio Handler",
+                  "DisplayTitle": "GPAC ISO Audio Handler - AAC - Stereo - Standard",
+                  "Channels": 2,
+                  "ChannelLayout": "stereo",
+                  "IsDefault": true,
+                  "IsForced": false,
+                  "IsExternal": false
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "item_id": "286e58916c74b0386d0da71fe837e114",
+          "name": "Rosarote Traumgeschichte",
+          "season": 0,
+          "episode": 1,
+          "item_file": "11 eyes OVA.Bonus.S00E01-strawhat.mp4",
+          "item_container": "mov,mp4,m4a,3gp,3g2,mj2",
+          "source_count": 1,
+          "sources": [
+            {
+              "id": "286e58916c74b0386d0da71fe837e114",
+              "name": "11 eyes OVA.Bonus.S00E01-strawhat",
+              "file": "11 eyes OVA.Bonus.S00E01-strawhat.mp4",
+              "path_matches_item": true,
+              "container": "mp4",
+              "size": 167862121,
+              "default_audio_index": null,
+              "default_subtitle_index": null,
+              "tracks": [
+                {
+                  "Type": "Audio",
+                  "Index": 1,
+                  "Codec": "aac",
+                  "Language": "und",
+                  "Title": "GPAC ISO Audio Handler",
+                  "DisplayTitle": "GPAC ISO Audio Handler - AAC - Stereo - Standard",
+                  "Channels": 2,
+                  "ChannelLayout": "stereo",
+                  "IsDefault": true,
+                  "IsForced": false,
+                  "IsExternal": false
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "item_id": "0a927ea6b67379b9f19850464a6b0ab1",
+          "name": "Rote Nacht",
+          "season": 1,
+          "episode": 1,
+          "item_file": "11eyes.S01E01-B-SH.mkv",
+          "item_container": "mkv,webm",
+          "source_count": 3,
+          "sources": [
+            {
+              "id": "0a927ea6b67379b9f19850464a6b0ab1",
+              "name": "B-SH",
+              "file": "11eyes.S01E01-B-SH.mkv",
+              "path_matches_item": true,
+              "container": "mkv",
+              "size": 2423118467,
+              "default_audio_index": null,
+              "default_subtitle_index": null,
+              "tracks": [
+                {
+                  "Type": "Audio",
+                  "Index": 1,
+                  "Codec": "flac",
+                  "Language": "jpn",
+                  "Title": "Japaese, flac, 48.0 kHz, 2 Ch, 724 kbit/s",
+                  "DisplayTitle": "Japaese, flac, 48.0 kHz, 2 Ch, 724 kbit/s - Japanese - Stereo - Standard",
+                  "Channels": 2,
+                  "ChannelLayout": "stereo",
+                  "IsDefault": true,
+                  "IsForced": false,
+                  "IsExternal": false
+                },
+                {
+                  "Type": "Subtitle",
+                  "Index": 2,
+                  "Codec": "ass",
+                  "Language": "deu",
+                  "Title": "German, Subtitle (ass)",
+                  "DisplayTitle": "German, Subtitle (ass) - Standard",
+                  "Channels": null,
+                  "ChannelLayout": null,
+                  "IsDefault": true,
+                  "IsForced": false,
+                  "IsExternal": false
+                }
+              ]
+            },
+            {
+              "id": "784bcddf47e35fb4d0ba911903002f17",
+              "name": "FlameHazeSubs",
+              "file": "11eyes.S01E01-FlameHazeSubs.mp4",
+              "path_matches_item": false,
+              "container": "mp4",
+              "size": 257305877,
+              "default_audio_index": null,
+              "default_subtitle_index": null,
+              "tracks": [
+                {
+                  "Type": "Audio",
+                  "Index": 1,
+                  "Codec": "aac",
+                  "Language": "und",
+                  "Title": "GPAC ISO Audio Handler",
+                  "DisplayTitle": "GPAC ISO Audio Handler - HE-AAC - Stereo - Standard",
+                  "Channels": 2,
+                  "ChannelLayout": "stereo",
+                  "IsDefault": true,
+                  "IsForced": false,
+                  "IsExternal": false
+                }
+              ]
+            },
+            {
+              "id": "b0178014fa4e5a8b26f432bb99719372",
+              "name": "Strawhat",
+              "file": "11eyes.S01E01-Strawhat.mkv",
+              "path_matches_item": false,
+              "container": "mkv",
+              "size": 371085805,
+              "default_audio_index": null,
+              "default_subtitle_index": null,
+              "tracks": [
+                {
+                  "Type": "Audio",
+                  "Index": 1,
+                  "Codec": "vorbis",
+                  "Language": "jpn",
+                  "Title": null,
+                  "DisplayTitle": "Japanese - VORBIS - Stereo - Standard",
+                  "Channels": 2,
+                  "ChannelLayout": "stereo",
+                  "IsDefault": true,
+                  "IsForced": false,
+                  "IsExternal": false
+                },
+                {
+                  "Type": "Subtitle",
+                  "Index": 2,
+                  "Codec": "ass",
+                  "Language": "deu",
+                  "Title": null,
+                  "DisplayTitle": "German - Standard - ASS",
+                  "Channels": null,
+                  "ChannelLayout": null,
+                  "IsDefault": true,
+                  "IsForced": false,
+                  "IsExternal": false
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "item_id": "784bcddf47e35fb4d0ba911903002f17",
+          "name": "Rote Nacht",
+          "season": 1,
+          "episode": 1,
+          "item_file": "11eyes.S01E01-FlameHazeSubs.mp4",
+          "item_container": "mov,mp4,m4a,3gp,3g2,mj2",
+          "source_count": 1,
+          "sources": [
+            {
+              "id": "784bcddf47e35fb4d0ba911903002f17",
+              "name": "11eyes.S01E01-FlameHazeSubs",
+              "file": "11eyes.S01E01-FlameHazeSubs.mp4",
+              "path_matches_item": true,
+              "container": "mp4",
+              "size": 257305877,
+              "default_audio_index": null,
+              "default_subtitle_index": null,
+              "tracks": [
+                {
+                  "Type": "Audio",
+                  "Index": 1,
+                  "Codec": "aac",
+                  "Language": "und",
+                  "Title": "GPAC ISO Audio Handler",
+                  "DisplayTitle": "GPAC ISO Audio Handler - HE-AAC - Stereo - Standard",
+                  "Channels": 2,
+                  "ChannelLayout": "stereo",
+                  "IsDefault": true,
+                  "IsForced": false,
+                  "IsExternal": false
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "item_id": "b0178014fa4e5a8b26f432bb99719372",
+          "name": "Rote Nacht",
+          "season": 1,
+          "episode": 1,
+          "item_file": "11eyes.S01E01-Strawhat.mkv",
+          "item_container": "mkv,webm",
+          "source_count": 1,
+          "sources": [
+            {
+              "id": "b0178014fa4e5a8b26f432bb99719372",
+              "name": "11eyes.S01E01-Strawhat",
+              "file": "11eyes.S01E01-Strawhat.mkv",
+              "path_matches_item": true,
+              "container": "mkv",
+              "size": 371085805,
+              "default_audio_index": null,
+              "default_subtitle_index": null,
+              "tracks": [
+                {
+                  "Type": "Audio",
+                  "Index": 1,
+                  "Codec": "vorbis",
+                  "Language": "jpn",
+                  "Title": null,
+                  "DisplayTitle": "Japanese - VORBIS - Stereo - Standard",
+                  "Channels": 2,
+                  "ChannelLayout": "stereo",
+                  "IsDefault": true,
+                  "IsForced": false,
+                  "IsExternal": false
+                },
+                {
+                  "Type": "Subtitle",
+                  "Index": 2,
+                  "Codec": "ass",
+                  "Language": "deu",
+                  "Title": null,
+                  "DisplayTitle": "German - Standard - ASS",
+                  "Channels": null,
+                  "ChannelLayout": null,
+                  "IsDefault": true,
+                  "IsForced": false,
+                  "IsExternal": false
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "item_id": "8ecfdc1bef67653980da6e070c46b8a5",
+          "name": "Das Kristallmädchen",
+          "season": 1,
+          "episode": 2,
+          "item_file": "11eyes.S01E02-B-SH.mkv",
+          "item_container": "mkv,webm",
+          "source_count": 3,
+          "sources": [
+            {
+              "id": "8ecfdc1bef67653980da6e070c46b8a5",
+              "name": "B-SH",
+              "file": "11eyes.S01E02-B-SH.mkv",
+              "path_matches_item": true,
+              "container": "mkv",
+              "size": 2420184712,
+              "default_audio_index": null,
+              "default_subtitle_index": null,
+              "tracks": [
+                {
+                  "Type": "Audio",
+                  "Index": 1,
+                  "Codec": "flac",
+                  "Language": "jpn",
+                  "Title": "Japaese, flac, 48.0 kHz, 2 Ch, 733 kbit/s",
+                  "DisplayTitle": "Japaese, flac, 48.0 kHz, 2 Ch, 733 kbit/s - Japanese - Stereo - Standard",
+                  "Channels": 2,
+                  "ChannelLayout": "stereo",
+                  "IsDefault": true,
+                  "IsForced": false,
+                  "IsExternal": false
+                },
+                {
+                  "Type": "Subtitle",
+                  "Index": 2,
+                  "Codec": "ass",
+                  "Language": "deu",
+                  "Title": "German, Subtitle (ass)",
+                  "DisplayTitle": "German, Subtitle (ass) - Standard",
+                  "Channels": null,
+                  "ChannelLayout": null,
+                  "IsDefault": true,
+                  "IsForced": false,
+                  "IsExternal": false
+                }
+              ]
+            },
+            {
+              "id": "040f9c01d009765bc105b50e8150ae91",
+              "name": "FlameHazeSubs",
+              "file": "11eyes.S01E02-FlameHazeSubs.mp4",
+              "path_matches_item": false,
+              "container": "mp4",
+              "size": 207064163,
+              "default_audio_index": null,
+              "default_subtitle_index": null,
+              "tracks": [
+                {
+                  "Type": "Audio",
+                  "Index": 1,
+                  "Codec": "aac",
+                  "Language": "und",
+                  "Title": "GPAC ISO Audio Handler",
+                  "DisplayTitle": "GPAC ISO Audio Handler - HE-AAC - Stereo - Standard",
+                  "Channels": 2,
+                  "ChannelLayout": "stereo",
+                  "IsDefault": true,
+                  "IsForced": false,
+                  "IsExternal": false
+                }
+              ]
+            },
+            {
+              "id": "0b5acbba736163c38bf47b94bc434fb5",
+              "name": "Strawhat",
+              "file": "11eyes.S01E02-Strawhat.mkv",
+              "path_matches_item": false,
+              "container": "mkv",
+              "size": 371608149,
+              "default_audio_index": null,
+              "default_subtitle_index": null,
+              "tracks": [
+                {
+                  "Type": "Audio",
+                  "Index": 1,
+                  "Codec": "vorbis",
+                  "Language": "jpn",
+                  "Title": null,
+                  "DisplayTitle": "Japanese - VORBIS - Stereo - Standard",
+                  "Channels": 2,
+                  "ChannelLayout": "stereo",
+                  "IsDefault": true,
+                  "IsForced": false,
+                  "IsExternal": false
+                },
+                {
+                  "Type": "Subtitle",
+                  "Index": 2,
+                  "Codec": "ass",
+                  "Language": "deu",
+                  "Title": null,
+                  "DisplayTitle": "German - Standard - ASS",
+                  "Channels": null,
+                  "ChannelLayout": null,
+                  "IsDefault": true,
+                  "IsForced": false,
+                  "IsExternal": false
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "item_id": "e7851e5ed49c3efd3bda4bfad2211b13",
+          "name": "Einsamer Stolz",
+          "season": 1,
+          "episode": 3,
+          "item_file": "11eyes.S01E03-B-SH.mkv",
+          "item_container": "mkv,webm",
+          "source_count": 3,
+          "sources": [
+            {
+              "id": "e7851e5ed49c3efd3bda4bfad2211b13",
+              "name": "B-SH",
+              "file": "11eyes.S01E03-B-SH.mkv",
+              "path_matches_item": true,
+              "container": "mkv",
+              "size": 2411451117,
+              "default_audio_index": null,
+              "default_subtitle_index": null,
+              "tracks": [
+                {
+                  "Type": "Audio",
+                  "Index": 1,
+                  "Codec": "flac",
+                  "Language": "jpn",
+                  "Title": "Japaese, flac, 48.0 kHz, 2 Ch, 707 kbit/s",
+                  "DisplayTitle": "Japaese, flac, 48.0 kHz, 2 Ch, 707 kbit/s - Japanese - Stereo - Standard",
+                  "Channels": 2,
+                  "ChannelLayout": "stereo",
+                  "IsDefault": true,
+                  "IsForced": false,
+                  "IsExternal": false
+                },
+                {
+                  "Type": "Subtitle",
+                  "Index": 2,
+                  "Codec": "ass",
+                  "Language": "deu",
+                  "Title": "German, Subtitle (ass)",
+                  "DisplayTitle": "German, Subtitle (ass) - Standard",
+                  "Channels": null,
+                  "ChannelLayout": null,
+                  "IsDefault": true,
+                  "IsForced": false,
+                  "IsExternal": false
+                }
+              ]
+            },
+            {
+              "id": "dace4125199d572415b64150374c456b",
+              "name": "FlameHazeSubs",
+              "file": "11eyes.S01E03-FlameHazeSubs.mp4",
+              "path_matches_item": false,
+              "container": "mp4",
+              "size": 220341659,
+              "default_audio_index": null,
+              "default_subtitle_index": null,
+              "tracks": [
+                {
+                  "Type": "Audio",
+                  "Index": 1,
+                  "Codec": "aac",
+                  "Language": "und",
+                  "Title": "GPAC ISO Audio Handler",
+                  "DisplayTitle": "GPAC ISO Audio Handler - HE-AAC - Stereo - Standard",
+                  "Channels": 2,
+                  "ChannelLayout": "stereo",
+                  "IsDefault": true,
+                  "IsForced": false,
+                  "IsExternal": false
+                }
+              ]
+            },
+            {
+              "id": "71759fb1fc9a3f7dc0f822354a0fd125",
+              "name": "Strawhat",
+              "file": "11eyes.S01E03-Strawhat.mkv",
+              "path_matches_item": false,
+              "container": "mkv",
+              "size": 234881373,
+              "default_audio_index": null,
+              "default_subtitle_index": null,
+              "tracks": [
+                {
+                  "Type": "Audio",
+                  "Index": 1,
+                  "Codec": "vorbis",
+                  "Language": "jpn",
+                  "Title": null,
+                  "DisplayTitle": "Japanese - VORBIS - Stereo - Standard",
+                  "Channels": 2,
+                  "ChannelLayout": "stereo",
+                  "IsDefault": true,
+                  "IsForced": false,
+                  "IsExternal": false
+                },
+                {
+                  "Type": "Subtitle",
+                  "Index": 2,
+                  "Codec": "ass",
+                  "Language": "deu",
+                  "Title": null,
+                  "DisplayTitle": "German - Standard - ASS",
+                  "Channels": null,
+                  "ChannelLayout": null,
+                  "IsDefault": true,
+                  "IsForced": false,
+                  "IsExternal": false
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "item_id": "037cb1f93b556b328c90ff9c9a279d4c",
+          "name": "Maskiertes Lächeln",
+          "season": 1,
+          "episode": 4,
+          "item_file": "11eyes.S01E04-B-SH.mkv",
+          "item_container": "mkv,webm",
+          "source_count": 3,
+          "sources": [
+            {
+              "id": "037cb1f93b556b328c90ff9c9a279d4c",
+              "name": "B-SH",
+              "file": "11eyes.S01E04-B-SH.mkv",
+              "path_matches_item": true,
+              "container": "mkv",
+              "size": 2438155037,
+              "default_audio_index": null,
+              "default_subtitle_index": null,
+              "tracks": [
+                {
+                  "Type": "Audio",
+                  "Index": 1,
+                  "Codec": "flac",
+                  "Language": "jpn",
+                  "Title": "Japaese, flac, 48.0 kHz, 2 Ch, 755 kbit/s",
+                  "DisplayTitle": "Japaese, flac, 48.0 kHz, 2 Ch, 755 kbit/s - Japanese - Stereo - Standard",
+                  "Channels": 2,
+                  "ChannelLayout": "stereo",
+                  "IsDefault": true,
+                  "IsForced": false,
+                  "IsExternal": false
+                },
+                {
+                  "Type": "Subtitle",
+                  "Index": 2,
+                  "Codec": "ass",
+                  "Language": "deu",
+                  "Title": "German, Subtitle (ass)",
+                  "DisplayTitle": "German, Subtitle (ass) - Standard",
+                  "Channels": null,
+                  "ChannelLayout": null,
+                  "IsDefault": true,
+                  "IsForced": false,
+                  "IsExternal": false
+                }
+              ]
+            },
+            {
+              "id": "638abbede2dbcdeed3dbf7b58bcfef7d",
+              "name": "FlameHazeSubs",
+              "file": "11eyes.S01E04-FlameHazeSubs.mp4",
+              "path_matches_item": false,
+              "container": "mp4",
+              "size": 255126114,
+              "default_audio_index": null,
+              "default_subtitle_index": null,
+              "tracks": [
+                {
+                  "Type": "Audio",
+                  "Index": 1,
+                  "Codec": "aac",
+                  "Language": "und",
+                  "Title": "GPAC ISO Audio Handler",
+                  "DisplayTitle": "GPAC ISO Audio Handler - HE-AAC - Stereo - Standard",
+                  "Channels": 2,
+                  "ChannelLayout": "stereo",
+                  "IsDefault": true,
+                  "IsForced": false,
+                  "IsExternal": false
+                }
+              ]
+            },
+            {
+              "id": "692faa2f7c8336c309b6fb7a17aeb1f7",
+              "name": "Strawhat",
+              "file": "11eyes.S01E04-Strawhat.mkv",
+              "path_matches_item": false,
+              "container": "mkv",
+              "size": 263439354,
+              "default_audio_index": null,
+              "default_subtitle_index": null,
+              "tracks": [
+                {
+                  "Type": "Audio",
+                  "Index": 1,
+                  "Codec": "vorbis",
+                  "Language": "jpn",
+                  "Title": null,
+                  "DisplayTitle": "Japanese - VORBIS - Stereo - Standard",
+                  "Channels": 2,
+                  "ChannelLayout": "stereo",
+                  "IsDefault": true,
+                  "IsForced": false,
+                  "IsExternal": false
+                },
+                {
+                  "Type": "Subtitle",
+                  "Index": 2,
+                  "Codec": "ass",
+                  "Language": "deu",
+                  "Title": null,
+                  "DisplayTitle": "German - Standard - ASS",
+                  "Channels": null,
+                  "ChannelLayout": null,
+                  "IsDefault": true,
+                  "IsForced": false,
+                  "IsExternal": false
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "item_id": "169007e99fa800b5e806d9eeeecafed0",
+          "name": "Für meine Freunde und für einen Morgen",
+          "season": 1,
+          "episode": 5,
+          "item_file": "11eyes.S01E05-B-SH.mkv",
+          "item_container": "mkv,webm",
+          "source_count": 3,
+          "sources": [
+            {
+              "id": "169007e99fa800b5e806d9eeeecafed0",
+              "name": "B-SH",
+              "file": "11eyes.S01E05-B-SH.mkv",
+              "path_matches_item": true,
+              "container": "mkv",
+              "size": 2419609117,
+              "default_audio_index": null,
+              "default_subtitle_index": null,
+              "tracks": [
+                {
+                  "Type": "Audio",
+                  "Index": 1,
+                  "Codec": "flac",
+                  "Language": "jpn",
+                  "Title": "Japaese, flac, 48.0 kHz, 2 Ch, 701 kbit/s",
+                  "DisplayTitle": "Japaese, flac, 48.0 kHz, 2 Ch, 701 kbit/s - Japanese - Stereo - Standard",
+                  "Channels": 2,
+                  "ChannelLayout": "stereo",
+                  "IsDefault": true,
+                  "IsForced": false,
+                  "IsExternal": false
+                },
+                {
+                  "Type": "Subtitle",
+                  "Index": 2,
+                  "Codec": "ass",
+                  "Language": "deu",
+                  "Title": "German, Subtitle (ass)",
+                  "DisplayTitle": "German, Subtitle (ass) - Standard",
+                  "Channels": null,
+                  "ChannelLayout": null,
+                  "IsDefault": true,
+                  "IsForced": false,
+                  "IsExternal": false
+                }
+              ]
+            },
+            {
+              "id": "c51b864c4c3d06c81cfcece6df136aae",
+              "name": "FlameHazeSubs",
+              "file": "11eyes.S01E05-FlameHazeSubs.mp4",
+              "path_matches_item": false,
+              "container": "mp4",
+              "size": 210676110,
+              "default_audio_index": null,
+              "default_subtitle_index": null,
+              "tracks": [
+                {
+                  "Type": "Audio",
+                  "Index": 1,
+                  "Codec": "aac",
+                  "Language": "und",
+                  "Title": "GPAC ISO Audio Handler",
+                  "DisplayTitle": "GPAC ISO Audio Handler - HE-AAC - Stereo - Standard",
+                  "Channels": 2,
+                  "ChannelLayout": "stereo",
+                  "IsDefault": true,
+                  "IsForced": false,
+                  "IsExternal": false
+                }
+              ]
+            },
+            {
+              "id": "88b644703ef7bf1497175a47c2fb3500",
+              "name": "Strawhat",
+              "file": "11eyes.S01E05-Strawhat.mkv",
+              "path_matches_item": false,
+              "container": "mkv",
+              "size": 232479828,
+              "default_audio_index": null,
+              "default_subtitle_index": null,
+              "tracks": [
+                {
+                  "Type": "Audio",
+                  "Index": 1,
+                  "Codec": "vorbis",
+                  "Language": "jpn",
+                  "Title": null,
+                  "DisplayTitle": "Japanese - VORBIS - Stereo - Standard",
+                  "Channels": 2,
+                  "ChannelLayout": "stereo",
+                  "IsDefault": true,
+                  "IsForced": false,
+                  "IsExternal": false
+                },
+                {
+                  "Type": "Subtitle",
+                  "Index": 2,
+                  "Codec": "ass",
+                  "Language": "deu",
+                  "Title": null,
+                  "DisplayTitle": "German - Standard - ASS",
+                  "Channels": null,
+                  "ChannelLayout": null,
+                  "IsDefault": true,
+                  "IsForced": false,
+                  "IsExternal": false
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "item_id": "afda91e2bebc54df4d36c1b712aa7a85",
+          "name": "Verstörte Gemüter",
+          "season": 1,
+          "episode": 6,
+          "item_file": "11eyes.S01E06-B-SH.mkv",
+          "item_container": "mkv,webm",
+          "source_count": 3,
+          "sources": [
+            {
+              "id": "afda91e2bebc54df4d36c1b712aa7a85",
+              "name": "B-SH",
+              "file": "11eyes.S01E06-B-SH.mkv",
+              "path_matches_item": true,
+              "container": "mkv",
+              "size": 2424776844,
+              "default_audio_index": null,
+              "default_subtitle_index": null,
+              "tracks": [
+                {
+                  "Type": "Audio",
+                  "Index": 1,
+                  "Codec": "flac",
+                  "Language": "jpn",
+                  "Title": "Japaese, flac, 48.0 kHz, 2 Ch, 724 kbit/s",
+                  "DisplayTitle": "Japaese, flac, 48.0 kHz, 2 Ch, 724 kbit/s - Japanese - Stereo - Standard",
+                  "Channels": 2,
+                  "ChannelLayout": "stereo",
+                  "IsDefault": true,
+                  "IsForced": false,
+                  "IsExternal": false
+                },
+                {
+                  "Type": "Subtitle",
+                  "Index": 2,
+                  "Codec": "ass",
+                  "Language": "deu",
+                  "Title": "German, Subtitle (ass)",
+                  "DisplayTitle": "German, Subtitle (ass) - Standard",
+                  "Channels": null,
+                  "ChannelLayout": null,
+                  "IsDefault": true,
+                  "IsForced": false,
+                  "IsExternal": false
+                }
+              ]
+            },
+            {
+              "id": "ac2d86bdb3de9f223946f3cacd34fc34",
+              "name": "FlameHazeSubs",
+              "file": "11eyes.S01E06-FlameHazeSubs.mp4",
+              "path_matches_item": false,
+              "container": "mp4",
+              "size": 211098240,
+              "default_audio_index": null,
+              "default_subtitle_index": null,
+              "tracks": [
+                {
+                  "Type": "Audio",
+                  "Index": 1,
+                  "Codec": "aac",
+                  "Language": "und",
+                  "Title": "GPAC ISO Audio Handler",
+                  "DisplayTitle": "GPAC ISO Audio Handler - HE-AAC - Stereo - Standard",
+                  "Channels": 2,
+                  "ChannelLayout": "stereo",
+                  "IsDefault": true,
+                  "IsForced": false,
+                  "IsExternal": false
+                }
+              ]
+            },
+            {
+              "id": "90b3fb27603e5a750620326a4c453854",
+              "name": "Strawhat",
+              "file": "11eyes.S01E06-Strawhat.mkv",
+              "path_matches_item": false,
+              "container": "mkv",
+              "size": 229016400,
+              "default_audio_index": null,
+              "default_subtitle_index": null,
+              "tracks": [
+                {
+                  "Type": "Audio",
+                  "Index": 1,
+                  "Codec": "vorbis",
+                  "Language": "jpn",
+                  "Title": null,
+                  "DisplayTitle": "Japanese - VORBIS - Stereo - Standard",
+                  "Channels": 2,
+                  "ChannelLayout": "stereo",
+                  "IsDefault": true,
+                  "IsForced": false,
+                  "IsExternal": false
+                },
+                {
+                  "Type": "Subtitle",
+                  "Index": 2,
+                  "Codec": "ass",
+                  "Language": "deu",
+                  "Title": null,
+                  "DisplayTitle": "German - Standard - ASS",
+                  "Channels": null,
+                  "ChannelLayout": null,
+                  "IsDefault": true,
+                  "IsForced": false,
+                  "IsExternal": false
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "item_id": "50a111ef07f5de5d9fe214ab2c465b00",
+          "name": "Verzerrtes Erwachen",
+          "season": 1,
+          "episode": 7,
+          "item_file": "11eyes.S01E07-B-SH.mkv",
+          "item_container": "mkv,webm",
+          "source_count": 3,
+          "sources": [
+            {
+              "id": "50a111ef07f5de5d9fe214ab2c465b00",
+              "name": "B-SH",
+              "file": "11eyes.S01E07-B-SH.mkv",
+              "path_matches_item": true,
+              "container": "mkv",
+              "size": 2408339382,
+              "default_audio_index": null,
+              "default_subtitle_index": null,
+              "tracks": [
+                {
+                  "Type": "Audio",
+                  "Index": 1,
+                  "Codec": "flac",
+                  "Language": "jpn",
+                  "Title": "Japaese, flac, 48.0 kHz, 2 Ch, 761 kbit/s",
+                  "DisplayTitle": "Japaese, flac, 48.0 kHz, 2 Ch, 761 kbit/s - Japanese - Stereo - Standard",
+                  "Channels": 2,
+                  "ChannelLayout": "stereo",
+                  "IsDefault": true,
+                  "IsForced": false,
+                  "IsExternal": false
+                },
+                {
+                  "Type": "Subtitle",
+                  "Index": 2,
+                  "Codec": "ass",
+                  "Language": "deu",
+                  "Title": "German, Subtitle (ass)",
+                  "DisplayTitle": "German, Subtitle (ass) - Standard",
+                  "Channels": null,
+                  "ChannelLayout": null,
+                  "IsDefault": true,
+                  "IsForced": false,
+                  "IsExternal": false
+                }
+              ]
+            },
+            {
+              "id": "64cd74861acddc92b4a3fd4ebd57643f",
+              "name": "FlameHazeSubs",
+              "file": "11eyes.S01E07-FlameHazeSubs.mp4",
+              "path_matches_item": false,
+              "container": "mp4",
+              "size": 238785803,
+              "default_audio_index": null,
+              "default_subtitle_index": null,
+              "tracks": [
+                {
+                  "Type": "Audio",
+                  "Index": 1,
+                  "Codec": "aac",
+                  "Language": "und",
+                  "Title": "GPAC ISO Audio Handler",
+                  "DisplayTitle": "GPAC ISO Audio Handler - HE-AAC - Stereo - Standard",
+                  "Channels": 2,
+                  "ChannelLayout": "stereo",
+                  "IsDefault": true,
+                  "IsForced": false,
+                  "IsExternal": false
+                }
+              ]
+            },
+            {
+              "id": "a25f327931960190677ffa92fa6c050e",
+              "name": "Strawhat",
+              "file": "11eyes.S01E07-Strawhat.mkv",
+              "path_matches_item": false,
+              "container": "mkv",
+              "size": 247430586,
+              "default_audio_index": null,
+              "default_subtitle_index": null,
+              "tracks": [
+                {
+                  "Type": "Audio",
+                  "Index": 1,
+                  "Codec": "vorbis",
+                  "Language": "jpn",
+                  "Title": null,
+                  "DisplayTitle": "Japanese - VORBIS - Stereo - Standard",
+                  "Channels": 2,
+                  "ChannelLayout": "stereo",
+                  "IsDefault": true,
+                  "IsForced": false,
+                  "IsExternal": false
+                },
+                {
+                  "Type": "Subtitle",
+                  "Index": 2,
+                  "Codec": "ass",
+                  "Language": "deu",
+                  "Title": null,
+                  "DisplayTitle": "German - Standard - ASS",
+                  "Channels": null,
+                  "ChannelLayout": null,
+                  "IsDefault": true,
+                  "IsForced": false,
+                  "IsExternal": false
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "item_id": "6d25c2ac0e30c69e8685a93ab004ba83",
+          "name": "Verzauberte Stunde",
+          "season": 1,
+          "episode": 8,
+          "item_file": "11eyes.S01E08-B-SH.mkv",
+          "item_container": "mkv,webm",
+          "source_count": 3,
+          "sources": [
+            {
+              "id": "6d25c2ac0e30c69e8685a93ab004ba83",
+              "name": "B-SH",
+              "file": "11eyes.S01E08-B-SH.mkv",
+              "path_matches_item": true,
+              "container": "mkv",
+              "size": 2412037158,
+              "default_audio_index": null,
+              "default_subtitle_index": null,
+              "tracks": [
+                {
+                  "Type": "Audio",
+                  "Index": 1,
+                  "Codec": "flac",
+                  "Language": "jpn",
+                  "Title": "Japaese, flac, 48.0 kHz, 2 Ch, 628 kbit/s",
+                  "DisplayTitle": "Japaese, flac, 48.0 kHz, 2 Ch, 628 kbit/s - Japanese - Stereo - Standard",
+                  "Channels": 2,
+                  "ChannelLayout": "stereo",
+                  "IsDefault": true,
+                  "IsForced": false,
+                  "IsExternal": false
+                },
+                {
+                  "Type": "Subtitle",
+                  "Index": 2,
+                  "Codec": "ass",
+                  "Language": "deu",
+                  "Title": "German, Subtitle (ass)",
+                  "DisplayTitle": "German, Subtitle (ass) - Standard",
+                  "Channels": null,
+                  "ChannelLayout": null,
+                  "IsDefault": true,
+                  "IsForced": false,
+                  "IsExternal": false
+                }
+              ]
+            },
+            {
+              "id": "ba84f7564a8f17bc32c2047cb1153640",
+              "name": "FlameHazeSubs",
+              "file": "11eyes.S01E08-FlameHazeSubs.mp4",
+              "path_matches_item": false,
+              "container": "mp4",
+              "size": 205310135,
+              "default_audio_index": null,
+              "default_subtitle_index": null,
+              "tracks": [
+                {
+                  "Type": "Audio",
+                  "Index": 1,
+                  "Codec": "aac",
+                  "Language": "und",
+                  "Title": "GPAC ISO Audio Handler",
+                  "DisplayTitle": "GPAC ISO Audio Handler - HE-AAC - Stereo - Standard",
+                  "Channels": 2,
+                  "ChannelLayout": "stereo",
+                  "IsDefault": true,
+                  "IsForced": false,
+                  "IsExternal": false
+                }
+              ]
+            },
+            {
+              "id": "68eee6862a786b1203871c7395db8ef5",
+              "name": "Strawhat",
+              "file": "11eyes.S01E08-Strawhat.mkv",
+              "path_matches_item": false,
+              "container": "mkv",
+              "size": 214839029,
+              "default_audio_index": null,
+              "default_subtitle_index": null,
+              "tracks": [
+                {
+                  "Type": "Audio",
+                  "Index": 1,
+                  "Codec": "vorbis",
+                  "Language": "jpn",
+                  "Title": null,
+                  "DisplayTitle": "Japanese - VORBIS - Stereo - Standard",
+                  "Channels": 2,
+                  "ChannelLayout": "stereo",
+                  "IsDefault": true,
+                  "IsForced": false,
+                  "IsExternal": false
+                },
+                {
+                  "Type": "Subtitle",
+                  "Index": 2,
+                  "Codec": "ass",
+                  "Language": null,
+                  "Title": null,
+                  "DisplayTitle": "Undefiniert - Standard - ASS",
+                  "Channels": null,
+                  "ChannelLayout": null,
+                  "IsDefault": true,
+                  "IsForced": false,
+                  "IsExternal": false
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "item_id": "872dd974f80a30a6af6e5aa0e2fc238c",
+          "name": "Zerbrochene Bindung",
+          "season": 1,
+          "episode": 9,
+          "item_file": "11eyes.S01E09-B-SH.mkv",
+          "item_container": "mkv,webm",
+          "source_count": 3,
+          "sources": [
+            {
+              "id": "872dd974f80a30a6af6e5aa0e2fc238c",
+              "name": "B-SH",
+              "file": "11eyes.S01E09-B-SH.mkv",
+              "path_matches_item": true,
+              "container": "mkv",
+              "size": 2411998305,
+              "default_audio_index": null,
+              "default_subtitle_index": null,
+              "tracks": [
+                {
+                  "Type": "Audio",
+                  "Index": 1,
+                  "Codec": "flac",
+                  "Language": "jpn",
+                  "Title": "Japaese, flac, 48.0 kHz, 2 Ch, 809 kbit/s",
+                  "DisplayTitle": "Japaese, flac, 48.0 kHz, 2 Ch, 809 kbit/s - Japanese - Stereo - Standard",
+                  "Channels": 2,
+                  "ChannelLayout": "stereo",
+                  "IsDefault": true,
+                  "IsForced": false,
+                  "IsExternal": false
+                },
+                {
+                  "Type": "Subtitle",
+                  "Index": 2,
+                  "Codec": "ass",
+                  "Language": "deu",
+                  "Title": "German, Subtitle (ass)",
+                  "DisplayTitle": "German, Subtitle (ass) - Standard",
+                  "Channels": null,
+                  "ChannelLayout": null,
+                  "IsDefault": true,
+                  "IsForced": false,
+                  "IsExternal": false
+                }
+              ]
+            },
+            {
+              "id": "6037306ec823e4af48a6ea61cfd30d88",
+              "name": "FlameHazeSubs",
+              "file": "11eyes.S01E09-FlameHazeSubs.mp4",
+              "path_matches_item": false,
+              "container": "mp4",
+              "size": 264525651,
+              "default_audio_index": null,
+              "default_subtitle_index": null,
+              "tracks": [
+                {
+                  "Type": "Audio",
+                  "Index": 1,
+                  "Codec": "aac",
+                  "Language": "und",
+                  "Title": "GPAC ISO Audio Handler",
+                  "DisplayTitle": "GPAC ISO Audio Handler - HE-AAC - Stereo - Standard",
+                  "Channels": 2,
+                  "ChannelLayout": "stereo",
+                  "IsDefault": true,
+                  "IsForced": false,
+                  "IsExternal": false
+                }
+              ]
+            },
+            {
+              "id": "70558a7adedf2fd76e39a84ad9fbed2a",
+              "name": "Strawhat",
+              "file": "11eyes.S01E09-Strawhat.mkv",
+              "path_matches_item": false,
+              "container": "mkv",
+              "size": 287215470,
+              "default_audio_index": null,
+              "default_subtitle_index": null,
+              "tracks": [
+                {
+                  "Type": "Audio",
+                  "Index": 1,
+                  "Codec": "vorbis",
+                  "Language": "jpn",
+                  "Title": null,
+                  "DisplayTitle": "Japanese - VORBIS - Stereo - Standard",
+                  "Channels": 2,
+                  "ChannelLayout": "stereo",
+                  "IsDefault": true,
+                  "IsForced": false,
+                  "IsExternal": false
+                },
+                {
+                  "Type": "Subtitle",
+                  "Index": 2,
+                  "Codec": "ass",
+                  "Language": "deu",
+                  "Title": null,
+                  "DisplayTitle": "German - Standard - ASS",
+                  "Channels": null,
+                  "ChannelLayout": null,
+                  "IsDefault": true,
+                  "IsForced": false,
+                  "IsExternal": false
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "item_id": "a4997d78863ba8013df4040bc30c43c2",
+          "name": "Das Erwachen der Hexe",
+          "season": 1,
+          "episode": 10,
+          "item_file": "11eyes.S01E10-B-SH.mkv",
+          "item_container": "mkv,webm",
+          "source_count": 3,
+          "sources": [
+            {
+              "id": "a4997d78863ba8013df4040bc30c43c2",
+              "name": "B-SH",
+              "file": "11eyes.S01E10-B-SH.mkv",
+              "path_matches_item": true,
+              "container": "mkv",
+              "size": 2422463087,
+              "default_audio_index": null,
+              "default_subtitle_index": null,
+              "tracks": [
+                {
+                  "Type": "Audio",
+                  "Index": 1,
+                  "Codec": "flac",
+                  "Language": "jpn",
+                  "Title": "Japaese, flac, 48.0 kHz, 2 Ch, 685 kbit/s",
+                  "DisplayTitle": "Japaese, flac, 48.0 kHz, 2 Ch, 685 kbit/s - Japanese - Stereo - Standard",
+                  "Channels": 2,
+                  "ChannelLayout": "stereo",
+                  "IsDefault": true,
+                  "IsForced": false,
+                  "IsExternal": false
+                },
+                {
+                  "Type": "Subtitle",
+                  "Index": 2,
+                  "Codec": "ass",
+                  "Language": "deu",
+                  "Title": "German, Subtitle (ass)",
+                  "DisplayTitle": "German, Subtitle (ass) - Standard",
+                  "Channels": null,
+                  "ChannelLayout": null,
+                  "IsDefault": true,
+                  "IsForced": false,
+                  "IsExternal": false
+                }
+              ]
+            },
+            {
+              "id": "cb74b08d2a68c9db4f8fcf4dad6ce004",
+              "name": "FlameHazeSubs",
+              "file": "11eyes.S01E10-FlameHazeSubs.mp4",
+              "path_matches_item": false,
+              "container": "mp4",
+              "size": 217748640,
+              "default_audio_index": null,
+              "default_subtitle_index": null,
+              "tracks": [
+                {
+                  "Type": "Audio",
+                  "Index": 1,
+                  "Codec": "aac",
+                  "Language": "und",
+                  "Title": "GPAC ISO Audio Handler",
+                  "DisplayTitle": "GPAC ISO Audio Handler - HE-AAC - Stereo - Standard",
+                  "Channels": 2,
+                  "ChannelLayout": "stereo",
+                  "IsDefault": true,
+                  "IsForced": false,
+                  "IsExternal": false
+                }
+              ]
+            },
+            {
+              "id": "b1026435cec2a4d53ab97329e634551d",
+              "name": "Strawhat",
+              "file": "11eyes.S01E10-Strawhat.mkv",
+              "path_matches_item": false,
+              "container": "mkv",
+              "size": 334730117,
+              "default_audio_index": null,
+              "default_subtitle_index": null,
+              "tracks": [
+                {
+                  "Type": "Audio",
+                  "Index": 1,
+                  "Codec": "vorbis",
+                  "Language": "jpn",
+                  "Title": null,
+                  "DisplayTitle": "Japanese - VORBIS - Stereo - Standard",
+                  "Channels": 2,
+                  "ChannelLayout": "stereo",
+                  "IsDefault": true,
+                  "IsForced": false,
+                  "IsExternal": false
+                },
+                {
+                  "Type": "Subtitle",
+                  "Index": 2,
+                  "Codec": "ass",
+                  "Language": "deu",
+                  "Title": null,
+                  "DisplayTitle": "German - Standard - ASS",
+                  "Channels": null,
+                  "ChannelLayout": null,
+                  "IsDefault": true,
+                  "IsForced": false,
+                  "IsExternal": false
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "item_id": "d1d4bd9a4e614f93a1339475c8c3eb00",
+          "name": "Die Wahl heißt Zerstörung",
+          "season": 1,
+          "episode": 11,
+          "item_file": "11eyes.S01E11-B-SH.mkv",
+          "item_container": "mkv,webm",
+          "source_count": 3,
+          "sources": [
+            {
+              "id": "d1d4bd9a4e614f93a1339475c8c3eb00",
+              "name": "B-SH",
+              "file": "11eyes.S01E11-B-SH.mkv",
+              "path_matches_item": true,
+              "container": "mkv",
+              "size": 2412154005,
+              "default_audio_index": null,
+              "default_subtitle_index": null,
+              "tracks": [
+                {
+                  "Type": "Audio",
+                  "Index": 1,
+                  "Codec": "flac",
+                  "Language": "jpn",
+                  "Title": "Japaese, flac, 48.0 kHz, 2 Ch, 754 kbit/s",
+                  "DisplayTitle": "Japaese, flac, 48.0 kHz, 2 Ch, 754 kbit/s - Japanese - Stereo - Standard",
+                  "Channels": 2,
+                  "ChannelLayout": "stereo",
+                  "IsDefault": true,
+                  "IsForced": false,
+                  "IsExternal": false
+                },
+                {
+                  "Type": "Subtitle",
+                  "Index": 2,
+                  "Codec": "ass",
+                  "Language": "deu",
+                  "Title": "German, Subtitle (ass)",
+                  "DisplayTitle": "German, Subtitle (ass) - Standard",
+                  "Channels": null,
+                  "ChannelLayout": null,
+                  "IsDefault": true,
+                  "IsForced": false,
+                  "IsExternal": false
+                }
+              ]
+            },
+            {
+              "id": "6728ac5aa0cdd4bbdcae2ac84fb8f430",
+              "name": "FlameHazeSubs",
+              "file": "11eyes.S01E11-FlameHazeSubs.mp4",
+              "path_matches_item": false,
+              "container": "mp4",
+              "size": 251217566,
+              "default_audio_index": null,
+              "default_subtitle_index": null,
+              "tracks": [
+                {
+                  "Type": "Audio",
+                  "Index": 1,
+                  "Codec": "aac",
+                  "Language": "und",
+                  "Title": "GPAC ISO Audio Handler",
+                  "DisplayTitle": "GPAC ISO Audio Handler - HE-AAC - Stereo - Standard",
+                  "Channels": 2,
+                  "ChannelLayout": "stereo",
+                  "IsDefault": true,
+                  "IsForced": false,
+                  "IsExternal": false
+                }
+              ]
+            },
+            {
+              "id": "0f7ac28a793db2795abc2958617adfea",
+              "name": "Strawhat",
+              "file": "11eyes.S01E11-Strawhat.mkv",
+              "path_matches_item": false,
+              "container": "mkv",
+              "size": 336835530,
+              "default_audio_index": null,
+              "default_subtitle_index": null,
+              "tracks": [
+                {
+                  "Type": "Audio",
+                  "Index": 1,
+                  "Codec": "vorbis",
+                  "Language": "jpn",
+                  "Title": null,
+                  "DisplayTitle": "Japanese - VORBIS - Stereo - Standard",
+                  "Channels": 2,
+                  "ChannelLayout": "stereo",
+                  "IsDefault": true,
+                  "IsForced": false,
+                  "IsExternal": false
+                },
+                {
+                  "Type": "Subtitle",
+                  "Index": 2,
+                  "Codec": "ass",
+                  "Language": "deu",
+                  "Title": null,
+                  "DisplayTitle": "German - Standard - ASS",
+                  "Channels": null,
+                  "ChannelLayout": null,
+                  "IsDefault": true,
+                  "IsForced": false,
+                  "IsExternal": false
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "item_id": "76053216ff55d31f437c3f04cfeb4820",
+          "name": "Beginn der Schwarzen Nacht",
+          "season": 1,
+          "episode": 12,
+          "item_file": "11eyes.S01E12-B-SH.mkv",
+          "item_container": "mkv,webm",
+          "source_count": 3,
+          "sources": [
+            {
+              "id": "76053216ff55d31f437c3f04cfeb4820",
+              "name": "B-SH",
+              "file": "11eyes.S01E12-B-SH.mkv",
+              "path_matches_item": true,
+              "container": "mkv",
+              "size": 2410980896,
+              "default_audio_index": null,
+              "default_subtitle_index": null,
+              "tracks": [
+                {
+                  "Type": "Audio",
+                  "Index": 1,
+                  "Codec": "flac",
+                  "Language": "jpn",
+                  "Title": "Japaese, flac, 48.0 kHz, 2 Ch, 760 kbit/s",
+                  "DisplayTitle": "Japaese, flac, 48.0 kHz, 2 Ch, 760 kbit/s - Japanese - Stereo - Standard",
+                  "Channels": 2,
+                  "ChannelLayout": "stereo",
+                  "IsDefault": true,
+                  "IsForced": false,
+                  "IsExternal": false
+                },
+                {
+                  "Type": "Subtitle",
+                  "Index": 2,
+                  "Codec": "ass",
+                  "Language": "deu",
+                  "Title": "German, Subtitle (ass)",
+                  "DisplayTitle": "German, Subtitle (ass) - Standard",
+                  "Channels": null,
+                  "ChannelLayout": null,
+                  "IsDefault": true,
+                  "IsForced": false,
+                  "IsExternal": false
+                }
+              ]
+            },
+            {
+              "id": "83c409d6286b0de77496199430e0ac9e",
+              "name": "FlameHazeSubs",
+              "file": "11eyes.S01E12-FlameHazeSubs.mp4",
+              "path_matches_item": false,
+              "container": "mp4",
+              "size": 272249605,
+              "default_audio_index": null,
+              "default_subtitle_index": null,
+              "tracks": [
+                {
+                  "Type": "Audio",
+                  "Index": 1,
+                  "Codec": "aac",
+                  "Language": "und",
+                  "Title": "GPAC ISO Audio Handler",
+                  "DisplayTitle": "GPAC ISO Audio Handler - HE-AAC - Stereo - Standard",
+                  "Channels": 2,
+                  "ChannelLayout": "stereo",
+                  "IsDefault": true,
+                  "IsForced": false,
+                  "IsExternal": false
+                }
+              ]
+            },
+            {
+              "id": "d82c77a5c1e9d93799da0240e9bd0b15",
+              "name": "Strawhat",
+              "file": "11eyes.S01E12-Strawhat.mkv",
+              "path_matches_item": false,
+              "container": "mkv",
+              "size": 360005823,
+              "default_audio_index": null,
+              "default_subtitle_index": null,
+              "tracks": [
+                {
+                  "Type": "Audio",
+                  "Index": 1,
+                  "Codec": "vorbis",
+                  "Language": "jpn",
+                  "Title": null,
+                  "DisplayTitle": "Japanese - VORBIS - Stereo - Standard",
+                  "Channels": 2,
+                  "ChannelLayout": "stereo",
+                  "IsDefault": true,
+                  "IsForced": false,
+                  "IsExternal": false
+                },
+                {
+                  "Type": "Subtitle",
+                  "Index": 2,
+                  "Codec": "ass",
+                  "Language": "deu",
+                  "Title": null,
+                  "DisplayTitle": "German - Standard - ASS",
+                  "Channels": null,
+                  "ChannelLayout": null,
+                  "IsDefault": true,
+                  "IsForced": false,
+                  "IsExternal": false
+                }
+              ]
+            }
+          ]
+        }
+      ]
+    }
+  ],
+  "requests": [
+    {
+      "label": "11eyes-search",
+      "path": "/Items",
+      "query": {
+        "IncludeItemTypes": "Series",
+        "Recursive": "true",
+        "SearchTerm": "11eyes",
+        "Limit": 25,
+        "Fields": "Path,Overview"
+      },
+      "status": 200,
+      "bytes": 3741,
+      "count": 2,
+      "total": 2
+    },
+    {
+      "label": "11eyes-episodes",
+      "path": "/Shows/68546f5d1871ad1c42d8d674376e83e6/Episodes",
+      "query": {
+        "Fields": "MediaSources,MediaStreams,Path",
+        "EnableUserData": "false"
+      },
+      "status": 200,
+      "bytes": 289296,
+      "count": 27,
+      "total": 27
+    },
+    {
+      "label": "11eyes-episodes",
+      "path": "/Shows/b755bdbede26777c538d4d89175336a1/Episodes",
+      "query": {
+        "Fields": "MediaSources,MediaStreams,Path",
+        "EnableUserData": "false"
+      },
+      "status": 200,
+      "bytes": 289296,
+      "count": 27,
+      "total": 27
+    }
+  ]
+}

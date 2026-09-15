@@ -16,6 +16,14 @@ progress:
 
 # Project State
 
+## Aktiver Auftrag — Phase 161: Jellyfin 12 (15.09.2026)
+
+Ausgangscommit `b3b07ff0`, kanonischer Linux-Stand. Discovery und unabhängige Planprüfung sind abgeschlossen: 9 Plans, 25 Tasks, 6 Anforderungen. Plan 161-01 startet; 0/9 Plans implementiert. Umfang: tatsächliche Jellyfin-Authentifizierung, verwendete API/GetItems-Aufrufe und konsistente MediaSource-Metadaten entlang Import, Speicherung, Playback und öffentlicher Projektion.
+
+Der gewünschte Live-Fall 11eyes ist geprüft: 27 Items, 38 Quellen, elf Quellen ohne eigenständiges Item. Item- und Source-ID bleiben getrennt; diese Phase erweitert den Import nicht auf alle Alternativdateien. Bestehende JSONB-Metadaten reichen für die gewählte Quelle aus. Keine App-Daten, Medien, Secrets oder Migrationen wurden geändert. Eine separate Testdatenbank `team4s_phase117_test_161` ist für schemaisolierte Integrationstests vorbereitet.
+
+Phase 160 wartet auf diese Reparatur. Die frischen UAT-Abnahmen von 156/157 und offenen menschlichen Anime-Prüfungen 158/159 bleiben unverändert. Maßgeblich für Phase 161 sind deren eigene Artefakte, ROADMAP und REQUIREMENTS; historische Milestone-Zähler werden nicht pauschal umgeschrieben.
+
 ## Aktiver Zusatzauftrag — Anime 158/159: technisch abgeschlossen (14.09.2026)
 
 Genau zwei Phasen tragen den Auftrag. Phase 158 ist vollständig implementiert und im autorisierten Scope technisch verifiziert: 4/4 Plans, 9/9 Anforderungen, 33/33 Produktionsfixture-Prüfgruppen, unabhängiger Code-Review clean und 10/10 geplante Sicherheitsmaßnahmen belegt. Ausgangscommit: `7c7e1c7d02ac870e7c68c02b66fd7f4b33f36b85`; technischer Abschluss und verbindlicher Phase-159-Start: `c3bfcb23781addca1ccd3931592535416f706787`.

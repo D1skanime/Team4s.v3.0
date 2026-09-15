@@ -1,0 +1,595 @@
+{
+  "search_items": [
+    {
+      "id": "46523903e0af5022d78af0368d89b805",
+      "name": "Buddy Complex",
+      "type": "Series"
+    }
+  ],
+  "library_names": [
+    "Fansubs",
+    "Groups",
+    "Musikvideos",
+    "Playlists"
+  ],
+  "episode_count": 13,
+  "sources": [
+    {
+      "item_id": "71b6336e7dc1527c5156e87f0bc8b4b3",
+      "episode": 1,
+      "sources_count": 1,
+      "sources": [
+        {
+          "id": "71b6336e7dc1527c5156e87f0bc8b4b3",
+          "container": "mkv",
+          "path_matches_item": true,
+          "stream_count": 3,
+          "tracks": [
+            {
+              "type": "Subtitle",
+              "codec": "ass",
+              "language": "deu",
+              "index": 1
+            },
+            {
+              "type": "Audio",
+              "codec": "ac3",
+              "language": "jpn",
+              "index": 2
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "item_id": "1efa632b6ed80a47941aef7ac9779c8d",
+      "episode": 2,
+      "sources_count": 1,
+      "sources": [
+        {
+          "id": "1efa632b6ed80a47941aef7ac9779c8d",
+          "container": "mkv",
+          "path_matches_item": true,
+          "stream_count": 3,
+          "tracks": [
+            {
+              "type": "Subtitle",
+              "codec": "ass",
+              "language": "deu",
+              "index": 1
+            },
+            {
+              "type": "Audio",
+              "codec": "aac",
+              "language": "jpn",
+              "index": 2
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "item_id": "107f2edc80eefc2ac6b0d96664f3fce2",
+      "episode": 3,
+      "sources_count": 1,
+      "sources": [
+        {
+          "id": "107f2edc80eefc2ac6b0d96664f3fce2",
+          "container": "mkv",
+          "path_matches_item": true,
+          "stream_count": 3,
+          "tracks": [
+            {
+              "type": "Audio",
+              "codec": "aac",
+              "language": "jpn",
+              "index": 1
+            },
+            {
+              "type": "Subtitle",
+              "codec": "ass",
+              "language": null,
+              "index": 2
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "item_id": "eaa67280d31505a006db2902e4dae259",
+      "episode": 4,
+      "sources_count": 1,
+      "sources": [
+        {
+          "id": "eaa67280d31505a006db2902e4dae259",
+          "container": "mkv",
+          "path_matches_item": true,
+          "stream_count": 3,
+          "tracks": [
+            {
+              "type": "Subtitle",
+              "codec": "ass",
+              "language": "deu",
+              "index": 0
+            },
+            {
+              "type": "Audio",
+              "codec": "aac",
+              "language": "jpn",
+              "index": 2
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "item_id": "451dd78199ca70cda83dcfc9e756ad45",
+      "episode": 5,
+      "sources_count": 1,
+      "sources": [
+        {
+          "id": "451dd78199ca70cda83dcfc9e756ad45",
+          "container": "mkv",
+          "path_matches_item": true,
+          "stream_count": 3,
+          "tracks": [
+            {
+              "type": "Subtitle",
+              "codec": "ass",
+              "language": "deu",
+              "index": 0
+            },
+            {
+              "type": "Audio",
+              "codec": "aac",
+              "language": "jpn",
+              "index": 2
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "item_id": "8782d0943614ee834d2692eeacede2fd",
+      "episode": 6,
+      "sources_count": 1,
+      "sources": [
+        {
+          "id": "8782d0943614ee834d2692eeacede2fd",
+          "container": "mkv",
+          "path_matches_item": true,
+          "stream_count": 3,
+          "tracks": [
+            {
+              "type": "Audio",
+              "codec": "aac",
+              "language": "jpn",
+              "index": 0
+            },
+            {
+              "type": "Subtitle",
+              "codec": "ass",
+              "language": null,
+              "index": 1
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "item_id": "5d6a447ccf7c754ebaaea04dfcf33c8f",
+      "episode": 7,
+      "sources_count": 1,
+      "sources": [
+        {
+          "id": "5d6a447ccf7c754ebaaea04dfcf33c8f",
+          "container": "mkv",
+          "path_matches_item": true,
+          "stream_count": 3,
+          "tracks": [
+            {
+              "type": "Audio",
+              "codec": "aac",
+              "language": "jpn",
+              "index": 1
+            },
+            {
+              "type": "Subtitle",
+              "codec": "ass",
+              "language": null,
+              "index": 2
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "item_id": "11e0d3bfbde075c42e7af071a5d38f27",
+      "episode": 8,
+      "sources_count": 1,
+      "sources": [
+        {
+          "id": "11e0d3bfbde075c42e7af071a5d38f27",
+          "container": "mkv",
+          "path_matches_item": true,
+          "stream_count": 3,
+          "tracks": [
+            {
+              "type": "Audio",
+              "codec": "aac",
+              "language": "jpn",
+              "index": 1
+            },
+            {
+              "type": "Subtitle",
+              "codec": "ass",
+              "language": null,
+              "index": 2
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "item_id": "b323564f4569f479af4132ebf0a38ce0",
+      "episode": 9,
+      "sources_count": 1,
+      "sources": [
+        {
+          "id": "b323564f4569f479af4132ebf0a38ce0",
+          "container": "mkv",
+          "path_matches_item": true,
+          "stream_count": 3,
+          "tracks": [
+            {
+              "type": "Audio",
+              "codec": "flac",
+              "language": null,
+              "index": 1
+            },
+            {
+              "type": "Subtitle",
+              "codec": "ass",
+              "language": null,
+              "index": 2
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "item_id": "33f4fbdca43f75e8d90b0675fae89841",
+      "episode": 10,
+      "sources_count": 1,
+      "sources": [
+        {
+          "id": "33f4fbdca43f75e8d90b0675fae89841",
+          "container": "mkv",
+          "path_matches_item": true,
+          "stream_count": 3,
+          "tracks": [
+            {
+              "type": "Audio",
+              "codec": "aac",
+              "language": "jpn",
+              "index": 1
+            },
+            {
+              "type": "Subtitle",
+              "codec": "ass",
+              "language": null,
+              "index": 2
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "item_id": "c9284a38a34a2658cd6d5c8630b38698",
+      "episode": 11,
+      "sources_count": 1,
+      "sources": [
+        {
+          "id": "c9284a38a34a2658cd6d5c8630b38698",
+          "container": "mkv",
+          "path_matches_item": true,
+          "stream_count": 3,
+          "tracks": [
+            {
+              "type": "Subtitle",
+              "codec": "ass",
+              "language": "deu",
+              "index": 1
+            },
+            {
+              "type": "Subtitle",
+              "codec": "ass",
+              "language": null,
+              "index": 2
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "item_id": "fdfbf66f2b44059fd478b4b9848f43da",
+      "episode": 12,
+      "sources_count": 1,
+      "sources": [
+        {
+          "id": "fdfbf66f2b44059fd478b4b9848f43da",
+          "container": "mkv",
+          "path_matches_item": true,
+          "stream_count": 3,
+          "tracks": [
+            {
+              "type": "Audio",
+              "codec": "aac",
+              "language": "jpn",
+              "index": 1
+            },
+            {
+              "type": "Subtitle",
+              "codec": "ass",
+              "language": null,
+              "index": 2
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "item_id": "bb4246e6b926f1a36804262574ed4913",
+      "episode": 13,
+      "sources_count": 1,
+      "sources": [
+        {
+          "id": "bb4246e6b926f1a36804262574ed4913",
+          "container": "mkv",
+          "path_matches_item": true,
+          "stream_count": 3,
+          "tracks": [
+            {
+              "type": "Audio",
+              "codec": "aac",
+              "language": null,
+              "index": 1
+            },
+            {
+              "type": "Subtitle",
+              "codec": "ass",
+              "language": null,
+              "index": 2
+            }
+          ]
+        }
+      ]
+    }
+  ],
+  "pagination": {
+    "unique_ids": 13,
+    "paged_equal_full": true,
+    "shows_equal_items": true
+  },
+  "group_root_counts": {
+    "production": 3,
+    "nonrecursive": 1,
+    "recursive": 3
+  },
+  "requests": [
+    {
+      "label": "control-old",
+      "endpoint": "/System/Info",
+      "query": {},
+      "status": 401,
+      "error_body": ""
+    },
+    {
+      "label": "control-new",
+      "endpoint": "/System/Info",
+      "query": {},
+      "status": 200,
+      "bytes": 40887,
+      "items": 0,
+      "total": null
+    },
+    {
+      "label": "production-search-old-auth",
+      "endpoint": "/Items",
+      "query": {
+        "IncludeItemTypes": "Series",
+        "Recursive": "true",
+        "SearchTerm": "Buddy Complex",
+        "Limit": 25,
+        "Fields": "Path,ProductionYear,Overview"
+      },
+      "status": 401,
+      "error_body": ""
+    },
+    {
+      "label": "production-search-new-auth",
+      "endpoint": "/Items",
+      "query": {
+        "IncludeItemTypes": "Series",
+        "Recursive": "true",
+        "SearchTerm": "Buddy Complex",
+        "Limit": 25,
+        "Fields": "Path,ProductionYear,Overview"
+      },
+      "status": 200,
+      "bytes": 1905,
+      "items": 1,
+      "total": 1
+    },
+    {
+      "label": "valid-fields-search",
+      "endpoint": "/Items",
+      "query": {
+        "IncludeItemTypes": "Series",
+        "Recursive": "true",
+        "SearchTerm": "Buddy Complex",
+        "Limit": 25,
+        "Fields": "Path,Overview"
+      },
+      "status": 200,
+      "bytes": 1905,
+      "items": 1,
+      "total": 1
+    },
+    {
+      "label": "libraries",
+      "endpoint": "/Library/MediaFolders",
+      "query": {},
+      "status": 200,
+      "bytes": 4257,
+      "items": 4,
+      "total": 4
+    },
+    {
+      "label": "production-episodes-fields",
+      "endpoint": "/Shows/46523903e0af5022d78af0368d89b805/Episodes",
+      "query": {
+        "Fields": "MediaStreams,Path,RunTimeTicks",
+        "EnableUserData": "false"
+      },
+      "status": 200,
+      "bytes": 50298,
+      "items": 13,
+      "total": 13
+    },
+    {
+      "label": "batch-sources",
+      "endpoint": "/Shows/46523903e0af5022d78af0368d89b805/Episodes",
+      "query": {
+        "Fields": "MediaSources,MediaStreams,Path",
+        "EnableUserData": "false"
+      },
+      "status": 200,
+      "bytes": 93470,
+      "items": 13,
+      "total": 13
+    },
+    {
+      "label": "item-episode-baseline",
+      "endpoint": "/Items",
+      "query": {
+        "ParentId": "46523903e0af5022d78af0368d89b805",
+        "IncludeItemTypes": "Episode",
+        "Recursive": "true",
+        "Fields": "Path,MediaSources,MediaStreams",
+        "SortBy": "IndexNumber",
+        "SortOrder": "Ascending",
+        "EnableUserData": "false",
+        "Limit": 100
+      },
+      "status": 200,
+      "bytes": 93470,
+      "items": 13,
+      "total": 13
+    },
+    {
+      "label": "item-episode-page1",
+      "endpoint": "/Items",
+      "query": {
+        "ParentId": "46523903e0af5022d78af0368d89b805",
+        "IncludeItemTypes": "Episode",
+        "Recursive": "true",
+        "Fields": "Path,MediaSources,MediaStreams",
+        "SortBy": "IndexNumber",
+        "SortOrder": "Ascending",
+        "EnableUserData": "false",
+        "Limit": 5,
+        "StartIndex": 0
+      },
+      "status": 200,
+      "bytes": 38800,
+      "items": 5,
+      "total": 13
+    },
+    {
+      "label": "item-episode-page2",
+      "endpoint": "/Items",
+      "query": {
+        "ParentId": "46523903e0af5022d78af0368d89b805",
+        "IncludeItemTypes": "Episode",
+        "Recursive": "true",
+        "Fields": "Path,MediaSources,MediaStreams",
+        "SortBy": "IndexNumber",
+        "SortOrder": "Ascending",
+        "EnableUserData": "false",
+        "Limit": 5,
+        "StartIndex": 5
+      },
+      "status": 200,
+      "bytes": 34704,
+      "items": 5,
+      "total": 13
+    },
+    {
+      "label": "item-episode-page3",
+      "endpoint": "/Items",
+      "query": {
+        "ParentId": "46523903e0af5022d78af0368d89b805",
+        "IncludeItemTypes": "Episode",
+        "Recursive": "true",
+        "Fields": "Path,MediaSources,MediaStreams",
+        "SortBy": "IndexNumber",
+        "SortOrder": "Ascending",
+        "EnableUserData": "false",
+        "Limit": 5,
+        "StartIndex": 10
+      },
+      "status": 200,
+      "bytes": 20063,
+      "items": 3,
+      "total": 13
+    },
+    {
+      "label": "production-group-roots",
+      "endpoint": "/Items",
+      "query": {
+        "ParentId": "0c02af44b121c99f7249e3e7d80401db",
+        "Fields": "Path,ImageTags,BackdropImageTags",
+        "IncludeItemTypes": "PhotoAlbum,Folder",
+        "Limit": 500,
+        "StartIndex": 0
+      },
+      "status": 200,
+      "bytes": 2203,
+      "items": 3,
+      "total": 3
+    },
+    {
+      "label": "group-root-explicit-nonrecursive",
+      "endpoint": "/Items",
+      "query": {
+        "ParentId": "0c02af44b121c99f7249e3e7d80401db",
+        "Fields": "Path,ParentId",
+        "IncludeItemTypes": "PhotoAlbum,Folder",
+        "Limit": 500,
+        "StartIndex": 0,
+        "Recursive": "false"
+      },
+      "status": 200,
+      "bytes": 845,
+      "items": 1,
+      "total": 1
+    },
+    {
+      "label": "group-root-explicit-recursive",
+      "endpoint": "/Items",
+      "query": {
+        "ParentId": "0c02af44b121c99f7249e3e7d80401db",
+        "Fields": "Path,ParentId",
+        "IncludeItemTypes": "PhotoAlbum,Folder",
+        "Limit": 500,
+        "StartIndex": 0,
+        "Recursive": "true"
+      },
+      "status": 200,
+      "bytes": 2341,
+      "items": 3,
+      "total": 3
+    }
+  ]
+}

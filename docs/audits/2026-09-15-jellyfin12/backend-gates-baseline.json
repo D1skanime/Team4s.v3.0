@@ -1,0 +1,10 @@
+{
+  "backend-build": {
+    "exit": 0,
+    "output": ""
+  },
+  "backend-vet": {
+    "exit": 0,
+    "output": ""
+  }
+}

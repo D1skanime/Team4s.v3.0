@@ -1,0 +1,147 @@
+[
+  {
+    "file": ".planning/milestones/pre-v1.3-recovery-2026-08-13/phases/98-segmentstream-serverseitig-begrenzter-hls-jellyfin-playback-/98-02-SUMMARY.md",
+    "line": 27,
+    "classification": "Non-runtime documentation/config/tooling reference (no global replacement)"
+  },
+  {
+    "file": ".planning/milestones/pre-v1.3-recovery-2026-08-13/phases/98-segmentstream-serverseitig-begrenzter-hls-jellyfin-playback-/98-02-SUMMARY.md",
+    "line": 89,
+    "classification": "Non-runtime documentation/config/tooling reference (no global replacement)"
+  },
+  {
+    "file": "backend/internal/handlers/admin_content_test.go",
+    "line": 979,
+    "classification": "Test/fixture (classify caller under test; preserve non-Jellyfin coverage)"
+  },
+  {
+    "file": "backend/internal/handlers/admin_content_test.go",
+    "line": 980,
+    "classification": "Test/fixture (classify caller under test; preserve non-Jellyfin coverage)"
+  },
+  {
+    "file": "backend/internal/handlers/admin_content_test.go",
+    "line": 1008,
+    "classification": "Test/fixture (classify caller under test; preserve non-Jellyfin coverage)"
+  },
+  {
+    "file": "backend/internal/handlers/admin_content_test.go",
+    "line": 1009,
+    "classification": "Test/fixture (classify caller under test; preserve non-Jellyfin coverage)"
+  },
+  {
+    "file": "backend/internal/handlers/anime_backdrops_client.go",
+    "line": 100,
+    "classification": "Jellyfin"
+  },
+  {
+    "file": "backend/internal/handlers/episode_playback_proxy.go",
+    "line": 36,
+    "classification": "Emby (unchanged)"
+  },
+  {
+    "file": "backend/internal/handlers/fansub_admin.go",
+    "line": 232,
+    "classification": "Mixed Jellyfin/Emby (split branch, preserve Emby)"
+  },
+  {
+    "file": "backend/internal/handlers/fansub_admin.go",
+    "line": 302,
+    "classification": "Mixed Jellyfin/Emby (split branch, preserve Emby)"
+  },
+  {
+    "file": "backend/internal/handlers/group_assets_jellyfin.go",
+    "line": 360,
+    "classification": "Jellyfin"
+  },
+  {
+    "file": "backend/internal/handlers/group_assets_jellyfin_test.go",
+    "line": 147,
+    "classification": "Test/fixture (classify caller under test; preserve non-Jellyfin coverage)"
+  },
+  {
+    "file": "backend/internal/handlers/jellyfin_client.go",
+    "line": 193,
+    "classification": "Jellyfin"
+  },
+  {
+    "file": "backend/internal/handlers/media_proxy_test.go",
+    "line": 35,
+    "classification": "Test/fixture (classify caller under test; preserve non-Jellyfin coverage)"
+  },
+  {
+    "file": "backend/internal/handlers/media_proxy_test.go",
+    "line": 36,
+    "classification": "Test/fixture (classify caller under test; preserve non-Jellyfin coverage)"
+  },
+  {
+    "file": "backend/internal/handlers/media_proxy_test.go",
+    "line": 99,
+    "classification": "Test/fixture (classify caller under test; preserve non-Jellyfin coverage)"
+  },
+  {
+    "file": "backend/internal/handlers/media_proxy_test.go",
+    "line": 238,
+    "classification": "Test/fixture (classify caller under test; preserve non-Jellyfin coverage)"
+  },
+  {
+    "file": "backend/internal/handlers/segment_render_subtitles.go",
+    "line": 177,
+    "classification": "Jellyfin"
+  },
+  {
+    "file": "backend/internal/handlers/segment_render_subtitles.go",
+    "line": 219,
+    "classification": "Jellyfin"
+  },
+  {
+    "file": "backend/internal/handlers/segment_render_subtitles_test.go",
+    "line": 201,
+    "classification": "Test/fixture (classify caller under test; preserve non-Jellyfin coverage)"
+  },
+  {
+    "file": "backend/internal/handlers/segment_render_subtitles_test.go",
+    "line": 202,
+    "classification": "Test/fixture (classify caller under test; preserve non-Jellyfin coverage)"
+  },
+  {
+    "file": "backend/internal/services/anime_create_enrichment.go",
+    "line": 474,
+    "classification": "Fanart (unchanged)"
+  },
+  {
+    "file": "backend/internal/services/segment_render_service.go",
+    "line": 157,
+    "classification": "Secret sanitizer (retain legacy redaction)"
+  },
+  {
+    "file": "backend/internal/services/segment_render_service.go",
+    "line": 158,
+    "classification": "Secret sanitizer (retain legacy redaction)"
+  },
+  {
+    "file": "backend/internal/services/segment_render_service_test.go",
+    "line": 78,
+    "classification": "Test/fixture (classify caller under test; preserve non-Jellyfin coverage)"
+  },
+  {
+    "file": "backend/internal/services/segment_render_service_test.go",
+    "line": 110,
+    "classification": "Test/fixture (classify caller under test; preserve non-Jellyfin coverage)"
+  },
+  {
+    "file": "backend/internal/services/segment_render_service_test.go",
+    "line": 115,
+    "classification": "Test/fixture (classify caller under test; preserve non-Jellyfin coverage)"
+  },
+  {
+    "file": "backend/internal/services/segment_render_service_test.go",
+    "line": 116,
+    "classification": "Test/fixture (classify caller under test; preserve non-Jellyfin coverage)"
+  },
+  {
+    "file": "docs/operations/mail-delivery.md",
+    "line": 159,
+    "classification": "Non-runtime documentation/config/tooling reference (no global replacement)"
+  }
+]

@@ -308,3 +308,23 @@ Quelle: .planning/phases/159-public-anime-detail-konsolidierung/159-USER-REQUEST
 | P159-06 | Phase 159 | Complete (technical; human UAT pending) |
 | P159-07 | Phase 159 | Complete (technical; human UAT pending) |
 | P159-08 | Phase 159 | Complete (technical; human UAT pending) |
+
+## Phase 161 — Jellyfin 12 compatibility (2026-09-15)
+
+Source: `161-USER-REQUEST.md`, with decisions D-01 through D-15 in `161-CONTEXT.md`. Implementation and verification pending.
+
+- [ ] **P161-AUTH**: Every actual Jellyfin request uses header authentication without secret leakage; Fanart and Emby retain their own authentication.
+- [ ] **P161-API**: All used Jellyfin endpoints are inventoried and checked against the running version 12 contract; confirmed incompatibilities are corrected.
+- [ ] **P161-ITEMS**: GetItems filtering, direct versus recursive scope, exact identity and pagination are semantically verified.
+- [ ] **P161-SOURCE**: Deterministic item/source binding remains coherent through import, playback, subtitles and render identity, including the real 11eyes case.
+- [ ] **P161-METADATA**: Selected-source container and consumer-backed audio/subtitle fields persist and render coherently; ordinary editing preserves technical identity.
+- [ ] **P161-REGRESSION**: Focused unit/integration/contract tests, live read-only evidence, request budgets and existing-regression comparison support the final compatibility report.
+
+| Requirement | Phase | Status |
+|---|---|---|
+| P161-AUTH | Phase 161 | Planned |
+| P161-API | Phase 161 | Planned |
+| P161-ITEMS | Phase 161 | Planned |
+| P161-SOURCE | Phase 161 | Planned |
+| P161-METADATA | Phase 161 | Planned |
+| P161-REGRESSION | Phase 161 | Planned |

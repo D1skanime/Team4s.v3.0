@@ -1,0 +1,345 @@
+{
+  "Items": [
+    {
+      "Id": "00000000000000000000000000000001",
+      "Name": "Rote Nacht",
+      "Type": "Episode",
+      "IndexNumber": 1,
+      "ParentIndexNumber": 1,
+      "Container": "mkv,webm",
+      "Path": "/media/11eyes/11eyes.S01E01-B-SH.mkv",
+      "RunTimeTicks": 14960350208,
+      "MediaSources": [
+        {
+          "Id": "00000000000000000000000000000001",
+          "Path": "/media/11eyes/11eyes.S01E01-B-SH.mkv",
+          "Name": "B-SH",
+          "Container": "mkv",
+          "Size": 2423118467,
+          "RunTimeTicks": 14960350208,
+          "MediaStreams": [
+            {
+              "Index": 0,
+              "Type": "Video",
+              "Codec": "h264",
+              "Language": "jpn",
+              "Title": "Video - [x264-hi10p; 12 Mbps]",
+              "DisplayTitle": "Video - [x264-hi10p; 12 Mbps] - 1080p - H264 - SDR",
+              "Height": 1080,
+              "Width": 1920,
+              "IsDefault": true,
+              "IsForced": false,
+              "IsExternal": false
+            },
+            {
+              "Index": 1,
+              "Type": "Audio",
+              "Codec": "flac",
+              "Language": "jpn",
+              "Title": "Japaese, flac, 48.0 kHz, 2 Ch, 724 kbit/s",
+              "DisplayTitle": "Japaese, flac, 48.0 kHz, 2 Ch, 724 kbit/s - Japanese - Stereo - Standard",
+              "Channels": 2,
+              "ChannelLayout": "stereo",
+              "IsDefault": true,
+              "IsForced": false,
+              "IsExternal": false
+            },
+            {
+              "Index": 2,
+              "Type": "Subtitle",
+              "Codec": "ass",
+              "Language": "deu",
+              "Title": "German, Subtitle (ass)",
+              "DisplayTitle": "German, Subtitle (ass) - Standard",
+              "IsDefault": true,
+              "IsForced": false,
+              "IsExternal": false
+            }
+          ]
+        },
+        {
+          "Id": "00000000000000000000000000000002",
+          "Path": "/media/11eyes/11eyes.S01E01-FlameHazeSubs.mp4",
+          "Name": "FlameHazeSubs",
+          "Container": "mp4",
+          "Size": 257305877,
+          "RunTimeTicks": 15298549760,
+          "MediaStreams": [
+            {
+              "Index": 0,
+              "Type": "Video",
+              "Codec": "h264",
+              "Language": "und",
+              "DisplayTitle": "720p H264 SDR",
+              "Height": 720,
+              "Width": 1280,
+              "IsDefault": true,
+              "IsForced": false,
+              "IsExternal": false
+            },
+            {
+              "Index": 1,
+              "Type": "Audio",
+              "Codec": "aac",
+              "Language": "und",
+              "Title": "GPAC ISO Audio Handler",
+              "DisplayTitle": "GPAC ISO Audio Handler - HE-AAC - Stereo - Standard",
+              "Channels": 2,
+              "ChannelLayout": "stereo",
+              "IsDefault": true,
+              "IsForced": false,
+              "IsExternal": false
+            }
+          ]
+        },
+        {
+          "Id": "00000000000000000000000000000003",
+          "Path": "/media/11eyes/11eyes.S01E01-Strawhat.mkv",
+          "Name": "Strawhat",
+          "Container": "mkv",
+          "Size": 371085805,
+          "RunTimeTicks": 14959970304,
+          "MediaStreams": [
+            {
+              "Index": 0,
+              "Type": "Video",
+              "Codec": "h264",
+              "DisplayTitle": "720p H264 SDR",
+              "Height": 720,
+              "Width": 1280,
+              "IsDefault": false,
+              "IsForced": false,
+              "IsExternal": false
+            },
+            {
+              "Index": 1,
+              "Type": "Audio",
+              "Codec": "vorbis",
+              "Language": "jpn",
+              "DisplayTitle": "Japanese - VORBIS - Stereo - Standard",
+              "Channels": 2,
+              "ChannelLayout": "stereo",
+              "IsDefault": true,
+              "IsForced": false,
+              "IsExternal": false
+            },
+            {
+              "Index": 2,
+              "Type": "Subtitle",
+              "Codec": "ass",
+              "Language": "deu",
+              "DisplayTitle": "German - Standard - ASS",
+              "IsDefault": true,
+              "IsForced": false,
+              "IsExternal": false
+            }
+          ]
+        }
+      ],
+      "MediaStreams": [
+        {
+          "Index": 0,
+          "Type": "Video",
+          "Codec": "h264",
+          "Language": "jpn",
+          "Title": "Video - [x264-hi10p; 12 Mbps]",
+          "DisplayTitle": "Video - [x264-hi10p; 12 Mbps] - 1080p - H264 - SDR",
+          "Height": 1080,
+          "Width": 1920,
+          "IsDefault": true,
+          "IsForced": false,
+          "IsExternal": false
+        },
+        {
+          "Index": 1,
+          "Type": "Audio",
+          "Codec": "flac",
+          "Language": "jpn",
+          "Title": "Japaese, flac, 48.0 kHz, 2 Ch, 724 kbit/s",
+          "DisplayTitle": "Japaese, flac, 48.0 kHz, 2 Ch, 724 kbit/s - Japanese - Stereo - Standard",
+          "Channels": 2,
+          "ChannelLayout": "stereo",
+          "IsDefault": true,
+          "IsForced": false,
+          "IsExternal": false
+        },
+        {
+          "Index": 2,
+          "Type": "Subtitle",
+          "Codec": "ass",
+          "Language": "deu",
+          "Title": "German, Subtitle (ass)",
+          "DisplayTitle": "German, Subtitle (ass) - Standard",
+          "IsDefault": true,
+          "IsForced": false,
+          "IsExternal": false
+        }
+      ]
+    },
+    {
+      "Id": "00000000000000000000000000000002",
+      "Name": "Rote Nacht",
+      "Type": "Episode",
+      "IndexNumber": 1,
+      "ParentIndexNumber": 1,
+      "Container": "mov,mp4,m4a,3gp,3g2,mj2",
+      "Path": "/media/11eyes/11eyes.S01E01-FlameHazeSubs.mp4",
+      "RunTimeTicks": 15298549760,
+      "MediaSources": [
+        {
+          "Id": "00000000000000000000000000000002",
+          "Path": "/media/11eyes/11eyes.S01E01-FlameHazeSubs.mp4",
+          "Name": "11eyes.S01E01-FlameHazeSubs",
+          "Container": "mp4",
+          "Size": 257305877,
+          "RunTimeTicks": 15298549760,
+          "MediaStreams": [
+            {
+              "Index": 0,
+              "Type": "Video",
+              "Codec": "h264",
+              "Language": "und",
+              "DisplayTitle": "720p H264 SDR",
+              "Height": 720,
+              "Width": 1280,
+              "IsDefault": true,
+              "IsForced": false,
+              "IsExternal": false
+            },
+            {
+              "Index": 1,
+              "Type": "Audio",
+              "Codec": "aac",
+              "Language": "und",
+              "Title": "GPAC ISO Audio Handler",
+              "DisplayTitle": "GPAC ISO Audio Handler - HE-AAC - Stereo - Standard",
+              "Channels": 2,
+              "ChannelLayout": "stereo",
+              "IsDefault": true,
+              "IsForced": false,
+              "IsExternal": false
+            }
+          ]
+        }
+      ],
+      "MediaStreams": [
+        {
+          "Index": 0,
+          "Type": "Video",
+          "Codec": "h264",
+          "Language": "und",
+          "DisplayTitle": "720p H264 SDR",
+          "Height": 720,
+          "Width": 1280,
+          "IsDefault": true,
+          "IsForced": false,
+          "IsExternal": false
+        },
+        {
+          "Index": 1,
+          "Type": "Audio",
+          "Codec": "aac",
+          "Language": "und",
+          "Title": "GPAC ISO Audio Handler",
+          "DisplayTitle": "GPAC ISO Audio Handler - HE-AAC - Stereo - Standard",
+          "Channels": 2,
+          "ChannelLayout": "stereo",
+          "IsDefault": true,
+          "IsForced": false,
+          "IsExternal": false
+        }
+      ]
+    },
+    {
+      "Id": "00000000000000000000000000000003",
+      "Name": "Rote Nacht",
+      "Type": "Episode",
+      "IndexNumber": 1,
+      "ParentIndexNumber": 1,
+      "Container": "mkv,webm",
+      "Path": "/media/11eyes/11eyes.S01E01-Strawhat.mkv",
+      "RunTimeTicks": 14959970304,
+      "MediaSources": [
+        {
+          "Id": "00000000000000000000000000000003",
+          "Path": "/media/11eyes/11eyes.S01E01-Strawhat.mkv",
+          "Name": "11eyes.S01E01-Strawhat",
+          "Container": "mkv",
+          "Size": 371085805,
+          "RunTimeTicks": 14959970304,
+          "MediaStreams": [
+            {
+              "Index": 0,
+              "Type": "Video",
+              "Codec": "h264",
+              "DisplayTitle": "720p H264 SDR",
+              "Height": 720,
+              "Width": 1280,
+              "IsDefault": false,
+              "IsForced": false,
+              "IsExternal": false
+            },
+            {
+              "Index": 1,
+              "Type": "Audio",
+              "Codec": "vorbis",
+              "Language": "jpn",
+              "DisplayTitle": "Japanese - VORBIS - Stereo - Standard",
+              "Channels": 2,
+              "ChannelLayout": "stereo",
+              "IsDefault": true,
+              "IsForced": false,
+              "IsExternal": false
+            },
+            {
+              "Index": 2,
+              "Type": "Subtitle",
+              "Codec": "ass",
+              "Language": "deu",
+              "DisplayTitle": "German - Standard - ASS",
+              "IsDefault": true,
+              "IsForced": false,
+              "IsExternal": false
+            }
+          ]
+        }
+      ],
+      "MediaStreams": [
+        {
+          "Index": 0,
+          "Type": "Video",
+          "Codec": "h264",
+          "DisplayTitle": "720p H264 SDR",
+          "Height": 720,
+          "Width": 1280,
+          "IsDefault": false,
+          "IsForced": false,
+          "IsExternal": false
+        },
+        {
+          "Index": 1,
+          "Type": "Audio",
+          "Codec": "vorbis",
+          "Language": "jpn",
+          "DisplayTitle": "Japanese - VORBIS - Stereo - Standard",
+          "Channels": 2,
+          "ChannelLayout": "stereo",
+          "IsDefault": true,
+          "IsForced": false,
+          "IsExternal": false
+        },
+        {
+          "Index": 2,
+          "Type": "Subtitle",
+          "Codec": "ass",
+          "Language": "deu",
+          "DisplayTitle": "German - Standard - ASS",
+          "IsDefault": true,
+          "IsForced": false,
+          "IsExternal": false
+        }
+      ]
+    }
+  ],
+  "TotalRecordCount": 3
+}
