@@ -21,7 +21,7 @@ import (
 
 type jellyfinGroupItemsResponse struct {
 	Items            []jellyfinGroupItem `json:"Items"`
-	TotalRecordCount int                 `json:"TotalRecordCount"`
+	TotalRecordCount *int                `json:"TotalRecordCount"`
 }
 
 type jellyfinLibraryFoldersResponse struct {
@@ -161,7 +161,8 @@ func (h *GroupAssetsHandler) findSubgroupRoot(
 
 	values := url.Values{}
 	values.Set("ParentId", subgroupsLibraryID)
-	values.Set("Fields", "Path,ImageTags,BackdropImageTags")
+	values.Set("Fields", "Path")
+	values.Set("Recursive", "false")
 	values.Set("IncludeItemTypes", "PhotoAlbum,Folder")
 
 	items, err := h.listPagedGroupItems(ctx, values, jellyfinGroupRootPageSize)
@@ -203,6 +204,8 @@ func (h *GroupAssetsHandler) listPagedGroupItems(
 	}
 
 	items := make([]jellyfinGroupItem, 0, pageSize)
+	seen := make(map[string]struct{})
+	var expectedTotal *int
 	startIndex := 0
 	for {
 		values := cloneURLValues(baseValues)
@@ -214,15 +217,33 @@ func (h *GroupAssetsHandler) listPagedGroupItems(
 			return nil, err
 		}
 
-		items = append(items, payload.Items...)
-		if len(payload.Items) == 0 {
-			break
+		if payload.TotalRecordCount != nil {
+			if *payload.TotalRecordCount < 0 || (expectedTotal != nil && *payload.TotalRecordCount != *expectedTotal) {
+				return nil, fmt.Errorf("jellyfin pagination total changed or is invalid")
+			}
+			expectedTotal = payload.TotalRecordCount
 		}
-
+		for _, item := range payload.Items {
+			id := strings.TrimSpace(item.ID)
+			if id == "" {
+				return nil, fmt.Errorf("jellyfin pagination item id missing")
+			}
+			if _, exists := seen[id]; exists {
+				return nil, fmt.Errorf("jellyfin pagination repeated an item")
+			}
+			seen[id] = struct{}{}
+		}
+		items = append(items, payload.Items...)
 		startIndex += len(payload.Items)
-		if payload.TotalRecordCount > 0 {
-			if startIndex >= payload.TotalRecordCount {
+		if expectedTotal != nil {
+			if startIndex > *expectedTotal {
+				return nil, fmt.Errorf("jellyfin pagination exceeded total")
+			}
+			if startIndex == *expectedTotal {
 				break
+			}
+			if len(payload.Items) == 0 {
+				return nil, fmt.Errorf("jellyfin pagination ended before total")
 			}
 			continue
 		}
@@ -324,31 +345,38 @@ func (h *GroupAssetsHandler) listSubgroupChildren(ctx context.Context, rootID st
 	values := url.Values{}
 	values.Set("ParentId", rootID)
 	values.Set("Recursive", "true")
-	values.Set("Limit", "200")
-	values.Set("Fields", "Path,Width,Height,ImageTags,RunTimeTicks")
+	values.Set("Fields", "Path,Width,Height")
 
-	var payload jellyfinGroupItemsResponse
-	if err := h.fetchGroupAssetsJSON(ctx, "/Items", values, &payload); err != nil {
+	items, err := h.listPagedGroupItems(ctx, values, 200)
+	if err != nil {
 		return nil, err
 	}
-	slices.SortFunc(payload.Items, func(left, right jellyfinGroupItem) int {
+	slices.SortFunc(items, func(left, right jellyfinGroupItem) int {
 		return strings.Compare(left.Path, right.Path)
 	})
-	return payload.Items, nil
+	return items, nil
 }
 
 func (h *GroupAssetsHandler) getGroupItemDetails(ctx context.Context, itemID string) (*jellyfinGroupItem, error) {
-	if strings.TrimSpace(itemID) == "" {
+	itemID = strings.TrimSpace(itemID)
+	if itemID == "" {
 		return nil, nil
 	}
 
-	var item jellyfinGroupItem
-	if err := h.fetchGroupAssetsJSON(ctx, "/Items/"+url.PathEscape(itemID), url.Values{
-		"Fields": []string{"Path,Width,Height,ImageTags,BackdropImageTags,RunTimeTicks"},
-	}, &item); err != nil {
+	var payload jellyfinGroupItemsResponse
+	if err := h.fetchGroupAssetsJSON(ctx, "/Items", url.Values{
+		"Ids":    []string{itemID},
+		"Limit":  []string{"1"},
+		"Fields": []string{"Path,Width,Height"},
+	}, &payload); err != nil {
 		return nil, err
 	}
-	return &item, nil
+	for _, item := range payload.Items {
+		if strings.TrimSpace(item.ID) == itemID {
+			return &item, nil
+		}
+	}
+	return nil, nil
 }
 
 func (h *GroupAssetsHandler) fetchGroupAssetsJSON(ctx context.Context, apiPath string, query url.Values, target any) error {

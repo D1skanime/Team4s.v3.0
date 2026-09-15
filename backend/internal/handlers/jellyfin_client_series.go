@@ -55,7 +55,7 @@ func (h *AdminContentHandler) searchJellyfinSeries(
 	values.Set("Recursive", "true")
 	values.Set("SearchTerm", strings.TrimSpace(title))
 	values.Set("Limit", strconv.Itoa(limit))
-	values.Set("Fields", "Path,ProductionYear,Overview")
+	values.Set("Fields", "Path,Overview")
 
 	allowedIDs := h.jellyfinAllowedLibraryIDs
 
@@ -118,7 +118,7 @@ func (h *AdminContentHandler) getJellyfinSeriesByID(
 	values.Set("Recursive", "true")
 	values.Set("Ids", trimmedSeriesID)
 	values.Set("Limit", "1")
-	values.Set("Fields", "Path,ProductionYear,Overview")
+	values.Set("Fields", "Path,Overview")
 
 	var payload jellyfinSeriesListResponse
 	statusCode, err := h.fetchJellyfinJSON(ctx, "/Items", values, &payload)
@@ -138,7 +138,7 @@ func (h *AdminContentHandler) getJellyfinSeriesByID(
 		}
 	}
 
-	return &payload.Items[0], nil
+	return nil, nil
 }
 
 func (h *AdminContentHandler) getJellyfinSeriesIntakeDetail(
@@ -155,7 +155,7 @@ func (h *AdminContentHandler) getJellyfinSeriesIntakeDetail(
 	values.Set("IncludeItemTypes", "Series")
 	values.Set("Recursive", "true")
 	values.Set("Limit", "1")
-	values.Set("Fields", "Path,ProductionYear,Overview,ProviderIds,Genres,Tags,ImageTags,BackdropImageTags")
+	values.Set("Fields", "Path,Overview,ProviderIds,Genres,Tags")
 
 	var payload jellyfinSeriesListResponse
 	statusCode, err := h.fetchJellyfinJSON(ctx, "/Items", values, &payload)
@@ -186,17 +186,5 @@ func (h *AdminContentHandler) getJellyfinSeriesIntakeDetail(
 		}
 	}
 
-	item := payload.Items[0]
-	return &jellyfinSeriesDetailItem{
-		ID:                item.ID,
-		Name:              item.Name,
-		ProductionYear:    item.ProductionYear,
-		Overview:          item.Overview,
-		Path:              item.Path,
-		Genres:            item.Genres,
-		Tags:              item.Tags,
-		ProviderIDs:       item.ProviderIDs,
-		ImageTags:         item.ImageTags,
-		BackdropImageTags: item.BackdropImageTags,
-	}, nil
+	return nil, nil
 }

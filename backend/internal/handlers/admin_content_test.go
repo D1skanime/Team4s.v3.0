@@ -806,8 +806,8 @@ func TestSearchJellyfinSeries_IncludesPathField(t *testing.T) {
 		if r.URL.Path != "/Items" {
 			t.Fatalf("expected /Items path, got %s", r.URL.Path)
 		}
-		if got := r.URL.Query().Get("Fields"); got != "Path,ProductionYear,Overview" {
-			t.Fatalf("expected Fields=Path,ProductionYear,Overview, got %q", got)
+		if got := r.URL.Query().Get("Fields"); got != "Path,Overview" {
+			t.Fatalf("expected Fields=Path,Overview, got %q", got)
 		}
 		if got := r.URL.Query().Get("SearchTerm"); got != "Naruto" {
 			t.Fatalf("expected SearchTerm=Naruto, got %q", got)
@@ -846,8 +846,8 @@ func TestGetJellyfinSeriesByID_UsesItemsLookupWithPathField(t *testing.T) {
 		if got := r.URL.Query().Get("Ids"); got != "abc123" {
 			t.Fatalf("expected Ids=abc123, got %q", got)
 		}
-		if got := r.URL.Query().Get("Fields"); got != "Path,ProductionYear,Overview" {
-			t.Fatalf("expected Fields=Path,ProductionYear,Overview, got %q", got)
+		if got := r.URL.Query().Get("Fields"); got != "Path,Overview" {
+			t.Fatalf("expected Fields=Path,Overview, got %q", got)
 		}
 		w.Header().Set("Content-Type", "application/json")
 		_, _ = w.Write([]byte(`{"Items":[{"Id":"abc123","Name":"Naruto","Path":"D:\\Anime\\Naruto"}]}`))
@@ -1005,8 +1005,8 @@ func TestGetJellyfinEpisodeDurationSeconds_UsesRuntimeTicks(t *testing.T) {
 			t.Fatalf("unexpected path: %s", r.URL.Path)
 		}
 		query := r.URL.Query()
-		if query.Get("api_key") != "media-key" {
-			t.Fatalf("unexpected api key: %q", query.Get("api_key"))
+		if r.Header.Get("Authorization") != "MediaBrowser Token=\"media-key\"" || query.Has("api_key") {
+			t.Fatal("expected header-only Jellyfin authentication")
 		}
 		if query.Get("Ids") != "episode-1" {
 			t.Fatalf("unexpected item ids: %q", query.Get("Ids"))
