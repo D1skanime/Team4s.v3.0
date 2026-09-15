@@ -1,0 +1,16 @@
+{
+  "scope": "Plan 02 source and shared JSON regression including dedicated DB fixtures",
+  "commit": "a72737f46f5d34f2fcf31030cd2c21c003e20f62",
+  "exit_code": 0,
+  "tests": {
+    "pass": 174,
+    "fail": 0,
+    "skip": 0
+  },
+  "failures": [],
+  "db_fixture_passes": [
+    "TestEpisodeVersionEditorContextJellyfinUnauthorizedDegradesInsteadOf500",
+    "TestEpisodeVersionEditorContextJellyfinSucceedsStaysNotDegraded",
+    "TestEpisodeVersionEditorContextJellyfinNotConfiguredStaysNotDegraded"
+  ]
+}

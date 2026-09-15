@@ -1,0 +1,16 @@
+{
+  "items": [
+    {
+      "Id": "0a927ea6b67379b9f19850464a6b0ab1",
+      "IndexNumber": 1,
+      "ParentIndexNumber": 1,
+      "ParentId": "3fd3c85f564fe576ee6c81e91f39ba1c",
+      "Type": "Episode",
+      "SeriesName": "11eyes",
+      "SeriesId": "68546f5d1871ad1c42d8d674376e83e6",
+      "SeasonId": "3fd3c85f564fe576ee6c81e91f39ba1c"
+    }
+  ],
+  "total": 1,
+  "fields": "MediaSources,MediaStreams,Path,ParentId"
+}
