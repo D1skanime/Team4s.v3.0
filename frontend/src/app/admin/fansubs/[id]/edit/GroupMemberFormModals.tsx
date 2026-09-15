@@ -1,6 +1,6 @@
 'use client'
 
-import { useEffect, useMemo, useState } from 'react'
+import { useMemo, useState } from 'react'
 
 import {
   Button,
@@ -91,10 +91,15 @@ export function GroupMemberFormModals({
 }: GroupMemberFormModalsProps) {
   const hasRequiredRole = inlineRoleDrafts.some((role) => role.roleCode.trim())
   const [duplicateConfirmed, setDuplicateConfirmed] = useState(false)
-
-  useEffect(() => {
+  // Adjust state during render (React-empfohlenes Muster statt Effect, siehe
+  // react.dev "You Might Not Need an Effect" -> "Adjusting state when a prop changes"):
+  // sobald sich der Anzeigename ändert, muss die Duplikat-Bestätigung verfallen, BEVOR
+  // React committed -- kein zusätzlicher Render-Zyklus, kein set-state-in-effect-Verstoß.
+  const [prevDisplayNameForDuplicateReset, setPrevDisplayNameForDuplicateReset] = useState(form.displayName)
+  if (form.displayName !== prevDisplayNameForDuplicateReset) {
+    setPrevDisplayNameForDuplicateReset(form.displayName)
     setDuplicateConfirmed(false)
-  }, [form.displayName])
+  }
 
   const duplicateMatches = useMemo(
     () => (editTarget ? [] : findDuplicateMemberMatches(existingMembers, form.displayName)),
