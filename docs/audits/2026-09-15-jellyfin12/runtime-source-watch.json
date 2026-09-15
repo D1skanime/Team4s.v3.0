@@ -1,0 +1,5 @@
+{
+  "status": 200,
+  "bytes": 77,
+  "observation": "Backend uses Air with Go source watching; docker cp production source can reload live server. Earlier unrestarted assertions were not established."
+}

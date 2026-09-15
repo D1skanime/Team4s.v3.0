@@ -1,0 +1,35 @@
+{
+  "scope": "Application source/import domain tables, read-only fingerprint before repository changes. Concurrent user edits can legitimately change later hashes. No row content emitted.",
+  "tables": [
+    {
+      "table": "episodes",
+      "count": 13,
+      "content_md5": "afcbc03fc36cde0ab474090a804ab27e"
+    },
+    {
+      "table": "fansub_releases",
+      "count": 13,
+      "content_md5": "1dc43f56101876d91b0eeff56cf131bb"
+    },
+    {
+      "table": "release_streams",
+      "count": 13,
+      "content_md5": "cae173dca9f0f6913afbe5568048b1c3"
+    },
+    {
+      "table": "release_variants",
+      "count": 13,
+      "content_md5": "e92a101cf365bc9680b2437d93de938a"
+    },
+    {
+      "table": "release_versions",
+      "count": 13,
+      "content_md5": "4d42bbebb6e20ac7b2b66696f1a22a63"
+    },
+    {
+      "table": "stream_sources",
+      "count": 13,
+      "content_md5": "e94ab37e56863ad604cd0b063cff3734"
+    }
+  ]
+}

@@ -123,3 +123,7 @@ STATE, ROADMAP and REQUIREMENTS edits are owned by the coordinating agent, per t
 ## Self-Check: PASSED
 
 All three created implementation/test files, this summary and all six RED/GREEN commits were verified on the canonical host. No tracked file deletion was introduced.
+
+### Runtime observation correction
+
+The coordinator subsequently established that PID1 is Air and production Go source copies can trigger its watcher. No manual service restart was issued in this plan, but the earlier claim that the application necessarily stayed on old code is not established. Final integrated checks will verify the actual live code. See 161-EXECUTION-NOTES.md and runtime-source-watch.json.

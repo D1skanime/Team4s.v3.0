@@ -35,3 +35,7 @@ Plan 01 complete, summary commit 9818a5a1; phase bookkeeping and D-16 commit 47f
 ## Plan 02 verification completed
 
 Implementation a72737f4; coordinator repeated expanded source/JSON tests with dedicated DB DSN: 174 pass, zero fail/skip. Summary and machine-readable plan02-checks.json record exact limits. Plan03 proceeds; application process remains unrestarted.
+
+## Runtime correction after Plan 02
+
+The backend runs Air (PID1), whose .air.toml watches production Go sources. Copying source into /app can rebuild/restart the live server automatically. Earlier statements that the running server necessarily remained unchanged were not verified and are superseded by this observation. Test-only files are excluded from the watcher. Source synchronization must remain coherent; final verification must establish the actual running code. Compose recreation executes migrate up first, so check pending migrations before any recreation.

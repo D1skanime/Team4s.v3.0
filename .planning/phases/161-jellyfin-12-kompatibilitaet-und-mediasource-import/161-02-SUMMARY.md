@@ -72,3 +72,7 @@ The resolver selects one coherent MediaSource and projects only that source's te
 ## Self-Check: PASSED
 
 Both tasks are committed. All created files exist and the final source/JSON regression gate executed without skips. Root owns shared state updates.
+
+### Runtime observation correction
+
+The coordinator subsequently established that PID1 is Air and production Go source copies can trigger its watcher. No manual service restart was issued in this plan, but the earlier claim that the application necessarily stayed on old code is not established. Final integrated checks will verify the actual live code. See 161-EXECUTION-NOTES.md and runtime-source-watch.json.
