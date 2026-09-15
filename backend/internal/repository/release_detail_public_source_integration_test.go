@@ -18,10 +18,10 @@ func openPublicTechnicalSourceFixture(t *testing.T) (*pgxpool.Pool, *jellyfinBin
 	base := openJellyfinSourceFixture(t)
 	ctx := context.Background()
 	_, err := base.Exec(ctx, `
- ALTER TABLE release_variants ADD COLUMN resolution TEXT,ADD COLUMN video_quality TEXT,ADD COLUMN container TEXT,
- ADD COLUMN video_codec TEXT,ADD COLUMN audio_codec TEXT,ADD COLUMN subtitle_type TEXT;
- ALTER TABLE release_streams ADD COLUMN audio_language_id BIGINT,ADD COLUMN subtitle_language_id BIGINT;
- CREATE TABLE languages(id BIGINT PRIMARY KEY,code TEXT,name TEXT);
+ ALTER TABLE release_variants ADD COLUMN IF NOT EXISTS resolution TEXT,ADD COLUMN IF NOT EXISTS video_quality TEXT,ADD COLUMN IF NOT EXISTS container TEXT,
+ ADD COLUMN IF NOT EXISTS video_codec TEXT,ADD COLUMN IF NOT EXISTS audio_codec TEXT,ADD COLUMN IF NOT EXISTS subtitle_type TEXT;
+ ALTER TABLE release_streams ADD COLUMN IF NOT EXISTS audio_language_id BIGINT,ADD COLUMN IF NOT EXISTS subtitle_language_id BIGINT;
+ CREATE TABLE IF NOT EXISTS languages(id BIGINT PRIMARY KEY,code TEXT,name TEXT);
  INSERT INTO languages VALUES(1,'ja','Japanisch'),(2,'de','Deutsch'),(3,'en','Englisch');
  INSERT INTO anime(id) VALUES(1);
  INSERT INTO episodes(id,anime_id,episode_number) VALUES(1,1,'1'),(2,1,'2');

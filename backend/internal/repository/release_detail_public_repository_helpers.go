@@ -16,6 +16,7 @@ import (
 	"context"
 	"errors"
 	"fmt"
+	"strings"
 
 	"github.com/jackc/pgx/v5"
 )
@@ -53,25 +54,55 @@ func (r *ReleaseDetailPublicRepository) loadReleaseGroups(ctx context.Context, r
 }
 
 func (r *ReleaseDetailPublicRepository) loadReleaseTechnical(ctx context.Context, releaseVersionID int64) (publicReleaseTechnical, []PublicReleaseSubtitleTrack, error) {
-	var out publicReleaseTechnical
-	err := r.db.QueryRow(ctx, `SELECT rv.duration_seconds, NULLIF(TRIM(COALESCE(rv.resolution, rv.video_quality)),''), NULLIF(TRIM(rv.container),''), NULLIF(TRIM(rv.video_codec),''), NULLIF(TRIM(rv.audio_codec),''), NULLIF(TRIM(al.code),''), NULLIF(TRIM(rv.subtitle_type),'') FROM release_variants rv LEFT JOIN release_streams ars ON ars.variant_id=rv.id AND ars.audio_language_id IS NOT NULL LEFT JOIN languages al ON al.id=ars.audio_language_id WHERE rv.release_version_id=$1 ORDER BY rv.id LIMIT 1`, releaseVersionID).Scan(&out.DurationSeconds, &out.Resolution, &out.Container, &out.VideoCodec, &out.AudioCodec, &out.AudioLanguage, &out.SubtitleType)
-	if err != nil && !errors.Is(err, pgx.ErrNoRows) {
+	out := publicReleaseTechnical{}
+	tracks := make([]PublicReleaseSubtitleTrack, 0)
+	selected, err := selectReleaseVariantSource(ctx, r.db, releaseVersionID, 0)
+	if errors.Is(err, ErrNotFound) {
+		return out, tracks, nil
+	}
+	if err != nil {
 		return out, nil, fmt.Errorf("release detail: load technical data: %w", err)
 	}
-	rows, err := r.db.Query(ctx, `SELECT NULLIF(TRIM(l.code),''), COALESCE(NULLIF(TRIM(l.name),''), NULLIF(TRIM(l.code),''), 'Untertitel'), NULLIF(TRIM(rv.subtitle_type),'') FROM release_variants rv JOIN release_streams rs ON rs.variant_id=rv.id AND rs.subtitle_language_id IS NOT NULL LEFT JOIN languages l ON l.id=rs.subtitle_language_id WHERE rv.release_version_id=$1 ORDER BY l.code, rs.id`, releaseVersionID)
-	if err != nil {
-		return out, nil, fmt.Errorf("release detail: load subtitle tracks: %w", err)
+	out = publicReleaseTechnical{
+		DurationSeconds: selected.DurationSeconds, Resolution: selected.Resolution,
+		Container: selected.Container, VideoCodec: selected.VideoCodec, AudioCodec: selected.AudioCodec,
+		AudioLanguage: selected.AudioLanguage, SubtitleType: selected.SubtitleType,
 	}
-	defer rows.Close()
-	tracks := make([]PublicReleaseSubtitleTrack, 0)
-	for rows.Next() {
-		var t PublicReleaseSubtitleTrack
-		if err := rows.Scan(&t.Language, &t.Label, &t.Format); err != nil {
-			return out, nil, err
+	if selected.Binding == nil {
+		return out, selected.LegacySubtitleTracks, nil
+	}
+	// A present snapshot is authoritative, including explicit empty tracks and
+	// unknown language. Never fill its gaps from another stream or variant.
+	out.AudioCodec, out.AudioLanguage = nil, nil
+	if index := selected.Binding.SelectedAudioIndex; index != nil {
+		for _, audio := range selected.Binding.AudioTracks {
+			if audio.Index == *index {
+				if codec := strings.TrimSpace(audio.Codec); codec != "" {
+					out.AudioCodec = &codec
+				}
+				out.AudioLanguage = audio.Language
+				break
+			}
 		}
-		tracks = append(tracks, t)
 	}
-	return out, tracks, rows.Err()
+	for _, subtitle := range selected.Binding.SubtitleTracks {
+		track := PublicReleaseSubtitleTrack{Language: subtitle.Language, Forced: subtitle.IsForced, Default: subtitle.IsDefault}
+		if codec := strings.TrimSpace(subtitle.Codec); codec != "" {
+			track.Format = &codec
+		}
+		track.Label = strings.TrimSpace(subtitle.DisplayTitle)
+		if track.Label == "" && track.Language != nil {
+			language := strings.TrimSpace(*track.Language)
+			if language != "" && !strings.EqualFold(language, "und") {
+				track.Label = language
+			}
+		}
+		if track.Label == "" {
+			track.Label = fmt.Sprintf("Untertitel %d", subtitle.Index)
+		}
+		tracks = append(tracks, track)
+	}
+	return out, tracks, nil
 }
 
 func (r *ReleaseDetailPublicRepository) countImagesByCategory(ctx context.Context, releaseVersionID int64) (PublicReleaseImageCategoryTotals, error) {

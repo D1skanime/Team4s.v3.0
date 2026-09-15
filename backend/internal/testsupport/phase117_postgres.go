@@ -85,7 +85,13 @@ CREATE TABLE release_version_groups (
 CREATE TABLE release_variants (
     id BIGINT PRIMARY KEY,
     release_version_id BIGINT NOT NULL REFERENCES release_versions(id),
-    duration_seconds INT
+    duration_seconds INT,
+    resolution TEXT,
+    video_quality TEXT,
+    container TEXT,
+    video_codec TEXT,
+    audio_codec TEXT,
+    subtitle_type TEXT
 );
 CREATE TABLE stream_sources (
     id BIGINT PRIMARY KEY,
@@ -97,7 +103,14 @@ CREATE TABLE release_streams (
     id BIGINT PRIMARY KEY,
     variant_id BIGINT REFERENCES release_variants(id),
     stream_source_id BIGINT REFERENCES stream_sources(id),
-    jellyfin_item_id VARCHAR(255)
+    jellyfin_item_id VARCHAR(255),
+    audio_language_id BIGINT,
+    subtitle_language_id BIGINT
+);
+CREATE TABLE languages (
+    id BIGINT PRIMARY KEY,
+    code TEXT,
+    name TEXT
 );
 CREATE TABLE media_assets (
     id BIGINT PRIMARY KEY,
