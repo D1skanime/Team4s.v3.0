@@ -1669,6 +1669,19 @@ Plans:
       bestehende". Der 156-UAT.md-Live-UAT-Checkpoint selbst bleibt ausdruecklich separat und
       offen -- dieser Plan beansprucht ihn nicht als bestanden.
 
+**Post-hoc UAT gap-closure** (156-UAT.md, Live-UAT 2026-09-15, GAP-08)
+
+- [x] 156-19-PLAN.md — Mitwirkende auch bei Ein-Folgen-Segmenten editierbar:
+      `SegmentEditPanel.tsx`s "Mitwirkende am Segment"-Gate von `isSharedSegment &&` auf
+      `origin_release_version_id != null` verengt, damit die durch Plan 156-18 vorausgewaehlten
+      Mitwirkenden bei Ein-Folgen-Segmenten ("Kara time 1", "Ending Buddy", "test") wieder sicht-
+      und abwaehlbar sind. Ein-Folgen-Segmente mit gueltiger Origin zeigen zusaetzlich eine
+      schreibgeschuetzte "Origin: Folge N"-Info statt eines nutzlosen Ein-Options-Selects; geteilte
+      Segmente bleiben mit dem editierbaren Select byte-identisch. Schliesst GAP-08 (vom
+      Auftraggeber am 2026-09-15 als Blocker fuer die Live-UAT-Abnahme freigegeben). Der
+      156-UAT.md-Live-UAT-Checkpoint selbst bleibt ausdruecklich separat und offen -- dieser Plan
+      beansprucht ihn nicht als bestanden.
+
 **Plan-time read first**: `.planning/phases/156-segment-domain-konsistenz-und-oeffentliche-release-projektion/156-USER-REQUEST.md`,
 `156-CONTEXT.md`, `156-RESEARCH.md`, `156-PATTERNS.md`,
 `backend/internal/repository/theme_segment_assignments.go`,

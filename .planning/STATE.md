@@ -3,7 +3,7 @@ gsd_state_version: 1.0
 milestone: v1.4
 milestone_name: Coverage
 status: executing
-stopped_at: "Completed 156-18-PLAN.md (GAP-07 contributor preselection closed: central rule + 5 call-site swaps + migration 0165, live-verified against team4sv30-db and public API for releases 28/29; 156-UAT.md live-UAT checkpoint remains OPEN)"
+stopped_at: "Completed 156-19-PLAN.md (GAP-08 Mitwirkende/Origin gate widened for single-episode segments in SegmentEditPanel.tsx; 156-UAT.md live-UAT checkpoint remains OPEN)"
 last_updated: "2026-09-15T07:54:43.229Z"
 last_activity: 2026-09-15
 progress:
@@ -1616,7 +1616,7 @@ untruncated list lives in `.planning/todos/pending/`.
 ## Session Continuity
 
 Last session: 2026-09-15T07:54:43.207Z
-Stopped at: Completed 156-18-PLAN.md (GAP-07 contributor preselection closed: central rule + 5 call-site swaps + migration 0165, live-verified against team4sv30-db and public API for releases 28/29; 156-UAT.md live-UAT checkpoint remains OPEN)
+Stopped at: Completed 156-19-PLAN.md (GAP-08 Mitwirkende/Origin gate widened for single-episode segments in SegmentEditPanel.tsx; 156-UAT.md live-UAT checkpoint remains OPEN)
 Last activity: Larger dot + per-entry role-colored timeline line implemented and live-verified against the running stack; GAP-02 V3/V4 closed automated/technically, human Live-UAT remains a separate open step.
 Resume file: 
 None
