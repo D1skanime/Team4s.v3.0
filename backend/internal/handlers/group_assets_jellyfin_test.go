@@ -144,7 +144,7 @@ func TestGetGroupAssetsLibraryID_PrefersGroupsOverSubgroups(t *testing.T) {
 		jellyfinBaseURL: "http://example.test",
 		jellyfinAPIKey:  "test-key",
 		httpClient: stubJSONClient(t, map[string]string{
-			"/Library/MediaFolders?api_key=test-key": `{"Items":[{"Id":"subgroups-id","Name":"Subgroups"},{"Id":"groups-id","Name":"Groups"}]}`,
+			"/Library/MediaFolders": `{"Items":[{"Id":"subgroups-id","Name":"Subgroups"},{"Id":"groups-id","Name":"Groups"}]}`,
 		}),
 	}
 

@@ -9,6 +9,8 @@ import (
 	"net/http"
 	"net/url"
 	"strings"
+
+	"team4s.v3/backend/internal/jellyfin"
 )
 
 // fetchJellyfinJSON sendet eine GET-Anfrage an die Jellyfin-API und deserialisiert die JSON-Antwort in das übergebene Zielobjekt.
@@ -18,12 +20,12 @@ func (h *AnimeHandler) fetchJellyfinJSON(ctx context.Context, apiPath string, qu
 		return 0, err
 	}
 
-	req, err := http.NewRequestWithContext(ctx, http.MethodGet, targetURL, nil)
+	req, err := jellyfin.NewRequest(ctx, http.MethodGet, targetURL, h.jellyfinBaseURL, h.jellyfinAPIKey)
 	if err != nil {
 		return 0, fmt.Errorf("create jellyfin request: %w", err)
 	}
 
-	resp, err := h.httpClient.Do(req)
+	resp, err := jellyfin.Do(h.httpClient, req, h.jellyfinBaseURL)
 	if err != nil {
 		return 0, fmt.Errorf("call jellyfin: %w", err)
 	}
@@ -51,12 +53,12 @@ func (h *AnimeHandler) fetchJellyfinStatus(ctx context.Context, apiPath string, 
 		return 0, err
 	}
 
-	req, err := http.NewRequestWithContext(ctx, http.MethodGet, targetURL, nil)
+	req, err := jellyfin.NewRequest(ctx, http.MethodGet, targetURL, h.jellyfinBaseURL, h.jellyfinAPIKey)
 	if err != nil {
 		return 0, fmt.Errorf("create jellyfin request: %w", err)
 	}
 
-	resp, err := h.httpClient.Do(req)
+	resp, err := jellyfin.Do(h.httpClient, req, h.jellyfinBaseURL)
 	if err != nil {
 		return 0, fmt.Errorf("call jellyfin: %w", err)
 	}
@@ -68,7 +70,7 @@ func (h *AnimeHandler) fetchJellyfinStatus(ctx context.Context, apiPath string, 
 	return resp.StatusCode, nil
 }
 
-// buildJellyfinURL baut die vollständige Jellyfin-API-URL aus Basis-URL, Pfad und Query-Parametern zusammen und fügt den API-Schlüssel hinzu.
+// buildJellyfinURL baut die vollständige Jellyfin-API-URL aus Basis-URL, Pfad und Query-Parametern ohne URL-Zugangsdaten zusammen.
 func (h *AnimeHandler) buildJellyfinURL(apiPath string, query url.Values) (string, error) {
 	baseURL := strings.TrimSpace(h.jellyfinBaseURL)
 	if baseURL == "" {
@@ -80,25 +82,9 @@ func (h *AnimeHandler) buildJellyfinURL(apiPath string, query url.Values) (strin
 		return "", errors.New("jellyfin api key missing")
 	}
 
-	parsedBase, err := url.Parse(baseURL)
+	targetURL, err := jellyfin.BuildURL(baseURL, apiPath, query)
 	if err != nil {
-		return "", fmt.Errorf("parse jellyfin base url: %w", err)
+		return "", err
 	}
-
-	resolvedPath := strings.TrimPrefix(apiPath, "/")
-	if strings.HasSuffix(parsedBase.Path, "/") {
-		parsedBase.Path = strings.TrimSuffix(parsedBase.Path, "/")
-	}
-	parsedBase.Path = parsedBase.Path + "/" + resolvedPath
-
-	values := url.Values{}
-	for key, entries := range query {
-		for _, value := range entries {
-			values.Add(key, value)
-		}
-	}
-	values.Set("api_key", apiKey)
-	parsedBase.RawQuery = values.Encode()
-
-	return parsedBase.String(), nil
+	return targetURL.String(), nil
 }

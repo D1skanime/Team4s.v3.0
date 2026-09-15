@@ -14,6 +14,8 @@ import (
 	"time"
 	"unicode/utf8"
 
+	"team4s.v3/backend/internal/jellyfin"
+
 	"golang.org/x/text/encoding/charmap"
 	"golang.org/x/text/transform"
 )
@@ -173,32 +175,17 @@ func (h *AdminContentHandler) fetchJellyfinJSON(
 		return http.StatusServiceUnavailable, errors.New("jellyfin api key missing")
 	}
 
-	parsedBase, err := url.Parse(baseURL)
+	targetURL, err := jellyfin.BuildURL(baseURL, apiPath, query)
 	if err != nil {
-		return 0, fmt.Errorf("parse jellyfin base url: %w", err)
+		return 0, err
 	}
 
-	resolvedPath := strings.TrimPrefix(apiPath, "/")
-	if strings.HasSuffix(parsedBase.Path, "/") {
-		parsedBase.Path = strings.TrimSuffix(parsedBase.Path, "/")
-	}
-	parsedBase.Path = parsedBase.Path + "/" + resolvedPath
-
-	values := url.Values{}
-	for key, entries := range query {
-		for _, value := range entries {
-			values.Add(key, value)
-		}
-	}
-	values.Set("api_key", apiKey)
-	parsedBase.RawQuery = values.Encode()
-
-	req, err := http.NewRequestWithContext(ctx, http.MethodGet, parsedBase.String(), nil)
+	req, err := jellyfin.NewRequest(ctx, http.MethodGet, targetURL.String(), baseURL, h.jellyfinAPIKey)
 	if err != nil {
 		return 0, fmt.Errorf("create jellyfin request: %w", err)
 	}
 
-	resp, err := h.httpClient.Do(req)
+	resp, err := jellyfin.Do(h.httpClient, req, baseURL)
 	if err != nil {
 		log.Printf(
 			"admin_content jellyfin_http: request failed (path=%s, elapsed_ms=%d, category=%s): %v",

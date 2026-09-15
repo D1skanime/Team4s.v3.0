@@ -15,6 +15,7 @@ import (
 	"strings"
 	"time"
 
+	"team4s.v3/backend/internal/jellyfin"
 	"team4s.v3/backend/internal/models"
 )
 
@@ -352,20 +353,16 @@ func (h *GroupAssetsHandler) getGroupItemDetails(ctx context.Context, itemID str
 
 func (h *GroupAssetsHandler) fetchGroupAssetsJSON(ctx context.Context, apiPath string, query url.Values, target any) error {
 	baseURL := strings.TrimSpace(h.jellyfinBaseURL)
-	parsedBase, err := url.Parse(baseURL)
+	targetURL, err := jellyfin.BuildURL(baseURL, apiPath, query)
 	if err != nil {
-		return fmt.Errorf("parse jellyfin base url: %w", err)
+		return err
 	}
-	parsedBase.Path = strings.TrimRight(parsedBase.Path, "/") + "/" + strings.TrimLeft(apiPath, "/")
-	query.Set("api_key", strings.TrimSpace(h.jellyfinAPIKey))
-	parsedBase.RawQuery = query.Encode()
-
-	req, err := http.NewRequestWithContext(ctx, http.MethodGet, parsedBase.String(), nil)
+	req, err := jellyfin.NewRequest(ctx, http.MethodGet, targetURL.String(), baseURL, h.jellyfinAPIKey)
 	if err != nil {
 		return fmt.Errorf("create jellyfin request: %w", err)
 	}
 
-	resp, err := h.httpClient.Do(req)
+	resp, err := jellyfin.Do(h.httpClient, req, baseURL)
 	if err != nil {
 		return fmt.Errorf("call jellyfin: %w", err)
 	}
