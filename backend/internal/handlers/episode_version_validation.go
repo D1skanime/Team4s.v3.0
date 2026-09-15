@@ -13,6 +13,7 @@ var allowedSubtitleTypes = map[string]struct{}{
 }
 
 type episodeVersionCreateRequest struct {
+	MediaSourceID *string                           `json:"media_source_id"`
 	Title         *string                           `json:"title"`
 	FansubGroups  []models.SelectedFansubGroupInput `json:"fansub_groups"`
 	FansubGroupID *int64                            `json:"fansub_group_id"`
@@ -52,11 +53,22 @@ func validateEpisodeVersionCreateRequest(req episodeVersionCreateRequest) (model
 		return models.EpisodeVersionCreateInput{}, "ungültiger media_provider parameter"
 	}
 
+	if strings.EqualFold(*mediaProvider, "jellyfin") {
+		*mediaProvider = "jellyfin"
+	}
+
 	mediaItemID := normalizeRequiredString(&req.MediaItemID)
 	if mediaItemID == nil || len([]rune(*mediaItemID)) > 120 {
 		return models.EpisodeVersionCreateInput{}, "ungültiger media_item_id parameter"
 	}
 
+	sourceID := normalizeNullableString(req.MediaSourceID)
+	if req.MediaSourceID != nil && !validEpisodeVersionSourceID(sourceID) {
+		return models.EpisodeVersionCreateInput{}, "Ungültiger media_source_id Parameter."
+	}
+	if strings.Contains(*mediaItemID, ",") {
+		return models.EpisodeVersionCreateInput{}, "Ungültiger media_item_id Parameter."
+	}
 	if req.FansubGroupID != nil && *req.FansubGroupID <= 0 {
 		return models.EpisodeVersionCreateInput{}, "ungültiger fansub_group_id parameter"
 	}
@@ -92,6 +104,7 @@ func validateEpisodeVersionCreateRequest(req episodeVersionCreateRequest) (model
 		FansubGroupID: req.FansubGroupID,
 		MediaProvider: *mediaProvider,
 		MediaItemID:   *mediaItemID,
+		MediaSourceID: sourceID,
 		VideoQuality:  videoQuality,
 		SubtitleType:  subtitleType,
 		ReleaseDate:   req.ReleaseDate,
@@ -108,6 +121,7 @@ func validateEpisodeVersionPatchRequest(req models.EpisodeVersionPatchInput) (mo
 		!req.FansubGroupID.Set &&
 		!req.MediaProvider.Set &&
 		!req.MediaItemID.Set &&
+		!req.MediaSourceID.Set &&
 		!req.VideoQuality.Set &&
 		!req.SubtitleType.Set &&
 		!req.ProductionStartedOn.Set &&
@@ -139,6 +153,9 @@ func validateEpisodeVersionPatchRequest(req models.EpisodeVersionPatchInput) (mo
 		if value == nil || len([]rune(*value)) > 30 {
 			return models.EpisodeVersionPatchInput{}, "ungültiger media_provider parameter"
 		}
+		if strings.EqualFold(*value, "jellyfin") {
+			*value = "jellyfin"
+		}
 		req.MediaProvider.Value = value
 	}
 	if req.MediaItemID.Set {
@@ -147,6 +164,15 @@ func validateEpisodeVersionPatchRequest(req models.EpisodeVersionPatchInput) (mo
 			return models.EpisodeVersionPatchInput{}, "ungültiger media_item_id parameter"
 		}
 		req.MediaItemID.Value = value
+	}
+	if req.MediaSourceID.Set {
+		req.MediaSourceID.Value = normalizeNullableString(req.MediaSourceID.Value)
+		if !validEpisodeVersionSourceID(req.MediaSourceID.Value) {
+			return models.EpisodeVersionPatchInput{}, "Ungültiger media_source_id Parameter."
+		}
+	}
+	if req.MediaItemID.Set && strings.Contains(derefString(req.MediaItemID.Value), ",") {
+		return models.EpisodeVersionPatchInput{}, "Ungültiger media_item_id Parameter."
 	}
 	if req.VideoQuality.Set {
 		req.VideoQuality.Value = normalizeNullableString(req.VideoQuality.Value)
@@ -182,4 +208,8 @@ func validateEpisodeVersionPatchRequest(req models.EpisodeVersionPatchInput) (mo
 	}
 
 	return req, ""
+}
+
+func validEpisodeVersionSourceID(value *string) bool {
+	return value != nil && len([]rune(*value)) <= 120 && !strings.Contains(*value, ",")
 }

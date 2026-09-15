@@ -722,25 +722,14 @@ func (h *AdminContentHandler) rehydrateEpisodeImportSources(ctx context.Context,
 		if mapping.Status != models.EpisodeImportMappingStatusConfirmed {
 			continue
 		}
-		item, exists := items[mapping.MediaItemID]
-		if !exists || item.ID != mapping.MediaItemID || item.Type != "Episode" ||
-			(seriesID != "" && strings.TrimSpace(item.SeriesID) != seriesID) ||
-			(folder != "" && !jellyfinPathHasPrefix(item.Path, folder)) {
-			return fail(http.StatusConflict, "Die Jellyfin-Datei gehört nicht zur gespeicherten Anime-Zuordnung.")
-		}
+		item := items[mapping.MediaItemID]
 		var stored *models.JellyfinSourceSnapshot
 		if binding, ok := bindings[mapping.MediaItemID]; ok {
 			stored = &binding
 		}
-		resolved, err := resolveJellyfinMediaSource(item, stored)
-		if err != nil || resolved.Snapshot.MediaSourceID != mapping.MediaSourceID {
-			return fail(http.StatusConflict, "Die geprüfte Jellyfin-Quelle hat sich geändert. Bitte Vorschau neu laden.")
-		}
-		if folder != "" && !jellyfinPathHasPrefix(resolved.Snapshot.SourcePath, folder) {
-			return fail(http.StatusConflict, "Die Jellyfin-Quelle gehört nicht zum gespeicherten Anime-Ordner.")
-		}
-		if !resolved.Snapshot.StreamsComplete && (stored == nil || !stored.StreamsComplete) {
-			return fail(http.StatusConflict, "Die Jellyfin-Quelle enthält keine vollständigen Stream-Daten. Bitte Vorschau neu laden.")
+		resolved, err := resolveReviewedJellyfinSource(item, mapping.MediaItemID, mapping.MediaSourceID, seriesID, folder, stored)
+		if err != nil {
+			return fail(http.StatusConflict, err.Error())
 		}
 		input.MediaCandidates = append(input.MediaCandidates, h.episodeImportSourceCandidate(item, resolved))
 	}

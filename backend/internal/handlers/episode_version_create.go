@@ -1,4 +1,4 @@
-﻿package handlers
+package handlers
 
 import (
 	"errors"
@@ -43,6 +43,13 @@ func (h *FansubHandler) CreateEpisodeVersion(c *gin.Context) {
 	}
 	input.AnimeID = animeID
 	input.EpisodeNumber = episodeNumber
+
+	var status int
+	input, status, err = h.hydrateEpisodeVersionCreate(c.Request.Context(), input)
+	if err != nil {
+		c.JSON(status, gin.H{"error": gin.H{"message": err.Error()}})
+		return
+	}
 
 	item, err := h.episodeVersionRepo.Create(c.Request.Context(), input)
 	if errors.Is(err, repository.ErrNotFound) {

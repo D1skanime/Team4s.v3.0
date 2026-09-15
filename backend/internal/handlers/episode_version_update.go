@@ -40,7 +40,7 @@ func (h *FansubHandler) UpdateEpisodeVersion(c *gin.Context) {
 
 	if !actor.IsPlatformAdmin {
 		if !isReleaseMetadataOnlyPatch(input) {
-			c.JSON(http.StatusForbidden, gin.H{"error": gin.H{"message": "nur release-metadaten duerfen bearbeitet werden"}})
+			c.JSON(http.StatusForbidden, gin.H{"error": gin.H{"message": "Nur Release-Metadaten dürfen bearbeitet werden."}})
 			return
 		}
 		result, permissionErr := h.permissionSvc.CanForReleaseVersion(c.Request.Context(), actor, permissions.ActionReleaseVersionMetadataUpdate, versionID)
@@ -53,6 +53,13 @@ func (h *FansubHandler) UpdateEpisodeVersion(c *gin.Context) {
 			writePermissionDenied(c, result)
 			return
 		}
+	}
+
+	var status int
+	input, status, err = h.hydrateEpisodeVersionPatch(c.Request.Context(), versionID, input)
+	if err != nil {
+		c.JSON(status, gin.H{"error": gin.H{"message": err.Error()}})
+		return
 	}
 
 	item, err := h.episodeVersionRepo.Update(c.Request.Context(), versionID, input)
@@ -87,5 +94,6 @@ func isReleaseMetadataOnlyPatch(input models.EpisodeVersionPatchInput) bool {
 		!input.FansubGroupID.Set &&
 		!input.MediaProvider.Set &&
 		!input.MediaItemID.Set &&
+		!input.MediaSourceID.Set &&
 		!input.StreamURL.Set
 }

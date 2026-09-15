@@ -161,18 +161,22 @@ func (r *EpisodeVersionRepository) GetByID(ctx context.Context, versionID int64)
 	if err != nil {
 		return nil, fmt.Errorf("scan release version %d: %w", versionID, err)
 	}
- rows.Close()
- if item.MediaProvider == "jellyfin" {
-  bindings, bindingErr := r.GetJellyfinSourceBindings(ctx, []string{item.MediaItemID})
-  if bindingErr != nil { return nil, bindingErr }
-  if binding, ok := bindings[item.MediaItemID]; ok { item.MediaSourceID = &binding.MediaSourceID }
- }
- return item, nil
+	rows.Close()
+	if item.MediaProvider == "jellyfin" {
+		bindings, bindingErr := r.GetJellyfinSourceBindings(ctx, []string{item.MediaItemID})
+		if bindingErr != nil {
+			return nil, bindingErr
+		}
+		if binding, ok := bindings[item.MediaItemID]; ok {
+			item.MediaSourceID = &binding.MediaSourceID
+		}
+	}
+	return item, nil
 }
 
 // Reuse the import repository's single owner for private binding decoding.
 func (r *EpisodeVersionRepository) GetJellyfinSourceBindings(ctx context.Context, itemIDs []string) (map[string]models.JellyfinSourceSnapshot, error) {
- return NewEpisodeImportRepository(r.db).GetJellyfinSourceBindings(ctx,itemIDs)
+	return NewEpisodeImportRepository(r.db).GetJellyfinSourceBindings(ctx, itemIDs)
 }
 
 func (r *EpisodeVersionRepository) Create(
@@ -185,10 +189,14 @@ func (r *EpisodeVersionRepository) Create(
 	}
 	defer tx.Rollback(ctx)
 
- if err := lockSegmentAssignmentAnimeTx(ctx, tx, input.AnimeID); err != nil { return nil,err }
- streamSourceID, err := prepareEpisodeVersionSource(ctx,tx,input.AnimeID,input.MediaProvider,input.MediaItemID,input.StreamURL,input.JellyfinSource)
- if err != nil { return nil,err }
- episodeID, err := lookupEpisodeIDByAnimeAndNumber(ctx, tx, input.AnimeID, input.EpisodeNumber)
+	if err := lockSegmentAssignmentAnimeTx(ctx, tx, input.AnimeID); err != nil {
+		return nil, err
+	}
+	streamSourceID, err := prepareEpisodeVersionSource(ctx, tx, input.AnimeID, input.MediaProvider, input.MediaItemID, input.StreamURL, input.JellyfinSource)
+	if err != nil {
+		return nil, err
+	}
+	episodeID, err := lookupEpisodeIDByAnimeAndNumber(ctx, tx, input.AnimeID, input.EpisodeNumber)
 	if err != nil {
 		return nil, err
 	}
@@ -213,14 +221,14 @@ func (r *EpisodeVersionRepository) Create(
 	}
 
 	variantID, err := createReleaseVariant(ctx, tx, releaseVersionID, models.EpisodeImportMediaCandidate{
-		MediaItemID:  input.MediaItemID,
-		StreamURL:    input.StreamURL,
-		VideoQuality: input.VideoQuality,
-		FileName:     strings.TrimSpace(derefString(input.FileName)),
- Container: input.Container,
- VideoCodec: input.VideoCodec,
- AudioCodec: input.AudioCodec,
- DurationSeconds: input.DurationSeconds,
+		MediaItemID:     input.MediaItemID,
+		StreamURL:       input.StreamURL,
+		VideoQuality:    input.VideoQuality,
+		FileName:        strings.TrimSpace(derefString(input.FileName)),
+		Container:       input.Container,
+		VideoCodec:      input.VideoCodec,
+		AudioCodec:      input.AudioCodec,
+		DurationSeconds: input.DurationSeconds,
 	})
 	if err != nil {
 		if isUniqueViolation(err) {
@@ -231,9 +239,13 @@ func (r *EpisodeVersionRepository) Create(
 	if err := applyEpisodeVersionVariantMetadata(ctx, tx, variantID, input.VideoQuality, input.SubtitleType, input.CRC32, input.DurationSeconds); err != nil {
 		return nil, err
 	}
- streamTypeID, err := ensureEpisodeStreamTypeID(ctx,tx)
- if err != nil { return nil,err }
- if err := upsertNormalizedReleaseStream(ctx,tx,variantID,streamTypeID,streamSourceID,input.MediaItemID); err != nil { return nil,err }
+	streamTypeID, err := ensureEpisodeStreamTypeID(ctx, tx)
+	if err != nil {
+		return nil, err
+	}
+	if err := upsertNormalizedReleaseStream(ctx, tx, variantID, streamTypeID, streamSourceID, input.MediaItemID); err != nil {
+		return nil, err
+	}
 	if err := syncEpisodeVersionSelectedGroups(ctx, tx, releaseVersionID, input.AnimeID, input.FansubGroups, input.FansubGroupID, true); err != nil {
 		return nil, err
 	}
@@ -268,30 +280,52 @@ func (r *EpisodeVersionRepository) Update(
 	}
 	defer tx.Rollback(ctx)
 
- state, err := loadEpisodeVersionStateForUpdate(ctx, tx, versionID, false)
- if err != nil { return nil,err }
- if err := lockSegmentAssignmentAnimeTx(ctx,tx,state.AnimeID); err != nil {return nil,err}
- // Re-read after the anime lock; hydration may have raced another writer.
- state, err = loadEpisodeVersionStateForUpdate(ctx,tx,versionID,false)
- if err != nil {return nil,err}
- mediaProvider, mediaItemID, streamURL := state.MediaProvider, state.MediaItemID, state.StreamURL
- if input.MediaProvider.Set && input.MediaProvider.Value!=nil {mediaProvider=*input.MediaProvider.Value}
- if input.MediaItemID.Set && input.MediaItemID.Value!=nil {mediaItemID=*input.MediaItemID.Value}
- if input.StreamURL.Set {streamURL=input.StreamURL.Value}
- relink := input.MediaProvider.Set || input.MediaItemID.Set || input.MediaSourceID.Set || input.StreamURL.Set
- var streamSourceID int64
- if relink {
-  if mediaProvider=="jellyfin" {
-   if input.JellyfinSource==nil {return nil,ErrConflict}
-   if input.MediaSourceID.Set && (input.MediaSourceID.Value==nil || *input.MediaSourceID.Value!=input.JellyfinSource.MediaSourceID) {return nil,ErrConflict}
-   if !input.JellyfinSource.StreamsComplete && (state.MediaProvider!=mediaProvider || state.MediaItemID!=mediaItemID) {return nil,ErrConflict}
-  }
-  streamSourceID,err=prepareEpisodeVersionSource(ctx,tx,state.AnimeID,mediaProvider,mediaItemID,streamURL,input.JellyfinSource)
-  if err!=nil {return nil,err}
- }
- state,err=loadEpisodeVersionStateForUpdate(ctx,tx,versionID,true)
- if err!=nil {return nil,err}
- title := state.Title
+	state, err := loadEpisodeVersionStateForUpdate(ctx, tx, versionID, false)
+	if err != nil {
+		return nil, err
+	}
+	if err := lockSegmentAssignmentAnimeTx(ctx, tx, state.AnimeID); err != nil {
+		return nil, err
+	}
+	// Re-read after the anime lock; hydration may have raced another writer.
+	state, err = loadEpisodeVersionStateForUpdate(ctx, tx, versionID, false)
+	if err != nil {
+		return nil, err
+	}
+	mediaProvider, mediaItemID, streamURL := state.MediaProvider, state.MediaItemID, state.StreamURL
+	if input.MediaProvider.Set && input.MediaProvider.Value != nil {
+		mediaProvider = *input.MediaProvider.Value
+	}
+	if input.MediaItemID.Set && input.MediaItemID.Value != nil {
+		mediaItemID = *input.MediaItemID.Value
+	}
+	if input.StreamURL.Set {
+		streamURL = input.StreamURL.Value
+	}
+	relink := input.MediaProvider.Set || input.MediaItemID.Set || input.MediaSourceID.Set || input.StreamURL.Set
+	var streamSourceID int64
+	if relink {
+		if mediaProvider == "jellyfin" {
+			if input.JellyfinSource == nil {
+				return nil, ErrConflict
+			}
+			if input.MediaSourceID.Set && (input.MediaSourceID.Value == nil || *input.MediaSourceID.Value != input.JellyfinSource.MediaSourceID) {
+				return nil, ErrConflict
+			}
+			if !input.JellyfinSource.StreamsComplete && (state.MediaProvider != mediaProvider || state.MediaItemID != mediaItemID) {
+				return nil, ErrConflict
+			}
+		}
+		streamSourceID, err = prepareEpisodeVersionSource(ctx, tx, state.AnimeID, mediaProvider, mediaItemID, streamURL, input.JellyfinSource)
+		if err != nil {
+			return nil, err
+		}
+	}
+	state, err = loadEpisodeVersionStateForUpdate(ctx, tx, versionID, true)
+	if err != nil {
+		return nil, err
+	}
+	title := state.Title
 	if input.Title.Set {
 		title = input.Title.Value
 	}
@@ -338,10 +372,12 @@ func (r *EpisodeVersionRepository) Update(
 		}
 	}
 
- if relink {
-  if input.JellyfinSource != nil && input.JellyfinSource.StreamsComplete {
-   if err:=applyEpisodeVersionSourceTechnicalFields(ctx,tx,state.VariantID,input.FileName,input.Container,input.VideoCodec,input.AudioCodec,input.VideoQuality.Value,input.DurationSeconds.Value);err!=nil{return nil,err}
-  }
+	if relink {
+		if input.JellyfinSource != nil && input.JellyfinSource.StreamsComplete {
+			if err := applyEpisodeVersionSourceTechnicalFields(ctx, tx, state.VariantID, input.FileName, input.Container, input.VideoCodec, input.AudioCodec, input.VideoQuality.Value, input.DurationSeconds.Value); err != nil {
+				return nil, err
+			}
+		}
 		sourceID, err := ensureReleaseSourceID(ctx, tx, mediaProvider)
 		if err != nil {
 			return nil, err
@@ -356,9 +392,13 @@ func (r *EpisodeVersionRepository) Update(
 		`, sourceID, state.ReleaseID); err != nil {
 			return nil, fmt.Errorf("update release source release=%d: %w", state.ReleaseID, err)
 		}
-  streamTypeID,err:=ensureEpisodeStreamTypeID(ctx,tx)
-  if err!=nil{return nil,err}
-  if err:=upsertNormalizedReleaseStream(ctx,tx,state.VariantID,streamTypeID,streamSourceID,mediaItemID);err!=nil{return nil,err}
+		streamTypeID, err := ensureEpisodeStreamTypeID(ctx, tx)
+		if err != nil {
+			return nil, err
+		}
+		if err := upsertNormalizedReleaseStream(ctx, tx, state.VariantID, streamTypeID, streamSourceID, mediaItemID); err != nil {
+			return nil, err
+		}
 	}
 
 	if input.FansubGroups.Set || input.FansubGroupID.Set {
@@ -523,4 +563,9 @@ func normalizeReleaseAssetPublicPath(raw *string) *string {
 		return &path
 	}
 	return &trimmed
+}
+
+// Reuse the canonical anime source-context reader for explicit file ownership checks.
+func (r *EpisodeVersionRepository) GetAnimeSyncSource(ctx context.Context, animeID int64) (*models.AdminAnimeSyncSource, error) {
+	return NewAdminContentRepository(r.db).GetAnimeSyncSource(ctx, animeID)
 }

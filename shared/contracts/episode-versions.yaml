@@ -497,6 +497,6 @@ types:
 
 jellyfin_source_contract:
   semantics: "One selected source per actual Jellyfin item; alternate files without separate items are not guaranteed to be imported. Source path, container, codecs and tracks are provider-derived and server-revalidated at apply/relink. Posted URLs, codecs and languages are not authoritative. Missing projection is incomplete; with streams_complete=true an empty subtitle_tracks array means known no subtitles. Unknown raw language remains null."
-  relink: "media_source_id is an admin media-binding change, never contributor metadata-only. Omission preserves the existing binding; an explicit selector is server-revalidated. Server-only snapshot, filename, container and codecs cannot be supplied through JSON."
+  relink: "A supplied media_source_id must be nonblank, at most 120 characters and contain no comma; explicit null is invalid (400). media_source_id is an admin media-binding change, never contributor metadata-only. Omission preserves the existing binding; an explicit selector is server-revalidated. Server-only snapshot, filename, container and codecs cannot be supplied through JSON."
   public_tracks: "PublicReleaseSubtitleTrack retains language, label, format (codec), forced and default. Unknown language stays null and flags are provider facts; no private source identifiers or paths."
   audio_display: "Only unknown audio DISPLAY defaults to Japanisch; known audio takes precedence. Raw audio stays null and subtitle language never defaults to Japanese."

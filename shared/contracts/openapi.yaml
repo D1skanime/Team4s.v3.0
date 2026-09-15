@@ -15092,6 +15092,9 @@ components:
       required: [media_provider, media_item_id]
       properties:
         media_source_id:
+          minLength: 1
+          maxLength: 120
+          pattern: "^[^,]+$"
           type: "string"
           nullable: true
           description: "Reviewed Jellyfin MediaSource identity, distinct from media_item_id. Optional for old records; required for confirmation of a new candidate. Server revalidates on apply/relink."
@@ -15140,9 +15143,12 @@ components:
         Episode-to-episode chronological differences are advisory only and never reject a save.
       properties:
         media_source_id:
+          minLength: 1
+          maxLength: 120
+          pattern: "^[^,]+$"
           type: "string"
           nullable: true
-          description: "Reviewed Jellyfin MediaSource identity, distinct from media_item_id. Optional for old records; required for confirmation of a new candidate. Server revalidates on apply/relink. Source selection is an admin media-binding mutation, not a contributor metadata-only patch. Omission preserves the current binding."
+          description: "Reviewed Jellyfin MediaSource identity, distinct from media_item_id. Optional for old records; required for confirmation of a new candidate. Server revalidates on apply/relink. Source selection is an admin media-binding mutation, not a contributor metadata-only patch. Omission preserves the current binding. Explicit null or blank is rejected with 400."
         title:
           type: string
           maxLength: 255
