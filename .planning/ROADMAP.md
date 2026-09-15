@@ -1593,7 +1593,7 @@ ausdruecklich **kein** visuelles Redesign und kopiert keine Credits in Segmentta
 
 **Depends on:** Phase 155
 
-**Plans:** 19/19 plans complete
+**Plans:** 19/22 plans complete
 
 Plans:
 
@@ -1681,6 +1681,26 @@ Plans:
       Auftraggeber am 2026-09-15 als Blocker fuer die Live-UAT-Abnahme freigegeben). Der
       156-UAT.md-Live-UAT-Checkpoint selbst bleibt ausdruecklich separat und offen -- dieser Plan
       beansprucht ihn nicht als bestanden.
+
+**Post-hoc UAT gap-closure** (156-UAT.md, Live-UAT 2026-09-15, GAP-09)
+
+- [ ] 156-20-PLAN.md — Zentrale Rollen-/Label-Definition: `permissions.SegmentCreditRoleCodes`
+      waechst auf acht Codes (encoder/designer neu freigegeben), neue, kleinere
+      `permissions.SegmentCreditPreselectionRoleCodes` traegt weiterhin nur die alten sechs
+      Codes (echte Teilmenge, per Test bewiesen), `typesetter`-Label auf "Karaoke-Typesetting"
+      umbenannt, neue Labels "Karaoke-Encoding"/"Logo".
+- [ ] 156-21-PLAN.md — Wiring + Testkorrektur: automatische Vorauswahl liest jetzt die neue
+      Preselection-Liste (Encoder/Designer weiterhin nie vorausgewaehlt), Migration-0165-
+      Aequivalenztest zeigt auf dieselbe Liste (Migration selbst unveraendert), oeffentliche
+      Projektions- und Rollenfilter-Tests fachlich korrigiert (nicht geloescht) fuer die neue
+      "Encoder/Designer nur bei Auswahl sichtbar"-Regel, zwei stale Doku-Kommentare korrigiert.
+- [ ] 156-22-PLAN.md — Frontend: Editor-Hinweistext in `SegmentContributorsField.tsx` (Encoding/
+      Design werden nie automatisch vorausgewaehlt), `ThemeTimeline.test.tsx`-Fixture von
+      "Typesetting / Logo" auf "Karaoke-Typesetting" nachgezogen. Schliesst GAP-09 (vom
+      Auftraggeber im Chat am 2026-09-15 entschieden, ersetzt ausdruecklich die alte "Encoder
+      erscheint nie"-Regel aus GAP-01/Regressionsfall D). Der 156-UAT.md-Live-UAT-Checkpoint
+      selbst bleibt ausdruecklich separat und offen -- diese Plaene beanspruchen ihn nicht als
+      bestanden.
 
 **Plan-time read first**: `.planning/phases/156-segment-domain-konsistenz-und-oeffentliche-release-projektion/156-USER-REQUEST.md`,
 `156-CONTEXT.md`, `156-RESEARCH.md`, `156-PATTERNS.md`,
