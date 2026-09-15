@@ -1,6 +1,8 @@
 ---
 phase: quick-260915-dws
 plan: 01
+human_uat: passed
+human_uat_signed_off: 2026-09-15
 subsystem: api
 tags: [go, gin, jellyfin, nextjs, react, episode-version-editor]
 
