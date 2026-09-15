@@ -300,7 +300,8 @@ export function SegmentEditPanel({
           isSavingOverride={isSavingOverride}
         />
 
-        {/* Segment-Origin (Phase 156, P156-06/P156-18) — nur bei geteilten, zugewiesenen Segmenten */}
+        {/* Segment-Origin (Phase 156, P156-06/P156-18/GAP-08) — Select nur bei geteilten Segmenten,
+            schreibgeschuetzte Info bei Ein-Folgen-Segmenten mit gueltiger Origin */}
         {isSharedSegment && (editingSegment?.assigned_episodes?.length ?? 0) > 0 ? (
           <div className={styles.panelField}>
             <FormField label="Segment-Origin (Quelle der Credits)" htmlFor="segment-origin-select">
@@ -325,7 +326,20 @@ export function SegmentEditPanel({
           </div>
         ) : null}
 
-        {isSharedSegment && editingSegment?.origin_release_version_id != null ? (
+        {!isSharedSegment && editingSegment?.origin_release_version_id != null ? (
+          <div className={styles.panelField}>
+            <FormField label="Segment-Origin (Quelle der Credits)">
+              <p className={styles.sourceHelpText}>
+                {`Origin: Folge ${
+                  findAssignedEpisodeNumber(editingSegment, editingSegment.origin_release_version_id) ??
+                  currentEpisodeLabel
+                }`}
+              </p>
+            </FormField>
+          </div>
+        ) : null}
+
+        {editingSegment?.origin_release_version_id != null ? (
           <SegmentContributorsField
             candidates={contributorCandidates}
             isLoading={isLoadingContributors}

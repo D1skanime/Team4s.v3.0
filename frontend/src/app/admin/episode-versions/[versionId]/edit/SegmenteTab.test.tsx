@@ -34,6 +34,7 @@ import {
   assignAnimeSegment,
   unassignAnimeSegment,
   upsertAnimeSegmentEpisodeOverride,
+  setAnimeSegmentOrigin,
 } from '@/lib/api'
 import { useAuthSession } from '@/lib/useAuthSession'
 import {
@@ -82,6 +83,7 @@ const mockedUpdateAnimeSegment = vi.mocked(updateAnimeSegment)
 const mockedAssignAnimeSegment = vi.mocked(assignAnimeSegment)
 const mockedUnassignAnimeSegment = vi.mocked(unassignAnimeSegment)
 const mockedUpsertAnimeSegmentEpisodeOverride = vi.mocked(upsertAnimeSegmentEpisodeOverride)
+const mockedSetAnimeSegmentOrigin = vi.mocked(setAnimeSegmentOrigin)
 const mockedGetThemeSegmentContributorCandidates = vi.mocked(getThemeSegmentContributorCandidates)
 const mockedSetThemeSegmentContributors = vi.mocked(setThemeSegmentContributors)
 
@@ -1041,6 +1043,116 @@ describe('SegmentContributorsField (Phase 156, Plan 156-14, GAP-01)', () => {
     })
     await waitFor(() => {
       expect(screen.getByRole('switch', { name: /Karaoke Karl/i }).getAttribute('aria-checked')).toBe('false')
+    })
+  })
+})
+
+// ---------------------------------------------------------------------------
+// SegmentEditPanel Origin/Mitwirkende bei Ein-Folgen-Segmenten (Phase 156, Plan 156-19, GAP-08):
+// "Mitwirkende am Segment" muss bei JEDEM Segment mit gueltiger Origin erscheinen, unabhaengig
+// von is_shared -- vorher war die Sektion faelschlich auf geteilte Segmente beschraenkt.
+// ---------------------------------------------------------------------------
+describe('SegmentEditPanel Origin/Mitwirkende bei Ein-Folgen-Segmenten (GAP-08)', () => {
+  function mockSingleEpisodeSegmentWithOrigin(overrides: Partial<AdminThemeSegment> = {}) {
+    mockedGetAnimeSegments.mockResolvedValue({
+      data: [
+        makeSegment({
+          id: 91,
+          theme_title: 'Kara time 1',
+          start_episode: 1,
+          end_episode: 1,
+          start_time: '00:00:10',
+          end_time: '00:01:40',
+          is_shared: false,
+          origin_release_version_id: 481,
+          assigned_release_version_ids: [481],
+          assigned_episodes: [{ release_version_id: 481, episode_number: '1', has_override: false }],
+          ...overrides,
+        }),
+      ],
+    })
+  }
+
+  it('zeigt "Mitwirkende am Segment" bei einem Ein-Folgen-Segment mit gueltiger Origin und ruft die Kandidaten-API auf', async () => {
+    mockSingleEpisodeSegmentWithOrigin()
+    mockedGetThemeSegmentContributorCandidates.mockResolvedValue({ data: [], origin_release_version_id: 481 })
+
+    render(<SegmenteTab animeId={1} groupId={2} version="v1" episodeNumber={1} releaseVariantId={481} />)
+    const table = await screen.findByRole('table')
+    fireEvent.click(within(table).getByTitle('Bearbeiten'))
+
+    await screen.findByText('Segment bearbeiten')
+    await screen.findByText('Mitwirkende am Segment')
+    expect(mockedGetThemeSegmentContributorCandidates).toHaveBeenCalledWith(1, 91)
+  })
+
+  it('zeigt bei einem Ein-Folgen-Segment eine schreibgeschuetzte "Origin: Folge 1"-Info statt eines Selects', async () => {
+    mockSingleEpisodeSegmentWithOrigin()
+    mockedGetThemeSegmentContributorCandidates.mockResolvedValue({ data: [], origin_release_version_id: 481 })
+
+    render(<SegmenteTab animeId={1} groupId={2} version="v1" episodeNumber={1} releaseVariantId={481} />)
+    const table = await screen.findByRole('table')
+    fireEvent.click(within(table).getByTitle('Bearbeiten'))
+
+    await screen.findByText('Segment bearbeiten')
+    expect(await screen.findByText('Origin: Folge 1')).toBeTruthy()
+    expect(screen.queryByRole('combobox', { name: /Segment-Origin/i })).toBeNull()
+  })
+
+  it('zeigt weder Mitwirkende noch Origin-Info bei einem Segment ganz ohne Zuweisung/Origin', async () => {
+    mockSingleEpisodeSegmentWithOrigin({
+      origin_release_version_id: null,
+      assigned_episodes: [],
+    })
+
+    render(<SegmenteTab animeId={1} groupId={2} version="v1" episodeNumber={1} releaseVariantId={481} />)
+    const table = await screen.findByRole('table')
+    fireEvent.click(within(table).getByTitle('Bearbeiten'))
+
+    await screen.findByText('Segment bearbeiten')
+    expect(screen.queryByText('Mitwirkende am Segment')).toBeNull()
+    expect(screen.queryByText(/^Origin: Folge/)).toBeNull()
+    expect(mockedGetThemeSegmentContributorCandidates).not.toHaveBeenCalled()
+  })
+
+  it('behaelt fuer geteilte Segmente das editierbare Origin-Select UND "Mitwirkende am Segment" unveraendert bei', async () => {
+    mockedGetAnimeSegments.mockResolvedValue({
+      data: [
+        makeSegment({
+          id: 92,
+          theme_title: 'Karaoke OP geteilt',
+          start_episode: 1,
+          end_episode: 12,
+          start_time: '00:00:10',
+          end_time: '00:01:40',
+          is_shared: true,
+          origin_release_version_id: 481,
+          assigned_release_version_ids: [481, 482],
+          assigned_episodes: [
+            { release_version_id: 481, episode_number: '1', has_override: false },
+            { release_version_id: 482, episode_number: '2', has_override: false },
+          ],
+        }),
+      ],
+    })
+    mockedGetThemeSegmentContributorCandidates.mockResolvedValue({ data: [], origin_release_version_id: 481 })
+    mockedSetAnimeSegmentOrigin.mockResolvedValue({
+      data: makeSegment({ id: 92, is_shared: true, origin_release_version_id: 482 }),
+    })
+
+    render(<SegmenteTab animeId={1} groupId={2} version="v1" episodeNumber={1} releaseVariantId={481} />)
+    const table = await screen.findByRole('table')
+    fireEvent.click(within(table).getByTitle('Bearbeiten'))
+
+    await screen.findByText('Segment bearbeiten')
+    await screen.findByText('Mitwirkende am Segment')
+    const select = screen.getByRole('combobox', { name: /Segment-Origin/i })
+    expect(within(select).getAllByRole('option')).toHaveLength(2)
+
+    fireEvent.change(select, { target: { value: '482' } })
+
+    await waitFor(() => {
+      expect(mockedSetAnimeSegmentOrigin).toHaveBeenCalledWith(1, 92, 482)
     })
   })
 })
