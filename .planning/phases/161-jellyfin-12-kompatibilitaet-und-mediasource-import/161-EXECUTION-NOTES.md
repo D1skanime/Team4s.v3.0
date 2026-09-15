@@ -47,3 +47,7 @@ Application implementation remains sequential through Plans01–08. While Plan05
 ## Read-only verifier preparation and preflight
 
 Prepared scripts/check-jellyfin12.py and four local stdlib boundary tests (requests/bytes, no redirects, no secret output, evidence-only destination). First preflight: 22 GETs, all HTTP checks successful, live12.0.0 schema matches all11 inventoried paths; Buddy13 matches pages5+5+3, 11eyes27/38/11 unchanged. One diagnostic assertion failed: it assumed returned ParentId equals queried library ID. Focused follow-up proved CollectionFolder Groups and physical Folder Subgroups have different IDs but exactly the same direct child set. Removed that invalid assertion, retained complete/direct-vs-descendant set checks and recorded parent IDs; added explicit library enumeration. Original failed preflight remains evidence, not rewritten as a pass. Final full run still follows Plan08. No app source or rows changed by this preparation.
+
+## Bounded Plan07 source-consumer correction
+
+Coordinator consumer review found resolveEpisodeVersionDuration still calls getJellyfinEpisodeDurationSeconds(itemID), which passes nil stored binding. A future bound alternative B with missing duration could therefore borrow own-source A runtime. Plan07 already owns the editor helper and shared source wiring; its Task2 now explicitly covers this consumer and a bound-B/own-A regression in existing admin_content_test.go. This is D-07 source coherence, not a new feature; no read-side persistence or unrelated editor redesign.
