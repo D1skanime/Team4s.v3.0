@@ -88,6 +88,14 @@ export default function ScreenshotGallery({ releaseId }: ScreenshotGalleryProps)
     }
   }, [cursor, hasMore, loading, fetchImages])
 
+  const navigatePrevious = useCallback(() => {
+    setActiveIndex((prev) => (prev > 0 ? prev - 1 : prev))
+  }, [])
+
+  const navigateNext = useCallback(() => {
+    setActiveIndex((prev) => (prev < images.length - 1 ? prev + 1 : prev))
+  }, [images.length])
+
   // Keyboard navigation for lightbox
   useEffect(() => {
     if (!lightboxOpen) return
@@ -118,7 +126,7 @@ export default function ScreenshotGallery({ releaseId }: ScreenshotGalleryProps)
 
     window.addEventListener('keydown', handleKeyDown)
     return () => window.removeEventListener('keydown', handleKeyDown)
-  }, [lightboxOpen, activeIndex, images.length])
+  }, [lightboxOpen, activeIndex, images.length, navigatePrevious, navigateNext])
 
   const openLightbox = (index: number) => {
     setActiveIndex(index)
@@ -127,14 +135,6 @@ export default function ScreenshotGallery({ releaseId }: ScreenshotGalleryProps)
 
   const closeLightbox = () => {
     setLightboxOpen(false)
-  }
-
-  const navigatePrevious = () => {
-    setActiveIndex((prev) => (prev > 0 ? prev - 1 : prev))
-  }
-
-  const navigateNext = () => {
-    setActiveIndex((prev) => (prev < images.length - 1 ? prev + 1 : prev))
   }
 
   const handleRetry = () => {
