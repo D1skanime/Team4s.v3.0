@@ -73,7 +73,7 @@ export function ReleaseVersionMediaSection({
 }: ReleaseVersionMediaSectionProps) {
   const internalMedia = useReleaseVersionMedia(versionId)
   const media = mediaState ?? internalMedia
-  const persistedItems = Array.isArray(media.items) ? media.items : []
+  const persistedItems = useMemo(() => (Array.isArray(media.items) ? media.items : []), [media.items])
 
   const [uploadCategory, setUploadCategory] = useState<ReleaseVersionMediaCategory>('screenshot')
   const [isUploadOpen, setIsUploadOpen] = useState(false)

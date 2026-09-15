@@ -147,7 +147,7 @@ export function RoleCapabilityDetail({
         ),
       }
     })
-  }, [configurableActions, isEditable, onRequestChange])
+  }, [configurableActions, isEditable, onRequestChange, isReservedBaseline, role])
 
   return (
     <div>
