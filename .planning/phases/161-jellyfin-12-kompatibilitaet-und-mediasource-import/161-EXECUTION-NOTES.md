@@ -30,7 +30,7 @@ Unknown audio language displays Japanisch only in the existing UI field. Known a
 
 ## Progress
 
-Plans01–05 are complete; Plan06 is active, owned by jellyfin161_execute04. Root owns bookkeeping and Plan09 preparation. Finish06 before07, then08, integrated09 gates and independent verification. No push or Human-UAT sign-off. Current verified summaries are authoritative; STATE/ROADMAP track5/9.
+Plans01–06 are complete; Plan07 is active, owned by jellyfin161_execute07. Root owns bookkeeping and Plan09 preparation. Finish07, then08, integrated09 gates and independent verification. No push or Human-UAT sign-off. Current verified summaries are authoritative; STATE/ROADMAP track6/9.
 ## Plan 02 verification completed
 
 Implementation a72737f4; coordinator repeated expanded source/JSON tests with dedicated DB DSN: 174 pass, zero fail/skip. Summary and machine-readable plan02-checks.json record exact limits. The earlier runtime-restart inference is corrected below.
@@ -54,3 +54,7 @@ Coordinator consumer review found resolveEpisodeVersionDuration still calls getJ
 ## Plan06 fixture boundary
 
 If an old integration fixture lacks stream_sources.metadata, extend that guarded fixture to the actual existing schema. Do not introduce to_jsonb(row) schema-compatibility reads solely to keep incomplete test schemas working. A bounded editor source lookup is permitted and must report its fixed query cost; reuse the existing binding reader instead of duplicating SQL.
+
+## Plan06 same-plan ownership split
+
+Root implemented Task3 frontend hook/tests and one fallback-helper line while the executor finished Task2/backend scan; ownership was explicitly transferred before edits. This did not overlap application plans06/07. Source summaries record all commits and99 frontend test passes. Intermediate broad Go result repeats exactly50 existing failures; final coherent gates still follow08.
