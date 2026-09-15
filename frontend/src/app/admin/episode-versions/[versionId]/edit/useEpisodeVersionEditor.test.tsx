@@ -204,3 +204,94 @@ describe('reviewed Jellyfin file selection', () => {
     expect(result.current.isScanning).toBe(false)
   })
 })
+
+describe('authoritative save response reconciliation', () => {
+  it.each([false, true])('keeps B technical values on the next save (metadataOnly=%s)', async (metadataOnly) => {
+    const initial = response()
+    mocks.context.mockResolvedValue({ data: { ...initial.data, version: {
+      ...initial.data.version, duration_seconds: 10, video_quality: '720p',
+    } } })
+    const saved = { ...initial.data.version, media_item_id: 'item-b', media_source_id: 'source-b',
+      stream_url: '/canonical/video-b', duration_seconds: 20, video_quality: '2160p', fansub_groups: [] }
+    mocks.update.mockResolvedValue({ data: saved })
+    const { result } = renderHook(useEpisodeVersionEditor)
+    await waitFor(() => expect(result.current.isLoading).toBe(false))
+    act(() => result.current.applyFile(mediaFile()))
+    await act(() => result.current.handleSave(event))
+    expect(result.current.contextData?.version.duration_seconds).toBe(20)
+    expect(result.current.formState).toMatchObject({
+      durationSeconds: '0:20', videoQuality: '2160p', streamURL: '/canonical/video-b',
+    })
+    expect(result.current.hasUnsavedChanges).toBe(false)
+    act(() => result.current.setFormState(form => ({ ...form, title: 'Nur der Titel' })))
+    await act(() => result.current.handleSave(event, metadataOnly))
+    expect(mocks.update.mock.calls[1][1]).toMatchObject({
+      title: 'Nur der Titel', duration_seconds: 20, video_quality: '2160p',
+    })
+    for (const field of ['media_provider', 'media_item_id', 'media_source_id', 'stream_url']) {
+      expect(mocks.update.mock.calls[1][1]).not.toHaveProperty(field)
+    }
+  })
+
+  it('preserves edits made during a save while reconciling untouched fields and saved groups', async () => {
+    let resolveSave!: (value: unknown) => void
+    mocks.update.mockImplementationOnce(() => new Promise(resolve => { resolveSave = resolve }))
+    const { result } = renderHook(useEpisodeVersionEditor)
+    await waitFor(() => expect(result.current.isLoading).toBe(false))
+    act(() => result.current.applyFile(mediaFile()))
+    let pending!: Promise<void>
+    act(() => { pending = result.current.handleSave(event) })
+    act(() => result.current.setFormState(form => ({ ...form, title: 'Späterer Titel', durationSeconds: '0:23' })))
+    await act(async () => {
+      resolveSave({ data: { ...response().data.version, media_item_id: 'item-b', media_source_id: 'source-b',
+        stream_url: '/canonical/video-b', duration_seconds: 20, video_quality: '2160p',
+        fansub_groups: [{ id: 7, slug: 'saved-group', name: 'Gespeicherte Gruppe' }] } })
+      await pending
+    })
+    expect(result.current.formState).toMatchObject({
+      title: 'Späterer Titel', durationSeconds: '0:23', videoQuality: '2160p', streamURL: '/canonical/video-b',
+    })
+    expect(result.current.selectedGroups.map(group => group.id)).toEqual([7])
+    expect(result.current.contextData?.selected_groups.map(group => group.id)).toEqual([7])
+    expect(result.current.hasUnsavedChanges).toBe(true)
+  })
+
+  it('keeps a newer file draft even when its values equal the submitted file values', async () => {
+    const initial = response()
+    mocks.context.mockResolvedValue({ data: { ...initial.data, version: { ...initial.data.version, duration_seconds: 10 } } })
+    let resolveSave!: (value: unknown) => void
+    mocks.update.mockImplementationOnce(() => new Promise(resolve => { resolveSave = resolve }))
+    const { result } = renderHook(useEpisodeVersionEditor)
+    await waitFor(() => expect(result.current.isLoading).toBe(false))
+    act(() => result.current.applyFile(mediaFile()))
+    let pending!: Promise<void>
+    act(() => { pending = result.current.handleSave(event) })
+    act(() => result.current.applyFile(mediaFile('item-c', 'source-c')))
+    await act(async () => {
+      resolveSave({ data: { ...initial.data.version, media_item_id: 'item-b', media_source_id: 'source-b',
+        stream_url: '/canonical/video-b', duration_seconds: 20, video_quality: '2160p' } })
+      await pending
+    })
+    expect(result.current.formState).toMatchObject({
+      mediaItemID: 'item-c', streamURL: '/fixture/video-b', videoQuality: '1080p', durationSeconds: '0:10',
+    })
+    expect(result.current.selectedFile?.media_source_id).toBe('source-c')
+    expect(result.current.contextData?.version.duration_seconds).toBe(20)
+    expect(result.current.hasUnsavedChanges).toBe(true)
+  })
+
+  it('keeps unsaved binding and group drafts across a metadata-only response', async () => {
+    const { result } = renderHook(useEpisodeVersionEditor)
+    await waitFor(() => expect(result.current.isLoading).toBe(false))
+    act(() => result.current.applyFile(mediaFile()))
+    act(() => result.current.addGroup({ id: 8, slug: 'draft', name: 'Entwurf' } as Parameters<typeof result.current.addGroup>[0]))
+    mocks.update.mockResolvedValue({ data: { ...response().data.version, duration_seconds: 20,
+      video_quality: '720p', fansub_groups: [] } })
+    await act(() => result.current.handleSave(event, true))
+    expect(result.current.formState).toMatchObject({ mediaItemID: 'item-b', videoQuality: '1080p', streamURL: '/fixture/video-b' })
+    expect(result.current.selectedGroups.map(group => group.id)).toEqual([8])
+    expect(result.current.contextData?.selected_groups).toEqual([])
+    expect(result.current.selectedFile?.media_source_id).toBe('source-b')
+    expect(result.current.hasUnsavedChanges).toBe(true)
+  })
+})
