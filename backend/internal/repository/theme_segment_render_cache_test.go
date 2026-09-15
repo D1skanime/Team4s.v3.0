@@ -61,16 +61,30 @@ func TestThemeSegmentRenderSourceResolvesStoredPlaybackSource(t *testing.T) {
 
 	required := []string{
 		"JOIN theme_segment_playback_sources tps ON tps.theme_segment_id = ts.id",
-		"LEFT JOIN release_variants rv ON rv.id = tps.release_variant_id",
-		"LEFT JOIN release_versions rev ON rev.id = rv.release_version_id",
-		"LEFT JOIN release_streams rs ON rs.variant_id = rv.id",
-		"LEFT JOIN stream_sources ss ON ss.id = rs.stream_source_id",
+		"LEFT JOIN release_versions rev ON rev.id = tps.release_version_id",
+		"LEFT JOIN LATERAL (",
+		"selectedReleaseVariantSourceSQL, \"$1\", \"tps.release_version_id\"",
+		"\"$2\", \"COALESCE(tps.release_variant_id,0)\"",
+		"selected ON tps.source_kind='episode_version'",
 		"LEFT JOIN media_assets ma ON ma.id = tps.media_asset_id",
-		"CASE WHEN ss.provider_type = 'jellyfin' THEN 0 ELSE 1 END",
+		"WHERE ts.id = $1",
+		"AND tps.release_version_id = $2",
 	}
 	for _, pattern := range required {
 		if !strings.Contains(src, pattern) {
 			t.Fatalf("render source resolver missing %q", pattern)
+		}
+	}
+	query := strings.Join(strings.Fields(selectedReleaseVariantSourceSQL), " ")
+	for _, pattern := range []string{
+		"FROM release_variants rv",
+		"FROM release_streams rs JOIN stream_sources ss ON ss.id=rs.stream_source_id",
+		"WHERE rs.variant_id=rv.id",
+		"WHERE rv.release_version_id=$1 AND ($2::bigint=0 OR rv.id=$2)",
+		"CASE WHEN ss.provider_type='jellyfin' THEN 0 ELSE 1 END, rs.id LIMIT 1",
+	} {
+		if !strings.Contains(query, pattern) {
+			t.Fatalf("shared render source selector missing %q", pattern)
 		}
 	}
 }

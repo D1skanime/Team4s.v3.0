@@ -69,28 +69,33 @@ func TestLoadThemeSegmentPlaybackSnapshotTx_NoNullDurationHardcode(t *testing.T)
 	}
 }
 
-// TestLoadThemeSegmentPlaybackSnapshotTx_ContainsReleaseVariantJoins verifies that
-// the playback resolution joins release_variants, release_streams, and stream_sources.
-//
-// Phase 117 Plan 117-03 (Nyquist-Fix W-mod) moved the actual release_variants/
-// release_streams/stream_sources JOIN out of admin_content_anime_themes.go into the
-// new, focused theme_segment_playback_resolution.go (resolveThemeSegmentReleaseVariantTx)
-// to keep admin_content_anime_themes.go from growing further past the CLAUDE.md
-// 450-line guideline. This test now reads BOTH files so it stays a correct proof of
-// "the resolution logic still joins these tables somewhere in the repository package",
-// independent of which specific file currently owns the query.
+// TestLoadThemeSegmentPlaybackSnapshotTx_ContainsReleaseVariantJoins follows the
+// playback snapshot through the shared owned variant/source selector.
 func TestLoadThemeSegmentPlaybackSnapshotTx_ContainsReleaseVariantJoins(t *testing.T) {
-	content := readSegmentSourceFile(t, "admin_content_anime_themes.go") + "\n" + readSegmentSourceFile(t, "theme_segment_playback_resolution.go")
-
+	snapshot := readSegmentSourceFile(t, "admin_content_anime_themes.go")
+	if !strings.Contains(snapshot, "resolveThemeSegmentReleaseVariantTx(ctx, tx, segmentID, releaseVersionID)") {
+		t.Fatal("playback snapshot must resolve its requested release version")
+	}
+	resolver := readSegmentSourceFile(t, "theme_segment_playback_resolution.go")
+	if !strings.Contains(resolver, "selectReleaseVariantSource(ctx, tx, releaseVersionID, 0)") {
+		t.Fatal("playback resolution must use the shared default variant/source selector")
+	}
+	selector := readSegmentSourceFile(t, "release_variant_source_repository.go")
+	if !strings.Contains(selector, "db.QueryRow(ctx, selectedReleaseVariantSourceSQL, versionID, variantID)") {
+		t.Fatal("shared selector must execute its owned variant/source query")
+	}
+	query := strings.Join(strings.Fields(selectedReleaseVariantSourceSQL), " ")
 	requiredPatterns := []string{
-		"release_variants",
-		"release_streams",
-		"stream_sources",
-		"duration_seconds",
+		"FROM release_variants rv",
+		"FROM release_streams rs JOIN stream_sources ss ON ss.id=rs.stream_source_id",
+		"WHERE rs.variant_id=rv.id",
+		"WHERE rv.release_version_id=$1 AND ($2::bigint=0 OR rv.id=$2)",
+		"rv.duration_seconds",
+		"ORDER BY rv.id LIMIT 1",
 	}
 	for _, pattern := range requiredPatterns {
-		if !strings.Contains(content, pattern) {
-			t.Errorf("theme segment playback resolution: missing pattern %q across admin_content_anime_themes.go + theme_segment_playback_resolution.go", pattern)
+		if !strings.Contains(query, pattern) {
+			t.Errorf("shared playback source query missing %q", pattern)
 		}
 	}
 }

@@ -43,7 +43,9 @@ func TestGetAnimeSegmentByID_HydratesPlaybackForRequestedReleaseVersion(t *testi
 		themeID         = int64(1)
 	)
 
-	_, err := pool.Exec(ctx, `INSERT INTO anime (id) VALUES ($1)`, animeID)
+	_, err := pool.Exec(ctx, `ALTER TABLE stream_sources ADD COLUMN metadata JSONB NOT NULL DEFAULT '{}'`)
+	require.NoError(t, err)
+	_, err = pool.Exec(ctx, `INSERT INTO anime (id) VALUES ($1)`, animeID)
 	require.NoError(t, err)
 	_, err = pool.Exec(ctx, `
 		INSERT INTO episodes (id, anime_id, sort_index, episode_number) VALUES ($1, $3, 1, '1'), ($2, $3, 2, '2')

@@ -137,13 +137,26 @@ func TestReleaseRuntimeAuthorityUsesReleaseNativeTables(t *testing.T) {
 	requiredRepo := []string{
 		"func (r *episodeversionrepository) getreleasestreamsource(",
 		"from release_versions rev",
-		"join release_variants rv on rv.release_version_id = rev.id",
-		"join release_streams rs on rs.variant_id = rv.id",
-		"join stream_sources ss on ss.id = rs.stream_source_id",
+		"join fansub_releases fr on fr.id=rev.release_id",
+		"join episodes e on e.id=fr.episode_id",
+		"join lateral (`+selectedreleasevariantsourcesql+`) selected on true",
+		"where rev.id=$1 and selected.provider_type is not null",
 	}
 	for _, fragment := range requiredRepo {
 		if !strings.Contains(repositoryNormalized, fragment) {
 			t.Fatalf("expected release repository compatibility path to contain %q", fragment)
+		}
+	}
+
+	sharedSourceQuery := strings.ToLower(strings.Join(strings.Fields(selectedReleaseVariantSourceSQL), " "))
+	for _, fragment := range []string{
+		"from release_variants rv",
+		"from release_streams rs join stream_sources ss on ss.id=rs.stream_source_id",
+		"where rs.variant_id=rv.id",
+		"where rv.release_version_id=$1 and ($2::bigint=0 or rv.id=$2)",
+	} {
+		if !strings.Contains(sharedSourceQuery, fragment) {
+			t.Fatalf("expected shared release source selector to preserve canonical ownership %q", fragment)
 		}
 	}
 

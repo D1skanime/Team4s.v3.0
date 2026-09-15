@@ -29,6 +29,7 @@ func newSegmentSlotFixture(t *testing.T) segmentSlotFixture {
 	seedAutoAssignFansubGroup(t, pool, ctx, 1)
 	seedAutoAssignFansubGroup(t, pool, ctx, 2)
 	_, err := pool.Exec(ctx, `
+        ALTER TABLE stream_sources ADD COLUMN metadata JSONB NOT NULL DEFAULT '{}';
         INSERT INTO theme_types(id,name) VALUES (2,'ED Kara'),(3,'Opening 2'),(4,'Insert');
         INSERT INTO themes(id,anime_id,theme_type_id) VALUES(2,1,2),(3,1,3),(4,1,4);
     `)
