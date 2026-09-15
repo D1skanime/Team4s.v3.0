@@ -9,6 +9,7 @@ import (
 	"strconv"
 	"strings"
 
+	"team4s.v3/backend/internal/jellyfin"
 	"team4s.v3/backend/internal/models"
 
 	"github.com/jackc/pgx/v5"
@@ -303,6 +304,13 @@ func scanReleaseVariantAsEpisodeVersion(scanner rowScanner, includeFansubs bool)
 
 	if err := scanner.Scan(dest...); err != nil {
 		return nil, 0, fmt.Errorf("scan release variant row: %w", err)
+	}
+	if strings.EqualFold(strings.TrimSpace(item.MediaProvider), "jellyfin") && item.StreamURL != nil {
+		sanitized, err := jellyfin.SanitizeURL(*item.StreamURL)
+		item.StreamURL = nil
+		if err == nil {
+			item.StreamURL = &sanitized
+		}
 	}
 	if includeFansubs && len(fansubGroupsJSON) > 0 {
 		if err := json.Unmarshal(fansubGroupsJSON, &item.FansubGroups); err != nil {

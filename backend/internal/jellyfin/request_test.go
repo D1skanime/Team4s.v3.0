@@ -306,3 +306,34 @@ func TestIsConfiguredOriginUsesSharedEffectivePortPolicy(t *testing.T) {
 		}
 	}
 }
+
+func TestSanitizeURLStoredProjection(t *testing.T) {
+	for _, credential := range []string{"api_key", "ApiKey", "X-Emby-Token", "X-MediaBrowser-Token", "access_token", "api%5fkey"} {
+		t.Run(credential, func(t *testing.T) {
+			raw := "https://media.fixture/base/Videos/item/stream?" + credential + "=" + testKey + "&MediaSourceId=B&static=true&custom=one&custom=two#" + testKey
+			got, err := SanitizeURL(raw)
+			if err != nil {
+				t.Fatal(err)
+			}
+			if strings.Contains(got, testKey) {
+				t.Fatal("credential retained")
+			}
+			parsed, err := url.Parse(got)
+			if err != nil {
+				t.Fatal(err)
+			}
+			if parsed.Path != "/base/Videos/item/stream" || parsed.Query().Get("MediaSourceId") != "B" || parsed.Query().Get("static") != "true" || len(parsed.Query()["custom"]) != 2 {
+				t.Fatal("non-credential URL fields changed")
+			}
+			if !strings.Contains(raw, testKey) {
+				t.Fatal("caller input mutated")
+			}
+		})
+	}
+	for _, raw := range []string{"://" + testKey, "https://media.fixture/stream?api_key=" + testKey + "&bad=%ZZ", "https://media.fixture/stream?api_key=" + testKey + ";static=true", "https://user:" + testKey + "@media.fixture/stream", "/stream?api_key=" + testKey} {
+		got, err := SanitizeURL(raw)
+		if err == nil || got != "" || strings.Contains(err.Error(), testKey) {
+			t.Fatal("malformed URL did not fail closed safely")
+		}
+	}
+}

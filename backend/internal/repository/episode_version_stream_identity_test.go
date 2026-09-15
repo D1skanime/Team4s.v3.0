@@ -2,8 +2,8 @@ package repository_test
 
 import (
 	"context"
- "encoding/json"
- "strings"
+	"encoding/json"
+	"strings"
 	"testing"
 
 	"github.com/stretchr/testify/require"
@@ -78,34 +78,83 @@ func TestReleaseStreamIdentitySnapshotSingleRead(t *testing.T) {
 }
 
 func TestEpisodeVersionStreamURLProjectionSanitizesWithoutWriting(t *testing.T) {
- cases:=[]struct{name,provider,raw,want string; absent bool}{
-  {"jellyfin","jellyfin","https://media.fixture/stream?api_key=dummy-private-key&MediaSourceId=B&static=true#dummy-private-key","https://media.fixture/stream?MediaSourceId=B&static=true",false},
-  {"mixed provider spelling"," JeLlYfIn ","https://media.fixture/stream?ApiKey=dummy-private-key&X-Emby-Token=dummy-private-key&keep=yes","https://media.fixture/stream?keep=yes",false},
-  {"malformed","jellyfin","://dummy-private-key","",true},
-  {"malformed query","jellyfin","https://media.fixture/stream?api_key=dummy-private-key&bad=%ZZ","",true},
-  {"emby unchanged","emby","https://media.fixture/stream?api_key=dummy-private-key","https://media.fixture/stream?api_key=dummy-private-key",false},
-  {"fanart unchanged","fanart","https://media.fixture/stream?api_key=dummy-private-key","https://media.fixture/stream?api_key=dummy-private-key",false},
-  {"external unchanged","external","https://media.fixture/stream?api_key=dummy-private-key","https://media.fixture/stream?api_key=dummy-private-key",false},
- }
- for _,tc:=range cases {t.Run(tc.name,func(t *testing.T){
-  pool,tr:=openEpisodeVersionPublicFixture(t);ctx:=context.Background()
-  _,err:=pool.Exec(ctx,"UPDATE stream_sources SET provider_type=$1,url=$2 WHERE id=2",tc.provider,tc.raw);require.NoError(t,err)
-  _,err=pool.Exec(ctx,"DELETE FROM release_streams WHERE id=3");require.NoError(t,err)
-  repo:=repository.NewEpisodeVersionRepository(pool)
-  tr.reset()
-  item,err:=repo.GetByID(ctx,100);require.NoError(t,err)
-  if tc.absent {require.Nil(t,item.StreamURL)} else {require.NotNil(t,item.StreamURL);require.Equal(t,tc.want,*item.StreamURL)}
-  editor:=models.EpisodeVersionEditorContext{Version:*item}
-  for _,response:=range []any{item,editor} {
-   raw,err:=json.Marshal(response);require.NoError(t,err)
-   if strings.EqualFold(strings.TrimSpace(tc.provider),"jellyfin") {require.NotContains(t,string(raw),"dummy-private-key")}
-  }
-  grouped,err:=repo.ListGroupedByAnimeID(ctx,1,true,true);require.NoError(t,err)
-  body,err:=json.Marshal(grouped);require.NoError(t,err)
-  if strings.EqualFold(strings.TrimSpace(tc.provider),"jellyfin") {require.NotContains(t,string(body),"dummy-private-key")}
-  for _,q:=range tr.queries {require.NotContains(t,strings.ToUpper(q.SQL),"UPDATE STREAM_SOURCES")}
-  var stored string
-  require.NoError(t,pool.QueryRow(ctx,"SELECT url FROM stream_sources WHERE id=2").Scan(&stored))
-  require.Equal(t,tc.raw,stored,"output projection must not rewrite stored source")
- })}
+	cases := []struct {
+		name, provider, raw, want string
+		absent                    bool
+	}{
+		{"jellyfin", "jellyfin", "https://media.fixture/stream?api_key=dummy-private-key&MediaSourceId=B&static=true#dummy-private-key", "https://media.fixture/stream?MediaSourceId=B&static=true", false},
+		{"mixed provider spelling", " JeLlYfIn ", "https://media.fixture/stream?ApiKey=dummy-private-key&X-Emby-Token=dummy-private-key&keep=yes", "https://media.fixture/stream?keep=yes", false},
+		{"malformed", "jellyfin", "://dummy-private-key", "", true},
+		{"malformed query", "jellyfin", "https://media.fixture/stream?api_key=dummy-private-key&bad=%ZZ", "", true},
+		{"emby unchanged", "emby", "https://media.fixture/stream?api_key=dummy-private-key", "https://media.fixture/stream?api_key=dummy-private-key", false},
+		{"fanart unchanged", "fanart", "https://media.fixture/stream?api_key=dummy-private-key", "https://media.fixture/stream?api_key=dummy-private-key", false},
+		{"external unchanged", "external", "https://media.fixture/stream?api_key=dummy-private-key", "https://media.fixture/stream?api_key=dummy-private-key", false},
+	}
+	for _, tc := range cases {
+		t.Run(tc.name, func(t *testing.T) {
+			pool, tr := openEpisodeVersionPublicFixture(t)
+			ctx := context.Background()
+			_, err := pool.Exec(ctx, "UPDATE stream_sources SET provider_type=$1,url=$2 WHERE id=2", tc.provider, tc.raw)
+			require.NoError(t, err)
+			_, err = pool.Exec(ctx, "DELETE FROM release_streams WHERE id=3")
+			require.NoError(t, err)
+			repo := repository.NewEpisodeVersionRepository(pool)
+			tr.reset()
+			item, err := repo.GetByID(ctx, 100)
+			require.NoError(t, err)
+			if tc.absent {
+				require.Nil(t, item.StreamURL)
+			} else {
+				require.NotNil(t, item.StreamURL)
+				require.Equal(t, tc.want, *item.StreamURL)
+			}
+			editor := models.EpisodeVersionEditorContext{Version: *item}
+			for _, response := range []any{item, editor} {
+				raw, err := json.Marshal(response)
+				require.NoError(t, err)
+				if strings.EqualFold(strings.TrimSpace(tc.provider), "jellyfin") {
+					require.NotContains(t, string(raw), "dummy-private-key")
+				}
+			}
+			grouped, err := repo.ListGroupedByAnimeID(ctx, 1, true, true)
+			require.NoError(t, err)
+			body, err := json.Marshal(grouped)
+			require.NoError(t, err)
+			if strings.EqualFold(strings.TrimSpace(tc.provider), "jellyfin") {
+				require.NotContains(t, string(body), "dummy-private-key")
+			}
+			for _, q := range tr.queries {
+				require.NotContains(t, strings.ToUpper(q.SQL), "UPDATE STREAM_SOURCES")
+			}
+			var stored string
+			require.NoError(t, pool.QueryRow(ctx, "SELECT url FROM stream_sources WHERE id=2").Scan(&stored))
+			require.Equal(t, tc.raw, stored, "output projection must not rewrite stored source")
+		})
+	}
+}
+
+func TestEpisodeVersionStreamURLProjectionCreateAndUpdateResponses(t *testing.T) {
+	pool := versionSourceFixture(t)
+	ctx := context.Background()
+	repo := repository.NewEpisodeVersionRepository(pool)
+	raw := "https://media.fixture/Videos/created/stream?api_key=dummy-create-key&MediaSourceId=created-B&static=true"
+	binding := versionSourceSnapshot("created-B", "/anime/created.mkv", true)
+	created, err := repo.Create(ctx, models.EpisodeVersionCreateInput{AnimeID: 1, EpisodeNumber: 2, MediaProvider: "jellyfin", MediaItemID: "created", StreamURL: &raw, JellyfinSource: binding})
+	require.NoError(t, err)
+	for _, item := range []*models.EpisodeVersion{created} {
+		encoded, err := json.Marshal(item)
+		require.NoError(t, err)
+		require.NotContains(t, string(encoded), "dummy-create-key")
+		require.NotNil(t, item.StreamURL)
+		require.Contains(t, *item.StreamURL, "MediaSourceId=created-B")
+	}
+	title := "Updated title"
+	updated, err := repo.Update(ctx, created.VariantID, models.EpisodeVersionPatchInput{Title: models.OptionalString{Set: true, Value: &title}})
+	require.NoError(t, err)
+	encoded, err := json.Marshal(updated)
+	require.NoError(t, err)
+	require.NotContains(t, string(encoded), "dummy-create-key")
+	var stored string
+	require.NoError(t, pool.QueryRow(ctx, "SELECT url FROM stream_sources WHERE provider_type='jellyfin' AND external_id='created'").Scan(&stored))
+	require.Equal(t, raw, stored, "create/update response projection does not migrate the persisted URL")
 }

@@ -406,7 +406,7 @@ types:
     subtitle_type: SubtitleType | null
     release_date: datetime | null
     crc32: string | null
-    stream_url: string | null
+    stream_url: string | null # Jellyfin projection strips query credentials/fragments; malformed URLs omitted; storage and other providers unchanged.
     created_at: datetime
     updated_at: datetime
   EpisodeVersionEditorContext:

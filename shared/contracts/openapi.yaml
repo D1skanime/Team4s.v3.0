@@ -14948,6 +14948,7 @@ components:
         stream_url:
           type: string
           nullable: true
+          description: Jellyfin URLs omit query credentials and fragments in all release/editor projections; malformed Jellyfin URLs are omitted. Stored URLs and other providers are unchanged.
         created_at:
           type: string
           format: date-time

@@ -38,6 +38,21 @@ func BuildURL(baseURL, apiPath string, query url.Values) (*url.URL, error) {
 	return base, nil
 }
 
+// SanitizeURL projects a stored Jellyfin URL without query credentials or
+// fragments. It never mutates storage and returns no input text in errors.
+// Malformed queries fail closed rather than silently losing selected parameters.
+func SanitizeURL(raw string) (string, error) {
+	target, err := parseHTTPURL(raw)
+	if err != nil {
+		return "", err
+	}
+	if _, err := url.ParseQuery(target.RawQuery); err != nil {
+		return "", errors.New("invalid jellyfin url query")
+	}
+	stripURLCredentials(target)
+	return target.String(), nil
+}
+
 // IsConfiguredOrigin reports whether a target can use the configured Jellyfin credentials.
 // Mixed-provider callers use this same boundary for stored fallback URLs.
 func IsConfiguredOrigin(targetURL, baseURL string) bool {
