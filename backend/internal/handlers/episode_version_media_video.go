@@ -1,4 +1,4 @@
-﻿package handlers
+package handlers
 
 import (
 	"io"
@@ -25,7 +25,7 @@ func (h *FansubHandler) MediaVideo(c *gin.Context) {
 		return
 	}
 
-	req, err := http.NewRequestWithContext(c.Request.Context(), http.MethodGet, targetURL, nil)
+	req, err := h.newProviderRequest(c.Request.Context(), provider, targetURL)
 	if err != nil {
 		log.Printf("media video: create outbound request failed: %v", err)
 		c.JSON(http.StatusInternalServerError, gin.H{"error": gin.H{"message": "interner serverfehler"}})
@@ -35,7 +35,7 @@ func (h *FansubHandler) MediaVideo(c *gin.Context) {
 	copyProxyHeaders(c.Request.Header, req.Header)
 	req.Header.Set("Accept", "video/*")
 
-	resp, err := h.httpClient.Do(req)
+	resp, err := h.doProviderRequest(provider, req)
 	if err != nil {
 		log.Printf("media video: upstream request failed: %v", err)
 		c.JSON(http.StatusBadGateway, gin.H{"error": gin.H{"message": "video nicht erreichbar"}})

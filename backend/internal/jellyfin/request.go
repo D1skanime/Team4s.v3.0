@@ -38,6 +38,14 @@ func BuildURL(baseURL, apiPath string, query url.Values) (*url.URL, error) {
 	return base, nil
 }
 
+// IsConfiguredOrigin reports whether a target can use the configured Jellyfin credentials.
+// Mixed-provider callers use this same boundary for stored fallback URLs.
+func IsConfiguredOrigin(targetURL, baseURL string) bool {
+	base, baseErr := parseHTTPURL(baseURL)
+	target, targetErr := parseHTTPURL(targetURL)
+	return baseErr == nil && targetErr == nil && sameOrigin(base, target)
+}
+
 // NewRequest authenticates only URLs at the configured scheme, host and effective port.
 // A foreign stored fallback URL must use its existing uncredentialed request path.
 func NewRequest(ctx context.Context, method, targetURL, baseURL, apiKey string) (*http.Request, error) {

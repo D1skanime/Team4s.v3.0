@@ -287,3 +287,22 @@ func TestRequestSanitizesBodyErrors(t *testing.T) {
 		t.Fatal("unsafe close error")
 	}
 }
+
+func TestIsConfiguredOriginUsesSharedEffectivePortPolicy(t *testing.T) {
+	for _, tt := range []struct {
+		target string
+		want   bool
+	}{
+		{"https://JELLYFIN.test:443/prefix/stream", true},
+		{"https://jellyfin.test/elsewhere", true},
+		{"http://jellyfin.test:443/stream", false},
+		{"https://jellyfin.test:444/stream", false},
+		{"https://foreign.test/stream", false},
+		{"https://user:pass@jellyfin.test/stream", false},
+		{"/relative", false},
+	} {
+		if got := IsConfiguredOrigin(tt.target, "https://jellyfin.test/prefix"); got != tt.want {
+			t.Errorf("origin %s: got %t", tt.target, got)
+		}
+	}
+}

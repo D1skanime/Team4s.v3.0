@@ -1,4 +1,4 @@
-﻿package handlers
+package handlers
 
 import (
 	"io"
@@ -53,7 +53,7 @@ func (h *FansubHandler) MediaImage(c *gin.Context) {
 		return
 	}
 
-	req, err := http.NewRequestWithContext(c.Request.Context(), http.MethodGet, targetURL, nil)
+	req, err := h.newProviderRequest(c.Request.Context(), provider, targetURL)
 	if err != nil {
 		log.Printf("media image: create outbound request failed: %v", err)
 		c.JSON(http.StatusInternalServerError, gin.H{"error": gin.H{"message": "interner serverfehler"}})
@@ -61,7 +61,7 @@ func (h *FansubHandler) MediaImage(c *gin.Context) {
 	}
 	req.Header.Set("Accept", "image/*")
 
-	resp, err := h.httpClient.Do(req)
+	resp, err := h.doProviderRequest(provider, req)
 	if err != nil {
 		log.Printf("media image: upstream request failed: %v", err)
 		c.JSON(http.StatusInternalServerError, gin.H{"error": gin.H{"message": "bild nicht erreichbar"}})

@@ -11,6 +11,7 @@ import (
 	"strings"
 	"time"
 
+	"team4s.v3/backend/internal/jellyfin"
 	"team4s.v3/backend/internal/middleware"
 	"team4s.v3/backend/internal/models"
 	"team4s.v3/backend/internal/permissions"
@@ -200,12 +201,39 @@ func (h *FansubHandler) buildProviderStreamURL(provider, itemID string, fallback
 	normalizedProvider := strings.ToLower(strings.TrimSpace(provider))
 	switch normalizedProvider {
 	case "jellyfin":
-		return buildProviderStreamURL(h.jellyfinBaseURL, h.jellyfinStreamPath, h.jellyfinAPIKey, itemID)
+		return buildJellyfinStreamURL(h.jellyfinBaseURL, h.jellyfinStreamPath, h.jellyfinAPIKey, itemID)
 	case "emby":
 		return buildProviderStreamURL(h.embyBaseURL, h.embyStreamPath, h.embyAPIKey, itemID)
 	default:
 		return "", fmt.Errorf("unknown media provider %q", provider)
 	}
+}
+
+func buildJellyfinStreamURL(baseURL, pathTemplate, apiKey, itemID string) (string, error) {
+	if strings.TrimSpace(apiKey) == "" || strings.TrimSpace(itemID) == "" {
+		return "", fmt.Errorf("jellyfin media configuration or item id missing")
+	}
+	streamPath := fmt.Sprintf(normalizeStreamPathTemplate(pathTemplate), url.PathEscape(strings.TrimSpace(itemID)))
+	target, err := jellyfin.BuildURL(baseURL, streamPath, url.Values{"static": []string{"true"}})
+	if err != nil {
+		return "", err
+	}
+	return target.String(), nil
+}
+
+// newProviderRequest retains uncredentialed foreign fallbacks and existing Emby transport.
+func (h *FansubHandler) newProviderRequest(ctx context.Context, provider, targetURL string) (*http.Request, error) {
+	if strings.EqualFold(strings.TrimSpace(provider), "jellyfin") && jellyfin.IsConfiguredOrigin(targetURL, h.jellyfinBaseURL) {
+		return jellyfin.NewRequest(ctx, http.MethodGet, targetURL, h.jellyfinBaseURL, h.jellyfinAPIKey)
+	}
+	return http.NewRequestWithContext(ctx, http.MethodGet, targetURL, nil)
+}
+
+func (h *FansubHandler) doProviderRequest(provider string, req *http.Request) (*http.Response, error) {
+	if strings.EqualFold(strings.TrimSpace(provider), "jellyfin") && jellyfin.IsConfiguredOrigin(req.URL.String(), h.jellyfinBaseURL) {
+		return jellyfin.Do(h.httpClient, req, h.jellyfinBaseURL)
+	}
+	return h.httpClient.Do(req)
 }
 
 func buildProviderStreamURL(baseURL, pathTemplate, apiKey, itemID string) (string, error) {
@@ -286,27 +314,36 @@ func (h *FansubHandler) buildProviderImageURL(
 		imageType = "Thumb"
 	}
 
-	parsedBase, err := url.Parse(baseURL)
-	if err != nil {
-		return "", fmt.Errorf("parse media base url: %w", err)
-	}
-
 	imagePath := fmt.Sprintf("/Items/%s/Images/%s", itemID, imageType)
 	if strings.EqualFold(imageType, "Backdrop") && index != nil {
 		imagePath = fmt.Sprintf("/Items/%s/Images/%s/%d", itemID, imageType, *index)
 	}
 
-	parsedBase.Path = path.Clean("/" + strings.TrimPrefix(imagePath, "/"))
-
-	query := parsedBase.Query()
-	query.Set("api_key", apiKey)
+	query := url.Values{}
 	if width != nil {
 		query.Set("maxWidth", strconv.Itoa(*width))
 	}
 	if quality != nil {
 		query.Set("quality", strconv.Itoa(*quality))
 	}
-	parsedBase.RawQuery = query.Encode()
+	if normalizedProvider == "jellyfin" {
+		target, err := jellyfin.BuildURL(baseURL, imagePath, query)
+		if err != nil {
+			return "", err
+		}
+		return target.String(), nil
+	}
 
+	parsedBase, err := url.Parse(baseURL)
+	if err != nil {
+		return "", fmt.Errorf("parse media base url: %w", err)
+	}
+	parsedBase.Path = path.Clean("/" + strings.TrimPrefix(imagePath, "/"))
+	values := parsedBase.Query()
+	values.Set("api_key", apiKey)
+	for key, entries := range query {
+		values[key] = entries
+	}
+	parsedBase.RawQuery = values.Encode()
 	return parsedBase.String(), nil
 }
