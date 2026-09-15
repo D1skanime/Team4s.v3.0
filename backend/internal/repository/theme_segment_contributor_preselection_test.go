@@ -208,23 +208,25 @@ func TestEnsureThemeSegmentContributorsPreselected(t *testing.T) {
 		require.Empty(t, ids)
 	})
 
-	t.Run("Marker NULL und gueltige Origin: nur segment-relevante Rollen werden eingefuegt, Marker wird gesetzt", func(t *testing.T) {
+	t.Run("Marker NULL und gueltige Origin: nur segment-relevante Rollen werden eingefuegt, encoder/designer nie (GAP-09), Marker wird gesetzt", func(t *testing.T) {
 		s := newPreselectionScenario(t)
 		originID := s.newReleaseVersion(t)
 		segmentID := s.newSegment(t, &originID)
 		translatorA := s.newMember(t)
 		translatorB := s.newMember(t)
 		encoderOnly := s.newMember(t)
+		designerOnly := s.newMember(t)
 		s.newContribution(t, translatorA, &originID, s.fansubGroupID, "translator")
 		s.newContribution(t, translatorB, &originID, s.fansubGroupID, "translator")
 		s.newContribution(t, encoderOnly, &originID, s.fansubGroupID, "encoder")
+		s.newContribution(t, designerOnly, &originID, s.fansubGroupID, "designer")
 
 		tx, err := s.pool.Begin(s.ctx)
 		require.NoError(t, err)
 		defer func() { _ = tx.Rollback(s.ctx) }()
 		count, err := ensureThemeSegmentContributorsPreselectedTx(s.ctx, tx, segmentID, &originID)
 		require.NoError(t, err)
-		require.Equal(t, 2, count, "beide Uebersetzer werden eingefuegt, der Encoder-only nie")
+		require.Equal(t, 2, count, "beide Uebersetzer werden eingefuegt, Encoder-only und Designer-only nie (GAP-09: Vorauswahl bleibt unveraendert)")
 		require.NoError(t, tx.Commit(s.ctx))
 
 		ids, err := s.repo.GetThemeSegmentContributorMemberIDs(s.ctx, segmentID)

@@ -11,16 +11,26 @@ import (
 
 // ensureThemeSegmentContributorsPreselectedTx fires GAP-07's preselection (Phase 156, Plan
 // 156-18, 156-UAT.md GAP-07 -- "Segment-Mitwirkende automatisch vorauswaehlen (gespeichert,
-// abwaehlbar)", Auftraggeber-bestaetigt 2026-09-14). The marker check runs FIRST, before any
+// abwaehlbar)", Auftraggeber-bestaetigt 2026-09-14), repointed by GAP-09 (Plan 156-21,
+// Auftraggeber-Entscheidung im Chat, 2026-09-15). The marker check runs FIRST, before any
 // other work: originReleaseVersionID == nil, or the segment's contributors_initialized_at
 // already NOT NULL, both short-circuit to (0, nil) with zero DB writes -- "kein Auto-Refill"
 // (decision 5) holds independent of any call-site wiring. Otherwise every effective contributor
 // of originReleaseVersionID (loadPublicEffectiveContributors) holding at least one
-// permissions.SegmentCreditRoleCodes role is inserted into theme_segment_contributors (ON
+// GAP-09-preselection-eligible role (see below) is inserted into theme_segment_contributors (ON
 // CONFLICT DO NOTHING, mirroring theme_segment_contributors.go's own insert shape), and
 // contributors_initialized_at is unconditionally set to NOW() -- even when zero contributors
 // qualified, an origin with no segment-relevant crew still counts as "initialized", never
 // retried. Returns the number of rows actually inserted.
+//
+// GAP-09 deliberately reads this SMALLER preselection-only list here, not the full
+// SegmentCreditRoleCodes credit/label list -- encoder and designer are now segment-relevant for
+// public credit purposes (Plan 156-20), but 156-UAT.md GAP-09 point 2 requires "Vorauswahl
+// unveraendert": they must never be auto-preselected, only ever added manually by an admin.
+// Because this is a SEPARATE package var rather than the same list minus an ad-hoc filter, a
+// future extension of the full credit-role list (e.g. a ninth segment-relevant role) does NOT
+// silently become auto-preselected -- it requires a deliberate second edit to this preselection
+// list.
 func ensureThemeSegmentContributorsPreselectedTx(ctx context.Context, tx pgx.Tx, segmentID int64, originReleaseVersionID *int64) (int, error) {
 	if originReleaseVersionID == nil {
 		// Segment ohne Origin -> keine Vorauswahl, Merker bleibt NULL.
@@ -42,8 +52,8 @@ func ensureThemeSegmentContributorsPreselectedTx(ctx context.Context, tx pgx.Tx,
 		return 0, fmt.Errorf("ensure theme segment contributors preselected segment=%d: load effective contributors: %w", segmentID, err)
 	}
 
-	relevant := make(map[string]struct{}, len(permissions.SegmentCreditRoleCodes))
-	for _, code := range permissions.SegmentCreditRoleCodes {
+	relevant := make(map[string]struct{}, len(permissions.SegmentCreditPreselectionRoleCodes))
+	for _, code := range permissions.SegmentCreditPreselectionRoleCodes {
 		relevant[code] = struct{}{}
 	}
 

@@ -27,9 +27,14 @@ import (
 // TestThemeSegmentContributorPreselectionMigrationRoleArrayMatchesGoSlice is the literal half of
 // the mandatory SQL/Go equivalence proof: migration 0165's hardcoded SQL array literal
 // (`ARRAY['translator','timer','karaoke_fx','typesetter','editor','quality_checker']`) must
-// contain EXACTLY the same elements as permissions.SegmentCreditRoleCodes's current value --
-// proven by direct element comparison, not asserted by comment alone. The behavioral equivalence
-// (both paths landing on the same member-ID set for identical fixtures) is proven separately by
+// contain EXACTLY the same elements as permissions.SegmentCreditPreselectionRoleCodes's current
+// value -- proven by direct element comparison, not asserted by comment alone. Repointed by
+// GAP-09 (Plan 156-21, 2026-09-15): permissions.SegmentCreditRoleCodes grew to 8 codes (Plan
+// 156-20 added encoder/designer for public credit purposes), so comparing against it here would
+// now be wrong (8 vs. 6 elements) -- migration 0165 itself is untouched and still only ever
+// preselects the original six codes, which is exactly what
+// permissions.SegmentCreditPreselectionRoleCodes represents. The behavioral equivalence (both
+// paths landing on the same member-ID set for identical fixtures) is proven separately by
 // TestThemeSegmentContributorPreselectionSQLGoEquivalence below.
 func TestThemeSegmentContributorPreselectionMigrationRoleArrayMatchesGoSlice(t *testing.T) {
 	content, err := os.ReadFile(migration0165Path(t))
@@ -39,8 +44,8 @@ func TestThemeSegmentContributorPreselectionMigrationRoleArrayMatchesGoSlice(t *
 		"die hartcodierte SQL-Rollenliste muss woertlich vorhanden sein, damit der folgende Elementvergleich das TATSAECHLICH ausgefuehrte Array prueft")
 	require.ElementsMatch(t,
 		[]string{"translator", "timer", "karaoke_fx", "typesetter", "editor", "quality_checker"},
-		permissions.SegmentCreditRoleCodes,
-		"migration 0165s hartcodiertes SQL-Array muss exakt permissions.SegmentCreditRoleCodes entsprechen",
+		permissions.SegmentCreditPreselectionRoleCodes,
+		"migration 0165s hartcodiertes SQL-Array muss exakt permissions.SegmentCreditPreselectionRoleCodes entsprechen (GAP-09, Plan 156-21)",
 	)
 }
 
