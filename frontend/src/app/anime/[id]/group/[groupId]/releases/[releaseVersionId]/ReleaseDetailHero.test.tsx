@@ -73,7 +73,40 @@ describe('ReleaseDetailHero', () => {
 
     expect(screen.getByText('Fansub-Coop: C-Subs × Honto')).toBeTruthy()
     fireEvent.click(screen.getByRole('button', { name: /Details/ }))
-    expect(screen.getAllByText('Nicht hinterlegt')).toHaveLength(7)
+    expect(screen.getAllByText('Nicht hinterlegt')).toHaveLength(6)
+    expect(screen.getByText('Japanisch')).toBeTruthy()
+  })
+
+  it.each([null, '', '   ', 'und', ' UND '])('defaults unknown audio %j to Japanisch without changing the DTO', (language) => {
+    const props = { ...base, audio_language: language, subtitle_tracks: [] }
+    const before = JSON.stringify(props)
+    render(<ReleaseDetailHero {...props} />)
+    fireEvent.click(screen.getByRole('button', { name: /Details/ }))
+
+    expect(screen.getByText('Audio-Sprache').nextElementSibling?.textContent).toBe('Japanisch')
+    expect(screen.getByText('Untertitelspuren').nextElementSibling?.textContent).toBe('Nicht hinterlegt')
+    expect(JSON.stringify(props)).toBe(before)
+  })
+
+  it.each(['de', 'Deutsch', 'ja', 'Japanisch'])('keeps known audio %s ahead of the fallback', (language) => {
+    render(<ReleaseDetailHero {...base} audio_language={language} />)
+    fireEvent.click(screen.getByRole('button', { name: /Details/ }))
+    expect(screen.getByText('Audio-Sprache').nextElementSibling?.textContent).toBe(language)
+  })
+
+  it('preserves an unknown-language subtitle and its codec without inventing Japanese subtitle metadata', () => {
+    const props = {
+      ...base,
+      audio_language: null,
+      subtitle_tracks: [{ language: null, label: 'Untertitel', format: 'ASS', forced: true, default: false }],
+    }
+    const before = JSON.stringify(props)
+    render(<ReleaseDetailHero {...props} />)
+    fireEvent.click(screen.getByRole('button', { name: /Details/ }))
+
+    expect(screen.getByText('Untertitelspuren').nextElementSibling?.textContent).toBe('Spur 1: Untertitel · ASS')
+    expect(screen.getAllByText('Japanisch')).toHaveLength(1)
+    expect(JSON.stringify(props)).toBe(before)
   })
 
   it('labels a single owner as Fansubgruppe and reuses canonical next-release navigation below details', () => {
