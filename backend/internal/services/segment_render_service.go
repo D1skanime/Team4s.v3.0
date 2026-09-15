@@ -4,6 +4,7 @@ import (
 	"crypto/sha256"
 	"encoding/hex"
 	"fmt"
+	"net/http"
 	"path/filepath"
 	"regexp"
 	"strconv"
@@ -24,6 +25,7 @@ type SegmentRenderWindow struct {
 type SegmentRenderCommandInput struct {
 	FFmpegPath       string
 	StreamURL        string
+	HTTPHeaders      http.Header // Server-only provider headers, never part of browser DTOs.
 	SubtitleFilePath string
 	OutputPath       string
 	StartSeconds     int32
@@ -119,8 +121,26 @@ func BuildFFmpegSegmentArgs(input SegmentRenderCommandInput) ([]string, error) {
 		ffmpegPath,
 		"-ss", strconv.FormatInt(int64(input.StartSeconds), 10),
 		"-t", strconv.FormatInt(int64(input.DurationSeconds), 10),
-		"-i", strings.TrimSpace(input.StreamURL),
 	}
+	if len(input.HTTPHeaders) > 0 {
+		for name, values := range input.HTTPHeaders {
+			if name == "" || strings.ContainsAny(name, "\r\n: ") {
+				return nil, fmt.Errorf("invalid render HTTP header")
+			}
+			for _, value := range values {
+				if strings.ContainsAny(value, "\r\n") {
+					return nil, fmt.Errorf("invalid render HTTP header value")
+				}
+			}
+		}
+		var headers strings.Builder
+		if err := input.HTTPHeaders.Write(&headers); err != nil {
+			return nil, fmt.Errorf("serialize render HTTP headers")
+		}
+		// FFmpeg otherwise forwards custom headers across redirects (default: eight).
+		args = append(args, "-headers", headers.String(), "-max_redirects", "0")
+	}
+	args = append(args, "-i", strings.TrimSpace(input.StreamURL))
 	if strings.TrimSpace(input.SubtitleFilePath) != "" {
 		args = append(args, "-vf", "subtitles="+escapeFFmpegSubtitlePath(input.SubtitleFilePath))
 	}
@@ -154,6 +174,7 @@ func SanitizeSegmentRenderLog(raw string, secrets ...string) string {
 		out = strings.ReplaceAll(out, trimmed, "[REDACTED]")
 	}
 	for _, re := range []*regexp.Regexp{
+		regexp.MustCompile(`(?i)(authorization\s*:\s*mediabrowser[^\r\n]*?\btoken\s*=\s*)(?:"(?:\\.|[^"\\])*"|[^\s]+)`),
 		regexp.MustCompile(`(?i)(api_key=)[^&\s]+`),
 		regexp.MustCompile(`(?i)(api_key%3d)[^&\s]+`),
 		regexp.MustCompile(`(?i)(access_token=)[^&\s]+`),

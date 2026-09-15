@@ -15,6 +15,7 @@ import (
 
 	"github.com/google/uuid"
 
+	"team4s.v3/backend/internal/jellyfin"
 	"team4s.v3/backend/internal/models"
 	"team4s.v3/backend/internal/services"
 )
@@ -200,31 +201,22 @@ func (h *AdminContentHandler) downloadJellyfinSubtitle(
 		return "", fmt.Errorf("jellyfin api key missing")
 	}
 
-	parsedBase, err := url.Parse(baseURL)
-	if err != nil {
-		return "", fmt.Errorf("parse jellyfin base url: %w", err)
-	}
 	subtitlePath := fmt.Sprintf(
 		"/Videos/%s/%s/Subtitles/%s/Stream.ass",
 		url.PathEscape(trimmedItemID),
 		url.PathEscape(trimmedSourceID),
 		strconv.FormatInt(int64(streamIndex), 10),
 	)
-	if strings.HasSuffix(parsedBase.Path, "/") {
-		parsedBase.Path = strings.TrimSuffix(parsedBase.Path, "/")
+	target, err := jellyfin.BuildURL(baseURL, subtitlePath, nil)
+	if err != nil {
+		return "", err
 	}
-	parsedBase.Path = parsedBase.Path + subtitlePath
-
-	values := url.Values{}
-	values.Set("api_key", apiKey)
-	parsedBase.RawQuery = values.Encode()
-
-	req, err := http.NewRequestWithContext(ctx, http.MethodGet, parsedBase.String(), nil)
+	req, err := jellyfin.NewRequest(ctx, http.MethodGet, target.String(), baseURL, h.jellyfinAPIKey)
 	if err != nil {
 		return "", fmt.Errorf("create jellyfin subtitle request: %w", err)
 	}
 
-	resp, err := h.httpClient.Do(req)
+	resp, err := jellyfin.Do(h.httpClient, req, baseURL)
 	if err != nil {
 		return "", fmt.Errorf("call jellyfin subtitle endpoint: %w", err)
 	}

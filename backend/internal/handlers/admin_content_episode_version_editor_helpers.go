@@ -214,7 +214,7 @@ func (h *AdminContentHandler) ensureJellyfinConfiguredForEditor() bool {
 
 // buildJellyfinEditorStreamURL erstellt die Stream-URL für ein Jellyfin-Medienelement anhand seiner ID.
 func (h *AdminContentHandler) buildJellyfinEditorStreamURL(itemID string) *string {
-	streamURL, err := buildProviderStreamURL(
+	streamURL, err := buildJellyfinStreamURL(
 		h.jellyfinBaseURL,
 		normalizeStreamPathTemplate(h.jellyfinStreamPath),
 		h.jellyfinAPIKey,

@@ -5,12 +5,14 @@ import (
 	"context"
 	"errors"
 	"log"
+	"net/http"
 	"os"
 	"os/exec"
 	"path/filepath"
 	"strings"
 	"time"
 
+	"team4s.v3/backend/internal/jellyfin"
 	"team4s.v3/backend/internal/models"
 	"team4s.v3/backend/internal/repository"
 	"team4s.v3/backend/internal/services"
@@ -147,10 +149,23 @@ func (h *AdminContentHandler) executeSegmentRender(
 		defer func(path string) { _ = os.Remove(path) }(subtitle.SubtitleFilePath)
 	}
 
+	streamURL := *source.StreamURL
+	var httpHeaders http.Header
+	if (source.SourceKind == "episode_version" || source.SourceKind == "jellyfin_theme") && jellyfin.IsConfiguredOrigin(streamURL, h.jellyfinBaseURL) {
+		req, err := jellyfin.NewRequest(ctx, http.MethodGet, streamURL, h.jellyfinBaseURL, h.jellyfinAPIKey)
+		if err != nil {
+			_ = themeRepo.MarkThemeSegmentRenderCacheFailed(ctx, cache.CacheKey, "invalid_render_auth", "Jellyfin-Authentifizierung konnte nicht vorbereitet werden.")
+			return err
+		}
+		streamURL = req.URL.String()
+		httpHeaders = req.Header.Clone()
+	}
+
 	durationSeconds := *source.EndOffsetSeconds - *source.StartOffsetSeconds
 	args, err := services.BuildFFmpegSegmentArgs(services.SegmentRenderCommandInput{
 		FFmpegPath:       h.segmentRenderFFmpegPath,
-		StreamURL:        *source.StreamURL,
+		StreamURL:        streamURL,
+		HTTPHeaders:      httpHeaders,
 		SubtitleFilePath: subtitle.SubtitleFilePath,
 		OutputPath:       outputPath,
 		StartSeconds:     *source.StartOffsetSeconds,
@@ -168,9 +183,9 @@ func (h *AdminContentHandler) executeSegmentRender(
 	cmd.Stdout = &combined
 	cmd.Stderr = &combined
 	if err := cmd.Run(); err != nil {
-		message := services.SanitizeSegmentRenderLog(combined.String(), h.segmentGrantSecret)
+		message := services.SanitizeSegmentRenderLog(combined.String(), h.segmentGrantSecret, h.jellyfinAPIKey)
 		if strings.TrimSpace(message) == "" {
-			message = err.Error()
+			message = services.SanitizeSegmentRenderLog(err.Error(), h.segmentGrantSecret, h.jellyfinAPIKey)
 		}
 		_ = themeRepo.MarkThemeSegmentRenderCacheFailed(ctx, cache.CacheKey, "ffmpeg_failed", message)
 		return err

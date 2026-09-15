@@ -976,8 +976,8 @@ func TestBuildJellyfinEditorStreamURL_UsesDefaultPathTemplate(t *testing.T) {
 		t.Fatalf("unexpected path: %q", parsed.Path)
 	}
 	query := parsed.Query()
-	if query.Get("api_key") != "media-key" {
-		t.Fatalf("expected api_key to be set, got %q", query.Get("api_key"))
+	if query.Has("api_key") {
+		t.Fatal("editor stream URL must not contain Jellyfin credentials")
 	}
 	if query.Get("static") != "true" {
 		t.Fatalf("expected static=true, got %q", query.Get("static"))
