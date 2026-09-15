@@ -155,3 +155,20 @@ func TestPublicReleaseTechnicalSourceStatementBudget(t *testing.T) {
 		t.Logf("%d subtitle tracks: %d SQL statement, %d returned row", count, counter.count, counter.rows)
 	}
 }
+
+// Test-only bridge lets the external repository integration package reuse the
+// exact public fixture and projection without importing services into repository
+// (services already imports repository). It creates no production API.
+func OpenPublicTechnicalSourceFixtureForTest(t *testing.T) *pgxpool.Pool {
+	pool, _ := openPublicTechnicalSourceFixture(t)
+	return pool
+}
+func PublicTechnicalSourceForTest(ctx context.Context, pool *pgxpool.Pool, versionID int64) (*PublicReleaseDetail, error) {
+	facts, tracks, err := NewReleaseDetailPublicRepository(pool, "").loadReleaseTechnical(ctx, versionID)
+	if err != nil {
+		return nil, err
+	}
+	return &PublicReleaseDetail{ReleaseVersionID: versionID, DurationSeconds: facts.DurationSeconds, Resolution: facts.Resolution,
+		Container: facts.Container, VideoCodec: facts.VideoCodec, AudioCodec: facts.AudioCodec, AudioLanguage: facts.AudioLanguage,
+		SubtitleType: facts.SubtitleType, SubtitleTracks: tracks}, nil
+}

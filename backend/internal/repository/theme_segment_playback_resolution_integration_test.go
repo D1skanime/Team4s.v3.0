@@ -2,6 +2,10 @@ package repository_test
 
 import (
 	"context"
+	"encoding/json"
+	"fmt"
+
+	"github.com/jackc/pgx/v5/pgxpool"
 	"testing"
 
 	"team4s.v3/backend/internal/models"
@@ -266,3 +270,183 @@ func TestThemeSegmentPlaybackResolution(t *testing.T) {
 }
 
 func ptrInt64(v int64) *int64 { return &v }
+
+// This acceptance test reuses Plan08's contrasting public fixture and the real
+// default/explicit playback repositories. Cache hashing is the existing service;
+// request-level worker drift rejection remains in the handler acceptance gate.
+func TestThemeSegmentPlaybackResolutionSourceIdentityPublicCoherence(t *testing.T) {
+	fixture := repository.OpenPublicTechnicalSourceFixtureForTest(t)
+	ctx := context.Background()
+	tracer := &episodePublicTracer{}
+	cfg := fixture.Config()
+	cfg.ConnConfig.Tracer = tracer
+	cfg.MaxConns = 1
+	pool, err := pgxpool.NewWithConfig(ctx, cfg)
+	require.NoError(t, err)
+	t.Cleanup(pool.Close)
+	require.NoError(t, pool.Ping(ctx))
+	admin := repository.NewAdminContentRepository(pool)
+	releases := repository.NewEpisodeVersionRepository(pool)
+	_, err = pool.Exec(ctx, `INSERT INTO theme_types(id,name) VALUES(1,'OP'); INSERT INTO themes(id,anime_id,theme_type_id) VALUES(1,1,1)`)
+	require.NoError(t, err)
+	one := 1
+	start, end := "00:01:00", "00:01:30"
+	segment, _, err := admin.CreateAnimeSegment(ctx, 1, models.AdminThemeSegmentCreateInput{
+		ThemeID: 1, FansubGroupID: ptrInt64(1), Version: "v1", StartEpisode: &one, EndEpisode: &one, StartTime: &start, EndTime: &end,
+	}, 10)
+	require.NoError(t, err)
+	var original []byte
+	require.NoError(t, pool.QueryRow(ctx, `SELECT metadata FROM stream_sources WHERE id=1000`).Scan(&original))
+	assertReadBudget := func(label string) {
+		t.Helper()
+		require.Len(t, tracer.queries, 1, label)
+		require.EqualValues(t, 1, tracer.queries[0].Rows, label)
+		t.Logf("%s: %d SQL statement, %d returned row", label, len(tracer.queries), tracer.queries[0].Rows)
+	}
+	tracer.reset()
+	sourceA, err := admin.GetThemeSegmentRenderSource(ctx, segment.ID, 10)
+	require.NoError(t, err)
+	assertReadBudget("theme snapshot")
+	require.EqualValues(t, 100, *sourceA.ReleaseVariantID)
+	require.Equal(t, "item-a", *sourceA.StreamExternalID)
+	require.Equal(t, "source-a", *sourceA.MediaSourceID)
+	tracer.reset()
+	releaseA, err := releases.GetReleaseStreamSource(ctx, 10)
+	require.NoError(t, err)
+	assertReadBudget("release snapshot")
+	require.Equal(t, *sourceA.StreamExternalID, releaseA.MediaItemID)
+	require.Equal(t, sourceA.JellyfinSource, releaseA.JellyfinSource)
+	tracer.reset()
+	publicA, err := repository.PublicTechnicalSourceForTest(ctx, pool, 10)
+	require.NoError(t, err)
+	assertReadBudget("public snapshot")
+	require.Equal(t, "mkv", *publicA.Container)
+	require.Equal(t, "flac", *publicA.AudioCodec)
+	require.Equal(t, "ja", *publicA.AudioLanguage)
+	require.Equal(t, *sourceA.JellyfinSource.SubtitleTracks[0].Language, *publicA.SubtitleTracks[0].Language)
+
+	t.Run("explicit ownership and default isolation", func(t *testing.T) {
+		explicit, err := releases.GetReleaseStreamSource(ctx, 10, 200)
+		require.NoError(t, err)
+		require.Equal(t, "item-b", explicit.MediaItemID)
+		_, err = releases.GetReleaseStreamSource(ctx, 10, 50)
+		require.ErrorIs(t, err, repository.ErrNotFound)
+		_, err = pool.Exec(ctx, `UPDATE theme_segment_playback_sources SET release_variant_id=50 WHERE theme_segment_id=$1 AND release_version_id=10`, segment.ID)
+		require.NoError(t, err)
+		_, err = admin.GetThemeSegmentRenderSource(ctx, segment.ID, 10)
+		require.ErrorIs(t, err, repository.ErrNotFound)
+		_, err = pool.Exec(ctx, `UPDATE theme_segment_playback_sources SET release_variant_id=100 WHERE theme_segment_id=$1 AND release_version_id=10`, segment.ID)
+		require.NoError(t, err)
+		stillDefault, err := releases.GetReleaseStreamSource(ctx, 10)
+		require.NoError(t, err)
+		require.Equal(t, "item-a", stillDefault.MediaItemID)
+	})
+	t.Run("no snapshot is read-only and keeps selected variant fallback", func(t *testing.T) {
+		_, err = pool.Exec(ctx, `UPDATE stream_sources SET metadata='{}'::jsonb WHERE id=1000`)
+		require.NoError(t, err)
+		tracer.reset()
+		theme, err := admin.GetThemeSegmentRenderSource(ctx, segment.ID, 10)
+		require.NoError(t, err)
+		assertReadBudget("theme no snapshot")
+		require.Nil(t, theme.JellyfinSource)
+		tracer.reset()
+		release, err := releases.GetReleaseStreamSource(ctx, 10)
+		require.NoError(t, err)
+		assertReadBudget("release no snapshot")
+		require.Nil(t, release.JellyfinSource)
+		require.Equal(t, *theme.StreamExternalID, release.MediaItemID)
+		tracer.reset()
+		public, err := repository.PublicTechnicalSourceForTest(ctx, pool, 10)
+		require.NoError(t, err)
+		assertReadBudget("public no snapshot")
+		require.Equal(t, "mkv", *public.Container)
+		require.Equal(t, "ja", *public.AudioLanguage)
+		require.Len(t, public.SubtitleTracks, 1)
+		require.Equal(t, "de", *public.SubtitleTracks[0].Language)
+		var unchanged string
+		require.NoError(t, pool.QueryRow(ctx, `SELECT metadata::text FROM stream_sources WHERE id=1000`).Scan(&unchanged))
+		require.Equal(t, "{}", unchanged)
+		_, err = pool.Exec(ctx, `UPDATE stream_sources SET metadata=$1::jsonb WHERE id=1000`, original)
+		require.NoError(t, err)
+	})
+
+	t.Run("201 tracks keep all consumers at one statement", func(t *testing.T) {
+		binding := *sourceA.JellyfinSource
+		binding.SubtitleTracks = make([]models.JellyfinSubtitleTrack, 201)
+		for i := range binding.SubtitleTracks {
+			binding.SubtitleTracks[i] = models.JellyfinSubtitleTrack{Index: int32(i), Codec: "ass"}
+		}
+		raw, err := json.Marshal(binding)
+		require.NoError(t, err)
+		_, err = pool.Exec(ctx, `UPDATE stream_sources SET metadata=jsonb_build_object('jellyfin_source',$1::jsonb) WHERE id=1000`, raw)
+		require.NoError(t, err)
+		tracer.reset()
+		theme, err := admin.GetThemeSegmentRenderSource(ctx, segment.ID, 10)
+		require.NoError(t, err)
+		assertReadBudget("theme 201 tracks")
+		require.Len(t, theme.JellyfinSource.SubtitleTracks, 201)
+		tracer.reset()
+		release, err := releases.GetReleaseStreamSource(ctx, 10)
+		require.NoError(t, err)
+		assertReadBudget("release 201 tracks")
+		require.Len(t, release.JellyfinSource.SubtitleTracks, 201)
+		tracer.reset()
+		public, err := repository.PublicTechnicalSourceForTest(ctx, pool, 10)
+		require.NoError(t, err)
+		assertReadBudget("public 201 tracks")
+		require.Len(t, public.SubtitleTracks, 201)
+		_, err = pool.Exec(ctx, `UPDATE stream_sources SET metadata=$1::jsonb WHERE id=1000`, original)
+		require.NoError(t, err)
+	})
+	t.Run("same item changed source separates persisted cache and public facts", func(t *testing.T) {
+		identity := func(source *models.ThemeSegmentRenderSource) string {
+			return fmt.Sprintf("jellyfin:%d:%s:%s", len(*source.StreamExternalID), *source.StreamExternalID, source.JellyfinSource.MediaSourceID)
+		}
+		key := func(source *models.ThemeSegmentRenderSource) string {
+			result, err := services.BuildSegmentRenderCacheKey(services.SegmentRenderWindow{SegmentID: segment.ID, SourceKind: source.SourceKind,
+				SourceIdentity: identity(source), StartSeconds: *source.StartOffsetSeconds, EndSeconds: *source.EndOffsetSeconds, RenderProfile: services.DefaultSegmentRenderProfile})
+			require.NoError(t, err)
+			return result
+		}
+		cacheA, err := admin.UpsertThemeSegmentRenderCacheQueued(ctx, models.ThemeSegmentRenderCacheUpsertInput{
+			ThemeSegmentID: segment.ID, PlaybackSourceID: &sourceA.PlaybackSourceID, ReleaseVersionID: ptrInt64(10),
+			CacheKey: key(sourceA), SourceKind: sourceA.SourceKind, SourceFingerprint: identity(sourceA), RenderProfile: services.DefaultSegmentRenderProfile})
+		require.NoError(t, err)
+		index := int32(5)
+		de := "de"
+		bindingB := models.JellyfinSourceSnapshot{Version: 1, MediaSourceID: "source-b", SourcePath: "/private/b.mp4", StreamsComplete: true, SelectedAudioIndex: &index,
+			AudioTracks: []models.JellyfinAudioTrack{{Index: 5, Codec: "aac", Language: &de}}, SubtitleTracks: []models.JellyfinSubtitleTrack{}}
+		raw, err := json.Marshal(bindingB)
+		require.NoError(t, err)
+		tx, err := pool.Begin(ctx)
+		require.NoError(t, err)
+		_, err = tx.Exec(ctx, `UPDATE stream_sources SET metadata=jsonb_build_object('jellyfin_source',$1::jsonb) WHERE id=1000`, raw)
+		require.NoError(t, err)
+		_, err = tx.Exec(ctx, `UPDATE release_variants SET container='mp4',audio_codec='aac' WHERE id=100`)
+		require.NoError(t, err)
+		require.NoError(t, tx.Commit(ctx))
+		sourceB, err := admin.GetThemeSegmentRenderSource(ctx, segment.ID, 10)
+		require.NoError(t, err)
+		require.Equal(t, *sourceA.StreamExternalID, *sourceB.StreamExternalID, "same genuine item")
+		require.NotEqual(t, identity(sourceA), identity(sourceB))
+		require.NotEqual(t, key(sourceA), key(sourceB))
+		old, err := admin.GetThemeSegmentRenderCacheByKey(ctx, cacheA.CacheKey)
+		require.NoError(t, err)
+		require.Equal(t, identity(sourceA), old.SourceFingerprint, "queued A evidence cannot become B silently")
+		_, err = admin.GetThemeSegmentRenderCacheByKey(ctx, key(sourceB))
+		require.ErrorIs(t, err, repository.ErrNotFound)
+		cacheB, err := admin.UpsertThemeSegmentRenderCacheQueued(ctx, models.ThemeSegmentRenderCacheUpsertInput{
+			ThemeSegmentID: segment.ID, PlaybackSourceID: &sourceB.PlaybackSourceID, ReleaseVersionID: ptrInt64(10),
+			CacheKey: key(sourceB), SourceKind: sourceB.SourceKind, SourceFingerprint: identity(sourceB), RenderProfile: services.DefaultSegmentRenderProfile})
+		require.NoError(t, err)
+		require.NotEqual(t, cacheA.ID, cacheB.ID)
+		publicB, err := repository.PublicTechnicalSourceForTest(ctx, pool, 10)
+		require.NoError(t, err)
+		require.Equal(t, "mp4", *publicB.Container)
+		require.Equal(t, "de", *publicB.AudioLanguage)
+		require.Empty(t, publicB.SubtitleTracks)
+		other, err := releases.GetReleaseStreamSource(ctx, 10, 200)
+		require.NoError(t, err)
+		require.Equal(t, "item-b", other.MediaItemID, "sibling variant remains unchanged")
+	})
+}
