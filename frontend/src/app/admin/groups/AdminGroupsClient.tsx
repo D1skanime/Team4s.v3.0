@@ -82,27 +82,29 @@ function GroupMembersSummary({ fansubGroupId }: GroupMembersSummaryProps) {
 
   useEffect(() => {
     let cancelled = false
-    setIsLoading(true)
-    setError(null)
-    Promise.all([
-      listFansubAppMembers(fansubGroupId),
-      listClaims({ fansub_group_id: fansubGroupId, limit: 100, offset: 0 }),
-    ])
-      .then(([membersResponse, claimsResponse]) => {
+
+    void (async () => {
+      setIsLoading(true)
+      setError(null)
+      try {
+        const [membersResponse, claimsResponse] = await Promise.all([
+          listFansubAppMembers(fansubGroupId),
+          listClaims({ fansub_group_id: fansubGroupId, limit: 100, offset: 0 }),
+        ])
         if (cancelled) return
         setMembers(membersResponse.data)
         setClaims(claimsResponse.data)
-      })
-      .catch((err) => {
+      } catch (err) {
         if (!cancelled) {
           setError(readErrorMessage(err, 'Gruppenmitglieder konnten nicht geladen werden.'))
         }
-      })
-      .finally(() => {
+      } finally {
         if (!cancelled) {
           setIsLoading(false)
         }
-      })
+      }
+    })()
+
     return () => {
       cancelled = true
     }
@@ -192,24 +194,26 @@ function GroupRolesSummary({ fansubGroupId }: GroupMembersSummaryProps) {
 
   useEffect(() => {
     let cancelled = false
-    setIsLoading(true)
-    setError(null)
-    listFansubAppMembers(fansubGroupId)
-      .then((response) => {
+
+    void (async () => {
+      setIsLoading(true)
+      setError(null)
+      try {
+        const response = await listFansubAppMembers(fansubGroupId)
         if (!cancelled) {
           setMembers(response.data)
         }
-      })
-      .catch((err) => {
+      } catch (err) {
         if (!cancelled) {
           setError(readErrorMessage(err, 'Rollen konnten nicht geladen werden.'))
         }
-      })
-      .finally(() => {
+      } finally {
         if (!cancelled) {
           setIsLoading(false)
         }
-      })
+      }
+    })()
+
     return () => {
       cancelled = true
     }
@@ -274,24 +278,26 @@ function GroupClaimsSummary({ fansubGroupId }: GroupMembersSummaryProps) {
 
   useEffect(() => {
     let cancelled = false
-    setIsLoading(true)
-    setError(null)
-    listClaims({ fansub_group_id: fansubGroupId, limit: 100, offset: 0 })
-      .then((response) => {
+
+    void (async () => {
+      setIsLoading(true)
+      setError(null)
+      try {
+        const response = await listClaims({ fansub_group_id: fansubGroupId, limit: 100, offset: 0 })
         if (!cancelled) {
           setClaims(response.data)
         }
-      })
-      .catch((err) => {
+      } catch (err) {
         if (!cancelled) {
           setError(readErrorMessage(err, 'Claims konnten nicht geladen werden.'))
         }
-      })
-      .finally(() => {
+      } finally {
         if (!cancelled) {
           setIsLoading(false)
         }
-      })
+      }
+    })()
+
     return () => {
       cancelled = true
     }
@@ -348,24 +354,26 @@ function GroupChangesSummary({ fansubGroupId }: GroupMembersSummaryProps) {
 
   useEffect(() => {
     let cancelled = false
-    setIsLoading(true)
-    setError(null)
-    listChanges({ gruppe: fansubGroupId, limit: 25, offset: 0 })
-      .then((response) => {
+
+    void (async () => {
+      setIsLoading(true)
+      setError(null)
+      try {
+        const response = await listChanges({ gruppe: fansubGroupId, limit: 25, offset: 0 })
         if (!cancelled) {
           setEntries(response.data)
         }
-      })
-      .catch((err) => {
+      } catch (err) {
         if (!cancelled) {
           setError(readErrorMessage(err, 'Änderungen konnten nicht geladen werden.'))
         }
-      })
-      .finally(() => {
+      } finally {
         if (!cancelled) {
           setIsLoading(false)
         }
-      })
+      }
+    })()
+
     return () => {
       cancelled = true
     }

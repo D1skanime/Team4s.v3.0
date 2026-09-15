@@ -83,26 +83,28 @@ export function GroupRolesTab({ fansubId }: GroupRolesTabProps) {
 
   useEffect(() => {
     let cancelled = false
-    if (!isClientInitialized) return () => { cancelled = true }
-    if (!hasAccessToken || fansubId <= 0) {
-      setMembers([])
-      setIsLoading(false)
-      return () => { cancelled = true }
-    }
-    setIsLoading(true)
-    listFansubAppMembers(fansubId)
-      .then((response) => {
+
+    void (async () => {
+      if (!isClientInitialized) return
+      if (!hasAccessToken || fansubId <= 0) {
+        setMembers([])
+        setIsLoading(false)
+        return
+      }
+      setIsLoading(true)
+      try {
+        const response = await listFansubAppMembers(fansubId)
         if (cancelled) return
         setMembers(response.data)
         setLoadError(null)
-      })
-      .catch((error) => {
+      } catch (error) {
         if (cancelled) return
         setLoadError(error instanceof ApiError ? error.message : 'Rollen konnten nicht geladen werden.')
-      })
-      .finally(() => {
+      } finally {
         if (!cancelled) setIsLoading(false)
-      })
+      }
+    })()
+
     return () => { cancelled = true }
   }, [fansubId, hasAccessToken, isClientInitialized])
 
