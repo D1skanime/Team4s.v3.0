@@ -410,17 +410,7 @@ func ensureStreamSourceID(
 	mediaItemID string,
 	streamURL *string,
 ) (int64, error) {
-	var streamSourceID int64
-	if err := tx.QueryRow(ctx, `
-		INSERT INTO stream_sources (provider_type, external_id, url)
-		VALUES ($1, $2, $3)
-		ON CONFLICT (provider_type, external_id) DO UPDATE
-		SET url = COALESCE(EXCLUDED.url, stream_sources.url)
-		RETURNING id
-	`, mediaProvider, mediaItemID, streamURL).Scan(&streamSourceID); err != nil {
-		return 0, fmt.Errorf("upsert stream source provider=%s media=%s: %w", mediaProvider, mediaItemID, err)
-	}
-	return streamSourceID, nil
+	return upsertStreamSourceSnapshot(ctx, tx, mediaProvider, mediaItemID, streamURL, nil)
 }
 
 func pathExt(value string) string {
