@@ -145,10 +145,13 @@ func (r *AdminContentRepository) SetThemeSegmentContributors(
 // ListThemeSegmentContributorCandidates laedt die vollstaendige Admin-Kandidatenliste fuer
 // die Segment-Contributor-Auswahl: jede Person, die aktuell effektiver Beitragender der
 // Origin-Release-Version des Segments ist -- UNGEFILTERT nach
-// permissions.SegmentCreditRoleCodes, weil die Admin-Auswahl bewusst auch
-// Encoder-only-Beitragende referenzierbar macht (156-UAT.md Regressionsfall D), auch wenn
-// diese nie oeffentlich als Segment-Credit erscheinen. Ein Segment ohne Origin liefert eine
-// leere (nicht nil) Liste, keinen Fehler.
+// permissions.SegmentCreditRoleCodes, weil die Admin-Auswahl bewusst auch Beitragende mit
+// einer nicht-segmentrelevanten Rolle (z. B. raw_provider) referenzierbar macht. Seit GAP-09
+// (Plan 156-21, Auftraggeber-Entscheidung im Chat, 2026-09-15) superseded das den frueheren
+// 156-UAT.md Regressionsfall D: ein Encoder-only- oder Designer-only-Beitragender ist hier
+// weiterhin referenzierbar, ABER eine explizite Auswahl macht ihn jetzt tatsaechlich zu einem
+// echten oeffentlichen Segment-Credit -- nicht mehr "nie oeffentlich sichtbar". Ein Segment
+// ohne Origin liefert eine leere (nicht nil) Liste, keinen Fehler.
 func (r *AdminContentRepository) ListThemeSegmentContributorCandidates(
 	ctx context.Context,
 	segmentID int64,

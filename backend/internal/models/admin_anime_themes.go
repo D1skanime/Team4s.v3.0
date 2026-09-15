@@ -204,7 +204,10 @@ type ThemeSegmentAssignmentConflict struct {
 // effektiver Beitragender der Origin-Release-Version des Segments ist (unfiltered by
 // permissions.SegmentCreditRoleCodes -- ein Encoder-only-Beitragender ist bewusst
 // referenzierbar, siehe 156-UAT.md Regressionsfall D), mit Selected je nach aktuellem
-// theme_segment_contributors-Eintrag.
+// theme_segment_contributors-Eintrag. GAP-09 (Plan 156-21, 2026-09-15) superseded
+// Regressionsfall D: eine hier vorgenommene Auswahl eines Encoder- oder Designer-Kandidaten
+// erzeugt jetzt einen echten oeffentlichen Segment-Credit, statt dauerhaft unsichtbar zu
+// bleiben.
 type AdminThemeSegmentContributorCandidate struct {
 	MemberID   int64    `json:"member_id"`
 	Name       string   `json:"name"`

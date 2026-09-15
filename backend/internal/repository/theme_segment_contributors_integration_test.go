@@ -409,7 +409,7 @@ func TestListThemeSegmentContributorCandidates(t *testing.T) {
 	t.Run("die Kandidatenliste enthaelt JEDEN effektiven Origin-Contributor inkl. Encoder-only, mit korrektem Selected", func(t *testing.T) {
 		before, err := repo.ListThemeSegmentContributorCandidates(ctx, segmentID)
 		require.NoError(t, err)
-		require.Len(t, before, 2, "Encoder-only-Contributor muss in der Admin-Kandidatenliste erscheinen, obwohl er nie oeffentlicher Segment-Credit wird")
+		require.Len(t, before, 2, "Encoder-only-Contributor muss in der ungefilterten Admin-Kandidatenliste erscheinen -- eine explizite Auswahl wuerde ihn seit GAP-09 (Plan 156-21) zu einem echten oeffentlichen Segment-Credit machen")
 		for _, candidate := range before {
 			require.False(t, candidate.Selected, "vor jeder Auswahl ist niemand selektiert")
 		}
