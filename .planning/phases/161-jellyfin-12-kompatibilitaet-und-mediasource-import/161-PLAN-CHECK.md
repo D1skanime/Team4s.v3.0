@@ -89,3 +89,16 @@ issues:
 ```
 
 The revision gate is clear for execution. Actual compatibility, persistence, security and performance claims remain conditional on the planned tests and final live evidence. Human-UAT status must remain separate.
+
+
+## Targeted decision delta: D-16 — PASS (2026-09-15)
+
+Scope of this follow-up: only the user's new audio-language display decision and its propagation into CONTEXT, DECISIONS, RESEARCH, UI-SPEC, SOURCE-AUDIT and Plans 02/04/08. The original plan review was not repeated.
+
+- **Source truth is preserved:** Plan 02 still stores unknown/und language as null and creates no audio/subtitle track from the display default. Source selection and same-source metadata remain unchanged.
+- **Contracts remain consistent:** Plan 04 keeps raw audio/subtitle fields nullable. Japanisch is expressly a presentation default, not a provider-derived ja value.
+- **Correct UI owner and precedence:** Plan 08 Task 2 owns the existing ReleaseDetailHero.tsx change: null, trimmed-empty and case-insensitive und audio language display Japanisch; known audio language keeps precedence. Subtitle formatting receives no Japanese default.
+- **Executable acceptance:** Parameterized unknown-audio cases, known-German precedence, unknown-subtitle preservation and input-DTO immutability are required in the existing Vitest test. No database mutation or extra request is introduced.
+- **Scope remains bounded:** Plan 08 now owns five files and three tasks; its dependencies and backend integration task are unchanged. Plan 01 is unaffected.
+
+D-16 explicitly supersedes D-09 only for audio presentation, so the documents do not contradict the raw-source coherence rule. **No new blocker or warning from this delta.** The original non-blocking scope warning remains unchanged. No code or commit was made by this check.

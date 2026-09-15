@@ -25,6 +25,7 @@ Adapt actual Team4s Jellyfin calls to Jellyfin 12 and prove correct source-coher
 - D-13: No per-item source or per-stream request fan-out when batch responses suffice; document request counts before/after.
 - D-14: Finish Discovery and prioritize proven findings P0-P3 before implementation. Fix only demonstrated problems; no UI redesign, different media system, broad DB normalization or unrelated optimization.
 - D-15: Deliver per-fix file/function/cause/change/test evidence, live auth/API/GetItems proof, mapping/container/tracks/request/test results and remaining limitations. Do not mark complete without DoD proof.
+- D-16 (user clarification 2026-09-15): Display Japanese as the default ONLY for an unknown audio language. A known language takes precedence. Subtitle language is never defaulted to Japanese. Preserve unknown provider language in the source snapshot; the Japanese default is a presentation policy, not a claim that Jellyfin supplied Japanese. This supersedes D-09 only for the audio display fallback.
 </decisions>
 
 <canonical_refs>

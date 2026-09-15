@@ -1909,7 +1909,7 @@ Plans:
 **Depends on:** Implementierter Stand 159 und aktueller Repository-Baseline b3b07ff0; Phase 160 wartet ausdrücklich auf diese Reparatur und ist keine Voraussetzung.
 **Plans:** 9 Plans in 8 technischen Wellen; sequenzielle Ausführung im kanonischen Checkout. Discovery und unabhängige Planprüfung abgeschlossen; Ausführung beginnt.
 
-- [ ] 161-01 — Jellyfin-Transport und korrekte Metadatenabfragen
+- [x] 161-01 — Jellyfin-Transport und korrekte Metadatenabfragen
 - [ ] 161-02 — Typisierte Quellenbindung und deterministische Auswahl
 - [ ] 161-03 — Medienproxies, Untertitel und FFmpeg authentifizieren
 - [ ] 161-04 — Import-/Editorverträge und Frontend-Übertragung

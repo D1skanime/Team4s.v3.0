@@ -18,7 +18,7 @@ progress:
 
 ## Aktiver Auftrag — Phase 161: Jellyfin 12 (15.09.2026)
 
-Ausgangscommit `b3b07ff0`, kanonischer Linux-Stand. Discovery und unabhängige Planprüfung sind abgeschlossen: 9 Plans, 25 Tasks, 6 Anforderungen. Plan 161-01 startet; 0/9 Plans implementiert. Umfang: tatsächliche Jellyfin-Authentifizierung, verwendete API/GetItems-Aufrufe und konsistente MediaSource-Metadaten entlang Import, Speicherung, Playback und öffentlicher Projektion.
+Ausgangscommit `b3b07ff0`, kanonischer Linux-Stand. Discovery und unabhängige Planprüfung sind abgeschlossen: 9 Plans, 25 Tasks, 6 Anforderungen. Plan 161-01 ist implementiert und verifiziert (136 Handler-Prüfungen, vier isolierte Editor-DB-Fixtures, Build/Vet grün); 1/9 Plans abgeschlossen, Plan 161-02 folgt. Abschlusscommit 9818a5a1. D-16: Unbekannte Audio-Sprache erhält Japanisch als Anzeigestandard; Quellwerte und Untertitel bleiben unverändert. Umfang: tatsächliche Jellyfin-Authentifizierung, verwendete API/GetItems-Aufrufe und konsistente MediaSource-Metadaten entlang Import, Speicherung, Playback und öffentlicher Projektion.
 
 Der gewünschte Live-Fall 11eyes ist geprüft: 27 Items, 38 Quellen, elf Quellen ohne eigenständiges Item. Item- und Source-ID bleiben getrennt; diese Phase erweitert den Import nicht auf alle Alternativdateien. Bestehende JSONB-Metadaten reichen für die gewählte Quelle aus. Keine App-Daten, Medien, Secrets oder Migrationen wurden geändert. Eine separate Testdatenbank `team4s_phase117_test_161` ist für schemaisolierte Integrationstests vorbereitet.
 

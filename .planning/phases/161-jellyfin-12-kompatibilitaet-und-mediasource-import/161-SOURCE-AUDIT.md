@@ -84,12 +84,14 @@ No new public route, source picker, provider credential, media registry, table o
 | CONTEXT | D-13 | No per-item/source/stream request fan-out; measured counts | 01,02,05,07–09 | COVERED |
 | CONTEXT | D-14 | Discovery/prioritization first; fix proved problems only | Discovery artifacts,01–09 | COVERED |
 | CONTEXT | D-15 | File/function/cause/fix/test report and actual DoD evidence | 09 | COVERED |
+| CONTEXT | D-16 | Only unknown audio language displays Japanisch; known audio wins, raw language remains nullable and subtitle language receives no default | 02,04,08 | COVERED |
 
 Excluded intentionally by supplied scope: full integration rewrite, UI redesign, new media system, Fanart changes, broad normalization and unrelated optimization. Independently importing the 11 non-item alternatives is not a requirement of this selected-source phase; the final report must make that limitation visible.
 
 ## Execution assumptions and guardrails
 
 - No new dependency or credential is required. x/text/language is already installed; the resolver uses explicit Tag.Raw language, never locale inference.
+- User decision D-16 adds only a display default: Audio-Sprache null/blank/und → Japanisch in the existing ReleaseDetailHero. Known audio takes precedence; raw persisted/API unknowns stay nullable and subtitles have no default. Plan 08 owns the existing hero and its focused regression tests.
 - FFmpeg's installed -max_redirects0 behavior was proved with two origins: zero requests reach the foreign origin. Preserve this as an executable test; no new stream proxy is planned.
 - Same-path source-ID recovery cannot prove file-content identity after arbitrary moves/replacements; when ID and path both disappear, fail rather than guess.
 - One selected source per real provider/item binding remains the existing model. A relink must not mutate a shared item snapshot to a different nested file and affect unrelated variants.

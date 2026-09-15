@@ -30,3 +30,7 @@ Contrast source A/B and poison item-level streams. Reorder sources; preserve sto
 No HTTP request per source or stream. Revalidate submitted imports with a bounded batch and document the additional request. Public metadata remains DB-only. Database fixture assertions must execute; skipped tests do not establish persistence correctness.
 
 No real provider rescan or live import is authorized. Simulated source-ID churn with stable paths tests the recovery rule but does not prove every possible scan/move. Preserve unrelated human UAT records. Record any remaining human verification separately from technical completion.
+
+## D-16 audio fallback regression
+
+Assert that unknown audio remains null through resolver and persistence but renders as Japanisch in the existing hero. Known audio language wins. Unknown subtitle language receives no Japanese fallback. This presentation default must not be reported as restored provider metadata in the live result.

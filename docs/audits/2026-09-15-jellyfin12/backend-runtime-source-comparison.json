@@ -1,0 +1,6 @@
+{
+  "source_baseline": "b3b07ff0",
+  "files_compared": 800,
+  "different_or_missing": [],
+  "note": "Read after executor01 began synchronizing its owned files; new package files not present at baseline are excluded."
+}

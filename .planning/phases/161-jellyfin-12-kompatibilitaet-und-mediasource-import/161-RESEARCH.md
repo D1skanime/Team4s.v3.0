@@ -47,3 +47,7 @@ Public metadata remains DB-only. No live import, backfill, reset, reseed, cache 
 ## Phase continuity
 
 Phase 161 starts from implemented Phase 159/current baseline. Phase 160 explicitly waits for this repair. Preserve fresh 156/157 UAT sign-offs, open 158/159 human UAT and the recent graceful Jellyfin-outage editor behavior. Do not claim that simulated ID churn proves stability across every real rescan or file move.
+
+## User clarification: audio display default
+
+On 2026-09-15 the user requested Japanese for unknown language and explicitly limited this to audio. Preserve the resolver/import evidence (unknown or und remains null in the source snapshot), then apply Japanisch as the existing audio field's display fallback. Known audio values take precedence. Unknown subtitle language remains unknown, and no audio or subtitle track is fabricated. Plan 08 owns the minimal existing-component change and regression tests. This is a user-authorized product default, not a new provider fact.

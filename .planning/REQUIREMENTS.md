@@ -317,7 +317,7 @@ Source: `161-USER-REQUEST.md`, with decisions D-01 through D-15 in `161-CONTEXT.
 - [ ] **P161-API**: All used Jellyfin endpoints are inventoried and checked against the running version 12 contract; confirmed incompatibilities are corrected.
 - [ ] **P161-ITEMS**: GetItems filtering, direct versus recursive scope, exact identity and pagination are semantically verified.
 - [ ] **P161-SOURCE**: Deterministic item/source binding remains coherent through import, playback, subtitles and render identity, including the real 11eyes case.
-- [ ] **P161-METADATA**: Selected-source container and consumer-backed audio/subtitle fields persist and render coherently; ordinary editing preserves technical identity.
+- [ ] **P161-METADATA**: Selected-source container and consumer-backed audio/subtitle fields persist and render coherently; ordinary editing preserves technical identity. Per D-16, only unknown audio language displays Japanisch as a fallback, while provider facts and subtitle languages remain unchanged.
 - [ ] **P161-REGRESSION**: Focused unit/integration/contract tests, live read-only evidence, request budgets and existing-regression comparison support the final compatibility report.
 
 | Requirement | Phase | Status |

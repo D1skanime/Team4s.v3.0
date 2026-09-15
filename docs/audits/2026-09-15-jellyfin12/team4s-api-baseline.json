@@ -1,0 +1,239 @@
+[
+  {
+    "path": "/anime/1/backdrops",
+    "status": 200,
+    "bytes": 832,
+    "content_type": "application/json; charset=utf-8",
+    "elapsed_ms": 23,
+    "response": {
+      "data": {
+        "anime_id": 1,
+        "provider": "persisted",
+        "media_item_id": "46523903e0af5022d78af0368d89b805",
+        "backdrops": [
+          "/api/v1/media/image?index=0&item_id=46523903e0af5022d78af0368d89b805&kind=backdrop&provider=jellyfin",
+          "/api/v1/media/image?index=1&item_id=46523903e0af5022d78af0368d89b805&kind=backdrop&provider=jellyfin",
+          "/media/anime/1/background/f2284cc5-75cd-4a60-909e-ae9b9ed5e92a/original.jpg",
+          "/media/anime/1/background/b5fb227b-eac3-4975-bab1-b1162d86d401/original.jpg"
+        ],
+        "theme_videos": [
+          "/media/anime/1/background_video/65f51170-5ce4-4817-833c-3306f4111875/original.mp4"
+        ],
+        "logo_url": "/api/v1/media/image?item_id=46523903e0af5022d78af0368d89b805&kind=logo&provider=jellyfin",
+        "banner_url": "/api/v1/media/image?item_id=46523903e0af5022d78af0368d89b805&kind=banner&provider=jellyfin"
+      }
+    }
+  },
+  {
+    "path": "/anime/1/group/1/assets",
+    "status": 502,
+    "bytes": 67,
+    "elapsed_ms": 14,
+    "response": {
+      "error": {
+        "message": "gruppen-assets konnten nicht geladen werden"
+      }
+    }
+  },
+  {
+    "path": "/anime/1/group/1/releases/40",
+    "status": 200,
+    "bytes": 3439,
+    "content_type": "application/json; charset=utf-8",
+    "elapsed_ms": 48,
+    "response": {
+      "release_version_id": 40,
+      "episode_number": "4",
+      "episode_title": "Zeit für Entschlossenheit",
+      "title": "Zeit für Entschlossenheit (New-Subs) Version 1",
+      "version": "v1",
+      "groups": [
+        {
+          "id": 1,
+          "slug": "new-subs",
+          "name": "New-Subs",
+          "logo_url": "/app/media/logo_1787928990830_d3b5184c5dc28cca.png"
+        }
+      ],
+      "release_date": null,
+      "duration_seconds": 1440,
+      "resolution": "720p",
+      "container": "mkv",
+      "video_codec": "h264",
+      "audio_codec": "aac",
+      "audio_language": null,
+      "subtitle_tracks": [],
+      "subtitle_type": null,
+      "preview_image": null,
+      "image_category_totals": {
+        "screenshot": 0,
+        "typesetting_karaoke": 0,
+        "fun_outtake": 0,
+        "other": 0
+      },
+      "segments": [
+        {
+          "theme_segment_id": 3,
+          "name": "op",
+          "type": "OP",
+          "start_seconds": 0,
+          "end_seconds": 80,
+          "duration_seconds": 80,
+          "readiness": "ready",
+          "participants": [
+            {
+              "fansub_group_id": 1,
+              "member_id": 8,
+              "name": "Qc",
+              "role_label": "Qualitätsprüfung, Übersetzung",
+              "role_codes": [
+                "quality_checker",
+                "translator"
+              ],
+              "segment_role_label": "Karaoke-Übersetzung, Karaoke-Qualitätsprüfung",
+              "member_slug": "qc",
+              "avatar_url": null
+            }
+          ],
+          "preview_url": null,
+          "applies_through_episode": "5"
+        }
+      ],
+      "previous": {
+        "release_version_id": 29,
+        "episode_number": "3",
+        "episode_title": "Wiedersehen",
+        "version": "v1",
+        "group_id": 1
+      },
+      "next": {
+        "release_version_id": 41,
+        "episode_number": "5",
+        "episode_title": "Narbe",
+        "version": "v1",
+        "group_id": 1
+      },
+      "images_count": 0,
+      "notes_count": 2,
+      "contributors_count": 7,
+      "contributors": [
+        {
+          "fansub_group_id": 1,
+          "member_id": 10,
+          "name": "Desi",
+          "role_label": "Design, Qualitätsprüfung",
+          "role_codes": [
+            "designer",
+            "quality_checker"
+          ],
+          "member_slug": "desi",
+          "avatar_url": null
+        },
+        {
+          "fansub_group_id": 1,
+          "member_id": 2,
+          "name": "Jeahn45",
+          "role_label": "Encoding",
+          "role_codes": [
+            "encoder"
+          ],
+          "member_slug": "jeahn45",
+          "avatar_url": null
+        },
+        {
+          "fansub_group_id": 1,
+          "member_id": 8,
+          "name": "Qc",
+          "role_label": "Qualitätsprüfung, Übersetzung",
+          "role_codes": [
+            "quality_checker",
+            "translator"
+          ],
+          "member_slug": "qc",
+          "avatar_url": null
+        },
+        {
+          "fansub_group_id": 1,
+          "member_id": 7,
+          "name": "Raw",
+          "role_label": "Raw-Bereitstellung",
+          "role_codes": [
+            "raw_provider"
+          ],
+          "member_slug": "raw",
+          "avatar_url": null
+        },
+        {
+          "fansub_group_id": 1,
+          "member_id": 5,
+          "name": "Type",
+          "role_label": "Karaoke-FX, Typesetting",
+          "role_codes": [
+            "karaoke_fx",
+            "typesetter"
+          ],
+          "member_slug": "type",
+          "avatar_url": null
+        },
+        {
+          "fansub_group_id": 1,
+          "member_id": 11,
+          "name": "timer",
+          "role_label": "Timing",
+          "role_codes": [
+            "timer"
+          ],
+          "member_slug": "timer",
+          "avatar_url": "/media/profile/11/avatar/25383ba2-6477-4aed-9bb0-58d75dd6ec4f/original.webp"
+        },
+        {
+          "fansub_group_id": 1,
+          "member_id": 4,
+          "name": "Über",
+          "role_label": "Übersetzung",
+          "role_codes": [
+            "translator"
+          ],
+          "member_slug": "uebersetzung",
+          "avatar_url": "/media/profile/4/avatar/cc481178-3815-48d1-883b-b25799315d68/original.png"
+        }
+      ],
+      "images": [],
+      "notes": [
+        {
+          "id": 7,
+          "fansub_group_id": 1,
+          "member_id": 4,
+          "member_name": "Über",
+          "member_avatar_url": "/media/profile/4/avatar/cc481178-3815-48d1-883b-b25799315d68/original.png",
+          "role_label": "Übersetzung",
+          "role_code": "translator",
+          "role_color_key": "#27664F",
+          "title": "sdgfdfgdsfgd",
+          "body_html": "<p>dddddddddddddddddddvvvvvvvvvvvvvvvvvv</p>",
+          "created_at": "2026-08-30T18:59:45.44765Z"
+        },
+        {
+          "id": 12,
+          "fansub_group_id": 1,
+          "member_id": 5,
+          "member_name": "Type",
+          "member_avatar_url": null,
+          "role_label": "Typesetting",
+          "role_code": "typesetter",
+          "role_color_key": "#7B3C4E",
+          "title": "Schilder",
+          "body_html": "<p>Einige Schilder lagen direkt über bewegten Hintergründen. Deshalb mussten Position und Skalierung über mehrere Frames korrigiert werden, damit nichts sichtbar verrutscht.</p>",
+          "created_at": "2026-09-01T11:49:28.637787Z"
+        }
+      ]
+    }
+  },
+  {
+    "path": "/media/image?provider=jellyfin&item_id=46523903e0af5022d78af0368d89b805&kind=logo&width=64",
+    "status": 200,
+    "bytes": 3286,
+    "content_type": "image/png",
+    "elapsed_ms": 169
+  }
+]
