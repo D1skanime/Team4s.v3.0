@@ -91,7 +91,7 @@ _Note: TDD tasks used a RED-then-GREEN commit-at-GREEN pattern per task, matchin
 
 ## Decisions Made
 - Followed the plan's exact interfaces for the Go signature change, the test fixture (Phase-117 Postgres schema extension with the documented ALTER/CREATE statements plus one addition — `anime_source_links` table — that the plan's own fallback instruction anticipated might be needed and which was in fact required, since `GetAnimeSyncSource`'s plain branch unconditionally calls `loadAnimeSourceLinks`), and the frontend wiring point.
-- Live-verification token: the plan's originally-specified fixture account (`csubs-leader@team4s.local` / `<Fixture-Passwort>`) no longer exists in this environment's Keycloak `team4s` realm (confirmed via Keycloak admin API: current realm users are `admin`, `coleader`, `d1sk`, `founder`, `jeahn45`, `qcs`, `timer`, `type`, `über` — a different fixture set than when the referenced prior plans 129-01/139-06 were executed). Used the real platform-admin account `admin` (`app_user_id=1`, `admin@team4s.de`, `is_platform_admin=true`, password `123`, confirmed via `GET /api/v1/me`) instead — no new credentials were created, matching the threat model's `T-260915-04` constraint.
+- Live-verification token: the plan's originally-specified fixture account (`csubs-leader@team4s.local` / `<Fixture-Passwort>`) no longer exists in this environment's Keycloak `team4s` realm (confirmed via Keycloak admin API: current realm users are `admin`, `coleader`, `d1sk`, `founder`, `jeahn45`, `qcs`, `timer`, `type`, `über` — a different fixture set than when the referenced prior plans 129-01/139-06 were executed). Used the real platform-admin account `admin` (`app_user_id=1`, `admin@team4s.de`, `is_platform_admin=true`, password `<Fixture-Passwort>`, confirmed via `GET /api/v1/me`) instead — no new credentials were created, matching the threat model's `T-260915-04` constraint.
 
 ## Deviations from Plan
 
@@ -108,7 +108,7 @@ _Note: TDD tasks used a RED-then-GREEN commit-at-GREEN pattern per task, matchin
 **2. [Rule 3 - Blocking, judgment call] Substituted the live-verification admin account**
 - **Found during:** Task 3 (live curl proof)
 - **Issue:** The plan's specified fixture account (`csubs-leader@team4s.local`) returned Keycloak `user_not_found` — it does not exist in this environment's current `team4s` realm (verified via Keycloak admin REST API against the master realm).
-- **Fix:** Used the existing, already-provisioned real platform-admin account `admin` (`app_user_id=1`, `is_platform_admin=true`) with the same dev-fixture password convention (`123`), confirmed via `GET /api/v1/me` before use. No new Keycloak user or credential was created.
+- **Fix:** Used the existing, already-provisioned real platform-admin account `admin` (`app_user_id=1`, `is_platform_admin=true`) with the same dev-fixture password convention (`<Fixture-Passwort>`), confirmed via `GET /api/v1/me` before use. No new Keycloak user or credential was created.
 - **Files modified:** none (verification-step only)
 - **Verification:** `GET /api/v1/me` confirmed `is_platform_admin: true`; the subsequent live curl against episode-version 27 succeeded with the expected response.
 - **Committed in:** N/A (verification-only, no code change)
