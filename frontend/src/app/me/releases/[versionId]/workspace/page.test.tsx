@@ -213,6 +213,27 @@ describe('MeReleaseWorkspacePage', () => {
     expect(screen.getByTestId('segments-tab')).toBeTruthy()
   })
 
+  it('passes safe saved-file chapter hints to the contributor segment editor', async () => {
+    searchParamsMock.mockReturnValue(new URLSearchParams('tab=segments'))
+    mockWorkspaceData({ can_manage_segments: true })
+    const response = await getEpisodeVersionEditorContextMock()
+    const chapterHints = [{ name: 'Opening', start_ms: 17934 }]
+    getEpisodeVersionEditorContextMock.mockClear()
+    getEpisodeVersionEditorContextMock.mockResolvedValue({ data: {
+      ...response.data,
+      selected_file: { file_name: 'episode.mkv', path: '', media_item_id: '', chapter_hints: chapterHints },
+    } })
+
+    render(<MeReleaseWorkspacePage />)
+
+    await screen.findByRole('tab', { name: 'Segmente', selected: true })
+    expect(segmenteTabMock).toHaveBeenLastCalledWith(expect.objectContaining({
+      releaseVariantId: 42, chapterHints,
+    }))
+    expect(getEpisodeVersionEditorContextMock).toHaveBeenCalledTimes(1)
+    expect(updateEpisodeVersionMock).not.toHaveBeenCalled()
+  })
+
   it('passes the own member id to the notes tab', async () => {
     render(<MeReleaseWorkspacePage />)
 
