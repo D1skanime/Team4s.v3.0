@@ -2,13 +2,13 @@ package handlers
 
 import (
 	"context"
- "encoding/json"
- "fmt"
- "strings"
- "github.com/gin-gonic/gin"
- "github.com/stretchr/testify/require"
+	"encoding/json"
+	"fmt"
+	"github.com/gin-gonic/gin"
+	"github.com/stretchr/testify/require"
 	"net/http"
 	"net/http/httptest"
+	"strings"
 	"testing"
 
 	"team4s.v3/backend/internal/models"
@@ -553,99 +553,231 @@ func episodeImportStringPtr(value string) *string {
 	return &value
 }
 
-type episodeImportSourceRepoSpy struct{
- calls int
- bindingCalls int
- ids []string
- bindings map[string]models.JellyfinSourceSnapshot
- received models.EpisodeImportApplyInput
-}
-func (r *episodeImportSourceRepoSpy) Apply(_ context.Context,in models.EpisodeImportApplyInput)(*models.EpisodeImportApplyResult,error){r.calls++;r.received=in;return &models.EpisodeImportApplyResult{AnimeID:in.AnimeID},nil}
-func (*episodeImportSourceRepoSpy) PreviewExistingCoverage(context.Context,int64)(models.EpisodeImportExistingCoverage,error){return models.EpisodeImportExistingCoverage{},nil}
-func (r *episodeImportSourceRepoSpy) GetJellyfinSourceBindings(_ context.Context,ids []string)(map[string]models.JellyfinSourceSnapshot,error){r.bindingCalls++;r.ids=append([]string(nil),ids...);return r.bindings,nil}
-
-func episodeImportServerItem(id string)jellyfinEpisodeItem{
- ticks:=int64(12000000000);height:=1080
- return jellyfinEpisodeItem{ID:id,Type:"Episode",SeriesID:"series-401",Path:"/data/anime/FixtureFallback/"+id+".mkv",
- MediaStreams:[]jellyfinMediaStream{{Type:"Audio",Index:9,Codec:"wrong-top"}},
- MediaSources:[]jellyfinMediaSource{
-  {ID:"other-source",Path:"/data/other/b.mp4",Container:"mp4",MediaStreams:[]jellyfinMediaStream{{Index:1,Type:"Audio",Codec:"wrong-b"}}},
-  {ID:"source-"+id,Path:"/data/anime/FixtureFallback/"+id+".mkv",Container:"matroska",RunTimeTicks:&ticks,MediaStreams:[]jellyfinMediaStream{{Index:0,Type:"Video",Codec:"hevc",Height:&height},{Index:1,Type:"Audio",Codec:"flac"},{Index:2,Type:"Subtitle",Codec:"ass",Language:"deu"}}},
- }}
-}
-func episodeImportReviewedRequest()adminEpisodeImportApplyRequest{
- return adminEpisodeImportApplyRequest{
- CanonicalEpisodes:[]models.EpisodeImportCanonicalEpisode{{EpisodeNumber:1}},
- MediaCandidates:[]models.EpisodeImportMediaCandidate{{MediaItemID:"one",MediaSourceID:"source-one",FileName:"tampered.mp4",Path:"/foreign",Container:episodeImportStringPtr("bad"),StreamURL:episodeImportStringPtr("https://attacker.invalid/?api_key=secret")}},
- Mappings:[]models.EpisodeImportMappingRow{{MediaItemID:"one",MediaSourceID:"source-one",TargetEpisodeNumbers:[]int32{1},Status:models.EpisodeImportMappingStatusConfirmed}}}
-}
-func TestEpisodeImportSourceApplyRevalidatesBeforeWrite(t *testing.T){
- for _,scenario:=range []string{"coherent","reordered","foreign series","foreign folder","foreign source path","missing","extra","duplicate returned","stale","incomplete","unavailable","tampered selector","duplicate candidate","absent candidate","skipped"}{
- t.Run(scenario,func(t *testing.T){
-  pool:=openEVECFixture(t);spy:=&episodeImportSourceRepoSpy{};requests:=0
-  item:=episodeImportServerItem("one")
-  switch scenario{
-  case "foreign series":item.SeriesID="foreign"
-  case "foreign folder":item.Path="/data/anime/Other/one.mkv"
-  case "foreign source path":item.MediaSources=item.MediaSources[1:];item.MediaSources[0].Path="/data/anime/Other/one.mkv"
-  case "stale":item.MediaSources[1].ID="rescanned-source"
-  case "incomplete":item.MediaSources[1].MediaStreams=nil
-  case "reordered":item.MediaSources[0],item.MediaSources[1]=item.MediaSources[1],item.MediaSources[0]
-  }
-  server:=httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter,r *http.Request){
-   requests++;require.Equal(t,"one",r.URL.Query().Get("Ids"));require.Equal(t,"/Items",r.URL.Path)
-   if scenario=="unavailable"{w.WriteHeader(503);return}
-   items:=[]jellyfinEpisodeItem{item}
-   switch scenario{case "missing":items=nil;case "extra":items=append(items,episodeImportServerItem("not-requested"));case "duplicate returned":items=append(items,item)}
-   require.NoError(t,json.NewEncoder(w).Encode(jellyfinEpisodeListResponse{Items:items}))
-  }));defer server.Close()
-  h:=evecFixtureHandler(pool,server.URL,"test-key");h.episodeImportRepo=spy;h.jellyfinStreamPath="/Videos/%s/stream"
-  req:=episodeImportReviewedRequest();expected:=200
-  switch scenario{
-  case "tampered selector":req.Mappings[0].MediaSourceID="other-source";expected=400
-  case "duplicate candidate":req.MediaCandidates=append(req.MediaCandidates,req.MediaCandidates[0]);expected=400
-  case "absent candidate":req.MediaCandidates=nil;expected=400
-  case "skipped":req.Mappings[0].Status=models.EpisodeImportMappingStatusSkipped
-  case "unavailable":expected=502
-  case "coherent","reordered":
-  default:expected=409
-  }
-  raw,err:=json.Marshal(req);require.NoError(t,err)
-  rec:=httptest.NewRecorder();c,_:=gin.CreateTestContext(rec);c.Params=gin.Params{{Key:"id",Value:"301"}}
-  c.Request=httptest.NewRequest("POST","/admin/anime/301/episode-import/apply",strings.NewReader(string(raw)));c.Request.Header.Set("Content-Type","application/json")
-  c.Set("auth_identity",evecFixturePlatformAdminIdentity());h.ApplyEpisodeImport(c)
-  require.Equal(t,expected,rec.Code,rec.Body.String())
-  if expected!=200{require.Zero(t,spy.calls)}else{require.Equal(t,1,spy.calls)}
-  if expected==400 || scenario=="skipped"{require.Zero(t,requests);require.Zero(t,spy.bindingCalls)}else{require.Equal(t,1,requests);require.Equal(t,1,spy.bindingCalls)}
-  if scenario=="coherent" || scenario=="reordered"{
-   require.Len(t,spy.received.MediaCandidates,1);got:=spy.received.MediaCandidates[0]
-   require.Equal(t,"source-one",got.MediaSourceID);require.Equal(t,"one.mkv",got.FileName);require.Equal(t,"matroska",*got.Container)
-   require.Equal(t,"flac",*got.AudioCodec);require.Equal(t,"hevc",*got.VideoCodec);require.EqualValues(t,1200,*got.DurationSeconds)
-   require.True(t,got.StreamsComplete);require.Nil(t,got.AudioTracks[0].Language);require.Equal(t,"de",*got.SubtitleTracks[0].Language)
-   require.NotContains(t,*got.StreamURL,"attacker");require.NotContains(t,*got.StreamURL,"api_key")
-  }
- })
- }
+type episodeImportSourceRepoSpy struct {
+	calls        int
+	bindingCalls int
+	ids          []string
+	bindings     map[string]models.JellyfinSourceSnapshot
+	received     models.EpisodeImportApplyInput
 }
 
-func TestEpisodeImportSourceBatchBudget(t *testing.T){
- for _,count:=range []int{0,1,100,101,201}{
- t.Run(fmt.Sprint(count),func(t *testing.T){
-  requests:=0;spy:=&episodeImportSourceRepoSpy{}
-  server:=httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter,r *http.Request){
-   requests++;require.Equal(t,"/Items",r.URL.Path);ids:=strings.Split(r.URL.Query().Get("Ids"),",");require.LessOrEqual(t,len(ids),100)
-   items:=make([]jellyfinEpisodeItem,0,len(ids));for _,id:=range ids{items=append(items,episodeImportServerItem(id))}
-   require.NoError(t,json.NewEncoder(w).Encode(jellyfinEpisodeListResponse{Items:items}))
-  }));defer server.Close()
-  h:=&AdminContentHandler{jellyfinBaseURL:server.URL,jellyfinAPIKey:"fixture-key",httpClient:server.Client(),episodeImportRepo:spy}
-  input:=models.EpisodeImportApplyInput{AnimeID:301}
-  for i:=0;i<count;i++{id:=fmt.Sprint(i);input.Mappings=append(input.Mappings,models.EpisodeImportMappingRow{MediaItemID:id,MediaSourceID:"source-"+id,Status:models.EpisodeImportMappingStatusConfirmed})}
-  input.Mappings=append(input.Mappings,models.EpisodeImportMappingRow{MediaItemID:"skipped",Status:models.EpisodeImportMappingStatusSkipped})
-  contextResult:=models.EpisodeImportContextResult{JellyfinSeriesID:episodeImportStringPtr("series-401"),FolderPath:episodeImportStringPtr("/data/anime/FixtureFallback")}
-  result,status,err:=h.rehydrateEpisodeImportSources(context.Background(),input,contextResult)
-  require.NoError(t,err);require.Equal(t,200,status);require.Len(t,result.MediaCandidates,count)
-  require.Equal(t,(count+99)/100,requests);if count>0{require.Equal(t,1,spy.bindingCalls);require.Len(t,spy.ids,count)}else{require.Zero(t,spy.bindingCalls)}
-  t.Logf("confirmed=%d source requests=%d binding batches=%d",count,requests,spy.bindingCalls)
- })
- }
+func (r *episodeImportSourceRepoSpy) Apply(_ context.Context, in models.EpisodeImportApplyInput) (*models.EpisodeImportApplyResult, error) {
+	r.calls++
+	r.received = in
+	return &models.EpisodeImportApplyResult{AnimeID: in.AnimeID}, nil
+}
+func (*episodeImportSourceRepoSpy) PreviewExistingCoverage(context.Context, int64) (models.EpisodeImportExistingCoverage, error) {
+	return models.EpisodeImportExistingCoverage{}, nil
+}
+func (r *episodeImportSourceRepoSpy) GetJellyfinSourceBindings(_ context.Context, ids []string) (map[string]models.JellyfinSourceSnapshot, error) {
+	r.bindingCalls++
+	r.ids = append([]string(nil), ids...)
+	return r.bindings, nil
+}
+
+func episodeImportServerItem(id string) jellyfinEpisodeItem {
+	ticks := int64(12000000000)
+	height := 1080
+	return jellyfinEpisodeItem{ID: id, Type: "Episode", SeriesID: "series-401", Path: "/data/anime/FixtureFallback/" + id + ".mkv",
+		MediaStreams: []jellyfinMediaStream{{Type: "Audio", Index: 9, Codec: "wrong-top"}},
+		MediaSources: []jellyfinMediaSource{
+			{ID: "other-source", Path: "/data/other/b.mp4", Container: "mp4", MediaStreams: []jellyfinMediaStream{{Index: 1, Type: "Audio", Codec: "wrong-b"}}},
+			{ID: "source-" + id, Path: "/data/anime/FixtureFallback/" + id + ".mkv", Container: "matroska", RunTimeTicks: &ticks, MediaStreams: []jellyfinMediaStream{{Index: 0, Type: "Video", Codec: "hevc", Height: &height}, {Index: 1, Type: "Audio", Codec: "flac"}, {Index: 2, Type: "Subtitle", Codec: "ass", Language: "deu"}}},
+		}}
+}
+func episodeImportReviewedRequest() adminEpisodeImportApplyRequest {
+	return adminEpisodeImportApplyRequest{
+		CanonicalEpisodes: []models.EpisodeImportCanonicalEpisode{{EpisodeNumber: 1}},
+		MediaCandidates:   []models.EpisodeImportMediaCandidate{{MediaItemID: "one", MediaSourceID: "source-one", FileName: "tampered.mp4", Path: "/foreign", Container: episodeImportStringPtr("bad"), StreamURL: episodeImportStringPtr("https://attacker.invalid/?api_key=secret")}},
+		Mappings:          []models.EpisodeImportMappingRow{{MediaItemID: "one", MediaSourceID: "source-one", TargetEpisodeNumbers: []int32{1}, Status: models.EpisodeImportMappingStatusConfirmed}}}
+}
+func TestEpisodeImportSourceApplyRevalidatesBeforeWrite(t *testing.T) {
+	for _, scenario := range []string{"coherent", "reordered", "foreign series", "foreign folder", "foreign source path", "missing", "extra", "duplicate returned", "stale", "incomplete", "unavailable", "tampered selector", "duplicate candidate", "absent candidate", "skipped"} {
+		t.Run(scenario, func(t *testing.T) {
+			pool := openEVECFixture(t)
+			spy := &episodeImportSourceRepoSpy{}
+			requests := 0
+			item := episodeImportServerItem("one")
+			switch scenario {
+			case "foreign series":
+				item.SeriesID = "foreign"
+			case "foreign folder":
+				item.Path = "/data/anime/Other/one.mkv"
+			case "foreign source path":
+				item.MediaSources = item.MediaSources[1:]
+				item.MediaSources[0].Path = "/data/anime/Other/one.mkv"
+			case "stale":
+				item.MediaSources[1].ID = "rescanned-source"
+			case "incomplete":
+				item.MediaSources[1].MediaStreams = nil
+			case "reordered":
+				item.MediaSources[0], item.MediaSources[1] = item.MediaSources[1], item.MediaSources[0]
+			}
+			server := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+				requests++
+				require.Equal(t, "one", r.URL.Query().Get("Ids"))
+				require.Equal(t, "/Items", r.URL.Path)
+				if scenario == "unavailable" {
+					w.WriteHeader(503)
+					return
+				}
+				items := []jellyfinEpisodeItem{item}
+				switch scenario {
+				case "missing":
+					items = nil
+				case "extra":
+					items = append(items, episodeImportServerItem("not-requested"))
+				case "duplicate returned":
+					items = append(items, item)
+				}
+				require.NoError(t, json.NewEncoder(w).Encode(jellyfinEpisodeListResponse{Items: items}))
+			}))
+			defer server.Close()
+			h := evecFixtureHandler(pool, server.URL, "test-key")
+			h.episodeImportRepo = spy
+			h.authzRepo = adminRoleCheckerStub{isAdmin: true}
+			h.jellyfinStreamPath = "/Videos/%s/stream"
+			req := episodeImportReviewedRequest()
+			expected := 200
+			switch scenario {
+			case "tampered selector":
+				req.Mappings[0].MediaSourceID = "other-source"
+				expected = 400
+			case "duplicate candidate":
+				req.MediaCandidates = append(req.MediaCandidates, req.MediaCandidates[0])
+				expected = 400
+			case "absent candidate":
+				req.MediaCandidates = nil
+				expected = 400
+			case "skipped":
+				req.Mappings[0].Status = models.EpisodeImportMappingStatusSkipped
+			case "unavailable":
+				expected = 502
+			case "coherent", "reordered":
+			default:
+				expected = 409
+			}
+			raw, err := json.Marshal(req)
+			require.NoError(t, err)
+			rec := httptest.NewRecorder()
+			c, _ := gin.CreateTestContext(rec)
+			c.Params = gin.Params{{Key: "id", Value: "301"}}
+			c.Request = httptest.NewRequest("POST", "/admin/anime/301/episode-import/apply", strings.NewReader(string(raw)))
+			c.Request.Header.Set("Content-Type", "application/json")
+			c.Set("auth_identity", evecFixturePlatformAdminIdentity())
+			h.ApplyEpisodeImport(c)
+			require.Equal(t, expected, rec.Code, rec.Body.String())
+			if expected != 200 {
+				require.Zero(t, spy.calls)
+			} else {
+				require.Equal(t, 1, spy.calls)
+			}
+			if expected == 400 || scenario == "skipped" {
+				require.Zero(t, requests)
+				require.Zero(t, spy.bindingCalls)
+			} else {
+				require.Equal(t, 1, requests)
+				require.Equal(t, 1, spy.bindingCalls)
+			}
+			if scenario == "coherent" || scenario == "reordered" {
+				require.Len(t, spy.received.MediaCandidates, 1)
+				got := spy.received.MediaCandidates[0]
+				require.Equal(t, "source-one", got.MediaSourceID)
+				require.Equal(t, "one.mkv", got.FileName)
+				require.Equal(t, "matroska", *got.Container)
+				require.Equal(t, "flac", *got.AudioCodec)
+				require.Equal(t, "hevc", *got.VideoCodec)
+				require.EqualValues(t, 1200, *got.DurationSeconds)
+				require.True(t, got.StreamsComplete)
+				require.Nil(t, got.AudioTracks[0].Language)
+				require.Equal(t, "de", *got.SubtitleTracks[0].Language)
+				require.NotContains(t, *got.StreamURL, "attacker")
+				require.NotContains(t, *got.StreamURL, "api_key")
+			}
+		})
+	}
+}
+
+func TestEpisodeImportSourceBatchBudget(t *testing.T) {
+	for _, count := range []int{0, 1, 100, 101, 201} {
+		t.Run(fmt.Sprint(count), func(t *testing.T) {
+			requests := 0
+			spy := &episodeImportSourceRepoSpy{}
+			server := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+				requests++
+				require.Equal(t, "/Items", r.URL.Path)
+				ids := strings.Split(r.URL.Query().Get("Ids"), ",")
+				require.LessOrEqual(t, len(ids), 100)
+				items := make([]jellyfinEpisodeItem, 0, len(ids))
+				for _, id := range ids {
+					items = append(items, episodeImportServerItem(id))
+				}
+				require.NoError(t, json.NewEncoder(w).Encode(jellyfinEpisodeListResponse{Items: items}))
+			}))
+			defer server.Close()
+			h := &AdminContentHandler{jellyfinBaseURL: server.URL, jellyfinAPIKey: "fixture-key", httpClient: server.Client(), episodeImportRepo: spy}
+			input := models.EpisodeImportApplyInput{AnimeID: 301}
+			for i := 0; i < count; i++ {
+				id := fmt.Sprint(i)
+				input.Mappings = append(input.Mappings, models.EpisodeImportMappingRow{MediaItemID: id, MediaSourceID: "source-" + id, Status: models.EpisodeImportMappingStatusConfirmed})
+			}
+			input.Mappings = append(input.Mappings, models.EpisodeImportMappingRow{MediaItemID: "skipped", Status: models.EpisodeImportMappingStatusSkipped})
+			contextResult := models.EpisodeImportContextResult{JellyfinSeriesID: episodeImportStringPtr("series-401"), FolderPath: episodeImportStringPtr("/data/anime/FixtureFallback")}
+			result, status, err := h.rehydrateEpisodeImportSources(context.Background(), input, contextResult)
+			require.NoError(t, err)
+			require.Equal(t, 200, status)
+			require.Len(t, result.MediaCandidates, count)
+			require.Equal(t, (count+99)/100, requests)
+			if count > 0 {
+				require.Equal(t, 1, spy.bindingCalls)
+				require.Len(t, spy.ids, count)
+			} else {
+				require.Zero(t, spy.bindingCalls)
+			}
+			t.Logf("confirmed=%d source requests=%d binding batches=%d", count, requests, spy.bindingCalls)
+		})
+	}
+}
+
+func TestEpisodeImport11eyesPreviewKeepsActualItemsAndRequestBudget(t *testing.T) {
+	payload := read11eyesSourceFixture(t, "11eyes-series")
+	requests := 0
+	server := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		requests++
+		require.Equal(t, "/Shows/series/Episodes", r.URL.Path)
+		require.Equal(t, jellyfinSourceFields, r.URL.Query().Get("Fields"))
+		require.NoError(t, json.NewEncoder(w).Encode(payload))
+	}))
+	defer server.Close()
+	h := &AdminContentHandler{jellyfinBaseURL: server.URL, jellyfinAPIKey: "fixture-key", httpClient: server.Client()}
+	c, _ := gin.CreateTestContext(httptest.NewRecorder())
+	c.Request = httptest.NewRequest("POST", "/", nil)
+	candidates, err := h.loadEpisodeImportMediaCandidates(c, "series", nil)
+	require.NoError(t, err)
+	require.Len(t, candidates, 27)
+	require.Equal(t, 1, requests)
+	byID := map[string]models.EpisodeImportMediaCandidate{}
+	for _, candidate := range candidates {
+		byID[candidate.MediaItemID] = candidate
+	}
+	for _, item := range payload.Items {
+		got, exists := byID[item.ID]
+		require.True(t, exists)
+		resolved, err := resolveJellyfinMediaSource(item, nil)
+		require.NoError(t, err)
+		require.Equal(t, resolved.Snapshot.MediaSourceID, got.MediaSourceID)
+		require.True(t, got.StreamsComplete)
+		require.Equal(t, resolved.Container, got.Container)
+		require.Equal(t, resolved.Snapshot.AudioTracks, got.AudioTracks)
+		require.Equal(t, resolved.Snapshot.SubtitleTracks, got.SubtitleTracks)
+	}
+	candidates = filterAlreadyMappedCandidates(candidates, models.EpisodeImportExistingCoverage{Mappings: []models.EpisodeImportMappingRow{{MediaItemID: payload.Items[0].ID}}})
+	require.Len(t, candidates, 26)
+	preview := buildEpisodeImportPreview(1, "11eyes", nil, nil, nil, nil, candidates, 0)
+	require.Len(t, preview.Mappings, 26)
+	for _, mapping := range preview.Mappings {
+		require.Equal(t, byID[mapping.MediaItemID].MediaSourceID, mapping.MediaSourceID)
+		require.NotEmpty(t, mapping.MediaSourceID)
+	}
+	t.Log("preview: 1 unchanged collection request; 27 actual items despite 38 distinct sources; 26 after one existing-coverage filter")
 }

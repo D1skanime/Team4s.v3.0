@@ -2,6 +2,8 @@ package handlers
 
 import (
 	"context"
+	"errors"
+	"fmt"
 	"log"
 	"net/http"
 	"path"
@@ -122,9 +124,24 @@ func (h *AdminContentHandler) ApplyEpisodeImport(c *gin.Context) {
 		return
 	}
 
+	importContext, status, err := h.loadEpisodeImportContext(c, animeID, false)
+	if err != nil {
+		c.JSON(status, gin.H{"error": gin.H{"message": err.Error()}})
+		return
+	}
+	input, status, err = h.rehydrateEpisodeImportSources(c.Request.Context(), input, importContext)
+	if err != nil {
+		c.JSON(status, gin.H{"error": gin.H{"message": err.Error()}})
+		return
+	}
+
 	result, err := h.episodeImportRepo.Apply(c.Request.Context(), input)
 	if err != nil {
 		status := http.StatusInternalServerError
+		if errors.Is(err, repository.ErrConflict) {
+			c.JSON(http.StatusConflict, gin.H{"error": gin.H{"message": "Die Jellyfin-Zuordnung hat sich geändert. Bitte Vorschau neu laden."}})
+			return
+		}
 		if strings.Contains(err.Error(), "confirmed or skipped") || strings.Contains(err.Error(), "bestaetigt") {
 			status = http.StatusBadRequest
 		}
@@ -134,7 +151,7 @@ func (h *AdminContentHandler) ApplyEpisodeImport(c *gin.Context) {
 	c.JSON(http.StatusOK, gin.H{"data": result})
 }
 
-func (h *AdminContentHandler) loadEpisodeImportContext(c *gin.Context, animeID int64) (models.EpisodeImportContextResult, int, error) {
+func (h *AdminContentHandler) loadEpisodeImportContext(c *gin.Context, animeID int64, resolveSeries ...bool) (models.EpisodeImportContextResult, int, error) {
 	source, err := h.repo.GetAnimeSyncSource(c.Request.Context(), animeID)
 	if err != nil {
 		if err == repository.ErrNotFound {
@@ -151,7 +168,7 @@ func (h *AdminContentHandler) loadEpisodeImportContext(c *gin.Context, animeID i
 		extractJellyfinSourceID(source.Source),
 		extractJellyfinSeriesIDFromSourceLinks(source.SourceLinks),
 	))
-	if jellyfinSeriesID == nil {
+	if jellyfinSeriesID == nil && (len(resolveSeries) == 0 || resolveSeries[0]) {
 		animeTitles := uniqueLookupTitles(source.Title, source.TitleDE, source.TitleEN)
 		resolvedItem, resolveErr := h.resolveEpisodeImportSeriesByFolderPath(c.Request.Context(), animeTitles, folderPath)
 		if resolveErr != nil {
@@ -355,20 +372,11 @@ func (h *AdminContentHandler) loadEpisodeImportMediaCandidates(
 		if normalizedFolderPath != "" && itemPath != "" && !jellyfinPathHasPrefix(itemPath, normalizedFolderPath) {
 			continue
 		}
-		seasonNumber := jellyfinSeasonNumber(item.ParentIndexNumber)
-		episodeNumber := jellyfinEpisodeNumber(item.IndexNumber)
-		candidate := models.EpisodeImportMediaCandidate{
-			MediaItemID:           itemID,
-			FileName:              episodeImportFileName(item),
-			Path:                  itemPath,
-			JellyfinSeasonNumber:  &seasonNumber,
-			JellyfinEpisodeNumber: &episodeNumber,
-			StreamURL:             h.buildJellyfinEditorStreamURL(itemID),
-			VideoQuality:          jellyfinVideoQuality(item.MediaStreams),
-			VideoCodec:            jellyfinStreamCodec(item.MediaStreams, "Video"),
-			AudioCodec:            jellyfinStreamCodec(item.MediaStreams, "Audio"),
-			DurationSeconds:       durationSecondsFromTicks(item.RunTimeTicks),
+		resolved, resolveErr := resolveJellyfinMediaSource(item, nil)
+		if resolveErr != nil {
+			return nil, resolveErr
 		}
+		candidate := h.episodeImportSourceCandidate(item, resolved)
 		candidates = append(candidates, candidate)
 	}
 	sort.Slice(candidates, func(i, j int) bool {
@@ -419,10 +427,11 @@ func buildEpisodeImportPreview(
 	for _, media := range mediaCandidates {
 		targets := resolveEpisodeImportSuggestedTargets(media, seasonOffset, seasonBaseOffsets)
 		row := models.EpisodeImportMappingRow{
-			MediaItemID: media.MediaItemID,
-			FileName:    media.FileName,
-			DisplayPath: episodeImportDisplayPath(media.Path, media.FileName),
-			Status:      models.EpisodeImportMappingStatusSkipped,
+			MediaItemID:   media.MediaItemID,
+			MediaSourceID: media.MediaSourceID,
+			FileName:      media.FileName,
+			DisplayPath:   episodeImportDisplayPath(media.Path, media.FileName),
+			Status:        models.EpisodeImportMappingStatusSkipped,
 		}
 		if fansubGroupName := strings.TrimSpace(importutil.DeriveFansubGroupName(media.FileName, media.Path)); fansubGroupName != "" {
 			row.FansubGroupName = &fansubGroupName
@@ -669,3 +678,84 @@ func normalizeStringPtr(value string) *string {
 }
 
 var _ adminAniSearchEpisodeFetcher = (*services.AniSearchClient)(nil)
+
+// rehydrateEpisodeImportSources accepts only reviewed item/source identities.
+// Technical fields, paths and URLs posted by the browser are replaced wholesale.
+func (h *AdminContentHandler) rehydrateEpisodeImportSources(ctx context.Context, input models.EpisodeImportApplyInput, importContext models.EpisodeImportContextResult) (models.EpisodeImportApplyInput, int, error) {
+	ids := make([]string, 0, len(input.Mappings))
+	for _, mapping := range input.Mappings {
+		if mapping.Status == models.EpisodeImportMappingStatusConfirmed {
+			ids = append(ids, mapping.MediaItemID)
+		}
+	}
+	input.MediaCandidates = []models.EpisodeImportMediaCandidate{}
+	if len(ids) == 0 {
+		return input, http.StatusOK, nil
+	}
+	fail := func(status int, message string) (models.EpisodeImportApplyInput, int, error) {
+		return models.EpisodeImportApplyInput{}, status, fmt.Errorf("%s", message)
+	}
+	if strings.TrimSpace(h.jellyfinBaseURL) == "" || strings.TrimSpace(h.jellyfinAPIKey) == "" {
+		return fail(http.StatusServiceUnavailable, "Jellyfin ist nicht konfiguriert.")
+	}
+	seriesID := strings.TrimSpace(derefString(importContext.JellyfinSeriesID))
+	folder := normalizeJellyfinPath(importContext.FolderPath)
+	if seriesID == "" && folder == "" {
+		return fail(http.StatusConflict, "Der Anime hat keine überprüfbare Jellyfin-Zuordnung.")
+	}
+	bindings, err := h.episodeImportRepo.GetJellyfinSourceBindings(ctx, ids)
+	if err != nil {
+		if errors.Is(err, repository.ErrConflict) {
+			return fail(http.StatusConflict, "Die gespeicherte Jellyfin-Quelle ist ungültig. Bitte Vorschau neu laden.")
+		}
+		return fail(http.StatusInternalServerError, "Jellyfin-Zuordnungen konnten nicht geladen werden.")
+	}
+	items, err := h.getJellyfinSourceItems(ctx, ids)
+	if err != nil {
+		var batchErr *jellyfinSourceBatchError
+		if errors.As(err, &batchErr) {
+			return fail(http.StatusConflict, "Jellyfin-Dateien haben sich geändert. Bitte Vorschau neu laden.")
+		}
+		return fail(http.StatusBadGateway, "Jellyfin-Dateien konnten nicht geladen werden.")
+	}
+	for _, mapping := range input.Mappings {
+		if mapping.Status != models.EpisodeImportMappingStatusConfirmed {
+			continue
+		}
+		item, exists := items[mapping.MediaItemID]
+		if !exists || item.ID != mapping.MediaItemID || item.Type != "Episode" ||
+			(seriesID != "" && strings.TrimSpace(item.SeriesID) != seriesID) ||
+			(folder != "" && !jellyfinPathHasPrefix(item.Path, folder)) {
+			return fail(http.StatusConflict, "Die Jellyfin-Datei gehört nicht zur gespeicherten Anime-Zuordnung.")
+		}
+		var stored *models.JellyfinSourceSnapshot
+		if binding, ok := bindings[mapping.MediaItemID]; ok {
+			stored = &binding
+		}
+		resolved, err := resolveJellyfinMediaSource(item, stored)
+		if err != nil || resolved.Snapshot.MediaSourceID != mapping.MediaSourceID {
+			return fail(http.StatusConflict, "Die geprüfte Jellyfin-Quelle hat sich geändert. Bitte Vorschau neu laden.")
+		}
+		if folder != "" && !jellyfinPathHasPrefix(resolved.Snapshot.SourcePath, folder) {
+			return fail(http.StatusConflict, "Die Jellyfin-Quelle gehört nicht zum gespeicherten Anime-Ordner.")
+		}
+		if !resolved.Snapshot.StreamsComplete && (stored == nil || !stored.StreamsComplete) {
+			return fail(http.StatusConflict, "Die Jellyfin-Quelle enthält keine vollständigen Stream-Daten. Bitte Vorschau neu laden.")
+		}
+		input.MediaCandidates = append(input.MediaCandidates, h.episodeImportSourceCandidate(item, resolved))
+	}
+	return input, http.StatusOK, nil
+}
+
+func (h *AdminContentHandler) episodeImportSourceCandidate(item jellyfinEpisodeItem, resolved resolvedJellyfinMediaSource) models.EpisodeImportMediaCandidate {
+	season, episode := jellyfinSeasonNumber(item.ParentIndexNumber), jellyfinEpisodeNumber(item.IndexNumber)
+	return models.EpisodeImportMediaCandidate{
+		MediaItemID: item.ID, MediaSourceID: resolved.Snapshot.MediaSourceID,
+		FileName: resolved.FileName, Path: resolved.Snapshot.SourcePath, Container: resolved.Container,
+		StreamsComplete: resolved.Snapshot.StreamsComplete, SelectedAudioIndex: resolved.Snapshot.SelectedAudioIndex,
+		AudioTracks: resolved.Snapshot.AudioTracks, SubtitleTracks: resolved.Snapshot.SubtitleTracks,
+		JellyfinSeasonNumber: &season, JellyfinEpisodeNumber: &episode,
+		StreamURL: h.buildJellyfinEditorStreamURL(item.ID), VideoQuality: resolved.VideoQuality,
+		VideoCodec: resolved.VideoCodec, AudioCodec: resolved.AudioCodec, DurationSeconds: resolved.DurationSeconds,
+	}
+}

@@ -32,7 +32,39 @@ func validateEpisodeImportApplyRequest(animeID int64, req adminEpisodeImportAppl
 		MediaCandidates:   req.MediaCandidates,
 		Mappings:          req.Mappings,
 	}
+	candidates := make(map[string]models.EpisodeImportMediaCandidate, len(input.MediaCandidates))
+	for _, candidate := range input.MediaCandidates {
+		id := strings.TrimSpace(candidate.MediaItemID)
+		if id == "" || strings.Contains(id, ",") {
+			return models.EpisodeImportApplyInput{}, fmt.Errorf("ungültige Jellyfin-Datei")
+		}
+		if _, exists := candidates[id]; exists {
+			return models.EpisodeImportApplyInput{}, fmt.Errorf("doppelte Jellyfin-Datei")
+		}
+		candidates[id] = candidate
+	}
+	seen := make(map[string]bool, len(input.Mappings))
 	for index, mapping := range input.Mappings {
+		mapping.MediaItemID = strings.TrimSpace(mapping.MediaItemID)
+		input.Mappings[index].MediaItemID = mapping.MediaItemID
+		if mapping.Status == models.EpisodeImportMappingStatusConfirmed {
+			if mapping.MediaItemID == "" || seen[mapping.MediaItemID] {
+				return models.EpisodeImportApplyInput{}, fmt.Errorf("ungültige oder doppelte Jellyfin-Zuordnung")
+			}
+			seen[mapping.MediaItemID] = true
+			candidate, exists := candidates[mapping.MediaItemID]
+			if !exists || strings.TrimSpace(mapping.MediaSourceID) == "" || mapping.MediaSourceID != candidate.MediaSourceID {
+				return models.EpisodeImportApplyInput{}, fmt.Errorf("geprüfte Jellyfin-Quelle fehlt oder ist widersprüchlich")
+			}
+			if len(mapping.TargetEpisodeNumbers) == 0 {
+				return models.EpisodeImportApplyInput{}, fmt.Errorf("Zielepisode fehlt")
+			}
+			for _, number := range mapping.TargetEpisodeNumbers {
+				if number <= 0 {
+					return models.EpisodeImportApplyInput{}, fmt.Errorf("ungültige Zielepisode")
+				}
+			}
+		}
 		if len(mapping.FansubGroups) > 0 {
 			validatedGroups, err := validateSelectedFansubGroups(mapping.FansubGroups)
 			if err != nil {
@@ -43,7 +75,7 @@ func validateEpisodeImportApplyRequest(animeID int64, req adminEpisodeImportAppl
 		switch mapping.Status {
 		case models.EpisodeImportMappingStatusConfirmed, models.EpisodeImportMappingStatusSkipped:
 		case models.EpisodeImportMappingStatusSuggested, models.EpisodeImportMappingStatusConflict:
-			return models.EpisodeImportApplyInput{}, fmt.Errorf("alle mappings muessen bestaetigt oder uebersprungen sein")
+			return models.EpisodeImportApplyInput{}, fmt.Errorf("alle Zuordnungen müssen bestätigt oder übersprungen sein")
 		default:
 			return models.EpisodeImportApplyInput{}, fmt.Errorf("ungültiger mapping status")
 		}

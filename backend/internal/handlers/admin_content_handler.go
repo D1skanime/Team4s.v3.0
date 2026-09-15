@@ -141,6 +141,7 @@ type adminAnimeAssetSearchService interface {
 }
 
 type adminEpisodeImportRepository interface {
+	GetJellyfinSourceBindings(ctx context.Context, itemIDs []string) (map[string]models.JellyfinSourceSnapshot, error)
 	Apply(ctx context.Context, input models.EpisodeImportApplyInput) (*models.EpisodeImportApplyResult, error)
 	PreviewExistingCoverage(ctx context.Context, animeID int64) (models.EpisodeImportExistingCoverage, error)
 }
