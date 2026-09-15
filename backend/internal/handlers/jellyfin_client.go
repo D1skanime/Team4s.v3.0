@@ -10,6 +10,7 @@ import (
 	"net"
 	"net/http"
 	"net/url"
+	"strconv"
 	"strings"
 	"time"
 	"unicode/utf8"
@@ -25,12 +26,16 @@ import (
 
 // jellyfinEpisodeListResponse enthält die Jellyfin-API-Antwort für Episodenlisten.
 type jellyfinEpisodeListResponse struct {
-	Items []jellyfinEpisodeItem `json:"Items"`
+	Items            []jellyfinEpisodeItem `json:"Items"`
+	TotalRecordCount *int                  `json:"TotalRecordCount"`
 }
 
 // jellyfinEpisodeItem repräsentiert eine einzelne Episode aus der Jellyfin-API.
 type jellyfinEpisodeItem struct {
 	ID                string                `json:"Id"`
+	Type              string                `json:"Type"`
+	SeriesID          string                `json:"SeriesId"`
+	ParentID          string                `json:"ParentId"`
 	Name              string                `json:"Name"`
 	Path              string                `json:"Path"`
 	IndexNumber       *int                  `json:"IndexNumber"`
@@ -83,16 +88,57 @@ func (h *AdminContentHandler) listJellyfinEpisodes(
 	ctx context.Context,
 	seriesID string,
 ) ([]jellyfinEpisodeItem, error) {
-	values := url.Values{}
-	values.Set("Fields", "MediaStreams,Path,RunTimeTicks")
-	values.Set("EnableUserData", "false")
-
-	var payload jellyfinEpisodeListResponse
-	if _, err := h.fetchJellyfinJSON(ctx, fmt.Sprintf("/Shows/%s/Episodes", url.PathEscape(seriesID)), values, &payload); err != nil {
-		return nil, err
+	values := url.Values{"Fields": {jellyfinSourceFields}, "EnableUserData": {"false"}, "EnableTotalRecordCount": {"true"}}
+	items := make([]jellyfinEpisodeItem, 0)
+	seen := make(map[string]bool)
+	var expectedTotal *int
+	for {
+		if err := ctx.Err(); err != nil {
+			return nil, err
+		}
+		if len(items) > 0 {
+			values.Set("StartIndex", strconv.Itoa(len(items)))
+		}
+		var payload jellyfinEpisodeListResponse
+		if _, err := h.fetchJellyfinJSON(ctx, fmt.Sprintf("/Shows/%s/Episodes", url.PathEscape(seriesID)), values, &payload); err != nil {
+			return nil, err
+		}
+		if expectedTotal != nil && (payload.TotalRecordCount == nil || *payload.TotalRecordCount != *expectedTotal) {
+			return nil, &jellyfinSourceBatchError{Kind: "incomplete"}
+		}
+		if payload.TotalRecordCount != nil {
+			total := *payload.TotalRecordCount
+			if total < 0 {
+				return nil, &jellyfinSourceBatchError{Kind: "incomplete"}
+			}
+			expectedTotal = &total
+		}
+		for _, item := range payload.Items {
+			id := strings.TrimSpace(item.ID)
+			if id == "" {
+				return nil, &jellyfinSourceBatchError{Kind: "missing"}
+			}
+			if seen[id] {
+				return nil, &jellyfinSourceBatchError{Kind: "duplicate", ItemIDs: []string{id}}
+			}
+			seen[id] = true
+			item.ID = id
+			items = append(items, item)
+		}
+		if expectedTotal == nil {
+			return items, nil
+		}
+		if len(items) > *expectedTotal {
+			return nil, &jellyfinSourceBatchError{Kind: "incomplete"}
+		}
+		if len(items) == *expectedTotal {
+			return items, nil
+		}
+		if len(payload.Items) == 0 {
+			return nil, &jellyfinSourceBatchError{Kind: "incomplete"}
+		}
 	}
 
-	return payload.Items, nil
 }
 
 // getJellyfinEpisodeDurationSeconds fetches the runtime for one Jellyfin episode item.
@@ -100,35 +146,7 @@ func (h *AdminContentHandler) getJellyfinEpisodeDurationSeconds(
 	ctx context.Context,
 	itemID string,
 ) (*int32, error) {
-	trimmedItemID := strings.TrimSpace(itemID)
-	if trimmedItemID == "" {
-		return nil, nil
-	}
-
-	values := url.Values{}
-	values.Set("Ids", trimmedItemID)
-	values.Set("Limit", "1")
-	values.Set("Fields", "RunTimeTicks")
-
-	var payload jellyfinEpisodeListResponse
-	statusCode, err := h.fetchJellyfinJSON(ctx, "/Items", values, &payload)
-	if statusCode == http.StatusNotFound {
-		return nil, nil
-	}
-	if err != nil {
-		return nil, err
-	}
-	if len(payload.Items) == 0 {
-		return nil, nil
-	}
-
-	for _, item := range payload.Items {
-		if strings.TrimSpace(item.ID) == trimmedItemID {
-			return jellyfinRuntimeTicksToSeconds(item.RunTimeTicks), nil
-		}
-	}
-
-	return jellyfinRuntimeTicksToSeconds(payload.Items[0].RunTimeTicks), nil
+	return h.getJellyfinSourceDurationSeconds(ctx, itemID, nil)
 }
 
 func jellyfinRuntimeTicksToSeconds(ticks *int64) *int32 {
@@ -184,13 +202,19 @@ func (h *AdminContentHandler) fetchJellyfinJSON(
 	query url.Values,
 	target any,
 ) (int, error) {
+	return fetchJellyfinJSON(ctx, h.httpClient, h.jellyfinBaseURL, h.jellyfinAPIKey, apiPath, query, target)
+}
+
+// fetchJellyfinJSON shares the existing decoder/status/transport lifecycle across
+// metadata owners without creating a synthetic handler or a second auth client.
+func fetchJellyfinJSON(ctx context.Context, client *http.Client, rawBaseURL, rawAPIKey, apiPath string, query url.Values, target any) (int, error) {
 	startedAt := time.Now()
 
-	baseURL := strings.TrimSpace(h.jellyfinBaseURL)
+	baseURL := strings.TrimSpace(rawBaseURL)
 	if baseURL == "" {
 		return http.StatusServiceUnavailable, errors.New("jellyfin base url missing")
 	}
-	apiKey := strings.TrimSpace(h.jellyfinAPIKey)
+	apiKey := strings.TrimSpace(rawAPIKey)
 	if apiKey == "" {
 		return http.StatusServiceUnavailable, errors.New("jellyfin api key missing")
 	}
@@ -200,12 +224,12 @@ func (h *AdminContentHandler) fetchJellyfinJSON(
 		return 0, err
 	}
 
-	req, err := jellyfin.NewRequest(ctx, http.MethodGet, targetURL.String(), baseURL, h.jellyfinAPIKey)
+	req, err := jellyfin.NewRequest(ctx, http.MethodGet, targetURL.String(), baseURL, rawAPIKey)
 	if err != nil {
 		return 0, fmt.Errorf("create jellyfin request: %w", err)
 	}
 
-	resp, err := jellyfin.Do(h.httpClient, req, baseURL)
+	resp, err := jellyfin.Do(client, req, baseURL)
 	if err != nil {
 		log.Printf(
 			"admin_content jellyfin_http: request failed (path=%s, elapsed_ms=%d, category=%s): %v",

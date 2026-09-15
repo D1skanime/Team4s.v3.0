@@ -1012,7 +1012,7 @@ func TestGetJellyfinEpisodeDurationSeconds_UsesRuntimeTicks(t *testing.T) {
 			t.Fatalf("unexpected item ids: %q", query.Get("Ids"))
 		}
 		w.Header().Set("Content-Type", "application/json")
-		_, _ = w.Write([]byte(`{"Items":[{"Id":"episode-1","RunTimeTicks":13830497160}],"TotalRecordCount":1}`))
+		_, _ = w.Write([]byte(`{"Items":[{"Id":"episode-1","RunTimeTicks":99999999990,"MediaSources":[{"Id":"source-1","RunTimeTicks":13830497160,"MediaStreams":[]}]}],"TotalRecordCount":1}`))
 	}))
 	defer server.Close()
 
