@@ -81,20 +81,7 @@ func buildEpisodeVersionMediaFiles(
 		if err != nil {
 			return nil, err
 		}
-		entry := models.EpisodeVersionMediaFile{
-			FileName:      source.FileName,
-			Path:          source.Snapshot.SourcePath,
-			MediaItemID:   itemID,
-			MediaSourceID: &source.Snapshot.MediaSourceID,
-			StreamURL:     streamURLBuilder(itemID),
-			VideoQuality:  source.VideoQuality,
-		}
-		if releaseName := normalizeNullableStringPtr(fileBaseWithoutExt(source.FileName)); releaseName != nil {
-			entry.ReleaseName = releaseName
-		}
-		if episodeNumber := jellyfinEpisodeNumber(item.IndexNumber); episodeNumber > 0 {
-			entry.DetectedEpisodeNumber = &episodeNumber
-		}
+		entry := buildEpisodeVersionMediaFile(item, source, streamURLBuilder)
 
 		files = append(files, entry)
 	}
@@ -115,6 +102,26 @@ func buildEpisodeVersionMediaFiles(
 	})
 
 	return files, nil
+}
+
+// Shared admin projection for already-resolved source metadata; scans omit chapter hints.
+func buildEpisodeVersionMediaFile(item jellyfinEpisodeItem, source resolvedJellyfinMediaSource, streamURLBuilder func(string) *string) models.EpisodeVersionMediaFile {
+	entry := models.EpisodeVersionMediaFile{
+		FileName:      source.FileName,
+		Path:          source.Snapshot.SourcePath,
+		MediaItemID:   source.JellyfinItemID,
+		MediaSourceID: &source.Snapshot.MediaSourceID,
+		StreamURL:     streamURLBuilder(source.JellyfinItemID),
+		VideoQuality:  source.VideoQuality,
+		FileSizeBytes: source.FileSizeBytes,
+	}
+	if releaseName := normalizeNullableStringPtr(fileBaseWithoutExt(source.FileName)); releaseName != nil {
+		entry.ReleaseName = releaseName
+	}
+	if episodeNumber := jellyfinEpisodeNumber(item.IndexNumber); episodeNumber > 0 {
+		entry.DetectedEpisodeNumber = &episodeNumber
+	}
+	return entry
 }
 
 // extractJellyfinSourceID extrahiert die Jellyfin-Serien-ID aus einem Anime-Quellbezeichner im Format "jellyfin:<id>".

@@ -29,11 +29,7 @@ func (h *AdminContentHandler) loadEpisodeVersionEditorContext(
 	}
 
 	version := *resolved.version
-	if version.DurationSeconds == nil {
-		if durationSeconds, err := h.resolveEpisodeVersionDuration(ctx, &version); err == nil && durationSeconds != nil {
-			version.DurationSeconds = durationSeconds
-		}
-	}
+	selectedFile, fileDegraded := h.enrichEpisodeVersionSelectedFile(ctx, &version, resolved.animeSource, resolved.animeFolderPath, resolved.jellyfinSeriesID)
 
 	dateNeighbors, err := h.episodeVersionRepo.ListDateNeighbors(ctx, version.ReleaseVersionID)
 	if err != nil {
@@ -41,12 +37,13 @@ func (h *AdminContentHandler) loadEpisodeVersionEditorContext(
 	}
 
 	return &models.EpisodeVersionEditorContext{
+		SelectedFile:               selectedFile,
 		Version:                    version,
 		AnimeTitle:                 resolved.animeSource.Title,
 		AnimeFolderPath:            resolved.animeFolderPath,
 		SelectedGroups:             resolved.selectedGroups,
 		DateNeighbors:              dateNeighbors,
-		JellyfinEnrichmentDegraded: resolved.jellyfinEnrichmentDegraded,
+		JellyfinEnrichmentDegraded: resolved.jellyfinEnrichmentDegraded || fileDegraded,
 	}, nil
 }
 
@@ -65,6 +62,17 @@ func (h *AdminContentHandler) loadEpisodeVersionContributorContext(
 	animeSource, err := h.repo.GetAnimeSyncSource(ctx, version.AnimeID)
 	if err != nil {
 		return nil, err
+	}
+
+	// Reuse loaded ownership metadata; contributors do not need the admin folder lookup.
+	selectedFile, fileDegraded := h.enrichEpisodeVersionSelectedFile(ctx, version, animeSource, animeSource.FolderName,
+		jellyfinSeriesIDFromAnimeSource(animeSource.Source, animeSource.SourceLinks))
+	if selectedFile != nil {
+		selectedFile = &models.EpisodeVersionMediaFile{
+			FileName:      selectedFile.FileName,
+			FileSizeBytes: selectedFile.FileSizeBytes,
+			ChapterHints:  selectedFile.ChapterHints,
+		}
 	}
 
 	safeVersion := models.EpisodeVersion{
@@ -97,11 +105,46 @@ func (h *AdminContentHandler) loadEpisodeVersionContributorContext(
 	}
 
 	return &models.EpisodeVersionEditorContext{
-		Version:        safeVersion,
-		AnimeTitle:     animeSource.Title,
-		SelectedGroups: selectedGroups,
-		DateNeighbors:  dateNeighbors,
+		SelectedFile:               selectedFile,
+		JellyfinEnrichmentDegraded: fileDegraded,
+		Version:                    safeVersion,
+		AnimeTitle:                 animeSource.Title,
+		SelectedGroups:             selectedGroups,
+		DateNeighbors:              dateNeighbors,
 	}, nil
+}
+
+// enrichEpisodeVersionSelectedFile uses only already-loaded rows and one exact-item
+// request shared by duration, bytes and chapters. No repository or filesystem access.
+func (h *AdminContentHandler) enrichEpisodeVersionSelectedFile(
+	ctx context.Context, version *models.EpisodeVersion, anime *models.AdminAnimeSyncSource, folder *string, seriesID string,
+) (*models.EpisodeVersionMediaFile, bool) {
+	if version == nil || anime == nil || !strings.EqualFold(strings.TrimSpace(version.MediaProvider), "jellyfin") || !h.ensureJellyfinConfiguredForEditor() {
+		return nil, false
+	}
+	itemID := strings.TrimSpace(version.MediaItemID)
+	normalizedFolder := normalizeJellyfinPath(folder)
+	if itemID == "" || (seriesID == "" && normalizedFolder == "") {
+		return nil, false
+	}
+	items, err := fetchJellyfinSourceBatch(ctx, h.httpClient, h.jellyfinBaseURL, h.jellyfinAPIKey, []string{itemID}, true)
+	if err != nil {
+		return nil, true
+	}
+	binding := version.JellyfinSource
+	if binding == nil && version.MediaSourceID != nil {
+		binding = &models.JellyfinSourceSnapshot{Version: 1, MediaSourceID: *version.MediaSourceID}
+	}
+	source, err := resolveReviewedJellyfinSource(items[itemID], itemID, strings.TrimSpace(derefString(version.MediaSourceID)), seriesID, normalizedFolder, binding)
+	if err != nil {
+		return nil, true
+	}
+	if version.DurationSeconds == nil {
+		version.DurationSeconds = source.DurationSeconds
+	}
+	file := buildEpisodeVersionMediaFile(items[itemID], source, h.buildJellyfinEditorStreamURL)
+	file.ChapterHints = &source.ChapterHints
+	return &file, false
 }
 
 // resolveEpisodeVersionEditor lädt die Episodenversion sowie alle abhängigen Daten wie Anime-Quelle, Ordnerpfad und Fansub-Gruppen.

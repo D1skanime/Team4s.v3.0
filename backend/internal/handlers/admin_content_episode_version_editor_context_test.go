@@ -242,10 +242,14 @@ func TestEpisodeVersionEditorContextSelectedFileAndContributor(t *testing.T) {
 					}
 					require.Equal(t, name, file.FileName)
 					require.Equal(t, &size, file.FileSizeBytes)
-					require.NotNil(t, file.ChapterHints)
+					var wire map[string]any
+					require.NoError(t, json.Unmarshal(rec.Body.Bytes(), &wire))
+					wireFile := wire["data"].(map[string]any)["selected_file"].(map[string]any)
+					require.Contains(t, wireFile, "chapter_hints")
 					if alternate {
-						require.Nil(t, *file.ChapterHints)
+						require.Nil(t, wireFile["chapter_hints"])
 					} else {
+						require.NotNil(t, file.ChapterHints)
 						require.Len(t, *file.ChapterHints, 1)
 						require.Equal(t, int64(1298047), (*file.ChapterHints)[0].StartMS)
 					}
@@ -375,4 +379,21 @@ func TestEpisodeVersionMediaFilesSelectedSizeWithoutChapters(t *testing.T) {
 	require.Len(t, files, 1)
 	require.Equal(t, &size, files[0].FileSizeBytes)
 	require.Nil(t, files[0].ChapterHints)
+}
+
+// No repositories are configured: this directly proves enrichment adds zero SQL calls.
+func TestEpisodeVersionEditorContextChapterEnrichmentNeedsNoRepository(t *testing.T) {
+	calls := 0
+	server := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		calls++
+		fmt.Fprint(w, `{"Items":[{"Id":"item","Type":"Episode","SeriesId":"series","Path":"/a","Chapters":[],"MediaSources":[{"Id":"source","Path":"/a","Size":111,"MediaStreams":[]}]}]}`)
+	}))
+	defer server.Close()
+	h := &AdminContentHandler{jellyfinBaseURL: server.URL, jellyfinAPIKey: "key", httpClient: server.Client()}
+	file, degraded := h.enrichEpisodeVersionSelectedFile(context.Background(), &models.EpisodeVersion{MediaProvider: "jellyfin", MediaItemID: "item"}, &models.AdminAnimeSyncSource{}, nil, "series")
+	require.NotNil(t, file)
+	require.False(t, degraded)
+	require.Equal(t, 1, calls)
+	require.NotNil(t, file.ChapterHints)
+	require.Empty(t, *file.ChapterHints)
 }
