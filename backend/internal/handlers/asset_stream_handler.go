@@ -7,6 +7,7 @@ import (
 	"strconv"
 	"strings"
 
+	"team4s.v3/backend/internal/jellyfin"
 	"team4s.v3/backend/internal/middleware"
 
 	"github.com/gin-gonic/gin"
@@ -72,7 +73,7 @@ func (h *AssetStreamHandler) StreamAsset(c *gin.Context) {
 		}
 	}
 
-	targetURL, err := buildProviderStreamURL(
+	targetURL, err := buildJellyfinStreamURL(
 		h.jellyfinBaseURL,
 		h.jellyfinStreamPath,
 		h.jellyfinAPIKey,
@@ -88,7 +89,7 @@ func (h *AssetStreamHandler) StreamAsset(c *gin.Context) {
 		return
 	}
 
-	req, err := http.NewRequestWithContext(c.Request.Context(), http.MethodGet, targetURL, nil)
+	req, err := jellyfin.NewRequest(c.Request.Context(), http.MethodGet, targetURL, h.jellyfinBaseURL, h.jellyfinAPIKey)
 	if err != nil {
 		log.Printf("asset stream: create outbound request failed (asset_id=%q, user_id=%d): %v", assetID, identity.UserID, err)
 		c.JSON(http.StatusInternalServerError, gin.H{
@@ -101,7 +102,7 @@ func (h *AssetStreamHandler) StreamAsset(c *gin.Context) {
 
 	copyProxyHeaders(c.Request.Header, req.Header)
 
-	resp, err := h.httpClient.Do(req)
+	resp, err := jellyfin.Do(h.httpClient, req, h.jellyfinBaseURL)
 	if err != nil {
 		log.Printf("asset stream: upstream request failed (asset_id=%q, user_id=%d): %v", assetID, identity.UserID, err)
 		c.JSON(http.StatusInternalServerError, gin.H{

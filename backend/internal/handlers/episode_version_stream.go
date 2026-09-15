@@ -64,7 +64,7 @@ func (h *FansubHandler) StreamRelease(c *gin.Context) {
 	}
 	targetURL = appendReleaseStreamStartOffset(targetURL, firstNonEmpty([]string{c.Query("startTimeTicks"), c.Query("StartTimeTicks")}))
 
-	req, err := http.NewRequestWithContext(c.Request.Context(), http.MethodGet, targetURL, nil)
+	req, err := h.newProviderRequest(c.Request.Context(), release.MediaProvider, targetURL)
 	if err != nil {
 		log.Printf("release stream: create outbound request failed (release_id=%d): %v", versionID, err)
 		c.JSON(http.StatusInternalServerError, gin.H{"error": gin.H{"message": "interner serverfehler"}})
@@ -73,7 +73,7 @@ func (h *FansubHandler) StreamRelease(c *gin.Context) {
 
 	copyProxyHeaders(c.Request.Header, req.Header)
 
-	resp, err := h.httpClient.Do(req)
+	resp, err := h.doProviderRequest(release.MediaProvider, req)
 	if err != nil {
 		log.Printf("release stream: upstream request failed (release_id=%d): %v", versionID, err)
 		c.JSON(http.StatusInternalServerError, gin.H{"error": gin.H{"message": "stream nicht erreichbar"}})
