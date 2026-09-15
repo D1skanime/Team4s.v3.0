@@ -826,6 +826,7 @@ export function EpisodeVersionEditorPage() {
                 groupId={segmentGroupId}
                 version={segmentVersion}
                 episodeNumber={episodeNumber}
+                chapterHints={editor.chapterHints}
                 durationSeconds={editor.contextData?.version.duration_seconds}
                 releaseVariantId={editor.contextData?.version.id ?? null}
               />

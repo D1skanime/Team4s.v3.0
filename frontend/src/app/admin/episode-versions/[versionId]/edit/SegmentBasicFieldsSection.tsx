@@ -1,11 +1,15 @@
 'use client'
 
+import { Select } from '@/components/ui'
+import type { EpisodeVersionChapterHint } from '@/types/episodeVersion'
 import type { GenericSegmentThemeOption } from './useReleaseSegments'
 import type { FormState } from './SegmentEditPanel'
 import { formatTimeInput, parseFlexibleTimeInput } from './SegmenteTab.helpers'
 import styles from './SegmenteTab.module.css'
 
 interface SegmentBasicFieldsSectionProps {
+  chapterHints?: EpisodeVersionChapterHint[] | null
+  showChapterHints?: boolean
   formState: FormState
   onFormChange: (patch: Partial<FormState>) => void
   genericThemeOptions: GenericSegmentThemeOption[]
@@ -34,6 +38,8 @@ interface SegmentBasicFieldsSectionProps {
  * SegmentEditPanel.tsx uebergeben, hier findet keine eigene Berechnung statt.
  */
 export function SegmentBasicFieldsSection({
+  chapterHints,
+  showChapterHints = false,
   formState,
   onFormChange,
   genericThemeOptions,
@@ -159,6 +165,28 @@ export function SegmentBasicFieldsSection({
             }}
             style={isStartTimeError ? { borderColor: '#c0392b' } : undefined}
           />
+          {showChapterHints && chapterHints && chapterHints.length > 0 ? (
+            <>
+              <label htmlFor="seg-chapter-start">Kapitel als Start</label>
+              <Select
+                id="seg-chapter-start"
+                className={styles.chapterSelect}
+                value=""
+                onChange={(event) => {
+                  if (event.target.value === '') return
+                  const chapter = chapterHints[Number(event.target.value)]
+                  if (chapter) onFormChange({ startTime: formatTimeInput(Math.round(chapter.start_ms / 1000)) })
+                }}
+              >
+                <option value="">Kapitel auswählen</option>
+                {chapterHints.map((chapter, index) => (
+                  <option key={index} value={index}>
+                    {formatTimeInput(chapter.start_ms / 1000, true)} · {chapter.name?.trim() ? chapter.name : `Kapitel ${index + 1}`}
+                  </option>
+                ))}
+              </Select>
+            </>
+          ) : null}
           {isStartTimeError ? (
             <span className={styles.assetError} style={{ display: 'block', marginTop: 4 }}>{formError}</span>
           ) : null}
@@ -180,11 +208,42 @@ export function SegmentBasicFieldsSection({
             }}
             style={isEndTimeError ? { borderColor: '#c0392b' } : undefined}
           />
+          {showChapterHints && chapterHints && chapterHints.length > 0 ? (
+            <>
+              <label htmlFor="seg-chapter-end">Kapitel als Ende</label>
+              <Select
+                id="seg-chapter-end"
+                className={styles.chapterSelect}
+                value=""
+                onChange={(event) => {
+                  if (event.target.value === '') return
+                  const chapter = chapterHints[Number(event.target.value)]
+                  if (chapter) onFormChange({ endTime: formatTimeInput(Math.round(chapter.start_ms / 1000)) })
+                }}
+              >
+                <option value="">Kapitel auswählen</option>
+                {chapterHints.map((chapter, index) => (
+                  <option key={index} value={index}>
+                    {formatTimeInput(chapter.start_ms / 1000, true)} · {chapter.name?.trim() ? chapter.name : `Kapitel ${index + 1}`}
+                  </option>
+                ))}
+              </Select>
+            </>
+          ) : null}
           {isEndTimeError ? (
             <span className={styles.assetError} style={{ display: 'block', marginTop: 4 }}>{formError}</span>
           ) : null}
         </div>
       </div>
+      {showChapterHints ? (
+        <p className={styles.sourceHelpText}>
+          {chapterHints == null
+            ? 'Für diese Datei sind keine verlässlichen Kapitelzeiten verfügbar.'
+            : chapterHints.length === 0
+              ? 'Diese Datei enthält keine Kapitel.'
+              : 'Bei der Übernahme wird auf ganze Sekunden gerundet (z. B. 21:38.047 → 21:38).'}
+        </p>
+      ) : null}
       {isMissingTimeRange ? (
         <div className={styles.assetError}>
           Bitte Start und Ende ausfüllen.

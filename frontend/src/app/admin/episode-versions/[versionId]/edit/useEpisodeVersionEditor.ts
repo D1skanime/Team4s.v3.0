@@ -54,6 +54,7 @@ export function useEpisodeVersionEditor() {
   const [selectedFile, setSelectedFile] = useState<EpisodeVersionMediaFile | null>(null)
   const [hasPendingFileSelection, setHasPendingFileSelection] = useState(false)
   const fileSelectionRevision = useRef(0)
+  const selectedFileInvalidated = useRef(false)
   const [showFilePanel, setShowFilePanel] = useState(false)
   const [advancedMode, setAdvancedMode] = useState(false)
   const [groupQuery, setGroupQuery] = useState('')
@@ -70,6 +71,13 @@ export function useEpisodeVersionEditor() {
   const contextGeneration = useRef(0)
   const loadedRouteVersionId = useRef<number | null>(null)
 
+  const chapterHints = contextData && loadedRouteVersionId.current === versionID &&
+    !selectedFileInvalidated.current && !hasPendingFileSelection &&
+    formState.mediaProvider.trim() === (contextData.version.media_provider || '').trim() &&
+    formState.mediaItemID.trim() === (contextData.version.media_item_id || '').trim() &&
+    normalizeOptional(formState.streamURL) === normalizeOptional(contextData.version.stream_url || '')
+    ? contextData.selected_file?.chapter_hints ?? null : null
+
   const hasUnsavedChanges = baselineRef.current !== '' && (hasPendingFileSelection ||
     buildSnapshot(formState, selectedGroups) !== baselineRef.current)
 
@@ -79,6 +87,7 @@ export function useEpisodeVersionEditor() {
     loadedRouteVersionId.current = null
     baselineRef.current = ''
     setContextData(null)
+    selectedFileInvalidated.current = false
     setSelectedGroups([])
     setSelectedFile(null)
     setHasPendingFileSelection(false)
@@ -116,7 +125,7 @@ export function useEpisodeVersionEditor() {
         setSelectedGroups(nextContext.selected_groups)
         setFolderPath(nextContext.anime_folder_path || '')
         setAvailableFiles([])
-        setSelectedFile(buildFallbackMediaFile(nextContext))
+        setSelectedFile(nextContext.selected_file ?? buildFallbackMediaFile(nextContext))
         setShowFilePanel(false)
         setAdvancedMode(false)
         setGroupQuery('')
@@ -293,12 +302,20 @@ export function useEpisodeVersionEditor() {
           patch.fansub_groups = selectedGroups.map((group) => ({ id: group.id }))
         }
       }
+      if (patch.media_provider !== undefined || patch.media_item_id !== undefined ||
+        patch.media_source_id !== undefined || patch.stream_url !== undefined) {
+        // Optional file metadata belongs to the old binding until a fresh context GET.
+        // Invalidate before awaiting: failed/late saves must not revive the old hints.
+        selectedFileInvalidated.current = true
+        setContextData(current => current ? { ...current, selected_file: null } : current)
+      }
       const response = await updateEpisodeVersion(versionID, patch)
       if (generation !== contextGeneration.current) return
 
       const submittedGroups = metadataOnly ? contextData.selected_groups : selectedGroups
       const savedGroups = response.data.fansub_groups ?? submittedGroups
-      const savedContext = { ...contextData, version: response.data, selected_groups: savedGroups }
+      const savedContext = { ...contextData, version: response.data, selected_groups: savedGroups,
+        selected_file: selectedFileInvalidated.current ? null : contextData.selected_file }
       const savedForm = buildInitialFormState(savedContext)
       setContextData(savedContext)
       baselineRef.current = buildSnapshot(savedForm, savedGroups)
@@ -354,6 +371,7 @@ export function useEpisodeVersionEditor() {
 
   return {
     contextData,
+    chapterHints,
     formState,
     setFormState,
     selectedGroups,

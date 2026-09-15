@@ -10,6 +10,7 @@ import type {
   AdminSegmentLibraryCandidate,
   AdminThemeSegmentContributorCandidate,
 } from '@/types/admin'
+import type { EpisodeVersionChapterHint } from '@/types/episodeVersion'
 import type { GenericSegmentThemeOption } from './useReleaseSegments'
 import {
   formatTimeInput,
@@ -38,6 +39,7 @@ export interface FormState {
 }
 
 interface SegmentEditPanelProps {
+  chapterHints?: EpisodeVersionChapterHint[] | null
   editingSegment: AdminThemeSegment | null
   formState: FormState
   pendingUploadFile: File | null
@@ -75,6 +77,7 @@ interface SegmentEditPanelProps {
 }
 
 export function SegmentEditPanel({
+  chapterHints,
   editingSegment,
   formState,
   pendingUploadFile,
@@ -264,6 +267,8 @@ export function SegmentEditPanel({
         {formError ? <div className={styles.panelError}>{formError}</div> : null}
 
         <SegmentBasicFieldsSection
+          chapterHints={chapterHints}
+          showChapterHints={editingSegment === null && formState.sourceType === 'none' && !pendingUploadFile}
           formState={formState}
           onFormChange={onFormChange}
           genericThemeOptions={genericThemeOptions}

@@ -1547,7 +1547,7 @@ describe('current-file chapter creation assistance', () => {
   })
   it('resets the open creation drawer when the persisted variant changes', async () => {
     const view = await openChapterCreation()
-    view.rerender(<SegmenteTab animeId={1} groupId={2} version="v1" episodeNumber={4} releaseVariantId={482} chapterHints={chapterHints} />)
+    await act(async () => { view.rerender(<SegmenteTab animeId={1} groupId={2} version="v1" episodeNumber={4} releaseVariantId={482} chapterHints={chapterHints} />) })
     expect(screen.queryByLabelText('Start')).toBeNull()
   })
   it('omits current-file hints for existing shared segments', async () => {
@@ -1557,4 +1557,24 @@ describe('current-file chapter creation assistance', () => {
     expect(screen.queryByRole('combobox', { name: 'Kapitel als Start' })).toBeNull()
     expect(screen.queryByText(/verlässlichen Kapitelzeiten/)).toBeNull()
   })
+  it.each(['release_asset', 'jellyfin_theme'])('withholds hints for another playback source (%s)', async sourceType => {
+    await openChapterCreation()
+    fireEvent.change(screen.getByLabelText('Provenance / Fallback-Wahl'), { target: { value: sourceType } })
+    expect(screen.queryByRole('combobox', { name: 'Kapitel als Start' })).toBeNull()
+    expect(screen.queryByText(/verlässlichen Kapitelzeiten/)).toBeNull()
+    expect(mockedCreateAnimeSegment).not.toHaveBeenCalled()
+  })
+  it('keeps manual inputs and makes the existing runtime clamp visible', async () => {
+    await openChapterCreation([{ name: 'End boundary', start_ms: 1500500 }])
+    fireEvent.change(screen.getByRole('combobox', { name: 'Kapitel als Ende' }), { target: { value: '0' } })
+    expect((screen.getByLabelText('Ende') as HTMLInputElement).value).toBe('00:25:01')
+    expect(screen.getByText(/Ende liegt über der bekannten Videodauer/)).toBeTruthy()
+    fireEvent.blur(screen.getByLabelText('Ende'))
+    expect((screen.getByLabelText('Ende') as HTMLInputElement).value).toBe('00:25:00')
+    fireEvent.change(screen.getByLabelText('Start'), { target: { value: '23:00' } })
+    fireEvent.blur(screen.getByLabelText('Start'))
+    expect((screen.getByLabelText('Start') as HTMLInputElement).value).toBe('00:23:00')
+    expect(mockedCreateAnimeSegment).not.toHaveBeenCalled()
+  })
+
 })

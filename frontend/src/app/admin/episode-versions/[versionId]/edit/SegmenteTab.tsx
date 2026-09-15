@@ -26,9 +26,11 @@ import type {
   AdminThemeSegmentPatchRequest,
   AdminThemeSegmentMutationResponse,
 } from '@/types/admin'
+import type { EpisodeVersionChapterHint } from '@/types/episodeVersion'
 import styles from './SegmenteTab.module.css'
 
 interface SegmenteTabProps {
+  chapterHints?: EpisodeVersionChapterHint[] | null
   animeId: number | null
   groupId: number | null
   version: string | null
@@ -38,7 +40,7 @@ interface SegmenteTabProps {
 }
 
 // --- Main component ---
-export function SegmenteTab({ animeId, groupId, version, episodeNumber, durationSeconds, releaseVariantId }: SegmenteTabProps) {
+export function SegmenteTab({ animeId, groupId, version, episodeNumber, durationSeconds, releaseVariantId, chapterHints }: SegmenteTabProps) {
   const {
     segments,
     genericThemeOptions,
@@ -110,6 +112,15 @@ export function SegmenteTab({ animeId, groupId, version, episodeNumber, duration
     setFormState,
     reload,
   })
+
+  // A draft must never silently move to another persisted variant.
+  useEffect(() => {
+    setPanelOpen(false)
+    setEditingSegment(null)
+    setFormState(EMPTY_FORM)
+    setPendingUploadFile(null)
+    setFormError(null)
+  }, [releaseVariantId])
 
   // Load suggestions when episodeNumber changes
   useEffect(() => {
@@ -392,6 +403,7 @@ export function SegmenteTab({ animeId, groupId, version, episodeNumber, duration
       {/* Side panel overlay */}
       {panelOpen ? (
         <SegmentEditPanel
+          chapterHints={chapterHints}
           editingSegment={editingSegment}
           formState={formState}
           pendingUploadFile={pendingUploadFile}

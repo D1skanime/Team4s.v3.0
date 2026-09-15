@@ -169,6 +169,8 @@
 }
 
 .panel {
+  container-type: inline-size;
+  container-name: segment-editor;
   position: fixed;
   right: 0;
   top: 0;
@@ -220,6 +222,7 @@
 }
 
 .panelField {
+  min-width: 0;
   display: flex;
   flex-direction: column;
   gap: 6px;
@@ -253,6 +256,7 @@
 
 .panelFieldRow {
   display: flex;
+  flex-direction: column;
   gap: 12px;
   margin-bottom: 0.75rem;
 }
@@ -266,14 +270,16 @@
   margin-bottom: 0;
 }
 
-/* Mobile-first: Von/Bis- und Start/Ende-Zeitfelder stapeln untereinander statt nebeneinander,
-   sobald die Drawer-Breite (== Viewport-Breite ab min(380px, 100vw)) für zwei Felder plus
-   Zwischenraum eng wird. */
-@media (max-width: 480px) {
+/* Two 160px fields plus the 12px gap require 332px of actual panel content. */
+@container segment-editor (min-width: 332px) {
   .panelFieldRow {
-    flex-direction: column;
-    gap: 0.75rem;
+    flex-direction: row;
   }
+}
+
+.chapterSelect {
+  min-width: 0;
+  max-width: 100%;
 }
 
 .panelError {

@@ -92,12 +92,15 @@ export function parseFlexibleTimeInput(value: string): number | null {
   return nums[0] ?? null
 }
 
-export function formatTimeInput(totalSeconds: number): string {
+export function formatTimeInput(totalSeconds: number, includeMilliseconds = false): string {
   const safe = Math.max(0, totalSeconds)
+  // Restore integer DTO milliseconds after division for display, not whole-second adoption.
+  const milliseconds = Math.round(safe * 1000) % 1000
   const hours = Math.floor(safe / 3600)
   const minutes = Math.floor((safe % 3600) / 60)
-  const seconds = safe % 60
-  return `${String(hours).padStart(2, '0')}:${String(minutes).padStart(2, '0')}:${String(seconds).padStart(2, '0')}`
+  const seconds = includeMilliseconds ? Math.floor(safe % 60) : safe % 60
+  const clock = `${String(hours).padStart(2, '0')}:${String(minutes).padStart(2, '0')}:${String(seconds).padStart(2, '0')}`
+  return includeMilliseconds ? `${clock}.${String(milliseconds).padStart(3, '0')}` : clock
 }
 
 export function parsePositiveEpisodeInput(value: string): number | null {
