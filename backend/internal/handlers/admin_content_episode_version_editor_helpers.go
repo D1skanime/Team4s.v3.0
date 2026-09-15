@@ -2,6 +2,7 @@ package handlers
 
 import (
 	"context"
+	"log"
 	"strings"
 
 	"team4s.v3/backend/internal/models"
@@ -9,11 +10,12 @@ import (
 
 // episodeVersionEditorResolved fasst alle aufgelösten Abhängigkeiten zusammen, die für den Episodenversionsedit-Kontext benötigt werden.
 type episodeVersionEditorResolved struct {
-	version          *models.EpisodeVersion
-	animeSource      *models.AdminAnimeSyncSource
-	animeFolderPath  *string
-	jellyfinSeriesID string
-	selectedGroups   []models.FansubGroupSummary
+	version                    *models.EpisodeVersion
+	animeSource                *models.AdminAnimeSyncSource
+	animeFolderPath            *string
+	jellyfinSeriesID           string
+	jellyfinEnrichmentDegraded bool
+	selectedGroups             []models.FansubGroupSummary
 }
 
 // loadEpisodeVersionEditorContext löst alle für den Editor benötigten Daten auf und gibt den zusammengestellten Bearbeitungskontext zurück.
@@ -39,11 +41,12 @@ func (h *AdminContentHandler) loadEpisodeVersionEditorContext(
 	}
 
 	return &models.EpisodeVersionEditorContext{
-		Version:         version,
-		AnimeTitle:      resolved.animeSource.Title,
-		AnimeFolderPath: resolved.animeFolderPath,
-		SelectedGroups:  resolved.selectedGroups,
-		DateNeighbors:   dateNeighbors,
+		Version:                    version,
+		AnimeTitle:                 resolved.animeSource.Title,
+		AnimeFolderPath:            resolved.animeFolderPath,
+		SelectedGroups:             resolved.selectedGroups,
+		DateNeighbors:              dateNeighbors,
+		JellyfinEnrichmentDegraded: resolved.jellyfinEnrichmentDegraded,
 	}, nil
 }
 
@@ -116,7 +119,7 @@ func (h *AdminContentHandler) resolveEpisodeVersionEditor(
 		return nil, err
 	}
 
-	folderPath, seriesID, err := h.resolveEpisodeVersionFolderPath(ctx, animeSource)
+	folderPath, seriesID, degraded, err := h.resolveEpisodeVersionFolderPath(ctx, animeSource)
 	if err != nil {
 		return nil, err
 	}
@@ -127,41 +130,47 @@ func (h *AdminContentHandler) resolveEpisodeVersionEditor(
 	}
 
 	return &episodeVersionEditorResolved{
-		version:          version,
-		animeSource:      animeSource,
-		animeFolderPath:  folderPath,
-		jellyfinSeriesID: seriesID,
-		selectedGroups:   selectedGroups,
+		version:                    version,
+		animeSource:                animeSource,
+		animeFolderPath:            folderPath,
+		jellyfinSeriesID:           seriesID,
+		jellyfinEnrichmentDegraded: degraded,
+		selectedGroups:             selectedGroups,
 	}, nil
 }
 
 // resolveEpisodeVersionFolderPath ermittelt den Dateisystempfad zum Anime-Ordner anhand der Anime-Quelle, bevorzugt Jellyfin-Daten.
+// Der Ordnerpfad ist reine Anreicherung, kein Pflichtdatum: Jede Art von Jellyfin-Fehler
+// (401/403/5xx/Timeout/Netzwerkfehler) wird toleriert und fällt auf folder_name zurück,
+// analog zu resolveEpisodeVersionDuration's bestehendem Toleranzmuster. Der dritte Rückgabewert
+// signalisiert dem Aufrufer, ob genau dieser Toleranzfall eingetreten ist.
 func (h *AdminContentHandler) resolveEpisodeVersionFolderPath(
 	ctx context.Context,
 	animeSource *models.AdminAnimeSyncSource,
-) (*string, string, error) {
+) (*string, string, bool, error) {
 	if animeSource == nil {
-		return nil, "", nil
+		return nil, "", false, nil
 	}
 
 	if seriesID := jellyfinSeriesIDFromAnimeSource(animeSource.Source, animeSource.SourceLinks); seriesID != "" {
 		if h.ensureJellyfinConfiguredForEditor() {
 			series, err := h.getJellyfinSeriesByID(ctx, seriesID)
 			if err != nil {
-				return nil, "", err
+				log.Printf("admin_content episode_version_editor_context: jellyfin folder path lookup degraded seriesID=%s err=%v", seriesID, err)
+				return normalizeNullableStringPtr(derefString(animeSource.FolderName)), seriesID, true, nil
 			}
 			if series != nil {
-				return normalizeNullableStringPtr(series.Path), seriesID, nil
+				return normalizeNullableStringPtr(series.Path), seriesID, false, nil
 			}
 		}
-		return normalizeNullableStringPtr(derefString(animeSource.FolderName)), seriesID, nil
+		return normalizeNullableStringPtr(derefString(animeSource.FolderName)), seriesID, false, nil
 	}
 
 	if rawSource := strings.TrimSpace(derefString(animeSource.Source)); rawSource != "" {
-		return normalizeNullableStringPtr(rawSource), "", nil
+		return normalizeNullableStringPtr(rawSource), "", false, nil
 	}
 
-	return normalizeNullableStringPtr(derefString(animeSource.FolderName)), "", nil
+	return normalizeNullableStringPtr(derefString(animeSource.FolderName)), "", false, nil
 }
 
 // resolveEpisodeVersionDuration ergaenzt eine fehlende Laufzeit aus der aktuell verknuepften Provider-Datei.

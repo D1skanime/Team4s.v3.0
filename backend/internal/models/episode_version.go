@@ -149,6 +149,10 @@ type EpisodeVersionEditorContext struct {
 	AnimeFolderPath *string                      `json:"anime_folder_path,omitempty"`
 	SelectedGroups  []FansubGroupSummary         `json:"selected_groups"`
 	DateNeighbors   []EpisodeVersionDateNeighbor `json:"date_neighbors"`
+	// JellyfinEnrichmentDegraded is true only when a configured Jellyfin connection was
+	// attempted while resolving the folder path and failed (any upstream error kind); the
+	// admin-facing response still succeeds with the anime source's folder_name fallback.
+	JellyfinEnrichmentDegraded bool `json:"jellyfin_enrichment_degraded,omitempty"`
 }
 
 // EpisodeVersionMediaFile repräsentiert eine einzelne Mediendatei aus einem

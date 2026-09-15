@@ -14744,6 +14744,14 @@ components:
             query with the existing editor request; lookup failure fails the context response.
           items:
             $ref: "#/components/schemas/EpisodeVersionDateNeighbor"
+        jellyfin_enrichment_degraded:
+          type: boolean
+          description: >-
+            True only when a configured Jellyfin connection was attempted while resolving
+            the anime folder path and failed (any upstream error kind: 401/403/5xx/timeout/
+            network error); anime_folder_path still falls back to the anime source's stored
+            folder_name in that case. Absent or false when Jellyfin is not configured, or
+            when the Jellyfin lookup succeeds.
     EpisodeVersionDateNeighbor:
       type: object
       required: [fansub_group_id, field, direction, release_version_id, episode_number, date]
