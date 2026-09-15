@@ -30,8 +30,10 @@ type episodeVersionWriteState struct {
 	StreamURL           *string
 }
 
-func loadEpisodeVersionStateForUpdate(ctx context.Context, tx pgx.Tx, versionID int64) (*episodeVersionWriteState, error) {
+func loadEpisodeVersionStateForUpdate(ctx context.Context, tx pgx.Tx, versionID int64, lock bool) (*episodeVersionWriteState, error) {
 	state := episodeVersionWriteState{}
+ lockClause := ""
+ if lock { lockClause = " FOR UPDATE OF rv, rev, fr" }
 	if err := tx.QueryRow(ctx, `
 		SELECT
 			rv.id,
@@ -57,8 +59,7 @@ func loadEpisodeVersionStateForUpdate(ctx context.Context, tx pgx.Tx, versionID 
 		WHERE rv.id = $1 OR rev.id = $1
 		ORDER BY rv.id ASC
 		LIMIT 1
-		FOR UPDATE OF rv, rev, fr
-	`, versionID).Scan(
+	`+lockClause, versionID).Scan(
 		&state.VariantID,
 		&state.ReleaseVersionID,
 		&state.ReleaseID,
@@ -119,24 +120,19 @@ func applyEpisodeVersionVariantMetadata(
 	videoQuality *string,
 	subtitleType *string,
 	crc32 *string,
-	title *string,
 	durationSeconds *int32,
 ) error {
-	filename := strings.TrimSpace(derefString(title))
-	container := strings.TrimPrefix(strings.ToLower(pathExt(filename)), ".")
 	if _, err := tx.Exec(ctx, `
 		UPDATE release_variants
 		SET resolution = $1,
 		    video_quality = $1,
 		    subtitle_type = $2,
 		    crc32 = $3,
-		    filename = NULLIF($4, ''),
-		    container = NULLIF($5, ''),
-		    duration_seconds = $6,
+		    duration_seconds = $4,
 		    updated_at = NOW(),
 		    modified_at = NOW()
-		WHERE id = $7
-	`, videoQuality, subtitleType, crc32, filename, container, durationSeconds, variantID); err != nil {
+		WHERE id = $5
+	`, videoQuality, subtitleType, crc32, durationSeconds, variantID); err != nil {
 		return fmt.Errorf("update release variant metadata variant=%d: %w", variantID, err)
 	}
 	return nil
@@ -427,4 +423,26 @@ func pathExt(value string) string {
 
 func phase20ReleaseImportDeferred(action string, id int64) error {
 	return fmt.Errorf("%s %d is deferred until Phase 20 release-native import writes are implemented", action, id)
+}
+
+// Lock the source before any variant lock. Item bindings shared by another anime
+// cannot be attached to this anime, and the shared namespace helper rejects a
+// different nested source even if other versions happen to share the item.
+func prepareEpisodeVersionSource(ctx context.Context, tx pgx.Tx, animeID int64, provider, itemID string, url *string, snapshot *models.JellyfinSourceSnapshot) (int64,error) {
+ id,err:=upsertStreamSourceSnapshot(ctx,tx,provider,itemID,url,snapshot)
+ if err!=nil{return 0,err}
+ var foreign bool
+ if err=tx.QueryRow(ctx,`SELECT EXISTS(SELECT 1 FROM release_streams rs
+ JOIN release_variants rv ON rv.id=rs.variant_id JOIN release_versions rev ON rev.id=rv.release_version_id
+ JOIN fansub_releases fr ON fr.id=rev.release_id JOIN episodes e ON e.id=fr.episode_id
+ WHERE rs.stream_source_id=$1 AND e.anime_id<>$2)`,id,animeID).Scan(&foreign);err!=nil{return 0,err}
+ if foreign{return 0,ErrConflict};return id,nil
+}
+
+func applyEpisodeVersionSourceTechnicalFields(ctx context.Context,tx pgx.Tx,variantID int64,
+ filename,container,videoCodec,audioCodec,quality *string,duration *int32) error {
+ _,err:=tx.Exec(ctx,`UPDATE release_variants SET filename=$1,container=$2,video_codec=$3,audio_codec=$4,
+ resolution=$5,video_quality=$5,duration_seconds=$6,updated_at=NOW(),modified_at=NOW() WHERE id=$7`,
+ filename,container,videoCodec,audioCodec,quality,duration,variantID)
+ return err
 }
