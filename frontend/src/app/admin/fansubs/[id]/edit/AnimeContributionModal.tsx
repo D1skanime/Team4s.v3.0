@@ -1,6 +1,6 @@
 'use client'
 
-import { useEffect, useMemo, useState } from 'react'
+import { useEffect, useMemo, useRef, useState } from 'react'
 import { Pencil, Plus, Trash2, Users } from 'lucide-react'
 
 import {
@@ -67,6 +67,11 @@ export default function AnimeContributionModal({
   onSaved,
 }: Props) {
   const { roles: contributionRoles, error: roleCatalogError } = useRoleCatalog('anime_contribution')
+  // Effect liest den Katalog nur bei der Hydrierung aus den Props, soll aber NICHT bei
+  // jeder Katalog-Referenzaenderung neu hydrieren (kein Verlust unbestaetigter Zeilen,
+  // kein Risiko einer Endlosschleife, falls der Katalog-Provider seine Referenz aendert).
+  const contributionRolesRef = useRef(contributionRoles)
+  contributionRolesRef.current = contributionRoles
   const [stagedRows, setStagedRows] = useState<EditableProjectContribution[]>([])
   const [originalProjectRows, setOriginalProjectRows] = useState<AnimeContribution[]>([])
   const [originalRolesById, setOriginalRolesById] = useState<Record<number, string[]>>({})
@@ -79,19 +84,20 @@ export default function AnimeContributionModal({
   const [error, setError] = useState<string | null>(null)
 
   useEffect(() => {
+    const currentContributionRoles = contributionRolesRef.current
     const projectRows = existingContributions
       .filter((contribution) => contribution.release_version_id == null)
       .map((contribution) => ({
         ...contribution,
-        role_codes: normalizeRoleCodes(contributionRoles, contribution.role_codes ?? []),
+        role_codes: normalizeRoleCodes(currentContributionRoles, contribution.role_codes ?? []),
       }))
 
     const focusedRoleExists = Boolean(
       focusedRoleCode &&
-        contributionRoles.some((role) => role.code === focusedRoleCode),
+        currentContributionRoles.some((role) => role.code === focusedRoleCode),
     )
 
-    setStagedRows(projectRows.map((row) => toEditableRow(row, contributionRoles)))
+    setStagedRows(projectRows.map((row) => toEditableRow(row, currentContributionRoles)))
     setOriginalProjectRows(projectRows)
     setOriginalRolesById(
       Object.fromEntries(projectRows.map((row) => [row.id, row.role_codes])),

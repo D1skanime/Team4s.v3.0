@@ -1,6 +1,6 @@
 'use client'
 
-import { useEffect, useState } from 'react'
+import { useEffect, useRef, useState } from 'react'
 import { Pencil, Plus, Trash2, Users } from 'lucide-react'
 
 import {
@@ -51,6 +51,11 @@ export function ReleaseContributionDrawer({
   onSaved,
 }: ReleaseContributionDrawerProps) {
   const { roles: contributionRoles } = useRoleCatalog('anime_contribution')
+  // Effect liest den Katalog nur beim Laden der Antwort, soll aber NICHT bei jeder
+  // Katalog-Referenzaenderung neu fetchen (kein zusaetzlicher Request, kein Risiko
+  // einer Endlosschleife, falls der Katalog-Provider seine Referenz aendert).
+  const contributionRolesRef = useRef(contributionRoles)
+  contributionRolesRef.current = contributionRoles
   const [stagedRows, setStagedRows] = useState<EditableContributionRow[]>([])
   const [members, setMembers] = useState<UnifiedGroupMember[]>([])
   const [snapshotMode, setSnapshotMode] = useState<ReleaseCrewSnapshotMode>('inherited')
@@ -85,7 +90,7 @@ export function ReleaseContributionDrawer({
         if (cancelled) return
         const rows = (contributionsResult.data ?? []).map((row) => ({
           ...row,
-          role_codes: normalizeRoleCodes(contributionRoles, row.role_codes),
+          role_codes: normalizeRoleCodes(contributionRolesRef.current, row.role_codes),
         }))
 
         setMembers(membersResult ?? [])
