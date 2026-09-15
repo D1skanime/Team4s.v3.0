@@ -46,7 +46,7 @@ const segments: PublicReleaseSegment[] = [{
   end_seconds: 1_290,
   duration_seconds: 90,
   readiness: 'ready' as const,
-  participants: [{ member_id: 42, name: 'Noah', role_label: 'Typesetting', segment_role_label: 'Typesetting / Logo', role_codes: ['typesetter'], member_slug: null, avatar_url: null }],
+  participants: [{ member_id: 42, name: 'Noah', role_label: 'Typesetting', segment_role_label: 'Karaoke-Typesetting', role_codes: ['typesetter'], member_slug: null, avatar_url: null }],
   preview_url: null,
 }, {
   theme_segment_id: 9,
@@ -282,11 +282,11 @@ describe('ThemeTimeline Phase 156-08 project-context member links', () => {
   it('renders a participant with member_slug null as plain text (no link) even when projectPath is provided', () => {
     renderTimeline({
       projectPath: '/fansubs/csubs/fansubprojekt/moonlight',
-      segments: [{ ...segments[0], participants: [{ member_id: 42, name: 'Noah', role_label: 'Typesetting', segment_role_label: 'Typesetting / Logo', role_codes: ['typesetter'], member_slug: null, avatar_url: null }] }],
+      segments: [{ ...segments[0], participants: [{ member_id: 42, name: 'Noah', role_label: 'Typesetting', segment_role_label: 'Karaoke-Typesetting', role_codes: ['typesetter'], member_slug: null, avatar_url: null }] }],
     })
 
     expect(screen.queryByRole('link', { name: 'Noah' })).toBeNull()
-    expect(screen.getAllByText(/Noah.*Typesetting \/ Logo/).length).toBeGreaterThan(0)
+    expect(screen.getAllByText(/Noah.*Karaoke-Typesetting/).length).toBeGreaterThan(0)
   })
 })
 
