@@ -17,14 +17,10 @@ import { AnimeContextFansubs } from "../../components/AnimeContext/AnimeContextF
 import { AnimeContextFansubManager } from "../../components/AnimeContext/AnimeContextFansubManager";
 import styles from "../../AdminStudio.module.css";
 import { parsePositiveInt, resolveCoverUrl } from "../../utils/anime-helpers";
-import { formatAdminError } from "../../utils/studio-helpers";
+import { formatEditLoadError } from "./formatEditLoadError";
 
 function formatAnimeLabel(anime: AnimeDetail): string {
   return `${String(anime.id).padStart(3, "0")} ${anime.title}`;
-}
-
-export function formatEditLoadError(error: unknown): string {
-  return formatAdminError(error, "Anime konnte nicht geladen werden.");
 }
 
 function AdminAnimeEditContent() {

@@ -6,7 +6,7 @@ import { describe, expect, it } from 'vitest'
 
 import { ApiError } from '@/lib/api'
 
-import { formatEditLoadError } from './page'
+import { formatEditLoadError } from './formatEditLoadError'
 
 describe('AdminAnimeEditPage load error formatting', () => {
   it('surfaces backend details for pre-form load failures', () => {
