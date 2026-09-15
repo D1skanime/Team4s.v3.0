@@ -8,8 +8,15 @@
 .shell {
   margin: 0 auto;
   max-width: 1280px;
+  grid-template-columns: minmax(0, 1fr);
   display: grid;
   gap: 24px;
+}
+
+.shell > *,
+.header > *,
+.form > * {
+  min-width: 0;
 }
 
 .topLinks {
@@ -127,6 +134,7 @@
 
 .form {
   display: grid;
+  grid-template-columns: minmax(0, 1fr);
   gap: 24px;
 }
 
@@ -471,9 +479,15 @@
 
 .tabNav {
   display: flex;
+  overflow-x: auto;
   gap: 0;
   border-bottom: 2px solid #e1e1e6;
   margin-bottom: 1.5rem;
+}
+
+.tabNav > button {
+  flex-shrink: 0;
+  white-space: nowrap;
 }
 
 .tab {
