@@ -348,39 +348,40 @@ export function useReleaseVersionMedia(versionId: number | null): UseReleaseVers
   )
 
   useEffect(() => {
-    if (versionId === null) {
-      setItems([])
-      setError(null)
-      setCapabilities(null)
-      setCapabilitiesError(null)
-      return
-    }
-
     let cancelled = false
-    setIsLoading(true)
-    setError(null)
-    setCapabilitiesError(null)
 
-    Promise.all([
-      getReleaseVersionMedia(versionId),
-      getReleaseVersionCapabilities(versionId),
-    ])
-      .then(([response, capabilitiesResponse]) => {
+    void (async () => {
+      if (versionId === null) {
+        setItems([])
+        setError(null)
+        setCapabilities(null)
+        setCapabilitiesError(null)
+        return
+      }
+
+      setIsLoading(true)
+      setError(null)
+      setCapabilitiesError(null)
+
+      try {
+        const [response, capabilitiesResponse] = await Promise.all([
+          getReleaseVersionMedia(versionId),
+          getReleaseVersionCapabilities(versionId),
+        ])
         if (cancelled) return
         setItems(sortMediaItems(Array.isArray(response.data) ? response.data : []))
         setCapabilities(capabilitiesResponse.data)
-      })
-      .catch((err: unknown) => {
+      } catch (err: unknown) {
         if (cancelled) return
         const message = err instanceof Error ? err.message : String(err)
         setError(message)
         setCapabilitiesError(message)
-      })
-      .finally(() => {
+      } finally {
         if (!cancelled) {
           setIsLoading(false)
         }
-      })
+      }
+    })()
 
     return () => {
       cancelled = true

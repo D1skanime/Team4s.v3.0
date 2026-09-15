@@ -40,19 +40,21 @@ export function useEpisodeNeighborNavigation(
     useState<NeighborNavigationResult>(EMPTY_TARGETS);
 
   useEffect(() => {
-    if (animeId == null || currentVersionId == null) {
-      setIsLoading(false);
-      setError(null);
-      setNavigation(EMPTY_TARGETS);
-      return;
-    }
-
     let cancelled = false;
-    setIsLoading(true);
-    setError(null);
 
-    void getGroupedEpisodes(animeId)
-      .then((response) => {
+    void (async () => {
+      if (animeId == null || currentVersionId == null) {
+        setIsLoading(false);
+        setError(null);
+        setNavigation(EMPTY_TARGETS);
+        return;
+      }
+
+      setIsLoading(true);
+      setError(null);
+
+      try {
+        const response = await getGroupedEpisodes(animeId);
         if (cancelled) return;
         const result = computeNeighborNavigation({
           episodes: response.data.episodes,
@@ -62,8 +64,7 @@ export function useEpisodeNeighborNavigation(
         });
         setNavigation(result);
         setError(null);
-      })
-      .catch((caughtError: unknown) => {
+      } catch (caughtError: unknown) {
         if (cancelled) return;
         const message =
           caughtError instanceof Error
@@ -71,10 +72,10 @@ export function useEpisodeNeighborNavigation(
             : "Nachbar-Folgen konnten nicht geladen werden.";
         setError(message);
         setNavigation(EMPTY_TARGETS);
-      })
-      .finally(() => {
+      } finally {
         if (!cancelled) setIsLoading(false);
-      });
+      }
+    })();
 
     return () => {
       cancelled = true;

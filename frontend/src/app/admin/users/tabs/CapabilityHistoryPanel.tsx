@@ -51,22 +51,24 @@ export function CapabilityHistoryPanel({ fansubGroupId, appUserId, actionCode }:
 
   useEffect(() => {
     let cancelled = false
-    setIsLoading(true)
-    setError(null)
-    fetchOverrideHistory(fansubGroupId, appUserId, 10, 0)
-      .then((result) => {
+
+    void (async () => {
+      setIsLoading(true)
+      setError(null)
+      try {
+        const result = await fetchOverrideHistory(fansubGroupId, appUserId, 10, 0)
         if (cancelled) return
         // Eine gruppen-weite Historie-Seite kann auch Einträge anderer Capabilities enthalten --
         // dieses Panel ist strikt auf EINE Capability skopiert (D-13b).
         setEntries(result.filter((entry) => entry.action_code === actionCode))
-      })
-      .catch((err) => {
+      } catch (err) {
         if (cancelled) return
         setError(err instanceof ApiError ? err.message : 'Historie konnte nicht geladen werden.')
-      })
-      .finally(() => {
+      } finally {
         if (!cancelled) setIsLoading(false)
-      })
+      }
+    })()
+
     return () => {
       cancelled = true
     }
