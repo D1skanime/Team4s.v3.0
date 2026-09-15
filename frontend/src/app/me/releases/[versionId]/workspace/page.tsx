@@ -338,6 +338,7 @@ function MeReleaseWorkspacePage() {
             episodeNumber={version.episode_number}
             durationSeconds={version.duration_seconds}
             releaseVariantId={version.id}
+            chapterHints={context.selected_file?.chapter_hints ?? null}
           />
         </Card>
       ),

@@ -293,6 +293,7 @@ describe('MeReleaseWorkspacePage', () => {
       episodeNumber: 1,
       durationSeconds: undefined,
       releaseVariantId: 42,
+      chapterHints: null,
     })
   })
 
