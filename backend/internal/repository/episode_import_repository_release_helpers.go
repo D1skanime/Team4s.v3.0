@@ -88,17 +88,17 @@ func upsertImportReleaseGraph(
 		}
 		if _, err := tx.Exec(ctx, `
 			UPDATE release_variants
-			SET filename = COALESCE(NULLIF($1, ''), filename),
-			    resolution = COALESCE($2, resolution),
-			    video_quality = COALESCE($2, video_quality),
-			    video_codec = COALESCE($4, video_codec),
-			    audio_codec = COALESCE($5, audio_codec),
-			    duration_seconds = COALESCE($6, duration_seconds),
-			    container = COALESCE($7, container),
+			SET filename = NULLIF($1, ''),
+			    resolution = CASE WHEN $8 THEN $2 ELSE COALESCE($2, resolution) END,
+			    video_quality = CASE WHEN $8 THEN $2 ELSE COALESCE($2, video_quality) END,
+			    video_codec = CASE WHEN $8 THEN $4 ELSE COALESCE($4, video_codec) END,
+			    audio_codec = CASE WHEN $8 THEN $5 ELSE COALESCE($5, audio_codec) END,
+			    duration_seconds = $6,
+			    container = $7,
 			    updated_at = NOW(),
 			    modified_at = NOW()
 			WHERE id = $3
-		`, episodeImportFilename(media), media.VideoQuality, variantID, media.VideoCodec, media.AudioCodec, media.DurationSeconds, media.Container); err != nil {
+		`, episodeImportFilename(media), media.VideoQuality, variantID, media.VideoCodec, media.AudioCodec, media.DurationSeconds, media.Container, media.StreamsComplete); err != nil {
 			return false, fmt.Errorf("update release variant=%d: %w", variantID, err)
 		}
 	}

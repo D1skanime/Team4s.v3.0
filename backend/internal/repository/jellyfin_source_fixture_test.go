@@ -3,6 +3,7 @@ package repository
 import (
 	"context"
 	"encoding/json"
+	"fmt"
 	"github.com/jackc/pgx/v5"
 	"github.com/jackc/pgx/v5/pgxpool"
 	"github.com/stretchr/testify/require"
@@ -134,4 +135,47 @@ func TestJellyfinSourceRepositoryLockedBinding(t *testing.T) {
 	}()
 	require.NoError(t, tx.Commit(ctx))
 	require.ErrorIs(t, <-result, ErrConflict)
+}
+
+type jellyfinBindingQueryCounter struct {
+	count int
+	rows  int64
+}
+
+func (c *jellyfinBindingQueryCounter) TraceQueryStart(ctx context.Context, _ *pgx.Conn, _ pgx.TraceQueryStartData) context.Context {
+	c.count++
+	return ctx
+}
+func (c *jellyfinBindingQueryCounter) TraceQueryEnd(_ context.Context, _ *pgx.Conn, data pgx.TraceQueryEndData) {
+	c.rows += data.CommandTag.RowsAffected()
+}
+func TestJellyfinSourceRepositoryOneBindingQueryFor201Items(t *testing.T) {
+	fixture := openJellyfinSourceFixture(t)
+	ctx := context.Background()
+	raw, err := json.Marshal(sourceFixtureSnapshot("source", "/anime/item", true))
+	require.NoError(t, err)
+	_, err = fixture.Exec(ctx, `INSERT INTO stream_sources(provider_type,external_id,metadata)
+ SELECT 'jellyfin',n::text,jsonb_build_object('jellyfin_source',$1::jsonb) FROM generate_series(0,201) n`, raw)
+	require.NoError(t, err)
+	counter := &jellyfinBindingQueryCounter{}
+	cfg := fixture.Config()
+	cfg.ConnConfig.Tracer = counter
+	cfg.MaxConns = 1
+	pool, err := pgxpool.NewWithConfig(ctx, cfg)
+	require.NoError(t, err)
+	t.Cleanup(pool.Close)
+	require.NoError(t, pool.Ping(ctx))
+	counter.count = 0
+	counter.rows = 0
+	ids := make([]string, 201)
+	for i := range ids {
+		ids[i] = fmt.Sprint(i)
+	}
+	bindings, err := NewEpisodeImportRepository(pool).GetJellyfinSourceBindings(ctx, ids)
+	require.NoError(t, err)
+	require.Len(t, bindings, 201)
+	require.NotContains(t, bindings, "201")
+	require.Equal(t, 1, counter.count)
+	require.EqualValues(t, 201, counter.rows)
+	t.Logf("binding read: %d SQL statement, %d returned rows for 201 requested items", counter.count, counter.rows)
 }
