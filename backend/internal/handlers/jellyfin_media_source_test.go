@@ -273,3 +273,65 @@ func TestResolveJellyfinMediaSource_IncompleteTracksStayOnStoredBinding(t *testi
 		t.Fatalf("same-path incomplete recovery: %+v %v", recovered, err)
 	}
 }
+
+
+func TestResolveJellyfinMediaSource_ChapterAttributionAndSize(t *testing.T) {
+ raw := `{"Id":"item","Path":"/fixture/a.mkv","Chapters":[{"Name":"Own A","StartPositionTicks":0}],"MediaSources":[{"Id":"a","Path":"/fixture/a.mkv","Size":111,"RunTimeTicks":20000000000},{"Id":"b","Path":"/fixture/b.mkv","Size":222,"RunTimeTicks":10000000000}]}`
+ for _, alternate := range []bool{false, true} {
+  item := jellyfinSourceTestItem(t, raw)
+  id, size := "a", float64(111)
+  if alternate { id, size = "b", 222 }
+  for i:=0; i<2; i++ {
+   slices.Reverse(item.MediaSources)
+   got, err := resolveJellyfinMediaSource(item, &models.JellyfinSourceSnapshot{MediaSourceID:id})
+   if err != nil { t.Fatal(err) }
+   encoded, _ := json.Marshal(got)
+   var projection map[string]any
+   json.Unmarshal(encoded, &projection)
+   if projection["FileSizeBytes"] != size { t.Fatalf("selected %s size=%v want=%v",id,projection["FileSizeBytes"],size) }
+   hints, ok := projection["ChapterHints"]
+   if !ok || (alternate && hints != nil) || (!alternate && len(hints.([]any)) != 1) { t.Fatalf("source %s borrowed or lost chapters: %#v",id,hints) }
+  }
+ }
+}
+
+func TestResolveJellyfinMediaSource_ChapterValidation(t *testing.T) {
+ for _, tt := range []struct { name, chapters, path, sourcePath, extraSource, runtime, size string; want any }{
+  {name:"omitted", runtime:"20000000000"},
+  {name:"null", chapters:`null`, runtime:"20000000000"},
+  {name:"empty", chapters:`[]`, want:[]any{}},
+  {name:"zero and exact milliseconds sorted stably", chapters:`[{"Name":"ED","StartPositionTicks":13780430000},{"Name":null,"StartPositionTicks":0},{"Name":"OP","StartPositionTicks":12980470001},{"Name":"same time","StartPositionTicks":12980470001}]`, runtime:"20000000000", want:[]any{map[string]any{"name":nil,"start_ms":float64(0)},map[string]any{"name":"OP","start_ms":float64(1298047)},map[string]any{"name":"same time","start_ms":float64(1298047)},map[string]any{"name":"ED","start_ms":float64(1378043)}}},
+  {name:"invalid entries filtered using raw runtime", chapters:`[{},{"StartPositionTicks":null},{"StartPositionTicks":-1},{"StartPositionTicks":20000001},{"StartPositionTicks":20000000}]`, runtime:"20000000", want:[]any{map[string]any{"name":nil,"start_ms":float64(2000)}}},
+  {name:"all invalid unavailable", chapters:`[{"StartPositionTicks":-1}]`, runtime:"20000000000"},
+  {name:"missing runtime", chapters:`[{"StartPositionTicks":0}]`},
+  {name:"nonpositive runtime", chapters:`[{"StartPositionTicks":0}]`, runtime:"0"},
+  {name:"case differs", chapters:`[]`, path:"/Fixture/a", sourcePath:"/fixture/a"},
+  {name:"empty item path", chapters:`[]`, path:" ", sourcePath:"/fixture/a"},
+  {name:"empty source path", chapters:`[]`, path:"/fixture/a", sourcePath:" "},
+  {name:"duplicate own path", chapters:`[]`, extraSource:`,{"Id":"b","Path":"/fixture/a"}`},
+  {name:"normalizes separators only", chapters:`[]`, path:` /fixture\\a `, sourcePath:"/fixture/a", want:[]any{}},
+ } {
+  t.Run(tt.name,func(t *testing.T) {
+   if tt.path=="" { tt.path="/fixture/a" }; if tt.sourcePath=="" { tt.sourcePath="/fixture/a" }; if tt.runtime=="" { tt.runtime="null" }
+   raw := `{"Id":"item","Path":"`+tt.path+`","MediaSources":[{"Id":"a","Path":"`+tt.sourcePath+`","RunTimeTicks":`+tt.runtime+`}`+tt.extraSource+`]`
+   if tt.chapters!="" {raw+=`,"Chapters":`+tt.chapters}; raw+=`}`
+   got,err:=resolveJellyfinMediaSource(jellyfinSourceTestItem(t,raw),&models.JellyfinSourceSnapshot{MediaSourceID:"a"})
+   if err!=nil {t.Fatal(err)}
+   encoded,_:=json.Marshal(got);var fields map[string]any;json.Unmarshal(encoded,&fields)
+   hints,ok:=fields["ChapterHints"]
+   if !ok || !reflect.DeepEqual(hints,tt.want) {t.Fatalf("chapters=%#v want=%#v (present=%v)",hints,tt.want,ok)}
+  })
+ }
+ for _, count:=range []int{256,257} {
+  entries:=strings.Repeat(`{"StartPositionTicks":0},`,count)
+  raw:=`{"Id":"item","Path":"/a","MediaSources":[{"Id":"a","Path":"/a","RunTimeTicks":10000000}],"Chapters":[`+strings.TrimSuffix(entries,",")+`]}`
+  got,err:=resolveJellyfinMediaSource(jellyfinSourceTestItem(t,raw),nil);if err!=nil{t.Fatal(err)}
+  encoded,_:=json.Marshal(got);var fields map[string]any;json.Unmarshal(encoded,&fields)
+  if count==256 { if hints,ok:=fields["ChapterHints"].([]any);!ok||len(hints)!=256{t.Fatal("256 chapters lost")} } else if fields["ChapterHints"]!=nil {t.Fatal("oversized chapter list accepted")}
+ }
+ for _, size:=range []string{"null","0","-1"} {
+  got,err:=resolveJellyfinMediaSource(jellyfinSourceTestItem(t,`{"Id":"item","MediaSources":[{"Id":"a","Size":`+size+`}]}`),nil);if err!=nil{t.Fatal(err)}
+  encoded,_:=json.Marshal(got);var fields map[string]any;json.Unmarshal(encoded,&fields)
+  if fields["FileSizeBytes"]!=nil {t.Fatal("nonpositive size projected")}
+ }
+}
