@@ -4,13 +4,13 @@ milestone: v1.4
 milestone_name: Coverage
 status: executing
 stopped_at: "Completed 156-18-PLAN.md (GAP-07 contributor preselection closed: central rule + 5 call-site swaps + migration 0165, live-verified against team4sv30-db and public API for releases 28/29; 156-UAT.md live-UAT checkpoint remains OPEN)"
-last_updated: "2026-09-14T22:10:12.518Z"
-last_activity: 2026-09-14
+last_updated: "2026-09-15T07:54:43.229Z"
+last_activity: 2026-09-15
 progress:
   total_phases: 24
   completed_phases: 24
-  total_plans: 234
-  completed_plans: 234
+  total_plans: 235
+  completed_plans: 235
   percent: 100
 ---
 
@@ -46,7 +46,7 @@ See: .planning/PROJECT.md (updated 2026-08-13)
 ## Current Position
 
 Phase: 156 (segment-domain-konsistenz-und-oeffentliche-release-projektion) — EXECUTING
-Plan: 2 of 18
+Plan: 2 of 19
 dupliziertem ProjectMemberStickyNav; siehe 157-14-SUMMARY.md)
 Status: Ready to execute
 GAP-02-Live-UAT-Checkpoint aus 156-UAT.md (5 Origin- + 9 Segment-Contributor-Pruefpunkte) bleibt
@@ -842,7 +842,7 @@ timing flakiness, not a Phase 149 regression, and not yet root-caused.
 
 v1.4 remains complete; Phase 149 was appended additively (same pattern as 143-148), no new
 milestone was created.
-Last activity: 2026-09-14
+Last activity: 2026-09-15
 
 ## Accumulated Context
 
@@ -1203,6 +1203,7 @@ Last activity: 2026-09-14
 - [Phase ?]: DECISIONS.md 2026-09-14 Eintrag ist auch die erste durable Aufzeichnung der 2026-09-13 Releases-Sektion-Entfernung (zuvor nur zitiert, nie geschrieben)
 - [Phase ?]: GAP-07 preselection composed via ensureThemeSegmentOriginAndContributorsTx, keeping ensureThemeSegmentOriginTx byte-identical
 - [Phase ?]: testsupport/phase117_postgres.go gained one ADD COLUMN IF NOT EXISTS line (Rule 3) to avoid breaking every Phase-117 test after the five call-site swaps
+- [Phase ?]: GAP-08: SegmentContributorsField-Gate auf origin_release_version_id != null verengt (isSharedSegment-Bedingung entfernt)
 
 ### Pending Todos
 
@@ -1610,10 +1611,11 @@ untruncated list lives in `.planning/todos/pending/`.
 | Phase 157 P15 | 25min | 3 tasks | 14 files |
 | Phase 157 P16 | 15min | - tasks | - files |
 | Phase 156 P18 | 50min | 3 tasks | 16 files |
+| Phase 156 P19 | 20min | 1 tasks | 2 files |
 
 ## Session Continuity
 
-Last session: 2026-09-14T22:10:12.498Z
+Last session: 2026-09-15T07:54:43.207Z
 Stopped at: Completed 156-18-PLAN.md (GAP-07 contributor preselection closed: central rule + 5 call-site swaps + migration 0165, live-verified against team4sv30-db and public API for releases 28/29; 156-UAT.md live-UAT checkpoint remains OPEN)
 Last activity: Larger dot + per-entry role-colored timeline line implemented and live-verified against the running stack; GAP-02 V3/V4 closed automated/technically, human Live-UAT remains a separate open step.
 Resume file: 

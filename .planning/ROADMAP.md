@@ -1593,7 +1593,7 @@ ausdruecklich **kein** visuelles Redesign und kopiert keine Credits in Segmentta
 
 **Depends on:** Phase 155
 
-**Plans:** 18/18 plans complete
+**Plans:** 19/19 plans complete
 
 Plans:
 
