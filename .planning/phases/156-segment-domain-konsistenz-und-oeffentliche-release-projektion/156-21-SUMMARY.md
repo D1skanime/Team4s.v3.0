@@ -152,3 +152,18 @@ None - this plan's threat model (T-156-42, T-156-43, T-156-SC) was pre-declared 
 ---
 *Phase: 156-segment-domain-konsistenz-und-oeffentliche-release-projektion*
 *Completed: 2026-09-15*
+
+## Self-Check: PASSED
+
+- FOUND: backend/internal/repository/theme_segment_contributor_preselection.go
+- FOUND: backend/internal/repository/theme_segment_contributor_preselection_migration_test.go
+- FOUND: backend/internal/repository/theme_segment_contributor_preselection_test.go
+- FOUND: backend/internal/repository/segment_credit_role_filter_test.go
+- FOUND: backend/internal/repository/release_detail_public_repository_segment_credits_test.go
+- FOUND: backend/internal/repository/release_detail_public_repository_segment_contributor_subset_test.go
+- FOUND: backend/internal/repository/theme_segment_contributors.go
+- FOUND: backend/internal/models/admin_anime_themes.go
+- FOUND: backend/internal/repository/theme_segment_contributors_integration_test.go
+- FOUND commit 43a835e9 (fix, Task 1)
+- FOUND commit 4b68a3f8 (test, Task 2)
+- FOUND commit df4c4ca9 (docs, Task 3)
