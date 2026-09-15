@@ -100,5 +100,8 @@ func (h *FansubHandler) GetEpisodeVersionByID(c *gin.Context) {
 		return
 	}
 
-	c.JSON(http.StatusOK, gin.H{"data": item})
+	// The public compatibility read must not expose the editor-only source selector.
+	publicItem := *item
+	publicItem.MediaSourceID = nil
+	c.JSON(http.StatusOK, gin.H{"data": publicItem})
 }

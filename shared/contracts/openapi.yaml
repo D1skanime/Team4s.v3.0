@@ -6423,11 +6423,17 @@ paths:
             minimum: 1
       responses:
         "200":
-          description: Episode version payload
+          description: Public episode version payload; the editor-only media_source_id selector is omitted.
           content:
             application/json:
               schema:
-                $ref: "#/components/schemas/EpisodeVersionResponse"
+                allOf:
+                  - $ref: "#/components/schemas/EpisodeVersionResponse"
+                  - type: object
+                    properties:
+                      data:
+                        not:
+                          required: [media_source_id]
         "400":
           description: Invalid version id
           content:
@@ -14872,7 +14878,7 @@ components:
         media_source_id:
           type: "string"
           nullable: true
-          description: "Reviewed Jellyfin MediaSource identity, distinct from media_item_id. Optional for old records; required for confirmation of a new candidate. Server revalidates on apply/relink."
+          description: "Reviewed Jellyfin source selector for authorized editor/create/update responses only. Omitted from the public single-version GET and contributor context. Distinct from media_item_id; server revalidates explicit relinks."
         id:
           type: integer
           format: int64

@@ -21,6 +21,7 @@ endpoints:
     response:
       status: 200
       type: EpisodeVersionResponse
+      omitted_fields: [media_source_id]
 
   - name: episode-version-editor-context
     method: GET
@@ -394,7 +395,7 @@ types:
     version_count: int32
     versions: EpisodeVersion[]
   EpisodeVersion:
-    media_source_id: string | null (optional; reviewed source identity)
+    media_source_id: string | null (optional; authorized editor/create/update only; omitted on public GET and contributor context)
     id: int64
     anime_id: int64
     episode_number: int32
