@@ -279,11 +279,11 @@ describe("v12 projection contract parity", () => {
   it("documents the pinned paths as direct no-envelope responses", () => {
     const domainPath = getOpenApiBlock(
       "  /fansubs/{id}/domain-projection:\n",
-      /\n  \/media-ownership\/\{ownerType\}\/\{ownerId\}:\n/,
+      /\n(?:  \/[^\n]+:|components:)\n/,
     );
     const mediaPath = getOpenApiBlock(
       "  /media-ownership/{ownerType}/{ownerId}:\n",
-      /\ncomponents:\n/,
+      /\n(?:  \/[^\n]+:|components:)\n/,
     );
 
     expect(domainPath).toContain("$ref: \"#/components/schemas/DomainProjectionResponse\"");
