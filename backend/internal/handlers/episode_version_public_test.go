@@ -1,9 +1,12 @@
 package handlers
 
 import (
+	"context"
 	"encoding/base64"
+	"encoding/json"
 	"net/http/httptest"
 	"net/url"
+	"team4s.v3/backend/internal/repository"
 	"testing"
 
 	"github.com/gin-gonic/gin"
@@ -38,4 +41,37 @@ func TestEpisodeVersionPublicInvalidOptions(t *testing.T) {
 			require.Equal(t, 400, w.Code, w.Body.String())
 		})
 	}
+}
+
+func TestEpisodeVersionPublicHidesPrivateSourceSelector(t *testing.T) {
+	pool := openVersionHydrationFixture(t)
+	repo := repository.NewEpisodeVersionRepository(pool)
+	before := hydrationState(t, pool)
+	bound, err := repo.GetByID(context.Background(), 3301)
+	require.NoError(t, err)
+	require.Equal(t, hydrationText("source-a"), bound.MediaSourceID)
+	require.NotNil(t, bound.JellyfinSource)
+
+	router := gin.New()
+	h := NewFansubHandler(repository.NewFansubRepository(pool), repo, nil, "admin", FansubProxyConfig{})
+	router.GET("/episode-versions/:versionId", h.GetEpisodeVersionByID)
+	response := httptest.NewRecorder()
+	router.ServeHTTP(response, httptest.NewRequest("GET", "/episode-versions/3301", nil))
+	require.Equal(t, 200, response.Code, response.Body.String())
+	var body struct {
+		Data map[string]json.RawMessage `json:"data"`
+	}
+	require.NoError(t, json.Unmarshal(response.Body.Bytes(), &body))
+	require.NotContains(t, body.Data, "media_source_id", "public reads must not expose the editor's private source selector")
+	require.NotContains(t, response.Body.String(), "source-a")
+	require.NotContains(t, response.Body.String(), "source_path")
+	require.Contains(t, body.Data, "id")
+	require.Contains(t, body.Data, "release_version_id")
+
+	// Public serialization must not erase the binding required by authorized editors.
+	stored, err := repo.GetByID(context.Background(), 3301)
+	require.NoError(t, err)
+	require.Equal(t, bound.MediaSourceID, stored.MediaSourceID)
+	require.Equal(t, bound.JellyfinSource, stored.JellyfinSource)
+	require.Equal(t, before, hydrationState(t, pool))
 }
