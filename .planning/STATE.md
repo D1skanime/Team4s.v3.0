@@ -3,8 +3,8 @@ gsd_state_version: 1.0
 milestone: v1.4
 milestone_name: Coverage
 status: verifying
-stopped_at: "Phase 161 Release-27 metadata UAT accepted by user; other live checks remain open"
-last_updated: "2026-09-15T17:39:24Z"
+stopped_at: "Phase 161 Release-27 metadata and Karaoke playback confirmed by user; other live checks remain open"
+last_updated: "2026-09-15T17:43:13Z"
 last_activity: 2026-09-15
 progress:
   total_phases: 24
@@ -22,7 +22,7 @@ Jellyfin-Kapitel der eindeutig zugeordneten gespeicherten Datei lassen sich bei 
 
 ## Aktiver Auftrag — Phase 161: Jellyfin 12 technisch abgeschlossen (15.09.2026)
 
-**Nutzerabnahme 15.09.2026:** Release-27-Metadaten-/Anzeige-UAT ausdrücklich „uat abgenommen“. Öffentliche API zuvor gelesen: MKV, H.264, AC3/ja, deutsche ASS-Standardspur, Softsub. Teilabnahme dokumentiert in `phases/161-jellyfin-12-kompatibilitaet-und-mediasource-import/161-HUMAN-UAT.md`; kein pauschaler Abschluss von Import-/Relink-, Library-Rescan- oder Kaltstart-/Segmentwiedergabeprüfungen.
+**Nutzerabnahme 15.09.2026:** Release-27-Metadaten-/Anzeige-UAT ausdrücklich „uat abgenommen“. Öffentliche API zuvor gelesen: MKV, H.264, AC3/ja, deutsche ASS-Standardspur, Softsub. Teilabnahme dokumentiert in `phases/161-jellyfin-12-kompatibilitaet-und-mediasource-import/161-HUMAN-UAT.md`; Zusätzlich bestätigt der Nutzer „karako spielt ab“ für Release 27. Import-/Relink-, Library-Rescan- und gezielte Kaltstartprüfungen bleiben separat offen.
 
 Ausgangscommit b3b07ff0; 9/9 Plans, 25 Tasks und 6/6 Anforderungen technisch abgeschlossen. Unabhängige Verifikation: 16/16 Ziele, technical_status passed, gaps leer. Zwei echte Reviewbefunde wurden mit RED/GREEN geschlossen: Formular übernimmt bestätigte Sourcewerte ohne spätere Entwürfe zu verlieren (3e410901); öffentliche Einzelversion gibt den internen Source-Selector nicht aus (718ebf57). GSD-Status human_needed betrifft ausdrücklich nicht ausgeführte Live-Import-/Relink-/Rescan-/Wiedergabeprüfungen, keine verbleibende Implementierungslücke.
 
@@ -1642,9 +1642,9 @@ untruncated list lives in `.planning/todos/pending/`.
 
 ## Session Continuity
 
-Last session: 2026-09-15T17:39:24Z
-Stopped at: User accepted Phase-161 Release-27 metadata UAT; remaining live checks and all other phase states preserved.
-Last activity: Recorded explicit Release-27 user UAT acceptance as partial Phase-161 sign-off; documentation only, no application save or push.
+Last session: 2026-09-15T17:43:13Z
+Stopped at: User confirmed Phase-161 Release-27 metadata and Karaoke playback; remaining live checks and other phase states preserved.
+Last activity: Added user-confirmed Karaoke playback for Release 27 to the existing metadata UAT acceptance; documentation only, no application save or push.
 Resume file: 
 None
 

@@ -13,7 +13,7 @@ public_boundary_validated_revision: 718ebf5757693876ec6093f715328298cb6990a9
 ---
 # Phase 161 Validation
 
-All required implementation gates executed on the canonical Linux checkout using the existing Compose containers. Phase scope is technically covered; independent verification passed 16/16 with no gaps; human UAT is partially signed off for the Release-27 metadata case; see 161-HUMAN-UAT.md. The remaining live checks are still open. Global failures are compared to the original baseline, not hidden.
+All required implementation gates executed on the canonical Linux checkout using the existing Compose containers. Phase scope is technically covered; independent verification passed 16/16 with no gaps; human UAT is partially signed off for Release-27 metadata and user-confirmed Karaoke playback; see 161-HUMAN-UAT.md. The remaining live checks are still open. Global failures are compared to the original baseline, not hidden.
 
 ## Required gate results
 

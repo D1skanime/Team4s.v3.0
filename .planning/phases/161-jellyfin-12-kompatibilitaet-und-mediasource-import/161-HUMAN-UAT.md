@@ -1,7 +1,7 @@
 ---
 phase: 161-jellyfin-12-kompatibilitaet-und-mediasource-import
 status: partial
-updated: 2026-09-15T17:39:24Z
+updated: 2026-09-15T17:43:13Z
 source: [161-VERIFICATION.md, 161-VALIDATION.md]
 ---
 
@@ -23,11 +23,17 @@ Die unmittelbar vor der Nutzerabnahme lesend geprüfte öffentliche API lieferte
 
 **Ergebnis: passed — Nutzerabnahme für den besprochenen Release-27-Fall.** Die Abnahme ist eine Rückmeldung des Nutzers. Sie enthält keine separate Auflistung ausgeführter Scan-, Speicher- oder Wiedergabeschritte; solche Aktionen werden daher nicht als vom Agenten beobachtete Ausführung oder neuer technischer Nachweis eingetragen. Der Agent hatte ausschließlich die vorhandene öffentliche Antwort gelesen und den Ablauf erklärt.
 
+## Bestätigt: Karaoke-Wiedergabe bei Release 27
+
+Am 15.09.2026 meldet der Auftraggeber **„karako spielt ab“**, im Kontext `/admin/episode-versions/27/edit?tab=segmente`.
+
+**Ergebnis: passed — Karaoke-/Segmentwiedergabe funktioniert laut Nutzerprüfung für diesen Release-27-Fall.** Dies ergänzt die vorherige Metadatenabnahme. Die Meldung bestätigt keine gesonderte Kaltstartbedingung, keinen Library-Rescan und keinen Wechsel zwischen mehreren Sources; diese Prüfungen bleiben separat.
+
 ## Weiterhin separat offen
 
 - Nachweis des echten Import-/Relink-Ablaufs einschließlich korrekter Sourceauswahl, insbesondere bei mehreren Sources wie 11eyes. Der Release-27-Metadatenbefund beweist allein keinen zuvor ausgeführten Import oder Relink.
 - Stabilität der Sourcezuordnung nach einem tatsächlichen Jellyfin-Library-Rescan.
-- Gezielter erster/kalter Untertitelabruf sowie visuelle/akustische Segmentwiedergabe; der zuvor beobachtete Timeout ist nicht durch einen allgemein formulierten Sign-off als technisch widerlegt anzusehen.
+- Gezielter erster/kalter Untertitelabruf: Die nun bestätigte Karaoke-Wiedergabe ist ein erfolgreicher Livefall, aber kein gesonderter Kaltstartnachweis für den zuvor beobachteten Timeout.
 
 Phase 161 bleibt technisch abgeschlossen und im GSD-Status human_needed, jetzt mit teilweiser menschlicher Abnahme. Die vorhandenen Abnahmen 156/157 und der Kapitel-Auswahl bleiben bestehen; Anime-UAT 158/159 und die gesonderten Contributor-/Zoom-/Navigationsgrenzen werden nicht verändert.
 
