@@ -148,3 +148,22 @@ func TestEpisodeImportSourceRejectsAndRollsBack(t *testing.T) {
 		})
 	}
 }
+
+func TestEpisodeImportSourceCompleteEmptyClearsTechnicalStreams(t *testing.T){
+ pool:=openEpisodeImportSourceFixture(t);ctx:=context.Background();repo:=NewEpisodeImportRepository(pool)
+ input:=episodeSourceInput();_,err:=repo.Apply(ctx,input);require.NoError(t,err)
+ // Missing streams for the same binding retain its complete tracks and codecs.
+ input.MediaCandidates[0].StreamsComplete=false;input.MediaCandidates[0].AudioTracks=nil;input.MediaCandidates[0].SubtitleTracks=nil
+ input.MediaCandidates[0].VideoCodec=nil;input.MediaCandidates[0].AudioCodec=nil;input.MediaCandidates[0].VideoQuality=nil
+ _,err=repo.Apply(ctx,input);require.NoError(t,err)
+ var video,audio,quality *string
+ require.NoError(t,pool.QueryRow(ctx,"SELECT video_codec,audio_codec,video_quality FROM release_variants").Scan(&video,&audio,&quality))
+ require.Equal(t,"flac",*audio);require.Equal(t,"hevc",*video)
+ // A known-empty projection is different from omitted streams.
+ input.MediaCandidates[0].StreamsComplete=true;input.MediaCandidates[0].SelectedAudioIndex=nil
+ input.MediaCandidates[0].AudioTracks=[]models.JellyfinAudioTrack{};input.MediaCandidates[0].SubtitleTracks=[]models.JellyfinSubtitleTrack{}
+ _,err=repo.Apply(ctx,input);require.NoError(t,err)
+ require.NoError(t,pool.QueryRow(ctx,"SELECT video_codec,audio_codec,video_quality FROM release_variants").Scan(&video,&audio,&quality))
+ require.Nil(t,video);require.Nil(t,audio);require.Nil(t,quality)
+ bindings,err:=repo.GetJellyfinSourceBindings(ctx,[]string{"actual-item"});require.NoError(t,err);require.Empty(t,bindings["actual-item"].AudioTracks);require.Empty(t,bindings["actual-item"].SubtitleTracks)
+}
