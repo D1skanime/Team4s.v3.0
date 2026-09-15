@@ -3,15 +3,15 @@ gsd_state_version: 1.0
 milestone: v1.4
 milestone_name: Coverage
 status: executing
-stopped_at: "Completed 156-19-PLAN.md (GAP-08 Mitwirkende/Origin gate widened for single-episode segments in SegmentEditPanel.tsx; 156-UAT.md live-UAT checkpoint remains OPEN)"
-last_updated: "2026-09-15T07:54:43.229Z"
+stopped_at: "Completed 156-20-PLAN.md (GAP-09 encoder/designer segment credit role/label extension: SegmentCreditRoleCodes 6->8, new SegmentCreditPreselectionRoleCodes)"
+last_updated: "2026-09-15T09:25:26.426Z"
 last_activity: 2026-09-15
 progress:
   total_phases: 24
-  completed_phases: 24
-  total_plans: 235
-  completed_plans: 235
-  percent: 100
+  completed_phases: 23
+  total_plans: 238
+  completed_plans: 236
+  percent: 96
 ---
 
 # Project State
@@ -46,7 +46,7 @@ See: .planning/PROJECT.md (updated 2026-08-13)
 ## Current Position
 
 Phase: 156 (segment-domain-konsistenz-und-oeffentliche-release-projektion) — EXECUTING
-Plan: 2 of 19
+Plan: 2 of 3
 dupliziertem ProjectMemberStickyNav; siehe 157-14-SUMMARY.md)
 Status: Ready to execute
 GAP-02-Live-UAT-Checkpoint aus 156-UAT.md (5 Origin- + 9 Segment-Contributor-Pruefpunkte) bleibt
@@ -1612,11 +1612,12 @@ untruncated list lives in `.planning/todos/pending/`.
 | Phase 157 P16 | 15min | - tasks | - files |
 | Phase 156 P18 | 50min | 3 tasks | 16 files |
 | Phase 156 P19 | 20min | 1 tasks | 2 files |
+| Phase 156 P20 | 15min | 1 tasks | 2 files |
 
 ## Session Continuity
 
-Last session: 2026-09-15T07:54:43.207Z
-Stopped at: Completed 156-19-PLAN.md (GAP-08 Mitwirkende/Origin gate widened for single-episode segments in SegmentEditPanel.tsx; 156-UAT.md live-UAT checkpoint remains OPEN)
+Last session: 2026-09-15T09:25:26.409Z
+Stopped at: Completed 156-20-PLAN.md (GAP-09 encoder/designer segment credit role/label extension: SegmentCreditRoleCodes 6->8, new SegmentCreditPreselectionRoleCodes)
 Last activity: Larger dot + per-entry role-colored timeline line implemented and live-verified against the running stack; GAP-02 V3/V4 closed automated/technically, human Live-UAT remains a separate open step.
 Resume file: 
 None

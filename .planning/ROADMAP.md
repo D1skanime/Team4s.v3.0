@@ -1593,7 +1593,7 @@ ausdruecklich **kein** visuelles Redesign und kopiert keine Credits in Segmentta
 
 **Depends on:** Phase 155
 
-**Plans:** 19/22 plans complete
+**Plans:** 20/22 plans executed
 
 Plans:
 
@@ -1684,7 +1684,7 @@ Plans:
 
 **Post-hoc UAT gap-closure** (156-UAT.md, Live-UAT 2026-09-15, GAP-09)
 
-- [ ] 156-20-PLAN.md — Zentrale Rollen-/Label-Definition: `permissions.SegmentCreditRoleCodes`
+- [x] 156-20-PLAN.md — Zentrale Rollen-/Label-Definition: `permissions.SegmentCreditRoleCodes`
       waechst auf acht Codes (encoder/designer neu freigegeben), neue, kleinere
       `permissions.SegmentCreditPreselectionRoleCodes` traegt weiterhin nur die alten sechs
       Codes (echte Teilmenge, per Test bewiesen), `typesetter`-Label auf "Karaoke-Typesetting"
