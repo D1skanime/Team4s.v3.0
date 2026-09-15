@@ -14,8 +14,32 @@ export interface EpisodeImportCanonicalEpisode {
   existing_title?: string | null
 }
 
+/** Private admin source tracks. Unknown provider language stays null. */
+export interface JellyfinAudioTrack {
+  index: number
+  codec: string
+  language: string | null
+  default: boolean
+}
+
+export interface JellyfinSubtitleTrack {
+  index: number
+  codec: string
+  language: string | null
+  display_title: string
+  default: boolean
+  forced: boolean
+}
+
 export interface EpisodeImportMediaCandidate {
   media_item_id: string
+  media_source_id?: string | null
+  container?: string | null
+  /** Omitted/false means incomplete; [] means known-empty only with true. */
+  streams_complete?: boolean
+  selected_audio_index?: number | null
+  audio_tracks?: JellyfinAudioTrack[] | null
+  subtitle_tracks?: JellyfinSubtitleTrack[] | null
   file_name: string
   path: string
   jellyfin_season_number?: number | null
@@ -37,6 +61,8 @@ export type SelectedFansubGroupInput = EpisodeImportSelectedFansubGroup
 
 export interface EpisodeImportMappingRow {
   media_item_id: string
+  /** Reviewed source identity, required to confirm a new candidate. */
+  media_source_id?: string | null
   /** Readable Jellyfin file name derived from the full path (e.g. "Bleach S03E11.mkv"). */
   file_name?: string
   /** Short folder-context label to distinguish releases (e.g. "[SubGroup]/Season 01"). */

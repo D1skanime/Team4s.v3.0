@@ -15,6 +15,7 @@ export interface EpisodeVersion {
   fansub_groups?: FansubGroupSummary[]
   media_provider: string
   media_item_id: string
+  media_source_id?: string | null
   covered_episode_numbers?: number[]
   video_quality?: string | null
   subtitle_type?: SubtitleType | null
@@ -84,6 +85,7 @@ export interface EpisodeVersionMediaFile {
   file_name: string
   path: string
   media_item_id: string
+  media_source_id?: string | null
   stream_url?: string | null
   video_quality?: string | null
   file_size_bytes?: number | null
@@ -109,6 +111,7 @@ export interface EpisodeVersionCreateRequest {
   fansub_group_id?: number | null
   media_provider: string
   media_item_id: string
+  media_source_id?: string | null
   video_quality?: string | null
   subtitle_type?: SubtitleType | null
   production_started_on?: string | null
@@ -123,6 +126,8 @@ export interface EpisodeVersionPatchRequest {
   fansub_group_id?: number | null
   media_provider?: string | null
   media_item_id?: string | null
+  /** Admin media-binding mutation; omission preserves the source. */
+  media_source_id?: string | null
   video_quality?: string | null
   subtitle_type?: SubtitleType | null
   production_started_on?: string | null

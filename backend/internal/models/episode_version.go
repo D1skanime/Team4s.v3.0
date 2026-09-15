@@ -21,6 +21,7 @@ type EpisodeVersion struct {
 	FansubGroups          []FansubGroupSummary `json:"fansub_groups,omitempty"`
 	MediaProvider         string               `json:"media_provider"`
 	MediaItemID           string               `json:"media_item_id"`
+	MediaSourceID         *string              `json:"media_source_id,omitempty"`
 	CoveredEpisodeNumbers []int32              `json:"covered_episode_numbers,omitempty"`
 	VideoQuality          *string              `json:"video_quality,omitempty"`
 	SubtitleType          *string              `json:"subtitle_type,omitempty"`
@@ -55,6 +56,12 @@ type GroupedEpisodesData struct {
 // EpisodeVersionCreateInput enthält die Pflicht- und optionalen Felder
 // zum Anlegen einer neuen Episodenversion.
 type EpisodeVersionCreateInput struct {
+	// Provider-derived hydration; JSON input cannot supply authoritative technical data.
+	JellyfinSource  *JellyfinSourceSnapshot `json:"-"`
+	FileName        *string                 `json:"-"`
+	Container       *string                 `json:"-"`
+	VideoCodec      *string                 `json:"-"`
+	AudioCodec      *string                 `json:"-"`
 	AnimeID         int64
 	EpisodeNumber   int32
 	Title           *string
@@ -62,6 +69,7 @@ type EpisodeVersionCreateInput struct {
 	FansubGroupID   *int64
 	MediaProvider   string
 	MediaItemID     string
+	MediaSourceID   *string `json:"media_source_id,omitempty"`
 	VideoQuality    *string
 	SubtitleType    *string
 	ReleaseDate     *time.Time
@@ -73,18 +81,26 @@ type EpisodeVersionCreateInput struct {
 // EpisodeVersionPatchInput enthält die patch-fähigen Felder einer Episodenversion,
 // wobei nur gesetzte Felder (Set=true) in der Datenbankaktualisierung berücksichtigt werden.
 type EpisodeVersionPatchInput struct {
-	Title               OptionalString               `json:"title"`
-	FansubGroups        OptionalSelectedFansubGroups `json:"fansub_groups"`
-	FansubGroupID       OptionalInt64                `json:"fansub_group_id"`
-	MediaProvider       OptionalString               `json:"media_provider"`
-	MediaItemID         OptionalString               `json:"media_item_id"`
-	VideoQuality        OptionalString               `json:"video_quality"`
-	SubtitleType        OptionalString               `json:"subtitle_type"`
-	ProductionStartedOn OptionalTime                 `json:"production_started_on"`
-	ReleaseDate         OptionalTime                 `json:"release_date"`
-	CRC32               OptionalString               `json:"crc32"`
-	StreamURL           OptionalString               `json:"stream_url"`
-	DurationSeconds     OptionalInt32                `json:"duration_seconds"`
+	// Provider-derived hydration; JSON input cannot supply authoritative technical data.
+	JellyfinSource *JellyfinSourceSnapshot      `json:"-"`
+	FileName       *string                      `json:"-"`
+	Container      *string                      `json:"-"`
+	VideoCodec     *string                      `json:"-"`
+	AudioCodec     *string                      `json:"-"`
+	Title          OptionalString               `json:"title"`
+	FansubGroups   OptionalSelectedFansubGroups `json:"fansub_groups"`
+	FansubGroupID  OptionalInt64                `json:"fansub_group_id"`
+	MediaProvider  OptionalString               `json:"media_provider"`
+	MediaItemID    OptionalString               `json:"media_item_id"`
+	// Source selection is an admin media-binding mutation, never metadata-only.
+	MediaSourceID       OptionalString `json:"media_source_id"`
+	VideoQuality        OptionalString `json:"video_quality"`
+	SubtitleType        OptionalString `json:"subtitle_type"`
+	ProductionStartedOn OptionalTime   `json:"production_started_on"`
+	ReleaseDate         OptionalTime   `json:"release_date"`
+	CRC32               OptionalString `json:"crc32"`
+	StreamURL           OptionalString `json:"stream_url"`
+	DurationSeconds     OptionalInt32  `json:"duration_seconds"`
 }
 
 type OptionalSelectedFansubGroups struct {
@@ -112,11 +128,13 @@ func (o *OptionalSelectedFansubGroups) UnmarshalJSON(data []byte) error {
 // ReleaseStreamSource enthält die für den Stream-Redirect benötigten Felder
 // einer Episodenversion und wird beim Erstellen von Stream-Grants verwendet.
 type ReleaseStreamSource struct {
-	ID            int64
-	AnimeID       int64
-	MediaProvider string
-	MediaItemID   string
-	StreamURL     *string
+	MediaSourceID  *string                 `json:"-"`
+	JellyfinSource *JellyfinSourceSnapshot `json:"-"`
+	ID             int64
+	AnimeID        int64
+	MediaProvider  string
+	MediaItemID    string
+	StreamURL      *string
 }
 
 // EpisodeVersionDateNeighbor is an advisory same-field date anchor in the
@@ -161,6 +179,7 @@ type EpisodeVersionMediaFile struct {
 	FileName              string     `json:"file_name"`
 	Path                  string     `json:"path"`
 	MediaItemID           string     `json:"media_item_id"`
+	MediaSourceID         *string    `json:"media_source_id,omitempty"`
 	StreamURL             *string    `json:"stream_url,omitempty"`
 	VideoQuality          *string    `json:"video_quality,omitempty"`
 	FileSizeBytes         *int64     `json:"file_size_bytes,omitempty"`

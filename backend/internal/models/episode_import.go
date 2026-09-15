@@ -28,16 +28,23 @@ type EpisodeImportCanonicalEpisode struct {
 // EpisodeImportMediaCandidate is a Jellyfin-owned local media/file candidate.
 // Season and episode numbers are evidence for suggestions only.
 type EpisodeImportMediaCandidate struct {
-	MediaItemID           string  `json:"media_item_id"`
-	FileName              string  `json:"file_name"`
-	Path                  string  `json:"path"`
-	JellyfinSeasonNumber  *int32  `json:"jellyfin_season_number,omitempty"`
-	JellyfinEpisodeNumber *int32  `json:"jellyfin_episode_number,omitempty"`
-	StreamURL             *string `json:"stream_url,omitempty"`
-	VideoQuality          *string `json:"video_quality,omitempty"`
-	VideoCodec            *string `json:"video_codec,omitempty"`
-	AudioCodec            *string `json:"audio_codec,omitempty"`
-	DurationSeconds       *int32  `json:"duration_seconds,omitempty"`
+	MediaItemID   string  `json:"media_item_id"`
+	MediaSourceID string  `json:"media_source_id,omitempty"`
+	Container     *string `json:"container,omitempty"`
+	// A missing projection is incomplete, never a known-empty stream list.
+	StreamsComplete       bool                    `json:"streams_complete"`
+	SelectedAudioIndex    *int32                  `json:"selected_audio_index"`
+	AudioTracks           []JellyfinAudioTrack    `json:"audio_tracks"`
+	SubtitleTracks        []JellyfinSubtitleTrack `json:"subtitle_tracks"`
+	FileName              string                  `json:"file_name"`
+	Path                  string                  `json:"path"`
+	JellyfinSeasonNumber  *int32                  `json:"jellyfin_season_number,omitempty"`
+	JellyfinEpisodeNumber *int32                  `json:"jellyfin_episode_number,omitempty"`
+	StreamURL             *string                 `json:"stream_url,omitempty"`
+	VideoQuality          *string                 `json:"video_quality,omitempty"`
+	VideoCodec            *string                 `json:"video_codec,omitempty"`
+	AudioCodec            *string                 `json:"audio_codec,omitempty"`
+	DurationSeconds       *int32                  `json:"duration_seconds,omitempty"`
 }
 
 // SelectedFansubGroupInput describes one operator-selected fansub group chip.
@@ -55,7 +62,9 @@ type SelectedFansubGroupInput struct {
 // Jellyfin media candidate so the frontend can identify real files instead of
 // showing opaque media IDs as the primary label.
 type EpisodeImportMappingRow struct {
-	MediaItemID             string                     `json:"media_item_id"`
+	MediaItemID string `json:"media_item_id"`
+	// Reviewed source selector; the row identity remains MediaItemID.
+	MediaSourceID           string                     `json:"media_source_id,omitempty"`
 	FileName                string                     `json:"file_name,omitempty"`
 	DisplayPath             string                     `json:"display_path,omitempty"`
 	TargetEpisodeNumbers    []int32                    `json:"target_episode_numbers"`
