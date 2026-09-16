@@ -107,7 +107,7 @@ function ResultTabPanel({
  * URL-Wert übernimmt (Reload-fest, teilbar).
  */
 export function SearchResults() {
-  const { q, type, page, results, meta, isLoading, error, setType, setPage } =
+  const { q, type, page, results, meta, isLoading, error, filters, setType, setPage } =
     useDebouncedSearch({ role: 'results' })
 
   const trimmedQuery = q.trim()
@@ -115,8 +115,11 @@ export function SearchResults() {
   // Erneut-Versuchen erzeugt einen neuen Zustand (gleiche Seite) und stößt so den Refetch an.
   const retry = useCallback(() => setPage(page), [setPage, page])
 
-  // Vor der Mindestlänge zeigt die Ergebnisfläche denselben Initial-Leerzustand wie die Shell.
-  if (trimmedQuery.length < MIN_QUERY_LENGTH) {
+  // Vor der Mindestlänge zeigt die Ergebnisfläche denselben Initial-Leerzustand wie die Shell —
+  // AUSSER tag oder genre ist gesetzt (D-08-Spiegel des Backend-Gegenstücks aus Plan 160-04):
+  // dann feuert der Hook bereits eine Ergebnissuche, also darf hier kein toter Leerzustand
+  // gerendert werden.
+  if (trimmedQuery.length < MIN_QUERY_LENGTH && !filters.tag && !filters.genre) {
     return (
       <div className={styles.stateSlot}>
         <EmptyState

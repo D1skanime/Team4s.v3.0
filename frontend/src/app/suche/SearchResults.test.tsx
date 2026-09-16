@@ -121,4 +121,37 @@ describe('SearchResults', () => {
     )
     expect(wroteType).toBe(true)
   })
+
+  describe('D-08-Bypass (Frontend-Spiegel des Backend-Gegenstücks aus Plan 160-04)', () => {
+    it('rendert bei tag-only-URL (ohne q) NICHT den „Wonach suchst du?"-Leerzustand', async () => {
+      searchParamsRef.current = new URLSearchParams('tag=Amnesia')
+
+      render(<SearchResults />)
+      await settle()
+
+      expect(screen.queryByText('Wonach suchst du?')).toBeNull()
+      // Statt des toten Leerzustands rendert die normale Ergebnisfläche (Tabs).
+      expect(screen.getByRole('tab', { name: /Alle/ })).toBeTruthy()
+    })
+
+    it('rendert bei genre-only-URL (ohne q) NICHT den „Wonach suchst du?"-Leerzustand', async () => {
+      searchParamsRef.current = new URLSearchParams('genre=Action')
+
+      render(<SearchResults />)
+      await settle()
+
+      expect(screen.queryByText('Wonach suchst du?')).toBeNull()
+      expect(screen.getByRole('tab', { name: /Alle/ })).toBeTruthy()
+    })
+
+    it('rendert ohne q UND ohne tag/genre weiterhin den „Wonach suchst du?"-Leerzustand (Regressionsschutz)', async () => {
+      searchParamsRef.current = new URLSearchParams('')
+
+      render(<SearchResults />)
+      await settle()
+
+      expect(screen.getByText('Wonach suchst du?')).toBeTruthy()
+      expect(getSearchMock).not.toHaveBeenCalled()
+    })
+  })
 })
