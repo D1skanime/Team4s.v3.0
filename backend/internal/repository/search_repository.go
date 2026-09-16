@@ -55,11 +55,23 @@ func (r *SearchRepository) Search(ctx context.Context, query models.SearchQuery)
 	}
 
 	if searchesFansub(query.Type) {
-		items, total, err := searchFansub(ctx, tx, query)
-		if err != nil {
-			return result, err
+		if query.Q == "" {
+			// Pitfall 1 (160-RESEARCH.md): buildSearchFansubQuery produces an EMPTY
+			// WHERE clause when Q=="" and no Status filter narrows it, which would
+			// otherwise return EVERY fansub group instead of zero. tag/genre are
+			// anime-only concepts (CONTEXT.md discretion note: "Fansub-Teil leer,
+			// keine Fehlermeldung"), so a q-less search never touches the fansub
+			// branch at all — explicit empty result, not a query that happens to
+			// match nothing. Matches the empty-slice-not-nil convention searchAnime/
+			// searchFansub already use, so the JSON response stays "items": [].
+			result.Fansub = models.SearchEntityResult{Items: []models.SearchResultItem{}, Total: 0}
+		} else {
+			items, total, err := searchFansub(ctx, tx, query)
+			if err != nil {
+				return result, err
+			}
+			result.Fansub = models.SearchEntityResult{Items: items, Total: total}
 		}
-		result.Fansub = models.SearchEntityResult{Items: items, Total: total}
 	}
 
 	if err := tx.Commit(ctx); err != nil {

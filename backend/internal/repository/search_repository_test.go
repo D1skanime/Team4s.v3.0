@@ -74,6 +74,34 @@ func TestSearchAnimeRankingPopularityIsLastTieBreak(t *testing.T) {
 	}
 }
 
+// --- D-10: Genre-/Tag-Filter matchen auch Sprachnamen (nicht nur den Grundnamen) ---
+
+func TestSearchAnimeGenreMatchesLanguageName(t *testing.T) {
+	where, _, args := buildSearchAnimeQuery(models.SearchQuery{Genre: strPtr("Aktion"), Page: 1, PerPage: 20})
+	if !strings.Contains(where, "genre_names") {
+		t.Fatalf("expected genre_names EXISTS in WHERE for language-name match, got: %s", where)
+	}
+	if !strings.Contains(where, "lower(g.name) = lower($") {
+		t.Fatalf("expected base-name comparison to remain present alongside genre_names, got: %s", where)
+	}
+	if len(args) != 1 || args[0] != "Aktion" {
+		t.Fatalf("expected genre value bound once (shared $n for both comparisons), got: %#v", args)
+	}
+}
+
+func TestSearchAnimeTagMatchesLanguageName(t *testing.T) {
+	where, _, args := buildSearchAnimeQuery(models.SearchQuery{Tag: strPtr("Dämon"), Page: 1, PerPage: 20})
+	if !strings.Contains(where, "tag_names") {
+		t.Fatalf("expected tag_names EXISTS in WHERE for language-name match, got: %s", where)
+	}
+	if !strings.Contains(where, "lower(t.name) = lower($") {
+		t.Fatalf("expected base-name comparison to remain present alongside tag_names, got: %s", where)
+	}
+	if len(args) != 1 || args[0] != "Dämon" {
+		t.Fatalf("expected tag value bound once (shared $n for both comparisons), got: %#v", args)
+	}
+}
+
 // --- Sicherheit: keine Interpolation ---
 
 func TestSearchAnimeQueryBindsMaliciousInput(t *testing.T) {

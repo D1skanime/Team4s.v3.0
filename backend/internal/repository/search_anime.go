@@ -90,14 +90,16 @@ func buildSearchAnimeQuery(f models.SearchQuery) (whereSQL string, orderSQL stri
 	if f.Genre != nil && *f.Genre != "" {
 		conditions = append(conditions, fmt.Sprintf(
 			`EXISTS (SELECT 1 FROM anime_genres ag JOIN genres g ON g.id = ag.genre_id
-				WHERE ag.anime_id = anime.id AND lower(g.name) = lower($%d))`, argPos))
+				WHERE ag.anime_id = anime.id AND (lower(g.name) = lower($%[1]d)
+					OR EXISTS (SELECT 1 FROM genre_names gn WHERE gn.genre_id = g.id AND lower(gn.name) = lower($%[1]d))))`, argPos))
 		args = append(args, *f.Genre)
 		argPos++
 	}
 	if f.Tag != nil && *f.Tag != "" {
 		conditions = append(conditions, fmt.Sprintf(
 			`EXISTS (SELECT 1 FROM anime_tags atg JOIN tags t ON t.id = atg.tag_id
-				WHERE atg.anime_id = anime.id AND lower(t.name) = lower($%d))`, argPos))
+				WHERE atg.anime_id = anime.id AND (lower(t.name) = lower($%[1]d)
+					OR EXISTS (SELECT 1 FROM tag_names tn WHERE tn.tag_id = t.id AND lower(tn.name) = lower($%[1]d))))`, argPos))
 		args = append(args, *f.Tag)
 		argPos++
 	}
