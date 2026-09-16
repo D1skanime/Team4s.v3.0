@@ -1689,11 +1689,13 @@ Plans:
       `permissions.SegmentCreditPreselectionRoleCodes` traegt weiterhin nur die alten sechs
       Codes (echte Teilmenge, per Test bewiesen), `typesetter`-Label auf "Karaoke-Typesetting"
       umbenannt, neue Labels "Karaoke-Encoding"/"Logo".
+
 - [x] 156-21-PLAN.md — Wiring + Testkorrektur: automatische Vorauswahl liest jetzt die neue
       Preselection-Liste (Encoder/Designer weiterhin nie vorausgewaehlt), Migration-0165-
       Aequivalenztest zeigt auf dieselbe Liste (Migration selbst unveraendert), oeffentliche
       Projektions- und Rollenfilter-Tests fachlich korrigiert (nicht geloescht) fuer die neue
       "Encoder/Designer nur bei Auswahl sichtbar"-Regel, zwei stale Doku-Kommentare korrigiert.
+
 - [x] 156-22-PLAN.md — Frontend: Editor-Hinweistext in `SegmentContributorsField.tsx` (Encoding/
       Design werden nie automatisch vorausgewaehlt), `ThemeTimeline.test.tsx`-Fixture von
       "Typesetting / Logo" auf "Karaoke-Typesetting" nachgezogen. Schliesst GAP-09 (vom
@@ -1827,6 +1829,7 @@ Abschluss der Plaene 157-11..14, Befunde F1-F5)*
   Unterstreichungsbreite, Zaehler bleibt in der Titelzeile), dauerhaft erkennbare klickbare
   Hero-Kennzahlen mit sichtbarem Fokus, Tab-Kontrolle fuer abgeschnittene Notiz-Links (Review WR-03),
   isolierter Stacking-Context der Notiz-Karte (Review WR-04)
+
 - [x] 157-16-PLAN.md — F5: ROADMAP/DECISIONS-Abgleich (P157-02/04/09 als durch Nutzerentscheid
   ersetzt/entfallen dokumentiert statt still erfuellt), verwaiste
   ProjectMemberSummary/-Band-Komponenten entfernt, 157-VERIFICATION.md-Neulauf als Folgeschritt
@@ -1901,11 +1904,22 @@ Abschluss der Plaene 157-11..14, Befunde F1-F5)*
 **Plans:** 6 plans
 
 Plans:
+**Wave 1**
+
 - [ ] 160-01-PLAN.md — Migration 0168 (tag_names/genre_names) + deutsche Namensauflösung im öffentlichen Detail-Read
+
+**Wave 2** *(blocked on Wave 1 completion)*
+
 - [ ] 160-02-PLAN.md — Admin-Backend-CRUD für deutsche Tag-/Genre-Namen
-- [ ] 160-03-PLAN.md — Admin-Seite „Tags und Genres“ (Frontend)
 - [ ] 160-04-PLAN.md — Suche: q-Pflicht-Ausnahme, Sprachnamen-Filter, Fansub-Leerzustand-Fix
+
+**Wave 3** *(blocked on Wave 2 completion)*
+
+- [ ] 160-03-PLAN.md — Admin-Seite „Tags und Genres“ (Frontend)
 - [ ] 160-05-PLAN.md — Suche: Frontend-Spiegelung der q-Pflicht-Ausnahme
+
+**Wave 4** *(blocked on Wave 3 completion)*
+
 - [ ] 160-06-PLAN.md — Öffentliche Anzeige: Tags-Block + Genre-Chips als Links
 
 ### Phase 161: Jellyfin 12 Kompatibilitaet und MediaSource-Import
@@ -1924,6 +1938,7 @@ Plans:
 - [x] 161-07 — Quellenidentität in Playback, Untertiteln und Rendercache
 - [x] 161-08 — Öffentliche Metadaten aus derselben Quelle projizieren
 - [x] 161-09 — Integrierte Verifikation, Live-Belege und Abschlussbericht
+
 **Source:** `.planning/phases/161-jellyfin-12-kompatibilitaet-und-mediasource-import/161-USER-REQUEST.md`
 **Verification:** 161-VERIFICATION.md, 161-VALIDATION.md und docs/audits/2026-09-15-jellyfin12/RESULTS.md. Backendgates 64340e93, Frontendgates 3e410901, gezielte öffentliche DTO-Korrektur 718ebf57; nur bekannte globale Baselinefehler. Kapitel/Dateigröße sind separate Folgearbeit.
 **UI hint:** no redesign; existing release metadata projection only.
