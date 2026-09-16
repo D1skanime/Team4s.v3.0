@@ -5,6 +5,7 @@ status: complete
 completed: 2026-09-16
 baseline_commit: 44268512
 implementation_commit: c61459bc
+followup_commit: 0cda1dd7
 human_uat: not_claimed
 ---
 # Quick 260916-ako — Jellyfin-MediaSources vollständig importieren
@@ -68,3 +69,7 @@ Fehlende/doppelte Source-IDs, widersprüchliche Aliasdaten, fremde Animezuordnun
 Ein Schema-Rollback auf die frühere Item-Eindeutigkeit ist nach dem Import mehrerer Geschwisterquellen bewusst gesperrt. Er löscht oder vereinigt keine Daten. Die bestehenden globalen Prüfprobleme bleiben außerhalb des Scopes. Vorherige Phasen-/Human-UAT-Einträge bleiben unverändert; Liveprüfung durch den Agenten ist kein menschlicher Sign-off. Weitere Phase-161-Relink-/Rescan-/Kaltstart-UAT wird nicht pauschal geschlossen.
 
 Zusätzlicher beobachteter Bestandsbefund: Im Basisdatenformular heißt das separate redaktionelle Feld Untertitel-Typ nach neuem Import weiterhin „keiner“, obwohl der technische Source-Snapshot ASS enthält. Der vorliegende Fix ändert dieses bisherige Importfeldverhalten nicht; technische Tracks wurden korrekt gespeichert. Kein technischer Sourceverlust und keine unbelegte Hardsub-Ableitung.
+
+## Nachtrag 16.09.2026 — Löschregression behoben
+
+Live-UAT fand einen im vorherigen Testumfang nicht ausgeführten Delete-Pfad: c61459bc hatte dessen Zielsortierung versehentlich um nicht verbundene ss/rs-Aliase erweitert. HTTP500/SQLSTATE42P01 bestätigt. Fix 0cda1dd7 stellt ausschließlich die ursprüngliche Varianten-Zielsortierung wieder her; drei neue echte PostgreSQL-Regressionen wurden zuerst rot und dann grün nachgewiesen. Frische relevante Suite: 351 bestanden, null Fehler/Skips; Go build/vet und Typecheck bestanden, globaler Lint unverändert. Backend neu aktiviert, reale Zielabfrage für Versionen53/54 rein lesend erfolgreich. Keine Löschung von Nutzerdaten durch den Agenten. Vollständiger Nachweis: 260916-ako-DELETE-GAP.md.
