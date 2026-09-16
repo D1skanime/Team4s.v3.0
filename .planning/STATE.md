@@ -4,7 +4,7 @@ milestone: v1.4
 milestone_name: Coverage
 status: verifying
 stopped_at: "Phase 161 Release-27 metadata and Karaoke playback confirmed by user; other live checks remain open"
-last_updated: "2026-09-16T10:12:46Z"
+last_updated: "2026-09-16T11:40:00Z"
 last_activity: 2026-09-16
 progress:
   total_phases: 24
@@ -15,6 +15,10 @@ progress:
 ---
 
 # Project State
+
+## Abgeschlossener Quick 260916-asr — aniSearch „Alternative Version“ als Nebengeschichte (16.09.2026)
+
+Ursache: Der Parser der aniSearch-Relationsseite verwarf „Alternative Version“; die vorhandene Normalisierung kam nie zum Zug. Jetzt ein zentrales Mapping (`anisearch_relation_labels.go`), „Alternative Version“ → Nebengeschichte in beiden Kantenrichtungen, unbekannte Begriffe erzeugen keine Relation, Bestandszuordnungen unverändert. DB-Seed `alternative-version` (Migration 0020) ist ungenutzter Altbestand und bleibt unverändert. Re-Import über „aniSearch laden“ ergänzt additiv und dedupliziert, manuelle Relationen bleiben. Live in team4s_v2: `11eyes (2) -> 11eyes: Pink Phantasmagoria (3)` als Nebengeschichte angelegt, zweiter Lauf ohne Duplikat, OVA-Episode 1 bleibt `unknown`. Backend neu gebaut. Details: quick/260916-asr-anisearch-alternative-version-relation/260916-asr-SUMMARY.md. Kein Push, keine Nutzer-Sichtprüfung.
 
 ## Abgeschlossener Quick 260916-ejp — set-state-in-effect an 8 Fachlichkeiten (16.09.2026)
 
