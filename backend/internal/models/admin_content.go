@@ -292,6 +292,25 @@ type AdminTagToken struct {
 	Count int64  `json:"count"`
 }
 
+// AdminTagNameRow is one row of the admin tag-maintenance list: the tag's id,
+// base name, usage count across all anime, and its current German display
+// name (nil if untranslated). Used by ListTagNamesAdmin (D-04).
+type AdminTagNameRow struct {
+	ID     int64   `json:"id"`
+	Name   string  `json:"name"`
+	Count  int64   `json:"count"`
+	NameDE *string `json:"name_de"`
+}
+
+// AdminGenreNameRow mirrors AdminTagNameRow for genres. Used by
+// ListGenreNamesAdmin (D-04/D-07).
+type AdminGenreNameRow struct {
+	ID     int64   `json:"id"`
+	Name   string  `json:"name"`
+	Count  int64   `json:"count"`
+	NameDE *string `json:"name_de"`
+}
+
 type AdminEpisodeCreateInput struct {
 	AnimeID       int64
 	EpisodeNumber string
