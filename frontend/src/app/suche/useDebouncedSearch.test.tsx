@@ -138,4 +138,81 @@ describe('useDebouncedSearch', () => {
     expect(getSearchMock).not.toHaveBeenCalled()
     expect(getSearchSuggestionsMock).not.toHaveBeenCalled()
   })
+
+  describe('D-08-Bypass (Frontend-Spiegel des Backend-Gegenstücks aus Plan 160-04)', () => {
+    it('feuert die Ergebnissuche bei role "results" ohne q, wenn nur tag gesetzt ist', async () => {
+      const { result } = renderHook(() => useDebouncedSearch({ role: 'results' }))
+
+      await act(async () => {
+        result.current.setFilters({ tag: 'Amnesia' })
+      })
+      await act(async () => {
+        await vi.advanceTimersByTimeAsync(SEARCH_DEBOUNCE_MS)
+      })
+
+      expect(getSearchMock).toHaveBeenCalledTimes(1)
+      expect(getSearchMock.mock.calls[0][0].q).toBe('')
+      expect(getSearchMock.mock.calls[0][0].tag).toBe('Amnesia')
+    })
+
+    it('feuert die Ergebnissuche bei role "results" ohne q, wenn nur genre gesetzt ist', async () => {
+      const { result } = renderHook(() => useDebouncedSearch({ role: 'results' }))
+
+      await act(async () => {
+        result.current.setFilters({ genre: 'Action' })
+      })
+      await act(async () => {
+        await vi.advanceTimersByTimeAsync(SEARCH_DEBOUNCE_MS)
+      })
+
+      expect(getSearchMock).toHaveBeenCalledTimes(1)
+      expect(getSearchMock.mock.calls[0][0].q).toBe('')
+      expect(getSearchMock.mock.calls[0][0].genre).toBe('Action')
+    })
+
+    it('feuert bei role "results" ohne q und ohne tag/genre weiterhin KEINEN Request (Regressionsschutz gegen Aufblähen)', async () => {
+      const { result } = renderHook(() => useDebouncedSearch({ role: 'results' }))
+
+      await act(async () => {
+        // Setzt lediglich einen anderen, für D-08 nicht relevanten Filter.
+        result.current.setFilters({ format: 'tv' })
+      })
+      await act(async () => {
+        await vi.advanceTimersByTimeAsync(SEARCH_DEBOUNCE_MS)
+      })
+
+      expect(getSearchMock).not.toHaveBeenCalled()
+      expect(result.current.results).toBeNull()
+    })
+
+    it('feuert bei role "full" mit tag ohne q die Ergebnissuche, aber NICHT die Vorschläge (D-08 gilt nicht für /search/suggestions)', async () => {
+      const { result } = renderHook(() => useDebouncedSearch({ role: 'full' }))
+
+      await act(async () => {
+        result.current.setFilters({ tag: 'Amnesia' })
+      })
+      await act(async () => {
+        await vi.advanceTimersByTimeAsync(SEARCH_DEBOUNCE_MS)
+      })
+
+      expect(getSearchMock).toHaveBeenCalledTimes(1)
+      expect(getSearchMock.mock.calls[0][0].tag).toBe('Amnesia')
+      expect(getSearchSuggestionsMock).not.toHaveBeenCalled()
+    })
+
+    it('blockiert weiterhin bei vorhandenem, aber zu kurzem q trotz gesetztem tag (schmale D-08-Lesart)', async () => {
+      const { result } = renderHook(() => useDebouncedSearch({ role: 'results' }))
+
+      await act(async () => {
+        result.current.setFilters({ tag: 'Amnesia' })
+        result.current.setQuery('a')
+      })
+      await act(async () => {
+        await vi.advanceTimersByTimeAsync(SEARCH_DEBOUNCE_MS)
+      })
+
+      expect(getSearchMock).not.toHaveBeenCalled()
+      expect(result.current.results).toBeNull()
+    })
+  })
 })

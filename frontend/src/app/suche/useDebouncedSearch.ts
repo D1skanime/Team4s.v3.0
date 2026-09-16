@@ -204,7 +204,13 @@ export function useDebouncedSearch(
       router.replace(`${pathname}${query ? `?${query}` : ''}`, { scroll: false })
 
       const trimmed = state.q.trim()
-      if (trimmed.length < MIN_QUERY_LENGTH) {
+      // D-08-Spiegel (Backend-Gegenstück: Plan 160-04): eine wirklich ABWESENDE q
+      // (leer nach trim) umgeht die Mindestlänge NUR für die Ergebnissuche, wenn tag
+      // oder genre gesetzt ist — ein vorhandenes, aber zu kurzes q (z. B. "a") bleibt
+      // weiterhin blockiert, wie beim Backend-Pendant (schmale Lesart von D-08).
+      const bypassMinLength =
+        trimmed.length === 0 && Boolean(state.filters.tag || state.filters.genre)
+      if (trimmed.length < MIN_QUERY_LENGTH && !bypassMinLength) {
         // Zu kurz: laufende Requests abbrechen, Ergebnisse räumen, nichts anfragen.
         searchAbortRef.current?.abort()
         suggestAbortRef.current?.abort()
@@ -238,7 +244,10 @@ export function useDebouncedSearch(
       }
 
       // Vorschläge (nur in der Eingabe-/Voll-Rolle): abbrechbar, Fehler nicht fatal.
-      if (fetchSuggestions) {
+      // D-08 gilt NICHT für /search/suggestions — der tag/genre-Bypass oben betrifft
+      // ausschließlich die Ergebnissuche; Vorschläge bleiben strikt an MIN_QUERY_LENGTH
+      // gebunden, auch wenn der äußere Guard wegen tag/genre umgangen wurde.
+      if (fetchSuggestions && trimmed.length >= MIN_QUERY_LENGTH) {
         suggestAbortRef.current?.abort()
         const suggestController = new AbortController()
         suggestAbortRef.current = suggestController
