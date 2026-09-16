@@ -8,6 +8,7 @@ import (
 	"net/http"
 	"path"
 	"regexp"
+	"slices"
 	"sort"
 	"strconv"
 	"strings"
@@ -80,9 +81,13 @@ func (h *AdminContentHandler) PreviewEpisodeImport(c *gin.Context) {
 	if h.episodeImportRepo != nil {
 		existing, coverageErr := h.episodeImportRepo.PreviewExistingCoverage(c.Request.Context(), animeID)
 		if coverageErr != nil {
-			log.Printf("episode import preview existing coverage failed anime_id=%d: %v", animeID, coverageErr)
-		} else {
-			mediaCandidates = filterAlreadyMappedCandidates(mediaCandidates, existing)
+			c.JSON(http.StatusInternalServerError, gin.H{"error": gin.H{"message": "Bestehende Jellyfin-Zuordnungen konnten nicht geladen werden."}})
+			return
+		}
+		mediaCandidates, coverageErr = filterAlreadyMappedCandidates(mediaCandidates, existing)
+		if coverageErr != nil {
+			c.JSON(http.StatusConflict, gin.H{"error": gin.H{"message": "Eine bestehende Jellyfin-Quelle ist nicht eindeutig zugeordnet. Bitte die Dateizuordnung prüfen."}})
+			return
 		}
 	}
 
@@ -361,38 +366,16 @@ func (h *AdminContentHandler) loadEpisodeImportMediaCandidates(
 		return nil, err
 	}
 
-	normalizedFolderPath := normalizeJellyfinPath(folderPath)
-	candidates := make([]models.EpisodeImportMediaCandidate, 0, len(items))
-	for _, item := range items {
-		itemID := strings.TrimSpace(item.ID)
-		itemPath := strings.TrimSpace(item.Path)
-		if itemID == "" {
-			continue
-		}
-		if normalizedFolderPath != "" && itemPath != "" && !jellyfinPathHasPrefix(itemPath, normalizedFolderPath) {
-			continue
-		}
-		resolved, resolveErr := resolveJellyfinMediaSource(item, nil)
-		if resolveErr != nil {
-			return nil, resolveErr
-		}
-		candidate := h.episodeImportSourceCandidate(item, resolved)
+	sources, err := enumerateJellyfinMediaSources(items, normalizeJellyfinPath(folderPath), nil)
+	if err != nil {
+		return nil, err
+	}
+	candidates := make([]models.EpisodeImportMediaCandidate, 0, len(sources))
+	for _, source := range sources {
+		candidate := h.episodeImportSourceCandidate(source.Item, source.Source)
+		candidate.JellyfinItemIDs = source.ItemIDs
 		candidates = append(candidates, candidate)
 	}
-	sort.Slice(candidates, func(i, j int) bool {
-		left := int32(1 << 30)
-		right := int32(1 << 30)
-		if candidates[i].JellyfinEpisodeNumber != nil && *candidates[i].JellyfinEpisodeNumber > 0 {
-			left = *candidates[i].JellyfinEpisodeNumber
-		}
-		if candidates[j].JellyfinEpisodeNumber != nil && *candidates[j].JellyfinEpisodeNumber > 0 {
-			right = *candidates[j].JellyfinEpisodeNumber
-		}
-		if left != right {
-			return left < right
-		}
-		return strings.ToLower(candidates[i].FileName) < strings.ToLower(candidates[j].FileName)
-	})
 	return candidates, nil
 }
 
@@ -643,30 +626,43 @@ func episodeImportDisplayPath(fullPath, fileName string) string {
 	return normalizedName
 }
 
-// filterAlreadyMappedCandidates removes media candidates whose Jellyfin item ID
-// is already persisted as a stream_source for this anime, so a second preview
-// only shows genuinely new files rather than repeating all prior imports.
-func filterAlreadyMappedCandidates(
-	candidates []models.EpisodeImportMediaCandidate,
-	existing models.EpisodeImportExistingCoverage,
-) []models.EpisodeImportMediaCandidate {
-	if len(existing.Mappings) == 0 {
-		return candidates
-	}
-	alreadyMapped := make(map[string]struct{}, len(existing.Mappings))
+// filterAlreadyMappedCandidates excludes physical sources, including validated
+// owner aliases. Unresolved imports need unique filename evidence, not Item-wide hiding.
+func filterAlreadyMappedCandidates(candidates []models.EpisodeImportMediaCandidate, existing models.EpisodeImportExistingCoverage) ([]models.EpisodeImportMediaCandidate, error) {
+	mapped := map[string]bool{}
 	for _, row := range existing.Mappings {
-		id := strings.TrimSpace(row.MediaItemID)
-		if id != "" {
-			alreadyMapped[id] = struct{}{}
+		if row.MediaSourceID != "" {
+			mapped[row.MediaSourceID] = true
+			continue
+		}
+		if row.MediaItemID == "" {
+			continue
+		}
+		var matches []string
+		ownerExists := false
+		for _, candidate := range candidates {
+			if candidate.MediaItemID != row.MediaItemID && !slices.Contains(candidate.JellyfinItemIDs, row.MediaItemID) {
+				continue
+			}
+			ownerExists = true
+			if row.FileName != "" && candidate.FileName == row.FileName {
+				matches = append(matches, candidate.MediaSourceID)
+			}
+		}
+		if ownerExists {
+			if len(matches) != 1 {
+				return nil, repository.ErrConflict
+			}
+			mapped[matches[0]] = true
 		}
 	}
 	filtered := make([]models.EpisodeImportMediaCandidate, 0, len(candidates))
 	for _, candidate := range candidates {
-		if _, ok := alreadyMapped[strings.TrimSpace(candidate.MediaItemID)]; !ok {
+		if !mapped[candidate.MediaSourceID] {
 			filtered = append(filtered, candidate)
 		}
 	}
-	return filtered
+	return filtered, nil
 }
 
 func normalizeStringPtr(value string) *string {
@@ -683,9 +679,13 @@ var _ adminAniSearchEpisodeFetcher = (*services.AniSearchClient)(nil)
 // Technical fields, paths and URLs posted by the browser are replaced wholesale.
 func (h *AdminContentHandler) rehydrateEpisodeImportSources(ctx context.Context, input models.EpisodeImportApplyInput, importContext models.EpisodeImportContextResult) (models.EpisodeImportApplyInput, int, error) {
 	ids := make([]string, 0, len(input.Mappings))
+	seenItems := make(map[string]bool, len(input.Mappings))
 	for _, mapping := range input.Mappings {
 		if mapping.Status == models.EpisodeImportMappingStatusConfirmed {
-			ids = append(ids, mapping.MediaItemID)
+			if !seenItems[mapping.MediaItemID] {
+				ids = append(ids, mapping.MediaItemID)
+				seenItems[mapping.MediaItemID] = true
+			}
 		}
 	}
 	input.MediaCandidates = []models.EpisodeImportMediaCandidate{}
@@ -718,19 +718,24 @@ func (h *AdminContentHandler) rehydrateEpisodeImportSources(ctx context.Context,
 		}
 		return fail(http.StatusBadGateway, "Jellyfin-Dateien konnten nicht geladen werden.")
 	}
+	seenSources := map[string]bool{}
 	for _, mapping := range input.Mappings {
 		if mapping.Status != models.EpisodeImportMappingStatusConfirmed {
 			continue
 		}
 		item := items[mapping.MediaItemID]
 		var stored *models.JellyfinSourceSnapshot
-		if binding, ok := bindings[mapping.MediaItemID]; ok {
+		if binding, ok := bindings[models.JellyfinSourceKey{ItemID: mapping.MediaItemID, SourceID: mapping.MediaSourceID}]; ok {
 			stored = &binding
 		}
 		resolved, err := resolveReviewedJellyfinSource(item, mapping.MediaItemID, mapping.MediaSourceID, seriesID, folder, stored)
 		if err != nil {
 			return fail(http.StatusConflict, err.Error())
 		}
+		if seenSources[resolved.Snapshot.MediaSourceID] {
+			return fail(http.StatusConflict, "Dieselbe physische Jellyfin-Quelle wurde mehrfach ausgewählt.")
+		}
+		seenSources[resolved.Snapshot.MediaSourceID] = true
 		input.MediaCandidates = append(input.MediaCandidates, h.episodeImportSourceCandidate(item, resolved))
 	}
 	return input, http.StatusOK, nil
@@ -740,7 +745,8 @@ func (h *AdminContentHandler) episodeImportSourceCandidate(item jellyfinEpisodeI
 	season, episode := jellyfinSeasonNumber(item.ParentIndexNumber), jellyfinEpisodeNumber(item.IndexNumber)
 	return models.EpisodeImportMediaCandidate{
 		MediaItemID: item.ID, MediaSourceID: resolved.Snapshot.MediaSourceID,
-		FileName: resolved.FileName, Path: resolved.Snapshot.SourcePath, Container: resolved.Container,
+		SourceFileNameUnique: resolved.Snapshot.SourceFileNameUnique,
+		FileName:             resolved.FileName, Path: resolved.Snapshot.SourcePath, Container: resolved.Container,
 		StreamsComplete: resolved.Snapshot.StreamsComplete, SelectedAudioIndex: resolved.Snapshot.SelectedAudioIndex,
 		AudioTracks: resolved.Snapshot.AudioTracks, SubtitleTracks: resolved.Snapshot.SubtitleTracks,
 		JellyfinSeasonNumber: &season, JellyfinEpisodeNumber: &episode,

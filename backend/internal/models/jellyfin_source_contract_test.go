@@ -234,3 +234,16 @@ func jellyfinContractObject(t *testing.T, value map[string]any, keys ...string) 
 	}
 	return value
 }
+
+func TestJellyfinSourceContractPrivateIdentityEvidenceCannotBePosted(t *testing.T) {
+	var candidate EpisodeImportMediaCandidate
+	var snapshot JellyfinSourceSnapshot
+	for _, target := range []any{&candidate, &snapshot} {
+		if err := json.Unmarshal([]byte(`{"SourceFileNameUnique":true,"source_file_name_unique":true,"JellyfinItemIDs":["forged"],"jellyfin_item_ids":["forged"]}`), target); err != nil {
+			t.Fatal(err)
+		}
+	}
+	if candidate.SourceFileNameUnique || snapshot.SourceFileNameUnique || len(candidate.JellyfinItemIDs) != 0 {
+		t.Fatal("private provider membership evidence accepted from JSON")
+	}
+}

@@ -46,7 +46,7 @@ func (r *EpisodeImportRepository) PreviewExistingCoverage(
 	}
 
 	rows, err := r.db.Query(ctx, `
-		SELECT COALESCE(ss.external_id, rs.jellyfin_item_id, ''), ARRAY_AGG(CAST(e.episode_number AS INTEGER) ORDER BY rve.position, CAST(e.episode_number AS INTEGER))
+		SELECT COALESCE(ss.external_id, rs.jellyfin_item_id, ''), COALESCE(ss.metadata#>>'{jellyfin_source,media_source_id}',''), COALESCE(rv.filename,''), ARRAY_AGG(CAST(e.episode_number AS INTEGER) ORDER BY rve.position, CAST(e.episode_number AS INTEGER))
 		FROM release_variants rv
 		JOIN release_versions rev ON rev.id = rv.release_version_id
 		JOIN fansub_releases fr ON fr.id = rev.release_id
@@ -56,7 +56,8 @@ func (r *EpisodeImportRepository) PreviewExistingCoverage(
 		LEFT JOIN stream_sources ss ON ss.id = rs.stream_source_id
 		WHERE e.anime_id = $1
 		  AND e.episode_number ~ '^[0-9]+$'
-		GROUP BY rv.id, ss.external_id, rs.jellyfin_item_id
+ AND (ss.provider_type='jellyfin' OR (ss.id IS NULL AND rs.jellyfin_item_id IS NOT NULL))
+		GROUP BY rv.id, ss.external_id, rs.jellyfin_item_id, ss.metadata
 		ORDER BY MIN(CAST(e.episode_number AS INTEGER)), rv.id
 	`, animeID)
 	if err != nil {
@@ -67,7 +68,7 @@ func (r *EpisodeImportRepository) PreviewExistingCoverage(
 	result := models.EpisodeImportExistingCoverage{AnimeID: animeID}
 	for rows.Next() {
 		var row models.EpisodeImportMappingRow
-		if err := rows.Scan(&row.MediaItemID, &row.TargetEpisodeNumbers); err != nil {
+		if err := rows.Scan(&row.MediaItemID, &row.MediaSourceID, &row.FileName, &row.TargetEpisodeNumbers); err != nil {
 			return models.EpisodeImportExistingCoverage{}, fmt.Errorf("scan existing episode import coverage anime=%d: %w", animeID, err)
 		}
 		row.SuggestedEpisodeNumbers = append([]int32(nil), row.TargetEpisodeNumbers...)
@@ -83,7 +84,7 @@ func (r *EpisodeImportRepository) PreviewExistingCoverage(
 
 type episodeImportApplyPlan struct {
 	canonicalByNumber map[int32]models.EpisodeImportCanonicalEpisode
-	mediaByID         map[string]models.EpisodeImportMediaCandidate
+	mediaByID         map[models.JellyfinSourceKey]models.EpisodeImportMediaCandidate
 	mappings          []models.EpisodeImportMappingRow
 }
 
@@ -94,7 +95,7 @@ func buildEpisodeImportApplyPlan(input models.EpisodeImportApplyInput) (episodeI
 
 	plan := episodeImportApplyPlan{
 		canonicalByNumber: make(map[int32]models.EpisodeImportCanonicalEpisode, len(input.CanonicalEpisodes)),
-		mediaByID:         make(map[string]models.EpisodeImportMediaCandidate, len(input.MediaCandidates)),
+		mediaByID:         make(map[models.JellyfinSourceKey]models.EpisodeImportMediaCandidate, len(input.MediaCandidates)),
 	}
 	for _, canonical := range input.CanonicalEpisodes {
 		if canonical.EpisodeNumber <= 0 {
@@ -107,11 +108,11 @@ func buildEpisodeImportApplyPlan(input models.EpisodeImportApplyInput) (episodeI
 		if mediaID == "" {
 			return episodeImportApplyPlan{}, fmt.Errorf("media_item_id is required")
 		}
-		if _, exists := plan.mediaByID[mediaID]; exists {
-			return episodeImportApplyPlan{}, fmt.Errorf("duplicate media_item_id %s in candidates", mediaID)
+		if _, exists := plan.mediaByID[models.JellyfinSourceKey{ItemID: mediaID, SourceID: media.MediaSourceID}]; exists {
+			return episodeImportApplyPlan{}, fmt.Errorf("duplicate source pair for media_item_id %s in candidates", mediaID)
 		}
 		media.MediaItemID = mediaID
-		plan.mediaByID[mediaID] = media
+		plan.mediaByID[models.JellyfinSourceKey{ItemID: mediaID, SourceID: media.MediaSourceID}] = media
 	}
 
 	seenMediaIDs := make(map[string]struct{}, len(input.Mappings))
@@ -130,10 +131,10 @@ func buildEpisodeImportApplyPlan(input models.EpisodeImportApplyInput) (episodeI
 		if mapping.MediaItemID == "" {
 			return episodeImportApplyPlan{}, fmt.Errorf("media_item_id is required")
 		}
-		if _, ok := seenMediaIDs[mapping.MediaItemID]; ok {
-			return episodeImportApplyPlan{}, fmt.Errorf("duplicate media_item_id %s in mappings", mapping.MediaItemID)
+		if _, ok := seenMediaIDs[mapping.MediaSourceID]; ok {
+			return episodeImportApplyPlan{}, fmt.Errorf("duplicate physical source for media_item_id %s in mappings", mapping.MediaItemID)
 		}
-		seenMediaIDs[mapping.MediaItemID] = struct{}{}
+		seenMediaIDs[mapping.MediaSourceID] = struct{}{}
 		if len(mapping.TargetEpisodeNumbers) == 0 {
 			return episodeImportApplyPlan{}, fmt.Errorf("mapping %s requires at least one target episode", mapping.MediaItemID)
 		}
@@ -142,7 +143,7 @@ func buildEpisodeImportApplyPlan(input models.EpisodeImportApplyInput) (episodeI
 			return episodeImportApplyPlan{}, fmt.Errorf("mapping %s: %w", mapping.MediaItemID, err)
 		}
 		mapping.TargetEpisodeNumbers = targets
-		media, ok := plan.mediaByID[mapping.MediaItemID]
+		media, ok := plan.mediaByID[models.JellyfinSourceKey{ItemID: mapping.MediaItemID, SourceID: mapping.MediaSourceID}]
 		if !ok {
 			return episodeImportApplyPlan{}, fmt.Errorf("confirmed candidate is missing")
 		}

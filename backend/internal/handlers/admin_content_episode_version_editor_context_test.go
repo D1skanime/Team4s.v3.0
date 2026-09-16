@@ -54,7 +54,8 @@ func openEVECFixture(t *testing.T) *pgxpool.Pool {
 			ADD COLUMN IF NOT EXISTS max_episodes SMALLINT,
 			ADD COLUMN IF NOT EXISTS description TEXT,
 			ADD COLUMN IF NOT EXISTS cover_image TEXT;
-		ALTER TABLE release_variants
+  ALTER TABLE stream_sources ADD COLUMN IF NOT EXISTS metadata JSONB;
+  ALTER TABLE release_variants
 			ADD COLUMN IF NOT EXISTS video_quality TEXT,
 			ADD COLUMN IF NOT EXISTS resolution TEXT,
 			ADD COLUMN IF NOT EXISTS subtitle_type TEXT,
@@ -205,7 +206,7 @@ func TestEpisodeVersionEditorContextSelectedFileAndContributor(t *testing.T) {
 						require.NoError(t, err)
 					}
 					if alternate {
-						_, err := pool.Exec(context.Background(), `UPDATE stream_sources SET metadata=jsonb_set(metadata,'{jellyfin_source,media_source_id}','"source-b"') WHERE external_id='item-a'`)
+						_, err := pool.Exec(context.Background(), `UPDATE stream_sources SET metadata=jsonb_set(jsonb_set(metadata,'{jellyfin_source,media_source_id}','"source-b"'),'{jellyfin_source,source_path}','"/data/anime/FixtureFallback/b.mkv"') WHERE external_id='item-a'`)
 						require.NoError(t, err)
 					}
 					before := hydrationState(t, pool)
@@ -374,11 +375,15 @@ func TestEpisodeVersionMediaFilesSelectedSizeWithoutChapters(t *testing.T) {
 	item := jellyfinSourceTestItem(t, strings.Replace(jellyfinCoherentSourceFixture, `"Id":"item"`, `"Id":"item","Type":"Episode","SeriesId":"series","Chapters":[]`, 1))
 	size := int64(222)
 	item.MediaSources[0].Size = &size
-	files, err := buildEpisodeVersionMediaFiles([]jellyfinEpisodeItem{item}, "series", nil, map[string]models.JellyfinSourceSnapshot{"item": {MediaSourceID: "b"}}, func(string) *string { return nil })
+	files, err := buildEpisodeVersionMediaFiles([]jellyfinEpisodeItem{item}, "series", nil, nil, func(string) *string { return nil })
 	require.NoError(t, err)
-	require.Len(t, files, 1)
-	require.Equal(t, &size, files[0].FileSizeBytes)
-	require.Nil(t, files[0].ChapterHints)
+	require.Len(t, files, 2)
+	for _, file := range files {
+		if *file.MediaSourceID == "b" {
+			require.Equal(t, &size, file.FileSizeBytes)
+		}
+		require.Nil(t, file.ChapterHints)
+	}
 }
 
 // No repositories are configured: this directly proves enrichment adds zero SQL calls.

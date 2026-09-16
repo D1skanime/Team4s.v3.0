@@ -20,7 +20,7 @@ func resolveReviewedJellyfinSource(item jellyfinEpisodeItem, itemID, sourceID, s
 	if item.ID != itemID || item.Type != "Episode" || (seriesID != "" && strings.TrimSpace(item.SeriesID) != seriesID) || (folder != "" && !jellyfinPathHasPrefix(item.Path, folder)) {
 		return fail("Die Jellyfin-Datei gehört nicht zur gespeicherten Anime-Zuordnung.")
 	}
-	resolved, err := resolveJellyfinMediaSource(item, stored)
+	resolved, err := resolveJellyfinMediaSourceSelection(item, sourceID, stored)
 	if err != nil || (sourceID != "" && resolved.Snapshot.MediaSourceID != sourceID) {
 		return fail("Die geprüfte Jellyfin-Quelle hat sich geändert. Bitte Vorschau neu laden.")
 	}
@@ -64,7 +64,7 @@ func (h *FansubHandler) resolveEpisodeVersionSource(ctx context.Context, animeID
 		return fail(sourceHydrationRepositoryStatus(err), "Die gespeicherte Jellyfin-Quelle konnte nicht geladen werden.")
 	}
 	var stored *models.JellyfinSourceSnapshot
-	if binding, ok := bindings[itemID]; ok {
+	if binding, ok := bindings[models.JellyfinSourceKey{ItemID: itemID, SourceID: selector}]; ok {
 		stored = &binding
 	}
 	items, err := h.getJellyfinSourceItems(ctx, []string{itemID})
@@ -80,7 +80,7 @@ func (h *FansubHandler) resolveEpisodeVersionSource(ctx context.Context, animeID
 		return resolved, nil, 409, err
 	}
 	// A complete stored B snapshot must not hide an incomplete A-to-B relink.
-	if !resolved.Snapshot.StreamsComplete && (current == nil || current.MediaProvider != "jellyfin" || current.MediaItemID != itemID) {
+	if !resolved.Snapshot.StreamsComplete && (current == nil || current.MediaProvider != "jellyfin" || current.MediaItemID != itemID || derefString(current.MediaSourceID) != resolved.Snapshot.MediaSourceID) {
 		return fail(409, "Die neue Jellyfin-Quelle enthält keine vollständigen Stream-Daten.")
 	}
 	streamURL, err := buildJellyfinStreamURL(h.jellyfinBaseURL, h.jellyfinStreamPath, h.jellyfinAPIKey, itemID)

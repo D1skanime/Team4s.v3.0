@@ -61,8 +61,8 @@ func TestEpisodeVersionSourceMetadataPatchesRetainTechnicalFields(t *testing.T) 
 		require.Equal(t, "matroska", container)
 		bindings, err := repository.NewEpisodeImportRepository(pool).GetJellyfinSourceBindings(ctx, []string{"own"})
 		require.NoError(t, err)
-		require.Equal(t, "source-a", bindings["own"].MediaSourceID)
-		require.Len(t, bindings["own"].SubtitleTracks, 1)
+		require.Equal(t, "source-a", bindings[models.JellyfinSourceKey{ItemID: "own", SourceID: "source-a"}].MediaSourceID)
+		require.Len(t, bindings[models.JellyfinSourceKey{ItemID: "own", SourceID: "source-a"}].SubtitleTracks, 1)
 	}
 }
 func TestEpisodeVersionSourceCreateDoesNotUseHumanTitleAsFilename(t *testing.T) {
@@ -109,7 +109,7 @@ func TestEpisodeVersionSourceRelinkAtomicAndIncompleteGuard(t *testing.T) {
 			}
 			before := versionSourceState(t, pool)
 			item, err := repo.Update(ctx, 100, patch)
-			if scenario == "incomplete B" || scenario == "same item different source" {
+			if scenario == "incomplete B" {
 				require.ErrorIs(t, err, repository.ErrConflict)
 				require.Equal(t, before, versionSourceState(t, pool))
 				return
@@ -133,8 +133,59 @@ func TestEpisodeVersionSourceRelinkAtomicAndIncompleteGuard(t *testing.T) {
 			require.Equal(t, 1, other)
 			bindings, err := repository.NewEpisodeImportRepository(pool).GetJellyfinSourceBindings(ctx, []string{*patch.MediaItemID.Value})
 			require.NoError(t, err)
-			require.True(t, bindings[*patch.MediaItemID.Value].StreamsComplete)
+			require.True(t, bindings[models.JellyfinSourceKey{ItemID: *patch.MediaItemID.Value, SourceID: *patch.MediaSourceID.Value}].StreamsComplete)
 			require.Equal(t, before["release_version_groups"], versionSourceState(t, pool)["release_version_groups"])
 		})
 	}
+}
+
+func TestEpisodeVersionSourceSameItemSiblingReadAndMetadataIsolation(t *testing.T) {
+	pool := versionSourceFixture(t)
+	ctx := context.Background()
+	repo := repository.NewEpisodeVersionRepository(pool)
+	b := versionSourceSnapshot("source-b", "/anime/b.mp4", true)
+	b.AudioTracks = []models.JellyfinAudioTrack{{Index: 1, Codec: "aac"}}
+	item, err := repo.Create(ctx, models.EpisodeVersionCreateInput{AnimeID: 1, EpisodeNumber: 2, MediaProvider: "jellyfin", MediaItemID: "own", MediaSourceID: versionSourceText("source-b"), JellyfinSource: b, FileName: versionSourceText("b.mp4"), Container: versionSourceText("mp4")})
+	require.NoError(t, err)
+	require.Equal(t, "source-b", *item.MediaSourceID)
+	require.Equal(t, "aac", item.JellyfinSource.AudioTracks[0].Codec)
+	a, err := repo.GetByID(ctx, 100)
+	require.NoError(t, err)
+	require.Equal(t, "source-a", *a.MediaSourceID)
+	require.Equal(t, "flac", a.JellyfinSource.AudioTracks[0].Codec)
+	// Match the shared playback selector: Jellyfin precedes an earlier external
+	// stream, and its first stream row owns both item and snapshot.
+	_, err = pool.Exec(ctx, `INSERT INTO stream_sources(id,provider_type,external_id) VALUES(900,'external','earlier'); INSERT INTO release_streams(id,variant_id,stream_source_id) VALUES(0,100,900)`)
+	require.NoError(t, err)
+	// Even a variant with multiple streams reads the snapshot on its selected row.
+	_, err = pool.Exec(ctx, `INSERT INTO release_streams(variant_id,stream_source_id) SELECT 100,id FROM stream_sources WHERE metadata#>>'{jellyfin_source,media_source_id}'='source-b'`)
+	require.NoError(t, err)
+	a, err = repo.GetByID(ctx, 100)
+	require.NoError(t, err)
+	require.Equal(t, "source-a", *a.MediaSourceID)
+	updated, err := repo.Update(ctx, item.ID, models.EpisodeVersionPatchInput{Title: models.OptionalString{Set: true, Value: versionSourceText("Metadata only")}})
+	require.NoError(t, err)
+	require.Equal(t, "source-b", *updated.MediaSourceID)
+	require.Equal(t, "aac", updated.JellyfinSource.AudioTracks[0].Codec)
+}
+
+func TestEpisodeVersionSourceMultiStreamRelinkKeepsSelectedSource(t *testing.T) {
+	pool := versionSourceFixture(t)
+	ctx := context.Background()
+	_, err := pool.Exec(ctx, `DELETE FROM release_streams WHERE variant_id=100;
+ INSERT INTO stream_sources(id,provider_type,external_id) VALUES(900,'external','earlier');
+ INSERT INTO release_streams(id,variant_id,stream_source_id) VALUES(0,100,900),(2,100,2)`)
+	require.NoError(t, err)
+	repo := repository.NewEpisodeVersionRepository(pool)
+	item, err := repo.Update(ctx, 100, models.EpisodeVersionPatchInput{
+		MediaSourceID:  models.OptionalString{Set: true, Value: versionSourceText("source-a")},
+		JellyfinSource: versionSourceSnapshot("source-a", "/anime/a.mkv", false),
+	})
+	require.NoError(t, err)
+	require.Equal(t, "own", item.MediaItemID)
+	require.Equal(t, "source-a", *item.MediaSourceID)
+	require.Equal(t, "flac", item.JellyfinSource.AudioTracks[0].Codec)
+	var selectedStreamID int64
+	require.NoError(t, pool.QueryRow(ctx, `SELECT id FROM release_streams WHERE variant_id=100`).Scan(&selectedStreamID))
+	require.Equal(t, int64(2), selectedStreamID, "normalization retains the same selected stream row")
 }

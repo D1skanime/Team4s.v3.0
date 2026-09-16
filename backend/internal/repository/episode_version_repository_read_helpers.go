@@ -269,7 +269,7 @@ func buildGroupedEpisodeCounts(
 	return grouped
 }
 
-func scanReleaseVariantAsEpisodeVersion(scanner rowScanner, includeFansubs bool) (*models.EpisodeVersion, int32, error) {
+func scanReleaseVariantAsEpisodeVersion(scanner rowScanner, includeFansubs bool, extra ...any) (*models.EpisodeVersion, int32, error) {
 	var item models.EpisodeVersion
 	var groupEpisodeNumber int32
 	var fansubGroupsJSON []byte
@@ -302,6 +302,7 @@ func scanReleaseVariantAsEpisodeVersion(scanner rowScanner, includeFansubs bool)
 		dest = append(dest, &fansubGroupsJSON)
 	}
 
+	dest = append(dest, extra...)
 	if err := scanner.Scan(dest...); err != nil {
 		return nil, 0, fmt.Errorf("scan release variant row: %w", err)
 	}

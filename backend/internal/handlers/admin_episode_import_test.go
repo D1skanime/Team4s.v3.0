@@ -508,22 +508,23 @@ func TestFilterAlreadyMappedCandidates_ExcludesPersistedJellyfinItems(t *testing
 	t.Parallel()
 
 	candidates := []models.EpisodeImportMediaCandidate{
-		{MediaItemID: "jf-ep01"},
-		{MediaItemID: "jf-ep02"},
-		{MediaItemID: "jf-ep51"},
-		{MediaItemID: "jf-ep52"},
+		{MediaItemID: "jf-ep01", MediaSourceID: "source-jf-ep01"},
+		{MediaItemID: "jf-ep02", MediaSourceID: "source-jf-ep02"},
+		{MediaItemID: "jf-ep51", MediaSourceID: "source-jf-ep51"},
+		{MediaItemID: "jf-ep52", MediaSourceID: "source-jf-ep52"},
 	}
 	existing := models.EpisodeImportExistingCoverage{
 		AnimeID: 7,
 		Mappings: []models.EpisodeImportMappingRow{
-			{MediaItemID: "jf-ep01", TargetEpisodeNumbers: []int32{1}, Status: models.EpisodeImportMappingStatusConfirmed},
-			{MediaItemID: "jf-ep02", TargetEpisodeNumbers: []int32{2}, Status: models.EpisodeImportMappingStatusConfirmed},
+			{MediaItemID: "jf-ep01", MediaSourceID: "source-jf-ep01", TargetEpisodeNumbers: []int32{1}, Status: models.EpisodeImportMappingStatusConfirmed},
+			{MediaItemID: "jf-ep02", MediaSourceID: "source-jf-ep02", TargetEpisodeNumbers: []int32{2}, Status: models.EpisodeImportMappingStatusConfirmed},
 			{MediaItemID: "", TargetEpisodeNumbers: []int32{3}, Status: models.EpisodeImportMappingStatusConfirmed},
 		},
 	}
 
-	got := filterAlreadyMappedCandidates(candidates, existing)
+	got, err := filterAlreadyMappedCandidates(candidates, existing)
 
+	require.NoError(t, err)
 	if len(got) != 2 {
 		t.Fatalf("expected 2 new candidates, got %d: %+v", len(got), got)
 	}
@@ -538,12 +539,13 @@ func TestFilterAlreadyMappedCandidates_PassesThroughWhenNoExistingMappings(t *te
 	t.Parallel()
 
 	candidates := []models.EpisodeImportMediaCandidate{
-		{MediaItemID: "jf-ep01"},
-		{MediaItemID: "jf-ep02"},
+		{MediaItemID: "jf-ep01", MediaSourceID: "source-jf-ep01"},
+		{MediaItemID: "jf-ep02", MediaSourceID: "source-jf-ep02"},
 	}
 
-	got := filterAlreadyMappedCandidates(candidates, models.EpisodeImportExistingCoverage{AnimeID: 7})
+	got, err := filterAlreadyMappedCandidates(candidates, models.EpisodeImportExistingCoverage{AnimeID: 7})
 
+	require.NoError(t, err)
 	if len(got) != 2 {
 		t.Fatalf("expected all 2 candidates to pass through, got %d", len(got))
 	}
@@ -557,7 +559,7 @@ type episodeImportSourceRepoSpy struct {
 	calls        int
 	bindingCalls int
 	ids          []string
-	bindings     map[string]models.JellyfinSourceSnapshot
+	bindings     map[models.JellyfinSourceKey]models.JellyfinSourceSnapshot
 	received     models.EpisodeImportApplyInput
 }
 
@@ -569,7 +571,7 @@ func (r *episodeImportSourceRepoSpy) Apply(_ context.Context, in models.EpisodeI
 func (*episodeImportSourceRepoSpy) PreviewExistingCoverage(context.Context, int64) (models.EpisodeImportExistingCoverage, error) {
 	return models.EpisodeImportExistingCoverage{}, nil
 }
-func (r *episodeImportSourceRepoSpy) GetJellyfinSourceBindings(_ context.Context, ids []string) (map[string]models.JellyfinSourceSnapshot, error) {
+func (r *episodeImportSourceRepoSpy) GetJellyfinSourceBindings(_ context.Context, ids []string) (map[models.JellyfinSourceKey]models.JellyfinSourceSnapshot, error) {
 	r.bindingCalls++
 	r.ids = append([]string(nil), ids...)
 	return r.bindings, nil
@@ -739,13 +741,12 @@ func TestEpisodeImportSourceBatchBudget(t *testing.T) {
 	}
 }
 
-func TestEpisodeImport11eyesPreviewKeepsActualItemsAndRequestBudget(t *testing.T) {
+func TestEpisodeImport11eyesEnumeratesEveryPhysicalSource(t *testing.T) {
 	payload := read11eyesSourceFixture(t, "11eyes-series")
 	requests := 0
 	server := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		requests++
 		require.Equal(t, "/Shows/series/Episodes", r.URL.Path)
-		require.Equal(t, jellyfinSourceFields, r.URL.Query().Get("Fields"))
 		require.NoError(t, json.NewEncoder(w).Encode(payload))
 	}))
 	defer server.Close()
@@ -754,62 +755,30 @@ func TestEpisodeImport11eyesPreviewKeepsActualItemsAndRequestBudget(t *testing.T
 	c.Request = httptest.NewRequest("POST", "/", nil)
 	candidates, err := h.loadEpisodeImportMediaCandidates(c, "series", nil)
 	require.NoError(t, err)
-	require.Len(t, candidates, 27)
-	require.Equal(t, 1, requests)
-	byID := map[string]models.EpisodeImportMediaCandidate{}
-	for _, candidate := range candidates {
-		byID[candidate.MediaItemID] = candidate
-	}
+	expected := map[string]bool{}
+	owners := map[string]bool{}
 	for _, item := range payload.Items {
-		got, exists := byID[item.ID]
-		require.True(t, exists)
-		resolved, err := resolveJellyfinMediaSource(item, nil)
-		require.NoError(t, err)
-		require.Equal(t, resolved.Snapshot.MediaSourceID, got.MediaSourceID)
-		require.True(t, got.StreamsComplete)
-		require.Equal(t, resolved.Container, got.Container)
-		require.Equal(t, resolved.Snapshot.AudioTracks, got.AudioTracks)
-		require.Equal(t, resolved.Snapshot.SubtitleTracks, got.SubtitleTracks)
+		owners[item.ID] = true
+		for _, source := range item.MediaSources {
+			expected[source.ID] = true
+		}
 	}
-	candidates = filterAlreadyMappedCandidates(candidates, models.EpisodeImportExistingCoverage{Mappings: []models.EpisodeImportMappingRow{{MediaItemID: payload.Items[0].ID}}})
-	require.Len(t, candidates, 26)
-	preview := buildEpisodeImportPreview(1, "11eyes", nil, nil, nil, nil, candidates, 0)
-	require.Len(t, preview.Mappings, 26)
-	for _, mapping := range preview.Mappings {
-		require.Equal(t, byID[mapping.MediaItemID].MediaSourceID, mapping.MediaSourceID)
-		require.NotEmpty(t, mapping.MediaSourceID)
+	require.Len(t, expected, 38, "fixture has 27 real Items and 38 physical sources, including nested-only siblings")
+	actual := map[string]bool{}
+	for _, candidate := range candidates {
+		require.True(t, owners[candidate.MediaItemID], "only genuine Item owners may be fetched")
+		require.False(t, actual[candidate.MediaSourceID], "nested/standalone aliases must appear once")
+		actual[candidate.MediaSourceID] = true
 	}
-	t.Log("preview: 1 unchanged collection request; 27 actual items despite 38 distinct sources; 26 after one existing-coverage filter")
-}
-
-func TestEpisodeImport11eyesEnumeratesEveryPhysicalSource(t *testing.T) {
- payload := read11eyesSourceFixture(t, "11eyes-series")
- requests := 0
- server := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-  requests++
-  require.Equal(t, "/Shows/series/Episodes", r.URL.Path)
-  require.NoError(t, json.NewEncoder(w).Encode(payload))
- }))
- defer server.Close()
- h := &AdminContentHandler{jellyfinBaseURL: server.URL, jellyfinAPIKey:"fixture-key", httpClient:server.Client()}
- c,_ := gin.CreateTestContext(httptest.NewRecorder()); c.Request=httptest.NewRequest("POST","/",nil)
- candidates,err := h.loadEpisodeImportMediaCandidates(c,"series",nil)
- require.NoError(t,err)
- expected := map[string]bool{}
- owners := map[string]bool{}
- for _,item := range payload.Items { owners[item.ID]=true; for _,source := range item.MediaSources { expected[source.ID]=true } }
- require.Len(t,expected,38,"fixture has 27 real Items and 38 physical sources, including nested-only siblings")
- actual := map[string]bool{}
- for _,candidate := range candidates {
-  require.True(t,owners[candidate.MediaItemID],"only genuine Item owners may be fetched")
-  require.False(t,actual[candidate.MediaSourceID],"nested/standalone aliases must appear once")
-  actual[candidate.MediaSourceID]=true
- }
- require.Equal(t,expected,actual)
- require.Equal(t,1,requests,"source expansion must not produce per-source network calls")
- for _,episode := range []int32{2,3} {
-  count:=0
-  for _,candidate := range candidates { if candidate.JellyfinEpisodeNumber!=nil && *candidate.JellyfinEpisodeNumber==episode { count++ } }
-  require.Equal(t,3,count)
- }
+	require.Equal(t, expected, actual)
+	require.Equal(t, 1, requests, "source expansion must not produce per-source network calls")
+	for _, episode := range []int32{2, 3} {
+		count := 0
+		for _, candidate := range candidates {
+			if candidate.JellyfinEpisodeNumber != nil && *candidate.JellyfinEpisodeNumber == episode {
+				count++
+			}
+		}
+		require.Equal(t, 3, count)
+	}
 }

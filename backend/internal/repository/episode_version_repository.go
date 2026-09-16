@@ -100,7 +100,8 @@ func (r *EpisodeVersionRepository) GetByID(ctx context.Context, versionID int64)
 					ORDER BY fg.name ASC, fg.id ASC
 				) FILTER (WHERE fg.id IS NOT NULL),
 				'[]'::json
-			) AS fansub_groups
+			) AS fansub_groups,
+			ss.metadata->'jellyfin_source' AS jellyfin_source
 		FROM release_variants rv
 		JOIN release_versions rev ON rev.id = rv.release_version_id
 		JOIN fansub_releases fr ON fr.id = rev.release_id
@@ -138,13 +139,14 @@ func (r *EpisodeVersionRepository) GetByID(ctx context.Context, versionID int64)
 			rev.release_date,
 			fr.release_date,
 			ss.url,
+			ss.metadata,
 			seg.segment_count,
 			seg.has_segment_asset,
 			rv.duration_seconds,
 			rv.created_at,
 			rv.updated_at,
 			rv.modified_at
-		ORDER BY rv.id ASC
+		ORDER BY rv.id ASC, CASE WHEN ss.provider_type='jellyfin' THEN 0 ELSE 1 END, MIN(rs.id) ASC
 	`, versionID)
 	if err != nil {
 		return nil, fmt.Errorf("get release version %d: %w", versionID, err)
@@ -157,26 +159,27 @@ func (r *EpisodeVersionRepository) GetByID(ctx context.Context, versionID int64)
 		}
 		return nil, ErrNotFound
 	}
-	item, _, err := scanReleaseVariantAsEpisodeVersion(rows, true)
+	var snapshotJSON []byte
+	item, _, err := scanReleaseVariantAsEpisodeVersion(rows, true, &snapshotJSON)
 	if err != nil {
 		return nil, fmt.Errorf("scan release version %d: %w", versionID, err)
 	}
 	rows.Close()
 	if item.MediaProvider == "jellyfin" {
-		bindings, bindingErr := r.GetJellyfinSourceBindings(ctx, []string{item.MediaItemID})
+		binding, bindingErr := decodeSelectedJellyfinSource(snapshotJSON)
 		if bindingErr != nil {
 			return nil, bindingErr
 		}
-		if binding, ok := bindings[item.MediaItemID]; ok {
+		if binding != nil {
 			item.MediaSourceID = &binding.MediaSourceID
-			item.JellyfinSource = &binding
+			item.JellyfinSource = binding
 		}
 	}
 	return item, nil
 }
 
 // Reuse the import repository's single owner for private binding decoding.
-func (r *EpisodeVersionRepository) GetJellyfinSourceBindings(ctx context.Context, itemIDs []string) (map[string]models.JellyfinSourceSnapshot, error) {
+func (r *EpisodeVersionRepository) GetJellyfinSourceBindings(ctx context.Context, itemIDs []string) (map[models.JellyfinSourceKey]models.JellyfinSourceSnapshot, error) {
 	return NewEpisodeImportRepository(r.db).GetJellyfinSourceBindings(ctx, itemIDs)
 }
 
@@ -313,7 +316,7 @@ func (r *EpisodeVersionRepository) Update(
 			if input.MediaSourceID.Set && (input.MediaSourceID.Value == nil || *input.MediaSourceID.Value != input.JellyfinSource.MediaSourceID) {
 				return nil, ErrConflict
 			}
-			if !input.JellyfinSource.StreamsComplete && (state.MediaProvider != mediaProvider || state.MediaItemID != mediaItemID) {
+			if !input.JellyfinSource.StreamsComplete && (state.MediaProvider != mediaProvider || state.MediaItemID != mediaItemID || state.MediaSourceID != input.JellyfinSource.MediaSourceID) {
 				return nil, ErrConflict
 			}
 		}

@@ -4,6 +4,7 @@ import (
 	"context"
 	"errors"
 	"fmt"
+	"sort"
 	"strconv"
 	"strings"
 
@@ -29,6 +30,21 @@ func (r *EpisodeImportRepository) applyReleaseNative(
 
 	if err := lockSegmentAssignmentAnimeTx(ctx, tx, input.AnimeID); err != nil {
 		return nil, err
+	}
+
+	// Acquire every physical-source lock before any graph/variant write. Sorted
+	// ordering also serializes cross-anime batches submitted in opposite orders.
+	sourceIDs := make([]string, 0, len(plan.mappings))
+	for _, mapping := range plan.mappings {
+		if mapping.Status == models.EpisodeImportMappingStatusConfirmed {
+			sourceIDs = append(sourceIDs, mapping.MediaSourceID)
+		}
+	}
+	sort.Strings(sourceIDs)
+	for _, id := range sourceIDs {
+		if err := lockJellyfinSource(ctx, tx, id); err != nil {
+			return nil, err
+		}
 	}
 
 	episodeTypeID, err := lookupIDByName(ctx, tx, "episode_types", "episode")
@@ -71,7 +87,7 @@ func (r *EpisodeImportRepository) applyReleaseNative(
 			result.Skipped++
 			continue
 		}
-		media := plan.mediaByID[mapping.MediaItemID]
+		media := plan.mediaByID[models.JellyfinSourceKey{ItemID: mapping.MediaItemID, SourceID: mapping.MediaSourceID}]
 		releaseIDs := episodeImportReleaseIDs{
 			AnimeID:          input.AnimeID,
 			PrimaryEpisodeID: episodeIDsByNumber[mapping.TargetEpisodeNumbers[0]],

@@ -32,27 +32,27 @@ func validateEpisodeImportApplyRequest(animeID int64, req adminEpisodeImportAppl
 		MediaCandidates:   req.MediaCandidates,
 		Mappings:          req.Mappings,
 	}
-	candidates := make(map[string]models.EpisodeImportMediaCandidate, len(input.MediaCandidates))
+	candidates := make(map[models.JellyfinSourceKey]models.EpisodeImportMediaCandidate, len(input.MediaCandidates))
 	for _, candidate := range input.MediaCandidates {
 		id := strings.TrimSpace(candidate.MediaItemID)
 		if id == "" || strings.Contains(id, ",") {
 			return models.EpisodeImportApplyInput{}, fmt.Errorf("ungültige Jellyfin-Datei")
 		}
-		if _, exists := candidates[id]; exists {
+		if _, exists := candidates[models.JellyfinSourceKey{ItemID: id, SourceID: candidate.MediaSourceID}]; exists {
 			return models.EpisodeImportApplyInput{}, fmt.Errorf("doppelte Jellyfin-Datei")
 		}
-		candidates[id] = candidate
+		candidates[models.JellyfinSourceKey{ItemID: id, SourceID: candidate.MediaSourceID}] = candidate
 	}
-	seen := make(map[string]bool, len(input.Mappings))
+	seen := make(map[models.JellyfinSourceKey]bool, len(input.Mappings))
 	for index, mapping := range input.Mappings {
 		mapping.MediaItemID = strings.TrimSpace(mapping.MediaItemID)
 		input.Mappings[index].MediaItemID = mapping.MediaItemID
 		if mapping.Status == models.EpisodeImportMappingStatusConfirmed {
-			if mapping.MediaItemID == "" || seen[mapping.MediaItemID] {
+			if mapping.MediaItemID == "" || seen[models.JellyfinSourceKey{ItemID: mapping.MediaItemID, SourceID: mapping.MediaSourceID}] {
 				return models.EpisodeImportApplyInput{}, fmt.Errorf("ungültige oder doppelte Jellyfin-Zuordnung")
 			}
-			seen[mapping.MediaItemID] = true
-			candidate, exists := candidates[mapping.MediaItemID]
+			seen[models.JellyfinSourceKey{ItemID: mapping.MediaItemID, SourceID: mapping.MediaSourceID}] = true
+			candidate, exists := candidates[models.JellyfinSourceKey{ItemID: mapping.MediaItemID, SourceID: mapping.MediaSourceID}]
 			if !exists || strings.TrimSpace(mapping.MediaSourceID) == "" || mapping.MediaSourceID != candidate.MediaSourceID {
 				return models.EpisodeImportApplyInput{}, fmt.Errorf("geprüfte Jellyfin-Quelle fehlt oder ist widersprüchlich")
 			}

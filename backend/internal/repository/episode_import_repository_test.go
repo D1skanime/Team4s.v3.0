@@ -239,7 +239,7 @@ func TestEpisodeImportApply_AllowsParallelReleasesForSameEpisode(t *testing.T) {
 	// same canonical episode are valid parallel versions and must not be rejected.
 	plan, err := buildEpisodeImportApplyPlan(models.EpisodeImportApplyInput{
 		AnimeID:         42,
-		MediaCandidates: []models.EpisodeImportMediaCandidate{{MediaItemID: "jellyfin-group-a", MediaSourceID: "source-a"}, {MediaItemID: "jellyfin-group-b", MediaSourceID: "source-a"}, {MediaItemID: "jellyfin-same-id", MediaSourceID: "source-a"}},
+		MediaCandidates: []models.EpisodeImportMediaCandidate{{MediaItemID: "jellyfin-group-a", MediaSourceID: "source-a"}, {MediaItemID: "jellyfin-group-b", MediaSourceID: "source-b"}, {MediaItemID: "jellyfin-same-id", MediaSourceID: "source-a"}},
 		Mappings: []models.EpisodeImportMappingRow{
 			{
 				MediaItemID:          "jellyfin-group-a",
@@ -249,7 +249,7 @@ func TestEpisodeImportApply_AllowsParallelReleasesForSameEpisode(t *testing.T) {
 			},
 			{
 				MediaItemID:          "jellyfin-group-b",
-				MediaSourceID:        "source-a",
+				MediaSourceID:        "source-b",
 				TargetEpisodeNumbers: []int32{9},
 				Status:               models.EpisodeImportMappingStatusConfirmed,
 			},
@@ -263,10 +263,10 @@ func TestEpisodeImportApply_AllowsParallelReleasesForSameEpisode(t *testing.T) {
 	}
 }
 
-func TestEpisodeImportApply_RejectsDuplicateMediaItemID(t *testing.T) {
+func TestEpisodeImportApply_RejectsDuplicateSourcePair(t *testing.T) {
 	t.Parallel()
 
-	// The same media_item_id appearing twice in the mappings list is a structural
+	// The same item/source pair appearing twice in the mappings list is a structural
 	// error (not a legitimate parallel version), so the plan builder must reject it.
 	_, err := buildEpisodeImportApplyPlan(models.EpisodeImportApplyInput{
 		AnimeID:         42,

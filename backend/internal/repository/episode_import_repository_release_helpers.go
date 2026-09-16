@@ -28,10 +28,10 @@ func upsertImportReleaseGraph(
 	media models.EpisodeImportMediaCandidate,
 	episodeIDsByNumber map[int32]int64,
 ) (bool, error) {
-	// Lock the provider/item row before looking up ownership so concurrent imports
+	// Lock the physical source row before looking up ownership so concurrent imports
 	// into different anime cannot both observe an unbound item and create graphs.
 	snapshot := models.JellyfinSourceSnapshot{Version: 1, MediaSourceID: media.MediaSourceID,
-		SourcePath: media.Path, StreamsComplete: media.StreamsComplete,
+		SourcePath: media.Path, StreamsComplete: media.StreamsComplete, SourceFileNameUnique: media.SourceFileNameUnique,
 		SelectedAudioIndex: media.SelectedAudioIndex, AudioTracks: media.AudioTracks, SubtitleTracks: media.SubtitleTracks}
 	streamSourceID, sourceErr := upsertStreamSourceSnapshot(ctx, tx, "jellyfin", mapping.MediaItemID, media.StreamURL, &snapshot)
 	if sourceErr != nil {
@@ -46,10 +46,10 @@ func upsertImportReleaseGraph(
         JOIN release_versions rev ON rev.id=rv.release_version_id
         JOIN fansub_releases fr ON fr.id=rev.release_id
         JOIN episodes ep ON ep.id=fr.episode_id
-		WHERE ss.provider_type = 'jellyfin' AND ss.external_id = $1
+		WHERE ss.id = $1
 		ORDER BY rv.id ASC
 		LIMIT 1
-	`, mapping.MediaItemID).Scan(&variantID, &existingAnimeID)
+	`, streamSourceID).Scan(&variantID, &existingAnimeID)
 	if err != nil && !errors.Is(err, pgx.ErrNoRows) {
 		return false, fmt.Errorf("query existing release variant media=%s: %w", mapping.MediaItemID, err)
 	}

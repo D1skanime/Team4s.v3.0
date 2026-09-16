@@ -58,32 +58,26 @@ func buildEpisodeVersionMediaFiles(
 	items []jellyfinEpisodeItem,
 	seriesID string,
 	folderPath *string,
-	bindings map[string]models.JellyfinSourceSnapshot,
+	bindings map[models.JellyfinSourceKey]models.JellyfinSourceSnapshot,
 	streamURLBuilder func(string) *string,
 ) ([]models.EpisodeVersionMediaFile, error) {
 	normalizedFolderPath := normalizeJellyfinPath(folderPath)
-	files := make([]models.EpisodeVersionMediaFile, 0, len(items))
-	for _, item := range items {
-		itemID := strings.TrimSpace(item.ID)
-		itemPath := strings.TrimSpace(item.Path)
-		if itemID == "" || itemPath == "" {
-			continue
+	sources, err := enumerateJellyfinMediaSources(items, normalizedFolderPath, bindings)
+	if err != nil {
+		return nil, err
+	}
+	files := make([]models.EpisodeVersionMediaFile, 0, len(sources))
+	for _, entry := range sources {
+		if seriesID != "" && entry.Item.SeriesID != seriesID {
+			return nil, fmt.Errorf("Die Jellyfin-Datei gehört nicht zur gespeicherten Anime-Zuordnung.")
 		}
-		if normalizedFolderPath != "" && !jellyfinPathHasPrefix(itemPath, normalizedFolderPath) {
-			continue
+		if !entry.Source.Snapshot.StreamsComplete {
+			binding, ok := bindings[models.JellyfinSourceKey{ItemID: entry.Item.ID, SourceID: entry.Source.Snapshot.MediaSourceID}]
+			if !ok || !binding.StreamsComplete {
+				return nil, fmt.Errorf("Die Jellyfin-Quelle enthält keine vollständigen Stream-Daten.")
+			}
 		}
-
-		var stored *models.JellyfinSourceSnapshot
-		if binding, ok := bindings[itemID]; ok {
-			stored = &binding
-		}
-		source, err := resolveReviewedJellyfinSource(item, itemID, "", seriesID, normalizedFolderPath, stored)
-		if err != nil {
-			return nil, err
-		}
-		entry := buildEpisodeVersionMediaFile(item, source, streamURLBuilder)
-
-		files = append(files, entry)
+		files = append(files, buildEpisodeVersionMediaFile(entry.Item, entry.Source, streamURLBuilder))
 	}
 
 	sort.Slice(files, func(i, j int) bool {

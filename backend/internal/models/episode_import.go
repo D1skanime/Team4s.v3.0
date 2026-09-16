@@ -25,9 +25,17 @@ type EpisodeImportCanonicalEpisode struct {
 	ExistingTitle      *string           `json:"existing_title,omitempty"`
 }
 
+// JellyfinSourceKey identifies a reviewed source under its genuine provider Item.
+// It is deliberately not serialized as a public path or synthetic Item ID.
+type JellyfinSourceKey struct{ ItemID, SourceID string }
+
 // EpisodeImportMediaCandidate is a Jellyfin-owned local media/file candidate.
 // Season and episode numbers are evidence for suggestions only.
 type EpisodeImportMediaCandidate struct {
+	SourceFileNameUnique bool `json:"-"`
+	// Actual owner aliases from the authoritative provider collection, server-only.
+	JellyfinItemIDs []string `json:"-"`
+
 	MediaItemID   string  `json:"media_item_id"`
 	MediaSourceID string  `json:"media_source_id,omitempty"`
 	Container     *string `json:"container,omitempty"`
@@ -63,7 +71,7 @@ type SelectedFansubGroupInput struct {
 // showing opaque media IDs as the primary label.
 type EpisodeImportMappingRow struct {
 	MediaItemID string `json:"media_item_id"`
-	// Reviewed source selector; the row identity remains MediaItemID.
+	// Reviewed source selector; row identity is (MediaItemID, MediaSourceID).
 	MediaSourceID           string                     `json:"media_source_id,omitempty"`
 	FileName                string                     `json:"file_name,omitempty"`
 	DisplayPath             string                     `json:"display_path,omitempty"`

@@ -20,15 +20,16 @@ func upsertNormalizedReleaseStream(
 ) error {
 	var existingID int64
 	err := tx.QueryRow(ctx, `
-		SELECT id
-		FROM release_streams
-		WHERE variant_id = $1
+		SELECT rs.id
+		FROM release_streams rs
+		LEFT JOIN stream_sources ss ON ss.id=rs.stream_source_id
+		WHERE rs.variant_id = $1
 		  AND stream_type_id = $2
 		  AND audio_language_id IS NULL
 		  AND subtitle_language_id IS NULL
-		ORDER BY id ASC
+		ORDER BY CASE WHEN ss.provider_type='jellyfin' THEN 0 ELSE 1 END, rs.id
 		LIMIT 1
-		FOR UPDATE
+		FOR UPDATE OF rs
 	`, variantID, streamTypeID).Scan(&existingID)
 	if err != nil && err != pgx.ErrNoRows {
 		return fmt.Errorf("lookup normalized release stream variant=%d: %w", variantID, err)
@@ -37,7 +38,7 @@ func upsertNormalizedReleaseStream(
 	if err == pgx.ErrNoRows {
 		if _, insertErr := tx.Exec(ctx, `
 			INSERT INTO release_streams (variant_id, stream_type_id, stream_source_id, jellyfin_item_id, modified_at, updated_at)
-			VALUES ($1, $2, $3, NULLIF($4, ''), NOW(), NOW())
+			VALUES ($1, $2, $3, COALESCE((SELECT external_id FROM stream_sources WHERE id=$3 AND provider_type='jellyfin'),NULLIF($4,'')), NOW(), NOW())
 		`, variantID, streamTypeID, streamSourceID, jellyfinItemID); insertErr != nil {
 			return fmt.Errorf("insert normalized release stream variant=%d: %w", variantID, insertErr)
 		}
@@ -47,7 +48,7 @@ func upsertNormalizedReleaseStream(
 	if _, updateErr := tx.Exec(ctx, `
 		UPDATE release_streams
 		SET stream_source_id = $1,
-		    jellyfin_item_id = NULLIF($2, ''),
+		    jellyfin_item_id = COALESCE((SELECT external_id FROM stream_sources WHERE id=$1 AND provider_type='jellyfin'),NULLIF($2,'')),
 		    modified_at = NOW(),
 		    updated_at = NOW()
 		WHERE id = $3

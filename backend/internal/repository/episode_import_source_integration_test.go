@@ -2,12 +2,14 @@ package repository
 
 import (
 	"context"
+	"errors"
 	"fmt"
 	"github.com/jackc/pgx/v5"
 	"github.com/jackc/pgx/v5/pgxpool"
 	"github.com/stretchr/testify/require"
 	"team4s.v3/backend/internal/models"
 	"testing"
+	"time"
 )
 
 func openEpisodeImportSourceFixture(t *testing.T) *pgxpool.Pool {
@@ -59,7 +61,7 @@ func episodeSourceInput() models.EpisodeImportApplyInput {
 	index := int32(1)
 	return models.EpisodeImportApplyInput{AnimeID: 1,
 		CanonicalEpisodes: []models.EpisodeImportCanonicalEpisode{{EpisodeNumber: 1, TitlesByLanguage: map[string]string{"de": "Folge eins"}}},
-		MediaCandidates: []models.EpisodeImportMediaCandidate{{MediaItemID: "actual-item", MediaSourceID: "source-a", Path: "/anime/a.mkv",
+		MediaCandidates: []models.EpisodeImportMediaCandidate{{MediaItemID: "actual-item", MediaSourceID: "source-a", SourceFileNameUnique: true, Path: "/anime/a.mkv",
 			FileName: "a.mkv", Container: str("matroska"), VideoQuality: str("1080p"), VideoCodec: str("hevc"), AudioCodec: str("flac"),
 			DurationSeconds: &duration, StreamURL: str("https://fixture.invalid/Videos/actual-item/stream"), StreamsComplete: true, SelectedAudioIndex: &index,
 			AudioTracks: []models.JellyfinAudioTrack{{Index: 1, Codec: "flac"}}, SubtitleTracks: []models.JellyfinSubtitleTrack{{Index: 2, Codec: "ass"}}}},
@@ -93,8 +95,8 @@ func TestEpisodeImportSourceCreateRepeatAndInitialBinding(t *testing.T) {
 	require.Equal(t, 1234, duration)
 	bindings, err := repo.GetJellyfinSourceBindings(ctx, []string{"actual-item"})
 	require.NoError(t, err)
-	require.Equal(t, "source-a", bindings["actual-item"].MediaSourceID)
-	require.Nil(t, bindings["actual-item"].AudioTracks[0].Language)
+	require.Equal(t, "source-a", bindings[models.JellyfinSourceKey{ItemID: "actual-item", SourceID: "source-a"}].MediaSourceID)
+	require.Nil(t, bindings[models.JellyfinSourceKey{ItemID: "actual-item", SourceID: "source-a"}].AudioTracks[0].Language)
 	result, err = repo.Apply(ctx, input)
 	require.NoError(t, err)
 	require.EqualValues(t, 0, result.VersionsCreated)
@@ -111,10 +113,10 @@ func TestEpisodeImportSourceCreateRepeatAndInitialBinding(t *testing.T) {
 	require.NoError(t, err)
 	bindings, err = repo.GetJellyfinSourceBindings(ctx, []string{"actual-item"})
 	require.NoError(t, err)
-	require.Equal(t, "source-a", bindings["actual-item"].MediaSourceID)
+	require.Equal(t, "source-a", bindings[models.JellyfinSourceKey{ItemID: "actual-item", SourceID: "source-a"}].MediaSourceID)
 }
 func TestEpisodeImportSourceRejectsAndRollsBack(t *testing.T) {
-	for _, scenario := range []string{"wrong anime", "duplicate candidate", "absent candidate", "stale source", "incomplete B", "new incomplete item", "mapping mismatch"} {
+	for _, scenario := range []string{"wrong anime", "duplicate candidate", "absent candidate", "changed source path", "incomplete B", "new incomplete item", "mapping mismatch"} {
 		t.Run(scenario, func(t *testing.T) {
 			pool := openEpisodeImportSourceFixture(t)
 			ctx := context.Background()
@@ -130,13 +132,17 @@ func TestEpisodeImportSourceRejectsAndRollsBack(t *testing.T) {
 				input.MediaCandidates = append(input.MediaCandidates, input.MediaCandidates[0])
 			case "absent candidate":
 				input.MediaCandidates = nil
-			case "stale source", "incomplete B":
-				input.MediaCandidates[0].MediaSourceID = "source-b"
+			case "changed source path", "incomplete B":
 				input.MediaCandidates[0].Path = "/anime/b.mkv"
-				input.Mappings[0].MediaSourceID = "source-b"
-				input.MediaCandidates[0].StreamsComplete = scenario == "stale source"
+				if scenario == "incomplete B" {
+					input.MediaCandidates[0].MediaSourceID = "source-b"
+					input.Mappings[0].MediaSourceID = "source-b"
+				}
+				input.MediaCandidates[0].StreamsComplete = scenario == "changed source path"
 			case "new incomplete item":
 				input.MediaCandidates[0].MediaItemID = "new-item"
+				input.MediaCandidates[0].MediaSourceID = "new-source"
+				input.Mappings[0].MediaSourceID = "new-source"
 				input.Mappings[0].MediaItemID = "new-item"
 				input.MediaCandidates[0].StreamsComplete = false
 			case "mapping mismatch":
@@ -182,23 +188,149 @@ func TestEpisodeImportSourceCompleteEmptyClearsTechnicalStreams(t *testing.T) {
 	require.Nil(t, quality)
 	bindings, err := repo.GetJellyfinSourceBindings(ctx, []string{"actual-item"})
 	require.NoError(t, err)
-	require.Empty(t, bindings["actual-item"].AudioTracks)
-	require.Empty(t, bindings["actual-item"].SubtitleTracks)
+	require.Empty(t, bindings[models.JellyfinSourceKey{ItemID: "actual-item", SourceID: "source-a"}].AudioTracks)
+	require.Empty(t, bindings[models.JellyfinSourceKey{ItemID: "actual-item", SourceID: "source-a"}].SubtitleTracks)
 }
 
 func TestEpisodeImportSourceSiblingPersistence(t *testing.T) {
- pool:=openEpisodeImportSourceFixture(t); ctx:=context.Background(); repo:=NewEpisodeImportRepository(pool)
- input:=episodeSourceInput()
- b:=input.MediaCandidates[0]; b.MediaSourceID="source-b"; b.Path="/anime/b.mp4"; b.FileName="b.mp4"
- b.AudioTracks=[]models.JellyfinAudioTrack{{Index:1,Codec:"aac"}}
- mapping:=input.Mappings[0]; mapping.MediaSourceID="source-b"
- input.MediaCandidates=append(input.MediaCandidates,b); input.Mappings=append(input.Mappings,mapping)
- result,err:=repo.Apply(ctx,input); require.NoError(t,err); require.EqualValues(t,2,result.VersionsCreated)
- var sources,versions,variants int
- require.NoError(t,pool.QueryRow(ctx,"SELECT count(*) FROM stream_sources").Scan(&sources))
- require.NoError(t,pool.QueryRow(ctx,"SELECT count(*) FROM release_versions").Scan(&versions))
- require.NoError(t,pool.QueryRow(ctx,"SELECT count(*) FROM release_variants").Scan(&variants))
- require.Equal(t,2,sources); require.Equal(t,2,versions); require.Equal(t,2,variants)
- result,err=repo.Apply(ctx,input); require.NoError(t,err); require.EqualValues(t,0,result.VersionsCreated)
- require.EqualValues(t,2,result.VersionsUpdated)
+	pool := openEpisodeImportSourceFixture(t)
+	ctx := context.Background()
+	repo := NewEpisodeImportRepository(pool)
+	input := episodeSourceInput()
+	b := input.MediaCandidates[0]
+	b.MediaSourceID = "source-b"
+	b.Path = "/anime/b.mp4"
+	b.FileName = "b.mp4"
+	b.AudioTracks = []models.JellyfinAudioTrack{{Index: 1, Codec: "aac"}}
+	mapping := input.Mappings[0]
+	mapping.MediaSourceID = "source-b"
+	input.MediaCandidates = append(input.MediaCandidates, b)
+	input.Mappings = append(input.Mappings, mapping)
+	result, err := repo.Apply(ctx, input)
+	require.NoError(t, err)
+	require.EqualValues(t, 2, result.VersionsCreated)
+	var sources, versions, variants int
+	require.NoError(t, pool.QueryRow(ctx, "SELECT count(*) FROM stream_sources").Scan(&sources))
+	require.NoError(t, pool.QueryRow(ctx, "SELECT count(*) FROM release_versions").Scan(&versions))
+	require.NoError(t, pool.QueryRow(ctx, "SELECT count(*) FROM release_variants").Scan(&variants))
+	require.Equal(t, 2, sources)
+	require.Equal(t, 2, versions)
+	require.Equal(t, 2, variants)
+	result, err = repo.Apply(ctx, input)
+	require.NoError(t, err)
+	require.EqualValues(t, 0, result.VersionsCreated)
+	require.EqualValues(t, 2, result.VersionsUpdated)
+}
+
+func siblingSourceInput() models.EpisodeImportApplyInput {
+	input := episodeSourceInput()
+	b := input.MediaCandidates[0]
+	b.MediaSourceID = "source-b"
+	b.Path = "/anime/b.mp4"
+	b.FileName = "b.mp4"
+	b.AudioTracks = []models.JellyfinAudioTrack{{Index: 1, Codec: "aac"}}
+	mapping := input.Mappings[0]
+	mapping.MediaSourceID = "source-b"
+	input.MediaCandidates = append(input.MediaCandidates, b)
+	input.Mappings = append(input.Mappings, mapping)
+	return input
+}
+func TestEpisodeImportSourceAliasesAndCoverage(t *testing.T) {
+	pool := openEpisodeImportSourceFixture(t)
+	ctx := context.Background()
+	repo := NewEpisodeImportRepository(pool)
+	input := siblingSourceInput()
+	_, err := repo.Apply(ctx, input)
+	require.NoError(t, err)
+	coverage, err := repo.PreviewExistingCoverage(ctx, 1)
+	require.NoError(t, err)
+	require.Len(t, coverage.Mappings, 2)
+	require.ElementsMatch(t, []string{"source-a", "source-b"}, []string{coverage.Mappings[0].MediaSourceID, coverage.Mappings[1].MediaSourceID})
+	// Same physical source under a standalone alias keeps its stored owner and URL.
+	alias := episodeSourceInput()
+	alias.MediaCandidates[0].MediaItemID = "source-a"
+	alias.Mappings[0].MediaItemID = "source-a"
+	aliasURL := "https://fixture.invalid/Videos/source-a/stream"
+	alias.MediaCandidates[0].StreamURL = &aliasURL
+	result, err := repo.Apply(ctx, alias)
+	require.NoError(t, err)
+	require.Zero(t, result.VersionsCreated)
+	var owner, url string
+	require.NoError(t, pool.QueryRow(ctx, `SELECT external_id,url FROM stream_sources WHERE metadata#>>'{jellyfin_source,media_source_id}'='source-a'`).Scan(&owner, &url))
+	require.Equal(t, "actual-item", owner)
+	require.NotEqual(t, aliasURL, url)
+	var streamOwner string
+	require.NoError(t, pool.QueryRow(ctx, `SELECT rs.jellyfin_item_id FROM release_streams rs JOIN stream_sources ss ON ss.id=rs.stream_source_id WHERE ss.metadata#>>'{jellyfin_source,media_source_id}'='source-a'`).Scan(&streamOwner))
+	require.Equal(t, owner, streamOwner)
+	before := sourceGraphState(t, pool)
+	alias.AnimeID = 2
+	_, err = repo.Apply(ctx, alias)
+	require.ErrorIs(t, err, ErrConflict)
+	require.Equal(t, before, sourceGraphState(t, pool))
+	alias.AnimeID = 1
+	alias.MediaCandidates[0].Path = "/anime/contradiction.mkv"
+	_, err = repo.Apply(ctx, alias)
+	require.ErrorIs(t, err, ErrConflict)
+	require.Equal(t, before, sourceGraphState(t, pool))
+	alias = episodeSourceInput()
+	b := alias.MediaCandidates[0]
+	b.MediaItemID = "alias"
+	alias.MediaCandidates = append(alias.MediaCandidates, b)
+	m := alias.Mappings[0]
+	m.MediaItemID = "alias"
+	alias.Mappings = append(alias.Mappings, m)
+	_, err = repo.Apply(ctx, alias)
+	require.Error(t, err)
+	require.Equal(t, before, sourceGraphState(t, pool))
+}
+func TestEpisodeImportSourceOpposingConcurrentBatches(t *testing.T) {
+	for _, differentAnime := range []bool{false, true} {
+		t.Run(fmt.Sprint(differentAnime), func(t *testing.T) {
+			pool := openEpisodeImportSourceFixture(t)
+			ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
+			defer cancel()
+			a, b := siblingSourceInput(), siblingSourceInput()
+			b.MediaCandidates[0], b.MediaCandidates[1] = b.MediaCandidates[1], b.MediaCandidates[0]
+			b.Mappings[0], b.Mappings[1] = b.Mappings[1], b.Mappings[0]
+			if differentAnime {
+				b.AnimeID = 2
+			}
+			start := make(chan struct{})
+			result := make(chan error, 2)
+			for _, input := range []models.EpisodeImportApplyInput{a, b} {
+				go func(in models.EpisodeImportApplyInput) {
+					<-start
+					_, err := NewEpisodeImportRepository(pool).Apply(ctx, in)
+					result <- err
+				}(input)
+			}
+			close(start)
+			first, second := <-result, <-result
+			if differentAnime {
+				require.True(t, (first == nil && errors.Is(second, ErrConflict)) || (second == nil && errors.Is(first, ErrConflict)), "%v / %v", first, second)
+			} else {
+				require.NoError(t, first)
+				require.NoError(t, second)
+			}
+			var count int
+			require.NoError(t, pool.QueryRow(ctx, "SELECT COUNT(*) FROM stream_sources").Scan(&count))
+			require.Equal(t, 2, count)
+		})
+	}
+}
+
+func TestEpisodeImportSourceUnresolvedDuplicateFilenameCannotBind(t *testing.T) {
+	pool := openEpisodeImportSourceFixture(t)
+	ctx := context.Background()
+	repo := NewEpisodeImportRepository(pool)
+	input := episodeSourceInput()
+	_, err := repo.Apply(ctx, input)
+	require.NoError(t, err)
+	_, err = pool.Exec(ctx, `UPDATE stream_sources SET metadata='{}'`)
+	require.NoError(t, err)
+	before := sourceGraphState(t, pool)
+	input.MediaCandidates[0].SourceFileNameUnique = false
+	_, err = repo.Apply(ctx, input)
+	require.ErrorIs(t, err, ErrConflict)
+	require.Equal(t, before, sourceGraphState(t, pool))
 }

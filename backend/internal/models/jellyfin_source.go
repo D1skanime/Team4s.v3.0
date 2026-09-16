@@ -3,13 +3,16 @@ package models
 // JellyfinSourceSnapshot is the private jellyfin_source metadata namespace,
 // schema version 1. Provider item identity remains stream_sources.external_id.
 type JellyfinSourceSnapshot struct {
-	Version            int                     `json:"version"`
-	MediaSourceID      string                  `json:"media_source_id"`
-	SourcePath         string                  `json:"source_path"`
-	StreamsComplete    bool                    `json:"streams_complete"`
-	SelectedAudioIndex *int32                  `json:"selected_audio_index"`
-	AudioTracks        []JellyfinAudioTrack    `json:"audio_tracks"`
-	SubtitleTracks     []JellyfinSubtitleTrack `json:"subtitle_tracks"`
+	// Current complete provider membership proves filename uniqueness when binding
+	// a previously unresolved imported row. Never accepted from JSON or persisted.
+	SourceFileNameUnique bool                    `json:"-"`
+	Version              int                     `json:"version"`
+	MediaSourceID        string                  `json:"media_source_id"`
+	SourcePath           string                  `json:"source_path"`
+	StreamsComplete      bool                    `json:"streams_complete"`
+	SelectedAudioIndex   *int32                  `json:"selected_audio_index"`
+	AudioTracks          []JellyfinAudioTrack    `json:"audio_tracks"`
+	SubtitleTracks       []JellyfinSubtitleTrack `json:"subtitle_tracks"`
 }
 
 type JellyfinAudioTrack struct {

@@ -27,6 +27,7 @@ type episodeVersionWriteState struct {
 	DurationSeconds     *int32
 	MediaProvider       string
 	MediaItemID         string
+	MediaSourceID       string
 	StreamURL           *string
 }
 
@@ -51,7 +52,8 @@ func loadEpisodeVersionStateForUpdate(ctx context.Context, tx pgx.Tx, versionID 
 			rv.duration_seconds,
 			COALESCE(ss.provider_type, ''),
 			COALESCE(ss.external_id, rs.jellyfin_item_id, ''),
-			ss.url
+			ss.url,
+			COALESCE(ss.metadata#>>'{jellyfin_source,media_source_id}','')
 		FROM release_variants rv
 		JOIN release_versions rev ON rev.id = rv.release_version_id
 		JOIN fansub_releases fr ON fr.id = rev.release_id
@@ -59,7 +61,7 @@ func loadEpisodeVersionStateForUpdate(ctx context.Context, tx pgx.Tx, versionID 
 		LEFT JOIN release_streams rs ON rs.variant_id = rv.id
 		LEFT JOIN stream_sources ss ON ss.id = rs.stream_source_id
 		WHERE rv.id = $1 OR rev.id = $1
-		ORDER BY rv.id ASC
+		ORDER BY rv.id ASC, CASE WHEN ss.provider_type='jellyfin' THEN 0 ELSE 1 END, rs.id
 		LIMIT 1
 	`+lockClause, versionID).Scan(
 		&state.VariantID,
@@ -76,6 +78,7 @@ func loadEpisodeVersionStateForUpdate(ctx context.Context, tx pgx.Tx, versionID 
 		&state.MediaProvider,
 		&state.MediaItemID,
 		&state.StreamURL,
+		&state.MediaSourceID,
 	); errors.Is(err, pgx.ErrNoRows) {
 		return nil, ErrNotFound
 	} else if err != nil {
@@ -267,7 +270,7 @@ func (r *EpisodeVersionRepository) Delete(ctx context.Context, versionID int64) 
 		FROM release_variants rv
 		JOIN release_versions rev ON rev.id = rv.release_version_id
 		WHERE rv.id = $1 OR rev.id = $1
-		ORDER BY rv.id ASC
+		ORDER BY rv.id ASC, CASE WHEN ss.provider_type='jellyfin' THEN 0 ELSE 1 END, rs.id
 		LIMIT 1
 	`, versionID).Scan(&variantID, &releaseVersionID, &releaseID); errors.Is(err, pgx.ErrNoRows) {
 		return ErrNotFound
@@ -427,9 +430,8 @@ func phase20ReleaseImportDeferred(action string, id int64) error {
 	return fmt.Errorf("%s %d is deferred until Phase 20 release-native import writes are implemented", action, id)
 }
 
-// Lock the source before any variant lock. Item bindings shared by another anime
-// cannot be attached to this anime, and the shared namespace helper rejects a
-// different nested source even if other versions happen to share the item.
+// Lock the physical source before any variant lock. A source shared by another
+// anime cannot be attached here; sibling sources of one Item remain independent.
 func prepareEpisodeVersionSource(ctx context.Context, tx pgx.Tx, animeID int64, provider, itemID string, url *string, snapshot *models.JellyfinSourceSnapshot) (int64, error) {
 	id, err := upsertStreamSourceSnapshot(ctx, tx, provider, itemID, url, snapshot)
 	if err != nil {
