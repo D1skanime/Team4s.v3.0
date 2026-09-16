@@ -1,5 +1,6 @@
 // @vitest-environment jsdom
 import { act, renderHook, waitFor } from '@testing-library/react'
+import { StrictMode } from 'react'
 import { beforeEach, describe, expect, it, vi } from 'vitest'
 
 const api = vi.hoisted(() => ({
@@ -18,6 +19,18 @@ const item = (id: number, preview: boolean) => ({
   thumbnail_url: null, original_url: null, uploaded_by_user_id: 3, can_update: true, can_delete: true,
   created_at: '2026-07-16T00:00:00Z', updated_at: null, deleted_at: null,
 })
+
+const capabilitiesResponse = {
+  data: { can_view_media: true, can_upload_media: true, can_update_media: true, can_delete_media: false, can_edit_notes: false, can_manage_segments: false },
+}
+
+function deferred<T>() {
+  let resolve!: (value: T) => void
+  const promise = new Promise<T>((res) => {
+    resolve = res
+  })
+  return { promise, resolve }
+}
 
 describe('useReleaseVersionMedia preview reconciliation', () => {
   beforeEach(() => {
@@ -258,4 +271,124 @@ describe('useReleaseVersionMedia preview reconciliation', () => {
     expect(api.patchReleaseVersionMediaItem).not.toHaveBeenCalled()
   })
 
+  it('reorderItems bleibt bis zum Abschluss eines waehrenddessen gestarteten reload() sichtbar', async () => {
+    const { result } = renderHook(() => useReleaseVersionMedia(1))
+    await waitFor(() => expect(result.current.items).toHaveLength(2))
+
+    api.reorderReleaseVersionMedia.mockResolvedValueOnce(undefined)
+    await act(async () => {
+      await result.current.reorderItems(1, { items: [{ id: 2, sort_order: 1 }, { id: 1, sort_order: 2 }] })
+    })
+    expect(result.current.items.map(entry => entry.id)).toEqual([2, 1])
+
+    const reloadPending = deferred<{ data: ReturnType<typeof item>[] }>()
+    api.getReleaseVersionMedia.mockReturnValueOnce(reloadPending.promise)
+    api.getReleaseVersionCapabilities.mockResolvedValueOnce(capabilitiesResponse)
+    act(() => { result.current.reload() })
+
+    // reload() haengt noch -- die optimistische Reihenfolge bleibt sichtbar.
+    expect(result.current.items.map(entry => entry.id)).toEqual([2, 1])
+
+    await act(async () => {
+      reloadPending.resolve({ data: [item(1, true), item(2, false)] })
+      await reloadPending.promise
+    })
+    await waitFor(() => expect(result.current.items.map(entry => entry.id)).toEqual([1, 2]))
+  })
+
+  it('patchItem-Ergebnisse ueberleben einen danach gestarteten, noch offenen reload()', async () => {
+    const { result } = renderHook(() => useReleaseVersionMedia(1))
+    await waitFor(() => expect(result.current.items).toHaveLength(2))
+
+    api.patchReleaseVersionMediaItem.mockResolvedValueOnce({ ...item(2, false), caption: 'Neu' })
+    await act(async () => { await result.current.patchItem(2, { caption: 'Neu' }) })
+    expect(result.current.items.find(entry => entry.id === 2)?.caption).toBe('Neu')
+
+    const reloadPending = deferred<{ data: ReturnType<typeof item>[] }>()
+    api.getReleaseVersionMedia.mockReturnValueOnce(reloadPending.promise)
+    api.getReleaseVersionCapabilities.mockResolvedValueOnce(capabilitiesResponse)
+    act(() => { result.current.reload() })
+
+    // reload() haengt noch -- das per patchItem gesetzte Feld bleibt sichtbar.
+    expect(result.current.items.find(entry => entry.id === 2)?.caption).toBe('Neu')
+
+    await act(async () => {
+      reloadPending.resolve({ data: [item(1, true), item(2, false)] })
+      await reloadPending.promise
+    })
+    await waitFor(() => expect(result.current.items.find(entry => entry.id === 2)?.caption).toBeNull())
+  })
+
+  it('reload() loest genau ein weiteres Ladepaar aus; Mutationsfunktionen loesen keine zusaetzliche Ladeoperation aus', async () => {
+    const { result } = renderHook(() => useReleaseVersionMedia(1))
+    await waitFor(() => expect(result.current.items).toHaveLength(2))
+    expect(api.getReleaseVersionMedia).toHaveBeenCalledTimes(1)
+    expect(api.getReleaseVersionCapabilities).toHaveBeenCalledTimes(1)
+
+    api.patchReleaseVersionMediaItem.mockResolvedValueOnce(item(2, false))
+    await act(async () => { await result.current.patchItem(2, { caption: 'x' }) })
+    expect(api.getReleaseVersionMedia).toHaveBeenCalledTimes(1)
+    expect(api.getReleaseVersionCapabilities).toHaveBeenCalledTimes(1)
+
+    act(() => { result.current.reload() })
+    await waitFor(() => expect(api.getReleaseVersionMedia).toHaveBeenCalledTimes(2))
+    expect(api.getReleaseVersionCapabilities).toHaveBeenCalledTimes(2)
+  })
+
+  it('wendet eine verspaetete Ladeantwort fuer die alte versionId nach einem Prop-Wechsel nicht mehr an', async () => {
+    const firstPending = deferred<{ data: ReturnType<typeof item>[] }>()
+    api.getReleaseVersionMedia.mockReturnValueOnce(firstPending.promise)
+    api.getReleaseVersionCapabilities.mockResolvedValueOnce(capabilitiesResponse)
+
+    const { result, rerender } = renderHook(
+      (props: { versionId: number }) => useReleaseVersionMedia(props.versionId),
+      { initialProps: { versionId: 1 } },
+    )
+    expect(api.getReleaseVersionMedia).toHaveBeenCalledTimes(1)
+
+    const secondPending = deferred<{ data: ReturnType<typeof item>[] }>()
+    api.getReleaseVersionMedia.mockReturnValueOnce(secondPending.promise)
+    api.getReleaseVersionCapabilities.mockResolvedValueOnce(capabilitiesResponse)
+    rerender({ versionId: 2 })
+    expect(api.getReleaseVersionMedia).toHaveBeenCalledTimes(2)
+
+    await act(async () => {
+      firstPending.resolve({ data: [item(99, true)] })
+      await Promise.resolve()
+      await Promise.resolve()
+    })
+    expect(result.current.items.find(entry => entry.id === 99)).toBeUndefined()
+
+    await act(async () => {
+      secondPending.resolve({ data: [item(50, false)] })
+      await secondPending.promise
+    })
+    await waitFor(() => expect(result.current.items.map(entry => entry.id)).toEqual([50]))
+  })
+
+  it('sperrt die heutige Fehlerreihenfolge fest: ein Ladefehler wird durch einen erfolgreichen Upload geloescht', async () => {
+    api.getReleaseVersionMedia.mockRejectedValueOnce(new Error('Ladefehler'))
+    const { result } = renderHook(() => useReleaseVersionMedia(42))
+    await waitFor(() => expect(result.current.isLoading).toBe(false))
+    expect(result.current.error).toBe('Ladefehler')
+    expect(result.current.capabilitiesError).toBe('Ladefehler')
+
+    api.uploadReleaseVersionMedia.mockResolvedValueOnce({
+      results: [{ client_file_name: 'x.png', status: 'ready', release_version_media_id: 1 }],
+    })
+    api.getReleaseVersionMedia.mockResolvedValueOnce({ data: [item(1, false)] })
+    api.getReleaseVersionCapabilities.mockResolvedValueOnce(capabilitiesResponse)
+    const file = new File(['a'], 'x.png', { type: 'image/png' })
+
+    await act(async () => { await result.current.startUpload('screenshot', [{ file, title: '', caption: '' }]) })
+
+    expect(result.current.error).toBeNull()
+  })
+
+  it('StrictMode verursacht kein zusaetzliches Ladepaar ueber Reacts Dev-Doppelaufruf hinaus', async () => {
+    const { result } = renderHook(() => useReleaseVersionMedia(1), { wrapper: StrictMode })
+    await waitFor(() => expect(result.current.isLoading).toBe(false))
+    expect(api.getReleaseVersionMedia).toHaveBeenCalledTimes(2)
+    expect(api.getReleaseVersionCapabilities).toHaveBeenCalledTimes(2)
+  })
 })

@@ -2,7 +2,8 @@
 
 import { useCallback, useEffect, useRef, useState } from 'react'
 import { ApiError, getReleaseVersionCapabilities, deleteReleaseVersionMediaItem, getReleaseVersionMedia, patchReleaseVersionMediaItem, replaceReleaseVersionMediaFile, reorderReleaseVersionMedia, uploadReleaseVersionMedia } from '@/lib/api'
-import { CATEGORY_ALLOWS_PREVIEW, ReleaseVersionMediaCategory, ReleaseVersionCapabilities, ReleaseVersionMediaItem, ReleaseVersionMediaPatchRequest, ReleaseVersionMediaReorderRequest } from '@/types/releaseVersionMedia'
+import { useCancellableSlugState } from '@/hooks/useCancellableSlugState'
+import { CATEGORY_ALLOWS_PREVIEW, ReleaseVersionMediaCategory, ReleaseVersionCapabilities, ReleaseVersionMediaItem, ReleaseVersionMediaListResponse, ReleaseVersionCapabilitiesResponse, ReleaseVersionMediaPatchRequest, ReleaseVersionMediaReorderRequest } from '@/types/releaseVersionMedia'
 import { buildReplaceMediaFileRequest, fileKey } from './ReleaseVersionMediaSection.helpers'
 
 export interface UploadFileDraft {
@@ -85,7 +86,6 @@ function readUploadError(error: unknown, fallback: string): string {
 
 export function useReleaseVersionMedia(versionId: number | null): UseReleaseVersionMediaResult {
   const [items, setItems] = useState<ReleaseVersionMediaItem[]>([])
-  const [isLoading, setIsLoading] = useState(false)
   const [error, setError] = useState<string | null>(null)
   const [uploadItems, setUploadItems] = useState<UploadQueueItem[]>([])
   const [patchError, setPatchError] = useState<string | null>(null)
@@ -95,6 +95,7 @@ export function useReleaseVersionMedia(versionId: number | null): UseReleaseVers
   const [capabilities, setCapabilities] = useState<ReleaseVersionCapabilities | null>(null)
   const [capabilitiesError, setCapabilitiesError] = useState<string | null>(null)
   const [reloadKey, setReloadKey] = useState(0)
+  const [appliedKey, setAppliedKey] = useState<string | null>(null)
   const lastUploadConfigRef = useRef<UploadConfig | null>(null)
   const itemsRef = useRef<ReleaseVersionMediaItem[]>([])
 
@@ -347,46 +348,52 @@ export function useReleaseVersionMedia(versionId: number | null): UseReleaseVers
     [versionId],
   )
 
-  useEffect(() => {
-    let cancelled = false
+  const canFetch = versionId !== null
+  const requestKey = canFetch ? `${versionId}:${reloadKey}` : ''
+  const fetcher = useCallback(
+    () => Promise.all([
+      getReleaseVersionMedia(versionId as number),
+      getReleaseVersionCapabilities(versionId as number),
+    ]),
+    [versionId],
+  )
+  const { state } = useCancellableSlugState<[ReleaseVersionMediaListResponse, ReleaseVersionCapabilitiesResponse]>({
+    requestKey,
+    enabled: canFetch,
+    fetcher,
+  })
 
-    void (async () => {
-      if (versionId === null) {
-        setItems([])
-        setError(null)
-        setCapabilities(null)
-        setCapabilitiesError(null)
-        return
-      }
-
-      setIsLoading(true)
+  // Adjust state during render (React-empfohlenes Muster statt Effect, siehe
+  // GroupMemberFormModals.tsx-Praezedenzfall): nur die LADE-abgeleiteten Felder
+  // (items/capabilities/error/capabilitiesError) werden hier gesetzt -- jede
+  // Mutations-/Upload-Callback oben bleibt unveraendert und schreibt weiterhin direkt in
+  // dieselben States, ohne von diesem Block ueberschrieben zu werden, sobald appliedKey
+  // === state.key ist (Class-D-Nichteinmischungs-Beweis).
+  if (!canFetch) {
+    if (appliedKey !== null || items.length > 0 || capabilities !== null || error !== null || capabilitiesError !== null) {
+      setAppliedKey(null)
+      setItems([])
+      setError(null)
+      setCapabilities(null)
+      setCapabilitiesError(null)
+    }
+  } else if (state.key === requestKey && state.key !== appliedKey) {
+    if (state.status === 'success') {
+      setAppliedKey(state.key)
+      const [mediaResponse, capabilitiesResponseData] = state.data!
+      setItems(sortMediaItems(Array.isArray(mediaResponse.data) ? mediaResponse.data : []))
+      setCapabilities(capabilitiesResponseData.data)
       setError(null)
       setCapabilitiesError(null)
-
-      try {
-        const [response, capabilitiesResponse] = await Promise.all([
-          getReleaseVersionMedia(versionId),
-          getReleaseVersionCapabilities(versionId),
-        ])
-        if (cancelled) return
-        setItems(sortMediaItems(Array.isArray(response.data) ? response.data : []))
-        setCapabilities(capabilitiesResponse.data)
-      } catch (err: unknown) {
-        if (cancelled) return
-        const message = err instanceof Error ? err.message : String(err)
-        setError(message)
-        setCapabilitiesError(message)
-      } finally {
-        if (!cancelled) {
-          setIsLoading(false)
-        }
-      }
-    })()
-
-    return () => {
-      cancelled = true
+    } else if (state.status === 'error') {
+      setAppliedKey(state.key)
+      const message = state.error instanceof Error ? state.error.message : String(state.error)
+      setError(message)
+      setCapabilitiesError(message)
     }
-  }, [versionId, reloadKey])
+  }
+
+  const isLoading = canFetch && (state.key !== requestKey || state.status === 'loading')
 
   return {
     items,
