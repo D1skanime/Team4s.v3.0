@@ -4,7 +4,7 @@ milestone: v1.4
 milestone_name: Coverage
 status: verifying
 stopped_at: "Phase 161 Release-27 metadata and Karaoke playback confirmed by user; other live checks remain open"
-last_updated: "2026-09-16T11:40:00Z"
+last_updated: "2026-09-16T13:20:00Z"
 last_activity: 2026-09-16
 progress:
   total_phases: 24
@@ -15,6 +15,10 @@ progress:
 ---
 
 # Project State
+
+## Abgeschlossener Quick 260916-emd — Episoden-Metadaten manuell pflegbar (16.09.2026)
+
+Canon/Filler (`episodes.filler_type_id`) und Episodentyp (`episodes.episode_type_id`) sind in der Episoden-Übersicht und im Versionseditor (Informationen, nur Plattform-Admin) bearbeitbar; beide speichern sofort über das erweiterte `PATCH /admin/episodes/:id` in genau einen Episode-Datensatz. Neue additive Migration 0167 `episode_type_source`; `filler_source`/`episode_type_source = manual` schützt vor Reimport, Import findet manuell umtypisierte Episoden wieder (verhindert Duplikate). Ungültige Werte → 400, Unique-Konflikt → 409. Live-Abnahme 11eyes EP 01 über echte Handler: canon/special in allen drei Versionen sichtbar, danach mixed/episode in der Übersicht; EP 01 steht jetzt auf mixed/episode (manual). Tests: 5 Postgres, Handler-400, 6 Frontend inkl. Cross-View; Frontend-Prod-Build grün. Details: quick/260916-emd-episoden-metadaten-manuell/260916-emd-SUMMARY.md. Kein Push; Browser-UAT offen (kein Login im Panel).
 
 ## Abgeschlossener Quick 260916-asr — aniSearch „Alternative Version“ als Nebengeschichte (16.09.2026)
 
