@@ -16,6 +16,10 @@ progress:
 
 # Project State
 
+## Abgeschlossener Quick 260916-rpv — Öffentliche Relationen: Sicht, Label, Cover (16.09.2026)
+
+Öffentliche Anime-Seite zeigt Relationen jetzt aus Sicht der angezeigten Seite (OVA-Seite: 11eyes = Hauptgeschichte), mit deutschen Labels (kein roher DB-Name, Überschrift „Verwandte Anime“) und Cover über denselben Resolver wie die Detailseite. Live im Browser geprüft (/anime/2, /anime/3). Details: quick/260916-rpv-oeffentliche-relationen-perspektive/260916-rpv-SUMMARY.md. Kein Push.
+
 ## Abgeschlossener Quick 260916-emd — Episoden-Metadaten manuell pflegbar (16.09.2026)
 
 **Vom Nutzer am 16.09.2026 mit „approved“ abgenommen**, einschließlich der deutschen Anzeigenamen (Haupthandlung, Zusatzfolge, Teilweise Zusatzfolge, Rückblick, Unbekannt; Commit 387cee57). Eine agentenseitige Browser-Sichtprüfung fand nicht statt. Offen bleiben: Feldname „Canon/Filler“ noch englisch, 11eyes EP 01 steht aus dem Abnahmetest auf mixed (manual).
