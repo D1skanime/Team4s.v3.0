@@ -74,9 +74,14 @@ func (h *AdminContentHandler) UpdateEpisode(c *gin.Context) {
 		return
 	}
 
+	input.ActorUserID = identity.UserID
 	item, err := h.repo.UpdateEpisode(c.Request.Context(), id, input)
 	if errors.Is(err, repository.ErrNotFound) {
 		c.JSON(http.StatusNotFound, gin.H{"error": gin.H{"message": "episode nicht gefunden"}})
+		return
+	}
+	if errors.Is(err, repository.ErrConflict) {
+		c.JSON(http.StatusConflict, gin.H{"error": gin.H{"message": "Für diesen Anime gibt es bereits eine Episode mit dieser Nummer und diesem Episodentyp."}})
 		return
 	}
 	if err != nil {

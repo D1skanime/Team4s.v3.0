@@ -1,0 +1,33 @@
+.inline {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: flex-end;
+  gap: var(--space-3);
+}
+
+.inline > * {
+  min-width: 9.5rem;
+}
+
+.stacked {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(12rem, 1fr));
+  gap: var(--space-4);
+}
+
+.status,
+.error {
+  flex-basis: 100%;
+  grid-column: 1 / -1;
+  margin: 0;
+  font-size: 0.8rem;
+}
+
+.status {
+  color: var(--text-muted);
+}
+
+.error {
+  color: var(--text-primary);
+  font-weight: 600;
+}

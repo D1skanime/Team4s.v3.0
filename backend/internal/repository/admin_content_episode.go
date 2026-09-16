@@ -79,9 +79,14 @@ func (r *AdminContentRepository) UpdateEpisode(
 		assignments = append(assignments, fmt.Sprintf("episode_number = $%d", argPos))
 		args = append(args, input.EpisodeNumber.Value)
 		argPos++
-		assignments = append(assignments, fmt.Sprintf("episode_type_id = $%d", argPos))
-		args = append(args, episodeTypeID)
-		argPos++
+		// Ein manuell gesetzter Episodentyp bleibt bei Nummernänderungen erhalten.
+		if !input.EpisodeType.Set {
+			assignments = append(assignments, fmt.Sprintf(
+				"episode_type_id = CASE WHEN episode_type_source = '%s' THEN episode_type_id ELSE $%d END",
+				models.EpisodeMetadataSourceManual, argPos))
+			args = append(args, episodeTypeID)
+			argPos++
+		}
 		assignments = append(assignments, fmt.Sprintf("number = $%d", argPos))
 		args = append(args, number)
 		argPos++
@@ -110,6 +115,10 @@ func (r *AdminContentRepository) UpdateEpisode(
 		args = append(args, streamLinksFromOptionalString(input.StreamLink.Value))
 		argPos++
 	}
+	assignments, args, argPos, classificationErr := r.appendEpisodeClassificationAssignments(ctx, assignments, args, argPos, input)
+	if classificationErr != nil {
+		return nil, fmt.Errorf("update episode %d: %w", id, classificationErr)
+	}
 
 	if len(assignments) == 1 {
 		return nil, fmt.Errorf("update episode %d: no patch fields provided", id)
@@ -119,8 +128,8 @@ func (r *AdminContentRepository) UpdateEpisode(
 		UPDATE episodes
 		SET %s
 		WHERE id = $%d
-		RETURNING id, anime_id, episode_number, title, status, stream_links[1]
-	`, strings.Join(assignments, ", "), argPos)
+		RETURNING id, anime_id, episode_number, title, status, stream_links[1], %s
+	`, strings.Join(assignments, ", "), argPos, episodeClassificationReturningSQL)
 	args = append(args, id)
 
 	var item models.AdminEpisodeItem
@@ -131,8 +140,14 @@ func (r *AdminContentRepository) UpdateEpisode(
 		&item.Title,
 		&item.Status,
 		&item.StreamLink,
+		&item.FillerType,
+		&item.FillerTypeSource,
+		&item.EpisodeType,
+		&item.EpisodeTypeSource,
 	); errors.Is(err, pgx.ErrNoRows) {
 		return nil, ErrNotFound
+	} else if isUniqueViolation(err) {
+		return nil, fmt.Errorf("update episode %d: %w", id, ErrConflict)
 	} else if err != nil {
 		return nil, fmt.Errorf("update episode %d: %w", id, err)
 	}

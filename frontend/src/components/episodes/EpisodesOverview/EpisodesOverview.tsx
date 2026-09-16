@@ -8,6 +8,7 @@ import { buildBulkFansubGroupAssignments } from '@/app/admin/anime/utils/episode
 import { updateEpisodeVersion } from '@/lib/api'
 import { EpisodeListItem } from '@/types/anime'
 import { GroupedEpisode } from '@/types/episodeVersion'
+import type { EpisodeClassification } from '@/types/episodeClassification'
 import { FansubGroup } from '@/types/fansub'
 
 import { EpisodeAccordion } from './EpisodeAccordion'
@@ -20,6 +21,8 @@ interface EpisodesOverviewProps {
   isLoading?: boolean
   error?: string | null
   onRefresh: () => Promise<void>
+  classifications?: EpisodeClassification[]
+  onClassificationSaved?: (next: EpisodeClassification) => void
 }
 
 export function EpisodesOverview({
@@ -29,6 +32,8 @@ export function EpisodesOverview({
   isLoading = false,
   error = null,
   onRefresh,
+  classifications = [],
+  onClassificationSaved,
 }: EpisodesOverviewProps) {
   const [expandedEpisodes, setExpandedEpisodes] = useState<Set<number>>(new Set())
   const [selectedEpisodeIDs, setSelectedEpisodeIDs] = useState<Set<number>>(new Set())
@@ -40,6 +45,9 @@ export function EpisodesOverview({
 
   const episodeIDByNumber = new Map(
     episodeItems.map((episode) => [Number.parseInt(episode.episode_number, 10), episode.id]),
+  )
+  const classificationByEpisodeID = new Map(
+    classifications.map((classification) => [classification.episode_id, classification]),
   )
   const selectableEpisodeIDs = episodes
     .map((episode) => episodeIDByNumber.get(episode.episode_number))
@@ -220,6 +228,8 @@ export function EpisodesOverview({
               onToggle={() => toggleExpanded(episode.episode_number)}
               isSelected={episodeID !== undefined && selectedEpisodeIDs.has(episodeID)}
               onSelectionChange={episodeID !== undefined ? () => toggleSelected(episodeID) : undefined}
+              classification={episodeID !== undefined ? classificationByEpisodeID.get(episodeID) : undefined}
+              onClassificationSaved={onClassificationSaved}
             />
           )
         })}

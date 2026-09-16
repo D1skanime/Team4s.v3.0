@@ -6,6 +6,7 @@ import { useParams } from "next/navigation";
 
 import {
   createAdminEpisode,
+  getAdminEpisodeClassifications,
   getAnimeByID,
   getFansubs,
   getGroupedEpisodes,
@@ -15,6 +16,7 @@ import { useAuthSession } from "@/lib/useAuthSession";
 import { AnimeDetail, EpisodeStatus } from "@/types/anime";
 import { FansubGroup } from "@/types/fansub";
 import { GroupedEpisode } from "@/types/episodeVersion";
+import type { EpisodeClassification } from "@/types/episodeClassification";
 import { EpisodesOverview } from "@/components/episodes/EpisodesOverview";
 
 import styles from "../../AdminStudio.module.css";
@@ -40,6 +42,11 @@ function AdminAnimeEpisodesContent() {
   const [anime, setAnime] = useState<AnimeDetail | null>(null);
   const [groupedEpisodes, setGroupedEpisodes] = useState<GroupedEpisode[]>([]);
   const [fansubs, setFansubs] = useState<FansubGroup[]>([]);
+  const [classifications, setClassifications] = useState<
+    EpisodeClassification[]
+  >([]);
+  const [classificationsErrorMessage, setClassificationsErrorMessage] =
+    useState<string | null>(null);
   const [isLoadingAnime, setIsLoadingAnime] = useState(true);
   const [isLoadingVersions, setIsLoadingVersions] = useState(false);
   const [isCreating, setIsCreating] = useState(false);
@@ -113,6 +120,31 @@ function AdminAnimeEpisodesContent() {
   }, [animeID]);
 
   useEffect(() => {
+    async function loadClassifications() {
+      if (!animeID) {
+        return;
+      }
+
+      setClassificationsErrorMessage(null);
+
+      try {
+        const response = await getAdminEpisodeClassifications(animeID);
+        setClassifications(response.data);
+      } catch (error) {
+        setClassifications([]);
+        setClassificationsErrorMessage(
+          formatAdminError(
+            error,
+            "Canon/Filler und Episodentyp konnten nicht geladen werden.",
+          ),
+        );
+      }
+    }
+
+    void loadClassifications();
+  }, [animeID]);
+
+  useEffect(() => {
     async function loadFansubs() {
       setFansubsErrorMessage(null);
 
@@ -167,13 +199,16 @@ function AdminAnimeEpisodesContent() {
         status: formState.status,
       });
 
-      const [refreshedAnime, refreshedVersions] = await Promise.all([
-        getAnimeByID(animeID, { include_disabled: true }),
-        getGroupedEpisodes(animeID),
-      ]);
+      const [refreshedAnime, refreshedVersions, refreshedClassifications] =
+        await Promise.all([
+          getAnimeByID(animeID, { include_disabled: true }),
+          getGroupedEpisodes(animeID),
+          getAdminEpisodeClassifications(animeID),
+        ]);
 
       setAnime(refreshedAnime.data);
       setGroupedEpisodes(refreshedVersions.data.episodes);
+      setClassifications(refreshedClassifications.data);
       setFormState({ number: "", title: "", status: "disabled" });
       setShowCreateForm(false);
       setSuccessMessage(`Episode ${parsedEpisodeNumber} wurde angelegt.`);
@@ -375,12 +410,26 @@ function AdminAnimeEpisodesContent() {
               <div className={styles.errorBox}>{fansubsErrorMessage}</div>
             ) : null}
 
+            {classificationsErrorMessage ? (
+              <div className={styles.errorBox}>
+                {classificationsErrorMessage}
+              </div>
+            ) : null}
+
             <EpisodesOverview
               episodes={groupedEpisodes}
               episodeItems={anime.episodes}
               fansubs={fansubs}
               isLoading={isLoadingVersions}
               error={versionsErrorMessage}
+              classifications={classifications}
+              onClassificationSaved={(next) =>
+                setClassifications((current) =>
+                  current.map((item) =>
+                    item.episode_id === next.episode_id ? next : item,
+                  ),
+                )
+              }
               onRefresh={async () => {
                 if (!animeID) return;
                 const response = await getGroupedEpisodes(animeID);

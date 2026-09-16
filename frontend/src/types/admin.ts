@@ -1,4 +1,5 @@
 import { AnimeStatus, ContentType, EpisodeStatus } from "@/types/anime";
+import type { EpisodeFillerType, EpisodeType } from './episodeClassification';
 
 /** Mögliche Anime-Format-Typen für die Kategorisierung eines Eintrags. */
 export type AnimeType = "tv" | "film" | "ova" | "ona" | "special" | "bonus" | "web";
@@ -32,6 +33,11 @@ export interface AdminEpisodeItem {
   title?: string;
   status: EpisodeStatus;
   stream_link?: string;
+  /** Episode-eigene Einstufung; nur in PATCH-Antworten enthalten. */
+  filler_type?: EpisodeFillerType;
+  filler_type_source?: string;
+  episode_type?: EpisodeType;
+  episode_type_source?: string;
 }
 
 /** Request-Payload zum Erstellen eines neuen Anime-Eintrags im Admin-Bereich. */
@@ -279,6 +285,8 @@ export interface AdminEpisodePatchRequest {
   title?: string | null;
   status?: EpisodeStatus;
   stream_link?: string | null;
+  filler_type?: EpisodeFillerType;
+  episode_type?: EpisodeType;
 }
 
 /** Request-Parameter für den Jellyfin-Sync eines Anime inkl. Steuerungsoptionen. */

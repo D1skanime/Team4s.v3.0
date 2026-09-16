@@ -1,3 +1,4 @@
+import type { EpisodeClassification } from './episodeClassification'
 import { FansubGroupSummary } from '@/types/fansub'
 import type { SelectedFansubGroupInput } from '@/types/episodeImport'
 
@@ -71,6 +72,8 @@ export interface EpisodeVersionEditorContext {
   selected_groups: FansubGroupSummary[]
   /** At most four anchors per selected group, matching anime and version label. */
   date_neighbors: EpisodeVersionDateNeighbor[]
+  /** Einstufung der übergeordneten Episode (nicht der Version); nur im Admin-Kontext. */
+  episode?: EpisodeClassification | null
   /**
    * True when configured optional folder/selected-file enrichment was attempted and failed.
    * Ordinary context remains usable; missing configuration is not a failed attempt.

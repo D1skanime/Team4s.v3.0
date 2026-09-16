@@ -1,3 +1,4 @@
+import type { EpisodeClassificationListResponse } from "@/types/episodeClassification";
 import {
   AdminAnimeAniSearchEditRequest,
   AdminAnimeAniSearchEditConflictResult,
@@ -5777,6 +5778,30 @@ export async function createAdminEpisode(
   }
 
   return response.json() as Promise<AdminEpisodeUpsertResponse>;
+}
+
+export async function getAdminEpisodeClassifications(
+  animeID: number,
+  authToken?: string,
+): Promise<EpisodeClassificationListResponse> {
+  const API_BASE_URL = getApiBaseUrl();
+  const response = await authorizedFetch(
+    `${API_BASE_URL}/api/v1/admin/anime/${animeID}/episode-classifications`,
+    {
+      cache: "no-store",
+      headers: withAuthHeader({}, authToken),
+    },
+  );
+
+  if (!response.ok) {
+    const message = await parseApiError(
+      response,
+      `API request failed: ${response.status}`,
+    );
+    throw new ApiError(response.status, message);
+  }
+
+  return response.json() as Promise<EpisodeClassificationListResponse>;
 }
 
 export async function updateAdminEpisode(

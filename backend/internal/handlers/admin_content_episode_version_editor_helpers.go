@@ -2,10 +2,12 @@ package handlers
 
 import (
 	"context"
+	"errors"
 	"log"
 	"strings"
 
 	"team4s.v3/backend/internal/models"
+	"team4s.v3/backend/internal/repository"
 )
 
 // episodeVersionEditorResolved fasst alle aufgelösten Abhängigkeiten zusammen, die für den Episodenversionsedit-Kontext benötigt werden.
@@ -36,7 +38,13 @@ func (h *AdminContentHandler) loadEpisodeVersionEditorContext(
 		return nil, err
 	}
 
+	episode, err := h.repo.GetEpisodeClassificationByReleaseVersion(ctx, version.ReleaseVersionID)
+	if err != nil && !errors.Is(err, repository.ErrNotFound) {
+		return nil, err
+	}
+
 	return &models.EpisodeVersionEditorContext{
+		Episode:                    episode,
 		SelectedFile:               selectedFile,
 		Version:                    version,
 		AnimeTitle:                 resolved.animeSource.Title,

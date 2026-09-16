@@ -1,6 +1,8 @@
 'use client'
 
 import { GroupedEpisode } from '@/types/episodeVersion'
+import type { EpisodeClassification } from '@/types/episodeClassification'
+import { EpisodeClassificationFields } from '@/components/episodes/EpisodeClassificationFields'
 import { VersionRow } from './VersionRow'
 import { Input } from '@/components/ui/Input'
 import styles from './EpisodeAccordion.module.css'
@@ -11,6 +13,8 @@ interface EpisodeAccordionProps {
   onToggle: () => void
   isSelected?: boolean
   onSelectionChange?: () => void
+  classification?: EpisodeClassification
+  onClassificationSaved?: (next: EpisodeClassification) => void
 }
 
 export function EpisodeAccordion({
@@ -19,6 +23,8 @@ export function EpisodeAccordion({
   onToggle,
   isSelected = false,
   onSelectionChange,
+  classification,
+  onClassificationSaved,
 }: EpisodeAccordionProps) {
   const episodeId = `episode-${episode.episode_number}`
   const contentId = `${episodeId}-content`
@@ -57,6 +63,16 @@ export function EpisodeAccordion({
           </span>
         </button>
       </div>
+
+      {classification ? (
+        <div className={styles.classificationRow}>
+          <EpisodeClassificationFields
+            key={classification.episode_id}
+            classification={classification}
+            onSaved={onClassificationSaved}
+          />
+        </div>
+      ) : null}
 
       {isExpanded && (
         <div id={contentId} className={styles.accordionContent} role="region" aria-labelledby={episodeId}>

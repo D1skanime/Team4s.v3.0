@@ -305,6 +305,9 @@ type AdminEpisodePatchInput struct {
 	Title         OptionalString `json:"title"`
 	Status        OptionalString `json:"status"`
 	StreamLink    OptionalString `json:"stream_link"`
+	FillerType    OptionalString `json:"filler_type"`
+	EpisodeType   OptionalString `json:"episode_type"`
+	ActorUserID   int64          `json:"-"`
 }
 
 type AdminAnimeItem struct {
@@ -373,6 +376,11 @@ type AdminEpisodeItem struct {
 	Title         *string `json:"title,omitempty"`
 	Status        string  `json:"status"`
 	StreamLink    *string `json:"stream_link,omitempty"`
+	// Episode-eigene Einstufung; nur bei PATCH-Antworten befüllt.
+	FillerType        *string `json:"filler_type,omitempty"`
+	FillerTypeSource  *string `json:"filler_type_source,omitempty"`
+	EpisodeType       *string `json:"episode_type,omitempty"`
+	EpisodeTypeSource *string `json:"episode_type_source,omitempty"`
 }
 
 type AdminEpisodeDeleteResult struct {

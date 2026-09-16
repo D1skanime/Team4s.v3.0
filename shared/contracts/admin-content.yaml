@@ -1699,6 +1699,8 @@ types:
     title: string | null
     status: episode_status (optional)
     stream_link: string | null
+    filler_type: string (optional, enum [unknown, canon, filler, mixed, recap], sets filler_source=manual, invalid -> 400)
+    episode_type: string (optional, enum [episode, special, ova, ona, movie, recap, preview, prologue, epilogue, bonus], sets episode_type_source=manual, invalid -> 400)
   AdminAnimeJellyfinSyncRequest:
     jellyfin_series_id: string (optional, max: 120)
     season_number: int32 (optional, minimum: 1, default: 1)
@@ -1892,6 +1894,17 @@ types:
     title: string | null
     status: episode_status
     stream_link: string | null
+    filler_type: string (optional, PATCH response only)
+    filler_type_source: string (optional, anisearch | manual)
+    episode_type: string (optional, PATCH response only)
+    episode_type_source: string (optional, manual)
+  EpisodeClassification:
+    episode_id: int64
+    episode_number: string
+    filler_type: string | null
+    filler_type_source: string | null
+    episode_type: string | null
+    episode_type_source: string | null
   AdminMemberMemorialSetResponse:
     description: Antwort auf erfolgreiche Gedenkprofil-Markierung.
     data:

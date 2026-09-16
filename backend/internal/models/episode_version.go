@@ -169,6 +169,8 @@ type EpisodeVersionEditorContext struct {
 	AnimeFolderPath *string                      `json:"anime_folder_path,omitempty"`
 	SelectedGroups  []FansubGroupSummary         `json:"selected_groups"`
 	DateNeighbors   []EpisodeVersionDateNeighbor `json:"date_neighbors"`
+	// Episode ist die Einstufung der übergeordneten Episode (nicht der Version).
+	Episode *EpisodeClassification `json:"episode,omitempty"`
 	// JellyfinEnrichmentDegraded is true only when a configured Jellyfin connection was
 	// attempted for folder or selected-file enrichment and failed; ordinary editing
 	// remains usable with unavailable optional metadata.

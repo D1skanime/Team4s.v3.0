@@ -31,6 +31,7 @@ import { JellyfinEnrichmentNotice } from "./JellyfinEnrichmentNotice";
 import styles from "./EpisodeVersionEditor.module.css";
 import { Button } from "@/components/ui/Button";
 import { ReleaseVersionMetadataFields } from "./ReleaseVersionMetadataFields";
+import { EpisodeClassificationSection } from "./EpisodeClassificationSection";
 
 type ActiveTab =
   | "uebersicht"
@@ -728,6 +729,13 @@ export function EpisodeVersionEditorPage() {
                     projectTimeline={projectTimeline}
                   />
                 </section>
+
+                {isPlatformAdmin && editor.contextData.episode ? (
+                  <EpisodeClassificationSection
+                    key={editor.contextData.episode.episode_id}
+                    classification={editor.contextData.episode}
+                  />
+                ) : null}
 
 {isPlatformAdmin ? (
                   <>

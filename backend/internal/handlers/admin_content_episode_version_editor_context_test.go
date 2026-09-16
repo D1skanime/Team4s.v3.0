@@ -72,6 +72,13 @@ func openEVECFixture(t *testing.T) *pgxpool.Pool {
 			episode_id BIGINT REFERENCES episodes(id),
 			position INT NOT NULL DEFAULT 0
 		);
+		CREATE TABLE IF NOT EXISTS episode_filler_types (id BIGSERIAL PRIMARY KEY, name TEXT NOT NULL UNIQUE);
+		CREATE TABLE IF NOT EXISTS episode_types (id BIGSERIAL PRIMARY KEY, name TEXT NOT NULL UNIQUE);
+		ALTER TABLE episodes
+			ADD COLUMN IF NOT EXISTS filler_type_id BIGINT,
+			ADD COLUMN IF NOT EXISTS filler_source VARCHAR(80),
+			ADD COLUMN IF NOT EXISTS episode_type_id BIGINT,
+			ADD COLUMN IF NOT EXISTS episode_type_source VARCHAR(80);
 		CREATE TABLE IF NOT EXISTS anime_source_links (
 			anime_id BIGINT NOT NULL REFERENCES anime(id) ON DELETE CASCADE,
 			source TEXT NOT NULL,

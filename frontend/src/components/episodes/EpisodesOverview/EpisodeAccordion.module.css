@@ -12,6 +12,10 @@
   gap: 0.5rem;
 }
 
+.classificationRow {
+  padding: 0 0.85rem 0.75rem;
+}
+
 .accordionHeader {
   flex: 1;
   display: grid;

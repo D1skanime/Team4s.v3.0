@@ -3096,6 +3096,46 @@ paths:
             application/json:
               schema:
                 $ref: "#/components/schemas/ErrorResponse"
+  /api/v1/admin/anime/{id}/episode-classifications:
+    get:
+      tags: [Admin]
+      summary: List Canon/Filler and episode type of all episodes of an anime
+      operationId: adminListEpisodeClassifications
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+            format: int64
+            minimum: 1
+      responses:
+        "200":
+          description: Episode classifications
+          content:
+            application/json:
+              schema:
+                type: object
+                required: [data]
+                properties:
+                  data:
+                    type: array
+                    items:
+                      $ref: "#/components/schemas/EpisodeClassification"
+        "401":
+          description: Authentication required
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+        "404":
+          description: Anime not found
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
   /api/v1/admin/episodes/{id}:
     patch:
       tags: [Admin]
@@ -3139,6 +3179,20 @@ paths:
                   value:
                     error:
                       message: ungueltiger request body
+                invalidFillerType:
+                  value:
+                    error:
+                      message: ungültiger filler_type parameter
+                invalidEpisodeType:
+                  value:
+                    error:
+                      message: ungültiger episode_type parameter
+        "409":
+          description: Episode number and episode type already exist for this anime
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
         "401":
           description: Authentication required
           content:
@@ -11351,6 +11405,14 @@ components:
           nullable: true
         status:
           $ref: "#/components/schemas/EpisodeStatus"
+        filler_type:
+          type: string
+          enum: [unknown, canon, filler, mixed, recap]
+          description: Canon/Filler der Episode (episodes.filler_type_id); setzt filler_source=manual. Ungültige Werte -> 400.
+        episode_type:
+          type: string
+          enum: [episode, special, ova, ona, movie, recap, preview, prologue, epilogue, bonus]
+          description: Technischer Episodentyp (episodes.episode_type_id); setzt episode_type_source=manual. Ungültige Werte -> 400.
     AdminAnimeItem:
       type: object
       required:
@@ -11435,6 +11497,45 @@ components:
           nullable: true
         status:
           $ref: "#/components/schemas/EpisodeStatus"
+        filler_type:
+          type: string
+          enum: [unknown, canon, filler, mixed, recap]
+        filler_type_source:
+          type: string
+          description: anisearch | manual
+        episode_type:
+          type: string
+          enum: [episode, special, ova, ona, movie, recap, preview, prologue, epilogue, bonus]
+        episode_type_source:
+          type: string
+          description: manual (fehlt = Default)
+    EpisodeClassification:
+      type: object
+      description: >-
+        Episode-eigene Einstufung. Existiert genau einmal pro Episode und gilt für alle
+        Release-Versionen. Canon/Filler und Episodentyp sind unabhängig; recap existiert
+        bewusst in beiden Dimensionen. Quelle manual schützt vor Überschreiben durch Reimport.
+      required: [episode_id, episode_number, filler_type, filler_type_source, episode_type, episode_type_source]
+      properties:
+        episode_id:
+          type: integer
+          format: int64
+        episode_number:
+          type: string
+        filler_type:
+          type: string
+          nullable: true
+          enum: [unknown, canon, filler, mixed, recap]
+        filler_type_source:
+          type: string
+          nullable: true
+        episode_type:
+          type: string
+          nullable: true
+          enum: [episode, special, ova, ona, movie, recap, preview, prologue, epilogue, bonus]
+        episode_type_source:
+          type: string
+          nullable: true
     AdminAnimeUpsertResponse:
       type: object
       required: [data]
@@ -15243,6 +15344,10 @@ components:
             media_source_id/stream_url and other provider details are omitted.
         version:
           $ref: "#/components/schemas/EpisodeVersion"
+        episode:
+          allOf:
+            - $ref: "#/components/schemas/EpisodeClassification"
+          description: Einstufung der übergeordneten Episode (nicht der Version); nur im Admin-Kontext.
         anime_title:
           type: string
         anime_folder_path:

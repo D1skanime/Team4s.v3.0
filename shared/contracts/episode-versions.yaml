@@ -414,6 +414,7 @@ types:
     selected_file: EpisodeVersionMediaFile | null # Optional saved file; contributor path/media_item_id empty, selectors/URLs omitted.
     jellyfin_enrichment_degraded: boolean # Optional failed folder/file enrichment; no configured provider is not a failure.
     version: EpisodeVersion
+    episode: EpisodeClassification | null # Admin only: Canon/Filler + episode type of the parent episode, shared by all versions.
     anime_title: string
     anime_folder_path: string | null
     selected_groups: FansubGroupShort[]

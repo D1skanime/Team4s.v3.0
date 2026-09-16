@@ -183,11 +183,12 @@ func upsertImportEpisode(
 	err = tx.QueryRow(ctx, `
 		SELECT id
 		FROM episodes
-		WHERE anime_id = $1 AND number = $2 AND episode_type_id = $3
-		ORDER BY id ASC
+		WHERE anime_id = $1 AND number = $2
+		  AND (episode_type_id = $3 OR episode_type_source = $4)
+		ORDER BY (episode_type_id = $3) DESC, id ASC
 		LIMIT 1
 		FOR UPDATE
-	`, animeID, canonical.EpisodeNumber, episodeTypeID).Scan(&existingID)
+	`, animeID, canonical.EpisodeNumber, episodeTypeID, models.EpisodeMetadataSourceManual).Scan(&existingID)
 	if errors.Is(err, pgx.ErrNoRows) {
 		var createdID int64
 		if err := tx.QueryRow(ctx, `
@@ -214,13 +215,13 @@ func upsertImportEpisode(
 		    number_decimal = COALESCE(number_decimal, $3),
 		    number_text = COALESCE(NULLIF(BTRIM(number_text), ''), $4),
 		    sort_index = COALESCE(sort_index, $3),
-		    filler_type_id = COALESCE($5, filler_type_id),
-		    filler_source = COALESCE($6, filler_source),
-		    filler_note = COALESCE($7, filler_note),
+		    filler_type_id = CASE WHEN filler_source = $9 THEN filler_type_id ELSE COALESCE($5, filler_type_id) END,
+		    filler_note = CASE WHEN filler_source = $9 THEN filler_note ELSE COALESCE($7, filler_note) END,
+		    filler_source = CASE WHEN filler_source = $9 THEN filler_source ELSE COALESCE($6, filler_source) END,
 		    updated_at = NOW(),
 		    modified_at = NOW()
 		WHERE id = $8
-	`, displayTitle, episodeTypeID, canonical.EpisodeNumber, episodeNumber, fillerTypeID, canonical.FillerSource, canonical.FillerNote, existingID); err != nil {
+	`, displayTitle, episodeTypeID, canonical.EpisodeNumber, episodeNumber, fillerTypeID, canonical.FillerSource, canonical.FillerNote, existingID, models.EpisodeMetadataSourceManual); err != nil {
 		return 0, false, fmt.Errorf("update canonical episode id=%d: %w", existingID, err)
 	}
 	return existingID, false, nil
