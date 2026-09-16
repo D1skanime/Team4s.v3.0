@@ -2,16 +2,16 @@
 gsd_state_version: 1.0
 milestone: v1.4
 milestone_name: Coverage
-status: executing
-stopped_at: Completed 160-05-PLAN.md
-last_updated: "2026-09-16T21:20:48.335Z"
+status: verifying
+stopped_at: Completed 160-06-PLAN.md (final plan of Phase 160)
+last_updated: "2026-09-16T21:30:23.300Z"
 last_activity: 2026-09-16
 progress:
   total_phases: 26
-  completed_phases: 25
+  completed_phases: 26
   total_plans: 253
-  completed_plans: 252
-  percent: 96
+  completed_plans: 253
+  percent: 100
 ---
 
 # Project State
@@ -115,7 +115,7 @@ See: .planning/PROJECT.md (updated 2026-08-13)
 Phase: 160 (oeffentliche-anime-detailseite-nachschaerfen-tags-anzeigen-g) — EXECUTING
 Plan: 6 of 6
 dupliziertem ProjectMemberStickyNav; siehe 157-14-SUMMARY.md)
-Status: Ready to execute
+Status: Phase complete — ready for verification
 GAP-02-Live-UAT-Checkpoint aus 156-UAT.md (5 Origin- + 9 Segment-Contributor-Pruefpunkte) wurde
 am 2026-09-15 vom Auftraggeber live abgenommen (inkl. GAP-08/GAP-09). Phase 156 ist vollstaendig abgenommen.
 Phase 157 gilt ebenfalls NICHT als vollstaendig abgenommen: der menschliche Live-UAT-Checkpoint
@@ -1284,6 +1284,8 @@ Last activity: 2026-09-16
 - [Phase 160]: Persist admin German tag/genre names on Input onBlur; NameTable's local drafts/saveErrors state is the source of truth after save, not the parent's fetched list — Simplest reliable per-row-save trigger, keeps each row's save cycle isolated from the list fetch lifecycle
 - [Phase 160]: 160-05: Frontend D-08-Bypass ist schmal (nur wirklich leeres q, nicht nur zu kurz) gelesen, spiegelt Plan 160-04 exakt — Konsistenz mit dem Backend-Gegenstück, keine abweichende Semantik zwischen Frontend-UX-Gate und Backend-Autoritativgate
 - [Phase 160]: 160-05: Vorschlags-Fetch bekam eine eigene, explizite MIN_QUERY_LENGTH-Bedingung im Debounce-Effekt — Verhindert, dass der tag/genre-Bypass fuer die Ergebnissuche versehentlich auch /search/suggestions erreicht (D-08 gilt nicht fuer Vorschlaege)
+- [Phase 160]: Tags-Block ARIA-Bindung ueber h2 id + ul aria-labelledby statt section aria-label — Haelt die sichtbare Ueberschrift als alleinige Quelle des barrierefreien Namens
+- [Phase 160]: Tag-Reihenfolge wird vom Backend uebernommen, kein Re-Sort im Frontend — Vermeidet Divergenz zwischen Backend- und Frontend-Sortierung (D-18)
 
 ### Pending Todos
 
@@ -1705,11 +1707,12 @@ untruncated list lives in `.planning/todos/pending/`.
 | Phase 160 P04 | 45min | 2 tasks | 6 files |
 | Phase 160 P03 | 40min | 3 tasks | 6 files |
 | Phase 160 P05 | 25min | 2 tasks | 4 files |
+| Phase 160 P06 | 35min | 2 tasks | 4 files |
 
 ## Session Continuity
 
-Last session: 2026-09-16T21:20:48.311Z
-Stopped at: Completed 160-05-PLAN.md
+Last session: 2026-09-16T21:30:23.287Z
+Stopped at: Completed 160-06-PLAN.md (final plan of Phase 160)
 Last activity: 2026-09-16 - Completed quick task 260916-ako: Jellyfin-Geschwisterquellen getrennt importieren; Liveimport zweier Folge-2-Quellen geprüft, keine Phasen-UAT ersetzt.
 Resume file: 
 None
