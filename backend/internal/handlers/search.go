@@ -77,8 +77,19 @@ func (h *SearchHandler) Search(c *gin.Context) {
 		perPage = 100
 	}
 
+	genre, err := parseOptionalFilterString(c.Query("genre"))
+	if err != nil {
+		badRequest(c, "ungültiger genre parameter")
+		return
+	}
+	tag, err := parseOptionalFilterString(c.Query("tag"))
+	if err != nil {
+		badRequest(c, "ungültiger tag parameter")
+		return
+	}
+
 	q, ok := parseSearchQueryTerm(c)
-	if !ok {
+	if !ok && !searchQueryBypassAllowed(q, genre, tag) {
 		badRequest(c, "der Suchbegriff muss mindestens 2 Zeichen lang sein")
 		return
 	}
@@ -110,16 +121,6 @@ func (h *SearchHandler) Search(c *gin.Context) {
 		return
 	}
 
-	genre, err := parseOptionalFilterString(c.Query("genre"))
-	if err != nil {
-		badRequest(c, "ungültiger genre parameter")
-		return
-	}
-	tag, err := parseOptionalFilterString(c.Query("tag"))
-	if err != nil {
-		badRequest(c, "ungültiger tag parameter")
-		return
-	}
 	format, err := parseOptionalFilterString(c.Query("format"))
 	if err != nil {
 		badRequest(c, "ungültiger format parameter")
@@ -205,13 +206,27 @@ func (h *SearchHandler) Suggestions(c *gin.Context) {
 
 // parseSearchQueryTerm trimmt den q-Parameter und erzwingt die Mindestlänge über die
 // ZEICHEN-Anzahl (runen-basiert), damit ein einzelner Umlaut nicht per Byte-Länge die
-// Mindestlänge umgeht. Rückgabe false ⇒ q ist zu kurz (< searchMinQueryLen).
+// Mindestlänge umgeht. Rückgabe false ⇒ q ist zu kurz (< searchMinQueryLen). Der
+// getrimmte Wert wird auch bei false zurückgegeben (statt "" zu verwerfen), damit
+// Aufrufer "q fehlt/leer" von "q vorhanden, aber zu kurz" unterscheiden können
+// (D-08-Bypass in searchQueryBypassAllowed greift NUR im ersten Fall).
 func parseSearchQueryTerm(c *gin.Context) (string, bool) {
 	q := strings.TrimSpace(c.Query("q"))
 	if utf8.RuneCountInString(q) < searchMinQueryLen {
-		return "", false
+		return q, false
 	}
 	return q, true
+}
+
+// searchQueryBypassAllowed implementiert die additive D-08-Ausnahme: die
+// Suchbegriff-Pflicht entfällt NUR, wenn q komplett fehlt/leer ist UND mindestens
+// einer von tag/genre gesetzt ist. Ein VORHANDENER, aber zu kurzer q-Wert (z. B.
+// "?tag=Amnesia&q=a") bypassed NICHT — die engere Lesart aus RESEARCH.md Open
+// Question 1 (durch Plan 160-04 aufgelöst). Alle anderen Filter (format, status,
+// year_from/to, fansub_group) sind hier bewusst NICHT berücksichtigt (D-08 ist
+// additiv nur für tag/genre).
+func searchQueryBypassAllowed(q string, genre, tag *string) bool {
+	return q == "" && (genre != nil || tag != nil)
 }
 
 // buildSearchMeta baut den Pagination-Envelope aus dem strukturierten Suchergebnis.

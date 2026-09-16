@@ -38,6 +38,79 @@ func invokeSuggestions(target string) *httptest.ResponseRecorder {
 	return recorder
 }
 
+// TestSearchQueryBypassAllowed prüft die pure D-08-Bypass-Entscheidung direkt,
+// ohne über den HTTP-Layer zu gehen.
+func TestSearchQueryBypassAllowed(t *testing.T) {
+	amnesia := "Amnesia"
+	action := "Action"
+
+	cases := []struct {
+		name  string
+		q     string
+		genre *string
+		tag   *string
+		want  bool
+	}{
+		{"weder q noch tag/genre", "", nil, nil, false},
+		{"q leer, genre gesetzt", "", &action, nil, true},
+		{"q leer, tag gesetzt", "", nil, &amnesia, true},
+		{"q vorhanden aber zu kurz, tag gesetzt → kein Bypass", "a", nil, &amnesia, false},
+	}
+	for _, tc := range cases {
+		t.Run(tc.name, func(t *testing.T) {
+			got := searchQueryBypassAllowed(tc.q, tc.genre, tc.tag)
+			if got != tc.want {
+				t.Fatalf("searchQueryBypassAllowed(%q, genre=%v, tag=%v) = %v, want %v", tc.q, tc.genre, tc.tag, got, tc.want)
+			}
+		})
+	}
+}
+
+// TestSearchRejectsTooShortQueryEvenWithTagFilter beweist die enge D-08-Lesart:
+// ein VORHANDENER, aber zu kurzer q-Wert bypassed NICHT, selbst wenn tag gesetzt
+// ist. Sicher ohne echtes Repository, da badRequest vor jedem Repo-Zugriff greift.
+func TestSearchRejectsTooShortQueryEvenWithTagFilter(t *testing.T) {
+	recorder := invokeSearch("/api/v1/search?tag=Amnesia&q=a")
+	if recorder.Code != http.StatusBadRequest {
+		t.Fatalf("erwartete 400 für q<2 trotz gesetztem tag, erhielt %d", recorder.Code)
+	}
+}
+
+// TestSearchRejectsMissingQueryWithOnlyFormatFilter beweist, dass die D-08-Ausnahme
+// AUSSCHLIESSLICH für tag/genre gilt — format bleibt ohne q weiterhin abgelehnt.
+func TestSearchRejectsMissingQueryWithOnlyFormatFilter(t *testing.T) {
+	recorder := invokeSearch("/api/v1/search?format=tv")
+	if recorder.Code != http.StatusBadRequest {
+		t.Fatalf("erwartete 400 für fehlendes q trotz format-Filter, erhielt %d", recorder.Code)
+	}
+}
+
+// TestSearchRejectsMissingQueryWithOtherFiltersOnly ist der Auftraggeber-Mandat-
+// Punkt-3-Beweis: die D-08-Ausnahme ist AUSSCHLIESSLICH additiv für tag/genre.
+// format/status/year_from/year_to/fansub_group bleiben ohne q (und ohne tag/genre)
+// weiterhin mit 400 abgelehnt — keiner dieser Filter darf die Suchbegriff-Pflicht
+// umgehen.
+func TestSearchRejectsMissingQueryWithOtherFiltersOnly(t *testing.T) {
+	cases := []struct {
+		name   string
+		target string
+	}{
+		{"nur format", "/api/v1/search?format=tv"},
+		{"nur status", "/api/v1/search?status=ongoing"},
+		{"nur year_from", "/api/v1/search?year_from=2020"},
+		{"nur year_to", "/api/v1/search?year_to=2024"},
+		{"nur fansub_group", "/api/v1/search?fansub_group=1"},
+	}
+	for _, tc := range cases {
+		t.Run(tc.name, func(t *testing.T) {
+			recorder := invokeSearch(tc.target)
+			if recorder.Code != http.StatusBadRequest {
+				t.Fatalf("erwartete 400 für fehlendes q mit %q, erhielt %d", tc.target, recorder.Code)
+			}
+		})
+	}
+}
+
 func TestSearchRejectsMissingQuery(t *testing.T) {
 	recorder := invokeSearch("/api/v1/search")
 	if recorder.Code != http.StatusBadRequest {
