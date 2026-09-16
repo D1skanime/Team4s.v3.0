@@ -1,0 +1,253 @@
+{
+  "commit": "44268512",
+  "exit_code": 1,
+  "pass": 1944,
+  "skip": 224,
+  "failures": [
+    {
+      "package": "team4s.v3/backend/internal/repository",
+      "test": "TestEvaluateMemberMutationConflictBlocksLastActiveManager"
+    },
+    {
+      "package": "team4s.v3/backend/internal/repository",
+      "test": "TestFansubRepository_PublicProfileSourceInvariants"
+    },
+    {
+      "package": "team4s.v3/backend/internal/repository",
+      "test": "TestArchiveUsesCanonicalStoredMemberSlug"
+    },
+    {
+      "package": "team4s.v3/backend/internal/repository",
+      "test": "TestArchiveVisibilityFilterExcludesNonPublicRows"
+    },
+    {
+      "package": "team4s.v3/backend/internal/repository",
+      "test": "TestArchivePaginationBounds"
+    },
+    {
+      "package": "team4s.v3/backend/internal/repository",
+      "test": "TestArchiveRoleFilter"
+    },
+    {
+      "package": "team4s.v3/backend/internal/repository",
+      "test": "TestClaimSubmitBlockedForMemorialProfile"
+    },
+    {
+      "package": "team4s.v3/backend/internal/repository",
+      "test": "TestClaimBlockWritesDeniedAudit"
+    },
+    {
+      "package": "team4s.v3/backend/internal/repository",
+      "test": "TestClaimBlockDeniedAuditOutcomeColocated"
+    },
+    {
+      "package": "team4s.v3/backend/internal/repository",
+      "test": "TestMemberClaimsRepositoryBlocksAlreadyAssignedMembers"
+    },
+    {
+      "package": "team4s.v3/backend/internal/repository",
+      "test": "TestMemberPointTotalsRankingUsesCanonicalStoredSlug"
+    },
+    {
+      "package": "team4s.v3/backend/internal/repository",
+      "test": "TestMemberPointTotalsPostgresConcurrentAwardsSumCorrectly"
+    },
+    {
+      "package": "team4s.v3/backend/internal/repository",
+      "test": "TestMemberPointTotalsPostgresRetrySameAwardDoesNotDoubleCount"
+    },
+    {
+      "package": "team4s.v3/backend/internal/repository",
+      "test": "TestMemberPointTotalsPostgresReversalLowersTotal"
+    },
+    {
+      "package": "team4s.v3/backend/internal/repository",
+      "test": "TestMemberPointTotalsRankingOrderAndTieBreak"
+    },
+    {
+      "package": "team4s.v3/backend/internal/repository",
+      "test": "TestMemberPointTotalsRankingPageBounds"
+    },
+    {
+      "package": "team4s.v3/backend/internal/repository",
+      "test": "TestLoadContributionBadgesPostgres"
+    },
+    {
+      "package": "team4s.v3/backend/internal/repository",
+      "test": "TestLoadContributionBadgesProjectsCountPostgresMatchesRawValueAndBadgeDerivation"
+    },
+    {
+      "package": "team4s.v3/backend/internal/repository",
+      "test": "TestLoadContributionBadgesChronicleCountPostgresMatchesRawValueAndBadgeDerivation"
+    },
+    {
+      "package": "team4s.v3/backend/internal/repository",
+      "test": "TestLoadContributionBadgesArchivistCountPostgresMatchesRawValueAndBadgeDerivation"
+    },
+    {
+      "package": "team4s.v3/backend/internal/repository",
+      "test": "TestGetOwnDashboardPostgresZeroStateForMemberWithoutActivity"
+    },
+    {
+      "package": "team4s.v3/backend/internal/repository",
+      "test": "TestGetOwnDashboardPostgresPointMilestoneIncrementsBadgesCount"
+    },
+    {
+      "package": "team4s.v3/backend/internal/repository",
+      "test": "TestGetOwnDashboardPostgresRoleVolumeRawEntriesVersusBadgesCount"
+    },
+    {
+      "package": "team4s.v3/backend/internal/repository",
+      "test": "TestGetOwnDashboardPostgresRoleVolumeEntryCarriesRegistryTierAndThreshold"
+    },
+    {
+      "package": "team4s.v3/backend/internal/repository",
+      "test": "TestGetOwnDashboardPostgresPointsProgressUsesRegistry"
+    },
+    {
+      "package": "team4s.v3/backend/internal/repository",
+      "test": "TestGetOwnDashboardPostgresProjectsCountDivergesFromFamilyOneRawCount"
+    },
+    {
+      "package": "team4s.v3/backend/internal/repository",
+      "test": "TestGetOwnDashboardPostgresImagesAndContributionsCountsUsePitfall2Sources"
+    },
+    {
+      "package": "team4s.v3/backend/internal/repository",
+      "test": "TestLoadBadgeProgressPostgresIncludesRoleVolumeEntryPerRoleWithSynthesizedEntryStage"
+    },
+    {
+      "package": "team4s.v3/backend/internal/repository",
+      "test": "TestLoadBadgeProgressPostgresZeroAwardedRolesProducesNoRoleVolumeEntries"
+    },
+    {
+      "package": "team4s.v3/backend/internal/repository",
+      "test": "TestGetPublicMemberProfilePostgresIncludesTotalPoints"
+    },
+    {
+      "package": "team4s.v3/backend/internal/repository",
+      "test": "TestLoadPublicBadgesPostgresRoleEntryAwardedVisible"
+    },
+    {
+      "package": "team4s.v3/backend/internal/repository",
+      "test": "TestLoadPublicBadgesPostgresKaraokeFXAwardedVisible"
+    },
+    {
+      "package": "team4s.v3/backend/internal/repository",
+      "test": "TestLoadPublicBadgesPostgresRoleEntryReversedHidden"
+    },
+    {
+      "package": "team4s.v3/backend/internal/repository",
+      "test": "TestLoadPublicBadgesPostgresNonEligibleRoleNeverAppears"
+    },
+    {
+      "package": "team4s.v3/backend/internal/repository",
+      "test": "TestLoadPublicBadgesPostgresRoleVolume"
+    },
+    {
+      "package": "team4s.v3/backend/internal/repository",
+      "test": "TestLoadRoleVolumeCountsPostgresMatchesRawValueAndBadgeDerivation"
+    },
+    {
+      "package": "team4s.v3/backend/internal/repository",
+      "test": "TestLoadRoleVolumeCountsPostgresEmptyForMemberWithoutCredits"
+    },
+    {
+      "package": "team4s.v3/backend/internal/repository",
+      "test": "TestLoadRoleVolumeBadgesPostgresProgressBoundaries/count_0"
+    },
+    {
+      "package": "team4s.v3/backend/internal/repository",
+      "test": "TestLoadRoleVolumeBadgesPostgresProgressBoundaries/count_1"
+    },
+    {
+      "package": "team4s.v3/backend/internal/repository",
+      "test": "TestLoadRoleVolumeBadgesPostgresProgressBoundaries/count_11"
+    },
+    {
+      "package": "team4s.v3/backend/internal/repository",
+      "test": "TestLoadRoleVolumeBadgesPostgresProgressBoundaries/count_12"
+    },
+    {
+      "package": "team4s.v3/backend/internal/repository",
+      "test": "TestLoadRoleVolumeBadgesPostgresProgressBoundaries/count_107"
+    },
+    {
+      "package": "team4s.v3/backend/internal/repository",
+      "test": "TestLoadRoleVolumeBadgesPostgresProgressBoundaries/count_108"
+    },
+    {
+      "package": "team4s.v3/backend/internal/repository",
+      "test": "TestLoadRoleVolumeBadgesPostgresProgressBoundaries/count_319"
+    },
+    {
+      "package": "team4s.v3/backend/internal/repository",
+      "test": "TestLoadRoleVolumeBadgesPostgresProgressBoundaries/count_320"
+    },
+    {
+      "package": "team4s.v3/backend/internal/repository",
+      "test": "TestLoadRoleVolumeBadgesPostgresProgressBoundaries/count_509"
+    },
+    {
+      "package": "team4s.v3/backend/internal/repository",
+      "test": "TestLoadRoleVolumeBadgesPostgresProgressBoundaries/count_510"
+    },
+    {
+      "package": "team4s.v3/backend/internal/repository",
+      "test": "TestLoadRoleVolumeBadgesPostgresProgressBoundaries"
+    },
+    {
+      "package": "team4s.v3/backend/internal/repository",
+      "test": "TestLoadRoleVolumeBadgesPostgresKeepsRolesIndependentAndReversesLive"
+    },
+    {
+      "package": "team4s.v3/backend/internal/repository",
+      "test": "TestPhase128VisibilityFirstReferenceMatrix"
+    },
+    {
+      "package": "team4s.v3/backend/internal/repository",
+      "test": "TestPhase128MemberSlugConcurrentAllocationScenarios"
+    },
+    {
+      "package": "team4s.v3/backend/internal/repository",
+      "test": "TestPhase134MatrixAnonymousPublicProfile"
+    },
+    {
+      "package": "team4s.v3/backend/internal/repository",
+      "test": "TestPhase134MatrixMissingProfile"
+    },
+    {
+      "package": "team4s.v3/backend/internal/repository",
+      "test": "TestPhase134MatrixHiddenProfileIsIndistinguishableFromMissing"
+    },
+    {
+      "package": "team4s.v3/backend/internal/repository",
+      "test": "TestPhase134MatrixOwnerPreviewOfHiddenProfile"
+    },
+    {
+      "package": "team4s.v3/backend/internal/repository",
+      "test": "TestPhase134MatrixRefreshOnlyOwnerAccess"
+    },
+    {
+      "package": "team4s.v3/backend/internal/repository",
+      "test": "TestPhase134MatrixSparseProfileMatchesManifest"
+    },
+    {
+      "package": "team4s.v3/backend/internal/repository",
+      "test": "TestPhase134MatrixDenseProfileMatchesManifest"
+    },
+    {
+      "package": "team4s.v3/backend/internal/repository",
+      "test": "TestPhase134MatrixErrorMalformedSlugDoesNotPanic"
+    },
+    {
+      "package": "team4s.v3/backend/internal/repository",
+      "test": "TestPhase134MatrixPaginationHonestAcrossPages"
+    },
+    {
+      "package": "team4s.v3/backend/internal/repository",
+      "test": null
+    }
+  ],
+  "container": "team4s-ako-baseline-564166"
+}

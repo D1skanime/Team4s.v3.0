@@ -1,0 +1,220 @@
+{
+  "date": "2026-09-16",
+  "implementation_commit": "c61459bc",
+  "schema_version": 166,
+  "authorized_live_import": {
+    "anime_id": 2,
+    "episode": 2,
+    "confirmed_sources": 2,
+    "skipped_candidates": 31,
+    "versions_created": 2,
+    "versions_updated": 0,
+    "neutral_episodes_created": 0
+  },
+  "database_rows": [
+    {
+      "anime_id": 2,
+      "episode": 1,
+      "release_version_id": 50,
+      "variant_id": 50,
+      "stream_source_id": 51,
+      "item_id": "0a927ea6b67379b9f19850464a6b0ab1",
+      "source_id": "0a927ea6b67379b9f19850464a6b0ab1",
+      "filename": "11eyes.S01E01-B-SH.mkv",
+      "container": "mkv",
+      "video_codec": "h264",
+      "audio_codec": "flac",
+      "audio_tracks": [
+        {
+          "codec": "flac",
+          "index": 1,
+          "default": true,
+          "language": "ja"
+        }
+      ],
+      "subtitle_tracks": [
+        {
+          "codec": "ass",
+          "index": 2,
+          "forced": false,
+          "default": true,
+          "language": "de",
+          "display_title": "German, Subtitle (ass) - Standard"
+        }
+      ],
+      "fansub_groups": [
+        "Bloody-Shadow"
+      ]
+    },
+    {
+      "anime_id": 2,
+      "episode": 1,
+      "release_version_id": 51,
+      "variant_id": 51,
+      "stream_source_id": 52,
+      "item_id": "784bcddf47e35fb4d0ba911903002f17",
+      "source_id": "784bcddf47e35fb4d0ba911903002f17",
+      "filename": "11eyes.S01E01-FlameHazeSubs.mp4",
+      "container": "mp4",
+      "video_codec": "h264",
+      "audio_codec": "aac",
+      "audio_tracks": [
+        {
+          "codec": "aac",
+          "index": 1,
+          "default": true,
+          "language": null
+        }
+      ],
+      "subtitle_tracks": [],
+      "fansub_groups": [
+        "FlameHaze-subs"
+      ]
+    },
+    {
+      "anime_id": 2,
+      "episode": 1,
+      "release_version_id": 52,
+      "variant_id": 52,
+      "stream_source_id": 53,
+      "item_id": "b0178014fa4e5a8b26f432bb99719372",
+      "source_id": "b0178014fa4e5a8b26f432bb99719372",
+      "filename": "11eyes.S01E01-Strawhat.mkv",
+      "container": "mkv",
+      "video_codec": "h264",
+      "audio_codec": "vorbis",
+      "audio_tracks": [
+        {
+          "codec": "vorbis",
+          "index": 1,
+          "default": true,
+          "language": "ja"
+        }
+      ],
+      "subtitle_tracks": [
+        {
+          "codec": "ass",
+          "index": 2,
+          "forced": false,
+          "default": true,
+          "language": "de",
+          "display_title": "German - Standard - ASS"
+        }
+      ],
+      "fansub_groups": [
+        "Strawhat Subs"
+      ]
+    },
+    {
+      "anime_id": 2,
+      "episode": 2,
+      "release_version_id": 53,
+      "variant_id": 53,
+      "stream_source_id": 54,
+      "item_id": "8ecfdc1bef67653980da6e070c46b8a5",
+      "source_id": "8ecfdc1bef67653980da6e070c46b8a5",
+      "filename": "11eyes.S01E02-B-SH.mkv",
+      "container": "mkv",
+      "video_codec": "h264",
+      "audio_codec": "flac",
+      "audio_tracks": [
+        {
+          "codec": "flac",
+          "index": 1,
+          "default": true,
+          "language": "ja"
+        }
+      ],
+      "subtitle_tracks": [
+        {
+          "codec": "ass",
+          "index": 2,
+          "forced": false,
+          "default": true,
+          "language": "de",
+          "display_title": "German, Subtitle (ass) - Standard"
+        }
+      ],
+      "fansub_groups": [
+        "B-SH"
+      ]
+    },
+    {
+      "anime_id": 2,
+      "episode": 2,
+      "release_version_id": 54,
+      "variant_id": 54,
+      "stream_source_id": 55,
+      "item_id": "8ecfdc1bef67653980da6e070c46b8a5",
+      "source_id": "040f9c01d009765bc105b50e8150ae91",
+      "filename": "11eyes.S01E02-FlameHazeSubs.mp4",
+      "container": "mp4",
+      "video_codec": "h264",
+      "audio_codec": "aac",
+      "audio_tracks": [
+        {
+          "codec": "aac",
+          "index": 1,
+          "default": true,
+          "language": null
+        }
+      ],
+      "subtitle_tracks": [],
+      "fansub_groups": [
+        "FlameHazeSubs"
+      ]
+    }
+  ],
+  "preview": {
+    "baseline_normal_candidates": 22,
+    "after_fix_before_import": 33,
+    "after_import": 31,
+    "episode_2_before_import": [
+      "B-SH",
+      "FlameHazeSubs",
+      "Strawhat"
+    ],
+    "episode_3_before_and_after": [
+      "B-SH",
+      "FlameHazeSubs",
+      "Strawhat"
+    ],
+    "episode_2_after_import": [
+      "Strawhat"
+    ],
+    "full_provider_unique_sources": 38,
+    "configured_folder_sources": 36,
+    "excluded_ova_sources_outside_configured_folder": 2,
+    "already_imported_episode_1_sources": 3
+  },
+  "browser": {
+    "flow": "Anime episodes -> Import & Mapping -> preview -> skip all -> reactivate B-SH and FlameHazeSubs episode 2 -> confirm two -> apply -> episode overview -> editors 53/54 -> fresh preview",
+    "viewport_checks": [
+      {
+        "width": 1062,
+        "height": 980,
+        "document_width": 1047
+      },
+      {
+        "width": 390,
+        "height": 844,
+        "document_width": 375
+      }
+    ],
+    "viewport_override_reset": true,
+    "editor_53": {
+      "filename": "11eyes.S01E02-B-SH.mkv",
+      "size": "2.3 GB",
+      "quality": "1080p",
+      "duration": "24:56"
+    },
+    "editor_54": {
+      "filename": "11eyes.S01E02-FlameHazeSubs.mp4",
+      "size": "197 MB",
+      "quality": "720p",
+      "duration": "25:29"
+    },
+    "unsaved_test_drafts_cleared": true,
+    "human_uat_signoff": false
+  }
+}

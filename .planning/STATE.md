@@ -4,8 +4,8 @@ milestone: v1.4
 milestone_name: Coverage
 status: verifying
 stopped_at: "Phase 161 Release-27 metadata and Karaoke playback confirmed by user; other live checks remain open"
-last_updated: "2026-09-15T17:43:13Z"
-last_activity: 2026-09-15
+last_updated: "2026-09-16T08:26:26Z"
+last_activity: 2026-09-16
 progress:
   total_phases: 24
   completed_phases: 24
@@ -15,6 +15,10 @@ progress:
 ---
 
 # Project State
+
+## Abgeschlossener Quick 260916-ako — Mehrere Jellyfin-MediaSources (16.09.2026)
+
+Source-Paare durch Vorschau, unabhängige Auswahl, serverseitige Revalidierung und Persistenz umgesetzt. 38 eindeutige Sources im vollständigen 11eyes-Fixture; Live-Ordner enthält 36, davon drei bereits importiert. Zwei Quellen von Folge 2 gemeinsam importiert und in DB/Editor nachgewiesen (Versionen 53/54); neue Vorschau lässt die dritte Quelle verfügbar. Migration 0166 regulär angewendet, kein Datenreset oder Jellyfin-/NAS-Eingriff. 348 relevante Backend-Prüfereignisse und 124 Frontendtests bestanden; Typecheck und Go build/vet grün, breite Baselinefehler unverändert. Details: quick/260916-ako-jellyfin-multiple-media-source-import/260916-ako-SUMMARY.md. Codeabschluss c61459bc; kein Push, kein menschlicher UAT-Sign-off. Historische Phasen- und Abnahmeeinträge bleiben unverändert.
 
 ## Abgeschlossener Quick 260915-m2h — Kapitelhilfe und Dateigröße (15.09.2026)
 
@@ -1286,6 +1290,7 @@ Last activity: 2026-09-15
 | 260915-m2h | Kapitel als Start/Ende bei Segmenterstellung anbieten, tatsächliche MediaSource-Dateigröße anzeigen; beide Editoroberflächen, sichere Source-Zuordnung und schmale responsive Korrektur. Technisch und Admin-live geprüft; Kapitel-Auswahl am 15.09.2026 vom Nutzer abgenommen. Contributor-/Zoom-/Navigationsgrenzen bleiben dokumentiert. | 2026-09-15 | c7e08f1e, 9d85f8b2, 2cee78c9, 1f3573b0 | [260915-m2h-kapitelhilfe-und-dateigroesse-im-release](./quick/260915-m2h-kapitelhilfe-und-dateigroesse-im-release/) |
 | 260915-ro9 | Zwei TypeScript-Fehler im Next.js-Seitenvertrag behoben: formatEditLoadError aus dem Export der Edit-Seite in eine eigene Datei ausgelagert, PageProps-Default in der Anime-Listenseite entfernt; tsc 0 Fehler, gezielte Vitest-Suiten grün, ESLint ohne neue Befunde, /admin/anime und /admin/anime/1/edit liefern HTTP 200 nach Neustart | 2026-09-15 | 8a6d8080, 4cce9ccc | [260915-ro9-zwei-typescript-fehler-in-admin-anime-ro](./quick/260915-ro9-zwei-typescript-fehler-in-admin-anime-ro/) |
 | 260915-rv3 | Alle 9 react-hooks/set-state-in-effect-Fehler, 1 preserve-manual-memoization-Fehler und 9 exhaustive-deps-Warnungen über 13 Admin-Dateien mit echten Verhaltens-Fixes behoben (async-IIFE, Render-Zeit-Zustandsanpassung, Dependency-Array-Vervollständigung, Ref-Mirror, Destrukturierung/useCallback) - keine eslint-disable-Kommentare; globaler Lint-Stand 13→3 Fehler, Warnungen −9 (328→319); neuer Regressionstest für GroupMemberFormModals.tsx; tsc und 100/100 gezielte Tests grün, Container neu gestartet; AnimeEditWorkspace-Formular und ScreenshotGallery-Lightbox-Tastaturnavigation als offene menschliche Sichtprüfung dokumentiert, nicht als bestanden markiert | 2026-09-15 | ebdc5b14, 71391808, 81098d85, a0b9ec56, 8470ba58, 61aaf4f5, 7ef0bc1d | [260915-rv3-react-hook-lintfehler-und-exhaustive-dep](./quick/260915-rv3-react-hook-lintfehler-und-exhaustive-dep/) |
+| 260916-ako | Jellyfin-MediaSources pro echtem Item/Source-Paar importieren; 38 eindeutige Fixturequellen, zwei Geschwisterquellen gemeinsam live gespeichert; Migration 0166, Auswahl/Editor/Verträge geprüft; keine neue Phasenabnahme | 2026-09-16 | 48e31cf9, 52e34e5b, dfc548a5, c61459bc | [260916-ako-jellyfin-multiple-media-source-import](./quick/260916-ako-jellyfin-multiple-media-source-import/) |
 
 
 ### Verification Baseline
@@ -1646,7 +1651,7 @@ untruncated list lives in `.planning/todos/pending/`.
 
 Last session: 2026-09-15T17:43:13Z
 Stopped at: User confirmed Phase-161 Release-27 metadata and Karaoke playback; remaining live checks and other phase states preserved.
-Last activity: 2026-09-15 - Completed quick task 260915-rv3: React-Hook-Lintfehler und exhaustive-deps-Warnungen im Frontend beheben
+Last activity: 2026-09-16 - Completed quick task 260916-ako: Jellyfin-Geschwisterquellen getrennt importieren; Liveimport zweier Folge-2-Quellen geprüft, keine Phasen-UAT ersetzt.
 Resume file: 
 None
 

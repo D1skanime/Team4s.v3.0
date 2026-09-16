@@ -1,0 +1,28 @@
+{
+  "frontend_commit": "dfc548a5",
+  "baseline_commit": "44268512",
+  "lint": {
+    "baseline": {
+      "errors": 3,
+      "warnings": 319
+    },
+    "after": {
+      "errors": 3,
+      "warnings": 319
+    },
+    "unchanged_error_files": [
+      "capture-responsive.cjs",
+      "src/app/admin/users/tabs/CapabilityDetailRow.tsx"
+    ]
+  },
+  "production_build": {
+    "full_before": "compile passed; route type validation fails: anime/create buildCreateSuccessMessage invalid export",
+    "full_after": "same baseline failure",
+    "selected_routes": "PASS",
+    "routes": [
+      "/admin/anime/[id]/episodes/import",
+      "/admin/episode-versions/[versionId]/edit"
+    ],
+    "isolation": "frozen git archive in frontend container /tmp; existing node_modules reused; NODE_ENV=production; Next debug path filter requires app and types aliases to unchanged src folders in scratch only; dev .next untouched"
+  }
+}

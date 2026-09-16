@@ -1,0 +1,10 @@
+{
+  "build": {
+    "exit_code": 0,
+    "output": ""
+  },
+  "vet": {
+    "exit_code": 0,
+    "output": ""
+  }
+}
