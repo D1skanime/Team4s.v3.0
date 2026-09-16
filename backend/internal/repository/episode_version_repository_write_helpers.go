@@ -270,7 +270,7 @@ func (r *EpisodeVersionRepository) Delete(ctx context.Context, versionID int64) 
 		FROM release_variants rv
 		JOIN release_versions rev ON rev.id = rv.release_version_id
 		WHERE rv.id = $1 OR rev.id = $1
-		ORDER BY rv.id ASC, CASE WHEN ss.provider_type='jellyfin' THEN 0 ELSE 1 END, rs.id
+		ORDER BY rv.id ASC
 		LIMIT 1
 	`, versionID).Scan(&variantID, &releaseVersionID, &releaseID); errors.Is(err, pgx.ErrNoRows) {
 		return ErrNotFound
