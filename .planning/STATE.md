@@ -18,6 +18,8 @@ progress:
 
 ## Abgeschlossener Quick 260916-emd — Episoden-Metadaten manuell pflegbar (16.09.2026)
 
+**Vom Nutzer am 16.09.2026 mit „approved“ abgenommen**, einschließlich der deutschen Anzeigenamen (Haupthandlung, Zusatzfolge, Teilweise Zusatzfolge, Rückblick, Unbekannt; Commit 387cee57). Eine agentenseitige Browser-Sichtprüfung fand nicht statt. Offen bleiben: Feldname „Canon/Filler“ noch englisch, 11eyes EP 01 steht aus dem Abnahmetest auf mixed (manual).
+
 Canon/Filler (`episodes.filler_type_id`) und Episodentyp (`episodes.episode_type_id`) sind in der Episoden-Übersicht und im Versionseditor (Informationen, nur Plattform-Admin) bearbeitbar; beide speichern sofort über das erweiterte `PATCH /admin/episodes/:id` in genau einen Episode-Datensatz. Neue additive Migration 0167 `episode_type_source`; `filler_source`/`episode_type_source = manual` schützt vor Reimport, Import findet manuell umtypisierte Episoden wieder (verhindert Duplikate). Ungültige Werte → 400, Unique-Konflikt → 409. Live-Abnahme 11eyes EP 01 über echte Handler: canon/special in allen drei Versionen sichtbar, danach mixed/episode in der Übersicht; EP 01 steht jetzt auf mixed/episode (manual). Tests: 5 Postgres, Handler-400, 6 Frontend inkl. Cross-View; Frontend-Prod-Build grün. Details: quick/260916-emd-episoden-metadaten-manuell/260916-emd-SUMMARY.md. Kein Push; Browser-UAT offen (kein Login im Panel).
 
 ## Abgeschlossener Quick 260916-asr — aniSearch „Alternative Version“ als Nebengeschichte (16.09.2026)
