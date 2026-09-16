@@ -4,7 +4,7 @@ import Link from 'next/link'
 import Image from 'next/image'
 import { useEffect, useRef, useState } from 'react'
 import { ChevronLeft, ChevronRight } from 'lucide-react'
-import { getCoverUrl, shouldUseUnoptimizedImage } from '@/lib/utils'
+import { resolveAnimeCoverURL } from '@/lib/animeBackdrops'
 import styles from './AnimeRelations.module.css'
 
 interface AnimeRelation {
@@ -21,16 +21,22 @@ interface AnimeRelationsProps {
   variant?: 'default' | 'compact'
 }
 
-const relationTypeLabels: Record<string, string> = {
-  related: 'Related',
-  sequel: 'Sequel',
-  prequel: 'Prequel',
-  alternative: 'Alternative',
-  side_story: 'Side Story',
-  spin_off: 'Spin-Off',
-  summary: 'Summary',
-  parent: 'Parent',
-  other: 'Other',
+// Schlüssel sind die DB-Namen aus relation_types; die API liefert den Typ bereits
+// aus Sicht der angezeigten Seite. Unbekannte Typen zeigen nie den rohen DB-Namen.
+export const relationTypeLabels: Record<string, string> = {
+  'full-story': 'Hauptgeschichte',
+  'side-story': 'Nebengeschichte',
+  sequel: 'Fortsetzung',
+  summary: 'Zusammenfassung',
+  prequel: 'Vorgeschichte',
+  'alternative-version': 'Alternative Version',
+  'spin-off': 'Spin-off',
+  adaptation: 'Adaption',
+  related: 'Verwandt',
+}
+
+export function formatRelationTypeLabel(relationType: string): string {
+  return relationTypeLabels[relationType.trim()] ?? 'Verwandt'
 }
 
 const animeTypeLabels: Record<string, string> = {
@@ -114,7 +120,7 @@ export function AnimeRelations({ relations, variant = 'default' }: AnimeRelation
   return (
     <section className={`${styles.relationsSection} ${isCompact ? styles.compact : ''}`}>
       <div className={styles.header}>
-        <h2 className={styles.title}>Related</h2>
+        <h2 className={styles.title}>Verwandte Anime</h2>
         {relations.length > 3 && (
           <div className={styles.sliderControls}>
             <button
@@ -122,7 +128,7 @@ export function AnimeRelations({ relations, variant = 'default' }: AnimeRelation
               className={styles.navButton}
               onClick={() => scrollByCards('left')}
               disabled={!canScrollLeft}
-              aria-label="Related nach links scrollen"
+              aria-label="Verwandte Anime nach links scrollen"
             >
               <ChevronLeft size={18} />
             </button>
@@ -131,7 +137,7 @@ export function AnimeRelations({ relations, variant = 'default' }: AnimeRelation
               className={styles.navButton}
               onClick={() => scrollByCards('right')}
               disabled={!canScrollRight}
-              aria-label="Related nach rechts scrollen"
+              aria-label="Verwandte Anime nach rechts scrollen"
             >
               <ChevronRight size={18} />
             </button>
@@ -151,19 +157,19 @@ export function AnimeRelations({ relations, variant = 'default' }: AnimeRelation
                 <div className={styles.cardMedia}>
                   {rel.cover_image ? (
                     <Image
-                      src={getCoverUrl(rel.cover_image)}
+                      src={resolveAnimeCoverURL(rel.cover_image)}
                       alt={rel.title}
                       fill
                       sizes="160px"
                       className={styles.cardImage}
-                      unoptimized={shouldUseUnoptimizedImage(getCoverUrl(rel.cover_image))}
+                      unoptimized
                     />
                   ) : (
                     <div className={styles.cardPlaceholder} />
                   )}
                   <div className={styles.cardGradient} />
                   <span className={styles.cardBadge}>
-                    {relationTypeLabels[rel.relation_type] || rel.relation_type}
+                    {formatRelationTypeLabel(rel.relation_type)}
                   </span>
                 </div>
                 <div className={styles.cardContent}>
