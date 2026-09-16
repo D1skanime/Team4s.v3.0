@@ -42,6 +42,8 @@ requirements-completed: [QUICK-260916-EJP-01, QUICK-260916-EJP-02, QUICK-260916-
 
 duration: 45min
 completed: 2026-09-16
+closed_by_user: 2026-09-16
+human_uat: not_separately_confirmed
 ---
 
 # Quick 260916-ejp: Real structural fixes for react-hooks/set-state-in-effect at 8 sites Summary
@@ -278,3 +280,9 @@ not claimed as passed:
 ---
 *Phase: quick-260916-ejp*
 *Completed: 2026-09-16*
+
+## Abschluss 2026-09-16
+
+Vom Auftraggeber abgeschlossen („kannst abschließen“). Eine gesonderte Sichtprüfung der Checkliste wurde nicht
+zurückgemeldet und wird hier nicht als bestanden geführt. Folgeauftrag für `NotesTab.tsx` (gleiches Muster) wurde
+vom Auftraggeber abgelehnt und bleibt bewusst offen.
