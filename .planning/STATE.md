@@ -4,7 +4,7 @@ milestone: v1.4
 milestone_name: Coverage
 status: verifying
 stopped_at: "Phase 161 Release-27 metadata and Karaoke playback confirmed by user; other live checks remain open"
-last_updated: "2026-09-16T09:32:55Z"
+last_updated: "2026-09-16T10:12:46Z"
 last_activity: 2026-09-16
 progress:
   total_phases: 24
@@ -18,7 +18,7 @@ progress:
 
 ## Abgeschlossener Quick 260916-ako — Mehrere Jellyfin-MediaSources (16.09.2026)
 
-Source-Paare durch Vorschau, unabhängige Auswahl, serverseitige Revalidierung und Persistenz umgesetzt. 38 eindeutige Sources im vollständigen 11eyes-Fixture; Live-Ordner enthält 36, davon drei bereits importiert. Zwei Quellen von Folge 2 gemeinsam importiert und in DB/Editor nachgewiesen (Versionen 53/54); neue Vorschau lässt die dritte Quelle verfügbar. Migration 0166 regulär angewendet, kein Datenreset oder Jellyfin-/NAS-Eingriff. 348 relevante Backend-Prüfereignisse und 124 Frontendtests bestanden; Typecheck und Go build/vet grün, breite Baselinefehler unverändert. Details: quick/260916-ako-jellyfin-multiple-media-source-import/260916-ako-SUMMARY.md. Codeabschluss c61459bc; kein Push, kein menschlicher UAT-Sign-off. Historische Phasen- und Abnahmeeinträge bleiben unverändert. Live-UAT-Nachtrag: Lösch-500 durch versehentliche ss/rs-Sortierreferenzen in Delete korrigiert (0cda1dd7), drei echte PostgreSQL-Regressionen RED/GREEN; 351 relevante Backendtests bestanden. Fix aktiv, keine Nutzer-Release-Löschung durch den Agenten. Siehe 260916-ako-DELETE-GAP.md.
+Source-Paare durch Vorschau, unabhängige Auswahl, serverseitige Revalidierung und Persistenz umgesetzt. 38 eindeutige Sources im vollständigen 11eyes-Fixture; Live-Ordner enthält 36, davon drei bereits importiert. Zwei Quellen von Folge 2 gemeinsam importiert und in DB/Editor nachgewiesen (Versionen 53/54); neue Vorschau lässt die dritte Quelle verfügbar. Migration 0166 regulär angewendet, kein Datenreset oder Jellyfin-/NAS-Eingriff. 348 relevante Backend-Prüfereignisse und 124 Frontendtests bestanden; Typecheck und Go build/vet grün, breite Baselinefehler unverändert. Details: quick/260916-ako-jellyfin-multiple-media-source-import/260916-ako-SUMMARY.md. Codeabschluss c61459bc; kein Push, kein menschlicher UAT-Sign-off. Historische Phasen- und Abnahmeeinträge bleiben unverändert. Live-UAT-Nachtrag: Lösch-500 durch versehentliche ss/rs-Sortierreferenzen in Delete korrigiert (0cda1dd7), drei echte PostgreSQL-Regressionen RED/GREEN; 351 relevante Backendtests bestanden. Fix aktiv, keine Nutzer-Release-Löschung durch den Agenten. Siehe 260916-ako-DELETE-GAP.md. Nutzerabnahme am 16.09.2026 ausdrücklich „approved“ für diesen Löschfix; weitere UAT-Punkte bleiben offen.
 
 ## Abgeschlossener Quick 260915-m2h — Kapitelhilfe und Dateigröße (15.09.2026)
 

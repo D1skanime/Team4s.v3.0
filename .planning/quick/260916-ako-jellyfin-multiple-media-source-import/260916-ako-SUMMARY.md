@@ -6,7 +6,7 @@ completed: 2026-09-16
 baseline_commit: 44268512
 implementation_commit: c61459bc
 followup_commit: 0cda1dd7
-human_uat: not_claimed
+human_uat: partial_delete_fix_approved_2026-09-16
 ---
 # Quick 260916-ako — Jellyfin-MediaSources vollständig importieren
 
@@ -73,3 +73,5 @@ Zusätzlicher beobachteter Bestandsbefund: Im Basisdatenformular heißt das sepa
 ## Nachtrag 16.09.2026 — Löschregression behoben
 
 Live-UAT fand einen im vorherigen Testumfang nicht ausgeführten Delete-Pfad: c61459bc hatte dessen Zielsortierung versehentlich um nicht verbundene ss/rs-Aliase erweitert. HTTP500/SQLSTATE42P01 bestätigt. Fix 0cda1dd7 stellt ausschließlich die ursprüngliche Varianten-Zielsortierung wieder her; drei neue echte PostgreSQL-Regressionen wurden zuerst rot und dann grün nachgewiesen. Frische relevante Suite: 351 bestanden, null Fehler/Skips; Go build/vet und Typecheck bestanden, globaler Lint unverändert. Backend neu aktiviert, reale Zielabfrage für Versionen53/54 rein lesend erfolgreich. Keine Löschung von Nutzerdaten durch den Agenten. Vollständiger Nachweis: 260916-ako-DELETE-GAP.md.
+
+Nutzerabnahme am 16.09.2026: „approved“ für den aktivierten Löschfix 0cda1dd7. Diese gezielte Abnahme schließt keine weiteren UAT-Punkte des Multi-Source-Imports oder anderer Phasen.

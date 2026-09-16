@@ -1,6 +1,6 @@
 # Live-UAT-Nachtrag: HTTP 500 beim Löschen einer Release-Version
 
-Datum: 16.09.2026. Ausgangsstand: 2b4c9606. Fix: 0cda1dd7. Technisch korrigiert und aktiviert; keine menschliche Löschabnahme behauptet.
+Datum: 16.09.2026. Ausgangsstand: 2b4c9606. Fix: 0cda1dd7. Technisch korrigiert und aktiviert; Löschfix am 16.09.2026 durch den Nutzer mit „approved“ abgenommen.
 
 ## Ursache und Beleg
 
@@ -41,3 +41,7 @@ Alle drei scheiterten vor der Korrektur mit exakt SQLSTATE 42P01; danach alle be
 - Die exakt aus der aktiven Implementierung entnommene SELECT-Zielabfrage wurde in BEGIN READ ONLY für IDs 53 und 54 ausgeführt: beide liefern ihre jeweilige Variante/Version/Release 53 beziehungsweise 54. Abschluss ROLLBACK; keine Datenmutation.
 
 Der Benutzer kann nun im bestehenden Editor erneut löschen. Ein erfolgreicher Löschklick an seinen Daten wird nicht vorgetäuscht. Keine neue Migration, kein NAS-/Jellyfin-Eingriff, kein Push und keine Veränderung fremder UAT-Status. Der isolierte eigene Testcontainer wurde nach Abschluss entfernt.
+
+## Nutzerabnahme — 16.09.2026
+
+Der Nutzer bestätigte den aktivierten Löschfix ausdrücklich mit „approved“. Diese Abnahme gilt ausschließlich für die oben beschriebene Löschregression auf Stand 0cda1dd7. Der Agent hat keinen weiteren Löschversuch ausgeführt; ein konkreter HTTP-Erfolg oder eine bestimmte Datenlöschung wird aus der kurzen Bestätigung nicht zusätzlich abgeleitet. Andere offene UAT-Punkte bleiben unverändert.
