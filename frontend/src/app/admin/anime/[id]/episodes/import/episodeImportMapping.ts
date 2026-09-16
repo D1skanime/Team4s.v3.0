@@ -1,3 +1,4 @@
+import { jellyfinSourceKey } from '@/lib/jellyfinSourceIdentity'
 import type {
   EpisodeImportCanonicalEpisode,
   EpisodeImportMappingRow,
@@ -17,14 +18,14 @@ export function parseMappingTargets(rawTargets: string): number[] {
 
 export function setMappingTargets(
   rows: EpisodeImportMappingRow[],
-  mediaItemId: string,
+  sourceKey: string,
   rawTargets: string,
 ): EpisodeImportMappingRow[] {
   const targets = parseMappingTargets(rawTargets)
 
   return detectMappingConflicts(
     rows.map((row) =>
-      row.media_item_id === mediaItemId
+      jellyfinSourceKey(row) === sourceKey
         ? {
             ...row,
             target_episode_numbers: targets,
@@ -37,11 +38,11 @@ export function setMappingTargets(
 
 export function markMappingSkipped(
   rows: EpisodeImportMappingRow[],
-  mediaItemId: string,
+  sourceKey: string,
 ): EpisodeImportMappingRow[] {
   return detectMappingConflicts(
     rows.map((row) =>
-      row.media_item_id === mediaItemId
+      jellyfinSourceKey(row) === sourceKey
         ? { ...row, target_episode_numbers: [], status: 'skipped' }
         : row,
     ),
@@ -50,11 +51,11 @@ export function markMappingSkipped(
 
 export function toggleMappingSkipped(
   rows: EpisodeImportMappingRow[],
-  mediaItemId: string,
+  sourceKey: string,
 ): EpisodeImportMappingRow[] {
   return detectMappingConflicts(
     rows.map((row) => {
-      if (row.media_item_id !== mediaItemId) {
+      if (jellyfinSourceKey(row) !== sourceKey) {
         return row
       }
 
@@ -151,7 +152,7 @@ export function hasReviewedMediaSource(
   row: EpisodeImportMappingRow,
   candidates: EpisodeImportMediaCandidate[],
 ): boolean {
-  const matches = candidates.filter((candidate) => candidate.media_item_id === row.media_item_id)
+  const matches = candidates.filter((candidate) => jellyfinSourceKey(candidate) === jellyfinSourceKey(row))
   return matches.length === 1 &&
     matches[0].streams_complete === true &&
     Boolean(row.media_source_id?.trim()) &&
@@ -162,9 +163,16 @@ export function detectMappingConflicts(
   rows: EpisodeImportMappingRow[],
   candidates?: EpisodeImportMediaCandidate[],
 ): EpisodeImportMappingRow[] {
+  const sourceCounts = new Map<string, number>()
+  for (const row of rows) {
+    if (row.status === 'skipped' || !row.media_source_id) continue
+    sourceCounts.set(row.media_source_id, (sourceCounts.get(row.media_source_id) ?? 0) + 1)
+  }
   return rows.map((row) => {
     if (row.status === 'skipped') return row
-    if (!row.media_source_id?.trim() || (candidates && !hasReviewedMediaSource(row, candidates))) {
+    const duplicateSource = (sourceCounts.get(row.media_source_id ?? '') ?? 0) > 1
+    if (duplicateSource || !row.media_item_id.trim() || !row.media_source_id?.trim() ||
+      (candidates && !hasReviewedMediaSource(row, candidates))) {
       return { ...row, status: 'conflict' }
     }
     return row
@@ -173,11 +181,11 @@ export function detectMappingConflicts(
 
 export function setMappingReleaseMeta(
   rows: EpisodeImportMappingRow[],
-  mediaItemID: string,
+  sourceKey: string,
   meta: { fansubGroupName?: string; releaseVersion?: string },
 ): EpisodeImportMappingRow[] {
   return rows.map((row) =>
-    row.media_item_id === mediaItemID
+    jellyfinSourceKey(row) === sourceKey
       ? {
           ...row,
           fansub_group_name:
@@ -191,11 +199,11 @@ export function setMappingReleaseMeta(
 
 export function setMappingFansubGroups(
   rows: EpisodeImportMappingRow[],
-  mediaItemID: string,
+  sourceKey: string,
   fansubGroups: EpisodeImportSelectedFansubGroup[],
 ): EpisodeImportMappingRow[] {
   return rows.map((row) =>
-    row.media_item_id === mediaItemID
+    jellyfinSourceKey(row) === sourceKey
       ? applyFansubGroupsToRow(row, fansubGroups)
       : row,
   )
@@ -203,11 +211,11 @@ export function setMappingFansubGroups(
 
 export function addMappingFansubGroup(
   rows: EpisodeImportMappingRow[],
-  mediaItemID: string,
+  sourceKey: string,
   fansubGroup: EpisodeImportSelectedFansubGroup,
 ): EpisodeImportMappingRow[] {
   return rows.map((row) =>
-    row.media_item_id === mediaItemID
+    jellyfinSourceKey(row) === sourceKey
       ? applyFansubGroupsToRow(row, [...(row.fansub_groups ?? []), fansubGroup])
       : row,
   )
@@ -215,12 +223,12 @@ export function addMappingFansubGroup(
 
 export function removeMappingFansubGroup(
   rows: EpisodeImportMappingRow[],
-  mediaItemID: string,
+  sourceKey: string,
   fansubGroup: EpisodeImportSelectedFansubGroup,
 ): EpisodeImportMappingRow[] {
   const targetKey = getFansubGroupKey(fansubGroup)
   return rows.map((row) => {
-    if (row.media_item_id !== mediaItemID) {
+    if (jellyfinSourceKey(row) !== sourceKey) {
       return row
     }
     const nextGroups = (row.fansub_groups ?? []).filter((group) => getFansubGroupKey(group) !== targetKey)
@@ -301,7 +309,7 @@ export function summarizeImportPreview(
     conflict_count: (preview.mappings ?? []).filter((row) => row.status === 'conflict').length,
     skipped_count: (preview.mappings ?? []).filter((row) => row.status === 'skipped').length,
     unmapped_episode_count: preview.unmapped_episodes?.length ?? 0,
-    unmapped_media_count: preview.unmapped_media_item_ids?.length ?? 0,
+    unmapped_media_count: (preview.mappings ?? []).filter((row) => resolveMappingGroupEpisodeNumber(row) == null).length,
   }
 }
 

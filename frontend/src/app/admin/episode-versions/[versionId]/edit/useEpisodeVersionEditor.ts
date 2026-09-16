@@ -198,10 +198,14 @@ export function useEpisodeVersionEditor() {
 
       setFolderPath(response.data.anime_folder_path || '')
       setAvailableFiles(files)
-      setSelectedFile((current) => current && (files.find((file) =>
-        file.media_item_id === current.media_item_id &&
-        (!current.media_source_id || file.media_source_id === current.media_source_id),
-      ) || current))
+      setSelectedFile((current) => {
+        if (!current) return current
+        const matches = files.filter((file) =>
+          file.media_item_id === current.media_item_id &&
+          (!current.media_source_id || file.media_source_id === current.media_source_id),
+        )
+        return matches.length === 1 ? matches[0] : current
+      })
       setShowFilePanel(true)
       if (files.length === 0) {
         setSuccessMessage('Keine passenden Mediendateien im verknüpften Ordner gefunden.')

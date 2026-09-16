@@ -67,7 +67,7 @@ describe('EpisodeImportMappingRowCard', () => {
     fireEvent.click(screen.getByRole('button', { name: 'Als Chip' }))
 
     await waitFor(() => {
-      expect(onSetSelectedFansubGroups).toHaveBeenCalledWith('viper-ep01', [
+      expect(onSetSelectedFansubGroups).toHaveBeenCalledWith(JSON.stringify(['viper-ep01', 'source-viper']), [
         { name: 'C-Subs' },
         { name: 'Honto' },
       ])

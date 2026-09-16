@@ -421,7 +421,7 @@ types:
     version_id: int64
     anime_id: int64
     anime_folder_path: string | null
-    files: EpisodeVersionMediaFile[]
+    files: EpisodeVersionMediaFile[] # One per physical source; exact Item/source pair key, including same-Item siblings.
   EpisodeVersionChapterHint:
     name: string | null # Required inert provider label.
     start_ms: int64 # Required nonnegative safe integer milliseconds; raw ticks / 10000, no whole-second rounding.
@@ -503,7 +503,8 @@ types:
     logo_url: string | null
 
 jellyfin_source_contract:
-  semantics: "One selected source per actual Jellyfin item; alternate files without separate items are not guaranteed to be imported. Source path, container, codecs and tracks are provider-derived and server-revalidated at apply/relink. Posted URLs, codecs and languages are not authoritative. Missing projection is incomplete; with streams_complete=true an empty subtitle_tracks array means known no subtitles. Unknown raw language remains null."
+  semantics: "Each independently importable physical Jellyfin source appears once. Candidate identity is the pair (actual media_item_id, media_source_id); one Item may expose several independently selectable sources. Nested and standalone representations of the same provider source are deduplicated by authoritative source evidence, never by browser paths. Existing-import detection suppresses only the imported physical source. Source path, container, codecs and tracks are provider-derived and server-revalidated at apply/relink. Posted URLs, codecs and languages are not authoritative. Missing projection is incomplete; with streams_complete=true an empty subtitle_tracks array means known no subtitles. Unknown raw language remains null."
+  scan: "Enumerates all valid sources and deduplicates nested/standalone aliases using provider evidence. File choices use the exact Item/source pair, never a path. An unresolved current Item with multiple sources remains unresolved until explicit selection; scanning itself never persists a selection."
   relink: "A supplied media_source_id must be nonblank, at most 120 characters and contain no comma; explicit null is invalid (400). media_source_id is an admin media-binding change, never contributor metadata-only. Omission preserves the existing binding; an explicit selector is server-revalidated. Server-only snapshot, filename, container and codecs cannot be supplied through JSON."
   public_tracks: "PublicReleaseSubtitleTrack retains language, label, format (codec), forced and default. Unknown language stays null and flags are provider facts; no private source identifiers or paths."
   audio_display: "Only unknown audio DISPLAY defaults to Japanisch; known audio takes precedence. Raw audio stays null and subtitle language never defaults to Japanese."

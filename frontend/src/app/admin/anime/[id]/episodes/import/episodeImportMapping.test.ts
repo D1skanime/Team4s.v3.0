@@ -1,4 +1,5 @@
 import { describe, expect, it } from 'vitest'
+import { jellyfinSourceKey } from '@/lib/jellyfinSourceIdentity'
 
 import type { EpisodeImportMappingRow, EpisodeImportPreviewResult } from '../../../../../../types/episodeImport'
 import {
@@ -32,7 +33,7 @@ describe('episodeImportMapping', () => {
       status: 'suggested',
     }]
 
-    const result = setMappingTargets(rows, 'jellyfin-naruto-009-010', '9,10')
+    const result = setMappingTargets(rows, JSON.stringify(['jellyfin-naruto-009-010', 'source-jellyfin-naruto-009-010']), '9,10')
 
     expect(result).toHaveLength(1)
     expect(result[0]).toMatchObject({
@@ -50,7 +51,7 @@ describe('episodeImportMapping', () => {
       status: 'suggested',
     }]
 
-    const result = markMappingSkipped(rows, 'jellyfin-extra-creditless-op')
+    const result = markMappingSkipped(rows, JSON.stringify(['jellyfin-extra-creditless-op', 'source-jellyfin-extra-creditless-op']))
 
     expect(result[0]).toMatchObject({
       target_episode_numbers: [],
@@ -102,7 +103,7 @@ describe('episodeImportMapping', () => {
       media_candidate_count: 1,
       suggested_count: 1,
       unmapped_episode_count: 1,
-      unmapped_media_count: 1,
+      unmapped_media_count: 0,
     })
   })
 
@@ -290,7 +291,7 @@ describe('episodeImportMapping', () => {
       release_version: 'v2',
     }]
 
-    const result = setMappingTargets(rows, 'jellyfin-ep1', '1,2')
+    const result = setMappingTargets(rows, JSON.stringify(['jellyfin-ep1', 'source-jellyfin-ep1']), '1,2')
 
     expect(result[0].fansub_groups).toEqual([
       { name: '[Commie]' },
@@ -310,7 +311,7 @@ describe('episodeImportMapping', () => {
       release_version: null,
     }]
 
-    const result = markMappingSkipped(rows, 'jellyfin-ep5')
+    const result = markMappingSkipped(rows, JSON.stringify(['jellyfin-ep5', 'source-jellyfin-ep5']))
 
     expect(result[0].status).toBe('skipped')
     expect(result[0].fansub_groups).toEqual([{ name: '[HorribleSubs]' }])
@@ -325,7 +326,7 @@ describe('episodeImportMapping', () => {
       fansub_groups: [{ name: 'C-Subs' }],
     }]
 
-    const result = toggleMappingSkipped(rows, 'jellyfin-ep7')
+    const result = toggleMappingSkipped(rows, JSON.stringify(['jellyfin-ep7', 'source-jellyfin-ep7']))
 
     expect(result[0]).toMatchObject({
       status: 'suggested',
@@ -342,7 +343,7 @@ describe('episodeImportMapping', () => {
       status: 'skipped',
     }]
 
-    const result = toggleMappingSkipped(rows, 'jellyfin-unmapped')
+    const result = toggleMappingSkipped(rows, JSON.stringify(['jellyfin-unmapped', 'source-jellyfin-unmapped']))
 
     expect(result[0]).toMatchObject({
       status: 'suggested',
@@ -468,7 +469,7 @@ describe('episodeImportMapping', () => {
       status: 'suggested',
     }]
 
-    const result = setMappingTargets(rows, 'naruto-s06e01', '141')
+    const result = setMappingTargets(rows, JSON.stringify(['naruto-s06e01', 'source-naruto-s06e01']), '141')
 
     expect(result[0].target_episode_numbers).toEqual([141])
     expect(result[0].status).toBe('confirmed')
@@ -599,7 +600,7 @@ describe('episodeImportMapping', () => {
         fansub_groups: [{ name: 'Brand New Group' }, { id: 3, name: 'Known Group', slug: 'known-group' }],
         release_version: 'v3',
       }],
-      'episode-12',
+      JSON.stringify(['episode-12', 'source-episode-12']),
       '12,13',
     )
 
@@ -623,7 +624,7 @@ describe('episodeImportMapping', () => {
       fansub_group_name: 'New-Subs',
     }]
 
-    const result = setMappingFansubGroups(rows, 'episode-2', [])
+    const result = setMappingFansubGroups(rows, JSON.stringify(['episode-2', 'source-episode-2']), [])
 
     expect(result[0].fansub_groups).toEqual([])
     expect(result[0].fansub_group_name).toBeNull()
@@ -673,7 +674,7 @@ describe('reviewed Jellyfin source identity', () => {
     const preview = normalizePreviewResult(sourcePreview())
     let rows = confirmEpisodeMappingRows(preview.mappings, 1)
     rows = applyFansubGroupToEpisodeRows(rows, 1, [{ id: 7, name: 'Reviewed Subs' }])
-    rows = setMappingTargets(rows, '11eyes-item-b', '1,2')
+    rows = setMappingTargets(rows, JSON.stringify(['11eyes-item-b', '11eyes-source-b']), '1,2')
     const payload = JSON.parse(JSON.stringify(buildEpisodeImportApplyInput(11, preview, rows)))
     expect(rows.map(resolveMappingGroupEpisodeNumber)).toEqual([1, 1, 1])
     expect(payload.mappings.map((row: EpisodeImportMappingRow) => [row.media_item_id, row.media_source_id]))
@@ -696,7 +697,7 @@ describe('reviewed Jellyfin source identity', () => {
     const preview = normalizePreviewResult(raw)
     expect(markAllSuggestedConfirmed(preview.mappings)[0].status).toBe('conflict')
     expect(confirmEpisodeMappingRows(preview.mappings, 1)[0].status).toBe('conflict')
-    expect(setMappingTargets(preview.mappings, '11eyes-item-a', '1')[0].status).toBe('conflict')
+    expect(setMappingTargets(preview.mappings, JSON.stringify(['11eyes-item-a', '11eyes-source-a']), '1')[0].status).toBe('conflict')
     expect(() => buildEpisodeImportApplyInput(11, preview, preview.mappings)).toThrow(/Quelle.*Vorschau/)
   })
 
@@ -704,7 +705,7 @@ describe('reviewed Jellyfin source identity', () => {
     const raw = sourcePreview()
     delete raw.media_candidates[0].media_source_id
     const preview = normalizePreviewResult(raw)
-    const rows = markAllSuggestedConfirmed(markMappingSkipped(preview.mappings, '11eyes-item-a'))
+    const rows = markAllSuggestedConfirmed(markMappingSkipped(preview.mappings, JSON.stringify(['11eyes-item-a', null])))
     expect(buildEpisodeImportApplyInput(11, preview, rows).mappings[0].status).toBe('skipped')
   })
 
@@ -717,7 +718,7 @@ describe('reviewed Jellyfin source identity', () => {
       .toThrow(/Quelle.*Vorschau/)
   })
 
-  it('rejects a source candidate with omitted projection or duplicate item identity', () => {
+  it('rejects a source candidate with omitted projection or ambiguous unresolved item identity', () => {
     for (const kind of ['incomplete', 'duplicate']) {
       const raw = sourcePreview()
       if (kind === 'incomplete') delete raw.media_candidates[0].streams_complete
@@ -764,5 +765,23 @@ describe('same-Item independent source identities', () => {
   })
   it('counts unmapped source rows rather than diagnostic Item IDs', () => {
     expect(summarizeImportPreview({ ...preview, mappings: rows.map(row => ({ ...row, target_episode_numbers: [], suggested_episode_numbers: [] })), unmapped_media_item_ids: ['shared-item'] }).unmapped_media_count).toBe(2)
+  })
+})
+
+
+describe('source pair key boundaries', () => {
+  it('cannot collide when IDs contain a delimiter and does not use a path', () => {
+    expect(jellyfinSourceKey({ media_item_id: 'a:b', media_source_id: 'c' }))
+      .not.toBe(jellyfinSourceKey({ media_item_id: 'a', media_source_id: 'b:c' }))
+    expect(jellyfinSourceKey({ media_item_id: 'a', media_source_id: 'b' })).toBe('["a","b"]')
+  })
+  it('rejects aliases of one physical source even with different Item IDs', () => {
+    const rows: EpisodeImportMappingRow[] = ['nested-owner', 'standalone'].map(item => ({
+      media_item_id: item, media_source_id: 'same-physical-source', target_episode_numbers: [2],
+      suggested_episode_numbers: [2], status: 'confirmed',
+    }))
+    expect(detectMappingConflicts(rows).map(row => row.status)).toEqual(['conflict', 'conflict'])
+    expect(detectMappingConflicts([{ ...rows[0], status: 'skipped' }, rows[1]]).map(row => row.status))
+      .toEqual(['skipped', 'confirmed'])
   })
 })

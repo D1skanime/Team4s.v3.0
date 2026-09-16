@@ -3,6 +3,7 @@
 import { useEffect, useMemo, useState, type KeyboardEvent } from 'react'
 
 import { getFansubList } from '@/lib/api'
+import { jellyfinSourceKey } from '@/lib/jellyfinSourceIdentity'
 import type { EpisodeImportMappingRow, EpisodeImportSelectedFansubGroup } from '@/types/episodeImport'
 import type { FansubGroup } from '@/types/fansub'
 
@@ -14,15 +15,15 @@ const FREE_TEXT_GROUP_SEPARATOR = /[,;\n]+/
 interface EpisodeImportMappingRowCardProps {
   episodeNumber: number
   row: EpisodeImportMappingRow
-  onSetTargets: (mediaItemID: string, rawTargets: string) => void
-  onSetRelease: (mediaItemID: string, meta: { fansubGroupName?: string; releaseVersion?: string }) => void
-  onSetSelectedFansubGroups: (mediaItemID: string, fansubGroups: EpisodeImportSelectedFansubGroup[]) => void
-  onAddSelectedFansubGroup: (mediaItemID: string, fansubGroup: EpisodeImportSelectedFansubGroup) => void
-  onRemoveSelectedFansubGroup: (mediaItemID: string, fansubGroup: EpisodeImportSelectedFansubGroup) => void
+  onSetTargets: (sourceKey: string, rawTargets: string) => void
+  onSetRelease: (sourceKey: string, meta: { fansubGroupName?: string; releaseVersion?: string }) => void
+  onSetSelectedFansubGroups: (sourceKey: string, fansubGroups: EpisodeImportSelectedFansubGroup[]) => void
+  onAddSelectedFansubGroup: (sourceKey: string, fansubGroup: EpisodeImportSelectedFansubGroup) => void
+  onRemoveSelectedFansubGroup: (sourceKey: string, fansubGroup: EpisodeImportSelectedFansubGroup) => void
   onApplyFansubGroupToEpisode: (episodeNumber: number, fansubGroups: EpisodeImportSelectedFansubGroup[]) => void
   onApplyFansubGroupFromEpisode: (episodeNumber: number, fansubGroups: EpisodeImportSelectedFansubGroup[]) => void
-  onSkip: (mediaItemID: string) => void
-  onApplyRow?: (mediaItemID: string) => void
+  onSkip: (sourceKey: string) => void
+  onApplyRow?: (sourceKey: string) => void
   isApplyingRow?: boolean
 }
 
@@ -40,6 +41,7 @@ export function EpisodeImportMappingRowCard({
   onApplyRow,
   isApplyingRow,
 }: EpisodeImportMappingRowCardProps) {
+  const sourceKey = jellyfinSourceKey(row)
   const label = row.file_name || row.media_item_id
   const isSkipped = row.status === 'skipped'
   const selectedFansubGroups = row.fansub_groups ?? EMPTY_SELECTED_FANSUB_GROUPS
@@ -69,7 +71,7 @@ export function EpisodeImportMappingRowCard({
     setQuery('')
     setResults([])
     setSearchMessage(null)
-  }, [row.media_item_id, row.status])
+  }, [sourceKey, row.status])
 
   useEffect(() => {
     const trimmedQuery = query.trim()
@@ -94,7 +96,7 @@ export function EpisodeImportMappingRowCard({
         })
         setResults(nextResults)
         if (nextResults.length === 0) {
-          setSearchMessage('Keine bestehende Gruppe gefunden. Neue Eingabe kann als Chip hinzugefuegt werden.')
+          setSearchMessage('Keine bestehende Gruppe gefunden. Neue Eingabe kann als Chip hinzugefügt werden.')
         }
       } catch {
         if (!cancelled) {
@@ -124,7 +126,7 @@ export function EpisodeImportMappingRowCard({
       return
     }
 
-    onSetSelectedFansubGroups(row.media_item_id, [
+    onSetSelectedFansubGroups(sourceKey, [
       ...selectedFansubGroups,
       ...nextGroups,
     ])
@@ -134,7 +136,7 @@ export function EpisodeImportMappingRowCard({
   }
 
   function handleSelectExistingGroup(group: FansubGroup) {
-    onAddSelectedFansubGroup(row.media_item_id, { id: group.id, name: group.name, slug: group.slug })
+    onAddSelectedFansubGroup(sourceKey, { id: group.id, name: group.name, slug: group.slug })
     setQuery('')
     setResults([])
     setSearchMessage(null)
@@ -150,12 +152,12 @@ export function EpisodeImportMappingRowCard({
     if (event.key === 'Backspace' && !query.trim() && selectedFansubGroups.length > 0) {
       event.preventDefault()
       const lastGroup = selectedFansubGroups[selectedFansubGroups.length - 1]
-      onRemoveSelectedFansubGroup(row.media_item_id, lastGroup)
+      onRemoveSelectedFansubGroup(sourceKey, lastGroup)
     }
   }
 
   function handleClearGroups() {
-    onSetSelectedFansubGroups(row.media_item_id, [])
+    onSetSelectedFansubGroups(sourceKey, [])
     setQuery('')
     setResults([])
     setSearchMessage(null)
@@ -177,11 +179,11 @@ export function EpisodeImportMappingRowCard({
                 {hasSelectedGroups ? (
                   selectedFansubGroups.map((group) => (
                     <button
-                      key={group.id ?? `${group.name ?? group.slug ?? 'group'}-${row.media_item_id}`}
+                      key={group.id ?? `${group.name ?? group.slug ?? 'group'}-${sourceKey}`}
                       type="button"
                       className={styles.groupChip}
                       disabled={isSkipped}
-                      onClick={() => onRemoveSelectedFansubGroup(row.media_item_id, group)}
+                      onClick={() => onRemoveSelectedFansubGroup(sourceKey, group)}
                     >
                       <span>{group.name ?? group.slug ?? `#${group.id}`}</span>
                       <span className={styles.groupChipRemove}>x</span>
@@ -218,7 +220,7 @@ export function EpisodeImportMappingRowCard({
                   Leeren
                 </button>
               </div>
-              {isSearching ? <p className={styles.groupSearchState}>Suche laeuft...</p> : null}
+              {isSearching ? <p className={styles.groupSearchState}>Suche läuft...</p> : null}
               {!isSearching && searchMessage ? <p className={styles.groupSearchState}>{searchMessage}</p> : null}
               {!isSearching && results.length > 0 ? (
                 <div className={styles.groupSearchResults}>
@@ -273,7 +275,7 @@ export function EpisodeImportMappingRowCard({
               disabled={isSkipped}
               placeholder="z.B. v2"
               aria-label={`Release-Version für ${label}`}
-              onChange={(event) => onSetRelease(row.media_item_id, { releaseVersion: event.target.value })}
+              onChange={(event) => onSetRelease(sourceKey, { releaseVersion: event.target.value })}
             />
           </label>
         </div>
@@ -283,25 +285,25 @@ export function EpisodeImportMappingRowCard({
         className={styles.targetInput}
         defaultValue={(row.target_episode_numbers ?? []).join(',')}
         disabled={isSkipped}
-        onBlur={(event) => onSetTargets(row.media_item_id, event.target.value)}
+        onBlur={(event) => onSetTargets(sourceKey, event.target.value)}
         aria-label={`Ziel-Episoden für ${label}`}
         placeholder="z.B. 1"
       />
       <button
         className={`${styles.microButton} ${isSkipped ? styles.microButtonActive : ''}`}
         type="button"
-        onClick={() => onSkip(row.media_item_id)}
+        onClick={() => onSkip(sourceKey)}
       >
-        {isSkipped ? 'Reaktivieren' : 'Ueberspringen'}
+        {isSkipped ? 'Reaktivieren' : 'Überspringen'}
       </button>
       {row.status === 'confirmed' && onApplyRow ? (
         <button
           className={styles.microButton}
           type="button"
           disabled={isApplyingRow}
-          onClick={() => onApplyRow(row.media_item_id)}
+          onClick={() => onApplyRow(sourceKey)}
         >
-          {isApplyingRow ? 'Wird angewendet...' : 'Ubernehmen'}
+          {isApplyingRow ? 'Wird angewendet...' : 'Übernehmen'}
         </button>
       ) : null}
     </div>

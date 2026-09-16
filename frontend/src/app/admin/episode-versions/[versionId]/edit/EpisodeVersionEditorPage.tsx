@@ -1,5 +1,7 @@
 "use client";
 
+import { jellyfinSourceKey } from "@/lib/jellyfinSourceIdentity";
+
 import { useEffect, useMemo, useState } from "react";
 import Link from "next/link";
 import { usePathname, useRouter, useSearchParams } from "next/navigation";
@@ -644,7 +646,7 @@ export function EpisodeVersionEditorPage() {
                     {editor.availableFiles.length > 0 ? (
                       editor.availableFiles.map((file) => (
                         <button
-                          key={`${file.media_item_id}-${file.path}`}
+                          key={jellyfinSourceKey(file)}
                           type="button"
                           className={styles.fileOption}
                           onClick={() => editor.applyFile(file)}

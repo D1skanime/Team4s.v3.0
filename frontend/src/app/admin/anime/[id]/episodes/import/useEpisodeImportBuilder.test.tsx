@@ -27,7 +27,7 @@ describe('source-scoped builder actions', () => {
     let pending!: Promise<void>
     act(() => { pending = result.current.applyRow(key) })
     expect(result.current.applyingRowId).toBe(key)
-    expect(mocks.apply.mock.calls[0][1].mappings).toEqual([preview.mappings[1]])
+    expect(mocks.apply.mock.calls[0][1].mappings).toEqual([expect.objectContaining(preview.mappings[1])])
     await act(async () => { resolveApply({ data: {} }); await pending })
     expect(result.current.mappings.map(row => row.media_source_id)).toEqual(['source-a'])
     expect(result.current.applyingRowId).toBeNull()

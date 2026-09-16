@@ -1,6 +1,7 @@
 'use client'
 
 import { useEffect, useMemo, useState } from 'react'
+import { jellyfinSourceKey } from '@/lib/jellyfinSourceIdentity'
 
 import {
   applyEpisodeImport,
@@ -9,6 +10,7 @@ import {
 } from '@/lib/api'
 import type {
   EpisodeImportApplyInput,
+  EpisodeImportApplyMappingRow,
   EpisodeImportApplyResult,
   EpisodeImportCanonicalEpisode,
   EpisodeImportContextResult,
@@ -73,18 +75,18 @@ interface UseEpisodeImportBuilderState {
   unmappedMappingRows: EpisodeImportMappingRow[]
   loadPreview: () => Promise<void>
   applyMappings: () => Promise<void>
-  applyRow: (mediaItemId: string) => Promise<void>
+  applyRow: (sourceKey: string) => Promise<void>
   setAniSearchID: (value: string) => void
   setSeasonOffset: (value: string) => void
-  setTargets: (mediaItemID: string, rawTargets: string) => void
-  setReleaseMeta: (mediaItemID: string, meta: { fansubGroupName?: string; releaseVersion?: string }) => void
-  setSelectedFansubGroups: (mediaItemID: string, fansubGroups: EpisodeImportSelectedFansubGroup[]) => void
-  addSelectedFansubGroup: (mediaItemID: string, fansubGroup: EpisodeImportSelectedFansubGroup) => void
-  removeSelectedFansubGroup: (mediaItemID: string, fansubGroup: EpisodeImportSelectedFansubGroup) => void
+  setTargets: (sourceKey: string, rawTargets: string) => void
+  setReleaseMeta: (sourceKey: string, meta: { fansubGroupName?: string; releaseVersion?: string }) => void
+  setSelectedFansubGroups: (sourceKey: string, fansubGroups: EpisodeImportSelectedFansubGroup[]) => void
+  addSelectedFansubGroup: (sourceKey: string, fansubGroup: EpisodeImportSelectedFansubGroup) => void
+  removeSelectedFansubGroup: (sourceKey: string, fansubGroup: EpisodeImportSelectedFansubGroup) => void
   applyFansubGroupToEpisode: (episodeNumber: number, fansubGroups: EpisodeImportSelectedFansubGroup[]) => void
   applyFansubGroupFromEpisode: (episodeNumber: number, fansubGroups: EpisodeImportSelectedFansubGroup[]) => void
   setEpisodeTitle: (episodeNumber: number, title: string) => void
-  skipMapping: (mediaItemID: string) => void
+  skipMapping: (sourceKey: string) => void
   skipAllSuggested: () => void
   confirmAllSuggested: () => void
   confirmEpisodeRows: (episodeNumber: number) => void
@@ -245,12 +247,12 @@ export function useEpisodeImportBuilder(animeID: number | null): UseEpisodeImpor
     }
   }
 
-  async function applyRow(mediaItemId: string) {
+  async function applyRow(sourceKey: string) {
     if (!animeID || !preview) return
-    const targetRow = mappings.find((row) => row.media_item_id === mediaItemId)
+    const targetRow = mappings.find((row) => jellyfinSourceKey(row) === sourceKey)
     if (!targetRow || targetRow.status !== 'confirmed') return
 
-    setApplyingRowId(mediaItemId)
+    setApplyingRowId(sourceKey)
     setErrorMessage(null)
     try {
       await applyEpisodeImport(
@@ -258,7 +260,7 @@ export function useEpisodeImportBuilder(animeID: number | null): UseEpisodeImpor
         buildEpisodeImportApplyInput(animeID, preview, [targetRow]),
       )
       // Remove the applied row from local state
-      setMappings((current) => current.filter((row) => row.media_item_id !== mediaItemId))
+      setMappings((current) => current.filter((row) => jellyfinSourceKey(row) !== sourceKey))
     } catch (error) {
       setErrorMessage(formatEpisodeImportError(error, 'Einzelnes Mapping konnte nicht angewendet werden.'))
     } finally {
@@ -288,16 +290,16 @@ export function useEpisodeImportBuilder(animeID: number | null): UseEpisodeImpor
     applyRow,
     setAniSearchID,
     setSeasonOffset,
-    setTargets: (mediaItemID, rawTargets) =>
-      setMappings((current) => setMappingTargets(current, mediaItemID, rawTargets)),
-    setReleaseMeta: (mediaItemID, meta) =>
-      setMappings((current) => setMappingReleaseMeta(current, mediaItemID, meta)),
-    setSelectedFansubGroups: (mediaItemID, fansubGroups) =>
-      setMappings((current) => setMappingFansubGroups(current, mediaItemID, fansubGroups)),
-    addSelectedFansubGroup: (mediaItemID, fansubGroup) =>
-      setMappings((current) => addMappingFansubGroup(current, mediaItemID, fansubGroup)),
-    removeSelectedFansubGroup: (mediaItemID, fansubGroup) =>
-      setMappings((current) => removeMappingFansubGroup(current, mediaItemID, fansubGroup)),
+    setTargets: (sourceKey, rawTargets) =>
+      setMappings((current) => setMappingTargets(current, sourceKey, rawTargets)),
+    setReleaseMeta: (sourceKey, meta) =>
+      setMappings((current) => setMappingReleaseMeta(current, sourceKey, meta)),
+    setSelectedFansubGroups: (sourceKey, fansubGroups) =>
+      setMappings((current) => setMappingFansubGroups(current, sourceKey, fansubGroups)),
+    addSelectedFansubGroup: (sourceKey, fansubGroup) =>
+      setMappings((current) => addMappingFansubGroup(current, sourceKey, fansubGroup)),
+    removeSelectedFansubGroup: (sourceKey, fansubGroup) =>
+      setMappings((current) => removeMappingFansubGroup(current, sourceKey, fansubGroup)),
     applyFansubGroupToEpisode: (episodeNumber, fansubGroups) =>
       setMappings((current) => applyFansubGroupToEpisodeRows(current, episodeNumber, fansubGroups)),
     applyFansubGroupFromEpisode: (episodeNumber, fansubGroups) =>
@@ -327,8 +329,8 @@ export function useEpisodeImportBuilder(animeID: number | null): UseEpisodeImpor
           }),
         }
       }),
-    skipMapping: (mediaItemID) =>
-      setMappings((current) => toggleMappingSkipped(current, mediaItemID)),
+    skipMapping: (sourceKey) =>
+      setMappings((current) => toggleMappingSkipped(current, sourceKey)),
     skipAllSuggested: () =>
       setMappings((current) => markAllSuggestedSkipped(current)),
     confirmAllSuggested: () =>
@@ -345,17 +347,23 @@ export function buildEpisodeImportApplyInput(
   preview: EpisodeImportPreviewResult,
   mappings: EpisodeImportMappingRow[],
 ): EpisodeImportApplyInput {
-  for (const row of mappings) {
-    if (row.status === 'skipped') continue
-    if (row.status !== 'confirmed' || !hasReviewedMediaSource(row, preview.media_candidates ?? [])) {
+  const reviewedMappings: EpisodeImportApplyMappingRow[] = []
+  for (const row of detectMappingConflicts(mappings, preview.media_candidates ?? [])) {
+    if (row.status === 'skipped') {
+      reviewedMappings.push({ ...serializeEpisodeImportMappingRow(row), status: 'skipped' })
+      continue
+    }
+    if (row.status !== 'confirmed' || !row.media_source_id?.trim() ||
+      !hasReviewedMediaSource(row, preview.media_candidates ?? [])) {
       throw new Error('Die geprüfte Quelle fehlt oder wurde geändert. Bitte die Vorschau erneut laden.')
     }
+    reviewedMappings.push({ ...serializeEpisodeImportMappingRow(row), status: 'confirmed', media_source_id: row.media_source_id })
   }
   return {
     anime_id: animeID,
     canonical_episodes: preview.canonical_episodes,
     media_candidates: preview.media_candidates ?? [],
-    mappings: mappings.map((row) => serializeEpisodeImportMappingRow(row)),
+    mappings: reviewedMappings,
   }
 }
 

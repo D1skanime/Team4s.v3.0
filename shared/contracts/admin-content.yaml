@@ -34,11 +34,11 @@ endpoints:
       status: 200
       type: EpisodeImportApplyResponse
     errors:
-      "400": "Invalid payload or selector."
+      "400": "Invalid payload, missing reviewed selector, duplicate exact Item/source pair, or candidate/mapping selector mismatch."
       "401": "Authentication required."
       "403": "Admin permission required."
       "404": "Anime or episode version not found."
-      "409": "Stale, missing or ambiguous reviewed source; refresh the preview before applying."
+      "409": "Foreign or stale source membership, duplicate physical-source aliases across different pairs, conflicting source evidence or anime ownership; refresh the preview before applying."
       "500": "Internal server error."
       "502": "Configured provider request failed."
       "503": "Required provider or authorization state unavailable."
@@ -1769,7 +1769,7 @@ types:
     forced: "boolean"
   EpisodeImportMappingRow:
     media_item_id: "string"
-    media_source_id: "string | null (optional; required for confirmed new candidates)"
+    media_source_id: "string | null (optional only for unresolved/skipped rows; nonempty string required for every confirmed command)"
     file_name: "string"
     display_path: "string"
     target_episode_numbers: "integer[]"
@@ -1807,7 +1807,7 @@ types:
     media_candidates: "EpisodeImportMediaCandidate[]"
     mappings: "EpisodeImportMappingRow[]"
     unmapped_episodes: "integer[]"
-    unmapped_media_item_ids: "string[]"
+    unmapped_media_item_ids: "string[] (diagnostic Item IDs, not unique-source counts or row keys)"
   EpisodeImportApplyInput:
     anime_id: "int64"
     canonical_episodes: "EpisodeImportCanonicalEpisode[]"
@@ -2231,3 +2231,9 @@ release_selected_file_metadata:
     adoption: Creation from saved current file only; explicit Math.round(start_ms / 1000) with visible copy; no automatic mutation, title/type/end/range inference.
   failure: Optional attempted provider or ownership failure sets jellyfin_enrichment_degraded; missing configuration leaves it false. Ordinary context stays usable.
   budget: Zero new SQL; at most one exact-file GET shared with duration, zero calls per chapter and zero additional scan GETs. Only selected-item read requests Chapters.
+
+jellyfin_import_source_identity:
+  row_identity: "Exact pair (actual media_item_id, media_source_id); paths and filenames are display evidence only. Same-Item siblings are independent rows and may target the same episode."
+  enumeration: "Every independently importable physical source appears once; nested/standalone aliases are collapsed using authoritative provider evidence. Already imported sources suppress only their own physical source."
+  apply: "Confirmed rows require a nonempty reviewed source ID. Both actual Item existence and source membership are revalidated server-side. Same-Item different-source rows may be applied together; duplicate pair or physical aliases in one command are rejected atomically. Posted paths, URLs and technical metadata are never authoritative."
+  diagnostics: "unmapped_media_item_ids is not a row identity or unique-source count; count unmapped source rows from mappings."

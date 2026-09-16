@@ -31,6 +31,7 @@ export interface JellyfinSubtitleTrack {
   forced: boolean
 }
 
+/** One independently importable physical source. Item IDs may repeat with distinct source IDs. */
 export interface EpisodeImportMediaCandidate {
   media_item_id: string
   media_source_id?: string | null
@@ -61,7 +62,7 @@ export type SelectedFansubGroupInput = EpisodeImportSelectedFansubGroup
 
 export interface EpisodeImportMappingRow {
   media_item_id: string
-  /** Reviewed source identity, required to confirm a new candidate. */
+  /** Together with media_item_id this is the row identity; optional only for unresolved/skipped rows. */
   media_source_id?: string | null
   /** Readable Jellyfin file name derived from the full path (e.g. "Bleach S03E11.mkv"). */
   file_name?: string
@@ -89,6 +90,7 @@ export interface EpisodeImportPreviewResult {
   media_candidates: EpisodeImportMediaCandidate[]
   mappings: EpisodeImportMappingRow[]
   unmapped_episodes?: number[]
+  /** Diagnostic Item IDs; not row keys or a count of unmapped physical sources. */
   unmapped_media_item_ids?: string[]
 }
 
@@ -101,11 +103,17 @@ export interface EpisodeImportContextResult {
   source?: string | null
 }
 
+/** Confirmed commands require the exact reviewed pair; skipped unresolved rows never persist. */
+export type EpisodeImportApplyMappingRow = Omit<EpisodeImportMappingRow, 'status'> & (
+  | { status: 'confirmed'; media_source_id: string }
+  | { status: 'skipped' }
+)
+
 export interface EpisodeImportApplyInput {
   anime_id: number
   canonical_episodes: EpisodeImportCanonicalEpisode[]
   media_candidates?: EpisodeImportMediaCandidate[]
-  mappings: EpisodeImportMappingRow[]
+  mappings: EpisodeImportApplyMappingRow[]
 }
 
 export interface EpisodeImportApplyResult {

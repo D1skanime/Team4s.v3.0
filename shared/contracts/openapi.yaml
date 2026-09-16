@@ -9546,7 +9546,7 @@ paths:
       tags: ["Admin"]
       summary: "Preview episode import"
       operationId: "previewEpisodeImport"
-      description: "One selected source per actual Jellyfin item; alternate files without separate items are not guaranteed to be imported. Source path, container, codecs and tracks are provider-derived and server-revalidated at apply/relink. Posted URLs, codecs and languages are not authoritative. Missing projection is incomplete; with streams_complete=true an empty subtitle_tracks array means known no subtitles. Unknown raw language remains null."
+      description: "Each independently importable physical Jellyfin source appears once. Candidate identity is the pair (actual media_item_id, media_source_id); one Item may expose several independently selectable sources. Nested and standalone representations of the same provider source are deduplicated by authoritative source evidence, never by browser paths. Existing-import detection suppresses only the imported physical source. Source path, container, codecs and tracks are provider-derived and server-revalidated at apply/relink. Posted URLs, codecs and languages are not authoritative. Missing projection is incomplete; with streams_complete=true an empty subtitle_tracks array means known no subtitles. Unknown raw language remains null."
       security: [{"bearerAuth": []}]
       parameters: [{"name": "id", "in": "path", "required": true, "schema": {"type": "integer", "format": "int64", "minimum": 1}}]
       requestBody:
@@ -9615,7 +9615,7 @@ paths:
       tags: ["Admin"]
       summary: "Apply episode import"
       operationId: "applyEpisodeImport"
-      description: "One selected source per actual Jellyfin item; alternate files without separate items are not guaranteed to be imported. Source path, container, codecs and tracks are provider-derived and server-revalidated at apply/relink. Posted URLs, codecs and languages are not authoritative. Missing projection is incomplete; with streams_complete=true an empty subtitle_tracks array means known no subtitles. Unknown raw language remains null."
+      description: "Each independently importable physical Jellyfin source appears once. Candidate identity is the pair (actual media_item_id, media_source_id); one Item may expose several independently selectable sources. Nested and standalone representations of the same provider source are deduplicated by authoritative source evidence, never by browser paths. Existing-import detection suppresses only the imported physical source. Source path, container, codecs and tracks are provider-derived and server-revalidated at apply/relink. Posted URLs, codecs and languages are not authoritative. Missing projection is incomplete; with streams_complete=true an empty subtitle_tracks array means known no subtitles. Unknown raw language remains null."
       security: [{"bearerAuth": []}]
       parameters: [{"name": "id", "in": "path", "required": true, "schema": {"type": "integer", "format": "int64", "minimum": 1}}]
       requestBody:
@@ -9632,7 +9632,7 @@ paths:
               schema:
                 $ref: "#/components/schemas/EpisodeImportApplyResponse"
         "400":
-          description: "Invalid payload or selector."
+          description: "Invalid payload, missing reviewed selector, duplicate exact Item/source pair, or candidate/mapping selector mismatch."
           content:
             application/json:
               schema:
@@ -9656,7 +9656,7 @@ paths:
               schema:
                 $ref: "#/components/schemas/ErrorResponse"
         "409":
-          description: "Stale, missing or ambiguous reviewed source; refresh the preview before applying."
+          description: "Foreign or stale source membership, duplicate physical-source aliases across different pairs, conflicting source evidence or anime ownership; refresh the preview before applying."
           content:
             application/json:
               schema:
@@ -14602,7 +14602,7 @@ components:
           type: "boolean"
     EpisodeImportMediaCandidate:
       type: "object"
-      description: "One selected source per actual Jellyfin item; alternate files without separate items are not guaranteed to be imported. Source path, container, codecs and tracks are provider-derived and server-revalidated at apply/relink. Posted URLs, codecs and languages are not authoritative. Missing projection is incomplete; with streams_complete=true an empty subtitle_tracks array means known no subtitles. Unknown raw language remains null."
+      description: "Each independently importable physical Jellyfin source appears once. Candidate identity is the pair (actual media_item_id, media_source_id); one Item may expose several independently selectable sources. Nested and standalone representations of the same provider source are deduplicated by authoritative source evidence, never by browser paths. Existing-import detection suppresses only the imported physical source. Source path, container, codecs and tracks are provider-derived and server-revalidated at apply/relink. Posted URLs, codecs and languages are not authoritative. Missing projection is incomplete; with streams_complete=true an empty subtitle_tracks array means known no subtitles. Unknown raw language remains null."
       required: ["media_item_id", "file_name", "path"]
       properties:
         media_item_id:
@@ -14610,7 +14610,7 @@ components:
         media_source_id:
           type: "string"
           nullable: true
-          description: "Reviewed Jellyfin MediaSource identity, distinct from media_item_id. Optional for old records; required for confirmation of a new candidate. Server revalidates on apply/relink."
+          description: "Reviewed Jellyfin MediaSource identity, distinct from media_item_id. Optional only for unresolved projections or skipped rows; required for every confirmed command. Server revalidates on apply/relink."
         file_name:
           type: "string"
         path:
@@ -14675,15 +14675,22 @@ components:
           nullable: true
     EpisodeImportMappingRow:
       type: "object"
-      description: "Rows remain keyed by media_item_id. A confirmed row must carry the reviewed candidate media_source_id; unresolved, changed or lost selection requires a new preview. Apply accepts only confirmed or skipped rows."
+      description: "Rows are keyed by the exact (media_item_id, media_source_id) pair. Same-Item sibling sources may target the same episode as separate releases. A confirmed row requires its reviewed nonempty source selector; unresolved, changed or lost selection requires a new preview. Duplicate pairs and duplicate physical-source aliases are rejected atomically. Apply accepts only confirmed or skipped rows."
       required: ["media_item_id", "target_episode_numbers", "suggested_episode_numbers", "status"]
+      oneOf:
+        - required: ["media_source_id"]
+          properties:
+            status: { type: "string", enum: ["confirmed"] }
+            media_source_id: { type: "string", nullable: false, minLength: 1, maxLength: 120, pattern: "^[^,]+$" }
+        - properties:
+            status: { type: "string", enum: ["suggested", "conflict", "skipped"] }
       properties:
         media_item_id:
           type: "string"
         media_source_id:
           type: "string"
           nullable: true
-          description: "Reviewed Jellyfin MediaSource identity, distinct from media_item_id. Optional for old records; required for confirmation of a new candidate. Server revalidates on apply/relink."
+          description: "Reviewed Jellyfin MediaSource identity, distinct from media_item_id. Optional only for unresolved projections or skipped rows; required for every confirmed command. Server revalidates on apply/relink."
         file_name:
           type: "string"
         display_path:
@@ -14796,12 +14803,13 @@ components:
             type: "integer"
             format: "int32"
         unmapped_media_item_ids:
+          description: "Diagnostic Item IDs, not row identities or a distinct source count. Count unmapped source rows from mappings."
           type: "array"
           items:
             type: "string"
     EpisodeImportApplyInput:
       type: "object"
-      description: "One selected source per actual Jellyfin item; alternate files without separate items are not guaranteed to be imported. Source path, container, codecs and tracks are provider-derived and server-revalidated at apply/relink. Posted URLs, codecs and languages are not authoritative. Missing projection is incomplete; with streams_complete=true an empty subtitle_tracks array means known no subtitles. Unknown raw language remains null."
+      description: "Each independently importable physical Jellyfin source appears once. Candidate identity is the pair (actual media_item_id, media_source_id); one Item may expose several independently selectable sources. Nested and standalone representations of the same provider source are deduplicated by authoritative source evidence, never by browser paths. Existing-import detection suppresses only the imported physical source. Source path, container, codecs and tracks are provider-derived and server-revalidated at apply/relink. Posted URLs, codecs and languages are not authoritative. Missing projection is incomplete; with streams_complete=true an empty subtitle_tracks array means known no subtitles. Unknown raw language remains null."
       required: ["canonical_episodes", "mappings"]
       properties:
         anime_id:
@@ -14819,7 +14827,10 @@ components:
         mappings:
           type: "array"
           items:
-            $ref: "#/components/schemas/EpisodeImportMappingRow"
+            allOf:
+              - $ref: "#/components/schemas/EpisodeImportMappingRow"
+              - properties:
+                  status: { type: "string", enum: ["confirmed", "skipped"] }
     EpisodeImportApplyResult:
       type: "object"
       required: ["anime_id", "episodes_created", "episodes_existing", "versions_created", "versions_updated", "mappings_applied", "skipped", "conflicts"]
@@ -15120,7 +15131,7 @@ components:
           pattern: "^[^,]+$"
           type: "string"
           nullable: true
-          description: "Reviewed Jellyfin MediaSource identity, distinct from media_item_id. Optional for old records; required for confirmation of a new candidate. Server revalidates on apply/relink."
+          description: "Reviewed Jellyfin MediaSource identity, distinct from media_item_id. Optional for unresolved projections and unchanged bindings. An explicit source selection is server-revalidated for exact Item membership."
         title:
           type: string
           maxLength: 255
@@ -15171,7 +15182,7 @@ components:
           pattern: "^[^,]+$"
           type: "string"
           nullable: true
-          description: "Reviewed Jellyfin MediaSource identity, distinct from media_item_id. Optional for old records; required for confirmation of a new candidate. Server revalidates on apply/relink. Source selection is an admin media-binding mutation, not a contributor metadata-only patch. Omission preserves the current binding. Explicit null or blank is rejected with 400."
+          description: "Reviewed Jellyfin MediaSource identity, distinct from media_item_id. Optional for unresolved projections and unchanged bindings. An explicit source selection is server-revalidated for exact Item membership. Source selection is an admin media-binding mutation, not a contributor metadata-only patch. Omission preserves the current binding. Explicit null or blank is rejected with 400."
         title:
           type: string
           maxLength: 255
@@ -15330,7 +15341,7 @@ components:
         media_source_id:
           type: "string"
           nullable: true
-          description: "Reviewed Jellyfin MediaSource identity, distinct from media_item_id. Optional for old records; required for confirmation of a new candidate. Server revalidates on apply/relink."
+          description: "Reviewed Jellyfin MediaSource identity, distinct from media_item_id. Optional for unresolved projections and unchanged bindings. An explicit source selection is server-revalidated for exact Item membership."
         file_name:
           type: string
         path:

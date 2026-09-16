@@ -11,6 +11,7 @@ import type {
 
 import { PlatformAdminGate } from "@/components/auth/PlatformAdminGate";
 import { EpisodeImportMappingRowCard } from "./EpisodeImportMappingRow";
+import { jellyfinSourceKey } from "@/lib/jellyfinSourceIdentity";
 import { fillerLabel } from "./episodeImportMapping";
 import styles from "./page.module.css";
 import { useEpisodeImportBuilder } from "./useEpisodeImportBuilder";
@@ -255,7 +256,7 @@ function AdminAnimeEpisodeImportContent() {
                 <div className={styles.mappingList}>
                   {builder.unmappedMappingRows.map((row) => (
                     <EpisodeImportMappingRowCard
-                      key={row.media_item_id}
+                      key={jellyfinSourceKey(row)}
                       episodeNumber={0}
                       row={row}
                       onSetTargets={builder.setTargets}
@@ -276,7 +277,7 @@ function AdminAnimeEpisodeImportContent() {
                       onSkip={builder.skipMapping}
                       onApplyRow={(id) => void builder.applyRow(id)}
                       isApplyingRow={
-                        builder.applyingRowId === row.media_item_id
+                        builder.applyingRowId === jellyfinSourceKey(row)
                       }
                     />
                   ))}
@@ -344,21 +345,21 @@ interface EpisodeGroupProps {
     rows: EpisodeImportMappingRow[];
   };
   hasVisualGap: boolean;
-  onSetTargets: (mediaItemID: string, rawTargets: string) => void;
+  onSetTargets: (sourceKey: string, rawTargets: string) => void;
   onSetRelease: (
-    mediaItemID: string,
+    sourceKey: string,
     meta: { fansubGroupName?: string; releaseVersion?: string },
   ) => void;
   onSetSelectedFansubGroups: (
-    mediaItemID: string,
+    sourceKey: string,
     fansubGroups: EpisodeImportSelectedFansubGroup[],
   ) => void;
   onAddSelectedFansubGroup: (
-    mediaItemID: string,
+    sourceKey: string,
     fansubGroup: EpisodeImportSelectedFansubGroup,
   ) => void;
   onRemoveSelectedFansubGroup: (
-    mediaItemID: string,
+    sourceKey: string,
     fansubGroup: EpisodeImportSelectedFansubGroup,
   ) => void;
   onApplyFansubGroupToEpisode: (
@@ -370,8 +371,8 @@ interface EpisodeGroupProps {
     fansubGroups: EpisodeImportSelectedFansubGroup[],
   ) => void;
   onSetEpisodeTitle: (episodeNumber: number, title: string) => void;
-  onSkip: (mediaItemID: string) => void;
-  onApplyRow: (mediaItemID: string) => void;
+  onSkip: (sourceKey: string) => void;
+  onApplyRow: (sourceKey: string) => void;
   applyingRowId: string | null;
   onConfirmEpisode: (episodeNumber: number) => void;
   onSkipEpisode: (episodeNumber: number) => void;
@@ -496,7 +497,7 @@ function EpisodeGroup({
       <div className={styles.mappingList}>
         {group.rows.map((row) => (
           <EpisodeImportMappingRowCard
-            key={row.media_item_id}
+            key={jellyfinSourceKey(row)}
             episodeNumber={group.episodeNumber}
             row={row}
             onSetTargets={onSetTargets}
@@ -508,7 +509,7 @@ function EpisodeGroup({
             onApplyFansubGroupFromEpisode={onApplyFansubGroupFromEpisode}
             onSkip={onSkip}
             onApplyRow={onApplyRow}
-            isApplyingRow={applyingRowId === row.media_item_id}
+            isApplyingRow={applyingRowId === jellyfinSourceKey(row)}
           />
         ))}
       </div>
