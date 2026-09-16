@@ -16,6 +16,31 @@ progress:
 
 # Project State
 
+## Abgeschlossener Quick 260916-ejp — set-state-in-effect an 8 Fachlichkeiten (16.09.2026)
+
+Alle 8 `void (async () => {...})()`-Workarounds aus Quick 260915-rv3 sind durch echte strukturelle
+Lösungen ersetzt: die 4 Summary-Komponenten in `AdminGroupsClient.tsx` und `CapabilityHistoryPanel.tsx`
+nutzen `useCancellableSlugState` direkt (Klasse A); `GroupRolesTab.tsx` kombiniert den Hook mit einer
+expliziten 3-Zustands-Ableitung während des Renderns, die den Sticky-loadError-Sonderfall erhält
+(Klasse B); `useEpisodeNeighborNavigation.ts` und `useReleaseVersionMedia.ts` nutzen den Hook plus die
+bereits etablierte Render-Zeit-Anpassungsschicht aus `GroupMemberFormModals.tsx`, die das vorherige
+Ergebnis sichtbar hält, während ein neuer Schlüssel lädt (Klassen C/D); bei `useReleaseVersionMedia.ts`
+bleiben alle Mutations-/Upload-Callbacks (patchItem, replaceItem, deleteItem, reorderItems, runUpload,
+retryUpload, clearUploadQueue, startUpload) bytegleich unverändert. `grep -n "void (async"` liefert 0
+Treffer in allen 5 geänderten Produktionsdateien. Globales ESLint bleibt exakt bei 3 Fehlern/319
+Warnungen vor und nach dem Plan (0 neue Funde); `tsc --noEmit` bestätigt 0 Fehler. 50 neue
+Regressionstests (Anfrageparität, veraltete Antworten, StrictMode-Dev-Doppelaufruf je Standort, plus ein
+dedizierter Sticky-loadError-Test und Reload-Überlebens-/Fehlerreihenfolge-Tests für
+`useReleaseVersionMedia.ts`) plus die 2 vorbestehenden `useCancellableSlugState`-Konsumenten
+(`useMemberViewer.test.ts`/`MemberCurrentProjectsSection.test.tsx`, bytegleich unverändert) sind grün:
+75 Tests insgesamt. `useCancellableSlugState.ts` selbst wurde nicht angefasst. Container
+`team4sv30-frontend` neu gestartet; `/`, `/admin/groups`, `/admin/fansubs` liefern HTTP 200. Details:
+quick/260916-ejp-set-state-in-effect-an-8-stellen-fachlic/260916-ejp-SUMMARY.md. Codeabschluss `368bc4b9`;
+kein Push. Das manuelle Sichtprüfungs-Checklist (Gruppenverwaltung, Capability-Historie, Rollen-Tab
+inkl. Sticky-Error, Episoden-Navigation, Medien-Tab) bleibt ausdrücklich OFFEN, ebenso ein benannter
+Nachtrag: `NotesTab.tsx` trägt denselben Workaround noch und wurde bewusst nicht angefasst (außerhalb
+des Plan-Scopes).
+
 ## Abgeschlossener Quick 260916-ako — Mehrere Jellyfin-MediaSources (16.09.2026)
 
 Source-Paare durch Vorschau, unabhängige Auswahl, serverseitige Revalidierung und Persistenz umgesetzt. 38 eindeutige Sources im vollständigen 11eyes-Fixture; Live-Ordner enthält 36, davon drei bereits importiert. Zwei Quellen von Folge 2 gemeinsam importiert und in DB/Editor nachgewiesen (Versionen 53/54); neue Vorschau lässt die dritte Quelle verfügbar. Migration 0166 regulär angewendet, kein Datenreset oder Jellyfin-/NAS-Eingriff. 348 relevante Backend-Prüfereignisse und 124 Frontendtests bestanden; Typecheck und Go build/vet grün, breite Baselinefehler unverändert. Details: quick/260916-ako-jellyfin-multiple-media-source-import/260916-ako-SUMMARY.md. Codeabschluss c61459bc; kein Push, kein menschlicher UAT-Sign-off. Historische Phasen- und Abnahmeeinträge bleiben unverändert. Live-UAT-Nachtrag: Lösch-500 durch versehentliche ss/rs-Sortierreferenzen in Delete korrigiert (0cda1dd7), drei echte PostgreSQL-Regressionen RED/GREEN; 351 relevante Backendtests bestanden. Fix aktiv, keine Nutzer-Release-Löschung durch den Agenten. Siehe 260916-ako-DELETE-GAP.md. Nutzerabnahme am 16.09.2026 ausdrücklich „approved“ für diesen Löschfix; weitere UAT-Punkte bleiben offen.
