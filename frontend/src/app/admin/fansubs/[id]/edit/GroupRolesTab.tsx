@@ -1,6 +1,6 @@
 'use client'
 
-import { useEffect, useMemo, useState } from 'react'
+import { useCallback, useMemo, useState } from 'react'
 import { useRouter } from 'next/navigation'
 
 import {
@@ -18,10 +18,11 @@ import {
   TableRow,
 } from '@/components/ui'
 import { ApiError, listFansubAppMembers } from '@/lib/api'
+import { useCancellableSlugState } from '@/hooks/useCancellableSlugState'
 import { useAuthSession } from '@/lib/useAuthSession'
 import { labelForRole } from '@/lib/roleCatalog'
 import { useRoleCatalog } from '@/providers/RoleCatalogProvider'
-import type { FansubAppMember } from '@/types/fansub'
+import type { FansubAppMember, FansubAppMemberListResponse } from '@/types/fansub'
 
 /**
  * D-06 (Gruppenansicht "Rollen"): Wer hält welche Rolle IN DIESER GRUPPE. Kein neuer
@@ -78,35 +79,39 @@ export function GroupRolesTab({ fansubId }: GroupRolesTabProps) {
   const { hasAccessToken, isClientInitialized } = useAuthSession()
   const { roles } = useRoleCatalog('fansub_group')
   const [members, setMembers] = useState<FansubAppMember[]>([])
-  const [isLoading, setIsLoading] = useState(true)
   const [loadError, setLoadError] = useState<string | null>(null)
+  const [appliedKey, setAppliedKey] = useState<string | null>(null)
 
-  useEffect(() => {
-    let cancelled = false
+  const canFetch = isClientInitialized && hasAccessToken && fansubId > 0
+  const requestKey = `${fansubId}:${hasAccessToken}`
+  const fetcher = useCallback(() => listFansubAppMembers(fansubId), [fansubId])
+  const { state } = useCancellableSlugState<FansubAppMemberListResponse>({ requestKey, enabled: canFetch, fetcher })
 
-    void (async () => {
-      if (!isClientInitialized) return
-      if (!hasAccessToken || fansubId <= 0) {
-        setMembers([])
-        setIsLoading(false)
-        return
-      }
-      setIsLoading(true)
-      try {
-        const response = await listFansubAppMembers(fansubId)
-        if (cancelled) return
-        setMembers(response.data)
-        setLoadError(null)
-      } catch (error) {
-        if (cancelled) return
-        setLoadError(error instanceof ApiError ? error.message : 'Rollen konnten nicht geladen werden.')
-      } finally {
-        if (!cancelled) setIsLoading(false)
-      }
-    })()
+  // Adjust state during render (React-empfohlenes Muster statt Effect, siehe
+  // GroupMemberFormModals.tsx-Praezedenzfall): kein zusaetzlicher Render-Zyklus, kein
+  // set-state-in-effect-Verstoss.
+  if (!isClientInitialized) {
+    // Zustand 1: nichts geschieht, bis der Client initialisiert ist -- Anfangswerte bleiben.
+  } else if (!canFetch) {
+    // Zustand 2: Zugriff fehlt oder fansubId ungueltig. loadError bewusst NICHT anfassen --
+    // eine bereits gesetzte Fehlermeldung bleibt sichtbar (Sticky-loadError-Sonderfall).
+    if (members.length > 0 || appliedKey !== null) {
+      setMembers([])
+      setAppliedKey(null)
+    }
+  } else if (state.key === requestKey && state.key !== appliedKey) {
+    // Zustand 3: ein neues terminales Ergebnis fuer den aktuellen Schluessel liegt vor.
+    if (state.status === 'success') {
+      setAppliedKey(state.key)
+      setMembers(state.data!.data)
+      setLoadError(null)
+    } else if (state.status === 'error') {
+      setAppliedKey(state.key)
+      setLoadError(state.error instanceof ApiError ? state.error.message : 'Rollen konnten nicht geladen werden.')
+    }
+  }
 
-    return () => { cancelled = true }
-  }, [fansubId, hasAccessToken, isClientInitialized])
+  const isLoading = !isClientInitialized || (canFetch && (state.key !== requestKey || state.status === 'loading'))
 
   const holderRows = useMemo(() => groupMembersByRole(members), [members])
 

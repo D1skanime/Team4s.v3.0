@@ -7,7 +7,8 @@
 // sowie einen sauberen EmptyState statt einer kaputten leeren Tabelle bei null Mitgliedern.
 
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
-import { cleanup, fireEvent, render, screen } from '@testing-library/react'
+import { cleanup, fireEvent, render, screen, waitFor } from '@testing-library/react'
+import { StrictMode } from 'react'
 
 import type { FansubAppMember } from '@/types/fansub'
 
@@ -18,14 +19,16 @@ vi.mock('next/navigation', () => ({
   useRouter: mockUseRouter,
 }))
 
+const mockUseAuthSession = vi.hoisted(() => vi.fn(() => ({
+  authToken: '',
+  hasAccessToken: true,
+  hasRefreshToken: false,
+  displayName: 'Test User',
+  isClientInitialized: true,
+})))
+
 vi.mock('@/lib/useAuthSession', () => ({
-  useAuthSession: () => ({
-    authToken: '',
-    hasAccessToken: true,
-    hasRefreshToken: false,
-    displayName: 'Test User',
-    isClientInitialized: true,
-  }),
+  useAuthSession: mockUseAuthSession,
 }))
 
 const catalogState = {
@@ -63,6 +66,14 @@ function member(overrides: Partial<FansubAppMember>): FansubAppMember {
   }
 }
 
+function deferred<T>() {
+  let resolve!: (value: T) => void
+  const promise = new Promise<T>((res) => {
+    resolve = res
+  })
+  return { promise, resolve }
+}
+
 afterEach(() => {
   cleanup()
   vi.clearAllMocks()
@@ -70,6 +81,13 @@ afterEach(() => {
 
 beforeEach(() => {
   mockListFansubAppMembers.mockReset()
+  mockUseAuthSession.mockReturnValue({
+    authToken: '',
+    hasAccessToken: true,
+    hasRefreshToken: false,
+    displayName: 'Test User',
+    isClientInitialized: true,
+  })
 })
 
 describe('GroupRolesTab — Leerzustand', () => {
@@ -100,5 +118,71 @@ describe('GroupRolesTab — Gruppierung nach Rollencode', () => {
     const miraButton = screen.getByRole('button', { name: 'Mira' })
     fireEvent.click(miraButton)
     expect(mockPush).toHaveBeenCalledWith('/admin/users/42')
+  })
+})
+
+describe('GroupRolesTab — Regressionen (Pattern B)', () => {
+  it('behaelt eine bereits angezeigte Fehlermeldung, wenn der Zugriff waehrend der Sitzung entzogen wird', async () => {
+    mockListFansubAppMembers.mockRejectedValueOnce(new Error('boom'))
+
+    const { rerender } = render(<GroupRolesTab fansubId={5} />)
+    await waitFor(() => expect(screen.getByText('Rollen konnten nicht geladen werden.')).not.toBeNull())
+
+    mockUseAuthSession.mockReturnValue({
+      authToken: '',
+      hasAccessToken: false,
+      hasRefreshToken: false,
+      displayName: 'Test User',
+      isClientInitialized: true,
+    })
+    rerender(<GroupRolesTab fansubId={5} />)
+
+    // Sticky-loadError-Sonderfall: die Fehlermeldung bleibt sichtbar, obwohl der Zugriff jetzt fehlt.
+    expect(screen.getByText('Rollen konnten nicht geladen werden.')).not.toBeNull()
+    expect(screen.queryByRole('table')).toBeNull()
+  })
+
+  it('gleiche fansubId loest keine, ein Wechsel genau eine neue Anfrage aus; eine verspaetete alte Antwort wird nie angewandt', async () => {
+    const first = deferred<{ data: FansubAppMember[] }>()
+    mockListFansubAppMembers.mockReturnValueOnce(first.promise)
+
+    const { rerender } = render(<GroupRolesTab fansubId={5} />)
+    await waitFor(() => expect(mockListFansubAppMembers).toHaveBeenCalledTimes(1))
+
+    rerender(<GroupRolesTab fansubId={5} />)
+    expect(mockListFansubAppMembers).toHaveBeenCalledTimes(1)
+
+    const second = deferred<{ data: FansubAppMember[] }>()
+    mockListFansubAppMembers.mockReturnValueOnce(second.promise)
+    rerender(<GroupRolesTab fansubId={7} />)
+    await waitFor(() => expect(mockListFansubAppMembers).toHaveBeenCalledTimes(2))
+
+    first.resolve({
+      data: [member({ app_user_id: 42, roles: ['translator'], member: { member_id: 1, fansub_name: 'VeraltetFansub5' } })],
+    })
+    await Promise.resolve()
+    await Promise.resolve()
+    expect(screen.queryByRole('button', { name: 'VeraltetFansub5' })).toBeNull()
+
+    second.resolve({
+      data: [member({ app_user_id: 99, roles: ['encoder'], member: { member_id: 2, fansub_name: 'AktuellFansub7' } })],
+    })
+    expect(await screen.findByRole('button', { name: 'AktuellFansub7' })).not.toBeNull()
+    expect(screen.queryByRole('button', { name: 'VeraltetFansub5' })).toBeNull()
+  })
+
+  it('StrictMode verursacht keine Anfragen ueber Reacts Dev-Doppelaufruf hinaus', async () => {
+    mockListFansubAppMembers.mockResolvedValue({
+      data: [member({ app_user_id: 42, roles: ['translator'], member: { member_id: 1, fansub_name: 'Mira' } })],
+    })
+
+    render(
+      <StrictMode>
+        <GroupRolesTab fansubId={5} />
+      </StrictMode>,
+    )
+
+    expect(await screen.findByRole('button', { name: 'Mira' })).not.toBeNull()
+    expect(mockListFansubAppMembers.mock.calls.length).toBe(2)
   })
 })

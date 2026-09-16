@@ -6,6 +6,7 @@
 
 import { afterEach, describe, expect, it, vi } from 'vitest'
 import { cleanup, render, screen, waitFor } from '@testing-library/react'
+import { StrictMode } from 'react'
 import type { CapabilityOverrideAuditItem } from '@/types/admin-capability'
 
 const mockListOverrideHistory = vi.fn()
@@ -28,6 +29,14 @@ afterEach(() => {
   cleanup()
   vi.clearAllMocks()
 })
+
+function deferred<T>() {
+  let resolve!: (value: T) => void
+  const promise = new Promise<T>((res) => {
+    resolve = res
+  })
+  return { promise, resolve }
+}
 
 function makeAuditItem(overrides: Partial<CapabilityOverrideAuditItem> = {}): CapabilityOverrideAuditItem {
   return {
@@ -88,5 +97,59 @@ describe('CapabilityHistoryPanel', () => {
       expect(screen.getAllByText('Entzogen').length).toBe(1)
     })
     expect(mockListOverrideHistory).toHaveBeenCalledWith(1, 42, 10, 0)
+  })
+
+  it('ruft listOverrideHistory bei einer reinen actionCode-Aenderung (gleiche Gruppe/Nutzer) genau einmal erneut auf', async () => {
+    mockListOverrideHistory.mockResolvedValue([makeAuditItem()])
+
+    const { rerender } = render(
+      <CapabilityHistoryPanel fansubGroupId={1} appUserId={42} actionCode="fansub_group.members.manage" />,
+    )
+    await waitFor(() => expect(mockListOverrideHistory).toHaveBeenCalledTimes(1))
+
+    // Gleiches Tripel erneut rendern darf keine zusaetzliche Anfrage ausloesen.
+    rerender(<CapabilityHistoryPanel fansubGroupId={1} appUserId={42} actionCode="fansub_group.members.manage" />)
+    expect(mockListOverrideHistory).toHaveBeenCalledTimes(1)
+
+    // Nur actionCode aendert sich (gleiche Gruppe/Nutzer) -- heutiges Verhalten fetcht trotzdem neu.
+    rerender(<CapabilityHistoryPanel fansubGroupId={1} appUserId={42} actionCode="release.edit" />)
+    await waitFor(() => expect(mockListOverrideHistory).toHaveBeenCalledTimes(2))
+  })
+
+  it('wendet eine verspaetete Antwort fuer den alten appUserId nach einem Nutzerwechsel nicht mehr an', async () => {
+    const first = deferred<CapabilityOverrideAuditItem[]>()
+    mockListOverrideHistory.mockReturnValueOnce(first.promise)
+
+    const { rerender } = render(
+      <CapabilityHistoryPanel fansubGroupId={1} appUserId={42} actionCode="fansub_group.members.manage" />,
+    )
+    await waitFor(() => expect(mockListOverrideHistory).toHaveBeenCalledTimes(1))
+
+    const second = deferred<CapabilityOverrideAuditItem[]>()
+    mockListOverrideHistory.mockReturnValueOnce(second.promise)
+    rerender(<CapabilityHistoryPanel fansubGroupId={1} appUserId={99} actionCode="fansub_group.members.manage" />)
+    await waitFor(() => expect(mockListOverrideHistory).toHaveBeenCalledTimes(2))
+
+    first.resolve([makeAuditItem({ id: 1, actor_user_id: 111 })])
+    await Promise.resolve()
+    await Promise.resolve()
+    expect(screen.queryByText('111')).toBeNull()
+
+    second.resolve([makeAuditItem({ id: 2, actor_user_id: 222 })])
+    await waitFor(() => expect(screen.getByText('222')).not.toBeNull())
+    expect(screen.queryByText('111')).toBeNull()
+  })
+
+  it('StrictMode verursacht keine Anfragen ueber Reacts Dev-Doppelaufruf hinaus', async () => {
+    mockListOverrideHistory.mockResolvedValueOnce([makeAuditItem()])
+
+    render(
+      <StrictMode>
+        <CapabilityHistoryPanel fansubGroupId={1} appUserId={42} actionCode="fansub_group.members.manage" />
+      </StrictMode>,
+    )
+
+    await waitFor(() => expect(screen.getByText('Entzogen')).not.toBeNull())
+    expect(mockListOverrideHistory.mock.calls.length).toBe(2)
   })
 })

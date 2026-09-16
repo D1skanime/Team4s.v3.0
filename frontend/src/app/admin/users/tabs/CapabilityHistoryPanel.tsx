@@ -1,9 +1,10 @@
 'use client'
 
-import { useEffect, useState } from 'react'
+import { useCallback } from 'react'
 
 import { EmptyState, ErrorState, LoadingState, Table, TableBody, TableCell, TableHead, TableHeaderCell, TableRow } from '@/components/ui'
 import { ApiError, listOverrideHistory as fetchOverrideHistory } from '@/lib/api'
+import { useCancellableSlugState } from '@/hooks/useCancellableSlugState'
 import type { CapabilityOverrideAuditItem } from '@/types/admin-capability'
 
 /**
@@ -45,34 +46,23 @@ export interface CapabilityHistoryPanelProps {
 }
 
 export function CapabilityHistoryPanel({ fansubGroupId, appUserId, actionCode }: CapabilityHistoryPanelProps) {
-  const [entries, setEntries] = useState<CapabilityOverrideAuditItem[] | null>(null)
-  const [isLoading, setIsLoading] = useState(true)
-  const [error, setError] = useState<string | null>(null)
+  // requestKey enthaelt actionCode, OBWOHL der Fetcher selbst ihn nicht verwendet: das erhaelt
+  // die heutige Paritaet, dass eine reine actionCode-Aenderung (gleiche Gruppe/Nutzer) ebenfalls
+  // einen frischen Request ausloest (siehe Interfaces-Block, Pattern A).
+  const requestKey = `${fansubGroupId}:${appUserId}:${actionCode}`
+  const fetcher = useCallback(() => fetchOverrideHistory(fansubGroupId, appUserId, 10, 0), [fansubGroupId, appUserId])
+  const { state } = useCancellableSlugState<CapabilityOverrideAuditItem[]>({ requestKey, enabled: true, fetcher })
 
-  useEffect(() => {
-    let cancelled = false
-
-    void (async () => {
-      setIsLoading(true)
-      setError(null)
-      try {
-        const result = await fetchOverrideHistory(fansubGroupId, appUserId, 10, 0)
-        if (cancelled) return
-        // Eine gruppen-weite Historie-Seite kann auch Einträge anderer Capabilities enthalten --
-        // dieses Panel ist strikt auf EINE Capability skopiert (D-13b).
-        setEntries(result.filter((entry) => entry.action_code === actionCode))
-      } catch (err) {
-        if (cancelled) return
-        setError(err instanceof ApiError ? err.message : 'Historie konnte nicht geladen werden.')
-      } finally {
-        if (!cancelled) setIsLoading(false)
-      }
-    })()
-
-    return () => {
-      cancelled = true
-    }
-  }, [fansubGroupId, appUserId, actionCode])
+  const isLoading = state.key !== requestKey || state.status === 'loading' || state.status === 'idle'
+  const error = state.status === 'error'
+    ? (state.error instanceof ApiError ? state.error.message : 'Historie konnte nicht geladen werden.')
+    : null
+  // Eine gruppen-weite Historie-Seite kann auch Einträge anderer Capabilities enthalten --
+  // dieses Panel ist strikt auf EINE Capability skopiert (D-13b). Die null/[]-Unterscheidung
+  // bleibt erhalten, damit die drei Render-Zweige unten unveraendert funktionieren.
+  const entries = state.status === 'success'
+    ? state.data!.filter((entry) => entry.action_code === actionCode)
+    : null
 
   if (isLoading) {
     return <LoadingState title="Historie wird geladen …" description="" />
