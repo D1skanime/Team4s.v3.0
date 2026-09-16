@@ -1,6 +1,8 @@
-import { useEffect, useState } from "react";
+import { useCallback, useState } from "react";
 
 import { getGroupedEpisodes } from "@/lib/api";
+import { useCancellableSlugState } from "@/hooks/useCancellableSlugState";
+import type { GroupedEpisodesResponse } from "@/types/episodeVersion";
 
 import {
   computeNeighborNavigation,
@@ -34,53 +36,58 @@ export function useEpisodeNeighborNavigation(
 ): UseEpisodeNeighborNavigationResult {
   const { animeId, currentVersionId, groupId, releaseVersion } = params;
 
-  const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [navigation, setNavigation] =
     useState<NeighborNavigationResult>(EMPTY_TARGETS);
+  const [appliedKey, setAppliedKey] = useState<string | null>(null);
 
-  useEffect(() => {
-    let cancelled = false;
+  const canFetch = animeId != null && currentVersionId != null;
+  const requestKey = canFetch
+    ? `${animeId}:${currentVersionId}:${groupId ?? ""}:${releaseVersion}`
+    : "";
+  const fetcher = useCallback(
+    () => getGroupedEpisodes(animeId as number),
+    [animeId],
+  );
+  const { state } = useCancellableSlugState<GroupedEpisodesResponse>({
+    requestKey,
+    enabled: canFetch,
+    fetcher,
+  });
 
-    void (async () => {
-      if (animeId == null || currentVersionId == null) {
-        setIsLoading(false);
-        setError(null);
-        setNavigation(EMPTY_TARGETS);
-        return;
-      }
-
-      setIsLoading(true);
+  // Adjust state during render (React-empfohlenes Muster statt Effect, siehe
+  // GroupMemberFormModals.tsx-Praezedenzfall): behaelt das vorherige erfolgreiche Ergebnis
+  // sichtbar, waehrend ein neuer Schluessel laedt (Class-C-Anforderung).
+  if (!canFetch) {
+    if (appliedKey !== null) {
+      setAppliedKey(null);
+      setNavigation(EMPTY_TARGETS);
       setError(null);
+    }
+  } else if (state.key === requestKey && state.key !== appliedKey) {
+    if (state.status === "success") {
+      setAppliedKey(state.key);
+      const result = computeNeighborNavigation({
+        episodes: state.data!.data.episodes,
+        currentVersionId: currentVersionId as number,
+        groupId,
+        releaseVersion,
+      });
+      setNavigation(result);
+      setError(null);
+    } else if (state.status === "error") {
+      setAppliedKey(state.key);
+      const message =
+        state.error instanceof Error
+          ? state.error.message
+          : "Nachbar-Folgen konnten nicht geladen werden.";
+      setError(message);
+      setNavigation(EMPTY_TARGETS);
+    }
+  }
 
-      try {
-        const response = await getGroupedEpisodes(animeId);
-        if (cancelled) return;
-        const result = computeNeighborNavigation({
-          episodes: response.data.episodes,
-          currentVersionId,
-          groupId,
-          releaseVersion,
-        });
-        setNavigation(result);
-        setError(null);
-      } catch (caughtError: unknown) {
-        if (cancelled) return;
-        const message =
-          caughtError instanceof Error
-            ? caughtError.message
-            : "Nachbar-Folgen konnten nicht geladen werden.";
-        setError(message);
-        setNavigation(EMPTY_TARGETS);
-      } finally {
-        if (!cancelled) setIsLoading(false);
-      }
-    })();
-
-    return () => {
-      cancelled = true;
-    };
-  }, [animeId, currentVersionId, groupId, releaseVersion]);
+  const isLoading =
+    canFetch && (state.key !== requestKey || state.status === "loading");
 
   return {
     isLoading,

@@ -1,6 +1,7 @@
 // @vitest-environment jsdom
 
 import { act, renderHook, waitFor } from "@testing-library/react";
+import { StrictMode } from "react";
 import { afterEach, describe, expect, it, vi } from "vitest";
 
 const getGroupedEpisodesMock = vi.fn();
@@ -201,5 +202,98 @@ describe("useEpisodeNeighborNavigation", () => {
     await waitFor(() => {
       expect(result.current.currentIndex).toBe(1);
     });
+  });
+
+  it("behaelt die vorherigen Nachbar-Ziele waehrend eines Reloads sichtbar, waehrend isLoading auf true wechselt", async () => {
+    getGroupedEpisodesMock.mockResolvedValueOnce(groupedResponse);
+
+    const { result, rerender } = renderHook(
+      (props: { currentVersionId: number }) =>
+        useEpisodeNeighborNavigation({
+          animeId: 1,
+          currentVersionId: props.currentVersionId,
+          groupId: 10,
+          releaseVersion: "v1",
+        }),
+      { initialProps: { currentVersionId: 101 } },
+    );
+
+    await waitFor(() => expect(result.current.isLoading).toBe(false));
+    expect(result.current.currentIndex).toBe(0);
+    expect(result.current.nextVersionId).toBe(102);
+
+    const pending = deferred<typeof groupedResponse>();
+    getGroupedEpisodesMock.mockReturnValueOnce(pending.promise);
+    rerender({ currentVersionId: 102 });
+
+    // Neue Anfrage haengt noch -- das vorherige Ergebnis bleibt sichtbar statt auf
+    // EMPTY_TARGETS zurueckzuspringen (Class-C-Anforderung).
+    expect(result.current.isLoading).toBe(true);
+    expect(result.current.currentIndex).toBe(0);
+    expect(result.current.nextVersionId).toBe(102);
+
+    await act(async () => {
+      pending.resolve(groupedResponse);
+      await pending.promise;
+    });
+    await waitFor(() => expect(result.current.isLoading).toBe(false));
+    expect(result.current.currentIndex).toBe(1);
+  });
+
+  it("wendet eine verspaetete Antwort fuer den alten currentVersionId nach einem Wechsel nicht mehr an", async () => {
+    const firstPending = deferred<typeof groupedResponse>();
+    getGroupedEpisodesMock.mockReturnValueOnce(firstPending.promise);
+
+    const { result, rerender } = renderHook(
+      (props: { currentVersionId: number }) =>
+        useEpisodeNeighborNavigation({
+          animeId: 1,
+          currentVersionId: props.currentVersionId,
+          groupId: 10,
+          releaseVersion: "v1",
+        }),
+      { initialProps: { currentVersionId: 101 } },
+    );
+    expect(getGroupedEpisodesMock).toHaveBeenCalledTimes(1);
+
+    const secondPending = deferred<typeof groupedResponse>();
+    getGroupedEpisodesMock.mockReturnValueOnce(secondPending.promise);
+    rerender({ currentVersionId: 102 });
+    expect(getGroupedEpisodesMock).toHaveBeenCalledTimes(2);
+
+    // Verspaetete Antwort des ALTEN (currentVersionId=101) Requests darf nach dem Wechsel
+    // nicht mehr angewandt werden.
+    await act(async () => {
+      firstPending.resolve(groupedResponse);
+      await Promise.resolve();
+      await Promise.resolve();
+    });
+    expect(result.current.isLoading).toBe(true);
+    expect(result.current.currentIndex).toBe(-1);
+
+    await act(async () => {
+      secondPending.resolve(groupedResponse);
+      await secondPending.promise;
+    });
+    await waitFor(() => expect(result.current.isLoading).toBe(false));
+    expect(result.current.currentIndex).toBe(1);
+  });
+
+  it("StrictMode verursacht keine Aufrufe ueber Reacts Dev-Doppelaufruf hinaus", async () => {
+    getGroupedEpisodesMock.mockResolvedValue(groupedResponse);
+
+    const { result } = renderHook(
+      () =>
+        useEpisodeNeighborNavigation({
+          animeId: 1,
+          currentVersionId: 101,
+          groupId: 10,
+          releaseVersion: "v1",
+        }),
+      { wrapper: StrictMode },
+    );
+
+    await waitFor(() => expect(result.current.isLoading).toBe(false));
+    expect(getGroupedEpisodesMock).toHaveBeenCalledTimes(2);
   });
 });
