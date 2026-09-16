@@ -363,3 +363,21 @@ describe('saved current-file chapter ownership', () => {
     expect(result.current.chapterHints).toBeNull()
   })
 })
+
+
+describe('same-Item scan alternatives', () => {
+  it('leaves an unresolved current source unresolved when scan offers siblings', async () => {
+    const initial = response()
+    mocks.context.mockResolvedValue({ data: { ...initial.data, version: { ...initial.data.version, media_source_id: null } } })
+    const { result } = renderHook(useEpisodeVersionEditor)
+    await waitFor(() => expect(result.current.isLoading).toBe(false))
+    mocks.scan.mockResolvedValue({ data: { files: [mediaFile('fixture', 'source-a'), mediaFile('fixture', 'source-b')] } })
+    await act(() => result.current.handleScanFolder())
+    expect(result.current.availableFiles).toHaveLength(2)
+    expect(result.current.selectedFile?.media_source_id).toBeFalsy()
+    expect(result.current.hasUnsavedChanges).toBe(false)
+    act(() => result.current.applyFile(mediaFile('fixture', 'source-b')))
+    await act(() => result.current.handleSave(event))
+    expect(mocks.update.mock.calls[0][1]).toMatchObject({ media_item_id: 'fixture', media_source_id: 'source-b' })
+  })
+})

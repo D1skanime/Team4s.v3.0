@@ -3,6 +3,9 @@ import { describe, expect, it } from 'vitest'
 import type { EpisodeImportMappingRow, EpisodeImportPreviewResult } from '../../../../../../types/episodeImport'
 import {
   setMappingFansubGroups,
+  setMappingReleaseMeta,
+  addMappingFansubGroup,
+  removeMappingFansubGroup,
   applyFansubGroupFromEpisodeDown,
   applyFansubGroupToEpisodeRows,
   confirmEpisodeMappingRows,
@@ -724,5 +727,42 @@ describe('reviewed Jellyfin source identity', () => {
       expect(() => buildEpisodeImportApplyInput(11, preview, markAllSuggestedConfirmed(preview.mappings)))
         .toThrow(/Quelle.*Vorschau/)
     }
+  })
+})
+
+
+describe('same-Item independent source identities', () => {
+  const rows: EpisodeImportMappingRow[] = ['source-a', 'source-b'].map(source => ({
+    media_item_id: 'shared-item', media_source_id: source, target_episode_numbers: [2],
+    suggested_episode_numbers: [2], status: 'confirmed', fansub_groups: [{ name: source }],
+  }))
+  const preview: EpisodeImportPreviewResult = {
+    anime_id: 1, anime_title: 'Fixture', canonical_episodes: [{ episode_number: 2 }], mappings: rows,
+    media_candidates: rows.map(row => ({ ...row, file_name: `${row.media_source_id}.mkv`, path: '/fixture', streams_complete: true })),
+  }
+  const key = JSON.stringify(['shared-item', 'source-b'])
+  it('accepts and serializes both reviewed sources of one Item', () => {
+    expect(detectMappingConflicts(rows, preview.media_candidates).map(row => row.status)).toEqual(['confirmed', 'confirmed'])
+    expect(buildEpisodeImportApplyInput(1, preview, rows).mappings.map(row => row.media_source_id)).toEqual(['source-a', 'source-b'])
+  })
+  it('rejects an identical pair twice', () => {
+    expect(detectMappingConflicts([rows[0], rows[0]]).map(row => row.status)).toEqual(['conflict', 'conflict'])
+    expect(() => buildEpisodeImportApplyInput(1, preview, [rows[0], rows[0]])).toThrow()
+  })
+  it('changes only the selected source for every single-row operation', () => {
+    const operations = [
+      setMappingTargets(rows, key, '3'), markMappingSkipped(rows, key), toggleMappingSkipped(rows, key),
+      setMappingReleaseMeta(rows, key, { releaseVersion: 'v2' }),
+      setMappingFansubGroups(rows, key, [{ name: 'New' }]),
+      addMappingFansubGroup(rows, key, { name: 'New' }),
+      removeMappingFansubGroup(rows, key, { name: 'source-b' }),
+    ]
+    for (const changed of operations) {
+      expect(changed[0]).toEqual(rows[0])
+      expect(changed[1]).not.toEqual(rows[1])
+    }
+  })
+  it('counts unmapped source rows rather than diagnostic Item IDs', () => {
+    expect(summarizeImportPreview({ ...preview, mappings: rows.map(row => ({ ...row, target_episode_numbers: [], suggested_episode_numbers: [] })), unmapped_media_item_ids: ['shared-item'] }).unmapped_media_count).toBe(2)
   })
 })

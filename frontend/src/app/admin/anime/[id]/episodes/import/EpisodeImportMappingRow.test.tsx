@@ -17,6 +17,7 @@ const mockedGetFansubList = vi.mocked(getFansubList)
 function makeRow(overrides: Partial<EpisodeImportMappingRow> = {}): EpisodeImportMappingRow {
   return {
     media_item_id: 'viper-ep01',
+    media_source_id: 'source-viper',
     file_name: 'Vipers Creed. S01E01-CSubs.mkv',
     display_path: 'Anime.TV.Sub/Vipers Creed',
     target_episode_numbers: [1],
@@ -72,4 +73,22 @@ describe('EpisodeImportMappingRowCard', () => {
       ])
     })
   })
+})
+
+
+it('dispatches every row action with the exact reviewed source pair', () => {
+  const onSetTargets = vi.fn(), onSetRelease = vi.fn(), onSkip = vi.fn(), onApplyRow = vi.fn()
+  render(<EpisodeImportMappingRowCard episodeNumber={1} row={makeRow({ status: 'confirmed' })}
+    onSetTargets={onSetTargets} onSetRelease={onSetRelease} onSkip={onSkip} onApplyRow={onApplyRow}
+    onSetSelectedFansubGroups={vi.fn()} onAddSelectedFansubGroup={vi.fn()} onRemoveSelectedFansubGroup={vi.fn()}
+    onApplyFansubGroupToEpisode={vi.fn()} onApplyFansubGroupFromEpisode={vi.fn()} />)
+  const key = JSON.stringify(['viper-ep01', 'source-viper'])
+  fireEvent.blur(screen.getByLabelText('Ziel-Episoden für Vipers Creed. S01E01-CSubs.mkv'), { target: { value: '2' } })
+  fireEvent.change(screen.getByLabelText('Release-Version für Vipers Creed. S01E01-CSubs.mkv'), { target: { value: 'v2' } })
+  fireEvent.click(screen.getByRole('button', { name: /^(Ueberspringen|Überspringen)$/ }))
+  fireEvent.click(screen.getByRole('button', { name: /^(Ubernehmen|Übernehmen)$/ }))
+  expect(onSetTargets).toHaveBeenCalledWith(key, '2')
+  expect(onSetRelease).toHaveBeenCalledWith(key, { releaseVersion: 'v2' })
+  expect(onSkip).toHaveBeenCalledWith(key)
+  expect(onApplyRow).toHaveBeenCalledWith(key)
 })
