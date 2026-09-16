@@ -99,3 +99,34 @@ describe('one bounded cover for every detail consumer', () => {
     expect(expected).not.toBe(rawCover)
   })
 })
+
+describe('Tags-Block ohne zusaetzliche Netzwerkkosten (Auftraggeber-Mandat Punkt 4/5)', () => {
+  /** Rendert die Detailseite fuer die gegebenen Tags und zaehlt alle SSR-Datenabrufe. */
+  async function totalFetchCallsFor(tags: string[] | undefined): Promise<number> {
+    vi.clearAllMocks()
+    vi.mocked(getAnimeFansubs).mockResolvedValue({ data: [] })
+    groupedMock.mockResolvedValue({ data: { anime_id: 1, episodes: [], pagination: { has_more: false, next_cursor: null, row_limit: 24 } } })
+    vi.mocked(getAnimeComments).mockResolvedValue({ data: [], meta: { page: 1, per_page: 10, total: 0, total_pages: 0 } })
+    vi.mocked(getAnimeRelations).mockResolvedValue({ data: [] })
+    vi.mocked(getAnimeByID).mockResolvedValue({ data: {
+      id: 1, title: 'Fetch-Paritaetsfixture', type: 'tv', content_type: 'anime', status: 'done',
+      view_count: 0, episodes: [], tags,
+    } })
+    const boundary = await AnimeDetailPage({ params: Promise.resolve({ id: '1' }) })
+    await boundary.props.children.type(boundary.props.children.props)
+    return (
+      vi.mocked(getAnimeByID).mock.calls.length
+      + vi.mocked(getAnimeFansubs).mock.calls.length
+      + groupedMock.mock.calls.length
+      + vi.mocked(getAnimeComments).mock.calls.length
+      + vi.mocked(getAnimeRelations).mock.calls.length
+    )
+  }
+
+  it('zaehlt fuer eine Detailseite MIT Tags exakt dieselbe Anzahl an Fetch-Aufrufen wie OHNE Tags', async () => {
+    const withTags = await totalFetchCallsFor(['Amnesia', 'Real Robot', 'PSI-Kräfte'])
+    const withoutTags = await totalFetchCallsFor(undefined)
+    expect(withTags).toBeGreaterThan(0)
+    expect(withTags).toBe(withoutTags)
+  })
+})
