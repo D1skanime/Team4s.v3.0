@@ -38,6 +38,9 @@ import {
   AdminAnimeUpsertResponse,
   AdminGenreTokensResponse,
   AdminTagTokensResponse,
+  AdminTagNamesResponse,
+  AdminGenreNamesResponse,
+  AdminUpsertNameResponse,
   AdminEpisodeCreateRequest,
   AdminEpisodeDeleteResponse,
   AdminEpisodePatchRequest,
@@ -6509,6 +6512,105 @@ export async function getAdminTagTokens(
   }
 
   return response.json() as Promise<AdminTagTokensResponse>;
+}
+
+// getAdminTagNames fetches every tag with its base name, usage count, and
+// current German display name (D-04) for the tags/genres admin maintenance
+// page. Mirrors getAdminTagTokens's fetch/auth/error-handling shape.
+export async function getAdminTagNames(
+  authToken?: string,
+): Promise<AdminTagNamesResponse> {
+  const API_BASE_URL = getApiBaseUrl();
+  const url = `${API_BASE_URL}/api/v1/admin/tags/names`;
+  const response = await authorizedFetch(url, {
+    authToken,
+    cache: "no-store",
+  });
+
+  if (!response.ok) {
+    const message = await parseApiError(
+      response,
+      `API request failed: ${response.status}`,
+    );
+    throw new ApiError(response.status, message);
+  }
+
+  return response.json() as Promise<AdminTagNamesResponse>;
+}
+
+// updateAdminTagName sets (non-empty name) or clears (empty string) the
+// German display name for a single tag by id.
+export async function updateAdminTagName(
+  tagId: number,
+  name: string,
+  authToken?: string,
+): Promise<AdminUpsertNameResponse> {
+  const API_BASE_URL = getApiBaseUrl();
+  const url = `${API_BASE_URL}/api/v1/admin/tags/${tagId}/names/de`;
+  const response = await authorizedFetch(url, {
+    authToken,
+    method: "PATCH",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({ name }),
+  });
+
+  if (!response.ok) {
+    const message = await parseApiError(
+      response,
+      `API request failed: ${response.status}`,
+    );
+    throw new ApiError(response.status, message);
+  }
+
+  return response.json() as Promise<AdminUpsertNameResponse>;
+}
+
+// getAdminGenreNames mirrors getAdminTagNames for genres.
+export async function getAdminGenreNames(
+  authToken?: string,
+): Promise<AdminGenreNamesResponse> {
+  const API_BASE_URL = getApiBaseUrl();
+  const url = `${API_BASE_URL}/api/v1/admin/genres/names`;
+  const response = await authorizedFetch(url, {
+    authToken,
+    cache: "no-store",
+  });
+
+  if (!response.ok) {
+    const message = await parseApiError(
+      response,
+      `API request failed: ${response.status}`,
+    );
+    throw new ApiError(response.status, message);
+  }
+
+  return response.json() as Promise<AdminGenreNamesResponse>;
+}
+
+// updateAdminGenreName mirrors updateAdminTagName for genres.
+export async function updateAdminGenreName(
+  genreId: number,
+  name: string,
+  authToken?: string,
+): Promise<AdminUpsertNameResponse> {
+  const API_BASE_URL = getApiBaseUrl();
+  const url = `${API_BASE_URL}/api/v1/admin/genres/${genreId}/names/de`;
+  const response = await authorizedFetch(url, {
+    authToken,
+    method: "PATCH",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({ name }),
+  });
+
+  if (!response.ok) {
+    const message = await parseApiError(
+      response,
+      `API request failed: ${response.status}`,
+    );
+    throw new ApiError(response.status, message);
+  }
+
+  return response.json() as Promise<AdminUpsertNameResponse>;
 }
 
 // Fansub merge operations

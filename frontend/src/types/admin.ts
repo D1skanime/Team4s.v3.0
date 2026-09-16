@@ -402,6 +402,41 @@ export interface AdminTagTokensResponse {
   data: TagToken[];
 }
 
+// AdminTagNameRow/AdminGenreNameRow back the German tag/genre maintenance
+// page (D-04/D-07): id + base name + usage count + current German name
+// (null when not yet set). Distinct from TagToken/GenreToken above, which
+// lack id/name_de and are consumed by other autocomplete-style surfaces.
+export interface AdminTagNameRow {
+  id: number;
+  name: string;
+  count: number;
+  name_de: string | null;
+}
+
+export interface AdminTagNamesResponse {
+  data: AdminTagNameRow[];
+}
+
+export interface AdminGenreNameRow {
+  id: number;
+  name: string;
+  count: number;
+  name_de: string | null;
+}
+
+export interface AdminGenreNamesResponse {
+  data: AdminGenreNameRow[];
+}
+
+// AdminUpsertNameResponse is the shared response shape for both
+// PATCH .../:id/names/de endpoints (tags and genres).
+export interface AdminUpsertNameResponse {
+  data: {
+    id: number;
+    name_de: string;
+  };
+}
+
 export interface AdminAnimeJellyfinSyncResult {
   anime_id: number;
   jellyfin_series_id: string;
