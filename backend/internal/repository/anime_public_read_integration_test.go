@@ -3,6 +3,7 @@ package repository_test
 import (
 	"context"
 	"encoding/json"
+	"fmt"
 	"net/http"
 	"net/http/httptest"
 	"strings"
@@ -67,8 +68,10 @@ CREATE TABLE title_types (id BIGINT PRIMARY KEY, name TEXT);
 CREATE TABLE anime_titles (anime_id BIGINT, language_id BIGINT, title_type_id BIGINT, title TEXT);
 CREATE TABLE anime_genres (anime_id BIGINT, genre_id BIGINT);
 CREATE TABLE genres (id BIGINT PRIMARY KEY, name TEXT);
+CREATE TABLE genre_names (id BIGINT PRIMARY KEY, genre_id BIGINT, language_id BIGINT, name TEXT);
 CREATE TABLE anime_tags (anime_id BIGINT, tag_id BIGINT);
 CREATE TABLE tags (id BIGINT PRIMARY KEY, name TEXT);
+CREATE TABLE tag_names (id BIGINT PRIMARY KEY, tag_id BIGINT, language_id BIGINT, name TEXT);
 CREATE TABLE media_assets (id BIGINT PRIMARY KEY, media_type_id BIGINT, file_path TEXT);
 CREATE TABLE media_types (id BIGINT PRIMARY KEY, name TEXT);
 CREATE TABLE media_files (id BIGINT PRIMARY KEY, media_id BIGINT, path TEXT, variant TEXT, status TEXT);
@@ -82,12 +85,18 @@ INSERT INTO anime (id, slug, title, status, year) VALUES
 	(2, 'empty-relations', 'Without Relations', 'done', 2023),
 	(3, 'disabled-route', 'Disabled Anime', 'disabled', 2022),
 	(4, 'related-route', 'Related Anime', 'licensed', 2020);
-INSERT INTO languages VALUES (1, 'ja');
+INSERT INTO languages VALUES (1, 'ja'), (2, 'de');
 INSERT INTO title_types VALUES (1, 'main');
 INSERT INTO anime_titles SELECT id, 1, 1, title FROM anime;
 INSERT INTO episodes VALUES (11, 1, '1', 'First Episode', 'done', 7, 2, ARRAY['https://example.com/episode'], 'episode.mkv');
 INSERT INTO relation_types VALUES (1, 'sequel');
 INSERT INTO anime_relations VALUES (1, 4, 1), (4, 1, 1), (1, 3, 1);
+INSERT INTO genres VALUES (1, 'Action'), (2, 'Comedy');
+INSERT INTO anime_genres VALUES (1, 1), (1, 2);
+INSERT INTO genre_names VALUES (1, 1, 2, 'Aktion');
+INSERT INTO tags VALUES (1, 'Isekai'), (2, 'Harem');
+INSERT INTO anime_tags VALUES (1, 1), (1, 2);
+INSERT INTO tag_names VALUES (1, 1, 2, 'Andere Welt');
 `)
 	if err != nil {
 		t.Fatal(err)
@@ -261,6 +270,12 @@ func TestAnimePublicReadDetailStoredSlugAndSQLBudget(t *testing.T) {
 			if len(detail.Episodes) != 1 || detail.Episodes[0].ID != 11 || detail.Episodes[0].Title == nil || *detail.Episodes[0].Title != "First Episode" || detail.Episodes[0].ViewCount != 7 {
 				t.Errorf("existing episodes changed: %#v", detail.Episodes)
 			}
+			if len(detail.Genres) != 2 || detail.Genres[0] != "Aktion" || detail.Genres[1] != "Comedy" {
+				t.Errorf("genres not resolved via German name with base-name fallback: %#v", detail.Genres)
+			}
+			if len(detail.Tags) != 2 || detail.Tags[0] != "Andere Welt" || detail.Tags[1] != "Harem" {
+				t.Errorf("tags not resolved via German name with base-name fallback: %#v", detail.Tags)
+			}
 			serialized, err := json.Marshal(detail)
 			if err != nil {
 				t.Fatal(err)
@@ -275,6 +290,73 @@ func TestAnimePublicReadDetailStoredSlugAndSQLBudget(t *testing.T) {
 				}
 			} else if payload["slug"] != tc.wantSlug {
 				t.Errorf("slug = %#v, want stored %q", payload["slug"], tc.wantSlug)
+			}
+		})
+	}
+}
+
+// TestAnimePublicReadDetailSQLBudgetConstantAcrossTagGenreCount proves the LEFT
+// JOIN + COALESCE German-name resolution scales with zero additional SQL
+// statements: the traced statement count for the public detail read must be
+// identical whether an anime has 1 tag/genre or 8 tags/genres (mixed
+// translated/untranslated), because genre/tag resolution stays inside the two
+// existing genre/tag queries rather than issuing one query per row.
+func TestAnimePublicReadDetailSQLBudgetConstantAcrossTagGenreCount(t *testing.T) {
+	for _, tc := range []struct {
+		name          string
+		tagGenreCount int
+	}{
+		{"one tag one genre", 1},
+		{"eight tags eight genres mixed translated", 8},
+	} {
+		t.Run(tc.name, func(t *testing.T) {
+			pool, tracer := openAnimePublicReadFixture(t)
+			ctx := context.Background()
+			if _, err := pool.Exec(ctx, `
+DELETE FROM anime_tags; DELETE FROM tag_names; DELETE FROM tags;
+DELETE FROM anime_genres; DELETE FROM genre_names; DELETE FROM genres;
+`); err != nil {
+				t.Fatal(err)
+			}
+			for i := 1; i <= tc.tagGenreCount; i++ {
+				if _, err := pool.Exec(ctx, "INSERT INTO tags (id, name) VALUES ($1, $2)", i, fmt.Sprintf("Tag%d", i)); err != nil {
+					t.Fatal(err)
+				}
+				if _, err := pool.Exec(ctx, "INSERT INTO anime_tags (anime_id, tag_id) VALUES (1, $1)", i); err != nil {
+					t.Fatal(err)
+				}
+				if i%2 == 0 { // mix of translated (even) and untranslated (odd) rows
+					if _, err := pool.Exec(ctx, "INSERT INTO tag_names (id, tag_id, language_id, name) VALUES ($1, $1, 2, $2)", i, fmt.Sprintf("DeTag%d", i)); err != nil {
+						t.Fatal(err)
+					}
+				}
+				if _, err := pool.Exec(ctx, "INSERT INTO genres (id, name) VALUES ($1, $2)", i, fmt.Sprintf("Genre%d", i)); err != nil {
+					t.Fatal(err)
+				}
+				if _, err := pool.Exec(ctx, "INSERT INTO anime_genres (anime_id, genre_id) VALUES (1, $1)", i); err != nil {
+					t.Fatal(err)
+				}
+				if i%2 == 0 {
+					if _, err := pool.Exec(ctx, "INSERT INTO genre_names (id, genre_id, language_id, name) VALUES ($1, $1, 2, $2)", i, fmt.Sprintf("DeGenre%d", i)); err != nil {
+						t.Fatal(err)
+					}
+				}
+			}
+			tracer.reset()
+			detail, err := repository.NewAnimeRepository(pool).GetByID(ctx, 1, false)
+			if err != nil {
+				t.Fatal(err)
+			}
+			queries := tracer.snapshot()
+			t.Logf("%s: detail SQL statements = %d, tags=%d genres=%d", tc.name, len(queries), len(detail.Tags), len(detail.Genres))
+			if len(queries) != 7 {
+				t.Errorf("statements = %d, want unchanged 7 regardless of tag/genre count; SQL: %v", len(queries), queries)
+			}
+			if len(detail.Tags) != tc.tagGenreCount {
+				t.Errorf("tags = %d, want %d", len(detail.Tags), tc.tagGenreCount)
+			}
+			if len(detail.Genres) != tc.tagGenreCount {
+				t.Errorf("genres = %d, want %d", len(detail.Genres), tc.tagGenreCount)
 			}
 		})
 	}
