@@ -3,15 +3,15 @@ gsd_state_version: 1.0
 milestone: v1.4
 milestone_name: Coverage
 status: verifying
-stopped_at: "Phase 161 Release-27 metadata and Karaoke playback confirmed by user; other live checks remain open"
-last_updated: "2026-09-16T13:20:00Z"
-last_activity: 2026-09-16
+stopped_at: Phase 160 context gathered (Teilschritt Tags und Genres)
+last_updated: "2026-09-16T15:04:04.105Z"
+last_activity: 2026-09-15
 progress:
-  total_phases: 24
-  completed_phases: 24
-  total_plans: 238
-  completed_plans: 238
-  percent: 100
+  total_phases: 26
+  completed_phases: 25
+  total_plans: 247
+  completed_plans: 247
+  percent: 96
 ---
 
 # Project State
@@ -1339,7 +1339,6 @@ Last activity: 2026-09-15
 | 260915-rv3 | Alle 9 react-hooks/set-state-in-effect-Fehler, 1 preserve-manual-memoization-Fehler und 9 exhaustive-deps-Warnungen über 13 Admin-Dateien mit echten Verhaltens-Fixes behoben (async-IIFE, Render-Zeit-Zustandsanpassung, Dependency-Array-Vervollständigung, Ref-Mirror, Destrukturierung/useCallback) - keine eslint-disable-Kommentare; globaler Lint-Stand 13→3 Fehler, Warnungen −9 (328→319); neuer Regressionstest für GroupMemberFormModals.tsx; tsc und 100/100 gezielte Tests grün, Container neu gestartet; AnimeEditWorkspace-Formular und ScreenshotGallery-Lightbox-Tastaturnavigation als offene menschliche Sichtprüfung dokumentiert, nicht als bestanden markiert | 2026-09-15 | ebdc5b14, 71391808, 81098d85, a0b9ec56, 8470ba58, 61aaf4f5, 7ef0bc1d | [260915-rv3-react-hook-lintfehler-und-exhaustive-dep](./quick/260915-rv3-react-hook-lintfehler-und-exhaustive-dep/) |
 | 260916-ako | Jellyfin-MediaSources pro echtem Item/Source-Paar importieren; 38 eindeutige Fixturequellen, zwei Geschwisterquellen gemeinsam live gespeichert; Migration 0166, Auswahl/Editor/Verträge geprüft; keine neue Phasenabnahme | 2026-09-16 | 48e31cf9, 52e34e5b, dfc548a5, c61459bc, 0cda1dd7 | [260916-ako-jellyfin-multiple-media-source-import](./quick/260916-ako-jellyfin-multiple-media-source-import/) |
 
-
 ### Verification Baseline
 
 - Requirements: 65 defined, 65 uniquely mapped, 0 orphaned, 0 duplicated.
@@ -1696,10 +1695,10 @@ untruncated list lives in `.planning/todos/pending/`.
 
 ## Session Continuity
 
-Last session: 2026-09-15T17:43:13Z
-Stopped at: User confirmed Phase-161 Release-27 metadata and Karaoke playback; remaining live checks and other phase states preserved.
+Last session: 2026-09-16T15:04:04.082Z
+Stopped at: Phase 160 context gathered (Teilschritt Tags und Genres)
 Last activity: 2026-09-16 - Completed quick task 260916-ako: Jellyfin-Geschwisterquellen getrennt importieren; Liveimport zweier Folge-2-Quellen geprüft, keine Phasen-UAT ersetzt.
 Resume file: 
-None
+/home/d1sk/team4s/.planning/phases/160-oeffentliche-anime-detailseite-nachschaerfen-tags-anzeigen-g/160-CONTEXT.md
 
 Plans 151-02/03/04 have implementation summaries. Plans 151-01 and 151-05 remain open until final artwork/composition review, complete browser evidence and independent verification; their missing summaries are intentional. No requirement or phase has been falsely marked complete.
