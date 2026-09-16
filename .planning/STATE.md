@@ -4,13 +4,13 @@ milestone: v1.4
 milestone_name: Coverage
 status: executing
 stopped_at: Completed 160-01-PLAN.md
-last_updated: "2026-09-16T20:46:54.829Z"
+last_updated: "2026-09-16T20:54:01.932Z"
 last_activity: 2026-09-16
 progress:
   total_phases: 26
   completed_phases: 25
   total_plans: 253
-  completed_plans: 248
+  completed_plans: 249
   percent: 96
 ---
 
@@ -113,7 +113,7 @@ See: .planning/PROJECT.md (updated 2026-08-13)
 ## Current Position
 
 Phase: 160 (oeffentliche-anime-detailseite-nachschaerfen-tags-anzeigen-g) — EXECUTING
-Plan: 2 of 6
+Plan: 3 of 6
 dupliziertem ProjectMemberStickyNav; siehe 157-14-SUMMARY.md)
 Status: Ready to execute
 GAP-02-Live-UAT-Checkpoint aus 156-UAT.md (5 Origin- + 9 Segment-Contributor-Pruefpunkte) wurde
@@ -1277,6 +1277,8 @@ Last activity: 2026-09-16
 - [Phase 156-21]: GAP-09 preselection filter repointed to permissions.SegmentCreditPreselectionRoleCodes; public projection proven live to show encoder/designer only when explicitly selected, raw_provider never
 - [Phase 156-21]: Fixed two undocumented subset-matrix test regressions (F, K_inherited_default_overridden_to_irrelevant_role) that used encoder as a non-segment-relevant example, retargeted to raw_provider
 - [Phase 160]: Tag/genre language-name storage mirrors anime_titles (tag_names/genre_names, UNIQUE(entity_id, language_id)) — Honors D-02/D-03; German-name resolution extends existing genre/tag SELECTs via LEFT JOIN+COALESCE instead of a new query, preserving the locked 7-statement SQL budget
+- [Phase 160]: PATCH /admin/{tags,genres}/:id/names/de (single-language, upsert-or-clear) statt Bulk-Replace-Endpunkt — Einfachste zu D-04/D-06 passende Option, spaeter nicht-brechend erweiterbar
+- [Phase 160]: PATCH antwortet immer 200 mit name_de als getrimmtem String (leerer String statt null beim Loeschen) — Einfacher, symmetrischer Client-Vertrag fuer die 160-03-Admin-Seite
 
 ### Pending Todos
 
@@ -1694,10 +1696,11 @@ untruncated list lives in `.planning/todos/pending/`.
 | Phase 156 P22 | 12min | 1 tasks | 2 files |
 | Phase 156 P21 | ~50min | 3 tasks | 9 files |
 | Phase 160 P01 | 20min | 2 tasks | 4 files |
+| Phase 160 P02 | 45min | 3 tasks | 7 files |
 
 ## Session Continuity
 
-Last session: 2026-09-16T20:46:54.809Z
+Last session: 2026-09-16T20:54:01.915Z
 Stopped at: Completed 160-01-PLAN.md
 Last activity: 2026-09-16 - Completed quick task 260916-ako: Jellyfin-Geschwisterquellen getrennt importieren; Liveimport zweier Folge-2-Quellen geprüft, keine Phasen-UAT ersetzt.
 Resume file: 

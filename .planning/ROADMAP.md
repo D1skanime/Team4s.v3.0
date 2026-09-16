@@ -1901,7 +1901,7 @@ Abschluss der Plaene 157-11..14, Befunde F1-F5)*
 **Verbindliche Quelle:** .planning/phases/160-oeffentliche-anime-detailseite-nachschaerfen-tags-anzeigen-g/160-LIVE-UAT-BEFUNDE.md — Live-UAT-Befunde und Entscheidungen des Auftraggebers vom 2026-09-15. Mehrere Punkte sind dort als offen markiert und werden in discuss-phase geklärt.
 **Hinweis:** Phase 158/159 wurden am 16.09.2026 vom Auftraggeber „so weit“ abgenommen; die noch nötigen Überarbeitungen der Detailseite gehören in diese Phase 160.
 **Teilschritt-Hinweis:** Die 6 Pläne unten decken ausschließlich den Teilschritt „Tags und Genres“ ab (160-CONTEXT.md, D-01–D-20). Gruppenbuttons/„Gruppenbereich“/Coop/Episodenfilter bleiben offen für einen separaten Discuss-Schritt innerhalb Phase 160.
-**Plans:** 1/6 plans executed
+**Plans:** 2/6 plans executed
 
 Plans:
 **Wave 1**
@@ -1910,7 +1910,7 @@ Plans:
 
 **Wave 2** *(blocked on Wave 1 completion)*
 
-- [ ] 160-02-PLAN.md — Admin-Backend-CRUD für deutsche Tag-/Genre-Namen
+- [x] 160-02-PLAN.md — Admin-Backend-CRUD für deutsche Tag-/Genre-Namen
 - [ ] 160-04-PLAN.md — Suche: q-Pflicht-Ausnahme, Sprachnamen-Filter, Fansub-Leerzustand-Fix
 
 **Wave 3** *(blocked on Wave 2 completion)*
