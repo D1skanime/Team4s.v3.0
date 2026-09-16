@@ -1901,7 +1901,7 @@ Abschluss der Plaene 157-11..14, Befunde F1-F5)*
 **Verbindliche Quelle:** .planning/phases/160-oeffentliche-anime-detailseite-nachschaerfen-tags-anzeigen-g/160-LIVE-UAT-BEFUNDE.md — Live-UAT-Befunde und Entscheidungen des Auftraggebers vom 2026-09-15. Mehrere Punkte sind dort als offen markiert und werden in discuss-phase geklärt.
 **Hinweis:** Phase 158/159 wurden am 16.09.2026 vom Auftraggeber „so weit“ abgenommen; die noch nötigen Überarbeitungen der Detailseite gehören in diese Phase 160.
 **Teilschritt-Hinweis:** Die 6 Pläne unten decken ausschließlich den Teilschritt „Tags und Genres“ ab (160-CONTEXT.md, D-01–D-20). Gruppenbuttons/„Gruppenbereich“/Coop/Episodenfilter bleiben offen für einen separaten Discuss-Schritt innerhalb Phase 160.
-**Plans:** 6/6 plans complete
+**Plans:** 6/6 plans complete (Teilschritt „Tags und Genres“). Unabhängige Verifikation (160-VERIFICATION.md): 20/20 D-IDs und alle 5 Auftraggeber-Mandat-Punkte code-/test-seitig bestätigt, Status `human_needed` (kein Browser-Automatisierungs-Tool in dieser Umgebung für die visuellen/interaktiven Prüfpunkte). Ein vom Verifier vorhergesagtes Kontrastrisiko (D-17, Tags-Chips) wurde noch am selben Tag vom Auftraggeber live bestätigt (weiße Schrift auf heller Infokarte, /anime/3) und in Commit 9233adf2 behoben (WCAG AA 5.30:1/14.45:1). Offene Human-UAT-Punkte (375px-Umbruch, Tab/Enter-Tastaturnavigation, Sichtprüfung des Kontrast-Fixes, authentifizierter Admin-Durchlauf) in 160-HUMAN-UAT.md festgehalten — Teilschritt gilt erst mit Auftraggeber-Abnahme als vollständig abgeschlossen.
 
 Plans:
 **Wave 1**

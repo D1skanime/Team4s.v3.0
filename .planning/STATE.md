@@ -2,9 +2,9 @@
 gsd_state_version: 1.0
 milestone: v1.4
 milestone_name: Coverage
-status: verifying
-stopped_at: Completed 160-06-PLAN.md (final plan of Phase 160)
-last_updated: "2026-09-16T21:30:23.300Z"
+status: human_needed
+stopped_at: Phase 160 (Teilschritt "Tags und Genres") code-complete, verified, awaiting Human-UAT
+last_updated: "2026-09-16T21:57:00.000Z"
 last_activity: 2026-09-16
 progress:
   total_phases: 26
@@ -15,6 +15,35 @@ progress:
 ---
 
 # Project State
+
+## Phase 160 (Teilschritt „Tags und Genres“) — code-complete und verifiziert, Human-UAT ausstehend (16.09.2026)
+
+Alle 6 Pläne (160-01 bis 160-06) sequenziell ausgeführt (workflow.use_worktrees=false): Migration 0168
+(tag_names/genre_names, additiv), deutsche Namensauflösung im öffentlichen Detail-Read ohne
+Query-Mehrkosten (1 vs. 8 Tags gleiche 7 SQL-Statements, belegt), Admin-Backend+Frontend für deutsche
+Tag-/Genre-Namen, Suche akzeptiert tag/genre ohne q ohne andere Entitätstypen aufzublähen (Fansub-Leerzustand-Fix),
+Tags-Block + Genre-Links auf der öffentlichen Detailseite. Alle 5 Auftraggeber-Mandat-Punkte einzeln
+umgesetzt und in den jeweiligen SUMMARYs mit Belegen dokumentiert. Unabhängige Verifikation
+(160-VERIFICATION.md): 20/20 D-IDs bestätigt, Status `human_needed` — kein Browser-Automatisierungs-Tool
+in dieser Umgebung für die genuin visuellen/interaktiven Prüfpunkte (375px-Umbruch, Tastaturnavigation,
+Sichtkontrast, authentifizierter Admin-Durchlauf).
+
+**Noch während der Ausführung vom Auftraggeber live bestätigter Befund:** Tags-Überschrift/-Chips auf
+`/anime/3` weiß auf heller Infokarte, praktisch unsichtbar — exakt das vom Verifier vorhergesagte
+D-17-Kontrastrisiko. Sofort behoben (Commit `9233adf2`): `.tagsLabel`/`.tagChip`/`.tagChip:hover` auf
+dunkle globale Tokens umgestellt (`--text-muted`, `--text-primary`, `--surface-sunken`,
+`--border-subtle`/`-strong`), WCAG-AA-Kontrast rechnerisch nachgewiesen (5.30:1 / 14.45:1, Minimum
+4.5:1); `.genreChip` (dunkle Poster-Spalte) unverändert. Zielgerichtete Tests danach erneut grün (55/55),
+`tsc`/`eslint` sauber. Backend (`docker compose up -d --build team4sv30-backend`) und Frontend
+(`docker restart team4sv30-frontend`) neu gebaut/neu gestartet. Vollständige Regression (Backend + Frontend)
+0 neue Fehlschläge gegenüber dem dokumentierten Vor-Zustand. Code-Review (`160-REVIEW.md`): 0 Critical,
+3 Warning/2 Info (nicht blockierend). Kein Push.
+
+Offene Human-UAT-Punkte (`160-HUMAN-UAT.md`): 375px-Mobile-Umbruch, Tab/Enter-Tastaturnavigation,
+Live-Sichtbestätigung des Kontrast-Fixes, authentifizierter Admin-Durchlauf (`/admin/tags-genres` → Namen
+setzen → auf öffentlicher Seite bestätigen) — über den SSH-Tunnel `http://127.0.0.1:3300`. Teilschritt
+„Tags und Genres“ gilt erst mit Auftraggeber-Abnahme als vollständig abgeschlossen; Gruppenbuttons/Coop/
+Episodenfilter bleiben out of scope für Phase 162.
 
 ## Abgeschlossener Quick 260916-rpv — Öffentliche Relationen: Sicht, Label, Cover (16.09.2026)
 
