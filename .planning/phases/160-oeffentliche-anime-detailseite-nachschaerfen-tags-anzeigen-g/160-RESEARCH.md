@@ -504,9 +504,9 @@ the plain `<span>` genre chips become `<Link>` (visually/semantically upgraded, 
 
 **If this table is empty:** N/A — see rows above.
 
-## Open Questions
+## Open Questions (RESOLVED)
 
-1. **Should a `q` value that IS present but shorter than 2 characters still 400 when `tag`/`genre` is set?**
+1. **RESOLVED (by Plan 160-04, Task 1): Should a `q` value that IS present but shorter than 2 characters still 400 when `tag`/`genre` is set?**
    - What we know: D-08 says "liefert Ergebnisse auch ohne `q`, wenn `tag` oder `genre` gesetzt ist" —
      this describes the ABSENT-q case explicitly, not the "q present but 1 character" case.
    - What's unclear: `?tag=Amnesia&q=a` — does the too-short `q` still trigger a 400 (strict reading:
@@ -518,7 +518,7 @@ the plain `<span>` genre chips become `<Link>` (visually/semantically upgraded, 
      (`?q=a` alone still 400s) and is the narrower, safer reading of D-08's wording. Confirm with the
      product owner during planning if ambiguity remains.
 
-2. **Exact admin endpoint shape for writing German tag/genre names (PATCH per-row vs. bulk PATCH).**
+2. **RESOLVED (by Plan 160-02, Task 2): Exact admin endpoint shape for writing German tag/genre names (PATCH per-row vs. bulk PATCH).**
    - What we know: D-04 requires "Namensfeld je Sprache" on a list page; the existing
      `replaceAuthoritativeAnimeTags`/`replaceAuthoritativeAnimeGenres` pattern is a bulk
      delete-then-reinsert PER ANIME, which does not fit — the new endpoint is PER TAG/GENRE (global,
