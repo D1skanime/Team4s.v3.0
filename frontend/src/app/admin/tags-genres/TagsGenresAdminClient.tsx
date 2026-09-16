@@ -1,6 +1,6 @@
 "use client";
 
-import { useCallback, useEffect, useState } from "react";
+import { useCallback, useState } from "react";
 
 import {
   Button,
@@ -23,6 +23,7 @@ import {
   updateAdminGenreName,
   updateAdminTagName,
 } from "@/lib/api";
+import { useCancellableSlugState } from "@/hooks/useCancellableSlugState";
 import type { AdminGenreNameRow, AdminTagNameRow } from "@/types/admin";
 
 function readErrorMessage(error: unknown, fallback: string): string {
@@ -38,22 +39,31 @@ interface NameRow {
   name_de: string | null;
 }
 
+interface TagsGenresData {
+  tags: AdminTagNameRow[];
+  genres: AdminGenreNameRow[];
+}
+
 interface NameTableProps<Row extends NameRow> {
   idPrefix: string;
   title: string;
   rows: Row[];
   emptyTitle: string;
   onSave: (id: number, name: string) => Promise<{ data: { id: number; name_de: string } }>;
-  onSaved: (id: number, nameDe: string) => void;
 }
 
+// NameTable owns its own per-row "drafts" state (the value shown in each Input,
+// initialized from row.name_de and updated with the server-returned name_de on
+// a successful save). It intentionally does NOT bubble saved values back up to
+// the parent's fetched list — the drafts map is the single source of truth for
+// what the admin currently sees, so a row's edit and persistence stay fully
+// isolated from any other row (per plan 160-03's <behavior> requirement).
 function NameTable<Row extends NameRow>({
   idPrefix,
   title,
   rows,
   emptyTitle,
   onSave,
-  onSaved,
 }: NameTableProps<Row>) {
   const [drafts, setDrafts] = useState<Record<number, string>>({});
   const [saveErrors, setSaveErrors] = useState<Record<number, string | null>>({});
@@ -64,7 +74,6 @@ function NameTable<Row extends NameRow>({
       try {
         const response = await onSave(row.id, nextValue);
         setDrafts((current) => ({ ...current, [row.id]: response.data.name_de }));
-        onSaved(row.id, response.data.name_de);
       } catch (error) {
         setSaveErrors((current) => ({
           ...current,
@@ -72,7 +81,7 @@ function NameTable<Row extends NameRow>({
         }));
       }
     },
-    [onSave, onSaved],
+    [onSave],
   );
 
   if (rows.length === 0) {
@@ -125,48 +134,48 @@ function NameTable<Row extends NameRow>({
   );
 }
 
-type LoadStatus = "idle" | "loading" | "success" | "error";
-
 export function TagsGenresAdminClient() {
-  const [tags, setTags] = useState<AdminTagNameRow[]>([]);
-  const [genres, setGenres] = useState<AdminGenreNameRow[]>([]);
-  const [status, setStatus] = useState<LoadStatus>("idle");
-  const [errorMessage, setErrorMessage] = useState<string | null>(null);
+  // reloadToken forces a fresh requestKey on retry, matching the
+  // useCancellableSlugState convention used throughout /admin/groups
+  // (fetch-on-mount + explicit retry, never a raw setState-in-effect).
+  const [reloadToken, setReloadToken] = useState(0);
 
-  const load = useCallback(async () => {
-    setStatus("loading");
-    setErrorMessage(null);
-    try {
-      const [tagsResponse, genresResponse] = await Promise.all([
-        getAdminTagNames(),
-        getAdminGenreNames(),
-      ]);
-      setTags(tagsResponse.data);
-      setGenres(genresResponse.data);
-      setStatus("success");
-    } catch (error) {
-      setErrorMessage(
-        readErrorMessage(error, "Tags und Genres konnten nicht geladen werden."),
-      );
-      setStatus("error");
-    }
+  const fetcher = useCallback(async (): Promise<TagsGenresData> => {
+    const [tagsResponse, genresResponse] = await Promise.all([
+      getAdminTagNames(),
+      getAdminGenreNames(),
+    ]);
+    return { tags: tagsResponse.data, genres: genresResponse.data };
   }, []);
 
-  useEffect(() => {
-    void load();
-  }, [load]);
+  const { state } = useCancellableSlugState<TagsGenresData>({
+    requestKey: `tags-genres:${reloadToken}`,
+    enabled: true,
+    fetcher,
+  });
 
-  if (status === "idle" || status === "loading") {
+  const isLoading = state.status === "idle" || state.status === "loading";
+  const errorMessage =
+    state.status === "error"
+      ? readErrorMessage(state.error, "Tags und Genres konnten nicht geladen werden.")
+      : null;
+  const tags = state.status === "success" ? state.data!.tags : [];
+  const genres = state.status === "success" ? state.data!.genres : [];
+
+  if (isLoading) {
     return <LoadingState title="Tags und Genres werden geladen ..." description="" />;
   }
 
-  if (status === "error") {
+  if (errorMessage) {
     return (
       <ErrorState
         title="Tags und Genres konnten nicht geladen werden"
-        description={errorMessage ?? ""}
+        description={errorMessage}
         action={
-          <Button variant="secondary" onClick={() => void load()}>
+          <Button
+            variant="secondary"
+            onClick={() => setReloadToken((current) => current + 1)}
+          >
             Erneut versuchen
           </Button>
         }
@@ -182,11 +191,6 @@ export function TagsGenresAdminClient() {
         rows={tags}
         emptyTitle="Keine Tags vorhanden"
         onSave={(id, name) => updateAdminTagName(id, name)}
-        onSaved={(id, nameDe) =>
-          setTags((current) =>
-            current.map((row) => (row.id === id ? { ...row, name_de: nameDe || null } : row)),
-          )
-        }
       />
       <NameTable
         idPrefix="genre"
@@ -194,11 +198,6 @@ export function TagsGenresAdminClient() {
         rows={genres}
         emptyTitle="Keine Genres vorhanden"
         onSave={(id, name) => updateAdminGenreName(id, name)}
-        onSaved={(id, nameDe) =>
-          setGenres((current) =>
-            current.map((row) => (row.id === id ? { ...row, name_de: nameDe || null } : row)),
-          )
-        }
       />
     </div>
   );
