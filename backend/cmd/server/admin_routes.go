@@ -94,6 +94,11 @@ func registerAdminRoutes(v1 *gin.RouterGroup, auth gin.HandlerFunc, deps adminRo
 	v1.POST("/admin/episodes", auth, deps.adminContentHandler.CreateEpisode)
 	v1.GET("/admin/genres", auth, deps.adminContentHandler.ListGenreTokens)
 	v1.GET("/admin/tags", auth, deps.adminContentHandler.ListTagTokens)
+	// Phase 160-02: Mehrsprachige Anzeigenamen für Tags/Genres, global gepflegt (D-04/D-07).
+	v1.GET("/admin/tags/names", auth, deps.adminContentHandler.ListTagNames)
+	v1.PATCH("/admin/tags/:id/names/de", auth, deps.adminContentHandler.UpsertTagName)
+	v1.GET("/admin/genres/names", auth, deps.adminContentHandler.ListGenreNames)
+	v1.PATCH("/admin/genres/:id/names/de", auth, deps.adminContentHandler.UpsertGenreName)
 	v1.PATCH("/admin/episodes/:id", auth, deps.adminContentHandler.UpdateEpisode)
 	v1.GET("/admin/anime/:id/episode-classifications", auth, deps.adminContentHandler.ListEpisodeClassifications)
 	v1.DELETE("/admin/episodes/:id", auth, deps.adminContentHandler.DeleteEpisode)

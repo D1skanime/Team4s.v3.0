@@ -55,3 +55,53 @@ func (h *AdminContentHandler) listGenreTokens(c *gin.Context) {
 
 	c.JSON(http.StatusOK, gin.H{"data": items})
 }
+
+// ListGenreNames verarbeitet GET /api/v1/admin/genres/names und liefert je Genre Grundname,
+// Nutzungsanzahl und aktuellen deutschen Namen für die Admin-Pflegeseite (D-04/D-07).
+func (h *AdminContentHandler) ListGenreNames(c *gin.Context) {
+	if _, ok := h.requireAdmin(c); !ok {
+		return
+	}
+
+	items, err := h.repo.ListGenreNamesAdmin(c.Request.Context())
+	if err != nil {
+		log.Printf("admin_content list_genre_names: repo error: %v", err)
+		c.JSON(http.StatusInternalServerError, gin.H{"error": gin.H{"message": "interner serverfehler"}})
+		return
+	}
+
+	c.JSON(http.StatusOK, gin.H{"data": items})
+}
+
+// UpsertGenreName verarbeitet PATCH /api/v1/admin/genres/:id/names/de und setzt oder löscht
+// (bei leerem/nur-Leerzeichen-Namen) den deutschen Anzeigenamen eines Genres, global für
+// alle Anime (D-04/D-07).
+func (h *AdminContentHandler) UpsertGenreName(c *gin.Context) {
+	if _, ok := h.requireAdmin(c); !ok {
+		return
+	}
+
+	genreID, err := strconv.ParseInt(c.Param("id"), 10, 64)
+	if err != nil {
+		badRequest(c, "ungültiger id parameter")
+		return
+	}
+
+	var req upsertNameRequest
+	if err := c.ShouldBindJSON(&req); err != nil {
+		badRequest(c, "ungültiger anfrage-body")
+		return
+	}
+	if len([]rune(req.Name)) > 100 {
+		badRequest(c, "ungültiger name parameter")
+		return
+	}
+
+	if err := h.repo.UpsertGenreGermanName(c.Request.Context(), genreID, req.Name); err != nil {
+		log.Printf("admin_content upsert_genre_name: repo error: %v", err)
+		c.JSON(http.StatusInternalServerError, gin.H{"error": gin.H{"message": "interner serverfehler"}})
+		return
+	}
+
+	c.JSON(http.StatusOK, gin.H{"data": gin.H{"id": genreID, "name_de": strings.TrimSpace(req.Name)}})
+}
