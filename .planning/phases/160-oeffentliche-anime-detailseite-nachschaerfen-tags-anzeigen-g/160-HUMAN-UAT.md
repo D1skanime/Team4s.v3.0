@@ -66,3 +66,13 @@ blocked: 4
   missing: []
   debug_session: ""
   fix_commit: "9233adf2"
+
+## Agent-Vorprüfung 2026-09-17 (ersetzt keine Nutzerabnahme)
+
+- Test 1 (Kontrast): Agent bestätigt im Browser lesbare dunkle Chips auf heller Karte (Desktop) und helle
+  Überschrift auf dunkler Karte (mobil). Nutzerbestätigung offen.
+- Test 2 (375px): Agent bestätigt Umbruch 7 Chips/3 Zeilen, keine horizontale Scrollleiste. Genre-Chips
+  sind mobil vorbestehend ausgeblendet. Nutzerbestätigung offen.
+- Test 3 (Tastatur): Agent bestätigt per Playwright Fokus + Enter → korrekter Suchzustand. Nutzerbestätigung offen.
+- Zusätzlich behoben: Absturz der Suchseite bei type=anime, Linie vor Tags, Sortierung nach angezeigtem Namen —
+  siehe 160-VERIFICATION.md „Gap-Fixes nach Agent-Browserprüfung“.

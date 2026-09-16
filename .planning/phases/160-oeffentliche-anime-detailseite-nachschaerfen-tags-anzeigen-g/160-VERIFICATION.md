@@ -167,3 +167,45 @@ No code-evidence gaps found — all 20 D-IDs and all 5 Auftraggeber-Mandat point
 ---
 *Verified: 2026-09-16T21:41:07Z*
 *Verifier: Claude (gsd-verifier)*
+
+## Gap-Fixes nach Agent-Browserprüfung (2026-09-17)
+
+Nach Abschluss des Executor-Laufs hat der Root-Agent die Browserprüfung (Mandat Punkt 4) selbst im
+Browser-Panel (Tunnel :3300) und per Playwright im Frontend-Container durchgeführt. Dabei fielen drei
+echte Abweichungen auf, die in diesem Addendum behoben und belegt sind:
+
+1. **Absturz `/suche` bei jeder Anime-Suche (vorbestehend, durch Tag-Links jetzt Hauptpfad).**
+   `type=anime` lieferte `"fansub":{"items":null}`; die Tabs rendern alle Panels gleichzeitig und
+   `fansubItems.length` warf „Cannot read properties of null“ → „Application error“. Auch
+   `/suche?q=eyes&type=anime` war betroffen. Fix: `SearchRepository.Search` initialisiert beide
+   Entitäten mit `items: []`; `SearchResults.tsx` liest `items ?? []`. Tests:
+   `TestSearchNeverReturnsNullItemsForUnsearchedEntity` (kein `"items":null` für type=anime/fansub),
+   Vitest „stürzt nicht ab, wenn das Backend für Fansubs items: null liefert“.
+2. **Zusätzliche Linie vor den Tags (Abweichung von D-12/D-13).** 160-06 hatte die verworfene
+   Variante vom 2026-09-15 umgesetzt (Beschreibung → Linie → Tags). Fix: `<hr>` vor dem Tags-Block
+   entfernt; Reihenfolge jetzt Beschreibung → Tags → (Linie + Banner). Test in `page.test.tsx`
+   prüft, dass zwischen Beschreibung und Tags kein `hr` liegt.
+3. **Sortierung nach Grundname statt angezeigtem Namen (D-18).** `ORDER BY t.name`/`g.name` →
+   `ORDER BY COALESCE(tn.name, t.name)` bzw. `COALESCE(gn.name, g.name)`. Keine neue Query;
+   `TestAnimePublicReadDetailStoredSlugAndSQLBudget` und `...SQLBudgetConstantAcrossTagGenreCount`
+   grün (weiterhin 7 Statements).
+
+Zusätzlich: Mobil (≤767px) ist die Infokarte dunkel; `.tagsLabel` wird dort hell
+(`rgba(255,255,255,0.75)`) und `.tagsList` zentriert wie die übrige Karte.
+
+### Agent-Browserbelege
+- Desktop `/anime/3`: Chips `rgb(28,28,30)` auf `rgb(240,236,229)`, lesbar; Reihenfolge ohne Linie vor Tags.
+- Klick „Real Robot“ (`/anime/1`) → `/suche?type=anime&tag=Real+Robot`, Tab „Anime“ aktiv, Tag-Feld
+  „Real Robot“, Treffer „Buddy Complex“. Klick Genre „Komödie“ (`/anime/3`) →
+  `/suche?type=anime&genre=Kom%C3%B6die`, Genre-Feld „Komödie“, Treffer „11eyes: Pink Phantasmagoria“.
+- Mobil 375px: 7 Tag-Chips in 3 Zeilen, `scrollWidth` 375 = Viewport, kein Chip ragt heraus.
+- Tastatur (Playwright, Desktop + 375px): Fokus auf ersten Tag-Chip zeigt `--focus-ring`, Enter navigiert
+  zu `/suche?type=anime&tag=Alternative+Welt`, Filterfeld vorbelegt, kein Absturz.
+- Screenshots: `/tmp/shots160/tags160-{desktop,mobile}{,-focus}.png` auf team4s-linux (nicht versioniert).
+
+### Weiterhin offen / nicht behoben
+- Mobil ist der gesamte Genre-Bereich per `.genresSection { display: none }` ausgeblendet (vorbestehend);
+  Genre-Links sind mobil daher nicht erreichbar.
+- Mobil ist die Überschrift „Verwandte Anime“ dunkel auf dunkler Karte (vorbestehend, AnimeRelations-Stil).
+- `--focus-ring` ist global mit 18 % Deckkraft eher dezent (globales Token, nicht geändert).
+- Die Menschliche Sichtabnahme durch den Auftraggeber bleibt erforderlich; Agentenbelege ersetzen sie nicht.
