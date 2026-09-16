@@ -34,7 +34,12 @@ func searchesFansub(t string) bool { return t == "" || t == "all" || t == "fansu
 // pg_trgm-Ähnlichkeitsschwelle via SET LOCAL gesetzt wird (D-04), damit der
 // %-Operator deterministisch und index-nutzend arbeitet.
 func (r *SearchRepository) Search(ctx context.Context, query models.SearchQuery) (models.SearchResult, error) {
-	var result models.SearchResult
+	// Beide Entitäten sind immer befüllt (items: [] statt null), auch wenn der Typ nur
+	// eine Entität durchsucht — die Suchseite rendert alle Tabs gleichzeitig.
+	result := models.SearchResult{
+		Anime:  models.SearchEntityResult{Items: []models.SearchResultItem{}},
+		Fansub: models.SearchEntityResult{Items: []models.SearchResultItem{}},
+	}
 
 	tx, err := r.db.Begin(ctx)
 	if err != nil {

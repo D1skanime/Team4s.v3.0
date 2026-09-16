@@ -769,6 +769,15 @@
     font-size: 14px;
   }
 
+  /* Mobil ist die Infokarte dunkel: Tags-Überschrift hell, Chips zentriert wie die Karte. */
+  .tagsLabel {
+    color: rgba(255, 255, 255, 0.75);
+  }
+
+  .tagsList {
+    justify-content: center;
+  }
+
   .statsRow {
     justify-content: center;
     border-top-color: rgba(255, 255, 255, 0.15);

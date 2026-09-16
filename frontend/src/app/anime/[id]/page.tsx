@@ -194,10 +194,9 @@ async function AnimeDetailContent({ anime, searchParams }: {
               {anime.description ?? 'Keine Beschreibung vorhanden.'}
             </p>
 
-            {/* Tags (D-12-D-19): eigene Linie, eigener Container, nur wenn Tags vorhanden */}
+            {/* Tags (D-12-D-19): direkt unter der Beschreibung, Linie folgt erst mit dem Banner */}
             {anime.tags && anime.tags.length > 0 && (
               <>
-                <hr className={styles.divider} />
                 <div className={styles.tagsSection}>
                   <h2 id="tags-heading" className={styles.tagsLabel}>Tags</h2>
                   <ul className={styles.tagsList} aria-labelledby="tags-heading">

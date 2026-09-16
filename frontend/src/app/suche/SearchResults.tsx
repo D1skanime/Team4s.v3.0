@@ -169,8 +169,8 @@ export function SearchResults() {
 
     if (!results) return null
 
-    const animeItems = results.anime.items
-    const fansubItems = results.fansub.items
+    const animeItems = results.anime.items ?? []
+    const fansubItems = results.fansub.items ?? []
 
     if (tabType === 'anime') {
       return animeItems.length ? <ResultGrid items={animeItems} /> : emptyState

@@ -251,6 +251,11 @@ describe('Tags-Block und Genre-Links (D-06/D-09/D-12-D-20)', () => {
     expect(tagsSectionIndex).toBeGreaterThan(descriptionIndex)
     expect(statsRowIndex).toBeGreaterThan(tagsSectionIndex)
     expect(infoBannerIndex).toBeGreaterThan(tagsSectionIndex)
+    // Keine eigene Linie zwischen Beschreibung und Tags; die Linie gehört zum Banner.
+    const dividerBetween = all
+      .slice(descriptionIndex + 1, tagsSectionIndex)
+      .some((item) => item.type === 'hr')
+    expect(dividerBetween).toBe(false)
   })
 
   it('Genre-Chips sind Links auf /suche?type=anime&genre=<Name>, der Platzhalter "Anime" bleibt unverlinkt (D-20)', async () => {

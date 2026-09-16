@@ -155,3 +155,19 @@ describe('SearchResults', () => {
     })
   })
 })
+
+describe('SearchResults mit nicht durchsuchter Entität', () => {
+  it('stürzt nicht ab, wenn das Backend für Fansubs items: null liefert (type=anime)', async () => {
+    searchParamsRef.current = new URLSearchParams('type=anime&tag=PSI-Kr%C3%A4fte')
+    getSearchMock.mockResolvedValue({
+      data: {
+        anime: { items: [{ type: 'anime', id: 3, slug: 'pink', title: '11eyes: Pink Phantasmagoria', year: 2010, format: 'ova' }], total: 1 },
+        fansub: { items: null, total: 0 },
+      },
+      meta: { total: 1, page: 1, per_page: 24, total_pages: 1 },
+    })
+    render(<SearchResults />)
+    await settle()
+    expect(screen.getAllByText('11eyes: Pink Phantasmagoria').length).toBeGreaterThan(0)
+  })
+})

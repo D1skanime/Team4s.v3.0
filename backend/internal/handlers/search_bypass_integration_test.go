@@ -5,6 +5,7 @@ import (
 	"encoding/json"
 	"net/http"
 	"net/http/httptest"
+	"strings"
 	"testing"
 
 	"github.com/gin-gonic/gin"
@@ -227,5 +228,27 @@ func TestSearchBypassRejectsMissingQueryWithNonTagGenreFilterEndToEnd(t *testing
 	router.ServeHTTP(response, httptest.NewRequest(http.MethodGet, "/api/v1/search?type=alle&format=tv", nil))
 	if response.Code != http.StatusBadRequest {
 		t.Fatalf("status = %d, want 400 for format-only (no q, no tag/genre), even against a real repository: %s", response.Code, response.Body.String())
+	}
+}
+
+// TestSearchNeverReturnsNullItemsForUnsearchedEntity: Die Suchseite rendert alle
+// Tabs gleichzeitig und liest items.length beider Entitäten. Ein nicht durchsuchter
+// Entitätstyp muss deshalb "items":[] liefern, nie null (Live-Absturz /suche?type=anime).
+func TestSearchNeverReturnsNullItemsForUnsearchedEntity(t *testing.T) {
+	pool := openSearchBypassFixture(t)
+	router := searchBypassRouter(pool)
+
+	for _, target := range []string{
+		"/api/v1/search?type=anime&tag=D%C3%A4mon",
+		"/api/v1/search?type=fansub&tag=D%C3%A4mon",
+	} {
+		response := httptest.NewRecorder()
+		router.ServeHTTP(response, httptest.NewRequest(http.MethodGet, target, nil))
+		if response.Code != http.StatusOK {
+			t.Fatalf("%s: status = %d, want 200: %s", target, response.Code, response.Body.String())
+		}
+		if strings.Contains(response.Body.String(), `"items":null`) {
+			t.Fatalf("%s: response contains items:null: %s", target, response.Body.String())
+		}
 	}
 }

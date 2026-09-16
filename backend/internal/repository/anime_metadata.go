@@ -72,7 +72,7 @@ func loadNormalizedAnimeMetadata(ctx context.Context, db normalizedAnimeMetadata
 		JOIN genres g ON g.id = ag.genre_id
 		LEFT JOIN genre_names gn ON gn.genre_id = g.id AND gn.language_id = (SELECT id FROM languages WHERE code = 'de')
 		WHERE ag.anime_id = $1
-		ORDER BY g.name ASC
+		ORDER BY COALESCE(gn.name, g.name) ASC
 		`,
 		animeID,
 	)
@@ -104,7 +104,7 @@ func loadNormalizedAnimeMetadata(ctx context.Context, db normalizedAnimeMetadata
 		JOIN tags t ON t.id = at.tag_id
 		LEFT JOIN tag_names tn ON tn.tag_id = t.id AND tn.language_id = (SELECT id FROM languages WHERE code = 'de')
 		WHERE at.anime_id = $1
-		ORDER BY t.name ASC
+		ORDER BY COALESCE(tn.name, t.name) ASC
 		`,
 		animeID,
 	)
