@@ -51,6 +51,9 @@ export default function AdminOverviewPage() {
             <Link href="/admin/fansubs" className={styles.buttonSecondary}>
               Fansubs
             </Link>
+            <Link href="/admin/tags-genres" className={styles.buttonSecondary}>
+              Tags und Genres
+            </Link>
           </div>
         </section>
       </main>
