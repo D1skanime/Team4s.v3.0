@@ -3,14 +3,14 @@ gsd_state_version: 1.0
 milestone: v1.4
 milestone_name: Coverage
 status: executing
-stopped_at: Completed 160-03-PLAN.md
-last_updated: "2026-09-16T21:15:20.220Z"
+stopped_at: Completed 160-05-PLAN.md
+last_updated: "2026-09-16T21:20:48.335Z"
 last_activity: 2026-09-16
 progress:
   total_phases: 26
   completed_phases: 25
   total_plans: 253
-  completed_plans: 251
+  completed_plans: 252
   percent: 96
 ---
 
@@ -113,7 +113,7 @@ See: .planning/PROJECT.md (updated 2026-08-13)
 ## Current Position
 
 Phase: 160 (oeffentliche-anime-detailseite-nachschaerfen-tags-anzeigen-g) — EXECUTING
-Plan: 5 of 6
+Plan: 6 of 6
 dupliziertem ProjectMemberStickyNav; siehe 157-14-SUMMARY.md)
 Status: Ready to execute
 GAP-02-Live-UAT-Checkpoint aus 156-UAT.md (5 Origin- + 9 Segment-Contributor-Pruefpunkte) wurde
@@ -1282,6 +1282,8 @@ Last activity: 2026-09-16
 - [Phase 160]: D-08 bypass ist eng: nur ein wirklich fehlendes q (leer nach Trim) uebergeht die Laengenpruefung; ein vorhandenes, zu kurzes q (z.B. ?tag=Amnesia&q=a) bleibt weiterhin 400. — Loest RESEARCH.md Open Question 1 wie empfohlen; verhindert, dass Nutzer versehentlich einen ungueltigen q-Wert stillschweigend uebergehen.
 - [Phase 160]: Pitfall-1-Fix (leere Fansub-Liste ohne q) auf Search()-Dispatch-Ebene, nicht in buildSearchFansubQuery — search_fansub.go bleibt unveraendert. — Haelt den Fix eng auf den q-losen Fall begrenzt und vermeidet Seiteneffekte auf den bestehenden, funktionierenden q-vorhandenen Fansub-Suchpfad.
 - [Phase 160]: Persist admin German tag/genre names on Input onBlur; NameTable's local drafts/saveErrors state is the source of truth after save, not the parent's fetched list — Simplest reliable per-row-save trigger, keeps each row's save cycle isolated from the list fetch lifecycle
+- [Phase 160]: 160-05: Frontend D-08-Bypass ist schmal (nur wirklich leeres q, nicht nur zu kurz) gelesen, spiegelt Plan 160-04 exakt — Konsistenz mit dem Backend-Gegenstück, keine abweichende Semantik zwischen Frontend-UX-Gate und Backend-Autoritativgate
+- [Phase 160]: 160-05: Vorschlags-Fetch bekam eine eigene, explizite MIN_QUERY_LENGTH-Bedingung im Debounce-Effekt — Verhindert, dass der tag/genre-Bypass fuer die Ergebnissuche versehentlich auch /search/suggestions erreicht (D-08 gilt nicht fuer Vorschlaege)
 
 ### Pending Todos
 
@@ -1702,11 +1704,12 @@ untruncated list lives in `.planning/todos/pending/`.
 | Phase 160 P02 | 45min | 3 tasks | 7 files |
 | Phase 160 P04 | 45min | 2 tasks | 6 files |
 | Phase 160 P03 | 40min | 3 tasks | 6 files |
+| Phase 160 P05 | 25min | 2 tasks | 4 files |
 
 ## Session Continuity
 
-Last session: 2026-09-16T21:15:15.611Z
-Stopped at: Completed 160-03-PLAN.md
+Last session: 2026-09-16T21:20:48.311Z
+Stopped at: Completed 160-05-PLAN.md
 Last activity: 2026-09-16 - Completed quick task 260916-ako: Jellyfin-Geschwisterquellen getrennt importieren; Liveimport zweier Folge-2-Quellen geprüft, keine Phasen-UAT ersetzt.
 Resume file: 
 None
