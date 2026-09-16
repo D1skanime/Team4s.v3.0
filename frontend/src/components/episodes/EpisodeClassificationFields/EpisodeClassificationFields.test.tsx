@@ -72,7 +72,7 @@ describe('EpisodeClassificationFields', () => {
     expect(filler.value).toBe('unknown')
     expect(type.value).toBe('episode')
     expect([...filler.options].map((option) => option.textContent)).toEqual([
-      'Unbekannt', 'Canon', 'Filler', 'Mixed', 'Recap',
+      'Unbekannt', 'Haupthandlung', 'Zusatzfolge', 'Teilweise Zusatzfolge', 'Rückblick',
     ])
     expect([...type.options].map((option) => option.textContent)).toEqual([
       'Episode', 'Special', 'OVA', 'ONA', 'Movie', 'Recap', 'Preview', 'Prologue', 'Epilogue', 'Bonus',

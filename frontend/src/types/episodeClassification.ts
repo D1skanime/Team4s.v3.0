@@ -33,10 +33,10 @@ export interface EpisodeClassificationListResponse {
 
 export const EPISODE_FILLER_TYPE_OPTIONS: ReadonlyArray<{ value: EpisodeFillerType; label: string }> = [
   { value: 'unknown', label: 'Unbekannt' },
-  { value: 'canon', label: 'Canon' },
-  { value: 'filler', label: 'Filler' },
-  { value: 'mixed', label: 'Mixed' },
-  { value: 'recap', label: 'Recap' },
+  { value: 'canon', label: 'Haupthandlung' },
+  { value: 'filler', label: 'Zusatzfolge' },
+  { value: 'mixed', label: 'Teilweise Zusatzfolge' },
+  { value: 'recap', label: 'Rückblick' },
 ]
 
 export const EPISODE_TYPE_OPTIONS: ReadonlyArray<{ value: EpisodeType; label: string }> = [
