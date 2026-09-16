@@ -757,8 +757,14 @@ paths:
       parameters:
         - name: q
           in: query
-          required: true
-          description: Suchbegriff, mindestens 2 Zeichen.
+          required: false
+          description: >
+            Suchbegriff, mindestens 2 Zeichen. Optional, wenn genre oder tag
+            gesetzt ist (D-08) — ist q dann leer/fehlend, entfällt die
+            Mindestlängenprüfung; ein vorhandener, aber zu kurzer q-Wert
+            liefert weiterhin 400. Alle anderen Filter (format, status,
+            year_from/year_to, fansub_group) bleiben von dieser Ausnahme
+            unberührt und erfordern weiterhin q.
           schema:
             type: string
             minLength: 2
@@ -3090,6 +3096,185 @@ paths:
                   value:
                     error:
                       message: auth-status voruebergehend nicht verfuegbar
+        "500":
+          description: Internal server error
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+  /api/v1/admin/tags/names:
+    get:
+      tags: [Admin]
+      summary: List tags with usage count and current German display name (D-04)
+      description: >
+        Admin tag-maintenance list. One row per tag: id, base name, usage
+        count across all anime, and the current German display name (null if
+        untranslated). Feeds the admin tag/genre-name maintenance page.
+      operationId: adminListTagNames
+      security:
+        - bearerAuth: []
+      responses:
+        "200":
+          description: List of tags with usage count and German name.
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/AdminTagNameListResponse"
+        "401":
+          description: Authentication required
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+        "403":
+          description: Admin permission required
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+        "500":
+          description: Internal server error
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+  /api/v1/admin/tags/{id}/names/de:
+    patch:
+      tags: [Admin]
+      summary: Set or clear a tag's German display name (D-04)
+      description: >
+        Global for all anime (not anime-scoped). An empty or whitespace-only
+        name clears the translation (DELETEs the underlying row); the public
+        display then falls back to the base name.
+      operationId: adminUpsertTagNameDE
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+            format: int64
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/AdminUpsertNameRequest"
+      responses:
+        "200":
+          description: German name set or cleared.
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/AdminUpsertNameResponse"
+        "400":
+          description: Invalid id parameter or name too long
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+        "401":
+          description: Authentication required
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+        "403":
+          description: Admin permission required
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+        "500":
+          description: Internal server error
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+  /api/v1/admin/genres/names:
+    get:
+      tags: [Admin]
+      summary: List genres with usage count and current German display name (D-04/D-07)
+      description: >
+        Admin genre-maintenance list. Mirrors /api/v1/admin/tags/names.
+      operationId: adminListGenreNames
+      security:
+        - bearerAuth: []
+      responses:
+        "200":
+          description: List of genres with usage count and German name.
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/AdminGenreNameListResponse"
+        "401":
+          description: Authentication required
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+        "403":
+          description: Admin permission required
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+        "500":
+          description: Internal server error
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+  /api/v1/admin/genres/{id}/names/de:
+    patch:
+      tags: [Admin]
+      summary: Set or clear a genre's German display name (D-04/D-07)
+      description: >
+        Mirrors /api/v1/admin/tags/{id}/names/de for genres. Global for all
+        anime (not anime-scoped).
+      operationId: adminUpsertGenreNameDE
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+            format: int64
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/AdminUpsertNameRequest"
+      responses:
+        "200":
+          description: German name set or cleared.
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/AdminUpsertNameResponse"
+        "400":
+          description: Invalid id parameter or name too long
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+        "401":
+          description: Authentication required
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+        "403":
+          description: Admin permission required
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
         "500":
           description: Internal server error
           content:
@@ -12293,6 +12478,84 @@ components:
           type: array
           items:
             $ref: "#/components/schemas/TagToken"
+    AdminTagNameRow:
+      type: object
+      description: >
+        One row of the admin tag-maintenance list (D-04): the tag's id, base
+        name, usage count across all anime, and its current German display
+        name (null if untranslated).
+      required: [id, name, count, name_de]
+      properties:
+        id:
+          type: integer
+          format: int64
+        name:
+          type: string
+        count:
+          type: integer
+          format: int64
+        name_de:
+          type: string
+          nullable: true
+    AdminTagNameListResponse:
+      type: object
+      required: [data]
+      properties:
+        data:
+          type: array
+          items:
+            $ref: "#/components/schemas/AdminTagNameRow"
+    AdminGenreNameRow:
+      type: object
+      description: >
+        One row of the admin genre-maintenance list (D-04/D-07). Mirrors
+        AdminTagNameRow.
+      required: [id, name, count, name_de]
+      properties:
+        id:
+          type: integer
+          format: int64
+        name:
+          type: string
+        count:
+          type: integer
+          format: int64
+        name_de:
+          type: string
+          nullable: true
+    AdminGenreNameListResponse:
+      type: object
+      required: [data]
+      properties:
+        data:
+          type: array
+          items:
+            $ref: "#/components/schemas/AdminGenreNameRow"
+    AdminUpsertNameRequest:
+      type: object
+      description: >
+        PATCH body for setting/clearing a tag's or genre's German display
+        name. An empty or whitespace-only name clears the translation
+        (falls back to the base name).
+      required: [name]
+      properties:
+        name:
+          type: string
+          maxLength: 100
+    AdminUpsertNameResponse:
+      type: object
+      required: [data]
+      properties:
+        data:
+          type: object
+          required: [id, name_de]
+          properties:
+            id:
+              type: integer
+              format: int64
+            name_de:
+              type: string
+              description: The trimmed name after the write (empty string if cleared).
     FansubStatus:
       type: string
       enum: [active, inactive, dissolved]
