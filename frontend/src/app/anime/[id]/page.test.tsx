@@ -2,6 +2,8 @@ import { existsSync, readFileSync } from 'node:fs'
 import { join } from 'node:path'
 import { Children, isValidElement, Suspense, type ReactElement, type ReactNode } from 'react'
 import { cookies } from 'next/headers'
+import Link from 'next/link'
+import { AnimeInfoBanner } from '@/components/anime/AnimeMediaProvider'
 import { FansubVersionBrowser } from '@/components/fansubs/FansubVersionBrowser'
 import { WatchlistAddButton } from '@/components/watchlist/WatchlistAddButton'
 import AnimeListPage from '../page'
@@ -178,5 +180,94 @@ describe('bounded public SSR inventory', () => {
     expect(browser?.props.pagination).toEqual({ has_more: true, next_cursor: 'next', row_limit: 24 })
     expect(browser?.props.storyGroups).toEqual([])
     expect(textContent(content)).toContain('Episoden (30)')
+  })
+})
+
+/** Zerlegt einen `/suche?...`-Chip-Link wieder in seine URLSearchParams zum Rundreise-Vergleich (D-09). */
+function paramsFromHref(href: string): URLSearchParams {
+  return new URLSearchParams(href.split('?')[1] ?? '')
+}
+
+describe('Tags-Block und Genre-Links (D-06/D-09/D-12-D-20)', () => {
+  it('rendert die Ueberschrift "Tags" und einen Link-Chip je Tag in der vom Backend gelieferten Reihenfolge (kein Re-Sort)', async () => {
+    vi.mocked(getAnimeByID).mockResolvedValue({ data: { ...anime, tags: ['Real Robot', 'Amnesia', 'Zeitreise'] } })
+    const content = await loadContent()
+    const all = elements(content)
+    expect(textContent(content)).toMatch(/Tags/)
+    const tagLinks = all.filter((item) => item.type === Link && String((item.props.href as string)).includes('tag='))
+    expect(tagLinks).toHaveLength(3)
+    expect(tagLinks.map((item) => textContent(item.props.children as ReactNode))).toEqual(['Real Robot', 'Amnesia', 'Zeitreise'])
+  })
+
+  it('rendert exakt einen Chip bei genau einem Tag (kein Leer-Container)', async () => {
+    vi.mocked(getAnimeByID).mockResolvedValue({ data: { ...anime, tags: ['Amnesia'] } })
+    const content = await loadContent()
+    const tagLinks = elements(content).filter((item) => item.type === Link && String(item.props.href as string).includes('tag='))
+    expect(tagLinks).toHaveLength(1)
+    expect(textContent(tagLinks[0]?.props.children as ReactNode)).toBe('Amnesia')
+  })
+
+  it('rendert weder Ueberschrift noch Container bei fehlenden/leeren Tags (D-13)', async () => {
+    vi.mocked(getAnimeByID).mockResolvedValue({ data: { ...anime, tags: [] } })
+    const contentEmpty = await loadContent()
+    expect(elements(contentEmpty).some((item) => String(item.props.className ?? '').includes('tagsSection'))).toBe(false)
+    expect(textContent(contentEmpty)).not.toMatch(/>?Tags</)
+
+    vi.mocked(getAnimeByID).mockResolvedValue({ data: { ...anime, tags: undefined } })
+    const contentUndefined = await loadContent()
+    expect(elements(contentUndefined).some((item) => String(item.props.className ?? '').includes('tagsSection'))).toBe(false)
+  })
+
+  it('kodiert Leerzeichen und Umlaute im Tag-Link ueber URLSearchParams korrekt und rundreist zum Originalnamen (D-09)', async () => {
+    vi.mocked(getAnimeByID).mockResolvedValue({ data: { ...anime, tags: ['Real Robot', 'PSI-Kräfte'] } })
+    const content = await loadContent()
+    const tagLinks = elements(content).filter((item) => item.type === Link && String(item.props.href as string).includes('tag='))
+    const realRobot = tagLinks.find((item) => textContent(item.props.children as ReactNode) === 'Real Robot')
+    const psiKraefte = tagLinks.find((item) => textContent(item.props.children as ReactNode) === 'PSI-Kräfte')
+    expect(paramsFromHref(realRobot?.props.href as string).get('tag')).toBe('Real Robot')
+    expect(paramsFromHref(realRobot?.props.href as string).get('type')).toBe('anime')
+    expect(paramsFromHref(psiKraefte?.props.href as string).get('tag')).toBe('PSI-Kräfte')
+  })
+
+  it('jeder Tag-Chip ist ein echter Link mit dem Namen als einzigem sichtbarem/zugaenglichem Text (Tastatur-erreichbar per Anker-Semantik)', async () => {
+    vi.mocked(getAnimeByID).mockResolvedValue({ data: { ...anime, tags: ['Amnesia'] } })
+    const content = await loadContent()
+    const tagLink = elements(content).find((item) => item.type === Link && String(item.props.href as string).includes('tag='))
+    expect(tagLink?.type).toBe(Link)
+    expect(tagLink?.props).not.toHaveProperty('tabIndex')
+    expect(tagLink?.props).not.toHaveProperty('onClick')
+    expect(textContent(tagLink?.props.children as ReactNode)).toBe('Amnesia')
+  })
+
+  it('der Tags-Block steht nach der Beschreibung und vor dem Emby-Bereich/AnimeInfoBanner in Dokumentreihenfolge (D-12)', async () => {
+    vi.mocked(getAnimeByID).mockResolvedValue({ data: { ...anime, tags: ['Amnesia'] } })
+    const content = await loadContent()
+    const all = elements(content)
+    const descriptionIndex = all.findIndex((item) => String(item.props.className ?? '').includes('description'))
+    const tagsSectionIndex = all.findIndex((item) => String(item.props.className ?? '').includes('tagsSection'))
+    const statsRowIndex = all.findIndex((item) => String(item.props.className ?? '').includes('statsRow'))
+    const infoBannerIndex = all.findIndex((item) => item.type === AnimeInfoBanner)
+    expect(descriptionIndex).toBeGreaterThanOrEqual(0)
+    expect(tagsSectionIndex).toBeGreaterThan(descriptionIndex)
+    expect(statsRowIndex).toBeGreaterThan(tagsSectionIndex)
+    expect(infoBannerIndex).toBeGreaterThan(tagsSectionIndex)
+  })
+
+  it('Genre-Chips sind Links auf /suche?type=anime&genre=<Name>, der Platzhalter "Anime" bleibt unverlinkt (D-20)', async () => {
+    vi.mocked(getAnimeByID).mockResolvedValue({ data: { ...anime, genres: ['Action', 'Mecha'] } })
+    const content = await loadContent()
+    const all = elements(content)
+    const genreLinks = all.filter((item) => item.type === Link && String(item.props.href as string).includes('genre='))
+    expect(genreLinks).toHaveLength(2)
+    expect(genreLinks.map((item) => textContent(item.props.children as ReactNode)).sort()).toEqual(['Action', 'Mecha'])
+    for (const link of genreLinks) {
+      expect(paramsFromHref(link.props.href as string).get('type')).toBe('anime')
+    }
+
+    vi.mocked(getAnimeByID).mockResolvedValue({ data: { ...anime, genres: [] } })
+    const contentNoGenres = await loadContent()
+    const placeholder = elements(contentNoGenres).find((item) => item.type === 'span' && textContent(item.props.children as ReactNode) === 'Anime')
+    expect(placeholder).toBeDefined()
+    expect(placeholder?.props).not.toHaveProperty('href')
   })
 })

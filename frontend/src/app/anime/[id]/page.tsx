@@ -31,6 +31,11 @@ import AnimeDetailLoading from './AnimeDetailLoading'
 import { loadAnimeDetail } from './animeDetailData'
 import styles from './page.module.css'
 
+/** Baut den q-losen Such-Link fuer einen Tag-/Genre-Chip ueber den etablierten URLSearchParams-Mechanismus (D-09). */
+function buildFilterHref(kind: 'tag' | 'genre', name: string): string {
+  return `/suche?${new URLSearchParams({ type: 'anime', [kind]: name }).toString()}`
+}
+
 /** Props für die Anime-Detailseite mit URL-Parametern und optionalen Such-Parametern. */
 interface AnimeDetailPageProps {
   params: Promise<{ id: string }>
@@ -156,9 +161,9 @@ async function AnimeDetailContent({ anime, searchParams }: {
                 <div className={styles.genres}>
                   {anime.genres && anime.genres.length > 0 ? (
                     anime.genres.map((genre) => (
-                      <span key={genre} className={styles.genreChip}>
+                      <Link key={genre} className={styles.genreChip} href={buildFilterHref('genre', genre)}>
                         {genre}
-                      </span>
+                      </Link>
                     ))
                   ) : (
                     <span className={styles.genreChip}>Anime</span>
@@ -188,6 +193,25 @@ async function AnimeDetailContent({ anime, searchParams }: {
             <p className={styles.description}>
               {anime.description ?? 'Keine Beschreibung vorhanden.'}
             </p>
+
+            {/* Tags (D-12-D-19): eigene Linie, eigener Container, nur wenn Tags vorhanden */}
+            {anime.tags && anime.tags.length > 0 && (
+              <>
+                <hr className={styles.divider} />
+                <div className={styles.tagsSection}>
+                  <h2 id="tags-heading" className={styles.tagsLabel}>Tags</h2>
+                  <ul className={styles.tagsList} aria-labelledby="tags-heading">
+                    {anime.tags.map((tag) => (
+                      <li key={tag}>
+                        <Link className={styles.tagChip} href={buildFilterHref('tag', tag)}>
+                          {tag}
+                        </Link>
+                      </li>
+                    ))}
+                  </ul>
+                </div>
+              </>
+            )}
 
             {embySeriesUrl && (
               <div className={styles.statsRow}>

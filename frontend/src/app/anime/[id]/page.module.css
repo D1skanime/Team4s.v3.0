@@ -315,6 +315,11 @@
   border-color: rgba(255, 255, 255, 0.25);
 }
 
+.genreChip:focus-visible {
+  outline: none;
+  box-shadow: var(--focus-ring);
+}
+
 /* --------------------------------------------------------------------------
    Info Card (Right) - White top, glass bottom
    -------------------------------------------------------------------------- */
@@ -387,6 +392,59 @@
   line-height: 1.7;
   color: #444;
   margin: 0 0 20px;
+}
+
+/* --------------------------------------------------------------------------
+   Tags (content navigation, not a CTA badge - D-17)
+   -------------------------------------------------------------------------- */
+.tagsSection {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  margin: 0 0 20px;
+}
+
+.tagsLabel {
+  font-size: 12px;
+  font-weight: 600;
+  color: rgba(255, 255, 255, 0.6);
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  margin: 0;
+}
+
+.tagsList {
+  list-style: none;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  padding: 0;
+  margin: 0;
+}
+
+.tagChip {
+  display: inline-block;
+  padding: 8px 14px;
+  border-radius: 14px;
+  background: rgba(255, 255, 255, 0.1);
+  border: 1px solid rgba(255, 255, 255, 0.15);
+  color: rgba(255, 255, 255, 0.9);
+  font-size: 13px;
+  font-weight: 500;
+  text-decoration: none;
+  text-transform: none;
+  cursor: pointer;
+  transition: background 0.2s, border-color 0.2s;
+}
+
+.tagChip:hover {
+  background: rgba(255, 255, 255, 0.15);
+  border-color: rgba(255, 255, 255, 0.25);
+}
+
+.tagChip:focus-visible {
+  outline: none;
+  box-shadow: var(--focus-ring);
 }
 
 /* Stats Row */
