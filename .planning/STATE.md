@@ -18,6 +18,8 @@ progress:
 
 ## Abgeschlossener Quick 260916-ejp — set-state-in-effect an 8 Fachlichkeiten (16.09.2026)
 
+**Vom Nutzer abgeschlossen am 2026-09-16.** Eine gesonderte Sichtprüfung wurde nicht zurückgemeldet und gilt nicht als bestanden. Folgeauftrag für `NotesTab.tsx` (gleiches Muster) vom Nutzer abgelehnt.
+
 Alle 8 `void (async () => {...})()`-Workarounds aus Quick 260915-rv3 sind durch echte strukturelle
 Lösungen ersetzt: die 4 Summary-Komponenten in `AdminGroupsClient.tsx` und `CapabilityHistoryPanel.tsx`
 nutzen `useCancellableSlugState` direkt (Klasse A); `GroupRolesTab.tsx` kombiniert den Hook mit einer
