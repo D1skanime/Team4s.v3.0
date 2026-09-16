@@ -21,10 +21,11 @@ import {
   Tabs,
 } from '@/components/ui'
 import { ApiError, getFansubList, listChanges, listClaims, listFansubAppMembers } from '@/lib/api'
+import { useCancellableSlugState } from '@/hooks/useCancellableSlugState'
 import { labelForRole } from '@/lib/roleCatalog'
 import { useRoleCatalog } from '@/providers/RoleCatalogProvider'
-import type { AdminChangeEntry, AdminClaimListRow } from '@/types/admin-users'
-import type { FansubAppMember, FansubGroup } from '@/types/fansub'
+import type { AdminChangeEntry, AdminChangesListResponse, AdminClaimListRow, AdminClaimsListResponse } from '@/types/admin-users'
+import type { FansubAppMember, FansubAppMemberListResponse, FansubGroup } from '@/types/fansub'
 
 type GroupTabId = 'users' | 'roles' | 'claims' | 'changes'
 
@@ -72,43 +73,33 @@ interface GroupMembersSummaryProps {
   fansubGroupId: number
 }
 
+const EMPTY_MEMBERS: FansubAppMember[] = []
+const EMPTY_CLAIMS: AdminClaimListRow[] = []
+const EMPTY_CHANGES: AdminChangeEntry[] = []
+
 function GroupMembersSummary({ fansubGroupId }: GroupMembersSummaryProps) {
   const router = useRouter()
   const { roles } = useRoleCatalog('fansub_group')
-  const [members, setMembers] = useState<FansubAppMember[]>([])
-  const [claims, setClaims] = useState<AdminClaimListRow[]>([])
-  const [isLoading, setIsLoading] = useState(true)
-  const [error, setError] = useState<string | null>(null)
+  const requestKey = String(fansubGroupId)
+  const fetcher = useCallback(
+    () => Promise.all([
+      listFansubAppMembers(fansubGroupId),
+      listClaims({ fansub_group_id: fansubGroupId, limit: 100, offset: 0 }),
+    ]),
+    [fansubGroupId],
+  )
+  const { state } = useCancellableSlugState<[FansubAppMemberListResponse, AdminClaimsListResponse]>({
+    requestKey,
+    enabled: true,
+    fetcher,
+  })
 
-  useEffect(() => {
-    let cancelled = false
-
-    void (async () => {
-      setIsLoading(true)
-      setError(null)
-      try {
-        const [membersResponse, claimsResponse] = await Promise.all([
-          listFansubAppMembers(fansubGroupId),
-          listClaims({ fansub_group_id: fansubGroupId, limit: 100, offset: 0 }),
-        ])
-        if (cancelled) return
-        setMembers(membersResponse.data)
-        setClaims(claimsResponse.data)
-      } catch (err) {
-        if (!cancelled) {
-          setError(readErrorMessage(err, 'Gruppenmitglieder konnten nicht geladen werden.'))
-        }
-      } finally {
-        if (!cancelled) {
-          setIsLoading(false)
-        }
-      }
-    })()
-
-    return () => {
-      cancelled = true
-    }
-  }, [fansubGroupId])
+  const isLoading = state.key !== requestKey || state.status === 'loading' || state.status === 'idle'
+  const error = state.status === 'error'
+    ? readErrorMessage(state.error, 'Gruppenmitglieder konnten nicht geladen werden.')
+    : null
+  const members = state.status === 'success' ? state.data![0].data : EMPTY_MEMBERS
+  const claims = state.status === 'success' ? state.data![1].data : EMPTY_CLAIMS
 
   const openClaimsByUserId = useMemo(() => {
     const counts = new Map<number, number>()
@@ -188,36 +179,13 @@ function GroupMembersSummary({ fansubGroupId }: GroupMembersSummaryProps) {
 function GroupRolesSummary({ fansubGroupId }: GroupMembersSummaryProps) {
   const router = useRouter()
   const { roles } = useRoleCatalog('fansub_group')
-  const [members, setMembers] = useState<FansubAppMember[]>([])
-  const [isLoading, setIsLoading] = useState(true)
-  const [error, setError] = useState<string | null>(null)
+  const requestKey = String(fansubGroupId)
+  const fetcher = useCallback(() => listFansubAppMembers(fansubGroupId), [fansubGroupId])
+  const { state } = useCancellableSlugState<FansubAppMemberListResponse>({ requestKey, enabled: true, fetcher })
 
-  useEffect(() => {
-    let cancelled = false
-
-    void (async () => {
-      setIsLoading(true)
-      setError(null)
-      try {
-        const response = await listFansubAppMembers(fansubGroupId)
-        if (!cancelled) {
-          setMembers(response.data)
-        }
-      } catch (err) {
-        if (!cancelled) {
-          setError(readErrorMessage(err, 'Rollen konnten nicht geladen werden.'))
-        }
-      } finally {
-        if (!cancelled) {
-          setIsLoading(false)
-        }
-      }
-    })()
-
-    return () => {
-      cancelled = true
-    }
-  }, [fansubGroupId])
+  const isLoading = state.key !== requestKey || state.status === 'loading' || state.status === 'idle'
+  const error = state.status === 'error' ? readErrorMessage(state.error, 'Rollen konnten nicht geladen werden.') : null
+  const members = state.status === 'success' ? state.data!.data : EMPTY_MEMBERS
 
   const rows = useMemo(() => {
     return members
@@ -272,36 +240,16 @@ function GroupRolesSummary({ fansubGroupId }: GroupMembersSummaryProps) {
 
 function GroupClaimsSummary({ fansubGroupId }: GroupMembersSummaryProps) {
   const router = useRouter()
-  const [claims, setClaims] = useState<AdminClaimListRow[]>([])
-  const [isLoading, setIsLoading] = useState(true)
-  const [error, setError] = useState<string | null>(null)
+  const requestKey = String(fansubGroupId)
+  const fetcher = useCallback(
+    () => listClaims({ fansub_group_id: fansubGroupId, limit: 100, offset: 0 }),
+    [fansubGroupId],
+  )
+  const { state } = useCancellableSlugState<AdminClaimsListResponse>({ requestKey, enabled: true, fetcher })
 
-  useEffect(() => {
-    let cancelled = false
-
-    void (async () => {
-      setIsLoading(true)
-      setError(null)
-      try {
-        const response = await listClaims({ fansub_group_id: fansubGroupId, limit: 100, offset: 0 })
-        if (!cancelled) {
-          setClaims(response.data)
-        }
-      } catch (err) {
-        if (!cancelled) {
-          setError(readErrorMessage(err, 'Claims konnten nicht geladen werden.'))
-        }
-      } finally {
-        if (!cancelled) {
-          setIsLoading(false)
-        }
-      }
-    })()
-
-    return () => {
-      cancelled = true
-    }
-  }, [fansubGroupId])
+  const isLoading = state.key !== requestKey || state.status === 'loading' || state.status === 'idle'
+  const error = state.status === 'error' ? readErrorMessage(state.error, 'Claims konnten nicht geladen werden.') : null
+  const claims = state.status === 'success' ? state.data!.data : EMPTY_CLAIMS
 
   if (isLoading) {
     return <LoadingState title="Claims werden geladen ..." description="" />
@@ -348,36 +296,16 @@ function GroupClaimsSummary({ fansubGroupId }: GroupMembersSummaryProps) {
 }
 
 function GroupChangesSummary({ fansubGroupId }: GroupMembersSummaryProps) {
-  const [entries, setEntries] = useState<AdminChangeEntry[]>([])
-  const [isLoading, setIsLoading] = useState(true)
-  const [error, setError] = useState<string | null>(null)
+  const requestKey = String(fansubGroupId)
+  const fetcher = useCallback(
+    () => listChanges({ gruppe: fansubGroupId, limit: 25, offset: 0 }),
+    [fansubGroupId],
+  )
+  const { state } = useCancellableSlugState<AdminChangesListResponse>({ requestKey, enabled: true, fetcher })
 
-  useEffect(() => {
-    let cancelled = false
-
-    void (async () => {
-      setIsLoading(true)
-      setError(null)
-      try {
-        const response = await listChanges({ gruppe: fansubGroupId, limit: 25, offset: 0 })
-        if (!cancelled) {
-          setEntries(response.data)
-        }
-      } catch (err) {
-        if (!cancelled) {
-          setError(readErrorMessage(err, 'Änderungen konnten nicht geladen werden.'))
-        }
-      } finally {
-        if (!cancelled) {
-          setIsLoading(false)
-        }
-      }
-    })()
-
-    return () => {
-      cancelled = true
-    }
-  }, [fansubGroupId])
+  const isLoading = state.key !== requestKey || state.status === 'loading' || state.status === 'idle'
+  const error = state.status === 'error' ? readErrorMessage(state.error, 'Änderungen konnten nicht geladen werden.') : null
+  const entries = state.status === 'success' ? state.data!.data : EMPTY_CHANGES
 
   if (isLoading) {
     return <LoadingState title="Änderungen werden geladen ..." description="" />
