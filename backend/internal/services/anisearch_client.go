@@ -1190,33 +1190,7 @@ func mapAniSearchGraphRelation(legend []string, relationIndex int, outgoing bool
 	if relationIndex < 0 || relationIndex >= len(legend) {
 		return ""
 	}
-
-	relationName := strings.TrimSpace(legend[relationIndex])
-	if outgoing {
-		switch relationName {
-		case "Sequel":
-			return "Fortsetzung"
-		case "Nebengeschichte":
-			return "Nebengeschichte"
-		case "Hauptgeschichte":
-			return "Hauptgeschichte"
-		case "Zusammenfassung":
-			return "Zusammenfassung"
-		default:
-			return ""
-		}
-	}
-
-	switch relationName {
-	case "Sequel":
-		return "Hauptgeschichte"
-	case "Nebengeschichte":
-		return "Hauptgeschichte"
-	case "Hauptgeschichte":
-		return "Nebengeschichte"
-	default:
-		return ""
-	}
+	return resolveAniSearchRelationLabel(legend[relationIndex], outgoing)
 }
 
 func normalizeAniSearchGraphNodeTitle(raw string) string {

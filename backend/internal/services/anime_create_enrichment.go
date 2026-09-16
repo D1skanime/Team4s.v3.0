@@ -1704,15 +1704,15 @@ func isAllowedAdminRelationLabel(label string) bool {
 
 func normalizeAniSearchRelationLabel(label string) (string, bool) {
 	trimmed := strings.TrimSpace(label)
-	switch trimmed {
-	case "Alternative Version":
-		return "Nebengeschichte", true
-	default:
-		if isAllowedAdminRelationLabel(trimmed) {
-			return trimmed, true
-		}
-		return "", false
+	if isAllowedAdminRelationLabel(trimmed) {
+		return trimmed, true
 	}
+	// Rohe aniSearch-Begriffe laufen über das zentrale Mapping; das Label
+	// beschreibt das Ziel aus Sicht des aktuellen Anime (Kante "outgoing").
+	if mapped := resolveAniSearchRelationLabel(trimmed, true); mapped != "" {
+		return mapped, true
+	}
+	return "", false
 }
 
 func normalizeLookupKey(value string) string {

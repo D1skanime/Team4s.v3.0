@@ -1,6 +1,8 @@
 import { renderToStaticMarkup } from 'react-dom/server'
 import { describe, expect, it, vi } from 'vitest'
 
+import type { AdminAnimeRelation } from '@/types/admin'
+
 import type { UseAdminAnimeRelationsModel } from '../../hooks/useAdminAnimeRelations'
 import { buildRelationsSummary } from '../../hooks/useAdminAnimeRelations'
 import { AnimeRelationsSection } from './AnimeRelationsSection'
@@ -99,6 +101,33 @@ describe('AnimeRelationsSection', () => {
     expect(markup).toContain('Bestehende Relationen')
     expect(markup).toContain('Bearbeiten')
     expect(markup).toContain('Löschen')
+  })
+
+  it('lists an aniSearch Alternative Version import as Nebengeschichte under existing relations', () => {
+    const relations: AdminAnimeRelation[] = [
+      {
+        target_anime_id: 3,
+        relation_label: 'Nebengeschichte',
+        target_title: '11eyes: Pink Phantasmagoria',
+        target_type: 'ova',
+        target_status: 'done',
+        target_year: 2010,
+      },
+    ]
+    const markup = renderToStaticMarkup(
+      <AnimeRelationsSection
+        animeID={2}
+        authToken="token"
+        defaultOpen
+        modelOverride={createModel({ relations })}
+      />,
+    )
+
+    expect(markup).toContain('Bestehende Relationen')
+    expect(markup).toContain('11eyes: Pink Phantasmagoria')
+    expect(markup).toContain('Nebengeschichte')
+    expect(markup).not.toContain('Alternative Version')
+    expect(buildRelationsSummary(relations, null)).toBe('1 Relation')
   })
 })
 

@@ -594,10 +594,10 @@ func TestAnimeAssetSearchService_PrefersFanartForLogoAndBanner(t *testing.T) {
 func TestMapAniSearchGraphRelation_IncomingSequelMapsToHauptgeschichte(t *testing.T) {
 	t.Parallel()
 
-	// Regression: when 11eyes has a "Sequel" edge pointing TO 6123 (11eyes Pink
-	// Phantasmagoria), parsing from 6123's perspective gives outgoing=false with
-	// legend "Sequel". This must return "Hauptgeschichte" so the relation is
-	// matched rather than silently dropped.
+	// An incoming "Sequel" edge (the target is the predecessor) must return
+	// "Hauptgeschichte" so the relation is matched rather than silently dropped.
+	// Note: the real 11eyes/Pink Phantasmagoria edge is "Alternative Version",
+	// see anisearch_relation_labels_test.go.
 	legend := []string{"Sequel"}
 	got := mapAniSearchGraphRelation(legend, 0, false)
 	if got != "Hauptgeschichte" {
