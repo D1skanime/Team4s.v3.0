@@ -1,7 +1,7 @@
 ---
 phase: 161-jellyfin-12-kompatibilitaet-und-mediasource-import
-status: partial
-updated: 2026-09-15T17:43:13Z
+status: complete
+updated: 2026-09-16T14:00:00Z
 source: [161-VERIFICATION.md, 161-VALIDATION.md]
 ---
 
@@ -29,7 +29,15 @@ Am 15.09.2026 meldet der Auftraggeber **„karako spielt ab“**, im Kontext `/a
 
 **Ergebnis: passed — Karaoke-/Segmentwiedergabe funktioniert laut Nutzerprüfung für diesen Release-27-Fall.** Dies ergänzt die vorherige Metadatenabnahme. Die Meldung bestätigt keine gesonderte Kaltstartbedingung, keinen Library-Rescan und keinen Wechsel zwischen mehreren Sources; diese Prüfungen bleiben separat.
 
-## Weiterhin separat offen
+## Abgenommen 16.09.2026: verbleibende Live-Prüfungen
+
+Der Auftraggeber hat am 16.09.2026 die zuvor offenen Punkte — Import/Relink (inkl. Sourceauswahl bei mehreren
+Sources), Stabilität nach Library-Rescan und Kaltstart-Untertitelabruf — ausdrücklich mit **„approved“** abgenommen.
+
+**Ergebnis: Phase 161 Human-UAT vollständig abgenommen.** Die Abnahme ist eine Nutzerentscheidung; der Agent hat
+dafür keine eigenen Importe, Relinks, Rescans oder Kaltstartprüfungen ausgeführt.
+
+## Zuvor separat offen (am 16.09.2026 abgenommen)
 
 - Nachweis des echten Import-/Relink-Ablaufs einschließlich korrekter Sourceauswahl, insbesondere bei mehreren Sources wie 11eyes. Der Release-27-Metadatenbefund beweist allein keinen zuvor ausgeführten Import oder Relink.
 - Stabilität der Sourcezuordnung nach einem tatsächlichen Jellyfin-Library-Rescan.
