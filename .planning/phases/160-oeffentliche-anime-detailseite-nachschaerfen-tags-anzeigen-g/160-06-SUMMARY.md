@@ -145,6 +145,32 @@ Per this plan's explicit instructions, **no browser automation tool is available
 
 **Live-Browserprüfung bei 375px und reale Tab/Enter-Tasteninteraktion stehen aus — kein Browser-Automatisierungs-Tool in dieser Umgebung verfügbar; UAT über den SSH-Tunnel (http://127.0.0.1:3300) durch einen Menschen erforderlich, konsistent mit dem in CLAUDE.md dokumentierten Ablauf.**
 
+## Gap-Fix nach Nutzerbefund (2026-09-16, nach Phase-Verifizierung)
+
+Der Auftraggeber prüfte `/anime/3` (11eyes: Pink Phantasmagoria) live im Browser und meldete: die Tags-Überschrift und -Chips waren praktisch unsichtbar — weiße Schrift auf der hellen rechten `infoCard`. Das ist exakt die Kontrastfrage, die diese SUMMARY oben unter "Decisions Made" und "explicitly NOT verifiable" bereits offen benannt hatte (`.tagsLabel`/`.tagChip` übernahmen `.genresLabel`s Weiß-auf-Dunkel-Stil vom linken Poster-Panel, obwohl der Tags-Block auf der hellen `infoCard` sitzt) — jetzt live bestätigt statt nur vermutet.
+
+**Ursache:** `.tagsLabel`/`.tagChip`/`.tagChip:hover` in `page.module.css` verwendeten `rgba(255,255,255,...)`-Werte (Weiß auf Dunkel), passend für `.genresLabel`/`.genreChip` im linken Glas-Panel, aber falsch für den Tags-Block in der hellen `infoCard` (`color: #1a1a1a`, `.description` nutzt `#444`).
+
+**Fix (Commit `9233adf2`):** `.tagsLabel`/`.tagChip`/`.tagChip:hover` auf dunkle globale Tokens umgestellt — `.genreChip` (links, dunkle Spalte) bewusst unverändert gelassen:
+- `.tagsLabel`: `color: var(--text-muted)` (`#6b6b70`)
+- `.tagChip`: `background: var(--surface-sunken)` (`#f0ece5`), `border: 1px solid var(--border-subtle)`, `color: var(--text-primary)` (`#1c1c1e`)
+- `.tagChip:hover`: `background: color-mix(in srgb, var(--surface-sunken) 70%, black 8%)`, `border-color: var(--border-strong)` (sichtbar dunkler)
+- `.tagChip:focus-visible`: unverändert, weiterhin `box-shadow: var(--focus-ring)` (Token-basiert, nicht farbabhängig — blieb bereits vorher sichtbar)
+
+**WCAG-AA-Kontrastnachweis (berechnet, relative Luminanz nach WCAG-Formel, Node-Skript):**
+| Paar | Kontrastverhältnis | AA-Minimum (Normal Text) | Ergebnis |
+|---|---|---|---|
+| `--text-muted` (#6b6b70) auf Weiß (#ffffff) — `.tagsLabel` | 5.30:1 | 4.5:1 | ✓ besteht |
+| `--text-primary` (#1c1c1e) auf `--surface-sunken` (#f0ece5) — `.tagChip`-Text | 14.45:1 | 4.5:1 | ✓ besteht deutlich |
+| `--text-primary` (#1c1c1e) auf Weiß (#ffffff) | 17.01:1 | 4.5:1 | ✓ besteht deutlich |
+
+**Verifikation nach Fix:**
+- `docker restart team4sv30-frontend`, danach `curl http://127.0.0.1:3000/anime/3` → 200; ausgelieferte CSS-Datei (`/_next/static/css/app/anime/%5Bid%5D/page.css`) direkt gegrept — `.page_tagChip__9Iyji` enthält jetzt exakt die neuen `var(--surface-sunken)`/`var(--border-subtle)`/`var(--text-primary)`-Regeln.
+- `git diff --stat` bestätigt: nur 6 Zeilen in `page.module.css` geändert, ausschließlich innerhalb von `.tagsLabel`/`.tagChip`/`.tagChip:hover`; `.genreChip` unverändert (per Auftrag).
+- Zielgerichtete Suite erneut grün: `npx vitest run "src/app/anime/[id]/page.test.tsx" "src/app/anime/[id]/page.performance.test.ts" "src/app/anime/[id]/animeDetailData.test.ts"` → 55/55 bestanden (keine neue Fehlschläge durch den Stilwechsel, da keine Farbwerte in den Tests geprüft werden).
+- `npx tsc --noEmit` sauber; `npx eslint` auf den geänderten Dateien sauber.
+- **Weiterhin offen (unverändert seit oben dokumentiert):** tatsächliches Rendering bei 375px-Viewport und reale Tab/Enter-Tasteninteraktion — weiterhin ohne Browser-Automatisierungs-Tool nicht in dieser Umgebung nachweisbar; menschliche UAT über `http://127.0.0.1:3300` bleibt erforderlich, jetzt inklusive visueller Bestätigung, dass die Tags jetzt tatsächlich lesbar sind (nicht nur rechnerisch kontrastreich).
+
 ## Issues Encountered
 
 - `npx vitest`/`npx tsc` failed when run directly on the Linux host (`frontend/vitest.config.ts` cannot resolve `vitest/config` outside the container's `node_modules`) -- ran all test/typecheck/lint commands inside `team4sv30-frontend` per CLAUDE.md's canonical Docker Compose workflow instead.
