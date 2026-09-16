@@ -185,3 +185,20 @@ func TestEpisodeImportSourceCompleteEmptyClearsTechnicalStreams(t *testing.T) {
 	require.Empty(t, bindings["actual-item"].AudioTracks)
 	require.Empty(t, bindings["actual-item"].SubtitleTracks)
 }
+
+func TestEpisodeImportSourceSiblingPersistence(t *testing.T) {
+ pool:=openEpisodeImportSourceFixture(t); ctx:=context.Background(); repo:=NewEpisodeImportRepository(pool)
+ input:=episodeSourceInput()
+ b:=input.MediaCandidates[0]; b.MediaSourceID="source-b"; b.Path="/anime/b.mp4"; b.FileName="b.mp4"
+ b.AudioTracks=[]models.JellyfinAudioTrack{{Index:1,Codec:"aac"}}
+ mapping:=input.Mappings[0]; mapping.MediaSourceID="source-b"
+ input.MediaCandidates=append(input.MediaCandidates,b); input.Mappings=append(input.Mappings,mapping)
+ result,err:=repo.Apply(ctx,input); require.NoError(t,err); require.EqualValues(t,2,result.VersionsCreated)
+ var sources,versions,variants int
+ require.NoError(t,pool.QueryRow(ctx,"SELECT count(*) FROM stream_sources").Scan(&sources))
+ require.NoError(t,pool.QueryRow(ctx,"SELECT count(*) FROM release_versions").Scan(&versions))
+ require.NoError(t,pool.QueryRow(ctx,"SELECT count(*) FROM release_variants").Scan(&variants))
+ require.Equal(t,2,sources); require.Equal(t,2,versions); require.Equal(t,2,variants)
+ result,err=repo.Apply(ctx,input); require.NoError(t,err); require.EqualValues(t,0,result.VersionsCreated)
+ require.EqualValues(t,2,result.VersionsUpdated)
+}

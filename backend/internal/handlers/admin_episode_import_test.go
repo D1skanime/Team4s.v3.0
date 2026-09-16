@@ -781,3 +781,35 @@ func TestEpisodeImport11eyesPreviewKeepsActualItemsAndRequestBudget(t *testing.T
 	}
 	t.Log("preview: 1 unchanged collection request; 27 actual items despite 38 distinct sources; 26 after one existing-coverage filter")
 }
+
+func TestEpisodeImport11eyesEnumeratesEveryPhysicalSource(t *testing.T) {
+ payload := read11eyesSourceFixture(t, "11eyes-series")
+ requests := 0
+ server := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+  requests++
+  require.Equal(t, "/Shows/series/Episodes", r.URL.Path)
+  require.NoError(t, json.NewEncoder(w).Encode(payload))
+ }))
+ defer server.Close()
+ h := &AdminContentHandler{jellyfinBaseURL: server.URL, jellyfinAPIKey:"fixture-key", httpClient:server.Client()}
+ c,_ := gin.CreateTestContext(httptest.NewRecorder()); c.Request=httptest.NewRequest("POST","/",nil)
+ candidates,err := h.loadEpisodeImportMediaCandidates(c,"series",nil)
+ require.NoError(t,err)
+ expected := map[string]bool{}
+ owners := map[string]bool{}
+ for _,item := range payload.Items { owners[item.ID]=true; for _,source := range item.MediaSources { expected[source.ID]=true } }
+ require.Len(t,expected,38,"fixture has 27 real Items and 38 physical sources, including nested-only siblings")
+ actual := map[string]bool{}
+ for _,candidate := range candidates {
+  require.True(t,owners[candidate.MediaItemID],"only genuine Item owners may be fetched")
+  require.False(t,actual[candidate.MediaSourceID],"nested/standalone aliases must appear once")
+  actual[candidate.MediaSourceID]=true
+ }
+ require.Equal(t,expected,actual)
+ require.Equal(t,1,requests,"source expansion must not produce per-source network calls")
+ for _,episode := range []int32{2,3} {
+  count:=0
+  for _,candidate := range candidates { if candidate.JellyfinEpisodeNumber!=nil && *candidate.JellyfinEpisodeNumber==episode { count++ } }
+  require.Equal(t,3,count)
+ }
+}
