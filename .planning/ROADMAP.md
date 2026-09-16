@@ -1896,7 +1896,7 @@ Abschluss der Plaene 157-11..14, Befunde F1-F5)*
 **Requirements**: TBD (in discuss-phase zu klären)
 **Depends on:** Phase 159; erst planen, wenn die separate Jellyfin-Reparatur (andere KI, parallel) abgeschlossen ist — Banner, Logo und Laufzeit der Detailseite hängen am Jellyfin-Medien-Manifest.
 **Verbindliche Quelle:** .planning/phases/160-oeffentliche-anime-detailseite-nachschaerfen-tags-anzeigen-g/160-LIVE-UAT-BEFUNDE.md — Live-UAT-Befunde und Entscheidungen des Auftraggebers vom 2026-09-15. Mehrere Punkte sind dort als offen markiert und werden in discuss-phase geklärt.
-**Hinweis:** Die menschliche Abnahme von Phase 158/159 bleibt bis zur Umsetzung dieser Phase ausdrücklich offen.
+**Hinweis:** Phase 158/159 wurden am 16.09.2026 vom Auftraggeber „so weit“ abgenommen; die noch nötigen Überarbeitungen der Detailseite gehören in diese Phase 160.
 **Plans:** 0 plans
 
 Plans:
@@ -1907,7 +1907,7 @@ Plans:
 **Goal:** Die tatsächlich verwendeten Team4s-Jellyfin-Zugriffe funktionieren unter Jellyfin 12 und importieren eine deterministisch zugeordnete MediaSource samt zugehörigem Container, Audio und Untertiteln; keine Secret-URLs, kein N+1 und keine Änderungen anderer Provider.
 **Requirements**: P161-AUTH, P161-API, P161-ITEMS, P161-SOURCE, P161-METADATA, P161-REGRESSION
 **Depends on:** Implementierter Stand 159 und Repository-Baseline b3b07ff0; Phase 160 war keine Voraussetzung und wurde nicht ausgeführt.
-**Plans:** 9/9 technisch abgeschlossen; unabhängige Verifikation 16/16, keine offene Implementierungslücke. human_needed hält nicht ausgeführte Live-Import-/Relink-/Rescan-/Wiedergabeprüfungen offen.
+**Plans:** 9/9 technisch abgeschlossen; unabhängige Verifikation 16/16, keine offene Implementierungslücke. Human-UAT am 16.09.2026 vom Auftraggeber vollständig abgenommen (inkl. Import/Relink, Rescan, Kaltstart).
 
 - [x] 161-01 — Jellyfin-Transport und korrekte Metadatenabfragen
 - [x] 161-02 — Typisierte Quellenbindung und deterministische Auswahl

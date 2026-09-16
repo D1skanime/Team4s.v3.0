@@ -81,7 +81,9 @@ Read-only-Belege: 26 GETs ohne Fehler, Buddy 13 mit korrekten Seiten 5+5+3, 11ey
 
 Maßgeblich: phases/161-jellyfin-12-kompatibilitaet-und-mediasource-import/161-09-SUMMARY.md, 161-VERIFICATION.md, 161-VALIDATION.md und docs/audits/2026-09-15-jellyfin12/RESULTS.md. Dateigröße/Kapitel gehören zum separaten Folgeauftrag; dessen Ausführung und Status werden getrennt geführt. Phase 160 wurde nicht gestartet. Die vorhandenen frischen menschlichen Abnahmen 156/157 bleiben gültig; offene Anime-UAT 158/159 bleibt unverändert. Historische Milestone-Zähler werden nicht pauschal umgeschrieben.
 
-## Aktiver Zusatzauftrag — Anime 158/159: technisch abgeschlossen (14.09.2026)
+## Abgeschlossener Zusatzauftrag — Anime 158/159 (Nutzerabnahme 16.09.2026)
+
+**Vom Nutzer am 16.09.2026 „approved so weit“ abgenommen.** Nötige Überarbeitungen der öffentlichen Anime-Detailseite werden in Phase 160 umgesetzt (Quelle 160-LIVE-UAT-BEFUNDE.md); sie sind keine offene Abnahme von 158/159 mehr.
 
 Genau zwei Phasen tragen den Auftrag. Phase 158 ist vollständig implementiert und im autorisierten Scope technisch verifiziert: 4/4 Plans, 9/9 Anforderungen, 33/33 Produktionsfixture-Prüfgruppen, unabhängiger Code-Review clean und 10/10 geplante Sicherheitsmaßnahmen belegt. Ausgangscommit: `7c7e1c7d02ac870e7c68c02b66fd7f4b33f36b85`; technischer Abschluss und verbindlicher Phase-159-Start: `c3bfcb23781addca1ccd3931592535416f706787`.
 
@@ -91,7 +93,7 @@ Die volle Frontendsuite endet mit 2616 bestandenen Tests, denselben zwei bestehe
 
 F-08/F-14 sind im autorisierten Public-/Vertragsscope behandelt; die volle Adminprojektion, die unbeschränkte neutrale AnimeDetail-Fallbackliste und die alte mehrdeutige Stream-Compatibility ohne Variantenselector bleiben bewusst erhalten. Weitere ausgeschlossene Produktentscheidungen werden nicht nebenbei umgesetzt. Keine Live-Daten-, Migrations-, Medienoriginal-, Env- oder Volumenänderung; kein Push. Die fremde `frontend/scripts/shot2.mjs` bleibt unangetastet.
 
-Human-UAT 156 (inkl. GAP-08/GAP-09) und 157-06 Task 4 sind am 2026-09-15 vom Auftraggeber live abgenommen. Die menschliche Anime-Abnahme für 158/159 bleibt ausdrücklich OPEN. Der implementierte Auftrag ist technisch abgeschlossen; fehlendes Human-Sign-off wird nicht durch Agentenprüfungen ersetzt. Die nachfolgenden Current-Position-/Milestoneabschnitte sowie historischen globalen Phasenzähler bleiben erhalten. Die historische GSD-Parseranzeige 129 und das ältere PROJECT-Dokument sind im Delta-Bericht eingeordnet; kein Milestone-Reset. Verbindlich für diesen Zusatzauftrag sind ROADMAP/REQUIREMENTS und die Artefakte der Phasen 158/159.
+Human-UAT 156 (inkl. GAP-08/GAP-09) und 157-06 Task 4 sind am 2026-09-15 vom Auftraggeber live abgenommen. Die menschliche Anime-Abnahme für 158/159 war bis 16.09.2026 offen und ist seitdem „so weit“ erteilt (Folgearbeit Phase 160). Der implementierte Auftrag ist technisch abgeschlossen; fehlendes Human-Sign-off wird nicht durch Agentenprüfungen ersetzt. Die nachfolgenden Current-Position-/Milestoneabschnitte sowie historischen globalen Phasenzähler bleiben erhalten. Die historische GSD-Parseranzeige 129 und das ältere PROJECT-Dokument sind im Delta-Bericht eingeordnet; kein Milestone-Reset. Verbindlich für diesen Zusatzauftrag sind ROADMAP/REQUIREMENTS und die Artefakte der Phasen 158/159.
 
 ## Milestone v1.3: COMPLETE (2026-08-20, tag `v1.3`)
 
