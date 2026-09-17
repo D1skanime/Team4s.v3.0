@@ -168,22 +168,7 @@
   background: var(--color-primary-hover);
 }
 
-.noVersionHint {
-  border: 1px solid var(--color-border);
-  border-radius: var(--radius-sm);
-  padding: 14px;
-  background: var(--color-bg-light);
-}
-
-.noVersionText {
-  margin: 0;
-  color: var(--text-secondary);
-  font-size: 15px;
-  font-weight: 500;
-}
-
-.noVersionAction {
-  margin: 6px 0 0;
-  color: var(--text-muted);
-  font-size: 14px;
+.episodeListDimmed {
+  opacity: 0.5;
+  pointer-events: none;
 }
