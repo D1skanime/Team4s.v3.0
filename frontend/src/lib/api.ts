@@ -2163,6 +2163,7 @@ export async function getGroupedEpisodes(
     query.set("projection", options.projection);
     if (options.limit !== undefined) query.set("limit", String(options.limit));
     if (options.cursor !== undefined) query.set("cursor", options.cursor);
+    if (options.fansub !== undefined) query.set("fansub", options.fansub);
   }
   const suffix = query.size ? `?${query}` : "";
   const response = await authorizedFetch(

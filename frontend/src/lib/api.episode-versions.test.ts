@@ -32,6 +32,15 @@ describe('grouped episode API projections', () => {
     expect(init.cache).toBe('no-store')
   })
 
+  it('forwards the fansub slug as a query parameter when present (D-04)', async () => {
+    const fetchMock = vi.fn().mockResolvedValue(response(emptyPage)); vi.stubGlobal('fetch', fetchMock)
+    await expect(getGroupedEpisodes(1, { projection: 'public', fansub: 'animeownage' })).resolves.toEqual(emptyPage)
+    expect(fetchMock).toHaveBeenCalledOnce()
+    const [url] = fetchMock.mock.calls[0]
+    const query = new URL(url, 'https://fixture.invalid').searchParams
+    expect(query.get('fansub')).toBe('animeownage')
+  })
+
   it('leaves the server default limit implicit and preserves neutral empty arrays', async () => {
     const neutral = { data: { ...emptyPage.data, episodes: [{ episode_id: 11, episode_number: 1, version_count: 0, versions: [] }] } }
     const fetchMock = vi.fn().mockResolvedValue(response(neutral)); vi.stubGlobal('fetch', fetchMock)

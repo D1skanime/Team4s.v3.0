@@ -33,7 +33,7 @@ beforeEach(() => {
     __NEXT_IMAGE_OPTS: { ...imageConfigDefault, ...nextConfig.images },
   } })
   vi.mocked(getAnimeFansubs).mockResolvedValue({ data: [] })
-  groupedMock.mockResolvedValue({ data: { anime_id: 1, episodes: [], pagination: { has_more: false, next_cursor: null, row_limit: 24 } } })
+  groupedMock.mockResolvedValue({ data: { anime_id: 1, episodes: [], episode_count: 0, pagination: { has_more: false, next_cursor: null, row_limit: 24 } } })
   vi.mocked(getAnimeComments).mockResolvedValue({ data: [], meta: { page: 1, per_page: 10, total: 0, total_pages: 0 } })
   vi.mocked(getAnimeRelations).mockResolvedValue({ data: [] })
 })
@@ -105,7 +105,7 @@ describe('Tags-Block ohne zusaetzliche Netzwerkkosten (Auftraggeber-Mandat Punkt
   async function totalFetchCallsFor(tags: string[] | undefined): Promise<number> {
     vi.clearAllMocks()
     vi.mocked(getAnimeFansubs).mockResolvedValue({ data: [] })
-    groupedMock.mockResolvedValue({ data: { anime_id: 1, episodes: [], pagination: { has_more: false, next_cursor: null, row_limit: 24 } } })
+    groupedMock.mockResolvedValue({ data: { anime_id: 1, episodes: [], episode_count: 0, pagination: { has_more: false, next_cursor: null, row_limit: 24 } } })
     vi.mocked(getAnimeComments).mockResolvedValue({ data: [], meta: { page: 1, per_page: 10, total: 0, total_pages: 0 } })
     vi.mocked(getAnimeRelations).mockResolvedValue({ data: [] })
     vi.mocked(getAnimeByID).mockResolvedValue({ data: {

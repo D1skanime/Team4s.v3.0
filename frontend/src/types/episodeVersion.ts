@@ -171,6 +171,8 @@ export interface PublicGroupedEpisodesResponse {
   data: {
     anime_id: number
     episodes: PublicGroupedEpisode[]
+    /** Trefferzahl ueber alle Seiten im aktuellen Filter, im selben Statement berechnet (D-12). */
+    episode_count: number
     pagination: { has_more: boolean; next_cursor: string | null; row_limit: number }
   }
 }
@@ -179,5 +181,7 @@ export interface PublicGroupedEpisodesOptions {
   projection: 'public'
   limit?: number
   cursor?: string
+  /** Anime-scoped Fansub-Gruppen-Slug-Filter (D-04); serverseitig fail-closed validiert. */
+  fansub?: string
   signal?: AbortSignal
 }

@@ -64,3 +64,19 @@ export function buildFansubStoryGroups(relations: AnimeFansubRelation[]): Fansub
 
   return groups
 }
+
+/**
+ * Loest den SSR-seitig gueltigen Fansub-Filter-Slug auf (D-05/D-11): bei 0 oder 1
+ * distinkter Gruppe (gleiche Dedupe-Regel wie `buildFansubStoryGroups`), bei einem
+ * leeren `rawSlug` oder bei einem nicht passenden `rawSlug` liefert die Funktion
+ * `undefined` (kein Filter). Nur bei >=2 Gruppen UND einem passenden Slug wird der
+ * Slug unveraendert zurueckgegeben.
+ *
+ * NICHT implementiert in Plan 163-03 (bewusste RED-Baseline) -- siehe Plan 163-04.
+ */
+export function resolveActiveFansubSlug(
+  _relations: AnimeFansubRelation[],
+  _rawSlug: string | undefined,
+): string | undefined {
+  throw new Error('resolveActiveFansubSlug: not implemented — see Plan 163-04')
+}

@@ -2,7 +2,7 @@ import { describe, expect, it } from 'vitest'
 
 import type { AnimeFansubRelation } from '@/types/fansub'
 
-import { buildFansubStoryGroups, buildFansubStoryPreview } from './fansub-summary'
+import { buildFansubStoryGroups, buildFansubStoryPreview, resolveActiveFansubSlug } from './fansub-summary'
 
 function makeRelation(overrides: Partial<AnimeFansubRelation> = {}): AnimeFansubRelation {
   return {
@@ -73,6 +73,63 @@ describe('buildFansubStoryGroups', () => {
         status: 'active',
       },
     ])
+  })
+})
+
+describe('resolveActiveFansubSlug', () => {
+  // RED (Plan 163-03): resolveActiveFansubSlug ist absichtlich unimplementiert
+  // (throw new Error('not implemented — see Plan 163-04')) -- jeder Fall hier
+  // schlaegt heute mit genau diesem Fehler fehl, nicht mit einem Modul-Crash.
+  // Die eigentliche Resolutionslogik liefert Plan 163-04.
+
+  it('liefert undefined bei null Relationen, unabhaengig von rawSlug', () => {
+    expect(resolveActiveFansubSlug([], 'irgendein-slug')).toBeUndefined()
+    expect(resolveActiveFansubSlug([], undefined)).toBeUndefined()
+  })
+
+  it('liefert undefined bei genau einer Relation mit fansub_group, unabhaengig von rawSlug', () => {
+    const relations = [makeRelation({ fansub_group: { id: 1, slug: 'c-subs', name: 'C-Subs' } })]
+
+    expect(resolveActiveFansubSlug(relations, 'c-subs')).toBeUndefined()
+    expect(resolveActiveFansubSlug(relations, 'fremder-slug')).toBeUndefined()
+    expect(resolveActiveFansubSlug(relations, undefined)).toBeUndefined()
+  })
+
+  it('liefert den Slug unveraendert bei zwei distinkten Gruppen und passendem rawSlug (zweite Gruppe)', () => {
+    const relations = [
+      makeRelation({ fansub_group: { id: 1, slug: 'alpha-subs', name: 'Alpha-Subs' } }),
+      makeRelation({ fansub_group: { id: 2, slug: 'beta-subs', name: 'Beta-Subs' } }),
+    ]
+
+    expect(resolveActiveFansubSlug(relations, 'beta-subs')).toBe('beta-subs')
+  })
+
+  it('liefert undefined bei zwei distinkten Gruppen und einem zu keiner Gruppe passenden rawSlug', () => {
+    const relations = [
+      makeRelation({ fansub_group: { id: 1, slug: 'alpha-subs', name: 'Alpha-Subs' } }),
+      makeRelation({ fansub_group: { id: 2, slug: 'beta-subs', name: 'Beta-Subs' } }),
+    ]
+
+    expect(resolveActiveFansubSlug(relations, 'does-not-exist')).toBeUndefined()
+  })
+
+  it('liefert undefined bei zwei distinkten Gruppen und rawSlug=undefined', () => {
+    const relations = [
+      makeRelation({ fansub_group: { id: 1, slug: 'alpha-subs', name: 'Alpha-Subs' } }),
+      makeRelation({ fansub_group: { id: 2, slug: 'beta-subs', name: 'Beta-Subs' } }),
+    ]
+
+    expect(resolveActiveFansubSlug(relations, undefined)).toBeUndefined()
+  })
+
+  it('dedupliziert nach fansub_group.id (zwei Relationen dieselbe Gruppe) und findet die dritte, distinkte Gruppe ueber ihren Slug', () => {
+    const relations = [
+      makeRelation({ fansub_group: { id: 1, slug: 'alpha-subs', name: 'Alpha-Subs' } }),
+      makeRelation({ fansub_group: { id: 1, slug: 'alpha-subs', name: 'Alpha-Subs' } }),
+      makeRelation({ fansub_group: { id: 3, slug: 'gamma-subs', name: 'Gamma-Subs' } }),
+    ]
+
+    expect(resolveActiveFansubSlug(relations, 'gamma-subs')).toBe('gamma-subs')
   })
 })
 
