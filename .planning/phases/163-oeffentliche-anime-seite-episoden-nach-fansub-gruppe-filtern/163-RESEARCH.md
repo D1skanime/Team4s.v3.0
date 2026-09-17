@@ -281,22 +281,22 @@ pgx binds a nil `*int64` as SQL `NULL` directly — no `sql.NullInt64` wrapper n
 
 **If this table is empty:** N/A — three low-risk naming/discretion items are logged above; no claim here needs user confirmation to become a locked decision (D-01..D-19 already lock the substantive behavior).
 
-## Open Questions
+## Open Questions (RESOLVED)
 
-1. **Exact response placement of the D-12 hit count**
+1. **Exact response placement of the D-12 hit count** — RESOLVED via `163-CONTEXT.md`'s "Claude's Discretion" grant (naming of the count field left to planner/executor).
    - What we know: it must be in the same SQL statement (no extra query), and the client must be able to read it from every page response, not just page 1 (D-12).
    - What's unclear: whether it belongs on `PublicGroupedEpisodesData` (sibling to `pagination`) or nested inside `pagination` itself.
-   - Recommendation: planner picks one; both are equally cheap. This research recommends top-level `episode_count` for symmetry with `anime_id`/`episodes`.
+   - Resolution: `163-02-PLAN.md` locks this as a top-level `episode_count` field, for symmetry with `anime_id`/`episodes`.
 
-2. **HTTP status for a `fansub` slug that is syntactically valid but currently has zero anime associations at all vs. one that belongs to a *different* anime**
+2. **HTTP status for a `fansub` slug that is syntactically valid but currently has zero anime associations at all vs. one that belongs to a *different* anime** — RESOLVED via `163-CONTEXT.md`'s "Claude's Discretion" grant (D-05 backend behavior left to planner, provided it fails closed and is tested).
    - What we know: both must fail closed per D-05; the live data currently has no anime with zero groups combined with a non-empty `fansub` param in practice, since Phase 162's frontend never sends an invalid slug.
    - What's unclear: whether the Auftraggeber wants these two cases (typo vs. cross-anime) distinguished in the error message.
-   - Recommendation: treat both identically (400, same generic message) — matches the existing `badRequest(c, "ungültige Episodenoptionen")`-style generic error messages elsewhere in this handler; this is a defense-in-depth path the normal UI never triggers per 162 D-02.
+   - Resolution: `163-02-PLAN.md` treats both identically — 400 with the existing `badRequest(c, "ungültige Episodenoptionen")`-style generic error message; this is a defense-in-depth path the normal UI never triggers per 162 D-02.
 
-3. **Whether `FansubGroupPicker`/`FansubGroupContext` need to react to the new `episode_count` for their own display, or only the "Episoden (N)" heading in `page.tsx` does**
+3. **Whether `FansubGroupPicker`/`FansubGroupContext` need to react to the new `episode_count` for their own display, or only the "Episoden (N)" heading in `page.tsx` does** — RESOLVED, plan-time wiring detail, not a research gap.
    - What we know: D-12 only mentions the heading, and D-13 (badge "+N Versionen") is explicitly `version_count`-derived (already correct via D-03), not `episode_count`-derived.
    - What's unclear: nothing beyond wiring — this is a plan-time detail, not a research gap.
-   - Recommendation: only `page.tsx`'s heading and `FansubVersionBrowser.tsx`'s client-held count (post group-switch) need `episode_count`; no other component needs it.
+   - Resolution: `163-04-PLAN.md` wires `episode_count` only into `page.tsx`'s heading and `FansubVersionBrowser.tsx`'s client-held count (post group-switch); no other component needs it.
 
 ## Environment Availability
 
