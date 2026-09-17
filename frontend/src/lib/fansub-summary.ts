@@ -71,12 +71,19 @@ export function buildFansubStoryGroups(relations: AnimeFansubRelation[]): Fansub
  * leeren `rawSlug` oder bei einem nicht passenden `rawSlug` liefert die Funktion
  * `undefined` (kein Filter). Nur bei >=2 Gruppen UND einem passenden Slug wird der
  * Slug unveraendert zurueckgegeben.
- *
- * NICHT implementiert in Plan 163-03 (bewusste RED-Baseline) -- siehe Plan 163-04.
  */
 export function resolveActiveFansubSlug(
-  _relations: AnimeFansubRelation[],
-  _rawSlug: string | undefined,
+  relations: AnimeFansubRelation[],
+  rawSlug: string | undefined,
 ): string | undefined {
-  throw new Error('resolveActiveFansubSlug: not implemented — see Plan 163-04')
+  const distinctGroupIds = new Set<number>()
+  for (const relation of relations) {
+    if (!relation.fansub_group) continue
+    distinctGroupIds.add(relation.fansub_group.id)
+  }
+  if (distinctGroupIds.size < 2) return undefined
+  if (!rawSlug) return undefined
+  const hasMatch = relations.some((relation) => relation.fansub_group?.slug === rawSlug)
+  if (!hasMatch) return undefined
+  return rawSlug
 }

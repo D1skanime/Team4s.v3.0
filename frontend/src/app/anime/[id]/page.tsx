@@ -2,7 +2,7 @@ import { Suspense } from 'react'
 import type { Metadata } from 'next'
 import Link from 'next/link'
 import Image from 'next/image'
-import { Download, ExternalLink, Play } from 'lucide-react'
+import { ExternalLink } from 'lucide-react'
 
 import { AnimeBackdropRotator } from '@/components/anime/AnimeBackdropRotator'
 import { AnimeContributionsSection } from '@/components/anime/AnimeContributionsSection'
@@ -21,7 +21,7 @@ import {
   getGroupedEpisodes,
 } from '@/lib/api'
 import { normalizeGridQuery } from '@/lib/animeGridContext'
-import { buildFansubStoryGroups } from '@/lib/fansub-summary'
+import { buildFansubStoryGroups, resolveActiveFansubSlug } from '@/lib/fansub-summary'
 import { getEmbySeriesUrlForAnime } from '@/lib/emby'
 import { resolveAnimeCoverURL } from '@/lib/animeBackdrops'
 
@@ -88,15 +88,23 @@ async function AnimeDetailContent({ anime, searchParams }: {
     typeof resolvedSearchParams.fansub === 'string' ? resolvedSearchParams.fansub : undefined
 
   const embySeriesUrl = getEmbySeriesUrlForAnime(anime.id)
-  const [animeFansubsResult, groupedEpisodesResult, commentsResult, relationsResult] =
-    await Promise.allSettled([
-      getAnimeFansubs(anime.id),
-      getGroupedEpisodes(anime.id, { projection: 'public', limit: 24 }),
-      getAnimeComments(animeID, { page: 1, per_page: 10 }),
-      getAnimeRelations(anime.id),
-    ])
 
+  // D-11: die Fansub-Relationen werden zuerst geladen, damit der SSR-Episoden-Fetch
+  // bereits mit dem aufgeloesten Filter-Slug startet (kein "Alle"->Gruppe-Flackern).
+  const [animeFansubsResult] = await Promise.allSettled([getAnimeFansubs(anime.id)])
   const animeFansubsResponse = animeFansubsResult.status === 'fulfilled' ? animeFansubsResult.value : null
+  const resolvedFansubSlug = resolveActiveFansubSlug(animeFansubsResponse?.data ?? [], rawFansubParam)
+
+  const [groupedEpisodesResult, commentsResult, relationsResult] = await Promise.allSettled([
+    getGroupedEpisodes(anime.id, {
+      projection: 'public',
+      limit: 24,
+      ...(resolvedFansubSlug ? { fansub: resolvedFansubSlug } : {}),
+    }),
+    getAnimeComments(animeID, { page: 1, per_page: 10 }),
+    getAnimeRelations(anime.id),
+  ])
+
   const groupedEpisodesResponse = groupedEpisodesResult.status === 'fulfilled' ? groupedEpisodesResult.value : null
 
   const fansubStoryGroups = buildFansubStoryGroups(animeFansubsResponse?.data ?? [])
@@ -104,7 +112,9 @@ async function AnimeDetailContent({ anime, searchParams }: {
   const commentsResponse = commentsResult.status === 'fulfilled' ? commentsResult.value : null
   const commentsError = commentsResult.status === 'rejected' ? 'Kommentare konnten nicht geladen werden.' : null
   const relationsResponse = relationsResult.status === 'fulfilled' ? relationsResult.value : null
-  const episodeCount = anime.episodes.length
+  // D-12: die Trefferzahl kommt aus der gefilterten Fetch-Antwort, nicht mehr aus
+  // anime.episodes.length -- als episodeCount-Prop an FansubVersionBrowser durchgereicht.
+  const episodeCount = groupedEpisodesResponse?.data.episode_count ?? 0
 
   // One already bounded source for the poster and every decorative cover consumer.
   const coverUrl = resolveAnimeCoverURL(anime.cover_image)
@@ -254,7 +264,6 @@ async function AnimeDetailContent({ anime, searchParams }: {
       {/* Content Area (Episodes, Comments) */}
       <div className={styles.contentArea}>
         <section className={styles.episodesSection}>
-          <h2>Episoden ({episodeCount})</h2>
           {groupedEpisodesResponse ? (
             <FansubVersionBrowser
               key={anime.id}
@@ -264,37 +273,20 @@ async function AnimeDetailContent({ anime, searchParams }: {
               storyGroups={fansubStoryGroups}
               episodes={groupedEpisodesResponse.data.episodes}
               pagination={groupedEpisodesResponse.data.pagination}
+              episodeCount={episodeCount}
               initialActiveSlug={rawFansubParam}
             />
-          ) : anime.episodes.length === 0 ? (
-            <div className={styles.emptyEpisodes}>Noch keine Episoden vorhanden.</div>
           ) : (
-            <ul className={styles.episodeList}>
-              {anime.episodes.map((episode) => (
-                <li key={episode.id} className={styles.episodeItem}>
-                  <div>
-                    <p className={styles.episodeNumber}>Folge {episode.episode_number}</p>
-                    <p className={styles.episodeTitle}>{episode.title ?? 'Ohne Titel'}</p>
-                    <p className={styles.episodeMeta}>
-                      Views: {episode.view_count.toLocaleString('de-DE')} | Downloads:{' '}
-                      {episode.download_count.toLocaleString('de-DE')} | Status: {episode.status}
-                    </p>
-                  </div>
-                  <div className={styles.episodeActions}>
-                    <Link href={`/episodes/${episode.id}`} className={styles.actionButton} aria-label="Episode streamen">
-                      <Play size={16} />
-                    </Link>
-                    <Link
-                      href={`/episodes/${episode.id}`}
-                      className={styles.actionButton}
-                      aria-label="Episode herunterladen"
-                    >
-                      <Download size={16} />
-                    </Link>
-                  </div>
-                </li>
-              ))}
-            </ul>
+            // D-16: neutraler Fehlerhinweis statt der ungefilterten anime.episodes-Notfallliste.
+            // Literal-Text statt ErrorState-Primitive: dieser Server-Component-Ast wird von
+            // page.test.tsx nur ueber eine flache props.children-Baumwanderung geprueft, die
+            // NICHT durch fremde Komponenten hindurch rendert (ErrorStates title/description
+            // sind fuer diese Prüfung unsichtbare Props, keine JSX-Children). FansubVersionBrowser
+            // (Task 2) nutzt ErrorState/EmptyState regulaer, dort rendert echtes RTL react-dom.
+            <div className={styles.emptyEpisodes} role="alert">
+              <p>Episoden konnten nicht geladen werden.</p>
+              <p>Die Episodenliste ist derzeit nicht verfügbar. Bitte laden Sie die Seite neu.</p>
+            </div>
           )}
         </section>
 
