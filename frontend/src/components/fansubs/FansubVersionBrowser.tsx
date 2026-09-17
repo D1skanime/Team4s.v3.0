@@ -10,7 +10,7 @@ import { getGroupedEpisodes } from '@/lib/api'
 import { Button } from '@/components/ui/Button'
 
 import { PublicGroupedEpisode, PublicEpisodeVersion, PublicGroupedEpisodesResponse } from '@/types/episodeVersion'
-import { ActiveFansubStory } from './ActiveFansubStory'
+import { FansubGroupContext } from './FansubGroupContext'
 import { AnimeFansubRelation, FansubGroupSummary } from '@/types/fansub'
 
 import styles from './FansubVersionBrowser.module.css'
@@ -142,6 +142,7 @@ function FansubVersionBrowserContent({ animeID, animeSlug, fansubs, episodes, pa
   const groupProjectHref = animeSlug?.trim() && activeGroup?.slug?.trim()
     ? buildPublicFansubProjectPath(activeGroup.slug, animeSlug)
     : `/anime/${animeID}/group/${activeFansubGroupID}`
+  const activeStoryGroup = storyGroups.find((group) => group.id === activeFansubGroupID) ?? null
 
   useEffect(() => {
     const ids = JSON.parse(selectionScope) as number[]
@@ -238,7 +239,7 @@ function FansubVersionBrowserContent({ animeID, animeSlug, fansubs, episodes, pa
 
   return (
     <>
-    <ActiveFansubStory activeFansubGroupID={activeFansubGroupID} groups={storyGroups} />
+    <FansubGroupContext activeGroup={activeStoryGroup} animeSlug={animeSlug} />
     <section className={styles.section}>
       <div className={styles.filterRow}>
         {fansubOptions.map((relation) => {

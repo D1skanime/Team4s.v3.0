@@ -84,7 +84,10 @@ function stateBrowser(relations = fansubs, animeID = 22) {
 function assertGroup(id: 7 | 9) {
   const selected = fansubs[id === 7 ? 0 : 1].fansub_group!
   expect(screen.getByRole('button', { name: selected.name }).getAttribute('aria-pressed')).toBe('true')
-  expect(within(screen.getByRole('article')).getByRole('link', { name: selected.name })).toBeTruthy()
+  // D-13: the group-specific area renders the group name as a heading WITHOUT a link.
+  const heading = within(screen.getByRole('article')).getByRole('heading', { name: selected.name })
+  expect(heading).toBeTruthy()
+  expect(within(screen.getByRole('article')).queryByRole('link', { name: selected.name })).toBeNull()
   expect(screen.getByText(`Variante ${id}`)).toBeTruthy()
   expect(screen.queryByText(`Variante ${id === 7 ? 9 : 7}`)).toBeNull()
 }
