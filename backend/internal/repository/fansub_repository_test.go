@@ -4,6 +4,7 @@ import (
 	"os"
 	"strings"
 	"testing"
+	"unicode/utf8"
 
 	"team4s.v3/backend/internal/models"
 )
@@ -249,4 +250,51 @@ func TestListAnimeFansubs_SummaryIncludesFansubStoryFacts(t *testing.T) {
 
 func strPtr(value string) *string {
 	return &value
+}
+
+// TestTruncateStoryPreviewRunes prüft die rune-sichere Kürzungsfunktion für
+// story_preview per echter Verhaltens-Assertion gegen die Funktion selbst
+// (kein Quelltext-String-Matching).
+func TestTruncateStoryPreviewRunes(t *testing.T) {
+	t.Run("nil input returns nil", func(t *testing.T) {
+		if got := truncateStoryPreviewRunes(nil, 500); got != nil {
+			t.Fatalf("expected nil, got %v", *got)
+		}
+	})
+
+	t.Run("empty string returns nil", func(t *testing.T) {
+		if got := truncateStoryPreviewRunes(strPtr(""), 500); got != nil {
+			t.Fatalf("expected nil, got %v", *got)
+		}
+	})
+
+	t.Run("whitespace-only string returns nil", func(t *testing.T) {
+		if got := truncateStoryPreviewRunes(strPtr("   "), 500); got != nil {
+			t.Fatalf("expected nil, got %v", *got)
+		}
+	})
+
+	t.Run("short text is returned unchanged", func(t *testing.T) {
+		got := truncateStoryPreviewRunes(strPtr("kurzer Text"), 500)
+		if got == nil {
+			t.Fatalf("expected non-nil result")
+		}
+		if *got != "kurzer Text" {
+			t.Fatalf("expected unchanged text, got %q", *got)
+		}
+	})
+
+	t.Run("long umlaut text is truncated rune-safely to exact limit", func(t *testing.T) {
+		long := strings.Repeat("ä", 600)
+		got := truncateStoryPreviewRunes(&long, 500)
+		if got == nil {
+			t.Fatalf("expected non-nil result")
+		}
+		if runeLen := len([]rune(*got)); runeLen != 500 {
+			t.Fatalf("expected exactly 500 runes, got %d", runeLen)
+		}
+		if !utf8.ValidString(*got) {
+			t.Fatalf("expected valid UTF-8 string, got invalid: %q", *got)
+		}
+	})
 }

@@ -1271,6 +1271,31 @@ func (r *FansubRepository) DeleteMember(ctx context.Context, fansubID, memberID 
 	return nil
 }
 
+// fansubStoryPreviewRuneLimit ist die maximale Anzahl Runes (nicht Bytes),
+// die story_preview in ListAnimeFansubs tragen darf. Rune-basiert statt
+// byte-basiert, damit mehrbyte-kodierte Zeichen (Umlaute ä/ö/ü/ß, „…") nicht
+// mitten im Byte zerschnitten werden.
+const fansubStoryPreviewRuneLimit = 500
+
+// truncateStoryPreviewRunes kürzt raw rune-sicher auf höchstens limit Runes.
+// Gibt nil zurück, wenn raw nil ist oder nach dem Trimmen leer bleibt (nur
+// Whitespace zählt als leer).
+func truncateStoryPreviewRunes(raw *string, limit int) *string {
+	if raw == nil {
+		return nil
+	}
+	trimmed := strings.TrimSpace(*raw)
+	if trimmed == "" {
+		return nil
+	}
+	runes := []rune(trimmed)
+	if len(runes) <= limit {
+		return &trimmed
+	}
+	truncated := string(runes[:limit])
+	return &truncated
+}
+
 func (r *FansubRepository) ListAnimeFansubs(
 	ctx context.Context,
 	animeID int64,
@@ -1286,9 +1311,20 @@ func (r *FansubRepository) ListAnimeFansubs(
 	rows, err := r.db.Query(ctx, `
 		SELECT
 			afg.anime_id, afg.fansub_group_id, afg.is_primary, afg.notes, afg.created_at,
-			fg.id, fg.slug, fg.name, fg.logo_url, fg.founded_year, fg.dissolved_year, fg.country, fg.status
+			fg.id, fg.slug, fg.name, fg.logo_url, fg.founded_year, fg.dissolved_year, fg.country, fg.status,
+			story.body_text
 		FROM anime_fansub_groups afg
 		JOIN fansub_groups fg ON fg.id = afg.fansub_group_id
+		LEFT JOIN LATERAL (
+			SELECT n.body_text
+			FROM fansub_group_notes n
+			WHERE n.fansub_group_id = fg.id
+			  AND n.visibility = 'public'
+			  AND n.status = 'published'
+			  AND n.deleted_at IS NULL
+			ORDER BY n.sort_order ASC, n.id ASC
+			LIMIT 1
+		) story ON true
 		WHERE afg.anime_id = $1
 		ORDER BY afg.is_primary DESC, fg.name ASC
 	`, animeID)
@@ -1301,6 +1337,7 @@ func (r *FansubRepository) ListAnimeFansubs(
 	for rows.Next() {
 		var item models.AnimeFansubRelation
 		var group models.FansubGroupSummary
+		var storyBodyText *string
 		if err := rows.Scan(
 			&item.AnimeID,
 			&item.FansubGroupID,
@@ -1315,9 +1352,11 @@ func (r *FansubRepository) ListAnimeFansubs(
 			&group.DissolvedYear,
 			&group.Country,
 			&group.Status,
+			&storyBodyText,
 		); err != nil {
 			return nil, fmt.Errorf("scan anime fansub row: %w", err)
 		}
+		group.StoryPreview = truncateStoryPreviewRunes(storyBodyText, fansubStoryPreviewRuneLimit)
 		item.FansubGroup = &group
 		items = append(items, item)
 	}

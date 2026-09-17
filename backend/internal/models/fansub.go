@@ -127,6 +127,13 @@ type FansubGroupSummary struct {
 	DissolvedYear *int32  `json:"dissolved_year,omitempty"`
 	Country       *string `json:"country,omitempty"`
 	Status        string  `json:"status,omitempty"`
+	// StoryPreview ist der rune-sicher auf fansubStoryPreviewRuneLimit Runes
+	// gekürzte body_text der ersten öffentlichen, veröffentlichten
+	// fansub_group_notes-Geschichte dieser Gruppe (nil, wenn keine existiert).
+	// Nur ListAnimeFansubs befüllt dieses Feld; andere Konsumenten dieses
+	// gemeinsamen Schemas (z. B. PublicEpisodeVersion.fansub_groups[]) lassen
+	// es unbefüllt.
+	StoryPreview *string `json:"story_preview,omitempty"`
 }
 
 // FansubMember repraesentiert ein Mitglied einer Fansub-Gruppe mit Rolle und Zeitraum.
