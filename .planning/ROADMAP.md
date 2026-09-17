@@ -1952,7 +1952,7 @@ Plans:
 **Verbindliche Quellen:** `.planning/phases/162-oeffentliche-anime-seite-fansub-gruppenauswahl-kurzgeschichte-navigation/162-USER-REQUEST.md` und `162-CONTEXT.md`.
 **Scopegrenze:** keine Coop-Kennzeichnung in der Versionszeile, keine neue Coop-Entität, keine Datenänderung durch Agenten (Coop-Testdaten legt der Auftraggeber an).
 **UI hint:** yes
-**Plans:** 4/5 plans executed
+**Plans:** 5/5 plans complete
 
 Plans:
 **Wave 1**
@@ -1973,4 +1973,4 @@ Plans:
 
 **Wave 5** *(blocked on Wave 4 completion)*
 
-- [ ] 162-05-PLAN.md — Read-only DB-Inventar + Desktop-/Mobile-Browser-Verifikation (§16/§17)
+- [x] 162-05-PLAN.md — Read-only DB-Inventar + Desktop-/Mobile-Browser-Verifikation (§16/§17)
