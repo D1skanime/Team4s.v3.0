@@ -166,6 +166,26 @@ describe('anime detail integration without invented data', () => {
     expect(css.match(/\.heroContainer\s*\{([^}]+)\}/)?.[1]).toMatch(/overflow:\s*visible/)
     expect(css.match(/\.page\s*\{([^}]+)\}/)?.[1]).not.toMatch(/overflow/)
   })
+
+  it('reicht searchParams.fansub unveraendert als initialActiveSlug an FansubVersionBrowser durch (D-04)', async () => {
+    const boundary = await AnimeDetailPage({
+      ...paramsFor('22'), searchParams: Promise.resolve({ fansub: 'bloody-shadow' }),
+    })
+    const content = await (boundary.props.children.type(boundary.props.children.props) as Promise<ReactNode>)
+    const browser = elements(content).find((item) => item.type === FansubVersionBrowser)
+    expect(browser?.props.initialActiveSlug).toBe('bloody-shadow')
+  })
+
+  it('laesst initialActiveSlug undefined, wenn kein fansub-Query-Parameter vorhanden ist', async () => {
+    const content = await loadContent()
+    const browser = elements(content).find((item) => item.type === FansubVersionBrowser)
+    expect(browser?.props.initialActiveSlug).toBeUndefined()
+  })
+
+  it('enthaelt kein .fansubRow/.fansubChip-CSS mehr (D-13, ersatzlos entfernt)', () => {
+    const css = readFileSync(join(process.cwd(), 'src/app/anime/[id]/page.module.css'), 'utf8')
+    expect(css).not.toMatch(/\.fansubRow|\.fansubChip/)
+  })
 })
 
 describe('bounded public SSR inventory', () => {
