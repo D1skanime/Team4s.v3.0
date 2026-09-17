@@ -1,16 +1,14 @@
 'use client'
 
 import Image from 'next/image'
-import Link from 'next/link'
 import { useEffect, useMemo, useRef, useState } from 'react'
-
-import { buildPublicFansubProjectPath } from '@/lib/fansubProjectRoutes'
 
 import { getGroupedEpisodes } from '@/lib/api'
 import { Button } from '@/components/ui/Button'
 
 import { PublicGroupedEpisode, PublicEpisodeVersion, PublicGroupedEpisodesResponse } from '@/types/episodeVersion'
 import { FansubGroupContext } from './FansubGroupContext'
+import { FansubGroupPicker } from './FansubGroupPicker'
 import { AnimeFansubRelation, FansubGroupSummary } from '@/types/fansub'
 
 import styles from './FansubVersionBrowser.module.css'
@@ -22,15 +20,8 @@ interface FansubVersionBrowserProps {
   episodes: PublicGroupedEpisode[]
   pagination?: PublicGroupedEpisodesResponse['data']['pagination']
   storyGroups?: FansubGroupSummary[]
-  onActiveFansubChange?: (fansubGroupId: number | null) => void
-}
-
-interface PersistedFilterState {
-  activeFansubGroupId?: number | null
-}
-
-function getStorageKey(animeID: number): string {
-  return `anime:${animeID}:fansub-filter`
+  /** SSR-Initialwert aus `searchParams.fansub` (D-04). Bei genau einer Gruppe wird der Wert ignoriert (D-02). */
+  initialActiveSlug?: string | null
 }
 
 function collectFansubOptions(fansubs: AnimeFansubRelation[]): AnimeFansubRelation[] {
@@ -40,16 +31,6 @@ function collectFansubOptions(fansubs: AnimeFansubRelation[]): AnimeFansubRelati
     map.set(relation.fansub_group.id, relation)
   }
   return Array.from(map.values())
-}
-
-function parseStoredSelection(raw: string | null, validIDs: number[], fallback: number | null): number | null {
-  try {
-    const candidate: unknown = raw ? (JSON.parse(raw) as PersistedFilterState | null)?.activeFansubGroupId : null
-    return typeof candidate === 'number' && Number.isSafeInteger(candidate) && candidate > 0 && validIDs.includes(candidate)
-      ? candidate : fallback
-  } catch {
-    return fallback
-  }
 }
 
 function resolveLogoUrl(raw?: string | null): string | null {
@@ -129,58 +110,49 @@ export function FansubVersionBrowser(props: FansubVersionBrowserProps) {
   return <FansubVersionBrowserContent key={props.animeID} {...props} />
 }
 
-function FansubVersionBrowserContent({ animeID, animeSlug, fansubs, episodes, pagination, storyGroups = [], onActiveFansubChange }: FansubVersionBrowserProps) {
+function FansubVersionBrowserContent({ animeID, animeSlug, fansubs, episodes, pagination, initialActiveSlug }: FansubVersionBrowserProps) {
   const fansubOptions = useMemo(() => collectFansubOptions(fansubs), [fansubs])
-  const validIDs = fansubOptions.map((relation) => relation.fansub_group!.id)
-  const selectionScope = JSON.stringify(validIDs)
-  const fallback = fansubOptions.find((relation) => relation.is_primary)?.fansub_group?.id ?? validIDs[0] ?? null
-  const [selectedGroupID, setSelectedGroupID] = useState<number | null>(fallback)
-  const activeFansubGroupID = selectedGroupID !== null && validIDs.includes(selectedGroupID) ? selectedGroupID : fallback
+  const showAllChip = fansubOptions.length >= 2
+  // D-02: bei genau einer Gruppe wird der URL-Parameter ignoriert -- die Gruppe ist immer aktiv.
+  const [selectedSlug, setSelectedSlug] = useState<string | null>(
+    fansubOptions.length === 1 ? null : (initialActiveSlug ?? null),
+  )
+  const activeFansubGroupID = fansubOptions.length === 0
+    ? null
+    : fansubOptions.length === 1
+      ? fansubOptions[0].fansub_group!.id
+      : fansubOptions.find((relation) => relation.fansub_group?.slug === selectedSlug)?.fansub_group?.id ?? null
   const [expandedEpisodes, setExpandedEpisodes] = useState<Record<number, true>>({})
-  const selectionContext = useRef<{ scope: string; active: boolean; revision: number } | null>(null)
-  const activeGroup = fansubOptions.find((relation) => relation.fansub_group?.id === activeFansubGroupID)?.fansub_group
-  const groupProjectHref = animeSlug?.trim() && activeGroup?.slug?.trim()
-    ? buildPublicFansubProjectPath(activeGroup.slug, animeSlug)
-    : `/anime/${animeID}/group/${activeFansubGroupID}`
-  const activeStoryGroup = storyGroups.find((group) => group.id === activeFansubGroupID) ?? null
+  const activeGroup = activeFansubGroupID !== null
+    ? fansubOptions.find((relation) => relation.fansub_group?.id === activeFansubGroupID)?.fansub_group ?? null
+    : null
 
+  // D-01/D-03: die URL ist die einzige Quelle des Gruppenkontexts. Browser Zurueck/Vor
+  // liest den Parameter erneut, ohne einen neuen fachlichen Datenrequest auszuloesen.
   useEffect(() => {
-    const ids = JSON.parse(selectionScope) as number[]
-    const context = { scope: selectionScope, active: true, revision: 0 }
-    selectionContext.current = context
-    const key = getStorageKey(animeID)
-    // The server and first hydration render use props only. A cancelled StrictMode
-    // effect or an explicit selection must not be overwritten by this mount read.
-    void Promise.resolve().then(() => {
-      if (!context.active || context.revision !== 0) return
-      let stored: string | null = null
-      try { stored = window.localStorage.getItem(key) } catch { /* Storage can be unavailable. */ }
-      setSelectedGroupID(parseStoredSelection(stored, ids, fallback))
-    })
-    const handleStorage = (event: StorageEvent) => {
-      if (!context.active || (event.key !== null && event.key !== key)) return
-      try {
-        if (event.storageArea && event.storageArea !== window.localStorage) return
-      } catch { return }
-      context.revision += 1
-      setSelectedGroupID(parseStoredSelection(event.newValue, ids, fallback))
+    function handlePopState() {
+      const params = new URLSearchParams(window.location.search)
+      setSelectedSlug(params.get('fansub'))
     }
-    window.addEventListener('storage', handleStorage)
-    return () => {
-      context.active = false
-      window.removeEventListener('storage', handleStorage)
-    }
-  }, [animeID, selectionScope, fallback])
+    window.addEventListener('popstate', handlePopState)
+    return () => window.removeEventListener('popstate', handlePopState)
+  }, [])
 
-  function selectFansubGroup(groupID: number) {
-    const context = selectionContext.current
-    if (!context?.active || context.scope !== selectionScope || !validIDs.includes(groupID)) return
-    context.revision += 1
-    setSelectedGroupID(groupID)
-    try {
-      window.localStorage.setItem(getStorageKey(animeID), JSON.stringify({ activeFansubGroupId: groupID }))
-    } catch { /* Keep the current tab usable when persistence is blocked. */ }
-    onActiveFansubChange?.(groupID)
+  function updateFansubSelection(groupID: number | null) {
+    // Bei genau einer Gruppe gibt es keinen Klickpfad (kein "Alle"-Chip, kein Wechsel-Chip).
+    if (fansubOptions.length < 2) return
+    const slug = groupID === null
+      ? null
+      : fansubOptions.find((relation) => relation.fansub_group?.id === groupID)?.fansub_group?.slug ?? null
+    const params = new URLSearchParams(window.location.search)
+    if (slug) params.set('fansub', slug)
+    else params.delete('fansub')
+    const query = params.toString()
+    // D-03: window.history.pushState statt der next/navigation-Router-Helfer -- diese Route
+    // ist bereits dynamisch (liest searchParams.grid_query/from) und wuerde damit einen
+    // RSC-Refetch der Seite ausloesen.
+    window.history.pushState(null, '', `${window.location.pathname}${query ? `?${query}` : ''}`)
+    setSelectedSlug(slug)
   }
 
   const [inventory, setInventory] = useState({ source: episodes, episodes, pagination })
@@ -238,38 +210,17 @@ function FansubVersionBrowserContent({ animeID, animeSlug, fansubs, episodes, pa
   }
 
   return (
-    <>
-    <FansubGroupContext activeGroup={activeStoryGroup} animeSlug={animeSlug} />
     <section className={styles.section}>
-      <div className={styles.filterRow}>
-        {fansubOptions.map((relation) => {
-          if (!relation.fansub_group) return null
-          const logoURL = resolveLogoUrl(relation.fansub_group.logo_url)
-          const isActive = activeFansubGroupID === relation.fansub_group.id
-          return (
-            <button
-              key={relation.fansub_group.id}
-              type="button"
-              className={`${styles.filterChip} ${isActive ? styles.filterChipActive : ''}`}
-              onClick={() => selectFansubGroup(relation.fansub_group!.id)}
-              aria-pressed={isActive}
-            >
-              {logoURL ? <Image src={logoURL} alt="" className={styles.logo} width={16} height={16} unoptimized /> : null}
-              {relation.fansub_group.name}
-            </button>
-          )
-        })}
-      </div>
-      {activeFansubGroupID !== null ? (
-        <div className={styles.groupCtaRow}>
-          <Link
-            href={groupProjectHref}
-            className={styles.groupButton}
-            aria-label="Zum Gruppenbereich"
-          >
-            Gruppenbereich
-          </Link>
-        </div>
+      {fansubOptions.length > 0 ? (
+        <>
+          <FansubGroupPicker
+            options={fansubOptions.map((relation) => relation.fansub_group!)}
+            activeGroupId={activeFansubGroupID}
+            showAllChip={showAllChip}
+            onSelect={updateFansubSelection}
+          />
+          <FansubGroupContext activeGroup={activeGroup} animeSlug={animeSlug} />
+        </>
       ) : null}
 
       {loadedEpisodes.length === 0 ? (
@@ -368,6 +319,5 @@ function FansubVersionBrowserContent({ animeID, animeSlug, fansubs, episodes, pa
         </Button>
       ) : null}
     </section>
-    </>
   )
 }
