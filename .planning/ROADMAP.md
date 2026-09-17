@@ -1952,7 +1952,7 @@ Plans:
 **Verbindliche Quellen:** `.planning/phases/162-oeffentliche-anime-seite-fansub-gruppenauswahl-kurzgeschichte-navigation/162-USER-REQUEST.md` und `162-CONTEXT.md`.
 **Scopegrenze:** keine Coop-Kennzeichnung in der Versionszeile, keine neue Coop-Entität, keine Datenänderung durch Agenten (Coop-Testdaten legt der Auftraggeber an).
 **UI hint:** yes
-**Plans:** 2/5 plans executed
+**Plans:** 3/5 plans executed
 
 Plans:
 **Wave 1**
@@ -1965,7 +1965,7 @@ Plans:
 
 **Wave 3** *(blocked on Wave 2 completion)*
 
-- [ ] 162-03-PLAN.md — Frontend: FansubVersionBrowser URL-Zustand (history.pushState/popstate statt localStorage) + Wiring
+- [x] 162-03-PLAN.md — Frontend: FansubVersionBrowser URL-Zustand (history.pushState/popstate statt localStorage) + Wiring
 
 **Wave 4** *(blocked on Wave 3 completion)*
 

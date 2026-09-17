@@ -3,14 +3,14 @@ gsd_state_version: 1.0
 milestone: v1.4
 milestone_name: Coverage
 status: verifying
-stopped_at: Completed 162-02-PLAN.md
-last_updated: "2026-09-17T08:47:06.414Z"
+stopped_at: Completed 162-03-PLAN.md
+last_updated: "2026-09-17T09:02:03.800Z"
 last_activity: 2026-09-17
 progress:
   total_phases: 27
   completed_phases: 26
   total_plans: 258
-  completed_plans: 255
+  completed_plans: 256
   percent: 96
 ---
 
@@ -1324,6 +1324,8 @@ Last activity: 2026-09-17
 - [Phase 162]: Nur-Whitespace-Text gilt als keine Geschichte (nil), analog D-05/Paragraph 7
 - [Phase 162]: Chip-Primitive: Button mit aria-pressed statt neuem Chip-Primitive (closest-analog, 4 bestehende Repo-Vorbilder) — FansubGroupPicker.tsx, UI-SPEC-Vorgabe
 - [Phase 162]: FansubVersionBrowser.tsx minimal umverdrahtet: activeStoryGroup aus storyGroups abgeleitet, FansubGroupContext statt geloeschtem ActiveFansubStory gerendert — Rule-3-Fix nach Loeschen von ActiveFansubStory.tsx; volle Chip/CTA-Wiring bleibt 162-03 vorbehalten
+- [Phase 162]: 162-03: activeGroup fuer FansubGroupContext wird direkt aus fansubOptions abgeleitet statt aus dem separaten storyGroups-Prop. — Beide liefern strukturell dieselben fansub_group-Objekte; storyGroups bleibt Teil der Props-Signatur, wird aber intern nicht mehr gelesen.
+- [Phase 162]: 162-03: der bisherige is_primary-Fallback aus der localStorage-Aera entfaellt ersatzlos. — D-02 legt fest, dass Alle Standard ist bei 2+ Gruppen ohne URL-Parameter.
 
 ### Pending Todos
 
@@ -1748,11 +1750,12 @@ untruncated list lives in `.planning/todos/pending/`.
 | Phase 160 P06 | 35min | 2 tasks | 4 files |
 | Phase 162 P01 | 35min | 3 tasks | 6 files |
 | Phase 162 P02 | 45min | 2 tasks | 8 files |
+| Phase 162 P03 | 55min | 2 tasks | 3 files |
 
 ## Session Continuity
 
-Last session: 2026-09-17T08:47:06.391Z
-Stopped at: Completed 162-02-PLAN.md
+Last session: 2026-09-17T09:02:03.781Z
+Stopped at: Completed 162-03-PLAN.md
 Last activity: 2026-09-16 - Completed quick task 260916-ako: Jellyfin-Geschwisterquellen getrennt importieren; Liveimport zweier Folge-2-Quellen geprüft, keine Phasen-UAT ersetzt.
 Resume file: 
 None

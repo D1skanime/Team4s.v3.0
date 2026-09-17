@@ -333,48 +333,48 @@ Source: `161-USER-REQUEST.md`, with decisions D-01 through D-16 in 161-CONTEXT.m
 
 Source: `162-USER-REQUEST.md` §1–§17, decisions D-01 through D-14 in `162-CONTEXT.md`, requirement IDs derived in `162-RESEARCH.md`. Plan 162-01 closes REQ-162-10/16/17 (the backend/contract foundation: additive `story_preview` field, unchanged group ordering, N+1-free bundled query). The remaining requirements are frontend/UX work for later plans in this phase (162-02ff.).
 
-- [ ] **REQ-162-01**: 0 Gruppen: kein Gruppenbereich, kein Platzhalter.
-- [ ] **REQ-162-02**: Genau 1 Gruppe: kein „Alle"-Chip, Gruppe automatisch aktiv.
-- [ ] **REQ-162-03**: 2+ Gruppen: „Alle" als Default, „Alle" nur ab 2 Gruppen sichtbar.
+- [x] **REQ-162-01**: 0 Gruppen: kein Gruppenbereich, kein Platzhalter.
+- [x] **REQ-162-02**: Genau 1 Gruppe: kein „Alle"-Chip, Gruppe automatisch aktiv.
+- [x] **REQ-162-03**: 2+ Gruppen: „Alle" als Default, „Alle" nur ab 2 Gruppen sichtbar.
 - [x] **REQ-162-04**: Filter-Chips: Logo 20px wenn vorhanden, reiner Text sonst, kein Dummy-Icon.
 - [x] **REQ-162-05**: Aktiver Zustand nicht nur über Farbe: Hintergrund+Rahmen+Fontgewicht+Fokusring.
 - [ ] **REQ-162-06**: Responsive: Wrap statt Pflicht-Scrollleiste, keine Layout-Sprengung.
 - [x] **REQ-162-07**: Chips sind reine Auswahl, keine Navigation.
-- [ ] **REQ-162-08**: „Alle": alle gruppenspezifischen Elemente vollständig ausgeblendet, nicht disabled.
+- [x] **REQ-162-08**: „Alle": alle gruppenspezifischen Elemente vollständig ausgeblendet, nicht disabled.
 - [x] **REQ-162-09**: Konkrete Gruppe: Name, ~3 Zeilen Geschichte, „Mehr lesen →", 2 Navigationsziele.
 - [x] **REQ-162-10**: Geschichte: bestehende `fansub_group_notes`-Quelle, `body_text`, `line-clamp:3`, „Mehr lesen →" zu `/fansubs/<slug>#geschichte`.
 - [x] **REQ-162-11**: Gruppe ohne Geschichte: kein Platzhaltertext, nur Name + 2 Navigationsziele.
 - [x] **REQ-162-12**: Navigation: „Zur Fansub-Gruppe", „Zum Projekt", echte Routen/Slugs aus Code ermitteln.
 - [x] **REQ-162-13**: Begriff „Gruppenbereich" nicht weiterverwenden; explizite Beschriftungen.
-- [ ] **REQ-162-14**: Coop: keine künstliche Gruppe/Filter, bestehende Mehrgruppen-Zuordnung.
-- [ ] **REQ-162-15**: URL-Zustand: `?fansub=<slug>`, Regeln für fehlenden/gültigen/ungültigen Parameter, Back/Forward.
+- [x] **REQ-162-14**: Coop: keine künstliche Gruppe/Filter, bestehende Mehrgruppen-Zuordnung.
+- [x] **REQ-162-15**: URL-Zustand: `?fansub=<slug>`, Regeln für fehlenden/gültigen/ungültigen Parameter, Back/Forward.
 - [x] **REQ-162-16**: Sortierung: bestehende fachliche Reihenfolge nicht überschreiben.
 - [x] **REQ-162-17**: Datenfluss/Performance: kein N+1, kein Einzelrequest pro Gruppe, kein volles Profil laden, additive kleinste Contract-Erweiterung.
 - [x] **REQ-162-18**: Accessibility: Tastatur, sichtbarer Fokus, Active State nicht nur Farbe, Accessible Names, echte Links, Chips/Links semantisch getrennt.
 - [x] **REQ-162-19**: Entfernen redundanter Alt-UI: `fansubRow`, Story-Titel-Link, Umschalt-Buttons, „Gruppenbereich"-CTA.
-- [ ] **REQ-162-20**: Tests A–L automatisiert abgedeckt.
+- [x] **REQ-162-20**: Tests A–L automatisiert abgedeckt.
 - [ ] **REQ-162-21**: Browser-Verifikation Desktop/Mobile über alle Datenkonstellationen.
 
 | Requirement | Phase | Status |
 |---|---|---|
-| REQ-162-01 | Phase 162 | Pending |
-| REQ-162-02 | Phase 162 | Pending |
-| REQ-162-03 | Phase 162 | Pending |
+| REQ-162-01 | Phase 162 | Complete |
+| REQ-162-02 | Phase 162 | Complete |
+| REQ-162-03 | Phase 162 | Complete |
 | REQ-162-04 | Phase 162 | Complete |
 | REQ-162-05 | Phase 162 | Complete |
 | REQ-162-06 | Phase 162 | Pending |
 | REQ-162-07 | Phase 162 | Complete |
-| REQ-162-08 | Phase 162 | Pending |
+| REQ-162-08 | Phase 162 | Complete |
 | REQ-162-09 | Phase 162 | Complete |
 | REQ-162-10 | Phase 162 | Complete |
 | REQ-162-11 | Phase 162 | Complete |
 | REQ-162-12 | Phase 162 | Complete |
 | REQ-162-13 | Phase 162 | Complete |
-| REQ-162-14 | Phase 162 | Pending |
-| REQ-162-15 | Phase 162 | Pending |
+| REQ-162-14 | Phase 162 | Complete |
+| REQ-162-15 | Phase 162 | Complete |
 | REQ-162-16 | Phase 162 | Complete |
 | REQ-162-17 | Phase 162 | Complete |
 | REQ-162-18 | Phase 162 | Complete |
 | REQ-162-19 | Phase 162 | Complete |
-| REQ-162-20 | Phase 162 | Pending |
+| REQ-162-20 | Phase 162 | Complete |
 | REQ-162-21 | Phase 162 | Pending |
