@@ -79,7 +79,9 @@ describe('authoritative anime project navigation', () => {
     expect(toggle.getAttribute('aria-expanded')).toBe('false')
     fireEvent.click(toggle)
     expect(toggle.getAttribute('aria-expanded')).toBe('true')
-    expect(screen.getByText('Keine Version dieser Gruppe verfügbar.')).toBeTruthy()
+    // D-15: der Hinweisblock "Keine Version dieser Gruppe verfuegbar." entfaellt ersatzlos --
+    // der Server liefert nie mehr eine Episode ohne mindestens eine passende Version.
+    expect(screen.queryByText('Keine Version dieser Gruppe verfügbar.')).toBeNull()
   })
 
   it('gives the white episode card the existing dark text token inherited by its header', () => {
@@ -141,14 +143,26 @@ describe('Fansub-Gruppenauswahl: URL-Zustand (D-01..D-04, D-09, D-13, D-14)', ()
     assertAllSelected()
   })
 
-  it('Testfall E/F: ein Chip-Wechsel zeigt vollstaendig den Inhalt der neu gewaehlten Gruppe', () => {
+  it('Testfall E/F: ein Chip-Wechsel zeigt vollstaendig den Inhalt der neu gewaehlten Gruppe (Server-Refetch statt Client-Filter, D-07)', async () => {
     render(stateBrowser())
     fireEvent.click(screen.getByRole('button', { name: /Gruppenfolge/ }))
+    groupedMock.mockResolvedValueOnce(publicPage([
+      { episode_id: 50, episode_number: 1, episode_title: 'Gruppenfolge', version_count: 1, versions: [variant(10, 7)] },
+    ]))
     fireEvent.click(screen.getByRole('button', { name: 'Anderer Gruppenname' }))
+    await waitFor(() => expect(getGroupedEpisodes).toHaveBeenCalledTimes(1), { timeout: 500 })
     assertGroup(7)
+    groupedMock.mockResolvedValueOnce(publicPage([
+      { episode_id: 50, episode_number: 1, episode_title: 'Gruppenfolge', version_count: 1, versions: [variant(20, 9)] },
+    ]))
     fireEvent.click(screen.getByRole('button', { name: 'Zweite Gruppe' }))
+    await waitFor(() => expect(getGroupedEpisodes).toHaveBeenCalledTimes(2), { timeout: 500 })
     assertGroup(9)
+    groupedMock.mockResolvedValueOnce(publicPage([
+      { episode_id: 50, episode_number: 1, episode_title: 'Gruppenfolge', version_count: 2, versions: [variant(10, 7), variant(20, 9)] },
+    ]))
     fireEvent.click(screen.getByRole('button', { name: 'Alle' }))
+    await waitFor(() => expect(getGroupedEpisodes).toHaveBeenCalledTimes(3), { timeout: 500 })
     assertAllSelected()
   })
 
@@ -163,11 +177,14 @@ describe('Fansub-Gruppenauswahl: URL-Zustand (D-01..D-04, D-09, D-13, D-14)', ()
     assertAllSelected()
   })
 
-  it('D-03: ein Chip-Wechsel loest keinen zusaetzlichen getGroupedEpisodes-Aufruf aus', () => {
+  it('D-07: ein Chip-Wechsel loest einen Refetch mit dem Ziel-Slug aus', async () => {
     render(stateBrowser())
     groupedMock.mockClear()
+    groupedMock.mockResolvedValueOnce({ data: { anime_id: 22, episodes: [], episode_count: 0, pagination: { has_more: false, next_cursor: null, row_limit: 24 } } })
     fireEvent.click(screen.getByRole('button', { name: 'Anderer Gruppenname' }))
-    expect(getGroupedEpisodes).not.toHaveBeenCalled()
+    await waitFor(() => expect(getGroupedEpisodes).toHaveBeenCalledExactlyOnceWith(22, expect.objectContaining({
+      projection: 'public', limit: 24, fansub: 'saved-primary', signal: expect.any(AbortSignal),
+    })), { timeout: 500 })
   })
 
   it('D-02: andere Query-Parameter bleiben beim Gruppenwechsel erhalten', () => {
@@ -179,22 +196,27 @@ describe('Fansub-Gruppenauswahl: URL-Zustand (D-01..D-04, D-09, D-13, D-14)', ()
     expect(params.get('fansub')).toBe('saved-primary')
   })
 
-  it('Browser Zurueck/Vor stellt ueber popstate die vorherige Gruppenauswahl wieder her, ohne Refetch', () => {
+  it('Browser Zurueck/Vor stellt ueber popstate die vorherige Gruppenauswahl wieder her, MIT Refetch (D-09)', async () => {
     render(stateBrowser())
     fireEvent.click(screen.getByRole('button', { name: 'Anderer Gruppenname' }))
     expect(screen.getByRole('button', { name: 'Anderer Gruppenname' }).getAttribute('aria-pressed')).toBe('true')
     groupedMock.mockClear()
+    groupedMock.mockResolvedValueOnce({ data: { anime_id: 22, episodes: [], episode_count: 0, pagination: { has_more: false, next_cursor: null, row_limit: 24 } } })
     // Simuliert einen Browser-Zurueck-Schritt: die URL verliert den Parameter wieder,
     // ein popstate-Event feuert (kein erneuter pushState durch die Komponente selbst).
+    // D-09: "immer neu laden" -- kein Cache pro Gruppe, auch bei Zurueck/Vor.
     act(() => {
       window.history.pushState(null, '', window.location.pathname)
       window.dispatchEvent(new PopStateEvent('popstate'))
     })
     assertAllSelected()
-    expect(getGroupedEpisodes).not.toHaveBeenCalled()
+    // Kein "fansub"-Schluessel: die URL nach dem Zurueck-Schritt hat keinen Parameter mehr ("Alle").
+    await waitFor(() => expect(getGroupedEpisodes).toHaveBeenCalledExactlyOnceWith(22, {
+      projection: 'public', limit: 24, signal: expect.any(AbortSignal),
+    }), { timeout: 500 })
   })
 
-  it('Testfall I: eine Coop-Version erzeugt keinen dritten Chip, jede beteiligte Gruppe bleibt einzeln auswaehlbar', () => {
+  it('Testfall I: eine Coop-Version erzeugt keinen dritten Chip, jede beteiligte Gruppe bleibt einzeln auswaehlbar (Server-Refetch, D-07)', async () => {
     const coopVersion: PublicEpisodeVersion = {
       ...variant(30, 7),
       fansub_groups: [fansubs[0].fansub_group!, fansubs[1].fansub_group!],
@@ -203,9 +225,15 @@ describe('Fansub-Gruppenauswahl: URL-Zustand (D-01..D-04, D-09, D-13, D-14)', ()
     render(<FansubVersionBrowser animeID={22} fansubs={fansubs} episodes={coopEpisodes} />)
     expect(screen.queryByText(/coop/i)).toBeNull()
     fireEvent.click(screen.getByRole('button', { name: /Gemeinsame Folge/ }))
+    // Eine Coop-Version gehoert per Definition zu beiden Gruppen -- der server-gefilterte
+    // Refetch fuer jede der beiden Gruppen liefert dieselbe coopEpisodes-Antwort zurueck.
+    groupedMock.mockResolvedValueOnce(publicPage(coopEpisodes))
     fireEvent.click(screen.getByRole('button', { name: 'Anderer Gruppenname' }))
+    await waitFor(() => expect(getGroupedEpisodes).toHaveBeenCalledTimes(1), { timeout: 500 })
     expect(screen.getByText('Variante 7')).toBeTruthy()
+    groupedMock.mockResolvedValueOnce(publicPage(coopEpisodes))
     fireEvent.click(screen.getByRole('button', { name: 'Zweite Gruppe' }))
+    await waitFor(() => expect(getGroupedEpisodes).toHaveBeenCalledTimes(2), { timeout: 500 })
     expect(screen.getByText('Variante 7')).toBeTruthy()
   })
 
@@ -218,7 +246,7 @@ describe('Fansub-Gruppenauswahl: URL-Zustand (D-01..D-04, D-09, D-13, D-14)', ()
 const ended: PublicGroupedEpisodesResponse['data']['pagination'] = { has_more: false, next_cursor: null, row_limit: 24 }
 const continued = (cursor: string) => ({ ...ended, has_more: true, next_cursor: cursor })
 function publicPage(episodes: PublicGroupedEpisode[], pagination = ended): PublicGroupedEpisodesResponse {
-  return { data: { anime_id: 22, episodes, pagination } }
+  return { data: { anime_id: 22, episodes, episode_count: episodes.length, pagination } }
 }
 function deferred<T>() {
   let resolve!: (value: T) => void
@@ -230,6 +258,11 @@ describe('bounded public inventory continuation', () => {
   it('merges 125 variants over explicit pages by episode_id/variant_id, retaining counts and neutral equal-number episodes', async () => {
     const variants = Array.from({ length: 125 }, (_, index) => ({ ...variant(index + 100, index === 124 ? 9 : 7), title: `Geladene Variante ${index}` }))
     const episode = (versions: typeof variants): PublicGroupedEpisode => ({ episode_id: 50, episode_number: 1, episode_title: 'Große Folge', version_count: 125, versions })
+    const group9Match = variants.filter((item) => item.title === 'Geladene Variante 124')
+    // D-07: die "Zweite Gruppe"- und "Anderer Gruppenname"-Chip-Klicks loesen jetzt je einen
+    // eigenen gruppengefilterten Refetch aus (vorher clientseitig kostenlos gefiltert, kein Request).
+    groupedMock.mockResolvedValueOnce(publicPage([episode(group9Match)]))
+    groupedMock.mockResolvedValueOnce(publicPage([episode(variants.slice(0, 23))]))
     for (let offset = 23; offset < 125; offset += 23) {
       const last = offset + 23 >= 125
       groupedMock.mockResolvedValueOnce(publicPage([
@@ -237,18 +270,19 @@ describe('bounded public inventory continuation', () => {
         ...(last ? [{ episode_id: 51, episode_number: 1, episode_title: 'Neutrale gleiche Nummer', version_count: 0, versions: [] }] : []),
       ], last ? ended : continued(`cursor-${offset + 23}`)))
     }
+    groupedMock.mockResolvedValueOnce(publicPage([episode(group9Match)]))
     render(<FansubVersionBrowser animeID={22} fansubs={fansubs} episodes={[episode(variants.slice(0, 23))]} pagination={continued('cursor-23')} />)
     await act(async () => {})
     fireEvent.click(screen.getByRole('button', { name: /Große Folge/ }))
     expect(screen.getByText('+125 Versionen')).toBeTruthy()
     fireEvent.click(screen.getByRole('button', { name: 'Zweite Gruppe' }))
-    expect(screen.getByText(/geladenen Ausschnitt/)).toBeTruthy()
-    expect(getGroupedEpisodes).not.toHaveBeenCalled()
+    await waitFor(() => expect(getGroupedEpisodes).toHaveBeenCalledTimes(1), { timeout: 500 })
     fireEvent.click(screen.getByRole('button', { name: 'Anderer Gruppenname' }))
+    await waitFor(() => expect(getGroupedEpisodes).toHaveBeenCalledTimes(2), { timeout: 500 })
     for (let index = 0; index < 5; index++) {
       fireEvent.click(screen.getByRole('button', { name: 'Weitere Episoden und Versionen laden' }))
-      await waitFor(() => expect(getGroupedEpisodes).toHaveBeenCalledTimes(index + 1))
-      await waitFor(() => expect(screen.queryByRole('button', { name: 'Weitere Episoden und Versionen laden' })?.hasAttribute('disabled')).not.toBe(true))
+      await waitFor(() => expect(getGroupedEpisodes).toHaveBeenCalledTimes(index + 3), { timeout: 500 })
+      await waitFor(() => expect(screen.queryByRole('button', { name: 'Weitere Episoden und Versionen laden' })?.hasAttribute('disabled')).not.toBe(true), { timeout: 500 })
     }
     expect(screen.queryByRole('button', { name: 'Weitere Episoden und Versionen laden' })).toBeNull()
     expect(screen.getByRole('button', { name: /Große Folge/ }).getAttribute('aria-expanded')).toBe('true')
@@ -256,10 +290,10 @@ describe('bounded public inventory continuation', () => {
     expect(screen.getAllByRole('link', { name: 'Version abspielen' })).toHaveLength(124)
     expect(screen.getByText('+125 Versionen')).toBeTruthy()
     fireEvent.click(screen.getByRole('button', { name: 'Zweite Gruppe' }))
+    await waitFor(() => expect(getGroupedEpisodes).toHaveBeenCalledTimes(8), { timeout: 500 })
     expect(screen.getByText('Geladene Variante 124')).toBeTruthy()
     expect(screen.getAllByRole('link', { name: 'Version abspielen' })).toHaveLength(1)
-    expect(getGroupedEpisodes).toHaveBeenCalledTimes(5)
-    expect(getGroupedEpisodes).toHaveBeenNthCalledWith(1, 22, expect.objectContaining({ projection: 'public', limit: 24, cursor: 'cursor-23', signal: expect.any(AbortSignal) }))
+    expect(getGroupedEpisodes).toHaveBeenNthCalledWith(3, 22, expect.objectContaining({ projection: 'public', limit: 24, cursor: 'cursor-23', signal: expect.any(AbortSignal) }))
   })
   it('uses canonical version plus exact variant even when the legacy number collides', async () => {
     render(<FansubVersionBrowser animeID={22} fansubs={[]} episodes={[{
