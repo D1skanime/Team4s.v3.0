@@ -3,14 +3,14 @@ gsd_state_version: 1.0
 milestone: v1.4
 milestone_name: Coverage
 status: executing
-stopped_at: Phase 163 context gathered
-last_updated: "2026-09-17T15:25:05.242Z"
+stopped_at: Completed 163-01-PLAN.md
+last_updated: "2026-09-17T16:42:52.487Z"
 last_activity: 2026-09-17
 progress:
   total_phases: 28
   completed_phases: 27
   total_plans: 263
-  completed_plans: 258
+  completed_plans: 259
   percent: 96
 ---
 
@@ -147,12 +147,12 @@ Phase 135 and any future roadmap entries continue from here.
 See: .planning/PROJECT.md (updated 2026-08-13)
 
 **Core value:** Team4s presents fansub history and collaboration credibly while keeping identity, visibility, ownership, and permissions correct.
-**Current focus:** Phase 160 — oeffentliche-anime-detailseite-nachschaerfen-tags-anzeigen-g
+**Current focus:** Phase 163 — oeffentliche-anime-seite-episoden-nach-fansub-gruppe-filtern
 
 ## Current Position
 
-Phase: 160 (oeffentliche-anime-detailseite-nachschaerfen-tags-anzeigen-g) — EXECUTING
-Plan: 6 of 6
+Phase: 163 (oeffentliche-anime-seite-episoden-nach-fansub-gruppe-filtern) — EXECUTING
+Plan: 2 of 5
 dupliziertem ProjectMemberStickyNav; siehe 157-14-SUMMARY.md)
 Status: Ready to execute
 GAP-02-Live-UAT-Checkpoint aus 156-UAT.md (5 Origin- + 9 Segment-Contributor-Pruefpunkte) wurde
@@ -1333,6 +1333,8 @@ Last activity: 2026-09-17
 - [Phase 162]: 162-03: activeGroup fuer FansubGroupContext wird direkt aus fansubOptions abgeleitet statt aus dem separaten storyGroups-Prop. — Beide liefern strukturell dieselben fansub_group-Objekte; storyGroups bleibt Teil der Props-Signatur, wird aber intern nicht mehr gelesen.
 - [Phase 162]: 162-03: der bisherige is_primary-Fallback aus der localStorage-Aera entfaellt ersatzlos. — D-02 legt fest, dass Alle Standard ist bei 2+ Gruppen ohne URL-Parameter.
 - [Phase 162]: 162-04: rawFansubParam wird 1:1 ohne serverseitige Validierung als initialActiveSlug durchgereicht -- Allowlist-Pruefung passiert bereits client-seitig in FansubVersionBrowser (T-162-06)
+- [Phase ?]: Pflichtfall F pagination-scope test uses a dedicated anime (id=8) instead of reusing anime 7 to avoid an ambiguous first-match under limit=1
+- [Phase ?]: RESEARCH.md's claim that an unrecognized fansub query param is 400-rejected is inaccurate; parseStrictNamedQuery silently ignores unknown keys, but all Plan 163-01 RED tests still fail today for a documented, legitimate reason
 
 ### Pending Todos
 
@@ -1759,13 +1761,14 @@ untruncated list lives in `.planning/todos/pending/`.
 | Phase 162 P02 | 45min | 2 tasks | 8 files |
 | Phase 162 P03 | 55min | 2 tasks | 3 files |
 | Phase 162 P04 | 25min | 3 tasks | 3 files |
+| Phase 163 P01 | 55min | 3 tasks | 2 files |
 
 ## Session Continuity
 
-Last session: 2026-09-17T14:30:43.419Z
-Stopped at: Phase 163 context gathered
+Last session: 2026-09-17T16:42:52.466Z
+Stopped at: Completed 163-01-PLAN.md
 Last activity: 2026-09-16 - Completed quick task 260916-ako: Jellyfin-Geschwisterquellen getrennt importieren; Liveimport zweier Folge-2-Quellen geprüft, keine Phasen-UAT ersetzt.
 Resume file: 
-.planning/phases/163-oeffentliche-anime-seite-episoden-nach-fansub-gruppe-filtern/163-CONTEXT.md
+None
 
 Plans 151-02/03/04 have implementation summaries. Plans 151-01 and 151-05 remain open until final artwork/composition review, complete browser evidence and independent verification; their missing summaries are intentional. No requirement or phase has been falsely marked complete.
