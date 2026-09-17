@@ -271,6 +271,25 @@ stehen noch aus und werden NICHT in diesem Dokument vorweggenommen oder erfunden
   Harness-Route-Commit; Task 2/3s menschliche Freigabe-Commits existieren nicht, da reine
   Verifikations-Checkpoints ohne Dateiänderung bzw. bereits committete Harness-Route).
 
+## Nachtrag — erneuter Frontend-Typecheck/Build nach Container-Neustart (dieser Task, Task 3-Vorbereitung)
+
+Nach dem oben dokumentierten Gesamtlauf wurde `team4sv30-frontend` neu gestartet (`docker restart
+team4sv30-frontend`, notwendig um die Live-Curl-Evidenz für Gate 9/10 gegen den neu gebauten
+Backend-Container zu erheben, siehe Gate 9/10 oben). Ein erneuter `npm run typecheck`-Lauf danach
+zeigt **0 Fehler** — der oben dokumentierte `AnimePageProps`-Fehler war ein durch den laufenden
+Next.js-Dev-Prozess zwischenzeitlich verwaistes generiertes Typenartefakt
+(`.next/dev/types/app/anime/page.ts`), kein tatsächlicher Quelltext-Fehler; ein Neustart hat es
+korrekt neu generiert. `npm run lint` bleibt bei denselben 3 vorbestehenden, unveränderten Fehlern
+(siehe oben). `npm run build` zeigt jetzt **einen anderen, ebenfalls vorbestehenden und
+Phase-164-unabhängigen Fehler**: ein SSR-Prerender-Fehler auf `/claim-invitations/accept`
+(`TypeError: Cannot read properties of null (reading 'useEffect')`) — diese Datei wurde zuletzt in
+Phase 135 geändert (`git log`), lange vor Phase 164, und von keinem Plan dieser Phase berührt. Der
+neue Harness-Route-Quelltext selbst (`frontend/src/app/dev/episode-windowing-preview/page.tsx`,
+Task 3 dieses Plans) ist einzeln geprüft: `npx tsc --noEmit` 0 Fehler, `npx eslint
+src/app/dev/episode-windowing-preview/page.tsx` 0 Findings, `curl` gegen die laufende Dev-Route
+liefert HTTP 200 mit dem erwarteten Mock-Inhalt, und ein Backend-Log-Scan über den Ladezeitraum
+bestätigt **0 Requests** gegen `team4sv30-backend` durch diese Route.
+
 ## Ausstehend (nicht Teil dieses automatisierten Laufs)
 
 - Task 2 (Live-Browser-UAT gegen echtes Naruto, `anime_id=4`) — **nicht durchgeführt**, da diese
