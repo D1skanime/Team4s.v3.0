@@ -1,6 +1,5 @@
 'use client'
 
-import Image from 'next/image'
 import { useEffect, useMemo, useRef, useState } from 'react'
 
 import { getGroupedEpisodes } from '@/lib/api'
@@ -10,8 +9,11 @@ import { ErrorState } from '@/components/ui/ErrorState'
 import { classNames } from '@/components/ui/classNames'
 
 import { PublicGroupedEpisode, PublicEpisodeVersion, PublicGroupedEpisodesResponse } from '@/types/episodeVersion'
+import { EpisodeGlassCard } from './EpisodeGlassCard'
+import { resolveEpisodeTitle } from './episodePreviewFormat'
 import { FansubGroupContext } from './FansubGroupContext'
 import { FansubGroupPicker } from './FansubGroupPicker'
+import { ReleasePreviewRow } from './ReleasePreviewRow'
 import { AnimeFansubRelation, FansubGroupSummary } from '@/types/fansub'
 
 import styles from './FansubVersionBrowser.module.css'
@@ -38,50 +40,6 @@ function collectFansubOptions(fansubs: AnimeFansubRelation[]): AnimeFansubRelati
     map.set(relation.fansub_group.id, relation)
   }
   return Array.from(map.values())
-}
-
-function resolveLogoUrl(raw?: string | null): string | null {
-  const value = (raw || '').trim()
-  if (!value) return null
-  if (value.startsWith('http://') || value.startsWith('https://') || value.startsWith('/')) {
-    return value
-  }
-  return `/covers/${value}`
-}
-
-function formatSubtitleType(value?: string | null): string {
-  if (value === 'softsub') return 'Softsub'
-  if (value === 'hardsub') return 'Hardsub'
-  return 'Unbekannt'
-}
-
-function formatReleaseDate(value?: string | null): string {
-  if (!value) return 'Kein Datum'
-  const parsed = new Date(value)
-  if (Number.isNaN(parsed.getTime())) return 'Kein Datum'
-  return parsed.toLocaleDateString('de-DE', {
-    year: 'numeric',
-    month: '2-digit',
-    day: '2-digit',
-  })
-}
-
-function resolveEpisodeTitle(episode: PublicGroupedEpisode, summaryVersion: PublicEpisodeVersion | null): string {
-  const explicitTitle = (episode.episode_title || '').trim()
-  if (explicitTitle) return explicitTitle
-  const summaryTitle = (summaryVersion?.title || '').trim()
-  if (summaryTitle) return summaryTitle
-  return `Folge ${episode.episode_number}`
-}
-
-function resolveReleaseName(version: PublicEpisodeVersion): string {
-  const explicit = (version.title || '').trim()
-  if (explicit) return explicit
-  return `Release #${version.release_version_id}`
-}
-
-function formatVersionCount(count: number): string {
-  return `+${count} ${count === 1 ? 'Version' : 'Versionen'}`
 }
 
 function getSummaryVersion(
@@ -343,69 +301,18 @@ function FansubVersionBrowserContent({
             const episodeTitle = resolveEpisodeTitle(episode, summaryVersion)
 
             return (
-              <li key={episode.episode_id} className={styles.episodeCard}>
-                <button
-                  type="button"
-                  className={styles.episodeHeader}
-                  onClick={() => toggleEpisode(episode.episode_id)}
-                  aria-expanded={expanded}
-                  aria-controls={panelID}
-                >
-                  <div>
-                    <p className={styles.episodeNumber}>Folge {episode.episode_number}</p>
-                    <p className={styles.summaryLine}>{episodeTitle}</p>
-                  </div>
-                  <span className={styles.countBadge}>{formatVersionCount(episode.version_count)}</span>
-                </button>
-
-                {expanded ? (
-                  <div id={panelID} className={styles.versionList}>
-                    {groupMatchedVersions.map((version) => {
-                      const versionLogoURL = resolveLogoUrl(version.fansub_groups?.[0]?.logo_url)
-                      return (
-                        <div key={version.variant_id} className={styles.versionRow}>
-                          <div className={styles.versionMeta}>
-                            <div className={styles.versionIdentity}>
-                              {versionLogoURL ? (
-                                <Image
-                                  src={versionLogoURL}
-                                  alt=""
-                                  className={styles.versionLogo}
-                                  width={36}
-                                  height={36}
-                                  unoptimized
-                                />
-                              ) : (
-                                <div className={styles.versionLogoFallback} aria-hidden="true">
-                                  {version.fansub_groups?.[0]?.name?.charAt(0)?.toUpperCase() || '?'}
-                                </div>
-                              )}
-                              <div className={styles.versionIdentityText}>
-                                <p className={styles.versionGroupName}>{version.fansub_groups?.map((g) => g.name).join(', ') || 'Unbekannt'}</p>
-                                <p className={styles.versionReleaseName}>{resolveReleaseName(version)}</p>
-                              </div>
-                            </div>
-                            <div className={styles.badgeRow}>
-                              <span className={styles.metaBadge}>{version.video_quality || 'n/a'}</span>
-                              <span className={styles.metaBadge}>{formatSubtitleType(version.subtitle_type)}</span>
-                              <span className={styles.metaBadge}>{formatReleaseDate(version.release_date)}</span>
-                            </div>
-                          </div>
-                          <a
-                            href={`/api/releases/${version.release_version_id}/stream?variant_id=${version.variant_id}`}
-                            className={styles.playButton}
-                            target="_blank"
-                            rel="noreferrer"
-                            aria-label="Version abspielen"
-                          >
-                            Play
-                          </a>
-                        </div>
-                      )
-                    })}
-                  </div>
-                ) : null}
-              </li>
+              <EpisodeGlassCard
+                key={episode.episode_id}
+                episode={episode}
+                episodeTitle={episodeTitle}
+                expanded={expanded}
+                onToggle={() => toggleEpisode(episode.episode_id)}
+                panelId={panelID}
+              >
+                {groupMatchedVersions.map((version) => (
+                  <ReleasePreviewRow key={version.variant_id} version={version} animeID={animeID} />
+                ))}
+              </EpisodeGlassCard>
             )
           })}
         </ul>

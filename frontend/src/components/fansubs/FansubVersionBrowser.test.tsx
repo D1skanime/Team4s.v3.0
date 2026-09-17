@@ -86,11 +86,116 @@ describe('authoritative anime project navigation', () => {
     expect(screen.queryByText('Keine Version dieser Gruppe verfügbar.')).toBeNull()
   })
 
-  it('gives the white episode card the existing dark text token inherited by its header', () => {
-    const css = readFileSync(join(process.cwd(), 'src/components/fansubs/FansubVersionBrowser.module.css'), 'utf8')
-    // jsdom cannot resolve custom properties; 158-04 verifies actual computed colors.
-    expect(css.match(/\.episodeCard\s*\{([^}]+)\}/)?.[1]).toContain('color: var(--color-text-primary)')
-    expect(css.match(/\.episodeHeader\s*\{([^}]+)\}/)?.[1]).toContain('color: inherit')
+  it('gives the glass episode card a neutral surface (unknown) and no bespoke opaque-card color token', () => {
+    // 164-04: die weisse, opake Episode-Card wird durch eine glasige, klassifikationsgetoente
+    // ersetzt (D-05). Die alten .episodeCard/.episodeHeader-Klassen sind entfernt.
+    const browserCss = readFileSync(join(process.cwd(), 'src/components/fansubs/FansubVersionBrowser.module.css'), 'utf8')
+    expect(browserCss).not.toContain('.episodeCard')
+    expect(browserCss).not.toContain('.episodeHeader')
+    const cardCss = readFileSync(join(process.cwd(), 'src/components/fansubs/EpisodeGlassCard.module.css'), 'utf8')
+    expect(cardCss).toContain('--glass-surface')
+    expect(cardCss).toContain('--glass-tint-canon')
+    expect(cardCss).toContain('--glass-tint-filler')
+    expect(cardCss).toContain('--glass-tint-mixed')
+    expect(cardCss).toContain('--glass-tint-recap')
+  })
+})
+
+describe('D-48 visueller Testfall-Katalog (Zeilen 1-19/24-25 aus 164-UI-SPEC.md)', () => {
+  function classifiedEpisode(overrides: Partial<PublicGroupedEpisode> = {}): PublicGroupedEpisode {
+    return {
+      ...DEFAULT_CLASSIFICATION,
+      episode_id: 90, episode_number: 5, episode_title: 'Testfolge', version_count: 1,
+      versions: [variant(500, 7)],
+      ...overrides,
+    }
+  }
+
+  it.each([
+    ['canon', 'Haupthandlung'],
+    ['filler', 'Filler'],
+    ['mixed', 'Gemischt'],
+    ['recap', 'Rückblick'],
+  ] as const)('Testfall %s: rendert die Kartentoenung und das Klassifikations-Label', (fillerType, label) => {
+    render(<FansubVersionBrowser animeID={22} fansubs={[]} episodes={[classifiedEpisode({ filler_type: fillerType })]} />)
+    expect(screen.getByText(new RegExp(label))).toBeTruthy()
+  })
+
+  it('Testfall 5: unknown zeigt kein Klassifikations-Label, nur den Episodentyp', () => {
+    render(<FansubVersionBrowser animeID={22} fansubs={[]} episodes={[classifiedEpisode({ filler_type: 'unknown', episode_type: 'episode' })]} />)
+    expect(screen.getByText('Episode')).toBeTruthy()
+    expect(screen.queryByText(/Haupthandlung|Filler|Gemischt|Rückblick/)).toBeNull()
+  })
+
+  it.each([
+    ['episode', 'Episode'],
+    ['special', 'Special'],
+    ['ova', 'OVA'],
+    ['movie', 'Film'],
+  ] as const)('Testfall %s: episode_type=%s rendert das Label "%s" ohne Eigenfarbe', (episodeType, label) => {
+    render(<FansubVersionBrowser animeID={22} fansubs={[]} episodes={[classifiedEpisode({ filler_type: 'unknown', episode_type: episodeType })]} />)
+    expect(screen.getByText(label)).toBeTruthy()
+  })
+
+  it('Testfall 10: Release mit Gruppenlogo rendert ein Image statt des Initialen-Fallbacks', async () => {
+    const withLogo: PublicEpisodeVersion = { ...variant(500, 7), fansub_groups: [{ id: 7, slug: 'ao', name: 'AnimeOwnage', logo_url: 'https://cdn.example.com/logo.png' }] }
+    render(<FansubVersionBrowser animeID={22} fansubs={[]} episodes={[classifiedEpisode({ versions: [withLogo] })]} />)
+    fireEvent.click(screen.getByRole('button', { name: /Testfolge/ }))
+    // alt="" ist dekorativ und entfernt das <img> bewusst aus der role="img"-Accessibility-
+    // Baumsicht (ARIA-Praesentationsrolle) -- getByAltText findet es trotzdem ueber das Attribut.
+    expect(screen.getByAltText('').getAttribute('src')).toBeTruthy()
+  })
+
+  it('Testfall 11: Release ohne Gruppenlogo rendert den Initialen-Fallback, kein Dummy-Icon', async () => {
+    render(<FansubVersionBrowser animeID={22} fansubs={[]} episodes={[classifiedEpisode()]} />)
+    fireEvent.click(screen.getByRole('button', { name: /Testfolge/ }))
+    expect(screen.queryByAltText('')).toBeNull()
+    expect(screen.getByText('A')).toBeTruthy()
+  })
+
+  it('Testfall 12/13: Release-Datum wird nur gerendert, wenn gepflegt', async () => {
+    const withDate: PublicEpisodeVersion = { ...variant(500, 7), release_date: '2012-04-12T00:00:00Z' }
+    const withoutDate: PublicEpisodeVersion = { ...variant(600, 7), release_date: null }
+    render(<FansubVersionBrowser animeID={22} fansubs={[]} episodes={[classifiedEpisode({ versions: [withDate, withoutDate] })]} />)
+    fireEvent.click(screen.getByRole('button', { name: /Testfolge/ }))
+    expect(screen.getByText('Veröffentlicht am 12.04.2012')).toBeTruthy()
+    expect(screen.queryAllByText(/Veröffentlicht am/)).toHaveLength(1)
+  })
+
+  it('Testfall 14-16: Extras-Zeile zeigt genau die gesetzten Flags, in fester Reihenfolge', async () => {
+    const withExtras: PublicEpisodeVersion = { ...variant(500, 7), has_images: true, has_notes: false, has_karaoke: true }
+    render(<FansubVersionBrowser animeID={22} fansubs={[]} episodes={[classifiedEpisode({ versions: [withExtras] })]} />)
+    fireEvent.click(screen.getByRole('button', { name: /Testfolge/ }))
+    // testing-library normalisiert Whitespace beim Textvergleich -- die drei Leerzeichen
+    // zwischen den Extras-Icons kollabieren auf eines, der DOM-Wert selbst bleibt unveraendert.
+    expect(screen.getByText('📷 Bilder ♪ Karaoke')).toBeTruthy()
+    expect(screen.queryByText(/📝 Notizen/)).toBeNull()
+  })
+
+  it('Testfall 17: ohne Extras entfaellt die Zeile vollstaendig', async () => {
+    render(<FansubVersionBrowser animeID={22} fansubs={[]} episodes={[classifiedEpisode()]} />)
+    fireEvent.click(screen.getByRole('button', { name: /Testfolge/ }))
+    expect(screen.queryByText(/📷 Bilder|📝 Notizen|♪ Karaoke/)).toBeNull()
+  })
+
+  it('Testfall 18: Coop-Release zeigt beide Gruppennamen mit "×" und ein reines COOP-Textlabel', async () => {
+    const coop: PublicEpisodeVersion = {
+      ...variant(500, 7),
+      fansub_groups: [{ id: 7, slug: 'ao', name: 'AnimeOwnage' }, { id: 9, slug: 'pm', name: 'ProjectMessiah' }],
+    }
+    render(<FansubVersionBrowser animeID={22} fansubs={[]} episodes={[classifiedEpisode({ versions: [coop] })]} />)
+    fireEvent.click(screen.getByRole('button', { name: /Testfolge/ }))
+    expect(screen.getByText('AnimeOwnage × ProjectMessiah')).toBeTruthy()
+    expect(screen.getByText('COOP')).toBeTruthy()
+  })
+
+  it('Testfall 19: mehrere Releases pro Episode rendern mehrere "Zum Release"-Buttons, die Episode bleibt visuell einzeln', async () => {
+    render(<FansubVersionBrowser animeID={22} fansubs={[]} episodes={[classifiedEpisode({
+      version_count: 2, versions: [variant(500, 7), { ...variant(600, 7), release_version_id: 601 }],
+    })]} />)
+    fireEvent.click(screen.getByRole('button', { name: /Testfolge/ }))
+    expect(screen.getAllByRole('link', { name: 'Zum Release →' })).toHaveLength(2)
+    expect(screen.getAllByRole('button', { name: /Testfolge/ })).toHaveLength(1)
   })
 })
 
@@ -277,7 +382,7 @@ describe('bounded public inventory continuation', () => {
     render(<FansubVersionBrowser animeID={22} fansubs={fansubs} episodes={[episode(variants.slice(0, 23))]} pagination={continued('cursor-23')} />)
     await act(async () => {})
     fireEvent.click(screen.getByRole('button', { name: /Große Folge/ }))
-    expect(screen.getByText('+125 Versionen')).toBeTruthy()
+    expect(screen.getByText('125 Versionen')).toBeTruthy()
     fireEvent.click(screen.getByRole('button', { name: 'Zweite Gruppe' }))
     await waitFor(() => expect(getGroupedEpisodes).toHaveBeenCalledTimes(1), { timeout: 500 })
     fireEvent.click(screen.getByRole('button', { name: 'Anderer Gruppenname' }))
@@ -290,12 +395,12 @@ describe('bounded public inventory continuation', () => {
     expect(screen.queryByRole('button', { name: 'Weitere Episoden und Versionen laden' })).toBeNull()
     expect(screen.getByRole('button', { name: /Große Folge/ }).getAttribute('aria-expanded')).toBe('true')
     expect(screen.getByRole('button', { name: /Neutrale gleiche Nummer/ }).getAttribute('aria-expanded')).toBe('false')
-    expect(screen.getAllByRole('link', { name: 'Version abspielen' })).toHaveLength(124)
-    expect(screen.getByText('+125 Versionen')).toBeTruthy()
+    expect(screen.getAllByRole('link', { name: 'Zum Release →' })).toHaveLength(124)
+    expect(screen.getByText('125 Versionen')).toBeTruthy()
     fireEvent.click(screen.getByRole('button', { name: 'Zweite Gruppe' }))
     await waitFor(() => expect(getGroupedEpisodes).toHaveBeenCalledTimes(8), { timeout: 500 })
     expect(screen.getByText('Geladene Variante 124')).toBeTruthy()
-    expect(screen.getAllByRole('link', { name: 'Version abspielen' })).toHaveLength(1)
+    expect(screen.getAllByRole('link', { name: 'Zum Release →' })).toHaveLength(1)
     expect(getGroupedEpisodes).toHaveBeenNthCalledWith(3, 22, expect.objectContaining({ projection: 'public', limit: 24, cursor: 'cursor-23', signal: expect.any(AbortSignal) }))
   })
   it('uses canonical version plus exact variant even when the legacy number collides', async () => {
@@ -307,8 +412,8 @@ describe('bounded public inventory continuation', () => {
     }]} pagination={ended} />)
     await act(async () => {})
     fireEvent.click(screen.getByRole('button', { name: /Folge 4/ }))
-    expect(screen.getAllByRole('link', { name: 'Version abspielen' }).map((link) => link.getAttribute('href'))).toEqual([
-      '/api/releases/10/stream?variant_id=100', '/api/releases/20/stream?variant_id=10',
+    expect(screen.getAllByRole('link', { name: 'Zum Release →' }).map((link) => link.getAttribute('href'))).toEqual([
+      '/anime/22/group/7/releases/10', '/anime/22/group/7/releases/20',
     ])
   })
   it('keeps a failed cursor retryable and deduplicates repeated pending clicks', async () => {
@@ -364,5 +469,5 @@ it('deduplicates variants only inside the same canonical episode', async () => {
   fireEvent.click(screen.getByRole('button', { name: 'Weitere Episoden und Versionen laden' }))
   await waitFor(() => expect(screen.getByRole('button', { name: /Zweite Identität/ })).toBeTruthy())
   fireEvent.click(screen.getByRole('button', { name: /Zweite Identität/ }))
-  expect(screen.getAllByRole('link', { name: 'Version abspielen' })).toHaveLength(2)
+  expect(screen.getAllByRole('link', { name: 'Zum Release →' })).toHaveLength(2)
 })

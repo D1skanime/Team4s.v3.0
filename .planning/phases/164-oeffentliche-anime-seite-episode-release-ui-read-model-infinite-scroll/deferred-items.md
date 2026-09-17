@@ -33,3 +33,30 @@ task's changes). Logged here, not fixed.
   at the same line).
 - **Not fixed:** out of scope for this plan (contract/type-only plan); a future plan
   touching `FansubVersionBrowser.tsx`/its pagination-loading logic should investigate.
+- **Reconfirmed in 164-04:** still reproduces identically (same failure, same line) after
+  the glass-UI restyle — the fetch/pagination logic this test exercises was not touched by
+  164-04 (only rendering changed), so this pre-existing failure is unaffected either way.
+
+## 164-04: Pre-existing line-number drift in `cssCustomProperties.guard.test.ts`'s allow-list
+
+- **Found during:** Plan 164-04, full-suite verification (`npx vitest run`, whole
+  `frontend/src` tree)
+- **Location:** `frontend/src/lib/cssCustomProperties.guard.test.ts`'s
+  `KNOWN_NON_CSS_TEXTUAL_MENTIONS` constant hardcodes `line: 282` for a textual (non-CSS)
+  `--surface-muted` mention inside a test-description string in
+  `frontend/src/lib/roleCatalog.accessibility.test.ts`; that string is now actually at
+  line 268 (a 14-line drift), so both the "zero dead references" and the "allow-list stays
+  exactly as small as documented" assertions fail.
+- **Confirmed pre-existing and unrelated to this plan:** neither `roleCatalog.accessibility.test.ts`
+  nor `cssCustomProperties.guard.test.ts` was read or modified by any 164-04 task (Task
+  files: `EpisodeGlassCard.tsx/.module.css`, `ReleasePreviewRow.tsx/.module.css`,
+  `episodePreviewFormat.ts/.test.ts`, `FansubVersionBrowser.tsx/.module.css/.test.tsx`,
+  `LoadingState.tsx`); `git log` shows both files were last touched in phases 149/151/157,
+  long before phase 164. The drift is caused by some intervening, unrelated edit to
+  `roleCatalog.accessibility.test.ts` that shifted line numbers without updating this
+  guard's hardcoded allow-list.
+- **Not fixed:** out of scope for this plan (no touched file in 164-04 owns either the
+  guard or the drifted test file); a future plan touching `roleCatalog.accessibility.test.ts`
+  or `cssCustomProperties.guard.test.ts` should update the allow-list's `line` to 268 (or
+  make the allow-list match by content/name only, not by exact line number, to avoid this
+  class of drift recurring).
