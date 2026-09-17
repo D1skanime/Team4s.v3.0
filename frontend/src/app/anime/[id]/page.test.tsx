@@ -36,7 +36,7 @@ beforeEach(() => {
   vi.clearAllMocks()
   vi.mocked(getAnimeByID).mockReset().mockResolvedValue({ data: anime })
   vi.mocked(getAnimeFansubs).mockReset().mockResolvedValue({ data: [] })
-  groupedMock.mockReset().mockResolvedValue({ data: { anime_id: anime.id, episodes: [], pagination: { has_more: false, next_cursor: null, row_limit: 24 } } })
+  groupedMock.mockReset().mockResolvedValue({ data: { anime_id: anime.id, episodes: [], episode_count: 0, pagination: { has_more: false, next_cursor: null, row_limit: 24 } } })
   vi.mocked(getAnimeComments).mockReset().mockResolvedValue({ data: [], meta: { page: 1, per_page: 10, total: 0, total_pages: 0 } })
   vi.mocked(getAnimeRelations).mockReset().mockResolvedValue({ data: [] })
 })
@@ -148,16 +148,18 @@ describe('anime detail integration without invented data', () => {
     expect(textContent(content)).not.toContain('Emby')
   })
 
-  it('preserves the real episode inventory and stored fallback episode counters', async () => {
+  it('rendert bei fehlgeschlagenem Public-Fetch einen neutralen Fehlerhinweis statt der ungefilterten anime.episodes-Notfallliste (D-16)', async () => {
     vi.mocked(getAnimeByID).mockResolvedValue({ data: { ...anime, max_episodes: 12, episodes: [{
       id: 73, episode_number: '1', title: 'Neutrale Folge', status: 'public', view_count: 3, download_count: 8,
     }] } })
     groupedMock.mockRejectedValue(new ApiError(500, 'Versionen nicht verfügbar'))
-    const text = textContent(await loadContent())
+    const content = await loadContent()
+    const text = textContent(content)
+    // Der Poster-Stat "12 Episodes" (anime.max_episodes) ist unabhaengig vom D-16-Bug und bleibt unveraendert.
     expect(text).toContain('12 Episodes')
-    expect(text).toContain('Episoden (1)')
-    expect(text).toContain('Neutrale Folge')
-    expect(text).toContain('Views: 3 | Downloads: 8')
+    // D-16: die alte Notfall-Liste (anime.episodes, ungefiltert nach Release) darf nicht mehr rendern.
+    expect(elements(content).some((item) => item.type === FansubVersionBrowser)).toBe(false)
+    expect(text).toContain('Episoden konnten nicht geladen werden.')
   })
 
   it('clips only the decorative hero banner, leaving the hero controls outside its clipping boundary', () => {
@@ -182,6 +184,41 @@ describe('anime detail integration without invented data', () => {
     expect(browser?.props.initialActiveSlug).toBeUndefined()
   })
 
+  it('D-11: reicht den ueber die Fansub-Relationen aufgeloesten Slug in die SSR-Episodenabfrage durch', async () => {
+    vi.mocked(getAnimeFansubs).mockResolvedValue({ data: [
+      { anime_id: 22, fansub_group_id: 1, is_primary: true, created_at: '', fansub_group: { id: 1, slug: 'alpha-subs', name: 'Alpha-Subs' } },
+      { anime_id: 22, fansub_group_id: 2, is_primary: false, created_at: '', fansub_group: { id: 2, slug: 'beta-subs', name: 'Beta-Subs' } },
+    ] })
+    const boundary = await AnimeDetailPage({
+      ...paramsFor('22'), searchParams: Promise.resolve({ fansub: 'beta-subs' }),
+    })
+    await (boundary.props.children.type(boundary.props.children.props) as Promise<ReactNode>)
+    expect(getGroupedEpisodes).toHaveBeenCalledExactlyOnceWith(22, { projection: 'public', limit: 24, fansub: 'beta-subs' })
+  })
+
+  it('D-05/D-11: eine fremde/unbekannte Fansub-Slug wird NICHT an die SSR-Episodenabfrage weitergereicht', async () => {
+    vi.mocked(getAnimeFansubs).mockResolvedValue({ data: [
+      { anime_id: 22, fansub_group_id: 1, is_primary: true, created_at: '', fansub_group: { id: 1, slug: 'alpha-subs', name: 'Alpha-Subs' } },
+      { anime_id: 22, fansub_group_id: 2, is_primary: false, created_at: '', fansub_group: { id: 2, slug: 'beta-subs', name: 'Beta-Subs' } },
+    ] })
+    const boundary = await AnimeDetailPage({
+      ...paramsFor('22'), searchParams: Promise.resolve({ fansub: 'does-not-exist' }),
+    })
+    await (boundary.props.children.type(boundary.props.children.props) as Promise<ReactNode>)
+    expect(getGroupedEpisodes).toHaveBeenCalledExactlyOnceWith(22, { projection: 'public', limit: 24 })
+  })
+
+  it('162 D-02/163 D-11: bei genau einer Fansub-Gruppe wird der Parameter niemals weitergereicht', async () => {
+    vi.mocked(getAnimeFansubs).mockResolvedValue({ data: [
+      { anime_id: 22, fansub_group_id: 1, is_primary: true, created_at: '', fansub_group: { id: 1, slug: 'alpha-subs', name: 'Alpha-Subs' } },
+    ] })
+    const boundary = await AnimeDetailPage({
+      ...paramsFor('22'), searchParams: Promise.resolve({ fansub: 'alpha-subs' }),
+    })
+    await (boundary.props.children.type(boundary.props.children.props) as Promise<ReactNode>)
+    expect(getGroupedEpisodes).toHaveBeenCalledExactlyOnceWith(22, { projection: 'public', limit: 24 })
+  })
+
   it('enthaelt kein .fansubRow/.fansubChip-CSS mehr (D-13, ersatzlos entfernt)', () => {
     const css = readFileSync(join(process.cwd(), 'src/app/anime/[id]/page.module.css'), 'utf8')
     expect(css).not.toMatch(/\.fansubRow|\.fansubChip/)
@@ -190,7 +227,7 @@ describe('anime detail integration without invented data', () => {
 
 describe('bounded public SSR inventory', () => {
   it('requests one 24-row public page and forwards cursor/story without claiming the slice is the total', async () => {
-    groupedMock.mockResolvedValue({ data: { anime_id: 22, episodes: [], pagination: { has_more: true, next_cursor: 'next', row_limit: 24 } } })
+    groupedMock.mockResolvedValue({ data: { anime_id: 22, episodes: [], episode_count: 0, pagination: { has_more: true, next_cursor: 'next', row_limit: 24 } } })
     vi.mocked(getAnimeByID).mockResolvedValue({ data: { ...anime, episodes: Array.from({ length: 30 }, (_, index) => ({
       id: index + 1, episode_number: String(index + 1), status: 'public' as const, view_count: 0, download_count: 0,
     })) } })
@@ -199,7 +236,10 @@ describe('bounded public SSR inventory', () => {
     const browser = elements(content).find((item) => item.type === FansubVersionBrowser)
     expect(browser?.props.pagination).toEqual({ has_more: true, next_cursor: 'next', row_limit: 24 })
     expect(browser?.props.storyGroups).toEqual([])
-    expect(textContent(content)).toContain('Episoden (30)')
+    // D-12: die Ueberschriften-Trefferzahl kommt jetzt aus der gefilterten Fetch-Antwort
+    // (episode_count), nicht mehr aus anime.episodes.length -- als episodeCount-Prop
+    // an FansubVersionBrowser durchgereicht (Component-Boundary-Move, siehe 163-PATTERNS.md).
+    expect(browser?.props.episodeCount).toBe(0)
   })
 })
 
