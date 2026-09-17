@@ -1978,9 +1978,36 @@ Plans:
 ### Phase 163: Öffentliche Anime-Seite: Episoden nach Fansub-Gruppe und vorhandenen Releases filtern
 
 **Goal:** Die Episodenliste auf `/anime/[id]` zeigt nur Episoden mit mindestens einer öffentlich sichtbaren Release-Version; bei aktiver Fansub-Gruppe (Phase-162-URL-Zustand `?fansub=`) nur Episoden und Versionen dieser Gruppe inkl. Coop-Beteiligung – serverseitig, paginationskorrekt, ohne N+1 und ohne Umsortierung.
-**Requirements**: TBD (in discuss-phase aus 163-USER-REQUEST.md §1–§17 abzuleiten)
+**Requirements**: REQ-163-01 bis REQ-163-24 (siehe `.planning/REQUIREMENTS.md`, abgeleitet aus 163-USER-REQUEST.md §1–§17)
 **Depends on:** Phase 162 (Fansub-Gruppenauswahl im URL-Zustand, live abgenommen 17.09.2026)
 **Verbindliche Quelle:** `.planning/phases/163-oeffentliche-anime-seite-episoden-nach-fansub-gruppe-filtern/163-USER-REQUEST.md`
 **Scopegrenze:** keine neue Episodenanzahl-Anzeige ohne UI-Entscheidung, keine zweite Gruppenauswahl, keine unrelated Refactorings, keine Datenänderung durch Agenten.
 **UI hint:** yes
-**Plans:** TBD
+**Plans:** 5 plans across 5 waves
+
+  - Wave 1: 163-01 (Backend RED — Baseline-Erfassung + korrigierte/neue Fixture-Tests für Pflichtfälle B, C, D, E, F, I, J)
+  - Wave 2: 163-02 (Backend GREEN — SQL-Fix, Cursor v2, Slug-Resolver, Handler/OpenAPI, After-Fix-EXPLAIN)
+  - Wave 3: 163-03 (Frontend RED — Contracts, resolveActiveFansubSlug-Stub, korrigierte/neue Tests für D-07..D-16)
+  - Wave 4: 163-04 (Frontend GREEN — SSR-Weiterleitung, Gruppenwechsel-Refetch, Dimmen, Leer-/Fehlerzustände)
+  - Wave 5: 163-05 (Container-Rebuild, Live-Browser-UAT-Checkpoint Naruto, Abschlussbericht)
+
+Plans:
+**Wave 1**
+
+- [ ] 163-01-PLAN.md — Backend RED: Baseline-Erfassung + korrigierte/neue Fixture-Tests (Pflichtfälle B, C, D, E, F, I, J).
+
+**Wave 2** *(blocked on Wave 1 completion)*
+
+- [ ] 163-02-PLAN.md — Backend GREEN: publicEpisodeQuery-Fix, Cursor v2, Slug-Resolver, Handler/OpenAPI, After-Fix-EXPLAIN.
+
+**Wave 3** *(blocked on Wave 2 completion)*
+
+- [ ] 163-03-PLAN.md — Frontend RED: Contracts + korrigierte/neue Tests (D-07..D-16, G).
+
+**Wave 4** *(blocked on Wave 3 completion)*
+
+- [ ] 163-04-PLAN.md — Frontend GREEN: SSR-Weiterleitung, Gruppenwechsel-Refetch, Dimmen, Leer-/Fehlerzustände.
+
+**Wave 5** *(blocked on Wave 4 completion)*
+
+- [ ] 163-05-PLAN.md — Container-Rebuild, Live-Browser-UAT-Checkpoint Naruto (§16), Abschlussbericht.
