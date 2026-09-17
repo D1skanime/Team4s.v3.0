@@ -3,14 +3,14 @@ gsd_state_version: 1.0
 milestone: v1.4
 milestone_name: Coverage
 status: executing
-stopped_at: Completed 163-01-PLAN.md
-last_updated: "2026-09-17T16:57:47.864Z"
+stopped_at: Completed 163-03-PLAN.md
+last_updated: "2026-09-17T17:17:52.176Z"
 last_activity: 2026-09-17
 progress:
   total_phases: 28
   completed_phases: 27
   total_plans: 263
-  completed_plans: 260
+  completed_plans: 261
   percent: 96
 ---
 
@@ -152,7 +152,7 @@ See: .planning/PROJECT.md (updated 2026-08-13)
 ## Current Position
 
 Phase: 163 (oeffentliche-anime-seite-episoden-nach-fansub-gruppe-filtern) — EXECUTING
-Plan: 3 of 5
+Plan: 4 of 5
 dupliziertem ProjectMemberStickyNav; siehe 157-14-SUMMARY.md)
 Status: Ready to execute
 GAP-02-Live-UAT-Checkpoint aus 156-UAT.md (5 Origin- + 9 Segment-Contributor-Pruefpunkte) wurde
@@ -1336,6 +1336,7 @@ Last activity: 2026-09-17
 - [Phase ?]: Pflichtfall F pagination-scope test uses a dedicated anime (id=8) instead of reusing anime 7 to avoid an ambiguous first-match under limit=1
 - [Phase ?]: RESEARCH.md's claim that an unrecognized fansub query param is 400-rejected is inaccurate; parseStrictNamedQuery silently ignores unknown keys, but all Plan 163-01 RED tests still fail today for a documented, legitimate reason
 - [Phase 163]: 163-02: Cursor scope uses the raw unresolved fansub slug (not the resolved group id), and the handler validates cursor scope before resolving the slug, so a cross-filter cursor is rejected with zero DB round trips.
+- [Phase 163]: 163-03: page.performance.test.ts (out of plan scope) needed episode_count:0 added to 2 mock literals broken by the new required type field (Rule 3, test-only, no assertions changed). — Required type field addition (episode_count) cascaded to an out-of-scope file; fixed minimally rather than leaving typecheck broken.
 
 ### Pending Todos
 
@@ -1764,11 +1765,12 @@ untruncated list lives in `.planning/todos/pending/`.
 | Phase 162 P04 | 25min | 3 tasks | 3 files |
 | Phase 163 P01 | 55min | 3 tasks | 2 files |
 | Phase 163 P02 | 55min | 3 tasks | 6 files |
+| Phase 163 P03 | 25min | 3 tasks | 9 files |
 
 ## Session Continuity
 
-Last session: 2026-09-17T16:57:24.961Z
-Stopped at: Completed 163-01-PLAN.md
+Last session: 2026-09-17T17:17:42.646Z
+Stopped at: Completed 163-03-PLAN.md
 Last activity: 2026-09-16 - Completed quick task 260916-ako: Jellyfin-Geschwisterquellen getrennt importieren; Liveimport zweier Folge-2-Quellen geprüft, keine Phasen-UAT ersetzt.
 Resume file: 
 None
