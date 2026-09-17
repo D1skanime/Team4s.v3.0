@@ -12,6 +12,7 @@ import {
   getGroupReleaseDetail,
   getGroupReleaseListCursor,
   getPublicFansubProfileBySlug,
+  resolveApiUrl,
 } from "@/lib/api";
 import { buildPublicFansubProjectPath } from "@/lib/fansubProjectRoutes";
 import {
@@ -283,7 +284,9 @@ export async function loadPublicFansubProjectPageData({
     { label: group.fansub.name },
   ];
 
-  const animeBannerUrl = anime.banner_url ? resolvePublicApiUrl(anime.banner_url) : null;
+  // /media/... bleibt relativ (Frontend-Proxy + next/image localPatterns); absolut auf den
+  // Backend-Host aufgelöst lehnt next/image den Host ab und die ganze Seite bricht (500).
+  const animeBannerUrl = anime.banner_url ? resolveApiUrl(anime.banner_url) || null : null;
   const heroBackdropUrl =
     animeBannerUrl ??
     (groupAssetsResponse?.data.hero.backdrop_url
