@@ -3,14 +3,14 @@ gsd_state_version: 1.0
 milestone: v1.4
 milestone_name: Coverage
 status: verifying
-stopped_at: Completed 162-01-PLAN.md
-last_updated: "2026-09-17T08:36:04.631Z"
+stopped_at: Completed 162-02-PLAN.md
+last_updated: "2026-09-17T08:47:06.414Z"
 last_activity: 2026-09-17
 progress:
   total_phases: 27
   completed_phases: 26
   total_plans: 258
-  completed_plans: 254
+  completed_plans: 255
   percent: 96
 ---
 
@@ -1322,6 +1322,8 @@ Last activity: 2026-09-17
 - [Phase 162]: story_preview additiv, optional (omitempty/nullable) in Go/OpenAPI/TS — nicht in required, da FansubGroupSummary auch von Endpunkten genutzt wird, die es nie befuellen
 - [Phase 162]: Truncation-Limit fest auf 500 Runes (fansubStoryPreviewRuneLimit)
 - [Phase 162]: Nur-Whitespace-Text gilt als keine Geschichte (nil), analog D-05/Paragraph 7
+- [Phase 162]: Chip-Primitive: Button mit aria-pressed statt neuem Chip-Primitive (closest-analog, 4 bestehende Repo-Vorbilder) — FansubGroupPicker.tsx, UI-SPEC-Vorgabe
+- [Phase 162]: FansubVersionBrowser.tsx minimal umverdrahtet: activeStoryGroup aus storyGroups abgeleitet, FansubGroupContext statt geloeschtem ActiveFansubStory gerendert — Rule-3-Fix nach Loeschen von ActiveFansubStory.tsx; volle Chip/CTA-Wiring bleibt 162-03 vorbehalten
 
 ### Pending Todos
 
@@ -1745,11 +1747,12 @@ untruncated list lives in `.planning/todos/pending/`.
 | Phase 160 P05 | 25min | 2 tasks | 4 files |
 | Phase 160 P06 | 35min | 2 tasks | 4 files |
 | Phase 162 P01 | 35min | 3 tasks | 6 files |
+| Phase 162 P02 | 45min | 2 tasks | 8 files |
 
 ## Session Continuity
 
-Last session: 2026-09-17T08:36:04.610Z
-Stopped at: Completed 162-01-PLAN.md
+Last session: 2026-09-17T08:47:06.391Z
+Stopped at: Completed 162-02-PLAN.md
 Last activity: 2026-09-16 - Completed quick task 260916-ako: Jellyfin-Geschwisterquellen getrennt importieren; Liveimport zweier Folge-2-Quellen geprüft, keine Phasen-UAT ersetzt.
 Resume file: 
 None
