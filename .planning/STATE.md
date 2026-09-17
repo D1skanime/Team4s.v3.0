@@ -3,8 +3,8 @@ gsd_state_version: 1.0
 milestone: v1.4
 milestone_name: Coverage
 status: executing
-stopped_at: Completed 164-06-PLAN.md
-last_updated: "2026-09-17T23:27:52.225Z"
+stopped_at: 164-07 Task 1 automated gate + audit doc done (9d4b4951); Task 3 dev harness route built (3cba39a1); Tasks 2/3 human-verify checkpoints (live Naruto browser UAT, live DOM/mobile-performance measurement) still open -- phase 164 NOT complete
+last_updated: "2026-09-17T23:51:55.744Z"
 last_activity: 2026-09-17
 progress:
   total_phases: 29
@@ -147,14 +147,23 @@ Phase 135 and any future roadmap entries continue from here.
 See: .planning/PROJECT.md (updated 2026-08-13)
 
 **Core value:** Team4s presents fansub history and collaboration credibly while keeping identity, visibility, ownership, and permissions correct.
-**Current focus:** Phase 164 — oeffentliche-anime-seite-episode-release-ui-read-model-infinite-scroll
+**Current focus:** Phase 164 — oeffentliche-anime-seite-episode-release-ui-read-model-infinite-scroll,
+paused at Plan 07's human-UAT checkpoint (see dedicated section below; NOT a failure, a normal GSD
+checkpoint pause).
 
 ## Current Position
 
-Phase: 164 (oeffentliche-anime-seite-episode-release-ui-read-model-infinite-scroll) — EXECUTING
-Plan: 7 of 7
+Phase: 164 (oeffentliche-anime-seite-episode-release-ui-read-model-infinite-scroll) — PAUSED AT
+HUMAN-VERIFY CHECKPOINT (Plan 07, Tasks 2 and 3)
+Plan: 7 of 7 — Task 1 (automated gate + `docs/audits/164-performance-gates.md`) done and committed
+(`9d4b4951`); Task 3's automatable file half (dev harness route `frontend/src/app/dev/episode-
+windowing-preview/page.tsx`) done and committed (`3cba39a1`). Task 2 (live Naruto browser UAT) and
+Task 3's live DOM-node-count/mobile-performance measurement are BOTH `checkpoint:human-verify,
+gate="blocking"` and remain unresolved — no browser access existed in the execution environment that
+ran Task 1/3. See `164-07-SUMMARY.md` for the verbatim how-to-verify steps to relay to a human.
+Status: Phase 164 is NOT complete. Plan 164-07 is NOT complete. Do not mark either complete in
+STATE.md/ROADMAP.md/REQUIREMENTS.md until a human has typed "approved" for both checkpoints.
 dupliziertem ProjectMemberStickyNav; siehe 157-14-SUMMARY.md)
-Status: Ready to execute
 GAP-02-Live-UAT-Checkpoint aus 156-UAT.md (5 Origin- + 9 Segment-Contributor-Pruefpunkte) wurde
 am 2026-09-15 vom Auftraggeber live abgenommen (inkl. GAP-08/GAP-09). Phase 156 ist vollstaendig abgenommen.
 Phase 157 gilt ebenfalls NICHT als vollstaendig abgenommen: der menschliche Live-UAT-Checkpoint
@@ -1363,6 +1372,7 @@ Last activity: 2026-09-17
 - Health warnings for repository-local `DECISIONS.md` and `RETROSPECTIVE.md` conflict with local Team4s documentation policy and are not deletion candidates.
 - Before any migration, inspect the current migration chain and stop if multiple untracked migrations exist.
 - internal/handlers package tests: ~20 tests across ~10 files (admin_content_anime_project_notes_test.go and siblings) depend on permissions.roleAllows/RoleAllowsAction but never call permissions.Service.LoadCache, so they always observe a nil cache and deny/return false regardless of real role_capabilities data. Pre-existing, verified not caused by Phase 137; see .planning/phases/137-central-effective-rights-resolver-overrides/deferred-items.md.
+- 164-07: Task 1 (automated gate + docs/audits/164-performance-gates.md) done, committed 9d4b4951. Task 3's dev harness route built/committed (3cba39a1), zero-backend-request verified. Tasks 2 (live Naruto browser UAT) and 3's live DOM-node-count/mobile-performance measurement (checkpoint:human-verify, gate=blocking) are UNRESOLVED -- require a human with real browser + Chrome DevTools. Phase 164 and plan 164-07 are NOT complete until both are approved. See 164-07-SUMMARY.md for verbatim how-to-verify steps.
 
 ### Quick Tasks Completed
 
@@ -1787,13 +1797,14 @@ untruncated list lives in `.planning/todos/pending/`.
 | Phase 164 P04 | ~45min | 3 tasks | 10 files |
 | Phase 164 P05 | 90min | 2 tasks | 7 files |
 | Phase 164 P06 | 55min | 2 tasks | 5 files |
+| Phase 164 P07 | ~85min | 1 of 3 tasks (Task 1 auto; Task 3 file-only half) | 2 files |
 
 ## Session Continuity
 
-Last session: 2026-09-17T23:27:52.203Z
-Stopped at: Completed 164-06-PLAN.md
+Last session: 2026-09-17T23:51:55.724Z
+Stopped at: 164-07 Task 1 automated gate + audit doc done (9d4b4951); Task 3 dev harness route built (3cba39a1); Tasks 2/3 human-verify checkpoints (live Naruto browser UAT, live DOM/mobile-performance measurement) still open -- phase 164 NOT complete
 Last activity: 2026-09-16 - Completed quick task 260916-ako: Jellyfin-Geschwisterquellen getrennt importieren; Liveimport zweier Folge-2-Quellen geprüft, keine Phasen-UAT ersetzt.
 Resume file: 
-None
+.planning/phases/164-oeffentliche-anime-seite-episode-release-ui-read-model-infinite-scroll/164-07-SUMMARY.md
 
 Plans 151-02/03/04 have implementation summaries. Plans 151-01 and 151-05 remain open until final artwork/composition review, complete browser evidence and independent verification; their missing summaries are intentional. No requirement or phase has been falsely marked complete.
