@@ -15390,7 +15390,7 @@ components:
     PublicEpisodeVersion:
       type: object
       additionalProperties: false
-      required: [id, variant_id, release_version_id, anime_id, episode_number, fansub_groups]
+      required: [id, variant_id, release_version_id, anime_id, episode_number, fansub_groups, has_images, has_notes, has_karaoke]
       properties:
         id:
           type: integer
@@ -15431,6 +15431,18 @@ components:
           type: string
           format: date-time
           nullable: true
+        container:
+          type: string
+          nullable: true
+        video_codec:
+          type: string
+          nullable: true
+        has_images:
+          type: boolean
+        has_notes:
+          type: boolean
+        has_karaoke:
+          type: boolean
     PublicGroupedEpisode:
       type: object
       required:
@@ -15438,6 +15450,8 @@ components:
         - episode_number
         - version_count
         - versions
+        - filler_type
+        - episode_type
       properties:
         episode_id:
           type: integer
@@ -15461,6 +15475,12 @@ components:
           type: array
           items:
             $ref: "#/components/schemas/PublicEpisodeVersion"
+        filler_type:
+          type: string
+          enum: [unknown, canon, filler, mixed, recap]
+        episode_type:
+          type: string
+          enum: [episode, special, ova, ona, movie, recap, preview, prologue, epilogue, bonus]
     PublicGroupedEpisodesPagination:
       type: object
       required: [has_more, next_cursor, row_limit]
