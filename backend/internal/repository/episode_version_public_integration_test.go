@@ -170,8 +170,8 @@ func TestEpisodeVersionPublicMixedAndIdentity(t *testing.T) {
 	require.Equal(t, 24, page.Data.Pagination.RowLimit)
 	require.False(t, page.Data.Pagination.HasMore)
 	require.Nil(t, page.Data.Pagination.NextCursor)
-	require.Len(t, page.Data.Episodes, 4)
-	require.Equal(t, []int64{11, 13, 12, 14}, []int64{page.Data.Episodes[0].EpisodeID, page.Data.Episodes[1].EpisodeID, page.Data.Episodes[2].EpisodeID, page.Data.Episodes[3].EpisodeID})
+	require.Len(t, page.Data.Episodes, 2, "episodes without any public release (12, 13) must disappear entirely after the fix")
+	require.Equal(t, []int64{11, 14}, []int64{page.Data.Episodes[0].EpisodeID, page.Data.Episodes[1].EpisodeID})
 	require.Len(t, page.Data.Episodes[0].Versions, 2, "multiple streams/groups cannot fan out variants")
 	first := page.Data.Episodes[0].Versions[0]
 	require.EqualValues(t, 100, first["id"])
@@ -180,11 +180,7 @@ func TestEpisodeVersionPublicMixedAndIdentity(t *testing.T) {
 	require.Len(t, first["fansub_groups"], 2)
 	require.Equal(t, 2, page.Data.Episodes[0].VersionCount)
 	require.EqualValues(t, 100, *page.Data.Episodes[0].DefaultVersionID)
-	require.Empty(t, page.Data.Episodes[1].Versions)
-	require.NotNil(t, page.Data.Episodes[1].Versions)
-	require.Empty(t, page.Data.Episodes[2].Versions)
-	require.Nil(t, page.Data.Episodes[2].DefaultVersionID)
-	equal := page.Data.Episodes[3].Versions[0]
+	equal := page.Data.Episodes[1].Versions[0]
 	require.Equal(t, equal["variant_id"], equal["release_version_id"])
 	for _, field := range []string{"media_provider", "media_item_id", "stream_url", "segment_count", "has_segment_asset", "duration_seconds", "crc32", "created_at", "updated_at", "covered_episode_numbers"} {
 		require.NotContains(t, first, field)
@@ -215,12 +211,7 @@ func TestEpisodeVersionPublicAtomicPages(t *testing.T) {
 						require.Equal(t, 125, episode.VersionCount)
 						require.EqualValues(t, 1000, *episode.DefaultVersionID)
 					}
-					if len(episode.Versions) == 0 {
-						key := fmt.Sprintf("%d:0", episode.EpisodeID)
-						require.False(t, seen[key])
-						seen[key] = true
-						rows++
-					}
+					require.NotEmpty(t, episode.Versions, "public projection must never return a neutral (versionless) episode row")
 					for _, variant := range episode.Versions {
 						key := fmt.Sprintf("%d:%.0f", episode.EpisodeID, variant["variant_id"])
 						require.False(t, seen[key])
@@ -242,8 +233,8 @@ func TestEpisodeVersionPublicAtomicPages(t *testing.T) {
 				cursor = *page.Data.Pagination.NextCursor
 				require.LessOrEqual(t, pages, 126)
 			}
-			require.Len(t, seen, 126)
-			require.True(t, seen["42:0"])
+			require.Len(t, seen, 125)
+			require.False(t, seen["42:0"], "episode 42 has zero releases and must not appear at all after the fix")
 			t.Logf("limit=%d pages=%d atomic rows=%d total serialized bytes=%d", limit, pages, len(seen), totalBytes)
 		})
 	}
@@ -265,10 +256,7 @@ func TestEpisodeVersionPublicEmptyAndVisibility(t *testing.T) {
 	assertPublicBudget(t, tr, 24)
 	tr.reset()
 	_, neutral := episodePublicRequest(t, pool, "/anime/5/episodes?projection=public", 200)
-	require.Len(t, neutral.Data.Episodes, 1)
-	require.EqualValues(t, 51, neutral.Data.Episodes[0].EpisodeID)
-	require.NotNil(t, neutral.Data.Episodes[0].Versions)
-	require.Empty(t, neutral.Data.Episodes[0].Versions)
+	require.Empty(t, neutral.Data.Episodes, "anime 5's only episode has zero releases and must not appear after the fix")
 	assertPublicBudget(t, tr, 24)
 	for _, id := range []int{3, 999} {
 		tr.reset()
