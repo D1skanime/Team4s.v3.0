@@ -6531,6 +6531,11 @@ paths:
             type: string
             maxLength: 512
           description: Public only. Opaque versioned anime-scoped keyset cursor; invalid format or anime scope returns 400. Omit or empty for the first page.
+        - name: fansub
+          in: query
+          schema:
+            type: string
+          description: Public only. Fansub group slug, scoped to this anime's own groups; unresolvable slug returns 400 (never unfiltered data). A cursor obtained under one fansub filter is rejected under another.
       responses:
         "200":
           description: Grouped episode/version payload
@@ -6541,7 +6546,7 @@ paths:
                   - $ref: "#/components/schemas/GroupedEpisodesResponse"
                   - $ref: "#/components/schemas/PublicGroupedEpisodesResponse"
         "400":
-          description: Invalid anime id, projection, limit, cursor, duplicate public options or contradictory include flags. Malformed URL-encoded values for projection/limit/cursor (including encoded names) and public include flags return 400 before repository access; unrelated malformed parameters retain default parsing compatibility.
+          description: Invalid anime id, projection, limit, cursor, fansub slug, duplicate public options or contradictory include flags. Malformed URL-encoded values for projection/limit/cursor/fansub (including encoded names) and public include flags return 400 before repository access; a fansub slug that does not resolve to a group of this anime also returns 400; unrelated malformed parameters retain default parsing compatibility.
           content:
             application/json:
               schema:
@@ -15477,7 +15482,7 @@ components:
       properties:
         data:
           type: object
-          required: [anime_id, episodes, pagination]
+          required: [anime_id, episodes, episode_count, pagination]
           properties:
             anime_id:
               type: integer
@@ -15486,6 +15491,10 @@ components:
               type: array
               items:
                 $ref: "#/components/schemas/PublicGroupedEpisode"
+            episode_count:
+              type: integer
+              format: int64
+              description: Count of currently visible (filtered) episodes across all pages, computed in the same statement as the page itself; changes when the fansub filter changes.
             pagination:
               $ref: "#/components/schemas/PublicGroupedEpisodesPagination"
     EpisodeVersionCreateRequest:

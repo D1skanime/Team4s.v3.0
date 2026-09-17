@@ -28,12 +28,12 @@ func (h *FansubHandler) ListGroupedEpisodes(c *gin.Context) {
 	projection := query.Get("projection")
 	var data any
 	if projection == "public" {
-		query, err = parseStrictNamedQuery(c.Request.URL.RawQuery, "projection", "limit", "cursor", "includeVersions", "includeFansubs")
+		query, err = parseStrictNamedQuery(c.Request.URL.RawQuery, "projection", "limit", "cursor", "includeVersions", "includeFansubs", "fansub")
 		if err != nil {
 			badRequest(c, "ungültige Episodenoptionen")
 			return
 		}
-		for _, key := range []string{"projection", "limit", "cursor", "includeVersions", "includeFansubs"} {
+		for _, key := range []string{"projection", "limit", "cursor", "includeVersions", "includeFansubs", "fansub"} {
 			if len(query[key]) > 1 {
 				badRequest(c, "ungültige Episodenoptionen")
 				return
@@ -45,7 +45,7 @@ func (h *FansubHandler) ListGroupedEpisodes(c *gin.Context) {
 				return
 			}
 		}
-		options := repository.PublicEpisodeOptions{Cursor: query.Get("cursor")}
+		options := repository.PublicEpisodeOptions{Cursor: query.Get("cursor"), Fansub: query.Get("fansub")}
 		if values, ok := query["limit"]; ok {
 			raw := values[0]
 			options.Limit, err = strconv.Atoi(raw)
@@ -54,9 +54,26 @@ func (h *FansubHandler) ListGroupedEpisodes(c *gin.Context) {
 				return
 			}
 		}
+		// Validate before resolving the slug: normalized() compares the cursor's
+		// embedded raw slug identity against options.Fansub without touching the
+		// DB, so a cursor scoped to a different filter is rejected before any SQL
+		// runs (D-06) instead of wasting a slug-resolution round trip first.
 		if err = options.Validate(animeID); err != nil {
 			badRequest(c, "ungültige Episodenoptionen")
 			return
+		}
+		if options.Fansub != "" {
+			groupID, resolveErr := h.fansubRepo.ResolveFansubGroupIDForAnime(c.Request.Context(), animeID, options.Fansub)
+			if errors.Is(resolveErr, repository.ErrNotFound) {
+				badRequest(c, "unbekannte Fansub-Gruppe für diesen Anime")
+				return
+			}
+			if resolveErr != nil {
+				log.Printf("grouped episodes list: fansub slug resolution error (anime_id=%d): %v", animeID, resolveErr)
+				c.JSON(http.StatusInternalServerError, gin.H{"error": gin.H{"message": "interner serverfehler"}})
+				return
+			}
+			options.GroupID = &groupID
 		}
 		data, err = h.episodeVersionRepo.ListPublicGroupedByAnimeID(c.Request.Context(), animeID, options)
 	} else {

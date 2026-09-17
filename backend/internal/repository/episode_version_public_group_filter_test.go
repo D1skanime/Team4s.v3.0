@@ -30,9 +30,18 @@ func openEpisodeVersionPublicGroupFilterFixture(t *testing.T) (*pgxpool.Pool, *e
 	_, err := fixture.Exec(context.Background(), `
 ALTER TABLE anime ADD COLUMN status TEXT NOT NULL DEFAULT 'done';
 ALTER TABLE fansub_groups ADD COLUMN slug TEXT, ADD COLUMN logo_url TEXT;
+CREATE TABLE anime_fansub_groups (
+ anime_id BIGINT NOT NULL REFERENCES anime(id),
+ fansub_group_id BIGINT NOT NULL REFERENCES fansub_groups(id),
+ PRIMARY KEY (anime_id, fansub_group_id)
+);
 INSERT INTO anime (id,status) VALUES (7,'done'),(8,'done');
 INSERT INTO fansub_groups (id,slug,name) VALUES
  (3,'animeownage-fixture','AnimeOwnage Fixture'),(4,'project-messiah-fixture','Project Messiah Fixture');
+-- Slug resolution (D-05/T-163-03) is anime-scoped: both fixture animes carry
+-- both groups here so the resolver's own WHERE afg.anime_id=$1 is exercised,
+-- not just a single-group happy path.
+INSERT INTO anime_fansub_groups (anime_id,fansub_group_id) VALUES (7,3),(7,4),(8,3),(8,4);
 INSERT INTO episodes (id,anime_id,episode_number,title) VALUES
  (701,7,'1','AO-fixture only 1'),(702,7,'2','AO-fixture only 2'),
  (703,7,'3','PM-fixture only 1'),(704,7,'4','PM-fixture only 2'),

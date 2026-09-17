@@ -1480,6 +1480,31 @@ func (r *FansubRepository) animeExists(ctx context.Context, animeID int64) (bool
 	return exists, nil
 }
 
+// ResolveFansubGroupIDForAnime resolves a fansub group slug to its group id,
+// scoped to the groups actually linked to this specific anime via
+// anime_fansub_groups. This anime-scoped lookup (never a bare global
+// fansub_groups slug lookup) is the IDOR mitigation for the public episodes
+// group filter (D-05/T-163-03): a slug belonging to a different anime's group
+// never resolves here. Returns ErrNotFound when the slug is unknown or
+// foreign to this anime; callers must fail closed (400), never fall back to
+// unfiltered data.
+func (r *FansubRepository) ResolveFansubGroupIDForAnime(ctx context.Context, animeID int64, slug string) (int64, error) {
+	var groupID int64
+	err := r.db.QueryRow(ctx, `
+		SELECT fg.id
+		FROM anime_fansub_groups afg
+		JOIN fansub_groups fg ON fg.id = afg.fansub_group_id
+		WHERE afg.anime_id = $1 AND fg.slug = $2
+	`, animeID, slug).Scan(&groupID)
+	if errors.Is(err, pgx.ErrNoRows) {
+		return 0, ErrNotFound
+	}
+	if err != nil {
+		return 0, fmt.Errorf("resolve fansub group slug %q for anime %d: %w", slug, animeID, err)
+	}
+	return groupID, nil
+}
+
 func buildFansubGroupWhere(filter models.FansubFilter) (string, []any) {
 	conditions := make([]string, 0, 2)
 	args := make([]any, 0, 2)

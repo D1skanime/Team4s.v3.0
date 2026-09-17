@@ -13,31 +13,30 @@ import (
 
 // PublicEpisodeOptions belongs to the opt-in public projection only.
 type PublicEpisodeOptions struct {
-	Limit   int
-	Cursor  string
+	Limit  int
+	Cursor string
+	// Fansub is the raw, unresolved fansub group slug from the request ("" = "Alle").
+	// It is the cursor-scope identity (D-06): comparing raw slugs, not resolved
+	// group ids, lets Validate/normalized reject a cross-filter cursor with zero
+	// DB round trips, before the caller ever resolves the slug to a group id.
+	Fansub string
+	// GroupID is the resolved fansub_group_id bound as SQL $6 (nil = "Alle").
+	// Callers resolve Fansub -> GroupID themselves (after Validate succeeds) and
+	// set this field; it plays no role in cursor-scope validation.
 	GroupID *int64
 }
 type publicEpisodeCursor struct {
-	Version       int   `json:"v"`
-	AnimeID       int64 `json:"a"`
-	GroupID       int64 `json:"g"` // 0 = "Alle" (no group filter)
-	EpisodeNumber int32 `json:"n"`
-	EpisodeID     int64 `json:"e"`
-	VariantID     int64 `json:"i"`
+	Version       int    `json:"v"`
+	AnimeID       int64  `json:"a"`
+	Fansub        string `json:"g"` // "" = "Alle"; raw slug identity, not a resolved group id (see PublicEpisodeOptions.Fansub)
+	EpisodeNumber int32  `json:"n"`
+	EpisodeID     int64  `json:"e"`
+	VariantID     int64  `json:"i"`
 }
 
 func (o PublicEpisodeOptions) Validate(animeID int64) error {
 	_, _, err := o.normalized(animeID)
 	return err
-}
-
-// requestGroupID returns the cursor-scope identity of the active group filter:
-// 0 for "Alle" (GroupID == nil), or the dereferenced group id otherwise.
-func (o PublicEpisodeOptions) requestGroupID() int64 {
-	if o.GroupID == nil {
-		return 0
-	}
-	return *o.GroupID
 }
 
 func (o PublicEpisodeOptions) normalized(animeID int64) (int, publicEpisodeCursor, error) {
@@ -48,7 +47,6 @@ func (o PublicEpisodeOptions) normalized(animeID int64) (int, publicEpisodeCurso
 	if animeID <= 0 || limit < 1 || limit > MaxCursorPageLimit {
 		return 0, publicEpisodeCursor{}, ErrValidation
 	}
-	requestGroupID := o.requestGroupID()
 	var cursor publicEpisodeCursor
 	if o.Cursor == "" {
 		return limit, cursor, nil
@@ -62,7 +60,7 @@ func (o PublicEpisodeOptions) normalized(animeID int64) (int, publicEpisodeCurso
 	}
 	decoder := json.NewDecoder(bytes.NewReader(raw))
 	decoder.DisallowUnknownFields()
-	if decoder.Decode(&cursor) != nil || decoder.Decode(new(any)) != io.EOF || cursor.Version != 2 || cursor.AnimeID != animeID || cursor.GroupID != requestGroupID || cursor.EpisodeNumber <= 0 || cursor.EpisodeID <= 0 || cursor.VariantID < 0 {
+	if decoder.Decode(&cursor) != nil || decoder.Decode(new(any)) != io.EOF || cursor.Version != 2 || cursor.AnimeID != animeID || cursor.Fansub != o.Fansub || cursor.EpisodeNumber <= 0 || cursor.EpisodeID <= 0 || cursor.VariantID < 0 {
 		return 0, cursor, ErrValidation
 	}
 	// Canonical serialization also rejects missing/duplicate fields and alternate encodings.
@@ -171,9 +169,8 @@ func (r *EpisodeVersionRepository) ListPublicGroupedByAnimeID(ctx context.Contex
 	if err := rows.Err(); err != nil {
 		return nil, fmt.Errorf("read public episodes: %w", err)
 	}
-	requestGroupID := options.requestGroupID()
 	page, next, more := trimCursorPage(items, limit, func(item publicEpisodeRow) string {
-		c := publicEpisodeCursor{Version: 2, AnimeID: animeID, GroupID: requestGroupID, EpisodeNumber: item.episode.EpisodeNumber, EpisodeID: item.episode.EpisodeID, VariantID: item.variant.ID}
+		c := publicEpisodeCursor{Version: 2, AnimeID: animeID, Fansub: options.Fansub, EpisodeNumber: item.episode.EpisodeNumber, EpisodeID: item.episode.EpisodeID, VariantID: item.variant.ID}
 		raw, _ := json.Marshal(c)
 		return base64.RawURLEncoding.EncodeToString(raw)
 	})
