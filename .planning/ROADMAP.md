@@ -2011,3 +2011,13 @@ Plans:
 **Wave 5** *(blocked on Wave 4 completion)*
 
 - [x] 163-05-PLAN.md — Container-Rebuild, Live-Browser-UAT-Checkpoint Naruto (§16), Abschlussbericht.
+
+### Phase 164: Öffentliche Anime-Seite: Episode-/Release-UI, performantes Public Read-Model und Infinite Scroll
+
+**Goal:** Die Episoden-/Release-Darstellung auf `/anime/[id]` ist ein mobil-zuerst gebautes Fansub-Release-Archiv mit glasiger Episodenkarte (Tint nur nach Filler-/Canon-Klassifikation), gruppenzentrierter Release-Vorschau ohne schwere Detaildaten, einem erweiterten Public-Read-Model ohne N+1 (Gruppen/Logos/has_images/has_notes/has_karaoke gebündelt) und Infinite Scroll mit begrenztem bidirektionalem Fenster, stabiler Scrollposition und filterkonsistentem Cursor.
+**Requirements**: TBD (in plan-phase aus 164-USER-REQUEST.md §1–§53 abzuleiten)
+**Depends on:** Phase 163 (serverseitiger Gruppenfilter, Cursor-Scope, Trefferzahl) – abgeschlossen und live abgenommen 17.09.2026
+**Verbindliche Quelle:** `.planning/phases/164-oeffentliche-anime-seite-episode-release-ui-read-model-infinite-scroll/164-USER-REQUEST.md`
+**Scopegrenze:** keine Episode-Detailseite, kein Details-Dropdown, keine Screenshots/Rich-Text/Segmentdetails in der Preview, keine neue Klassifikationsheuristik, keine neue Virtualization-Library ohne Nachweis, keine Datenänderung durch Agenten. Planung ohne Ausführung – Freigabe durch den Auftraggeber abwarten.
+**UI hint:** yes
+**Plans:** TBD
