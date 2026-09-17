@@ -1,11 +1,11 @@
 'use client'
 
-import { useEffect, useMemo, useRef, useState } from 'react'
+import { useEffect, useLayoutEffect, useMemo, useRef, useState } from 'react'
 
-import { getGroupedEpisodes } from '@/lib/api'
 import { Button } from '@/components/ui/Button'
 import { EmptyState } from '@/components/ui/EmptyState'
 import { ErrorState } from '@/components/ui/ErrorState'
+import { LoadingState } from '@/components/ui/LoadingState'
 import { classNames } from '@/components/ui/classNames'
 
 import { PublicGroupedEpisode, PublicEpisodeVersion, PublicGroupedEpisodesResponse } from '@/types/episodeVersion'
@@ -14,6 +14,7 @@ import { resolveEpisodeTitle } from './episodePreviewFormat'
 import { FansubGroupContext } from './FansubGroupContext'
 import { FansubGroupPicker } from './FansubGroupPicker'
 import { ReleasePreviewRow } from './ReleasePreviewRow'
+import { useWindowedEpisodePages, type WindowedPage } from './useWindowedEpisodePages'
 import { AnimeFansubRelation, FansubGroupSummary } from '@/types/fansub'
 
 import styles from './FansubVersionBrowser.module.css'
@@ -59,15 +60,63 @@ function getSummaryVersion(
   return preferred || episode.versions[0]
 }
 
-function mergeEpisodes(current: PublicGroupedEpisode[], incoming: PublicGroupedEpisode[]): PublicGroupedEpisode[] {
-  const merged = new Map(current.map((episode) => [episode.episode_id, episode]))
-  for (const episode of incoming) {
-    const previous = merged.get(episode.episode_id)
-    const variants = new Map(previous?.versions.map((version) => [version.variant_id, version]) ?? [])
-    for (const version of episode.versions) variants.set(version.variant_id, version)
-    merged.set(episode.episode_id, { ...previous, ...episode, versions: Array.from(variants.values()) })
+/** Phase 163's cursor paginates over (episode_number, episode_id, variant_id) ROWS, not whole
+ * episodes -- an episode with more variants than the page's row_limit can legitimately span two
+ * adjacent cursor pages. This merges such boundary-split episodes for DISPLAY across the
+ * CURRENTLY WINDOWED pages only (never mutates the hook's own per-page cache), so the union of
+ * versions renders once, attributed to the page where the episode_id first appears; the other
+ * occurrence is skipped. If the first page is later evicted (spacer), this naturally degrades to
+ * the still-windowed partial version list -- no crash, matches D-37's "bereits sichtbar bleiben". */
+function computeBoundaryMergedRenderPlan(pages: WindowedPage[]): {
+  merged: Map<number, PublicGroupedEpisode>
+  firstPageIdByEpisodeId: Map<number, string>
+} {
+  const merged = new Map<number, PublicGroupedEpisode>()
+  const firstPageIdByEpisodeId = new Map<number, string>()
+  for (const page of pages) {
+    for (const episode of page.episodes) {
+      const previous = merged.get(episode.episode_id)
+      if (!previous) {
+        merged.set(episode.episode_id, episode)
+        firstPageIdByEpisodeId.set(episode.episode_id, page.id)
+        continue
+      }
+      const variantMap = new Map(previous.versions.map((version) => [version.variant_id, version]))
+      for (const version of episode.versions) variantMap.set(version.variant_id, version)
+      merged.set(episode.episode_id, { ...previous, ...episode, versions: Array.from(variantMap.values()) })
+    }
   }
-  return Array.from(merged.values())
+  return { merged, firstPageIdByEpisodeId }
+}
+
+/** Misst die gerenderte Hoehe einer Page fortlaufend (ResizeObserver), damit ein evtl. spaeter
+ * ausgelagerter Spacer die zuletzt bekannte, echte Hoehe uebernimmt (D-34) statt 0px. Rendert
+ * absichtlich kein zusaetzliches <li>/<ul> -- die enthaltenen EpisodeGlassCard-<li>-Elemente
+ * bleiben direkte Nachfahren im Accessibility-Baum (li -> listitem ist kontextunabhaengig),
+ * nur ein <div> uebernimmt die Messfunktion. */
+function WindowedPageGroup({
+  pageId, reportPageHeight, children,
+}: {
+  pageId: string
+  reportPageHeight: (pageId: string, heightPx: number) => void
+  children: React.ReactNode
+}) {
+  const wrapperRef = useRef<HTMLDivElement | null>(null)
+
+  useEffect(() => {
+    const node = wrapperRef.current
+    if (!node) return
+    reportPageHeight(pageId, node.getBoundingClientRect().height)
+    if (typeof ResizeObserver === 'undefined') return
+    const observer = new ResizeObserver((entries) => {
+      const entry = entries[0]
+      if (entry) reportPageHeight(pageId, entry.contentRect.height)
+    })
+    observer.observe(node)
+    return () => observer.disconnect()
+  }, [pageId, reportPageHeight])
+
+  return <div ref={wrapperRef} data-page-id={pageId}>{children}</div>
 }
 
 export function FansubVersionBrowser(props: FansubVersionBrowserProps) {
@@ -94,36 +143,27 @@ function FansubVersionBrowserContent({
     ? fansubOptions.find((relation) => relation.fansub_group?.id === activeFansubGroupID)?.fansub_group ?? null
     : null
 
-  // D-07: der letzte erfolgreich committete Fetch fuer den aktuellen Filter. Startwert
-  // stimmt bewusst mit dem SSR-Fetch von page.tsx ueberein (activeGroup nutzt dieselbe
-  // Dedupe-/Fallback-Regel wie resolveActiveFansubSlug).
-  const [dataState, setDataState] = useState<{
-    slug: string | null
-    episodes: PublicGroupedEpisode[]
-    pagination: Pagination | undefined
-    episodeCount: number
-  }>({
-    slug: activeGroup?.slug ?? null,
-    episodes,
-    pagination,
-    episodeCount,
-  })
-  // D-08/D-10: ein Gruppenwechsel hat einen eigenen Lade-/Fehlerzustand, getrennt von
-  // "Weitere laden" -- ein Wechsel bricht ein laufendes "Weitere laden" ab (D-09), nicht umgekehrt.
+  // D-08/D-10: ein Gruppenwechsel hat einen eigenen Lade-/Fehlerzustand (volle Listendimmung),
+  // getrennt vom kompakten vorwaerts/rueckwaerts-Ladezustand des Infinite Scroll.
   const [switchState, setSwitchState] = useState<{ loading: boolean; error: string | null }>({
     loading: false, error: null,
   })
-  const [loadMoreState, setLoadMoreState] = useState<{ loading: boolean; error: string | null }>({
-    loading: false, error: null,
-  })
-  const requestRef = useRef<AbortController | null>(null)
 
-  useEffect(() => {
-    return () => {
-      requestRef.current?.abort()
-      requestRef.current = null
-    }
-  }, [episodes, pagination])
+  const windowing = useWindowedEpisodePages({
+    animeID,
+    initialEpisodes: episodes,
+    initialPagination: pagination,
+    activeFansubSlug: activeGroup?.slug ?? null,
+    initialEpisodeCount: episodeCount,
+  })
+
+  // D-34: eine Rueckwaerts-Wiederherstellung liefert ein Delta -- vor dem naechsten Paint per
+  // scrollBy ausgleichen, damit der sichtbare Inhalt nicht sichtbar springt.
+  useLayoutEffect(() => {
+    if (!windowing.scrollAnchorAdjustment || windowing.scrollAnchorAdjustment.px === 0) return
+    if (typeof window === 'undefined') return
+    window.scrollBy(0, windowing.scrollAnchorAdjustment.px)
+  }, [windowing.scrollAnchorAdjustment])
 
   // D-01/D-03: die URL ist die einzige Quelle des Gruppenkontexts. Browser Zurueck/Vor
   // liest den Parameter erneut und loest -- anders als bei 162 -- immer neu (D-09).
@@ -146,35 +186,18 @@ function FansubVersionBrowserContent({
   }
 
   async function switchTo(targetSlug: string | null) {
-    // D-09: der Wechsel bricht IMMER eine laufende Anfrage ab, egal ob es ein weiterer
-    // Wechsel oder ein "Weitere laden" war -- nur die letzte Auswahl darf Daten setzen.
-    requestRef.current?.abort()
-    const controller = new AbortController()
-    requestRef.current = controller
-    setLoadMoreState({ loading: false, error: null })
+    // D-09: der Wechsel bricht IMMER eine laufende Anfrage ab (vorwaerts, rueckwaerts oder ein
+    // vorheriger Wechsel) -- windowing.resetForFilter teilt sich den einzigen requestRef der
+    // Hook-Instanz, nur die letzte Auswahl darf Daten setzen.
     setSwitchState({ loading: true, error: null })
-    try {
-      const response = await getGroupedEpisodes(animeID, {
-        projection: 'public',
-        limit: 24,
-        ...(targetSlug ? { fansub: targetSlug } : {}),
-        signal: controller.signal,
-      })
-      if (controller.signal.aborted || requestRef.current !== controller) return
-      // D-07: kein Merge -- die alte Liste und der alte Cursor werden verworfen.
-      setDataState({
-        slug: targetSlug,
-        episodes: response.data.episodes,
-        pagination: response.data.pagination,
-        episodeCount: response.data.episode_count,
-      })
+    const outcome = await windowing.resetForFilter(targetSlug)
+    if (outcome.ok) {
       setSwitchState({ loading: false, error: null })
-      requestRef.current = null
-    } catch {
-      if (controller.signal.aborted || requestRef.current !== controller) return
+    } else if (!outcome.aborted) {
       setSwitchState({ loading: false, error: 'Episoden konnten nicht geladen werden.' })
-      requestRef.current = null
     }
+    // outcome.aborted: eine neuere switchTo-Anfrage laeuft bereits oder hat bereits committet --
+    // diese veraltete Antwort darf switchState nicht mehr anfassen.
   }
 
   function updateFansubSelection(groupID: number | null) {
@@ -195,39 +218,6 @@ function FansubVersionBrowserContent({
     void switchTo(slug)
   }
 
-  async function loadMore() {
-    if (!dataState.pagination?.has_more || !dataState.pagination.next_cursor || requestRef.current) return
-    const controller = new AbortController()
-    requestRef.current = controller
-    setLoadMoreState({ loading: true, error: null })
-    try {
-      const response = await getGroupedEpisodes(animeID, {
-        projection: 'public',
-        limit: 24,
-        // "Weitere laden" bleibt innerhalb des aktuellen Filters -- immer dataState.slug,
-        // nie das ggf. veraltete selectedSlug.
-        ...(dataState.slug ? { fansub: dataState.slug } : {}),
-        cursor: dataState.pagination.next_cursor,
-        signal: controller.signal,
-      })
-      if (controller.signal.aborted || requestRef.current !== controller) return
-      setDataState((current) => ({
-        ...current,
-        episodes: mergeEpisodes(current.episodes, response.data.episodes),
-        pagination: response.data.pagination,
-        episodeCount: response.data.episode_count,
-      }))
-    } catch {
-      if (controller.signal.aborted || requestRef.current !== controller) return
-      setLoadMoreState({ loading: false, error: 'Weitere Episoden konnten nicht geladen werden.' })
-    } finally {
-      if (!controller.signal.aborted && requestRef.current === controller) {
-        requestRef.current = null
-        setLoadMoreState((current) => ({ ...current, loading: false }))
-      }
-    }
-  }
-
   function toggleEpisode(episodeNumber: number) {
     setExpandedEpisodes((current) => {
       if (current[episodeNumber]) {
@@ -239,10 +229,41 @@ function FansubVersionBrowserContent({
     })
   }
 
+  function renderEpisode(episode: PublicGroupedEpisode) {
+    const expanded = Boolean(expandedEpisodes[episode.episode_id])
+    const summaryVersion = getSummaryVersion(episode, activeFansubGroupID)
+    // Defensive Client-Filterung fuer den Fall, dass die Versionsliste (noch) nicht
+    // serverseitig auf die aktive Gruppe eingeschraenkt ist (z. B. initialActiveSlug
+    // vor dem ersten Wechsel/Refetch). Coop-Versionen (mehrere fansub_groups) matchen
+    // fuer jede beteiligte Gruppe -- kein dritter Chip, kein Ausschluss (D-07/Testfall I).
+    const groupMatchedVersions = activeFansubGroupID !== null
+      ? episode.versions.filter((item) => item.fansub_groups?.some((g) => g.id === activeFansubGroupID))
+      : episode.versions
+    const panelID = `episode-versions-${animeID}-${episode.episode_id}`
+    const episodeTitle = resolveEpisodeTitle(episode, summaryVersion)
+
+    return (
+      <EpisodeGlassCard
+        key={episode.episode_id}
+        episode={episode}
+        episodeTitle={episodeTitle}
+        expanded={expanded}
+        onToggle={() => toggleEpisode(episode.episode_id)}
+        panelId={panelID}
+      >
+        {groupMatchedVersions.map((version) => (
+          <ReleasePreviewRow key={version.variant_id} version={version} animeID={animeID} />
+        ))}
+      </EpisodeGlassCard>
+    )
+  }
+
+  const hasAnyEpisodes = windowing.pages.some((page) => page.episodes.length > 0)
+
   return (
     <section className={styles.section}>
       {/* D-12: die Trefferzahl kommt aus dem Client-Zustand, aktualisiert sich bei jedem Wechsel. */}
-      <h2>Episoden ({dataState.episodeCount})</h2>
+      <h2>Episoden ({windowing.episodeCount})</h2>
 
       {fansubOptions.length > 0 ? (
         <>
@@ -270,7 +291,22 @@ function FansubVersionBrowserContent({
         </div>
       ) : null}
 
-      {dataState.episodes.length === 0 ? (
+      {/* D-31/D-35: der obere Sentinel und die rueckwaerts-Lade-/Fehlerzustaende sind unabhaengig
+          davon sichtbar, ob die aktuelle Page (noch) Episoden enthaelt -- analog zum vormaligen
+          "Weitere laden"-Button, der ebenfalls ausserhalb der Leer-/Listen-Verzweigung stand. */}
+      <div ref={windowing.topSentinelRef} aria-hidden="true" data-testid="top-sentinel" className={styles.sentinel} />
+      {windowing.backwardLoading ? <LoadingState compact title="Frühere Episoden werden geladen …" /> : null}
+      {windowing.backwardError ? (
+        <div role="alert">
+          <ErrorState
+            title="Frühere Episoden konnten nicht geladen werden."
+            description="Die bereits geladenen Episoden bleiben sichtbar."
+            action={<Button variant="secondary" onClick={() => void windowing.retryPrevious()}>Erneut versuchen</Button>}
+          />
+        </div>
+      ) : null}
+
+      {!hasAnyEpisodes ? (
         activeFansubGroupID !== null ? (
           <EmptyState
             variant="compact"
@@ -285,44 +321,42 @@ function FansubVersionBrowserContent({
           aria-busy={switchState.loading}
           className={classNames(styles.episodeList, switchState.loading && styles.episodeListDimmed)}
         >
-          {dataState.episodes.map((episode) => {
-            const expanded = Boolean(expandedEpisodes[episode.episode_id])
-            const summaryVersion = getSummaryVersion(episode, activeFansubGroupID)
-            // Defensive Client-Filterung fuer den Fall, dass die Versionsliste (noch) nicht
-            // serverseitig auf die aktive Gruppe eingeschraenkt ist (z. B. initialActiveSlug
-            // vor dem ersten Wechsel/Refetch). Coop-Versionen (mehrere fansub_groups) matchen
-            // fuer jede beteiligte Gruppe -- kein dritter Chip, kein Ausschluss (D-07/Testfall I).
-            // Kein "keine passende Version"-Sonderfall mehr (D-15): der Server liefert nach
-            // einem Refetch nie eine Episode ohne mindestens eine passende Version.
-            const groupMatchedVersions = activeFansubGroupID !== null
-              ? episode.versions.filter((item) => item.fansub_groups?.some((g) => g.id === activeFansubGroupID))
-              : episode.versions
-            const panelID = `episode-versions-${animeID}-${episode.episode_id}`
-            const episodeTitle = resolveEpisodeTitle(episode, summaryVersion)
-
-            return (
-              <EpisodeGlassCard
-                key={episode.episode_id}
-                episode={episode}
-                episodeTitle={episodeTitle}
-                expanded={expanded}
-                onToggle={() => toggleEpisode(episode.episode_id)}
-                panelId={panelID}
-              >
-                {groupMatchedVersions.map((version) => (
-                  <ReleasePreviewRow key={version.variant_id} version={version} animeID={animeID} />
-                ))}
-              </EpisodeGlassCard>
-            )
-          })}
+          {(() => {
+            const pageById = new Map(windowing.pages.map((page: WindowedPage) => [page.id, page]))
+            const { merged, firstPageIdByEpisodeId } = computeBoundaryMergedRenderPlan(windowing.pages)
+            return windowing.orderedPageIds.map((pageId: string) => {
+              if (windowing.domWindowPageIds.includes(pageId)) {
+                const page = pageById.get(pageId)
+                if (!page) return null
+                const episodesToRender = page.episodes
+                  .filter((episode) => firstPageIdByEpisodeId.get(episode.episode_id) === pageId)
+                  .map((episode) => merged.get(episode.episode_id) ?? episode)
+                return (
+                  <WindowedPageGroup key={pageId} pageId={pageId} reportPageHeight={windowing.reportPageHeight}>
+                    {episodesToRender.map(renderEpisode)}
+                  </WindowedPageGroup>
+                )
+              }
+              const heightPx = windowing.spacers.get(pageId)
+              if (heightPx === undefined) return null
+              return <div key={pageId} aria-hidden="true" style={{ height: heightPx }} />
+            })
+          })()}
         </ul>
       )}
-      {loadMoreState.error ? <p role="alert">{loadMoreState.error}</p> : null}
-      {dataState.pagination?.has_more ? (
-        <Button variant="secondary" loading={loadMoreState.loading} onClick={() => void loadMore()}>
-          {loadMoreState.error ? 'Erneut versuchen' : 'Weitere Episoden und Versionen laden'}
-        </Button>
+
+      <div ref={windowing.bottomSentinelRef} aria-hidden="true" data-testid="bottom-sentinel" className={styles.sentinel} />
+      {windowing.forwardLoading ? <LoadingState compact title="Weitere Episoden werden geladen …" /> : null}
+      {windowing.forwardError ? (
+        <div role="alert">
+          <ErrorState
+            title="Weitere Episoden konnten nicht geladen werden."
+            description="Die bereits geladenen Episoden bleiben sichtbar."
+            action={<Button variant="secondary" onClick={() => void windowing.retryNext()}>Erneut versuchen</Button>}
+          />
+        </div>
       ) : null}
+      {windowing.showEndMarker ? <EmptyState variant="inline" title="Das waren alle Episoden." /> : null}
     </section>
   )
 }

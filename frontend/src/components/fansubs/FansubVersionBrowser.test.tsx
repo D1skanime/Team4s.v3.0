@@ -22,13 +22,50 @@ const singleFansub: AnimeFansubRelation[] = [fansubs[0]]
 const noFansubs: AnimeFansubRelation[] = []
 const DEFAULT_CLASSIFICATION = { filler_type: 'unknown', episode_type: 'episode' } as const
 
+/**
+ * 164-05: "Weitere Episoden laden" ist ein Button-Klick-Mechanismus D-27 hat ihn durch einen
+ * Bottom-Sentinel (IntersectionObserver) ersetzt. Manueller Stub (analog
+ * useNearViewportActivation.test.ts), jede Instanz wird erfasst, damit ein Test "den Observer,
+ * der dieses Sentinel-Element beobachtet" gezielt manuell ausloesen kann.
+ */
+class MockIntersectionObserver {
+  static instances: MockIntersectionObserver[] = []
+  callback: IntersectionObserverCallback
+  observed = new Set<Element>()
+  root = null
+  rootMargin = ''
+  thresholds: number[] = []
+
+  constructor(callback: IntersectionObserverCallback) {
+    this.callback = callback
+    MockIntersectionObserver.instances.push(this)
+  }
+
+  observe = (el: Element) => { this.observed.add(el) }
+  unobserve = (el: Element) => { this.observed.delete(el) }
+  disconnect = () => { this.observed.clear() }
+  takeRecords = () => []
+
+  static fire(el: Element) {
+    const observer = MockIntersectionObserver.instances.find((instance) => instance.observed.has(el))
+    observer?.callback([{ isIntersecting: true, target: el } as IntersectionObserverEntry], observer as unknown as IntersectionObserver)
+  }
+}
+
+async function fireBottomSentinel() {
+  const sentinel = screen.getByTestId('bottom-sentinel')
+  await act(async () => { MockIntersectionObserver.fire(sentinel) })
+}
+
 beforeEach(() => {
   groupedMock.mockReset()
+  MockIntersectionObserver.instances = []
+  vi.stubGlobal('IntersectionObserver', MockIntersectionObserver)
   // D-01: der Gruppenzustand lebt ausschliesslich in der URL -- Rueckstellung verhindert
   // Testverschmutzung ueber window.history hinweg (kein localStorage mehr zu leeren).
   window.history.pushState(null, '', '/')
 })
-afterEach(async () => { await act(async () => {}); cleanup(); vi.restoreAllMocks() })
+afterEach(async () => { await act(async () => {}); cleanup(); vi.restoreAllMocks(); vi.unstubAllGlobals() })
 
 describe('authoritative anime project navigation', () => {
   it('verlinkt Zur-Fansub-Gruppe und Zum-Projekt ueber die jeweils aktive Gruppen-Slug', () => {
@@ -363,45 +400,62 @@ function deferred<T>() {
   return { promise, resolve, reject }
 }
 describe('bounded public inventory continuation', () => {
-  it('merges 125 variants over explicit pages by episode_id/variant_id, retaining counts and neutral equal-number episodes', async () => {
-    const variants = Array.from({ length: 125 }, (_, index) => ({ ...variant(index + 100, index === 124 ? 9 : 7), title: `Geladene Variante ${index}` }))
-    const episode = (versions: typeof variants): PublicGroupedEpisode => ({ ...DEFAULT_CLASSIFICATION, episode_id: 50, episode_number: 1, episode_title: 'Große Folge', version_count: 125, versions })
-    const group9Match = variants.filter((item) => item.title === 'Geladene Variante 124')
-    // D-07: die "Zweite Gruppe"- und "Anderer Gruppenname"-Chip-Klicks loesen jetzt je einen
-    // eigenen gruppengefilterten Refetch aus (vorher clientseitig kostenlos gefiltert, kein Request).
-    groupedMock.mockResolvedValueOnce(publicPage([episode(group9Match)]))
-    groupedMock.mockResolvedValueOnce(publicPage([episode(variants.slice(0, 23))]))
-    for (let offset = 23; offset < 125; offset += 23) {
-      const last = offset + 23 >= 125
-      groupedMock.mockResolvedValueOnce(publicPage([
-        episode(variants.slice(offset - 1, Math.min(offset + 23, 125))),
-        ...(last ? [{ ...DEFAULT_CLASSIFICATION, episode_id: 51, episode_number: 1, episode_title: 'Neutrale gleiche Nummer', version_count: 0, versions: [] }] : []),
-      ], last ? ended : continued(`cursor-${offset + 23}`)))
-    }
-    groupedMock.mockResolvedValueOnce(publicPage([episode(group9Match)]))
-    render(<FansubVersionBrowser animeID={22} fansubs={fansubs} episodes={[episode(variants.slice(0, 23))]} pagination={continued('cursor-23')} />)
+  // 164-05: dieser Testfall pruefte urspruenglich, dass Versionen EINER einzelnen 125-Versionen-
+  // Episode ueber mehrere Cursor-Pages hinweg client-seitig zu einer Karte zusammengefuehrt
+  // werden (die alte mergeEpisodes-Funktion). Diese pre-existing-fehlschlagende Erwartung
+  // (deferred-items.md, seit 164-02) ist mit dem neuen begrenzten Fenster (D-30) strukturell
+  // unvereinbar: jede Page ist unabhaengig auslagerbar/spacer-faehig (D-34) -- ein Zusammenfuehren
+  // ueber Page-Grenzen hinweg wuerde beim Auslagern einer Page die Haelfte der zusammengefuehrten
+  // Episode mitentfernen. Ersetzt durch einen Test, der dieselben Aspekte (Gruppenwechsel-Refetch,
+  // Cursor-Fortsetzung ueber mehrere eigenstaendige Episoden, Ausklapp-Stabilitaet, Ende-Marker)
+  // mit dem tatsaechlich vertraglich gueltigen Modell abdeckt: mehrere DISTINKTE Episoden pro Page.
+  it('laedt mehrere eigenstaendige Episoden ueber Cursor-Pages hinweg und bleibt bei Gruppenwechseln konsistent', async () => {
+    const initialEpisode: PublicGroupedEpisode = { ...DEFAULT_CLASSIFICATION, episode_id: 50, episode_number: 1, episode_title: 'Große Folge', version_count: 1, versions: [variant(100, 7)] }
+    groupedMock.mockResolvedValueOnce(publicPage([
+      { ...DEFAULT_CLASSIFICATION, episode_id: 60, episode_number: 2, episode_title: 'Zweite-Gruppe-Folge', version_count: 1, versions: [variant(200, 9)] },
+    ])) // "Zweite Gruppe"-Wechsel
+    groupedMock.mockResolvedValueOnce(publicPage(
+      [{ ...DEFAULT_CLASSIFICATION, episode_id: 70, episode_number: 3, episode_title: 'Erste Fortsetzungsfolge', version_count: 1, versions: [variant(300, 7)] }],
+      continued('cursor-2'),
+    )) // "Anderer Gruppenname"-Wechsel (Page 1, hat noch eine Folgepage)
+    groupedMock.mockResolvedValueOnce(publicPage(
+      [{ ...DEFAULT_CLASSIFICATION, episode_id: 80, episode_number: 4, episode_title: 'Zweite Fortsetzungsfolge', version_count: 1, versions: [variant(400, 7)] }],
+      ended,
+    )) // Bottom-Sentinel-Nachladung (Page 2, letzte Page)
+    groupedMock.mockResolvedValueOnce(publicPage([
+      { ...DEFAULT_CLASSIFICATION, episode_id: 60, episode_number: 2, episode_title: 'Zweite-Gruppe-Folge', version_count: 1, versions: [variant(200, 9)] },
+    ])) // erneuter "Zweite Gruppe"-Wechsel nach dem Nachladen
+    render(<FansubVersionBrowser animeID={22} fansubs={fansubs} episodes={[initialEpisode]} pagination={ended} />)
     await act(async () => {})
     fireEvent.click(screen.getByRole('button', { name: /Große Folge/ }))
-    expect(screen.getByText('125 Versionen')).toBeTruthy()
+    expect(screen.getByRole('button', { name: /Große Folge/ }).getAttribute('aria-expanded')).toBe('true')
+
     fireEvent.click(screen.getByRole('button', { name: 'Zweite Gruppe' }))
     await waitFor(() => expect(getGroupedEpisodes).toHaveBeenCalledTimes(1), { timeout: 500 })
+    expect(screen.getByText('Zweite-Gruppe-Folge')).toBeTruthy()
+
     fireEvent.click(screen.getByRole('button', { name: 'Anderer Gruppenname' }))
     await waitFor(() => expect(getGroupedEpisodes).toHaveBeenCalledTimes(2), { timeout: 500 })
-    for (let index = 0; index < 5; index++) {
-      fireEvent.click(screen.getByRole('button', { name: 'Weitere Episoden und Versionen laden' }))
-      await waitFor(() => expect(getGroupedEpisodes).toHaveBeenCalledTimes(index + 3), { timeout: 500 })
-      await waitFor(() => expect(screen.queryByRole('button', { name: 'Weitere Episoden und Versionen laden' })?.hasAttribute('disabled')).not.toBe(true), { timeout: 500 })
-    }
-    expect(screen.queryByRole('button', { name: 'Weitere Episoden und Versionen laden' })).toBeNull()
-    expect(screen.getByRole('button', { name: /Große Folge/ }).getAttribute('aria-expanded')).toBe('true')
-    expect(screen.getByRole('button', { name: /Neutrale gleiche Nummer/ }).getAttribute('aria-expanded')).toBe('false')
-    expect(screen.getAllByRole('link', { name: 'Zum Release →' })).toHaveLength(124)
-    expect(screen.getByText('125 Versionen')).toBeTruthy()
+    await waitFor(() => expect(screen.getByText('Erste Fortsetzungsfolge')).toBeTruthy())
+    fireEvent.click(screen.getByRole('button', { name: /Erste Fortsetzungsfolge/ }))
+    expect(screen.getByRole('button', { name: /Erste Fortsetzungsfolge/ }).getAttribute('aria-expanded')).toBe('true')
+
+    await fireBottomSentinel()
+    await waitFor(() => expect(getGroupedEpisodes).toHaveBeenCalledTimes(3), { timeout: 500 })
+    expect(screen.getByText('Erste Fortsetzungsfolge')).toBeTruthy()
+    expect(screen.getByText('Zweite Fortsetzungsfolge')).toBeTruthy()
+    // Der Ausklapp-Zustand der ersten Fortsetzungsfolge ist ueber das Nachladen hinweg stabil.
+    expect(screen.getByRole('button', { name: /Erste Fortsetzungsfolge/ }).getAttribute('aria-expanded')).toBe('true')
+    fireEvent.click(screen.getByRole('button', { name: /Zweite Fortsetzungsfolge/ }))
+    expect(screen.getAllByRole('link', { name: 'Zum Release →' })).toHaveLength(2)
+    // has_more=false nach mehr als 1 geladener Page -> Ende-Marker (D-38).
+    expect(screen.getByText('Das waren alle Episoden.')).toBeTruthy()
+
     fireEvent.click(screen.getByRole('button', { name: 'Zweite Gruppe' }))
-    await waitFor(() => expect(getGroupedEpisodes).toHaveBeenCalledTimes(8), { timeout: 500 })
-    expect(screen.getByText('Geladene Variante 124')).toBeTruthy()
-    expect(screen.getAllByRole('link', { name: 'Zum Release →' })).toHaveLength(1)
-    expect(getGroupedEpisodes).toHaveBeenNthCalledWith(3, 22, expect.objectContaining({ projection: 'public', limit: 24, cursor: 'cursor-23', signal: expect.any(AbortSignal) }))
+    await waitFor(() => expect(getGroupedEpisodes).toHaveBeenCalledTimes(4), { timeout: 500 })
+    expect(screen.getByText('Zweite-Gruppe-Folge')).toBeTruthy()
+    expect(screen.queryByText('Erste Fortsetzungsfolge')).toBeNull()
+    expect(getGroupedEpisodes).toHaveBeenNthCalledWith(3, 22, expect.objectContaining({ projection: 'public', limit: 24, cursor: 'cursor-2', signal: expect.any(AbortSignal) }))
   })
   it('uses canonical version plus exact variant even when the legacy number collides', async () => {
     render(<FansubVersionBrowser animeID={22} fansubs={[]} episodes={[{
@@ -416,13 +470,14 @@ describe('bounded public inventory continuation', () => {
       '/anime/22/group/7/releases/10', '/anime/22/group/7/releases/20',
     ])
   })
-  it('keeps a failed cursor retryable and deduplicates repeated pending clicks', async () => {
+  it('keeps a failed cursor retryable and deduplicates repeated pending clicks (Bottom-Sentinel, Single-Flight)', async () => {
     const pending = deferred<PublicGroupedEpisodesResponse>()
     groupedMock.mockReturnValueOnce(pending.promise).mockResolvedValueOnce(publicPage([]))
     render(<FansubVersionBrowser animeID={22} fansubs={[]} episodes={[]} pagination={continued('retry')} />)
     await act(async () => {})
-    const load = screen.getByRole('button', { name: 'Weitere Episoden und Versionen laden' })
-    fireEvent.click(load); fireEvent.click(load)
+    const sentinel = screen.getByTestId('bottom-sentinel')
+    act(() => { MockIntersectionObserver.fire(sentinel) })
+    act(() => { MockIntersectionObserver.fire(sentinel) }) // zweite Intersection waehrend die erste noch pendent ist -- Single-Flight.
     expect(getGroupedEpisodes).toHaveBeenCalledTimes(1)
     await act(async () => pending.reject(new Error('test failure')))
     expect(screen.getByRole('alert').textContent).toContain('Weitere Episoden konnten nicht geladen werden.')
@@ -436,19 +491,20 @@ describe('bounded public inventory continuation', () => {
     groupedMock.mockReturnValueOnce(old.promise).mockReturnValueOnce(current.promise)
     const { rerender, unmount } = render(<FansubVersionBrowser animeID={22} fansubs={[]} episodes={[]} pagination={continued('old')} />)
     await act(async () => {})
-    fireEvent.click(screen.getByRole('button', { name: 'Weitere Episoden und Versionen laden' }))
+    act(() => { MockIntersectionObserver.fire(screen.getByTestId('bottom-sentinel')) })
     const oldSignal = groupedMock.mock.calls[0][1]?.signal
     rerender(<FansubVersionBrowser animeID={23} fansubs={[]} episodes={[]} pagination={continued('new')} />)
     await act(async () => {})
     expect(oldSignal?.aborted).toBe(true)
-    fireEvent.click(screen.getByRole('button', { name: 'Weitere Episoden und Versionen laden' }))
+    // Nach dem Route-Identity-Wechsel (animeID 22 -> 23) ist die Komponente vollstaendig neu
+    // gemountet (key={animeID}) -- ein neues Sentinel-Element beobachten.
+    act(() => { MockIntersectionObserver.fire(screen.getByTestId('bottom-sentinel')) })
     await act(async () => {
       if (outcome === 'resolve') old.resolve(publicPage([{ ...DEFAULT_CLASSIFICATION, episode_id: 99, episode_number: 9, episode_title: 'Alte Antwort', version_count: 0, versions: [] }]))
       else old.reject(new Error('old failure'))
     })
     expect(screen.queryByText('Alte Antwort')).toBeNull()
     expect(screen.queryByRole('alert')).toBeNull()
-    expect(screen.getByRole('button', { name: 'Weitere Episoden und Versionen laden' }).hasAttribute('disabled')).toBe(true)
     unmount()
     expect(groupedMock.mock.calls[1][1]?.signal?.aborted).toBe(true)
     await act(async () => current.resolve(publicPage([])))
@@ -466,7 +522,7 @@ it('deduplicates variants only inside the same canonical episode', async () => {
   ]} pagination={continued('same-number')} />)
   await act(async () => {})
   fireEvent.click(screen.getByRole('button', { name: /Erste Identität/ }))
-  fireEvent.click(screen.getByRole('button', { name: 'Weitere Episoden und Versionen laden' }))
+  await fireBottomSentinel()
   await waitFor(() => expect(screen.getByRole('button', { name: /Zweite Identität/ })).toBeTruthy())
   fireEvent.click(screen.getByRole('button', { name: /Zweite Identität/ }))
   expect(screen.getAllByRole('link', { name: 'Zum Release →' })).toHaveLength(2)

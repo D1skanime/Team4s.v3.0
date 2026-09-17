@@ -56,11 +56,42 @@ const initialEpisode: PublicGroupedEpisode = {
   episode_id: 50, episode_number: 1, episode_title: 'Erste Folge', version_count: 1, versions: [variant(10, 7)],
 }
 
+/**
+ * 164-05: "Weitere Episoden laden" ist ein Button-Klick-Mechanismus D-27 hat ihn durch einen
+ * Bottom-Sentinel (IntersectionObserver) ersetzt. Manueller Stub (analog
+ * useNearViewportActivation.test.ts).
+ */
+class MockIntersectionObserver {
+  static instances: MockIntersectionObserver[] = []
+  callback: IntersectionObserverCallback
+  observed = new Set<Element>()
+  root = null
+  rootMargin = ''
+  thresholds: number[] = []
+
+  constructor(callback: IntersectionObserverCallback) {
+    this.callback = callback
+    MockIntersectionObserver.instances.push(this)
+  }
+
+  observe = (el: Element) => { this.observed.add(el) }
+  unobserve = (el: Element) => { this.observed.delete(el) }
+  disconnect = () => { this.observed.clear() }
+  takeRecords = () => []
+
+  static fire(el: Element) {
+    const observer = MockIntersectionObserver.instances.find((instance) => instance.observed.has(el))
+    observer?.callback([{ isIntersecting: true, target: el } as IntersectionObserverEntry], observer as unknown as IntersectionObserver)
+  }
+}
+
 beforeEach(() => {
   groupedMock.mockReset()
+  MockIntersectionObserver.instances = []
+  vi.stubGlobal('IntersectionObserver', MockIntersectionObserver)
   window.history.pushState(null, '', '/')
 })
-afterEach(async () => { await act(async () => {}); cleanup(); vi.restoreAllMocks() })
+afterEach(async () => { await act(async () => {}); cleanup(); vi.restoreAllMocks(); vi.unstubAllGlobals() })
 
 describe('Gruppenwechsel-Refetch: Dimmung, Abbruch, Fehler, Anti-Vermischung (D-07..D-10/G)', () => {
   it('D-08: waehrend eines Gruppenwechsels bleibt die alte Liste sichtbar und wird als aria-busy markiert', async () => {
@@ -89,7 +120,7 @@ describe('Gruppenwechsel-Refetch: Dimmung, Abbruch, Fehler, Anti-Vermischung (D-
       pagination={{ has_more: true, next_cursor: 'next', row_limit: 24 }}
     />)
     await act(async () => {})
-    fireEvent.click(screen.getByRole('button', { name: 'Weitere Episoden und Versionen laden' }))
+    act(() => { MockIntersectionObserver.fire(screen.getByTestId('bottom-sentinel')) })
     await waitFor(() => expect(getGroupedEpisodes).toHaveBeenCalledTimes(1), { timeout: 500 })
     const loadMoreSignal = groupedMock.mock.calls[0]?.[1]?.signal
     fireEvent.click(screen.getByRole('button', { name: /Erste Folge/ }))

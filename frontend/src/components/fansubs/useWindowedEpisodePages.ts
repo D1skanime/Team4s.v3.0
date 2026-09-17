@@ -120,8 +120,12 @@ export function useWindowedEpisodePages({
   const seqRef = useRef(1)
   const lastKnownHeightsRef = useRef<Map<string, number>>(new Map())
   const coreRef = useRef(core)
-  coreRef.current = core
   const anchorSeqRef = useRef(0)
+
+  // react-hooks/refs: a ref may not be written during render -- keep coreRef in sync via an
+  // effect (runs synchronously after each commit, before any subsequent user interaction) so
+  // callbacks below always read the latest core state without depending on stale closures.
+  useEffect(() => { coreRef.current = core })
 
   useEffect(() => {
     return () => { requestRef.current?.abort(); requestRef.current = null }
@@ -290,7 +294,7 @@ export function useWindowedEpisodePages({
   const bottomObserverRef = useRef<IntersectionObserver | null>(null)
   const bottomElRef = useRef<Element | null>(null)
   const loadNextRef = useRef(loadNext)
-  loadNextRef.current = loadNext
+  useEffect(() => { loadNextRef.current = loadNext })
   const bottomSentinelRef = useCallback((el: HTMLElement | null) => {
     if (bottomElRef.current && bottomObserverRef.current) bottomObserverRef.current.unobserve(bottomElRef.current)
     bottomElRef.current = el
@@ -306,7 +310,7 @@ export function useWindowedEpisodePages({
   const topObserverRef = useRef<IntersectionObserver | null>(null)
   const topElRef = useRef<Element | null>(null)
   const loadPreviousRef = useRef(loadPrevious)
-  loadPreviousRef.current = loadPrevious
+  useEffect(() => { loadPreviousRef.current = loadPrevious })
   const topSentinelRef = useCallback((el: HTMLElement | null) => {
     if (topElRef.current && topObserverRef.current) topObserverRef.current.unobserve(topElRef.current)
     topElRef.current = el
@@ -342,6 +346,7 @@ export function useWindowedEpisodePages({
 
   return {
     pages,
+    orderedPageIds: core.orderedPageIds,
     domWindowPageIds: core.domWindowPageIds,
     spacers: core.spacers,
     episodeCount: core.episodeCount,

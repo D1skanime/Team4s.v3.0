@@ -142,7 +142,6 @@ describe('useWindowedEpisodePages', () => {
     for (let index = 1; index <= 6; index++) {
       const isLast = index === 6
       groupedMock.mockResolvedValueOnce(page([ep(index)], !isLast, isLast ? null : `c${index + 1}`))
-      // eslint-disable-next-line no-await-in-loop
       await act(async () => { await result.current.retryNext() })
     }
     expect(result.current.domWindowPageIds).toEqual(['p4', 'p5', 'p6'])
