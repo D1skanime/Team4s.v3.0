@@ -73,7 +73,9 @@ Die folgenden Punkte sind die dem UI-Researcher überlassenen, hiermit verbindli
    `.episodesSection` (unverändert, `rgba(255,255,255,0.04)`-Hintergrund, außerhalb des Scopes dieser Phase). Analog
    zum bestehenden `episodeCard`-Muster (`--color-white`/`--surface-card`-Fläche mit `--text-primary`-Text) wird der
    Bereich als helle Karte gerendert — kein neues Dark-Mode-Pattern, konsistent mit dem bereits etablierten
-   „helle Karte auf dunklem Abschnitt“-Look dieser Seite.
+   „helle Karte auf dunklem Abschnitt“-Look dieser Seite. **Primärer Blickfang:** Der aktive Filter-Chip
+   (farbiger Rahmen) zusammen mit der darunterliegenden hellen Karte bildet den primären Blickfang dieses
+   Abschnitts — die Navigations-Buttons darunter sind bewusst nachrangig (`variant="secondary"`).
 7. **Lange Gruppennamen (Sicherheitsnetz, kein hartes Limit):** Chips wachsen mit dem Namen und umbrechen als Ganzes
    (`flex-wrap: wrap`, kein Abschneiden im Normalfall). Nur als Überlaufschutz gegen pathologisch lange,
    leerzeichenlose Namen: `max-width: min(100%, 260px)`, `overflow: hidden`, `text-overflow: ellipsis`,
@@ -102,7 +104,7 @@ neuen Spacing-Werte**:
 |-------|-------|-------|
 | `--space-1` | 4px | Chip-internes Icon-/Logo-Gap |
 | `--space-2` | 8px | Gap zwischen Chips (`flex-wrap`-Zeile), Gap zwischen Chip-Logo und Chip-Text |
-| `--space-3` | 12px | Innenabstand vertikal im gruppenspezifischen Bereich |
+| `--space-3` | 12px | Innenabstand vertikal im gruppenspezifischen Bereich (bereits bestehendes, projektweites Token aus Phase 160 — bewusst übernommen, keine neue Ausnahme dieser Phase) |
 | `--space-4` | 16px | Innenabstand horizontal im gruppenspezifischen Bereich; Abstand Chip-Zeile → Bereich |
 | `--space-5` | 24px | Abstand Bereich → Folgenliste; Innenabstand der Karte (`padding`) |
 | `--space-6` | 32px | nicht verwendet in diesem Block (Reserve für größere Layout-Abstände der Elternsektion) |
