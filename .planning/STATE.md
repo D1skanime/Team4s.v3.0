@@ -2,15 +2,15 @@
 gsd_state_version: 1.0
 milestone: v1.4
 milestone_name: Coverage
-status: verifying
-stopped_at: Completed 163-05-PLAN.md (Phase 163 complete, human UAT approved)
-last_updated: "2026-09-17T19:16:05.660Z"
+status: milestone_complete
+stopped_at: Milestone complete (Phase 163 was final phase)
+last_updated: 2026-09-17T19:33:56.619Z
 last_activity: 2026-09-17
 progress:
   total_phases: 28
   completed_phases: 28
   total_plans: 263
-  completed_plans: 263
+  completed_plans: 317
   percent: 100
 ---
 
@@ -147,14 +147,14 @@ Phase 135 and any future roadmap entries continue from here.
 See: .planning/PROJECT.md (updated 2026-08-13)
 
 **Core value:** Team4s presents fansub history and collaboration credibly while keeping identity, visibility, ownership, and permissions correct.
-**Current focus:** Phase 163 — oeffentliche-anime-seite-episoden-nach-fansub-gruppe-filtern
+**Current focus:** Milestone complete
 
 ## Current Position
 
-Phase: 163 (oeffentliche-anime-seite-episoden-nach-fansub-gruppe-filtern) — EXECUTING
-Plan: 5 of 5
+Phase: 163
+Plan: Not started
 dupliziertem ProjectMemberStickyNav; siehe 157-14-SUMMARY.md)
-Status: Phase complete — ready for verification
+Status: Milestone complete
 GAP-02-Live-UAT-Checkpoint aus 156-UAT.md (5 Origin- + 9 Segment-Contributor-Pruefpunkte) wurde
 am 2026-09-15 vom Auftraggeber live abgenommen (inkl. GAP-08/GAP-09). Phase 156 ist vollstaendig abgenommen.
 Phase 157 gilt ebenfalls NICHT als vollstaendig abgenommen: der menschliche Live-UAT-Checkpoint
