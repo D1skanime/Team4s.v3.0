@@ -39,7 +39,7 @@ function buildFilterHref(kind: 'tag' | 'genre', name: string): string {
 /** Props für die Anime-Detailseite mit URL-Parametern und optionalen Such-Parametern. */
 interface AnimeDetailPageProps {
   params: Promise<{ id: string }>
-  searchParams?: Promise<{ from?: string | string[]; grid_query?: string | string[] }>
+  searchParams?: Promise<{ from?: string | string[]; grid_query?: string | string[]; fansub?: string | string[] }>
 }
 
 export async function generateMetadata({ params }: AnimeDetailPageProps): Promise<Metadata> {
@@ -72,6 +72,7 @@ async function AnimeDetailContent({ anime, searchParams }: {
   const resolvedSearchParams = ((await searchParams) ?? {}) as {
     from?: string | string[]
     grid_query?: string | string[]
+    fansub?: string | string[]
   }
   const animeID = anime.id
   const breadcrumbItems = [
@@ -81,6 +82,10 @@ async function AnimeDetailContent({ anime, searchParams }: {
   const rawGridQuery =
     typeof resolvedSearchParams.grid_query === 'string' ? resolvedSearchParams.grid_query : ''
   const gridQuery = normalizeGridQuery(rawGridQuery)
+  // D-04: SSR-Determinismus -- der Rohwert wird unvalidiert als Hinweis-Prop durchgereicht,
+  // FansubVersionBrowser prueft ihn client-seitig gegen die geladene fansubOptions-Allowlist (T-162-06).
+  const rawFansubParam =
+    typeof resolvedSearchParams.fansub === 'string' ? resolvedSearchParams.fansub : undefined
 
   const embySeriesUrl = getEmbySeriesUrlForAnime(anime.id)
   const [animeFansubsResult, groupedEpisodesResult, commentsResult, relationsResult] =
@@ -250,22 +255,6 @@ async function AnimeDetailContent({ anime, searchParams }: {
       <div className={styles.contentArea}>
         <section className={styles.episodesSection}>
           <h2>Episoden ({episodeCount})</h2>
-          {animeFansubsResponse && animeFansubsResponse.data.length > 0 && (
-            <div className={styles.fansubRow}>
-              {animeFansubsResponse.data.map((relation) =>
-                relation.fansub_group ? (
-                  <Link
-                    key={relation.fansub_group.id}
-                    href={`/fansubs/${relation.fansub_group.slug}`}
-                    prefetch={false}
-                    className={styles.fansubChip}
-                  >
-                    {relation.fansub_group.name}
-                  </Link>
-                ) : null,
-              )}
-            </div>
-          )}
           {groupedEpisodesResponse ? (
             <FansubVersionBrowser
               key={anime.id}
@@ -275,6 +264,7 @@ async function AnimeDetailContent({ anime, searchParams }: {
               storyGroups={fansubStoryGroups}
               episodes={groupedEpisodesResponse.data.episodes}
               pagination={groupedEpisodesResponse.data.pagination}
+              initialActiveSlug={rawFansubParam}
             />
           ) : anime.episodes.length === 0 ? (
             <div className={styles.emptyEpisodes}>Noch keine Episoden vorhanden.</div>
