@@ -186,6 +186,18 @@ func (r *EpisodeVersionRepository) ListPublicGroupedByAnimeID(ctx context.Contex
 	if len(items) > 0 {
 		episodeCount = items[0].episodeCount
 	}
+	releaseVersionIDs := make([]int64, 0, len(page))
+	seenReleaseVersionID := make(map[int64]bool, len(page))
+	for _, item := range page {
+		if item.releaseVersionID != nil && !seenReleaseVersionID[*item.releaseVersionID] {
+			seenReleaseVersionID[*item.releaseVersionID] = true
+			releaseVersionIDs = append(releaseVersionIDs, *item.releaseVersionID)
+		}
+	}
+	flags, err := resolvePublicEpisodeFlags(ctx, r.db, releaseVersionIDs)
+	if err != nil {
+		return nil, fmt.Errorf("resolve public episode flags anime=%d: %w", animeID, err)
+	}
 	result := &models.PublicGroupedEpisodesData{AnimeID: animeID, Episodes: make([]models.PublicGroupedEpisode, 0), EpisodeCount: episodeCount, Pagination: models.PublicEpisodePagination{HasMore: more, NextCursor: next, RowLimit: limit}}
 	for _, item := range page {
 		if len(result.Episodes) == 0 || result.Episodes[len(result.Episodes)-1].EpisodeID != item.episode.EpisodeID {
@@ -193,6 +205,13 @@ func (r *EpisodeVersionRepository) ListPublicGroupedByAnimeID(ctx context.Contex
 			result.Episodes = append(result.Episodes, item.episode)
 		}
 		if item.variantID != nil {
+			if item.releaseVersionID != nil {
+				if f, ok := flags[*item.releaseVersionID]; ok {
+					item.variant.HasImages = f.HasImages
+					item.variant.HasNotes = f.HasNotes
+					item.variant.HasKaraoke = f.HasKaraoke
+				}
+			}
 			e := &result.Episodes[len(result.Episodes)-1]
 			e.Versions = append(e.Versions, item.variant)
 		}

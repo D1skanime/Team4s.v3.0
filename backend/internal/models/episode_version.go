@@ -225,6 +225,9 @@ type PublicEpisodeVersion struct {
 	ReleaseDate      *time.Time           `json:"release_date,omitempty"`
 	Container        *string              `json:"container,omitempty"`
 	VideoCodec       *string              `json:"video_codec,omitempty"`
+	HasImages        bool                 `json:"has_images"`
+	HasNotes         bool                 `json:"has_notes"`
+	HasKaraoke       bool                 `json:"has_karaoke"`
 }
 
 type PublicGroupedEpisode struct {
@@ -236,6 +239,15 @@ type PublicGroupedEpisode struct {
 	Versions         []PublicEpisodeVersion `json:"versions"`
 	FillerType       string                 `json:"filler_type"`
 	EpisodeType      string                 `json:"episode_type"`
+}
+
+// PublicEpisodeFlags carries the batched, visibility-gated presence flags
+// resolvePublicEpisodeFlags resolves in one round trip per page request
+// (never per release). See episode_version_public_flags.go.
+type PublicEpisodeFlags struct {
+	HasImages  bool
+	HasNotes   bool
+	HasKaraoke bool
 }
 
 type PublicEpisodePagination struct {
