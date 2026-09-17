@@ -209,3 +209,7 @@ Zusätzlich: Mobil (≤767px) ist die Infokarte dunkel; `.tagsLabel` wird dort h
 - Mobil ist die Überschrift „Verwandte Anime“ dunkel auf dunkler Karte (vorbestehend, AnimeRelations-Stil).
 - `--focus-ring` ist global mit 18 % Deckkraft eher dezent (globales Token, nicht geändert).
 - Die Menschliche Sichtabnahme durch den Auftraggeber bleibt erforderlich; Agentenbelege ersetzen sie nicht.
+
+## Human Sign-off (2026-09-17)
+
+Auftraggeber: „approved“. Status fachlich abgenommen; siehe 160-HUMAN-UAT.md.

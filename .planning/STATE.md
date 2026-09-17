@@ -16,6 +16,10 @@ progress:
 
 # Project State
 
+## Abgeschlossen — Phase 160 Teilschritt „Tags und Genres“ (17.09.2026)
+
+**Vom Auftraggeber am 17.09.2026 mit „approved“ abgenommen.** Migration 0168 (tag_names/genre_names), Admin-Seite /admin/tags-genres, Suche ohne Suchbegriff für tag/genre, Tags unter der Beschreibung und Genre-Links auf /anime/[id]. Gap-Fixes nach Agent-Browserprüfung: Suchseiten-Absturz bei type=anime (items:null), Linie vor Tags, Sortierung nach angezeigtem Namen (cea49488). Offen: Genres mobil ausgeblendet, Überschrift „Verwandte Anime“ mobil dunkel, Review-Warnungen WR-01..03. Gruppenbereich/Coop laut Auftraggeber eigene Phase 162 (noch nicht angelegt). Kein Push.
+
 ## Phase 160 (Teilschritt „Tags und Genres“) — code-complete und verifiziert, Human-UAT ausstehend (16.09.2026)
 
 Alle 6 Pläne (160-01 bis 160-06) sequenziell ausgeführt (workflow.use_worktrees=false): Migration 0168

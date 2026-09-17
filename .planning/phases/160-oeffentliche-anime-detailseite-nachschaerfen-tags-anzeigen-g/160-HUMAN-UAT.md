@@ -1,5 +1,5 @@
 ---
-status: partial
+status: complete
 phase: 160-oeffentliche-anime-detailseite-nachschaerfen-tags-anzeigen-g
 source: [160-VERIFICATION.md]
 started: 2026-09-16T21:41:07Z
@@ -76,3 +76,11 @@ blocked: 4
 - Test 3 (Tastatur): Agent bestätigt per Playwright Fokus + Enter → korrekter Suchzustand. Nutzerbestätigung offen.
 - Zusätzlich behoben: Absturz der Suchseite bei type=anime, Linie vor Tags, Sortierung nach angezeigtem Namen —
   siehe 160-VERIFICATION.md „Gap-Fixes nach Agent-Browserprüfung“.
+
+## Nutzerabnahme 2026-09-17
+
+Der Auftraggeber hat Phase 160 (Teilschritt „Tags und Genres“ inkl. der Gap-Fixes `cea49488`) am
+2026-09-17 mit **„approved“** abgenommen. Die Tests 1–3 gelten damit als vom Auftraggeber bestätigt.
+Die im Abschlussbericht genannten offenen Punkte (mobil ausgeblendete Genres, dunkle Überschrift
+„Verwandte Anime“ mobil, Review-Warnungen WR-01..WR-03, dezentes Fokus-Token) bleiben als bekannte
+Nacharbeit bestehen und sind nicht Teil dieser Abnahme.
