@@ -104,6 +104,43 @@ INSERT INTO theme_segments (id,theme_id,fansub_group_id,version,start_episode,en
         (2,1,2,'v99',99,100,'release_asset','assigned-outside-range'),
         (3,1,2,'v2',50,50,'release_asset','   ');
 INSERT INTO theme_segment_assignments (theme_segment_id,release_version_id) VALUES (2,10),(3,11);
+-- 164-01: filler/episode-type lookup tables do not exist in the shared Phase-117
+-- prerequisites, so publicEpisodeQuery's new LEFT JOINs need them added here.
+-- Episode 11 gets an explicit classification (filler/ova); episode 14 stays
+-- unclassified (NULL/NULL) to exercise the COALESCE('unknown')/('episode') fallback.
+ALTER TABLE episodes ADD COLUMN filler_type_id BIGINT, ADD COLUMN episode_type_id BIGINT;
+CREATE TABLE episode_filler_types (id BIGINT PRIMARY KEY, name TEXT NOT NULL);
+INSERT INTO episode_filler_types (id,name) VALUES (1,'unknown'),(2,'canon'),(3,'filler'),(4,'mixed'),(5,'recap');
+CREATE TABLE episode_types (id BIGINT PRIMARY KEY, name TEXT NOT NULL);
+INSERT INTO episode_types (id,name) VALUES
+ (1,'episode'),(2,'special'),(3,'ova'),(4,'ona'),(5,'movie'),(6,'recap'),(7,'preview'),(8,'prologue'),(9,'epilogue'),(10,'bonus');
+ALTER TABLE episodes ADD CONSTRAINT fk_episodes_filler_type FOREIGN KEY (filler_type_id) REFERENCES episode_filler_types(id);
+ALTER TABLE episodes ADD CONSTRAINT fk_episodes_episode_type FOREIGN KEY (episode_type_id) REFERENCES episode_types(id);
+UPDATE episodes SET filler_type_id=3, episode_type_id=3 WHERE id=11;
+-- 164-01: group/logo COALESCE alignment (loadReleaseGroups parity) + batched
+-- has_images/has_notes/has_karaoke flags fixture, minimal columns per
+-- project_member_public_repository_episodes_integration_test.go's precedent.
+-- Scoped to release_version_id=10 (variant 100, "First release"): one approved
+-- public screenshot + one published public note. release_version_id=11 (variant
+-- 101) deliberately gets neither, to prove the false/false case.
+ALTER TABLE fansub_groups ADD COLUMN logo_id BIGINT REFERENCES media_assets(id);
+CREATE TABLE review_statuses (id BIGSERIAL PRIMARY KEY, code VARCHAR(40) NOT NULL UNIQUE);
+INSERT INTO review_statuses (code) VALUES ('approved');
+ALTER TABLE media_assets ADD COLUMN status VARCHAR(20) NOT NULL DEFAULT 'ready',
+ ADD COLUMN visibility_id BIGINT REFERENCES visibilities(id),
+ ADD COLUMN review_status_id BIGINT REFERENCES review_statuses(id);
+CREATE TABLE release_version_media (
+ id BIGINT PRIMARY KEY,
+ release_version_id BIGINT NOT NULL REFERENCES release_versions(id),
+ media_asset_id BIGINT NOT NULL REFERENCES media_assets(id),
+ category VARCHAR(30) NOT NULL,
+ deleted_at TIMESTAMPTZ
+);
+INSERT INTO media_assets (id,file_path,status,visibility_id,review_status_id) VALUES
+ (900,'/media/fixture-screenshot.png','ready',(SELECT id FROM visibilities WHERE name='public'),(SELECT id FROM review_statuses WHERE code='approved'));
+INSERT INTO release_version_media (id,release_version_id,media_asset_id,category) VALUES (900,10,900,'screenshot');
+INSERT INTO members (id,nickname,display_name) VALUES (900,'fixture-member','Fixture Member');
+INSERT INTO release_version_notes (id,release_version_id,member_id,visibility,status) VALUES (900,10,900,'public','published');
 `)
 	require.NoError(t, err)
 	testsupport.ApplySQLFile(t, fixture, filepath.Join("..", "..", "..", "database", "migrations", "0166_jellyfin_source_identity.up.sql"))
@@ -126,6 +163,8 @@ type publicEpisodeFixture struct {
 	VersionCount     int              `json:"version_count"`
 	DefaultVersionID *int64           `json:"default_version_id"`
 	Versions         []map[string]any `json:"versions"`
+	FillerType       string           `json:"filler_type"`
+	EpisodeType      string           `json:"episode_type"`
 }
 type publicEpisodeEnvelope struct {
 	Data struct {
@@ -156,12 +195,21 @@ func episodePublicRequest(t *testing.T, pool *pgxpool.Pool, path string, status 
 }
 func assertPublicBudget(t *testing.T, tr *episodePublicTracer, limit int) {
 	t.Helper()
-	require.Len(t, tr.queries, 2, "existence plus one bounded query, including any metadata SQL")
+	require.Len(t, tr.queries, 3, "existence plus one bounded query plus one batched has_images/has_notes/has_karaoke flags query")
 	require.EqualValues(t, 1, tr.queries[0].Rows)
 	require.LessOrEqual(t, tr.queries[1].Rows, int64(limit+1))
 	require.NotContains(t, tr.queries[1].SQL, "theme_segment")
 	require.NotContains(t, tr.queries[1].SQL, "release_streams")
 	t.Logf("SQL statements=%d returned rows=%d+%d (inventory budget %d+1)", len(tr.queries), tr.queries[0].Rows, tr.queries[1].Rows, limit)
+}
+
+// assertPublicBudgetEmptyResult covers the zero-release_version_ids case (164-01
+// Task 2 behavior): resolvePublicEpisodeFlags must not run at all when the page has
+// no versions, so the budget stays at 2 (existence + main query), not 3.
+func assertPublicBudgetEmptyResult(t *testing.T, tr *episodePublicTracer) {
+	t.Helper()
+	require.Len(t, tr.queries, 2, "existence plus one bounded query; zero release_version_ids must skip the flags query entirely")
+	require.EqualValues(t, 1, tr.queries[0].Rows)
 }
 
 func TestEpisodeVersionPublicMixedAndIdentity(t *testing.T) {
@@ -185,6 +233,18 @@ func TestEpisodeVersionPublicMixedAndIdentity(t *testing.T) {
 	for _, field := range []string{"media_provider", "media_item_id", "stream_url", "segment_count", "has_segment_asset", "duration_seconds", "crc32", "created_at", "updated_at", "covered_episode_numbers"} {
 		require.NotContains(t, first, field)
 	}
+	require.Equal(t, "filler", page.Data.Episodes[0].FillerType, "episode 11 has an explicit filler_type_id")
+	require.Equal(t, "ova", page.Data.Episodes[0].EpisodeType, "episode 11 has an explicit episode_type_id")
+	require.Equal(t, "unknown", page.Data.Episodes[1].FillerType, "episode 14 has no filler_type_id, must fall back to COALESCE('unknown')")
+	require.Equal(t, "episode", page.Data.Episodes[1].EpisodeType, "episode 14 has no episode_type_id, must fall back to COALESCE('episode')")
+	require.Equal(t, true, first["has_images"], "release_version_id 10 (variant 100) has an approved public screenshot")
+	require.Equal(t, true, first["has_notes"], "release_version_id 10 (variant 100) has a published public note")
+	require.Equal(t, false, first["has_karaoke"], "release_version_id 10 (variant 100) has no typesetting_karaoke media")
+	second := page.Data.Episodes[0].Versions[1]
+	require.EqualValues(t, 11, second["release_version_id"])
+	require.Equal(t, false, second["has_images"], "release_version_id 11 (variant 101) has zero fixture image/note rows")
+	require.Equal(t, false, second["has_notes"], "release_version_id 11 (variant 101) has zero fixture image/note rows")
+	require.Equal(t, false, second["has_karaoke"], "release_version_id 11 (variant 101) has zero fixture image/note rows")
 	assertPublicBudget(t, tr, 24)
 	t.Logf("mixed payload bytes=%d", len(raw))
 	tr.reset()
@@ -253,11 +313,11 @@ func TestEpisodeVersionPublicEmptyAndVisibility(t *testing.T) {
 	require.NotNil(t, empty.Data.Episodes)
 	require.Empty(t, empty.Data.Episodes)
 	require.False(t, empty.Data.Pagination.HasMore)
-	assertPublicBudget(t, tr, 24)
+	assertPublicBudgetEmptyResult(t, tr)
 	tr.reset()
 	_, neutral := episodePublicRequest(t, pool, "/anime/5/episodes?projection=public", 200)
 	require.Empty(t, neutral.Data.Episodes, "anime 5's only episode has zero releases and must not appear after the fix")
-	assertPublicBudget(t, tr, 24)
+	assertPublicBudgetEmptyResult(t, tr)
 	for _, id := range []int{3, 999} {
 		tr.reset()
 		episodePublicRequest(t, pool, fmt.Sprintf("/anime/%d/episodes?projection=public", id), 404)

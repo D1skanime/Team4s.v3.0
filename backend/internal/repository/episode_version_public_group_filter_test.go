@@ -29,7 +29,29 @@ func openEpisodeVersionPublicGroupFilterFixture(t *testing.T) (*pgxpool.Pool, *e
 	fixture := testsupport.OpenPhase117Postgres(t)
 	_, err := fixture.Exec(context.Background(), `
 ALTER TABLE anime ADD COLUMN status TEXT NOT NULL DEFAULT 'done';
-ALTER TABLE fansub_groups ADD COLUMN slug TEXT, ADD COLUMN logo_url TEXT;
+ALTER TABLE fansub_groups ADD COLUMN slug TEXT, ADD COLUMN logo_url TEXT, ADD COLUMN logo_id BIGINT REFERENCES media_assets(id);
+-- 164-01: publicEpisodeQuery's new filler/episode-type JOINs and
+-- resolvePublicEpisodeFlags' batched EXISTS query need these tables to exist even
+-- though this fixture's own tests do not assert on their values (every request
+-- here has a non-empty result set, so the flags query always executes).
+ALTER TABLE episodes ADD COLUMN filler_type_id BIGINT, ADD COLUMN episode_type_id BIGINT;
+CREATE TABLE episode_filler_types (id BIGINT PRIMARY KEY, name TEXT NOT NULL);
+INSERT INTO episode_filler_types (id,name) VALUES (1,'unknown'),(2,'canon'),(3,'filler'),(4,'mixed'),(5,'recap');
+CREATE TABLE episode_types (id BIGINT PRIMARY KEY, name TEXT NOT NULL);
+INSERT INTO episode_types (id,name) VALUES
+ (1,'episode'),(2,'special'),(3,'ova'),(4,'ona'),(5,'movie'),(6,'recap'),(7,'preview'),(8,'prologue'),(9,'epilogue'),(10,'bonus');
+CREATE TABLE review_statuses (id BIGSERIAL PRIMARY KEY, code VARCHAR(40) NOT NULL UNIQUE);
+INSERT INTO review_statuses (code) VALUES ('approved');
+ALTER TABLE media_assets ADD COLUMN status VARCHAR(20) NOT NULL DEFAULT 'ready',
+ ADD COLUMN visibility_id BIGINT REFERENCES visibilities(id),
+ ADD COLUMN review_status_id BIGINT REFERENCES review_statuses(id);
+CREATE TABLE release_version_media (
+ id BIGINT PRIMARY KEY,
+ release_version_id BIGINT NOT NULL REFERENCES release_versions(id),
+ media_asset_id BIGINT NOT NULL REFERENCES media_assets(id),
+ category VARCHAR(30) NOT NULL,
+ deleted_at TIMESTAMPTZ
+);
 CREATE TABLE anime_fansub_groups (
  anime_id BIGINT NOT NULL REFERENCES anime(id),
  fansub_group_id BIGINT NOT NULL REFERENCES fansub_groups(id),
@@ -84,16 +106,17 @@ INSERT INTO release_version_groups VALUES (880030,4);
 
 // assertPublicBudgetWithGroupFilter extends assertPublicBudget (episode_version_public_integration_test.go)
 // for the fansub-parameterized case: existence check (1) + optional anime-scoped slug
-// resolution (0 or 1) + one bounded main statement (1). assertPublicBudget's own hardcoded
-// length-2 assertion stays correct for requests WITHOUT fansub and is intentionally left
-// untouched (Pflichtfall J).
+// resolution (0 or 1) + one bounded main statement (1) + one batched
+// has_images/has_notes/has_karaoke flags query (1, 164-01 Task 2) whenever the page
+// has at least one release_version_id -- every call site in this file has a
+// non-empty result set, so the flags query always fires here.
 func assertPublicBudgetWithGroupFilter(t *testing.T, tr *episodePublicTracer, limit int, groupFilterPresent bool) {
 	t.Helper()
-	expected := 2
+	expected := 3
 	if groupFilterPresent {
-		expected = 3
+		expected = 4
 	}
-	require.Len(t, tr.queries, expected, "existence plus optional slug resolution plus one bounded query")
+	require.Len(t, tr.queries, expected, "existence plus optional slug resolution plus one bounded query plus one batched flags query")
 	require.EqualValues(t, 1, tr.queries[0].Rows)
 	last := tr.queries[len(tr.queries)-1]
 	require.LessOrEqual(t, last.Rows, int64(limit+1))
