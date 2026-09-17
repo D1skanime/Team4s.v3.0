@@ -13,12 +13,14 @@ import (
 
 // PublicEpisodeOptions belongs to the opt-in public projection only.
 type PublicEpisodeOptions struct {
-	Limit  int
-	Cursor string
+	Limit   int
+	Cursor  string
+	GroupID *int64
 }
 type publicEpisodeCursor struct {
 	Version       int   `json:"v"`
 	AnimeID       int64 `json:"a"`
+	GroupID       int64 `json:"g"` // 0 = "Alle" (no group filter)
 	EpisodeNumber int32 `json:"n"`
 	EpisodeID     int64 `json:"e"`
 	VariantID     int64 `json:"i"`
@@ -28,6 +30,16 @@ func (o PublicEpisodeOptions) Validate(animeID int64) error {
 	_, _, err := o.normalized(animeID)
 	return err
 }
+
+// requestGroupID returns the cursor-scope identity of the active group filter:
+// 0 for "Alle" (GroupID == nil), or the dereferenced group id otherwise.
+func (o PublicEpisodeOptions) requestGroupID() int64 {
+	if o.GroupID == nil {
+		return 0
+	}
+	return *o.GroupID
+}
+
 func (o PublicEpisodeOptions) normalized(animeID int64) (int, publicEpisodeCursor, error) {
 	limit := o.Limit
 	if limit == 0 {
@@ -36,6 +48,7 @@ func (o PublicEpisodeOptions) normalized(animeID int64) (int, publicEpisodeCurso
 	if animeID <= 0 || limit < 1 || limit > MaxCursorPageLimit {
 		return 0, publicEpisodeCursor{}, ErrValidation
 	}
+	requestGroupID := o.requestGroupID()
 	var cursor publicEpisodeCursor
 	if o.Cursor == "" {
 		return limit, cursor, nil
@@ -49,7 +62,7 @@ func (o PublicEpisodeOptions) normalized(animeID int64) (int, publicEpisodeCurso
 	}
 	decoder := json.NewDecoder(bytes.NewReader(raw))
 	decoder.DisallowUnknownFields()
-	if decoder.Decode(&cursor) != nil || decoder.Decode(new(any)) != io.EOF || cursor.Version != 1 || cursor.AnimeID != animeID || cursor.EpisodeNumber <= 0 || cursor.EpisodeID <= 0 || cursor.VariantID < 0 {
+	if decoder.Decode(&cursor) != nil || decoder.Decode(new(any)) != io.EOF || cursor.Version != 2 || cursor.AnimeID != animeID || cursor.GroupID != requestGroupID || cursor.EpisodeNumber <= 0 || cursor.EpisodeID <= 0 || cursor.VariantID < 0 {
 		return 0, cursor, ErrValidation
 	}
 	// Canonical serialization also rejects missing/duplicate fields and alternate encodings.
@@ -71,7 +84,7 @@ WITH inventory AS (
   COUNT(v.id) OVER (PARTITION BY e.id)::INTEGER AS version_count,
   MIN(v.id) OVER (PARTITION BY e.id) AS default_version_id
  FROM episodes e
- LEFT JOIN LATERAL (
+ JOIN LATERAL (
   SELECT rv.id, rev.id AS release_version_id, COALESCE(rev.title,e.title) AS title,
    NULLIF(BTRIM(rev.version),'') AS release_version,
    COALESCE(rv.video_quality,rv.resolution) AS video_quality, rv.subtitle_type,
@@ -80,9 +93,16 @@ WITH inventory AS (
   JOIN release_versions rev ON rev.release_id=fr.id
   JOIN release_variants rv ON rv.release_version_id=rev.id
   WHERE fr.episode_id=e.id
+   AND EXISTS (
+    SELECT 1 FROM release_version_groups rvg
+    WHERE rvg.release_version_id = rev.id
+     AND ($6::BIGINT IS NULL OR rvg.fansub_group_id = $6::BIGINT)
+   )
  ) v ON TRUE
  WHERE e.anime_id=$1 AND CASE WHEN e.episode_number ~ '^[0-9]+$'
   THEN e.episode_number::NUMERIC BETWEEN 1 AND 2147483647 ELSE FALSE END
+), total AS (
+ SELECT COUNT(DISTINCT episode_id) AS n FROM inventory
 ), page AS (
  SELECT * FROM inventory
  WHERE (episode_number,episode_id,COALESCE(variant_id,0)) > ($2::INTEGER,$3::BIGINT,$4::BIGINT)
@@ -91,7 +111,7 @@ WITH inventory AS (
 )
 SELECT p.episode_id,p.episode_number,p.episode_title,p.version_count,p.default_version_id,
  p.variant_id,p.release_version_id,p.title,p.release_version,p.video_quality,p.subtitle_type,p.release_date,
- COALESCE(g.groups,'[]'::json)
+ COALESCE(g.groups,'[]'::json), total.n
 FROM page p
 LEFT JOIN LATERAL (
  SELECT json_agg(json_build_object('id',fg.id,'slug',fg.slug,'name',fg.name,'logo_url',fg.logo_url)
@@ -99,6 +119,7 @@ LEFT JOIN LATERAL (
  FROM release_version_groups rvg JOIN fansub_groups fg ON fg.id=rvg.fansub_group_id
  WHERE rvg.release_version_id=p.release_version_id
 ) g ON TRUE
+CROSS JOIN total
 ORDER BY p.episode_number,p.episode_id,COALESCE(p.variant_id,0)`
 
 type publicEpisodeRow struct {
@@ -106,6 +127,7 @@ type publicEpisodeRow struct {
 	variant          models.PublicEpisodeVersion
 	variantID        *int64
 	releaseVersionID *int64
+	episodeCount     int64
 }
 
 func (r *EpisodeVersionRepository) ListPublicGroupedByAnimeID(ctx context.Context, animeID int64, options PublicEpisodeOptions) (*models.PublicGroupedEpisodesData, error) {
@@ -120,7 +142,7 @@ func (r *EpisodeVersionRepository) ListPublicGroupedByAnimeID(ctx context.Contex
 	if !exists {
 		return nil, ErrNotFound
 	}
-	rows, err := r.db.Query(ctx, publicEpisodeQuery, animeID, cursor.EpisodeNumber, cursor.EpisodeID, cursor.VariantID, limit+1)
+	rows, err := r.db.Query(ctx, publicEpisodeQuery, animeID, cursor.EpisodeNumber, cursor.EpisodeID, cursor.VariantID, limit+1, options.GroupID)
 	if err != nil {
 		return nil, fmt.Errorf("query public episodes anime=%d: %w", animeID, err)
 	}
@@ -131,7 +153,7 @@ func (r *EpisodeVersionRepository) ListPublicGroupedByAnimeID(ctx context.Contex
 		var groups []byte
 		e, v := &item.episode, &item.variant
 		if err := rows.Scan(&e.EpisodeID, &e.EpisodeNumber, &e.EpisodeTitle, &e.VersionCount, &e.DefaultVersionID,
-			&item.variantID, &item.releaseVersionID, &v.Title, &v.ReleaseVersion, &v.VideoQuality, &v.SubtitleType, &v.ReleaseDate, &groups); err != nil {
+			&item.variantID, &item.releaseVersionID, &v.Title, &v.ReleaseVersion, &v.VideoQuality, &v.SubtitleType, &v.ReleaseDate, &groups, &item.episodeCount); err != nil {
 			return nil, fmt.Errorf("scan public episode: %w", err)
 		}
 		if item.variantID != nil {
@@ -149,12 +171,17 @@ func (r *EpisodeVersionRepository) ListPublicGroupedByAnimeID(ctx context.Contex
 	if err := rows.Err(); err != nil {
 		return nil, fmt.Errorf("read public episodes: %w", err)
 	}
+	requestGroupID := options.requestGroupID()
 	page, next, more := trimCursorPage(items, limit, func(item publicEpisodeRow) string {
-		c := publicEpisodeCursor{Version: 1, AnimeID: animeID, EpisodeNumber: item.episode.EpisodeNumber, EpisodeID: item.episode.EpisodeID, VariantID: item.variant.ID}
+		c := publicEpisodeCursor{Version: 2, AnimeID: animeID, GroupID: requestGroupID, EpisodeNumber: item.episode.EpisodeNumber, EpisodeID: item.episode.EpisodeID, VariantID: item.variant.ID}
 		raw, _ := json.Marshal(c)
 		return base64.RawURLEncoding.EncodeToString(raw)
 	})
-	result := &models.PublicGroupedEpisodesData{AnimeID: animeID, Episodes: make([]models.PublicGroupedEpisode, 0), Pagination: models.PublicEpisodePagination{HasMore: more, NextCursor: next, RowLimit: limit}}
+	var episodeCount int64
+	if len(items) > 0 {
+		episodeCount = items[0].episodeCount
+	}
+	result := &models.PublicGroupedEpisodesData{AnimeID: animeID, Episodes: make([]models.PublicGroupedEpisode, 0), EpisodeCount: episodeCount, Pagination: models.PublicEpisodePagination{HasMore: more, NextCursor: next, RowLimit: limit}}
 	for _, item := range page {
 		if len(result.Episodes) == 0 || result.Episodes[len(result.Episodes)-1].EpisodeID != item.episode.EpisodeID {
 			item.episode.Versions = make([]models.PublicEpisodeVersion, 0)

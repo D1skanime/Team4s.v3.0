@@ -241,7 +241,8 @@ type PublicEpisodePagination struct {
 }
 
 type PublicGroupedEpisodesData struct {
-	AnimeID    int64                   `json:"anime_id"`
-	Episodes   []PublicGroupedEpisode  `json:"episodes"`
-	Pagination PublicEpisodePagination `json:"pagination"`
+	AnimeID      int64                   `json:"anime_id"`
+	Episodes     []PublicGroupedEpisode  `json:"episodes"`
+	EpisodeCount int64                   `json:"episode_count"`
+	Pagination   PublicEpisodePagination `json:"pagination"`
 }
