@@ -566,27 +566,6 @@
   color: #fff;
 }
 
-.fansubRow {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 8px;
-  margin-bottom: 20px;
-}
-
-.fansubChip {
-  padding: 6px 12px;
-  border-radius: 8px;
-  background: rgba(255, 255, 255, 0.1);
-  color: rgba(255, 255, 255, 0.9);
-  font-size: 13px;
-  text-decoration: none;
-  transition: background 0.2s;
-}
-
-.fansubChip:hover {
-  background: rgba(255, 255, 255, 0.15);
-}
-
 .emptyEpisodes {
   color: rgba(255, 255, 255, 0.6);
   font-size: 14px;
