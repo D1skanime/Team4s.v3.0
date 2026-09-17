@@ -14146,6 +14146,9 @@ components:
         logo_url:
           type: string
           nullable: true
+        story_preview:
+          type: string
+          nullable: true
     FansubGroup:
       type: object
       required:

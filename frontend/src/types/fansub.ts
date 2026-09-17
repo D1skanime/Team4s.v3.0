@@ -55,6 +55,7 @@ export interface FansubGroupSummary {
   dissolved_year?: number | null;
   country?: string | null;
   status?: FansubStatus;
+  story_preview?: string | null;
 }
 
 export interface FansubMember {
