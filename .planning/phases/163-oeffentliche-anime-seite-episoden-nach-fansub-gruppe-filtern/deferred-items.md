@@ -46,3 +46,20 @@ out-of-scope infrastructure/environment work for unrelated phases.
 `-run TestEpisodeVersionPublicGroupFilter` are the only two commands this plan's `<verification>`
 section requires, and both were run and produce the documented RED failures (see
 `163-01-SUMMARY.md`).
+
+## 2. `backend/internal/repository/fansub_repository.go` pre-exists CLAUDE.md's 450-line cap (2471 lines before Plan 163-02, 2496 after)
+
+Plan 163-02 added one small method (`ResolveFansubGroupIDForAnime`, ~19 lines) to this file
+per the plan's own explicit interface guidance (RESEARCH.md Pattern 4 / 163-02-PLAN.md's
+interfaces block: "recommended location: a new small method on `FansubRepository`", reusing
+the `animeExists`/`ListAnimeFansubs` pattern already in this exact file). The file was already
+2471 lines — 5.5x over CLAUDE.md's 450-line production-code cap — before this plan touched it.
+
+**Why deferred, not fixed:** the Scope Boundary rule limits auto-fixes to issues directly
+caused by the current task's changes. This file's pre-existing size is unrelated to Phase 163
+and splitting a 2471-line repository file into cohesive sub-files is a non-trivial refactor
+(dozens of methods, shared private helpers, no obvious single-responsibility seam at the
+one-method-addition scale of this plan) that risks destabilizing unrelated fansub-admin
+functionality. Recommend a dedicated future cleanup phase/quick task to split
+`fansub_repository.go` by concern (e.g. group CRUD, anime-relation queries, public-profile
+reads, admin release/version writes).
