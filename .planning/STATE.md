@@ -3,7 +3,7 @@ gsd_state_version: 1.0
 milestone: v1.4
 milestone_name: Coverage
 status: executing
-stopped_at: Completed 162-05-PLAN.md — Auftraggeber-Freigabe ausstehend
+stopped_at: Phase 162 abgeschlossen — Live-UAT vom Auftraggeber bestanden (17.09.2026)
 last_updated: "2026-09-17T09:17:14Z"
 last_activity: 2026-09-17
 progress:
@@ -16,9 +16,9 @@ progress:
 
 # Project State
 
-## Code-complete — Phase 162 „Fansub-Gruppenauswahl, Kurzgeschichte und Navigation“ (17.09.2026)
+## Abgeschlossen — Phase 162 „Fansub-Gruppenauswahl, Kurzgeschichte und Navigation“ (Live-UAT bestanden 17.09.2026)
 
-Alle 5 Pläne (162-01 bis 162-05) sequenziell auf `main` ausgeführt (workflow.use_worktrees=false), Auftraggeber-Freigabe steht noch aus. `GET /api/v1/anime/{id}/fansubs` liefert additiv ein rune-sicher gekürztes `story_preview`-Feld pro Gruppe (LATERAL-Join, kein N+1). Neue Komponenten `FansubGroupPicker` (Filter-Chips, `role="group"`, `aria-pressed`) und `FansubGroupContext` (gruppenspezifischer Bereich: Name, 3-Zeilen-Story, „Mehr lesen →“, „Zur Fansub-Gruppe“, „Zum Projekt“) ersetzen das alte `ActiveFansubStory`. `FansubVersionBrowser` und `page.tsx` nutzen jetzt ausschließlich URL-Zustand (`?fansub=<slug>`, `history.pushState`/`popstate`, SSR-Determinismus über `searchParams.fansub`) statt localStorage; alle bisherigen redundanten Gruppen-Chips/CTAs sind entfernt. Backend neu gebaut (`docker compose up -d --build team4sv30-backend`), Frontend neu gestartet (`docker restart team4sv30-frontend`).
+Alle 5 Pläne (162-01 bis 162-05) sequenziell auf `main` ausgeführt (workflow.use_worktrees=false). **Vom Auftraggeber am 17.09.2026 live abgenommen („live uat bestanden“, 162-HUMAN-UAT.md).** `GET /api/v1/anime/{id}/fansubs` liefert additiv ein rune-sicher gekürztes `story_preview`-Feld pro Gruppe (LATERAL-Join, kein N+1). Neue Komponenten `FansubGroupPicker` (Filter-Chips, `role="group"`, `aria-pressed`) und `FansubGroupContext` (gruppenspezifischer Bereich: Name, 3-Zeilen-Story, „Mehr lesen →“, „Zur Fansub-Gruppe“, „Zum Projekt“) ersetzen das alte `ActiveFansubStory`. `FansubVersionBrowser` und `page.tsx` nutzen jetzt ausschließlich URL-Zustand (`?fansub=<slug>`, `history.pushState`/`popstate`, SSR-Determinismus über `searchParams.fansub`) statt localStorage; alle bisherigen redundanten Gruppen-Chips/CTAs sind entfernt. Backend neu gebaut (`docker compose up -d --build team4sv30-backend`), Frontend neu gestartet (`docker restart team4sv30-frontend`).
 
 **Verifikation:** 0 neue Test-Regressionen (Backend: 1 vorbestehender, dokumentierter Fehlschlag `TestFansubRepository_PublicProfileSourceInvariants`; Frontend: 2 vorbestehende, dokumentierte `cssCustomProperties.guard.test.ts`-Fehlschläge — beide außerhalb des Phasenscopes). `npm run typecheck` 0 Fehler, ESLint 0 Findings in geänderten Dateien. Automatisierte Playwright-Browser-Verifikation (17/17 Prüfungen grün, Desktop 1440px + Mobile 375px, gegen `http://127.0.0.1:3000`, echter Live-Datenbestand: Anime 1/2/3/4) **ersetzt** den im Plan vorgesehenen menschlichen Sign-off-Checkpoint — bewusste, im Ausführungsauftrag autorisierte Abweichung (siehe `162-05-SUMMARY.md`). Zwei Konstellationen (0 Gruppen, Gruppe ohne Logo) existieren im aktuellen Live-Bestand nicht und sind nur per Vitest-Fixture abgedeckt. Kein Push, kein Datenbank-Schreibzugriff während der gesamten Phase.
 

@@ -1952,7 +1952,7 @@ Plans:
 **Verbindliche Quellen:** `.planning/phases/162-oeffentliche-anime-seite-fansub-gruppenauswahl-kurzgeschichte-navigation/162-USER-REQUEST.md` und `162-CONTEXT.md`.
 **Scopegrenze:** keine Coop-Kennzeichnung in der Versionszeile, keine neue Coop-Entität, keine Datenänderung durch Agenten (Coop-Testdaten legt der Auftraggeber an).
 **UI hint:** yes
-**Plans:** 5/5 plans complete
+**Plans:** 5/5 plans complete. Live-UAT am 17.09.2026 vom Auftraggeber bestanden (162-HUMAN-UAT.md).
 
 Plans:
 **Wave 1**
