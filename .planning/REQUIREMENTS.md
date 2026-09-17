@@ -443,26 +443,26 @@ One requirement per decision (D-NN → REQ-164-NN) for full traceability. Depend
 group filter, cursor v2, and `episode_count`. **Planning-only phase** — execution requires explicit operator
 sign-off before `/gsd:execute-phase 164` runs.
 
-- [ ] **REQ-164-01**: Episoden bleiben aufklappbar; keine separate Episode-Detailseite (D-01).
-- [ ] **REQ-164-02**: Episode zeigt mindestens Episodennummer, Episodentitel, Filler-/Canon-Klassifikation, Episodentyp, Anzahl sichtbarer Release-Versionen (D-02).
+- [x] **REQ-164-01**: Episoden bleiben aufklappbar; keine separate Episode-Detailseite (D-01).
+- [x] **REQ-164-02**: Episode zeigt mindestens Episodennummer, Episodentitel, Filler-/Canon-Klassifikation, Episodentyp, Anzahl sichtbarer Release-Versionen (D-02).
 - [x] **REQ-164-03**: Filler-/Canon-Werte (canon/filler/mixed/recap/unknown) und ihre öffentlichen Bezeichnungen sind fix; keine neue Klassifikationsheuristik (D-03).
 - [x] **REQ-164-04**: Episodentyp ist eine zweite, unabhängige Dimension und zusätzlich sichtbar (D-04).
-- [ ] **REQ-164-05**: Glasiger Episodenstil mit subtilem Tint pro Klassifikation ersetzt die weißen Cards (D-05).
-- [ ] **REQ-164-06**: Farbe ist ausschließlich der Klassifikations-Kanal; der Episodentyp bekommt keine eigene Farbe (D-06).
-- [ ] **REQ-164-07**: Geöffnete Episode bleibt visuell übergeordnet; Releases erscheinen als kompakte neutrale glassige Unterelemente (D-07).
+- [x] **REQ-164-05**: Glasiger Episodenstil mit subtilem Tint pro Klassifikation ersetzt die weißen Cards (D-05).
+- [x] **REQ-164-06**: Farbe ist ausschließlich der Klassifikations-Kanal; der Episodentyp bekommt keine eigene Farbe (D-06).
+- [x] **REQ-164-07**: Geöffnete Episode bleibt visuell übergeordnet; Releases erscheinen als kompakte neutrale glassige Unterelemente (D-07).
 - [x] **REQ-164-08**: Release-Vorschau zeigt Gruppe(n)/Logo(s), Release-Version/Label, Auflösung, Container, Video-Codec, Softsub/Hardsub, Release-Datum (falls gepflegt), Zusatzinhalte-Hinweise, „Zum Release →"-Button (D-08).
-- [ ] **REQ-164-09**: Gruppe steht visuell vor den technischen Daten (D-09).
-- [ ] **REQ-164-10**: Gruppenlogo nur bei vorhandenem Bestand, keine neue Logo-Struktur, kein Dummy-Icon ohne Logo (D-10).
-- [ ] **REQ-164-11**: Coop zeigt alle beteiligten Gruppenlogos/-namen plus COOP-Kennzeichnung, keine erfundene Primärgruppe (D-11).
-- [ ] **REQ-164-12**: Technische Eckdaten als dezenter `·`-getrennter Fließtext, keine Chips/Badges (D-12).
-- [ ] **REQ-164-13**: Audio-Codec, Dateigröße, CRC32, Dauer, Provider, Media-/interne IDs, technische Vollmetadaten erscheinen nicht auf der Anime-Seite (D-13).
-- [ ] **REQ-164-14**: Release-Datum nur wenn gepflegt, Format „Veröffentlicht am DD.MM.YYYY", sonst Zeile vollständig weglassen (D-14).
-- [ ] **REQ-164-15**: Zusatzinhalte-Hinweise (📷/📝/♪) als dezenter Text nur bei vorhandenem Inhalt, Boolean-Flags statt teurer Zusatzqueries (D-15).
-- [ ] **REQ-164-16**: Keine Screenshots/Thumbnails auf der Anime-Seite, nur Text „📷 Bilder" (D-16).
-- [ ] **REQ-164-17**: Release-Card ist nicht klickbar; expliziter Button „Zum Release →" (D-17).
-- [ ] **REQ-164-18**: Kein zusätzliches Details-Dropdown auf der Anime-Seite (D-18).
-- [ ] **REQ-164-19**: Kein Play-Button-zentriertes Design (D-19).
-- [ ] **REQ-164-20**: Mobile-First-Reihenfolge (Mobile → Tablet → Desktop → Breitbild) mit den in §21 genannten Verhaltensregeln (D-20).
+- [x] **REQ-164-09**: Gruppe steht visuell vor den technischen Daten (D-09).
+- [x] **REQ-164-10**: Gruppenlogo nur bei vorhandenem Bestand, keine neue Logo-Struktur, kein Dummy-Icon ohne Logo (D-10).
+- [x] **REQ-164-11**: Coop zeigt alle beteiligten Gruppenlogos/-namen plus COOP-Kennzeichnung, keine erfundene Primärgruppe (D-11).
+- [x] **REQ-164-12**: Technische Eckdaten als dezenter `·`-getrennter Fließtext, keine Chips/Badges (D-12).
+- [x] **REQ-164-13**: Audio-Codec, Dateigröße, CRC32, Dauer, Provider, Media-/interne IDs, technische Vollmetadaten erscheinen nicht auf der Anime-Seite (D-13).
+- [x] **REQ-164-14**: Release-Datum nur wenn gepflegt, Format „Veröffentlicht am DD.MM.YYYY", sonst Zeile vollständig weglassen (D-14).
+- [x] **REQ-164-15**: Zusatzinhalte-Hinweise (📷/📝/♪) als dezenter Text nur bei vorhandenem Inhalt, Boolean-Flags statt teurer Zusatzqueries (D-15).
+- [x] **REQ-164-16**: Keine Screenshots/Thumbnails auf der Anime-Seite, nur Text „📷 Bilder" (D-16).
+- [x] **REQ-164-17**: Release-Card ist nicht klickbar; expliziter Button „Zum Release →" (D-17).
+- [x] **REQ-164-18**: Kein zusätzliches Details-Dropdown auf der Anime-Seite (D-18).
+- [x] **REQ-164-19**: Kein Play-Button-zentriertes Design (D-19).
+- [x] **REQ-164-20**: Mobile-First-Reihenfolge (Mobile → Tablet → Desktop → Breitbild) mit den in §21 genannten Verhaltensregeln (D-20).
 - [x] **REQ-164-21**: Bestehendes Public-Read-Model wird additiv erweitert, keine parallele Domain-Struktur (D-21).
 - [x] **REQ-164-22**: Datenfluss vor Umsetzung gemessen (SQL-Anzahl, Requests, Response-Größe), nicht geschätzt (D-22).
 - [x] **REQ-164-23**: Kein N+1; Query-Anzahl bleibt weitgehend konstant pro Page-Request (2–6 Queries) (D-23).
@@ -490,7 +490,7 @@ sign-off before `/gsd:execute-phase 164` runs.
 - [ ] **REQ-164-45**: Mobile Performance (DOM-Nodes, Hydration, Blur-Flächen) wird konkret bewertet (D-45).
 - [x] **REQ-164-46**: Alle 12 Performance-Gates aus §47 sind konkret verifizierbar (Testfall/Messmethode/Codeassertion) (D-46).
 - [x] **REQ-164-47**: Naruto (`anime_id=4`) ist der primäre Referenzfall; der §48-Testablauf ist die UAT-Blaupause, ergänzt um eine isolierte Fixture-DB für nicht real erreichbare Skalierungsfälle (D-47).
-- [ ] **REQ-164-48**: Der visuelle Testfall-Katalog aus `164-UI-SPEC.md` (Klassifikationen, Episodentypen, Release-Varianten, Infinite-Scroll-Zustände, Breakpoints) ist vollständig abgedeckt (D-48).
+- [x] **REQ-164-48**: Der visuelle Testfall-Katalog aus `164-UI-SPEC.md` (Klassifikationen, Episodentypen, Release-Varianten, Infinite-Scroll-Zustände, Breakpoints) ist vollständig abgedeckt (D-48).
 
 | Requirement | Phase | Status |
 |---|---|---|
