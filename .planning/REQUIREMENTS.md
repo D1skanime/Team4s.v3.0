@@ -395,17 +395,17 @@ Source: `163-USER-REQUEST.md` §1–§17 (Pflichtfälle A–J in §15), decision
 - [x] **REQ-163-10**: Nur nach bestehender Public-Visibility-Logik sichtbare Release-Versionen berücksichtigen (fail closed; keine internen/versteckten Versionen).
 - [x] **REQ-163-11**: Kein N+1; Query-Kosten bleiben stabil bei vielen Episoden/Gruppen/Versionen (Naruto-Fall geprüft).
 - [x] **REQ-163-12**: Bestehende fachliche Episodenreihenfolge bleibt unverändert (`episode_number, episode_id, variant_id`).
-- [ ] **REQ-163-13**: Ein gemeinsamer URL-Zustand (Phase-162 `?fansub=`) steuert Gruppenauswahl, Geschichte/Navigation UND Episodenfilterung — keine zweite unabhängige Gruppenauswahl.
-- [ ] **REQ-163-14**: Konkrete Gruppe ohne Treffer: kompakter neutraler Hinweis, keine leeren Episodenkarten, kein technischer Fehlertext.
+- [x] **REQ-163-13**: Ein gemeinsamer URL-Zustand (Phase-162 `?fansub=`) steuert Gruppenauswahl, Geschichte/Navigation UND Episodenfilterung — keine zweite unabhängige Gruppenauswahl.
+- [x] **REQ-163-14**: Konkrete Gruppe ohne Treffer: kompakter neutraler Hinweis, keine leeren Episodenkarten, kein technischer Fehlertext.
 - [x] **REQ-163-15**: Pflichtfälle A–J aus §15 automatisiert abgedeckt (Backend-Integrationstests mit echter Query + Frontend-Tests).
 - [ ] **REQ-163-16**: Browser-Verifikation live über :3300/:3000 mit Naruto (AnimeOwnage/Project Messiah/Alle/Coop-Fall).
 - [x] **REQ-163-17**: Bestehender Code vor Umsetzung dokumentiert: Endpoint, Pagination, Release-Version-Zuordnung, Public-Visibility-Bedingungen, SQL-Query-Anzahl, `EXPLAIN (ANALYZE)` für Naruto vorher.
-- [ ] **REQ-163-18**: Gruppenwechsel per `history.pushState` ohne RSC-/Seiten-Reload; alte Liste bleibt sichtbar, gedimmt und nicht interaktiv (`aria-busy`); kein Skeleton, kein Layoutsprung.
-- [ ] **REQ-163-19**: Browser Zurück/Vor lädt immer neu (kein Cache pro Gruppe); laufende Requests werden bei Wechsel abgebrochen; nur die letzte Auswahl darf Daten setzen.
-- [ ] **REQ-163-20**: Fehler beim Neuladen: kompakter Hinweis mit „Erneut versuchen"-Button; keine Altdaten der vorherigen Gruppe; Chip/URL bleiben auf neuer Gruppe.
-- [ ] **REQ-163-21**: `noVersionHint` und clientseitige Gruppenfilterung in `FansubVersionBrowser.tsx` entfernt (nicht parallel); `getSummaryVersion` wählt nur aus bereits gefilterten Versionen.
-- [ ] **REQ-163-22**: Notfall-Fallback-Liste in `page.tsx` zeigt keine releaselosen Episoden mehr; ersetzt durch neutralen Fehlerhinweis.
-- [ ] **REQ-163-23**: Loading-/Fehler-/Leer-/Retry-Elemente nutzen `@/components/ui`-Primitives und globale Design-Tokens; deutsche UI-Texte mit echten Umlauten.
+- [x] **REQ-163-18**: Gruppenwechsel per `history.pushState` ohne RSC-/Seiten-Reload; alte Liste bleibt sichtbar, gedimmt und nicht interaktiv (`aria-busy`); kein Skeleton, kein Layoutsprung.
+- [x] **REQ-163-19**: Browser Zurück/Vor lädt immer neu (kein Cache pro Gruppe); laufende Requests werden bei Wechsel abgebrochen; nur die letzte Auswahl darf Daten setzen.
+- [x] **REQ-163-20**: Fehler beim Neuladen: kompakter Hinweis mit „Erneut versuchen"-Button; keine Altdaten der vorherigen Gruppe; Chip/URL bleiben auf neuer Gruppe.
+- [x] **REQ-163-21**: `noVersionHint` und clientseitige Gruppenfilterung in `FansubVersionBrowser.tsx` entfernt (nicht parallel); `getSummaryVersion` wählt nur aus bereits gefilterten Versionen.
+- [x] **REQ-163-22**: Notfall-Fallback-Liste in `page.tsx` zeigt keine releaselosen Episoden mehr; ersetzt durch neutralen Fehlerhinweis.
+- [x] **REQ-163-23**: Loading-/Fehler-/Leer-/Retry-Elemente nutzen `@/components/ui`-Primitives und globale Design-Tokens; deutsche UI-Texte mit echten Umlauten.
 - [x] **REQ-163-24**: Keine Datenänderungen an `team4s_v2` durch Agenten; alle Pflichtfall-Tests laufen gegen Fixtures in einer separaten Test-Datenbank.
 
 | Requirement | Phase | Status |
@@ -422,15 +422,15 @@ Source: `163-USER-REQUEST.md` §1–§17 (Pflichtfälle A–J in §15), decision
 | REQ-163-10 | Phase 163 | Complete |
 | REQ-163-11 | Phase 163 | Complete |
 | REQ-163-12 | Phase 163 | Complete |
-| REQ-163-13 | Phase 163 | Pending |
-| REQ-163-14 | Phase 163 | Pending |
+| REQ-163-13 | Phase 163 | Complete |
+| REQ-163-14 | Phase 163 | Complete |
 | REQ-163-15 | Phase 163 | Complete |
 | REQ-163-16 | Phase 163 | Pending |
 | REQ-163-17 | Phase 163 | Complete |
-| REQ-163-18 | Phase 163 | Pending |
-| REQ-163-19 | Phase 163 | Pending |
-| REQ-163-20 | Phase 163 | Pending |
-| REQ-163-21 | Phase 163 | Pending |
-| REQ-163-22 | Phase 163 | Pending |
-| REQ-163-23 | Phase 163 | Pending |
+| REQ-163-18 | Phase 163 | Complete |
+| REQ-163-19 | Phase 163 | Complete |
+| REQ-163-20 | Phase 163 | Complete |
+| REQ-163-21 | Phase 163 | Complete |
+| REQ-163-22 | Phase 163 | Complete |
+| REQ-163-23 | Phase 163 | Complete |
 | REQ-163-24 | Phase 163 | Complete |

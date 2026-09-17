@@ -3,14 +3,14 @@ gsd_state_version: 1.0
 milestone: v1.4
 milestone_name: Coverage
 status: executing
-stopped_at: Completed 163-03-PLAN.md
-last_updated: "2026-09-17T17:17:52.176Z"
+stopped_at: Completed 163-04-PLAN.md
+last_updated: "2026-09-17T17:48:03.817Z"
 last_activity: 2026-09-17
 progress:
   total_phases: 28
   completed_phases: 27
   total_plans: 263
-  completed_plans: 261
+  completed_plans: 262
   percent: 96
 ---
 
@@ -152,7 +152,7 @@ See: .planning/PROJECT.md (updated 2026-08-13)
 ## Current Position
 
 Phase: 163 (oeffentliche-anime-seite-episoden-nach-fansub-gruppe-filtern) — EXECUTING
-Plan: 4 of 5
+Plan: 5 of 5
 dupliziertem ProjectMemberStickyNav; siehe 157-14-SUMMARY.md)
 Status: Ready to execute
 GAP-02-Live-UAT-Checkpoint aus 156-UAT.md (5 Origin- + 9 Segment-Contributor-Pruefpunkte) wurde
@@ -1337,6 +1337,8 @@ Last activity: 2026-09-17
 - [Phase ?]: RESEARCH.md's claim that an unrecognized fansub query param is 400-rejected is inaccurate; parseStrictNamedQuery silently ignores unknown keys, but all Plan 163-01 RED tests still fail today for a documented, legitimate reason
 - [Phase 163]: 163-02: Cursor scope uses the raw unresolved fansub slug (not the resolved group id), and the handler validates cursor scope before resolving the slug, so a cross-filter cursor is rejected with zero DB round trips.
 - [Phase 163]: 163-03: page.performance.test.ts (out of plan scope) needed episode_count:0 added to 2 mock literals broken by the new required type field (Rule 3, test-only, no assertions changed). — Required type field addition (episode_count) cascaded to an out-of-scope file; fixed minimally rather than leaving typecheck broken.
+- [Phase 163]: 163-04: page.tsx's D-16 fallback uses literal JSX text instead of the ErrorState primitive, because page.test.tsx's shallow props.children tree-walker cannot see text passed through a child component's props. — FansubVersionBrowser.tsx's own ErrorState/EmptyState usage is unaffected since it is exercised via real RTL rendering.
+- [Phase 163]: 163-04: kept a defensive per-episode groupMatchedVersions filter in FansubVersionBrowser.tsx (not fully removed) so Testfall G's un-refetched initial render still isolates the active group's version. — D-15's mandatory removal is only the 'Keine Version dieser Gruppe verfuegbar.' hint block/branch, which is fully gone; the underlying filter predicate is a locked-test requirement, not a D-15 violation.
 
 ### Pending Todos
 
@@ -1766,11 +1768,12 @@ untruncated list lives in `.planning/todos/pending/`.
 | Phase 163 P01 | 55min | 3 tasks | 2 files |
 | Phase 163 P02 | 55min | 3 tasks | 6 files |
 | Phase 163 P03 | 25min | 3 tasks | 9 files |
+| Phase 163 P04 | 45min | 3 tasks | 4 files |
 
 ## Session Continuity
 
-Last session: 2026-09-17T17:17:42.646Z
-Stopped at: Completed 163-03-PLAN.md
+Last session: 2026-09-17T17:48:03.796Z
+Stopped at: Completed 163-04-PLAN.md
 Last activity: 2026-09-16 - Completed quick task 260916-ako: Jellyfin-Geschwisterquellen getrennt importieren; Liveimport zweier Folge-2-Quellen geprüft, keine Phasen-UAT ersetzt.
 Resume file: 
 None

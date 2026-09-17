@@ -141,3 +141,7 @@ None — no external service configuration required.
 ---
 *Phase: 163-oeffentliche-anime-seite-episoden-nach-fansub-gruppe-filtern*
 *Completed: 2026-09-17*
+
+## Self-Check: PASSED
+
+All 4 modified files and this SUMMARY.md confirmed present on disk; all 3 task/docs commit hashes (`4cca35c2`, `b1e8efa2`, `f9818e25`) confirmed present in `git log --oneline --all`.

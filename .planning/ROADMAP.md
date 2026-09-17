@@ -1983,7 +1983,7 @@ Plans:
 **Verbindliche Quelle:** `.planning/phases/163-oeffentliche-anime-seite-episoden-nach-fansub-gruppe-filtern/163-USER-REQUEST.md`
 **Scopegrenze:** keine neue Episodenanzahl-Anzeige ohne UI-Entscheidung, keine zweite Gruppenauswahl, keine unrelated Refactorings, keine Datenänderung durch Agenten.
 **UI hint:** yes
-**Plans:** 3/5 plans executed
+**Plans:** 4/5 plans executed
 
   - Wave 1: 163-01 (Backend RED — Baseline-Erfassung + korrigierte/neue Fixture-Tests für Pflichtfälle B, C, D, E, F, I, J)
   - Wave 2: 163-02 (Backend GREEN — SQL-Fix, Cursor v2, Slug-Resolver, Handler/OpenAPI, After-Fix-EXPLAIN)
@@ -2006,7 +2006,7 @@ Plans:
 
 **Wave 4** *(blocked on Wave 3 completion)*
 
-- [ ] 163-04-PLAN.md — Frontend GREEN: SSR-Weiterleitung, Gruppenwechsel-Refetch, Dimmen, Leer-/Fehlerzustände.
+- [x] 163-04-PLAN.md — Frontend GREEN: SSR-Weiterleitung, Gruppenwechsel-Refetch, Dimmen, Leer-/Fehlerzustände.
 
 **Wave 5** *(blocked on Wave 4 completion)*
 
