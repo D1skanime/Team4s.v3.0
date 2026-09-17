@@ -1952,12 +1952,12 @@ Plans:
 **Verbindliche Quellen:** `.planning/phases/162-oeffentliche-anime-seite-fansub-gruppenauswahl-kurzgeschichte-navigation/162-USER-REQUEST.md` und `162-CONTEXT.md`.
 **Scopegrenze:** keine Coop-Kennzeichnung in der Versionszeile, keine neue Coop-Entität, keine Datenänderung durch Agenten (Coop-Testdaten legt der Auftraggeber an).
 **UI hint:** yes
-**Plans:** 5 plans
+**Plans:** 1/5 plans executed
 
 Plans:
 **Wave 1**
 
-- [ ] 162-01-PLAN.md — Backend: additiver story_preview-Contract (LATERAL-Join, OpenAPI/TS-Sync, Postgres-Integrationstest)
+- [x] 162-01-PLAN.md — Backend: additiver story_preview-Contract (LATERAL-Join, OpenAPI/TS-Sync, Postgres-Integrationstest)
 
 **Wave 2** *(blocked on Wave 1 completion)*
 

@@ -2,15 +2,15 @@
 gsd_state_version: 1.0
 milestone: v1.4
 milestone_name: Coverage
-status: executing
-stopped_at: Phase 162 context gathered
-last_updated: "2026-09-17T08:24:09.409Z"
+status: verifying
+stopped_at: Completed 162-01-PLAN.md
+last_updated: "2026-09-17T08:36:04.631Z"
 last_activity: 2026-09-17
 progress:
   total_phases: 27
   completed_phases: 26
   total_plans: 258
-  completed_plans: 253
+  completed_plans: 254
   percent: 96
 ---
 
@@ -148,7 +148,7 @@ See: .planning/PROJECT.md (updated 2026-08-13)
 Phase: 160 (oeffentliche-anime-detailseite-nachschaerfen-tags-anzeigen-g) — EXECUTING
 Plan: 6 of 6
 dupliziertem ProjectMemberStickyNav; siehe 157-14-SUMMARY.md)
-Status: Ready to execute
+Status: Phase complete — ready for verification
 GAP-02-Live-UAT-Checkpoint aus 156-UAT.md (5 Origin- + 9 Segment-Contributor-Pruefpunkte) wurde
 am 2026-09-15 vom Auftraggeber live abgenommen (inkl. GAP-08/GAP-09). Phase 156 ist vollstaendig abgenommen.
 Phase 157 gilt ebenfalls NICHT als vollstaendig abgenommen: der menschliche Live-UAT-Checkpoint
@@ -1319,6 +1319,9 @@ Last activity: 2026-09-17
 - [Phase 160]: 160-05: Vorschlags-Fetch bekam eine eigene, explizite MIN_QUERY_LENGTH-Bedingung im Debounce-Effekt — Verhindert, dass der tag/genre-Bypass fuer die Ergebnissuche versehentlich auch /search/suggestions erreicht (D-08 gilt nicht fuer Vorschlaege)
 - [Phase 160]: Tags-Block ARIA-Bindung ueber h2 id + ul aria-labelledby statt section aria-label — Haelt die sichtbare Ueberschrift als alleinige Quelle des barrierefreien Namens
 - [Phase 160]: Tag-Reihenfolge wird vom Backend uebernommen, kein Re-Sort im Frontend — Vermeidet Divergenz zwischen Backend- und Frontend-Sortierung (D-18)
+- [Phase 162]: story_preview additiv, optional (omitempty/nullable) in Go/OpenAPI/TS — nicht in required, da FansubGroupSummary auch von Endpunkten genutzt wird, die es nie befuellen
+- [Phase 162]: Truncation-Limit fest auf 500 Runes (fansubStoryPreviewRuneLimit)
+- [Phase 162]: Nur-Whitespace-Text gilt als keine Geschichte (nil), analog D-05/Paragraph 7
 
 ### Pending Todos
 
@@ -1741,13 +1744,14 @@ untruncated list lives in `.planning/todos/pending/`.
 | Phase 160 P03 | 40min | 3 tasks | 6 files |
 | Phase 160 P05 | 25min | 2 tasks | 4 files |
 | Phase 160 P06 | 35min | 2 tasks | 4 files |
+| Phase 162 P01 | 35min | 3 tasks | 6 files |
 
 ## Session Continuity
 
-Last session: 2026-09-17T06:42:38.575Z
-Stopped at: Phase 162 context gathered
+Last session: 2026-09-17T08:36:04.610Z
+Stopped at: Completed 162-01-PLAN.md
 Last activity: 2026-09-16 - Completed quick task 260916-ako: Jellyfin-Geschwisterquellen getrennt importieren; Liveimport zweier Folge-2-Quellen geprüft, keine Phasen-UAT ersetzt.
 Resume file: 
-.planning/phases/162-oeffentliche-anime-seite-fansub-gruppenauswahl-kurzgeschichte-navigation/162-CONTEXT.md
+None
 
 Plans 151-02/03/04 have implementation summaries. Plans 151-01 and 151-05 remain open until final artwork/composition review, complete browser evidence and independent verification; their missing summaries are intentional. No requirement or phase has been falsely marked complete.
