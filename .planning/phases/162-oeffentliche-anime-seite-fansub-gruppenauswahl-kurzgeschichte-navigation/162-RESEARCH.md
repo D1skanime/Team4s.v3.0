@@ -654,44 +654,41 @@ bleibt bis dahin ein dokumentierter offener Punkt (kein Blocker für die Impleme
 | A1 | Ein `popstate`-Event nach vorherigem `window.history.pushState` löst auf dieser bereits-dynamischen Route KEINEN zusätzlichen Next.js-App-Router-RSC-Fetch aus, wenn die Anwendung selbst keinen `router`-Aufruf tätigt. Die offizielle Doku bestätigt den Sync-Mechanismus nur für den auslösenden Client, nicht explizit das Verhalten bei nativer Browser-Zurück-Navigation auf einer zuvor per `pushState` (nicht per Next-Router) erzeugten History-Eintrag. | Architecture Patterns, Pattern 2 | Falls doch ein Server-Refetch bei Back/Forward passiert, verletzt das D-03 nur für den Zurück/Vor-Pfad (nicht für Chip-Klicks); Gegenmaßnahme: Component-Test mit `popstate`-Simulation + Spy auf `getAnimeFansubs`/`getGroupedEpisodes`, der 0 Aufrufe erwartet — Executor sollte dies als Wave-0-Testfall aufnehmen, um den echten Next.js-16-Laufzeit-Effekt zu verifizieren, statt sich allein auf Dokulektüre zu verlassen |
 | A2 | Eine serverseitige Kürzungsgrenze von ~500 Zeichen (Runes) für `story_preview` ist für `line-clamp: 3` bei typischen Chip-Breiten (§2: „lange Gruppennamen dürfen das Layout nicht sprengen", UI-SPEC Story-Vorschautext 14px/1.5 Zeilenhöhe) großzügig genug, ohne unnötig viel Payload zu senden. D-06 überlässt die exakte Grenze explizit dem Research/Planner, es gibt keine Vorgabe des Auftraggebers. | Architecture Patterns, Pattern 3 | Zu knapp: `line-clamp:3` zeigt sichtbar unvollständigen letzten Satz vor „Mehr lesen" (unkritisch, da „Mehr lesen" ohnehin folgt); zu großzügig: unnötiger Payload bei sehr langen Geschichten (max. beobachtet: 2210 Zeichen ungekürzt) |
 
-## Open Questions
+## Open Questions (RESOLVED)
 
 1. **Wird `buildFansubFactSummary` (`frontend/src/lib/fansub-summary.ts`) noch von anderem Code
    als `ActiveFansubStory`/`buildFansubStoryPreview` verwendet?**
-   - Was wir wissen: `grep -rn "buildFansubFactSummary"` wurde in dieser Recherche noch nicht
-     projektweit ausgeführt (nur der Datei-Inhalt selbst wurde gelesen).
-   - Was unklar ist: Ob ein anderer Konsument (z. B. Admin-Vorschau, Fansub-Profilseite) dieselbe
-     Funktion importiert.
-   - Empfehlung: Planner/Executor führt vor dem Löschen `grep -rn "buildFansubFactSummary\|
-     buildFansubStoryPreview" frontend/src` aus; nur löschen, wenn der einzige verbleibende
-     Konsument diese Anime-Seite ist (D-07 erlaubt Löschung nur, „wenn er ausschließlich hierfür
-     existierte").
+   - **RESOLVED:** Ja. `grep -rn "buildFansubFactSummary\|buildFansubStoryPreview" frontend/src`
+     (nachträglich während der Plan-Verifikation ausgeführt) zeigt aktive Konsumenten außerhalb der
+     Anime-Seite: `frontend/src/app/admin/anime/utils/episode-helpers.ts` →
+     `AnimeContextFansubs.tsx`, `frontend/src/app/admin/fansubs/[id]/edit/ReadinessTab.tsx`,
+     `frontend/src/components/fansubs/FansubProfileTabs.tsx`,
+     `frontend/src/components/fansubs/FansubHeroSection.tsx`. D-07 erlaubt Löschung nur, „wenn er
+     ausschließlich hierfür existierte" — das trifft nicht zu. `buildFansubFactSummary`/
+     `buildFansubStoryPreview` und `frontend/src/lib/fansub-summary.ts` bleiben unverändert
+     bestehen; nur der Import/Aufruf in der neuen `FansubGroupContext.tsx` (Ersatz für
+     `ActiveFansubStory.tsx`) entfällt — dies ist bereits in `162-02-PLAN.md` Acceptance Criteria
+     erzwungen (`grep -c "buildFansubStoryPreview\|buildFansubFactSummary"
+     frontend/src/components/fansubs/FansubGroupContext.tsx` == 0), ohne die Quelldatei selbst
+     anzufassen.
 
 2. **Wie soll die 450-Zeilen-Kappe für `FansubVersionBrowser.tsx` eingehalten werden, wenn sowohl
    die neue History-API-Logik als auch die bestehende Pagination-/Versions-Logik in derselben
    Datei bleiben?**
-   - Was wir wissen: Die Datei liegt aktuell bei 373 Zeilen; die neue URL-Sync-Logik (State,
-     `pushState`-Helfer, `popstate`-Listener) kommt zur bestehenden Logik hinzu, während die
-     `localStorage`-Logik (Zeilen 146-183, ca. 38 Zeilen) entfällt — netto ein moderater Zuwachs.
-   - Was unklar ist: Ob Planner die Chip-Zeile und den gruppenspezifischen Bereich in eigene
-     Dateien extrahiert (empfohlen, siehe „Empfohlene Projektstruktur") oder alles in einer Datei
-     belässt.
-   - Empfehlung: Extraktion in `FansubGroupPicker.tsx` (Chips) und `FansubGroupContext.tsx`
-     (Name/Story/Navigation, ersetzt `ActiveFansubStory.tsx`) — hält jede Datei klein und
-     testbar, entspricht dem bestehenden Repo-Muster (viele kleine, funktionsnah benannte
-     Dateien laut CLAUDE.md „Feature files are narrow and descriptive").
+   - **RESOLVED:** `162-02-PLAN.md` extrahiert `FansubGroupPicker.tsx` (Chips) und
+     `FansubGroupContext.tsx` (Name/Story/Navigation, ersetzt `ActiveFansubStory.tsx`) als eigene
+     Dateien; `162-03-PLAN.md` baut `FansubVersionBrowser.tsx` auf `window.history`-Sync um, ohne
+     die Chip-/Kontext-Darstellung selbst zu enthalten. Hält jede Datei klein und testbar,
+     entspricht dem bestehenden Repo-Muster (viele kleine, funktionsnah benannte Dateien laut
+     CLAUDE.md „Feature files are narrow and descriptive").
 
 3. **Soll die vorhandene, in dieser Phase entdeckte OpenAPI-Lücke bei `FansubGroupSummary`
    (fehlende `founded_year`/`dissolved_year`/`country`/`status`-Properties im Schema, obwohl Go-
    Model und TS-Typ sie bereits haben) im selben Zug mitkorrigiert werden?**
-   - Was wir wissen: Das ist eine bereits vor dieser Phase bestehende Contract-Drift, nicht durch
-     162 verursacht.
-   - Was unklar ist: Ob das Beheben dieser Drift als „unrelated Refactoring" gilt (Arbeitsweise-
-     Punkt 9 im Auftrag verbietet das ausdrücklich) oder als notwendiger Begleitfix, weil ohnehin
-     dasselbe Schema angefasst wird.
-   - Empfehlung: NICHT beheben — nur `story_preview` additiv ergänzen. Die bestehende Drift ist
-     unabhängig von dieser Phase entstanden und ihre Behebung würde den engen Auftrags-Scope
-     verlassen; stattdessen als eigenständiger Befund im Abschlussbericht erwähnen.
+   - **RESOLVED:** Nein, nicht beheben. `162-01-PLAN.md` ergänzt ausschließlich additiv
+     `story_preview`; die bestehende Drift ist unabhängig von dieser Phase entstanden und ihre
+     Behebung würde den engen Auftrags-Scope verlassen (Arbeitsweise-Punkt 9 im Auftrag verbietet
+     unrelated Refactorings). Bleibt ein eigenständiger, im Abschlussbericht zu erwähnender Befund.
 
 ## Environment Availability
 

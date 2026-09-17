@@ -1,8 +1,8 @@
 ---
 phase: 162
 slug: oeffentliche-anime-seite-fansub-gruppenauswahl-kurzgeschichte-navigation
-status: draft
-nyquist_compliant: false
+status: planned
+nyquist_compliant: true
 wave_0_complete: false
 created: 2026-09-17
 ---
@@ -69,11 +69,11 @@ created: 2026-09-17
 
 ## Validation Sign-Off
 
-- [ ] All tasks have `<automated>` verify or Wave 0 dependencies
-- [ ] Sampling continuity: no 3 consecutive tasks without automated verify
-- [ ] Wave 0 covers all MISSING references (Backend-Integrationstest, URL/History-Tests)
-- [ ] No watch-mode flags
-- [ ] Feedback latency < 120s
-- [ ] `nyquist_compliant: true` set in frontmatter
+- [x] All tasks have `<automated>` verify or Wave 0 dependencies (per gsd-plan-checker Dimension 8 review, 2026-09-17: alle `auto`-Tasks haben ein direktes `<automated>`-Verify; die beiden Checkpoint-Tasks in 162-05 sind korrekt vom Automatisierungszwang ausgenommen)
+- [x] Sampling continuity: no 3 consecutive tasks without automated verify
+- [x] Wave 0 covers all MISSING references (Backend-Integrationstest, URL/History-Tests — konkretisiert als Tasks in 162-01-PLAN.md und 162-03-PLAN.md)
+- [x] No watch-mode flags
+- [x] Feedback latency < 120s
+- [x] `nyquist_compliant: true` set in frontmatter
 
-**Approval:** pending
+**Approval:** approved 2026-09-17 (gsd-plan-checker, Dimension 8 — 0 Blocker)
