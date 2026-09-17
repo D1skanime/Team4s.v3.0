@@ -2,16 +2,16 @@
 gsd_state_version: 1.0
 milestone: v1.4
 milestone_name: Coverage
-status: human_needed
-stopped_at: Phase 160 (Teilschritt "Tags und Genres") code-complete, verified, awaiting Human-UAT
-last_updated: "2026-09-16T21:57:00.000Z"
+status: verifying
+stopped_at: Phase 162 context gathered
+last_updated: "2026-09-17T06:42:38.604Z"
 last_activity: 2026-09-16
 progress:
-  total_phases: 26
+  total_phases: 27
   completed_phases: 26
   total_plans: 253
   completed_plans: 253
-  percent: 100
+  percent: 96
 ---
 
 # Project State
@@ -1744,10 +1744,10 @@ untruncated list lives in `.planning/todos/pending/`.
 
 ## Session Continuity
 
-Last session: 2026-09-16T21:30:23.287Z
-Stopped at: Completed 160-06-PLAN.md (final plan of Phase 160)
+Last session: 2026-09-17T06:42:38.575Z
+Stopped at: Phase 162 context gathered
 Last activity: 2026-09-16 - Completed quick task 260916-ako: Jellyfin-Geschwisterquellen getrennt importieren; Liveimport zweier Folge-2-Quellen geprüft, keine Phasen-UAT ersetzt.
 Resume file: 
-None
+.planning/phases/162-oeffentliche-anime-seite-fansub-gruppenauswahl-kurzgeschichte-navigation/162-CONTEXT.md
 
 Plans 151-02/03/04 have implementation summaries. Plans 151-01 and 151-05 remain open until final artwork/composition review, complete browser evidence and independent verification; their missing summaries are intentional. No requirement or phase has been falsely marked complete.
