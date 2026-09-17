@@ -448,7 +448,7 @@ already has via `requestRef` — combine both patterns).
 
 **If this table is empty:** N/A — see above.
 
-## Open Questions
+## Open Questions (RESOLVED)
 
 1. **Can the D-46 gates 3/6/7/8 (bounded window growth, backward restoration, scroll stability at scale)
    be verified against real Naruto data at all?**
@@ -464,6 +464,10 @@ already has via `requestRef` — combine both patterns).
      cannot be skipped), and a separate, explicit decision (deferred to the plan/discuss step, not this
      research) on whether a large fixture anime should also exist in `team4s_v2` for live browser UAT, or
      whether Naruto-scale UAT is accepted as "functional-only, scale gates covered by automated tests".
+   - **RESOLVED:** by 164-07's split of Task 2 (real-Naruto functional/visual UAT) vs. Task 3 (isolated
+     dev-only harness, no team4s_v2 seeding) — live-browser UAT stays scoped to functional/visual
+     correctness on real Naruto, while scale/windowing gates are covered by 164-03/164-05/164-06's
+     isolated fixture-DB automated tests plus 164-07 Task 3's throwaway dev-only large-dataset harness.
 
 2. **Does `has_images` include `fun_outtake`/`other` categories, or only `screenshot`?**
    - What we know: `release_version_media.category` has 4 values (`screenshot`, `typesetting_karaoke`,
@@ -474,6 +478,8 @@ already has via `requestRef` — combine both patterns).
      admin/gallery purposes).
    - Recommendation: Treat `has_images` as "any category except typesetting_karaoke" (Assumption A1);
      confirm in the UI-SPEC step since it's a one-line SQL predicate change if wrong.
+   - **RESOLVED:** in 164-UI-SPEC.md decision 11 ("`has_images` schließt alle Nicht-Karaoke-Kategorien
+     ein"), implemented in 164-01's batched flags query (`rvm.category <> 'typesetting_karaoke'`).
 
 3. **Bounded window size (D-33) and eviction distance (D-30) exact constants.**
    - What we know: page size is currently `limit: 24` (verified live in `page.tsx`, `api.ts` calls, and
@@ -484,6 +490,8 @@ already has via `requestRef` — combine both patterns).
    - Recommendation: Claude's discretion per CONTEXT.md; recommend starting with "current + 1 before +
      1 after" (3 pages ~72 episodes max mounted) as a conservative default, tunable without an API change
      since it's pure client state.
+   - **RESOLVED:** by 164-05's `DOM_WINDOW_SIZE = 3` (mounted-page bound) and `CACHE_MAX_PAGES = 6`
+     (retained-JSON cache bound) constants in `useWindowedEpisodePages.ts`.
 
 ## Environment Availability
 
@@ -591,7 +599,9 @@ elsewhere in this exact codebase.
 ### Secondary (MEDIUM confidence)
 - Response-size projection for a hypothetical 24-episode page (Plan-Checker Inputs below) — extrapolated
   from the real 5-episode Naruto measurement plus DB-wide average releases-per-episode ratio (1.10),
-  since no live anime has ≥24 episodes with releases to measure directly.
+  since no live anime has ≥24 episodes with releases to measure directly. **Superseded by 164-03's live
+  measurement against the 52-episode fixture** (see Plan-Checker Inputs note below) once that plan
+  executes — this projection remains as the pre-measurement sanity bound, not the final evidence.
 
 ### Tertiary (LOW confidence)
 - None — every claim in this document is either a direct code/DB/live-endpoint read or an explicitly
@@ -626,8 +636,11 @@ elsewhere in this exact codebase.
   the (extrapolated) current baseline, still well within normal JSON API payload sizes. No `route`/
   `release_url` field is added (constructed client-side, see Anti-Patterns), keeping this projection as
   low as it reasonably can be. **This has not been directly measured against a real 24-episode page
-  because none exists in `team4s_v2` today** — Wave 0's fixture anime should re-measure this directly once
-  it exists, and the plan-checker should treat this figure as a sanity bound, not a guarantee.
+  because none exists in `team4s_v2` today** — 164-03's fixture-DB test
+  (`TestEpisodeVersionPublicScaleBudgetAndPagination`) re-measures this directly against a live 52-episode
+  fixture and asserts the real, measured byte length is under a concrete 25KB bound via
+  `require.Less(t, len(raw), 25*1024, ...)` — that automated assertion is the authoritative evidence once
+  164-03 executes; this projection remains only the pre-measurement sanity bound.
 - **DOM-node order-of-magnitude (for D-46 gate 6/11, mobile/GPU cost):** with a bounded window of ~3 pages
   (72 episodes) fully mounted, ~5-10 DOM nodes per collapsed episode card (header, number, title, badge)
   plus ~15-20 per expanded release row (logo/fallback, group name, tech line, extras line, date, button) —
