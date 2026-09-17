@@ -1943,3 +1943,16 @@ Plans:
 **Source:** `.planning/phases/161-jellyfin-12-kompatibilitaet-und-mediasource-import/161-USER-REQUEST.md`
 **Verification:** 161-VERIFICATION.md, 161-VALIDATION.md und docs/audits/2026-09-15-jellyfin12/RESULTS.md. Backendgates 64340e93, Frontendgates 3e410901, gezielte öffentliche DTO-Korrektur 718ebf57; nur bekannte globale Baselinefehler. Kapitel/Dateigröße sind separate Folgearbeit.
 **UI hint:** no redesign; existing release metadata projection only.
+
+### Phase 162: Öffentliche Anime-Seite: Fansub-Gruppenauswahl, Kurzgeschichte und Navigation
+
+**Goal:** Der Fansub-Bereich auf `/anime/[id]` hat genau eine eindeutige Auswahl (Filter-Chips, „Alle“ nur bei 2+ Gruppen, im URL-Zustand teilbar), zeigt bei konkreter Gruppe eine 3-Zeilen-Kurzgeschichte aus der bestehenden Fansub-Geschichte und navigiert über klar beschriftete Links „Zur Fansub-Gruppe“ / „Zum Projekt“; alte redundante Gruppen-Elemente („Gruppenbereich“, grauer Chip, verlinkter Story-Titel) entfallen.
+**Requirements**: TBD (aus 162-USER-REQUEST.md §1–§17 und 162-CONTEXT.md D-01–D-14 ableiten)
+**Depends on:** Phase 160 (Teilschritt Tags/Genres abgenommen); löst die in 160 offen gelassenen Gruppenbutton-/„Gruppenbereich“-/Coop-Punkte ab.
+**Verbindliche Quellen:** `.planning/phases/162-oeffentliche-anime-seite-fansub-gruppenauswahl-kurzgeschichte-navigation/162-USER-REQUEST.md` und `162-CONTEXT.md`.
+**Scopegrenze:** keine Coop-Kennzeichnung in der Versionszeile, keine neue Coop-Entität, keine Datenänderung durch Agenten (Coop-Testdaten legt der Auftraggeber an).
+**UI hint:** yes
+**Plans:** 0 plans
+
+Plans:
+- [ ] TBD (run /gsd:plan-phase 162 to break down)
