@@ -488,8 +488,8 @@ sign-off before `/gsd:execute-phase 164` runs.
 - [ ] **REQ-164-43**: Aufklappen einer bereits geladenen Episode erzeugt 0 zusätzliche API-Requests (D-43).
 - [ ] **REQ-164-44**: Browser Back/Forward und Rückkehr von der Release-Seite stellen Filter/Scrollposition/Page(s) sinnvoll wieder her (D-44).
 - [ ] **REQ-164-45**: Mobile Performance (DOM-Nodes, Hydration, Blur-Flächen) wird konkret bewertet (D-45).
-- [ ] **REQ-164-46**: Alle 12 Performance-Gates aus §47 sind konkret verifizierbar (Testfall/Messmethode/Codeassertion) (D-46).
-- [ ] **REQ-164-47**: Naruto (`anime_id=4`) ist der primäre Referenzfall; der §48-Testablauf ist die UAT-Blaupause, ergänzt um eine isolierte Fixture-DB für nicht real erreichbare Skalierungsfälle (D-47).
+- [x] **REQ-164-46**: Alle 12 Performance-Gates aus §47 sind konkret verifizierbar (Testfall/Messmethode/Codeassertion) (D-46).
+- [x] **REQ-164-47**: Naruto (`anime_id=4`) ist der primäre Referenzfall; der §48-Testablauf ist die UAT-Blaupause, ergänzt um eine isolierte Fixture-DB für nicht real erreichbare Skalierungsfälle (D-47).
 - [ ] **REQ-164-48**: Der visuelle Testfall-Katalog aus `164-UI-SPEC.md` (Klassifikationen, Episodentypen, Release-Varianten, Infinite-Scroll-Zustände, Breakpoints) ist vollständig abgedeckt (D-48).
 
 | Requirement | Phase | Status |
