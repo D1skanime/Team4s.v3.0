@@ -1947,12 +1947,30 @@ Plans:
 ### Phase 162: Öffentliche Anime-Seite: Fansub-Gruppenauswahl, Kurzgeschichte und Navigation
 
 **Goal:** Der Fansub-Bereich auf `/anime/[id]` hat genau eine eindeutige Auswahl (Filter-Chips, „Alle“ nur bei 2+ Gruppen, im URL-Zustand teilbar), zeigt bei konkreter Gruppe eine 3-Zeilen-Kurzgeschichte aus der bestehenden Fansub-Geschichte und navigiert über klar beschriftete Links „Zur Fansub-Gruppe“ / „Zum Projekt“; alte redundante Gruppen-Elemente („Gruppenbereich“, grauer Chip, verlinkter Story-Titel) entfallen.
-**Requirements**: TBD (aus 162-USER-REQUEST.md §1–§17 und 162-CONTEXT.md D-01–D-14 ableiten)
+**Requirements**: REQ-162-01, REQ-162-02, REQ-162-03, REQ-162-04, REQ-162-05, REQ-162-06, REQ-162-07, REQ-162-08, REQ-162-09, REQ-162-10, REQ-162-11, REQ-162-12, REQ-162-13, REQ-162-14, REQ-162-15, REQ-162-16, REQ-162-17, REQ-162-18, REQ-162-19, REQ-162-20, REQ-162-21 (abgeleitet aus 162-USER-REQUEST.md §1–§17 und 162-CONTEXT.md D-01–D-14, siehe 162-RESEARCH.md "Phase Requirements")
 **Depends on:** Phase 160 (Teilschritt Tags/Genres abgenommen); löst die in 160 offen gelassenen Gruppenbutton-/„Gruppenbereich“-/Coop-Punkte ab.
 **Verbindliche Quellen:** `.planning/phases/162-oeffentliche-anime-seite-fansub-gruppenauswahl-kurzgeschichte-navigation/162-USER-REQUEST.md` und `162-CONTEXT.md`.
 **Scopegrenze:** keine Coop-Kennzeichnung in der Versionszeile, keine neue Coop-Entität, keine Datenänderung durch Agenten (Coop-Testdaten legt der Auftraggeber an).
 **UI hint:** yes
-**Plans:** 0 plans
+**Plans:** 5 plans
 
 Plans:
-- [ ] TBD (run /gsd:plan-phase 162 to break down)
+**Wave 1**
+
+- [ ] 162-01-PLAN.md — Backend: additiver story_preview-Contract (LATERAL-Join, OpenAPI/TS-Sync, Postgres-Integrationstest)
+
+**Wave 2** *(blocked on Wave 1 completion)*
+
+- [ ] 162-02-PLAN.md — Frontend: FansubGroupPicker (Filter-Chips) + FansubGroupContext (ersetzt ActiveFansubStory)
+
+**Wave 3** *(blocked on Wave 2 completion)*
+
+- [ ] 162-03-PLAN.md — Frontend: FansubVersionBrowser URL-Zustand (history.pushState/popstate statt localStorage) + Wiring
+
+**Wave 4** *(blocked on Wave 3 completion)*
+
+- [ ] 162-04-PLAN.md — Frontend: page.tsx SSR-Wiring (searchParams.fansub), Entfernen des alten fansubRow-Blocks
+
+**Wave 5** *(blocked on Wave 4 completion)*
+
+- [ ] 162-05-PLAN.md — Read-only DB-Inventar + Desktop-/Mobile-Browser-Verifikation (§16/§17)
