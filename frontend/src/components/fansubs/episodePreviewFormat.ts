@@ -98,9 +98,13 @@ export function resolveReleaseName(version: PublicEpisodeVersion): string {
 }
 
 /**
- * D-11: fansub_groups ist bereits serverseitig nach `ORDER BY fg.name, fg.id` sortiert -- die
+ * D-11: fansub_groups kommt vom Server bereits nach `ORDER BY fg.name, fg.id` sortiert -- die
  * alphabetisch erste Gruppe traegt den "Zum Release"-Link, ohne eine Primaergruppe zu erfinden.
+ * Sortiert hier defensiv erneut (statt sich auf die Server-Reihenfolge zu verlassen): Aufrufer
+ * duerfen nicht annehmen, dass das Array immer vorsortiert ankommt, auch wenn das heute stets
+ * der Fall ist (164-06 Task 2, RESEARCH.md Assumption A2).
  */
 export function resolveCoopLinkGroupId(fansubGroups: FansubGroupSummary[] | undefined): number | null {
-  return fansubGroups?.[0]?.id ?? null
+  if (!fansubGroups || fansubGroups.length === 0) return null
+  return [...fansubGroups].sort((a, b) => a.name.localeCompare(b.name) || a.id - b.id)[0].id
 }

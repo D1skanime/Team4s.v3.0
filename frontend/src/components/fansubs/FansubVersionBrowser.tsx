@@ -21,6 +21,10 @@ import styles from './FansubVersionBrowser.module.css'
 
 type Pagination = PublicGroupedEpisodesResponse['data']['pagination']
 
+// D-44: ein einzelner, ueberschriebener sessionStorage-Eintrag pro exaktem pathname+search --
+// kein Verlauf, keine unbegrenzte Persistenz, kein Reset des Windowing-Zustands (T-164-10).
+const SCROLL_HINT_STORAGE_PREFIX = 'team4s:episodeScroll:'
+
 interface FansubVersionBrowserProps {
   animeID: number
   animeSlug?: string
@@ -165,6 +169,37 @@ function FansubVersionBrowserContent({
     window.scrollBy(0, windowing.scrollAnchorAdjustment.px)
   }, [windowing.scrollAnchorAdjustment])
 
+  const hasAnyEpisodes = windowing.pages.some((page) => page.episodes.length > 0)
+
+  // D-44: auf einer echten Browser-Zurueck/Vor-Navigation (Navigation Timing API, kein neues
+  // Paket) zur selben URL eine zuvor gespeicherte, ungefaehre Scrollposition wiederherstellen --
+  // NICHT das mehrseitige DOM-Fenster (das bleibt bewusst bei Page 1 der frischen Navigation,
+  // 164-05). Auf einem normalen Erstaufruf wird kein Hinweis gelesen oder angewendet. Der
+  // Schreibpfad ist zeitstempel-gedrosselt (kein Schreiben pro Scroll-Pixel) und ueberschreibt
+  // stets denselben Schluessel -- kein wachsender Verlauf.
+  useEffect(() => {
+    if (typeof window === 'undefined') return
+    const scrollKey = SCROLL_HINT_STORAGE_PREFIX + window.location.pathname + window.location.search
+    const [navigationEntry] = performance.getEntriesByType('navigation') as PerformanceNavigationTiming[]
+    const isBackForwardNavigation = navigationEntry?.type === 'back_forward'
+    if (isBackForwardNavigation && hasAnyEpisodes) {
+      const storedOffset = window.sessionStorage.getItem(scrollKey)
+      if (storedOffset !== null) {
+        const y = Number(storedOffset)
+        if (Number.isFinite(y)) window.scrollTo(0, y)
+      }
+    }
+    let lastWriteAt = 0
+    function handleScroll() {
+      const now = Date.now()
+      if (now - lastWriteAt < 250) return
+      lastWriteAt = now
+      window.sessionStorage.setItem(scrollKey, String(window.scrollY))
+    }
+    window.addEventListener('scroll', handleScroll, { passive: true })
+    return () => window.removeEventListener('scroll', handleScroll)
+  }, [hasAnyEpisodes])
+
   // D-01/D-03: die URL ist die einzige Quelle des Gruppenkontexts. Browser Zurueck/Vor
   // liest den Parameter erneut und loest -- anders als bei 162 -- immer neu (D-09).
   useEffect(() => {
@@ -257,8 +292,6 @@ function FansubVersionBrowserContent({
       </EpisodeGlassCard>
     )
   }
-
-  const hasAnyEpisodes = windowing.pages.some((page) => page.episodes.length > 0)
 
   return (
     <section className={styles.section}>

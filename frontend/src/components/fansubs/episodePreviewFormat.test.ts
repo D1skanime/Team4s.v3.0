@@ -145,4 +145,22 @@ describe('resolveCoopLinkGroupId', () => {
     expect(resolveCoopLinkGroupId([])).toBeNull()
     expect(resolveCoopLinkGroupId(undefined)).toBeNull()
   })
+
+  it('re-sorts defensively when the array does not arrive pre-sorted (164-06 Task 2)', () => {
+    expect(resolveCoopLinkGroupId([
+      { id: 5, slug: 'zeta', name: 'Zeta' },
+      { id: 2, slug: 'alpha', name: 'Alpha' },
+    ])).toBe(2)
+  })
+
+  it('returns the only group id in the single-group case, unchanged behaviour', () => {
+    expect(resolveCoopLinkGroupId([{ id: 7, slug: 'solo', name: 'Solo' }])).toBe(7)
+  })
+
+  it('breaks a name tie by the lower id, matching the backend ORDER BY fg.name, fg.id', () => {
+    expect(resolveCoopLinkGroupId([
+      { id: 9, slug: 'a2', name: 'Alpha' },
+      { id: 3, slug: 'a1', name: 'Alpha' },
+    ])).toBe(3)
+  })
 })
