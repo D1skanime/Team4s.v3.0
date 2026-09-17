@@ -1974,3 +1974,13 @@ Plans:
 **Wave 5** *(blocked on Wave 4 completion)*
 
 - [x] 162-05-PLAN.md — Read-only DB-Inventar + Desktop-/Mobile-Browser-Verifikation (§16/§17)
+
+### Phase 163: Öffentliche Anime-Seite: Episoden nach Fansub-Gruppe und vorhandenen Releases filtern
+
+**Goal:** Die Episodenliste auf `/anime/[id]` zeigt nur Episoden mit mindestens einer öffentlich sichtbaren Release-Version; bei aktiver Fansub-Gruppe (Phase-162-URL-Zustand `?fansub=`) nur Episoden und Versionen dieser Gruppe inkl. Coop-Beteiligung – serverseitig, paginationskorrekt, ohne N+1 und ohne Umsortierung.
+**Requirements**: TBD (in discuss-phase aus 163-USER-REQUEST.md §1–§17 abzuleiten)
+**Depends on:** Phase 162 (Fansub-Gruppenauswahl im URL-Zustand, live abgenommen 17.09.2026)
+**Verbindliche Quelle:** `.planning/phases/163-oeffentliche-anime-seite-episoden-nach-fansub-gruppe-filtern/163-USER-REQUEST.md`
+**Scopegrenze:** keine neue Episodenanzahl-Anzeige ohne UI-Entscheidung, keine zweite Gruppenauswahl, keine unrelated Refactorings, keine Datenänderung durch Agenten.
+**UI hint:** yes
+**Plans:** TBD
