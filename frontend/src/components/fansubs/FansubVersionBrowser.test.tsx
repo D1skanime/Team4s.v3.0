@@ -20,6 +20,7 @@ const fansubs: AnimeFansubRelation[] = [
 ]
 const singleFansub: AnimeFansubRelation[] = [fansubs[0]]
 const noFansubs: AnimeFansubRelation[] = []
+const DEFAULT_CLASSIFICATION = { filler_type: 'unknown', episode_type: 'episode' } as const
 
 beforeEach(() => {
   groupedMock.mockReset()
@@ -71,6 +72,7 @@ describe('authoritative anime project navigation', () => {
 
   it('behaelt echte Episodentitel und Ausklapp-Verhalten', async () => {
     render(<FansubVersionBrowser animeID={22} animeSlug="stored-anime" fansubs={fansubs} episodes={[{
+      ...DEFAULT_CLASSIFICATION,
       episode_id: 50, episode_number: 1, episode_title: 'Gespeicherter Episodentitel', version_count: 0, versions: [],
     }]} />)
     await act(async () => {})
@@ -95,8 +97,9 @@ describe('authoritative anime project navigation', () => {
 const variant = (id: number, group: number): PublicEpisodeVersion => ({
   id, variant_id: id, release_version_id: id + 100, anime_id: 22, episode_number: 1,
   title: `Variante ${group}`, fansub_groups: [fansubs[group === 7 ? 0 : 1].fansub_group!],
+  has_images: false, has_notes: false, has_karaoke: false,
 })
-const stateEpisodes = [{ episode_id: 50, episode_number: 1, episode_title: 'Gruppenfolge', version_count: 2, versions: [variant(10, 7), variant(20, 9)] }]
+const stateEpisodes = [{ ...DEFAULT_CLASSIFICATION, episode_id: 50, episode_number: 1, episode_title: 'Gruppenfolge', version_count: 2, versions: [variant(10, 7), variant(20, 9)] }]
 function stateBrowser(relations: AnimeFansubRelation[] = fansubs, animeID = 22, initialActiveSlug: string | null = null) {
   return (
     <FansubVersionBrowser
@@ -147,19 +150,19 @@ describe('Fansub-Gruppenauswahl: URL-Zustand (D-01..D-04, D-09, D-13, D-14)', ()
     render(stateBrowser())
     fireEvent.click(screen.getByRole('button', { name: /Gruppenfolge/ }))
     groupedMock.mockResolvedValueOnce(publicPage([
-      { episode_id: 50, episode_number: 1, episode_title: 'Gruppenfolge', version_count: 1, versions: [variant(10, 7)] },
+      { ...DEFAULT_CLASSIFICATION, episode_id: 50, episode_number: 1, episode_title: 'Gruppenfolge', version_count: 1, versions: [variant(10, 7)] },
     ]))
     fireEvent.click(screen.getByRole('button', { name: 'Anderer Gruppenname' }))
     await waitFor(() => expect(getGroupedEpisodes).toHaveBeenCalledTimes(1), { timeout: 500 })
     assertGroup(7)
     groupedMock.mockResolvedValueOnce(publicPage([
-      { episode_id: 50, episode_number: 1, episode_title: 'Gruppenfolge', version_count: 1, versions: [variant(20, 9)] },
+      { ...DEFAULT_CLASSIFICATION, episode_id: 50, episode_number: 1, episode_title: 'Gruppenfolge', version_count: 1, versions: [variant(20, 9)] },
     ]))
     fireEvent.click(screen.getByRole('button', { name: 'Zweite Gruppe' }))
     await waitFor(() => expect(getGroupedEpisodes).toHaveBeenCalledTimes(2), { timeout: 500 })
     assertGroup(9)
     groupedMock.mockResolvedValueOnce(publicPage([
-      { episode_id: 50, episode_number: 1, episode_title: 'Gruppenfolge', version_count: 2, versions: [variant(10, 7), variant(20, 9)] },
+      { ...DEFAULT_CLASSIFICATION, episode_id: 50, episode_number: 1, episode_title: 'Gruppenfolge', version_count: 2, versions: [variant(10, 7), variant(20, 9)] },
     ]))
     fireEvent.click(screen.getByRole('button', { name: 'Alle' }))
     await waitFor(() => expect(getGroupedEpisodes).toHaveBeenCalledTimes(3), { timeout: 500 })
@@ -221,7 +224,7 @@ describe('Fansub-Gruppenauswahl: URL-Zustand (D-01..D-04, D-09, D-13, D-14)', ()
       ...variant(30, 7),
       fansub_groups: [fansubs[0].fansub_group!, fansubs[1].fansub_group!],
     }
-    const coopEpisodes = [{ episode_id: 60, episode_number: 2, episode_title: 'Gemeinsame Folge', version_count: 1, versions: [coopVersion] }]
+    const coopEpisodes = [{ ...DEFAULT_CLASSIFICATION, episode_id: 60, episode_number: 2, episode_title: 'Gemeinsame Folge', version_count: 1, versions: [coopVersion] }]
     render(<FansubVersionBrowser animeID={22} fansubs={fansubs} episodes={coopEpisodes} />)
     expect(screen.queryByText(/coop/i)).toBeNull()
     fireEvent.click(screen.getByRole('button', { name: /Gemeinsame Folge/ }))
@@ -257,7 +260,7 @@ function deferred<T>() {
 describe('bounded public inventory continuation', () => {
   it('merges 125 variants over explicit pages by episode_id/variant_id, retaining counts and neutral equal-number episodes', async () => {
     const variants = Array.from({ length: 125 }, (_, index) => ({ ...variant(index + 100, index === 124 ? 9 : 7), title: `Geladene Variante ${index}` }))
-    const episode = (versions: typeof variants): PublicGroupedEpisode => ({ episode_id: 50, episode_number: 1, episode_title: 'Große Folge', version_count: 125, versions })
+    const episode = (versions: typeof variants): PublicGroupedEpisode => ({ ...DEFAULT_CLASSIFICATION, episode_id: 50, episode_number: 1, episode_title: 'Große Folge', version_count: 125, versions })
     const group9Match = variants.filter((item) => item.title === 'Geladene Variante 124')
     // D-07: die "Zweite Gruppe"- und "Anderer Gruppenname"-Chip-Klicks loesen jetzt je einen
     // eigenen gruppengefilterten Refetch aus (vorher clientseitig kostenlos gefiltert, kein Request).
@@ -267,7 +270,7 @@ describe('bounded public inventory continuation', () => {
       const last = offset + 23 >= 125
       groupedMock.mockResolvedValueOnce(publicPage([
         episode(variants.slice(offset - 1, Math.min(offset + 23, 125))),
-        ...(last ? [{ episode_id: 51, episode_number: 1, episode_title: 'Neutrale gleiche Nummer', version_count: 0, versions: [] }] : []),
+        ...(last ? [{ ...DEFAULT_CLASSIFICATION, episode_id: 51, episode_number: 1, episode_title: 'Neutrale gleiche Nummer', version_count: 0, versions: [] }] : []),
       ], last ? ended : continued(`cursor-${offset + 23}`)))
     }
     groupedMock.mockResolvedValueOnce(publicPage([episode(group9Match)]))
@@ -297,6 +300,7 @@ describe('bounded public inventory continuation', () => {
   })
   it('uses canonical version plus exact variant even when the legacy number collides', async () => {
     render(<FansubVersionBrowser animeID={22} fansubs={[]} episodes={[{
+      ...DEFAULT_CLASSIFICATION,
       episode_id: 70, episode_number: 4, version_count: 2, versions: [
         { ...variant(100, 7), release_version_id: 10 }, { ...variant(10, 7), release_version_id: 20 },
       ],
@@ -334,7 +338,7 @@ describe('bounded public inventory continuation', () => {
     expect(oldSignal?.aborted).toBe(true)
     fireEvent.click(screen.getByRole('button', { name: 'Weitere Episoden und Versionen laden' }))
     await act(async () => {
-      if (outcome === 'resolve') old.resolve(publicPage([{ episode_id: 99, episode_number: 9, episode_title: 'Alte Antwort', version_count: 0, versions: [] }]))
+      if (outcome === 'resolve') old.resolve(publicPage([{ ...DEFAULT_CLASSIFICATION, episode_id: 99, episode_number: 9, episode_title: 'Alte Antwort', version_count: 0, versions: [] }]))
       else old.reject(new Error('old failure'))
     })
     expect(screen.queryByText('Alte Antwort')).toBeNull()
@@ -349,11 +353,11 @@ describe('bounded public inventory continuation', () => {
 it('deduplicates variants only inside the same canonical episode', async () => {
   const common = variant(100, 7)
   groupedMock.mockResolvedValueOnce(publicPage([
-    { episode_id: 50, episode_number: 1, episode_title: 'Erste Identität', version_count: 1, versions: [common] },
-    { episode_id: 60, episode_number: 1, episode_title: 'Zweite Identität', version_count: 1, versions: [common] },
+    { ...DEFAULT_CLASSIFICATION, episode_id: 50, episode_number: 1, episode_title: 'Erste Identität', version_count: 1, versions: [common] },
+    { ...DEFAULT_CLASSIFICATION, episode_id: 60, episode_number: 1, episode_title: 'Zweite Identität', version_count: 1, versions: [common] },
   ]))
   render(<FansubVersionBrowser animeID={22} fansubs={[]} episodes={[
-    { episode_id: 50, episode_number: 1, episode_title: 'Erste Identität', version_count: 1, versions: [common] },
+    { ...DEFAULT_CLASSIFICATION, episode_id: 50, episode_number: 1, episode_title: 'Erste Identität', version_count: 1, versions: [common] },
   ]} pagination={continued('same-number')} />)
   await act(async () => {})
   fireEvent.click(screen.getByRole('button', { name: /Erste Identität/ }))

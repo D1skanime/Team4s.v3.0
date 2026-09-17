@@ -154,7 +154,14 @@ export interface EpisodeVersionPatchRequest {
 export type PublicEpisodeVersion = Pick<EpisodeVersion,
   'id' | 'variant_id' | 'release_version_id' | 'anime_id' | 'episode_number' |
   'title' | 'release_version' | 'video_quality' | 'subtitle_type' | 'release_date'
-> & { fansub_groups: FansubGroupSummary[] }
+> & {
+  fansub_groups: FansubGroupSummary[]
+  container?: string | null
+  video_codec?: string | null
+  has_images: boolean
+  has_notes: boolean
+  has_karaoke: boolean
+}
 
 export interface PublicGroupedEpisode {
   episode_id: number
@@ -165,6 +172,8 @@ export interface PublicGroupedEpisode {
   /** Complete variant count, including variants outside this page. */
   version_count: number
   versions: PublicEpisodeVersion[]
+  filler_type: 'canon' | 'filler' | 'mixed' | 'recap' | 'unknown'
+  episode_type: 'episode' | 'special' | 'ova' | 'ona' | 'movie' | 'recap' | 'preview' | 'prologue' | 'epilogue' | 'bonus'
 }
 
 export interface PublicGroupedEpisodesResponse {

@@ -37,8 +37,10 @@ function variant(id: number, group: number, relations: AnimeFansubRelation[] = f
     id, variant_id: id, release_version_id: id + 100, anime_id: 22, episode_number: 1,
     title: `Variante ${group}`,
     fansub_groups: [relations.find((relation) => relation.fansub_group?.id === group)!.fansub_group!],
+    has_images: false, has_notes: false, has_karaoke: false,
   }
 }
+const DEFAULT_CLASSIFICATION = { filler_type: 'unknown', episode_type: 'episode' } as const
 const ended: PublicGroupedEpisodesResponse['data']['pagination'] = { has_more: false, next_cursor: null, row_limit: 24 }
 function publicPage(episodes: PublicGroupedEpisode[]): PublicGroupedEpisodesResponse {
   return { data: { anime_id: 22, episodes, episode_count: episodes.length, pagination: ended } }
@@ -50,6 +52,7 @@ function deferred<T>() {
   return { promise, resolve, reject }
 }
 const initialEpisode: PublicGroupedEpisode = {
+  ...DEFAULT_CLASSIFICATION,
   episode_id: 50, episode_number: 1, episode_title: 'Erste Folge', version_count: 1, versions: [variant(10, 7)],
 }
 
@@ -72,7 +75,7 @@ describe('Gruppenwechsel-Refetch: Dimmung, Abbruch, Fehler, Anti-Vermischung (D-
     expect(screen.getByText('Erste Folge')).toBeTruthy()
     expect(screen.getByRole('list').getAttribute('aria-busy')).toBe('true')
     await act(async () => pending.resolve(publicPage([
-      { episode_id: 50, episode_number: 1, episode_title: 'Erste Folge', version_count: 1, versions: [variant(10, 7)] },
+      { ...DEFAULT_CLASSIFICATION, episode_id: 50, episode_number: 1, episode_title: 'Erste Folge', version_count: 1, versions: [variant(10, 7)] },
     ])))
     expect(screen.getByRole('list').getAttribute('aria-busy')).not.toBe('true')
   })
@@ -94,7 +97,7 @@ describe('Gruppenwechsel-Refetch: Dimmung, Abbruch, Fehler, Anti-Vermischung (D-
     await waitFor(() => expect(getGroupedEpisodes).toHaveBeenCalledTimes(2), { timeout: 500 })
     expect(loadMoreSignal?.aborted).toBe(true)
     await act(async () => switchPending.resolve(publicPage([
-      { episode_id: 50, episode_number: 1, episode_title: 'Erste Folge', version_count: 1, versions: [variant(10, 7)] },
+      { ...DEFAULT_CLASSIFICATION, episode_id: 50, episode_number: 1, episode_title: 'Erste Folge', version_count: 1, versions: [variant(10, 7)] },
     ])))
   })
 
@@ -109,7 +112,7 @@ describe('Gruppenwechsel-Refetch: Dimmung, Abbruch, Fehler, Anti-Vermischung (D-
     // Die alte Gruppe (bzw. der alte, ungefilterte Zustand) bleibt darunter sichtbar, nicht vermischt.
     expect(screen.getByText('Erste Folge')).toBeTruthy()
     groupedMock.mockResolvedValueOnce(publicPage([
-      { episode_id: 50, episode_number: 1, episode_title: 'Erste Folge', version_count: 1, versions: [variant(10, 7)] },
+      { ...DEFAULT_CLASSIFICATION, episode_id: 50, episode_number: 1, episode_title: 'Erste Folge', version_count: 1, versions: [variant(10, 7)] },
     ]))
     fireEvent.click(screen.getByRole('button', { name: 'Erneut versuchen' }))
     await waitFor(() => expect(screen.queryByRole('alert')).toBeNull(), { timeout: 500 })
@@ -121,7 +124,7 @@ describe('Gruppenwechsel-Refetch: Dimmung, Abbruch, Fehler, Anti-Vermischung (D-
     fireEvent.click(screen.getByRole('button', { name: /Erste Folge/ }))
 
     groupedMock.mockResolvedValueOnce(publicPage([
-      { episode_id: 50, episode_number: 1, episode_title: 'Erste Folge', version_count: 1, versions: [variant(10, 7, threeFansubs)] },
+      { ...DEFAULT_CLASSIFICATION, episode_id: 50, episode_number: 1, episode_title: 'Erste Folge', version_count: 1, versions: [variant(10, 7, threeFansubs)] },
     ]))
     fireEvent.click(screen.getByRole('button', { name: 'AnimeOwnage' }))
     await waitFor(() => expect(screen.getByText('Variante 7')).toBeTruthy(), { timeout: 500 })
@@ -129,7 +132,7 @@ describe('Gruppenwechsel-Refetch: Dimmung, Abbruch, Fehler, Anti-Vermischung (D-
     expect(screen.queryByText('Variante 11')).toBeNull()
 
     groupedMock.mockResolvedValueOnce(publicPage([
-      { episode_id: 50, episode_number: 1, episode_title: 'Erste Folge', version_count: 1, versions: [variant(20, 9, threeFansubs)] },
+      { ...DEFAULT_CLASSIFICATION, episode_id: 50, episode_number: 1, episode_title: 'Erste Folge', version_count: 1, versions: [variant(20, 9, threeFansubs)] },
     ]))
     fireEvent.click(screen.getByRole('button', { name: 'ProjectMessiah' }))
     await waitFor(() => expect(screen.getByText('Variante 9')).toBeTruthy(), { timeout: 500 })
@@ -137,7 +140,7 @@ describe('Gruppenwechsel-Refetch: Dimmung, Abbruch, Fehler, Anti-Vermischung (D-
     expect(screen.queryByText('Variante 11')).toBeNull()
 
     groupedMock.mockResolvedValueOnce(publicPage([
-      { episode_id: 50, episode_number: 1, episode_title: 'Erste Folge', version_count: 3, versions: [
+      { ...DEFAULT_CLASSIFICATION, episode_id: 50, episode_number: 1, episode_title: 'Erste Folge', version_count: 3, versions: [
         variant(10, 7, threeFansubs), variant(20, 9, threeFansubs), variant(30, 11, threeFansubs),
       ] },
     ]))
