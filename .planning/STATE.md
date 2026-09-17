@@ -3,14 +3,14 @@ gsd_state_version: 1.0
 milestone: v1.4
 milestone_name: Coverage
 status: executing
-stopped_at: Completed 164-05-PLAN.md
-last_updated: "2026-09-17T23:15:15.176Z"
+stopped_at: Completed 164-06-PLAN.md
+last_updated: "2026-09-17T23:27:52.225Z"
 last_activity: 2026-09-17
 progress:
   total_phases: 29
   completed_phases: 28
   total_plans: 270
-  completed_plans: 268
+  completed_plans: 269
   percent: 97
 ---
 
@@ -152,7 +152,7 @@ See: .planning/PROJECT.md (updated 2026-08-13)
 ## Current Position
 
 Phase: 164 (oeffentliche-anime-seite-episode-release-ui-read-model-infinite-scroll) — EXECUTING
-Plan: 6 of 7
+Plan: 7 of 7
 dupliziertem ProjectMemberStickyNav; siehe 157-14-SUMMARY.md)
 Status: Ready to execute
 GAP-02-Live-UAT-Checkpoint aus 156-UAT.md (5 Origin- + 9 Segment-Contributor-Pruefpunkte) wurde
@@ -1347,6 +1347,9 @@ Last activity: 2026-09-17
 - [Phase 164]: 164-04: resolveReleaseName's output kept visible in ReleasePreviewRow's identity block (D-08 label requirement + groupSwitch.test.tsx text dependency, out of this plan's files_modified list) — preserves D-08's mandated release-label visibility while keeping the untouched sibling test file passing unchanged
 - [Phase 164]: useWindowedEpisodePages owns a single shared AbortController internally for forward/backward/reset loads; FansubVersionBrowser no longer holds its own request ref for episode data. — Keeps single-flight discipline consistent with the pre-existing switchTo/loadMore pattern from Phase 163, avoiding a second independent abort-coordination owner.
 - [Phase 164]: Added a render-time boundary-merge step for episodes whose variant rows legitimately span two adjacent cursor pages, since the bounded DOM window removed the old client-side mergeEpisodes across the full fetch history. — Phase 163 paginates cursor rows at (episode_number, episode_id, variant_id) granularity, so one episode's variants can span a page boundary; the merge is scoped to only the currently-windowed pages so it never violates the bounded-cache invariant.
+- [Phase 164]: resetForFilter now resets forwardLoading/backwardLoading (not just error flags), fixing a stuck compact loader after a filter switch discards an in-flight forward/backward page load
+- [Phase 164]: resolveCoopLinkGroupId defensively re-sorts fansub_groups by name/id instead of trusting array order, matching the backend's ORDER BY fg.name, fg.id tie-break
+- [Phase 164]: Back/forward scroll restoration uses a single throttled sessionStorage entry keyed by pathname+search, restoring only approximate scroll position (not the multi-page DOM window) on a genuine back_forward navigation
 
 ### Pending Todos
 
@@ -1783,11 +1786,12 @@ untruncated list lives in `.planning/todos/pending/`.
 | Phase 164 P03 | 10min | 1 tasks | 1 files |
 | Phase 164 P04 | ~45min | 3 tasks | 10 files |
 | Phase 164 P05 | 90min | 2 tasks | 7 files |
+| Phase 164 P06 | 55min | 2 tasks | 5 files |
 
 ## Session Continuity
 
-Last session: 2026-09-17T23:15:15.155Z
-Stopped at: Completed 164-05-PLAN.md
+Last session: 2026-09-17T23:27:52.203Z
+Stopped at: Completed 164-06-PLAN.md
 Last activity: 2026-09-16 - Completed quick task 260916-ako: Jellyfin-Geschwisterquellen getrennt importieren; Liveimport zweier Folge-2-Quellen geprüft, keine Phasen-UAT ersetzt.
 Resume file: 
 None

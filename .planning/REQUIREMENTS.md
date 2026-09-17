@@ -482,11 +482,11 @@ sign-off before `/gsd:execute-phase 164` runs.
 - [x] **REQ-164-37**: Kompakter Fehlerzustand beim Nachladen mit „Erneut versuchen", bestehende Episoden bleiben sichtbar (D-37).
 - [x] **REQ-164-38**: Ende der Liste erzeugt keinen weiteren Request (D-38).
 - [x] **REQ-164-39**: Geöffnete Episoden bleiben über Windowing/Eviction hinweg durch stabile ID-Keys erhalten (D-39).
-- [ ] **REQ-164-40**: Filterwechsel bricht laufende Requests ab, leert das Fenster, setzt Cursor zurück, lädt Page 1 des neuen Filters (D-40).
-- [ ] **REQ-164-41**: Serverseitige Filterung bleibt bestehen; kein Client-seitiges Nachfiltern (D-41).
-- [ ] **REQ-164-42**: Cursor-Scope aus Phase 163 bleibt mit dem Windowing-Zustand konsistent (D-42).
-- [ ] **REQ-164-43**: Aufklappen einer bereits geladenen Episode erzeugt 0 zusätzliche API-Requests (D-43).
-- [ ] **REQ-164-44**: Browser Back/Forward und Rückkehr von der Release-Seite stellen Filter/Scrollposition/Page(s) sinnvoll wieder her (D-44).
+- [x] **REQ-164-40**: Filterwechsel bricht laufende Requests ab, leert das Fenster, setzt Cursor zurück, lädt Page 1 des neuen Filters (D-40).
+- [x] **REQ-164-41**: Serverseitige Filterung bleibt bestehen; kein Client-seitiges Nachfiltern (D-41).
+- [x] **REQ-164-42**: Cursor-Scope aus Phase 163 bleibt mit dem Windowing-Zustand konsistent (D-42).
+- [x] **REQ-164-43**: Aufklappen einer bereits geladenen Episode erzeugt 0 zusätzliche API-Requests (D-43).
+- [x] **REQ-164-44**: Browser Back/Forward und Rückkehr von der Release-Seite stellen Filter/Scrollposition/Page(s) sinnvoll wieder her (D-44).
 - [ ] **REQ-164-45**: Mobile Performance (DOM-Nodes, Hydration, Blur-Flächen) wird konkret bewertet (D-45).
 - [x] **REQ-164-46**: Alle 12 Performance-Gates aus §47 sind konkret verifizierbar (Testfall/Messmethode/Codeassertion) (D-46).
 - [x] **REQ-164-47**: Naruto (`anime_id=4`) ist der primäre Referenzfall; der §48-Testablauf ist die UAT-Blaupause, ergänzt um eine isolierte Fixture-DB für nicht real erreichbare Skalierungsfälle (D-47).
