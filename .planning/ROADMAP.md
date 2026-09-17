@@ -1983,7 +1983,7 @@ Plans:
 **Verbindliche Quelle:** `.planning/phases/163-oeffentliche-anime-seite-episoden-nach-fansub-gruppe-filtern/163-USER-REQUEST.md`
 **Scopegrenze:** keine neue Episodenanzahl-Anzeige ohne UI-Entscheidung, keine zweite Gruppenauswahl, keine unrelated Refactorings, keine Datenänderung durch Agenten.
 **UI hint:** yes
-**Plans:** 4/5 plans executed
+**Plans:** 5/5 plans complete
 
   - Wave 1: 163-01 (Backend RED — Baseline-Erfassung + korrigierte/neue Fixture-Tests für Pflichtfälle B, C, D, E, F, I, J)
   - Wave 2: 163-02 (Backend GREEN — SQL-Fix, Cursor v2, Slug-Resolver, Handler/OpenAPI, After-Fix-EXPLAIN)
@@ -2010,4 +2010,4 @@ Plans:
 
 **Wave 5** *(blocked on Wave 4 completion)*
 
-- [ ] 163-05-PLAN.md — Container-Rebuild, Live-Browser-UAT-Checkpoint Naruto (§16), Abschlussbericht.
+- [x] 163-05-PLAN.md — Container-Rebuild, Live-Browser-UAT-Checkpoint Naruto (§16), Abschlussbericht.

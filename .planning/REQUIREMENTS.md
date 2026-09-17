@@ -398,7 +398,7 @@ Source: `163-USER-REQUEST.md` §1–§17 (Pflichtfälle A–J in §15), decision
 - [x] **REQ-163-13**: Ein gemeinsamer URL-Zustand (Phase-162 `?fansub=`) steuert Gruppenauswahl, Geschichte/Navigation UND Episodenfilterung — keine zweite unabhängige Gruppenauswahl.
 - [x] **REQ-163-14**: Konkrete Gruppe ohne Treffer: kompakter neutraler Hinweis, keine leeren Episodenkarten, kein technischer Fehlertext.
 - [x] **REQ-163-15**: Pflichtfälle A–J aus §15 automatisiert abgedeckt (Backend-Integrationstests mit echter Query + Frontend-Tests).
-- [ ] **REQ-163-16**: Browser-Verifikation live über :3300/:3000 mit Naruto (AnimeOwnage/Project Messiah/Alle/Coop-Fall).
+- [x] **REQ-163-16**: Browser-Verifikation live über :3300/:3000 mit Naruto (AnimeOwnage/Project Messiah/Alle/Coop-Fall).
 - [x] **REQ-163-17**: Bestehender Code vor Umsetzung dokumentiert: Endpoint, Pagination, Release-Version-Zuordnung, Public-Visibility-Bedingungen, SQL-Query-Anzahl, `EXPLAIN (ANALYZE)` für Naruto vorher.
 - [x] **REQ-163-18**: Gruppenwechsel per `history.pushState` ohne RSC-/Seiten-Reload; alte Liste bleibt sichtbar, gedimmt und nicht interaktiv (`aria-busy`); kein Skeleton, kein Layoutsprung.
 - [x] **REQ-163-19**: Browser Zurück/Vor lädt immer neu (kein Cache pro Gruppe); laufende Requests werden bei Wechsel abgebrochen; nur die letzte Auswahl darf Daten setzen.
@@ -425,7 +425,7 @@ Source: `163-USER-REQUEST.md` §1–§17 (Pflichtfälle A–J in §15), decision
 | REQ-163-13 | Phase 163 | Complete |
 | REQ-163-14 | Phase 163 | Complete |
 | REQ-163-15 | Phase 163 | Complete |
-| REQ-163-16 | Phase 163 | Pending |
+| REQ-163-16 | Phase 163 | Complete |
 | REQ-163-17 | Phase 163 | Complete |
 | REQ-163-18 | Phase 163 | Complete |
 | REQ-163-19 | Phase 163 | Complete |

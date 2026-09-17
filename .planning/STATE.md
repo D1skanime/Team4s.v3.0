@@ -2,16 +2,16 @@
 gsd_state_version: 1.0
 milestone: v1.4
 milestone_name: Coverage
-status: executing
-stopped_at: Completed 163-04-PLAN.md
-last_updated: "2026-09-17T17:48:03.817Z"
+status: verifying
+stopped_at: Completed 163-05-PLAN.md (Phase 163 complete, human UAT approved)
+last_updated: "2026-09-17T19:16:05.660Z"
 last_activity: 2026-09-17
 progress:
   total_phases: 28
-  completed_phases: 27
+  completed_phases: 28
   total_plans: 263
-  completed_plans: 262
-  percent: 96
+  completed_plans: 263
+  percent: 100
 ---
 
 # Project State
@@ -154,7 +154,7 @@ See: .planning/PROJECT.md (updated 2026-08-13)
 Phase: 163 (oeffentliche-anime-seite-episoden-nach-fansub-gruppe-filtern) — EXECUTING
 Plan: 5 of 5
 dupliziertem ProjectMemberStickyNav; siehe 157-14-SUMMARY.md)
-Status: Ready to execute
+Status: Phase complete — ready for verification
 GAP-02-Live-UAT-Checkpoint aus 156-UAT.md (5 Origin- + 9 Segment-Contributor-Pruefpunkte) wurde
 am 2026-09-15 vom Auftraggeber live abgenommen (inkl. GAP-08/GAP-09). Phase 156 ist vollstaendig abgenommen.
 Phase 157 gilt ebenfalls NICHT als vollstaendig abgenommen: der menschliche Live-UAT-Checkpoint
@@ -1339,6 +1339,7 @@ Last activity: 2026-09-17
 - [Phase 163]: 163-03: page.performance.test.ts (out of plan scope) needed episode_count:0 added to 2 mock literals broken by the new required type field (Rule 3, test-only, no assertions changed). — Required type field addition (episode_count) cascaded to an out-of-scope file; fixed minimally rather than leaving typecheck broken.
 - [Phase 163]: 163-04: page.tsx's D-16 fallback uses literal JSX text instead of the ErrorState primitive, because page.test.tsx's shallow props.children tree-walker cannot see text passed through a child component's props. — FansubVersionBrowser.tsx's own ErrorState/EmptyState usage is unaffected since it is exercised via real RTL rendering.
 - [Phase 163]: 163-04: kept a defensive per-episode groupMatchedVersions filter in FansubVersionBrowser.tsx (not fully removed) so Testfall G's un-refetched initial render still isolates the active group's version. — D-15's mandatory removal is only the 'Keine Version dieser Gruppe verfuegbar.' hint block/branch, which is fully gone; the underlying filter predicate is a locked-test requirement, not a D-15 violation.
+- [Phase 163]: Plan 163-05 dokumentiert Task 1/2 (Container-Rebuild, Live-Curl-Evidenz, menschliches UAT-Approval) als bereits vor dieser Ausführung abgeschlossen und fasst in Task 3 den vollstaendigen 13-Punkte-Abschlussbericht aus 163-USER-REQUEST.md zusammen, ohne Produktionscode anzufassen.
 
 ### Pending Todos
 
@@ -1769,11 +1770,12 @@ untruncated list lives in `.planning/todos/pending/`.
 | Phase 163 P02 | 55min | 3 tasks | 6 files |
 | Phase 163 P03 | 25min | 3 tasks | 9 files |
 | Phase 163 P04 | 45min | 3 tasks | 4 files |
+| Phase 163 P05 | ~15min | 3 tasks | 1 files |
 
 ## Session Continuity
 
-Last session: 2026-09-17T17:48:03.796Z
-Stopped at: Completed 163-04-PLAN.md
+Last session: 2026-09-17T19:16:05.640Z
+Stopped at: Completed 163-05-PLAN.md (Phase 163 complete, human UAT approved)
 Last activity: 2026-09-16 - Completed quick task 260916-ako: Jellyfin-Geschwisterquellen getrennt importieren; Liveimport zweier Folge-2-Quellen geprüft, keine Phasen-UAT ersetzt.
 Resume file: 
 None
