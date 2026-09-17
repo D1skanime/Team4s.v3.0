@@ -1,0 +1,159 @@
+.row {
+  --glass-surface-strong: rgba(255, 255, 255, 0.10);
+  --glass-border: rgba(255, 255, 255, 0.14);
+  --glass-text: rgba(255, 255, 255, 0.92);
+  --glass-text-muted: rgba(255, 255, 255, 0.60);
+
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-3);
+  color: var(--glass-text);
+  background: var(--glass-surface-strong);
+  border: 1px solid var(--glass-border);
+  border-radius: var(--radius-sm);
+  padding: var(--space-3);
+  /* UI-SPEC decision 14: wörtlich uebernommener Blur/Saturate-Wert (OlderReleasesList.module.css). */
+  backdrop-filter: blur(9px) saturate(1.65);
+  -webkit-backdrop-filter: blur(9px) saturate(1.65);
+}
+
+@supports (backdrop-filter: blur(20px)) {
+  .row {
+    background: var(--glass-surface-strong);
+    backdrop-filter: blur(9px) saturate(1.65);
+  }
+}
+
+.content {
+  min-width: 0;
+  display: grid;
+  gap: var(--space-2);
+}
+
+.identity {
+  display: flex;
+  align-items: center;
+  gap: var(--space-4);
+  min-width: 0;
+}
+
+.logos {
+  flex-shrink: 0;
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+}
+
+.logo {
+  width: 36px;
+  height: 36px;
+  border-radius: 50%;
+  object-fit: cover;
+  border: 1px solid var(--glass-border);
+}
+
+.logoFallback {
+  width: 36px;
+  height: 36px;
+  border-radius: 50%;
+  border: 1px solid var(--glass-border);
+  background: var(--glass-surface-strong);
+  color: var(--glass-text-muted);
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 14px;
+  font-weight: 700;
+}
+
+.identityText {
+  min-width: 0;
+}
+
+.groupName {
+  margin: 0;
+  font-size: 16px;
+  font-weight: 600;
+  line-height: 1.3;
+  color: var(--glass-text);
+  word-break: break-word;
+}
+
+/* UI-SPEC decision 12: reiner Text, kein Chip/Badge/Rahmen. */
+.coopLabel {
+  font-size: 12px;
+  font-weight: 600;
+  letter-spacing: 0.04em;
+  color: var(--glass-text-muted);
+}
+
+.releaseName {
+  margin: 2px 0 0;
+  font-size: 14px;
+  font-weight: 400;
+  line-height: 1.5;
+  color: var(--glass-text-muted);
+}
+
+/* UI-SPEC decision 9: dezenter Fliesstext mit "·"-Trennung, kein Chip/Badge. */
+.techLine {
+  margin: 0;
+  font-size: 14px;
+  font-weight: 400;
+  line-height: 1.5;
+  color: var(--glass-text-muted);
+}
+
+.extrasLine {
+  margin: 0;
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-4);
+  font-size: 14px;
+  font-weight: 400;
+  line-height: 1.5;
+  color: var(--glass-text-muted);
+}
+
+.dateLine {
+  margin: 0;
+  font-size: 14px;
+  font-weight: 400;
+  line-height: 1.5;
+  color: var(--glass-text-muted);
+}
+
+.action {
+  display: flex;
+  justify-content: flex-end;
+}
+
+.action > a,
+.action > button {
+  width: 100%;
+}
+
+/* D-20: Desktop/Breitbild -- linke Hauptspalte (Gruppe/Technik/Extras/Datum) + rechte Aktionsspalte. */
+@media (min-width: 768px) {
+  .row {
+    flex-direction: row;
+    align-items: center;
+    justify-content: space-between;
+    gap: var(--space-4);
+  }
+
+  .content {
+    flex: 1;
+    min-width: 0;
+  }
+
+  .action {
+    flex-shrink: 0;
+    justify-content: flex-end;
+  }
+
+  .action > a,
+  .action > button {
+    width: auto;
+  }
+}
