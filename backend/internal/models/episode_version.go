@@ -223,6 +223,8 @@ type PublicEpisodeVersion struct {
 	VideoQuality     *string              `json:"video_quality,omitempty"`
 	SubtitleType     *string              `json:"subtitle_type,omitempty"`
 	ReleaseDate      *time.Time           `json:"release_date,omitempty"`
+	Container        *string              `json:"container,omitempty"`
+	VideoCodec       *string              `json:"video_codec,omitempty"`
 }
 
 type PublicGroupedEpisode struct {
@@ -232,6 +234,8 @@ type PublicGroupedEpisode struct {
 	DefaultVersionID *int64                 `json:"default_version_id,omitempty"`
 	VersionCount     int32                  `json:"version_count"`
 	Versions         []PublicEpisodeVersion `json:"versions"`
+	FillerType       string                 `json:"filler_type"`
+	EpisodeType      string                 `json:"episode_type"`
 }
 
 type PublicEpisodePagination struct {

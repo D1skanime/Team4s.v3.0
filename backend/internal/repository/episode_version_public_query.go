@@ -77,15 +77,19 @@ func (o PublicEpisodeOptions) normalized(animeID int64) (int, publicEpisodeCurso
 const publicEpisodeQuery = `
 WITH inventory AS (
  SELECT e.id AS episode_id, e.episode_number::INTEGER AS episode_number, e.title AS episode_title,
+  COALESCE(eft.name,'unknown') AS filler_type, COALESCE(et.name,'episode') AS episode_type,
   v.id AS variant_id, v.release_version_id, v.title, v.release_version,
-  v.video_quality, v.subtitle_type, v.release_date,
+  v.video_quality, v.subtitle_type, v.release_date, v.container, v.video_codec,
   COUNT(v.id) OVER (PARTITION BY e.id)::INTEGER AS version_count,
   MIN(v.id) OVER (PARTITION BY e.id) AS default_version_id
  FROM episodes e
+ LEFT JOIN episode_filler_types eft ON eft.id = e.filler_type_id
+ LEFT JOIN episode_types et ON et.id = e.episode_type_id
  JOIN LATERAL (
   SELECT rv.id, rev.id AS release_version_id, COALESCE(rev.title,e.title) AS title,
    NULLIF(BTRIM(rev.version),'') AS release_version,
    COALESCE(rv.video_quality,rv.resolution) AS video_quality, rv.subtitle_type,
+   rv.container, rv.video_codec,
    COALESCE(rev.release_date,fr.release_date) AS release_date
   FROM fansub_releases fr
   JOIN release_versions rev ON rev.release_id=fr.id
@@ -107,14 +111,17 @@ WITH inventory AS (
  ORDER BY episode_number,episode_id,COALESCE(variant_id,0)
  LIMIT $5
 )
-SELECT p.episode_id,p.episode_number,p.episode_title,p.version_count,p.default_version_id,
+SELECT p.episode_id,p.episode_number,p.episode_title,p.filler_type,p.episode_type,p.version_count,p.default_version_id,
  p.variant_id,p.release_version_id,p.title,p.release_version,p.video_quality,p.subtitle_type,p.release_date,
+ p.container,p.video_codec,
  COALESCE(g.groups,'[]'::json), total.n
 FROM page p
 LEFT JOIN LATERAL (
- SELECT json_agg(json_build_object('id',fg.id,'slug',fg.slug,'name',fg.name,'logo_url',fg.logo_url)
+ SELECT json_agg(json_build_object('id',fg.id,'slug',fg.slug,'name',fg.name,
+   'logo_url',NULLIF(TRIM(COALESCE(logo.file_path, fg.logo_url)), ''))
   ORDER BY fg.name,fg.id) AS groups
  FROM release_version_groups rvg JOIN fansub_groups fg ON fg.id=rvg.fansub_group_id
+ LEFT JOIN media_assets logo ON logo.id=fg.logo_id
  WHERE rvg.release_version_id=p.release_version_id
 ) g ON TRUE
 CROSS JOIN total
@@ -150,8 +157,9 @@ func (r *EpisodeVersionRepository) ListPublicGroupedByAnimeID(ctx context.Contex
 		var item publicEpisodeRow
 		var groups []byte
 		e, v := &item.episode, &item.variant
-		if err := rows.Scan(&e.EpisodeID, &e.EpisodeNumber, &e.EpisodeTitle, &e.VersionCount, &e.DefaultVersionID,
-			&item.variantID, &item.releaseVersionID, &v.Title, &v.ReleaseVersion, &v.VideoQuality, &v.SubtitleType, &v.ReleaseDate, &groups, &item.episodeCount); err != nil {
+		if err := rows.Scan(&e.EpisodeID, &e.EpisodeNumber, &e.EpisodeTitle, &e.FillerType, &e.EpisodeType, &e.VersionCount, &e.DefaultVersionID,
+			&item.variantID, &item.releaseVersionID, &v.Title, &v.ReleaseVersion, &v.VideoQuality, &v.SubtitleType, &v.ReleaseDate,
+			&v.Container, &v.VideoCodec, &groups, &item.episodeCount); err != nil {
 			return nil, fmt.Errorf("scan public episode: %w", err)
 		}
 		if item.variantID != nil {
