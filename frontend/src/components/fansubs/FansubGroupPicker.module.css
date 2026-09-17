@@ -1,0 +1,45 @@
+.eyebrowLabel {
+  display: block;
+  margin-bottom: var(--space-2);
+  font-size: 12px;
+  font-weight: 600;
+  line-height: 1.2;
+  color: var(--text-muted);
+}
+
+.chipRow {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-2);
+  align-items: center;
+}
+
+.chip {
+  border-radius: 999px;
+  min-height: var(--control-height-sm);
+  background: var(--surface-card);
+  border: 1px solid var(--border-subtle);
+  color: var(--text-primary);
+  font-size: 14px;
+  font-weight: 400;
+  max-width: min(100%, 260px);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  display: inline-flex;
+  align-items: center;
+  gap: var(--space-1);
+}
+
+.chip[aria-pressed='true'] {
+  background: var(--surface-sunken);
+  border: 2px solid var(--accent-primary);
+  font-weight: 600;
+}
+
+.logo {
+  width: 20px;
+  height: 20px;
+  border-radius: 50%;
+  object-fit: cover;
+}
