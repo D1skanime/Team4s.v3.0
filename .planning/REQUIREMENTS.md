@@ -469,19 +469,19 @@ sign-off before `/gsd:execute-phase 164` runs.
 - [x] **REQ-164-24**: `has_images`/`has_notes`/`has_karaoke` werden batched aufgelöst, keine Einzelquery pro Release (D-24).
 - [x] **REQ-164-25**: Gruppen/Logos werden gesammelt aufgelöst, Coop korrekt aggregiert (D-25).
 - [x] **REQ-164-26**: Preview-Response enthält keine schweren Detaildaten (Rich-Text, Screenshots, Segmentdetails, Vollmetadaten, volle Profile) (D-26).
-- [ ] **REQ-164-27**: Infinite Scroll ersetzt „Mehr anzeigen"/„Nächste Seite" (D-27).
-- [ ] **REQ-164-28**: Kein aggressives Prefetching; nur die unmittelbar nächste Page (D-28).
-- [ ] **REQ-164-29**: Page Size aus Code/Messung abgeleitet, nicht blind auf 24 festgeschrieben (D-29).
-- [ ] **REQ-164-30**: Begrenztes aktives Fenster; kein append-only-Wachstum auf alle Episoden (D-30).
-- [ ] **REQ-164-31**: Rückwärts Lazy Loading stellt entfernte frühere Pages beim Hochscrollen wieder her (D-31).
-- [ ] **REQ-164-32**: Windowing-Strategie ohne neue Virtualization-Library, kleinstmögliche robuste Lösung (D-32).
-- [ ] **REQ-164-33**: Kleiner begrenzter Client-Cache mit begründeter Größe/Eviction (D-33).
-- [ ] **REQ-164-34**: Scroll-Stabilität mit konkret benannter Technik (Spacer/gemessene Höhen/Anchor) (D-34).
-- [ ] **REQ-164-35**: Ladetrigger via IntersectionObserver-Sentinel, kein Scroll-Event-Polling (D-35).
-- [ ] **REQ-164-36**: Dezente Lade-UI beim Nachladen, kein Fullscreen-Spinner (D-36).
-- [ ] **REQ-164-37**: Kompakter Fehlerzustand beim Nachladen mit „Erneut versuchen", bestehende Episoden bleiben sichtbar (D-37).
-- [ ] **REQ-164-38**: Ende der Liste erzeugt keinen weiteren Request (D-38).
-- [ ] **REQ-164-39**: Geöffnete Episoden bleiben über Windowing/Eviction hinweg durch stabile ID-Keys erhalten (D-39).
+- [x] **REQ-164-27**: Infinite Scroll ersetzt „Mehr anzeigen"/„Nächste Seite" (D-27).
+- [x] **REQ-164-28**: Kein aggressives Prefetching; nur die unmittelbar nächste Page (D-28).
+- [x] **REQ-164-29**: Page Size aus Code/Messung abgeleitet, nicht blind auf 24 festgeschrieben (D-29).
+- [x] **REQ-164-30**: Begrenztes aktives Fenster; kein append-only-Wachstum auf alle Episoden (D-30).
+- [x] **REQ-164-31**: Rückwärts Lazy Loading stellt entfernte frühere Pages beim Hochscrollen wieder her (D-31).
+- [x] **REQ-164-32**: Windowing-Strategie ohne neue Virtualization-Library, kleinstmögliche robuste Lösung (D-32).
+- [x] **REQ-164-33**: Kleiner begrenzter Client-Cache mit begründeter Größe/Eviction (D-33).
+- [x] **REQ-164-34**: Scroll-Stabilität mit konkret benannter Technik (Spacer/gemessene Höhen/Anchor) (D-34).
+- [x] **REQ-164-35**: Ladetrigger via IntersectionObserver-Sentinel, kein Scroll-Event-Polling (D-35).
+- [x] **REQ-164-36**: Dezente Lade-UI beim Nachladen, kein Fullscreen-Spinner (D-36).
+- [x] **REQ-164-37**: Kompakter Fehlerzustand beim Nachladen mit „Erneut versuchen", bestehende Episoden bleiben sichtbar (D-37).
+- [x] **REQ-164-38**: Ende der Liste erzeugt keinen weiteren Request (D-38).
+- [x] **REQ-164-39**: Geöffnete Episoden bleiben über Windowing/Eviction hinweg durch stabile ID-Keys erhalten (D-39).
 - [ ] **REQ-164-40**: Filterwechsel bricht laufende Requests ab, leert das Fenster, setzt Cursor zurück, lädt Page 1 des neuen Filters (D-40).
 - [ ] **REQ-164-41**: Serverseitige Filterung bleibt bestehen; kein Client-seitiges Nachfiltern (D-41).
 - [ ] **REQ-164-42**: Cursor-Scope aus Phase 163 bleibt mit dem Windowing-Zustand konsistent (D-42).

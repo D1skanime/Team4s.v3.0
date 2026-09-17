@@ -3,14 +3,14 @@ gsd_state_version: 1.0
 milestone: v1.4
 milestone_name: Coverage
 status: executing
-stopped_at: Completed 164-04-PLAN.md
-last_updated: "2026-09-17T22:38:21.689Z"
+stopped_at: Completed 164-05-PLAN.md
+last_updated: "2026-09-17T23:15:15.176Z"
 last_activity: 2026-09-17
 progress:
   total_phases: 29
   completed_phases: 28
   total_plans: 270
-  completed_plans: 267
+  completed_plans: 268
   percent: 97
 ---
 
@@ -152,7 +152,7 @@ See: .planning/PROJECT.md (updated 2026-08-13)
 ## Current Position
 
 Phase: 164 (oeffentliche-anime-seite-episode-release-ui-read-model-infinite-scroll) — EXECUTING
-Plan: 5 of 7
+Plan: 6 of 7
 dupliziertem ProjectMemberStickyNav; siehe 157-14-SUMMARY.md)
 Status: Ready to execute
 GAP-02-Live-UAT-Checkpoint aus 156-UAT.md (5 Origin- + 9 Segment-Contributor-Pruefpunkte) wurde
@@ -1345,6 +1345,8 @@ Last activity: 2026-09-17
 - [Phase 164]: 164-02: OpenAPI/TS public episode contract extended with container, video_codec, has_images, has_notes, has_karaoke, filler_type, episode_type — Reused EpisodeClassification's existing enum lists rather than inventing new ones; kept backend/frontend contract in lockstep with plan 164-01's Go DTOs
 - [Phase 164]: Reused existing team4s_phase117_test_164 isolated test database from plan 164-01 for the new 52-episode scale fixture instead of provisioning a new one
 - [Phase 164]: 164-04: resolveReleaseName's output kept visible in ReleasePreviewRow's identity block (D-08 label requirement + groupSwitch.test.tsx text dependency, out of this plan's files_modified list) — preserves D-08's mandated release-label visibility while keeping the untouched sibling test file passing unchanged
+- [Phase 164]: useWindowedEpisodePages owns a single shared AbortController internally for forward/backward/reset loads; FansubVersionBrowser no longer holds its own request ref for episode data. — Keeps single-flight discipline consistent with the pre-existing switchTo/loadMore pattern from Phase 163, avoiding a second independent abort-coordination owner.
+- [Phase 164]: Added a render-time boundary-merge step for episodes whose variant rows legitimately span two adjacent cursor pages, since the bounded DOM window removed the old client-side mergeEpisodes across the full fetch history. — Phase 163 paginates cursor rows at (episode_number, episode_id, variant_id) granularity, so one episode's variants can span a page boundary; the merge is scoped to only the currently-windowed pages so it never violates the bounded-cache invariant.
 
 ### Pending Todos
 
@@ -1780,11 +1782,12 @@ untruncated list lives in `.planning/todos/pending/`.
 | Phase 164 P02 | 8min | 2 tasks | 4 files |
 | Phase 164 P03 | 10min | 1 tasks | 1 files |
 | Phase 164 P04 | ~45min | 3 tasks | 10 files |
+| Phase 164 P05 | 90min | 2 tasks | 7 files |
 
 ## Session Continuity
 
-Last session: 2026-09-17T22:38:21.669Z
-Stopped at: Completed 164-04-PLAN.md
+Last session: 2026-09-17T23:15:15.155Z
+Stopped at: Completed 164-05-PLAN.md
 Last activity: 2026-09-16 - Completed quick task 260916-ako: Jellyfin-Geschwisterquellen getrennt importieren; Liveimport zweier Folge-2-Quellen geprüft, keine Phasen-UAT ersetzt.
 Resume file: 
 None
