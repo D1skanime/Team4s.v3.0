@@ -445,12 +445,12 @@ sign-off before `/gsd:execute-phase 164` runs.
 
 - [ ] **REQ-164-01**: Episoden bleiben aufklappbar; keine separate Episode-Detailseite (D-01).
 - [ ] **REQ-164-02**: Episode zeigt mindestens Episodennummer, Episodentitel, Filler-/Canon-Klassifikation, Episodentyp, Anzahl sichtbarer Release-Versionen (D-02).
-- [ ] **REQ-164-03**: Filler-/Canon-Werte (canon/filler/mixed/recap/unknown) und ihre öffentlichen Bezeichnungen sind fix; keine neue Klassifikationsheuristik (D-03).
-- [ ] **REQ-164-04**: Episodentyp ist eine zweite, unabhängige Dimension und zusätzlich sichtbar (D-04).
+- [x] **REQ-164-03**: Filler-/Canon-Werte (canon/filler/mixed/recap/unknown) und ihre öffentlichen Bezeichnungen sind fix; keine neue Klassifikationsheuristik (D-03).
+- [x] **REQ-164-04**: Episodentyp ist eine zweite, unabhängige Dimension und zusätzlich sichtbar (D-04).
 - [ ] **REQ-164-05**: Glasiger Episodenstil mit subtilem Tint pro Klassifikation ersetzt die weißen Cards (D-05).
 - [ ] **REQ-164-06**: Farbe ist ausschließlich der Klassifikations-Kanal; der Episodentyp bekommt keine eigene Farbe (D-06).
 - [ ] **REQ-164-07**: Geöffnete Episode bleibt visuell übergeordnet; Releases erscheinen als kompakte neutrale glassige Unterelemente (D-07).
-- [ ] **REQ-164-08**: Release-Vorschau zeigt Gruppe(n)/Logo(s), Release-Version/Label, Auflösung, Container, Video-Codec, Softsub/Hardsub, Release-Datum (falls gepflegt), Zusatzinhalte-Hinweise, „Zum Release →"-Button (D-08).
+- [x] **REQ-164-08**: Release-Vorschau zeigt Gruppe(n)/Logo(s), Release-Version/Label, Auflösung, Container, Video-Codec, Softsub/Hardsub, Release-Datum (falls gepflegt), Zusatzinhalte-Hinweise, „Zum Release →"-Button (D-08).
 - [ ] **REQ-164-09**: Gruppe steht visuell vor den technischen Daten (D-09).
 - [ ] **REQ-164-10**: Gruppenlogo nur bei vorhandenem Bestand, keine neue Logo-Struktur, kein Dummy-Icon ohne Logo (D-10).
 - [ ] **REQ-164-11**: Coop zeigt alle beteiligten Gruppenlogos/-namen plus COOP-Kennzeichnung, keine erfundene Primärgruppe (D-11).
@@ -463,12 +463,12 @@ sign-off before `/gsd:execute-phase 164` runs.
 - [ ] **REQ-164-18**: Kein zusätzliches Details-Dropdown auf der Anime-Seite (D-18).
 - [ ] **REQ-164-19**: Kein Play-Button-zentriertes Design (D-19).
 - [ ] **REQ-164-20**: Mobile-First-Reihenfolge (Mobile → Tablet → Desktop → Breitbild) mit den in §21 genannten Verhaltensregeln (D-20).
-- [ ] **REQ-164-21**: Bestehendes Public-Read-Model wird additiv erweitert, keine parallele Domain-Struktur (D-21).
-- [ ] **REQ-164-22**: Datenfluss vor Umsetzung gemessen (SQL-Anzahl, Requests, Response-Größe), nicht geschätzt (D-22).
-- [ ] **REQ-164-23**: Kein N+1; Query-Anzahl bleibt weitgehend konstant pro Page-Request (2–6 Queries) (D-23).
-- [ ] **REQ-164-24**: `has_images`/`has_notes`/`has_karaoke` werden batched aufgelöst, keine Einzelquery pro Release (D-24).
-- [ ] **REQ-164-25**: Gruppen/Logos werden gesammelt aufgelöst, Coop korrekt aggregiert (D-25).
-- [ ] **REQ-164-26**: Preview-Response enthält keine schweren Detaildaten (Rich-Text, Screenshots, Segmentdetails, Vollmetadaten, volle Profile) (D-26).
+- [x] **REQ-164-21**: Bestehendes Public-Read-Model wird additiv erweitert, keine parallele Domain-Struktur (D-21).
+- [x] **REQ-164-22**: Datenfluss vor Umsetzung gemessen (SQL-Anzahl, Requests, Response-Größe), nicht geschätzt (D-22).
+- [x] **REQ-164-23**: Kein N+1; Query-Anzahl bleibt weitgehend konstant pro Page-Request (2–6 Queries) (D-23).
+- [x] **REQ-164-24**: `has_images`/`has_notes`/`has_karaoke` werden batched aufgelöst, keine Einzelquery pro Release (D-24).
+- [x] **REQ-164-25**: Gruppen/Logos werden gesammelt aufgelöst, Coop korrekt aggregiert (D-25).
+- [x] **REQ-164-26**: Preview-Response enthält keine schweren Detaildaten (Rich-Text, Screenshots, Segmentdetails, Vollmetadaten, volle Profile) (D-26).
 - [ ] **REQ-164-27**: Infinite Scroll ersetzt „Mehr anzeigen"/„Nächste Seite" (D-27).
 - [ ] **REQ-164-28**: Kein aggressives Prefetching; nur die unmittelbar nächste Page (D-28).
 - [ ] **REQ-164-29**: Page Size aus Code/Messung abgeleitet, nicht blind auf 24 festgeschrieben (D-29).

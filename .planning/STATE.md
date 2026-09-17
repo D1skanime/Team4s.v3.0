@@ -2,16 +2,16 @@
 gsd_state_version: 1.0
 milestone: v1.4
 milestone_name: Coverage
-status: milestone_complete
-stopped_at: Milestone complete (Phase 163 was final phase)
-last_updated: 2026-09-17T19:33:56.619Z
+status: executing
+stopped_at: Completed 164-01-PLAN.md
+last_updated: "2026-09-17T21:52:26.089Z"
 last_activity: 2026-09-17
 progress:
-  total_phases: 28
+  total_phases: 29
   completed_phases: 28
-  total_plans: 263
-  completed_plans: 317
-  percent: 100
+  total_plans: 270
+  completed_plans: 264
+  percent: 97
 ---
 
 # Project State
@@ -147,14 +147,14 @@ Phase 135 and any future roadmap entries continue from here.
 See: .planning/PROJECT.md (updated 2026-08-13)
 
 **Core value:** Team4s presents fansub history and collaboration credibly while keeping identity, visibility, ownership, and permissions correct.
-**Current focus:** Milestone complete
+**Current focus:** Phase 164 — oeffentliche-anime-seite-episode-release-ui-read-model-infinite-scroll
 
 ## Current Position
 
-Phase: 163
-Plan: Not started
+Phase: 164 (oeffentliche-anime-seite-episode-release-ui-read-model-infinite-scroll) — EXECUTING
+Plan: 2 of 7
 dupliziertem ProjectMemberStickyNav; siehe 157-14-SUMMARY.md)
-Status: Milestone complete
+Status: Ready to execute
 GAP-02-Live-UAT-Checkpoint aus 156-UAT.md (5 Origin- + 9 Segment-Contributor-Pruefpunkte) wurde
 am 2026-09-15 vom Auftraggeber live abgenommen (inkl. GAP-08/GAP-09). Phase 156 ist vollstaendig abgenommen.
 Phase 157 gilt ebenfalls NICHT als vollstaendig abgenommen: der menschliche Live-UAT-Checkpoint
@@ -1340,6 +1340,8 @@ Last activity: 2026-09-17
 - [Phase 163]: 163-04: page.tsx's D-16 fallback uses literal JSX text instead of the ErrorState primitive, because page.test.tsx's shallow props.children tree-walker cannot see text passed through a child component's props. — FansubVersionBrowser.tsx's own ErrorState/EmptyState usage is unaffected since it is exercised via real RTL rendering.
 - [Phase 163]: 163-04: kept a defensive per-episode groupMatchedVersions filter in FansubVersionBrowser.tsx (not fully removed) so Testfall G's un-refetched initial render still isolates the active group's version. — D-15's mandatory removal is only the 'Keine Version dieser Gruppe verfuegbar.' hint block/branch, which is fully gone; the underlying filter predicate is a locked-test requirement, not a D-15 violation.
 - [Phase 163]: Plan 163-05 dokumentiert Task 1/2 (Container-Rebuild, Live-Curl-Evidenz, menschliches UAT-Approval) als bereits vor dieser Ausführung abgeschlossen und fasst in Task 3 den vollstaendigen 13-Punkte-Abschlussbericht aus 163-USER-REQUEST.md zusammen, ohne Produktionscode anzufassen.
+- [Phase 164]: publicEpisodeQuery group/logo JSON aligned to loadReleaseGroups' COALESCE(logo.file_path, fg.logo_url) read — prevents two independently-maintained logo reads from silently diverging (164-RESEARCH.md Pitfall 3)
+- [Phase 164]: resolvePublicEpisodeFlags skips its EXISTS query entirely when a page has zero release_version_ids — avoids a wasteful zero-length ANY($1) round trip; required assertPublicBudgetEmptyResult as a separate assertion helper instead of a blanket 2->3 rewrite
 
 ### Pending Todos
 
@@ -1771,11 +1773,12 @@ untruncated list lives in `.planning/todos/pending/`.
 | Phase 163 P03 | 25min | 3 tasks | 9 files |
 | Phase 163 P04 | 45min | 3 tasks | 4 files |
 | Phase 163 P05 | ~15min | 3 tasks | 1 files |
+| Phase 164 P01 | 21min | 3 tasks | 5 files |
 
 ## Session Continuity
 
-Last session: 2026-09-17T19:16:05.640Z
-Stopped at: Completed 163-05-PLAN.md (Phase 163 complete, human UAT approved)
+Last session: 2026-09-17T21:52:26.069Z
+Stopped at: Completed 164-01-PLAN.md
 Last activity: 2026-09-16 - Completed quick task 260916-ako: Jellyfin-Geschwisterquellen getrennt importieren; Liveimport zweier Folge-2-Quellen geprüft, keine Phasen-UAT ersetzt.
 Resume file: 
 None
