@@ -10,6 +10,7 @@ import (
 
 	"team4s.v3/backend/internal/repository"
 
+	"github.com/gabriel-vasile/mimetype"
 	"github.com/gin-gonic/gin"
 )
 
@@ -27,6 +28,10 @@ func (h *FansubHandler) ServeMediaFile(c *gin.Context) {
 	}
 
 	asset, err := h.mediaRepo.GetMediaAssetByFilename(c.Request.Context(), filename)
+	if errors.Is(err, repository.ErrNotFound) {
+		// Varianten wie source_original stehen nur in media_files.
+		asset, err = h.mediaRepo.GetMediaFileByFilename(c.Request.Context(), filename)
+	}
 	if errors.Is(err, repository.ErrNotFound) {
 		c.JSON(http.StatusNotFound, gin.H{"error": gin.H{"message": "datei nicht gefunden"}})
 		return
@@ -47,7 +52,14 @@ func (h *FansubHandler) ServeMediaFile(c *gin.Context) {
 		return
 	}
 
-	c.Header("Content-Type", asset.MimeType)
+	if strings.TrimSpace(asset.MimeType) == "" {
+		if detected, detectErr := mimetype.DetectFile(asset.StoragePath); detectErr == nil {
+			asset.MimeType = detected.String()
+		}
+	}
+	if strings.TrimSpace(asset.MimeType) != "" {
+		c.Header("Content-Type", asset.MimeType)
+	}
 	c.Header("Cache-Control", "public, max-age=31536000, immutable")
 	c.File(asset.StoragePath)
 }
