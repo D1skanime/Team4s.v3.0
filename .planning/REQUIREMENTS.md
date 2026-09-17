@@ -378,3 +378,59 @@ Source: `162-USER-REQUEST.md` §1–§17, decisions D-01 through D-14 in `162-CO
 | REQ-162-19 | Phase 162 | Complete |
 | REQ-162-20 | Phase 162 | Complete |
 | REQ-162-21 | Phase 162 | Pending |
+
+## Phase 163 — Öffentliche Anime-Seite: Episoden nach Fansub-Gruppe und vorhandenen Releases filtern (2026-09-17)
+
+Source: `163-USER-REQUEST.md` §1–§17 (Pflichtfälle A–J in §15), decisions D-01 through D-19 in `163-CONTEXT.md`, verified live against `team4s_v2` (read-only) in `163-RESEARCH.md`. Depends on Phase 162's `?fansub=<slug>` URL state.
+
+- [ ] **REQ-163-01**: Episode ist öffentlich nur sichtbar mit ≥1 öffentlicher Release-Version (Grundregel bei „Alle").
+- [ ] **REQ-163-02**: „Alle" zeigt alle Episoden mit ≥1 öffentlicher Version, keine Episoden ganz ohne Release.
+- [ ] **REQ-163-03**: Konkrete Gruppe aktiv: nur Episoden mit ≥1 passender Version dieser Gruppe (Coop inklusive).
+- [ ] **REQ-163-04**: Ebene B — innerhalb der Episode nur die zur aktiven Gruppe passenden Versionen; `version_count`/`default_version_id` bezogen auf die gefilterte Menge.
+- [ ] **REQ-163-05**: Coop-Version gehört jeder beteiligten Gruppe; keine Primärgruppe; bestehende Mehrgruppen-Zuordnung verwenden.
+- [ ] **REQ-163-06**: Gruppenfilter ist serverseitig in die Cursor-Pagination integriert; kein clientseitiges Scheinfiltern über bereits geladene Teilmengen.
+- [ ] **REQ-163-07**: Additiver Query-Parameter (Gruppen-Slug) an bestehendem Public-Episoden-Endpoint, in Strict-Allowlist aufgenommen; Frontend (`getGroupedEpisodes`), Handler, OpenAPI und TS-Typen synchron.
+- [ ] **REQ-163-08**: Filterkontext ist Teil des Cursor-Scope; ein Cursor aus Filter A wird bei Filter B oder „Alle" abgelehnt (`ErrValidation`/400).
+- [ ] **REQ-163-09**: Überschrift „Episoden (N)" zeigt die Trefferzahl über alle Seiten im aktuellen Filter, im selben Read (kein Zusatzquery); Gesamtzahl am Poster bleibt unverändert.
+- [ ] **REQ-163-10**: Nur nach bestehender Public-Visibility-Logik sichtbare Release-Versionen berücksichtigen (fail closed; keine internen/versteckten Versionen).
+- [ ] **REQ-163-11**: Kein N+1; Query-Kosten bleiben stabil bei vielen Episoden/Gruppen/Versionen (Naruto-Fall geprüft).
+- [ ] **REQ-163-12**: Bestehende fachliche Episodenreihenfolge bleibt unverändert (`episode_number, episode_id, variant_id`).
+- [ ] **REQ-163-13**: Ein gemeinsamer URL-Zustand (Phase-162 `?fansub=`) steuert Gruppenauswahl, Geschichte/Navigation UND Episodenfilterung — keine zweite unabhängige Gruppenauswahl.
+- [ ] **REQ-163-14**: Konkrete Gruppe ohne Treffer: kompakter neutraler Hinweis, keine leeren Episodenkarten, kein technischer Fehlertext.
+- [ ] **REQ-163-15**: Pflichtfälle A–J aus §15 automatisiert abgedeckt (Backend-Integrationstests mit echter Query + Frontend-Tests).
+- [ ] **REQ-163-16**: Browser-Verifikation live über :3300/:3000 mit Naruto (AnimeOwnage/Project Messiah/Alle/Coop-Fall).
+- [ ] **REQ-163-17**: Bestehender Code vor Umsetzung dokumentiert: Endpoint, Pagination, Release-Version-Zuordnung, Public-Visibility-Bedingungen, SQL-Query-Anzahl, `EXPLAIN (ANALYZE)` für Naruto vorher.
+- [ ] **REQ-163-18**: Gruppenwechsel per `history.pushState` ohne RSC-/Seiten-Reload; alte Liste bleibt sichtbar, gedimmt und nicht interaktiv (`aria-busy`); kein Skeleton, kein Layoutsprung.
+- [ ] **REQ-163-19**: Browser Zurück/Vor lädt immer neu (kein Cache pro Gruppe); laufende Requests werden bei Wechsel abgebrochen; nur die letzte Auswahl darf Daten setzen.
+- [ ] **REQ-163-20**: Fehler beim Neuladen: kompakter Hinweis mit „Erneut versuchen"-Button; keine Altdaten der vorherigen Gruppe; Chip/URL bleiben auf neuer Gruppe.
+- [ ] **REQ-163-21**: `noVersionHint` und clientseitige Gruppenfilterung in `FansubVersionBrowser.tsx` entfernt (nicht parallel); `getSummaryVersion` wählt nur aus bereits gefilterten Versionen.
+- [ ] **REQ-163-22**: Notfall-Fallback-Liste in `page.tsx` zeigt keine releaselosen Episoden mehr; ersetzt durch neutralen Fehlerhinweis.
+- [ ] **REQ-163-23**: Loading-/Fehler-/Leer-/Retry-Elemente nutzen `@/components/ui`-Primitives und globale Design-Tokens; deutsche UI-Texte mit echten Umlauten.
+- [ ] **REQ-163-24**: Keine Datenänderungen an `team4s_v2` durch Agenten; alle Pflichtfall-Tests laufen gegen Fixtures in einer separaten Test-Datenbank.
+
+| Requirement | Phase | Status |
+|---|---|---|
+| REQ-163-01 | Phase 163 | Pending |
+| REQ-163-02 | Phase 163 | Pending |
+| REQ-163-03 | Phase 163 | Pending |
+| REQ-163-04 | Phase 163 | Pending |
+| REQ-163-05 | Phase 163 | Pending |
+| REQ-163-06 | Phase 163 | Pending |
+| REQ-163-07 | Phase 163 | Pending |
+| REQ-163-08 | Phase 163 | Pending |
+| REQ-163-09 | Phase 163 | Pending |
+| REQ-163-10 | Phase 163 | Pending |
+| REQ-163-11 | Phase 163 | Pending |
+| REQ-163-12 | Phase 163 | Pending |
+| REQ-163-13 | Phase 163 | Pending |
+| REQ-163-14 | Phase 163 | Pending |
+| REQ-163-15 | Phase 163 | Pending |
+| REQ-163-16 | Phase 163 | Pending |
+| REQ-163-17 | Phase 163 | Pending |
+| REQ-163-18 | Phase 163 | Pending |
+| REQ-163-19 | Phase 163 | Pending |
+| REQ-163-20 | Phase 163 | Pending |
+| REQ-163-21 | Phase 163 | Pending |
+| REQ-163-22 | Phase 163 | Pending |
+| REQ-163-23 | Phase 163 | Pending |
+| REQ-163-24 | Phase 163 | Pending |
