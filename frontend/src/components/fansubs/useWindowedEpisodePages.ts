@@ -251,6 +251,13 @@ export function useWindowedEpisodePages({
     activeFansubSlugRef.current = slug
     setForwardError(null)
     setBackwardError(null)
+    // 164-06 Task 1 (Rule 1 fix): a filter switch discards any in-flight forward/backward load
+    // (see the abort above), but that discarded load's own success/error branch returns early
+    // once it notices requestRef no longer points at its own controller -- it never reaches its
+    // own setForwardLoading(false)/setBackwardLoading(false) call. Without resetting both flags
+    // here, a compact loader (D-36) could stay stuck visible indefinitely after this exact race.
+    setForwardLoading(false)
+    setBackwardLoading(false)
     try {
       const response = await getGroupedEpisodes(animeID, {
         projection: 'public',
