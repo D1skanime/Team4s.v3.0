@@ -434,3 +434,111 @@ Source: `163-USER-REQUEST.md` §1–§17 (Pflichtfälle A–J in §15), decision
 | REQ-163-22 | Phase 163 | Complete |
 | REQ-163-23 | Phase 163 | Complete |
 | REQ-163-24 | Phase 163 | Complete |
+
+## Phase 164 — Öffentliche Anime-Seite: Episode-/Release-UI, performantes Public Read-Model und Infinite Scroll (2026-09-17)
+
+Source: `164-USER-REQUEST.md` §1–§53, decisions D-01 through D-48 in `164-CONTEXT.md`, live-measured findings in
+`164-RESEARCH.md`, exact file/line analogs in `164-PATTERNS.md`, approved visual contract in `164-UI-SPEC.md`.
+One requirement per decision (D-NN → REQ-164-NN) for full traceability. Depends on Phase 163's server-side
+group filter, cursor v2, and `episode_count`. **Planning-only phase** — execution requires explicit operator
+sign-off before `/gsd:execute-phase 164` runs.
+
+- [ ] **REQ-164-01**: Episoden bleiben aufklappbar; keine separate Episode-Detailseite (D-01).
+- [ ] **REQ-164-02**: Episode zeigt mindestens Episodennummer, Episodentitel, Filler-/Canon-Klassifikation, Episodentyp, Anzahl sichtbarer Release-Versionen (D-02).
+- [ ] **REQ-164-03**: Filler-/Canon-Werte (canon/filler/mixed/recap/unknown) und ihre öffentlichen Bezeichnungen sind fix; keine neue Klassifikationsheuristik (D-03).
+- [ ] **REQ-164-04**: Episodentyp ist eine zweite, unabhängige Dimension und zusätzlich sichtbar (D-04).
+- [ ] **REQ-164-05**: Glasiger Episodenstil mit subtilem Tint pro Klassifikation ersetzt die weißen Cards (D-05).
+- [ ] **REQ-164-06**: Farbe ist ausschließlich der Klassifikations-Kanal; der Episodentyp bekommt keine eigene Farbe (D-06).
+- [ ] **REQ-164-07**: Geöffnete Episode bleibt visuell übergeordnet; Releases erscheinen als kompakte neutrale glassige Unterelemente (D-07).
+- [ ] **REQ-164-08**: Release-Vorschau zeigt Gruppe(n)/Logo(s), Release-Version/Label, Auflösung, Container, Video-Codec, Softsub/Hardsub, Release-Datum (falls gepflegt), Zusatzinhalte-Hinweise, „Zum Release →"-Button (D-08).
+- [ ] **REQ-164-09**: Gruppe steht visuell vor den technischen Daten (D-09).
+- [ ] **REQ-164-10**: Gruppenlogo nur bei vorhandenem Bestand, keine neue Logo-Struktur, kein Dummy-Icon ohne Logo (D-10).
+- [ ] **REQ-164-11**: Coop zeigt alle beteiligten Gruppenlogos/-namen plus COOP-Kennzeichnung, keine erfundene Primärgruppe (D-11).
+- [ ] **REQ-164-12**: Technische Eckdaten als dezenter `·`-getrennter Fließtext, keine Chips/Badges (D-12).
+- [ ] **REQ-164-13**: Audio-Codec, Dateigröße, CRC32, Dauer, Provider, Media-/interne IDs, technische Vollmetadaten erscheinen nicht auf der Anime-Seite (D-13).
+- [ ] **REQ-164-14**: Release-Datum nur wenn gepflegt, Format „Veröffentlicht am DD.MM.YYYY", sonst Zeile vollständig weglassen (D-14).
+- [ ] **REQ-164-15**: Zusatzinhalte-Hinweise (📷/📝/♪) als dezenter Text nur bei vorhandenem Inhalt, Boolean-Flags statt teurer Zusatzqueries (D-15).
+- [ ] **REQ-164-16**: Keine Screenshots/Thumbnails auf der Anime-Seite, nur Text „📷 Bilder" (D-16).
+- [ ] **REQ-164-17**: Release-Card ist nicht klickbar; expliziter Button „Zum Release →" (D-17).
+- [ ] **REQ-164-18**: Kein zusätzliches Details-Dropdown auf der Anime-Seite (D-18).
+- [ ] **REQ-164-19**: Kein Play-Button-zentriertes Design (D-19).
+- [ ] **REQ-164-20**: Mobile-First-Reihenfolge (Mobile → Tablet → Desktop → Breitbild) mit den in §21 genannten Verhaltensregeln (D-20).
+- [ ] **REQ-164-21**: Bestehendes Public-Read-Model wird additiv erweitert, keine parallele Domain-Struktur (D-21).
+- [ ] **REQ-164-22**: Datenfluss vor Umsetzung gemessen (SQL-Anzahl, Requests, Response-Größe), nicht geschätzt (D-22).
+- [ ] **REQ-164-23**: Kein N+1; Query-Anzahl bleibt weitgehend konstant pro Page-Request (2–6 Queries) (D-23).
+- [ ] **REQ-164-24**: `has_images`/`has_notes`/`has_karaoke` werden batched aufgelöst, keine Einzelquery pro Release (D-24).
+- [ ] **REQ-164-25**: Gruppen/Logos werden gesammelt aufgelöst, Coop korrekt aggregiert (D-25).
+- [ ] **REQ-164-26**: Preview-Response enthält keine schweren Detaildaten (Rich-Text, Screenshots, Segmentdetails, Vollmetadaten, volle Profile) (D-26).
+- [ ] **REQ-164-27**: Infinite Scroll ersetzt „Mehr anzeigen"/„Nächste Seite" (D-27).
+- [ ] **REQ-164-28**: Kein aggressives Prefetching; nur die unmittelbar nächste Page (D-28).
+- [ ] **REQ-164-29**: Page Size aus Code/Messung abgeleitet, nicht blind auf 24 festgeschrieben (D-29).
+- [ ] **REQ-164-30**: Begrenztes aktives Fenster; kein append-only-Wachstum auf alle Episoden (D-30).
+- [ ] **REQ-164-31**: Rückwärts Lazy Loading stellt entfernte frühere Pages beim Hochscrollen wieder her (D-31).
+- [ ] **REQ-164-32**: Windowing-Strategie ohne neue Virtualization-Library, kleinstmögliche robuste Lösung (D-32).
+- [ ] **REQ-164-33**: Kleiner begrenzter Client-Cache mit begründeter Größe/Eviction (D-33).
+- [ ] **REQ-164-34**: Scroll-Stabilität mit konkret benannter Technik (Spacer/gemessene Höhen/Anchor) (D-34).
+- [ ] **REQ-164-35**: Ladetrigger via IntersectionObserver-Sentinel, kein Scroll-Event-Polling (D-35).
+- [ ] **REQ-164-36**: Dezente Lade-UI beim Nachladen, kein Fullscreen-Spinner (D-36).
+- [ ] **REQ-164-37**: Kompakter Fehlerzustand beim Nachladen mit „Erneut versuchen", bestehende Episoden bleiben sichtbar (D-37).
+- [ ] **REQ-164-38**: Ende der Liste erzeugt keinen weiteren Request (D-38).
+- [ ] **REQ-164-39**: Geöffnete Episoden bleiben über Windowing/Eviction hinweg durch stabile ID-Keys erhalten (D-39).
+- [ ] **REQ-164-40**: Filterwechsel bricht laufende Requests ab, leert das Fenster, setzt Cursor zurück, lädt Page 1 des neuen Filters (D-40).
+- [ ] **REQ-164-41**: Serverseitige Filterung bleibt bestehen; kein Client-seitiges Nachfiltern (D-41).
+- [ ] **REQ-164-42**: Cursor-Scope aus Phase 163 bleibt mit dem Windowing-Zustand konsistent (D-42).
+- [ ] **REQ-164-43**: Aufklappen einer bereits geladenen Episode erzeugt 0 zusätzliche API-Requests (D-43).
+- [ ] **REQ-164-44**: Browser Back/Forward und Rückkehr von der Release-Seite stellen Filter/Scrollposition/Page(s) sinnvoll wieder her (D-44).
+- [ ] **REQ-164-45**: Mobile Performance (DOM-Nodes, Hydration, Blur-Flächen) wird konkret bewertet (D-45).
+- [ ] **REQ-164-46**: Alle 12 Performance-Gates aus §47 sind konkret verifizierbar (Testfall/Messmethode/Codeassertion) (D-46).
+- [ ] **REQ-164-47**: Naruto (`anime_id=4`) ist der primäre Referenzfall; der §48-Testablauf ist die UAT-Blaupause, ergänzt um eine isolierte Fixture-DB für nicht real erreichbare Skalierungsfälle (D-47).
+- [ ] **REQ-164-48**: Der visuelle Testfall-Katalog aus `164-UI-SPEC.md` (Klassifikationen, Episodentypen, Release-Varianten, Infinite-Scroll-Zustände, Breakpoints) ist vollständig abgedeckt (D-48).
+
+| Requirement | Phase | Status |
+|---|---|---|
+| REQ-164-01 | Phase 164 | Pending (planning only) |
+| REQ-164-02 | Phase 164 | Pending (planning only) |
+| REQ-164-03 | Phase 164 | Pending (planning only) |
+| REQ-164-04 | Phase 164 | Pending (planning only) |
+| REQ-164-05 | Phase 164 | Pending (planning only) |
+| REQ-164-06 | Phase 164 | Pending (planning only) |
+| REQ-164-07 | Phase 164 | Pending (planning only) |
+| REQ-164-08 | Phase 164 | Pending (planning only) |
+| REQ-164-09 | Phase 164 | Pending (planning only) |
+| REQ-164-10 | Phase 164 | Pending (planning only) |
+| REQ-164-11 | Phase 164 | Pending (planning only) |
+| REQ-164-12 | Phase 164 | Pending (planning only) |
+| REQ-164-13 | Phase 164 | Pending (planning only) |
+| REQ-164-14 | Phase 164 | Pending (planning only) |
+| REQ-164-15 | Phase 164 | Pending (planning only) |
+| REQ-164-16 | Phase 164 | Pending (planning only) |
+| REQ-164-17 | Phase 164 | Pending (planning only) |
+| REQ-164-18 | Phase 164 | Pending (planning only) |
+| REQ-164-19 | Phase 164 | Pending (planning only) |
+| REQ-164-20 | Phase 164 | Pending (planning only) |
+| REQ-164-21 | Phase 164 | Pending (planning only) |
+| REQ-164-22 | Phase 164 | Pending (planning only) |
+| REQ-164-23 | Phase 164 | Pending (planning only) |
+| REQ-164-24 | Phase 164 | Pending (planning only) |
+| REQ-164-25 | Phase 164 | Pending (planning only) |
+| REQ-164-26 | Phase 164 | Pending (planning only) |
+| REQ-164-27 | Phase 164 | Pending (planning only) |
+| REQ-164-28 | Phase 164 | Pending (planning only) |
+| REQ-164-29 | Phase 164 | Pending (planning only) |
+| REQ-164-30 | Phase 164 | Pending (planning only) |
+| REQ-164-31 | Phase 164 | Pending (planning only) |
+| REQ-164-32 | Phase 164 | Pending (planning only) |
+| REQ-164-33 | Phase 164 | Pending (planning only) |
+| REQ-164-34 | Phase 164 | Pending (planning only) |
+| REQ-164-35 | Phase 164 | Pending (planning only) |
+| REQ-164-36 | Phase 164 | Pending (planning only) |
+| REQ-164-37 | Phase 164 | Pending (planning only) |
+| REQ-164-38 | Phase 164 | Pending (planning only) |
+| REQ-164-39 | Phase 164 | Pending (planning only) |
+| REQ-164-40 | Phase 164 | Pending (planning only) |
+| REQ-164-41 | Phase 164 | Pending (planning only) |
+| REQ-164-42 | Phase 164 | Pending (planning only) |
+| REQ-164-43 | Phase 164 | Pending (planning only) |
+| REQ-164-44 | Phase 164 | Pending (planning only) |
+| REQ-164-45 | Phase 164 | Pending (planning only) |
+| REQ-164-46 | Phase 164 | Pending (planning only) |
+| REQ-164-47 | Phase 164 | Pending (planning only) |
+| REQ-164-48 | Phase 164 | Pending (planning only) |

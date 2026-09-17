@@ -2015,9 +2015,17 @@ Plans:
 ### Phase 164: Öffentliche Anime-Seite: Episode-/Release-UI, performantes Public Read-Model und Infinite Scroll
 
 **Goal:** Die Episoden-/Release-Darstellung auf `/anime/[id]` ist ein mobil-zuerst gebautes Fansub-Release-Archiv mit glasiger Episodenkarte (Tint nur nach Filler-/Canon-Klassifikation), gruppenzentrierter Release-Vorschau ohne schwere Detaildaten, einem erweiterten Public-Read-Model ohne N+1 (Gruppen/Logos/has_images/has_notes/has_karaoke gebündelt) und Infinite Scroll mit begrenztem bidirektionalem Fenster, stabiler Scrollposition und filterkonsistentem Cursor.
-**Requirements**: TBD (in plan-phase aus 164-USER-REQUEST.md §1–§53 abzuleiten)
+**Requirements**: REQ-164-01 bis REQ-164-48 (siehe `.planning/REQUIREMENTS.md`, ein Requirement pro Entscheidung D-01..D-48 aus `164-CONTEXT.md`)
 **Depends on:** Phase 163 (serverseitiger Gruppenfilter, Cursor-Scope, Trefferzahl) – abgeschlossen und live abgenommen 17.09.2026
 **Verbindliche Quelle:** `.planning/phases/164-oeffentliche-anime-seite-episode-release-ui-read-model-infinite-scroll/164-USER-REQUEST.md`
 **Scopegrenze:** keine Episode-Detailseite, kein Details-Dropdown, keine Screenshots/Rich-Text/Segmentdetails in der Preview, keine neue Klassifikationsheuristik, keine neue Virtualization-Library ohne Nachweis, keine Datenänderung durch Agenten. Planung ohne Ausführung – Freigabe durch den Auftraggeber abwarten.
 **UI hint:** yes
-**Plans:** TBD
+**Plans:** 7 plans across 5 waves
+
+  - Wave 1: 164-01 (Backend Read-Model-Kern: publicEpisodeQuery-Erweiterung, batched Flags-Query, Modelle, Budget-Tests), 164-02 (Contracts: OpenAPI + TS-Typen additiv)
+  - Wave 2: 164-03 (Backend Scale-Fixture + Query-Budget-/Paginations-Nachweis bei vielen Episoden, isolierte Test-DB), 164-04 (Frontend Episode-Glass-Card + Release-Preview-UI, D-01–D-20/D-48 visuelle Testfälle)
+  - Wave 3: 164-05 (Frontend Infinite-Scroll-/Bounded-Windowing-Engine: Sentinels, Eviction/Restoration, Scroll-Anchoring)
+  - Wave 4: 164-06 (Frontend Filterwechsel-/Cursor-Integration, Zum-Release-Link inkl. Coop, Race-Condition-Härtung)
+  - Wave 5: 164-07 (Vollständiges Gate + Naruto-Live-UAT + D-48-Visualmatrix + Abschlussbericht)
+
+**Plan-time read first**: `backend/internal/repository/episode_version_public_query.go`, `backend/internal/repository/release_detail_public_repository_helpers.go`, `backend/internal/repository/episode_classification.go`, `backend/internal/models/episode_version.go`, `backend/internal/handlers/episode_version_reads.go`, `frontend/src/components/fansubs/FansubVersionBrowser.tsx` (+ `.module.css`), `frontend/src/app/anime/[id]/group/[groupId]/sections/OlderReleasesList.tsx`, `frontend/src/hooks/useNearViewportActivation.ts`, `frontend/src/types/episodeVersion.ts`, `shared/contracts/openapi.yaml`, sowie `164-RESEARCH.md`/`164-PATTERNS.md`/`164-UI-SPEC.md`/`164-VALIDATION.md` als verbindliche Vorgaben.
