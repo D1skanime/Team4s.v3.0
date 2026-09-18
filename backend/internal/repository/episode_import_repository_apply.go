@@ -133,7 +133,7 @@ func mapAnimeTypeToEpisodeType(animeType string) string {
 		return "ova"
 	case "ona":
 		return "ona"
-	case "movie":
+	case "film":
 		return "movie"
 	case "special":
 		return "special"
@@ -202,16 +202,22 @@ func upsertImportEpisode(
 		return 0, false, err
 	}
 
+	// CR-02 (164 code review): match the existing episode on (anime_id, number)
+	// alone. episodeTypeID is now derived per-anime from anime.type (GAP-12), so
+	// it can legitimately differ from what was stored the first time this anime
+	// was imported -- matching on it too would cause a second, duplicate row to
+	// be INSERTed instead of the pre-existing one being UPDATEd. There can only
+	// ever be one canonical episode per (anime_id, number); whether the derived
+	// type actually gets written is decided below, gated on episode_type_source.
 	var existingID int64
 	err = tx.QueryRow(ctx, `
 		SELECT id
 		FROM episodes
 		WHERE anime_id = $1 AND number = $2
-		  AND (episode_type_id = $3 OR episode_type_source = $4)
-		ORDER BY (episode_type_id = $3) DESC, id ASC
+		ORDER BY id ASC
 		LIMIT 1
 		FOR UPDATE
-	`, animeID, canonical.EpisodeNumber, episodeTypeID, models.EpisodeMetadataSourceManual).Scan(&existingID)
+	`, animeID, canonical.EpisodeNumber).Scan(&existingID)
 	if errors.Is(err, pgx.ErrNoRows) {
 		var createdID int64
 		if err := tx.QueryRow(ctx, `
@@ -233,7 +239,8 @@ func upsertImportEpisode(
 	if _, err := tx.Exec(ctx, `
 		UPDATE episodes
 		SET title = COALESCE(NULLIF(BTRIM(title), ''), $1),
-		    episode_type_id = COALESCE(episode_type_id, $2),
+		    episode_type_id = CASE WHEN episode_type_source = $9 THEN episode_type_id ELSE $2 END,
+		    episode_type_source = CASE WHEN episode_type_source = $9 THEN episode_type_source ELSE $10 END,
 		    number = COALESCE(number, $3),
 		    number_decimal = COALESCE(number_decimal, $3),
 		    number_text = COALESCE(NULLIF(BTRIM(number_text), ''), $4),
@@ -244,7 +251,7 @@ func upsertImportEpisode(
 		    updated_at = NOW(),
 		    modified_at = NOW()
 		WHERE id = $8
-	`, displayTitle, episodeTypeID, canonical.EpisodeNumber, episodeNumber, fillerTypeID, canonical.FillerSource, canonical.FillerNote, existingID, models.EpisodeMetadataSourceManual); err != nil {
+	`, displayTitle, episodeTypeID, canonical.EpisodeNumber, episodeNumber, fillerTypeID, canonical.FillerSource, canonical.FillerNote, existingID, models.EpisodeMetadataSourceManual, models.EpisodeMetadataSourceImport); err != nil {
 		return 0, false, fmt.Errorf("update canonical episode id=%d: %w", existingID, err)
 	}
 	return existingID, false, nil
