@@ -60,3 +60,30 @@ task's changes). Logged here, not fixed.
   or `cssCustomProperties.guard.test.ts` should update the allow-list's `line` to 268 (or
   make the allow-list match by content/name only, not by exact line number, to avoid this
   class of drift recurring).
+
+## 164-09: Pre-existing full-package failures unrelated to GAP-12 (`internal/repository` broad run)
+
+- **Found during:** Plan 164-09, Task 1 verification -- ran the plan's scoped command
+  (`-run TestEpisodeImportRepository`, all green) and then an unscoped
+  `go test ./internal/repository/... -count=1` in the same throwaway `golang:1.25-alpine`
+  container to double-check for regressions.
+- **Location/symptoms:**
+  - `TestPhase134Matrix*` (several): `dial tcp 192.168.235.196:18093: connect: connection
+    refused` / Keycloak password-grant `invalid_grant` -- these tests reach out to the live
+    backend/Keycloak HTTP ports from inside the test process; the throwaway container used
+    for this plan's isolated DB run has no route to those host-published ports.
+  - `TestEpisodeVersionDateEditorContextBothSurfacesAndFailure/admin=true`: `column
+    e.filler_source does not exist (SQLSTATE 42703)` -- a schema-fixture gap in
+    `episode_version_dates_integration_test.go` (a file this plan did not read or touch),
+    unrelated to `episodes.episode_type_source`.
+- **Confirmed pre-existing and unrelated:** none of the failing tests reference
+  `episode_import_repository_apply.go`, `mapAnimeTypeToEpisodeType`, `anime.type`, or
+  `episode_type_source`; they fail identically regardless of this plan's diff because the
+  causes are (a) network reachability from the ephemeral test container and (b) an
+  unrelated pre-existing fixture/column gap in a different integration test file.
+- **Not fixed:** out of scope for GAP-12 (`files_modified` for this plan is limited to
+  `episode_import_repository_apply.go` and its new test file); a future plan touching
+  `phase134_verification_matrix*_test.go` or `episode_version_dates_integration_test.go`
+  should investigate the network wiring and the missing `e.filler_source` column
+  respectively. The plan's own required verification command
+  (`-run TestEpisodeImportRepository`) is unaffected and passes cleanly.
