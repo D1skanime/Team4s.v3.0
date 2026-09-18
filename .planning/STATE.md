@@ -2,19 +2,59 @@
 gsd_state_version: 1.0
 milestone: v1.4
 milestone_name: Coverage
-status: executing
-stopped_at: 164-08..164-13 code-complete; post-execution code review (164-REVIEW.md) found 2 Critical + 5 Warning findings, all fixed and verified (commits 811bff61..7327c1ea); backend rebuilt, frontend restarted; live Human-UAT of GAP-01..GAP-12 plus the still-open 164-07 checkpoint required before phase 164 can be marked complete
-last_updated: "2026-09-18T10:20:00.000Z"
+status: milestone_complete
+stopped_at: Milestone complete (Phase 164 was final phase)
+last_updated: 2026-09-18T15:33:47.076Z
 last_activity: 2026-09-18
 progress:
   total_phases: 29
   completed_phases: 29
   total_plans: 276
-  completed_plans: 276
+  completed_plans: 330
   percent: 100
 ---
 
 # Project State
+
+## Phase 164 Abschluss (18.09.2026) — Milestone v1.4 vollständig abgeschlossen
+
+Phase 164 (letzte Phase des Milestones v1.4 „Coverage") ist vollständig abgenommen. Der Auftraggeber
+hat am 2026-09-18 per Live-UAT über den SSH-Tunnel (`127.0.0.1:3300`) gegen drei reale Anime geprüft:
+Naruto (`/anime/4`), 11eyes: Pink Phantasmagoria (`/anime/3`), Buddy Complex (`/anime/1`). Wörtliche
+Freigabe: **„1 passt, 2 löschen“** — Punkt 1 (164-07 Task 2, Live-Naruto-Browser-UAT inkl. erneuter
+Prüfung von GAP-01..GAP-15) bestanden; Punkt 2 (164-07 Task 3, Dev-Harness-Route) Entscheidung:
+löschen.
+
+- **164-07 Task 3 abgeschlossen:** DOM-Node-Count per Playwright im Frontend-Container gemessen
+  (Mobile-Viewport 390×844, 64 Mock-Episoden): 835 Elemente gesamt, 70 `<li>`, konstant beim
+  Scrollen. Die Harness lud alle 64 Episoden als eine einzige Page (`has_more=false`) — Verdrängung/
+  Rückwärtsladen über mehrere Pages wurde dadurch live nicht gezeigt (bleibt nur durch Unit-Tests
+  belegt). Ein Mobile-Frame-/Paint-Profil (Gate 11) wurde **nicht** gemessen; der Auftraggeber hat
+  die Phase dennoch abgenommen — dokumentiert, nicht verschwiegen (`docs/audits/164-performance-gates.md`).
+  `frontend/src/app/dev/episode-windowing-preview/` wurde daraufhin vollständig gelöscht (Commit
+  `4b3cade8`).
+- **GAP-01..GAP-15 vollständig geschlossen:** GAP-01..GAP-12 via Gap-Closure-Plänen 164-08..164-13
+  (siehe Eintrag unten); GAP-13 via Quick-Task `260918-fmq`; GAP-14/GAP-15 via Quick-Task
+  `260918-jfs`. Alle 15 Gaps in `164-UAT.md` als `status: resolved` mit Fix-Commit-Referenz
+  dokumentiert; `164-UAT.md` frontmatter auf `status: complete` gesetzt.
+- **Verifikation:** `gsd-verifier` hat Phase 164 unabhängig gegen den echten Code-Stand geprüft
+  (48/48 Must-Haves, alle 13 Plan-Artefakte, alle 18 Gap-/Quick-Task-Commit-Hashes im `git log`
+  verifiziert, Backend-Query-Budget live gegen eine frische isolierte Postgres-DB reproduziert,
+  Frontend-Suite 2894/2899 grün, GAP-01/GAP-15 live gegen `/anime/4` bestätigt) — Status `passed`,
+  siehe `164-VERIFICATION.md`. Zwei nicht-blockierende Hinweise dabei aufgenommen: REQ-164-14s
+  Wortlaut wurde auf „Fansub-Release vom" aktualisiert (GAP-14-Textänderung), REQ-164-45 trägt den
+  vom Auftraggeber akzeptierten Hinweis auf das nicht gemessene Mobile-Frame-/Paint-Profil.
+- **Tests/Build im Container nach der Löschung:** `npm run typecheck` 0 Fehler (nach Entfernen des
+  verwaisten `.next/types`-Artefakts), `npm run lint` dieselben 3 vorbestehenden Fehler, `npm run
+  test -- --run` dieselben 2 vorbestehenden `cssCustomProperties.guard.test.ts`-Fehlschläge (ein
+  dritter, je Lauf wechselnder Fehlschlag als containerlast-bedingt flaky bestätigt), `npm run build`
+  weiterhin am bereits vorbestehenden mehrseitigen Turbopack-Prerender-Defekt (Diagnoselauf bestätigt:
+  derselbe Defekt existiert unabhängig von der gelöschten Route, nur eine andere zuerst betroffene
+  Seite). Backend `go build`/`go vet` fehlerfrei, `go test ./...` nur bereits dokumentierte
+  umgebungsabhängige Fehlschläge. `docker restart team4sv30-frontend` durchgeführt; `curl` bestätigt
+  `/dev/episode-windowing-preview` → `404`, `/anime/4` → `200`.
+- Kein Push, keine Datenänderung an `team4s_v2` in dieser Abschluss-Session (nur Frontend-Dateilöschung
+  + Doku/Planungsdateien).
 
 ## Gap-Closure-Ausführung + Code-Review Phase 164 (18.09.2026) — 164-08..164-13 code-complete, Review-Fixes eingespielt
 
@@ -161,27 +201,15 @@ Phase 135 and any future roadmap entries continue from here.
 See: .planning/PROJECT.md (updated 2026-08-13)
 
 **Core value:** Team4s presents fansub history and collaboration credibly while keeping identity, visibility, ownership, and permissions correct.
-**Current focus:** Phase 164 — oeffentliche-anime-seite-episode-release-ui-read-model-infinite-scroll,
-executing gap-closure plans 164-08..164-13 (Live-UAT 18.09.2026, `164-UAT.md`, GAP-01..GAP-12).
-Plan 164-07's original human-verify checkpoints (Tasks 2/3) remain unresolved pending a human,
-independent of the gap-closure plans, which do not touch Plan 07's scope.
+**Current focus:** Milestone v1.4 (Coverage) complete. Phase 164 (its final phase) was closed on
+2026-09-18 after the client's live UAT approval ("1 passt, 2 löschen") — see the "Phase 164
+Abschluss" entry below for the full closing record.
 
 ## Current Position
 
-Phase: 164 (oeffentliche-anime-seite-episode-release-ui-read-model-infinite-scroll) — EXECUTING
-gap-closure plans. Plan 164-08 (GAP-01 group logo URL + GAP-02 default release name, backend/
-read-model only), Plan 164-09 (GAP-12 import episode_type derived from anime.type,
-backend-only), Plan 164-11 (GAP-04..GAP-10 FansubGroupPicker/FansubGroupContext/tag-chip
-contrast fixes, frontend-only), and Plan 164-10 (GAP-11 backend half: migration 0169
-episode_filler_types.label/episode_types.label, publicEpisodeQuery filler_type_label/
-episode_type_label, GET /admin/episode-classification-options) are complete and
-committed — see `164-08-SUMMARY.md`, `164-09-SUMMARY.md`, `164-10-SUMMARY.md`,
-`164-11-SUMMARY.md`.
-Plan: 6 of 6 gap-closure plans done (164-08/164-09/164-10/164-11 done; 164-12/164-13 remain)
-Status: Ready to execute
-DOM/mobile-performance measurement) and the gap-closure plans 164-09..164-13 all still need
-completion/human sign-off before Phase 164 itself can be marked complete in
-STATE.md/ROADMAP.md/REQUIREMENTS.md.
+Phase: 164 — Complete (final phase of milestone v1.4)
+Plan: 13/13 plans complete (164-01..164-13), plus quick-tasks 260918-fmq/260918-jfs (GAP-13/14/15)
+Status: Milestone complete
 dupliziertem ProjectMemberStickyNav; siehe 157-14-SUMMARY.md)
 GAP-02-Live-UAT-Checkpoint aus 156-UAT.md (5 Origin- + 9 Segment-Contributor-Pruefpunkte) wurde
 am 2026-09-15 vom Auftraggeber live abgenommen (inkl. GAP-08/GAP-09). Phase 156 ist vollstaendig abgenommen.

@@ -456,7 +456,7 @@ sign-off before `/gsd:execute-phase 164` runs.
 - [x] **REQ-164-11**: Coop zeigt alle beteiligten Gruppenlogos/-namen plus COOP-Kennzeichnung, keine erfundene Primärgruppe (D-11).
 - [x] **REQ-164-12**: Technische Eckdaten als dezenter `·`-getrennter Fließtext, keine Chips/Badges (D-12).
 - [x] **REQ-164-13**: Audio-Codec, Dateigröße, CRC32, Dauer, Provider, Media-/interne IDs, technische Vollmetadaten erscheinen nicht auf der Anime-Seite (D-13).
-- [x] **REQ-164-14**: Release-Datum nur wenn gepflegt, Format „Veröffentlicht am DD.MM.YYYY", sonst Zeile vollständig weglassen (D-14).
+- [x] **REQ-164-14**: Release-Datum nur wenn gepflegt, Format „Fansub-Release vom DD.MM.YYYY" (Wortlaut per GAP-14, Live-UAT 18.09.2026, an die ursprüngliche D-14-Vorgabe „Veröffentlicht am" angepasst), sonst Zeile vollständig weglassen (D-14).
 - [x] **REQ-164-15**: Zusatzinhalte-Hinweise (📷/📝/♪) als dezenter Text nur bei vorhandenem Inhalt, Boolean-Flags statt teurer Zusatzqueries (D-15).
 - [x] **REQ-164-16**: Keine Screenshots/Thumbnails auf der Anime-Seite, nur Text „📷 Bilder" (D-16).
 - [x] **REQ-164-17**: Release-Card ist nicht klickbar; expliziter Button „Zum Release →" (D-17).
@@ -487,58 +487,58 @@ sign-off before `/gsd:execute-phase 164` runs.
 - [x] **REQ-164-42**: Cursor-Scope aus Phase 163 bleibt mit dem Windowing-Zustand konsistent (D-42).
 - [x] **REQ-164-43**: Aufklappen einer bereits geladenen Episode erzeugt 0 zusätzliche API-Requests (D-43).
 - [x] **REQ-164-44**: Browser Back/Forward und Rückkehr von der Release-Seite stellen Filter/Scrollposition/Page(s) sinnvoll wieder her (D-44).
-- [ ] **REQ-164-45**: Mobile Performance (DOM-Nodes, Hydration, Blur-Flächen) wird konkret bewertet (D-45).
+- [x] **REQ-164-45**: Mobile Performance (DOM-Nodes, Hydration, Blur-Flächen) wird konkret bewertet (D-45). DOM-Node-Count real gemessen (835 Elemente/70 li, siehe `docs/audits/164-performance-gates.md` Gate 6); Mobile-Frame-/Paint-Profil (Blur-Kosten) NICHT gemessen — vom Auftraggeber am 2026-09-18 ausdrücklich trotz dieser offenen Messung abgenommen ("1 passt, 2 löschen").
 - [x] **REQ-164-46**: Alle 12 Performance-Gates aus §47 sind konkret verifizierbar (Testfall/Messmethode/Codeassertion) (D-46).
 - [x] **REQ-164-47**: Naruto (`anime_id=4`) ist der primäre Referenzfall; der §48-Testablauf ist die UAT-Blaupause, ergänzt um eine isolierte Fixture-DB für nicht real erreichbare Skalierungsfälle (D-47).
 - [x] **REQ-164-48**: Der visuelle Testfall-Katalog aus `164-UI-SPEC.md` (Klassifikationen, Episodentypen, Release-Varianten, Infinite-Scroll-Zustände, Breakpoints) ist vollständig abgedeckt (D-48).
 
 | Requirement | Phase | Status |
 |---|---|---|
-| REQ-164-01 | Phase 164 | Pending (planning only) |
-| REQ-164-02 | Phase 164 | Pending (planning only) |
-| REQ-164-03 | Phase 164 | Pending (planning only) |
-| REQ-164-04 | Phase 164 | Pending (planning only) |
-| REQ-164-05 | Phase 164 | Pending (planning only) |
-| REQ-164-06 | Phase 164 | Pending (planning only) |
-| REQ-164-07 | Phase 164 | Pending (planning only) |
-| REQ-164-08 | Phase 164 | Pending (planning only) |
-| REQ-164-09 | Phase 164 | Pending (planning only) |
-| REQ-164-10 | Phase 164 | Pending (planning only) |
-| REQ-164-11 | Phase 164 | Pending (planning only) |
-| REQ-164-12 | Phase 164 | Pending (planning only) |
-| REQ-164-13 | Phase 164 | Pending (planning only) |
-| REQ-164-14 | Phase 164 | Pending (planning only) |
-| REQ-164-15 | Phase 164 | Pending (planning only) |
-| REQ-164-16 | Phase 164 | Pending (planning only) |
-| REQ-164-17 | Phase 164 | Pending (planning only) |
-| REQ-164-18 | Phase 164 | Pending (planning only) |
-| REQ-164-19 | Phase 164 | Pending (planning only) |
-| REQ-164-20 | Phase 164 | Pending (planning only) |
-| REQ-164-21 | Phase 164 | Pending (planning only) |
-| REQ-164-22 | Phase 164 | Pending (planning only) |
-| REQ-164-23 | Phase 164 | Pending (planning only) |
-| REQ-164-24 | Phase 164 | Pending (planning only) |
-| REQ-164-25 | Phase 164 | Pending (planning only) |
-| REQ-164-26 | Phase 164 | Pending (planning only) |
-| REQ-164-27 | Phase 164 | Pending (planning only) |
-| REQ-164-28 | Phase 164 | Pending (planning only) |
-| REQ-164-29 | Phase 164 | Pending (planning only) |
-| REQ-164-30 | Phase 164 | Pending (planning only) |
-| REQ-164-31 | Phase 164 | Pending (planning only) |
-| REQ-164-32 | Phase 164 | Pending (planning only) |
-| REQ-164-33 | Phase 164 | Pending (planning only) |
-| REQ-164-34 | Phase 164 | Pending (planning only) |
-| REQ-164-35 | Phase 164 | Pending (planning only) |
-| REQ-164-36 | Phase 164 | Pending (planning only) |
-| REQ-164-37 | Phase 164 | Pending (planning only) |
-| REQ-164-38 | Phase 164 | Pending (planning only) |
-| REQ-164-39 | Phase 164 | Pending (planning only) |
-| REQ-164-40 | Phase 164 | Pending (planning only) |
-| REQ-164-41 | Phase 164 | Pending (planning only) |
-| REQ-164-42 | Phase 164 | Pending (planning only) |
-| REQ-164-43 | Phase 164 | Pending (planning only) |
-| REQ-164-44 | Phase 164 | Pending (planning only) |
-| REQ-164-45 | Phase 164 | Pending (planning only) |
-| REQ-164-46 | Phase 164 | Pending (planning only) |
-| REQ-164-47 | Phase 164 | Pending (planning only) |
-| REQ-164-48 | Phase 164 | Pending (planning only) |
+| REQ-164-01 | Phase 164 | Complete |
+| REQ-164-02 | Phase 164 | Complete |
+| REQ-164-03 | Phase 164 | Complete |
+| REQ-164-04 | Phase 164 | Complete |
+| REQ-164-05 | Phase 164 | Complete |
+| REQ-164-06 | Phase 164 | Complete |
+| REQ-164-07 | Phase 164 | Complete |
+| REQ-164-08 | Phase 164 | Complete |
+| REQ-164-09 | Phase 164 | Complete |
+| REQ-164-10 | Phase 164 | Complete |
+| REQ-164-11 | Phase 164 | Complete |
+| REQ-164-12 | Phase 164 | Complete |
+| REQ-164-13 | Phase 164 | Complete |
+| REQ-164-14 | Phase 164 | Complete |
+| REQ-164-15 | Phase 164 | Complete |
+| REQ-164-16 | Phase 164 | Complete |
+| REQ-164-17 | Phase 164 | Complete |
+| REQ-164-18 | Phase 164 | Complete |
+| REQ-164-19 | Phase 164 | Complete |
+| REQ-164-20 | Phase 164 | Complete |
+| REQ-164-21 | Phase 164 | Complete |
+| REQ-164-22 | Phase 164 | Complete |
+| REQ-164-23 | Phase 164 | Complete |
+| REQ-164-24 | Phase 164 | Complete |
+| REQ-164-25 | Phase 164 | Complete |
+| REQ-164-26 | Phase 164 | Complete |
+| REQ-164-27 | Phase 164 | Complete |
+| REQ-164-28 | Phase 164 | Complete |
+| REQ-164-29 | Phase 164 | Complete |
+| REQ-164-30 | Phase 164 | Complete |
+| REQ-164-31 | Phase 164 | Complete |
+| REQ-164-32 | Phase 164 | Complete |
+| REQ-164-33 | Phase 164 | Complete |
+| REQ-164-34 | Phase 164 | Complete |
+| REQ-164-35 | Phase 164 | Complete |
+| REQ-164-36 | Phase 164 | Complete |
+| REQ-164-37 | Phase 164 | Complete |
+| REQ-164-38 | Phase 164 | Complete |
+| REQ-164-39 | Phase 164 | Complete |
+| REQ-164-40 | Phase 164 | Complete |
+| REQ-164-41 | Phase 164 | Complete |
+| REQ-164-42 | Phase 164 | Complete |
+| REQ-164-43 | Phase 164 | Complete |
+| REQ-164-44 | Phase 164 | Complete |
+| REQ-164-45 | Phase 164 | Complete |
+| REQ-164-46 | Phase 164 | Complete |
+| REQ-164-47 | Phase 164 | Complete |
+| REQ-164-48 | Phase 164 | Complete |
