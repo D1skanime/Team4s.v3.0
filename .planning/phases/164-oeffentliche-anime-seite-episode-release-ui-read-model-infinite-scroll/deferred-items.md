@@ -87,3 +87,37 @@ task's changes). Logged here, not fixed.
   should investigate the network wiring and the missing `e.filler_source` column
   respectively. The plan's own required verification command
   (`-run TestEpisodeImportRepository`) is unaffected and passes cleanly.
+
+## 164-10 -> 164-12: Pre-existing `tsc --noEmit` fixture gaps for `filler_type_label`/`episode_type_label`
+
+- **Found during:** Plan 164-12, Task 2 verification (`npx tsc --noEmit -p .`)
+- **Location:** object literals constructing `PublicGroupedEpisode` without the two new
+  required fields (added by 164-10): `frontend/src/app/dev/episode-windowing-preview/page.tsx`,
+  `frontend/src/components/fansubs/FansubVersionBrowser.filterSwitch.test.tsx`,
+  `frontend/src/components/fansubs/FansubVersionBrowser.groupSwitch.test.tsx` (7 sites),
+  `frontend/src/components/fansubs/FansubVersionBrowser.windowing.test.tsx`,
+  `frontend/src/components/fansubs/useWindowedEpisodePages.test.ts`.
+- **Confirmed pre-existing, tsc-only (no runtime test failures):** none of these files are
+  in 164-12's `files_modified` frontmatter, and the full `npx vitest run` sweep of
+  `src/components/fansubs` + the admin editor tree (520 tests, 41 files) passes cleanly with
+  these gaps still present -- they never exercise `classificationAndTypeLine` at runtime, so
+  Task 2's signature change does not break their behavior, only their type-completeness.
+  164-10's own SUMMARY.md ("Known follow-up") explicitly assigns this cleanup to 164-13, the
+  plan that actually wires `filler_type_label`/`episode_type_label` into
+  `FansubVersionBrowser`'s rendering path.
+- **Partially fixed as an unavoidable Rule 1 regression fix, not a scope expansion:**
+  `frontend/src/components/fansubs/FansubVersionBrowser.test.tsx`'s `DEFAULT_CLASSIFICATION`
+  fixture and its "D-48 visueller Testfall-Katalog" `it.each` blocks DID need a real code fix
+  (not just a type-only patch) in 164-12, because that file's tests actually render
+  `classificationAndTypeLine`'s output and asserted the exact removed hardcoded frontend
+  labels ("Filler"/"Gemischt"/"Film") that Task 2 deletes -- a direct runtime regression
+  caused by this plan's own signature change, not a pre-existing issue. Updated to assert the
+  real 164-10 DB-backfilled labels ("Zusatzfolge"/"Teilweise Zusatzfolge"/"Movie") instead,
+  with `filler_type_label`/`episode_type_label` passed explicitly per test case.
+- **Not fixed (remaining tsc-only gaps):** out of scope for 164-12 (only
+  `episodePreviewFormat.ts`/`.test.ts`, `ReleasePreviewRow.tsx`, `EpisodeGlassCard.tsx`,
+  `FansubVersionBrowser.test.tsx` (regression-forced), and the admin editor utils/test files
+  needed real edits in this plan; the one instance inside 164-12's own
+  `episodePreviewFormat.test.ts` fixture, `resolveEpisodeTitle`'s `baseEpisode`, WAS fixed
+  since that file is directly owned by this plan). 164-13 must add the two label fields to
+  the five files listed above before its own `tsc --noEmit` gate can pass cleanly.

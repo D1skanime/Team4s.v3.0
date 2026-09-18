@@ -31,7 +31,7 @@ export interface EpisodeGlassCardProps {
 
 export function EpisodeGlassCard({ episode, episodeTitle, expanded, onToggle, panelId, children }: EpisodeGlassCardProps) {
   const tintClassKey = TINT_CLASS_BY_FILLER_TYPE[episode.filler_type]
-  const classificationLine = classificationAndTypeLine(episode.filler_type, episode.episode_type)
+  const classificationLine = classificationAndTypeLine(episode)
 
   return (
     <li

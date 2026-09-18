@@ -146,10 +146,19 @@ export function padEpisodeNumber(value: number): string {
   return String(value).padStart(3, '0')
 }
 
+/**
+ * GAP-02: spiegelt das gleiche "<Episodentitel> · (<Gruppe(n)>) · <Version>"-Format wie die
+ * Backend-berechnete oeffentliche Standardbezeichnung (164-08, public_release_name.go) --
+ * coop-faehig, mit derselben Sortierkonvention wie resolveCoopLinkGroupId
+ * (ORDER BY fg.name, fg.id), ' × '-verknuepft. Es gibt kein Episodentitel-Feld im Editor-Kontext
+ * (siehe 164-12-PLAN.md Interfaces-Diskretion), daher bleibt "Episode NNN" die
+ * "<Episodentitel>"-Platzhalterposition.
+ */
 export function defaultReleaseTitle(context: EpisodeVersionEditorContext): string {
-  const groupName = context.selected_groups[0]?.name || 'Fansub'
+  const groups = [...context.selected_groups].sort((a, b) => a.name.localeCompare(b.name) || a.id - b.id)
+  const groupNames = groups.length > 0 ? groups.map((group) => group.name).join(' × ') : 'Fansub'
   const version = context.version.release_version || 'v1'
-  return 'Episode ' + padEpisodeNumber(context.version.episode_number) + ' ' + String.fromCharCode(0x00B7) + ' ' + groupName + ' ' + String.fromCharCode(0x00B7) + ' ' + version
+  return 'Episode ' + padEpisodeNumber(context.version.episode_number) + ' ' + String.fromCharCode(0x00B7) + ' (' + groupNames + ') ' + String.fromCharCode(0x00B7) + ' ' + version
 }
 
 function isTechnicalReleaseFilename(value?: string | null): boolean {

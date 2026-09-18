@@ -3,6 +3,7 @@ import { describe, expect, it } from 'vitest'
 import {
   buildInitialFormState,
   buildSnapshot,
+  defaultReleaseTitle,
   formatDurationInput,
   fromDateInputValue,
   normalizeCRC32Draft,
@@ -47,6 +48,37 @@ describe('formatDurationInput', () => {
 
   it('formats one hour and above as h:mm:ss', () => {
     expect(formatDurationInput(3680)).toBe('1:01:20')
+  })
+})
+
+describe('defaultReleaseTitle', () => {
+  const baseVersion = {
+    id: 1, variant_id: 1, release_version_id: 10, anime_id: 2, episode_number: 1,
+    media_provider: '', media_item_id: '', segment_count: 0, has_segment_asset: false,
+    created_at: '', updated_at: '', release_version: 'v1',
+  }
+
+  it('GAP-02: mirrors the coop-capable "<Episodentitel> · (<Gruppe A> × <Gruppe B>) · <Version>" format for two groups, sorted by name then id', () => {
+    const context = {
+      anime_title: 'Fixture',
+      version: baseVersion,
+      selected_groups: [
+        { id: 9, slug: 'group-b', name: 'GroupB' },
+        { id: 2, slug: 'group-a', name: 'GroupA' },
+      ],
+      date_neighbors: [],
+    }
+    expect(defaultReleaseTitle(context)).toBe('Episode 001 · (GroupA × GroupB) · v1')
+  })
+
+  it('GAP-02: still wraps a single group name in parens, no special-case for count===1', () => {
+    const context = {
+      anime_title: 'Fixture',
+      version: baseVersion,
+      selected_groups: [{ id: 5, slug: 'group-name', name: 'GroupName' }],
+      date_neighbors: [],
+    }
+    expect(defaultReleaseTitle(context)).toBe('Episode 001 · (GroupName) · v1')
   })
 })
 

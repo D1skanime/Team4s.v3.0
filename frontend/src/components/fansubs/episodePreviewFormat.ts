@@ -1,45 +1,18 @@
 import type { FansubGroupSummary } from '@/types/fansub'
 import type { PublicEpisodeVersion, PublicGroupedEpisode } from '@/types/episodeVersion'
 
-type FillerType = PublicGroupedEpisode['filler_type']
-type EpisodeType = PublicGroupedEpisode['episode_type']
-
-const CLASSIFICATION_LABELS: Record<FillerType, string | null> = {
-  canon: 'Haupthandlung',
-  filler: 'Filler',
-  mixed: 'Gemischt',
-  recap: 'Rückblick',
-  unknown: null,
-}
-
-// D-04: episode_type=recap und filler_type=recap koennen gleichzeitig auftreten -- bewusst ein
-// anderer deutscher Wortlaut als classificationLabel('recap'), sonst "Rückblick · Rückblick".
-const EPISODE_TYPE_LABELS: Record<EpisodeType, string> = {
-  episode: 'Episode',
-  special: 'Special',
-  ova: 'OVA',
-  ona: 'ONA',
-  movie: 'Film',
-  recap: 'Rückblickfolge',
-  preview: 'Vorschau',
-  prologue: 'Prolog',
-  epilogue: 'Epilog',
-  bonus: 'Bonus',
-}
-
-export function classificationLabel(fillerType: FillerType): string | null {
-  return CLASSIFICATION_LABELS[fillerType] ?? null
-}
-
-export function episodeTypeLabel(episodeType: EpisodeType): string {
-  return EPISODE_TYPE_LABELS[episodeType] ?? episodeType
-}
-
-/** UI-SPEC decision 4: unknown-Klassifikation zeigt ausschliesslich den Episodentyp. */
-export function classificationAndTypeLine(fillerType: FillerType, episodeType: EpisodeType): string {
-  const classification = classificationLabel(fillerType)
-  const type = episodeTypeLabel(episodeType)
-  return classification ? `${classification} · ${type}` : type
+/**
+ * GAP-11: Anzeigenamen kommen ausschliesslich von der DB (episode_filler_types.label /
+ * episode_types.label, 164-10) -- keine hardcodierte Frontend-Map mehr. Die
+ * unknown-Klassifikation-versteckt-sich-Regel (UI-SPEC decision 4) bleibt am stabilen Code
+ * `filler_type === 'unknown'` festgemacht, nicht am Label-Text, da die DB inzwischen auch fuer
+ * "unknown" ein nicht-leeres Label liefert.
+ */
+export function classificationAndTypeLine(
+  episode: Pick<PublicGroupedEpisode, 'filler_type' | 'filler_type_label' | 'episode_type_label'>,
+): string {
+  if (episode.filler_type === 'unknown') return episode.episode_type_label
+  return `${episode.filler_type_label} · ${episode.episode_type_label}`
 }
 
 /** UI-SPEC decision 8: reiner Fliesstext, kein "+"-Praefix, keine Pille. */

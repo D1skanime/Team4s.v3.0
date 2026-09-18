@@ -2,8 +2,6 @@ import { describe, expect, it } from 'vitest'
 
 import {
   classificationAndTypeLine,
-  classificationLabel,
-  episodeTypeLabel,
   formatReleaseDateLine,
   formatSubtitleType,
   formatTechValue,
@@ -14,42 +12,17 @@ import {
   resolveReleaseName,
 } from './episodePreviewFormat'
 
-describe('classificationLabel', () => {
-  it('maps every filler_type to the correct German label, unknown to null', () => {
-    expect(classificationLabel('canon')).toBe('Haupthandlung')
-    expect(classificationLabel('filler')).toBe('Filler')
-    expect(classificationLabel('mixed')).toBe('Gemischt')
-    expect(classificationLabel('recap')).toBe('Rückblick')
-    expect(classificationLabel('unknown')).toBeNull()
-  })
-})
-
-describe('episodeTypeLabel', () => {
-  it('maps every episode_type to the correct German label', () => {
-    expect(episodeTypeLabel('episode')).toBe('Episode')
-    expect(episodeTypeLabel('special')).toBe('Special')
-    expect(episodeTypeLabel('ova')).toBe('OVA')
-    expect(episodeTypeLabel('ona')).toBe('ONA')
-    expect(episodeTypeLabel('movie')).toBe('Film')
-    expect(episodeTypeLabel('recap')).toBe('Rückblickfolge')
-    expect(episodeTypeLabel('preview')).toBe('Vorschau')
-    expect(episodeTypeLabel('prologue')).toBe('Prolog')
-    expect(episodeTypeLabel('epilogue')).toBe('Epilog')
-    expect(episodeTypeLabel('bonus')).toBe('Bonus')
-  })
-
-  it('uses a distinct label from classificationLabel for the shared recap string', () => {
-    expect(episodeTypeLabel('recap')).not.toBe(classificationLabel('recap'))
-  })
-})
-
 describe('classificationAndTypeLine', () => {
-  it('returns only the type label when filler_type is unknown', () => {
-    expect(classificationAndTypeLine('unknown', 'episode')).toBe('Episode')
+  it('GAP-11: returns only the DB-sourced episode_type_label when filler_type code is unknown', () => {
+    expect(classificationAndTypeLine({
+      filler_type: 'unknown', filler_type_label: 'Unbekannt', episode_type_label: 'Episode',
+    })).toBe('Episode')
   })
 
-  it('joins classification and type with a middle dot otherwise', () => {
-    expect(classificationAndTypeLine('filler', 'ova')).toBe('Filler · OVA')
+  it('GAP-11: joins the DB-sourced filler_type_label and episode_type_label with a middle dot otherwise', () => {
+    expect(classificationAndTypeLine({
+      filler_type: 'filler', filler_type_label: 'Zusatzfolge', episode_type_label: 'Episode',
+    })).toBe('Zusatzfolge · Episode')
   })
 })
 

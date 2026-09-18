@@ -20,7 +20,13 @@ const fansubs: AnimeFansubRelation[] = [
 ]
 const singleFansub: AnimeFansubRelation[] = [fansubs[0]]
 const noFansubs: AnimeFansubRelation[] = []
-const DEFAULT_CLASSIFICATION = { filler_type: 'unknown', episode_type: 'episode' } as const
+// GAP-11: filler_type_label/episode_type_label kommen von der DB (164-10-Backfill) statt einer
+// hardcodierten Frontend-Map; diese Konstante spiegelt nur Fixture-Defaultwerte, keine
+// Wiedereinfuehrung der entfernten Frontend-Label-Map.
+const DEFAULT_CLASSIFICATION = {
+  filler_type: 'unknown', episode_type: 'episode',
+  filler_type_label: 'Unbekannt', episode_type_label: 'Episode',
+} as const
 
 /**
  * 164-05: "Weitere Episoden laden" ist ein Button-Klick-Mechanismus D-27 hat ihn durch einen
@@ -148,29 +154,33 @@ describe('D-48 visueller Testfall-Katalog (Zeilen 1-19/24-25 aus 164-UI-SPEC.md)
     }
   }
 
+  // GAP-11: Labels sind jetzt die echten DB-Backfill-Werte aus 164-10 (nicht mehr die alte
+  // hardcodierte Frontend-Map) -- "Zusatzfolge"/"Teilweise Zusatzfolge" statt "Filler"/"Gemischt".
   it.each([
     ['canon', 'Haupthandlung'],
-    ['filler', 'Filler'],
-    ['mixed', 'Gemischt'],
+    ['filler', 'Zusatzfolge'],
+    ['mixed', 'Teilweise Zusatzfolge'],
     ['recap', 'Rückblick'],
   ] as const)('Testfall %s: rendert die Kartentoenung und das Klassifikations-Label', (fillerType, label) => {
-    render(<FansubVersionBrowser animeID={22} fansubs={[]} episodes={[classifiedEpisode({ filler_type: fillerType })]} />)
+    render(<FansubVersionBrowser animeID={22} fansubs={[]} episodes={[classifiedEpisode({ filler_type: fillerType, filler_type_label: label })]} />)
     expect(screen.getByText(new RegExp(label))).toBeTruthy()
   })
 
   it('Testfall 5: unknown zeigt kein Klassifikations-Label, nur den Episodentyp', () => {
     render(<FansubVersionBrowser animeID={22} fansubs={[]} episodes={[classifiedEpisode({ filler_type: 'unknown', episode_type: 'episode' })]} />)
     expect(screen.getByText('Episode')).toBeTruthy()
-    expect(screen.queryByText(/Haupthandlung|Filler|Gemischt|Rückblick/)).toBeNull()
+    expect(screen.queryByText(/Haupthandlung|Zusatzfolge|Teilweise Zusatzfolge|Rückblick/)).toBeNull()
   })
 
+  // GAP-11: episode_type_label 'movie' ist laut 164-10-Backfill "Movie" (Auftraggeber-Vorgabe),
+  // nicht mehr das alte hardcodierte deutsche "Film".
   it.each([
     ['episode', 'Episode'],
     ['special', 'Special'],
     ['ova', 'OVA'],
-    ['movie', 'Film'],
+    ['movie', 'Movie'],
   ] as const)('Testfall %s: episode_type=%s rendert das Label "%s" ohne Eigenfarbe', (episodeType, label) => {
-    render(<FansubVersionBrowser animeID={22} fansubs={[]} episodes={[classifiedEpisode({ filler_type: 'unknown', episode_type: episodeType })]} />)
+    render(<FansubVersionBrowser animeID={22} fansubs={[]} episodes={[classifiedEpisode({ filler_type: 'unknown', episode_type: episodeType, episode_type_label: label })]} />)
     expect(screen.getByText(label)).toBeTruthy()
   })
 
