@@ -151,6 +151,28 @@ UPDATE fansub_groups SET logo_id=901 WHERE id=1;
 UPDATE fansub_groups SET logo_url='/api/v1/media/files/existing-logo.png' WHERE id=2;
 INSERT INTO fansub_groups (id,slug,name) VALUES (3,'stored-three','Third group');
 INSERT INTO release_version_groups VALUES (11,3);
+-- 164-08 GAP-02: dedicated anime=9 fixture proving publicEpisodeQuery's release_name
+-- field. All four release_versions hang off the same episode/fansub_release so a
+-- single request exercises every Test 1-5 case at once. Release 9001's title equals
+-- its own release_variants.filename (Test 1/4); 9002's title is empty (Test 2);
+-- 9003's title is a genuine group-entered title (Test 3); 9004's title is NULL and
+-- carries two groups (Test 5, coop).
+INSERT INTO anime (id,status) VALUES (9,'done');
+INSERT INTO episodes (id,anime_id,episode_number,title) VALUES (901,9,'1','Gap Zwei Episode');
+INSERT INTO fansub_groups (id,slug,name) VALUES
+ (91,'gap-solo','Solo Gruppe'),(92,'gap-coop-a','Coop Gruppe A'),(93,'gap-coop-b','Coop Gruppe B');
+INSERT INTO fansub_releases (id,episode_id) VALUES (901,901);
+INSERT INTO release_versions (id,release_id,version,title) VALUES
+ (9001,901,'v1','Naruto.S01E01-AnimeOwnage.avi'),
+ (9002,901,'v1',''),
+ (9003,901,'v1','Special Edition'),
+ (9004,901,'v1',NULL);
+INSERT INTO release_variants (id,release_version_id,video_quality,subtitle_type,filename) VALUES
+ (9001,9001,'1080p','softsub','Naruto.S01E01-AnimeOwnage.avi'),
+ (9002,9002,'1080p','softsub','other-file.mkv'),
+ (9003,9003,'1080p','softsub','not-matching.mkv'),
+ (9004,9004,'1080p','softsub','coop-file.mkv');
+INSERT INTO release_version_groups VALUES (9001,91),(9002,91),(9003,91),(9004,92),(9004,93);
 `)
 	require.NoError(t, err)
 	testsupport.ApplySQLFile(t, fixture, filepath.Join("..", "..", "..", "database", "migrations", "0166_jellyfin_source_identity.up.sql"))
@@ -447,5 +469,32 @@ func TestEpisodeVersionPublicRawQueryCompatibility(t *testing.T) {
 	tr.reset()
 	_, second := episodePublicRequest(t, pool, "/anime/4/episodes?projection=public&limit=24&cursor="+url.QueryEscape(*first.Data.Pagination.NextCursor)+"&ignored=%ZZ", 200)
 	require.NotEqual(t, first.Data.Episodes[0].Versions[0]["variant_id"], second.Data.Episodes[0].Versions[0]["variant_id"])
+	assertPublicBudget(t, tr, 24)
+}
+
+// TestEpisodeVersionPublicReleaseNameDefaultFormat is 164-08's GAP-02 behavior test:
+// publicEpisodeQuery's new release_name field must never surface a raw filename, must
+// pass through a genuinely group-entered title verbatim, and must otherwise compute
+// the exact "<Episodentitel> · (<Gruppe(n)>) · <Version>" default (coop-capable).
+func TestEpisodeVersionPublicReleaseNameDefaultFormat(t *testing.T) {
+	pool, tr := openEpisodeVersionPublicFixture(t)
+	tr.reset()
+	_, page := episodePublicRequest(t, pool, "/anime/9/episodes?projection=public&limit=24", 200)
+	require.Len(t, page.Data.Episodes, 1)
+	require.Len(t, page.Data.Episodes[0].Versions, 4)
+	byReleaseVersionID := make(map[int64]map[string]any, 4)
+	for _, v := range page.Data.Episodes[0].Versions {
+		byReleaseVersionID[int64(v["release_version_id"].(float64))] = v
+	}
+	const soloDefault = "Gap Zwei Episode · (Solo Gruppe) · v1"
+	// Test 1: title equals a variant's filename -> computed default, never the filename.
+	require.Equal(t, soloDefault, byReleaseVersionID[9001]["release_name"])
+	// Test 2: empty title -> computed default.
+	require.Equal(t, soloDefault, byReleaseVersionID[9002]["release_name"])
+	// Test 3: a genuine group-entered title (not a filename, not a video extension) -> verbatim.
+	require.Equal(t, "Special Edition", byReleaseVersionID[9003]["release_name"])
+	// Test 4: single-group format is exactly the soloDefault shape above.
+	// Test 5: NULL title, two groups -> coop default, ' × '-joined, ORDER BY fg.name, fg.id.
+	require.Equal(t, "Gap Zwei Episode · (Coop Gruppe A × Coop Gruppe B) · v1", byReleaseVersionID[9004]["release_name"])
 	assertPublicBudget(t, tr, 24)
 }

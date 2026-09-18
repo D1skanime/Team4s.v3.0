@@ -57,6 +57,8 @@ func openEpisodeVersionPublicScaleFixture(t *testing.T) (*pgxpool.Pool, *episode
 	_, err := fixture.Exec(context.Background(), `
 ALTER TABLE anime ADD COLUMN status TEXT NOT NULL DEFAULT 'done';
 ALTER TABLE fansub_groups ADD COLUMN slug TEXT, ADD COLUMN logo_url TEXT, ADD COLUMN logo_id BIGINT REFERENCES media_assets(id);
+-- 164-08 GAP-02: titleEnteredByGroupSQL's NOT EXISTS subquery reads release_variants.filename.
+ALTER TABLE release_variants ADD COLUMN filename TEXT;
 -- 164-01's new filler/episode-type JOINs and batched flags query need these tables,
 -- same minimal shape as the sibling fixtures in this package.
 ALTER TABLE episodes ADD COLUMN filler_type_id BIGINT, ADD COLUMN episode_type_id BIGINT;

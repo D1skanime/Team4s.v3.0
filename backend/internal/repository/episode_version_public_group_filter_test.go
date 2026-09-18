@@ -30,6 +30,8 @@ func openEpisodeVersionPublicGroupFilterFixture(t *testing.T) (*pgxpool.Pool, *e
 	_, err := fixture.Exec(context.Background(), `
 ALTER TABLE anime ADD COLUMN status TEXT NOT NULL DEFAULT 'done';
 ALTER TABLE fansub_groups ADD COLUMN slug TEXT, ADD COLUMN logo_url TEXT, ADD COLUMN logo_id BIGINT REFERENCES media_assets(id);
+-- 164-08 GAP-02: titleEnteredByGroupSQL's NOT EXISTS subquery reads release_variants.filename.
+ALTER TABLE release_variants ADD COLUMN filename TEXT;
 -- 164-01: publicEpisodeQuery's new filler/episode-type JOINs and
 -- resolvePublicEpisodeFlags' batched EXISTS query need these tables to exist even
 -- though this fixture's own tests do not assert on their values (every request
@@ -159,6 +161,10 @@ func TestEpisodeVersionPublicGroupFilterBasics(t *testing.T) {
 	for _, ep := range ao.Data.Episodes {
 		if ep.EpisodeID == 705 {
 			require.Len(t, ep.Versions[0]["fansub_groups"], 2, "coop version must expose both groups regardless of the active filter")
+			// GAP-02 Test 5 (coop): release_versions.title is NULL here (no group-entered
+			// title), so release_name must be the computed default, groups ' × '-joined in
+			// ORDER BY fg.name, fg.id order, no primary-group concept (D-11).
+			require.Equal(t, "Coop episode · (AnimeOwnage Fixture × Project Messiah Fixture) · v1", ep.Versions[0]["release_name"])
 		}
 		if ep.EpisodeID == 701 {
 			// GAP-01 regression under the group-filtered query path: group 3's
