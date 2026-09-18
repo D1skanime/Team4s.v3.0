@@ -46,7 +46,8 @@ class MockIntersectionObserver {
 function ep(id: number): PublicGroupedEpisode {
   return {
     episode_id: id, episode_number: id, version_count: 0, versions: [],
-    filler_type: 'unknown', episode_type: 'episode',
+    filler_type: 'unknown', filler_type_label: 'Unbekannt',
+    episode_type: 'episode', episode_type_label: 'Episode',
   }
 }
 

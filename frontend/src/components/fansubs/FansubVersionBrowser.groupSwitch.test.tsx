@@ -41,7 +41,12 @@ function variant(id: number, group: number, relations: AnimeFansubRelation[] = f
     has_images: false, has_notes: false, has_karaoke: false,
   }
 }
-const DEFAULT_CLASSIFICATION = { filler_type: 'unknown', episode_type: 'episode' } as const
+const DEFAULT_CLASSIFICATION = {
+  filler_type: 'unknown',
+  filler_type_label: 'Unbekannt',
+  episode_type: 'episode',
+  episode_type_label: 'Episode',
+} as const
 const ended: PublicGroupedEpisodesResponse['data']['pagination'] = { has_more: false, next_cursor: null, row_limit: 24 }
 function publicPage(episodes: PublicGroupedEpisode[]): PublicGroupedEpisodesResponse {
   return { data: { anime_id: 22, episodes, episode_count: episodes.length, pagination: ended } }

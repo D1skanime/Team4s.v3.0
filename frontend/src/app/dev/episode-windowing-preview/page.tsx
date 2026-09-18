@@ -35,6 +35,21 @@ import type { FansubGroupSummary } from '@/types/fansub'
 // mit/ohne Logo, mit/ohne Datum — hier rein clientseitig nachgebildet, keine Uebernahme von Go-Code.
 const FILLER_TYPES = ['canon', 'filler', 'mixed', 'recap', 'unknown'] as const
 const EPISODE_TYPES = ['episode', 'special', 'ova', 'movie'] as const
+// Gleiche Anzeigenamen wie Migration 0169 (164-10, GAP-11) -- rein clientseitig
+// nachgebildet, damit dieser Mock keinen Backend-Request braucht.
+const FILLER_TYPE_LABELS: Record<(typeof FILLER_TYPES)[number], string> = {
+  canon: 'Haupthandlung',
+  filler: 'Zusatzfolge',
+  mixed: 'Teilweise Zusatzfolge',
+  recap: 'Rückblick',
+  unknown: 'Unbekannt',
+}
+const EPISODE_TYPE_LABELS: Record<(typeof EPISODE_TYPES)[number], string> = {
+  episode: 'Episode',
+  special: 'Special',
+  ova: 'OVA',
+  movie: 'Movie',
+}
 const VIDEO_QUALITIES: Array<string | null> = ['1080p', '720p', null]
 const CONTAINERS: Array<string | null> = ['mkv', 'mp4', null]
 const VIDEO_CODECS: Array<string | null> = ['x264', 'x265', null]
@@ -93,6 +108,8 @@ function buildMockEpisode(index: number): PublicGroupedEpisode {
   const hasSecondVersion = index % 7 === 0
   const versions: PublicEpisodeVersion[] = [buildMockVersion(episodeNumber, isCoopEpisode)]
   if (hasSecondVersion) versions.push(buildMockVersion(episodeNumber + 1000, false))
+  const fillerType = FILLER_TYPES[index % FILLER_TYPES.length]
+  const episodeType = EPISODE_TYPES[index % EPISODE_TYPES.length]
   return {
     episode_id: episodeId,
     episode_number: episodeNumber,
@@ -100,8 +117,10 @@ function buildMockEpisode(index: number): PublicGroupedEpisode {
     default_version_id: versions[0].variant_id,
     version_count: versions.length,
     versions,
-    filler_type: FILLER_TYPES[index % FILLER_TYPES.length],
-    episode_type: EPISODE_TYPES[index % EPISODE_TYPES.length],
+    filler_type: fillerType,
+    filler_type_label: FILLER_TYPE_LABELS[fillerType],
+    episode_type: episodeType,
+    episode_type_label: EPISODE_TYPE_LABELS[episodeType],
   }
 }
 
