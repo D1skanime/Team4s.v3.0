@@ -15459,6 +15459,8 @@ components:
         - versions
         - filler_type
         - episode_type
+        - filler_type_label
+        - episode_type_label
       properties:
         episode_id:
           type: integer
@@ -15488,6 +15490,12 @@ components:
         episode_type:
           type: string
           enum: [episode, special, ova, ona, movie, recap, preview, prologue, epilogue, bonus]
+        filler_type_label:
+          type: string
+          description: DB-backed German/admin display label (GAP-11, episode_filler_types.label), same source as the admin UI.
+        episode_type_label:
+          type: string
+          description: DB-backed German/admin display label (GAP-11, episode_types.label), same source as the admin UI.
     PublicGroupedEpisodesPagination:
       type: object
       required: [has_more, next_cursor, row_limit]

@@ -39,6 +39,25 @@ func (h *AdminContentHandler) ListEpisodeClassifications(c *gin.Context) {
 	c.JSON(http.StatusOK, gin.H{"data": items})
 }
 
+// ListEpisodeClassificationOptions verarbeitet GET /api/v1/admin/episode-classification-options
+// und liefert Code+Label-Paare beider Einstufungs-Lookup-Tabellen (GAP-11), damit
+// das Admin-Frontend seine hartcodierte Label-Map durch einen DB-Read ersetzen kann.
+func (h *AdminContentHandler) ListEpisodeClassificationOptions(c *gin.Context) {
+	identity, ok := h.requireAdmin(c)
+	if !ok {
+		return
+	}
+
+	options, err := h.repo.ListEpisodeClassificationOptions(c.Request.Context())
+	if err != nil {
+		log.Printf("admin_content episode_classification_options: repo error (user_id=%d): %v", identity.UserID, err)
+		writeInternalErrorResponse(c, "interner serverfehler", err, "Einstufungs-Optionen konnten nicht geladen werden.")
+		return
+	}
+
+	c.JSON(http.StatusOK, gin.H{"data": options})
+}
+
 // validateEpisodeClassificationPatch prüft Canon/Filler und Episodentyp eines
 // Episode-PATCH exakt gegen die Allowlists. Es gibt keinen stillen Fallback.
 func validateEpisodeClassificationPatch(req *models.AdminEpisodePatchInput) string {

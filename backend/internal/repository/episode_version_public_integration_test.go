@@ -9,14 +9,12 @@ import (
 	"path/filepath"
 	"sync"
 	"testing"
-	"time"
 
 	"github.com/gin-gonic/gin"
 	"github.com/jackc/pgx/v5"
 	"github.com/jackc/pgx/v5/pgxpool"
 	"github.com/stretchr/testify/require"
 	"team4s.v3/backend/internal/handlers"
-	"team4s.v3/backend/internal/models"
 	"team4s.v3/backend/internal/repository"
 	"team4s.v3/backend/internal/testsupport"
 )
@@ -109,11 +107,15 @@ INSERT INTO theme_segment_assignments (theme_segment_id,release_version_id) VALU
 -- Episode 11 gets an explicit classification (filler/ova); episode 14 stays
 -- unclassified (NULL/NULL) to exercise the COALESCE('unknown')/('episode') fallback.
 ALTER TABLE episodes ADD COLUMN filler_type_id BIGINT, ADD COLUMN episode_type_id BIGINT;
-CREATE TABLE episode_filler_types (id BIGINT PRIMARY KEY, name TEXT NOT NULL);
-INSERT INTO episode_filler_types (id,name) VALUES (1,'unknown'),(2,'canon'),(3,'filler'),(4,'mixed'),(5,'recap');
-CREATE TABLE episode_types (id BIGINT PRIMARY KEY, name TEXT NOT NULL);
-INSERT INTO episode_types (id,name) VALUES
- (1,'episode'),(2,'special'),(3,'ova'),(4,'ona'),(5,'movie'),(6,'recap'),(7,'preview'),(8,'prologue'),(9,'epilogue'),(10,'bonus');
+-- 164-10 GAP-11: label column mirrors migration 0169's backfill exactly, so the
+-- new eft.label/et.label SELECT columns resolve to real values in this fixture too.
+CREATE TABLE episode_filler_types (id BIGINT PRIMARY KEY, name TEXT NOT NULL, label TEXT);
+INSERT INTO episode_filler_types (id,name,label) VALUES
+ (1,'unknown','Unbekannt'),(2,'canon','Haupthandlung'),(3,'filler','Zusatzfolge'),(4,'mixed','Teilweise Zusatzfolge'),(5,'recap','Rückblick');
+CREATE TABLE episode_types (id BIGINT PRIMARY KEY, name TEXT NOT NULL, label TEXT);
+INSERT INTO episode_types (id,name,label) VALUES
+ (1,'episode','Episode'),(2,'special','Special'),(3,'ova','OVA'),(4,'ona','ONA'),(5,'movie','Movie'),
+ (6,'recap','Recap'),(7,'preview','Preview'),(8,'prologue','Prologue'),(9,'epilogue','Epilogue'),(10,'bonus','Bonus');
 ALTER TABLE episodes ADD CONSTRAINT fk_episodes_filler_type FOREIGN KEY (filler_type_id) REFERENCES episode_filler_types(id);
 ALTER TABLE episodes ADD CONSTRAINT fk_episodes_episode_type FOREIGN KEY (episode_type_id) REFERENCES episode_types(id);
 UPDATE episodes SET filler_type_id=3, episode_type_id=3 WHERE id=11;
@@ -197,6 +199,8 @@ type publicEpisodeFixture struct {
 	Versions         []map[string]any `json:"versions"`
 	FillerType       string           `json:"filler_type"`
 	EpisodeType      string           `json:"episode_type"`
+	FillerTypeLabel  string           `json:"filler_type_label"`
+	EpisodeTypeLabel string           `json:"episode_type_label"`
 }
 type publicEpisodeEnvelope struct {
 	Data struct {
@@ -301,6 +305,12 @@ func TestEpisodeVersionPublicMixedAndIdentity(t *testing.T) {
 	require.Equal(t, "ova", page.Data.Episodes[0].EpisodeType, "episode 11 has an explicit episode_type_id")
 	require.Equal(t, "unknown", page.Data.Episodes[1].FillerType, "episode 14 has no filler_type_id, must fall back to COALESCE('unknown')")
 	require.Equal(t, "episode", page.Data.Episodes[1].EpisodeType, "episode 14 has no episode_type_id, must fall back to COALESCE('episode')")
+	// GAP-11 (164-10): the same existing eft/et LEFT JOINs now also resolve the
+	// DB-backed display label, with the matching COALESCE fallback for unclassified episodes.
+	require.Equal(t, "Zusatzfolge", page.Data.Episodes[0].FillerTypeLabel, "episode 11's filler label must come from episode_filler_types.label")
+	require.Equal(t, "OVA", page.Data.Episodes[0].EpisodeTypeLabel, "episode 11's episode-type label must come from episode_types.label")
+	require.Equal(t, "Unbekannt", page.Data.Episodes[1].FillerTypeLabel, "episode 14 has no filler_type_id, must fall back to COALESCE('Unbekannt')")
+	require.Equal(t, "Episode", page.Data.Episodes[1].EpisodeTypeLabel, "episode 14 has no episode_type_id, must fall back to COALESCE('Episode')")
 	require.Equal(t, true, first["has_images"], "release_version_id 10 (variant 100) has an approved public screenshot")
 	require.Equal(t, true, first["has_notes"], "release_version_id 10 (variant 100) has a published public note")
 	require.Equal(t, false, first["has_karaoke"], "release_version_id 10 (variant 100) has no typesetting_karaoke media")
@@ -395,106 +405,6 @@ func TestEpisodeVersionPublicEmptyAndVisibility(t *testing.T) {
 	}
 }
 
-func TestEpisodeVersionPublicFullAssignmentAndWrites(t *testing.T) {
-	pool, _ := openEpisodeVersionPublicFixture(t)
-	ctx := context.Background()
-	repo := repository.NewEpisodeVersionRepository(pool)
-	for _, includeFansubs := range []bool{true, false} {
-		data, err := repo.ListGroupedByAnimeID(ctx, 1, true, includeFansubs)
-		require.NoError(t, err)
-		for _, episode := range data.Episodes {
-			for _, v := range episode.Versions {
-				if v.ID == 100 {
-					require.EqualValues(t, 1, v.SegmentCount)
-					require.True(t, v.HasSegmentAsset)
-				}
-				if v.ID == 101 {
-					require.EqualValues(t, 1, v.SegmentCount)
-					require.False(t, v.HasSegmentAsset)
-				}
-			}
-		}
-	}
-	item, err := repo.GetByID(ctx, 100)
-	require.NoError(t, err)
-	encoded, err := json.Marshal(item)
-	require.NoError(t, err)
-	var fields map[string]any
-	require.NoError(t, json.Unmarshal(encoded, &fields))
-	for _, key := range []string{"id", "variant_id", "release_version_id", "release_version", "fansub_groups", "media_provider", "media_item_id", "covered_episode_numbers", "video_quality", "subtitle_type", "crc32", "production_started_on", "release_date", "stream_url", "segment_count", "has_segment_asset", "duration_seconds", "created_at", "updated_at"} {
-		require.Contains(t, fields, key)
-	}
-	require.EqualValues(t, 100, fields["variant_id"])
-	require.EqualValues(t, 10, fields["release_version_id"])
-	require.EqualValues(t, 1, item.SegmentCount)
-	require.True(t, item.HasSegmentAsset)
-	counts, err := repo.ListGroupedByAnimeID(ctx, 1, false, false)
-	require.NoError(t, err)
-	for _, episode := range counts.Episodes {
-		require.NotNil(t, episode.Versions)
-		require.Empty(t, episode.Versions)
-		require.Nil(t, episode.DefaultVersionID)
-	}
-	title, quality, subtitle, crc, stream := "Created release.mkv", "1080p", "softsub", "1234ABCD", "https://fixture.invalid/created"
-	date := time.Date(2021, 2, 3, 0, 0, 0, 0, time.UTC)
-	duration := int32(1441)
-	created, err := repo.Create(ctx, models.EpisodeVersionCreateInput{AnimeID: 1, EpisodeNumber: 2, Title: &title, MediaProvider: "jellyfin", MediaItemID: "created", VideoQuality: &quality, SubtitleType: &subtitle, CRC32: &crc, StreamURL: &stream, ReleaseDate: &date, DurationSeconds: &duration})
-	require.NoError(t, err)
-	require.Equal(t, "created", created.MediaItemID)
-	require.Equal(t, &crc, created.CRC32)
-	require.Equal(t, &duration, created.DurationSeconds)
-	encoded, err = json.Marshal(created)
-	require.NoError(t, err)
-	require.NoError(t, json.Unmarshal(encoded, &fields))
-	require.EqualValues(t, created.ID, fields["variant_id"])
-	require.NotEqual(t, fields["variant_id"], fields["release_version_id"])
-	title = "Changed title"
-	started := date.AddDate(0, 0, -1)
-	patched, err := repo.Update(ctx, created.ID, models.EpisodeVersionPatchInput{Title: models.OptionalString{Set: true, Value: &title}, ProductionStartedOn: models.OptionalTime{Set: true, Value: &started}})
-	require.NoError(t, err)
-	require.Equal(t, &title, patched.Title)
-	require.Equal(t, &crc, patched.CRC32)
-	require.Equal(t, &stream, patched.StreamURL)
-	require.True(t, patched.ProductionStartedOn.Equal(started))
-}
-
-func TestEpisodeVersionPublicRawQueryCompatibility(t *testing.T) {
-	pool, tr := openEpisodeVersionPublicFixture(t)
-	for _, suffix := range []string{"", "?ignored=%ZZ", "?includeVersions=true&includeFansubs=true&ignored=%ZZ"} {
-		_, full := episodePublicRequest(t, pool, "/anime/1/episodes"+suffix, 200)
-		require.NotEmpty(t, full.Data.Episodes)
-	}
-	_, first := episodePublicRequest(t, pool, "/anime/4/episodes?projection=public&limit=24&ignored=%ZZ", 200)
-	require.NotNil(t, first.Data.Pagination.NextCursor)
-	tr.reset()
-	_, second := episodePublicRequest(t, pool, "/anime/4/episodes?projection=public&limit=24&cursor="+url.QueryEscape(*first.Data.Pagination.NextCursor)+"&ignored=%ZZ", 200)
-	require.NotEqual(t, first.Data.Episodes[0].Versions[0]["variant_id"], second.Data.Episodes[0].Versions[0]["variant_id"])
-	assertPublicBudget(t, tr, 24)
-}
-
-// TestEpisodeVersionPublicReleaseNameDefaultFormat is 164-08's GAP-02 behavior test:
-// publicEpisodeQuery's new release_name field must never surface a raw filename, must
-// pass through a genuinely group-entered title verbatim, and must otherwise compute
-// the exact "<Episodentitel> · (<Gruppe(n)>) · <Version>" default (coop-capable).
-func TestEpisodeVersionPublicReleaseNameDefaultFormat(t *testing.T) {
-	pool, tr := openEpisodeVersionPublicFixture(t)
-	tr.reset()
-	_, page := episodePublicRequest(t, pool, "/anime/9/episodes?projection=public&limit=24", 200)
-	require.Len(t, page.Data.Episodes, 1)
-	require.Len(t, page.Data.Episodes[0].Versions, 4)
-	byReleaseVersionID := make(map[int64]map[string]any, 4)
-	for _, v := range page.Data.Episodes[0].Versions {
-		byReleaseVersionID[int64(v["release_version_id"].(float64))] = v
-	}
-	const soloDefault = "Gap Zwei Episode · (Solo Gruppe) · v1"
-	// Test 1: title equals a variant's filename -> computed default, never the filename.
-	require.Equal(t, soloDefault, byReleaseVersionID[9001]["release_name"])
-	// Test 2: empty title -> computed default.
-	require.Equal(t, soloDefault, byReleaseVersionID[9002]["release_name"])
-	// Test 3: a genuine group-entered title (not a filename, not a video extension) -> verbatim.
-	require.Equal(t, "Special Edition", byReleaseVersionID[9003]["release_name"])
-	// Test 4: single-group format is exactly the soloDefault shape above.
-	// Test 5: NULL title, two groups -> coop default, ' × '-joined, ORDER BY fg.name, fg.id.
-	require.Equal(t, "Gap Zwei Episode · (Coop Gruppe A × Coop Gruppe B) · v1", byReleaseVersionID[9004]["release_name"])
-	assertPublicBudget(t, tr, 24)
-}
+// TestEpisodeVersionPublicFullAssignmentAndWrites, TestEpisodeVersionPublicRawQueryCompatibility,
+// and TestEpisodeVersionPublicReleaseNameDefaultFormat moved to
+// episode_version_public_writes_test.go (164-10, CLAUDE.md's 450-line production-file cap).

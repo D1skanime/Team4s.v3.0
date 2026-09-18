@@ -146,6 +146,50 @@ func (r *AdminContentRepository) GetEpisodeClassificationByReleaseVersion(
 	return item, nil
 }
 
+// ListEpisodeClassificationOptions liefert Code+Label-Paare beider Einstufungs-
+// Lookup-Tabellen für das Admin-Frontend (GAP-11). Zwei schlanke Abfragen, kein
+// Pro-Zeile-Fächer -- dieser Endpunkt ist admin-only und unterliegt nicht dem
+// Public-Read-Model-Budget (REQ-164-23 gilt nur für die öffentliche Seite).
+func (r *AdminContentRepository) ListEpisodeClassificationOptions(ctx context.Context) (models.EpisodeClassificationOptions, error) {
+	var options models.EpisodeClassificationOptions
+
+	fillerRows, err := r.db.Query(ctx, `SELECT name, label FROM episode_filler_types ORDER BY id`)
+	if err != nil {
+		return options, fmt.Errorf("list episode filler type options: %w", err)
+	}
+	defer fillerRows.Close()
+	options.FillerTypes = make([]models.EpisodeClassificationOption, 0)
+	for fillerRows.Next() {
+		var option models.EpisodeClassificationOption
+		if err := fillerRows.Scan(&option.Code, &option.Label); err != nil {
+			return options, fmt.Errorf("scan episode filler type option: %w", err)
+		}
+		options.FillerTypes = append(options.FillerTypes, option)
+	}
+	if err := fillerRows.Err(); err != nil {
+		return options, fmt.Errorf("iterate episode filler type options: %w", err)
+	}
+
+	typeRows, err := r.db.Query(ctx, `SELECT name, label FROM episode_types ORDER BY id`)
+	if err != nil {
+		return options, fmt.Errorf("list episode type options: %w", err)
+	}
+	defer typeRows.Close()
+	options.EpisodeTypes = make([]models.EpisodeClassificationOption, 0)
+	for typeRows.Next() {
+		var option models.EpisodeClassificationOption
+		if err := typeRows.Scan(&option.Code, &option.Label); err != nil {
+			return options, fmt.Errorf("scan episode type option: %w", err)
+		}
+		options.EpisodeTypes = append(options.EpisodeTypes, option)
+	}
+	if err := typeRows.Err(); err != nil {
+		return options, fmt.Errorf("iterate episode type options: %w", err)
+	}
+
+	return options, nil
+}
+
 func scanEpisodeClassification(scanner interface{ Scan(dest ...any) error }) (*models.EpisodeClassification, error) {
 	var item models.EpisodeClassification
 	if err := scanner.Scan(

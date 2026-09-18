@@ -244,6 +244,11 @@ type PublicGroupedEpisode struct {
 	Versions         []PublicEpisodeVersion `json:"versions"`
 	FillerType       string                 `json:"filler_type"`
 	EpisodeType      string                 `json:"episode_type"`
+	// FillerTypeLabel/EpisodeTypeLabel are the DB-sourced German/admin display names
+	// (GAP-11, episode_filler_types.label / episode_types.label), resolved via the
+	// same existing LEFT JOINs as FillerType/EpisodeType -- no additional query.
+	FillerTypeLabel  string `json:"filler_type_label"`
+	EpisodeTypeLabel string `json:"episode_type_label"`
 }
 
 // PublicEpisodeFlags carries the batched, visibility-gated presence flags

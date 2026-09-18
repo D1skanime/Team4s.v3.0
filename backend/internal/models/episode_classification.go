@@ -33,6 +33,20 @@ type EpisodeClassification struct {
 	EpisodeTypeSource *string `json:"episode_type_source"`
 }
 
+// EpisodeClassificationOption ist ein Code+Label-Paar einer der beiden
+// Einstufungs-Lookup-Tabellen, für den Admin-Lookup-Endpunkt (GAP-11).
+type EpisodeClassificationOption struct {
+	Code  string `json:"code"`
+	Label string `json:"label"`
+}
+
+// EpisodeClassificationOptions bündelt beide Lookup-Tabellen für einen
+// einzigen Admin-Response (GET /admin/episode-classification-options).
+type EpisodeClassificationOptions struct {
+	FillerTypes  []EpisodeClassificationOption `json:"filler_types"`
+	EpisodeTypes []EpisodeClassificationOption `json:"episode_types"`
+}
+
 // IsValidEpisodeFillerType prüft einen Canon/Filler-Wert exakt gegen die Allowlist.
 func IsValidEpisodeFillerType(name string) bool {
 	return containsExact(EpisodeFillerTypeNames, name)

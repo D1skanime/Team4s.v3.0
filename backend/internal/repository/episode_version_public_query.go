@@ -78,6 +78,7 @@ var publicEpisodeQuery = fmt.Sprintf(`
 WITH inventory AS (
  SELECT e.id AS episode_id, e.episode_number::INTEGER AS episode_number, e.title AS episode_title,
   COALESCE(eft.name,'unknown') AS filler_type, COALESCE(et.name,'episode') AS episode_type,
+  COALESCE(eft.label,'Unbekannt') AS filler_type_label, COALESCE(et.label,'Episode') AS episode_type_label,
   v.id AS variant_id, v.release_version_id, v.title, v.release_version, v.release_name,
   v.video_quality, v.subtitle_type, v.release_date, v.container, v.video_codec,
   COUNT(v.id) OVER (PARTITION BY e.id)::INTEGER AS version_count,
@@ -112,7 +113,7 @@ WITH inventory AS (
  ORDER BY episode_number,episode_id,COALESCE(variant_id,0)
  LIMIT $5
 )
-SELECT p.episode_id,p.episode_number,p.episode_title,p.filler_type,p.episode_type,p.version_count,p.default_version_id,
+SELECT p.episode_id,p.episode_number,p.episode_title,p.filler_type,p.episode_type,p.filler_type_label,p.episode_type_label,p.version_count,p.default_version_id,
  p.variant_id,p.release_version_id,p.title,p.release_version,p.release_name,p.video_quality,p.subtitle_type,p.release_date,
  p.container,p.video_codec,
  COALESCE(g.groups,'[]'::json), total.n
@@ -164,7 +165,7 @@ func (r *EpisodeVersionRepository) ListPublicGroupedByAnimeID(ctx context.Contex
 		var item publicEpisodeRow
 		var groups []byte
 		e, v := &item.episode, &item.variant
-		if err := rows.Scan(&e.EpisodeID, &e.EpisodeNumber, &e.EpisodeTitle, &e.FillerType, &e.EpisodeType, &e.VersionCount, &e.DefaultVersionID,
+		if err := rows.Scan(&e.EpisodeID, &e.EpisodeNumber, &e.EpisodeTitle, &e.FillerType, &e.EpisodeType, &e.FillerTypeLabel, &e.EpisodeTypeLabel, &e.VersionCount, &e.DefaultVersionID,
 			&item.variantID, &item.releaseVersionID, &v.Title, &v.ReleaseVersion, &v.ReleaseName, &v.VideoQuality, &v.SubtitleType, &v.ReleaseDate,
 			&v.Container, &v.VideoCodec, &groups, &item.episodeCount); err != nil {
 			return nil, fmt.Errorf("scan public episode: %w", err)

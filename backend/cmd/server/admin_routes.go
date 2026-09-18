@@ -101,6 +101,7 @@ func registerAdminRoutes(v1 *gin.RouterGroup, auth gin.HandlerFunc, deps adminRo
 	v1.PATCH("/admin/genres/:id/names/de", auth, deps.adminContentHandler.UpsertGenreName)
 	v1.PATCH("/admin/episodes/:id", auth, deps.adminContentHandler.UpdateEpisode)
 	v1.GET("/admin/anime/:id/episode-classifications", auth, deps.adminContentHandler.ListEpisodeClassifications)
+	v1.GET("/admin/episode-classification-options", auth, deps.adminContentHandler.ListEpisodeClassificationOptions)
 	v1.DELETE("/admin/episodes/:id", auth, deps.adminContentHandler.DeleteEpisode)
 	v1.POST("/admin/fansubs/:id/media", auth, deps.fansubHandler.UploadFansubMedia)
 	v1.DELETE("/admin/fansubs/:id/media/:kind", auth, deps.fansubHandler.DeleteFansubMedia)

@@ -176,6 +176,10 @@ export interface PublicGroupedEpisode {
   versions: PublicEpisodeVersion[]
   filler_type: 'canon' | 'filler' | 'mixed' | 'recap' | 'unknown'
   episode_type: 'episode' | 'special' | 'ova' | 'ona' | 'movie' | 'recap' | 'preview' | 'prologue' | 'epilogue' | 'bonus'
+  /** GAP-11: DB-backed German/admin display label (episode_filler_types.label), never hardcoded client-side. */
+  filler_type_label: string
+  /** GAP-11: DB-backed German/admin display label (episode_types.label), never hardcoded client-side. */
+  episode_type_label: string
 }
 
 export interface PublicGroupedEpisodesResponse {

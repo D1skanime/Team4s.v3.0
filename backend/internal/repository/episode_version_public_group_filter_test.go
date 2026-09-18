@@ -37,11 +37,15 @@ ALTER TABLE release_variants ADD COLUMN filename TEXT;
 -- though this fixture's own tests do not assert on their values (every request
 -- here has a non-empty result set, so the flags query always executes).
 ALTER TABLE episodes ADD COLUMN filler_type_id BIGINT, ADD COLUMN episode_type_id BIGINT;
-CREATE TABLE episode_filler_types (id BIGINT PRIMARY KEY, name TEXT NOT NULL);
-INSERT INTO episode_filler_types (id,name) VALUES (1,'unknown'),(2,'canon'),(3,'filler'),(4,'mixed'),(5,'recap');
-CREATE TABLE episode_types (id BIGINT PRIMARY KEY, name TEXT NOT NULL);
-INSERT INTO episode_types (id,name) VALUES
- (1,'episode'),(2,'special'),(3,'ova'),(4,'ona'),(5,'movie'),(6,'recap'),(7,'preview'),(8,'prologue'),(9,'epilogue'),(10,'bonus');
+-- 164-10 GAP-11: label column mirrors migration 0169's backfill (this fixture's own
+-- tests do not assert label values, only that the query executes with the column present).
+CREATE TABLE episode_filler_types (id BIGINT PRIMARY KEY, name TEXT NOT NULL, label TEXT);
+INSERT INTO episode_filler_types (id,name,label) VALUES
+ (1,'unknown','Unbekannt'),(2,'canon','Haupthandlung'),(3,'filler','Zusatzfolge'),(4,'mixed','Teilweise Zusatzfolge'),(5,'recap','Rückblick');
+CREATE TABLE episode_types (id BIGINT PRIMARY KEY, name TEXT NOT NULL, label TEXT);
+INSERT INTO episode_types (id,name,label) VALUES
+ (1,'episode','Episode'),(2,'special','Special'),(3,'ova','OVA'),(4,'ona','ONA'),(5,'movie','Movie'),
+ (6,'recap','Recap'),(7,'preview','Preview'),(8,'prologue','Prologue'),(9,'epilogue','Epilogue'),(10,'bonus','Bonus');
 CREATE TABLE review_statuses (id BIGSERIAL PRIMARY KEY, code VARCHAR(40) NOT NULL UNIQUE);
 INSERT INTO review_statuses (code) VALUES ('approved');
 ALTER TABLE media_assets ADD COLUMN status VARCHAR(20) NOT NULL DEFAULT 'ready',
