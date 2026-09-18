@@ -3321,6 +3321,42 @@ paths:
             application/json:
               schema:
                 $ref: "#/components/schemas/ErrorResponse"
+  /api/v1/admin/episode-classification-options:
+    get:
+      tags: [Admin]
+      summary: List Canon/Filler and episode type lookup options (code+label pairs)
+      description: >-
+        Liefert Code+Label-Paare beider Einstufungs-Lookup-Tabellen
+        (episode_filler_types, episode_types), damit das Admin-Frontend seine
+        hartcodierte Label-Map durch einen DB-Read ersetzen kann (GAP-11).
+      operationId: adminListEpisodeClassificationOptions
+      security:
+        - bearerAuth: []
+      responses:
+        "200":
+          description: Episode classification lookup options
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/EpisodeClassificationOptionsResponse"
+        "401":
+          description: Authentication required
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+        "403":
+          description: Admin permission required
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+        "500":
+          description: Internal server error
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
   /api/v1/admin/episodes/{id}:
     patch:
       tags: [Admin]
@@ -11726,6 +11762,37 @@ components:
         episode_type_source:
           type: string
           nullable: true
+    EpisodeClassificationOption:
+      type: object
+      description: >-
+        Code+Label-Paar einer der beiden Einstufungs-Lookup-Tabellen
+        (episode_filler_types oder episode_types), für den Admin-Lookup-Endpunkt
+        (GAP-11).
+      required: [code, label]
+      properties:
+        code:
+          type: string
+        label:
+          type: string
+    EpisodeClassificationOptions:
+      type: object
+      description: Beide Lookup-Tabellen, sortiert nach id.
+      required: [filler_types, episode_types]
+      properties:
+        filler_types:
+          type: array
+          items:
+            $ref: "#/components/schemas/EpisodeClassificationOption"
+        episode_types:
+          type: array
+          items:
+            $ref: "#/components/schemas/EpisodeClassificationOption"
+    EpisodeClassificationOptionsResponse:
+      type: object
+      required: [data]
+      properties:
+        data:
+          $ref: "#/components/schemas/EpisodeClassificationOptions"
     AdminAnimeUpsertResponse:
       type: object
       required: [data]
