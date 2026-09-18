@@ -5,7 +5,6 @@ import Image from 'next/image'
 import { ExternalLink } from 'lucide-react'
 
 import { AnimeBackdropRotator } from '@/components/anime/AnimeBackdropRotator'
-import { AnimeContributionsSection } from '@/components/anime/AnimeContributionsSection'
 import { AnimeEdgeNavigation } from '@/components/anime/AnimeEdgeNavigation'
 import { AnimeInfoBanner, AnimeMediaProvider, AnimeTitleLogo } from '@/components/anime/AnimeMediaProvider'
 import { AnimeRelations } from '@/components/anime/AnimeRelations'
@@ -284,8 +283,6 @@ async function AnimeDetailContent({ anime, searchParams }: {
             </div>
           )}
         </section>
-
-        <AnimeContributionsSection animeID={anime.id} />
       </div>
       </main>
     </AnimeMediaProvider>
