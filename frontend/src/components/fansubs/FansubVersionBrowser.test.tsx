@@ -206,8 +206,8 @@ describe('D-48 visueller Testfall-Katalog (Zeilen 1-19/24-25 aus 164-UI-SPEC.md)
     const withoutDate: PublicEpisodeVersion = { ...variant(600, 7), release_date: null }
     render(<FansubVersionBrowser animeID={22} fansubs={[]} episodes={[classifiedEpisode({ versions: [withDate, withoutDate] })]} />)
     fireEvent.click(screen.getByRole('button', { name: /Testfolge/ }))
-    expect(screen.getByText('Veröffentlicht am 12.04.2012')).toBeTruthy()
-    expect(screen.queryAllByText(/Veröffentlicht am/)).toHaveLength(1)
+    expect(screen.getByText('Fansub-Release vom 12.04.2012')).toBeTruthy()
+    expect(screen.queryAllByText(/Fansub-Release vom/)).toHaveLength(1)
   })
 
   it('Testfall 14-16: Extras-Zeile zeigt genau die gesetzten Flags, in fester Reihenfolge', async () => {

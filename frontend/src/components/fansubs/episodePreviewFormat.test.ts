@@ -84,8 +84,8 @@ describe('formatReleaseDateLine', () => {
     expect(formatReleaseDateLine('not-a-date')).toBeNull()
   })
 
-  it('formats a populated date as "Veroeffentlicht am DD.MM.YYYY"', () => {
-    expect(formatReleaseDateLine('2012-04-12T00:00:00Z')).toBe('Veröffentlicht am 12.04.2012')
+  it('formats a populated date as "Fansub-Release vom DD.MM.YYYY"', () => {
+    expect(formatReleaseDateLine('2012-04-12T00:00:00Z')).toBe('Fansub-Release vom 12.04.2012')
   })
 })
 

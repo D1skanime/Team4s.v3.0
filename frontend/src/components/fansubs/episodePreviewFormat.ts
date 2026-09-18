@@ -45,7 +45,7 @@ export function formatReleaseDateLine(value?: string | null): string | null {
     month: '2-digit',
     day: '2-digit',
   })
-  return `Veröffentlicht am ${formatted}`
+  return `Fansub-Release vom ${formatted}`
 }
 
 export function resolveLogoUrl(raw?: string | null): string | null {

@@ -75,7 +75,7 @@ export function ReleaseDetailHero(props: ReleaseDetailHeroProps) {
     : `Fansubgruppe: ${groupNames[0] ?? 'Nicht hinterlegt'}`
   const audioLanguage = props.audio_language?.trim()
   const technicalFacts = [
-    ['Veröffentlicht', displayValue(formatDate(props.release_date))],
+    ['Fansub-Release vom', displayValue(formatDate(props.release_date))],
     ['Auflösung', displayValue(props.resolution)],
     ['Container', displayValue(props.container)],
     ['Video-Codec', displayValue(formatCodec(props.video_codec))],
