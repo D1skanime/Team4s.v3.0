@@ -60,6 +60,10 @@ CREATE TABLE anime_fansub_groups (
 INSERT INTO anime (id,status) VALUES (7,'done'),(8,'done');
 INSERT INTO fansub_groups (id,slug,name) VALUES
  (3,'animeownage-fixture','AnimeOwnage Fixture'),(4,'project-messiah-fixture','Project Messiah Fixture');
+-- 164-08 GAP-01: group 3 gets a media-asset logo (server file_path, not a web URL) to
+-- prove the fix applies under the group-filter query path too, not just the unfiltered one.
+INSERT INTO media_assets (id,file_path) VALUES (390,'/app/media/ao-fixture-logo.png');
+UPDATE fansub_groups SET logo_id=390 WHERE id=3;
 -- Slug resolution (D-05/T-163-03) is anime-scoped: both fixture animes carry
 -- both groups here so the resolver's own WHERE afg.anime_id=$1 is exercised,
 -- not just a single-group happy path.
@@ -155,6 +159,12 @@ func TestEpisodeVersionPublicGroupFilterBasics(t *testing.T) {
 	for _, ep := range ao.Data.Episodes {
 		if ep.EpisodeID == 705 {
 			require.Len(t, ep.Versions[0]["fansub_groups"], 2, "coop version must expose both groups regardless of the active filter")
+		}
+		if ep.EpisodeID == 701 {
+			// GAP-01 regression under the group-filtered query path: group 3's
+			// media_assets.file_path must resolve to a web-safe URL here too.
+			require.Equal(t, "/api/v1/media/files/ao-fixture-logo.png",
+				publicFansubGroupField(t, ep.Versions[0]["fansub_groups"], 3, "logo_url"))
 		}
 	}
 	assertPublicBudgetWithGroupFilter(t, tr, 5, true)

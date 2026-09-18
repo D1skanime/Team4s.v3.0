@@ -141,6 +141,16 @@ INSERT INTO media_assets (id,file_path,status,visibility_id,review_status_id) VA
 INSERT INTO release_version_media (id,release_version_id,media_asset_id,category) VALUES (900,10,900,'screenshot');
 INSERT INTO members (id,nickname,display_name) VALUES (900,'fixture-member','Fixture Member');
 INSERT INTO release_version_notes (id,release_version_id,member_id,visibility,status) VALUES (900,10,900,'public','published');
+-- 164-08 GAP-01: group 1 gets a media-asset logo whose file_path is a server path, not a
+-- web URL (the exact bug shape). Group 2 keeps a directly-stored, already-correct web URL
+-- (regression: must pass through verbatim). Group 3 has neither and is attached to
+-- release_version 11 (variant 101) alongside group 2, to prove the "no logo at all" case
+-- emits no fallback value.
+INSERT INTO media_assets (id,file_path) VALUES (901,'/app/media/logo_fixture.png');
+UPDATE fansub_groups SET logo_id=901 WHERE id=1;
+UPDATE fansub_groups SET logo_url='/api/v1/media/files/existing-logo.png' WHERE id=2;
+INSERT INTO fansub_groups (id,slug,name) VALUES (3,'stored-three','Third group');
+INSERT INTO release_version_groups VALUES (11,3);
 `)
 	require.NoError(t, err)
 	testsupport.ApplySQLFile(t, fixture, filepath.Join("..", "..", "..", "database", "migrations", "0166_jellyfin_source_identity.up.sql"))
@@ -212,6 +222,32 @@ func assertPublicBudgetEmptyResult(t *testing.T, tr *episodePublicTracer) {
 	require.EqualValues(t, 1, tr.queries[0].Rows)
 }
 
+// publicFansubGroupByID locates the group entry with the given id inside a decoded
+// fansub_groups JSON array (map[string]any, generic per-envelope decoding, see
+// publicEpisodeEnvelope). Fails the test if no such group is present.
+func publicFansubGroupByID(t *testing.T, raw any, id int64) map[string]any {
+	t.Helper()
+	groups, ok := raw.([]any)
+	require.True(t, ok, "fansub_groups must decode as a JSON array")
+	for _, entry := range groups {
+		group, ok := entry.(map[string]any)
+		require.True(t, ok)
+		if int64(group["id"].(float64)) == id {
+			return group
+		}
+	}
+	t.Fatalf("group id=%d not found in fansub_groups", id)
+	return nil
+}
+
+// publicFansubGroupField reads a single string field off the group with the given id.
+func publicFansubGroupField(t *testing.T, raw any, id int64, field string) string {
+	t.Helper()
+	value, ok := publicFansubGroupByID(t, raw, id)[field].(string)
+	require.True(t, ok, "field %q must be a non-null string on group id=%d", field, id)
+	return value
+}
+
 func TestEpisodeVersionPublicMixedAndIdentity(t *testing.T) {
 	pool, tr := openEpisodeVersionPublicFixture(t)
 	raw, page := episodePublicRequest(t, pool, "/anime/1/episodes?projection=public", 200)
@@ -227,6 +263,12 @@ func TestEpisodeVersionPublicMixedAndIdentity(t *testing.T) {
 	require.EqualValues(t, 10, first["release_version_id"])
 	require.Len(t, first["fansub_groups"], 2)
 	require.Equal(t, 2, page.Data.Episodes[0].VersionCount)
+	// GAP-01 (164-08 Test 1/2): group 1's media_assets.file_path (/app/media/...) must
+	// resolve to a web-safe /api/v1/media/files/<basename> URL, never the raw server
+	// path; group 2's already-correct fansub_groups.logo_url column must pass through
+	// verbatim (regression, no media_assets row involved).
+	require.Equal(t, "/api/v1/media/files/logo_fixture.png", publicFansubGroupField(t, first["fansub_groups"], 1, "logo_url"))
+	require.Equal(t, "/api/v1/media/files/existing-logo.png", publicFansubGroupField(t, first["fansub_groups"], 2, "logo_url"))
 	require.EqualValues(t, 100, *page.Data.Episodes[0].DefaultVersionID)
 	equal := page.Data.Episodes[1].Versions[0]
 	require.Equal(t, equal["variant_id"], equal["release_version_id"])
@@ -245,6 +287,12 @@ func TestEpisodeVersionPublicMixedAndIdentity(t *testing.T) {
 	require.Equal(t, false, second["has_images"], "release_version_id 11 (variant 101) has zero fixture image/note rows")
 	require.Equal(t, false, second["has_notes"], "release_version_id 11 (variant 101) has zero fixture image/note rows")
 	require.Equal(t, false, second["has_karaoke"], "release_version_id 11 (variant 101) has zero fixture image/note rows")
+	require.Len(t, second["fansub_groups"], 2, "release_version 11 carries group 2 (URL logo) plus fixture group 3 (no logo at all)")
+	require.Equal(t, "/api/v1/media/files/existing-logo.png", publicFansubGroupField(t, second["fansub_groups"], 2, "logo_url"))
+	// GAP-01 Test 3: a group with neither logo_id nor logo_url must emit no usable
+	// logo_url at all (omitempty drops the key rather than serializing a placeholder).
+	thirdGroup := publicFansubGroupByID(t, second["fansub_groups"], 3)
+	require.NotContains(t, thirdGroup, "logo_url", "a group without any logo source must not emit a logo_url key")
 	assertPublicBudget(t, tr, 24)
 	t.Logf("mixed payload bytes=%d", len(raw))
 	tr.reset()

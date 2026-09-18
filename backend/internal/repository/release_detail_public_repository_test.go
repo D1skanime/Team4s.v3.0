@@ -2,19 +2,27 @@ package repository
 
 // Tests fuer ReleaseDetailPublicRepository (AO4-02).
 //
-// Das repository-Paket hat keine Live-DB-Test-Infrastruktur (siehe testmain_test.go —
-// nur ein permissions.Catalog-Stub, kein Postgres-Pool). Analog zu bestehenden
-// Repository-Tests ohne DB-Fixture (z. B. TestCreateCanLinkOpenHistoricalMemberByVerifiedClaim
-// in fansub_group_app_members_repository_test.go, oder anime_contributions_public_versions_repository_test.go)
-// wird daher per Source-Assertion geprueft:
-//   1. Der NotFound-Pfad prueft explizit pgx.ErrNoRows VOR jedem Feldzugriff und
-//      gibt ErrNotFound zurueck — kann also nicht auf einer leeren Row paniken.
-//   2. Die drei Sichtbarkeits-Gates (Bilder/Texte/Beteiligte) sind exakt wie in
-//      AO4-02 gefordert im Quelltext vorhanden.
+// Die aelteren Tests unten pruefen strukturelle Eigenschaften (Reihenfolge von
+// Fehlerpruefungen, Anwesenheit von Feldern/SQL-Fragmenten) per Source-Assertion,
+// bevor 164-08 dieser Datei echte, DB-ausgefuehrte Verhaltens-Tests hinzugefuegt hat
+// (siehe TestLoadReleaseGroupsResolvesMediaAssetLogoURL/TestLoadReleaseHeaderTitle*
+// unten, analog zum bereits bestehenden Praezedenzfall
+// release_detail_public_repository_segment_credits_test.go, ebenfalls package
+// repository, ebenfalls testsupport.OpenPhase117Postgres gegen unexportierte
+// Methoden). Neue Faelle in dieser Datei MUESSEN echten Code ausfuehren
+// (CLAUDE.md Teststil) statt eine weitere Source-Substring-Pruefung zu ergaenzen —
+// die bestehenden vier Source-Assertion-Tests sind dokumentierte Altlast (siehe
+// .planning/notes/2026-09-02-altlasten-cr01-wr02.md, WR-02) und bleiben unveraendert.
 
 import (
+	"context"
 	"strings"
 	"testing"
+
+	"github.com/jackc/pgx/v5/pgxpool"
+	"github.com/stretchr/testify/require"
+
+	"team4s.v3/backend/internal/testsupport"
 )
 
 func TestGetPublicReleaseDetail_NotFoundPathChecksErrNoRowsBeforeUse(t *testing.T) {
@@ -150,4 +158,58 @@ func TestReleaseNavigationKeepsGroupAndPrefersVersion(t *testing.T) {
 			t.Fatalf("missing same-group navigation behavior %q", fragment)
 		}
 	}
+}
+
+// openReleaseDetailGroupsFixture is a minimal Phase-117 fixture for loadReleaseGroups:
+// one release_version_id=900 carrying three groups -- a media-asset logo (server
+// file_path, the GAP-01 bug shape), an already-correct stored logo_url, and no logo at
+// all. Never touches team4s_v2; guarded, isolated schema per testsupport convention.
+func openReleaseDetailGroupsFixture(t *testing.T) *pgxpool.Pool {
+	t.Helper()
+	pool := testsupport.OpenPhase117Postgres(t)
+	_, err := pool.Exec(context.Background(), `
+ALTER TABLE fansub_groups ADD COLUMN slug TEXT NOT NULL DEFAULT '', ADD COLUMN logo_url TEXT,
+    ADD COLUMN logo_id BIGINT REFERENCES media_assets(id);
+INSERT INTO anime (id) VALUES (900);
+INSERT INTO episodes (id,anime_id,episode_number,title) VALUES (900,900,'1','Fixture episode');
+INSERT INTO fansub_releases (id,episode_id) VALUES (900,900);
+INSERT INTO release_versions (id,release_id) VALUES (900,900);
+INSERT INTO media_assets (id,file_path) VALUES (900,'/app/media/logo_fixture.png');
+INSERT INTO fansub_groups (id,slug,name) VALUES
+ (901,'media-logo-group','A Media-Logo Group'),
+ (902,'url-logo-group','B URL-Logo Group'),
+ (903,'no-logo-group','C No-Logo Group');
+UPDATE fansub_groups SET logo_id=900 WHERE id=901;
+UPDATE fansub_groups SET logo_url='/api/v1/media/files/existing-logo.png' WHERE id=902;
+INSERT INTO release_version_groups VALUES (900,901),(900,902),(900,903);
+`)
+	require.NoError(t, err)
+	return pool
+}
+
+// TestLoadReleaseGroupsResolvesMediaAssetLogoURL is 164-08's GAP-01 behavior test for
+// the release detail page's group/logo read (loadReleaseGroups), executed against a
+// real, isolated Postgres fixture (not a source-string assertion, per CLAUDE.md
+// Teststil): a media-asset logo must resolve to a web-safe /api/v1/media/files/<name>
+// URL (never the raw server file_path), an already-correct stored logo_url must pass
+// through verbatim, and a group with neither must yield a nil LogoURL.
+func TestLoadReleaseGroupsResolvesMediaAssetLogoURL(t *testing.T) {
+	pool := openReleaseDetailGroupsFixture(t)
+	ctx := context.Background()
+	repo := NewReleaseDetailPublicRepository(pool, "")
+
+	groups, err := repo.loadReleaseGroups(ctx, 900)
+	require.NoError(t, err)
+	require.Len(t, groups, 3)
+
+	byID := make(map[int64]PublicReleaseGroup, len(groups))
+	for _, g := range groups {
+		byID[g.ID] = g
+	}
+
+	require.NotNil(t, byID[901].LogoURL)
+	require.Equal(t, "/api/v1/media/files/logo_fixture.png", *byID[901].LogoURL, "media_assets.file_path must resolve to a web URL, not the raw server path")
+	require.NotNil(t, byID[902].LogoURL)
+	require.Equal(t, "/api/v1/media/files/existing-logo.png", *byID[902].LogoURL, "an already-correct stored logo_url must pass through verbatim")
+	require.Nil(t, byID[903].LogoURL, "a group with neither logo_id nor logo_url must yield no logo URL at all")
 }
