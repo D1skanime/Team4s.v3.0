@@ -31,23 +31,19 @@ export interface EpisodeClassificationListResponse {
   data: EpisodeClassification[]
 }
 
-export const EPISODE_FILLER_TYPE_OPTIONS: ReadonlyArray<{ value: EpisodeFillerType; label: string }> = [
-  { value: 'unknown', label: 'Unbekannt' },
-  { value: 'canon', label: 'Haupthandlung' },
-  { value: 'filler', label: 'Zusatzfolge' },
-  { value: 'mixed', label: 'Teilweise Zusatzfolge' },
-  { value: 'recap', label: 'Rückblick' },
-]
+/**
+ * Code+Label-Paar einer der beiden Einstufungs-Lookup-Tabellen
+ * (episode_filler_types/episode_types), wie vom Admin-Lookup-Endpunkt
+ * geliefert (GAP-11). Ersetzt die früher hier hartcodierten Label-Arrays.
+ */
+export interface EpisodeClassificationOption {
+  code: string
+  label: string
+}
 
-export const EPISODE_TYPE_OPTIONS: ReadonlyArray<{ value: EpisodeType; label: string }> = [
-  { value: 'episode', label: 'Episode' },
-  { value: 'special', label: 'Special' },
-  { value: 'ova', label: 'OVA' },
-  { value: 'ona', label: 'ONA' },
-  { value: 'movie', label: 'Movie' },
-  { value: 'recap', label: 'Recap' },
-  { value: 'preview', label: 'Preview' },
-  { value: 'prologue', label: 'Prologue' },
-  { value: 'epilogue', label: 'Epilogue' },
-  { value: 'bonus', label: 'Bonus' },
-]
+export interface EpisodeClassificationOptionsResponse {
+  data: {
+    filler_types: EpisodeClassificationOption[]
+    episode_types: EpisodeClassificationOption[]
+  }
+}

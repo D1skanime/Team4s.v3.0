@@ -1,4 +1,7 @@
-import type { EpisodeClassificationListResponse } from "@/types/episodeClassification";
+import type {
+  EpisodeClassificationListResponse,
+  EpisodeClassificationOptionsResponse,
+} from "@/types/episodeClassification";
 import {
   AdminAnimeAniSearchEditRequest,
   AdminAnimeAniSearchEditConflictResult,
@@ -5806,6 +5809,33 @@ export async function getAdminEpisodeClassifications(
   }
 
   return response.json() as Promise<EpisodeClassificationListResponse>;
+}
+
+// getAdminEpisodeClassificationOptions liefert Code+Label-Paare beider
+// Einstufungs-Lookup-Tabellen (episode_filler_types/episode_types, GAP-11),
+// damit Admin-Auswahlfelder ihre Optionen/Labels aus der Datenbank statt aus
+// einer hartcodierten Frontend-Map beziehen.
+export async function getAdminEpisodeClassificationOptions(
+  authToken?: string,
+): Promise<EpisodeClassificationOptionsResponse> {
+  const API_BASE_URL = getApiBaseUrl();
+  const response = await authorizedFetch(
+    `${API_BASE_URL}/api/v1/admin/episode-classification-options`,
+    {
+      cache: "no-store",
+      headers: withAuthHeader({}, authToken),
+    },
+  );
+
+  if (!response.ok) {
+    const message = await parseApiError(
+      response,
+      `API request failed: ${response.status}`,
+    );
+    throw new ApiError(response.status, message);
+  }
+
+  return response.json() as Promise<EpisodeClassificationOptionsResponse>;
 }
 
 export async function updateAdminEpisode(

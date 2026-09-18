@@ -1,13 +1,13 @@
 'use client'
 
-import { useState } from 'react'
+import { useEffect, useState } from 'react'
 
 import { FormField, Select } from '@/components/ui'
-import { updateAdminEpisode } from '@/lib/api'
+import { getAdminEpisodeClassificationOptions, updateAdminEpisode } from '@/lib/api'
 import {
-  EPISODE_FILLER_TYPE_OPTIONS,
-  EPISODE_TYPE_OPTIONS,
   type EpisodeClassification,
+  type EpisodeClassificationOption,
+  type EpisodeClassificationOptionsResponse,
   type EpisodeFillerType,
   type EpisodeType,
 } from '@/types/episodeClassification'
@@ -15,6 +15,26 @@ import {
 import styles from './EpisodeClassificationFields.module.css'
 
 type Field = 'filler_type' | 'episode_type'
+
+// Modul-weiter Cache: Diese Komponente wird pro Episode-Zeile auf Listen-Seiten
+// (EpisodesOverview/EpisodeAccordion) UND im Versionseditor gemountet. Ohne
+// diesen Cache würde jede gleichzeitig gemountete Zeile einen eigenen Request
+// gegen den Optionen-Endpunkt auslösen. Ein einziges geteiltes Promise sorgt
+// dafür, dass unabhängig von der Anzahl der Mounts höchstens ein Request pro
+// Seitenaufruf entsteht. Bei einem Fehler wird der Cache zurückgesetzt, damit
+// ein späterer Mount (z.B. nach Navigation) einen neuen Versuch starten kann —
+// es gibt aber keine automatische Wiederholungsschleife/kein Polling.
+let classificationOptionsPromise: Promise<EpisodeClassificationOptionsResponse> | null = null
+
+function loadClassificationOptions(): Promise<EpisodeClassificationOptionsResponse> {
+  if (!classificationOptionsPromise) {
+    classificationOptionsPromise = getAdminEpisodeClassificationOptions().catch((error: unknown) => {
+      classificationOptionsPromise = null
+      throw error
+    })
+  }
+  return classificationOptionsPromise
+}
 
 interface EpisodeClassificationFieldsProps {
   classification: EpisodeClassification
@@ -39,6 +59,28 @@ export function EpisodeClassificationFields({
   const [savingField, setSavingField] = useState<Field | null>(null)
   const [errorMessage, setErrorMessage] = useState<string | null>(null)
   const [savedField, setSavedField] = useState<Field | null>(null)
+  const [fillerOptions, setFillerOptions] = useState<EpisodeClassificationOption[]>([])
+  const [episodeTypeOptions, setEpisodeTypeOptions] = useState<EpisodeClassificationOption[]>([])
+  const [optionsLoaded, setOptionsLoaded] = useState(false)
+
+  useEffect(() => {
+    let cancelled = false
+    loadClassificationOptions()
+      .then((response) => {
+        if (cancelled) return
+        setFillerOptions(response.data.filler_types)
+        setEpisodeTypeOptions(response.data.episode_types)
+        setOptionsLoaded(true)
+      })
+      .catch(() => {
+        // Fehler bleibt still: die Selects zeigen währenddessen nur den
+        // aktuell gesetzten Wert (siehe renderOptions unten). Ein späterer
+        // Mount kann es erneut versuchen, da der Cache oben zurückgesetzt wird.
+      })
+    return () => {
+      cancelled = true
+    }
+  }, [])
 
   const idPrefix = `episode-${classification.episode_id}`
 
@@ -79,6 +121,21 @@ export function EpisodeClassificationFields({
         ? 'Gespeichert – gilt für alle Versionen dieser Episode.'
         : null
 
+  // Während die Optionen noch laden, wird nur der aktuell gesetzte Wert als
+  // Option gerendert (statt eines leeren Dropdowns), damit es beim Laden nicht
+  // kurz aufblitzt. Sobald die DB-Antwort da ist, ersetzen die echten
+  // Code+Label-Paare diesen Platzhalter vollständig.
+  function renderOptions(currentValue: string, options: EpisodeClassificationOption[]) {
+    if (optionsLoaded) {
+      return options.map((option) => (
+        <option key={option.code} value={option.code}>
+          {option.label}
+        </option>
+      ))
+    }
+    return currentValue !== '' ? <option value={currentValue}>{currentValue}</option> : null
+  }
+
   return (
     <div
       className={layout === 'inline' ? styles.inline : styles.stacked}
@@ -97,11 +154,7 @@ export function EpisodeClassificationFields({
           }}
         >
           {fillerType === '' ? <option value="">Nicht gesetzt</option> : null}
-          {EPISODE_FILLER_TYPE_OPTIONS.map((option) => (
-            <option key={option.value} value={option.value}>
-              {option.label}
-            </option>
-          ))}
+          {renderOptions(fillerType, fillerOptions)}
         </Select>
       </FormField>
       <FormField label="Episodentyp" htmlFor={`${idPrefix}-episode-type`}>
@@ -117,11 +170,7 @@ export function EpisodeClassificationFields({
           }}
         >
           {episodeType === '' ? <option value="">Nicht gesetzt</option> : null}
-          {EPISODE_TYPE_OPTIONS.map((option) => (
-            <option key={option.value} value={option.value}>
-              {option.label}
-            </option>
-          ))}
+          {renderOptions(episodeType, episodeTypeOptions)}
         </Select>
       </FormField>
       {errorMessage ? (
