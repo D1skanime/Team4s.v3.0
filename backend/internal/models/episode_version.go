@@ -219,6 +219,11 @@ type PublicEpisodeVersion struct {
 	EpisodeNumber    int32                `json:"episode_number"`
 	Title            *string              `json:"title,omitempty"`
 	ReleaseVersion   *string              `json:"release_version,omitempty"`
+	// ReleaseName is the GAP-02 display name (164-UAT.md, public_release_name.go):
+	// the group-entered Title verbatim when genuinely entered, otherwise the computed
+	// "<Episodentitel> · (<Gruppe(n)>) · <Version>" default. Always populated by the
+	// backend, never derived client-side from Title.
+	ReleaseName      string               `json:"release_name"`
 	FansubGroups     []FansubGroupSummary `json:"fansub_groups"`
 	VideoQuality     *string              `json:"video_quality,omitempty"`
 	SubtitleType     *string              `json:"subtitle_type,omitempty"`

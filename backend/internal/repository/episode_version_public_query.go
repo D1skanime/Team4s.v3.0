@@ -74,11 +74,11 @@ func (o PublicEpisodeOptions) normalized(animeID int64) (int, publicEpisodeCurso
 // Window metadata is computed before seeking/limiting. The lateral variant relation
 // yields one neutral row when an episode has no variants, including mixed inventory.
 // Group aggregation happens after LIMIT and cannot multiply atomic page rows.
-const publicEpisodeQuery = `
+var publicEpisodeQuery = fmt.Sprintf(`
 WITH inventory AS (
  SELECT e.id AS episode_id, e.episode_number::INTEGER AS episode_number, e.title AS episode_title,
   COALESCE(eft.name,'unknown') AS filler_type, COALESCE(et.name,'episode') AS episode_type,
-  v.id AS variant_id, v.release_version_id, v.title, v.release_version,
+  v.id AS variant_id, v.release_version_id, v.title, v.release_version, v.release_name,
   v.video_quality, v.subtitle_type, v.release_date, v.container, v.video_codec,
   COUNT(v.id) OVER (PARTITION BY e.id)::INTEGER AS version_count,
   MIN(v.id) OVER (PARTITION BY e.id) AS default_version_id
@@ -88,6 +88,7 @@ WITH inventory AS (
  JOIN LATERAL (
   SELECT rv.id, rev.id AS release_version_id, COALESCE(rev.title,e.title) AS title,
    NULLIF(BTRIM(rev.version),'') AS release_version,
+   %s AS release_name,
    COALESCE(rv.video_quality,rv.resolution) AS video_quality, rv.subtitle_type,
    rv.container, rv.video_codec,
    COALESCE(rev.release_date,fr.release_date) AS release_date
@@ -112,7 +113,7 @@ WITH inventory AS (
  LIMIT $5
 )
 SELECT p.episode_id,p.episode_number,p.episode_title,p.filler_type,p.episode_type,p.version_count,p.default_version_id,
- p.variant_id,p.release_version_id,p.title,p.release_version,p.video_quality,p.subtitle_type,p.release_date,
+ p.variant_id,p.release_version_id,p.title,p.release_version,p.release_name,p.video_quality,p.subtitle_type,p.release_date,
  p.container,p.video_codec,
  COALESCE(g.groups,'[]'::json), total.n
 FROM page p
@@ -127,7 +128,11 @@ LEFT JOIN LATERAL (
  WHERE rvg.release_version_id=p.release_version_id
 ) g ON TRUE
 CROSS JOIN total
-ORDER BY p.episode_number,p.episode_id,COALESCE(p.variant_id,0)`
+ORDER BY p.episode_number,p.episode_id,COALESCE(p.variant_id,0)`,
+	publicReleaseNameSQL("rev", "e", "(SELECT string_agg(fg3.name, ' × ' ORDER BY fg3.name, fg3.id) "+
+		"FROM release_version_groups rvg3 JOIN fansub_groups fg3 ON fg3.id=rvg3.fansub_group_id "+
+		"WHERE rvg3.release_version_id=rev.id)"),
+)
 
 type publicEpisodeRow struct {
 	episode          models.PublicGroupedEpisode
@@ -160,7 +165,7 @@ func (r *EpisodeVersionRepository) ListPublicGroupedByAnimeID(ctx context.Contex
 		var groups []byte
 		e, v := &item.episode, &item.variant
 		if err := rows.Scan(&e.EpisodeID, &e.EpisodeNumber, &e.EpisodeTitle, &e.FillerType, &e.EpisodeType, &e.VersionCount, &e.DefaultVersionID,
-			&item.variantID, &item.releaseVersionID, &v.Title, &v.ReleaseVersion, &v.VideoQuality, &v.SubtitleType, &v.ReleaseDate,
+			&item.variantID, &item.releaseVersionID, &v.Title, &v.ReleaseVersion, &v.ReleaseName, &v.VideoQuality, &v.SubtitleType, &v.ReleaseDate,
 			&v.Container, &v.VideoCodec, &groups, &item.episodeCount); err != nil {
 			return nil, fmt.Errorf("scan public episode: %w", err)
 		}

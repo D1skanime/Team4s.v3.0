@@ -15390,7 +15390,7 @@ components:
     PublicEpisodeVersion:
       type: object
       additionalProperties: false
-      required: [id, variant_id, release_version_id, anime_id, episode_number, fansub_groups, has_images, has_notes, has_karaoke]
+      required: [id, variant_id, release_version_id, anime_id, episode_number, fansub_groups, has_images, has_notes, has_karaoke, release_name]
       properties:
         id:
           type: integer
@@ -15416,6 +15416,13 @@ components:
           type: string
           nullable: true
           description: Display label only.
+        release_name:
+          type: string
+          description: >-
+            GAP-02 (164-UAT.md): the group-entered title verbatim when genuinely
+            entered, otherwise the computed "<Episodentitel> · (<Gruppe(n)>) ·
+            <Version>" default (coop-capable). Always populated by the backend;
+            never a raw filename.
         fansub_groups:
           type: array
           items:

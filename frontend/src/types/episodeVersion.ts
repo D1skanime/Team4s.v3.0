@@ -161,6 +161,8 @@ export type PublicEpisodeVersion = Pick<EpisodeVersion,
   has_images: boolean
   has_notes: boolean
   has_karaoke: boolean
+  /** GAP-02 (164-08): always backend-computed, never derived client-side from `title`. */
+  release_name: string
 }
 
 export interface PublicGroupedEpisode {
