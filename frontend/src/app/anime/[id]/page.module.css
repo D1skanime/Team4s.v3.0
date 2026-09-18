@@ -407,7 +407,7 @@
 .tagsLabel {
   font-size: 12px;
   font-weight: 600;
-  color: var(--text-muted);
+  color: rgba(255, 255, 255, 0.75);
   text-transform: uppercase;
   letter-spacing: 0.05em;
   margin: 0;
@@ -422,13 +422,19 @@
   margin: 0;
 }
 
+/*
+ * Feature-lokale, selbsttragende dunkle Chip-Farben (GAP-10): die globalen Light-Card-Tokens
+ * (--surface-sunken/--text-primary) sind fuer eine opake helle Karte kalibriert und verlieren
+ * Kontrast im nahezu transparenten unteren Bereich von .infoCard's Gradient. Eigenstaendig
+ * ausreichend deckendes dunkles Chip statt Kontrastberechnung gegen den variablen Hintergrund.
+ */
 .tagChip {
   display: inline-block;
   padding: 8px 14px;
   border-radius: 14px;
-  background: var(--surface-sunken);
-  border: 1px solid var(--border-subtle);
-  color: var(--text-primary);
+  background: rgba(20, 18, 16, 0.62);
+  border: 1px solid rgba(255, 255, 255, 0.18);
+  color: rgba(255, 255, 255, 0.92);
   font-size: 13px;
   font-weight: 500;
   text-decoration: none;
@@ -438,8 +444,8 @@
 }
 
 .tagChip:hover {
-  background: color-mix(in srgb, var(--surface-sunken) 70%, black 8%);
-  border-color: var(--border-strong);
+  background: rgba(20, 18, 16, 0.78);
+  border-color: rgba(255, 255, 255, 0.3);
 }
 
 .tagChip:focus-visible {
