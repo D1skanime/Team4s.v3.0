@@ -3,8 +3,8 @@ gsd_state_version: 1.0
 milestone: v1.4
 milestone_name: Coverage
 status: executing
-stopped_at: 164-13 complete (admin frontend consumption of DB-backed episode classification options — GAP-11 admin half, closes the full 164-08..164-13 gap-closure batch); live Human-UAT of GAP-01..GAP-12 still required
-last_updated: "2026-09-18T09:38:53.589Z"
+stopped_at: 164-08..164-13 code-complete; post-execution code review (164-REVIEW.md) found 2 Critical + 5 Warning findings, all fixed and verified (commits 811bff61..7327c1ea); backend rebuilt, frontend restarted; live Human-UAT of GAP-01..GAP-12 plus the still-open 164-07 checkpoint required before phase 164 can be marked complete
+last_updated: "2026-09-18T10:20:00.000Z"
 last_activity: 2026-09-18
 progress:
   total_phases: 29
@@ -15,6 +15,12 @@ progress:
 ---
 
 # Project State
+
+## Gap-Closure-Ausführung + Code-Review Phase 164 (18.09.2026) — 164-08..164-13 code-complete, Review-Fixes eingespielt
+
+`/gsd:execute-phase 164 --gaps-only` (headless, `main`, keine Worktrees) hat alle 6 Gap-Closure-Pläne 164-08..164-13 sequenziell ausgeführt (GAP-01..GAP-12 aus `164-UAT.md`). Migration `0169_episode_classification_labels` additiv auf `team4s_v2` angewendet und verifiziert (5 Filler-Typen + 10 Episodentypen, `episodes`-Zeilenzahl unverändert bei 246). Anschließender Pflicht-Code-Review (`164-REVIEW.md`, `gsd-code-reviewer`) fand 2 Critical + 5 Warning Findings — beide Critical-Funde betrafen die GAP-12-Logik in 164-09 (`episode_import_repository_apply.go`): (1) `mapAnimeTypeToEpisodeType` prüfte auf den nie vorkommenden String `"movie"` statt der echten `anime_type`-Enum-Ausprägung `"film"`, wodurch die GAP-12-Korrektur für Filme nie griff; (2) die pro-Anime abgeleitete `episode_type_id` brach den Bestands-Episoden-Abgleich beim Re-Import, was zu doppelten `episodes`-Zeilen und fehlzugeordneten Release-/Variant-Graphen für nicht-manuell klassifizierte Episoden führen konnte (realer Pfad für 11eyes, dem zweiten UAT-Testfall). Alle 2 Critical + 5 Warning Funde per `gsd-code-fixer` behoben und verifiziert (Commits `811bff61`..`7327c1ea`): korrekte `film`→`movie`-Zuordnung mit Realdaten-Testfixture, anime_id+number-Abgleich statt typabhängigem Abgleich (UPDATE überschreibt `episode_type_id` nur bei nicht-manueller Quelle), OpenAPI-Dokumentation für den neuen Admin-Endpoint nachgetragen, Gruppenlogo-URL-Bauweise zentralisiert und URL-escaped, Fehleranzeige bei fehlgeschlagenem Options-Ladevorgang im Admin-Editor ergänzt, Dateiname-Heuristik im Editor auf die Backend-Video-Endungsliste verengt. Backend neu gebaut (`docker compose up -d --build team4sv30-backend`), Frontend neu gestartet (`docker restart team4sv30-frontend`); beide laufen und liefern 200 auf `http://192.168.235.196:3000/`.
+
+**Noch offen:** Phase 164 ist NICHT abgenommen. Zwei Live-Abnahmen stehen aus: (1) der ursprüngliche 164-07-Checkpoint (Live-Naruto-Browser-UAT + DOM/Mobile-Performance-Messung, s. u.) und (2) eine erneute Live-UAT aller 12 Gaps GAP-01..GAP-12 gegen die jetzt live laufenden Fixes. Kein Push, keine Datenänderung an `team4s_v2` außer der autorisierten additiven Migration 0169.
 
 ## Gap-Closure-Planung Phase 164 abgeschlossen (18.09.2026) — 6 neue Pläne 164-08..164-13
 
