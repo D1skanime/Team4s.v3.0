@@ -3,15 +3,15 @@ gsd_state_version: 1.0
 milestone: v1.4
 milestone_name: Coverage
 status: executing
-stopped_at: 164-12 complete (frontend consumption of release_name / classification labels / tech-line omission — GAP-02 frontend half, GAP-03, GAP-11 frontend half); 164-13 remains
-last_updated: "2026-09-18T09:21:32.819Z"
+stopped_at: 164-13 complete (admin frontend consumption of DB-backed episode classification options — GAP-11 admin half, closes the full 164-08..164-13 gap-closure batch); live Human-UAT of GAP-01..GAP-12 still required
+last_updated: "2026-09-18T09:38:53.589Z"
 last_activity: 2026-09-18
 progress:
   total_phases: 29
-  completed_phases: 28
+  completed_phases: 29
   total_plans: 276
-  completed_plans: 275
-  percent: 97
+  completed_plans: 276
+  percent: 100
 ---
 
 # Project State
@@ -171,7 +171,7 @@ episode_filler_types.label/episode_types.label, publicEpisodeQuery filler_type_l
 episode_type_label, GET /admin/episode-classification-options) are complete and
 committed — see `164-08-SUMMARY.md`, `164-09-SUMMARY.md`, `164-10-SUMMARY.md`,
 `164-11-SUMMARY.md`.
-Plan: 5 of 6 gap-closure plans done (164-08/164-09/164-10/164-11 done; 164-12/164-13 remain)
+Plan: 6 of 6 gap-closure plans done (164-08/164-09/164-10/164-11 done; 164-12/164-13 remain)
 Status: Ready to execute
 DOM/mobile-performance measurement) and the gap-closure plans 164-09..164-13 all still need
 completion/human sign-off before Phase 164 itself can be marked complete in
@@ -1379,6 +1379,7 @@ Last activity: 2026-09-18
 - [Phase 164]: 164-12: classificationAndTypeLine now takes the resolved episode object and reads filler_type_label/episode_type_label from the API (164-10 DB labels), not a hardcoded frontend map; unknown-suppression stays keyed on the filler_type code
 - [Phase 164]: 164-12: defaultReleaseTitle (admin placeholder) mirrors the public GAP-02 default-name format, coop-capable across all selected_groups sorted name-then-id, matching resolveCoopLinkGroupId's convention
 - [Phase 164]: 164-12: fixed FansubVersionBrowser.test.tsx's D-48 catalog (direct runtime regression from the classificationAndTypeLine signature change); deferred 5 other tsc-only PublicGroupedEpisode fixture gaps (no runtime failures) to 164-13 per 164-10's own handoff note
+- [Phase 164]: 164-13: Admin Canon/Filler und Episodentyp lesen Optionen ueber einen modul-weiten memoized Fetch aus GET /api/v1/admin/episode-classification-options statt aus hartcodierten Arrays; letzter Plan des 164-08..164-13 Gap-Closure-Batches, GAP-11 damit vollstaendig geschlossen.
 
 ### Pending Todos
 
@@ -1823,13 +1824,14 @@ untruncated list lives in `.planning/todos/pending/`.
 | Phase 164 P11 | 20min | 3 tasks | 5 files |
 | Phase 164 P10 | 55min | 3 tasks | 15 files |
 | Phase 164 P12 | 25min | 2 tasks | 7 files |
+| Phase 164 P13 | 55min | 1 tasks | 9 files |
 
 ## Session Continuity
 
-Last session: 2026-09-18T09:21:32.796Z
-Stopped at: 164-12 complete (frontend consumption of release_name / classification labels / tech-line omission — GAP-02 frontend half, GAP-03, GAP-11 frontend half); 164-13 remains
+Last session: 2026-09-18T09:38:53.568Z
+Stopped at: 164-13 complete (admin frontend consumption of DB-backed episode classification options — GAP-11 admin half, closes the full 164-08..164-13 gap-closure batch); live Human-UAT of GAP-01..GAP-12 still required
 Last activity: 2026-09-16 - Completed quick task 260916-ako: Jellyfin-Geschwisterquellen getrennt importieren; Liveimport zweier Folge-2-Quellen geprüft, keine Phasen-UAT ersetzt.
 Resume file: 
-.planning/phases/164-oeffentliche-anime-seite-episode-release-ui-read-model-infinite-scroll/164-12-SUMMARY.md
+None
 
 Plans 151-02/03/04 have implementation summaries. Plans 151-01 and 151-05 remain open until final artwork/composition review, complete browser evidence and independent verification; their missing summaries are intentional. No requirement or phase has been falsely marked complete.

@@ -121,3 +121,10 @@ task's changes). Logged here, not fixed.
   `episodePreviewFormat.test.ts` fixture, `resolveEpisodeTitle`'s `baseEpisode`, WAS fixed
   since that file is directly owned by this plan). 164-13 must add the two label fields to
   the five files listed above before its own `tsc --noEmit` gate can pass cleanly.
+- **RESOLVED in 164-13:** all five files (`episode-windowing-preview/page.tsx`,
+  `FansubVersionBrowser.filterSwitch.test.tsx`, `FansubVersionBrowser.groupSwitch.test.tsx`,
+  `FansubVersionBrowser.windowing.test.tsx`, `useWindowedEpisodePages.test.ts`) now include
+  `filler_type_label`/`episode_type_label` on every `PublicGroupedEpisode` fixture object
+  literal (labels matching the migration-0169 backfill for the codes each fixture already
+  used). `npx tsc --noEmit -p .` is fully clean as of this plan; no runtime behavior changed
+  in any of the five files. Commit `5be9a293`.
