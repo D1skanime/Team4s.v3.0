@@ -34,7 +34,7 @@ export function FansubGroupPicker({ options, activeGroupId, showAllChip, onSelec
   if (options.length === 0) return null
 
   return (
-    <div>
+    <div className={styles.wrapper}>
       <span className={styles.eyebrowLabel}>Fansub-Gruppe</span>
       <div role="group" aria-label="Fansub-Gruppe" className={styles.chipRow}>
         {showAllChip ? (
