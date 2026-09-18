@@ -1,7 +1,5 @@
 'use client'
 
-import Link from 'next/link'
-
 import { Button } from '@/components/ui'
 import { buildPublicFansubProjectPath } from '@/lib/fansubProjectRoutes'
 
@@ -31,9 +29,9 @@ export function FansubGroupContext({ activeGroup, animeSlug }: FansubGroupContex
       {trimmedPreview ? (
         <>
           <p className={styles.storyPreview}>{trimmedPreview}</p>
-          <Link href={`/fansubs/${activeGroup.slug}#geschichte`} prefetch={false} className={styles.moreLink}>
+          <Button href={`/fansubs/${activeGroup.slug}#geschichte`} variant="text" className={styles.moreLink}>
             Mehr lesen →
-          </Link>
+          </Button>
         </>
       ) : null}
       <div className={styles.navRow}>
