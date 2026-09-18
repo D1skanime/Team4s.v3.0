@@ -27,8 +27,6 @@ const EPISODE_TYPE_LABELS: Record<EpisodeType, string> = {
   bonus: 'Bonus',
 }
 
-const TECH_VALUE_FALLBACK = 'Unbekannt'
-
 export function classificationLabel(fillerType: FillerType): string | null {
   return CLASSIFICATION_LABELS[fillerType] ?? null
 }
@@ -49,16 +47,19 @@ export function formatVersionCountLabel(count: number): string {
   return `${count} ${count === 1 ? 'Version' : 'Versionen'}`
 }
 
-/** UI-SPEC decision 10: fehlende Einzelwerte fallen einheitlich auf "Unbekannt" zurueck. */
-export function formatTechValue(value?: string | null): string {
+/**
+ * GAP-03: fehlende Einzelwerte werden nicht mehr auf "Unbekannt" abgebildet -- null signalisiert
+ * dem Aufrufer, den Wert (und ggf. die ganze Technikzeile) vollstaendig wegzulassen.
+ */
+export function formatTechValue(value?: string | null): string | null {
   const trimmed = (value ?? '').trim()
-  return trimmed ? trimmed : TECH_VALUE_FALLBACK
+  return trimmed ? trimmed : null
 }
 
-export function formatSubtitleType(value?: string | null): string {
+export function formatSubtitleType(value?: string | null): string | null {
   if (value === 'softsub') return 'Softsub'
   if (value === 'hardsub') return 'Hardsub'
-  return formatTechValue(null)
+  return null
 }
 
 /** D-14: fehlt das Datum, wird die gesamte Zeile weggelassen -- null signalisiert das dem Aufrufer. */
@@ -91,10 +92,9 @@ export function resolveEpisodeTitle(episode: PublicGroupedEpisode, summaryVersio
   return `Folge ${episode.episode_number}`
 }
 
+/** GAP-02: der Release-Name kommt immer vom Backend (164-08); kein client-seitiges Titel-/ID-Fallback mehr. */
 export function resolveReleaseName(version: PublicEpisodeVersion): string {
-  const explicit = (version.title || '').trim()
-  if (explicit) return explicit
-  return `Release #${version.release_version_id}`
+  return version.release_name
 }
 
 /**

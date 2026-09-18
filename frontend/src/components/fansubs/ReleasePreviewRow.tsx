@@ -29,7 +29,9 @@ export function ReleasePreviewRow({ version, animeID }: ReleasePreviewRowProps) 
     formatTechValue(version.container),
     formatTechValue(version.video_codec),
     formatSubtitleType(version.subtitle_type),
-  ].join(' · ')
+  ]
+    .filter((value): value is string => value !== null)
+    .join(' · ')
   const extras: string[] = []
   if (version.has_images) extras.push('📷 Bilder')
   if (version.has_notes) extras.push('📝 Notizen')
@@ -66,7 +68,7 @@ export function ReleasePreviewRow({ version, animeID }: ReleasePreviewRowProps) 
           </div>
         </div>
 
-        <p className={styles.techLine}>{techLine}</p>
+        {techLine ? <p className={styles.techLine}>{techLine}</p> : null}
 
         {extras.length > 0 ? <p className={styles.extrasLine}>{extras.join('   ')}</p> : null}
 

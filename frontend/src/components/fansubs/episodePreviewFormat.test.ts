@@ -61,20 +61,46 @@ describe('formatVersionCountLabel', () => {
 })
 
 describe('formatTechValue', () => {
-  it('falls back to Unbekannt for null/undefined/empty, passes through otherwise', () => {
-    expect(formatTechValue(null)).toBe('Unbekannt')
-    expect(formatTechValue(undefined)).toBe('Unbekannt')
-    expect(formatTechValue('')).toBe('Unbekannt')
+  it('GAP-03: returns null for null/undefined/empty (omit, never "Unbekannt"), passes through otherwise', () => {
+    expect(formatTechValue(null)).toBeNull()
+    expect(formatTechValue(undefined)).toBeNull()
+    expect(formatTechValue('')).toBeNull()
     expect(formatTechValue('1080p')).toBe('1080p')
   })
 })
 
 describe('formatSubtitleType', () => {
-  it('maps softsub/hardsub, falls back to the same Unbekannt word as formatTechValue', () => {
+  it('GAP-03: maps softsub/hardsub, returns null for missing values (omit, never "Unbekannt")', () => {
     expect(formatSubtitleType('softsub')).toBe('Softsub')
     expect(formatSubtitleType('hardsub')).toBe('Hardsub')
-    expect(formatSubtitleType(null)).toBe('Unbekannt')
-    expect(formatSubtitleType(undefined)).toBe('Unbekannt')
+    expect(formatSubtitleType(null)).toBeNull()
+    expect(formatSubtitleType(undefined)).toBeNull()
+  })
+})
+
+describe('techLine construction (ReleasePreviewRow-level, GAP-03)', () => {
+  function buildTechLine(values: Array<string | null>): string {
+    return values.filter((value): value is string => value !== null).join(' · ')
+  }
+
+  it('produces an empty line (omit the whole techLine paragraph) when all four values are missing', () => {
+    const line = buildTechLine([
+      formatTechValue(undefined),
+      formatTechValue(null),
+      formatTechValue(''),
+      formatSubtitleType(null),
+    ])
+    expect(line).toBe('')
+  })
+
+  it('renders only the one present value, with no stray "·" separators', () => {
+    const line = buildTechLine([
+      formatTechValue('1080p'),
+      formatTechValue(null),
+      formatTechValue(undefined),
+      formatSubtitleType(undefined),
+    ])
+    expect(line).toBe('1080p')
   })
 })
 
@@ -111,6 +137,7 @@ describe('resolveEpisodeTitle', () => {
   const baseEpisode = {
     episode_id: 1, episode_number: 3, version_count: 0, versions: [],
     filler_type: 'unknown' as const, episode_type: 'episode' as const,
+    filler_type_label: 'Unbekannt', episode_type_label: 'Episode',
   }
 
   it('prefers the explicit episode title', () => {
@@ -127,12 +154,10 @@ describe('resolveEpisodeTitle', () => {
 })
 
 describe('resolveReleaseName', () => {
-  it('prefers the explicit release title', () => {
-    expect(resolveReleaseName({ title: 'Mein Release', release_version_id: 5 } as never)).toBe('Mein Release')
-  })
-
-  it('falls back to "Release #ID"', () => {
-    expect(resolveReleaseName({ title: null, release_version_id: 5 } as never)).toBe('Release #5')
+  it('GAP-02: returns the backend-computed release_name verbatim, no more title/"Release #" logic', () => {
+    expect(resolveReleaseName({ release_name: 'Episode 1 · (Strawhat Subs) · v1' } as never)).toBe(
+      'Episode 1 · (Strawhat Subs) · v1',
+    )
   })
 })
 
