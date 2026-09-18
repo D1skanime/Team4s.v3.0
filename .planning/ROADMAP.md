@@ -2020,12 +2020,17 @@ Plans:
 **Verbindliche Quelle:** `.planning/phases/164-oeffentliche-anime-seite-episode-release-ui-read-model-infinite-scroll/164-USER-REQUEST.md`
 **Scopegrenze:** keine Episode-Detailseite, kein Details-Dropdown, keine Screenshots/Rich-Text/Segmentdetails in der Preview, keine neue Klassifikationsheuristik, keine neue Virtualization-Library ohne Nachweis, keine Datenänderung durch Agenten. Planung ohne Ausführung – Freigabe durch den Auftraggeber abwarten.
 **UI hint:** yes
-**Plans:** 6/7 plans executed
+**Plans:** 6/7 plans executed; +6 Gap-Closure-Pläne (164-08..164-13) nach Live-UAT 18.09.2026 (`164-UAT.md`, GAP-01..GAP-12)
 
   - Wave 1: 164-01 (Backend Read-Model-Kern: publicEpisodeQuery-Erweiterung, batched Flags-Query, Modelle, Budget-Tests), 164-02 (Contracts: OpenAPI + TS-Typen additiv)
   - Wave 2: 164-03 (Backend Scale-Fixture + Query-Budget-/Paginations-Nachweis bei vielen Episoden, isolierte Test-DB), 164-04 (Frontend Episode-Glass-Card + Release-Preview-UI, D-01–D-20/D-48 visuelle Testfälle)
   - Wave 3: 164-05 (Frontend Infinite-Scroll-/Bounded-Windowing-Engine: Sentinels, Eviction/Restoration, Scroll-Anchoring)
   - Wave 4: 164-06 (Frontend Filterwechsel-/Cursor-Integration, Zum-Release-Link inkl. Coop, Race-Condition-Härtung)
   - Wave 5: 164-07 (Vollständiges Gate + Naruto-Live-UAT + D-48-Visualmatrix + Abschlussbericht)
+
+  Gap-Closure (Live-UAT 18.09.2026, `164-UAT.md`):
+  - Gap-Wave 1: 164-08 (GAP-01 Logo-URL-Fix + GAP-02 Backend: geteilte Standard-Release-Name-Berechnung, öffentliche Anime-Seite + Release-Seite), 164-09 (GAP-12 Import-Standard-Episodentyp aus anime.type), 164-11 (GAP-04..10 Frontend-Kontrast/Radius/Abstand/Glas-Karte)
+  - Gap-Wave 2: 164-10 (GAP-11 Backend: Migration 0169 Anzeigenamen-Spalte, öffentliche Projektion, Admin-Lookup-Endpunkt) — abhängig von 164-08
+  - Gap-Wave 3: 164-12 (GAP-02/03/11 Frontend-Konsum: release_name, Technikzeile ohne „Unbekannt", DB-Klassifikationslabels + Admin-Platzhalter), 164-13 (GAP-11 Admin-Auswahlfelder aus DB) — abhängig von 164-08/164-10
 
 **Plan-time read first**: `backend/internal/repository/episode_version_public_query.go`, `backend/internal/repository/release_detail_public_repository_helpers.go`, `backend/internal/repository/episode_classification.go`, `backend/internal/models/episode_version.go`, `backend/internal/handlers/episode_version_reads.go`, `frontend/src/components/fansubs/FansubVersionBrowser.tsx` (+ `.module.css`), `frontend/src/app/anime/[id]/group/[groupId]/sections/OlderReleasesList.tsx`, `frontend/src/hooks/useNearViewportActivation.ts`, `frontend/src/types/episodeVersion.ts`, `shared/contracts/openapi.yaml`, sowie `164-RESEARCH.md`/`164-PATTERNS.md`/`164-UI-SPEC.md`/`164-VALIDATION.md` als verbindliche Vorgaben.
