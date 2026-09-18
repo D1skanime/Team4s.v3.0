@@ -90,7 +90,6 @@ import {
 import {
   CommentCreateRequest,
   CommentCreateResponse,
-  PaginatedCommentResponse,
 } from "@/types/comment";
 import {
   GroupedEpisodesResponse,
@@ -489,11 +488,6 @@ interface RuntimeSessionPrivateMeta {
   refresh_token_expires_at: number;
 }
 
-interface CommentListParams {
-  page?: number;
-  per_page?: number;
-}
-
 interface WatchlistListParams {
   page?: number;
   per_page?: number;
@@ -526,15 +520,6 @@ function buildQuery(params: AnimeListParams): string {
     query.set("has_cover", String(params.has_cover));
   if (typeof params.include_disabled === "boolean")
     query.set("include_disabled", String(params.include_disabled));
-
-  return query.toString();
-}
-
-/** Baut den Query-String für paginierte Kommentar-Abfragen (page + per_page). */
-function buildCommentQuery(params: CommentListParams): string {
-  const query = new URLSearchParams();
-  if (params.page) query.set("page", String(params.page));
-  if (params.per_page) query.set("per_page", String(params.per_page));
 
   return query.toString();
 }
@@ -2956,27 +2941,6 @@ export async function deleteFansubMember(
     );
     throw new ApiError(response.status, message);
   }
-}
-
-export async function getAnimeComments(
-  id: number,
-  params: CommentListParams = {},
-): Promise<PaginatedCommentResponse> {
-  const API_BASE_URL = getApiBaseUrl();
-  const query = buildCommentQuery(params);
-  const url = `${API_BASE_URL}/api/v1/anime/${id}/comments${query ? `?${query}` : ""}`;
-  const response = await fetch(url, {
-    cache: "no-store",
-  });
-
-  if (!response.ok) {
-    throw new ApiError(
-      response.status,
-      `API request failed: ${response.status}`,
-    );
-  }
-
-  return response.json() as Promise<PaginatedCommentResponse>;
 }
 
 export async function createAnimeComment(

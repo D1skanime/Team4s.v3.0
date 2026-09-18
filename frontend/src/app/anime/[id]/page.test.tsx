@@ -17,10 +17,10 @@ vi.mock('next/headers', () => ({ cookies: vi.fn(async () => ({ get: () => ({ val
 vi.mock('@/lib/api', async (importOriginal) => ({
   ...await importOriginal<typeof import('@/lib/api')>(),
   getAnimeList: vi.fn(), getAnimeByID: vi.fn(), getAnimeFansubs: vi.fn(), getGroupedEpisodes: vi.fn(),
-  getAnimeComments: vi.fn(), getAnimeRelations: vi.fn(), getWatchlistEntry: vi.fn(),
+  getAnimeRelations: vi.fn(), getWatchlistEntry: vi.fn(),
 }))
 
-import { ApiError, getAnimeByID, getAnimeFansubs, getGroupedEpisodes, getAnimeComments, getAnimeRelations, getWatchlistEntry } from '@/lib/api'
+import { ApiError, getAnimeByID, getAnimeFansubs, getGroupedEpisodes, getAnimeRelations, getWatchlistEntry } from '@/lib/api'
 import type { PublicGroupedEpisodesOptions, PublicGroupedEpisodesResponse } from '@/types/episodeVersion'
 import type { AnimeDetail } from '@/types/anime'
 import AnimeDetailPage, { generateMetadata } from './page'
@@ -37,7 +37,6 @@ beforeEach(() => {
   vi.mocked(getAnimeByID).mockReset().mockResolvedValue({ data: anime })
   vi.mocked(getAnimeFansubs).mockReset().mockResolvedValue({ data: [] })
   groupedMock.mockReset().mockResolvedValue({ data: { anime_id: anime.id, episodes: [], episode_count: 0, pagination: { has_more: false, next_cursor: null, row_limit: 24 } } })
-  vi.mocked(getAnimeComments).mockReset().mockResolvedValue({ data: [], meta: { page: 1, per_page: 10, total: 0, total_pages: 0 } })
   vi.mocked(getAnimeRelations).mockReset().mockResolvedValue({ data: [] })
 })
 
@@ -56,7 +55,6 @@ describe('anime detail page and metadata', () => {
     expect(getAnimeByID).not.toHaveBeenCalled()
     expect(getAnimeFansubs).not.toHaveBeenCalled()
     expect(getGroupedEpisodes).not.toHaveBeenCalled()
-    expect(getAnimeComments).not.toHaveBeenCalled()
     expect(getAnimeRelations).not.toHaveBeenCalled()
   })
 
@@ -95,7 +93,6 @@ describe('loading boundaries follow resource validation', () => {
     expect(page.props.fallback.type.name).toBe('AnimeDetailLoading')
     expect(getAnimeFansubs).not.toHaveBeenCalled()
     expect(getGroupedEpisodes).not.toHaveBeenCalled()
-    expect(getAnimeComments).not.toHaveBeenCalled()
     expect(getAnimeRelations).not.toHaveBeenCalled()
   })
 })

@@ -15,10 +15,10 @@ vi.mock('react', async (importOriginal) => ({
 vi.mock('@/lib/api', async (importOriginal) => ({
   ...await importOriginal<typeof import('@/lib/api')>(),
   getAnimeByID: vi.fn(), getAnimeFansubs: vi.fn(), getGroupedEpisodes: vi.fn(),
-  getAnimeComments: vi.fn(), getAnimeRelations: vi.fn(), getAnimeBackdrops: vi.fn(),
+  getAnimeRelations: vi.fn(), getAnimeBackdrops: vi.fn(),
 }))
 
-import { getAnimeByID, getAnimeFansubs, getGroupedEpisodes, getAnimeComments, getAnimeRelations, getAnimeBackdrops } from '@/lib/api'
+import { getAnimeByID, getAnimeFansubs, getGroupedEpisodes, getAnimeRelations, getAnimeBackdrops } from '@/lib/api'
 import * as media from '@/lib/animeBackdrops'
 import { AnimeBackdropRotator } from '@/components/anime/AnimeBackdropRotator'
 import type { PublicGroupedEpisodesOptions, PublicGroupedEpisodesResponse } from '@/types/episodeVersion'
@@ -34,7 +34,6 @@ beforeEach(() => {
   } })
   vi.mocked(getAnimeFansubs).mockResolvedValue({ data: [] })
   groupedMock.mockResolvedValue({ data: { anime_id: 1, episodes: [], episode_count: 0, pagination: { has_more: false, next_cursor: null, row_limit: 24 } } })
-  vi.mocked(getAnimeComments).mockResolvedValue({ data: [], meta: { page: 1, per_page: 10, total: 0, total_pages: 0 } })
   vi.mocked(getAnimeRelations).mockResolvedValue({ data: [] })
 })
 afterEach(() => { cleanup(); vi.restoreAllMocks(); vi.unstubAllGlobals() })
@@ -106,7 +105,6 @@ describe('Tags-Block ohne zusaetzliche Netzwerkkosten (Auftraggeber-Mandat Punkt
     vi.clearAllMocks()
     vi.mocked(getAnimeFansubs).mockResolvedValue({ data: [] })
     groupedMock.mockResolvedValue({ data: { anime_id: 1, episodes: [], episode_count: 0, pagination: { has_more: false, next_cursor: null, row_limit: 24 } } })
-    vi.mocked(getAnimeComments).mockResolvedValue({ data: [], meta: { page: 1, per_page: 10, total: 0, total_pages: 0 } })
     vi.mocked(getAnimeRelations).mockResolvedValue({ data: [] })
     vi.mocked(getAnimeByID).mockResolvedValue({ data: {
       id: 1, title: 'Fetch-Paritaetsfixture', type: 'tv', content_type: 'anime', status: 'done',
@@ -118,7 +116,6 @@ describe('Tags-Block ohne zusaetzliche Netzwerkkosten (Auftraggeber-Mandat Punkt
       vi.mocked(getAnimeByID).mock.calls.length
       + vi.mocked(getAnimeFansubs).mock.calls.length
       + groupedMock.mock.calls.length
-      + vi.mocked(getAnimeComments).mock.calls.length
       + vi.mocked(getAnimeRelations).mock.calls.length
     )
   }

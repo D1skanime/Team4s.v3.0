@@ -12,10 +12,8 @@ import { AnimeRelations } from '@/components/anime/AnimeRelations'
 import { Breadcrumbs } from '@/components/navigation/Breadcrumbs'
 import { FansubVersionBrowser } from '@/components/fansubs/FansubVersionBrowser'
 import { StatusBadge } from '@/components/anime/StatusBadge'
-import { CommentSection } from '@/components/comments/CommentSection'
 import { WatchlistAddButton } from '@/components/watchlist/WatchlistAddButton'
 import {
-  getAnimeComments,
   getAnimeRelations,
   getAnimeFansubs,
   getGroupedEpisodes,
@@ -95,13 +93,12 @@ async function AnimeDetailContent({ anime, searchParams }: {
   const animeFansubsResponse = animeFansubsResult.status === 'fulfilled' ? animeFansubsResult.value : null
   const resolvedFansubSlug = resolveActiveFansubSlug(animeFansubsResponse?.data ?? [], rawFansubParam)
 
-  const [groupedEpisodesResult, commentsResult, relationsResult] = await Promise.allSettled([
+  const [groupedEpisodesResult, relationsResult] = await Promise.allSettled([
     getGroupedEpisodes(anime.id, {
       projection: 'public',
       limit: 24,
       ...(resolvedFansubSlug ? { fansub: resolvedFansubSlug } : {}),
     }),
-    getAnimeComments(animeID, { page: 1, per_page: 10 }),
     getAnimeRelations(anime.id),
   ])
 
@@ -109,8 +106,6 @@ async function AnimeDetailContent({ anime, searchParams }: {
 
   const fansubStoryGroups = buildFansubStoryGroups(animeFansubsResponse?.data ?? [])
 
-  const commentsResponse = commentsResult.status === 'fulfilled' ? commentsResult.value : null
-  const commentsError = commentsResult.status === 'rejected' ? 'Kommentare konnten nicht geladen werden.' : null
   const relationsResponse = relationsResult.status === 'fulfilled' ? relationsResult.value : null
   // D-12: die Trefferzahl kommt aus der gefilterten Fetch-Antwort, nicht mehr aus
   // anime.episodes.length -- als episodeCount-Prop an FansubVersionBrowser durchgereicht.
@@ -261,7 +256,7 @@ async function AnimeDetailContent({ anime, searchParams }: {
         </section>
       </div>
 
-      {/* Content Area (Episodes, Comments) */}
+      {/* Content Area (Episodes) */}
       <div className={styles.contentArea}>
         <section className={styles.episodesSection}>
           {groupedEpisodesResponse ? (
@@ -291,14 +286,6 @@ async function AnimeDetailContent({ anime, searchParams }: {
         </section>
 
         <AnimeContributionsSection animeID={anime.id} />
-
-        <CommentSection
-          key={anime.id}
-          animeID={anime.id}
-          initialComments={commentsResponse?.data ?? []}
-          initialTotal={commentsResponse?.meta.total ?? 0}
-          initialError={commentsError}
-        />
       </div>
       </main>
     </AnimeMediaProvider>
