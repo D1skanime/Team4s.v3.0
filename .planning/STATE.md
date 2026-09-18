@@ -4,17 +4,25 @@ milestone: v1.4
 milestone_name: Coverage
 status: executing
 stopped_at: 164-07 Task 1 automated gate + audit doc done (9d4b4951); Task 3 dev harness route built (3cba39a1); Tasks 2/3 human-verify checkpoints (live Naruto browser UAT, live DOM/mobile-performance measurement) still open -- phase 164 NOT complete
-last_updated: "2026-09-17T23:51:55.744Z"
-last_activity: 2026-09-17
+last_updated: "2026-09-18T07:39:02.274Z"
+last_activity: 2026-09-18
 progress:
   total_phases: 29
   completed_phases: 28
-  total_plans: 270
-  completed_plans: 269
+  total_plans: 276
+  completed_plans: 270
   percent: 97
 ---
 
 # Project State
+
+## Gap-Closure-Planung Phase 164 abgeschlossen (18.09.2026) — 6 neue Pläne 164-08..164-13
+
+Live-UAT durch den Auftraggeber am 18.09.2026 (Naruto /anime/4, 11eyes: Pink Phantasmagoria /anime/3) ergab 12 Gaps (`164-UAT.md`, GAP-01..GAP-12); Checkpoint 164-07 bleibt NICHT abgenommen. `/gsd:plan-phase 164 --gaps` (headless) hat 6 zusätzliche Gap-Closure-Pläne erzeugt (`gap_closure: true`, 164-08 bis 164-13, 3 Gap-Wellen) — die ursprünglichen Pläne 164-01..164-07 wurden dabei NICHT verändert. gsd-plan-checker: 0 Blocker über beide Prüfläufe; 5 Warnings in Runde 1 (2 davon echte Testkonflikt-Risiken in 164-12/164-13, per gezielter Revision behoben und in Runde 2 bestätigt; 3 als nicht-blockierend akzeptiert: Datei-Anzahl >10 in 164-08/164-10, URL-Encoding-Konvention in 164-08 Task 1, Admin-Platzhalter-Duplikation in 164-12 als bewusste Diskretion dokumentiert). Nächste freie Migration `0169` für GAP-11 bestätigt (höchste bestehende: `0168_tag_genre_language_names`).
+
+**Decision-Coverage-Gate-Override (§13a, bewusst „Proceed anyway"):** `check.decision-coverage-plan` gegen `164-CONTEXT.md` meldet 31/36 nicht abgedeckte D-IDs (D-02..D-48, außer den zufällig als Bereichsgrenzen literal zitierten). Das ist ein Altbefund der bereits **ausgeführten** Pläne 164-01..164-07 (die Original-Pläne zitieren D-IDs überwiegend als Bereiche wie „D-01 through D-20" statt einzeln, was der Gate-Prüfung mit `\bD-NN\b`/6-Wort-Soft-Match entgeht) — keine dieser 36 Entscheidungen gehört zum Scope der 12 UAT-Gaps. Explizite Auftragsvorgabe für diesen Lauf war „keine Neuplanung der ursprünglichen Pläne"; ein Re-Plan von 164-01..07 nur zur Gate-Erfüllung hätte das verletzt. Override akzeptiert, damit verify-phase den Altbefund bei Bedarf erneut aufgreifen kann.
+
+Nächster Schritt: `/gsd:execute-phase 164` für 164-08..164-13; danach erneute Live-UAT durch den Auftraggeber.
 
 ## Abgeschlossen — Phase 162 „Fansub-Gruppenauswahl, Kurzgeschichte und Navigation“ (Live-UAT bestanden 17.09.2026)
 
@@ -957,7 +965,7 @@ timing flakiness, not a Phase 149 regression, and not yet root-caused.
 
 v1.4 remains complete; Phase 149 was appended additively (same pattern as 143-148), no new
 milestone was created.
-Last activity: 2026-09-17
+Last activity: 2026-09-18
 
 ## Accumulated Context
 
