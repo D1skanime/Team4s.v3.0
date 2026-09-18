@@ -71,7 +71,6 @@ async function AnimeDetailContent({ anime, searchParams }: {
     grid_query?: string | string[]
     fansub?: string | string[]
   }
-  const animeID = anime.id
   const breadcrumbItems = [
     { label: 'Anime', href: '/anime' },
     { label: anime.title },
