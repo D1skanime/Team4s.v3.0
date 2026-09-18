@@ -3,14 +3,14 @@ gsd_state_version: 1.0
 milestone: v1.4
 milestone_name: Coverage
 status: executing
-stopped_at: 164-11 complete (GAP-04..GAP-10 frontend contrast fixes); 3 gap-closure plans remain (164-10, 164-12, 164-13)
-last_updated: "2026-09-18T08:45:56.325Z"
+stopped_at: "164-10 complete (GAP-11 backend half: migration 0169 + publicEpisodeQuery labels + admin lookup endpoint); 2 gap-closure plans remain (164-12, 164-13)"
+last_updated: "2026-09-18T09:06:29.951Z"
 last_activity: 2026-09-18
 progress:
   total_phases: 29
   completed_phases: 28
   total_plans: 276
-  completed_plans: 273
+  completed_plans: 274
   percent: 97
 ---
 
@@ -165,10 +165,13 @@ independent of the gap-closure plans, which do not touch Plan 07's scope.
 Phase: 164 (oeffentliche-anime-seite-episode-release-ui-read-model-infinite-scroll) — EXECUTING
 gap-closure plans. Plan 164-08 (GAP-01 group logo URL + GAP-02 default release name, backend/
 read-model only), Plan 164-09 (GAP-12 import episode_type derived from anime.type,
-backend-only), and Plan 164-11 (GAP-04..GAP-10 FansubGroupPicker/FansubGroupContext/tag-chip
-contrast fixes, frontend-only) are complete and committed — see `164-08-SUMMARY.md`,
-`164-09-SUMMARY.md`, `164-11-SUMMARY.md`.
-Plan: 3 of 6 gap-closure plans done (164-08/164-09/164-11 done; 164-10/164-12/164-13 remain)
+backend-only), Plan 164-11 (GAP-04..GAP-10 FansubGroupPicker/FansubGroupContext/tag-chip
+contrast fixes, frontend-only), and Plan 164-10 (GAP-11 backend half: migration 0169
+episode_filler_types.label/episode_types.label, publicEpisodeQuery filler_type_label/
+episode_type_label, GET /admin/episode-classification-options) are complete and
+committed — see `164-08-SUMMARY.md`, `164-09-SUMMARY.md`, `164-10-SUMMARY.md`,
+`164-11-SUMMARY.md`.
+Plan: 4 of 6 gap-closure plans done (164-08/164-09/164-10/164-11 done; 164-12/164-13 remain)
 Status: Ready to execute
 DOM/mobile-performance measurement) and the gap-closure plans 164-09..164-13 all still need
 completion/human sign-off before Phase 164 itself can be marked complete in
@@ -1372,6 +1375,7 @@ Last activity: 2026-09-18
 - [Phase 164]: 164-08: release_name computed once in the backend (public_release_name.go), additive alongside title; frontend switch to release_name deferred to 164-12
 - [Phase 164]: GAP-12: neue Import-Episoden erhalten episode_type aus anime.type (mapAnimeTypeToEpisodeType), markiert mit episode_type_source='import'; manuelle Überschreibungen bleiben durch bestehenden COALESCE-Schutz unverändert.
 - [Phase 164]: GAP-04..GAP-10 (FansubGroupPicker/FansubGroupContext/tag-chip contrast) fixed via feature-local glass tokens and var(--accent-dark), matching computed AA contrast per plan 164-11
+- [Phase 164]: 164-10: GAP-11 backend half closed — migration 0169 adds episode_filler_types.label/episode_types.label (additive, backfilled with the 2026-09-18 Auftraggeber-approved strings); publicEpisodeQuery emits filler_type_label/episode_type_label via the existing eft/et LEFT JOINs (zero new queries); new GET /admin/episode-classification-options lists both lookup tables for the wave-3 frontend consumption plan (164-13)
 
 ### Pending Todos
 
@@ -1814,13 +1818,14 @@ untruncated list lives in `.planning/todos/pending/`.
 | Phase 164 P08 | 35min | 3 tasks | 15 files |
 | Phase 164 P09 | 20min | 1 tasks | 3 files |
 | Phase 164 P11 | 20min | 3 tasks | 5 files |
+| Phase 164 P10 | 55min | 3 tasks | 15 files |
 
 ## Session Continuity
 
-Last session: 2026-09-18T08:45:49.247Z
-Stopped at: 164-11 complete (GAP-04..GAP-10 frontend contrast fixes); 3 gap-closure plans remain (164-10, 164-12, 164-13)
+Last session: 2026-09-18T09:06:29.929Z
+Stopped at: 164-10 complete (GAP-11 backend half: migration 0169 + publicEpisodeQuery labels + admin lookup endpoint); 2 gap-closure plans remain (164-12, 164-13)
 Last activity: 2026-09-16 - Completed quick task 260916-ako: Jellyfin-Geschwisterquellen getrennt importieren; Liveimport zweier Folge-2-Quellen geprüft, keine Phasen-UAT ersetzt.
 Resume file: 
-.planning/phases/164-oeffentliche-anime-seite-episode-release-ui-read-model-infinite-scroll/164-11-SUMMARY.md
+.planning/phases/164-oeffentliche-anime-seite-episode-release-ui-read-model-infinite-scroll/164-10-SUMMARY.md
 
 Plans 151-02/03/04 have implementation summaries. Plans 151-01 and 151-05 remain open until final artwork/composition review, complete browser evidence and independent verification; their missing summaries are intentional. No requirement or phase has been falsely marked complete.

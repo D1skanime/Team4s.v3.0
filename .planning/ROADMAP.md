@@ -2020,7 +2020,7 @@ Plans:
 **Verbindliche Quelle:** `.planning/phases/164-oeffentliche-anime-seite-episode-release-ui-read-model-infinite-scroll/164-USER-REQUEST.md`
 **Scopegrenze:** keine Episode-Detailseite, kein Details-Dropdown, keine Screenshots/Rich-Text/Segmentdetails in der Preview, keine neue Klassifikationsheuristik, keine neue Virtualization-Library ohne Nachweis, keine Datenänderung durch Agenten. Planung ohne Ausführung – Freigabe durch den Auftraggeber abwarten.
 **UI hint:** yes
-**Plans:** 10/13 plans executed
+**Plans:** 11/13 plans executed
 
   - Wave 1: 164-01 (Backend Read-Model-Kern: publicEpisodeQuery-Erweiterung, batched Flags-Query, Modelle, Budget-Tests), 164-02 (Contracts: OpenAPI + TS-Typen additiv)
   - Wave 2: 164-03 (Backend Scale-Fixture + Query-Budget-/Paginations-Nachweis bei vielen Episoden, isolierte Test-DB), 164-04 (Frontend Episode-Glass-Card + Release-Preview-UI, D-01–D-20/D-48 visuelle Testfälle)
