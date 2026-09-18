@@ -246,6 +246,24 @@ describe('DB-sourced Canon/Filler und Episodentyp Optionen (GAP-11)', () => {
     })
   })
 
+  it('WR-04 (164 Code-Review): shows a visible error when the options fetch fails, instead of failing silently', async () => {
+    vi.resetModules()
+    vi.doMock('@/lib/api', () => ({
+      updateAdminEpisode: (episodeID: number, payload: AdminEpisodePatchRequest) =>
+        updateAdminEpisode(episodeID, payload),
+      getAdminEpisodeClassificationOptions: () => Promise.reject(new Error('network down')),
+    }))
+    const freshModule = await import('./EpisodeClassificationFields')
+    const { EpisodeClassificationFields: Fields } = freshModule
+
+    render(<Fields classification={ep01()} />)
+
+    const alert = await screen.findByRole('alert')
+    expect(alert.textContent).toContain('Einstufungs-Optionen konnten nicht geladen werden.')
+    // The Select must still show at least the current value -- it is not left empty.
+    expect(selectByLabel('Canon/Filler').value).toBe('unknown')
+  })
+
   it('Test 4 (Regression): saving a selection still calls updateAdminEpisode exactly as before', async () => {
     const { Fields } = await loadFreshFields(classificationOptionsResponse())
     const onSaved = vi.fn()

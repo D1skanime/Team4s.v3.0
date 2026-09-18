@@ -73,9 +73,14 @@ export function EpisodeClassificationFields({
         setOptionsLoaded(true)
       })
       .catch(() => {
-        // Fehler bleibt still: die Selects zeigen währenddessen nur den
-        // aktuell gesetzten Wert (siehe renderOptions unten). Ein späterer
+        if (cancelled) return
+        // WR-04 (164 Code-Review): der Fehler wird nicht mehr verschluckt --
+        // die Selects zeigen zwar weiterhin nur den aktuell gesetzten Wert
+        // (siehe renderOptions unten), aber der bestehende
+        // errorMessage/role="alert"-Slot macht sichtbar, dass die
+        // Einstufungs-Optionen nicht geladen werden konnten. Ein späterer
         // Mount kann es erneut versuchen, da der Cache oben zurückgesetzt wird.
+        setErrorMessage('Einstufungs-Optionen konnten nicht geladen werden.')
       })
     return () => {
       cancelled = true
