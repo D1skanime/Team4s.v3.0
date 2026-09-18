@@ -37,7 +37,11 @@ type publicReleaseTechnical struct {
 }
 
 func (r *ReleaseDetailPublicRepository) loadReleaseGroups(ctx context.Context, releaseVersionID int64) ([]PublicReleaseGroup, error) {
-	rows, err := r.db.Query(ctx, `SELECT fg.id, fg.slug, fg.name, CASE WHEN NULLIF(TRIM(logo.file_path),'') IS NOT NULL THEN '/api/v1/media/files/' || regexp_replace(TRIM(logo.file_path), '^.*/', '') ELSE NULLIF(TRIM(fg.logo_url), '') END FROM release_version_groups rvg JOIN fansub_groups fg ON fg.id=rvg.fansub_group_id LEFT JOIN media_assets logo ON logo.id=fg.logo_id WHERE rvg.release_version_id=$1 ORDER BY fg.name, fg.id`, releaseVersionID)
+	query := fmt.Sprintf(
+		`SELECT fg.id, fg.slug, fg.name, %s, %s FROM release_version_groups rvg JOIN fansub_groups fg ON fg.id=rvg.fansub_group_id LEFT JOIN media_assets logo ON logo.id=fg.logo_id WHERE rvg.release_version_id=$1 ORDER BY fg.name, fg.id`,
+		groupLogoFileNameSQL("logo"), groupLogoFallbackURLSQL("fg"),
+	)
+	rows, err := r.db.Query(ctx, query, releaseVersionID)
 	if err != nil {
 		return nil, fmt.Errorf("release detail: load groups: %w", err)
 	}
@@ -45,9 +49,11 @@ func (r *ReleaseDetailPublicRepository) loadReleaseGroups(ctx context.Context, r
 	items := make([]PublicReleaseGroup, 0)
 	for rows.Next() {
 		var item PublicReleaseGroup
-		if err := rows.Scan(&item.ID, &item.Slug, &item.Name, &item.LogoURL); err != nil {
+		var logoFileName, logoFallbackURL *string
+		if err := rows.Scan(&item.ID, &item.Slug, &item.Name, &logoFileName, &logoFallbackURL); err != nil {
 			return nil, err
 		}
+		item.LogoURL = buildGroupLogoURL(logoFileName, logoFallbackURL)
 		items = append(items, item)
 	}
 	return items, rows.Err()

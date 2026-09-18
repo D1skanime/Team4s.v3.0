@@ -174,14 +174,16 @@ INSERT INTO anime (id) VALUES (900);
 INSERT INTO episodes (id,anime_id,episode_number,title) VALUES (900,900,'1','Fixture episode');
 INSERT INTO fansub_releases (id,episode_id) VALUES (900,900);
 INSERT INTO release_versions (id,release_id) VALUES (900,900);
-INSERT INTO media_assets (id,file_path) VALUES (900,'/app/media/logo_fixture.png');
+INSERT INTO media_assets (id,file_path) VALUES (900,'/app/media/logo_fixture.png'), (904,'/app/media/logo with space #1.png');
 INSERT INTO fansub_groups (id,slug,name) VALUES
  (901,'media-logo-group','A Media-Logo Group'),
  (902,'url-logo-group','B URL-Logo Group'),
- (903,'no-logo-group','C No-Logo Group');
+ (903,'no-logo-group','C No-Logo Group'),
+ (904,'special-char-logo-group','D Special-Char-Logo Group');
 UPDATE fansub_groups SET logo_id=900 WHERE id=901;
 UPDATE fansub_groups SET logo_url='/api/v1/media/files/existing-logo.png' WHERE id=902;
-INSERT INTO release_version_groups VALUES (900,901),(900,902),(900,903);
+UPDATE fansub_groups SET logo_id=904 WHERE id=904;
+INSERT INTO release_version_groups VALUES (900,901),(900,902),(900,903),(900,904);
 `)
 	require.NoError(t, err)
 	return pool
@@ -200,7 +202,7 @@ func TestLoadReleaseGroupsResolvesMediaAssetLogoURL(t *testing.T) {
 
 	groups, err := repo.loadReleaseGroups(ctx, 900)
 	require.NoError(t, err)
-	require.Len(t, groups, 3)
+	require.Len(t, groups, 4)
 
 	byID := make(map[int64]PublicReleaseGroup, len(groups))
 	for _, g := range groups {
@@ -212,6 +214,9 @@ func TestLoadReleaseGroupsResolvesMediaAssetLogoURL(t *testing.T) {
 	require.NotNil(t, byID[902].LogoURL)
 	require.Equal(t, "/api/v1/media/files/existing-logo.png", *byID[902].LogoURL, "an already-correct stored logo_url must pass through verbatim")
 	require.Nil(t, byID[903].LogoURL, "a group with neither logo_id nor logo_url must yield no logo URL at all")
+	require.NotNil(t, byID[904].LogoURL)
+	require.Equal(t, "/api/v1/media/files/logo%20with%20space%20%231.png", *byID[904].LogoURL,
+		"a filename with a space and a special character (WR-03) must round-trip to a properly percent-escaped URL")
 }
 
 // openReleaseDetailHeaderFixture is a minimal Phase-117 fixture for loadReleaseHeader's

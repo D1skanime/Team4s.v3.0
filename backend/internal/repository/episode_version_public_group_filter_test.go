@@ -66,9 +66,11 @@ CREATE TABLE anime_fansub_groups (
 INSERT INTO anime (id,status) VALUES (7,'done'),(8,'done');
 INSERT INTO fansub_groups (id,slug,name) VALUES
  (3,'animeownage-fixture','AnimeOwnage Fixture'),(4,'project-messiah-fixture','Project Messiah Fixture');
--- 164-08 GAP-01: group 3 gets a media-asset logo (server file_path, not a web URL) to
--- prove the fix applies under the group-filter query path too, not just the unfiltered one.
-INSERT INTO media_assets (id,file_path) VALUES (390,'/app/media/ao-fixture-logo.png');
+-- 164-08 GAP-01 / 164 code review WR-03: group 3 gets a media-asset logo (server
+-- file_path, not a web URL, with a space and a special character in the filename) to
+-- prove the fix applies under the group-filter query path too, not just the unfiltered
+-- one, AND that the resulting URL is properly percent-escaped.
+INSERT INTO media_assets (id,file_path) VALUES (390,'/app/media/ao fixture logo #1.png');
 UPDATE fansub_groups SET logo_id=390 WHERE id=3;
 -- Slug resolution (D-05/T-163-03) is anime-scoped: both fixture animes carry
 -- both groups here so the resolver's own WHERE afg.anime_id=$1 is exercised,
@@ -172,8 +174,10 @@ func TestEpisodeVersionPublicGroupFilterBasics(t *testing.T) {
 		}
 		if ep.EpisodeID == 701 {
 			// GAP-01 regression under the group-filtered query path: group 3's
-			// media_assets.file_path must resolve to a web-safe URL here too.
-			require.Equal(t, "/api/v1/media/files/ao-fixture-logo.png",
+			// media_assets.file_path must resolve to a web-safe URL here too, and
+			// (WR-03, 164 code review) a filename with a space and a special
+			// character must round-trip to a properly percent-escaped URL.
+			require.Equal(t, "/api/v1/media/files/ao%20fixture%20logo%20%231.png",
 				publicFansubGroupField(t, ep.Versions[0]["fansub_groups"], 3, "logo_url"))
 		}
 	}

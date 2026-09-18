@@ -120,9 +120,8 @@ SELECT p.episode_id,p.episode_number,p.episode_title,p.filler_type,p.episode_typ
 FROM page p
 LEFT JOIN LATERAL (
  SELECT json_agg(json_build_object('id',fg.id,'slug',fg.slug,'name',fg.name,
-   'logo_url',CASE WHEN NULLIF(TRIM(logo.file_path),'') IS NOT NULL
-     THEN '/api/v1/media/files/' || regexp_replace(TRIM(logo.file_path), '^.*/', '')
-     ELSE NULLIF(TRIM(fg.logo_url), '') END)
+   'logo_file_name',%s,
+   'logo_fallback_url',%s)
   ORDER BY fg.name,fg.id) AS groups
  FROM release_version_groups rvg JOIN fansub_groups fg ON fg.id=rvg.fansub_group_id
  LEFT JOIN media_assets logo ON logo.id=fg.logo_id
@@ -133,7 +132,22 @@ ORDER BY p.episode_number,p.episode_id,COALESCE(p.variant_id,0)`,
 	publicReleaseNameSQL("rev", "e", "(SELECT string_agg(fg3.name, ' × ' ORDER BY fg3.name, fg3.id) "+
 		"FROM release_version_groups rvg3 JOIN fansub_groups fg3 ON fg3.id=rvg3.fansub_group_id "+
 		"WHERE rvg3.release_version_id=rev.id)"),
+	groupLogoFileNameSQL("logo"), groupLogoFallbackURLSQL("fg"),
 )
+
+// publicEpisodeGroupRow decodes the raw json_agg/json_build_object output of
+// publicEpisodeQuery's group LATERAL. The logo is decoded in two raw parts
+// (WR-02/WR-03, 164 code review) rather than a pre-built logo_url so the
+// percent-encoding of the basename can happen once in Go, via the shared
+// buildGroupLogoURL helper, instead of being duplicated (and left
+// unescaped) in SQL string concatenation.
+type publicEpisodeGroupRow struct {
+	ID              int64   `json:"id"`
+	Slug            string  `json:"slug"`
+	Name            string  `json:"name"`
+	LogoFileName    *string `json:"logo_file_name"`
+	LogoFallbackURL *string `json:"logo_fallback_url"`
+}
 
 type publicEpisodeRow struct {
 	episode          models.PublicGroupedEpisode
@@ -176,8 +190,18 @@ func (r *EpisodeVersionRepository) ListPublicGroupedByAnimeID(ctx context.Contex
 			v.ReleaseVersionID = *item.releaseVersionID
 			v.AnimeID = animeID
 			v.EpisodeNumber = e.EpisodeNumber
-			if err := json.Unmarshal(groups, &v.FansubGroups); err != nil {
+			var rawGroups []publicEpisodeGroupRow
+			if err := json.Unmarshal(groups, &rawGroups); err != nil {
 				return nil, fmt.Errorf("decode public episode groups: %w", err)
+			}
+			v.FansubGroups = make([]models.FansubGroupSummary, len(rawGroups))
+			for i, raw := range rawGroups {
+				v.FansubGroups[i] = models.FansubGroupSummary{
+					ID:      raw.ID,
+					Slug:    raw.Slug,
+					Name:    raw.Name,
+					LogoURL: buildGroupLogoURL(raw.LogoFileName, raw.LogoFallbackURL),
+				}
 			}
 		}
 		items = append(items, item)
