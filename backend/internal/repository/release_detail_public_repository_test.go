@@ -213,3 +213,57 @@ func TestLoadReleaseGroupsResolvesMediaAssetLogoURL(t *testing.T) {
 	require.Equal(t, "/api/v1/media/files/existing-logo.png", *byID[902].LogoURL, "an already-correct stored logo_url must pass through verbatim")
 	require.Nil(t, byID[903].LogoURL, "a group with neither logo_id nor logo_url must yield no logo URL at all")
 }
+
+// openReleaseDetailHeaderFixture is a minimal Phase-117 fixture for loadReleaseHeader's
+// GAP-02 title: one episode/fansub_release carrying three release_versions -- a
+// filename-as-title (must resolve to the computed default), a genuinely group-entered
+// title (must pass through verbatim), and a NULL title with two groups (coop default).
+func openReleaseDetailHeaderFixture(t *testing.T) *pgxpool.Pool {
+	t.Helper()
+	pool := testsupport.OpenPhase117Postgres(t)
+	_, err := pool.Exec(context.Background(), `
+ALTER TABLE fansub_groups ADD COLUMN slug TEXT NOT NULL DEFAULT '';
+ALTER TABLE release_variants ADD COLUMN filename TEXT;
+INSERT INTO anime (id) VALUES (910);
+INSERT INTO episodes (id,anime_id,episode_number,title) VALUES (910,910,'1','Header Episode');
+INSERT INTO fansub_releases (id,episode_id) VALUES (910,910);
+INSERT INTO release_versions (id,release_id,version,title) VALUES
+ (9101,910,'v1','Naruto.S01E01-AnimeOwnage.avi'),
+ (9102,910,'v1','Real Title'),
+ (9103,910,'v1',NULL);
+INSERT INTO release_variants (id,release_version_id,filename) VALUES
+ (9101,9101,'Naruto.S01E01-AnimeOwnage.avi'),
+ (9102,9102,'not-matching.mkv'),
+ (9103,9103,'coop-file.mkv');
+INSERT INTO fansub_groups (id,slug,name) VALUES
+ (9101,'header-solo','Solo Header Gruppe'),
+ (9102,'header-coop-a','Header Coop A'),
+ (9103,'header-coop-b','Header Coop B');
+INSERT INTO release_version_groups VALUES (9101,9101),(9102,9101),(9103,9102),(9103,9103);
+`)
+	require.NoError(t, err)
+	return pool
+}
+
+// TestLoadReleaseHeaderTitleUsesGapTwoDefaultFormat is 164-08's GAP-02 behavior test
+// for the release detail page's title (loadReleaseHeader), proving format parity with
+// the public anime page (164-08 Task 2): a filename-as-title resolves to the computed
+// default, a genuine title passes through verbatim, and a NULL title with two groups
+// resolves to the coop default -- all via the same publicReleaseNameSQL function.
+func TestLoadReleaseHeaderTitleUsesGapTwoDefaultFormat(t *testing.T) {
+	pool := openReleaseDetailHeaderFixture(t)
+	ctx := context.Background()
+	repo := NewReleaseDetailPublicRepository(pool, "")
+
+	header, err := repo.loadReleaseHeader(ctx, 910, 9101, 9101)
+	require.NoError(t, err)
+	require.Equal(t, "Header Episode · (Solo Header Gruppe) · v1", header.Title, "a filename-as-title must resolve to the computed default, never the filename")
+
+	header, err = repo.loadReleaseHeader(ctx, 910, 9101, 9102)
+	require.NoError(t, err)
+	require.Equal(t, "Real Title", header.Title, "a genuinely group-entered title must pass through verbatim")
+
+	header, err = repo.loadReleaseHeader(ctx, 910, 9102, 9103)
+	require.NoError(t, err)
+	require.Equal(t, "Header Episode · (Header Coop A × Header Coop B) · v1", header.Title, "a NULL title with two groups must resolve to the coop default, both groups regardless of which one's URL is being viewed")
+}

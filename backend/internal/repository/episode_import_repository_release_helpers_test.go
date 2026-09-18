@@ -4,6 +4,10 @@ import (
 	"os"
 	"strings"
 	"testing"
+
+	"github.com/stretchr/testify/require"
+
+	"team4s.v3/backend/internal/models"
 )
 
 func TestEpisodeImportReleaseCreationCrewHookOrdering(t *testing.T) {
@@ -41,5 +45,22 @@ func TestReleaseCreationCrewHookUsesCanonicalGroups(t *testing.T) {
 		if !strings.Contains(source, expected) {
 			t.Fatalf("missing canonical crew-hook contract fragment %q", expected)
 		}
+	}
+}
+
+// TestEpisodeImportReleaseTitleNeverWritesAFilename is 164-08's GAP-02 Test 3: a
+// newly-imported release's title must always be nil (release_versions.title stays
+// NULL), regardless of the media candidate's FileName/Path content -- the default
+// display name is computed on read (public_release_name.go), never stored. This
+// executes the real function, not a source-string assertion (CLAUDE.md Teststil).
+func TestEpisodeImportReleaseTitleNeverWritesAFilename(t *testing.T) {
+	mapping := models.EpisodeImportMappingRow{TargetEpisodeNumbers: []int32{7}}
+	for _, media := range []models.EpisodeImportMediaCandidate{
+		{FileName: "Naruto.S01E07-AnimeOwnage.avi"},
+		{FileName: "", Path: "/imports/naruto/Naruto.S01E07-AnimeOwnage.avi"},
+		{FileName: "", Path: ""},
+	} {
+		title := episodeImportReleaseTitle(mapping, media)
+		require.Nil(t, title, "episodeImportReleaseTitle must always return nil, regardless of FileName/Path")
 	}
 }
