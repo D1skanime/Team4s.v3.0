@@ -36,6 +36,7 @@ function variant(id: number, group: number, relations: AnimeFansubRelation[] = f
   return {
     id, variant_id: id, release_version_id: id + 100, anime_id: 22, episode_number: 1,
     title: `Variante ${group}`,
+    release_name: `Variante ${group}`,
     fansub_groups: [relations.find((relation) => relation.fansub_group?.id === group)!.fansub_group!],
     has_images: false, has_notes: false, has_karaoke: false,
   }

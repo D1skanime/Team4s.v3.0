@@ -239,7 +239,8 @@ describe('D-48 visueller Testfall-Katalog (Zeilen 1-19/24-25 aus 164-UI-SPEC.md)
 
 const variant = (id: number, group: number): PublicEpisodeVersion => ({
   id, variant_id: id, release_version_id: id + 100, anime_id: 22, episode_number: 1,
-  title: `Variante ${group}`, fansub_groups: [fansubs[group === 7 ? 0 : 1].fansub_group!],
+  title: `Variante ${group}`, release_name: `Variante ${group}`,
+  fansub_groups: [fansubs[group === 7 ? 0 : 1].fansub_group!],
   has_images: false, has_notes: false, has_karaoke: false,
 })
 const stateEpisodes = [{ ...DEFAULT_CLASSIFICATION, episode_id: 50, episode_number: 1, episode_title: 'Gruppenfolge', version_count: 2, versions: [variant(10, 7), variant(20, 9)] }]

@@ -68,6 +68,7 @@ function buildMockVersion(seed: number, isCoop: boolean): PublicEpisodeVersion {
     anime_id: MOCK_ANIME_ID,
     episode_number: seed,
     title: seed % 5 === 0 ? null : `Vorschau-Release ${seed}`,
+    release_name: `Vorschau-Release ${seed} · (PreviewSubs) · v1`,
     release_version: seed % 4 === 0 ? `v${1 + (seed % 3)}` : null,
     video_quality: VIDEO_QUALITIES[seed % VIDEO_QUALITIES.length],
     subtitle_type: SUBTITLE_TYPES[seed % SUBTITLE_TYPES.length],
