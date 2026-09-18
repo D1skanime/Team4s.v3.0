@@ -47,7 +47,11 @@ func (r *EpisodeImportRepository) applyReleaseNative(
 		}
 	}
 
-	episodeTypeID, err := lookupIDByName(ctx, tx, "episode_types", "episode")
+	var animeType string
+	if err := tx.QueryRow(ctx, "SELECT type FROM anime WHERE id = $1", input.AnimeID).Scan(&animeType); err != nil {
+		return nil, fmt.Errorf("lookup anime type anime=%d: %w", input.AnimeID, err)
+	}
+	episodeTypeID, err := lookupIDByName(ctx, tx, "episode_types", mapAnimeTypeToEpisodeType(animeType))
 	if err != nil {
 		return nil, err
 	}
@@ -117,6 +121,25 @@ type episodeImportReleaseIDs struct {
 	PrimaryEpisodeID int64
 	ReleaseSourceID  int64
 	StreamTypeID     int64
+}
+
+// mapAnimeTypeToEpisodeType leitet den Standard-Episodentyp für neu
+// importierte Episoden aus dem Anime-Typ ab (GAP-12: OVA/ONA/Movie/Special
+// wurden vorher immer fest auf "episode" gesetzt). Unbekannte oder leere
+// Werte fallen sicher auf "episode" zurück -- entspricht dem bisherigen Verhalten.
+func mapAnimeTypeToEpisodeType(animeType string) string {
+	switch animeType {
+	case "ova":
+		return "ova"
+	case "ona":
+		return "ona"
+	case "movie":
+		return "movie"
+	case "special":
+		return "special"
+	default:
+		return "episode"
+	}
 }
 
 func lookupIDByName(ctx context.Context, tx pgx.Tx, table string, name string) (int64, error) {
@@ -193,13 +216,13 @@ func upsertImportEpisode(
 		var createdID int64
 		if err := tx.QueryRow(ctx, `
 			INSERT INTO episodes (
-				anime_id, episode_number, title, status, episode_type_id,
+				anime_id, episode_number, title, status, episode_type_id, episode_type_source,
 				number, number_decimal, number_text, sort_index,
 				filler_type_id, filler_source, filler_note, modified_at
 			)
-			VALUES ($1, $2, $3, 'disabled', $4, $5, $6, $2, $7, $8, $9, $10, NOW())
+			VALUES ($1, $2, $3, 'disabled', $4, $11, $5, $6, $2, $7, $8, $9, $10, NOW())
 			RETURNING id
-		`, animeID, episodeNumber, displayTitle, episodeTypeID, canonical.EpisodeNumber, float64(canonical.EpisodeNumber), canonical.EpisodeNumber, fillerTypeID, canonical.FillerSource, canonical.FillerNote).Scan(&createdID); err != nil {
+		`, animeID, episodeNumber, displayTitle, episodeTypeID, canonical.EpisodeNumber, float64(canonical.EpisodeNumber), canonical.EpisodeNumber, fillerTypeID, canonical.FillerSource, canonical.FillerNote, models.EpisodeMetadataSourceImport).Scan(&createdID); err != nil {
 			return 0, false, fmt.Errorf("create canonical episode anime=%d number=%s: %w", animeID, episodeNumber, err)
 		}
 		return createdID, true, nil

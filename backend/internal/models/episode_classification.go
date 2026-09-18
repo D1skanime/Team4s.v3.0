@@ -4,6 +4,12 @@ package models
 // Ein normaler Reimport überschreibt solche Werte nicht.
 const EpisodeMetadataSourceManual = "manual"
 
+// EpisodeMetadataSourceImport kennzeichnet einen beim Episoden-Import
+// automatisch abgeleiteten Wert (z.B. episode_type_id aus anime.type,
+// GAP-12). Unterscheidet sich bewusst von EpisodeMetadataSourceManual, damit
+// ein späterer Reimport ihn weiterhin überschreiben darf.
+const EpisodeMetadataSourceImport = "import"
+
 // EpisodeFillerTypeNames sind die gültigen Canon/Filler-Einstufungen
 // (Lookup episode_filler_types).
 var EpisodeFillerTypeNames = []string{"unknown", "canon", "filler", "mixed", "recap"}
