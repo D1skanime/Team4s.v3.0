@@ -276,7 +276,9 @@ func (r *ReleaseDetailPublicRepository) loadReleaseHeader(
 		  AND e.anime_id = $2
 		  AND rvg.fansub_group_id = $3
 		LIMIT 1
-	`, publicReleaseTitleSQL("rv", "e", "fg")), releaseVersionID, animeID, groupID).Scan(
+	`, publicReleaseNameSQL("rv", "e", "(SELECT string_agg(fg2.name, ' × ' ORDER BY fg2.name, fg2.id) "+
+		"FROM release_version_groups rvg2 JOIN fansub_groups fg2 ON fg2.id=rvg2.fansub_group_id "+
+		"WHERE rvg2.release_version_id=rv.id)")), releaseVersionID, animeID, groupID).Scan(
 		&header.ReleaseVersionID,
 		&header.EpisodeNumber,
 		&header.EpisodeTitle,

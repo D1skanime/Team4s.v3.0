@@ -24,6 +24,12 @@ func TestPublicNoteRoleCode(t *testing.T) {
 	pool := testsupport.OpenPhase117Postgres(t)
 	ctx := context.Background()
 
+	// 164-08 GAP-02: loadReleaseHeader (called transitively via GetPublicReleaseDetail
+	// below) now uses publicReleaseNameSQL, whose titleEnteredByGroupSQL predicate
+	// reads release_variants.filename.
+	_, err := pool.Exec(ctx, `ALTER TABLE release_variants ADD COLUMN filename TEXT;`)
+	require.NoError(t, err)
+
 	const (
 		animeID           = int64(1)
 		episodeID         = int64(1)
@@ -35,7 +41,7 @@ func TestPublicNoteRoleCode(t *testing.T) {
 		noteID            = int64(1)
 	)
 
-	_, err := pool.Exec(ctx, `INSERT INTO anime (id) VALUES ($1)`, animeID)
+	_, err = pool.Exec(ctx, `INSERT INTO anime (id) VALUES ($1)`, animeID)
 	require.NoError(t, err)
 	_, err = pool.Exec(ctx, `INSERT INTO episodes (id, anime_id, episode_number) VALUES ($1, $2, '1')`, episodeID, animeID)
 	require.NoError(t, err)

@@ -414,12 +414,13 @@ func episodeImportFilename(media models.EpisodeImportMediaCandidate) string {
 	return ""
 }
 
+// episodeImportReleaseTitle always returns nil: per the GAP-02 Auftraggeber-
+// Entscheidung (164-UAT.md, 2026-09-18), the import path never writes a title into
+// release_versions.title anymore. The default display name a release shows when a
+// group has not entered its own title is computed on every read, once, in
+// public_release_name.go -- never derived from a filename or backfilled here.
 func episodeImportReleaseTitle(mapping models.EpisodeImportMappingRow, media models.EpisodeImportMediaCandidate) *string {
-	if filename := episodeImportFilename(media); filename != "" {
-		return &filename
-	}
-	label := fmt.Sprintf("Episode %d", mapping.TargetEpisodeNumbers[0])
-	return &label
+	return nil
 }
 
 func deriveFansubGroupName(media models.EpisodeImportMediaCandidate) string {

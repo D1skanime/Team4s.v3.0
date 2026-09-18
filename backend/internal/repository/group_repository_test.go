@@ -457,10 +457,15 @@ func TestReleaseDetailPublicTitleFallbackSource(t *testing.T) {
 		}
 	}
 
+	// 164-08 GAP-02: release_detail_public_repository.go's loadReleaseHeader was
+	// deliberately switched from this function to the new, independent
+	// publicReleaseNameSQL (public_release_name.go) -- it must no longer appear here
+	// (see TestLoadReleaseHeaderTitleUsesGapTwoDefaultFormat for the real,
+	// DB-executed proof of the new behavior). Only the two release-search/listing
+	// call sites this plan explicitly leaves untouched are checked below.
 	for fileName, content := range map[string]string{
-		"group_repository.go":                 helperContent,
-		"group_repository_cursor.go":          readRepositorySource(t, "group_repository_cursor.go"),
-		"release_detail_public_repository.go": readRepositorySource(t, "release_detail_public_repository.go"),
+		"group_repository.go":        helperContent,
+		"group_repository_cursor.go": readRepositorySource(t, "group_repository_cursor.go"),
 	} {
 		for _, fragment := range []string{
 			"publicReleaseTitleSQL(",
