@@ -161,8 +161,15 @@ export function defaultReleaseTitle(context: EpisodeVersionEditorContext): strin
   return 'Episode ' + padEpisodeNumber(context.version.episode_number) + ' ' + String.fromCharCode(0x00B7) + ' (' + groupNames + ') ' + String.fromCharCode(0x00B7) + ' ' + version
 }
 
+// WR-05 (164 Code-Review): muss exakt mit der Video-Container-Extensions-Liste in
+// public_release_name.go (`titleEnteredByGroupSQL`) uebereinstimmen. Ein breiteres
+// Muster (z.B. "beliebige 2-5 alphanumerische Zeichen nach einem Punkt") wuerde
+// einen legitimen, gruppen-eingetragenen Titel wie "OVA.01" faelschlich als
+// technischen Dateinamen einstufen und das Titelfeld leer rendern.
+const TECHNICAL_RELEASE_FILENAME_EXTENSIONS = /\.(mkv|avi|mp4|m4v|webm|ts|wmv|mov)$/i
+
 function isTechnicalReleaseFilename(value?: string | null): boolean {
-  return Boolean(value && /\.[a-z0-9]{2,5}$/i.test(value.trim()))
+  return Boolean(value && TECHNICAL_RELEASE_FILENAME_EXTENSIONS.test(value.trim()))
 }
 
 export function buildInitialFormState(context: EpisodeVersionEditorContext): FormState {

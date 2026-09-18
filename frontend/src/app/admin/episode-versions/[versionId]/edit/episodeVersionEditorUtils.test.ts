@@ -116,6 +116,34 @@ describe('release version crc32 helpers', () => {
   })
 })
 
+describe('WR-05 (164 Code-Review): isTechnicalReleaseFilename must match the backend video-extension whitelist', () => {
+  const baseVersionForTitle = {
+    id: 1, variant_id: 1, release_version_id: 10, anime_id: 2, episode_number: 1,
+    media_provider: '', media_item_id: '', segment_count: 0, has_segment_asset: false,
+    created_at: '', updated_at: '', release_version: 'v1',
+  }
+
+  function initialTitleFor(title: string): string {
+    return buildInitialFormState({
+      version: { ...baseVersionForTitle, title },
+      anime_title: 'Fixture',
+      selected_groups: [],
+      date_neighbors: [],
+    }).title
+  }
+
+  it('does not blank out a genuine, group-entered title that merely ends in a period plus digits', () => {
+    expect(initialTitleFor('OVA.01')).toBe('OVA.01')
+    expect(initialTitleFor('Special.02')).toBe('Special.02')
+  })
+
+  it('still blanks out an actual raw video filename with a known container extension', () => {
+    expect(initialTitleFor('Naruto.S01E01-AnimeOwnage.mkv')).toBe('')
+    expect(initialTitleFor('some-release.avi')).toBe('')
+    expect(initialTitleFor('some-release.mp4')).toBe('')
+  })
+})
+
 describe('release version date helpers', () => {
   it('formats API release dates as date-only picker values', () => {
     expect(toDateInputValue('2010-11-14T00:00:00.000Z')).toBe('2010-11-14')
