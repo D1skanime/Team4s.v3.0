@@ -101,7 +101,19 @@ lädt eine 4. Page und beweist, dass die 1. Page zu einem Spacer wird.
 644-648) ist eine **Schätzung, keine Messung** — dieser Task ersetzt sie nicht; das ist explizit Task
 3's Aufgabe.
 
-**Gemessener DOM-Node-Count (`/dev/episode-windowing-preview`, Chrome DevTools › Elements):** _[PENDING — vom Menschen in Task 3 auszufüllen]_
+**Gemessener DOM-Node-Count (`/dev/episode-windowing-preview`, Playwright im Frontend-Container,
+2026-09-18, Mobile-Viewport 390×844, 64 Mock-Episoden):** **835 Elemente gesamt, davon 70 `<li>`**
+(Episode-/Release-Listenelemente) — Wert bleibt beim Scrollen nach unten und wieder nach oben
+**konstant** (kein unbegrenztes Wachstum). **Einschränkung (ehrlich dokumentiert, nicht verschwiegen):**
+die Harness liefert alle 64 Episoden als **eine einzige Page** (`pagination.has_more=false`, siehe
+Kommentar im Harness-Quelltext oben) — dadurch wurde live **keine** Verdrängung/kein Rückwärtsladen
+über mehrere Pages gezeigt; dieser Teil von Gate 6/7 bleibt ausschließlich durch
+`FansubVersionBrowser.windowing.test.tsx`/`useWindowedEpisodePages.test.ts` (Unit-Test) belegt, nicht
+durch diese Live-Messung. Die 64-Episoden-Einzelseiten-Zahl (835/70) ist trotzdem die relevante
+Gate-6-Messung für „DOM wächst nicht unbegrenzt bei vielen gleichzeitig gerenderten Karten“.
+**Abweichung vom Plan:** 164-07-PLAN.md sah eine manuelle Chrome-DevTools-Messung durch einen Menschen
+vor; tatsächlich durchgeführt wurde eine automatisierte Playwright-Messung im Container am 18.09.2026,
+vom Auftraggeber als Erfüllung des Checkpoints akzeptiert (Freigabe „1 passt, 2 löschen“).
 
 ### Gate 7 — „Frühere Pages können beim Zurückscrollen wieder erscheinen.“
 
@@ -121,11 +133,16 @@ dass eine vor der Auslagerung aufgeklappte Episode nach der Wiederherstellung we
 `FansubVersionBrowser.tsx`, plus `overflow-anchor: auto` als Browser-natives Sicherheitsnetz
 (`FansubVersionBrowser.module.css`). Unit-seitig bewiesen durch dieselben Restore-Tests wie Gate 7
 (der Rückgabewert `scrollAnchorAdjustment` wird exakt geprüft).
-**Live-Messung: TEILWEISE AUSSTEHEND.**
+**Live-Messung:**
 - Task 2 (echtes Naruto), Schritt 4: Coop-Release-Rücksprung + ungefähre Scrollposition/aktiver
-  Filter nach Browser-Zurück — **PENDING**, Ergebnis vom Menschen einzutragen.
-- Task 3 (Großdatensatz-Harness): visuelle Bestätigung „keine sichtbaren Sprünge beim Aus-/Einlagern“
-  — **PENDING**, Ergebnis vom Menschen einzutragen.
+  Filter nach Browser-Zurück — **vom Auftraggeber am 18.09.2026 live abgenommen** (Live-UAT über
+  Tunnel `127.0.0.1:3300`, siehe 164-07-SUMMARY.md Abschnitt „Finale Freigabe").
+- Task 3 (Großdatensatz-Harness): die Harness lieferte alle 64 Episoden als eine einzige Page
+  (`has_more=false`), daher gab es dort strukturell **kein** Aus-/Einlagern zwischen mehreren Pages
+  zu beobachten — eine visuelle „keine sichtbaren Sprünge"-Bestätigung für den Mehr-Page-Fall ist auf
+  dieser Harness **nicht möglich** und wurde nicht behauptet. Die Eviction/Restoration-Mechanik selbst
+  bleibt ausschließlich durch die Unit-Tests (Gate 7) belegt. Innerhalb der Single-Page-Harness blieb
+  der gemessene DOM-Node-Count beim Scrollen konstant (siehe Gate 6).
 
 ### Gate 9 — „Gruppenfilter + Cursor bleiben konsistent.“
 
@@ -150,7 +167,7 @@ unfiltered ("Alle")     -> episode_count=5, Episoden 1-5
 ```
 Kein episodenübergreifendes Mischen, Coop-Episode 5 korrekt unter beiden Einzelfiltern sichtbar.
 **Live-Ergänzung (visuell, Browser):** Task 2, Schritt 5 (rasches Wechseln der Chips im echten
-Browser) — **PENDING**.
+Browser) — **vom Auftraggeber am 18.09.2026 live abgenommen** (siehe 164-07-SUMMARY.md).
 
 ### Gate 10 — „Response enthält keine schweren Release-Detaildaten.“
 
@@ -181,7 +198,15 @@ Layers-Profil gegen den `/dev/episode-windowing-preview`-Großdatensatz).**
 explizit Task 3's Aufgabe, nicht dieses Tasks.
 
 **Gemessene Frame-Rate/Paint-Kosten (Chrome DevTools Performance/Layers, Mobile-Viewport, 5+ gleichzeitig
-aufgeklappte Episoden, Scrollen):** _[PENDING — vom Menschen in Task 3 auszufüllen]_
+aufgeklappte Episoden, Scrollen):** **NICHT GEMESSEN.** Weder ein manuelles Chrome-DevTools-
+Performance/Layers-Profil noch ein automatisiertes Äquivalent wurde für dieses Gate erhoben — nur der
+DOM-Node-Count (Gate 6) wurde real gemessen. Es wird hier bewusst **keine** Zahl erfunden oder
+geschätzt. Der Auftraggeber hat die Phase am 18.09.2026 ausdrücklich trotz dieser offenen Messung
+abgenommen („1 passt, 2 löschen"); die Harness-Route wurde danach gelöscht (Entscheidung Task 3
+Schritt 4: **löschen**, nicht als dauerhafter Debug-Aid behalten), sodass eine spätere Nachmessung an
+dieser konkreten Route nicht mehr möglich ist. REQ-164-45 bleibt daher mit dieser expliziten Lücke
+(Frame-/Paint-Profil ausständig, Client-Freigabe trotzdem erteilt) dokumentiert, siehe
+`.planning/REQUIREMENTS.md`.
 
 ### Gate 12 — „Keine Race Conditions bei schnellem Scrollen/Filterwechsel.“
 
@@ -202,23 +227,25 @@ aufgeklappte Episoden, Scrollen):** _[PENDING — vom Menschen in Task 3 auszuf�
 
 | # | Gate (§47) | Automatisiert belegt | Live-Anteil ausstehend |
 |---|---|---|---|
-| 1 | Initial Load lädt nur erste Episode-Page | ✅ | Task 2 |
-| 2 | Keine weiteren Episode-Pages vorab geladen | ✅ | Task 2 |
+| 1 | Initial Load lädt nur erste Episode-Page | ✅ | Task 2 ✅ (18.09.2026 abgenommen) |
+| 2 | Keine weiteren Episode-Pages vorab geladen | ✅ | Task 2 ✅ |
 | 3 | Nächste Page erst bei Scroll-Bedarf | ✅ | — (Realdaten strukturell nicht mehrseitig) |
 | 4 | Query-Anzahl wächst nicht linear | ✅ | — |
-| 5 | Episode-Aufklappen ohne Request-Wasserfall | ✅ | Task 2 (visuell) |
-| 6 | DOM wächst nicht unbegrenzt | Struktur ✅ / Messung ⏳ | **Task 3** |
-| 7 | Frühere Pages beim Zurückscrollen | ✅ | — |
-| 8 | Scrollposition bleibt stabil | Struktur ✅ / Messung ⏳ | **Task 2 + Task 3** |
-| 9 | Gruppenfilter + Cursor konsistent | ✅ (+ live curl) | Task 2 (visuell) |
+| 5 | Episode-Aufklappen ohne Request-Wasserfall | ✅ | Task 2 ✅ (visuell) |
+| 6 | DOM wächst nicht unbegrenzt | Struktur ✅ / Messung ✅ (835 Elemente/70 li, 64 Episoden, 1 Page) | Task 3 ✅ (Playwright, s. o.) |
+| 7 | Frühere Pages beim Zurückscrollen | ✅ (nur Unit-Test — Harness zeigte keine Mehr-Page-Eviction) | — |
+| 8 | Scrollposition bleibt stabil | Struktur ✅ / Task 2 ✅ / Task 3: Harness einseitig, kein Mehr-Page-Sprungtest möglich | Task 2 ✅, Task 3 teilweise |
+| 9 | Gruppenfilter + Cursor konsistent | ✅ (+ live curl) | Task 2 ✅ (visuell) |
 | 10 | Keine schweren Release-Detaildaten | ✅ (+ live curl) | — |
-| 11 | Mobile bleibt performant | Struktur ✅ / Messung ⏳ | **Task 3** |
+| 11 | Mobile bleibt performant | Struktur ✅ / **Frame-/Paint-Messung NICHT durchgeführt** | Task 3 ❌ — Auftraggeber hat trotzdem abgenommen |
 | 12 | Keine Race Conditions | ✅ | — |
 
-9 von 12 Gates sind vollständig automatisiert belegt (1-5, 7, 9, 10, 12). Gates 6, 8 und 11 haben eine
-bewiesene strukturelle Grundlage, benötigen aber zwingend eine echte Browser-Messung (Task 2 für den
-Live-Naruto-Anteil von Gate 8/9, Task 3 für Gate 6/8/11 gegen den dev-only Großdatensatz) — diese
-stehen noch aus und werden NICHT in diesem Dokument vorweggenommen oder erfunden.
+9 von 12 Gates waren bereits nach Task 1 vollständig automatisiert belegt (1-5, 7, 9, 10, 12). Von den
+verbleibenden 3 (6, 8, 11) wurde Gate 6 am 18.09.2026 real gemessen (Playwright, siehe oben) und Gate 8
+über die Live-Naruto-UAT (Task 2) für seinen Naruto-Anteil bestätigt; **Gate 11s Frame-/Paint-Messung
+wurde nicht durchgeführt** und dieser Umstand wird hier bewusst offen dokumentiert statt geschätzt oder
+erfunden. Der Auftraggeber hat die Phase am 18.09.2026 ausdrücklich einschließlich dieser offenen
+Messung abgenommen (Wortlaut „1 passt, 2 löschen").
 
 ## §53 — Abschlussbericht der Planung (nachträglich aus der Ausführung belegt)
 
@@ -290,11 +317,58 @@ src/app/dev/episode-windowing-preview/page.tsx` 0 Findings, `curl` gegen die lau
 liefert HTTP 200 mit dem erwarteten Mock-Inhalt, und ein Backend-Log-Scan über den Ladezeitraum
 bestätigt **0 Requests** gegen `team4sv30-backend` durch diese Route.
 
-## Ausstehend (nicht Teil dieses automatisierten Laufs)
+## Finale Freigabe — 18.09.2026 (Task 2 + Task 3 abgeschlossen)
 
-- Task 2 (Live-Browser-UAT gegen echtes Naruto, `anime_id=4`) — **nicht durchgeführt**, da diese
-  Ausführungsumgebung keinen Browserzugriff hat. Die exakten Verifikationsschritte sind in
-  164-07-SUMMARY.md wörtlich zitiert.
-- Task 3s Live-Messungen (DOM-Node-Count, Mobile-Performance-/Layers-Profil) — **nicht durchgeführt**,
-  aus demselben Grund. Die Harness-Route `/dev/episode-windowing-preview` wurde gebaut und committet;
-  die eigentliche Messung erfordert einen Menschen mit Chrome DevTools.
+Der Auftraggeber hat Phase 164 am 18.09.2026 per Live-UAT über den SSH-Tunnel (`127.0.0.1:3300`)
+gegen drei reale Anime abgenommen: Naruto (`/anime/4`), 11eyes: Pink Phantasmagoria (`/anime/3`) und
+Buddy Complex (`/anime/1`) — inklusive erneuter Prüfung der zwischenzeitlich behobenen GAP-01..GAP-15
+aus `164-UAT.md`. Wörtliche Freigabe: **„1 passt, 2 löschen"** — Punkt 1 (Task 2, Live-Naruto-Browser-
+UAT inkl. der sechs in 164-07-PLAN.md vorgegebenen Prüfschritte) gilt als **bestanden**; Punkt 2 (Task
+3, Behalten-oder-Löschen-Entscheidung für die Dev-Harness-Route) wurde als **löschen** entschieden.
+
+**Task 2 — Ergebnis:** Alle sechs Prüfschritte aus 164-07-PLAN.md (Network-Tab Initial-Load, Glass-
+Card-Rendering, Zero-Request-Expand, Coop-Link + Back-Navigation/Filter-Erhalt, Filterwechsel ohne
+Vermischung, Response-Feld-Scan) sowie die zusätzliche Prüfung von GAP-01..GAP-15 auf allen drei
+genannten Anime gelten als vom Auftraggeber bestätigt. Siehe `164-07-SUMMARY.md` Abschnitt „Finale
+Freigabe" für die vollständige Dokumentation.
+
+**Task 3 — Ergebnis:** Die DOM-Node-Count-Messung wurde am 18.09.2026 per Playwright im
+Frontend-Container gegen die Harness-Route (`/dev/episode-windowing-preview`, Mobile-Viewport
+390×844, 64 Mock-Episoden) durchgeführt: **835 Elemente gesamt, 70 `<li>`, konstant beim Scrollen
+hoch/runter** (siehe Gate 6 oben für die vollständige Einschränkung zur Single-Page-Harness). Das
+Mobile-Frame-/Paint-Profil (Gate 11) wurde **nicht** gemessen — weder manuell noch automatisiert;
+diese Lücke wird hier bewusst offen dokumentiert statt mit einer erfundenen oder geschätzten Zahl
+geschlossen. Die Entscheidung lautete **löschen**: `frontend/src/app/dev/episode-windowing-preview/`
+wurde nach der Messung vollständig aus dem Repository entfernt (kein permanenter Debug-Aid).
+
+**Abweichung von der ursprünglichen Plan-Vorgabe:** 164-07-PLAN.md sah für Task 2/3 eine Ausführung
+durch einen Menschen mit echtem Browser/Chrome-DevTools vor. Tatsächlich wurde Task 2 durch eine
+Live-Browser-Sitzung des Auftraggebers selbst durchgeführt (kein Agent-Browserzugriff), und Task 3s
+DOM-Messung wurde durch eine automatisierte Playwright-Messung im Container ersetzt statt durch ein
+manuelles Chrome-DevTools-Profil — beides vom Auftraggeber ausdrücklich als ausreichend akzeptiert,
+mit der einen offen bleibenden Lücke (Gate 11 Frame-/Paint) klar benannt statt verschwiegen.
+
+## Nachtrag — Regressionslauf nach Löschung der Dev-Harness-Route (18.09.2026)
+
+Nach dem Löschen von `frontend/src/app/dev/episode-windowing-preview/` wurde der volle Gate erneut
+ausgeführt: `npm run typecheck` (0 Fehler, nach `rm -rf .next/types` gegen ein zwischenzeitlich
+verwaistes generiertes Typenartefakt — derselbe bereits oben dokumentierte Next.js-Dev-Artefakt-
+Mechanismus), `npm run lint` (dieselben 3 vorbestehenden, unveränderten Fehler wie oben), `npm run
+test -- --run` (dieselben 2 vorbestehenden `cssCustomProperties.guard.test.ts`-Fehlschläge; ein
+dritter, jeweils unterschiedlicher Testdatei-Fehlschlag pro Lauf — `PreviousContributionsSection.test.tsx`
+bzw. `DefaultCrewManager.test.tsx` — erwies sich beim isolierten Wiederholungslauf als bestehend/grün,
+also containerlast-bedingt flaky, keine Regression). `npm run build` schlägt weiterhin fehl, aber
+**nachweislich vorbestehend**: ein gezielter Diagnoselauf mit der Harness-Route temporär aus dem
+letzten Commit wiederhergestellt (`git checkout HEAD -- frontend/src/app/dev/episode-windowing-preview/page.tsx`,
+danach wieder gelöscht) zeigt exakt denselben Fehlerklasse-Typ (`TypeError: Cannot read properties of
+null`) auf `/claim-invitations/accept` (der bereits oben dokumentierten Stelle); ohne die Harness-Route
+verschiebt sich derselbe Build-Defekt lediglich auf `/_global-error` (`reading 'useContext'` statt
+`reading 'useEffect'`) — ein bereits vorbestehender, mehrseitiger Turbopack-Prerender-Defekt, der je
+Lauf die zuerst betroffene Seite meldet, keine durch diese Löschung neu entstandene Regression.
+Backend: `go build ./... && go vet ./...` fehlerfrei; `go test ./...` zeigt ausschließlich die bereits
+dokumentierten umgebungsabhängigen Fehlschläge (fehlende `TEAM4S_PHASE128_TEST_DSN`, kein laufender
+Live-Keycloak/Backend auf Port 18093 für `Phase134Matrix*`, fehlende Jellyfin-12-Fixture-Dateien für
+`TestEpisodeImport11eyesEnumeratesEveryPhysicalSource`/`Test11eyesSourceSelection_*`, ein vorbestehender
+`TestFansubRepository_PublicProfileSourceInvariants`-Fehlschlag) — nichts davon berührt vom Löschen der
+Dev-Route, da dieser Task keine Backend-Datei verändert hat. `docker restart team4sv30-frontend`
+durchgeführt; `curl` bestätigt `/dev/episode-windowing-preview` → `404` und `/anime/4` → `200`.

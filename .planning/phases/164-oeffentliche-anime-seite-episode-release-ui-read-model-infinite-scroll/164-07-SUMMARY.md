@@ -31,33 +31,60 @@ key-decisions:
   - "The dev harness delivers all 64 mock episodes as a single non-paginated page (pagination.has_more=false) rather than multiple fetchable pages, because useWindowedEpisodePages.ts's forward/backward loaders call the real getGroupedEpisodes API function with no injection point for a fake fetcher, and that file is out of this plan's files_modified scope. This guarantees the 'zero backend requests' operational constraint holds structurally even if a human scrolls past the sentinels, at the cost of not exercising live multi-page DOM eviction on the harness itself (eviction/restoration is already unit-tested per Gate 6/7 in the audit doc)."
   - "This plan's Task 1 gate run initially recorded a failing npm run typecheck/npm run build (AnimePageProps/Next.js 16 PageProps constraint error) before the frontend container was restarted for later live-curl evidence gathering; re-running both after the restart showed 0 typecheck errors, revealing the failure was a stale .next/dev/types generated-artifact issue, not a genuine source defect. Documented as a Nachtrag in the audit doc rather than silently correcting the earlier record. npm run build now surfaces a different, also pre-existing and phase-164-unrelated prerender failure on /claim-invitations/accept (last touched in phase 135)."
 
-requirements-completed: []
+requirements-completed: [REQ-164-45, REQ-164-46, REQ-164-47, REQ-164-48]
 
 # Metrics
-duration: ~85min (automated portion only; Tasks 2/3's human-verify checkpoints are unresolved)
-completed: 2026-09-17
+duration: ~85min (Task 1 automated) + Tasks 2/3 human-verify checkpoints closed 2026-09-18 (client live UAT + in-container Playwright measurement)
+completed: 2026-09-18
 ---
 
-# Phase 164 Plan 07: Performance-Gate Audit + Dev Harness (Task 1 automated; Tasks 2/3 await human live verification) Summary
+# Phase 164 Plan 07: Performance-Gate Audit + Dev Harness — Complete (Task 1 automated; Tasks 2/3 approved by client 2026-09-18) Summary
 
-**Ran the full automated backend+frontend gate, recorded 9 of 12 §47 performance gates with concrete test/command evidence plus live read-only curl confirmation against real Naruto data (Gates 4/9/10), and built a zero-backend-request dev-only 64-episode windowing harness for the two genuinely browser-only gates (6, 11) — but did NOT and could not perform the two human-verify checkpoints (Task 2 live-browser Naruto UAT, Task 3 live DOM/mobile-performance measurement) that this plan's own success criteria require before phase 164 can be considered closed.**
+**Ran the full automated backend+frontend gate, recorded 9 of 12 §47 performance gates with concrete test/command evidence plus live read-only curl confirmation against real Naruto data (Gates 4/9/10), and built a zero-backend-request dev-only 64-episode windowing harness for the two genuinely browser-only gates (6, 11). On 2026-09-18 the client performed the live Naruto/11eyes/Buddy-Complex UAT (Task 2, approved) and an in-container Playwright DOM measurement against the harness (Task 3, measured), then decided to delete the harness route. Gate 11's mobile frame/paint profile was not measured; the client approved the phase anyway, and this is documented as an explicit open gap, not a fabricated result.**
 
-## IMPORTANT — This plan is NOT complete. Phase 164 is NOT complete.
+## Finale Freigabe — 18.09.2026 (Tasks 2 + 3 abgeschlossen)
+
+Der Auftraggeber hat am 2026-09-18 per Live-UAT über den SSH-Tunnel (`127.0.0.1:3300`) gegen drei
+reale Anime geprüft: Naruto (`/anime/4`), 11eyes: Pink Phantasmagoria (`/anime/3`), Buddy Complex
+(`/anime/1`) — inklusive erneuter Prüfung der zwischenzeitlich behobenen GAP-01..GAP-15 (siehe
+`164-UAT.md`). Wörtliche Freigabe: **„1 passt, 2 löschen"**.
+
+- **Task 2 — bestanden.** Alle sechs Prüfschritte aus diesem Plan (Network-Tab Initial-Load,
+  Glass-Card-Rendering, Zero-Request-Expand, Coop-Link + Back-Navigation/Filter-Erhalt,
+  Filterwechsel ohne Vermischung, Response-Feld-Scan) sind vom Auftraggeber bestätigt.
+- **Task 3 — Messung durchgeführt, Entscheidung: löschen.** Am 2026-09-18 wurde die DOM-Node-Count-
+  Messung per Playwright im Frontend-Container gegen `/dev/episode-windowing-preview`
+  (Mobile-Viewport 390×844, 64 Mock-Episoden) erhoben: **835 Elemente gesamt, 70 `<li>`, konstant
+  beim Scrollen hoch/runter.** Die Harness lud alle 64 Episoden als eine einzige Page
+  (`pagination.has_more=false`), wodurch Verdrängung/Rückwärtsladen über mehrere Pages live **nicht**
+  gezeigt wurde — das bleibt ausschließlich durch die Unit-Tests belegt (siehe
+  `docs/audits/164-performance-gates.md`, Gate 6/7). Ein Mobile-Frame-/Paint-Profil (Gate 11) wurde
+  **nicht** gemessen; nichts wurde erfunden oder geschätzt. Der Auftraggeber hat die Phase trotz
+  dieser offenen Messung abgenommen. Entscheidung: die Harness-Route wird **gelöscht** (kein
+  dauerhafter Debug-Aid) — `frontend/src/app/dev/episode-windowing-preview/` wurde vollständig
+  entfernt.
+- **Abweichung von der Plan-Vorgabe:** 164-07-PLAN.md sah eine manuelle Chrome-DevTools-Messung durch
+  einen Menschen vor; tatsächlich erfolgte Task 3's Messung automatisiert per Playwright im Container.
+  Vom Auftraggeber ausdrücklich akzeptiert, mit der einen offen bleibenden Lücke (Gate 11) klar
+  benannt statt verschwiegen.
+
+Vollständige Gate-für-Gate-Aktualisierung: siehe `docs/audits/164-performance-gates.md`, Abschnitt
+„Finale Freigabe — 18.09.2026".
+
+## Ursprüngliche Ausführung (17.09.2026) — Task 1 automated; Tasks 2/3 waited on human live verification
 
 This execution had no browser access. Task 1 (`type="auto"`) is fully executed and committed.
 Tasks 2 and 3 are both `type="checkpoint:human-verify"` with `gate="blocking"` — they require a
-human with an actual browser and Chrome DevTools. **Neither checkpoint has been approved.** No
-number in this summary or in `docs/audits/164-performance-gates.md` for Gate 6 (DOM-node count),
-Gate 8's live portion (scroll-position visual stability), Gate 9's live portion (visual filter-chip
-confirmation), or Gate 11 (mobile frame-rate/paint-cost) has been measured or invented — those
-fields are explicitly left as `[PENDING — vom Menschen auszufüllen]` in the audit document.
+human with an actual browser and Chrome DevTools. No number in this summary or in
+`docs/audits/164-performance-gates.md` for Gate 6 (DOM-node count), Gate 8's live portion
+(scroll-position visual stability), Gate 9's live portion (visual filter-chip confirmation), or
+Gate 11 (mobile frame-rate/paint-cost) was measured or invented at that time — those fields were
+explicitly left as `[PENDING — vom Menschen auszufüllen]` in the audit document. Both checkpoints
+are now closed per the "Finale Freigabe" section above.
 
 **What IS done:** the full automated suite ran, the container was rebuilt to reflect plans
 164-01..164-06, and the harness route Task 3 asks for was built, verified (tsc/eslint clean, HTTP
-200, zero backend requests confirmed via log scan), and committed. **What is NOT done:** the actual
-live-browser UAT (Task 2) and the actual live DOM/mobile-performance measurement (Task 3's
-measurement step) — these require a human operator with a real browser and are quoted verbatim
-below for relay.
+200, zero backend requests confirmed via log scan), and committed.
 
 ## Performance
 
@@ -262,32 +289,33 @@ carries an explicit non-production/debug-aid comment.
 **Resume signal:** Type "approved" with the measured DOM-node count and frame-rate/paint-cost summary,
 or describe the specific deviation observed.
 
-## Next Phase Readiness
+## Next Phase Readiness — updated 2026-09-18
 
-- Phase 164 is **NOT complete**. Two blocking human-verify checkpoints remain: Task 2 (live Naruto
-  browser UAT) and Task 3 (live DOM-node-count + mobile Performance/Layers measurement against the
-  now-built `/dev/episode-windowing-preview` harness).
-- All prerequisite automated work for both checkpoints is in place: containers rebuilt/restarted with
-  the phase's full code, live read-only curl evidence already narrows what Task 2 needs to visually
-  confirm, and the harness route Task 3 needs already exists, is verified request-free, and is
-  committed.
-- Once a human performs both checkpoints, `docs/audits/164-performance-gates.md`'s three `PENDING`
-  fields (Gate 6 DOM-node count, Gate 8 live scroll-stability confirmation, Gate 11 frame-rate/paint-
-  cost) need to be filled in with the actual measured values — this plan does not consider that
-  optional or already covered by the structural/unit-test evidence.
-- STATE.md is updated to reflect this exact state (automated portion complete, phase paused at a
-  human-UAT checkpoint) — plan 164-07 and phase 164 are explicitly NOT marked complete in STATE.md,
-  ROADMAP.md, or REQUIREMENTS.md by this execution.
+- Both blocking human-verify checkpoints are now **closed**: Task 2 (live Naruto/11eyes/Buddy-Complex
+  UAT) approved by the client 2026-09-18; Task 3 (DOM-node-count measurement) performed 2026-09-18
+  (Playwright in-container, 835 elements/70 `<li>`, constant while scrolling), harness route deleted
+  per the client's explicit "löschen" decision. Gate 11's mobile frame/paint profile was never
+  measured — documented as an open gap the client chose to accept, not a silently-closed item.
+- `docs/audits/164-performance-gates.md`'s three `PENDING` fields (Gate 6 DOM-node count, Gate 8 live
+  scroll-stability confirmation, Gate 9 visual filter confirmation) are now filled in with the actual
+  2026-09-18 result; Gate 11 is explicitly marked "NICHT GEMESSEN" rather than filled with an invented
+  number.
+- `frontend/src/app/dev/episode-windowing-preview/` has been deleted (client decision, Task 3 step 4).
+- Phase 164 is marked complete in STATE.md, ROADMAP.md, and REQUIREMENTS.md following this closure.
 
 ---
 *Phase: 164-oeffentliche-anime-seite-episode-release-ui-read-model-infinite-scroll*
-*Completed (Task 1 + Task 3 automatable portion only): 2026-09-17*
-*Tasks 2 and 3's human-verify checkpoints remain open.*
+*Task 1 + Task 3 automatable portion completed: 2026-09-17*
+*Tasks 2 and 3's human-verify checkpoints approved by the client: 2026-09-18*
 
 ## Self-Check: PASSED
 
-Both created files verified present on disk (`docs/audits/164-performance-gates.md`,
-`frontend/src/app/dev/episode-windowing-preview/page.tsx`); both task commit hashes (`9d4b4951`,
-`3cba39a1`) verified present in `git log --oneline --all`. Task 2 has no commit to verify (no file
-changes possible for a pure human-verify checkpoint). Task 3's live-measurement steps have no commit
-because they were not performed — this is stated explicitly throughout this summary, not omitted.
+Both files created 2026-09-17 verified present on disk at that time
+(`docs/audits/164-performance-gates.md`, `frontend/src/app/dev/episode-windowing-preview/page.tsx`);
+both task commit hashes (`9d4b4951`, `3cba39a1`) verified present in `git log --oneline --all`. Task 2
+has no commit to verify (no file changes possible for a pure human-verify checkpoint) — its approval
+is recorded in the "Finale Freigabe" section above and in `164-UAT.md`. Task 3's live-measurement
+steps were performed 2026-09-18 (see "Finale Freigabe" above) and its harness route was subsequently
+deleted per the client's decision — verified via `git status`/`ls` showing the directory no longer
+exists, and via the frontend test/typecheck/lint/build run plus the live `curl` 404 check recorded in
+this phase's closure commit.
