@@ -118,7 +118,9 @@ SELECT p.episode_id,p.episode_number,p.episode_title,p.filler_type,p.episode_typ
 FROM page p
 LEFT JOIN LATERAL (
  SELECT json_agg(json_build_object('id',fg.id,'slug',fg.slug,'name',fg.name,
-   'logo_url',NULLIF(TRIM(COALESCE(logo.file_path, fg.logo_url)), ''))
+   'logo_url',CASE WHEN NULLIF(TRIM(logo.file_path),'') IS NOT NULL
+     THEN '/api/v1/media/files/' || regexp_replace(TRIM(logo.file_path), '^.*/', '')
+     ELSE NULLIF(TRIM(fg.logo_url), '') END)
   ORDER BY fg.name,fg.id) AS groups
  FROM release_version_groups rvg JOIN fansub_groups fg ON fg.id=rvg.fansub_group_id
  LEFT JOIN media_assets logo ON logo.id=fg.logo_id

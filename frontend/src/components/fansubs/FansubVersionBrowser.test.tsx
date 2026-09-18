@@ -183,11 +183,12 @@ describe('D-48 visueller Testfall-Katalog (Zeilen 1-19/24-25 aus 164-UI-SPEC.md)
     expect(screen.getByAltText('').getAttribute('src')).toBeTruthy()
   })
 
-  it('Testfall 11: Release ohne Gruppenlogo rendert den Initialen-Fallback, kein Dummy-Icon', async () => {
+  it('Testfall 11: Release ohne Gruppenlogo rendert weder Bild noch Platzhalter, nur den Gruppennamen (164-08 GAP-01)', async () => {
     render(<FansubVersionBrowser animeID={22} fansubs={[]} episodes={[classifiedEpisode()]} />)
     fireEvent.click(screen.getByRole('button', { name: /Testfolge/ }))
     expect(screen.queryByAltText('')).toBeNull()
-    expect(screen.getByText('A')).toBeTruthy()
+    expect(screen.queryByText('A')).toBeNull()
+    expect(screen.getByText('Anderer Gruppenname')).toBeTruthy()
   })
 
   it('Testfall 12/13: Release-Datum wird nur gerendert, wenn gepflegt', async () => {

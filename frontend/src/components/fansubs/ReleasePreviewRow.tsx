@@ -42,28 +42,20 @@ export function ReleasePreviewRow({ version, animeID }: ReleasePreviewRowProps) 
       <div className={styles.content}>
         <div className={styles.identity}>
           <div className={styles.logos}>
-            {groups.length > 0 ? (
-              groups.map((group) => {
-                const logoURL = resolveLogoUrl(group.logo_url)
-                return logoURL ? (
-                  <Image
-                    key={group.id}
-                    src={logoURL}
-                    alt=""
-                    className={styles.logo}
-                    width={36}
-                    height={36}
-                    unoptimized
-                  />
-                ) : (
-                  <div key={group.id} className={styles.logoFallback} aria-hidden="true">
-                    {group.name?.charAt(0)?.toUpperCase() || '?'}
-                  </div>
-                )
-              })
-            ) : (
-              <div className={styles.logoFallback} aria-hidden="true">?</div>
-            )}
+            {groups.map((group) => {
+              const logoURL = resolveLogoUrl(group.logo_url)
+              return logoURL ? (
+                <Image
+                  key={group.id}
+                  src={logoURL}
+                  alt=""
+                  className={styles.logo}
+                  width={36}
+                  height={36}
+                  unoptimized
+                />
+              ) : null
+            })}
           </div>
           <div className={styles.identityText}>
             <p className={styles.groupName}>

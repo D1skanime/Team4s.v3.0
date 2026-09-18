@@ -37,7 +37,7 @@ type publicReleaseTechnical struct {
 }
 
 func (r *ReleaseDetailPublicRepository) loadReleaseGroups(ctx context.Context, releaseVersionID int64) ([]PublicReleaseGroup, error) {
-	rows, err := r.db.Query(ctx, `SELECT fg.id, fg.slug, fg.name, NULLIF(TRIM(COALESCE(logo.file_path, fg.logo_url)), '') FROM release_version_groups rvg JOIN fansub_groups fg ON fg.id=rvg.fansub_group_id LEFT JOIN media_assets logo ON logo.id=fg.logo_id WHERE rvg.release_version_id=$1 ORDER BY fg.name, fg.id`, releaseVersionID)
+	rows, err := r.db.Query(ctx, `SELECT fg.id, fg.slug, fg.name, CASE WHEN NULLIF(TRIM(logo.file_path),'') IS NOT NULL THEN '/api/v1/media/files/' || regexp_replace(TRIM(logo.file_path), '^.*/', '') ELSE NULLIF(TRIM(fg.logo_url), '') END FROM release_version_groups rvg JOIN fansub_groups fg ON fg.id=rvg.fansub_group_id LEFT JOIN media_assets logo ON logo.id=fg.logo_id WHERE rvg.release_version_id=$1 ORDER BY fg.name, fg.id`, releaseVersionID)
 	if err != nil {
 		return nil, fmt.Errorf("release detail: load groups: %w", err)
 	}
