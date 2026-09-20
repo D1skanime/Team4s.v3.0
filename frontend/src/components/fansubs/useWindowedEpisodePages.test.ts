@@ -221,6 +221,235 @@ describe('useWindowedEpisodePages', () => {
     expect(result.current.pages[0].episodes[0].episode_id).toBe(100)
     expect(groupedMock).toHaveBeenLastCalledWith(4, expect.objectContaining({ fansub: 'other-group' }))
   })
+
+  // Quick-Task 260920-sad: forward-restore regression suite. The following seven tests are the
+  // mandatory regression cases from the task order -- they exercise the fix in loadNext() that
+  // now consults findAdjacentKnownPageId(..., 'after') (windowedPageWindow.ts) instead of the
+  // global tail page's own pagination, so a known-but-unmounted page is always restored before
+  // next_cursor of the real pagination frontier is ever consulted.
+
+  it('Forward -> Backward -> Forward stellt bekannte Pages in korrekter Reihenfolge wieder her, keine Sackgasse', async () => {
+    const { result } = renderHook(() => useWindowedEpisodePages({
+      animeID: 4, initialEpisodes: [ep(0)], initialPagination: { has_more: true, next_cursor: 'c1', row_limit: 24 }, activeFansubSlug: null,
+    }))
+    // Forward: load p1..p6 (7 pages total incl. p0) -- this is the same CACHE_MAX_PAGES=6
+    // overflow as the pre-existing "re-fetches a page..." test: it evicts p0 from pageCache
+    // (but never from orderedPageIds/pageMeta) while loading p6.
+    for (let index = 1; index <= 6; index++) {
+      const isLast = index === 6
+      groupedMock.mockResolvedValueOnce(page([ep(index)], !isLast, isLast ? null : `c${index + 1}`))
+      await act(async () => { await result.current.retryNext() })
+    }
+    expect(result.current.domWindowPageIds).toEqual(['p4', 'p5', 'p6'])
+
+    // Backward: scroll up until the window is p0/p1/p2 -- three cache hits (p3, p2, p1) plus
+    // one cache-miss refetch (p0). That refetch's own restoreIntoWindow eviction then pushes
+    // pageCache back over CACHE_MAX_PAGES=6 and evicts p3 -- the exact setup that previously
+    // caused loadNext() to dead-end on the global tail page's (p6, has_more=false) pagination.
+    groupedMock.mockResolvedValueOnce(page([ep(0)], true, 'c1'))
+    for (let step = 0; step < 4; step++) {
+      const topSentinel = document.createElement('div')
+      act(() => { result.current.topSentinelRef(topSentinel) })
+      await act(async () => { MockIntersectionObserver.fire(topSentinel) })
+      act(() => { result.current.reportPageHeight(result.current.domWindowPageIds[0], 200) })
+    }
+    expect(result.current.domWindowPageIds).toEqual(['p0', 'p1', 'p2'])
+    const callsAfterBackward = groupedMock.mock.calls.length
+    expect(callsAfterBackward).toBe(7) // 6 forward loads + 1 backward cache-miss refetch (p0).
+
+    // Forward again: p3 must be restored via a cache-miss refetch using its own stored cursor
+    // ('c3'). Because restoring p3 re-inserts it at the end of pageCache's insertion order
+    // (CACHE_MAX_PAGES=6), the very next evictCacheIfNeeded call evicts p4 (the oldest entry no
+    // longer in the DOM window at that moment) -- so p4 also needs exactly one cache-miss
+    // refetch (its own stored cursor, 'c4') before p5/p6 become pure cache hits (State A, zero
+    // further requests). This two-refetch cascade is itself part of "no scroll dead-end": every
+    // restore still succeeds and the window still advances one page at a time in order.
+    groupedMock.mockResolvedValueOnce(page([ep(3)], true, 'c4'))
+    groupedMock.mockResolvedValueOnce(page([ep(4)], true, 'c5'))
+    const expectedWindows = [['p1', 'p2', 'p3'], ['p2', 'p3', 'p4'], ['p3', 'p4', 'p5'], ['p4', 'p5', 'p6']]
+    for (const expectedWindow of expectedWindows) {
+      const bottomSentinel = document.createElement('div')
+      act(() => { result.current.bottomSentinelRef(bottomSentinel) })
+      await act(async () => { MockIntersectionObserver.fire(bottomSentinel) })
+      act(() => {
+        const ids = result.current.domWindowPageIds
+        result.current.reportPageHeight(ids[ids.length - 1], 200)
+      })
+      expect(result.current.domWindowPageIds).toEqual(expectedWindow)
+    }
+    // Exactly two additional requests across the whole forward-restore walk (p3 then p4
+    // refetch) -- CACHE_MAX_PAGES=6 derived, not guessed -- then p5/p6 are cache hits.
+    expect(groupedMock).toHaveBeenCalledTimes(9)
+    expect(groupedMock.mock.calls[callsAfterBackward][1]).toEqual(expect.objectContaining({ cursor: 'c3' }))
+    expect(groupedMock.mock.calls[callsAfterBackward + 1][1]).toEqual(expect.objectContaining({ cursor: 'c4' }))
+    expect(new Set(result.current.orderedPageIds).size).toBe(result.current.orderedPageIds.length)
+  })
+
+  it('kein unnötiger neuer API-Request, wenn die nächste Page noch im Cache ist', async () => {
+    const { result } = renderHook(() => useWindowedEpisodePages({
+      animeID: 4, initialEpisodes: [ep(0)], initialPagination: { has_more: true, next_cursor: 'c1', row_limit: 24 }, activeFansubSlug: null,
+    }))
+    for (let index = 1; index <= 3; index++) {
+      const isLast = index === 3
+      groupedMock.mockResolvedValueOnce(page([ep(index)], !isLast, isLast ? null : `c${index + 1}`))
+      await act(async () => { await result.current.retryNext() })
+    }
+    expect(result.current.domWindowPageIds).toEqual(['p1', 'p2', 'p3'])
+
+    const topSentinel = document.createElement('div')
+    act(() => { result.current.topSentinelRef(topSentinel) })
+    await act(async () => { MockIntersectionObserver.fire(topSentinel) })
+    act(() => { result.current.reportPageHeight(result.current.domWindowPageIds[0], 200) })
+    expect(result.current.domWindowPageIds).toEqual(['p0', 'p1', 'p2'])
+
+    const callsBeforeForward = groupedMock.mock.calls.length
+    const bottomSentinel = document.createElement('div')
+    act(() => { result.current.bottomSentinelRef(bottomSentinel) })
+    await act(async () => { MockIntersectionObserver.fire(bottomSentinel) })
+    expect(groupedMock).toHaveBeenCalledTimes(callsBeforeForward) // zero additional network calls -- p3 was a cache hit.
+    expect(result.current.domWindowPageIds).toEqual(['p1', 'p2', 'p3'])
+  })
+
+  it('bekannte Page nicht mehr im Cache -- exakt ein Refetch mit dem korrekten eigenen Cursor', async () => {
+    const { result } = renderHook(() => useWindowedEpisodePages({
+      animeID: 4, initialEpisodes: [ep(0)], initialPagination: { has_more: true, next_cursor: 'c1', row_limit: 24 }, activeFansubSlug: null,
+    }))
+    for (let index = 1; index <= 6; index++) {
+      const isLast = index === 6
+      groupedMock.mockResolvedValueOnce(page([ep(index)], !isLast, isLast ? null : `c${index + 1}`))
+      await act(async () => { await result.current.retryNext() })
+    }
+    groupedMock.mockResolvedValueOnce(page([ep(0)], true, 'c1'))
+    for (let step = 0; step < 4; step++) {
+      const topSentinel = document.createElement('div')
+      act(() => { result.current.topSentinelRef(topSentinel) })
+      await act(async () => { MockIntersectionObserver.fire(topSentinel) })
+      act(() => { result.current.reportPageHeight(result.current.domWindowPageIds[0], 200) })
+    }
+    expect(result.current.domWindowPageIds).toEqual(['p0', 'p1', 'p2'])
+    const callsBeforeRefetch = groupedMock.mock.calls.length
+
+    groupedMock.mockResolvedValueOnce(page([ep(3)], true, 'c4'))
+    const bottomSentinel = document.createElement('div')
+    act(() => { result.current.bottomSentinelRef(bottomSentinel) })
+    await act(async () => { MockIntersectionObserver.fire(bottomSentinel) })
+    expect(groupedMock).toHaveBeenCalledTimes(callsBeforeRefetch + 1)
+    // p3's cursorUsedToFetch is 'c3' (the cursor that originally produced it) -- the refetch
+    // must use exactly that, never next_cursor of some other page.
+    expect(groupedMock.mock.calls[callsBeforeRefetch][1]).toEqual(expect.objectContaining({ cursor: 'c3' }))
+    expect(result.current.domWindowPageIds).toEqual(['p1', 'p2', 'p3'])
+    expect(new Set(result.current.orderedPageIds).size).toBe(result.current.orderedPageIds.length)
+  })
+
+  it('Regressionstest: globale Tail-Page mit has_more=false blockiert nicht das Restaurieren einer bekannten Zwischen-Page', async () => {
+    const { result } = renderHook(() => useWindowedEpisodePages({
+      animeID: 4, initialEpisodes: [ep(0)], initialPagination: { has_more: true, next_cursor: 'c1', row_limit: 24 }, activeFansubSlug: null,
+    }))
+    for (let index = 1; index <= 6; index++) {
+      const isLast = index === 6
+      groupedMock.mockResolvedValueOnce(page([ep(index)], !isLast, isLast ? null : `c${index + 1}`))
+      await act(async () => { await result.current.retryNext() })
+    }
+    // The global tail page (p6) has has_more=false -- showEndMarker being true proves it, and
+    // this must NOT block restoring the known intermediate page p3 below.
+    expect(result.current.showEndMarker).toBe(true)
+
+    groupedMock.mockResolvedValueOnce(page([ep(0)], true, 'c1'))
+    for (let step = 0; step < 4; step++) {
+      const topSentinel = document.createElement('div')
+      act(() => { result.current.topSentinelRef(topSentinel) })
+      await act(async () => { MockIntersectionObserver.fire(topSentinel) })
+      act(() => { result.current.reportPageHeight(result.current.domWindowPageIds[0], 200) })
+    }
+    expect(result.current.domWindowPageIds).toEqual(['p0', 'p1', 'p2'])
+
+    groupedMock.mockResolvedValueOnce(page([ep(3)], true, 'c4'))
+    const bottomSentinel = document.createElement('div')
+    act(() => { result.current.bottomSentinelRef(bottomSentinel) })
+    await act(async () => { MockIntersectionObserver.fire(bottomSentinel) })
+    // Must restore the known p3, NOT dead-end because the global tail page p6 has has_more=false.
+    expect(result.current.domWindowPageIds).toEqual(['p1', 'p2', 'p3'])
+  })
+
+  it('Erst an der echten Frontier wird next_cursor konsultiert', async () => {
+    const { result } = renderHook(() => useWindowedEpisodePages({
+      animeID: 4, initialEpisodes: [ep(0)], initialPagination: { has_more: true, next_cursor: 'c1', row_limit: 24 }, activeFansubSlug: null,
+    }))
+    groupedMock.mockResolvedValueOnce(page([ep(1)], true, 'c2'))
+    await act(async () => { await result.current.retryNext() })
+    groupedMock.mockResolvedValueOnce(page([ep(2)], true, 'c3'))
+    await act(async () => { await result.current.retryNext() })
+    groupedMock.mockResolvedValueOnce(page([ep(3)], true, 'c4'))
+    await act(async () => { await result.current.retryNext() })
+    expect(result.current.domWindowPageIds).toEqual(['p1', 'p2', 'p3'])
+
+    // Window's end IS the global tail page (p3) here -- only now must next_cursor be consulted.
+    const callsBefore = groupedMock.mock.calls.length
+    groupedMock.mockResolvedValueOnce(page([ep(4)], false, null))
+    const bottomSentinel = document.createElement('div')
+    act(() => { result.current.bottomSentinelRef(bottomSentinel) })
+    await act(async () => { MockIntersectionObserver.fire(bottomSentinel) })
+    expect(groupedMock).toHaveBeenCalledTimes(callsBefore + 1)
+    expect(groupedMock).toHaveBeenLastCalledWith(4, expect.objectContaining({ cursor: 'c4' }))
+    expect(result.current.domWindowPageIds).toEqual(['p2', 'p3', 'p4'])
+  })
+
+  it('Ende der Liste -- kein Request, kein Loop, kein dauerhafter Ladezustand', async () => {
+    const { result } = renderHook(() => useWindowedEpisodePages({
+      animeID: 4, initialEpisodes: [ep(0)], initialPagination: { has_more: false, next_cursor: null, row_limit: 24 }, activeFansubSlug: null,
+    }))
+    const bottomSentinel = document.createElement('div')
+    act(() => { result.current.bottomSentinelRef(bottomSentinel) })
+    for (let i = 0; i < 3; i++) {
+      await act(async () => { MockIntersectionObserver.fire(bottomSentinel) })
+    }
+    expect(getGroupedEpisodes).not.toHaveBeenCalled()
+    expect(result.current.forwardLoading).toBe(false)
+    expect(result.current.domWindowPageIds).toEqual(['p0'])
+  })
+
+  it('Schneller Richtungswechsel während laufender Requests erzeugt keine doppelten Pages, keinen hängenden Ladezustand', async () => {
+    const { result } = renderHook(() => useWindowedEpisodePages({
+      animeID: 4, initialEpisodes: [ep(0)], initialPagination: { has_more: true, next_cursor: 'c1', row_limit: 24 }, activeFansubSlug: null,
+    }))
+    for (let index = 1; index <= 6; index++) {
+      const isLast = index === 6
+      groupedMock.mockResolvedValueOnce(page([ep(index)], !isLast, isLast ? null : `c${index + 1}`))
+      await act(async () => { await result.current.retryNext() })
+    }
+    groupedMock.mockResolvedValueOnce(page([ep(0)], true, 'c1'))
+    for (let step = 0; step < 4; step++) {
+      const topSentinel = document.createElement('div')
+      act(() => { result.current.topSentinelRef(topSentinel) })
+      await act(async () => { MockIntersectionObserver.fire(topSentinel) })
+      act(() => { result.current.reportPageHeight(result.current.domWindowPageIds[0], 200) })
+    }
+    expect(result.current.domWindowPageIds).toEqual(['p0', 'p1', 'p2'])
+
+    // p3 is known but cache-missed here (State B) -- start its refetch and leave the promise
+    // open to simulate a fast direction reversal mid-flight.
+    const pending = deferred<PublicGroupedEpisodesResponse>()
+    groupedMock.mockReturnValueOnce(pending.promise)
+    const bottomSentinel = document.createElement('div')
+    act(() => { result.current.bottomSentinelRef(bottomSentinel) })
+    act(() => { MockIntersectionObserver.fire(bottomSentinel) })
+    expect(result.current.forwardLoading).toBe(true)
+
+    // Reversing direction mid-flight must be a no-op (single-flight guard) -- no second request,
+    // backwardLoading never flips true while the forward refetch is still pending.
+    const callsWhilePending = groupedMock.mock.calls.length
+    const topSentinel = document.createElement('div')
+    act(() => { result.current.topSentinelRef(topSentinel) })
+    act(() => { MockIntersectionObserver.fire(topSentinel) })
+    expect(groupedMock).toHaveBeenCalledTimes(callsWhilePending)
+    expect(result.current.backwardLoading).toBe(false)
+
+    await act(async () => { pending.resolve(page([ep(3)], true, 'c4')) })
+    expect(result.current.domWindowPageIds).toEqual(['p1', 'p2', 'p3'])
+    expect(new Set(result.current.orderedPageIds).size).toBe(result.current.orderedPageIds.length)
+    expect(result.current.forwardLoading).toBe(false)
+    expect(result.current.backwardLoading).toBe(false)
+  })
 })
 
 function deferred<T>() {
