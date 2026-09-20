@@ -4,6 +4,7 @@ import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
 
 import { getGroupedEpisodes } from '@/lib/api'
 import type { PublicGroupedEpisode, PublicGroupedEpisodesResponse } from '@/types/episodeVersion'
+import { applyWindowSlide, findAdjacentKnownPageId, type WindowDirection } from './windowedPageWindow'
 
 type Pagination = PublicGroupedEpisodesResponse['data']['pagination']
 
@@ -131,12 +132,86 @@ export function useWindowedEpisodePages({
     return () => { requestRef.current?.abort(); requestRef.current = null }
   }, [])
 
+  // Restores a known page (cache-hit or freshly re-fetched) at the given edge of the DOM
+  // window. Direction-neutral: forward (`'after'`) and backward (`'before'`) restores share
+  // this single eviction/spacer/anchor mechanic via applyWindowSlide (windowedPageWindow.ts).
+  const restoreIntoWindow = useCallback((targetId: string, page: WindowedPage, direction: WindowDirection) => {
+    setCore((prev) => {
+      const pageCache = new Map(prev.pageCache)
+      pageCache.set(targetId, page)
+      const { windowPageIds: domWindowPageIds, evictedId } = applyWindowSlide(
+        prev.domWindowPageIds, targetId, direction, DOM_WINDOW_SIZE,
+      )
+      const spacers = new Map(prev.spacers)
+      if (evictedId) {
+        spacers.set(evictedId, lastKnownHeightsRef.current.get(evictedId) ?? 0)
+      }
+      const pendingRestoreIds = new Set(prev.pendingRestoreIds)
+      pendingRestoreIds.add(targetId)
+      evictCacheIfNeeded(pageCache, domWindowPageIds)
+      return { ...prev, domWindowPageIds, pageCache, spacers, pendingRestoreIds }
+    })
+  }, [])
+
+  // Cache-miss restore: re-issues the exact request that originally produced `targetId` (its
+  // own stored cursorUsedToFetch, never a client-invented one -- T-164-09) and restores it on
+  // success. Shared by loadNext's State B and loadPrevious's cache-miss path.
+  const refetchAndRestore = useCallback(async (
+    targetId: string,
+    direction: WindowDirection,
+    setLoading: (value: boolean) => void,
+    setError: (value: string | null) => void,
+    errorMessage: string,
+  ): Promise<void> => {
+    const meta = coreRef.current.pageMeta.get(targetId)
+    const controller = new AbortController()
+    requestRef.current = controller
+    setLoading(true)
+    setError(null)
+    try {
+      const response = await getGroupedEpisodes(animeID, {
+        projection: 'public',
+        limit: 24,
+        ...(activeFansubSlugRef.current ? { fansub: activeFansubSlugRef.current } : {}),
+        ...(meta?.cursorUsedToFetch ? { cursor: meta.cursorUsedToFetch } : {}),
+        signal: controller.signal,
+      })
+      if (controller.signal.aborted || requestRef.current !== controller) return
+      restoreIntoWindow(targetId, {
+        id: targetId, cursorUsedToFetch: meta?.cursorUsedToFetch ?? null, episodes: response.data.episodes, pagination: response.data.pagination,
+      }, direction)
+      requestRef.current = null
+      setLoading(false)
+    } catch {
+      if (controller.signal.aborted || requestRef.current !== controller) return
+      requestRef.current = null
+      setLoading(false)
+      setError(errorMessage)
+    }
+  }, [animeID, restoreIntoWindow])
+
   const loadNext = useCallback(async () => {
     // Single-flight guard (D-46#12): a second bottom-sentinel intersection while a request is
     // already pending issues no additional call.
     if (requestRef.current) return
     const current = coreRef.current
-    const tailId = current.orderedPageIds[current.orderedPageIds.length - 1]
+    // Quick-Task 260920-sad fix: consult the page directly behind the DOM window's end first
+    // -- NEVER the global tail page's pagination -- so a known-but-unmounted page in between
+    // is always restored (State A: cache-hit, State B: cache-miss-but-known) before the
+    // pagination frontier (State C) is ever consulted.
+    const nextKnownId = findAdjacentKnownPageId(current.orderedPageIds, current.domWindowPageIds, 'after')
+    if (nextKnownId) {
+      const cached = current.pageCache.get(nextKnownId)
+      if (cached) {
+        restoreIntoWindow(nextKnownId, cached, 'after') // State A: cache-hit, zero requests.
+        return
+      }
+      await refetchAndRestore(nextKnownId, 'after', setForwardLoading, setForwardError, 'Weitere Episoden konnten nicht geladen werden.') // State B.
+      return
+    }
+    // State C: the DOM window's end IS the global tail page -- only now is its own
+    // pagination/next_cursor consulted to decide whether a genuinely new page exists.
+    const tailId = current.domWindowPageIds[current.domWindowPageIds.length - 1]
     const pagination = tailId ? current.pageCache.get(tailId)?.pagination : undefined
     if (!pagination?.has_more || !pagination.next_cursor) return
     const controller = new AbortController()
@@ -161,11 +236,9 @@ export function useWindowedEpisodePages({
         const pageMeta = new Map(prev.pageMeta)
         pageMeta.set(id, { cursorUsedToFetch: pagination.next_cursor })
         const orderedPageIds = [...prev.orderedPageIds, id]
-        let domWindowPageIds = [...prev.domWindowPageIds, id]
+        const { windowPageIds: domWindowPageIds, evictedId } = applyWindowSlide(prev.domWindowPageIds, id, 'after', DOM_WINDOW_SIZE)
         const spacers = new Map(prev.spacers)
-        if (domWindowPageIds.length > DOM_WINDOW_SIZE) {
-          const evictedId = domWindowPageIds[0]
-          domWindowPageIds = domWindowPageIds.slice(1)
+        if (evictedId) {
           spacers.set(evictedId, lastKnownHeightsRef.current.get(evictedId) ?? 0)
         }
         evictCacheIfNeeded(pageCache, domWindowPageIds)
@@ -181,67 +254,20 @@ export function useWindowedEpisodePages({
       setForwardLoading(false)
       setForwardError('Weitere Episoden konnten nicht geladen werden.')
     }
-  }, [animeID])
-
-  const restoreIntoWindow = useCallback((targetId: string, page: WindowedPage) => {
-    setCore((prev) => {
-      const pageCache = new Map(prev.pageCache)
-      pageCache.set(targetId, page)
-      let domWindowPageIds = [targetId, ...prev.domWindowPageIds]
-      const spacers = new Map(prev.spacers)
-      if (domWindowPageIds.length > DOM_WINDOW_SIZE) {
-        // Top was just touched -- evict from the bottom (farthest from the touched end).
-        const evictedId = domWindowPageIds[domWindowPageIds.length - 1]
-        domWindowPageIds = domWindowPageIds.slice(0, DOM_WINDOW_SIZE)
-        spacers.set(evictedId, lastKnownHeightsRef.current.get(evictedId) ?? 0)
-      }
-      const pendingRestoreIds = new Set(prev.pendingRestoreIds)
-      pendingRestoreIds.add(targetId)
-      evictCacheIfNeeded(pageCache, domWindowPageIds)
-      return { ...prev, domWindowPageIds, pageCache, spacers, pendingRestoreIds }
-    })
-  }, [])
+  }, [animeID, refetchAndRestore, restoreIntoWindow])
 
   const loadPrevious = useCallback(async () => {
     if (requestRef.current) return
     const current = coreRef.current
-    const firstId = current.domWindowPageIds[0]
-    const firstIndex = firstId ? current.orderedPageIds.indexOf(firstId) : -1
-    if (firstIndex <= 0) return // window already includes the very first page -- nothing earlier exists.
-    const targetId = current.orderedPageIds[firstIndex - 1]
+    const targetId = findAdjacentKnownPageId(current.orderedPageIds, current.domWindowPageIds, 'before')
+    if (!targetId) return // window already includes the very first page -- nothing earlier exists.
     const cached = current.pageCache.get(targetId)
     if (cached) {
-      restoreIntoWindow(targetId, cached)
+      restoreIntoWindow(targetId, cached, 'before')
       return
     }
-    // Cache miss: re-issue the exact request that originally produced this page (never a
-    // client-invented cursor -- T-164-09).
-    const meta = current.pageMeta.get(targetId)
-    const controller = new AbortController()
-    requestRef.current = controller
-    setBackwardLoading(true)
-    setBackwardError(null)
-    try {
-      const response = await getGroupedEpisodes(animeID, {
-        projection: 'public',
-        limit: 24,
-        ...(activeFansubSlugRef.current ? { fansub: activeFansubSlugRef.current } : {}),
-        ...(meta?.cursorUsedToFetch ? { cursor: meta.cursorUsedToFetch } : {}),
-        signal: controller.signal,
-      })
-      if (controller.signal.aborted || requestRef.current !== controller) return
-      restoreIntoWindow(targetId, {
-        id: targetId, cursorUsedToFetch: meta?.cursorUsedToFetch ?? null, episodes: response.data.episodes, pagination: response.data.pagination,
-      })
-      requestRef.current = null
-      setBackwardLoading(false)
-    } catch {
-      if (controller.signal.aborted || requestRef.current !== controller) return
-      requestRef.current = null
-      setBackwardLoading(false)
-      setBackwardError('Frühere Episoden konnten nicht geladen werden.')
-    }
-  }, [animeID, restoreIntoWindow])
+    await refetchAndRestore(targetId, 'before', setBackwardLoading, setBackwardError, 'Frühere Episoden konnten nicht geladen werden.')
+  }, [refetchAndRestore, restoreIntoWindow])
 
   const resetForFilter = useCallback(async (slug: string | null): Promise<ResetForFilterResult> => {
     // D-40: a filter switch always aborts any in-flight page load, forward or backward.
