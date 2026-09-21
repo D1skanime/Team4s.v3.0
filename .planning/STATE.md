@@ -3,14 +3,14 @@ gsd_state_version: 1.0
 milestone: v1.4
 milestone_name: Coverage
 status: executing
-stopped_at: Completed 165-06-PLAN.md
-last_updated: "2026-09-21T15:17:35.525Z"
+stopped_at: Completed 165-12-PLAN.md
+last_updated: "2026-09-21T15:23:13.211Z"
 last_activity: 2026-09-21
 progress:
   total_phases: 31
   completed_phases: 29
   total_plans: 289
-  completed_plans: 284
+  completed_plans: 285
   percent: 94
 ---
 
@@ -212,7 +212,7 @@ Abschluss" entry below for the full closing record.
 ## Current Position
 
 Phase: 165 (library-discovery-assisted-anime-creation) — EXECUTING
-Plan: 9 of 13
+Plan: 10 of 13
 Status: Ready to execute
 dupliziertem ProjectMemberStickyNav; siehe 157-14-SUMMARY.md)
 GAP-02-Live-UAT-Checkpoint aus 156-UAT.md (5 Origin- + 9 Segment-Contributor-Pruefpunkte) wurde
@@ -1433,6 +1433,8 @@ Last activity: 2026-09-21
 - [Phase 165-08]: submitCreate({confirmDuplicate}) split lets the D-20 confirmed retry and the regular submit share one payload-building/validation path
 - [Phase 165-08]: AniSearchDuplicateDecision exposes one onCreateAsNew prop; CreateAniSearchIntakeCard picks handleAniSearchCreateAsNew vs handleConfirmedDuplicateCreate based on conflict.viaSaveTimeRecheck
 - [Phase 165-08]: useAdminAnimeCreateController takes a new optional {isDiscoveryFlow, returnURL} hook argument instead of threading the discovery flag through handleCreateSubmit
+- [Phase 165]: edit/page.test.tsx's new DiscoveryReturnLink cases use real render()+testing-library assertions instead of extending the file's pre-existing readFileSync/strings.Contains pattern, per CLAUDE.md's Teststil rule.
+- [Phase 165]: Used a partial vi.mock (importOriginal + override) for '@/lib/api' in edit/page.test.tsx rather than a full module mock, since AnimeEditWorkspace's dependency tree eagerly imports other real named exports at load time.
 
 ### Pending Todos
 
@@ -1889,11 +1891,12 @@ untruncated list lives in `.planning/todos/pending/`.
 | Phase 165 P13 | 6min | 1 tasks | 3 files |
 | Phase 165 P06 | 55min | 2 tasks | 10 files |
 | Phase 165 P08 | 25min | 3 tasks | 14 files |
+| Phase 165 P12 | ~20min | 1 tasks | 4 files |
 
 ## Session Continuity
 
-Last session: 2026-09-21T15:17:15.857Z
-Stopped at: Completed 165-06-PLAN.md
+Last session: 2026-09-21T15:23:13.189Z
+Stopped at: Completed 165-12-PLAN.md
 Last activity: 2026-09-20 - Completed quick task 260920-sad: Vorwärts-Restore-Defekt im bidirektionalen Episoden-Windowing (useWindowedEpisodePages.ts) behoben, 7 neue Regressionstests, keine Phasen-UAT ersetzt.
 Resume file: 
 None
