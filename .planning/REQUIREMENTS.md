@@ -566,7 +566,7 @@ Film-Content-Flow (§17–§24, §32) is out of scope — that is Phase 166.
 - [ ] **REQ-165-11**: Discovery-Kontext (Filter/Suche/Cursor) über die URL erhalten, „Zurück zur Bibliothek"-Rücksprung durch Create- und Episoden-Schritt (D-11).
 - [ ] **REQ-165-12**: Kein Provider-Framework, kein Source-Domain-Refactor, keine neue Fansub-Jellyfin-Kopplung; bestehende Flows regressieren nicht (D-12).
 - [ ] **REQ-165-13**: Globale UI-Primitives/Design-Tokens Pflicht, keine nativen `<button>/<input>/<select>`, deutsche Umlaute, Produktionsdateien ≤450 Zeilen, kein N+1 (D-13).
-- [ ] **REQ-165-14**: Episoden-Import-Ordnerauswahl bei mehreren verbundenen Jellyfin-Ordnern, mit serverseitiger fail-closed Prüfung, dass nur verbundene Jellyfin-IDs angenommen werden (D-14).
+- [x] **REQ-165-14**: Episoden-Import-Ordnerauswahl bei mehreren verbundenen Jellyfin-Ordnern, mit serverseitiger fail-closed Prüfung, dass nur verbundene Jellyfin-IDs angenommen werden (D-14).
 - [ ] **REQ-165-15**: Mehrstaffel-Ordner erhalten Status „teilweise"; das Schema für die Staffel→Anime-Zuordnung erfordert einen dem Auftraggeber vorgelegten Checkpoint vor jeder Umsetzung (D-15).
 - [x] **REQ-165-16**: „Ignorieren"/„Nicht mehr ignorieren" pro Bibliothekseintrag, eigener Filter, Status-Priorität bereits vorhanden > ignoriert > teilweise > offen (D-17).
 - [ ] **REQ-165-17**: Anime-Bearbeitungsseite zeigt alle verbundenen Jellyfin-Ordner; Zusatz-Ordner sind lösbar, der Haupt-Ordner bleibt über den bestehenden Weg verwaltet (D-18).

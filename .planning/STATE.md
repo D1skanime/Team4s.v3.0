@@ -4,13 +4,13 @@ milestone: v1.4
 milestone_name: Coverage
 status: executing
 stopped_at: Completed 165-03-PLAN.md
-last_updated: "2026-09-21T13:55:33.068Z"
+last_updated: "2026-09-21T14:18:41.866Z"
 last_activity: 2026-09-21
 progress:
   total_phases: 31
   completed_phases: 29
   total_plans: 289
-  completed_plans: 279
+  completed_plans: 280
   percent: 94
 ---
 
@@ -212,7 +212,7 @@ Abschluss" entry below for the full closing record.
 ## Current Position
 
 Phase: 165 (library-discovery-assisted-anime-creation) — EXECUTING
-Plan: 4 of 13
+Plan: 5 of 13
 Status: Ready to execute
 dupliziertem ProjectMemberStickyNav; siehe 157-14-SUMMARY.md)
 GAP-02-Live-UAT-Checkpoint aus 156-UAT.md (5 Origin- + 9 Segment-Contributor-Pruefpunkte) wurde
@@ -1423,6 +1423,8 @@ Last activity: 2026-09-21
 - [Phase 165]: 165-02: LibraryDiscoveryIgnoreRepository implemented as its own domain-split struct; Insert signature is (ctx, itemID, actorAppUserID) -- plan text's 'animeRepo interface' param treated as an artifact unused anywhere in the plan's own behavior spec.
 - [Phase 165]: 165-02: created disposable team4s_library_discovery_test Postgres DB with full migration chain applied, mirroring team4s_episode_metadata_test's persistent-DB convention.
 - [Phase 165-03]: Added a narrow adminAnimeCreateRepository interface + animeCreateRepo field (not in plan's files_modified) instead of widening h.repo's concrete type, so CreateAnime's save-time AniSearch duplicate guard and insert path are unit-testable via a fake without touching ~16 unrelated methods h.repo exposes elsewhere in the package. — h.repo is *repository.AdminContentRepository, used concretely across 5 other admin_content_*.go handler files; mirrors the existing aniSearchRepo interface pattern already in the same struct.
+- [Phase 165]: JellyfinFolderOption type placed in models package (not handlers) to avoid an import cycle with EpisodeImportContextResult — models cannot import handlers; handlers already imports models
+- [Phase 165]: EpisodeImportContextResult.JellyfinFolders only populated when an anime has >1 connected folder — Satisfies D-14 no-visible-new-field-in-regular-case while keeping the ownership guard fail-closed for single-folder animes
 
 ### Pending Todos
 
@@ -1874,10 +1876,11 @@ untruncated list lives in `.planning/todos/pending/`.
 | Phase 165 P01 | 35min | 3 tasks | 7 files |
 | Phase 165 P02 | 25min | 2 tasks | 4 files |
 | Phase 165 P03 | 20min | 1 tasks | 3 files |
+| Phase 165 P04 | 50min | 2 tasks | 11 files |
 
 ## Session Continuity
 
-Last session: 2026-09-21T13:55:33.042Z
+Last session: 2026-09-21T14:18:41.842Z
 Stopped at: Completed 165-03-PLAN.md
 Last activity: 2026-09-20 - Completed quick task 260920-sad: Vorwärts-Restore-Defekt im bidirektionalen Episoden-Windowing (useWindowedEpisodePages.ts) behoben, 7 neue Regressionstests, keine Phasen-UAT ersetzt.
 Resume file: 
