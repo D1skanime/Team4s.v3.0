@@ -194,7 +194,7 @@ vermerkt (Punkt 1). Punkte 20–23 sind neue Ergänzungen aus Update-Durchlauf 2
    die nicht Aufgabe dieses UI-Vertrags ist. Stattdessen zeigt die Toolbar nur die **ungefilterte**
    Bibliotheksgröße („{N} Einträge in der Bibliothek insgesamt", aus dem Cache-Snapshot ohnehin bekannt, keine
    zusätzliche Query) — ehrliche, aber günstige Information statt einer erfundenen/teuren gefilterten Zahl.
-6. **Ein manueller „Bibliothek neu laden"-Button ergänzt den TTL-Cache (D-06).** Da Discovery ~1500 Einträge über
+6. **Ein manueller „Bibliothek neu laden"-Button ergänzt den TTL-Cache (D-06).** Da Discovery ~2100 Einträge (D-29) über
    einen kurzlebigen Cache bezieht, könnte ein Admin, der gerade neue Dateien in Jellyfin importiert hat, einen
    veralteten Snapshot sehen. Ein `Button variant="ghost" size="sm"` mit `RefreshCw`-Icon in der Toolbar erzwingt
    einen Cache-Bypass für die nächste Anfrage — kleine, in sich abgeschlossene Ergänzung, kein neues Primitive,
@@ -272,7 +272,7 @@ vermerkt (Punkt 1). Punkte 20–23 sind neue Ergänzungen aus Update-Durchlauf 2
 17. **Die Aktionen zeigen bei Status „Offen"/„Teilweise" zwei gestapelte Buttons statt eines
     Dropdown-/Kebab-Menüs.** Mit „Ignorieren" kommt eine zweite mögliche Aktion pro Eintrag hinzu. Ein
     Kebab-Menü würde die zweite Aktion hinter einem zusätzlichen Klick verstecken — bei einer auf schnelles
-    Abarbeiten von ~50 Einträgen/Seite ausgelegten Liste (Auftrags-Ziel „~1500 Einträge zügig abarbeiten") ist die
+    Abarbeiten von ~50 Einträgen/Seite ausgelegten Liste (Auftrags-Ziel „~1500 Einträge zügig abarbeiten" — live D-29-Korrektur: ~2100) ist die
     direkte Sichtbarkeit beider Aktionen wichtiger als Kompaktheit. Vertikale Stapelung
     (`display:flex; flex-direction:column; gap:var(--space-1)`) hält den Aktionsbereich trotzdem kompakt und
     vermeidet zusätzliche Tab-Stopps eines Menüs. **Update-Durchlauf 2:** Gilt unverändert für die
@@ -474,7 +474,7 @@ Admin-Seitenstruktur (`PlatformAdminGate`, `PageHeader`) bleibt unverändert.
 
 | Zustand | Badge-Variante | Begründung |
 |---|---|---|
-| „Offen" | `variant="muted"` | Häufigster, neutraler Zustand (bei ~1500 Einträgen der Regelfall) — keine Warnfarbe, keine Erfolgsfarbe |
+| „Offen" | `variant="muted"` | Häufigster, neutraler Zustand (bei ~2100 Einträgen (D-29) der Regelfall) — keine Warnfarbe, keine Erfolgsfarbe |
 | „Bereits vorhanden" | `variant="success"` | Positiv besetzt: keine weitere Aktion nötig |
 | „Teilweise" | `variant="warning"` | Mehrstaffel-Ordner (D-15), bei dem noch nicht jede Jellyfin-Staffel einem Anime zugeordnet ist — Warnfarbe, weil (späterer) Handlungsbedarf besteht, aber kein Fehlerzustand vorliegt |
 | „Ignoriert" | `variant="info"` | Bewusst vom Admin ausgeblendeter Eintrag (D-17) — weder positiv noch negativ, informativ, klar unterscheidbar von „Offen" (muted) und „Bereits vorhanden" (success) |
