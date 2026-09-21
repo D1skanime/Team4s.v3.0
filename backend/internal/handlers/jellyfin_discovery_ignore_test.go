@@ -46,9 +46,12 @@ func newDiscoveryIgnoreTestHandler(ignoreRepo libraryDiscoveryIgnoreRepository, 
 }
 
 func newDiscoveryIgnoreTestRouter(handler *AdminContentHandler) *gin.Engine {
+	return newDiscoveryIgnoreTestRouterWithIdentity(handler, withTestAdminIdentityAppUser(7, 7))
+}
+
+func newDiscoveryIgnoreTestRouterWithIdentity(handler *AdminContentHandler, identity gin.HandlerFunc) *gin.Engine {
 	gin.SetMode(gin.TestMode)
 	router := gin.New()
-	identity := withTestAdminIdentityAppUser(7, 7)
 	router.POST("/api/v1/admin/jellyfin/discovery/ignore", identity, handler.IgnoreJellyfinDiscoveryItem)
 	router.DELETE("/api/v1/admin/jellyfin/discovery/ignore/:itemID", identity, handler.UnignoreJellyfinDiscoveryItem)
 	return router
@@ -176,5 +179,85 @@ func TestJellyfinDiscoveryIgnore_FailingAuditWriteDoesNotFailResponse(t *testing
 	}
 	if auditRepo.calls != 1 {
 		t.Fatalf("expected the audit write to have been attempted exactly once, got %d", auditRepo.calls)
+	}
+}
+
+// --- Test 5: nil auditLogRepo must not panic (bug A) -----------------------------------------
+
+func TestJellyfinDiscoveryIgnore_NilAuditLogRepoDoesNotPanic(t *testing.T) {
+	ignoreRepo := &fakeLibraryDiscoveryIgnoreRepo{}
+	router := newDiscoveryIgnoreTestRouter(newDiscoveryIgnoreTestHandler(ignoreRepo, nil))
+
+	code, _ := performDiscoveryIgnoreRequest(t, router, http.MethodPost, "/api/v1/admin/jellyfin/discovery/ignore", jellyfinDiscoveryIgnoreRequest{JellyfinItemID: "abc"})
+	if code != http.StatusOK {
+		t.Fatalf("expected 200 with a nil auditLogRepo (no panic), got %d", code)
+	}
+	if ignoreRepo.insertCalls != 1 {
+		t.Fatalf("expected the primary mutation to still succeed, got %d insert calls", ignoreRepo.insertCalls)
+	}
+}
+
+func TestJellyfinDiscoveryUnignore_NilAuditLogRepoDoesNotPanic(t *testing.T) {
+	ignoreRepo := &fakeLibraryDiscoveryIgnoreRepo{ignoredIDs: map[string]bool{"abc": true}}
+	router := newDiscoveryIgnoreTestRouter(newDiscoveryIgnoreTestHandler(ignoreRepo, nil))
+
+	code, _ := performDiscoveryIgnoreRequest(t, router, http.MethodDelete, "/api/v1/admin/jellyfin/discovery/ignore/abc", nil)
+	if code != http.StatusOK {
+		t.Fatalf("expected 200 with a nil auditLogRepo (no panic), got %d", code)
+	}
+	if ignoreRepo.removeCalls != 1 {
+		t.Fatalf("expected the primary mutation to still succeed, got %d remove calls", ignoreRepo.removeCalls)
+	}
+}
+
+// --- Test 6: zero-valued AppUserID must not produce an FK-violating audit write (bug B) -------
+//
+// audit_logs.actor_app_user_id has a FK to app_users(id); 0 is never a valid id. A legacy-only
+// identity not yet linked to app_users (middleware.AuthIdentity.LegacyUserLinked) can have
+// AppUserID == 0. actorPointersFromIdentity nils out a zero AppUserID instead of writing a
+// literal 0, so the audit write can succeed instead of silently failing the FK constraint.
+
+func TestJellyfinDiscoveryIgnore_ZeroAppUserIDNilsActorPointer(t *testing.T) {
+	ignoreRepo := &fakeLibraryDiscoveryIgnoreRepo{}
+	auditRepo := &fakeAuditLogWriter{}
+	router := newDiscoveryIgnoreTestRouterWithIdentity(
+		newDiscoveryIgnoreTestHandler(ignoreRepo, auditRepo),
+		withTestAdminIdentityAppUser(0, 7),
+	)
+
+	code, _ := performDiscoveryIgnoreRequest(t, router, http.MethodPost, "/api/v1/admin/jellyfin/discovery/ignore", jellyfinDiscoveryIgnoreRequest{JellyfinItemID: "abc"})
+	if code != http.StatusOK {
+		t.Fatalf("expected 200, got %d", code)
+	}
+	if auditRepo.calls != 1 {
+		t.Fatalf("expected exactly 1 audit write, got %d", auditRepo.calls)
+	}
+	entry := auditRepo.entries[0]
+	if entry.ActorAppUserID != nil {
+		t.Fatalf("expected ActorAppUserID to be nil for a zero-valued AppUserID, got %+v", *entry.ActorAppUserID)
+	}
+	if entry.ActorLegacyUserID == nil || *entry.ActorLegacyUserID != 7 {
+		t.Fatalf("expected ActorLegacyUserID 7, got %+v", entry.ActorLegacyUserID)
+	}
+}
+
+func TestJellyfinDiscoveryUnignore_ZeroAppUserIDNilsActorPointer(t *testing.T) {
+	ignoreRepo := &fakeLibraryDiscoveryIgnoreRepo{ignoredIDs: map[string]bool{"abc": true}}
+	auditRepo := &fakeAuditLogWriter{}
+	router := newDiscoveryIgnoreTestRouterWithIdentity(
+		newDiscoveryIgnoreTestHandler(ignoreRepo, auditRepo),
+		withTestAdminIdentityAppUser(0, 7),
+	)
+
+	code, _ := performDiscoveryIgnoreRequest(t, router, http.MethodDelete, "/api/v1/admin/jellyfin/discovery/ignore/abc", nil)
+	if code != http.StatusOK {
+		t.Fatalf("expected 200, got %d", code)
+	}
+	if auditRepo.calls != 1 {
+		t.Fatalf("expected exactly 1 audit write, got %d", auditRepo.calls)
+	}
+	entry := auditRepo.entries[0]
+	if entry.ActorAppUserID != nil {
+		t.Fatalf("expected ActorAppUserID to be nil for a zero-valued AppUserID, got %+v", *entry.ActorAppUserID)
 	}
 }

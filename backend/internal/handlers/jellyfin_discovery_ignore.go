@@ -4,6 +4,10 @@ package handlers
 // Beide Mutationen sind idempotent (165-02's ON CONFLICT DO NOTHING / DELETE-ohne-Fehler) und
 // schreiben je einen audit_logs-Eintrag (D-21); ein fehlgeschlagener Audit-Write blockiert die
 // erfolgreiche Mutations-Antwort nie (bestehende Repo-Konvention, `_ = h.auditLogRepo.Write(...)`).
+// Der Audit-Write ist mit `h.auditLogRepo != nil` abgesichert (Nil-Interface-Panic-Schutz) und
+// baut den Actor ueber actorPointersFromIdentity (jellyfin_source_folder_management.go) auf, damit
+// ein zero-wertiges AppUserID (noch nicht mit app_users verknuepfte Legacy-Identitaet) nicht an die
+// FK-constraint-gebundene Spalte audit_logs.actor_app_user_id geschrieben wird.
 
 import (
 	"log"
@@ -49,15 +53,18 @@ func (h *AdminContentHandler) IgnoreJellyfinDiscoveryItem(c *gin.Context) {
 		return
 	}
 
-	_ = h.auditLogRepo.Write(c.Request.Context(), repository.AuditLogEntry{
-		ActorAppUserID:    &identity.AppUserID,
-		ActorLegacyUserID: &identity.UserID,
-		EventType:         "jellyfin_discovery.ignored",
-		TargetType:        "jellyfin_item",
-		Action:            "ignore",
-		Outcome:           "allowed",
-		Payload:           map[string]any{"jellyfin_item_id": itemID, "server_key": "default"},
-	})
+	if h.auditLogRepo != nil {
+		appUserID, legacyUserID := actorPointersFromIdentity(identity)
+		_ = h.auditLogRepo.Write(c.Request.Context(), repository.AuditLogEntry{
+			ActorAppUserID:    appUserID,
+			ActorLegacyUserID: legacyUserID,
+			EventType:         "jellyfin_discovery.ignored",
+			TargetType:        "jellyfin_item",
+			Action:            "ignore",
+			Outcome:           "allowed",
+			Payload:           map[string]any{"jellyfin_item_id": itemID, "server_key": "default"},
+		})
+	}
 
 	c.JSON(http.StatusOK, gin.H{"message": "Jellyfin-Eintrag ignoriert."})
 }
@@ -86,15 +93,18 @@ func (h *AdminContentHandler) UnignoreJellyfinDiscoveryItem(c *gin.Context) {
 		return
 	}
 
-	_ = h.auditLogRepo.Write(c.Request.Context(), repository.AuditLogEntry{
-		ActorAppUserID:    &identity.AppUserID,
-		ActorLegacyUserID: &identity.UserID,
-		EventType:         "jellyfin_discovery.unignored",
-		TargetType:        "jellyfin_item",
-		Action:            "unignore",
-		Outcome:           "allowed",
-		Payload:           map[string]any{"jellyfin_item_id": itemID, "server_key": "default"},
-	})
+	if h.auditLogRepo != nil {
+		appUserID, legacyUserID := actorPointersFromIdentity(identity)
+		_ = h.auditLogRepo.Write(c.Request.Context(), repository.AuditLogEntry{
+			ActorAppUserID:    appUserID,
+			ActorLegacyUserID: legacyUserID,
+			EventType:         "jellyfin_discovery.unignored",
+			TargetType:        "jellyfin_item",
+			Action:            "unignore",
+			Outcome:           "allowed",
+			Payload:           map[string]any{"jellyfin_item_id": itemID, "server_key": "default"},
+		})
+	}
 
 	c.JSON(http.StatusOK, gin.H{"message": "Jellyfin-Eintrag nicht mehr ignoriert."})
 }
