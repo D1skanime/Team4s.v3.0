@@ -807,6 +807,72 @@ Referenzformat `jellyfin:<id>` in `anime.source`/`anime_source_links` bleibt unv
 verlangt explizit, hier nichts umzubauen; `server_key` ist ausschließlich eine Spalte auf den NEUEN
 Tabellen, keine Änderung an `anime`/`anime_source_links`.
 
+## §17 — D-27/D-28/D-29: Live-Nachmessung gegen die reale Jellyfin-Instanz (read-only, 2026-09-21)
+
+**a) Vollständiges Library-Inventar (`GET /Library/VirtualFolders`):**
+
+| Name | `CollectionType` | `ItemId` | `Locations` |
+|---|---|---|---|
+| Fansubs | `tvshows` | `5f65d0c8bdd71b782fc98205814a0d76` | `/media/Anime/Bonus/Anime.Bonus.BD-rips`, `/media/Anime/Bonus/Anime.Bonus.Dub`, `/media/Anime/Bonus/Anime.Bonus.Sub`, `/media/Anime/Bonus/Anime.Bonus.Webrips`, `/media/Anime/Movie/Anime.Film.Sub`, `/media/Anime/OVA/Anime.OVA.Sub`, `/media/Anime/Serie/Anime.TV.Sub`, `/media/Anime/Spezial/Anime.TV-Spezial.Sub` |
+| Musikvideos | `musicvideos` | — | `/media/Anime/AMV` |
+| Groups | `homevideos` | — | `/media/Subgroups` |
+
+Nur "Fansubs" ist für Discovery relevant. "Musikvideos"/"Groups" tragen keine `Series`-Items
+(andere Jellyfin-internen Item-Typen für diese Collection-Types), daher filtert
+`IncludeItemTypes=Series,Movie` sie strukturell aus einer ungefilterten globalen Abfrage heraus —
+**[ASSUMED, nicht einzeln live gegen diese zwei Libraries verifiziert]**: ein Wave-0-Test sollte das
+mit einem Fake-Server absichern, der auch Items aus einer dritten, nicht-tvshows-Library liefert und
+beweist, dass sie nicht im Discovery-Snapshot landen.
+
+**b) D-27 — Ungefilterter globaler Fallback ist Pflicht bei leerer Allowed-Library-Liste:**
+`JELLYFIN_ALLOWED_LIBRARY_IDS` erreicht den laufenden Backend-Container nicht (§ Pitfall 1 plus
+neuer Befund: `docker-compose.yml`s `team4sv30-backend`-Service leitet diese Variable nicht durch —
+kein `JELLYFIN_ALLOWED_LIBRARY_IDS`-Eintrag im `environment:`-Block, nur `JELLYFIN_API_KEY`/
+`JELLYFIN_BASE_URL`/`JELLYFIN_STREAM_PATH_TEMPLATE`). `h.jellyfinAllowedLibraryIDs` ist damit zur
+Laufzeit immer eine leere Liste. `searchJellyfinSeries` behandelt genau diesen Fall bereits korrekt
+(`jellyfin_client_series.go:59-76`, "no filter: existing single global request") — der bisherige
+Plan-Entwurf für `buildJellyfinDiscoverySnapshot` (165-01 Task 2) spiegelte jedoch nur den gefilterten
+Pro-Library-Zweig (Zeilen 78-103) und hätte bei leerer Liste **keinen** Request ausgelöst (leere
+`for`-Schleife über eine leere Liste) — mit der heutigen Laufzeit-Konfiguration wäre Discovery damit
+production-seitig leer, obwohl die Direktsuche funktioniert. Korrektur: der Snapshot-Builder muss
+**beide** Zweige von `searchJellyfinSeries` spiegeln (leer → ein globaler `/Items`-Request ohne
+`ParentId`; gesetzt → ein Request je Library mit `ParentId`), nicht nur den zweiten. Für den globalen
+Zweig ist die reale Antwortgröße (ohne `ParentId`-Filter, potenziell über mehrere Libraries) live
+**nicht** einzeln nachgemessen worden — als Sicherheitsnetz gegen eine serverseitige, hier nicht
+dokumentierte Jellyfin-Obergrenze empfiehlt sich defensive `StartIndex`/`Limit`-Seitenpaginierung
+beim Cache-Aufbau (in einer Schleife bis `Items.length < Limit` oder `StartIndex >= TotalRecordCount`),
+auch wenn die gefilterte Einzelmessung (§5b) zeigt, dass Jellyfin ohne `Limit`-Parameter alle 2111
+Items in einer Antwort zurückgab.
+
+**c) D-28 — Typ-Ableitung bleibt pfadbasiert, aber `buildJellyfinIntakeTypeHint` hat eine Lücke für "Spezial":**
+`GET /Items?IncludeItemTypes=Movie` liefert live sowohl global als auch mit
+`ParentId=5f65d0c8bdd71b782fc98205814a0d76` `TotalRecordCount=0` (bestätigt Pitfall 2 erneut, jetzt
+zusätzlich für die globale, ungefilterte Variante). Die bestehende `buildJellyfinIntakeTypeHint`
+(`jellyfin_intake_helpers.go:203-239`) ist bereits die richtige, wiederzuverwendende Grundlage für
+die Discovery-Typspalte (nicht `item.Type`) — **sie hat aber eine reale Lücke**: ihr
+`case strings.Contains(signal, "special") ...`-Zweig prüft nur die englische Schreibweise. Der live
+gefundene Ordnername `Spezial`/`Anime.TV-Spezial.Sub` (deutsch, mit `z`) erzeugt über
+`normalizeJellyfinTypeHintSignal` das Signal `" media anime spezial anime tv spezial sub "` — das
+enthält `"spezial"`, aber **nicht** `"special"` (Substring-Vergleich, `c` vs. `z`) — und fällt damit
+auf den `default: "tv"`-Zweig zurück. Ohne Korrektur zeigt Discovery Spezial-Ordner fälschlich als
+"Serie" an, obwohl D-28 "Spezial" explizit als eigenen abzuleitenden Typ verlangt. Empfehlung: den
+`case`-Zweig um `|| strings.Contains(signal, "spezial")` erweitern (additive, kein Verhaltensbruch
+für bestehende Aufrufer wie die Direktsuche — "special" matcht weiterhin, "spezial" matcht neu dazu).
+Die übrigen Ordnernamen (`Bonus`, `Movie`/`Film`, `OVA`, `Serie`) matchen die bestehende Heuristik
+bereits korrekt (verifiziert durch manuelles Durchspielen von `normalizeJellyfinTypeHintSignal` gegen
+alle acht live gefundenen `Fansubs`-Pfadsegmente).
+
+**d) D-29 — Mengengerüst-Korrektur:** `TotalRecordCount=2111` für
+`IncludeItemTypes=Series&ParentId=5f65d0c8bdd71b782fc98205814a0d76` (§5b, erneut bestätigt), nicht
+~1500 wie in `165-USER-REQUEST.md`/`165-CONTEXT.md`s "Specific Ideas" ursprünglich angenommen. Bei
+~50 Einträgen/Seite (Claude's Discretion, CONTEXT.md) ergibt das ~43 Seiten statt ~30 — reine
+Skalierungskorrektur, keine architektonische Konsequenz (D-07s Budget bleibt Requests unabhängig von
+der Seitenzahl). Relevant für: (1) Cache-Payload-Größe (§5c: 1,46 MB bei 2111 Items — realistischer
+Vergleichswert als ein 1500er-Schätzwert), (2) Test-Fixtures, die eine realistische Skalierung
+beweisen sollen (Pflichttest F), sollten mit einer Snapshot-Größe in der Größenordnung von ~2000+
+Items arbeiten, nicht mit einer kleinen Handvoll, um O(n²)-Fallen im Cursor-Seek oder in der
+Existenzprüfungs-Batchbildung auszuschließen.
+
 ## Architecture Patterns
 
 ### System Architecture Diagram
@@ -1340,7 +1406,7 @@ Bestätigung erfordert.
 | C (kein Fuzzy-Match) | Naruto ≠ Naruto Shippuden bleibt "offen" | unit | Testdaten mit ähnlichen, aber nicht identischen Titeln/IDs | ❌ Wave 0 |
 | D (Zuordnung-prüfen-Fall, jetzt via D-02 erst nach AniSearch) | Kein automatischer Create bei Namensähnlichkeit ohne technische Referenz | unit (AniSearch-Enrich-Service) | bereits als `Enrich()`-Redirect-Test-Muster vorhanden (`anime_create_enrichment_test.go`, falls existent — zu verifizieren) | ⚠️ prüfen |
 | E (Movie-Discovery sichtbar) | "Film"-Items (Pfad-Heuristik) erscheinen in der Liste | unit | Testdaten mit `/Movie/`-Pfad-Fixture | ❌ Wave 0 |
-| F (Pagination korrekt, kein Fan-out) | Cursor liefert keine Duplikate, 1 DB-Query/Seite, kein Requests-pro-Item | integration + Query-Zähler-Test (Muster: bestehende N+1-Guard-Tests im Repo, z. B. `jellyfin_source_batch_test.go`) | `go test ./internal/repository/... -run TestJellyfinDiscoveryCursor` | ❌ Wave 0 |
+| F (Pagination korrekt, kein Fan-out) | Cursor liefert keine Duplikate, 1 DB-Query/Seite, kein Requests-pro-Item — **Fixture-Größe ~2100 Items (D-29), nicht nur wenige, um O(n²)-Fallen im Cursor-Seek auszuschließen** | integration + Query-Zähler-Test (Muster: bestehende N+1-Guard-Tests im Repo, z. B. `jellyfin_source_batch_test.go`) | `go test ./internal/repository/... -run TestJellyfinDiscoveryCursor` | ❌ Wave 0 |
 | G (Discovery→Draft vollständig) | Übernahme von ID/Name/Path/Typ-Hint/Jahr/Assets | Frontend-Unit (Vitest, Muster `CreateAniSearchIntakeCard.test.tsx`) | `npx vitest run src/app/admin/anime/create/DiscoveryLibraryPanel.test.tsx` | ❌ Wave 0 |
 | H (keine Auto-Auswahl bei 1 Treffer) | AniSearch-Suche wählt nie automatisch aus | Frontend-Unit | Muster bereits vorhanden für den Direktflow, zu erweitern | ⚠️ prüfen ob bereits getestet |
 | I (AniSearch bleibt maßgeblich beim Merge) | `mergeCreateDraftPayload`/`resolveCreateAniSearchDraftMergeInputs` unverändert | bereits bestehende Tests, Regressionscheck | `go test ./internal/services/... -run TestMergeCreateDraft`, `npx vitest run createPageHelpers.test.ts` | ✓ bereits vorhanden (Regressionsschutz) |
@@ -1356,6 +1422,9 @@ Bestätigung erfordert.
 | D-20 (Save-Time-Recheck) | `CreateAnime` lehnt/redirected bei `anisearch:<id>`-Kollision unmittelbar vor dem Insert | unit (Handler + Fake-Repo) | `go test ./internal/handlers/... -run TestCreateAnime_RechecksAniSearchDuplicateBeforeInsert` (neu) | ❌ Wave 0 |
 | D-21 (Audit-Attribution) | Verbinden/Ordner-lösen/Ignorieren/Entignorieren schreiben je einen `audit_logs`-Eintrag mit korrektem `actor_app_user_id` | unit (Fake `AuditLogRepository`) | `go test ./internal/handlers/... -run TestJellyfinDiscoveryActions_WriteAudit` (neu) | ❌ Wave 0 |
 | D-22 (server_key-Default) | Neue Tabellen(zeilen) tragen `server_key='default'` ohne explizite Angabe | unit (Migration/Repo) | `go test ./internal/repository/... -run TestLibraryDiscoveryIgnoredItems_DefaultsServerKey` (neu) | ❌ Wave 0 |
+| D-27 (globaler Fallback bei leerer Allowed-Library-Liste) | Bei leerer `jellyfinAllowedLibraryIDs` macht der Snapshot-Builder einen ungefilterten globalen `/Items`-Request (kein `ParentId`) statt einer leeren Pro-Library-Schleife; bei gesetzter Liste bleibt der gefilterte Pro-Library-Weg | unit (Fake-Jellyfin-Server, zwei Subtests: leere vs. gesetzte Liste) | `go test ./internal/handlers/... -run TestJellyfinDiscoveryCache_GlobalFallbackWhenNoAllowedLibraries` (neu) | ❌ Wave 0 |
+| D-28 (Typ-Ableitung inkl. "Spezial") | `buildJellyfinIntakeTypeHint` erkennt alle acht live gefundenen Fansubs-Pfadsegmente korrekt, inkl. `Anime.TV-Spezial.Sub` → "special" (Lücke: Funktion matcht bisher nur "special", nicht "spezial") | unit (Tabellentest über alle acht Pfad-Fixtures) | `go test ./internal/handlers/... -run TestBuildJellyfinIntakeTypeHint_MatchesAllFansubsLibraryPaths` (neu) | ❌ Wave 0 |
+| D-29 (Mengengerüst ~2100) | Snapshot-Cache/Cursor/Existenzprüfung bleiben bei ~2100 Items innerhalb des D-07-Budgets (kein zusätzlicher Query/Request pro 100 weitere Items) | integration (Skalierungstest, Teil von Test F) | siehe Test F oben | ❌ Wave 0 |
 
 *Tests N–R (Film-Content-Flow, §32) sind explizit Phase 166 — hier nicht verplant.*
 
