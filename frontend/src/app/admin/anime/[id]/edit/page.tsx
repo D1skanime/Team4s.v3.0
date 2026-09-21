@@ -3,7 +3,7 @@
 import Image from "next/image";
 import Link from "next/link";
 import { useCallback, useEffect, useMemo, useState } from "react";
-import { useParams } from "next/navigation";
+import { useParams, useSearchParams } from "next/navigation";
 
 import { getAnimeByID, getAnimeFansubs, getFansubBySlug } from "@/lib/api";
 import { PlatformAdminGate } from "@/components/auth/PlatformAdminGate";
@@ -15,6 +15,7 @@ import { AnimeEditWorkspace } from "../../components/AnimeEditPage/AnimeEditWork
 import { AnimeRelationsSection } from "../../components/AnimeEditPage/AnimeRelationsSection";
 import { AnimeContextFansubs } from "../../components/AnimeContext/AnimeContextFansubs";
 import { AnimeContextFansubManager } from "../../components/AnimeContext/AnimeContextFansubManager";
+import { DiscoveryReturnLink } from "../../create/DiscoveryReturnLink";
 import styles from "../../AdminStudio.module.css";
 import { parsePositiveInt, resolveCoverUrl } from "../../utils/anime-helpers";
 import { formatEditLoadError } from "./formatEditLoadError";
@@ -29,6 +30,8 @@ function AdminAnimeEditContent() {
     () => parsePositiveInt((params.id || "").trim()),
     [params.id],
   );
+  const searchParams = useSearchParams();
+  const discoveryReturnURL = searchParams.get("return") ?? undefined;
 
   const { hasAccessToken } = useAuthSession();
   const [anime, setAnime] = useState<AnimeDetail | null>(null);
@@ -120,6 +123,8 @@ function AdminAnimeEditContent() {
         ) : null}
         <span>Bearbeiten</span>
       </nav>
+
+      <DiscoveryReturnLink returnURL={discoveryReturnURL} />
 
       <header className={styles.headerCard}>
         <div>

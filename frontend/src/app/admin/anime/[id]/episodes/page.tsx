@@ -2,7 +2,7 @@
 
 import Link from "next/link";
 import { FormEvent, useEffect, useMemo, useState } from "react";
-import { useParams } from "next/navigation";
+import { useParams, useSearchParams } from "next/navigation";
 
 import {
   createAdminEpisode,
@@ -18,6 +18,7 @@ import { FansubGroup } from "@/types/fansub";
 import { GroupedEpisode } from "@/types/episodeVersion";
 import type { EpisodeClassification } from "@/types/episodeClassification";
 import { EpisodesOverview } from "@/components/episodes/EpisodesOverview";
+import { DiscoveryReturnLink } from "../../create/DiscoveryReturnLink";
 
 import styles from "../../AdminStudio.module.css";
 import {
@@ -37,6 +38,8 @@ function AdminAnimeEpisodesContent() {
     () => parsePositiveInt((params.id || "").trim()),
     [params.id],
   );
+  const searchParams = useSearchParams();
+  const discoveryReturnURL = searchParams.get("return") ?? undefined;
 
   const { hasAccessToken, hasRefreshToken } = useAuthSession();
   const [anime, setAnime] = useState<AnimeDetail | null>(null);
@@ -234,6 +237,8 @@ function AdminAnimeEpisodesContent() {
         <span>/</span>
         <span>Episoden</span>
       </nav>
+
+      <DiscoveryReturnLink returnURL={discoveryReturnURL} />
 
       <header className={styles.headerCard}>
         <div>
