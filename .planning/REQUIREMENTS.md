@@ -558,8 +558,8 @@ Film-Content-Flow (§17–§24, §32) is out of scope — that is Phase 166.
 - [ ] **REQ-165-03**: Liste unterscheidet „bereits vorhanden"/„offen" ausschließlich über exakte technische Referenzen (`source`/`source_links`/`folder_name`) (D-03).
 - [ ] **REQ-165-04**: Filter „Offen" (inkl. „teilweise")/„Bereits vorhanden"/„Ignoriert"/„Alle"; kein separater „Zuordnung prüfen"-Filter (D-04).
 - [ ] **REQ-165-05**: Ein Anime kann mehrere Jellyfin-Ordner haben; „Verbinden" ergänzt additiv in `anime_source_links`, ohne `source`/`folder_name` zu überschreiben (D-05).
-- [ ] **REQ-165-06**: Schlanke Series+Movie-Snapshot-Abfrage aus Jellyfin je erlaubter Library, Status per einmaliger Batch-DB-Abfrage, bestehendes Cursor-Muster für Pagination (D-06).
-- [ ] **REQ-165-07**: Budget-Gate: ≤1 DB-Query pro Discovery-Seite für die Existenzprüfung, Jellyfin-Requests unabhängig von der Seitenzahl (nur beim Cache-Aufbau), 0 Detailrequests vor Auswahl (D-07).
+- [x] **REQ-165-06**: Schlanke Series+Movie-Snapshot-Abfrage aus Jellyfin je erlaubter Library, Status per einmaliger Batch-DB-Abfrage, bestehendes Cursor-Muster für Pagination (D-06).
+- [x] **REQ-165-07**: Budget-Gate: ≤1 DB-Query pro Discovery-Seite für die Existenzprüfung, Jellyfin-Requests unabhängig von der Seitenzahl (nur beim Cache-Aufbau), 0 Detailrequests vor Auswahl (D-07).
 - [ ] **REQ-165-08**: Auswahl übergibt in den bestehenden Create-Draft (Jellyfin-ID/Name/Path/Typ-Hint/Jahr/Assets) (D-08).
 - [ ] **REQ-165-09**: AniSearch-Suche mit dem Jellyfin-Namen vorbelegt, nie automatische Auswahl auch nicht bei genau einem Treffer (D-09).
 - [ ] **REQ-165-10**: Nur der Assisted-/Discovery-Flow leitet nach erfolgreichem Create weiter (Serie → Episoden, Film → bestehende Edit-Seite bis 166); manuelle Create-Wege bleiben unverändert (D-10).

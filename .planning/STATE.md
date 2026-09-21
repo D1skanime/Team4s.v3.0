@@ -3,14 +3,14 @@ gsd_state_version: 1.0
 milestone: v1.4
 milestone_name: Coverage
 status: executing
-stopped_at: Phase 165 UI-SPEC approved (D-14..D-22 update)
-last_updated: "2026-09-21T11:00:48.798Z"
+stopped_at: Completed 165-01-PLAN.md
+last_updated: "2026-09-21T13:34:18.696Z"
 last_activity: 2026-09-21
 progress:
   total_phases: 31
   completed_phases: 29
-  total_plans: 288
-  completed_plans: 276
+  total_plans: 289
+  completed_plans: 277
   percent: 94
 ---
 
@@ -205,14 +205,14 @@ Phase 135 and any future roadmap entries continue from here.
 See: .planning/PROJECT.md (updated 2026-08-13)
 
 **Core value:** Team4s presents fansub history and collaboration credibly while keeping identity, visibility, ownership, and permissions correct.
-**Current focus:** Milestone v1.4 (Coverage) complete. Phase 164 (its final phase) was closed on
+**Current focus:** Phase 165 — library-discovery-assisted-anime-creation
 2026-09-18 after the client's live UAT approval ("1 passt, 2 löschen") — see the "Phase 164
 Abschluss" entry below for the full closing record.
 
 ## Current Position
 
-Phase: 164 — Complete (final phase of milestone v1.4)
-Plan: 13/13 plans complete (164-01..164-13), plus quick-tasks 260918-fmq/260918-jfs (GAP-13/14/15)
+Phase: 165 (library-discovery-assisted-anime-creation) — EXECUTING
+Plan: 2 of 13
 Status: Ready to execute
 dupliziertem ProjectMemberStickyNav; siehe 157-14-SUMMARY.md)
 GAP-02-Live-UAT-Checkpoint aus 156-UAT.md (5 Origin- + 9 Segment-Contributor-Pruefpunkte) wurde
@@ -1418,6 +1418,8 @@ Last activity: 2026-09-21
 - [Phase 164]: 164-12: defaultReleaseTitle (admin placeholder) mirrors the public GAP-02 default-name format, coop-capable across all selected_groups sorted name-then-id, matching resolveCoopLinkGroupId's convention
 - [Phase 164]: 164-12: fixed FansubVersionBrowser.test.tsx's D-48 catalog (direct runtime regression from the classificationAndTypeLine signature change); deferred 5 other tsc-only PublicGroupedEpisode fixture gaps (no runtime failures) to 164-13 per 164-10's own handoff note
 - [Phase 164]: 164-13: Admin Canon/Filler und Episodentyp lesen Optionen ueber einen modul-weiten memoized Fetch aus GET /api/v1/admin/episode-classification-options statt aus hartcodierten Arrays; letzter Plan des 164-08..164-13 Gap-Closure-Batches, GAP-11 damit vollstaendig geschlossen.
+- [Phase 165]: buildJellyfinDiscoverySnapshot mirrors both searchJellyfinSeries branches (D-27 global fallback for the empty-allowlist live-production default, plus per-library ParentId loop)
+- [Phase 165]: SeekDiscoverySnapshot is generic over DiscoverySortKeyed so 165-06's richer Discovery item type can reuse the seek without a second implementation
 
 ### Pending Todos
 
@@ -1866,13 +1868,14 @@ untruncated list lives in `.planning/todos/pending/`.
 | Phase 164 P10 | 55min | 3 tasks | 15 files |
 | Phase 164 P12 | 25min | 2 tasks | 7 files |
 | Phase 164 P13 | 55min | 1 tasks | 9 files |
+| Phase 165 P01 | 35min | 3 tasks | 7 files |
 
 ## Session Continuity
 
-Last session: 2026-09-21T10:08:20.388Z
-Stopped at: Phase 165 UI-SPEC approved (D-14..D-22 update)
+Last session: 2026-09-21T13:34:18.669Z
+Stopped at: Completed 165-01-PLAN.md
 Last activity: 2026-09-20 - Completed quick task 260920-sad: Vorwärts-Restore-Defekt im bidirektionalen Episoden-Windowing (useWindowedEpisodePages.ts) behoben, 7 neue Regressionstests, keine Phasen-UAT ersetzt.
 Resume file: 
-.planning/phases/165-library-discovery-assisted-anime-creation/165-UI-SPEC.md
+None
 
 Plans 151-02/03/04 have implementation summaries. Plans 151-01 and 151-05 remain open until final artwork/composition review, complete browser evidence and independent verification; their missing summaries are intentional. No requirement or phase has been falsely marked complete.

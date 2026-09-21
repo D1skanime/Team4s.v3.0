@@ -2045,7 +2045,7 @@ Plans:
 **Bekannter Blocker für Live-UAT (kein Task dieser Phase):** `JELLYFIN_ALLOWED_LIBRARY_IDS=5` in der Live-`.env` ist keine gültige Jellyfin-12-Bibliotheks-GUID (RESEARCH.md Pitfall 1); die korrekte GUID lautet `5f65d0c8bdd71b782fc98205814a0d76`. Konfigurationsänderung, kein Agenten-Task.
 **D-15-Hinweis:** 165-11 ist isoliert (letzte Wave, keine Dependents, aber Dependencies auf 165-01/165-06/165-09, deren Dateien additiv erweitert werden) und beginnt mit einem blockierenden Checkpoint (Schema-Wahl für die Staffel→Anime-Zuordnung). Die übrigen zwölf Pläne liefern und funktionieren vollständig unabhängig davon.
 **UI hint:** yes
-**Plans:** 13 plans across 5 waves
+**Plans:** 1/13 plans executed
 
   - Wave 1: 165-01 (Discovery-Snapshot-Cache/Cursor/Status-Resolver), 165-02 (Ignore-Tabelle Migration+Repo), 165-03 (D-20 Save-Time-Dublettencheck Backend), 165-04 (D-14 Episode-Import-Ordnerauswahl, fail-closed), 165-05 (Create-Page Entry-Card/Return-Link/Redirect-Helper)
   - Wave 2: 165-06 (Discovery-Listen-Handler + Ignorieren/Entignorieren + Audit + D-24 library_context), 165-08 (Create-Page-Integration + AniSearch-Verbinden/Neu-Entscheidung + D-23-Fix), 165-12 (D-11 Return-Link auf Episoden-/Edit-Seite), 165-13 (D-23 Backend ForceNew-Bypass für Enrich())
@@ -2056,7 +2056,7 @@ Plans:
 Plans:
 **Wave 1**
 
-- [ ] 165-01-PLAN.md — Backend Discovery-Snapshot-Core: Cursor-Codec, Series+Movie-Cache-Builder, reiner Status-Resolver.
+- [x] 165-01-PLAN.md — Backend Discovery-Snapshot-Core: Cursor-Codec, Series+Movie-Cache-Builder, reiner Status-Resolver.
 - [ ] 165-02-PLAN.md — Ignore-Tabelle: Migration 0170 + Repository (Insert/Delete/Batch-Lookup).
 - [ ] 165-03-PLAN.md — D-20 Save-Time-Dublettencheck in CreateAnime.
 - [ ] 165-04-PLAN.md — D-14 Episode-Import-Ordnerauswahl: fail-closed Backend-Guard + Frontend-Selector.
