@@ -48,7 +48,7 @@ created: 2026-09-21
 | C (kein Fuzzy-Match) | D-02/§7 | Naruto ≠ Naruto Shippuden bleibt „offen" | unit | Testdaten mit ähnlichen, nicht identischen Titeln/IDs | ❌ W0 | ⬜ pending |
 | D (Zuordnung erst nach AniSearch-Auswahl) | D-02 | Kein automatischer Create bei Namensähnlichkeit ohne technische Referenz | unit (Enrich-Service) | `go test ./internal/services/... -run TestEnrich` | ⚠️ prüfen | ⬜ pending |
 | E (Movie-Discovery sichtbar) | D-01/D-04 | „Film"-Items (Pfad-Heuristik `buildJellyfinIntakeTypeHint`) erscheinen in der Liste | unit | Testdaten mit `/Movie/`-Pfad-Fixture | ❌ W0 | ⬜ pending |
-| F (Pagination korrekt, kein Fan-out) | D-06/D-07 | Cursor liefert keine Duplikate, ≤1 DB-Query/Seite, 0 Jellyfin-Requests pro Item | integration + Query-Zähler | `go test ./internal/repository/... -run TestJellyfinDiscoveryCursor` | ❌ W0 | ⬜ pending |
+| F (Pagination korrekt, kein Fan-out) | D-06/D-07/D-29 | Cursor liefert keine Duplikate, ≤1 DB-Query/Seite, 0 Jellyfin-Requests pro Item — Fixture-Größe ~2100 Items (D-29), nicht nur wenige | integration + Query-Zähler | `go test ./internal/repository/... -run TestJellyfinDiscoveryCursor` | ❌ W0 | ⬜ pending |
 | G (Discovery→Draft vollständig) | D-08 | Übernahme ID/Name/Path/Typ-Hint/Jahr/Assets via `handleJellyfinCandidateAdopt` | Frontend-Unit | `npx vitest run src/app/admin/anime/create/DiscoveryLibraryPanel.test.tsx` | ❌ W0 | ⬜ pending |
 | H (keine Auto-Auswahl bei 1 Treffer) | D-09 | AniSearch-Suche wählt nie automatisch aus | Frontend-Unit | Muster erweitern (bestehend für Direktflow) | ⚠️ prüfen | ⬜ pending |
 | I (AniSearch bleibt maßgeblich beim Merge) | D-09 | `mergeCreateDraftPayload`/`resolveCreateAniSearchDraftMergeInputs` unverändert | Regression | `go test ./internal/services/... -run TestMergeCreateDraft`, `npx vitest run createPageHelpers.test.ts` | ✓ vorhanden | ⬜ pending |
@@ -64,6 +64,9 @@ created: 2026-09-21
 | D-20 (Save-Time-Dublettencheck) | D-20 | `CreateAnime` prüft `anisearch:<id>` unmittelbar vor Insert, kein stilles Doppelanlegen | unit (Handler + Fake-Repo) | `go test ./internal/handlers/... -run TestCreateAnime_RechecksAniSearchDuplicateBeforeInsert` | ❌ W0 | ⬜ pending |
 | D-21 (Audit-Attribution) | D-21 | Verbinden/Ordner-lösen/Ignorieren/Entignorieren schreiben je einen `audit_logs`-Eintrag mit `actor_app_user_id` | unit (Fake `AuditLogRepository`) | `go test ./internal/handlers/... -run TestJellyfinDiscoveryActions_WriteAudit` | ❌ W0 | ⬜ pending |
 | D-22 (server_key-Default) | D-22 | Neue Tabellenzeilen tragen `server_key='default'` ohne explizite Angabe | unit (Migration/Repo) | `go test ./internal/repository/... -run TestLibraryDiscoveryIgnoredItems_DefaultsServerKey` | ❌ W0 | ⬜ pending |
+| D-27 (globaler Fallback) | D-27 | Bei leerer `jellyfinAllowedLibraryIDs` macht der Snapshot-Builder einen ungefilterten globalen `/Items`-Request statt gar keinen; bei gesetzter Liste bleibt der gefilterte Pro-Library-Weg | unit (Fake-Jellyfin-Server) | `go test ./internal/handlers/... -run TestJellyfinDiscoveryCache_GlobalFallbackWhenNoAllowedLibraries` | ❌ W0 | ⬜ pending |
+| D-28 (Typ-Ableitung inkl. Spezial) | D-28 | `buildJellyfinIntakeTypeHint` erkennt alle acht live gefundenen Fansubs-Pfadsegmente, inkl. `Anime.TV-Spezial.Sub` → "special" (deutsche Schreibweise "spezial" ergänzt) | unit (Tabellentest) | `go test ./internal/handlers/... -run TestBuildJellyfinIntakeTypeHint_MatchesAllFansubsLibraryPaths` | ❌ W0 | ⬜ pending |
+| D-29 (Mengengerüst ~2100) | D-29 | Snapshot-Cache/Cursor/Existenzprüfung bleiben bei ~2100 Items innerhalb des D-07-Budgets | integration (Teil von Test F) | siehe Test F oben | ❌ W0 | ⬜ pending |
 
 *Tests N–R (Film-Content-Flow, §32) sind explizit Phase 166 — hier nicht verplant.*
 
@@ -82,6 +85,9 @@ created: 2026-09-21
 - [ ] Backend-Testdatei für den D-20-Recheck in `CreateAnime` — Fake-Repo mit vorhandenem `anisearch:<id>`-Treffer, beweist Ablehnung/Redirect statt stillem Insert
 - [ ] Backend-Testdatei mit Fake-`AuditLogRepository` (D-21) — beweist, dass jede der vier neuen Aktionen genau einen Audit-Eintrag mit korrektem `event_type`/`actor_app_user_id` erzeugt
 - [ ] **D-15 explizit NICHT in Wave 0 dieser Phase** — jede Test-/Migrationsarbeit zu D-15 wartet auf den separaten Checkpoint-Plan (165-RESEARCH.md §9)
+- [ ] Backend-Testdatei/Subtest (D-27) — beweist, dass `buildJellyfinDiscoverySnapshot` bei leerer `jellyfinAllowedLibraryIDs` einen ungefilterten globalen `/Items`-Request macht (nicht 0 Requests), und bei gesetzter Liste weiterhin den gefilterten Pro-Library-Weg
+- [ ] Backend-Tabellentest (D-28) — beweist, dass `buildJellyfinIntakeTypeHint` alle acht live gefundenen Fansubs-Pfadsegmente korrekt erkennt, inkl. der deutschen Schreibweise "Spezial"
+- [ ] Test F (D-29) nutzt eine Fixture-Größe in der Größenordnung von ~2000+ Items, nicht nur wenige, um O(n²)-Fallen im Cursor-Seek auszuschließen
 
 ---
 

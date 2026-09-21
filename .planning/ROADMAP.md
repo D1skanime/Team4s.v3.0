@@ -2117,5 +2117,6 @@ Plans:
 **Requirements**: TBD (aus 165-USER-REQUEST.md §17–§24 und §32 abzuleiten)
 **Depends on:** Phase 165
 **Verbindliche Quelle:** `.planning/phases/165-library-discovery-assisted-anime-creation/165-USER-REQUEST.md` (§17–§24, §32)
+**Live-Befund 2026-09-21:** Filme sind auf dem Server Series-Items unter `/media/Anime/Movie/Anime.Film.Sub` (0 Movie-Items); Film-Annahmen aus dem Auftrag (§21 ohne EpisodeNumber) vor der Planung neu prüfen.
 **UI hint:** yes
 **Plans:** TBD
