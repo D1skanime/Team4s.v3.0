@@ -2043,7 +2043,7 @@ Plans:
 **Verbindliche Quellen:** `.planning/phases/165-library-discovery-assisted-anime-creation/165-USER-REQUEST.md`, `165-CONTEXT.md`, `165-RESEARCH.md`, `165-PATTERNS.md`, `165-UI-SPEC.md`, `165-VALIDATION.md`
 **Scopegrenze:** Film-Content-Flow → Phase 166; kein Provider-Framework, kein Source-Refactor, keine automatische AniSearch-Zuordnung, kein Fuzzy-Matching, keine Datenänderung durch Agenten.
 **Bekannter Blocker für Live-UAT (kein Task dieser Phase):** `JELLYFIN_ALLOWED_LIBRARY_IDS=5` in der Live-`.env` ist keine gültige Jellyfin-12-Bibliotheks-GUID (RESEARCH.md Pitfall 1); die korrekte GUID lautet `5f65d0c8bdd71b782fc98205814a0d76`. Konfigurationsänderung, kein Agenten-Task.
-**D-15-Hinweis:** 165-11 ist isoliert (letzte Wave, keine Dependents, keine Dependencies) und beginnt mit einem blockierenden Checkpoint (Schema-Wahl für die Staffel→Anime-Zuordnung). Die übrigen zehn Pläne liefern und funktionieren vollständig unabhängig davon.
+**D-15-Hinweis:** 165-11 ist isoliert (letzte Wave, keine Dependents, aber Dependencies auf 165-01/165-06/165-09, deren Dateien additiv erweitert werden) und beginnt mit einem blockierenden Checkpoint (Schema-Wahl für die Staffel→Anime-Zuordnung). Die übrigen zwölf Pläne liefern und funktionieren vollständig unabhängig davon.
 **UI hint:** yes
 **Plans:** 13 plans across 5 waves
 

@@ -103,8 +103,9 @@ created: 2026-09-21
 - [x] Feedback latency < 60s
 - [x] `nyquist_compliant: true` set in frontmatter
 
-**Approval:** approved — every task across 165-01..165-11 carries a concrete `<automated>` verify
-command (Go `go test -run ...` / `npx vitest run ...`); Wave 0 test-scaffold requirements above are
+**Approval:** approved — every task across 165-01..165-13 (including 165-12's D-11 return-link pages
+and 165-13's D-23 backend `ForceNew` bypass, both added after the initial sign-off) carries a concrete
+`<automated>` verify command (Go `go test -run ...` / `npx vitest run ...`); Wave 0 test-scaffold requirements above are
 each satisfied by a specific test file created in the corresponding plan (e.g.
 `admin_episode_import_ownership_test.go` in 165-04, `jellyfin_source_folder_management_test.go` and
 `anime_source_links_test.go` in 165-07, `library_discovery_ignored_items_test.go` in 165-02);
