@@ -15,12 +15,12 @@ created: 2026-09-21
 Discovery-Liste der Jellyfin-Bibliothekseinträge (Poster/Titel/Typ/Jahr/Status/Aktion, Filter, Suche,
 Cursor-Pagination), erweitert die bestehende AniSearch-Dubletten-Anzeige um eine echte
 „Verbinden"/„Als neuen Anime anlegen"-Entscheidung und ergänzt einen „Zurück zur Bibliothek"-Rücksprung durch
-Create und Episoden-Schritt. Verbindlich sind `165-CONTEXT.md` (D-01 bis D-22) und `165-USER-REQUEST.md`
+Create und Episoden-Schritt. Verbindlich sind `165-CONTEXT.md` (D-01 bis D-26) und `165-USER-REQUEST.md`
 (§1–§16, §25–§31, §33, §35 – Serien-Teil); dieses Dokument übersetzt die dort getroffenen Entscheidungen in
 einen konkreten visuellen/Interaktions-Vertrag und trifft die dem UI-Researcher überlassenen Detailentscheidungen
 (Route-vs-Tab, Cursor-UI, Seitengröße, exaktes UI der Verbinden/Neu-Entscheidung).
 
-**Update-Durchlauf (2026-09-21, zweite Fassung):** `165-CONTEXT.md` wurde nach der ersten Fassung dieses
+**Update-Durchlauf 1 (2026-09-21, zweite Fassung):** `165-CONTEXT.md` wurde nach der ersten Fassung dieses
 Dokuments um D-14 bis D-22 erweitert, `165-RESEARCH.md` um die dazugehörigen §8–§16 mit Code-Zitaten. Dieser
 Durchlauf ergänzt die ursprüngliche, bereits vertragsgültige Fassung (D-01 bis D-13, unten unverändert erhalten)
 um die fehlende Abdeckung für: Ordner-Auswahl im Episoden-Import (D-14), „Teilweise"-Badge für Mehrstaffel-Ordner
@@ -30,20 +30,38 @@ Save-Time-Dublettenchecks (D-20). D-21 (Audit-Attribution) und D-22 (`server_key
 Backend-/Datenmodell-Entscheidungen ohne eigenen sichtbaren UI-Bestandteil und werden hier nur als
 Kontext-Randbedingung erwähnt, nicht als eigener Bildschirmzustand.
 
+**Update-Durchlauf 2 (2026-09-21, dritte Fassung, nach Live-Durchsicht mit dem Auftraggeber):**
+`165-CONTEXT.md` wurde um D-23 bis D-26 ergänzt (Abschnitt „UI-Korrekturen nach Live-Durchsicht mit dem
+Auftraggeber"). Zwei Punkte der bisherigen Fassung waren **falsch** und werden hier korrigiert: (1) D-23 —
+die Create-Seite leitet bei einem AniSearch-Dublettentreffer heute **automatisch per Vollseiten-Navigation**
+auf den bestehenden Anime um, statt den (bereits in Screen 3 dieses Dokuments beschriebenen)
+`AniSearchDuplicateDecision`-Block anzuzeigen; ein zuvor übernommener Jellyfin-Entwurf ging dabei bisher
+still verloren (live reproduziert, AniSearch-ID 2788 → Naruto #4). (2) D-24 — die Bibliotheksliste (Screen 2)
+wird **von einer Tabelle auf eine Karten-Liste** im Stil der bestehenden Jellyfin-Such-Karte umgestellt; die
+in Update-Durchlauf 1 spezifizierte `Table`/`TableRow`-Struktur entfällt vollständig zugunsten von
+`DiscoveryLibraryCard.tsx`. Zwei weitere Punkte waren bereits korrekt und werden hier nur explizit mit „(D-25)"
+bzw. „(D-26)" zitiert, ohne inhaltliche Änderung: Zurück/Weiter-Seiten statt Endlos-Scrollen (D-25, bereits
+Design-Entscheidung 4) und die additive AniSearch-Titel-Vorbelegung, die den heutigen automatischen
+Jellyfin-Feld-Fallbestand (Titel, Typ, Status, Jahr, Ordnerpfad, Beschreibung, Cover, Banner, Logo) unverändert
+lässt (D-26, bereits Screen 1 / Design-Entscheidung „D-09"). Alle unten unveränderten Abschnitte aus
+Update-Durchlauf 1 (Design-Entscheidungen 1–19, Ordner-Auswahl/-Verwaltung, Ignorieren/Entignorieren) bleiben
+gültig — dieser Durchlauf berührt ausschließlich Screen 2, Screen 3, die betroffenen Design-Entscheidungen 1/4
+sowie die davon abhängigen Typography-/Copywriting-/Testfall-Abschnitte.
+
 **Betriebsmodus:** Diese Recherche läuft headless. Alle Punkte, die nicht bereits durch
 `165-CONTEXT.md`/`165-RESEARCH.md` fest entschieden waren, wurden hier selbständig anhand des bestehenden Codes
 entschieden und sind unten unter „Eigenständig getroffene Design-Entscheidungen" dokumentiert statt offen
-gelassen. Das gilt unverändert auch für die in diesem Update-Durchlauf neu hinzugekommenen Punkte (Design-
-Entscheidungen 14–19).
+gelassen. Das gilt unverändert auch für die in den Update-Durchläufen 1 und 2 neu hinzugekommenen Punkte
+(Design-Entscheidungen 14–19 bzw. 20–23).
 
 **Nicht Teil dieser Phase (Design-Grenze):** Der Film-Content-Flow (Movie-Unit, Extras-Disambiguierung,
 Titel-Fallback) ist Phase 166. Ein aus Discovery angelegter Film landet nach dem Create auf der bestehenden
-Edit-Seite — kein neues Film-spezifisches UI in dieser Phase. **Zusätzlich (Update-Durchlauf):** D-15s
+Edit-Seite — kein neues Film-spezifisches UI in dieser Phase. **Zusätzlich (Update-Durchlauf 1):** D-15s
 eigentliche Staffel→Anime-Zuordnung (Schema und UI, mit dem einzelne Jellyfin-Staffeln konkreten Anime
 zugeordnet werden) ist **nicht** Teil dieses Vertrags — dafür ist laut `165-CONTEXT.md` D-15 und
 `165-RESEARCH.md` §9 ein separater, checkpoint-pflichtiger Plan mit ausdrücklicher Auftraggeber-Freigabe vor
 jeder Migration/Implementierung nötig. Dieses Dokument legt ausschließlich den reinen „Teilweise"-Badge-Zustand
-in der Status-Spalte fest (siehe Screen 2 und Design-Entscheidung 16).
+in der Status-Anzeige fest (siehe Screen 2 und Design-Entscheidung 16).
 
 ---
 
@@ -61,7 +79,7 @@ in der Status-Spalte fest (siehe Screen 2 und Design-Entscheidung 16).
 Code (Discovery-Liste, Filter/Suche, Verbinden/Neu-Entscheidung, Rücksprung-Link, Ordner-Auswahl im
 Episoden-Import, Ordner-Verwaltung auf der Edit-Seite, Ignorieren/Entignorieren) nutzt ausschließlich
 `@/components/ui`-Primitives. Kein natives `<button>/<input>/<select>/<textarea>`. Das gilt **trotz** eines
-naheliegenden „closest analog", das diese Regel nicht erfüllt (siehe Design-Entscheidung 1 und 14 unten) —
+naheliegenden „closest analog", das diese Regel nicht erfüllt (siehe Design-Entscheidung 1, 14 und 22 unten) —
 CLAUDE.md untersagt genau diese Art Abweichung explizit: „Lokale Datei-Konsistenz rechtfertigt KEIN Abweichen vom
 globalen Design-System."
 
@@ -70,13 +88,15 @@ globalen Design-System."
 | Datei | Status | Zweck |
 |---|---|---|
 | `frontend/src/app/admin/anime/create/library/page.tsx` | NEU | Server-Komponente, liest `filter`/`q`/`cursor` aus `searchParams`, rendert `PlatformAdminGate` + `PageHeader` + `DiscoveryLibraryPanel` |
-| `frontend/src/app/admin/anime/create/library/DiscoveryLibraryPanel.tsx` | NEU | Client-Komponente: Toolbar (Filter/Suche/Refresh), Table, Pager, Loading/Error/Empty-Zustände |
+| `frontend/src/app/admin/anime/create/library/DiscoveryLibraryPanel.tsx` | NEU, **Karten-Layout seit Update-Durchlauf 2 (D-24)** | Client-Komponente: Toolbar (Filter/Suche/Refresh), vertikale `DiscoveryLibraryCard`-Liste (**nicht** mehr `Table`/`TableRow` — siehe Design-Entscheidung 22), Pager, Loading/Error/Empty-Zustände |
+| `frontend/src/app/admin/anime/create/library/DiscoveryLibraryCard.tsx` | **NEU (Update-Durchlauf 2, D-24)** | Eine Karte pro Bibliothekseintrag: Poster, Titel, Jahr \| Pfad, Typ \| Bibliothek, Status-Badge (+ Statusdetail), Aktionen — Feld-/Informationshierarchie wiederverwendet von `JellyfinCandidateCard.tsx` (strukturelles Vorbild, siehe Design-Entscheidung 22), Markup ausschließlich `@/components/ui` (`Card`, `Badge`, `Button`) |
 | `frontend/src/app/admin/anime/create/library/useDiscoveryLibraryFilters.ts` | NEU | URL-Sync von `filter`/`q`/`cursor`, analog `useUserListFilters.ts` (D-11) |
 | `frontend/src/app/admin/anime/create/library/discoveryPageHelpers.ts` | NEU | Reine Helfer: Typ-Label-Mapping, Status-Badge-Mapping, Rücksprung-URL-Bau (`buildDiscoveryReturnURL`) |
 | `frontend/src/app/admin/anime/create/DiscoveryEntryCard.tsx` | NEU | Einstiegs-Card auf der bestehenden Create-Seite („Aus meiner Bibliothek") |
 | `frontend/src/app/admin/anime/create/DiscoveryReturnLink.tsx` | NEU | Gemeinsame kleine „Zurück zur Bibliothek"-Komponente, auf Create- **und** Episoden-/Edit-Landing-Seite genutzt |
-| `frontend/src/app/admin/anime/create/AniSearchDuplicateDecision.tsx` | NEU (aus bestehendem Conflict-Block extrahiert) | „Mit bestehendem Anime verbinden" / „Als neuen Anime anlegen" / „Zum vorhandenen Anime wechseln" |
+| `frontend/src/app/admin/anime/create/AniSearchDuplicateDecision.tsx` | NEU (aus bestehendem Conflict-Block extrahiert) | „Mit bestehendem Anime verbinden" / „Als neuen Anime anlegen" / „Zum vorhandenen Anime wechseln" — ersetzt jetzt sowohl den bisherigen reinen Link **als auch** die bisherige automatische Vollseiten-Navigation (D-23, siehe Design-Entscheidung 20) |
 | `frontend/src/app/admin/anime/create/CreateAniSearchIntakeCard.tsx` | GEÄNDERT (minimal) | Rendert `AniSearchDuplicateDecision` statt des bisherigen reinen Links; **restlicher Datei-Inhalt bleibt unverändert** (siehe Design-Entscheidung 1) |
+| `frontend/src/app/admin/anime/create/useAdminAnimeCreateController.ts` | **GEÄNDERT (Update-Durchlauf 2, D-23)** | `loadAniSearchDraftByID` (~Zeile 1014–1024): Die Zeile `window.location.href = resolved.redirect.redirectPath;` entfällt ersatzlos. Bei `resolved.redirect` wird ausschließlich `setAniSearchConflict(resolved.redirect); return;` ausgeführt, sodass `AniSearchDuplicateDecision` an Ort und Stelle rendert und der komplette Draft-State (Jellyfin-Felder, Assets, `manualDraftValues`, `jellyfinDraftSnapshot`) erhalten bleibt. Der zweite, unabhängige `window.location.href`-Aufruf in `handleCreateSubmit` (~Zeile 767–774, manueller Create-Erfolg, D-10, bereits in Update-Durchlauf 1 als unverändert dokumentiert) bleibt **byte-identisch** — nur der Konflikt-Redirect wird entfernt, nicht jeder `window.location.href`-Aufruf der Datei. |
 | `frontend/src/app/admin/anime/create/page.tsx` | GEÄNDERT (additiv) | Rendert `DiscoveryEntryCard` oberhalb von `providerGrid`; liest `from=discovery`/`jellyfin_id`/`return` aus `searchParams` und triggert Auto-Adopt + zeigt `DiscoveryReturnLink` |
 | `frontend/src/app/admin/anime/create/createPageHelpers.ts` | GEÄNDERT (additiv) | Neue Funktion `buildAssistedCreateRedirectPath(animeID, animeType, returnURL)` neben unverändertem `buildManualCreateRedirectPath` |
 | `frontend/src/app/admin/anime/[id]/episodes/page.tsx` | GEÄNDERT (additiv) | Rendert `DiscoveryReturnLink`, wenn `?return=` vorhanden |
@@ -87,7 +107,7 @@ Backend-Dateien (`jellyfin_discovery.go`, `jellyfin_discovery_cache.go`, `jellyf
 kein UI-Primitive-Bestandteil, aber Grundlage für die hier festgelegten Zustände (offen/bereits vorhanden,
 has_more, Provider-Präfix-Schutz aus RESEARCH.md Pitfall 3).
 
-**Zusätzliche Dateien aus der D-14–D-22-Erweiterung (Update-Durchlauf, RESEARCH.md §8–§16):**
+**Zusätzliche Dateien aus der D-14–D-22-Erweiterung (Update-Durchlauf 1, RESEARCH.md §8–§16):**
 
 | Datei | Status | Zweck |
 |---|---|---|
@@ -95,9 +115,9 @@ has_more, Provider-Präfix-Schutz aus RESEARCH.md Pitfall 3).
 | `frontend/src/app/admin/anime/[id]/episodes/import/page.tsx` | GEÄNDERT (additiv) | Rendert `EpisodeImportFolderSelector` im bestehenden „Quellen konfigurieren"-Panel (`sourceGrid`-Bereich), reicht die gewählte ID als `jellyfin_series_id` an `builder.loadPreview()` weiter (D-14). Restlicher, bereits nativer Datei-Inhalt bleibt unverändert (Design-Entscheidung 14, analog Design-Entscheidung 1). |
 | `frontend/src/app/admin/anime/components/AnimeEditPage/AnimeJellyfinFolderList.tsx` | NEU | Liste aller verbundenen Jellyfin-Ordner (Haupt-Ordner nicht entfernbar + Zusatz-Ordner mit „Ordner entfernen") auf der Anime-Bearbeitungsseite (D-18, RESEARCH.md §12) |
 | `frontend/src/app/admin/anime/components/AnimeEditPage/AnimeJellyfinMetadataSection.tsx` | GEÄNDERT | Rendert `AnimeJellyfinFolderList` zusätzlich zum bestehenden Einzel-Kontext-Block |
-| `frontend/src/app/admin/anime/create/library/discoveryPageHelpers.ts` | GEÄNDERT (bereits NEU in der Baseline) | Status-Mapping/Prioritätsfunktion erweitert um die Zustände „ignoriert" und „teilweise" (D-15/D-17) |
-| `frontend/src/app/admin/anime/create/library/DiscoveryLibraryPanel.tsx` | GEÄNDERT (bereits NEU in der Baseline) | Filter-`Select` um Option „Ignoriert" ergänzt; Aktion-Spalte um „Ignorieren"/„Nicht mehr ignorieren" ergänzt (D-17) |
-| `frontend/src/app/admin/anime/create/AniSearchDuplicateDecision.tsx` | GEÄNDERT (bereits NEU in der Baseline) | Wird jetzt an **zwei** Trigger-Punkten gerendert: Enrich-Konflikt (D-02, unverändert) UND Save-Time-Konflikt unmittelbar vor dem Speichern (D-20, neu) — identische Darstellung, siehe Screen 3 |
+| `frontend/src/app/admin/anime/create/library/discoveryPageHelpers.ts` | GEÄNDERT (bereits NEU in der Baseline) | Status-Mapping/Prioritätsfunktion erweitert um die Zustände „ignoriert" und „teilweise" (D-15/D-17); seit Update-Durchlauf 2 zusätzlich Formatierung der Karten-Metazeile „Typ \| Bibliothek" (D-24) |
+| `frontend/src/app/admin/anime/create/library/DiscoveryLibraryPanel.tsx` | GEÄNDERT (bereits NEU in der Baseline) | Filter-`Select` um Option „Ignoriert" ergänzt; Aktionen um „Ignorieren"/„Nicht mehr ignorieren" ergänzt (D-17) — seit Update-Durchlauf 2 als Aktions-Buttons **innerhalb** von `DiscoveryLibraryCard` statt einer Tabellenspalte (D-24) |
+| `frontend/src/app/admin/anime/create/AniSearchDuplicateDecision.tsx` | GEÄNDERT (bereits NEU in der Baseline) | Wird jetzt an **zwei** Trigger-Punkten gerendert: Enrich-Konflikt (D-02/D-23, jetzt **ohne** vorherigen automatischen Redirect) UND Save-Time-Konflikt unmittelbar vor dem Speichern (D-20) — identische Darstellung, siehe Screen 3 |
 
 Zugehörige Backend-Dateien ohne eigenen UI-Bestandteil, aber Grundlage der hier festgelegten Zustände:
 `jellyfin_discovery_ignore.go` (NEU, D-17-Endpunkte + Audit-Write D-21), `library_discovery_ignored_items.go`
@@ -107,24 +127,38 @@ fail-closed-Prüfung für `jellyfin_series_id` ergänzt, D-14/§8), `jellyfin_me
 `anime_source_links.go` (BESTEHEND, neue Funktion `removeAnimeSourceLink`, D-18/§12), `admin_content_anime.go`
 (BESTEHEND, `FindAnimeBySource`-Recheck unmittelbar vor `CreateAnime`, D-20/§14).
 
+**Zusätzliche Backend-Dateien aus dem D-23-Fix (Update-Durchlauf 2):**
+
+| Datei | Status | Zweck |
+|---|---|---|
+| `backend/internal/models/admin_content.go` | GEÄNDERT | `AdminAnimeAniSearchEnrichmentRequest` (Zeile ~132) bekommt ein neues Bypass-Feld, z. B. `ForceNew bool \`json:"force_new"\`` (exakter Feldname ist Planner-/Executor-Diskretion, das Feld selbst ist verbindlich) — ohne dieses Feld liefert „Als neuen Anime anlegen" nach dem D-23-Fix zwar ein sichtbares UI, aber keinen funktionierenden zweiten Versuch, weil `Enrich` sonst immer wieder denselben Konflikt zurückgibt |
+| `backend/internal/services/anime_create_enrichment.go` | GEÄNDERT | `Enrich` (Zeile ~1192): Wenn das neue Bypass-Feld gesetzt ist, wird der `FindAnimeBySource`-Early-Return übersprungen und der AniSearch-Entwurf trotz vorhandenem Konflikt regulär geladen/gemergt (Analog zum bereits für D-20 geplanten `ConfirmDuplicate`-Feld auf `adminAnimeCreateRequest`, `admin_content_anime.go`) |
+| `backend/internal/handlers/jellyfin_discovery.go` (D-24-Ergänzung, sonst identisch zu Update-Durchlauf 1) | GEÄNDERT | `AdminJellyfinDiscoveryItem` liefert zusätzlich `library_context` — **keine neue Jellyfin-Anfrage nötig**: Wiederverwendung des bereits bestehenden `deriveJellyfinPathContexts(item.Path)`-Helpers aus `jellyfin_intake_helpers.go` (liefert `parentContext`/`libraryContext` bereits pfadbasiert für den bestehenden Direkt-Suche-Flow, siehe Design-Entscheidung 22) — **nicht** die im Verified-Findings-Entwurf erwogene, aufwändigere Variante „aus der Pro-Library-Fetch-Schleife anhängen" |
+
 ---
 
 ## Eigenständig getroffene Design-Entscheidungen
 
-*(D-01 bis D-22 aus `165-CONTEXT.md` haben Vorrang und werden hier nicht wiederholt, sondern nur visuell/
+*(D-01 bis D-26 aus `165-CONTEXT.md` haben Vorrang und werden hier nicht wiederholt, sondern nur visuell/
 strukturell übersetzt. Die folgenden Punkte sind die dem UI-Researcher überlassenen, hiermit verbindlich
-getroffenen Detailentscheidungen. Punkte 1–13 stammen aus der ersten Fassung dieses Dokuments und bleiben
-unverändert gültig; Punkte 14–19 sind Ergänzungen dieses Update-Durchlaufs für D-14/D-15/D-17/D-18/D-19/D-20.)*
+getroffenen Detailentscheidungen. Punkte 1–13 stammen aus der ersten Fassung dieses Dokuments, Punkte 14–19 aus
+Update-Durchlauf 1 (D-14/D-15/D-17/D-18/D-19/D-20) und bleiben unverändert gültig — außer wo unten explizit
+vermerkt (Punkt 1). Punkte 20–23 sind neue Ergänzungen aus Update-Durchlauf 2 für D-23/D-24/D-25/D-26.)*
 
-1. **`JellyfinCandidateCard.tsx` ist NICHT die Vorlage für die neue Discovery-Zeile, obwohl es der naheliegendste
-   bestehende Analog-Code ist.** Diese Karte rendert Poster/Titel/Typ/Pfad bereits fast identisch zum
-   Discovery-Bedarf, nutzt aber durchgängig natives `<button>`/`<img>`-Markup mit eigenem CSS-Modul
-   (`JellyfinCandidateCard.module.css`) statt `@/components/ui`. Sie stammt aus der Zeit vor der D-13-Pflicht.
-   CLAUDE.mds „closest-analog"-Klausel verbietet ausdrücklich, dieses Muster für neuen Code zu kopieren. Die neue
-   Discovery-Liste folgt stattdessen dem **modernen** Referenz-Analog `AdminUsersClient.tsx`
-   (`Table`/`TableRow`/`TableCell`/`Badge`/`Select`/`Input`/`Pagination`-Familie aus `@/components/ui`, URL-Sync
-   über `useSearchParams`/`useRouter` wie `useUserListFilters.ts`) — das ist der einzige im Repo vorhandene
-   Analog-Code, der D-13 bereits vollständig erfüllt.
+1. **`JellyfinCandidateCard.tsx` ist NICHT die Vorlage für den Code der neuen Discovery-Karte, obwohl es seit
+   Update-Durchlauf 2 (D-24) ausdrücklich das strukturelle Vorbild für deren Feld-/Informationshierarchie ist.**
+   Diese Karte rendert Poster/Titel/Typ/Pfad bereits fast identisch zum Discovery-Bedarf, nutzt aber
+   durchgängig natives `<button>`/`<img>`-Markup mit eigenem CSS-Modul (`JellyfinCandidateCard.module.css`)
+   statt `@/components/ui`. Sie stammt aus der Zeit vor der D-13-Pflicht. CLAUDE.mds „closest-analog"-Klausel
+   verbietet ausdrücklich, dieses **Code-Muster** für neuen Code zu kopieren. **Update-Durchlauf 2 (D-24):**
+   Der Auftraggeber hat inzwischen ausdrücklich entschieden, dass die neue Discovery-Karte visuell/strukturell
+   genau dieser Karte folgen soll (Poster, Name, Jahr \| Pfad, Typ \| Bibliothek, Statusblock, Aktionen) — das
+   ändert nichts an der Markup-Regel: `DiscoveryLibraryCard.tsx` übernimmt dieselben **Felder und dieselbe
+   Anordnung**, aber ausschließlich mit `@/components/ui`-Primitives (`Card`, `Badge`, `Button`) statt
+   `JellyfinCandidateCard.tsx`s nativem `<article>`/`<button>`/`<img>`-Markup und eigenem CSS-Modul. Details
+   siehe Design-Entscheidung 22. Die neue Discovery-Liste folgt außerdem strukturell (Karten-Grid statt Tabelle,
+   URL-Sync über `useSearchParams`/`useRouter`) dem Muster `AdminUsersClient.tsx`/`useUserListFilters.ts` für
+   alles, was nicht die einzelne Karte selbst betrifft (Toolbar, Filter, Pager).
 2. **Route statt Tab/Modus, unter `/admin/anime/create/library`.** Die Create-Seite ist heute ein langer
    Einzelseiten-Workflow (Provider-Grid → Assets → Review) mit eigenem State-Controller
    (`useAdminAnimeCreateController.ts`); eine ~1500-Zeilen-Liste als zusätzlicher Tab/Modus in dieser Seite würde
@@ -139,8 +173,8 @@ unverändert gültig; Punkte 14–19 sind Ergänzungen dieses Update-Durchlaufs 
    D-08) genau einmal, wenn `jellyfin_id` gesetzt und noch keine Preview adoptiert wurde. Das vermeidet einen
    zweiten Draft-Übergabemechanismus (kein sessionStorage/Context-Bridge) und bleibt bei der bereits im Repo
    etablierten Konvention, Seitenübergänge über die URL zu tragen (`/admin/anime?created=`).
-4. **Cursor bleibt intern; der Nutzer sieht keine rohe Cursor-Zeichenkette.** Für Zurück/Weiter wird **kein**
-   Klon der numerischen `Pagination`-Primitive (Seite 1…N mit Sprungzielen) verwendet, weil bei
+4. **Cursor bleibt intern; der Nutzer sieht keine rohe Cursor-Zeichenkette (D-25).** Für Zurück/Weiter wird
+   **kein** Klon der numerischen `Pagination`-Primitive (Seite 1…N mit Sprungzielen) verwendet, weil bei
    Seek-Cursor-Pagination über einen gecachten Snapshot die Gesamtseitenzahl nicht vorab bekannt ist (anders als
    bei den SQL-`OFFSET`-Listen, für die `Pagination` gebaut wurde). Stattdessen: zwei `Button`-Elemente
    „Zurück"/„Weiter" (identische Beschriftung wie die bestehende `Pagination`-Primitive, aus Konsistenzgründen),
@@ -148,6 +182,11 @@ unverändert gültig; Punkte 14–19 sind Ergänzungen dieses Update-Durchlaufs 
    selbst wird als Historie im Client gehalten (Stack bereits besuchter Cursor-Werte), damit „Zurück" ohne
    Server-Rückwärtscursor auskommt. Filter-/Suchänderung setzt den Zähler und die Historie zurück (neue Anfrage
    ab Seite 1, konsistent mit „stiller Neustart" bei Cursor-Änderung, `release_cursor_pagination.go`-Konvention).
+   **Update-Durchlauf 2 (D-25, Bestätigung ohne inhaltliche Änderung):** Der Auftraggeber hat diese bereits
+   spezifizierte „klassische Seiten"-Logik (Zurück/Weiter, Richtwert 50 Einträge pro Seite, kein
+   Endlos-Scrollen) am 2026-09-21 ausdrücklich bestätigt. Die Umstellung von Screen 2 auf ein Karten-Layout
+   (Design-Entscheidung 22, D-24) ändert an dieser Pager-Logik **nichts** — Zurück/Weiter und der
+   Seitenzähler sitzen unterhalb der Karten-Liste genau wie zuvor unterhalb der Tabelle.
 5. **Keine Anzeige einer gefilterten Gesamttrefferzahl.** Eine exakte „X Treffer für Filter Offen"-Zahl würde
    voraussetzen, dass der Status für die **gesamte** gecachte Bibliothek (nicht nur die aktuelle Seite) vorab
    berechnet wird — das würde über das in `165-RESEARCH.md` §5f/D-07 beschriebene Modell („Existenzprüfung
@@ -165,7 +204,9 @@ unverändert gültig; Punkte 14–19 sind Ergänzungen dieses Update-Durchlaufs 
    Anime-Datensatz lässt sich später löschen/bearbeiten, eine gesetzte Jellyfin-Referenz lässt sich im Editor
    wieder lösen). Ein Modal wäre für eine nicht-destruktive, klar erklärte Zweiwege-Entscheidung unnötige
    Reibung; das Repo nutzt an vergleichbaren Stellen (Konflikt-Redirect, `CreateAniSearchIntakeCard.tsx`)
-   ebenfalls nur einen inline-Block, keine modale Bestätigung.
+   ebenfalls nur einen inline-Block, keine modale Bestätigung. **Update-Durchlauf 2:** Genau dieser inline-Block
+   ist es, der laut D-23 heute durch die automatische `window.location.href`-Navigation nie erreicht wird —
+   siehe Design-Entscheidung 20.
 8. **„Mit bestehendem Anime verbinden" erscheint NUR, wenn ein Jellyfin-Kandidat im aktuellen Draft aktiv ist.**
    Das Verbinden schreibt eine Jellyfin-Referenz (D-05, `ApplyAnimeMetadataFromJellyfin`) auf den bestehenden
    Anime — ohne aktiven Jellyfin-Kandidaten (reiner Direkt-AniSearch-Flow ohne Jellyfin-Auswahl) gibt es keine
@@ -183,19 +224,24 @@ unverändert gültig; Punkte 14–19 sind Ergänzungen dieses Update-Durchlaufs 
     Bibliothek" ist ein Bequemlichkeits-Link, kein Status/Erfolgshinweis — ein volles Card/Banner würde auf der
     Create- und der Episoden-Seite zusätzliche visuelle Last erzeugen, die dem Auftrag „UI schlicht halten"
     widerspricht. Sichtbar nur, wenn ein gültiger `return`-Query-Parameter vorhanden ist (kein Link ins Leere).
-11. **Typ-Spalte zeigt reinen Text, keine Badge/Farbe.** Der Typ kommt aus einer Pfad-/Namens-Heuristik
+11. **Typ-Angabe zeigt reinen Text, keine Badge/Farbe.** Der Typ kommt aus einer Pfad-/Namens-Heuristik
     (`buildJellyfinIntakeTypeHint`), nicht aus einer verlässlichen Jellyfin-`Type`-Angabe (RESEARCH.md §2). Eine
     farbige Badge würde fälschlich Sicherheit suggerieren. Reiner Fließtext („Serie", „Film", „OVA", „Special",
     „ONA", „Unbekannt") vermittelt die richtige epistemische Unsicherheit, ohne einen zusätzlichen
     „vermutet"-Zusatztext einzuführen, der über den Auftragsumfang (Poster/Name/Typ/Jahr/Path/Status/Aktion)
-    hinausginge.
-12. **Keine Spalten-Sortierung.** Der Auftrag verlangt ausdrücklich „keine große Reporting-Oberfläche"; Sortierung
+    hinausginge. **Update-Durchlauf 2 (D-24):** Diese Regel gilt unverändert für die neue Karten-Metazeile
+    „Typ \| Bibliothek" (Design-Entscheidung 22) — auch „Bibliothek" ist reiner Fließtext ohne eigene Badge, weil
+    sie wie der Typ pfadbasiert (nicht API-verlässlich) hergeleitet wird.
+12. **Keine Sortierung.** Der Auftrag verlangt ausdrücklich „keine große Reporting-Oberfläche"; Sortierung
     ist für den Zweck („nächsten offenen Anime ohne neue Suche abarbeiten") nicht nötig — Filter + Suche reichen.
+    Gilt unverändert für das Karten-Layout aus Update-Durchlauf 2.
 13. **Poster-Thumbnail ist ein natives `<img loading="lazy">`, keine `ResponsiveImage`-Primitive.** `ResponsiveImage`
-    ist für responsive `srcset`/Breakpoint-Szenarien auf öffentlichen Seiten gebaut; für ein festes
-    40×56px-Tabellen-Thumbnail aus einer bereits proxierten URL (`buildGroupMediaImageURL`, 0 zusätzliche
-    Requests) ist das unnötiger Overhead. `<img>` fällt **nicht** unter die D-13-Verbotsliste (nur
-    `button/input/select/textarea` sind betroffen); feste `width`/`height`-Attribute verhindern Layout-Shift.
+    ist für responsive `srcset`/Breakpoint-Szenarien auf öffentlichen Seiten gebaut; für ein festes, kleines
+    Karten-Poster aus einer bereits proxierten URL (`buildGroupMediaImageURL`, 0 zusätzliche Requests) ist das
+    unnötiger Overhead. `<img>` fällt **nicht** unter die D-13-Verbotsliste (nur `button/input/select/textarea`
+    sind betroffen); feste `width`/`height`-Attribute verhindern Layout-Shift. Exakte Maße siehe Design-
+    Entscheidung 22 (Update-Durchlauf 2 ersetzt das ursprüngliche 40×56px-Tabellen-Thumbnail durch ein größeres
+    Karten-Poster).
 14. **Der Ordner-Selector im Episoden-Import folgt zwingend `@/components/ui`, obwohl die umgebende Seite
     (`import/page.tsx`) durchgängig natives `<label>/<input>/<button>`-Markup nutzt (§8, Zeilen 74–130).** Exakt
     dieselbe Argumentationslage wie Design-Entscheidung 1: CLAUDE.mds „closest-analog"-Klausel verbietet, dieses
@@ -216,20 +262,21 @@ unverändert gültig; Punkte 14–19 sind Ergänzungen dieses Update-Durchlaufs 
     Lade-Zustand (Label „Wird entfernt…"/„Wird ignoriert…"/„Wird entignoriert…"), danach eine einzeilige
     Erfolgsmeldung (`role="status"`, Body 14/400) — kein Modal, kein `window.confirm`.
 16. **„Teilweise" erhält `variant="warning"`, „Ignoriert" erhält `variant="info"` — vier eindeutig
-    unterscheidbare Badge-Farben statt einer weiteren neutralen Variante.** Die Status-Spalte hat mit dieser
+    unterscheidbare Badge-Farben statt einer weiteren neutralen Variante.** Die Status-Anzeige hat mit dieser
     Erweiterung vier mögliche Werte (Offen/Bereits vorhanden/Teilweise/Ignoriert). „Teilweise" signalisiert
     echten (späteren) Handlungsbedarf (weitere Staffeln können noch angelegt werden) ohne ein Fehlerzustand zu
     sein → `warning`, konsistent mit der bestehenden `Badge`-Primitive-Semantik (`ui/Badge.tsx`:
     `neutral|success|warning|danger|info|muted`). „Ignoriert" ist weder positiv (kein `success`) noch ein
     Warnzustand (kein `warning`) — es ist eine bewusste, informative Admin-Entscheidung → `info`, klar
     unterscheidbar von „Offen" (`muted`) und „Bereits vorhanden" (`success`).
-17. **Die Aktion-Spalte zeigt bei Status „Offen"/„Teilweise" zwei gestapelte Buttons statt eines
-    Dropdown-/Kebab-Menüs.** Mit „Ignorieren" kommt eine zweite mögliche Aktion pro Zeile hinzu. Ein
+17. **Die Aktionen zeigen bei Status „Offen"/„Teilweise" zwei gestapelte Buttons statt eines
+    Dropdown-/Kebab-Menüs.** Mit „Ignorieren" kommt eine zweite mögliche Aktion pro Eintrag hinzu. Ein
     Kebab-Menü würde die zweite Aktion hinter einem zusätzlichen Klick verstecken — bei einer auf schnelles
-    Abarbeiten von ~50 Zeilen/Seite ausgelegten Liste (Auftrags-Ziel „~1500 Einträge zügig abarbeiten") ist die
-    direkte Sichtbarkeit beider Aktionen wichtiger als Tabellenbreite. Vertikale Stapelung
-    (`display:flex; flex-direction:column; gap:var(--space-1)`) hält die Spalte trotzdem kompakt und vermeidet
-    zusätzliche Tab-Stopps eines Menüs.
+    Abarbeiten von ~50 Einträgen/Seite ausgelegten Liste (Auftrags-Ziel „~1500 Einträge zügig abarbeiten") ist die
+    direkte Sichtbarkeit beider Aktionen wichtiger als Kompaktheit. Vertikale Stapelung
+    (`display:flex; flex-direction:column; gap:var(--space-1)`) hält den Aktionsbereich trotzdem kompakt und
+    vermeidet zusätzliche Tab-Stopps eines Menüs. **Update-Durchlauf 2:** Gilt unverändert für die
+    Aktions-Spalte innerhalb von `DiscoveryLibraryCard` (Design-Entscheidung 22).
 18. **Der zweite D-20-Auslösepunkt bekommt keinen eigenen Screen und kein Modal, sondern denselben
     `AniSearchDuplicateDecision`-Block plus eine zusätzliche Kontextzeile.** Ein komplett neues UI-Pattern für
     einen Randfall (Race zwischen Erstprüfung und tatsächlichem Speichern-Klick) wäre unverhältnismäßig; die
@@ -239,14 +286,76 @@ unverändert gültig; Punkte 14–19 sind Ergänzungen dieses Update-Durchlaufs 
     Screen 3 und Copywriting-Vertrag) — ohne diese Zeile würde ein Admin den erneuten Konfliktblock nach einem
     bereits erfolgten „Speichern"-Klick als Fehler missverstehen.
 19. **D-19s Statuskonsistenz ist ein reiner Verhaltens-Vertrag, kein zusätzliches UI-Element.** Nach
-    Verbinden/Ignorieren/Entignorieren/Ordner-entfernen muss die betroffene Zeile sofort den korrekten Status
+    Verbinden/Ignorieren/Entignorieren/Ordner-entfernen muss der betroffene Eintrag sofort den korrekten Status
     zeigen, ohne dass „Bibliothek neu laden" geklickt wird (RESEARCH.md §13: Status kommt bei jedem Seitenaufruf
     frisch aus der DB, nie aus dem TTL-Jellyfin-Cache). Visuell ist das bereits durch die in Design-Entscheidung
     15 festgelegten Lade-/Erfolgszustände abgedeckt — es gibt keinen separaten Spinner oder Toast zusätzlich zu
-    den dort beschriebenen Pro-Aktion-Zuständen. Für die Discovery-Tabelle bedeutet das konkret: Nach jeder der
+    den dort beschriebenen Pro-Aktion-Zuständen. Für die Discovery-Liste bedeutet das konkret: Nach jeder der
     vier D-21-Aktionen wird ausschließlich die Status-Batch-Query der betroffenen Seite erneut ausgeführt
     (nicht der komplette Jellyfin-Snapshot neu geladen) — dieselbe `LoadingState compact`-Darstellung wie beim
     Seitenwechsel (Screen 2) ist dafür ausreichend, kein neues Primitive nötig.
+20. **D-23-Fix: Die automatische `window.location.href`-Weiterleitung im AniSearch-Enrich-Konfliktfall entfällt
+    ersatzlos; sie war der eigentliche Bug, nicht ein fehlendes UI.** Live-Befund 2026-09-21 (AniSearch-ID 2788 →
+    Naruto #4): `useAdminAnimeCreateController.ts`s `loadAniSearchDraftByID` setzt heute zwar bereits
+    `setAniSearchConflict(resolved.redirect)`, führt aber im selben Codeblock zusätzlich
+    `window.location.href = resolved.redirect.redirectPath` aus — eine harte Browser-Navigation, die sofort nach
+    dem State-Set greift, bevor React den Konfliktblock je rendern kann. Der Fix ist rein subtraktiv: **nur**
+    diese eine Zeile entfällt, der bereits vorhandene, bereits korrekte Render-Pfad
+    (`CreateAniSearchIntakeCard.tsx` Zeilen 155–164, siehe Screen 3) übernimmt danach unverändert. Diese
+    Design-Entscheidung ist absichtlich **keine** neue UI-Spezifikation, sondern die explizite Feststellung, dass
+    keine ist — Update-Durchlauf 1 hatte bereits den korrekten Ziel-UI-Zustand (Design-Entscheidungen 7–9,
+    Screen 3) beschrieben; was fehlte, war ausschließlich die Entfernung des Bugs, der diesen Zustand nie
+    erreichen ließ. Der davon unabhängige zweite `window.location.href`-Aufruf in `handleCreateSubmit` (manueller
+    Create-Erfolg, D-10) ist ein separater, korrekter Codepfad und bleibt unverändert (siehe Dateitabelle oben).
+21. **„Als neuen Anime anlegen" bekommt einen serverseitigen Bypass statt einer reinen Frontend-Synthese der
+    AniSearch-Draft-Daten.** `AnimeCreateEnrichmentService.Enrich` gibt heute **immer** sofort das
+    Konflikt-/Redirect-Ergebnis zurück, sobald `FindAnimeBySource` einen Treffer liefert — es gibt keinen Weg,
+    „ja, ich weiß, trotzdem den echten AniSearch-Entwurf laden" zu sagen. Ohne eine Backend-Änderung würde
+    „Als neuen Anime anlegen" zwar sichtbar sein, aber entweder denselben Konflikt erneut auslösen oder das
+    Frontend müsste die AniSearch-Metadaten selbst nachbilden — beides widerspricht der Projekt-Leitlinie
+    „AniSearch bleibt fachlich maßgeblich" (D-09) und der Bestandsarchitektur (`Enrich` ist die einzige Stelle,
+    die den AniSearch-Fetch+Merge durchführt). Lösung: ein neues, additives Bypass-Feld auf
+    `AdminAnimeAniSearchEnrichmentRequest` (Namensvorschlag `ForceNew`/`force_new`, analog zum für D-20 bereits
+    vorgesehenen `ConfirmDuplicate`-Feld auf dem Create-Request) — beim Klick auf „Als neuen Anime anlegen"
+    sendet das Frontend denselben Enrich-Request erneut, diesmal mit gesetztem Bypass-Feld; `Enrich` überspringt
+    dann den `FindAnimeBySource`-Early-Return und fährt mit dem regulären Fetch+Merge fort. Sichtbar bleibt für
+    den Admin ausschließlich der Button-Klick selbst — kein neuer UI-Zustand, aber ein verbindlicher
+    Interface-Zusatz, den Planner/Executor umsetzen müssen, damit der Button tatsächlich funktioniert.
+22. **D-24: Die neue Discovery-„Zeile" wird eine Karte (`DiscoveryLibraryCard`), keine Tabellenzeile mehr —
+    Struktur/Feldauswahl von `JellyfinCandidateCard.tsx` wiederverwendet, Markup nicht.** Der Auftraggeber hat
+    nach Live-Durchsicht 2026-09-21 den in Update-Durchlauf 1 spezifizierten `Table`/`TableRow`-Aufbau von
+    Screen 2 verworfen zugunsten des bereits bestehenden Kartenstils der Jellyfin-Direktsuche auf der
+    Create-Seite. Übernommene Feldstruktur (Reihenfolge wie in `JellyfinCandidateCard.tsx`): Poster-Block,
+    Titel, „{Jahr} \| {Pfad}"-Zeile, „{Typ} \| {Bibliothek}"-Zeile, Statusblock (Badge + bei „Bereits vorhanden"
+    zusätzlich `{existingTitle} (#{existingAnimeID})` als eigene Zeile, analog zu `JellyfinCandidateCard`s
+    `importedBox`), Aktions-Bereich rechts/unten. Bewusste Abweichungen von der Referenzkarte:
+    (a) **Layout:** vertikale Karten-**Liste** (Einspalter, volle Breite, `gap: var(--space-3)` — analog zu
+    `CreateJellyfinCard.tsx`s `.providerList` mit `gap: 12px`), **kein** Mehrspalten-Grid, weil pro Karte mehr
+    Information (Jahr, Pfad, Typ, Bibliothek, Status, zwei gestapelte Aktions-Buttons) als bei der schlankeren
+    Direktsuche-Karte dargestellt wird und ein Mehrspalten-Grid diese bei ~50 Karten/Seite zu eng zusammendrängen
+    würde. (b) **Poster-Seitenverhältnis:** `aspect-ratio: 2/3` (Hochformat, wie ein typisches Anime-Cover) statt
+    der Referenzkarte `16/10`-Ausschnitt — die Referenzkarte nutzt dieselbe `primary`-Bildquelle
+    (`buildGroupMediaImageURL(id, "primary", …)`) wie überall sonst in der App (Hochformat-Cover); der `16/10`-
+    Crop ist eine Eigenheit der Direktsuche-Karte, kein Grund, sie hier zu übernehmen. Feste Kartenbreite des
+    Posterblocks: 96px, `border-radius: var(--radius-md)`. (c) **Keine „Ansehen"/„Im Fokus"-Auswahl-Interaktion**
+    der Referenzkarte — die gehört zur Direktsuche (mehrere Kandidaten parallel vergleichen, einen davon
+    „fokussieren"), Discovery navigiert bei Klick auf „Anime anlegen" direkt weiter (Design-Entscheidung 3), eine
+    Vorschau-Auswahl auf der Bibliotheksseite selbst wäre redundant. (d) **Karten-Metazeile „Typ \| Bibliothek":**
+    Das Feld „Bibliothek" ist **nicht** die Jellyfin-Bibliotheks-GUID aus der Pro-Library-Fetch-Schleife
+    (`jellyfin_client_series.go`s `allowedIDs`-Schleife kennt nur GUIDs, keine lesbaren Namen), sondern
+    Wiederverwendung des bereits bestehenden, rein pfadbasierten `deriveJellyfinPathContexts`-Helpers
+    (`jellyfin_intake_helpers.go`), der für die Direktsuche bereits `library_context` aus dem ersten
+    Pfadsegment ableitet — **keine zusätzliche Jellyfin-Anfrage, keine neue Backend-Fähigkeit**, nur
+    Wiederverwendung derselben Funktion für den Discovery-Snapshot-Builder. Sollte `library_context` `null`
+    sein (Pfad ohne auswertbares erstes Segment), entfällt die „\| {Bibliothek}"-Ergänzung und es bleibt bei
+    reinem „{Typ}".
+23. **D-25/D-26 waren bereits korrekt spezifiziert — reine Zitat-Ergänzung, keine inhaltliche Änderung.** Die
+    Live-Durchsicht bestätigte zwei bereits in Update-Durchlauf 1 getroffene Festlegungen ausdrücklich als
+    richtig: die Zurück/Weiter-Pager-Logik (Design-Entscheidung 4, jetzt explizit „(D-25)" zitiert) und die
+    additive AniSearch-Titel-Vorbelegung beim Discovery-Adopt (Screen 1, Punkt „Neu", D-09/D-26 — reine
+    Vorbelegung, löst **keine** automatische Suche aus, und ändert **nichts** an der heute bereits automatisch
+    aus Jellyfin befüllten Feldliste: Titel, Typ, Status, Jahr, Ordnerpfad, Beschreibung, Cover, Banner, Logo).
+    Beide Punkte benötigten keine Korrektur, nur die explizite D-ID-Zuordnung für Planner/Checker/Executor.
 
 ---
 
@@ -257,38 +366,41 @@ neuen Spacing-Werte**:
 
 | Token | Value | Usage in Phase 165 |
 |-------|-------|-------|
-| `--space-1` | 4px | Gap zwischen Status-Badge und der darunterliegenden „Verknüpft über …"-/„Mehrere Staffeln erkannt…"-Caption; Gap zwischen den zwei gestapelten Aktions-Buttons einer Tabellenzeile bei Status „Offen"/„Teilweise" (D-17, Design-Entscheidung 17) |
-| `--space-2` | 8px | Gap zwischen Toolbar-Elementen (Select/Input/Refresh-Button); Gap zwischen Pager-Buttons; Gap zwischen den Zeilen der Ordner-Liste auf der Edit-Seite (D-18) |
-| `--space-3` | 12px | Innerer vertikaler Abstand innerhalb der Titel-Zelle (Anime-Name + Pfad-Zeile); innerer Abstand einer Ordner-Zeile auf der Edit-Seite (D-18) |
-| `--space-4` | 16px | Innenabstand Toolbar; Abstand zwischen `DiscoveryEntryCard` und dem bestehenden Provider-Grid auf der Create-Seite (per Card-Grid-Gap, unverändert von `page.module.css`); Innenabstand des neuen „Verbundene Jellyfin-Ordner"-Abschnitts (D-18) |
-| `--space-5` | 24px | Abstand zwischen `PageHeader` und Toolbar; Abstand zwischen Toolbar und Table; Abstand zwischen dem bestehenden Einzel-Kontext-Block und dem neuen Ordner-Listenabschnitt in `AnimeJellyfinMetadataSection.tsx` (D-18) |
-| `--space-6` | 32px | Abstand zwischen Table und Pager-Zeile |
+| `--space-1` | 4px | Gap zwischen Status-Badge und der darunterliegenden Statusdetail-/Caption-Zeile in der Karte (D-24); Gap zwischen den zwei gestapelten Aktions-Buttons einer Karte bei Status „Offen"/„Teilweise" (D-17, Design-Entscheidung 17) |
+| `--space-2` | 8px | Gap zwischen Toolbar-Elementen (Select/Input/Refresh-Button); Gap zwischen Pager-Buttons; Gap zwischen den Zeilen der Ordner-Liste auf der Edit-Seite (D-18); Gap zwischen Poster-Block und Content-Block **innerhalb** einer `DiscoveryLibraryCard` (D-24) |
+| `--space-3` | 12px | Gap zwischen den einzelnen `DiscoveryLibraryCard`-Instanzen in der vertikalen Karten-Liste (D-24, Design-Entscheidung 22 — bewusst identisch mit dem Referenz-Analog `.providerList`s `gap: 12px`); innerer vertikaler Abstand innerhalb der Titel-/Meta-Zeilen einer Karte; innerer Abstand einer Ordner-Zeile auf der Edit-Seite (D-18) |
+| `--space-4` | 16px | Innenabstand Toolbar; Innenabstand jeder `DiscoveryLibraryCard` (D-24, ersetzt den vorherigen Tabellenzell-Innenabstand); Abstand zwischen `DiscoveryEntryCard` und dem bestehenden Provider-Grid auf der Create-Seite (per Card-Grid-Gap, unverändert von `page.module.css`); Innenabstand des neuen „Verbundene Jellyfin-Ordner"-Abschnitts (D-18) |
+| `--space-5` | 24px | Abstand zwischen `PageHeader` und Toolbar; Abstand zwischen Toolbar und der Karten-Liste (D-24, ersetzt „Toolbar und Table"); Abstand zwischen dem bestehenden Einzel-Kontext-Block und dem neuen Ordner-Listenabschnitt in `AnimeJellyfinMetadataSection.tsx` (D-18) |
+| `--space-6` | 32px | Abstand zwischen der Karten-Liste und der Pager-Zeile (D-24, ersetzt „Table und Pager-Zeile") |
 | `--space-7` | 48px | Vertikaler Innenabstand des `EmptyState`/`ErrorState`/`LoadingState`-Blocks bei leerer/fehlerhafter Liste (bereits bestehende Primitive-Konstante, hier nur referenziert) |
 
 **Touch-/Kontrollgrößen:**
 - Alle `Button`/`Select`/`Input`-Instanzen nutzen die bestehende Primitive-Standardhöhe
-  `var(--control-height-md)` = 44px (`size="md"`, Default), außer den Tabellenaktions-Buttons
-  („Anime anlegen"/„Anime öffnen"/„Ignorieren"/„Nicht mehr ignorieren") und dem Ordner-Selector im
-  Episoden-Import, die bewusst `size="sm"` (`var(--control-height-sm)` = 36px) nutzen — analog
-  zu `AdminUserTableRow`s Aktions-Buttons, damit die Tabelle bei ~50 Zeilen/Seite nicht unnötig hoch wird und die
-  beiden gestapelten Aktions-Buttons pro Zeile (Design-Entscheidung 17) nicht zu hoch werden.
-- Poster-Thumbnail: fest 40×56px (5:7-Näherung an ein Hochformat-Poster), `border-radius: var(--radius-sm)`.
+  `var(--control-height-md)` = 44px (`size="md"`, Default), außer den Aktions-Buttons innerhalb einer
+  `DiscoveryLibraryCard` („Anime anlegen"/„Anime öffnen"/„Ignorieren"/„Nicht mehr ignorieren") und dem
+  Ordner-Selector im Episoden-Import, die bewusst `size="sm"` (`var(--control-height-sm)` = 36px) nutzen —
+  analog zu `AdminUserTableRow`s Aktions-Buttons und zu `JellyfinCandidateCard`s Aktionsreihe, damit die
+  Karten-Liste bei ~50 Einträgen/Seite nicht unnötig hoch wird und die beiden gestapelten Aktions-Buttons pro
+  Karte (Design-Entscheidung 17) nicht zu hoch werden.
+- Poster-Block innerhalb einer `DiscoveryLibraryCard`: feste Breite 96px, `aspect-ratio: 2/3`,
+  `border-radius: var(--radius-md)` (D-24, Design-Entscheidung 22 — ersetzt das vorherige 40×56px-
+  Tabellen-Thumbnail).
 - Der „Ordner entfernen"-Button auf der Edit-Seite nutzt ebenfalls `size="sm"` (36px), konsistent mit der Größe
   der bestehenden Vorbild-Aktion in `AnimeContextFansubManager.tsx`.
 
 Exceptions: `--space-3` (12px) liegt außerhalb des Standard-Sets {4, 8, 16, 24, 32, 48, 64}. Es handelt
 sich um ein bereits bestehendes, sitewide in `globals.css` deklariertes Token, das repo-weit
-(z. B. `QuickLinksSection.module.css`, `AttentionSection.module.css`) für exakt diesen Zweck
-(innerer Zeilen-/Zellen-Abstand) verwendet wird — Phase 165 führt es nicht neu ein, sondern
-referenziert ein vorhandenes Token unverändert.
+(z. B. `QuickLinksSection.module.css`, `AttentionSection.module.css`, `CreateJellyfinCard.tsx`s `.providerList`)
+für exakt diesen Zweck (Karten-/Zeilen-Abstand in einer vertikalen Liste) verwendet wird — Phase 165 führt es
+nicht neu ein, sondern referenziert ein vorhandenes Token unverändert.
 
 ---
 
 ## Typography
 
-Gilt ausschließlich für die in dieser Phase neu gerenderten Textelemente innerhalb der Discovery-Tabelle, der
+Gilt ausschließlich für die in dieser Phase neu gerenderten Textelemente innerhalb der Discovery-Karten-Liste, der
 Toolbar, des Pagers, der Verbinden/Neu-Entscheidung, der Ordner-Auswahl im Episoden-Import und der
-Ordner-Verwaltung auf der Anime-Bearbeitungsseite. `PageHeader`, `Card`, `Table`-Kopfzeilen, `Badge`,
+Ordner-Verwaltung auf der Anime-Bearbeitungsseite. `PageHeader`, `Card`, `Badge`,
 `Button`, `FormField`, `EmptyState`/`ErrorState`/`LoadingState` behalten ihre bereits in `ui.module.css`
 festgelegte Typografie unverändert bei (keine Größen-Overrides dieser bestehenden Primitives).
 
@@ -300,34 +412,37 @@ festgelegte Typografie unverändert bei (keine Größen-Overrides dieser bestehe
 | Display | — | — | — (in dieser Phase nicht verwendet — Seitenüberschriften nutzen ausschließlich die bestehende `PageHeader`-Primitive unverändert) |
 
 **Zuordnung konkreter Textelemente:**
-- **Heading (16/600):** Anime-Titel in der Titel-Zelle der Tabelle (Zelle erbt sonst die Table-Standardgröße;
-  hier bewusst fett hervorgehoben, damit der Name beim schnellen Scannen von ~50 Zeilen dominiert); Abschnitts-
-  überschrift „Verbundene Jellyfin-Ordner" auf der Anime-Bearbeitungsseite (D-18).
-- **Body (14/400):** Pfad-Zeile unter dem Titel (gekürzt mit `text-overflow: ellipsis`, volles `title`-Attribut
-  für Hover-Tooltip); Toolbar-Bibliotheksgrößen-Hinweis („{N} Einträge in der Bibliothek insgesamt"); Pager-
-  Seitenzähler „Seite {n}"; Erklärungstext im Verbinden/Neu-Block; Empty-/Error-State-Beschreibungstexte (sofern
-  nicht bereits durch die Primitive selbst vorgegeben); Ordnerpfad-/Name-Zeilen in der Ordner-Liste der Edit-
-  Seite (D-18); Kontextzeile „Beim Speichern wurde erneut ein bestehender Anime mit dieser AniSearch-ID
-  gefunden." beim zweiten D-20-Auslösepunkt; Erfolgs-/Statuszeilen nach Ignorieren/Entignorieren/Ordner-
-  entfernen (D-17/D-18/D-19).
-- **Label (12/600):** Status-Caption „Verknüpft über Jellyfin-ID"/„Verknüpft über Ordnerpfad" unter dem Status-
-  Badge; Folgenerklärung unter „Als neuen Anime anlegen" („Es entsteht ein zusätzlicher, unabhängiger
-  Anime-Eintrag."); Status-Caption „Mehrere Staffeln erkannt – noch nicht jede Staffel einem Anime zugeordnet."
-  unter dem „Teilweise"-Badge (D-15); Tag-Beschriftungen „Haupt-Ordner"/„Zusatz-Ordner" in der Ordner-Liste
-  (D-18, als `Badge variant="muted"`, keine eigene Typografie außerhalb der `Badge`-Primitive nötig).
+- **Heading (16/600):** Anime-Titel innerhalb der `DiscoveryLibraryCard` (D-24, ersetzt „Titel-Zelle der
+  Tabelle" — bewusst fett hervorgehoben, damit der Name beim schnellen Scannen von ~50 Karten dominiert);
+  Abschnittsüberschrift „Verbundene Jellyfin-Ordner" auf der Anime-Bearbeitungsseite (D-18).
+- **Body (14/400):** „{Jahr} \| {Pfad}"-Zeile unter dem Titel (Pfad gekürzt mit `text-overflow: ellipsis`,
+  volles `title`-Attribut für Hover-Tooltip); „{Typ} \| {Bibliothek}"-Zeile darunter (D-24); Statusdetail-Zeile
+  „{existingTitle} (#{existingAnimeID})" bei Status „Bereits vorhanden" (D-24); Toolbar-Bibliotheksgrößen-Hinweis
+  („{N} Einträge in der Bibliothek insgesamt"); Pager-Seitenzähler „Seite {n}"; Erklärungstext im
+  Verbinden/Neu-Block; Empty-/Error-State-Beschreibungstexte (sofern nicht bereits durch die Primitive selbst
+  vorgegeben); Ordnerpfad-/Name-Zeilen in der Ordner-Liste der Edit-Seite (D-18); Kontextzeile „Beim Speichern
+  wurde erneut ein bestehender Anime mit dieser AniSearch-ID gefunden." beim zweiten D-20-Auslösepunkt;
+  Erfolgs-/Statuszeilen nach Ignorieren/Entignorieren/Ordner-entfernen (D-17/D-18/D-19).
+- **Label (12/600):** Status-Caption „Verknüpft über Jellyfin-ID"/„Verknüpft über Ordnerpfad" unter der
+  Statusdetail-Zeile; Folgenerklärung unter „Als neuen Anime anlegen" („Es entsteht ein zusätzlicher,
+  unabhängiger Anime-Eintrag."); Status-Caption „Mehrere Staffeln erkannt – noch nicht jede Staffel einem Anime
+  zugeordnet." unter dem „Teilweise"-Badge (D-15); Tag-Beschriftungen „Haupt-Ordner"/„Zusatz-Ordner" in der
+  Ordner-Liste (D-18, als `Badge variant="muted"`, keine eigene Typografie außerhalb der `Badge`-Primitive
+  nötig).
 
 Damit: 3 deklarierte Größen (12, 14, 16px) und 2 Gewichte (400, 600) — innerhalb des Kontraktlimits (3–4 Größen
-zulässig, hier bewusst 3, da eine vierte für diese schlanke Oberfläche keinen Mehrwert hätte). Die
-D-14–D-22-Erweiterung führt **keine** neue Größe/Gewicht ein.
+zulässig, hier bewusst 3, da eine vierte für diese schlanke Oberfläche keinen Mehrwert hätte). Weder die
+D-14–D-22-Erweiterung noch die D-23–D-26-Korrektur führen eine neue Größe/ein neues Gewicht ein.
 
 **Verbindliche exakte Textinhalte** (inkl. Umlaute, echte Anführungszeichen, keine ASCII-Ersetzung):
 „Aus meiner Bibliothek", „Bibliothek durchsuchen", „Bibliothek neu laden", „Status", „Suche", „Titel oder Pfad
-durchsuchen", „Poster", „Titel", „Typ", „Jahr", „Aktion", „Offen", „Bereits vorhanden", „Alle", „Anime anlegen",
-„Anime öffnen", „Zurück", „Weiter", „Zurück zur Bibliothek", „Verknüpft über Jellyfin-ID", „Verknüpft über
-Ordnerpfad", „Mit bestehendem Anime verbinden", „Als neuen Anime anlegen", „Zum vorhandenen Anime wechseln", „Es
-entsteht ein zusätzlicher, unabhängiger Anime-Eintrag.", „Serie", „Film", „OVA", „Special", „ONA", „Unbekannt".
+durchsuchen", „Poster", „Titel", „Typ", „Jahr", „Bibliothek", „Aktion", „Offen", „Bereits vorhanden", „Alle",
+„Anime anlegen", „Anime öffnen", „Zurück", „Weiter", „Zurück zur Bibliothek", „Verknüpft über Jellyfin-ID",
+„Verknüpft über Ordnerpfad", „Mit bestehendem Anime verbinden", „Als neuen Anime anlegen", „Zum vorhandenen
+Anime wechseln", „Es entsteht ein zusätzlicher, unabhängiger Anime-Eintrag.", „Serie", „Film", „OVA", „Special",
+„ONA", „Unbekannt".
 
-**Zusätzlich aus der D-14–D-22-Erweiterung (Update-Durchlauf):** „Ignoriert", „Teilweise", „Ignorieren", „Nicht
+**Zusätzlich aus der D-14–D-22-Erweiterung (Update-Durchlauf 1):** „Ignoriert", „Teilweise", „Ignorieren", „Nicht
 mehr ignorieren", „Mehrere Staffeln erkannt – noch nicht jede Staffel einem Anime zugeordnet.", „Jellyfin-
 Ordner", „Wählen Sie den Ordner, aus dem Episoden importiert werden sollen.", „Verbundene Jellyfin-Ordner",
 „Haupt-Ordner", „Zusatz-Ordner", „Ordner entfernen", „Wird entfernt…", „Wird ignoriert…", „Wird entignoriert…",
@@ -335,19 +450,24 @@ Ordner", „Wählen Sie den Ordner, aus dem Episoden importiert werden sollen.",
 erscheint nicht mehr unter „Offen".", „Eintrag ist nicht mehr ignoriert.", „Beim Speichern wurde erneut ein
 bestehender Anime mit dieser AniSearch-ID gefunden.".
 
+**Zusätzlich aus der D-23/D-24-Korrektur (Update-Durchlauf 2):** „Bibliothek" (neues Meta-Zeilen-Wort, siehe
+oben — war in Update-Durchlauf 1 kein eigenständiger Textbaustein, weil die Bibliothek dort nicht als eigenes
+Feld dargestellt wurde). Kein weiterer neuer Textbaustein nötig — D-23s Fix ist rein verhaltensbezogen (kein
+neuer Text), D-25/D-26 zitieren nur bereits vorhandene Texte.
+
 ---
 
 ## Color
 
-Betrachtet werden ausschließlich die neu gestalteten Elemente (Discovery-Liste, Toolbar, Verbinden/Neu-Block,
-Rücksprung-Link, Ordner-Auswahl im Episoden-Import, Ordner-Verwaltung auf der Edit-Seite); die umgebende
+Betrachtet werden ausschließlich die neu gestalteten Elemente (Discovery-Karten-Liste, Toolbar, Verbinden/Neu-
+Block, Rücksprung-Link, Ordner-Auswahl im Episoden-Import, Ordner-Verwaltung auf der Edit-Seite); die umgebende
 Admin-Seitenstruktur (`PlatformAdminGate`, `PageHeader`) bleibt unverändert.
 
 | Role | Value | Usage |
 |------|-------|-------|
 | Dominant (60%) | `#f9f9f9` (`var(--bg-primary)`) | Seitenhintergrund von `/admin/anime/create/library` (bestehend, app-weit unverändert) |
-| Secondary (30%) | `#ffffff` (`var(--surface-card)`/`var(--bg-card)`) | Toolbar-Fläche, `Table`-Wrap (`.tableWrap`, bereits bestehend), `DiscoveryEntryCard`-Hintergrund, neuer „Verbundene Jellyfin-Ordner"-Abschnitt auf der Edit-Seite (D-18) |
-| Accent (10%) | `#5f84dd` (`var(--color-primary)`/`var(--accent-primary)`) | **Ausschließlich:** primärer „Bibliothek durchsuchen"-CTA auf der Entry-Card, primärer „Anime anlegen"-Button pro Tabellenzeile, primärer „AniSearch laden"-Button (bestehend, unverändert), sichtbarer Fokusring (`var(--focus-ring)`, bestehend) |
+| Secondary (30%) | `#ffffff` (`var(--surface-card)`/`var(--bg-card)`) | Toolbar-Fläche, `DiscoveryLibraryCard`-Hintergrund (D-24, ersetzt „`Table`-Wrap"), `DiscoveryEntryCard`-Hintergrund, neuer „Verbundene Jellyfin-Ordner"-Abschnitt auf der Edit-Seite (D-18) |
+| Accent (10%) | `#5f84dd` (`var(--color-primary)`/`var(--accent-primary)`) | **Ausschließlich:** primärer „Bibliothek durchsuchen"-CTA auf der Entry-Card, primärer „Anime anlegen"-Button pro Karte, primärer „AniSearch laden"-Button (bestehend, unverändert), sichtbarer Fokusring (`var(--focus-ring)`, bestehend) |
 | Destructive | `#dc3545` (`var(--color-error)`) | **Nicht verwendet in dieser Phase** — weder Discovery noch die Verbinden/Neu-Entscheidung noch Ignorieren/Ordner-entfernen enthalten eine echte Lösch-/destruktive Aktion (alle drei sind reversibel, Design-Entscheidung 15) |
 
 **Status-Badges (semantischer Kanal, bestehende `Badge`-Varianten, keine neuen Farbwerte):**
@@ -359,13 +479,13 @@ Admin-Seitenstruktur (`PlatformAdminGate`, `PageHeader`) bleibt unverändert.
 | „Teilweise" | `variant="warning"` | Mehrstaffel-Ordner (D-15), bei dem noch nicht jede Jellyfin-Staffel einem Anime zugeordnet ist — Warnfarbe, weil (späterer) Handlungsbedarf besteht, aber kein Fehlerzustand vorliegt |
 | „Ignoriert" | `variant="info"` | Bewusst vom Admin ausgeblendeter Eintrag (D-17) — weder positiv noch negativ, informativ, klar unterscheidbar von „Offen" (muted) und „Bereits vorhanden" (success) |
 
-**Status-Priorität (Single Source of Truth, D-17):** Jede Zeile zeigt genau **einen** Status-Badge nach der
+**Status-Priorität (Single Source of Truth, D-17):** Jede Karte zeigt genau **einen** Status-Badge nach der
 Rangfolge **bereits vorhanden > ignoriert > teilweise > offen** (identisch mit dem Backend-Resolver
 `resolveDiscoveryItemStatus`, RESEARCH.md §11/Recommended Project Structure). Diese Rangfolge gilt sowohl für
 die Badge-Darstellung als auch für die Filter-Zuordnung — ein Eintrag erscheint immer nur unter genau einem
 Filter (mit Ausnahme von „Alle"), nie doppelt. Beispiel: Ein bereits verbundener Anime, der zusätzlich ignoriert
 wurde, zeigt weiterhin „Bereits vorhanden" (nicht „Ignoriert") und die Aktion „Anime öffnen" — „Ignorieren" wird
-für Zeilen mit Status „Bereits vorhanden" daher gar nicht als Aktion angeboten (siehe Screen 2/Copywriting-
+für Karten mit Status „Bereits vorhanden" daher gar nicht als Aktion angeboten (siehe Screen 2/Copywriting-
 Vertrag), weil es wegen der Prioritätsregel ohnehin wirkungslos auf die Badge-Anzeige wäre.
 
 Accent reserved for: exakt die drei oben genannten CTA-Buttons + der bestehende globale Fokusring. Alle übrigen
@@ -380,7 +500,7 @@ Akzentfarbe bleibt auf die tatsächlichen Haupthandlungen konzentriert, konsiste
 
 | Element | Copy |
 |---------|------|
-| Primary CTA | **„Anime anlegen"** (`variant="primary"`, `size="sm"`, pro Tabellenzeile mit Status „Offen" oder „Teilweise"; navigiert zu `/admin/anime/create?jellyfin_id={id}&from=discovery&return={encodedDiscoveryURL}`) |
+| Primary CTA | **„Anime anlegen"** (`variant="primary"`, `size="sm"`, pro Karte mit Status „Offen" oder „Teilweise"; navigiert zu `/admin/anime/create?jellyfin_id={id}&from=discovery&return={encodedDiscoveryURL}`) |
 | Empty state heading (kein Treffer im Filter) | **„Keine offenen Einträge"** |
 | Empty state body (kein Treffer im Filter) | „Alle Bibliothekseinträge sind bereits verarbeitet oder mit Team4s verknüpft." + Aktion `<Button variant="secondary">Alle Einträge anzeigen</Button>` (setzt Filter auf „Alle") |
 | Empty state heading (Suche ohne Treffer) | **„Keine Treffer für „{query}""** |
@@ -402,21 +522,22 @@ Akzentfarbe bleibt auf die tatsächlichen Haupthandlungen konzentriert, konsiste
 | Such-Label | „Suche" (`FormField label`), Placeholder „Titel oder Pfad durchsuchen" | immer |
 | Bibliotheksgrößen-Hinweis | „{N} Einträge in der Bibliothek insgesamt" | sobald Snapshot geladen |
 | Refresh-Button | „Bibliothek neu laden" (`variant="ghost"`, `size="sm"`, `leftIcon={<RefreshCw size={16}/>}`) | immer |
-| Tabellenkopf | „Poster" / „Titel" / „Typ" / „Jahr" / „Status" / „Aktion" | immer |
+| Karten-Feldreihenfolge (D-24, ersetzt „Tabellenkopf") | Poster → Titel → „{Jahr} \| {Pfad}" → „{Typ} \| {Bibliothek}" → Status(-detail) → Aktion(en) | jede `DiscoveryLibraryCard`, feste Reihenfolge, keine Sortier-/Spalten-Header nötig (kein `Table` mehr) |
 | Status-Caption (bereits vorhanden, Referenz Jellyfin-ID) | „Verknüpft über Jellyfin-ID" | Status „Bereits vorhanden", Treffer über `source`/`source_links` |
 | Status-Caption (bereits vorhanden, Referenz Ordnerpfad) | „Verknüpft über Ordnerpfad" | Status „Bereits vorhanden", Treffer über `folder_name` |
+| Statusdetail (bereits vorhanden) | „{existingTitle} (#{existingAnimeID})" (Body 14/400, direkt unter dem Badge, über der Status-Caption) | Status „Bereits vorhanden" — Feld-Reihenfolge analog zu `JellyfinCandidateCard`s `importedBox` (D-24) |
 | Status-Caption (teilweise) | „Mehrere Staffeln erkannt – noch nicht jede Staffel einem Anime zugeordnet." | Status „Teilweise" (D-15) |
 | Aktion (bereits vorhanden) | „Anime öffnen" (`variant="secondary"`, `size="sm"`, `href="/admin/anime/{existingAnimeID}/edit"`) | Status „Bereits vorhanden" |
 | Aktion (ignorieren) | „Ignorieren" (`variant="ghost"`, `size="sm"`, unterhalb von „Anime anlegen" gestapelt, `gap: var(--space-1)`) | Status „Offen" oder „Teilweise", **nicht** bei „Bereits vorhanden" (Status-Priorität, siehe Color-Sektion) |
-| Aktion (nicht mehr ignorieren) | „Nicht mehr ignorieren" (`variant="secondary"`, `size="sm"`, einzige Aktion der Zeile) | nur im Filter „Ignoriert" sichtbar |
-| Pager | „Zurück" (`variant="secondary"`, `size="sm"`, disabled ohne Historie) / „Weiter" (`variant="secondary"`, `size="sm"`, disabled wenn `has_more=false`) / „Seite {n}" (reiner Text, `Body` 14/400) | immer sichtbar, sobald ≥1 Ergebnis |
+| Aktion (nicht mehr ignorieren) | „Nicht mehr ignorieren" (`variant="secondary"`, `size="sm"`, einzige Aktion der Karte) | nur im Filter „Ignoriert" sichtbar |
+| Pager | „Zurück" (`variant="secondary"`, `size="sm"`, disabled ohne Historie) / „Weiter" (`variant="secondary"`, `size="sm"`, disabled wenn `has_more=false`) / „Seite {n}" (reiner Text, `Body` 14/400) | immer sichtbar, sobald ≥1 Ergebnis (D-25) |
 | Ladezustand (initial) | `<LoadingState title="Bibliothek wird geladen" description="Jellyfin-Einträge und Team4s-Status werden abgeglichen." />` | erster Ladevorgang |
-| Ladezustand (Seitenwechsel/Aktion) | `<LoadingState compact title="Weitere Einträge werden geladen" description="" />` | Weiter/Zurück-Klick, Filter-/Suchwechsel, sowie erneute Status-Abfrage der betroffenen Zeile nach Verbinden/Ignorieren/Entignorieren/Ordner-entfernen (D-19, Design-Entscheidung 19) |
+| Ladezustand (Seitenwechsel/Aktion) | `<LoadingState compact title="Weitere Einträge werden geladen" description="" />` | Weiter/Zurück-Klick, Filter-/Suchwechsel, sowie erneute Status-Abfrage der betroffenen Karte nach Verbinden/Ignorieren/Entignorieren/Ordner-entfernen (D-19, Design-Entscheidung 19) |
 | Rücksprung-Link | „Zurück zur Bibliothek" (`variant="ghost"`, `size="sm"`, `leftIcon={<ArrowLeft size={16}/>}`, `href={returnURL}`) | nur wenn `return`-Query-Parameter vorhanden — auf Create-Seite (`from=discovery`), Episoden-Seite und Edit-Seite (Film-Übergang) |
-| Verbinden/Neu — Konfliktsatz | „AniSearch-Eintrag ist bereits mit „{existingTitle}" (#{existingAnimeID}) verknüpft." | Dublettenkonflikt (D-02), erscheint bei beiden Auslösepunkten (Enrich UND Save-Time, D-20) |
+| Verbinden/Neu — Konfliktsatz | „AniSearch-Eintrag ist bereits mit „{existingTitle}" (#{existingAnimeID}) verknüpft." | Dublettenkonflikt (D-02/D-23), erscheint bei beiden Auslösepunkten (Enrich UND Save-Time, D-20) — **ohne** vorherige automatische Navigation (D-23-Fix) |
 | Verbinden/Neu — Save-Time-Kontextzeile | „Beim Speichern wurde erneut ein bestehender Anime mit dieser AniSearch-ID gefunden." (Body 14/400, direkt über dem Konfliktsatz) | **nur** beim zweiten Auslösepunkt (D-20, Design-Entscheidung 18) — beim ersten Auslösepunkt (Enrich) entfällt diese Zeile |
 | Verbinden-Button | „Mit bestehendem Anime verbinden" (`variant="secondary"`) | **nur** wenn ein Jellyfin-Kandidat im aktuellen Draft aktiv ist (Design-Entscheidung 8) |
-| Neu-anlegen-Button | „Als neuen Anime anlegen" (`variant="secondary"`) | immer bei Konflikt |
+| Neu-anlegen-Button | „Als neuen Anime anlegen" (`variant="secondary"`) | immer bei Konflikt; löst intern den D-23/Design-Entscheidung-21-Bypass-Request aus |
 | Wechseln-Link | „Zum vorhandenen Anime wechseln" (`variant="ghost"`, `href={conflict.redirectPath}`) | immer bei Konflikt (bestehendes Verhalten, unverändert) |
 | Verbinden-Erfolg (Toast/Statuszeile) | „Jellyfin-Referenz mit „{existingTitle}" verknüpft." | nach erfolgreichem „Verbinden" |
 | Ordner-Selector Label (Episoden-Import) | „Jellyfin-Ordner" (`FormField label`), Hint „Wählen Sie den Ordner, aus dem Episoden importiert werden sollen." | nur wenn Anime mehr als einen verbundenen Jellyfin-Ordner hat (D-14) |
@@ -435,7 +556,7 @@ Akzentfarbe bleibt auf die tatsächlichen Haupthandlungen konzentriert, konsiste
 | Registry | Blocks Used | Safety Gate |
 |----------|-------------|-------------|
 | shadcn official | keine (kein shadcn im Projekt) | nicht zutreffend |
-| Drittanbieter | keine | nicht zutreffend — keine neue Library, keine Registry-Erweiterung; alle Primitives kommen aus dem bestehenden `@/components/ui` (unverändert durch die D-14–D-22-Erweiterung) |
+| Drittanbieter | keine | nicht zutreffend — keine neue Library, keine Registry-Erweiterung; alle Primitives kommen aus dem bestehenden `@/components/ui` (unverändert durch die D-14–D-22-Erweiterung und die D-23–D-26-Korrektur) |
 
 ---
 
@@ -450,11 +571,14 @@ Akzentfarbe bleibt auf die tatsächlichen Haupthandlungen konzentriert, konsiste
 - **Neu:** Wenn `?jellyfin_id={id}` gesetzt und noch keine Preview adoptiert ist, triggert die Seite beim Mount
   automatisch `handleJellyfinCandidateAdopt(id)` (bestehende Pipeline) und befüllt zusätzlich
   `createAniSearchSearchQuery` mit `preview.jellyfin_series_name`, sofern das AniSearch-Suchfeld noch leer ist
-  (D-09 — reine Vorbelegung, **keine** automatische Suche/Auswahl).
+  (D-09/D-26 — reine Vorbelegung, **keine** automatische Suche/Auswahl; die heute bereits automatisch aus
+  Jellyfin befüllten Felder — Titel, Typ, Status, Jahr, Ordnerpfad, Beschreibung, Cover, Banner, Logo — bleiben
+  von dieser Ergänzung unberührt, siehe Design-Entscheidung 23).
 
 ### 2. `/admin/anime/create/library` — neue Discovery-Seite
 
-**Layout (Desktop-first, wie die übrigen `@/components/ui`-basierten Admin-Listen z. B. `/admin/users`):**
+**Layout (Desktop-first, wie die übrigen `@/components/ui`-basierten Admin-Listen z. B. `/admin/users`;
+seit Update-Durchlauf 2 (D-24) mit Karten-Liste statt Tabelle):**
 
 ```
 PageHeader (Breadcrumb: Admin / Anime / Erstellen / Bibliothek — Titel „Bibliothek durchsuchen" — Beschreibung)
@@ -462,40 +586,48 @@ PageHeader (Breadcrumb: Admin / Anime / Erstellen / Bibliothek — Titel „Bibl
 Toolbar
   leading:  FormField(Status) > Select (Offen | Bereits vorhanden | Ignoriert | Alle)   FormField(Suche) > Input (debounced 300ms)
   trailing: „{N} Einträge in der Bibliothek insgesamt"   Button(„Bibliothek neu laden")
-[ LoadingState | ErrorState | EmptyState | Table ]
-Table
-  TableHead: Poster | Titel | Typ | Jahr | Status | Aktion
-  TableBody: pro Zeile:
-    Poster:  <img 40x56, loading="lazy", alt="Poster von {name}">  (Platzhalter-Box wenn kein Poster)
-    Titel:   <strong>{name}</strong> (Heading 16/600) + Pfad-Zeile darunter (Body 14/400, ellipsis, title=voller Pfad)
-    Typ:     Fließtext „Serie"/„Film"/„OVA"/„Special"/„ONA"/„Unbekannt"
-    Jahr:    Fließtext oder „—" wenn kein Jahr bekannt
-    Status:  Badge („Offen" muted | „Bereits vorhanden" success | „Teilweise" warning | „Ignoriert" info)
-             + Caption darunter (bei „Bereits vorhanden" und „Teilweise", siehe Copywriting)
-             Rangfolge bei Mehrdeutigkeit: bereits vorhanden > ignoriert > teilweise > offen (D-17, siehe Color-Sektion)
-    Aktion:  Offen/Teilweise:      Button „Anime anlegen" (primary, sm) + darunter Button „Ignorieren" (ghost, sm)
-                                   gestapelt, gap var(--space-1)
-             Bereits vorhanden:    Button „Anime öffnen" (secondary, sm) — kein „Ignorieren" (Status-Priorität)
-             Ignoriert (nur im Filter „Ignoriert" sichtbar): Button „Nicht mehr ignorieren" (secondary, sm)
+[ LoadingState | ErrorState | EmptyState | Karten-Liste ]
+Karten-Liste (vertikaler Stack, gap: var(--space-3), pro Eintrag eine DiscoveryLibraryCard):
+  DiscoveryLibraryCard (Card, grid-template-columns: 96px minmax(0,1fr), gap: var(--space-2), padding: var(--space-4)):
+    Poster:   <img 96px breit, aspect-ratio 2/3, loading="lazy", alt="Poster von {name}">  (Platzhalter-Box wenn kein Poster)
+    Content:
+      Titel:  <strong>{name}</strong> (Heading 16/600)
+      Meta 1: „{Jahr} | {Pfad}" (Body 14/400, ellipsis, title=voller Pfad)
+      Meta 2: „{Typ} | {Bibliothek}" (Body 14/400, Fließtext, kein Bibliothek-Suffix wenn library_context leer)
+      Status: Badge („Offen" muted | „Bereits vorhanden" success | „Teilweise" warning | „Ignoriert" info)
+              + bei „Bereits vorhanden": Statusdetail-Zeile „{existingTitle} (#{existingAnimeID})" (Body 14/400)
+              + Caption darunter (bei „Bereits vorhanden" und „Teilweise", siehe Copywriting, Label 12/600)
+              Rangfolge bei Mehrdeutigkeit: bereits vorhanden > ignoriert > teilweise > offen (D-17, siehe Color-Sektion)
+      Aktion: Offen/Teilweise:      Button „Anime anlegen" (primary, sm) + darunter Button „Ignorieren" (ghost, sm)
+                                     gestapelt, gap var(--space-1)
+              Bereits vorhanden:    Button „Anime öffnen" (secondary, sm) — kein „Ignorieren" (Status-Priorität)
+              Ignoriert (nur im Filter „Ignoriert" sichtbar): Button „Nicht mehr ignorieren" (secondary, sm)
 Pager-Zeile: Button(„Zurück") — „Seite {n}" — Button(„Weiter")
 ```
 
 - **Initialer Ladezustand:** `LoadingState` (nicht kompakt) ersetzt die gesamte Content-Fläche zwischen Toolbar
   und Pager, solange der erste Snapshot/erste Seite lädt.
-- **Seitenwechsel-Ladezustand:** `LoadingState compact` erscheint an derselben Stelle wie die Tabelle
-  (Tabelle wird währenddessen ausgeblendet, kein Layout-Sprung durch Beibehaltung der Toolbar/PageHeader).
+- **Seitenwechsel-Ladezustand:** `LoadingState compact` erscheint an derselben Stelle wie die Karten-Liste
+  (Karten werden währenddessen ausgeblendet, kein Layout-Sprung durch Beibehaltung der Toolbar/PageHeader).
 - **Fehlerzustand:** `ErrorState` ersetzt die Content-Fläche; Toolbar bleibt bedienbar (erneuter Versuch über
   „Erneut versuchen" oder direkt über einen erneuten Filter-/Suchwechsel möglich).
 - **Leerzustand (Filter ohne Treffer):** `EmptyState` mit „Alle Einträge anzeigen"-Aktion (setzt Filter auf
   „Alle", Suchbegriff bleibt erhalten).
 - **Leerzustand (Suche ohne Treffer):** `EmptyState` mit dynamischem Titel inkl. Suchbegriff.
-- **Nach Ignorieren/Entignorieren (D-17/D-19):** Die Zeile verschwindet sofort aus dem aktuell aktiven Filter,
-  wenn sie diesen nicht mehr erfüllt (z. B. „Ignorieren" bei aktivem Filter „Offen" entfernt die Zeile aus der
+- **Nach Ignorieren/Entignorieren (D-17/D-19):** Die Karte verschwindet sofort aus dem aktuell aktiven Filter,
+  wenn sie diesen nicht mehr erfüllt (z. B. „Ignorieren" bei aktivem Filter „Offen" entfernt die Karte aus der
   sichtbaren Liste), ohne dass „Bibliothek neu laden" nötig ist — reine Neuauswertung der Status-Batch-Query für
   die aktuelle Seite (Design-Entscheidung 19).
 
 ### 3. AniSearch-Konfliktblock (`CreateAniSearchIntakeCard.tsx` → `AniSearchDuplicateDecision.tsx`)
 
+- **D-23-Korrektur (Update-Durchlauf 2):** Vor diesem Update leitete `loadAniSearchDraftByID` bei einem
+  Dublettentreffer **sofort automatisch per `window.location.href`** auf `/admin/anime/{id}/edit` des
+  vorhandenen Anime um — der unten beschriebene Block wurde dadurch nie sichtbar, und ein zuvor übernommener
+  Jellyfin-Entwurf (Poster, Pfad, Assets bereits in `manualDraftValues`/`jellyfinDraftSnapshot`) ging beim
+  Seitenwechsel verloren (live reproduziert, AniSearch-ID 2788 → Naruto #4). Nach dem Fix (Design-Entscheidung
+  20) entfällt diese Navigation ersatzlos; der komplette Draft-State bleibt erhalten, und **dieser** Block
+  rendert an Ort und Stelle:
 - Ersetzt ausschließlich den bisherigen `conflict`-Zweig (Zeilen 155–164 des heutigen Stands). Der übrige Inhalt
   der Datei (Suchfelder, Kandidatenliste, Fehlerbox) bleibt **byte-identisch** unverändert — inklusive der dort
   weiterhin nativen `<input>`/`<button>`-Elemente, die außerhalb des Phasenumfangs liegen (D-12, Design-
@@ -506,10 +638,14 @@ Pager-Zeile: Button(„Zurück") — „Seite {n}" — Button(„Weiter")
   „Als neuen Anime anlegen"-Button.
 - Zustand nach Klick „Verbinden": Button-Reihe wird durch eine einzeilige Erfolgsmeldung ersetzt (Body 14/400,
   `role="status"`), der Create-Flow fährt danach mit dem (jetzt konfliktfreien) AniSearch-Merge fort.
-- Zustand nach Klick „Als neuen Anime anlegen": Der Konfliktblock verschwindet, der reguläre AniSearch-Merge
-  (`mergeCreateDraftPayload`) läuft wie im konfliktfreien Fall weiter — es entsteht **kein** neuer, separater
-  Bestätigungsschritt.
-- **Zweiter Auslösepunkt (D-20, Update-Durchlauf, RESEARCH.md §14):** Derselbe `AniSearchDuplicateDecision`-
+- Zustand nach Klick „Als neuen Anime anlegen": Der Button löst einen erneuten Enrich-Request mit gesetztem
+  Bypass-Feld aus (`ForceNew`/äquivalent, siehe Design-Entscheidung 21 — **notwendige Backend-Voraussetzung**,
+  ohne die dieser Button nach dem D-23-Fix zwar sichtbar, aber wirkungslos bliebe). Während der Anfrage zeigt der
+  Button denselben In-Flight-Zustand wie „AniSearch laden" (bestehendes Muster, `disabled` + Lade-Label). Bei
+  Erfolg verschwindet der Konfliktblock, der reguläre AniSearch-Merge (`mergeCreateDraftPayload`) läuft mit den
+  jetzt vom Server gelieferten AniSearch-Daten wie im konfliktfreien Fall weiter — es entsteht **kein** neuer,
+  separater Bestätigungsschritt.
+- **Zweiter Auslösepunkt (D-20, Update-Durchlauf 1, RESEARCH.md §14):** Derselbe `AniSearchDuplicateDecision`-
   Block erscheint ein zweites Mal, wenn der Server unmittelbar vor dem eigentlichen `CreateAnime`-Write erneut
   denselben `anisearch:<id>`-Treffer findet — ein Race zwischen der ersten Prüfung (bei AniSearch-Auswahl,
   Enrich-Zeitpunkt) und dem tatsächlichen Klick auf den finalen Speichern-Button. Auslöser ist hier nicht mehr
@@ -520,7 +656,8 @@ Pager-Zeile: Button(„Zurück") — „Seite {n}" — Button(„Weiter")
   Entscheidung 18).
   - **In-Flight-State:** Der Speichern-Button kehrt in den nicht-ladenden, wieder aktivierbaren Zustand zurück.
     Alle bereits im Draft erfassten Felder (Poster, Assets, Episoden-Vorauswahl, AniSearch-Metadaten) bleiben
-    unverändert erhalten — es handelt sich um denselben Seiten-State, kein Reset, kein Datenverlust.
+    unverändert erhalten — es handelt sich um denselben Seiten-State, kein Reset, kein Datenverlust (dieselbe
+    Draft-Erhalt-Garantie wie beim D-23-Fix am ersten Auslösepunkt, Design-Entscheidung 20).
   - Wählt der Admin beim zweiten Auftreten „Mit bestehendem Anime verbinden", läuft derselbe Verbinden-Pfad wie
     beim ersten Auslösepunkt (Design-Entscheidung 7/8), danach Navigation zum bestehenden Anime.
   - Wählt der Admin erneut „Als neuen Anime anlegen", wird der Speichern-Versuch mit einer expliziten
@@ -541,7 +678,7 @@ Pager-Zeile: Button(„Zurück") — „Seite {n}" — Button(„Weiter")
   Episoden-Seite ist selbst die Bestätigung, konsistent mit Test L: „direkt Episoden, kein erneutes manuelles
   Suchen").
 
-### 5. Episoden-Import — Ordner-Auswahl (D-14, Update-Durchlauf, RESEARCH.md §8)
+### 5. Episoden-Import — Ordner-Auswahl (D-14, Update-Durchlauf 1, RESEARCH.md §8)
 
 - **Ort:** Bestehendes „Quellen konfigurieren"-Panel auf `/admin/anime/{id}/episodes/import`
   (`import/page.tsx`, `styles.sourceGrid`-Bereich, zwischen dem bestehenden „AniSearch ID"- und
@@ -564,7 +701,7 @@ Pager-Zeile: Button(„Zurück") — „Seite {n}" — Button(„Weiter")
   zeigt die Seite den bereits vorhandenen `builder.errorMessage`-Block (`styles.error`, unverändert), kein neues
   Fehler-UI nötig.
 
-### 6. Anime-Bearbeitungsseite — Verbundene Jellyfin-Ordner (D-18, Update-Durchlauf, RESEARCH.md §12)
+### 6. Anime-Bearbeitungsseite — Verbundene Jellyfin-Ordner (D-18, Update-Durchlauf 1, RESEARCH.md §12)
 
 - **Ort:** Neuer Abschnitt `AnimeJellyfinFolderList`, gerendert von der bestehenden
   `AnimeJellyfinMetadataSection.tsx`, direkt unter dem bereits vorhandenen Einzel-Kontext-Block (AniSearch-ID /
@@ -597,7 +734,7 @@ Pager-Zeile: Button(„Zurück") — „Seite {n}" — Button(„Weiter")
 ### 7. Discovery — Sofortige Statuskonsistenz nach Aktionen (D-19, Verhaltens-Vertrag, kein neuer Screen)
 
 - Nach jeder der vier D-21-Aktionen (Verbinden, Ordner lösen, Ignorieren, Entignorieren) zeigt die betroffene
-  Zeile in der Discovery-Liste sofort den korrekten neuen Status, sobald der Admin (erneut) auf die
+  Karte in der Discovery-Liste sofort den korrekten neuen Status, sobald der Admin (erneut) auf die
   Bibliotheksseite navigiert oder die Liste dort aktiv ist — ohne Klick auf „Bibliothek neu laden" (Design-
   Entscheidung 19). Es gibt dafür **kein** zusätzliches visuelles Element über die in Screen 2/5/6 bereits
   beschriebenen Lade-/Erfolgszustände hinaus.
@@ -608,22 +745,24 @@ Pager-Zeile: Button(„Zurück") — „Seite {n}" — Button(„Weiter")
 
 | # | Testfall (Auftrag) | Erwartetes Aussehen laut diesem Vertrag |
 |---|---|---|
-| A | Unbekannte Series → „offen" | Zeile mit Badge „Offen" (muted), Aktion „Anime anlegen" (primary) + „Ignorieren" (ghost) |
-| B | Bekannte Series → „bereits vorhanden" | Zeile mit Badge „Bereits vorhanden" (success), Caption „Verknüpft über …", Aktion „Anime öffnen" (secondary), kein „Ignorieren" |
+| A | Unbekannte Series → „offen" | Karte mit Badge „Offen" (muted), Aktion „Anime anlegen" (primary) + „Ignorieren" (ghost) |
+| B | Bekannte Series → „bereits vorhanden" | Karte mit Badge „Bereits vorhanden" (success), Statusdetail „{existingTitle} (#{id})" + Caption „Verknüpft über …", Aktion „Anime öffnen" (secondary), kein „Ignorieren" |
 | C | Kein Fuzzy-Match (Naruto ≠ Naruto Shippuden) | Beide Titel erscheinen separat mit Status „Offen" — keine visuelle Zusammenführung |
 | D | Zuordnung-prüfen-Fall (jetzt nach AniSearch-Auswahl, D-02) | `AniSearchDuplicateDecision`-Block erscheint mit „Mit bestehendem Anime verbinden"/„Als neuen Anime anlegen" — kein automatischer Create |
-| E | Movie-Discovery sichtbar | Zeile mit Typ-Text „Film" (Pfad-/Namens-Heuristik), gleiche Tabellen-Zeilenstruktur wie Serien |
-| F | Pagination korrekt | „Weiter" lädt neue Zeilen ohne Duplikate, „Zurück" stellt vorherige Seite aus der Client-Historie wieder her, Seitenzähler erhöht/verringert sich korrekt |
-| G | Discovery → Draft vollständig | Nach „Anime anlegen"-Klick zeigt die Create-Seite befüllte Jellyfin-Felder (Name/Path/Jahr/Typ-Hint/Assets) und ein vorbelegtes (aber nicht ausgewähltes) AniSearch-Suchfeld |
+| E | Movie-Discovery sichtbar | Karte mit Typ-Text „Film" (Pfad-/Namens-Heuristik), gleiche Karten-Struktur wie Serien (D-24) |
+| F | Pagination korrekt (D-25: klassische Seiten, kein Endlos-Scrollen) | „Weiter" lädt neue Karten ohne Duplikate, „Zurück" stellt vorherige Seite aus der Client-Historie wieder her, Seitenzähler erhöht/verringert sich korrekt |
+| G | Discovery → Draft vollständig (D-26: Titelfeld jetzt zusätzlich vorbelegt) | Nach „Anime anlegen"-Klick zeigt die Create-Seite befüllte Jellyfin-Felder (Titel/Typ/Status/Jahr/Ordnerpfad/Beschreibung/Cover/Banner/Logo, wie heute bereits automatisch) und zusätzlich ein vorbelegtes (aber nicht ausgewähltes) AniSearch-Suchfeld |
 | H | Keine Auto-Auswahl bei 1 AniSearch-Treffer | Auch bei genau einem Suchergebnis bleibt die bestehende „Auswählen"-Interaktion erforderlich (unverändert) |
 | L | Assisted Series → direkt Episoden | Nach Create landet der Browser auf `/admin/anime/{id}/episodes`, `DiscoveryReturnLink` sichtbar |
 | M | Discovery-Kontext erhalten | Rücksprung über `DiscoveryReturnLink` stellt Filter/Suche/Cursor-Position der Bibliotheksseite wieder her |
 | N | D-14: >1 verbundener Ordner beim Episoden-Import | Ordner-Auswahl (`FormField`+`Select`) erscheint im „Quellen konfigurieren"-Panel, Haupt-Ordner vorausgewählt; bei genau 1 Ordner erscheint kein Selector (unverändertes Verhalten) |
-| O | D-17: Ignorieren/Entignorieren | Klick „Ignorieren" entfernt die Zeile sofort aus dem Filter „Offen"; Filter „Ignoriert" zeigt sie mit Badge „Ignoriert" (info) und Aktion „Nicht mehr ignorieren"; nach „Nicht mehr ignorieren" erscheint sie wieder unter „Offen" |
-| P | D-15: Mehrstaffel-Ordner „teilweise" | Zeile zeigt Badge „Teilweise" (warning) + Caption „Mehrere Staffeln erkannt…"; Aktion „Anime anlegen" bleibt verfügbar und startet denselben Assisted-Create-Flow wie bei „Offen" |
+| O | D-17: Ignorieren/Entignorieren | Klick „Ignorieren" entfernt die Karte sofort aus dem Filter „Offen"; Filter „Ignoriert" zeigt sie mit Badge „Ignoriert" (info) und Aktion „Nicht mehr ignorieren"; nach „Nicht mehr ignorieren" erscheint sie wieder unter „Offen" |
+| P | D-15: Mehrstaffel-Ordner „teilweise" | Karte zeigt Badge „Teilweise" (warning) + Caption „Mehrere Staffeln erkannt…"; Aktion „Anime anlegen" bleibt verfügbar und startet denselben Assisted-Create-Flow wie bei „Offen" |
 | Q | D-18: Zusatz-Ordner auf der Edit-Seite entfernen | Abschnitt „Verbundene Jellyfin-Ordner" zeigt den Haupt-Ordner ohne Entfernen-Button und jeden Zusatz-Ordner mit „Ordner entfernen" (ghost); nach Klick verschwindet die Zeile, Erfolgstext erscheint, der Eintrag ist in der Discovery-Liste wieder „Offen" |
-| R | D-19: Sofortige Statuskonsistenz | Nach Verbinden/Ignorieren/Entignorieren/Ordner-entfernen zeigt die betroffene Zeile ohne Klick auf „Bibliothek neu laden" sofort den korrekten neuen Status |
+| R | D-19: Sofortige Statuskonsistenz | Nach Verbinden/Ignorieren/Entignorieren/Ordner-entfernen zeigt die betroffene Karte ohne Klick auf „Bibliothek neu laden" sofort den korrekten neuen Status |
 | S | D-20: Save-Time-Dublettencheck (zweiter Auslösepunkt) | Klick auf „Speichern" bei einem Race-Duplikat zeigt erneut denselben `AniSearchDuplicateDecision`-Block plus die Kontextzeile „Beim Speichern wurde erneut ein bestehender Anime mit dieser AniSearch-ID gefunden."; alle bereits erfassten Draft-Felder bleiben erhalten |
+| T | **D-23: Kein automatischer Redirect mehr bei AniSearch-Dublette** | Laden einer bereits verknüpften AniSearch-ID (z. B. #2788) navigiert **nicht** sofort auf `/admin/anime/{id}/edit`; stattdessen erscheint der `AniSearchDuplicateDecision`-Block an Ort und Stelle, und alle bereits übernommenen Jellyfin-Felder/Assets bleiben im Formular sichtbar (kein stiller Datenverlust) |
+| U | **D-24: Kartenstil statt Tabelle** | Bibliotheksliste zeigt eine vertikal gestapelte `DiscoveryLibraryCard`-Liste (Poster/Titel/Jahr\|Pfad/Typ\|Bibliothek/Status/Aktionen) im Stil der bestehenden Jellyfin-Such-Karte — keine `Table`/`TableRow`/`TableHeaderCell` mehr auf dieser Seite |
 
 ---
 
@@ -632,25 +771,28 @@ Pager-Zeile: Button(„Zurück") — „Seite {n}" — Button(„Weiter")
 - **Toolbar-Felder sind über `FormField` gelabelt** (`label="Status"`/`label="Suche"`), keine reinen
   Placeholder-als-Label-Antipattern. Gilt gleichermaßen für den neuen Ordner-Selector im Episoden-Import
   (`label="Jellyfin-Ordner"`, D-14).
-- **Tabellen-Header nutzen `TableHeaderCell`** mit `scope="col"` (bereits Default der Primitive).
 - **Status wird nie ausschließlich über Farbe vermittelt** (WCAG 1.4.1): Jede Badge trägt zusätzlich immer den
   Textinhalt „Offen"/„Bereits vorhanden"/„Teilweise"/„Ignoriert".
-- **Tastaturreihenfolge Toolbar → Tabelle → Pager**, jede Tabellenzeile hat höchstens zwei fokussierbare
-  Aktions-Buttons (primäre Aktion + „Ignorieren"/„Nicht mehr ignorieren", vertikal gestapelt, Design-
-  Entscheidung 17) — kein zusätzlicher Zeilen-Klickbereich, keine doppelten Tab-Stopps, kein Kebab-Menü.
-- **`aria-live="polite"` auf dem Content-Bereich der Tabelle**, damit Screenreader-Nutzer über Seitenwechsel
-  (Weiter/Zurück, Filterwechsel) sowie über das Verschwinden einer Zeile nach Ignorieren informiert werden, ohne
-  dass bereits vorgelesene Inhalte erneut angesagt werden.
+- **Tastaturreihenfolge Toolbar → Karten-Liste → Pager** (D-24, ersetzt „Toolbar → Tabelle → Pager"), jede Karte
+  hat höchstens zwei fokussierbare Aktions-Buttons (primäre Aktion + „Ignorieren"/„Nicht mehr ignorieren",
+  vertikal gestapelt, Design-Entscheidung 17) — kein zusätzlicher Klickbereich auf der ganzen Karte, keine
+  doppelten Tab-Stopps, kein Kebab-Menü.
+- **`aria-live="polite"` auf dem Content-Bereich der Karten-Liste** (D-24, ersetzt „der Tabelle"), damit
+  Screenreader-Nutzer über Seitenwechsel (Weiter/Zurück, Filterwechsel) sowie über das Verschwinden einer Karte
+  nach Ignorieren informiert werden, ohne dass bereits vorgelesene Inhalte erneut angesagt werden.
 - **„Bibliothek neu laden" ist kein destruktiver Vorgang** und braucht daher keine Bestätigung — reines
   Cache-Invalidate. Gleiches gilt für „Ignorieren"/„Nicht mehr ignorieren"/„Ordner entfernen" (Design-
   Entscheidung 15) — keines dieser Elemente erhält einen `window.confirm()`- oder Modal-Bestätigungsschritt.
-- **Poster ohne verfügbares Bild:** feste 40×56px-Platzhalterbox mit `background: var(--surface-sunken)`, kein
-  gebrochenes Bildsymbol, `alt=""` (dekorativ, da Titeltext daneben ohnehin den Namen trägt).
+- **Poster ohne verfügbares Bild:** feste 96px breite, `aspect-ratio: 2/3`-Platzhalterbox mit
+  `background: var(--surface-sunken)`, kein gebrochenes Bildsymbol, `alt=""` (dekorativ, da Titeltext daneben
+  ohnehin den Namen trägt) (D-24, ersetzt das vorherige 40×56px-Tabellen-Thumbnail).
 - **Kein horizontaler Overflow der Seite** bei Breiten ≥ 1024px (Desktop-first, wie die übrige Admin-
-  Nutzerverwaltung); bei schmaleren Breiten scrollt ausschließlich der bestehende `.tableWrap`-Container
-  horizontal (bereits bestehende Primitive-Eigenschaft, `overflow: auto`, `min-width: 640px` der Tabelle selbst)
-  — kein Bruch des Seiten-Layouts. Gilt unverändert für die um „Ignorieren" erweiterte, zweizeilige
-  Aktion-Spalte.
+  Nutzerverwaltung). **D-24-Änderung:** Da die Karten-Liste ein einspaltiger, vertikal fließender Stack ist
+  (kein Mehrspalten-Grid, siehe Design-Entscheidung 22), entfällt der zuvor für die Tabelle beschriebene
+  horizontale `.tableWrap`-Scrollcontainer ersatzlos — bei schmaleren Breiten bricht jede `DiscoveryLibraryCard`
+  ihren internen `96px minmax(0,1fr)`-Grid stattdessen auf eine einspaltige Anordnung um (Poster über dem
+  Content), kein horizontales Scrollen nötig. Gilt unverändert für die um „Ignorieren" erweiterte Aktionsspalte
+  innerhalb der Karte.
 - **Ordner-Liste auf der Edit-Seite (D-18):** Jede Zeile hat höchstens einen fokussierbaren Button (`Ordner
   entfernen`, nur bei Zusatz-Ordnern) — der Haupt-Ordner ist rein informativ und erzeugt keinen Tab-Stopp außer
   seinem Text.
