@@ -200,5 +200,50 @@ _Fixed by: Claude (bug-fix executor)_
 
 ---
 
+## WARNINGs Resolved (2026-09-21, post-verification fix)
+
+Both non-blocking WARNINGs from the Gaps Summary have been fixed:
+
+1. **Redis TTL cache wiring (D-19/REQ-165-18)** — `backend/internal/handlers/jellyfin_discovery_cache_redis.go`
+   adds a thin `redisDiscoveryCache` adapter (`NewRedisDiscoveryCache`) mapping go-redis v9's
+   `*redis.Client` `Get(...).Result()`/`Set(...).Err()` command shapes onto the existing
+   `discoveryCacheStore` interface (`Get(ctx, key) (string, error)` /
+   `Set(ctx, key, value string, ttl time.Duration) error`). `backend/cmd/server/main.go` now calls
+   `.WithDiscoveryCacheDeps(handlers.NewRedisDiscoveryCache(redisClient))` on the
+   `AdminContentHandler` construction chain, using the same `redisClient` already initialized at
+   startup (`database.NewRedisClient`) and used by `authRepo`/`commentCreateLimiter`/
+   `episodePlaybackHandler`. Discovery page loads now hit the 5-minute TTL cache
+   (`discoverySnapshotCacheKey`) instead of re-fetching the full paginated Jellyfin snapshot on
+   every request. Verified with three new tests against a real `*redis.Client` backed by
+   `miniredis` (round-trip Set/Get, cache-miss error, TTL expiry via `mr.FastForward`), plus a
+   compile-time assertion that the adapter satisfies `discoveryCacheStore`. `commit af268492`.
+
+2. **`admin_content_handler.go` 450-line limit (CLAUDE.md, REQ-165-13/D-13)** — the three
+   Phase-165 repository interfaces (`jellyfinDiscoveryExistingMatchRepository`,
+   `libraryDiscoveryIgnoreRepository`, `jellyfinFolderManagementRepository`) and their two
+   constructor-option methods (`WithDiscoveryCacheDeps`, `WithLibraryDiscoveryIgnoreDeps`) were
+   moved verbatim into a new sibling file, `backend/internal/handlers/admin_content_handler_deps.go`
+   (same `handlers` package, no behavior change). `AdminContentHandler`'s struct fields
+   (`discoveryCache`, `discoveryExistingMatchRepo`, `libraryDiscoveryIgnoreRepo`,
+   `folderManagementRepo`) remain on the struct declaration in `admin_content_handler.go`, since Go
+   cannot split a single type's field list across files. `admin_content_handler.go` is now 416
+   lines (down from 459); the new sibling file is 61 lines. `commit 578c2519`.
+
+**Verification:** `go build ./...` and `go vet ./...` clean (full repo mount). `go test
+./internal/handlers/...` passes in full (including the previously-noted `TestJellyfinSourceBatch11eyes...`
+fixture test, which only appeared to fail when the container was mounted with a truncated repo
+path — full-repo mount resolves it correctly). Remaining `go test ./...` failures across the repo
+(`internal/repository` Phase-134 Keycloak-network tests, `internal/services`
+`TestFFmpegExecutableAuthenticatedInputRejectsCrossOriginRedirect`) are pre-existing,
+environment-dependent (no live Keycloak/backend network or FFmpeg binary inside the throwaway
+`golang:1.25-alpine` test container) and unrelated to either fix. `team4sv30-backend` was rebuilt
+and redeployed (`docker compose up -d --build team4sv30-backend`); startup logs show a full route
+table with no Redis or wiring errors, and `/health` returns `200`.
+
+_Fixed: 2026-09-21_
+_Fixed by: Claude (bug-fix executor)_
+
+---
+
 _Verified: 2026-09-21T20:10:00Z_
 _Verifier: Claude (gsd-verifier)_
