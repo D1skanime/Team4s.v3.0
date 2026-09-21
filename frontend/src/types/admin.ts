@@ -710,6 +710,11 @@ export interface AdminAnimeEditorHydratedState {
   persistedAssets: AdminAnimePersistedAssets;
 }
 
+export interface AdminAnimeJellyfinFolderOption {
+  jellyfin_item_id: string;
+  is_main: boolean;
+}
+
 export interface AdminAnimeJellyfinContext {
   anime_id: number;
   linked: boolean;
@@ -722,6 +727,7 @@ export interface AdminAnimeJellyfinContext {
   cover: AdminAnimeJellyfinCoverPreview;
   asset_slots?: AdminJellyfinIntakeAssetSlots;
   persisted_assets: AdminAnimePersistedAssets;
+  folders?: AdminAnimeJellyfinFolderOption[];
 }
 
 export interface AdminAnimeJellyfinContextResponse {

@@ -5201,6 +5201,40 @@ export async function applyAdminAnimeMetadataFromJellyfin(
   return response.json() as Promise<AdminAnimeJellyfinMetadataApplyResponse>;
 }
 
+/**
+ * DELETE /admin/anime/:id/jellyfin/folders/:source (165-07/165-10, D-18): entfernt einen
+ * nicht-Haupt-Jellyfin-Ordner additiv aus anime_source_links. Serverseitig gegen das Entfernen
+ * des Haupt-Ordners abgesichert (400) -- kein reiner UI-Schutz.
+ */
+export async function removeAdminAnimeJellyfinFolder(
+  animeID: number,
+  source: string,
+  authToken?: string,
+): Promise<void> {
+  const API_BASE_URL = getApiBaseUrl();
+  const response = await authorizedFetch(
+    `${API_BASE_URL}/api/v1/admin/anime/${animeID}/jellyfin/folders/${encodeURIComponent(source)}`,
+    {
+      method: "DELETE",
+      headers: withAuthHeader({}, authToken),
+    },
+  );
+
+  if (!response.ok) {
+    const parsed = await parseApiErrorPayload(
+      response,
+      `API request failed: ${response.status}`,
+    );
+    throw new ApiError(
+      response.status,
+      parsed.message,
+      null,
+      parsed.code,
+      parsed.details,
+    );
+  }
+}
+
 export interface ListAdminJellyfinDiscoveryParams {
   filter?: string;
   q?: string;
