@@ -2034,3 +2034,22 @@ Plans:
   - Gap-Wave 3: 164-12 (GAP-02/03/11 Frontend-Konsum: release_name, Technikzeile ohne „Unbekannt", DB-Klassifikationslabels + Admin-Platzhalter), 164-13 (GAP-11 Admin-Auswahlfelder aus DB) — abhängig von 164-08/164-10
 
 **Plan-time read first**: `backend/internal/repository/episode_version_public_query.go`, `backend/internal/repository/release_detail_public_repository_helpers.go`, `backend/internal/repository/episode_classification.go`, `backend/internal/models/episode_version.go`, `backend/internal/handlers/episode_version_reads.go`, `frontend/src/components/fansubs/FansubVersionBrowser.tsx` (+ `.module.css`), `frontend/src/app/anime/[id]/group/[groupId]/sections/OlderReleasesList.tsx`, `frontend/src/hooks/useNearViewportActivation.ts`, `frontend/src/types/episodeVersion.ts`, `shared/contracts/openapi.yaml`, sowie `164-RESEARCH.md`/`164-PATTERNS.md`/`164-UI-SPEC.md`/`164-VALIDATION.md` als verbindliche Vorgaben.
+
+### Phase 165: Library Discovery und Assisted Anime Creation (Serien)
+
+**Goal:** Auf `/admin/anime/create` gibt es zusätzlich „Aus meiner Bibliothek“: eine schlanke, paginierte Jellyfin-Library-Liste (Series und Movie) mit Status „offen“ / „bereits vorhanden“ (nur exakte technische Referenzen), deren Auswahl in den bestehenden Create-Draft übergibt – AniSearch-Suche vorbelegt, Auswahl immer durch den Benutzer, Dubletten nach AniSearch-Auswahl mit „verbinden oder neu“. Nach Assisted-Create geht es bei Serien direkt zu den Episoden und mit erhaltenem Kontext zurück zur Discovery.
+**Requirements**: TBD (in plan-phase aus 165-USER-REQUEST.md und 165-CONTEXT.md D-01..D-13 abzuleiten)
+**Depends on:** Phase 164 (abgeschlossen); Jellyfin-12-Transport aus Phase 161
+**Verbindliche Quellen:** `.planning/phases/165-library-discovery-assisted-anime-creation/165-USER-REQUEST.md`, `165-CONTEXT.md`
+**Scopegrenze:** Film-Content-Flow → Phase 166; kein Provider-Framework, kein Source-Refactor, keine automatische AniSearch-Zuordnung, kein Fuzzy-Matching, keine Datenänderung durch Agenten.
+**UI hint:** yes
+**Plans:** TBD
+
+### Phase 166: Film-Content-Flow für Anime vom Typ Film
+
+**Goal:** Ein Anime mit `type = film` bekommt zuverlässig eine kanonische Content-Unit #1 mit `episode_type = movie` (auch ohne AniSearch-Episodenliste), die Jellyfin-Movie-Datei ist ohne Staffel-/Episodennummer zuordenbar, Zusatzdateien bleiben reviewpflichtig, und Titel-Fallbacks zeigen den Filmtitel statt „Folge 1“; Assisted-Create eines Films führt direkt in diesen Flow.
+**Requirements**: TBD (aus 165-USER-REQUEST.md §17–§24 und §32 abzuleiten)
+**Depends on:** Phase 165
+**Verbindliche Quelle:** `.planning/phases/165-library-discovery-assisted-anime-creation/165-USER-REQUEST.md` (§17–§24, §32)
+**UI hint:** yes
+**Plans:** TBD
