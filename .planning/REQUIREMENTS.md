@@ -549,8 +549,11 @@ Source: `165-USER-REQUEST.md` §1–§16, §25–§31, §33–§36 (Serien-Teil)
 `165-CONTEXT.md`, live-measured findings in `165-RESEARCH.md`, exact file/line analogs in `165-PATTERNS.md`,
 approved visual contract in `165-UI-SPEC.md`. One requirement per decision (D-NN → REQ-165-NN, in CONTEXT.md's
 own order D-01..D-15, D-17..D-22, D-16) for full traceability — see `ROADMAP.md` "Coverage — Phase 165" for the
-plan-level mapping. **Planning-only phase** — execution requires `/gsd:execute-phase 165`; REQ-165-15 (D-15) is
-additionally gated behind a human checkpoint (165-11-PLAN.md) before any schema/implementation work runs.
+plan-level mapping. **Planning-only phase** — execution requires `/gsd:execute-phase 165`; REQ-165-15 (D-15) was
+additionally gated behind a human checkpoint (165-11-PLAN.md) before any schema/implementation work could run.
+That checkpoint resolved 2026-09-21 with Auftraggeber-Entscheidung Option C — D-15 zurückgestellt, kein
+Schema/Implementierungscode für die Mehrstaffel-Zuordnung; siehe 165-CONTEXT.md D-15-Nachtrag and
+`165-11-SUMMARY.md`.
 Film-Content-Flow (§17–§24, §32) is out of scope — that is Phase 166.
 
 - [x] **REQ-165-01**: Auftrag auf zwei Phasen verteilt; Filme sind in der Discovery sichtbar/anlegbar, Übergangsregel führt bis Phase 166 auf die bestehende Edit-/Episoden-Seite (D-01).
@@ -567,7 +570,7 @@ Film-Content-Flow (§17–§24, §32) is out of scope — that is Phase 166.
 - [x] **REQ-165-12**: Kein Provider-Framework, kein Source-Domain-Refactor, keine neue Fansub-Jellyfin-Kopplung; bestehende Flows regressieren nicht (D-12).
 - [x] **REQ-165-13**: Globale UI-Primitives/Design-Tokens Pflicht, keine nativen `<button>/<input>/<select>`, deutsche Umlaute, Produktionsdateien ≤450 Zeilen, kein N+1 (D-13).
 - [x] **REQ-165-14**: Episoden-Import-Ordnerauswahl bei mehreren verbundenen Jellyfin-Ordnern, mit serverseitiger fail-closed Prüfung, dass nur verbundene Jellyfin-IDs angenommen werden (D-14).
-- [ ] **REQ-165-15**: Mehrstaffel-Ordner erhalten Status „teilweise"; das Schema für die Staffel→Anime-Zuordnung erfordert einen dem Auftraggeber vorgelegten Checkpoint vor jeder Umsetzung (D-15).
+- [ ] **REQ-165-15** — **ZURÜCKGESTELLT** (Auftraggeber-Entscheidung 2026-09-21, Option C am 165-11-Checkpoint; siehe 165-CONTEXT.md D-15-Nachtrag und `165-11-SUMMARY.md`): Mehrstaffel-Ordner erhalten Status „teilweise"; das Schema für die Staffel→Anime-Zuordnung erfordert einen dem Auftraggeber vorgelegten Checkpoint vor jeder Umsetzung (D-15). Der Checkpoint wurde vorgelegt und beantwortet — die Antwort ist "zurückstellen", keine Umsetzung. Bleibt für eine künftige eigenständige Phase „Mehrstaffel-Ordner" vorgemerkt.
 - [x] **REQ-165-16**: „Ignorieren"/„Nicht mehr ignorieren" pro Bibliothekseintrag, eigener Filter, Status-Priorität bereits vorhanden > ignoriert > teilweise > offen (D-17).
 - [x] **REQ-165-17**: Anime-Bearbeitungsseite zeigt alle verbundenen Jellyfin-Ordner; Zusatz-Ordner sind lösbar, der Haupt-Ordner bleibt über den bestehenden Weg verwaltet (D-18).
 - [x] **REQ-165-18**: Kurzlebiger serverseitiger Bibliotheks-Cache plus „Aktualisieren"-Button; Status nach Aktionen kommt sofort korrekt aus der DB-Prüfung, nicht aus dem Cache (D-19).
@@ -592,7 +595,7 @@ Film-Content-Flow (§17–§24, §32) is out of scope — that is Phase 166.
 | REQ-165-12 | Phase 165 | Planned |
 | REQ-165-13 | Phase 165 | Planned |
 | REQ-165-14 | Phase 165 | Planned |
-| REQ-165-15 | Phase 165 | Planned (checkpoint-gated) |
+| REQ-165-15 | Phase 165 | Deferred (Auftraggeber-Entscheidung 2026-09-21, Option C — Checkpoint beantwortet, keine Umsetzung) |
 | REQ-165-16 | Phase 165 | Planned |
 | REQ-165-17 | Phase 165 | Planned |
 | REQ-165-18 | Phase 165 | Planned |

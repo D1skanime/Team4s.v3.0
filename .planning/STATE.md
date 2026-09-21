@@ -3,14 +3,14 @@ gsd_state_version: 1.0
 milestone: v1.4
 milestone_name: Coverage
 status: executing
-stopped_at: Completed 165-10-PLAN.md
-last_updated: "2026-09-21T16:13:30.601Z"
+stopped_at: Completed 165-11-PLAN.md (D-15 checkpoint deferred, Option C)
+last_updated: "2026-09-21T19:35:00.000Z"
 last_activity: 2026-09-21
 progress:
   total_phases: 31
   completed_phases: 29
   total_plans: 289
-  completed_plans: 288
+  completed_plans: 289
   percent: 94
 ---
 
@@ -211,9 +211,11 @@ Abschluss" entry below for the full closing record.
 
 ## Current Position
 
-Phase: 165 (library-discovery-assisted-anime-creation) — EXECUTING
-Plan: 13 of 13
-Status: Ready to execute
+Phase: 165 (library-discovery-assisted-anime-creation) — TERMINAL (12 Pläne umgesetzt + 165-11 per
+Auftraggeber-Entscheidung 2026-09-21 zurückgestellt, Option C; kein Plan bleibt offen)
+Plan: 13 of 13 (165-11 reached its checkpoint and resolved to deferral — see 165-11-SUMMARY.md)
+Status: Phase 165 vollständig ausgeführt/entschieden. D-15 (Mehrstaffel-Ordner) bleibt funktional
+nicht umgesetzt und ist für eine künftige eigenständige Phase „Mehrstaffel-Ordner" vorgemerkt.
 dupliziertem ProjectMemberStickyNav; siehe 157-14-SUMMARY.md)
 GAP-02-Live-UAT-Checkpoint aus 156-UAT.md (5 Origin- + 9 Segment-Contributor-Pruefpunkte) wurde
 am 2026-09-15 vom Auftraggeber live abgenommen (inkl. GAP-08/GAP-09). Phase 156 ist vollstaendig abgenommen.
@@ -1441,6 +1443,7 @@ Last activity: 2026-09-21
 - [Phase 165]: Discovery-Karte status-mapping laeuft ueber die echte englische Backend-Vokabular (open/existing/partial/ignored), nicht ueber die deutsche filter-Query-Parameter-Vokabular — AdminJellyfinDiscoveryItem.status liefert die DiscoveryStatus*-Konstanten aus 165-06, nicht die filter-Werte offen/bereits_vorhanden/ignoriert/alle - eine woertliche Umsetzung des Plan-Beispieltexts haette das Status-Badge gegen echte API-Antworten stumm auf den Default-Zustand zurueckfallen lassen.
 - [Phase ?]: Plan 165-10: component-local localFolders state for instant row removal on the Jellyfin folder-list, instead of waiting on the parent's async refreshContext() round-trip — onFolderRemoved still fires so the parent section refetches context for the rest of the page
 - [Phase 165]: Plan 165-10: created AnimeJellyfinMetadataSection.test.tsx from scratch (Rule 3 deviation) since the plan referenced a pre-existing test file that did not exist — Needed to make the plan's own Task 2 verify command and acceptance criteria executable
+- [Phase 165]: 165-11: D-15 (Jellyfin Mehrstaffel→Anime-Zuordnung) zurückgestellt per Auftraggeber-Entscheidung 2026-09-21, Option C von drei am 165-11-Checkpoint vorgelegten Schema-Optionen — keine Tabelle, keine Migration, keine Semantikänderung an anime_source_links, kein Staffel-Batch-Fetch. Begründung: nur 27 von 2111 Serien betroffen, Staffel-Fetch würde jedes Neuladen um ~28s verlängern. Das bereits gebaute, getestete "teilweise"-Gerüst (165-01 resolveDiscoveryItemStatus-Truth-Table, 165-09 Frontend-Badge/Caption) bleibt als inertes, dokumentiertes Gerüst erhalten statt entfernt zu werden — partial bleibt im Handler hart auf false. Wiederaufnahme in einer künftigen eigenständigen Phase "Mehrstaffel-Ordner".
 
 ### Pending Todos
 
@@ -1901,12 +1904,13 @@ untruncated list lives in `.planning/todos/pending/`.
 | Phase 165 P07 | 50min | 2 tasks | 8 files |
 | Phase 165 P09 | 65min | 3 tasks | 11 files |
 | Phase 165 P10 | ~15min | 2 tasks | 6 files |
+| Phase 165 P11 | 25min | 1 tasks (checkpoint resolved to option-c; Tasks 2-4 never executed) | 6 files |
 
 ## Session Continuity
 
-Last session: 2026-09-21T16:13:30.580Z
-Stopped at: Completed 165-10-PLAN.md
-Last activity: 2026-09-20 - Completed quick task 260920-sad: Vorwärts-Restore-Defekt im bidirektionalen Episoden-Windowing (useWindowedEpisodePages.ts) behoben, 7 neue Regressionstests, keine Phasen-UAT ersetzt.
+Last session: 2026-09-21T19:35:00Z
+Stopped at: Completed 165-11-PLAN.md (D-15 checkpoint resolved — Auftraggeber-Entscheidung Option C, deferred; Phase 165 fully terminal: 12 umgesetzt + 1 zurückgestellt)
+Last activity: 2026-09-21 - Closed out 165-11: presented the D-15 season-mapping checkpoint, recorded the Auftraggeber's verbatim decision (option-c, D-15 deferred to a future "Mehrstaffel-Ordner" phase), reworded the three scaffolding comment files that referenced 165-11 as upcoming, updated 165-CONTEXT.md/ROADMAP.md/REQUIREMENTS.md accordingly. No migration or implementation code for the season-mapping feature itself.
 Resume file: 
 None
 

@@ -27,6 +27,24 @@ Nicht in dieser Phase: alles aus §34, Film-Content-Flow (→ 166).
 - **D-05 (überarbeitet 2026-09-21 nach Auftraggeber-Szenario, ersetzt die erste Fassung):** Ein Anime kann **mehrere** Jellyfin-Ordner haben (Praxisfall: Anime zuerst über den deutschen Ordner mit den Quellen von Gruppe A angelegt; später, ohne es zu wissen, einen zweiten Ordner mit japanischem Namen und den Quellen von Gruppe B angelegt). „Mit bestehendem Anime verbinden“ **ergänzt** den neuen Ordner als zusätzliches `jellyfin:<ItemId>` in `anime_source_links`. `anime.source` und `anime.folder_name` (erster/Haupt-Ordner) werden **nie** überschrieben (kein forceSourceUpdate). AniSearch-Metadaten des bestehenden Anime bleiben unberührt. Research-Befund dazu: `ApplyAnimeMetadataFromJellyfin` schreibt heute nur `source`/`folder_name` und nur wenn leer – für D-05 ist deshalb ein additiver Schreibpfad nach `anime_source_links` nötig (UNIQUE(anime_id, source), ON CONFLICT DO NOTHING). Danach erkennt die bestehende Existenzprüfung (liest `anime_source_links`) den zweiten Ordner als „bereits vorhanden“; die Liste zeigt dazu, zu welchem Anime er gehört („zusätzlicher Ordner von …“).
 - **D-14 (Auftraggeber-Entscheidung 2026-09-21):** Der Episoden-Import bekommt in Phase 165 eine Ordner-Auswahl, wenn ein Anime mehrere verbundene Jellyfin-Ordner hat (Haupt-Ordner vorausgewählt), damit die Dateien der zweiten Gruppe importierbar sind. Das Backend nimmt `JellyfinSeriesID` im Import-Request bereits an (`admin_episode_import.go:73`); ergänzt wird die Auswahl in der Oberfläche plus eine serverseitige Prüfung, dass nur mit diesem Anime verbundene Jellyfin-IDs angenommen werden (fail closed). Ohne weitere Ordner bleibt der Import unverändert.
 - **D-15 (Auftraggeber-Entscheidung 2026-09-21):** Mehrstaffel-Ordner: Enthält ein Jellyfin-Series-Eintrag mehrere Staffeln, die bei AniSearch getrennte Anime sein können, bekommt er in der Liste den Status „teilweise“, solange nicht jede Jellyfin-Staffel einem Anime zugeordnet ist; aus demselben Ordner können weitere Anime angelegt/verbunden werden, die Zuordnung Staffel → Anime wählt immer der Benutzer (keine Automatik). Team4s speichert heute keine Staffel→Anime-Zuordnung. Research muss (a) klären, ob der Episoden-Import die Jellyfin-Staffel pro Episode bereits kennt/speichert und daraus ableitbar ist, und (b) sonst die kleinstmögliche additive Speicherung vorschlagen. Staffeldaten nur gebündelt abrufen (z. B. ein Items-Request mit IncludeItemTypes=Season je Library), nie ein Request pro Serie. **Erfordert die Lösung eine neue Tabelle/Migration oder eine neue Semantik in `anime_source_links.source`, wird der Entwurf dem Auftraggeber vor der Ausführung vorgelegt** (Plan mit Checkpoint).
+
+  > **Nachtrag 2026-09-21 (165-11-Checkpoint, Auftraggeber-Entscheidung, wörtlich):** „D-15
+  > zurückstellen. Begründung: nur 27 von 2111 Serien haben echte Mehrstaffeligkeit; ein
+  > Staffel-Fetch würde jedes Neuladen um ~28 s verlängern. Keine Tabelle, keine Migration,
+  > keine Semantikänderung. Der Status „teilweise" bleibt vorerst nicht erreichbar; das tote
+  > Gerüst darf bleiben, wenn es sauber dokumentiert ist, sonst entfernen – deine Wahl, aber
+  > keine halbfertige UI anzeigen. D-15 als deferred in 165-CONTEXT.md/ROADMAP vermerken
+  > (spätere eigene Phase „Mehrstaffel-Ordner"). .env bleibt unverändert (Auftraggeber-
+  > Entscheidung)." D-15 ist damit **auf unbestimmte Zeit zurückgestellt** (Option C von drei
+  > in 165-11-PLAN.md Task 1 vorgelegten Schema-Optionen), keine neue Tabelle/Migration, kein
+  > Staffel-Batch-Fetch, keine Semantikänderung an `anime_source_links`. Der `partial`-Parameter
+  > in `resolveDiscoveryItemStatus` (165-01) bleibt im Backend hart auf `false` verdrahtet
+  > (`jellyfin_discovery.go`); die bereits gebaute Statuslogik/Badge-Zuordnung (Backend-
+  > Truth-Table + Frontend-Badge-Variante/Caption „Mehrere Staffeln erkannt …“) bleibt als
+  > getestetes, aber bewusst unerreichbares Gerüst erhalten (keine halbfertige UI sichtbar,
+  > da der Status im Betrieb nie emittiert wird). Wiederaufnahme erst in einer künftigen,
+  > eigenständigen Phase „Mehrstaffel-Ordner“ (siehe `<deferred>` und ROADMAP.md). Siehe
+  > `165-11-SUMMARY.md` für das vollständige Checkpoint-Protokoll.
 - **D-17 (Auftraggeber-Entscheidung 2026-09-21):** „Ignorieren“ pro Bibliothekseintrag, rückgängig machbar. Ignorierte Einträge verschwinden aus „Offen“ und stehen im eigenen Filter „Ignoriert“ (dort „Nicht mehr ignorieren“). Speicherung additiv in einer kleinen neuen Tabelle (Jellyfin-Item-ID, ignoriert von user_id, Zeitpunkt), Migration nötig. Status-Priorität: bereits vorhanden > ignoriert > teilweise > offen.
 - **D-18 (Auftraggeber-Entscheidung 2026-09-21):** Auf der Anime-Bearbeitungsseite werden alle verbundenen Jellyfin-Ordner angezeigt (Haupt-Ordner aus `anime.source`/`folder_name` plus zusätzliche aus `anime_source_links`, mit Name/Pfad, soweit ohne Einzelrequests ermittelbar – sonst nur ID). Zusätzliche Ordner lassen sich lösen (Eintrag aus `anime_source_links` entfernen, danach in der Bibliothek wieder „offen“). Der Haupt-Ordner wird hier nicht gelöst; er bleibt über den bestehenden Weg verwaltet. AniSearch-Links werden hier nicht angefasst.
 - **D-19 (Auftraggeber-Entscheidung 2026-09-21):** Bibliotheksliste mit kurzem serverseitigen Cache (einige Minuten, begründen) plus Button „Aktualisieren“, der sofort neu von Jellyfin lädt. Nach Anlegen/Verbinden/Ignorieren/Lösen ist der Status des betroffenen Eintrags sofort korrekt (Status kommt aus der DB-Batch-Prüfung, nicht aus dem Jellyfin-Cache).
@@ -113,6 +131,15 @@ Nicht in dieser Phase: alles aus §34, Film-Content-Flow (→ 166).
 ## Deferred Ideas
 
 - Phase 166: Film-Content-Flow (§17–§24, §32).
+- **Mehrstaffel-Ordner (D-15, zurückgestellt per Auftraggeber-Entscheidung 2026-09-21 am
+  165-11-Checkpoint, Option C):** Jellyfin-Staffel→Anime-Zuordnung und der Status „teilweise“
+  bleiben unimplementiert. Betrifft laut Live-Messung nur 27 von 2111 Serien (~1,3 %); ein
+  gebündelter Staffel-Fetch (IncludeItemTypes=Season) würde jedes Bibliotheks-Neuladen um
+  ca. 28 s verlängern. Keine Tabelle/Migration, keine Semantikänderung an
+  `anime_source_links` in dieser Phase. Das bereits gebaute, getestete Gerüst
+  (`resolveDiscoveryItemStatus`-Truth-Table, Frontend-Badge/Caption) bleibt als inertes,
+  dokumentiertes Gerüst erhalten. Wiederaufnahme in einer künftigen eigenständigen Phase
+  „Mehrstaffel-Ordner“ (noch nicht in ROADMAP.md eingeplant).
 - Mehrere Jellyfin-Server (eigener und fremde Server): serverbezogene Referenzen, Zugangsdaten je Server, Streaming bei Offline-Server, Dubletten über Servergrenzen (D-22).
 - Aufräumen verwaister Jellyfin-Verbindungen (Ordner umbenannt/gelöscht → alte ID zeigt ins Leere), siehe D-16.
 - Filesystem-Discovery, eigener Streaming-Pfad, source-unabhängiges Fansub-Release-Mapping (§34/§36) – später.

@@ -2043,15 +2043,15 @@ Plans:
 **Verbindliche Quellen:** `.planning/phases/165-library-discovery-assisted-anime-creation/165-USER-REQUEST.md`, `165-CONTEXT.md`, `165-RESEARCH.md`, `165-PATTERNS.md`, `165-UI-SPEC.md`, `165-VALIDATION.md`
 **Scopegrenze:** Film-Content-Flow → Phase 166; kein Provider-Framework, kein Source-Refactor, keine automatische AniSearch-Zuordnung, kein Fuzzy-Matching, keine Datenänderung durch Agenten.
 **Bekannter Blocker für Live-UAT (kein Task dieser Phase):** `JELLYFIN_ALLOWED_LIBRARY_IDS=5` in der Live-`.env` ist keine gültige Jellyfin-12-Bibliotheks-GUID (RESEARCH.md Pitfall 1); die korrekte GUID lautet `5f65d0c8bdd71b782fc98205814a0d76`. Konfigurationsänderung, kein Agenten-Task.
-**D-15-Hinweis:** 165-11 ist isoliert (letzte Wave, keine Dependents, aber Dependencies auf 165-01/165-06/165-09, deren Dateien additiv erweitert werden) und beginnt mit einem blockierenden Checkpoint (Schema-Wahl für die Staffel→Anime-Zuordnung). Die übrigen zwölf Pläne liefern und funktionieren vollständig unabhängig davon.
+**D-15-Hinweis (aufgelöst 2026-09-21):** 165-11 war isoliert (letzte Wave, keine Dependents, aber Dependencies auf 165-01/165-06/165-09, deren Dateien additiv erweitert wurden) und begann mit einem blockierenden Checkpoint (Schema-Wahl für die Staffel→Anime-Zuordnung). Der Auftraggeber wählte am Checkpoint **Option C: D-15 komplett zurückgestellt** (keine Tabelle, keine Migration, keine Semantikänderung, kein Staffel-Batch-Fetch) — Begründung: nur 27 von 2111 Serien betroffen, Staffel-Fetch würde jedes Neuladen um ~28 s verlängern. Details und Wortlaut: 165-CONTEXT.md D-15-Nachtrag, `165-11-SUMMARY.md`. Die übrigen zwölf Pläne lieferten und funktionieren vollständig unabhängig davon — D-15 selbst bleibt **funktional nicht umgesetzt** und ist für eine künftige eigenständige Phase „Mehrstaffel-Ordner" vorgemerkt (noch nicht in dieser Roadmap eingeplant).
 **UI hint:** yes
-**Plans:** 12/13 plans executed
+**Plans:** 13/13 plans complete (12 umgesetzt + 165-11 per Auftraggeber-Entscheidung zurückgestellt — kein Code für D-15 selbst, siehe D-15-Hinweis oben)
 
   - Wave 1: 165-01 (Discovery-Snapshot-Cache/Cursor/Status-Resolver), 165-02 (Ignore-Tabelle Migration+Repo), 165-03 (D-20 Save-Time-Dublettencheck Backend), 165-04 (D-14 Episode-Import-Ordnerauswahl, fail-closed), 165-05 (Create-Page Entry-Card/Return-Link/Redirect-Helper)
   - Wave 2: 165-06 (Discovery-Listen-Handler + Ignorieren/Entignorieren + Audit + D-24 library_context), 165-08 (Create-Page-Integration + AniSearch-Verbinden/Neu-Entscheidung + D-23-Fix), 165-12 (D-11 Return-Link auf Episoden-/Edit-Seite), 165-13 (D-23 Backend ForceNew-Bypass für Enrich())
   - Wave 3: 165-07 (D-05-Fix + D-18 Backend Ordner-Verwaltung), 165-09 (Discovery-Bibliotheksseite Frontend, D-24 Karten-Layout)
   - Wave 4: 165-10 (D-18 Frontend Ordner-Verwaltung Edit-Seite)
-  - Wave 5: 165-11 (D-15 Checkpoint + bedingte Mehrstaffel-Umsetzung, isoliert/optional)
+  - Wave 5: 165-11 (D-15 Checkpoint — ZURÜCKGESTELLT, Option C: keine Mehrstaffel-Umsetzung; isoliert/optional)
 
 Plans:
 **Wave 1**
@@ -2080,7 +2080,7 @@ Plans:
 
 **Wave 5** *(isoliert, kein Dependent, keine Dependency)*
 
-- [ ] 165-11-PLAN.md — D-15 Checkpoint (Schema-Wahl) + bedingte Mehrstaffel-Umsetzung.
+- [x] 165-11-PLAN.md — D-15 Checkpoint (Schema-Wahl): **ZURÜCKGESTELLT** per Auftraggeber-Entscheidung 2026-09-21 (Option C). Kein Code für die Mehrstaffel-Zuordnung selbst; nur Checkpoint-Präsentation, Entscheidungsprotokoll und Kommentar-/Doku-Klarstellung ausgeführt. Siehe `165-11-SUMMARY.md`.
 
 ## Coverage — Phase 165
 
@@ -2100,7 +2100,7 @@ Plans:
 | REQ-165-12 | D-12 (Constraints/Non-Regression) | 165-06, 165-08 |
 | REQ-165-13 | D-13 (UI-Primitives/Umlaute/450-Zeilen/N+1) | 165-05, 165-08, 165-09, 165-10 |
 | REQ-165-14 | D-14 (Episode-Import-Ordnerauswahl) | 165-04 |
-| REQ-165-15 | D-15 (Mehrstaffel, Checkpoint-pflichtig) | 165-11 |
+| REQ-165-15 | D-15 (Mehrstaffel, Checkpoint-pflichtig) — **ZURÜCKGESTELLT** (Auftraggeber-Entscheidung 2026-09-21, Option C, kein Code für die Zuordnung selbst) | 165-11 |
 | REQ-165-16 | D-17 (Ignorieren/Entignorieren) | 165-02, 165-06, 165-09 |
 | REQ-165-17 | D-18 (Ordner-Verwaltung Edit-Seite) | 165-07, 165-10 |
 | REQ-165-18 | D-19 (Cache+Refresh, Status-Konsistenz) | 165-06, 165-09 |
