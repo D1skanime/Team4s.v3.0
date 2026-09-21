@@ -32,6 +32,7 @@ Nicht in dieser Phase: alles aus §34, Film-Content-Flow (→ 166).
 - **D-19 (Auftraggeber-Entscheidung 2026-09-21):** Bibliotheksliste mit kurzem serverseitigen Cache (einige Minuten, begründen) plus Button „Aktualisieren“, der sofort neu von Jellyfin lädt. Nach Anlegen/Verbinden/Ignorieren/Lösen ist der Status des betroffenen Eintrags sofort korrekt (Status kommt aus der DB-Batch-Prüfung, nicht aus dem Jellyfin-Cache).
 - **D-20 (Auftraggeber-Entscheidung 2026-09-21):** Unmittelbar vor dem Anlegen wird serverseitig erneut auf ein bestehendes Anime mit derselben `anisearch:<id>` geprüft. Bei Treffer kein stilles Doppelanlegen, sondern dieselbe Wahl „Mit bestehendem Anime verbinden“ / „Trotzdem neu anlegen“ (bewusste Bestätigung).
 - **D-21 (Standard):** Verbinden, zusätzlichen Ordner lösen, Ignorieren und Nicht-mehr-ignorieren sind Admin-Aktionen mit Audit-Attribution per user_id (Projekt-Constraint „Observability“), über den bestehenden Audit-Mechanismus.
+- **D-22 (Auftraggeber-Entscheidung 2026-09-21):** Mehrere Jellyfin-Server (z. B. der Server eines Freundes mit Anime, die der Auftraggeber selbst nicht hat) sind NICHT Teil von 165, sondern eine eigene spätere Phase. 165 bleibt bei genau einem Server (`JELLYFIN_BASE_URL`/`JELLYFIN_API_KEY`). Vorsorge ohne Umbau: neue Tabellen aus 165 (Ignorieren, ggf. Staffel-Zuordnung aus D-15) bekommen eine Server-Kennung (z. B. `server_key`, vorerst fest „default“), damit mehrere Server später ohne Datenmigration dieser Tabellen möglich sind. Das bestehende Referenzformat `jellyfin:<id>` in `anime.source`/`anime_source_links` wird in 165 NICHT geändert.
 - **D-16:** Ein Ordner mit neuer Jellyfin-ID nach Umbenennen/Verschieben ist über denselben Weg lösbar (AniSearch-Auswahl → Dublette → zusätzlich verbinden). Das Aufräumen verwaister alter Verbindungen ist nicht Teil von 165 (deferred).
 
 ### Datenabruf und Performance
@@ -103,6 +104,7 @@ Nicht in dieser Phase: alles aus §34, Film-Content-Flow (→ 166).
 ## Deferred Ideas
 
 - Phase 166: Film-Content-Flow (§17–§24, §32).
+- Mehrere Jellyfin-Server (eigener und fremde Server): serverbezogene Referenzen, Zugangsdaten je Server, Streaming bei Offline-Server, Dubletten über Servergrenzen (D-22).
 - Aufräumen verwaister Jellyfin-Verbindungen (Ordner umbenannt/gelöscht → alte ID zeigt ins Leere), siehe D-16.
 - Filesystem-Discovery, eigener Streaming-Pfad, source-unabhängiges Fansub-Release-Mapping (§34/§36) – später.
 
