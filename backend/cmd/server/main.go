@@ -251,7 +251,11 @@ func main() {
 			cfg.SegmentRenderMaxSeconds,
 			cfg.SegmentRenderFFmpegPath,
 		).
-		WithLibraryDiscoveryIgnoreDeps(repository.NewLibraryDiscoveryIgnoreRepository(dbPool))
+		WithLibraryDiscoveryIgnoreDeps(repository.NewLibraryDiscoveryIgnoreRepository(dbPool)).
+		// 165-01/D-19: kurzlebiger (5min TTL) serverseitiger Cache fuer den Jellyfin-
+		// Discovery-Snapshot, damit nicht jeder Seitenaufruf die komplette Bibliothek
+		// erneut von Jellyfin abfragt. redisClient ist bereits oben initialisiert.
+		WithDiscoveryCacheDeps(handlers.NewRedisDiscoveryCache(redisClient))
 	if cfg.SegmentRenderEnabled {
 		// context.Background() statt des Startup-Contexts: der Worker läuft für die gesamte
 		// Prozesslaufzeit, unabhängig vom kurzen 10s-Timeout, der nur den Boot-Vorgang begrenzt.
