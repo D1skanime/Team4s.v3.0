@@ -121,10 +121,18 @@ type EpisodeImportContextResult struct {
 	Source           *string                `json:"source,omitempty"`
 	// JellyfinFolders is only populated when the anime has more than one
 	// connected Jellyfin folder (D-14: "kein sichtbares neues Feld im
-	// Regelfall"). Always computed via the same collectJellyfinFolderOptions
-	// call used by PreviewEpisodeImport's ownership guard, so enforcement and
-	// display never drift.
+	// Regelfall") -- a display-only simplification for the common
+	// single-folder case.
 	JellyfinFolders []JellyfinFolderOption `json:"jellyfin_folders,omitempty"`
+	// JellyfinFoldersForOwnershipCheck always holds the FULL connected-folder
+	// list (never nil'd for the single-folder display case above) and MUST be
+	// used for security/ownership checks such as
+	// AdminContentHandler.rejectUnownedJellyfinSeriesID. Excluded from the
+	// JSON response (json:"-") -- it exists only to decouple the D-14 display
+	// simplification from the IDOR-closing allow-list, which previously
+	// shared the same nil'd field and could wrongly reject a legitimate,
+	// correctly-owned request for a single-folder anime.
+	JellyfinFoldersForOwnershipCheck []JellyfinFolderOption `json:"-"`
 }
 
 // EpisodeImportApplyInput is the explicit operator-approved mutation payload.

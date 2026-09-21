@@ -71,7 +71,7 @@ func (h *AdminContentHandler) PreviewEpisodeImport(c *gin.Context) {
 	}
 
 	jellyfinSeriesID := firstNonEmptyString(req.JellyfinSeriesID, derefString(contextResult.JellyfinSeriesID))
-	if h.rejectUnownedJellyfinSeriesID(c, req.JellyfinSeriesID, contextResult.JellyfinFolders) {
+	if h.rejectUnownedJellyfinSeriesID(c, req.JellyfinSeriesID, contextResult.JellyfinFoldersForOwnershipCheck) {
 		return
 	}
 	mediaCandidates, err := h.loadEpisodeImportMediaCandidates(c, jellyfinSeriesID, contextResult.FolderPath)
@@ -185,20 +185,25 @@ func (h *AdminContentHandler) loadEpisodeImportContext(c *gin.Context, animeID i
 			jellyfinSeriesID = normalizeStringPtr(resolvedItem.ID)
 		}
 	}
-	folders := collectJellyfinFolderOptions(source.Source, source.SourceLinks, source.Source)
-	if len(folders) <= 1 {
+	allFolders := collectJellyfinFolderOptions(source.Source, source.SourceLinks, source.Source)
+	displayFolders := allFolders
+	if len(displayFolders) <= 1 {
 		// D-14: keine sichtbares neues Feld im Regelfall -- the single-folder
 		// case (today's default) stays byte-identical to pre-plan responses.
-		folders = nil
+		// This ONLY affects the display field below -- the ownership-guard
+		// field always keeps the real, un-nil'd list (see
+		// JellyfinFoldersForOwnershipCheck doc comment).
+		displayFolders = nil
 	}
 	return models.EpisodeImportContextResult{
-		AnimeID:          source.ID,
-		AnimeTitle:       source.Title,
-		AniSearchID:      aniSearchID,
-		JellyfinSeriesID: jellyfinSeriesID,
-		FolderPath:       folderPath,
-		Source:           source.Source,
-		JellyfinFolders:  folders,
+		AnimeID:                          source.ID,
+		AnimeTitle:                       source.Title,
+		AniSearchID:                      aniSearchID,
+		JellyfinSeriesID:                 jellyfinSeriesID,
+		FolderPath:                       folderPath,
+		Source:                           source.Source,
+		JellyfinFolders:                  displayFolders,
+		JellyfinFoldersForOwnershipCheck: allFolders,
 	}, http.StatusOK, nil
 }
 

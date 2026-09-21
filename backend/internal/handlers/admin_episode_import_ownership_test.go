@@ -115,6 +115,33 @@ func TestPreviewEpisodeImport_NoRequestedSeriesIDBehavesUnchanged(t *testing.T) 
 	require.Equal(t, 1, requests, "expected exactly the same single Jellyfin fetch as before this change")
 }
 
+// TestPreviewEpisodeImport_SingleFolderOwnedSeriesIDPassesGuard proves the
+// fix for the false-rejection bug: loadEpisodeImportContext nil's `folders`
+// for display whenever an anime has exactly one connected Jellyfin folder
+// (D-14), but the ownership guard must always see the real, un-nil'd list.
+// Before the fix, a single-folder anime (301 / "jellyfin:series-401") whose
+// caller explicitly sends its OWN, correctly-owned jellyfin_series_id was
+// wrongly rejected as "nicht mit diesem Anime verbunden" because the guard
+// was fed the same nil'd field the D-14 display simplification produces.
+func TestPreviewEpisodeImport_SingleFolderOwnedSeriesIDPassesGuard(t *testing.T) {
+	pool := openEVECFixture(t)
+	requests := 0
+	server := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		requests++
+		require.Equal(t, "/Shows/series-401/Episodes", r.URL.Path)
+		w.Header().Set("Content-Type", "application/json")
+		_, _ = w.Write([]byte(`{"Items":[]}`))
+	}))
+	defer server.Close()
+
+	h := evecFixtureHandler(pool, server.URL, "test-key")
+	h.authzRepo = adminRoleCheckerStub{isAdmin: true}
+	rec := previewEpisodeImportOwnershipRequest(h, "301", `{"jellyfin_series_id":"series-401"}`)
+
+	require.Equal(t, http.StatusOK, rec.Code, rec.Body.String())
+	require.Equal(t, 1, requests, "expected the guard to allow the anime's own single connected folder")
+}
+
 // TestPreviewEpisodeImport_MultiFolderRequestedSeriesIDPassesGuard proves
 // Test 6: a jellyfin_series_id present in source_links (the multi-folder
 // case) passes the ownership guard and proceeds to loadEpisodeImportMediaCandidates
