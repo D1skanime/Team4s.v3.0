@@ -9,6 +9,7 @@ import (
 
 	"team4s.v3/backend/internal/middleware"
 	"team4s.v3/backend/internal/models"
+	"team4s.v3/backend/internal/repository"
 
 	"github.com/gin-gonic/gin"
 )
@@ -244,13 +245,20 @@ func newFolderManagementTestRouter(h *AdminContentHandler) *gin.Engine {
 	return router
 }
 
+// D-18 fix regression guard: the DELETE :source path param carries the UNPREFIXED Jellyfin item ID
+// (e.g. "def"), matching exactly what collectJellyfinFolderOptions (jellyfin_source_folder_list.go)
+// hands the frontend everywhere -- never the fully-prefixed "jellyfin:def" DB-stored form. See
+// TestRemoveAnimeJellyfinFolder_EndToEndThroughCollectJellyfinFolderOptions below for the test that
+// threads the real helper's output through the handler, closing the exact gap that let the original
+// prefix-mismatch bug through undetected.
+
 func TestRemoveAnimeJellyfinFolder_RemovesNonMainFolder(t *testing.T) {
 	source := "jellyfin:abc"
 	repo := &fakeJellyfinFolderManagementRepo{syncSource: &models.AdminAnimeSyncSource{ID: 5, Source: &source}}
 	audit := &fakeAuditLogWriter{}
 	router := newFolderManagementTestRouter(newFolderManagementTestHandler(repo, audit))
 
-	req := httptest.NewRequest(http.MethodDelete, "/api/v1/admin/anime/5/jellyfin/folders/jellyfin:def", nil)
+	req := httptest.NewRequest(http.MethodDelete, "/api/v1/admin/anime/5/jellyfin/folders/def", nil)
 	rec := httptest.NewRecorder()
 	router.ServeHTTP(rec, req)
 
@@ -261,7 +269,7 @@ func TestRemoveAnimeJellyfinFolder_RemovesNonMainFolder(t *testing.T) {
 		t.Fatalf("expected exactly 1 RemoveAnimeSourceLink call, got %d", repo.removeCalls)
 	}
 	if len(repo.removedSources) != 1 || repo.removedSources[0] != "jellyfin:def" {
-		t.Fatalf("unexpected removed sources %+v", repo.removedSources)
+		t.Fatalf("expected the repository call to receive the re-prefixed source, got %+v", repo.removedSources)
 	}
 }
 
@@ -271,7 +279,7 @@ func TestRemoveAnimeJellyfinFolder_RejectsMainFolderBeforeAnyDelete(t *testing.T
 	audit := &fakeAuditLogWriter{}
 	router := newFolderManagementTestRouter(newFolderManagementTestHandler(repo, audit))
 
-	req := httptest.NewRequest(http.MethodDelete, "/api/v1/admin/anime/5/jellyfin/folders/jellyfin:abc", nil)
+	req := httptest.NewRequest(http.MethodDelete, "/api/v1/admin/anime/5/jellyfin/folders/abc", nil)
 	rec := httptest.NewRecorder()
 	router.ServeHTTP(rec, req)
 
@@ -292,7 +300,7 @@ func TestRemoveAnimeJellyfinFolder_WritesAuditEntryOnSuccess(t *testing.T) {
 	audit := &fakeAuditLogWriter{}
 	router := newFolderManagementTestRouter(newFolderManagementTestHandler(repo, audit))
 
-	req := httptest.NewRequest(http.MethodDelete, "/api/v1/admin/anime/5/jellyfin/folders/jellyfin:def", nil)
+	req := httptest.NewRequest(http.MethodDelete, "/api/v1/admin/anime/5/jellyfin/folders/def", nil)
 	rec := httptest.NewRecorder()
 	router.ServeHTTP(rec, req)
 
@@ -319,7 +327,7 @@ func TestRemoveAnimeJellyfinFolder_AnimeNotFoundReturns404(t *testing.T) {
 	audit := &fakeAuditLogWriter{}
 	router := newFolderManagementTestRouter(newFolderManagementTestHandler(repo, audit))
 
-	req := httptest.NewRequest(http.MethodDelete, "/api/v1/admin/anime/999/jellyfin/folders/jellyfin:def", nil)
+	req := httptest.NewRequest(http.MethodDelete, "/api/v1/admin/anime/999/jellyfin/folders/def", nil)
 	rec := httptest.NewRecorder()
 	router.ServeHTTP(rec, req)
 
@@ -328,5 +336,71 @@ func TestRemoveAnimeJellyfinFolder_AnimeNotFoundReturns404(t *testing.T) {
 	}
 	if repo.removeCalls != 0 {
 		t.Fatalf("expected RemoveAnimeSourceLink not to be attempted when the anime load failed, got %d", repo.removeCalls)
+	}
+}
+
+// --- D-18 blocker fix regression tests ---------------------------------------------------------
+
+func TestRemoveAnimeJellyfinFolder_ReturnsNotFoundAndSkipsAuditWhenZeroRowsMatched(t *testing.T) {
+	source := "jellyfin:abc"
+	repo := &fakeJellyfinFolderManagementRepo{
+		syncSource: &models.AdminAnimeSyncSource{ID: 5, Source: &source},
+		removeErr:  repository.ErrNotFound,
+	}
+	audit := &fakeAuditLogWriter{}
+	router := newFolderManagementTestRouter(newFolderManagementTestHandler(repo, audit))
+
+	req := httptest.NewRequest(http.MethodDelete, "/api/v1/admin/anime/5/jellyfin/folders/def", nil)
+	rec := httptest.NewRecorder()
+	router.ServeHTTP(rec, req)
+
+	if rec.Code != http.StatusNotFound {
+		t.Fatalf("expected 404 when the DELETE matched zero rows, got %d (body=%s)", rec.Code, rec.Body.String())
+	}
+	if audit.calls != 0 {
+		t.Fatalf("expected no success audit entry when the delete matched zero rows, got %d", audit.calls)
+	}
+}
+
+// TestRemoveAnimeJellyfinFolder_EndToEndThroughCollectJellyfinFolderOptions exercises the exact D-18
+// blocker scenario: it builds the folder options via the REAL collectJellyfinFolderOptions helper
+// (the only source the frontend ever gets a folder ID from), takes the non-main folder's
+// JellyfinItemID exactly as the frontend would receive it (unprefixed), feeds that value as the
+// DELETE :source path param, and asserts the repository actually receives the correctly re-prefixed
+// source string. This is the real end-to-end contract check that neither 165-07's nor 165-10's
+// original tests exercised (165-07 hand-picked an already-prefixed "jellyfin:def" fixture; 165-10
+// fully mocked the API client) -- the exact gap that let the original prefix mismatch ship undetected.
+func TestRemoveAnimeJellyfinFolder_EndToEndThroughCollectJellyfinFolderOptions(t *testing.T) {
+	mainSource := "jellyfin:abc"
+	sourceLinks := []string{"jellyfin:abc", "jellyfin:def"}
+	folderOptions := collectJellyfinFolderOptions(&mainSource, sourceLinks, &mainSource)
+
+	var nonMainFolderID string
+	for _, folder := range folderOptions {
+		if !folder.IsMain {
+			nonMainFolderID = folder.JellyfinItemID
+		}
+	}
+	if nonMainFolderID == "" {
+		t.Fatalf("expected collectJellyfinFolderOptions to produce a non-main folder, got %+v", folderOptions)
+	}
+	if nonMainFolderID != "def" {
+		t.Fatalf("expected the real helper's unprefixed folder id, got %q", nonMainFolderID)
+	}
+
+	repo := &fakeJellyfinFolderManagementRepo{syncSource: &models.AdminAnimeSyncSource{ID: 5, Source: &mainSource}}
+	audit := &fakeAuditLogWriter{}
+	router := newFolderManagementTestRouter(newFolderManagementTestHandler(repo, audit))
+
+	// Exactly what removeAdminAnimeJellyfinFolder(animeID, folder.jellyfin_item_id) sends in production.
+	req := httptest.NewRequest(http.MethodDelete, "/api/v1/admin/anime/5/jellyfin/folders/"+nonMainFolderID, nil)
+	rec := httptest.NewRecorder()
+	router.ServeHTTP(rec, req)
+
+	if rec.Code != http.StatusOK {
+		t.Fatalf("expected 200, got %d (body=%s)", rec.Code, rec.Body.String())
+	}
+	if len(repo.removedSources) != 1 || repo.removedSources[0] != "jellyfin:def" {
+		t.Fatalf("expected the repository DELETE to receive the DB-stored prefixed source, got %+v", repo.removedSources)
 	}
 }

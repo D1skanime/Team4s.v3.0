@@ -100,6 +100,15 @@ func (h *AdminContentHandler) connectJellyfinFolderAdditively(
 // Hauptordners (== animeSource.Source) wird serverseitig abgelehnt, bevor ueberhaupt eine DELETE-Query
 // laeuft (RESEARCH.md §12: "ungeschuetzter DELETE wuerde die Zeile loeschen koennen, waehrend anime.source
 // weiter auf die fehlende Referenz zeigt" -- kein reiner UI-Schutz).
+//
+// :source traegt die UNPREFIXTE Jellyfin-Item-ID (z.B. "def"), nicht den vollstaendig praefixierten
+// DB-Wert ("jellyfin:def"): collectJellyfinFolderOptions (jellyfin_source_folder_list.go) ist die
+// EINZIGE Quelle, aus der das Frontend jemals eine Ordner-ID bekommt (GET .../jellyfin/context UND der
+// Episode-Import-Ordner-Guard), und die strippt den "jellyfin:"-Praefix immer. Dieser Handler haengt den
+// Praefix daher intern wieder an, bevor er gegen animeSource.Source vergleicht bzw. in
+// anime_source_links.source loescht -- das Frontend soll den Praefix niemals selbst rekonstruieren
+// muessen (165-VERIFICATION.md D-18-Blocker-Fund: das Auseinanderlaufen von Frontend-Konvention
+// (unprefixed) und Backend-Erwartung (prefixed) fuehrte zu einem stillen No-Op-DELETE).
 func (h *AdminContentHandler) RemoveAnimeJellyfinFolder(c *gin.Context) {
 	identity, ok := h.requireAdmin(c)
 	if !ok {
@@ -112,11 +121,12 @@ func (h *AdminContentHandler) RemoveAnimeJellyfinFolder(c *gin.Context) {
 		return
 	}
 
-	source := strings.TrimSpace(c.Param("source"))
-	if source == "" {
+	rawSource := strings.TrimSpace(c.Param("source"))
+	if rawSource == "" {
 		badRequest(c, "source ist erforderlich")
 		return
 	}
+	prefixedSource := "jellyfin:" + rawSource
 
 	animeSource, err := h.folderManagementRepo.GetAnimeSyncSource(c.Request.Context(), animeID)
 	if errors.Is(err, repository.ErrNotFound) {
@@ -129,13 +139,17 @@ func (h *AdminContentHandler) RemoveAnimeJellyfinFolder(c *gin.Context) {
 		return
 	}
 
-	if source == strings.TrimSpace(derefString(animeSource.Source)) {
+	if rawSource == extractJellyfinSourceID(animeSource.Source) {
 		badRequest(c, "der haupt-jellyfin-ordner kann nicht entfernt werden")
 		return
 	}
 
-	if err := h.folderManagementRepo.RemoveAnimeSourceLink(c.Request.Context(), animeID, source); err != nil {
-		log.Printf("admin_content jellyfin_folder_remove: remove failed (anime_id=%d, source=%q): %v", animeID, source, err)
+	if err := h.folderManagementRepo.RemoveAnimeSourceLink(c.Request.Context(), animeID, prefixedSource); err != nil {
+		if errors.Is(err, repository.ErrNotFound) {
+			c.JSON(http.StatusNotFound, gin.H{"error": gin.H{"message": "jellyfin-ordner wurde nicht gefunden"}})
+			return
+		}
+		log.Printf("admin_content jellyfin_folder_remove: remove failed (anime_id=%d, source=%q): %v", animeID, prefixedSource, err)
 		c.JSON(http.StatusInternalServerError, gin.H{"error": gin.H{"message": "jellyfin-ordner konnte nicht entfernt werden"}})
 		return
 	}
@@ -150,7 +164,7 @@ func (h *AdminContentHandler) RemoveAnimeJellyfinFolder(c *gin.Context) {
 			TargetID:          &animeID,
 			Action:            "remove_folder",
 			Outcome:           "allowed",
-			Payload:           map[string]any{"source": source},
+			Payload:           map[string]any{"source": prefixedSource},
 		})
 	}
 

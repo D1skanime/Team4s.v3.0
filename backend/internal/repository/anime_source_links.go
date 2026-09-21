@@ -118,21 +118,28 @@ func (r *AdminContentRepository) LinkAdditionalJellyfinSource(ctx context.Contex
 }
 
 // removeAnimeSourceLink deletes one (anime_id, source) row (165-07 DELETE
-// /admin/anime/:id/jellyfin/folders/:source). Deleting a pair that does not exist affects 0 rows
-// and returns no error -- idempotent, matching the established unignore-delete convention
-// (165-02's RemoveLibraryDiscoveryIgnore).
+// /admin/anime/:id/jellyfin/folders/:source). Unlike the older unignore-delete convention
+// (165-02's RemoveLibraryDiscoveryIgnore), a DELETE that matches zero rows is treated as a
+// caller-visible error (ErrNotFound), not a silent no-op: a mismatched/already-removed source
+// string must never report false success (165-VERIFICATION.md D-18 blocker -- a silent 0-row
+// DELETE let RemoveAnimeJellyfinFolder respond 200 and write a success audit entry while the
+// anime_source_links row stayed untouched).
 func removeAnimeSourceLink(ctx context.Context, tx pgx.Tx, animeID int64, source string) error {
 	trimmed := strings.TrimSpace(source)
 	if animeID <= 0 || trimmed == "" {
-		return nil
+		return ErrNotFound
 	}
-	if _, err := tx.Exec(
+	tag, err := tx.Exec(
 		ctx,
 		`DELETE FROM anime_source_links WHERE anime_id = $1 AND source = $2`,
 		animeID,
 		trimmed,
-	); err != nil {
+	)
+	if err != nil {
 		return fmt.Errorf("remove anime source link anime=%d source=%q: %w", animeID, trimmed, err)
+	}
+	if tag.RowsAffected() == 0 {
+		return ErrNotFound
 	}
 	return nil
 }

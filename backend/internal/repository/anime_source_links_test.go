@@ -91,7 +91,7 @@ func TestLinkAdditionalJellyfinSource_IsIdempotent(t *testing.T) {
 	require.Equal(t, 1, rowCount, "duplicate additive link must not create a second row")
 }
 
-func TestRemoveAnimeSourceLink_DeletesExactlyOneRowAndIsIdempotent(t *testing.T) {
+func TestRemoveAnimeSourceLink_DeletesExactlyOneRowAndReturnsErrNotFoundOnZeroMatch(t *testing.T) {
 	pool := openAnimeSourceLinksPostgres(t)
 	animeID := seedAnimeSourceLinksFixture(t, pool)
 	ctx := context.Background()
@@ -110,6 +110,30 @@ func TestRemoveAnimeSourceLink_DeletesExactlyOneRowAndIsIdempotent(t *testing.T)
 	).Scan(&rowCount))
 	require.Equal(t, 0, rowCount, "row must be gone after removal")
 
-	// Deleting a pair that does not exist (already removed) affects 0 rows without error.
-	require.NoError(t, removeAnimeSourceLink(ctx, tx, animeID, "jellyfin:def"))
+	// Deleting a pair that no longer exists (already removed) must surface as ErrNotFound, not a
+	// silent success -- a zero-row DELETE is never allowed to report false success (D-18 blocker fix).
+	require.ErrorIs(t, removeAnimeSourceLink(ctx, tx, animeID, "jellyfin:def"), ErrNotFound)
+}
+
+func TestRemoveAnimeSourceLink_ReturnsErrNotFoundForMismatchedSource(t *testing.T) {
+	pool := openAnimeSourceLinksPostgres(t)
+	animeID := seedAnimeSourceLinksFixture(t, pool)
+	ctx := context.Background()
+
+	tx, err := pool.Begin(ctx)
+	require.NoError(t, err)
+	defer func() { _ = tx.Rollback(ctx) }()
+
+	require.NoError(t, linkAdditionalJellyfinSource(ctx, tx, animeID, "jellyfin:def"))
+
+	// Regression guard for the exact D-18 blocker: an unprefixed source string (what the frontend
+	// used to send verbatim before the handler-side fix) never matches the prefixed stored value,
+	// and must surface as ErrNotFound rather than silently affecting 0 rows.
+	require.ErrorIs(t, removeAnimeSourceLink(ctx, tx, animeID, "def"), ErrNotFound)
+
+	var rowCount int
+	require.NoError(t, tx.QueryRow(ctx,
+		`SELECT COUNT(*) FROM anime_source_links WHERE anime_id = $1 AND source = $2`, animeID, "jellyfin:def",
+	).Scan(&rowCount))
+	require.Equal(t, 1, rowCount, "mismatched-source delete attempt must not remove the real row")
 }
