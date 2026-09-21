@@ -94,6 +94,12 @@ export interface EpisodeImportPreviewResult {
   unmapped_media_item_ids?: string[]
 }
 
+/** One jellyfin: folder connected to an anime (D-05: an anime can have more than one). */
+export interface JellyfinFolderOption {
+  jellyfin_item_id: string
+  is_main: boolean
+}
+
 export interface EpisodeImportContextResult {
   anime_id: number
   anime_title: string
@@ -101,6 +107,8 @@ export interface EpisodeImportContextResult {
   jellyfin_series_id?: string | null
   folder_path?: string | null
   source?: string | null
+  /** Only present when the anime has more than one connected Jellyfin folder (D-14). */
+  jellyfin_folders?: JellyfinFolderOption[] | null
 }
 
 /** Confirmed commands require the exact reviewed pair; skipped unresolved rows never persist. */

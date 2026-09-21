@@ -1,7 +1,7 @@
 "use client";
 
 import Link from "next/link";
-import { useEffect, useMemo } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { useParams, useRouter } from "next/navigation";
 
 import type {
@@ -10,6 +10,7 @@ import type {
 } from "@/types/episodeImport";
 
 import { PlatformAdminGate } from "@/components/auth/PlatformAdminGate";
+import { EpisodeImportFolderSelector } from "./EpisodeImportFolderSelector";
 import { EpisodeImportMappingRowCard } from "./EpisodeImportMappingRow";
 import { jellyfinSourceKey } from "@/lib/jellyfinSourceIdentity";
 import { fillerLabel } from "./episodeImportMapping";
@@ -29,6 +30,28 @@ function AdminAnimeEpisodeImportContent() {
     [params.id],
   );
   const builder = useEpisodeImportBuilder(animeID);
+  // Tracks only an explicit admin override; the effective selection (default
+  // main folder, or a still-valid prior override) is derived at render time
+  // below instead of synced via an effect, avoiding a setState-in-effect
+  // cascading render for the ordinary "no folders yet" and "context reload"
+  // cases.
+  const [folderOverride, setFolderOverride] = useState<string | null>(null);
+  const jellyfinFolders = useMemo(
+    () => builder.context?.jellyfin_folders ?? [],
+    [builder.context],
+  );
+  const selectedFolderID = useMemo(() => {
+    if (
+      folderOverride &&
+      jellyfinFolders.some(
+        (folder) => folder.jellyfin_item_id === folderOverride,
+      )
+    ) {
+      return folderOverride;
+    }
+    const mainFolder = jellyfinFolders.find((folder) => folder.is_main);
+    return mainFolder?.jellyfin_item_id ?? jellyfinFolders[0]?.jellyfin_item_id ?? null;
+  }, [folderOverride, jellyfinFolders]);
 
   useEffect(() => {
     if (!animeID || !builder.applyResult) {
@@ -110,7 +133,9 @@ function AdminAnimeEpisodeImportContent() {
             className={styles.primaryButton}
             type="button"
             disabled={builder.isPreviewing || !animeID}
-            onClick={() => void builder.loadPreview()}
+            onClick={() =>
+              void builder.loadPreview(selectedFolderID ?? undefined)
+            }
           >
             {builder.isPreviewing ? "Vorschau laedt..." : "Vorschau laden"}
           </button>
@@ -133,6 +158,11 @@ function AdminAnimeEpisodeImportContent() {
               placeholder="0"
             />
           </label>
+          <EpisodeImportFolderSelector
+            folders={jellyfinFolders}
+            value={selectedFolderID}
+            onChange={setFolderOverride}
+          />
         </div>
       </section>
 

@@ -73,7 +73,7 @@ interface UseEpisodeImportBuilderState {
   hasSuggestedRows: boolean
   episodeGroups: EpisodeGroup[]
   unmappedMappingRows: EpisodeImportMappingRow[]
-  loadPreview: () => Promise<void>
+  loadPreview: (jellyfinSeriesIDOverride?: string) => Promise<void>
   applyMappings: () => Promise<void>
   applyRow: (sourceKey: string) => Promise<void>
   setAniSearchID: (value: string) => void
@@ -207,7 +207,7 @@ export function useEpisodeImportBuilder(animeID: number | null): UseEpisodeImpor
     return mappings.filter((row) => resolveMappingGroupEpisodeNumber(row) == null)
   }, [mappings])
 
-  async function loadPreview() {
+  async function loadPreview(jellyfinSeriesIDOverride?: string) {
     if (!animeID) return
     setIsPreviewing(true)
     setErrorMessage(null)
@@ -217,6 +217,7 @@ export function useEpisodeImportBuilder(animeID: number | null): UseEpisodeImpor
         animeID,
         {
           anisearch_id: anisearchID.trim(),
+          jellyfin_series_id: jellyfinSeriesIDOverride?.trim() || undefined,
           season_offset: Number.parseInt(seasonOffset, 10) || 0,
         },
       )
