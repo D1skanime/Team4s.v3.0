@@ -33,6 +33,13 @@ export interface CreateAniSearchConflictState {
   existingAnimeID: number;
   existingTitle: string;
   redirectPath: string;
+  /**
+   * D-20: markiert einen Konflikt, der beim zweiten Auslösepunkt (save-time
+   * Re-Check unmittelbar vor dem CreateAnime-Insert, 165-03) entstanden ist,
+   * statt beim ersten (AniSearch-Auswahlzeit, Enrich()). Steuert die
+   * zusaetzliche Kontextzeile in AniSearchDuplicateDecision.
+   */
+  viaSaveTimeRecheck?: boolean;
 }
 
 /**

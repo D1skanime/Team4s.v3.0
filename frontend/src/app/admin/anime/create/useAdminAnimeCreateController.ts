@@ -21,6 +21,7 @@ import {
 } from "@/lib/api/admin-anime-intake";
 import { AnimeStatus, ContentType } from "@/types/anime";
 import type {
+  AdminAnimeAniSearchCreateConflictResult,
   AdminAnimeAniSearchSearchCandidate,
   AdminAnimeAssetKind,
   AdminAnimeAssetSearchCandidate,
@@ -34,6 +35,7 @@ import type {
 
 import {
   appendCreateSourceLinkageToPayload,
+  buildAssistedCreateRedirectPath,
   buildCreateSuccessMessage,
   buildManualCreateRedirectPath,
   CREATE_REDIRECT_DELAY_MS,
@@ -47,6 +49,7 @@ import {
 import type { CreateAssetUploadDraftValue } from "./createAssetUploadPlan";
 import {
   applyCreateAniSearchControllerResult,
+  buildCreateAniSearchConflictState,
   type CreateAniSearchConflictState,
   type CreateAniSearchDraftState,
 } from "./createAniSearchControllerHelpers";
@@ -86,6 +89,22 @@ type CreateSearchableAssetKind = Extract<
   AdminAnimeAssetKind,
   "cover" | "banner" | "logo" | "background"
 >;
+
+/**
+ * D-20/165-03: erkennt einen save-time AniSearch-Dublettenkonflikt (409 mit
+ * `mode: "redirect"`) an einem gefangenen Fehler aus `createAdminAnime`/
+ * `createAdminAnimeFromJellyfinDraft`, statt ihn generisch als Fehlertext
+ * anzuzeigen. Gibt `null` zurück für jeden anderen Fehler (falscher Status,
+ * kein ApiError, oder ein Konflikt vom Edit-Format `mode: "conflict"`).
+ */
+export function extractAniSearchCreateConflict(
+  error: unknown,
+): AdminAnimeAniSearchCreateConflictResult | null {
+  if (!(error instanceof ApiError)) return null;
+  if (error.status !== 409) return null;
+  if (!error.conflict || error.conflict.mode !== "redirect") return null;
+  return error.conflict;
+}
 
 function countIncomingDraftAssets(
   assetSlots: AdminJellyfinIntakeAssetSlots | null,
@@ -183,7 +202,18 @@ type AdminAnimeAniSearchSearchCandidateResponse = {
   filtered_existing_count?: number;
 };
 
-export function useAdminAnimeCreateController() {
+export interface UseAdminAnimeCreateControllerOptions {
+  /** D-10/D-11: markiert den Create-Vorgang als Discovery-gestuetzt (aus dem Bibliotheks-Hand-off). */
+  isDiscoveryFlow?: boolean;
+  /** D-11: `return`-Query-Param, das an den Post-Create-Redirect angehaengt wird, wenn isDiscoveryFlow gesetzt ist. */
+  returnURL?: string;
+}
+
+export function useAdminAnimeCreateController(
+  options?: UseAdminAnimeCreateControllerOptions,
+) {
+  const isDiscoveryFlow = options?.isDiscoveryFlow ?? false;
+  const discoveryReturnURL = options?.returnURL;
   const { hasAccessToken: hasAuthToken, isClientInitialized: isAuthStateHydrated } = useAuthSession();
   const [isSubmittingCreate, setIsSubmittingCreate] = useState(false);
   const [isUploadingCover, setIsUploadingCover] = useState(false);
@@ -668,8 +698,14 @@ export function useAdminAnimeCreateController() {
     });
   }
 
-  async function handleCreateSubmit(event: FormEvent<HTMLFormElement>) {
-    event.preventDefault();
+  /**
+   * submitCreate: eigentliche Create-Logik ohne FormEvent-Abhaengigkeit, damit sie
+   * sowohl vom regulaeren Formular-Submit (handleCreateSubmit) als auch vom
+   * D-20-Save-Time-Retry (handleConfirmedDuplicateCreate, "Als neuen Anime anlegen"
+   * beim zweiten Auslösepunkt) mit denselben Validierungen/Payload-Aufbau
+   * aufgerufen werden kann.
+   */
+  async function submitCreate(options: { confirmDuplicate?: boolean } = {}) {
     clearMessages();
     setLastRequest(null);
     setLastResponse(null);
@@ -740,6 +776,9 @@ export function useAdminAnimeCreateController() {
     payload.genre = normalizeOptionalString(createGenreValue);
     if (createTagTokens.length > 0) payload.tags = [...createTagTokens];
     payload.description = normalizeOptionalString(createDescription);
+    if (options.confirmDuplicate) {
+      payload.confirm_duplicate = true;
+    }
 
     try {
       setIsSubmittingCreate(true);
@@ -772,15 +811,47 @@ export function useAdminAnimeCreateController() {
       setSuccessMessage(buildCreateSuccessMessage(response));
       setLastResponse(JSON.stringify(response, null, 2));
       createRedirectTimeoutRef.current = window.setTimeout(() => {
-        window.location.href = buildManualCreateRedirectPath(response.data.id);
+        window.location.href = isDiscoveryFlow
+          ? buildAssistedCreateRedirectPath(
+              response.data.id,
+              createType,
+              discoveryReturnURL,
+            )
+          : buildManualCreateRedirectPath(response.data.id);
       }, CREATE_REDIRECT_DELAY_MS);
     } catch (error) {
+      const conflict = extractAniSearchCreateConflict(error);
+      if (conflict) {
+        // D-20 zweiter Auslösepunkt: derselbe AniSearchDuplicateDecision-Block
+        // erscheint erneut (mit Kontextzeile), statt den generischen Fehlerpfad
+        // zu nehmen — alle bereits erfassten Draft-Felder bleiben unangetastet.
+        setAniSearchConflict({
+          ...buildCreateAniSearchConflictState(conflict),
+          viaSaveTimeRecheck: true,
+        });
+        return;
+      }
+
       setErrorMessage(
         formatCreatePageError(error, "Anime konnte nicht erstellt werden."),
       );
     } finally {
       setIsSubmittingCreate(false);
     }
+  }
+
+  async function handleCreateSubmit(event: FormEvent<HTMLFormElement>) {
+    event.preventDefault();
+    await submitCreate();
+  }
+
+  /**
+   * D-20/165-03: erneuter Speichern-Versuch nach "Als neuen Anime anlegen" beim
+   * zweiten Auslösepunkt (save-time Re-Check) — sendet confirm_duplicate:true,
+   * damit derselbe Treffer nicht ein drittes Mal denselben Block ausloest.
+   */
+  async function handleConfirmedDuplicateCreate() {
+    await submitCreate({ confirmDuplicate: true });
   }
 
   async function handleCoverUpload(file: File) {
@@ -980,7 +1051,10 @@ export function useAdminAnimeCreateController() {
     setSuccessMessage("Jellyfin-Auswahl verworfen. Der Anime wurde noch nicht erstellt.");
   }
 
-  async function loadAniSearchDraftByID(anisearchID: string) {
+  async function loadAniSearchDraftByID(
+    anisearchID: string,
+    options?: { forceNew?: boolean },
+  ) {
     clearMessages();
     clearAniSearchState();
     setLastRequest(null);
@@ -1004,6 +1078,7 @@ export function useAdminAnimeCreateController() {
         currentDraft: manualDraftValues,
         jellyfinSnapshot: jellyfinDraftSnapshot,
       }).requestDraft,
+      force_new: options?.forceNew === true,
     };
 
     try {
@@ -1020,8 +1095,13 @@ export function useAdminAnimeCreateController() {
       setLastResponse(JSON.stringify(response, null, 2));
 
       if (resolved.redirect) {
+        // D-23-Fix: keine automatische Vollseiten-Navigation mehr hier — der
+        // Konflikt wird nur noch als Zustand gesetzt, damit
+        // AniSearchDuplicateDecision tatsaechlich rendern kann, statt von der
+        // Navigation ueberholt zu werden (live reproduziert, AniSearch-ID
+        // 2788 -> Naruto #4). Der komplette Draft-State
+        // (manualDraftValues/jellyfinDraftSnapshot) bleibt unangetastet.
         setAniSearchConflict(resolved.redirect);
-        window.location.href = resolved.redirect.redirectPath;
         return;
       }
 
@@ -1039,6 +1119,20 @@ export function useAdminAnimeCreateController() {
 
   async function handleAniSearchDraftLoad() {
     await loadAniSearchDraftByID(createAniSearchID.trim());
+  }
+
+  /**
+   * D-23/165-13: "Als neuen Anime anlegen" beim ersten Auslösepunkt (AniSearch-
+   * Auswahlzeit) — laedt den echten AniSearch-Draft ueber den ForceNew-Bypass
+   * erneut, statt denselben Konflikt ein zweites Mal auszuloesen. Liest die
+   * anisearchID VOR dem Aufruf, weil clearAniSearchState() innerhalb von
+   * loadAniSearchDraftByID aniSearchConflict sofort zurücksetzt.
+   */
+  async function handleAniSearchCreateAsNew() {
+    if (!aniSearchConflict) return;
+    await loadAniSearchDraftByID(aniSearchConflict.anisearchID, {
+      forceNew: true,
+    });
   }
 
   async function handleAniSearchCandidateSearch() {
@@ -1381,7 +1475,9 @@ export function useAdminAnimeCreateController() {
       handleBackgroundVideoInputChange,
       handleAniSearchCandidateSearch,
       handleAniSearchCandidateSelect,
+      handleAniSearchCreateAsNew,
       handleAniSearchDraftLoad,
+      handleConfirmedDuplicateCreate,
       handleCoverUpload,
       handleCreateSubmit,
       handleDiscardJellyfinPreview,

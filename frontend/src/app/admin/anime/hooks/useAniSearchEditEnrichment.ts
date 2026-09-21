@@ -82,7 +82,12 @@ export function createAniSearchEditFailureState(error: unknown): AniSearchEditFe
   if (error instanceof ApiError) {
     return {
       result: null,
-      conflict: error.conflict,
+      // ApiError.conflict is a union covering both the edit-route conflict shape
+      // (mode: "conflict") and the 165-08 create-route save-time conflict shape
+      // (mode: "redirect", loadAdminAnimeEditAniSearchEnrichment never produces
+      // that variant) — narrow explicitly so this edit-only state stays typed
+      // to the edit conflict shape.
+      conflict: error.conflict?.mode === 'conflict' ? error.conflict : null,
       errorMessage: error.message.trim() || 'AniSearch konnte nicht geladen werden.',
     }
   }

@@ -6,6 +6,7 @@ import {
   AdminAnimeAniSearchEditRequest,
   AdminAnimeAniSearchEditConflictResult,
   AdminAnimeAniSearchEditResult,
+  AdminAnimeAniSearchCreateConflictResult,
   AdminAnimeRelationCreateRequest,
   AdminAnimeThemeCreateRequest,
   AdminAnimeThemeCreateResponse,
@@ -430,7 +431,10 @@ export class ApiError extends Error {
   retryAfterSeconds: number | null;
   code: string | null;
   details: string | null;
-  conflict: AdminAnimeAniSearchEditConflictResult | null;
+  conflict:
+    | AdminAnimeAniSearchEditConflictResult
+    | AdminAnimeAniSearchCreateConflictResult
+    | null;
 
   constructor(
     status: number,
@@ -438,7 +442,10 @@ export class ApiError extends Error {
     retryAfterSeconds: number | null = null,
     code: string | null = null,
     details: string | null = null,
-    conflict: AdminAnimeAniSearchEditConflictResult | null = null,
+    conflict:
+      | AdminAnimeAniSearchEditConflictResult
+      | AdminAnimeAniSearchCreateConflictResult
+      | null = null,
   ) {
     super(message);
     this.status = status;
@@ -1106,6 +1113,75 @@ function parseAniSearchEditConflictPayload(
     existing_title: data.existing_title,
     redirect_path: data.redirect_path,
   };
+}
+
+/**
+ * Parst das 409-Konfliktergebnis des save-time AniSearch-Dublettenchecks
+ * (165-03/D-20) auf `POST /api/v1/admin/anime` — Form gleich dem
+ * Enrich()-Redirect-Ergebnis, aber mit `mode: "redirect"` statt `"conflict"`.
+ */
+function parseAniSearchCreateConflictPayload(
+  payload: unknown,
+): AdminAnimeAniSearchCreateConflictResult | null {
+  if (!payload || typeof payload !== "object") {
+    return null;
+  }
+
+  const data = (payload as { data?: Record<string, unknown> }).data;
+  if (!data || typeof data !== "object") {
+    return null;
+  }
+
+  if (data.mode !== "redirect") {
+    return null;
+  }
+
+  if (
+    typeof data.anisearch_id !== "string" ||
+    typeof data.existing_anime_id !== "number" ||
+    typeof data.existing_title !== "string" ||
+    typeof data.redirect_path !== "string"
+  ) {
+    return null;
+  }
+
+  return {
+    mode: "redirect",
+    anisearch_id: data.anisearch_id,
+    existing_anime_id: data.existing_anime_id,
+    existing_title: data.existing_title,
+    redirect_path: data.redirect_path,
+  };
+}
+
+/**
+ * Baut aus einer nicht-ok `POST /api/v1/admin/anime`-Antwort einen ApiError,
+ * der bei einem 409 des save-time AniSearch-Dublettenchecks (165-03/D-20)
+ * das geparste Konfliktergebnis mitfuehrt (`error.conflict`), statt es wie
+ * die generische Fehlerbehandlung stillschweigend zu verwerfen. Wird sowohl
+ * von `createAdminAnime` (hier) als auch von `createAdminAnimeFromJellyfinDraft`
+ * (`lib/api/admin-anime-intake.ts`) verwendet, da beide denselben Endpunkt
+ * ansprechen und derselbe save-time Guard fuer beide gilt.
+ */
+export async function buildCreateAnimeConflictAwareApiError(
+  response: Response,
+): Promise<ApiError> {
+  const body = (await response.json().catch(() => null)) as unknown;
+  const parsed = parsePayloadApiError(
+    body,
+    `API request failed: ${response.status}`,
+  );
+  const conflict =
+    response.status === 409 ? parseAniSearchCreateConflictPayload(body) : null;
+
+  return new ApiError(
+    response.status,
+    parsed.message,
+    null,
+    parsed.code,
+    parsed.details,
+    conflict,
+  );
 }
 
 export function getRuntimeAuthToken(): string {
@@ -4828,17 +4904,7 @@ export async function createAdminAnime(
   });
 
   if (!response.ok) {
-    const parsed = await parseApiErrorPayload(
-      response,
-      `API request failed: ${response.status}`,
-    );
-    throw new ApiError(
-      response.status,
-      parsed.message,
-      null,
-      parsed.code,
-      parsed.details,
-    );
+    throw await buildCreateAnimeConflictAwareApiError(response);
   }
 
   return response.json() as Promise<AdminAnimeUpsertResponse>;

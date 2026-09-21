@@ -1,9 +1,12 @@
-import { describe, expect, it } from 'vitest'
+// @vitest-environment jsdom
+import { act, cleanup, renderHook } from '@testing-library/react'
+import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
 
 import { getBrowserApiBaseUrl } from '@/lib/publicApiUrl'
 
 import {
   appendCreateSourceLinkageToPayload,
+  CREATE_REDIRECT_DELAY_MS,
   resolveCreateAniSearchDraftMergeInputs,
   resolveJellyfinPreviewBaseDraft,
 } from './createPageHelpers'
@@ -12,11 +15,84 @@ import {
   applyCreateAniSearchControllerResult,
   buildCreateAniSearchConflictState,
 } from './createAniSearchControllerHelpers'
+import { hydrateManualDraftFromAniSearchDraft, hydrateManualDraftFromJellyfinPreview } from '../hooks/useManualAnimeDraft'
+
+const apiMocks = vi.hoisted(() => ({
+  createAdminAnime: vi.fn(),
+  getAdminGenreTokens: vi.fn(),
+}))
+
+const intakeMocks = vi.hoisted(() => ({
+  createAdminAnimeFromJellyfinDraft: vi.fn(),
+  getAdminTagTokens: vi.fn(),
+  loadAdminAnimeCreateAniSearchDraft: vi.fn(),
+  searchAdminAnimeCreateAssetCandidates: vi.fn(),
+  searchAdminAnimeCreateAniSearchCandidates: vi.fn(),
+  previewAdminAnimeFromJellyfinIntake: vi.fn(),
+  searchAdminJellyfinIntakeCandidates: vi.fn(),
+}))
+
+const { MockApiError } = vi.hoisted(() => {
+  class MockApiError extends Error {
+    status: number
+    retryAfterSeconds: number | null
+    code: string | null
+    details: string | null
+    conflict: unknown
+
+    constructor(
+      status: number,
+      message: string,
+      retryAfterSeconds: number | null = null,
+      code: string | null = null,
+      details: string | null = null,
+      conflict: unknown = null,
+    ) {
+      super(message)
+      this.status = status
+      this.retryAfterSeconds = retryAfterSeconds
+      this.code = code
+      this.details = details
+      this.conflict = conflict
+    }
+  }
+
+  return { MockApiError }
+})
+
+vi.mock('@/lib/useAuthSession', () => ({
+  useAuthSession: () => ({
+    hasAccessToken: true,
+    hasRefreshToken: true,
+    isClientInitialized: true,
+    accountIdentity: null,
+    displayName: '',
+  }),
+}))
+
+vi.mock('@/lib/api', () => ({
+  ApiError: MockApiError,
+  createAdminAnime: apiMocks.createAdminAnime,
+  getAdminGenreTokens: apiMocks.getAdminGenreTokens,
+}))
+
+vi.mock('@/lib/api/admin-anime-intake', () => ({
+  createAdminAnimeFromJellyfinDraft: intakeMocks.createAdminAnimeFromJellyfinDraft,
+  getAdminTagTokens: intakeMocks.getAdminTagTokens,
+  loadAdminAnimeCreateAniSearchDraft: intakeMocks.loadAdminAnimeCreateAniSearchDraft,
+  searchAdminAnimeCreateAssetCandidates: intakeMocks.searchAdminAnimeCreateAssetCandidates,
+  searchAdminAnimeCreateAniSearchCandidates: intakeMocks.searchAdminAnimeCreateAniSearchCandidates,
+  previewAdminAnimeFromJellyfinIntake: intakeMocks.previewAdminAnimeFromJellyfinIntake,
+  searchAdminJellyfinIntakeCandidates: intakeMocks.searchAdminJellyfinIntakeCandidates,
+}))
+
+// Imported AFTER the mocks above so the hook under test resolves the mocked
+// '@/lib/api' / '@/lib/api/admin-anime-intake' modules instead of the real ones.
 import {
   resolveAniSearchCandidateSearchFeedback,
   resolveCreateCoverState,
+  useAdminAnimeCreateController,
 } from './useAdminAnimeCreateController'
-import { hydrateManualDraftFromAniSearchDraft, hydrateManualDraftFromJellyfinPreview } from '../hooks/useManualAnimeDraft'
 
 const manualLookupDraft = {
   title: 'lain sea',
@@ -311,5 +387,310 @@ describe('useAdminAnimeCreateController AniSearch merge regressions', () => {
         target_status: 'done',
       },
     ])
+  })
+})
+
+const jellyfinSearchCandidate = {
+  jellyfin_series_id: 'series-42',
+  name: 'Naruto (Jellyfin)',
+  production_year: 1998,
+  path: 'D:/Anime/Naruto',
+  confidence: 'high' as const,
+  type_hint: {
+    confidence: 'high' as const,
+    suggested_type: 'tv' as const,
+    reasons: ['Library metadata'],
+  },
+  already_imported: false,
+}
+
+const jellyfinPreviewResult = {
+  jellyfin_series_id: 'series-42',
+  jellyfin_series_name: 'Naruto (Jellyfin)',
+  jellyfin_series_path: 'D:/Anime/Naruto',
+  folder_name_title_seed: 'Naruto (Jellyfin)',
+  description: 'Imported from Jellyfin',
+  year: 1998,
+  genre: 'Action',
+  tags: ['Shounen'],
+  type_hint: {
+    confidence: 'medium' as const,
+    suggested_type: 'tv' as const,
+    reasons: ['Library metadata'],
+  },
+  asset_slots: {
+    cover: { present: false, kind: 'cover' as const, source: 'jellyfin' as const },
+    logo: { present: false, kind: 'logo' as const, source: 'jellyfin' as const },
+    banner: { present: false, kind: 'banner' as const, source: 'jellyfin' as const },
+    backgrounds: [],
+    background_video: {
+      present: false,
+      kind: 'background_video' as const,
+      source: 'jellyfin' as const,
+    },
+  },
+}
+
+const saveTimeConflictBody = {
+  data: {
+    mode: 'redirect' as const,
+    anisearch_id: '2788',
+    existing_anime_id: 4,
+    existing_title: 'Naruto #4',
+    redirect_path: '/admin/anime/4/edit',
+  },
+}
+
+const aniSearchDraftResponseFixture = {
+  data: {
+    mode: 'draft' as const,
+    anisearch_id: '2788',
+    source: 'anisearch:2788',
+    draft: {
+      title: 'Naruto',
+      type: 'tv' as const,
+      content_type: 'anime' as const,
+      status: 'ongoing' as const,
+    },
+    manual_fields_kept: [],
+    filled_fields: ['title'],
+    filled_assets: [],
+    provider: {
+      anisearch_id: '2788',
+      jellysync_applied: false,
+      relation_candidates: 0,
+      relation_matches: 0,
+    },
+  },
+}
+
+let currentLocationHref = 'http://localhost/admin/anime/create'
+
+describe('useAdminAnimeCreateController (hook execution)', () => {
+  beforeEach(() => {
+    currentLocationHref = 'http://localhost/admin/anime/create'
+    Object.defineProperty(window, 'location', {
+      configurable: true,
+      value: {
+        get href() {
+          return currentLocationHref
+        },
+        set href(value: string) {
+          currentLocationHref = value
+        },
+      },
+    })
+
+    apiMocks.createAdminAnime.mockReset()
+    apiMocks.getAdminGenreTokens.mockReset().mockResolvedValue({ data: [] })
+    intakeMocks.createAdminAnimeFromJellyfinDraft.mockReset()
+    intakeMocks.getAdminTagTokens.mockReset().mockResolvedValue({ data: [] })
+    intakeMocks.loadAdminAnimeCreateAniSearchDraft.mockReset()
+    intakeMocks.searchAdminAnimeCreateAssetCandidates.mockReset()
+    intakeMocks.searchAdminAnimeCreateAniSearchCandidates.mockReset()
+    intakeMocks.previewAdminAnimeFromJellyfinIntake
+      .mockReset()
+      .mockResolvedValue({ data: jellyfinPreviewResult })
+    intakeMocks.searchAdminJellyfinIntakeCandidates
+      .mockReset()
+      .mockResolvedValue({ data: [jellyfinSearchCandidate] })
+  })
+
+  afterEach(() => {
+    cleanup()
+    vi.useRealTimers()
+  })
+
+  it('D-23 fix: a save-time-equivalent AniSearch redirect never hard-navigates and keeps the adopted Jellyfin draft intact', async () => {
+    const { result } = renderHook(() => useAdminAnimeCreateController())
+
+    act(() => result.current.handlers.setJellyfinQuery('Naruto'))
+    await act(async () => {
+      await result.current.handlers.handleJellyfinSearch()
+    })
+    await act(async () => {
+      await result.current.handlers.handleJellyfinCandidateAdopt('series-42')
+    })
+
+    expect(result.current.jellyfin.hasAdoptedPreview).toBe(true)
+    const titleAfterAdopt = result.current.manualDraft.values.title
+    const folderPathAfterAdopt = result.current.jellyfin.folderPath
+
+    intakeMocks.loadAdminAnimeCreateAniSearchDraft.mockResolvedValueOnce(saveTimeConflictBody)
+    act(() => result.current.handlers.setAniSearchID('2788'))
+    await act(async () => {
+      await result.current.handlers.handleAniSearchDraftLoad()
+    })
+
+    expect(currentLocationHref).toBe('http://localhost/admin/anime/create')
+    expect(result.current.anisearch.conflict).toEqual({
+      anisearchID: '2788',
+      existingAnimeID: 4,
+      existingTitle: 'Naruto #4',
+      redirectPath: '/admin/anime/4/edit',
+    })
+    expect(result.current.manualDraft.values.title).toBe(titleAfterAdopt)
+    expect(result.current.jellyfin.folderPath).toBe(folderPathAfterAdopt)
+    expect(result.current.jellyfin.hasAdoptedPreview).toBe(true)
+  })
+
+  it('D-20: handleCreateSubmit catches a save-time 409 conflict, marks it as the second trigger, and keeps the draft', async () => {
+    const { result } = renderHook(() => useAdminAnimeCreateController())
+
+    act(() => {
+      result.current.handlers.setTitle('Naruto')
+      result.current.handlers.setCoverImage('https://example.test/cover.png')
+    })
+
+    apiMocks.createAdminAnime.mockRejectedValueOnce(
+      new MockApiError(409, 'conflict', null, null, null, saveTimeConflictBody.data),
+    )
+
+    await act(async () => {
+      await result.current.handlers.handleCreateSubmit({
+        preventDefault: () => undefined,
+      } as unknown as Parameters<typeof result.current.handlers.handleCreateSubmit>[0])
+    })
+
+    expect(result.current.anisearch.conflict).toEqual({
+      anisearchID: '2788',
+      existingAnimeID: 4,
+      existingTitle: 'Naruto #4',
+      redirectPath: '/admin/anime/4/edit',
+      viaSaveTimeRecheck: true,
+    })
+    expect(result.current.status.isSubmittingCreate).toBe(false)
+    expect(result.current.manualDraft.values.title).toBe('Naruto')
+    expect(result.current.errorMessage).toBeNull()
+  })
+
+  it('redirects via buildAssistedCreateRedirectPath when the controller is told the submission is Discovery-originated', async () => {
+    vi.useFakeTimers()
+    const { result } = renderHook(() =>
+      useAdminAnimeCreateController({
+        isDiscoveryFlow: true,
+        returnURL: '/admin/anime/discovery',
+      }),
+    )
+
+    act(() => {
+      result.current.handlers.setTitle('Naruto')
+      result.current.handlers.setCoverImage('https://example.test/cover.png')
+    })
+
+    apiMocks.createAdminAnime.mockResolvedValueOnce({
+      data: {
+        id: 77,
+        title: 'Naruto',
+        type: 'tv',
+        content_type: 'anime',
+        status: 'ongoing',
+      },
+    })
+
+    await act(async () => {
+      await result.current.handlers.handleCreateSubmit({
+        preventDefault: () => undefined,
+      } as unknown as Parameters<typeof result.current.handlers.handleCreateSubmit>[0])
+    })
+    await act(async () => {
+      await vi.advanceTimersByTimeAsync(CREATE_REDIRECT_DELAY_MS)
+    })
+
+    expect(currentLocationHref).toBe(
+      '/admin/anime/77/episodes?return=%2Fadmin%2Fanime%2Fdiscovery',
+    )
+  })
+
+  it('regression: without the discovery flag, the redirect stays exactly buildManualCreateRedirectPath(id)', async () => {
+    vi.useFakeTimers()
+    const { result } = renderHook(() => useAdminAnimeCreateController())
+
+    act(() => {
+      result.current.handlers.setTitle('Naruto')
+      result.current.handlers.setCoverImage('https://example.test/cover.png')
+    })
+
+    apiMocks.createAdminAnime.mockResolvedValueOnce({
+      data: {
+        id: 77,
+        title: 'Naruto',
+        type: 'tv',
+        content_type: 'anime',
+        status: 'ongoing',
+      },
+    })
+
+    await act(async () => {
+      await result.current.handlers.handleCreateSubmit({
+        preventDefault: () => undefined,
+      } as unknown as Parameters<typeof result.current.handlers.handleCreateSubmit>[0])
+    })
+    await act(async () => {
+      await vi.advanceTimersByTimeAsync(CREATE_REDIRECT_DELAY_MS)
+    })
+
+    expect(currentLocationHref).toBe('/admin/anime?created=77#anime-77')
+  })
+
+  it('D-20 confirmed retry: handleConfirmedDuplicateCreate sends confirm_duplicate:true', async () => {
+    const { result } = renderHook(() => useAdminAnimeCreateController())
+
+    act(() => {
+      result.current.handlers.setTitle('Naruto')
+      result.current.handlers.setCoverImage('https://example.test/cover.png')
+    })
+
+    apiMocks.createAdminAnime.mockResolvedValueOnce({
+      data: {
+        id: 78,
+        title: 'Naruto',
+        type: 'tv',
+        content_type: 'anime',
+        status: 'ongoing',
+      },
+    })
+
+    await act(async () => {
+      await result.current.handlers.handleConfirmedDuplicateCreate()
+    })
+
+    expect(apiMocks.createAdminAnime).toHaveBeenCalledTimes(1)
+    expect(apiMocks.createAdminAnime.mock.calls[0][0]).toMatchObject({
+      confirm_duplicate: true,
+    })
+  })
+
+  it('D-23/165-13 ForceNew retry: handleAniSearchCreateAsNew sends force_new:true for the conflicting ID, merges the real draft, and clears the conflict; is a no-op without a conflict', async () => {
+    const { result } = renderHook(() => useAdminAnimeCreateController())
+
+    // No-op guard: no conflict present yet.
+    await act(async () => {
+      await result.current.handlers.handleAniSearchCreateAsNew()
+    })
+    expect(intakeMocks.loadAdminAnimeCreateAniSearchDraft).not.toHaveBeenCalled()
+
+    intakeMocks.loadAdminAnimeCreateAniSearchDraft.mockResolvedValueOnce(saveTimeConflictBody)
+    act(() => result.current.handlers.setAniSearchID('2788'))
+    await act(async () => {
+      await result.current.handlers.handleAniSearchDraftLoad()
+    })
+    expect(result.current.anisearch.conflict).not.toBeNull()
+
+    intakeMocks.loadAdminAnimeCreateAniSearchDraft.mockResolvedValueOnce(
+      aniSearchDraftResponseFixture,
+    )
+    await act(async () => {
+      await result.current.handlers.handleAniSearchCreateAsNew()
+    })
+
+    expect(intakeMocks.loadAdminAnimeCreateAniSearchDraft).toHaveBeenCalledTimes(2)
+    expect(intakeMocks.loadAdminAnimeCreateAniSearchDraft.mock.calls[1][0]).toMatchObject({
+      anisearch_id: '2788',
+      force_new: true,
+    })
+    expect(result.current.anisearch.conflict).toBeNull()
+    expect(result.current.anisearch.result).not.toBeNull()
+    expect(result.current.anisearch.result?.anisearchID).toBe('2788')
   })
 })

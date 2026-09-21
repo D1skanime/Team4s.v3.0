@@ -11,7 +11,12 @@ import type {
   AdminJellyfinIntakeSearchResponse,
   AdminTagTokensResponse,
 } from '@/types/admin'
-import { ApiError, apiClientFetch, parseApiErrorPayload } from '@/lib/api'
+import {
+  ApiError,
+  apiClientFetch,
+  buildCreateAnimeConflictAwareApiError,
+  parseApiErrorPayload,
+} from '@/lib/api'
 
 function ignoreDeprecatedAuthToken(_token?: string): void {
   void _token
@@ -89,8 +94,15 @@ export async function createAdminAnimeFromJellyfinDraft(
   })
 
   if (!response.ok) {
-    const parsed = await parseApiErrorPayload(response, `API request failed: ${response.status}`)
-    throw new ApiError(response.status, parsed.message, null, parsed.code, parsed.details)
+    // 165-08/D-20: uses the shared conflict-aware builder (not the generic
+    // parseApiErrorPayload path) so a save-time AniSearch duplicate 409 from
+    // the CreateAnime backend guard (165-03) carries its conflict payload on
+    // error.conflict instead of being silently discarded. This mirrors
+    // createAdminAnime (lib/api.ts) since both call the same POST endpoint
+    // and the Jellyfin-preview-linked create path (this function) is the one
+    // actually used whenever a Jellyfin candidate was adopted — the common
+    // case for the Discovery-assisted create flow this plan wires.
+    throw await buildCreateAnimeConflictAwareApiError(response)
   }
 
   return response.json() as Promise<AdminAnimeUpsertResponse>
