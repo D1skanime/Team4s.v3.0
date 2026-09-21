@@ -71,7 +71,7 @@ func seedLibraryDiscoveryTestAppUser(t *testing.T, pool *pgxpool.Pool, subject s
 	var id int64
 	require.NoError(t, pool.QueryRow(ctx, `
 		INSERT INTO app_users (keycloak_subject, email, display_name, status)
-		VALUES ($1, $1 || '@example.invalid', $1, 'active')
+		VALUES ($1::text, $1::text || '@example.invalid', $1::text, 'active')
 		ON CONFLICT (keycloak_subject) DO UPDATE SET display_name = EXCLUDED.display_name
 		RETURNING id
 	`, subject).Scan(&id))
