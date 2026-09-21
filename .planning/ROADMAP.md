@@ -2045,7 +2045,7 @@ Plans:
 **Bekannter Blocker für Live-UAT (kein Task dieser Phase):** `JELLYFIN_ALLOWED_LIBRARY_IDS=5` in der Live-`.env` ist keine gültige Jellyfin-12-Bibliotheks-GUID (RESEARCH.md Pitfall 1); die korrekte GUID lautet `5f65d0c8bdd71b782fc98205814a0d76`. Konfigurationsänderung, kein Agenten-Task.
 **D-15-Hinweis:** 165-11 ist isoliert (letzte Wave, keine Dependents, aber Dependencies auf 165-01/165-06/165-09, deren Dateien additiv erweitert werden) und beginnt mit einem blockierenden Checkpoint (Schema-Wahl für die Staffel→Anime-Zuordnung). Die übrigen zwölf Pläne liefern und funktionieren vollständig unabhängig davon.
 **UI hint:** yes
-**Plans:** 9/13 plans executed
+**Plans:** 10/13 plans executed
 
   - Wave 1: 165-01 (Discovery-Snapshot-Cache/Cursor/Status-Resolver), 165-02 (Ignore-Tabelle Migration+Repo), 165-03 (D-20 Save-Time-Dublettencheck Backend), 165-04 (D-14 Episode-Import-Ordnerauswahl, fail-closed), 165-05 (Create-Page Entry-Card/Return-Link/Redirect-Helper)
   - Wave 2: 165-06 (Discovery-Listen-Handler + Ignorieren/Entignorieren + Audit + D-24 library_context), 165-08 (Create-Page-Integration + AniSearch-Verbinden/Neu-Entscheidung + D-23-Fix), 165-12 (D-11 Return-Link auf Episoden-/Edit-Seite), 165-13 (D-23 Backend ForceNew-Bypass für Enrich())
@@ -2071,7 +2071,7 @@ Plans:
 
 **Wave 3** *(blocked on Wave 2 completion)*
 
-- [ ] 165-07-PLAN.md — Backend: D-05-„Verbinden"-Fix (Pitfall 3) + D-18 Ordner-Kontext/-Entfernen + Audit.
+- [x] 165-07-PLAN.md — Backend: D-05-„Verbinden"-Fix (Pitfall 3) + D-18 Ordner-Kontext/-Entfernen + Audit.
 - [ ] 165-09-PLAN.md — Frontend Discovery-Bibliotheksseite (Toolbar/DiscoveryLibraryCard-Karten-Liste/Pager/Ignorieren, D-24 Karten- statt Tabellen-Layout).
 
 **Wave 4** *(blocked on Wave 3 completion)*

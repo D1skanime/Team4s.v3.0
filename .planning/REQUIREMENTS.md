@@ -557,7 +557,7 @@ Film-Content-Flow (§17–§24, §32) is out of scope — that is Phase 166.
 - [x] **REQ-165-02**: Zustand „Zuordnung prüfen" wird nicht per Titel-/Pfad-/Fuzzy-Abgleich in der Liste erkannt, sondern erst nach der AniSearch-Auswahl über die bestehende Dublettenprüfung (D-02).
 - [x] **REQ-165-03**: Liste unterscheidet „bereits vorhanden"/„offen" ausschließlich über exakte technische Referenzen (`source`/`source_links`/`folder_name`) (D-03).
 - [x] **REQ-165-04**: Filter „Offen" (inkl. „teilweise")/„Bereits vorhanden"/„Ignoriert"/„Alle"; kein separater „Zuordnung prüfen"-Filter (D-04).
-- [ ] **REQ-165-05**: Ein Anime kann mehrere Jellyfin-Ordner haben; „Verbinden" ergänzt additiv in `anime_source_links`, ohne `source`/`folder_name` zu überschreiben (D-05).
+- [x] **REQ-165-05**: Ein Anime kann mehrere Jellyfin-Ordner haben; „Verbinden" ergänzt additiv in `anime_source_links`, ohne `source`/`folder_name` zu überschreiben (D-05).
 - [x] **REQ-165-06**: Schlanke Series+Movie-Snapshot-Abfrage aus Jellyfin je erlaubter Library, Status per einmaliger Batch-DB-Abfrage, bestehendes Cursor-Muster für Pagination (D-06).
 - [x] **REQ-165-07**: Budget-Gate: ≤1 DB-Query pro Discovery-Seite für die Existenzprüfung, Jellyfin-Requests unabhängig von der Seitenzahl (nur beim Cache-Aufbau), 0 Detailrequests vor Auswahl (D-07).
 - [x] **REQ-165-08**: Auswahl übergibt in den bestehenden Create-Draft (Jellyfin-ID/Name/Path/Typ-Hint/Jahr/Assets) (D-08).
@@ -569,12 +569,12 @@ Film-Content-Flow (§17–§24, §32) is out of scope — that is Phase 166.
 - [x] **REQ-165-14**: Episoden-Import-Ordnerauswahl bei mehreren verbundenen Jellyfin-Ordnern, mit serverseitiger fail-closed Prüfung, dass nur verbundene Jellyfin-IDs angenommen werden (D-14).
 - [ ] **REQ-165-15**: Mehrstaffel-Ordner erhalten Status „teilweise"; das Schema für die Staffel→Anime-Zuordnung erfordert einen dem Auftraggeber vorgelegten Checkpoint vor jeder Umsetzung (D-15).
 - [x] **REQ-165-16**: „Ignorieren"/„Nicht mehr ignorieren" pro Bibliothekseintrag, eigener Filter, Status-Priorität bereits vorhanden > ignoriert > teilweise > offen (D-17).
-- [ ] **REQ-165-17**: Anime-Bearbeitungsseite zeigt alle verbundenen Jellyfin-Ordner; Zusatz-Ordner sind lösbar, der Haupt-Ordner bleibt über den bestehenden Weg verwaltet (D-18).
+- [x] **REQ-165-17**: Anime-Bearbeitungsseite zeigt alle verbundenen Jellyfin-Ordner; Zusatz-Ordner sind lösbar, der Haupt-Ordner bleibt über den bestehenden Weg verwaltet (D-18).
 - [x] **REQ-165-18**: Kurzlebiger serverseitiger Bibliotheks-Cache plus „Aktualisieren"-Button; Status nach Aktionen kommt sofort korrekt aus der DB-Prüfung, nicht aus dem Cache (D-19).
 - [x] **REQ-165-19**: Unmittelbar vor dem Anlegen erneuter serverseitiger Dublettencheck auf `anisearch:<id>`, dieselbe Verbinden/Neu-Wahl statt stillem Doppelanlegen (D-20).
 - [x] **REQ-165-20**: Verbinden, Ordner lösen, Ignorieren und Entignorieren sind Admin-Aktionen mit Audit-Attribution per `user_id` über den bestehenden Audit-Mechanismus (D-21).
 - [x] **REQ-165-21**: Neue Tabellen aus dieser Phase tragen eine Server-Kennung (`server_key`, vorerst fest „default") zur Vorbereitung künftiger Mehrserver-Fähigkeit, ohne das bestehende `jellyfin:<id>`-Referenzformat zu ändern (D-22).
-- [ ] **REQ-165-22**: Ein Ordner mit neuer Jellyfin-ID nach Umbenennen/Verschieben ist über den bestehenden Verbinden-Weg lösbar; Aufräumen verwaister alter Verbindungen ist deferred (D-16).
+- [x] **REQ-165-22**: Ein Ordner mit neuer Jellyfin-ID nach Umbenennen/Verschieben ist über den bestehenden Verbinden-Weg lösbar; Aufräumen verwaister alter Verbindungen ist deferred (D-16).
 
 | Requirement | Phase | Status |
 |---|---|---|
