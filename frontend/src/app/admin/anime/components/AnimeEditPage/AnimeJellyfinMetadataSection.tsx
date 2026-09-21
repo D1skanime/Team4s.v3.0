@@ -12,6 +12,7 @@ import type { AdminAnimeJellyfinContext, AdminAnimeJellyfinMetadataPreviewResult
 import styles from '../../AdminStudio.module.css'
 import workspaceStyles from './AnimeEditWorkspace.module.css'
 import { AnimeJellyfinAssetUploadControls } from './AnimeJellyfinAssetUploadControls'
+import { AnimeJellyfinFolderList } from './AnimeJellyfinFolderList'
 import {
   buildAssetCards,
   formatCoverSource,
@@ -193,6 +194,14 @@ export function AnimeJellyfinMetadataSection({
               <p className={workspaceStyles.helperText}>{summarizeAssetSlots(context.asset_slots)}</p>
             </div>
           </div>
+
+          <AnimeJellyfinFolderList
+            animeID={animeID}
+            folders={context?.folders ?? []}
+            onFolderRemoved={() => {
+              void refreshContext()
+            }}
+          />
 
           <div className={styles.actionsRow}>
             <button
