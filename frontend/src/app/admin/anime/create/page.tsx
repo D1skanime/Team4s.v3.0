@@ -2,6 +2,7 @@
 
 import React from "react";
 import Link from "next/link";
+import { useSearchParams } from "next/navigation";
 
 import { PlatformAdminGate } from "@/components/auth/PlatformAdminGate";
 import { FormField } from "@/components/ui/FormField";
@@ -16,6 +17,8 @@ import { CreateAssetSearchDialog } from "./CreateAssetSearchDialog";
 import { CreateAssetSection } from "./CreateAssetSection";
 import { CreateJellyfinCard } from "./CreateJellyfinCard";
 import { CreateReviewSection } from "./CreateReviewSection";
+import { DiscoveryEntryCard } from "./DiscoveryEntryCard";
+import { DiscoveryReturnLink } from "./DiscoveryReturnLink";
 import { SharedAnimeEditorWorkspace } from "../components/AnimeEditPage/SharedAnimeEditorWorkspace";
 import {
   buildCreateSuccessMessage,
@@ -29,6 +32,7 @@ import {
   resolveSourceActionState,
 } from "./createPageHelpers";
 import { useAdminAnimeCreateController } from "./useAdminAnimeCreateController";
+import { useCreatePageDiscoveryHandoff } from "./useCreatePageDiscoveryHandoff";
 
 export {
   buildCreateSuccessMessage,
@@ -58,7 +62,17 @@ const ANIME_STATUSES = [
 ] as const;
 
 function AdminAnimeCreateContent() {
-  const controller = useAdminAnimeCreateController();
+  const searchParams = useSearchParams();
+  const isDiscoveryFlow = searchParams.get("from") === "discovery";
+  const discoveryJellyfinID = isDiscoveryFlow
+    ? searchParams.get("jellyfin_id")
+    : null;
+  const discoveryReturnURL = searchParams.get("return") ?? undefined;
+
+  const controller = useAdminAnimeCreateController({
+    isDiscoveryFlow,
+    returnURL: discoveryReturnURL,
+  });
   const {
     anisearch,
     assetSearch,
@@ -71,6 +85,19 @@ function AdminAnimeCreateContent() {
     status,
   } = controller;
 
+  useCreatePageDiscoveryHandoff({
+    jellyfinID: discoveryJellyfinID,
+    hasAdoptedPreview: jellyfin.hasAdoptedPreview,
+    adoptCandidate: handlers.handleJellyfinCandidateAdopt,
+    jellyfinPreviewSeriesName: jellyfin.preview?.jellyfin_series_name,
+    searchQuery: anisearch.searchQuery,
+    setSearchQuery: handlers.setAniSearchSearchQuery,
+  });
+
+  const activeJellyfinSeriesID = jellyfin.hasAdoptedPreview
+    ? jellyfin.preview?.jellyfin_series_id ?? null
+    : null;
+
   const reviewMissingFields: string[] = [];
   if (!manualDraft.values.title.trim()) reviewMissingFields.push("Titel");
   if (!manualDraft.hasCover) {
@@ -78,53 +105,60 @@ function AdminAnimeCreateContent() {
   }
 
   const sourceSection = (
-    <div className={createStyles.providerGrid}>
-      <CreateAniSearchIntakeCard
-        anisearchID={anisearch.input}
-        searchQuery={anisearch.searchQuery}
-        isLoading={anisearch.isLoading}
-        isSearchingCandidates={anisearch.isSearchingCandidates}
-        candidates={anisearch.candidates}
-        result={anisearch.result}
-        conflict={anisearch.conflict}
-        errorMessage={anisearch.errorMessage}
-        onAniSearchIDChange={handlers.setAniSearchID}
-        onSearchQueryChange={handlers.setAniSearchSearchQuery}
-        onSearchSubmit={() => {
-          void handlers.handleAniSearchCandidateSearch();
-        }}
-        onCandidateDismiss={handlers.clearAniSearchState}
-        onCandidateSelect={(candidate) => {
-          void handlers.handleAniSearchCandidateSelect(candidate);
-        }}
-        onSubmit={() => {
-          void handlers.handleAniSearchDraftLoad();
-        }}
-      />
+    <>
+      <DiscoveryEntryCard />
 
-      <CreateJellyfinCard
-        query={jellyfin.intake.query}
-        candidates={jellyfin.intake.candidates}
-        selectedCandidateID={
-          jellyfin.intake.reviewState.selectedCandidate?.jellyfin_series_id
-        }
-        hasAdoptedAssets={jellyfin.hasAdoptedPreview}
-        isSearching={jellyfin.intake.isSearching}
-        isLoadingPreview={jellyfin.intake.isLoadingPreview}
-        canSearch={jellyfin.searchState.canSearch}
-        isSubmitting={status.isSubmittingCreate}
-        showResults={jellyfin.showResults}
-        onQueryChange={handlers.setJellyfinQuery}
-        onSearch={() => {
-          void handlers.handleJellyfinSearch();
-        }}
-        onSelectCandidate={handlers.handleJellyfinCandidateSelect}
-        onAdoptCandidate={(id) => {
-          void handlers.handleJellyfinCandidateAdopt(id);
-        }}
-        onDiscard={handlers.handleDiscardJellyfinPreview}
-      />
-    </div>
+      <div className={createStyles.providerGrid}>
+        <CreateAniSearchIntakeCard
+          anisearchID={anisearch.input}
+          searchQuery={anisearch.searchQuery}
+          isLoading={anisearch.isLoading}
+          isSearchingCandidates={anisearch.isSearchingCandidates}
+          candidates={anisearch.candidates}
+          result={anisearch.result}
+          conflict={anisearch.conflict}
+          errorMessage={anisearch.errorMessage}
+          activeJellyfinSeriesID={activeJellyfinSeriesID}
+          onCreateAsNew={handlers.handleAniSearchCreateAsNew}
+          onConfirmDuplicateCreate={handlers.handleConfirmedDuplicateCreate}
+          onAniSearchIDChange={handlers.setAniSearchID}
+          onSearchQueryChange={handlers.setAniSearchSearchQuery}
+          onSearchSubmit={() => {
+            void handlers.handleAniSearchCandidateSearch();
+          }}
+          onCandidateDismiss={handlers.clearAniSearchState}
+          onCandidateSelect={(candidate) => {
+            void handlers.handleAniSearchCandidateSelect(candidate);
+          }}
+          onSubmit={() => {
+            void handlers.handleAniSearchDraftLoad();
+          }}
+        />
+
+        <CreateJellyfinCard
+          query={jellyfin.intake.query}
+          candidates={jellyfin.intake.candidates}
+          selectedCandidateID={
+            jellyfin.intake.reviewState.selectedCandidate?.jellyfin_series_id
+          }
+          hasAdoptedAssets={jellyfin.hasAdoptedPreview}
+          isSearching={jellyfin.intake.isSearching}
+          isLoadingPreview={jellyfin.intake.isLoadingPreview}
+          canSearch={jellyfin.searchState.canSearch}
+          isSubmitting={status.isSubmittingCreate}
+          showResults={jellyfin.showResults}
+          onQueryChange={handlers.setJellyfinQuery}
+          onSearch={() => {
+            void handlers.handleJellyfinSearch();
+          }}
+          onSelectCandidate={handlers.handleJellyfinCandidateSelect}
+          onAdoptCandidate={(id) => {
+            void handlers.handleJellyfinCandidateAdopt(id);
+          }}
+          onDiscard={handlers.handleDiscardJellyfinPreview}
+        />
+      </div>
+    </>
   );
 
   const assetsSection = (
@@ -435,6 +469,8 @@ function AdminAnimeCreateContent() {
         <Link href="/admin">Admin</Link> |{" "}
         <Link href="/admin/anime">Studio</Link> | <Link href="/login">Anmeldung</Link>
       </p>
+
+      <DiscoveryReturnLink returnURL={discoveryReturnURL} />
 
       <SharedAnimeEditorWorkspace
         mode="create"

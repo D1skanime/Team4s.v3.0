@@ -4,6 +4,34 @@ import { beforeEach, describe, expect, it, vi } from "vitest";
 
 import { CreateAssetSearchDialog } from "./CreateAssetSearchDialog";
 import { CreateAniSearchIntakeCard } from "./CreateAniSearchIntakeCard";
+import { ApiError } from "@/lib/api";
+import {
+  hydrateManualDraftFromJellyfinPreview,
+  removeJellyfinDraftAsset,
+} from "../hooks/useManualAnimeDraft";
+import { splitTagTokens } from "../utils/anime-helpers";
+import type { AdminAnimeCreateAniSearchSummary } from "@/types/admin";
+
+vi.mock("@/components/auth/PlatformAdminGate", () => ({
+  PlatformAdminGate: ({ children }: { children: ReactNode }) => <>{children}</>,
+}));
+
+const navigationMocks = vi.hoisted(() => ({
+  search: "",
+}));
+
+vi.mock("next/navigation", () => ({
+  useSearchParams: () => new URLSearchParams(navigationMocks.search),
+}));
+
+const discoveryHandoffMock = vi.hoisted(() => vi.fn());
+
+vi.mock("./useCreatePageDiscoveryHandoff", () => ({
+  useCreatePageDiscoveryHandoff: discoveryHandoffMock,
+}));
+
+// Imported AFTER the mocks above so the page module resolves the mocked
+// 'next/navigation' / './useCreatePageDiscoveryHandoff' modules.
 import AdminAnimeCreatePage, {
   buildCreateSuccessMessage,
   appendJellyfinLinkageToCreatePayload,
@@ -18,21 +46,12 @@ import AdminAnimeCreatePage, {
   stageManualCreateCover,
   uploadCreatedAnimeCover,
 } from "./page";
-import { ApiError } from "@/lib/api";
-import {
-  hydrateManualDraftFromJellyfinPreview,
-  removeJellyfinDraftAsset,
-} from "../hooks/useManualAnimeDraft";
-import { splitTagTokens } from "../utils/anime-helpers";
-import type { AdminAnimeCreateAniSearchSummary } from "@/types/admin";
-
-vi.mock("@/components/auth/PlatformAdminGate", () => ({
-  PlatformAdminGate: ({ children }: { children: ReactNode }) => <>{children}</>,
-}));
 
 describe("AdminAnimeCreatePage", () => {
   beforeEach(() => {
     vi.restoreAllMocks();
+    navigationMocks.search = "";
+    discoveryHandoffMock.mockReset();
   });
 
   it("renders an unsaved preview with placeholder title and cover before persistence", () => {
@@ -957,5 +976,34 @@ describe("AdminAnimeCreatePage", () => {
     expect(resolveJellyfinPreviewBaseDraft(currentDraft, null).title).toBe(
       "Macross",
     );
+  });
+
+  it("renders the Discovery entry card above the provider grid unconditionally", () => {
+    const markup = renderToStaticMarkup(<AdminAnimeCreatePage />);
+
+    expect(markup).toContain("Aus meiner Bibliothek");
+    expect(markup).toContain("Bibliothek durchsuchen");
+  });
+
+  it("wires jellyfinID=null into useCreatePageDiscoveryHandoff and renders no return link when from=discovery is absent", () => {
+    navigationMocks.search = "jellyfin_id=abc123";
+    const markup = renderToStaticMarkup(<AdminAnimeCreatePage />);
+
+    expect(discoveryHandoffMock).toHaveBeenCalledWith(
+      expect.objectContaining({ jellyfinID: null }),
+    );
+    expect(markup).not.toContain("Zurück zur Bibliothek");
+  });
+
+  it("wires jellyfinID from the query param into useCreatePageDiscoveryHandoff and renders the decoded return link when from=discovery is present", () => {
+    navigationMocks.search =
+      "jellyfin_id=abc123&from=discovery&return=%2Fadmin%2Fanime%2Fdiscovery";
+    const markup = renderToStaticMarkup(<AdminAnimeCreatePage />);
+
+    expect(discoveryHandoffMock).toHaveBeenCalledWith(
+      expect.objectContaining({ jellyfinID: "abc123" }),
+    );
+    expect(markup).toContain("Zurück zur Bibliothek");
+    expect(markup).toContain("/admin/anime/discovery");
   });
 });
