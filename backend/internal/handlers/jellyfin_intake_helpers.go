@@ -221,7 +221,7 @@ func buildJellyfinIntakeTypeHint(name string, rawPath *string) models.AdminJelly
 		reasons = append(reasons, `Web- oder ONA-Hinweis im Pfad oder Namen erkannt.`)
 		confidence = "medium"
 		return models.AdminJellyfinIntakeTypeHint{SuggestedType: &suggested, Confidence: confidence, Reasons: reasons}
-	case strings.Contains(signal, "special") || strings.Contains(signal, "season 00"):
+	case strings.Contains(signal, "special") || strings.Contains(signal, "spezial") || strings.Contains(signal, "season 00"):
 		suggested := "special"
 		reasons = append(reasons, `Special-Hinweis oder "Season 00" im Pfad erkannt.`)
 		confidence = "medium"

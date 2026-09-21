@@ -126,6 +126,20 @@ type adminContentRelationRepository interface {
 	ApplyAdminAnimeEnrichmentRelationsDetailed(ctx context.Context, sourceAnimeID int64, relations []models.AdminAnimeRelation) (repository.AdminAnimeEnrichmentRelationApplyResult, error)
 }
 
+// jellyfinDiscoveryExistingMatchRepository ist der Existenz-Lookup der Discovery-Liste
+// (165-06); zeigt in Produktion auf dieselbe repo-Instanz wie `repo` (Muster: animeCreateRepo).
+type jellyfinDiscoveryExistingMatchRepository interface {
+	FindExistingAnimeByJellyfinIntakeRefs(ctx context.Context, seriesIDs []string, paths []string) ([]repository.ExistingJellyfinAnimeMatch, error)
+}
+
+// libraryDiscoveryIgnoreRepository ist der Ignore-Zugriff (165-02/165-06) der Discovery-Liste
+// und der Ignore/Unignore-Endpunkte.
+type libraryDiscoveryIgnoreRepository interface {
+	InsertLibraryDiscoveryIgnore(ctx context.Context, itemID string, actorAppUserID *int64) error
+	RemoveLibraryDiscoveryIgnore(ctx context.Context, itemID string) error
+	FindIgnoredLibraryDiscoveryItems(ctx context.Context, itemIDs []string) (map[string]bool, error)
+}
+
 // adminAniSearchRepository definiert den Datenbankzugriff für AniSearch-basierte Anime-Quell-Lookups.
 type adminAniSearchRepository interface {
 	FindAnimeBySource(ctx context.Context, source string) (*models.AdminAnimeSourceMatch, error)
@@ -214,7 +228,7 @@ type AdminContentHandler struct {
 	markdownSvc                     *services.MarkdownService
 	tiptapSvc                       *services.TipTapService
 	permissionSvc                   *permissions.Service
-	auditLogRepo                    *repository.AuditLogRepository
+	auditLogRepo                    auditLogWriter
 	segmentGrantSecret              string
 	segmentGrantTTL                 time.Duration
 	segmentRenderEnabled            bool
@@ -230,6 +244,12 @@ type AdminContentHandler struct {
 	// (siehe jellyfin_discovery_cache.go). nil bedeutet "kein Cache konfiguriert" —
 	// der Snapshot wird dann bei jedem Aufruf frisch von Jellyfin geholt.
 	discoveryCache discoveryCacheStore
+	// discoveryExistingMatchRepo (165-06): derselbe Existenz-Lookup wie `repo`, als schmales
+	// Interface fuer Handler-Tests ohne laufende Postgres-Instanz.
+	discoveryExistingMatchRepo jellyfinDiscoveryExistingMatchRepository
+	// libraryDiscoveryIgnoreRepo (165-02/165-06): reversibler "ignoriert"-Zustand fuer die
+	// Discovery-Liste und die Ignore/Unignore-Endpunkte. nil ist gueltig (kein Ignore-Zugriff).
+	libraryDiscoveryIgnoreRepo libraryDiscoveryIgnoreRepository
 }
 
 // AdminContentJellyfinConfig enthält die Verbindungsparameter für die Jellyfin-Integration im Admin-Bereich.
@@ -297,6 +317,7 @@ func NewAdminContentHandler(
 	)
 	handler.aniSearchRepo = adminAnimeCreateEnrichmentRepo{repo: repo}
 	handler.animeCreateRepo = repo
+	handler.discoveryExistingMatchRepo = repo
 
 	return handler
 }
@@ -348,7 +369,7 @@ func (h *AdminContentHandler) WithTipTapDeps(tiptapSvc *services.TipTapService) 
 	return h
 }
 
-func (h *AdminContentHandler) WithPermissionDeps(permissionSvc *permissions.Service, auditLogRepo *repository.AuditLogRepository) *AdminContentHandler {
+func (h *AdminContentHandler) WithPermissionDeps(permissionSvc *permissions.Service, auditLogRepo auditLogWriter) *AdminContentHandler {
 	h.permissionSvc = permissionSvc
 	h.auditLogRepo = auditLogRepo
 	return h
@@ -360,6 +381,15 @@ func (h *AdminContentHandler) WithPermissionDeps(permissionSvc *permissions.Serv
 // nur ohne TTL-Wiederverwendung.
 func (h *AdminContentHandler) WithDiscoveryCacheDeps(cache discoveryCacheStore) *AdminContentHandler {
 	h.discoveryCache = cache
+	return h
+}
+
+// WithLibraryDiscoveryIgnoreDeps verdrahtet das LibraryDiscoveryIgnoreRepository
+// (165-02/165-06) nachtraeglich, analog zu WithDiscoveryCacheDeps. nil bleibt ein gueltiger
+// Zustand fuer Tests, die den Ignore-Zustand nicht brauchen — ListJellyfinDiscovery
+// behandelt ein nil libraryDiscoveryIgnoreRepo als "keine ignorierten Items".
+func (h *AdminContentHandler) WithLibraryDiscoveryIgnoreDeps(repo libraryDiscoveryIgnoreRepository) *AdminContentHandler {
+	h.libraryDiscoveryIgnoreRepo = repo
 	return h
 }
 
