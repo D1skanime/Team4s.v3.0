@@ -34,7 +34,9 @@ func TestResolveDiscoveryItemStatus_TruthTable(t *testing.T) {
 
 // TestResolveDiscoveryItemStatus_ReturnsExportedConstants proves the returned
 // strings are exactly the four exported constants (not re-typed string literals),
-// so 165-06/165-09/165-11 can import and compare against them directly.
+// so 165-06/165-09 (and, once the D-15 wiring lands in the future standalone
+// "Mehrstaffel-Ordner" phase — deferred by Auftraggeber-Entscheidung 2026-09-21,
+// see 165-CONTEXT.md D-15) can import and compare against them directly.
 func TestResolveDiscoveryItemStatus_ReturnsExportedConstants(t *testing.T) {
 	if got := resolveDiscoveryItemStatus(true, false, false); got != DiscoveryStatusExisting {
 		t.Fatalf("expected DiscoveryStatusExisting, got %q", got)

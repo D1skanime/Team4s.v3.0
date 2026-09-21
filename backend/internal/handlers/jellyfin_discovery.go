@@ -207,7 +207,11 @@ func buildAdminJellyfinDiscoveryItem(
 
 	match := resolveExistingJellyfinIntakeMatch(seriesID, pathPtr, existingBySource, existingByFolder)
 	isIgnored := ignored[seriesID]
-	// partial (D-15) bleibt bis zum Checkpoint-gated 165-11 hart auf false verdrahtet.
+	// partial (D-15) bleibt hart auf false verdrahtet: Auftraggeber-Entscheidung
+	// 2026-09-21 (option-c, 165-11-Checkpoint) stellt die Staffel-Zuordnung auf
+	// unbestimmte Zeit zurück (nur 27/2111 Serien betroffen, Staffel-Fetch kostet
+	// ~28s pro Reload) — siehe 165-CONTEXT.md D-15. Wird erst in einer künftigen
+	// eigenständigen Phase "Mehrstaffel-Ordner" mit echten Daten verdrahtet.
 	status := resolveDiscoveryItemStatus(match != nil, isIgnored, false)
 
 	result := models.AdminJellyfinDiscoveryItem{

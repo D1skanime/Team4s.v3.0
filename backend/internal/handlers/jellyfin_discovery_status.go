@@ -6,9 +6,15 @@ package handlers
 // CONTEXT.md D-17: "bereits vorhanden > ignoriert > teilweise > offen".
 //
 // Kept intentionally side-effect-free (no I/O, no repository/handler dependency) so
-// its full truth table can be locked down and unit-tested now, before any consumer
-// (165-06 Discovery list handler, 165-11 D-15 "teilweise" wiring) exists to pass real
-// data into it.
+// its full truth table can be locked down and unit-tested now, independent of any
+// consumer. The 165-06 Discovery list handler consumes it today; the D-15
+// "teilweise" wiring (season-mapping data feeding a real `partial` value) was
+// presented as a checkpoint in 165-11 and, per Auftraggeber-Entscheidung
+// 2026-09-21 (option-c), deferred indefinitely to a future standalone phase
+// "Mehrstaffel-Ordner" — see 165-CONTEXT.md D-15. This resolver's `partial`
+// branch and its truth-table tests are kept intentionally as tested, inert
+// scaffolding so that future phase only needs to supply real data, not rebuild
+// this function.
 
 const (
 	// DiscoveryStatusExisting — Jellyfin item already has a matching anime (highest
@@ -17,7 +23,10 @@ const (
 	// DiscoveryStatusIgnored — the admin explicitly ignored this Jellyfin item (D-17).
 	DiscoveryStatusIgnored = "ignored"
 	// DiscoveryStatusPartial — a multi-season Jellyfin item where not every season is
-	// yet mapped to an anime (D-15, wired in the checkpoint-gated 165-11).
+	// yet mapped to an anime (D-15). Wiring this status to real data was deferred by
+	// Auftraggeber-Entscheidung 2026-09-21 (option-c, see 165-CONTEXT.md D-15) to a
+	// future standalone phase "Mehrstaffel-Ordner"; this constant and the resolver
+	// branch that returns it are kept as tested, currently-unreachable scaffolding.
 	DiscoveryStatusPartial = "partial"
 	// DiscoveryStatusOpen — none of the above; still actionable in the default filter.
 	DiscoveryStatusOpen = "open"
