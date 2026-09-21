@@ -2,16 +2,16 @@
 gsd_state_version: 1.0
 milestone: v1.4
 milestone_name: Coverage
-status: milestone_complete
-stopped_at: Milestone complete (Phase 164 was final phase)
-last_updated: 2026-09-18T15:33:47.076Z
+status: completed
+stopped_at: Phase 165 UI-SPEC approved (D-14..D-22 update)
+last_updated: "2026-09-21T10:08:20.410Z"
 last_activity: 2026-09-18
 progress:
-  total_phases: 29
+  total_phases: 31
   completed_phases: 29
   total_plans: 276
-  completed_plans: 330
-  percent: 100
+  completed_plans: 276
+  percent: 94
 ---
 
 # Project State
@@ -33,10 +33,12 @@ löschen.
   die Phase dennoch abgenommen — dokumentiert, nicht verschwiegen (`docs/audits/164-performance-gates.md`).
   `frontend/src/app/dev/episode-windowing-preview/` wurde daraufhin vollständig gelöscht (Commit
   `4b3cade8`).
+
 - **GAP-01..GAP-15 vollständig geschlossen:** GAP-01..GAP-12 via Gap-Closure-Plänen 164-08..164-13
   (siehe Eintrag unten); GAP-13 via Quick-Task `260918-fmq`; GAP-14/GAP-15 via Quick-Task
   `260918-jfs`. Alle 15 Gaps in `164-UAT.md` als `status: resolved` mit Fix-Commit-Referenz
   dokumentiert; `164-UAT.md` frontmatter auf `status: complete` gesetzt.
+
 - **Verifikation:** `gsd-verifier` hat Phase 164 unabhängig gegen den echten Code-Stand geprüft
   (48/48 Must-Haves, alle 13 Plan-Artefakte, alle 18 Gap-/Quick-Task-Commit-Hashes im `git log`
   verifiziert, Backend-Query-Budget live gegen eine frische isolierte Postgres-DB reproduziert,
@@ -44,6 +46,7 @@ löschen.
   siehe `164-VERIFICATION.md`. Zwei nicht-blockierende Hinweise dabei aufgenommen: REQ-164-14s
   Wortlaut wurde auf „Fansub-Release vom" aktualisiert (GAP-14-Textänderung), REQ-164-45 trägt den
   vom Auftraggeber akzeptierten Hinweis auf das nicht gemessene Mobile-Frame-/Paint-Profil.
+
 - **Tests/Build im Container nach der Löschung:** `npm run typecheck` 0 Fehler (nach Entfernen des
   verwaisten `.next/types`-Artefakts), `npm run lint` dieselben 3 vorbestehenden Fehler, `npm run
   test -- --run` dieselben 2 vorbestehenden `cssCustomProperties.guard.test.ts`-Fehlschläge (ein
@@ -53,6 +56,7 @@ löschen.
   Seite). Backend `go build`/`go vet` fehlerfrei, `go test ./...` nur bereits dokumentierte
   umgebungsabhängige Fehlschläge. `docker restart team4sv30-frontend` durchgeführt; `curl` bestätigt
   `/dev/episode-windowing-preview` → `404`, `/anime/4` → `200`.
+
 - Kein Push, keine Datenänderung an `team4s_v2` in dieser Abschluss-Session (nur Frontend-Dateilöschung
   + Doku/Planungsdateien).
 
@@ -1865,10 +1869,10 @@ untruncated list lives in `.planning/todos/pending/`.
 
 ## Session Continuity
 
-Last session: 2026-09-18T09:38:53.568Z
-Stopped at: 164-13 complete (admin frontend consumption of DB-backed episode classification options — GAP-11 admin half, closes the full 164-08..164-13 gap-closure batch); live Human-UAT of GAP-01..GAP-12 still required
+Last session: 2026-09-21T10:08:20.388Z
+Stopped at: Phase 165 UI-SPEC approved (D-14..D-22 update)
 Last activity: 2026-09-20 - Completed quick task 260920-sad: Vorwärts-Restore-Defekt im bidirektionalen Episoden-Windowing (useWindowedEpisodePages.ts) behoben, 7 neue Regressionstests, keine Phasen-UAT ersetzt.
 Resume file: 
-None
+.planning/phases/165-library-discovery-assisted-anime-creation/165-UI-SPEC.md
 
 Plans 151-02/03/04 have implementation summaries. Plans 151-01 and 151-05 remain open until final artwork/composition review, complete browser evidence and independent verification; their missing summaries are intentional. No requirement or phase has been falsely marked complete.
