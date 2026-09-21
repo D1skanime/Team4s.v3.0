@@ -562,10 +562,10 @@ Film-Content-Flow (§17–§24, §32) is out of scope — that is Phase 166.
 - [x] **REQ-165-07**: Budget-Gate: ≤1 DB-Query pro Discovery-Seite für die Existenzprüfung, Jellyfin-Requests unabhängig von der Seitenzahl (nur beim Cache-Aufbau), 0 Detailrequests vor Auswahl (D-07).
 - [ ] **REQ-165-08**: Auswahl übergibt in den bestehenden Create-Draft (Jellyfin-ID/Name/Path/Typ-Hint/Jahr/Assets) (D-08).
 - [ ] **REQ-165-09**: AniSearch-Suche mit dem Jellyfin-Namen vorbelegt, nie automatische Auswahl auch nicht bei genau einem Treffer (D-09).
-- [ ] **REQ-165-10**: Nur der Assisted-/Discovery-Flow leitet nach erfolgreichem Create weiter (Serie → Episoden, Film → bestehende Edit-Seite bis 166); manuelle Create-Wege bleiben unverändert (D-10).
-- [ ] **REQ-165-11**: Discovery-Kontext (Filter/Suche/Cursor) über die URL erhalten, „Zurück zur Bibliothek"-Rücksprung durch Create- und Episoden-Schritt (D-11).
+- [x] **REQ-165-10**: Nur der Assisted-/Discovery-Flow leitet nach erfolgreichem Create weiter (Serie → Episoden, Film → bestehende Edit-Seite bis 166); manuelle Create-Wege bleiben unverändert (D-10).
+- [x] **REQ-165-11**: Discovery-Kontext (Filter/Suche/Cursor) über die URL erhalten, „Zurück zur Bibliothek"-Rücksprung durch Create- und Episoden-Schritt (D-11).
 - [ ] **REQ-165-12**: Kein Provider-Framework, kein Source-Domain-Refactor, keine neue Fansub-Jellyfin-Kopplung; bestehende Flows regressieren nicht (D-12).
-- [ ] **REQ-165-13**: Globale UI-Primitives/Design-Tokens Pflicht, keine nativen `<button>/<input>/<select>`, deutsche Umlaute, Produktionsdateien ≤450 Zeilen, kein N+1 (D-13).
+- [x] **REQ-165-13**: Globale UI-Primitives/Design-Tokens Pflicht, keine nativen `<button>/<input>/<select>`, deutsche Umlaute, Produktionsdateien ≤450 Zeilen, kein N+1 (D-13).
 - [x] **REQ-165-14**: Episoden-Import-Ordnerauswahl bei mehreren verbundenen Jellyfin-Ordnern, mit serverseitiger fail-closed Prüfung, dass nur verbundene Jellyfin-IDs angenommen werden (D-14).
 - [ ] **REQ-165-15**: Mehrstaffel-Ordner erhalten Status „teilweise"; das Schema für die Staffel→Anime-Zuordnung erfordert einen dem Auftraggeber vorgelegten Checkpoint vor jeder Umsetzung (D-15).
 - [x] **REQ-165-16**: „Ignorieren"/„Nicht mehr ignorieren" pro Bibliothekseintrag, eigener Filter, Status-Priorität bereits vorhanden > ignoriert > teilweise > offen (D-17).
