@@ -29,6 +29,31 @@ export function buildManualCreateRedirectPath(id: number): string {
 }
 
 /**
+ * Erstellt den Weiterleitungspfad für einen Discovery-gestützten (assisted)
+ * Create-Vorgang. Serien-Typen ("tv", "ova", "ona", "special", "bonus")
+ * landen auf der Episoden-Seite, "film" landet auf der bestehenden
+ * Bearbeiten-Seite (D-10-Übergangsregel — keine eigene Film-Oberfläche in
+ * dieser Phase). Der optionale `returnURL` wird nur angehängt, wenn er ein
+ * nicht-leerer String ist, und stets URL-kodiert.
+ */
+export function buildAssistedCreateRedirectPath(
+  animeID: number,
+  animeType: string,
+  returnURL?: string,
+): string {
+  const basePath =
+    animeType === "film"
+      ? `/admin/anime/${animeID}/edit`
+      : `/admin/anime/${animeID}/episodes`;
+
+  if (!returnURL) {
+    return basePath;
+  }
+
+  return `${basePath}?return=${encodeURIComponent(returnURL)}`;
+}
+
+/**
  * Prueft, ob eine AniSearch-Zusammenfassung Warnungen oder ungeklaerte
  * Relationen enthält, die im Erfolgsmeldungstext hervorgehoben werden sollten.
  */
