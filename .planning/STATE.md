@@ -3,14 +3,14 @@ gsd_state_version: 1.0
 milestone: v1.4
 milestone_name: Coverage
 status: executing
-stopped_at: Completed 165-01-PLAN.md
-last_updated: "2026-09-21T13:34:18.696Z"
+stopped_at: Completed 165-02-PLAN.md
+last_updated: "2026-09-21T13:45:32.409Z"
 last_activity: 2026-09-21
 progress:
   total_phases: 31
   completed_phases: 29
   total_plans: 289
-  completed_plans: 277
+  completed_plans: 278
   percent: 94
 ---
 
@@ -212,7 +212,7 @@ Abschluss" entry below for the full closing record.
 ## Current Position
 
 Phase: 165 (library-discovery-assisted-anime-creation) — EXECUTING
-Plan: 2 of 13
+Plan: 3 of 13
 Status: Ready to execute
 dupliziertem ProjectMemberStickyNav; siehe 157-14-SUMMARY.md)
 GAP-02-Live-UAT-Checkpoint aus 156-UAT.md (5 Origin- + 9 Segment-Contributor-Pruefpunkte) wurde
@@ -1420,6 +1420,8 @@ Last activity: 2026-09-21
 - [Phase 164]: 164-13: Admin Canon/Filler und Episodentyp lesen Optionen ueber einen modul-weiten memoized Fetch aus GET /api/v1/admin/episode-classification-options statt aus hartcodierten Arrays; letzter Plan des 164-08..164-13 Gap-Closure-Batches, GAP-11 damit vollstaendig geschlossen.
 - [Phase 165]: buildJellyfinDiscoverySnapshot mirrors both searchJellyfinSeries branches (D-27 global fallback for the empty-allowlist live-production default, plus per-library ParentId loop)
 - [Phase 165]: SeekDiscoverySnapshot is generic over DiscoverySortKeyed so 165-06's richer Discovery item type can reuse the seek without a second implementation
+- [Phase 165]: 165-02: LibraryDiscoveryIgnoreRepository implemented as its own domain-split struct; Insert signature is (ctx, itemID, actorAppUserID) -- plan text's 'animeRepo interface' param treated as an artifact unused anywhere in the plan's own behavior spec.
+- [Phase 165]: 165-02: created disposable team4s_library_discovery_test Postgres DB with full migration chain applied, mirroring team4s_episode_metadata_test's persistent-DB convention.
 
 ### Pending Todos
 
@@ -1869,11 +1871,12 @@ untruncated list lives in `.planning/todos/pending/`.
 | Phase 164 P12 | 25min | 2 tasks | 7 files |
 | Phase 164 P13 | 55min | 1 tasks | 9 files |
 | Phase 165 P01 | 35min | 3 tasks | 7 files |
+| Phase 165 P02 | 25min | 2 tasks | 4 files |
 
 ## Session Continuity
 
-Last session: 2026-09-21T13:34:18.669Z
-Stopped at: Completed 165-01-PLAN.md
+Last session: 2026-09-21T13:45:32.385Z
+Stopped at: Completed 165-02-PLAN.md
 Last activity: 2026-09-20 - Completed quick task 260920-sad: Vorwärts-Restore-Defekt im bidirektionalen Episoden-Windowing (useWindowedEpisodePages.ts) behoben, 7 neue Regressionstests, keine Phasen-UAT ersetzt.
 Resume file: 
 None

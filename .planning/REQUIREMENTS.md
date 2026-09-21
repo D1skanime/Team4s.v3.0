@@ -568,12 +568,12 @@ Film-Content-Flow (§17–§24, §32) is out of scope — that is Phase 166.
 - [ ] **REQ-165-13**: Globale UI-Primitives/Design-Tokens Pflicht, keine nativen `<button>/<input>/<select>`, deutsche Umlaute, Produktionsdateien ≤450 Zeilen, kein N+1 (D-13).
 - [ ] **REQ-165-14**: Episoden-Import-Ordnerauswahl bei mehreren verbundenen Jellyfin-Ordnern, mit serverseitiger fail-closed Prüfung, dass nur verbundene Jellyfin-IDs angenommen werden (D-14).
 - [ ] **REQ-165-15**: Mehrstaffel-Ordner erhalten Status „teilweise"; das Schema für die Staffel→Anime-Zuordnung erfordert einen dem Auftraggeber vorgelegten Checkpoint vor jeder Umsetzung (D-15).
-- [ ] **REQ-165-16**: „Ignorieren"/„Nicht mehr ignorieren" pro Bibliothekseintrag, eigener Filter, Status-Priorität bereits vorhanden > ignoriert > teilweise > offen (D-17).
+- [x] **REQ-165-16**: „Ignorieren"/„Nicht mehr ignorieren" pro Bibliothekseintrag, eigener Filter, Status-Priorität bereits vorhanden > ignoriert > teilweise > offen (D-17).
 - [ ] **REQ-165-17**: Anime-Bearbeitungsseite zeigt alle verbundenen Jellyfin-Ordner; Zusatz-Ordner sind lösbar, der Haupt-Ordner bleibt über den bestehenden Weg verwaltet (D-18).
 - [ ] **REQ-165-18**: Kurzlebiger serverseitiger Bibliotheks-Cache plus „Aktualisieren"-Button; Status nach Aktionen kommt sofort korrekt aus der DB-Prüfung, nicht aus dem Cache (D-19).
 - [ ] **REQ-165-19**: Unmittelbar vor dem Anlegen erneuter serverseitiger Dublettencheck auf `anisearch:<id>`, dieselbe Verbinden/Neu-Wahl statt stillem Doppelanlegen (D-20).
 - [ ] **REQ-165-20**: Verbinden, Ordner lösen, Ignorieren und Entignorieren sind Admin-Aktionen mit Audit-Attribution per `user_id` über den bestehenden Audit-Mechanismus (D-21).
-- [ ] **REQ-165-21**: Neue Tabellen aus dieser Phase tragen eine Server-Kennung (`server_key`, vorerst fest „default") zur Vorbereitung künftiger Mehrserver-Fähigkeit, ohne das bestehende `jellyfin:<id>`-Referenzformat zu ändern (D-22).
+- [x] **REQ-165-21**: Neue Tabellen aus dieser Phase tragen eine Server-Kennung (`server_key`, vorerst fest „default") zur Vorbereitung künftiger Mehrserver-Fähigkeit, ohne das bestehende `jellyfin:<id>`-Referenzformat zu ändern (D-22).
 - [ ] **REQ-165-22**: Ein Ordner mit neuer Jellyfin-ID nach Umbenennen/Verschieben ist über den bestehenden Verbinden-Weg lösbar; Aufräumen verwaister alter Verbindungen ist deferred (D-16).
 
 | Requirement | Phase | Status |
