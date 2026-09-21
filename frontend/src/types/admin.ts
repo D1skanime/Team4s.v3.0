@@ -503,6 +503,42 @@ export interface AdminJellyfinIntakeSearchResponse {
   data: AdminJellyfinIntakeSearchItem[];
 }
 
+/**
+ * Discovery-Status-Werte, wie sie tatsächlich im `status`-Feld von
+ * AdminJellyfinDiscoveryItem stehen (165-06, resolveDiscoveryItemStatus /
+ * jellyfin_discovery_status.go). Bewusst englisch, NICHT die deutsche
+ * `filter`-Query-Parameter-Vokabular ("offen"/"bereits_vorhanden"/…) — beide
+ * Vokabulare existieren parallel im Backend, siehe 165-09-SUMMARY.md.
+ */
+export type AdminJellyfinDiscoveryStatus = "open" | "existing" | "ignored" | "partial";
+
+/** Eine einzelne Zeile der Discovery-Bibliotheksliste (GET /admin/jellyfin/discovery, 165-06/165-09). */
+export interface AdminJellyfinDiscoveryItem {
+  jellyfin_item_id: string;
+  name: string;
+  year?: number;
+  path?: string;
+  library_context?: string;
+  type_hint: AdminJellyfinIntakeTypeHint;
+  poster_url?: string;
+  banner_url?: string;
+  status: AdminJellyfinDiscoveryStatus;
+  existing_anime_id?: number;
+  existing_title?: string;
+}
+
+/** Cursor-paginierte Antwort-Hülle der Discovery-Liste. */
+export interface AdminJellyfinDiscoveryPage {
+  items: AdminJellyfinDiscoveryItem[];
+  has_more: boolean;
+  next_cursor?: string;
+  total_snapshot_count: number;
+}
+
+export interface AdminJellyfinDiscoveryPageResponse {
+  data: AdminJellyfinDiscoveryPage;
+}
+
 export interface AdminAnimeJellyfinIntakePreviewRequest {
   jellyfin_series_id: string;
 }

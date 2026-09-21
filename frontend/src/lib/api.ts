@@ -59,6 +59,7 @@ import {
   AdminThemeSegmentRenderResponse,
   AdminThemeSegmentPatchRequest,
   AdminThemeSegmentOverrideRequest,
+  AdminJellyfinDiscoveryPageResponse,
 } from "@/types/admin";
 import {
   AnimeBackdropResponse,
@@ -5198,6 +5199,119 @@ export async function applyAdminAnimeMetadataFromJellyfin(
   }
 
   return response.json() as Promise<AdminAnimeJellyfinMetadataApplyResponse>;
+}
+
+export interface ListAdminJellyfinDiscoveryParams {
+  filter?: string;
+  q?: string;
+  cursor?: string;
+  refresh?: boolean;
+}
+
+/**
+ * GET /admin/jellyfin/discovery (165-06/165-09): cursor-paginierte
+ * Discovery-Bibliotheksliste. `filter` nutzt die deutsche Query-Parameter-
+ * Vokabular ("offen"/"bereits_vorhanden"/"ignoriert"/"alle", Backend-Default
+ * "offen" bei fehlendem Parameter), `refresh=true` erzwingt einen
+ * Cache-Bypass für den nächsten Snapshot-Fetch ("Bibliothek neu laden").
+ */
+export async function listAdminJellyfinDiscovery(
+  params: ListAdminJellyfinDiscoveryParams = {},
+  authToken?: string,
+): Promise<AdminJellyfinDiscoveryPageResponse> {
+  const API_BASE_URL = getApiBaseUrl();
+  const query = new URLSearchParams();
+  if (params.filter) query.set("filter", params.filter);
+  if (params.q) query.set("q", params.q);
+  if (params.cursor) query.set("cursor", params.cursor);
+  if (params.refresh) query.set("refresh", "true");
+
+  const response = await authorizedFetch(
+    `${API_BASE_URL}/api/v1/admin/jellyfin/discovery?${query.toString()}`,
+    {
+      headers: withAuthHeader({}, authToken),
+      cache: "no-store",
+    },
+  );
+
+  if (!response.ok) {
+    const parsed = await parseApiErrorPayload(
+      response,
+      `API request failed: ${response.status}`,
+    );
+    throw new ApiError(
+      response.status,
+      parsed.message,
+      null,
+      parsed.code,
+      parsed.details,
+    );
+  }
+
+  return response.json() as Promise<AdminJellyfinDiscoveryPageResponse>;
+}
+
+/** POST /admin/jellyfin/discovery/ignore (165-06/D-17): idempotent, audited. */
+export async function ignoreAdminJellyfinDiscoveryItem(
+  jellyfinItemID: string,
+  authToken?: string,
+): Promise<{ message: string }> {
+  const API_BASE_URL = getApiBaseUrl();
+  const response = await authorizedFetch(
+    `${API_BASE_URL}/api/v1/admin/jellyfin/discovery/ignore`,
+    {
+      method: "POST",
+      headers: withAuthHeader({ "Content-Type": "application/json" }, authToken),
+      body: JSON.stringify({ jellyfin_item_id: jellyfinItemID }),
+    },
+  );
+
+  if (!response.ok) {
+    const parsed = await parseApiErrorPayload(
+      response,
+      `API request failed: ${response.status}`,
+    );
+    throw new ApiError(
+      response.status,
+      parsed.message,
+      null,
+      parsed.code,
+      parsed.details,
+    );
+  }
+
+  return response.json() as Promise<{ message: string }>;
+}
+
+/** DELETE /admin/jellyfin/discovery/ignore/:itemID (165-06/D-17): idempotent, audited. */
+export async function unignoreAdminJellyfinDiscoveryItem(
+  jellyfinItemID: string,
+  authToken?: string,
+): Promise<{ message: string }> {
+  const API_BASE_URL = getApiBaseUrl();
+  const response = await authorizedFetch(
+    `${API_BASE_URL}/api/v1/admin/jellyfin/discovery/ignore/${encodeURIComponent(jellyfinItemID)}`,
+    {
+      method: "DELETE",
+      headers: withAuthHeader({}, authToken),
+    },
+  );
+
+  if (!response.ok) {
+    const parsed = await parseApiErrorPayload(
+      response,
+      `API request failed: ${response.status}`,
+    );
+    throw new ApiError(
+      response.status,
+      parsed.message,
+      null,
+      parsed.code,
+      parsed.details,
+    );
+  }
+
+  return response.json() as Promise<{ message: string }>;
 }
 
 interface AdminAnimeMediaUploadOptions {
