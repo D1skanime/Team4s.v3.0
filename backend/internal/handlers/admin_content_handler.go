@@ -206,6 +206,12 @@ type AdminContentHandler struct {
 	// segmentRenderWakeup weckt StartSegmentRenderWorker nicht-blockierend auf, sobald
 	// RenderSegment einen neuen Job einreiht (reduziert Poll-Latenz; siehe segment_render_worker.go).
 	segmentRenderWakeup chan struct{}
+	// discoveryCache ist der TTL-Cache fuer den Jellyfin-Library-Discovery-Snapshot
+	// (165-01, D-06/D-19). Injectable Interface statt *redis.Client, damit
+	// buildJellyfinDiscoverySnapshot ohne laufendes Redis unit-testbar bleibt
+	// (siehe jellyfin_discovery_cache.go). nil bedeutet "kein Cache konfiguriert" —
+	// der Snapshot wird dann bei jedem Aufruf frisch von Jellyfin geholt.
+	discoveryCache discoveryCacheStore
 }
 
 // AdminContentJellyfinConfig enthält die Verbindungsparameter für die Jellyfin-Integration im Admin-Bereich.
@@ -326,6 +332,15 @@ func (h *AdminContentHandler) WithTipTapDeps(tiptapSvc *services.TipTapService) 
 func (h *AdminContentHandler) WithPermissionDeps(permissionSvc *permissions.Service, auditLogRepo *repository.AuditLogRepository) *AdminContentHandler {
 	h.permissionSvc = permissionSvc
 	h.auditLogRepo = auditLogRepo
+	return h
+}
+
+// WithDiscoveryCacheDeps verdrahtet den Discovery-Snapshot-Cache nachtraeglich (165-01).
+// Ungenutzt, solange kein Aufrufer (main.go, 165-06+) sie verdrahtet — nil discoveryCache
+// bedeutet lediglich "kein Cache", buildJellyfinDiscoverySnapshot bleibt dann funktional,
+// nur ohne TTL-Wiederverwendung.
+func (h *AdminContentHandler) WithDiscoveryCacheDeps(cache discoveryCacheStore) *AdminContentHandler {
+	h.discoveryCache = cache
 	return h
 }
 
