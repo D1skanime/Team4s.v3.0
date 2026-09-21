@@ -2037,13 +2037,75 @@ Plans:
 
 ### Phase 165: Library Discovery und Assisted Anime Creation (Serien)
 
-**Goal:** Auf `/admin/anime/create` gibt es zusätzlich „Aus meiner Bibliothek“: eine schlanke, paginierte Jellyfin-Library-Liste (Series und Movie) mit Status „offen“ / „bereits vorhanden“ (nur exakte technische Referenzen), deren Auswahl in den bestehenden Create-Draft übergibt – AniSearch-Suche vorbelegt, Auswahl immer durch den Benutzer, Dubletten nach AniSearch-Auswahl mit „verbinden oder neu“. Nach Assisted-Create geht es bei Serien direkt zu den Episoden und mit erhaltenem Kontext zurück zur Discovery.
-**Requirements**: TBD (in plan-phase aus 165-USER-REQUEST.md und 165-CONTEXT.md D-01..D-13 abzuleiten)
+**Goal:** Auf `/admin/anime/create` gibt es zusätzlich „Aus meiner Bibliothek“: eine schlanke, paginierte Jellyfin-Library-Liste (Series und Movie) mit Status „offen“ / „bereits vorhanden“ / „ignoriert“ / „teilweise“ (nur exakte technische Referenzen), deren Auswahl in den bestehenden Create-Draft übergibt – AniSearch-Suche vorbelegt, Auswahl immer durch den Benutzer, Dubletten nach AniSearch-Auswahl mit „verbinden oder neu“. Nach Assisted-Create geht es bei Serien direkt zu den Episoden und mit erhaltenem Kontext zurück zur Discovery.
+**Requirements**: REQ-165-01 bis REQ-165-22 (1:1 aus 165-CONTEXT.md D-01..D-22 abgeleitet, Reihenfolge D-01..D-15, dann D-17..D-22, dann D-16; siehe Coverage-Tabelle unten)
 **Depends on:** Phase 164 (abgeschlossen); Jellyfin-12-Transport aus Phase 161
-**Verbindliche Quellen:** `.planning/phases/165-library-discovery-assisted-anime-creation/165-USER-REQUEST.md`, `165-CONTEXT.md`
+**Verbindliche Quellen:** `.planning/phases/165-library-discovery-assisted-anime-creation/165-USER-REQUEST.md`, `165-CONTEXT.md`, `165-RESEARCH.md`, `165-PATTERNS.md`, `165-UI-SPEC.md`, `165-VALIDATION.md`
 **Scopegrenze:** Film-Content-Flow → Phase 166; kein Provider-Framework, kein Source-Refactor, keine automatische AniSearch-Zuordnung, kein Fuzzy-Matching, keine Datenänderung durch Agenten.
+**Bekannter Blocker für Live-UAT (kein Task dieser Phase):** `JELLYFIN_ALLOWED_LIBRARY_IDS=5` in der Live-`.env` ist keine gültige Jellyfin-12-Bibliotheks-GUID (RESEARCH.md Pitfall 1); die korrekte GUID lautet `5f65d0c8bdd71b782fc98205814a0d76`. Konfigurationsänderung, kein Agenten-Task.
+**D-15-Hinweis:** 165-11 ist isoliert (letzte Wave, keine Dependents, keine Dependencies) und beginnt mit einem blockierenden Checkpoint (Schema-Wahl für die Staffel→Anime-Zuordnung). Die übrigen zehn Pläne liefern und funktionieren vollständig unabhängig davon.
 **UI hint:** yes
-**Plans:** TBD
+**Plans:** 11 plans across 5 waves
+
+  - Wave 1: 165-01 (Discovery-Snapshot-Cache/Cursor/Status-Resolver), 165-02 (Ignore-Tabelle Migration+Repo), 165-03 (D-20 Save-Time-Dublettencheck Backend), 165-04 (D-14 Episode-Import-Ordnerauswahl, fail-closed), 165-05 (Create-Page Entry-Card/Return-Link/Redirect-Helper)
+  - Wave 2: 165-06 (Discovery-Listen-Handler + Ignorieren/Entignorieren + Audit), 165-08 (Create-Page-Integration + AniSearch-Verbinden/Neu-Entscheidung)
+  - Wave 3: 165-07 (D-05-Fix + D-18 Backend Ordner-Verwaltung), 165-09 (Discovery-Bibliotheksseite Frontend)
+  - Wave 4: 165-10 (D-18 Frontend Ordner-Verwaltung Edit-Seite)
+  - Wave 5: 165-11 (D-15 Checkpoint + bedingte Mehrstaffel-Umsetzung, isoliert/optional)
+
+Plans:
+**Wave 1**
+
+- [ ] 165-01-PLAN.md — Backend Discovery-Snapshot-Core: Cursor-Codec, Series+Movie-Cache-Builder, reiner Status-Resolver.
+- [ ] 165-02-PLAN.md — Ignore-Tabelle: Migration 0170 + Repository (Insert/Delete/Batch-Lookup).
+- [ ] 165-03-PLAN.md — D-20 Save-Time-Dublettencheck in CreateAnime.
+- [ ] 165-04-PLAN.md — D-14 Episode-Import-Ordnerauswahl: fail-closed Backend-Guard + Frontend-Selector.
+- [ ] 165-05-PLAN.md — Create-Page-Kontrakte: DiscoveryEntryCard, DiscoveryReturnLink, buildAssistedCreateRedirectPath.
+
+**Wave 2** *(blocked on Wave 1 completion)*
+
+- [ ] 165-06-PLAN.md — Backend Discovery-Listen-Handler + Ignorieren/Entignorieren-Endpunkte + Audit.
+- [ ] 165-08-PLAN.md — Create-Page-Integration (Auto-Adopt, AniSearch-Vorbelegung, Redirect-Zweig) + AniSearchDuplicateDecision-UI.
+
+**Wave 3** *(blocked on Wave 2 completion)*
+
+- [ ] 165-07-PLAN.md — Backend: D-05-„Verbinden"-Fix (Pitfall 3) + D-18 Ordner-Kontext/-Entfernen + Audit.
+- [ ] 165-09-PLAN.md — Frontend Discovery-Bibliotheksseite (Toolbar/Table/Pager/Ignorieren).
+
+**Wave 4** *(blocked on Wave 3 completion)*
+
+- [ ] 165-10-PLAN.md — Frontend Ordner-Verwaltung auf der Anime-Bearbeitungsseite (D-18).
+
+**Wave 5** *(isoliert, kein Dependent, keine Dependency)*
+
+- [ ] 165-11-PLAN.md — D-15 Checkpoint (Schema-Wahl) + bedingte Mehrstaffel-Umsetzung.
+
+## Coverage — Phase 165
+
+| Requirement | Decision | Plan(s) |
+|---|---|---|
+| REQ-165-01 | D-01 (Aufteilung 165/166) | 165-06, 165-08 |
+| REQ-165-02 | D-02 (Zustand B erst nach AniSearch) | 165-06, 165-08 |
+| REQ-165-03 | D-03 (offen/bereits vorhanden) | 165-06, 165-09 |
+| REQ-165-04 | D-04 (Filter) | 165-06, 165-09 |
+| REQ-165-05 | D-05 (mehrere Jellyfin-Ordner, additiv) | 165-07 |
+| REQ-165-06 | D-06 (Snapshot/Cache/Cursor) | 165-01, 165-09 |
+| REQ-165-07 | D-07 (Budget-Gates) | 165-01, 165-06, 165-09 |
+| REQ-165-08 | D-08 (Handoff in Create-Draft) | 165-08 |
+| REQ-165-09 | D-09 (AniSearch-Vorbelegung) | 165-08 |
+| REQ-165-10 | D-10 (Post-Create-Redirect) | 165-05, 165-08 |
+| REQ-165-11 | D-11 (Kontext-Erhalt via URL) | 165-05, 165-08, 165-09 |
+| REQ-165-12 | D-12 (Constraints/Non-Regression) | 165-06, 165-08 |
+| REQ-165-13 | D-13 (UI-Primitives/Umlaute/450-Zeilen/N+1) | 165-05, 165-08, 165-09, 165-10 |
+| REQ-165-14 | D-14 (Episode-Import-Ordnerauswahl) | 165-04 |
+| REQ-165-15 | D-15 (Mehrstaffel, Checkpoint-pflichtig) | 165-11 |
+| REQ-165-16 | D-17 (Ignorieren/Entignorieren) | 165-02, 165-06, 165-09 |
+| REQ-165-17 | D-18 (Ordner-Verwaltung Edit-Seite) | 165-07, 165-10 |
+| REQ-165-18 | D-19 (Cache+Refresh, Status-Konsistenz) | 165-06, 165-09 |
+| REQ-165-19 | D-20 (Save-Time-Dublettencheck) | 165-03, 165-08 |
+| REQ-165-20 | D-21 (Audit-Attribution) | 165-06, 165-07 |
+| REQ-165-21 | D-22 (server_key-Vorsorge) | 165-02 |
+| REQ-165-22 | D-16 (Ordner-Umzug, kein neuer Code) | 165-07 |
 
 ### Phase 166: Film-Content-Flow für Anime vom Typ Film
 
