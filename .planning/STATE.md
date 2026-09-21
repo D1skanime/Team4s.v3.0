@@ -3,14 +3,14 @@ gsd_state_version: 1.0
 milestone: v1.4
 milestone_name: Coverage
 status: executing
-stopped_at: Completed 165-07-PLAN.md
-last_updated: "2026-09-21T15:47:29.609Z"
+stopped_at: Completed 165-09-PLAN.md
+last_updated: "2026-09-21T16:04:45.893Z"
 last_activity: 2026-09-21
 progress:
   total_phases: 31
   completed_phases: 29
   total_plans: 289
-  completed_plans: 286
+  completed_plans: 287
   percent: 94
 ---
 
@@ -212,7 +212,7 @@ Abschluss" entry below for the full closing record.
 ## Current Position
 
 Phase: 165 (library-discovery-assisted-anime-creation) — EXECUTING
-Plan: 11 of 13
+Plan: 12 of 13
 Status: Ready to execute
 dupliziertem ProjectMemberStickyNav; siehe 157-14-SUMMARY.md)
 GAP-02-Live-UAT-Checkpoint aus 156-UAT.md (5 Origin- + 9 Segment-Contributor-Pruefpunkte) wurde
@@ -1438,6 +1438,7 @@ Last activity: 2026-09-21
 - [Phase 165]: 165-07: reused models.JellyfinFolderOption for AdminAnimeJellyfinProvenanceContext.Folders instead of a duplicate type
 - [Phase 165]: 165-07: connectJellyfinFolderAdditively takes an AuthIdentity param for real audit attribution (D-21), beyond the plan's literal interface text
 - [Phase 165]: 165-07: LinkAdditionalJellyfinSource/RemoveAnimeSourceLink are exported self-transacting wrappers around private tx-scoped anime_source_links.go functions, resolving a plan-internal signature inconsistency
+- [Phase 165]: Discovery-Karte status-mapping laeuft ueber die echte englische Backend-Vokabular (open/existing/partial/ignored), nicht ueber die deutsche filter-Query-Parameter-Vokabular — AdminJellyfinDiscoveryItem.status liefert die DiscoveryStatus*-Konstanten aus 165-06, nicht die filter-Werte offen/bereits_vorhanden/ignoriert/alle - eine woertliche Umsetzung des Plan-Beispieltexts haette das Status-Badge gegen echte API-Antworten stumm auf den Default-Zustand zurueckfallen lassen.
 
 ### Pending Todos
 
@@ -1896,11 +1897,12 @@ untruncated list lives in `.planning/todos/pending/`.
 | Phase 165 P08 | 25min | 3 tasks | 14 files |
 | Phase 165 P12 | ~20min | 1 tasks | 4 files |
 | Phase 165 P07 | 50min | 2 tasks | 8 files |
+| Phase 165 P09 | 65min | 3 tasks | 11 files |
 
 ## Session Continuity
 
-Last session: 2026-09-21T15:47:29.574Z
-Stopped at: Completed 165-07-PLAN.md
+Last session: 2026-09-21T16:04:45.871Z
+Stopped at: Completed 165-09-PLAN.md
 Last activity: 2026-09-20 - Completed quick task 260920-sad: Vorwärts-Restore-Defekt im bidirektionalen Episoden-Windowing (useWindowedEpisodePages.ts) behoben, 7 neue Regressionstests, keine Phasen-UAT ersetzt.
 Resume file: 
 None
