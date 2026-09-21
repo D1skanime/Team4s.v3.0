@@ -58,7 +58,7 @@ export function AnimeJellyfinFolderList({ animeID, folders, onFolderRemoved }: A
     try {
       await removeAdminAnimeJellyfinFolder(animeID, source)
       setLocalFolders((current) => current.filter((folder) => folder.jellyfin_item_id !== source))
-      setStatusMessage('Ordner entfernt. Der Eintrag erscheint wieder als „offen" in der Bibliothek.')
+      setStatusMessage('Ordner entfernt. Der Eintrag erscheint wieder als „offen“ in der Bibliothek.')
       onFolderRemoved()
     } catch (error) {
       setErrorMessage(formatRemovalError(error))

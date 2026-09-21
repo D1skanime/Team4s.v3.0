@@ -107,7 +107,7 @@ describe('AnimeJellyfinFolderList', () => {
     })
 
     const status = screen.getByRole('status')
-    expect(status.textContent).toBe('Ordner entfernt. Der Eintrag erscheint wieder als „offen" in der Bibliothek.')
+    expect(status.textContent).toBe('Ordner entfernt. Der Eintrag erscheint wieder als „offen“ in der Bibliothek.')
     expect(onFolderRemoved).toHaveBeenCalledTimes(1)
   })
 
