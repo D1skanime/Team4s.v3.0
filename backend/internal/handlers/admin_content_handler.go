@@ -148,6 +148,7 @@ type jellyfinFolderManagementRepository interface {
 	GetAnimeSyncSource(ctx context.Context, animeID int64) (*models.AdminAnimeSyncSource, error)
 	ApplyJellyfinSyncMetadata(ctx context.Context, animeID int64, sourceTag string, folderName *string, year *int16, description *string, maxEpisodes *int16, forceSourceUpdate bool) error
 	LinkAdditionalJellyfinSource(ctx context.Context, animeID int64, source string) error
+	RemoveAnimeSourceLink(ctx context.Context, animeID int64, source string) error
 }
 
 // adminAniSearchRepository definiert den Datenbankzugriff für AniSearch-basierte Anime-Quell-Lookups.

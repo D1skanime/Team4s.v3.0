@@ -90,3 +90,26 @@ func TestLinkAdditionalJellyfinSource_IsIdempotent(t *testing.T) {
 	).Scan(&rowCount))
 	require.Equal(t, 1, rowCount, "duplicate additive link must not create a second row")
 }
+
+func TestRemoveAnimeSourceLink_DeletesExactlyOneRowAndIsIdempotent(t *testing.T) {
+	pool := openAnimeSourceLinksPostgres(t)
+	animeID := seedAnimeSourceLinksFixture(t, pool)
+	ctx := context.Background()
+
+	tx, err := pool.Begin(ctx)
+	require.NoError(t, err)
+	defer func() { _ = tx.Rollback(ctx) }()
+
+	require.NoError(t, linkAdditionalJellyfinSource(ctx, tx, animeID, "jellyfin:def"))
+
+	require.NoError(t, removeAnimeSourceLink(ctx, tx, animeID, "jellyfin:def"))
+
+	var rowCount int
+	require.NoError(t, tx.QueryRow(ctx,
+		`SELECT COUNT(*) FROM anime_source_links WHERE anime_id = $1 AND source = $2`, animeID, "jellyfin:def",
+	).Scan(&rowCount))
+	require.Equal(t, 0, rowCount, "row must be gone after removal")
+
+	// Deleting a pair that does not exist (already removed) affects 0 rows without error.
+	require.NoError(t, removeAnimeSourceLink(ctx, tx, animeID, "jellyfin:def"))
+}

@@ -323,6 +323,8 @@ func (h *AdminContentHandler) buildAnimeJellyfinContext(
 		}
 	}
 
+	result.Folders = collectJellyfinFolderOptions(animeSource.Source, animeSource.SourceLinks, animeSource.Source)
+
 	if seriesID == "" {
 		result.SourceKind = "manual"
 		return result, http.StatusOK, nil

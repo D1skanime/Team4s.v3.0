@@ -117,6 +117,47 @@ func (r *AdminContentRepository) LinkAdditionalJellyfinSource(ctx context.Contex
 	return nil
 }
 
+// removeAnimeSourceLink deletes one (anime_id, source) row (165-07 DELETE
+// /admin/anime/:id/jellyfin/folders/:source). Deleting a pair that does not exist affects 0 rows
+// and returns no error -- idempotent, matching the established unignore-delete convention
+// (165-02's RemoveLibraryDiscoveryIgnore).
+func removeAnimeSourceLink(ctx context.Context, tx pgx.Tx, animeID int64, source string) error {
+	trimmed := strings.TrimSpace(source)
+	if animeID <= 0 || trimmed == "" {
+		return nil
+	}
+	if _, err := tx.Exec(
+		ctx,
+		`DELETE FROM anime_source_links WHERE anime_id = $1 AND source = $2`,
+		animeID,
+		trimmed,
+	); err != nil {
+		return fmt.Errorf("remove anime source link anime=%d source=%q: %w", animeID, trimmed, err)
+	}
+	return nil
+}
+
+// RemoveAnimeSourceLink is the exported, self-transacting wrapper RemoveAnimeJellyfinFolder
+// (165-07, backend/internal/handlers/jellyfin_source_folder_management.go) calls.
+func (r *AdminContentRepository) RemoveAnimeSourceLink(ctx context.Context, animeID int64, source string) error {
+	tx, err := r.db.Begin(ctx)
+	if err != nil {
+		return fmt.Errorf("begin remove anime source link tx: %w", err)
+	}
+	defer func() {
+		_ = tx.Rollback(ctx)
+	}()
+
+	if err := removeAnimeSourceLink(ctx, tx, animeID, source); err != nil {
+		return err
+	}
+
+	if err := tx.Commit(ctx); err != nil {
+		return fmt.Errorf("commit remove anime source link tx: %w", err)
+	}
+	return nil
+}
+
 func extractAnimeSourceIDByPrefix(primary *string, sourceLinks []string, prefix string) string {
 	normalizedPrefix := strings.ToLower(strings.TrimSpace(prefix))
 	if normalizedPrefix == "" {

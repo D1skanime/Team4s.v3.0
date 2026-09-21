@@ -480,6 +480,13 @@ type AdminAnimeJellyfinProvenanceContext struct {
 	Cover              AdminAnimeJellyfinCoverPreview `json:"cover"`
 	AssetSlots         *AdminJellyfinIntakeAssetSlots `json:"asset_slots,omitempty"`
 	PersistedAssets    AdminAnimePersistedAssets      `json:"persisted_assets"`
+	// Folders lists every jellyfin: folder connected to this anime (165-07, D-05/D-18: an
+	// anime can have more than one), flagging which one is the main folder. Computed via the
+	// same collectJellyfinFolderOptions helper PreviewEpisodeImport's ownership guard (165-04)
+	// and EpisodeImportContextResult.JellyfinFolders already use, so display and enforcement
+	// never drift. Reuses models.JellyfinFolderOption (episode_import.go) rather than a
+	// duplicate type of identical shape.
+	Folders []JellyfinFolderOption `json:"folders,omitempty"`
 }
 
 type AdminAnimeJellyfinMetadataPreviewResult struct {

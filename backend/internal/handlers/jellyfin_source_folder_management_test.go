@@ -2,10 +2,15 @@ package handlers
 
 import (
 	"context"
+	"errors"
+	"net/http"
+	"net/http/httptest"
 	"testing"
 
 	"team4s.v3/backend/internal/middleware"
 	"team4s.v3/backend/internal/models"
+
+	"github.com/gin-gonic/gin"
 )
 
 // fakeJellyfinFolderManagementRepo is an in-memory jellyfinFolderManagementRepository fake,
@@ -184,5 +189,144 @@ func TestConnectJellyfinFolderAdditively_WritesAuditEntry(t *testing.T) {
 	}
 	if entry.TargetID == nil || *entry.TargetID != 99 {
 		t.Fatalf("unexpected target_id %+v", entry.TargetID)
+	}
+}
+
+// --- Task 2: buildAnimeJellyfinContext lists all connected folders with correct main flag -----
+
+func TestBuildAnimeJellyfinContext_ListsAllConnectedFoldersWithMainFlag(t *testing.T) {
+	h := &AdminContentHandler{}
+	source := "jellyfin:abc"
+	animeSource := &models.AdminAnimeSyncSource{
+		ID:          5,
+		Source:      &source,
+		SourceLinks: []string{"jellyfin:abc", "jellyfin:def"},
+	}
+
+	result, statusCode, err := h.buildAnimeJellyfinContext(context.Background(), animeSource, "")
+	if err != nil {
+		t.Fatalf("unexpected error: %v", err)
+	}
+	if statusCode != http.StatusOK {
+		t.Fatalf("expected 200, got %d", statusCode)
+	}
+	if len(result.Folders) != 2 {
+		t.Fatalf("expected exactly 2 folders, got %d: %+v", len(result.Folders), result.Folders)
+	}
+	isMain := map[string]bool{}
+	for _, folder := range result.Folders {
+		isMain[folder.JellyfinItemID] = folder.IsMain
+	}
+	if main, ok := isMain["abc"]; !ok || !main {
+		t.Fatalf("expected folder abc present and flagged IsMain=true, got %+v", result.Folders)
+	}
+	if main, ok := isMain["def"]; !ok || main {
+		t.Fatalf("expected folder def present and flagged IsMain=false, got %+v", result.Folders)
+	}
+}
+
+// --- Task 2: DELETE /admin/anime/:id/jellyfin/folders/:source ----------------------------------
+
+func newFolderManagementTestHandler(repo jellyfinFolderManagementRepository, audit auditLogWriter) *AdminContentHandler {
+	return &AdminContentHandler{
+		authzRepo:            stubAdminRoleChecker{allowed: true},
+		adminRoleName:        "admin",
+		folderManagementRepo: repo,
+		auditLogRepo:         audit,
+	}
+}
+
+func newFolderManagementTestRouter(h *AdminContentHandler) *gin.Engine {
+	gin.SetMode(gin.TestMode)
+	router := gin.New()
+	identity := withTestAdminIdentityAppUser(7, 7)
+	router.DELETE("/api/v1/admin/anime/:id/jellyfin/folders/:source", identity, h.RemoveAnimeJellyfinFolder)
+	return router
+}
+
+func TestRemoveAnimeJellyfinFolder_RemovesNonMainFolder(t *testing.T) {
+	source := "jellyfin:abc"
+	repo := &fakeJellyfinFolderManagementRepo{syncSource: &models.AdminAnimeSyncSource{ID: 5, Source: &source}}
+	audit := &fakeAuditLogWriter{}
+	router := newFolderManagementTestRouter(newFolderManagementTestHandler(repo, audit))
+
+	req := httptest.NewRequest(http.MethodDelete, "/api/v1/admin/anime/5/jellyfin/folders/jellyfin:def", nil)
+	rec := httptest.NewRecorder()
+	router.ServeHTTP(rec, req)
+
+	if rec.Code != http.StatusOK {
+		t.Fatalf("expected 200, got %d (body=%s)", rec.Code, rec.Body.String())
+	}
+	if repo.removeCalls != 1 {
+		t.Fatalf("expected exactly 1 RemoveAnimeSourceLink call, got %d", repo.removeCalls)
+	}
+	if len(repo.removedSources) != 1 || repo.removedSources[0] != "jellyfin:def" {
+		t.Fatalf("unexpected removed sources %+v", repo.removedSources)
+	}
+}
+
+func TestRemoveAnimeJellyfinFolder_RejectsMainFolderBeforeAnyDelete(t *testing.T) {
+	source := "jellyfin:abc"
+	repo := &fakeJellyfinFolderManagementRepo{syncSource: &models.AdminAnimeSyncSource{ID: 5, Source: &source}}
+	audit := &fakeAuditLogWriter{}
+	router := newFolderManagementTestRouter(newFolderManagementTestHandler(repo, audit))
+
+	req := httptest.NewRequest(http.MethodDelete, "/api/v1/admin/anime/5/jellyfin/folders/jellyfin:abc", nil)
+	rec := httptest.NewRecorder()
+	router.ServeHTTP(rec, req)
+
+	if rec.Code != http.StatusBadRequest {
+		t.Fatalf("expected 400 when targeting the main folder, got %d (body=%s)", rec.Code, rec.Body.String())
+	}
+	if repo.removeCalls != 0 {
+		t.Fatalf("expected RemoveAnimeSourceLink to never be attempted for the main folder, got %d calls", repo.removeCalls)
+	}
+	if audit.calls != 0 {
+		t.Fatalf("expected no audit write for a rejected main-folder removal, got %d", audit.calls)
+	}
+}
+
+func TestRemoveAnimeJellyfinFolder_WritesAuditEntryOnSuccess(t *testing.T) {
+	source := "jellyfin:abc"
+	repo := &fakeJellyfinFolderManagementRepo{syncSource: &models.AdminAnimeSyncSource{ID: 5, Source: &source}}
+	audit := &fakeAuditLogWriter{}
+	router := newFolderManagementTestRouter(newFolderManagementTestHandler(repo, audit))
+
+	req := httptest.NewRequest(http.MethodDelete, "/api/v1/admin/anime/5/jellyfin/folders/jellyfin:def", nil)
+	rec := httptest.NewRecorder()
+	router.ServeHTTP(rec, req)
+
+	if rec.Code != http.StatusOK {
+		t.Fatalf("expected 200, got %d (body=%s)", rec.Code, rec.Body.String())
+	}
+	if audit.calls != 1 {
+		t.Fatalf("expected exactly 1 audit write, got %d", audit.calls)
+	}
+	entry := audit.entries[0]
+	if entry.EventType != "jellyfin_discovery.folder_removed" {
+		t.Fatalf("unexpected event_type %q", entry.EventType)
+	}
+	if entry.TargetType != "anime" {
+		t.Fatalf("unexpected target_type %q", entry.TargetType)
+	}
+	if entry.TargetID == nil || *entry.TargetID != 5 {
+		t.Fatalf("unexpected target_id %+v", entry.TargetID)
+	}
+}
+
+func TestRemoveAnimeJellyfinFolder_AnimeNotFoundReturns404(t *testing.T) {
+	repo := &fakeJellyfinFolderManagementRepo{syncSourceErr: errors.New("not found: anime")}
+	audit := &fakeAuditLogWriter{}
+	router := newFolderManagementTestRouter(newFolderManagementTestHandler(repo, audit))
+
+	req := httptest.NewRequest(http.MethodDelete, "/api/v1/admin/anime/999/jellyfin/folders/jellyfin:def", nil)
+	rec := httptest.NewRecorder()
+	router.ServeHTTP(rec, req)
+
+	if rec.Code != http.StatusInternalServerError {
+		t.Fatalf("expected 500 for a generic (non-ErrNotFound) load failure, got %d", rec.Code)
+	}
+	if repo.removeCalls != 0 {
+		t.Fatalf("expected RemoveAnimeSourceLink not to be attempted when the anime load failed, got %d", repo.removeCalls)
 	}
 }
