@@ -140,6 +140,16 @@ type libraryDiscoveryIgnoreRepository interface {
 	FindIgnoredLibraryDiscoveryItems(ctx context.Context, itemIDs []string) (map[string]bool, error)
 }
 
+// jellyfinFolderManagementRepository (165-07): schmale Repo-Oberflaeche fuer
+// connectJellyfinFolderAdditively und RemoveAnimeJellyfinFolder (jellyfin_source_folder_management.go),
+// analog zum 165-06-Muster (jellyfinDiscoveryExistingMatchRepository) -- ermoeglicht Handler-Tests mit
+// Fakes statt einer echten Postgres-Instanz. Zeigt in Produktion auf dieselbe repo-Instanz wie `repo`.
+type jellyfinFolderManagementRepository interface {
+	GetAnimeSyncSource(ctx context.Context, animeID int64) (*models.AdminAnimeSyncSource, error)
+	ApplyJellyfinSyncMetadata(ctx context.Context, animeID int64, sourceTag string, folderName *string, year *int16, description *string, maxEpisodes *int16, forceSourceUpdate bool) error
+	LinkAdditionalJellyfinSource(ctx context.Context, animeID int64, source string) error
+}
+
 // adminAniSearchRepository definiert den Datenbankzugriff für AniSearch-basierte Anime-Quell-Lookups.
 type adminAniSearchRepository interface {
 	FindAnimeBySource(ctx context.Context, source string) (*models.AdminAnimeSourceMatch, error)
@@ -250,6 +260,9 @@ type AdminContentHandler struct {
 	// libraryDiscoveryIgnoreRepo (165-02/165-06): reversibler "ignoriert"-Zustand fuer die
 	// Discovery-Liste und die Ignore/Unignore-Endpunkte. nil ist gueltig (kein Ignore-Zugriff).
 	libraryDiscoveryIgnoreRepo libraryDiscoveryIgnoreRepository
+	// folderManagementRepo (165-07): schmale Repo-Oberflaeche fuer die additive
+	// Jellyfin-Mehrfach-Ordner-Verwaltung (D-05/D-18), siehe jellyfin_source_folder_management.go.
+	folderManagementRepo jellyfinFolderManagementRepository
 }
 
 // AdminContentJellyfinConfig enthält die Verbindungsparameter für die Jellyfin-Integration im Admin-Bereich.
@@ -318,6 +331,7 @@ func NewAdminContentHandler(
 	handler.aniSearchRepo = adminAnimeCreateEnrichmentRepo{repo: repo}
 	handler.animeCreateRepo = repo
 	handler.discoveryExistingMatchRepo = repo
+	handler.folderManagementRepo = repo
 
 	return handler
 }

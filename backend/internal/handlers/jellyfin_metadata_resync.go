@@ -132,7 +132,7 @@ func (h *AdminContentHandler) PreviewAnimeMetadataFromJellyfin(c *gin.Context) {
 
 // ApplyAnimeMetadataFromJellyfin wendet Jellyfin-Metadaten auf einen bestehenden Anime an.
 func (h *AdminContentHandler) ApplyAnimeMetadataFromJellyfin(c *gin.Context) {
-	_, ok := h.requireAdmin(c)
+	identity, ok := h.requireAdmin(c)
 	if !ok {
 		return
 	}
@@ -192,16 +192,7 @@ func (h *AdminContentHandler) ApplyAnimeMetadataFromJellyfin(c *gin.Context) {
 		return
 	}
 
-	if err := h.repo.ApplyJellyfinSyncMetadata(
-		c.Request.Context(),
-		animeID,
-		"jellyfin:"+preview.JellyfinSeriesID,
-		preview.JellyfinSeriesPath,
-		int16FromStringPtr(fieldIncomingValue(preview.Diff, "year")),
-		fieldIncomingValue(preview.Diff, "description"),
-		nil,
-		explicitSeriesID != "",
-	); err != nil {
+	if err := h.connectJellyfinFolderAdditively(c.Request.Context(), identity, animeID, animeSource, preview, explicitSeriesID); err != nil {
 		log.Printf("admin_content jellyfin_metadata_apply: apply metadata failed (anime_id=%d): %v", animeID, err)
 		c.JSON(http.StatusInternalServerError, gin.H{"error": gin.H{"message": "anime metadaten konnten nicht aktualisiert werden"}})
 		return

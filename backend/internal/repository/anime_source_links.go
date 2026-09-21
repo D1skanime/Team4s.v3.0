@@ -67,6 +67,56 @@ func loadAnimeSourceLinks(ctx context.Context, q animeSourceLinkQueryer, animeID
 	return result, nil
 }
 
+// linkAdditionalJellyfinSource inserts an additional jellyfin: source for an anime without
+// touching anime.source (D-05 Pitfall-3 fix, 165-07): used when anime.source already carries a
+// different provider's reference (e.g. anisearch:) that must not be overwritten by connecting a
+// second Jellyfin folder. The ON CONFLICT target is the `source` column alone, not
+// (anime_id, source): the table also carries a GLOBAL UNIQUE(source) constraint
+// (database/migrations/0047_add_anime_source_links.up.sql:6), and a conflict target that omits
+// that constraint would surface as an unhandled unique-violation error instead of resolving to
+// DO NOTHING.
+func linkAdditionalJellyfinSource(ctx context.Context, tx pgx.Tx, animeID int64, source string) error {
+	trimmed := strings.TrimSpace(source)
+	if animeID <= 0 || trimmed == "" {
+		return nil
+	}
+	if _, err := tx.Exec(
+		ctx,
+		`
+		INSERT INTO anime_source_links (anime_id, source)
+		VALUES ($1, $2)
+		ON CONFLICT (source) DO NOTHING
+		`,
+		animeID,
+		trimmed,
+	); err != nil {
+		return fmt.Errorf("link additional jellyfin source anime=%d source=%q: %w", animeID, trimmed, err)
+	}
+	return nil
+}
+
+// LinkAdditionalJellyfinSource is the exported, self-transacting wrapper
+// connectJellyfinFolderAdditively (165-07, backend/internal/handlers/jellyfin_source_folder_management.go)
+// calls -- callers outside this package cannot open their own pgx.Tx.
+func (r *AdminContentRepository) LinkAdditionalJellyfinSource(ctx context.Context, animeID int64, source string) error {
+	tx, err := r.db.Begin(ctx)
+	if err != nil {
+		return fmt.Errorf("begin link additional jellyfin source tx: %w", err)
+	}
+	defer func() {
+		_ = tx.Rollback(ctx)
+	}()
+
+	if err := linkAdditionalJellyfinSource(ctx, tx, animeID, source); err != nil {
+		return err
+	}
+
+	if err := tx.Commit(ctx); err != nil {
+		return fmt.Errorf("commit link additional jellyfin source tx: %w", err)
+	}
+	return nil
+}
+
 func extractAnimeSourceIDByPrefix(primary *string, sourceLinks []string, prefix string) string {
 	normalizedPrefix := strings.ToLower(strings.TrimSpace(prefix))
 	if normalizedPrefix == "" {
