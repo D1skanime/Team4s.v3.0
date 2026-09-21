@@ -1,4 +1,4 @@
-﻿package handlers
+package handlers
 
 import (
 	"errors"
@@ -38,7 +38,35 @@ func (h *AdminContentHandler) CreateAnime(c *gin.Context) {
 		return
 	}
 
-	item, err := h.repo.CreateAnime(c.Request.Context(), input, identity.UserID)
+	// Save-time AniSearch-Duplicate-Guard (165-03/D-20): schliesst das Race-Fenster zwischen der
+	// Auswahlzeit-Dublettenprüfung (Enrich()) und dem tatsächlichen "Speichern"-Klick, indem
+	// unmittelbar vor dem Insert erneut auf anisearch:<id> geprüft wird. Ein expliziter zweiter
+	// Klick (confirm_duplicate=true) überspringt die Prüfung bewusst, damit derselbe Konflikt
+	// nicht ein drittes Mal auftaucht.
+	if aniSearchID, sourceTag, ok := extractAniSearchCreateGuardSource(req.Source, req.SourceLinks); ok && !req.ConfirmDuplicate {
+		if h.animeCreateRepo != nil {
+			existing, err := h.animeCreateRepo.FindAnimeBySource(c.Request.Context(), sourceTag)
+			if err != nil {
+				log.Printf("admin_content create_anime: duplicate re-check failed (user_id=%d): %v", identity.UserID, err)
+				writeInternalErrorResponse(c, "interner serverfehler", err, "Anime konnte nicht angelegt werden. Dublettenprüfung fehlgeschlagen.")
+				return
+			}
+			if existing != nil {
+				c.JSON(http.StatusConflict, gin.H{
+					"data": models.AdminAnimeAniSearchEnrichmentRedirectResult{
+						Mode:            "redirect",
+						AniSearchID:     aniSearchID,
+						ExistingAnimeID: existing.AnimeID,
+						ExistingTitle:   existing.Title,
+						RedirectPath:    buildAdminAnimeEditPath(existing.AnimeID),
+					},
+				})
+				return
+			}
+		}
+	}
+
+	item, err := h.animeCreateRepo.CreateAnime(c.Request.Context(), input, identity.UserID)
 	if err != nil {
 		log.Printf("admin_content create_anime: repo error (user_id=%d): %v", identity.UserID, err)
 		writeInternalErrorResponse(c, "interner serverfehler", err, "Anime konnte nicht angelegt werden. Falls lokal gerade auf v2 gearbeitet wird, bitte die neuesten Datenbank-Migrationen anwenden.")
@@ -121,6 +149,22 @@ func (h *AdminContentHandler) applyAniSearchCreateFollowThrough(
 	}
 
 	return services.BuildAdminAnimeCreateAniSearchSummary(normalizedSource, result.Attempted, result.Applied, result.SkippedExisting, nil)
+}
+
+// extractAniSearchCreateGuardSource ermittelt die AniSearch-ID und den vollen "anisearch:<id>"-
+// Source-Tag für den Save-Time-Duplicate-Guard (165-03/D-20). Reicht dazu die bereits vorhandene
+// Extraktionslogik von resolveAniSearchCreateSource durch, statt einen neuen String-Prefix-Parser
+// zu schreiben. ok=false bedeutet: kein AniSearch-Bezug im Request, der Guard bleibt inaktiv.
+func extractAniSearchCreateGuardSource(source *string, sourceLinks []string) (aniSearchID string, sourceTag string, ok bool) {
+	normalizedSource := resolveAniSearchCreateSource(source, sourceLinks)
+	if normalizedSource == nil {
+		return "", "", false
+	}
+	id := strings.TrimSpace(strings.TrimPrefix(*normalizedSource, "anisearch:"))
+	if id == "" {
+		return "", "", false
+	}
+	return id, *normalizedSource, true
 }
 
 func resolveAniSearchCreateSource(source *string, sourceLinks []string) *string {

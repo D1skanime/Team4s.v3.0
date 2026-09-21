@@ -35,6 +35,10 @@ type adminAnimeCreateRequest struct {
 	FolderName          *string                     `json:"folder_name"`
 	AltTitles           []models.AdminAnimeAltTitle `json:"alt_titles"`
 	Relations           []models.AdminAnimeRelation `json:"relations"`
+	// ConfirmDuplicate laesst einen zweiten, expliziten "Als neuen Anime anlegen"-Klick den
+	// Save-Time-AniSearch-Duplicate-Guard (165-03/D-20) bewusst umgehen, nachdem der Operator
+	// den Konflikt bereits einmal gesehen hat.
+	ConfirmDuplicate bool `json:"confirm_duplicate"`
 }
 
 // adminEpisodeCreateRequest enthält die Pflicht- und optionalen Felder für das Anlegen einer neuen Episode.
@@ -129,6 +133,17 @@ type adminAniSearchRepository interface {
 	ResolveAdminAnimeRelationTargetsBySources(ctx context.Context, sources []string) ([]models.AdminAnimeSourceMatch, error)
 }
 
+// adminAnimeCreateRepository definiert den minimalen Lese-/Schreibzugriff, den CreateAnime für den
+// Save-Time-AniSearch-Duplicate-Guard (165-03/D-20, re-check unmittelbar vor dem Insert) und den
+// eigentlichen Insert benötigt. Bewusst getrennt von der deutlich breiteren
+// *repository.AdminContentRepository-Oberfläche des `repo`-Felds, damit beide Pfade in
+// Handler-Tests durch ein schlankes Fake ersetzt werden können, ohne eine laufende Datenbank
+// vorauszusetzen.
+type adminAnimeCreateRepository interface {
+	FindAnimeBySource(ctx context.Context, source string) (*models.AdminAnimeSourceMatch, error)
+	CreateAnime(ctx context.Context, input models.AdminAnimeCreateInput, userID int64) (*models.AdminAnimeItem, error)
+}
+
 // adminAniSearchDraftLoader beschreibt den Service zum Laden von AniSearch-Entwurfsdaten und zur Kandidatensuche.
 type adminAniSearchDraftLoader interface {
 	LoadAniSearchDraft(ctx context.Context, aniSearchID string) (models.AdminAnimeCreateDraftPayload, []models.AdminAnimeRelation, error)
@@ -167,16 +182,19 @@ type releaseCrewCommandService interface {
 // AdminContentHandler ist der zentrale Handler für alle Admin-Content-Operationen:
 // Anime anlegen/bearbeiten/löschen, Episoden, Assets, Relationen und Jellyfin-Integration.
 type AdminContentHandler struct {
-	repo                            *repository.AdminContentRepository
-	relationRepo                    adminContentRelationRepository
-	themeRepo                       adminThemeRepository
-	animeAssetRepo                  *repository.AnimeAssetRepository
-	fansubRepo                      *repository.FansubRepository
-	episodeVersionRepo              *repository.EpisodeVersionRepository
-	episodeImportRepo               adminEpisodeImportRepository
-	authzRepo                       adminRoleChecker
-	mediaRepo                       *repository.MediaRepository
-	aniSearchRepo                   adminAniSearchRepository
+	repo               *repository.AdminContentRepository
+	relationRepo       adminContentRelationRepository
+	themeRepo          adminThemeRepository
+	animeAssetRepo     *repository.AnimeAssetRepository
+	fansubRepo         *repository.FansubRepository
+	episodeVersionRepo *repository.EpisodeVersionRepository
+	episodeImportRepo  adminEpisodeImportRepository
+	authzRepo          adminRoleChecker
+	mediaRepo          *repository.MediaRepository
+	aniSearchRepo      adminAniSearchRepository
+	// animeCreateRepo verdrahtet den Save-Time-AniSearch-Duplicate-Guard und den Insert-Pfad von
+	// CreateAnime (165-03). Zeigt in Produktion auf dieselbe repo-Instanz wie `repo`.
+	animeCreateRepo                 adminAnimeCreateRepository
 	adminRoleName                   string
 	mediaStorageDir                 string
 	jellyfinAPIKey                  string
@@ -278,6 +296,7 @@ func NewAdminContentHandler(
 		services.NewSafebooruAssetSearchProvider(handler.httpClient),
 	)
 	handler.aniSearchRepo = adminAnimeCreateEnrichmentRepo{repo: repo}
+	handler.animeCreateRepo = repo
 
 	return handler
 }
