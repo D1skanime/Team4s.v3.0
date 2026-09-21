@@ -183,7 +183,11 @@ neuen Spacing-Werte**:
   zu `AdminUserTableRow`s Aktions-Buttons, damit die Tabelle bei ~50 Zeilen/Seite nicht unnötig hoch wird.
 - Poster-Thumbnail: fest 40×56px (5:7-Näherung an ein Hochformat-Poster), `border-radius: var(--radius-sm)`.
 
-Exceptions: keine.
+Exceptions: `--space-3` (12px) liegt außerhalb des Standard-Sets {4, 8, 16, 24, 32, 48, 64}. Es handelt
+sich um ein bereits bestehendes, sitewide in `globals.css` deklariertes Token, das repo-weit
+(z. B. `QuickLinksSection.module.css`, `AttentionSection.module.css`) für exakt diesen Zweck
+(innerer Zeilen-/Zellen-Abstand) verwendet wird — Phase 165 führt es nicht neu ein, sondern
+referenziert ein vorhandenes Token unverändert.
 
 ---
 
