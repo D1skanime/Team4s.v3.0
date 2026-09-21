@@ -104,6 +104,151 @@ func TestAnimeCreateEnrichmentService_ReturnsRedirectForDuplicateAniSearchID(t *
 	}
 }
 
+func TestAnimeCreateEnrichmentService_ForceNewUnsetStillReturnsRedirectForDuplicate(t *testing.T) {
+	t.Parallel()
+
+	service := NewAnimeCreateEnrichmentService(
+		stubAniSearchFetcher{err: errors.New("FetchAnime should not be called when ForceNew is unset")},
+		stubAnimeCreateEnrichmentRepo{
+			duplicate: &models.AdminAnimeSourceMatch{AnimeID: 77, Title: "Lain"},
+		},
+		nil,
+	)
+
+	result, err := service.Enrich(context.Background(), models.AdminAnimeAniSearchEnrichmentRequest{
+		AniSearchID: "12345",
+		Draft: models.AdminAnimeCreateDraftPayload{
+			Title:       "Lain",
+			Type:        "tv",
+			ContentType: "anime",
+			Status:      "ongoing",
+		},
+	})
+	if err != nil {
+		t.Fatalf("enrich: %v", err)
+	}
+
+	redirect, ok := result.(models.AdminAnimeAniSearchEnrichmentRedirectResult)
+	if !ok {
+		t.Fatalf("expected redirect result, got %#v", result)
+	}
+	if redirect.ExistingAnimeID != 77 || redirect.RedirectPath != "/admin/anime/77/edit" {
+		t.Fatalf("unexpected redirect %#v", redirect)
+	}
+}
+
+func TestAnimeCreateEnrichmentService_ForceNewTrueBypassesDuplicateAndLoadsRealDraft(t *testing.T) {
+	t.Parallel()
+
+	service := NewAnimeCreateEnrichmentService(
+		stubAniSearchFetcher{
+			anime: AniSearchAnime{
+				AniSearchID:  "12345",
+				PrimaryTitle: "AniSearch Title",
+				EnglishTitle: stringPtr("AniSearch English"),
+				Description:  stringPtr("Provider description"),
+				Format:       stringPtr("Film"),
+				Year:         int16Ptr(1998),
+				Genres:       []string{"Drama"},
+				Tags:         []string{"Cyberpunk"},
+			},
+		},
+		stubAnimeCreateEnrichmentRepo{
+			duplicate: &models.AdminAnimeSourceMatch{AnimeID: 77, Title: "Lain"},
+		},
+		nil,
+	)
+
+	result, err := service.Enrich(context.Background(), models.AdminAnimeAniSearchEnrichmentRequest{
+		AniSearchID: "12345",
+		ForceNew:    true,
+		Draft: models.AdminAnimeCreateDraftPayload{
+			Title:       "Manual Title",
+			Type:        "tv",
+			ContentType: "anime",
+			Status:      "ongoing",
+		},
+	})
+	if err != nil {
+		t.Fatalf("enrich: %v", err)
+	}
+
+	draftResult, ok := result.(models.AdminAnimeAniSearchEnrichmentDraftResult)
+	if !ok {
+		t.Fatalf("expected draft result (bypass of duplicate redirect), got %#v", result)
+	}
+	if draftResult.AniSearchID != "12345" {
+		t.Fatalf("expected real AniSearch draft, got %#v", draftResult)
+	}
+	if draftResult.Draft.Title != "Manual Title" {
+		t.Fatalf("expected manual title to win, got %q", draftResult.Draft.Title)
+	}
+	if draftResult.Draft.TitleEN == nil || *draftResult.Draft.TitleEN != "AniSearch English" {
+		t.Fatalf("expected AniSearch english title to fill, got %#v", draftResult.Draft.TitleEN)
+	}
+}
+
+func TestAnimeCreateEnrichmentService_ForceNewTrueIsNoOpWithoutDuplicate(t *testing.T) {
+	t.Parallel()
+
+	newService := func() *AnimeCreateEnrichmentService {
+		return NewAnimeCreateEnrichmentService(
+			stubAniSearchFetcher{
+				anime: AniSearchAnime{
+					AniSearchID:  "12345",
+					PrimaryTitle: "AniSearch Title",
+					EnglishTitle: stringPtr("AniSearch English"),
+					Description:  stringPtr("Provider description"),
+					Format:       stringPtr("Film"),
+					Year:         int16Ptr(1998),
+					Genres:       []string{"Drama"},
+					Tags:         []string{"Cyberpunk"},
+				},
+			},
+			stubAnimeCreateEnrichmentRepo{},
+			nil,
+		)
+	}
+
+	baseReq := func(forceNew bool) models.AdminAnimeAniSearchEnrichmentRequest {
+		return models.AdminAnimeAniSearchEnrichmentRequest{
+			AniSearchID: "12345",
+			ForceNew:    forceNew,
+			Draft: models.AdminAnimeCreateDraftPayload{
+				Title:       "Manual Title",
+				Type:        "tv",
+				ContentType: "anime",
+				Status:      "ongoing",
+			},
+		}
+	}
+
+	resultWithoutForceNew, err := newService().Enrich(context.Background(), baseReq(false))
+	if err != nil {
+		t.Fatalf("enrich (force_new=false): %v", err)
+	}
+	resultWithForceNew, err := newService().Enrich(context.Background(), baseReq(true))
+	if err != nil {
+		t.Fatalf("enrich (force_new=true): %v", err)
+	}
+
+	draftWithout, ok := resultWithoutForceNew.(models.AdminAnimeAniSearchEnrichmentDraftResult)
+	if !ok {
+		t.Fatalf("expected draft result for force_new=false, got %#v", resultWithoutForceNew)
+	}
+	draftWith, ok := resultWithForceNew.(models.AdminAnimeAniSearchEnrichmentDraftResult)
+	if !ok {
+		t.Fatalf("expected draft result for force_new=true, got %#v", resultWithForceNew)
+	}
+
+	if draftWithout.Draft.Title != draftWith.Draft.Title ||
+		draftWithout.Draft.TitleEN == nil || draftWith.Draft.TitleEN == nil ||
+		*draftWithout.Draft.TitleEN != *draftWith.Draft.TitleEN ||
+		draftWithout.AniSearchID != draftWith.AniSearchID {
+		t.Fatalf("expected identical draft output regardless of ForceNew when there is no duplicate, got without=%#v with=%#v", draftWithout, draftWith)
+	}
+}
+
 func TestAnimeCreateEnrichmentService_PreservesManualValuesAndAppliesFillOnlyFollowup(t *testing.T) {
 	t.Parallel()
 

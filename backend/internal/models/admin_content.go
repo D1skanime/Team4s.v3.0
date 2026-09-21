@@ -132,6 +132,7 @@ type AdminAnimeCreateDraftPayload struct {
 type AdminAnimeAniSearchEnrichmentRequest struct {
 	AniSearchID string                       `json:"anisearch_id"`
 	Draft       AdminAnimeCreateDraftPayload `json:"draft"`
+	ForceNew    bool                         `json:"force_new"`
 }
 
 type AdminAnimeAniSearchSearchCandidate struct {
