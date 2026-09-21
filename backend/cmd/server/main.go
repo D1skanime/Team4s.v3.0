@@ -250,7 +250,8 @@ func main() {
 			cfg.SegmentRenderDir,
 			cfg.SegmentRenderMaxSeconds,
 			cfg.SegmentRenderFFmpegPath,
-		)
+		).
+		WithLibraryDiscoveryIgnoreDeps(repository.NewLibraryDiscoveryIgnoreRepository(dbPool))
 	if cfg.SegmentRenderEnabled {
 		// context.Background() statt des Startup-Contexts: der Worker läuft für die gesamte
 		// Prozesslaufzeit, unabhängig vom kurzen 10s-Timeout, der nur den Boot-Vorgang begrenzt.

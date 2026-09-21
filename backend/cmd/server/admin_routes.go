@@ -87,6 +87,10 @@ func registerAdminRoutes(v1 *gin.RouterGroup, auth gin.HandlerFunc, deps adminRo
 	v1.POST("/admin/anime/:id/episode-import/preview", auth, deps.adminContentHandler.PreviewEpisodeImport)
 	v1.POST("/admin/anime/:id/episode-import/apply", auth, deps.adminContentHandler.ApplyEpisodeImport)
 	v1.GET("/admin/jellyfin/series", auth, deps.adminContentHandler.SearchJellyfinSeries)
+	// 165-06: Jellyfin-Library-Discovery-Liste + Ignore/Unignore (D-06/D-17).
+	v1.GET("/admin/jellyfin/discovery", auth, deps.adminContentHandler.ListJellyfinDiscovery)
+	v1.POST("/admin/jellyfin/discovery/ignore", auth, deps.adminContentHandler.IgnoreJellyfinDiscoveryItem)
+	v1.DELETE("/admin/jellyfin/discovery/ignore/:itemID", auth, deps.adminContentHandler.UnignoreJellyfinDiscoveryItem)
 	v1.POST("/admin/jellyfin/intake/preview", auth, deps.adminContentHandler.PreviewAnimeIntakeFromJellyfin)
 	v1.POST("/admin/anime/:id/jellyfin/preview", auth, deps.adminContentHandler.PreviewAnimeFromJellyfin)
 	v1.GET("/admin/episode-versions/:versionId/editor-context", auth, deps.adminContentHandler.GetEpisodeVersionEditorContext)
