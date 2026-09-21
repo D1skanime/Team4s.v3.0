@@ -71,6 +71,9 @@ func (h *AdminContentHandler) PreviewEpisodeImport(c *gin.Context) {
 	}
 
 	jellyfinSeriesID := firstNonEmptyString(req.JellyfinSeriesID, derefString(contextResult.JellyfinSeriesID))
+	if h.rejectUnownedJellyfinSeriesID(c, req.JellyfinSeriesID, contextResult.JellyfinFolders) {
+		return
+	}
 	mediaCandidates, err := h.loadEpisodeImportMediaCandidates(c, jellyfinSeriesID, contextResult.FolderPath)
 	if err != nil {
 		log.Printf("episode import preview jellyfin failed anime_id=%d series_id=%q: %v", animeID, jellyfinSeriesID, err)
@@ -182,6 +185,12 @@ func (h *AdminContentHandler) loadEpisodeImportContext(c *gin.Context, animeID i
 			jellyfinSeriesID = normalizeStringPtr(resolvedItem.ID)
 		}
 	}
+	folders := collectJellyfinFolderOptions(source.Source, source.SourceLinks, source.Source)
+	if len(folders) <= 1 {
+		// D-14: keine sichtbares neues Feld im Regelfall -- the single-folder
+		// case (today's default) stays byte-identical to pre-plan responses.
+		folders = nil
+	}
 	return models.EpisodeImportContextResult{
 		AnimeID:          source.ID,
 		AnimeTitle:       source.Title,
@@ -189,6 +198,7 @@ func (h *AdminContentHandler) loadEpisodeImportContext(c *gin.Context, animeID i
 		JellyfinSeriesID: jellyfinSeriesID,
 		FolderPath:       folderPath,
 		Source:           source.Source,
+		JellyfinFolders:  folders,
 	}, http.StatusOK, nil
 }
 

@@ -98,13 +98,33 @@ type EpisodeImportPreviewResult struct {
 	UnmappedMediaItemIDs []string                        `json:"unmapped_media_item_ids,omitempty"`
 }
 
+// JellyfinFolderOption describes one jellyfin: folder connected to an anime,
+// enumerated from AdminAnimeSyncSource.Source/SourceLinks (D-05: an anime can
+// have more than one connected Jellyfin folder). Defined in models (not
+// handlers) so it can appear on EpisodeImportContextResult below without an
+// import cycle; the enumeration logic itself
+// (collectJellyfinFolderOptions) lives in
+// backend/internal/handlers/jellyfin_source_folder_list.go and is reused by
+// PreviewEpisodeImport's ownership guard (165-04) and by 165-07's folder
+// management surface (D-18).
+type JellyfinFolderOption struct {
+	JellyfinItemID string `json:"jellyfin_item_id"`
+	IsMain         bool   `json:"is_main"`
+}
+
 type EpisodeImportContextResult struct {
-	AnimeID          int64   `json:"anime_id"`
-	AnimeTitle       string  `json:"anime_title"`
-	AniSearchID      *string `json:"anisearch_id,omitempty"`
-	JellyfinSeriesID *string `json:"jellyfin_series_id,omitempty"`
-	FolderPath       *string `json:"folder_path,omitempty"`
-	Source           *string `json:"source,omitempty"`
+	AnimeID          int64                  `json:"anime_id"`
+	AnimeTitle       string                 `json:"anime_title"`
+	AniSearchID      *string                `json:"anisearch_id,omitempty"`
+	JellyfinSeriesID *string                `json:"jellyfin_series_id,omitempty"`
+	FolderPath       *string                `json:"folder_path,omitempty"`
+	Source           *string                `json:"source,omitempty"`
+	// JellyfinFolders is only populated when the anime has more than one
+	// connected Jellyfin folder (D-14: "kein sichtbares neues Feld im
+	// Regelfall"). Always computed via the same collectJellyfinFolderOptions
+	// call used by PreviewEpisodeImport's ownership guard, so enforcement and
+	// display never drift.
+	JellyfinFolders []JellyfinFolderOption `json:"jellyfin_folders,omitempty"`
 }
 
 // EpisodeImportApplyInput is the explicit operator-approved mutation payload.
