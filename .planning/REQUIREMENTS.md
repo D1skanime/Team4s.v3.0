@@ -554,7 +554,7 @@ additionally gated behind a human checkpoint (165-11-PLAN.md) before any schema/
 Film-Content-Flow (§17–§24, §32) is out of scope — that is Phase 166.
 
 - [ ] **REQ-165-01**: Auftrag auf zwei Phasen verteilt; Filme sind in der Discovery sichtbar/anlegbar, Übergangsregel führt bis Phase 166 auf die bestehende Edit-/Episoden-Seite (D-01).
-- [ ] **REQ-165-02**: Zustand „Zuordnung prüfen" wird nicht per Titel-/Pfad-/Fuzzy-Abgleich in der Liste erkannt, sondern erst nach der AniSearch-Auswahl über die bestehende Dublettenprüfung (D-02).
+- [x] **REQ-165-02**: Zustand „Zuordnung prüfen" wird nicht per Titel-/Pfad-/Fuzzy-Abgleich in der Liste erkannt, sondern erst nach der AniSearch-Auswahl über die bestehende Dublettenprüfung (D-02).
 - [ ] **REQ-165-03**: Liste unterscheidet „bereits vorhanden"/„offen" ausschließlich über exakte technische Referenzen (`source`/`source_links`/`folder_name`) (D-03).
 - [ ] **REQ-165-04**: Filter „Offen" (inkl. „teilweise")/„Bereits vorhanden"/„Ignoriert"/„Alle"; kein separater „Zuordnung prüfen"-Filter (D-04).
 - [ ] **REQ-165-05**: Ein Anime kann mehrere Jellyfin-Ordner haben; „Verbinden" ergänzt additiv in `anime_source_links`, ohne `source`/`folder_name` zu überschreiben (D-05).
