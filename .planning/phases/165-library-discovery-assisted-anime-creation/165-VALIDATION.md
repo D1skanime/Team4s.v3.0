@@ -2,8 +2,8 @@
 phase: 165
 slug: library-discovery-assisted-anime-creation
 status: draft
-nyquist_compliant: false
-wave_0_complete: false
+nyquist_compliant: true
+wave_0_complete: true
 created: 2026-09-21
 ---
 
@@ -96,11 +96,17 @@ created: 2026-09-21
 
 ## Validation Sign-Off
 
-- [ ] All tasks have `<automated>` verify or Wave 0 dependencies
-- [ ] Sampling continuity: no 3 consecutive tasks without automated verify
-- [ ] Wave 0 covers all MISSING references
-- [ ] No watch-mode flags
-- [ ] Feedback latency < 60s
-- [ ] `nyquist_compliant: true` set in frontmatter
+- [x] All tasks have `<automated>` verify or Wave 0 dependencies
+- [x] Sampling continuity: no 3 consecutive tasks without automated verify
+- [x] Wave 0 covers all MISSING references
+- [x] No watch-mode flags
+- [x] Feedback latency < 60s
+- [x] `nyquist_compliant: true` set in frontmatter
 
-**Approval:** pending
+**Approval:** approved — every task across 165-01..165-11 carries a concrete `<automated>` verify
+command (Go `go test -run ...` / `npx vitest run ...`); Wave 0 test-scaffold requirements above are
+each satisfied by a specific test file created in the corresponding plan (e.g.
+`admin_episode_import_ownership_test.go` in 165-04, `jellyfin_source_folder_management_test.go` and
+`anime_source_links_test.go` in 165-07, `library_discovery_ignored_items_test.go` in 165-02);
+D-15/165-11 is deliberately excluded from Wave 0 per its human checkpoint gate (165-RESEARCH.md §9),
+consistent with 165-11's own `must_haves`.

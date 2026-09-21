@@ -1220,7 +1220,7 @@ Planer/Auftraggeber vor der endgültigen Aufgabenzuschnitt bestätigen sollte, w
 einzige ist, der laut CONTEXT.md zwingend einen eigenen Checkpoint-Plan statt einer einfachen
 Bestätigung erfordert.
 
-## Open Questions
+## Open Questions (RESOLVED 6/7 durch dieses Plan-Set; #4 korrekt an 165-11s Checkpoint geroutet)
 
 1. **Sprungziel für Serien nach Assisted-Create: `/episodes` oder `/episodes/import`?**
    - What we know: Beide Routen existieren; `/episodes` ist die Übersicht mit Link auf `/episodes/import`.
@@ -1228,6 +1228,7 @@ Bestätigung erfordert.
    - Recommendation: `/admin/anime/{id}/episodes` ansteuern (wörtlichste Auslegung von "Episoden-Tab");
      dort einen bereits sichtbaren, prominenten Link/CTA zu `/episodes/import` mit vorausgefüllter
      Jellyfin-Serien-ID anbieten (spart einen Klick, ohne die Zielroute zu verändern).
+   - **Resolution (Planner, nach 165-05/165-08-PLAN.md):** RESOLVED — `buildAssistedCreateRedirectPath` (165-05) routet Serien auf `/admin/anime/{id}/episodes`, nicht auf `/episodes/import` (wörtlichste Auslegung, wie hier empfohlen).
 
 2. **Wie soll "Verbinden" (D-05) mit einer bestehenden `anisearch:`-Quelle umgehen?**
    - What we know: `ApplyAnimeMetadataFromJellyfin` überschreibt `anime.source` bei explizitem
@@ -1238,6 +1239,7 @@ Bestätigung erfordert.
      `anisearch:`-Quelle haben).
    - Recommendation: Vor dem Planen dieses Tasks kurz mit dem Auftraggeber klären oder als expliziten
      Task "Provider-Präfix-Schutz beim Verbinden" einplanen (siehe A1).
+   - **Resolution (Planner, nach 165-07-PLAN.md):** RESOLVED — 165-07 Task 1 (Pitfall-3-Fix) implementiert genau den hier offengelassenen "Provider-Präfix-Schutz beim Verbinden": existiert bereits ein `anisearch:`-Source, schreibt "Verbinden" additiv in `anime_source_links` statt `anime.source` zu überschreiben.
 
 3. **`JELLYFIN_ALLOWED_LIBRARY_IDS`-Korrektur — wer führt sie aus?**
    - What we know: Der aktuelle Wert (`"5"`) verhindert jede library-gefilterte Jellyfin-Anfrage.
@@ -1245,6 +1247,7 @@ Bestätigung erfordert.
      Code-/Datenänderung) oder separat vom Auftraggeber vorgenommen wird.
    - Recommendation: Im Abschlussbericht explizit als Blocker/Voraussetzung für den produktiven
      Discovery-Einsatz nennen; Tests dürfen nicht von diesem Live-Wert abhängen.
+   - **Resolution (Planner):** RESOLVED als Betriebsaufgabe außerhalb des Codes — dies bleibt eine `.env`-Konfigurationskorrektur (D-12: keine Datenänderung durch den Agenten) und ist kein Gate für irgendeinen Plan dieser Phase; im Abschlussbericht als Voraussetzung für den produktiven Discovery-Einsatz vermerkt, blockiert aber keine Planung/Ausführung (Tests hängen nachweislich nicht von diesem Live-Wert ab).
 
 4. **D-15: Welche Speicher-Option (A/B/C aus §9) wählt der Auftraggeber, und kann eine Staffel zu
    mehr als einem Anime gehören?**
@@ -1256,6 +1259,7 @@ Bestätigung erfordert.
    - Recommendation: Separater Plan mit menschlichem Checkpoint VOR jeder Migration, wie in CONTEXT.md
      D-15 explizit gefordert. Dieser Recherche-Abschnitt (§9) ist die Grundlage für diesen Plan, keine
      Vorwegnahme der Entscheidung.
+   - **Resolution (Planner, nach 165-11-PLAN.md):** ROUTED — 165-11 ist der dedizierte, menschlich freizugebende Checkpoint-Plan für D-15; kein anderer Plan dieser Phase implementiert Migration, Season-Batch-Fetch oder "teilweise"-Logik. Die übrigen drei Discovery-Zustände (Offen/Bereits vorhanden/Ignoriert) sind unabhängig von 165-11 lauffähig.
 
 5. **D-17/D-18: Soll "Ignorieren" auf Ordner-Ebene (Jellyfin-Item-ID) oder zusätzlich auf
    Staffel-Ebene möglich sein, sobald D-15 umgesetzt ist?**
@@ -1265,6 +1269,7 @@ Bestätigung erfordert.
      sein sollen, oder ob "ignorieren" immer den ganzen Jellyfin-Ordner betrifft.
    - Recommendation: Für 165 auf Ordner-Ebene beschränken (deckt sich mit dem heutigen
      Datenmodell); Staffel-Ebene-Ignorieren erst im D-15-Folge-Plan klären, falls überhaupt gewünscht.
+   - **Resolution (Planner):** RESOLVED — Phase 165 beschränkt "Ignorieren" auf Ordner-Ebene (deckt sich mit dem heutigen Datenmodell, siehe 165-02/165-06); eine Staffel-Ebene-Erweiterung ist explizit Sache eines künftigen D-15-Folge-Plans, der erst nach 165-11s Checkpoint entsteht.
 
 6. **D-21: Sollen `EventType`/`Action`-Namen mit dem Planner/Auftraggeber vorab abgestimmt werden,
    oder reicht die in §15 vorgeschlagene Konvention?**
@@ -1275,6 +1280,7 @@ Bestätigung erfordert.
    - Recommendation: Vorschlag aus §15 übernehmen (konsistent mit beobachteten Beispielen wie
      `app_user_global_role.assigned`, `release_version_media.file_replaced`), bei Bedarf im Plan-Review
      anpassen.
+   - **Resolution (Planner, nach 165-06/165-07-PLAN.md):** RESOLVED — beide Pläne übernehmen die hier vorgeschlagene `<domain>.<verb>`-Konvention wörtlich (`jellyfin_discovery.connected`, `jellyfin_discovery.folder_removed`, `jellyfin_discovery.ignored`/`unignored`).
 
 7. **D-19: Soll der Discovery-Cache prozessweit (In-Memory) oder über Redis geteilt werden, falls das
    Backend künftig mit mehreren Replikas läuft?**
@@ -1284,6 +1290,7 @@ Bestätigung erfordert.
      relevant ist.
    - Recommendation: Redis verwenden (kein Mehraufwand gegenüber In-Memory, aber zukunftssicherer),
      letzte Entscheidung liegt laut CONTEXT.md bei "Claude's Discretion" (Cache-Mechanik).
+   - **Resolution (Planner, nach 165-01/165-02/165-06-PLAN.md):** RESOLVED — Claude's Discretion entscheidet für Redis (bereits verdrahtet, zukunftssicher gegenüber einer künftigen Mehr-Replika-Topologie), wie hier empfohlen.
 
 ## Environment Availability
 

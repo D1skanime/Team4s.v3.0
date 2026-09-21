@@ -2045,10 +2045,10 @@ Plans:
 **Bekannter Blocker für Live-UAT (kein Task dieser Phase):** `JELLYFIN_ALLOWED_LIBRARY_IDS=5` in der Live-`.env` ist keine gültige Jellyfin-12-Bibliotheks-GUID (RESEARCH.md Pitfall 1); die korrekte GUID lautet `5f65d0c8bdd71b782fc98205814a0d76`. Konfigurationsänderung, kein Agenten-Task.
 **D-15-Hinweis:** 165-11 ist isoliert (letzte Wave, keine Dependents, keine Dependencies) und beginnt mit einem blockierenden Checkpoint (Schema-Wahl für die Staffel→Anime-Zuordnung). Die übrigen zehn Pläne liefern und funktionieren vollständig unabhängig davon.
 **UI hint:** yes
-**Plans:** 11 plans across 5 waves
+**Plans:** 12 plans across 5 waves
 
   - Wave 1: 165-01 (Discovery-Snapshot-Cache/Cursor/Status-Resolver), 165-02 (Ignore-Tabelle Migration+Repo), 165-03 (D-20 Save-Time-Dublettencheck Backend), 165-04 (D-14 Episode-Import-Ordnerauswahl, fail-closed), 165-05 (Create-Page Entry-Card/Return-Link/Redirect-Helper)
-  - Wave 2: 165-06 (Discovery-Listen-Handler + Ignorieren/Entignorieren + Audit), 165-08 (Create-Page-Integration + AniSearch-Verbinden/Neu-Entscheidung)
+  - Wave 2: 165-06 (Discovery-Listen-Handler + Ignorieren/Entignorieren + Audit), 165-08 (Create-Page-Integration + AniSearch-Verbinden/Neu-Entscheidung), 165-12 (D-11 Return-Link auf Episoden-/Edit-Seite)
   - Wave 3: 165-07 (D-05-Fix + D-18 Backend Ordner-Verwaltung), 165-09 (Discovery-Bibliotheksseite Frontend)
   - Wave 4: 165-10 (D-18 Frontend Ordner-Verwaltung Edit-Seite)
   - Wave 5: 165-11 (D-15 Checkpoint + bedingte Mehrstaffel-Umsetzung, isoliert/optional)
@@ -2066,6 +2066,7 @@ Plans:
 
 - [ ] 165-06-PLAN.md — Backend Discovery-Listen-Handler + Ignorieren/Entignorieren-Endpunkte + Audit.
 - [ ] 165-08-PLAN.md — Create-Page-Integration (Auto-Adopt, AniSearch-Vorbelegung, Redirect-Zweig) + AniSearchDuplicateDecision-UI.
+- [ ] 165-12-PLAN.md — D-11 Return-Link auf Episoden-Übersicht und Edit-Seite (die zwei verbleibenden Redirect-Ziele von buildAssistedCreateRedirectPath).
 
 **Wave 3** *(blocked on Wave 2 completion)*
 
@@ -2094,7 +2095,7 @@ Plans:
 | REQ-165-08 | D-08 (Handoff in Create-Draft) | 165-08 |
 | REQ-165-09 | D-09 (AniSearch-Vorbelegung) | 165-08 |
 | REQ-165-10 | D-10 (Post-Create-Redirect) | 165-05, 165-08 |
-| REQ-165-11 | D-11 (Kontext-Erhalt via URL) | 165-05, 165-08, 165-09 |
+| REQ-165-11 | D-11 (Kontext-Erhalt via URL) | 165-05, 165-08, 165-09, 165-12 |
 | REQ-165-12 | D-12 (Constraints/Non-Regression) | 165-06, 165-08 |
 | REQ-165-13 | D-13 (UI-Primitives/Umlaute/450-Zeilen/N+1) | 165-05, 165-08, 165-09, 165-10 |
 | REQ-165-14 | D-14 (Episode-Import-Ordnerauswahl) | 165-04 |
