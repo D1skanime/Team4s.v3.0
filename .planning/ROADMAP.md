@@ -2045,11 +2045,11 @@ Plans:
 **Bekannter Blocker für Live-UAT (kein Task dieser Phase):** `JELLYFIN_ALLOWED_LIBRARY_IDS=5` in der Live-`.env` ist keine gültige Jellyfin-12-Bibliotheks-GUID (RESEARCH.md Pitfall 1); die korrekte GUID lautet `5f65d0c8bdd71b782fc98205814a0d76`. Konfigurationsänderung, kein Agenten-Task.
 **D-15-Hinweis:** 165-11 ist isoliert (letzte Wave, keine Dependents, keine Dependencies) und beginnt mit einem blockierenden Checkpoint (Schema-Wahl für die Staffel→Anime-Zuordnung). Die übrigen zehn Pläne liefern und funktionieren vollständig unabhängig davon.
 **UI hint:** yes
-**Plans:** 12 plans across 5 waves
+**Plans:** 13 plans across 5 waves
 
   - Wave 1: 165-01 (Discovery-Snapshot-Cache/Cursor/Status-Resolver), 165-02 (Ignore-Tabelle Migration+Repo), 165-03 (D-20 Save-Time-Dublettencheck Backend), 165-04 (D-14 Episode-Import-Ordnerauswahl, fail-closed), 165-05 (Create-Page Entry-Card/Return-Link/Redirect-Helper)
-  - Wave 2: 165-06 (Discovery-Listen-Handler + Ignorieren/Entignorieren + Audit), 165-08 (Create-Page-Integration + AniSearch-Verbinden/Neu-Entscheidung), 165-12 (D-11 Return-Link auf Episoden-/Edit-Seite)
-  - Wave 3: 165-07 (D-05-Fix + D-18 Backend Ordner-Verwaltung), 165-09 (Discovery-Bibliotheksseite Frontend)
+  - Wave 2: 165-06 (Discovery-Listen-Handler + Ignorieren/Entignorieren + Audit + D-24 library_context), 165-08 (Create-Page-Integration + AniSearch-Verbinden/Neu-Entscheidung + D-23-Fix), 165-12 (D-11 Return-Link auf Episoden-/Edit-Seite), 165-13 (D-23 Backend ForceNew-Bypass für Enrich())
+  - Wave 3: 165-07 (D-05-Fix + D-18 Backend Ordner-Verwaltung), 165-09 (Discovery-Bibliotheksseite Frontend, D-24 Karten-Layout)
   - Wave 4: 165-10 (D-18 Frontend Ordner-Verwaltung Edit-Seite)
   - Wave 5: 165-11 (D-15 Checkpoint + bedingte Mehrstaffel-Umsetzung, isoliert/optional)
 
@@ -2064,14 +2064,15 @@ Plans:
 
 **Wave 2** *(blocked on Wave 1 completion)*
 
-- [ ] 165-06-PLAN.md — Backend Discovery-Listen-Handler + Ignorieren/Entignorieren-Endpunkte + Audit.
-- [ ] 165-08-PLAN.md — Create-Page-Integration (Auto-Adopt, AniSearch-Vorbelegung, Redirect-Zweig) + AniSearchDuplicateDecision-UI.
+- [ ] 165-06-PLAN.md — Backend Discovery-Listen-Handler + Ignorieren/Entignorieren-Endpunkte + Audit + D-24 library_context-Feld.
+- [ ] 165-08-PLAN.md — Create-Page-Integration (Auto-Adopt, AniSearch-Vorbelegung, Redirect-Zweig) + AniSearchDuplicateDecision-UI + D-23-Fix (Entfernen der automatischen Umleitung, ForceNew-Retry-Wiring).
 - [ ] 165-12-PLAN.md — D-11 Return-Link auf Episoden-Übersicht und Edit-Seite (die zwei verbleibenden Redirect-Ziele von buildAssistedCreateRedirectPath).
+- [ ] 165-13-PLAN.md — D-23 Backend: ForceNew-Bypass-Feld auf AdminAnimeAniSearchEnrichmentRequest + Enrich()-Gate (Live-Befund-Korrektur).
 
 **Wave 3** *(blocked on Wave 2 completion)*
 
 - [ ] 165-07-PLAN.md — Backend: D-05-„Verbinden"-Fix (Pitfall 3) + D-18 Ordner-Kontext/-Entfernen + Audit.
-- [ ] 165-09-PLAN.md — Frontend Discovery-Bibliotheksseite (Toolbar/Table/Pager/Ignorieren).
+- [ ] 165-09-PLAN.md — Frontend Discovery-Bibliotheksseite (Toolbar/DiscoveryLibraryCard-Karten-Liste/Pager/Ignorieren, D-24 Karten- statt Tabellen-Layout).
 
 **Wave 4** *(blocked on Wave 3 completion)*
 
@@ -2086,7 +2087,7 @@ Plans:
 | Requirement | Decision | Plan(s) |
 |---|---|---|
 | REQ-165-01 | D-01 (Aufteilung 165/166) | 165-06, 165-08 |
-| REQ-165-02 | D-02 (Zustand B erst nach AniSearch) | 165-06, 165-08 |
+| REQ-165-02 | D-02 (Zustand B erst nach AniSearch) | 165-06, 165-08, 165-13 |
 | REQ-165-03 | D-03 (offen/bereits vorhanden) | 165-06, 165-09 |
 | REQ-165-04 | D-04 (Filter) | 165-06, 165-09 |
 | REQ-165-05 | D-05 (mehrere Jellyfin-Ordner, additiv) | 165-07 |
@@ -2107,6 +2108,8 @@ Plans:
 | REQ-165-20 | D-21 (Audit-Attribution) | 165-06, 165-07 |
 | REQ-165-21 | D-22 (server_key-Vorsorge) | 165-02 |
 | REQ-165-22 | D-16 (Ordner-Umzug, kein neuer Code) | 165-07 |
+
+**Live-Befund-Korrekturen D-23 bis D-26 (2026-09-21, kein eigener REQ-ID-Block — Korrektur/Bestätigung bestehender Requirements, keine neuen Requirements):** D-23 (Fix der automatischen AniSearch-Konflikt-Umleitung, ersetzt fälschlich angenommenes bereits korrektes Verhalten unter REQ-165-02) → 165-08 (Frontend-Fix), 165-13 (Backend ForceNew-Bypass, neu). D-24 (Karten- statt Tabellen-Layout für die Bibliotheksliste, unter REQ-165-03/REQ-165-04/REQ-165-06) → 165-06 (library_context-Feld), 165-09 (DiscoveryLibraryCard). D-25 (Zurück/Weiter-Pagination bestätigt, unter REQ-165-06/REQ-165-11) → 165-09, keine Planänderung. D-26 (AniSearch-Titel-Vorbelegung bestätigt, unter REQ-165-09) → 165-08, keine Planänderung.
 
 ### Phase 166: Film-Content-Flow für Anime vom Typ Film
 
