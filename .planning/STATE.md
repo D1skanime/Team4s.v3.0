@@ -3,14 +3,14 @@ gsd_state_version: 1.0
 milestone: v1.4
 milestone_name: Coverage
 status: executing
-stopped_at: Completed 165-13-PLAN.md
-last_updated: "2026-09-21T14:26:59.131Z"
+stopped_at: Completed 165-06-PLAN.md
+last_updated: "2026-09-21T14:54:44.411Z"
 last_activity: 2026-09-21
 progress:
   total_phases: 31
   completed_phases: 29
   total_plans: 289
-  completed_plans: 282
+  completed_plans: 283
   percent: 94
 ---
 
@@ -212,7 +212,7 @@ Abschluss" entry below for the full closing record.
 ## Current Position
 
 Phase: 165 (library-discovery-assisted-anime-creation) — EXECUTING
-Plan: 7 of 13
+Plan: 8 of 13
 Status: Ready to execute
 dupliziertem ProjectMemberStickyNav; siehe 157-14-SUMMARY.md)
 GAP-02-Live-UAT-Checkpoint aus 156-UAT.md (5 Origin- + 9 Segment-Contributor-Pruefpunkte) wurde
@@ -1427,6 +1427,9 @@ Last activity: 2026-09-21
 - [Phase 165]: EpisodeImportContextResult.JellyfinFolders only populated when an anime has >1 connected folder — Satisfies D-14 no-visible-new-field-in-regular-case while keeping the ownership guard fail-closed for single-folder animes
 - [Phase ?]: DiscoveryEntryCard reuses page.module.css eyebrow/title/text classes instead of a new CSS module for visual consistency with CreateJellyfinResultsPanel
 - [Phase ?]: DiscoveryEntryCard uses Card's header ReactNode prop (not title/description strings) since Card has no eyebrow slot
+- [Phase ?]: 165-06: status-filter (offen/bereits_vorhanden/ignoriert/alle) applied AFTER paging per the D-07 per-page query budget, not before -- q-search stays in-memory pre-page
+- [Phase ?]: 165-06: added jellyfinDiscoveryExistingMatchRepository/libraryDiscoveryIgnoreRepository narrow interfaces on AdminContentHandler (wired to the same repo instances in production) so the plan's own fake-repo test strategy is executable without a live Postgres instance
+- [Phase ?]: 165-06: deferred wiring a live Redis adapter for discoveryCache in main.go -- buildJellyfinDiscoverySnapshot degrades gracefully without it; tracked as a non-blocking follow-up for 165-09 or later
 
 ### Pending Todos
 
@@ -1881,11 +1884,12 @@ untruncated list lives in `.planning/todos/pending/`.
 | Phase 165 P04 | 50min | 2 tasks | 11 files |
 | Phase 165 P05 | 35min | 2 tasks | 5 files |
 | Phase 165 P13 | 6min | 1 tasks | 3 files |
+| Phase 165 P06 | 55min | 2 tasks | 10 files |
 
 ## Session Continuity
 
-Last session: 2026-09-21T14:26:59.107Z
-Stopped at: Completed 165-13-PLAN.md
+Last session: 2026-09-21T14:54:44.387Z
+Stopped at: Completed 165-06-PLAN.md
 Last activity: 2026-09-20 - Completed quick task 260920-sad: Vorwärts-Restore-Defekt im bidirektionalen Episoden-Windowing (useWindowedEpisodePages.ts) behoben, 7 neue Regressionstests, keine Phasen-UAT ersetzt.
 Resume file: 
 None
