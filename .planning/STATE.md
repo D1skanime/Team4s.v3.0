@@ -2,14 +2,14 @@
 gsd_state_version: 1.0
 milestone: v1.4
 milestone_name: Coverage
-status: completed
+status: executing
 stopped_at: Phase 165 UI-SPEC approved (D-14..D-22 update)
-last_updated: "2026-09-21T10:08:20.410Z"
-last_activity: 2026-09-18
+last_updated: "2026-09-21T11:00:48.798Z"
+last_activity: 2026-09-21
 progress:
   total_phases: 31
   completed_phases: 29
-  total_plans: 276
+  total_plans: 288
   completed_plans: 276
   percent: 94
 ---
@@ -213,7 +213,7 @@ Abschluss" entry below for the full closing record.
 
 Phase: 164 — Complete (final phase of milestone v1.4)
 Plan: 13/13 plans complete (164-01..164-13), plus quick-tasks 260918-fmq/260918-jfs (GAP-13/14/15)
-Status: Milestone complete
+Status: Ready to execute
 dupliziertem ProjectMemberStickyNav; siehe 157-14-SUMMARY.md)
 GAP-02-Live-UAT-Checkpoint aus 156-UAT.md (5 Origin- + 9 Segment-Contributor-Pruefpunkte) wurde
 am 2026-09-15 vom Auftraggeber live abgenommen (inkl. GAP-08/GAP-09). Phase 156 ist vollstaendig abgenommen.
@@ -1008,7 +1008,7 @@ timing flakiness, not a Phase 149 regression, and not yet root-caused.
 
 v1.4 remains complete; Phase 149 was appended additively (same pattern as 143-148), no new
 milestone was created.
-Last activity: 2026-09-18
+Last activity: 2026-09-21
 
 ## Accumulated Context
 
