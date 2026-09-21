@@ -4,7 +4,7 @@
 // Refresh) + vertikale DiscoveryLibraryCard-Liste (kein Table/TableRow mehr) + Pager,
 // analog zu AdminUsersClient.tsx's Zustands-/Ladeform (nicht dessen Table-Rendering).
 
-import { useCallback, useEffect, useState } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
 import { usePathname, useRouter, useSearchParams } from "next/navigation";
 import { RefreshCw } from "lucide-react";
 
@@ -63,8 +63,16 @@ export function DiscoveryLibraryPanel() {
   const currentDiscoveryURL = currentQuery ? `${pathname}?${currentQuery}` : pathname;
   const currentPage = cursorHistory.length + 1;
 
+  // Monotonically increasing request sequence id (fix_5): guards against an
+  // out-of-order response (e.g. a slow first request that resolves after a
+  // faster subsequent one triggered by a quick filter change or "Bibliothek
+  // neu laden" click) clobbering fresher state. Only the response belonging
+  // to the most recently issued request is applied.
+  const requestSeqRef = useRef(0);
+
   const loadPage = useCallback(
     async (refresh = false) => {
+      const requestID = ++requestSeqRef.current;
       try {
         setIsLoading(true);
         setError(null);
@@ -74,15 +82,19 @@ export function DiscoveryLibraryPanel() {
           cursor: params.cursor,
           refresh,
         });
+        if (requestID !== requestSeqRef.current) return;
         setItems(response.data.items);
         setHasMore(response.data.has_more);
         setNextCursor(response.data.next_cursor);
         setTotalSnapshotCount(response.data.total_snapshot_count);
       } catch (err) {
+        if (requestID !== requestSeqRef.current) return;
         setError(readErrorMessage(err));
       } finally {
-        setIsLoading(false);
-        setIsInitialLoad(false);
+        if (requestID === requestSeqRef.current) {
+          setIsLoading(false);
+          setIsInitialLoad(false);
+        }
       }
     },
     [params.cursor, params.filter, params.q],
@@ -219,16 +231,21 @@ export function DiscoveryLibraryPanel() {
         )}
       </div>
 
-      {items.length > 0 ? (
+      {items.length > 0 || hasMore ? (
         <div style={{ display: "flex", alignItems: "center", gap: "var(--space-2)" }}>
-          <Button variant="secondary" size="sm" disabled={cursorHistory.length === 0} onClick={handleCursorBack}>
+          <Button
+            variant="secondary"
+            size="sm"
+            disabled={cursorHistory.length === 0 || isLoading}
+            onClick={handleCursorBack}
+          >
             Zurück
           </Button>
           <span style={{ fontSize: "14px" }}>Seite {currentPage}</span>
           <Button
             variant="secondary"
             size="sm"
-            disabled={!hasMore}
+            disabled={!hasMore || isLoading}
             onClick={() => {
               if (nextCursor) handleCursorChange(nextCursor);
             }}

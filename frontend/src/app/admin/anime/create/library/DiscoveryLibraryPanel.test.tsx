@@ -8,7 +8,7 @@
 import { readFileSync } from "node:fs";
 import path from "node:path";
 
-import { cleanup, fireEvent, render, screen, waitFor } from "@testing-library/react";
+import { act, cleanup, fireEvent, render, screen, waitFor } from "@testing-library/react";
 import { afterEach, describe, expect, it, vi } from "vitest";
 
 import type { AdminJellyfinDiscoveryItem } from "@/types/admin";
@@ -216,6 +216,102 @@ describe("DiscoveryLibraryPanel", () => {
     await waitFor(() => expect(listMock).toHaveBeenCalled());
     const link = screen.getByRole("link", { name: "Zurück zur Bibliothek" });
     expect(link.getAttribute("href")).toBe("/admin/anime/create");
+  });
+
+  it("shows a working Weiter button even when the current page has zero matching items but hasMore is true (fix_3)", async () => {
+    // Backend applies the status filter AFTER paging the raw snapshot, so a
+    // page can legitimately return 0 items while has_more/next_cursor is
+    // still set. The admin must not be stranded on this empty page.
+    listMock.mockResolvedValueOnce(buildPage([], { has_more: true, next_cursor: "cursor-2" }));
+
+    render(<DiscoveryLibraryPanel />);
+
+    await waitFor(() => expect(screen.getByText("Keine offenen Einträge")).toBeTruthy());
+
+    const weiterButton = screen.getByRole("button", { name: "Weiter" }) as HTMLButtonElement;
+    expect(weiterButton.disabled).toBe(false);
+
+    listMock.mockResolvedValueOnce(buildPage([buildItem({ jellyfin_item_id: "series-2", name: "Bleach" })]));
+    fireEvent.click(weiterButton);
+
+    await waitFor(() => expect(screen.getByText("Bleach")).toBeTruthy());
+    expect(listMock).toHaveBeenNthCalledWith(2, expect.objectContaining({ cursor: "cursor-2" }));
+  });
+
+  it("does not show a Weiter/Zurück pager when items is empty and hasMore is false", async () => {
+    listMock.mockResolvedValueOnce(buildPage([], { has_more: false }));
+
+    render(<DiscoveryLibraryPanel />);
+
+    await waitFor(() => expect(screen.getByText("Keine offenen Einträge")).toBeTruthy());
+    expect(screen.queryByRole("button", { name: "Weiter" })).toBeNull();
+  });
+
+  it("discards a stale out-of-order response so it cannot clobber a fresher one (fix_5)", async () => {
+    let resolveFirst: ((value: ReturnType<typeof buildPage>) => void) | undefined;
+    const firstResponse = new Promise<ReturnType<typeof buildPage>>((resolve) => {
+      resolveFirst = resolve;
+    });
+
+    listMock
+      .mockImplementationOnce(() => firstResponse)
+      .mockResolvedValueOnce(buildPage([buildItem({ jellyfin_item_id: "series-2", name: "Bleach" })]));
+
+    render(<DiscoveryLibraryPanel />);
+    await waitFor(() => expect(listMock).toHaveBeenCalledTimes(1));
+
+    // Fire a second, fresher request (e.g. "Bibliothek neu laden") before the
+    // first request has resolved.
+    fireEvent.click(screen.getByRole("button", { name: "Bibliothek neu laden" }));
+    await waitFor(() => expect(listMock).toHaveBeenCalledTimes(2));
+    await waitFor(() => expect(screen.getByText("Bleach")).toBeTruthy());
+
+    // Now let the stale first request resolve with different content — it
+    // must be discarded, not applied on top of the fresher state.
+    await act(async () => {
+      resolveFirst?.(buildPage([buildItem({ jellyfin_item_id: "series-1", name: "Naruto" })]));
+      await Promise.resolve();
+      await Promise.resolve();
+      await Promise.resolve();
+    });
+
+    expect(screen.queryByText("Naruto")).toBeNull();
+    expect(screen.getByText("Bleach")).toBeTruthy();
+  });
+
+  it("disables both pager buttons while a page is loading to prevent a double-click race (fix_6)", async () => {
+    let resolveSecond: ((value: ReturnType<typeof buildPage>) => void) | undefined;
+    const secondResponse = new Promise<ReturnType<typeof buildPage>>((resolve) => {
+      resolveSecond = resolve;
+    });
+
+    listMock
+      .mockResolvedValueOnce(buildPage([buildItem()], { has_more: true, next_cursor: "cursor-2" }))
+      .mockImplementationOnce(() => secondResponse);
+
+    render(<DiscoveryLibraryPanel />);
+    await waitFor(() => expect(screen.getByText("Naruto")).toBeTruthy());
+
+    const weiterButton = screen.getByRole("button", { name: "Weiter" }) as HTMLButtonElement;
+    expect(weiterButton.disabled).toBe(false);
+
+    fireEvent.click(weiterButton);
+    await waitFor(() => expect(listMock).toHaveBeenCalledTimes(2));
+
+    // While the second request is still in flight, both pager buttons must
+    // be disabled so a fast double-click cannot push two cursorHistory
+    // entries for a single page transition.
+    expect((screen.getByRole("button", { name: "Weiter" }) as HTMLButtonElement).disabled).toBe(true);
+    expect((screen.getByRole("button", { name: "Zurück" }) as HTMLButtonElement).disabled).toBe(true);
+
+    await act(async () => {
+      resolveSecond?.(buildPage([buildItem({ jellyfin_item_id: "series-2", name: "Bleach" })], { has_more: false }));
+      await Promise.resolve();
+      await Promise.resolve();
+    });
+
+    await waitFor(() => expect(screen.getByText("Bleach")).toBeTruthy());
+    expect((screen.getByRole("button", { name: "Weiter" }) as HTMLButtonElement).disabled).toBe(true);
   });
 
   it("contains no Table/TableRow/TableHeaderCell/native form elements", () => {
