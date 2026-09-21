@@ -3,14 +3,14 @@ gsd_state_version: 1.0
 milestone: v1.4
 milestone_name: Coverage
 status: executing
-stopped_at: Completed 165-09-PLAN.md
-last_updated: "2026-09-21T16:04:45.893Z"
+stopped_at: Completed 165-10-PLAN.md
+last_updated: "2026-09-21T16:13:30.601Z"
 last_activity: 2026-09-21
 progress:
   total_phases: 31
   completed_phases: 29
   total_plans: 289
-  completed_plans: 287
+  completed_plans: 288
   percent: 94
 ---
 
@@ -212,7 +212,7 @@ Abschluss" entry below for the full closing record.
 ## Current Position
 
 Phase: 165 (library-discovery-assisted-anime-creation) — EXECUTING
-Plan: 12 of 13
+Plan: 13 of 13
 Status: Ready to execute
 dupliziertem ProjectMemberStickyNav; siehe 157-14-SUMMARY.md)
 GAP-02-Live-UAT-Checkpoint aus 156-UAT.md (5 Origin- + 9 Segment-Contributor-Pruefpunkte) wurde
@@ -1439,6 +1439,8 @@ Last activity: 2026-09-21
 - [Phase 165]: 165-07: connectJellyfinFolderAdditively takes an AuthIdentity param for real audit attribution (D-21), beyond the plan's literal interface text
 - [Phase 165]: 165-07: LinkAdditionalJellyfinSource/RemoveAnimeSourceLink are exported self-transacting wrappers around private tx-scoped anime_source_links.go functions, resolving a plan-internal signature inconsistency
 - [Phase 165]: Discovery-Karte status-mapping laeuft ueber die echte englische Backend-Vokabular (open/existing/partial/ignored), nicht ueber die deutsche filter-Query-Parameter-Vokabular — AdminJellyfinDiscoveryItem.status liefert die DiscoveryStatus*-Konstanten aus 165-06, nicht die filter-Werte offen/bereits_vorhanden/ignoriert/alle - eine woertliche Umsetzung des Plan-Beispieltexts haette das Status-Badge gegen echte API-Antworten stumm auf den Default-Zustand zurueckfallen lassen.
+- [Phase ?]: Plan 165-10: component-local localFolders state for instant row removal on the Jellyfin folder-list, instead of waiting on the parent's async refreshContext() round-trip — onFolderRemoved still fires so the parent section refetches context for the rest of the page
+- [Phase 165]: Plan 165-10: created AnimeJellyfinMetadataSection.test.tsx from scratch (Rule 3 deviation) since the plan referenced a pre-existing test file that did not exist — Needed to make the plan's own Task 2 verify command and acceptance criteria executable
 
 ### Pending Todos
 
@@ -1898,11 +1900,12 @@ untruncated list lives in `.planning/todos/pending/`.
 | Phase 165 P12 | ~20min | 1 tasks | 4 files |
 | Phase 165 P07 | 50min | 2 tasks | 8 files |
 | Phase 165 P09 | 65min | 3 tasks | 11 files |
+| Phase 165 P10 | ~15min | 2 tasks | 6 files |
 
 ## Session Continuity
 
-Last session: 2026-09-21T16:04:45.871Z
-Stopped at: Completed 165-09-PLAN.md
+Last session: 2026-09-21T16:13:30.580Z
+Stopped at: Completed 165-10-PLAN.md
 Last activity: 2026-09-20 - Completed quick task 260920-sad: Vorwärts-Restore-Defekt im bidirektionalen Episoden-Windowing (useWindowedEpisodePages.ts) behoben, 7 neue Regressionstests, keine Phasen-UAT ersetzt.
 Resume file: 
 None

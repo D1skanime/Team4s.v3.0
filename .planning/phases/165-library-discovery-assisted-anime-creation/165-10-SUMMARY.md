@@ -114,3 +114,8 @@ None — no external service configuration required. The `DELETE /admin/anime/:i
 ---
 *Phase: 165-library-discovery-assisted-anime-creation*
 *Completed: 2026-09-21*
+
+## Self-Check: PASSED
+
+All 7 claimed created/modified files verified present on disk; all 3 commit hashes
+(`58aea220`, `11c97d75`, `7b88f6d5`) verified present in `git log --oneline --all`.
