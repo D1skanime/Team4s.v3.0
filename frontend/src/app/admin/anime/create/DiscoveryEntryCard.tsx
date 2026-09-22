@@ -11,20 +11,21 @@ import createStyles from "./page.module.css";
 export function DiscoveryEntryCard() {
   return (
     <Card
-      variant="elevated"
       header={
         <div className={createStyles.resultsTitleBlock}>
           <p className={createStyles.resultsEyebrow}>Neu</p>
           <h3 className={createStyles.resultsTitle}>Aus meiner Bibliothek</h3>
         </div>
       }
+      footer={
+        <Button href="/admin/anime/create/library" variant="primary">
+          Bibliothek durchsuchen
+        </Button>
+      }
     >
       <p className={createStyles.resultsText}>
         Jellyfin-Bibliothek durchsuchen und offene Titel gezielt anlegen.
       </p>
-      <Button href="/admin/anime/create/library" variant="primary">
-        Bibliothek durchsuchen
-      </Button>
     </Card>
   );
 }
