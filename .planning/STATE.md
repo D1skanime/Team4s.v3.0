@@ -3,13 +3,13 @@ gsd_state_version: 1.0
 milestone: v1.4
 milestone_name: Coverage
 status: executing
-stopped_at: Completed 165-11-PLAN.md (D-15 checkpoint deferred, Option C)
-last_updated: "2026-09-21T19:35:00.000Z"
-last_activity: 2026-09-21
+stopped_at: "Completed 165-11-PLAN.md (D-15 checkpoint resolved — Auftraggeber-Entscheidung Option C, deferred; Phase 165 fully terminal: 12 umgesetzt + 1 zurückgestellt)"
+last_updated: "2026-09-22T10:37:37.683Z"
+last_activity: 2026-09-22
 progress:
   total_phases: 31
   completed_phases: 29
-  total_plans: 289
+  total_plans: 295
   completed_plans: 289
   percent: 94
 ---
@@ -214,7 +214,7 @@ Abschluss" entry below for the full closing record.
 Phase: 165 (library-discovery-assisted-anime-creation) — TERMINAL (12 Pläne umgesetzt + 165-11 per
 Auftraggeber-Entscheidung 2026-09-21 zurückgestellt, Option C; kein Plan bleibt offen)
 Plan: 13 of 13 (165-11 reached its checkpoint and resolved to deferral — see 165-11-SUMMARY.md)
-Status: Phase 165 vollständig ausgeführt/entschieden. D-15 (Mehrstaffel-Ordner) bleibt funktional
+Status: Ready to execute
 nicht umgesetzt und ist für eine künftige eigenständige Phase „Mehrstaffel-Ordner" vorgemerkt.
 dupliziertem ProjectMemberStickyNav; siehe 157-14-SUMMARY.md)
 GAP-02-Live-UAT-Checkpoint aus 156-UAT.md (5 Origin- + 9 Segment-Contributor-Pruefpunkte) wurde
@@ -1010,7 +1010,7 @@ timing flakiness, not a Phase 149 regression, and not yet root-caused.
 
 v1.4 remains complete; Phase 149 was appended additively (same pattern as 143-148), no new
 milestone was created.
-Last activity: 2026-09-21
+Last activity: 2026-09-22
 
 ## Accumulated Context
 
