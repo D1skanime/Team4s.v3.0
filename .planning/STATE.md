@@ -3,15 +3,15 @@ gsd_state_version: 1.0
 milestone: v1.4
 milestone_name: Coverage
 status: verifying
-stopped_at: Completed 165-18-PLAN.md
-last_updated: "2026-09-22T11:54:37.161Z"
+stopped_at: Completed 165-19-PLAN.md (D-31, final plan of gap-closure round 165-14..165-19)
+last_updated: "2026-09-22T12:10:34.999Z"
 last_activity: 2026-09-22
 progress:
   total_phases: 31
-  completed_phases: 29
+  completed_phases: 30
   total_plans: 295
-  completed_plans: 294
-  percent: 94
+  completed_plans: 295
+  percent: 97
 ---
 
 # Project State
@@ -216,7 +216,7 @@ from 165-UAT.md, plans 165-14..165-19; 165-14..165-18 done — GAP-07, GAP-09-Ve
 GAP-15, GAP-11, GAP-16, GAP-05, GAP-10, GAP-12, GAP-13, and GAP-06/D-30 all closed — 165-19/D-31
 (GAP-08 candidate-search annotation) remaining)
 Plan: 165-18 of 165-14..165-19 (gap-closure round)
-Status: Phase in progress — 165-19 remaining, then ready for verification
+Status: Phase complete — ready for verification
 nicht umgesetzt und ist für eine künftige eigenständige Phase „Mehrstaffel-Ordner" vorgemerkt.
 dupliziertem ProjectMemberStickyNav; siehe 157-14-SUMMARY.md)
 GAP-02-Live-UAT-Checkpoint aus 156-UAT.md (5 Origin- + 9 Segment-Contributor-Pruefpunkte) wurde
@@ -1453,6 +1453,7 @@ Last activity: 2026-09-22
 - [Phase 165]: 165-17: connect-flag replaces anisearch-prefix sniffing for additive-vs-force-write and audit gating (GAP-05/GAP-13); linkAdditionalJellyfinSource distinguishes idempotent re-link from ownership conflict via repository.ErrConflict -> HTTP 409 (GAP-10); AniSearchDuplicateDecision sends connect:true and navigates away after a successful Verbinden, preserving a validated ?return= link (GAP-12).
 - [Phase 165]: 165-18: syncAnimeSourceLinks konvertiert die globale UNIQUE(source)-Verletzung in repository.ErrConflict; CreateAnime mappt das auf denselben 409-Redirect wie der Save-Time-Pre-Check (D-30/GAP-06).
 - [Phase 165]: 165-18: 'Trotzdem als neuen Anime anlegen' ist an beiden Ausloesepunkten (Enrich() force_new, CreateAnime confirm_duplicate) ersatzlos entfernt, nicht nur deaktiviert (D-30).
+- [Phase 165]: 165-19 (D-31): SearchAniSearchCandidates annotates already-existing AniSearch candidates with ExistingAnimeID/ExistingTitle instead of filtering them out; the connect-decision dead-end (GAP-08) is closed with zero new frontend branching since the existing Enrich() redirect chain already handles selection of a matched candidate. — Reuses the same batched ResolveAdminAnimeRelationTargetsBySources lookup already used for D-03, keeping the fix at exactly one query per search request (no N+1).
 
 ### Pending Todos
 
@@ -1920,11 +1921,12 @@ untruncated list lives in `.planning/todos/pending/`.
 | Phase 165 P16 | 25min | 3 tasks | 6 files |
 | Phase 165 P17 | 70min | 3 tasks | 11 files |
 | Phase 165 P18 | 50min | 2 tasks | 17 files |
+| Phase 165 P19 | ~40min | 2 tasks | 12 files |
 
 ## Session Continuity
 
-Last session: 2026-09-22T11:54:37.142Z
-Stopped at: Completed 165-18-PLAN.md
+Last session: 2026-09-22T12:10:34.985Z
+Stopped at: Completed 165-19-PLAN.md (D-31, final plan of gap-closure round 165-14..165-19)
 Last activity: 2026-09-22 - Completed quick task 260922-cew: Phase-165-Live-UAT-Fixes GAP-01..GAP-04 (Bibliotheks-Übergabe-Blocker, Pager, Bibliotheks-Label, Kartenstil)
 Resume file: 
 None

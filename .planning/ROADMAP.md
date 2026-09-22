@@ -2045,7 +2045,7 @@ Plans:
 **Bekannter Blocker für Live-UAT (kein Task dieser Phase):** `JELLYFIN_ALLOWED_LIBRARY_IDS=5` in der Live-`.env` ist keine gültige Jellyfin-12-Bibliotheks-GUID (RESEARCH.md Pitfall 1); die korrekte GUID lautet `5f65d0c8bdd71b782fc98205814a0d76`. Konfigurationsänderung, kein Agenten-Task.
 **D-15-Hinweis (aufgelöst 2026-09-21):** 165-11 war isoliert (letzte Wave, keine Dependents, aber Dependencies auf 165-01/165-06/165-09, deren Dateien additiv erweitert wurden) und begann mit einem blockierenden Checkpoint (Schema-Wahl für die Staffel→Anime-Zuordnung). Der Auftraggeber wählte am Checkpoint **Option C: D-15 komplett zurückgestellt** (keine Tabelle, keine Migration, keine Semantikänderung, kein Staffel-Batch-Fetch) — Begründung: nur 27 von 2111 Serien betroffen, Staffel-Fetch würde jedes Neuladen um ~28 s verlängern. Details und Wortlaut: 165-CONTEXT.md D-15-Nachtrag, `165-11-SUMMARY.md`. Die übrigen zwölf Pläne lieferten und funktionieren vollständig unabhängig davon — D-15 selbst bleibt **funktional nicht umgesetzt** und ist für eine künftige eigenständige Phase „Mehrstaffel-Ordner" vorgemerkt (noch nicht in dieser Roadmap eingeplant).
 **UI hint:** yes
-**Plans:** 18/19 plans executed
+**Plans:** 19/19 plans complete
 
   - Wave 1: 165-01 (Discovery-Snapshot-Cache/Cursor/Status-Resolver), 165-02 (Ignore-Tabelle Migration+Repo), 165-03 (D-20 Save-Time-Dublettencheck Backend), 165-04 (D-14 Episode-Import-Ordnerauswahl, fail-closed), 165-05 (Create-Page Entry-Card/Return-Link/Redirect-Helper)
   - Wave 2: 165-06 (Discovery-Listen-Handler + Ignorieren/Entignorieren + Audit + D-24 library_context), 165-08 (Create-Page-Integration + AniSearch-Verbinden/Neu-Entscheidung + D-23-Fix), 165-12 (D-11 Return-Link auf Episoden-/Edit-Seite), 165-13 (D-23 Backend ForceNew-Bypass für Enrich())
@@ -2098,7 +2098,7 @@ Plans:
 
 **Wave 8 — Gap-Closure** *(blocked on 165-18)*
 
-- [ ] 165-19-PLAN.md — GAP-08/D-31: AniSearch-Kandidatensuche zeigt bereits vorhandene Anime mit Hinweis statt sie auszufiltern.
+- [x] 165-19-PLAN.md — GAP-08/D-31: AniSearch-Kandidatensuche zeigt bereits vorhandene Anime mit Hinweis statt sie auszufiltern.
 
 ## Coverage — Phase 165
 

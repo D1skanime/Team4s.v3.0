@@ -245,3 +245,8 @@ None -- no external service configuration required. Reused the existing `team4s_
 ---
 *Phase: 165-library-discovery-assisted-anime-creation*
 *Completed: 2026-09-22*
+
+## Self-Check: PASSED
+
+All 12 created/modified files found on disk (13 including this SUMMARY.md); all three commit
+hashes (`67583344`, `7eccf8db`, `89f7b050`) found in `git log`.
