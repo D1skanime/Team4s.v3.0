@@ -2,15 +2,15 @@
 gsd_state_version: 1.0
 milestone: v1.4
 milestone_name: Coverage
-status: executing
-stopped_at: Completed 165-15-PLAN.md (GAP-14/GAP-15 backend Discovery-listing fixes)
-last_updated: "2026-09-22T11:12:31.889Z"
+status: verifying
+stopped_at: Completed 165-16-PLAN.md (GAP-11/GAP-09/GAP-16 frontend gap closures)
+last_updated: "2026-09-22T11:22:51.520Z"
 last_activity: 2026-09-22
 progress:
   total_phases: 31
   completed_phases: 29
   total_plans: 295
-  completed_plans: 291
+  completed_plans: 292
   percent: 94
 ---
 
@@ -215,7 +215,7 @@ Phase: 165 (library-discovery-assisted-anime-creation) — EXECUTING (gap-closur
 from 165-UAT.md, plans 165-14..165-19; 165-14/GAP-07 and 165-15/GAP-09-Verifikation+GAP-14+GAP-15
 done, 165-16..165-19 remaining)
 Plan: 165-15 of 165-14..165-19 (gap-closure round)
-Status: 165-15 committed (5c9d962d, c4e25836); next gap-closure plan (165-16) not yet started
+Status: Phase complete — ready for verification
 nicht umgesetzt und ist für eine künftige eigenständige Phase „Mehrstaffel-Ordner" vorgemerkt.
 dupliziertem ProjectMemberStickyNav; siehe 157-14-SUMMARY.md)
 GAP-02-Live-UAT-Checkpoint aus 156-UAT.md (5 Origin- + 9 Segment-Contributor-Pruefpunkte) wurde
@@ -1447,6 +1447,8 @@ Last activity: 2026-09-22
 - [Phase 165]: 165-11: D-15 (Jellyfin Mehrstaffel→Anime-Zuordnung) zurückgestellt per Auftraggeber-Entscheidung 2026-09-21, Option C von drei am 165-11-Checkpoint vorgelegten Schema-Optionen — keine Tabelle, keine Migration, keine Semantikänderung an anime_source_links, kein Staffel-Batch-Fetch. Begründung: nur 27 von 2111 Serien betroffen, Staffel-Fetch würde jedes Neuladen um ~28s verlängern. Das bereits gebaute, getestete "teilweise"-Gerüst (165-01 resolveDiscoveryItemStatus-Truth-Table, 165-09 Frontend-Badge/Caption) bleibt als inertes, dokumentiertes Gerüst erhalten statt entfernt zu werden — partial bleibt im Handler hart auf false. Wiederaufnahme in einer künftigen eigenständigen Phase "Mehrstaffel-Ordner".
 - [Phase 165]: 165-14 (GAP-07): PreviewEpisodeImport now resolves the folder-filter path via a single getJellyfinSeriesByID lookup, only for explicit non-main jellyfin_series_id selections; extracted to sibling file admin_episode_import_folder_filter.go to avoid growing the already-oversized admin_episode_import.go
 - [Phase 165]: 165-15: Discovery-Suche filtert nur Titel/Ordnername (GAP-14); gleichzeitige Snapshot-Rebuilds per singleflight.Group gebuendelt (GAP-15); GAP-09-Backend-Fix bestaetigt intakt
+- [Phase 165]: GAP-11 hist URL param decode uses strict raw===null check (not falsy) to distinguish absent param from present-but-empty (single-entry history)
+- [Phase 165]: DiscoveryLibraryPanel.test.tsx next/navigation mock rewritten to useSyncExternalStore-backed reactive store after GAP-11 removed the hook's local cursorHistory state (Rule 1 test-infra fix)
 
 ### Pending Todos
 
@@ -1911,11 +1913,12 @@ untruncated list lives in `.planning/todos/pending/`.
 | Phase 165 P11 | 25min | 1 tasks (checkpoint resolved to option-c; Tasks 2-4 never executed) | 6 files |
 | Phase 165 P14 | 12min | 1 tasks | 4 files |
 | Phase 165 P15 | 40min | 2 tasks | 6 files |
+| Phase 165 P16 | 25min | 3 tasks | 6 files |
 
 ## Session Continuity
 
-Last session: 2026-09-22T11:12:31.867Z
-Stopped at: Completed 165-15-PLAN.md (GAP-14/GAP-15 backend Discovery-listing fixes)
+Last session: 2026-09-22T11:22:51.496Z
+Stopped at: Completed 165-16-PLAN.md (GAP-11/GAP-09/GAP-16 frontend gap closures)
 Last activity: 2026-09-22 - Completed quick task 260922-cew: Phase-165-Live-UAT-Fixes GAP-01..GAP-04 (Bibliotheks-Übergabe-Blocker, Pager, Bibliotheks-Label, Kartenstil)
 Resume file: 
 None
