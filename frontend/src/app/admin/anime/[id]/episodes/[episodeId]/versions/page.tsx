@@ -13,6 +13,7 @@ import {
 } from "@/lib/api";
 import { PlatformAdminGate } from "@/components/auth/PlatformAdminGate";
 import { Input } from "@/components/ui/Input";
+import { useConfirmDialog } from "@/components/ui";
 import { useAuthSession } from "@/lib/useAuthSession";
 import { AnimeDetail, EpisodeListItem } from "@/types/anime";
 import {
@@ -96,6 +97,7 @@ function AdminAnimeEpisodeVersionsContent() {
   );
 
   const { hasAccessToken } = useAuthSession();
+  const { confirm, confirmDialog } = useConfirmDialog();
   const [anime, setAnime] = useState<AnimeDetail | null>(null);
   const [episode, setEpisode] = useState<EpisodeListItem | null>(null);
   const [groupedEpisode, setGroupedEpisode] = useState<GroupedEpisode | null>(
@@ -302,9 +304,12 @@ function AdminAnimeEpisodeVersionsContent() {
       return;
     }
 
-    const confirmed = window.confirm(
-      `Version #${version.id} wirklich löschen?\n\nDie Episode bleibt erhalten, nur diese Version wird entfernt.`,
-    );
+    const confirmed = await confirm({
+      title: `Version #${version.id} wirklich löschen?`,
+      description: "Die Episode bleibt erhalten, nur diese Version wird entfernt.",
+      confirmLabel: "Löschen",
+      tone: "danger",
+    });
     if (!confirmed) return;
 
     setDeletingVersionID(version.id);
@@ -678,6 +683,7 @@ function AdminAnimeEpisodeVersionsContent() {
           </section>
         </>
       ) : null}
+      {confirmDialog}
     </main>
   );
 }

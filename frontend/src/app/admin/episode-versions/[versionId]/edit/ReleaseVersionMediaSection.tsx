@@ -5,7 +5,7 @@ import { ImageIcon, Star, Trash2 } from 'lucide-react'
 
 import { CATEGORY_ALLOWS_PREVIEW, ReleaseVersionMediaCategory, ReleaseVersionMediaItem } from '@/types/releaseVersionMedia'
 
-import { Badge, Button, Drawer, FormField, Input, Textarea } from '@/components/ui'
+import { Badge, Button, Drawer, FormField, Input, Textarea, useConfirmDialog } from '@/components/ui'
 import { UploadFileDraft, useReleaseVersionMedia, UseReleaseVersionMediaResult } from './useReleaseVersionMedia'
 import { ReleaseVersionMediaUploadQueue } from './ReleaseVersionMediaUploadQueue'
 import { ReleaseVersionMediaReplaceControls } from './ReleaseVersionMediaReplaceControls'
@@ -74,6 +74,7 @@ export function ReleaseVersionMediaSection({
   const internalMedia = useReleaseVersionMedia(versionId)
   const media = mediaState ?? internalMedia
   const persistedItems = useMemo(() => (Array.isArray(media.items) ? media.items : []), [media.items])
+  const { confirm, confirmDialog } = useConfirmDialog()
 
   const [uploadCategory, setUploadCategory] = useState<ReleaseVersionMediaCategory>('screenshot')
   const [isUploadOpen, setIsUploadOpen] = useState(false)
@@ -342,7 +343,11 @@ export function ReleaseVersionMediaSection({
 
   async function handleDeleteSelectedItem() {
     if (!selectedItem || !canDeleteSelectedItem) return
-    const confirmed = window.confirm('Dieses Medium aus der Release-Version entfernen?')
+    const confirmed = await confirm({
+      title: 'Dieses Medium aus der Release-Version entfernen?',
+      confirmLabel: 'Entfernen',
+      tone: 'danger',
+    })
     if (!confirmed) return
 
     setEditError(null)
@@ -653,6 +658,7 @@ export function ReleaseVersionMediaSection({
           </div>
         ) : null}
       </Drawer>
+      {confirmDialog}
     </section>
   )
 }

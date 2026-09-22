@@ -533,7 +533,6 @@ describe('ReleaseVersionMediaSection Phase 90 upload redesign', () => {
 
   it('uses own-delete capability for the delete action without requiring all-delete', async () => {
     const deleteItem = vi.fn().mockResolvedValue(undefined)
-    vi.spyOn(window, 'confirm').mockReturnValue(true)
 
     renderSection(
       makeMediaState({
@@ -554,6 +553,9 @@ describe('ReleaseVersionMediaSection Phase 90 upload redesign', () => {
     fireEvent.click(screen.getByRole('button', { name: /Own upload bearbeiten/i }))
     const dialog = await screen.findByRole('dialog', { name: 'Medium bearbeiten' })
     fireEvent.click(within(dialog).getByRole('button', { name: 'Löschen' }))
+
+    const confirmDialog = await screen.findByRole('dialog', { name: 'Dieses Medium aus der Release-Version entfernen?' })
+    fireEvent.click(within(confirmDialog).getByRole('button', { name: 'Entfernen' }))
 
     await waitFor(() => expect(deleteItem).toHaveBeenCalledWith(41))
   })

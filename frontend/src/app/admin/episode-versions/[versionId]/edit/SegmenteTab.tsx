@@ -3,8 +3,9 @@
 import { useEffect, useState } from 'react'
 import { Plus } from 'lucide-react'
 
+import { useConfirmDialog } from '@/components/ui'
 import { useReleaseSegments } from './useReleaseSegments'
-import { isCurrentEpisodeAssigned, isSegmentActiveForEpisode, useSegmentOverrideHandlers } from './SegmenteTab.helpers'
+import { formatTimeInput, isCurrentEpisodeAssigned, isSegmentActiveForEpisode, useSegmentOverrideHandlers } from './SegmenteTab.helpers'
 import {
   EMPTY_FORM,
   getDefaultSegmentEndSeconds,
@@ -12,20 +13,13 @@ import {
   buildSegmentPreviewStreamHref,
   validateSegmentFormInput,
 } from './SegmenteTab.formHelpers'
-import { formatTimeInput } from './SegmenteTab.helpers'
-import { SegmentEditPanel } from './SegmentEditPanel'
-import type { FormState } from './SegmentEditPanel'
+import { SegmentEditPanel, type FormState } from './SegmentEditPanel'
 import { SegmentsListSection } from './SegmentsListSection'
 import { useSegmentAssetHandlers } from './useSegmentAssetHandlers'
 import { useSegmentContributors } from './useSegmentContributors'
 import { getAnimeSegmentSuggestions, setAnimeSegmentOrigin, uploadSegmentAsset } from '@/lib/api'
 import { useAuthSession } from '@/lib/useAuthSession'
-import type {
-  AdminThemeSegment,
-  AdminThemeSegmentCreateRequest,
-  AdminThemeSegmentPatchRequest,
-  AdminThemeSegmentMutationResponse,
-} from '@/types/admin'
+import type { AdminThemeSegment, AdminThemeSegmentCreateRequest, AdminThemeSegmentPatchRequest, AdminThemeSegmentMutationResponse } from '@/types/admin'
 import type { EpisodeVersionChapterHint } from '@/types/episodeVersion'
 import styles from './SegmenteTab.module.css'
 
@@ -65,6 +59,7 @@ export function SegmenteTab({ animeId, groupId, version, episodeNumber, duration
 
   const { hasAccessToken, hasRefreshToken } = useAuthSession()
   const hasAuthSession = hasAccessToken || hasRefreshToken
+  const { confirm, confirmDialog } = useConfirmDialog()
   const [suggestions, setSuggestions] = useState<AdminThemeSegment[]>([])
   const [suggestionsLoading, setSuggestionsLoading] = useState(false)
   const [assignmentBusySegmentId, setAssignmentBusySegmentId] = useState<number | null>(null)
@@ -100,6 +95,7 @@ export function SegmenteTab({ animeId, groupId, version, episodeNumber, duration
     handleAssetUpload,
     handleAssetDelete,
     handleAttachReuseCandidate,
+    confirmDialog: assetConfirmDialog,
   } = useSegmentAssetHandlers({
     animeId,
     groupId,
@@ -317,8 +313,7 @@ export function SegmenteTab({ animeId, groupId, version, episodeNumber, duration
   }
 
   async function handleDelete(segment: AdminThemeSegment) {
-    const confirmed = window.confirm('Segment wirklich löschen?')
-    if (!confirmed) return
+    if (!await confirm({ title: 'Segment wirklich löschen?', confirmLabel: 'Löschen', tone: 'danger' })) return
     await remove(segment.id)
   }
 
@@ -445,6 +440,7 @@ export function SegmenteTab({ animeId, groupId, version, episodeNumber, duration
           onAttachReuseCandidate={(candidate) => void handleAttachReuseCandidate(candidate)}
         />
       ) : null}
+      {confirmDialog}{assetConfirmDialog}
     </div>
   )
 }

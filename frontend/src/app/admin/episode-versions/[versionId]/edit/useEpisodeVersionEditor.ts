@@ -10,6 +10,7 @@ import {
   scanEpisodeVersionFolder,
   updateEpisodeVersion,
 } from '@/lib/api'
+import { useConfirmDialog } from '@/components/ui'
 import { useAuthSession } from '@/lib/useAuthSession'
 import { EpisodeVersionEditorContext, EpisodeVersionMediaFile, EpisodeVersionPatchRequest } from '@/types/episodeVersion'
 import { FansubGroup, FansubGroupSummary } from '@/types/fansub'
@@ -35,6 +36,7 @@ export function useEpisodeVersionEditor() {
   const versionID = useMemo(() => parsePositiveInt((params.versionId || '').trim()), [params.versionId])
   const { hasAccessToken, hasRefreshToken, isClientInitialized } = useAuthSession()
   const hasAuthSession = hasAccessToken || hasRefreshToken
+  const { confirm, confirmDialog } = useConfirmDialog()
   const [contextData, setContextData] = useState<EpisodeVersionEditorContext | null>(null)
   const [formState, setFormState] = useState<FormState>({
     title: '',
@@ -359,7 +361,12 @@ export function useEpisodeVersionEditor() {
       return
     }
 
-    const ok = window.confirm(`Version #${versionID} wirklich löschen?\n\nEpisode bleibt erhalten, nur diese Version wird entfernt.`)
+    const ok = await confirm({
+      title: `Version #${versionID} wirklich löschen?`,
+      description: 'Episode bleibt erhalten, nur diese Version wird entfernt.',
+      confirmLabel: 'Löschen',
+      tone: 'danger',
+    })
     if (!ok) return
 
     setIsDeleting(true)
@@ -404,5 +411,6 @@ export function useEpisodeVersionEditor() {
     removeGroup,
     handleSave,
     handleDelete,
+    confirmDialog,
   }
 }

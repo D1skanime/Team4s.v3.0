@@ -10,6 +10,7 @@ import {
 } from '@/types/releaseVersionMedia'
 import { FormField } from '@/components/ui/FormField'
 import { Textarea } from '@/components/ui/Textarea'
+import { useConfirmDialog } from '@/components/ui'
 
 import styles from './ReleaseVersionMediaSection.module.css'
 
@@ -44,6 +45,7 @@ export function ReleaseVersionMediaDetailPanel({
   const [isSaving, setIsSaving] = useState(false)
   const [isDeleting, setIsDeleting] = useState(false)
   const captionFieldId = `release-media-caption-${item.id}`
+  const { confirm, confirmDialog } = useConfirmDialog()
 
   useEffect(() => {
     setCaption(item.caption ?? '')
@@ -75,7 +77,12 @@ export function ReleaseVersionMediaDetailPanel({
   }
 
   async function handleDelete() {
-    if (!window.confirm('Dieses Medium wirklich entfernen?')) {
+    const confirmed = await confirm({
+      title: 'Dieses Medium wirklich entfernen?',
+      confirmLabel: 'Entfernen',
+      tone: 'danger',
+    })
+    if (!confirmed) {
       return
     }
 
@@ -158,6 +165,7 @@ export function ReleaseVersionMediaDetailPanel({
           {isDeleting ? 'Löschen...' : 'Medium löschen'}
         </button>
       </div>
+      {confirmDialog}
     </aside>
   )
 }

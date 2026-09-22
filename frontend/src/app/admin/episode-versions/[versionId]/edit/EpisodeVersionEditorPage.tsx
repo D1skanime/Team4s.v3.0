@@ -941,6 +941,7 @@ export function EpisodeVersionEditorPage() {
           </form>
         ) : null}
       </div>
+      {editor.confirmDialog}
     </main>
   );
 }

@@ -2,6 +2,7 @@
 
 import { useEffect, useState } from 'react'
 
+import { useConfirmDialog } from '@/components/ui'
 import {
   attachSegmentLibraryAsset,
   deleteSegmentAsset,
@@ -49,6 +50,7 @@ export function useSegmentAssetHandlers({
   const [isLoadingReuseCandidates, setIsLoadingReuseCandidates] = useState(false)
   const [reuseError, setReuseError] = useState<string | null>(null)
   const [isAttachingReuse, setIsAttachingReuse] = useState(false)
+  const { confirm, confirmDialog } = useConfirmDialog()
 
   useEffect(() => {
     if (!panelOpen || !editingSegment || !animeId || !groupId || !hasAuthSession) {
@@ -107,7 +109,11 @@ export function useSegmentAssetHandlers({
 
   async function handleAssetDelete() {
     if (!animeId || !editingSegment || !hasAuthSession) return
-    const confirmed = window.confirm('Segment-Datei wirklich entfernen? Die Quelldaten werden auf "Keine Quelle" zurückgesetzt.')
+    const confirmed = await confirm({
+      title: 'Segment-Datei wirklich entfernen? Die Quelldaten werden auf "Keine Quelle" zurückgesetzt.',
+      confirmLabel: 'Entfernen',
+      tone: 'danger',
+    })
     if (!confirmed) return
     setIsDeletingAsset(true)
     setUploadError(null)
@@ -164,5 +170,6 @@ export function useSegmentAssetHandlers({
     handleAssetUpload,
     handleAssetDelete,
     handleAttachReuseCandidate,
+    confirmDialog,
   }
 }

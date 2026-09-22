@@ -3,7 +3,7 @@
 import { useEffect, useState } from 'react'
 import { X } from 'lucide-react'
 
-import { FormField, Select } from '@/components/ui'
+import { FormField, Select, useConfirmDialog } from '@/components/ui'
 import type {
   AdminThemeSegment,
   AdminSegmentSourceType,
@@ -123,6 +123,7 @@ export function SegmentEditPanel({
       : false
   const [overrideEnabled, setOverrideEnabled] = useState(currentReleaseHasOverride)
   const [overrideStartTime, setOverrideStartTime] = useState(editingSegment?.start_time ?? '')
+  const { confirm, confirmDialog } = useConfirmDialog()
 
   // Override-Zustand pro geoeffnetem Segment zuruecksetzen (Panel-Instanz bleibt beim
   // Wechsel des editingSegment gemountet, siehe SegmenteTab.tsx openEditPanel/openAddPanel).
@@ -203,10 +204,11 @@ export function SegmentEditPanel({
     setOverrideEnabled(next)
   }
 
-  function handleRemoveOverrideClick() {
-    const confirmed = window.confirm(
-      `Override entfernen? Folge ${currentEpisodeLabel} verwendet danach wieder die Basis-Zeit des geteilten Segments.`,
-    )
+  async function handleRemoveOverrideClick() {
+    const confirmed = await confirm({
+      title: `Override entfernen? Folge ${currentEpisodeLabel} verwendet danach wieder die Basis-Zeit des geteilten Segments.`,
+      confirmLabel: 'Entfernen',
+    })
     if (confirmed) onRemoveOverride()
   }
 
@@ -389,6 +391,7 @@ export function SegmentEditPanel({
           </button>
         </div>
       </div>
+      {confirmDialog}
     </>
   )
 }
