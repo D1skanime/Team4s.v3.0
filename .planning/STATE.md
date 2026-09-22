@@ -3,14 +3,14 @@ gsd_state_version: 1.0
 milestone: v1.4
 milestone_name: Coverage
 status: executing
-stopped_at: "Completed 165-11-PLAN.md (D-15 checkpoint resolved — Auftraggeber-Entscheidung Option C, deferred; Phase 165 fully terminal: 12 umgesetzt + 1 zurückgestellt)"
-last_updated: "2026-09-22T10:37:37.683Z"
+stopped_at: Completed 165-14-PLAN.md (GAP-07 folder-scoped episode-import preview fix)
+last_updated: "2026-09-22T10:57:19.422Z"
 last_activity: 2026-09-22
 progress:
   total_phases: 31
   completed_phases: 29
   total_plans: 295
-  completed_plans: 289
+  completed_plans: 290
   percent: 94
 ---
 
@@ -211,10 +211,10 @@ Abschluss" entry below for the full closing record.
 
 ## Current Position
 
-Phase: 165 (library-discovery-assisted-anime-creation) — TERMINAL (12 Pläne umgesetzt + 165-11 per
-Auftraggeber-Entscheidung 2026-09-21 zurückgestellt, Option C; kein Plan bleibt offen)
-Plan: 13 of 13 (165-11 reached its checkpoint and resolved to deferral — see 165-11-SUMMARY.md)
-Status: Ready to execute
+Phase: 165 (library-discovery-assisted-anime-creation) — EXECUTING (gap-closure round GAP-05..GAP-16
+from 165-UAT.md, plans 165-14..165-19; 165-14/GAP-07 done, 165-15..165-19 remaining)
+Plan: 165-14 of 165-14..165-19 (gap-closure round)
+Status: 165-14 committed (84a92c14); next gap-closure plan not yet started
 nicht umgesetzt und ist für eine künftige eigenständige Phase „Mehrstaffel-Ordner" vorgemerkt.
 dupliziertem ProjectMemberStickyNav; siehe 157-14-SUMMARY.md)
 GAP-02-Live-UAT-Checkpoint aus 156-UAT.md (5 Origin- + 9 Segment-Contributor-Pruefpunkte) wurde
@@ -1444,6 +1444,7 @@ Last activity: 2026-09-22
 - [Phase ?]: Plan 165-10: component-local localFolders state for instant row removal on the Jellyfin folder-list, instead of waiting on the parent's async refreshContext() round-trip — onFolderRemoved still fires so the parent section refetches context for the rest of the page
 - [Phase 165]: Plan 165-10: created AnimeJellyfinMetadataSection.test.tsx from scratch (Rule 3 deviation) since the plan referenced a pre-existing test file that did not exist — Needed to make the plan's own Task 2 verify command and acceptance criteria executable
 - [Phase 165]: 165-11: D-15 (Jellyfin Mehrstaffel→Anime-Zuordnung) zurückgestellt per Auftraggeber-Entscheidung 2026-09-21, Option C von drei am 165-11-Checkpoint vorgelegten Schema-Optionen — keine Tabelle, keine Migration, keine Semantikänderung an anime_source_links, kein Staffel-Batch-Fetch. Begründung: nur 27 von 2111 Serien betroffen, Staffel-Fetch würde jedes Neuladen um ~28s verlängern. Das bereits gebaute, getestete "teilweise"-Gerüst (165-01 resolveDiscoveryItemStatus-Truth-Table, 165-09 Frontend-Badge/Caption) bleibt als inertes, dokumentiertes Gerüst erhalten statt entfernt zu werden — partial bleibt im Handler hart auf false. Wiederaufnahme in einer künftigen eigenständigen Phase "Mehrstaffel-Ordner".
+- [Phase 165]: 165-14 (GAP-07): PreviewEpisodeImport now resolves the folder-filter path via a single getJellyfinSeriesByID lookup, only for explicit non-main jellyfin_series_id selections; extracted to sibling file admin_episode_import_folder_filter.go to avoid growing the already-oversized admin_episode_import.go
 
 ### Pending Todos
 
@@ -1906,11 +1907,12 @@ untruncated list lives in `.planning/todos/pending/`.
 | Phase 165 P09 | 65min | 3 tasks | 11 files |
 | Phase 165 P10 | ~15min | 2 tasks | 6 files |
 | Phase 165 P11 | 25min | 1 tasks (checkpoint resolved to option-c; Tasks 2-4 never executed) | 6 files |
+| Phase 165 P14 | 12min | 1 tasks | 4 files |
 
 ## Session Continuity
 
-Last session: 2026-09-21T19:35:00Z
-Stopped at: Completed 165-11-PLAN.md (D-15 checkpoint resolved — Auftraggeber-Entscheidung Option C, deferred; Phase 165 fully terminal: 12 umgesetzt + 1 zurückgestellt)
+Last session: 2026-09-22T10:57:19.397Z
+Stopped at: Completed 165-14-PLAN.md (GAP-07 folder-scoped episode-import preview fix)
 Last activity: 2026-09-22 - Completed quick task 260922-cew: Phase-165-Live-UAT-Fixes GAP-01..GAP-04 (Bibliotheks-Übergabe-Blocker, Pager, Bibliotheks-Label, Kartenstil)
 Resume file: 
 None
