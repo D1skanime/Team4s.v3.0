@@ -260,6 +260,55 @@ func TestJellyfinDiscovery_NoFuzzyMatchBetweenSimilarTitles(t *testing.T) {
 	}
 }
 
+// --- Test C2: GAP-14 — Suche trifft nur Titel/Ordnername, nie das geteilte Pfad-Praefix -------
+
+// TestJellyfinDiscovery_SearchMatchesTitleOrFolderNameNotFullPath proves GAP-14: two snapshot
+// items share the path prefix "/media/Anime/Serie/Anime.TV.Sub/". Searching for that shared
+// prefix segment ("media") must return zero entries (pre-fix behaviour matched almost
+// everything via item.Path). Searching the title still works, and searching a fragment that
+// only exists in the folder's OWN basename (not the title) still works too — proving the
+// folder-basename check, not a full-path substring match.
+func TestJellyfinDiscovery_SearchMatchesTitleOrFolderNameNotFullPath(t *testing.T) {
+	server := newDiscoverySnapshotServer([]map[string]any{
+		{"Id": "naruto-x", "Name": "Naruto", "Path": "/media/Anime/Serie/Anime.TV.Sub/Naruto"},
+		{"Id": "bleach-x", "Name": "Bleach", "Path": "/media/Anime/Serie/Anime.TV.Sub/Bleach.Legacy.Sub"},
+	})
+	defer server.Close()
+
+	existingRepo := &fakeDiscoveryExistingMatchRepo{}
+	ignoreRepo := &fakeLibraryDiscoveryIgnoreRepo{}
+	handler := newDiscoveryTestHandler(server.URL, server.Client(), existingRepo, ignoreRepo)
+	router := newDiscoveryTestRouter(handler)
+
+	// Shared path-prefix segment: today matches nothing, GAP-14 fixed behaviour.
+	code, body := performDiscoveryListRequest(t, router, "/api/v1/admin/jellyfin/discovery?filter=alle&q=media")
+	if code != http.StatusOK {
+		t.Fatalf("expected 200, got %d", code)
+	}
+	if len(body.Data.Items) != 0 {
+		t.Fatalf("expected 0 items for a shared path-prefix query, got %d (%+v)", len(body.Data.Items), body.Data.Items)
+	}
+
+	// Title match.
+	code, body = performDiscoveryListRequest(t, router, "/api/v1/admin/jellyfin/discovery?filter=alle&q=naruto")
+	if code != http.StatusOK {
+		t.Fatalf("expected 200, got %d", code)
+	}
+	if len(body.Data.Items) != 1 || body.Data.Items[0].JellyfinItemID != "naruto-x" {
+		t.Fatalf("expected exactly the Naruto title match, got %+v", body.Data.Items)
+	}
+
+	// Folder-basename match: "legacy" is in the folder name ("Bleach.Legacy.Sub") but not in
+	// the title ("Bleach") — proves the folder-basename check, not the title check, matched.
+	code, body = performDiscoveryListRequest(t, router, "/api/v1/admin/jellyfin/discovery?filter=alle&q=legacy")
+	if code != http.StatusOK {
+		t.Fatalf("expected 200, got %d", code)
+	}
+	if len(body.Data.Items) != 1 || body.Data.Items[0].JellyfinItemID != "bleach-x" {
+		t.Fatalf("expected exactly the Bleach folder-basename match, got %+v", body.Data.Items)
+	}
+}
+
 // --- Test D: D-24 library_context -------------------------------------------------------------
 
 func TestJellyfinDiscovery_LibraryContext_D24(t *testing.T) {

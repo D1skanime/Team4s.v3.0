@@ -18,6 +18,7 @@ import (
 	"context"
 	"log"
 	"net/http"
+	"path"
 	"sort"
 	"strconv"
 	"strings"
@@ -122,14 +123,21 @@ func (h *AdminContentHandler) ListJellyfinDiscovery(c *gin.Context) {
 // buildSortedJellyfinDiscoveryEntries wendet den `q`-Freitextfilter in-memory auf den
 // vollstaendigen Snapshot an (kein DB LIKE) und sortiert das Ergebnis nach (Name
 // case-insensitive, JellyfinItemID) — der von SeekDiscoverySnapshot vorausgesetzten Ordnung.
+//
+// Der Freitextfilter prueft NUR den Titel (item.Name) und den eigenen Ordnernamen (letztes
+// Pfadsegment von item.Path, dieselbe path.Base(strings.ReplaceAll(...))-Konvention wie
+// episodeImportFileName in admin_episode_import.go) — NIE den vollen item.Path. Ein gemeinsames
+// Eltern-Praefix wie "/media/Anime/Serie/Anime.TV.Sub/" wuerde sonst fast jeden Eintrag treffen
+// und die Suche effektiv nutzlos machen (GAP-14, 165-UAT.md).
 func buildSortedJellyfinDiscoveryEntries(snapshot []jellyfinSeriesItem, query string) []jellyfinDiscoverySnapshotEntry {
 	lowerQuery := strings.ToLower(strings.TrimSpace(query))
 
 	entries := make([]jellyfinDiscoverySnapshotEntry, 0, len(snapshot))
 	for _, item := range snapshot {
+		folderName := path.Base(strings.ReplaceAll(strings.TrimSpace(item.Path), "\\", "/"))
 		if lowerQuery != "" &&
 			!strings.Contains(strings.ToLower(item.Name), lowerQuery) &&
-			!strings.Contains(strings.ToLower(item.Path), lowerQuery) {
+			!strings.Contains(strings.ToLower(folderName), lowerQuery) {
 			continue
 		}
 		entries = append(entries, jellyfinDiscoverySnapshotEntry{item: item})
