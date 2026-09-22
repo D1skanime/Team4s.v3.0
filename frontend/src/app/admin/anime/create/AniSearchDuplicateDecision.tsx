@@ -11,11 +11,13 @@
 // die uebrigen nativen Elemente in CreateAniSearchIntakeCard.tsx gilt hier nicht.
 
 import { useState } from "react";
+import { useSearchParams } from "next/navigation";
 
 import { Button } from "@/components/ui";
 import { applyAdminAnimeMetadataFromJellyfin, ApiError } from "@/lib/api";
 import styles from "../../admin.module.css";
 import type { CreateAniSearchConflictState } from "./createAniSearchControllerHelpers";
+import { isValidDiscoveryReturnURL } from "./DiscoveryReturnLink";
 
 export interface AniSearchDuplicateDecisionProps {
   conflict: CreateAniSearchConflictState;
@@ -30,6 +32,7 @@ export function AniSearchDuplicateDecision({
   activeJellyfinSeriesID,
   onCreateAsNew,
 }: AniSearchDuplicateDecisionProps) {
+  const searchParams = useSearchParams();
   const [isConnecting, setIsConnecting] = useState(false);
   const [connectError, setConnectError] = useState<string | null>(null);
   const [connectedTitle, setConnectedTitle] = useState<string | null>(null);
@@ -53,8 +56,18 @@ export function AniSearchDuplicateDecision({
     try {
       await applyAdminAnimeMetadataFromJellyfin(conflict.existingAnimeID, {
         jellyfin_series_id: activeJellyfinSeriesID,
+        connect: true,
       });
       setConnectedTitle(conflict.existingTitle);
+
+      // GAP-12: leave the (now-stale) create draft after a successful connect instead of
+      // staying on it, preserving the discovery return-link when present and valid
+      // (same open-redirect contract as DiscoveryReturnLink itself).
+      const returnURL = searchParams.get("return");
+      const target = isValidDiscoveryReturnURL(returnURL)
+        ? `${conflict.redirectPath}?return=${encodeURIComponent(returnURL as string)}`
+        : conflict.redirectPath;
+      window.location.href = target;
     } catch (error) {
       setConnectError(
         error instanceof ApiError

@@ -1,7 +1,7 @@
 // @vitest-environment jsdom
 
 import { cleanup, fireEvent, render, screen, waitFor } from "@testing-library/react";
-import { afterEach, describe, expect, it, vi } from "vitest";
+import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 
 import { Button } from "@/components/ui";
 import { applyAdminAnimeMetadataFromJellyfin } from "@/lib/api";
@@ -18,6 +18,32 @@ vi.mock("@/lib/api", () => ({
     }
   },
 }));
+
+const navigationMocks = vi.hoisted(() => ({
+  search: "",
+}));
+
+vi.mock("next/navigation", () => ({
+  useSearchParams: () => new URLSearchParams(navigationMocks.search),
+}));
+
+let currentLocationHref = "http://localhost/admin/anime/create";
+
+beforeEach(() => {
+  navigationMocks.search = "";
+  currentLocationHref = "http://localhost/admin/anime/create";
+  Object.defineProperty(window, "location", {
+    configurable: true,
+    value: {
+      get href() {
+        return currentLocationHref;
+      },
+      set href(value: string) {
+        currentLocationHref = value;
+      },
+    },
+  });
+});
 
 afterEach(() => {
   cleanup();
@@ -96,7 +122,7 @@ describe("AniSearchDuplicateDecision", () => {
     ).not.toBeNull();
   });
 
-  it("connects the active Jellyfin candidate to the existing anime and shows a status success message", async () => {
+  it("connects the active Jellyfin candidate to the existing anime, sends connect:true, and shows a status success message", async () => {
     vi.mocked(applyAdminAnimeMetadataFromJellyfin).mockResolvedValueOnce({
       data: { applied_fields: [], applied_assets: [] },
     } as never);
@@ -116,6 +142,7 @@ describe("AniSearchDuplicateDecision", () => {
     await waitFor(() => {
       expect(applyAdminAnimeMetadataFromJellyfin).toHaveBeenCalledWith(4, {
         jellyfin_series_id: "series-42",
+        connect: true,
       });
     });
 
@@ -124,6 +151,78 @@ describe("AniSearchDuplicateDecision", () => {
     expect(
       screen.queryByRole("button", { name: "Als neuen Anime anlegen" }),
     ).toBeNull();
+  });
+
+  it("navigates to conflict.redirectPath with no return suffix after a successful connect when no return param is present (GAP-12)", async () => {
+    vi.mocked(applyAdminAnimeMetadataFromJellyfin).mockResolvedValueOnce({
+      data: { applied_fields: [], applied_assets: [] },
+    } as never);
+    navigationMocks.search = "";
+
+    render(
+      <AniSearchDuplicateDecision
+        conflict={conflict}
+        activeJellyfinSeriesID="series-42"
+        onCreateAsNew={vi.fn()}
+      />,
+    );
+
+    fireEvent.click(
+      screen.getByRole("button", { name: "Mit bestehendem Anime verbinden" }),
+    );
+
+    await waitFor(() => {
+      expect(currentLocationHref).toBe(conflict.redirectPath);
+    });
+  });
+
+  it("navigates to conflict.redirectPath with an encoded return suffix when a valid return param is present (GAP-12)", async () => {
+    vi.mocked(applyAdminAnimeMetadataFromJellyfin).mockResolvedValueOnce({
+      data: { applied_fields: [], applied_assets: [] },
+    } as never);
+    const returnURL = "/admin/anime/create/library?filter=alle";
+    navigationMocks.search = `return=${encodeURIComponent(returnURL)}`;
+
+    render(
+      <AniSearchDuplicateDecision
+        conflict={conflict}
+        activeJellyfinSeriesID="series-42"
+        onCreateAsNew={vi.fn()}
+      />,
+    );
+
+    fireEvent.click(
+      screen.getByRole("button", { name: "Mit bestehendem Anime verbinden" }),
+    );
+
+    await waitFor(() => {
+      expect(currentLocationHref).toBe(
+        `${conflict.redirectPath}?return=${encodeURIComponent(returnURL)}`,
+      );
+    });
+  });
+
+  it("navigates to conflict.redirectPath with no return suffix when an invalid/unsafe return param is present (GAP-12)", async () => {
+    vi.mocked(applyAdminAnimeMetadataFromJellyfin).mockResolvedValueOnce({
+      data: { applied_fields: [], applied_assets: [] },
+    } as never);
+    navigationMocks.search = `return=${encodeURIComponent("https://evil.example")}`;
+
+    render(
+      <AniSearchDuplicateDecision
+        conflict={conflict}
+        activeJellyfinSeriesID="series-42"
+        onCreateAsNew={vi.fn()}
+      />,
+    );
+
+    fireEvent.click(
+      screen.getByRole("button", { name: "Mit bestehendem Anime verbinden" }),
+    );
+
+    await waitFor(() => {
+      expect(currentLocationHref).toBe(conflict.redirectPath);
+    });
   });
 
   it("shows the save-time context line only when viaSaveTimeRecheck is true", () => {

@@ -761,6 +761,8 @@ export interface AdminAnimeJellyfinMetadataApplyRequest {
   apply_logo?: boolean;
   apply_backgrounds?: boolean;
   apply_background_video?: boolean;
+  /** 165-17: signals an explicit "Verbinden" action (GAP-05/GAP-13) — never sent by the routine edit-page resync. */
+  connect?: boolean;
 }
 
 export interface AdminAnimeJellyfinMetadataApplyResult {
