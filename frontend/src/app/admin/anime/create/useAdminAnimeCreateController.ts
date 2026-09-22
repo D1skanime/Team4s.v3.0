@@ -1177,7 +1177,7 @@ export function useAdminAnimeCreateController(
       setAssetSearchHasMore(response.data.length >= assetSearchPageLimit);
       if (response.data.length === 0) {
         setAssetSearchErrorMessage(
-          "Keine passenden Assets gefunden. Bitte pruefe Titel oder Quelle.",
+          "Keine passenden Assets gefunden. Bitte prüfe Titel oder Quelle.",
         );
         return;
       }

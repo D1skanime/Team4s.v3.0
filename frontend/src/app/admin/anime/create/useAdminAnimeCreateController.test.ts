@@ -814,4 +814,25 @@ describe('useAdminAnimeCreateController (hook execution)', () => {
       removedConfirmationKey,
     )
   })
+
+  it('GAP-17: the empty asset-search error message uses a real Umlaut ("prüfe", not "pruefe")', async () => {
+    const { result } = renderHook(() => useAdminAnimeCreateController())
+
+    intakeMocks.searchAdminAnimeCreateAssetCandidates.mockResolvedValueOnce({ data: [] })
+
+    act(() => {
+      result.current.handlers.openAssetSearch('cover')
+    })
+    act(() => {
+      result.current.handlers.setAssetSearchQuery('.hack//G.U. Trilogy')
+    })
+
+    await act(async () => {
+      await result.current.handlers.handleAssetCandidateSearch()
+    })
+
+    expect(result.current.assetSearch.errorMessage).toBe(
+      'Keine passenden Assets gefunden. Bitte prüfe Titel oder Quelle.',
+    )
+  })
 })
