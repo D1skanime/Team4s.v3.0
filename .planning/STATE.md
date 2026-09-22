@@ -3,14 +3,14 @@ gsd_state_version: 1.0
 milestone: v1.4
 milestone_name: Coverage
 status: verifying
-stopped_at: Completed 165-17-PLAN.md (GAP-05/GAP-10/GAP-12/GAP-13 additive-connect gap-closure)
-last_updated: "2026-09-22T11:38:34.230Z"
+stopped_at: Completed 165-18-PLAN.md
+last_updated: "2026-09-22T11:54:37.161Z"
 last_activity: 2026-09-22
 progress:
   total_phases: 31
   completed_phases: 29
   total_plans: 295
-  completed_plans: 293
+  completed_plans: 294
   percent: 94
 ---
 
@@ -212,10 +212,11 @@ Abschluss" entry below for the full closing record.
 ## Current Position
 
 Phase: 165 (library-discovery-assisted-anime-creation) — EXECUTING (gap-closure round GAP-05..GAP-16
-from 165-UAT.md, plans 165-14..165-19; 165-14/GAP-07 and 165-15/GAP-09-Verifikation+GAP-14+GAP-15
-done, 165-16..165-19 remaining)
-Plan: 165-15 of 165-14..165-19 (gap-closure round)
-Status: Phase complete — ready for verification
+from 165-UAT.md, plans 165-14..165-19; 165-14..165-18 done — GAP-07, GAP-09-Verifikation, GAP-14,
+GAP-15, GAP-11, GAP-16, GAP-05, GAP-10, GAP-12, GAP-13, and GAP-06/D-30 all closed — 165-19/D-31
+(GAP-08 candidate-search annotation) remaining)
+Plan: 165-18 of 165-14..165-19 (gap-closure round)
+Status: Phase in progress — 165-19 remaining, then ready for verification
 nicht umgesetzt und ist für eine künftige eigenständige Phase „Mehrstaffel-Ordner" vorgemerkt.
 dupliziertem ProjectMemberStickyNav; siehe 157-14-SUMMARY.md)
 GAP-02-Live-UAT-Checkpoint aus 156-UAT.md (5 Origin- + 9 Segment-Contributor-Pruefpunkte) wurde
@@ -1450,6 +1451,8 @@ Last activity: 2026-09-22
 - [Phase 165]: GAP-11 hist URL param decode uses strict raw===null check (not falsy) to distinguish absent param from present-but-empty (single-entry history)
 - [Phase 165]: DiscoveryLibraryPanel.test.tsx next/navigation mock rewritten to useSyncExternalStore-backed reactive store after GAP-11 removed the hook's local cursorHistory state (Rule 1 test-infra fix)
 - [Phase 165]: 165-17: connect-flag replaces anisearch-prefix sniffing for additive-vs-force-write and audit gating (GAP-05/GAP-13); linkAdditionalJellyfinSource distinguishes idempotent re-link from ownership conflict via repository.ErrConflict -> HTTP 409 (GAP-10); AniSearchDuplicateDecision sends connect:true and navigates away after a successful Verbinden, preserving a validated ?return= link (GAP-12).
+- [Phase 165]: 165-18: syncAnimeSourceLinks konvertiert die globale UNIQUE(source)-Verletzung in repository.ErrConflict; CreateAnime mappt das auf denselben 409-Redirect wie der Save-Time-Pre-Check (D-30/GAP-06).
+- [Phase 165]: 165-18: 'Trotzdem als neuen Anime anlegen' ist an beiden Ausloesepunkten (Enrich() force_new, CreateAnime confirm_duplicate) ersatzlos entfernt, nicht nur deaktiviert (D-30).
 
 ### Pending Todos
 
@@ -1916,11 +1919,12 @@ untruncated list lives in `.planning/todos/pending/`.
 | Phase 165 P15 | 40min | 2 tasks | 6 files |
 | Phase 165 P16 | 25min | 3 tasks | 6 files |
 | Phase 165 P17 | 70min | 3 tasks | 11 files |
+| Phase 165 P18 | 50min | 2 tasks | 17 files |
 
 ## Session Continuity
 
-Last session: 2026-09-22T11:38:34.206Z
-Stopped at: Completed 165-17-PLAN.md (GAP-05/GAP-10/GAP-12/GAP-13 additive-connect gap-closure)
+Last session: 2026-09-22T11:54:37.142Z
+Stopped at: Completed 165-18-PLAN.md
 Last activity: 2026-09-22 - Completed quick task 260922-cew: Phase-165-Live-UAT-Fixes GAP-01..GAP-04 (Bibliotheks-Übergabe-Blocker, Pager, Bibliotheks-Label, Kartenstil)
 Resume file: 
 None
