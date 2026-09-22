@@ -1,7 +1,7 @@
 // @vitest-environment jsdom
 
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
-import { cleanup, fireEvent, render, screen, waitFor } from '@testing-library/react'
+import { cleanup, fireEvent, render, screen, waitFor, within } from '@testing-library/react'
 
 const approveMemberRequest = vi.fn()
 const cancelClaimInvitation = vi.fn()
@@ -168,8 +168,6 @@ describe('ClaimManagementPanel', () => {
   })
 
   it('lets leaders cancel an active invitation when the original link is no longer available', async () => {
-    vi.spyOn(window, 'confirm').mockReturnValue(true)
-
     listGroupMembers.mockResolvedValue({
       data: [
         {
@@ -203,6 +201,11 @@ describe('ClaimManagementPanel', () => {
     render(<ClaimManagementPanel groupId={88} />)
 
     fireEvent.click(await screen.findByRole('button', { name: 'Aktive Einladung zurückziehen' }))
+
+    const dialog = await screen.findByRole('dialog', {
+      name: 'Aktive Einladung zurückziehen? Der bisherige Link kann danach nicht mehr verwendet werden.',
+    })
+    fireEvent.click(within(dialog).getByRole('button', { name: 'Zurückziehen' }))
 
     await waitFor(() => {
       expect(cancelClaimInvitation).toHaveBeenCalledWith(88, 2, 7)

@@ -17,6 +17,7 @@ import {
   TableHeaderCell,
   TableRow,
   Toolbar,
+  useConfirmDialog,
 } from '@/components/ui'
 import { MemorialSetterAction } from '@/components/profile/MemorialSetterAction'
 import {
@@ -99,6 +100,7 @@ export function ClaimManagementPanel({ groupId, isGlobalAdmin = false }: ClaimMa
   const [isLoading, setIsLoading] = useState(false)
   const [actionError, setActionError] = useState<string | null>(null)
   const [showOnlyOpen, setShowOnlyOpen] = useState(true)
+  const { confirm, confirmDialog } = useConfirmDialog()
 
   const loadClaimData = useCallback(async () => {
     if (!Number.isFinite(groupId) || groupId <= 0) return
@@ -179,7 +181,7 @@ export function ClaimManagementPanel({ groupId, isGlobalAdmin = false }: ClaimMa
   }
 
   async function handleCancelInvitation(rowId: number, memberId: number, invitationId: number) {
-    if (!window.confirm('Aktive Einladung zurückziehen? Der bisherige Link kann danach nicht mehr verwendet werden.')) return
+    if (!(await confirm({ title: 'Aktive Einladung zurückziehen? Der bisherige Link kann danach nicht mehr verwendet werden.', confirmLabel: 'Zurückziehen', tone: 'danger' }))) return
     try {
       setActionError(null)
       await cancelClaimInvitation(groupId, memberId, invitationId)
@@ -278,7 +280,7 @@ export function ClaimManagementPanel({ groupId, isGlobalAdmin = false }: ClaimMa
   }
 
   async function handleRejectClaim(claimId: number, memberNick: string) {
-    if (!window.confirm(`Claim für "${memberNick}" ablehnen?`)) return
+    if (!(await confirm({ title: `Claim für "${memberNick}" ablehnen?`, confirmLabel: 'Ablehnen', tone: 'danger' }))) return
     try {
       setActionError(null)
       await rejectMemberClaim(groupId, claimId)
@@ -294,7 +296,7 @@ export function ClaimManagementPanel({ groupId, isGlobalAdmin = false }: ClaimMa
       setActionError('Nickname für den neuen Eintrag ist erforderlich.')
       return
     }
-    if (!window.confirm(`Neuanlage-Antrag mit Nickname "${nickname}" bestätigen?`)) return
+    if (!(await confirm({ title: `Neuanlage-Antrag mit Nickname "${nickname}" bestätigen?`, confirmLabel: 'Bestätigen', tone: 'default' }))) return
     try {
       setActionError(null)
       await approveMemberRequest(requestId, { nickname })
@@ -305,7 +307,7 @@ export function ClaimManagementPanel({ groupId, isGlobalAdmin = false }: ClaimMa
   }
 
   async function handleRejectRequest(requestId: number) {
-    if (!window.confirm('Neuanlage-Antrag ablehnen?')) return
+    if (!(await confirm({ title: 'Neuanlage-Antrag ablehnen?', confirmLabel: 'Ablehnen', tone: 'danger' }))) return
     try {
       setActionError(null)
       await rejectMemberRequest(requestId)
@@ -428,6 +430,7 @@ export function ClaimManagementPanel({ groupId, isGlobalAdmin = false }: ClaimMa
           ))}</TableBody>
         </Table>
       )}
+      {confirmDialog}
     </Card>
   )
 }

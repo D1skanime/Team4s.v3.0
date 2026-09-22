@@ -19,7 +19,7 @@ import {
   updateFansubLink,
 } from "@/lib/api";
 import { PlatformAdminGate } from "@/components/auth/PlatformAdminGate";
-import { YearPicker } from "@/components/ui";
+import { YearPicker, useConfirmDialog } from "@/components/ui";
 import { useAuthSession } from "@/lib/useAuthSession";
 import {
   FansubAlias,
@@ -301,6 +301,7 @@ function AdminFansubCreateContent() {
   const nextDraftLinkKeyRef = useRef(1);
   const createDraftLink = () =>
     createEmptyLink(`draft-link-${nextDraftLinkKeyRef.current++}`);
+  const { confirm, confirmDialog } = useConfirmDialog();
   const [createdGroup, setCreatedGroup] = useState<FansubGroup | null>(null);
   const [form, setForm] = useState<FormState>(emptyForm);
   const [initialForm, setInitialForm] = useState<FormState>(emptyForm);
@@ -686,11 +687,18 @@ function AdminFansubCreateContent() {
             <button
               type="button"
               className={styles.buttonSecondary}
-              onClick={() =>
-                dirty && !window.confirm("Ungespeicherte Änderungen verwerfen?")
-                  ? undefined
-                  : (window.location.href = "/admin/fansubs")
-              }
+              onClick={async () => {
+                if (
+                  dirty &&
+                  !(await confirm({
+                    title: "Ungespeicherte Änderungen verwerfen?",
+                    confirmLabel: "Verwerfen",
+                    tone: "danger",
+                  }))
+                )
+                  return;
+                window.location.href = "/admin/fansubs";
+              }}
             >
               <X size={14} />
               Abbrechen
@@ -1150,6 +1158,7 @@ function AdminFansubCreateContent() {
           </div>
         </form>
       </section>
+      {confirmDialog}
     </main>
   );
 }

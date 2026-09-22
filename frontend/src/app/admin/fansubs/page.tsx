@@ -23,6 +23,7 @@ import {
   TableHead,
   TableHeaderCell,
   TableRow,
+  useConfirmDialog,
 } from "@/components/ui";
 import { useAuthSession } from "@/lib/useAuthSession";
 import { FansubGroup, FansubStatus } from "@/types/fansub";
@@ -82,6 +83,7 @@ function formatPeriod(group: FansubGroup): string {
 
 function AdminFansubsContent() {
   const { hasAccessToken } = useAuthSession();
+  const { confirm, confirmDialog } = useConfirmDialog();
   const [isLoading, setIsLoading] = useState(false);
   const [isMutating, setIsMutating] = useState(false);
   const [items, setItems] = useState<FansubGroup[]>([]);
@@ -328,9 +330,12 @@ function AdminFansubsContent() {
       return;
     }
 
-    const ok = window.confirm(
-      `Fansub "${item.name}" wirklich löschen?\n\nEpisoden bleiben erhalten; fansub_group_id wird entkoppelt.`,
-    );
+    const ok = await confirm({
+      title: `Fansub "${item.name}" wirklich löschen?`,
+      description: "Episoden bleiben erhalten; fansub_group_id wird entkoppelt.",
+      confirmLabel: "Löschen",
+      tone: "danger",
+    });
     if (!ok) return;
 
     setIsMutating(true);
@@ -358,9 +363,12 @@ function AdminFansubsContent() {
     const selected = items.filter((item) => selectedIDs.has(item.id));
     if (selected.length === 0) return;
 
-    const ok = window.confirm(
-      `${selected.length} Fansub-Gruppen wirklich löschen?\n\nEpisoden bleiben erhalten; fansub_group_id wird entkoppelt.`,
-    );
+    const ok = await confirm({
+      title: `${selected.length} Fansub-Gruppen wirklich löschen?`,
+      description: "Episoden bleiben erhalten; fansub_group_id wird entkoppelt.",
+      confirmLabel: "Löschen",
+      tone: "danger",
+    });
     if (!ok) return;
 
     setIsMutating(true);
@@ -823,6 +831,7 @@ function AdminFansubsContent() {
           </div>
         ) : null}
       </section>
+      {confirmDialog}
     </main>
   );
 }

@@ -10,6 +10,7 @@ import {
   listFansubGroupNotes,
   updateFansubGroupNote,
 } from '@/lib/api'
+import { useConfirmDialog } from '@/components/ui'
 import { useAuthSession } from '@/lib/useAuthSession'
 import {
   CreateFansubGroupNoteRequest,
@@ -64,6 +65,7 @@ interface NotesTabProps {
 export function NotesTab({ fansubId }: NotesTabProps) {
   const { hasAccessToken, hasRefreshToken, isClientInitialized } = useAuthSession()
   const hasActiveSession = hasAccessToken || hasRefreshToken
+  const { confirm, confirmDialog } = useConfirmDialog()
   const [loadingNotes, setLoadingNotes] = useState(true)
   const [loadError, setLoadError] = useState<string | null>(null)
   const [groupNotes, setGroupNotes] = useState<GroupNoteDraft[]>([])
@@ -154,7 +156,7 @@ export function NotesTab({ fansubId }: NotesTabProps) {
       return
     }
 
-    if (!window.confirm('Gruppennotiz wirklich löschen?')) return
+    if (!(await confirm({ title: 'Gruppennotiz wirklich löschen?', confirmLabel: 'Löschen', tone: 'danger' }))) return
 
     updateGroupNote(key, { deleting: true, error: null })
 
@@ -219,6 +221,7 @@ export function NotesTab({ fansubId }: NotesTabProps) {
           Neue Gruppennotiz hinzufügen
         </button>
       </section>
+      {confirmDialog}
     </div>
   )
 }
