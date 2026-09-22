@@ -115,18 +115,25 @@ export function useJellyfinIntake(..._deprecatedArgs: unknown[]): JellyfinIntake
   }, [candidates])
 
   const loadPreview = useCallback(async (candidateID: string) => {
-    const target = candidates.find((candidate) => candidate.jellyfin_series_id === candidateID)
-    if (!target) return null
+    const trimmedCandidateID = candidateID.trim()
+    if (!trimmedCandidateID) return null
 
     setIsLoadingPreview(true)
     try {
       const response = await previewAdminAnimeFromJellyfinIntake(
         {
-          jellyfin_series_id: target.jellyfin_series_id,
+          jellyfin_series_id: trimmedCandidateID,
         },
       )
       setPreviewResult(response.data)
-      setReviewState(completeJellyfinCandidateTakeover(candidates, candidateID))
+      const hasMatchingCandidate = candidates.some(
+        (candidate) => candidate.jellyfin_series_id === candidateID,
+      )
+      setReviewState(
+        hasMatchingCandidate
+          ? completeJellyfinCandidateTakeover(candidates, candidateID)
+          : { mode: 'hydrated', selectedCandidate: null, shouldHydrateDraft: true },
+      )
       return response.data
     } finally {
       setIsLoadingPreview(false)

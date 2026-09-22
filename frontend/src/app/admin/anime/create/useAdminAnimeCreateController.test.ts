@@ -1,5 +1,5 @@
 // @vitest-environment jsdom
-import { act, cleanup, renderHook } from '@testing-library/react'
+import { act, cleanup, renderHook, waitFor } from '@testing-library/react'
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
 
 import { getBrowserApiBaseUrl } from '@/lib/publicApiUrl'
@@ -16,6 +16,7 @@ import {
   buildCreateAniSearchConflictState,
 } from './createAniSearchControllerHelpers'
 import { hydrateManualDraftFromAniSearchDraft, hydrateManualDraftFromJellyfinPreview } from '../hooks/useManualAnimeDraft'
+import { useCreatePageDiscoveryHandoff } from './useCreatePageDiscoveryHandoff'
 
 const apiMocks = vi.hoisted(() => ({
   createAdminAnime: vi.fn(),
@@ -431,6 +432,38 @@ const jellyfinPreviewResult = {
   },
 }
 
+const filmJellyfinPreviewResult = {
+  jellyfin_series_id: 'series-99',
+  jellyfin_series_name: 'Redline',
+  jellyfin_series_path: '/media/Anime/Film/Anime.Film.Sub/Redline',
+  folder_name_title_seed: 'Redline',
+  description: 'A high-octane racing film imported from Jellyfin',
+  year: 2009,
+  genre: 'Action',
+  tags: ['Racing'],
+  type_hint: {
+    confidence: 'high' as const,
+    suggested_type: 'film' as const,
+    reasons: ['Library metadata'],
+  },
+  asset_slots: {
+    cover: {
+      present: true,
+      kind: 'cover' as const,
+      source: 'jellyfin' as const,
+      url: 'https://jellyfin.example/cover.jpg',
+    },
+    logo: { present: false, kind: 'logo' as const, source: 'jellyfin' as const },
+    banner: { present: false, kind: 'banner' as const, source: 'jellyfin' as const },
+    backgrounds: [],
+    background_video: {
+      present: false,
+      kind: 'background_video' as const,
+      source: 'jellyfin' as const,
+    },
+  },
+}
+
 const saveTimeConflictBody = {
   data: {
     mode: 'redirect' as const,
@@ -499,6 +532,77 @@ describe('useAdminAnimeCreateController (hook execution)', () => {
   afterEach(() => {
     cleanup()
     vi.useRealTimers()
+  })
+
+  // GAP-01: renders BOTH real hooks together, mirroring the exact wiring in page.tsx
+  // (lines 88-95), so the discovery handoff's adoptCandidate() call exercises the
+  // real loadPreview() implementation instead of a mock.
+  function useDiscoveryHandoffHarness(jellyfinID: string) {
+    const controller = useAdminAnimeCreateController({
+      isDiscoveryFlow: true,
+      returnURL: '/admin/anime/create/library',
+    })
+    useCreatePageDiscoveryHandoff({
+      jellyfinID,
+      hasAdoptedPreview: controller.jellyfin.hasAdoptedPreview,
+      adoptCandidate: controller.handlers.handleJellyfinCandidateAdopt,
+      jellyfinPreviewSeriesName: controller.jellyfin.preview?.jellyfin_series_name,
+      searchQuery: controller.anisearch.searchQuery,
+      setSearchQuery: controller.handlers.setAniSearchSearchQuery,
+    })
+    return controller
+  }
+
+  it('GAP-01: loadPreview fires previewAdminAnimeFromJellyfinIntake even without a prior direct search (discovery handoff)', async () => {
+    intakeMocks.previewAdminAnimeFromJellyfinIntake
+      .mockReset()
+      .mockResolvedValueOnce({ data: filmJellyfinPreviewResult })
+
+    const { result } = renderHook(() => useDiscoveryHandoffHarness('series-99'))
+
+    await act(async () => {
+      await Promise.resolve()
+    })
+
+    await waitFor(() => {
+      expect(result.current.jellyfin.hasAdoptedPreview).toBe(true)
+    })
+
+    expect(intakeMocks.previewAdminAnimeFromJellyfinIntake).toHaveBeenCalledWith({
+      jellyfin_series_id: 'series-99',
+    })
+    expect(intakeMocks.searchAdminAnimeCreateAniSearchCandidates).not.toHaveBeenCalled()
+    expect(result.current.manualDraft.values.type).toBe('film')
+    expect(result.current.manualDraft.values.title).toBe('Redline')
+    expect(result.current.manualDraft.values.year).toBe('2009')
+    expect(result.current.manualDraft.values.description).toBe(
+      'A high-octane racing film imported from Jellyfin',
+    )
+    expect(result.current.manualDraft.values.coverImage).toBe(
+      'https://jellyfin.example/cover.jpg',
+    )
+    expect(result.current.jellyfin.folderPath).toBe(
+      '/media/Anime/Film/Anime.Film.Sub/Redline',
+    )
+    expect(result.current.anisearch.searchQuery).toBe('Redline')
+  })
+
+  it('GAP-01: a failing discovery-handoff preview shows a visible error and never adopts', async () => {
+    intakeMocks.previewAdminAnimeFromJellyfinIntake
+      .mockReset()
+      .mockRejectedValueOnce(new Error('upstream down'))
+
+    const { result } = renderHook(() => useDiscoveryHandoffHarness('series-99'))
+
+    await act(async () => {
+      await Promise.resolve()
+    })
+
+    await waitFor(() => {
+      expect(result.current.errorMessage).not.toBeNull()
+    })
+
+    expect(result.current.jellyfin.hasAdoptedPreview).toBe(false)
   })
 
   it('D-23 fix: a save-time-equivalent AniSearch redirect never hard-navigates and keeps the adopted Jellyfin draft intact', async () => {
