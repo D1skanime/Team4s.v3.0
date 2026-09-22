@@ -2,6 +2,7 @@
 
 import { useEffect, useState } from 'react'
 
+import { useConfirmDialog } from '@/components/ui'
 import { getAnimeByID } from '@/lib/api'
 import { AdminAnimeTheme, AdminAnimeThemeSegment } from '@/types/admin'
 
@@ -59,6 +60,7 @@ function AnimeThemeRow({ animeID, theme, episodes, model }: AnimeThemeRowProps) 
   const [endEpisodeID, setEndEpisodeID] = useState<number | null>(null)
   const isEditing = model.editingThemeID === theme.id
   const loadedSegments = model.segments.get(theme.id) ?? []
+  const { confirm, confirmDialog } = useConfirmDialog()
 
   return (
     <details
@@ -86,10 +88,9 @@ function AnimeThemeRow({ animeID, theme, episodes, model }: AnimeThemeRowProps) 
                 <button
                   type="button"
                   className={styles.buttonSecondary}
-                  onClick={() => {
-                    if (typeof window === 'undefined' || window.confirm('Theme wirklich löschen?')) {
-                      void model.deleteTheme(theme.id)
-                    }
+                  onClick={async () => {
+                    const ok = await confirm({ title: 'Theme wirklich löschen?', confirmLabel: 'Löschen', tone: 'danger' })
+                    if (ok) void model.deleteTheme(theme.id)
                   }}
                 >
                   Löschen
@@ -213,6 +214,7 @@ function AnimeThemeRow({ animeID, theme, episodes, model }: AnimeThemeRowProps) 
           ) : null}
         </div>
       </div>
+      {confirmDialog}
     </details>
   )
 }

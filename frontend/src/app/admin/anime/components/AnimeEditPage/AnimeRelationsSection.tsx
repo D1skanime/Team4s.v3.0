@@ -1,5 +1,7 @@
 'use client'
 
+import { useConfirmDialog } from '@/components/ui'
+
 import styles from '../../AdminStudio.module.css'
 import relationStyles from './AnimeRelationsSection.module.css'
 import {
@@ -54,6 +56,7 @@ export function AnimeRelationsSection({
 }: AnimeRelationsSectionProps) {
   const liveModel = useAdminAnimeRelations({ animeID, onSuccess, onError })
   const model = modelOverride ?? liveModel
+  const { confirm, confirmDialog } = useConfirmDialog()
 
   return (
     <section className={`${styles.card} ${relationStyles.sectionCard}`}>
@@ -185,10 +188,9 @@ export function AnimeRelationsSection({
                       <button
                         type="button"
                         className={styles.buttonSecondary}
-                        onClick={() => {
-                          if (typeof window === 'undefined' || window.confirm('Relation wirklich löschen?')) {
-                            void model.deleteRelation(relation.target_anime_id)
-                          }
+                        onClick={async () => {
+                          const ok = await confirm({ title: 'Relation wirklich löschen?', confirmLabel: 'Löschen', tone: 'danger' })
+                          if (ok) void model.deleteRelation(relation.target_anime_id)
                         }}
                       >
                         Löschen
@@ -201,6 +203,7 @@ export function AnimeRelationsSection({
           </div>
         </div>
       </details>
+      {confirmDialog}
     </section>
   )
 }

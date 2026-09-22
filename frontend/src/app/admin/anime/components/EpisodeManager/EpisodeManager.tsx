@@ -1,5 +1,6 @@
 import { FormEvent, useCallback, useEffect, useMemo, useRef, useState } from 'react'
 
+import { useConfirmDialog } from '@/components/ui'
 import { ApiError, getGroupedEpisodes } from '@/lib/api'
 import { AnimeDetail, EpisodeListItem, EpisodeStatus } from '@/types/anime'
 import { GroupedEpisode } from '@/types/episodeVersion'
@@ -68,6 +69,7 @@ export function EpisodeManager({
   const [groupedEpisodesError, setGroupedEpisodesError] = useState<string | null>(null)
   const episodeFilterInputRef = useRef<HTMLInputElement>(null)
   const episodeEditAnchorRef = useRef<HTMLDivElement>(null)
+  const { confirm, confirmDialog } = useConfirmDialog()
 
   const manager = useEpisodeManager(anime.episodes, onRefresh, onSuccess, onError, {
     onRequest,
@@ -192,11 +194,13 @@ export function EpisodeManager({
     void manager.submitEdit()
   }
 
-  const handleRemoveEpisode = (episodeID: number, episodeNumber: string) => {
-    if (typeof window !== 'undefined') {
-      const confirmed = window.confirm(`Episode ${episodeNumber} wirklich entfernen?`)
-      if (!confirmed) return
-    }
+  const handleRemoveEpisode = async (episodeID: number, episodeNumber: string) => {
+    const confirmed = await confirm({
+      title: `Episode ${episodeNumber} wirklich entfernen?`,
+      confirmLabel: 'Entfernen',
+      tone: 'danger',
+    })
+    if (!confirmed) return
 
     const episode = anime.episodes.find((item) => item.id === episodeID)
     if (!episode) return
@@ -205,12 +209,14 @@ export function EpisodeManager({
     void manager.removeEpisode(episode, anime.id)
   }
 
-  const handleRemoveSelected = () => {
+  const handleRemoveSelected = async () => {
     if (manager.selectedCount === 0) return
-    if (typeof window !== 'undefined') {
-      const confirmed = window.confirm(`${manager.selectedCount} ausgewählte Episoden wirklich entfernen?`)
-      if (!confirmed) return
-    }
+    const confirmed = await confirm({
+      title: `${manager.selectedCount} ausgewählte Episoden wirklich entfernen?`,
+      confirmLabel: 'Entfernen',
+      tone: 'danger',
+    })
+    if (!confirmed) return
 
     resetPayloadPreview()
     void manager.removeSelected(anime.id)
@@ -234,11 +240,13 @@ export function EpisodeManager({
     resetPayloadPreview()
     void manager.applyBulkFansubGroup(assignments, skippedEpisodeIDs.length)
   }
-  const handleSelectEpisode = (episode: EpisodeListItem) => {
-    if (manager.selectedID && manager.selectedID !== episode.id && manager.hasEditChanges && typeof window !== 'undefined') {
-      const confirmed = window.confirm(
-        'Es gibt ungespeicherte Änderungen an der aktuellen Episode. Trotzdem wechseln und Änderungen verwerfen?',
-      )
+  const handleSelectEpisode = async (episode: EpisodeListItem) => {
+    if (manager.selectedID && manager.selectedID !== episode.id && manager.hasEditChanges) {
+      const confirmed = await confirm({
+        title: 'Es gibt ungespeicherte Änderungen an der aktuellen Episode. Trotzdem wechseln und Änderungen verwerfen?',
+        confirmLabel: 'Wechseln',
+        tone: 'danger',
+      })
       if (!confirmed) return
     }
     manager.selectEpisode(episode)
@@ -294,7 +302,7 @@ export function EpisodeManager({
               onApplyBulkStatus={handleBulkStatusApply}
               onBulkFansubGroupChange={setBulkFansubGroupID}
               onApplyBulkFansubGroup={handleBulkFansubGroupApply}
-              onRemoveSelected={handleRemoveSelected}
+              onRemoveSelected={() => void handleRemoveSelected()}
             />
           ) : null}
 
@@ -313,7 +321,7 @@ export function EpisodeManager({
               isUpdating={manager.isUpdating}
               isApplyingBulk={manager.isApplyingBulk}
               statuses={EPISODE_STATUSES}
-              onSelectEpisode={handleSelectEpisode}
+              onSelectEpisode={(episode) => void handleSelectEpisode(episode)}
               onToggleSelected={manager.toggleSelected}
               onBeginInlineEdit={manager.beginInlineEdit}
               onInlineFieldChange={manager.setInlineField}
@@ -322,7 +330,7 @@ export function EpisodeManager({
                 void manager.saveInlineEdit()
               }}
               onCancelInlineEdit={manager.cancelInlineEdit}
-              onRemoveEpisode={(episode) => handleRemoveEpisode(episode.id, episode.episode_number)}
+              onRemoveEpisode={(episode) => void handleRemoveEpisode(episode.id, episode.episode_number)}
             />
           </section>
         </div>
@@ -353,6 +361,7 @@ export function EpisodeManager({
           />
         </div>
       </div>
+      {confirmDialog}
     </section>
   )
 }

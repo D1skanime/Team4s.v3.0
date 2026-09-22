@@ -1,5 +1,6 @@
 import { FormEvent, useMemo, useState } from 'react'
 
+import { useConfirmDialog } from '@/components/ui'
 import { ApiError, attachAnimeFansub, detachAnimeFansub, getFansubList } from '@/lib/api'
 import { useAuthSession } from '@/lib/useAuthSession'
 import { FansubGroup } from '@/types/fansub'
@@ -57,6 +58,7 @@ export function AnimeContextFansubManager({
   const [isMutating, setIsMutating] = useState(false)
   const [mutatingGroupID, setMutatingGroupID] = useState<number | null>(null)
   const { hasAccessToken } = useAuthSession()
+  const { confirm, confirmDialog } = useConfirmDialog()
 
   const attachedIDs = useMemo(() => new Set(attachedFansubs.map((group) => group.id)), [attachedFansubs])
   const visibleResults = useMemo(
@@ -129,12 +131,13 @@ export function AnimeContextFansubManager({
       return
     }
 
-    if (typeof window !== 'undefined') {
-      const confirmed = window.confirm(
-        `Fansub "${group.name}" vom Anime entfernen?\n\nVersions-Zuordnungen bleiben erhalten, aber die Gruppe ist nicht mehr als Anime-Verknüpfung gelistet.`,
-      )
-      if (!confirmed) return
-    }
+    const confirmed = await confirm({
+      title: `Fansub "${group.name}" vom Anime entfernen?`,
+      description: 'Versions-Zuordnungen bleiben erhalten, aber die Gruppe ist nicht mehr als Anime-Verknüpfung gelistet.',
+      confirmLabel: 'Entfernen',
+      tone: 'danger',
+    })
+    if (!confirmed) return
 
     setIsMutating(true)
     setMutatingGroupID(group.id)
@@ -233,6 +236,7 @@ export function AnimeContextFansubManager({
           ))}
         </div>
       ) : null}
+      {confirmDialog}
     </div>
   )
 }
