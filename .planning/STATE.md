@@ -16,6 +16,34 @@ progress:
 
 # Project State
 
+## Gap-Closure-Ausführung Phase 165 (22.09.2026) — 165-14..165-19 code-complete, CR-01 Review-Fix eingespielt
+
+Alle sechs Gap-Closure-Pläne (165-14..165-19, GAP-05..GAP-16 aus `165-UAT.md`, inkl. D-30/D-31 aus
+`165-CONTEXT.md`) wurden headless ausgeführt, alle Pläne haben SUMMARY.md. Ergebnisse:
+
+- **Verifikation** (`165-GAP-CLOSURE-VERIFICATION.md`): 13/13 Must-haves bestätigt — alle 11 GAPs plus
+  D-31/GAP-08 sind im Code tatsächlich geschlossen (nicht nur laut SUMMARY behauptet), durch unabhängige
+  Nachprüfung inkl. Re-Ausführung der echten Postgres-Integrationstests.
+- **Code-Review** (`165-GAP-CLOSURE-REVIEW.md`): 1 BLOCKER (CR-01), 2 Warnungen, 2 Infos. CR-01: 165-17s
+  GAP-05-Refactor (`connectJellyfinFolderAdditively`) hatte `additive := connect && currentSource != ""`
+  gesetzt — das öffnete RESEARCH.md Pitfall 3 erneut für die zwei Nicht-„Verbinden"-Aufrufer
+  (routinemäßiges „Jellyfin-Metadaten anwenden" auf der Edit-Seite; „Jellyfin-Kandidat übernehmen"-Fluss):
+  beide senden nie `connect=true`, aber immer eine `jellyfin_series_id`, wodurch ein AniSearch-Anime bei
+  einer harmlosen Asset-Aktualisierung `anime.source`/`folder_name` still auf `jellyfin:<id>` überschrieben
+  bekommen hätte — ohne Audit-Eintrag. **Noch in dieser Session behoben** (Commit `96ba1190`):
+  `additive` schützt jetzt jede Nicht-Jellyfin-Quelle unabhängig vom `connect`-Flag; Regressionstest
+  wiederhergestellt (`TestConnectJellyfinFolderAdditively_UsesForceWritePathWhenNotConnecting/anisearch_source...`);
+  Unit-, Handler- und echte Postgres-Integrationstests für den betroffenen Pfad erneut grün, Backend neu
+  gebaut und verifiziert erreichbar.
+- **Bekannte, bestätigt vorbestehende und nicht in Scope liegende Testfehler** (nicht durch diese Runde
+  verursacht, unabhängig reproduziert): `admin_content_fansub_releases_test.go` (2 Tests, RBAC/Rollen-Fixture,
+  letzte Änderung 14.09.2026 vor jeder Phase-165-Arbeit) sowie `11eyes-*`-Fixture-Tests unter
+  `internal/handlers` (fehlende `docs/audits/2026-09-15-jellyfin12/fixtures/*.json` im Docker-Image-Build-
+  Kontext, kein Code-Fehler) und `Phase134Matrix*`-Tests unter `internal/repository` (benötigen einen
+  laufenden Server auf Port 18093, der in dieser Session nicht lief).
+- **Live-UAT steht noch aus** — nichts aus dieser Runde ist eigenmächtig als abgenommen markiert; siehe
+  Live-UAT-Checkliste im Abschlussbericht dieser Session.
+
 ## Phase 164 Abschluss (18.09.2026) — Milestone v1.4 vollständig abgeschlossen
 
 Phase 164 (letzte Phase des Milestones v1.4 „Coverage") ist vollständig abgenommen. Der Auftraggeber
