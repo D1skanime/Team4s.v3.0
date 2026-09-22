@@ -2045,13 +2045,16 @@ Plans:
 **Bekannter Blocker für Live-UAT (kein Task dieser Phase):** `JELLYFIN_ALLOWED_LIBRARY_IDS=5` in der Live-`.env` ist keine gültige Jellyfin-12-Bibliotheks-GUID (RESEARCH.md Pitfall 1); die korrekte GUID lautet `5f65d0c8bdd71b782fc98205814a0d76`. Konfigurationsänderung, kein Agenten-Task.
 **D-15-Hinweis (aufgelöst 2026-09-21):** 165-11 war isoliert (letzte Wave, keine Dependents, aber Dependencies auf 165-01/165-06/165-09, deren Dateien additiv erweitert wurden) und begann mit einem blockierenden Checkpoint (Schema-Wahl für die Staffel→Anime-Zuordnung). Der Auftraggeber wählte am Checkpoint **Option C: D-15 komplett zurückgestellt** (keine Tabelle, keine Migration, keine Semantikänderung, kein Staffel-Batch-Fetch) — Begründung: nur 27 von 2111 Serien betroffen, Staffel-Fetch würde jedes Neuladen um ~28 s verlängern. Details und Wortlaut: 165-CONTEXT.md D-15-Nachtrag, `165-11-SUMMARY.md`. Die übrigen zwölf Pläne lieferten und funktionieren vollständig unabhängig davon — D-15 selbst bleibt **funktional nicht umgesetzt** und ist für eine künftige eigenständige Phase „Mehrstaffel-Ordner" vorgemerkt (noch nicht in dieser Roadmap eingeplant).
 **UI hint:** yes
-**Plans:** 13/13 plans complete (12 umgesetzt + 165-11 per Auftraggeber-Entscheidung zurückgestellt — kein Code für D-15 selbst, siehe D-15-Hinweis oben)
+**Plans:** 13/13 urspruengliche Plaene abgeschlossen (12 umgesetzt + 165-11 per Auftraggeber-Entscheidung zurueckgestellt, siehe D-15-Hinweis oben). Nach Live-UAT und unabhaengigem Code-Review (2026-09-22, 165-UAT.md GAP-05..GAP-16) sechs neue Gap-Closure-Plaene 165-14..165-19 geplant (D-30/D-31 in 165-CONTEXT.md), noch nicht ausgefuehrt — siehe Wave 6-8 unten.
 
   - Wave 1: 165-01 (Discovery-Snapshot-Cache/Cursor/Status-Resolver), 165-02 (Ignore-Tabelle Migration+Repo), 165-03 (D-20 Save-Time-Dublettencheck Backend), 165-04 (D-14 Episode-Import-Ordnerauswahl, fail-closed), 165-05 (Create-Page Entry-Card/Return-Link/Redirect-Helper)
   - Wave 2: 165-06 (Discovery-Listen-Handler + Ignorieren/Entignorieren + Audit + D-24 library_context), 165-08 (Create-Page-Integration + AniSearch-Verbinden/Neu-Entscheidung + D-23-Fix), 165-12 (D-11 Return-Link auf Episoden-/Edit-Seite), 165-13 (D-23 Backend ForceNew-Bypass für Enrich())
   - Wave 3: 165-07 (D-05-Fix + D-18 Backend Ordner-Verwaltung), 165-09 (Discovery-Bibliotheksseite Frontend, D-24 Karten-Layout)
   - Wave 4: 165-10 (D-18 Frontend Ordner-Verwaltung Edit-Seite)
   - Wave 5: 165-11 (D-15 Checkpoint — ZURÜCKGESTELLT, Option C: keine Mehrstaffel-Umsetzung; isoliert/optional)
+  - Wave 6 (Gap-Closure, unabhaengig voneinander): 165-14 (GAP-07 Episoden-Import Ordner-Filter), 165-15 (GAP-09-Backend-Verifikation + GAP-14 Suche + GAP-15 Cache-Single-Flight), 165-16 (GAP-09-Frontend + GAP-11 URL-Seitenverlauf + GAP-16 DiscoveryEntryCard-Stil), 165-17 (GAP-05 additiv verbinden + GAP-10 Eigentums-Konflikt 409 + GAP-12 Navigation + GAP-13 Audit-Gating)
+  - Wave 7 (Gap-Closure, blocked on 165-17): 165-18 (GAP-06/D-30 "Trotzdem neu anlegen" entfaellt, 409 statt 500)
+  - Wave 8 (Gap-Closure, blocked on 165-18): 165-19 (GAP-08/D-31 vorhandene AniSearch-Kandidaten anzeigen)
 
 Plans:
 **Wave 1**
@@ -2081,6 +2084,21 @@ Plans:
 **Wave 5** *(isoliert, kein Dependent, keine Dependency)*
 
 - [x] 165-11-PLAN.md — D-15 Checkpoint (Schema-Wahl): **ZURÜCKGESTELLT** per Auftraggeber-Entscheidung 2026-09-21 (Option C). Kein Code für die Mehrstaffel-Zuordnung selbst; nur Checkpoint-Präsentation, Entscheidungsprotokoll und Kommentar-/Doku-Klarstellung ausgeführt. Siehe `165-11-SUMMARY.md`.
+
+**Wave 6 — Gap-Closure** *(2026-09-22, aus 165-UAT.md GAP-05..GAP-16; unabhaengig voneinander)*
+
+- [ ] 165-14-PLAN.md — GAP-07: Episoden-Import filtert bei explizit gewaehltem Zusatz-Ordner nach dessen eigenem Pfad statt dem Haupt-Ordner.
+- [ ] 165-15-PLAN.md — GAP-09-Backend-Verifikation (Filter-vor-Paginierung bereits per GAP-02-Fix behoben) + GAP-14 (Suche matcht Titel/Ordnername, nicht den vollen Pfad) + GAP-15 (Cache-Neuaufbau single-flighted).
+- [ ] 165-16-PLAN.md — GAP-09-Frontend (filterabhaengige Leerzustaende) + GAP-11 (Seiten-/Cursor-Verlauf aus der URL rekonstruierbar) + GAP-16 (DiscoveryEntryCard im Stil der Provider-Karten).
+- [ ] 165-17-PLAN.md — GAP-05 (additiv verbinden immer bei bereits gesetztem Haupt-Ordner) + GAP-10 (Ordner-Eigentums-Konflikt liefert 409, kein Audit) + GAP-12 (Navigation nach Verbinden) + GAP-13 (Audit nur beim expliziten Verbinden).
+
+**Wave 7 — Gap-Closure** *(blocked on 165-17)*
+
+- [ ] 165-18-PLAN.md — GAP-06/D-30: "Trotzdem als neuen Anime anlegen" entfaellt ersatzlos; Speichern mit vergebener AniSearch-ID liefert 409 statt 500.
+
+**Wave 8 — Gap-Closure** *(blocked on 165-18)*
+
+- [ ] 165-19-PLAN.md — GAP-08/D-31: AniSearch-Kandidatensuche zeigt bereits vorhandene Anime mit Hinweis statt sie auszufiltern.
 
 ## Coverage — Phase 165
 
@@ -2112,6 +2130,8 @@ Plans:
 **Live-Befund-Korrekturen D-23 bis D-26 (2026-09-21, kein eigener REQ-ID-Block — Korrektur/Bestätigung bestehender Requirements, keine neuen Requirements):** D-23 (Fix der automatischen AniSearch-Konflikt-Umleitung, ersetzt fälschlich angenommenes bereits korrektes Verhalten unter REQ-165-02) → 165-08 (Frontend-Fix), 165-13 (Backend ForceNew-Bypass, neu). D-24 (Karten- statt Tabellen-Layout für die Bibliotheksliste, unter REQ-165-03/REQ-165-04/REQ-165-06) → 165-06 (library_context-Feld), 165-09 (DiscoveryLibraryCard). D-25 (Zurück/Weiter-Pagination bestätigt, unter REQ-165-06/REQ-165-11) → 165-09, keine Planänderung. D-26 (AniSearch-Titel-Vorbelegung bestätigt, unter REQ-165-09) → 165-08, keine Planänderung.
 
 **Live-Befund-Korrekturen D-27 bis D-29 (2026-09-21, zweite Live-Durchsicht gegen die reale Jellyfin-Instanz, kein eigener REQ-ID-Block):** D-27 (Discovery-Snapshot muss bei leerer `JELLYFIN_ALLOWED_LIBRARY_IDS`-Liste — heutiger Laufzeitzustand, Compose leitet die Variable nicht durch — denselben ungefilterten globalen Weg wie die Direktsuche gehen, sonst leere Liste in Produktion, unter REQ-165-06/REQ-165-07) → 165-01 (Snapshot-Builder, beide Zweige + StartIndex/Limit-Paginierung). D-28 (Typ bleibt pfadbasiert abgeleitet, aber `buildJellyfinIntakeTypeHint` erkannte "Spezial" bisher nicht — nur die englische Schreibweise "special", unter REQ-165-03/REQ-165-04) → 165-06 (additive Ein-Zeilen-Erweiterung des geteilten Helpers + Test über alle 8 Live-Pfadsegmente). D-29 (Mengengerüst live gemessen 2111 statt ~1500 Series-Items, unter REQ-165-06/REQ-165-07) → 165-01 und 165-06 (Skalierungstests mit ~2111-Item-Fixtures). 165-09 unverändert (konsumiert nur die vom Backend gelieferten Felder).
+
+**Gap-Closure-Nachtrag D-30/D-31 (2026-09-22, aus Live-UAT + unabhaengigem Code-Review, 165-UAT.md GAP-05..GAP-16, kein eigener REQ-ID-Block — ersetzt den "Trotzdem neu anlegen"-Teil von REQ-165-02/REQ-165-19, ergaenzt REQ-165-02/REQ-165-06/REQ-165-07):** D-30 (AniSearch-ID gehoert zu genau einem Anime; "Trotzdem als neuen Anime anlegen" entfaellt ersatzlos an beiden Ausloesepunkten, Speichern liefert 409 statt 500) → 165-18. D-31 (Kandidatensuche filtert vorhandene Anime nicht mehr aus, sondern markiert sie mit Hinweis; Auswahl fuehrt zur Verbinden-Entscheidung) → 165-19. Zusaetzlich GAP-05/GAP-10/GAP-12/GAP-13 (additiver Verbinden-Pfad haerten) → 165-17; GAP-07 (Episoden-Import-Ordner-Filter) → 165-14; GAP-09/GAP-14/GAP-15 (Bibliotheks-Listen-Korrektheit) → 165-15/165-16; GAP-16 (DiscoveryEntryCard-Stil) → 165-16.
 
 ### Phase 166: Film-Content-Flow für Anime vom Typ Film
 
