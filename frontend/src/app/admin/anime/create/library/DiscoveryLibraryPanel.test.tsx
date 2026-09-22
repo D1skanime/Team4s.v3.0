@@ -207,6 +207,36 @@ describe("DiscoveryLibraryPanel", () => {
     expect(screen.getByRole("button", { name: "Alle Einträge anzeigen" })).toBeTruthy();
   });
 
+  it("GAP-09: shows filter-appropriate empty-state copy for bereits_vorhanden, with an Alle-Eintraege-anzeigen action", async () => {
+    searchParamsState.current = new URLSearchParams("filter=bereits_vorhanden");
+    listMock.mockResolvedValueOnce(buildPage([]));
+
+    render(<DiscoveryLibraryPanel />);
+
+    await waitFor(() => expect(screen.queryByText("Keine offenen Einträge")).toBeNull());
+    expect(screen.getByText("Keine bereits vorhandenen Einträge")).toBeTruthy();
+    expect(screen.getByRole("button", { name: "Alle Einträge anzeigen" })).toBeTruthy();
+  });
+
+  it("GAP-09: shows filter-appropriate empty-state copy for ignoriert", async () => {
+    searchParamsState.current = new URLSearchParams("filter=ignoriert");
+    listMock.mockResolvedValueOnce(buildPage([]));
+
+    render(<DiscoveryLibraryPanel />);
+
+    await waitFor(() => expect(screen.getByText("Keine ignorierten Einträge")).toBeTruthy());
+  });
+
+  it("GAP-09: never offers a self-referential Alle-Eintraege-anzeigen action when the filter is already alle", async () => {
+    searchParamsState.current = new URLSearchParams("filter=alle");
+    listMock.mockResolvedValueOnce(buildPage([]));
+
+    render(<DiscoveryLibraryPanel />);
+
+    await waitFor(() => expect(screen.getByText("Die Bibliothek enthält aktuell keine Einträge")).toBeTruthy());
+    expect(screen.queryByRole("button", { name: "Alle Einträge anzeigen" })).toBeNull();
+  });
+
   it("shows the dynamic no-results heading when a search query yields zero items", async () => {
     searchParamsState.current = new URLSearchParams("q=zzz");
     listMock.mockResolvedValueOnce(buildPage([]));

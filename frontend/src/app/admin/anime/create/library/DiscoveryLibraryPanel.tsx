@@ -35,6 +35,48 @@ function readErrorMessage(err: unknown): string {
   return "Unbekannter Fehler.";
 }
 
+interface DiscoveryEmptyFilterCopy {
+  title: string;
+  description: string;
+  showAllAction: boolean;
+}
+
+/**
+ * GAP-09 (Frontend-Anteil): Der Leerzustand der Bibliotheksliste beschreibt
+ * immer den AKTIVEN Filter statt eines hart codierten "Keine offenen
+ * Einträge" — bei "alle" gibt es keine "Alle Einträge anzeigen"-Aktion mehr
+ * (selbstreferenziell, man ist bereits auf "alle").
+ */
+function resolveDiscoveryEmptyFilterCopy(filter: string): DiscoveryEmptyFilterCopy {
+  switch (filter) {
+    case "bereits_vorhanden":
+      return {
+        title: "Keine bereits vorhandenen Einträge",
+        description: "Kein Bibliothekseintrag ist aktuell mit einem Team4s-Anime verknüpft.",
+        showAllAction: true,
+      };
+    case "ignoriert":
+      return {
+        title: "Keine ignorierten Einträge",
+        description: "Es wurde bisher kein Bibliothekseintrag ignoriert.",
+        showAllAction: true,
+      };
+    case "alle":
+      return {
+        title: "Die Bibliothek enthält aktuell keine Einträge",
+        description: "Es sind derzeit keine Jellyfin-Einträge in der Bibliothek verfügbar.",
+        showAllAction: false,
+      };
+    case "offen":
+    default:
+      return {
+        title: "Keine offenen Einträge",
+        description: "Alle Bibliothekseinträge sind bereits verarbeitet oder mit Team4s verknüpft.",
+        showAllAction: true,
+      };
+  }
+}
+
 export function DiscoveryLibraryPanel() {
   const router = useRouter();
   const pathname = usePathname();
@@ -134,6 +176,7 @@ export function DiscoveryLibraryPanel() {
 
   const showEmptySearch = items.length === 0 && !isLoading && !error && Boolean(params.q);
   const showEmptyFilter = items.length === 0 && !isLoading && !error && !params.q;
+  const emptyFilterCopy = resolveDiscoveryEmptyFilterCopy(params.filter);
 
   return (
     <div style={{ display: "flex", flexDirection: "column", gap: "var(--space-5)" }}>
@@ -207,12 +250,14 @@ export function DiscoveryLibraryPanel() {
           />
         ) : showEmptyFilter ? (
           <EmptyState
-            title="Keine offenen Einträge"
-            description="Alle Bibliothekseinträge sind bereits verarbeitet oder mit Team4s verknüpft."
+            title={emptyFilterCopy.title}
+            description={emptyFilterCopy.description}
             action={
-              <Button variant="secondary" onClick={() => handleFilterChange("alle")}>
-                Alle Einträge anzeigen
-              </Button>
+              emptyFilterCopy.showAllAction ? (
+                <Button variant="secondary" onClick={() => handleFilterChange("alle")}>
+                  Alle Einträge anzeigen
+                </Button>
+              ) : undefined
             }
           />
         ) : (
