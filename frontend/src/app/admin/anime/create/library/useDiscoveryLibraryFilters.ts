@@ -26,6 +26,30 @@ interface FilterPatch {
   filter?: string;
   q?: string;
   cursor?: string;
+  history?: string[];
+}
+
+/**
+ * Encodes the cursor-history stack (GAP-11) as a single comma-joined `hist`
+ * URL param, in the same family as filter/q/cursor. writeParams OMITS the
+ * `hist` param entirely for an empty array (see writeParams), so the only
+ * two states this needs to round-trip are "param absent" (→ []) and "param
+ * present" (→ split by comma, even if the raw value is the empty string —
+ * that represents `[""]`, the one-entry history left after paging from page
+ * 1, whose stored "return cursor" IS the empty string). Deliberately uses a
+ * strict `raw === null` check here, NOT a falsy check: `!raw` would treat
+ * `raw === ""` the same as `raw === null` and collapse `[""]` back to `[]`,
+ * losing the page-1 history entry (JS quirk: `"".split(",")` already
+ * correctly yields `[""]`, so no extra guard is needed once the null case is
+ * handled with strict equality).
+ */
+function encodeHistoryParam(history: string[]): string {
+  return history.join(",");
+}
+
+function decodeHistoryParam(raw: string | null): string[] {
+  if (raw === null) return [];
+  return raw.split(",");
 }
 
 /**
@@ -46,9 +70,17 @@ export function useDiscoveryLibraryFilters(): UseDiscoveryLibraryFiltersResult {
   const filter = searchParams.get("filter") || DEFAULT_FILTER;
   const q = searchParams.get("q") ?? "";
   const cursor = searchParams.get("cursor") ?? undefined;
+  const histRaw = searchParams.get("hist");
 
   const [searchValue, setSearchValue] = useState(q);
-  const [cursorHistory, setCursorHistory] = useState<string[]>([]);
+
+  // GAP-11: cursorHistory is DERIVED from the URL's `hist` param instead of
+  // isolated useState, so the page-back stack survives a full remount (e.g.
+  // after "Zurück zur Bibliothek"), not just client-side navigation within
+  // the same component lifetime. Same useMemo anti-infinite-loop rationale
+  // as the `params` object below: recompute only when the raw URL value
+  // itself changes.
+  const cursorHistory = useMemo(() => decodeHistoryParam(histRaw), [histRaw]);
 
   useEffect(() => {
     // Hält den Debounce-Zwischenwert mit der URL synchron (z. B. bei Browser-Zurück).
@@ -67,6 +99,7 @@ export function useDiscoveryLibraryFilters(): UseDiscoveryLibraryFiltersResult {
         : patch.cursor !== undefined
           ? patch.cursor
           : cursor;
+      const nextHistory = patch.history !== undefined ? patch.history : cursorHistory;
 
       if (nextFilter && nextFilter !== DEFAULT_FILTER) nextSearchParams.set("filter", nextFilter);
       else nextSearchParams.delete("filter");
@@ -77,16 +110,18 @@ export function useDiscoveryLibraryFilters(): UseDiscoveryLibraryFiltersResult {
       if (nextCursor) nextSearchParams.set("cursor", nextCursor);
       else nextSearchParams.delete("cursor");
 
+      if (nextHistory.length > 0) nextSearchParams.set("hist", encodeHistoryParam(nextHistory));
+      else nextSearchParams.delete("hist");
+
       const query = nextSearchParams.toString();
       router.replace(query ? `${pathname}?${query}` : pathname, { scroll: false });
     },
-    [cursor, filter, pathname, q, router, searchParams],
+    [cursor, cursorHistory, filter, pathname, q, router, searchParams],
   );
 
   const handleFilterChange = useCallback(
     (value: string) => {
-      setCursorHistory([]);
-      writeParams({ filter: value }, true);
+      writeParams({ filter: value, history: [] }, true);
     },
     [writeParams],
   );
@@ -96,8 +131,7 @@ export function useDiscoveryLibraryFilters(): UseDiscoveryLibraryFiltersResult {
       setSearchValue(value);
       if (debounceRef.current) clearTimeout(debounceRef.current);
       debounceRef.current = setTimeout(() => {
-        setCursorHistory([]);
-        writeParams({ q: value }, true);
+        writeParams({ q: value, history: [] }, true);
       }, DEBOUNCE_MS);
     },
     [writeParams],
@@ -105,17 +139,17 @@ export function useDiscoveryLibraryFilters(): UseDiscoveryLibraryFiltersResult {
 
   const handleCursorChange = useCallback(
     (nextCursor: string) => {
-      setCursorHistory((prev) => [...prev, cursor ?? ""]);
-      writeParams({ cursor: nextCursor }, false);
+      const nextHistory = [...cursorHistory, cursor ?? ""];
+      writeParams({ cursor: nextCursor, history: nextHistory }, false);
     },
-    [cursor, writeParams],
+    [cursor, cursorHistory, writeParams],
   );
 
   const handleCursorBack = useCallback(() => {
     if (cursorHistory.length === 0) return;
     const previousCursor = cursorHistory[cursorHistory.length - 1] ?? "";
-    setCursorHistory((prev) => prev.slice(0, -1));
-    writeParams({ cursor: previousCursor }, false);
+    const nextHistory = cursorHistory.slice(0, -1);
+    writeParams({ cursor: previousCursor, history: nextHistory }, false);
   }, [cursorHistory, writeParams]);
 
   // useMemo hält die Referenz stabil, solange sich die zugrunde liegenden URL-Werte

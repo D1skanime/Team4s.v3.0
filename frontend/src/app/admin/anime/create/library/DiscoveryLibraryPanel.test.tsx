@@ -8,33 +8,52 @@
 import { readFileSync } from "node:fs";
 import path from "node:path";
 
+import { useSyncExternalStore } from "react";
 import { act, cleanup, fireEvent, render, screen, waitFor } from "@testing-library/react";
 import { afterEach, describe, expect, it, vi } from "vitest";
 
 import type { AdminJellyfinDiscoveryItem } from "@/types/admin";
 
-// searchParamsState ist bewusst "live": router.replace(...) schreibt die geparste
-// Query-Zeichenkette zurueck, damit ein anschliessender Re-Render (ausgeloest durch
-// den echten useDiscoveryLibraryFilters-State, z. B. setCursorHistory) useSearchParams()
-// bereits mit dem aktualisierten Stand liest — ohne das waere Weiter/Zurueck in diesem
-// gemockten next/navigation nicht beobachtbar (der echte Next.js-Router ist reaktiv,
-// ein reines vi.fn()-Mock ist es nicht).
-const searchParamsState = vi.hoisted(() => ({ current: new URLSearchParams() }));
+// searchParamsState ist ein reaktiver externer Store (useSyncExternalStore), NICHT
+// nur ein "current"-Feld: seit GAP-11 haelt useDiscoveryLibraryFilters keinen eigenen
+// cursorHistory-useState mehr (cursorHistory wird komplett aus der URL abgeleitet), es
+// gibt also keinen lokalen React-State-Setter mehr, der einen Re-Render "gratis"
+// erzwingt, sobald router.replace(...) aufgerufen wird. Im echten Next.js App Router
+// ist useSearchParams() reaktiv (Router-Context), ein reines vi.fn()-Mock ist es nicht
+// — mockReplace ruft deshalb explizit notify() auf, damit jede uebers Mock gemountete
+// Komponente per useSyncExternalStore denselben Re-Render bekommt wie im echten Router.
+const searchParamsState = vi.hoisted(() => {
+  const listeners = new Set<() => void>();
+  return {
+    current: new URLSearchParams(),
+    subscribe(listener: () => void) {
+      listeners.add(listener);
+      return () => listeners.delete(listener);
+    },
+    notify() {
+      listeners.forEach((listener) => listener());
+    },
+    set(next: URLSearchParams) {
+      this.current = next;
+      this.notify();
+    },
+  };
+});
 const mockPush = vi.hoisted(() => vi.fn());
 const mockReplace = vi.hoisted(() =>
   vi.fn((url: string) => {
     const queryIndex = url.indexOf("?");
-    searchParamsState.current = new URLSearchParams(queryIndex >= 0 ? url.slice(queryIndex + 1) : "");
+    searchParamsState.set(new URLSearchParams(queryIndex >= 0 ? url.slice(queryIndex + 1) : ""));
   }),
 );
-const mockUseSearchParams = vi.hoisted(() => vi.fn(() => searchParamsState.current));
 const mockUsePathname = vi.hoisted(() => vi.fn(() => "/admin/anime/create/library"));
 const mockUseRouter = vi.hoisted(() => vi.fn(() => ({ push: mockPush, replace: mockReplace })));
 
 vi.mock("next/navigation", () => ({
   useRouter: mockUseRouter,
   usePathname: mockUsePathname,
-  useSearchParams: mockUseSearchParams,
+  useSearchParams: () =>
+    useSyncExternalStore(searchParamsState.subscribe, () => searchParamsState.current),
 }));
 
 const listMock = vi.hoisted(() => vi.fn());

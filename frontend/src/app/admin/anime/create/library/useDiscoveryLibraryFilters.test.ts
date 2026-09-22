@@ -84,22 +84,94 @@ describe("useDiscoveryLibraryFilters", () => {
     expect(url).toContain("q=naruto");
   });
 
-  it("handleCursorBack pops the client-held cursor history instead of issuing a new cursor", () => {
+  it("handleCursorBack pops the URL-persisted cursor history instead of issuing a new cursor", () => {
+    // GAP-11: cursorHistory is now derived from the `hist` URL param, so a
+    // second call reflecting a fresh URL state (as router.replace would
+    // actually produce) is simulated by updating the searchParams mock
+    // between the two act() calls — this hook no longer holds its own state.
     mockUseSearchParams.mockReturnValue(new URLSearchParams());
-    const { result } = renderHook(() => useDiscoveryLibraryFilters());
+    const { result, rerender } = renderHook(() => useDiscoveryLibraryFilters());
 
     act(() => {
       result.current.handleCursorChange("page-2-cursor");
     });
+    let url = lastReplaceCallURL();
+    expect(url).toContain("cursor=page-2-cursor");
+    expect(url).toContain("hist=");
+
+    mockUseSearchParams.mockReturnValue(new URLSearchParams("cursor=page-2-cursor&hist="));
+    rerender();
     expect(result.current.cursorHistory).toEqual([""]);
 
     act(() => {
       result.current.handleCursorBack();
     });
 
-    expect(result.current.cursorHistory).toEqual([]);
-    const url = lastReplaceCallURL();
+    url = lastReplaceCallURL();
     expect(url).not.toContain("cursor=");
+    expect(url).not.toContain("hist=");
+  });
+
+  it("GAP-11: rendering with a URL-encoded hist param reconstructs cursorHistory on the very first render", () => {
+    mockUseSearchParams.mockReturnValue(new URLSearchParams("filter=alle&cursor=XYZ&hist=A%2CB"));
+    const { result } = renderHook(() => useDiscoveryLibraryFilters());
+
+    expect(result.current.cursorHistory).toEqual(["A", "B"]);
+  });
+
+  it("GAP-11: handleCursorChange appends the OLD cursor to hist and writes both params", () => {
+    mockUseSearchParams.mockReturnValue(new URLSearchParams("cursor=C1&hist=A%2CB"));
+    const { result } = renderHook(() => useDiscoveryLibraryFilters());
+
+    act(() => {
+      result.current.handleCursorChange("nextCursor");
+    });
+
+    const url = lastReplaceCallURL();
+    expect(url).toContain("cursor=nextCursor");
+    expect(url).toContain(`hist=${encodeURIComponent("A,B,C1")}`);
+  });
+
+  it("GAP-11: handleCursorBack pops the last hist entry and writes it back as the cursor", () => {
+    mockUseSearchParams.mockReturnValue(new URLSearchParams("cursor=nextCursor&hist=A%2CB%2CC1"));
+    const { result } = renderHook(() => useDiscoveryLibraryFilters());
+
+    act(() => {
+      result.current.handleCursorBack();
+    });
+
+    const url = lastReplaceCallURL();
+    expect(url).toContain("cursor=C1");
+    expect(url).toContain(`hist=${encodeURIComponent("A,B")}`);
+  });
+
+  it("GAP-11: handleFilterChange and handleSearchChange clear hist exactly like they clear cursor", async () => {
+    mockUseSearchParams.mockReturnValue(new URLSearchParams("cursor=abc&hist=A%2CB"));
+    const { result } = renderHook(() => useDiscoveryLibraryFilters());
+
+    act(() => {
+      result.current.handleFilterChange("bereits_vorhanden");
+    });
+    let url = lastReplaceCallURL();
+    expect(url).not.toContain("hist=");
+
+    mockReplace.mockClear();
+    mockUseSearchParams.mockReturnValue(new URLSearchParams("cursor=abc&hist=A%2CB"));
+    const { result: result2 } = renderHook(() => useDiscoveryLibraryFilters());
+
+    act(() => {
+      result2.current.handleSearchChange("naruto");
+    });
+
+    await waitFor(
+      () => {
+        expect(mockReplace).toHaveBeenCalled();
+      },
+      { timeout: 1000 },
+    );
+
+    url = lastReplaceCallURL();
+    expect(url).not.toContain("hist=");
   });
 
   it("GAP-02: hydrates the search field from the q URL param on first render", () => {
