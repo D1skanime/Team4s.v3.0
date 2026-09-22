@@ -3,6 +3,7 @@ package services
 import (
 	"context"
 	"errors"
+	"fmt"
 	"testing"
 
 	"team4s.v3/backend/internal/models"
@@ -26,6 +27,10 @@ type stubAnimeCreateEnrichmentRepo struct {
 	duplicate *models.AdminAnimeSourceMatch
 	matches   []models.AdminAnimeRelationTitleMatch
 	sources   []models.AdminAnimeSourceMatch
+	// sourcesCalls is an additive, optional call-count tracker for
+	// ResolveAdminAnimeRelationTargetsBySources (nil by default, zero behavior change for
+	// existing callers) -- used by the D-31 N+1 guard test to prove exactly one batched call.
+	sourcesCalls *int
 }
 
 func (s stubAnimeCreateEnrichmentRepo) FindAnimeBySource(ctx context.Context, source string) (*models.AdminAnimeSourceMatch, error) {
@@ -37,6 +42,9 @@ func (s stubAnimeCreateEnrichmentRepo) ResolveAdminAnimeRelationTargetsByTitles(
 }
 
 func (s stubAnimeCreateEnrichmentRepo) ResolveAdminAnimeRelationTargetsBySources(ctx context.Context, sources []string) ([]models.AdminAnimeSourceMatch, error) {
+	if s.sourcesCalls != nil {
+		*s.sourcesCalls++
+	}
 	return s.sources, nil
 }
 
@@ -406,7 +414,7 @@ func TestAnimeCreateEnrichmentService_MapsAniSearchAlternativeVersionToNebengesc
 	}
 }
 
-func TestAnimeCreateEnrichmentService_FiltersAlreadyImportedAniSearchSearchCandidates(t *testing.T) {
+func TestAnimeCreateEnrichmentService_AnnotatesAlreadyImportedAniSearchSearchCandidatesInsteadOfFiltering(t *testing.T) {
 	t.Parallel()
 
 	service := NewAnimeCreateEnrichmentService(
@@ -414,6 +422,7 @@ func TestAnimeCreateEnrichmentService_FiltersAlreadyImportedAniSearchSearchCandi
 			search: []AniSearchSearchCandidate{
 				{AniSearchID: "1078", Title: "Bleach", Type: "TV-Serie", Year: int16Ptr(2004)},
 				{AniSearchID: "15085", Title: "Bleach: Thousand-Year Blood War", Type: "TV-Serie", Year: int16Ptr(2022)},
+				{AniSearchID: "999", Title: "Bleach: Rebirth", Type: "TV-Serie", Year: int16Ptr(2025)},
 			},
 		},
 		stubAnimeCreateEnrichmentRepo{
@@ -424,19 +433,118 @@ func TestAnimeCreateEnrichmentService_FiltersAlreadyImportedAniSearchSearchCandi
 		nil,
 	)
 
+	// D-31: no candidate is ever hidden because it already belongs to an anime.
 	result, err := service.SearchAniSearchCandidates(context.Background(), "Bleach", 12)
 	if err != nil {
 		t.Fatalf("search anisearch candidates: %v", err)
 	}
 
-	if result.FilteredExistingCount != 1 {
-		t.Fatalf("expected one filtered existing candidate, got %#v", result)
+	if len(result.Data) != 3 {
+		t.Fatalf("expected all 3 candidates to remain, got %#v", result.Data)
 	}
-	if len(result.Data) != 1 {
-		t.Fatalf("expected one remaining candidate, got %#v", result.Data)
+
+	byID := make(map[string]models.AdminAnimeAniSearchSearchCandidate, len(result.Data))
+	for _, candidate := range result.Data {
+		byID[candidate.AniSearchID] = candidate
 	}
-	if result.Data[0].AniSearchID != "15085" {
-		t.Fatalf("expected only still-creatable candidate, got %#v", result.Data[0])
+
+	matched, ok := byID["1078"]
+	if !ok {
+		t.Fatalf("expected matched candidate 1078 to remain, got %#v", result.Data)
+	}
+	if matched.ExistingAnimeID == nil || *matched.ExistingAnimeID != 21 {
+		t.Fatalf("expected matched candidate to carry ExistingAnimeID=21, got %#v", matched)
+	}
+	if matched.ExistingTitle == nil || *matched.ExistingTitle != "Bleach" {
+		t.Fatalf("expected matched candidate to carry ExistingTitle=Bleach, got %#v", matched)
+	}
+
+	for _, id := range []string{"15085", "999"} {
+		unmatched, ok := byID[id]
+		if !ok {
+			t.Fatalf("expected unmatched candidate %s to remain, got %#v", id, result.Data)
+		}
+		if unmatched.ExistingAnimeID != nil || unmatched.ExistingTitle != nil {
+			t.Fatalf("expected unmatched candidate %s to have nil existing-anime fields, got %#v", id, unmatched)
+		}
+	}
+}
+
+func TestAnimeCreateEnrichmentService_SearchAniSearchCandidatesResolvesExistingMatchesInExactlyOneBatchedCall(t *testing.T) {
+	t.Parallel()
+
+	candidates := make([]AniSearchSearchCandidate, 0, 10)
+	for i := 1; i <= 10; i++ {
+		candidates = append(candidates, AniSearchSearchCandidate{
+			AniSearchID: fmt.Sprintf("%d", i),
+			Title:       fmt.Sprintf("Anime %d", i),
+			Type:        "TV-Serie",
+		})
+	}
+
+	calls := 0
+	service := NewAnimeCreateEnrichmentService(
+		stubAniSearchFetcher{search: candidates},
+		stubAnimeCreateEnrichmentRepo{
+			sources: []models.AdminAnimeSourceMatch{
+				{Source: "anisearch:2", AnimeID: 100, Title: "Anime 2"},
+				{Source: "anisearch:5", AnimeID: 101, Title: "Anime 5"},
+				{Source: "anisearch:9", AnimeID: 102, Title: "Anime 9"},
+			},
+			sourcesCalls: &calls,
+		},
+		nil,
+	)
+
+	result, err := service.SearchAniSearchCandidates(context.Background(), "Anime", 12)
+	if err != nil {
+		t.Fatalf("search anisearch candidates: %v", err)
+	}
+
+	if calls != 1 {
+		t.Fatalf("expected ResolveAdminAnimeRelationTargetsBySources to be called exactly once (no N+1), got %d calls", calls)
+	}
+	if len(result.Data) != 10 {
+		t.Fatalf("expected all 10 candidates to remain, got %d", len(result.Data))
+	}
+
+	matchedCount := 0
+	for _, candidate := range result.Data {
+		if candidate.ExistingAnimeID != nil {
+			matchedCount++
+		}
+	}
+	if matchedCount != 3 {
+		t.Fatalf("expected 3 candidates annotated as existing, got %d", matchedCount)
+	}
+}
+
+func TestAnimeCreateEnrichmentService_SearchAniSearchCandidatesUnchangedWhenNoneExist(t *testing.T) {
+	t.Parallel()
+
+	service := NewAnimeCreateEnrichmentService(
+		stubAniSearchFetcher{
+			search: []AniSearchSearchCandidate{
+				{AniSearchID: "1078", Title: "Bleach", Type: "TV-Serie", Year: int16Ptr(2004)},
+				{AniSearchID: "15085", Title: "Bleach: Thousand-Year Blood War", Type: "TV-Serie", Year: int16Ptr(2022)},
+			},
+		},
+		stubAnimeCreateEnrichmentRepo{sources: nil},
+		nil,
+	)
+
+	result, err := service.SearchAniSearchCandidates(context.Background(), "Bleach", 12)
+	if err != nil {
+		t.Fatalf("search anisearch candidates: %v", err)
+	}
+
+	if len(result.Data) != 2 {
+		t.Fatalf("expected both candidates to remain, got %#v", result.Data)
+	}
+	for _, candidate := range result.Data {
+		if candidate.ExistingAnimeID != nil || candidate.ExistingTitle != nil {
+			t.Fatalf("expected no existing-anime annotation when nothing matches, got %#v", candidate)
+		}
 	}
 }
 

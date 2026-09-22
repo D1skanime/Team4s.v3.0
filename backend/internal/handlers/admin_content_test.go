@@ -214,7 +214,6 @@ func TestSearchAnimeCreateAniSearchCandidates_ReturnsCandidateEnvelope(t *testin
 					Data: []models.AdminAnimeAniSearchSearchCandidate{
 						{AniSearchID: "15085", Title: "Bleach: Thousand-Year Blood War", Type: "TV-Serie", Year: int16Ptr(2022)},
 					},
-					FilteredExistingCount: 1,
 				}, nil
 			},
 		},
@@ -240,9 +239,6 @@ func TestSearchAnimeCreateAniSearchCandidates_ReturnsCandidateEnvelope(t *testin
 	}
 	if payload.Data[0].AniSearchID != "15085" || payload.Data[0].Title != "Bleach: Thousand-Year Blood War" {
 		t.Fatalf("unexpected first candidate: %#v", payload.Data[0])
-	}
-	if payload.FilteredExistingCount != 1 {
-		t.Fatalf("expected filtered_existing_count=1, got %#v", payload)
 	}
 }
 

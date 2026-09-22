@@ -1310,35 +1310,30 @@ func (s *AnimeCreateEnrichmentService) SearchAniSearchCandidates(
 		sourceKeys = append(sourceKeys, "anisearch:"+aniSearchID)
 	}
 
-	existingMatches := make(map[string]struct{}, len(sourceKeys))
+	existingMatches := make(map[string]models.AdminAnimeSourceMatch, len(sourceKeys))
 	if len(sourceKeys) > 0 {
 		sourceMatches, err := s.repo.ResolveAdminAnimeRelationTargetsBySources(ctx, sourceKeys)
 		if err != nil {
 			return models.AdminAnimeAniSearchSearchResult{}, err
 		}
 		for _, match := range sourceMatches {
-			existingMatches[normalizeLookupKey(match.Source)] = struct{}{}
+			existingMatches[normalizeLookupKey(match.Source)] = match
 		}
 	}
 
-	result := make([]models.AdminAnimeAniSearchSearchCandidate, 0, len(candidates))
-	filteredExistingCount := int32(0)
+	rawCandidates := make([]models.AdminAnimeAniSearchSearchCandidate, 0, len(candidates))
 	for _, candidate := range candidates {
-		sourceKey := normalizeLookupKey("anisearch:" + strings.TrimSpace(candidate.AniSearchID))
-		if _, exists := existingMatches[sourceKey]; exists {
-			filteredExistingCount++
-			continue
-		}
-		result = append(result, models.AdminAnimeAniSearchSearchCandidate{
+		rawCandidates = append(rawCandidates, models.AdminAnimeAniSearchSearchCandidate{
 			AniSearchID: candidate.AniSearchID,
 			Title:       candidate.Title,
 			Type:        candidate.Type,
 			Year:        candidate.Year,
 		})
 	}
+	// D-31 (165-19): kein Kandidat wird ausgefiltert -- bereits verknüpfte Treffer werden
+	// annotiert statt versteckt (annotateExistingAniSearchCandidates in der Sibling-Datei).
 	return models.AdminAnimeAniSearchSearchResult{
-		Data:                  result,
-		FilteredExistingCount: filteredExistingCount,
+		Data: annotateExistingAniSearchCandidates(rawCandidates, existingMatches),
 	}, nil
 }
 

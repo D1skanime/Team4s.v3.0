@@ -135,15 +135,16 @@ type AdminAnimeAniSearchEnrichmentRequest struct {
 }
 
 type AdminAnimeAniSearchSearchCandidate struct {
-	AniSearchID string `json:"anisearch_id"`
-	Title       string `json:"title"`
-	Type        string `json:"type"`
-	Year        *int16 `json:"year,omitempty"`
+	AniSearchID     string  `json:"anisearch_id"`
+	Title           string  `json:"title"`
+	Type            string  `json:"type"`
+	Year            *int16  `json:"year,omitempty"`
+	ExistingAnimeID *int64  `json:"existing_anime_id,omitempty"`
+	ExistingTitle   *string `json:"existing_title,omitempty"`
 }
 
 type AdminAnimeAniSearchSearchResult struct {
-	Data                  []AdminAnimeAniSearchSearchCandidate `json:"data"`
-	FilteredExistingCount int32                                `json:"filtered_existing_count"`
+	Data []AdminAnimeAniSearchSearchCandidate `json:"data"`
 }
 
 type AdminAnimeAniSearchSearchResponse = AdminAnimeAniSearchSearchResult
