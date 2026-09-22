@@ -3,14 +3,14 @@ gsd_state_version: 1.0
 milestone: v1.4
 milestone_name: Coverage
 status: verifying
-stopped_at: Completed 165-16-PLAN.md (GAP-11/GAP-09/GAP-16 frontend gap closures)
-last_updated: "2026-09-22T11:22:51.520Z"
+stopped_at: Completed 165-17-PLAN.md (GAP-05/GAP-10/GAP-12/GAP-13 additive-connect gap-closure)
+last_updated: "2026-09-22T11:38:34.230Z"
 last_activity: 2026-09-22
 progress:
   total_phases: 31
   completed_phases: 29
   total_plans: 295
-  completed_plans: 292
+  completed_plans: 293
   percent: 94
 ---
 
@@ -1449,6 +1449,7 @@ Last activity: 2026-09-22
 - [Phase 165]: 165-15: Discovery-Suche filtert nur Titel/Ordnername (GAP-14); gleichzeitige Snapshot-Rebuilds per singleflight.Group gebuendelt (GAP-15); GAP-09-Backend-Fix bestaetigt intakt
 - [Phase 165]: GAP-11 hist URL param decode uses strict raw===null check (not falsy) to distinguish absent param from present-but-empty (single-entry history)
 - [Phase 165]: DiscoveryLibraryPanel.test.tsx next/navigation mock rewritten to useSyncExternalStore-backed reactive store after GAP-11 removed the hook's local cursorHistory state (Rule 1 test-infra fix)
+- [Phase 165]: 165-17: connect-flag replaces anisearch-prefix sniffing for additive-vs-force-write and audit gating (GAP-05/GAP-13); linkAdditionalJellyfinSource distinguishes idempotent re-link from ownership conflict via repository.ErrConflict -> HTTP 409 (GAP-10); AniSearchDuplicateDecision sends connect:true and navigates away after a successful Verbinden, preserving a validated ?return= link (GAP-12).
 
 ### Pending Todos
 
@@ -1914,11 +1915,12 @@ untruncated list lives in `.planning/todos/pending/`.
 | Phase 165 P14 | 12min | 1 tasks | 4 files |
 | Phase 165 P15 | 40min | 2 tasks | 6 files |
 | Phase 165 P16 | 25min | 3 tasks | 6 files |
+| Phase 165 P17 | 70min | 3 tasks | 11 files |
 
 ## Session Continuity
 
-Last session: 2026-09-22T11:22:51.496Z
-Stopped at: Completed 165-16-PLAN.md (GAP-11/GAP-09/GAP-16 frontend gap closures)
+Last session: 2026-09-22T11:38:34.206Z
+Stopped at: Completed 165-17-PLAN.md (GAP-05/GAP-10/GAP-12/GAP-13 additive-connect gap-closure)
 Last activity: 2026-09-22 - Completed quick task 260922-cew: Phase-165-Live-UAT-Fixes GAP-01..GAP-04 (Bibliotheks-Übergabe-Blocker, Pager, Bibliotheks-Label, Kartenstil)
 Resume file: 
 None
