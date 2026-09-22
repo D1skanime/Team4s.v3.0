@@ -2,6 +2,8 @@
 
 import { useEffect, useRef } from "react";
 
+import { stripTrailingYearSuffix } from "./library/discoveryFolderName";
+
 /**
  * useCreatePageDiscoveryHandoff: kapselt zwei additive Discovery-Verhalten fuer die
  * Create-Seite, ausgelagert aus useAdminAnimeCreateController.ts (bereits 1451 Zeilen,
@@ -12,9 +14,11 @@ import { useEffect, useRef } from "react";
  *    uebernommen wurde, wird `adoptCandidate(jellyfinID)` genau einmal aufgerufen — auch
  *    ueber mehrere Re-Renders hinweg mit derselben ID (intern per Ref abgesichert, nicht
  *    von einer Memoisierung durch den Aufrufer abhaengig).
- * 2. AniSearch-Prefill (D-09/D-26): sobald der Jellyfin-Serienname vorliegt und das
- *    AniSearch-Suchfeld noch leer ist, wird das Suchfeld genau einmal vorbefuellt — es
- *    wird dadurch NIE automatisch gesucht, nur der Eingabewert wird gesetzt.
+ * 2. AniSearch-Prefill (D-09/D-26): sobald der bereinigte Ordnername vorliegt (GAP-19,
+ *    165-UAT.md — Jellyfins eigener Name ist unzuverlaessig, verlaesslich ist nur der
+ *    Ordner) und das AniSearch-Suchfeld noch leer ist, wird das Suchfeld genau einmal
+ *    vorbefuellt — es wird dadurch NIE automatisch gesucht, nur der Eingabewert wird
+ *    gesetzt.
  *
  * Dieser Hook haengt ausschliesslich von einfachen Werten/Callbacks ab, die der
  * Controller bereits exponiert — er importiert nichts aus
@@ -24,7 +28,7 @@ export interface UseCreatePageDiscoveryHandoffParams {
   jellyfinID: string | null;
   hasAdoptedPreview: boolean;
   adoptCandidate: (id: string) => void | Promise<void>;
-  jellyfinPreviewSeriesName: string | undefined;
+  jellyfinPreviewFolderNameSeed: string | undefined;
   searchQuery: string;
   setSearchQuery: (value: string) => void;
 }
@@ -36,7 +40,7 @@ export function useCreatePageDiscoveryHandoff(
     jellyfinID,
     hasAdoptedPreview,
     adoptCandidate,
-    jellyfinPreviewSeriesName,
+    jellyfinPreviewFolderNameSeed,
     searchQuery,
     setSearchQuery,
   } = params;
@@ -56,10 +60,13 @@ export function useCreatePageDiscoveryHandoff(
   useEffect(() => {
     if (!jellyfinID) return;
     if (hasPrefilledSearchRef.current) return;
-    if (!jellyfinPreviewSeriesName) return;
+    if (!jellyfinPreviewFolderNameSeed) return;
     if (searchQuery.trim() !== "") return;
 
+    const cleanedFolderName = stripTrailingYearSuffix(jellyfinPreviewFolderNameSeed);
+    if (cleanedFolderName === "") return;
+
     hasPrefilledSearchRef.current = true;
-    setSearchQuery(jellyfinPreviewSeriesName);
-  }, [jellyfinID, jellyfinPreviewSeriesName, searchQuery, setSearchQuery]);
+    setSearchQuery(cleanedFolderName);
+  }, [jellyfinID, jellyfinPreviewFolderNameSeed, searchQuery, setSearchQuery]);
 }

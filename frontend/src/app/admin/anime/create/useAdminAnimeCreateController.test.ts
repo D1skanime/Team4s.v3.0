@@ -568,7 +568,7 @@ describe('useAdminAnimeCreateController (hook execution)', () => {
       jellyfinID,
       hasAdoptedPreview: controller.jellyfin.hasAdoptedPreview,
       adoptCandidate: controller.handlers.handleJellyfinCandidateAdopt,
-      jellyfinPreviewSeriesName: controller.jellyfin.preview?.jellyfin_series_name,
+      jellyfinPreviewFolderNameSeed: controller.jellyfin.preview?.folder_name_title_seed,
       searchQuery: controller.anisearch.searchQuery,
       setSearchQuery: controller.handlers.setAniSearchSearchQuery,
     })

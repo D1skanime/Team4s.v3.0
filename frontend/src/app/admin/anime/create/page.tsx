@@ -89,7 +89,7 @@ function AdminAnimeCreateContent() {
     jellyfinID: discoveryJellyfinID,
     hasAdoptedPreview: jellyfin.hasAdoptedPreview,
     adoptCandidate: handlers.handleJellyfinCandidateAdopt,
-    jellyfinPreviewSeriesName: jellyfin.preview?.jellyfin_series_name,
+    jellyfinPreviewFolderNameSeed: jellyfin.preview?.folder_name_title_seed,
     searchQuery: anisearch.searchQuery,
     setSearchQuery: handlers.setAniSearchSearchQuery,
   });

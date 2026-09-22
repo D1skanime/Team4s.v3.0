@@ -15,7 +15,7 @@ describe("useCreatePageDiscoveryHandoff", () => {
       jellyfinID: "series-42",
       hasAdoptedPreview: false,
       adoptCandidate,
-      jellyfinPreviewSeriesName: undefined,
+      jellyfinPreviewFolderNameSeed: undefined,
       searchQuery: "",
       setSearchQuery,
     };
@@ -44,7 +44,7 @@ describe("useCreatePageDiscoveryHandoff", () => {
         jellyfinID: "series-42",
         hasAdoptedPreview: true,
         adoptCandidate,
-        jellyfinPreviewSeriesName: undefined,
+        jellyfinPreviewFolderNameSeed: undefined,
         searchQuery: "",
         setSearchQuery,
       }),
@@ -53,14 +53,14 @@ describe("useCreatePageDiscoveryHandoff", () => {
     expect(adoptCandidate).not.toHaveBeenCalled();
   });
 
-  it("prefills the AniSearch search field exactly once from the Jellyfin series name, never overwriting existing text", () => {
+  it("prefills the AniSearch search field exactly once from the cleaned folder name, never overwriting existing text", () => {
     const adoptCandidate = vi.fn();
     const setSearchQuery = vi.fn();
     const baseProps: UseCreatePageDiscoveryHandoffParams = {
       jellyfinID: "series-42",
       hasAdoptedPreview: true,
       adoptCandidate,
-      jellyfinPreviewSeriesName: undefined,
+      jellyfinPreviewFolderNameSeed: undefined,
       searchQuery: "",
       setSearchQuery,
     };
@@ -73,13 +73,13 @@ describe("useCreatePageDiscoveryHandoff", () => {
 
     expect(setSearchQuery).not.toHaveBeenCalled();
 
-    rerender({ ...baseProps, jellyfinPreviewSeriesName: "Naruto" });
+    rerender({ ...baseProps, jellyfinPreviewFolderNameSeed: "Naruto" });
 
     expect(setSearchQuery).toHaveBeenCalledTimes(1);
     expect(setSearchQuery).toHaveBeenCalledWith("Naruto");
 
-    rerender({ ...baseProps, jellyfinPreviewSeriesName: "Naruto" });
-    rerender({ ...baseProps, jellyfinPreviewSeriesName: "Naruto Shippuden" });
+    rerender({ ...baseProps, jellyfinPreviewFolderNameSeed: "Naruto" });
+    rerender({ ...baseProps, jellyfinPreviewFolderNameSeed: "Naruto Shippuden" });
 
     expect(setSearchQuery).toHaveBeenCalledTimes(1);
   });
@@ -93,7 +93,7 @@ describe("useCreatePageDiscoveryHandoff", () => {
         jellyfinID: "series-42",
         hasAdoptedPreview: true,
         adoptCandidate,
-        jellyfinPreviewSeriesName: "Naruto",
+        jellyfinPreviewFolderNameSeed: "Naruto",
         searchQuery: "Bleach",
         setSearchQuery,
       }),
@@ -111,7 +111,7 @@ describe("useCreatePageDiscoveryHandoff", () => {
         jellyfinID: null,
         hasAdoptedPreview: false,
         adoptCandidate,
-        jellyfinPreviewSeriesName: "Naruto",
+        jellyfinPreviewFolderNameSeed: "Naruto",
         searchQuery: "",
         setSearchQuery,
       }),
@@ -119,5 +119,32 @@ describe("useCreatePageDiscoveryHandoff", () => {
 
     expect(adoptCandidate).not.toHaveBeenCalled();
     expect(setSearchQuery).not.toHaveBeenCalled();
+  });
+
+  it("GAP-19: strips a trailing year suffix before prefilling the search field", () => {
+    const adoptCandidate = vi.fn();
+    const setSearchQuery = vi.fn();
+    const baseProps: UseCreatePageDiscoveryHandoffParams = {
+      jellyfinID: "series-42",
+      hasAdoptedPreview: true,
+      adoptCandidate,
+      jellyfinPreviewFolderNameSeed: undefined,
+      searchQuery: "",
+      setSearchQuery,
+    };
+
+    const { rerender } = renderHook(
+      (props: UseCreatePageDiscoveryHandoffParams) =>
+        useCreatePageDiscoveryHandoff(props),
+      { initialProps: baseProps },
+    );
+
+    rerender({
+      ...baseProps,
+      jellyfinPreviewFolderNameSeed: "Accel World Infinite Burst (2016)",
+    });
+
+    expect(setSearchQuery).toHaveBeenCalledTimes(1);
+    expect(setSearchQuery).toHaveBeenCalledWith("Accel World Infinite Burst");
   });
 });

@@ -113,7 +113,7 @@ afterEach(() => {
 
 describe("DiscoveryLibraryPanel", () => {
   it("shows LoadingState first, then a vertical DiscoveryLibraryCard stack with no Table markup", async () => {
-    listMock.mockResolvedValueOnce(buildPage([buildItem(), buildItem({ jellyfin_item_id: "series-2", name: "Bleach" })]));
+    listMock.mockResolvedValueOnce(buildPage([buildItem(), buildItem({ jellyfin_item_id: "series-2", name: "Bleach", path: "D:/Anime/TV/Bleach" })]));
 
     render(<DiscoveryLibraryPanel />);
 
@@ -133,6 +133,7 @@ describe("DiscoveryLibraryPanel", () => {
         buildItem({
           jellyfin_item_id: "series-2",
           name: "Bleach",
+          path: "D:/Anime/TV/Bleach",
           status: "existing",
           existing_anime_id: 7,
           existing_title: "Bleach",
@@ -174,7 +175,7 @@ describe("DiscoveryLibraryPanel", () => {
     listMock
       .mockResolvedValueOnce(buildPage([buildItem()], { has_more: true, next_cursor: "cursor-2" }))
       .mockResolvedValueOnce(
-        buildPage([buildItem({ jellyfin_item_id: "series-2", name: "Bleach" })], { has_more: false }),
+        buildPage([buildItem({ jellyfin_item_id: "series-2", name: "Bleach", path: "D:/Anime/TV/Bleach" })], { has_more: false }),
       )
       .mockResolvedValueOnce(buildPage([buildItem()], { has_more: true, next_cursor: "cursor-2" }));
 
@@ -280,7 +281,7 @@ describe("DiscoveryLibraryPanel", () => {
     const weiterButton = screen.getByRole("button", { name: "Weiter" }) as HTMLButtonElement;
     expect(weiterButton.disabled).toBe(false);
 
-    listMock.mockResolvedValueOnce(buildPage([buildItem({ jellyfin_item_id: "series-2", name: "Bleach" })]));
+    listMock.mockResolvedValueOnce(buildPage([buildItem({ jellyfin_item_id: "series-2", name: "Bleach", path: "D:/Anime/TV/Bleach" })]));
     fireEvent.click(weiterButton);
 
     await waitFor(() => expect(screen.getByText("Bleach")).toBeTruthy());
@@ -304,7 +305,7 @@ describe("DiscoveryLibraryPanel", () => {
 
     listMock
       .mockImplementationOnce(() => firstResponse)
-      .mockResolvedValueOnce(buildPage([buildItem({ jellyfin_item_id: "series-2", name: "Bleach" })]));
+      .mockResolvedValueOnce(buildPage([buildItem({ jellyfin_item_id: "series-2", name: "Bleach", path: "D:/Anime/TV/Bleach" })]));
 
     render(<DiscoveryLibraryPanel />);
     await waitFor(() => expect(listMock).toHaveBeenCalledTimes(1));
@@ -354,7 +355,7 @@ describe("DiscoveryLibraryPanel", () => {
     expect((screen.getByRole("button", { name: "Zurück" }) as HTMLButtonElement).disabled).toBe(true);
 
     await act(async () => {
-      resolveSecond?.(buildPage([buildItem({ jellyfin_item_id: "series-2", name: "Bleach" })], { has_more: false }));
+      resolveSecond?.(buildPage([buildItem({ jellyfin_item_id: "series-2", name: "Bleach", path: "D:/Anime/TV/Bleach" })], { has_more: false }));
       await Promise.resolve();
       await Promise.resolve();
     });
