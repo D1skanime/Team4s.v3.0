@@ -11,6 +11,7 @@ import {
   deleteUploadedCoverFile,
   getAnimeList,
 } from "@/lib/api";
+import { useConfirmDialog } from "@/components/ui";
 import { useAuthSession } from "@/lib/useAuthSession";
 import { getCoverUrl } from "@/lib/utils";
 import type { AnimeListItem } from "@/types/anime";
@@ -45,6 +46,32 @@ function formatError(error: unknown): string {
  * Unterscheidet zwischen aktiv laufenden, abgeschlossenen, abgebrochenen,
  * lizenzierten und deaktivierten Einträgen.
  */
+const ANIME_TYPE_LABELS: Record<string, string> = {
+  tv: "TV",
+  film: "Film",
+  ova: "OVA",
+  ona: "ONA",
+  special: "Special",
+  bonus: "Bonus",
+  web: "Web",
+};
+
+/**
+ * Gibt das lesbare Anzeige-Label für einen Anime-Typ zurück.
+ * Eigenständige Map (nicht TYPE_HINT_LABELS aus discoveryPageHelpers.ts,
+ * die "bonus" auf "Special" kollabiert und "Serie" statt "TV" nutzt).
+ */
+function resolveAnimeTypeLabel(type: string): string {
+  return ANIME_TYPE_LABELS[type] ?? type.toUpperCase();
+}
+
+/**
+ * Formatiert eine Episodenzahl mit korrekter Singular-/Pluralform.
+ */
+function formatEpisodeCount(count: number): string {
+  return count === 1 ? "1 Episode" : `${count} Episoden`;
+}
+
 function resolveStatusTone(status: string): string {
   switch (status) {
     case "ongoing":
@@ -76,6 +103,7 @@ export function AdminAnimeOverviewClient({
 }: AdminAnimeOverviewClientProps) {
   const router = useRouter();
   const { hasAccessToken } = useAuthSession();
+  const { confirm, confirmDialog } = useConfirmDialog();
   const [items, setItems] = useState(initialItems);
   const [errorMessage, setErrorMessage] = useState<string | null>(initialError);
   const [successMessage, setSuccessMessage] = useState<string | null>(null);
@@ -122,9 +150,13 @@ export function AdminAnimeOverviewClient({
       return;
     }
 
-    const confirmed = window.confirm(
-      `Anime "${anime.title}" wirklich löschen?\n\nZugehörige Episoden, Kommentare und Verknüpfungen werden ebenfalls entfernt.`,
-    );
+    const confirmed = await confirm({
+      title: `Anime "${anime.title}" wirklich löschen?`,
+      description:
+        "Zugehörige Episoden, Kommentare und Verknüpfungen werden ebenfalls entfernt.",
+      confirmLabel: "Löschen",
+      tone: "danger",
+    });
     if (!confirmed) return;
 
     setDeletingAnimeID(anime.id);
@@ -192,10 +224,10 @@ export function AdminAnimeOverviewClient({
                   <h3 className={styles.itemTitle}>{anime.title}</h3>
                   <p className={styles.metaText}>
                     #{String(anime.id).padStart(3, "0")} |{" "}
-                    {anime.type.toUpperCase()}
+                    {resolveAnimeTypeLabel(anime.type)}
                     {anime.year ? ` | ${anime.year}` : ""}
                     {anime.max_episodes
-                      ? ` | ${anime.max_episodes} Episoden`
+                      ? ` | ${formatEpisodeCount(anime.max_episodes)}`
                       : ""}
                   </p>
                 </div>
@@ -235,6 +267,7 @@ export function AdminAnimeOverviewClient({
           ))}
         </div>
       ) : null}
+      {confirmDialog}
     </>
   );
 }

@@ -455,6 +455,8 @@ func mapAnimeTypeNameToAPI(name *string) string {
 	switch strings.ToLower(strings.TrimSpace(*name)) {
 	case "tv":
 		return "tv"
+	case "film":
+		return "film"
 	case "movie":
 		return "film"
 	case "ova":
