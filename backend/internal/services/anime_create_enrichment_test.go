@@ -735,6 +735,88 @@ func TestAnimeAssetSearchService_PrefersFanartForLogoAndBanner(t *testing.T) {
 	}
 }
 
+// TestAnimeAssetSearchService_CoverSlotQueriesTMDBThenAniListThenZerochan proves that the
+// "cover" slot's default source order now includes AniList (a new official-poster source ahead
+// of Zerochan fan-art), in addition to the pre-existing TMDB source.
+func TestAnimeAssetSearchService_CoverSlotQueriesTMDBThenAniListThenZerochan(t *testing.T) {
+	t.Parallel()
+
+	callOrder := make([]models.AdminAnimeAssetSearchSource, 0, 3)
+	service := NewAnimeAssetSearchService(
+		stubAssetSearchProvider{
+			source:   models.AdminAnimeAssetSearchSourceTMDB,
+			supports: map[string]bool{"cover": true},
+			calls:    &callOrder,
+			search: func(_ context.Context, req models.AdminAnimeAssetSearchRequest) ([]models.AdminAnimeAssetSearchCandidate, error) {
+				return []models.AdminAnimeAssetSearchCandidate{
+					{
+						ID:         "tmdb-movie-26595-poster.jpg",
+						AssetKind:  req.AssetKind,
+						Source:     models.AdminAnimeAssetSearchSourceTMDB,
+						PreviewURL: "https://img.example/tmdb-preview.jpg",
+						ImageURL:   "https://img.example/tmdb-full.jpg",
+					},
+				}, nil
+			},
+		},
+		stubAssetSearchProvider{
+			source:   models.AdminAnimeAssetSearchSourceAniList,
+			supports: map[string]bool{"cover": true},
+			calls:    &callOrder,
+			search: func(_ context.Context, req models.AdminAnimeAssetSearchRequest) ([]models.AdminAnimeAssetSearchCandidate, error) {
+				return []models.AdminAnimeAssetSearchCandidate{
+					{
+						ID:         "anilist-3269",
+						AssetKind:  req.AssetKind,
+						Source:     models.AdminAnimeAssetSearchSourceAniList,
+						PreviewURL: "https://img.example/anilist-preview.jpg",
+						ImageURL:   "https://img.example/anilist-full.jpg",
+					},
+				}, nil
+			},
+		},
+		stubAssetSearchProvider{
+			source:   models.AdminAnimeAssetSearchSourceZerochan,
+			supports: map[string]bool{"cover": true},
+			calls:    &callOrder,
+			search: func(_ context.Context, req models.AdminAnimeAssetSearchRequest) ([]models.AdminAnimeAssetSearchCandidate, error) {
+				return []models.AdminAnimeAssetSearchCandidate{
+					{
+						ID:         "zerochan-1",
+						AssetKind:  req.AssetKind,
+						Source:     models.AdminAnimeAssetSearchSourceZerochan,
+						PreviewURL: "https://img.example/zerochan-preview.jpg",
+						ImageURL:   "https://img.example/zerochan-full.jpg",
+					},
+				}, nil
+			},
+		},
+	)
+
+	_, err := service.SearchAssetCandidates(context.Background(), models.AdminAnimeAssetSearchRequest{
+		AssetKind: "cover",
+		Query:     ".hack//G.U. Trilogy",
+		Limit:     5,
+	})
+	if err != nil {
+		t.Fatalf("search asset candidates: %v", err)
+	}
+
+	expectedOrder := []models.AdminAnimeAssetSearchSource{
+		models.AdminAnimeAssetSearchSourceTMDB,
+		models.AdminAnimeAssetSearchSourceAniList,
+		models.AdminAnimeAssetSearchSourceZerochan,
+	}
+	if len(callOrder) != len(expectedOrder) {
+		t.Fatalf("unexpected call order length: %#v", callOrder)
+	}
+	for idx, source := range expectedOrder {
+		if callOrder[idx] != source {
+			t.Fatalf("expected call order %#v, got %#v", expectedOrder, callOrder)
+		}
+	}
+}
+
 func TestMapAniSearchGraphRelation_IncomingSequelMapsToHauptgeschichte(t *testing.T) {
 	t.Parallel()
 
