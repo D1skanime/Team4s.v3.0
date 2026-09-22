@@ -75,12 +75,18 @@ func loadAnimeSourceLinks(ctx context.Context, q animeSourceLinkQueryer, animeID
 // (database/migrations/0047_add_anime_source_links.up.sql:6), and a conflict target that omits
 // that constraint would surface as an unhandled unique-violation error instead of resolving to
 // DO NOTHING.
+//
+// GAP-10 fix (165-17): a zero-RowsAffected DO NOTHING no longer means unconditional success. If
+// the insert affected zero rows, a row for this exact source already exists -- a follow-up SELECT
+// inside the SAME transaction distinguishes an idempotent re-link to the SAME anime (harmless
+// retry, returns nil) from a genuine ownership conflict where a DIFFERENT anime already owns this
+// source (returns ErrConflict, the actual "connecting an already-taken folder" bug this closes).
 func linkAdditionalJellyfinSource(ctx context.Context, tx pgx.Tx, animeID int64, source string) error {
 	trimmed := strings.TrimSpace(source)
 	if animeID <= 0 || trimmed == "" {
 		return nil
 	}
-	if _, err := tx.Exec(
+	tag, err := tx.Exec(
 		ctx,
 		`
 		INSERT INTO anime_source_links (anime_id, source)
@@ -89,10 +95,26 @@ func linkAdditionalJellyfinSource(ctx context.Context, tx pgx.Tx, animeID int64,
 		`,
 		animeID,
 		trimmed,
-	); err != nil {
+	)
+	if err != nil {
 		return fmt.Errorf("link additional jellyfin source anime=%d source=%q: %w", animeID, trimmed, err)
 	}
-	return nil
+	if tag.RowsAffected() > 0 {
+		return nil
+	}
+
+	var owningAnimeID int64
+	if err := tx.QueryRow(
+		ctx,
+		`SELECT anime_id FROM anime_source_links WHERE source = $1`,
+		trimmed,
+	).Scan(&owningAnimeID); err != nil {
+		return fmt.Errorf("check owner of anime source link source=%q: %w", trimmed, err)
+	}
+	if owningAnimeID == animeID {
+		return nil
+	}
+	return ErrConflict
 }
 
 // LinkAdditionalJellyfinSource is the exported, self-transacting wrapper

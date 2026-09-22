@@ -40,11 +40,20 @@ func actorPointersFromIdentity(identity middleware.AuthIdentity) (appUserID *int
 	return appUserID, legacyUserID
 }
 
-// connectJellyfinFolderAdditively decides how a successful "Verbinden" write reaches anime_source_links /
-// anime.source: if animeSource.Source already carries a non-Jellyfin anisearch: reference and the caller
-// explicitly targeted a Jellyfin series (explicitSeriesID != ""), the new folder is inserted additively via
-// LinkAdditionalJellyfinSource -- anime.source is never touched. Otherwise it falls through to the existing,
-// unmodified ApplyJellyfinSyncMetadata force-write path (same behavior as before this plan). D-16 (a
+// connectJellyfinFolderAdditively decides how a successful "Verbinden"/metadata-apply write reaches
+// anime_source_links / anime.source, driven SOLELY by the explicit connect signal (165-17, GAP-05/GAP-13
+// fix): if the caller is an explicit "Verbinden" action (connect == true) AND the anime already carries
+// ANY source (currentSource != ""), the new folder is inserted additively via LinkAdditionalJellyfinSource
+// -- anime.source is never touched, regardless of which provider prefix currentSource carries. This
+// replaces the previous, since-proven-wrong "anisearch:"-prefix-sniffing heuristic, which silently
+// force-overwrote anime.source/folder_name whenever the anime's existing source happened to already be
+// jellyfin:<A> -- the normal shape for anime originally created via Jellyfin preview/intake, i.e. the exact
+// real-world case D-05 exists for (165-UAT.md GAP-05). When connect == false (the routine edit-page
+// "Jellyfin-Metadaten anwenden" resync, the only OTHER caller of this function), the force-write path is
+// always used and no audit entry is written (GAP-13) -- byte-identical to this function's pre-165-17
+// behavior for that caller. If the additive branch's LinkAdditionalJellyfinSource call reports an ownership
+// conflict (repository.ErrConflict, a DIFFERENT anime already owns the target source), that error is
+// returned AS-IS without reaching the audit-write block (GAP-10) -- never a silent no-op success. D-16 (a
 // renamed/moved folder reconnecting via a new Jellyfin item ID) needs no special-case branch here: it is the
 // same additive insert as any other second folder.
 func (h *AdminContentHandler) connectJellyfinFolderAdditively(
@@ -54,10 +63,11 @@ func (h *AdminContentHandler) connectJellyfinFolderAdditively(
 	animeSource *models.AdminAnimeSyncSource,
 	preview models.AdminAnimeJellyfinMetadataPreviewResult,
 	explicitSeriesID string,
+	connect bool,
 ) error {
 	currentSource := strings.TrimSpace(derefString(animeSource.Source))
 	newSourceTag := "jellyfin:" + strings.TrimSpace(preview.JellyfinSeriesID)
-	additive := strings.HasPrefix(currentSource, "anisearch:") && strings.TrimSpace(explicitSeriesID) != ""
+	additive := connect && currentSource != ""
 
 	if additive {
 		if err := h.folderManagementRepo.LinkAdditionalJellyfinSource(ctx, animeID, newSourceTag); err != nil {
@@ -78,7 +88,7 @@ func (h *AdminContentHandler) connectJellyfinFolderAdditively(
 		}
 	}
 
-	if h.auditLogRepo != nil {
+	if connect && h.auditLogRepo != nil {
 		appUserID, legacyUserID := actorPointersFromIdentity(identity)
 		_ = h.auditLogRepo.Write(ctx, repository.AuditLogEntry{
 			ActorAppUserID:    appUserID,
@@ -93,6 +103,36 @@ func (h *AdminContentHandler) connectJellyfinFolderAdditively(
 	}
 
 	return nil
+}
+
+// writeJellyfinFolderOwnershipConflict responds 409 for the GAP-10 ownership-conflict case (165-17): the
+// additive LinkAdditionalJellyfinSource write reported that the target jellyfin:<id> source already
+// belongs to a DIFFERENT anime (repository.ErrConflict from connectJellyfinFolderAdditively). Looks the
+// actual owner up via FindAnimeBySource on the same source tag connectJellyfinFolderAdditively attempted
+// to link, so the frontend can offer the same "Verbinden" decision for that owner. If the lookup itself
+// fails or returns nil (rare race between the conflict and this follow-up read), falls back to the same
+// 409 status with a generic message and no data field -- never silently downgrading to 500.
+func writeJellyfinFolderOwnershipConflict(c *gin.Context, h *AdminContentHandler, preview models.AdminAnimeJellyfinMetadataPreviewResult) {
+	const message = "dieser jellyfin-ordner ist bereits mit einem anderen anime verknüpft"
+	const code = "jellyfin_folder_owned_by_other_anime"
+
+	newSourceTag := "jellyfin:" + strings.TrimSpace(preview.JellyfinSeriesID)
+	match, err := h.folderManagementRepo.FindAnimeBySource(c.Request.Context(), newSourceTag)
+	if err != nil || match == nil {
+		if err != nil {
+			log.Printf("admin_content jellyfin_metadata_apply: ownership-conflict lookup failed (source=%q): %v", newSourceTag, err)
+		}
+		c.JSON(http.StatusConflict, gin.H{"error": gin.H{"message": message, "code": code}})
+		return
+	}
+
+	c.JSON(http.StatusConflict, gin.H{
+		"error": gin.H{"message": message, "code": code},
+		"data": gin.H{
+			"existing_anime_id": match.AnimeID,
+			"existing_title":    match.Title,
+		},
+	})
 }
 
 // RemoveAnimeJellyfinFolder handelt DELETE /admin/anime/:id/jellyfin/folders/:source (165-07, D-18).

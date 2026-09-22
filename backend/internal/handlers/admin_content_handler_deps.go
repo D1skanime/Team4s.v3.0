@@ -40,6 +40,10 @@ type jellyfinFolderManagementRepository interface {
 	ApplyJellyfinSyncMetadata(ctx context.Context, animeID int64, sourceTag string, folderName *string, year *int16, description *string, maxEpisodes *int16, forceSourceUpdate bool) error
 	LinkAdditionalJellyfinSource(ctx context.Context, animeID int64, source string) error
 	RemoveAnimeSourceLink(ctx context.Context, animeID int64, source string) error
+	// FindAnimeBySource (165-17, GAP-10): the ownership-conflict-lookup counterpart to
+	// LinkAdditionalJellyfinSource -- already implemented on *repository.AdminContentRepository
+	// (admin_content_anisearch.go), production wiring needs no change.
+	FindAnimeBySource(ctx context.Context, source string) (*models.AdminAnimeSourceMatch, error)
 }
 
 // WithDiscoveryCacheDeps verdrahtet den Discovery-Snapshot-Cache nachtraeglich (165-01).

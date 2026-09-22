@@ -27,6 +27,10 @@ type adminAnimeJellyfinMetadataApplyRequest struct {
 	ApplyLogo            *bool   `json:"apply_logo"`
 	ApplyBackgrounds     *bool   `json:"apply_backgrounds"`
 	ApplyBackgroundVideo *bool   `json:"apply_background_video"`
+	// Connect signals an explicit "Verbinden" action from the discovery-duplicate UI (165-17,
+	// GAP-05/GAP-13 fix) -- nil-means-false, same convention as the Apply* fields above. The routine
+	// edit-page "Jellyfin-Metadaten anwenden" resync never sends this field.
+	Connect *bool `json:"connect"`
 }
 
 // validateAdminAnimeJellyfinMetadataSeriesID prüft und bereinigt eine optionale Jellyfin-Serien-ID.
@@ -192,7 +196,12 @@ func (h *AdminContentHandler) ApplyAnimeMetadataFromJellyfin(c *gin.Context) {
 		return
 	}
 
-	if err := h.connectJellyfinFolderAdditively(c.Request.Context(), identity, animeID, animeSource, preview, explicitSeriesID); err != nil {
+	connect := req.Connect != nil && *req.Connect
+	if err := h.connectJellyfinFolderAdditively(c.Request.Context(), identity, animeID, animeSource, preview, explicitSeriesID, connect); err != nil {
+		if errors.Is(err, repository.ErrConflict) {
+			writeJellyfinFolderOwnershipConflict(c, h, preview)
+			return
+		}
 		log.Printf("admin_content jellyfin_metadata_apply: apply metadata failed (anime_id=%d): %v", animeID, err)
 		c.JSON(http.StatusInternalServerError, gin.H{"error": gin.H{"message": "anime metadaten konnten nicht aktualisiert werden"}})
 		return

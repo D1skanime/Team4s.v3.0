@@ -2,6 +2,7 @@ package handlers
 
 import (
 	"context"
+	"encoding/json"
 	"errors"
 	"net/http"
 	"net/http/httptest"
@@ -27,10 +28,16 @@ type fakeJellyfinFolderManagementRepo struct {
 
 	linkCalls     int
 	linkedSources []string
+	linkErr       error
 
 	removeCalls    int
 	removedSources []string
 	removeErr      error
+
+	findCalls  int
+	findArgs   []string
+	findResult *models.AdminAnimeSourceMatch
+	findErr    error
 }
 
 func (f *fakeJellyfinFolderManagementRepo) GetAnimeSyncSource(_ context.Context, _ int64) (*models.AdminAnimeSyncSource, error) {
@@ -58,8 +65,20 @@ func (f *fakeJellyfinFolderManagementRepo) ApplyJellyfinSyncMetadata(
 
 func (f *fakeJellyfinFolderManagementRepo) LinkAdditionalJellyfinSource(_ context.Context, _ int64, source string) error {
 	f.linkCalls++
+	if f.linkErr != nil {
+		return f.linkErr
+	}
 	f.linkedSources = append(f.linkedSources, source)
 	return nil
+}
+
+func (f *fakeJellyfinFolderManagementRepo) FindAnimeBySource(_ context.Context, source string) (*models.AdminAnimeSourceMatch, error) {
+	f.findCalls++
+	f.findArgs = append(f.findArgs, source)
+	if f.findErr != nil {
+		return nil, f.findErr
+	}
+	return f.findResult, nil
 }
 
 func (f *fakeJellyfinFolderManagementRepo) RemoveAnimeSourceLink(_ context.Context, _ int64, source string) error {
@@ -73,37 +92,56 @@ func (f *fakeJellyfinFolderManagementRepo) RemoveAnimeSourceLink(_ context.Conte
 
 var testAdminIdentity = middleware.AuthIdentity{AppUserID: 7, UserID: 7}
 
-// --- Test 1: Pitfall-3 regression guard ------------------------------------------------------
+// --- Test A (165-17, GAP-05 fix): connect is the SOLE signal deciding additive-vs-force-write,
+// regardless of the anime's current source provider ------------------------------------------
 
-func TestConnectJellyfinFolderAdditively_ProtectsExistingAniSearchSource(t *testing.T) {
-	repo := &fakeJellyfinFolderManagementRepo{}
-	audit := &fakeAuditLogWriter{}
-	h := &AdminContentHandler{folderManagementRepo: repo, auditLogRepo: audit}
+func TestConnectJellyfinFolderAdditively_AlwaysAdditiveWhenConnecting(t *testing.T) {
+	cases := []struct {
+		name             string
+		source           *string
+		explicitSeriesID string
+		wantLinkedSource string
+	}{
+		{name: "anisearch source, explicit id (pre-existing behavior)", source: stringPtrFromValue("anisearch:5170"), explicitSeriesID: "abc123", wantLinkedSource: "jellyfin:abc123"},
+		// THE GAP-05 FIX: anime.source is jellyfin:<A> (the normal shape for anime created via
+		// Jellyfin preview/intake) -- connecting a second folder B must stay additive, never
+		// force-overwrite anime.source/folder_name with B.
+		{name: "jellyfin source, explicit id (GAP-05: additive, not force-write)", source: stringPtrFromValue("jellyfin:old"), explicitSeriesID: "new123", wantLinkedSource: "jellyfin:new123"},
+	}
 
-	source := "anisearch:5170"
-	animeSource := &models.AdminAnimeSyncSource{ID: 42, Source: &source}
-	preview := models.AdminAnimeJellyfinMetadataPreviewResult{JellyfinSeriesID: "abc123"}
+	for _, tc := range cases {
+		t.Run(tc.name, func(t *testing.T) {
+			repo := &fakeJellyfinFolderManagementRepo{}
+			audit := &fakeAuditLogWriter{}
+			h := &AdminContentHandler{folderManagementRepo: repo, auditLogRepo: audit}
+			animeSource := &models.AdminAnimeSyncSource{ID: 42, Source: tc.source}
+			preview := models.AdminAnimeJellyfinMetadataPreviewResult{JellyfinSeriesID: tc.explicitSeriesID}
+			originalSource := derefString(tc.source)
 
-	if err := h.connectJellyfinFolderAdditively(context.Background(), testAdminIdentity, 42, animeSource, preview, "abc123"); err != nil {
-		t.Fatalf("unexpected error: %v", err)
-	}
-	if repo.applyCalls != 0 {
-		t.Fatalf("expected ApplyJellyfinSyncMetadata NOT to be called, got %d calls", repo.applyCalls)
-	}
-	if repo.linkCalls != 1 {
-		t.Fatalf("expected exactly 1 LinkAdditionalJellyfinSource call, got %d", repo.linkCalls)
-	}
-	if repo.linkedSources[0] != "jellyfin:abc123" {
-		t.Fatalf("unexpected linked source %q", repo.linkedSources[0])
-	}
-	if animeSource.Source == nil || *animeSource.Source != "anisearch:5170" {
-		t.Fatalf("expected anime.source to remain unchanged, got %+v", animeSource.Source)
+			if err := h.connectJellyfinFolderAdditively(context.Background(), testAdminIdentity, 42, animeSource, preview, tc.explicitSeriesID, true); err != nil {
+				t.Fatalf("unexpected error: %v", err)
+			}
+			if repo.applyCalls != 0 {
+				t.Fatalf("expected ApplyJellyfinSyncMetadata NOT to be called, got %d calls", repo.applyCalls)
+			}
+			if repo.linkCalls != 1 {
+				t.Fatalf("expected exactly 1 LinkAdditionalJellyfinSource call, got %d", repo.linkCalls)
+			}
+			if repo.linkedSources[0] != tc.wantLinkedSource {
+				t.Fatalf("unexpected linked source %q, want %q", repo.linkedSources[0], tc.wantLinkedSource)
+			}
+			if derefString(animeSource.Source) != originalSource {
+				t.Fatalf("expected anime.source to remain unchanged (%q), got %+v", originalSource, animeSource.Source)
+			}
+		})
 	}
 }
 
-// --- Test 2: pre-existing (non-anisearch) cases keep the old force-write behavior ------------
+// --- Test B (165-17, GAP-13 side effect): connect=false (the routine edit-page resync) always
+// keeps the force-write path, byte-identical for BOTH source shapes, regardless of currentSource
+// prefix -- proving the edit-page caller's behavior is unaffected by this plan ------------------
 
-func TestConnectJellyfinFolderAdditively_UsesForceWritePathWhenNoAniSearchSource(t *testing.T) {
+func TestConnectJellyfinFolderAdditively_UsesForceWritePathWhenNotConnecting(t *testing.T) {
 	cases := []struct {
 		name             string
 		source           *string
@@ -122,7 +160,7 @@ func TestConnectJellyfinFolderAdditively_UsesForceWritePathWhenNoAniSearchSource
 			animeSource := &models.AdminAnimeSyncSource{ID: 1, Source: tc.source}
 			preview := models.AdminAnimeJellyfinMetadataPreviewResult{JellyfinSeriesID: "new123"}
 
-			if err := h.connectJellyfinFolderAdditively(context.Background(), testAdminIdentity, 1, animeSource, preview, tc.explicitSeriesID); err != nil {
+			if err := h.connectJellyfinFolderAdditively(context.Background(), testAdminIdentity, 1, animeSource, preview, tc.explicitSeriesID, false); err != nil {
 				t.Fatalf("unexpected error: %v", err)
 			}
 			if repo.applyCalls != 1 {
@@ -150,10 +188,10 @@ func TestConnectJellyfinFolderAdditively_HandlesFolderRenameAsPlainSecondInsert(
 	source := "anisearch:5170"
 	animeSource := &models.AdminAnimeSyncSource{ID: 7, Source: &source}
 
-	if err := h.connectJellyfinFolderAdditively(context.Background(), testAdminIdentity, 7, animeSource, models.AdminAnimeJellyfinMetadataPreviewResult{JellyfinSeriesID: "old-item"}, "old-item"); err != nil {
+	if err := h.connectJellyfinFolderAdditively(context.Background(), testAdminIdentity, 7, animeSource, models.AdminAnimeJellyfinMetadataPreviewResult{JellyfinSeriesID: "old-item"}, "old-item", true); err != nil {
 		t.Fatalf("unexpected error on first connect: %v", err)
 	}
-	if err := h.connectJellyfinFolderAdditively(context.Background(), testAdminIdentity, 7, animeSource, models.AdminAnimeJellyfinMetadataPreviewResult{JellyfinSeriesID: "new-item"}, "new-item"); err != nil {
+	if err := h.connectJellyfinFolderAdditively(context.Background(), testAdminIdentity, 7, animeSource, models.AdminAnimeJellyfinMetadataPreviewResult{JellyfinSeriesID: "new-item"}, "new-item", true); err != nil {
 		t.Fatalf("unexpected error on second (renamed) connect: %v", err)
 	}
 	if repo.linkCalls != 2 {
@@ -175,7 +213,7 @@ func TestConnectJellyfinFolderAdditively_WritesAuditEntry(t *testing.T) {
 	h := &AdminContentHandler{folderManagementRepo: repo, auditLogRepo: audit}
 	animeSource := &models.AdminAnimeSyncSource{ID: 99}
 
-	if err := h.connectJellyfinFolderAdditively(context.Background(), testAdminIdentity, 99, animeSource, models.AdminAnimeJellyfinMetadataPreviewResult{JellyfinSeriesID: "abc"}, ""); err != nil {
+	if err := h.connectJellyfinFolderAdditively(context.Background(), testAdminIdentity, 99, animeSource, models.AdminAnimeJellyfinMetadataPreviewResult{JellyfinSeriesID: "abc"}, "", true); err != nil {
 		t.Fatalf("unexpected error: %v", err)
 	}
 	if audit.calls != 1 {
@@ -190,6 +228,121 @@ func TestConnectJellyfinFolderAdditively_WritesAuditEntry(t *testing.T) {
 	}
 	if entry.TargetID == nil || *entry.TargetID != 99 {
 		t.Fatalf("unexpected target_id %+v", entry.TargetID)
+	}
+}
+
+// --- Test E (165-17, GAP-13): the audit event is scoped exclusively to an explicit "Verbinden"
+// action (connect=true) -- the routine edit-page resync (connect=false) writes ZERO audit entries,
+// even on the exact same successful force-write call Test B already covers -----------------------
+
+func TestConnectJellyfinFolderAdditively_NoAuditWhenNotConnecting(t *testing.T) {
+	repo := &fakeJellyfinFolderManagementRepo{}
+	audit := &fakeAuditLogWriter{}
+	h := &AdminContentHandler{folderManagementRepo: repo, auditLogRepo: audit}
+	source := "jellyfin:old"
+	animeSource := &models.AdminAnimeSyncSource{ID: 1, Source: &source}
+	preview := models.AdminAnimeJellyfinMetadataPreviewResult{JellyfinSeriesID: "new123"}
+
+	if err := h.connectJellyfinFolderAdditively(context.Background(), testAdminIdentity, 1, animeSource, preview, "new123", false); err != nil {
+		t.Fatalf("unexpected error: %v", err)
+	}
+	if audit.calls != 0 {
+		t.Fatalf("expected zero audit writes for a non-connect (routine resync) call, got %d", audit.calls)
+	}
+}
+
+// --- Test F (165-17, GAP-10): an ownership conflict on LinkAdditionalJellyfinSource is a typed,
+// propagated error -- never a silent no-op success, and never reaches the audit-write block ------
+
+func TestConnectJellyfinFolderAdditively_OwnershipConflictReturnsErrorNoAudit(t *testing.T) {
+	repo := &fakeJellyfinFolderManagementRepo{linkErr: repository.ErrConflict}
+	audit := &fakeAuditLogWriter{}
+	h := &AdminContentHandler{folderManagementRepo: repo, auditLogRepo: audit}
+	source := "jellyfin:old"
+	animeSource := &models.AdminAnimeSyncSource{ID: 1, Source: &source}
+	preview := models.AdminAnimeJellyfinMetadataPreviewResult{JellyfinSeriesID: "shared"}
+
+	err := h.connectJellyfinFolderAdditively(context.Background(), testAdminIdentity, 1, animeSource, preview, "shared", true)
+	if !errors.Is(err, repository.ErrConflict) {
+		t.Fatalf("expected error satisfying errors.Is(err, repository.ErrConflict), got %v", err)
+	}
+	if audit.calls != 0 {
+		t.Fatalf("expected zero audit writes on an ownership conflict, got %d", audit.calls)
+	}
+}
+
+// --- Test G (165-17, GAP-10 HTTP surface): the ownership-conflict response helper maps a
+// LinkAdditionalJellyfinSource conflict to HTTP 409 (never 500), with existing_anime_id/
+// existing_title populated from a FindAnimeBySource lookup on the same jellyfin:<id> source tag --
+// exercises the ACTUAL response-writing code (writeJellyfinFolderOwnershipConflict), not a
+// re-implementation, via a real httptest recorder + gin context (Teststil: real code execution,
+// real status code/body assertions). The full-HTTP-chain proof through the real endpoint against
+// real Postgres is Task 2's TestPhase165Postgres_ConnectJellyfinFolderAdditively_
+// OwnershipConflictReturns409NoAudit -- h.repo (GetAnimeSyncSource) is a concrete
+// *repository.AdminContentRepository that cannot be faked without a live database, so this fake-repo
+// test targets the exact new branch this plan adds instead of the full unfakeable handler chain. ---
+
+func TestApplyAnimeMetadataFromJellyfin_OwnershipConflictReturns409NotInternalError(t *testing.T) {
+	repo := &fakeJellyfinFolderManagementRepo{
+		findResult: &models.AdminAnimeSourceMatch{AnimeID: 77, Title: "Serial Experiments Lain"},
+	}
+	h := &AdminContentHandler{folderManagementRepo: repo}
+
+	gin.SetMode(gin.TestMode)
+	rec := httptest.NewRecorder()
+	c, _ := gin.CreateTestContext(rec)
+	c.Request = httptest.NewRequest(http.MethodPost, "/api/v1/admin/anime/1/jellyfin/metadata/apply", nil)
+
+	writeJellyfinFolderOwnershipConflict(c, h, models.AdminAnimeJellyfinMetadataPreviewResult{JellyfinSeriesID: "shared"})
+
+	if rec.Code != http.StatusConflict {
+		t.Fatalf("expected 409, got %d (body=%s)", rec.Code, rec.Body.String())
+	}
+	if repo.findCalls != 1 || repo.findArgs[0] != "jellyfin:shared" {
+		t.Fatalf("expected FindAnimeBySource(\"jellyfin:shared\") to be called exactly once, got calls=%d args=%+v", repo.findCalls, repo.findArgs)
+	}
+
+	var decoded struct {
+		Data struct {
+			ExistingAnimeID int64  `json:"existing_anime_id"`
+			ExistingTitle   string `json:"existing_title"`
+		} `json:"data"`
+	}
+	if err := json.Unmarshal(rec.Body.Bytes(), &decoded); err != nil {
+		t.Fatalf("failed to decode response body: %v", err)
+	}
+	if decoded.Data.ExistingAnimeID != 77 {
+		t.Fatalf("expected existing_anime_id=77, got %d", decoded.Data.ExistingAnimeID)
+	}
+	if decoded.Data.ExistingTitle != "Serial Experiments Lain" {
+		t.Fatalf("expected existing_title=%q, got %q", "Serial Experiments Lain", decoded.Data.ExistingTitle)
+	}
+}
+
+// TestApplyAnimeMetadataFromJellyfin_OwnershipConflictFallsBackWhenLookupFails proves the "rare
+// race" fallback: if the post-conflict FindAnimeBySource lookup itself fails or returns nil, the
+// response is STILL 409 with a generic message and no data field -- never silently downgrading to
+// 500.
+func TestApplyAnimeMetadataFromJellyfin_OwnershipConflictFallsBackWhenLookupFails(t *testing.T) {
+	repo := &fakeJellyfinFolderManagementRepo{findResult: nil}
+	h := &AdminContentHandler{folderManagementRepo: repo}
+
+	gin.SetMode(gin.TestMode)
+	rec := httptest.NewRecorder()
+	c, _ := gin.CreateTestContext(rec)
+	c.Request = httptest.NewRequest(http.MethodPost, "/api/v1/admin/anime/1/jellyfin/metadata/apply", nil)
+
+	writeJellyfinFolderOwnershipConflict(c, h, models.AdminAnimeJellyfinMetadataPreviewResult{JellyfinSeriesID: "shared"})
+
+	if rec.Code != http.StatusConflict {
+		t.Fatalf("expected 409 even when the follow-up lookup found nothing, got %d (body=%s)", rec.Code, rec.Body.String())
+	}
+	var decoded map[string]any
+	if err := json.Unmarshal(rec.Body.Bytes(), &decoded); err != nil {
+		t.Fatalf("failed to decode response body: %v", err)
+	}
+	if _, hasData := decoded["data"]; hasData {
+		t.Fatalf("expected no data field when the lookup returned nil, got %+v", decoded)
 	}
 }
 
