@@ -67,6 +67,7 @@ import {
 } from "./createStagedAssets";
 import { useAnimeEditor } from "../hooks/useAnimeEditor";
 import {
+  buildManualCreateDraftSnapshot,
   hydrateManualDraftFromJellyfinPreview,
   removeJellyfinDraftAsset,
   resolveManualCreateState,
@@ -275,6 +276,12 @@ export function useAdminAnimeCreateController(
   const [hasAdoptedJellyfinPreview, setHasAdoptedJellyfinPreview] =
     useState(false);
   const [jellyfinDraftSnapshot, setJellyfinDraftSnapshot] =
+    useState<ManualAnimeDraftValues | null>(null);
+  // GAP-18: anders als jellyfinDraftSnapshot (der PRE-Hydration-Stand für
+  // "Verwerfen") ist dies der Entwurfs-Stand DIREKT NACH der
+  // Jellyfin-Übernahme — verwendet ausschließlich zur
+  // AniSearch-Präzedenzprüfung (resolveAniSearchProtectedFields).
+  const [jellyfinHydratedDraftSnapshot, setJellyfinHydratedDraftSnapshot] =
     useState<ManualAnimeDraftValues | null>(null);
 
   const coverFileInputRef = useRef<HTMLInputElement | null>(null);
@@ -966,6 +973,7 @@ export function useAdminAnimeCreateController(
         aniSearchDraftResult ? { mode: "fill" } : undefined,
       );
       applyManualDraftValues(hydrated.draft);
+      setJellyfinHydratedDraftSnapshot(buildManualCreateDraftSnapshot(hydrated.draft));
       setJellyfinAssetSlots(hydrated.assetSlots);
       setHasAdoptedJellyfinPreview(true);
       setShowValidationSummary(false);
@@ -1000,6 +1008,7 @@ export function useAdminAnimeCreateController(
       aniSearchDraftResult ? { mode: "fill" } : undefined,
     );
     applyManualDraftValues(hydrated.draft);
+    setJellyfinHydratedDraftSnapshot(buildManualCreateDraftSnapshot(hydrated.draft));
     setJellyfinAssetSlots(hydrated.assetSlots);
     setHasAdoptedJellyfinPreview(true);
     setShowValidationSummary(false);
@@ -1012,6 +1021,7 @@ export function useAdminAnimeCreateController(
     setJellyfinAssetSlots(null);
     setHasAdoptedJellyfinPreview(false);
     setJellyfinDraftSnapshot(null);
+    setJellyfinHydratedDraftSnapshot(null);
     setAniSearchConflict(null);
     jellyfinIntake.resetReview();
     clearMessages();
@@ -1042,6 +1052,7 @@ export function useAdminAnimeCreateController(
       draft: resolveCreateAniSearchDraftMergeInputs({
         currentDraft: manualDraftValues,
         jellyfinSnapshot: jellyfinDraftSnapshot,
+        jellyfinHydratedSnapshot: jellyfinHydratedDraftSnapshot,
       }).requestDraft,
     };
 
@@ -1053,6 +1064,7 @@ export function useAdminAnimeCreateController(
       const resolved = applyCreateAniSearchControllerResult({
         currentDraft: manualDraftValues,
         jellyfinSnapshot: jellyfinDraftSnapshot,
+        jellyfinHydratedSnapshot: jellyfinHydratedDraftSnapshot,
         result: response.data,
       });
 

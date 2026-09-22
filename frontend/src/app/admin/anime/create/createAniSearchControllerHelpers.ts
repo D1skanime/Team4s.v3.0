@@ -94,6 +94,7 @@ export function buildCreateAniSearchConflictState(
 export function applyCreateAniSearchControllerResult(params: {
   currentDraft: ManualAnimeDraftValues;
   jellyfinSnapshot: ManualAnimeDraftValues | null;
+  jellyfinHydratedSnapshot?: ManualAnimeDraftValues | null;
   result: AdminAnimeAniSearchCreateResult;
 }): {
   nextDraft: ManualAnimeDraftValues;
@@ -111,6 +112,7 @@ export function applyCreateAniSearchControllerResult(params: {
   const mergeInputs = resolveCreateAniSearchDraftMergeInputs({
     currentDraft: params.currentDraft,
     jellyfinSnapshot: params.jellyfinSnapshot,
+    jellyfinHydratedSnapshot: params.jellyfinHydratedSnapshot ?? null,
   });
   const overwrittenJellyfinFields = params.jellyfinSnapshot
     ? [...(params.result.filled_fields ?? [])]

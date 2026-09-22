@@ -166,11 +166,14 @@ describe('useAdminAnimeCreateController AniSearch merge regressions', () => {
     const mergeInputs = resolveCreateAniSearchDraftMergeInputs({
       currentDraft: jellyfinHydrated.draft,
       jellyfinSnapshot: snapshot,
+      jellyfinHydratedSnapshot: jellyfinHydrated.draft,
     })
 
     expect(mergeInputs.requestDraft.title).toBe('lain sea')
     expect(mergeInputs.requestDraft.description).toBeUndefined()
     expect(mergeInputs.protectedFields).not.toContain('title')
+    expect(mergeInputs.protectedFields).not.toContain('year')
+    expect(mergeInputs.protectedFields).not.toContain('description')
   })
 
   it('keeps AniSearch values when Jellyfin is loaded after AniSearch in manual > AniSearch > Jellyfin order', () => {
@@ -226,6 +229,7 @@ describe('useAdminAnimeCreateController AniSearch merge regressions', () => {
     const resolved = applyCreateAniSearchControllerResult({
       currentDraft,
       jellyfinSnapshot: manualLookupDraft,
+      jellyfinHydratedSnapshot: jellyfinHydrated.draft,
       result: {
         mode: 'draft',
         anisearch_id: '12345',

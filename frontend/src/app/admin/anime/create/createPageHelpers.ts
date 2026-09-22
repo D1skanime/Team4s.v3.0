@@ -16,6 +16,7 @@ import type {
 } from "@/types/admin";
 import type { ManualAnimeDraftValues } from "../hooks/useManualAnimeDraft";
 import { buildManualCreateDraftSnapshot } from "../hooks/useManualAnimeDraft";
+import { resolveAniSearchProtectedFields } from "./aniSearchJellyfinPrecedence";
 
 /** Verzoegerung in Millisekunden vor der automatischen Weiterleitung nach dem erfolgreichen Erstellen eines Anime. */
 export const CREATE_REDIRECT_DELAY_MS = 1600;
@@ -286,38 +287,19 @@ function mapManualDraftToCreateDraft(
   }
 }
 
-function fieldDiffers(left: string, right: string): boolean {
-  return left.trim() !== right.trim()
-}
-
-function arrayDiffers(left: string[], right: string[]): boolean {
-  if (left.length !== right.length) return true
-  return left.some((value, index) => value.trim() !== (right[index] || "").trim())
-}
-
 export function resolveCreateAniSearchDraftMergeInputs(params: {
   currentDraft: ManualAnimeDraftValues
   jellyfinSnapshot: ManualAnimeDraftValues | null
+  jellyfinHydratedSnapshot?: ManualAnimeDraftValues | null
 }) {
   const baseline = params.jellyfinSnapshot
     ? buildManualCreateDraftSnapshot(params.jellyfinSnapshot)
     : buildManualCreateDraftSnapshot(params.currentDraft)
-  const current = params.currentDraft
-  const protectedFields: string[] = []
 
-  if (params.jellyfinSnapshot) {
-    if (fieldDiffers(current.titleDE, baseline.titleDE)) protectedFields.push("title_de")
-    if (fieldDiffers(current.titleEN, baseline.titleEN)) protectedFields.push("title_en")
-    if (fieldDiffers(current.year, baseline.year)) protectedFields.push("year")
-    if (fieldDiffers(current.maxEpisodes, baseline.maxEpisodes)) protectedFields.push("max_episodes")
-    if (arrayDiffers(current.genreTokens, baseline.genreTokens)) protectedFields.push("genre")
-    if (arrayDiffers(current.tagTokens, baseline.tagTokens)) protectedFields.push("tags")
-    if (fieldDiffers(current.description, baseline.description)) protectedFields.push("description")
-    if (fieldDiffers(current.coverImage, baseline.coverImage)) protectedFields.push("cover_image")
-    if (current.type !== baseline.type) protectedFields.push("type")
-    if (current.contentType !== baseline.contentType) protectedFields.push("content_type")
-    if (current.status !== baseline.status) protectedFields.push("status")
-  }
+  const protectedFields = resolveAniSearchProtectedFields({
+    currentDraft: params.currentDraft,
+    jellyfinHydratedSnapshot: params.jellyfinHydratedSnapshot ?? null,
+  })
 
   return {
     requestDraft: mapManualDraftToCreateDraft(baseline),
