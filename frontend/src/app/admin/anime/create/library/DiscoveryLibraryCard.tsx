@@ -14,6 +14,7 @@ import type { CSSProperties } from "react";
 import { Badge, Button, Card } from "@/components/ui";
 import type { AdminJellyfinDiscoveryItem } from "@/types/admin";
 
+import { buildDisplayFolderName } from "./discoveryFolderName";
 import {
   buildDiscoveryCardMetaLine,
   mapDiscoveryStatusToBadgeVariant,
@@ -117,6 +118,9 @@ export function DiscoveryLibraryCard({
   const typeLabel = mapDiscoveryTypeHintToLabel(item.type_hint?.suggested_type);
   const metaLine2 = buildDiscoveryCardMetaLine(typeLabel, item.parent_context, item.library_context);
   const yearPathLine = `${item.year != null ? `${item.year} | ` : ""}${item.path || "ohne Pfad"}`;
+  const displayFolderName = buildDisplayFolderName(item.path) || item.name;
+  const jellyfinName = item.name.trim();
+  const showJellyfinNameHint = jellyfinName !== "" && jellyfinName !== displayFolderName;
   const badgeVariant = mapDiscoveryStatusToBadgeVariant(item.status);
   const statusLabel = mapDiscoveryStatusToLabel(item.status);
 
@@ -137,7 +141,10 @@ export function DiscoveryLibraryCard({
 
       <div style={contentStyle}>
         <div style={topBlockStyle}>
-          <h3 style={titleStyle}>{item.name}</h3>
+          <h3 style={titleStyle}>{displayFolderName}</h3>
+          {showJellyfinNameHint ? (
+            <p style={captionStyle}>Jellyfin: {jellyfinName}</p>
+          ) : null}
           <p style={pathLineStyle} title={item.path || undefined}>
             {yearPathLine}
           </p>

@@ -262,6 +262,63 @@ describe("DiscoveryLibraryCard", () => {
     expect(onUnignore).toHaveBeenCalledWith("series-1");
   });
 
+  it("GAP-19: zeigt den bereinigten Ordnernamen als Titel und einen Jellyfin-Namenshinweis bei Abweichung", () => {
+    render(
+      <DiscoveryLibraryCard
+        item={buildItem({
+          path: "/media/Anime/OVA/Anime.OVA.Sub/hack G.U Trilogy",
+          name: ".hack",
+        })}
+        onCreate={() => {}}
+        onOpenExisting={() => {}}
+        onIgnore={() => {}}
+        onUnignore={() => {}}
+      />,
+    );
+
+    expect(screen.getByRole("heading", { level: 3, name: "hack G.U Trilogy" })).toBeTruthy();
+    expect(screen.getByText("Jellyfin: .hack")).toBeTruthy();
+  });
+
+  it("GAP-19: entfernt nur aus dem Titel ein Jahres-Suffix, die Jahr|Pfad-Metazeile bleibt roh", () => {
+    render(
+      <DiscoveryLibraryCard
+        item={buildItem({
+          path: "D:/Anime/OVA/Accel World Infinite Burst (2016)",
+          year: 2016,
+          name: "Accel World Infinite Burst",
+        })}
+        onCreate={() => {}}
+        onOpenExisting={() => {}}
+        onIgnore={() => {}}
+        onUnignore={() => {}}
+      />,
+    );
+
+    expect(
+      screen.getByRole("heading", { level: 3, name: "Accel World Infinite Burst" }),
+    ).toBeTruthy();
+    expect(screen.queryByText(/^Jellyfin:/)).toBeNull();
+    expect(
+      screen.getByText("2016 | D:/Anime/OVA/Accel World Infinite Burst (2016)"),
+    ).toBeTruthy();
+  });
+
+  it("GAP-19: fällt bei fehlendem Pfad auf item.name zurück", () => {
+    render(
+      <DiscoveryLibraryCard
+        item={buildItem({ path: undefined, name: "Naruto" })}
+        onCreate={() => {}}
+        onOpenExisting={() => {}}
+        onIgnore={() => {}}
+        onUnignore={() => {}}
+      />,
+    );
+
+    expect(screen.getByRole("heading", { level: 3, name: "Naruto" })).toBeTruthy();
+    expect(screen.queryByText(/^Jellyfin:/)).toBeNull();
+  });
+
   it("renders zero native button/select/input/textarea elements (poster <img> is the sole exception)", () => {
     const source = readFileSync(path.join(__dirname, "DiscoveryLibraryCard.tsx"), "utf-8");
     expect(source).not.toMatch(/<button|<select|<input|<textarea/);
