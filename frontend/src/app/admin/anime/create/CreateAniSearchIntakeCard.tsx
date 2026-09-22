@@ -21,10 +21,6 @@ interface CreateAniSearchIntakeCardProps {
   errorMessage: string | null;
   /** D-08: Jellyfin-Serien-ID des aktuell im Draft aktiven Kandidaten, falls vorhanden. */
   activeJellyfinSeriesID?: string | null;
-  /** D-23/165-13: löst den ForceNew-Retry (erster Auslösepunkt) aus. */
-  onCreateAsNew?: () => void | Promise<void>;
-  /** D-20: löst den bestätigten Speichern-Retry (zweiter, save-time Auslösepunkt) aus. */
-  onConfirmDuplicateCreate?: () => void | Promise<void>;
   onAniSearchIDChange: (value: string) => void;
   onSearchQueryChange: (value: string) => void;
   onSearchSubmit: () => void;
@@ -44,8 +40,6 @@ export function CreateAniSearchIntakeCard({
   conflict,
   errorMessage,
   activeJellyfinSeriesID = null,
-  onCreateAsNew,
-  onConfirmDuplicateCreate,
   onAniSearchIDChange,
   onSearchQueryChange,
   onSearchSubmit,
@@ -164,11 +158,6 @@ export function CreateAniSearchIntakeCard({
           <AniSearchDuplicateDecision
             conflict={conflict}
             activeJellyfinSeriesID={activeJellyfinSeriesID}
-            onCreateAsNew={
-              conflict.viaSaveTimeRecheck
-                ? (onConfirmDuplicateCreate ?? (() => undefined))
-                : (onCreateAsNew ?? (() => undefined))
-            }
           />
         ) : errorMessage ? (
           <div className={styles.errorBox}>

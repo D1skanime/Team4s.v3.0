@@ -1,14 +1,19 @@
 "use client";
 
-// AniSearchDuplicateDecision: extrahiert aus CreateAniSearchIntakeCard.tsx und um
-// echte "Verbinden"/"Als neuen Anime anlegen"-Aktionen erweitert (D-02, D-23). Ersetzt
-// sowohl den bisherigen reinen "Zum vorhandenen Anime wechseln"-Link als auch die
-// vorherige automatische Vollseiten-Navigation aus loadAniSearchDraftByID
-// (Design-Entscheidung 20/21). Rendert an BEIDEN Konflikt-Auslösepunkten (D-02
-// Auswahlzeit, D-20 save-time Re-Check) — im zweiten Fall mit einer zusätzlichen
-// Kontextzeile (`conflict.viaSaveTimeRecheck`). Nutzt ausschliesslich
-// @/components/ui-Primitives (Button); dies ist neuer Code, die D-13-Ausnahme für
-// die uebrigen nativen Elemente in CreateAniSearchIntakeCard.tsx gilt hier nicht.
+// AniSearchDuplicateDecision: extrahiert aus CreateAniSearchIntakeCard.tsx und um eine
+// echte "Verbinden"-Aktion erweitert (D-02). Ersetzt sowohl den bisherigen reinen "Zum
+// vorhandenen Anime wechseln"-Link als auch die vorherige automatische
+// Vollseiten-Navigation aus loadAniSearchDraftByID (Design-Entscheidung 20/21). Rendert
+// an BEIDEN Konflikt-Auslösepunkten (D-02 Auswahlzeit, D-20 save-time Re-Check) — im
+// zweiten Fall mit einer zusätzlichen Kontextzeile (`conflict.viaSaveTimeRecheck`).
+// D-30 (165-18, Nachtrag nach Live-UAT): "Trotzdem als neuen Anime anlegen" entfaellt
+// ersatzlos an BEIDEN Ausloesepunkten -- eine AniSearch-ID gehoert zu genau einem Anime
+// (uq_anime_source_links_source), ein zweiter Anime mit derselben ID ist fachlich
+// unmoeglich. Bei einem Treffer bleiben ausschliesslich "Mit bestehendem Anime
+// verbinden" und "Zum vorhandenen Anime" -- es gibt keinen Recovery-Pfad ueber
+// "trotzdem neu" mehr. Nutzt ausschliesslich @/components/ui-Primitives (Button); dies
+// ist neuer Code, die D-13-Ausnahme fuer die uebrigen nativen Elemente in
+// CreateAniSearchIntakeCard.tsx gilt hier nicht.
 
 import { useState } from "react";
 import { useSearchParams } from "next/navigation";
@@ -23,20 +28,16 @@ export interface AniSearchDuplicateDecisionProps {
   conflict: CreateAniSearchConflictState;
   /** D-08: Jellyfin-Serien-ID des aktuell im Draft aktiven Kandidaten, falls vorhanden. */
   activeJellyfinSeriesID?: string | null;
-  /** D-23/165-13: löst den ForceNew-Retry (erster Auslösepunkt) bzw. den bestätigten Speichern-Retry (zweiter Auslösepunkt) aus. */
-  onCreateAsNew: () => void | Promise<void>;
 }
 
 export function AniSearchDuplicateDecision({
   conflict,
   activeJellyfinSeriesID,
-  onCreateAsNew,
 }: AniSearchDuplicateDecisionProps) {
   const searchParams = useSearchParams();
   const [isConnecting, setIsConnecting] = useState(false);
   const [connectError, setConnectError] = useState<string | null>(null);
   const [connectedTitle, setConnectedTitle] = useState<string | null>(null);
-  const [isCreatingAsNew, setIsCreatingAsNew] = useState(false);
 
   if (connectedTitle) {
     return (
@@ -79,15 +80,6 @@ export function AniSearchDuplicateDecision({
     }
   }
 
-  async function handleCreateAsNewClick() {
-    setIsCreatingAsNew(true);
-    try {
-      await onCreateAsNew();
-    } finally {
-      setIsCreatingAsNew(false);
-    }
-  }
-
   return (
     <div className={styles.details}>
       {conflict.viaSaveTimeRecheck ? (
@@ -119,27 +111,10 @@ export function AniSearchDuplicateDecision({
           </Button>
         ) : null}
 
-        <Button
-          type="button"
-          variant="secondary"
-          size="sm"
-          loading={isCreatingAsNew}
-          disabled={isCreatingAsNew}
-          onClick={() => {
-            void handleCreateAsNewClick();
-          }}
-        >
-          {isCreatingAsNew ? "Lädt..." : "Als neuen Anime anlegen"}
-        </Button>
-
         <Button href={conflict.redirectPath} variant="ghost" size="sm">
           Zum vorhandenen Anime wechseln
         </Button>
       </div>
-
-      <p className={styles.hint}>
-        Es entsteht ein zusätzlicher, unabhängiger Anime-Eintrag.
-      </p>
 
       {connectError ? (
         <div className={styles.errorBox}>

@@ -699,13 +699,13 @@ export function useAdminAnimeCreateController(
   }
 
   /**
-   * submitCreate: eigentliche Create-Logik ohne FormEvent-Abhaengigkeit, damit sie
-   * sowohl vom regulaeren Formular-Submit (handleCreateSubmit) als auch vom
-   * D-20-Save-Time-Retry (handleConfirmedDuplicateCreate, "Als neuen Anime anlegen"
-   * beim zweiten Auslösepunkt) mit denselben Validierungen/Payload-Aufbau
-   * aufgerufen werden kann.
+   * submitCreate: eigentliche Create-Logik ohne FormEvent-Abhaengigkeit, aufgerufen vom
+   * regulaeren Formular-Submit (handleCreateSubmit). D-30 (165-18): es gibt keinen
+   * "Trotzdem neu anlegen"-Retry mehr -- ein save-time-Konflikt (409) zeigt nur noch
+   * denselben AniSearchDuplicateDecision-Block (verbinden/wechseln), kein dritter
+   * Bestätigungs-Pfad.
    */
-  async function submitCreate(options: { confirmDuplicate?: boolean } = {}) {
+  async function submitCreate() {
     clearMessages();
     setLastRequest(null);
     setLastResponse(null);
@@ -776,9 +776,6 @@ export function useAdminAnimeCreateController(
     payload.genre = normalizeOptionalString(createGenreValue);
     if (createTagTokens.length > 0) payload.tags = [...createTagTokens];
     payload.description = normalizeOptionalString(createDescription);
-    if (options.confirmDuplicate) {
-      payload.confirm_duplicate = true;
-    }
 
     try {
       setIsSubmittingCreate(true);
@@ -843,15 +840,6 @@ export function useAdminAnimeCreateController(
   async function handleCreateSubmit(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
     await submitCreate();
-  }
-
-  /**
-   * D-20/165-03: erneuter Speichern-Versuch nach "Als neuen Anime anlegen" beim
-   * zweiten Auslösepunkt (save-time Re-Check) — sendet confirm_duplicate:true,
-   * damit derselbe Treffer nicht ein drittes Mal denselben Block ausloest.
-   */
-  async function handleConfirmedDuplicateCreate() {
-    await submitCreate({ confirmDuplicate: true });
   }
 
   async function handleCoverUpload(file: File) {
@@ -1051,10 +1039,7 @@ export function useAdminAnimeCreateController(
     setSuccessMessage("Jellyfin-Auswahl verworfen. Der Anime wurde noch nicht erstellt.");
   }
 
-  async function loadAniSearchDraftByID(
-    anisearchID: string,
-    options?: { forceNew?: boolean },
-  ) {
+  async function loadAniSearchDraftByID(anisearchID: string) {
     clearMessages();
     clearAniSearchState();
     setLastRequest(null);
@@ -1078,7 +1063,6 @@ export function useAdminAnimeCreateController(
         currentDraft: manualDraftValues,
         jellyfinSnapshot: jellyfinDraftSnapshot,
       }).requestDraft,
-      force_new: options?.forceNew === true,
     };
 
     try {
@@ -1119,20 +1103,6 @@ export function useAdminAnimeCreateController(
 
   async function handleAniSearchDraftLoad() {
     await loadAniSearchDraftByID(createAniSearchID.trim());
-  }
-
-  /**
-   * D-23/165-13: "Als neuen Anime anlegen" beim ersten Auslösepunkt (AniSearch-
-   * Auswahlzeit) — laedt den echten AniSearch-Draft ueber den ForceNew-Bypass
-   * erneut, statt denselben Konflikt ein zweites Mal auszuloesen. Liest die
-   * anisearchID VOR dem Aufruf, weil clearAniSearchState() innerhalb von
-   * loadAniSearchDraftByID aniSearchConflict sofort zurücksetzt.
-   */
-  async function handleAniSearchCreateAsNew() {
-    if (!aniSearchConflict) return;
-    await loadAniSearchDraftByID(aniSearchConflict.anisearchID, {
-      forceNew: true,
-    });
   }
 
   async function handleAniSearchCandidateSearch() {
@@ -1475,9 +1445,7 @@ export function useAdminAnimeCreateController(
       handleBackgroundVideoInputChange,
       handleAniSearchCandidateSearch,
       handleAniSearchCandidateSelect,
-      handleAniSearchCreateAsNew,
       handleAniSearchDraftLoad,
-      handleConfirmedDuplicateCreate,
       handleCoverUpload,
       handleCreateSubmit,
       handleDiscardJellyfinPreview,

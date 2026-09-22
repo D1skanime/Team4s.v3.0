@@ -58,27 +58,23 @@ const conflict: CreateAniSearchConflictState = {
 };
 
 describe("AniSearchDuplicateDecision", () => {
-  it("renders exactly two actions when no active Jellyfin candidate is present", () => {
+  it("renders exactly one action (the switch link) when no active Jellyfin candidate is present -- 'Als neuen Anime anlegen' never renders (D-30)", () => {
     render(
-      <AniSearchDuplicateDecision
-        conflict={conflict}
-        activeJellyfinSeriesID={null}
-        onCreateAsNew={vi.fn()}
-      />,
+      <AniSearchDuplicateDecision conflict={conflict} activeJellyfinSeriesID={null} />,
     );
 
     expect(
       screen.queryByRole("button", { name: "Mit bestehendem Anime verbinden" }),
     ).toBeNull();
     expect(
-      screen.getByRole("button", { name: "Als neuen Anime anlegen" }),
-    ).not.toBeNull();
+      screen.queryByRole("button", { name: "Als neuen Anime anlegen" }),
+    ).toBeNull();
     expect(
       screen.getByRole("link", { name: "Zum vorhandenen Anime wechseln" }),
     ).not.toBeNull();
   });
 
-  it("renders all three actions in order with an active Jellyfin candidate, and the create-as-new button uses variant=secondary", () => {
+  it("renders exactly two actions in order with an active Jellyfin candidate -- 'Als neuen Anime anlegen' never renders (D-30)", () => {
     render(
       <>
         <Button variant="secondary" size="sm">
@@ -87,7 +83,6 @@ describe("AniSearchDuplicateDecision", () => {
         <AniSearchDuplicateDecision
           conflict={conflict}
           activeJellyfinSeriesID="series-42"
-          onCreateAsNew={vi.fn()}
         />
       </>,
     );
@@ -100,26 +95,21 @@ describe("AniSearchDuplicateDecision", () => {
     const connectButton = screen.getByRole("button", {
       name: "Mit bestehendem Anime verbinden",
     });
-    const createAsNewButton = screen.getByRole("button", {
-      name: "Als neuen Anime anlegen",
-    });
     const switchLink = screen.getByRole("link", {
       name: "Zum vorhandenen Anime wechseln",
     });
 
     const connectIndex = actions.indexOf(connectButton);
-    const createAsNewIndex = actions.indexOf(createAsNewButton);
     const switchIndex = actions.indexOf(switchLink);
     expect(connectIndex).toBeGreaterThanOrEqual(0);
-    expect(connectIndex).toBeLessThan(createAsNewIndex);
-    expect(createAsNewIndex).toBeLessThan(switchIndex);
-
-    const referenceButton = screen.getByRole("button", { name: "Referenz" });
-    expect(createAsNewButton.className).toBe(referenceButton.className);
+    expect(connectIndex).toBeLessThan(switchIndex);
 
     expect(
-      screen.getByText("Es entsteht ein zusätzlicher, unabhängiger Anime-Eintrag."),
-    ).not.toBeNull();
+      screen.queryByRole("button", { name: "Als neuen Anime anlegen" }),
+    ).toBeNull();
+    expect(
+      screen.queryByText("Es entsteht ein zusätzlicher, unabhängiger Anime-Eintrag."),
+    ).toBeNull();
   });
 
   it("connects the active Jellyfin candidate to the existing anime, sends connect:true, and shows a status success message", async () => {
@@ -131,7 +121,6 @@ describe("AniSearchDuplicateDecision", () => {
       <AniSearchDuplicateDecision
         conflict={conflict}
         activeJellyfinSeriesID="series-42"
-        onCreateAsNew={vi.fn()}
       />,
     );
 
@@ -163,7 +152,6 @@ describe("AniSearchDuplicateDecision", () => {
       <AniSearchDuplicateDecision
         conflict={conflict}
         activeJellyfinSeriesID="series-42"
-        onCreateAsNew={vi.fn()}
       />,
     );
 
@@ -187,7 +175,6 @@ describe("AniSearchDuplicateDecision", () => {
       <AniSearchDuplicateDecision
         conflict={conflict}
         activeJellyfinSeriesID="series-42"
-        onCreateAsNew={vi.fn()}
       />,
     );
 
@@ -212,7 +199,6 @@ describe("AniSearchDuplicateDecision", () => {
       <AniSearchDuplicateDecision
         conflict={conflict}
         activeJellyfinSeriesID="series-42"
-        onCreateAsNew={vi.fn()}
       />,
     );
 
@@ -225,13 +211,9 @@ describe("AniSearchDuplicateDecision", () => {
     });
   });
 
-  it("shows the save-time context line only when viaSaveTimeRecheck is true", () => {
+  it("shows the save-time context line only when viaSaveTimeRecheck is true, and still renders only the two-action block (no third 'confirm and retry' option, per D-30)", () => {
     const { rerender } = render(
-      <AniSearchDuplicateDecision
-        conflict={conflict}
-        activeJellyfinSeriesID={null}
-        onCreateAsNew={vi.fn()}
-      />,
+      <AniSearchDuplicateDecision conflict={conflict} activeJellyfinSeriesID={null} />,
     );
 
     expect(
@@ -243,8 +225,7 @@ describe("AniSearchDuplicateDecision", () => {
     rerender(
       <AniSearchDuplicateDecision
         conflict={{ ...conflict, viaSaveTimeRecheck: true }}
-        activeJellyfinSeriesID={null}
-        onCreateAsNew={vi.fn()}
+        activeJellyfinSeriesID="series-42"
       />,
     );
 
@@ -253,40 +234,14 @@ describe("AniSearchDuplicateDecision", () => {
         "Beim Speichern wurde erneut ein bestehender Anime mit dieser AniSearch-ID gefunden.",
       ),
     ).not.toBeNull();
-  });
-
-  it("calls onCreateAsNew exactly once when 'Als neuen Anime anlegen' is clicked, showing an in-flight state meanwhile", async () => {
-    let resolveCreate!: () => void;
-    const onCreateAsNew = vi.fn(
-      () =>
-        new Promise<void>((resolve) => {
-          resolveCreate = resolve;
-        }),
-    );
-
-    render(
-      <AniSearchDuplicateDecision
-        conflict={conflict}
-        activeJellyfinSeriesID={null}
-        onCreateAsNew={onCreateAsNew}
-      />,
-    );
-
-    fireEvent.click(screen.getByRole("button", { name: "Als neuen Anime anlegen" }));
-
-    expect(onCreateAsNew).toHaveBeenCalledTimes(1);
-    await waitFor(() => {
-      expect(
-        screen.getByRole("button", { name: "Lädt..." }).hasAttribute("disabled"),
-      ).toBe(true);
-    });
-
-    resolveCreate();
-    await waitFor(() =>
-      expect(
-        screen.getByRole("button", { name: "Als neuen Anime anlegen" }),
-      ).not.toBeNull(),
-    );
-    expect(onCreateAsNew).toHaveBeenCalledTimes(1);
+    expect(
+      screen.queryByRole("button", { name: "Als neuen Anime anlegen" }),
+    ).toBeNull();
+    expect(
+      screen.getByRole("button", { name: "Mit bestehendem Anime verbinden" }),
+    ).not.toBeNull();
+    expect(
+      screen.getByRole("link", { name: "Zum vorhandenen Anime wechseln" }),
+    ).not.toBeNull();
   });
 });

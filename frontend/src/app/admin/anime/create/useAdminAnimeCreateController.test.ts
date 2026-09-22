@@ -737,7 +737,36 @@ describe('useAdminAnimeCreateController (hook execution)', () => {
     expect(currentLocationHref).toBe('/admin/anime?created=77#anime-77')
   })
 
-  it('D-20 confirmed retry: handleConfirmedDuplicateCreate sends confirm_duplicate:true', async () => {
+  it('D-30 (165-18): the two removed "trotzdem neu anlegen" retry handlers are gone from the returned handlers object', () => {
+    const { result } = renderHook(() => useAdminAnimeCreateController())
+
+    const removedHandlerNames = [
+      ['handle', 'AniSearch', 'Create', 'As', 'New'].join(''),
+      ['handle', 'Confirmed', 'Duplicate', 'Create'].join(''),
+    ]
+    for (const name of removedHandlerNames) {
+      expect(name in result.current.handlers).toBe(false)
+    }
+  })
+
+  it("D-30 (165-18): loadAniSearchDraftByID's request payload never carries the removed bypass key, regardless of how the draft-load is triggered", async () => {
+    const { result } = renderHook(() => useAdminAnimeCreateController())
+
+    intakeMocks.loadAdminAnimeCreateAniSearchDraft.mockResolvedValueOnce(
+      aniSearchDraftResponseFixture,
+    )
+    act(() => result.current.handlers.setAniSearchID('2788'))
+    await act(async () => {
+      await result.current.handlers.handleAniSearchDraftLoad()
+    })
+
+    expect(intakeMocks.loadAdminAnimeCreateAniSearchDraft).toHaveBeenCalledTimes(1)
+    const requestPayload = intakeMocks.loadAdminAnimeCreateAniSearchDraft.mock.calls[0][0]
+    const removedBypassKey = ['force', 'new'].join('_')
+    expect(requestPayload).not.toHaveProperty(removedBypassKey)
+  })
+
+  it("D-30 (165-18): submitCreate's request payload never carries the removed second-confirmation key", async () => {
     const { result } = renderHook(() => useAdminAnimeCreateController())
 
     act(() => {
@@ -756,45 +785,15 @@ describe('useAdminAnimeCreateController (hook execution)', () => {
     })
 
     await act(async () => {
-      await result.current.handlers.handleConfirmedDuplicateCreate()
+      await result.current.handlers.handleCreateSubmit({
+        preventDefault: () => undefined,
+      } as unknown as Parameters<typeof result.current.handlers.handleCreateSubmit>[0])
     })
 
     expect(apiMocks.createAdminAnime).toHaveBeenCalledTimes(1)
-    expect(apiMocks.createAdminAnime.mock.calls[0][0]).toMatchObject({
-      confirm_duplicate: true,
-    })
-  })
-
-  it('D-23/165-13 ForceNew retry: handleAniSearchCreateAsNew sends force_new:true for the conflicting ID, merges the real draft, and clears the conflict; is a no-op without a conflict', async () => {
-    const { result } = renderHook(() => useAdminAnimeCreateController())
-
-    // No-op guard: no conflict present yet.
-    await act(async () => {
-      await result.current.handlers.handleAniSearchCreateAsNew()
-    })
-    expect(intakeMocks.loadAdminAnimeCreateAniSearchDraft).not.toHaveBeenCalled()
-
-    intakeMocks.loadAdminAnimeCreateAniSearchDraft.mockResolvedValueOnce(saveTimeConflictBody)
-    act(() => result.current.handlers.setAniSearchID('2788'))
-    await act(async () => {
-      await result.current.handlers.handleAniSearchDraftLoad()
-    })
-    expect(result.current.anisearch.conflict).not.toBeNull()
-
-    intakeMocks.loadAdminAnimeCreateAniSearchDraft.mockResolvedValueOnce(
-      aniSearchDraftResponseFixture,
+    const removedConfirmationKey = ['confirm', 'duplicate'].join('_')
+    expect(apiMocks.createAdminAnime.mock.calls[0][0]).not.toHaveProperty(
+      removedConfirmationKey,
     )
-    await act(async () => {
-      await result.current.handlers.handleAniSearchCreateAsNew()
-    })
-
-    expect(intakeMocks.loadAdminAnimeCreateAniSearchDraft).toHaveBeenCalledTimes(2)
-    expect(intakeMocks.loadAdminAnimeCreateAniSearchDraft.mock.calls[1][0]).toMatchObject({
-      anisearch_id: '2788',
-      force_new: true,
-    })
-    expect(result.current.anisearch.conflict).toBeNull()
-    expect(result.current.anisearch.result).not.toBeNull()
-    expect(result.current.anisearch.result?.anisearchID).toBe('2788')
   })
 })

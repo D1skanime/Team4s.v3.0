@@ -119,8 +119,6 @@ function AdminAnimeCreateContent() {
           conflict={anisearch.conflict}
           errorMessage={anisearch.errorMessage}
           activeJellyfinSeriesID={activeJellyfinSeriesID}
-          onCreateAsNew={handlers.handleAniSearchCreateAsNew}
-          onConfirmDuplicateCreate={handlers.handleConfirmedDuplicateCreate}
           onAniSearchIDChange={handlers.setAniSearchID}
           onSearchQueryChange={handlers.setAniSearchSearchQuery}
           onSearchSubmit={() => {

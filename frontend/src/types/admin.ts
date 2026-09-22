@@ -62,8 +62,6 @@ export interface AdminAnimeCreateRequest {
   source_links?: string[];
   folder_name?: string;
   relations?: AdminAnimeRelation[];
-  /** D-20/165-03: explizite zweite Bestätigung, um den save-time AniSearch-Dublettencheck bewusst zu umgehen. */
-  confirm_duplicate?: boolean;
 }
 
 /** Vorgeschlagene Asset-URLs für einen Anime-Erstellungs-Draft (Cover, Banner, Logo usw.). */
@@ -171,8 +169,6 @@ export interface AdminAnimeAniSearchEditConflictResult {
 export interface AdminAnimeAniSearchCreateRequest {
   anisearch_id: string;
   draft: AdminAnimeCreateDraftPayload;
-  /** D-23/165-13: umgeht den Backend-Dublettencheck bewusst, um den echten AniSearch-Draft zu laden. */
-  force_new?: boolean;
 }
 
 /** Suchkandidat aus der AniSearch-Suche mit Basis-Metadaten. */
