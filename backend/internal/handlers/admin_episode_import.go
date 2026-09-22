@@ -74,7 +74,11 @@ func (h *AdminContentHandler) PreviewEpisodeImport(c *gin.Context) {
 	if h.rejectUnownedJellyfinSeriesID(c, req.JellyfinSeriesID, contextResult.JellyfinFoldersForOwnershipCheck) {
 		return
 	}
-	mediaCandidates, err := h.loadEpisodeImportMediaCandidates(c, jellyfinSeriesID, contextResult.FolderPath)
+	folderFilterPath, ok := h.resolveEpisodeImportFolderFilterPath(c, animeID, jellyfinSeriesID, contextResult)
+	if !ok {
+		return
+	}
+	mediaCandidates, err := h.loadEpisodeImportMediaCandidates(c, jellyfinSeriesID, folderFilterPath)
 	if err != nil {
 		log.Printf("episode import preview jellyfin failed anime_id=%d series_id=%q: %v", animeID, jellyfinSeriesID, err)
 		c.JSON(http.StatusBadGateway, gin.H{"error": gin.H{"message": "jellyfin episoden konnten nicht geladen werden"}})

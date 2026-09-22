@@ -145,7 +145,10 @@ func TestPreviewEpisodeImport_SingleFolderOwnedSeriesIDPassesGuard(t *testing.T)
 // TestPreviewEpisodeImport_MultiFolderRequestedSeriesIDPassesGuard proves
 // Test 6: a jellyfin_series_id present in source_links (the multi-folder
 // case) passes the ownership guard and proceeds to loadEpisodeImportMediaCandidates
-// as before.
+// as before. Since GAP-07 (165-14), a genuinely non-main folder selection also
+// triggers exactly one resolveEpisodeImportFolderFilterPath lookup (GET
+// /Items?Ids=series-402) before the episode fetch -- both requests are
+// asserted here by routing on path instead of asserting a single request.
 func TestPreviewEpisodeImport_MultiFolderRequestedSeriesIDPassesGuard(t *testing.T) {
 	pool := openEVECFixture(t)
 	_, err := pool.Exec(context.Background(), `
@@ -153,12 +156,21 @@ func TestPreviewEpisodeImport_MultiFolderRequestedSeriesIDPassesGuard(t *testing
 	`)
 	require.NoError(t, err)
 
-	requests := 0
+	itemsRequests := 0
+	episodesRequests := 0
 	server := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-		requests++
-		require.Equal(t, "/Shows/series-402/Episodes", r.URL.Path)
 		w.Header().Set("Content-Type", "application/json")
-		_, _ = w.Write([]byte(`{"Items":[]}`))
+		switch r.URL.Path {
+		case "/Shows/series-402/Episodes":
+			episodesRequests++
+			_, _ = w.Write([]byte(`{"Items":[]}`))
+		case "/Items":
+			itemsRequests++
+			require.Equal(t, "series-402", r.URL.Query().Get("Ids"))
+			_, _ = w.Write([]byte(`{"Items":[{"Id":"series-402","Path":"/media/Anime/series-402"}]}`))
+		default:
+			t.Fatalf("unexpected jellyfin path %s", r.URL.Path)
+		}
 	}))
 	defer server.Close()
 
@@ -167,5 +179,6 @@ func TestPreviewEpisodeImport_MultiFolderRequestedSeriesIDPassesGuard(t *testing
 	rec := previewEpisodeImportOwnershipRequest(h, "301", `{"jellyfin_series_id":"series-402"}`)
 
 	require.Equal(t, http.StatusOK, rec.Code, rec.Body.String())
-	require.Equal(t, 1, requests, "expected the guard to allow a genuinely connected folder and proceed to Jellyfin")
+	require.Equal(t, 1, episodesRequests, "expected the guard to allow a genuinely connected folder and proceed to Jellyfin")
+	require.Equal(t, 1, itemsRequests, "expected exactly one folder-filter-path lookup for the non-main folder (GAP-07)")
 }
