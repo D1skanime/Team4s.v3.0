@@ -839,4 +839,194 @@ describe('useAdminAnimeCreateController (hook execution)', () => {
       'Keine passenden Assets gefunden. Bitte prüfe Titel oder Quelle.',
     )
   })
+
+  it('GAP-18: Jellyfin zuerst, AniSearch danach - AniSearch gewinnt bei Jahr und Beschreibung', async () => {
+    const { result } = renderHook(() => useAdminAnimeCreateController())
+
+    act(() => result.current.handlers.setJellyfinQuery('Naruto'))
+    await act(async () => {
+      await result.current.handlers.handleJellyfinSearch()
+    })
+    await act(async () => {
+      await result.current.handlers.handleJellyfinCandidateAdopt('series-42')
+    })
+
+    expect(result.current.manualDraft.values.year).toBe('1998')
+    expect(result.current.manualDraft.values.description).toBe('Imported from Jellyfin')
+
+    intakeMocks.loadAdminAnimeCreateAniSearchDraft.mockResolvedValueOnce({
+      data: {
+        mode: 'draft' as const,
+        anisearch_id: '4491',
+        source: 'anisearch:4491',
+        draft: {
+          title: '.hack//G.U. Trilogy',
+          type: 'tv' as const,
+          content_type: 'anime' as const,
+          status: 'ongoing' as const,
+          year: 2007,
+          description: 'AniSearch-Beschreibung fuer .hack//G.U. Trilogy',
+        },
+        manual_fields_kept: [],
+        filled_fields: ['year', 'description'],
+        filled_assets: [],
+        provider: {
+          anisearch_id: '4491',
+          jellysync_applied: false,
+          relation_candidates: 0,
+          relation_matches: 0,
+        },
+      },
+    })
+    act(() => result.current.handlers.setAniSearchID('4491'))
+    await act(async () => {
+      await result.current.handlers.handleAniSearchDraftLoad()
+    })
+
+    expect(result.current.manualDraft.values.year).toBe('2007')
+    expect(result.current.manualDraft.values.description).toBe(
+      'AniSearch-Beschreibung fuer .hack//G.U. Trilogy',
+    )
+  })
+
+  it('GAP-18: eine echte Handänderung nach der Jellyfin-Übernahme übersteht ein nachfolgendes AniSearch-Laden', async () => {
+    const { result } = renderHook(() => useAdminAnimeCreateController())
+
+    act(() => result.current.handlers.setJellyfinQuery('Naruto'))
+    await act(async () => {
+      await result.current.handlers.handleJellyfinSearch()
+    })
+    await act(async () => {
+      await result.current.handlers.handleJellyfinCandidateAdopt('series-42')
+    })
+
+    act(() => result.current.handlers.setYear('2010'))
+
+    intakeMocks.loadAdminAnimeCreateAniSearchDraft.mockResolvedValueOnce({
+      data: {
+        mode: 'draft' as const,
+        anisearch_id: '4491',
+        source: 'anisearch:4491',
+        draft: {
+          title: '.hack//G.U. Trilogy',
+          type: 'tv' as const,
+          content_type: 'anime' as const,
+          status: 'ongoing' as const,
+          year: 2007,
+          description: 'AniSearch-Beschreibung fuer .hack//G.U. Trilogy',
+        },
+        manual_fields_kept: [],
+        filled_fields: ['year', 'description'],
+        filled_assets: [],
+        provider: {
+          anisearch_id: '4491',
+          jellysync_applied: false,
+          relation_candidates: 0,
+          relation_matches: 0,
+        },
+      },
+    })
+    act(() => result.current.handlers.setAniSearchID('4491'))
+    await act(async () => {
+      await result.current.handlers.handleAniSearchDraftLoad()
+    })
+
+    expect(result.current.manualDraft.values.year).toBe('2010')
+  })
+
+  it('GAP-18: AniSearch zuerst, Jellyfin danach - AniSearch bleibt maßgeblich (unveraendertes Verhalten)', async () => {
+    const { result } = renderHook(() => useAdminAnimeCreateController())
+
+    intakeMocks.loadAdminAnimeCreateAniSearchDraft.mockResolvedValueOnce({
+      data: {
+        mode: 'draft' as const,
+        anisearch_id: '999',
+        source: 'anisearch:999',
+        draft: {
+          title: 'Serial Experiments Lain',
+          type: 'tv' as const,
+          content_type: 'anime' as const,
+          status: 'ongoing' as const,
+          year: 2007,
+          description: 'AniSearch-Text',
+        },
+        manual_fields_kept: [],
+        filled_fields: ['title', 'year', 'description'],
+        filled_assets: [],
+        provider: {
+          anisearch_id: '999',
+          jellysync_applied: false,
+          relation_candidates: 0,
+          relation_matches: 0,
+        },
+      },
+    })
+    act(() => result.current.handlers.setAniSearchID('999'))
+    await act(async () => {
+      await result.current.handlers.handleAniSearchDraftLoad()
+    })
+
+    expect(result.current.manualDraft.values.year).toBe('2007')
+    expect(result.current.manualDraft.values.description).toBe('AniSearch-Text')
+
+    act(() => result.current.handlers.setJellyfinQuery('Naruto'))
+    await act(async () => {
+      await result.current.handlers.handleJellyfinSearch()
+    })
+    await act(async () => {
+      await result.current.handlers.handleJellyfinCandidateAdopt('series-42')
+    })
+
+    expect(result.current.manualDraft.values.year).toBe('2007')
+    expect(result.current.manualDraft.values.description).toBe('AniSearch-Text')
+  })
+
+  it('GAP-18: ein aus Jellyfin uebernommenes Cover bleibt nach einem AniSearch-Laden erhalten', async () => {
+    intakeMocks.previewAdminAnimeFromJellyfinIntake
+      .mockReset()
+      .mockResolvedValueOnce({ data: filmJellyfinPreviewResult })
+
+    const { result } = renderHook(() => useAdminAnimeCreateController())
+
+    await act(async () => {
+      await result.current.handlers.handleJellyfinCandidateAdopt('series-99')
+    })
+
+    expect(result.current.manualDraft.values.coverImage).toBe(
+      'https://jellyfin.example/cover.jpg',
+    )
+
+    intakeMocks.loadAdminAnimeCreateAniSearchDraft.mockResolvedValueOnce({
+      data: {
+        mode: 'draft' as const,
+        anisearch_id: '1234',
+        source: 'anisearch:1234',
+        draft: {
+          title: 'Redline',
+          type: 'film' as const,
+          content_type: 'anime' as const,
+          status: 'done' as const,
+          year: 2009,
+          description: 'AniSearch-Beschreibung fuer Redline',
+        },
+        manual_fields_kept: [],
+        filled_fields: ['description'],
+        filled_assets: [],
+        provider: {
+          anisearch_id: '1234',
+          jellysync_applied: false,
+          relation_candidates: 0,
+          relation_matches: 0,
+        },
+      },
+    })
+    act(() => result.current.handlers.setAniSearchID('1234'))
+    await act(async () => {
+      await result.current.handlers.handleAniSearchDraftLoad()
+    })
+
+    expect(result.current.manualDraft.values.coverImage).toBe(
+      'https://jellyfin.example/cover.jpg',
+    )
+  })
 })
