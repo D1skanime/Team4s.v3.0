@@ -128,6 +128,26 @@ const config = [
       '@next/next/no-html-link-for-pages': 'off',
       // Globales UI erzwingen (siehe oben).
       'no-restricted-syntax': uiPrimitiveGuard,
+      // GAP-20 (165-UAT.md, 2026-09-22): window.confirm()/bare confirm() sind
+      // repo-weit verboten, Severity 'error', ohne Legacy-Ausnahmen (dieser
+      // Quick-Task migriert alle bestehenden Vorkommen in einem Zug).
+      'no-restricted-properties': [
+        'error',
+        {
+          object: 'window',
+          property: 'confirm',
+          message:
+            'window.confirm() ist verboten — nutze useConfirmDialog()/ConfirmDialog aus @/components/ui (GAP-20, 165-UAT.md).',
+        },
+      ],
+      'no-restricted-globals': [
+        'error',
+        {
+          name: 'confirm',
+          message:
+            'Globales confirm() ist verboten — nutze useConfirmDialog()/ConfirmDialog aus @/components/ui (GAP-20, 165-UAT.md).',
+        },
+      ],
     },
   },
   {
