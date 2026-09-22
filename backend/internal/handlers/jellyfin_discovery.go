@@ -8,12 +8,11 @@ package handlers
 // the live-measured ~2111-item Fansubs scale, D-29) or page size.
 //
 // q (free-text) filtering runs against the full snapshot before sorting/paging (in-memory,
-// no DB LIKE query). The status-based `filter` (offen/bereits_vorhanden/ignoriert/alle)
-// necessarily narrows the already-paged, already-status-resolved result set: resolving a
-// snapshot item's D-17 status requires the batched DB lookups, which — per the D-07 budget —
-// are scoped to exactly the items on the returned page, never the full snapshot. A page under
-// a non-"alle" filter may therefore return fewer than `limit` items; this mirrors the D-07
-// budget requirement, not a bug.
+// no DB LIKE query). has_more/next_cursor now reflect genuine remaining matches for the
+// requested status filter (offen/bereits_vorhanden/ignoriert/alle): the scan window used to
+// collect `limit` filter-matching items may extend beyond `limit` raw snapshot entries, but
+// the existence-/ignore-status lookup still runs at exactly one query per field per served
+// page (D-07), regardless of how far that scan window reaches.
 
 import (
 	"context"
@@ -84,6 +83,9 @@ func (h *AdminContentHandler) ListJellyfinDiscovery(c *gin.Context) {
 		}
 		limit = value
 	}
+	if limit > repository.MaxCursorPageLimit {
+		limit = repository.MaxCursorPageLimit
+	}
 
 	refresh := strings.TrimSpace(c.Query("refresh")) == "true"
 	afterName, afterItemID, _ := repository.DecodeDiscoveryCursor(strings.TrimSpace(c.Query("cursor")))
@@ -97,9 +99,10 @@ func (h *AdminContentHandler) ListJellyfinDiscovery(c *gin.Context) {
 	}
 
 	entries := buildSortedJellyfinDiscoveryEntries(snapshot, query)
-	page, nextCursor, hasMore := repository.SeekDiscoverySnapshot(entries, afterName, afterItemID, limit)
+	startIdx := repository.SeekDiscoveryStartIndex(entries, afterName, afterItemID)
+	remaining := entries[startIdx:]
 
-	items, err := h.buildJellyfinDiscoveryPageItems(c.Request.Context(), page, filter)
+	items, nextCursor, hasMore, err := h.buildJellyfinDiscoveryFilteredPage(c.Request.Context(), remaining, filter, limit)
 	if err != nil {
 		log.Printf("admin_content jellyfin_discovery: status lookup failed (user_id=%d): %v", identity.UserID, err)
 		writeInternalErrorResponse(c, "interner serverfehler", err, "Jellyfin-Discovery-Status konnte nicht geladen werden.")
@@ -145,17 +148,24 @@ func buildSortedJellyfinDiscoveryEntries(snapshot []jellyfinSeriesItem, query st
 	return entries
 }
 
-// buildJellyfinDiscoveryPageItems loest fuer exakt die Items der uebergebenen Seite (nie den
-// vollstaendigen Snapshot, D-07) den Existenz- und Ignore-Status in je genau einer Batch-Abfrage
-// auf und wendet danach den status-basierten `filter` an.
-func (h *AdminContentHandler) buildJellyfinDiscoveryPageItems(
+// buildJellyfinDiscoveryFilteredPage loest fuer das GESAMTE verbleibende (nur suchtext-gefilterte)
+// Scan-Fenster `remaining` (nicht nur eine `limit`-grosse Rohseite, D-07-konform trotzdem exakt 1
+// Existenz-Query + 1 Ignore-Query fuer dieses Fenster) den Existenz- und Ignore-Status auf und
+// sammelt daraus die ersten `limit` Items, die tatsaechlich zu `filter` passen. has_more/next_cursor
+// spiegeln damit echte verbleibende, zum Filter passende Treffer wider statt der rohen Restmenge.
+func (h *AdminContentHandler) buildJellyfinDiscoveryFilteredPage(
 	ctx context.Context,
-	page []jellyfinDiscoverySnapshotEntry,
+	remaining []jellyfinDiscoverySnapshotEntry,
 	filter string,
-) ([]models.AdminJellyfinDiscoveryItem, error) {
-	seriesIDs := make([]string, 0, len(page))
-	paths := make([]string, 0, len(page))
-	for _, entry := range page {
+	limit int,
+) ([]models.AdminJellyfinDiscoveryItem, *string, bool, error) {
+	if len(remaining) == 0 {
+		return []models.AdminJellyfinDiscoveryItem{}, nil, false, nil
+	}
+
+	seriesIDs := make([]string, 0, len(remaining))
+	paths := make([]string, 0, len(remaining))
+	for _, entry := range remaining {
 		if id := strings.TrimSpace(entry.item.ID); id != "" {
 			seriesIDs = append(seriesIDs, id)
 		}
@@ -166,7 +176,7 @@ func (h *AdminContentHandler) buildJellyfinDiscoveryPageItems(
 
 	existingMatches, err := h.discoveryExistingMatchRepo.FindExistingAnimeByJellyfinIntakeRefs(ctx, seriesIDs, paths)
 	if err != nil {
-		return nil, err
+		return nil, nil, false, err
 	}
 	existingBySource, existingByFolder := buildExistingJellyfinMatchLookup(existingMatches)
 
@@ -174,20 +184,35 @@ func (h *AdminContentHandler) buildJellyfinDiscoveryPageItems(
 	if h.libraryDiscoveryIgnoreRepo != nil {
 		ignored, err = h.libraryDiscoveryIgnoreRepo.FindIgnoredLibraryDiscoveryItems(ctx, seriesIDs)
 		if err != nil {
-			return nil, err
+			return nil, nil, false, err
 		}
 	}
 
-	items := make([]models.AdminJellyfinDiscoveryItem, 0, len(page))
-	for _, entry := range page {
+	items := make([]models.AdminJellyfinDiscoveryItem, 0, limit)
+	var nextCursor *string
+	var hasMore bool
+	for _, entry := range remaining {
 		responseItem := buildAdminJellyfinDiscoveryItem(entry.item, existingBySource, existingByFolder, ignored)
 		if !discoveryItemMatchesFilter(responseItem.Status, filter) {
 			continue
 		}
+
+		if len(items) >= limit {
+			hasMore = true
+			break
+		}
+
 		items = append(items, responseItem)
+		name, id := entry.DiscoverySortKey()
+		cursor := repository.EncodeDiscoveryCursor(name, id)
+		nextCursor = &cursor
 	}
 
-	return items, nil
+	if !hasMore {
+		nextCursor = nil
+	}
+
+	return items, nextCursor, hasMore, nil
 }
 
 // buildAdminJellyfinDiscoveryItem erstellt ein einzelnes Discovery-Listen-Item. Wiederverwendet

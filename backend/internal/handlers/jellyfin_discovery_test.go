@@ -478,3 +478,103 @@ func TestJellyfinDiscovery_FilterIgnored(t *testing.T) {
 		t.Fatalf("expected only the open item under the default filter, got %+v", openBody.Data.Items)
 	}
 }
+
+// --- GAP-02: has_more/next_cursor must reflect genuine filter-matching remainder --------------
+
+// TestJellyfinDiscovery_HasMoreReflectsGenuineFilterMatches proves that a raw snapshot page that
+// contains items excluded by the status filter no longer produces a false-positive has_more=true.
+func TestJellyfinDiscovery_HasMoreReflectsGenuineFilterMatches(t *testing.T) {
+	server := newDiscoverySnapshotServer([]map[string]any{
+		{"Id": "id-a", "Name": "Series A", "Path": "/media/a"},
+		{"Id": "id-b", "Name": "Series B", "Path": "/media/b"},
+		{"Id": "id-c", "Name": "Series C", "Path": "/media/c"},
+		{"Id": "id-d", "Name": "Series D", "Path": "/media/d"},
+	})
+	defer server.Close()
+
+	existingRepo := &fakeDiscoveryExistingMatchRepo{
+		matches: []repository.ExistingJellyfinAnimeMatch{
+			{AnimeID: 1, Title: "Series B", Source: testStringPtr("jellyfin:id-b")},
+		},
+	}
+	ignoreRepo := &fakeLibraryDiscoveryIgnoreRepo{}
+	handler := newDiscoveryTestHandler(server.URL, server.Client(), existingRepo, ignoreRepo)
+	router := newDiscoveryTestRouter(handler)
+
+	code, body := performDiscoveryListRequest(t, router, "/api/v1/admin/jellyfin/discovery")
+	if code != http.StatusOK {
+		t.Fatalf("expected 200, got %d", code)
+	}
+	if len(body.Data.Items) != 3 {
+		t.Fatalf("expected exactly 3 open items (id-b excluded as existing), got %d: %+v", len(body.Data.Items), body.Data.Items)
+	}
+	if body.Data.HasMore {
+		t.Fatalf("expected has_more=false: the 4th raw item does not match the offen filter")
+	}
+	if body.Data.NextCursor != nil {
+		t.Fatalf("expected next_cursor=nil when has_more=false, got %q", *body.Data.NextCursor)
+	}
+}
+
+// TestJellyfinDiscovery_FilteredPaginationAdvancesAcrossRawWindow proves the scan window
+// extends past a `limit`-sized raw slice to collect `limit` filter-matching items, and that
+// paginating with the resulting cursor never repeats or skips a filter-matching item.
+func TestJellyfinDiscovery_FilteredPaginationAdvancesAcrossRawWindow(t *testing.T) {
+	server := newDiscoverySnapshotServer([]map[string]any{
+		{"Id": "id-a", "Name": "Series A", "Path": "/media/a"},
+		{"Id": "id-b", "Name": "Series B", "Path": "/media/b"},
+		{"Id": "id-c", "Name": "Series C", "Path": "/media/c"},
+		{"Id": "id-d", "Name": "Series D", "Path": "/media/d"},
+		{"Id": "id-e", "Name": "Series E", "Path": "/media/e"},
+	})
+	defer server.Close()
+
+	existingRepo := &fakeDiscoveryExistingMatchRepo{
+		matches: []repository.ExistingJellyfinAnimeMatch{
+			{AnimeID: 1, Title: "Series B", Source: testStringPtr("jellyfin:id-b")},
+			{AnimeID: 2, Title: "Series D", Source: testStringPtr("jellyfin:id-d")},
+		},
+	}
+	ignoreRepo := &fakeLibraryDiscoveryIgnoreRepo{}
+	handler := newDiscoveryTestHandler(server.URL, server.Client(), existingRepo, ignoreRepo)
+	router := newDiscoveryTestRouter(handler)
+
+	code1, page1 := performDiscoveryListRequest(t, router, "/api/v1/admin/jellyfin/discovery?limit=2")
+	if code1 != http.StatusOK {
+		t.Fatalf("expected 200, got %d", code1)
+	}
+	if len(page1.Data.Items) != 2 {
+		t.Fatalf("expected exactly 2 items on page 1, got %d: %+v", len(page1.Data.Items), page1.Data.Items)
+	}
+	if page1.Data.Items[0].JellyfinItemID != "id-a" || page1.Data.Items[1].JellyfinItemID != "id-c" {
+		t.Fatalf("expected page 1 = [id-a, id-c] (id-b skipped as existing), got %+v", page1.Data.Items)
+	}
+	if !page1.Data.HasMore {
+		t.Fatalf("expected has_more=true on page 1 (id-e still remains after id-d is filtered out)")
+	}
+	if page1.Data.NextCursor == nil || *page1.Data.NextCursor == "" {
+		t.Fatalf("expected a non-nil next_cursor on page 1")
+	}
+
+	target2 := "/api/v1/admin/jellyfin/discovery?limit=2&cursor=" + url.QueryEscape(*page1.Data.NextCursor)
+	code2, page2 := performDiscoveryListRequest(t, router, target2)
+	if code2 != http.StatusOK {
+		t.Fatalf("expected 200, got %d", code2)
+	}
+	if len(page2.Data.Items) != 1 || page2.Data.Items[0].JellyfinItemID != "id-e" {
+		t.Fatalf("expected page 2 = [id-e], got %+v", page2.Data.Items)
+	}
+	if page2.Data.HasMore {
+		t.Fatalf("expected has_more=false on page 2 (no items remain)")
+	}
+
+	seen := make(map[string]bool)
+	for _, item := range page1.Data.Items {
+		seen[item.JellyfinItemID] = true
+	}
+	for _, item := range page2.Data.Items {
+		if seen[item.JellyfinItemID] {
+			t.Fatalf("item %q appeared on both page 1 and page 2", item.JellyfinItemID)
+		}
+	}
+}

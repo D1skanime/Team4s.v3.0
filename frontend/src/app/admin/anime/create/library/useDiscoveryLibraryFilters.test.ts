@@ -102,6 +102,14 @@ describe("useDiscoveryLibraryFilters", () => {
     expect(url).not.toContain("cursor=");
   });
 
+  it("GAP-02: hydrates the search field from the q URL param on first render", () => {
+    mockUseSearchParams.mockReturnValue(new URLSearchParams("q=Accel World"));
+    const { result } = renderHook(() => useDiscoveryLibraryFilters());
+
+    expect(result.current.searchValue).toBe("Accel World");
+    expect(result.current.params.q).toBe("Accel World");
+  });
+
   it("keeps the params object reference-stable across re-renders with unchanged URL params", () => {
     mockUseSearchParams.mockReturnValue(new URLSearchParams("filter=alle"));
     const { result, rerender } = renderHook(() => useDiscoveryLibraryFilters());

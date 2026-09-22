@@ -71,17 +71,27 @@ func SeekDiscoverySnapshot[T DiscoverySortKeyed](
 ) (page []T, nextCursor *string, hasMore bool) {
 	limit = clampCursorLimit(limit)
 
-	startIdx := 0
-	if afterName != "" || afterItemID != "" {
-		afterNameLower := strings.ToLower(afterName)
-		startIdx = seekDiscoveryStartIndex(items, afterNameLower, afterItemID)
-	}
+	startIdx := SeekDiscoveryStartIndex(items, afterName, afterItemID)
 
 	remaining := items[startIdx:]
 	return trimCursorPage(remaining, limit, func(item T) string {
 		name, id := item.DiscoverySortKey()
 		return EncodeDiscoveryCursor(name, id)
 	})
+}
+
+// SeekDiscoveryStartIndex liefert den Index des ersten Elements eines bereits nach (Name
+// case-insensitive, JellyfinItemID) sortierten Snapshots, dessen Schluessel echt nach
+// (afterName, afterItemID) sortiert. afterName=="" && afterItemID=="" bedeutet "Seek von
+// Beginn des Snapshots" (0). Exportiert, damit Aufrufer (z. B. buildJellyfinDiscoveryFilteredPage)
+// den Seek unabhaengig von der limit+1-Overfetch-Regel aus SeekDiscoverySnapshot wiederverwenden
+// koennen, ohne die Bin-Search-Logik zu duplizieren.
+func SeekDiscoveryStartIndex[T DiscoverySortKeyed](items []T, afterName, afterItemID string) int {
+	if afterName == "" && afterItemID == "" {
+		return 0
+	}
+	afterNameLower := strings.ToLower(afterName)
+	return seekDiscoveryStartIndex(items, afterNameLower, afterItemID)
 }
 
 // seekDiscoveryStartIndex liefert den Index des ersten Elements, dessen Schluessel
