@@ -170,7 +170,7 @@ export function resolveAniSearchCandidateSearchFeedback(
     return {
       candidates,
       errorMessage:
-        "Keine AniSearch-Treffer gefunden. Bitte pruefe den Titel oder nutze die ID direkt.",
+        "Keine AniSearch-Treffer gefunden. Bitte prüfe den Titel oder nutze die ID direkt.",
       successMessage: null,
     };
   }
@@ -897,7 +897,7 @@ export function useAdminAnimeCreateController(
       await jellyfinIntake.search();
       if (jellyfinIntake.candidates.length === 0) {
         setSuccessMessage(
-          "Jellyfin-Suche abgeschlossen. Falls keine Karten erscheinen, pruefe Titel oder Ordnernamen.",
+          "Jellyfin-Suche abgeschlossen. Falls keine Karten erscheinen, prüfe Titel oder Ordnernamen.",
         );
       }
     } catch (error) {

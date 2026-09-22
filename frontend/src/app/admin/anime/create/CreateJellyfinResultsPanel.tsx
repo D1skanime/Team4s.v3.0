@@ -42,11 +42,11 @@ export function CreateJellyfinResultsPanel({
       <div className={createStyles.resultsHeader}>
         <div className={createStyles.resultsTitleBlock}>
           <p className={createStyles.resultsEyebrow}>Jellyfin</p>
-          <h2 className={createStyles.resultsTitle}>Treffer pruefen</h2>
+          <h2 className={createStyles.resultsTitle}>Treffer prüfen</h2>
           <p className={createStyles.resultsText}>
-            Erst Details pruefen, dann die ausgewählte Serie aktiv in den
+            Erst Details prüfen, dann die ausgewählte Serie aktiv in den
             Entwurf laden. Beim Laden wird die bisherige Jellyfin-Vorschau
-            vollstaendig ersetzt.
+            vollständig ersetzt.
           </p>
         </div>
         {hasActivePreview ? (

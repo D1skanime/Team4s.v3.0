@@ -52,7 +52,7 @@ describe("CreateAniSearchIntakeCard", () => {
             "1 AniSearch-Relation konnte nicht lokal zugeordnet werden.",
           ],
           draftStatusNotes: [
-            "AniSearch hat bestehende Jellyfin-Werte für Titel und Beschreibung ueberschrieben.",
+            "AniSearch hat bestehende Jellyfin-Werte für Titel und Beschreibung überschrieben.",
             "Manuell gepflegte Genres bleiben erhalten.",
           ],
           draft: {
@@ -78,7 +78,7 @@ describe("CreateAniSearchIntakeCard", () => {
     expect(summaryMarkup).not.toContain("Relationen");
     expect(summaryMarkup).not.toContain("AniSearch-Status");
     expect(summaryMarkup).not.toContain(
-      "AniSearch hat bestehende Jellyfin-Werte für Titel und Beschreibung ueberschrieben.",
+      "AniSearch hat bestehende Jellyfin-Werte für Titel und Beschreibung überschrieben.",
     );
     expect(summaryMarkup).not.toContain("Manuell gepflegte Genres bleiben erhalten.");
 

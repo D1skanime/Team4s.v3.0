@@ -176,7 +176,7 @@ describe("AdminAnimeCreatePage", () => {
             "1 Relation wurde übersprungen.",
           ],
           draftStatusNotes: [
-            "AniSearch hat bestehende Jellyfin-Werte für Titel ueberschrieben.",
+            "AniSearch hat bestehende Jellyfin-Werte für Titel überschrieben.",
             "Manuell gepflegte Beschreibung bleibt erhalten.",
           ],
           draft: {
@@ -203,7 +203,7 @@ describe("AdminAnimeCreatePage", () => {
     expect(summaryMarkup).not.toContain("AniSearch-Status");
     expect(summaryMarkup).not.toContain("Wird beim Erstellen");
     expect(summaryMarkup).not.toContain(
-      "AniSearch hat bestehende Jellyfin-Werte für Titel ueberschrieben.",
+      "AniSearch hat bestehende Jellyfin-Werte für Titel überschrieben.",
     );
     expect(summaryMarkup).not.toContain(
       "Manuell gepflegte Beschreibung bleibt erhalten.",

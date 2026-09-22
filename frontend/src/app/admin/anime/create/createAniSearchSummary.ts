@@ -60,7 +60,7 @@ export function buildCreateAniSearchDraftSummary({
 
   if (overwrittenJellyfinFields.length > 0) {
     draftStatusNotes.push(
-      `AniSearch hat bestehende Jellyfin-Werte für ${overwrittenJellyfinFields.join(", ")} ueberschrieben.`,
+      `AniSearch hat bestehende Jellyfin-Werte für ${overwrittenJellyfinFields.join(", ")} überschrieben.`,
     );
     notes.push(`Jellyfin ersetzt: ${overwrittenJellyfinFields.join(", ")}.`);
   }

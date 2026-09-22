@@ -49,19 +49,19 @@ function getAssetCopy(kind: SearchableAssetKind | null) {
     case "cover":
       return {
         title: "Cover online suchen",
-        helper: "Wähle ein Cover aus und uebernimm es in den Entwurf.",
+        helper: "Wähle ein Cover aus und übernimm es in den Entwurf.",
         action: "Cover übernehmen",
       };
     case "banner":
       return {
         title: "Banner online suchen",
-        helper: "Wähle ein Banner aus und uebernimm es in den Entwurf.",
+        helper: "Wähle ein Banner aus und übernimm es in den Entwurf.",
         action: "Banner übernehmen",
       };
     case "logo":
       return {
         title: "Logo online suchen",
-        helper: "Wähle ein Logo aus und uebernimm es in den Entwurf.",
+        helper: "Wähle ein Logo aus und übernimm es in den Entwurf.",
         action: "Logo übernehmen",
       };
     case "background":
@@ -73,7 +73,7 @@ function getAssetCopy(kind: SearchableAssetKind | null) {
     default:
       return {
         title: "Assets online suchen",
-        helper: "Suche nach passenden Assets und uebernimm sie in den Entwurf.",
+        helper: "Suche nach passenden Assets und übernimm sie in den Entwurf.",
         action: "Auswahl übernehmen",
       };
   }
@@ -238,7 +238,7 @@ export function CreateAssetSearchDialog({
                       <p className={createStyles.assetMetaText}>
                         {candidate.width && candidate.height
                           ? `${candidate.width} x ${candidate.height}`
-                          : "Groesse unbekannt"}
+                          : "Größe unbekannt"}
                         {candidate.year ? ` | ${candidate.year}` : ""}
                       </p>
                     </div>

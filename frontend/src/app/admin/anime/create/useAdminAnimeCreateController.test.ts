@@ -318,7 +318,7 @@ describe('useAdminAnimeCreateController AniSearch merge regressions', () => {
     expect(resolveAniSearchCandidateSearchFeedback({ data: [] })).toEqual({
       candidates: [],
       errorMessage:
-        'Keine AniSearch-Treffer gefunden. Bitte pruefe den Titel oder nutze die ID direkt.',
+        'Keine AniSearch-Treffer gefunden. Bitte prüfe den Titel oder nutze die ID direkt.',
       successMessage: null,
     })
   })
