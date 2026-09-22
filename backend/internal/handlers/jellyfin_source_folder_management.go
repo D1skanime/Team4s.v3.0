@@ -41,21 +41,22 @@ func actorPointersFromIdentity(identity middleware.AuthIdentity) (appUserID *int
 }
 
 // connectJellyfinFolderAdditively decides how a successful "Verbinden"/metadata-apply write reaches
-// anime_source_links / anime.source, driven SOLELY by the explicit connect signal (165-17, GAP-05/GAP-13
-// fix): if the caller is an explicit "Verbinden" action (connect == true) AND the anime already carries
-// ANY source (currentSource != ""), the new folder is inserted additively via LinkAdditionalJellyfinSource
-// -- anime.source is never touched, regardless of which provider prefix currentSource carries. This
-// replaces the previous, since-proven-wrong "anisearch:"-prefix-sniffing heuristic, which silently
-// force-overwrote anime.source/folder_name whenever the anime's existing source happened to already be
-// jellyfin:<A> -- the normal shape for anime originally created via Jellyfin preview/intake, i.e. the exact
-// real-world case D-05 exists for (165-UAT.md GAP-05). When connect == false (the routine edit-page
-// "Jellyfin-Metadaten anwenden" resync, the only OTHER caller of this function), the force-write path is
-// always used and no audit entry is written (GAP-13) -- byte-identical to this function's pre-165-17
-// behavior for that caller. If the additive branch's LinkAdditionalJellyfinSource call reports an ownership
-// conflict (repository.ErrConflict, a DIFFERENT anime already owns the target source), that error is
-// returned AS-IS without reaching the audit-write block (GAP-10) -- never a silent no-op success. D-16 (a
-// renamed/moved folder reconnecting via a new Jellyfin item ID) needs no special-case branch here: it is the
-// same additive insert as any other second folder.
+// anime_source_links / anime.source. Two independent signals drive the additive-vs-force-write choice
+// (165-17/CR-01 fix, GAP-05/GAP-13): (1) an explicit "Verbinden" action (connect == true) against ANY
+// existing source is always additive -- this is the GAP-05 fix, replacing the previous, since-proven-wrong
+// "anisearch:"-prefix-sniffing heuristic that silently force-overwrote anime.source/folder_name whenever the
+// anime's existing source happened to already be jellyfin:<A>, the normal shape for anime originally created
+// via Jellyfin preview/intake (165-UAT.md GAP-05). (2) Independently of connect, a currentSource that is NOT
+// itself jellyfin-provided (e.g. anisearch:<id>) is ALWAYS protected additively, even for connect == false --
+// this is the original RESEARCH.md Pitfall-3 guarantee (165-07/D-05): the routine edit-page "Jellyfin-
+// Metadaten anwenden" resync (the only other caller, never sends connect) must never be able to silently
+// convert an AniSearch-owned anime into a Jellyfin-owned one just by applying an asset preview. When
+// currentSource is itself jellyfin:<A> and connect == false (plain re-sync/re-link within the same
+// provider), the force-write path is used and no audit entry is written (GAP-13). If the additive branch's
+// LinkAdditionalJellyfinSource call reports an ownership conflict (repository.ErrConflict, a DIFFERENT anime
+// already owns the target source), that error is returned AS-IS without reaching the audit-write block
+// (GAP-10) -- never a silent no-op success. D-16 (a renamed/moved folder reconnecting via a new Jellyfin item
+// ID) needs no special-case branch here: it is the same additive insert as any other second folder.
 func (h *AdminContentHandler) connectJellyfinFolderAdditively(
 	ctx context.Context,
 	identity middleware.AuthIdentity,
@@ -67,7 +68,7 @@ func (h *AdminContentHandler) connectJellyfinFolderAdditively(
 ) error {
 	currentSource := strings.TrimSpace(derefString(animeSource.Source))
 	newSourceTag := "jellyfin:" + strings.TrimSpace(preview.JellyfinSeriesID)
-	additive := connect && currentSource != ""
+	additive := currentSource != "" && (connect || !strings.HasPrefix(currentSource, "jellyfin:"))
 
 	if additive {
 		if err := h.folderManagementRepo.LinkAdditionalJellyfinSource(ctx, animeID, newSourceTag); err != nil {

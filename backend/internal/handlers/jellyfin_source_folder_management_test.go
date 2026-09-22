@@ -137,9 +137,11 @@ func TestConnectJellyfinFolderAdditively_AlwaysAdditiveWhenConnecting(t *testing
 	}
 }
 
-// --- Test B (165-17, GAP-13 side effect): connect=false (the routine edit-page resync) always
-// keeps the force-write path, byte-identical for BOTH source shapes, regardless of currentSource
-// prefix -- proving the edit-page caller's behavior is unaffected by this plan ------------------
+// --- Test B (165-17/CR-01, GAP-13 side effect): connect=false (the routine edit-page resync) uses
+// the force-write path ONLY when currentSource is itself jellyfin-provided (plain re-sync within the
+// same provider); a non-jellyfin currentSource (e.g. anisearch:<id>) stays protected/additive even
+// without an explicit connect, restoring the original RESEARCH.md Pitfall-3 guarantee for the edit-page
+// caller, which never sends connect -----------------------------------------------------------------
 
 func TestConnectJellyfinFolderAdditively_UsesForceWritePathWhenNotConnecting(t *testing.T) {
 	cases := []struct {
@@ -147,9 +149,15 @@ func TestConnectJellyfinFolderAdditively_UsesForceWritePathWhenNotConnecting(t *
 		source           *string
 		explicitSeriesID string
 		wantForce        bool
+		wantAdditive     bool
 	}{
-		{name: "empty source, no explicit id (regular auto-resolve)", source: nil, explicitSeriesID: "", wantForce: false},
-		{name: "jellyfin source, explicit id (re-link same provider)", source: stringPtrFromValue("jellyfin:old"), explicitSeriesID: "new123", wantForce: true},
+		{name: "empty source, no explicit id (regular auto-resolve)", source: nil, explicitSeriesID: "", wantForce: false, wantAdditive: false},
+		{name: "jellyfin source, explicit id (re-link same provider)", source: stringPtrFromValue("jellyfin:old"), explicitSeriesID: "new123", wantForce: true, wantAdditive: false},
+		// CR-01 regression guard: a routine "Jellyfin-Metadaten anwenden" resync on an AniSearch-sourced
+		// anime (e.g. one previously connected via the discovery-duplicate "Verbinden" flow) must NOT
+		// silently overwrite anime.source/folder_name to jellyfin:<id> -- it must stay additive, exactly
+		// like the pre-165-17 "anisearch:"-prefix-sniffing heuristic did.
+		{name: "anisearch source, explicit id (CR-01: stays additive, never force-overwritten)", source: stringPtrFromValue("anisearch:5170"), explicitSeriesID: "new123", wantForce: false, wantAdditive: true},
 	}
 
 	for _, tc := range cases {
@@ -159,9 +167,22 @@ func TestConnectJellyfinFolderAdditively_UsesForceWritePathWhenNotConnecting(t *
 			h := &AdminContentHandler{folderManagementRepo: repo, auditLogRepo: audit}
 			animeSource := &models.AdminAnimeSyncSource{ID: 1, Source: tc.source}
 			preview := models.AdminAnimeJellyfinMetadataPreviewResult{JellyfinSeriesID: "new123"}
+			originalSource := derefString(tc.source)
 
 			if err := h.connectJellyfinFolderAdditively(context.Background(), testAdminIdentity, 1, animeSource, preview, tc.explicitSeriesID, false); err != nil {
 				t.Fatalf("unexpected error: %v", err)
+			}
+			if tc.wantAdditive {
+				if repo.linkCalls != 1 {
+					t.Fatalf("expected exactly 1 LinkAdditionalJellyfinSource call, got %d", repo.linkCalls)
+				}
+				if repo.applyCalls != 0 {
+					t.Fatalf("expected ApplyJellyfinSyncMetadata NOT to be called, got %d calls", repo.applyCalls)
+				}
+				if derefString(animeSource.Source) != originalSource {
+					t.Fatalf("expected anime.source to remain unchanged (%q), got %+v", originalSource, animeSource.Source)
+				}
+				return
 			}
 			if repo.applyCalls != 1 {
 				t.Fatalf("expected 1 ApplyJellyfinSyncMetadata call, got %d", repo.applyCalls)
