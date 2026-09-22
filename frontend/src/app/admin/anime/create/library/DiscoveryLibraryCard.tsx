@@ -101,7 +101,7 @@ export function DiscoveryLibraryCard({
   onUnignore,
 }: DiscoveryLibraryCardProps) {
   const typeLabel = mapDiscoveryTypeHintToLabel(item.type_hint?.suggested_type);
-  const metaLine2 = buildDiscoveryCardMetaLine(typeLabel, item.library_context);
+  const metaLine2 = buildDiscoveryCardMetaLine(typeLabel, item.parent_context, item.library_context);
   const yearPathLine = `${item.year != null ? `${item.year} | ` : ""}${item.path || "ohne Pfad"}`;
   const badgeVariant = mapDiscoveryStatusToBadgeVariant(item.status);
   const statusLabel = mapDiscoveryStatusToLabel(item.status);

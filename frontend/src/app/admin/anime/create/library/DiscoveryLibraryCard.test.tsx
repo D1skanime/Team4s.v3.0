@@ -25,6 +25,7 @@ function buildItem(overrides: Partial<AdminJellyfinDiscoveryItem> = {}): AdminJe
     name: "Naruto",
     year: 2002,
     path: "D:/Anime/TV/Naruto",
+    parent_context: "Anime.TV.Sub",
     library_context: "Anime",
     type_hint: { suggested_type: "tv", confidence: "high", reasons: [] },
     poster_url: undefined,
@@ -47,7 +48,7 @@ describe("DiscoveryLibraryCard", () => {
 
     expect(screen.getByRole("heading", { level: 3, name: "Naruto" })).toBeTruthy();
     expect(screen.getByText("2002 | D:/Anime/TV/Naruto")).toBeTruthy();
-    expect(screen.getByText("Serie | Anime")).toBeTruthy();
+    expect(screen.getByText("Serie | Anime.TV.Sub | Anime")).toBeTruthy();
     expect(screen.queryByRole("img")).toBeNull();
   });
 
@@ -70,7 +71,7 @@ describe("DiscoveryLibraryCard", () => {
   it("omits the library-context suffix when library_context is absent (D-24)", () => {
     render(
       <DiscoveryLibraryCard
-        item={buildItem({ library_context: undefined })}
+        item={buildItem({ parent_context: undefined, library_context: undefined })}
         onCreate={() => {}}
         onOpenExisting={() => {}}
         onIgnore={() => {}}
@@ -80,6 +81,20 @@ describe("DiscoveryLibraryCard", () => {
 
     expect(screen.getByText("Serie")).toBeTruthy();
     expect(screen.queryByText("Serie | Anime")).toBeNull();
+  });
+
+  it("shows the parent context (Unterordner) even when library_context is absent (GAP-03)", () => {
+    render(
+      <DiscoveryLibraryCard
+        item={buildItem({ library_context: undefined })}
+        onCreate={() => {}}
+        onOpenExisting={() => {}}
+        onIgnore={() => {}}
+        onUnignore={() => {}}
+      />,
+    );
+
+    expect(screen.getByText("Serie | Anime.TV.Sub")).toBeTruthy();
   });
 
   it("status open renders stacked Anime-anlegen (primary) + Ignorieren (ghost) buttons", () => {

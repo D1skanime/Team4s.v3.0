@@ -283,7 +283,7 @@ func TestJellyfinDiscovery_LibraryContext_D24(t *testing.T) {
 		t.Fatalf("expected 2 items, got %d", len(body.Data.Items))
 	}
 
-	_, expectedLibraryContext := deriveJellyfinPathContexts(&path)
+	expectedParentContext, expectedLibraryContext := deriveJellyfinPathContexts(&path)
 
 	var withPathItem, noPathItem *models.AdminJellyfinDiscoveryItem
 	for i := range body.Data.Items {
@@ -303,6 +303,16 @@ func TestJellyfinDiscovery_LibraryContext_D24(t *testing.T) {
 	}
 	if noPathItem.LibraryContext != nil {
 		t.Fatalf("expected nil library_context for unparseable/empty path, got %v", *noPathItem.LibraryContext)
+	}
+
+	// GAP-03: parent_context must be set alongside library_context for the path-bearing item,
+	// and match the FIRST return value of deriveJellyfinPathContexts (e.g. "Anime.TV.Sub" for
+	// this fixture path), while staying nil for the item without a path.
+	if withPathItem.ParentContext == nil || expectedParentContext == nil || *withPathItem.ParentContext != *expectedParentContext {
+		t.Fatalf("expected parent_context %v (derived via deriveJellyfinPathContexts), got %v", expectedParentContext, withPathItem.ParentContext)
+	}
+	if noPathItem.ParentContext != nil {
+		t.Fatalf("expected nil parent_context for unparseable/empty path, got %v", *noPathItem.ParentContext)
 	}
 
 	if got := atomic.LoadInt32(calls); got != 1 {

@@ -227,7 +227,7 @@ func buildAdminJellyfinDiscoveryItem(
 ) models.AdminJellyfinDiscoveryItem {
 	seriesID := strings.TrimSpace(item.ID)
 	pathPtr := normalizeNullableStringPtr(item.Path)
-	_, libraryContext := deriveJellyfinPathContexts(pathPtr)
+	parentContext, libraryContext := deriveJellyfinPathContexts(pathPtr)
 	typeHint := buildJellyfinIntakeTypeHint(item.Name, pathPtr)
 
 	match := resolveExistingJellyfinIntakeMatch(seriesID, pathPtr, existingBySource, existingByFolder)
@@ -244,6 +244,7 @@ func buildAdminJellyfinDiscoveryItem(
 		Name:           strings.TrimSpace(item.Name),
 		ProductionYear: item.ProductionYear,
 		Path:           pathPtr,
+		ParentContext:  parentContext,
 		LibraryContext: libraryContext,
 		TypeHint:       typeHint,
 		PosterURL:      normalizeNullableStringPtr(buildGroupMediaImageURL(seriesID, "primary", nil)),

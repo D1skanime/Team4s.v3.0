@@ -4,12 +4,15 @@ package models
 // "Bibliothek durchsuchen"-Liste (GET /admin/jellyfin/discovery, 165-06). Die Feldform
 // spiegelt AdminJellyfinIntakeSearchItem (admin_jellyfin_intake.go) für Konsistenz über
 // beide Jellyfin-abgeleiteten Admin-Listenflächen, ergänzt um den aufgelösten D-17-Status
-// und (D-24) library_context für die Karten-Metazeile "Typ | Bibliothek".
+// und (D-24) library_context/parent_context für die Karten-Metazeile "Typ | Unterordner |
+// Bibliothek" (GAP-03: parent_context liefert zusaetzlich zu library_context das
+// aussagekraeftigere zweitletzte Pfadsegment, analog AdminJellyfinIntakeSearchItem.parent_context).
 type AdminJellyfinDiscoveryItem struct {
 	JellyfinItemID string                      `json:"jellyfin_item_id"`
 	Name           string                      `json:"name"`
 	ProductionYear *int                        `json:"year,omitempty"`
 	Path           *string                     `json:"path,omitempty"`
+	ParentContext  *string                     `json:"parent_context,omitempty"`
 	LibraryContext *string                     `json:"library_context,omitempty"`
 	TypeHint       AdminJellyfinIntakeTypeHint `json:"type_hint"`
 	PosterURL      *string                     `json:"poster_url,omitempty"`

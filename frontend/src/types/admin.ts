@@ -518,6 +518,7 @@ export interface AdminJellyfinDiscoveryItem {
   name: string;
   year?: number;
   path?: string;
+  parent_context?: string;
   library_context?: string;
   type_hint: AdminJellyfinIntakeTypeHint;
   poster_url?: string;

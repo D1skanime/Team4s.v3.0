@@ -82,6 +82,22 @@ describe("buildDiscoveryCardMetaLine", () => {
     expect(buildDiscoveryCardMetaLine("Serie", undefined)).toBe("Serie");
     expect(buildDiscoveryCardMetaLine("Serie", "")).toBe("Serie");
   });
+
+  // GAP-03: parent_context ("Unterordner") joins BETWEEN typeLabel and libraryContext,
+  // analog JellyfinCandidateCard.tsx's "{Typ} | {parent_context} | {library_context}".
+  it("joins type, parent context, and library context when all three are present", () => {
+    expect(buildDiscoveryCardMetaLine("Serie", "Anime.TV.Sub", "media")).toBe(
+      "Serie | Anime.TV.Sub | media",
+    );
+  });
+
+  it("omits the parent-context segment when it is absent but keeps library context", () => {
+    expect(buildDiscoveryCardMetaLine("Serie", undefined, "media")).toBe("Serie | media");
+  });
+
+  it("returns only the type label when neither parent nor library context is present", () => {
+    expect(buildDiscoveryCardMetaLine("Serie", undefined, undefined)).toBe("Serie");
+  });
 });
 
 describe("buildDiscoveryCreateURL", () => {

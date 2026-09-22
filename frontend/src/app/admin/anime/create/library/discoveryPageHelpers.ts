@@ -60,12 +60,20 @@ export function mapDiscoveryTypeHintToLabel(suggestedType?: string | null): stri
 }
 
 /**
- * D-24 Karten-Metazeile 2: "{Typ} | {Bibliothek}", ohne "| Bibliothek"-Suffix wenn
- * `libraryContext` leer/null/undefined ist (pfadbasiert, keine zusätzliche Anfrage).
+ * D-24/GAP-03 Karten-Metazeile 2: "{Typ} | {Unterordner} | {Bibliothek}", analog
+ * JellyfinCandidateCard.tsx's Metazeile. Jedes der beiden optionalen Segmente
+ * (`parentContext`, `libraryContext`) wird nur angehängt, wenn es truthy ist —
+ * fehlen beide, bleibt nur `typeLabel` übrig.
  */
-export function buildDiscoveryCardMetaLine(typeLabel: string, libraryContext?: string | null): string {
-  if (libraryContext) return `${typeLabel} | ${libraryContext}`;
-  return typeLabel;
+export function buildDiscoveryCardMetaLine(
+  typeLabel: string,
+  parentContext?: string | null,
+  libraryContext?: string | null,
+): string {
+  const segments = [typeLabel];
+  if (parentContext) segments.push(parentContext);
+  if (libraryContext) segments.push(libraryContext);
+  return segments.join(" | ");
 }
 
 export interface BuildDiscoveryCreateURLParams {
