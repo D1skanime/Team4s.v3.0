@@ -97,7 +97,7 @@ describe("DiscoveryLibraryCard", () => {
     expect(screen.getByText("Serie | Anime.TV.Sub")).toBeTruthy();
   });
 
-  it("status open renders stacked Anime-anlegen (primary) + Ignorieren (ghost) buttons", () => {
+  it("status open renders Ignorieren (secondary) then Anime anlegen (primary) side by side", () => {
     render(
       <DiscoveryLibraryCard
         item={buildItem({ status: "open" })}
@@ -108,8 +108,11 @@ describe("DiscoveryLibraryCard", () => {
       />,
     );
 
-    expect(screen.getByRole("button", { name: "Anime anlegen" })).toBeTruthy();
-    expect(screen.getByRole("button", { name: "Ignorieren" })).toBeTruthy();
+    const buttons = screen.getAllByRole("button");
+    expect(buttons.map((b) => b.textContent)).toEqual(["Ignorieren", "Anime anlegen"]);
+    expect(buttons[0].className).toContain("buttonSecondary");
+    expect(buttons[0].className).not.toContain("buttonGhost");
+    expect(buttons[1].className).toContain("buttonPrimary");
     expect(screen.getByText("Offen")).toBeTruthy();
   });
 
@@ -132,6 +135,7 @@ describe("DiscoveryLibraryCard", () => {
     expect(screen.queryByRole("button", { name: "Ignorieren" })).toBeNull();
     expect(screen.getByText("Naruto (#42)")).toBeTruthy();
     expect(screen.getByText("Bereits vorhanden")).toBeTruthy();
+    expect(screen.getByText("Bereits importiert")).toBeTruthy();
   });
 
   it("status ignored renders only Nicht-mehr-ignorieren as the sole action", () => {
@@ -161,8 +165,10 @@ describe("DiscoveryLibraryCard", () => {
       />,
     );
 
-    expect(screen.getByRole("button", { name: "Anime anlegen" })).toBeTruthy();
-    expect(screen.getByRole("button", { name: "Ignorieren" })).toBeTruthy();
+    const buttons = screen.getAllByRole("button");
+    expect(buttons.map((b) => b.textContent)).toEqual(["Ignorieren", "Anime anlegen"]);
+    expect(buttons[0].className).toContain("buttonSecondary");
+    expect(buttons[1].className).toContain("buttonPrimary");
     expect(screen.getByText("Teilweise")).toBeTruthy();
     expect(
       screen.getByText("Mehrere Staffeln erkannt – noch nicht jede Staffel einem Anime zugeordnet."),

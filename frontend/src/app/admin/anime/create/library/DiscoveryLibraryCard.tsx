@@ -50,6 +50,13 @@ const contentStyle: CSSProperties = {
   flexDirection: "column",
   gap: "var(--space-2)",
   minWidth: 0,
+  justifyContent: "space-between",
+};
+
+const topBlockStyle: CSSProperties = {
+  display: "flex",
+  flexDirection: "column",
+  gap: "var(--space-2)",
 };
 
 const titleStyle: CSSProperties = {
@@ -80,6 +87,11 @@ const captionStyle: CSSProperties = {
   margin: 0,
 };
 
+const importedHeadingStyle: CSSProperties = {
+  ...captionStyle,
+  fontWeight: 700,
+};
+
 const statusBlockStyle: CSSProperties = {
   display: "flex",
   flexDirection: "column",
@@ -89,8 +101,10 @@ const statusBlockStyle: CSSProperties = {
 
 const actionsStyle: CSSProperties = {
   display: "flex",
-  flexDirection: "column",
-  gap: "var(--space-1)",
+  flexDirection: "row",
+  justifyContent: "flex-end",
+  flexWrap: "wrap",
+  gap: "var(--space-2)",
 };
 
 export function DiscoveryLibraryCard({
@@ -122,25 +136,30 @@ export function DiscoveryLibraryCard({
       </div>
 
       <div style={contentStyle}>
-        <h3 style={titleStyle}>{item.name}</h3>
-        <p style={pathLineStyle} title={item.path || undefined}>
-          {yearPathLine}
-        </p>
-        <p style={bodyLineStyle}>{metaLine2}</p>
+        <div style={topBlockStyle}>
+          <h3 style={titleStyle}>{item.name}</h3>
+          <p style={pathLineStyle} title={item.path || undefined}>
+            {yearPathLine}
+          </p>
+          <p style={bodyLineStyle}>{metaLine2}</p>
 
-        <div style={statusBlockStyle}>
-          <Badge variant={badgeVariant}>{statusLabel}</Badge>
-          {item.status === "existing" ? (
-            <p style={bodyLineStyle}>
-              {item.existing_title || item.name}
-              {item.existing_anime_id != null ? ` (#${item.existing_anime_id})` : ""}
-            </p>
-          ) : null}
-          {item.status === "partial" ? (
-            <p style={captionStyle}>
-              Mehrere Staffeln erkannt – noch nicht jede Staffel einem Anime zugeordnet.
-            </p>
-          ) : null}
+          <div style={statusBlockStyle}>
+            <Badge variant={badgeVariant}>{statusLabel}</Badge>
+            {item.status === "existing" ? (
+              <>
+                <p style={importedHeadingStyle}>Bereits importiert</p>
+                <p style={bodyLineStyle}>
+                  {item.existing_title || item.name}
+                  {item.existing_anime_id != null ? ` (#${item.existing_anime_id})` : ""}
+                </p>
+              </>
+            ) : null}
+            {item.status === "partial" ? (
+              <p style={captionStyle}>
+                Mehrere Staffeln erkannt – noch nicht jede Staffel einem Anime zugeordnet.
+              </p>
+            ) : null}
+          </div>
         </div>
 
         <div style={actionsStyle}>
@@ -160,11 +179,11 @@ export function DiscoveryLibraryCard({
             </Button>
           ) : (
             <>
+              <Button variant="secondary" size="sm" onClick={() => onIgnore(item.jellyfin_item_id)}>
+                Ignorieren
+              </Button>
               <Button variant="primary" size="sm" onClick={() => onCreate(item.jellyfin_item_id)}>
                 Anime anlegen
-              </Button>
-              <Button variant="ghost" size="sm" onClick={() => onIgnore(item.jellyfin_item_id)}>
-                Ignorieren
               </Button>
             </>
           )}
