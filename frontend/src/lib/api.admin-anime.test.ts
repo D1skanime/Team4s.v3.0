@@ -175,14 +175,20 @@ describe('admin anime api error propagation', () => {
     )
   })
 
-  it('loads AniSearch title candidates from the dedicated search seam', async () => {
+  it('loads AniSearch title candidates from the dedicated search seam, including already-existing ones (D-31)', async () => {
     const fetchMock = vi.fn().mockResolvedValue({
       ok: true,
       status: 200,
       json: vi.fn().mockResolvedValue({
-        filtered_existing_count: 2,
         data: [
-          { anisearch_id: '1078', title: 'Bleach', type: 'TV-Serie', year: 2004 },
+          {
+            anisearch_id: '1078',
+            title: 'Bleach',
+            type: 'TV-Serie',
+            year: 2004,
+            existing_anime_id: 21,
+            existing_title: 'Bleach',
+          },
           {
             anisearch_id: '15085',
             title: 'Bleach: Thousand-Year Blood War',
@@ -197,9 +203,15 @@ describe('admin anime api error propagation', () => {
     await expect(
       searchAdminAnimeCreateAniSearchCandidates('Bleach', { limit: 12 }),
     ).resolves.toEqual({
-      filtered_existing_count: 2,
       data: [
-        { anisearch_id: '1078', title: 'Bleach', type: 'TV-Serie', year: 2004 },
+        {
+          anisearch_id: '1078',
+          title: 'Bleach',
+          type: 'TV-Serie',
+          year: 2004,
+          existing_anime_id: 21,
+          existing_title: 'Bleach',
+        },
         {
           anisearch_id: '15085',
           title: 'Bleach: Thousand-Year Blood War',

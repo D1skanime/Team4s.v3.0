@@ -144,17 +144,32 @@ describe("CreateAniSearchIntakeCard", () => {
     expect(markup).toContain("Auswählen");
   });
 
-  it("renders the filtered-duplicate empty-state copy while keeping duplicate redirect CTA available", () => {
-    const filteredMarkup = renderToStaticMarkup(
+  it("D-31: marks an already-existing candidate with a visible hint in its own row", () => {
+    const markup = renderToStaticMarkup(
       <CreateAniSearchIntakeCard
         anisearchID=""
         searchQuery="Bleach"
         isLoading={false}
         isSearchingCandidates={false}
-        candidates={[]}
+        candidates={[
+          {
+            anisearch_id: "1078",
+            title: "Bleach",
+            type: "TV-Serie",
+            year: 2004,
+            existing_anime_id: 21,
+            existing_title: "Bleach",
+          },
+          {
+            anisearch_id: "15085",
+            title: "Bleach: Thousand-Year Blood War",
+            type: "TV-Serie",
+            year: 2022,
+          },
+        ]}
         result={null}
         conflict={null}
-        errorMessage="Alle 2 gefundenen AniSearch-Treffer sind bereits als Anime erfasst und wurden ausgeblendet."
+        errorMessage={null}
         onAniSearchIDChange={() => undefined}
         onSearchQueryChange={() => undefined}
         onSearchSubmit={() => undefined}
@@ -164,8 +179,72 @@ describe("CreateAniSearchIntakeCard", () => {
       />,
     );
 
-    expect(filteredMarkup).toContain("Alle 2 gefundenen AniSearch-Treffer sind bereits als Anime erfasst und wurden ausgeblendet.");
-    expect(filteredMarkup).not.toContain("Keine AniSearch-Treffer gefunden");
+    // Both candidates remain visible -- D-31 never hides a match.
+    expect(markup).toContain("Bleach: Thousand-Year Blood War");
+    expect(markup).toContain("Existiert schon als „Bleach“ (#21)");
+
+    // The hint must live in the matched candidate's own row (before its "Auswählen"
+    // button), not in a global banner shared by both rows.
+    const hintIndex = markup.indexOf("Existiert schon als");
+    const matchedButtonIndex = markup.indexOf("Auswählen");
+    expect(hintIndex).toBeGreaterThan(-1);
+    expect(hintIndex).toBeLessThan(matchedButtonIndex);
+  });
+
+  it("renders a candidate without existing_anime_id exactly as before (no hint)", () => {
+    const markup = renderToStaticMarkup(
+      <CreateAniSearchIntakeCard
+        anisearchID=""
+        searchQuery="Bleach"
+        isLoading={false}
+        isSearchingCandidates={false}
+        candidates={[
+          {
+            anisearch_id: "15085",
+            title: "Bleach: Thousand-Year Blood War",
+            type: "TV-Serie",
+            year: 2022,
+          },
+        ]}
+        result={null}
+        conflict={null}
+        errorMessage={null}
+        onAniSearchIDChange={() => undefined}
+        onSearchQueryChange={() => undefined}
+        onSearchSubmit={() => undefined}
+        onCandidateDismiss={() => undefined}
+        onCandidateSelect={() => undefined}
+        onSubmit={() => undefined}
+      />,
+    );
+
+    expect(markup).toContain("Bleach: Thousand-Year Blood War");
+    expect(markup).not.toContain("Existiert schon als");
+  });
+
+  it("D-31: the dead global filtered-duplicate hint copy is never rendered anywhere", () => {
+    const markup = renderToStaticMarkup(
+      <CreateAniSearchIntakeCard
+        anisearchID=""
+        searchQuery="Bleach"
+        isLoading={false}
+        isSearchingCandidates={false}
+        candidates={[]}
+        result={null}
+        conflict={null}
+        errorMessage="Keine AniSearch-Treffer gefunden. Bitte pruefe den Titel oder nutze die ID direkt."
+        onAniSearchIDChange={() => undefined}
+        onSearchQueryChange={() => undefined}
+        onSearchSubmit={() => undefined}
+        onCandidateDismiss={() => undefined}
+        onCandidateSelect={() => undefined}
+        onSubmit={() => undefined}
+      />,
+    );
+
+    expect(markup).not.toContain(
+      "AniSearch hat Titel gefunden, aber bereits vorhandene Anime werden in der Create-Auswahl ausgeblendet.",
+    );
 
     const duplicateMarkup = renderToStaticMarkup(
       <CreateAniSearchIntakeCard

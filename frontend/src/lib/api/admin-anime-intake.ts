@@ -27,8 +27,6 @@ function normalizeAniSearchSearchResponse(
 ): AdminAnimeAniSearchSearchResponse {
   return {
     data: Array.isArray(response.data) ? response.data : [],
-    filtered_existing_count:
-      typeof response.filtered_existing_count === 'number' ? response.filtered_existing_count : 0,
   }
 }
 

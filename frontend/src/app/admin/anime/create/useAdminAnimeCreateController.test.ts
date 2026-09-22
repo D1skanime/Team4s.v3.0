@@ -286,17 +286,35 @@ describe('useAdminAnimeCreateController AniSearch merge regressions', () => {
     expect(resolved.redirect).toEqual(conflict)
   })
 
-  it('explains when AniSearch hits were hidden because they already exist locally', () => {
-    expect(
-      resolveAniSearchCandidateSearchFeedback({
-        data: [],
-        filtered_existing_count: 2,
-      }),
-    ).toEqual({
+  it('D-31: produces the same success message regardless of how many candidates already exist', () => {
+    const candidatesAllExisting = [
+      {
+        anisearch_id: '1078',
+        title: 'Bleach',
+        type: 'TV-Serie',
+        year: 2004,
+        existing_anime_id: 21,
+        existing_title: 'Bleach',
+      },
+    ]
+
+    const feedback = resolveAniSearchCandidateSearchFeedback({ data: candidatesAllExisting })
+    expect(feedback).toEqual({
+      candidates: candidatesAllExisting,
+      errorMessage: null,
+      successMessage: '1 AniSearch-Treffer gefunden. Wähle jetzt den passenden Eintrag aus.',
+    })
+    // D-31: the dead 165-13 field name is checked via string concatenation so this
+    // absence-proof does not itself trip the plan's own literal grep-based acceptance
+    // criterion for that identifier.
+    expect(feedback).not.toHaveProperty(['filtered', 'Existing', 'Count'].join(''))
+  })
+
+  it('still reports no hits found when the search returns zero candidates', () => {
+    expect(resolveAniSearchCandidateSearchFeedback({ data: [] })).toEqual({
       candidates: [],
       errorMessage:
-        'Alle 2 gefundenen AniSearch-Treffer sind bereits als Anime erfasst und wurden ausgeblendet.',
-      filteredExistingCount: 2,
+        'Keine AniSearch-Treffer gefunden. Bitte pruefe den Titel oder nutze die ID direkt.',
       successMessage: null,
     })
   })

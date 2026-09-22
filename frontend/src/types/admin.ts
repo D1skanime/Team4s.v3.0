@@ -177,6 +177,9 @@ export interface AdminAnimeAniSearchSearchCandidate {
   title: string;
   type: string;
   year?: number;
+  /** D-31: gesetzt, wenn dieser Kandidat bereits zu einem bestehenden Team4s-Anime gehört. */
+  existing_anime_id?: number;
+  existing_title?: string;
 }
 
 /** Zusammenfassung der Provider-Ergebnisse nach einer AniSearch-basierten Erstellung. */
@@ -221,7 +224,6 @@ export interface AdminAnimeAniSearchCreateResponse {
 /** API-Antwort für eine AniSearch-Suche mit einer Liste von Kandidaten. */
 export interface AdminAnimeAniSearchSearchResponse {
   data: AdminAnimeAniSearchSearchCandidate[];
-  filtered_existing_count?: number;
 }
 
 /** Unterstützte Bild-Quell-Provider für die Asset-Suche. */

@@ -161,30 +161,15 @@ export function resolveAniSearchCandidateSearchFeedback(
 ): {
   candidates: AdminAnimeAniSearchSearchCandidate[];
   errorMessage: string | null;
-  filteredExistingCount: number;
   successMessage: string | null;
 } {
   const candidates = Array.isArray(response.data) ? response.data : [];
-  const filteredExistingCount =
-    typeof response.filtered_existing_count === "number"
-      ? response.filtered_existing_count
-      : 0;
-
-  if (candidates.length === 0 && filteredExistingCount > 0) {
-    return {
-      candidates,
-      errorMessage: `Alle ${filteredExistingCount} gefundenen AniSearch-Treffer sind bereits als Anime erfasst und wurden ausgeblendet.`,
-      filteredExistingCount,
-      successMessage: null,
-    };
-  }
 
   if (candidates.length === 0) {
     return {
       candidates,
       errorMessage:
         "Keine AniSearch-Treffer gefunden. Bitte pruefe den Titel oder nutze die ID direkt.",
-      filteredExistingCount,
       successMessage: null,
     };
   }
@@ -192,14 +177,12 @@ export function resolveAniSearchCandidateSearchFeedback(
   return {
     candidates,
     errorMessage: null,
-    filteredExistingCount,
     successMessage: `${candidates.length} AniSearch-Treffer gefunden. Wähle jetzt den passenden Eintrag aus.`,
   };
 }
 
 type AdminAnimeAniSearchSearchCandidateResponse = {
   data: AdminAnimeAniSearchSearchCandidate[];
-  filtered_existing_count?: number;
 };
 
 export interface UseAdminAnimeCreateControllerOptions {
@@ -257,8 +240,6 @@ export function useAdminAnimeCreateController(
   const [aniSearchCandidates, setAniSearchCandidates] = useState<
     AdminAnimeAniSearchSearchCandidate[]
   >([]);
-  const [aniSearchFilteredExistingCount, setAniSearchFilteredExistingCount] =
-    useState(0);
   const [aniSearchDraftResult, setAniSearchDraftResult] =
     useState<CreateAniSearchDraftState | null>(null);
   const [aniSearchConflict, setAniSearchConflict] =
@@ -555,7 +536,6 @@ export function useAdminAnimeCreateController(
     setAniSearchDraftResult(null);
     setAniSearchConflict(null);
     setAniSearchCandidates([]);
-    setAniSearchFilteredExistingCount(0);
     clearAniSearchMessage();
   }
 
@@ -1133,7 +1113,6 @@ export function useAdminAnimeCreateController(
       const feedback = resolveAniSearchCandidateSearchFeedback(response);
       setLastResponse(JSON.stringify(response, null, 2));
       setAniSearchCandidates(feedback.candidates);
-      setAniSearchFilteredExistingCount(feedback.filteredExistingCount);
       setAniSearchErrorMessage(feedback.errorMessage);
       if (feedback.successMessage) {
         setSuccessMessage(feedback.successMessage);
@@ -1345,7 +1324,6 @@ export function useAdminAnimeCreateController(
       candidates: aniSearchCandidates,
       conflict: aniSearchConflict,
       errorMessage: aniSearchErrorMessage,
-      filteredExistingCount: aniSearchFilteredExistingCount,
       input: createAniSearchID,
       isLoading: isLoadingAniSearchDraft,
       isSearchingCandidates: isSearchingAniSearchCandidates,

@@ -14,7 +14,6 @@ interface CreateAniSearchIntakeCardProps {
   searchQuery: string;
   isLoading: boolean;
   isSearchingCandidates: boolean;
-  filteredExistingCount?: number;
   candidates: AdminAnimeAniSearchSearchCandidate[];
   result: CreateAniSearchDraftState | null;
   conflict: CreateAniSearchConflictState | null;
@@ -34,7 +33,6 @@ export function CreateAniSearchIntakeCard({
   searchQuery,
   isLoading,
   isSearchingCandidates,
-  filteredExistingCount = 0,
   candidates,
   result,
   conflict,
@@ -128,6 +126,11 @@ export function CreateAniSearchIntakeCard({
                     {candidate.type}
                     {` | AniSearch-ID ${candidate.anisearch_id}`}
                   </span>
+                  {candidate.existing_anime_id ? (
+                    <span className={styles.hint}>
+                      {`Existiert schon als „${candidate.existing_title}“ (#${candidate.existing_anime_id})`}
+                    </span>
+                  ) : null}
                 </div>
                 <button
                   type="button"
@@ -162,12 +165,6 @@ export function CreateAniSearchIntakeCard({
         ) : errorMessage ? (
           <div className={styles.errorBox}>
             <p>{errorMessage}</p>
-            {filteredExistingCount > 0 ? (
-              <p className={styles.hint}>
-                AniSearch hat Titel gefunden, aber bereits vorhandene Anime werden in
-                der Create-Auswahl ausgeblendet.
-              </p>
-            ) : null}
             <p className={styles.hint}>
               Keine Änderungen am Anime. Der Anime wurde noch nicht erstellt.
             </p>
