@@ -38,12 +38,14 @@ func (h *AdminContentHandler) CreateAnime(c *gin.Context) {
 		return
 	}
 
-	// Save-time AniSearch-Duplicate-Guard (165-03/D-20): schliesst das Race-Fenster zwischen der
-	// Auswahlzeit-Dublettenprüfung (Enrich()) und dem tatsächlichen "Speichern"-Klick, indem
-	// unmittelbar vor dem Insert erneut auf anisearch:<id> geprüft wird. Ein expliziter zweiter
-	// Klick (confirm_duplicate=true) überspringt die Prüfung bewusst, damit derselbe Konflikt
-	// nicht ein drittes Mal auftaucht.
-	if aniSearchID, sourceTag, ok := extractAniSearchCreateGuardSource(req.Source, req.SourceLinks); ok && !req.ConfirmDuplicate {
+	// Save-time AniSearch-Duplicate-Guard (165-03/D-20, verschärft durch D-30/165-18): schliesst
+	// das Race-Fenster zwischen der Auswahlzeit-Dublettenprüfung (Enrich()) und dem tatsächlichen
+	// "Speichern"-Klick, indem unmittelbar vor dem Insert erneut auf anisearch:<id> geprüft wird.
+	// D-30 entfernt den frueheren zweiten-Klick-Bypass ersatzlos: die Pruefung laeuft jetzt IMMER,
+	// wenn eine anisearch:-Quelle vorliegt -- es gibt keinen Recovery-Pfad ueber "trotzdem neu
+	// anlegen" mehr.
+	aniSearchID, sourceTag, hasAniSearchSource := extractAniSearchCreateGuardSource(req.Source, req.SourceLinks)
+	if hasAniSearchSource {
 		if h.animeCreateRepo != nil {
 			existing, err := h.animeCreateRepo.FindAnimeBySource(c.Request.Context(), sourceTag)
 			if err != nil {
@@ -68,6 +70,26 @@ func (h *AdminContentHandler) CreateAnime(c *gin.Context) {
 
 	item, err := h.animeCreateRepo.CreateAnime(c.Request.Context(), input, identity.UserID)
 	if err != nil {
+		// GAP-06/D-30 (165-18) Verteidigungslinie 2: das Race-Fenster zwischen der Pruefung oben
+		// und diesem Insert kann trotzdem noch einen echten UNIQUE(source)-Konflikt in
+		// anime_source_links erzeugen (syncAnimeSourceLinks wandelt die Postgres-Unique-Verletzung
+		// in repository.ErrConflict um). Statt eines generischen 500 wird hier erneut nachgeschaut
+		// und -- sofern ein Treffer gefunden wird -- derselbe 409-Redirect wie oben ausgeliefert.
+		if hasAniSearchSource && errors.Is(err, repository.ErrConflict) {
+			existing, lookupErr := h.animeCreateRepo.FindAnimeBySource(c.Request.Context(), sourceTag)
+			if lookupErr == nil && existing != nil {
+				c.JSON(http.StatusConflict, gin.H{
+					"data": models.AdminAnimeAniSearchEnrichmentRedirectResult{
+						Mode:            "redirect",
+						AniSearchID:     aniSearchID,
+						ExistingAnimeID: existing.AnimeID,
+						ExistingTitle:   existing.Title,
+						RedirectPath:    buildAdminAnimeEditPath(existing.AnimeID),
+					},
+				})
+				return
+			}
+		}
 		log.Printf("admin_content create_anime: repo error (user_id=%d): %v", identity.UserID, err)
 		writeInternalErrorResponse(c, "interner serverfehler", err, "Anime konnte nicht angelegt werden. Falls lokal gerade auf v2 gearbeitet wird, bitte die neuesten Datenbank-Migrationen anwenden.")
 		return

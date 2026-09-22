@@ -37,10 +37,6 @@ type adminAnimeCreateRequest struct {
 	FolderName          *string                     `json:"folder_name"`
 	AltTitles           []models.AdminAnimeAltTitle `json:"alt_titles"`
 	Relations           []models.AdminAnimeRelation `json:"relations"`
-	// ConfirmDuplicate laesst einen zweiten, expliziten "Als neuen Anime anlegen"-Klick den
-	// Save-Time-AniSearch-Duplicate-Guard (165-03/D-20) bewusst umgehen, nachdem der Operator
-	// den Konflikt bereits einmal gesehen hat.
-	ConfirmDuplicate bool `json:"confirm_duplicate"`
 }
 
 // adminEpisodeCreateRequest enthält die Pflicht- und optionalen Felder für das Anlegen einer neuen Episode.

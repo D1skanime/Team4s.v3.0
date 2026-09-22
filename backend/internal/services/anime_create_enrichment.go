@@ -1201,7 +1201,7 @@ func (s *AnimeCreateEnrichmentService) Enrich(
 	sourceTag := "anisearch:" + aniSearchID
 	if duplicate, err := s.repo.FindAnimeBySource(ctx, sourceTag); err != nil {
 		return nil, err
-	} else if duplicate != nil && !req.ForceNew {
+	} else if duplicate != nil { // D-30 (165-18): ein Treffer fuehrt IMMER zum Redirect
 		return models.AdminAnimeAniSearchEnrichmentRedirectResult{
 			Mode:            "redirect",
 			AniSearchID:     aniSearchID,

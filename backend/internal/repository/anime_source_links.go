@@ -38,6 +38,17 @@ func syncAnimeSourceLinks(
 			animeID,
 			source,
 		); err != nil {
+			// GAP-06/D-30 (165-18): the ON CONFLICT target above is (anime_id, source), but the
+			// table ALSO carries a separate, GLOBAL UNIQUE(source) constraint
+			// (database/migrations/0047_add_anime_source_links.up.sql:6). A second anime trying to
+			// claim an already-taken source (e.g. the same anisearch:<id>) trips that global
+			// constraint instead of matching this INSERT's own conflict target, surfacing as an
+			// unhandled unique-violation. Convert it into the same typed ErrConflict every other
+			// ownership-conflict path in this package already uses, instead of letting it bubble up
+			// as an unhandled pgconn error (which the handler layer then turns into a generic 500).
+			if isUniqueViolation(err) {
+				return ErrConflict
+			}
 			return fmt.Errorf("link anime source anime=%d source=%q: %w", animeID, source, err)
 		}
 	}

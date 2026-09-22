@@ -9,6 +9,7 @@ import (
 	"testing"
 
 	"team4s.v3/backend/internal/models"
+	"team4s.v3/backend/internal/repository"
 
 	"github.com/gin-gonic/gin"
 )
@@ -17,17 +18,25 @@ import (
 // save-time AniSearch duplicate guard (165-03/D-20) without a running database.
 type fakeAnimeCreateRepo struct {
 	findDuplicate *models.AdminAnimeSourceMatch
-	findErr       error
-	findCalls     int
-	createCalls   int
-	createErr     error
-	createResult  *models.AdminAnimeItem
+	// findDuplicateOnRecheck, when set, is returned starting from the SECOND FindAnimeBySource
+	// call onward instead of findDuplicate -- simulates the GAP-06/D-30 (165-18) race window where
+	// the pre-check finds nothing, but a competing insert lands between the pre-check and this
+	// request's own insert, so the post-conflict re-lookup DOES find a match.
+	findDuplicateOnRecheck *models.AdminAnimeSourceMatch
+	findErr                error
+	findCalls              int
+	createCalls            int
+	createErr              error
+	createResult           *models.AdminAnimeItem
 }
 
 func (f *fakeAnimeCreateRepo) FindAnimeBySource(_ context.Context, _ string) (*models.AdminAnimeSourceMatch, error) {
 	f.findCalls++
 	if f.findErr != nil {
 		return nil, f.findErr
+	}
+	if f.findCalls > 1 && f.findDuplicateOnRecheck != nil {
+		return f.findDuplicateOnRecheck, nil
 	}
 	return f.findDuplicate, nil
 }
@@ -103,9 +112,18 @@ func TestCreateAnime_RechecksAniSearchDuplicateBeforeInsert(t *testing.T) {
 	}
 }
 
-func TestCreateAnime_ConfirmDuplicateBypassesGuard(t *testing.T) {
+// TestCreateAnime_RepoConflictErrorReturns409NotInternalError proves the D-30/165-18 hardening:
+// even though the pre-check above finds no duplicate (simulating the race window between the
+// pre-check and the actual insert), a repository.ErrConflict surfaced by CreateAnime itself is
+// mapped to the SAME 409 redirect shape, never a generic 500. This is the defense-in-depth layer
+// for GAP-06's original bug (an unhandled unique-violation surfacing as HTTP 500).
+func TestCreateAnime_RepoConflictErrorReturns409NotInternalError(t *testing.T) {
 	fake := &fakeAnimeCreateRepo{
-		findDuplicate: &models.AdminAnimeSourceMatch{AnimeID: 84, Title: "Serial Experiments Lain"},
+		findDuplicate: nil, // pre-check passes -- no duplicate found yet
+		findDuplicateOnRecheck: &models.AdminAnimeSourceMatch{
+			AnimeID: 84, Title: "Serial Experiments Lain",
+		}, // race-window winner found by the post-conflict re-lookup
+		createErr: repository.ErrConflict,
 	}
 	handler := &AdminContentHandler{
 		authzRepo:       stubAdminRoleChecker{allowed: true},
@@ -115,32 +133,35 @@ func TestCreateAnime_ConfirmDuplicateBypassesGuard(t *testing.T) {
 
 	router := newCreateAnimeTestRouter(handler)
 
-	requestBody := `{"title":"Serial Experiments Lain","type":"tv","content_type":"anime","status":"ongoing","cover_image":"cover.webp","source":"anisearch:12345","confirm_duplicate":true}`
+	requestBody := `{"title":"Serial Experiments Lain","type":"tv","content_type":"anime","status":"ongoing","cover_image":"cover.webp","source":"anisearch:12345"}`
 	req := httptest.NewRequest(http.MethodPost, "/api/v1/admin/anime", strings.NewReader(requestBody))
 	req.Header.Set("Content-Type", "application/json")
 	recorder := httptest.NewRecorder()
 
 	router.ServeHTTP(recorder, req)
 
-	if recorder.Code != http.StatusCreated {
-		t.Fatalf("expected 201, got %d with body %s", recorder.Code, recorder.Body.String())
-	}
-
-	if fake.findCalls != 0 {
-		t.Fatalf("expected confirm_duplicate=true to skip the re-check entirely, got %d FindAnimeBySource calls", fake.findCalls)
-	}
-	if fake.createCalls != 1 {
-		t.Fatalf("expected CreateAnime to be called exactly once, got %d", fake.createCalls)
+	if recorder.Code != http.StatusConflict {
+		t.Fatalf("expected 409, got %d with body %s", recorder.Code, recorder.Body.String())
 	}
 
 	var payload struct {
-		Data models.AdminAnimeItem `json:"data"`
+		Data models.AdminAnimeAniSearchEnrichmentRedirectResult `json:"data"`
 	}
 	if err := json.Unmarshal(recorder.Body.Bytes(), &payload); err != nil {
 		t.Fatalf("decode response: %v", err)
 	}
-	if payload.Data.Title != "Serial Experiments Lain" {
-		t.Fatalf("expected normal create-success shape to be unchanged, got %#v", payload.Data)
+	if payload.Data.Mode != "redirect" {
+		t.Fatalf("expected redirect mode, got %#v", payload.Data)
+	}
+	if payload.Data.AniSearchID != "12345" {
+		t.Fatalf("expected anisearch id 12345, got %#v", payload.Data)
+	}
+
+	if fake.createCalls != 1 {
+		t.Fatalf("expected CreateAnime to be called exactly once, got %d", fake.createCalls)
+	}
+	if fake.findCalls != 2 {
+		t.Fatalf("expected exactly two FindAnimeBySource calls (pre-check + post-conflict lookup), got %d", fake.findCalls)
 	}
 }
 
