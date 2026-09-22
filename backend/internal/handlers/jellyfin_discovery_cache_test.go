@@ -10,6 +10,7 @@ import (
 	"strconv"
 	"strings"
 	"sync"
+	"sync/atomic"
 	"testing"
 	"time"
 )
@@ -286,6 +287,53 @@ func TestJellyfinDiscoveryCache_UpstreamFailureOnOneLibraryReturnsError(t *testi
 	}
 	if items != nil {
 		t.Fatalf("expected no partial snapshot from the succeeding library, got %+v", items)
+	}
+}
+
+// TestJellyfinDiscoveryCache_ConcurrentRebuildsSingleFlight proves GAP-15: N concurrent
+// callers hitting an empty/expired cache must collapse into exactly ONE real Jellyfin fetch
+// via h.discoverySnapshotGroup (singleflight), not N overlapping ones. The fake server sleeps
+// briefly on its first response so the N goroutines genuinely overlap in time instead of
+// racing sequentially.
+func TestJellyfinDiscoveryCache_ConcurrentRebuildsSingleFlight(t *testing.T) {
+	const concurrentCallers = 5
+	var calls int32
+	fixture := []map[string]any{{"Id": "s1", "Name": "Series One", "Path": "/media/s1"}}
+	server := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		n := atomic.AddInt32(&calls, 1)
+		if n == 1 {
+			// Artificial delay on the first (and, if the fix works, only) response so the
+			// other concurrentCallers-1 goroutines are still waiting when it starts.
+			time.Sleep(50 * time.Millisecond)
+		}
+		_ = json.NewEncoder(w).Encode(map[string]any{"Items": fixture, "TotalRecordCount": len(fixture)})
+	}))
+	defer server.Close()
+
+	h := &AdminContentHandler{jellyfinBaseURL: server.URL, jellyfinAPIKey: "test-key", httpClient: server.Client()}
+
+	var wg sync.WaitGroup
+	results := make([][]jellyfinSeriesItem, concurrentCallers)
+	errs := make([]error, concurrentCallers)
+	for i := 0; i < concurrentCallers; i++ {
+		wg.Add(1)
+		go func(idx int) {
+			defer wg.Done()
+			results[idx], errs[idx] = h.buildJellyfinDiscoverySnapshot(context.Background(), false)
+		}(i)
+	}
+	wg.Wait()
+
+	if got := atomic.LoadInt32(&calls); got != 1 {
+		t.Fatalf("expected exactly 1 upstream fetch for %d concurrent rebuild calls, got %d", concurrentCallers, got)
+	}
+	for i, err := range errs {
+		if err != nil {
+			t.Fatalf("caller %d: unexpected error: %v", i, err)
+		}
+		if len(results[i]) != 1 || results[i][0].ID != "s1" {
+			t.Fatalf("caller %d: expected the shared fetch result, got %+v", i, results[i])
+		}
 	}
 }
 

@@ -10,6 +10,8 @@ import (
 	"team4s.v3/backend/internal/permissions"
 	"team4s.v3/backend/internal/repository"
 	"team4s.v3/backend/internal/services"
+
+	"golang.org/x/sync/singleflight"
 )
 
 // adminAnimeCreateRequest enthält die Felder für das Anlegen eines neuen Anime-Eintrags über die Admin-API.
@@ -230,6 +232,11 @@ type AdminContentHandler struct {
 	// (siehe jellyfin_discovery_cache.go). nil bedeutet "kein Cache konfiguriert" —
 	// der Snapshot wird dann bei jedem Aufruf frisch von Jellyfin geholt.
 	discoveryCache discoveryCacheStore
+	// discoverySnapshotGroup (165-15, GAP-15): buendelt gleichzeitige
+	// buildJellyfinDiscoverySnapshot-Rebuild-Aufrufe (TTL-Ablauf-Race oder zwei parallele
+	// "Aktualisieren"-Klicks) ueber denselben Cache-Key in genau einen echten Jellyfin-Fetch
+	// (singleflight.Group.Do). Zero-value-ready, keine Konstruktor-Aenderung noetig.
+	discoverySnapshotGroup singleflight.Group
 	// discoveryExistingMatchRepo (165-06): derselbe Existenz-Lookup wie `repo`, als schmales
 	// Interface fuer Handler-Tests ohne laufende Postgres-Instanz.
 	discoveryExistingMatchRepo jellyfinDiscoveryExistingMatchRepository

@@ -72,6 +72,11 @@ type jellyfinDiscoverySnapshotResponse struct {
 // discoveryCache konfiguriert ist. bypassCache=true ueberspringt den Cache-Read
 // (fuer den "Bibliothek neu laden"-Button, 165-06/165-09), schreibt das frische
 // Ergebnis aber trotzdem wieder in den Cache.
+//
+// Der eigentliche Fetch laeuft ueber h.discoverySnapshotGroup.Do (singleflight, GAP-15):
+// eine TTL-Ablauf-Race oder zwei gleichzeitige "Aktualisieren"-Klicks buendeln sich damit in
+// genau einen echten Jellyfin-Request statt N ueberlappenden. Alle wartenden Aufrufer teilen
+// sich dasselbe Ergebnis (Erfolg oder Fehler).
 func (h *AdminContentHandler) buildJellyfinDiscoverySnapshot(ctx context.Context, bypassCache bool) ([]jellyfinSeriesItem, error) {
 	if !bypassCache {
 		if cached, ok := h.readDiscoverySnapshotCache(ctx); ok {
@@ -79,10 +84,16 @@ func (h *AdminContentHandler) buildJellyfinDiscoverySnapshot(ctx context.Context
 		}
 	}
 
-	items, err := h.fetchJellyfinDiscoverySnapshot(ctx)
+	// context.Background() statt ctx: der geteilte Fetch darf nicht abbrechen, nur weil EIN
+	// wartender Aufrufer seinen eigenen Request-Kontext storniert — die anderen gleichzeitigen
+	// Aufrufer warten auf dasselbe In-Flight-Ergebnis und muessen es trotzdem bekommen.
+	result, err, _ := h.discoverySnapshotGroup.Do(discoverySnapshotCacheKey, func() (any, error) {
+		return h.fetchJellyfinDiscoverySnapshot(context.Background())
+	})
 	if err != nil {
 		return nil, err
 	}
+	items, _ := result.([]jellyfinSeriesItem)
 
 	h.writeDiscoverySnapshotCache(ctx, items)
 
