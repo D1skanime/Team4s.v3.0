@@ -153,12 +153,21 @@ export function padEpisodeNumber(value: number): string {
  * (ORDER BY fg.name, fg.id), ' × '-verknuepft. Es gibt kein Episodentitel-Feld im Editor-Kontext
  * (siehe 164-12-PLAN.md Interfaces-Diskretion), daher bleibt "Episode NNN" die
  * "<Episodentitel>"-Platzhalterposition.
+ *
+ * GAP-23 (165-UAT.md, Auftraggeber-Entscheidung 2026-09-23): bei
+ * `context.episode?.episode_type === 'movie'` ist der erste Bestandteil
+ * `context.anime_title` statt der "Episode NNN"-Platzhalterposition -- spiegelt
+ * dieselbe Regel wie `filmEpisodeSQL`/`filmTitleSQL` in `public_release_name.go`
+ * (Backend), eine Regel, nicht zwei.
  */
 export function defaultReleaseTitle(context: EpisodeVersionEditorContext): string {
   const groups = [...context.selected_groups].sort((a, b) => a.name.localeCompare(b.name) || a.id - b.id)
   const groupNames = groups.length > 0 ? groups.map((group) => group.name).join(' × ') : 'Fansub'
   const version = context.version.release_version || 'v1'
-  return 'Episode ' + padEpisodeNumber(context.version.episode_number) + ' ' + String.fromCharCode(0x00B7) + ' (' + groupNames + ') ' + String.fromCharCode(0x00B7) + ' ' + version
+  const isFilmEpisode = context.episode?.episode_type === 'movie'
+  const animeTitle = context.anime_title.trim()
+  const firstComponent = isFilmEpisode && animeTitle ? animeTitle : 'Episode ' + padEpisodeNumber(context.version.episode_number)
+  return firstComponent + ' ' + String.fromCharCode(0x00B7) + ' (' + groupNames + ') ' + String.fromCharCode(0x00B7) + ' ' + version
 }
 
 // WR-05 (164 Code-Review): muss exakt mit der Video-Container-Extensions-Liste in

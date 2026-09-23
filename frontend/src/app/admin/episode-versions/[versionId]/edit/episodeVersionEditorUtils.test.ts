@@ -80,6 +80,39 @@ describe('defaultReleaseTitle', () => {
     }
     expect(defaultReleaseTitle(context)).toBe('Episode 001 · (GroupName) · v1')
   })
+
+  it('GAP-23: uses anime_title as the first component when episode.episode_type is movie', () => {
+    const context = {
+      anime_title: 'Vipers Creed',
+      version: baseVersion,
+      selected_groups: [{ id: 5, slug: 'animeownage', name: 'AnimeOwnage' }],
+      date_neighbors: [],
+      episode: { episode_id: 1, episode_number: '1', filler_type: null, filler_type_source: null, episode_type: 'movie' as const, episode_type_source: 'import' },
+    }
+    expect(defaultReleaseTitle(context)).toBe('Vipers Creed · (AnimeOwnage) · v1')
+  })
+
+  it('GAP-23: leaves the "Episode NNN" placeholder unchanged when episode.episode_type is explicitly not movie', () => {
+    const context = {
+      anime_title: 'Vipers Creed',
+      version: baseVersion,
+      selected_groups: [{ id: 5, slug: 'animeownage', name: 'AnimeOwnage' }],
+      date_neighbors: [],
+      episode: { episode_id: 1, episode_number: '1', filler_type: null, filler_type_source: null, episode_type: 'episode' as const, episode_type_source: 'import' },
+    }
+    expect(defaultReleaseTitle(context)).toBe('Episode 001 · (AnimeOwnage) · v1')
+  })
+
+  it('GAP-23: falls back defensively to the "Episode NNN" placeholder when anime_title is blank, even for a movie episode', () => {
+    const context = {
+      anime_title: '   ',
+      version: baseVersion,
+      selected_groups: [{ id: 5, slug: 'animeownage', name: 'AnimeOwnage' }],
+      date_neighbors: [],
+      episode: { episode_id: 1, episode_number: '1', filler_type: null, filler_type_source: null, episode_type: 'movie' as const, episode_type_source: 'import' },
+    }
+    expect(defaultReleaseTitle(context)).toBe('Episode 001 · (AnimeOwnage) · v1')
+  })
 })
 
 describe('release version crc32 helpers', () => {
