@@ -2152,7 +2152,7 @@ Plans:
 **Verbindliche Quellen:** `.planning/phases/167-fansub-gruppenerkennung-beim-import/167-USER-REQUEST.md`, `167-CONTEXT.md`
 **Scopegrenze:** keine Änderung der Episodenzuordnung (Doppelfolgen nur prüfen/dokumentieren), kein Umbenennen von Dateien, keine rückwirkende Zuordnung bereits importierter Releases, keine Fuzzy-Automatik.
 **UI hint:** yes
-**Plans:** 6/8 plans executed
+**Plans:** 7/8 plans executed
 
 Plans:
 **Wave 1**
@@ -2166,7 +2166,7 @@ Plans:
 
 - [x] 167-05-PLAN.md — Preview-time batch-match wiring, origin hint, version detection surface
 - [x] 167-07-PLAN.md — Import-mapping-row origin hint / suggestion / conflict UI
-- [ ] 167-08-PLAN.md — Fansub group alias management UI + audit-history translation
+- [x] 167-08-PLAN.md — Fansub group alias management UI + audit-history translation
 
 **Wave 3** *(blocked on Wave 2 completion)*
 
