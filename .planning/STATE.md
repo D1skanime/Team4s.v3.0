@@ -2,15 +2,15 @@
 gsd_state_version: 1.0
 milestone: v1.4
 milestone_name: Coverage
-status: verifying
-stopped_at: Completed 167-08-PLAN.md
-last_updated: "2026-09-23T15:10:21.620Z"
+status: milestone_complete
+stopped_at: Milestone complete (Phase 167 was final phase)
+last_updated: 2026-09-23T15:44:02.515Z
 last_activity: 2026-09-23
 progress:
   total_phases: 32
   completed_phases: 31
   total_plans: 303
-  completed_plans: 303
+  completed_plans: 357
   percent: 97
 ---
 
@@ -236,18 +236,18 @@ Phase 135 and any future roadmap entries continue from here.
 See: .planning/PROJECT.md (updated 2026-08-13)
 
 **Core value:** Team4s presents fansub history and collaboration credibly while keeping identity, visibility, ownership, and permissions correct.
-**Current focus:** Phase 167 — fansub-gruppenerkennung-beim-import
+**Current focus:** Milestone complete
 2026-09-18 after the client's live UAT approval ("1 passt, 2 löschen") — see the "Phase 164
 Abschluss" entry below for the full closing record.
 
 ## Current Position
 
-Phase: 167 (fansub-gruppenerkennung-beim-import) — EXECUTING
+Phase: 167
 from 165-UAT.md, plans 165-14..165-19; 165-14..165-18 done — GAP-07, GAP-09-Verifikation, GAP-14,
 GAP-15, GAP-11, GAP-16, GAP-05, GAP-10, GAP-12, GAP-13, and GAP-06/D-30 all closed — 165-19/D-31
 (GAP-08 candidate-search annotation) remaining)
-Plan: 8 of 8
-Status: Phase complete — ready for verification
+Plan: Not started
+Status: Milestone complete
 nicht umgesetzt und ist für eine künftige eigenständige Phase „Mehrstaffel-Ordner" vorgemerkt.
 dupliziertem ProjectMemberStickyNav; siehe 157-14-SUMMARY.md)
 GAP-02-Live-UAT-Checkpoint aus 156-UAT.md (5 Origin- + 9 Segment-Contributor-Pruefpunkte) wurde
