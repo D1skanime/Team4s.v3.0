@@ -63,6 +63,30 @@ type SelectedFansubGroupInput struct {
 	Slug *string `json:"slug,omitempty"`
 }
 
+// EpisodeImportFansubGroupMatchOrigin describes why a fansub group was
+// auto-selected for a preview row (D-08): the raw filename-derived
+// candidate, which tier resolved it (alias/name/slug), and the resolved
+// group. GroupID lets Plan 07 detect a later client-side conflict by
+// comparing it against whatever group the admin currently has selected.
+// AliasID is populated only when MatchedVia == "alias" -- Plan 07/08 need
+// this numeric id to call reassignFansubAlias on a conflicting kürzel.
+type EpisodeImportFansubGroupMatchOrigin struct {
+	Raw        string `json:"raw"`
+	MatchedVia string `json:"matched_via"`
+	GroupID    int64  `json:"group_id"`
+	GroupName  string `json:"group_name"`
+	AliasID    *int64 `json:"alias_id,omitempty"`
+}
+
+// EpisodeImportFansubGroupSuggestion is a fuzzy "did you mean" candidate
+// (D-03) surfaced when a row's fansub group name has no exact-tier match.
+// Never auto-applied.
+type EpisodeImportFansubGroupSuggestion struct {
+	ID   int64  `json:"id"`
+	Name string `json:"name"`
+	Slug string `json:"slug"`
+}
+
 // EpisodeImportMappingRow links one media candidate to zero, one, or many
 // canonical episode numbers after operator review.
 //
@@ -82,6 +106,12 @@ type EpisodeImportMappingRow struct {
 	FansubGroupID           *int64                     `json:"fansub_group_id,omitempty"`
 	FansubGroupName         *string                    `json:"fansub_group_name,omitempty"`
 	ReleaseVersion          *string                    `json:"release_version,omitempty"`
+	// FansubGroupMatchOrigin/FansubGroupSuggestions/ReleaseVersionSource are
+	// additive, display-only fields (never persisted) populated at preview
+	// time by enrichEpisodeImportPreviewFansubData (Plan 05, D-08/D-09).
+	FansubGroupMatchOrigin *EpisodeImportFansubGroupMatchOrigin `json:"fansub_group_match_origin,omitempty"`
+	FansubGroupSuggestions []EpisodeImportFansubGroupSuggestion `json:"fansub_group_suggestions,omitempty"`
+	ReleaseVersionSource   *string                              `json:"release_version_source,omitempty"`
 }
 
 // EpisodeImportPreviewResult is the read-only preview payload for the builder.
@@ -113,12 +143,12 @@ type JellyfinFolderOption struct {
 }
 
 type EpisodeImportContextResult struct {
-	AnimeID          int64                  `json:"anime_id"`
-	AnimeTitle       string                 `json:"anime_title"`
-	AniSearchID      *string                `json:"anisearch_id,omitempty"`
-	JellyfinSeriesID *string                `json:"jellyfin_series_id,omitempty"`
-	FolderPath       *string                `json:"folder_path,omitempty"`
-	Source           *string                `json:"source,omitempty"`
+	AnimeID          int64   `json:"anime_id"`
+	AnimeTitle       string  `json:"anime_title"`
+	AniSearchID      *string `json:"anisearch_id,omitempty"`
+	JellyfinSeriesID *string `json:"jellyfin_series_id,omitempty"`
+	FolderPath       *string `json:"folder_path,omitempty"`
+	Source           *string `json:"source,omitempty"`
 	// JellyfinFolders is only populated when the anime has more than one
 	// connected Jellyfin folder (D-14: "kein sichtbares neues Feld im
 	// Regelfall") -- a display-only simplification for the common
