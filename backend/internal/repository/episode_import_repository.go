@@ -37,6 +37,31 @@ func (r *EpisodeImportRepository) Apply(
 	return r.applyReleaseNative(ctx, input)
 }
 
+// ResolveFansubGroupMatches resolves a batch of filename-derived candidate group strings
+// against fansub_groups/fansub_group_aliases in exactly one SQL round trip (D-08),
+// regardless of candidate count. See resolveFansubGroupMatches (fansub_group_match.go).
+func (r *EpisodeImportRepository) ResolveFansubGroupMatches(
+	ctx context.Context,
+	candidates []string,
+) ([]models.FansubGroupMatch, error) {
+	if r == nil || r.db == nil {
+		return nil, fmt.Errorf("episode import repository is not configured")
+	}
+	return resolveFansubGroupMatches(ctx, r.db, candidates)
+}
+
+// SuggestSimilarFansubGroups returns up to 3 trigram "did you mean" suggestions (D-03)
+// for a single candidate that did not resolve via ResolveFansubGroupMatches.
+func (r *EpisodeImportRepository) SuggestSimilarFansubGroups(
+	ctx context.Context,
+	candidate string,
+) ([]models.FansubGroupSuggestion, error) {
+	if r == nil || r.db == nil {
+		return nil, fmt.Errorf("episode import repository is not configured")
+	}
+	return suggestSimilarFansubGroups(ctx, r.db, candidate, 3)
+}
+
 func (r *EpisodeImportRepository) PreviewExistingCoverage(
 	ctx context.Context,
 	animeID int64,
