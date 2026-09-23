@@ -60,8 +60,8 @@ describe('FansubGroupOriginHint', () => {
 
     renderHint({ row, selectedFansubGroups: [{ id: 5, name: 'Bloody-Shadow' }] })
 
-    expect(screen.getByText('Erkannt aus Dateiname: BDnP → Bloody-Shadow (Alias)')).toBeInTheDocument()
-    expect(screen.queryByRole('button')).not.toBeInTheDocument()
+    expect(screen.getByText('Erkannt aus Dateiname: BDnP → Bloody-Shadow (Alias)')).not.toBeNull()
+    expect(screen.queryByRole('button')).toBeNull()
   })
 
   it('Zustand A: maps matched_via to the correct German label (Name/Slug)', () => {
@@ -76,7 +76,7 @@ describe('FansubGroupOriginHint', () => {
 
     renderHint({ row, selectedFansubGroups: [{ id: 7, name: 'FlameHaze-subs' }] })
 
-    expect(screen.getByText('Erkannt aus Dateiname: FHZ → FlameHaze-subs (Slug)')).toBeInTheDocument()
+    expect(screen.getByText('Erkannt aus Dateiname: FHZ → FlameHaze-subs (Slug)')).not.toBeNull()
   })
 
   it('Zustand B: renders up to 3 suggestion buttons that add the group as a chip on click', () => {
@@ -93,8 +93,8 @@ describe('FansubGroupOriginHint', () => {
 
     const firstButton = screen.getByRole('button', { name: 'Meinten Sie: GroupOne?' })
     const secondButton = screen.getByRole('button', { name: 'Meinten Sie: GroupTwo?' })
-    expect(firstButton).toBeInTheDocument()
-    expect(secondButton).toBeInTheDocument()
+    expect(firstButton).not.toBeNull()
+    expect(secondButton).not.toBeNull()
     expect(screen.getAllByRole('button')).toHaveLength(2)
 
     fireEvent.click(firstButton)
@@ -138,7 +138,7 @@ describe('FansubGroupOriginHint', () => {
       onAddSelectedFansubGroup,
     })
 
-    expect(screen.getByText('Kürzel „BDnP" gehört bereits zu New-Subs.')).toBeInTheDocument()
+    expect(screen.getByText('Kürzel „BDnP" gehört bereits zu New-Subs.')).not.toBeNull()
 
     const reassignButton = screen.getByRole('button', { name: 'Trotzdem zu Bloody-Shadow umhängen' })
     fireEvent.click(reassignButton)
@@ -166,8 +166,8 @@ describe('FansubGroupOriginHint', () => {
 
     renderHint({ row, selectedFansubGroups: [{ id: 9, name: 'Bloody-Shadow' }] })
 
-    expect(screen.getByText('Kürzel „BDnP" gehört bereits zu New-Subs.')).toBeInTheDocument()
-    expect(screen.queryByRole('button')).not.toBeInTheDocument()
+    expect(screen.getByText('Kürzel „BDnP" gehört bereits zu New-Subs.')).not.toBeNull()
+    expect(screen.queryByRole('button')).toBeNull()
   })
 
   it('Zustand D: renders nothing when there is no origin and no suggestions', () => {
