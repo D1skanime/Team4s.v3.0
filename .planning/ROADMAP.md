@@ -2152,7 +2152,7 @@ Plans:
 **Verbindliche Quellen:** `.planning/phases/167-fansub-gruppenerkennung-beim-import/167-USER-REQUEST.md`, `167-CONTEXT.md`
 **Scopegrenze:** keine Änderung der Episodenzuordnung (Doppelfolgen nur prüfen/dokumentieren), kein Umbenennen von Dateien, keine rückwirkende Zuordnung bereits importierter Releases, keine Fuzzy-Automatik.
 **UI hint:** yes
-**Plans:** 7/8 plans executed
+**Plans:** 8/8 plans complete
 
 Plans:
 **Wave 1**
@@ -2170,4 +2170,4 @@ Plans:
 
 **Wave 3** *(blocked on Wave 2 completion)*
 
-- [ ] 167-06-PLAN.md — Remove filename auto-create fallback; apply-time alias auto-learn + audit
+- [x] 167-06-PLAN.md — Remove filename auto-create fallback; apply-time alias auto-learn + audit

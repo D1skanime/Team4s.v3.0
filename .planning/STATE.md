@@ -2,16 +2,16 @@
 gsd_state_version: 1.0
 milestone: v1.4
 milestone_name: Coverage
-status: executing
+status: verifying
 stopped_at: Completed 167-08-PLAN.md
-last_updated: "2026-09-23T14:57:48.991Z"
+last_updated: "2026-09-23T15:10:21.620Z"
 last_activity: 2026-09-23
 progress:
   total_phases: 32
-  completed_phases: 30
+  completed_phases: 31
   total_plans: 303
-  completed_plans: 302
-  percent: 94
+  completed_plans: 303
+  percent: 97
 ---
 
 # Project State
@@ -247,7 +247,7 @@ from 165-UAT.md, plans 165-14..165-19; 165-14..165-18 done — GAP-07, GAP-09-Ve
 GAP-15, GAP-11, GAP-16, GAP-05, GAP-10, GAP-12, GAP-13, and GAP-06/D-30 all closed — 165-19/D-31
 (GAP-08 candidate-search annotation) remaining)
 Plan: 8 of 8
-Status: Ready to execute
+Status: Phase complete — ready for verification
 nicht umgesetzt und ist für eine künftige eigenständige Phase „Mehrstaffel-Ordner" vorgemerkt.
 dupliziertem ProjectMemberStickyNav; siehe 157-14-SUMMARY.md)
 GAP-02-Live-UAT-Checkpoint aus 156-UAT.md (5 Origin- + 9 Segment-Contributor-Pruefpunkte) wurde
@@ -1496,6 +1496,7 @@ Last activity: 2026-09-23
 - [Phase 167]: 167-07: FansubGroupOriginHint gates the alias reassign action to alias-tier matches only (matched_via==='alias' && alias_id present); name/slug-tier conflicts show the warning without a reassign button, since there is no alias row to move. — Reassigning only makes sense for an alias-tier match per the plan's explicit sub-test requirement
 - [Phase 167]: 167-08: FansubAliasSection accepts isPlatformAdmin prop but only gates on hasAuthSession, matching sibling components (mutation endpoints already capability-checked server-side)
 - [Phase 167]: 167-08: Reassign-target Select defaults per-row state to the alias's current fansub_group_id (excluded from options) so the Umhaengen button starts disabled without a separate flag
+- [Phase 167]: 167-06: writeLearnedFansubAliasAudit derives identity from gin.Context internally (middleware.CommentAuthIdentityFromContext) instead of a captured handler variable — Keeps ApplyEpisodeImport's net growth to exactly the one mandated audit call-site line under the operator's tight admin_episode_import.go line-count ceiling (776 -> 777, matching Plan 05's cumulative +2 acceptance criterion).
 
 ### Pending Todos
 
@@ -1977,10 +1978,11 @@ untruncated list lives in `.planning/todos/pending/`.
 | Phase 167 P05 | ~18min | 3 tasks | 6 files |
 | Phase 167 P07 | 11min | 2 tasks | 7 files |
 | Phase 167 P08 | 20min | 2 tasks | 6 files |
+| Phase 167 P06 | 55min | 3 tasks | 9 files |
 
 ## Session Continuity
 
-Last session: 2026-09-23T14:57:48.967Z
+Last session: 2026-09-23T15:10:16.217Z
 Stopped at: Completed 167-08-PLAN.md
 Last activity: 2026-09-23 - Completed quick task 260923-ed4: GAP-24 (AniSearch-Platzhaltertitel "Episode 1" zählt bei Einteilern nicht mehr als echter Titel — Import- UND Abfrage-Zeit, greift auch bei bereits gespeicherten Bestandsdaten ohne Migration)
 Resume file: 
