@@ -595,7 +595,13 @@ describe('AdminFansubEditPage token-free wiring', () => {
       name: 'AnimeOwnage',
     })
     expect(apiMocks.updateFansubGroup.mock.calls[0][1]).not.toHaveProperty('slug')
-    expect(apiMocks.getFansubList).not.toHaveBeenCalled()
+    // Kein Slug-Eindeutigkeits-Check (getFansubList({ q, per_page: 200 })), da Slug-Management
+    // für Nicht-Plattform-Admins ausgeblendet ist. FansubAliasSection (Phase 167-08) ruft
+    // getFansubList unabhängig davon einmalig mit { per_page: 100 } für die
+    // Umhängen-Zielgruppenauswahl auf — das ist erwartetes, unabhängiges Verhalten.
+    expect(
+      apiMocks.getFansubList.mock.calls.some(([params]) => Boolean((params as { q?: string })?.q)),
+    ).toBe(false)
   })
 
   it('allows a general-only actor to save despite an invalid stored technical URL', async () => {

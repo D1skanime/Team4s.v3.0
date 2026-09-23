@@ -40,6 +40,11 @@ function payloadString(payload: Record<string, unknown> | null | undefined, key:
   return typeof value === 'string' ? value : undefined
 }
 
+function payloadNumber(payload: Record<string, unknown> | null | undefined, key: string): number | undefined {
+  const value = payload?.[key]
+  return typeof value === 'number' ? value : undefined
+}
+
 function targetLabel(entry: AdminChangeEntry): string {
   return entry.target_id != null ? `${entry.target_type} #${entry.target_id}` : entry.target_type
 }
@@ -83,6 +88,30 @@ export function translateChangeEntry(
     case 'member_claim.activated':
       return {
         sentence: `Admin hat Mitglied #${entry.target_id ?? '?'} als aktives Mitglied übernommen.`,
+      }
+
+    case 'fansub_group_alias.created':
+      return {
+        sentence: `Admin hat den Alias "${payloadString(entry.payload, 'alias') ?? 'unbekannt'}" angelegt.`,
+      }
+
+    case 'fansub_group_alias.deleted':
+      // Kein Alias-Text im Payload dieses Events verfügbar — ehrlich die target_id verwenden,
+      // statt zu raten (D-09, "niemals raten"-Disziplin dieser Datei).
+      return {
+        sentence: `Admin hat den Alias #${entry.target_id ?? '?'} entfernt.`,
+      }
+
+    case 'fansub_group_alias.reassigned':
+      return {
+        sentence: `Admin hat den Alias "${payloadString(entry.payload, 'alias') ?? 'unbekannt'}" von Gruppe #${payloadNumber(entry.payload, 'from_group_id') ?? '?'} zu Gruppe #${payloadNumber(entry.payload, 'to_group_id') ?? '?'} umgehängt.`,
+      }
+
+    case 'fansub_group_alias.learned':
+      // Phrasiert als Systemaktion, nicht "Admin hat..." — dieses Event feuert aus dem
+      // Import-Apply-Codepfad, nicht aus einer direkten Admin-Alias-Bearbeitung.
+      return {
+        sentence: `Beim Import wurde der Alias "${payloadString(entry.payload, 'alias') ?? 'unbekannt'}" automatisch als neuer Alias gelernt.`,
       }
 
     default: {

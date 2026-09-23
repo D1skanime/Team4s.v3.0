@@ -10,6 +10,7 @@ import { canUseMainTab } from "./fansubEditAccess";
 import { GroupMediaReviewSection } from "./GroupMediaReviewSection";
 import { FansubAppMembersSection } from "./FansubAppMembersSection";
 import { FansubCommunityLinksList } from "./FansubCommunityLinksList";
+import { FansubAliasSection } from "./FansubAliasSection";
 import { FansubBasicInfoTab } from "./FansubBasicInfoTab";
 import type { MainTab, SectionKey } from "./fansubEditTypes";
 import type { FansubDetailsForm } from "./useFansubDetailsForm";
@@ -104,6 +105,14 @@ export function FansubDetailsTab({
                 hasAuthSession={hasAuthSession}
                 onToast={onToast}
                 communityLinksList={communityLinksList}
+              />
+            ) : null}
+            {activeMainTab === "basic" ? (
+              <FansubAliasSection
+                fansubID={fansubID}
+                isPlatformAdmin={isPlatformAdmin}
+                hasAuthSession={hasAuthSession}
+                onToast={onToast}
               />
             ) : null}
           </div>

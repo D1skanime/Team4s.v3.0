@@ -132,6 +132,61 @@ describe('translateChangeEntry — unbekannter event_type', () => {
   })
 })
 
+describe('translateChangeEntry — fansub_group_alias.* (Phase 167, D-09)', () => {
+  it('created: erwähnt den angelegten Alias-Text', () => {
+    const entry = makeEntry({
+      event_type: 'fansub_group_alias.created',
+      target_type: 'fansub_group_alias',
+      target_id: 501,
+      payload: { alias: 'BDnP' },
+    })
+
+    const result = translateChangeEntry(entry)
+
+    expect(result.sentence).toBe('Admin hat den Alias "BDnP" angelegt.')
+  })
+
+  it('deleted: verwendet ehrlich die target_id, da kein Alias-Text im Payload verfügbar ist', () => {
+    const entry = makeEntry({
+      event_type: 'fansub_group_alias.deleted',
+      target_type: 'fansub_group_alias',
+      target_id: 501,
+      payload: {},
+    })
+
+    const result = translateChangeEntry(entry)
+
+    expect(result.sentence).toBe('Admin hat den Alias #501 entfernt.')
+  })
+
+  it('reassigned: nennt Alias-Text sowie Quell- und Zielgruppen-ID', () => {
+    const entry = makeEntry({
+      event_type: 'fansub_group_alias.reassigned',
+      target_type: 'fansub_group_alias',
+      target_id: 501,
+      payload: { alias: 'BDnP', from_group_id: 11, to_group_id: 10 },
+    })
+
+    const result = translateChangeEntry(entry)
+
+    expect(result.sentence).toBe('Admin hat den Alias "BDnP" von Gruppe #11 zu Gruppe #10 umgehängt.')
+  })
+
+  it('learned: phrasiert als Systemaktion beim Import, nicht als Admin-Aktion', () => {
+    const entry = makeEntry({
+      event_type: 'fansub_group_alias.learned',
+      target_type: 'fansub_group_alias',
+      target_id: 502,
+      payload: { alias: 'BnP', source: 'episode_import' },
+    })
+
+    const result = translateChangeEntry(entry)
+
+    expect(result.sentence).toBe('Beim Import wurde der Alias "BnP" automatisch als neuer Alias gelernt.')
+    expect(result.sentence).not.toContain('Admin hat')
+  })
+})
+
 describe('translateChangeEntry — generisches *.denied-Muster', () => {
   it('rendert die "Zugriff verweigert"-Satzform für jeden *.denied event_type', () => {
     const entry = makeEntry({
