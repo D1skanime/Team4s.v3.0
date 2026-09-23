@@ -4,7 +4,7 @@ import { useState } from 'react'
 import { Sparkles } from 'lucide-react'
 
 import { Badge, Button, useConfirmDialog } from '@/components/ui'
-import { reassignFansubAlias } from '@/lib/api'
+import { ApiError, reassignFansubAlias } from '@/lib/api'
 import type { EpisodeImportMappingRow, EpisodeImportSelectedFansubGroup } from '@/types/episodeImport'
 
 import styles from './FansubGroupOriginHint.module.css'
@@ -36,6 +36,7 @@ export function FansubGroupOriginHint({
   label,
 }: FansubGroupOriginHintProps) {
   const [reassigned, setReassigned] = useState(false)
+  const [reassignError, setReassignError] = useState<string | null>(null)
   const { confirm, confirmDialog } = useConfirmDialog()
 
   const origin = row.fansub_group_match_origin ?? null
@@ -67,10 +68,15 @@ export function FansubGroupOriginHint({
       return
     }
 
-    await reassignFansubAlias(origin.group_id, origin.alias_id, { target_fansub_group_id: currentGroupID })
-    setReassigned(true)
-    if (currentGroup) {
-      onAddSelectedFansubGroup(currentGroup)
+    try {
+      await reassignFansubAlias(origin.group_id, origin.alias_id, { target_fansub_group_id: currentGroupID })
+      setReassignError(null)
+      setReassigned(true)
+      if (currentGroup) {
+        onAddSelectedFansubGroup(currentGroup)
+      }
+    } catch (error) {
+      setReassignError(error instanceof ApiError && error.message ? error.message : 'Umhängen fehlgeschlagen.')
     }
   }
 
@@ -101,6 +107,7 @@ export function FansubGroupOriginHint({
             {`Trotzdem zu ${currentGroupName} umhängen`}
           </Button>
         ) : null}
+        {reassignError ? <Badge variant="warning">{reassignError}</Badge> : null}
         {confirmDialog}
       </div>
     )

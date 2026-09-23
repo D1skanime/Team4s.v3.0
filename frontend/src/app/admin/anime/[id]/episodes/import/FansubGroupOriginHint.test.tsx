@@ -9,6 +9,14 @@ import type { EpisodeImportMappingRow, EpisodeImportSelectedFansubGroup } from '
 import { FansubGroupOriginHint } from './FansubGroupOriginHint'
 
 vi.mock('@/lib/api', () => ({
+  ApiError: class ApiError extends Error {
+    status: number
+
+    constructor(status: number, message: string) {
+      super(message)
+      this.status = status
+    }
+  },
   reassignFansubAlias: vi.fn(),
 }))
 
@@ -152,6 +160,39 @@ describe('FansubGroupOriginHint', () => {
     await waitFor(() => {
       expect(onAddSelectedFansubGroup).toHaveBeenCalledWith({ id: 9, name: 'Bloody-Shadow' })
     })
+  })
+
+  it('WR-02: shows an inline error and stays clickable when reassignFansubAlias rejects', async () => {
+    const { ApiError: MockApiError } = await import('@/lib/api')
+    mockedReassignFansubAlias.mockRejectedValue(new MockApiError(409, 'Alias wurde bereits umgehängt.'))
+    const onAddSelectedFansubGroup = vi.fn()
+    const row = makeRow({
+      fansub_group_match_origin: {
+        raw: 'BDnP',
+        matched_via: 'alias',
+        group_id: 5,
+        group_name: 'New-Subs',
+        alias_id: 12,
+      },
+    })
+
+    renderHint({
+      row,
+      selectedFansubGroups: [{ id: 9, name: 'Bloody-Shadow' }],
+      onAddSelectedFansubGroup,
+    })
+
+    const reassignButton = screen.getByRole('button', { name: 'Trotzdem zu Bloody-Shadow umhängen' })
+    fireEvent.click(reassignButton)
+
+    const confirmButton = await screen.findByRole('button', { name: 'Trotzdem umhängen' })
+    fireEvent.click(confirmButton)
+
+    expect(await screen.findByText('Alias wurde bereits umgehängt.')).not.toBeNull()
+    expect(screen.queryByText('Umgehängt.')).toBeNull()
+    expect(onAddSelectedFansubGroup).not.toHaveBeenCalled()
+    // Button remains visible/clickable — a failed attempt does not silently disappear.
+    expect(screen.getByRole('button', { name: 'Trotzdem zu Bloody-Shadow umhängen' })).not.toBeNull()
   })
 
   it('Zustand C (name-tier): shows the conflict warning but not the reassign button', () => {
