@@ -162,6 +162,96 @@ func (h *FansubHandler) DeleteFansubAlias(c *gin.Context) {
 	c.Status(http.StatusNoContent)
 }
 
+// ReassignFansubAlias hängt einen bestehenden Alias von seiner aktuellen (Quell-)Gruppe auf
+// eine andere (Ziel-)Gruppe um (D-02/D-09). Berechtigung wird bewusst gegen BEIDE Gruppen
+// geprüft -- Quelle und Ziel -- damit ein Akteur, der nur die Quellgruppe verwaltet, einen
+// Alias nicht in eine Gruppe umhängen kann, die er nicht verwaltet (T-167-IDOR).
+func (h *FansubHandler) ReassignFansubAlias(c *gin.Context) {
+	fansubID, err := parseFansubID(c.Param("id"))
+	if err != nil {
+		badRequest(c, "ungültige fansub id")
+		return
+	}
+	aliasID, err := parseFansubAliasID(c.Param("aliasId"))
+	if err != nil {
+		badRequest(c, "ungültige alias id")
+		return
+	}
+
+	identity, ok := h.requireFansubAliasWriteAccess(c, fansubID, "fansub_group_alias.reassign.denied", "fansub_group_alias", &aliasID)
+	if !ok {
+		return
+	}
+
+	var req fansubAliasReassignRequest
+	if err := c.ShouldBindJSON(&req); err != nil {
+		log.Printf("fansub alias reassign: bad request (user_id=%d, fansub_id=%d): %v", identity.UserID, fansubID, err)
+		badRequest(c, "ungültiger request body")
+		return
+	}
+
+	targetGroupID, validationMessage := validateFansubAliasReassignRequest(req)
+	if validationMessage != "" {
+		badRequest(c, validationMessage)
+		return
+	}
+
+	// T-167-IDOR-Mitigation: zweite, unabhängige Berechtigungsprüfung gegen die Zielgruppe.
+	// Ohne diese Prüfung genügte die Berechtigung für die Quellgruppe allein, um einen Alias
+	// in eine fremde Gruppe umzuhängen.
+	if _, ok := h.requireFansubAliasWriteAccess(c, targetGroupID, "fansub_group_alias.reassign.denied", "fansub_group_alias", &aliasID); !ok {
+		return
+	}
+
+	if targetGroupID == fansubID {
+		badRequest(c, "ziel-gruppe entspricht der aktuellen gruppe")
+		return
+	}
+
+	item, err := h.reassignFansubAlias(c.Request.Context(), fansubID, aliasID, targetGroupID)
+	if errors.Is(err, repository.ErrNotFound) {
+		c.JSON(http.StatusNotFound, gin.H{
+			"error": gin.H{
+				"message": "alias nicht gefunden",
+			},
+		})
+		return
+	}
+	if errors.Is(err, repository.ErrConflict) {
+		c.JSON(http.StatusConflict, gin.H{
+			"error": gin.H{
+				"message": "alias bereits vorhanden",
+			},
+		})
+		return
+	}
+	if err != nil {
+		log.Printf("fansub alias reassign: repo error (user_id=%d, fansub_id=%d, alias_id=%d): %v", identity.UserID, fansubID, aliasID, err)
+		c.JSON(http.StatusInternalServerError, gin.H{
+			"error": gin.H{
+				"message": "interner serverfehler",
+			},
+		})
+		return
+	}
+
+	_ = h.auditLogRepo.Write(c.Request.Context(), repository.AuditLogEntry{
+		ActorAppUserID: &identity.AppUserID,
+		EventType:      "fansub_group_alias.reassigned",
+		ScopeType:      permissions.ScopeTypeGroup,
+		ScopeID:        &fansubID,
+		TargetType:     "fansub_group_alias",
+		TargetID:       &aliasID,
+		Action:         string(permissions.ActionFansubGroupEdit),
+		Outcome:        "allowed",
+		Payload:        map[string]any{"alias": item.Alias, "from_group_id": fansubID, "to_group_id": targetGroupID},
+	})
+
+	c.JSON(http.StatusOK, gin.H{
+		"data": item,
+	})
+}
+
 func (h *FansubHandler) requireFansubAliasWriteAccess(
 	c *gin.Context,
 	fansubID int64,

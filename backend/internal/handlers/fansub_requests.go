@@ -46,6 +46,12 @@ type fansubAliasCreateRequest struct {
 	Alias string `json:"alias"`
 }
 
+// fansubAliasReassignRequest enthält das Feld zum expliziten Umhängen eines bestehenden
+// Fansub-Alias auf eine andere Zielgruppe (D-02/D-09).
+type fansubAliasReassignRequest struct {
+	TargetFansubGroupID int64 `json:"target_fansub_group_id"`
+}
+
 // animeFansubAttachRequest enthält die Felder zum Verknüpfen eines Anime mit einer Fansub-Gruppe.
 type animeFansubAttachRequest struct {
 	IsPrimary *bool   `json:"is_primary"`

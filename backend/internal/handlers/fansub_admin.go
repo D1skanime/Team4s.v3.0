@@ -57,6 +57,7 @@ type FansubHandler struct {
 	auditLogRepo                *repository.AuditLogRepository
 	updateGroupLink             func(context.Context, int64, int64, models.FansubGroupLinkPatchInput) (*models.FansubGroupLink, bool, error)
 	writeAuditLog               func(context.Context, repository.AuditLogEntry) error
+	reassignFansubAlias         func(ctx context.Context, fansubID, aliasID, targetGroupID int64) (*models.FansubAlias, error)
 	releasePlaybackEntitlements permissions.ReleasePlaybackEntitlementResolver
 	projectResolverRepo         fansubProjectResolverRepo
 }
@@ -107,6 +108,7 @@ func NewFansubHandler(
 	h.writeAuditLog = func(ctx context.Context, entry repository.AuditLogEntry) error {
 		return h.auditLogRepo.Write(ctx, entry)
 	}
+	h.reassignFansubAlias = fansubRepo.ReassignAlias
 	return h
 }
 

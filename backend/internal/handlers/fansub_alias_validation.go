@@ -22,3 +22,13 @@ func validateFansubAliasCreateRequest(req fansubAliasCreateRequest) (models.Fans
 		NormalizedAlias: normalizedAlias,
 	}, ""
 }
+
+// validateFansubAliasReassignRequest prüft das Zielgruppen-Feld eines Umhänge-Requests.
+// Gibt die geprüfte Ziel-Gruppen-ID und eine Fehlermeldung zurück; die Meldung ist leer bei
+// Erfolg.
+func validateFansubAliasReassignRequest(req fansubAliasReassignRequest) (int64, string) {
+	if req.TargetFansubGroupID <= 0 {
+		return 0, "ungültige ziel-gruppe"
+	}
+	return req.TargetFansubGroupID, ""
+}
