@@ -4088,6 +4088,83 @@ paths:
             application/json:
               schema:
                 $ref: "#/components/schemas/ErrorResponse"
+  /api/v1/fansubs/{id}/aliases/{aliasId}/reassign:
+    patch:
+      tags: [Fansubs]
+      summary: Reassign fansub alias to another group
+      description: >-
+        Hängt einen bestehenden Alias von der Quellgruppe (id) auf die im Body
+        angegebene Zielgruppe um (D-02/D-09). Berechtigung wird gegen BEIDE
+        Gruppen geprüft -- Quelle und Ziel --, damit ein Akteur, der nur die
+        Quellgruppe verwaltet, einen Alias nicht in eine fremde Gruppe
+        umhängen kann (T-167-IDOR).
+      operationId: reassignFansubAlias
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+            format: int64
+            minimum: 1
+        - name: aliasId
+          in: path
+          required: true
+          schema:
+            type: integer
+            format: int64
+            minimum: 1
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/FansubAliasReassignRequest"
+      responses:
+        "200":
+          description: Reassigned fansub alias payload
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/FansubAliasResponse"
+        "400":
+          description: Invalid request body, or target_fansub_group_id equals the current (source) group
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+        "401":
+          description: Authentication required
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+        "403":
+          description: Fansub group edit permission required for the source or target group
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+        "404":
+          description: Fansub alias not found
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+        "409":
+          description: Alias already exists at the target group
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+        "500":
+          description: Internal server error
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
   /api/v1/fansubs/{id}/members:
     get:
       tags: [Fansubs]
@@ -14768,6 +14845,15 @@ components:
           type: string
           minLength: 1
           maxLength: 120
+    FansubAliasReassignRequest:
+      type: object
+      required: [target_fansub_group_id]
+      properties:
+        target_fansub_group_id:
+          type: integer
+          format: int64
+          minimum: 1
+          description: Must differ from the current (source) fansub group in the path.
     AddCollaborationMemberRequest:
       type: object
       required: [member_group_id]

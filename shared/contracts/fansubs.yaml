@@ -196,6 +196,50 @@ endpoints:
       status: 204
       type: none
 
+  - name: fansub-aliases-reassign
+    method: PATCH
+    path: /api/v1/fansubs/:id/aliases/:aliasId/reassign
+    description: |
+      Haengt einen bestehenden Alias von der Quellgruppe (:id) auf eine andere
+      Zielgruppe (target_fansub_group_id im Body) um (D-02/D-09). Berechtigung
+      wird gegen BEIDE Gruppen geprueft -- Quelle und Ziel --, damit ein Akteur,
+      der nur die Quellgruppe verwaltet, einen Alias nicht in eine Gruppe
+      umhaengen kann, die er nicht verwaltet (T-167-IDOR).
+    auth:
+      required: true
+      permission: fansub_group.edit for BOTH the source group (:id) and target_fansub_group_id
+      header:
+        name: Authorization
+        format: Bearer <signed token>
+      unauthenticated_status: 401
+      unauthenticated_response:
+        error:
+          message: "anmeldung erforderlich"
+      forbidden_status: 403
+      forbidden_response:
+        error:
+          message: "keine berechtigung"
+    path_params:
+      - name: id
+        type: int64
+        minimum: 1
+      - name: aliasId
+        type: int64
+        minimum: 1
+    request_body:
+      required: true
+      type: FansubAliasReassignRequest
+    response:
+      status: 200
+      type: FansubAliasResponse
+    error_responses:
+      - status: 400
+        description: Ungueltiger request body, oder target_fansub_group_id entspricht der aktuellen (Quell-)Gruppe.
+      - status: 404
+        description: Alias nicht gefunden.
+      - status: 409
+        description: Alias bereits bei der Zielgruppe vorhanden.
+
   - name: fansub-merge-preview
     method: POST
     path: /api/v1/admin/fansubs/merge/preview
@@ -531,6 +575,8 @@ types:
     notes: string | null
   FansubAliasCreateRequest:
     alias: string (required, min: 1, max: 120)
+  FansubAliasReassignRequest:
+    target_fansub_group_id: int64 (required, minimum: 1, must differ from the current (source) group)
   AnimeFansubAttachRequest:
     is_primary: bool
     notes: string | null
