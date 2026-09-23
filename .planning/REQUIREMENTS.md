@@ -628,16 +628,16 @@ importierter Releases, keine Fuzzy-Automatik (Vorschläge werden nie automatisch
 - [x] **REQ-167-11**: Bei fehlendem Treffer werden ähnliche Gruppen über den vorhandenen Trigram-Index nur vorgeschlagen, nie automatisch übernommen (D-03).
 - [ ] **REQ-167-12**: Ohne Treffer bleibt die Gruppenauswahl leer; der Admin wählt manuell.
 - [ ] **REQ-167-13**: Ordnet der Admin ein erkanntes, bisher unbekanntes Kürzel einer bestehenden Gruppe zu, wird es automatisch als weiterer Alias dieser Gruppe gespeichert (D-01).
-- [ ] **REQ-167-14**: Mehrere Aliase pro Gruppe sind erlaubt; ein Alias gehört systemweit genau einer Gruppe, durchgesetzt über die bestehende `UNIQUE(normalized_alias)`-Constraint (D-01).
-- [ ] **REQ-167-15**: Gehört das Kürzel bereits einer anderen Gruppe, erscheint ein sichtbarer Hinweis „Kürzel gehört bereits zu <Gruppe>"; Umhängen geschieht ausschließlich über eine ausdrückliche, bestätigte Aktion, nie still (D-02).
-- [ ] **REQ-167-16**: Alias-Pflege (anlegen, umhängen, löschen) ist in der Gruppenverwaltung sichtbar und bedienbar (D-09).
-- [ ] **REQ-167-17**: Alle Alias-Mutationen (angelegt, gelöscht, umgehängt, automatisch gelernt) sind mit Audit-Attribution per `user_id` protokolliert und in der bestehenden Gruppen-Änderungshistorie lesbar (D-09).
+- [x] **REQ-167-14**: Mehrere Aliase pro Gruppe sind erlaubt; ein Alias gehört systemweit genau einer Gruppe, durchgesetzt über die bestehende `UNIQUE(normalized_alias)`-Constraint (D-01).
+- [x] **REQ-167-15**: Gehört das Kürzel bereits einer anderen Gruppe, erscheint ein sichtbarer Hinweis „Kürzel gehört bereits zu <Gruppe>"; Umhängen geschieht ausschließlich über eine ausdrückliche, bestätigte Aktion, nie still (D-02).
+- [x] **REQ-167-16**: Alias-Pflege (anlegen, umhängen, löschen) ist in der Gruppenverwaltung sichtbar und bedienbar (D-09).
+- [x] **REQ-167-17**: Alle Alias-Mutationen (angelegt, gelöscht, umgehängt, automatisch gelernt) sind mit Audit-Attribution per `user_id` protokolliert und in der bestehenden Gruppen-Änderungshistorie lesbar (D-09).
 - [x] **REQ-167-18**: Eine Versionskennung `v2`/`v3`/`v4` am Dateinamen-Ende (auch direkt nach Prüfsumme/Klammer ohne Trennzeichen) wird als Release-Version statt `v1` vorgeschlagen und bleibt änderbar (D-04).
 - [x] **REQ-167-19**: Integrationstests gegen eine echte, isolierte Test-Datenbank (`testsupport.OpenPhase167Postgres`) beweisen den Alias-Schreibpfad und die Eindeutigkeitsregel (D-10).
 - [x] **REQ-167-20**: Ein Query-Budget-Test belegt eine konstante Abfragezahl für die Gruppen-Zuordnung unabhängig von der Dateianzahl in der Vorschau (D-08).
 - [ ] **REQ-167-21**: Doppelfolgen (`Naruto_026-027`-Schema) werden im bestehenden Import-Verhalten geprüft und dokumentiert; die Episodenzuordnung selbst ändert sich durch diese Phase nicht (Scopegrenze).
 - [ ] **REQ-167-22**: Neue/angefasste UI-Elemente nutzen ausschließlich `@/components/ui`-Primitives, deutsche Texte mit echten Umlauten; die bereits übergroßen Dateien (`admin_episode_import.go`, `page.tsx`) wachsen durch diese Phase nicht weiter (D-11).
-- [ ] **REQ-167-23**: Handler-Verhalten für neue/erweiterte Endpunkte (Batch-Match, Alias-Lernen, Umhängen) ist mit `httptest` gegen ein Fake-Repository über eine schmale Interface-Abstraktion getestet, nicht per Quelltext-Inspektion (CLAUDE.md Teststil).
+- [x] **REQ-167-23**: Handler-Verhalten für neue/erweiterte Endpunkte (Batch-Match, Alias-Lernen, Umhängen) ist mit `httptest` gegen ein Fake-Repository über eine schmale Interface-Abstraktion getestet, nicht per Quelltext-Inspektion (CLAUDE.md Teststil).
 
 | Requirement | Phase | Status |
 |---|---|---|

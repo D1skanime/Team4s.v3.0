@@ -3,14 +3,14 @@ gsd_state_version: 1.0
 milestone: v1.4
 milestone_name: Coverage
 status: executing
-stopped_at: Completed 167-02-PLAN.md
-last_updated: "2026-09-23T14:22:52.513Z"
+stopped_at: Completed 167-03-PLAN.md
+last_updated: "2026-09-23T14:30:33.009Z"
 last_activity: 2026-09-23
 progress:
   total_phases: 32
   completed_phases: 30
   total_plans: 303
-  completed_plans: 297
+  completed_plans: 298
   percent: 94
 ---
 
@@ -246,7 +246,7 @@ Phase: 167 (fansub-gruppenerkennung-beim-import) — EXECUTING
 from 165-UAT.md, plans 165-14..165-19; 165-14..165-18 done — GAP-07, GAP-09-Verifikation, GAP-14,
 GAP-15, GAP-11, GAP-16, GAP-05, GAP-10, GAP-12, GAP-13, and GAP-06/D-30 all closed — 165-19/D-31
 (GAP-08 candidate-search annotation) remaining)
-Plan: 3 of 8
+Plan: 4 of 8
 Status: Ready to execute
 nicht umgesetzt und ist für eine künftige eigenständige Phase „Mehrstaffel-Ordner" vorgemerkt.
 dupliziertem ProjectMemberStickyNav; siehe 157-14-SUMMARY.md)
@@ -1488,6 +1488,8 @@ Last activity: 2026-09-23
 - [Phase 167]: D-05/D-06/D-07 implemented as a uniform technical-token denylist and filename-only evidence selection in DeriveFansubGroupName — 167-01-SUMMARY.md
 - [Phase 167]: D-04 implemented as a single anchored regex v([2-9])$ handling both glued and separated release-version suffixes uniformly — 167-01-SUMMARY.md
 - [Phase 167]: Batch fansub-group matching adapted from buildSearchFansubQuery: single unnest($1::text[]) query resolves any candidate count in exactly one round trip (D-08), with ambiguity handled via per-tier COUNT(*) OVER windowing rather than an error path — Reuses the existing normalized-name/slug/alias OR-chain and byte-exact functional-index expression instead of a second bespoke matching implementation; keeps the exact-match path index-friendly by never folding trigram suggestions into it
+- [Phase 167]: 167-03: Dual permission check reuses requireFansubAliasWriteAccess twice (source, then destination) rather than a new combined helper — keeps the T-167-IDOR mitigation directly greppable in ReassignFansubAlias
+- [Phase 167]: 167-03: Task 3 tests leave h.auditLogRepo nil — repository.AuditLogRepository.Write is nil-receiver-safe, avoiding a fake DBTX while still exercising the real success/audit code path
 
 ### Pending Todos
 
@@ -1964,11 +1966,12 @@ untruncated list lives in `.planning/todos/pending/`.
 | Phase 165 P19 | ~40min | 2 tasks | 12 files |
 | Phase 167 P01 | 22min | 2 tasks | 4 files |
 | Phase 167 P02 | 30min | 3 tasks | 5 files |
+| Phase 167 P03 | 35min | 3 tasks | 7 files |
 
 ## Session Continuity
 
-Last session: 2026-09-23T14:22:52.473Z
-Stopped at: Completed 167-02-PLAN.md
+Last session: 2026-09-23T14:30:32.937Z
+Stopped at: Completed 167-03-PLAN.md
 Last activity: 2026-09-23 - Completed quick task 260923-ed4: GAP-24 (AniSearch-Platzhaltertitel "Episode 1" zählt bei Einteilern nicht mehr als echter Titel — Import- UND Abfrage-Zeit, greift auch bei bereits gespeicherten Bestandsdaten ohne Migration)
 Resume file: 
 None
