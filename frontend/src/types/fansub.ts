@@ -456,6 +456,10 @@ export interface FansubAliasCreateRequest {
   alias: string;
 }
 
+export interface FansubAliasReassignRequest {
+  target_fansub_group_id: number;
+}
+
 export interface MergeFansubsRequest {
   target_id: number;
   source_ids: number[];

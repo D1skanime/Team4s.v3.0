@@ -142,6 +142,7 @@ import {
   FansubAliasListResponse,
   FansubAliasResponse,
   FansubAliasCreateRequest,
+  FansubAliasReassignRequest,
   FansubStatus,
   MergeFansubsRequest,
   MergeFansubsPreviewResponse,
@@ -2139,6 +2140,38 @@ export async function deleteFansubAlias(
     );
     throw new ApiError(response.status, message);
   }
+}
+
+export async function reassignFansubAlias(
+  fansubID: number,
+  aliasID: number,
+  payload: FansubAliasReassignRequest,
+  authToken?: string,
+): Promise<FansubAliasResponse> {
+  const API_BASE_URL = getApiBaseUrl();
+  const response = await authorizedFetch(
+    `${API_BASE_URL}/api/v1/fansubs/${fansubID}/aliases/${aliasID}/reassign`,
+    {
+      method: "PATCH",
+      headers: withAuthHeader(
+        {
+          "Content-Type": "application/json",
+        },
+        authToken,
+      ),
+      body: JSON.stringify(payload),
+    },
+  );
+
+  if (!response.ok) {
+    const message = await parseApiError(
+      response,
+      `API request failed: ${response.status}`,
+    );
+    throw new ApiError(response.status, message);
+  }
+
+  return response.json() as Promise<FansubAliasResponse>;
 }
 
 export async function getAnimeFansubs(
