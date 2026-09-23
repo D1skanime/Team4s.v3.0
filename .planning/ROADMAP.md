@@ -2142,3 +2142,13 @@ Plans:
 **Live-Befund 2026-09-21:** Filme sind auf dem Server Series-Items unter `/media/Anime/Movie/Anime.Film.Sub` (0 Movie-Items); Film-Annahmen aus dem Auftrag (§21 ohne EpisodeNumber) vor der Planung neu prüfen.
 **UI hint:** yes
 **Plans:** TBD
+
+### Phase 167: Fansub-Gruppenerkennung beim Episoden-Import
+
+**Goal:** Das Gruppenkürzel aus dem Release-Dateinamen wird zuverlässig erkannt (inkl. Szene-Schema, ohne Prüfsummen/Technik als Gruppe) und beim Import automatisch der bestehenden Fansub-Gruppe zugeordnet (Name, Slug, Alias); unbekannte Kürzel werden beim Zuordnen als weiterer Alias gelernt, aus Dateinamen entstehen keine neuen Gruppen mehr, und eine Versionskennung (v2/v3/v4) wird als Release-Version vorgeschlagen.
+**Requirements**: TBD (in plan-phase aus 167-USER-REQUEST.md und 167-CONTEXT.md D-01..D-11 abzuleiten)
+**Depends on:** Phase 165 (Import-Ordnerauswahl, Discovery)
+**Verbindliche Quellen:** `.planning/phases/167-fansub-gruppenerkennung-beim-import/167-USER-REQUEST.md`, `167-CONTEXT.md`
+**Scopegrenze:** keine Änderung der Episodenzuordnung (Doppelfolgen nur prüfen/dokumentieren), kein Umbenennen von Dateien, keine rückwirkende Zuordnung bereits importierter Releases, keine Fuzzy-Automatik.
+**UI hint:** yes
+**Plans:** TBD
