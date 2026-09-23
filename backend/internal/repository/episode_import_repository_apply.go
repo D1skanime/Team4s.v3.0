@@ -53,7 +53,15 @@ func (r *EpisodeImportRepository) applyReleaseNative(
 	if err := tx.QueryRow(ctx, "SELECT type, title FROM anime WHERE id = $1", input.AnimeID).Scan(&animeType, &animeTitle); err != nil {
 		return nil, fmt.Errorf("lookup anime type anime=%d: %w", input.AnimeID, err)
 	}
-	isFilm := mapAnimeTypeToEpisodeType(animeType) == "movie"
+	// GAP-24, 165-UAT.md, Auftraggeber-Entscheidung 2026-09-23: erweitert die
+	// bisherige GAP-22-Film-Erkennung (isFilm) auf alle Einteiler-Typen -- Film
+	// ist immer ein Einteiler, OVA/ONA/Special/Bonus nur bei genau einer
+	// kanonischen Episode (isEinteilerAnimeType, episode_placeholder_title.go).
+	totalEpisodeCount, err := countEffectiveCanonicalEpisodes(ctx, tx, input.AnimeID, plan.canonicalByNumber)
+	if err != nil {
+		return nil, err
+	}
+	isEinteiler := isEinteilerAnimeType(animeType, totalEpisodeCount)
 	episodeTypeID, err := lookupIDByName(ctx, tx, "episode_types", mapAnimeTypeToEpisodeType(animeType))
 	if err != nil {
 		return nil, err
@@ -74,7 +82,7 @@ func (r *EpisodeImportRepository) applyReleaseNative(
 	result := &models.EpisodeImportApplyResult{AnimeID: input.AnimeID}
 	episodeIDsByNumber := make(map[int32]int64, len(plan.canonicalByNumber))
 	for _, number := range sortedEpisodeImportNumbers(plan.canonicalByNumber) {
-		episodeID, created, err := upsertImportEpisode(ctx, tx, input.AnimeID, episodeTypeID, isFilm, animeTitle, plan.canonicalByNumber[number])
+		episodeID, created, err := upsertImportEpisode(ctx, tx, input.AnimeID, episodeTypeID, isEinteiler, animeTitle, plan.canonicalByNumber[number])
 		if err != nil {
 			return nil, err
 		}
@@ -117,6 +125,43 @@ func (r *EpisodeImportRepository) applyReleaseNative(
 		return nil, fmt.Errorf("commit episode import apply: %w", err)
 	}
 	return result, nil
+}
+
+// countEffectiveCanonicalEpisodes (GAP-24, 165-UAT.md) bestimmt die Gesamtmenge
+// der kanonischen Episodennummern für animeID, die nach diesem Import-Aufruf
+// gelten wird -- die Union aus bereits gespeicherten Episoden (SELECT DISTINCT
+// number FROM episodes) und den in diesem Batch importierten canonicalByNumber-
+// Keys. Ein Import kann in Teil-Batches erfolgen, daher genügt canonicalByNumber
+// allein nicht: eine bereits vorhandene zweite Episode eines Anime würde sonst
+// unentdeckt bleiben, wenn der aktuelle Batch nur Episode 1 enthält.
+func countEffectiveCanonicalEpisodes(
+	ctx context.Context,
+	tx pgx.Tx,
+	animeID int64,
+	canonicalByNumber map[int32]models.EpisodeImportCanonicalEpisode,
+) (int, error) {
+	numbers := make(map[int32]struct{}, len(canonicalByNumber))
+	for number := range canonicalByNumber {
+		numbers[number] = struct{}{}
+	}
+
+	rows, err := tx.Query(ctx, `SELECT DISTINCT number FROM episodes WHERE anime_id = $1 AND number IS NOT NULL`, animeID)
+	if err != nil {
+		return 0, fmt.Errorf("query existing episode numbers anime=%d: %w", animeID, err)
+	}
+	defer rows.Close()
+	for rows.Next() {
+		var number int32
+		if err := rows.Scan(&number); err != nil {
+			return 0, fmt.Errorf("scan existing episode number anime=%d: %w", animeID, err)
+		}
+		numbers[number] = struct{}{}
+	}
+	if err := rows.Err(); err != nil {
+		return 0, fmt.Errorf("iterate existing episode numbers anime=%d: %w", animeID, err)
+	}
+
+	return len(numbers), nil
 }
 
 type episodeImportReleaseIDs struct {
@@ -196,12 +241,12 @@ func upsertImportEpisode(
 	tx pgx.Tx,
 	animeID int64,
 	episodeTypeID int64,
-	isFilm bool,
+	isEinteiler bool,
 	animeTitle string,
 	canonical models.EpisodeImportCanonicalEpisode,
 ) (int64, bool, error) {
 	episodeNumber := strconv.Itoa(int(canonical.EpisodeNumber))
-	displayTitle := episodeImportDisplayTitle(canonical, isFilm, animeTitle)
+	displayTitle := episodeImportDisplayTitle(canonical, isEinteiler, animeTitle)
 	fillerTypeID, err := lookupEpisodeFillerType(ctx, tx, canonical.FillerType)
 	if err != nil {
 		return 0, false, err
@@ -299,21 +344,38 @@ func upsertImportEpisodeTitles(
 	return nil
 }
 
-// episodeImportDisplayTitle (GAP-22, 165-UAT.md, Auftraggeber-Entscheidung
-// 2026-09-23) ist die EINZIGE Stelle, die den finalen Fallback-Episodentitel
-// synthetisiert. Ein echter gescrapter Titel hat immer Vorrang vor dem
-// Filmtitel-Fallback; der Filmtitel-Fallback (isFilm) hat wiederum Vorrang
-// vor dem literalen "Episode N"-Fallback für Serien.
-func episodeImportDisplayTitle(canonical models.EpisodeImportCanonicalEpisode, isFilm bool, animeTitle string) string {
+// firstScrapedEpisodeTitle liefert den ersten echten, gescrapten Episodentitel
+// aus canonical (Reihenfolge de/en/ja, dann canonical.Title), getrimmt, oder
+// "" wenn nichts gefunden wurde.
+func firstScrapedEpisodeTitle(canonical models.EpisodeImportCanonicalEpisode) string {
 	for _, lang := range []string{"de", "en", "ja"} {
 		if title := strings.TrimSpace(canonical.TitlesByLanguage[lang]); title != "" {
 			return title
 		}
 	}
-	if canonical.Title != nil && strings.TrimSpace(*canonical.Title) != "" {
-		return strings.TrimSpace(*canonical.Title)
+	if canonical.Title != nil {
+		if trimmed := strings.TrimSpace(*canonical.Title); trimmed != "" {
+			return trimmed
+		}
 	}
-	if isFilm {
+	return ""
+}
+
+// episodeImportDisplayTitle (GAP-22/GAP-24, 165-UAT.md, Auftraggeber-
+// Entscheidung 2026-09-23) ist die EINZIGE Stelle, die den finalen Fallback-
+// Episodentitel synthetisiert. Ein echter gescrapter Titel hat immer Vorrang
+// vor dem Anime-/Filmtitel-Fallback -- AUSSER er ist bei einem Einteiler
+// (isEinteiler, isEinteilerAnimeType) nur ein AniSearch-Platzhalter wie
+// "Episode 1" (isPlaceholderEpisodeTitle, episode_placeholder_title.go); ein
+// Platzhalter zählt dort NICHT als echter Titel und wird wie ein fehlender
+// Titel behandelt. Der Anime-/Filmtitel-Fallback hat wiederum Vorrang vor dem
+// literalen "Episode N"-Fallback für Serien.
+func episodeImportDisplayTitle(canonical models.EpisodeImportCanonicalEpisode, isEinteiler bool, animeTitle string) string {
+	scraped := firstScrapedEpisodeTitle(canonical)
+	if scraped != "" && !(isEinteiler && isPlaceholderEpisodeTitle(scraped, canonical.EpisodeNumber)) {
+		return scraped
+	}
+	if isEinteiler {
 		if trimmed := strings.TrimSpace(animeTitle); trimmed != "" {
 			return trimmed
 		}

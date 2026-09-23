@@ -97,6 +97,13 @@ func TestEpisodeImportDisplayTitle_PrefersGermanEnglishJapaneseGenerated(t *test
 	}
 }
 
+// TestEpisodeImportDisplayTitle_UsesFilmTitleFallback covers episodeImportDisplayTitle's
+// third parameter, "isEinteiler" (GAP-22/GAP-24, 165-UAT.md, Auftraggeber-
+// Entscheidung 2026-09-23): a film/einteiler falls back to the anime title when
+// no real scraped title exists, and -- GAP-24 -- an AniSearch placeholder title
+// like "Episode 1" is treated as if no real title existed for an einteiler,
+// while a genuine title (even one that merely contains the word "Episode")
+// always wins.
 func TestEpisodeImportDisplayTitle_UsesFilmTitleFallback(t *testing.T) {
 	t.Parallel()
 
@@ -119,7 +126,38 @@ func TestEpisodeImportDisplayTitle_UsesFilmTitleFallback(t *testing.T) {
 	if got := episodeImportDisplayTitle(models.EpisodeImportCanonicalEpisode{
 		EpisodeNumber: 4,
 	}, false, "Should Be Ignored"); got != "Episode 4" {
-		t.Fatalf("expected isFilm=false to ignore animeTitle entirely, got %q", got)
+		t.Fatalf("expected isEinteiler=false to ignore animeTitle entirely, got %q", got)
+	}
+
+	// GAP-24: an AniSearch placeholder title on an einteiler counts as no real
+	// title -- the anime title wins (the plan's core GAP-24 case).
+	if got := episodeImportDisplayTitle(models.EpisodeImportCanonicalEpisode{
+		EpisodeNumber:    1,
+		TitlesByLanguage: map[string]string{"de": "Episode 1"},
+	}, true, ".hack//G.U. Trilogy"); got != ".hack//G.U. Trilogy" {
+		t.Fatalf("expected placeholder title on einteiler to fall back to anime title, got %q", got)
+	}
+	// GAP-24: the same placeholder title on a series (isEinteiler=false) stays
+	// untouched -- GAP-22's series behavior is unaffected.
+	if got := episodeImportDisplayTitle(models.EpisodeImportCanonicalEpisode{
+		EpisodeNumber:    1,
+		TitlesByLanguage: map[string]string{"de": "Episode 1"},
+	}, false, ".hack//G.U. Trilogy"); got != "Episode 1" {
+		t.Fatalf("expected placeholder title on series to remain untouched, got %q", got)
+	}
+	// GAP-24: a real title always wins, even on an einteiler.
+	if got := episodeImportDisplayTitle(models.EpisodeImportCanonicalEpisode{
+		EpisodeNumber:    1,
+		TitlesByLanguage: map[string]string{"de": "Parody Mode"},
+	}, true, ".hack//G.U. Trilogy"); got != "Parody Mode" {
+		t.Fatalf("expected real title to always win on an einteiler, got %q", got)
+	}
+	// GAP-24: leading zeros in the placeholder number are recognized.
+	if got := episodeImportDisplayTitle(models.EpisodeImportCanonicalEpisode{
+		EpisodeNumber:    1,
+		TitlesByLanguage: map[string]string{"de": "Folge 01"},
+	}, true, "Vipers Creed"); got != "Vipers Creed" {
+		t.Fatalf("expected leading-zero placeholder to be recognized, got %q", got)
 	}
 }
 
