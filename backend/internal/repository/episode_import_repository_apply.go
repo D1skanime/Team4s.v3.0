@@ -47,10 +47,13 @@ func (r *EpisodeImportRepository) applyReleaseNative(
 		}
 	}
 
-	var animeType string
-	if err := tx.QueryRow(ctx, "SELECT type FROM anime WHERE id = $1", input.AnimeID).Scan(&animeType); err != nil {
+	// GAP-22, 165-UAT.md: wiederverwendet dieselbe "film"->"movie"-Zuordnung wie
+	// episodeTypeID direkt darunter, bleibt dadurch automatisch konsistent.
+	var animeType, animeTitle string
+	if err := tx.QueryRow(ctx, "SELECT type, title FROM anime WHERE id = $1", input.AnimeID).Scan(&animeType, &animeTitle); err != nil {
 		return nil, fmt.Errorf("lookup anime type anime=%d: %w", input.AnimeID, err)
 	}
+	isFilm := mapAnimeTypeToEpisodeType(animeType) == "movie"
 	episodeTypeID, err := lookupIDByName(ctx, tx, "episode_types", mapAnimeTypeToEpisodeType(animeType))
 	if err != nil {
 		return nil, err
@@ -71,7 +74,7 @@ func (r *EpisodeImportRepository) applyReleaseNative(
 	result := &models.EpisodeImportApplyResult{AnimeID: input.AnimeID}
 	episodeIDsByNumber := make(map[int32]int64, len(plan.canonicalByNumber))
 	for _, number := range sortedEpisodeImportNumbers(plan.canonicalByNumber) {
-		episodeID, created, err := upsertImportEpisode(ctx, tx, input.AnimeID, episodeTypeID, plan.canonicalByNumber[number])
+		episodeID, created, err := upsertImportEpisode(ctx, tx, input.AnimeID, episodeTypeID, isFilm, animeTitle, plan.canonicalByNumber[number])
 		if err != nil {
 			return nil, err
 		}
@@ -193,10 +196,12 @@ func upsertImportEpisode(
 	tx pgx.Tx,
 	animeID int64,
 	episodeTypeID int64,
+	isFilm bool,
+	animeTitle string,
 	canonical models.EpisodeImportCanonicalEpisode,
 ) (int64, bool, error) {
 	episodeNumber := strconv.Itoa(int(canonical.EpisodeNumber))
-	displayTitle := episodeImportDisplayTitle(canonical)
+	displayTitle := episodeImportDisplayTitle(canonical, isFilm, animeTitle)
 	fillerTypeID, err := lookupEpisodeFillerType(ctx, tx, canonical.FillerType)
 	if err != nil {
 		return 0, false, err
@@ -294,7 +299,12 @@ func upsertImportEpisodeTitles(
 	return nil
 }
 
-func episodeImportDisplayTitle(canonical models.EpisodeImportCanonicalEpisode) string {
+// episodeImportDisplayTitle (GAP-22, 165-UAT.md, Auftraggeber-Entscheidung
+// 2026-09-23) ist die EINZIGE Stelle, die den finalen Fallback-Episodentitel
+// synthetisiert. Ein echter gescrapter Titel hat immer Vorrang vor dem
+// Filmtitel-Fallback; der Filmtitel-Fallback (isFilm) hat wiederum Vorrang
+// vor dem literalen "Episode N"-Fallback für Serien.
+func episodeImportDisplayTitle(canonical models.EpisodeImportCanonicalEpisode, isFilm bool, animeTitle string) string {
 	for _, lang := range []string{"de", "en", "ja"} {
 		if title := strings.TrimSpace(canonical.TitlesByLanguage[lang]); title != "" {
 			return title
@@ -302,6 +312,11 @@ func episodeImportDisplayTitle(canonical models.EpisodeImportCanonicalEpisode) s
 	}
 	if canonical.Title != nil && strings.TrimSpace(*canonical.Title) != "" {
 		return strings.TrimSpace(*canonical.Title)
+	}
+	if isFilm {
+		if trimmed := strings.TrimSpace(animeTitle); trimmed != "" {
+			return trimmed
+		}
 	}
 	return fmt.Sprintf("Episode %d", canonical.EpisodeNumber)
 }

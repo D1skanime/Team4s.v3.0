@@ -77,23 +77,49 @@ func TestEpisodeImportDisplayTitle_PrefersGermanEnglishJapaneseGenerated(t *test
 	if got := episodeImportDisplayTitle(models.EpisodeImportCanonicalEpisode{
 		EpisodeNumber:    1,
 		TitlesByLanguage: map[string]string{"de": "Deutsch", "en": "English", "ja": "日本語"},
-	}); got != "Deutsch" {
+	}, false, ""); got != "Deutsch" {
 		t.Fatalf("expected German title, got %q", got)
 	}
 	if got := episodeImportDisplayTitle(models.EpisodeImportCanonicalEpisode{
 		EpisodeNumber:    2,
 		TitlesByLanguage: map[string]string{"en": "English", "ja": "日本語"},
-	}); got != "English" {
+	}, false, ""); got != "English" {
 		t.Fatalf("expected English title, got %q", got)
 	}
 	if got := episodeImportDisplayTitle(models.EpisodeImportCanonicalEpisode{
 		EpisodeNumber:    3,
 		TitlesByLanguage: map[string]string{"ja": "日本語"},
-	}); got != "日本語" {
+	}, false, ""); got != "日本語" {
 		t.Fatalf("expected Japanese title, got %q", got)
 	}
-	if got := episodeImportDisplayTitle(models.EpisodeImportCanonicalEpisode{EpisodeNumber: 4}); got != "Episode 4" {
+	if got := episodeImportDisplayTitle(models.EpisodeImportCanonicalEpisode{EpisodeNumber: 4}, false, ""); got != "Episode 4" {
 		t.Fatalf("expected generated fallback, got %q", got)
+	}
+}
+
+func TestEpisodeImportDisplayTitle_UsesFilmTitleFallback(t *testing.T) {
+	t.Parallel()
+
+	if got := episodeImportDisplayTitle(models.EpisodeImportCanonicalEpisode{
+		EpisodeNumber: 1,
+	}, true, ".hack//G.U. Trilogy"); got != ".hack//G.U. Trilogy" {
+		t.Fatalf("expected film title fallback, got %q", got)
+	}
+	if got := episodeImportDisplayTitle(models.EpisodeImportCanonicalEpisode{
+		EpisodeNumber:    1,
+		TitlesByLanguage: map[string]string{"de": "Ein echter Episodentitel"},
+	}, true, ".hack//G.U. Trilogy"); got != "Ein echter Episodentitel" {
+		t.Fatalf("expected real scraped title to win over film title fallback, got %q", got)
+	}
+	if got := episodeImportDisplayTitle(models.EpisodeImportCanonicalEpisode{
+		EpisodeNumber: 4,
+	}, true, "   "); got != "Episode 4" {
+		t.Fatalf("expected defensive fallback to numbered episode when anime title is blank, got %q", got)
+	}
+	if got := episodeImportDisplayTitle(models.EpisodeImportCanonicalEpisode{
+		EpisodeNumber: 4,
+	}, false, "Should Be Ignored"); got != "Episode 4" {
+		t.Fatalf("expected isFilm=false to ignore animeTitle entirely, got %q", got)
 	}
 }
 

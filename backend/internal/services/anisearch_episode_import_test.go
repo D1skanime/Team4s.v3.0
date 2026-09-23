@@ -137,3 +137,25 @@ func TestParseAniSearchEpisodeListHTML_UsesTitleColumnInsteadOfRuntimeColumn(t *
 		t.Fatalf("expected display title to ignore runtime column, got %#v", episodes[0].Title)
 	}
 }
+
+func TestParseAniSearchEpisodeListHTML_TitlelessRowYieldsNilTitleNotSyntheticFallback(t *testing.T) {
+	t.Parallel()
+
+	fixture := `
+		<section id="episoden">
+			<table>
+				<tr><td>1</td><td></td></tr>
+			</table>
+		</section>`
+
+	episodes, err := parseAniSearchEpisodeListHTML(fixture)
+	if err != nil {
+		t.Fatalf("parse fixture: %v", err)
+	}
+	if len(episodes) != 1 {
+		t.Fatalf("expected 1 canonical episode, got %d", len(episodes))
+	}
+	if episodes[0].Title != nil {
+		t.Fatalf("expected nil title for titleless row, not a synthetic fallback, got %#v", episodes[0].Title)
+	}
+}

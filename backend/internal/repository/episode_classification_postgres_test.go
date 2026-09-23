@@ -292,7 +292,7 @@ func TestEpisodeClassification_ReimportRespectsManualOverride(t *testing.T) {
 		defer func() { _ = tx.Rollback(ctx) }()
 		source := "anisearch"
 		title := "Import"
-		id, created, err := upsertImportEpisode(ctx, tx, episodeMetadataAnimeID, episodeTypeID, models.EpisodeImportCanonicalEpisode{
+		id, created, err := upsertImportEpisode(ctx, tx, episodeMetadataAnimeID, episodeTypeID, false, "", models.EpisodeImportCanonicalEpisode{
 			EpisodeNumber: number,
 			Title:         &title,
 			FillerType:    &fillerType,

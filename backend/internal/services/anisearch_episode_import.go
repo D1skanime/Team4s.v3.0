@@ -150,7 +150,7 @@ func parseAniSearchEpisodeTableRow(row *xhtml.Node) (AniSearchEpisode, bool) {
 	if titleCell != nil {
 		titleFallback = nodeText(titleCell)
 	}
-	title := normalizeStringPtr(episodeDisplayTitle(number, titlesByLanguage, firstNonEmpty(titleFallback, cells[len(cells)-1])))
+	title := normalizeStringPtr(episodeDisplayTitle(titlesByLanguage, firstNonEmpty(titleFallback, cells[len(cells)-1])))
 	fillerType, fillerNote := parseAniSearchEpisodeFiller(cells)
 	return AniSearchEpisode{
 		EpisodeNumber:    number,
@@ -237,16 +237,18 @@ func normalizeAniSearchEpisodeLanguage(raw string) string {
 	}
 }
 
-func episodeDisplayTitle(number int32, titlesByLanguage map[string]string, fallback string) string {
+// episodeDisplayTitle (GAP-22, 165-UAT.md) — diese Ebene kennt weder Anime-Typ
+// noch -Titel und erfindet deshalb keinen "Episode N"-Fallback mehr;
+// normalizeStringPtr("") am Aufrufer macht daraus sauber nil. Die einzige
+// Stelle mit Film-Kontext (episodeImportDisplayTitle,
+// episode_import_repository_apply.go) entscheidet über den finalen Fallback.
+func episodeDisplayTitle(titlesByLanguage map[string]string, fallback string) string {
 	for _, lang := range []string{"de", "en", "ja"} {
 		if title := strings.TrimSpace(titlesByLanguage[lang]); title != "" {
 			return title
 		}
 	}
-	if trimmed := strings.TrimSpace(fallback); trimmed != "" {
-		return trimmed
-	}
-	return fmt.Sprintf("Episode %d", number)
+	return strings.TrimSpace(fallback)
 }
 
 func parseAniSearchEpisodeFiller(cells []string) (*string, *string) {
