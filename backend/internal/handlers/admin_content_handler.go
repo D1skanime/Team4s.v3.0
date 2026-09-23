@@ -157,6 +157,8 @@ type adminEpisodeImportRepository interface {
 	GetJellyfinSourceBindings(ctx context.Context, itemIDs []string) (map[models.JellyfinSourceKey]models.JellyfinSourceSnapshot, error)
 	Apply(ctx context.Context, input models.EpisodeImportApplyInput) (*models.EpisodeImportApplyResult, error)
 	PreviewExistingCoverage(ctx context.Context, animeID int64) (models.EpisodeImportExistingCoverage, error)
+	ResolveFansubGroupMatches(ctx context.Context, candidates []string) ([]models.FansubGroupMatch, error)
+	SuggestSimilarFansubGroups(ctx context.Context, candidate string) ([]models.FansubGroupSuggestion, error)
 }
 
 type adminAniSearchEpisodeFetcher interface {

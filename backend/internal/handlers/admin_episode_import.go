@@ -108,6 +108,7 @@ func (h *AdminContentHandler) PreviewEpisodeImport(c *gin.Context) {
 		mediaCandidates,
 		req.SeasonOffset,
 	)
+	preview.Mappings = enrichEpisodeImportPreviewFansubData(c.Request.Context(), h.episodeImportRepo, preview.Mappings)
 	c.JSON(http.StatusOK, gin.H{"data": preview})
 }
 
