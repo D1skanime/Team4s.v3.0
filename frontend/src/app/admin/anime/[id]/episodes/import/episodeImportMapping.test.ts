@@ -317,6 +317,39 @@ describe('episodeImportMapping', () => {
     expect(result[0].fansub_groups).toEqual([{ name: '[HorribleSubs]' }])
   })
 
+  it('setMappingReleaseMeta sets release_version_source to manual once the admin edits the version field', () => {
+    const rows: EpisodeImportMappingRow[] = [{
+      media_item_id: 'jellyfin-ep7', media_source_id: 'source-jellyfin-ep7',
+      target_episode_numbers: [7],
+      suggested_episode_numbers: [7],
+      status: 'suggested',
+      release_version: 'v2',
+      release_version_source: 'detected',
+    }]
+    const key = JSON.stringify(['jellyfin-ep7', 'source-jellyfin-ep7'])
+
+    const result = setMappingReleaseMeta(rows, key, { releaseVersion: 'v3' })
+
+    expect(result[0].release_version).toBe('v3')
+    expect(result[0].release_version_source).toBe('manual')
+  })
+
+  it('setMappingReleaseMeta leaves release_version_source untouched when releaseVersion is not provided', () => {
+    const rows: EpisodeImportMappingRow[] = [{
+      media_item_id: 'jellyfin-ep8', media_source_id: 'source-jellyfin-ep8',
+      target_episode_numbers: [8],
+      suggested_episode_numbers: [8],
+      status: 'suggested',
+      release_version: 'v2',
+      release_version_source: 'detected',
+    }]
+    const key = JSON.stringify(['jellyfin-ep8', 'source-jellyfin-ep8'])
+
+    const result = setMappingReleaseMeta(rows, key, { fansubGroupName: 'New-Subs' })
+
+    expect(result[0].release_version_source).toBe('detected')
+  })
+
   it('toggleMappingSkipped reactivates skipped rows with their suggested episode target', () => {
     const rows: EpisodeImportMappingRow[] = [{
       media_item_id: 'jellyfin-ep7', media_source_id: 'source-jellyfin-ep7',

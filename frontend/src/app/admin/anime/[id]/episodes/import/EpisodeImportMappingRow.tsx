@@ -7,6 +7,7 @@ import { jellyfinSourceKey } from '@/lib/jellyfinSourceIdentity'
 import type { EpisodeImportMappingRow, EpisodeImportSelectedFansubGroup } from '@/types/episodeImport'
 import type { FansubGroup } from '@/types/fansub'
 
+import { FansubGroupOriginHint } from './FansubGroupOriginHint'
 import styles from './page.module.css'
 
 const EMPTY_SELECTED_FANSUB_GROUPS: EpisodeImportSelectedFansubGroup[] = []
@@ -241,6 +242,7 @@ export function EpisodeImportMappingRowCard({
                 </div>
               ) : null}
             </div>
+            <FansubGroupOriginHint row={row} selectedFansubGroups={selectedFansubGroups} onAddSelectedFansubGroup={(g) => onAddSelectedFansubGroup(sourceKey, g)} sourceKey={sourceKey} label={label} />
             <div className={styles.releaseMetaActions}>
               <button
                 className={styles.releaseScopeButton}
@@ -277,6 +279,7 @@ export function EpisodeImportMappingRowCard({
               aria-label={`Release-Version für ${label}`}
               onChange={(event) => onSetRelease(sourceKey, { releaseVersion: event.target.value })}
             />
+            {row.release_version_source === 'detected' ? <span className={styles.releaseMetaHint}>Aus Dateiname übernommen</span> : null}
           </label>
         </div>
       </div>

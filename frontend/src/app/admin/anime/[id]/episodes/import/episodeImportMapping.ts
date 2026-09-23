@@ -192,6 +192,7 @@ export function setMappingReleaseMeta(
             meta.fansubGroupName !== undefined ? (meta.fansubGroupName || null) : row.fansub_group_name,
           release_version:
             meta.releaseVersion !== undefined ? (meta.releaseVersion || null) : row.release_version,
+          ...(meta.releaseVersion !== undefined ? { release_version_source: 'manual' as const } : {}),
         }
       : row,
   )

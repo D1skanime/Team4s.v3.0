@@ -575,6 +575,12 @@
   color: #c0b8ae;
 }
 
+.releaseMetaHint {
+  font-size: 12px;
+  font-weight: 400;
+  color: var(--text-muted);
+}
+
 .releaseMetaInput:focus {
   outline: none;
   border-color: #8060d7;
