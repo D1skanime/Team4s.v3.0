@@ -42,7 +42,15 @@ var (
 // language/source tag, pure digits) is never returned as a group name,
 // regardless of its position among multiple brackets in the filename.
 // D-07: the scene-release schema `gruppe-titel.sXXeYY...` is recognized,
-// in addition to the four schemas that already worked.
+// in addition to the four schemas that already worked. WR-01 (167-REVIEW.md):
+// the scene-prefix candidate is only accepted when it is entirely lowercase
+// (`dmpd-mashle...` — the real, all-lowercase, dot-separated scene-release
+// convention this schema targets), because ordinary Title-Case hyphenated
+// anime titles (`Attack-on-Titan`, `Re-Zero`, `K-On`, `One-Punch-Man`,
+// `Non-Non-Biyori`) would otherwise false-positive on the first word before
+// the hyphen whenever an sXXeYY marker appears anywhere later in the name.
+// Per D-06 ("guess nothing when uncertain"), any candidate containing an
+// uppercase letter is rejected rather than guessed.
 func DeriveFansubGroupName(fileName string, fullPath string) string {
 	baseName := strings.TrimSpace(fileName)
 	if baseName == "" {
@@ -67,7 +75,7 @@ func DeriveFansubGroupName(fileName string, fullPath string) string {
 	if sceneEpisodeMarkerPattern.MatchString(baseName) {
 		if match := scenePrefixGroupPattern.FindStringSubmatch(baseName); len(match) >= 2 {
 			candidate := strings.TrimSpace(match[1])
-			if candidate != "" && !isTechnicalGroupToken(candidate) {
+			if candidate != "" && candidate == strings.ToLower(candidate) && !isTechnicalGroupToken(candidate) {
 				return candidate
 			}
 		}

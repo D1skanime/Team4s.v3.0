@@ -99,6 +99,35 @@ func TestDeriveFansubGroupName(t *testing.T) {
 			fullPath: `D:\Anime\[UnrelatedTag]\[SHFS]Show_01.mkv`,
 			want:     "SHFS",
 		},
+
+		// --- WR-01 (167-REVIEW.md): D-07 scene-prefix must not false-positive on
+		// ordinary Title-Case hyphenated anime titles just because an sXXeYY marker
+		// appears somewhere later in the filename. These must stay empty per D-06. ---
+		{
+			name:     "WR-01: Title-Case hyphenated title 'Attack-on-Titan' must not be mistaken for a scene group",
+			fileName: `Attack-on-Titan.S01E01.mkv`,
+			want:     "",
+		},
+		{
+			name:     "WR-01: Title-Case hyphenated title 'Re-Zero-...' must not be mistaken for a scene group",
+			fileName: `Re-Zero-Starting-Life-in-Another-World.S01E01.mkv`,
+			want:     "",
+		},
+		{
+			name:     "WR-01: Title-Case hyphenated title 'K-On' must not be mistaken for a scene group",
+			fileName: `K-On.S01E01.mkv`,
+			want:     "",
+		},
+		{
+			name:     "WR-01: Title-Case hyphenated title 'One-Punch-Man' must not be mistaken for a scene group",
+			fileName: `One-Punch-Man.S01E01.mkv`,
+			want:     "",
+		},
+		{
+			name:     "WR-01: Title-Case hyphenated title 'Non-Non-Biyori' must not be mistaken for a scene group",
+			fileName: `Non-Non-Biyori.S02E05.mkv`,
+			want:     "",
+		},
 	}
 
 	for _, tt := range tests {
