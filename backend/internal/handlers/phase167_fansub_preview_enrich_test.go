@@ -211,4 +211,17 @@ func TestEnrichEpisodeImportPreviewFansubData(t *testing.T) {
 		require.Equal(t, int64(99), *row.FansubGroupID, "a confirmed row's existing group selection must never be silently overwritten")
 		require.Nil(t, row.FansubGroupMatchOrigin)
 	})
+
+	t.Run("WR-04: nil matchRepo returns mappings unchanged instead of panicking", func(t *testing.T) {
+		mappings := []models.EpisodeImportMappingRow{
+			{MediaItemID: "m1", FansubGroupName: strPtr("BDnP"), Status: models.EpisodeImportMappingStatusSuggested},
+		}
+
+		require.NotPanics(t, func() {
+			result := enrichEpisodeImportPreviewFansubData(ctx, nil, mappings)
+			require.Len(t, result, 1)
+			require.Nil(t, result[0].FansubGroupID)
+			require.Nil(t, result[0].FansubGroupMatchOrigin)
+		})
+	})
 }

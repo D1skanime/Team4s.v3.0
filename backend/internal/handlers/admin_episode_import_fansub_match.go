@@ -40,9 +40,17 @@ type fansubGroupMatchResolver interface {
 // stringPtr (a plain non-trimming pointer helper for known-non-empty
 // literals such as "detected") already exists in group_assets_jellyfin.go
 // and is reused here rather than duplicated.
-// matchRepo may be nil-safe-called only when non-nil; callers (PreviewEpisodeImport)
-// always pass a non-nil h.episodeImportRepo.
+// WR-04 (167-REVIEW.md): matchRepo is defensively nil-checked here rather than relying on
+// callers to always pass a non-nil h.episodeImportRepo -- the invariant the previous comment
+// asserted was not actually enforced anywhere (existing test fixture evecFixtureHandler
+// constructs the handler without setting episodeImportRepo), so a future test extension
+// giving that fixture a filename-bearing Jellyfin item would otherwise panic on the nil
+// interface call below.
 func enrichEpisodeImportPreviewFansubData(ctx context.Context, matchRepo fansubGroupMatchResolver, mappings []models.EpisodeImportMappingRow) []models.EpisodeImportMappingRow {
+	if matchRepo == nil {
+		return mappings
+	}
+
 	// Step 1: release-version detection, never overwriting an explicit value.
 	for i := range mappings {
 		row := &mappings[i]
