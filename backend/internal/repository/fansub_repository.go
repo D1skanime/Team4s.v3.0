@@ -1044,6 +1044,45 @@ func (r *FansubRepository) DeleteAlias(ctx context.Context, fansubID, aliasID in
 	return nil
 }
 
+// ReassignAlias hängt einen bestehenden Alias per einzelnem atomarem UPDATE von seiner
+// aktuellen (Quell-)Gruppe auf eine neue (Ziel-)Gruppe um (D-02/D-09). fansubID ist die
+// Quellgruppe, gegen die der Alias-Datensatz gescoped wird -- analog zu DeleteAlias's
+// Parameterreihenfolge (fansubID zuerst = die Gruppe, für die der Aufrufer berechtigt sein
+// muss). Es gibt keinen DELETE+INSERT-Zwischenzustand, in dem der Alias nicht existiert.
+func (r *FansubRepository) ReassignAlias(
+	ctx context.Context,
+	fansubID, aliasID, targetGroupID int64,
+) (*models.FansubAlias, error) {
+	var item models.FansubAlias
+	err := r.db.QueryRow(
+		ctx,
+		`UPDATE fansub_group_aliases
+		 SET fansub_group_id = $1, updated_at = NOW()
+		 WHERE id = $2 AND fansub_group_id = $3
+		 RETURNING id, fansub_group_id, alias, created_at, updated_at`,
+		targetGroupID,
+		aliasID,
+		fansubID,
+	).Scan(
+		&item.ID,
+		&item.FansubGroupID,
+		&item.Alias,
+		&item.CreatedAt,
+		&item.UpdatedAt,
+	)
+	if err != nil {
+		if errors.Is(err, pgx.ErrNoRows) {
+			return nil, ErrNotFound
+		}
+		if isUniqueViolation(err) {
+			return nil, ErrConflict
+		}
+		return nil, fmt.Errorf("reassign fansub alias %d: %w", aliasID, err)
+	}
+
+	return &item, nil
+}
+
 func (r *FansubRepository) ListAnimeAliasCandidates(
 	ctx context.Context,
 	animeID int64,
