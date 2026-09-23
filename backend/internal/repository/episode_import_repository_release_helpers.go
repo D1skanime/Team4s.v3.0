@@ -323,6 +323,16 @@ func learnFansubGroupAliasesForExplicitSelection(
 	}
 
 	rawCandidate := deriveFansubGroupName(media)
+	// IN-01 (167-REVIEW.md): when a row has more than one explicit group selection
+	// (a collaboration release), every member group in memberGroups attempts to learn the
+	// same rawCandidate in turn. maybeLearnFansubGroupAlias re-checks
+	// resolveFansubGroupMatches before each insert in the same transaction, so only the
+	// first group in memberGroups' order (canonicalizeResolvedImportFansubGroups' sort
+	// order) actually claims the alias -- every subsequent group's attempt becomes a no-op
+	// once the candidate is "already known" for a different group. This is intentional/
+	// accepted non-determinism (which collaborating group "wins" the learned alias is an
+	// accident of sort order, not an explicit decision), not a bug: no data corruption
+	// results either way.
 	for _, group := range memberGroups {
 		if _, ok := explicitExistingGroupIDs[group.ID]; !ok {
 			continue
