@@ -576,6 +576,12 @@ func (r *episodeImportSourceRepoSpy) GetJellyfinSourceBindings(_ context.Context
 	r.ids = append([]string(nil), ids...)
 	return r.bindings, nil
 }
+func (*episodeImportSourceRepoSpy) ResolveFansubGroupMatches(context.Context, []string) ([]models.FansubGroupMatch, error) {
+	return nil, nil
+}
+func (*episodeImportSourceRepoSpy) SuggestSimilarFansubGroups(context.Context, string) ([]models.FansubGroupSuggestion, error) {
+	return nil, nil
+}
 
 func episodeImportServerItem(id string) jellyfinEpisodeItem {
 	ticks := int64(12000000000)
