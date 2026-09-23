@@ -42,6 +42,11 @@ func openEpisodeImportSourceFixture(t *testing.T) *pgxpool.Pool {
  CREATE TABLE release_variant_episodes(release_variant_id BIGINT REFERENCES release_variants(id),episode_id BIGINT REFERENCES episodes(id),position INT,PRIMARY KEY(release_variant_id,episode_id));
  CREATE TABLE anime_fansub_groups(anime_id BIGINT REFERENCES anime(id),fansub_group_id BIGINT REFERENCES fansub_groups(id),is_primary BOOLEAN,notes TEXT,PRIMARY KEY(anime_id,fansub_group_id));
  CREATE TABLE fixture_crew_notes(release_version_id BIGINT REFERENCES release_versions(id),fansub_group_id BIGINT REFERENCES fansub_groups(id));
+ -- GAP-22 (165-UAT.md): applyReleaseNative now looks up anime.type AND anime.title
+ -- together (isFilm derivation) -- mirrors the real schema's NOT NULL DEFAULT 'tv'
+ -- (0001_init_anime.up.sql) so the Scan(&animeType, ...) never hits a NULL; 'tv'
+ -- never resolves to "movie" via mapAnimeTypeToEpisodeType, so behavior is unchanged.
+ ALTER TABLE anime ADD COLUMN type TEXT NOT NULL DEFAULT 'tv', ADD COLUMN title TEXT NOT NULL DEFAULT '';
  INSERT INTO anime(id)VALUES(1),(2);INSERT INTO fansub_groups(id,name,slug)VALUES(1,'Group','group');
  `)
 	require.NoError(t, err)

@@ -56,6 +56,11 @@ func openEpisodeVersionPublicScaleFixture(t *testing.T) (*pgxpool.Pool, *episode
 	fixture := testsupport.OpenPhase117Postgres(t)
 	_, err := fixture.Exec(context.Background(), `
 ALTER TABLE anime ADD COLUMN status TEXT NOT NULL DEFAULT 'done';
+-- GAP-23 (165-UAT.md): publicReleaseNameSQL's filmEpisodeSQL/filmTitleSQL now
+-- unconditionally reference anime.type/anime.title -- this fixture stays
+-- series-only (type NULL never matches 'film'), so behavior is unchanged.
+ALTER TABLE anime ADD COLUMN type TEXT;
+ALTER TABLE anime ADD COLUMN title TEXT NOT NULL DEFAULT '';
 ALTER TABLE fansub_groups ADD COLUMN slug TEXT, ADD COLUMN logo_url TEXT, ADD COLUMN logo_id BIGINT REFERENCES media_assets(id);
 -- 164-08 GAP-02: titleEnteredByGroupSQL's NOT EXISTS subquery reads release_variants.filename.
 ALTER TABLE release_variants ADD COLUMN filename TEXT;

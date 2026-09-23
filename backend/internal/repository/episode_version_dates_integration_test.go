@@ -349,7 +349,10 @@ func (tr *dateContextTracer) TraceQueryStart(ctx context.Context, conn *pgx.Conn
 func TestEpisodeVersionDateEditorContextBothSurfacesAndFailure(t *testing.T) {
 	fixture, tr := openDateNeighborsFixture(t)
 	_, err := fixture.Exec(context.Background(), `
-        ALTER TABLE anime ADD COLUMN title TEXT DEFAULT 'Date fixture',ADD COLUMN title_de TEXT,
+        -- GAP-23 (165-UAT.md): anime.title already exists via openEpisodeVersionPublicFixture
+        -- (publicReleaseNameSQL's filmTitleSQL reads it) -- only set the fixture's own default here.
+        ALTER TABLE anime ALTER COLUMN title SET DEFAULT 'Date fixture';
+        ALTER TABLE anime ADD COLUMN title_de TEXT,
             ADD COLUMN title_en TEXT,ADD COLUMN source TEXT,ADD COLUMN folder_name TEXT,
             ADD COLUMN year SMALLINT,ADD COLUMN max_episodes SMALLINT,ADD COLUMN description TEXT,ADD COLUMN cover_image TEXT;
         CREATE TABLE anime_source_links(anime_id BIGINT,source TEXT);

@@ -229,6 +229,14 @@ func openReleaseDetailHeaderFixture(t *testing.T) *pgxpool.Pool {
 	_, err := pool.Exec(context.Background(), `
 ALTER TABLE fansub_groups ADD COLUMN slug TEXT NOT NULL DEFAULT '';
 ALTER TABLE release_variants ADD COLUMN filename TEXT;
+-- GAP-23 (165-UAT.md): publicReleaseNameSQL's filmEpisodeSQL now unconditionally
+-- references anime.type and episodes.episode_type_id/episode_types -- this
+-- pre-existing GAP-02 fixture stays series-only (no rows in episode_types
+-- match, anime.type stays NULL), so behavior is unchanged.
+ALTER TABLE anime ADD COLUMN type TEXT;
+ALTER TABLE anime ADD COLUMN title TEXT NOT NULL DEFAULT '';
+ALTER TABLE episodes ADD COLUMN episode_type_id BIGINT;
+CREATE TABLE episode_types (id BIGINT PRIMARY KEY, name TEXT NOT NULL);
 INSERT INTO anime (id) VALUES (910);
 INSERT INTO episodes (id,anime_id,episode_number,title) VALUES (910,910,'1','Header Episode');
 INSERT INTO fansub_releases (id,episode_id) VALUES (910,910);
@@ -271,4 +279,93 @@ func TestLoadReleaseHeaderTitleUsesGapTwoDefaultFormat(t *testing.T) {
 	header, err = repo.loadReleaseHeader(ctx, 910, 9102, 9103)
 	require.NoError(t, err)
 	require.Equal(t, "Header Episode · (Header Coop A × Header Coop B) · v1", header.Title, "a NULL title with two groups must resolve to the coop default, both groups regardless of which one's URL is being viewed")
+}
+
+// openReleaseDetailFilmHeaderFixture is a minimal Phase-117 fixture for
+// loadReleaseHeader's GAP-23 film-title default (165-UAT.md): a film anime whose
+// canonical episode still carries the misleading legacy "Episode 1" title (must be
+// ignored for films), a film release with a genuine group-entered title (must still
+// win), a series with an episode title (regression guard), a series without an
+// episode title using the GAP-02 "Folge N" fallback (regression guard), and a
+// coop-form film release (two groups).
+func openReleaseDetailFilmHeaderFixture(t *testing.T) *pgxpool.Pool {
+	t.Helper()
+	pool := testsupport.OpenPhase117Postgres(t)
+	_, err := pool.Exec(context.Background(), `
+ALTER TABLE fansub_groups ADD COLUMN slug TEXT NOT NULL DEFAULT '';
+ALTER TABLE release_variants ADD COLUMN filename TEXT;
+ALTER TABLE anime ADD COLUMN title TEXT NOT NULL DEFAULT '';
+ALTER TABLE anime ADD COLUMN type TEXT;
+ALTER TABLE episodes ADD COLUMN episode_type_id BIGINT;
+CREATE TABLE episode_types (id BIGINT PRIMARY KEY, name TEXT NOT NULL);
+INSERT INTO episode_types (id, name) VALUES (1,'episode'),(2,'movie');
+
+INSERT INTO anime (id,title,type) VALUES (920,'.hack//G.U. Trilogy','film');
+INSERT INTO episodes (id,anime_id,episode_number,title,episode_type_id) VALUES (920,920,'1','Episode 1',2);
+INSERT INTO fansub_releases (id,episode_id) VALUES (920,920);
+INSERT INTO release_versions (id,release_id,version,title) VALUES
+ (9201,920,'v1',NULL),
+ (9202,920,'v1','Special Group Title');
+INSERT INTO release_variants (id,release_version_id,filename) VALUES
+ (9201,9201,'film-variant-9201.mkv'),
+ (9202,9202,'film-variant-9202.mkv');
+
+INSERT INTO anime (id,title,type) VALUES (921,'Naruto','tv');
+INSERT INTO episodes (id,anime_id,episode_number,title,episode_type_id) VALUES (921,921,'1','Der Test-Titel',1);
+INSERT INTO fansub_releases (id,episode_id) VALUES (921,921);
+INSERT INTO release_versions (id,release_id,version,title) VALUES (9211,921,'v1',NULL);
+INSERT INTO release_variants (id,release_version_id,filename) VALUES (9211,9211,'series-variant-9211.mkv');
+
+INSERT INTO anime (id,title,type) VALUES (922,'No Title Series','tv');
+INSERT INTO episodes (id,anime_id,episode_number,title,episode_type_id) VALUES (922,922,'7',NULL,1);
+INSERT INTO fansub_releases (id,episode_id) VALUES (922,922);
+INSERT INTO release_versions (id,release_id,version,title) VALUES (9221,922,'v1',NULL);
+INSERT INTO release_variants (id,release_version_id,filename) VALUES (9221,9221,'series-variant-9221.mkv');
+
+INSERT INTO anime (id,title,type) VALUES (923,'Trilogy Coop Film','film');
+INSERT INTO episodes (id,anime_id,episode_number,title,episode_type_id) VALUES (923,923,'1',NULL,2);
+INSERT INTO fansub_releases (id,episode_id) VALUES (923,923);
+INSERT INTO release_versions (id,release_id,version,title) VALUES (9231,923,'v1',NULL);
+INSERT INTO release_variants (id,release_version_id,filename) VALUES (9231,9231,'coop-variant-9231.mkv');
+
+INSERT INTO fansub_groups (id,slug,name) VALUES
+ (9201,'film-header-solo','AnimeOwnage'),
+ (9202,'film-header-coop-a','Coop Group A'),
+ (9203,'film-header-coop-b','Coop Group B');
+INSERT INTO release_version_groups VALUES (9201,9201),(9202,9201),(9211,9201),(9221,9201),(9231,9202),(9231,9203);
+`)
+	require.NoError(t, err)
+	return pool
+}
+
+// TestLoadReleaseHeaderTitleUsesGap23FilmDefaultFormat is Quick-Task 260923-amz's
+// GAP-23 behavior test for the release detail page's title (loadReleaseHeader):
+// for films the first name component is always the anime/film title, never the
+// (possibly misleading) episode title or the "Folge N" fallback; a genuine
+// group-entered title keeps unconditional priority; series stay unaffected,
+// including the coop ' × ' form.
+func TestLoadReleaseHeaderTitleUsesGap23FilmDefaultFormat(t *testing.T) {
+	pool := openReleaseDetailFilmHeaderFixture(t)
+	ctx := context.Background()
+	repo := NewReleaseDetailPublicRepository(pool, "")
+
+	header, err := repo.loadReleaseHeader(ctx, 920, 9201, 9201)
+	require.NoError(t, err)
+	require.Equal(t, ".hack//G.U. Trilogy · (AnimeOwnage) · v1", header.Title, "a film must always use the anime/film title as the first component, even though episode.title is the misleading legacy 'Episode 1'")
+
+	header, err = repo.loadReleaseHeader(ctx, 920, 9201, 9202)
+	require.NoError(t, err)
+	require.Equal(t, "Special Group Title", header.Title, "a genuinely group-entered title keeps unconditional priority, even for films")
+
+	header, err = repo.loadReleaseHeader(ctx, 921, 9201, 9211)
+	require.NoError(t, err)
+	require.Equal(t, "Der Test-Titel · (AnimeOwnage) · v1", header.Title, "a series with an episode title must be unaffected by the film rule")
+
+	header, err = repo.loadReleaseHeader(ctx, 922, 9201, 9221)
+	require.NoError(t, err)
+	require.Equal(t, "Folge 7 · (AnimeOwnage) · v1", header.Title, "a series without an episode title must keep the existing GAP-02 'Folge N' fallback")
+
+	header, err = repo.loadReleaseHeader(ctx, 923, 9202, 9231)
+	require.NoError(t, err)
+	require.Equal(t, "Trilogy Coop Film · (Coop Group A × Coop Group B) · v1", header.Title, "the film title stays coop-capable, same ' × ' sort convention as series")
 }

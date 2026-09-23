@@ -30,6 +30,18 @@ func TestPublicNoteRoleCode(t *testing.T) {
 	_, err := pool.Exec(ctx, `ALTER TABLE release_variants ADD COLUMN filename TEXT;`)
 	require.NoError(t, err)
 
+	// GAP-23 (165-UAT.md): ListReleaseVersionNotesCursor calls loadReleaseHeader,
+	// which now goes through publicReleaseNameSQL's filmEpisodeSQL/filmTitleSQL --
+	// both unconditionally reference anime.type/anime.title and
+	// episodes.episode_type_id/episode_types. This fixture stays series-only.
+	_, err = pool.Exec(ctx, `
+		ALTER TABLE anime ADD COLUMN type TEXT;
+		ALTER TABLE anime ADD COLUMN title TEXT NOT NULL DEFAULT '';
+		ALTER TABLE episodes ADD COLUMN episode_type_id BIGINT;
+		CREATE TABLE episode_types (id BIGINT PRIMARY KEY, name TEXT NOT NULL);
+	`)
+	require.NoError(t, err)
+
 	const (
 		animeID           = int64(1)
 		episodeID         = int64(1)

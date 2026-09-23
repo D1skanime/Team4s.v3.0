@@ -50,6 +50,11 @@ func openEpisodeVersionPublicFixture(t *testing.T) (*pgxpool.Pool, *episodePubli
 	fixture := testsupport.OpenPhase117Postgres(t)
 	_, err := fixture.Exec(context.Background(), `
 ALTER TABLE anime ADD COLUMN status TEXT NOT NULL DEFAULT 'done';
+-- GAP-23 (165-UAT.md): publicReleaseNameSQL's filmEpisodeSQL/filmTitleSQL now
+-- unconditionally reference anime.type/anime.title -- this fixture stays
+-- series-only (type NULL never matches 'film'), so behavior is unchanged.
+ALTER TABLE anime ADD COLUMN type TEXT;
+ALTER TABLE anime ADD COLUMN title TEXT NOT NULL DEFAULT '';
 ALTER TABLE fansub_groups ADD COLUMN slug TEXT, ADD COLUMN logo_url TEXT;
 ALTER TABLE fansub_releases ADD COLUMN source_id BIGINT, ADD COLUMN source BIGINT,
     ADD COLUMN updated_at TIMESTAMPTZ DEFAULT NOW(), ADD COLUMN modified_at TIMESTAMPTZ DEFAULT NOW();
