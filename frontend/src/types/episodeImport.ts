@@ -78,6 +78,19 @@ export interface EpisodeImportMappingRow {
   fansub_group_name?: string | null
   /** Operator-supplied release version label, e.g. "v2", "BD", "720p". */
   release_version?: string | null
+  /** Display-only: how the backend matched the raw fansub tag (alias/name/slug), never sent back on apply. */
+  fansub_group_match_origin?: {
+    raw: string
+    matched_via: 'alias' | 'name' | 'slug'
+    group_id: number
+    group_name: string
+    /** Present only when matched_via === 'alias'; needed to call reassignFansubAlias. */
+    alias_id?: number | null
+  } | null
+  /** Display-only: up to 3 candidate groups when no exact match was found, never sent back on apply. */
+  fansub_group_suggestions?: Array<{ id: number; name: string; slug: string }>
+  /** Display-only: whether release_version was backend-detected or operator-edited, never sent back on apply. */
+  release_version_source?: 'detected' | 'manual'
 }
 
 export interface EpisodeImportPreviewResult {

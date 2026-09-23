@@ -1781,6 +1781,9 @@ types:
     fansub_group_id: "int64 | null"
     fansub_group_name: "string | null"
     release_version: "string | null"
+    fansub_group_match_origin: "{ raw: string; matched_via: 'alias'|'name'|'slug'; group_id: number; group_name: string; alias_id: number|null } | null"
+    fansub_group_suggestions: "Array<{ id: number; name: string; slug: string }> (max 3, display-only)"
+    release_version_source: "'detected' | 'manual' (display-only)"
   EpisodeImportCanonicalEpisode:
     episode_number: "int32"
     title: "string | null"
