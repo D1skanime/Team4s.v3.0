@@ -2146,9 +2146,19 @@ Plans:
 ### Phase 167: Fansub-Gruppenerkennung beim Episoden-Import
 
 **Goal:** Das Gruppenkürzel aus dem Release-Dateinamen wird zuverlässig erkannt (inkl. Szene-Schema, ohne Prüfsummen/Technik als Gruppe) und beim Import automatisch der bestehenden Fansub-Gruppe zugeordnet (Name, Slug, Alias); unbekannte Kürzel werden beim Zuordnen als weiterer Alias gelernt, aus Dateinamen entstehen keine neuen Gruppen mehr, und eine Versionskennung (v2/v3/v4) wird als Release-Version vorgeschlagen.
-**Requirements**: TBD (in plan-phase aus 167-USER-REQUEST.md und 167-CONTEXT.md D-01..D-11 abzuleiten)
+**Requirements**: REQ-167-01 bis REQ-167-23 (siehe REQUIREMENTS.md "Phase 167 — Fansub-Gruppenerkennung beim Episoden-Import")
 **Depends on:** Phase 165 (Import-Ordnerauswahl, Discovery)
 **Verbindliche Quellen:** `.planning/phases/167-fansub-gruppenerkennung-beim-import/167-USER-REQUEST.md`, `167-CONTEXT.md`
 **Scopegrenze:** keine Änderung der Episodenzuordnung (Doppelfolgen nur prüfen/dokumentieren), kein Umbenennen von Dateien, keine rückwirkende Zuordnung bereits importierter Releases, keine Fuzzy-Automatik.
 **UI hint:** yes
-**Plans:** TBD
+**Plans:** 8 plans in 3 waves
+
+Plans:
+- [ ] 167-01-PLAN.md — Parser hardening (filename-only, denylist, scene-schema) + release-version detection
+- [ ] 167-02-PLAN.md — Batch fansub-group matching repository + Phase-167 Postgres test fixture
+- [ ] 167-03-PLAN.md — ReassignAlias backend endpoint (dual permission check) + route + audit
+- [ ] 167-04-PLAN.md — Frontend contract types + reassignFansubAlias API client
+- [ ] 167-05-PLAN.md — Preview-time batch-match wiring, origin hint, version detection surface
+- [ ] 167-06-PLAN.md — Remove filename auto-create fallback; apply-time alias auto-learn + audit
+- [ ] 167-07-PLAN.md — Import-mapping-row origin hint / suggestion / conflict UI
+- [ ] 167-08-PLAN.md — Fansub group alias management UI + audit-history translation
