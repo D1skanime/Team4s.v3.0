@@ -19,7 +19,12 @@ import (
 	"context"
 
 	"team4s.v3/backend/internal/importutil"
+	"team4s.v3/backend/internal/middleware"
 	"team4s.v3/backend/internal/models"
+	"team4s.v3/backend/internal/permissions"
+	"team4s.v3/backend/internal/repository"
+
+	"github.com/gin-gonic/gin"
 )
 
 // fansubGroupMatchResolver is the narrow seam this function needs from
@@ -120,4 +125,41 @@ func enrichEpisodeImportPreviewFansubData(ctx context.Context, matchRepo fansubG
 	}
 
 	return mappings
+}
+
+// writeLearnedFansubAliasAudit records one "learned"-typed audit entry per alias the
+// apply transaction learned (D-01), attributing the write to the acting admin.
+// Reads the identity straight from the request context (the same
+// middleware.CommentAuthIdentityFromContext lookup h.requireAdmin already relies on
+// internally, a cheap in-memory read, not a second DB round trip) so ApplyEpisodeImport's
+// single call site below stays exactly one line -- the file-size ceiling on
+// admin_episode_import.go leaves no budget for a second identity-capturing statement.
+// Mirrors the audit shape CreateFansubAlias/DeleteFansubAlias already use
+// (fansub_group_aliases.go) -- audit failures must never fail the apply itself, so each
+// Write's error return is intentionally discarded, matching that existing convention. A
+// missing identity (should be unreachable here since ApplyEpisodeImport already required
+// one via h.requireAdmin) is a silent no-op rather than a panic.
+func writeLearnedFansubAliasAudit(c *gin.Context, auditLogRepo auditLogWriter, learned []models.LearnedFansubAlias) {
+	if len(learned) == 0 {
+		return
+	}
+	identity, ok := middleware.CommentAuthIdentityFromContext(c)
+	if !ok {
+		return
+	}
+	ctx := c.Request.Context()
+	actorAppUserID := identity.AppUserID
+	for _, entry := range learned {
+		fansubGroupID := entry.FansubGroupID
+		_ = auditLogRepo.Write(ctx, repository.AuditLogEntry{
+			ActorAppUserID: &actorAppUserID,
+			EventType:      "fansub_group_alias.learned",
+			ScopeType:      permissions.ScopeTypeGroup,
+			ScopeID:        &fansubGroupID,
+			TargetType:     "fansub_group_alias",
+			Action:         string(permissions.ActionFansubGroupEdit),
+			Outcome:        "allowed",
+			Payload:        map[string]any{"alias": entry.Alias, "source": "episode_import"},
+		})
+	}
 }

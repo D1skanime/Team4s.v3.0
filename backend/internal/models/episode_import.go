@@ -183,6 +183,11 @@ type EpisodeImportApplyResult struct {
 	MappingsApplied  int32 `json:"mappings_applied"`
 	Skipped          int32 `json:"skipped"`
 	Conflicts        int32 `json:"conflicts"`
+	// LearnedFansubAliases is server-internal only (D-01): every alias the apply
+	// transaction learned for an admin's explicit existing-group selection, so the
+	// handler can audit each one (fansub_group_alias.learned) after Apply returns. The
+	// frontend has no use for this list.
+	LearnedFansubAliases []LearnedFansubAlias `json:"-"`
 }
 
 // EpisodeImportExistingCoverage describes already persisted episode-version

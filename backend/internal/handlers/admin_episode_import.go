@@ -161,6 +161,7 @@ func (h *AdminContentHandler) ApplyEpisodeImport(c *gin.Context) {
 		c.JSON(status, gin.H{"error": gin.H{"message": err.Error()}})
 		return
 	}
+	writeLearnedFansubAliasAudit(c, h.auditLogRepo, result.LearnedFansubAliases)
 	c.JSON(http.StatusOK, gin.H{"data": result})
 }
 

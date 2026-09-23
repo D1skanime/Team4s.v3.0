@@ -97,6 +97,7 @@ func (r *EpisodeImportRepository) applyReleaseNative(
 		}
 	}
 
+	learned := make([]models.LearnedFansubAlias, 0)
 	for _, mapping := range plan.mappings {
 		if mapping.Status == models.EpisodeImportMappingStatusSkipped {
 			result.Skipped++
@@ -109,7 +110,7 @@ func (r *EpisodeImportRepository) applyReleaseNative(
 			ReleaseSourceID:  releaseSourceID,
 			StreamTypeID:     streamTypeID,
 		}
-		created, err := upsertImportReleaseGraph(ctx, tx, r.crewSeeder, releaseIDs, mapping, media, episodeIDsByNumber)
+		created, err := upsertImportReleaseGraph(ctx, tx, r.crewSeeder, releaseIDs, mapping, media, episodeIDsByNumber, &learned)
 		if err != nil {
 			return nil, err
 		}
@@ -120,6 +121,7 @@ func (r *EpisodeImportRepository) applyReleaseNative(
 		}
 		result.MappingsApplied++
 	}
+	result.LearnedFansubAliases = learned
 
 	if err := tx.Commit(ctx); err != nil {
 		return nil, fmt.Errorf("commit episode import apply: %w", err)
