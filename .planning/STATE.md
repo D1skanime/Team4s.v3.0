@@ -3,14 +3,14 @@ gsd_state_version: 1.0
 milestone: v1.4
 milestone_name: Coverage
 status: executing
-stopped_at: Completed 167-01-PLAN.md
-last_updated: "2026-09-23T14:11:00.549Z"
+stopped_at: Completed 167-02-PLAN.md
+last_updated: "2026-09-23T14:22:52.513Z"
 last_activity: 2026-09-23
 progress:
   total_phases: 32
   completed_phases: 30
   total_plans: 303
-  completed_plans: 296
+  completed_plans: 297
   percent: 94
 ---
 
@@ -246,7 +246,7 @@ Phase: 167 (fansub-gruppenerkennung-beim-import) — EXECUTING
 from 165-UAT.md, plans 165-14..165-19; 165-14..165-18 done — GAP-07, GAP-09-Verifikation, GAP-14,
 GAP-15, GAP-11, GAP-16, GAP-05, GAP-10, GAP-12, GAP-13, and GAP-06/D-30 all closed — 165-19/D-31
 (GAP-08 candidate-search annotation) remaining)
-Plan: 2 of 8
+Plan: 3 of 8
 Status: Ready to execute
 nicht umgesetzt und ist für eine künftige eigenständige Phase „Mehrstaffel-Ordner" vorgemerkt.
 dupliziertem ProjectMemberStickyNav; siehe 157-14-SUMMARY.md)
@@ -1487,6 +1487,7 @@ Last activity: 2026-09-23
 - [Phase 165]: 165-19 (D-31): SearchAniSearchCandidates annotates already-existing AniSearch candidates with ExistingAnimeID/ExistingTitle instead of filtering them out; the connect-decision dead-end (GAP-08) is closed with zero new frontend branching since the existing Enrich() redirect chain already handles selection of a matched candidate. — Reuses the same batched ResolveAdminAnimeRelationTargetsBySources lookup already used for D-03, keeping the fix at exactly one query per search request (no N+1).
 - [Phase 167]: D-05/D-06/D-07 implemented as a uniform technical-token denylist and filename-only evidence selection in DeriveFansubGroupName — 167-01-SUMMARY.md
 - [Phase 167]: D-04 implemented as a single anchored regex v([2-9])$ handling both glued and separated release-version suffixes uniformly — 167-01-SUMMARY.md
+- [Phase 167]: Batch fansub-group matching adapted from buildSearchFansubQuery: single unnest($1::text[]) query resolves any candidate count in exactly one round trip (D-08), with ambiguity handled via per-tier COUNT(*) OVER windowing rather than an error path — Reuses the existing normalized-name/slug/alias OR-chain and byte-exact functional-index expression instead of a second bespoke matching implementation; keeps the exact-match path index-friendly by never folding trigram suggestions into it
 
 ### Pending Todos
 
@@ -1962,11 +1963,12 @@ untruncated list lives in `.planning/todos/pending/`.
 | Phase 165 P18 | 50min | 2 tasks | 17 files |
 | Phase 165 P19 | ~40min | 2 tasks | 12 files |
 | Phase 167 P01 | 22min | 2 tasks | 4 files |
+| Phase 167 P02 | 30min | 3 tasks | 5 files |
 
 ## Session Continuity
 
-Last session: 2026-09-23T14:11:00.504Z
-Stopped at: Completed 167-01-PLAN.md
+Last session: 2026-09-23T14:22:52.473Z
+Stopped at: Completed 167-02-PLAN.md
 Last activity: 2026-09-23 - Completed quick task 260923-ed4: GAP-24 (AniSearch-Platzhaltertitel "Episode 1" zählt bei Einteilern nicht mehr als echter Titel — Import- UND Abfrage-Zeit, greift auch bei bereits gespeicherten Bestandsdaten ohne Migration)
 Resume file: 
 None
