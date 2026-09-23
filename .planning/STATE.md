@@ -2,16 +2,16 @@
 gsd_state_version: 1.0
 milestone: v1.4
 milestone_name: Coverage
-status: verifying
-stopped_at: Completed 165-19-PLAN.md (D-31, final plan of gap-closure round 165-14..165-19)
-last_updated: "2026-09-22T12:10:34.999Z"
-last_activity: 2026-09-22
+status: executing
+stopped_at: Phase 167 UI-SPEC approved
+last_updated: "2026-09-23T13:16:20.808Z"
+last_activity: 2026-09-23
 progress:
-  total_phases: 31
+  total_phases: 32
   completed_phases: 30
-  total_plans: 295
+  total_plans: 303
   completed_plans: 295
-  percent: 97
+  percent: 94
 ---
 
 # Project State
@@ -24,6 +24,7 @@ Alle sechs Gap-Closure-Pläne (165-14..165-19, GAP-05..GAP-16 aus `165-UAT.md`, 
 - **Verifikation** (`165-GAP-CLOSURE-VERIFICATION.md`): 13/13 Must-haves bestätigt — alle 11 GAPs plus
   D-31/GAP-08 sind im Code tatsächlich geschlossen (nicht nur laut SUMMARY behauptet), durch unabhängige
   Nachprüfung inkl. Re-Ausführung der echten Postgres-Integrationstests.
+
 - **Code-Review** (`165-GAP-CLOSURE-REVIEW.md`): 1 BLOCKER (CR-01), 2 Warnungen, 2 Infos. CR-01: 165-17s
   GAP-05-Refactor (`connectJellyfinFolderAdditively`) hatte `additive := connect && currentSource != ""`
   gesetzt — das öffnete RESEARCH.md Pitfall 3 erneut für die zwei Nicht-„Verbinden"-Aufrufer
@@ -35,12 +36,14 @@ Alle sechs Gap-Closure-Pläne (165-14..165-19, GAP-05..GAP-16 aus `165-UAT.md`, 
   wiederhergestellt (`TestConnectJellyfinFolderAdditively_UsesForceWritePathWhenNotConnecting/anisearch_source...`);
   Unit-, Handler- und echte Postgres-Integrationstests für den betroffenen Pfad erneut grün, Backend neu
   gebaut und verifiziert erreichbar.
+
 - **Bekannte, bestätigt vorbestehende und nicht in Scope liegende Testfehler** (nicht durch diese Runde
   verursacht, unabhängig reproduziert): `admin_content_fansub_releases_test.go` (2 Tests, RBAC/Rollen-Fixture,
   letzte Änderung 14.09.2026 vor jeder Phase-165-Arbeit) sowie `11eyes-*`-Fixture-Tests unter
   `internal/handlers` (fehlende `docs/audits/2026-09-15-jellyfin12/fixtures/*.json` im Docker-Image-Build-
   Kontext, kein Code-Fehler) und `Phase134Matrix*`-Tests unter `internal/repository` (benötigen einen
   laufenden Server auf Port 18093, der in dieser Session nicht lief).
+
 - **Live-UAT steht noch aus** — nichts aus dieser Runde ist eigenmächtig als abgenommen markiert; siehe
   Live-UAT-Checkliste im Abschlussbericht dieser Session.
 
@@ -244,7 +247,7 @@ from 165-UAT.md, plans 165-14..165-19; 165-14..165-18 done — GAP-07, GAP-09-Ve
 GAP-15, GAP-11, GAP-16, GAP-05, GAP-10, GAP-12, GAP-13, and GAP-06/D-30 all closed — 165-19/D-31
 (GAP-08 candidate-search annotation) remaining)
 Plan: 165-18 of 165-14..165-19 (gap-closure round)
-Status: Phase complete — ready for verification
+Status: Ready to execute
 nicht umgesetzt und ist für eine künftige eigenständige Phase „Mehrstaffel-Ordner" vorgemerkt.
 dupliziertem ProjectMemberStickyNav; siehe 157-14-SUMMARY.md)
 GAP-02-Live-UAT-Checkpoint aus 156-UAT.md (5 Origin- + 9 Segment-Contributor-Pruefpunkte) wurde
@@ -1040,7 +1043,7 @@ timing flakiness, not a Phase 149 regression, and not yet root-caused.
 
 v1.4 remains complete; Phase 149 was appended additively (same pattern as 143-148), no new
 milestone was created.
-Last activity: 2026-09-22
+Last activity: 2026-09-23
 
 ## Accumulated Context
 
@@ -1959,10 +1962,10 @@ untruncated list lives in `.planning/todos/pending/`.
 
 ## Session Continuity
 
-Last session: 2026-09-22T12:10:34.985Z
-Stopped at: Completed 165-19-PLAN.md (D-31, final plan of gap-closure round 165-14..165-19)
+Last session: 2026-09-23T12:22:10.977Z
+Stopped at: Phase 167 UI-SPEC approved
 Last activity: 2026-09-23 - Completed quick task 260923-ed4: GAP-24 (AniSearch-Platzhaltertitel "Episode 1" zählt bei Einteilern nicht mehr als echter Titel — Import- UND Abfrage-Zeit, greift auch bei bereits gespeicherten Bestandsdaten ohne Migration)
 Resume file: 
-None
+.planning/phases/167-fansub-gruppenerkennung-beim-import/167-UI-SPEC.md
 
 Plans 151-02/03/04 have implementation summaries. Plans 151-01 and 151-05 remain open until final artwork/composition review, complete browser evidence and independent verification; their missing summaries are intentional. No requirement or phase has been falsely marked complete.

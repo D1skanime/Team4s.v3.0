@@ -2029,6 +2029,7 @@ Plans:
   - Wave 5: 164-07 (Vollständiges Gate + Naruto-Live-UAT + D-48-Visualmatrix + Abschlussbericht)
 
   Gap-Closure (Live-UAT 18.09.2026, `164-UAT.md`):
+
   - Gap-Wave 1: 164-08 (GAP-01 Logo-URL-Fix + GAP-02 Backend: geteilte Standard-Release-Name-Berechnung, öffentliche Anime-Seite + Release-Seite), 164-09 (GAP-12 Import-Standard-Episodentyp aus anime.type), 164-11 (GAP-04..10 Frontend-Kontrast/Radius/Abstand/Glas-Karte)
   - Gap-Wave 2: 164-10 (GAP-11 Backend: Migration 0169 Anzeigenamen-Spalte, öffentliche Projektion, Admin-Lookup-Endpunkt) — abhängig von 164-08
   - Gap-Wave 3: 164-12 (GAP-02/03/11 Frontend-Konsum: release_name, Technikzeile ohne „Unbekannt", DB-Klassifikationslabels + Admin-Platzhalter), 164-13 (GAP-11 Admin-Auswahlfelder aus DB) — abhängig von 164-08/164-10
@@ -2154,11 +2155,19 @@ Plans:
 **Plans:** 8 plans in 3 waves
 
 Plans:
+**Wave 1**
+
 - [ ] 167-01-PLAN.md — Parser hardening (filename-only, denylist, scene-schema) + release-version detection
 - [ ] 167-02-PLAN.md — Batch fansub-group matching repository + Phase-167 Postgres test fixture
 - [ ] 167-03-PLAN.md — ReassignAlias backend endpoint (dual permission check) + route + audit
 - [ ] 167-04-PLAN.md — Frontend contract types + reassignFansubAlias API client
+
+**Wave 2** *(blocked on Wave 1 completion)*
+
 - [ ] 167-05-PLAN.md — Preview-time batch-match wiring, origin hint, version detection surface
-- [ ] 167-06-PLAN.md — Remove filename auto-create fallback; apply-time alias auto-learn + audit
 - [ ] 167-07-PLAN.md — Import-mapping-row origin hint / suggestion / conflict UI
 - [ ] 167-08-PLAN.md — Fansub group alias management UI + audit-history translation
+
+**Wave 3** *(blocked on Wave 2 completion)*
+
+- [ ] 167-06-PLAN.md — Remove filename auto-create fallback; apply-time alias auto-learn + audit
