@@ -636,7 +636,7 @@ importierter Releases, keine Fuzzy-Automatik (Vorschläge werden nie automatisch
 - [x] **REQ-167-19**: Integrationstests gegen eine echte, isolierte Test-Datenbank (`testsupport.OpenPhase167Postgres`) beweisen den Alias-Schreibpfad und die Eindeutigkeitsregel (D-10).
 - [x] **REQ-167-20**: Ein Query-Budget-Test belegt eine konstante Abfragezahl für die Gruppen-Zuordnung unabhängig von der Dateianzahl in der Vorschau (D-08).
 - [ ] **REQ-167-21**: Doppelfolgen (`Naruto_026-027`-Schema) werden im bestehenden Import-Verhalten geprüft und dokumentiert; die Episodenzuordnung selbst ändert sich durch diese Phase nicht (Scopegrenze).
-- [ ] **REQ-167-22**: Neue/angefasste UI-Elemente nutzen ausschließlich `@/components/ui`-Primitives, deutsche Texte mit echten Umlauten; die bereits übergroßen Dateien (`admin_episode_import.go`, `page.tsx`) wachsen durch diese Phase nicht weiter (D-11).
+- [x] **REQ-167-22**: Neue/angefasste UI-Elemente nutzen ausschließlich `@/components/ui`-Primitives, deutsche Texte mit echten Umlauten; die bereits übergroßen Dateien (`admin_episode_import.go`, `page.tsx`) wachsen durch diese Phase nicht weiter (D-11).
 - [x] **REQ-167-23**: Handler-Verhalten für neue/erweiterte Endpunkte (Batch-Match, Alias-Lernen, Umhängen) ist mit `httptest` gegen ein Fake-Repository über eine schmale Interface-Abstraktion getestet, nicht per Quelltext-Inspektion (CLAUDE.md Teststil).
 
 | Requirement | Phase | Status |

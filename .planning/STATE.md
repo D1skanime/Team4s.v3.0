@@ -3,14 +3,14 @@ gsd_state_version: 1.0
 milestone: v1.4
 milestone_name: Coverage
 status: executing
-stopped_at: Completed 167-04-PLAN.md
-last_updated: "2026-09-23T14:35:33.073Z"
+stopped_at: Completed 167-05-PLAN.md
+last_updated: "2026-09-23T14:42:27.280Z"
 last_activity: 2026-09-23
 progress:
   total_phases: 32
   completed_phases: 30
   total_plans: 303
-  completed_plans: 299
+  completed_plans: 300
   percent: 94
 ---
 
@@ -246,7 +246,7 @@ Phase: 167 (fansub-gruppenerkennung-beim-import) — EXECUTING
 from 165-UAT.md, plans 165-14..165-19; 165-14..165-18 done — GAP-07, GAP-09-Verifikation, GAP-14,
 GAP-15, GAP-11, GAP-16, GAP-05, GAP-10, GAP-12, GAP-13, and GAP-06/D-30 all closed — 165-19/D-31
 (GAP-08 candidate-search annotation) remaining)
-Plan: 5 of 8
+Plan: 6 of 8
 Status: Ready to execute
 nicht umgesetzt und ist für eine künftige eigenständige Phase „Mehrstaffel-Ordner" vorgemerkt.
 dupliziertem ProjectMemberStickyNav; siehe 157-14-SUMMARY.md)
@@ -1491,6 +1491,8 @@ Last activity: 2026-09-23
 - [Phase 167]: 167-03: Dual permission check reuses requireFansubAliasWriteAccess twice (source, then destination) rather than a new combined helper — keeps the T-167-IDOR mitigation directly greppable in ReassignFansubAlias
 - [Phase 167]: 167-03: Task 3 tests leave h.auditLogRepo nil — repository.AuditLogRepository.Write is nil-receiver-safe, avoiding a fake DBTX while still exercising the real success/audit code path
 - [Phase 167]: 167-04: fansub_group_match_origin trägt group_id + optionalen alias_id statt eines separaten Konfliktfelds — Konfliktzustand wird client-seitig in Plan 07 aus dem Vergleich von group_id mit der aktuellen Admin-Auswahl abgeleitet, nicht serverseitig geführt (Plan 05)
+- [Phase 167]: Reused pre-existing package-level stringPtr helper instead of adding a duplicate local one — group_assets_jellyfin.go already declares an identical stringPtr(value string) *string; a local redeclaration in the same package is a compile error
+- [Phase 167]: Followed Plan 05's explicit Task2/Task3 split literally despite Task 2's tdd=true tag, since the plan's own behavior block deferred all tests to Task 3 — git log shows feat commits before the test commit for this plan, reverse of canonical TDD gate order; documented under TDD Gate Compliance in 167-05-SUMMARY.md, all 7 required test cases present and passing
 
 ### Pending Todos
 
@@ -1969,11 +1971,12 @@ untruncated list lives in `.planning/todos/pending/`.
 | Phase 167 P02 | 30min | 3 tasks | 5 files |
 | Phase 167 P03 | 35min | 3 tasks | 7 files |
 | Phase 167 P04 | 9min | 2 tasks | 4 files |
+| Phase 167 P05 | ~18min | 3 tasks | 6 files |
 
 ## Session Continuity
 
-Last session: 2026-09-23T14:35:33.044Z
-Stopped at: Completed 167-04-PLAN.md
+Last session: 2026-09-23T14:42:27.229Z
+Stopped at: Completed 167-05-PLAN.md
 Last activity: 2026-09-23 - Completed quick task 260923-ed4: GAP-24 (AniSearch-Platzhaltertitel "Episode 1" zählt bei Einteilern nicht mehr als echter Titel — Import- UND Abfrage-Zeit, greift auch bei bereits gespeicherten Bestandsdaten ohne Migration)
 Resume file: 
 None
