@@ -615,12 +615,12 @@ Scopegrenze aus `167-CONTEXT.md`/ROADMAP.md: keine Änderung der Episodenzuordnu
 prüfen/dokumentieren, REQ-167-21), kein Umbenennen von Dateien, keine rückwirkende Zuordnung bereits
 importierter Releases, keine Fuzzy-Automatik (Vorschläge werden nie automatisch übernommen).
 
-- [ ] **REQ-167-01**: Der Parser wertet ausschließlich den Dateinamen aus; der Pfad dient nur als Rückfallebene bei leerem Dateinamen (D-05).
-- [ ] **REQ-167-02**: Hex-Prüfsummen (8-stellig), Auflösungen, Codecs/Container, Sprachkennungen, Jahreszahlen und reine Zahlen gelten nie als Gruppenname — die Sperrliste gilt für jede Kandidaten-Klammer, nicht nur den Fallback-Zweig (D-06).
-- [ ] **REQ-167-03**: Das Szene-Schema `gruppe-titel.sXXeYY…` wird als neues Muster erkannt (D-07).
-- [ ] **REQ-167-04**: Die vier bereits funktionierenden Muster (Klammer-Präfix mit/ohne Leerzeichen, Jellyfin-S01E01-Suffix, Klammer am Ende) regressieren nicht (D-07).
-- [ ] **REQ-167-05**: Ist kein Kürzel sicher erkennbar, liefert der Parser leer statt zu raten (D-06).
-- [ ] **REQ-167-06**: Tabellentests mit allen 13 realen Dateinamen aus der Messtabelle (inkl. beider Fehlerfälle) existieren in `internal/importutil` (D-10).
+- [x] **REQ-167-01**: Der Parser wertet ausschließlich den Dateinamen aus; der Pfad dient nur als Rückfallebene bei leerem Dateinamen (D-05).
+- [x] **REQ-167-02**: Hex-Prüfsummen (8-stellig), Auflösungen, Codecs/Container, Sprachkennungen, Jahreszahlen und reine Zahlen gelten nie als Gruppenname — die Sperrliste gilt für jede Kandidaten-Klammer, nicht nur den Fallback-Zweig (D-06).
+- [x] **REQ-167-03**: Das Szene-Schema `gruppe-titel.sXXeYY…` wird als neues Muster erkannt (D-07).
+- [x] **REQ-167-04**: Die vier bereits funktionierenden Muster (Klammer-Präfix mit/ohne Leerzeichen, Jellyfin-S01E01-Suffix, Klammer am Ende) regressieren nicht (D-07).
+- [x] **REQ-167-05**: Ist kein Kürzel sicher erkennbar, liefert der Parser leer statt zu raten (D-06).
+- [x] **REQ-167-06**: Tabellentests mit allen 13 realen Dateinamen aus der Messtabelle (inkl. beider Fehlerfälle) existieren in `internal/importutil` (D-10).
 - [ ] **REQ-167-07**: Das erkannte Kürzel wird gebündelt (eine Abfrage je Vorschau) gegen `fansub_groups.name`/`.slug`/`fansub_group_aliases.normalized_alias`, normalisiert, abgeglichen (D-08).
 - [ ] **REQ-167-08**: Bei eindeutigem Treffer ist die Gruppe im Mapping vorausgewählt, mit sichtbarem Herkunftshinweis („erkannt aus Dateiname: X → Y (Alias/Name/Slug)") (D-08).
 - [ ] **REQ-167-09**: Der Admin kann die Vorauswahl jederzeit ändern; nichts wird ohne sichtbaren Hinweis automatisch gesetzt.
@@ -632,7 +632,7 @@ importierter Releases, keine Fuzzy-Automatik (Vorschläge werden nie automatisch
 - [ ] **REQ-167-15**: Gehört das Kürzel bereits einer anderen Gruppe, erscheint ein sichtbarer Hinweis „Kürzel gehört bereits zu <Gruppe>"; Umhängen geschieht ausschließlich über eine ausdrückliche, bestätigte Aktion, nie still (D-02).
 - [ ] **REQ-167-16**: Alias-Pflege (anlegen, umhängen, löschen) ist in der Gruppenverwaltung sichtbar und bedienbar (D-09).
 - [ ] **REQ-167-17**: Alle Alias-Mutationen (angelegt, gelöscht, umgehängt, automatisch gelernt) sind mit Audit-Attribution per `user_id` protokolliert und in der bestehenden Gruppen-Änderungshistorie lesbar (D-09).
-- [ ] **REQ-167-18**: Eine Versionskennung `v2`/`v3`/`v4` am Dateinamen-Ende (auch direkt nach Prüfsumme/Klammer ohne Trennzeichen) wird als Release-Version statt `v1` vorgeschlagen und bleibt änderbar (D-04).
+- [x] **REQ-167-18**: Eine Versionskennung `v2`/`v3`/`v4` am Dateinamen-Ende (auch direkt nach Prüfsumme/Klammer ohne Trennzeichen) wird als Release-Version statt `v1` vorgeschlagen und bleibt änderbar (D-04).
 - [ ] **REQ-167-19**: Integrationstests gegen eine echte, isolierte Test-Datenbank (`testsupport.OpenPhase167Postgres`) beweisen den Alias-Schreibpfad und die Eindeutigkeitsregel (D-10).
 - [ ] **REQ-167-20**: Ein Query-Budget-Test belegt eine konstante Abfragezahl für die Gruppen-Zuordnung unabhängig von der Dateianzahl in der Vorschau (D-08).
 - [ ] **REQ-167-21**: Doppelfolgen (`Naruto_026-027`-Schema) werden im bestehenden Import-Verhalten geprüft und dokumentiert; die Episodenzuordnung selbst ändert sich durch diese Phase nicht (Scopegrenze).

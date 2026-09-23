@@ -3,14 +3,14 @@ gsd_state_version: 1.0
 milestone: v1.4
 milestone_name: Coverage
 status: executing
-stopped_at: Phase 167 UI-SPEC approved
-last_updated: "2026-09-23T13:16:20.808Z"
+stopped_at: Completed 167-01-PLAN.md
+last_updated: "2026-09-23T14:11:00.549Z"
 last_activity: 2026-09-23
 progress:
   total_phases: 32
   completed_phases: 30
   total_plans: 303
-  completed_plans: 295
+  completed_plans: 296
   percent: 94
 ---
 
@@ -236,17 +236,17 @@ Phase 135 and any future roadmap entries continue from here.
 See: .planning/PROJECT.md (updated 2026-08-13)
 
 **Core value:** Team4s presents fansub history and collaboration credibly while keeping identity, visibility, ownership, and permissions correct.
-**Current focus:** Phase 165 — library-discovery-assisted-anime-creation
+**Current focus:** Phase 167 — fansub-gruppenerkennung-beim-import
 2026-09-18 after the client's live UAT approval ("1 passt, 2 löschen") — see the "Phase 164
 Abschluss" entry below for the full closing record.
 
 ## Current Position
 
-Phase: 165 (library-discovery-assisted-anime-creation) — EXECUTING (gap-closure round GAP-05..GAP-16
+Phase: 167 (fansub-gruppenerkennung-beim-import) — EXECUTING
 from 165-UAT.md, plans 165-14..165-19; 165-14..165-18 done — GAP-07, GAP-09-Verifikation, GAP-14,
 GAP-15, GAP-11, GAP-16, GAP-05, GAP-10, GAP-12, GAP-13, and GAP-06/D-30 all closed — 165-19/D-31
 (GAP-08 candidate-search annotation) remaining)
-Plan: 165-18 of 165-14..165-19 (gap-closure round)
+Plan: 2 of 8
 Status: Ready to execute
 nicht umgesetzt und ist für eine künftige eigenständige Phase „Mehrstaffel-Ordner" vorgemerkt.
 dupliziertem ProjectMemberStickyNav; siehe 157-14-SUMMARY.md)
@@ -1485,6 +1485,8 @@ Last activity: 2026-09-23
 - [Phase 165]: 165-18: syncAnimeSourceLinks konvertiert die globale UNIQUE(source)-Verletzung in repository.ErrConflict; CreateAnime mappt das auf denselben 409-Redirect wie der Save-Time-Pre-Check (D-30/GAP-06).
 - [Phase 165]: 165-18: 'Trotzdem als neuen Anime anlegen' ist an beiden Ausloesepunkten (Enrich() force_new, CreateAnime confirm_duplicate) ersatzlos entfernt, nicht nur deaktiviert (D-30).
 - [Phase 165]: 165-19 (D-31): SearchAniSearchCandidates annotates already-existing AniSearch candidates with ExistingAnimeID/ExistingTitle instead of filtering them out; the connect-decision dead-end (GAP-08) is closed with zero new frontend branching since the existing Enrich() redirect chain already handles selection of a matched candidate. — Reuses the same batched ResolveAdminAnimeRelationTargetsBySources lookup already used for D-03, keeping the fix at exactly one query per search request (no N+1).
+- [Phase 167]: D-05/D-06/D-07 implemented as a uniform technical-token denylist and filename-only evidence selection in DeriveFansubGroupName — 167-01-SUMMARY.md
+- [Phase 167]: D-04 implemented as a single anchored regex v([2-9])$ handling both glued and separated release-version suffixes uniformly — 167-01-SUMMARY.md
 
 ### Pending Todos
 
@@ -1959,13 +1961,14 @@ untruncated list lives in `.planning/todos/pending/`.
 | Phase 165 P17 | 70min | 3 tasks | 11 files |
 | Phase 165 P18 | 50min | 2 tasks | 17 files |
 | Phase 165 P19 | ~40min | 2 tasks | 12 files |
+| Phase 167 P01 | 22min | 2 tasks | 4 files |
 
 ## Session Continuity
 
-Last session: 2026-09-23T12:22:10.977Z
-Stopped at: Phase 167 UI-SPEC approved
+Last session: 2026-09-23T14:11:00.504Z
+Stopped at: Completed 167-01-PLAN.md
 Last activity: 2026-09-23 - Completed quick task 260923-ed4: GAP-24 (AniSearch-Platzhaltertitel "Episode 1" zählt bei Einteilern nicht mehr als echter Titel — Import- UND Abfrage-Zeit, greift auch bei bereits gespeicherten Bestandsdaten ohne Migration)
 Resume file: 
-.planning/phases/167-fansub-gruppenerkennung-beim-import/167-UI-SPEC.md
+None
 
 Plans 151-02/03/04 have implementation summaries. Plans 151-01 and 151-05 remain open until final artwork/composition review, complete browser evidence and independent verification; their missing summaries are intentional. No requirement or phase has been falsely marked complete.
