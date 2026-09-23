@@ -111,7 +111,7 @@ func callUpsertReleaseVersionGroup(t *testing.T, pool *pgxpool.Pool, ctx context
 	mapping := models.EpisodeImportMappingRow{FansubGroups: groups}
 	media := models.EpisodeImportMediaCandidate{}
 
-	err = upsertReleaseVersionGroup(ctx, tx, releaseVersionID, mapping, media)
+	err = upsertReleaseVersionGroup(ctx, tx, releaseVersionID, mapping, media, nil)
 	require.NoError(t, err)
 	require.NoError(t, tx.Commit(ctx))
 }

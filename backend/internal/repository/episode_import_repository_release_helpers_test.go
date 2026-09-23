@@ -17,7 +17,7 @@ func TestEpisodeImportReleaseCreationCrewHookOrdering(t *testing.T) {
 	}
 	source := string(sourceBytes)
 
-	groupIndex := strings.Index(source, "upsertReleaseVersionGroup(ctx, tx, releaseVersionID, mapping, media)")
+	groupIndex := strings.Index(source, "upsertReleaseVersionGroup(ctx, tx, releaseVersionID, mapping, media, learned)")
 	seedIndex := strings.Index(source, "seedCreatedReleaseCrews(ctx, tx, crewSeeder, releaseVersionID)")
 	if groupIndex < 0 || seedIndex < 0 || seedIndex <= groupIndex {
 		t.Fatalf("crew hook must run after canonical release-version group ownership: group=%d seed=%d", groupIndex, seedIndex)

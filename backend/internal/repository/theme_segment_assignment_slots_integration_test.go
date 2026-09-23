@@ -304,7 +304,7 @@ func TestSegmentSlotImportRejectsOtherAnimeBeforeVariantLock(t *testing.T) {
 	require.NoError(t, err)
 	defer tx.Rollback(f.ctx)
 	require.NoError(t, lockSegmentAssignmentAnimeTx(ctx, tx, 2))
-	_, err = upsertImportReleaseGraph(ctx, tx, nil, episodeImportReleaseIDs{AnimeID: 2}, models.EpisodeImportMappingRow{MediaItemID: "existing-media"}, models.EpisodeImportMediaCandidate{}, nil)
+	_, err = upsertImportReleaseGraph(ctx, tx, nil, episodeImportReleaseIDs{AnimeID: 2}, models.EpisodeImportMappingRow{MediaItemID: "existing-media"}, models.EpisodeImportMediaCandidate{}, nil, nil)
 	require.ErrorIs(t, err, ErrConflict, "cross-anime rejection must not wait on another anime's variant lock")
 }
 

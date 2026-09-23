@@ -27,6 +27,7 @@ func upsertImportReleaseGraph(
 	mapping models.EpisodeImportMappingRow,
 	media models.EpisodeImportMediaCandidate,
 	episodeIDsByNumber map[int32]int64,
+	learned *[]models.LearnedFansubAlias,
 ) (bool, error) {
 	// Lock the physical source row before looking up ownership so concurrent imports
 	// into different anime cannot both observe an unbound item and create graphs.
@@ -106,7 +107,7 @@ func upsertImportReleaseGraph(
 	if err := upsertNormalizedReleaseStream(ctx, tx, variantID, ids.StreamTypeID, streamSourceID, mapping.MediaItemID); err != nil {
 		return false, err
 	}
-	if err := upsertReleaseVersionGroup(ctx, tx, releaseVersionID, mapping, media); err != nil {
+	if err := upsertReleaseVersionGroup(ctx, tx, releaseVersionID, mapping, media, learned); err != nil {
 		return false, err
 	}
 	if created && crewSeeder != nil {
@@ -212,9 +213,14 @@ func upsertReleaseVersionGroup(
 	releaseVersionID int64,
 	mapping models.EpisodeImportMappingRow,
 	media models.EpisodeImportMediaCandidate,
+	learned *[]models.LearnedFansubAlias,
 ) error {
 	memberGroups, err := resolveImportFansubSelection(ctx, tx, mapping, media)
 	if err != nil || len(memberGroups) == 0 {
+		return err
+	}
+
+	if err := learnFansubGroupAliasesForExplicitSelection(ctx, tx, mapping, media, memberGroups, learned); err != nil {
 		return err
 	}
 
@@ -280,21 +286,102 @@ func resolveImportFansubSelection(
 		return []resolvedImportFansubGroup{*group}, nil
 	}
 
-	name := strings.TrimSpace(derefString(mapping.FansubGroupName))
-	if name == "" {
-		name = deriveFansubGroupName(media)
+	// D-03/REQ-167-10: no explicit selection at all -- an unresolved row stays
+	// unresolved. No group is derived+created from the filename anymore; the
+	// admin must explicitly select or create a group. See
+	// maybeLearnFansubGroupAlias below for the companion D-01 alias-learning
+	// step, which only ever runs for an EXPLICIT existing-group selection.
+	return nil, nil
+}
+
+// learnFansubGroupAliasesForExplicitSelection implements D-01: for every member group
+// that came from an EXPLICIT existing-group selection in mapping.FansubGroups (the admin
+// picked/kept an already-created group by ID, never a brand-new group created via the
+// still-supported explicit free-text path in episode_import_repository_fansub_helpers.go),
+// check whether this row's filename-derived kürzel should be learned as an additional
+// alias of that group. Every successfully learned alias is appended to *learned so the
+// caller can audit it after the apply transaction commits.
+func learnFansubGroupAliasesForExplicitSelection(
+	ctx context.Context,
+	tx pgx.Tx,
+	mapping models.EpisodeImportMappingRow,
+	media models.EpisodeImportMediaCandidate,
+	memberGroups []resolvedImportFansubGroup,
+	learned *[]models.LearnedFansubAlias,
+) error {
+	if learned == nil {
+		return nil
 	}
-	parsedNames := parseImportFansubGroupNames(name)
-	if len(parsedNames) == 0 {
+	explicitExistingGroupIDs := make(map[int64]struct{}, len(mapping.FansubGroups))
+	for _, input := range mapping.FansubGroups {
+		if input.ID != nil && *input.ID > 0 {
+			explicitExistingGroupIDs[*input.ID] = struct{}{}
+		}
+	}
+	if len(explicitExistingGroupIDs) == 0 {
+		return nil
+	}
+
+	rawCandidate := deriveFansubGroupName(media)
+	for _, group := range memberGroups {
+		if _, ok := explicitExistingGroupIDs[group.ID]; !ok {
+			continue
+		}
+		alias, err := maybeLearnFansubGroupAlias(ctx, tx, group.ID, rawCandidate)
+		if err != nil {
+			return err
+		}
+		if alias != nil {
+			*learned = append(*learned, *alias)
+		}
+	}
+	return nil
+}
+
+// maybeLearnFansubGroupAlias implements the write side of D-01: when the row's
+// filename-derived kürzel is genuinely new and unclaimed anywhere, it is saved as an
+// additional alias of groupID. D-02 forbids any silent write when the kürzel already
+// belongs to a DIFFERENT group (or is already known for this same group) -- the
+// resolveFansubGroupMatches re-check below runs inside the same open apply transaction so
+// the "already known anywhere?" gate and the insert are transactionally consistent.
+func maybeLearnFansubGroupAlias(ctx context.Context, tx pgx.Tx, groupID int64, rawCandidate string) (*models.LearnedFansubAlias, error) {
+	raw := strings.TrimSpace(rawCandidate)
+	if raw == "" {
 		return nil, nil
 	}
 
-	selectedGroups := make([]models.SelectedFansubGroupInput, 0, len(parsedNames))
-	for _, parsedName := range parsedNames {
-		nextName := parsedName
-		selectedGroups = append(selectedGroups, models.SelectedFansubGroupInput{Name: &nextName})
+	existing, err := resolveFansubGroupMatches(ctx, tx, []string{raw})
+	if err != nil {
+		return nil, fmt.Errorf("check existing fansub group alias %q: %w", raw, err)
 	}
-	return resolveImportFansubSelectionFromInputs(ctx, tx, selectedGroups)
+	if len(existing) > 0 {
+		// Already known -- either for this exact group (nothing new to learn) or for a
+		// DIFFERENT group, in which case D-02 forbids any silent reassignment here.
+		return nil, nil
+	}
+
+	normalized := normalizeAliasKey(raw)
+	if normalized == "" {
+		return nil, nil
+	}
+
+	var aliasID int64
+	err = tx.QueryRow(ctx, `
+		INSERT INTO fansub_group_aliases (fansub_group_id, alias, normalized_alias)
+		VALUES ($1, $2, $3)
+		ON CONFLICT (normalized_alias) DO NOTHING
+		RETURNING id
+	`, groupID, raw, normalized).Scan(&aliasID)
+	if errors.Is(err, pgx.ErrNoRows) {
+		// Benign race: a concurrent writer claimed the exact same normalized alias
+		// between the check above and this insert.
+		return nil, nil
+	}
+	if err != nil {
+		return nil, fmt.Errorf("learn fansub group alias %q for group %d: %w", raw, groupID, err)
+	}
+
+	return &models.LearnedFansubAlias{FansubGroupID: groupID, Alias: raw}, nil
 }
 
 // resolveImportFansubSelectionFromInputs löst Fansub-Gruppen-Eingaben auf.
