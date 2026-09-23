@@ -19,6 +19,18 @@ import "fmt"
 // title or the "Folge N" fallback -- example: ".hack//G.U. Trilogy ·
 // (AnimeOwnage) · v1". titleEnteredByGroupSQL keeps unconditional priority,
 // unchanged. Series are unaffected.
+//
+// Auftraggeber-Entscheidung 2026-09-23 (GAP-24, 165-UAT.md): broadens the
+// above GAP-23 film rule to every "einteiler" (film always; ova/ona/special/
+// bonus only when the anime's canonical episode count is exactly 1) AND
+// refines it -- a stored placeholder episode title like "Episode 1"
+// (episodeTitlePlaceholderSQL) does NOT count as a real title for an
+// einteiler, so the anime title wins; a GENUINE episode title (e.g. "Parody
+// Mode") is kept, even for an einteiler -- correcting GAP-23's earlier
+// "films always show the anime title" description, which only held because
+// no real-film-segment-title case had been tested yet. Works read-only, on
+// already-stored placeholder legacy data too (e.g. anime #6/#7/#9), without
+// migrating it. titleEnteredByGroupSQL keeps unconditional priority.
 
 // titleEnteredByGroupSQL returns a boolean SQL expression that is true only when
 // releaseVersionAlias.title looks like something a group actually typed in: it is
@@ -41,27 +53,52 @@ func titleEnteredByGroupSQL(releaseVersionAlias, episodeAlias string) string {
    ))`, titleExpr, releaseVersionAlias)
 }
 
-// filmEpisodeSQL returns a boolean SQL expression that is true when the episode
-// identified by episodeAlias belongs to a film (GAP-23, 165-UAT.md): either the
-// owning anime row has type='film', or the episode's own episode_type_id resolves
-// to episode_types.name='movie'. Both signals are independently sufficient --
-// episode_import_repository_apply.go makes them coincide for new imports going
-// forward, but older/manually-curated rows may carry only one of the two. Both
-// are self-contained scalar subqueries: episodeAlias already exposes anime_id and
-// episode_type_id as its own columns, so no new JOIN is needed in the caller's
-// FROM clause.
-func filmEpisodeSQL(episodeAlias string) string {
+// einteilerEpisodeSQL returns a boolean SQL expression that is true when the
+// episode identified by episodeAlias belongs to an "einteiler" (GAP-23/GAP-24,
+// 165-UAT.md): either the owning anime row has type='film' (always an
+// einteiler), or the episode's own episode_type_id resolves to
+// episode_types.name='movie' (both film signals from GAP-23, independently
+// sufficient -- episode_import_repository_apply.go makes them coincide for new
+// imports going forward, but older/manually-curated rows may carry only one of
+// the two), or (GAP-24) the owning anime row has type IN
+// ('ova','ona','special','bonus') AND its canonical episode count is exactly
+// 1 -- the COUNT(*) branch is intentionally independent of the episode_type
+// signal, since older OVA rows may never carry episode_type_id='movie'. All
+// three are self-contained scalar subqueries: episodeAlias already exposes
+// anime_id and episode_type_id as its own columns, so no new JOIN is needed
+// in the caller's FROM clause.
+func einteilerEpisodeSQL(episodeAlias string) string {
 	return fmt.Sprintf(`(EXISTS (
     SELECT 1 FROM anime fa WHERE fa.id = %[1]s.anime_id AND fa.type = 'film'
    ) OR EXISTS (
     SELECT 1 FROM episode_types fet WHERE fet.id = %[1]s.episode_type_id AND fet.name = 'movie'
+   ) OR (
+    EXISTS (SELECT 1 FROM anime fa2 WHERE fa2.id = %[1]s.anime_id AND fa2.type IN ('ova','ona','special','bonus'))
+    AND (SELECT COUNT(*) FROM episodes fe WHERE fe.anime_id = %[1]s.anime_id) = 1
    ))`, episodeAlias)
 }
 
-// filmTitleSQL returns a scalar SQL expression for the anime/film title of the
-// episode identified by episodeAlias (GAP-23, 165-UAT.md).
-func filmTitleSQL(episodeAlias string) string {
-	return fmt.Sprintf(`(SELECT fa2.title FROM anime fa2 WHERE fa2.id = %[1]s.anime_id)`, episodeAlias)
+// einteilerAnimeTitleSQL returns a scalar SQL expression for the anime/film
+// title of the episode identified by episodeAlias (GAP-23/GAP-24, 165-UAT.md).
+// Uses alias fa3 to avoid collisions with the fa/fa2/fet/fe aliases used by
+// einteilerEpisodeSQL, even though SQL subquery scoping does not strictly
+// require it.
+func einteilerAnimeTitleSQL(episodeAlias string) string {
+	return fmt.Sprintf(`(SELECT fa3.title FROM anime fa3 WHERE fa3.id = %[1]s.anime_id)`, episodeAlias)
+}
+
+// episodeTitlePlaceholderSQL returns a boolean SQL expression that mirrors
+// GAP-24's placeholder-title detection (165-UAT.md) in Postgres regex syntax:
+// true when episodeAlias.title (trimmed) is an AniSearch placeholder like
+// "Episode 1"/"Folge 01"/"Ep. 1", or the bare form "Episode"/"Folge"/"Ep."
+// without a number. This intentionally DUPLICATES isPlaceholderEpisodeTitle
+// (episode_placeholder_title.go) -- Go's `regexp` and Postgres' `~*` are two
+// different regex engines and cannot share one implementation.
+// TestIsPlaceholderEpisodeTitle and this file's Postgres integration test
+// cover the identical case list to avoid drift between the two.
+func episodeTitlePlaceholderSQL(episodeAlias string) string {
+	return fmt.Sprintf(`(BTRIM(%[1]s.title) ~* ('^(episode|folge|ep\.?)\s*0*' || %[1]s.episode_number || '$')
+   OR BTRIM(%[1]s.title) ~* '^(episode|folge|ep\.?)\s*$')`, episodeAlias)
 }
 
 // publicReleaseNameSQL returns the final GAP-02/GAP-23 display-name SQL
@@ -80,7 +117,10 @@ func publicReleaseNameSQL(releaseVersionAlias, episodeAlias, groupNamesExpr stri
 	episodeTitleExpr := fmt.Sprintf("NULLIF(BTRIM(%s.title), '')", episodeAlias)
 	fallbackEpisodeTitleExpr := fmt.Sprintf("CONCAT('Folge ', %s.episode_number)", episodeAlias)
 	seriesFirstComponentExpr := fmt.Sprintf("COALESCE(%s, %s)", episodeTitleExpr, fallbackEpisodeTitleExpr)
-	firstComponentExpr := fmt.Sprintf("CASE WHEN %s THEN %s ELSE %s END", filmEpisodeSQL(episodeAlias), filmTitleSQL(episodeAlias), seriesFirstComponentExpr)
+	firstComponentExpr := fmt.Sprintf(
+		"CASE WHEN %[1]s AND (%[2]s IS NULL OR %[3]s) THEN %[4]s WHEN %[1]s THEN %[2]s ELSE %[5]s END",
+		einteilerEpisodeSQL(episodeAlias), episodeTitleExpr, episodeTitlePlaceholderSQL(episodeAlias), einteilerAnimeTitleSQL(episodeAlias), seriesFirstComponentExpr,
+	)
 	versionExpr := fmt.Sprintf("COALESCE(NULLIF(BTRIM(%s.version), ''), 'v1')", releaseVersionAlias)
 
 	return fmt.Sprintf(`CASE
