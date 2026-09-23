@@ -1,8 +1,8 @@
 ---
 phase: 167
 slug: fansub-gruppenerkennung-beim-import
-status: draft
-nyquist_compliant: false
+status: planned
+nyquist_compliant: true
 wave_0_complete: false
 created: 2026-09-23
 ---
@@ -38,16 +38,27 @@ created: 2026-09-23
 
 | Task ID | Plan | Wave | Requirement | Threat Ref | Secure Behavior | Test Type | Automated Command | File Exists | Status |
 |---------|------|------|-------------|------------|-----------------|-----------|-------------------|-------------|--------|
-| TBD | TBD | 0 | REQ-167-01..06, 18 | — | Parser returns correct group/version for all 13 real filenames incl. both failure cases; denylist applies uniformly | unit (table-driven) | `go test ./internal/importutil/... -run TestDeriveFansubGroupName -v` | ❌ W0 | ⬜ pending |
-| TBD | TBD | TBD | REQ-167-07..09 | T-167-SQLi | Batch match resolves name/slug/alias in one query, parameterized (no string concat) | unit + integration | `go test ./internal/repository/... -run TestResolveFansubGroupMatches -v` | ❌ W0 | ⬜ pending |
-| TBD | TBD | TBD | REQ-167-10..12 | — | No `INSERT INTO fansub_groups` fires from filename fallback; trigram suggestion only | unit + integration | `go test ./internal/repository/... -run TestApplyDoesNotAutoCreateGroup -v` | ❌ W0 | ⬜ pending |
-| TBD | TBD | TBD | REQ-167-13..15 | T-167-IDOR | Alias auto-learned on manual assign; conflict hint, no silent reassignment | unit (httptest+fake) + integration | `go test ./internal/handlers/... -run TestLearnFansubAlias -v` | ❌ W0 | ⬜ pending |
-| TBD | TBD | TBD | REQ-167-16..17 | T-167-IDOR | Alias CRUD + reassign visible in group admin UI, audited via existing `auditLogRepo.Write` shape | unit + frontend component test | `go test ./internal/handlers/... -run TestFansubAlias -v`; `npx vitest run <alias tab test>` | ⚠️ partial | ⬜ pending |
-| TBD | TBD | TBD | REQ-167-19 | — | Real-DB alias uniqueness + write-path proof (`UNIQUE(normalized_alias)`) | integration | `TEAM4S_PHASE167_TEST_DSN=... go test ./internal/repository/... -run Phase167Alias -v` | ❌ W0 | ⬜ pending |
-| TBD | TBD | TBD | REQ-167-20 | — | Constant query count for N-file preview (query_counter) | integration | `TEAM4S_PHASE167_TEST_DSN=... go test ./internal/repository/... -run Phase167QueryBudget -v` | ❌ W0 | ⬜ pending |
-| TBD | TBD | TBD | REQ-167-21 | — | Double-episode filenames documented, no assignment regression | unit (verify existing coverage) | `go test ./internal/repository/... -run TestEpisodeImportAutoassign -v` | ⚠️ verify | ⬜ pending |
-| TBD | TBD | TBD | REQ-167-22 | — | UI primitives, umlauts, file-size budget (no growth on already-oversized files) | manual | `wc -l backend/internal/handlers/admin_episode_import.go frontend/src/app/admin/anime/[id]/episodes/import/page.tsx` | ❌ no automated gate | ⬜ pending |
-| TBD | TBD | TBD | REQ-167-23 | — | Handler tests use httptest+fake, not source-inspection | unit | covered by REQ-167-13..17 test files | — | ⬜ pending |
+| 167-01-T1 | 01 | 1 | REQ-167-01..06 | T-167-ReDoS (Plan 01) | Parser returns correct group for all 13 real filenames incl. both failure-case corrections; denylist applies to every candidate bracket, not just the fallback branch | unit (table-driven) | `cd backend && go test ./internal/importutil/... -run TestDeriveFansubGroupName -v` | ❌ W0 | ⬜ pending |
+| 167-01-T2 | 01 | 1 | REQ-167-18 | — | `v2`/`v3`/`v4` detected incl. glued-to-bracket case (`[C281B950]v4`), pre-fills release version | unit (table-driven) | `cd backend && go test ./internal/importutil/... -run TestDeriveReleaseVersion -v` | ❌ W0 | ⬜ pending |
+| 167-02-T1 | 02 | 1 | REQ-167-19 (prereq) | — | New isolated Postgres fixture compiles, fail-closed DB/schema-name guard present | build | `cd backend && go build ./internal/testsupport/...` | ❌ W0 | ⬜ pending |
+| 167-02-T2 | 02 | 1 | REQ-167-07, REQ-167-11 | T-167-SQLi (Plan 02) | Batch match query built with parameterized `= ANY($1::text[])`, normalization expression copied byte-for-byte from `0140_search_foundation` | unit (SQL builder) | `cd backend && go test ./internal/repository/... -run TestBuildFansubGroupBatchMatchQuery -v` | ❌ W0 | ⬜ pending |
+| 167-02-T3 | 02 | 1 | REQ-167-07, REQ-167-08, REQ-167-19, REQ-167-20 | T-167-SQLi (Plan 02) | Real-DB exact-match tiers (alias/name/slug) resolve correctly; constant query count via `query_counter.go` regardless of file count | integration | `TEAM4S_PHASE167_TEST_DSN=... go test ./internal/repository/... -run TestResolveFansubGroupMatches -v` | ❌ W0 | ⬜ pending |
+| 167-03-T1 | 03 | 1 | REQ-167-14 | — | `ReassignAlias` repository method compiles, atomic single UPDATE | build | `cd backend && go build ./internal/repository/...` | ❌ W0 | ⬜ pending |
+| 167-03-T2 | 03 | 1 | REQ-167-15, REQ-167-16 | T-167-IDOR (Plan 03) | Reassign handler checks `CanForFansubGroup` against BOTH source and destination group before moving an alias | build | `cd backend && go build ./...` | ❌ W0 | ⬜ pending |
+| 167-03-T3 | 03 | 1 | REQ-167-17, REQ-167-23 | T-167-IDOR (Plan 03) | httptest+fake (not source-inspection) proves reassign audit-logs `fansub_group_alias.reassigned` and rejects cross-group actor without dest permission | unit (httptest+fake) | `cd backend && go test ./internal/handlers/... -run TestReassignFansubAlias -v` | ❌ W0 | ⬜ pending |
+| 167-04-T1 | 04 | 1 | REQ-167-08, REQ-167-09, REQ-167-11, REQ-167-12, REQ-167-18 | — | Additive display-only contract fields (origin, suggestions, version-source) added to TS type + `admin-content.yaml`, no server round-trip | build (typecheck) | `cd frontend && npx tsc --noEmit` | ❌ W0 | ⬜ pending |
+| 167-04-T2 | 04 | 1 | REQ-167-15, REQ-167-16 | — | `reassignFansubAlias` API client calls `PATCH .../aliases/:aliasId/reassign`, follows existing `ApiError`/`authorizedFetch` idiom | build (typecheck) | `cd frontend && npx tsc --noEmit` | ❌ W0 | ⬜ pending |
+| 167-05-T1 | 05 | 2 | REQ-167-08 (prereq) | — | Additive Go model fields compile | build | `cd backend && go build ./internal/models/...` | ❌ W0 | ⬜ pending |
+| 167-05-T2 | 05 | 2 | REQ-167-07, REQ-167-08, REQ-167-09, REQ-167-18, REQ-167-22 | — | `enrichEpisodeImportPreviewFansubData` wired into preview without growing `admin_episode_import.go` (new file only) | build | `cd backend && go build ./...` | ❌ W0 | ⬜ pending |
+| 167-05-T3 | 05 | 2 | REQ-167-07, REQ-167-08, REQ-167-11, REQ-167-12 | — | Preview enrichment resolves origin/suggestions/version correctly per fixture case | unit | `cd backend && go test ./internal/handlers/... -run TestEnrichEpisodeImportPreviewFansubData -v` | ❌ W0 | ⬜ pending |
+| 167-06-T1 | 06 | 3 | REQ-167-10, REQ-167-13 | — | Filename auto-create fallback removed from `resolveImportFansubSelection`; `maybeLearnFansubGroupAlias` added | build | `cd backend && go build ./internal/repository/...` | ❌ W0 | ⬜ pending |
+| 167-06-T2 | 06 | 3 | REQ-167-17 | — | Learned-alias accumulator threaded to apply result; audit logged in handler | build | `cd backend && go build ./...` | ❌ W0 | ⬜ pending |
+| 167-06-T3 | 06 | 3 | REQ-167-10, REQ-167-13, REQ-167-14, REQ-167-15, REQ-167-19, REQ-167-20, REQ-167-21 | — | Real-DB proof: no `INSERT INTO fansub_groups` fires from fallback; alias learned exactly once; conflicting alias not silently reassigned; double-episode filenames documented | integration | `TEAM4S_PHASE167_TEST_DSN=... go test ./internal/repository/... -run "TestApplyDoesNotAutoCreateFansubGroup\|TestApplyLearnsNewAliasForExplicitGroup\|TestApplyDoesNotReassignConflictingAlias" -v` | ❌ W0 | ⬜ pending |
+| 167-07-T1 | 07 | 2 | REQ-167-08, REQ-167-09, REQ-167-11, REQ-167-12, REQ-167-15, REQ-167-22 | T-167-DoS (batch size, covered at Plan 02/05 boundary) | `FansubGroupOriginHint` renders origin/suggestion/conflict states with `@/components/ui` primitives, German umlauts | frontend unit | `cd frontend && npx vitest run src/app/admin/anime/[id]/episodes/import/FansubGroupOriginHint.test.tsx` | ❌ W0 | ⬜ pending |
+| 167-07-T2 | 07 | 2 | REQ-167-08, REQ-167-09, REQ-167-18 | — | Wired into `EpisodeImportMappingRow`; release-version-manual override tracked without regressing existing native controls | build (typecheck) | `cd frontend && npx tsc --noEmit` | ❌ W0 | ⬜ pending |
+| 167-08-T1 | 08 | 2 | REQ-167-16 | — | `FansubAliasSection` component: list/add/delete/reassign, all via `@/components/ui` primitives with confirm dialogs on destructive actions | frontend unit | `cd frontend && npx vitest run src/app/admin/fansubs/[id]/edit/FansubAliasSection.test.tsx` | ❌ W0 | ⬜ pending |
+| 167-08-T2 | 08 | 2 | REQ-167-16, REQ-167-17, REQ-167-22 | — | Wired into `FansubDetailsTab`; new audit event types (`.learned`/`.reassigned`) get human-readable German translations in change history | frontend unit | `cd frontend && npx vitest run src/app/admin/changes/ChangeEntryTranslator.test.ts` | ❌ W0 | ⬜ pending |
+| — | — | — | REQ-167-23 | — | Handler tests use httptest+fake, not source-inspection (cross-cutting rule, not a separate task) | unit | covered by 167-03-T3 and 167-05-T3 | — | ⬜ pending |
 
 *Status: ⬜ pending · ✅ green · ❌ red · ⚠️ flaky*
 

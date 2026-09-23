@@ -381,32 +381,43 @@ No REQ-IDs exist for Phase 167 yet. Proposed candidates (planner to finalize num
 
 Not applicable — this phase introduces no new external dependencies (no new npm or Go module). All work uses existing stdlib (`regexp`, `strings`), existing `pgx`/`gin`/`testify` (already in `go.mod`), and existing Postgres extensions (`unaccent`, `pg_trgm`, already enabled via prior migrations). No `slopcheck`/registry verification needed.
 
-## Open Questions / Risks
+## Open Questions / Risks (RESOLVED)
 
-1. **Reassign-alias ("umhängen") has no existing repository method.**
+All 5 questions below were resolved during planning (`/gsd:plan-phase 167`) — each recommendation was
+adopted as-is by the plan named next to it. Kept here for traceability, not as open items.
+
+1. **RESOLVED (Plan 167-03): Reassign-alias ("umhängen") has no existing repository method.**
    - What we know: `CreateAlias`/`DeleteAlias`/`ListAliases` exist; no `ReassignAlias`/`MoveAlias`.
-   - What's unclear: whether D-02/D-09's "Umhängen nur auf ausdrückliche Aktion" should be implemented as a single atomic `UPDATE fansub_group_aliases SET fansub_group_id = $1 WHERE id = $2` (one audit event `fansub_group_alias.reassigned`) or composed from existing Delete+Create (two audit events, and a moment where the alias briefly doesn't exist).
-   - Recommendation: add a dedicated `ReassignAlias` method + `fansub_group_alias.reassigned` audit event for atomicity and clean audit history; this is Claude's Discretion per CONTEXT.md ("Ort der Alias-Verwaltung... genaue Darstellung"), not a locked decision, so the planner should decide and the discuss-phase/plan-check can confirm.
+   - Resolution: Plan 167-03 adds a dedicated `ReassignAlias` repository method (single atomic `UPDATE`) plus a
+     `fansub_group_alias.reassigned` audit event, exactly as recommended — not composed from Delete+Create.
 
-2. **Go-side alias normalization does not unaccent; SQL-side functional indexes do (Pitfall 5).**
+2. **RESOLVED (Plan 167-02): Go-side alias normalization does not unaccent; SQL-side functional indexes do (Pitfall 5).**
    - What we know: both are pre-existing, both used for different comparisons (Go for `normalized_alias` storage, SQL for `fansub_groups.name`/`.slug` functional-index matching).
-   - What's unclear: whether this phase should fix the Go-side asymmetry (touches shared, already-live normalization used elsewhere, e.g. `search_fansub.go`) or work around it locally in the new batch-matching query by always comparing through the SQL `f_unaccent` expression instead of trusting stored `normalized_alias` values for cross-checks against `fansub_groups`.
-   - Recommendation: scope the fix narrowly — new batch-matching SQL should always apply `f_unaccent` server-side to the raw parsed candidate string rather than relying on a Go-normalized value for the `fansub_groups.name`/`.slug` comparisons (it already must, for `fansub_group_aliases.normalized_alias` equality, since that column is genuinely ASCII-stripped-only). Flag the general Go/SQL normalization asymmetry as a separate cleanup, out of this phase's explicit scope, unless a real accented-alias case surfaces during D-10's testing.
+   - Resolution: Plan 167-02's batch-matching SQL always applies `f_unaccent` server-side to the raw parsed
+     candidate string for `fansub_groups.name`/`.slug` comparisons, scoped narrowly as recommended. The broader
+     Go/SQL normalization asymmetry in `normalizeAliasKey`/`normalizeFansubAliasKey` is explicitly NOT touched
+     this phase — remains a follow-up cleanup item for a future phase if an accented-alias case surfaces.
 
-3. **Extent of frontend UI-primitive migration inside `EpisodeImportMappingRow.tsx`.**
+3. **RESOLVED (Plan 167-07, per 167-UI-SPEC.md): Extent of frontend UI-primitive migration inside `EpisodeImportMappingRow.tsx`.**
    - What we know: the whole existing group-chip/search UI in this file uses native `<input>`/`<button>`, violating the current (not-yet-error-level) CLAUDE.md UI rule.
-   - What's unclear: whether adding the origin-hint + alias-learn-confirm UI should also migrate the pre-existing native controls in the same row to `@/components/ui` primitives, or whether that's out-of-scope scope creep for this phase (CLAUDE.md's own enforcement note says ESLint is currently `warn`, escalating to `error` "nach Migration der Altfälle" — implying a deliberate phased migration, not required all-at-once).
-   - Recommendation: new interactive elements this phase adds must use primitives; leave the pre-existing native controls as-is unless the discuss-phase/user explicitly wants the migration bundled in. Flag as a discuss-phase question rather than deciding unilaterally.
+   - Resolution: new interactive elements this phase adds (origin hint, suggestion chips, conflict/reassign
+     action) use `@/components/ui` primitives per 167-UI-SPEC.md; the pre-existing native group-chip controls
+     are left as-is, not bundled into this phase's scope.
 
-4. **`EpisodeImportMappingRow`/`SelectedFansubGroupInput` contract needs new field(s) for the origin hint.**
+4. **RESOLVED (Plan 167-04/167-05): `EpisodeImportMappingRow`/`SelectedFansubGroupInput` contract needs new field(s) for the origin hint.**
    - What we know: neither the Go model (`backend/internal/models/episode_import.go`) nor the contract (`shared/contracts/admin-content.yaml:1772-1783`) currently has any field to carry "this selection came from an alias match, here's which alias" — only `fansub_group_name` (raw derived text) and `fansub_groups`/`fansub_group_id` (operator selection) exist today.
-   - What's unclear: exact shape (a new `fansub_group_match_origin: string | null` field on `EpisodeImportMappingRow`? A richer object replacing the plain `EpisodeImportSelectedFansubGroup`?).
-   - Recommendation: planner should design this as an additive field on `EpisodeImportMappingRow` (Go DTO + OpenAPI/admin-content.yaml + TS type + `frontend/src/lib/api.ts`, per the repo's QUAL-01-style convention of keeping all four in sync), populated once during batch matching, never persisted (display-only, consistent with `episodeImportReleaseTitle`'s established "preview-only, never written back" precedent at `episode_import_repository_release_helpers.go:417-424`).
+   - Resolution: Plan 167-04 adds three additive, display-only fields to `EpisodeImportMappingRow`
+     (`fansub_group_match_origin`, `fansub_group_suggestions`, `release_version_source`) across the Go DTO,
+     `admin-content.yaml`, TS type, and `frontend/src/lib/api.ts`, populated once during Plan 167-05's batch
+     matching, never persisted. A fourth field originally sketched (`fansub_alias_conflict`) was dropped during
+     plan verification — conflict state is derived client-side in Plan 167-07 by comparing
+     `fansub_group_match_origin.group_id` to the admin's current selection, so a dedicated contract field would
+     have been dead surface.
 
-5. **Version-detection regex edge case: `[GK]No Game, No Life - 01(720p 10bit)[C281B950]v4.mkv`.**
+5. **RESOLVED (Plan 167-01): Version-detection regex edge case: `[GK]No Game, No Life - 01(720p 10bit)[C281B950]v4.mkv`.**
    - What we know: `v4` sits directly after the checksum bracket with no separator, immediately before the extension.
-   - What's unclear: whether the version pattern should be a strict `v[2-4]$` (post extension-strip) suffix check, or needs to tolerate being glued directly onto a preceding `]` with zero whitespace/punctuation (as in this real sample) versus other samples where it might follow a `.`/`-`/space.
-   - Recommendation: the table test (D-10) already includes this exact filename in the parser fixtures; design the version regex against it directly (e.g., `(?i)v([2-9])$` applied to the extension-stripped filename, checked independently of and after the group-name extraction) rather than trying to derive a rule abstractly.
+   - Resolution: Plan 167-01's `DeriveReleaseVersion` table test includes this exact filename as a fixture; the
+     version regex is designed and verified directly against it, not derived abstractly.
 
 ## Environment Availability
 
