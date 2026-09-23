@@ -623,10 +623,10 @@ importierter Releases, keine Fuzzy-Automatik (Vorschläge werden nie automatisch
 - [x] **REQ-167-06**: Tabellentests mit allen 13 realen Dateinamen aus der Messtabelle (inkl. beider Fehlerfälle) existieren in `internal/importutil` (D-10).
 - [x] **REQ-167-07**: Das erkannte Kürzel wird gebündelt (eine Abfrage je Vorschau) gegen `fansub_groups.name`/`.slug`/`fansub_group_aliases.normalized_alias`, normalisiert, abgeglichen (D-08).
 - [x] **REQ-167-08**: Bei eindeutigem Treffer ist die Gruppe im Mapping vorausgewählt, mit sichtbarem Herkunftshinweis („erkannt aus Dateiname: X → Y (Alias/Name/Slug)") (D-08).
-- [ ] **REQ-167-09**: Der Admin kann die Vorauswahl jederzeit ändern; nichts wird ohne sichtbaren Hinweis automatisch gesetzt.
+- [x] **REQ-167-09**: Der Admin kann die Vorauswahl jederzeit ändern; nichts wird ohne sichtbaren Hinweis automatisch gesetzt.
 - [ ] **REQ-167-10**: Der bestehende Auto-Upsert aus Dateinamen entfällt; eine unaufgelöste Zeile erzeugt beim Anwenden keine neue `fansub_groups`-Zeile mehr (D-03).
 - [x] **REQ-167-11**: Bei fehlendem Treffer werden ähnliche Gruppen über den vorhandenen Trigram-Index nur vorgeschlagen, nie automatisch übernommen (D-03).
-- [ ] **REQ-167-12**: Ohne Treffer bleibt die Gruppenauswahl leer; der Admin wählt manuell.
+- [x] **REQ-167-12**: Ohne Treffer bleibt die Gruppenauswahl leer; der Admin wählt manuell.
 - [ ] **REQ-167-13**: Ordnet der Admin ein erkanntes, bisher unbekanntes Kürzel einer bestehenden Gruppe zu, wird es automatisch als weiterer Alias dieser Gruppe gespeichert (D-01).
 - [x] **REQ-167-14**: Mehrere Aliase pro Gruppe sind erlaubt; ein Alias gehört systemweit genau einer Gruppe, durchgesetzt über die bestehende `UNIQUE(normalized_alias)`-Constraint (D-01).
 - [x] **REQ-167-15**: Gehört das Kürzel bereits einer anderen Gruppe, erscheint ein sichtbarer Hinweis „Kürzel gehört bereits zu <Gruppe>"; Umhängen geschieht ausschließlich über eine ausdrückliche, bestätigte Aktion, nie still (D-02).

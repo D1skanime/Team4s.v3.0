@@ -2152,7 +2152,7 @@ Plans:
 **Verbindliche Quellen:** `.planning/phases/167-fansub-gruppenerkennung-beim-import/167-USER-REQUEST.md`, `167-CONTEXT.md`
 **Scopegrenze:** keine Änderung der Episodenzuordnung (Doppelfolgen nur prüfen/dokumentieren), kein Umbenennen von Dateien, keine rückwirkende Zuordnung bereits importierter Releases, keine Fuzzy-Automatik.
 **UI hint:** yes
-**Plans:** 3/8 plans executed
+**Plans:** 4/8 plans executed
 
 Plans:
 **Wave 1**
@@ -2160,7 +2160,7 @@ Plans:
 - [x] 167-01-PLAN.md — Parser hardening (filename-only, denylist, scene-schema) + release-version detection
 - [x] 167-02-PLAN.md — Batch fansub-group matching repository + Phase-167 Postgres test fixture
 - [x] 167-03-PLAN.md — ReassignAlias backend endpoint (dual permission check) + route + audit
-- [ ] 167-04-PLAN.md — Frontend contract types + reassignFansubAlias API client
+- [x] 167-04-PLAN.md — Frontend contract types + reassignFansubAlias API client
 
 **Wave 2** *(blocked on Wave 1 completion)*
 
