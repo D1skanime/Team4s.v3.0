@@ -210,4 +210,23 @@ describe("FansubAliasSection — Umhängen", () => {
       expect(getFansubAliases).toHaveBeenCalledTimes(2);
     });
   });
+
+  it("initialisiert das Ziel-Dropdown auf den Platzhalter statt auf die eigene (ausgeschlossene) Gruppe (CR-01)", async () => {
+    getFansubAliases.mockResolvedValue({ data: [ALIAS_ROW] });
+
+    renderSection();
+
+    const select = (await screen.findByLabelText(
+      "Neue Gruppe für Alias BDnP",
+    )) as HTMLSelectElement;
+
+    // DOM-Wert entspricht dem React-State: nichts ist ausgewählt.
+    expect(select.value).toBe("");
+    const optionValues = Array.from(select.options).map((option) => option.value);
+    // Nur der Platzhalter (leer, disabled) und die Gruppen aus availableTargetGroups
+    // (schließt die eigene Gruppe fansubID=10 aus) sind wählbar.
+    expect(optionValues).toEqual(["", "11"]);
+    expect(select.options[0].disabled).toBe(true);
+    expect(optionValues).not.toContain("10");
+  });
 });

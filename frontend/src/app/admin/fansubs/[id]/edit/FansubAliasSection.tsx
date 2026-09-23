@@ -225,7 +225,7 @@ export function FansubAliasSection({
               </TableHead>
               <TableBody>
                 {(aliases ?? []).map((row) => {
-                  const selectedTarget = reassignTargetByAliasID[row.id] ?? row.fansub_group_id;
+                  const selectedTarget = reassignTargetByAliasID[row.id] ?? '';
                   return (
                     <TableRow key={row.id}>
                       <TableCell>{row.alias}</TableCell>
@@ -242,6 +242,9 @@ export function FansubAliasSection({
                             }))
                           }
                         >
+                          <option value="" disabled>
+                            Zielgruppe wählen…
+                          </option>
                           {availableTargetGroups.map((group) => (
                             <option key={group.id} value={String(group.id)}>
                               {group.name}
@@ -251,7 +254,7 @@ export function FansubAliasSection({
                         <Button
                           variant="secondary"
                           size="sm"
-                          disabled={!canManage || selectedTarget === row.fansub_group_id}
+                          disabled={!canManage || !selectedTarget || selectedTarget === row.fansub_group_id}
                           onClick={() => void handleReassign(row)}
                         >
                           Umhängen
