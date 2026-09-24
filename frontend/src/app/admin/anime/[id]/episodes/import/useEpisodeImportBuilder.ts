@@ -69,6 +69,7 @@ interface UseEpisodeImportBuilderState {
   isApplying: boolean
   applyingRowId: string | null
   errorMessage: string | null
+  applyErrorMessage: string | null
   summary: ReturnType<typeof summarizeImportPreview> | null
   canApply: boolean
   hasSuggestedRows: boolean
@@ -110,6 +111,7 @@ export function useEpisodeImportBuilder(animeID: number | null): UseEpisodeImpor
   const [isApplying, setIsApplying] = useState(false)
   const [applyingRowId, setApplyingRowId] = useState<string | null>(null)
   const [errorMessage, setErrorMessage] = useState<string | null>(null)
+  const [applyErrorMessage, setApplyErrorMessage] = useState<string | null>(null)
 
   useEffect(() => {
     async function loadContext() {
@@ -121,6 +123,7 @@ export function useEpisodeImportBuilder(animeID: number | null): UseEpisodeImpor
 
       setIsLoadingContext(true)
       setErrorMessage(null)
+      setApplyErrorMessage(null)
       try {
         const response = await getEpisodeImportContext(animeID)
         setContext(response.data)
@@ -212,6 +215,7 @@ export function useEpisodeImportBuilder(animeID: number | null): UseEpisodeImpor
     if (!animeID) return
     setIsPreviewing(true)
     setErrorMessage(null)
+    setApplyErrorMessage(null)
     setApplyResult(null)
     try {
       const response = await previewEpisodeImport(
@@ -235,7 +239,7 @@ export function useEpisodeImportBuilder(animeID: number | null): UseEpisodeImpor
   async function applyMappings() {
     if (!animeID || !preview || !canApply) return
     setIsApplying(true)
-    setErrorMessage(null)
+    setApplyErrorMessage(null)
     try {
       const response = await applyEpisodeImport(
         animeID,
@@ -243,7 +247,7 @@ export function useEpisodeImportBuilder(animeID: number | null): UseEpisodeImpor
       )
       setApplyResult(response.data)
     } catch (error) {
-      setErrorMessage(formatEpisodeImportError(error, 'Mapping konnte nicht angewendet werden.'))
+      setApplyErrorMessage(formatEpisodeImportError(error, 'Mapping konnte nicht angewendet werden.'))
     } finally {
       setIsApplying(false)
     }
@@ -282,6 +286,7 @@ export function useEpisodeImportBuilder(animeID: number | null): UseEpisodeImpor
     isApplying,
     applyingRowId,
     errorMessage,
+    applyErrorMessage,
     summary,
     canApply,
     hasSuggestedRows,

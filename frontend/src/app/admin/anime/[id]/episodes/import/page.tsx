@@ -10,6 +10,7 @@ import type {
 } from "@/types/episodeImport";
 
 import { PlatformAdminGate } from "@/components/auth/PlatformAdminGate";
+import { EpisodeImportApplyErrorAlert } from "./EpisodeImportApplyErrorAlert";
 import { EpisodeImportFolderSelector } from "./EpisodeImportFolderSelector";
 import { EpisodeImportMappingRowCard } from "./EpisodeImportMappingRow";
 import { jellyfinSourceKey } from "@/lib/jellyfinSourceIdentity";
@@ -117,7 +118,7 @@ function AdminAnimeEpisodeImportContent() {
         <div className={styles.notice}>Import-Kontext wird geladen...</div>
       ) : null}
       {builder.errorMessage ? (
-        <div className={styles.error}>{builder.errorMessage}</div>
+        <div className={styles.error} role="alert">{builder.errorMessage}</div>
       ) : null}
 
       <section className={styles.panel}>
@@ -243,6 +244,7 @@ function AdminAnimeEpisodeImportContent() {
                 {builder.isApplying ? "Wendet an..." : "Mapping anwenden"}
               </button>
             </div>
+            <EpisodeImportApplyErrorAlert message={builder.applyErrorMessage} />
           </div>
 
           <div className={styles.episodeGroups}>

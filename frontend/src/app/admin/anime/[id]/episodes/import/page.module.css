@@ -228,6 +228,11 @@
   align-items: center;
 }
 
+.applyErrorAlert {
+  margin-top: 12px;
+  width: 100%;
+}
+
 /* ---- Episode groups ---- */
 
 .episodeGroups {
