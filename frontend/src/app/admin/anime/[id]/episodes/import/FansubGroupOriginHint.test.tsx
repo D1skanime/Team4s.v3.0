@@ -218,4 +218,30 @@ describe('FansubGroupOriginHint', () => {
 
     expect(container.firstChild).toBeNull()
   })
+
+  it('Zustand E: shows a hint for a detected but unmatched fansub abbreviation', () => {
+    const row = makeRow({
+      fansub_group_match_origin: null,
+      fansub_group_suggestions: [],
+      fansub_group_name: 'GAX',
+    })
+
+    renderHint({ row, selectedFansubGroups: [] })
+
+    expect(
+      screen.getByText('Kürzel „GAX" erkannt – keiner Gruppe zugeordnet. Nach der Zuweisung wird es als Alias gelernt.'),
+    ).not.toBeNull()
+  })
+
+  it('Zustand E: does not render once a fansub group has been selected for the row', () => {
+    const row = makeRow({
+      fansub_group_match_origin: null,
+      fansub_group_suggestions: [],
+      fansub_group_name: 'GAX',
+    })
+
+    const { container } = renderHint({ row, selectedFansubGroups: [{ id: 3, name: 'AnyGroup' }] })
+
+    expect(container.firstChild).toBeNull()
+  })
 })

@@ -43,6 +43,14 @@ export function FansubGroupOriginHint({
   const suggestions = row.fansub_group_suggestions ?? []
 
   if (!origin && suggestions.length === 0) {
+    const detectedRaw = row.fansub_group_name?.trim() ?? ''
+    if (detectedRaw && selectedFansubGroups.length === 0) {
+      return (
+        <span className={styles.originHint} aria-label={`Alias-Herkunft für ${label}`} data-source-key={sourceKey}>
+          {`Kürzel „${detectedRaw}" erkannt – keiner Gruppe zugeordnet. Nach der Zuweisung wird es als Alias gelernt.`}
+        </span>
+      )
+    }
     return null
   }
 
