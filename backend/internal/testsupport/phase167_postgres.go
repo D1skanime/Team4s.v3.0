@@ -61,10 +61,26 @@ CREATE TABLE fansub_groups (
 	id BIGSERIAL PRIMARY KEY,
 	slug VARCHAR(120) NOT NULL,
 	name VARCHAR(120) NOT NULL,
-	status VARCHAR(20) NOT NULL DEFAULT 'active'
+	kuerzel VARCHAR(32),
+	normalized_kuerzel VARCHAR(32),
+	logo_id BIGINT,
+	banner_id BIGINT,
+	logo_url TEXT,
+	banner_url TEXT,
+	founded_year INTEGER,
+	dissolved_year INTEGER,
+	closed_year INTEGER,
+	website_url TEXT,
+	discord_url TEXT,
+	irc_url TEXT,
+	country VARCHAR(80),
+	status VARCHAR(20) NOT NULL DEFAULT 'active',
+	created_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
+	updated_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
 );
 CREATE UNIQUE INDEX idx_fansub_groups_slug ON fansub_groups (slug);
 CREATE UNIQUE INDEX idx_fansub_groups_name ON fansub_groups (name);
+CREATE UNIQUE INDEX uq_fansub_groups_normalized_kuerzel ON fansub_groups (normalized_kuerzel) WHERE normalized_kuerzel IS NOT NULL;
 
 CREATE TABLE fansub_group_aliases (
 	id BIGSERIAL PRIMARY KEY,
@@ -77,6 +93,41 @@ CREATE TABLE fansub_group_aliases (
 	CONSTRAINT uq_fansub_group_aliases_group_normalized UNIQUE (fansub_group_id, normalized_alias)
 );
 CREATE INDEX idx_fansub_group_aliases_group_id ON fansub_group_aliases (fansub_group_id);
+
+-- Minimal empty stand-ins for the tables FansubRepository.hydrateFansubGroup's
+-- attachGroupCounts/attachGroupLinks query when the full UpdateGroup/GetGroupByID/
+-- GetGroupBySlug read paths run against this fixture (needed starting with the
+-- Kürzel conflict tests, which call those exported methods directly instead of
+-- only the lower-level learn/apply helpers prior fixtures exercised). Kept
+-- empty/unpopulated by every test -- their sole purpose is to let the COUNT(*)
+-- queries return zero rows without erroring on a missing relation.
+CREATE TABLE app_users (id BIGSERIAL PRIMARY KEY);
+CREATE TABLE anime (id BIGSERIAL PRIMARY KEY, status VARCHAR(20) NOT NULL DEFAULT 'active');
+CREATE TABLE anime_fansub_groups (
+	anime_id BIGINT NOT NULL,
+	fansub_group_id BIGINT NOT NULL REFERENCES fansub_groups(id) ON DELETE CASCADE
+);
+CREATE TABLE release_version_groups (
+	fansub_group_id BIGINT NOT NULL REFERENCES fansub_groups(id) ON DELETE CASCADE
+);
+CREATE TABLE fansub_group_members (
+	fansub_group_id BIGINT NOT NULL REFERENCES fansub_groups(id) ON DELETE CASCADE,
+	app_user_id BIGINT NOT NULL,
+	status VARCHAR(20) NOT NULL DEFAULT 'active'
+);
+CREATE TABLE hist_fansub_group_members (
+	fansub_group_id BIGINT NOT NULL REFERENCES fansub_groups(id) ON DELETE CASCADE,
+	status VARCHAR(20) NOT NULL DEFAULT 'historical',
+	visibility VARCHAR(20) NOT NULL DEFAULT 'public'
+);
+CREATE TABLE fansub_group_links (
+	id BIGSERIAL PRIMARY KEY,
+	group_id BIGINT NOT NULL REFERENCES fansub_groups(id) ON DELETE CASCADE,
+	link_type VARCHAR(20) NOT NULL,
+	name TEXT,
+	url TEXT NOT NULL,
+	created_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
+);
 
 CREATE OR REPLACE FUNCTION f_unaccent(text)
 	RETURNS text

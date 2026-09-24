@@ -37,6 +37,7 @@ type FansubGroup struct {
 	ID                      int64             `json:"id"`
 	Slug                    string            `json:"slug"`
 	Name                    string            `json:"name"`
+	Kuerzel                 *string           `json:"kuerzel,omitempty"`
 	LogoID                  *int64            `json:"logo_id,omitempty"`
 	BannerID                *int64            `json:"banner_id,omitempty"`
 	LogoURL                 *string           `json:"logo_url,omitempty"`
@@ -208,10 +209,17 @@ type FansubGroupCreateInput struct {
 	Country       *string
 }
 
+// FansubGroupConflictOwner benennt die Gruppe, die ein Kuerzel/einen Alias bereits besitzt.
+type FansubGroupConflictOwner struct {
+	ID   int64
+	Name string
+}
+
 // FansubGroupPatchInput enthaelt die patch-faehigen Felder einer Fansub-Gruppe.
 type FansubGroupPatchInput struct {
 	Slug          OptionalString `json:"slug"`
 	Name          OptionalString `json:"name"`
+	Kuerzel       OptionalString `json:"kuerzel"`
 	LogoID        OptionalInt64  `json:"logo_id"`
 	BannerID      OptionalInt64  `json:"banner_id"`
 	LogoURL       OptionalString `json:"logo_url"`

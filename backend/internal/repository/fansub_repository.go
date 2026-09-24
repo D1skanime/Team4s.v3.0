@@ -66,7 +66,7 @@ func (r *FansubRepository) ListGroups(
 
 	listQuery := fmt.Sprintf(`
 		SELECT
-			id, slug, name, logo_id, banner_id, logo_url, banner_url,
+			id, slug, name, kuerzel, logo_id, banner_id, logo_url, banner_url,
 			founded_year, dissolved_year, closed_year, status, 'group' AS group_type, website_url, discord_url, irc_url, country,
 			created_at, updated_at
 		FROM fansub_groups
@@ -114,7 +114,7 @@ func (r *FansubRepository) CreateGroup(
 		)
 		VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13)
 		RETURNING
-			id, slug, name, logo_id, banner_id, logo_url, banner_url,
+			id, slug, name, kuerzel, logo_id, banner_id, logo_url, banner_url,
 			founded_year, dissolved_year, closed_year, status, 'group' AS group_type, website_url, discord_url, irc_url, country,
 			created_at, updated_at
 	`
@@ -140,6 +140,7 @@ func (r *FansubRepository) CreateGroup(
 		&item.ID,
 		&item.Slug,
 		&item.Name,
+		&item.Kuerzel,
 		&item.LogoID,
 		&item.BannerID,
 		&item.LogoURL,
@@ -172,7 +173,7 @@ func (r *FansubRepository) CreateGroup(
 func (r *FansubRepository) GetGroupByID(ctx context.Context, id int64) (*models.FansubGroup, error) {
 	query := `
 		SELECT
-			id, slug, name, logo_id, banner_id, logo_url, banner_url,
+			id, slug, name, kuerzel, logo_id, banner_id, logo_url, banner_url,
 			founded_year, dissolved_year, closed_year, status, 'group' AS group_type, website_url, discord_url, irc_url, country,
 			created_at, updated_at
 		FROM fansub_groups
@@ -184,6 +185,7 @@ func (r *FansubRepository) GetGroupByID(ctx context.Context, id int64) (*models.
 		&item.ID,
 		&item.Slug,
 		&item.Name,
+		&item.Kuerzel,
 		&item.LogoID,
 		&item.BannerID,
 		&item.LogoURL,
@@ -215,7 +217,7 @@ func (r *FansubRepository) GetGroupByID(ctx context.Context, id int64) (*models.
 func (r *FansubRepository) GetGroupBySlug(ctx context.Context, slug string) (*models.FansubGroup, error) {
 	query := `
 		SELECT
-			id, slug, name, logo_id, banner_id, logo_url, banner_url,
+			id, slug, name, kuerzel, logo_id, banner_id, logo_url, banner_url,
 			founded_year, dissolved_year, closed_year, status, 'group' AS group_type, website_url, discord_url, irc_url, country,
 			created_at, updated_at
 		FROM fansub_groups
@@ -227,6 +229,7 @@ func (r *FansubRepository) GetGroupBySlug(ctx context.Context, slug string) (*mo
 		&item.ID,
 		&item.Slug,
 		&item.Name,
+		&item.Kuerzel,
 		&item.LogoID,
 		&item.BannerID,
 		&item.LogoURL,
@@ -679,7 +682,7 @@ func (r *FansubRepository) UpdateGroup(
 		SET %s
 		WHERE id = $%d
 		RETURNING
-			id, slug, name, logo_id, banner_id, logo_url, banner_url,
+			id, slug, name, kuerzel, logo_id, banner_id, logo_url, banner_url,
 			founded_year, dissolved_year, closed_year, status, 'group' AS group_type, website_url, discord_url, irc_url, country,
 			created_at, updated_at
 	`, strings.Join(assignments, ", "), argPos)
@@ -690,6 +693,7 @@ func (r *FansubRepository) UpdateGroup(
 		&item.ID,
 		&item.Slug,
 		&item.Name,
+		&item.Kuerzel,
 		&item.LogoID,
 		&item.BannerID,
 		&item.LogoURL,
@@ -1592,6 +1596,7 @@ func scanFansubGroup(rows fansubRowScanner) (*models.FansubGroup, error) {
 		&item.ID,
 		&item.Slug,
 		&item.Name,
+		&item.Kuerzel,
 		&item.LogoID,
 		&item.BannerID,
 		&item.LogoURL,
