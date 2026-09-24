@@ -124,6 +124,39 @@ func TestValidateFansubGroupPatchRequest_InvalidGroupType(t *testing.T) {
 	}
 }
 
+func TestValidateFansubGroupPatchRequest_KuerzelTooLong(t *testing.T) {
+	var patch models.FansubGroupPatchInput
+	if err := json.Unmarshal([]byte(`{"kuerzel":"123456789012345678901234567890123"}`), &patch); err != nil {
+		t.Fatalf("unmarshal patch: %v", err)
+	}
+	if len([]rune(*patch.Kuerzel.Value)) != 33 {
+		t.Fatalf("test fixture must carry a 33-rune kuerzel, got %d runes", len([]rune(*patch.Kuerzel.Value)))
+	}
+
+	_, message := validateFansubGroupPatchRequest(patch)
+	if message != "ungültiger kuerzel parameter" {
+		t.Fatalf("unexpected message: %q", message)
+	}
+}
+
+func TestValidateFansubGroupPatchRequest_KuerzelAcceptedTrimmed(t *testing.T) {
+	var patch models.FansubGroupPatchInput
+	if err := json.Unmarshal([]byte(`{"kuerzel":"  BDnP  "}`), &patch); err != nil {
+		t.Fatalf("unmarshal patch: %v", err)
+	}
+
+	validated, message := validateFansubGroupPatchRequest(patch)
+	if message != "" {
+		t.Fatalf("expected no validation error, got %q", message)
+	}
+	if !validated.Kuerzel.Set || validated.Kuerzel.Value == nil {
+		t.Fatalf("expected kuerzel to be set")
+	}
+	if *validated.Kuerzel.Value != "BDnP" {
+		t.Fatalf("expected trimmed kuerzel %q, got %q", "BDnP", *validated.Kuerzel.Value)
+	}
+}
+
 func TestValidateFansubGroupPatchPermission_AllowsLeaderNamePatch(t *testing.T) {
 	var patch models.FansubGroupPatchInput
 	if err := json.Unmarshal([]byte(`{"name":"AnimeOwnage"}`), &patch); err != nil {

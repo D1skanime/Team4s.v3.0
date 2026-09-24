@@ -90,6 +90,12 @@ func validateFansubGroupPatchRequest(req models.FansubGroupPatchInput) (models.F
 			return models.FansubGroupPatchInput{}, "country ist zu lang"
 		}
 	}
+	if req.Kuerzel.Set {
+		req.Kuerzel.Value = normalizeNullableString(req.Kuerzel.Value)
+		if req.Kuerzel.Value != nil && len([]rune(*req.Kuerzel.Value)) > 32 {
+			return models.FansubGroupPatchInput{}, "ungültiger kuerzel parameter"
+		}
+	}
 
 	return req, ""
 }
@@ -111,6 +117,7 @@ func validateFansubGroupPatchPermission(req models.FansubGroupPatchInput, actor 
 func hasAnyFansubGroupPatchField(req models.FansubGroupPatchInput) bool {
 	return req.Slug.Set ||
 		req.Name.Set ||
+		req.Kuerzel.Set ||
 		req.LogoID.Set ||
 		req.BannerID.Set ||
 		req.LogoURL.Set ||

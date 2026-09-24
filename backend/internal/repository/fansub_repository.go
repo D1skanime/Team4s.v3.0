@@ -669,6 +669,28 @@ func (r *FansubRepository) UpdateGroup(
 		args = append(args, input.Country.Value)
 		argPos++
 	}
+	if input.Kuerzel.Set {
+		var normalized *string
+		if input.Kuerzel.Value != nil {
+			normalizedValue := normalizeAliasKey(*input.Kuerzel.Value)
+			if normalizedValue != "" {
+				owner, err := r.findFansubKuerzelOrAliasOwner(ctx, normalizedValue, id)
+				if err != nil {
+					return nil, err
+				}
+				if owner != nil {
+					return nil, &ConflictOwnerError{OwnerGroupID: owner.ID, OwnerGroupName: owner.Name}
+				}
+				normalized = &normalizedValue
+			}
+		}
+		assignments = append(assignments, fmt.Sprintf("kuerzel = $%d", argPos))
+		args = append(args, input.Kuerzel.Value)
+		argPos++
+		assignments = append(assignments, fmt.Sprintf("normalized_kuerzel = $%d", argPos))
+		args = append(args, normalized)
+		argPos++
+	}
 
 	if len(assignments) == 1 {
 		if input.GroupType.Set {
@@ -994,11 +1016,66 @@ func (r *FansubRepository) ListAliases(ctx context.Context, fansubID int64) ([]m
 	return items, nil
 }
 
+// findFansubKuerzelOwner looks up the fansub group (if any, other than excludeGroupID)
+// that already owns normalizedValue as its Kürzel. Returns (nil, nil) when no other
+// group owns it.
+func (r *FansubRepository) findFansubKuerzelOwner(
+	ctx context.Context,
+	normalizedValue string,
+	excludeGroupID int64,
+) (*models.FansubGroupConflictOwner, error) {
+	var owner models.FansubGroupConflictOwner
+	err := r.db.QueryRow(ctx, `
+		SELECT id, name FROM fansub_groups WHERE normalized_kuerzel = $1 AND id <> $2 LIMIT 1
+	`, normalizedValue, excludeGroupID).Scan(&owner.ID, &owner.Name)
+	if errors.Is(err, pgx.ErrNoRows) {
+		return nil, nil
+	}
+	if err != nil {
+		return nil, fmt.Errorf("find fansub kuerzel owner: %w", err)
+	}
+	return &owner, nil
+}
+
+// findFansubKuerzelOrAliasOwner looks up the fansub group (if any, other than
+// excludeGroupID) that already owns normalizedValue as either its Kürzel or one of
+// its aliases. Returns (nil, nil) when no other group owns it in either form.
+func (r *FansubRepository) findFansubKuerzelOrAliasOwner(
+	ctx context.Context,
+	normalizedValue string,
+	excludeGroupID int64,
+) (*models.FansubGroupConflictOwner, error) {
+	var owner models.FansubGroupConflictOwner
+	err := r.db.QueryRow(ctx, `
+		SELECT id, name FROM fansub_groups WHERE normalized_kuerzel = $1 AND id <> $2
+		UNION
+		SELECT g.id, g.name FROM fansub_group_aliases a
+		JOIN fansub_groups g ON g.id = a.fansub_group_id
+		WHERE a.normalized_alias = $1 AND a.fansub_group_id <> $2
+		LIMIT 1
+	`, normalizedValue, excludeGroupID).Scan(&owner.ID, &owner.Name)
+	if errors.Is(err, pgx.ErrNoRows) {
+		return nil, nil
+	}
+	if err != nil {
+		return nil, fmt.Errorf("find fansub kuerzel or alias owner: %w", err)
+	}
+	return &owner, nil
+}
+
 func (r *FansubRepository) CreateAlias(
 	ctx context.Context,
 	fansubID int64,
 	input models.FansubAliasCreateInput,
 ) (*models.FansubAlias, error) {
+	owner, err := r.findFansubKuerzelOwner(ctx, input.NormalizedAlias, fansubID)
+	if err != nil {
+		return nil, err
+	}
+	if owner != nil {
+		return nil, &ConflictOwnerError{OwnerGroupID: owner.ID, OwnerGroupName: owner.Name}
+	}
+
 	query := `
 		INSERT INTO fansub_group_aliases (fansub_group_id, alias, normalized_alias)
 		VALUES ($1, $2, $3)

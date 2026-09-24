@@ -2,6 +2,7 @@ package handlers
 
 import (
 	"errors"
+	"fmt"
 	"log"
 	"net/http"
 
@@ -74,6 +75,15 @@ func (h *FansubHandler) CreateFansubAlias(c *gin.Context) {
 		c.JSON(http.StatusNotFound, gin.H{
 			"error": gin.H{
 				"message": "fansubgruppe nicht gefunden",
+			},
+		})
+		return
+	}
+	var ownerErr *repository.ConflictOwnerError
+	if errors.As(err, &ownerErr) {
+		c.JSON(http.StatusConflict, gin.H{
+			"error": gin.H{
+				"message": fmt.Sprintf("Alias entspricht bereits dem Kürzel von %s.", ownerErr.OwnerGroupName),
 			},
 		})
 		return

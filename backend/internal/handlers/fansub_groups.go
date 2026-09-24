@@ -3,6 +3,7 @@ package handlers
 import (
 	"context"
 	"errors"
+	"fmt"
 	"log"
 	"math"
 	"net/http"
@@ -294,6 +295,15 @@ func (h *FansubHandler) UpdateFansub(c *gin.Context) {
 		})
 		return
 	}
+	var ownerErr *repository.ConflictOwnerError
+	if errors.As(err, &ownerErr) {
+		c.JSON(http.StatusConflict, gin.H{
+			"error": gin.H{
+				"message": fmt.Sprintf("Kürzel gehört bereits zu %s.", ownerErr.OwnerGroupName),
+			},
+		})
+		return
+	}
 	if errors.Is(err, repository.ErrConflict) {
 		c.JSON(http.StatusConflict, gin.H{
 			"error": gin.H{
@@ -336,7 +346,7 @@ func requiredFansubGroupPatchActions(input models.FansubGroupPatchInput) []permi
 			actions = append(actions, action)
 		}
 	}
-	if input.Name.Set || input.Country.Set {
+	if input.Name.Set || input.Country.Set || input.Kuerzel.Set {
 		add(permissions.ActionFansubGroupPageGeneralEdit)
 	}
 	if input.Status.Set || input.GroupType.Set {
