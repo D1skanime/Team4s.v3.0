@@ -189,7 +189,19 @@ describe("FansubAliasSection — Löschen", () => {
 });
 
 describe("FansubAliasSection — Umhängen", () => {
-  it("ist deaktiviert solange kein abweichendes Ziel gewählt ist; nach Auswahl öffnet Bestätigung und hängt um", async () => {
+  it("GAP-06: zeigt standardmäßig nur Umhängen…/Löschen; Select/Übernehmen erscheinen erst nach Klick", async () => {
+    getFansubAliases.mockResolvedValue({ data: [ALIAS_ROW] });
+
+    renderSection();
+
+    await screen.findByText("BDnP");
+    expect(screen.queryByLabelText(/Neue Gruppe für Alias/)).toBeNull();
+    expect(screen.queryByRole("button", { name: "Übernehmen" })).toBeNull();
+    expect(screen.getByRole("button", { name: "Umhängen…" })).not.toBeNull();
+    expect(screen.getByRole("button", { name: "Alias BDnP löschen" })).not.toBeNull();
+  });
+
+  it("ist deaktiviert solange kein abweichendes Ziel gewählt ist; nach Auswahl öffnet Bestätigung und hängt um, dann klappt die Zeile wieder ein", async () => {
     getFansubAliases
       .mockResolvedValueOnce({ data: [ALIAS_ROW] })
       .mockResolvedValueOnce({ data: [{ ...ALIAS_ROW, fansub_group_id: 11 }] });
@@ -198,14 +210,16 @@ describe("FansubAliasSection — Umhängen", () => {
     renderSection();
 
     await screen.findByText("BDnP");
-    const reassignButton = screen.getByRole("button", { name: "Umhängen" }) as HTMLButtonElement;
+    fireEvent.click(screen.getByRole("button", { name: "Umhängen…" }));
+
+    const reassignButton = screen.getByRole("button", { name: "Übernehmen" }) as HTMLButtonElement;
     expect(reassignButton.disabled).toBe(true);
 
     const select = screen.getByLabelText("Neue Gruppe für Alias BDnP");
     fireEvent.change(select, { target: { value: "11" } });
 
-    expect((screen.getByRole("button", { name: "Umhängen" }) as HTMLButtonElement).disabled).toBe(false);
-    fireEvent.click(screen.getByRole("button", { name: "Umhängen" }));
+    expect((screen.getByRole("button", { name: "Übernehmen" }) as HTMLButtonElement).disabled).toBe(false);
+    fireEvent.click(screen.getByRole("button", { name: "Übernehmen" }));
 
     const dialog = await screen.findByRole("dialog");
     expect(within(dialog).getByText("Alias umhängen?")).not.toBeNull();
@@ -217,12 +231,39 @@ describe("FansubAliasSection — Umhängen", () => {
     await waitFor(() => {
       expect(getFansubAliases).toHaveBeenCalledTimes(2);
     });
+    await waitFor(() => {
+      expect(screen.queryByLabelText(/Neue Gruppe für Alias/)).toBeNull();
+    });
+    expect(screen.getByRole("button", { name: "Umhängen…" })).not.toBeNull();
+  });
+
+  it("GAP-06: 'Abbrechen' klappt die Zeile wieder ein, ohne reassignFansubAlias aufzurufen", async () => {
+    getFansubAliases.mockResolvedValue({ data: [ALIAS_ROW] });
+
+    renderSection();
+
+    await screen.findByText("BDnP");
+    fireEvent.click(screen.getByRole("button", { name: "Umhängen…" }));
+
+    const select = screen.getByLabelText("Neue Gruppe für Alias BDnP");
+    fireEvent.change(select, { target: { value: "11" } });
+    expect(screen.getByRole("button", { name: "Übernehmen" })).not.toBeNull();
+
+    fireEvent.click(screen.getByRole("button", { name: "Abbrechen" }));
+
+    expect(screen.queryByLabelText(/Neue Gruppe für Alias/)).toBeNull();
+    expect(screen.queryByRole("button", { name: "Übernehmen" })).toBeNull();
+    expect(screen.getByRole("button", { name: "Umhängen…" })).not.toBeNull();
+    expect(reassignFansubAlias).not.toHaveBeenCalled();
   });
 
   it("initialisiert das Ziel-Dropdown auf den Platzhalter statt auf die eigene (ausgeschlossene) Gruppe (CR-01)", async () => {
     getFansubAliases.mockResolvedValue({ data: [ALIAS_ROW] });
 
     renderSection();
+
+    await screen.findByText("BDnP");
+    fireEvent.click(screen.getByRole("button", { name: "Umhängen…" }));
 
     const select = (await screen.findByLabelText(
       "Neue Gruppe für Alias BDnP",

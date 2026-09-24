@@ -73,6 +73,7 @@ export function FansubAliasSection({
   const [newAliasError, setNewAliasError] = useState<string | null>(null);
   const [creating, setCreating] = useState(false);
   const [reassignTargetByAliasID, setReassignTargetByAliasID] = useState<Record<number, number>>({});
+  const [reassigningAliasID, setReassigningAliasID] = useState<number | null>(null);
   const { confirm, confirmDialog } = useConfirmDialog();
 
   const loadAliases = useCallback(async () => {
@@ -165,11 +166,21 @@ export function FansubAliasSection({
       await reassignFansubAlias(fansubID, row.id, { target_fansub_group_id: targetId });
       onToast(`Alias „${row.alias}" zu ${targetGroupName} umgehängt.`);
       await loadAliases();
+      setReassigningAliasID(null);
     } catch (error) {
       onToast(
         error instanceof ApiError && error.message ? error.message : "Alias konnte nicht umgehängt werden.",
       );
     }
+  }
+
+  function handleCancelReassign(aliasID: number) {
+    setReassigningAliasID(null);
+    setReassignTargetByAliasID((current) => {
+      const next = { ...current };
+      delete next[aliasID];
+      return next;
+    });
   }
 
   const newAliasForm = (
@@ -239,34 +250,54 @@ export function FansubAliasSection({
                       <TableCell>{row.alias}</TableCell>
                       <TableCell>{formatDate(row.created_at)}</TableCell>
                       <TableCell>
-                        <Select
-                          aria-label={`Neue Gruppe für Alias ${row.alias}`}
-                          disabled={!canManage}
-                          value={String(selectedTarget)}
-                          onChange={(event) =>
-                            setReassignTargetByAliasID((current) => ({
-                              ...current,
-                              [row.id]: Number(event.target.value),
-                            }))
-                          }
-                        >
-                          <option value="" disabled>
-                            Zielgruppe wählen…
-                          </option>
-                          {availableTargetGroups.map((group) => (
-                            <option key={group.id} value={String(group.id)}>
-                              {group.name}
-                            </option>
-                          ))}
-                        </Select>
-                        <Button
-                          variant="secondary"
-                          size="sm"
-                          disabled={!canManage || !selectedTarget || selectedTarget === row.fansub_group_id}
-                          onClick={() => void handleReassign(row)}
-                        >
-                          Umhängen
-                        </Button>
+                        {row.id === reassigningAliasID ? (
+                          <>
+                            <Select
+                              aria-label={`Neue Gruppe für Alias ${row.alias}`}
+                              disabled={!canManage}
+                              value={String(selectedTarget)}
+                              onChange={(event) =>
+                                setReassignTargetByAliasID((current) => ({
+                                  ...current,
+                                  [row.id]: Number(event.target.value),
+                                }))
+                              }
+                            >
+                              <option value="" disabled>
+                                Zielgruppe wählen…
+                              </option>
+                              {availableTargetGroups.map((group) => (
+                                <option key={group.id} value={String(group.id)}>
+                                  {group.name}
+                                </option>
+                              ))}
+                            </Select>
+                            <Button
+                              variant="primary"
+                              size="sm"
+                              disabled={!canManage || !selectedTarget || selectedTarget === row.fansub_group_id}
+                              onClick={() => void handleReassign(row)}
+                            >
+                              Übernehmen
+                            </Button>
+                            <Button
+                              variant="secondary"
+                              size="sm"
+                              onClick={() => handleCancelReassign(row.id)}
+                            >
+                              Abbrechen
+                            </Button>
+                          </>
+                        ) : (
+                          <Button
+                            variant="secondary"
+                            size="sm"
+                            disabled={!canManage}
+                            onClick={() => setReassigningAliasID(row.id)}
+                          >
+                            Umhängen…
+                          </Button>
+                        )}
                         <Button
                           variant="danger"
                           size="sm"
