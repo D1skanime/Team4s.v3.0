@@ -22,6 +22,7 @@ interface EpisodeImportMappingRowCardProps {
   onSkip: (sourceKey: string) => void
   onApplyRow?: (sourceKey: string) => void
   isApplyingRow?: boolean
+  hideFileInfo?: boolean
 }
 
 /**
@@ -44,6 +45,7 @@ export function EpisodeImportMappingRowCard({
   onSkip,
   onApplyRow,
   isApplyingRow,
+  hideFileInfo,
 }: EpisodeImportMappingRowCardProps) {
   const sourceKey = jellyfinSourceKey(row)
   const label = row.file_name || row.media_item_id
@@ -53,8 +55,12 @@ export function EpisodeImportMappingRowCard({
   return (
     <div className={`${styles.mappingRow} ${styles[row.status]}`}>
       <div className={styles.mappingRowInfo}>
-        <strong className={styles.fileName}>{label}</strong>
-        {row.display_path ? <span className={styles.displayPath}>{row.display_path}</span> : null}
+        {!hideFileInfo ? (
+          <>
+            <strong className={styles.fileName}>{label}</strong>
+            {row.display_path ? <span className={styles.displayPath}>{row.display_path}</span> : null}
+          </>
+        ) : null}
         {(row.target_episode_numbers ?? []).length > 1 ? (
           <span className={styles.multiEpisodeHint}>Deckt {row.target_episode_numbers.length} Episoden ab</span>
         ) : null}
