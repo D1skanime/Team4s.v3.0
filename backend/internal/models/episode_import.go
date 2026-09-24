@@ -65,7 +65,7 @@ type SelectedFansubGroupInput struct {
 
 // EpisodeImportFansubGroupMatchOrigin describes why a fansub group was
 // auto-selected for a preview row (D-08): the raw filename-derived
-// candidate, which tier resolved it (alias/name/slug), and the resolved
+// candidate, which tier resolved it (kuerzel/alias/name/slug), and the resolved
 // group. GroupID lets Plan 07 detect a later client-side conflict by
 // comparing it against whatever group the admin currently has selected.
 // AliasID is populated only when MatchedVia == "alias" -- Plan 07/08 need

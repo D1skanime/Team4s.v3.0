@@ -23,18 +23,35 @@ type fansubGroupMatchQuerier interface {
 const fansubGroupSuggestionMaxLimit = 3
 
 // buildFansubGroupBatchMatchQuery returns the SQL for resolveFansubGroupMatches: ONE
-// query that resolves every candidate in $1::text[] against fansub_groups.name/.slug and
-// fansub_group_aliases.normalized_alias, using the byte-exact production normalization
-// expression regexp_replace(lower(f_unaccent(col)), '[^a-z0-9]+', '', 'g') (Pitfall 3) so
-// the planner stays index-friendly. Tier precedence is alias > name > slug (mirrors
-// buildSearchFansubOrder's rank 0/1/2); a candidate with zero or more than one match
-// within the winning tier is excluded entirely (ambiguous/no-match is the caller's
-// problem to classify, not this query's).
+// query that resolves every candidate in $1::text[] against fansub_groups.kuerzel/.name/
+// .slug and fansub_group_aliases.normalized_alias, using the byte-exact production
+// normalization expression regexp_replace(lower(f_unaccent(col)), '[^a-z0-9]+', '', 'g')
+// (Pitfall 3) so the planner stays index-friendly. Tier precedence is
+// kuerzel > alias > name > slug; a candidate with zero or more than one match within the
+// winning tier is excluded entirely (ambiguous/no-match is the caller's problem to
+// classify, not this query's).
 func buildFansubGroupBatchMatchQuery() string {
 	return `
 WITH candidates AS (
 	SELECT c.row_ord, c.raw_group
 	FROM unnest($1::text[]) WITH ORDINALITY AS c(raw_group, row_ord)
+),
+kuerzel_hits AS (
+	SELECT
+		candidates.row_ord,
+		candidates.raw_group,
+		fansub_groups.id AS group_id,
+		fansub_groups.name AS group_name,
+		fansub_groups.slug AS group_slug,
+		COUNT(*) OVER (PARTITION BY candidates.row_ord) AS hit_count
+	FROM candidates
+	JOIN fansub_groups
+		ON fansub_groups.normalized_kuerzel = regexp_replace(lower(f_unaccent(candidates.raw_group)), '[^a-z0-9]+', '', 'g')
+),
+kuerzel_resolved AS (
+	SELECT row_ord, raw_group, group_id, group_name, group_slug
+	FROM kuerzel_hits
+	WHERE hit_count = 1
 ),
 alias_hits AS (
 	SELECT
@@ -50,6 +67,7 @@ alias_hits AS (
 	JOIN fansub_group_aliases
 		ON fansub_group_aliases.normalized_alias = regexp_replace(lower(f_unaccent(candidates.raw_group)), '[^a-z0-9]+', '', 'g')
 	JOIN fansub_groups ON fansub_groups.id = fansub_group_aliases.fansub_group_id
+	WHERE candidates.row_ord NOT IN (SELECT row_ord FROM kuerzel_resolved)
 ),
 alias_resolved AS (
 	SELECT row_ord, raw_group, group_id, group_name, group_slug, alias_id, alias_text
@@ -68,7 +86,8 @@ name_hits AS (
 	JOIN fansub_groups
 		ON regexp_replace(lower(f_unaccent(fansub_groups.name)), '[^a-z0-9]+', '', 'g')
 		 = regexp_replace(lower(f_unaccent(candidates.raw_group)), '[^a-z0-9]+', '', 'g')
-	WHERE candidates.row_ord NOT IN (SELECT row_ord FROM alias_resolved)
+	WHERE candidates.row_ord NOT IN (SELECT row_ord FROM kuerzel_resolved)
+	  AND candidates.row_ord NOT IN (SELECT row_ord FROM alias_resolved)
 ),
 name_resolved AS (
 	SELECT row_ord, raw_group, group_id, group_name, group_slug
@@ -87,7 +106,8 @@ slug_hits AS (
 	JOIN fansub_groups
 		ON regexp_replace(lower(f_unaccent(fansub_groups.slug)), '[^a-z0-9]+', '', 'g')
 		 = regexp_replace(lower(f_unaccent(candidates.raw_group)), '[^a-z0-9]+', '', 'g')
-	WHERE candidates.row_ord NOT IN (SELECT row_ord FROM alias_resolved)
+	WHERE candidates.row_ord NOT IN (SELECT row_ord FROM kuerzel_resolved)
+	  AND candidates.row_ord NOT IN (SELECT row_ord FROM alias_resolved)
 	  AND candidates.row_ord NOT IN (SELECT row_ord FROM name_resolved)
 ),
 slug_resolved AS (
@@ -95,6 +115,9 @@ slug_resolved AS (
 	FROM slug_hits
 	WHERE hit_count = 1
 )
+SELECT row_ord, raw_group, group_id, group_name, group_slug, 'kuerzel' AS matched_via, NULL::bigint AS alias_id, NULL::text AS alias_text
+FROM kuerzel_resolved
+UNION ALL
 SELECT row_ord, raw_group, group_id, group_name, group_slug, 'alias' AS matched_via, alias_id, alias_text
 FROM alias_resolved
 UNION ALL

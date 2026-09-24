@@ -9,10 +9,11 @@ import type { EpisodeImportMappingRow, EpisodeImportSelectedFansubGroup } from '
 
 import styles from './FansubGroupOriginHint.module.css'
 
-const MATCHED_VIA_LABELS: Record<'alias' | 'name' | 'slug', string> = {
+const MATCHED_VIA_LABELS: Record<'alias' | 'name' | 'slug' | 'kuerzel', string> = {
   alias: 'Alias',
   name: 'Name',
   slug: 'Slug',
+  kuerzel: 'Kürzel',
 }
 
 interface FansubGroupOriginHintProps {

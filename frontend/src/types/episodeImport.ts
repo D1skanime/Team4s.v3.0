@@ -78,10 +78,10 @@ export interface EpisodeImportMappingRow {
   fansub_group_name?: string | null
   /** Operator-supplied release version label, e.g. "v2", "BD", "720p". */
   release_version?: string | null
-  /** Display-only: how the backend matched the raw fansub tag (alias/name/slug), never sent back on apply. */
+  /** Display-only: how the backend matched the raw fansub tag (kuerzel/alias/name/slug), never sent back on apply. */
   fansub_group_match_origin?: {
     raw: string
-    matched_via: 'alias' | 'name' | 'slug'
+    matched_via: 'alias' | 'name' | 'slug' | 'kuerzel'
     group_id: number
     group_name: string
     /** Present only when matched_via === 'alias'; needed to call reassignFansubAlias. */

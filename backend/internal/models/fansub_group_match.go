@@ -10,7 +10,7 @@ type FansubGroupMatch struct {
 	GroupID      int64
 	GroupName    string
 	GroupSlug    string
-	// MatchedVia is one of "alias", "name", "slug".
+	// MatchedVia is one of "kuerzel", "alias", "name", "slug".
 	MatchedVia string
 	// MatchedAlias/MatchedAliasID are populated only when MatchedVia == "alias".
 	// MatchedAliasID is needed by Plan 07/08 to call reassignFansubAlias when an admin

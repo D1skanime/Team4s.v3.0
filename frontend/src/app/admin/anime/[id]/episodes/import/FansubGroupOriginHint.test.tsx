@@ -87,6 +87,21 @@ describe('FansubGroupOriginHint', () => {
     expect(screen.getByText('Erkannt aus Dateiname: FHZ → FlameHaze-subs (Slug)')).not.toBeNull()
   })
 
+  it('Zustand A: maps matched_via "kuerzel" to the German label (Kürzel)', () => {
+    const row = makeRow({
+      fansub_group_match_origin: {
+        raw: 'BDnP',
+        matched_via: 'kuerzel',
+        group_id: 5,
+        group_name: 'Bloody-Shadow',
+      },
+    })
+
+    renderHint({ row, selectedFansubGroups: [{ id: 5, name: 'Bloody-Shadow' }] })
+
+    expect(screen.getByText('Erkannt aus Dateiname: BDnP → Bloody-Shadow (Kürzel)')).not.toBeNull()
+  })
+
   it('Zustand B: renders up to 3 suggestion buttons that add the group as a chip on click', () => {
     const onAddSelectedFansubGroup = vi.fn()
     const row = makeRow({
