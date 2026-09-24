@@ -1516,6 +1516,7 @@ Last activity: 2026-09-23
 
 | # | Description | Date | Commit | Directory |
 |---|-------------|------|--------|-----------|
+| 260924-i0a | GAP-11 (Blocker): Mapping-Apply akzeptiert jetzt Dateien aus JEDEM verbundenen Jellyfin-Ordner (nicht nur dem Haupt-Ordner) an allen drei Stellen (Import-Apply, Editor-Relink, Editor-Datei-Voransicht) ueber eine neue geteilte Mehrfach-Ordner-Besitzpruefung, Fail-closed fuer fremde Ordner/Serien unveraendert; GAP-12: Fehlschlag von "Mapping anwenden" zeigt jetzt zusaetzlich einen role="alert"-Hinweis direkt beim Button mit Scroll/Fokus; 167-UAT.md GAP-11/GAP-12 auf resolved gesetzt | 2026-09-24 | 80a47973 | [260924-i0a-gap-11-gap-12-mapping-apply-schlaegt-feh](./quick/260924-i0a-gap-11-gap-12-mapping-apply-schlaegt-feh/) |
 | 260924-b7s | Phase-167-Live-UAT-Fixes: Ordnerauswahl mit lesbaren Namen/Pfaden statt roher Jellyfin-IDs (GAP-01), sichtbarer Hinweis bei erkanntem aber unzugeordnetem Fansub-Kuerzel (GAP-02), Einteiler-Vorschlag fuer einzige nummernlose Datei bei genau einer kanonischen Episode (GAP-03); 167-UAT.md GAP-01..GAP-03 auf resolved gesetzt | 2026-09-24 | 8b8b6e28 | [260924-b7s-phase-167-live-uat-fixes-gap-01-gap-03](./quick/260924-b7s-phase-167-live-uat-fixes-gap-01-gap-03/) |
 | 260924-fec | Fansub-Gruppen-Chip zeigt aufgeloesten Namen statt roher ID (GAP-08), Mapping-Zeile im Episoden-Import in Drei-Spalten-Layout (Info/Felder/Aktionen) mit @/components/ui-Primitives umgebaut, stapelt auf schmalen Bildschirmen vertikal (GAP-09), Einteiler-Vorschau befuellt Platzhaltertitel mit dem Anime-Titel vor (GAP-10); 167-UAT.md GAP-08..GAP-10 auf resolved gesetzt | 2026-09-24 | 00b5fff7 | [260924-fec-gap-08-gap-10-gruppen-chip-zeigt-id-unru](./quick/260924-fec-gap-08-gap-10-gruppen-chip-zeigt-id-unru/) |
 | 260924-cgg | Verschachteltes form-Element im Alias-Bereich der Fansub-Gruppen-Bearbeitung entfernt (GAP-04, Hydration-Fehler in FansubAliasSection.tsx behoben, Enter-Verhalten via onKeyDown erhalten); 167-UAT.md GAP-04 auf resolved gesetzt | 2026-09-24 | 2d345fad | [260924-cgg-gap-04-verschachteltes-form-element-im-a](./quick/260924-cgg-gap-04-verschachteltes-form-element-im-a/) |
@@ -1988,7 +1989,7 @@ untruncated list lives in `.planning/todos/pending/`.
 
 Last session: 2026-09-23T15:10:16.217Z
 Stopped at: Completed 167-08-PLAN.md
-Last activity: 2026-09-24 - Completed quick task 260924-fec: GAP-08..GAP-10 (Gruppen-Chip-Name statt ID, Drei-Spalten-Mapping-Zeile, Einteiler-Platzhaltertitel-Vorbefüllung)
+Last activity: 2026-09-24 - Completed quick task 260924-i0a: GAP-11/GAP-12 (Mapping-Apply akzeptiert Dateien aus jedem verbundenen Jellyfin-Ordner, sichtbarer Fehler-Alert beim Apply-Button)
 Resume file: 
 None
 
