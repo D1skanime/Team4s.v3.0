@@ -2,15 +2,15 @@
 gsd_state_version: 1.0
 milestone: v1.4
 milestone_name: Coverage
-status: milestone_complete
-stopped_at: Milestone complete (Phase 167 was final phase)
-last_updated: 2026-09-23T15:44:02.515Z
+status: completed
+stopped_at: Completed 167-08-PLAN.md
+last_updated: "2026-09-24T15:17:37.810Z"
 last_activity: 2026-09-23
 progress:
   total_phases: 32
   completed_phases: 31
   total_plans: 303
-  completed_plans: 357
+  completed_plans: 303
   percent: 97
 ---
 
@@ -1516,6 +1516,7 @@ Last activity: 2026-09-23
 
 | # | Description | Date | Commit | Directory |
 |---|-------------|------|--------|-----------|
+| 260924-ksv | GAP-13: EpisodeGroup aus page.tsx in eigene Datei EpisodeImportEpisodeGroup.tsx ausgelagert (page.tsx 599->406 Zeilen); bei Episoden mit genau einer Datei erscheinen Dateiname (fett/klein) und Ordnerpfad (gedaempft) jetzt rechts neben dem Titelfeld in der Headerzeile statt dupliziert in der Datei-Zeile darunter (neuer hideFileInfo-Prop auf EpisodeImportMappingRowCard); Mehrdatei-Episoden unveraendert; 167-UAT.md GAP-13 auf resolved gesetzt | 2026-09-24 | 7cb385a3 | [260924-ksv-gap-13-dateiname-und-ordner-rechts-neben](./quick/260924-ksv-gap-13-dateiname-und-ordner-rechts-neben/) |
 | 260924-i0a | GAP-11 (Blocker): Mapping-Apply akzeptiert jetzt Dateien aus JEDEM verbundenen Jellyfin-Ordner (nicht nur dem Haupt-Ordner) an allen drei Stellen (Import-Apply, Editor-Relink, Editor-Datei-Voransicht) ueber eine neue geteilte Mehrfach-Ordner-Besitzpruefung, Fail-closed fuer fremde Ordner/Serien unveraendert; GAP-12: Fehlschlag von "Mapping anwenden" zeigt jetzt zusaetzlich einen role="alert"-Hinweis direkt beim Button mit Scroll/Fokus; 167-UAT.md GAP-11/GAP-12 auf resolved gesetzt | 2026-09-24 | 80a47973 | [260924-i0a-gap-11-gap-12-mapping-apply-schlaegt-feh](./quick/260924-i0a-gap-11-gap-12-mapping-apply-schlaegt-feh/) |
 | 260924-b7s | Phase-167-Live-UAT-Fixes: Ordnerauswahl mit lesbaren Namen/Pfaden statt roher Jellyfin-IDs (GAP-01), sichtbarer Hinweis bei erkanntem aber unzugeordnetem Fansub-Kuerzel (GAP-02), Einteiler-Vorschlag fuer einzige nummernlose Datei bei genau einer kanonischen Episode (GAP-03); 167-UAT.md GAP-01..GAP-03 auf resolved gesetzt | 2026-09-24 | 8b8b6e28 | [260924-b7s-phase-167-live-uat-fixes-gap-01-gap-03](./quick/260924-b7s-phase-167-live-uat-fixes-gap-01-gap-03/) |
 | 260924-fec | Fansub-Gruppen-Chip zeigt aufgeloesten Namen statt roher ID (GAP-08), Mapping-Zeile im Episoden-Import in Drei-Spalten-Layout (Info/Felder/Aktionen) mit @/components/ui-Primitives umgebaut, stapelt auf schmalen Bildschirmen vertikal (GAP-09), Einteiler-Vorschau befuellt Platzhaltertitel mit dem Anime-Titel vor (GAP-10); 167-UAT.md GAP-08..GAP-10 auf resolved gesetzt | 2026-09-24 | 00b5fff7 | [260924-fec-gap-08-gap-10-gruppen-chip-zeigt-id-unru](./quick/260924-fec-gap-08-gap-10-gruppen-chip-zeigt-id-unru/) |
@@ -1987,9 +1988,9 @@ untruncated list lives in `.planning/todos/pending/`.
 
 ## Session Continuity
 
-Last session: 2026-09-23T15:10:16.217Z
-Stopped at: Completed 167-08-PLAN.md
-Last activity: 2026-09-24 - Completed quick task 260924-i0a: GAP-11/GAP-12 (Mapping-Apply akzeptiert Dateien aus jedem verbundenen Jellyfin-Ordner, sichtbarer Fehler-Alert beim Apply-Button)
+Last session: 2026-09-24T15:16:31Z
+Stopped at: Completed 260924-ksv-PLAN.md
+Last activity: 2026-09-24 - Completed quick task 260924-ksv: GAP-13 (Dateiname/Ordnerpfad wandern bei Einzeldatei-Episoden in die Headerzeile neben den Titel, EpisodeGroup aus page.tsx extrahiert)
 Resume file: 
 None
 
