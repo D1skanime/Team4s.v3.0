@@ -12,6 +12,7 @@ import { Badge, Button, Card, FormField, Input, Select } from "@/components/ui";
 import { canEditFansubBranding } from "./fansubEditAccess";
 import { labelForFansubStatus, slugify } from "./fansubEditFormatters";
 import { createEmptyLink } from "./fansubEditFormMapping";
+import { FansubGroupKuerzelField } from "./FansubGroupKuerzelField";
 import { YEAR_MAX, YEAR_MIN, YearSelectField } from "./YearSelectField";
 import type { FansubDetailsForm } from "./useFansubDetailsForm";
 
@@ -121,6 +122,9 @@ export function FansubBasicInfoTab({
                   {nameError}
                 </p>
               ) : null}
+            </div>
+            <div className={`${styles.field} ${styles.fansubEditBasicField}`}>
+              <FansubGroupKuerzelField value={form.kuerzel} disabled={!canEditGeneral} onChange={(value) => setForm((current) => ({ ...current, kuerzel: value }))} />
             </div>
             {isPlatformAdmin ? (
               <div

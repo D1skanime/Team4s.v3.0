@@ -35,6 +35,7 @@ export type MainTab = MainTabType;
 
 export type FormState = {
   name: string;
+  kuerzel: string;
   slug: string;
   status: FansubStatus;
   groupType: FansubGroupType;

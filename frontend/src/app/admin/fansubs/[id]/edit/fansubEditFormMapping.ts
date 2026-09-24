@@ -15,6 +15,7 @@ import type { CommunityLinkDraft, FormState } from "./fansubEditTypes";
 export function mapGroupToForm(group: FansubGroup): FormState {
   return {
     name: group.name || "",
+    kuerzel: group.kuerzel || "",
     slug: group.slug || "",
     status: group.status,
     groupType: "group",
@@ -107,7 +108,7 @@ export function formToPayload(
   options: { includeSlug: boolean; includeGeneral?: boolean; includeLifecycle?: boolean; includeFounding?: boolean; includeMedia?: boolean },
 ): FansubGroupPatchRequest {
   const payload: FansubGroupPatchRequest = {};
-  if (options.includeGeneral !== false) { payload.name = form.name.trim(); payload.country = toOptional(form.country); }
+  if (options.includeGeneral !== false) { payload.name = form.name.trim(); payload.kuerzel = form.kuerzel.trim() ? form.kuerzel.trim() : null; payload.country = toOptional(form.country); }
   if (options.includeLifecycle !== false) { payload.status = form.status; payload.group_type = form.groupType; }
   if (options.includeFounding !== false) {
     const founded = parseYear(form.foundedYear); const dissolved = parseYear(form.dissolvedYear);
@@ -124,6 +125,7 @@ export function formToPayload(
 export function emptyForm(): FormState {
   return {
     name: "",
+    kuerzel: "",
     slug: "",
     status: "active",
     groupType: "group",

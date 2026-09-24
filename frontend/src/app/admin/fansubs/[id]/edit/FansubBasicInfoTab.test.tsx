@@ -6,8 +6,8 @@ import { FansubBasicInfoTab } from './FansubBasicInfoTab'
 vi.mock('@/components/admin/MediaUpload', () => ({ MediaUpload: ({ type, disabled }: { type: string; disabled?: boolean }) => <button disabled={disabled}>{type}</button> }))
 const base: FansubGroupCapabilities = { can_edit_group:false, can_edit_group_general:false, can_edit_technical_links:false, can_edit_founding_history:false, can_update_group_links:false, can_manage_links:false, can_view_members:false, can_manage_members:false, can_manage_historical_members:false, can_manage_historical_roles:false, can_link_historical_members:false, can_edit_notes:false, can_edit_project_timeline:false, can_view_invitations:false, can_create_invitation:false, can_cancel_invitation:false, can_view_releases:false, can_view_release_media:false, can_upload_release_media:false, can_edit_release_notes:false, can_view_group_media:false, can_upload_group_media:false, can_update_group_media:false,
   can_update_own_group_media: false, can_delete_own_group_media:false, can_delete_group_media:false, can_reorder_group_media:false }
-function renderTab(overrides: Partial<FansubGroupCapabilities>, isPlatformAdmin = false) {
- const details = { form:{name:'Gruppe',slug:'gruppe',status:'active',groupType:'group',country:'Deutschland',websiteURL:'',discordURL:'',ircURL:'',foundedYear:'2004',dissolvedYear:''}, setForm:vi.fn(), aliases:[],aliasInput:'',setAliasInput:vi.fn(),aliasError:null,setAliasError:vi.fn(),setLinks:vi.fn(),setManualSlug:vi.fn(),saving:false,aliasBusy:false,logoMedia:null,setLogoMedia:vi.fn(),bannerMedia:null,setBannerMedia:vi.fn(),setInitialLogoMedia:vi.fn(),setInitialBannerMedia:vi.fn(),nameError:null,slugFormatError:null,foundedError:null,dissolvedError:null,dissolvedAfterFoundedError:null,slugConflict:false,slugChecking:false,handleLogoMediaBusyChange:vi.fn(),handleBannerMediaBusyChange:vi.fn(),addAlias:vi.fn(),removeAlias:vi.fn() }
+function renderTab(overrides: Partial<FansubGroupCapabilities>, isPlatformAdmin = false, formOverrides: Record<string, unknown> = {}) {
+ const details = { form:{name:'Gruppe',kuerzel:'',slug:'gruppe',status:'active',groupType:'group',country:'Deutschland',websiteURL:'',discordURL:'',ircURL:'',foundedYear:'2004',dissolvedYear:'',...formOverrides}, setForm:vi.fn(), aliases:[],aliasInput:'',setAliasInput:vi.fn(),aliasError:null,setAliasError:vi.fn(),setLinks:vi.fn(),setManualSlug:vi.fn(),saving:false,aliasBusy:false,logoMedia:null,setLogoMedia:vi.fn(),bannerMedia:null,setBannerMedia:vi.fn(),setInitialLogoMedia:vi.fn(),setInitialBannerMedia:vi.fn(),nameError:null,slugFormatError:null,foundedError:null,dissolvedError:null,dissolvedAfterFoundedError:null,slugConflict:false,slugChecking:false,handleLogoMediaBusyChange:vi.fn(),handleBannerMediaBusyChange:vi.fn(),addAlias:vi.fn(),removeAlias:vi.fn() }
  render(<FansubBasicInfoTab styles={{}} details={details as never} fansubID={7} group={null} capabilities={{...base,...overrides}} isPlatformAdmin={isPlatformAdmin} hasAuthSession onToast={vi.fn()} communityLinksList={<div>Links</div>} />)
 }
 describe('FansubBasicInfoTab field capabilities', () => {
@@ -19,4 +19,18 @@ describe('FansubBasicInfoTab field capabilities', () => {
  it('hides Logo und Banner entirely for a co_leader-shaped capability set (can_update_group_media without can_edit_group)', () => { renderTab({can_edit_group:false, can_update_group_media:true}); expect(screen.queryByText('Logo und Banner')).toBeNull() })
  it('shows Logo und Banner for can_edit_group', () => { renderTab({can_edit_group:true}); expect(screen.getByText('Logo und Banner')).toBeTruthy(); expect(screen.getByRole('button',{name:'logo'})).toBeTruthy(); expect(screen.getByRole('button',{name:'banner'})).toBeTruthy() })
  it('shows Logo und Banner for isPlatformAdmin', () => { renderTab({}, true); expect(screen.getByText('Logo und Banner')).toBeTruthy() })
+ it('disables the Kürzel field alongside the Name field without can_edit_group_general', () => {
+  renderTab({})
+  expect(screen.getByLabelText(/Fansubgruppen-Name/)).toHaveProperty('disabled', true)
+  expect(screen.getByLabelText(/Kürzel/)).toHaveProperty('disabled', true)
+ })
+ it('enables the Kürzel field alongside the Name field for can_edit_group_general', () => {
+  renderTab({ can_edit_group_general: true })
+  expect(screen.getByLabelText(/Fansubgruppen-Name/)).not.toHaveProperty('disabled', true)
+  expect(screen.getByLabelText(/Kürzel/)).not.toHaveProperty('disabled', true)
+ })
+ it('renders the Kürzel input value in its original mixed-case spelling without transformation (GAP-07)', () => {
+  renderTab({ can_edit_group_general: true }, false, { kuerzel: 'BDnP' })
+  expect(screen.getByLabelText(/Kürzel/)).toHaveProperty('value', 'BDnP')
+ })
 })

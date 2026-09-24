@@ -22,6 +22,7 @@ export interface FansubGroup {
   id: number;
   slug: string;
   name: string;
+  kuerzel?: string | null;
   logo_id?: number | null;
   banner_id?: number | null;
   logo_url?: string | null;
@@ -326,6 +327,7 @@ export interface FansubGroupCreateRequest {
 export interface FansubGroupPatchRequest {
   slug?: string | null;
   name?: string | null;
+  kuerzel?: string | null;
   logo_id?: number | null;
   banner_id?: number | null;
   logo_url?: string | null;
