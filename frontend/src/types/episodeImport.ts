@@ -91,6 +91,8 @@ export interface EpisodeImportMappingRow {
   fansub_group_suggestions?: Array<{ id: number; name: string; slug: string }>
   /** Display-only: whether release_version was backend-detected or operator-edited, never sent back on apply. */
   release_version_source?: 'detected' | 'manual'
+  /** Display-only: why this row's Status became "suggested" beyond the usual matcher, never sent back on apply. */
+  suggestion_reason?: string | null
 }
 
 export interface EpisodeImportPreviewResult {
@@ -111,6 +113,9 @@ export interface EpisodeImportPreviewResult {
 export interface JellyfinFolderOption {
   jellyfin_item_id: string
   is_main: boolean
+  /** Best-effort, backend-hydrated display label/path (GAP-01); absent when Jellyfin is unreachable. */
+  folder_display_name?: string | null
+  folder_path?: string | null
 }
 
 export interface EpisodeImportContextResult {
