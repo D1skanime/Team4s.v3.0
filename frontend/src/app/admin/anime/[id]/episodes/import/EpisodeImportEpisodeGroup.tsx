@@ -5,6 +5,7 @@ import type {
   EpisodeImportSelectedFansubGroup,
 } from "@/types/episodeImport";
 
+import { Textarea } from "@/components/ui";
 import { EpisodeImportMappingRowCard } from "./EpisodeImportMappingRow";
 import { jellyfinSourceKey } from "@/lib/jellyfinSourceIdentity";
 import { fillerLabel } from "./episodeImportMapping";
@@ -105,7 +106,7 @@ export function EpisodeGroup({
             <div className={styles.episodeTitleRow}>
               <label className={styles.episodeTitleEditor}>
                 <span className={styles.episodeTitleLabel}>Titel (DE)</span>
-                <textarea
+                <Textarea
                   className={styles.episodeTitleInput}
                   rows={2}
                   value={group.title ?? ""}
@@ -153,7 +154,7 @@ export function EpisodeGroup({
                       <span className={styles.coveredEpisodeNumber}>
                         #{coveredEpisode.episodeNumber}
                       </span>
-                      <textarea
+                      <Textarea
                         className={`${styles.episodeTitleInput} ${styles.coveredEpisodeInput}`}
                         rows={2}
                         value={coveredEpisode.title ?? ""}
