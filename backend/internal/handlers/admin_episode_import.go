@@ -192,6 +192,7 @@ func (h *AdminContentHandler) loadEpisodeImportContext(c *gin.Context, animeID i
 		}
 	}
 	allFolders := collectJellyfinFolderOptions(source.Source, source.SourceLinks, source.Source)
+	allFolders = h.hydrateJellyfinFolderDisplayNames(c.Request.Context(), allFolders, folderPath)
 	displayFolders := allFolders
 	if len(displayFolders) <= 1 {
 		// D-14: keine sichtbares neues Feld im Regelfall -- the single-folder

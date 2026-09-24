@@ -140,6 +140,16 @@ type EpisodeImportPreviewResult struct {
 type JellyfinFolderOption struct {
 	JellyfinItemID string `json:"jellyfin_item_id"`
 	IsMain         bool   `json:"is_main"`
+	// FolderDisplayName/FolderPath are best-effort, populated by
+	// hydrateJellyfinFolderDisplayNames (backend/internal/handlers) after
+	// this option is enumerated -- distinct from the confusingly path-valued
+	// AdminAnimeSyncSource.FolderName field elsewhere in this same file
+	// (FolderName is the anime's own filesystem folder name, not a
+	// per-JellyfinFolderOption display label). Both are nil when Jellyfin is
+	// unreachable or the folder's ID is absent from the batched lookup
+	// (fail-open, GAP-01).
+	FolderDisplayName *string `json:"folder_display_name,omitempty"`
+	FolderPath        *string `json:"folder_path,omitempty"`
 }
 
 type EpisodeImportContextResult struct {
