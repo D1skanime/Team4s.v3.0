@@ -1517,6 +1517,7 @@ Last activity: 2026-09-23
 | # | Description | Date | Commit | Directory |
 |---|-------------|------|--------|-----------|
 | 260924-b7s | Phase-167-Live-UAT-Fixes: Ordnerauswahl mit lesbaren Namen/Pfaden statt roher Jellyfin-IDs (GAP-01), sichtbarer Hinweis bei erkanntem aber unzugeordnetem Fansub-Kuerzel (GAP-02), Einteiler-Vorschlag fuer einzige nummernlose Datei bei genau einer kanonischen Episode (GAP-03); 167-UAT.md GAP-01..GAP-03 auf resolved gesetzt | 2026-09-24 | 8b8b6e28 | [260924-b7s-phase-167-live-uat-fixes-gap-01-gap-03](./quick/260924-b7s-phase-167-live-uat-fixes-gap-01-gap-03/) |
+| 260924-fec | Fansub-Gruppen-Chip zeigt aufgeloesten Namen statt roher ID (GAP-08), Mapping-Zeile im Episoden-Import in Drei-Spalten-Layout (Info/Felder/Aktionen) mit @/components/ui-Primitives umgebaut, stapelt auf schmalen Bildschirmen vertikal (GAP-09), Einteiler-Vorschau befuellt Platzhaltertitel mit dem Anime-Titel vor (GAP-10); 167-UAT.md GAP-08..GAP-10 auf resolved gesetzt | 2026-09-24 | 00b5fff7 | [260924-fec-gap-08-gap-10-gruppen-chip-zeigt-id-unru](./quick/260924-fec-gap-08-gap-10-gruppen-chip-zeigt-id-unru/) |
 | 260924-cgg | Verschachteltes form-Element im Alias-Bereich der Fansub-Gruppen-Bearbeitung entfernt (GAP-04, Hydration-Fehler in FansubAliasSection.tsx behoben, Enter-Verhalten via onKeyDown erhalten); 167-UAT.md GAP-04 auf resolved gesetzt | 2026-09-24 | 2d345fad | [260924-cgg-gap-04-verschachteltes-form-element-im-a](./quick/260924-cgg-gap-04-verschachteltes-form-element-im-a/) |
 | 260819-ipu | Duplikat-Guard beim historischen Mitglied hinzufuegen (Phase-135-Nachtrag, Findings #27/#28) | 2026-08-19 | df1033bf | [260819-ipu-duplikat-guard-beim-historischen-mitglie](./quick/260819-ipu-duplikat-guard-beim-historischen-mitglie/) |
 | 260819-lm5 | Phase-117-Nachtrag: geteilte Karaoke-Segmente ueber Folgen zuweisen + Per-Folge-Startzeit-Verschiebung im UI erreichbar machen, inkl. Bereich-Auto-Zuweisung + Korrektheits-Fix am Pro-Folge-"verschoben"-Marker (5 Live-UAT-Runden, siehe 117-10-POST-HOC-CLOSURE.md) | 2026-08-19 | 4c30cb7c | [260819-lm5-phase-117-geteilte-karaoke-segmente-uebe](./quick/260819-lm5-phase-117-geteilte-karaoke-segmente-uebe/) |
@@ -1987,7 +1988,7 @@ untruncated list lives in `.planning/todos/pending/`.
 
 Last session: 2026-09-23T15:10:16.217Z
 Stopped at: Completed 167-08-PLAN.md
-Last activity: 2026-09-24 - Completed quick task 260924-dso: GAP-05..GAP-07 (Gruppen-Kürzel als Stammdatum, ruhigere Alias-Zeile, Original-Schreibweise)
+Last activity: 2026-09-24 - Completed quick task 260924-fec: GAP-08..GAP-10 (Gruppen-Chip-Name statt ID, Drei-Spalten-Mapping-Zeile, Einteiler-Platzhaltertitel-Vorbefüllung)
 Resume file: 
 None
 
