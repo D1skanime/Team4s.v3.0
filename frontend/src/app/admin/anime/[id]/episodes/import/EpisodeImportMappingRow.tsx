@@ -1,17 +1,13 @@
 'use client'
 
-import { useEffect, useMemo, useState, type KeyboardEvent } from 'react'
-
-import { getFansubList } from '@/lib/api'
+import { Button, FormField, Input } from '@/components/ui'
 import { jellyfinSourceKey } from '@/lib/jellyfinSourceIdentity'
 import type { EpisodeImportMappingRow, EpisodeImportSelectedFansubGroup } from '@/types/episodeImport'
-import type { FansubGroup } from '@/types/fansub'
 
-import { FansubGroupOriginHint } from './FansubGroupOriginHint'
+import { EpisodeImportMappingRowGroupField } from './EpisodeImportMappingRowGroupField'
 import styles from './page.module.css'
 
 const EMPTY_SELECTED_FANSUB_GROUPS: EpisodeImportSelectedFansubGroup[] = []
-const FREE_TEXT_GROUP_SEPARATOR = /[,;\n]+/
 
 interface EpisodeImportMappingRowCardProps {
   episodeNumber: number
@@ -28,6 +24,13 @@ interface EpisodeImportMappingRowCardProps {
   isApplyingRow?: boolean
 }
 
+/**
+ * Three-region mapping row layout (GAP-09, 167-UAT.md): info (file/path/hints)
+ * | fields (group/episode/version) | actions (status/skip/apply). Stacks
+ * vertically on narrow viewports via .mappingRow's <=980px breakpoint
+ * (page.module.css). The group field itself lives in
+ * EpisodeImportMappingRowGroupField.tsx to keep this file small.
+ */
 export function EpisodeImportMappingRowCard({
   episodeNumber,
   row,
@@ -47,126 +50,9 @@ export function EpisodeImportMappingRowCard({
   const isSkipped = row.status === 'skipped'
   const selectedFansubGroups = row.fansub_groups ?? EMPTY_SELECTED_FANSUB_GROUPS
 
-  const [query, setQuery] = useState('')
-  const [results, setResults] = useState<FansubGroup[]>([])
-  const [isSearching, setIsSearching] = useState(false)
-  const [searchMessage, setSearchMessage] = useState<string | null>(null)
-
-  const hasSelectedGroups = selectedFansubGroups.length > 0
-
-  const selectedGroupKeys = useMemo(
-    () =>
-      Array.from(
-        new Set(
-        selectedFansubGroups.map((group) =>
-          typeof group.id === 'number' && Number.isFinite(group.id)
-            ? `id:${group.id}`
-            : `name:${(group.name ?? group.slug ?? '').trim().toLowerCase()}`,
-        ),
-        ),
-      ).sort(),
-    [selectedFansubGroups],
-  )
-
-  useEffect(() => {
-    setQuery('')
-    setResults([])
-    setSearchMessage(null)
-  }, [sourceKey, row.status])
-
-  useEffect(() => {
-    const trimmedQuery = query.trim()
-    if (isSkipped || trimmedQuery.length < 1) {
-      setResults([])
-      setSearchMessage(null)
-      setIsSearching(false)
-      return
-    }
-
-    let cancelled = false
-    const timeoutID = window.setTimeout(async () => {
-      setIsSearching(true)
-      setSearchMessage(null)
-      try {
-        const response = await getFansubList({ q: trimmedQuery, page: 1, per_page: 10 })
-        if (cancelled) {
-          return
-        }
-        const nextResults = response.data.filter((group) => {
-          return !selectedGroupKeys.includes(`id:${group.id}`)
-        })
-        setResults(nextResults)
-        if (nextResults.length === 0) {
-          setSearchMessage('Keine bestehende Gruppe gefunden. Neue Eingabe kann als Chip hinzugefügt werden.')
-        }
-      } catch {
-        if (!cancelled) {
-          setSearchMessage('Fansub-Gruppen konnten nicht geladen werden.')
-        }
-      } finally {
-        if (!cancelled) {
-          setIsSearching(false)
-        }
-      }
-    }, 180)
-
-    return () => {
-      cancelled = true
-      window.clearTimeout(timeoutID)
-    }
-  }, [isSkipped, query, selectedGroupKeys])
-
-  function handleAddFreeTextChips() {
-    const nextGroups = query
-      .split(FREE_TEXT_GROUP_SEPARATOR)
-      .map((value) => value.trim())
-      .filter(Boolean)
-      .map((name) => ({ name }))
-
-    if (nextGroups.length === 0) {
-      return
-    }
-
-    onSetSelectedFansubGroups(sourceKey, [
-      ...selectedFansubGroups,
-      ...nextGroups,
-    ])
-    setQuery('')
-    setResults([])
-    setSearchMessage(null)
-  }
-
-  function handleSelectExistingGroup(group: FansubGroup) {
-    onAddSelectedFansubGroup(sourceKey, { id: group.id, name: group.name, slug: group.slug })
-    setQuery('')
-    setResults([])
-    setSearchMessage(null)
-  }
-
-  function handleGroupInputKeyDown(event: KeyboardEvent<HTMLInputElement>) {
-    if (event.key === 'Enter' || event.key === ',') {
-      event.preventDefault()
-      handleAddFreeTextChips()
-      return
-    }
-
-    if (event.key === 'Backspace' && !query.trim() && selectedFansubGroups.length > 0) {
-      event.preventDefault()
-      const lastGroup = selectedFansubGroups[selectedFansubGroups.length - 1]
-      onRemoveSelectedFansubGroup(sourceKey, lastGroup)
-    }
-  }
-
-  function handleClearGroups() {
-    onSetSelectedFansubGroups(sourceKey, [])
-    setQuery('')
-    setResults([])
-    setSearchMessage(null)
-  }
-
   return (
     <div className={`${styles.mappingRow} ${styles[row.status]}`}>
-      <div className={styles.mappingRowFile}>
+      <div className={styles.mappingRowInfo}>
         <strong className={styles.fileName}>{label}</strong>
         {row.display_path ? <span className={styles.displayPath}>{row.display_path}</span> : null}
         {(row.target_episode_numbers ?? []).length > 1 ? (
@@ -175,143 +61,64 @@ export function EpisodeImportMappingRowCard({
         {row.suggestion_reason ? (
           <span className={styles.multiEpisodeHint}>{row.suggestion_reason}</span>
         ) : null}
-        <div className={styles.releaseMetaRow}>
-          <label className={`${styles.releaseMeta} ${styles.releaseMetaGroup}`}>
-            <span className={styles.releaseMetaLabel}>Gruppe</span>
-            <div className={styles.groupSelector}>
-              <div className={styles.groupChipWrap}>
-                {hasSelectedGroups ? (
-                  selectedFansubGroups.map((group) => (
-                    <button
-                      key={group.id ?? `${group.name ?? group.slug ?? 'group'}-${sourceKey}`}
-                      type="button"
-                      className={styles.groupChip}
-                      disabled={isSkipped}
-                      onClick={() => onRemoveSelectedFansubGroup(sourceKey, group)}
-                    >
-                      <span>{group.name ?? group.slug ?? `#${group.id}`}</span>
-                      <span className={styles.groupChipRemove}>x</span>
-                    </button>
-                  ))
-                ) : (
-                  <span className={styles.groupPlaceholder}>Keine Gruppe gewählt.</span>
-                )}
-              </div>
-              <div className={styles.groupInputRow}>
-                <input
-                  className={styles.releaseMetaInput}
-                  value={query}
-                  disabled={isSkipped}
-                  placeholder="Gruppe suchen oder neu tippen"
-                  aria-label={`Fansub-Gruppen für ${label}`}
-                  onChange={(event) => setQuery(event.target.value)}
-                  onKeyDown={handleGroupInputKeyDown}
-                />
-                <button
-                  className={styles.releaseScopeButton}
-                  type="button"
-                  disabled={isSkipped || !query.trim()}
-                  onClick={handleAddFreeTextChips}
-                >
-                  Als Chip
-                </button>
-                <button
-                  className={styles.releaseScopeButton}
-                  type="button"
-                  disabled={isSkipped || !hasSelectedGroups}
-                  onClick={handleClearGroups}
-                >
-                  Leeren
-                </button>
-              </div>
-              {isSearching ? <p className={styles.groupSearchState}>Suche läuft...</p> : null}
-              {!isSearching && searchMessage ? <p className={styles.groupSearchState}>{searchMessage}</p> : null}
-              {!isSearching && results.length > 0 ? (
-                <div className={styles.groupSearchResults}>
-                  {results.map((group) => (
-                    <button
-                      key={group.id}
-                      type="button"
-                      className={styles.groupSearchOption}
-                      onMouseDown={(event) => {
-                        event.preventDefault()
-                        handleSelectExistingGroup(group)
-                      }}
-                    >
-                      <span>{group.name}</span>
-                      <span className={styles.groupSearchMeta}>#{group.id}</span>
-                    </button>
-                  ))}
-                </div>
-              ) : null}
-            </div>
-            <FansubGroupOriginHint row={row} selectedFansubGroups={selectedFansubGroups} onAddSelectedFansubGroup={(g) => onAddSelectedFansubGroup(sourceKey, g)} sourceKey={sourceKey} label={label} />
-            <div className={styles.releaseMetaActions}>
-              <button
-                className={styles.releaseScopeButton}
-                type="button"
-                disabled={isSkipped || episodeNumber <= 0 || !hasSelectedGroups}
-                onClick={() => onApplyFansubGroupToEpisode(episodeNumber, selectedFansubGroups)}
-              >
-                Episode
-              </button>
-              <button
-                className={styles.releaseScopeButton}
-                type="button"
-                disabled={isSkipped || episodeNumber <= 0 || !hasSelectedGroups}
-                onClick={() => onApplyFansubGroupFromEpisode(episodeNumber, selectedFansubGroups)}
-              >
-                Ab hier
-              </button>
-            </div>
-              <button
-                className={styles.releaseScopeButton}
-                disabled={isSkipped || episodeNumber <= 0}
-                onClick={() => onApplyFansubGroupFromEpisode(episodeNumber, [])}
-              >
-                Ab hier entfernen
-              </button>
-          </label>
-          <label className={styles.releaseMeta}>
-            <span className={styles.releaseMetaLabel}>Version</span>
-            <input
-              className={styles.releaseMetaInput}
-              value={row.release_version ?? ''}
-              disabled={isSkipped}
-              placeholder="z.B. v2"
-              aria-label={`Release-Version für ${label}`}
-              onChange={(event) => onSetRelease(sourceKey, { releaseVersion: event.target.value })}
-            />
-            {row.release_version_source === 'detected' ? <span className={styles.releaseMetaHint}>Aus Dateiname übernommen</span> : null}
-          </label>
-        </div>
       </div>
-      <span className={`${styles.statusPill} ${styles[row.status]}`}>{statusLabel(row.status)}</span>
-      <input
-        className={styles.targetInput}
-        defaultValue={(row.target_episode_numbers ?? []).join(',')}
-        disabled={isSkipped}
-        onBlur={(event) => onSetTargets(sourceKey, event.target.value)}
-        aria-label={`Ziel-Episoden für ${label}`}
-        placeholder="z.B. 1"
-      />
-      <button
-        className={`${styles.microButton} ${isSkipped ? styles.microButtonActive : ''}`}
-        type="button"
-        onClick={() => onSkip(sourceKey)}
-      >
-        {isSkipped ? 'Reaktivieren' : 'Überspringen'}
-      </button>
-      {row.status === 'confirmed' && onApplyRow ? (
-        <button
-          className={styles.microButton}
-          type="button"
-          disabled={isApplyingRow}
-          onClick={() => onApplyRow(sourceKey)}
+      <div className={styles.mappingRowFields}>
+        <EpisodeImportMappingRowGroupField
+          row={row}
+          sourceKey={sourceKey}
+          label={label}
+          episodeNumber={episodeNumber}
+          isSkipped={isSkipped}
+          selectedFansubGroups={selectedFansubGroups}
+          onSetSelectedFansubGroups={onSetSelectedFansubGroups}
+          onAddSelectedFansubGroup={onAddSelectedFansubGroup}
+          onRemoveSelectedFansubGroup={onRemoveSelectedFansubGroup}
+          onApplyFansubGroupToEpisode={onApplyFansubGroupToEpisode}
+          onApplyFansubGroupFromEpisode={onApplyFansubGroupFromEpisode}
+        />
+        <FormField label="Episode">
+          <Input
+            className={styles.targetInput}
+            defaultValue={(row.target_episode_numbers ?? []).join(',')}
+            disabled={isSkipped}
+            onBlur={(event) => onSetTargets(sourceKey, event.target.value)}
+            aria-label={`Ziel-Episoden für ${label}`}
+            placeholder="z.B. 1"
+          />
+        </FormField>
+        <FormField
+          label="Version"
+          hint={row.release_version_source === 'detected' ? 'Aus Dateiname übernommen' : undefined}
         >
-          {isApplyingRow ? 'Wird angewendet...' : 'Übernehmen'}
-        </button>
-      ) : null}
+          <Input
+            value={row.release_version ?? ''}
+            disabled={isSkipped}
+            placeholder="z.B. v2"
+            aria-label={`Release-Version für ${label}`}
+            onChange={(event) => onSetRelease(sourceKey, { releaseVersion: event.target.value })}
+          />
+        </FormField>
+      </div>
+      <div className={styles.mappingRowActions}>
+        <span className={`${styles.statusPill} ${styles[row.status]}`}>{statusLabel(row.status)}</span>
+        <Button
+          variant={isSkipped ? 'secondary' : 'ghost'}
+          size="sm"
+          onClick={() => onSkip(sourceKey)}
+        >
+          {isSkipped ? 'Reaktivieren' : 'Überspringen'}
+        </Button>
+        {row.status === 'confirmed' && onApplyRow ? (
+          <Button
+            variant="primary"
+            size="sm"
+            disabled={isApplyingRow}
+            onClick={() => onApplyRow(sourceKey)}
+          >
+            {isApplyingRow ? 'Wird angewendet...' : 'Übernehmen'}
+          </Button>
+        ) : null}
+      </div>
     </div>
   )
 }

@@ -439,9 +439,10 @@
 
 .mappingRow {
   display: grid;
-  grid-template-columns: 1fr auto auto auto;
-  align-items: center;
-  gap: 10px;
+  grid-template-columns: minmax(0, 1.3fr) minmax(260px, 1fr) auto;
+  align-items: start;
+  column-gap: 20px;
+  row-gap: 10px;
   padding: 10px 14px;
   border-top: 1px solid #ede7df;
   background: #fff;
@@ -471,11 +472,24 @@
   opacity: 0.75;
 }
 
-.mappingRowFile {
+.mappingRowInfo {
   display: flex;
   flex-direction: column;
   gap: 2px;
   min-width: 0;
+}
+
+.mappingRowFields {
+  display: grid;
+  gap: 10px;
+  min-width: 0;
+}
+
+.mappingRowActions {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-end;
+  gap: 8px;
 }
 
 .fileName {
@@ -518,73 +532,12 @@
   color: #a09890;
 }
 
-/* ---- Release metadata fields (group, version) ---- */
+/* ---- Group field (chips, search, scope actions) ---- */
 
-.releaseMetaRow {
-  display: flex;
-  gap: 8px;
-  flex-wrap: wrap;
-  margin-top: 4px;
-}
-
-.releaseMeta {
-  display: flex;
-  align-items: center;
-  gap: 4px;
-}
-
-.releaseMetaGroup {
-  align-items: flex-start;
-}
-
-.releaseMetaActions {
+.groupScopeActions {
   display: flex;
   flex-wrap: wrap;
   gap: 6px;
-}
-
-.releaseMeta:first-child .releaseMetaInput {
-  width: clamp(180px, 24vw, 320px);
-}
-
-.releaseMeta:last-child .releaseMetaInput {
-  width: 110px;
-}
-
-.releaseMetaLabel {
-  color: #9b8e82;
-  font-size: 10px;
-  font-weight: 700;
-  text-transform: uppercase;
-  letter-spacing: 0.06em;
-  white-space: nowrap;
-}
-
-.releaseMetaInput {
-  width: 96px;
-  border: 1px solid #e4ddd4;
-  border-radius: 8px;
-  padding: 4px 8px;
-  background: #faf8f5;
-  color: #312821;
-  font-size: 12px;
-}
-
-.releaseMetaInput:disabled {
-  background: #f0ede8;
-  color: #c0b8ae;
-}
-
-.releaseMetaHint {
-  font-size: 12px;
-  font-weight: 400;
-  color: var(--text-muted);
-}
-
-.releaseMetaInput:focus {
-  outline: none;
-  border-color: #8060d7;
-  background: #fff;
 }
 
 .groupSelector {
@@ -635,9 +588,8 @@
   gap: 6px;
 }
 
-.groupInputRow .releaseMetaInput {
+.groupSearchInput {
   width: min(240px, 100%);
-  background: #fff;
 }
 
 .groupSearchState {
@@ -671,22 +623,6 @@
 .groupSearchMeta {
   color: #9b8e82;
   font-size: 11px;
-}
-
-.releaseScopeButton {
-  border: 1px solid #ddd5ca;
-  border-radius: 8px;
-  padding: 4px 8px;
-  background: #fff;
-  color: #5e554b;
-  font-size: 11px;
-  font-weight: 700;
-  cursor: pointer;
-}
-
-.releaseScopeButton:disabled {
-  cursor: not-allowed;
-  opacity: 0.45;
 }
 
 /* ---- Status pills ---- */
@@ -837,12 +773,13 @@
   }
 
   .mappingRow {
-    grid-template-columns: 1fr auto;
-    grid-template-rows: auto auto;
+    grid-template-columns: 1fr;
   }
 
-  .mappingRowFile {
-    grid-column: 1 / -1;
+  .mappingRowActions {
+    flex-direction: row;
+    flex-wrap: wrap;
+    justify-content: flex-start;
   }
 
   .contextStrip {
@@ -922,12 +859,6 @@
     width: 100%;
   }
 
-  .mappingRow {
-    grid-template-columns: 1fr;
-    grid-template-rows: none;
-    align-items: stretch;
-  }
-
   .statusPill,
   .targetInput,
   .microButton {
@@ -937,29 +868,6 @@
   .targetInput {
     width: 100%;
     text-align: left;
-  }
-
-  .releaseMetaRow {
-    display: grid;
-    grid-template-columns: 1fr;
-  }
-
-  .releaseMeta {
-    display: grid;
-    grid-template-columns: 64px minmax(0, 1fr);
-    align-items: center;
-  }
-
-  .releaseMetaGroup {
-    align-items: start;
-  }
-
-  .releaseMetaActions {
-    grid-column: 2;
-  }
-
-  .releaseMetaInput {
-    width: 100%;
   }
 
   .groupSelector {

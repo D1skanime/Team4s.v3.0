@@ -328,6 +328,40 @@ export function resolveEpisodeDisplayTitle(ep: EpisodeImportCanonicalEpisode): s
 }
 
 /**
+ * Resolve the fansub group chip's visible label + optional ID tooltip (GAP-08,
+ * 167-UAT.md). Auto-detected groups (`enrichEpisodeImportPreviewFansubData`,
+ * admin_episode_import_fansub_match.go) intentionally send only `{ID: &groupID}`
+ * for the chip itself -- the resolved name already lives on the very same
+ * response object at `row.fansub_group_match_origin.group_name`. This is a
+ * pure display-side resolution; no backend change is needed. The numeric ID
+ * is NEVER shown as the visible label anymore, only as a `title` tooltip.
+ */
+export function resolveFansubGroupChipDisplay(
+  group: EpisodeImportSelectedFansubGroup,
+  row: EpisodeImportMappingRow,
+): { label: string; idTooltip: string | null } {
+  const name = group.name?.trim()
+  const slug = group.slug?.trim()
+  const hasNumericId = typeof group.id === 'number' && Number.isFinite(group.id)
+  const idTooltip = hasNumericId ? `Gruppen-ID: ${group.id}` : null
+  const origin = row.fansub_group_match_origin ?? null
+
+  if (name) {
+    return { label: name, idTooltip }
+  }
+  if (slug) {
+    return { label: slug, idTooltip }
+  }
+  if (hasNumericId && origin !== null && origin.group_id === group.id) {
+    return { label: origin.group_name, idTooltip }
+  }
+  if (hasNumericId) {
+    return { label: `#${group.id}`, idTooltip }
+  }
+  return { label: 'Unbenannte Gruppe', idTooltip: null }
+}
+
+/**
  * Return a human-readable filler label for display in the workbench.
  * Returns null for 'canon' episodes so the badge is not rendered.
  */

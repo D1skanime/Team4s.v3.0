@@ -17,6 +17,7 @@ import {
   markMappingSkipped,
   resolveMappingGroupEpisodeNumber,
   resolveEpisodeDisplayTitle,
+  resolveFansubGroupChipDisplay,
   setMappingTargets,
   skipEpisodeMappingRows,
   summarizeImportPreview,
@@ -816,5 +817,37 @@ describe('source pair key boundaries', () => {
     expect(detectMappingConflicts(rows).map(row => row.status)).toEqual(['conflict', 'conflict'])
     expect(detectMappingConflicts([{ ...rows[0], status: 'skipped' }, rows[1]]).map(row => row.status))
       .toEqual(['skipped', 'confirmed'])
+  })
+})
+
+describe('resolveFansubGroupChipDisplay (GAP-08)', () => {
+  const baseRow: EpisodeImportMappingRow = {
+    media_item_id: 'gax-ova', media_source_id: 'source-gax-ova',
+    target_episode_numbers: [1], suggested_episode_numbers: [1], status: 'suggested',
+    fansub_group_match_origin: {
+      raw: 'GAX', matched_via: 'alias', group_id: 32,
+      group_name: 'Generation: Anime Xtreme', alias_id: 7,
+    },
+  }
+
+  it('resolves the auto-detected group name via fansub_group_match_origin, never a bare #id label', () => {
+    expect(resolveFansubGroupChipDisplay({ id: 32 }, baseRow)).toEqual({
+      label: 'Generation: Anime Xtreme',
+      idTooltip: 'Gruppen-ID: 32',
+    })
+  })
+
+  it('prefers an already-present group.name over the match-origin resolution', () => {
+    expect(resolveFansubGroupChipDisplay({ id: 5, name: 'Manuell' }, baseRow)).toEqual({
+      label: 'Manuell',
+      idTooltip: 'Gruppen-ID: 5',
+    })
+  })
+
+  it('renders a free-text chip without an id with no tooltip', () => {
+    expect(resolveFansubGroupChipDisplay({ name: 'Neu getippt' }, baseRow)).toEqual({
+      label: 'Neu getippt',
+      idTooltip: null,
+    })
   })
 })

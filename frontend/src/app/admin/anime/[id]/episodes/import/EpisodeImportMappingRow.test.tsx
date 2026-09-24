@@ -79,6 +79,29 @@ describe('EpisodeImportMappingRowCard', () => {
 
     expect(screen.getByText('Einziger Kandidat für die einzige Episode')).not.toBeNull()
   })
+
+  it('resolves an auto-detected group chip to its real name, never a bare #id (GAP-08)', () => {
+    renderRow({
+      row: makeRow({
+        fansub_groups: [{ id: 32 }],
+        fansub_group_match_origin: {
+          raw: 'GAX', matched_via: 'alias', group_id: 32,
+          group_name: 'Generation: Anime Xtreme', alias_id: 7,
+        },
+      }),
+    })
+
+    expect(screen.getByText('Generation: Anime Xtreme')).not.toBeNull()
+    expect(screen.queryByText('#32')).toBeNull()
+  })
+
+  it('renders three semantically-named regions (GAP-09)', () => {
+    const { container } = renderRow()
+
+    expect(container.querySelector('[class*="mappingRowInfo"]')).not.toBeNull()
+    expect(container.querySelector('[class*="mappingRowFields"]')).not.toBeNull()
+    expect(container.querySelector('[class*="mappingRowActions"]')).not.toBeNull()
+  })
 })
 
 
