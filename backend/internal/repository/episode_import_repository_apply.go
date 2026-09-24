@@ -56,12 +56,12 @@ func (r *EpisodeImportRepository) applyReleaseNative(
 	// GAP-24, 165-UAT.md, Auftraggeber-Entscheidung 2026-09-23: erweitert die
 	// bisherige GAP-22-Film-Erkennung (isFilm) auf alle Einteiler-Typen -- Film
 	// ist immer ein Einteiler, OVA/ONA/Special/Bonus nur bei genau einer
-	// kanonischen Episode (isEinteilerAnimeType, episode_placeholder_title.go).
+	// kanonischen Episode (IsEinteilerAnimeType, episode_placeholder_title.go).
 	totalEpisodeCount, err := countEffectiveCanonicalEpisodes(ctx, tx, input.AnimeID, plan.canonicalByNumber)
 	if err != nil {
 		return nil, err
 	}
-	isEinteiler := isEinteilerAnimeType(animeType, totalEpisodeCount)
+	isEinteiler := IsEinteilerAnimeType(animeType, totalEpisodeCount)
 	episodeTypeID, err := lookupIDByName(ctx, tx, "episode_types", mapAnimeTypeToEpisodeType(animeType))
 	if err != nil {
 		return nil, err
@@ -367,7 +367,7 @@ func firstScrapedEpisodeTitle(canonical models.EpisodeImportCanonicalEpisode) st
 // Entscheidung 2026-09-23) ist die EINZIGE Stelle, die den finalen Fallback-
 // Episodentitel synthetisiert. Ein echter gescrapter Titel hat immer Vorrang
 // vor dem Anime-/Filmtitel-Fallback -- AUSSER er ist bei einem Einteiler
-// (isEinteiler, isEinteilerAnimeType) nur ein AniSearch-Platzhalter wie
+// (isEinteiler, IsEinteilerAnimeType) nur ein AniSearch-Platzhalter wie
 // "Episode 1" (isPlaceholderEpisodeTitle, episode_placeholder_title.go); ein
 // Platzhalter zählt dort NICHT als echter Titel und wird wie ein fehlender
 // Titel behandelt. Der Anime-/Filmtitel-Fallback hat wiederum Vorrang vor dem

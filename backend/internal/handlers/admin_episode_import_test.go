@@ -582,6 +582,9 @@ func (*episodeImportSourceRepoSpy) ResolveFansubGroupMatches(context.Context, []
 func (*episodeImportSourceRepoSpy) SuggestSimilarFansubGroups(context.Context, string) ([]models.FansubGroupSuggestion, error) {
 	return nil, nil
 }
+func (*episodeImportSourceRepoSpy) GetAnimeType(context.Context, int64) (string, error) {
+	return "", nil
+}
 
 func episodeImportServerItem(id string) jellyfinEpisodeItem {
 	ticks := int64(12000000000)

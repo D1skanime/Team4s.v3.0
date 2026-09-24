@@ -159,6 +159,7 @@ type adminEpisodeImportRepository interface {
 	PreviewExistingCoverage(ctx context.Context, animeID int64) (models.EpisodeImportExistingCoverage, error)
 	ResolveFansubGroupMatches(ctx context.Context, candidates []string) ([]models.FansubGroupMatch, error)
 	SuggestSimilarFansubGroups(ctx context.Context, candidate string) ([]models.FansubGroupSuggestion, error)
+	GetAnimeType(ctx context.Context, animeID int64) (string, error)
 }
 
 type adminAniSearchEpisodeFetcher interface {

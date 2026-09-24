@@ -60,8 +60,8 @@ func TestIsEinteilerAnimeType(t *testing.T) {
 		tc := tc
 		t.Run(tc.name, func(t *testing.T) {
 			t.Parallel()
-			if got := isEinteilerAnimeType(tc.animeType, tc.totalEpisodeCount); got != tc.want {
-				t.Fatalf("isEinteilerAnimeType(%q, %d) = %v, want %v", tc.animeType, tc.totalEpisodeCount, got, tc.want)
+			if got := IsEinteilerAnimeType(tc.animeType, tc.totalEpisodeCount); got != tc.want {
+				t.Fatalf("IsEinteilerAnimeType(%q, %d) = %v, want %v", tc.animeType, tc.totalEpisodeCount, got, tc.want)
 			}
 		})
 	}

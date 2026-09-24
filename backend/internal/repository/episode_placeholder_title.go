@@ -48,13 +48,13 @@ func isPlaceholderEpisodeTitle(title string, episodeNumber int32) bool {
 	return int32(parsed) == episodeNumber
 }
 
-// isEinteilerAnimeType meldet, ob ein Anime vom übergebenen Typ mit der
+// IsEinteilerAnimeType meldet, ob ein Anime vom übergebenen Typ mit der
 // übergebenen kanonischen Episodenmenge ein "Einteiler" im Sinne der
 // Auftraggeber-Entscheidung 2026-09-23 ist: "film" ist immer ein Einteiler
 // (unabhängig von totalEpisodeCount); "ova"/"ona"/"special"/"bonus" sind es
 // nur, wenn die kanonische Episodenmenge genau 1 Episode umfasst; "tv" und
 // jeder unbekannte/leere animeType-Wert sind es nie.
-func isEinteilerAnimeType(animeType string, totalEpisodeCount int) bool {
+func IsEinteilerAnimeType(animeType string, totalEpisodeCount int) bool {
 	switch animeType {
 	case "film":
 		return true

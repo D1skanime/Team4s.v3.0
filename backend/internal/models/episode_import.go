@@ -112,6 +112,11 @@ type EpisodeImportMappingRow struct {
 	FansubGroupMatchOrigin *EpisodeImportFansubGroupMatchOrigin `json:"fansub_group_match_origin,omitempty"`
 	FansubGroupSuggestions []EpisodeImportFansubGroupSuggestion `json:"fansub_group_suggestions,omitempty"`
 	ReleaseVersionSource   *string                              `json:"release_version_source,omitempty"`
+	// SuggestionReason is an additive, display-only field (never persisted,
+	// never sent back on apply) populated by applyEinteilerSuggestion
+	// (GAP-03, admin_episode_import_einteiler.go) explaining why a row's
+	// Status became "suggested" beyond the usual media-candidate matcher.
+	SuggestionReason *string `json:"suggestion_reason,omitempty"`
 }
 
 // EpisodeImportPreviewResult is the read-only preview payload for the builder.

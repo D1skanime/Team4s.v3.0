@@ -109,6 +109,11 @@ func (h *AdminContentHandler) PreviewEpisodeImport(c *gin.Context) {
 		req.SeasonOffset,
 	)
 	preview.Mappings = enrichEpisodeImportPreviewFansubData(c.Request.Context(), h.episodeImportRepo, preview.Mappings)
+	if h.episodeImportRepo != nil {
+		if animeType, typeErr := h.episodeImportRepo.GetAnimeType(c.Request.Context(), animeID); typeErr == nil {
+			preview = applyEinteilerSuggestion(preview, animeType)
+		}
+	}
 	c.JSON(http.StatusOK, gin.H{"data": preview})
 }
 
