@@ -709,6 +709,80 @@ func TestEpisodeImportSourceApplyRevalidatesBeforeWrite(t *testing.T) {
 	}
 }
 
+// TestApplyEpisodeImport_AcceptsFileFromAdditionalConnectedJellyfinFolder proves GAP-11: a file
+// that belongs to a second Jellyfin folder connected to the anime (Phase 165 D-05/D-18, e.g. via
+// anime_source_links) is accepted by ApplyEpisodeImport exactly like a main-folder file, while a
+// file from a genuinely foreign series/folder is still rejected fail-closed (165-04 IDOR guard).
+func TestApplyEpisodeImport_AcceptsFileFromAdditionalConnectedJellyfinFolder(t *testing.T) {
+	for _, scenario := range []string{"main folder", "second folder", "foreign folder"} {
+		t.Run(scenario, func(t *testing.T) {
+			pool := openEVECFixture(t)
+			_, err := pool.Exec(context.Background(), `INSERT INTO anime_source_links (anime_id, source) VALUES (301, 'jellyfin:series-402')`)
+			require.NoError(t, err)
+
+			spy := &episodeImportSourceRepoSpy{}
+			item := episodeImportServerItem("one")
+			switch scenario {
+			case "second folder":
+				item.SeriesID = "series-402"
+				item.Path = "/data/anime/SecondFolder/one.mkv"
+				item.MediaSources[1].Path = "/data/anime/SecondFolder/one.mkv"
+			case "foreign folder":
+				item.SeriesID = "foreign-series"
+				item.Path = "/data/anime/Foreign/one.mkv"
+				item.MediaSources[1].Path = "/data/anime/Foreign/one.mkv"
+			}
+
+			knownFolders := map[string]jellyfinEpisodeItem{
+				"series-401": {ID: "series-401", Path: "/data/anime/FixtureFallback"},
+				"series-402": {ID: "series-402", Path: "/data/anime/SecondFolder"},
+			}
+			server := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+				require.Equal(t, "/Items", r.URL.Path)
+				ids := strings.Split(r.URL.Query().Get("Ids"), ",")
+				if ids[0] != "one" {
+					items := make([]jellyfinEpisodeItem, 0, len(ids))
+					for _, id := range ids {
+						if known, ok := knownFolders[id]; ok {
+							items = append(items, known)
+						}
+					}
+					require.NoError(t, json.NewEncoder(w).Encode(jellyfinEpisodeListResponse{Items: items}))
+					return
+				}
+				require.NoError(t, json.NewEncoder(w).Encode(jellyfinEpisodeListResponse{Items: []jellyfinEpisodeItem{item}}))
+			}))
+			defer server.Close()
+
+			h := evecFixtureHandler(pool, server.URL, "test-key")
+			h.episodeImportRepo = spy
+			h.authzRepo = adminRoleCheckerStub{isAdmin: true}
+			h.jellyfinStreamPath = "/Videos/%s/stream"
+			req := episodeImportReviewedRequest()
+			raw, err := json.Marshal(req)
+			require.NoError(t, err)
+			rec := httptest.NewRecorder()
+			c, _ := gin.CreateTestContext(rec)
+			c.Params = gin.Params{{Key: "id", Value: "301"}}
+			c.Request = httptest.NewRequest("POST", "/admin/anime/301/episode-import/apply", strings.NewReader(string(raw)))
+			c.Request.Header.Set("Content-Type", "application/json")
+			c.Set("auth_identity", evecFixturePlatformAdminIdentity())
+			h.ApplyEpisodeImport(c)
+
+			if scenario == "foreign folder" {
+				require.Equal(t, 409, rec.Code, rec.Body.String())
+				require.Zero(t, spy.calls)
+				require.Contains(t, rec.Body.String(), "gehört nicht zur gespeicherten Anime-Zuordnung")
+				return
+			}
+			require.Equal(t, 200, rec.Code, rec.Body.String())
+			require.Equal(t, 1, spy.calls)
+			require.Len(t, spy.received.MediaCandidates, 1)
+			require.Equal(t, item.Path, spy.received.MediaCandidates[0].Path)
+		})
+	}
+}
+
 func TestEpisodeImportSourceBatchBudget(t *testing.T) {
 	for _, count := range []int{0, 1, 100, 101, 201} {
 		t.Run(fmt.Sprint(count), func(t *testing.T) {

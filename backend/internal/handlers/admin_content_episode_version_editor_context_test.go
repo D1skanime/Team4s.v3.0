@@ -371,6 +371,69 @@ func TestEpisodeVersionEditorContextChapterFailuresRemainUsable(t *testing.T) {
 	}
 }
 
+// TestEpisodeVersionEditorContextSelectedFileFromAdditionalConnectedFolder proves GAP-11 for the
+// read-only editor file preview: a version whose Jellyfin file lives in a second connected folder
+// (Phase 165 D-05/D-18, e.g. via anime_source_links) still resolves SelectedFile, while a
+// genuinely foreign series/folder degrades (fail-open, no 5xx) exactly like the existing
+// not-owned scenarios above. The pre-existing tests in this file (single connected folder) stay
+// UNCHANGED and keep proving the main-folder case byte-identical to before.
+func TestEpisodeVersionEditorContextSelectedFileFromAdditionalConnectedFolder(t *testing.T) {
+	for _, scenario := range []string{"second folder", "foreign folder"} {
+		t.Run(scenario, func(t *testing.T) {
+			pool := openVersionHydrationFixture(t)
+			_, err := pool.Exec(context.Background(), `INSERT INTO anime_source_links (anime_id, source) VALUES (301, 'jellyfin:series-402')`)
+			require.NoError(t, err)
+
+			series, path := "series-402", "/data/anime/SecondFolder/a.mkv"
+			if scenario == "foreign folder" {
+				series, path = "foreign", "/other/a.mkv"
+			}
+			if scenario == "second folder" {
+				// The already-stored jellyfin_source binding for item-a/source-a still points at
+				// the main folder's path -- move it in lockstep with the "live" Jellyfin data
+				// below so this test exercises GAP-11's ownership widening, not the unrelated
+				// "stored source path changed" conflict guard (jellyfin_media_source.go:122).
+				_, err = pool.Exec(context.Background(), `UPDATE stream_sources SET metadata = jsonb_set(metadata, '{jellyfin_source,source_path}', to_jsonb($1::text)) WHERE external_id = 'item-a'`, path)
+				require.NoError(t, err)
+			}
+
+			knownFolders := map[string]string{"series-401": "/data/anime/FixtureFallback", "series-402": "/data/anime/SecondFolder"}
+			server := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+				ids := strings.Split(r.URL.Query().Get("Ids"), ",")
+				if len(ids) == 1 && ids[0] == "item-a" {
+					fmt.Fprintf(w, `{"Items":[{"Id":"item-a","Type":"Episode","SeriesId":%q,"Path":%q,"MediaSources":[{"Id":"source-a","Path":%q,"MediaStreams":[]}]}],"TotalRecordCount":1}`, series, path, path)
+					return
+				}
+				items := make([]string, 0, len(ids))
+				for _, id := range ids {
+					if folderPath, ok := knownFolders[id]; ok {
+						items = append(items, fmt.Sprintf(`{"Id":%q,"Path":%q}`, id, folderPath))
+					}
+				}
+				fmt.Fprintf(w, `{"Items":[%s],"TotalRecordCount":%d}`, strings.Join(items, ","), len(items))
+			}))
+			defer server.Close()
+
+			h := evecFixtureHandler(pool, server.URL, "fixture-key")
+			rec := evecChapterRequest(h, false, true)
+			require.Equal(t, 200, rec.Code, rec.Body.String())
+
+			var response struct {
+				Data models.EpisodeVersionEditorContext `json:"data"`
+			}
+			require.NoError(t, json.Unmarshal(rec.Body.Bytes(), &response))
+
+			if scenario == "foreign folder" {
+				require.Nil(t, response.Data.SelectedFile)
+				require.True(t, response.Data.JellyfinEnrichmentDegraded)
+				return
+			}
+			require.NotNil(t, response.Data.SelectedFile)
+			require.False(t, response.Data.JellyfinEnrichmentDegraded)
+		})
+	}
+}
+
 func TestEpisodeVersionContributorContextDeniedBeforeProviderRead(t *testing.T) {
 	loadAppAuthCapabilityTestCache(t)
 	h := &AdminContentHandler{permissionSvc: permissions.NewService(contributionsPermissionResolverDenied{})}
