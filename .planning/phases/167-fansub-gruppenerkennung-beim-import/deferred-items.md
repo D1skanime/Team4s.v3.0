@@ -22,3 +22,20 @@ Out-of-scope findings discovered during execution, not fixed per the SCOPE BOUND
   `sheppert@team4s.local`; both are unavailable in the scratch `golang:1.25-alpine`
   build container used for this headless run (no live services, no network route to the
   LAN backend port). Pre-existing environment dependency, unrelated to Phase 167.
+
+## Quick task 260924-ksv (GAP-13)
+
+- `frontend/src/lib/cssCustomProperties.guard.test.ts` fails on `main` independent of any
+  260924-ksv change: its `KNOWN_NON_CSS_TEXTUAL_MENTIONS` allow-list hardcodes
+  `roleCatalog.accessibility.test.ts:282` for the `--surface-muted` textual mention
+  (Phase 148, commit `281182d1`), but that file's matching `it(...)` description has since
+  drifted to line 268 (unrelated prior edits shifted the line count). Neither
+  `EpisodeImportEpisodeGroup.tsx`/`.test.tsx`, `EpisodeImportMappingRow.tsx`, `page.tsx`, nor
+  `page.module.css` touch CSS custom properties (`var(--...)`) or
+  `roleCatalog.accessibility.test.ts` — pre-existing line-number drift, not caused by this
+  task. `npx tsc --noEmit` and `npm run lint` were run standalone (not chained after `npm
+  test`) to confirm this task's own changes are clean.
+- `npm run lint` reports 3 pre-existing errors unrelated to this task, both predating
+  260924-ksv (last touched commit `10e6d216`, 2026-08-25): two `no-require-imports` errors in
+  `/app/capture-responsive.cjs` and one `react/no-unescaped-entities` error in
+  `frontend/src/app/admin/users/tabs/CapabilityDetailRow.tsx`. Not fixed here (out of scope).
