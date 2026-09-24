@@ -73,6 +73,12 @@ describe('EpisodeImportMappingRowCard', () => {
       ])
     })
   })
+
+  it('renders the suggestion_reason text when present (GAP-03)', () => {
+    renderRow({ row: makeRow({ suggestion_reason: 'Einziger Kandidat für die einzige Episode' }) })
+
+    expect(screen.getByText('Einziger Kandidat für die einzige Episode')).not.toBeNull()
+  })
 })
 
 

@@ -172,6 +172,9 @@ export function EpisodeImportMappingRowCard({
         {(row.target_episode_numbers ?? []).length > 1 ? (
           <span className={styles.multiEpisodeHint}>Deckt {row.target_episode_numbers.length} Episoden ab</span>
         ) : null}
+        {row.suggestion_reason ? (
+          <span className={styles.multiEpisodeHint}>{row.suggestion_reason}</span>
+        ) : null}
         <div className={styles.releaseMetaRow}>
           <label className={`${styles.releaseMeta} ${styles.releaseMetaGroup}`}>
             <span className={styles.releaseMetaLabel}>Gruppe</span>
