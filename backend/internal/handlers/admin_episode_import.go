@@ -726,8 +726,8 @@ func (h *AdminContentHandler) rehydrateEpisodeImportSources(ctx context.Context,
 		return fail(http.StatusServiceUnavailable, "Jellyfin ist nicht konfiguriert.")
 	}
 	seriesID := strings.TrimSpace(derefString(importContext.JellyfinSeriesID))
-	folder := normalizeJellyfinPath(importContext.FolderPath)
-	if seriesID == "" && folder == "" {
+	owned := ownedJellyfinSourcesFromFolders(seriesID, importContext.FolderPath, importContext.JellyfinFoldersForOwnershipCheck)
+	if seriesID == "" && normalizeJellyfinPath(importContext.FolderPath) == "" {
 		return fail(http.StatusConflict, "Der Anime hat keine überprüfbare Jellyfin-Zuordnung.")
 	}
 	bindings, err := h.episodeImportRepo.GetJellyfinSourceBindings(ctx, ids)
@@ -755,7 +755,7 @@ func (h *AdminContentHandler) rehydrateEpisodeImportSources(ctx context.Context,
 		if binding, ok := bindings[models.JellyfinSourceKey{ItemID: mapping.MediaItemID, SourceID: mapping.MediaSourceID}]; ok {
 			stored = &binding
 		}
-		resolved, err := resolveReviewedJellyfinSource(item, mapping.MediaItemID, mapping.MediaSourceID, seriesID, folder, stored)
+		resolved, err := resolveReviewedJellyfinSource(item, mapping.MediaItemID, mapping.MediaSourceID, owned, stored)
 		if err != nil {
 			return fail(http.StatusConflict, err.Error())
 		}

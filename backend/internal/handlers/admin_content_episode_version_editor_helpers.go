@@ -131,10 +131,11 @@ func (h *AdminContentHandler) enrichEpisodeVersionSelectedFile(
 		return nil, false
 	}
 	itemID := strings.TrimSpace(version.MediaItemID)
-	normalizedFolder := normalizeJellyfinPath(folder)
-	if itemID == "" || (seriesID == "" && normalizedFolder == "") {
+	if itemID == "" || (seriesID == "" && normalizeJellyfinPath(folder) == "") {
 		return nil, false
 	}
+	folders := h.hydrateJellyfinFolderDisplayNames(ctx, collectJellyfinFolderOptions(anime.Source, anime.SourceLinks, anime.Source), folder)
+	owned := ownedJellyfinSourcesFromFolders(seriesID, folder, folders)
 	items, err := fetchJellyfinSourceBatch(ctx, h.httpClient, h.jellyfinBaseURL, h.jellyfinAPIKey, []string{itemID}, true)
 	if err != nil {
 		return nil, true
@@ -143,7 +144,7 @@ func (h *AdminContentHandler) enrichEpisodeVersionSelectedFile(
 	if binding == nil && version.MediaSourceID != nil {
 		binding = &models.JellyfinSourceSnapshot{Version: 1, MediaSourceID: *version.MediaSourceID}
 	}
-	source, err := resolveReviewedJellyfinSource(items[itemID], itemID, strings.TrimSpace(derefString(version.MediaSourceID)), seriesID, normalizedFolder, binding)
+	source, err := resolveReviewedJellyfinSource(items[itemID], itemID, strings.TrimSpace(derefString(version.MediaSourceID)), owned, binding)
 	if err != nil {
 		return nil, true
 	}

@@ -13,18 +13,22 @@ import (
 
 // Shared by import apply and editor relink: provider paths and selectors are
 // evidence only after exact item, anime and selected-source ownership agree.
-func resolveReviewedJellyfinSource(item jellyfinEpisodeItem, itemID, sourceID, seriesID, folder string, stored *models.JellyfinSourceSnapshot) (resolvedJellyfinMediaSource, error) {
+func resolveReviewedJellyfinSource(item jellyfinEpisodeItem, itemID, sourceID string, owned []jellyfinOwnedSource, stored *models.JellyfinSourceSnapshot) (resolvedJellyfinMediaSource, error) {
 	fail := func(message string) (resolvedJellyfinMediaSource, error) {
 		return resolvedJellyfinMediaSource{}, fmt.Errorf("%s", message)
 	}
-	if item.ID != itemID || item.Type != "Episode" || (seriesID != "" && strings.TrimSpace(item.SeriesID) != seriesID) || (folder != "" && !jellyfinPathHasPrefix(item.Path, folder)) {
+	if item.ID != itemID || item.Type != "Episode" {
+		return fail("Die Jellyfin-Datei gehört nicht zur gespeicherten Anime-Zuordnung.")
+	}
+	match, ok := matchOwnedJellyfinSource(owned, strings.TrimSpace(item.SeriesID), item.Path)
+	if !ok {
 		return fail("Die Jellyfin-Datei gehört nicht zur gespeicherten Anime-Zuordnung.")
 	}
 	resolved, err := resolveJellyfinMediaSourceSelection(item, sourceID, stored)
 	if err != nil || (sourceID != "" && resolved.Snapshot.MediaSourceID != sourceID) {
 		return fail("Die geprüfte Jellyfin-Quelle hat sich geändert. Bitte Vorschau neu laden.")
 	}
-	if folder != "" && !jellyfinPathHasPrefix(resolved.Snapshot.SourcePath, folder) {
+	if match.FolderPath != "" && !jellyfinPathHasPrefix(resolved.Snapshot.SourcePath, match.FolderPath) {
 		return fail("Die Jellyfin-Quelle gehört nicht zum gespeicherten Anime-Ordner.")
 	}
 	if !resolved.Snapshot.StreamsComplete && (stored == nil || !stored.StreamsComplete) {
@@ -55,10 +59,11 @@ func (h *FansubHandler) resolveEpisodeVersionSource(ctx context.Context, animeID
 		return fail(sourceHydrationRepositoryStatus(err), "Die Anime-Zuordnung konnte nicht geladen werden.")
 	}
 	seriesID := jellyfinSeriesIDFromAnimeSource(anime.Source, anime.SourceLinks)
-	folder := normalizeJellyfinPath(anime.FolderName)
-	if seriesID == "" && folder == "" {
+	if seriesID == "" && normalizeJellyfinPath(anime.FolderName) == "" {
 		return fail(409, "Der Anime hat keine überprüfbare Jellyfin-Zuordnung.")
 	}
+	folders := hydrateFansubFolderPathsForRelink(ctx, collectJellyfinFolderOptions(anime.Source, anime.SourceLinks, anime.Source), h.getJellyfinSourceItems)
+	owned := ownedJellyfinSourcesFromFolders(seriesID, anime.FolderName, folders)
 	bindings, err := h.episodeVersionRepo.GetJellyfinSourceBindings(ctx, []string{itemID})
 	if err != nil {
 		return fail(sourceHydrationRepositoryStatus(err), "Die gespeicherte Jellyfin-Quelle konnte nicht geladen werden.")
@@ -75,7 +80,7 @@ func (h *FansubHandler) resolveEpisodeVersionSource(ctx context.Context, animeID
 		}
 		return fail(502, "Jellyfin-Dateien konnten nicht geladen werden.")
 	}
-	resolved, err := resolveReviewedJellyfinSource(items[itemID], itemID, selector, seriesID, folder, stored)
+	resolved, err := resolveReviewedJellyfinSource(items[itemID], itemID, selector, owned, stored)
 	if err != nil {
 		return resolved, nil, 409, err
 	}
