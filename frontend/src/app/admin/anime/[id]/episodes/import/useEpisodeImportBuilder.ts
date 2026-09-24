@@ -39,6 +39,7 @@ import {
   resolveMappingGroupEpisodeNumber,
   toggleMappingSkipped,
 } from './episodeImportMapping'
+import { applyEinteilerTitlePrefill } from './episodeImportEinteilerTitle'
 
 export interface EpisodeGroup {
   episodeNumber: number
@@ -371,7 +372,11 @@ export function buildEpisodeImportApplyInput(
 export function normalizePreviewResult(preview: EpisodeImportPreviewResult): EpisodeImportPreviewResult {
   return {
     ...preview,
-    canonical_episodes: preview.canonical_episodes ?? [],
+    canonical_episodes: applyEinteilerTitlePrefill(
+      preview.canonical_episodes ?? [],
+      preview.is_einteiler ?? false,
+      preview.anime_title,
+    ),
     media_candidates: preview.media_candidates ?? [],
     mappings: detectMappingConflicts((preview.mappings ?? []).map((row) => {
       const candidates = (preview.media_candidates ?? []).filter(

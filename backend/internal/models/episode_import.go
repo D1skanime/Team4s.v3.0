@@ -131,6 +131,11 @@ type EpisodeImportPreviewResult struct {
 	Mappings             []EpisodeImportMappingRow       `json:"mappings"`
 	UnmappedEpisodes     []int32                         `json:"unmapped_episodes,omitempty"`
 	UnmappedMediaItemIDs []string                        `json:"unmapped_media_item_ids,omitempty"`
+	// IsEinteiler tells the frontend whether this anime is an Einteiler
+	// (GAP-10, 167-UAT.md) so the preview can prefill a placeholder episode
+	// title with the anime title without the page itself needing to know
+	// anime.type. Always sent (no omitempty): false is a meaningful value.
+	IsEinteiler bool `json:"is_einteiler"`
 }
 
 // JellyfinFolderOption describes one jellyfin: folder connected to an anime,

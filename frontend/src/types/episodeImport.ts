@@ -107,6 +107,8 @@ export interface EpisodeImportPreviewResult {
   unmapped_episodes?: number[]
   /** Diagnostic Item IDs; not row keys or a count of unmapped physical sources. */
   unmapped_media_item_ids?: string[]
+  /** Whether this anime is an Einteiler (GAP-10, backend EpisodeImportPreviewResult.IsEinteiler). */
+  is_einteiler?: boolean
 }
 
 /** One jellyfin: folder connected to an anime (D-05: an anime can have more than one). */

@@ -119,3 +119,57 @@ func TestApplyEinteilerSuggestion_FilmWithMultipleCanonicalEpisodesLeftUnchanged
 		t.Fatalf("expected status to remain skipped for a multi-episode film preview, got %q", got.Mappings[0].Status)
 	}
 }
+
+func TestApplyEinteilerSuggestion_IsEinteilerSetForSingleEpisodeOVA(t *testing.T) {
+	preview := models.EpisodeImportPreviewResult{
+		CanonicalEpisodes: []models.EpisodeImportCanonicalEpisode{{EpisodeNumber: 1}},
+	}
+
+	got := applyEinteilerSuggestion(preview, "ova")
+
+	if !got.IsEinteiler {
+		t.Fatalf("expected IsEinteiler true for a single-episode ova, got false")
+	}
+}
+
+func TestApplyEinteilerSuggestion_IsEinteilerFalseForTV(t *testing.T) {
+	preview := models.EpisodeImportPreviewResult{
+		CanonicalEpisodes: []models.EpisodeImportCanonicalEpisode{{EpisodeNumber: 1}},
+	}
+
+	got := applyEinteilerSuggestion(preview, "tv")
+
+	if got.IsEinteiler {
+		t.Fatalf("expected IsEinteiler false for tv, got true")
+	}
+}
+
+func TestApplyEinteilerSuggestion_IsEinteilerTrueForFilmRegardlessOfEpisodeCount(t *testing.T) {
+	preview := models.EpisodeImportPreviewResult{
+		CanonicalEpisodes: []models.EpisodeImportCanonicalEpisode{
+			{EpisodeNumber: 1},
+			{EpisodeNumber: 2},
+		},
+	}
+
+	got := applyEinteilerSuggestion(preview, "film")
+
+	if !got.IsEinteiler {
+		t.Fatalf("expected IsEinteiler true for film with multiple canonical episodes, got false")
+	}
+}
+
+func TestApplyEinteilerSuggestion_IsEinteilerFalseForOVAWithTwoCanonicalEpisodes(t *testing.T) {
+	preview := models.EpisodeImportPreviewResult{
+		CanonicalEpisodes: []models.EpisodeImportCanonicalEpisode{
+			{EpisodeNumber: 1},
+			{EpisodeNumber: 2},
+		},
+	}
+
+	got := applyEinteilerSuggestion(preview, "ova")
+
+	if got.IsEinteiler {
+		t.Fatalf("expected IsEinteiler false for ova with two canonical episodes, got true")
+	}
+}

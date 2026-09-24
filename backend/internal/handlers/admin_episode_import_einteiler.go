@@ -17,7 +17,15 @@ const einteilerSuggestionReason = "Einziger Kandidat für die einzige Episode"
 // "suggested", requiring the same explicit admin confirmation as every
 // other suggested row before Apply persists anything (T-QUICK260924-B7S-03).
 // Leaves preview unchanged whenever the gating conditions below are not met.
+//
+// This function additionally always sets preview.IsEinteiler (GAP-10,
+// 167-UAT.md) regardless of whether the GAP-03 suggestion logic below early-
+// returns -- the frontend uses IsEinteiler for its own, independent preview
+// title prefill and needs it set for every Einteiler, not just the single-
+// unresolved-row special case.
 func applyEinteilerSuggestion(preview models.EpisodeImportPreviewResult, animeType string) models.EpisodeImportPreviewResult {
+	preview.IsEinteiler = repository.IsEinteilerAnimeType(animeType, len(preview.CanonicalEpisodes))
+
 	if len(preview.CanonicalEpisodes) != 1 {
 		return preview
 	}
