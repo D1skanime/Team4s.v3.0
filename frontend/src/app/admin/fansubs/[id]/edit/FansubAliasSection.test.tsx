@@ -56,6 +56,14 @@ function renderSection() {
   );
 }
 
+function renderSectionInsideOuterForm(outerSubmit: (event: { preventDefault: () => void }) => void) {
+  return render(
+    <form onSubmit={outerSubmit}>
+      <FansubAliasSection fansubID={10} isPlatformAdmin hasAuthSession onToast={() => {}} />
+    </form>,
+  );
+}
+
 beforeEach(() => {
   getFansubList.mockResolvedValue(GROUPS);
 });
@@ -228,5 +236,55 @@ describe("FansubAliasSection — Umhängen", () => {
     expect(optionValues).toEqual(["", "11"]);
     expect(select.options[0].disabled).toBe(true);
     expect(optionValues).not.toContain("10");
+  });
+});
+
+describe("FansubAliasSection — GAP-04: kein verschachteltes Formular", () => {
+  it("rendert kein eigenes <form>-Element, unabhängig vom Ladezustand", async () => {
+    getFansubAliases.mockResolvedValue({ data: [ALIAS_ROW] });
+
+    const { container } = renderSection();
+
+    expect(container.querySelector("form")).toBeNull();
+    await screen.findByText("BDnP");
+    expect(container.querySelector("form")).toBeNull();
+  });
+
+  it("Enter im Alias-Eingabefeld legt einen Alias an, ohne das äußere Formular abzusenden", async () => {
+    getFansubAliases
+      .mockResolvedValueOnce({ data: [] })
+      .mockResolvedValueOnce({ data: [ALIAS_ROW] });
+    createFansubAlias.mockResolvedValue({ data: ALIAS_ROW });
+    const outerSubmit = vi.fn((event: { preventDefault: () => void }) => event.preventDefault());
+
+    renderSectionInsideOuterForm(outerSubmit);
+
+    const input = await screen.findByPlaceholderText("z. B. BDnP");
+    fireEvent.change(input, { target: { value: "BDnP" } });
+    fireEvent.keyDown(input, { key: "Enter" });
+
+    await waitFor(() => {
+      expect(createFansubAlias).toHaveBeenCalledWith(10, { alias: "BDnP" });
+    });
+    expect(outerSubmit).not.toHaveBeenCalled();
+  });
+
+  it("Klick auf 'Alias hinzufügen' legt einen Alias an, ohne das äußere Formular abzusenden", async () => {
+    getFansubAliases
+      .mockResolvedValueOnce({ data: [] })
+      .mockResolvedValueOnce({ data: [ALIAS_ROW] });
+    createFansubAlias.mockResolvedValue({ data: ALIAS_ROW });
+    const outerSubmit = vi.fn((event: { preventDefault: () => void }) => event.preventDefault());
+
+    renderSectionInsideOuterForm(outerSubmit);
+
+    const input = await screen.findByPlaceholderText("z. B. BDnP");
+    fireEvent.change(input, { target: { value: "BDnP" } });
+    fireEvent.click(screen.getByRole("button", { name: "Alias hinzufügen" }));
+
+    await waitFor(() => {
+      expect(createFansubAlias).toHaveBeenCalledWith(10, { alias: "BDnP" });
+    });
+    expect(outerSubmit).not.toHaveBeenCalled();
   });
 });

@@ -1,6 +1,6 @@
 "use client";
 
-import { useCallback, useEffect, useState, type FormEvent } from "react";
+import { useCallback, useEffect, useState } from "react";
 import { Plus, Trash2 } from "lucide-react";
 
 import {
@@ -110,8 +110,7 @@ export function FansubAliasSection({
   const canManage = hasAuthSession;
   const availableTargetGroups = groups.filter((group) => group.id !== fansubID);
 
-  async function handleCreate(event: FormEvent) {
-    event.preventDefault();
+  async function handleCreate() {
     const alias = newAliasText.trim();
     if (!alias) return;
     setCreating(true);
@@ -174,7 +173,7 @@ export function FansubAliasSection({
   }
 
   const newAliasForm = (
-    <form onSubmit={handleCreate}>
+    <div>
       <FormField label="Neuer Alias" htmlFor="fansub-alias-new" error={newAliasError ?? undefined}>
         <Input
           id="fansub-alias-new"
@@ -183,19 +182,28 @@ export function FansubAliasSection({
           disabled={!canManage}
           placeholder="z. B. BDnP"
           onChange={(event) => setNewAliasText(event.target.value)}
+          onKeyDown={(event) => {
+            if (event.key !== "Enter") return;
+            event.preventDefault();
+            event.stopPropagation();
+            if (!creating && newAliasText.trim()) {
+              void handleCreate();
+            }
+          }}
         />
       </FormField>
       <Button
-        type="submit"
+        type="button"
         variant="primary"
         size="sm"
         leftIcon={<Plus size={14} />}
         disabled={!canManage || creating || !newAliasText.trim()}
         loading={creating}
+        onClick={() => void handleCreate()}
       >
         Alias hinzufügen
       </Button>
-    </form>
+    </div>
   );
 
   return (
