@@ -27,6 +27,12 @@ import {
 } from "@/components/ui";
 import { useAuthSession } from "@/lib/useAuthSession";
 import { FansubGroup, FansubStatus } from "@/types/fansub";
+import {
+  compareFansubListItems,
+  type FansubSortDirection,
+  type FansubSortKey,
+} from "./fansubListSort";
+import { FansubSortHeaderCell } from "./FansubSortHeaderCell";
 
 import sharedStyles from "../admin.module.css";
 import fansubStyles from "./fansubs.module.css";
@@ -34,8 +40,8 @@ import fansubStyles from "./fansubs.module.css";
 const styles = { ...sharedStyles, ...fansubStyles };
 
 type StatusFilter = "all" | "active" | "inactive" | "archived";
-type SortKey = "name" | "status" | "period";
-type SortDirection = "asc" | "desc";
+type SortKey = FansubSortKey;
+type SortDirection = FansubSortDirection;
 
 const PAGE_SIZE = 20;
 const SEARCH_DEBOUNCE_MS = 300;
@@ -61,18 +67,6 @@ function formatError(error: unknown): string {
 function statusLabel(status: FansubStatus): string {
   if (status === "dissolved") return "archived";
   return status;
-}
-
-function statusRank(status: FansubStatus): number {
-  if (status === "active") return 0;
-  if (status === "inactive") return 1;
-  return 2;
-}
-
-function periodValue(group: FansubGroup): number {
-  if (typeof group.founded_year === "number") return group.founded_year;
-  if (typeof group.dissolved_year === "number") return group.dissolved_year;
-  return Number.MAX_SAFE_INTEGER;
 }
 
 function formatPeriod(group: FansubGroup): string {
@@ -174,24 +168,9 @@ function AdminFansubsContent() {
 
   const sortedItems = useMemo(() => {
     const next = [...filteredItems];
-    next.sort((left, right) => {
-      let cmp = 0;
-      if (sortKey === "name") {
-        cmp = left.name.localeCompare(right.name, "de", {
-          sensitivity: "base",
-        });
-      } else if (sortKey === "status") {
-        cmp = statusRank(left.status) - statusRank(right.status);
-      } else {
-        cmp = periodValue(left) - periodValue(right);
-      }
-
-      if (cmp === 0)
-        cmp = left.name.localeCompare(right.name, "de", {
-          sensitivity: "base",
-        });
-      return sortDirection === "asc" ? cmp : -cmp;
-    });
+    next.sort((left, right) =>
+      compareFansubListItems(sortKey, sortDirection, left, right),
+    );
     return next;
   }, [filteredItems, sortDirection, sortKey]);
 
@@ -482,6 +461,7 @@ function AdminFansubsContent() {
               <option value="name">Name</option>
               <option value="status">Status</option>
               <option value="period">Zeitraum</option>
+              <option value="kuerzel">Kürzel</option>
             </select>
           </div>
           <div className={`${styles.field} ${styles.fansubFilterSelect}`}>
@@ -576,49 +556,39 @@ function AdminFansubsContent() {
                       aria-label="Alle sichtbaren Gruppen auswählen"
                     />
                   </TableHeaderCell>
-                  <TableHeaderCell>
-                    <button
-                      type="button"
-                      className={styles.fansubSortButton}
-                      onClick={() => toggleSort("name")}
-                    >
-                      Gruppenname{" "}
-                      {sortKey === "name"
-                        ? sortDirection === "asc"
-                          ? "^"
-                          : "v"
-                        : ""}
-                    </button>
-                  </TableHeaderCell>
+                  <FansubSortHeaderCell
+                    label="Gruppenname"
+                    sortKeyValue="name"
+                    activeSortKey={sortKey}
+                    sortDirection={sortDirection}
+                    onSort={toggleSort}
+                    styles={styles}
+                  />
                   <TableHeaderCell>Slug</TableHeaderCell>
-                  <TableHeaderCell>
-                    <button
-                      type="button"
-                      className={styles.fansubSortButton}
-                      onClick={() => toggleSort("status")}
-                    >
-                      Status{" "}
-                      {sortKey === "status"
-                        ? sortDirection === "asc"
-                          ? "^"
-                          : "v"
-                        : ""}
-                    </button>
-                  </TableHeaderCell>
-                  <TableHeaderCell>
-                    <button
-                      type="button"
-                      className={styles.fansubSortButton}
-                      onClick={() => toggleSort("period")}
-                    >
-                      Zeitraum{" "}
-                      {sortKey === "period"
-                        ? sortDirection === "asc"
-                          ? "^"
-                          : "v"
-                        : ""}
-                    </button>
-                  </TableHeaderCell>
+                  <FansubSortHeaderCell
+                    label="Kürzel"
+                    sortKeyValue="kuerzel"
+                    activeSortKey={sortKey}
+                    sortDirection={sortDirection}
+                    onSort={toggleSort}
+                    styles={styles}
+                  />
+                  <FansubSortHeaderCell
+                    label="Status"
+                    sortKeyValue="status"
+                    activeSortKey={sortKey}
+                    sortDirection={sortDirection}
+                    onSort={toggleSort}
+                    styles={styles}
+                  />
+                  <FansubSortHeaderCell
+                    label="Zeitraum"
+                    sortKeyValue="period"
+                    activeSortKey={sortKey}
+                    sortDirection={sortDirection}
+                    onSort={toggleSort}
+                    styles={styles}
+                  />
                   <TableHeaderCell>Mitglieder</TableHeaderCell>
                   <TableHeaderCell className={styles.fansubActionsHeader}>
                     Aktionen
@@ -665,6 +635,7 @@ function AdminFansubsContent() {
                           ) : null}
                         </div>
                       </TableCell>
+                      <TableCell>{item.kuerzel ?? "–"}</TableCell>
                       <TableCell>
                         <span
                           className={`${styles.fansubStatusBadge} ${badgeClass}`}

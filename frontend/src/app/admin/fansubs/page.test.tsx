@@ -81,6 +81,7 @@ describe("AdminFansubsPage", () => {
           id: 88,
           slug: "sakura-subs",
           name: "Sakura Subs",
+          kuerzel: "BDnP",
           status: "active",
           group_type: "group",
           founded_year: 2004,
@@ -105,12 +106,14 @@ describe("AdminFansubsPage", () => {
     const table = await screen.findByRole("table");
     expect(within(table).getByRole("columnheader", { name: /Gruppenname/i })).toBeTruthy();
     expect(within(table).getByRole("columnheader", { name: "Slug" })).toBeTruthy();
+    expect(within(table).getByRole("columnheader", { name: /Kürzel/i })).toBeTruthy();
     expect(within(table).getByRole("columnheader", { name: /Aktionen/i })).toBeTruthy();
 
     await waitFor(() => {
       expect(within(table).getByText("Sakura Subs")).toBeTruthy();
       expect(within(table).getByText("sakura-subs")).toBeTruthy();
       expect(within(table).getByText("Tag: SAK")).toBeTruthy();
+      expect(within(table).getByText("BDnP")).toBeTruthy();
     });
     expect(
       within(table).getByLabelText("Edit Sakura Subs").getAttribute("href"),
