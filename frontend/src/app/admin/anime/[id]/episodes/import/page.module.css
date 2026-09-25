@@ -453,7 +453,7 @@
 
 .mappingRow {
   display: grid;
-  grid-template-columns: minmax(220px, 1.3fr) minmax(320px, 1.6fr) minmax(110px, 0.5fr) minmax(180px, 1fr) minmax(130px, auto);
+  grid-template-columns: minmax(220px, 1.3fr) minmax(320px, 1.6fr) 110px 100px minmax(130px, auto);
   align-items: start;
   column-gap: 20px;
   row-gap: 10px;
@@ -464,7 +464,7 @@
 
 .mappingColumnHeader {
   display: grid;
-  grid-template-columns: minmax(220px, 1.3fr) minmax(320px, 1.6fr) minmax(110px, 0.5fr) minmax(180px, 1fr) minmax(130px, auto);
+  grid-template-columns: minmax(220px, 1.3fr) minmax(320px, 1.6fr) 110px 100px minmax(130px, auto);
   column-gap: 20px;
   padding: 8px 14px 6px;
   border-bottom: 1px solid #e4ddd4;
