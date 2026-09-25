@@ -9,4 +9,4 @@ Geänderte Dateien:
 - `frontend/src/app/admin/anime/[id]/episodes/import/EpisodeImportEpisodeGroup.tsx`
 - `frontend/src/app/admin/anime/[id]/episodes/import/page.tsx`
 
-Commit wird nach Abschluss der Prüfungen ergänzt.
+`6f15d232` — `feat(quick-260925-gzu): reduce mapping group actions`
