@@ -397,12 +397,6 @@ function AdminAnimeEpisodesContent() {
           ) : null}
 
           <section className={styles.card}>
-            <div className={styles.sectionHeader}>
-              <div>
-                <h2 className={styles.sectionTitle}>Episoden mit Versionen</h2>
-              </div>
-            </div>
-
             {versionsErrorMessage ? (
               <div className={styles.errorBox}>{versionsErrorMessage}</div>
             ) : null}

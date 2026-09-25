@@ -164,16 +164,19 @@ export function EpisodesOverview({
 
   return (
     <div className={styles.episodesOverview}>
-      <div className={styles.selectionToolbar}>
-        <label className={styles.selectAllLabel}>
-          <Input
-            type="checkbox"
-            checked={allEpisodesSelected}
-            onChange={toggleAllEpisodes}
-            disabled={isApplyingBulk || selectableEpisodeIDs.length === 0}
-          />
-          Alle Episoden auswählen
-        </label>
+      <div className={styles.overviewHeader}>
+        <h2 className={styles.overviewTitle}>Episoden mit Versionen</h2>
+        <div className={styles.selectionToolbar}>
+          <label className={styles.selectAllLabel}>
+            <Input
+              type="checkbox"
+              checked={allEpisodesSelected}
+              onChange={toggleAllEpisodes}
+              disabled={isApplyingBulk || selectableEpisodeIDs.length === 0}
+            />
+            {allEpisodesSelected ? 'Auswahl aufheben' : 'Alle Episoden auswählen'}
+          </label>
+        </div>
       </div>
 
       {selectedCount > 0 ? (

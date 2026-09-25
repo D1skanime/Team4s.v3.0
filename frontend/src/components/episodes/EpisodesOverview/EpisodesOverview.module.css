@@ -57,6 +57,22 @@
 
 .selectionToolbar {
   justify-content: flex-end;
+  flex-wrap: nowrap;
+}
+
+.overviewHeader {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 1rem;
+}
+
+.overviewTitle {
+  margin: 0;
+  color: var(--text-primary);
+  font-size: 1.15rem;
+  font-weight: 700;
+}
 }
 
 .selectAllLabel {
@@ -66,6 +82,16 @@
   color: var(--text-secondary);
   font-size: 0.9rem;
   font-weight: 600;
+  white-space: nowrap;
+}
+
+.selectAllLabel input {
+  width: 18px !important;
+  min-width: 18px !important;
+  height: 18px !important;
+  min-height: 18px !important;
+  padding: 0 !important;
+  border-radius: 4px;
 }
 
 .bulkActionBar {
@@ -116,4 +142,16 @@
 
 .bulkError {
   color: var(--color-error);
+}
+
+@media (max-width: 640px) {
+  .overviewHeader {
+    align-items: flex-start;
+    flex-direction: column;
+    gap: 0.65rem;
+  }
+
+  .selectionToolbar {
+    justify-content: flex-start;
+  }
 }

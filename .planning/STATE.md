@@ -2013,11 +2013,13 @@ untruncated list lives in `.planning/todos/pending/`.
 
 | 260925-jzr | Episodenbereichstext entfernt und Canon/Filler sowie Episodentyp auf Titelzeile verschoben | 2026-09-25 | pending-human-uat | [260925-jzr-episodenbereich-metadaten-auf-titelebene](./quick/260925-jzr-episodenbereich-metadaten-auf-titelebene/) |
 
+| 260925-k38 | Episodenauswahl als kompakte Toolbar neben der Überschrift gestaltet | 2026-09-25 | pending-human-uat | [260925-k38-episoden-auswahl-kompakte-toolbar](./quick/260925-k38-episoden-auswahl-kompakte-toolbar/) |
+
 ## Session Continuity
 
 Last session: 2026-09-25T08:53:53.930Z
 Stopped at: Phase 168 added to roadmap
-Last activity: 2026-09-25 - Completed quick task 260925-jzr: Episodenbereichstext entfernt und Canon/Filler sowie Episodentyp auf Titelzeile verschoben
+Last activity: 2026-09-25 - Completed quick task 260925-k38: Episodenauswahl als kompakte Toolbar neben der Überschrift gestaltet
 Resume file: 
 None
 
