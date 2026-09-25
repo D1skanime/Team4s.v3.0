@@ -198,6 +198,22 @@ export function EpisodeImportMappingRowGroupField({
           >
             Als Chip
           </Button>
+          <Button
+            variant="subtle"
+            size="sm"
+            disabled={isSkipped || episodeNumber <= 0 || !hasSelectedGroups}
+            onClick={() => onApplyFansubGroupFromEpisode(episodeNumber, selectedFansubGroups)}
+          >
+            Ab hier
+          </Button>
+          <Button
+            variant="subtle"
+            size="sm"
+            disabled={isSkipped || episodeNumber <= 0}
+            onClick={() => onApplyFansubGroupFromEpisode(episodeNumber, [])}
+          >
+            Ab hier entfernen
+          </Button>
         </div>
         {isSearching ? <p className={styles.groupSearchState}>Suche läuft...</p> : null}
         {!isSearching && searchMessage ? <p className={styles.groupSearchState}>{searchMessage}</p> : null}
@@ -229,24 +245,6 @@ export function EpisodeImportMappingRowGroupField({
         sourceKey={sourceKey}
         label={label}
       />
-      <div className={styles.groupScopeActions}>
-        <Button
-          variant="subtle"
-          size="sm"
-          disabled={isSkipped || episodeNumber <= 0 || !hasSelectedGroups}
-          onClick={() => onApplyFansubGroupFromEpisode(episodeNumber, selectedFansubGroups)}
-        >
-          Ab hier
-        </Button>
-        <Button
-          variant="subtle"
-          size="sm"
-          disabled={isSkipped || episodeNumber <= 0}
-          onClick={() => onApplyFansubGroupFromEpisode(episodeNumber, [])}
-        >
-          Ab hier entfernen
-        </Button>
-      </div>
     </FormField>
   )
 }

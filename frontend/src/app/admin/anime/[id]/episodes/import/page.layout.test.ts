@@ -37,4 +37,9 @@ describe('mapping row layout CSS (GAP-09, 167-UAT.md)', () => {
     expect(css).toMatch(/\.mappingRowFields\s*\{[^}]*display:\s*contents/)
     expect(css).toMatch(/grid-template-columns:\s*minmax\(220px, 1\.3fr\).*110px 100px minmax\(130px, auto\)/)
   })
+
+  it('keeps the group controls together and close to the filename column', () => {
+    expect(css).toMatch(/\.groupInputRow\s*\{[^}]*grid-template-columns:\s*minmax\(150px, 1fr\) auto auto auto/)
+    expect(css).toMatch(/\.mappingRow\s*\{[^}]*column-gap:\s*12px/)
+  })
 })
