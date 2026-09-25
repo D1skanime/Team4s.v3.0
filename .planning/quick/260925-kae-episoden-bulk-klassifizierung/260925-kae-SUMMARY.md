@@ -8,6 +8,7 @@
 - Die bestehende Episodenauswahl kann jetzt mehrere Episoden gleichzeitig als Canon/Filler und/oder Episodentyp klassifizieren.
 - Beide Änderungen sind unabhängig: „nicht ändern“ lässt das jeweilige Merkmal unverändert.
 - Das Anwenden nutzt den bestehenden Bestätigungsdialog, zeigt Fortschritt und aktualisiert die sichtbaren Klassifizierungen.
+- Die sichtbaren Klassifizierungsfelder synchronisieren externe Sammeländerungen jetzt auch nach dem initialen Rendern.
 - Die bestehenden Klassifizierungsoptionen und der vorhandene Admin-Episode-Endpunkt werden wiederverwendet.
 
 ## Geänderte Dateien
@@ -18,7 +19,7 @@
 ## Checks
 
 - TypeScript: `npm run typecheck` bestanden
-- Fokussierte Vitest-Tests: 16/16 bestanden
+- Fokussierte Vitest-Tests: 17/17 bestanden, inklusive Regressionstest für externe Klassifizierungsänderungen
 - ESLint auf den geänderten Dateien: bestanden
 - `git diff --check`: bestanden
 

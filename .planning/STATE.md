@@ -16,7 +16,7 @@ progress:
 
 # Quick Task 260925-kae — Bulk-Klassifizierung für Episoden (25.09.2026)
 
-Canon/Filler und Episodentyp können in der Episodenübersicht für mehrere ausgewählte Episoden gemeinsam gesetzt werden. Die Umsetzung nutzt die bestehenden Klassifizierungsoptionen, den Admin-Episode-Endpunkt und den Bestätigungsdialog. Typecheck, fokussierte Tests, ESLint und `git diff --check` sind bestanden. Menschliche Live-UAT der Sammelaktion steht noch aus.
+Canon/Filler und Episodentyp können in der Episodenübersicht für mehrere ausgewählte Episoden gemeinsam gesetzt werden. Die Umsetzung nutzt die bestehenden Klassifizierungsoptionen, den Admin-Episode-Endpunkt und den Bestätigungsdialog. Ein Synchronisationsfehler der bereits gerenderten Felder wurde per Regressionstest behoben. Typecheck, fokussierte Tests, ESLint und `git diff --check` sind bestanden. Menschliche Live-UAT der Sammelaktion steht noch aus.
 
 # Project State
 

@@ -130,6 +130,23 @@ describe('EpisodeClassificationFields', () => {
     ])
   })
 
+  it('syncs externally updated classification values into the visible fields', async () => {
+    const { rerender } = render(<EpisodeClassificationFields classification={ep01()} />)
+    await waitForOptionsToLoad()
+
+    rerender(
+      <EpisodeClassificationFields
+        classification={{
+          ...ep01(),
+          filler_type: 'canon',
+          filler_type_source: 'manual',
+        }}
+      />,
+    )
+
+    await waitFor(() => expect(selectByLabel('Canon/Filler').value).toBe('canon'))
+  })
+
   it('saves Canon/Filler alone without touching the episode type', async () => {
     const onSaved = vi.fn()
     render(<EpisodeClassificationFields classification={ep01()} onSaved={onSaved} />)

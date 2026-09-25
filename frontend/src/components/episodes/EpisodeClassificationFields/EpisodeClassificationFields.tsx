@@ -64,6 +64,11 @@ export function EpisodeClassificationFields({
   const [optionsLoaded, setOptionsLoaded] = useState(false)
 
   useEffect(() => {
+    setFillerType(classification.filler_type ?? '')
+    setEpisodeType(classification.episode_type ?? '')
+  }, [classification.episode_id, classification.filler_type, classification.episode_type])
+
+  useEffect(() => {
     let cancelled = false
     loadClassificationOptions()
       .then((response) => {
