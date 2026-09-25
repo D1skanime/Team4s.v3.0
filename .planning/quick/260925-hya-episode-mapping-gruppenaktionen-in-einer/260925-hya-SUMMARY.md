@@ -8,4 +8,4 @@ Geänderte Dateien:
 - `frontend/src/app/admin/anime/[id]/episodes/import/page.module.css`
 - `frontend/src/app/admin/anime/[id]/episodes/import/page.layout.test.ts`
 
-Commit wird nach Abschluss der Prüfungen ergänzt.
+`9e7f2e44` — `feat(quick-260925-hya): align group controls in one row`
