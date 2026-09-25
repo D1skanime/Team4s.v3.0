@@ -65,6 +65,13 @@
   gap: 12px;
 }
 
+.relationFormRow {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  gap: 12px;
+  align-items: end;
+}
+
 .field {
   display: grid;
   gap: 8px;
@@ -131,6 +138,10 @@
 
 @media (max-width: 900px) {
   .grid {
+    grid-template-columns: 1fr;
+  }
+
+  .relationFormRow {
     grid-template-columns: 1fr;
   }
 }

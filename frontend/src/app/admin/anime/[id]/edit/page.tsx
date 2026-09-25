@@ -129,11 +129,6 @@ function AdminAnimeEditContent() {
       <header className={styles.headerCard}>
         <div>
           <h1 className={styles.pageTitle}>Anime bearbeiten</h1>
-          <p className={styles.pageSubtitle}>
-            Diese Route basiert jetzt auf dem Create-Flow und ersetzt den alten
-            Edit-Baukasten. Bearbeitet werden nur Stammdaten und Assets des
-            Anime selbst.
-          </p>
         </div>
         {anime ? (
           <div className={styles.headerActions}>
@@ -157,19 +152,17 @@ function AdminAnimeEditContent() {
           <div className={styles.sectionHeader}>
             <div>
               <p className={styles.itemTitle}>{anime.title}</p>
-              <p className={styles.sectionMeta}>
-                #{String(anime.id).padStart(3, "0")} | Typ {anime.type} | Status{" "}
-                {anime.status} | Quelle {anime.source || "manuell"}
-              </p>
             </div>
-            <Image
-              className={styles.cover}
-              src={resolveCoverUrl(anime.cover_image)}
-              alt=""
-              width={96}
-              height={136}
-              unoptimized
-            />
+            <Link href={`/anime/${anime.id}`} target="_blank" rel="noreferrer" aria-label={`${anime.title} öffentlich ansehen`}>
+              <Image
+                className={styles.cover}
+                src={resolveCoverUrl(anime.cover_image)}
+                alt=""
+                width={96}
+                height={136}
+                unoptimized
+              />
+            </Link>
           </div>
         ) : null}
       </header>

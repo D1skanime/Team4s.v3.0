@@ -65,7 +65,6 @@ export function AnimeRelationsSection({
           <div className={relationStyles.summaryTitle}>
             <div>
               <h2 className={styles.sectionTitle}>Relationen</h2>
-              <p className={styles.sectionMeta}>Bestehende Anime-Verknüpfungen pflegen, ohne die Edit-Route zu verlassen.</p>
             </div>
             <div className={relationStyles.summaryRow}>
               <span>{buildRelationsSummary(model.relations, model.errorMessage)}</span>
@@ -75,11 +74,6 @@ export function AnimeRelationsSection({
         </summary>
 
         <div className={relationStyles.content}>
-          <p className={relationStyles.helper}>
-            Der ausgewählte Typ beschreibt immer das Ziel-Anime aus Sicht des aktuell bearbeiteten Anime.
-            Beispiel: <strong>Fortsetzung</strong> bedeutet, dass das Ziel die Fortsetzung dieses Anime ist.
-          </p>
-
           {model.errorMessage ? <p className={relationStyles.errorBox}>{model.errorMessage}</p> : null}
 
           <div className={relationStyles.grid}>
@@ -114,20 +108,27 @@ export function AnimeRelationsSection({
             </div>
 
             <div className={relationStyles.createBlock}>
-              <label className={relationStyles.field}>
-                <span>Relationstyp</span>
-                <select
-                  className={styles.select}
-                  value={model.relationLabel}
-                  onChange={(event) => model.setRelationLabel(event.target.value as AdminAnimeRelationLabel)}
-                >
-                  {RELATION_LABELS.map((label) => (
-                    <option key={label} value={label}>
-                      {label}
-                    </option>
-                  ))}
-                </select>
-              </label>
+              <div className={relationStyles.relationFormRow}>
+                <label className={relationStyles.field}>
+                  <span>Relationstyp</span>
+                  <select
+                    className={styles.select}
+                    value={model.relationLabel}
+                    onChange={(event) => model.setRelationLabel(event.target.value as AdminAnimeRelationLabel)}
+                  >
+                    {RELATION_LABELS.map((label) => (
+                      <option key={label} value={label}>
+                        {label}
+                      </option>
+                    ))}
+                  </select>
+                </label>
+                <div className={relationStyles.actions}>
+                  <button type="button" className={`${styles.button} ${styles.buttonSuccess}`} onClick={() => void model.createRelation()} disabled={model.isSaving}>
+                    Relation speichern
+                  </button>
+                </div>
+              </div>
 
               {model.selectedTarget ? (
                 <p className={relationStyles.helper}>
@@ -139,11 +140,6 @@ export function AnimeRelationsSection({
 
               {model.inlineError ? <p className={relationStyles.errorBox}>{model.inlineError}</p> : null}
 
-              <div className={relationStyles.actions}>
-                <button type="button" className={`${styles.button} ${styles.buttonSuccess}`} onClick={() => void model.createRelation()} disabled={model.isSaving}>
-                  Relation speichern
-                </button>
-              </div>
             </div>
           </div>
 

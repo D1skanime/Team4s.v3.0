@@ -70,11 +70,6 @@ function emptyPersistedAssets(): AdminAnimePersistedAssets {
   }
 }
 
-function formatSourceKindLabel(kind?: 'manual' | 'jellyfin'): string {
-  if (kind === 'jellyfin') return 'Jellyfin'
-  return 'Manuell'
-}
-
 function hasProviderSource(
   prefix: 'anisearch:' | 'jellyfin:',
   source?: string | null,
@@ -424,16 +419,6 @@ export function AnimeEditWorkspace({
     effectiveJellyfinSeriesID ||
       hasProviderSource('jellyfin:', effectiveSource, anime.source_links),
   )
-  const effectiveSourceKind = adoptedJellyfinPreview ? 'Jellyfin' : formatSourceKindLabel(jellyfinContext?.source_kind)
-  const isLinkedToJellyfin = Boolean(hasJellyfinSource || jellyfinContext?.linked)
-  const coverSourceLabel =
-    adoptedJellyfinPreview?.asset_slots.cover.present
-      ? 'Jellyfin'
-      : jellyfinContext?.cover.current_source === 'provider'
-      ? 'Jellyfin'
-      : jellyfinContext?.cover.current_source === 'manual'
-        ? 'Manuell'
-        : ''
 
   async function handleEditJellyfinSearch() {
     try {
@@ -489,23 +474,12 @@ export function AnimeEditWorkspace({
         <div className={workspaceStyles.sectionHeader}>
           <p className={workspaceStyles.sectionEyebrow}>Identität</p>
           <h2 className={workspaceStyles.sectionTitle}>Bestehender Anime</h2>
-          <p className={workspaceStyles.sectionText}>
-            Edit verwendet denselben Arbeitsraum wie Create, aber auf Basis eines bestehenden Datensatzes.
-          </p>
         </div>
 
         <div className={styles.gridTwo}>
           <div className={styles.field}>
             <label htmlFor="edit-anime-id">Anime ID</label>
             <input id="edit-anime-id" value={String(anime.id)} readOnly />
-          </div>
-          <div className={styles.field}>
-            <label htmlFor="edit-source">Quelle</label>
-            <input id="edit-source" value={effectiveSource || 'Manuell'} readOnly />
-          </div>
-          <div className={styles.field}>
-            <label htmlFor="edit-source-kind">Quelltyp</label>
-            <input id="edit-source-kind" value={effectiveSourceKind} readOnly />
           </div>
           <div className={styles.field}>
             <label htmlFor="edit-anisearch-id">AniSearch ID</label>
@@ -529,26 +503,17 @@ export function AnimeEditWorkspace({
             </div>
           </div>
           <div className={styles.field}>
-            <label htmlFor="edit-link-status">Jellyfin-Link</label>
-            <input id="edit-link-status" value={isLinkedToJellyfin ? 'Verknüpft' : 'Nicht verknüpft'} readOnly />
-          </div>
-          <div className={styles.field}>
             <label htmlFor="edit-jellyfin-item-id">Jellyfin Item ID</label>
             <input
               id="edit-jellyfin-item-id"
               value={effectiveJellyfinSeriesID}
-              placeholder="Noch keine Jellyfin-Serie verknüpft"
+              placeholder="Keine Jellyfin-Serie verknüpft"
               readOnly
             />
           </div>
           <div className={styles.field}>
-            <label htmlFor="edit-cover-source">Cover-Quelle</label>
-            <input
-              id="edit-cover-source"
-              value={coverSourceLabel}
-              placeholder="Noch keine Kontextinfo geladen"
-              readOnly
-            />
+            <label htmlFor="edit-source-label">Quelle</label>
+            <input id="edit-source-label" value={hasJellyfinSource ? 'Jellyfin' : 'Manuell'} readOnly />
           </div>
           <div className={`${styles.field} ${createStyles.folderPathField}`}>
             <label htmlFor="edit-folder-path">Ordnerpfad</label>
@@ -564,13 +529,6 @@ export function AnimeEditWorkspace({
       </section>
 
       <section className={workspaceStyles.sectionCard}>
-        <div className={workspaceStyles.sectionHeader}>
-          <p className={workspaceStyles.sectionEyebrow}>Jellyfin</p>
-          <h2 className={workspaceStyles.sectionTitle}>Jellyfin auswählen</h2>
-          <p className={workspaceStyles.sectionText}>
-            Verwende hier denselben einfachen Jellyfin-Flow wie beim Erstellen: suchen, passenden Ordner übernehmen, dann speichern.
-          </p>
-        </div>
         <CreateJellyfinCard
           query={jellyfinIntake.query}
           candidates={jellyfinIntake.candidates}
@@ -656,9 +614,6 @@ export function AnimeEditWorkspace({
         <div className={workspaceStyles.sectionHeader}>
           <p className={workspaceStyles.sectionEyebrow}>Pflichtangaben</p>
           <h2 className={workspaceStyles.sectionTitle}>Basisdaten</h2>
-          <p className={workspaceStyles.sectionText}>
-            Dieselbe Kernstruktur wie im Create-Flow, jetzt für bestehende Anime.
-          </p>
         </div>
 
         <div className={styles.gridTwo}>
@@ -743,9 +698,6 @@ export function AnimeEditWorkspace({
         <div className={workspaceStyles.sectionHeader}>
           <p className={workspaceStyles.sectionEyebrow}>Metadaten</p>
           <h2 className={workspaceStyles.sectionTitle}>Genre, Tags und Beschreibung</h2>
-          <p className={workspaceStyles.sectionText}>
-            Diese Sektion folgt jetzt dem Create-Flow statt dem alten abgespeckten Edit-Formular.
-          </p>
         </div>
 
         <div className={styles.grid}>
@@ -796,7 +748,6 @@ export function AnimeEditWorkspace({
           <FormField
             label="Beschreibung"
             htmlFor="edit-description"
-            hint="Kurz, eindeutig und ohne Prozess-Text."
           >
             <Textarea
               id="edit-description"
@@ -842,7 +793,7 @@ export function AnimeEditWorkspace({
         <SharedAnimeEditorWorkspace
           mode="edit"
           headerTitle="Anime bearbeiten"
-          headerIntro="Create-Flow als Basis, aber mit direktem Bearbeiten bestehender Daten und Assets."
+          headerIntro=""
           sourceContent={sourceSection}
           assetsContent={assetsSection}
           detailsContent={detailsSection}

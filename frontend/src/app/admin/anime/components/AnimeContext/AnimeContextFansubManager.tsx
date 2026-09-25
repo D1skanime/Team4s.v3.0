@@ -157,10 +157,6 @@ export function AnimeContextFansubManager({
     <div className={styles.contextFansubManager}>
       <div className={styles.contextFansubManagerHeader}>
         <p className={styles.contextTitle}>Gruppen manuell verwalten</p>
-        <p className={styles.hint}>
-          Mehrere Gruppen pro Folge laufen im aktuellen Modell über eine Kollaboration-Gruppe. Diese Gruppe wird dann
-          der Version zugewiesen.
-        </p>
       </div>
 
       <form className={styles.contextFansubManagerForm} onSubmit={handleSearch}>

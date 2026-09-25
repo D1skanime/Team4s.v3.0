@@ -44,10 +44,8 @@ const SECTION_COPY: Record<
   },
   edit: {
     sourceTitle: 'Quelle & Kontext',
-    sourceSub:
-      'Bestehende Identität und Quellenkontext bleiben sichtbar. AniSearch kann anreichern, Jellyfin bleibt der neu wählbare Medienkontext.',
-    assetsSub:
-      'Bestehende Assets und Medienhinweise bleiben in derselben zweiten Arbeitszone sichtbar wie im Create-Flow.',
+    sourceSub: '',
+    assetsSub: '',
     stepSourceLabel: 'Quelle & Kontext',
     stepSourceSub: 'AniSearch & Jellyfin',
     stepReviewLabel: 'Prüfen & Speichern',
@@ -73,7 +71,7 @@ export function SharedAnimeEditorWorkspace({
       <header className={createStyles.pageHeader}>
         <div className={createStyles.pageTitleBlock}>
           <h1 className={createStyles.pageTitle}>{headerTitle}</h1>
-          <p className={createStyles.pageIntro}>{headerIntro}</p>
+          {headerIntro ? <p className={createStyles.pageIntro}>{headerIntro}</p> : null}
         </div>
       </header>
 
@@ -92,7 +90,7 @@ export function SharedAnimeEditorWorkspace({
           <span className={createStyles.sectionNumber}>1</span>
           <div>
             <h2 className={createStyles.sectionTitle}>{copy.sourceTitle}</h2>
-            <p className={createStyles.sectionSub}>{copy.sourceSub}</p>
+            {copy.sourceSub ? <p className={createStyles.sectionSub}>{copy.sourceSub}</p> : null}
           </div>
         </div>
         {sourceContent}
@@ -103,7 +101,7 @@ export function SharedAnimeEditorWorkspace({
           <span className={createStyles.sectionNumber}>2</span>
           <div>
             <h2 className={createStyles.sectionTitle}>Assets</h2>
-            <p className={createStyles.sectionSub}>{copy.assetsSub}</p>
+            {copy.assetsSub ? <p className={createStyles.sectionSub}>{copy.assetsSub}</p> : null}
           </div>
         </div>
         {assetsContent}
@@ -114,7 +112,7 @@ export function SharedAnimeEditorWorkspace({
           <span className={createStyles.sectionNumber}>3</span>
           <div>
             <h2 className={createStyles.sectionTitle}>Details</h2>
-            <p className={createStyles.sectionSub}>Ergänze die Metadaten und Beschreibung.</p>
+          {mode === 'create' ? <p className={createStyles.sectionSub}>Ergänze die Metadaten und Beschreibung.</p> : null}
           </div>
         </div>
         {detailsContent}
@@ -125,7 +123,7 @@ export function SharedAnimeEditorWorkspace({
           <span className={createStyles.sectionNumber}>4</span>
           <div>
             <h2 className={createStyles.sectionTitle}>{copy.reviewTitle}</h2>
-            <p className={createStyles.sectionSub}>{copy.reviewSub}</p>
+            {copy.reviewSub ? <p className={createStyles.sectionSub}>{copy.reviewSub}</p> : null}
           </div>
         </div>
         {reviewContent}

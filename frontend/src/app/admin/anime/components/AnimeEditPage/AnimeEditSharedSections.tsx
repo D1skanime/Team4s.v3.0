@@ -50,7 +50,6 @@ interface AnimeEditReviewSectionProps {
   editor: AnimeEditorController
   anime: AnimeDetail
   title: string
-  source: string
   folderName: string
   clearFlags: AnimePatchClearFlags
   onClearFlagChange: (field: keyof AnimePatchClearFlags, value: boolean) => void
@@ -256,7 +255,6 @@ export function AnimeEditReviewSection({
   editor,
   anime,
   title,
-  source,
   folderName,
   clearFlags,
   onClearFlagChange,
@@ -268,19 +266,12 @@ export function AnimeEditReviewSection({
         <div className={styles.sectionHeader}>
           <div>
             <h2 className={styles.sectionTitle}>Speicherkontrolle</h2>
-            <p className={styles.sectionMeta}>
-              Edit verwendet dieselbe finale Pruefzone wie Create, aber mit Save-only Verhalten statt Redirect.
-            </p>
           </div>
         </div>
         <div className={workspaceStyles.sectionGrid}>
           <label className={workspaceStyles.field}>
             <span>Aktueller Titel</span>
             <input className={styles.input} value={title} readOnly />
-          </label>
-          <label className={workspaceStyles.field}>
-            <span>Quelle</span>
-            <input className={styles.input} value={source} readOnly />
           </label>
           <label className={workspaceStyles.field}>
             <span>Ordnerpfad</span>

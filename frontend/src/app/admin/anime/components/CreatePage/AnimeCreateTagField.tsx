@@ -145,9 +145,6 @@ export function AnimeCreateTagField({
           </>
         ) : null}
       </div>
-      <p className={styles.hint}>
-        Tip: Komma getrennt eingeben; Klick auf Vorschlag fuegt den Tag hinzu.
-      </p>
     </div>
   )
 }

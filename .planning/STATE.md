@@ -14,6 +14,10 @@ progress:
   percent: 93
 ---
 
+# Quick Task 260925-6qc — Anime-Edit-Texte und Kontext bereinigt (Phase 168)
+
+Die Edit-Route zeigt weniger Prozess- und Erklärungstexte. Die Quelle bleibt als eigenes Herkunftsfeld sichtbar, während die Jellyfin Item ID einmalig in der Identitätskarte steht. Die AniSearch-Verknüpfung öffnet in einem neuen Tab, das Cover ist oben verlinkt und der Relations-Button steht direkt beim Relationstyp. Edit-/Relations-Tests und Typecheck sind bestanden.
+
 # Quick Task 260925-6qb — Episoden-Zeit-Override beim Wiederöffnen (Phase 168)
 
 Root Cause behoben: Die Assignment-Response lieferte nur `has_override`, aber nicht die gespeicherten Override-Zeitwerte. Das Segment-Panel setzte beim Wiederöffnen deshalb wieder die Basiszeit. Die API liefert nun optionale `override_start_time`/`override_end_time`; das UI stellt die gespeicherte Startzeit wieder her. 127 fokussierte Frontend-Tests und Typecheck sind bestanden. Backend-Pakete kompilieren; der vollständige Lauf enthält bekannte unabhängige Fixture-/Berechtigungsfehler.

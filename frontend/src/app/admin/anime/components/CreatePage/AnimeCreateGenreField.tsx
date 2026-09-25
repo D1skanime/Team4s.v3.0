@@ -120,7 +120,6 @@ export function AnimeCreateGenreField({
           </div>
         </>
       ) : null}
-      <p className={styles.hint}>Tip: Komma getrennt eingeben; Klick auf Vorschlag fuegt es hinzu.</p>
     </div>
   )
 }

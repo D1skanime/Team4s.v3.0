@@ -66,7 +66,6 @@ describe('AnimeRelationsSection', () => {
       />,
     )
 
-    expect(markup).toContain('Der ausgewählte Typ beschreibt immer das Ziel-Anime')
     expect(markup).toContain('Ziel-Anime suchen')
     expect(markup).toContain('Naruto Shippuden')
     expect(markup).toContain('Hauptgeschichte')
