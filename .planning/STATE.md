@@ -30,6 +30,10 @@ Der Segment-Drawer im Episodenversionseditor ist auf Desktop auf 760px erweitert
 
 Sichtbare Provider-/Jellyfin-Bezeichnungen im Episode-Version-Editor und Segment-Drawer wurden durch neutrale UI-Texte ersetzt. Interne Quelltypen und API-Felder bleiben unverändert. Segmenttests, Seitentests und Typecheck sind bestanden. Dokumentation liegt unter `.planning/quick/260925-3cx-neutrale-herkunftsbezeichnungen/`.
 
+# Quick Task 260925-4jm — Segment-Drawer-Feldbreiten ausbalanciert (Phase 168)
+
+Erklärungstexte im Segment-Drawer nutzen die freie Breite; direkte Select-Felder sind auf 360px begrenzt und bleiben mobil responsiv. Die 125 fokussierten Segmenttests sind bestanden. Dokumentation liegt unter `.planning/quick/260925-4jm-segment-drawer-feldbreiten/`.
+
 # Project State
 
 ## Gap-Closure-Ausführung Phase 165 (22.09.2026) — 165-14..165-19 code-complete, CR-01 Review-Fix eingespielt

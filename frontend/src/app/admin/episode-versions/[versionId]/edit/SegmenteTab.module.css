@@ -260,6 +260,14 @@
   border-color: #ff6a3d;
 }
 
+.panelField > select {
+  width: min(100%, 360px);
+}
+
+.panel :global(.sectionDescription) {
+  max-width: none;
+}
+
 .panelFieldRow {
   display: flex;
   flex-direction: column;
