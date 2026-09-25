@@ -1679,7 +1679,7 @@ types:
     assigned_release_version_ids: int64[] (optional)
     is_shared: boolean
     has_episode_override: boolean
-    assigned_episodes: AdminThemeSegmentAssignmentEpisode[] (optional)
+    assigned_episodes: AdminThemeSegmentAssignmentEpisode[] (optional; includes optional override_start_time and override_end_time when has_override is true)
     origin_release_version_id: int64 | null
   AdminAnimeTheme:
     id: int64

@@ -14,6 +14,10 @@ progress:
   percent: 93
 ---
 
+# Quick Task 260925-6qb — Episoden-Zeit-Override beim Wiederöffnen (Phase 168)
+
+Root Cause behoben: Die Assignment-Response lieferte nur `has_override`, aber nicht die gespeicherten Override-Zeitwerte. Das Segment-Panel setzte beim Wiederöffnen deshalb wieder die Basiszeit. Die API liefert nun optionale `override_start_time`/`override_end_time`; das UI stellt die gespeicherte Startzeit wieder her. 127 fokussierte Frontend-Tests und Typecheck sind bestanden. Backend-Pakete kompilieren; der vollständige Lauf enthält bekannte unabhängige Fixture-/Berechtigungsfehler.
+
 # Quick Task 260925-6qa — Media-Karten und Kontexttitel poliert (Phase 168)
 
 Der Media-/Assets-Tab nutzt für unbenannte Medien jetzt den Editor-Kontext `Episode 001 · New-Subs v1` statt Dateiname oder generischer Asset-ID. Eigene Titel/Beschriftungen bleiben vorrangig. Karten haben gleichmäßige Höhen, kompakte Aktivitätsmetadaten und ausgerichtete Vorschauaktionen; Kategorie-Buttons behalten ihre bestehenden Namen und erhalten Tooltip sowie aktive Hervorhebung. 56 fokussierte Frontend-Tests und `git diff --check` sind bestanden; Typecheck und Push sind Teil des Abschlusses.

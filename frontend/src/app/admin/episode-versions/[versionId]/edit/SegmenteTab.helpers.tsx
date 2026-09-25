@@ -222,6 +222,11 @@ export function findAssignedEpisodeHasOverride(segment: AdminThemeSegment, relea
   return entry?.has_override ?? false
 }
 
+export function findAssignedEpisodeOverrideStartTime(segment: AdminThemeSegment, releaseVersionId: number): string | null {
+  const entry = (segment.assigned_episodes ?? []).find((e) => e.release_version_id === releaseVersionId)
+  return entry?.has_override ? entry.override_start_time ?? null : null
+}
+
 /**
  * Formatiert das Zuweisungs-Chip-Label. `episodeNumber` MUSS die ECHTE,
  * sichtbare Episodennummer sein (z. B. aus `findAssignedEpisodeNumber`),

@@ -18,6 +18,7 @@ import {
   parsePositiveEpisodeInput,
   findAssignedEpisodeNumber,
   findAssignedEpisodeHasOverride,
+  findAssignedEpisodeOverrideStartTime,
 } from './SegmenteTab.helpers'
 import { SegmentBasicFieldsSection } from './SegmentBasicFieldsSection'
 import { SegmentOverrideField } from './SegmentOverrideField'
@@ -121,15 +122,19 @@ export function SegmentEditPanel({
     editingSegment != null && currentReleaseVersionId != null
       ? findAssignedEpisodeHasOverride(editingSegment, currentReleaseVersionId)
       : false
+  const currentOverrideStartTime =
+    editingSegment != null && currentReleaseVersionId != null
+      ? findAssignedEpisodeOverrideStartTime(editingSegment, currentReleaseVersionId)
+      : null
   const [overrideEnabled, setOverrideEnabled] = useState(currentReleaseHasOverride)
-  const [overrideStartTime, setOverrideStartTime] = useState(editingSegment?.start_time ?? '')
+  const [overrideStartTime, setOverrideStartTime] = useState(currentOverrideStartTime ?? editingSegment?.start_time ?? '')
   const { confirm, confirmDialog } = useConfirmDialog()
 
   // Override-Zustand pro geoeffnetem Segment zuruecksetzen (Panel-Instanz bleibt beim
   // Wechsel des editingSegment gemountet, siehe SegmenteTab.tsx openEditPanel/openAddPanel).
   useEffect(() => {
     setOverrideEnabled(currentReleaseHasOverride)
-    setOverrideStartTime(editingSegment?.start_time ?? '')
+    setOverrideStartTime(currentOverrideStartTime ?? editingSegment?.start_time ?? '')
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [editingSegment?.id])
   const startEpisodeValue = formState.startEpisode.trim()

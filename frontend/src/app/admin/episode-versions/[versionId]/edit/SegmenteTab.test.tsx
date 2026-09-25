@@ -18,6 +18,7 @@ import {
   isCurrentEpisodeAssigned,
   findAssignedEpisodeNumber,
   findAssignedEpisodeHasOverride,
+  findAssignedEpisodeOverrideStartTime,
   formatAssignmentChipLabel,
 } from './SegmenteTab.helpers'
 import { useReleaseSegments } from './useReleaseSegments'
@@ -1473,6 +1474,31 @@ describe('findAssignedEpisodeHasOverride', () => {
   it('liefert false, wenn assigned_episodes fehlt', () => {
     const segment = makeSegment({})
     expect(findAssignedEpisodeHasOverride(segment, 10)).toBe(false)
+  })
+})
+
+describe('findAssignedEpisodeOverrideStartTime', () => {
+  it('liest die gespeicherte Startzeit der konkreten Folge statt der Basiszeit', () => {
+    const segment = makeSegment({
+      start_time: '00:00:00',
+      assigned_episodes: [
+        { release_version_id: 40, episode_number: '4', has_override: true, override_start_time: '00:00:30' },
+      ],
+    })
+
+    expect(findAssignedEpisodeOverrideStartTime(segment, 40)).toBe('00:00:30')
+  })
+
+  it('liefert null ohne Override oder bei fehlender Zeit', () => {
+    const segment = makeSegment({
+      assigned_episodes: [
+        { release_version_id: 40, episode_number: '4', has_override: false },
+        { release_version_id: 41, episode_number: '5', has_override: true },
+      ],
+    })
+
+    expect(findAssignedEpisodeOverrideStartTime(segment, 40)).toBeNull()
+    expect(findAssignedEpisodeOverrideStartTime(segment, 41)).toBeNull()
   })
 })
 

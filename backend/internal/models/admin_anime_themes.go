@@ -96,9 +96,11 @@ type AdminThemeSegment struct {
 // den "verschoben"-Chip faelschlich auf JEDER zugewiesenen Folge, sobald irgendeine
 // einzelne Folge einen Override hatte -- ein Korrektheits-Bug, kein kosmetisches Problem.
 type AdminThemeSegmentAssignmentEpisode struct {
-	ReleaseVersionID int64  `json:"release_version_id"`
-	EpisodeNumber    string `json:"episode_number"`
-	HasOverride      bool   `json:"has_override"`
+	ReleaseVersionID  int64   `json:"release_version_id"`
+	EpisodeNumber     string  `json:"episode_number"`
+	HasOverride       bool    `json:"has_override"`
+	OverrideStartTime *string `json:"override_start_time,omitempty"`
+	OverrideEndTime   *string `json:"override_end_time,omitempty"`
 }
 
 // AdminThemeSegmentCreateInput enthaelt die Felder zum Anlegen eines neuen Segments.

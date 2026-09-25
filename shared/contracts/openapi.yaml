@@ -12190,6 +12190,12 @@ components:
           type: string
         has_override:
           type: boolean
+        override_start_time:
+          type: string
+          nullable: true
+        override_end_time:
+          type: string
+          nullable: true
     AdminThemeSegmentAssignmentRequest:
       type: object
       required:

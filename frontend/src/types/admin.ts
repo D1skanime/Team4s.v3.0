@@ -986,7 +986,13 @@ export interface AdminThemeSegment {
    * has_episode_override (true, sobald IRGENDEINE Folge ueberschrieben ist). Muss fuer den
    * "verschoben"-Chip pro Folge verwendet werden, nicht has_episode_override.
    */
-  assigned_episodes?: { release_version_id: number; episode_number: string; has_override: boolean }[]
+  assigned_episodes?: {
+    release_version_id: number
+    episode_number: string
+    has_override: boolean
+    override_start_time?: string | null
+    override_end_time?: string | null
+  }[]
   created_at: string
 }
 

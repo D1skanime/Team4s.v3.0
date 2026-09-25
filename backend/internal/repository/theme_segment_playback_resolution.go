@@ -92,11 +92,16 @@ func (r *AdminContentRepository) hydrateSegmentAssignmentMetadataList(ctx contex
 		SELECT
 			tsa.theme_segment_id,
 			tsa.release_version_id,
-			ep.episode_number
+			ep.episode_number,
+			ov.start_time::text,
+			ov.end_time::text
 		FROM theme_segment_assignments tsa
 		JOIN release_versions rv ON rv.id = tsa.release_version_id
 		JOIN fansub_releases fr ON fr.id = rv.release_id
 		JOIN episodes ep ON ep.id = fr.episode_id
+		LEFT JOIN theme_segment_episode_overrides ov
+			ON ov.theme_segment_id = tsa.theme_segment_id
+			AND ov.release_version_id = tsa.release_version_id
 		WHERE tsa.theme_segment_id = ANY($1)
 		ORDER BY tsa.theme_segment_id, tsa.release_version_id ASC
 	`, segmentIDs)
@@ -108,7 +113,8 @@ func (r *AdminContentRepository) hydrateSegmentAssignmentMetadataList(ctx contex
 	for assignmentRows.Next() {
 		var segmentID, releaseVersionID int64
 		var episodeNumber string
-		if err := assignmentRows.Scan(&segmentID, &releaseVersionID, &episodeNumber); err != nil {
+		var overrideStartTime, overrideEndTime *string
+		if err := assignmentRows.Scan(&segmentID, &releaseVersionID, &episodeNumber, &overrideStartTime, &overrideEndTime); err != nil {
 			return fmt.Errorf("scan theme segment assignment metadata: %w", err)
 		}
 		idx, ok := indexBySegmentID[segmentID]
@@ -117,8 +123,11 @@ func (r *AdminContentRepository) hydrateSegmentAssignmentMetadataList(ctx contex
 		}
 		segments[idx].AssignedReleaseVersionIDs = append(segments[idx].AssignedReleaseVersionIDs, releaseVersionID)
 		segments[idx].AssignedEpisodes = append(segments[idx].AssignedEpisodes, models.AdminThemeSegmentAssignmentEpisode{
-			ReleaseVersionID: releaseVersionID,
-			EpisodeNumber:    episodeNumber,
+			ReleaseVersionID:  releaseVersionID,
+			EpisodeNumber:     episodeNumber,
+			HasOverride:       overrideStartTime != nil,
+			OverrideStartTime: overrideStartTime,
+			OverrideEndTime:   overrideEndTime,
 		})
 	}
 	if err := assignmentRows.Err(); err != nil {
