@@ -179,12 +179,6 @@ function AdminAnimeEpisodeImportContent() {
           <div className={styles.panelHeader}>
             <div>
               <h2>Mapping-Workbench</h2>
-              <p>
-                Jede Datei braucht ein Ziel oder wird übersprungen. Mehrere
-                Episodennummern als Kommaliste, z.B. <code>9,10</code>. Mehrere
-                Dateien für dieselbe Episode sind als parallele Versionen
-                erlaubt.
-              </p>
             </div>
             <div className={styles.workbenchActions}>
               <button
