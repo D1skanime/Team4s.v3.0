@@ -17,6 +17,25 @@ beforeEach(() => {
 })
 afterEach(cleanup)
 describe('source-scoped builder actions', () => {
+it('loads the initial preview from the import context automatically', async () => {
+  mocks.context.mockResolvedValueOnce({
+    data: {
+      anime_id: 1,
+      anime_title: 'Fixture',
+      anisearch_id: '5170',
+      jellyfin_series_id: 'series-main',
+    },
+  })
+
+  const { result } = renderHook(() => useEpisodeImportBuilder(1))
+
+  await waitFor(() => expect(result.current.preview).not.toBeNull())
+  expect(mocks.preview).toHaveBeenCalledWith(1, {
+    anisearch_id: '5170',
+    jellyfin_series_id: 'series-main',
+    season_offset: 0,
+  })
+})
   it('applies and removes only the selected pair with pair-scoped pending state', async () => {
     let resolveApply!: (value: unknown) => void
     mocks.apply.mockImplementationOnce(() => new Promise(resolve => { resolveApply = resolve }))

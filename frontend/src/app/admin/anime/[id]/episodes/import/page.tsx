@@ -49,6 +49,11 @@ function AdminAnimeEpisodeImportContent() {
     return mainFolder?.jellyfin_item_id ?? jellyfinFolders[0]?.jellyfin_item_id ?? null;
   }, [folderOverride, jellyfinFolders]);
 
+  function handleFolderChange(folderID: string) {
+    setFolderOverride(folderID)
+    void builder.loadPreview(folderID)
+  }
+
   useEffect(() => {
     if (!animeID || !builder.applyResult) {
       return;
@@ -96,7 +101,7 @@ function AdminAnimeEpisodeImportContent() {
             mono
           />
           <ContextField
-            label="Jellyfin Serie"
+            label="Jellyfin-Serien-ID"
             value={builder.context.jellyfin_series_id ?? "nicht verknüpft"}
             mono
           />
@@ -105,7 +110,6 @@ function AdminAnimeEpisodeImportContent() {
             value={builder.context.folder_path ?? "nicht gesetzt"}
             mono
           />
-          <ContextField label="Quelle" value={builder.context.source ?? "-"} />
         </div>
       ) : null}
 
@@ -116,51 +120,15 @@ function AdminAnimeEpisodeImportContent() {
         <div className={styles.error} role="alert">{builder.errorMessage}</div>
       ) : null}
 
-      <section className={styles.panel}>
-        <div className={styles.panelHeader}>
-          <div>
-            <h2>Quellen konfigurieren</h2>
-            <p>
-              AniSearch bestimmt die Episodennummern. Jellyfin liefert die
-              Dateien.
-            </p>
-          </div>
-          <button
-            className={styles.primaryButton}
-            type="button"
-            disabled={builder.isPreviewing || !animeID}
-            onClick={() =>
-              void builder.loadPreview(selectedFolderID ?? undefined)
-            }
-          >
-            {builder.isPreviewing ? "Vorschau laedt..." : "Vorschau laden"}
-          </button>
-        </div>
-
-        <div className={styles.sourceGrid}>
-          <label className={styles.field}>
-            <span>AniSearch ID</span>
-            <input
-              value={builder.anisearchID}
-              onChange={(event) => builder.setAniSearchID(event.target.value)}
-              placeholder="z.B. 12345"
-            />
-          </label>
-          <label className={styles.field}>
-            <span>Season Offset</span>
-            <input
-              value={builder.seasonOffset}
-              onChange={(event) => builder.setSeasonOffset(event.target.value)}
-              placeholder="0"
-            />
-          </label>
+      {jellyfinFolders.length > 1 ? (
+        <div className={styles.folderSelectorStrip}>
           <EpisodeImportFolderSelector
             folders={jellyfinFolders}
             value={selectedFolderID}
-            onChange={setFolderOverride}
+            onChange={handleFolderChange}
           />
         </div>
-      </section>
+      ) : null}
 
       {builder.summary ? (
         <div className={styles.summaryStrip}>

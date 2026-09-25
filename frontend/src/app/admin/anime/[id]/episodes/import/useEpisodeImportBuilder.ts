@@ -1,6 +1,6 @@
 'use client'
 
-import { useEffect, useMemo, useState } from 'react'
+import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
 import { jellyfinSourceKey } from '@/lib/jellyfinSourceIdentity'
 
 import {
@@ -112,6 +112,36 @@ export function useEpisodeImportBuilder(animeID: number | null): UseEpisodeImpor
   const [applyingRowId, setApplyingRowId] = useState<string | null>(null)
   const [errorMessage, setErrorMessage] = useState<string | null>(null)
   const [applyErrorMessage, setApplyErrorMessage] = useState<string | null>(null)
+  const autoPreviewAnimeID = useRef<number | null>(null)
+
+  const loadPreviewWithSettings = useCallback(async (
+    anisearchIDValue: string,
+    seasonOffsetValue: string,
+    jellyfinSeriesIDOverride?: string,
+  ) => {
+    if (!animeID) return
+    setIsPreviewing(true)
+    setErrorMessage(null)
+    setApplyErrorMessage(null)
+    setApplyResult(null)
+    try {
+      const response = await previewEpisodeImport(
+        animeID,
+        {
+          anisearch_id: anisearchIDValue.trim(),
+          jellyfin_series_id: jellyfinSeriesIDOverride?.trim() || undefined,
+          season_offset: Number.parseInt(seasonOffsetValue, 10) || 0,
+        },
+      )
+      const normalizedPreview = normalizePreviewResult(response.data)
+      setPreview(normalizedPreview)
+      setMappings(normalizedPreview.mappings)
+    } catch (error) {
+      setErrorMessage(formatEpisodeImportError(error, 'Vorschau konnte nicht geladen werden.'))
+    } finally {
+      setIsPreviewing(false)
+    }
+  }, [animeID])
 
   useEffect(() => {
     async function loadContext() {
@@ -120,6 +150,10 @@ export function useEpisodeImportBuilder(animeID: number | null): UseEpisodeImpor
         setIsLoadingContext(false)
         return
       }
+      if (autoPreviewAnimeID.current === animeID) {
+        return
+      }
+      autoPreviewAnimeID.current = animeID
 
       setIsLoadingContext(true)
       setErrorMessage(null)
@@ -128,6 +162,12 @@ export function useEpisodeImportBuilder(animeID: number | null): UseEpisodeImpor
         const response = await getEpisodeImportContext(animeID)
         setContext(response.data)
         setAniSearchID(response.data.anisearch_id ?? '')
+        const mainFolder = response.data.jellyfin_folders?.find((folder) => folder.is_main)
+        await loadPreviewWithSettings(
+          response.data.anisearch_id ?? '',
+          '0',
+          mainFolder?.jellyfin_item_id ?? response.data.jellyfin_series_id ?? undefined,
+        )
       } catch (error) {
         setErrorMessage(formatEpisodeImportError(error, 'Import-Kontext konnte nicht geladen werden.'))
       } finally {
@@ -136,7 +176,7 @@ export function useEpisodeImportBuilder(animeID: number | null): UseEpisodeImpor
     }
 
     void loadContext()
-  }, [animeID])
+  }, [animeID, loadPreviewWithSettings])
 
   const summary = useMemo(() => {
     if (!preview) return null
@@ -212,28 +252,7 @@ export function useEpisodeImportBuilder(animeID: number | null): UseEpisodeImpor
   }, [mappings])
 
   async function loadPreview(jellyfinSeriesIDOverride?: string) {
-    if (!animeID) return
-    setIsPreviewing(true)
-    setErrorMessage(null)
-    setApplyErrorMessage(null)
-    setApplyResult(null)
-    try {
-      const response = await previewEpisodeImport(
-        animeID,
-        {
-          anisearch_id: anisearchID.trim(),
-          jellyfin_series_id: jellyfinSeriesIDOverride?.trim() || undefined,
-          season_offset: Number.parseInt(seasonOffset, 10) || 0,
-        },
-      )
-      const normalizedPreview = normalizePreviewResult(response.data)
-      setPreview(normalizedPreview)
-      setMappings(normalizedPreview.mappings)
-    } catch (error) {
-      setErrorMessage(formatEpisodeImportError(error, 'Vorschau konnte nicht geladen werden.'))
-    } finally {
-      setIsPreviewing(false)
-    }
+    await loadPreviewWithSettings(anisearchID, seasonOffset, jellyfinSeriesIDOverride)
   }
 
   async function applyMappings() {
