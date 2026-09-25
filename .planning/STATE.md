@@ -1995,11 +1995,13 @@ untruncated list lives in `.planning/todos/pending/`.
 | Phase 167 P08 | 20min | 2 tasks | 6 files |
 | Phase 167 P06 | 55min | 3 tasks | 9 files |
 
+| 260925-i49 | Kurzhinweis direkt hinter Mapping-Workbench platziert und Episodentitel linksbündig erzwungen | 2026-09-25 | pending-human-uat | [260925-i49-episode-mapping-kurzhinweis-wiederherste](./quick/260925-i49-episode-mapping-kurzhinweis-wiederherste/) |
+
 ## Session Continuity
 
 Last session: 2026-09-25T08:53:53.930Z
 Stopped at: Phase 168 added to roadmap
-Last activity: 2026-09-25 - Completed quick task 260925-i0w: Workbench-Text und Feldgrößen angeglichen
+Last activity: 2026-09-25 - Completed quick task 260925-i49: Kurzhinweis und Titel-Ausrichtung angepasst
 Resume file: 
 None
 

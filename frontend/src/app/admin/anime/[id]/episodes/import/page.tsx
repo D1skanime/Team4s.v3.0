@@ -177,8 +177,11 @@ function AdminAnimeEpisodeImportContent() {
       {builder.preview ? (
         <section className={styles.panel}>
           <div className={styles.panelHeader}>
-            <div>
+            <div className={styles.workbenchHeading}>
               <h2>Mapping-Workbench</h2>
+              <p>
+                Mehrere Episoden können als Kommaliste angegeben werden, z. B. <code>9,10</code>.
+              </p>
             </div>
             <div className={styles.workbenchActions}>
               <button

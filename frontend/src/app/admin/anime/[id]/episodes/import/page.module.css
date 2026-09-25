@@ -122,6 +122,20 @@
   letter-spacing: -0.03em;
 }
 
+.workbenchHeading {
+  display: flex;
+  align-items: baseline;
+  flex-wrap: wrap;
+  gap: 12px;
+  min-width: 0;
+}
+
+.workbenchHeading p {
+  margin: 0;
+  color: #6f675d;
+  font-size: 13px;
+}
+
 .panel p {
   color: #6f675d;
 }
@@ -339,7 +353,8 @@
   font-size: 15px;
   font-weight: 700;
   line-height: 1.25;
-  text-align: left;
+  text-align: left !important;
+  direction: ltr;
 }
 
 .episodeGroupBadges {
