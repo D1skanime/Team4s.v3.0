@@ -7,7 +7,10 @@ import { useParams, useRouter } from "next/navigation";
 import { PlatformAdminGate } from "@/components/auth/PlatformAdminGate";
 import { EpisodeImportApplyErrorAlert } from "./EpisodeImportApplyErrorAlert";
 import { EpisodeImportFolderSelector } from "./EpisodeImportFolderSelector";
-import { EpisodeImportMappingRowCard } from "./EpisodeImportMappingRow";
+import {
+  EpisodeImportMappingColumnHeader,
+  EpisodeImportMappingRowCard,
+} from "./EpisodeImportMappingRow";
 import { EpisodeGroup } from "./EpisodeImportEpisodeGroup";
 import { jellyfinSourceKey } from "@/lib/jellyfinSourceIdentity";
 import styles from "./page.module.css";
@@ -251,6 +254,7 @@ function AdminAnimeEpisodeImportContent() {
                     {builder.unmappedMappingRows.length} Datei(en)
                   </span>
                 </div>
+                <EpisodeImportMappingColumnHeader />
                 <div className={styles.mappingList}>
                   {builder.unmappedMappingRows.map((row) => (
                     <EpisodeImportMappingRowCard

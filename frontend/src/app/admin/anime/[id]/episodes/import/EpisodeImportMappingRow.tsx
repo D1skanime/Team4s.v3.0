@@ -9,6 +9,18 @@ import styles from './page.module.css'
 
 const EMPTY_SELECTED_FANSUB_GROUPS: EpisodeImportSelectedFansubGroup[] = []
 
+export function EpisodeImportMappingColumnHeader() {
+  return (
+    <div className={styles.mappingColumnHeader} role="row">
+      <span role="columnheader">Dateiname</span>
+      <span role="columnheader">Gruppe</span>
+      <span role="columnheader">Episode</span>
+      <span role="columnheader">Version</span>
+      <span role="columnheader">Aktionen</span>
+    </div>
+  )
+}
+
 interface EpisodeImportMappingRowCardProps {
   episodeNumber: number
   row: EpisodeImportMappingRow

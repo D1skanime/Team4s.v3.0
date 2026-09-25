@@ -6,7 +6,10 @@ import type {
 } from "@/types/episodeImport";
 
 import { Input, Select } from "@/components/ui";
-import { EpisodeImportMappingRowCard } from "./EpisodeImportMappingRow";
+import {
+  EpisodeImportMappingColumnHeader,
+  EpisodeImportMappingRowCard,
+} from "./EpisodeImportMappingRow";
 import { jellyfinSourceKey } from "@/lib/jellyfinSourceIdentity";
 import { fillerLabel } from "./episodeImportMapping";
 import styles from "./page.module.css";
@@ -195,6 +198,7 @@ export function EpisodeGroup({
           </div>
         ) : null}
       </div>
+      <EpisodeImportMappingColumnHeader />
       <div className={styles.mappingList}>
         {group.rows.map((row) => (
           <EpisodeImportMappingRowCard

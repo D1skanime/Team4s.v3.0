@@ -453,13 +453,31 @@
 
 .mappingRow {
   display: grid;
-  grid-template-columns: minmax(0, 1.3fr) minmax(260px, 1fr) auto;
+  grid-template-columns: minmax(220px, 1.3fr) minmax(320px, 1.6fr) minmax(110px, 0.5fr) minmax(180px, 1fr) minmax(130px, auto);
   align-items: start;
   column-gap: 20px;
   row-gap: 10px;
   padding: 10px 14px;
   border-top: 1px solid #ede7df;
   background: #fff;
+}
+
+.mappingColumnHeader {
+  display: grid;
+  grid-template-columns: minmax(220px, 1.3fr) minmax(320px, 1.6fr) minmax(110px, 0.5fr) minmax(180px, 1fr) minmax(130px, auto);
+  column-gap: 20px;
+  padding: 8px 14px 6px;
+  border-bottom: 1px solid #e4ddd4;
+  background: #faf7f3;
+  color: #776e63;
+  font-size: 11px;
+  font-weight: 800;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+}
+
+.mappingColumnHeader span:last-child {
+  text-align: right;
 }
 
 .mappingRow:first-child {
@@ -494,9 +512,7 @@
 }
 
 .mappingRowFields {
-  display: grid;
-  gap: 10px;
-  min-width: 0;
+  display: contents;
 }
 
 .mappingRowActions {
@@ -783,6 +799,10 @@
 
   .mappingRow {
     grid-template-columns: 1fr;
+  }
+
+  .mappingColumnHeader {
+    display: none;
   }
 
   .mappingRowActions {

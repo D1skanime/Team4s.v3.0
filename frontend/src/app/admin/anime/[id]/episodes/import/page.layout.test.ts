@@ -31,4 +31,10 @@ describe('mapping row layout CSS (GAP-09, 167-UAT.md)', () => {
     expect(css).toMatch(/\.episodeTitleLanguage\s*\{/)
     expect(css).toMatch(/\.episodeTitleInput\s*\{[^}]*min-height:\s*40px/)
   })
+
+  it('defines a five-column mapping header aligned with mapping rows', () => {
+    expect(css).toMatch(/\.mappingColumnHeader\s*\{/)
+    expect(css).toMatch(/\.mappingRowFields\s*\{[^}]*display:\s*contents/)
+    expect(css).toMatch(/grid-template-columns:\s*minmax\(220px, 1\.3fr\).*minmax\(130px, auto\)/)
+  })
 })
