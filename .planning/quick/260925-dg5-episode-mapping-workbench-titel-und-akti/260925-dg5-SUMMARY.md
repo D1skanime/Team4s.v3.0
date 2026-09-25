@@ -14,7 +14,7 @@ Die Auswahl ist absichtlich zunächst auf Deutsch begrenzt. Sobald mehrsprachige
 - `frontend/src/app/admin/anime/[id]/episodes/import/EpisodeImportEpisodeGroup.tsx`
 - `frontend/src/app/admin/anime/[id]/episodes/import/page.module.css`
 
-Commit wird nach Abschluss der Prüfungen ergänzt.
+`8964f200` — `feat(quick-260925-dg5): refine episode mapping workbench UI`
 
 ## Offener Punkt
 
