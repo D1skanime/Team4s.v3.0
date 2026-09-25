@@ -48,6 +48,13 @@
   align-items: start;
 }
 
+.headerTop {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  gap: 16px;
+  align-items: start;
+}
+
 .eyebrow {
   margin: 0;
   font-size: 14px;
@@ -468,6 +475,7 @@
   }
 
   .headerMain,
+  .headerTop,
   .summaryGrid {
     grid-template-columns: 1fr;
   }

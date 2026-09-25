@@ -2009,11 +2009,13 @@ untruncated list lives in `.planning/todos/pending/`.
 
 | 260925-jx5 | Beschreibungstext entfernt und Episodenaktionen direkt unter dem Titel platziert | 2026-09-25 | pending-human-uat | [260925-jx5-episodenuebersicht-titel-und-aktionen-ko](./quick/260925-jx5-episodenuebersicht-titel-und-aktionen-ko/) |
 
+| 260925-jyd | Zurück-zum-Anime-Navigation oben rechts ergänzt | 2026-09-25 | pending-human-uat | [260925-jyd-episodenuebersicht-zurueck-button-oben-r](./quick/260925-jyd-episodenuebersicht-zurueck-button-oben-r/) |
+
 ## Session Continuity
 
 Last session: 2026-09-25T08:53:53.930Z
 Stopped at: Phase 168 added to roadmap
-Last activity: 2026-09-25 - Completed quick task 260925-jx5: Beschreibungstext entfernt und Episodenaktionen direkt unter dem Titel platziert
+Last activity: 2026-09-25 - Completed quick task 260925-jyd: Zurück-zum-Anime-Navigation oben rechts ergänzt
 Resume file: 
 None
 

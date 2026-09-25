@@ -242,9 +242,19 @@ function AdminAnimeEpisodesContent() {
 
       <header className={styles.headerCard}>
         <div className={styles.headerMain}>
-          <div>
-            <p className={styles.eyebrow}>Schritt 3</p>
-            <h1 className={styles.pageTitle}>Episoden-Übersicht</h1>
+          <div className={styles.headerTop}>
+            <div>
+              <p className={styles.eyebrow}>Schritt 3</p>
+              <h1 className={styles.pageTitle}>Episoden-Übersicht</h1>
+            </div>
+            {anime ? (
+              <Link
+                href={`/admin/anime/${anime.id}/edit`}
+                className={`${styles.button} ${styles.buttonSecondary}`}
+              >
+                Zurück zum Anime
+              </Link>
+            ) : null}
           </div>
           {anime ? (
             <div className={styles.headerActions}>
