@@ -2007,11 +2007,13 @@ untruncated list lives in `.planning/todos/pending/`.
 
 | 260925-jwj | Episodenübersicht zu einer kompakten gemeinsamen Kopfkarte zusammengeführt | 2026-09-25 | pending-human-uat | [260925-jwj-episodenuebersicht-kompakte-kopfkarte](./quick/260925-jwj-episodenuebersicht-kompakte-kopfkarte/) |
 
+| 260925-jx5 | Beschreibungstext entfernt und Episodenaktionen direkt unter dem Titel platziert | 2026-09-25 | pending-human-uat | [260925-jx5-episodenuebersicht-titel-und-aktionen-ko](./quick/260925-jx5-episodenuebersicht-titel-und-aktionen-ko/) |
+
 ## Session Continuity
 
 Last session: 2026-09-25T08:53:53.930Z
 Stopped at: Phase 168 added to roadmap
-Last activity: 2026-09-25 - Completed quick task 260925-jwj: Episodenübersicht zu einer kompakten gemeinsamen Kopfkarte zusammengeführt
+Last activity: 2026-09-25 - Completed quick task 260925-jx5: Beschreibungstext entfernt und Episodenaktionen direkt unter dem Titel platziert
 Resume file: 
 None
 

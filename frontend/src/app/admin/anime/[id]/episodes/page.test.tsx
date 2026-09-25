@@ -101,6 +101,12 @@ describe("AdminAnimeEpisodesPage", () => {
     expect(screen.getByText("Episoden-Übersicht")).not.toBeNull();
     expect(screen.getByText("Keine Episoden vorhanden.")).not.toBeNull();
     expect(
+      screen.queryByText(
+        "Episoden mit allen Versionen, Fansub-Zuordnungen und Version-Counts pro Episode. Accordion zeigt Details bei Bedarf.",
+      ),
+    ).toBeNull();
+    expect(screen.queryByText("Zurück zum Anime")).toBeNull();
+    expect(
       screen.getByRole("banner").contains(screen.getByText("Beispiel-Anime")),
     ).toBe(true);
   });

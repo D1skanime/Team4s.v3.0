@@ -43,8 +43,8 @@
 
 .headerMain {
   display: grid;
-  grid-template-columns: minmax(0, 1fr) auto;
-  gap: 20px;
+  grid-template-columns: 1fr;
+  gap: 12px;
   align-items: start;
 }
 
