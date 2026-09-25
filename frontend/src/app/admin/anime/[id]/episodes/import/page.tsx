@@ -190,7 +190,7 @@ function AdminAnimeEpisodeImportContent() {
                 onClick={() => builder.skipAllSuggested()}
                 disabled={!builder.hasSuggestedRows}
               >
-                Alle Vorschläge ueberspringen
+                Alle Vorschläge überspringen
               </button>
               <button
                 className={styles.secondaryButton}

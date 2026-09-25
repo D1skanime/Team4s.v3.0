@@ -24,4 +24,11 @@ describe('mapping row layout CSS (GAP-09, 167-UAT.md)', () => {
     expect(rowRule).not.toBeNull()
     expect(rowRule![1]).toMatch(/grid-template-columns:\s*1fr/)
   })
+
+  it('keeps workbench actions right-aligned and title controls compact', () => {
+    const actionsRule = css.match(/\.workbenchActions\s*\{([^}]*)\}/)
+    expect(actionsRule?.[1]).toMatch(/justify-content:\s*flex-end/)
+    expect(css).toMatch(/\.episodeTitleLanguage\s*\{/)
+    expect(css).toMatch(/\.episodeTitleInput\s*\{[^}]*min-height:\s*40px/)
+  })
 })

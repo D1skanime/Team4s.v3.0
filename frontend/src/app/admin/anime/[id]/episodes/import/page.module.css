@@ -233,6 +233,7 @@
   flex-wrap: wrap;
   gap: 8px;
   align-items: center;
+  justify-content: flex-end;
 }
 
 .applyErrorAlert {
@@ -309,39 +310,19 @@
   flex-direction: column;
   gap: 4px;
   min-width: 0;
-  width: min(100%, 820px);
   flex: 1 1 320px;
 }
 
-.episodeSingleFileInfo {
+.episodeTitleLanguage {
   display: flex;
   flex-direction: column;
-  align-items: flex-end;
-  text-align: right;
-  gap: 2px;
-  min-width: 0;
-  max-width: 100%;
-  flex: 0 1 auto;
+  gap: 4px;
+  min-width: 132px;
+  flex: 0 0 132px;
 }
 
-.episodeSingleFileInfoName {
-  font-size: 13px;
-  font-weight: 700;
-  color: #17130f;
-  overflow: hidden;
-  text-overflow: ellipsis;
-  white-space: nowrap;
-  max-width: 100%;
-}
-
-.episodeSingleFileInfoPath {
-  font-size: 11px;
-  color: #9b8e82;
-  font-family: ui-monospace, monospace;
-  overflow: hidden;
-  text-overflow: ellipsis;
-  white-space: nowrap;
-  max-width: 100%;
+.episodeTitleLanguageSelect {
+  width: 100%;
 }
 
 .episodeTitleLabel {
@@ -354,29 +335,10 @@
 
 .episodeTitleInput {
   width: 100%;
-  min-height: 72px;
-  border: 1px solid #d8cec0;
-  border-radius: 10px;
-  padding: 8px 10px;
-  background: #fff;
-  color: #17130f;
+  min-height: 40px;
   font-size: 15px;
   font-weight: 700;
   line-height: 1.25;
-  box-sizing: border-box;
-  resize: vertical;
-  overflow-wrap: anywhere;
-}
-
-.episodeTitleInput::placeholder {
-  color: #9b8e82;
-  font-weight: 500;
-}
-
-.episodeTitleInput:focus {
-  outline: none;
-  border-color: #8060d7;
-  box-shadow: 0 0 0 3px rgba(128, 96, 215, 0.14);
 }
 
 .episodeGroupBadges {
@@ -418,7 +380,7 @@
 }
 
 .coveredEpisodeInput {
-  min-height: 64px;
+  min-height: 40px;
   font-size: 14px;
   font-weight: 600;
 }
@@ -820,7 +782,7 @@
 
   .workbenchActions {
     flex-direction: column;
-    align-items: stretch;
+    align-items: flex-end;
   }
 
   .sourceGrid {
@@ -891,13 +853,9 @@
   }
 
   .episodeTitleRow {
-    flex-direction: column;
-    align-items: stretch;
-  }
-
-  .episodeSingleFileInfo {
-    align-items: flex-start;
-    text-align: left;
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) 132px;
+    align-items: end;
   }
 
   .episodeTitleEditor {
@@ -905,7 +863,6 @@
   }
 
   .episodeTitleInput {
-    min-height: 84px;
     font-size: 16px;
   }
 
@@ -939,5 +896,17 @@
   .groupInputRow {
     display: grid;
     grid-template-columns: 1fr;
+  }
+}
+
+@media (max-width: 520px) {
+  .episodeTitleRow {
+    grid-template-columns: 1fr;
+    align-items: stretch;
+  }
+
+  .episodeTitleLanguage {
+    min-width: 0;
+    width: 100%;
   }
 }

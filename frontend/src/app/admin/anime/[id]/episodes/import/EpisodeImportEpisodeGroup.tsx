@@ -5,7 +5,7 @@ import type {
   EpisodeImportSelectedFansubGroup,
 } from "@/types/episodeImport";
 
-import { Textarea } from "@/components/ui";
+import { Input, Select } from "@/components/ui";
 import { EpisodeImportMappingRowCard } from "./EpisodeImportMappingRow";
 import { jellyfinSourceKey } from "@/lib/jellyfinSourceIdentity";
 import { fillerLabel } from "./episodeImportMapping";
@@ -63,11 +63,9 @@ export interface EpisodeGroupProps {
 /**
  * Extracted from page.tsx (GAP-13, 167-UAT.md): renders one episode block
  * (header with title editor + badges/covered-episodes, followed by the
- * per-file mapping list). When the episode has exactly one file, the
- * filename/folder path move into the header row to the right of the title
- * (`.episodeSingleFileInfo`) instead of only appearing in the per-file row,
- * and `hideFileInfo` suppresses the duplicate in
- * EpisodeImportMappingRowCard for that single row.
+ * per-file mapping list). The per-file mapping row remains the source of
+ * truth for filename and folder context, so the episode header stays focused
+ * on the editable episode title.
  */
 export function EpisodeGroup({
   group,
@@ -89,8 +87,6 @@ export function EpisodeGroup({
   const hasActionable = group.rows.some(
     (row) => row.status === "suggested" || row.status === "conflict",
   );
-  const singleFileRow = group.rows.length === 1 ? group.rows[0] : null;
-
   return (
     <div className={styles.episodeGroup}>
       <div
@@ -105,30 +101,28 @@ export function EpisodeGroup({
           <div className={styles.episodeTitleBlock}>
             <div className={styles.episodeTitleRow}>
               <label className={styles.episodeTitleEditor}>
-                <span className={styles.episodeTitleLabel}>Titel (DE)</span>
-                <Textarea
+                <span className={styles.episodeTitleLabel}>Episoden Titel</span>
+                <Input
                   className={styles.episodeTitleInput}
-                  rows={2}
                   value={group.title ?? ""}
                   placeholder={`Episode ${group.episodeNumber}`}
-                  aria-label={`Deutscher Titel für Episode ${group.episodeNumber}`}
+                  aria-label={`Episodentitel für Episode ${group.episodeNumber}`}
                   onChange={(event) =>
                     onSetEpisodeTitle(group.episodeNumber, event.target.value)
                   }
                 />
               </label>
-              {singleFileRow ? (
-                <div className={styles.episodeSingleFileInfo}>
-                  <strong className={styles.episodeSingleFileInfoName}>
-                    {singleFileRow.file_name || singleFileRow.media_item_id}
-                  </strong>
-                  {singleFileRow.display_path ? (
-                    <span className={styles.episodeSingleFileInfoPath}>
-                      {singleFileRow.display_path}
-                    </span>
-                  ) : null}
-                </div>
-              ) : null}
+              <label className={styles.episodeTitleLanguage}>
+                <span className={styles.episodeTitleLabel}>Sprache</span>
+                <Select
+                  className={styles.episodeTitleLanguageSelect}
+                  value="de"
+                  aria-label={`Sprache für Episodentitel ${group.episodeNumber}`}
+                  onChange={() => undefined}
+                >
+                  <option value="de">Deutsch</option>
+                </Select>
+              </label>
             </div>
             <div className={styles.episodeGroupBadges}>
               {group.existingEpisodeId ? (
@@ -154,12 +148,11 @@ export function EpisodeGroup({
                       <span className={styles.coveredEpisodeNumber}>
                         #{coveredEpisode.episodeNumber}
                       </span>
-                      <Textarea
+                      <Input
                         className={`${styles.episodeTitleInput} ${styles.coveredEpisodeInput}`}
-                        rows={2}
                         value={coveredEpisode.title ?? ""}
                         placeholder={`Episode ${coveredEpisode.episodeNumber}`}
-                        aria-label={`Deutscher Titel für Episode ${coveredEpisode.episodeNumber}`}
+                        aria-label={`Episodentitel für Episode ${coveredEpisode.episodeNumber}`}
                         onChange={(event) =>
                           onSetEpisodeTitle(
                             coveredEpisode.episodeNumber,
@@ -195,7 +188,7 @@ export function EpisodeGroup({
               type="button"
               onClick={() => onSkipEpisode(group.episodeNumber)}
             >
-              Alle ueberspringen
+              Alle überspringen
             </button>
           </div>
         ) : null}
@@ -206,7 +199,6 @@ export function EpisodeGroup({
             key={jellyfinSourceKey(row)}
             episodeNumber={group.episodeNumber}
             row={row}
-            hideFileInfo={group.rows.length === 1}
             onSetTargets={onSetTargets}
             onSetRelease={onSetRelease}
             onSetSelectedFansubGroups={onSetSelectedFansubGroups}
