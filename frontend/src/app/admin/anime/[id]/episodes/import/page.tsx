@@ -78,40 +78,42 @@ function AdminAnimeEpisodeImportContent() {
         <span>Import</span>
       </nav>
 
-      <header className={styles.hero}>
-        <div>
-          <p className={styles.eyebrow}>Episode Import</p>
-          <h1>{builder.context?.anime_title ?? "Episoden importieren"}</h1>
-        </div>
-        {animeID ? (
-          <Link
-            className={styles.secondaryButton}
-            href={`/admin/anime/${animeID}/episodes`}
-          >
-            Zurück zur Übersicht
-          </Link>
-        ) : null}
-      </header>
+      <section className={styles.heroCard}>
+        <header className={styles.hero}>
+          <div>
+            <p className={styles.eyebrow}>Episode Import</p>
+            <h1>{builder.context?.anime_title ?? "Episoden importieren"}</h1>
+          </div>
+          {animeID ? (
+            <Link
+              className={styles.secondaryButton}
+              href={`/admin/anime/${animeID}/episodes`}
+            >
+              Zurück zur Übersicht
+            </Link>
+          ) : null}
+        </header>
 
-      {builder.context ? (
-        <div className={styles.contextStrip}>
-          <ContextField
-            label="AniSearch ID"
-            value={builder.context.anisearch_id ?? "nicht gesetzt"}
-            mono
-          />
-          <ContextField
-            label="Jellyfin-Serien-ID"
-            value={builder.context.jellyfin_series_id ?? "nicht verknüpft"}
-            mono
-          />
-          <ContextField
-            label="Ordnerpfad"
-            value={builder.context.folder_path ?? "nicht gesetzt"}
-            mono
-          />
-        </div>
-      ) : null}
+        {builder.context ? (
+          <div className={styles.contextStrip}>
+            <ContextField
+              label="AniSearch ID"
+              value={builder.context.anisearch_id ?? "nicht gesetzt"}
+              mono
+            />
+            <ContextField
+              label="Jellyfin-Serien-ID"
+              value={builder.context.jellyfin_series_id ?? "nicht verknüpft"}
+              mono
+            />
+            <ContextField
+              label="Ordnerpfad"
+              value={builder.context.folder_path ?? "nicht gesetzt"}
+              mono
+            />
+          </div>
+        ) : null}
+      </section>
 
       {builder.isLoadingContext ? (
         <div className={styles.notice}>Import-Kontext wird geladen...</div>
