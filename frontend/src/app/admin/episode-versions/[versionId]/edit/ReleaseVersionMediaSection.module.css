@@ -21,16 +21,6 @@
   gap: 1rem;
 }
 
-.contextLine {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 0.5rem;
-  font-size: 0.76rem;
-  color: var(--text-secondary);
-  font-weight: 700;
-  text-transform: uppercase;
-}
-
 .headerRow {
   display: flex;
   justify-content: space-between;
@@ -122,6 +112,14 @@
   line-height: 1.35;
   white-space: normal;
   justify-self: start;
+}
+
+.mediaMeta {
+  min-width: 0;
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 0.4rem;
 }
 
 .mediaGrid {

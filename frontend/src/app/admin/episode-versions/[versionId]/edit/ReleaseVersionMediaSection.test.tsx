@@ -123,8 +123,6 @@ function renderSection(mediaState?: UseReleaseVersionMediaResult) {
   return render(
     <ReleaseVersionMediaSection
       versionId={42}
-      fansubGroupName="SubGroup"
-      releaseVersionLabel="v1"
       mediaState={mediaState}
     />,
   )
@@ -742,8 +740,6 @@ describe('ReleaseVersionMediaSection CR-01 upload failure gating (real hook, moc
     return render(
       <ReleaseVersionMediaSection
         versionId={42}
-        fansubGroupName="SubGroup"
-        releaseVersionLabel="v1"
       />,
     )
   }

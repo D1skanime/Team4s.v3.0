@@ -845,25 +845,8 @@ export function EpisodeVersionEditorPage() {
             {/* Media / Assets tab */}
             {allowedTabs.has("media") && visibleActiveTab === "media" ? (
               <section className={styles.card}>
-                {/* Context card — D-04/D-07: fansub group + release version title */}
-                <div className={styles.mediaContextCard}>
-                  <span className={styles.mediaContextLabel}>
-                    Fansub-Gruppe
-                  </span>
-                  <span className={styles.mediaContextValue}>
-                    {groupName ?? "–"}
-                  </span>
-                  <span className={styles.mediaContextLabel}>
-                    Release-Version
-                  </span>
-                  <span className={styles.mediaContextValue}>
-                    {segmentVersion ?? "–"}
-                  </span>
-                </div>
                 <ReleaseVersionMediaSection
                   versionId={version.id}
-                  fansubGroupName={groupName ?? "–"}
-                  releaseVersionLabel={segmentVersion ?? "–"}
                 />
               </section>
             ) : null}

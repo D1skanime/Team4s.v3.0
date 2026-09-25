@@ -34,6 +34,10 @@ Sichtbare Provider-/Jellyfin-Bezeichnungen im Episode-Version-Editor und Segment
 
 Erklärungstexte im Segment-Drawer nutzen die freie Breite; direkte Select-Felder sind auf 360px begrenzt und bleiben mobil responsiv. Die 125 fokussierten Segmenttests sind bestanden. Dokumentation liegt unter `.planning/quick/260925-4jm-segment-drawer-feldbreiten/`.
 
+# Quick Task 260925-5np — Media-Tab-Kontext und Status-Chips bereinigt (Phase 168)
+
+Die doppelte Fansub-/Release-Kontextkarte und Kontextzeile im Media-Tab sind entfernt. Kategorie-, Review- und Sichtbarkeits-Chips stehen gemeinsam nebeneinander und brechen responsiv um. 55 Media-/Seitentests und Typecheck sind bestanden. Dokumentation liegt unter `.planning/quick/260925-5np-media-tab-kontext-status-chips/`.
+
 # Project State
 
 ## Gap-Closure-Ausführung Phase 165 (22.09.2026) — 165-14..165-19 code-complete, CR-01 Review-Fix eingespielt

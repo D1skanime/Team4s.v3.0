@@ -351,7 +351,7 @@ describe("EpisodeVersionEditorPage media tab", () => {
     expect(getReleaseVersionCapabilitiesMock).toHaveBeenCalledWith(42);
   });
 
-  it("shows the context card with fansub and release version on the media tab", async () => {
+  it("does not duplicate the editor context on the media tab", async () => {
     mockPlatformAdminScope();
     useEpisodeVersionEditorMock.mockReturnValue(makeEditorState());
     useReleaseVersionMediaMock.mockReturnValue(makeMediaState());
@@ -362,7 +362,8 @@ describe("EpisodeVersionEditorPage media tab", () => {
     );
 
     expect(screen.getAllByText("SubGroup").length).toBeGreaterThan(0);
-    expect(screen.getAllByText("v1").length).toBeGreaterThan(0);
+    expect(screen.queryByText("Fansub-Gruppe")).toBeNull();
+    expect(screen.queryByText("Release-Version:")).toBeNull();
   });
 
   it("keeps the editor shell visible when the media section reports an API error", async () => {
@@ -398,7 +399,7 @@ describe("EpisodeVersionEditorPage media tab", () => {
     fireEvent.click(mediaTab);
 
     await waitFor(() => {
-      expect(screen.getByText("Fansub-Gruppe")).not.toBeNull();
+      expect(screen.queryByText("Fansub-Gruppe")).toBeNull();
     });
 
     expect(

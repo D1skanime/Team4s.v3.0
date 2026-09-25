@@ -15,8 +15,9 @@ import styles from './ReleaseVersionMediaSection.module.css'
 
 interface ReleaseVersionMediaSectionProps {
   versionId: number
-  fansubGroupName: string
-  releaseVersionLabel: string
+  /** Legacy context props kept for callers outside the editor; context is rendered by the page header. */
+  fansubGroupName?: string
+  releaseVersionLabel?: string
   mediaState?: UseReleaseVersionMediaResult
 }
 
@@ -67,8 +68,6 @@ function formatLastActivity(value?: string | null): string | null {
 
 export function ReleaseVersionMediaSection({
   versionId,
-  fansubGroupName,
-  releaseVersionLabel,
   mediaState,
 }: ReleaseVersionMediaSectionProps) {
   const internalMedia = useReleaseVersionMedia(versionId)
@@ -363,10 +362,6 @@ export function ReleaseVersionMediaSection({
   return (
     <section className={styles.section}>
       <div className={styles.headerCard}>
-        <div className={styles.contextLine}>
-          <span>Fansub: {fansubGroupName}</span>
-          <span>Release-Version: {releaseVersionLabel}</span>
-        </div>
         <div className={styles.headerRow}>
           <div>
             <h2 className={styles.headline}>Media / Assets verwalten</h2>
@@ -430,12 +425,14 @@ export function ReleaseVersionMediaSection({
                   </span>
                   <span className={styles.mediaCardBody}>
                     <span className={styles.mediaName}>{getAssetName(item)}</span>
-                    <Badge variant="muted" className={styles.mediaCategory}>{categoryLabel(item.category)}</Badge>
+                    <span className={styles.mediaMeta}>
+                      <Badge variant="muted" className={styles.mediaCategory}>{categoryLabel(item.category)}</Badge>
+                      <Badge variant={badge.variant} className={`${badge.className} ${styles.mediaStatus}`}>{badge.label}</Badge>
+                      {item.review_state === 'confirmed' && item.visibility === 'oeffentlich' ? (
+                        <Badge variant="success" className={styles.mediaStatus}>Öffentlich</Badge>
+                      ) : null}
+                    </span>
                     {item.title && item.caption ? <span className={`${styles.helper} ${styles.mediaCaption}`}>{item.caption}</span> : null}
-                    <Badge variant={badge.variant} className={`${badge.className} ${styles.mediaStatus}`}>{badge.label}</Badge>
-                    {item.review_state === 'confirmed' && item.visibility === 'oeffentlich' ? (
-                      <Badge variant="success" className={styles.mediaStatus}>Öffentlich</Badge>
-                    ) : null}
                     {lastActivity ? (
                       <span className={`${styles.helper} ${styles.mediaActivity}`}>
                         Letzte Aktivität:
