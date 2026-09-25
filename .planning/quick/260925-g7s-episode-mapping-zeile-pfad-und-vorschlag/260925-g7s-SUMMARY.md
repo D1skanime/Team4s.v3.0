@@ -14,7 +14,7 @@ Die gelbe Mapping-Zeile zeigt den bereits bekannten Ordnerpfad nicht mehr doppel
 - `frontend/src/app/admin/anime/[id]/episodes/import/page.module.css`
 - `frontend/src/app/admin/anime/[id]/episodes/import/episodeImportMapping.test.ts`
 
-Commit wird nach Abschluss der Prüfungen ergänzt.
+`928d3230` — `feat(quick-260925-g7s): simplify episode mapping rows`
 
 ## Offener Punkt
 
