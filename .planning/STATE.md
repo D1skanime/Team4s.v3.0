@@ -1520,6 +1520,7 @@ Last activity: 2026-09-23
 | 260925-cyu | Episode-Import-Vorschau automatisch laden, redundante Quellenkarte entfernen und Quellenanzeige auf relevante IDs reduzieren | 2026-09-25 | pending-human-uat | [260925-cyu-episode-import-vorschau-automatisch-lade](./quick/260925-cyu-episode-import-vorschau-automatisch-lade/) |
 | 260925-d8v | Episode-Import-Kopfbereich mit Anime-Titel und Import-Kontext als gemeinsame Karte zusammengeführt | 2026-09-25 | pending-human-uat | [260925-d8v-episode-import-kopfbereich-als-eine-geme](./quick/260925-d8v-episode-import-kopfbereich-als-eine-geme/) |
 | 260925-dg5 | Mapping-Workbench: Aktionen rechtsbündig, Episodentitel als normales Feld mit vorbereiteter Sprach-Auswahl, Dateiname/Pfad zurück in die Mapping-Zeile | 2026-09-25 | pending-human-uat | [260925-dg5-episode-mapping-workbench-titel-und-akti](./quick/260925-dg5-episode-mapping-workbench-titel-und-akti/) |
+| 260925-g7s | Mapping-Zeile bereinigt: doppelten Ordnerpfad und Vorschlagslabel entfernt, direkte Bestätigen/Überspringen-Aktionen ergänzt | 2026-09-25 | pending-human-uat | [260925-g7s-episode-mapping-zeile-pfad-und-vorschlag](./quick/260925-g7s-episode-mapping-zeile-pfad-und-vorschlag/) |
 | 260924-i0a | GAP-11 (Blocker): Mapping-Apply akzeptiert jetzt Dateien aus JEDEM verbundenen Jellyfin-Ordner (nicht nur dem Haupt-Ordner) an allen drei Stellen (Import-Apply, Editor-Relink, Editor-Datei-Voransicht) ueber eine neue geteilte Mehrfach-Ordner-Besitzpruefung, Fail-closed fuer fremde Ordner/Serien unveraendert; GAP-12: Fehlschlag von "Mapping anwenden" zeigt jetzt zusaetzlich einen role="alert"-Hinweis direkt beim Button mit Scroll/Fokus; 167-UAT.md GAP-11/GAP-12 auf resolved gesetzt | 2026-09-24 | 80a47973 | [260924-i0a-gap-11-gap-12-mapping-apply-schlaegt-feh](./quick/260924-i0a-gap-11-gap-12-mapping-apply-schlaegt-feh/) |
 | 260924-b7s | Phase-167-Live-UAT-Fixes: Ordnerauswahl mit lesbaren Namen/Pfaden statt roher Jellyfin-IDs (GAP-01), sichtbarer Hinweis bei erkanntem aber unzugeordnetem Fansub-Kuerzel (GAP-02), Einteiler-Vorschlag fuer einzige nummernlose Datei bei genau einer kanonischen Episode (GAP-03); 167-UAT.md GAP-01..GAP-03 auf resolved gesetzt | 2026-09-24 | 8b8b6e28 | [260924-b7s-phase-167-live-uat-fixes-gap-01-gap-03](./quick/260924-b7s-phase-167-live-uat-fixes-gap-01-gap-03/) |
 | 260924-fec | Fansub-Gruppen-Chip zeigt aufgeloesten Namen statt roher ID (GAP-08), Mapping-Zeile im Episoden-Import in Drei-Spalten-Layout (Info/Felder/Aktionen) mit @/components/ui-Primitives umgebaut, stapelt auf schmalen Bildschirmen vertikal (GAP-09), Einteiler-Vorschau befuellt Platzhaltertitel mit dem Anime-Titel vor (GAP-10); 167-UAT.md GAP-08..GAP-10 auf resolved gesetzt | 2026-09-24 | 00b5fff7 | [260924-fec-gap-08-gap-10-gruppen-chip-zeigt-id-unru](./quick/260924-fec-gap-08-gap-10-gruppen-chip-zeigt-id-unru/) |
@@ -1993,7 +1994,7 @@ untruncated list lives in `.planning/todos/pending/`.
 
 Last session: 2026-09-25T08:53:53.930Z
 Stopped at: Phase 168 added to roadmap
-Last activity: 2026-09-25 - Completed quick task 260925-dg5: Mapping-Workbench-Aktionen und Episodentitel-UI angepasst
+Last activity: 2026-09-25 - Completed quick task 260925-g7s: Mapping-Zeile bereinigt und direkte Bestätigen-Aktion ergänzt
 Resume file: 
 None
 

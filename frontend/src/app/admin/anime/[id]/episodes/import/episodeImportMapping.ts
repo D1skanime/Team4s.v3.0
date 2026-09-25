@@ -49,6 +49,20 @@ export function markMappingSkipped(
   )
 }
 
+export function confirmMapping(
+  rows: EpisodeImportMappingRow[],
+  sourceKey: string,
+): EpisodeImportMappingRow[] {
+  return detectMappingConflicts(
+    rows.map((row) =>
+      jellyfinSourceKey(row) === sourceKey &&
+      (row.status === 'suggested' || row.status === 'conflict')
+        ? { ...row, status: 'confirmed' }
+        : row,
+    ),
+  )
+}
+
 export function toggleMappingSkipped(
   rows: EpisodeImportMappingRow[],
   sourceKey: string,

@@ -233,6 +233,7 @@ function AdminAnimeEpisodeImportContent() {
                   builder.applyFansubGroupFromEpisode
                 }
                 onSetEpisodeTitle={builder.setEpisodeTitle}
+                onConfirm={builder.confirmMapping}
                 onSkip={builder.skipMapping}
                 onApplyRow={(id) => void builder.applyRow(id)}
                 applyingRowId={builder.applyingRowId}
@@ -271,6 +272,7 @@ function AdminAnimeEpisodeImportContent() {
                       onApplyFansubGroupFromEpisode={
                         builder.applyFansubGroupFromEpisode
                       }
+                      onConfirm={builder.confirmMapping}
                       onSkip={builder.skipMapping}
                       onApplyRow={(id) => void builder.applyRow(id)}
                       isApplyingRow={

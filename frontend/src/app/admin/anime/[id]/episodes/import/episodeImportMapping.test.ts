@@ -10,6 +10,7 @@ import {
   applyFansubGroupFromEpisodeDown,
   applyFansubGroupToEpisodeRows,
   confirmEpisodeMappingRows,
+  confirmMapping,
   detectMappingConflicts,
   fillerLabel,
   markAllSuggestedConfirmed,
@@ -26,6 +27,18 @@ import {
 import { buildEpisodeImportApplyInput, normalizePreviewResult } from './useEpisodeImportBuilder'
 
 describe('episodeImportMapping', () => {
+  it('confirms one suggested mapping row', () => {
+    const rows: EpisodeImportMappingRow[] = [{
+      media_item_id: 'jellyfin-episode-1',
+      media_source_id: 'source-episode-1',
+      target_episode_numbers: [1],
+      suggested_episode_numbers: [1],
+      status: 'suggested',
+    }]
+
+    expect(confirmMapping(rows, jellyfinSourceKey(rows[0]))[0].status).toBe('confirmed')
+  })
+
   it('confirms one media candidate for multiple canonical episodes without duplicating the row', () => {
     const rows: EpisodeImportMappingRow[] = [{
       media_item_id: 'jellyfin-naruto-009-010', media_source_id: 'source-jellyfin-naruto-009-010',

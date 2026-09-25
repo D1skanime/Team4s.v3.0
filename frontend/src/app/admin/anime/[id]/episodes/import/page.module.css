@@ -515,15 +515,6 @@
   white-space: nowrap;
 }
 
-.displayPath {
-  font-size: 11px;
-  color: #9b8e82;
-  font-family: ui-monospace, monospace;
-  overflow: hidden;
-  text-overflow: ellipsis;
-  white-space: nowrap;
-}
-
 .multiEpisodeHint {
   font-size: 11px;
   color: #8060d7;

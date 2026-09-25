@@ -53,6 +53,7 @@ export interface EpisodeGroupProps {
     fansubGroups: EpisodeImportSelectedFansubGroup[],
   ) => void;
   onSetEpisodeTitle: (episodeNumber: number, title: string) => void;
+  onConfirm?: (sourceKey: string) => void;
   onSkip: (sourceKey: string) => void;
   onApplyRow: (sourceKey: string) => void;
   applyingRowId: string | null;
@@ -78,6 +79,7 @@ export function EpisodeGroup({
   onApplyFansubGroupToEpisode,
   onApplyFansubGroupFromEpisode,
   onSetEpisodeTitle,
+  onConfirm,
   onSkip,
   onApplyRow,
   applyingRowId,
@@ -206,6 +208,7 @@ export function EpisodeGroup({
             onRemoveSelectedFansubGroup={onRemoveSelectedFansubGroup}
             onApplyFansubGroupToEpisode={onApplyFansubGroupToEpisode}
             onApplyFansubGroupFromEpisode={onApplyFansubGroupFromEpisode}
+            onConfirm={onConfirm}
             onSkip={onSkip}
             onApplyRow={onApplyRow}
             isApplyingRow={applyingRowId === jellyfinSourceKey(row)}

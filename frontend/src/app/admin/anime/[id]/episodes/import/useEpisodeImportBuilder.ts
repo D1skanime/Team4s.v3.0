@@ -23,6 +23,7 @@ import {
   addMappingFansubGroup,
   applyFansubGroupFromEpisodeDown,
   applyFansubGroupToEpisodeRows,
+  confirmMapping,
   confirmEpisodeMappingRows,
   detectMappingConflicts,
   hasReviewedMediaSource,
@@ -88,6 +89,7 @@ interface UseEpisodeImportBuilderState {
   applyFansubGroupToEpisode: (episodeNumber: number, fansubGroups: EpisodeImportSelectedFansubGroup[]) => void
   applyFansubGroupFromEpisode: (episodeNumber: number, fansubGroups: EpisodeImportSelectedFansubGroup[]) => void
   setEpisodeTitle: (episodeNumber: number, title: string) => void
+  confirmMapping: (sourceKey: string) => void
   skipMapping: (sourceKey: string) => void
   skipAllSuggested: () => void
   confirmAllSuggested: () => void
@@ -355,6 +357,8 @@ export function useEpisodeImportBuilder(animeID: number | null): UseEpisodeImpor
           }),
         }
       }),
+    confirmMapping: (sourceKey) =>
+      setMappings((current) => confirmMapping(current, sourceKey)),
     skipMapping: (sourceKey) =>
       setMappings((current) => toggleMappingSkipped(current, sourceKey)),
     skipAllSuggested: () =>

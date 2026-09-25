@@ -19,6 +19,7 @@ interface EpisodeImportMappingRowCardProps {
   onRemoveSelectedFansubGroup: (sourceKey: string, fansubGroup: EpisodeImportSelectedFansubGroup) => void
   onApplyFansubGroupToEpisode: (episodeNumber: number, fansubGroups: EpisodeImportSelectedFansubGroup[]) => void
   onApplyFansubGroupFromEpisode: (episodeNumber: number, fansubGroups: EpisodeImportSelectedFansubGroup[]) => void
+  onConfirm?: (sourceKey: string) => void
   onSkip: (sourceKey: string) => void
   onApplyRow?: (sourceKey: string) => void
   isApplyingRow?: boolean
@@ -42,6 +43,7 @@ export function EpisodeImportMappingRowCard({
   onRemoveSelectedFansubGroup,
   onApplyFansubGroupToEpisode,
   onApplyFansubGroupFromEpisode,
+  onConfirm,
   onSkip,
   onApplyRow,
   isApplyingRow,
@@ -58,7 +60,6 @@ export function EpisodeImportMappingRowCard({
         {!hideFileInfo ? (
           <>
             <strong className={styles.fileName}>{label}</strong>
-            {row.display_path ? <span className={styles.displayPath}>{row.display_path}</span> : null}
           </>
         ) : null}
         {(row.target_episode_numbers ?? []).length > 1 ? (
@@ -106,7 +107,18 @@ export function EpisodeImportMappingRowCard({
         </FormField>
       </div>
       <div className={styles.mappingRowActions}>
-        <span className={`${styles.statusPill} ${styles[row.status]}`}>{statusLabel(row.status)}</span>
+        {statusLabel(row.status) ? (
+          <span className={`${styles.statusPill} ${styles[row.status]}`}>{statusLabel(row.status)}</span>
+        ) : null}
+        {(row.status === 'suggested' || row.status === 'conflict') ? (
+          <Button
+            variant="primary"
+            size="sm"
+            onClick={() => onConfirm?.(sourceKey)}
+          >
+            Bestätigen
+          </Button>
+        ) : null}
         <Button
           variant={isSkipped ? 'secondary' : 'ghost'}
           size="sm"
@@ -132,7 +144,7 @@ export function EpisodeImportMappingRowCard({
 function statusLabel(status: string): string {
   switch (status) {
     case 'suggested':
-      return 'Vorschlag'
+      return ''
     case 'confirmed':
       return 'Bestätigt'
     case 'conflict':
