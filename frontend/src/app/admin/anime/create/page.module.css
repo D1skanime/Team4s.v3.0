@@ -1441,12 +1441,13 @@
 }
 
 .assetCardPreviewCover,
-.assetCardPreviewLogo {
-  aspect-ratio: 16 / 10.5;
+.assetCardPreviewBanner {
+  height: 136px;
+  aspect-ratio: auto;
 }
 
-.assetCardPreviewBanner {
-  aspect-ratio: 16 / 8.1;
+.assetCardPreviewLogo {
+  aspect-ratio: 16 / 10.5;
 }
 
 .assetCardFooter {
