@@ -480,9 +480,15 @@
 .tabNav {
   display: flex;
   overflow-x: auto;
+  overflow-y: hidden;
+  scrollbar-width: none;
   gap: 0;
   border-bottom: 2px solid #e1e1e6;
   margin-bottom: 1.5rem;
+}
+
+.tabNav::-webkit-scrollbar {
+  display: none;
 }
 
 .tabNav > button {

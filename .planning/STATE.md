@@ -18,6 +18,10 @@ progress:
 
 Canon/Filler und Episodentyp können in der Episodenübersicht für mehrere ausgewählte Episoden gemeinsam gesetzt werden. Die Umsetzung nutzt die bestehenden Klassifizierungsoptionen, den Admin-Episode-Endpunkt und den Bestätigungsdialog. Ein Synchronisationsfehler der bereits gerenderten Felder wurde per Regressionstest behoben. Typecheck, fokussierte Tests, ESLint und `git diff --check` sind bestanden. Menschliche Live-UAT der Sammelaktion steht noch aus.
 
+# Quick Task 260925-7tb — Tab-Scrollbar im Episodenversionseditor (Phase 168)
+
+Die sichtbare Scrollbar der Editor-Tab-Leiste auf `/admin/episode-versions/66/edit` wurde lokal ausgeblendet; horizontales Scrollen auf kleinen Viewports bleibt erhalten. Dokumentation liegt unter `.planning/quick/260925-7tb-episodenversionseditor-tab-scrollbar/`. Automatisierte Diff-Prüfung ist bestanden; visuelle Live-UAT bleibt empfohlen.
+
 # Project State
 
 ## Gap-Closure-Ausführung Phase 165 (22.09.2026) — 165-14..165-19 code-complete, CR-01 Review-Fix eingespielt
