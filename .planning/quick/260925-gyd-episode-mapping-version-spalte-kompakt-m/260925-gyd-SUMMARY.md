@@ -7,4 +7,4 @@ Geänderte Dateien:
 - `frontend/src/app/admin/anime/[id]/episodes/import/page.module.css`
 - `frontend/src/app/admin/anime/[id]/episodes/import/page.layout.test.ts`
 
-Commit wird nach Abschluss der Prüfungen ergänzt.
+`de38c482` — `feat(quick-260925-gyd): compact mapping version column`
