@@ -2001,11 +2001,13 @@ untruncated list lives in `.planning/todos/pending/`.
 
 | 260925-iwr | Episode-Import-Controls kompakt und Zeilenaktionen nebeneinander | 2026-09-25 | pending-human-uat | [260925-iwr-episode-mapping-controls-kompakt-und-akt](./quick/260925-iwr-episode-mapping-controls-kompakt-und-akt/) |
 
+| 260925-j3o | Episode-Mapping-Aktionen vereinheitlicht, ausgerichtet und Spalten ausgewogen | 2026-09-25 | pending-human-uat | [260925-j3o-episode-mapping-aktionen-ausrichtung-und](./quick/260925-j3o-episode-mapping-aktionen-ausrichtung-und/) |
+
 ## Session Continuity
 
 Last session: 2026-09-25T08:53:53.930Z
 Stopped at: Phase 168 added to roadmap
-Last activity: 2026-09-25 - Completed quick task 260925-iwr: Episode-Import-Controls kompakt und Zeilenaktionen nebeneinander
+Last activity: 2026-09-25 - Completed quick task 260925-j3o: Episode-Mapping-Aktionen vereinheitlicht, ausgerichtet und Spalten ausgewogen
 Resume file: 
 None
 

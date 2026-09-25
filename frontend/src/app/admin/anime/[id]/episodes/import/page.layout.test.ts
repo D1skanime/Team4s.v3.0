@@ -35,7 +35,7 @@ describe('mapping row layout CSS (GAP-09, 167-UAT.md)', () => {
   it('defines a five-column mapping header aligned with mapping rows', () => {
     expect(css).toMatch(/\.mappingColumnHeader\s*\{/)
     expect(css).toMatch(/\.mappingRowFields\s*\{[^}]*display:\s*contents/)
-    expect(css).toMatch(/grid-template-columns:\s*minmax\(190px, 1fr\).*110px 110px minmax\(130px, auto\)/)
+    expect(css).toMatch(/grid-template-columns:\s*minmax\(170px, 0\.9fr\).*110px 110px minmax\(130px, auto\)/)
   })
 
   it('keeps the group controls together and close to the filename column', () => {

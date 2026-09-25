@@ -122,7 +122,7 @@ export function EpisodeImportMappingRowCard({
           <span className={`${styles.statusPill} ${styles[row.status]}`}>{statusLabel(row.status)}</span>
         ) : null}
         <Button
-          variant={isSkipped ? 'secondary' : 'ghost'}
+          variant="secondary"
           size="sm"
           onClick={() => onSkip(sourceKey)}
         >
