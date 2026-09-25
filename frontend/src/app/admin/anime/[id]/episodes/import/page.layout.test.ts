@@ -35,7 +35,7 @@ describe('mapping row layout CSS (GAP-09, 167-UAT.md)', () => {
   it('defines a five-column mapping header aligned with mapping rows', () => {
     expect(css).toMatch(/\.mappingColumnHeader\s*\{/)
     expect(css).toMatch(/\.mappingRowFields\s*\{[^}]*display:\s*contents/)
-    expect(css).toMatch(/grid-template-columns:\s*minmax\(220px, 1\.3fr\).*110px 110px minmax\(130px, auto\)/)
+    expect(css).toMatch(/grid-template-columns:\s*minmax\(190px, 1fr\).*110px 110px minmax\(130px, auto\)/)
   })
 
   it('keeps the group controls together and close to the filename column', () => {
@@ -45,5 +45,11 @@ describe('mapping row layout CSS (GAP-09, 167-UAT.md)', () => {
 
   it('keeps the episode title left-aligned', () => {
     expect(css).toMatch(/\.episodeTitleInput\s*\{[^}]*text-align:\s*left/)
+  })
+
+  it('gives the episode header distinct title and action regions', () => {
+    expect(css).toMatch(/\.episodeGroupHeader\s*\{[^}]*grid-template-columns:\s*minmax\(0, 1fr\) auto/)
+    expect(css).toMatch(/\.episodeGroupMeta\s*\{[^}]*grid-template-columns:\s*32px minmax\(0, 1fr\)/)
+    expect(css).toMatch(/\.episodeGroupActions\s*\{[^}]*min-width:\s*220px/)
   })
 })

@@ -269,11 +269,11 @@
 }
 
 .episodeGroupHeader {
-  display: flex;
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
   align-items: flex-start;
-  justify-content: space-between;
-  gap: 12px;
-  padding: 10px 14px;
+  gap: 16px;
+  padding: 14px;
   background: #faf7f3;
   border-bottom: 1px solid #e4ddd4;
 }
@@ -284,10 +284,10 @@
 }
 
 .episodeGroupMeta {
-  display: flex;
+  display: grid;
+  grid-template-columns: 32px minmax(0, 1fr);
   align-items: flex-start;
-  gap: 10px;
-  flex: 1 1 auto;
+  gap: 12px;
   min-width: 0;
 }
 
@@ -312,10 +312,10 @@
 }
 
 .episodeTitleRow {
-  display: flex;
-  align-items: flex-start;
-  gap: 16px;
-  flex-wrap: wrap;
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) 132px;
+  align-items: end;
+  gap: 12px;
   min-width: 0;
 }
 
@@ -453,11 +453,11 @@
 }
 
 .episodeGroupActions {
-  display: flex;
-  flex-wrap: wrap;
-  justify-content: flex-end;
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
   gap: 6px;
-  flex-shrink: 0;
+  min-width: 220px;
+  align-self: start;
 }
 
 /* ---- Mapping list and rows ---- */
@@ -469,7 +469,7 @@
 
 .mappingRow {
   display: grid;
-  grid-template-columns: minmax(220px, 1.3fr) minmax(320px, 1.6fr) 110px 110px minmax(130px, auto);
+  grid-template-columns: minmax(190px, 1fr) minmax(320px, 1.4fr) 110px 110px minmax(130px, auto);
   align-items: start;
   column-gap: 12px;
   row-gap: 10px;
@@ -480,7 +480,7 @@
 
 .mappingColumnHeader {
   display: grid;
-  grid-template-columns: minmax(220px, 1.3fr) minmax(320px, 1.6fr) 110px 110px minmax(130px, auto);
+  grid-template-columns: minmax(190px, 1fr) minmax(320px, 1.4fr) 110px 110px minmax(130px, auto);
   column-gap: 12px;
   padding: 8px 14px 6px;
   border-bottom: 1px solid #e4ddd4;
@@ -838,8 +838,7 @@
   }
 
   .episodeGroupHeader {
-    flex-direction: column;
-    align-items: stretch;
+    grid-template-columns: 1fr;
   }
 
   .episodeGroupMeta {
@@ -848,7 +847,9 @@
 
   .episodeGroupActions {
     width: 100%;
-    justify-content: flex-start;
+    min-width: 0;
+    grid-template-columns: repeat(2, minmax(0, auto));
+    justify-content: start;
   }
 }
 
@@ -871,7 +872,7 @@
   }
 
   .episodeGroupMeta {
-    flex-direction: column;
+    grid-template-columns: 1fr;
     gap: 8px;
   }
 
@@ -881,9 +882,7 @@
   }
 
   .episodeTitleRow {
-    display: grid;
     grid-template-columns: minmax(0, 1fr) 132px;
-    align-items: end;
   }
 
   .episodeTitleEditor {

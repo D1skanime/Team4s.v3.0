@@ -1997,11 +1997,13 @@ untruncated list lives in `.planning/todos/pending/`.
 
 | 260925-i49 | Kurzhinweis direkt hinter Mapping-Workbench platziert und Episodentitel linksbündig erzwungen | 2026-09-25 | pending-human-uat | [260925-i49-episode-mapping-kurzhinweis-wiederherste](./quick/260925-i49-episode-mapping-kurzhinweis-wiederherste/) |
 
+| 260925-ijq | Episoden-Kopfzeile als klares Grid für Nummer, Titel/Sprache und Aktionen ausgerichtet; Gruppenspalte näher an Dateiname | 2026-09-25 | pending-human-uat | [260925-ijq-episode-mapping-kopfzeile-spacings-und-h](./quick/260925-ijq-episode-mapping-kopfzeile-spacings-und-h/) |
+
 ## Session Continuity
 
 Last session: 2026-09-25T08:53:53.930Z
 Stopped at: Phase 168 added to roadmap
-Last activity: 2026-09-25 - Completed quick task 260925-i49: Kurzhinweis und Titel-Ausrichtung angepasst
+Last activity: 2026-09-25 - Completed quick task 260925-ijq: Episoden-Kopfzeile und Mapping-Spacings verbessert
 Resume file: 
 None
 
