@@ -1999,11 +1999,13 @@ untruncated list lives in `.planning/todos/pending/`.
 
 | 260925-ijq | Episoden-Kopfzeile als klares Grid für Nummer, Titel/Sprache und Aktionen ausgerichtet; Gruppenspalte näher an Dateiname | 2026-09-25 | pending-human-uat | [260925-ijq-episode-mapping-kopfzeile-spacings-und-h](./quick/260925-ijq-episode-mapping-kopfzeile-spacings-und-h/) |
 
+| 260925-iwr | Episode-Import-Controls kompakt und Zeilenaktionen nebeneinander | 2026-09-25 | pending-human-uat | [260925-iwr-episode-mapping-controls-kompakt-und-akt](./quick/260925-iwr-episode-mapping-controls-kompakt-und-akt/) |
+
 ## Session Continuity
 
 Last session: 2026-09-25T08:53:53.930Z
 Stopped at: Phase 168 added to roadmap
-Last activity: 2026-09-25 - Completed quick task 260925-ijq: Episoden-Kopfzeile und Mapping-Spacings verbessert
+Last activity: 2026-09-25 - Completed quick task 260925-iwr: Episode-Import-Controls kompakt und Zeilenaktionen nebeneinander
 Resume file: 
 None
 

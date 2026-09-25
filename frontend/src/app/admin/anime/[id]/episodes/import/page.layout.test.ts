@@ -43,6 +43,13 @@ describe('mapping row layout CSS (GAP-09, 167-UAT.md)', () => {
     expect(css).toMatch(/\.mappingRow\s*\{[^}]*column-gap:\s*12px/)
   })
 
+  it('keeps mapping actions inline and controls compact', () => {
+    expect(css).toMatch(/\.mappingRowActions\s*\{[^}]*flex-direction:\s*row/)
+    expect(css).toMatch(/\.groupSearchInput\s*\{[^}]*min-height:\s*36px/)
+    expect(css).toMatch(/\.releaseVersionInput\s*\{[^}]*min-height:\s*36px/)
+    expect(css).toMatch(/\.groupInputRow button,[\s\n]+\.mappingRowActions button\s*\{[^}]*min-height:\s*36px/)
+  })
+
   it('keeps the episode title left-aligned', () => {
     expect(css).toMatch(/\.episodeTitleInput\s*\{[^}]*text-align:\s*left/)
   })

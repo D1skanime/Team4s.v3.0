@@ -108,6 +108,7 @@ export function EpisodeImportMappingRowCard({
           hint={row.release_version_source === 'detected' ? 'Aus Dateiname übernommen' : undefined}
         >
           <Input
+            className={styles.releaseVersionInput}
             value={row.release_version ?? ''}
             disabled={isSkipped}
             placeholder="z.B. v2"
@@ -120,6 +121,13 @@ export function EpisodeImportMappingRowCard({
         {statusLabel(row.status) ? (
           <span className={`${styles.statusPill} ${styles[row.status]}`}>{statusLabel(row.status)}</span>
         ) : null}
+        <Button
+          variant={isSkipped ? 'secondary' : 'ghost'}
+          size="sm"
+          onClick={() => onSkip(sourceKey)}
+        >
+          {isSkipped ? 'Reaktivieren' : 'Überspringen'}
+        </Button>
         {(row.status === 'suggested' || row.status === 'conflict') ? (
           <Button
             variant="primary"
@@ -129,13 +137,6 @@ export function EpisodeImportMappingRowCard({
             Bestätigen
           </Button>
         ) : null}
-        <Button
-          variant={isSkipped ? 'secondary' : 'ghost'}
-          size="sm"
-          onClick={() => onSkip(sourceKey)}
-        >
-          {isSkipped ? 'Reaktivieren' : 'Überspringen'}
-        </Button>
         {row.status === 'confirmed' && onApplyRow ? (
           <Button
             variant="primary"
