@@ -3,15 +3,15 @@ gsd_state_version: 1.0
 milestone: v1.4
 milestone_name: Coverage
 status: completed
-stopped_at: Completed 167-08-PLAN.md
-last_updated: "2026-09-24T15:17:37.810Z"
+stopped_at: Phase 168 added to roadmap
+last_updated: "2026-09-25T08:53:53.946Z"
 last_activity: 2026-09-23
 progress:
-  total_phases: 32
-  completed_phases: 31
-  total_plans: 303
-  completed_plans: 303
-  percent: 97
+  total_phases: 41
+  completed_phases: 36
+  total_plans: 383
+  completed_plans: 357
+  percent: 93
 ---
 
 # Project State
@@ -1988,8 +1988,8 @@ untruncated list lives in `.planning/todos/pending/`.
 
 ## Session Continuity
 
-Last session: 2026-09-24T15:16:31Z
-Stopped at: Completed 260924-ksv-PLAN.md
+Last session: 2026-09-25T08:53:53.930Z
+Stopped at: Phase 168 added to roadmap
 Last activity: 2026-09-24 - Completed quick task 260924-ksv: GAP-13 (Dateiname/Ordnerpfad wandern bei Einzeldatei-Episoden in die Headerzeile neben den Titel, EpisodeGroup aus page.tsx extrahiert)
 Resume file: 
 None

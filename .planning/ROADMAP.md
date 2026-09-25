@@ -2171,3 +2171,13 @@ Plans:
 **Wave 3** *(blocked on Wave 2 completion)*
 
 - [x] 167-06-PLAN.md — Remove filename auto-create fallback; apply-time alias auto-learn + audit
+
+### Phase 168: Episoden-Import UI-Flow und Kartenbereinigung: Vorschau beim Öffnen laden, unnötige Zwischenschritte entfernen und den Import cardweise über dokumentierte Quick Tasks verbessern
+
+**Goal:** [To be planned]
+**Requirements**: TBD
+**Depends on:** Phase 167
+**Plans:** 0 plans
+
+Plans:
+- [ ] TBD (run /gsd-plan-phase 168 to break down)
