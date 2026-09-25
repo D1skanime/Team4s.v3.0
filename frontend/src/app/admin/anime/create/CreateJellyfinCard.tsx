@@ -48,7 +48,6 @@ export function CreateJellyfinCard({
     <section className={createStyles.providerCard}>
       <div className={createStyles.providerCardHeader}>
         <p className={createStyles.resultsEyebrow}>Jellyfin</p>
-        <h2 className={createStyles.resultsTitle}>Jellyfin</h2>
         <p className={createStyles.resultsText}>
           Dateiordner und passende Quelle für Cover, Banner, Logo und Hintergruende
         </p>
