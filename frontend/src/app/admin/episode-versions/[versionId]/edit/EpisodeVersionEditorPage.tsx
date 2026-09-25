@@ -847,6 +847,9 @@ export function EpisodeVersionEditorPage() {
               <section className={styles.card}>
                 <ReleaseVersionMediaSection
                   versionId={version.id}
+                  contextTitle={
+                    `${episodeNumber != null ? `Episode ${padEpisodeNumber(episodeNumber)}` : 'Episode'}${groupName ? ` · ${groupName}` : ''}${segmentVersion ? ` ${segmentVersion}` : ''}`
+                  }
                 />
               </section>
             ) : null}

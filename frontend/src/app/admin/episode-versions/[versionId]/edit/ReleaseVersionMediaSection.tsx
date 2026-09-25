@@ -15,6 +15,7 @@ import styles from './ReleaseVersionMediaSection.module.css'
 
 interface ReleaseVersionMediaSectionProps {
   versionId: number
+  contextTitle?: string
   /** Legacy context props kept for callers outside the editor; context is rendered by the page header. */
   fansubGroupName?: string
   releaseVersionLabel?: string
@@ -25,10 +26,10 @@ function categoryLabel(category: ReleaseVersionMediaCategory): string {
   return CATEGORY_OPTIONS.find((option) => option.value === category)?.label ?? category
 }
 
-function getAssetName(item: ReleaseVersionMediaItem): string {
+function getAssetName(item: ReleaseVersionMediaItem, contextTitle: string): string {
   const title = item.title?.trim() || item.caption?.trim()
   if (title) return title
-  return `Asset #${item.media_asset_id}`
+  return contextTitle
 }
 
 function statusBadge(item: ReleaseVersionMediaItem): { label: string; className: string; variant: 'success' | 'warning' | 'danger' | 'muted' } {
@@ -68,6 +69,7 @@ function formatLastActivity(value?: string | null): string | null {
 
 export function ReleaseVersionMediaSection({
   versionId,
+  contextTitle = 'Episode-Version',
   mediaState,
 }: ReleaseVersionMediaSectionProps) {
   const internalMedia = useReleaseVersionMedia(versionId)
@@ -381,7 +383,8 @@ export function ReleaseVersionMediaSection({
                 type="button"
                 aria-haspopup={canUploadMedia && versionId > 0 && !isBusy ? 'dialog' : undefined}
                 disabled={isBusy || !canUploadMedia || versionId <= 0}
-                className={styles.segmentButton}
+                className={`${styles.segmentButton} ${isUploadOpen && uploadCategory === option.value ? styles.segmentButtonActive : ''}`}
+                title={`${option.label} hinzufügen`}
                 onClick={() => openCategoryUpload(option.value)}
               >
                 <span>{option.label}</span>
@@ -409,7 +412,7 @@ export function ReleaseVersionMediaSection({
             const lastActivity = formatLastActivity(item.last_activity_at)
             return (
               <div key={item.id} className={`${styles.mediaCard} ${item.is_preview_candidate ? styles.mediaCardPreview : ''}`}>
-                <button type="button" className={styles.mediaCardOpen} onClick={() => openEditSheet(item)} aria-label={`${getAssetName(item)} ${(item.can_update ?? canUpdateMedia) ? 'bearbeiten' : 'ansehen'}${item.is_preview_candidate ? ', aktuelles Vorschaubild' : ''}`}>
+                <button type="button" className={styles.mediaCardOpen} onClick={() => openEditSheet(item)} aria-label={`${getAssetName(item, contextTitle)} ${(item.can_update ?? canUpdateMedia) ? 'bearbeiten' : 'ansehen'}${item.is_preview_candidate ? ', aktuelles Vorschaubild' : ''}`}>
                   <span className={styles.mediaThumb}>
                     {item.thumbnail_url || item.original_url ? (
                       <img src={item.thumbnail_url ?? item.original_url ?? ''} alt="" />
@@ -424,7 +427,7 @@ export function ReleaseVersionMediaSection({
                     ) : null}
                   </span>
                   <span className={styles.mediaCardBody}>
-                    <span className={styles.mediaName}>{getAssetName(item)}</span>
+                    <span className={styles.mediaName}>{getAssetName(item, contextTitle)}</span>
                     <span className={styles.mediaMeta}>
                       <Badge variant="muted" className={styles.mediaCategory}>{categoryLabel(item.category)}</Badge>
                       <Badge variant={badge.variant} className={`${badge.className} ${styles.mediaStatus}`}>{badge.label}</Badge>

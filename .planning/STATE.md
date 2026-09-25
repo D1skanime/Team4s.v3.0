@@ -14,6 +14,10 @@ progress:
   percent: 93
 ---
 
+# Quick Task 260925-6qa — Media-Karten und Kontexttitel poliert (Phase 168)
+
+Der Media-/Assets-Tab nutzt für unbenannte Medien jetzt den Editor-Kontext `Episode 001 · New-Subs v1` statt Dateiname oder generischer Asset-ID. Eigene Titel/Beschriftungen bleiben vorrangig. Karten haben gleichmäßige Höhen, kompakte Aktivitätsmetadaten und ausgerichtete Vorschauaktionen; Kategorie-Buttons behalten ihre bestehenden Namen und erhalten Tooltip sowie aktive Hervorhebung. 56 fokussierte Frontend-Tests und `git diff --check` sind bestanden; Typecheck und Push sind Teil des Abschlusses.
+
 # Quick Task 260925-kae — Bulk-Klassifizierung für Episoden (25.09.2026)
 
 Canon/Filler und Episodentyp können in der Episodenübersicht für mehrere ausgewählte Episoden gemeinsam gesetzt werden. Die Umsetzung nutzt die bestehenden Klassifizierungsoptionen, den Admin-Episode-Endpunkt und den Bestätigungsdialog. Ein Synchronisationsfehler der bereits gerenderten Felder wurde per Regressionstest behoben. Typecheck, fokussierte Tests, ESLint und `git diff --check` sind bestanden. Menschliche Live-UAT der Sammelaktion steht noch aus.

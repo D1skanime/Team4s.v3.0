@@ -123,6 +123,7 @@ function renderSection(mediaState?: UseReleaseVersionMediaResult) {
   return render(
     <ReleaseVersionMediaSection
       versionId={42}
+      contextTitle="Episode 001 · SubGroup v1"
       mediaState={mediaState}
     />,
   )
@@ -133,6 +134,13 @@ function openUploadSheet() {
 }
 
 describe('ReleaseVersionMediaSection per-file upload metadata', () => {
+  it('uses the editor context as the title when a medium has no own title or caption', () => {
+    renderSection(makeMediaState({ items: [makeItem({ title: null, caption: null })] }))
+
+    expect(screen.getByText('Episode 001 · SubGroup v1')).not.toBeNull()
+    expect(screen.queryByText(/Asset #/)).toBeNull()
+  })
+
   it('keeps three titles and descriptions separate and chooses exactly one preview', async () => {
     const media = makeMediaState()
     renderSection(media)
