@@ -12,8 +12,14 @@
   gap: 0.5rem;
 }
 
-.classificationRow {
-  padding: 0 0.85rem 0.75rem;
+.classificationInline {
+  flex: 0 0 auto;
+  padding: 0 0.85rem 0 0;
+}
+
+.classificationInline select {
+  min-height: 34px;
+  padding: 7px 10px;
 }
 
 .accordionHeader {
@@ -182,6 +188,15 @@
 
 /* Responsive */
 @media (max-width: 640px) {
+  .accordionHeaderWrapper {
+    flex-wrap: wrap;
+  }
+
+  .classificationInline {
+    flex-basis: 100%;
+    padding: 0 0.85rem 0.75rem;
+  }
+
   .accordionHeader {
     grid-template-columns: auto 1fr auto;
     gap: 0.55rem;

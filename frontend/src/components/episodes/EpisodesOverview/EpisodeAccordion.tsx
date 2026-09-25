@@ -62,17 +62,16 @@ export function EpisodeAccordion({
             v
           </span>
         </button>
+        {classification ? (
+          <div className={styles.classificationInline}>
+            <EpisodeClassificationFields
+              key={classification.episode_id}
+              classification={classification}
+              onSaved={onClassificationSaved}
+            />
+          </div>
+        ) : null}
       </div>
-
-      {classification ? (
-        <div className={styles.classificationRow}>
-          <EpisodeClassificationFields
-            key={classification.episode_id}
-            classification={classification}
-            onSaved={onClassificationSaved}
-          />
-        </div>
-      ) : null}
 
       {isExpanded && (
         <div id={contentId} className={styles.accordionContent} role="region" aria-labelledby={episodeId}>

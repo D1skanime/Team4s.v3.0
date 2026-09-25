@@ -400,11 +400,6 @@ function AdminAnimeEpisodesContent() {
             <div className={styles.sectionHeader}>
               <div>
                 <h2 className={styles.sectionTitle}>Episoden mit Versionen</h2>
-                <p className={styles.sectionMeta}>
-                  Accordion-Ansicht mit Version-Counts, Fansub-Badges und
-                  direkten Bearbeitungslinks. Der normale Staffel-Import bleibt
-                  der Jellyfin Saison-Sync im Anime-Editor.
-                </p>
               </div>
             </div>
 

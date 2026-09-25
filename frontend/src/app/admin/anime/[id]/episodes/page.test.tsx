@@ -102,6 +102,11 @@ describe("AdminAnimeEpisodesPage", () => {
     expect(screen.getByText("Keine Episoden vorhanden.")).not.toBeNull();
     expect(
       screen.queryByText(
+        "Accordion-Ansicht mit Version-Counts, Fansub-Badges und direkten Bearbeitungslinks. Der normale Staffel-Import bleibt der Jellyfin Saison-Sync im Anime-Editor.",
+      ),
+    ).toBeNull();
+    expect(
+      screen.queryByText(
         "Episoden mit allen Versionen, Fansub-Zuordnungen und Version-Counts pro Episode. Accordion zeigt Details bei Bedarf.",
       ),
     ).toBeNull();

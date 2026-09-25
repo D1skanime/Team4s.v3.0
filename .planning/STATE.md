@@ -2011,11 +2011,13 @@ untruncated list lives in `.planning/todos/pending/`.
 
 | 260925-jyd | Zurück-zum-Anime-Navigation oben rechts ergänzt | 2026-09-25 | pending-human-uat | [260925-jyd-episodenuebersicht-zurueck-button-oben-r](./quick/260925-jyd-episodenuebersicht-zurueck-button-oben-r/) |
 
+| 260925-jzr | Episodenbereichstext entfernt und Canon/Filler sowie Episodentyp auf Titelzeile verschoben | 2026-09-25 | pending-human-uat | [260925-jzr-episodenbereich-metadaten-auf-titelebene](./quick/260925-jzr-episodenbereich-metadaten-auf-titelebene/) |
+
 ## Session Continuity
 
 Last session: 2026-09-25T08:53:53.930Z
 Stopped at: Phase 168 added to roadmap
-Last activity: 2026-09-25 - Completed quick task 260925-jyd: Zurück-zum-Anime-Navigation oben rechts ergänzt
+Last activity: 2026-09-25 - Completed quick task 260925-jzr: Episodenbereichstext entfernt und Canon/Filler sowie Episodentyp auf Titelzeile verschoben
 Resume file: 
 None
 
