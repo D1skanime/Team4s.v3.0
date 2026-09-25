@@ -2003,11 +2003,13 @@ untruncated list lives in `.planning/todos/pending/`.
 
 | 260925-j3o | Episode-Mapping-Aktionen vereinheitlicht, ausgerichtet und Spalten ausgewogen | 2026-09-25 | pending-human-uat | [260925-j3o-episode-mapping-aktionen-ausrichtung-und](./quick/260925-j3o-episode-mapping-aktionen-ausrichtung-und/) |
 
+| 260925-jqy | Episode-Import setzt fehlende Klassifizierung standardmäßig auf Haupthandlung | 2026-09-25 | pending-human-uat | [260925-jqy-episode-import-standardwert-haupthandlun](./quick/260925-jqy-episode-import-standardwert-haupthandlun/) |
+
 ## Session Continuity
 
 Last session: 2026-09-25T08:53:53.930Z
 Stopped at: Phase 168 added to roadmap
-Last activity: 2026-09-25 - Completed quick task 260925-j3o: Episode-Mapping-Aktionen vereinheitlicht, ausgerichtet und Spalten ausgewogen
+Last activity: 2026-09-25 - Completed quick task 260925-jqy: Episode-Import setzt fehlende Klassifizierung standardmäßig auf Haupthandlung
 Resume file: 
 None
 

@@ -312,7 +312,11 @@ func upsertImportEpisode(
 func lookupEpisodeFillerType(ctx context.Context, tx pgx.Tx, fillerType *string) (*int64, error) {
 	name := strings.ToLower(strings.TrimSpace(derefString(fillerType)))
 	if name == "" {
-		name = "unknown"
+		// A regular imported episode is part of the main story unless the
+		// canonical source explicitly classifies it otherwise. "unknown" is
+		// reserved for genuinely unresolved metadata, not the normal import
+		// path.
+		name = "canon"
 	}
 	var id int64
 	if err := tx.QueryRow(ctx, `SELECT id FROM episode_filler_types WHERE name = $1`, name).Scan(&id); err != nil {
