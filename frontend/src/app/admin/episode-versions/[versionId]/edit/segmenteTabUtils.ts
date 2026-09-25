@@ -57,12 +57,12 @@ export function resolveSourceLabel(segment: AdminThemeSegment): string {
   if (segment.source_type) {
     switch (segment.source_type) {
       case 'none': return 'Keine Quelle'
-      case 'jellyfin_theme': return segment.source_label ?? 'Jellyfin Serien-Theme'
+      case 'jellyfin_theme': return segment.source_label ?? 'Serien-Theme'
       case 'release_asset': return segment.source_label ?? 'Release-Asset'
     }
   }
   if (segment.source_jellyfin_item_id) {
-    return 'Jellyfin Serien-Theme'
+    return 'Serien-Theme'
   }
   return 'Keine Quelle'
 }

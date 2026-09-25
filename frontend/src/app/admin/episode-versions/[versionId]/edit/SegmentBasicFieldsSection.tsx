@@ -193,7 +193,7 @@ export function SegmentBasicFieldsSection({
         <span className={styles.sourceHelpText}>
           Eingabe einfach als `1:20`, `12:03` oder Sekunden.{' '}
           {runtimeKnown
-            ? <>Videodauer: <strong>{formatTimeInput(effectiveDuration!)}</strong>{runtimeFromPlayback ? ' (aus Jellyfin/Release)' : ' (aus Version)'}. Das Ende wird automatisch auf diese Grenze begrenzt.</>
+            ? <>Videodauer: <strong>{formatTimeInput(effectiveDuration!)}</strong>{runtimeFromPlayback ? ' (aus Stream/Release)' : ' (aus Version)'}. Das Ende wird automatisch auf diese Grenze begrenzt.</>
             : 'Keine reale Laufzeit bekannt — Zeitbereich kann frei eingegeben werden.'}
         </span>
       </div>

@@ -30,11 +30,11 @@ export function SegmentPlaybackPreviewSection({
           <div style={{ padding: '8px 10px', background: '#f0f4ff', borderRadius: 8, fontSize: 13, color: '#2a2a3a' }}>
             {editingSegment.playback_source_label ?? (
               editingSegment.playback_source_kind === 'episode_version'
-                ? 'Episode-Version / Jellyfin-Stream (Standard)'
+                ? 'Episode-Version / Stream (Standard)'
                 : editingSegment.playback_source_kind === 'uploaded_asset'
                   ? 'hochgeladener Fallback'
                   : editingSegment.playback_source_kind === 'jellyfin_theme'
-                    ? 'Jellyfin Serien-Theme'
+                    ? 'Serien-Theme'
                     : editingSegment.playback_source_kind
             )}
             {editingSegment.playback_duration_seconds != null ? (

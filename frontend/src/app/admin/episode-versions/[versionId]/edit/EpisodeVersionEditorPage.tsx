@@ -692,7 +692,7 @@ export function EpisodeVersionEditorPage() {
                       />
                     </label>
                     <label className={styles.field}>
-                      <span>Jellyfin Media ID</span>
+                      <span>Media ID</span>
                       <input
                         value={editor.formState.mediaItemID}
                         onChange={(event) =>

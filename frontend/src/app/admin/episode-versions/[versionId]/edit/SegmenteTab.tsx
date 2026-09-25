@@ -226,7 +226,7 @@ export function SegmenteTab({ animeId, groupId, version, episodeNumber, duration
     const normalizedSourceLabel =
       formState.sourceLabel.trim() ||
       (formState.sourceType === 'jellyfin_theme'
-        ? 'Jellyfin Serien-Theme'
+        ? 'Serien-Theme'
         : formState.sourceType === 'release_asset'
           ? 'Release-Asset'
           : null)

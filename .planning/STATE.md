@@ -26,6 +26,10 @@ Die sichtbare Scrollbar der Editor-Tab-Leiste auf `/admin/episode-versions/66/ed
 
 Der Segment-Drawer im Episodenversionseditor ist auf Desktop auf 760px erweitert, mobil auf 100vw begrenzt und hat sticky Header-/Aktionsbereiche erhalten. Die Segment-Suite (125 Tests) und Typecheck sind bestanden. Dokumentation liegt unter `.planning/quick/260925-drawer-segment-bearbeitungsdrawer/`; Live-UAT bleibt empfohlen.
 
+# Quick Task 260925-3cx — Neutrale Herkunftsbezeichnungen im Fansub-Editor (Phase 168)
+
+Sichtbare Provider-/Jellyfin-Bezeichnungen im Episode-Version-Editor und Segment-Drawer wurden durch neutrale UI-Texte ersetzt. Interne Quelltypen und API-Felder bleiben unverändert. Segmenttests, Seitentests und Typecheck sind bestanden. Dokumentation liegt unter `.planning/quick/260925-3cx-neutrale-herkunftsbezeichnungen/`.
+
 # Project State
 
 ## Gap-Closure-Ausführung Phase 165 (22.09.2026) — 165-14..165-19 code-complete, CR-01 Review-Fix eingespielt

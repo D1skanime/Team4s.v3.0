@@ -313,7 +313,7 @@ describe("EpisodeVersionEditorPage media tab", () => {
 
     expect(
       await screen.findByText(
-        "Jellyfin ist gerade nicht erreichbar. Ordnerpfad und Laufzeit können fehlen.",
+        "Die externe Medienanreicherung ist gerade nicht erreichbar. Ordnerpfad und Laufzeit können fehlen.",
       ),
     ).not.toBeNull();
   });
@@ -328,7 +328,7 @@ describe("EpisodeVersionEditorPage media tab", () => {
 
     expect(
       screen.queryByText(
-        "Jellyfin ist gerade nicht erreichbar. Ordnerpfad und Laufzeit können fehlen.",
+        "Die externe Medienanreicherung ist gerade nicht erreichbar. Ordnerpfad und Laufzeit können fehlen.",
       ),
     ).toBeNull();
   });

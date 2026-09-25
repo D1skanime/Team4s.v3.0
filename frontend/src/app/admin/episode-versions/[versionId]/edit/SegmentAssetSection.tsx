@@ -62,7 +62,7 @@ export function SegmentAssetSection({
 
   return (
     <>
-      {/* Source type selector — Episode-Version/Jellyfin is default; upload is explicit fallback */}
+      {/* Source type selector — the episode stream is the default; upload is explicit fallback */}
       <div className={styles.panelField}>
         <label htmlFor="seg-source-type">Provenance / Fallback-Wahl</label>
         <select
@@ -70,16 +70,16 @@ export function SegmentAssetSection({
           value={formState.sourceType}
           onChange={(e) => onFormChange({ sourceType: e.target.value as AdminSegmentSourceType })}
         >
-          <option value="none">Episode-Version / Jellyfin-Stream (Standard)</option>
+          <option value="none">Episode-Version / Stream (Standard)</option>
           <option value="release_asset">Hochgeladener Fallback (eigene Datei)</option>
-          <option value="jellyfin_theme">Jellyfin Serien-Theme (Legacy)</option>
+          <option value="jellyfin_theme">Serien-Theme (Legacy)</option>
         </select>
         {formState.sourceType === 'none' ? (
-          <p className={styles.sourceHelpText}>Standard: Playback läuft über den Jellyfin-Stream der aktuellen Episode-Version. Kein Upload erforderlich.</p>
+          <p className={styles.sourceHelpText}>Standard: Playback läuft über den Stream der aktuellen Episode-Version. Kein Upload erforderlich.</p>
         ) : formState.sourceType === 'release_asset' ? (
           <p className={styles.sourceHelpText}>Hochgeladener Fallback: Eine eigene Segment-Datei wird als explizit gewählte Playback-Quelle hinterlegt.</p>
         ) : formState.sourceType === 'jellyfin_theme' ? (
-          <p className={styles.sourceHelpText}>Legacy: Timing stammt aus einem Jellyfin Serien-Theme-Eintrag.</p>
+          <p className={styles.sourceHelpText}>Legacy: Timing stammt aus einem Serien-Theme-Eintrag.</p>
         ) : null}
       </div>
 

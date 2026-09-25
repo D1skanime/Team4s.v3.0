@@ -1251,9 +1251,9 @@ describe('resolveSourceLabel', () => {
     expect(resolveSourceLabel(segment)).toBe('Keine Quelle')
   })
 
-  it('mappt source_type "jellyfin_theme" auf "Jellyfin Serien-Theme" (kein label)', () => {
+  it('mappt source_type "jellyfin_theme" auf ein neutrales Serien-Theme-Label (kein label)', () => {
     const segment = makeSegment({ source_type: 'jellyfin_theme' })
-    expect(resolveSourceLabel(segment)).toBe('Jellyfin Serien-Theme')
+    expect(resolveSourceLabel(segment)).toBe('Serien-Theme')
   })
 
   it('nutzt source_label wenn bei jellyfin_theme gesetzt', () => {
@@ -1271,9 +1271,9 @@ describe('resolveSourceLabel', () => {
     expect(resolveSourceLabel(segment)).toBe('OP1.mkv')
   })
 
-  it('faellt auf Jellyfin-Theme-Label zurück wenn legacy source_jellyfin_item_id gesetzt', () => {
+  it('faellt auf ein neutrales Theme-Label zurück wenn legacy source_jellyfin_item_id gesetzt', () => {
     const segment = makeSegment({ source_type: null, source_jellyfin_item_id: 'abc123' })
-    expect(resolveSourceLabel(segment)).toBe('Jellyfin Serien-Theme')
+    expect(resolveSourceLabel(segment)).toBe('Serien-Theme')
   })
 
   it('gibt "Keine Quelle" zurück wenn kein source_type und keine legacy-ID', () => {

@@ -191,11 +191,11 @@ export function SegmentsListSection({
                             <span>
                               {segment.playback_source_label ?? (
                                 segment.playback_source_kind === 'episode_version'
-                                  ? 'Episode-Version / Jellyfin-Stream'
+                                  ? 'Episode-Version / Stream'
                                   : segment.playback_source_kind === 'uploaded_asset'
                                     ? 'hochgeladener Fallback'
                                     : segment.playback_source_kind === 'jellyfin_theme'
-                                      ? 'Jellyfin Serien-Theme'
+                                      ? 'Serien-Theme'
                                       : segment.playback_source_kind
                               )}
                             </span>
