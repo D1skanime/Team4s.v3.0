@@ -155,7 +155,7 @@ export function EpisodeImportMappingRowGroupField({
   }
 
   return (
-    <FormField label="Gruppe">
+    <FormField>
       <div className={styles.groupSelector}>
         <div className={styles.groupChipWrap}>
           {hasSelectedGroups ? (

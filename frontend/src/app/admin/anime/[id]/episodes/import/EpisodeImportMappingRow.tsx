@@ -94,7 +94,7 @@ export function EpisodeImportMappingRowCard({
           onRemoveSelectedFansubGroup={onRemoveSelectedFansubGroup}
           onApplyFansubGroupFromEpisode={onApplyFansubGroupFromEpisode}
         />
-        <FormField label="Episode">
+        <FormField>
           <Input
             className={styles.targetInput}
             defaultValue={(row.target_episode_numbers ?? []).join(',')}
@@ -105,7 +105,6 @@ export function EpisodeImportMappingRowCard({
           />
         </FormField>
         <FormField
-          label="Version"
           hint={row.release_version_source === 'detected' ? 'Aus Dateiname übernommen' : undefined}
         >
           <Input
