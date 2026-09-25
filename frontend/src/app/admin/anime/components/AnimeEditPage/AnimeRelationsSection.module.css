@@ -1,6 +1,10 @@
 .sectionCard {
   display: grid;
   gap: 16px;
+  overflow: hidden;
+  border: 1px solid #e1e1e6;
+  border-radius: 14px;
+  background: linear-gradient(180deg, #ffffff 0%, #fbfbfb 100%);
 }
 
 .summaryRow {
@@ -13,10 +17,9 @@
 }
 
 .details {
-  border: 1px solid #e1e1e6;
-  border-radius: 14px;
-  background: linear-gradient(180deg, #ffffff 0%, #fbfbfb 100%);
-  overflow: hidden;
+  border: 0;
+  border-radius: 0;
+  background: transparent;
 }
 
 .summary {

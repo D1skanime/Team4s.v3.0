@@ -1560,6 +1560,7 @@ Last activity: 2026-09-23
 
 | # | Description | Date | Commit | Directory |
 |---|-------------|------|--------|-----------|
+| 260925-6qj | Relationsbereich auf eine klare Karte ohne verschachtelten Doppelrahmen reduziert | 2026-09-25 | pending | [260925-6qj-relationenkarte-vereinfachen](./quick/260925-6qj-relationenkarte-vereinfachen/) |
 | 260925-6qi | Anime-Basisdaten in logische Feldgruppen für Titel, Klassifikation, Episodenmetadaten und Sprachtitel gegliedert | 2026-09-25 | pending | [260925-6qi-anime-basisdaten-logisch-gruppiert](./quick/260925-6qi-anime-basisdaten-logisch-gruppiert/) |
 | 260925-6qh | Cover- und Banner-Vorschau auf gemeinsame Höhe ausgerichtet | 2026-09-25 | pending | [260925-6qh-asset-vorschau-gleichhoehe](./quick/260925-6qh-asset-vorschau-gleichhoehe/) |
 | 260925-6qg | Doppelte schwarze Jellyfin-Überschrift aus der gemeinsamen Suchkarte entfernt | 2026-09-25 | pending | [260925-6qg-jellyfin-doppelte-ueberschrift](./quick/260925-6qg-jellyfin-doppelte-ueberschrift/) |

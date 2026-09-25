@@ -59,7 +59,7 @@ export function AnimeRelationsSection({
   const { confirm, confirmDialog } = useConfirmDialog()
 
   return (
-    <section className={`${styles.card} ${relationStyles.sectionCard}`}>
+    <section className={relationStyles.sectionCard}>
       <details className={relationStyles.details} open={defaultOpen}>
         <summary className={relationStyles.summary}>
           <div className={relationStyles.summaryTitle}>
