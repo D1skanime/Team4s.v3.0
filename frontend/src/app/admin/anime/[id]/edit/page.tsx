@@ -127,32 +127,22 @@ function AdminAnimeEditContent() {
       <DiscoveryReturnLink returnURL={discoveryReturnURL} />
 
       <header className={styles.headerCard}>
-        <div>
-          <h1 className={styles.pageTitle}>Anime bearbeiten</h1>
-        </div>
-        {anime ? (
-          <div className={styles.headerActions}>
-            <Link
-              href={`/admin/anime/${anime.id}/episodes`}
-              className={`${styles.button} ${styles.buttonPrimary}`}
-            >
-              Zu Episoden wechseln
-            </Link>
-            <Link
-              href={`/anime/${anime.id}`}
-              className={`${styles.button} ${styles.buttonSecondary}`}
-              target="_blank"
-              rel="noreferrer"
-            >
-              Public ansehen
-            </Link>
+        <div className={styles.headerTop}>
+          <div>
+            <h1 className={styles.pageTitle}>Anime bearbeiten</h1>
+            {anime ? <p className={styles.itemTitle}>{anime.title}</p> : null}
+            {anime ? (
+              <div className={styles.headerActions}>
+                <Link href={`/admin/anime/${anime.id}/episodes`} className={`${styles.button} ${styles.buttonPrimary}`}>
+                  Zu Episoden wechseln
+                </Link>
+                <Link href={`/anime/${anime.id}`} className={`${styles.button} ${styles.buttonSecondary}`} target="_blank" rel="noreferrer">
+                  Public ansehen
+                </Link>
+              </div>
+            ) : null}
           </div>
-        ) : null}
-        {anime ? (
-          <div className={styles.sectionHeader}>
-            <div>
-              <p className={styles.itemTitle}>{anime.title}</p>
-            </div>
+          {anime ? (
             <Link href={`/anime/${anime.id}`} target="_blank" rel="noreferrer" aria-label={`${anime.title} öffentlich ansehen`}>
               <Image
                 className={styles.cover}
@@ -163,8 +153,8 @@ function AdminAnimeEditContent() {
                 unoptimized
               />
             </Link>
-          </div>
-        ) : null}
+          ) : null}
+        </div>
       </header>
 
       {isLoading ? (

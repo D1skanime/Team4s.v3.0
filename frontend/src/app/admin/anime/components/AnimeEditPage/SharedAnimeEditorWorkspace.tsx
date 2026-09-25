@@ -68,12 +68,14 @@ export function SharedAnimeEditorWorkspace({
 
   return (
     <div className={createStyles.pageShell}>
-      <header className={createStyles.pageHeader}>
-        <div className={createStyles.pageTitleBlock}>
-          <h1 className={createStyles.pageTitle}>{headerTitle}</h1>
-          {headerIntro ? <p className={createStyles.pageIntro}>{headerIntro}</p> : null}
-        </div>
-      </header>
+      {mode === 'create' ? (
+        <header className={createStyles.pageHeader}>
+          <div className={createStyles.pageTitleBlock}>
+            <h1 className={createStyles.pageTitle}>{headerTitle}</h1>
+            {headerIntro ? <p className={createStyles.pageIntro}>{headerIntro}</p> : null}
+          </div>
+        </header>
+      ) : null}
 
       <CreatePageStepper
         activeStep={1}

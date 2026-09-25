@@ -14,6 +14,10 @@ progress:
   percent: 93
 ---
 
+# Quick Task 260925-6qd — Anime-Edit-Kopfkarte kompakt (Phase 168)
+
+Die obere Edit-Kopfkarte bündelt Titel, Anime-Name, Aktionen und verlinktes Cover. Die doppelte große Edit-Überschrift im gemeinsamen Workspace entfällt nur im Edit-Modus; der Create-Flow bleibt unverändert. 15 fokussierte Tests und Typecheck sind bestanden.
+
 # Quick Task 260925-6qc — Anime-Edit-Texte und Kontext bereinigt (Phase 168)
 
 Die Edit-Route zeigt weniger Prozess- und Erklärungstexte. Die Quelle bleibt als eigenes Herkunftsfeld sichtbar, während die Jellyfin Item ID einmalig in der Identitätskarte steht. Die AniSearch-Verknüpfung öffnet in einem neuen Tab, das Cover ist oben verlinkt und der Relations-Button steht direkt beim Relationstyp. Edit-/Relations-Tests und Typecheck sind bestanden.

@@ -38,7 +38,8 @@
 
 .headerCard {
   display: grid;
-  gap: 16px;
+  gap: 0;
+  padding: 18px 22px;
 }
 
 .headerMain {
@@ -53,6 +54,11 @@
   grid-template-columns: minmax(0, 1fr) auto;
   gap: 16px;
   align-items: start;
+}
+
+.headerTop .itemTitle {
+  margin-top: 8px;
+  margin-bottom: 14px;
 }
 
 .eyebrow {
