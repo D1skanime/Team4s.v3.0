@@ -175,9 +175,9 @@
   right: 0;
   top: 0;
   height: 100%;
-  /* Mobile-first: nie breiter als der Viewport, sonst horizontaler Overflow der Seite
-     (schmale Fensterbreiten wie 375px sind schmaler als die feste 380px-Zielbreite). */
-  width: min(380px, 100vw);
+  /* Desktop bekommt genug Arbeitsfläche für Felder, Mitwirkende und Vorschau.
+     Auf schmalen Viewports greift die 100vw-Grenze weiterhin ohne Seiten-Overflow. */
+  width: min(760px, 100vw);
   max-width: 100vw;
   background: #ffffff;
   box-shadow: -4px 0 24px rgba(0, 0, 0, 0.12);
@@ -191,10 +191,16 @@
 }
 
 .panelHeader {
+  position: sticky;
+  top: 0;
+  z-index: 1;
   display: flex;
   align-items: center;
   justify-content: space-between;
-  margin-bottom: 1.25rem;
+  margin: -1.5rem -1.5rem 1.25rem;
+  padding: 1.5rem;
+  background: #ffffff;
+  border-bottom: 1px solid #f0f0f3;
 }
 
 .panelTitle {
@@ -303,9 +309,15 @@
 }
 
 .panelActions {
+  position: sticky;
+  bottom: 0;
+  z-index: 1;
   display: flex;
   gap: 10px;
-  margin-top: 1.5rem;
+  margin: 1.5rem -1.5rem -1.5rem;
+  padding: 1rem 1.5rem 1.5rem;
+  background: #ffffff;
+  border-top: 1px solid #f0f0f3;
 }
 
 .panelSaveButton {
@@ -723,6 +735,20 @@
    bestehende Tests pruefen weiterhin unveraendert die Tabellen-Variante. Ab Tablet-Breite
    greift wieder das normale <table>-Layout. */
 @media (max-width: 640px) {
+  .panel {
+    padding: 1rem;
+  }
+
+  .panelHeader {
+    margin: -1rem -1rem 1rem;
+    padding: 1rem;
+  }
+
+  .panelActions {
+    margin: 1rem -1rem -1rem;
+    padding: 0.75rem 1rem 1rem;
+  }
+
   .tableWrapper {
     /* overflow-x wird bewusst NICHT ueberschrieben (bleibt beim geerbten "auto" der
        @/components/ui-Table-Primitive) -- sobald die Zeilen unten als Karten fliessen

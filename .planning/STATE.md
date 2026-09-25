@@ -22,6 +22,10 @@ Canon/Filler und Episodentyp können in der Episodenübersicht für mehrere ausg
 
 Die sichtbare Scrollbar der Editor-Tab-Leiste auf `/admin/episode-versions/66/edit` wurde lokal ausgeblendet; horizontales Scrollen auf kleinen Viewports bleibt erhalten. Dokumentation liegt unter `.planning/quick/260925-7tb-episodenversionseditor-tab-scrollbar/`. Automatisierte Diff-Prüfung ist bestanden; visuelle Live-UAT bleibt empfohlen.
 
+# Quick Task 260925-drawer — Segment-Bearbeitungsdrawer vergrößert (Phase 168)
+
+Der Segment-Drawer im Episodenversionseditor ist auf Desktop auf 760px erweitert, mobil auf 100vw begrenzt und hat sticky Header-/Aktionsbereiche erhalten. Die Segment-Suite (125 Tests) und Typecheck sind bestanden. Dokumentation liegt unter `.planning/quick/260925-drawer-segment-bearbeitungsdrawer/`; Live-UAT bleibt empfohlen.
+
 # Project State
 
 ## Gap-Closure-Ausführung Phase 165 (22.09.2026) — 165-14..165-19 code-complete, CR-01 Review-Fix eingespielt
