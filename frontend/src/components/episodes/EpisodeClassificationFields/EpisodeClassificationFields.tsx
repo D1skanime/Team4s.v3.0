@@ -26,7 +26,7 @@ type Field = 'filler_type' | 'episode_type'
 // es gibt aber keine automatische Wiederholungsschleife/kein Polling.
 let classificationOptionsPromise: Promise<EpisodeClassificationOptionsResponse> | null = null
 
-function loadClassificationOptions(): Promise<EpisodeClassificationOptionsResponse> {
+export function loadClassificationOptions(): Promise<EpisodeClassificationOptionsResponse> {
   if (!classificationOptionsPromise) {
     classificationOptionsPromise = getAdminEpisodeClassificationOptions().catch((error: unknown) => {
       classificationOptionsPromise = null

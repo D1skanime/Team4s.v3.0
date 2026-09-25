@@ -1,14 +1,21 @@
 'use client'
 
-import { useState } from 'react'
+import { useEffect, useState } from 'react'
 
 import { Input } from '@/components/ui/Input'
 import { Select } from '@/components/ui/Select'
+import { useConfirmDialog } from '@/components/ui/ConfirmDialog'
 import { buildBulkFansubGroupAssignments } from '@/app/admin/anime/utils/episode-bulk-fansub-group'
-import { updateEpisodeVersion } from '@/lib/api'
+import { updateAdminEpisode, updateEpisodeVersion } from '@/lib/api'
 import { EpisodeListItem } from '@/types/anime'
 import { GroupedEpisode } from '@/types/episodeVersion'
-import type { EpisodeClassification } from '@/types/episodeClassification'
+import type {
+  EpisodeClassification,
+  EpisodeClassificationOption,
+  EpisodeType,
+  EpisodeFillerType,
+} from '@/types/episodeClassification'
+import { loadClassificationOptions } from '@/components/episodes/EpisodeClassificationFields/EpisodeClassificationFields'
 import { FansubGroup } from '@/types/fansub'
 
 import { EpisodeAccordion } from './EpisodeAccordion'
@@ -38,10 +45,17 @@ export function EpisodesOverview({
   const [expandedEpisodes, setExpandedEpisodes] = useState<Set<number>>(new Set())
   const [selectedEpisodeIDs, setSelectedEpisodeIDs] = useState<Set<number>>(new Set())
   const [fansubGroupID, setFansubGroupID] = useState<number | ''>('')
+  const [bulkFillerType, setBulkFillerType] = useState<EpisodeFillerType | ''>('')
+  const [bulkEpisodeType, setBulkEpisodeType] = useState<EpisodeType | ''>('')
+  const [classificationOptions, setClassificationOptions] = useState<{
+    filler_types: EpisodeClassificationOption[]
+    episode_types: EpisodeClassificationOption[]
+  }>({ filler_types: [], episode_types: [] })
   const [isApplyingBulk, setIsApplyingBulk] = useState(false)
   const [bulkProgress, setBulkProgress] = useState<{ done: number; total: number } | null>(null)
   const [bulkMessage, setBulkMessage] = useState<string | null>(null)
   const [bulkError, setBulkError] = useState<string | null>(null)
+  const { confirm, confirmDialog } = useConfirmDialog()
 
   const episodeIDByNumber = new Map(
     episodeItems.map((episode) => [Number.parseInt(episode.episode_number, 10), episode.id]),
@@ -54,6 +68,13 @@ export function EpisodesOverview({
     .filter((episodeID): episodeID is number => episodeID !== undefined)
   const selectedCount = selectableEpisodeIDs.filter((episodeID) => selectedEpisodeIDs.has(episodeID)).length
   const allEpisodesSelected = selectableEpisodeIDs.length > 0 && selectedCount === selectableEpisodeIDs.length
+
+  useEffect(() => {
+    if (episodes.length === 0) return
+    loadClassificationOptions()
+      .then((response) => setClassificationOptions(response.data))
+      .catch(() => setBulkError('Klassifizierungsoptionen konnten nicht geladen werden.'))
+  }, [episodes.length])
 
   const toggleExpanded = (episodeNumber: number) => {
     setExpandedEpisodes((prev) => {
@@ -137,6 +158,49 @@ export function EpisodesOverview({
     }
   }
 
+  const handleBulkClassificationApply = async () => {
+    if (selectedCount === 0 || (bulkFillerType === '' && bulkEpisodeType === '')) return
+    const accepted = await confirm({
+      title: 'Episoden klassifizieren',
+      description: `${selectedCount} Episode${selectedCount === 1 ? '' : 'n'} werden geändert. Fortfahren?`,
+      confirmLabel: 'Anwenden',
+      cancelLabel: 'Abbrechen',
+    })
+    if (!accepted) return
+
+    setIsApplyingBulk(true)
+    setBulkProgress({ done: 0, total: selectedCount })
+    setBulkMessage(null)
+    setBulkError(null)
+    try {
+      const selectedIDs = selectableEpisodeIDs.filter((episodeID) => selectedEpisodeIDs.has(episodeID))
+      for (let index = 0; index < selectedIDs.length; index += 1) {
+        const episodeID = selectedIDs[index]
+        const current = classificationByEpisodeID.get(episodeID)
+        await updateAdminEpisode(episodeID, {
+          ...(bulkFillerType !== '' ? { filler_type: bulkFillerType } : {}),
+          ...(bulkEpisodeType !== '' ? { episode_type: bulkEpisodeType } : {}),
+        })
+        if (current) {
+          onClassificationSaved?.({
+            ...current,
+            filler_type: bulkFillerType !== '' ? bulkFillerType : current.filler_type,
+            filler_type_source: bulkFillerType !== '' ? 'manual' : current.filler_type_source,
+            episode_type: bulkEpisodeType !== '' ? bulkEpisodeType : current.episode_type,
+            episode_type_source: bulkEpisodeType !== '' ? 'manual' : current.episode_type_source,
+          })
+        }
+        setBulkProgress({ done: index + 1, total: selectedIDs.length })
+      }
+      setBulkMessage(`${selectedIDs.length} Episode${selectedIDs.length === 1 ? '' : 'n'} klassifiziert.`)
+    } catch (error) {
+      setBulkError(error instanceof Error ? `Klassifizierung fehlgeschlagen: ${error.message}` : 'Klassifizierung fehlgeschlagen.')
+    } finally {
+      setIsApplyingBulk(false)
+      setBulkProgress(null)
+    }
+  }
+
   if (isLoading) {
     return (
       <div className={styles.stateContainer}>
@@ -206,6 +270,38 @@ export function EpisodesOverview({
               ? `Ergänze ${bulkProgress.done}/${bulkProgress.total}`
               : 'Gruppe ergänzen'}
           </button>
+          <Select
+            className={styles.bulkSelect}
+            value={bulkFillerType}
+            onChange={(event) => setBulkFillerType(event.target.value as EpisodeFillerType | '')}
+            disabled={isApplyingBulk}
+            aria-label="Canon/Filler für ausgewählte Episoden"
+          >
+            <option value="">Canon/Filler nicht ändern</option>
+            {classificationOptions.filler_types.map((option) => (
+              <option key={option.code} value={option.code}>{option.label}</option>
+            ))}
+          </Select>
+          <Select
+            className={styles.bulkSelect}
+            value={bulkEpisodeType}
+            onChange={(event) => setBulkEpisodeType(event.target.value as EpisodeType | '')}
+            disabled={isApplyingBulk}
+            aria-label="Episodentyp für ausgewählte Episoden"
+          >
+            <option value="">Episodentyp nicht ändern</option>
+            {classificationOptions.episode_types.map((option) => (
+              <option key={option.code} value={option.code}>{option.label}</option>
+            ))}
+          </Select>
+          <button
+            className={styles.bulkApplyButton}
+            type="button"
+            disabled={isApplyingBulk || (bulkFillerType === '' && bulkEpisodeType === '')}
+            onClick={() => void handleBulkClassificationApply()}
+          >
+            {isApplyingBulk && bulkProgress ? `Klassifiziere ${bulkProgress.done}/${bulkProgress.total}` : 'Klassifizierung anwenden'}
+          </button>
           <button
             className={styles.clearSelectionButton}
             type="button"
@@ -237,6 +333,7 @@ export function EpisodesOverview({
           )
         })}
       </div>
+      {confirmDialog}
     </div>
   )
 }

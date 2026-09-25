@@ -14,6 +14,10 @@ progress:
   percent: 93
 ---
 
+# Quick Task 260925-kae — Bulk-Klassifizierung für Episoden (25.09.2026)
+
+Canon/Filler und Episodentyp können in der Episodenübersicht für mehrere ausgewählte Episoden gemeinsam gesetzt werden. Die Umsetzung nutzt die bestehenden Klassifizierungsoptionen, den Admin-Episode-Endpunkt und den Bestätigungsdialog. Typecheck, fokussierte Tests, ESLint und `git diff --check` sind bestanden. Menschliche Live-UAT der Sammelaktion steht noch aus.
+
 # Project State
 
 ## Gap-Closure-Ausführung Phase 165 (22.09.2026) — 165-14..165-19 code-complete, CR-01 Review-Fix eingespielt
