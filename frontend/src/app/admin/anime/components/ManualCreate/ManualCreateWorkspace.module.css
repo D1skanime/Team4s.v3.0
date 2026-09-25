@@ -102,6 +102,28 @@
   min-height: 48px;
 }
 
+.basicDataGrid {
+  display: grid;
+  gap: 16px;
+}
+
+.basicDataRow {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 16px;
+}
+
+.basicDataRowTwo {
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+}
+
+@media (max-width: 720px) {
+  .basicDataRow,
+  .basicDataRowTwo {
+    grid-template-columns: 1fr;
+  }
+}
+
 .inputInvalid {
   border-color: #ef4444 !important;
   box-shadow: 0 0 0 3px rgba(239, 68, 68, 0.12);

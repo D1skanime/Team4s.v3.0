@@ -603,7 +603,7 @@ export function AnimeEditWorkspace({
           <h2 className={workspaceStyles.sectionTitle}>Basisdaten</h2>
         </div>
 
-        <div className={styles.gridTwo}>
+        <div className={workspaceStyles.basicDataGrid}>
           <div className={`${styles.field} ${workspaceStyles.titleField}`}>
             <label htmlFor="edit-title">Titel *</label>
             <div className={workspaceStyles.fieldMeta}>
@@ -618,65 +618,65 @@ export function AnimeEditWorkspace({
             </div>
           </div>
 
-          <div className={styles.field}>
-            <label htmlFor="edit-type">Typ *</label>
-            <select id="edit-type" value={patch.values.type} onChange={(event) => patch.setField('type', event.target.value)}>
-              {ANIME_TYPES.map((value) => (
-                <option key={value} value={value}>
-                  {value}
-                </option>
-              ))}
-            </select>
+          <div className={workspaceStyles.basicDataRow}>
+            <div className={styles.field}>
+              <label htmlFor="edit-type">Typ *</label>
+              <select id="edit-type" value={patch.values.type} onChange={(event) => patch.setField('type', event.target.value)}>
+                {ANIME_TYPES.map((value) => (
+                  <option key={value} value={value}>{value}</option>
+                ))}
+              </select>
+            </div>
+
+            <div className={styles.field}>
+              <label htmlFor="edit-content-type">Inhaltstyp *</label>
+              <select
+                id="edit-content-type"
+                value={patch.values.contentType}
+                onChange={(event) => patch.setField('contentType', event.target.value)}
+              >
+                {CONTENT_TYPES.map((value) => (
+                  <option key={value} value={value}>{value}</option>
+                ))}
+              </select>
+            </div>
+
+            <div className={styles.field}>
+              <label htmlFor="edit-status">Status *</label>
+              <select id="edit-status" value={patch.values.status} onChange={(event) => patch.setField('status', event.target.value)}>
+                {ANIME_STATUSES.map((value) => (
+                  <option key={value} value={value}>{value}</option>
+                ))}
+              </select>
+            </div>
           </div>
 
-          <div className={styles.field}>
-            <label htmlFor="edit-content-type">Inhaltstyp *</label>
-            <select
-              id="edit-content-type"
-              value={patch.values.contentType}
-              onChange={(event) => patch.setField('contentType', event.target.value)}
-            >
-              {CONTENT_TYPES.map((value) => (
-                <option key={value} value={value}>
-                  {value}
-                </option>
-              ))}
-            </select>
+          <div className={`${workspaceStyles.basicDataRow} ${workspaceStyles.basicDataRowTwo}`}>
+            <div className={styles.field}>
+              <label htmlFor="edit-year">Jahr</label>
+              <input id="edit-year" value={patch.values.year} onChange={(event) => patch.setField('year', event.target.value)} />
+            </div>
+
+            <div className={styles.field}>
+              <label htmlFor="edit-max-episodes">Maximale Episoden</label>
+              <input
+                id="edit-max-episodes"
+                value={patch.values.maxEpisodes}
+                onChange={(event) => patch.setField('maxEpisodes', event.target.value)}
+              />
+            </div>
           </div>
 
-          <div className={styles.field}>
-            <label htmlFor="edit-status">Status *</label>
-            <select id="edit-status" value={patch.values.status} onChange={(event) => patch.setField('status', event.target.value)}>
-              {ANIME_STATUSES.map((value) => (
-                <option key={value} value={value}>
-                  {value}
-                </option>
-              ))}
-            </select>
-          </div>
+          <div className={`${workspaceStyles.basicDataRow} ${workspaceStyles.basicDataRowTwo}`}>
+            <div className={styles.field}>
+              <label htmlFor="edit-title-de">Titel DE</label>
+              <input id="edit-title-de" value={patch.values.titleDE} onChange={(event) => patch.setField('titleDE', event.target.value)} />
+            </div>
 
-          <div className={styles.field}>
-            <label htmlFor="edit-year">Jahr</label>
-            <input id="edit-year" value={patch.values.year} onChange={(event) => patch.setField('year', event.target.value)} />
-          </div>
-
-          <div className={styles.field}>
-            <label htmlFor="edit-max-episodes">Maximale Episoden</label>
-            <input
-              id="edit-max-episodes"
-              value={patch.values.maxEpisodes}
-              onChange={(event) => patch.setField('maxEpisodes', event.target.value)}
-            />
-          </div>
-
-          <div className={styles.field}>
-            <label htmlFor="edit-title-de">Titel DE</label>
-            <input id="edit-title-de" value={patch.values.titleDE} onChange={(event) => patch.setField('titleDE', event.target.value)} />
-          </div>
-
-          <div className={styles.field}>
-            <label htmlFor="edit-title-en">Titel EN</label>
-            <input id="edit-title-en" value={patch.values.titleEN} onChange={(event) => patch.setField('titleEN', event.target.value)} />
+            <div className={styles.field}>
+              <label htmlFor="edit-title-en">Titel EN</label>
+              <input id="edit-title-en" value={patch.values.titleEN} onChange={(event) => patch.setField('titleEN', event.target.value)} />
+            </div>
           </div>
         </div>
       </section>
