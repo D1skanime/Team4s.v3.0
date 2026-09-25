@@ -231,7 +231,6 @@ function AdminAnimeEpisodeImportContent() {
                 onSetSelectedFansubGroups={builder.setSelectedFansubGroups}
                 onAddSelectedFansubGroup={builder.addSelectedFansubGroup}
                 onRemoveSelectedFansubGroup={builder.removeSelectedFansubGroup}
-                onApplyFansubGroupToEpisode={builder.applyFansubGroupToEpisode}
                 onApplyFansubGroupFromEpisode={
                   builder.applyFansubGroupFromEpisode
                 }
@@ -269,9 +268,6 @@ function AdminAnimeEpisodeImportContent() {
                       onAddSelectedFansubGroup={builder.addSelectedFansubGroup}
                       onRemoveSelectedFansubGroup={
                         builder.removeSelectedFansubGroup
-                      }
-                      onApplyFansubGroupToEpisode={
-                        builder.applyFansubGroupToEpisode
                       }
                       onApplyFansubGroupFromEpisode={
                         builder.applyFansubGroupFromEpisode

@@ -23,7 +23,6 @@ interface EpisodeImportMappingRowGroupFieldProps {
   onSetSelectedFansubGroups: (sourceKey: string, fansubGroups: EpisodeImportSelectedFansubGroup[]) => void
   onAddSelectedFansubGroup: (sourceKey: string, fansubGroup: EpisodeImportSelectedFansubGroup) => void
   onRemoveSelectedFansubGroup: (sourceKey: string, fansubGroup: EpisodeImportSelectedFansubGroup) => void
-  onApplyFansubGroupToEpisode: (episodeNumber: number, fansubGroups: EpisodeImportSelectedFansubGroup[]) => void
   onApplyFansubGroupFromEpisode: (episodeNumber: number, fansubGroups: EpisodeImportSelectedFansubGroup[]) => void
 }
 
@@ -43,7 +42,6 @@ export function EpisodeImportMappingRowGroupField({
   onSetSelectedFansubGroups,
   onAddSelectedFansubGroup,
   onRemoveSelectedFansubGroup,
-  onApplyFansubGroupToEpisode,
   onApplyFansubGroupFromEpisode,
 }: EpisodeImportMappingRowGroupFieldProps) {
   const [query, setQuery] = useState('')
@@ -156,13 +154,6 @@ export function EpisodeImportMappingRowGroupField({
     }
   }
 
-  function handleClearGroups() {
-    onSetSelectedFansubGroups(sourceKey, [])
-    setQuery('')
-    setResults([])
-    setSearchMessage(null)
-  }
-
   return (
     <FormField label="Gruppe">
       <div className={styles.groupSelector}>
@@ -207,14 +198,6 @@ export function EpisodeImportMappingRowGroupField({
           >
             Als Chip
           </Button>
-          <Button
-            variant="ghost"
-            size="sm"
-            disabled={isSkipped || !hasSelectedGroups}
-            onClick={handleClearGroups}
-          >
-            Leeren
-          </Button>
         </div>
         {isSearching ? <p className={styles.groupSearchState}>Suche läuft...</p> : null}
         {!isSearching && searchMessage ? <p className={styles.groupSearchState}>{searchMessage}</p> : null}
@@ -247,14 +230,6 @@ export function EpisodeImportMappingRowGroupField({
         label={label}
       />
       <div className={styles.groupScopeActions}>
-        <Button
-          variant="subtle"
-          size="sm"
-          disabled={isSkipped || episodeNumber <= 0 || !hasSelectedGroups}
-          onClick={() => onApplyFansubGroupToEpisode(episodeNumber, selectedFansubGroups)}
-        >
-          Episode
-        </Button>
         <Button
           variant="subtle"
           size="sm"

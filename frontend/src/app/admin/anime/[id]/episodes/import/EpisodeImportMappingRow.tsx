@@ -29,7 +29,8 @@ interface EpisodeImportMappingRowCardProps {
   onSetSelectedFansubGroups: (sourceKey: string, fansubGroups: EpisodeImportSelectedFansubGroup[]) => void
   onAddSelectedFansubGroup: (sourceKey: string, fansubGroup: EpisodeImportSelectedFansubGroup) => void
   onRemoveSelectedFansubGroup: (sourceKey: string, fansubGroup: EpisodeImportSelectedFansubGroup) => void
-  onApplyFansubGroupToEpisode: (episodeNumber: number, fansubGroups: EpisodeImportSelectedFansubGroup[]) => void
+  /** Legacy callback kept for direct component consumers; no longer rendered as a button. */
+  onApplyFansubGroupToEpisode?: (episodeNumber: number, fansubGroups: EpisodeImportSelectedFansubGroup[]) => void
   onApplyFansubGroupFromEpisode: (episodeNumber: number, fansubGroups: EpisodeImportSelectedFansubGroup[]) => void
   onConfirm?: (sourceKey: string) => void
   onSkip: (sourceKey: string) => void
@@ -53,7 +54,6 @@ export function EpisodeImportMappingRowCard({
   onSetSelectedFansubGroups,
   onAddSelectedFansubGroup,
   onRemoveSelectedFansubGroup,
-  onApplyFansubGroupToEpisode,
   onApplyFansubGroupFromEpisode,
   onConfirm,
   onSkip,
@@ -92,7 +92,6 @@ export function EpisodeImportMappingRowCard({
           onSetSelectedFansubGroups={onSetSelectedFansubGroups}
           onAddSelectedFansubGroup={onAddSelectedFansubGroup}
           onRemoveSelectedFansubGroup={onRemoveSelectedFansubGroup}
-          onApplyFansubGroupToEpisode={onApplyFansubGroupToEpisode}
           onApplyFansubGroupFromEpisode={onApplyFansubGroupFromEpisode}
         />
         <FormField label="Episode">

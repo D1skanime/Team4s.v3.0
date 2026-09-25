@@ -47,7 +47,8 @@ export interface EpisodeGroupProps {
     sourceKey: string,
     fansubGroup: EpisodeImportSelectedFansubGroup,
   ) => void;
-  onApplyFansubGroupToEpisode: (
+  /** Legacy callback kept for direct component consumers; no longer rendered as a button. */
+  onApplyFansubGroupToEpisode?: (
     episodeNumber: number,
     fansubGroups: EpisodeImportSelectedFansubGroup[],
   ) => void;
@@ -79,7 +80,6 @@ export function EpisodeGroup({
   onSetSelectedFansubGroups,
   onAddSelectedFansubGroup,
   onRemoveSelectedFansubGroup,
-  onApplyFansubGroupToEpisode,
   onApplyFansubGroupFromEpisode,
   onSetEpisodeTitle,
   onConfirm,
@@ -210,7 +210,6 @@ export function EpisodeGroup({
             onSetSelectedFansubGroups={onSetSelectedFansubGroups}
             onAddSelectedFansubGroup={onAddSelectedFansubGroup}
             onRemoveSelectedFansubGroup={onRemoveSelectedFansubGroup}
-            onApplyFansubGroupToEpisode={onApplyFansubGroupToEpisode}
             onApplyFansubGroupFromEpisode={onApplyFansubGroupFromEpisode}
             onConfirm={onConfirm}
             onSkip={onSkip}
