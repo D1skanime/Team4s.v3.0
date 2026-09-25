@@ -41,6 +41,13 @@
   gap: 16px;
 }
 
+.headerMain {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  gap: 20px;
+  align-items: start;
+}
+
 .eyebrow {
   margin: 0;
   font-size: 14px;
@@ -243,16 +250,26 @@
 
 .summaryGrid {
   display: grid;
-  gap: 16px;
-  grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+  grid-template-columns: minmax(0, 1.5fr) repeat(2, minmax(160px, 0.6fr));
+  border-top: 1px solid #e1e1e6;
+  padding-top: 16px;
 }
 
 .summaryCard {
-  border: 1px solid #e1e1e6;
-  border-radius: 12px;
-  padding: 16px;
+  min-width: 0;
+  padding: 0 16px;
+  border-right: 1px solid #e1e1e6;
   display: grid;
   gap: 4px;
+}
+
+.summaryCard:first-child {
+  padding-left: 0;
+}
+
+.summaryCard:last-child {
+  padding-right: 0;
+  border-right: 0;
 }
 
 .summaryLabel {
@@ -263,8 +280,11 @@
 
 .summaryValue {
   margin: 0;
-  font-size: 24px;
+  overflow: hidden;
+  font-size: 20px;
   font-weight: 700;
+  text-overflow: ellipsis;
+  white-space: nowrap;
 }
 
 .listGrid {
@@ -445,6 +465,22 @@
 
   .animeCard {
     grid-template-columns: 1fr;
+  }
+
+  .headerMain,
+  .summaryGrid {
+    grid-template-columns: 1fr;
+  }
+
+  .summaryGrid {
+    gap: 12px;
+  }
+
+  .summaryCard,
+  .summaryCard:first-child,
+  .summaryCard:last-child {
+    padding: 0;
+    border-right: 0;
   }
 
   .cover {

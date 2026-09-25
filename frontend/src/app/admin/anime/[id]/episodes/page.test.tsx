@@ -100,5 +100,8 @@ describe("AdminAnimeEpisodesPage", () => {
     expect(await screen.findByText("Beispiel-Anime")).not.toBeNull();
     expect(screen.getByText("Episoden-Übersicht")).not.toBeNull();
     expect(screen.getByText("Keine Episoden vorhanden.")).not.toBeNull();
+    expect(
+      screen.getByRole("banner").contains(screen.getByText("Beispiel-Anime")),
+    ).toBe(true);
   });
 });

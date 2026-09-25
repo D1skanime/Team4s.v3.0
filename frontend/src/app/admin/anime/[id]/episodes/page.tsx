@@ -241,35 +241,58 @@ function AdminAnimeEpisodesContent() {
       <DiscoveryReturnLink returnURL={discoveryReturnURL} />
 
       <header className={styles.headerCard}>
-        <div>
-          <p className={styles.eyebrow}>Schritt 3</p>
-          <h1 className={styles.pageTitle}>Episoden-Übersicht</h1>
-          <p className={styles.pageSubtitle}>
-            Episoden mit allen Versionen, Fansub-Zuordnungen und Version-Counts
-            pro Episode. Accordion zeigt Details bei Bedarf.
-          </p>
+        <div className={styles.headerMain}>
+          <div>
+            <p className={styles.eyebrow}>Schritt 3</p>
+            <h1 className={styles.pageTitle}>Episoden-Übersicht</h1>
+            <p className={styles.pageSubtitle}>
+              Episoden mit allen Versionen, Fansub-Zuordnungen und Version-Counts
+              pro Episode. Accordion zeigt Details bei Bedarf.
+            </p>
+          </div>
+          {anime ? (
+            <div className={styles.headerActions}>
+              <Link
+                href={`/admin/anime/${anime.id}/edit`}
+                className={`${styles.button} ${styles.buttonSecondary}`}
+              >
+                Zurück zum Anime
+              </Link>
+              <Link
+                href={`/admin/anime/${anime.id}/episodes/import`}
+                className={`${styles.button} ${styles.buttonSecondary}`}
+              >
+                Import & Mapping
+              </Link>
+              <button
+                className={`${styles.button} ${styles.buttonPrimary}`}
+                type="button"
+                onClick={() => setShowCreateForm((current) => !current)}
+              >
+                {showCreateForm ? "Erstellen schließen" : "Neue Episode"}
+              </button>
+            </div>
+          ) : null}
         </div>
         {anime ? (
-          <div className={styles.headerActions}>
-            <Link
-              href={`/admin/anime/${anime.id}/edit`}
-              className={`${styles.button} ${styles.buttonSecondary}`}
-            >
-              Zurück zum Anime
-            </Link>
-            <Link
-              href={`/admin/anime/${anime.id}/episodes/import`}
-              className={`${styles.button} ${styles.buttonSecondary}`}
-            >
-              Import & Mapping
-            </Link>
-            <button
-              className={`${styles.button} ${styles.buttonPrimary}`}
-              type="button"
-              onClick={() => setShowCreateForm((current) => !current)}
-            >
-              {showCreateForm ? "Erstellen schließen" : "Neue Episode"}
-            </button>
+          <div className={styles.summaryGrid}>
+            <div className={styles.summaryCard}>
+              <p className={styles.summaryLabel}>Anime</p>
+              <p className={styles.summaryValue}>{anime.title}</p>
+            </div>
+            <div className={styles.summaryCard}>
+              <p className={styles.summaryLabel}>Episoden</p>
+              <p className={styles.summaryValue}>{episodeCount}</p>
+            </div>
+            <div className={styles.summaryCard}>
+              <p className={styles.summaryLabel}>Versionen gesamt</p>
+              <p className={styles.summaryValue}>
+                {groupedEpisodes.reduce(
+                  (sum, ep) => sum + ep.version_count,
+                  0,
+                )}
+              </p>
+            </div>
           </div>
         ) : null}
       </header>
@@ -286,28 +309,6 @@ function AdminAnimeEpisodesContent() {
 
       {anime ? (
         <>
-          <section className={styles.card}>
-            <div className={styles.summaryGrid}>
-              <div className={styles.summaryCard}>
-                <p className={styles.summaryLabel}>Anime</p>
-                <p className={styles.summaryValue}>{anime.title}</p>
-              </div>
-              <div className={styles.summaryCard}>
-                <p className={styles.summaryLabel}>Episoden</p>
-                <p className={styles.summaryValue}>{episodeCount}</p>
-              </div>
-              <div className={styles.summaryCard}>
-                <p className={styles.summaryLabel}>Versionen gesamt</p>
-                <p className={styles.summaryValue}>
-                  {groupedEpisodes.reduce(
-                    (sum, ep) => sum + ep.version_count,
-                    0,
-                  )}
-                </p>
-              </div>
-            </div>
-          </section>
-
           {showCreateForm ? (
             <section className={styles.card}>
               <div className={styles.sectionHeader}>
