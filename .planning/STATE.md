@@ -14,6 +14,10 @@ progress:
   percent: 93
 ---
 
+# Quick Task 260925-6qe — Anime-Identitätskarte kompakt (Phase 168)
+
+Die Identitätskarte der Anime-Edit-Seite nutzt kompakte Info-Kacheln statt großer read-only Formularfelder. Anime-ID, AniSearch-ID, Jellyfin Item ID und Quelle bleiben sichtbar; der Ordnerpfad nutzt die volle Breite. 15 fokussierte Tests und Typecheck sind bestanden.
+
 # Quick Task 260925-6qd — Anime-Edit-Kopfkarte kompakt (Phase 168)
 
 Die obere Edit-Kopfkarte bündelt Titel, Anime-Name, Aktionen und verlinktes Cover. Die doppelte große Edit-Überschrift im gemeinsamen Workspace entfällt nur im Edit-Modus; der Create-Flow bleibt unverändert. 15 fokussierte Tests und Typecheck sind bestanden.

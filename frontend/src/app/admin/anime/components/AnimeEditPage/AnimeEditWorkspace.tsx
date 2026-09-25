@@ -11,7 +11,7 @@ import {
   deleteAdminAnimeLogoAsset,
   getAdminAnimeJellyfinContext,
 } from '@/lib/api'
-import { Button, Input } from '@/components/ui'
+import { Button } from '@/components/ui'
 import { FormField } from '@/components/ui/FormField'
 import { Textarea } from '@/components/ui/Textarea'
 import { searchAdminAnimeCreateAssetCandidates } from '@/lib/api/admin-anime-intake'
@@ -477,19 +477,14 @@ export function AnimeEditWorkspace({
         </div>
 
         <div className={styles.gridTwo}>
-          <div className={styles.field}>
-            <label htmlFor="edit-anime-id">Anime ID</label>
-            <input id="edit-anime-id" value={String(anime.id)} readOnly />
+          <div className={workspaceStyles.infoField}>
+            <span>Anime ID</span>
+            <strong className={workspaceStyles.infoValue}>{anime.id}</strong>
           </div>
-          <div className={styles.field}>
-            <label htmlFor="edit-anisearch-id">AniSearch ID</label>
-            <div className={workspaceStyles.sourceLinkControl}>
-              <Input
-                id="edit-anisearch-id"
-                value={effectiveAniSearchID}
-                placeholder="Keine AniSearch-ID verknüpft"
-                readOnly
-              />
+          <div className={`${workspaceStyles.infoField} ${workspaceStyles.infoFieldWithAction}`}>
+            <span>AniSearch ID</span>
+            <div className={workspaceStyles.infoAction}>
+              <strong className={workspaceStyles.infoValue}>{effectiveAniSearchID || '—'}</strong>
               <Button
                 href={aniSearchURL || '#'}
                 target="_blank"
@@ -502,28 +497,17 @@ export function AnimeEditWorkspace({
               </Button>
             </div>
           </div>
-          <div className={styles.field}>
-            <label htmlFor="edit-jellyfin-item-id">Jellyfin Item ID</label>
-            <input
-              id="edit-jellyfin-item-id"
-              value={effectiveJellyfinSeriesID}
-              placeholder="Keine Jellyfin-Serie verknüpft"
-              readOnly
-            />
+          <div className={workspaceStyles.infoField}>
+            <span>Jellyfin Item ID</span>
+            <strong className={`${workspaceStyles.infoValue} ${workspaceStyles.infoValueMono}`}>{effectiveJellyfinSeriesID || '—'}</strong>
           </div>
-          <div className={styles.field}>
-            <label htmlFor="edit-source-label">Quelle</label>
-            <input id="edit-source-label" value={hasJellyfinSource ? 'Jellyfin' : 'Manuell'} readOnly />
+          <div className={workspaceStyles.infoField}>
+            <span>Quelle</span>
+            <strong className={workspaceStyles.infoValue}>{hasJellyfinSource ? 'Jellyfin' : 'Manuell'}</strong>
           </div>
-          <div className={`${styles.field} ${createStyles.folderPathField}`}>
-            <label htmlFor="edit-folder-path">Ordnerpfad</label>
-            <input
-              id="edit-folder-path"
-              className={createStyles.folderPathInput}
-              value={effectiveFolderPath}
-              placeholder="Noch kein Jellyfin-Ordner verknüpft"
-              readOnly
-            />
+          <div className={`${workspaceStyles.infoField} ${workspaceStyles.infoFieldWide}`}>
+            <span>Ordnerpfad</span>
+            <code className={workspaceStyles.infoValue}>{effectiveFolderPath || '—'}</code>
           </div>
         </div>
       </section>
