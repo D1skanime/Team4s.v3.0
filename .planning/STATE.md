@@ -1560,6 +1560,7 @@ Last activity: 2026-09-23
 
 | # | Description | Date | Commit | Directory |
 |---|-------------|------|--------|-----------|
+| 260925-6qf | Anime-Edit: Identitätskarte visuell repariert und Kopfbereich mit Schritt-Navigator als eine gemeinsame Karte umgesetzt | 2026-09-25 | pending | [260925-6qf-anime-edit-kopfkarte-und-identitaet](./quick/260925-6qf-anime-edit-kopfkarte-und-identitaet/) |
 | 260924-ksv | GAP-13: EpisodeGroup aus page.tsx in eigene Datei EpisodeImportEpisodeGroup.tsx ausgelagert (page.tsx 599->406 Zeilen); bei Episoden mit genau einer Datei erscheinen Dateiname (fett/klein) und Ordnerpfad (gedaempft) jetzt rechts neben dem Titelfeld in der Headerzeile statt dupliziert in der Datei-Zeile darunter (neuer hideFileInfo-Prop auf EpisodeImportMappingRowCard); Mehrdatei-Episoden unveraendert; 167-UAT.md GAP-13 auf resolved gesetzt | 2026-09-24 | 7cb385a3 | [260924-ksv-gap-13-dateiname-und-ordner-rechts-neben](./quick/260924-ksv-gap-13-dateiname-und-ordner-rechts-neben/) |
 | 260925-cyu | Episode-Import-Vorschau automatisch laden, redundante Quellenkarte entfernen und Quellenanzeige auf relevante IDs reduzieren | 2026-09-25 | pending-human-uat | [260925-cyu-episode-import-vorschau-automatisch-lade](./quick/260925-cyu-episode-import-vorschau-automatisch-lade/) |
 | 260925-d8v | Episode-Import-Kopfbereich mit Anime-Titel und Import-Kontext als gemeinsame Karte zusammengeführt | 2026-09-25 | pending-human-uat | [260925-d8v-episode-import-kopfbereich-als-eine-geme](./quick/260925-d8v-episode-import-kopfbereich-als-eine-geme/) |

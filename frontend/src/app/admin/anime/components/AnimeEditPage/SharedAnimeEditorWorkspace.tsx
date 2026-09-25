@@ -9,6 +9,7 @@ interface SharedAnimeEditorWorkspaceProps {
   mode: AdminAnimeEditorMode
   headerTitle: string
   headerIntro: string
+  headerContent?: ReactNode
   sourceContent: ReactNode
   assetsContent: ReactNode
   detailsContent: ReactNode
@@ -59,6 +60,7 @@ export function SharedAnimeEditorWorkspace({
   mode,
   headerTitle,
   headerIntro,
+  headerContent,
   sourceContent,
   assetsContent,
   detailsContent,
@@ -77,15 +79,30 @@ export function SharedAnimeEditorWorkspace({
         </header>
       ) : null}
 
-      <CreatePageStepper
-        activeStep={1}
-        steps={[
-          { id: 1, label: copy.stepSourceLabel, sub: copy.stepSourceSub },
-          { id: 2, label: 'Assets', sub: 'Cover, Banner, Logo & Hintergründe' },
-          { id: 3, label: 'Details', sub: 'Infos & Beschreibung' },
-          { id: 4, label: copy.stepReviewLabel, sub: copy.stepReviewSub },
-        ]}
-      />
+      {mode === 'edit' ? (
+        <div className={createStyles.editHeaderShell}>
+          {headerContent}
+          <CreatePageStepper
+            activeStep={1}
+            steps={[
+              { id: 1, label: copy.stepSourceLabel, sub: copy.stepSourceSub },
+              { id: 2, label: 'Assets', sub: 'Cover, Banner, Logo & Hintergründe' },
+              { id: 3, label: 'Details', sub: 'Infos & Beschreibung' },
+              { id: 4, label: copy.stepReviewLabel, sub: copy.stepReviewSub },
+            ]}
+          />
+        </div>
+      ) : (
+        <CreatePageStepper
+          activeStep={1}
+          steps={[
+            { id: 1, label: copy.stepSourceLabel, sub: copy.stepSourceSub },
+            { id: 2, label: 'Assets', sub: 'Cover, Banner, Logo & Hintergründe' },
+            { id: 3, label: 'Details', sub: 'Infos & Beschreibung' },
+            { id: 4, label: copy.stepReviewLabel, sub: copy.stepReviewSub },
+          ]}
+        />
+      )}
 
       <section id="section-1" className={createStyles.pageSection}>
         <div className={createStyles.sectionHeading}>

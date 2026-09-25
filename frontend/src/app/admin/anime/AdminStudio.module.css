@@ -42,6 +42,10 @@
   padding: 18px 22px;
 }
 
+.editHeaderContent {
+  padding: 18px 22px;
+}
+
 .headerMain {
   display: grid;
   grid-template-columns: 1fr;

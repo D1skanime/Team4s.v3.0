@@ -8,6 +8,20 @@
   gap: 12px;
 }
 
+.editHeaderShell {
+  overflow: hidden;
+  border: 1px solid #e1e1e6;
+  border-radius: 12px;
+  background: #ffffff;
+}
+
+.editHeaderShell > .stepper {
+  margin: 0;
+  border: 0;
+  border-top: 1px solid #e2e6ea;
+  border-radius: 0;
+}
+
 .pageTitleBlock {
   display: grid;
   gap: 4px;

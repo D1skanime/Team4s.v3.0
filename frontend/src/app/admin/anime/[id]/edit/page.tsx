@@ -1,6 +1,5 @@
 "use client";
 
-import Image from "next/image";
 import Link from "next/link";
 import { useCallback, useEffect, useMemo, useState } from "react";
 import { useParams, useSearchParams } from "next/navigation";
@@ -17,7 +16,7 @@ import { AnimeContextFansubs } from "../../components/AnimeContext/AnimeContextF
 import { AnimeContextFansubManager } from "../../components/AnimeContext/AnimeContextFansubManager";
 import { DiscoveryReturnLink } from "../../create/DiscoveryReturnLink";
 import styles from "../../AdminStudio.module.css";
-import { parsePositiveInt, resolveCoverUrl } from "../../utils/anime-helpers";
+import { parsePositiveInt } from "../../utils/anime-helpers";
 import { formatEditLoadError } from "./formatEditLoadError";
 
 function formatAnimeLabel(anime: AnimeDetail): string {
@@ -125,37 +124,6 @@ function AdminAnimeEditContent() {
       </nav>
 
       <DiscoveryReturnLink returnURL={discoveryReturnURL} />
-
-      <header className={styles.headerCard}>
-        <div className={styles.headerTop}>
-          <div>
-            <h1 className={styles.pageTitle}>Anime bearbeiten</h1>
-            {anime ? <p className={styles.itemTitle}>{anime.title}</p> : null}
-            {anime ? (
-              <div className={styles.headerActions}>
-                <Link href={`/admin/anime/${anime.id}/episodes`} className={`${styles.button} ${styles.buttonPrimary}`}>
-                  Zu Episoden wechseln
-                </Link>
-                <Link href={`/anime/${anime.id}`} className={`${styles.button} ${styles.buttonSecondary}`} target="_blank" rel="noreferrer">
-                  Public ansehen
-                </Link>
-              </div>
-            ) : null}
-          </div>
-          {anime ? (
-            <Link href={`/anime/${anime.id}`} target="_blank" rel="noreferrer" aria-label={`${anime.title} öffentlich ansehen`}>
-              <Image
-                className={styles.cover}
-                src={resolveCoverUrl(anime.cover_image)}
-                alt=""
-                width={96}
-                height={136}
-                unoptimized
-              />
-            </Link>
-          ) : null}
-        </div>
-      </header>
 
       {isLoading ? (
         <div className={styles.noticeBox}>Anime-Daten werden geladen...</div>

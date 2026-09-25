@@ -1,6 +1,8 @@
 'use client'
 
 import React, { ChangeEvent, FormEvent, useCallback, useEffect, useMemo, useRef, useState } from 'react'
+import Image from 'next/image'
+import Link from 'next/link'
 
 import {
   applyAdminAnimeMetadataFromJellyfin,
@@ -24,6 +26,7 @@ import type {
 import type { AnimeDetail, AnimeStatus, ContentType } from '@/types/anime'
 
 import styles from '../../../admin.module.css'
+import studioStyles from '../../AdminStudio.module.css'
 import createStyles from '../../create/page.module.css'
 import workspaceStyles from '../ManualCreate/ManualCreateWorkspace.module.css'
 import { AnimeCreateGenreField } from '../CreatePage/AnimeCreateGenreField'
@@ -41,7 +44,7 @@ import {
   removeJellyfinDraftAsset,
   type JellyfinDraftAssetTarget,
 } from '../../hooks/useManualAnimeDraft'
-import { buildAniSearchAnimeURL, resolveAniSearchID } from '../../utils/anime-helpers'
+import { buildAniSearchAnimeURL, resolveAniSearchID, resolveCoverUrl } from '../../utils/anime-helpers'
 import { formatAdminError } from '../../utils/studio-helpers'
 import { AnimeEditAssetSection } from './AnimeEditAssetSection'
 import { SharedAnimeEditorWorkspace } from './SharedAnimeEditorWorkspace'
@@ -771,6 +774,35 @@ export function AnimeEditWorkspace({
     />
   )
 
+  const headerContent = (
+    <div className={studioStyles.editHeaderContent}>
+      <div className={studioStyles.headerTop}>
+        <div>
+          <h1 className={studioStyles.pageTitle}>Anime bearbeiten</h1>
+          <p className={studioStyles.itemTitle}>{anime.title}</p>
+          <div className={studioStyles.headerActions}>
+            <Link href={`/admin/anime/${anime.id}/episodes`} className={`${studioStyles.button} ${studioStyles.buttonPrimary}`}>
+              Zu Episoden wechseln
+            </Link>
+            <Link href={`/anime/${anime.id}`} className={`${studioStyles.button} ${studioStyles.buttonSecondary}`} target="_blank" rel="noreferrer">
+              Public ansehen
+            </Link>
+          </div>
+        </div>
+        <Link href={`/anime/${anime.id}`} target="_blank" rel="noreferrer" aria-label={`${anime.title} öffentlich ansehen`}>
+          <Image
+            className={studioStyles.cover}
+            src={resolveCoverUrl(anime.cover_image)}
+            alt=""
+            width={96}
+            height={136}
+            unoptimized
+          />
+        </Link>
+      </div>
+    </div>
+  )
+
   return (
     <AnimeEditorShell editor={editor}>
       <form id="anime-edit-form" onSubmit={(event: FormEvent) => event.preventDefault()}>
@@ -778,6 +810,7 @@ export function AnimeEditWorkspace({
           mode="edit"
           headerTitle="Anime bearbeiten"
           headerIntro=""
+          headerContent={headerContent}
           sourceContent={sourceSection}
           assetsContent={assetsSection}
           detailsContent={detailsSection}
