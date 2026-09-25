@@ -11,7 +11,7 @@ Die Anime-Import-Kopfkarte und der Kontextstreifen sind jetzt eine gemeinsame Ka
 
 ## Commit
 
-`f2d23ffb` — `feat(quick-260925-d8v): merge episode import header cards`
+`d7d7e460` — `feat(quick-260925-d8v): merge episode import header cards`
 
 ## Offener Punkt
 
