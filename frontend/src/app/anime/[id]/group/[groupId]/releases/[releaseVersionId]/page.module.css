@@ -65,18 +65,15 @@
   opacity: 0.28;
 }
 
-.backLink {
-  margin: 0;
-  font-size: 16px;
+.pageHeaderRow {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
 }
 
-.backLink a {
-  color: var(--color-primary);
-  text-decoration: none;
-}
-
-.backLink a:hover {
-  text-decoration: underline;
+.pageHeaderRow > :first-child {
+  min-width: 0;
 }
 
 .errorBox {
@@ -251,6 +248,7 @@
 
 @media (max-width: 639px) {
   .page { padding: 16px 16px 48px; gap: 24px; }
+  .pageHeaderRow { align-items: flex-start; flex-direction: column; gap: 10px; }
   .page > section:not(.hero) { padding: 16px; border-radius: 16px; }
   .heroSummary { grid-template-columns: minmax(0, 1fr); gap: 0; }
   .heroImageShell { grid-column: 1; grid-row: 1; padding: 12px 12px 0; }

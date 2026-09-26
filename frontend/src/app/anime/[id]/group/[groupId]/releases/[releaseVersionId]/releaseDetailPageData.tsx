@@ -1,8 +1,10 @@
 import Link from 'next/link'
 import { notFound } from 'next/navigation'
 import type { CSSProperties } from 'react'
+import { ArrowLeft } from 'lucide-react'
 
 import { Breadcrumbs } from '@/components/navigation/Breadcrumbs'
+import { Button } from '@/components/ui'
 import { ApiError, getAnimeBackdrops, getAnimeByID, getGroupDetail, getGroupReleaseDetail } from '@/lib/api'
 import { resolvePublicApiUrl } from '@/lib/publicApiUrl'
 
@@ -83,8 +85,12 @@ export async function ReleaseDetailPageContent({ animeID, groupID, releaseVersio
 
   const pageStyle = atmosphereUrl ? ({ '--release-page-backdrop': `url("${atmosphereUrl}")` } as CSSProperties) : undefined
   return <main className={`${styles.page} ${atmosphereUrl ? styles.pageWithBackdrop : ''}`} style={pageStyle}>
-    <Breadcrumbs items={breadcrumbItems} />
-    <p className={styles.backLink}><Link href={projectHref}>Zurück zum Fansub-Projekt</Link></p>
+    <div className={styles.pageHeaderRow}>
+      <Breadcrumbs items={breadcrumbItems} />
+      <Button href={projectHref} variant="secondary" size="sm" leftIcon={<ArrowLeft size={15} aria-hidden="true" />}>
+        Zurück zum Fansub-Projekt
+      </Button>
+    </div>
     <ReleaseDetailHero
       {...detail}
       animeID={animeID}
