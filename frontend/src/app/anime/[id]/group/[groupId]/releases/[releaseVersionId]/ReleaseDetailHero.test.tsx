@@ -1,7 +1,8 @@
 // @vitest-environment jsdom
-import { cleanup, fireEvent, render, screen } from '@testing-library/react'
+import { cleanup, render, screen } from '@testing-library/react'
 import { afterEach, describe, expect, it } from 'vitest'
 import { ReleaseDetailHero } from './ReleaseDetailHero'
+import { ReleaseTechnicalDetails } from './ReleaseTechnicalDetails'
 
 afterEach(cleanup)
 const base = { animeID:9, groupID:2, episode_number:'7', episode_title:'Schnee', title:'Winter-Release', version:'2', groups:[{id:2,slug:'c',name:'C-Subs',logo_url:null},{id:3,slug:'d',name:'Honto',logo_url:null}], release_date:'2026-01-02', duration_seconds:1440, resolution:'1080p', container:'MKV', video_codec:'AV1', audio_codec:'AAC', audio_language:'Japanisch', subtitle_tracks:[{language:'Deutsch',label:'Vollständig',format:'ASS',forced:false,default:true},{language:'Deutsch',label:'Signs & Songs',format:'ASS',forced:true,default:false}], preview_image:null, next:{release_version_id:88,episode_number:'8',episode_title:null,version:'2',group_id:2}, images_count:0, notes_count:2, contributors_count:3, animeLogoFallbackUrl:null }
@@ -24,15 +25,14 @@ describe('ReleaseDetailHero', () => {
     expect(screen.queryByAltText('Anime-Logo zu Winter-Release')).toBeNull()
   })
 
-  it('shows the project-style duration, codec and version facts before technical details', () => {
-    render(<ReleaseDetailHero {...base} subtitle_type="softsub" />)
-    const details = screen.getByRole('button', { name: /Details/ })
-    expect(details.getAttribute('aria-expanded')).toBe('false')
-    expect(screen.getByText('Version')).toBeTruthy()
-    expect(screen.getByText('Dauer')).toBeTruthy()
-    expect(screen.getByText('Codec')).toBeTruthy()
-    expect(screen.getByText('24:00 Min.')).toBeTruthy()
-    expect(screen.getByText('AV1')).toBeTruthy()
+  it('keeps technical facts out of the hero', () => {
+    render(<ReleaseDetailHero {...base} />)
+    expect(screen.getByText('Schnee')).toBeTruthy()
+    expect(screen.queryByText('Version')).toBeNull()
+    expect(screen.queryByText('Dauer')).toBeNull()
+    expect(screen.queryByText('Codec')).toBeNull()
+    expect(screen.queryByText('24:00 Min.')).toBeNull()
+    expect(screen.queryByText('AV1')).toBeNull()
     expect(screen.queryByText('Fansub-Release vom')).toBeNull()
     expect(screen.queryByText('Auflösung')).toBeNull()
     expect(screen.queryByText('2. Januar 2026')).toBeNull()
@@ -41,47 +41,30 @@ describe('ReleaseDetailHero', () => {
     expect(screen.queryByText('2 Texte')).toBeNull()
     expect(screen.queryByText('3 Fansubber')).toBeNull()
     expect(document.querySelector('#beteiligte')).toBeNull()
-    fireEvent.click(details)
-    expect(screen.getByText('Container')).toBeTruthy()
-    expect(screen.getByText('MKV')).toBeTruthy()
-    expect(screen.getByText('Fansub-Release vom')).toBeTruthy()
-    expect(screen.getByText('Auflösung')).toBeTruthy()
-    expect(screen.getByText('2. Januar 2026')).toBeTruthy()
-    expect(screen.getByText('Video-Codec')).toBeTruthy()
-    expect(screen.getAllByText('AV1')).toHaveLength(2)
-    expect(screen.getByText('Audio-Codec')).toBeTruthy()
-    expect(screen.getByText('AAC')).toBeTruthy()
-    expect(screen.getByText('Audio-Sprache')).toBeTruthy()
-    expect(screen.getByText('Japanisch')).toBeTruthy()
-    expect(screen.getByText(/Softsub/)).toBeTruthy()
-    expect(screen.getByText(/Spur 1: Vollständig · Deutsch · ASS/)).toBeTruthy()
-    expect(screen.getByText(/Spur 2: Signs & Songs · Deutsch · ASS/)).toBeTruthy()
-    expect(document.querySelector('#beteiligte')).toBeNull()
+    expect(document.querySelector('[data-release-technical-details]')).toBeNull()
   })
 
   it('formats Jellyfin codec identifiers for the public hero', () => {
-    render(<ReleaseDetailHero {...base} video_codec="h264" audio_codec="aac" />)
+    render(<ReleaseTechnicalDetails {...base} video_codec="h264" audio_codec="aac" />)
 
     expect(screen.getByText('H.264')).toBeTruthy()
-    fireEvent.click(screen.getByRole('button', { name: /Details/ }))
-    expect(screen.getAllByText('H.264')).toHaveLength(2)
+    expect(screen.getAllByText('H.264')).toHaveLength(1)
     expect(screen.getByText('AAC')).toBeTruthy()
   })
 
   it('labels a collaboration semantically and keeps unknown technical values honest', () => {
-    render(<ReleaseDetailHero {...base} container={null} video_codec={null} audio_codec="" audio_language={null} subtitle_tracks={[]} subtitle_type={null} />)
+    const props = {...base, container: null, video_codec: null, audio_codec: '', audio_language: null, subtitle_tracks: [], subtitle_type: null}
+    render(<><ReleaseDetailHero {...props} /><ReleaseTechnicalDetails {...props} /></>)
 
     expect(screen.getByText('Fansub-Coop: C-Subs × Honto')).toBeTruthy()
-    fireEvent.click(screen.getByRole('button', { name: /Details/ }))
-    expect(screen.getAllByText('Nicht hinterlegt')).toHaveLength(6)
+    expect(screen.getAllByText('Nicht hinterlegt')).toHaveLength(5)
     expect(screen.getByText('Japanisch')).toBeTruthy()
   })
 
   it.each([null, '', '   ', 'und', ' UND '])('defaults unknown audio %j to Japanisch without changing the DTO', (language) => {
     const props = { ...base, audio_language: language, subtitle_tracks: [] }
     const before = JSON.stringify(props)
-    render(<ReleaseDetailHero {...props} />)
-    fireEvent.click(screen.getByRole('button', { name: /Details/ }))
+    render(<ReleaseTechnicalDetails {...props} />)
 
     expect(screen.getByText('Audio-Sprache').nextElementSibling?.textContent).toBe('Japanisch')
     expect(screen.getByText('Untertitelspuren').nextElementSibling?.textContent).toBe('Nicht hinterlegt')
@@ -89,8 +72,7 @@ describe('ReleaseDetailHero', () => {
   })
 
   it.each(['de', 'Deutsch', 'ja', 'Japanisch'])('keeps known audio %s ahead of the fallback', (language) => {
-    render(<ReleaseDetailHero {...base} audio_language={language} />)
-    fireEvent.click(screen.getByRole('button', { name: /Details/ }))
+    render(<ReleaseTechnicalDetails {...base} audio_language={language} />)
     expect(screen.getByText('Audio-Sprache').nextElementSibling?.textContent).toBe(language)
   })
 
@@ -101,8 +83,7 @@ describe('ReleaseDetailHero', () => {
       subtitle_tracks: [{ language: null, label: 'Untertitel', format: 'ASS', forced: true, default: false }],
     }
     const before = JSON.stringify(props)
-    render(<ReleaseDetailHero {...props} />)
-    fireEvent.click(screen.getByRole('button', { name: /Details/ }))
+    render(<ReleaseTechnicalDetails {...props} />)
 
     expect(screen.getByText('Untertitelspuren').nextElementSibling?.textContent).toBe('Spur 1: Untertitel · ASS')
     expect(screen.getAllByText('Japanisch')).toHaveLength(1)
@@ -113,9 +94,7 @@ describe('ReleaseDetailHero', () => {
     render(<ReleaseDetailHero {...base} groups={[base.groups[0]]} canonicalProjectPath="/fansubs/c-subs/fansubprojekt/winter" />)
 
     expect(screen.getByText('Fansubgruppe: C-Subs')).toBeTruthy()
-    const details = screen.getByRole('button', { name: /Details/ })
     const nextRelease = screen.getByRole('link', { name: /Nächster Release/ })
-    expect(details.compareDocumentPosition(nextRelease) & Node.DOCUMENT_POSITION_FOLLOWING).not.toBe(0)
     expect(nextRelease.getAttribute('href')).toBe('/fansubs/c-subs/fansubprojekt/winter/releases/88')
   })
 })

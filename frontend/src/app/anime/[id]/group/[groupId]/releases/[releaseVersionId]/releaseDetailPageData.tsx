@@ -12,6 +12,7 @@ import { ReleaseEpisodePlayer } from './ReleaseEpisodePlayer'
 import { ReleaseGallery } from './ReleaseGallery'
 import { ReleaseNavigation } from './ReleaseNavigation'
 import { ReleaseNotesList } from './ReleaseNotesList'
+import { ReleaseTechnicalDetails } from './ReleaseTechnicalDetails'
 import { ThemeTimeline } from './ThemeTimeline'
 import styles from './page.module.css'
 
@@ -102,6 +103,7 @@ export async function ReleaseDetailPageContent({ animeID, groupID, releaseVersio
       projectPath={canonicalProjectPath}
     />
     <ReleaseGallery animeID={animeID} groupID={groupID} releaseVersionID={releaseVersionID} initialImages={detail.images} categoryTotals={detail.image_category_totals} groups={detail.groups} />
+    <ReleaseTechnicalDetails {...detail} />
     <ContributorsRow contributors={detail.contributors} groups={detail.groups} />
     <ReleaseEpisodePlayer releaseVersionID={releaseVersionID} title={detail.title} />
     <ReleaseNavigation animeID={animeID} groupID={groupID} canonicalProjectPath={canonicalProjectPath} previous={detail.previous} next={detail.next} />
