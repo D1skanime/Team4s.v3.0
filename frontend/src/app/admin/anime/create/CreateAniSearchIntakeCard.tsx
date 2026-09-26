@@ -45,7 +45,6 @@ export function CreateAniSearchIntakeCard({
   onCandidateSelect,
   onSubmit,
 }: CreateAniSearchIntakeCardProps) {
-  const helperID = "create-anisearch-helper";
   const statusID = "create-anisearch-status";
 
   return (
@@ -53,7 +52,6 @@ export function CreateAniSearchIntakeCard({
       <div className={createStyles.resultsHeader}>
         <div className={createStyles.resultsTitleBlock}>
           <p className={createStyles.resultsEyebrow}>AniSearch</p>
-          <h2 className={createStyles.resultsTitle}>AniSearch</h2>
         </div>
       </div>
 
@@ -83,7 +81,7 @@ export function CreateAniSearchIntakeCard({
           <input
             value={anisearchID}
             placeholder="z. B. 5170"
-            aria-describedby={`${helperID} ${statusID}`}
+            aria-describedby={statusID}
             onChange={(event) => onAniSearchIDChange(event.target.value)}
           />
         </label>
@@ -98,9 +96,6 @@ export function CreateAniSearchIntakeCard({
         </button>
       </div>
 
-      <p id={helperID} className={styles.hint}>
-        Manuell &gt; AniSearch &gt; Jellyfin
-      </p>
 
       {candidates.length > 0 ? (
         <div className={createStyles.providerResultsBlock}>

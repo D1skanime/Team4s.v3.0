@@ -28,7 +28,7 @@ describe("CreateAniSearchIntakeCard", () => {
     expect(markup).toContain("Titel suchen");
     expect(markup).toContain("AniSearch ID");
     expect(markup).toContain("AniSearch laden");
-    expect(markup).toContain("Manuell &gt; AniSearch &gt; Jellyfin");
+    expect(markup).not.toContain("Manuell &gt; AniSearch &gt; Jellyfin");
     expect(markup).not.toContain("Noch keine AniSearch-Daten geladen.");
     expect(markup).not.toContain("Nichts wird gespeichert");
   });

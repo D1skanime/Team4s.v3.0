@@ -228,7 +228,6 @@ function AdminAnimeCreateContent() {
     <div className={createStyles.detailsStack}>
       <section className={workspaceStyles.sectionCard}>
         <div className={workspaceStyles.sectionHeader}>
-          <p className={workspaceStyles.sectionEyebrow}>Pflichtangaben</p>
           <h2 className={workspaceStyles.sectionTitle}>Basisdaten</h2>
         </div>
 

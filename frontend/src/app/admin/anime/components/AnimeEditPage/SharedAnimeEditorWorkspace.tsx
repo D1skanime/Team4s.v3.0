@@ -103,13 +103,15 @@ export function SharedAnimeEditorWorkspace({
       )}
 
       <section id="section-1" className={createStyles.pageSection}>
-        <div className={createStyles.sectionHeading}>
-          <span className={createStyles.sectionNumber}>1</span>
-          <div>
-            <h2 className={createStyles.sectionTitle}>{copy.sourceTitle}</h2>
-            {copy.sourceSub ? <p className={createStyles.sectionSub}>{copy.sourceSub}</p> : null}
+        {mode === 'edit' ? (
+          <div className={createStyles.sectionHeading}>
+            <span className={createStyles.sectionNumber}>1</span>
+            <div>
+              <h2 className={createStyles.sectionTitle}>{copy.sourceTitle}</h2>
+              {copy.sourceSub ? <p className={createStyles.sectionSub}>{copy.sourceSub}</p> : null}
+            </div>
           </div>
-        </div>
+        ) : null}
         {sourceContent}
       </section>
 

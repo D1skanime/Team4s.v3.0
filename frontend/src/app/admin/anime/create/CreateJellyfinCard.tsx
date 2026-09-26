@@ -40,10 +40,6 @@ export function CreateJellyfinCard({
   onAdoptCandidate,
   onDiscard,
 }: CreateJellyfinCardProps) {
-  const selectedCandidate = selectedCandidateID
-    ? candidates.find((candidate) => candidate.jellyfin_series_id === selectedCandidateID)
-    : null;
-
   return (
     <section className={createStyles.providerCard}>
       <div className={createStyles.providerCardHeader}>
@@ -52,8 +48,8 @@ export function CreateJellyfinCard({
 
       <div className={createStyles.providerInputRow}>
         <label className={[styles.field, createStyles.providerFieldGrow].join(" ")}>
-          <span>Suche</span>
           <input
+            aria-label="Jellyfin-Suche"
             value={query}
             placeholder="z. B. Bleach"
             onChange={(e) => onQueryChange(e.target.value)}
@@ -74,11 +70,6 @@ export function CreateJellyfinCard({
 
       {hasAdoptedAssets ? (
         <div className={createStyles.jellyfinSourceNotice}>
-          <p className={createStyles.jellyfinSourceText}>
-            <strong>{selectedCandidate?.name || "Jellyfin-Ordner"}</strong> ist jetzt
-            als Quelle gesetzt. Die übernommenen Assets bearbeitest du direkt im
-            Asset-Bereich.
-          </p>
           <button
             className={`${styles.buttonSecondary} ${styles.buttonDanger}`}
             type="button"

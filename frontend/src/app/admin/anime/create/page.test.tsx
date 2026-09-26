@@ -139,7 +139,7 @@ describe("AdminAnimeCreatePage", () => {
     expect(markup).toContain("Titel suchen");
     expect(markup).toContain("AniSearch laden");
     expect(markup).toContain("Scannen");
-    expect(markup).toContain("Manuell &gt; AniSearch &gt; Jellyfin");
+    expect(markup).not.toContain("Manuell &gt; AniSearch &gt; Jellyfin");
     expect(markup.indexOf("AniSearch laden")).toBeLessThan(
       markup.lastIndexOf("Scannen"),
     );
