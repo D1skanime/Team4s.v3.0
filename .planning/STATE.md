@@ -1560,6 +1560,7 @@ Last activity: 2026-09-23
 
 | # | Description | Date | Commit | Directory |
 |---|-------------|------|--------|-----------|
+| 260926-6ql | Bibliothekskarte entfernt und Anime-Create-Basisdaten an das Edit-Layout angeglichen | 2026-09-26 | pending | [260926-6ql-anime-create-wie-edit-layout](./quick/260926-6ql-anime-create-wie-edit-layout/) |
 | 260926-6qk | Redundante Prozess- und Erklärungstexte auf Anime erstellen entfernt, funktionale Beschriftungen behalten | 2026-09-26 | pending | [260926-6qk-anime-create-copy-aufräumen](./quick/260926-6qk-anime-create-copy-aufräumen/) |
 | 260925-6qj | Relationsbereich auf eine klare Karte ohne verschachtelten Doppelrahmen reduziert | 2026-09-25 | pending | [260925-6qj-relationenkarte-vereinfachen](./quick/260925-6qj-relationenkarte-vereinfachen/) |
 | 260925-6qi | Anime-Basisdaten in logische Feldgruppen für Titel, Klassifikation, Episodenmetadaten und Sprachtitel gegliedert | 2026-09-25 | pending | [260925-6qi-anime-basisdaten-logisch-gruppiert](./quick/260925-6qi-anime-basisdaten-logisch-gruppiert/) |

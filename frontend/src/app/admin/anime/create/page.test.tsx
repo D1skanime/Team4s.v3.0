@@ -978,11 +978,11 @@ describe("AdminAnimeCreatePage", () => {
     );
   });
 
-  it("renders the Discovery entry card above the provider grid unconditionally", () => {
+  it("does not render the redundant Discovery entry card above the provider grid", () => {
     const markup = renderToStaticMarkup(<AdminAnimeCreatePage />);
 
-    expect(markup).toContain("Aus meiner Bibliothek");
-    expect(markup).toContain("Bibliothek durchsuchen");
+    expect(markup).not.toContain("Aus meiner Bibliothek");
+    expect(markup).not.toContain("Bibliothek durchsuchen");
   });
 
   it("wires jellyfinID=null into useCreatePageDiscoveryHandoff and renders no return link when from=discovery is absent", () => {

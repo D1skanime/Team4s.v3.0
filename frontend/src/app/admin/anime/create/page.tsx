@@ -17,7 +17,6 @@ import { CreateAssetSearchDialog } from "./CreateAssetSearchDialog";
 import { CreateAssetSection } from "./CreateAssetSection";
 import { CreateJellyfinCard } from "./CreateJellyfinCard";
 import { CreateReviewSection } from "./CreateReviewSection";
-import { DiscoveryEntryCard } from "./DiscoveryEntryCard";
 import { DiscoveryReturnLink } from "./DiscoveryReturnLink";
 import { SharedAnimeEditorWorkspace } from "../components/AnimeEditPage/SharedAnimeEditorWorkspace";
 import {
@@ -106,8 +105,6 @@ function AdminAnimeCreateContent() {
 
   const sourceSection = (
     <>
-      <DiscoveryEntryCard />
-
       <div className={createStyles.providerGrid}>
         <CreateAniSearchIntakeCard
           anisearchID={anisearch.input}
@@ -235,7 +232,7 @@ function AdminAnimeCreateContent() {
           <h2 className={workspaceStyles.sectionTitle}>Basisdaten</h2>
         </div>
 
-        <div className={styles.gridTwo}>
+        <div className={workspaceStyles.basicDataGrid}>
           <div className={`${styles.field} ${workspaceStyles.titleField}`}>
             <label htmlFor="create-title">Titel *</label>
             <div className={workspaceStyles.fieldMeta}>
@@ -250,109 +247,50 @@ function AdminAnimeCreateContent() {
                 onChange={(event) => handlers.setTitle(event.target.value)}
                 aria-invalid={manualDraft.missingFields.includes("Titel")}
               />
-              <div className={workspaceStyles.titleActionRow}>
-                <span className={workspaceStyles.statusInline}>
-                  {manualDraft.missingFields.includes("Titel")
-                    ? "Titel fehlt"
-                    : "Titel bereit"}
-                </span>
-              </div>
             </div>
           </div>
 
-          <div className={styles.field}>
-            <label htmlFor="create-type">Typ *</label>
-            <select
-              id="create-type"
-              value={manualDraft.values.type}
-              onChange={(event) =>
-                handlers.setType(
-                  event.target.value as (typeof ANIME_TYPES)[number],
-                )
-              }
-            >
-              {ANIME_TYPES.map((value) => (
-                <option key={value} value={value}>
-                  {value}
-                </option>
-              ))}
-            </select>
+          <div className={workspaceStyles.basicDataRow}>
+            <div className={styles.field}>
+              <label htmlFor="create-type">Typ *</label>
+              <select id="create-type" value={manualDraft.values.type} onChange={(event) => handlers.setType(event.target.value as (typeof ANIME_TYPES)[number])}>
+                {ANIME_TYPES.map((value) => <option key={value} value={value}>{value}</option>)}
+              </select>
+            </div>
+            <div className={styles.field}>
+              <label htmlFor="create-content-type">Inhaltstyp *</label>
+              <select id="create-content-type" value={manualDraft.values.contentType} onChange={(event) => handlers.setContentType(event.target.value as (typeof CONTENT_TYPES)[number])}>
+                {CONTENT_TYPES.map((value) => <option key={value} value={value}>{value}</option>)}
+              </select>
+            </div>
+            <div className={styles.field}>
+              <label htmlFor="create-status">Status *</label>
+              <select id="create-status" value={manualDraft.values.status} onChange={(event) => handlers.setStatus(event.target.value as (typeof ANIME_STATUSES)[number])}>
+                {ANIME_STATUSES.map((value) => <option key={value} value={value}>{value}</option>)}
+              </select>
+            </div>
           </div>
 
-          <div className={styles.field}>
-            <label htmlFor="create-content-type">Inhaltstyp *</label>
-            <select
-              id="create-content-type"
-              value={manualDraft.values.contentType}
-              onChange={(event) =>
-                handlers.setContentType(
-                  event.target.value as (typeof CONTENT_TYPES)[number],
-                )
-              }
-            >
-              {CONTENT_TYPES.map((value) => (
-                <option key={value} value={value}>
-                  {value}
-                </option>
-              ))}
-            </select>
+          <div className={`${workspaceStyles.basicDataRow} ${workspaceStyles.basicDataRowTwo}`}>
+            <div className={styles.field}>
+              <label htmlFor="create-year">Jahr</label>
+              <input id="create-year" value={manualDraft.values.year} onChange={(event) => handlers.setYear(event.target.value)} placeholder="z. B. 2026" />
+            </div>
+            <div className={styles.field}>
+              <label htmlFor="create-max-episodes">Maximale Episoden</label>
+              <input id="create-max-episodes" value={manualDraft.values.maxEpisodes} onChange={(event) => handlers.setMaxEpisodes(event.target.value)} placeholder="z. B. 12" />
+            </div>
           </div>
 
-          <div className={styles.field}>
-            <label htmlFor="create-status">Status *</label>
-            <select
-              id="create-status"
-              value={manualDraft.values.status}
-              onChange={(event) =>
-                handlers.setStatus(
-                  event.target.value as (typeof ANIME_STATUSES)[number],
-                )
-              }
-            >
-              {ANIME_STATUSES.map((value) => (
-                <option key={value} value={value}>
-                  {value}
-                </option>
-              ))}
-            </select>
-          </div>
-
-          <div className={styles.field}>
-            <label htmlFor="create-year">Jahr</label>
-            <input
-              id="create-year"
-              value={manualDraft.values.year}
-              onChange={(event) => handlers.setYear(event.target.value)}
-              placeholder="z. B. 2026"
-            />
-          </div>
-
-          <div className={styles.field}>
-            <label htmlFor="create-max-episodes">Maximale Episoden</label>
-            <input
-              id="create-max-episodes"
-              value={manualDraft.values.maxEpisodes}
-              onChange={(event) => handlers.setMaxEpisodes(event.target.value)}
-              placeholder="z. B. 12"
-            />
-          </div>
-
-          <div className={styles.field}>
-            <label htmlFor="create-title-de">Titel DE</label>
-            <input
-              id="create-title-de"
-              value={manualDraft.values.titleDE}
-              onChange={(event) => handlers.setTitleDE(event.target.value)}
-            />
-          </div>
-
-          <div className={styles.field}>
-            <label htmlFor="create-title-en">Titel EN</label>
-            <input
-              id="create-title-en"
-              value={manualDraft.values.titleEN}
-              onChange={(event) => handlers.setTitleEN(event.target.value)}
-            />
+          <div className={`${workspaceStyles.basicDataRow} ${workspaceStyles.basicDataRowTwo}`}>
+            <div className={styles.field}>
+              <label htmlFor="create-title-de">Titel DE</label>
+              <input id="create-title-de" value={manualDraft.values.titleDE} onChange={(event) => handlers.setTitleDE(event.target.value)} />
+            </div>
+            <div className={styles.field}>
+              <label htmlFor="create-title-en">Titel EN</label>
+              <input id="create-title-en" value={manualDraft.values.titleEN} onChange={(event) => handlers.setTitleEN(event.target.value)} />
+            </div>
           </div>
 
           <div className={`${styles.field} ${createStyles.folderPathField}`}>
