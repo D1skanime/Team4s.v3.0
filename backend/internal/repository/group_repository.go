@@ -409,7 +409,9 @@ func (r *GroupRepository) GetGroupReleaseVersionCount(
 	return count, nil
 }
 
-// getOtherGroups retrieves other fansub groups that worked on this anime
+// getOtherGroups retrieves other fansub groups with an actual release on this anime.
+// An anime_fansub_groups row alone is only an assignment and does not imply a
+// collaboration or a published release.
 func (r *GroupRepository) getOtherGroups(
 	ctx context.Context,
 	animeID int64,
@@ -417,14 +419,17 @@ func (r *GroupRepository) getOtherGroups(
 ) ([]models.FansubGroupSummary, error) {
 	query := `
 		SELECT
-			fg.id,
+			DISTINCT fg.id,
 			fg.slug,
 			fg.name,
 			fg.logo_url
-		FROM anime_fansub_groups afg
-		JOIN fansub_groups fg ON fg.id = afg.fansub_group_id
-		WHERE afg.anime_id = $1 AND afg.fansub_group_id != $2
-		ORDER BY afg.is_primary DESC, fg.name ASC
+		FROM release_version_groups rvg
+		JOIN release_versions rev ON rev.id = rvg.release_version_id
+		JOIN fansub_releases fr ON fr.id = rev.release_id
+		JOIN episodes e ON e.id = fr.episode_id
+		JOIN fansub_groups fg ON fg.id = rvg.fansub_group_id
+		WHERE e.anime_id = $1 AND rvg.fansub_group_id != $2
+		ORDER BY fg.name ASC
 	`
 
 	rows, err := r.db.Query(ctx, query, animeID, excludeGroupID)

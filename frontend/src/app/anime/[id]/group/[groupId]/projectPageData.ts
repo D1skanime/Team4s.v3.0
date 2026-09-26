@@ -51,6 +51,7 @@ export interface PublicFansubProjectPageData extends PublicFansubProjectIDs {
   storyAvailable: boolean;
   hasReleases: boolean;
   navigationGroups: FansubGroupSummary[];
+  cooperationGroups: FansubGroupSummary[];
   fansubProjectNavigation: FansubProjectNavigation;
   breadcrumbItems: { label: string; href?: string }[];
   heroBackdropUrl: string | null;
@@ -199,7 +200,7 @@ export async function loadPublicFansubProjectPageData({
     animeFansubRelations,
     releaseVersionCount,
     profileDerived,
-    publicReleasePreviews,
+    publicReleasePreviewData,
     contributorsData,
     projectNotesHtml,
   ] = await Promise.all([
@@ -235,7 +236,7 @@ export async function loadPublicFansubProjectPageData({
       }
       return { canonicalProjectPath, fansubProjectNavigation };
     })(),
-    (async (): Promise<PublicReleasePreview[]> => {
+    (async (): Promise<{ previews: PublicReleasePreview[]; cooperationGroups: FansubGroupSummary[] }> => {
       // Selber canonicalProjectPath (selbes Profil-Promise), aber getrennt vom Release-Liste-try/catch.
       // Ist er bereits vorab aufgeloest (precomputed), wird kein zweiter Aufloese-Versuch gestartet.
       const canonicalProjectPath = precomputed
@@ -253,12 +254,15 @@ export async function loadPublicFansubProjectPageData({
             latestDetail = null;
           }
         }
-        return activityPage.items.map((release, index) =>
-          buildPublicReleasePreview({ animeID, groupID, release, detail: index === 0 ? latestDetail : null, canonicalProjectPath }),
-        );
+        return {
+          previews: activityPage.items.map((release, index) =>
+            buildPublicReleasePreview({ animeID, groupID, release, detail: index === 0 ? latestDetail : null, canonicalProjectPath }),
+          ),
+          cooperationGroups: activityPage.other_groups ?? [],
+        };
       } catch {
         /* Public release block degrades independently from the project shell. */
-        return [];
+        return { previews: [], cooperationGroups: [] };
       }
     })(),
     withFallback<GroupContributorsResponse>(() => getGroupContributors(animeID, groupID), { team_members: [], external_contributors: [] }),
@@ -266,6 +270,7 @@ export async function loadPublicFansubProjectPageData({
   ]);
 
   const { canonicalProjectPath, fansubProjectNavigation } = profileDerived;
+  const { previews: publicReleasePreviews, cooperationGroups } = publicReleasePreviewData;
 
   const hasTeamContent =
     contributorsData.team_members.length > 0 ||
@@ -344,6 +349,7 @@ export async function loadPublicFansubProjectPageData({
       storyAvailable,
       hasReleases,
       navigationGroups,
+      cooperationGroups,
       fansubProjectNavigation,
       breadcrumbItems,
       heroBackdropUrl,

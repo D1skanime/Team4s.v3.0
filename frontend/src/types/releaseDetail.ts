@@ -2,6 +2,7 @@
 // (snake_case JSON tags) für GET /anime/:id/group/:groupId/releases/:releaseVersionId (AO4-02).
 
 import type { ReleaseVersionMediaCategory } from "@/types/releaseVersionMedia";
+import type { FansubGroupSummary } from "@/types/fansub";
 
 export interface PublicReleaseContributor {
   fansub_group_id?: number;
@@ -123,6 +124,7 @@ export interface CursorPage<T> {
   items: T[];
   next_cursor: string | null;
   has_more: boolean;
+  other_groups?: FansubGroupSummary[];
 }
 
 export interface ReleaseImagesCursorPage extends CursorPage<PublicReleaseImage> {

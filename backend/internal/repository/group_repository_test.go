@@ -193,11 +193,8 @@ func TestGroupRepository_GetGroupReleases(t *testing.T) {
 	if data.Group.FansubID != group1.ID {
 		t.Errorf("expected group id %d, got %d", group1.ID, data.Group.FansubID)
 	}
-	if len(data.OtherGroups) != 1 {
-		t.Errorf("expected 1 other group, got %d", len(data.OtherGroups))
-	}
-	if data.OtherGroups[0].ID != group2.ID {
-		t.Errorf("expected other group id %d, got %d", group2.ID, data.OtherGroups[0].ID)
+	if len(data.OtherGroups) != 0 {
+		t.Errorf("expected no other release group when the second group has only an anime assignment, got %d", len(data.OtherGroups))
 	}
 
 	// Test: Pagination

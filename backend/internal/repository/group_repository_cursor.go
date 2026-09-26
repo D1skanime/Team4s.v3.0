@@ -22,6 +22,7 @@ type GroupReleasesCursorPage struct {
 	Items      []models.EpisodeReleaseSummary `json:"items"`
 	NextCursor *string                        `json:"next_cursor"`
 	HasMore    bool                           `json:"has_more"`
+	OtherGroups []models.FansubGroupSummary   `json:"other_groups"`
 }
 
 // GetGroupReleasesCursor liefert eine Seek-paginierte (Cursor-)Seite der
@@ -282,11 +283,15 @@ func (r *GroupRepository) GetGroupReleasesCursor(
 	}
 
 	page, nextCursor, hasMore := trimCursorPage(episodes, limit, cursorFn)
+	otherGroups, err := r.getOtherGroups(ctx, animeID, groupID)
+	if err != nil {
+		return nil, fmt.Errorf("load other release groups (%d,%d): %w", animeID, groupID, err)
+	}
 
 	return &GroupReleasesCursorPage{
 		Items:      page,
 		NextCursor: nextCursor,
 		HasMore:    hasMore,
+		OtherGroups: otherGroups,
 	}, nil
 }
-

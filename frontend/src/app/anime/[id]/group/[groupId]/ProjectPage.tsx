@@ -29,7 +29,7 @@ export function ProjectPage({ data }: ProjectPageProps) {
         heroStyle={data.heroStyle}
         infoPanelStyle={data.infoPanelStyle}
         breadcrumbItems={data.breadcrumbItems}
-        cooperationGroups={data.navigationGroups.filter((group) => group.id !== data.groupID)}
+        cooperationGroups={data.cooperationGroups}
         fansubProjectNavigation={data.fansubProjectNavigation}
         groupAssetsResponse={data.groupAssetsResponse}
         releaseVersionCount={data.releaseVersionCount}
