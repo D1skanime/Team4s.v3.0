@@ -12,6 +12,7 @@ interface ReleasesSectionProps {
   groupID: number
   canonicalProjectPath?: string | null
   releaseBackdropUrl?: string | null
+  releaseFallbackImageUrl?: string | null
 }
 
 /**
@@ -29,13 +30,14 @@ export function ReleasesSection({
   groupID,
   canonicalProjectPath,
   releaseBackdropUrl,
+  releaseFallbackImageUrl,
 }: ReleasesSectionProps) {
   const [latestRelease] = publicReleasePreviews
 
   return (
     <>
       {latestRelease ? (
-        <PublicReleaseBlock latestRelease={latestRelease} releases={[]} />
+        <PublicReleaseBlock latestRelease={latestRelease} releases={[]} fallbackImageUrl={releaseFallbackImageUrl} />
       ) : null}
       <div className={fansubSurfaceStyles.sectionBand} data-project-release-band>
         {releaseBackdropUrl ? (

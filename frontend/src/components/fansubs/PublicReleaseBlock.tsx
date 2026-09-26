@@ -60,6 +60,7 @@ interface PublicReleaseBlockProps {
   title?: string
   description?: string
   latestRelease?: PublicReleasePreview
+  fallbackImageUrl?: string | null
   releases: PublicReleasePreview[]
   layout?: 'auto' | 'mobile'
   emptyTitle?: string
@@ -181,7 +182,7 @@ function Timeline({ release }: { release: PublicReleasePreview }) {
   )
 }
 
-function FeaturedRelease({ release }: { release: PublicReleasePreview }) {
+function FeaturedRelease({ release, fallbackImageUrl }: { release: PublicReleasePreview; fallbackImageUrl?: string | null }) {
   const previewImages = (release.imagePreviews ?? []).filter((image) => image.id !== release.heroImage?.id)
   const previewNotes = release.notePreviews ?? []
   const contributors = release.contributors ?? []
@@ -192,10 +193,10 @@ function FeaturedRelease({ release }: { release: PublicReleasePreview }) {
     <Card variant="section" className={styles.featuredCard}>
       <div className={styles.featuredGrid}>
         <div className={styles.featuredImageFrame}>
-          {release.heroImage ? (
+          {release.heroImage || fallbackImageUrl ? (
             <Image
-              src={release.heroImage.src}
-              alt={release.heroImage.alt}
+              src={release.heroImage?.src ?? fallbackImageUrl ?? ''}
+              alt={release.heroImage?.alt ?? `Vorschau für ${release.episodeLabel}`}
               fill
               sizes="(max-width: 760px) 100vw, 420px"
               className={styles.featuredImage}
@@ -223,7 +224,7 @@ function FeaturedRelease({ release }: { release: PublicReleasePreview }) {
             </div>
           </div>
           <ReleaseStats release={release} />
-          <Timeline release={release} />
+          {release.timelineSegments.length > 0 ? <Timeline release={release} /> : null}
           <Button
             href={release.href}
             variant="secondary"
@@ -326,6 +327,7 @@ export function PublicReleaseBlock({
   title = 'Neuestes Release',
   description,
   latestRelease,
+  fallbackImageUrl,
   releases,
   layout = 'auto',
   emptyTitle = 'Noch keine Releases sichtbar',
@@ -336,7 +338,7 @@ export function PublicReleaseBlock({
   return (
     <section className={layout === 'mobile' ? `${styles.section} ${styles.sectionMobile}` : styles.section}>
       <SectionHeader title={title} description={description} underline />
-      {latestRelease ? <FeaturedRelease release={latestRelease} /> : null}
+      {latestRelease ? <FeaturedRelease release={latestRelease} fallbackImageUrl={fallbackImageUrl} /> : null}
       {releases.length > 0 ? (
         <div className={styles.releaseStack}>
           {releases.map((release) => <ReleaseRow key={release.id} release={release} />)}

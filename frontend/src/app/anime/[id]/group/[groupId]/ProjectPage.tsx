@@ -46,7 +46,8 @@ export function ProjectPage({ data }: ProjectPageProps) {
           animeID={data.animeID}
           groupID={data.groupID}
           canonicalProjectPath={data.canonicalProjectPath}
-          releaseBackdropUrl={data.heroBackdropUrl}
+      releaseBackdropUrl={data.heroBackdropUrl}
+      releaseFallbackImageUrl={data.posterImage}
         />
       ) : null}
       <BacklinksSection fansubSlug={data.group.fansub.slug} animeID={data.animeID} />
