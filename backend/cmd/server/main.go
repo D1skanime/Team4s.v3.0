@@ -294,7 +294,7 @@ func main() {
 		WithPermissionDeps(permissionSvc, auditLogRepo).
 		WithReleasePlaybackEntitlements(repository.NewReleasePlaybackEntitlementRepository(dbPool, authzRepo)).
 		WithProjectResolverRepo(repository.NewFansubProjectResolverRepository(dbPool, cfg.MediaStorageDir))
-	groupRepo := repository.NewGroupRepository(dbPool)
+	groupRepo := repository.NewGroupRepository(dbPool).WithMediaStorageDir(cfg.MediaStorageDir)
 	groupHandler := handlers.NewGroupHandler(groupRepo)
 	groupContributorsRepo := repository.NewGroupContributorsRepository(dbPool)
 	groupThemesRepo := repository.NewGroupThemesRepository(dbPool, cfg.MediaStorageDir)

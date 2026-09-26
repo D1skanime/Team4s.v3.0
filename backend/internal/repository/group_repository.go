@@ -15,11 +15,18 @@ import (
 )
 
 type GroupRepository struct {
-	db *pgxpool.Pool
+	db              *pgxpool.Pool
+	mediaStorageDir string
 }
 
 func NewGroupRepository(db *pgxpool.Pool) *GroupRepository {
 	return &GroupRepository{db: db}
+}
+
+// WithMediaStorageDir enables public URL resolution for release media thumbnails.
+func (r *GroupRepository) WithMediaStorageDir(mediaStorageDir string) *GroupRepository {
+	r.mediaStorageDir = mediaStorageDir
+	return r
 }
 
 // GetGroupDetail retrieves detailed information about a fansub group's work on an anime

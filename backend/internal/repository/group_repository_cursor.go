@@ -133,7 +133,23 @@ func (r *GroupRepository) GetGroupReleasesCursor(
 			NULLIF(BTRIM(rev.version), '') AS version_label,
 			COALESCE(rev.release_date, fr.release_date) AS release_date,
 			0::BIGINT AS screenshot_count,
-			NULL::TEXT AS thumbnail_url,
+			(
+				SELECT COALESCE(mf_thumb.path, mf_orig.path, ma.file_path)
+				FROM release_version_media rvm_preview
+				JOIN media_assets ma ON ma.id = rvm_preview.media_asset_id
+				LEFT JOIN media_files mf_thumb ON mf_thumb.media_id = ma.id AND mf_thumb.variant = 'thumb' AND mf_thumb.status = 'ready'
+				LEFT JOIN media_files mf_orig ON mf_orig.media_id = ma.id AND (mf_orig.variant = 'original' OR mf_orig.variant IS NULL) AND mf_orig.status = 'ready'
+				JOIN visibilities v_preview ON v_preview.id = ma.visibility_id
+				JOIN review_statuses rs_preview ON rs_preview.id = ma.review_status_id
+				WHERE rvm_preview.release_version_id = rev.id
+				  AND rvm_preview.deleted_at IS NULL
+				  AND rvm_preview.is_preview_candidate = TRUE
+				  AND ma.status = 'ready'
+				  AND v_preview.name = 'public'
+				  AND rs_preview.code = 'approved'
+				ORDER BY rvm_preview.sort_order ASC, rvm_preview.id ASC
+				LIMIT 1
+			) AS thumbnail_url,
 			(
 				SELECT rv.duration_seconds
 				FROM release_variants rv
@@ -217,6 +233,9 @@ func (r *GroupRepository) GetGroupReleasesCursor(
 			&lastActivityAt,
 		); err != nil {
 			return nil, fmt.Errorf("scan cursor episode release row: %w", err)
+		}
+		if ep.ThumbnailURL != nil {
+			ep.ThumbnailURL = publicMediaURLForPath(*ep.ThumbnailURL, r.mediaStorageDir)
 		}
 		if episodeID.Valid {
 			id := episodeID.Int64
