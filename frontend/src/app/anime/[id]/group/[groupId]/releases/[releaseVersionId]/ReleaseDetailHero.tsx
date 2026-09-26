@@ -9,7 +9,7 @@ type ReleaseDetailHeroProps = Pick<ReleaseDetailResponse,
   'episode_number' | 'episode_title' | 'title' | 'version' | 'groups' |
   'duration_seconds' | 'resolution' | 'container' | 'video_codec' | 'audio_codec' |
   'audio_language' | 'subtitle_tracks' | 'subtitle_type' |
-  'preview_image' | 'next'> & {
+  'preview_image' | 'previous' | 'next'> & {
     animeID: number
     groupID: number
     canonicalProjectPath?: string | null
@@ -45,7 +45,7 @@ export function ReleaseDetailHero(props: ReleaseDetailHeroProps) {
           animeID={props.animeID}
           groupID={props.groupID}
           canonicalProjectPath={props.canonicalProjectPath}
-          previous={null}
+          previous={props.previous}
           next={props.next}
         />
       </div>
