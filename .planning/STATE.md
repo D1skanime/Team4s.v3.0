@@ -1560,6 +1560,7 @@ Last activity: 2026-09-23
 
 | # | Description | Date | Commit | Directory |
 |---|-------------|------|--------|-----------|
+| 260926-6qn | Bibliothek-suchen-Button als Einzelaktion wiederhergestellt, redundante Discovery-Karte bleibt entfernt | 2026-09-26 | pending | [260926-6qn-anime-create-bibliothek-button](./quick/260926-6qn-anime-create-bibliothek-button/) |
 | 260926-6qm | Weitere redundante Anime-Create-Quelltexte entfernt, Bibliotheks-Button und funktionale Suche behalten | 2026-09-26 | pending | [260926-6qm-anime-create-source-copy](./quick/260926-6qm-anime-create-source-copy/) |
 | 260926-6ql | Bibliothekskarte entfernt und Anime-Create-Basisdaten an das Edit-Layout angeglichen | 2026-09-26 | pending | [260926-6ql-anime-create-wie-edit-layout](./quick/260926-6ql-anime-create-wie-edit-layout/) |
 | 260926-6qk | Redundante Prozess- und Erklärungstexte auf Anime erstellen entfernt, funktionale Beschriftungen behalten | 2026-09-26 | pending | [260926-6qk-anime-create-copy-aufräumen](./quick/260926-6qk-anime-create-copy-aufräumen/) |

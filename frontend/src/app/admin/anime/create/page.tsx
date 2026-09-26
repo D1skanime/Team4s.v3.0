@@ -5,6 +5,7 @@ import Link from "next/link";
 import { useSearchParams } from "next/navigation";
 
 import { PlatformAdminGate } from "@/components/auth/PlatformAdminGate";
+import { Button } from "@/components/ui";
 import { FormField } from "@/components/ui/FormField";
 import { Textarea } from "@/components/ui/Textarea";
 import styles from "../../admin.module.css";
@@ -105,6 +106,12 @@ function AdminAnimeCreateContent() {
 
   const sourceSection = (
     <>
+      <div className={styles.actionsRow}>
+        <Button href="/admin/anime/create/library" variant="primary">
+          Bibliothek durchsuchen
+        </Button>
+      </div>
+
       <div className={createStyles.providerGrid}>
         <CreateAniSearchIntakeCard
           anisearchID={anisearch.input}
