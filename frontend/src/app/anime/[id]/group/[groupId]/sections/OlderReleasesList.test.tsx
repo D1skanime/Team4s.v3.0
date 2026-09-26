@@ -292,11 +292,11 @@ describe('OlderReleasesList (AO4-12/AO4-21/AO4-25)', () => {
     render(<OlderReleasesList animeID={1} groupID={2} />)
 
     await waitFor(() => expect(screen.getAllByText('Folge 1').length).toBeGreaterThan(0))
-    // Desktop-Zweig: Titel ist ein Link, Timeline-Segment direkt sichtbar, kein Accordion-Toggle.
+    // Desktop-Zweig: kompakte Karte mit Titel, Metadaten und direktem Pfeil-Link.
     expect(screen.getByRole('link', { name: 'Folge 1' })).not.toBeNull()
-    const karaLink = screen.getByRole('link', { name: 'Viper OP' })
-    expect(within(karaLink).getByText('Viper OP')).not.toBeNull()
-    expect(screen.getByRole('link', { name: 'Release öffnen' })).not.toBeNull()
+    expect(screen.getAllByRole('link').filter((link) => link.getAttribute('href') === '/anime/1/group/2/releases/10')).toHaveLength(3)
+    expect(screen.getByText('Episode 1 · Version')).not.toBeNull()
+    expect(screen.queryByRole('button', { name: /Karas? anzeigen/ })).toBeNull()
     expect(screen.queryByRole('button', { name: /Karas? anzeigen/ })).toBeNull()
     expect(screen.getByTestId('release-list-glass-card').className).toContain('heroCard')
     expect(screen.getByTestId('release-list-glass-card').className).toContain('releaseGlassCard')

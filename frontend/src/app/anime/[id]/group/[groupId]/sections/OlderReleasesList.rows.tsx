@@ -37,13 +37,6 @@ function buildKaraHref(detailHref: string, segmentID: number): string {
   return `${detailHref}?kara=${segmentID}&autoplay=1#op-ed-middle`
 }
 
-function parseTimeToSeconds(value?: string | null): number | null {
-  if (!value) return null
-  const parts = value.split(':').map((part) => Number.parseFloat(part))
-  if (parts.length !== 3 || parts.some((part) => Number.isNaN(part))) return null
-  return Math.max(0, Math.round(parts[0] * 3600 + parts[1] * 60 + parts[2]))
-}
-
 function segmentClassName(segmentType: string): string {
   const type = segmentType.toUpperCase()
   if (type === 'OP') return `${styles.segmentPill} ${styles.segmentOp}`
@@ -51,42 +44,6 @@ function segmentClassName(segmentType: string): string {
   if (type === 'INSERT') return `${styles.segmentPill} ${styles.segmentInsert}`
   if (type === 'KARA') return `${styles.segmentPill} ${styles.segmentKara}`
   return styles.segmentPill
-}
-
-function segmentLineColor(segmentType: string): string {
-  const type = segmentType.toUpperCase()
-  if (type === 'OP') return 'rgba(68, 255, 164, 0.72)'
-  if (type === 'ED') return 'rgba(44, 205, 255, 0.72)'
-  if (type === 'INSERT' || type === 'KARA') return 'rgba(188, 92, 255, 0.74)'
-  return 'rgba(83, 102, 136, 0.44)'
-}
-
-function segmentMetrics(segment: ReleaseTimelineSegment, durationSeconds?: number | null): { left: number; width: number } {
-  const start = parseTimeToSeconds(segment.start_time) ?? 0
-  const end = parseTimeToSeconds(segment.end_time)
-  const inferredDuration = Math.max(durationSeconds ?? 0, end ?? 0, start + 1)
-  const rawWidth = end != null ? (Math.max(end - start, 1) / inferredDuration) * 100 : 18
-  const width = Math.min(Math.max(rawWidth, 14), 34)
-  const left = Math.min(Math.max((start / inferredDuration) * 100, 0), 100 - width)
-  return { left, width }
-}
-
-function segmentPositionStyle(segment: ReleaseTimelineSegment, durationSeconds?: number | null): CSSProperties {
-  const { left, width } = segmentMetrics(segment, durationSeconds)
-  return { '--segment-left': `${left}%`, '--segment-width': `${width}%` } as CSSProperties
-}
-
-function timelineTrackStyle(segments: ReleaseTimelineSegment[], durationSeconds?: number | null): CSSProperties {
-  const metrics = segments
-    .map((segment) => ({ segment, ...segmentMetrics(segment, durationSeconds) }))
-    .sort((left, right) => left.left - right.left)
-  const stops = ['rgba(68, 255, 164, 0.2) 0%']
-  metrics.forEach(({ segment, left, width }) => {
-    const color = segmentLineColor(segment.type)
-    stops.push(`${color} ${Math.max(0, left - 1.5)}%`, `${color} ${Math.min(100, left + width + 1.5)}%`)
-  })
-  stops.push('rgba(44, 205, 255, 0.2) 100%')
-  return { '--timeline-gradient': `linear-gradient(90deg, ${stops.join(', ')})` } as CSSProperties
 }
 
 interface RowProps {
@@ -98,52 +55,41 @@ interface RowProps {
 
 export function DesktopReleaseRow({ animeID, groupID, episode, canonicalProjectPath }: RowProps) {
   const detailHref = buildFansubReleaseHref({ animeID, groupID, releaseVersionID: episode.id, canonicalProjectPath })
+  const contextLabel = episode.title?.trim() || 'Unbenanntes Release'
+  const versionLabel = versionOnlyLabel(episode.version_label) || 'Version'
+
   return (
-    <Card variant="flat" className={styles.row}>
-      <div className={styles.rowHeader}>
-        <div className={styles.rowMain}>
-          <div className={styles.rowTitleLine}>
-            <Link href={detailHref} className={styles.rowTitle}>{episodeLabel(episode)}</Link>
-            <span className={styles.rowTitleDivider} aria-hidden="true">|</span>
-            <span className={styles.rowVersion}>{versionOnlyLabel(episode.version_label)}</span>
-            <span className={styles.rowTitleDivider} aria-hidden="true">|</span>
-            <span className={styles.rowMeta}>{episode.title?.trim() ?? ''}</span>
-            <span className={styles.rowCount}><ImageIcon size={14} aria-hidden="true" />{episode.images_count ?? 0} Bilder</span>
-            <span className={styles.rowTitleDivider} aria-hidden="true">|</span>
-            <span className={styles.rowCount}><FileText size={14} aria-hidden="true" />{episode.notes_count ?? 0} Texte</span>
-          </div>
+    <Card variant="flat" className={styles.desktopReleaseCard}>
+      <Link href={detailHref} className={styles.desktopReleaseImageLink} aria-label={episodeLabel(episode) + ' öffnen'}>
+        {episode.thumbnail_url ? (
+          <Image
+            src={resolvePublicApiUrl(episode.thumbnail_url)}
+            alt={'Vorschau zu ' + episodeLabel(episode)}
+            width={160}
+            height={90}
+            unoptimized
+            className={styles.desktopReleaseImage}
+          />
+        ) : (
+          <span className={styles.desktopReleasePlaceholder} aria-hidden="true">
+            <ImageIcon size={22} />
+          </span>
+        )}
+      </Link>
+      <div className={styles.desktopReleaseBody}>
+        <Link href={detailHref} className={styles.desktopReleaseTitle}>{episodeLabel(episode)}</Link>
+        <p className={styles.desktopReleaseMeta}>{contextLabel} · {versionLabel}</p>
+        <div className={styles.desktopReleaseCounts}>
+          <span><ImageIcon size={14} aria-hidden="true" />{episode.images_count ?? 0} Bilder</span>
+          <span><FileText size={14} aria-hidden="true" />{episode.notes_count ?? 0} Texte</span>
         </div>
       </div>
-      <div className={styles.timelineActionRow}>
-        <div className={styles.timelinePreview}>
-          <div className={styles.timelineTrack} style={timelineTrackStyle(episode.timeline_segments ?? [], episode.duration_seconds)}>
-            {(episode.timeline_segments ?? []).map((segment) => (
-              <Link
-                key={segment.id}
-                href={buildKaraHref(detailHref, segment.id)}
-                className={segmentClassName(segment.type)}
-                style={segmentPositionStyle(segment, episode.duration_seconds)}
-                aria-label={`${segment.title} auf der Release-Seite abspielen`}
-              >
-                <span className={styles.segmentType}>{segment.title}</span>
-              </Link>
-            ))}
-          </div>
-        </div>
-        <Button
-          href={detailHref}
-          variant="subtle"
-          size="sm"
-          leftIcon={<Eye size={15} aria-hidden="true" />}
-          className={styles.releaseOpenAction}
-        >
-          Release öffnen
-        </Button>
-      </div>
+      <Link href={detailHref} className={styles.desktopReleaseArrow} aria-label={episodeLabel(episode) + ' öffnen'}>
+        <ChevronRight size={20} aria-hidden="true" />
+      </Link>
     </Card>
   )
 }
-
 function KaraGroup({
   title,
   segments,

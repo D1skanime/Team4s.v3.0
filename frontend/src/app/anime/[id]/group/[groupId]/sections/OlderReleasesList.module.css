@@ -20,6 +20,116 @@
   background: transparent;
 }
 
+
+.desktopReleaseGrid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 10px;
+}
+
+.desktopReleaseCard {
+  display: grid;
+  grid-template-columns: 124px minmax(0, 1fr) 36px;
+  align-items: center;
+  gap: 14px;
+  min-width: 0;
+  padding: 10px;
+  border: 1px solid rgba(255, 255, 255, 0.52);
+  border-radius: var(--radius-sm);
+  background: rgba(255, 255, 255, 0.34);
+  box-shadow: 0 4px 16px rgba(30, 50, 80, 0.08);
+  backdrop-filter: blur(10px) saturate(1.05);
+}
+
+.desktopReleaseImageLink,
+.desktopReleaseImage,
+.desktopReleasePlaceholder {
+  display: block;
+  width: 124px;
+  height: 70px;
+  border-radius: var(--radius-sm);
+}
+
+.desktopReleaseImage,
+.desktopReleasePlaceholder {
+  object-fit: cover;
+}
+
+.desktopReleasePlaceholder {
+  display: grid;
+  place-items: center;
+  color: var(--color-text-secondary);
+  background: rgba(255, 255, 255, 0.34);
+  border: 1px solid rgba(255, 255, 255, 0.58);
+}
+
+.desktopReleaseBody {
+  display: grid;
+  gap: 5px;
+  min-width: 0;
+}
+
+.desktopReleaseTitle {
+  overflow: hidden;
+  color: var(--color-text-primary);
+  font-size: 15px;
+  font-weight: 800;
+  text-decoration: none;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.desktopReleaseTitle:hover {
+  text-decoration: underline;
+}
+
+.desktopReleaseMeta {
+  overflow: hidden;
+  margin: 0;
+  color: var(--color-text-secondary);
+  font-size: 12px;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.desktopReleaseCounts {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px 12px;
+  color: var(--color-text-secondary);
+  font-size: 12px;
+}
+
+.desktopReleaseCounts span {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  white-space: nowrap;
+}
+
+.desktopReleaseCounts svg {
+  color: var(--accent-primary);
+}
+
+.desktopReleaseArrow {
+  display: grid;
+  place-items: center;
+  width: 34px;
+  height: 34px;
+  color: var(--accent-primary);
+  border: 1px solid rgba(80, 110, 160, 0.16);
+  border-radius: 999px;
+  background: rgba(255, 255, 255, 0.48);
+  transition: background 120ms ease, transform 120ms ease;
+}
+
+.desktopReleaseArrow:hover,
+.desktopReleaseArrow:focus-visible {
+  background: rgba(255, 255, 255, 0.78);
+  transform: translateX(2px);
+  outline: none;
+}
+
 .row {
   --release-first-col: 108px;
   --release-second-col: 72px;
@@ -469,5 +579,11 @@
     flex-wrap: wrap;
     gap: 6px 12px;
     width: 100%;
+  }
+}
+
+@media (max-width: 900px) and (min-width: 769px) {
+  .desktopReleaseGrid {
+    grid-template-columns: 1fr;
   }
 }

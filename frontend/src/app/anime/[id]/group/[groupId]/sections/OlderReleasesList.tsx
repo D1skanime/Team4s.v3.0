@@ -102,7 +102,7 @@ export function OlderReleasesList({ animeID, groupID, canonicalProjectPath }: Ol
               })}
             </div>
           ) : (
-            <div className={styles.timelinePreview}>
+            <div className={styles.desktopReleaseGrid}>
               {sortedItems.map((episode) => (
                 <DesktopReleaseRow
                   key={episode.id}
