@@ -54,11 +54,6 @@ export function CreateAniSearchIntakeCard({
         <div className={createStyles.resultsTitleBlock}>
           <p className={createStyles.resultsEyebrow}>AniSearch</p>
           <h2 className={createStyles.resultsTitle}>AniSearch</h2>
-          <p className={createStyles.resultsSubtitle}>Basisdaten und eindeutige ID</p>
-          <p className={createStyles.resultsText}>
-            AniSearch liefert Titel, Beschreibung, Typ, Jahr, Episodenzahl, Genres
-            und Tags.
-          </p>
         </div>
       </div>
 

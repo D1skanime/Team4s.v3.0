@@ -233,9 +233,6 @@ function AdminAnimeCreateContent() {
         <div className={workspaceStyles.sectionHeader}>
           <p className={workspaceStyles.sectionEyebrow}>Pflichtangaben</p>
           <h2 className={workspaceStyles.sectionTitle}>Basisdaten</h2>
-          <p className={workspaceStyles.sectionText}>
-            Titel, Typ und Status bestimmen den Kern des Eintrags.
-          </p>
         </div>
 
         <div className={styles.gridTwo}>
@@ -377,10 +374,6 @@ function AdminAnimeCreateContent() {
           <h2 className={workspaceStyles.sectionTitle}>
             Genre, Tags und Beschreibung
           </h2>
-          <p className={workspaceStyles.sectionText}>
-            Genres ordnen den Titel grob ein. Tags helfen bei Suche, Themen und
-            späterer Pflege.
-          </p>
         </div>
 
         <div className={styles.grid}>
@@ -425,7 +418,6 @@ function AdminAnimeCreateContent() {
           <FormField
             label="Beschreibung"
             htmlFor="create-description"
-            hint="Kurz, eindeutig und ohne Prozess-Text."
           >
             <Textarea
               id="create-description"
@@ -473,7 +465,7 @@ function AdminAnimeCreateContent() {
       <SharedAnimeEditorWorkspace
         mode="create"
         headerTitle="Anime erstellen"
-        headerIntro="Schritt für Schritt zum perfekten Ergebnis."
+        headerIntro=""
         sourceContent={sourceSection}
         assetsContent={assetsSection}
         detailsContent={detailsSection}

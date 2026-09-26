@@ -65,7 +65,7 @@ describe("AdminAnimeCreatePage", () => {
     expect(markup).toContain("Typ *");
     expect(markup).toContain("Beschreibung");
     expect(markup).toContain("Cover");
-    expect(markup).toContain("Prüfe und ergänze die Assets");
+    expect(markup).not.toContain("Prüfe und ergänze die Assets");
     expect(markup).not.toContain("frontend/public/covers");
   });
 

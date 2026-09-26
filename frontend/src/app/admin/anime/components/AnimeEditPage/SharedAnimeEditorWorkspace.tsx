@@ -32,16 +32,14 @@ const SECTION_COPY: Record<
 > = {
   create: {
     sourceTitle: 'Anime finden',
-    sourceSub:
-      'Suche den Anime in AniSearch und wähle anschließend den passenden Ordner in Jellyfin aus.',
-    assetsSub:
-      'Prüfe und ergänze die Assets. Du kannst sie aus Jellyfin übernehmen, manuell hochladen oder online suchen.',
+    sourceSub: '',
+    assetsSub: '',
     stepSourceLabel: 'Anime finden',
     stepSourceSub: 'AniSearch & Jellyfin',
     stepReviewLabel: 'Prüfen & Anlegen',
-    stepReviewSub: 'Abschließende Kontrolle',
+    stepReviewSub: '',
     reviewTitle: 'Prüfen & Anlegen',
-    reviewSub: 'Abschließende Kontrolle.',
+    reviewSub: '',
   },
   edit: {
     sourceTitle: 'Quelle & Kontext',
@@ -131,7 +129,6 @@ export function SharedAnimeEditorWorkspace({
           <span className={createStyles.sectionNumber}>3</span>
           <div>
             <h2 className={createStyles.sectionTitle}>Details</h2>
-          {mode === 'create' ? <p className={createStyles.sectionSub}>Ergänze die Metadaten und Beschreibung.</p> : null}
           </div>
         </div>
         {detailsContent}

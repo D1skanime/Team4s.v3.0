@@ -33,7 +33,7 @@ export function CreateReviewSection({
   onSubmit,
   submitLabel = "Anime erstellen",
   submittingLabel = "Wird erstellt…",
-  note = "Noch nicht erstellt – der Anime wird erst nach dem Klick auf „Anime erstellen“ angelegt.",
+  note,
   hideSubmitButton = false,
 }: CreateReviewSectionProps) {
   const canCreate = hasTitle && hasCover;
@@ -68,7 +68,7 @@ export function CreateReviewSection({
         </div>
       ) : null}
 
-      <p className={createStyles.reviewNote}>{note}</p>
+      {note ? <p className={createStyles.reviewNote}>{note}</p> : null}
 
       {errorMessage ? <div className={styles.errorBox}>{errorMessage}</div> : null}
       {successMessage ? <div className={styles.successBox}>{successMessage}</div> : null}

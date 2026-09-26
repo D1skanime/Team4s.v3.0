@@ -23,9 +23,6 @@ export function DiscoveryEntryCard() {
         </Button>
       }
     >
-      <p className={createStyles.resultsText}>
-        Jellyfin-Bibliothek durchsuchen und offene Titel gezielt anlegen.
-      </p>
     </Card>
   );
 }

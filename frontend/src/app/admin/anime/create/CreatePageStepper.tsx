@@ -6,7 +6,7 @@ const STEPS = [
   { id: 1, label: "Anime finden", sub: "AniSearch & Jellyfin" },
   { id: 2, label: "Assets", sub: "Cover, Banner, Logo & Hintergründe" },
   { id: 3, label: "Details", sub: "Infos & Beschreibung" },
-  { id: 4, label: "Prüfen & Anlegen", sub: "Abschließende Kontrolle" },
+  { id: 4, label: "Prüfen & Anlegen", sub: "" },
 ] as const;
 
 interface CreatePageStepperProps {
