@@ -25,7 +25,7 @@ export function StorySection({ story, projectNotesHtml }: StorySectionProps) {
 
   return (
     <div id="story" className={styles.storySection}>
-      <SectionHeader title="Geschichte des Fansub-Projekts" />
+      <SectionHeader title="Geschichte des Fansub-Projekts" titleClassName={styles.storySectionTitle} />
       <article className={styles.projectStoryArticle}>
         {bodyHtml || bodyText ? (
           <div className={isCollapsible ? contentClassName : styles.projectStoryContent}>
