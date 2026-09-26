@@ -57,7 +57,7 @@ export function ProjectMemberNotesSection({
         counter={<span className={pageStyles.sectionCount}>{count}</span>}
       />
       <p className={pageStyles.sectionIntro}>
-        Alle öffentlichen Textbeiträge dieses Members zu diesem Projekt.
+        Alle öffentlichen Textbeiträge dieses Fansub-Members zu diesem Projekt.
       </p>
       {error ? (
         <p className={styles.error}>Die Textbeiträge konnten nicht geladen werden.</p>
