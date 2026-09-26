@@ -106,7 +106,7 @@ function AdminAnimeCreateContent() {
 
   const sourceSection = (
     <>
-      <div className={styles.actionsRow}>
+      <div className={createStyles.sourceToolbar}>
         <Button href="/admin/anime/create/library" variant="primary">
           Bibliothek durchsuchen
         </Button>
