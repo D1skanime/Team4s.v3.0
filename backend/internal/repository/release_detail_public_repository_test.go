@@ -113,6 +113,7 @@ func TestGetPublicReleaseDetail_ResponseFieldsPresent(t *testing.T) {
 		"segments",
 		"previous",
 		"next",
+		"other_releases",
 	}
 	for _, fragment := range required {
 		if !strings.Contains(content, fragment) {

@@ -3,13 +3,14 @@
 import type { ReleaseDetailResponse } from '@/types/releaseDetail'
 
 import { ReleaseNavigation } from './ReleaseNavigation'
+import { ReleaseVersionSwitcher } from './ReleaseVersionSwitcher'
 import styles from './page.module.css'
 
 type ReleaseDetailHeroProps = Pick<ReleaseDetailResponse,
   'episode_number' | 'episode_title' | 'title' | 'version' | 'groups' |
   'duration_seconds' | 'resolution' | 'container' | 'video_codec' | 'audio_codec' |
   'audio_language' | 'subtitle_tracks' | 'subtitle_type' |
-  'preview_image' | 'previous' | 'next'> & {
+  'preview_image' | 'previous' | 'next' | 'other_releases'> & {
     animeID: number
     groupID: number
     canonicalProjectPath?: string | null
@@ -36,6 +37,7 @@ export function ReleaseDetailHero(props: ReleaseDetailHeroProps) {
         <h1 className={styles.heroTitle}>{props.episode_title ?? props.title}</h1>
         {props.episode_title && props.title !== props.episode_title ? <p className={styles.heroReleaseTitle}>{props.title}</p> : null}
         <p className={styles.heroGroupLine}>{groupLine}</p>
+        <ReleaseVersionSwitcher animeID={props.animeID} releases={props.other_releases ?? []} />
       </div>
     </div>
     </div>

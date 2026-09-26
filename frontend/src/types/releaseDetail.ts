@@ -85,6 +85,7 @@ export interface PublicReleaseNavigationTarget {
   episode_title: string | null;
   version: string;
   group_id: number;
+  group_name?: string;
 }
 
 export interface ReleaseDetailResponse {
@@ -94,6 +95,7 @@ export interface ReleaseDetailResponse {
   title: string;
   version: string;
   groups: PublicReleaseGroup[];
+  other_releases?: PublicReleaseNavigationTarget[];
   release_date: string | null;
   duration_seconds: number | null;
   resolution: string | null;

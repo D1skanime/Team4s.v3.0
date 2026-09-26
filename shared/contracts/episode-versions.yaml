@@ -344,6 +344,7 @@ types:
     title: string
     version: string
     groups: PublicReleaseGroup[]
+    other_releases: PublicReleaseNavigationTarget[]
     release_date: datetime | null
     duration_seconds: int32 | null
     resolution: string | null
@@ -365,6 +366,13 @@ types:
     slug: string
     name: string
     logo_url: string | null
+  PublicReleaseNavigationTarget:
+    release_version_id: int64
+    episode_number: string
+    episode_title: string | null
+    version: string
+    group_id: int64
+    group_name: string | null
   PublicReleaseSubtitleTrack:
     language: string | null
     label: string

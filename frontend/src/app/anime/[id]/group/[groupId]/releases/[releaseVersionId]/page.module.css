@@ -105,6 +105,46 @@
 .hero + section { margin-top: -24px; }
 .heroGroupLine { margin: 0; color: var(--color-text-secondary); font-size: 16px; font-weight: 400; }
 .heroReleaseTitle { margin: 0; color: var(--color-text-primary); font-size: 16px; font-weight: 700; }
+.releaseSwitcher {
+  display: grid;
+  gap: 8px;
+  margin-top: 8px;
+}
+.releaseSwitcherLabel {
+  color: var(--color-text-secondary);
+  font-size: 12px;
+  font-weight: 700;
+}
+.releaseSwitcherLinks {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+.releaseSwitcherLink {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  padding: 7px 10px;
+  border: 1px solid rgba(53, 111, 191, 0.3);
+  border-radius: 9px;
+  background: rgba(255, 255, 255, 0.52);
+  color: var(--accent-deep);
+  font-size: 13px;
+  font-weight: 700;
+  text-decoration: none;
+  transition: background-color .16s ease, border-color .16s ease, transform .16s ease;
+}
+.releaseSwitcherLink:hover,
+.releaseSwitcherLink:focus-visible {
+  border-color: var(--accent-primary);
+  background: rgba(255, 255, 255, 0.82);
+  transform: translateY(-1px);
+}
+.releaseSwitcherVersion {
+  color: var(--color-text-secondary);
+  font-size: 12px;
+  font-weight: 600;
+}
 
 .heroImageShell {
   display: flex;

@@ -117,6 +117,7 @@ type PublicReleaseNavigationTarget struct {
 	EpisodeTitle     *string `json:"episode_title"`
 	Version          string  `json:"version"`
 	GroupID          int64   `json:"group_id"`
+	GroupName        string  `json:"group_name,omitempty"`
 }
 
 // PublicReleaseDetail ist das aggregierte Antwort-DTO fuer
@@ -129,6 +130,7 @@ type PublicReleaseDetail struct {
 	Title               string                           `json:"title"`
 	Version             string                           `json:"version"`
 	Groups              []PublicReleaseGroup             `json:"groups"`
+	OtherReleases       []PublicReleaseNavigationTarget  `json:"other_releases"`
 	ReleaseDate         *time.Time                       `json:"release_date"`
 	DurationSeconds     *int32                           `json:"duration_seconds"`
 	Resolution          *string                          `json:"resolution"`
@@ -154,6 +156,7 @@ type PublicReleaseDetail struct {
 // releaseDetailHeader haelt die Kopf-Daten einer Release-Version (Schritt 1+2).
 type releaseDetailHeader struct {
 	ReleaseVersionID int64
+	EpisodeID       int64
 	EpisodeNumber    string
 	EpisodeTitle     *string
 	Title            string
@@ -220,6 +223,10 @@ func (r *ReleaseDetailPublicRepository) GetPublicReleaseDetail(
 	if err != nil {
 		return nil, err
 	}
+	otherReleases, err := r.loadOtherEpisodeReleases(ctx, header.EpisodeID, releaseVersionID)
+	if err != nil {
+		return nil, err
+	}
 	var preview *PublicReleaseImage
 	for i := range images {
 		if images[i].IsPreviewCandidate {
@@ -236,6 +243,7 @@ func (r *ReleaseDetailPublicRepository) GetPublicReleaseDetail(
 		Title:            header.Title,
 		Version:          header.Version,
 		Groups:           groups,
+		OtherReleases:    otherReleases,
 		ReleaseDate:      header.ReleaseDate,
 		DurationSeconds:  technical.DurationSeconds, Resolution: technical.Resolution, Container: technical.Container,
 		VideoCodec: technical.VideoCodec, AudioCodec: technical.AudioCodec, AudioLanguage: technical.AudioLanguage,
@@ -262,6 +270,7 @@ func (r *ReleaseDetailPublicRepository) loadReleaseHeader(
 	err := r.db.QueryRow(ctx, fmt.Sprintf(`
 		SELECT
 			rv.id,
+			e.id,
 			COALESCE(e.episode_number, ''),
 			NULLIF(TRIM(e.title), ''),
 			%s AS title,
@@ -280,6 +289,7 @@ func (r *ReleaseDetailPublicRepository) loadReleaseHeader(
 		"FROM release_version_groups rvg2 JOIN fansub_groups fg2 ON fg2.id=rvg2.fansub_group_id "+
 		"WHERE rvg2.release_version_id=rv.id)")), releaseVersionID, animeID, groupID).Scan(
 		&header.ReleaseVersionID,
+		&header.EpisodeID,
 		&header.EpisodeNumber,
 		&header.EpisodeTitle,
 		&header.Title,
@@ -293,6 +303,50 @@ func (r *ReleaseDetailPublicRepository) loadReleaseHeader(
 		return nil, fmt.Errorf("release detail: load header (anime=%d group=%d version=%d): %w", animeID, groupID, releaseVersionID, err)
 	}
 	return &header, nil
+}
+
+// loadOtherEpisodeReleases returns alternate release versions for the same
+// neutral episode. The current version is excluded so the UI can hide the
+// switcher entirely when there is nothing else to choose.
+func (r *ReleaseDetailPublicRepository) loadOtherEpisodeReleases(
+	ctx context.Context,
+	episodeID int64,
+	currentReleaseVersionID int64,
+) ([]PublicReleaseNavigationTarget, error) {
+	rows, err := r.db.Query(ctx, `
+		SELECT DISTINCT ON (rv.id)
+			rv.id,
+			COALESCE(e.episode_number, ''),
+			NULLIF(TRIM(e.title), ''),
+			COALESCE(NULLIF(TRIM(rv.version), ''), 'v1'),
+			rvg.fansub_group_id,
+			fg.name
+		FROM release_versions rv
+		JOIN fansub_releases fr ON fr.id = rv.release_id
+		JOIN episodes e ON e.id = fr.episode_id
+		JOIN release_version_groups rvg ON rvg.release_version_id = rv.id
+		JOIN fansub_groups fg ON fg.id = rvg.fansub_group_id
+		WHERE e.id = $1
+		  AND rv.id <> $2
+		ORDER BY rv.id, fg.name ASC, rvg.fansub_group_id ASC
+	`, episodeID, currentReleaseVersionID)
+	if err != nil {
+		return nil, fmt.Errorf("release detail: load other episode releases (episode=%d version=%d): %w", episodeID, currentReleaseVersionID, err)
+	}
+	defer rows.Close()
+
+	items := make([]PublicReleaseNavigationTarget, 0, 4)
+	for rows.Next() {
+		var item PublicReleaseNavigationTarget
+		if err := rows.Scan(&item.ReleaseVersionID, &item.EpisodeNumber, &item.EpisodeTitle, &item.Version, &item.GroupID, &item.GroupName); err != nil {
+			return nil, fmt.Errorf("release detail: scan other episode release: %w", err)
+		}
+		items = append(items, item)
+	}
+	if err := rows.Err(); err != nil {
+		return nil, fmt.Errorf("release detail: iterate other episode releases: %w", err)
+	}
+	return items, nil
 }
 
 // --- Cursor-Pagination (AO4-03/AO4-24) ---
