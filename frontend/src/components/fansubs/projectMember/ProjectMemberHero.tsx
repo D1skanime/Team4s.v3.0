@@ -83,8 +83,8 @@ export function ProjectMemberHero({
         <Button href={projectPath} variant="subtle" size="sm" leftIcon={<ArrowLeft size={14} aria-hidden="true" />}>
           Zurück zum Projekt
         </Button>
-        <Button href={`/members/${memberSlug}`} aria-label="Vollständiges Memberprofil" variant="subtle" size="sm" rightIcon={<ArrowRight size={14} aria-hidden="true" />}>
-          Memberprofil
+        <Button href={`/members/${memberSlug}`} aria-label="Vollständiges Fansubberprofil" variant="subtle" size="sm" rightIcon={<ArrowRight size={14} aria-hidden="true" />}>
+          Fansubberprofil
         </Button>
       </>}
     />

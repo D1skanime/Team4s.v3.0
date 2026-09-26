@@ -44,7 +44,7 @@ describe('ProjectMemberHero', () => {
     expect(metrics.textContent).toContain('12 Beiträge')
     expect(metrics.textContent).toContain('2 Medien')
     expect(metrics.textContent).not.toContain('Releases')
-    expect(screen.getByRole('link', { name: /Vollständiges Memberprofil/ }).getAttribute('href')).toBe('/members/example')
+    expect(screen.getByRole('link', { name: /Vollständiges Fansubberprofil/ }).getAttribute('href')).toBe('/members/example')
     expect(screen.getByRole('link', { name: /Zurück zum Projekt/ }).getAttribute('href')).toBe(props.projectPath)
   })
   it('uses the supplied banner before the supplied cover', () => {
