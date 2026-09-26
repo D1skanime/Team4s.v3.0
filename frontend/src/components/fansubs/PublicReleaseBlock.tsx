@@ -186,7 +186,6 @@ function FeaturedRelease({ release, fallbackImageUrl }: { release: PublicRelease
   const previewImages = (release.imagePreviews ?? []).filter((image) => image.id !== release.heroImage?.id)
   const previewNotes = release.notePreviews ?? []
   const contributors = release.contributors ?? []
-  const releaseVersion = versionOnlyLabel(release.versionLabel)
   const releaseTitle = releaseMetaLabel(release)
 
   return (
@@ -203,37 +202,29 @@ function FeaturedRelease({ release, fallbackImageUrl }: { release: PublicRelease
               unoptimized
             />
           ) : null}
-          <div className={styles.featuredImageOverlay}>
-            {release.versionLabel ? <Badge variant="muted">{release.versionLabel}</Badge> : null}
-          </div>
         </div>
 
         <div className={styles.featuredBody}>
-          <div>
-            <p className={styles.releaseEyebrow}>Neuestes Fansub-Release</p>
-            <div className={styles.releaseTitleLine}>
-              <h3 className={styles.releaseTitle}>{release.episodeLabel}</h3>
-              <span className={styles.releaseTitleDivider} aria-hidden="true">
-                |
-              </span>
-              <span className={styles.releaseVersionLine}>{releaseVersion}</span>
-              <span className={styles.releaseTitleDivider} aria-hidden="true">
-                |
-              </span>
-              <span className={styles.releaseContextLine}>{releaseTitle}</span>
+          <div className={styles.featuredHeader}>
+            <div className={styles.featuredTitleBlock}>
+              <p className={styles.releaseEyebrow}>Neuestes Fansub-Release</p>
+              <div className={styles.featuredTitleLine}>
+                <h3 className={styles.releaseTitle}>{release.episodeLabel}</h3>
+                <span className={styles.featuredContextLine}>{releaseTitle}</span>
+              </div>
             </div>
+            <Button
+              href={release.href}
+              variant="secondary"
+              size="sm"
+              leftIcon={<Eye size={15} aria-hidden="true" />}
+              className={styles.featuredCta}
+            >
+              Vollständiges Release ansehen
+            </Button>
           </div>
           <ReleaseStats release={release} />
           {release.timelineSegments.length > 0 ? <Timeline release={release} /> : null}
-          <Button
-            href={release.href}
-            variant="secondary"
-            size="sm"
-            leftIcon={<Eye size={15} aria-hidden="true" />}
-            className={styles.featuredCta}
-          >
-            Vollständiges Release ansehen
-          </Button>
           {previewImages.length > 0 ? (
             <div className={styles.previewGrid}>
               {previewImages.map((image) => {
