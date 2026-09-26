@@ -317,6 +317,15 @@
   padding: 24px 0;
 }
 
+.storySection :global(.sectionHeader) {
+  margin-bottom: 14px;
+}
+
+.storySection :global(.sectionTitle) {
+  font-size: clamp(1.35rem, 2.2vw, 1.75rem);
+  line-height: 1.2;
+}
+
 .projectStoryArticle {
   display: grid;
   gap: 14px;

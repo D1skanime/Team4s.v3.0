@@ -124,7 +124,7 @@ describe('PublicReleaseBlock', () => {
     expect(screen.queryByText('00:01:42')).toBeNull()
     expect(screen.queryByText('Hauptinhalt')).toBeNull()
     expect(screen.getByText('Kurzer öffentlicher Release-Einblick.')).toBeTruthy()
-    const cta = screen.getByRole('link', { name: /Vollständiges Release ansehen/ })
+    const cta = screen.getByRole('link', { name: /Release ansehen/ })
     const note = screen.getByText('Kurzer öffentlicher Release-Einblick.')
     expect(cta.compareDocumentPosition(note) & Node.DOCUMENT_POSITION_FOLLOWING).toBeTruthy()
     expect(screen.getAllByRole('link', { name: /Regenzeichen öffnen/ }).every((link) => link.getAttribute('href') === '#op')).toBe(true)

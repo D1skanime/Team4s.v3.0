@@ -1,5 +1,3 @@
-import Link from 'next/link'
-
 import fansubSurfaceStyles from '@/app/fansubs/[slug]/page.module.css'
 import { PublicReleaseBlock, type PublicReleasePreview } from '@/components/fansubs/PublicReleaseBlock'
 
@@ -53,11 +51,6 @@ export function ReleasesSection({
             groupID={groupID}
             canonicalProjectPath={canonicalProjectPath}
           />
-          <div className={styles.releasesCta}>
-            <Link href={`/anime/${animeID}/group/${groupID}/releases`} className={styles.releasesButton}>
-              Alle Releases ansehen
-            </Link>
-          </div>
         </div>
       </div>
     </>

@@ -220,7 +220,7 @@ function FeaturedRelease({ release, fallbackImageUrl }: { release: PublicRelease
               leftIcon={<Eye size={15} aria-hidden="true" />}
               className={styles.featuredCta}
             >
-              Vollständiges Release ansehen
+              Release ansehen
             </Button>
           </div>
           <ReleaseStats release={release} />
