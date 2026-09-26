@@ -25,6 +25,24 @@ function versionOnlyLabel(label?: string | null): string {
   return label?.match(/\bv(?:ersion)?\.?\s*\d+[a-z0-9._-]*/i)?.[0] ?? ''
 }
 
+function segmentDisplayLabel(type: string): string {
+  switch (type.toUpperCase()) {
+    case 'OP': return 'OP'
+    case 'ED': return 'ED'
+    case 'MIDDLE': return 'Middle'
+    case 'KARA':
+    case 'INSERT':
+    case 'IN': return 'Karaoke'
+    default: return type
+  }
+}
+
+function startingSegments(episode: EpisodeReleaseSummary): ReleaseTimelineSegment[] {
+  return (episode.timeline_segments ?? []).filter((segment) => (
+    segment.start_episode == null || segment.start_episode === episode.episode_number
+  ))
+}
+
 function karaGroup(segmentType: string): string {
   const type = segmentType.toUpperCase()
   if (type === 'OP') return 'Opening'
@@ -79,6 +97,15 @@ export function DesktopReleaseRow({ animeID, groupID, episode, canonicalProjectP
       <div className={styles.desktopReleaseBody}>
         <Link href={detailHref} className={styles.desktopReleaseTitle}>{episodeLabel(episode)}</Link>
         <p className={styles.desktopReleaseMeta}>{contextLabel} · {versionLabel}</p>
+        {startingSegments(episode).length > 0 ? (
+          <div className={styles.desktopReleaseSegments} aria-label="Beginnende Segmente">
+            {startingSegments(episode).map((segment) => (
+              <span key={segment.id} className={styles.desktopReleaseSegment} title={segment.title}>
+                {segmentDisplayLabel(segment.type)}
+              </span>
+            ))}
+          </div>
+        ) : null}
         <div className={styles.desktopReleaseCounts}>
           <span><ImageIcon size={14} aria-hidden="true" />{episode.images_count ?? 0} Bilder</span>
           <span><FileText size={14} aria-hidden="true" />{episode.notes_count ?? 0} Texte</span>

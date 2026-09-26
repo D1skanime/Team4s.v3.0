@@ -29,7 +29,7 @@
 
 .desktopReleaseCard {
   display: grid;
-  grid-template-columns: 124px minmax(0, 1fr) 36px;
+  grid-template-columns: 124px minmax(0, 1fr) 36px !important;
   align-items: center;
   gap: 14px;
   min-width: 0;
@@ -90,6 +90,27 @@
   font-size: 12px;
   text-overflow: ellipsis;
   white-space: nowrap;
+}
+
+.desktopReleaseSegments {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 5px;
+}
+
+.desktopReleaseSegment {
+  display: inline-flex;
+  align-items: center;
+  min-height: 20px;
+  padding: 2px 7px;
+  border: 1px solid rgba(68, 115, 185, 0.22);
+  border-radius: 999px;
+  background: rgba(222, 237, 255, 0.58);
+  color: var(--accent-primary);
+  font-size: 10px;
+  font-weight: 800;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
 }
 
 .desktopReleaseCounts {
