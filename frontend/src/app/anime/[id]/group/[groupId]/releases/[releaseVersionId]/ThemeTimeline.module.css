@@ -66,7 +66,7 @@
 
 .segmentGeometry {
   position: absolute;
-  top: calc(var(--track-top) - 3px);
+  top: calc(var(--track-top) - 5px);
   left: var(--segment-left);
   width: var(--segment-width);
   height: 32px;
