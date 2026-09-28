@@ -1312,6 +1312,65 @@
   }
 }
 
+.fansubEditReleaseCardHeader {
+  grid-template-columns: minmax(0, 1fr) auto;
+  gap: 0.75rem;
+  align-items: center;
+}
+
+.fansubEditReleaseCardToggle {
+  display: grid;
+  grid-template-columns: auto minmax(0, 1fr) auto;
+  align-items: center;
+  gap: 0.7rem;
+  min-width: 0;
+  border: 0;
+  background: transparent;
+  color: inherit;
+  cursor: pointer;
+  padding: 0;
+  text-align: left;
+}
+
+.fansubEditReleaseHeaderActions {
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+  gap: 0.5rem;
+}
+
+.fansubEditReleaseHeaderActions :global(a),
+.fansubEditReleaseHeaderActions :global(button) {
+  white-space: nowrap;
+}
+
+@media (max-width: 760px) {
+  .fansubEditReleaseCardHeader {
+    grid-template-columns: 1fr;
+    align-items: stretch;
+  }
+
+  .fansubEditReleaseCardToggle {
+    grid-template-columns: auto minmax(0, 1fr) auto;
+    grid-template-areas: "badge title disclosure" "chips chips chips";
+  }
+
+  .fansubEditReleaseEpisodeBadge { grid-area: badge; }
+  .fansubEditReleaseCardTitle { grid-area: title; }
+  .fansubEditReleaseCardChips { grid-area: chips; justify-content: flex-start; }
+  .fansubEditReleaseCardDisclosure { grid-area: disclosure; }
+
+  .fansubEditReleaseHeaderActions {
+    justify-content: stretch;
+  }
+
+  .fansubEditReleaseHeaderActions :global(a),
+  .fansubEditReleaseHeaderActions :global(button) {
+    flex: 1 1 auto;
+    justify-content: center;
+  }
+}
+
 .fansubEditLinksHeader {
   display: flex;
   justify-content: space-between;

@@ -133,21 +133,23 @@ export function ReleaseRowDetails({
             <article
               key={`${releaseGroup.key}:${release.release_id}:${releaseIndex}`}
               className={styles.fansubEditReleaseItem}
+              aria-label={`Episode ${release.episode_number || release.release_id}: ${title}`}
             >
-              <button
-                type="button"
-                className={styles.fansubEditReleaseCardHeader}
-                onClick={() => onToggleRelease(release)}
-                aria-expanded={expanded}
-                aria-label={
-                  expanded
-                    ? `Episode ${release.episode_number || release.release_id} einklappen`
-                    : `Episode ${release.episode_number || release.release_id} ausklappen`
-                }
-              >
-                <span className={styles.fansubEditReleaseEpisodeBadge}>
-                  EP {release.episode_number || "?"}
-                </span>
+              <div className={styles.fansubEditReleaseCardHeader}>
+                <button
+                  type="button"
+                  className={styles.fansubEditReleaseCardToggle}
+                  onClick={() => onToggleRelease(release)}
+                  aria-expanded={expanded}
+                  aria-label={
+                    expanded
+                      ? `Episode ${release.episode_number || release.release_id} einklappen`
+                      : `Episode ${release.episode_number || release.release_id} ausklappen`
+                  }
+                >
+                  <span className={styles.fansubEditReleaseEpisodeBadge}>
+                    EP {release.episode_number || "?"}
+                  </span>
                   <span className={styles.fansubEditReleaseCardTitle}>
                     <strong>{title}</strong>
                     <span>{releaseFansubDisplayName(release)} · Versionen: {release.version_count}</span>
@@ -160,14 +162,44 @@ export function ReleaseRowDetails({
                     {hasThemes ? "Themes" : "Keine Themes"}
                   </Badge>
                 </span>
-                <span className={styles.fansubEditReleaseCardDisclosure} aria-hidden="true">
-                  {expanded ? (
-                    <ChevronDown size={22} strokeWidth={2.4} />
-                  ) : (
-                    <ChevronRight size={22} strokeWidth={2.4} />
-                  )}
-                </span>
-              </button>
+                  <span className={styles.fansubEditReleaseCardDisclosure} aria-hidden="true">
+                    {expanded ? (
+                      <ChevronDown size={22} strokeWidth={2.4} />
+                    ) : (
+                      <ChevronRight size={22} strokeWidth={2.4} />
+                    )}
+                  </span>
+                </button>
+                <div className={styles.fansubEditReleaseHeaderActions}>
+                  {releaseVersionTools ? (
+                    <Button
+                      href={releaseVersionTools.href}
+                      variant="primary"
+                      size="sm"
+                      leftIcon={<ExternalLink size={16} />}
+                    >
+                      {releaseVersionTools.label} öffnen
+                    </Button>
+                  ) : hasOwnProjectAssignment && canOpenReleaseDrawer ? (
+                    <Button
+                      type="button"
+                      variant="primary"
+                      size="sm"
+                      leftIcon={<ExternalLink size={16} />}
+                      onClick={() =>
+                        onOpenReleaseDrawer({
+                          release,
+                          animeID: releaseGroup.anime.id,
+                          fansubGroupID: release.fansub_group_id,
+                          contextKey: releaseGroup.key,
+                        })
+                      }
+                    >
+                      Notizen & Medien öffnen
+                    </Button>
+                  ) : null}
+                </div>
+              </div>
 
               {expanded ? (
                 <div className={styles.fansubEditReleaseExpanded}>
@@ -265,31 +297,6 @@ export function ReleaseRowDetails({
                         }
                       >
                         Besetzung bearbeiten
-                      </Button>
-                    ) : null}
-                    {releaseVersionTools ? (
-                      <Button
-                        href={releaseVersionTools.href}
-                        variant="ghost"
-                        leftIcon={<ExternalLink size={16} />}
-                      >
-                        {releaseVersionTools.label} öffnen
-                      </Button>
-                    ) : hasOwnProjectAssignment && canOpenReleaseDrawer ? (
-                      <Button
-                        type="button"
-                        variant="ghost"
-                        leftIcon={<ExternalLink size={16} />}
-                        onClick={() =>
-                          onOpenReleaseDrawer({
-                            release,
-                            animeID: releaseGroup.anime.id,
-                            fansubGroupID: release.fansub_group_id,
-                            contextKey: releaseGroup.key,
-                          })
-                        }
-                      >
-                        Notizen & Medien öffnen
                       </Button>
                     ) : null}
                   </div>

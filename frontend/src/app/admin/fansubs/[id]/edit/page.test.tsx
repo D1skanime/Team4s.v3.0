@@ -1184,12 +1184,12 @@ describe('AdminFansubEditPage token-free wiring', () => {
 
     fireEvent.click(await screen.findByRole('button', { name: 'Episode 1 ausklappen' }))
     expect(
-      (await screen.findByRole('link', { name: 'Notizen & Medien öffnen' })).getAttribute('href'),
+      (await within(screen.getByRole('article', { name: 'Episode 1: Erste Folge' })).findByRole('link', { name: 'Notizen & Medien öffnen' })).getAttribute('href'),
     ).toContain('/admin/episode-versions/6201/edit?tab=notizen')
 
     fireEvent.click(await screen.findByRole('button', { name: 'Episode 2 ausklappen' }))
     expect(
-      (await screen.findByRole('link', { name: 'Notizen & Medien öffnen' })).getAttribute('href'),
+      (await within(screen.getByRole('article', { name: 'Episode 2: Zweite Folge' })).findByRole('link', { name: 'Notizen & Medien öffnen' })).getAttribute('href'),
     ).toContain('/admin/episode-versions/6301/edit?tab=notizen')
     expect(apiMocks.getAdminRelease).not.toHaveBeenCalled()
   })
