@@ -168,6 +168,13 @@ func openRVMExecFixture(t *testing.T) *pgxpool.Pool {
 			deleted_at TIMESTAMPTZ NULL,
 			deleted_by_user_id BIGINT NULL REFERENCES users(id)
 		);
+		CREATE TABLE release_version_media_highlights (
+			release_version_media_id BIGINT PRIMARY KEY REFERENCES release_version_media(id) ON DELETE CASCADE,
+			highlight_order INT NOT NULL DEFAULT 0 CHECK (highlight_order >= 0),
+			created_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
+			updated_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
+		);
+
 		CREATE TABLE anime (id BIGINT PRIMARY KEY);
 		CREATE TABLE episodes (id BIGINT PRIMARY KEY, anime_id BIGINT NOT NULL REFERENCES anime(id));
 		CREATE TABLE fansub_releases (id BIGINT PRIMARY KEY, episode_id BIGINT NOT NULL REFERENCES episodes(id));

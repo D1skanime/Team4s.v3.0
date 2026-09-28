@@ -233,7 +233,7 @@ func (r *MediaRepository) ListReleaseVersionMedia(
 			rvm.caption,
 			rvm.sort_order,
 			rvm.is_preview_candidate,
-			highlight.id IS NOT NULL,
+			highlight.release_version_media_id IS NOT NULL,
 			highlight.highlight_order,
 			rvm.uploaded_by_user_id,
 			v.name,
@@ -286,12 +286,13 @@ func (r *MediaRepository) ListReleaseVersionMedia(
 	var items []ReleaseVersionMediaItem
 	for rows.Next() {
 		var item ReleaseVersionMediaItem
+		var highlightOrder *int
 		var visibilityName *string
 		var reviewStatusCode *string
 		if err := rows.Scan(
 			&item.ID, &item.ReleaseVersionID, &item.FansubGroupID, &item.MediaAssetID,
 			&item.Category, &item.Title, &item.Caption, &item.SortOrder,
-			&item.IsPreviewCandidate, &item.IsHighlight, &item.HighlightOrder, &item.UploadedByUserID,
+			&item.IsPreviewCandidate, &item.IsHighlight, &highlightOrder, &item.UploadedByUserID,
 			&visibilityName, &reviewStatusCode,
 			&item.CreatedAt, &item.UpdatedAt,
 			&item.SourceRevision, &item.ReviewState, &item.LastActivityAt,
@@ -300,6 +301,7 @@ func (r *MediaRepository) ListReleaseVersionMedia(
 		); err != nil {
 			return nil, fmt.Errorf("scan release_version_media row: %w", err)
 		}
+		item.HighlightOrder = highlightOrder
 		if visibilityName != nil {
 			trimmed := strings.TrimSpace(*visibilityName)
 			if apiVal, ok := visibilityDBToAPI[trimmed]; ok {
