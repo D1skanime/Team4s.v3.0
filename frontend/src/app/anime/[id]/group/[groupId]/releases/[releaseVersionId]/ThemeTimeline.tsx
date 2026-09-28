@@ -254,18 +254,10 @@ export function ThemeTimeline({
               variant="flat"
               className={segmentClassName(segment, `${styles.segmentCard} ${selected ? styles.segmentCardSelected : ''}`)}
             >
-              <SelectionSurface
-                segment={segment}
-                selected={selected}
-                playable={playable}
-                onSelect={() => selectSegment(segment)}
-                episodeNumber={episodeNumber}
-                projectPath={projectPath}
-              />
               {playable ? (
                 <Button
                   leftIcon={<Play size={16} aria-hidden="true" />}
-                  className={styles.playButton}
+                  className={styles.playButton + ' ' + styles.cardActionButton}
                   onClick={() => playSegment(segment)}
                 >
                   Kara abspielen
@@ -275,8 +267,8 @@ export function ThemeTimeline({
                 <Button
                   href="/login"
                   variant="secondary"
-                  leftIcon={<Lock size={16} aria-hidden="true" data-testid={`kara-login-lock-${segment.theme_segment_id}`} />}
-                  className={styles.playButton}
+                  leftIcon={<Lock size={16} aria-hidden="true" data-testid={'kara-login-lock-' + segment.theme_segment_id} />}
+                  className={styles.playButton + ' ' + styles.cardActionButton}
                 >
                   Anmelden zum Abspielen
                 </Button>
@@ -284,6 +276,14 @@ export function ThemeTimeline({
               {segment.readiness !== 'ready' ? (
                 <span className={styles.unavailable}>Noch nicht abspielbar</span>
               ) : null}
+              <SelectionSurface
+                segment={segment}
+                selected={selected}
+                playable={playable}
+                onSelect={() => selectSegment(segment)}
+                episodeNumber={episodeNumber}
+                projectPath={projectPath}
+              />
             </Card>
           )
         })}

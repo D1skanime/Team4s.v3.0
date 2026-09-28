@@ -300,6 +300,10 @@
   width: max-content;
 }
 
+.cardActionButton {
+  justify-self: end;
+}
+
 .liveRegion {
   position: absolute;
   width: 1px;
@@ -389,6 +393,10 @@
   .playButton {
     width: 100%;
     min-height: 48px;
+  }
+
+  .cardActionButton {
+    justify-self: stretch;
   }
 }
 
