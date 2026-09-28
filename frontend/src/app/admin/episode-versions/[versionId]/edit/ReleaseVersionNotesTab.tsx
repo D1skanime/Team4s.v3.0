@@ -4,6 +4,7 @@ import { useEffect, useMemo, useState } from 'react'
 import { ChevronDown, Info, Pencil } from 'lucide-react'
 
 import { RichTextEditor } from '@/components/editor'
+import { RichTextRenderer } from '@/components/editor/RichTextRenderer'
 import { Badge, Button, EmptyState, ErrorState, FormField, Input, LoadingState } from '@/components/ui'
 import {
   bulkUpsertReleaseVersionNotes,
@@ -35,6 +36,7 @@ interface ReleaseVersionNotesTabProps {
 type NoteFormState = {
   id: number
   bodyJson: unknown | null
+  bodyHtml: string | null
   title: string
   visibility: 'public' | 'internal'
   status: 'draft' | 'published' | 'archived' | 'deleted'
@@ -105,6 +107,7 @@ function buildInitialState(
     state[key] = {
       id: existing?.id ?? 0,
       bodyJson: existing?.bodyJson ?? null,
+      bodyHtml: existing?.bodyHtml ?? null,
       title: existing?.title ?? '',
       visibility: existing?.visibility ?? 'internal',
       status: existing?.status ?? 'draft',
@@ -326,6 +329,7 @@ export function ReleaseVersionNotesTab({ versionId, memberIdFilter = null, showA
             ...state,
             id: matchingSaved.id,
             bodyJson: matchingSaved.bodyJson,
+            bodyHtml: matchingSaved.bodyHtml ?? null,
             visibility: matchingSaved.visibility,
             status: matchingSaved.status,
             sourceRevision: matchingSaved.sourceRevision ?? null,
@@ -641,9 +645,13 @@ function RoleNoteField({ memberRole, catalog, state, isSaving, isRecentlySaved, 
         <>
           <div className={styles.notePreview}>
             {state?.title ? <p className={styles.notePreviewTitle}>{state.title}</p> : null}
-            <p className={plainText ? styles.notePreviewText : styles.notePreviewEmpty}>
-              {plainText || 'Noch keine Notiz hinterlegt.'}
-            </p>
+            {state?.bodyHtml?.trim() ? (
+              <RichTextRenderer bodyHtml={state.bodyHtml} />
+            ) : (
+              <p className={plainText ? styles.notePreviewText : styles.notePreviewEmpty}>
+                {plainText || 'Noch keine Notiz hinterlegt.'}
+              </p>
+            )}
             {hasSavedNote ? (
               <div className={styles.notePreviewMeta}>
                 {state?.reviewState === 'pending' ? <Badge variant="warning">In Prüfung</Badge> : null}
