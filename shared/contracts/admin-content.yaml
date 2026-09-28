@@ -726,6 +726,78 @@ endpoints:
       status: 200
       type: ReleaseVersionMediaUploadResponse
 
+  - name: admin-release-version-media-reorder
+    method: POST
+    path: /api/v1/admin/release-versions/:versionId/media/reorder
+    auth:
+      required: true
+      header:
+        name: Authorization
+        format: Bearer <signed token>
+    path_params:
+      - name: versionId
+        type: int64
+        minimum: 1
+    request_body:
+      required: true
+      type: ReleaseVersionMediaReorderRequest
+    response:
+      status: 200
+      type: StatusResponse
+    errors: [400, 401, 403, 404, 500]
+    notes:
+      - Uses the dedicated release_version_media.reorder action.
+      - Preview state and highlight state are not changed.
+
+  - name: admin-release-version-media-highlight
+    method: PUT
+    path: /api/v1/admin/release-versions/:versionId/media/:relationId/highlight
+    auth:
+      required: true
+      header:
+        name: Authorization
+        format: Bearer <signed token>
+    path_params:
+      - name: versionId
+        type: int64
+        minimum: 1
+      - name: relationId
+        type: int64
+        minimum: 1
+    request_body:
+      required: true
+      type: ReleaseVersionMediaHighlightRequest
+    response:
+      status: 200
+      type: ReleaseVersionMediaHighlightResponse
+    errors: [400, 401, 403, 404, 500]
+    notes:
+      - Uses the dedicated release_version_media.highlight action.
+      - Highlight state is independent from is_preview_candidate.
+
+  - name: admin-release-version-media-highlights-reorder
+    method: POST
+    path: /api/v1/admin/release-versions/:versionId/media/highlights/reorder
+    auth:
+      required: true
+      header:
+        name: Authorization
+        format: Bearer <signed token>
+    path_params:
+      - name: versionId
+        type: int64
+        minimum: 1
+    request_body:
+      required: true
+      type: ReleaseVersionMediaHighlightReorderRequest
+    response:
+      status: 200
+      type: StatusResponse
+    errors: [400, 401, 403, 404, 409, 500]
+    notes:
+      - Requires the complete set of highlighted relation IDs for the release version.
+      - Multiple highlights per category coexist and are reordered independently of preview.
+
   - name: admin-release-version-media-patch
     method: PATCH
     path: /api/v1/admin/release-versions/:versionId/media/:relationId
@@ -1465,6 +1537,8 @@ types:
     caption: string | null
     sort_order: int32
     is_preview_candidate: boolean
+    is_highlight: boolean
+    highlight_order: int32 | null (present when highlighted)
     visibility: "string | null (optional, enum: intern | oeffentlich)"
     review_status: "string | null (optional, enum: in_pruefung | freigegeben | abgelehnt | archiviert | entfernt)"
     source_revision: int64 | null
@@ -1492,6 +1566,24 @@ types:
     thumbnail_url: string (optional)
     error_code: string (optional)
     message: string (optional)
+  ReleaseVersionMediaReorderRequest:
+    items: ReleaseVersionMediaReorderItem[]
+  ReleaseVersionMediaReorderItem:
+    id: int64
+    sort_order: int32
+  ReleaseVersionMediaHighlightRequest:
+    highlighted: boolean (required)
+    highlight_order: int32 (optional, minimum 0)
+  ReleaseVersionMediaHighlightReorderRequest:
+    items: ReleaseVersionMediaHighlightReorderItem[]
+  ReleaseVersionMediaHighlightReorderItem:
+    id: int64
+    highlight_order: int32 (minimum 0)
+  ReleaseVersionMediaHighlightResponse:
+    status: string
+    is_highlight: boolean
+    highlight_order: int32 | null
+
   ReleaseVersionMediaPatchRequest:
     title: "string | null (optional; missing unchanged; null or trimmed empty clears; maximum 200 Unicode characters)"
     caption: string | null

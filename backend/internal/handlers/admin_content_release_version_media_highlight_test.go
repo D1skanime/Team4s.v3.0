@@ -1,9 +1,13 @@
 package handlers
 
 import (
+	"encoding/json"
 	"net/http"
 	"net/http/httptest"
+	"strings"
 	"testing"
+
+	"team4s.v3/backend/internal/repository"
 
 	"github.com/gin-gonic/gin"
 	"github.com/stretchr/testify/require"
@@ -42,4 +46,18 @@ func TestReleaseVersionMediaHighlightHandlersRequireAuthentication(t *testing.T)
 			require.Equal(t, http.StatusUnauthorized, recorder.Code)
 		})
 	}
+}
+
+func TestReleaseVersionMediaDTOIncludesIndependentHighlightFields(t *testing.T) {
+	order := 3
+	payload, err := json.Marshal(repository.ReleaseVersionMediaItem{
+		IsPreviewCandidate: true,
+		IsHighlight:        true,
+		HighlightOrder:     &order,
+	})
+	require.NoError(t, err)
+	require.Contains(t, string(payload), "\"is_preview_candidate\":true")
+	require.Contains(t, string(payload), "\"is_highlight\":true")
+	require.Contains(t, string(payload), "\"highlight_order\":3")
+	require.False(t, strings.Contains(string(payload), "\"is_highlight\":false"))
 }
