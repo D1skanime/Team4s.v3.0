@@ -179,11 +179,11 @@ export function ReleaseThemeDrawerSection({
                     </Button>
                   ) : null}
                   {themeSelectedLocked ? (
-                    <p className={styles.fansubEditHint}>
-                      {themeSelectedCard.release_asset_upload_locked
-                        ? "Dieses Theme gilt für einen Episodenbereich. Der Upload wird am Segmentstart verwaltet, nicht an dieser Folge."
-                        : "Global/Jellyfin gesetzt - keine Fansub-Überschreibung in diesem Schritt."}
-                    </p>
+                    themeSelectedCard.release_asset_upload_locked ? (
+                      <p className={styles.fansubEditHint}>
+                        Dieses Theme gilt für einen Episodenbereich. Der Upload wird am Segmentstart verwaltet, nicht an dieser Folge.
+                      </p>
+                    ) : null
                   ) : !canManageReleaseThemeAssets ? (
                     <p className={styles.fansubEditHint}>
                       Du kannst die Theme-Zuordnung ansehen. Hochladen oder
