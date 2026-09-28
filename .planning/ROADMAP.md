@@ -2189,13 +2189,13 @@ Plans:
 **Depends on:** Phase 168
 **Verbindliche Quellen:** .planning/phases/169-release-medienrechte-projektleiter-preview-highlights-und-bi/169-CONTEXT.md, 169-RESEARCH.md
 **UI hint:** yes
-**Plans:** 5 plans created
+**Plans:** 1/5 plans executed
 
 Plans:
 
 **Wave 1**
 
-- [ ] 169-01-PLAN.md — Datenmodell, API-Verträge und projektbezogene Medienrechte für Preview, Highlights und Reihenfolge
+- [x] 169-01-PLAN.md — Datenmodell, API-Verträge und projektbezogene Medienrechte für Preview, Highlights und Reihenfolge
 
 **Wave 2** *(blocked on Wave 1 completion)*
 
