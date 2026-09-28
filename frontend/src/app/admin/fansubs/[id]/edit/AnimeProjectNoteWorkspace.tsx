@@ -202,7 +202,9 @@ export function AnimeProjectNoteWorkspace({ fansubId, animeId, expanded, canEdit
           }
         />
         {saveError ? <p style={{ color: 'var(--color-error)', marginTop: '0.5rem' }}>{saveError}</p> : null}
-        <RichTextRenderer bodyHtml={note.bodyHtml} />
+        <div style={{ marginTop: '0.65rem' }}>
+          <RichTextRenderer bodyHtml={note.bodyHtml} />
+        </div>
       </div>
     )
   }
