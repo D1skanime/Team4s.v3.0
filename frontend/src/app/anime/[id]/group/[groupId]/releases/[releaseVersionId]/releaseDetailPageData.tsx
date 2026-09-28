@@ -85,6 +85,16 @@ export async function ReleaseDetailPageContent({ animeID, groupID, releaseVersio
 
   const pageStyle = atmosphereUrl ? ({ '--release-page-backdrop': `url("${atmosphereUrl}")` } as CSSProperties) : undefined
   return <main className={`${styles.page} ${atmosphereUrl ? styles.pageWithBackdrop : ''}`} style={pageStyle}>
+    {atmosphereUrl && (
+      <svg className={styles.atmosphereFilter} aria-hidden="true" focusable="false">
+        <defs>
+          <filter id="release-atmosphere-distortion" x="-10%" y="-10%" width="120%" height="120%">
+            <feTurbulence type="fractalNoise" baseFrequency="0.008 0.018" numOctaves="2" seed="7" result="atmosphereNoise" />
+            <feDisplacementMap in="SourceGraphic" in2="atmosphereNoise" scale="10" xChannelSelector="R" yChannelSelector="G" />
+          </filter>
+        </defs>
+      </svg>
+    )}
     <div className={styles.pageHeaderRow}>
       <Breadcrumbs items={breadcrumbItems} textHalo />
       <Button href={projectHref} variant="secondary" size="sm" leftIcon={<ArrowLeft size={15} aria-hidden="true" />}>
