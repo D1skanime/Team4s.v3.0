@@ -30,6 +30,8 @@ export interface PublicReleaseImage {
   /** Anzeigename des Hochladers, null wenn kein Hochlader hinterlegt/aufloesbar (AO4-18 Autor-Chip). */
   author_name: string | null;
   is_preview_candidate: boolean;
+  is_highlight: boolean;
+  highlight_order: number | null;
 }
 
 export interface PublicReleaseNote {

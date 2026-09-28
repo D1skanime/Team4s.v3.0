@@ -61,9 +61,13 @@ export function ReleaseGallery({ animeID, groupID, releaseVersionID, initialImag
   const visibleCount = expanded ? items.length : Math.min(collapsedLimit, items.length)
   const groupNamesByID = new Map(groups.map(group => [group.id, group.name]))
   const featuredImage = items.find(image => image.is_preview_candidate) ?? items[0] ?? null
+  const highlightedItems = items
+    .filter(image => image.is_highlight && image.id !== featuredImage?.id)
+    .sort((left, right) => (left.highlight_order ?? Number.MAX_SAFE_INTEGER) - (right.highlight_order ?? Number.MAX_SAFE_INTEGER) || left.id - right.id)
+  const regularItems = items.filter(image => image.id !== featuredImage?.id && !image.is_highlight)
   const orderedItems = featuredImage
-    ? [featuredImage, ...items.filter(image => image.id !== featuredImage.id)]
-    : items
+    ? [featuredImage, ...highlightedItems, ...regularItems]
+    : [...highlightedItems, ...regularItems]
   const visibleItems = orderedItems.slice(0, visibleCount)
   const remaining = Math.max(0, total - visibleCount)
 
@@ -116,6 +120,8 @@ export function ReleaseGallery({ animeID, groupID, releaseVersionID, initialImag
         <p className={styles.caption}>{image.title?.trim() ? <strong>{title}</strong> : title}</p>
         {image.title?.trim() && image.caption?.trim() ? <p className={styles.caption}>{image.caption}</p> : null}
         <div className={styles.metaRow}>
+          {image.is_preview_candidate ? <Badge variant="info">Vorschau</Badge> : null}
+          {image.is_highlight ? <Badge variant="success">Highlight</Badge> : null}
           <Badge variant="muted">{CATEGORY_LABELS[image.category]}</Badge>
           <span>Hochgeladen von {image.author_name ?? 'Unbekannt'}</span>
           {sourceGroupName ? <span>{sourceGroupName}</span> : null}

@@ -17374,7 +17374,7 @@ components:
           nullable: true
     PublicReleaseImage:
       type: object
-      required: [id, category, is_preview_candidate]
+      required: [id, category, is_preview_candidate, is_highlight]
       properties:
         id:
           type: integer
@@ -17408,6 +17408,15 @@ components:
         is_preview_candidate:
           type: boolean
           description: True only for the selected, public and approved release-version preview.
+        is_highlight:
+          type: boolean
+          description: True only when the release-version media relation has an eligible public highlight row.
+        highlight_order:
+          type: integer
+          format: int32
+          minimum: 0
+          nullable: true
+          description: Independent public highlight order; null when the relation is not highlighted.
     PublicReleaseNote:
       type: object
       required: [id, member_id, member_name, member_avatar_url, role_label, body_html, created_at]
