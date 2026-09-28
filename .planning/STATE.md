@@ -2,16 +2,16 @@
 gsd_state_version: 1.0
 milestone: v1.4
 milestone_name: Coverage
-status: completed
+status: executing
 stopped_at: Phase 168 added to roadmap
-last_updated: "2026-09-25T08:53:53.946Z"
-last_activity: 2026-09-23
+last_updated: "2026-09-28T15:40:17.985Z"
+last_activity: 2026-09-28
 progress:
-  total_phases: 41
+  total_phases: 42
   completed_phases: 36
-  total_plans: 383
+  total_plans: 387
   completed_plans: 357
-  percent: 93
+  percent: 92
 ---
 
 # Quick Task 260925-6qe — Anime-Identitätskarte kompakt (Phase 168)
@@ -291,7 +291,7 @@ from 165-UAT.md, plans 165-14..165-19; 165-14..165-18 done — GAP-07, GAP-09-Ve
 GAP-15, GAP-11, GAP-16, GAP-05, GAP-10, GAP-12, GAP-13, and GAP-06/D-30 all closed — 165-19/D-31
 (GAP-08 candidate-search annotation) remaining)
 Plan: Not started
-Status: Milestone complete
+Status: Ready to execute
 nicht umgesetzt und ist für eine künftige eigenständige Phase „Mehrstaffel-Ordner" vorgemerkt.
 dupliziertem ProjectMemberStickyNav; siehe 157-14-SUMMARY.md)
 GAP-02-Live-UAT-Checkpoint aus 156-UAT.md (5 Origin- + 9 Segment-Contributor-Pruefpunkte) wurde
@@ -1087,12 +1087,13 @@ timing flakiness, not a Phase 149 regression, and not yet root-caused.
 
 v1.4 remains complete; Phase 149 was appended additively (same pattern as 143-148), no new
 milestone was created.
-Last activity: 2026-09-23
+Last activity: 2026-09-28
 
 ## Accumulated Context
 
 ### Roadmap Evolution
 
+- Phase 169 added: Release-Medienrechte: Projektleiter, Preview, Highlights und Bildreihenfolge.\n
 - Phase 160 angelegt (2026-09-15): Öffentliche Anime-Detailseite nachschärfen — Tags anzeigen, Gruppenlinks klar benennen, Coop sichtbar machen. Depends on Phase 159; erst planen, wenn die separate Jellyfin-Reparatur abgeschlossen ist. Befunde/Entscheidungen in `160-LIVE-UAT-BEFUNDE.md` (mehrere Punkte dort noch offen, Klärung in discuss-phase). Menschliche Abnahme 158/159 bleibt bis zur Umsetzung dieser Phase offen. Nur add-phase — kein discuss-phase, kein plan-phase, keine Codeänderung.
 
 - 2026-09-13: Genau158 (Public Anime Detail Reparatur) und159 (Konsolidierung) additiv angelegt.159 folgt erst nach dem technischen158-Gate. Human-UAT156/157 bleibt offen. Keine Produktänderung oder DBwrites durch Planung.

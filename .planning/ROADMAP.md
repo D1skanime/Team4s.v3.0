@@ -2181,3 +2181,27 @@ Plans:
 
 Plans:
 - [ ] TBD (run /gsd-plan-phase 168 to break down)
+
+### Phase 169: Release-Medienrechte: Projektleiter, Preview, Highlights und Bildreihenfolge
+
+**Goal:** Release-Version-Medien können sicher und projektbezogen als Preview, mehrere Highlights und sortierte Galerie kuratiert werden; Projektleiter und delegierte Mitglieder erhalten den passenden Zugriff, und der Fansub-Admin-Einstieg zu Notizen & Bildern ist vorhanden.
+**Requirements**: REQ-169-01 bis REQ-169-08 (siehe 169-CONTEXT.md und PLAN-Dateien)
+**Depends on:** Phase 168
+**Verbindliche Quellen:** .planning/phases/169-release-medienrechte-projektleiter-preview-highlights-und-bi/169-CONTEXT.md, 169-RESEARCH.md
+**UI hint:** yes
+**Plans:** 4/4 plans created
+
+Plans:
+
+**Wave 1**
+
+- [ ] 169-01-PLAN.md — Datenmodell, API-Verträge und projektbezogene Medienrechte für Preview, Highlights und Reihenfolge
+
+**Wave 2** *(blocked on Wave 1 completion)*
+
+- [ ] 169-02-PLAN.md — Admin-Kuratierung und fehlender Notizen-&-Bilder-Einstieg
+- [ ] 169-03-PLAN.md — Öffentliche Preview-/Highlight-Projektion und Story-Galerie
+
+**Wave 3** *(blocked on Wave 2 completion)*
+
+- [ ] 169-04-PLAN.md — Security-Matrix, Regressionstests und Desktop-/Mobile-Live-UAT
