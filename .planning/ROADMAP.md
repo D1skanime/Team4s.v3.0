@@ -2189,7 +2189,7 @@ Plans:
 **Depends on:** Phase 168
 **Verbindliche Quellen:** .planning/phases/169-release-medienrechte-projektleiter-preview-highlights-und-bi/169-CONTEXT.md, 169-RESEARCH.md
 **UI hint:** yes
-**Plans:** 2/5 plans executed
+**Plans:** 3/5 plans executed
 
 Plans:
 
@@ -2203,7 +2203,7 @@ Plans:
 
 **Wave 3** *(blocked on Wave 2 completion)*
 
-- [ ] 169-03-PLAN.md — Admin-Galerie, Capability-Gates und Notizen-&-Bilder-Navigation
+- [x] 169-03-PLAN.md — Admin-Galerie, Capability-Gates und Notizen-&-Bilder-Navigation
 - [ ] 169-04-PLAN.md — Öffentliche Preview-/Highlight-Projektion
 
 **Wave 4** *(blocked on Wave 3 completion)*
