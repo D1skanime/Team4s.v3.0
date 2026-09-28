@@ -17374,7 +17374,7 @@ components:
           nullable: true
     PublicReleaseImage:
       type: object
-      required: [id, category, is_preview_candidate, is_highlight]
+      required: [id, category, is_preview_candidate, is_highlight, highlight_order]
       properties:
         id:
           type: integer

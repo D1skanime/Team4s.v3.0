@@ -60,7 +60,7 @@ type PublicReleaseImage struct {
 	AuthorName         *string `json:"author_name"`
 	IsPreviewCandidate bool    `json:"is_preview_candidate"`
 	IsHighlight        bool    `json:"is_highlight"`
-	HighlightOrder     *int    `json:"highlight_order,omitempty"`
+	HighlightOrder     *int    `json:"highlight_order"`
 }
 
 // PublicReleaseNote ist ein oeffentlich sichtbarer Textbeitrag einer Release-Version.
