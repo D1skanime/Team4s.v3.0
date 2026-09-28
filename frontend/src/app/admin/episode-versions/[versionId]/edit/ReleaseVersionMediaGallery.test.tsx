@@ -58,4 +58,3 @@ describe('ReleaseVersionMediaGallery curation controls', () => {
     expect(onPreviewChange).not.toHaveBeenCalled()
   })
 })
-
