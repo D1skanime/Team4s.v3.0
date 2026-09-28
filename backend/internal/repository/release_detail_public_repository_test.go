@@ -59,6 +59,7 @@ func TestGetPublicReleaseDetail_VisibilityGatesMatchAO4_02(t *testing.T) {
 
 	imageGate := []string{
 		"from release_version_media rvm",
+		"left join release_version_media_highlights",
 		"v.name = 'public'",
 		"rs.code = 'approved'",
 		"ma.status = 'ready'",

@@ -59,6 +59,8 @@ type PublicReleaseImage struct {
 	// nil wenn kein Hochlader hinterlegt oder kein Anzeigename ermittelbar ist (AO4-18 Autor-Chip).
 	AuthorName         *string `json:"author_name"`
 	IsPreviewCandidate bool    `json:"is_preview_candidate"`
+	IsHighlight        bool    `json:"is_highlight"`
+	HighlightOrder     *int    `json:"highlight_order,omitempty"`
 }
 
 // PublicReleaseNote ist ein oeffentlich sichtbarer Textbeitrag einer Release-Version.
