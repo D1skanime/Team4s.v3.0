@@ -44,7 +44,6 @@ function SegmentDetails({ segment, episodeNumber, projectPath }: { segment: Publ
       <Badge variant="muted" className={styles.typeBadge}>{segmentTypeDisplayLabel(segment.type)}</Badge>
       <strong className={styles.segmentName}>{segment.name}</strong>
       <div className={styles.timeRow}>
-        <span>{clock(start)}–{clock(end)}</span>
         <span>Dauer {clock(duration)}</span>
       </div>
       {segment.applies_through_episode ? (
