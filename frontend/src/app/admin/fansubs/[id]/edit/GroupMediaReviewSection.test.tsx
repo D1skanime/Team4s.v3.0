@@ -10,6 +10,15 @@ const reorderFansubGroupMedia = vi.fn()
 const deleteFansubGroupMedia = vi.fn()
 const uploadFansubGroupMedia = vi.fn()
 
+Object.defineProperty(URL, 'createObjectURL', {
+  configurable: true,
+  value: vi.fn(() => 'blob:group-media-preview'),
+})
+Object.defineProperty(URL, 'revokeObjectURL', {
+  configurable: true,
+  value: vi.fn(),
+})
+
 vi.mock('next/image', () => ({
   default: ({ alt = '', fill, unoptimized, ...props }: ImgHTMLAttributes<HTMLImageElement> & { fill?: boolean; unoptimized?: boolean }) => {
     void fill
@@ -529,6 +538,7 @@ describe('GroupMediaReviewSection', () => {
 
     expect(await screen.findByText('1 Bild ausgewählt')).toBeTruthy()
     expect(screen.getByText('drop.png')).toBeTruthy()
+    expect(screen.getByRole('img', { name: 'Vorschau: drop.png' })).toBeTruthy()
     expect(container.querySelector('input[type="file"]')?.getAttribute('id')).toBe('group-media-file-input')
   })
 

@@ -104,10 +104,50 @@
   font-weight: 600;
 }
 
-.fileSelection span {
+.fileSelectionHeader {
+  display: flex;
+  gap: var(--space-2);
+  align-items: baseline;
+  justify-content: space-between;
+  min-width: 0;
+  flex-wrap: wrap;
+}
+
+.filePreviewGrid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(140px, 1fr));
+  gap: var(--space-2);
+}
+
+.filePreview {
+  position: relative;
+  display: grid;
+  gap: var(--space-1);
+  min-width: 0;
+  margin: 0;
+}
+
+.filePreview img {
+  position: absolute;
+  inset: 0;
+  display: block;
+  width: 100%;
+  border: 1px solid var(--border-subtle);
+  border-radius: var(--radius-sm);
+  background: var(--surface-card-muted);
+  object-fit: cover;
+}
+
+.filePreview::before {
+  display: block;
+  aspect-ratio: 4 / 3;
+  content: '';
+}
+
+.filePreview figcaption {
   overflow: hidden;
   color: var(--text-muted);
-  font-size: 0.8rem;
+  font-size: 0.75rem;
   font-weight: 400;
   text-overflow: ellipsis;
   white-space: nowrap;

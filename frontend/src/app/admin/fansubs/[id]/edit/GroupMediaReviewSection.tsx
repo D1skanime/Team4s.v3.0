@@ -266,10 +266,21 @@ function GroupMediaReviewSectionInner({
     void loadMedia()
   }, [loadMedia])
 
-  const selectedFileNames = useMemo(
-    () => selectedFiles.map((file) => file.name).join(', '),
+  const selectedFilePreviews = useMemo(
+    () => selectedFiles.map((file) => ({
+      file,
+      url: typeof URL.createObjectURL === 'function' ? URL.createObjectURL(file) : '',
+    })),
     [selectedFiles],
   )
+
+  useEffect(() => {
+    return () => {
+      selectedFilePreviews.forEach(({ url }) => {
+        if (url) URL.revokeObjectURL(url)
+      })
+    }
+  }, [selectedFilePreviews])
 
   const filteredMediaItems = useMemo(() => {
     const normalizedSearch = searchTerm.trim().toLowerCase()
@@ -829,10 +840,30 @@ function GroupMediaReviewSectionInner({
             </FormField>
           </div>
 
-          {selectedFileNames ? (
+          {selectedFiles.length > 0 ? (
             <div className={styles.fileSelection} role="status">
-              <strong>{selectedFiles.length} {selectedFiles.length === 1 ? 'Bild ausgewählt' : 'Bilder ausgewählt'}</strong>
-              <span>{selectedFileNames}</span>
+              <div className={styles.fileSelectionHeader}>
+                <strong>{selectedFiles.length} {selectedFiles.length === 1 ? 'Bild ausgewählt' : 'Bilder ausgewählt'}</strong>
+              </div>
+              <div className={styles.filePreviewGrid} aria-label="Bildvorschauen">
+                {selectedFilePreviews.map(({ file, url }) => (
+                  <figure
+                    className={styles.filePreview}
+                    key={`${file.name}-${file.lastModified}-${file.size}`}
+                  >
+                    {url ? (
+                      <Image
+                        src={url}
+                        alt={`Vorschau: ${file.name}`}
+                        fill
+                        unoptimized
+                        sizes="(max-width: 600px) 50vw, 140px"
+                      />
+                    ) : null}
+                    <figcaption title={file.name}>{file.name}</figcaption>
+                  </figure>
+                ))}
+              </div>
             </div>
           ) : null}
           {uploadProgress !== null ? <p className={styles.fileHint}>Upload: {Math.round(uploadProgress)}%</p> : null}
