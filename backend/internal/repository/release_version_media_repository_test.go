@@ -90,6 +90,27 @@ func TestReleaseVersionMedia_ListIncludesOwnReviewLifecycle(t *testing.T) {
 	require.NotNil(t, found.LastActivityAt, "the lifecycle JOIN must populate last_activity_at")
 }
 
+// TestReleaseVersionMedia_ListAllowsOrdinaryRowsWithoutHighlight proves that an ordinary
+// release-version media row with no highlight relation remains listable and preserves a nil
+// highlight order instead of failing while scanning SQL NULL.
+func TestReleaseVersionMedia_ListAllowsOrdinaryRowsWithoutHighlight(t *testing.T) {
+	pool := openReleaseVersionMediaReplaceFixture(t)
+
+	items, err := NewMediaRepository(pool, "").ListReleaseVersionMedia(context.Background(), 41)
+	require.NoError(t, err)
+
+	var found *ReleaseVersionMediaItem
+	for i := range items {
+		if items[i].ID == 601 {
+			found = &items[i]
+			break
+		}
+	}
+	require.NotNil(t, found, "ordinary relation 601 must remain in the version-41 listing")
+	assert.False(t, found.IsHighlight)
+	assert.Nil(t, found.HighlightOrder)
+}
+
 // TestMediaRepositoryMethodSignatures verifies that all required methods
 // exist on *MediaRepository with the expected receiver.
 // If any method is missing, this test will fail to compile.

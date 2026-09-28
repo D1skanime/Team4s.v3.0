@@ -104,6 +104,7 @@ func openReleaseVersionMediaReplaceFixture(t *testing.T) *pgxpool.Pool {
 		);
 		CREATE INDEX idx_test_rvm_highlights_order
 			ON release_version_media_highlights (highlight_order, release_version_media_id);
+
 		INSERT INTO users(id) VALUES (2001);
 		INSERT INTO members(id) VALUES (101);
 		INSERT INTO app_users(id, status, legacy_user_id) VALUES (11, 'active', 2001);
