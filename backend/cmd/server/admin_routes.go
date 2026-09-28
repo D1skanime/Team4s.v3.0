@@ -184,6 +184,8 @@ func registerAdminRoutes(v1 *gin.RouterGroup, auth gin.HandlerFunc, deps adminRo
 	v1.PUT("/admin/release-versions/:versionId/contributions/effective", auth, deps.adminContentHandler.ReplaceEffectiveContributionsForVersion)
 	v1.GET("/admin/release-versions/:versionId/media", auth, deps.adminContentHandler.ListReleaseVersionMedia)
 	v1.POST("/admin/release-versions/:versionId/media/reorder", auth, deps.adminContentHandler.ReorderReleaseVersionMedia)
+	v1.PUT("/admin/release-versions/:versionId/media/:relationId/highlight", auth, deps.adminContentHandler.SetReleaseVersionMediaHighlight)
+	v1.POST("/admin/release-versions/:versionId/media/highlights/reorder", auth, deps.adminContentHandler.ReorderReleaseVersionMediaHighlights)
 	v1.PATCH("/admin/release-versions/:versionId/media/:relationId", auth, deps.adminContentHandler.PatchReleaseVersionMedia)
 	v1.DELETE("/admin/release-versions/:versionId/media/:relationId", auth, deps.adminContentHandler.DeleteReleaseVersionMedia)
 	v1.PUT("/admin/release-versions/:versionId/media/:relationId/file", auth, deps.adminContentHandler.ReplaceReleaseVersionMediaFile)

@@ -213,6 +213,7 @@ func (appAuthCapabilityCacheLoader) LoadRoleCapabilities(_ context.Context) (map
 		permissions.ActionReleaseVersionView, permissions.ActionReleaseVersionMediaView,
 		permissions.ActionReleaseVersionMediaUpload, permissions.ActionReleaseVersionMediaUpdate,
 		permissions.ActionReleaseVersionMediaDelete, permissions.ActionReleaseVersionMediaDeleteOwn,
+		permissions.ActionReleaseVersionMediaReorder, permissions.ActionReleaseVersionMediaHighlight,
 		permissions.ActionReleaseVersionNotesWrite, permissions.ActionReleaseVersionSegmentsManage,
 		permissions.ActionReviewTextDecide, permissions.ActionReviewImageDecide, permissions.ActionReviewContributionDecide,
 		// Phase-137 Plan 06 (D07/D10): permissions.allKnownActions now also requires
@@ -223,7 +224,7 @@ func (appAuthCapabilityCacheLoader) LoadRoleCapabilities(_ context.Context) (map
 	return map[string][]permissions.Action{
 		"catalog_test_owner":        allActions,
 		permissions.RoleFansubLead:  allActions,
-		permissions.RoleProjectLead: {permissions.ActionFansubGroupMembersView, permissions.ActionAnimeFansubProjectTimelineUpdate, permissions.ActionReleaseView, permissions.ActionReleaseVersionMediaView, permissions.ActionReleaseVersionMediaUpload, permissions.ActionReleaseVersionNotesWrite},
+		permissions.RoleProjectLead: {permissions.ActionFansubGroupMembersView, permissions.ActionAnimeFansubProjectTimelineUpdate, permissions.ActionReleaseView, permissions.ActionReleaseVersionMediaView, permissions.ActionReleaseVersionMediaUpload, permissions.ActionReleaseVersionMediaReorder, permissions.ActionReleaseVersionMediaHighlight, permissions.ActionReleaseVersionNotesWrite},
 		permissions.RoleEncoder:     {permissions.ActionFansubGroupMembersView, permissions.ActionFansubGroupMediaView, permissions.ActionFansubGroupMediaUpload, permissions.ActionFansubGroupMediaUpdateOwn, permissions.ActionReleaseView, permissions.ActionReleaseVersionMediaView, permissions.ActionReleaseVersionMediaUpload, permissions.ActionReleaseVersionNotesWrite},
 		permissions.RoleRawProvider: {permissions.ActionReleaseView},
 		"gfxler":                    {permissions.ActionFansubGroupMediaUpdate},

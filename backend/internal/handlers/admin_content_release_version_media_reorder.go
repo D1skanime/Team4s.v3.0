@@ -44,13 +44,13 @@ func (h *AdminContentHandler) ReorderReleaseVersionMedia(c *gin.Context) {
 		return
 	}
 
-	result, err := h.permissionSvc.CanForReleaseVersion(c.Request.Context(), actor, permissions.ActionReleaseVersionMediaUpdate, versionID)
+	result, err := h.permissionSvc.CanForReleaseVersion(c.Request.Context(), actor, permissions.ActionReleaseVersionMediaReorder, versionID)
 	if err != nil {
 		writePermissionInternalError(c, err, "Media-Berechtigung konnte nicht geprüft werden.")
 		return
 	}
 	if !result.Allowed {
-		auditPermissionDenied(c, h.auditLogRepo, identity, "release_version_media.reorder.denied", nil, "release_version", &versionID, permissions.ActionReleaseVersionMediaUpdate, result)
+		auditPermissionDenied(c, h.auditLogRepo, identity, "release_version_media.reorder.denied", nil, "release_version", &versionID, permissions.ActionReleaseVersionMediaReorder, result)
 		writePermissionDenied(c, result)
 		return
 	}
@@ -136,11 +136,11 @@ func (h *AdminContentHandler) ReorderReleaseVersionMedia(c *gin.Context) {
 
 		canMutate := evaluateReleaseVersionMediaRelationMutation(
 			actor, result, uploadedByByRelation[relationID], identity.UserID,
-			permissions.ActionReleaseVersionMediaUpdate, anyGroupAllowed,
+			permissions.ActionReleaseVersionMediaReorder, anyGroupAllowed,
 		)
 		if !canMutate {
 			ownerResult := releaseVersionMediaOwnerMismatchResult()
-			auditPermissionDenied(c, h.auditLogRepo, identity, "release_version_media.reorder.denied", nil, "release_version", &versionID, permissions.ActionReleaseVersionMediaUpdate, ownerResult)
+			auditPermissionDenied(c, h.auditLogRepo, identity, "release_version_media.reorder.denied", nil, "release_version", &versionID, permissions.ActionReleaseVersionMediaReorder, ownerResult)
 			writePermissionDenied(c, ownerResult)
 			return
 		}
@@ -163,16 +163,18 @@ func (h *AdminContentHandler) ReorderReleaseVersionMedia(c *gin.Context) {
 		return
 	}
 
-	_ = h.auditLogRepo.Write(c.Request.Context(), repository.AuditLogEntry{
-		ActorAppUserID:    &identity.AppUserID,
-		ActorLegacyUserID: &identity.UserID,
-		EventType:         "release_version_media.reordered",
-		TargetType:        "release_version",
-		TargetID:          &versionID,
-		Action:            string(permissions.ActionReleaseVersionMediaUpdate),
-		Outcome:           "allowed",
-		Payload:           map[string]any{"items": len(body.Items)},
-	})
+	if h.auditLogRepo != nil {
+		_ = h.auditLogRepo.Write(c.Request.Context(), repository.AuditLogEntry{
+			ActorAppUserID:    &identity.AppUserID,
+			ActorLegacyUserID: &identity.UserID,
+			EventType:         "release_version_media.reordered",
+			TargetType:        "release_version",
+			TargetID:          &versionID,
+			Action:            string(permissions.ActionReleaseVersionMediaReorder),
+			Outcome:           "allowed",
+			Payload:           map[string]any{"items": len(body.Items)},
+		})
+	}
 
 	c.JSON(http.StatusOK, gin.H{"status": "ok"})
 }
