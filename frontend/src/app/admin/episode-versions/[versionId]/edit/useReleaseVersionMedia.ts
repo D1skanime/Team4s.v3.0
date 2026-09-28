@@ -1,9 +1,9 @@
 'use client'
 
 import { useCallback, useEffect, useRef, useState } from 'react'
-import { ApiError, getReleaseVersionCapabilities, deleteReleaseVersionMediaItem, getReleaseVersionMedia, patchReleaseVersionMediaItem, replaceReleaseVersionMediaFile, reorderReleaseVersionMedia, uploadReleaseVersionMedia } from '@/lib/api'
+import { ApiError, getReleaseVersionCapabilities, deleteReleaseVersionMediaItem, getReleaseVersionMedia, patchReleaseVersionMediaItem, replaceReleaseVersionMediaFile, reorderReleaseVersionMedia, reorderReleaseVersionMediaHighlights, setReleaseVersionMediaHighlight, uploadReleaseVersionMedia } from '@/lib/api'
 import { useCancellableSlugState } from '@/hooks/useCancellableSlugState'
-import { CATEGORY_ALLOWS_PREVIEW, ReleaseVersionMediaCategory, ReleaseVersionCapabilities, ReleaseVersionMediaItem, ReleaseVersionMediaListResponse, ReleaseVersionCapabilitiesResponse, ReleaseVersionMediaPatchRequest, ReleaseVersionMediaReorderRequest } from '@/types/releaseVersionMedia'
+import { CATEGORY_ALLOWS_PREVIEW, ReleaseVersionMediaCategory, ReleaseVersionCapabilities, ReleaseVersionMediaItem, ReleaseVersionMediaListResponse, ReleaseVersionCapabilitiesResponse, ReleaseVersionMediaPatchRequest, ReleaseVersionMediaReorderRequest, ReleaseVersionMediaHighlightReorderRequest } from '@/types/releaseVersionMedia'
 import { buildReplaceMediaFileRequest, fileKey } from './ReleaseVersionMediaSection.helpers'
 
 export interface UploadFileDraft {
@@ -48,10 +48,14 @@ export interface UseReleaseVersionMediaResult {
   replaceItem: (mediaId: number, options: { file: File; category?: ReleaseVersionMediaCategory; title?: string | null; caption?: string | null; isPreviewCandidate?: boolean }) => Promise<void>
   deleteItem: (mediaId: number) => Promise<void>
   reorderItems: (versionId: number, body: ReleaseVersionMediaReorderRequest) => Promise<void>
+  setHighlight?: (mediaId: number, highlighted: boolean) => Promise<void>
+  reorderHighlights?: (versionId: number, body: ReleaseVersionMediaHighlightReorderRequest) => Promise<void>
   patchError: string | null
   replaceError: string | null
   deleteError: string | null
   reorderError: string | null
+  highlightError?: string | null
+  highlightReorderError?: string | null
   capabilities?: ReleaseVersionCapabilities | null
   capabilitiesError?: string | null
 }
@@ -92,6 +96,8 @@ export function useReleaseVersionMedia(versionId: number | null): UseReleaseVers
   const [replaceError, setReplaceError] = useState<string | null>(null)
   const [deleteError, setDeleteError] = useState<string | null>(null)
   const [reorderError, setReorderError] = useState<string | null>(null)
+  const [highlightError, setHighlightError] = useState<string | null>(null)
+  const [highlightReorderError, setHighlightReorderError] = useState<string | null>(null)
   const [capabilities, setCapabilities] = useState<ReleaseVersionCapabilities | null>(null)
   const [capabilitiesError, setCapabilitiesError] = useState<string | null>(null)
   const [reloadKey, setReloadKey] = useState(0)
@@ -348,6 +354,55 @@ export function useReleaseVersionMedia(versionId: number | null): UseReleaseVers
     [versionId],
   )
 
+  const setHighlight = useCallback(
+    async (mediaId: number, highlighted: boolean) => {
+      if (versionId === null) return
+      const previousItems = itemsRef.current
+      const currentItem = previousItems.find((item) => item.id === mediaId)
+      if (!currentItem) return
+
+      setHighlightError(null)
+      setItems((current) => current.map((item) => item.id === mediaId
+        ? { ...item, is_highlight: highlighted, highlight_order: highlighted ? (item.highlight_order ?? 0) : null }
+        : item))
+      try {
+        const response = await setReleaseVersionMediaHighlight(versionId, mediaId, {
+          highlighted,
+          ...(highlighted ? { highlight_order: currentItem.highlight_order ?? 0 } : {}),
+        })
+        setItems((current) => current.map((item) => item.id === mediaId
+          ? { ...item, is_highlight: response.is_highlight, highlight_order: response.highlight_order }
+          : item))
+      } catch (highlightMutationError) {
+        setItems(previousItems)
+        const message = readUploadError(highlightMutationError, 'Highlight konnte nicht gespeichert werden.')
+        setHighlightError(message)
+        throw highlightMutationError
+      }
+    },
+    [versionId],
+  )
+
+  const reorderHighlights = useCallback(
+    async (targetVersionId: number, body: ReleaseVersionMediaHighlightReorderRequest) => {
+      const previousItems = itemsRef.current
+      setHighlightReorderError(null)
+      setItems((current) => current.map((item) => {
+        const nextOrder = body.items.find((entry) => entry.id === item.id)?.highlight_order
+        return nextOrder === undefined ? item : { ...item, highlight_order: nextOrder }
+      }))
+      try {
+        await reorderReleaseVersionMediaHighlights(targetVersionId, body)
+      } catch (highlightReorderMutationError) {
+        setItems(previousItems)
+        const message = readUploadError(highlightReorderMutationError, 'Highlight-Reihenfolge konnte nicht gespeichert werden.')
+        setHighlightReorderError(message)
+        throw highlightReorderMutationError
+      }
+    },
+    [],
+  )
+
   const canFetch = versionId !== null
   const requestKey = canFetch ? `${versionId}:${reloadKey}` : ''
   const fetcher = useCallback(
@@ -408,10 +463,14 @@ export function useReleaseVersionMedia(versionId: number | null): UseReleaseVers
     replaceItem,
     deleteItem,
     reorderItems,
+    setHighlight,
+    reorderHighlights,
     patchError,
     replaceError,
     deleteError,
     reorderError,
+    highlightError,
+    highlightReorderError,
     capabilities,
     capabilitiesError,
   }

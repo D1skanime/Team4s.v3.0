@@ -182,6 +182,8 @@ import {
   ReleaseVersionMediaListResponse,
   ReleaseVersionMediaPatchRequest,
   ReleaseVersionMediaReorderRequest,
+  ReleaseVersionMediaHighlightRequest,
+  ReleaseVersionMediaHighlightReorderRequest,
   ReleaseVersionMediaUploadResponse,
   ReleaseVersionMediaItem,
   ReleaseVersionCapabilitiesResponse,
@@ -8126,7 +8128,54 @@ export async function reorderReleaseVersionMedia(
   }
 }
 
-// ---- Fansub Group Notes ----
+export async function setReleaseVersionMediaHighlight(
+  versionId: number,
+  mediaId: number,
+  body: ReleaseVersionMediaHighlightRequest,
+  authToken?: string,
+): Promise<{ status: string; is_highlight: boolean; highlight_order: number | null }> {
+  const API_BASE_URL = getApiBaseUrl();
+  const response = await authorizedFetch(
+    `${API_BASE_URL}/api/v1/admin/release-versions/${versionId}/media/${mediaId}/highlight`,
+    {
+      method: "PUT",
+      authToken,
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify(body),
+    },
+  );
+
+  if (!response.ok) {
+    const parsed = await parseApiErrorPayload(response, `API request failed: ${response.status}`);
+    throw new ApiError(response.status, parsed.message, null, parsed.code, parsed.details);
+  }
+
+  return response.json() as Promise<{ status: string; is_highlight: boolean; highlight_order: number | null }>;
+}
+
+export async function reorderReleaseVersionMediaHighlights(
+  versionId: number,
+  body: ReleaseVersionMediaHighlightReorderRequest,
+  authToken?: string,
+): Promise<void> {
+  const API_BASE_URL = getApiBaseUrl();
+  const response = await authorizedFetch(
+    `${API_BASE_URL}/api/v1/admin/release-versions/${versionId}/media/highlights/reorder`,
+    {
+      method: "POST",
+      authToken,
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify(body),
+    },
+  );
+
+  if (!response.ok) {
+    const parsed = await parseApiErrorPayload(response, `API request failed: ${response.status}`);
+    throw new ApiError(response.status, parsed.message, null, parsed.code, parsed.details);
+  }
+}
+
+ // ---- Fansub Group Notes ----
 
 type RawFansubGroupNote = {
   ID: number;

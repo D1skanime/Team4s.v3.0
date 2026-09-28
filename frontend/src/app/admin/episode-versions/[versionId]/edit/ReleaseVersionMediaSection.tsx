@@ -8,6 +8,7 @@ import { CATEGORY_ALLOWS_PREVIEW, ReleaseVersionMediaCategory, ReleaseVersionMed
 import { Badge, Button, Drawer, FormField, Input, Textarea, useConfirmDialog } from '@/components/ui'
 import { UploadFileDraft, useReleaseVersionMedia, UseReleaseVersionMediaResult } from './useReleaseVersionMedia'
 import { ReleaseVersionMediaUploadQueue } from './ReleaseVersionMediaUploadQueue'
+import { ReleaseVersionMediaGallery } from './ReleaseVersionMediaGallery'
 import { ReleaseVersionMediaReplaceControls } from './ReleaseVersionMediaReplaceControls'
 import { RELEASE_REVIEW_REJECTION_CATEGORY_LABELS } from '../../../fansubs/releaseReviewPresentation'
 import { CATEGORY_OPTIONS, buildLocalPreviewURL, buildSelectedItemSavePayload, fileKey, isTerminalStatus, resolveEditDrawerPrimaryLabel } from './ReleaseVersionMediaSection.helpers'
@@ -138,6 +139,8 @@ export function ReleaseVersionMediaSection({
   const canUpdateMedia = media.capabilities?.can_update_media ?? false
   const canDeleteMedia = media.capabilities?.can_delete_media ?? false
   const canDeleteOwnMedia = media.capabilities?.can_delete_own_media ?? false
+  const canReorderMedia = media.capabilities?.can_reorder_media ?? false
+  const canManageHighlights = media.capabilities?.can_manage_highlights ?? false
   const canShowPreviewToggle = CATEGORY_ALLOWS_PREVIEW[uploadCategory]
   const uploadStarted = media.uploadItems.length > 0
   const canChooseFiles = canUploadMedia && versionId > 0 && !isBusy && !uploadStarted
@@ -342,6 +345,17 @@ export function ReleaseVersionMediaSection({
     }
   }
 
+  async function handleHighlightChange(mediaId: number, nextValue: boolean) {
+    if (!canManageHighlights || !media.setHighlight) return
+    setEditError(null)
+    try {
+      await media.setHighlight(mediaId, nextValue)
+      showToast(nextValue ? 'Highlight festgelegt.' : 'Highlight entfernt.')
+    } catch (error) {
+      setEditError(error instanceof Error ? error.message : 'Highlight konnte nicht gespeichert werden.')
+    }
+  }
+
   async function handleDeleteSelectedItem() {
     if (!selectedItem || !canDeleteSelectedItem) return
     const confirmed = await confirm({
@@ -400,12 +414,30 @@ export function ReleaseVersionMediaSection({
         <div className={styles.errorBox}>Diese Release-Version darfst du im Media-Bereich nicht bearbeiten.</div>
       ) : null}
       {media.reorderError ? <div className={styles.errorBox}>Reorder-Fehler: {media.reorderError}</div> : null}
+      {media.highlightError ? <div className={styles.errorBox}>Highlight-Fehler: {media.highlightError}</div> : null}
+      {media.highlightReorderError ? <div className={styles.errorBox}>Highlight-Reorder-Fehler: {media.highlightReorderError}</div> : null}
 
-      {visibleItems.length > 0 ? (
+      {visibleItems.length > 0 && (canReorderMedia || canManageHighlights) ? (
+        <ReleaseVersionMediaGallery
+          items={visibleItems}
+          selectedItemId={selectedItemId}
+          onSelectItem={openEditSheet}
+          versionId={versionId}
+          canReorder={canReorderMedia}
+          canManageHighlights={canManageHighlights}
+          onPreviewChange={(mediaId, nextValue) => {
+            const item = persistedItems.find((candidate) => candidate.id === mediaId)
+            return item ? handlePreviewChange(item, nextValue) : Promise.resolve()
+          }}
+          onHighlightChange={handleHighlightChange}
+        />
+      ) : null}
+
+      {visibleItems.length > 0 && !(canReorderMedia || canManageHighlights) ? (
         <h3 className={styles.categoryTitle}>Vorhandene Medien · {visibleItems.length}</h3>
       ) : null}
 
-      {visibleItems.length > 0 ? (
+      {visibleItems.length > 0 && !(canReorderMedia || canManageHighlights) ? (
         <div className={styles.mediaGrid}>
           {visibleItems.map((item) => {
             const badge = statusBadge(item)

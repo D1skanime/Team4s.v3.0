@@ -3,6 +3,7 @@
 import { useRef, useState } from 'react'
 
 import {
+  CATEGORY_ALLOWS_PREVIEW,
   CATEGORY_LABELS,
   RELEASE_VERSION_MEDIA_CATEGORIES,
   ReleaseVersionMediaItem,
@@ -18,6 +19,9 @@ interface ReleaseVersionMediaGalleryProps {
   versionId: number
   onReorder?: (versionId: number, body: ReleaseVersionMediaReorderRequest) => Promise<void>
   canReorder?: boolean
+  canManageHighlights?: boolean
+  onPreviewChange?: (mediaId: number, nextValue: boolean) => Promise<void>
+  onHighlightChange?: (mediaId: number, nextValue: boolean) => Promise<void>
 }
 
 function cardLabel(item: ReleaseVersionMediaItem): string {
@@ -50,6 +54,9 @@ export function ReleaseVersionMediaGallery({
   versionId,
   onReorder,
   canReorder = true,
+  canManageHighlights = false,
+  onPreviewChange,
+  onHighlightChange,
 }: ReleaseVersionMediaGalleryProps) {
   const [dragState, setDragState] = useState<DragState>(INITIAL_DRAG_STATE)
   const [dragOverItemId, setDragOverItemId] = useState<number | null>(null)
@@ -243,6 +250,34 @@ export function ReleaseVersionMediaGallery({
                           ) : null}
                         </div>
                       </button>
+                      <div className={styles.metaRow}>
+                        {onPreviewChange && CATEGORY_ALLOWS_PREVIEW[item.category] ? (
+                          <button
+                            type="button"
+                            className={styles.openLink}
+                            aria-pressed={item.is_preview_candidate}
+                            onClick={(event) => {
+                              event.stopPropagation()
+                              void onPreviewChange(item.id, !item.is_preview_candidate)
+                            }}
+                          >
+                            {item.is_preview_candidate ? 'Vorschau entfernen' : 'Als Vorschau wählen'}
+                          </button>
+                        ) : null}
+                        {canManageHighlights && onHighlightChange ? (
+                          <button
+                            type="button"
+                            className={styles.openLink}
+                            aria-pressed={item.is_highlight}
+                            onClick={(event) => {
+                              event.stopPropagation()
+                              void onHighlightChange(item.id, !item.is_highlight)
+                            }}
+                          >
+                            {item.is_highlight ? 'Highlight entfernen' : 'Als Highlight markieren'}
+                          </button>
+                        ) : null}
+                      </div>
 
                       {previewItem?.id === item.id && (
                         <div

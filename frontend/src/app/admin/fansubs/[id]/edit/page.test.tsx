@@ -264,10 +264,14 @@ function makeMediaState(): UseReleaseVersionMediaResult {
     replaceItem: vi.fn().mockResolvedValue(undefined),
     deleteItem: vi.fn().mockResolvedValue(undefined),
     reorderItems: vi.fn().mockResolvedValue(undefined),
+    setHighlight: vi.fn().mockResolvedValue(undefined),
+    reorderHighlights: vi.fn().mockResolvedValue(undefined),
     patchError: null,
     replaceError: null,
     deleteError: null,
     reorderError: null,
+    highlightError: null,
+    highlightReorderError: null,
   }
 }
 

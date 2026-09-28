@@ -37,6 +37,8 @@ export interface ReleaseVersionMediaItem {
   caption: string | null
   sort_order: number
   is_preview_candidate: boolean
+  is_highlight: boolean
+  highlight_order: number | null
   visibility?: ReleaseVersionMediaVisibility | null
   review_status?: ReleaseVersionMediaReviewStatus | null
   thumbnail_url: string | null
@@ -115,6 +117,20 @@ export interface ReleaseVersionMediaReorderRequest {
   items: ReleaseVersionMediaReorderItem[]
 }
 
+export interface ReleaseVersionMediaHighlightRequest {
+  highlighted: boolean
+  highlight_order?: number
+}
+
+export interface ReleaseVersionMediaHighlightReorderItem {
+  id: number
+  highlight_order: number
+}
+
+export interface ReleaseVersionMediaHighlightReorderRequest {
+  items: ReleaseVersionMediaHighlightReorderItem[]
+}
+
 export interface ReleaseVersionCapabilities {
   can_view_media: boolean
   can_upload_media: boolean
@@ -123,6 +139,8 @@ export interface ReleaseVersionCapabilities {
   can_delete_own_media?: boolean
   can_edit_notes: boolean
   can_manage_segments: boolean
+  can_reorder_media: boolean
+  can_manage_highlights: boolean
   can_edit_metadata?: boolean
 }
 

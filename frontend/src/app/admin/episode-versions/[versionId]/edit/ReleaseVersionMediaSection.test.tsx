@@ -46,6 +46,8 @@ beforeEach(() => {
       can_delete_own_media: true,
       can_edit_notes: true,
       can_manage_segments: false,
+      can_reorder_media: false,
+      can_manage_highlights: false,
     },
   })
 })
@@ -59,6 +61,8 @@ function makeItem(overrides: Partial<ReleaseVersionMediaItem> = {}): ReleaseVers
     caption: 'Scene A',
     sort_order: 10,
     is_preview_candidate: false,
+    is_highlight: false,
+    highlight_order: null,
     visibility: 'intern',
     review_status: 'in_pruefung',
     thumbnail_url: 'https://example.com/thumb.jpg',
@@ -94,6 +98,8 @@ function makeMediaState(
     can_delete_own_media: true,
     can_edit_notes: true,
     can_manage_segments: false,
+    can_reorder_media: false,
+    can_manage_highlights: false,
   }
 
   return {
@@ -109,10 +115,14 @@ function makeMediaState(
     replaceItem: vi.fn().mockResolvedValue(undefined),
     deleteItem: vi.fn().mockResolvedValue(undefined),
     reorderItems: vi.fn().mockResolvedValue(undefined),
+    setHighlight: vi.fn().mockResolvedValue(undefined),
+    reorderHighlights: vi.fn().mockResolvedValue(undefined),
     patchError: null,
     replaceError: null,
     deleteError: null,
     reorderError: null,
+    highlightError: null,
+    highlightReorderError: null,
     capabilities: defaultCapabilities,
     capabilitiesError: null,
     ...overrides,
@@ -552,6 +562,8 @@ describe('ReleaseVersionMediaSection Phase 90 upload redesign', () => {
           can_delete_own_media: true,
           can_edit_notes: true,
           can_manage_segments: false,
+    can_reorder_media: false,
+    can_manage_highlights: false,
         },
       }),
     )
