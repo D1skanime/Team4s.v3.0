@@ -102,6 +102,8 @@ var allActionCodesWave0 = []string{
 	"release_version_media.update",
 	"release_version_media.delete",
 	"release_version_media.delete_own",
+	"release_version_media.reorder",
+	"release_version_media.highlight",
 	"release_version.notes.write",
 	"release_version.segments.manage",
 	"release_version.metadata.update",

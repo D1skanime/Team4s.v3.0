@@ -521,3 +521,25 @@ func TestResolveGroupRightsBaselineRequiresActiveMembership(t *testing.T) {
 		assert.False(t, state.Allowed, "inactive membership must deny %s despite the baseline registry entry", action)
 	}
 }
+
+// TestResolveGroupRightsProjectLeadHighlightActionsAreIndependent locks the
+// dedicated actions to the existing release-version/group rights resolver.
+func TestResolveGroupRightsProjectLeadHighlightActionsAreIndependent(t *testing.T) {
+	resolver := &effectiveRightsFakeResolver{
+		roles:            []string{RoleProjectLead},
+		activeMembership: true,
+		overrides: []UserCapabilityOverride{
+			{ActionCode: ActionReleaseVersionMediaHighlight, Effect: "deny"},
+		},
+	}
+	service := NewService(resolver)
+	actor := Actor{AppUserID: 10, Status: "active"}
+
+	res, err := service.ResolveGroupRights(context.Background(), actor, effectiveRightsTestGroupID)
+	require.NoError(t, err)
+
+	assert.False(t, res.Can(ActionReleaseVersionMediaHighlight).Allowed,
+		"user deny must win for highlight management")
+	assert.True(t, res.Can(ActionReleaseVersionMediaReorder).Allowed,
+		"project_lead must retain the separate reorder action")
+}

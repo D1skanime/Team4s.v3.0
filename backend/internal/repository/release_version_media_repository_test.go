@@ -448,3 +448,20 @@ func TestCreateMediaAsset_SubSelectVisibilityOnInput(t *testing.T) {
 	assert.EqualValues(t, 2, visibilityID, "the Sub-SELECT must resolve visibility_id from visibilities WHERE name = 'public'")
 	assert.EqualValues(t, 2, reviewStatusID, "the Sub-SELECT must resolve review_status_id from review_statuses WHERE code = 'approved'")
 }
+
+// TestReleaseVersionMediaHighlightMethodSignatures locks the repository seam used
+// by the highlight handlers. Highlight state is intentionally separate from preview.
+func TestReleaseVersionMediaHighlightMethodSignatures(t *testing.T) {
+	var repo *MediaRepository
+	_ = repo.UpsertReleaseVersionMediaHighlight
+	_ = repo.RemoveReleaseVersionMediaHighlight
+	_ = repo.ReorderReleaseVersionMediaHighlights
+
+	item := ReleaseVersionMediaHighlightReorderItem{RelationID: 601, HighlightOrder: 2}
+	assert.Equal(t, int64(601), item.RelationID)
+	assert.Equal(t, 2, item.HighlightOrder)
+
+	media := ReleaseVersionMediaItem{IsPreviewCandidate: true, IsHighlight: true}
+	assert.True(t, media.IsPreviewCandidate)
+	assert.True(t, media.IsHighlight)
+}
