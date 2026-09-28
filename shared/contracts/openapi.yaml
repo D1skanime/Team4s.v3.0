@@ -17435,6 +17435,8 @@ components:
           type: array
           items: {$ref: "#/components/schemas/PublicReleaseContributor"}
         preview_url: {type: string, nullable: true}
+        applies_from_episode: {type: string, nullable: true}
+        applies_through_episode: {type: string, nullable: true}
     PublicReleaseNavigationTarget:
       type: object
       required: [release_version_id, episode_number, episode_title, version, group_id]

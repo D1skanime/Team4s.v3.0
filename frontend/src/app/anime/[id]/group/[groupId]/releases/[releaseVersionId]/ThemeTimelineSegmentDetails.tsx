@@ -35,6 +35,7 @@ function SegmentDetails({ segment, episodeNumber, projectPath }: { segment: Publ
   const start = segment.start_seconds ?? 0
   const end = segment.end_seconds ?? start
   const duration = segment.duration_seconds ?? Math.max(0, end - start)
+  const participantsOnThisEpisode = !segment.applies_from_episode || segment.applies_from_episode === episodeNumber
 
   return (
     <div className={styles.segmentDetails}>
@@ -49,13 +50,13 @@ function SegmentDetails({ segment, episodeNumber, projectPath }: { segment: Publ
       {segment.applies_through_episode ? (
         <Badge variant="muted">Gilt auch für Folge {episodeNumber}–{segment.applies_through_episode}</Badge>
       ) : null}
-      {segment.participants.length > 0 ? (
+      {segment.participants.length > 0 && participantsOnThisEpisode ? (
         <div className={styles.participants}>
           <span className={styles.participantsLabel}>Mitwirkende</span>
           {segment.participants.map((participant, index) => (
-            <div className={styles.participantRow} key={`${participant.member_id}-${index}`}>
+            <div className={styles.participantRow} key={participant.member_id + '-' + index}>
               {projectPath && participant.member_slug
-                ? <Link href={`${projectPath}/mitwirkende/${encodeURIComponent(participant.member_slug)}`} className={styles.participantName}>{participant.name}</Link>
+                ? <Link href={projectPath + '/mitwirkende/' + encodeURIComponent(participant.member_slug)} className={styles.participantName}>{participant.name}</Link>
                 : <span className={styles.participantName}>{participant.name}</span>}
               <span className={styles.participantSeparator}>·</span>
               <span className={styles.participantRoles}>
@@ -66,6 +67,8 @@ function SegmentDetails({ segment, episodeNumber, projectPath }: { segment: Publ
             </div>
           ))}
         </div>
+      ) : segment.participants.length > 0 && segment.applies_from_episode ? (
+        <span className={styles.participantsHint}>Mitwirkende siehe Folge {segment.applies_from_episode}</span>
       ) : null}
     </div>
   )

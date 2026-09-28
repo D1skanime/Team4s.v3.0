@@ -77,6 +77,7 @@ export interface PublicReleaseSegment {
    * zugeordnet ist (UI-SPEC Surface 3, "Gilt auch fuer Folge {von}-{bis}"-Badge, D-02).
    */
   applies_through_episode?: string | null;
+  applies_from_episode?: string | null;
 }
 
 export interface PublicReleaseNavigationTarget {

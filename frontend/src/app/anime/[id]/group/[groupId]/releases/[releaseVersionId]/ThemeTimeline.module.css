@@ -252,6 +252,12 @@
   overflow-wrap: anywhere;
 }
 
+.participantsHint {
+  color: var(--color-text-secondary);
+  font-size: 12px;
+  font-style: italic;
+}
+
 .participantsLabel {
   color: var(--color-text-secondary);
   font-size: 11px;

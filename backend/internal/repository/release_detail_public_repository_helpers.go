@@ -195,7 +195,9 @@ func (r *ReleaseDetailPublicRepository) applyAppliesThroughEpisode(ctx context.C
 	}
 
 	rows, err := r.db.Query(ctx, `
-		SELECT tsa.theme_segment_id, COUNT(*), (ARRAY_AGG(e.episode_number ORDER BY COALESCE(e.sort_index, e.id) DESC))[1]
+		SELECT tsa.theme_segment_id, COUNT(*),
+			(ARRAY_AGG(e.episode_number ORDER BY COALESCE(e.sort_index, e.id) ASC))[1],
+			(ARRAY_AGG(e.episode_number ORDER BY COALESCE(e.sort_index, e.id) DESC))[1]
 		FROM theme_segment_assignments tsa
 		JOIN release_versions rv ON rv.id = tsa.release_version_id
 		JOIN fansub_releases fr ON fr.id = rv.release_id
@@ -210,13 +212,14 @@ func (r *ReleaseDetailPublicRepository) applyAppliesThroughEpisode(ctx context.C
 
 	type span struct {
 		count            int
+		minEpisodeNumber string
 		maxEpisodeNumber string
 	}
 	spanBySegmentID := make(map[int64]span)
 	for rows.Next() {
 		var themeSegmentID int64
 		var s span
-		if err := rows.Scan(&themeSegmentID, &s.count, &s.maxEpisodeNumber); err != nil {
+		if err := rows.Scan(&themeSegmentID, &s.count, &s.minEpisodeNumber, &s.maxEpisodeNumber); err != nil {
 			return err
 		}
 		spanBySegmentID[themeSegmentID] = s
@@ -227,7 +230,14 @@ func (r *ReleaseDetailPublicRepository) applyAppliesThroughEpisode(ctx context.C
 
 	for i := range items {
 		s, ok := spanBySegmentID[items[i].ThemeSegmentID]
-		if !ok || s.count <= 1 || s.maxEpisodeNumber == episodeNumber {
+		if !ok || s.count <= 1 {
+			continue
+		}
+		if s.minEpisodeNumber != episodeNumber {
+			minEpisodeNumber := s.minEpisodeNumber
+			items[i].AppliesFromEpisode = &minEpisodeNumber
+		}
+		if s.maxEpisodeNumber == episodeNumber {
 			continue
 		}
 		maxEpisodeNumber := s.maxEpisodeNumber

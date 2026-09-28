@@ -110,6 +110,7 @@ type PublicReleaseSegment struct {
 	// dieser einen Folge zugeordnet ist (UI-SPEC Surface 3, „Gilt auch fuer
 	// Folge {von}-{bis}"-Badge, D-02).
 	AppliesThroughEpisode *string `json:"applies_through_episode,omitempty"`
+	AppliesFromEpisode *string `json:"applies_from_episode,omitempty"`
 }
 type PublicReleaseNavigationTarget struct {
 	ReleaseVersionID int64   `json:"release_version_id"`
