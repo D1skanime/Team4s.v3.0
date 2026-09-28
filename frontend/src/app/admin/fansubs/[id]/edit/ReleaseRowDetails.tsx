@@ -109,7 +109,9 @@ export function ReleaseRowDetails({
             releaseGroup.anime.id,
             release.release_version_id,
           );
-          const releaseVersionTools = hasOwnProjectAssignment
+          const canOpenReleaseTools =
+            canOpenWithoutProjectAssignment || hasOwnProjectAssignment;
+          const releaseVersionTools = canOpenReleaseTools
             ? releaseVersionToolsTarget(
                 release.release_version_id,
                 {

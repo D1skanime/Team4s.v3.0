@@ -421,7 +421,7 @@ describe('AdminFansubEditPage token-free wiring', () => {
     expect(screen.queryByRole('button', { name: 'Grunddaten' })).toBeNull()
     expect(screen.queryByRole('button', { name: 'Mitwirkende' })).toBeNull()
     expect(screen.queryByRole('button', { name: 'Editieren' })).toBeNull()
-    expect(screen.queryByRole('link', { name: 'Notizen & Medien' })).toBeNull()
+    expect(screen.queryByRole('link', { name: 'Notizen & Bilder' })).toBeNull()
     expect(screen.queryByRole('link', { name: 'Notizen' })).toBeNull()
     expect(screen.queryByRole('link', { name: 'Medien' })).toBeNull()
     expect(
@@ -795,12 +795,66 @@ describe('AdminFansubEditPage token-free wiring', () => {
     fireEvent.click(await screen.findByRole('button', { name: '11eyes ausklappen' }))
     fireEvent.click(await screen.findByRole('button', { name: 'Episode 1 ausklappen' }))
 
-    const toolsLink = await screen.findByRole('link', { name: 'Notizen & Medien öffnen' })
+    const toolsLink = await screen.findByRole('link', { name: 'Notizen & Bilder öffnen' })
     expect(toolsLink.getAttribute('href')).toBe(
       '/admin/episode-versions/6201/edit?tab=notizen&return_to=%2Fadmin%2Ffansubs%2F88%2Fedit%3Ftab%3Dreleases',
     )
     expect(toolsLink.getAttribute('href')).not.toContain('/admin/episode-versions/62/edit')
     expect(apiMocks.getAdminRelease).not.toHaveBeenCalled()
+  })
+
+  it('shows the context-preserving Notizen-&-Bilder link for authorized release viewers without own assignment', async () => {
+    const release = {
+      release_id: 62,
+      release_version_id: 6201,
+      anime_id: 13,
+      anime_title: '11eyes',
+      fansub_group_id: 88,
+      fansub_name: 'SubGroup',
+      episode_id: 249,
+      episode_number: '1',
+      episode_title: 'Erste Folge',
+      source: null,
+      version_count: 1,
+      has_theme_assets: false,
+      has_theme_segments: false,
+      duration_seconds: null,
+      created_at: '2026-05-25T00:00:00Z',
+    }
+
+    apiMocks.getCurrentUser.mockResolvedValue({ data: { is_platform_admin: false } })
+    apiMocks.getFansubGroupCapabilities.mockResolvedValue({
+      data: {
+        can_edit_group: false,
+        can_manage_links: false,
+        can_view_members: false,
+        can_manage_members: false,
+        can_edit_notes: false,
+        can_view_invitations: false,
+        can_create_invitation: false,
+        can_cancel_invitation: false,
+        can_view_releases: true,
+        can_view_release_media: true,
+        can_upload_release_media: false,
+        can_edit_release_notes: true,
+      },
+    })
+    apiMocks.getAdminFansubAnime.mockResolvedValue({
+      data: [{ id: 13, title: '11eyes', type: 'tv', header_image: null, cover_image: null }],
+    })
+    apiMocks.getAdminFansubAnimeReleases.mockResolvedValue(releaseListResponse([release]))
+    apiMocks.getMyAnimeContributions.mockResolvedValue({ data: [] })
+
+    render(<AdminFansubEditPage />)
+
+    await screen.findByRole('heading', { name: 'SubGroup' })
+    fireEvent.click(await screen.findByRole('button', { name: '11eyes ausklappen' }))
+    fireEvent.click(await screen.findByRole('button', { name: 'Episode 1 ausklappen' }))
+
+    const toolsLink = await screen.findByRole('link', { name: 'Notizen & Bilder öffnen' })
+    expect(toolsLink.getAttribute('href')).toBe(
+      '/admin/episode-versions/6201/edit?tab=notizen&return_to=%2Fadmin%2Ffansubs%2F88%2Fedit%3Ftab%3Dreleases',
+    )
   })
 
   it('opens the project insight workspace when expanding the anime card', async () => {
@@ -1188,12 +1242,12 @@ describe('AdminFansubEditPage token-free wiring', () => {
 
     fireEvent.click(await screen.findByRole('button', { name: 'Episode 1 ausklappen' }))
     expect(
-      (await within(screen.getByRole('article', { name: 'Episode 1: Erste Folge' })).findByRole('link', { name: 'Notizen & Medien öffnen' })).getAttribute('href'),
+      (await within(screen.getByRole('article', { name: 'Episode 1: Erste Folge' })).findByRole('link', { name: 'Notizen & Bilder öffnen' })).getAttribute('href'),
     ).toContain('/admin/episode-versions/6201/edit?tab=notizen')
 
     fireEvent.click(await screen.findByRole('button', { name: 'Episode 2 ausklappen' }))
     expect(
-      (await within(screen.getByRole('article', { name: 'Episode 2: Zweite Folge' })).findByRole('link', { name: 'Notizen & Medien öffnen' })).getAttribute('href'),
+      (await within(screen.getByRole('article', { name: 'Episode 2: Zweite Folge' })).findByRole('link', { name: 'Notizen & Bilder öffnen' })).getAttribute('href'),
     ).toContain('/admin/episode-versions/6301/edit?tab=notizen')
     expect(apiMocks.getAdminRelease).not.toHaveBeenCalled()
   })

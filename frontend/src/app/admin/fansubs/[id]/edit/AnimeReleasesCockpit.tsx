@@ -441,7 +441,11 @@ export function AnimeReleasesCockpit({
                       selectedReleaseSegment={selectedReleaseSegment}
                       canUseReleaseMedia={canUseReleaseMedia}
                       canUseReleaseNotes={canUseReleaseNotes}
-                      canOpenWithoutProjectAssignment={canUseAdminReleaseDetails}
+                      canOpenWithoutProjectAssignment={
+                        canUseAdminReleaseDetails ||
+                        canUseReleaseMedia ||
+                        canUseReleaseNotes
+                      }
                       canOpenReleaseDrawer={canOpenReleaseDrawer}
                       canOpenReleaseContributors={canEditReleaseContributors}
                       releaseWorkspaceReturnHref={releaseWorkspaceReturnHref}

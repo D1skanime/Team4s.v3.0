@@ -178,7 +178,7 @@ export function releaseVersionToolsTarget(
   const tab = options.canEditNotes ? "notizen" : "media";
   const label =
     options.canViewMedia && options.canEditNotes
-      ? "Notizen & Medien"
+      ? "Notizen & Bilder"
       : options.canViewMedia
         ? "Medien"
         : "Notizen";
