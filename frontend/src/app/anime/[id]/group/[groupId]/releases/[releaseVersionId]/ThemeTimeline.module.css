@@ -301,7 +301,7 @@
 }
 
 .cardActionButton {
-  justify-self: end;
+  justify-self: start;
 }
 
 .liveRegion {
