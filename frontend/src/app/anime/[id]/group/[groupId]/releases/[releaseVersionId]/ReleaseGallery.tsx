@@ -51,7 +51,7 @@ const STORY_GROUPS: Array<{ id: string; title: string; categories: ReleaseVersio
 
 export function ReleaseGallery({ animeID, groupID, releaseVersionID, initialImages, categoryTotals, groups = [] }: Props) {
   const [items, setItems] = useState(() => mergeImages([], initialImages))
-  const [activeIndex, setActiveIndex] = useState<number | null>(null)
+  const [activeImageID, setActiveImageID] = useState<number | null>(null)
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState<string | null>(null)
   const { collapsedLimit, expanded, expand } = useResponsiveGalleryReveal()
@@ -98,12 +98,15 @@ export function ReleaseGallery({ animeID, groupID, releaseVersionID, initialImag
   }
 
   const lightboxItems = orderedItems.map(toLightboxItem)
+  const activeIndex = activeImageID === null
+    ? null
+    : lightboxItems.findIndex(item => item.id === activeImageID)
   const renderImage = (image: PublicReleaseImage, featured = false) => {
     const src = image.thumbnail_url ?? image.original_url
     const title = image.title?.trim() || image.caption?.trim() || CATEGORY_LABELS[image.category]
     const sourceGroupName = image.fansub_group_id ? groupNamesByID.get(image.fansub_group_id) : null
     return <article key={image.id} data-testid={`release-image-card-${image.id}`} className={`${styles.card} ${featured ? styles.featuredCard : ''}`}>
-      <Button type="button" variant="ghost" className={styles.imageButton} aria-label={`${title} öffnen`} onClick={() => setActiveIndex(orderedItems.findIndex(item => item.id === image.id))}>
+      <Button type="button" variant="ghost" className={styles.imageButton} aria-label={`${title} öffnen`} onClick={() => setActiveImageID(image.id)}>
         <span className={styles.imageShell}>
           {src ? <Image src={src} alt={title} className={styles.image} fill sizes="(max-width: 600px) 45vw, (max-width: 900px) 40vw, 28vw" unoptimized /> : <span className={styles.imagePlaceholder} aria-hidden="true" />}
           <span className={styles.maximize} aria-hidden="true"><Maximize2 size={16} /></span>
@@ -148,6 +151,11 @@ export function ReleaseGallery({ animeID, groupID, releaseVersionID, initialImag
       })}
     </div>
     {remaining > 0 ? <div className={styles.loadMoreRow}><Button variant="secondary" size="sm" loading={loading} onClick={revealAll}>Weitere {remaining} Bilder anzeigen</Button></div> : null}
-    <FansubMediaLightbox media={lightboxItems} index={activeIndex} onClose={() => setActiveIndex(null)} onNavigate={setActiveIndex} />
+    <FansubMediaLightbox
+      media={lightboxItems}
+      index={activeIndex !== null && activeIndex >= 0 ? activeIndex : null}
+      onClose={() => setActiveImageID(null)}
+      onNavigate={(index) => setActiveImageID(lightboxItems[index]?.id ?? null)}
+    />
   </section>
 }

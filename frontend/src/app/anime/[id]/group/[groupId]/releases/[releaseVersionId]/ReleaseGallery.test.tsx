@@ -112,6 +112,15 @@ describe('ReleaseGallery', () => {
     expect(dialog.querySelector('b, em')).toBeNull()
   })
 
+  it('opens the clicked image by ID after the featured image changes the visual order', () => {
+    const regular = { ...image(1), title: 'Reguläres Bild' }
+    const featured = { ...image(2), title: 'Highlight-Bild', is_preview_candidate: true }
+    render(<ReleaseGallery animeID={1} groupID={2} releaseVersionID={3} initialImages={[regular, featured]} categoryTotals={{ screenshot: 2, typesetting_karaoke: 0, fun_outtake: 0, other: 0 }} />)
+
+    fireEvent.click(screen.getByRole('button', { name: 'Reguläres Bild öffnen' }))
+    expect(within(screen.getByRole('dialog')).getByRole('heading', { name: 'Reguläres Bild' })).toBeTruthy()
+  })
+
   it('does not repeat a caption that is identical to the category title in the lightbox', () => {
     const categoryCaption = image(1, 'typesetting_karaoke')
     categoryCaption.caption = 'Typesetting-/Karaoke-Beispiel'
