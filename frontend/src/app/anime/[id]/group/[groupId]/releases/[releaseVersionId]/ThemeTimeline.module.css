@@ -66,14 +66,14 @@
 
 .segmentGeometry {
   position: absolute;
-  top: var(--track-top);
+  top: calc(var(--track-top) - 2px);
   left: var(--segment-left);
   width: var(--segment-width);
-  height: 22px;
+  height: 26px;
   min-width: 0;
   border-radius: 4px;
   background: var(--segment-color);
-  opacity: 0.88;
+  opacity: 0.72;
 }
 
 .hitTarget {
