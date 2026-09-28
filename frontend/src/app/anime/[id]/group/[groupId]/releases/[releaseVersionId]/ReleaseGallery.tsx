@@ -54,8 +54,12 @@ export function ReleaseGallery({ animeID, groupID, releaseVersionID, initialImag
   if (!total) return null
 
   const visibleCount = expanded ? items.length : Math.min(collapsedLimit, items.length)
-  const visibleItems = items.slice(0, visibleCount)
   const groupNamesByID = new Map(groups.map(group => [group.id, group.name]))
+  const featuredImage = items.find(image => image.is_preview_candidate) ?? items[0] ?? null
+  const orderedItems = featuredImage
+    ? [featuredImage, ...items.filter(image => image.id !== featuredImage.id)]
+    : items
+  const visibleItems = orderedItems.slice(0, visibleCount)
   const remaining = Math.max(0, total - visibleCount)
 
   async function revealAll() {
@@ -88,12 +92,12 @@ export function ReleaseGallery({ animeID, groupID, releaseVersionID, initialImag
     }
   }
 
-  const lightboxItems = items.map(toLightboxItem)
-  const renderImage = (image: PublicReleaseImage) => {
+  const lightboxItems = orderedItems.map(toLightboxItem)
+  const renderImage = (image: PublicReleaseImage, featured = false) => {
     const src = image.thumbnail_url ?? image.original_url
     const title = image.title?.trim() || image.caption?.trim() || CATEGORY_LABELS[image.category]
     const sourceGroupName = image.fansub_group_id ? groupNamesByID.get(image.fansub_group_id) : null
-    return <article key={image.id} className={styles.card}>
+    return <article key={image.id} className={`${styles.card} ${featured ? styles.featuredCard : ''}`}>
       <Button type="button" variant="ghost" className={styles.imageButton} aria-label={`${title} öffnen`} onClick={() => setActiveIndex(items.findIndex(item => item.id === image.id))}>
         <span className={styles.imageShell}>
           {src ? <Image src={src} alt={title} className={styles.image} fill sizes="(max-width: 600px) 45vw, (max-width: 900px) 40vw, 28vw" unoptimized /> : <span className={styles.imagePlaceholder} aria-hidden="true" />}
@@ -112,10 +116,18 @@ export function ReleaseGallery({ animeID, groupID, releaseVersionID, initialImag
     </article>
   }
 
+  const categorySummary = RELEASE_VERSION_MEDIA_CATEGORIES
+    .filter(category => categoryTotals[category] > 0)
+    .map(category => ({ category, label: CATEGORY_LABELS[category], count: categoryTotals[category] }))
+
   return <section id="galerie" className={styles.section} data-release-atmosphere-band="true">
-    <SectionHeader title="Bilder aus dem Release" description={`${total} Bilder`} underline />
+    <SectionHeader title="Bilder aus dem Release" description={`${total} Bilder · Einblicke in die Entstehung dieses Releases`} underline />
+    <p className={styles.storyIntro}>Screenshots, Typesetting, Karaoke, Qualitätsprüfung und kleine Outtakes erzählen die Geschichte hinter diesem Release.</p>
+    <div className={styles.categorySummary} aria-label="Kategorien der Release-Bilder">
+      {categorySummary.map(({ category, label, count }) => <Badge key={category} variant="muted">{label} · {count}</Badge>)}
+    </div>
     {error ? <p className={styles.error}>{error}</p> : null}
-    <div className={styles.grid} data-testid="release-image-grid">{visibleItems.map(renderImage)}</div>
+    <div className={styles.grid} data-testid="release-image-grid">{visibleItems.map(image => renderImage(image, image.id === featuredImage?.id))}</div>
     {remaining > 0 ? <div className={styles.loadMoreRow}><Button variant="secondary" size="sm" loading={loading} onClick={revealAll}>Weitere {remaining} Bilder anzeigen</Button></div> : null}
     <FansubMediaLightbox media={lightboxItems} index={activeIndex} onClose={() => setActiveIndex(null)} onNavigate={setActiveIndex} />
   </section>
