@@ -105,6 +105,16 @@
 .hero + section { margin-top: -24px; }
 .heroGroupLine { margin: 0; color: var(--color-text-secondary); font-size: 16px; font-weight: 400; }
 .heroReleaseTitle { margin: 0; color: var(--color-text-primary); font-size: 16px; font-weight: 700; }
+.heroEyebrow,
+.heroTitle,
+.heroReleaseTitle,
+.heroGroupLine {
+  /* Textnaher Lichtsaum: passt sich automatisch der Glyphenform und Textlänge an. */
+  text-shadow:
+    0 0 .14em rgba(255, 255, 255, .98),
+    0 0 .38em rgba(255, 255, 255, .78),
+    0 1px .08em rgba(255, 255, 255, .88);
+}
 .releaseSwitcher {
   display: grid;
   gap: 8px;
