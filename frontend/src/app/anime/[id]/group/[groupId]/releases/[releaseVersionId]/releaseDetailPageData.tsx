@@ -86,7 +86,7 @@ export async function ReleaseDetailPageContent({ animeID, groupID, releaseVersio
   const pageStyle = atmosphereUrl ? ({ '--release-page-backdrop': `url("${atmosphereUrl}")` } as CSSProperties) : undefined
   return <main className={`${styles.page} ${atmosphereUrl ? styles.pageWithBackdrop : ''}`} style={pageStyle}>
     <div className={styles.pageHeaderRow}>
-      <Breadcrumbs items={breadcrumbItems} />
+      <Breadcrumbs items={breadcrumbItems} textHalo />
       <Button href={projectHref} variant="secondary" size="sm" leftIcon={<ArrowLeft size={15} aria-hidden="true" />}>
         Zurück zum Fansub-Projekt
       </Button>

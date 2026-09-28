@@ -42,6 +42,30 @@
   flex-shrink: 0;
 }
 
+.textHalo {
+  position: relative;
+  z-index: 0;
+  display: inline-block;
+  isolation: isolate;
+}
+
+.haloCopy {
+  position: absolute;
+  z-index: -1;
+  inset: -.12em -.16em;
+  color: rgba(255, 255, 255, .86);
+  filter: blur(.34em);
+  opacity: .72;
+  pointer-events: none;
+  transform: scale(1.01);
+  clip-path: inset(.1em -.5em);
+}
+
+.haloForeground {
+  position: relative;
+  z-index: 1;
+}
+
 @media (max-width: 768px) {
   .breadcrumbsLink,
   .breadcrumbsCurrent {

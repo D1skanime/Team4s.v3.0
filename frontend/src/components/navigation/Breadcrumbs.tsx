@@ -12,9 +12,10 @@ export interface BreadcrumbItem {
 
 export interface BreadcrumbsProps {
   items: BreadcrumbItem[]
+  textHalo?: boolean
 }
 
-export function Breadcrumbs({ items }: BreadcrumbsProps) {
+export function Breadcrumbs({ items, textHalo = false }: BreadcrumbsProps) {
   if (items.length === 0) {
     return null
   }
@@ -29,11 +30,21 @@ export function Breadcrumbs({ items }: BreadcrumbsProps) {
             <li key={item.href ?? item.label} className={styles.breadcrumbsItem}>
               {item.href && !isLast ? (
                 <Link href={item.href} prefetch={false} className={styles.breadcrumbsLink}>
-                  {item.label}
+                  {textHalo ? (
+                    <span className={styles.textHalo}>
+                      <span className={styles.haloCopy} aria-hidden="true">{item.label}</span>
+                      <span className={styles.haloForeground}>{item.label}</span>
+                    </span>
+                  ) : item.label}
                 </Link>
               ) : (
                 <span className={styles.breadcrumbsCurrent} aria-current={isLast ? 'page' : undefined}>
-                  {item.label}
+                  {textHalo ? (
+                    <span className={styles.textHalo}>
+                      <span className={styles.haloCopy} aria-hidden="true">{item.label}</span>
+                      <span className={styles.haloForeground}>{item.label}</span>
+                    </span>
+                  ) : item.label}
                 </span>
               )}
               {!isLast && (
