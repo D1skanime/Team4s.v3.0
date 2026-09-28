@@ -108,7 +108,7 @@
 
 .outsideLabel {
   position: absolute;
-  left: var(--segment-center);
+  left: var(--segment-label-anchor);
   top: calc(var(--segment-label-lane) * 44px);
   display: grid;
   gap: 4px;
@@ -117,21 +117,18 @@
   color: var(--segment-color);
   font-size: 12px;
   line-height: 1.25;
-  text-align: center;
-  transform: translateX(-50%);
+  text-align: left;
+  transform: none;
 }
 
 .outsideLabel[data-alignment="start"] {
-  left: 0;
   text-align: left;
   transform: none;
 }
 
 .outsideLabel[data-alignment="end"] {
-  right: 0;
-  left: auto;
   text-align: right;
-  transform: none;
+  transform: translateX(-100%);
 }
 
 .outsideLabel strong,

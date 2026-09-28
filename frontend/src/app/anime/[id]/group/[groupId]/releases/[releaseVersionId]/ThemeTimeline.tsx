@@ -29,6 +29,7 @@ type SegmentGeometry = {
   centerPercent: number
   labelLane: number
   labelAlignment: 'start' | 'center' | 'end'
+  labelAnchorPercent: number
 }
 
 // Rein darstellerische CSS-Klassen-Zuordnung, keyed auf den bereits
@@ -72,17 +73,16 @@ function allocateGeometry(segments: PublicReleaseSegment[], duration: number): S
     const leftPercent = clamp(start / duration * 100, 0, 100)
     const widthPercent = clamp((end - start) / duration * 100, 0, 100 - leftPercent)
     const centerPercent = leftPercent + widthPercent / 2
-    const labelAlignment = centerPercent < LABEL_HALF_WIDTH_PERCENT
-      ? 'start' as const
-      : centerPercent > 100 - LABEL_HALF_WIDTH_PERCENT
-        ? 'end' as const
-        : 'center' as const
-    const labelStart = labelAlignment === 'start'
-      ? 0
-      : labelAlignment === 'end'
-        ? 100 - LABEL_HALF_WIDTH_PERCENT * 2
-        : centerPercent - LABEL_HALF_WIDTH_PERCENT
-    return { segment, index, leftPercent, widthPercent, centerPercent, labelAlignment, labelStart }
+    const labelAlignment = segment.type === 'ED'
+      ? 'end' as const
+      : 'start' as const
+    const labelAnchorPercent = labelAlignment === 'end'
+      ? leftPercent + widthPercent
+      : leftPercent
+    const labelStart = labelAlignment === 'end'
+      ? clamp(labelAnchorPercent - LABEL_HALF_WIDTH_PERCENT * 2, 0, 100 - LABEL_HALF_WIDTH_PERCENT * 2)
+      : clamp(labelAnchorPercent, 0, 100 - LABEL_HALF_WIDTH_PERCENT * 2)
+    return { segment, index, leftPercent, widthPercent, centerPercent, labelAlignment, labelAnchorPercent, labelStart }
   })
 
   const laneEnds: number[] = []
@@ -112,6 +112,7 @@ function geometryStyle(geometry: SegmentGeometry): CSSProperties {
     '--segment-width': `${geometry.widthPercent}%`,
     '--segment-center': `${geometry.centerPercent}%`,
     '--segment-label-lane': geometry.labelLane,
+    '--segment-label-anchor': `${geometry.labelAnchorPercent}%`,
   } as CSSProperties
 }
 

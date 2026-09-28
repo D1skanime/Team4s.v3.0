@@ -213,7 +213,7 @@ describe('ThemeTimeline Phase 105 geometry and selection', () => {
     })
 
     const labels = [20, 21, 22, 23].map(id => screen.getByTestId(`kara-outside-label-${id}`))
-    expect(labels.map(label => label.getAttribute('data-lane'))).toEqual(['0', '1', '2', '3'])
+    expect(labels.map(label => label.getAttribute('data-lane'))).toEqual(['1', '0', '2', '3'])
     expect(labels.map(label => label.textContent)).toEqual(expect.arrayContaining([
       expect.stringContaining('Opening · 00:10–00:20'),
       expect.stringContaining('Ending · 00:21–00:30'),
