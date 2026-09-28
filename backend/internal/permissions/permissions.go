@@ -654,10 +654,6 @@ func (s *Service) CanForReleaseVersion(ctx context.Context, actor Actor, action 
 	if err != nil {
 		return Result{}, err
 	}
-	if groupRoleResult.Allowed {
-		return groupRoleResult, nil
-	}
-
 	// Schritt 3: Contribution-Check (D-01..D-04).
 	// Gibt versions-spezifische role_codes zurück; Fallback auf anime-weite wenn keine Override existiert.
 	//
@@ -682,6 +678,13 @@ func (s *Service) CanForReleaseVersion(ctx context.Context, actor Actor, action 
 				MatchedScope: ScopeTypeGroup,
 			}, nil
 		}
+	}
+
+	// A contribution role takes precedence when both domains grant the action. This
+	// keeps the release-version result scoped to the concrete project contribution,
+	// while an allowed group role remains the fallback when no contribution role grants.
+	if groupRoleResult.Allowed {
+		return groupRoleResult, nil
 	}
 	if len(roleCodes) > 0 {
 		return denied(ReasonInsufficientRole, "contribution vorhanden, aber rolle reicht nicht aus"), nil
