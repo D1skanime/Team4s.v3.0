@@ -2189,7 +2189,7 @@ Plans:
 **Depends on:** Phase 168
 **Verbindliche Quellen:** .planning/phases/169-release-medienrechte-projektleiter-preview-highlights-und-bi/169-CONTEXT.md, 169-RESEARCH.md
 **UI hint:** yes
-**Plans:** 4/4 plans created
+**Plans:** 5 plans created
 
 Plans:
 
@@ -2199,9 +2199,13 @@ Plans:
 
 **Wave 2** *(blocked on Wave 1 completion)*
 
-- [ ] 169-02-PLAN.md — Admin-Kuratierung und fehlender Notizen-&-Bilder-Einstieg
-- [ ] 169-03-PLAN.md — Öffentliche Preview-/Highlight-Projektion und Story-Galerie
+- [ ] 169-02-PLAN.md — Autoritative Highlight-/Reorder-API und Contracts
 
 **Wave 3** *(blocked on Wave 2 completion)*
 
-- [ ] 169-04-PLAN.md — Security-Matrix, Regressionstests und Desktop-/Mobile-Live-UAT
+- [ ] 169-03-PLAN.md — Admin-Galerie, Capability-Gates und Notizen-&-Bilder-Navigation
+- [ ] 169-04-PLAN.md — Öffentliche Preview-/Highlight-Projektion
+
+**Wave 4** *(blocked on Wave 3 completion)*
+
+- [ ] 169-05-PLAN.md — Live Actor-, Refresh- und Responsive-UAT
