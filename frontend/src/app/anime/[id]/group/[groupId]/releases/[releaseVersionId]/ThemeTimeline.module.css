@@ -72,9 +72,9 @@
   height: 32px;
   min-width: 0;
   border-radius: 4px;
-  background: color-mix(in srgb, var(--segment-color) 42%, transparent);
-  border: 1px solid color-mix(in srgb, var(--segment-color) 58%, rgba(255, 255, 255, 0.72));
-  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.52), 0 2px 8px color-mix(in srgb, var(--segment-color) 18%, transparent);
+  background: color-mix(in srgb, var(--segment-color) 28%, transparent);
+  border: 1px solid color-mix(in srgb, var(--segment-color) 45%, rgba(255, 255, 255, 0.72));
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.52), 0 2px 8px color-mix(in srgb, var(--segment-color) 12%, transparent);
   -webkit-backdrop-filter: blur(4px) saturate(1.2);
   backdrop-filter: blur(4px) saturate(1.2);
 }
