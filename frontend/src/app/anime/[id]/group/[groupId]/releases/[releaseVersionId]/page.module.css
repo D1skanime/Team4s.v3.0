@@ -129,6 +129,7 @@
   pointer-events: none;
   white-space: inherit;
   transform: scale(1.02);
+  clip-path: inset(.18em -1em);
 }
 
 .heroHaloForeground {
