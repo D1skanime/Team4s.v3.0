@@ -102,6 +102,7 @@ function allocateGeometry(segments: PublicReleaseSegment[], duration: number): S
     widthPercent: item.widthPercent,
     centerPercent: item.centerPercent,
     labelAlignment: item.labelAlignment,
+    labelAnchorPercent: item.labelAnchorPercent,
     labelLane: lanes.get(item.index) ?? 0,
   }))
 }
