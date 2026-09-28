@@ -288,9 +288,9 @@ Abschluss" entry below for the full closing record.
 
 Phase: 169
 Plan: 2 of 5 (completed)
-Status: Ready to execute
-Completed: additive release-version media highlights, independent preview state, and scoped project-lead curation rights.
-Next: execute .planning/phases/169-release-medienrechte-projektleiter-preview-highlights-und-bi/169-02-PLAN.md
+Status: In Progress
+Completed: additive release-version media highlights, independent preview state, scoped project-lead curation rights, and the secured admin highlight/reorder API with synchronized contracts.
+Next: execute .planning/phases/169-release-medienrechte-projektleiter-preview-highlights-und-bi/169-03-PLAN.md
 
 ## Vorherige Position (Phase 153, abgeschlossen)
 
