@@ -64,6 +64,8 @@ type ReleaseVersionMediaItem struct {
 	Caption            *string    `json:"caption"`
 	SortOrder          int        `json:"sort_order"`
 	IsPreviewCandidate bool       `json:"is_preview_candidate"`
+	IsHighlight        bool       `json:"is_highlight"`
+	HighlightOrder     *int       `json:"highlight_order,omitempty"`
 	UploadedByUserID   *int64     `json:"uploaded_by_user_id"`
 	Visibility         *string    `json:"visibility,omitempty"`
 	ReviewStatus       *string    `json:"review_status,omitempty"`
@@ -81,6 +83,12 @@ type ReleaseVersionMediaItem struct {
 	// Populated by handler from OriginalFilePath / ThumbFilePath:
 	ThumbnailURL string `json:"thumbnail_url"`
 	OriginalURL  string `json:"original_url"`
+}
+
+// ReleaseVersionMediaRelationMeta holds the owning release_version_id and category for one relation.
+type ReleaseVersionMediaHighlightReorderItem struct {
+	RelationID     int64
+	HighlightOrder int
 }
 
 // ReleaseVersionMediaRelationMeta holds the owning release_version_id and category for one relation.
@@ -225,6 +233,8 @@ func (r *MediaRepository) ListReleaseVersionMedia(
 			rvm.caption,
 			rvm.sort_order,
 			rvm.is_preview_candidate,
+			highlight.id IS NOT NULL,
+			highlight.highlight_order,
 			rvm.uploaded_by_user_id,
 			v.name,
 			rs.code,
@@ -238,6 +248,8 @@ func (r *MediaRepository) ListReleaseVersionMedia(
 			COALESCE(mf_orig.path, ''),
 			COALESCE(mf_thumb.path, '')
 		FROM release_version_media rvm
+		LEFT JOIN release_version_media_highlights highlight
+		  ON highlight.release_version_media_id = rvm.id
 		LEFT JOIN media_assets ma ON ma.id = rvm.media_asset_id
 		LEFT JOIN visibilities v ON v.id = ma.visibility_id
 		LEFT JOIN review_statuses rs ON rs.id = ma.review_status_id
@@ -279,7 +291,7 @@ func (r *MediaRepository) ListReleaseVersionMedia(
 		if err := rows.Scan(
 			&item.ID, &item.ReleaseVersionID, &item.FansubGroupID, &item.MediaAssetID,
 			&item.Category, &item.Title, &item.Caption, &item.SortOrder,
-			&item.IsPreviewCandidate, &item.UploadedByUserID,
+			&item.IsPreviewCandidate, &item.IsHighlight, &item.HighlightOrder, &item.UploadedByUserID,
 			&visibilityName, &reviewStatusCode,
 			&item.CreatedAt, &item.UpdatedAt,
 			&item.SourceRevision, &item.ReviewState, &item.LastActivityAt,
@@ -378,6 +390,97 @@ func (r *MediaRepository) ReorderReleaseVersionMedia(
 		if err != nil {
 			return fmt.Errorf("reorder release_version_media %d: %w", item.RelationID, err)
 		}
+	}
+	return nil
+}
+
+func (r *MediaRepository) UpsertReleaseVersionMediaHighlight(
+	ctx context.Context, tx pgx.Tx, releaseVersionID, relationID int64, highlightOrder int,
+) error {
+	if highlightOrder < 0 {
+		return fmt.Errorf("highlight order must be non-negative")
+	}
+	if err := r.lockReleaseVersionMediaForHighlight(ctx, tx, releaseVersionID, relationID); err != nil {
+		return err
+	}
+	_, err := tx.Exec(ctx, `
+		INSERT INTO release_version_media_highlights
+			(release_version_media_id, highlight_order, created_at, updated_at)
+		VALUES ($1, $2, NOW(), NOW())
+		ON CONFLICT (release_version_media_id) DO UPDATE
+		SET highlight_order = EXCLUDED.highlight_order, updated_at = NOW()
+	`, relationID, highlightOrder)
+	if err != nil {
+		return fmt.Errorf("upsert release version media highlight %d: %w", relationID, err)
+	}
+	return nil
+}
+
+func (r *MediaRepository) RemoveReleaseVersionMediaHighlight(
+	ctx context.Context, tx pgx.Tx, releaseVersionID, relationID int64,
+) error {
+	if err := r.lockReleaseVersionMediaForHighlight(ctx, tx, releaseVersionID, relationID); err != nil {
+		return err
+	}
+	_, err := tx.Exec(ctx, `
+		DELETE FROM release_version_media_highlights
+		WHERE release_version_media_id = $1
+	`, relationID)
+	if err != nil {
+		return fmt.Errorf("remove release version media highlight %d: %w", relationID, err)
+	}
+	return nil
+}
+
+func (r *MediaRepository) ReorderReleaseVersionMediaHighlights(
+	ctx context.Context, tx pgx.Tx, releaseVersionID int64,
+	items []ReleaseVersionMediaHighlightReorderItem,
+) error {
+	seen := make(map[int64]struct{}, len(items))
+	for _, item := range items {
+		if item.HighlightOrder < 0 {
+			return fmt.Errorf("highlight order must be non-negative")
+		}
+		if _, exists := seen[item.RelationID]; exists {
+			return fmt.Errorf("duplicate highlighted relation %d", item.RelationID)
+		}
+		seen[item.RelationID] = struct{}{}
+		if err := r.lockReleaseVersionMediaForHighlight(ctx, tx, releaseVersionID, item.RelationID); err != nil {
+			return err
+		}
+		tag, err := tx.Exec(ctx, `
+			UPDATE release_version_media_highlights
+			SET highlight_order = $2, updated_at = NOW()
+			WHERE release_version_media_id = $1
+		`, item.RelationID, item.HighlightOrder)
+		if err != nil {
+			return fmt.Errorf("reorder release version media highlight %d: %w", item.RelationID, err)
+		}
+		if tag.RowsAffected() == 0 {
+			return ErrNotFound
+		}
+	}
+	return nil
+}
+
+func (r *MediaRepository) lockReleaseVersionMediaForHighlight(
+	ctx context.Context, tx pgx.Tx, releaseVersionID, relationID int64,
+) error {
+	var ownerVersionID int64
+	err := tx.QueryRow(ctx, `
+		SELECT release_version_id
+		FROM release_version_media
+		WHERE id = $1 AND deleted_at IS NULL
+		FOR UPDATE
+	`, relationID).Scan(&ownerVersionID)
+	if errors.Is(err, pgx.ErrNoRows) {
+		return ErrNotFound
+	}
+	if err != nil {
+		return fmt.Errorf("lock release version media %d: %w", relationID, err)
+	}
+	if ownerVersionID != releaseVersionID {
+		return ErrOwnershipMismatch
 	}
 	return nil
 }

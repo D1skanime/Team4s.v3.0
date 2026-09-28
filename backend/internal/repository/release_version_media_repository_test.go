@@ -465,3 +465,58 @@ func TestReleaseVersionMediaHighlightMethodSignatures(t *testing.T) {
 	assert.True(t, media.IsPreviewCandidate)
 	assert.True(t, media.IsHighlight)
 }
+
+func TestReleaseVersionMediaHighlightsAreIndependentFromPreview(t *testing.T) {
+	pool := openReleaseVersionMediaReplaceFixture(t)
+	repo := NewMediaRepository(pool, "")
+	ctx := context.Background()
+	tx, err := pool.Begin(ctx)
+	require.NoError(t, err)
+	require.NoError(t, repo.UpsertReleaseVersionMediaHighlight(ctx, tx, 41, 601, 4))
+	require.NoError(t, repo.UpsertReleaseVersionMediaHighlight(ctx, tx, 41, 602, 1))
+	require.NoError(t, tx.Commit(ctx))
+
+	items, err := repo.ListReleaseVersionMedia(ctx, 41)
+	require.NoError(t, err)
+	byID := make(map[int64]ReleaseVersionMediaItem, len(items))
+	for _, item := range items {
+		byID[item.ID] = item
+	}
+	require.True(t, byID[601].IsHighlight)
+	require.True(t, byID[602].IsHighlight)
+	require.NotNil(t, byID[601].HighlightOrder)
+	require.NotNil(t, byID[602].HighlightOrder)
+	assert.Equal(t, 4, *byID[601].HighlightOrder)
+	assert.Equal(t, 1, *byID[602].HighlightOrder)
+	assert.False(t, byID[601].IsPreviewCandidate)
+
+	tx, err = pool.Begin(ctx)
+	require.NoError(t, err)
+	require.NoError(t, repo.ReorderReleaseVersionMediaHighlights(ctx, tx, 41, []ReleaseVersionMediaHighlightReorderItem{
+		{RelationID: 601, HighlightOrder: 0},
+		{RelationID: 602, HighlightOrder: 2},
+	}))
+	require.NoError(t, tx.Commit(ctx))
+
+	tx, err = pool.Begin(ctx)
+	require.NoError(t, err)
+	require.NoError(t, repo.RemoveReleaseVersionMediaHighlight(ctx, tx, 41, 602))
+	require.NoError(t, tx.Commit(ctx))
+
+	items, err = repo.ListReleaseVersionMedia(ctx, 41)
+	require.NoError(t, err)
+	byID = make(map[int64]ReleaseVersionMediaItem, len(items))
+	for _, item := range items {
+		byID[item.ID] = item
+	}
+	assert.True(t, byID[601].IsHighlight)
+	assert.Equal(t, 0, *byID[601].HighlightOrder)
+	assert.False(t, byID[601].IsPreviewCandidate)
+	assert.False(t, byID[602].IsHighlight)
+	assert.Nil(t, byID[602].HighlightOrder)
+
+	tx, err = pool.Begin(ctx)
+	require.NoError(t, err)
+	assert.ErrorIs(t, repo.UpsertReleaseVersionMediaHighlight(ctx, tx, 999, 601, 0), ErrOwnershipMismatch)
+	require.NoError(t, tx.Rollback(ctx))
+}
