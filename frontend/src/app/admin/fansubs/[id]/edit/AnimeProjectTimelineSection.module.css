@@ -1,6 +1,7 @@
 .timelineGrid {
   display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(13rem, 1fr));
+  grid-template-columns: repeat(2, minmax(16rem, 28rem));
+  justify-content: start;
   gap: var(--space-3);
 }
 
@@ -11,4 +12,10 @@
 
 .saveRow {
   margin-top: var(--space-3);
+}
+
+@media (max-width: 760px) {
+  .timelineGrid {
+    grid-template-columns: 1fr;
+  }
 }
