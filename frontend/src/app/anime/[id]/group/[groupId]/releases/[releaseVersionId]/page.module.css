@@ -123,19 +123,24 @@
 .heroHaloCopy {
   position: absolute;
   z-index: -1;
-  inset: 0 -.5em;
+  inset: 0 -.2em;
   color: rgba(255, 255, 255, .98);
   filter: url('#release-text-horizontal-blur');
-  opacity: 1;
+  opacity: .76;
   pointer-events: none;
   white-space: inherit;
-  transform: scaleX(1.08);
+  transform: scaleX(1.03);
 }
 
 .heroHaloForeground {
   position: relative;
   z-index: 1;
 }
+
+.heroTitle .heroHaloCopy { opacity: .88; }
+.heroEyebrow .heroHaloCopy { opacity: .62; }
+.heroGroupLine .heroHaloCopy,
+.heroReleaseTitle .heroHaloCopy { opacity: .7; }
 .releaseSwitcher {
   display: grid;
   gap: 8px;

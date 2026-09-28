@@ -29,7 +29,7 @@ export function ReleaseDetailHero(props: ReleaseDetailHeroProps) {
     <svg className={styles.heroSvgFilters} aria-hidden="true" focusable="false">
       <defs>
         <filter id="release-text-horizontal-blur" x="-50%" y="0%" width="200%" height="100%">
-          <feGaussianBlur stdDeviation="18 0" />
+          <feGaussianBlur stdDeviation="12 0" />
         </filter>
       </defs>
     </svg>
