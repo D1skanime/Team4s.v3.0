@@ -19,6 +19,7 @@ type ReleaseThemeDrawerSectionProps = {
   themeDrawerOpen: boolean;
   selectedReleaseSegment: SelectedReleaseSegment | null;
   hasAuthSession: boolean;
+  canUseAdminReleaseDetails?: boolean;
   canManageReleaseThemeAssets: boolean;
   drawerError: string | null;
   drawerBusy: boolean;
@@ -38,6 +39,7 @@ export function ReleaseThemeDrawerSection({
   themeDrawerOpen,
   selectedReleaseSegment,
   hasAuthSession,
+  canUseAdminReleaseDetails = false,
   canManageReleaseThemeAssets,
   drawerError,
   drawerBusy,
@@ -141,14 +143,16 @@ export function ReleaseThemeDrawerSection({
                         {themeSelectedCard.source_label || "Keine Quelle"}
                       </strong>
                     </div>
-                    <div>
-                      <span className={styles.fansubEditSegmentEditorLabel}>
-                        Release
-                      </span>
-                      <strong>
-                        #{selectedReleaseSegment.release.release_id}
-                      </strong>
-                    </div>
+                    {canUseAdminReleaseDetails ? (
+                      <div>
+                        <span className={styles.fansubEditSegmentEditorLabel}>
+                          Release
+                        </span>
+                        <strong>
+                          #{selectedReleaseSegment.release.release_id}
+                        </strong>
+                      </div>
+                    ) : null}
                     <div>
                       <span className={styles.fansubEditSegmentEditorLabel}>
                         Episode

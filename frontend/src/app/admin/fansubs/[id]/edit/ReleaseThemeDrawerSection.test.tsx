@@ -101,5 +101,6 @@ describe('ReleaseThemeDrawerSection', () => {
         'Dieses Theme gilt für einen Episodenbereich. Der Upload wird am Segmentstart verwaltet, nicht an dieser Folge.',
       ),
     ).not.toBeNull()
+    expect(screen.queryByText('#2')).toBeNull()
   })
 })

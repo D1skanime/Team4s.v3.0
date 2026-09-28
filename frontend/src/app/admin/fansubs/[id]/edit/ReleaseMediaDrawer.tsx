@@ -280,6 +280,7 @@ export function ReleaseMediaDrawer({
         themeDrawerOpen={themeDrawerOpen}
         selectedReleaseSegment={selectedReleaseSegment}
         hasAuthSession={hasAuthSession}
+        canUseAdminReleaseDetails={canUseAdminReleaseDetails}
         canManageReleaseThemeAssets={canManageReleaseThemeAssets}
         drawerError={drawerError}
         drawerBusy={drawerBusy}
