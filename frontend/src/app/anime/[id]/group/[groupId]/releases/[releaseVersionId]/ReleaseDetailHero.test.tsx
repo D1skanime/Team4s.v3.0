@@ -20,7 +20,7 @@ describe('ReleaseDetailHero', () => {
   })
 
   it('always prefers the selected public release preview over the Anime logo', () => {
-    render(<ReleaseDetailHero {...base} animeLogoFallbackUrl="/anime-logo.png" preview_image={{id:1,category:'screenshot',thumbnail_url:'/preview.jpg',original_url:null,caption:'Preview',author_name:'Mia',is_preview_candidate:true}} />)
+    render(<ReleaseDetailHero {...base} animeLogoFallbackUrl="/anime-logo.png" preview_image={{id:1,category:'screenshot',thumbnail_url:'/preview.jpg',original_url:null,caption:'Preview',author_name:'Mia',is_preview_candidate:true,is_highlight:false,highlight_order:null}} />)
     expect(screen.getByAltText('Preview').getAttribute('src')).toBe('/preview.jpg')
     expect(screen.queryByAltText('Anime-Logo zu Winter-Release')).toBeNull()
   })

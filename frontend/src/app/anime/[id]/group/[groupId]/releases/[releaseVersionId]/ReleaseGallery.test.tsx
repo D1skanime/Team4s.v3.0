@@ -29,7 +29,7 @@ function installMatchMedia() {
 }
 
 function image(id: number, category: PublicReleaseImage['category'] = 'screenshot'): PublicReleaseImage {
-  return { id, category, thumbnail_url: `/thumb-${id}.jpg`, original_url: `/original-${id}.jpg`, caption: `Vollständige Beschreibung ${id}`, author_name: `Uploader ${id}`, is_preview_candidate: false }
+  return { id, category, thumbnail_url: `/thumb-${id}.jpg`, original_url: `/original-${id}.jpg`, caption: `Vollständige Beschreibung ${id}`, author_name: `Uploader ${id}`, is_preview_candidate: false, is_highlight: false, highlight_order: null }
 }
 
 const totals = { screenshot: 7, typesetting_karaoke: 1, fun_outtake: 1, other: 0 }
@@ -119,6 +119,24 @@ describe('ReleaseGallery', () => {
 
     fireEvent.click(screen.getByRole('button', { name: 'Reguläres Bild öffnen' }))
     expect(within(screen.getByRole('dialog')).getByRole('heading', { name: 'Reguläres Bild' })).toBeTruthy()
+  })
+
+  it('keeps preview independent and orders multiple highlights before regular story images', () => {
+    const preview = { ...image(13), title: 'Preview-Bild', is_preview_candidate: true }
+    const firstHighlight = { ...image(10), title: 'Highlight eins', is_highlight: true, highlight_order: 1 }
+    const secondHighlight = { ...image(11), title: 'Highlight zwei', is_highlight: true, highlight_order: 0 }
+    const regular = { ...image(12), title: 'Reguläres Bild' }
+
+    render(<ReleaseGallery animeID={1} groupID={2} releaseVersionID={3} initialImages={[regular, firstHighlight, secondHighlight, preview]} categoryTotals={{ screenshot: 4, typesetting_karaoke: 0, fun_outtake: 0, other: 0 }} />)
+
+    expect([...document.querySelectorAll('[data-testid^="release-image-card-"]')].map(node => node.getAttribute('data-testid'))).toEqual([
+      'release-image-card-13',
+      'release-image-card-11',
+      'release-image-card-10',
+      'release-image-card-12',
+    ])
+    expect(screen.getByText('Vorschau')).toBeTruthy()
+    expect(screen.getAllByText('Highlight')).toHaveLength(2)
   })
 
   it('does not repeat a caption that is identical to the category title in the lightbox', () => {
