@@ -10,7 +10,7 @@ const base = { animeID:9, groupID:2, episode_number:'7', episode_title:'Schnee',
 describe('ReleaseDetailHero', () => {
   it('renders an independent text-only identity without preview or logo', () => {
     render(<ReleaseDetailHero {...base} />)
-    expect(screen.getByText('Winter-Release').closest('[data-release-hero="independent"]')).toBeTruthy()
+    expect(screen.getAllByText('Winter-Release').some((node) => node.closest('[data-release-hero="independent"]'))).toBe(true)
     expect(document.querySelector('img')).toBeNull()
   })
 
@@ -27,7 +27,7 @@ describe('ReleaseDetailHero', () => {
 
   it('keeps technical facts out of the hero', () => {
     render(<ReleaseDetailHero {...base} />)
-    expect(screen.getByText('Schnee')).toBeTruthy()
+    expect(screen.getAllByText('Schnee')).toHaveLength(2)
     expect(screen.queryByText('Version')).toBeNull()
     expect(screen.queryByText('Dauer')).toBeNull()
     expect(screen.queryByText('Codec')).toBeNull()
@@ -56,7 +56,7 @@ describe('ReleaseDetailHero', () => {
     const props = {...base, container: null, video_codec: null, audio_codec: '', audio_language: null, subtitle_tracks: [], subtitle_type: null}
     render(<><ReleaseDetailHero {...props} /><ReleaseTechnicalDetails {...props} /></>)
 
-    expect(screen.getByText('Fansub-Coop: C-Subs × Honto')).toBeTruthy()
+    expect(screen.getAllByText('Fansub-Coop: C-Subs × Honto')).toHaveLength(2)
     expect(screen.getAllByText('Nicht hinterlegt')).toHaveLength(5)
     expect(screen.getByText('Japanisch')).toBeTruthy()
   })
@@ -93,7 +93,7 @@ describe('ReleaseDetailHero', () => {
   it('labels a single owner as Fansubgruppe and reuses canonical next-release navigation below details', () => {
     render(<ReleaseDetailHero {...base} groups={[base.groups[0]]} canonicalProjectPath="/fansubs/c-subs/fansubprojekt/winter" />)
 
-    expect(screen.getByText('Fansubgruppe: C-Subs')).toBeTruthy()
+    expect(screen.getAllByText('Fansubgruppe: C-Subs')).toHaveLength(2)
     const nextRelease = screen.getByRole('link', { name: /Nächster Release/ })
     expect(nextRelease.getAttribute('href')).toBe('/fansubs/c-subs/fansubprojekt/winter/releases/88')
   })

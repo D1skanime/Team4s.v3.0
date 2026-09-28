@@ -105,15 +105,29 @@
 .hero + section { margin-top: -24px; }
 .heroGroupLine { margin: 0; color: var(--color-text-secondary); font-size: 16px; font-weight: 400; }
 .heroReleaseTitle { margin: 0; color: var(--color-text-primary); font-size: 16px; font-weight: 700; }
-.heroEyebrow,
-.heroTitle,
-.heroReleaseTitle,
-.heroGroupLine {
-  /* Textnaher Lichtsaum: passt sich automatisch der Glyphenform und Textlänge an. */
-  text-shadow:
-    0 0 .14em rgba(255, 255, 255, .98),
-    0 0 .38em rgba(255, 255, 255, .78),
-    0 1px .08em rgba(255, 255, 255, .88);
+.heroHaloText {
+  position: relative;
+  z-index: 0;
+  display: inline-block;
+  isolation: isolate;
+}
+
+/* Echte weiße, stark weichgezeichnete Textkopie hinter dem Vordergrundtext. */
+.heroHaloCopy {
+  position: absolute;
+  z-index: -1;
+  inset: -.28em -.5em;
+  color: rgba(255, 255, 255, .98);
+  filter: blur(.72em);
+  opacity: .94;
+  pointer-events: none;
+  white-space: inherit;
+  transform: scale(1.03);
+}
+
+.heroHaloForeground {
+  position: relative;
+  z-index: 1;
 }
 .releaseSwitcher {
   display: grid;

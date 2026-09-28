@@ -33,10 +33,32 @@ export function ReleaseDetailHero(props: ReleaseDetailHeroProps) {
     </div> : null}
     <div className={styles.heroHeading}>
       <div className={styles.heroIdentity}>
-        <p className={styles.heroEyebrow}>Episode {props.episode_number}</p>
-        <h1 className={styles.heroTitle}>{props.episode_title ?? props.title}</h1>
-        {props.episode_title && props.title !== props.episode_title ? <p className={styles.heroReleaseTitle}>{props.title}</p> : null}
-        <p className={styles.heroGroupLine}>{groupLine}</p>
+        <p className={styles.heroEyebrow}>
+          <span className={styles.heroHaloText}>
+            <span className={styles.heroHaloCopy} aria-hidden="true">Episode {props.episode_number}</span>
+            <span className={styles.heroHaloForeground}>Episode {props.episode_number}</span>
+          </span>
+        </p>
+        <h1 className={styles.heroTitle}>
+          <span className={styles.heroHaloText}>
+            <span className={styles.heroHaloCopy} aria-hidden="true">{props.episode_title ?? props.title}</span>
+            <span className={styles.heroHaloForeground}>{props.episode_title ?? props.title}</span>
+          </span>
+        </h1>
+        {props.episode_title && props.title !== props.episode_title ? (
+          <p className={styles.heroReleaseTitle}>
+            <span className={styles.heroHaloText}>
+              <span className={styles.heroHaloCopy} aria-hidden="true">{props.title}</span>
+              <span className={styles.heroHaloForeground}>{props.title}</span>
+            </span>
+          </p>
+        ) : null}
+        <p className={styles.heroGroupLine}>
+          <span className={styles.heroHaloText}>
+            <span className={styles.heroHaloCopy} aria-hidden="true">{groupLine}</span>
+            <span className={styles.heroHaloForeground}>{groupLine}</span>
+          </span>
+        </p>
         <ReleaseVersionSwitcher animeID={props.animeID} releases={props.other_releases ?? []} />
       </div>
     </div>
