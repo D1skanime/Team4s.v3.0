@@ -117,13 +117,13 @@
 .heroHaloCopy {
   position: absolute;
   z-index: -1;
-  inset: -.28em -.5em;
+  inset: 0 -.5em;
   color: rgba(255, 255, 255, .98);
   filter: url('#release-text-horizontal-blur');
   opacity: 1;
   pointer-events: none;
   white-space: inherit;
-  transform: scale(1.08, 1.01);
+  transform: scaleX(1.08);
 }
 
 .heroHaloForeground {
