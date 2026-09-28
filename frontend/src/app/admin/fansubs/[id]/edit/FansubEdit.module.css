@@ -1966,6 +1966,7 @@
 
 .fansubEditReleaseCardList {
   display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(22rem, 1fr));
   gap: 0.7rem;
   padding: 0.75rem;
 }
@@ -2163,6 +2164,7 @@
 
 @media (max-width: 760px) {
   .fansubEditReleaseCardList {
+    grid-template-columns: 1fr;
     padding: 0.6rem;
   }
 
