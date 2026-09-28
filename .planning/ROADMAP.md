@@ -2189,7 +2189,7 @@ Plans:
 **Depends on:** Phase 168
 **Verbindliche Quellen:** .planning/phases/169-release-medienrechte-projektleiter-preview-highlights-und-bi/169-CONTEXT.md, 169-RESEARCH.md
 **UI hint:** yes
-**Plans:** 1/5 plans executed
+**Plans:** 2/5 plans executed
 
 Plans:
 
@@ -2199,7 +2199,7 @@ Plans:
 
 **Wave 2** *(blocked on Wave 1 completion)*
 
-- [ ] 169-02-PLAN.md — Autoritative Highlight-/Reorder-API und Contracts
+- [x] 169-02-PLAN.md — Autoritative Highlight-/Reorder-API und Contracts
 
 **Wave 3** *(blocked on Wave 2 completion)*
 

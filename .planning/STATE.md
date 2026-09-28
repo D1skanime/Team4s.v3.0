@@ -2,16 +2,16 @@
 gsd_state_version: 1.0
 milestone: v1.4
 milestone_name: Coverage
-status: completed
-stopped_at: Completed 169-01-PLAN.md
-last_updated: "2026-09-28T18:05:44.682Z"
+status: executing
+stopped_at: Completed 169-02-PLAN.md
+last_updated: "2026-09-28T18:28:00.052Z"
 last_activity: 2026-09-28
 progress:
   total_phases: 42
   completed_phases: 36
   total_plans: 388
-  completed_plans: 358
-  percent: 92
+  completed_plans: 359
+  percent: 93
 ---
 
 # Quick Task 260925-6qe — Anime-Identitätskarte kompakt (Phase 168)
@@ -287,8 +287,8 @@ Abschluss" entry below for the full closing record.
 ## Current Position
 
 Phase: 169
-Plan: 01 of 5 (completed)
-Status: Plan 169-01 complete; ready to execute Plan 169-02
+Plan: 2 of 5 (completed)
+Status: Ready to execute
 Completed: additive release-version media highlights, independent preview state, and scoped project-lead curation rights.
 Next: execute .planning/phases/169-release-medienrechte-projektleiter-preview-highlights-und-bi/169-02-PLAN.md
 
@@ -852,6 +852,7 @@ Last activity: 2026-09-28
 - [Phase 169]: Highlights use a separate release_version_media_highlights relation; preview remains is_preview_candidate and no existing rows are backfilled. — This preserves independent preview/highlight state and permits multiple same-category highlights.
 - [Phase 169]: Reorder and highlight use separate user-overridable actions resolved through CanForReleaseVersion. — Existing project/group membership and user override precedence remains the single rights authority.
 - [Phase 169]: Highlight writes validate release-version media ownership inside the transaction. — Prevents foreign or deleted release-version media IDs from being mutated.
+- [Phase 169]: Release-version media preview remains independent from multiple ordered highlights; both mutations use dedicated project-scoped actions. — Preserves canonical release_version_media ownership and prevents generic media-update rights from granting curation.
 
 ### Pending Todos
 
@@ -1384,11 +1385,12 @@ untruncated list lives in `.planning/todos/pending/`.
 
 | 260925-k38 | Episodenauswahl als kompakte Toolbar neben der Überschrift gestaltet | 2026-09-25 | pending-human-uat | [260925-k38-episoden-auswahl-kompakte-toolbar](./quick/260925-k38-episoden-auswahl-kompakte-toolbar/) |
 | Phase 169 P01 | 9min | 2 tasks | 8 files |
+| Phase 169 P02 | 30min | 2 tasks | 8 files |
 
 ## Session Continuity
 
-Last session: 2026-09-28T18:04:55.415Z
-Stopped at: Completed 169-01-PLAN.md
+Last session: 2026-09-28T18:28:00.037Z
+Stopped at: Completed 169-02-PLAN.md
 Last activity: 2026-09-28 - Completed Phase 169 Plan 169-01
 Resume file: 
 None
