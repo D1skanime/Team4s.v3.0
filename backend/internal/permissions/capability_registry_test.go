@@ -166,6 +166,8 @@ func roleMatrixStubData() map[string][]Action {
 			ActionReleaseVersionMediaUpload,
 			ActionReleaseVersionMediaUpdate,
 			ActionReleaseVersionMediaDelete,
+			ActionReleaseVersionMediaReorder,
+			ActionReleaseVersionMediaHighlight,
 			ActionReleaseVersionNotesWrite,
 			ActionReleaseVersionSegmentsManage,
 			ActionReleaseVersionMetadataUpdate,
