@@ -84,7 +84,7 @@ func main() {
 	episodeHandler := handlers.NewEpisodeHandler(episodeRepo)
 	fansubRepo := repository.NewFansubRepository(dbPool, cfg.MediaStorageDir)
 	mediaRepo := repository.NewMediaRepository(dbPool, cfg.MediaPublicBaseURL, cfg.MediaStorageDir)
-	mediaService := services.NewMediaService(cfg.MediaStorageDir, cfg.MediaPublicBaseURL)
+	mediaService := services.NewMediaService(cfg.MediaStorageDir, cfg.MediaPublicBaseURL, cfg.FFmpegPath)
 	pointService := services.NewPointService(dbPool)
 	releaseCrewService := services.NewReleaseCrewService(dbPool, pointService)
 	episodeVersionRepo := repository.NewEpisodeVersionRepository(dbPool, releaseCrewService)

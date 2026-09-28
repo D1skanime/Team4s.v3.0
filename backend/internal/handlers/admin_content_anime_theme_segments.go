@@ -831,15 +831,40 @@ func (h *AdminContentHandler) UploadSegmentAsset(c *gin.Context) {
 		return
 	}
 
+	publicVisibility := "public"
+	approvedReview := "approved"
+	saveResult.CreateInput.VisibilityCode = &publicVisibility
+	saveResult.CreateInput.ReviewStatusCode = &approvedReview
 	asset, err := h.mediaRepo.CreateMediaAsset(c.Request.Context(), saveResult.CreateInput)
 	if err != nil {
 		_ = removeFileQuietly(saveResult.CreateInput.StoragePath)
+		for _, variant := range saveResult.Variants {
+			_ = removeFileQuietly(variant.StoragePath)
+		}
 		if errors.Is(err, repository.ErrConflict) {
 			c.JSON(http.StatusConflict, gin.H{"error": gin.H{"message": "media asset bereits vorhanden"}})
 			return
 		}
 		writeInternalErrorResponse(c, "interner serverfehler", err, "Media-Asset konnte nicht gespeichert werden.")
 		return
+	}
+	if err := h.mediaRepo.InsertMediaFile(c.Request.Context(), asset.ID, "original", saveResult.CreateInput.StoragePath, saveResult.CreateInput.SizeBytes); err != nil {
+		_ = h.mediaRepo.DeleteMediaAsset(c.Request.Context(), asset.ID)
+		_ = removeFileQuietly(saveResult.CreateInput.StoragePath)
+		for _, variant := range saveResult.Variants {
+			_ = removeFileQuietly(variant.StoragePath)
+		}
+		writeInternalErrorResponse(c, "interner serverfehler", err, "Originaldatei konnte nicht registriert werden.")
+		return
+	}
+	for _, variant := range saveResult.Variants {
+		if err := h.mediaRepo.InsertMediaFile(c.Request.Context(), asset.ID, "thumb", variant.StoragePath, variant.SizeBytes); err != nil {
+			_ = h.mediaRepo.DeleteMediaAsset(c.Request.Context(), asset.ID)
+			_ = removeFileQuietly(saveResult.CreateInput.StoragePath)
+			_ = removeFileQuietly(variant.StoragePath)
+			writeInternalErrorResponse(c, "interner serverfehler", err, "Vorschaubild konnte nicht registriert werden.")
+			return
+		}
 	}
 
 	relPath := saveResult.CreateInput.Filename

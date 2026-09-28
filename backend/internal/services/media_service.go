@@ -13,6 +13,7 @@ import (
 	"net/http"
 	"net/url"
 	"os"
+	"os/exec"
 	"path/filepath"
 	"strings"
 	"time"
@@ -20,6 +21,7 @@ import (
 	"team4s.v3/backend/internal/models"
 
 	"github.com/gabriel-vasile/mimetype"
+	"github.com/disintegration/imaging"
 )
 
 // MediaSaveResult enthält das Ergebnis einer erfolgreichen Medien-Speicheroperation,
@@ -27,6 +29,7 @@ import (
 type MediaSaveResult struct {
 	CreateInput  models.MediaAssetCreateInput
 	GIFLargeHint bool
+	Variants     []MediaVariantSaveResult
 }
 
 // MediaVariantSaveResult beschreibt eine gespeicherte Datei-Variante zu einem
@@ -55,6 +58,7 @@ func (e *MediaValidationError) Error() string {
 type MediaService struct {
 	storageDir    string
 	publicBaseURL string
+	ffmpegPath    string
 }
 
 type ReleaseThemeVideoStorageContext struct {
@@ -64,13 +68,17 @@ type ReleaseThemeVideoStorageContext struct {
 
 // NewMediaService erstellt einen neuen MediaService mit dem angegebenen Speicherverzeichnis
 // und der öffentlichen Basis-URL. Leere Werte werden durch sinnvolle Standardwerte ersetzt.
-func NewMediaService(storageDir, publicBaseURL string) *MediaService {
+func NewMediaService(storageDir, publicBaseURL string, ffmpegPath ...string) *MediaService {
 	dir := strings.TrimSpace(storageDir)
 	if dir == "" {
 		dir = "./storage/media"
 	}
 
 	baseURL := strings.TrimRight(strings.TrimSpace(publicBaseURL), "/")
+	ffmpeg := ""
+	if len(ffmpegPath) > 0 {
+		ffmpeg = strings.TrimSpace(ffmpegPath[0])
+	}
 	if baseURL == "" {
 		baseURL = "http://localhost:8092"
 	}
@@ -78,6 +86,7 @@ func NewMediaService(storageDir, publicBaseURL string) *MediaService {
 	return &MediaService{
 		storageDir:    dir,
 		publicBaseURL: baseURL,
+		ffmpegPath:    ffmpeg,
 	}
 }
 
@@ -322,7 +331,7 @@ func (s *MediaService) SaveSegmentAsset(ctx SegmentAssetContext, originalName st
 		return nil, fmt.Errorf("write segment asset file: %w", err)
 	}
 
-	return &MediaSaveResult{
+	result := &MediaSaveResult{
 		CreateInput: models.MediaAssetCreateInput{
 			Kind:        models.MediaKindSegmentAsset,
 			Filename:    relPathFwd,
@@ -330,6 +339,45 @@ func (s *MediaService) SaveSegmentAsset(ctx SegmentAssetContext, originalName st
 			MimeType:    detectedMime,
 			SizeBytes:   int64(len(data)),
 		},
+	}
+	if strings.HasPrefix(detectedMime, "video/") && s.ffmpegPath != "" {
+		if preview, err := s.saveSegmentVideoPreview(absolutePath); err == nil {
+			result.Variants = append(result.Variants, *preview)
+		}
+	}
+	return result, nil
+}
+
+func (s *MediaService) saveSegmentVideoPreview(videoPath string) (*MediaVariantSaveResult, error) {
+	previewPath := videoPath + ".preview.jpg"
+	tempPNG := previewPath + ".tmp.png"
+	defer os.Remove(tempPNG)
+
+	cmd := exec.Command(s.ffmpegPath, "-i", videoPath, "-ss", "0", "-frames:v", "1", "-f", "image2", "-y", tempPNG)
+	if err := cmd.Run(); err != nil {
+		return nil, fmt.Errorf("ffmpeg preview extraction failed: %w", err)
+	}
+	img, err := imaging.Open(tempPNG)
+	if err != nil {
+		return nil, fmt.Errorf("open extracted preview: %w", err)
+	}
+	resized := imaging.Resize(img, 480, 0, imaging.Lanczos)
+	if err := imaging.Save(resized, previewPath, imaging.JPEGQuality(86)); err != nil {
+		return nil, fmt.Errorf("save preview: %w", err)
+	}
+	stat, err := os.Stat(previewPath)
+	if err != nil {
+		return nil, err
+	}
+	bounds := resized.Bounds()
+	width, height := bounds.Dx(), bounds.Dy()
+	return &MediaVariantSaveResult{
+		Filename:    filepath.Base(previewPath),
+		StoragePath: previewPath,
+		MimeType:    "image/jpeg",
+		SizeBytes:   stat.Size(),
+		Width:       &width,
+		Height:      &height,
 	}, nil
 }
 

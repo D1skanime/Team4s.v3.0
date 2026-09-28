@@ -137,7 +137,7 @@ func (r *ReleaseDetailPublicRepository) countImagesByCategory(ctx context.Contex
 // Kompatibilitaetsgruenden im Signaturprofil erhalten (siehe GetPublicReleaseDetail-
 // Aufrufstelle), wird in dieser Funktion aber nicht mehr gelesen.
 func (r *ReleaseDetailPublicRepository) loadReleaseSegments(ctx context.Context, animeID, groupID, releaseVersionID int64, version, episodeNumber string, contributors []PublicReleaseContributor) ([]PublicReleaseSegment, error) {
-	rows, err := r.db.Query(ctx, `SELECT ts.id, COALESCE(NULLIF(TRIM(t.title),''),tt.name), tt.name, ts.origin_release_version_id, EXTRACT(EPOCH FROM ts.start_time)::int, EXTRACT(EPOCH FROM ts.end_time)::int, CASE WHEN ts.start_time IS NOT NULL AND ts.end_time IS NOT NULL THEN EXTRACT(EPOCH FROM (ts.end_time-ts.start_time))::int END, CASE WHEN cache.status='ready' THEN 'ready' ELSE 'unavailable' END FROM theme_segment_assignments tsa JOIN theme_segments ts ON ts.id=tsa.theme_segment_id JOIN themes t ON t.id=ts.theme_id JOIN theme_types tt ON tt.id=t.theme_type_id LEFT JOIN theme_segment_playback_sources src ON src.theme_segment_id=ts.id AND src.release_version_id=tsa.release_version_id LEFT JOIN LATERAL (SELECT status FROM theme_segment_render_cache WHERE theme_segment_id=ts.id ORDER BY id DESC LIMIT 1) cache ON TRUE WHERE tsa.release_version_id=$1 ORDER BY ts.start_time NULLS LAST,ts.id`, releaseVersionID)
+	rows, err := r.db.Query(ctx, `SELECT ts.id, COALESCE(NULLIF(TRIM(t.title),''),tt.name), tt.name, ts.origin_release_version_id, EXTRACT(EPOCH FROM ts.start_time)::int, EXTRACT(EPOCH FROM ts.end_time)::int, CASE WHEN ts.start_time IS NOT NULL AND ts.end_time IS NOT NULL THEN EXTRACT(EPOCH FROM (ts.end_time-ts.start_time))::int END, CASE WHEN cache.status='ready' THEN 'ready' ELSE 'unavailable' END, preview_file.path FROM theme_segment_assignments tsa JOIN theme_segments ts ON ts.id=tsa.theme_segment_id JOIN themes t ON t.id=ts.theme_id JOIN theme_types tt ON tt.id=t.theme_type_id LEFT JOIN theme_segment_playback_sources src ON src.theme_segment_id=ts.id AND src.release_version_id=tsa.release_version_id LEFT JOIN media_assets preview_asset ON preview_asset.id=src.media_asset_id AND preview_asset.status='ready' LEFT JOIN media_files preview_file ON preview_file.media_id=preview_asset.id AND preview_file.variant='thumb' AND preview_file.status='ready' LEFT JOIN LATERAL (SELECT status FROM theme_segment_render_cache WHERE theme_segment_id=ts.id ORDER BY id DESC LIMIT 1) cache ON TRUE WHERE tsa.release_version_id=$1 ORDER BY ts.start_time NULLS LAST,ts.id`, releaseVersionID)
 	if err != nil {
 		return nil, fmt.Errorf("release detail: load segments: %w", err)
 	}
@@ -149,10 +149,14 @@ func (r *ReleaseDetailPublicRepository) loadReleaseSegments(ctx context.Context,
 		var item PublicReleaseSegment
 		var rawTypeName string
 		var originReleaseVersionID *int64
-		if err := rows.Scan(&item.ThemeSegmentID, &item.Name, &rawTypeName, &originReleaseVersionID, &item.StartSeconds, &item.EndSeconds, &item.DurationSeconds, &item.Readiness); err != nil {
+		var previewPath *string
+		if err := rows.Scan(&item.ThemeSegmentID, &item.Name, &rawTypeName, &originReleaseVersionID, &item.StartSeconds, &item.EndSeconds, &item.DurationSeconds, &item.Readiness, &previewPath); err != nil {
 			return nil, err
 		}
 		item.Type = CanonicalSegmentType(rawTypeName)
+		if previewPath != nil {
+			item.PreviewURL = publicMediaURLForPath(*previewPath, r.mediaStorageDir)
+		}
 		items = append(items, item)
 		origins = append(origins, originReleaseVersionID)
 	}

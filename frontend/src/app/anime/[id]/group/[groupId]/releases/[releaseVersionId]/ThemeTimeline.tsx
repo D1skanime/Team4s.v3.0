@@ -262,7 +262,6 @@ export function ThemeTimeline({
               />
               {playable ? (
                 <Button
-                  fullWidth
                   leftIcon={<Play size={16} aria-hidden="true" />}
                   className={styles.playButton}
                   onClick={() => playSegment(segment)}
@@ -274,7 +273,6 @@ export function ThemeTimeline({
                 <Button
                   href="/login"
                   variant="secondary"
-                  fullWidth
                   leftIcon={<Lock size={16} aria-hidden="true" data-testid={`kara-login-lock-${segment.theme_segment_id}`} />}
                   className={styles.playButton}
                 >

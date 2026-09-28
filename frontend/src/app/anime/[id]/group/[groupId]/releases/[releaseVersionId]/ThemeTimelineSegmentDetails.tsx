@@ -1,7 +1,8 @@
 'use client'
 
+import Image from 'next/image'
 import Link from 'next/link'
-import { Fragment, type ReactNode } from 'react'
+import { type ReactNode } from 'react'
 
 import { Badge } from '@/components/ui'
 import type { PublicReleaseSegment } from '@/types/releaseDetail'
@@ -37,6 +38,9 @@ function SegmentDetails({ segment, episodeNumber, projectPath }: { segment: Publ
 
   return (
     <div className={styles.segmentDetails}>
+      {segment.preview_url ? (
+        <Image className={styles.segmentPreview} src={segment.preview_url} alt={`Preview für ${segment.name}`} width={480} height={270} unoptimized loading="lazy" />
+      ) : null}
       <Badge variant="muted" className={styles.typeBadge}>{segmentTypeDisplayLabel(segment.type)}</Badge>
       <strong className={styles.segmentName}>{segment.name}</strong>
       <div className={styles.timeRow}>
@@ -47,17 +51,22 @@ function SegmentDetails({ segment, episodeNumber, projectPath }: { segment: Publ
         <Badge variant="muted">Gilt auch für Folge {episodeNumber}–{segment.applies_through_episode}</Badge>
       ) : null}
       {segment.participants.length > 0 ? (
-        <span className={styles.participants}>
+        <div className={styles.participants}>
+          <span className={styles.participantsLabel}>Mitwirkende</span>
           {segment.participants.map((participant, index) => (
-            <Fragment key={`${participant.member_id}-${index}`}>
-              {index > 0 ? ', ' : ''}
+            <div className={styles.participantRow} key={`${participant.member_id}-${index}`}>
               {projectPath && participant.member_slug
-                ? <Link href={`${projectPath}/mitwirkende/${encodeURIComponent(participant.member_slug)}`}>{participant.name}</Link>
-                : participant.name}
-              {` · ${participant.segment_role_label}`}
-            </Fragment>
+                ? <Link href={`${projectPath}/mitwirkende/${encodeURIComponent(participant.member_slug)}`} className={styles.participantName}>{participant.name}</Link>
+                : <span className={styles.participantName}>{participant.name}</span>}
+              <span className={styles.participantSeparator}>·</span>
+              <span className={styles.participantRoles}>
+                {participant.segment_role_label.split(',').map((role) => role.trim()).filter(Boolean).map((role) => (
+                  <span className={styles.participantRole} key={role}>{role}</span>
+                ))}
+              </span>
+            </div>
           ))}
-        </span>
+        </div>
       ) : null}
     </div>
   )

@@ -98,7 +98,8 @@ describe('ThemeTimeline Phase 105 session matrix', () => {
     expect(screen.getAllByText('Moonlight OP').length).toBeGreaterThan(0)
     expect(screen.getAllByText('Opening').length).toBeGreaterThan(0)
     expect(screen.getAllByText(/0:30/).length).toBeGreaterThan(0)
-    expect(screen.getByText(/Mia.*Karaoke-FX/)).not.toBeNull()
+    expect(screen.getByText("Mia")).not.toBeNull()
+    expect(screen.getByText("Karaoke-FX")).not.toBeNull()
     expect(screen.queryByRole('button', { name: /Kara abspielen/i })).toBeNull()
     expect(screen.queryAllByRole('button', { name: /^Abspielen$/i })).toHaveLength(0)
     expect(screen.getAllByRole('link', { name: 'Anmelden zum Abspielen' })).toHaveLength(2)
@@ -222,9 +223,10 @@ describe('ThemeTimeline Phase 105 geometry and selection', () => {
     expect(document.querySelectorAll(`.${styles.segmentCard}`)).toHaveLength(4)
   })
 
-  it('does not render segment preview images into either responsive Kara representation', () => {
+  it('renders an optional segment preview image in the Kara card', () => {
     renderTimeline({ segments: [{ ...segments[0], preview_url: '/preview.jpg' }] })
-    expect(document.querySelector('img')).toBeNull()
+    const preview = screen.getByRole('img', { name: 'Preview für Moonlight OP' })
+    expect(preview.getAttribute('src')).toBe('/preview.jpg')
   })
 
   it('shows the span badge for a shared Kara with a real applies_through_episode range (UI-SPEC Surface 3)', () => {
@@ -267,7 +269,7 @@ describe('ThemeTimeline Phase 156-08 project-context member links', () => {
 
     const link = screen.getAllByRole('link', { name: 'Mia' })[0]
     expect(link.getAttribute('href')).toBe('/fansubs/csubs/fansubprojekt/moonlight/mitwirkende/mia')
-    expect(document.querySelector(`.${styles.participants}`)?.textContent).toContain('Mia · Karaoke-FX')
+    expect(screen.getByText('Karaoke-FX')).toBeTruthy()
   })
 
   it('renders a participant with member_slug as plain text (no link) when no projectPath is supplied', () => {
@@ -276,7 +278,8 @@ describe('ThemeTimeline Phase 156-08 project-context member links', () => {
     })
 
     expect(screen.queryByRole('link', { name: 'Mia' })).toBeNull()
-    expect(screen.getAllByText(/Mia.*Karaoke-FX/).length).toBeGreaterThan(0)
+    expect(screen.getByText('Mia')).toBeTruthy()
+    expect(screen.getByText("Karaoke-FX")).toBeTruthy()
   })
 
   it('renders a participant with member_slug null as plain text (no link) even when projectPath is provided', () => {
@@ -286,7 +289,8 @@ describe('ThemeTimeline Phase 156-08 project-context member links', () => {
     })
 
     expect(screen.queryByRole('link', { name: 'Noah' })).toBeNull()
-    expect(screen.getAllByText(/Noah.*Karaoke-Typesetting/).length).toBeGreaterThan(0)
+    expect(screen.getByText('Noah')).toBeTruthy()
+    expect(screen.getByText('Karaoke-Typesetting')).toBeTruthy()
   })
 })
 
