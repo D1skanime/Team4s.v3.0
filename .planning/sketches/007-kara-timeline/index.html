@@ -1,0 +1,63 @@
+<!doctype html>
+<html lang="de">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Sketch 007 · Kara-Timeline</title>
+<link rel="stylesheet" href="../themes/default.css">
+<style>
+:root{--ink:#18202c;--muted:#667085;--line:#b7cbea;--surface:rgba(255,255,255,.72);--blue:#2677c7;--green:#2ca875;--purple:#8b55d8;--sky:#2996ca}
+*{box-sizing:border-box}body{margin:0;background:linear-gradient(135deg,#f4f5f7,#e8eef8);font:14px Inter,system-ui,sans-serif;color:var(--ink);padding-top:66px}.shell{max-width:1280px;margin:auto;padding:28px 22px 110px}.intro{display:flex;justify-content:space-between;gap:18px;align-items:end;margin:0 0 22px}.eyebrow{color:#1765aa;text-transform:uppercase;font-size:11px;font-weight:800;letter-spacing:.13em}.intro h1{margin:5px 0 0;font-size:27px}.intro p{color:var(--muted);margin:7px 0 0}.episode-pill{background:#1f355c;color:#fff;border-radius:999px;padding:10px 15px;font-weight:750;white-space:nowrap}.stage{background:var(--surface);border:1px solid rgba(255,255,255,.92);box-shadow:0 18px 50px rgba(38,57,89,.12);border-radius:24px;padding:30px 30px 34px;backdrop-filter:blur(16px)}.stage h2{font-size:14px;margin:0 0 22px}.timeline{position:relative;padding:10px 0 0}.axis{height:10px;border-radius:99px;background:#fff;box-shadow:inset 0 0 0 1px #d7dee9;position:relative}.axis:after{content:"";position:absolute;inset:3px 0;background:linear-gradient(90deg,#dfe5ed,#f4f6f8,#dfe5ed);border-radius:99px}.tick{position:absolute;top:22px;transform:translateX(-50%);font-size:10px;color:#8791a0}.tick:before{content:"";position:absolute;left:50%;top:-12px;width:1px;height:8px;background:#b8c3d4}.marker{position:absolute;top:-3px;transform:translateX(-50%);width:18px;height:18px;border-radius:50%;border:4px solid #fff;box-shadow:0 2px 8px rgba(31,49,80,.22);cursor:pointer;z-index:2;transition:transform .16s ease,box-shadow .16s ease}.marker:hover,.marker.active{transform:translateX(-50%) scale(1.3);box-shadow:0 0 0 6px rgba(38,119,199,.12),0 3px 10px rgba(31,49,80,.28)}.marker.op{background:var(--green)}.marker.insert{background:var(--purple)}.marker.ed{background:var(--sky)}.range{position:absolute;top:2px;height:6px;border-radius:99px;z-index:1}.range.op{background:var(--green)}.range.insert{background:var(--purple)}.range.ed{background:var(--sky)}.labels{display:grid;grid-template-columns:1fr 1fr 1fr;gap:16px;margin-top:33px}.label{text-align:center}.label:first-child{text-align:left}.label:last-child{text-align:right}.label strong{display:block;font-size:13px}.label small{display:block;color:var(--muted);margin-top:5px}.label .dot{display:inline-block;width:7px;height:7px;border-radius:50%;margin-right:6px}.dot.op{background:var(--green)}.dot.insert{background:var(--purple)}.dot.ed{background:var(--sky)}.detail{margin-top:31px;display:flex;align-items:center;justify-content:space-between;gap:20px;border-top:1px solid #d9e0ea;padding-top:18px;min-height:55px}.detail strong{font-size:15px}.detail span{color:var(--muted);margin-left:10px}.detail button,.toolbar button{border:0;border-radius:10px;padding:10px 14px;background:#e9f1ff;color:#155da4;font-weight:750;cursor:pointer}.detail button:hover{background:#d5e6ff}.cards{display:grid;grid-template-columns:repeat(3,1fr);gap:14px;margin-top:25px}.mini{background:rgba(255,255,255,.7);border:1px solid #dce3ed;border-left:4px solid var(--blue);border-radius:14px;padding:15px}.mini.op{border-left-color:var(--green)}.mini.insert{border-left-color:var(--purple)}.mini.ed{border-left-color:var(--sky)}.mini h3{margin:0 0 8px;font-size:14px}.mini p{margin:0;color:var(--muted);font-size:12px;line-height:1.5}.variant{display:none}.variant.active{display:block}.toolbar{position:fixed;top:0;left:0;right:0;z-index:10;background:rgba(20,32,55,.94);color:#fff;display:flex;gap:8px;align-items:center;padding:10px 16px;box-shadow:0 3px 16px rgba(0,0,0,.2)}.toolbar button{background:transparent;color:#d9e7ff;padding:8px 10px}.toolbar button.active{background:#3979c3;color:#fff}.toolbar .spacer{flex:1}.toolbar small{opacity:.75}.toast{position:fixed;right:22px;bottom:22px;background:#18345d;color:#fff;padding:12px 16px;border-radius:10px;box-shadow:0 8px 25px #0003;opacity:0;transform:translateY(8px);transition:.2s}.toast.show{opacity:1;transform:none}@media(max-width:760px){body{padding-top:104px}.toolbar{flex-wrap:wrap}.toolbar .spacer{display:none}.shell{padding:18px 12px 90px}.stage{padding:22px 16px}.intro{display:block}.episode-pill{display:inline-block;margin-top:13px}.cards{grid-template-columns:1fr}.labels{gap:8px}.label strong{font-size:11px}.label small{font-size:10px}.detail{display:block}.detail button{margin-top:14px}.tick{font-size:9px}}
+</style>
+</head>
+<body>
+<div class="toolbar">
+  <strong>Kara-Timeline · Sketch 007</strong>
+  <button class="variant-tab active" data-variant="a">A · Marker</button>
+  <button class="variant-tab" data-variant="b">B · Bereiche</button>
+  <button class="variant-tab" data-variant="c">C · Fokus</button>
+  <span class="spacer"></span><small>Viewport:</small><button data-width="full">Desktop</button><button data-width="760">Tablet</button><button data-width="375">Mobile</button>
+</div>
+<main class="shell">
+  <div class="intro"><div><div class="eyebrow">Episode 1 · Begegnung</div><h1>Kara-Timeline</h1><p>Schneller Überblick über die Positionen in der gesamten Episode.</p></div><div class="episode-pill">24:00 Gesamtdauer</div></div>
+  <section id="variant-a" class="variant active">
+    <div class="stage">
+      <h2>Variante A · Zeitraster mit Marker-Pins</h2>
+      <div class="timeline">
+        <div class="axis">
+          <span class="range op" style="left:3%;width:7%"></span><span class="range insert" style="left:43%;width:4.5%"></span><span class="range ed" style="left:93%;width:7%"></span>
+          <button class="marker op active" style="left:6.5%" data-name="Buddy Opening Lied" data-meta="Opening · 00:42–02:22 · Karaoke" aria-label="Buddy Opening Lied"></button>
+          <button class="marker insert" style="left:45%" data-name="test" data-meta="Insert · 10:22–11:25 · Karaoke" aria-label="test"></button>
+          <button class="marker ed" style="left:96.5%" data-name="Buddy Ending" data-meta="Ending · 22:25–24:00 · Karaoke" aria-label="Buddy Ending"></button>
+        </div>
+        <div class="tick" style="left:0%">00:00</div><div class="tick" style="left:25%">06:00</div><div class="tick" style="left:50%">12:00</div><div class="tick" style="left:75%">18:00</div><div class="tick" style="left:100%">24:00</div>
+        <div class="labels"><div class="label"><strong><i class="dot op"></i>Buddy Opening Lied</strong><small>Opening · 00:42–02:22</small></div><div class="label"><strong><i class="dot insert"></i>test</strong><small>Insert · 10:22–11:25</small></div><div class="label"><strong><i class="dot ed"></i>Buddy Ending</strong><small>Ending · 22:25–24:00</small></div></div>
+        <div class="detail"><div><strong id="selectedName">Buddy Opening Lied</strong><span id="selectedMeta">Opening · 00:42–02:22 · Karaoke</span></div><button id="previewBtn">Kara-Vorschau öffnen</button></div>
+      </div>
+    </div>
+    <div class="cards"><article class="mini op"><h3>Opening</h3><p>Marker anklicken, um die zugehörige Karte hervorzuheben.</p></article><article class="mini insert"><h3>Insert</h3><p>Die Mitte bleibt ruhig, bekommt aber einen klaren eigenen Akzent.</p></article><article class="mini ed"><h3>Ending</h3><p>Die Farben bleiben mit den Kara-Karten darunter verbunden.</p></article></div>
+  </section>
+  <section id="variant-b" class="variant">
+    <div class="stage">
+      <h2>Variante B · Bereiche als verbundene Episoden-Spuren</h2>
+      <div class="timeline"><div class="axis"><span class="range op" style="left:3%;width:7%"></span><span class="range insert" style="left:43%;width:4.5%"></span><span class="range ed" style="left:93%;width:7%"></span></div><div class="tick" style="left:0%">00:00</div><div class="tick" style="left:25%">06:00</div><div class="tick" style="left:50%">12:00</div><div class="tick" style="left:75%">18:00</div><div class="tick" style="left:100%">24:00</div><div class="labels"><div class="label"><strong>Opening</strong><small>00:42–02:22</small></div><div class="label"><strong>Insert</strong><small>10:22–11:25</small></div><div class="label"><strong>Ending</strong><small>22:25–24:00</small></div></div><div class="detail"><div><strong>Alle Karaoke-Bereiche</strong><span>3 Einträge · nach Position sortiert</span></div><button onclick="toast(''Alle drei Bereiche sind ausgewählt'')">Alle markieren</button></div></div>
+    </div>
+  </section>
+  <section id="variant-c" class="variant">
+    <div class="stage">
+      <h2>Variante C · Fokus-Modus mit großer aktiver Vorschau</h2>
+      <div class="timeline"><div class="axis"><span class="range op" style="left:3%;width:7%"></span><span class="range insert" style="left:43%;width:4.5%"></span><span class="range ed" style="left:93%;width:7%"></span><button class="marker op active" style="left:6.5%" aria-label="Opening"></button><button class="marker insert" style="left:45%" aria-label="Insert"></button><button class="marker ed" style="left:96.5%" aria-label="Ending"></button></div><div class="tick" style="left:0%">00:00</div><div class="tick" style="left:50%">12:00</div><div class="tick" style="left:100%">24:00</div><div class="detail"><div><div class="eyebrow">Aktiver Bereich</div><strong>Buddy Opening Lied</strong><span>00:42–02:22 · 5 Mitwirkende</span></div><button onclick="toast(''Preview würde hier geöffnet'')">Preview öffnen</button></div></div>
+    </div>
+  </section>
+</main>
+<div id="toast" class="toast"></div>
+<script>
+const tabs=document.querySelectorAll(''.variant-tab''), variants=document.querySelectorAll(''.variant'');
+tabs.forEach(t=>t.addEventListener(''click'',()=>{tabs.forEach(x=>x.classList.remove(''active''));t.classList.add(''active'');variants.forEach(v=>v.classList.toggle(''active'',v.id===''variant-''+t.dataset.variant))}));
+document.querySelectorAll(''.marker'').forEach(m=>m.addEventListener(''click'',()=>{document.querySelectorAll(''.marker'').forEach(x=>x.classList.remove(''active''));m.classList.add(''active'');document.querySelector(''#selectedName'').textContent=m.dataset.name;document.querySelector(''#selectedMeta'').textContent=m.dataset.meta}));
+document.querySelector(''#previewBtn'').addEventListener(''click'',()=>toast(''Hier würde die Karaoke-Preview geöffnet.''));
+document.querySelectorAll(''[data-width]'').forEach(b=>b.addEventListener(''click'',()=>{const w=b.dataset.width;document.querySelector(''.shell'').style.maxWidth=w===''full''?''1280px'':w+''px'';toast(''Ansicht: ''+(w===''full''?''Desktop'':w+''px''))}));
+function toast(text){const el=document.querySelector(''#toast'');el.textContent=text;el.classList.add(''show'');setTimeout(()=>el.classList.remove(''show''),1800)}
+</script>
+</body>
+</html>
