@@ -1562,6 +1562,7 @@ Last activity: 2026-09-23
 |---|-------------|------|--------|-----------|
 | 260928-6qr | Gruppen-Media-Upload an globales Upload-UI angeglichen, mit sichtbarem Drag-and-drop und Mehrfachauswahl | 2026-09-28 | pending | [260928-6qr-group-media-upload-ui](./quick/260928-6qr-group-media-upload-ui/) |
 | 260928-6qs | Release-Kopfaktionen und kompakte OP-/ED-Karaoke-Karten | 2026-09-28 | pending | [260928-6qs-release-kopf-und-karaoke-karten](./quick/260928-6qs-release-kopf-und-karaoke-karten/) |
+| 260928-6qt | OP-/ED-Theme-Karten im Release-Detail zweispaltig kompakt | 2026-09-28 | pending | [260928-6qt-theme-karten-zweispaltig](./quick/260928-6qt-theme-karten-zweispaltig/) |
 | 260926-6qo | Anime-Create-Quellenlayout mit rechtsbündiger Bibliotheksaktion und gleich hohen Providerkarten | 2026-09-26 | pending | [260926-6qo-anime-create-quellenlayout](./quick/260926-6qo-anime-create-quellenlayout/) |
 | 260926-6qn | Bibliothek-suchen-Button als Einzelaktion wiederhergestellt, redundante Discovery-Karte bleibt entfernt | 2026-09-26 | pending | [260926-6qn-anime-create-bibliothek-button](./quick/260926-6qn-anime-create-bibliothek-button/) |
 | 260926-6qm | Weitere redundante Anime-Create-Quelltexte entfernt, Bibliotheks-Button und funktionale Suche behalten | 2026-09-26 | pending | [260926-6qm-anime-create-source-copy](./quick/260926-6qm-anime-create-source-copy/) |
