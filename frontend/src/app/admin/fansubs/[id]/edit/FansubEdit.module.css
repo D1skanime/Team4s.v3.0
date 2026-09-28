@@ -2019,6 +2019,27 @@
   font-weight: 700;
 }
 
+.fansubEditReleaseCardMeta {
+  display: flex;
+  align-items: center;
+  gap: 0.55rem;
+  flex-wrap: wrap;
+}
+
+.fansubEditReleaseCardMeta > span {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.22rem;
+}
+
+.fansubEditReleaseThemeMeta {
+  color: #18794e;
+}
+
+.fansubEditReleaseThemeMetaMuted {
+  color: var(--text-secondary);
+}
+
 .fansubEditReleaseCardChips {
   display: flex;
   align-items: center;

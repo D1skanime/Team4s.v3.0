@@ -1,6 +1,6 @@
 "use client";
 
-import { ChevronDown, ChevronRight, ExternalLink, Users } from "lucide-react";
+import { CheckCircle2, ChevronDown, ChevronRight, ExternalLink, Users } from "lucide-react";
 
 import { Badge, Button } from "@/components/ui";
 import type { AdminFansubRelease, AnimeContribution } from "@/types/fansub";
@@ -152,16 +152,18 @@ export function ReleaseRowDetails({
                   </span>
                   <span className={styles.fansubEditReleaseCardTitle}>
                     <strong>{title}</strong>
-                    <span>{releaseFansubDisplayName(release)} · Versionen: {release.version_count}</span>
+                    <span className={styles.fansubEditReleaseCardMeta}>
+                      {releaseFansubDisplayName(release)} · Versionen: {release.version_count}
+                      <span>
+                        <Users size={14} aria-hidden="true" />
+                        {peopleCount} Person{peopleCount === 1 ? "" : "en"}
+                      </span>
+                      <span className={hasThemes ? styles.fansubEditReleaseThemeMeta : styles.fansubEditReleaseThemeMetaMuted}>
+                        <CheckCircle2 size={14} aria-hidden="true" />
+                        {hasThemes ? "Themes vorhanden" : "Keine Themes"}
+                      </span>
+                    </span>
                   </span>
-                <span className={styles.fansubEditReleaseCardChips}>
-                  <Badge variant={peopleCount > 0 ? "info" : "muted"}>
-                    {peopleCount} Person{peopleCount === 1 ? "" : "en"}
-                  </Badge>
-                  <Badge variant={hasThemes ? "success" : "muted"}>
-                    {hasThemes ? "Themes" : "Keine Themes"}
-                  </Badge>
-                </span>
                   <span className={styles.fansubEditReleaseCardDisclosure} aria-hidden="true">
                     {expanded ? (
                       <ChevronDown size={22} strokeWidth={2.4} />

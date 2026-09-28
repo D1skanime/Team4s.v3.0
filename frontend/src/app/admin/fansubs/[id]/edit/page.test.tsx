@@ -466,7 +466,7 @@ describe('AdminFansubEditPage token-free wiring', () => {
     await screen.findByRole('heading', { name: 'Naruto' })
     fireEvent.click(await screen.findByRole('button', { name: 'Naruto ausklappen' }))
 
-    expect(await screen.findByText('Themes')).not.toBeNull()
+    expect(await screen.findByText('Themes vorhanden')).not.toBeNull()
     expect(screen.queryByText('Keine Themes')).toBeNull()
   })
 
