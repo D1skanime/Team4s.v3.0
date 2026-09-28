@@ -112,7 +112,7 @@ type PublicReleaseSegment struct {
 	// dieser einen Folge zugeordnet ist (UI-SPEC Surface 3, „Gilt auch fuer
 	// Folge {von}-{bis}"-Badge, D-02).
 	AppliesThroughEpisode *string `json:"applies_through_episode,omitempty"`
-	AppliesFromEpisode *string `json:"applies_from_episode,omitempty"`
+	AppliesFromEpisode    *string `json:"applies_from_episode,omitempty"`
 }
 type PublicReleaseNavigationTarget struct {
 	ReleaseVersionID int64   `json:"release_version_id"`
@@ -159,7 +159,7 @@ type PublicReleaseDetail struct {
 // releaseDetailHeader haelt die Kopf-Daten einer Release-Version (Schritt 1+2).
 type releaseDetailHeader struct {
 	ReleaseVersionID int64
-	EpisodeID       int64
+	EpisodeID        int64
 	EpisodeNumber    string
 	EpisodeTitle     *string
 	Title            string
@@ -428,7 +428,10 @@ func (r *ReleaseDetailPublicRepository) ListReleaseVersionImagesCursor(
 			rvm.sort_order,
 			uploader_author.name AS author_name
 			,rvm.is_preview_candidate
+			,highlight.id IS NOT NULL AS is_highlight
+			,highlight.highlight_order
 		FROM release_version_media rvm
+		LEFT JOIN release_version_media_highlights highlight ON highlight.release_version_media_id = rvm.id
 		JOIN media_assets ma ON ma.id = rvm.media_asset_id
 		LEFT JOIN media_files mf_thumb ON mf_thumb.media_id = ma.id AND mf_thumb.variant = 'thumb' AND mf_thumb.status = 'ready'
 		LEFT JOIN media_files mf_orig ON mf_orig.media_id = ma.id AND (mf_orig.variant = 'original' OR mf_orig.variant IS NULL) AND mf_orig.status = 'ready'
@@ -463,7 +466,7 @@ func (r *ReleaseDetailPublicRepository) ListReleaseVersionImagesCursor(
 			thumbnailPath *string
 			originalPath  *string
 		)
-		if err := rows.Scan(&row.image.ID, &row.image.FansubGroupID, &row.image.Category, &row.image.Title, &row.image.Caption, &thumbnailPath, &originalPath, &row.sortOrder, &row.image.AuthorName, &row.image.IsPreviewCandidate); err != nil {
+		if err := rows.Scan(&row.image.ID, &row.image.FansubGroupID, &row.image.Category, &row.image.Title, &row.image.Caption, &thumbnailPath, &originalPath, &row.sortOrder, &row.image.AuthorName, &row.image.IsPreviewCandidate, &row.image.IsHighlight, &row.image.HighlightOrder); err != nil {
 			return nil, fmt.Errorf("release detail: scan image cursor row: %w", err)
 		}
 		if thumbnailPath != nil {

@@ -16,6 +16,28 @@ import (
 	"time"
 )
 
+func TestPublicReleaseImageCursorCarriesIndependentHighlightStateAndKeepsPreviewThumbnail(t *testing.T) {
+	raw, err := os.ReadFile("release_detail_public_repository.go")
+	if err != nil {
+		t.Fatalf("read public release repository source: %v", err)
+	}
+	groupRaw, err := os.ReadFile("group_repository_cursor.go")
+	if err != nil {
+		t.Fatalf("read group cursor repository source: %v", err)
+	}
+	content := string(raw) + string(groupRaw)
+	for _, fragment := range []string{
+		"LEFT JOIN release_version_media_highlights highlight",
+		"highlight.id IS NOT NULL AS is_highlight",
+		"highlight.highlight_order",
+		"rvm_preview.is_preview_candidate = TRUE",
+	} {
+		if !strings.Contains(content, fragment) {
+			t.Fatalf("expected public projection fragment %q", fragment)
+		}
+	}
+}
+
 func TestGroupReleaseCursorSourceSupportsMixedEpisodesAndSegmentVersions(t *testing.T) {
 	raw, err := os.ReadFile("group_repository_cursor.go")
 	if err != nil {

@@ -330,7 +330,7 @@ func (r *ReleaseDetailPublicRepository) loadImages(ctx context.Context, releaseV
 			thumbnailPath *string
 			originalPath  *string
 		)
-		if err := rows.Scan(&item.ID, &item.FansubGroupID, &item.Category, &item.Title, &item.Caption, &thumbnailPath, &originalPath, &item.AuthorName, &item.IsPreviewCandidate); err != nil {
+		if err := rows.Scan(&item.ID, &item.FansubGroupID, &item.Category, &item.Title, &item.Caption, &thumbnailPath, &originalPath, &item.AuthorName, &item.IsPreviewCandidate, &item.IsHighlight, &item.HighlightOrder); err != nil {
 			return nil, fmt.Errorf("release detail: scan image row: %w", err)
 		}
 		if thumbnailPath != nil {
@@ -382,7 +382,10 @@ func (r *ReleaseDetailPublicRepository) imagesQuery() string {
 			COALESCE(mf_orig.path, ma.file_path, '') AS original_path,
 			uploader_author.name AS author_name
 			,rvm.is_preview_candidate
+			,highlight.id IS NOT NULL AS is_highlight
+			,highlight.highlight_order
 		FROM release_version_media rvm
+		LEFT JOIN release_version_media_highlights highlight ON highlight.release_version_media_id = rvm.id
 		JOIN media_assets ma ON ma.id = rvm.media_asset_id
 		LEFT JOIN media_files mf_thumb ON mf_thumb.media_id = ma.id AND mf_thumb.variant = 'thumb' AND mf_thumb.status = 'ready'
 		LEFT JOIN media_files mf_orig ON mf_orig.media_id = ma.id AND (mf_orig.variant = 'original' OR mf_orig.variant IS NULL) AND mf_orig.status = 'ready'
@@ -394,7 +397,7 @@ func (r *ReleaseDetailPublicRepository) imagesQuery() string {
 		  AND ma.status = 'ready'
 		  AND v.name = 'public'
 		  AND rs.code = 'approved'
-		ORDER BY rvm.sort_order ASC, rvm.id ASC
+		ORDER BY CASE WHEN highlight.id IS NOT NULL THEN 0 ELSE 1 END ASC, rvm.category ASC, highlight.highlight_order ASC NULLS LAST, rvm.sort_order ASC, rvm.id ASC
 	`, uploaderAuthorNameJoin)
 }
 
