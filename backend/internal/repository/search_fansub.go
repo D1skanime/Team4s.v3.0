@@ -109,7 +109,7 @@ func searchFansub(ctx context.Context, q searchQuerier, f models.SearchQuery) ([
 
 	listSQL := fmt.Sprintf(`
 		SELECT fansub_groups.id, fansub_groups.slug, fansub_groups.name,
-		       fansub_groups.status, fansub_groups.group_type, fansub_groups.founded_year
+		       fansub_groups.status, fansub_groups.founded_year, fansub_groups.logo_url
 		FROM fansub_groups
 		%s
 		ORDER BY %s
@@ -126,19 +126,19 @@ func searchFansub(ctx context.Context, q searchQuerier, f models.SearchQuery) ([
 	items := make([]models.SearchResultItem, 0, f.PerPage)
 	for rows.Next() {
 		item := models.SearchResultItem{Type: "fansub"}
-		var status, groupType *string
+		var status, logo *string
 		if err := rows.Scan(
 			&item.ID,
 			&item.Slug,
 			&item.Title,
 			&status,
-			&groupType,
 			&item.Year,
+			&logo,
 		); err != nil {
 			return nil, 0, fmt.Errorf("scan search fansub row: %w", err)
 		}
 		item.Status = status
-		item.Format = groupType
+		item.ImageURL = logo
 		items = append(items, item)
 	}
 	if err := rows.Err(); err != nil {

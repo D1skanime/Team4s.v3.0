@@ -572,6 +572,8 @@ export function buildSearchQuery(params: SearchParams): string {
   if (params.status) query.set("status", params.status);
   if (typeof params.fansub_group === "number" && params.fansub_group > 0)
     query.set("fansub_group", String(params.fansub_group));
+  if (params.fansub_group_query)
+    query.set("fansub_group_query", params.fansub_group_query);
   if (params.page) query.set("page", String(params.page));
   if (params.per_page) query.set("per_page", String(params.per_page));
   if (params.sort) query.set("sort", params.sort);

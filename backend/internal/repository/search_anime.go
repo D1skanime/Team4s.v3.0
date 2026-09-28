@@ -105,9 +105,32 @@ func buildSearchAnimeQuery(f models.SearchQuery) (whereSQL string, orderSQL stri
 	}
 	if f.FansubGroup != nil {
 		conditions = append(conditions, fmt.Sprintf(
-			"EXISTS (SELECT 1 FROM anime_fansub_groups afg WHERE afg.anime_id = anime.id AND afg.fansub_group_id = $%d)",
+			"EXISTS (SELECT 1 FROM release_versions rv JOIN release_version_groups rvg ON rvg.release_version_id = rv.id JOIN fansub_releases fr ON fr.id = rv.release_id JOIN episodes ep ON ep.id = fr.episode_id WHERE ep.anime_id = anime.id AND rvg.fansub_group_id = $%d)",
 			argPos))
 		args = append(args, *f.FansubGroup)
+		argPos++
+	}
+	if f.FansubGroupQuery != nil && strings.TrimSpace(*f.FansubGroupQuery) != "" {
+		conditions = append(conditions, fmt.Sprintf(`EXISTS (
+			SELECT 1
+			FROM release_versions rv
+			JOIN release_version_groups rvg ON rvg.release_version_id = rv.id
+			JOIN fansub_releases fr ON fr.id = rv.release_id
+			JOIN episodes ep ON ep.id = fr.episode_id
+			JOIN fansub_groups fg ON fg.id = rvg.fansub_group_id
+			WHERE ep.anime_id = anime.id
+			  AND (
+				regexp_replace(lower(f_unaccent(fg.name)), '[^a-z0-9]+', '', 'g') = regexp_replace(lower(f_unaccent($%[1]d)), '[^a-z0-9]+', '', 'g')
+				OR regexp_replace(lower(f_unaccent(fg.slug)), '[^a-z0-9]+', '', 'g') = regexp_replace(lower(f_unaccent($%[1]d)), '[^a-z0-9]+', '', 'g')
+				OR lower(coalesce(fg.kuerzel, '')) = lower($%[1]d)
+				OR EXISTS (
+					SELECT 1 FROM fansub_group_aliases fga
+					WHERE fga.fansub_group_id = fg.id
+					  AND fga.normalized_alias = regexp_replace(lower(f_unaccent($%[1]d)), '[^a-z0-9]+', '', 'g')
+				)
+			  )
+		)`, argPos))
+		args = append(args, strings.TrimSpace(*f.FansubGroupQuery))
 		argPos++
 	}
 
@@ -157,17 +180,28 @@ func searchAnime(ctx context.Context, q searchQuerier, f models.SearchQuery) ([]
 	}
 
 	displayTitle := primaryNormalizedTitleSQL("anime.id", "anime.title")
+	coverImage := animeCoverImageSelectSQL("anime")
 	limitPos := len(args) + 1
 	offsetPos := len(args) + 2
 	offset := (f.Page - 1) * f.PerPage
 
 	listSQL := fmt.Sprintf(`
-		SELECT anime.id, anime.slug, %s AS display_title, anime.type, anime.status, anime.year, anime.cover_image
+		SELECT anime.id, anime.slug, %s AS display_title, anime.type, anime.status, anime.year, %s AS cover_image
 		FROM anime
+		LEFT JOIN LATERAL (
+			SELECT ma.file_path
+			FROM anime_media am
+			JOIN media_assets ma ON ma.id = am.media_id
+			JOIN media_types mt ON mt.id = ma.media_type_id
+			WHERE am.anime_id = anime.id
+			  AND mt.name = 'poster'
+			ORDER BY am.sort_order ASC, ma.id ASC
+			LIMIT 1
+		) poster ON true
 		%s
 		ORDER BY %s
 		LIMIT $%d OFFSET $%d
-	`, displayTitle, whereSQL, orderSQL, limitPos, offsetPos)
+	`, displayTitle, coverImage, whereSQL, orderSQL, limitPos, offsetPos)
 
 	listArgs := append(append([]any{}, args...), f.PerPage, offset)
 	rows, err := q.Query(ctx, listSQL, listArgs...)

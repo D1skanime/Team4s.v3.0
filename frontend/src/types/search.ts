@@ -24,6 +24,7 @@ export interface SearchParams {
   format?: string;
   status?: string;
   fansub_group?: number;
+  fansub_group_query?: string;
   page?: number;
   per_page?: number;
   sort?: SearchSort;

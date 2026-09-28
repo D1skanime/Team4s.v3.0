@@ -88,11 +88,7 @@ func (h *SearchHandler) Search(c *gin.Context) {
 		return
 	}
 
-	q, ok := parseSearchQueryTerm(c)
-	if !ok && !searchQueryBypassAllowed(q, genre, tag) {
-		badRequest(c, "der Suchbegriff muss mindestens 2 Zeichen lang sein")
-		return
-	}
+	q, queryValid := parseSearchQueryTerm(c)
 	if len(q) > searchMaxQueryLen {
 		badRequest(c, "ungültiger q parameter")
 		return
@@ -131,7 +127,11 @@ func (h *SearchHandler) Search(c *gin.Context) {
 		badRequest(c, "ungültiger status parameter")
 		return
 	}
-
+	fansubGroupQuery, err := parseOptionalFilterString(c.Query("fansub_group_query"))
+	if err != nil {
+		badRequest(c, "ungültiger fansub_group_query parameter")
+		return
+	}
 	var fansubGroup *int64
 	fansubGroupRaw := strings.TrimSpace(c.Query("fansub_group"))
 	if fansubGroupRaw != "" {
@@ -141,6 +141,10 @@ func (h *SearchHandler) Search(c *gin.Context) {
 			return
 		}
 		fansubGroup = &parsed
+	}
+	if !queryValid && !searchQueryBypassAllowed(q, genre, tag, format, status, fansubGroupQuery, yearFrom, yearTo, fansubGroup) {
+		badRequest(c, "der Suchbegriff muss mindestens 2 Zeichen lang sein")
+		return
 	}
 
 	includeDisabled, err := parseOptionalBoolQuery(c.Query("include_disabled"))
@@ -154,19 +158,20 @@ func (h *SearchHandler) Search(c *gin.Context) {
 	}
 
 	query := models.SearchQuery{
-		Q:               q,
-		Type:            searchType,
-		YearFrom:        yearFrom,
-		YearTo:          yearTo,
-		Genre:           genre,
-		Tag:             tag,
-		Format:          format,
-		Status:          status,
-		FansubGroup:     fansubGroup,
-		Page:            page,
-		PerPage:         perPage,
-		Sort:            sort,
-		IncludeDisabled: includeDisabled,
+		Q:                q,
+		Type:             searchType,
+		YearFrom:         yearFrom,
+		YearTo:           yearTo,
+		Genre:            genre,
+		Tag:              tag,
+		Format:           format,
+		Status:           status,
+		FansubGroup:      fansubGroup,
+		FansubGroupQuery: fansubGroupQuery,
+		Page:             page,
+		PerPage:          perPage,
+		Sort:             sort,
+		IncludeDisabled:  includeDisabled,
 	}
 
 	result, err := h.repo.Search(c.Request.Context(), query)
@@ -218,15 +223,10 @@ func parseSearchQueryTerm(c *gin.Context) (string, bool) {
 	return q, true
 }
 
-// searchQueryBypassAllowed implementiert die additive D-08-Ausnahme: die
-// Suchbegriff-Pflicht entfällt NUR, wenn q komplett fehlt/leer ist UND mindestens
-// einer von tag/genre gesetzt ist. Ein VORHANDENER, aber zu kurzer q-Wert (z. B.
-// "?tag=Amnesia&q=a") bypassed NICHT — die engere Lesart aus RESEARCH.md Open
-// Question 1 (durch Plan 160-04 aufgelöst). Alle anderen Filter (format, status,
-// year_from/to, fansub_group) sind hier bewusst NICHT berücksichtigt (D-08 ist
-// additiv nur für tag/genre).
-func searchQueryBypassAllowed(q string, genre, tag *string) bool {
-	return q == "" && (genre != nil || tag != nil)
+// searchQueryBypassAllowed erlaubt eine filterbasierte Anime-Suche ohne Titel.
+// Ein bereits eingegebenes, aber zu kurzes q bleibt weiterhin ungültig.
+func searchQueryBypassAllowed(q string, genre, tag, format, status, fansubGroupQuery *string, yearFrom, yearTo *int16, fansubGroup *int64) bool {
+	return q == "" && (genre != nil || tag != nil || format != nil || status != nil || yearFrom != nil || yearTo != nil || fansubGroupQuery != nil || fansubGroup != nil)
 }
 
 // buildSearchMeta baut den Pagination-Envelope aus dem strukturierten Suchergebnis.

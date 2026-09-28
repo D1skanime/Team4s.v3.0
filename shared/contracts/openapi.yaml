@@ -759,12 +759,10 @@ paths:
           in: query
           required: false
           description: >
-            Suchbegriff, mindestens 2 Zeichen. Optional, wenn genre oder tag
-            gesetzt ist (D-08) — ist q dann leer/fehlend, entfällt die
+            Suchbegriff, mindestens 2 Zeichen. Optional, wenn mindestens ein
+            Filter gesetzt ist — ist q dann leer/fehlend, entfällt die
             Mindestlängenprüfung; ein vorhandener, aber zu kurzer q-Wert
-            liefert weiterhin 400. Alle anderen Filter (format, status,
-            year_from/year_to, fansub_group) bleiben von dieser Ausnahme
-            unberührt und erfordern weiterhin q.
+            liefert weiterhin 400.
           schema:
             type: string
             minLength: 2
@@ -801,7 +799,7 @@ paths:
             maxLength: 100
         - name: format
           in: query
-          description: Anime-Typ/Format bzw. Fansub-Gruppentyp.
+          description: Anime-Typ/Format.
           schema:
             type: string
             maxLength: 100
@@ -817,6 +815,12 @@ paths:
             type: integer
             format: int64
             minimum: 1
+        - name: fansub_group_query
+          in: query
+          description: Lesbarer Filter auf Name, Kürzel, Slug oder Alias einer Fansubgruppe (Anime).
+          schema:
+            type: string
+            maxLength: 100
         - name: sort
           in: query
           description: Sortierung. In v1 nur "relevance" (deterministisches D-05-Ranking).

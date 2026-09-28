@@ -139,7 +139,7 @@ describe('useDebouncedSearch', () => {
     expect(getSearchSuggestionsMock).not.toHaveBeenCalled()
   })
 
-  describe('D-08-Bypass (Frontend-Spiegel des Backend-Gegenstücks aus Plan 160-04)', () => {
+  describe('Filterbasierte Suche ohne Titel', () => {
     it('feuert die Ergebnissuche bei role "results" ohne q, wenn nur tag gesetzt ist', async () => {
       const { result } = renderHook(() => useDebouncedSearch({ role: 'results' }))
 
@@ -170,19 +170,19 @@ describe('useDebouncedSearch', () => {
       expect(getSearchMock.mock.calls[0][0].genre).toBe('Action')
     })
 
-    it('feuert bei role "results" ohne q und ohne tag/genre weiterhin KEINEN Request (Regressionsschutz gegen Aufblähen)', async () => {
+    it('feuert die Ergebnissuche auch ohne q, wenn ein anderer Filter gesetzt ist', async () => {
       const { result } = renderHook(() => useDebouncedSearch({ role: 'results' }))
 
       await act(async () => {
-        // Setzt lediglich einen anderen, für D-08 nicht relevanten Filter.
         result.current.setFilters({ format: 'tv' })
       })
       await act(async () => {
         await vi.advanceTimersByTimeAsync(SEARCH_DEBOUNCE_MS)
       })
 
-      expect(getSearchMock).not.toHaveBeenCalled()
-      expect(result.current.results).toBeNull()
+      expect(getSearchMock).toHaveBeenCalledTimes(1)
+      expect(getSearchMock.mock.calls[0][0].q).toBe('')
+      expect(getSearchMock.mock.calls[0][0].format).toBe('tv')
     })
 
     it('feuert bei role "full" mit tag ohne q die Ergebnissuche, aber NICHT die Vorschläge (D-08 gilt nicht für /search/suggestions)', async () => {

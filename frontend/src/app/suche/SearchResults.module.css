@@ -40,9 +40,33 @@
 
 .resultCardInner {
   display: flex;
-  flex-direction: column;
-  gap: var(--space-1);
+  flex-direction: row;
+  gap: var(--space-3);
+  align-items: center;
   height: 100%;
+}
+
+.resultVisual {
+  position: relative;
+  display: grid;
+  flex: 0 0 64px;
+  width: 64px;
+  aspect-ratio: 1;
+  place-items: center;
+  overflow: hidden;
+  border-radius: var(--radius-sm);
+  background: var(--surface-card-muted);
+  color: var(--text-soft);
+}
+
+.resultVisual :global(img) {
+  object-fit: cover;
+}
+
+.resultCopy {
+  display: grid;
+  min-width: 0;
+  gap: var(--space-1);
 }
 
 .resultTitle {
@@ -56,4 +80,15 @@
   font-size: 14px;
   font-weight: 400;
   color: var(--text-soft);
+}
+
+@media (max-width: 520px) {
+  .grid {
+    grid-template-columns: 1fr;
+  }
+
+  .resultVisual {
+    flex-basis: 56px;
+    width: 56px;
+  }
 }

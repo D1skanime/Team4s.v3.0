@@ -26,7 +26,7 @@ export default function SearchPage() {
     <main className={styles.page}>
       <PageHeader
         title="Suche"
-        description="Finde Anime und Fansubgruppen in einer gemeinsamen Suche."
+        description="Finde Anime und Fansubgruppen – per Titel, Tag, Genre oder Zeitraum."
       />
 
       <section className={styles.searchAnchor} aria-label="Suchfeld">

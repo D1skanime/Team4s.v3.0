@@ -7,19 +7,20 @@ import "context"
 // eindeutig von "leerer Wert" unterscheidbar ist. Alle Werte fließen ausschließlich
 // als $n-Bind-Parameter in die SQL-Schicht (nie String-interpoliert).
 type SearchQuery struct {
-	Q               string
-	Type            string // "all" | "anime" | "fansub"
-	YearFrom        *int16
-	YearTo          *int16
-	Genre           *string
-	Tag             *string
-	Format          *string // anime.type (Movie/TV/OVA …)
-	Status          *string
-	FansubGroup     *int64
-	Page            int
-	PerPage         int
-	Sort            string
-	IncludeDisabled bool // nur mit Admin-Identität true (D-11 Sichtbarkeit)
+	Q                string
+	Type             string // "all" | "anime" | "fansub"
+	YearFrom         *int16
+	YearTo           *int16
+	Genre            *string
+	Tag              *string
+	Format           *string // anime.type (Movie/TV/OVA …)
+	Status           *string
+	FansubGroup      *int64
+	FansubGroupQuery *string
+	Page             int
+	PerPage          int
+	Sort             string
+	IncludeDisabled  bool // nur mit Admin-Identität true (D-11 Sichtbarkeit)
 }
 
 // SearchResultItem ist ein typ-diskriminierter Treffer (anime|fansub) mit einer
@@ -31,7 +32,7 @@ type SearchResultItem struct {
 	Title    string  `json:"title"`
 	Subtitle *string `json:"subtitle,omitempty"`
 	Year     *int16  `json:"year,omitempty"`
-	Format   *string `json:"format,omitempty"` // anime.type bzw. fansub group_type
+	Format   *string `json:"format,omitempty"` // anime.type
 	Status   *string `json:"status,omitempty"`
 	ImageURL *string `json:"image_url,omitempty"`
 }

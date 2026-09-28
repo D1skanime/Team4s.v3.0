@@ -21,6 +21,7 @@ const FILTER_LABELS: Record<keyof SearchFilterValues, string> = {
   format: 'Typ/Format',
   status: 'Status',
   fansub_group: 'Fansubgruppe',
+  fansub_group_query: 'Fansubgruppe',
 }
 
 /** Status-Werte gegen das Datenmodell (AnimeStatus ohne das admin-interne „disabled"). */
@@ -40,6 +41,7 @@ const EMPTY_FILTERS: SearchFilterValues = {
   format: undefined,
   status: undefined,
   fansub_group: undefined,
+  fansub_group_query: undefined,
 }
 
 /** Menschlich lesbare Anzeige eines aktiven Filterwerts. */
@@ -91,84 +93,92 @@ export function SearchFilterFields({ filters, onChange }: FieldsProps) {
 
   return (
     <div className={styles.fields}>
-      <FormField label={FILTER_LABELS.genre} htmlFor={fieldId('genre')}>
-        <Input
-          id={fieldId('genre')}
-          value={filters.genre ?? ''}
-          placeholder="z. B. Action"
-          onChange={(event) => onChange({ genre: toOptionalString(event.target.value) })}
-        />
-      </FormField>
+      <div className={styles.filterGroup}>
+        <span className={styles.filterGroupLabel}>Inhalt</span>
+        <div className={styles.fieldsGroup}>
+          <FormField label={FILTER_LABELS.genre} htmlFor={fieldId('genre')}>
+            <Input
+              id={fieldId('genre')}
+              value={filters.genre ?? ''}
+              placeholder="z. B. Action"
+              onChange={(event) => onChange({ genre: toOptionalString(event.target.value) })}
+            />
+          </FormField>
 
-      <FormField label={FILTER_LABELS.tag} htmlFor={fieldId('tag')}>
-        <Input
-          id={fieldId('tag')}
-          value={filters.tag ?? ''}
-          placeholder="z. B. Schule"
-          onChange={(event) => onChange({ tag: toOptionalString(event.target.value) })}
-        />
-      </FormField>
+          <FormField label={FILTER_LABELS.tag} htmlFor={fieldId('tag')}>
+            <Input
+              id={fieldId('tag')}
+              value={filters.tag ?? ''}
+              placeholder="z. B. Schule"
+              onChange={(event) => onChange({ tag: toOptionalString(event.target.value) })}
+            />
+          </FormField>
 
-      <FormField label={FILTER_LABELS.format} htmlFor={fieldId('format')}>
-        <Input
-          id={fieldId('format')}
-          value={filters.format ?? ''}
-          placeholder="z. B. TV, Movie"
-          onChange={(event) => onChange({ format: toOptionalString(event.target.value) })}
-        />
-      </FormField>
+          <FormField label={FILTER_LABELS.format} htmlFor={fieldId('format')}>
+            <Input
+              id={fieldId('format')}
+              value={filters.format ?? ''}
+              placeholder="z. B. TV, Movie"
+              onChange={(event) => onChange({ format: toOptionalString(event.target.value) })}
+            />
+          </FormField>
 
-      <FormField label={FILTER_LABELS.status} htmlFor={fieldId('status')}>
-        <Select
-          id={fieldId('status')}
-          value={filters.status ?? ''}
-          onChange={(event) => onChange({ status: event.target.value || undefined })}
-        >
-          <option value="">Alle</option>
-          {STATUS_OPTIONS.map((option) => (
-            <option key={option.value} value={option.value}>
-              {option.label}
-            </option>
-          ))}
-        </Select>
-      </FormField>
+          <FormField label={FILTER_LABELS.status} htmlFor={fieldId('status')}>
+            <Select
+              id={fieldId('status')}
+              value={filters.status ?? ''}
+              onChange={(event) => onChange({ status: event.target.value || undefined })}
+            >
+              <option value="">Alle</option>
+              {STATUS_OPTIONS.map((option) => (
+                <option key={option.value} value={option.value}>
+                  {option.label}
+                </option>
+              ))}
+            </Select>
+          </FormField>
+        </div>
+      </div>
 
-      <FormField label={FILTER_LABELS.year_from} htmlFor={fieldId('year-from')}>
-        <YearPicker
-          id={fieldId('year-from')}
-          label={FILTER_LABELS.year_from}
-          value={filters.year_from ? String(filters.year_from) : ''}
-          minYear={MIN_FILTER_YEAR}
-          maxYear={new Date().getFullYear() + 1}
-          onChange={(value) => onChange({ year_from: toOptionalNumber(value) })}
-        />
-      </FormField>
+      <div className={styles.filterGroup}>
+        <span className={styles.filterGroupLabel}>Weitere Eingrenzung</span>
+        <div className={styles.fieldsGroup}>
+          <FormField label={FILTER_LABELS.year_from} htmlFor={fieldId('year-from')}>
+            <YearPicker
+              id={fieldId('year-from')}
+              label={FILTER_LABELS.year_from}
+              value={filters.year_from ? String(filters.year_from) : ''}
+              minYear={MIN_FILTER_YEAR}
+              maxYear={new Date().getFullYear() + 1}
+              onChange={(value) => onChange({ year_from: toOptionalNumber(value) })}
+            />
+          </FormField>
 
-      <FormField label={FILTER_LABELS.year_to} htmlFor={fieldId('year-to')}>
-        <YearPicker
-          id={fieldId('year-to')}
-          label={FILTER_LABELS.year_to}
-          value={filters.year_to ? String(filters.year_to) : ''}
-          minYear={MIN_FILTER_YEAR}
-          maxYear={new Date().getFullYear() + 1}
-          onChange={(value) => onChange({ year_to: toOptionalNumber(value) })}
-        />
-      </FormField>
+          <FormField label={FILTER_LABELS.year_to} htmlFor={fieldId('year-to')}>
+            <YearPicker
+              id={fieldId('year-to')}
+              label={FILTER_LABELS.year_to}
+              value={filters.year_to ? String(filters.year_to) : ''}
+              minYear={MIN_FILTER_YEAR}
+              maxYear={new Date().getFullYear() + 1}
+              onChange={(value) => onChange({ year_to: toOptionalNumber(value) })}
+            />
+          </FormField>
 
-      <FormField
-        label={FILTER_LABELS.fansub_group}
-        htmlFor={fieldId('fansub-group')}
-        hint="ID der Fansubgruppe"
-      >
-        <Input
-          id={fieldId('fansub-group')}
-          type="number"
-          min={1}
-          value={filters.fansub_group != null ? String(filters.fansub_group) : ''}
-          placeholder="z. B. 42"
-          onChange={(event) => onChange({ fansub_group: toOptionalNumber(event.target.value) })}
-        />
-      </FormField>
+          <FormField
+            label={FILTER_LABELS.fansub_group_query}
+            htmlFor={fieldId('fansub-group-query')}
+            hint="Name, Kürzel oder Alias"
+          >
+            <Input
+              id={fieldId('fansub-group-query')}
+              value={filters.fansub_group_query ?? ''}
+              placeholder="z. B. New-Subs"
+              onChange={(event) => onChange({ fansub_group_query: toOptionalString(event.target.value) })}
+            />
+          </FormField>
+        </div>
+      </div>
     </div>
   )
 }

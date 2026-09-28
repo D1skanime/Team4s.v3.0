@@ -2,6 +2,8 @@
 
 import { useCallback, useEffect } from 'react'
 import type { ReactNode } from 'react'
+import { Image as ImageIcon } from 'lucide-react'
+import NextImage from 'next/image'
 
 import {
   Badge,
@@ -47,8 +49,23 @@ function ResultCard({ item }: { item: SearchResultItem }) {
   return (
     <a href={resultHref(item)} className={styles.resultCard}>
       <Card variant="interactive" className={styles.resultCardInner}>
+        <div className={styles.resultVisual}>
+          {item.image_url ? (
+            <NextImage
+              src={item.image_url}
+              alt=""
+              fill
+              unoptimized
+              sizes="(max-width: 680px) 100vw, (max-width: 1100px) 50vw, 280px"
+            />
+          ) : (
+            <ImageIcon size={28} aria-hidden="true" />
+          )}
+        </div>
+        <div className={styles.resultCopy}>
         <span className={styles.resultTitle}>{item.title}</span>
         {meta ? <span className={styles.resultMeta}>{meta}</span> : null}
+        </div>
       </Card>
     </a>
   )
@@ -119,7 +136,8 @@ export function SearchResults() {
   // AUSSER tag oder genre ist gesetzt (D-08-Spiegel des Backend-Gegenstücks aus Plan 160-04):
   // dann feuert der Hook bereits eine Ergebnissuche, also darf hier kein toter Leerzustand
   // gerendert werden.
-  if (trimmedQuery.length < MIN_QUERY_LENGTH && !filters.tag && !filters.genre) {
+  const hasActiveFilter = Object.values(filters).some((value) => value !== undefined && value !== '')
+  if (trimmedQuery.length < MIN_QUERY_LENGTH && !hasActiveFilter) {
     return (
       <div className={styles.stateSlot}>
         <EmptyState

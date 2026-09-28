@@ -31,6 +31,7 @@ export interface SearchFilters {
   format?: string
   status?: string
   fansub_group?: number
+  fansub_group_query?: string
 }
 
 /** Vollständiger, aus der URL rekonstruierbarer Suchzustand. */
@@ -95,6 +96,7 @@ export function readSearchState(params: ReadonlyURLSearchParams): SearchState {
       format: params.get('format') ?? undefined,
       status: params.get('status') ?? undefined,
       fansub_group: toPositiveInt(params.get('fansub_group')),
+      fansub_group_query: params.get('fansub_group_query') ?? undefined,
     },
   }
 }
@@ -112,6 +114,7 @@ export function stateToSearchParams(state: SearchState): SearchParams {
     format: state.filters.format,
     status: state.filters.status,
     fansub_group: state.filters.fansub_group,
+    fansub_group_query: state.filters.fansub_group_query,
   }
 }
 
@@ -130,6 +133,7 @@ export function buildStateQuery(state: SearchState): string {
   if (f.format) query.set('format', f.format)
   if (f.status) query.set('status', f.status)
   if (typeof f.fansub_group === 'number') query.set('fansub_group', String(f.fansub_group))
+  if (f.fansub_group_query) query.set('fansub_group_query', f.fansub_group_query)
   return query.toString()
 }
 
@@ -204,12 +208,11 @@ export function useDebouncedSearch(
       router.replace(`${pathname}${query ? `?${query}` : ''}`, { scroll: false })
 
       const trimmed = state.q.trim()
-      // D-08-Spiegel (Backend-Gegenstück: Plan 160-04): eine wirklich ABWESENDE q
-      // (leer nach trim) umgeht die Mindestlänge NUR für die Ergebnissuche, wenn tag
-      // oder genre gesetzt ist — ein vorhandenes, aber zu kurzes q (z. B. "a") bleibt
-      // weiterhin blockiert, wie beim Backend-Pendant (schmale Lesart von D-08).
+      // Eine wirklich abwesende q (leer nach trim) umgeht die Mindestlänge, sobald
+      // mindestens ein Filter gesetzt ist. Ein vorhandenes, aber zu kurzes q bleibt
+      // weiterhin blockiert.
       const bypassMinLength =
-        trimmed.length === 0 && Boolean(state.filters.tag || state.filters.genre)
+        trimmed.length === 0 && Object.values(state.filters).some((value) => value !== undefined && value !== '')
       if (trimmed.length < MIN_QUERY_LENGTH && !bypassMinLength) {
         // Zu kurz: laufende Requests abbrechen, Ergebnisse räumen, nichts anfragen.
         searchAbortRef.current?.abort()
