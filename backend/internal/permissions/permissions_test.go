@@ -420,6 +420,42 @@ func TestCanForReleaseVersionLeaderBypass(t *testing.T) {
 	assert.True(t, result.Allowed, "erwartet: fansub_lead hat Zugriff trotz fehlender Contribution (D-05)")
 }
 
+func TestCanForReleaseVersionContributionRoleOverridesAllowedGroupRoleForMediaView(t *testing.T) {
+	cacheMu.Lock()
+	previous := loadedCache
+	cacheCopy := make(map[string][]Action, len(previous)+1)
+	for role, actions := range previous {
+		cacheCopy[role] = append([]Action(nil), actions...)
+	}
+	cacheCopy[RoleTimer] = append(cacheCopy[RoleTimer], ActionReleaseVersionMediaView)
+	loadedCache = cacheCopy
+	cacheMu.Unlock()
+	t.Cleanup(func() {
+		cacheMu.Lock()
+		loadedCache = previous
+		cacheMu.Unlock()
+	})
+
+	service := NewService(mockResolverV83{
+		groupRolesByUser:        map[int64][]string{17: {RoleTimer}},
+		contributionRolesByUser: map[int64][]string{17: {RoleProjectLead}},
+	})
+
+	result, err := service.CanForReleaseVersion(
+		context.Background(),
+		Actor{AppUserID: 17, Status: "active"},
+		ActionReleaseVersionMediaView,
+		42,
+	)
+	if err != nil {
+		t.Fatalf("CanForReleaseVersion media view: %v", err)
+	}
+
+	assert.True(t, result.Allowed)
+	assert.Equal(t, RoleProjectLead, result.MatchedRole,
+		"the contribution role must remain the winning scope when timer also grants media.view")
+}
+
 func TestCanForReleaseVersionAllowsCollaborativeGroupRole(t *testing.T) {
 	service := NewService(resolverStub{
 		context: &Context{ScopeType: ScopeTypeGroup, FansubGroupIDs: []int64{3, 4}},
