@@ -153,14 +153,18 @@ export function ReleaseRowDetails({
                   <span className={styles.fansubEditReleaseCardTitle}>
                     <strong>{title}</strong>
                     <span className={styles.fansubEditReleaseCardMeta}>
-                      {releaseFansubDisplayName(release)} · Versionen: {release.version_count}
-                      <span>
-                        <Users size={14} aria-hidden="true" />
-                        {peopleCount} Person{peopleCount === 1 ? "" : "en"}
+                      <span className={styles.fansubEditReleaseCardPrimaryMeta}>
+                        {releaseFansubDisplayName(release)} · Versionen: {release.version_count}
                       </span>
-                      <span className={hasThemes ? styles.fansubEditReleaseThemeMeta : styles.fansubEditReleaseThemeMetaMuted}>
-                        <CheckCircle2 size={14} aria-hidden="true" />
-                        {hasThemes ? "Themes vorhanden" : "Keine Themes"}
+                      <span className={styles.fansubEditReleaseCardStats}>
+                        <span>
+                          <Users size={14} aria-hidden="true" />
+                          {peopleCount} Person{peopleCount === 1 ? "" : "en"}
+                        </span>
+                        <span className={hasThemes ? styles.fansubEditReleaseThemeMeta : styles.fansubEditReleaseThemeMetaMuted}>
+                          <CheckCircle2 size={14} aria-hidden="true" />
+                          {hasThemes ? "Themes vorhanden" : "Keine Themes"}
+                        </span>
                       </span>
                     </span>
                   </span>

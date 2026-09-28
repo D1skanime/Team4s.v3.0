@@ -2020,13 +2020,23 @@
 }
 
 .fansubEditReleaseCardMeta {
+  display: grid;
+  align-items: start;
+  gap: 0.55rem;
+}
+
+.fansubEditReleaseCardPrimaryMeta {
+  display: block;
+}
+
+.fansubEditReleaseCardStats {
   display: flex;
   align-items: center;
-  gap: 0.55rem;
+  gap: 0.65rem;
   flex-wrap: wrap;
 }
 
-.fansubEditReleaseCardMeta > span {
+.fansubEditReleaseCardStats > span {
   display: inline-flex;
   align-items: center;
   gap: 0.22rem;
