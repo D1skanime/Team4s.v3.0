@@ -111,7 +111,6 @@
   font-weight: 400;
 }
 .heroReleaseTitle { margin: 0; color: var(--color-text-primary); font-size: 16px; font-weight: 700; }
-.heroSvgFilters { position: absolute; width: 0; height: 0; pointer-events: none; }
 .heroHaloText {
   position: relative;
   z-index: 0;
@@ -123,13 +122,13 @@
 .heroHaloCopy {
   position: absolute;
   z-index: -1;
-  inset: 0 -.2em;
+  inset: -.2em -.25em;
   color: rgba(255, 255, 255, .98);
-  filter: url('#release-text-horizontal-blur');
-  opacity: .76;
+  filter: blur(.55em);
+  opacity: .78;
   pointer-events: none;
   white-space: inherit;
-  transform: scaleX(1.03);
+  transform: scale(1.02);
 }
 
 .heroHaloForeground {

@@ -26,13 +26,6 @@ export function ReleaseDetailHero(props: ReleaseDetailHeroProps) {
     : `Fansubgruppe: ${groupNames[0] ?? 'Nicht hinterlegt'}`
 
   return <section className={styles.hero} data-release-hero="independent" data-release-accordion="true">
-    <svg className={styles.heroSvgFilters} aria-hidden="true" focusable="false">
-      <defs>
-        <filter id="release-text-horizontal-blur" x="-50%" y="0%" width="200%" height="100%">
-          <feGaussianBlur stdDeviation="12 0" />
-        </filter>
-      </defs>
-    </svg>
     <div className={styles.heroSummary}>
     {imageSrc ? <div className={styles.heroImageShell}>
       {/* eslint-disable-next-line @next/next/no-img-element */}
