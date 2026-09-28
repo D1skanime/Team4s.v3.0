@@ -5,7 +5,6 @@ import { useRef, useState } from 'react'
 import {
   CATEGORY_LABELS,
   RELEASE_VERSION_MEDIA_CATEGORIES,
-  ReleaseVersionMediaCategory,
   ReleaseVersionMediaItem,
   ReleaseVersionMediaReorderRequest,
 } from '@/types/releaseVersionMedia'
@@ -34,14 +33,10 @@ function isGif(item: ReleaseVersionMediaItem): boolean {
 
 interface DragState {
   draggedId: number | null
-  draggedCategory: ReleaseVersionMediaCategory | null
-  overCategory: ReleaseVersionMediaCategory | null
 }
 
 const INITIAL_DRAG_STATE: DragState = {
   draggedId: null,
-  draggedCategory: null,
-  overCategory: null,
 }
 
 interface HoverPreviewState {
@@ -97,18 +92,15 @@ export function ReleaseVersionMediaGallery({
   function handleDragStart(item: ReleaseVersionMediaItem) {
     setDragState({
       draggedId: item.id,
-      draggedCategory: item.category,
-      overCategory: null,
     })
   }
 
   function handleDragOver(item: ReleaseVersionMediaItem) {
     setDragOverItemId(item.id)
-    setDragState((prev) => ({ ...prev, overCategory: item.category }))
   }
 
   function handleDrop(targetItem: ReleaseVersionMediaItem) {
-    const { draggedId, draggedCategory } = dragState
+    const { draggedId } = dragState
 
     // Reset drag state immediately
     setDragState(INITIAL_DRAG_STATE)
@@ -118,31 +110,26 @@ export function ReleaseVersionMediaGallery({
       return
     }
 
-    // Cross-category drag is blocked
-    if (draggedCategory !== targetItem.category) {
-      return
-    }
-
     if (!onReorder) {
       return
     }
 
-    // Compute new order within the category
-    const categoryItems = items
-      .filter((i) => i.category === draggedCategory)
+    // Keep one global story order across all release images. Categories remain
+    // visible as labels, but an admin can move a screenshot before a karaoke
+    // example or an outtake when that is what the release story needs.
+    const orderedItems = items
+      .filter((i) => i.id !== draggedId)
       .sort((a, b) => a.sort_order - b.sort_order)
 
-    const draggedIndex = categoryItems.findIndex((i) => i.id === draggedId)
-    const targetIndex = categoryItems.findIndex((i) => i.id === targetItem.id)
+    const targetIndex = orderedItems.findIndex((i) => i.id === targetItem.id)
 
-    if (draggedIndex === -1 || targetIndex === -1) {
+    const draggedItem = items.find((item) => item.id === draggedId)
+    if (!draggedItem || targetIndex === -1) {
       return
     }
 
-    // Build reordered array
-    const reordered = [...categoryItems]
-    const [removed] = reordered.splice(draggedIndex, 1)
-    reordered.splice(targetIndex, 0, removed)
+    const reordered = [...orderedItems]
+    reordered.splice(targetIndex, 0, draggedItem)
 
     // Assign new sort_order values (gap of 10 to match backend convention)
     const reorderItems = reordered.map((item, index) => ({
@@ -185,8 +172,7 @@ export function ReleaseVersionMediaGallery({
                   const isDropTarget =
                     dragOverItemId === item.id &&
                     dragState.draggedId !== null &&
-                    dragState.draggedId !== item.id &&
-                    dragState.draggedCategory === item.category
+                    dragState.draggedId !== item.id
                   const isGifHovered = gifHoveredIds.has(item.id)
 
                   return (

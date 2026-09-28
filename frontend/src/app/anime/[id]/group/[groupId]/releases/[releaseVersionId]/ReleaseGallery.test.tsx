@@ -40,7 +40,7 @@ describe('ReleaseGallery', () => {
   it('renders one six-item desktop grid with metadata and no zero reveal', () => {
     render(<ReleaseGallery animeID={1} groupID={2} releaseVersionID={3} initialImages={[1,2,3,4,5,6].map(id => image(id))} categoryTotals={{ screenshot: 6, typesetting_karaoke: 0, fun_outtake: 0, other: 0 }} />)
     expect(document.querySelector('#galerie')?.getAttribute('data-release-atmosphere-band')).toBe('true')
-    expect(screen.getByTestId('release-image-grid').children).toHaveLength(6)
+    expect(document.querySelectorAll('[data-testid^="release-image-card-"]').length).toBe(6)
     expect(screen.queryByRole('button', { name: /Weitere/ })).toBeNull()
     expect(screen.getAllByText('Fansub Screenshot')).toHaveLength(6)
     expect(screen.getByText('Hochgeladen von Uploader 1')).toBeTruthy()
@@ -82,7 +82,7 @@ describe('ReleaseGallery', () => {
   it('uses the responsive source for mobile two-item reveal and remaining label', async () => {
     viewport = 'mobile'
     render(<ReleaseGallery animeID={1} groupID={2} releaseVersionID={3} initialImages={[1,2,3,4,5,6].map(id => image(id))} categoryTotals={{ screenshot: 6, typesetting_karaoke: 0, fun_outtake: 0, other: 0 }} />)
-    await waitFor(() => expect(screen.getByTestId('release-image-grid').children).toHaveLength(2))
+    await waitFor(() => expect(document.querySelectorAll('[data-testid^="release-image-card-"]').length).toBe(2))
     expect(screen.getByRole('button', { name: 'Weitere 4 Bilder anzeigen' })).toBeTruthy()
   })
 
@@ -90,10 +90,10 @@ describe('ReleaseGallery', () => {
     const loadImages = vi.spyOn(api, 'getGroupReleaseImages')
     render(<ReleaseGallery animeID={1} groupID={2} releaseVersionID={3} initialImages={[1,2,3,4,5,6,7,8].map(id => image(id))} categoryTotals={{ screenshot: 8, typesetting_karaoke: 0, fun_outtake: 0, other: 0 }} />)
 
-    expect(screen.getByTestId('release-image-grid').children).toHaveLength(6)
+    expect(document.querySelectorAll('[data-testid^="release-image-card-"]').length).toBe(6)
     fireEvent.click(screen.getByRole('button', { name: 'Weitere 2 Bilder anzeigen' }))
 
-    expect(screen.getByTestId('release-image-grid').children).toHaveLength(8)
+    expect(document.querySelectorAll('[data-testid^="release-image-card-"]').length).toBe(8)
     expect(screen.queryByRole('button', { name: /Weitere/ })).toBeNull()
     expect(loadImages).not.toHaveBeenCalled()
   })
@@ -131,7 +131,7 @@ describe('ReleaseGallery', () => {
     })
     render(<ReleaseGallery animeID={1} groupID={2} releaseVersionID={3} initialImages={[1,2,3,4,5,6].map(id => image(id))} categoryTotals={totals} />)
     fireEvent.click(screen.getByRole('button', { name: 'Weitere 3 Bilder anzeigen' }))
-    await waitFor(() => expect(screen.getByTestId('release-image-grid').children).toHaveLength(9))
+    await waitFor(() => expect(document.querySelectorAll('[data-testid^="release-image-card-"]').length).toBe(9))
     expect(api.getGroupReleaseImages).toHaveBeenCalledTimes(3)
     expect(screen.queryByRole('button', { name: /Weitere/ })).toBeNull()
     fireEvent.click(screen.getByRole('button', { name: 'Vollständige Beschreibung 8 öffnen' }))
@@ -148,7 +148,7 @@ describe('ReleaseGallery', () => {
     fireEvent.click(screen.getByRole('button', { name: 'Weitere 1 Bilder anzeigen' }))
 
     expect(await screen.findByText('Weitere Bilder konnten nicht geladen werden. Bitte versuche es erneut.')).toBeTruthy()
-    expect(screen.getByTestId('release-image-grid').children).toHaveLength(6)
+    expect(document.querySelectorAll('[data-testid^="release-image-card-"]').length).toBe(6)
     fireEvent.click(screen.getByRole('button', { name: 'Vollständige Beschreibung 1 öffnen' }))
     expect(within(screen.getByRole('dialog')).getByAltText('Fansub Screenshot').getAttribute('src')).toContain('/original-1.jpg')
   })
