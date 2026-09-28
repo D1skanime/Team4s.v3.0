@@ -1967,6 +1967,7 @@
 .fansubEditReleaseCardList {
   display: grid;
   grid-template-columns: repeat(3, minmax(0, 1fr));
+  align-items: start;
   gap: 0.7rem;
   padding: 0.75rem;
 }
