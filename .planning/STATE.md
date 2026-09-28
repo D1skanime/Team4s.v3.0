@@ -3,14 +3,14 @@ gsd_state_version: 1.0
 milestone: v1.4
 milestone_name: Coverage
 status: executing
-stopped_at: Completed 169-03-PLAN.md
-last_updated: "2026-09-28T18:56:40.770Z"
+stopped_at: Completed 169-04-PLAN.md
+last_updated: "2026-09-28T19:17:16.801Z"
 last_activity: 2026-09-28
 progress:
   total_phases: 42
   completed_phases: 36
   total_plans: 388
-  completed_plans: 360
+  completed_plans: 361
   percent: 93
 ---
 
@@ -287,7 +287,7 @@ Abschluss" entry below for the full closing record.
 ## Current Position
 
 Phase: 169
-Plan: 3 of 5 (completed)
+Plan: 4 of 5 (completed)
 Status: Ready to execute
 Completed: additive release-version media highlights, independent preview state, scoped project-lead curation rights, and the secured admin highlight/reorder API with synchronized contracts.
 Next: execute .planning/phases/169-release-medienrechte-projektleiter-preview-highlights-und-bi/169-03-PLAN.md
@@ -854,6 +854,8 @@ Last activity: 2026-09-28
 - [Phase 169]: Highlight writes validate release-version media ownership inside the transaction. — Prevents foreign or deleted release-version media IDs from being mutated.
 - [Phase 169]: Release-version media preview remains independent from multiple ordered highlights; both mutations use dedicated project-scoped actions. — Preserves canonical release_version_media ownership and prevents generic media-update rights from granting curation.
 - [Phase 169]: Release-version curation uses existing highlight endpoints with independent preview and highlight state.
+- [Phase 169]: Public release image projections expose independent gated highlights while PreviewImage and group thumbnails remain is_preview_candidate-only.
+- [Phase 169]: The current public ReleaseGallery seam is extended; no parallel ReleaseDetailClient seam is introduced.
 
 ### Pending Todos
 
@@ -1388,11 +1390,12 @@ untruncated list lives in `.planning/todos/pending/`.
 | Phase 169 P01 | 9min | 2 tasks | 8 files |
 | Phase 169 P02 | 30min | 2 tasks | 8 files |
 | Phase 169 P03 | 24 | 2 tasks | 12 files |
+| Phase 169 P04 | 18min | 2 tasks | 9 files |
 
 ## Session Continuity
 
-Last session: 2026-09-28T18:56:40.752Z
-Stopped at: Completed 169-03-PLAN.md
+Last session: 2026-09-28T19:17:16.787Z
+Stopped at: Completed 169-04-PLAN.md
 Last activity: 2026-09-28 - Completed Phase 169 Plan 169-01
 Resume file: 
 None
