@@ -1,5 +1,5 @@
 -- Migration 0172: independent release-version media highlights and scoped curation rights.
--- Additive only: no existing release-version-media rows are backfilled.
+-- Additive schema only: existing release-version-media rows remain unchanged.
 
 BEGIN;
 
