@@ -182,7 +182,8 @@
 }
 
 .cardSelection {
-  display: block;
+  display: grid;
+  gap: 8px;
   width: 100%;
   min-width: 0;
   padding: 0;
@@ -250,6 +251,55 @@
   font-weight: 400;
   line-height: 1.5;
   overflow-wrap: anywhere;
+}
+
+.participantsDisclosure {
+  min-width: 0;
+  border-top: 1px solid color-mix(in srgb, var(--segment-color) 18%, transparent);
+}
+
+.participantsSummary {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+  padding: 7px 0 1px;
+  color: var(--color-text-secondary);
+  cursor: pointer;
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: .04em;
+  list-style: none;
+  text-transform: uppercase;
+}
+
+.participantsSummary::-webkit-details-marker {
+  display: none;
+}
+
+.participantsSummary::after {
+  width: 7px;
+  height: 7px;
+  border-right: 1.5px solid currentColor;
+  border-bottom: 1.5px solid currentColor;
+  content: '';
+  transform: translateY(-2px) rotate(45deg);
+  transition: transform 140ms ease;
+}
+
+.participantsDisclosure[open] .participantsSummary::after {
+  transform: translateY(2px) rotate(225deg);
+}
+
+.participantsCount {
+  margin-left: auto;
+  color: var(--segment-color);
+  font-variant-numeric: tabular-nums;
+  letter-spacing: 0;
+}
+
+.participantsDisclosure .participants {
+  padding-top: 5px;
 }
 
 .participantsHint {

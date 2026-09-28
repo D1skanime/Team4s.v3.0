@@ -31,14 +31,40 @@ function clock(seconds: number | null): string {
   return `${minutes.toString().padStart(2, '0')}:${rest.toString().padStart(2, '0')}`
 }
 
-function SegmentDetails({ segment, episodeNumber, projectPath }: { segment: PublicReleaseSegment; episodeNumber?: string; projectPath?: string | null }) {
+function ParticipantsDisclosure({ segment, projectPath }: { segment: PublicReleaseSegment; projectPath?: string | null }) {
+  return (
+    <details className={styles.participantsDisclosure}>
+      <summary className={styles.participantsSummary}>
+        <span>Mitwirkende</span>
+        <span className={styles.participantsCount}>{segment.participants.length}</span>
+      </summary>
+      <div className={styles.participants}>
+        {segment.participants.map((participant, index) => (
+          <div className={styles.participantRow} key={participant.member_id + '-' + index}>
+            {projectPath && participant.member_slug
+              ? <Link href={projectPath + '/mitwirkende/' + encodeURIComponent(participant.member_slug)} className={styles.participantName}>{participant.name}</Link>
+              : <span className={styles.participantName}>{participant.name}</span>}
+            <span className={styles.participantSeparator}>·</span>
+            <span className={styles.participantRoles}>
+              {(participant.segment_role_label ?? '').split(',').map((role) => role.trim()).filter(Boolean).map((role) => (
+                <span className={styles.participantRole} key={role}>{role}</span>
+              ))}
+            </span>
+          </div>
+        ))}
+      </div>
+    </details>
+  )
+}
+
+function SegmentDetails({ segment, selected, playable, onSelect, episodeNumber, projectPath }: { segment: PublicReleaseSegment; selected?: boolean; playable?: boolean; onSelect?: () => void; episodeNumber?: string; projectPath?: string | null }) {
   const start = segment.start_seconds ?? 0
   const end = segment.end_seconds ?? start
   const duration = segment.duration_seconds ?? Math.max(0, end - start)
   const participantsOnThisEpisode = !segment.applies_from_episode || segment.applies_from_episode === episodeNumber
 
-  return (
-    <div className={styles.segmentDetails}>
+  const header: ReactNode = (
+    <>
       {segment.preview_url ? (
         <Image className={styles.segmentPreview} src={segment.preview_url} alt={`Preview für ${segment.name}`} width={480} height={270} unoptimized loading="lazy" />
       ) : null}
@@ -50,23 +76,24 @@ function SegmentDetails({ segment, episodeNumber, projectPath }: { segment: Publ
       {segment.applies_through_episode ? (
         <Badge variant="muted">Gilt auch für Folge {episodeNumber}–{segment.applies_through_episode}</Badge>
       ) : null}
+    </>
+  )
+
+  return (
+    <div className={styles.segmentDetails}>
+      {playable ? (
+        <button
+          type="button"
+          className={styles.cardSelection}
+          aria-label={`${segmentTypeDisplayLabel(segment.type)} ${segment.name} auswählen`}
+          aria-pressed={selected}
+          onClick={onSelect}
+        >
+          {header}
+        </button>
+      ) : header}
       {segment.participants.length > 0 && participantsOnThisEpisode ? (
-        <div className={styles.participants}>
-          <span className={styles.participantsLabel}>Mitwirkende</span>
-          {segment.participants.map((participant, index) => (
-            <div className={styles.participantRow} key={participant.member_id + '-' + index}>
-              {projectPath && participant.member_slug
-                ? <Link href={projectPath + '/mitwirkende/' + encodeURIComponent(participant.member_slug)} className={styles.participantName}>{participant.name}</Link>
-                : <span className={styles.participantName}>{participant.name}</span>}
-              <span className={styles.participantSeparator}>·</span>
-              <span className={styles.participantRoles}>
-                {participant.segment_role_label.split(',').map((role) => role.trim()).filter(Boolean).map((role) => (
-                  <span className={styles.participantRole} key={role}>{role}</span>
-                ))}
-              </span>
-            </div>
-          ))}
-        </div>
+        <ParticipantsDisclosure segment={segment} projectPath={projectPath} />
       ) : segment.participants.length > 0 && segment.applies_from_episode ? (
         <span className={styles.participantsHint}>Mitwirkende siehe Folge {segment.applies_from_episode}</span>
       ) : null}
@@ -89,19 +116,12 @@ function SelectionSurface({
   episodeNumber?: string
   projectPath?: string | null
 }) {
-  const content: ReactNode = <SegmentDetails segment={segment} episodeNumber={episodeNumber} projectPath={projectPath} />
-  if (!playable) return <div className={styles.staticCardContent}>{content}</div>
-
-  return (
-    <button
-      type="button"
-      className={styles.cardSelection}
-      aria-label={`${segmentTypeDisplayLabel(segment.type)} ${segment.name} auswählen`}
-      aria-pressed={selected}
-      onClick={onSelect}
-    >
-      {content}
-    </button>
+  return playable ? (
+    <SegmentDetails segment={segment} selected={selected} playable onSelect={onSelect} episodeNumber={episodeNumber} projectPath={projectPath} />
+  ) : (
+    <div className={styles.staticCardContent}>
+      <SegmentDetails segment={segment} episodeNumber={episodeNumber} projectPath={projectPath} />
+    </div>
   )
 }
 
