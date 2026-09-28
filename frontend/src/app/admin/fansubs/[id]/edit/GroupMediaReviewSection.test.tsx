@@ -508,13 +508,28 @@ describe('GroupMediaReviewSection', () => {
     })
     expect(await screen.findByText('test.png')).toBeTruthy()
 
-    fireEvent.click(screen.getByRole('button', { name: 'Hochladen' }))
+    fireEvent.click(screen.getByRole('button', { name: 'Bilder hochladen' }))
 
     await waitFor(() => {
       expect(uploadFansubGroupMedia).toHaveBeenCalledWith(expect.objectContaining({ category: 'forum' }))
     })
     expect(screen.queryByText('test.png')).toBeNull()
     await waitFor(() => expect(screen.queryByText('Bilder auswählen oder hier ablegen')).toBeNull())
+  })
+
+  it('zeigt beim Ziehen von Bildern einen aktiven Dropbereich und übernimmt die Dateien', async () => {
+    const { container } = renderSection([])
+    fireEvent.click(await screen.findByRole('button', { name: 'Medien hochladen' }))
+    const dropZone = screen.getByRole('button', { name: 'Bilder auswählen oder hier ablegen' })
+    const file = new File(['x'], 'drop.png', { type: 'image/png' })
+
+    fireEvent.dragEnter(dropZone, { dataTransfer: { files: [file] } })
+    expect(dropZone.className).toContain('dropZoneActive')
+    fireEvent.drop(dropZone, { dataTransfer: { files: [file] } })
+
+    expect(await screen.findByText('1 Bild ausgewählt')).toBeTruthy()
+    expect(screen.getByText('drop.png')).toBeTruthy()
+    expect(container.querySelector('input[type="file"]')?.getAttribute('id')).toBe('group-media-file-input')
   })
 
   it('entfernt Gruppenmedien erst nach Detail-Danger-Zone und Modal-Bestätigung', async () => {

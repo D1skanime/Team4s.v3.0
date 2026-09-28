@@ -31,16 +31,51 @@
 
 .dropZone {
   display: grid;
-  gap: var(--space-2);
-  min-height: 6rem;
-  padding: var(--space-3);
+  grid-template-columns: auto minmax(0, 1fr) auto;
+  gap: var(--space-3);
+  align-items: center;
+  min-height: 7.5rem;
+  padding: var(--space-4);
   border: 1px dashed var(--border-strong);
-  border-radius: var(--radius-md);
-  background: color-mix(in srgb, var(--surface-card-muted) 70%, transparent);
+  border-radius: var(--radius-lg);
+  background: color-mix(in srgb, var(--surface-card-muted) 78%, transparent);
+  cursor: pointer;
+  transition: border-color 160ms ease, background 160ms ease, box-shadow 160ms ease;
+}
+
+.dropZone:hover,
+.dropZone:focus-visible,
+.dropZoneActive {
+  border-color: color-mix(in srgb, var(--accent-primary) 54%, transparent);
+  background: color-mix(in srgb, var(--accent-primary) 9%, var(--bg-card));
+  box-shadow: 0 0 0 3px color-mix(in srgb, var(--accent-primary) 16%, transparent);
+  outline: none;
 }
 
 .fileInput {
-  background: var(--surface-card);
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  overflow: hidden;
+  clip: rect(0 0 0 0);
+  clip-path: inset(50%);
+  white-space: nowrap;
+}
+
+.dropZoneIcon {
+  display: grid;
+  width: 2.75rem;
+  height: 2.75rem;
+  place-items: center;
+  color: var(--accent-primary);
+  border-radius: 50%;
+  background: color-mix(in srgb, var(--accent-primary) 12%, var(--bg-card));
+}
+
+.dropZoneCopy {
+  display: grid;
+  gap: var(--space-1);
+  min-width: 0;
 }
 
 .dropZoneTitle {
@@ -59,8 +94,23 @@
 }
 
 .fileSelection {
+  display: grid;
+  gap: var(--space-1);
+  padding: var(--space-3);
+  border: 1px solid var(--border-subtle);
+  border-radius: var(--radius-md);
+  background: var(--surface-card-muted);
   color: var(--text-strong);
   font-weight: 600;
+}
+
+.fileSelection span {
+  overflow: hidden;
+  color: var(--text-muted);
+  font-size: 0.8rem;
+  font-weight: 400;
+  text-overflow: ellipsis;
+  white-space: nowrap;
 }
 
 .filterBar {
@@ -598,6 +648,19 @@
 
   .filterBarOpen {
     display: grid;
+  }
+
+  .dropZone {
+    grid-template-columns: auto minmax(0, 1fr);
+  }
+
+  .dropZone > :global(button) {
+    grid-column: 1 / -1;
+    justify-self: start;
+  }
+
+  .dropZone > .fileHint {
+    grid-column: 1 / -1;
   }
 
   .mediaReviewGrid {

@@ -208,6 +208,7 @@ function GroupMediaReviewSectionInner({
   const [saveErrors, setSaveErrors] = useState<Record<number, string>>({})
   const [saving, setSaving] = useState<Record<number, boolean>>({})
   const [selectedFiles, setSelectedFiles] = useState<File[]>([])
+  const [isUploadDragging, setIsUploadDragging] = useState(false)
   const [uploadCategory, setUploadCategory] = useState<FansubGroupMediaCategory>('gallery')
   const [uploadProgress, setUploadProgress] = useState<number | null>(null)
   const [uploadError, setUploadError] = useState<string | null>(null)
@@ -362,8 +363,15 @@ function GroupMediaReviewSectionInner({
     setSelectedFiles(files.filter((file) => file.type.startsWith('image/')))
   }
 
+  function handleUploadDrop(event: DragEvent<HTMLDivElement>) {
+    event.preventDefault()
+    setIsUploadDragging(false)
+    handleSelectedFiles(Array.from(event.dataTransfer.files))
+  }
+
   function resetUploadForm() {
     setSelectedFiles([])
+    setIsUploadDragging(false)
     setUploadCategory('gallery')
     if (fileInputRef.current) fileInputRef.current.value = ''
   }
@@ -769,14 +777,29 @@ function GroupMediaReviewSectionInner({
 
             <FormField label="Dateien">
               <div
-                className={styles.dropZone}
-                onDragOver={(event) => event.preventDefault()}
-                onDrop={(event) => {
-                  event.preventDefault()
-                  handleSelectedFiles(Array.from(event.dataTransfer.files))
+                className={classNames(styles.dropZone, isUploadDragging && styles.dropZoneActive)}
+                role="button"
+                tabIndex={0}
+                aria-label="Bilder auswählen oder hier ablegen"
+                onClick={() => fileInputRef.current?.click()}
+                onKeyDown={(event) => {
+                  if (event.key === 'Enter' || event.key === ' ') {
+                    event.preventDefault()
+                    fileInputRef.current?.click()
+                  }
                 }}
+                onDragEnter={(event) => {
+                  event.preventDefault()
+                  setIsUploadDragging(true)
+                }}
+                onDragOver={(event) => event.preventDefault()}
+                onDragLeave={(event) => {
+                  if (event.currentTarget === event.target) setIsUploadDragging(false)
+                }}
+                onDrop={handleUploadDrop}
               >
                 <Input
+                  id="group-media-file-input"
                   ref={fileInputRef}
                   type="file"
                   multiple
@@ -784,13 +807,34 @@ function GroupMediaReviewSectionInner({
                   className={styles.fileInput}
                   onChange={(event) => handleSelectedFiles(Array.from(event.currentTarget.files ?? []))}
                 />
-                <p className={styles.dropZoneTitle}>Bilder auswählen oder hier ablegen</p>
+                <div className={styles.dropZoneIcon} aria-hidden="true"><UploadCloud size={22} /></div>
+                <div className={styles.dropZoneCopy}>
+                  <p className={styles.dropZoneTitle}>Bilder auswählen oder hier ablegen</p>
+                  <p className={styles.fileHint}>Mehrere Dateien gleichzeitig möglich</p>
+                </div>
+                <Button
+                  type="button"
+                  variant="secondary"
+                  size="sm"
+                  leftIcon={<UploadCloud size={16} />}
+                  onClick={(event) => {
+                    event.stopPropagation()
+                    fileInputRef.current?.click()
+                  }}
+                >
+                  Dateien auswählen
+                </Button>
                 <p className={styles.fileHint}>PNG, JPG, WebP oder GIF. Die Auswahl wird nach erfolgreichem Upload zurückgesetzt.</p>
               </div>
             </FormField>
           </div>
 
-          {selectedFileNames ? <p className={styles.fileSelection}>{selectedFileNames}</p> : null}
+          {selectedFileNames ? (
+            <div className={styles.fileSelection} role="status">
+              <strong>{selectedFiles.length} {selectedFiles.length === 1 ? 'Bild ausgewählt' : 'Bilder ausgewählt'}</strong>
+              <span>{selectedFileNames}</span>
+            </div>
+          ) : null}
           {uploadProgress !== null ? <p className={styles.fileHint}>Upload: {Math.round(uploadProgress)}%</p> : null}
           {uploadError ? <p className={styles.inlineError} role="alert">{uploadError}</p> : null}
 
@@ -799,10 +843,11 @@ function GroupMediaReviewSectionInner({
               variant="primary"
               size="sm"
               leftIcon={<UploadCloud size={16} />}
+              loading={uploadProgress !== null}
               disabled={selectedFiles.length === 0 || uploadProgress !== null}
               onClick={() => void handleUpload()}
             >
-              Hochladen
+              Bilder hochladen
             </Button>
           </div>
         </Card>
