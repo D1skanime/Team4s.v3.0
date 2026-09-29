@@ -448,6 +448,8 @@ export function ReleaseVersionMediaSection({
             {[...visibleItems].sort((a, b) => a.sort_order - b.sort_order).map((item) => {
               const badge = statusBadge(item)
               const lastActivity = formatLastActivity(item.last_activity_at)
+              const uploaderName = item.uploaded_by_display_name?.trim() || 'Unbekannt'
+              const uploaderLabel = item.uploaded_by_current_user ? 'dir (' + uploaderName + ')' : uploaderName
               return (
                 <div
                   key={item.id}
@@ -492,6 +494,7 @@ export function ReleaseVersionMediaSection({
                           <Badge variant="success" className={styles.mediaStatus}>Öffentlich</Badge>
                         ) : null}
                       </span>
+                      <span className={styles.helper}>Hochgeladen von {uploaderLabel}</span>
                       {item.title && item.caption ? <span className={styles.helper + ' ' + styles.mediaCaption}>{item.caption}</span> : null}
                       {lastActivity ? (
                         <span className={styles.helper + ' ' + styles.mediaActivity}>

@@ -44,6 +44,8 @@ export interface ReleaseVersionMediaItem {
   thumbnail_url: string | null
   original_url: string | null
   uploaded_by_user_id: number | null
+  uploaded_by_display_name?: string | null
+  uploaded_by_current_user?: boolean
   can_update?: boolean
   can_delete?: boolean
   created_at: string

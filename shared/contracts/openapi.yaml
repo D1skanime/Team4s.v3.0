@@ -16464,6 +16464,13 @@ components:
           type: integer
           format: int64
           nullable: true
+        uploaded_by_display_name:
+          type: string
+          nullable: true
+          description: Display name of the uploader.
+        uploaded_by_current_user:
+          type: boolean
+          description: True when the current actor uploaded this media item.
         can_update:
           type: boolean
           description: True when the current actor may update this concrete media relation.

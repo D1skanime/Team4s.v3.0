@@ -4,8 +4,7 @@ import { X } from "lucide-react";
 
 import type { FansubGroupCapabilities } from "@/types/fansub";
 import { Button } from "@/components/ui";
-import { ReleaseVersionMediaDrawerSummary } from "./ReleaseVersionMediaDrawerSummary";
-import { ReleaseVersionMediaReviewSection } from "./ReleaseVersionMediaReviewSection";
+import { ReleaseVersionMediaSection } from "@/app/admin/episode-versions/[versionId]/edit/ReleaseVersionMediaSection";
 import { ReleaseThemeDrawerSection } from "./ReleaseThemeDrawerSection";
 import { releaseDrawerTitle, releaseFansubDisplayName } from "./fansubEditFormatters";
 import { animeFansubReleaseContextKey } from "./fansubEditReleaseHelpers";
@@ -28,7 +27,6 @@ type ReleaseMediaDrawerProps = {
 export function ReleaseMediaDrawer({
   styles,
   drawer,
-  capabilities,
   hasAuthSession,
   canUseAdminReleaseDetails,
   canUseReleaseMedia,
@@ -241,18 +239,10 @@ export function ReleaseMediaDrawer({
                 <div className={styles.fansubEditReleaseDrawerPanel}>
                   {drawerRelease.release_version_id > 0 ? (
                     <>
-                      <ReleaseVersionMediaDrawerSummary
+                      <ReleaseVersionMediaSection
                         versionId={drawerRelease.release_version_id}
-                        episodeLabel={drawerEpisodeLabel}
-                        fansubName={drawerFansubName}
-                        releaseVersionLabel={`Release-Version ${drawerRelease.release_version_id}`}
+                        contextTitle={drawerEpisodeLabel + ' · ' + drawerFansubName + ' · Release-Version ' + drawerRelease.release_version_id}
                       />
-                      {capabilities ? (
-                        <ReleaseVersionMediaReviewSection
-                          versionId={drawerRelease.release_version_id}
-                          capabilities={capabilities}
-                        />
-                      ) : null}
                     </>
                   ) : (
                     <div className={styles.fansubEditReleaseState}>

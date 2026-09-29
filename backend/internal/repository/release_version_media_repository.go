@@ -26,9 +26,8 @@ type ReleaseVersionMediaCreateInput struct {
 	Caption            *string
 	SortOrder          int
 	IsPreviewCandidate bool
-	UploadedByUserID   *int64
+	UploadedByUserID        *int64
 }
-
 // ReleaseVersionMediaPatchInput holds the patchable fields for a release_version_media row.
 // A nil pointer means "do not change this field".
 // TitleSet/CaptionSet=true with a nil value explicitly clears that field to NULL.
@@ -67,6 +66,8 @@ type ReleaseVersionMediaItem struct {
 	IsHighlight        bool       `json:"is_highlight"`
 	HighlightOrder     *int       `json:"highlight_order,omitempty"`
 	UploadedByUserID   *int64     `json:"uploaded_by_user_id"`
+	UploadedByDisplayName *string    `json:"uploaded_by_display_name,omitempty"`
+	UploadedByCurrentUser bool      `json:"uploaded_by_current_user"`
 	Visibility         *string    `json:"visibility,omitempty"`
 	ReviewStatus       *string    `json:"review_status,omitempty"`
 	CanUpdate          bool       `json:"can_update"`
@@ -236,6 +237,7 @@ func (r *MediaRepository) ListReleaseVersionMedia(
 			highlight.release_version_media_id IS NOT NULL,
 			highlight.highlight_order,
 			rvm.uploaded_by_user_id,
+			uploader_identity.display_name,
 			v.name,
 			rs.code,
 			rvm.created_at,
@@ -251,6 +253,18 @@ func (r *MediaRepository) ListReleaseVersionMedia(
 		LEFT JOIN release_version_media_highlights highlight
 		  ON highlight.release_version_media_id = rvm.id
 		LEFT JOIN media_assets ma ON ma.id = rvm.media_asset_id
+		LEFT JOIN users uploader ON uploader.id = rvm.uploaded_by_user_id
+		LEFT JOIN LATERAL (
+			SELECT COALESCE(
+				NULLIF(BTRIM(au.display_name), ''),
+				NULLIF(BTRIM(au.preferred_username), ''),
+				NULLIF(BTRIM(uploader.username), '')
+			) AS display_name
+			FROM app_users au
+			WHERE au.legacy_user_id = uploader.id
+			ORDER BY au.id DESC
+			LIMIT 1
+		) uploader_identity ON TRUE
 		LEFT JOIN visibilities v ON v.id = ma.visibility_id
 		LEFT JOIN review_statuses rs ON rs.id = ma.review_status_id
 		LEFT JOIN release_version_media_review_lifecycle lifecycle
@@ -293,6 +307,7 @@ func (r *MediaRepository) ListReleaseVersionMedia(
 			&item.ID, &item.ReleaseVersionID, &item.FansubGroupID, &item.MediaAssetID,
 			&item.Category, &item.Title, &item.Caption, &item.SortOrder,
 			&item.IsPreviewCandidate, &item.IsHighlight, &highlightOrder, &item.UploadedByUserID,
+			&item.UploadedByDisplayName,
 			&visibilityName, &reviewStatusCode,
 			&item.CreatedAt, &item.UpdatedAt,
 			&item.SourceRevision, &item.ReviewState, &item.LastActivityAt,

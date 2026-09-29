@@ -1547,6 +1547,8 @@ types:
     rejection_category: "string | null (enum: content.incorrect | release_context.wrong | quality.insufficient | rights.unclear | other)"
     rejection_reason: string | null
     uploaded_by_user_id: int64 | null
+    uploaded_by_display_name: string | null
+    uploaded_by_current_user: boolean
     can_update: boolean
     can_delete: boolean
     created_at: timestamp

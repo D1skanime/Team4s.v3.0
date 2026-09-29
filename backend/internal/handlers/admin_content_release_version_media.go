@@ -693,6 +693,7 @@ func (h *AdminContentHandler) annotateReleaseVersionMediaItemPermissions(
 	updateResult permissions.Result,
 ) error {
 	for i := range items {
+		items[i].UploadedByCurrentUser = releaseVersionMediaUploadedByCurrentUser(items[i].UploadedByUserID, currentLegacyUserID)
 		canUpdate, err := h.canMutateReleaseVersionMediaRelation(
 			c, actor, items[i].ID, items[i].UploadedByUserID, currentLegacyUserID,
 			permissions.ActionReleaseVersionMediaUpdate, updateResult,
