@@ -425,6 +425,7 @@ export function ReleaseVersionMediaSection({
           versionId={versionId}
           canReorder={canReorderMedia}
           canManageHighlights={canManageHighlights}
+          canEditItem={(item) => Boolean(item.can_update ?? canUpdateMedia)}
           onPreviewChange={(mediaId, nextValue) => {
             const item = persistedItems.find((candidate) => candidate.id === mediaId)
             return item ? handlePreviewChange(item, nextValue) : Promise.resolve()

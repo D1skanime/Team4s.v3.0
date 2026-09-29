@@ -22,6 +22,7 @@ interface ReleaseVersionMediaGalleryProps {
   canManageHighlights?: boolean
   onPreviewChange?: (mediaId: number, nextValue: boolean) => Promise<void>
   onHighlightChange?: (mediaId: number, nextValue: boolean) => Promise<void>
+  canEditItem?: (item: ReleaseVersionMediaItem) => boolean
 }
 
 function cardLabel(item: ReleaseVersionMediaItem): string {
@@ -86,6 +87,7 @@ export function ReleaseVersionMediaGallery({
   canManageHighlights = false,
   onPreviewChange,
   onHighlightChange,
+  canEditItem,
 }: ReleaseVersionMediaGalleryProps) {
   const [dragState, setDragState] = useState<DragState>(INITIAL_DRAG_STATE)
   const [dragOverItemId, setDragOverItemId] = useState<number | null>(null)
@@ -210,6 +212,7 @@ export function ReleaseVersionMediaGallery({
                     dragState.draggedId !== null &&
                     dragState.draggedId !== item.id
                   const isGifHovered = gifHoveredIds.has(item.id)
+                  const canEdit = canEditItem?.(item) ?? Boolean(item.can_update)
 
                   return (
                     <div
@@ -288,16 +291,17 @@ export function ReleaseVersionMediaGallery({
                             ) : (
                               <span />
                             )}
-                            {item.original_url ? (
-                              <a
-                                className={styles.openLink}
-                                href={item.original_url}
-                                target="_blank"
-                                rel="noreferrer"
-                                onClick={(event) => event.stopPropagation()}
+                            {canEdit ? (
+                              <button
+                                type="button"
+                                className={styles.actionButton}
+                                onClick={(event) => {
+                                  event.stopPropagation()
+                                  onSelectItem(item)
+                                }}
                               >
-                                Öffnen
-                              </a>
+                                Bearbeiten
+                              </button>
                             ) : null}
                           </div>
                         </div>

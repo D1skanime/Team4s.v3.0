@@ -71,6 +71,7 @@ describe('ReleaseVersionMediaGallery presentation and ordering', () => {
             title: 'Titel des Bildes',
             caption: 'Zusätzliche Beschreibung',
             review_state: 'confirmed',
+            can_update: true,
             last_activity_at: '2026-09-28T12:34:00Z',
           }),
           item({ id: 2, caption: 'Zweites Bild', sort_order: 20 }),
@@ -88,6 +89,8 @@ describe('ReleaseVersionMediaGallery presentation and ordering', () => {
     expect(screen.getAllByText('Fansub Screenshot').length).toBeGreaterThan(0)
     expect(screen.getByText('Bestätigt')).toBeTruthy()
     expect(screen.getByText(/Letzte Aktivität:/)).toBeTruthy()
+    expect(screen.getByRole('button', { name: 'Bearbeiten' })).toBeTruthy()
+    expect(screen.queryByText('Öffnen')).toBeNull()
 
     const dragTargets = rendered.container.querySelectorAll('[draggable="true"]')
     expect(dragTargets).toHaveLength(2)
