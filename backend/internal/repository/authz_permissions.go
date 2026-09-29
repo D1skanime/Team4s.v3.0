@@ -119,7 +119,8 @@ func (r *AuthzRepository) ResolveReleaseVersionMedia(ctx context.Context, relati
 	rows, err := r.db.Query(ctx, `
 		SELECT DISTINCT
 			rvg.fansub_group_id,
-			au.id
+			au.id,
+			rvm.release_version_id
 		FROM release_version_media rvm
 		JOIN release_version_groups rvg ON rvg.release_version_id = rvm.release_version_id
 		LEFT JOIN app_users au ON au.legacy_user_id = rvm.uploaded_by_user_id
@@ -134,13 +135,19 @@ func (r *AuthzRepository) ResolveReleaseVersionMedia(ctx context.Context, relati
 
 	groupIDs := make([]int64, 0)
 	var ownerAppUserID *int64
+	var releaseVersionID *int64
 	for rows.Next() {
 		var groupID int64
 		var ownerID *int64
-		if err := rows.Scan(&groupID, &ownerID); err != nil {
+		var versionID int64
+		if err := rows.Scan(&groupID, &ownerID, &versionID); err != nil {
 			return nil, fmt.Errorf("resolve release version media %d: scan: %w", relationID, err)
 		}
 		groupIDs = append(groupIDs, groupID)
+		if versionID > 0 {
+			value := versionID
+			releaseVersionID = &value
+		}
 		if ownerID != nil && *ownerID > 0 {
 			value := *ownerID
 			ownerAppUserID = &value
@@ -157,6 +164,7 @@ func (r *AuthzRepository) ResolveReleaseVersionMedia(ctx context.Context, relati
 		ScopeType:      permissions.ScopeTypeGroup,
 		FansubGroupIDs: groupIDs,
 		OwnerAppUserID: ownerAppUserID,
+		ReleaseVersionID: releaseVersionID,
 	}, nil
 }
 

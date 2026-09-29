@@ -635,6 +635,14 @@ func evaluateReleaseVersionMediaRelationMutation(
 		return true
 	}
 
+	// Release-version contribution roles already authorize curation of the concrete
+	// relation. Do not require the separate group-role or owner path again.
+	if baseResult.Allowed &&
+		(action == permissions.ActionReleaseVersionMediaHighlight ||
+			action == permissions.ActionReleaseVersionMediaReorder) {
+		return true
+	}
+
 	if releaseVersionMediaUploadedByCurrentUser(uploadedByUserID, currentLegacyUserID) {
 		if action == permissions.ActionReleaseVersionMediaDelete &&
 			(permissions.RoleAllowsAction(baseResult.MatchedRole, permissions.ActionReleaseVersionMediaDeleteOwn) ||
@@ -962,31 +970,33 @@ func (h *AdminContentHandler) PatchReleaseVersionMedia(c *gin.Context) {
 		writeInternalErrorResponse(c, "interner serverfehler", err, "Patch fehlgeschlagen.")
 		return
 	}
-	if _, err := repository.NewReleaseReviewLifecycleRepository(tx).SubmitMedia(
-		c.Request.Context(),
-		repository.ReleaseReviewSubmissionInput{
-			SourceID:         relationID,
-			ActorAppUserID:   identity.AppUserID,
-			ExpectedRevision: expectedRevision,
-			LastActivityAt:   time.Now().UTC(),
-		},
-	); err != nil {
-		if errors.Is(err, repository.ErrConflict) {
-			c.JSON(http.StatusConflict, gin.H{"error": gin.H{
-				"message":    "Das Medium wurde zwischenzeitlich geändert.",
-				"error_code": "SOURCE_REVISION_CONFLICT",
-			}})
+	if !previewOnly {
+		if _, err := repository.NewReleaseReviewLifecycleRepository(tx).SubmitMedia(
+			c.Request.Context(),
+			repository.ReleaseReviewSubmissionInput{
+				SourceID:         relationID,
+				ActorAppUserID:   identity.AppUserID,
+				ExpectedRevision: expectedRevision,
+				LastActivityAt:   time.Now().UTC(),
+			},
+		); err != nil {
+			if errors.Is(err, repository.ErrConflict) {
+				c.JSON(http.StatusConflict, gin.H{"error": gin.H{
+					"message":    "Das Medium wurde zwischenzeitlich geändert.",
+					"error_code": "SOURCE_REVISION_CONFLICT",
+				}})
+				return
+			}
+			if errors.Is(err, repository.ErrNotFound) || errors.Is(err, repository.ErrValidation) {
+				c.JSON(http.StatusUnprocessableEntity, gin.H{"error": gin.H{
+					"message":    "Die Einreicher-Zuordnung ist nicht mehr eindeutig.",
+					"error_code": "SOURCE_ATTRIBUTION_INVALID",
+				}})
+				return
+			}
+			writeInternalErrorResponse(c, "interner serverfehler", err, "Review-Lifecycle konnte nicht aktualisiert werden.")
 			return
 		}
-		if errors.Is(err, repository.ErrNotFound) || errors.Is(err, repository.ErrValidation) {
-			c.JSON(http.StatusUnprocessableEntity, gin.H{"error": gin.H{
-				"message":    "Die Einreicher-Zuordnung ist nicht mehr eindeutig.",
-				"error_code": "SOURCE_ATTRIBUTION_INVALID",
-			}})
-			return
-		}
-		writeInternalErrorResponse(c, "interner serverfehler", err, "Review-Lifecycle konnte nicht aktualisiert werden.")
-		return
 	}
 	if err := tx.Commit(c.Request.Context()); err != nil {
 		writeInternalErrorResponse(c, "interner serverfehler", err, "Commit fehlgeschlagen.")

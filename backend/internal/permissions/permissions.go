@@ -292,6 +292,7 @@ type Context struct {
 	FansubGroupIDs []int64
 	AnimeID        *int64
 	OwnerAppUserID *int64
+	ReleaseVersionID *int64
 }
 
 // ReleasePlaybackEntitlementDecision is the server-side result of the central
@@ -822,6 +823,31 @@ func (s *Service) canForContext(
 
 	if ownerRequired && resourceContext.OwnerAppUserID != nil && *resourceContext.OwnerAppUserID != actor.AppUserID {
 		return denied(ReasonOwnerMismatch, "ressource gehört einem anderen benutzer"), nil
+	}
+
+	// Release-version contribution roles are authoritative for curation actions on media relations.
+	// Owner-sensitive metadata edits remain on the owner path above.
+	if resourceContext.ReleaseVersionID != nil {
+		for _, action := range actions {
+			if action != ActionReleaseVersionMediaHighlight && action != ActionReleaseVersionMediaReorder {
+				continue
+			}
+			roleCodes, err := s.resolver.ListActorContributionRolesForVersion(ctx, actor.AppUserID, *resourceContext.ReleaseVersionID)
+			if err != nil {
+				return Result{}, err
+			}
+			for _, code := range roleCodes {
+				if roleAllows(code, action) {
+					return Result{
+						Allowed:      true,
+						ReasonCode:   ReasonAllowed,
+						Reason:       "berechtigung über contribution-rolle bestätigt",
+						MatchedRole:  code,
+						MatchedScope: ScopeTypeGroup,
+					}, nil
+				}
+			}
+		}
 	}
 
 	// A stored user_deny is a more specific, more transparent denial reason than the generic
