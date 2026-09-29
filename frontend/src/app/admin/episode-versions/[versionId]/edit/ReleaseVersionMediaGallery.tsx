@@ -25,7 +25,36 @@ interface ReleaseVersionMediaGalleryProps {
 }
 
 function cardLabel(item: ReleaseVersionMediaItem): string {
-  return item.caption?.trim() || `Asset #${item.id}`
+  return item.title?.trim() || item.caption?.trim() || "Asset #" + item.id
+}
+
+function reviewLabel(item: ReleaseVersionMediaItem): string {
+  switch (item.review_state) {
+    case 'confirmed':
+      return 'Bestätigt'
+    case 'rejected':
+      return 'Abgelehnt'
+    case 'tombstoned':
+      return 'Entfernt'
+    case 'pending':
+      return 'In Prüfung'
+    default:
+      if (item.review_status === 'freigegeben') {
+        return item.visibility === 'oeffentlich' ? 'Öffentlich' : 'Intern'
+      }
+      if (item.review_status === 'abgelehnt') return 'Abgelehnt'
+      return 'In Prüfung'
+  }
+}
+
+function formatLastActivity(value?: string | null): string | null {
+  if (!value) return null
+  const date = new Date(value)
+  if (Number.isNaN(date.getTime())) return null
+  return new Intl.DateTimeFormat('de-DE', {
+    dateStyle: 'medium',
+    timeStyle: 'short',
+  }).format(date)
 }
 
 function isGif(item: ReleaseVersionMediaItem): boolean {
@@ -208,7 +237,7 @@ export function ReleaseVersionMediaGallery({
                     >
                       <button
                         type="button"
-                        draggable={canReorder}
+                        draggable={false}
                         className={[
                           styles.card,
                           selectedItemId === item.id ? styles.cardActive : '',
@@ -230,24 +259,47 @@ export function ReleaseVersionMediaGallery({
                             <span className={styles.placeholder}>Kein Thumbnail</span>
                           )}
                         </div>
-                        <div className={styles.caption}>{cardLabel(item)}</div>
-                        <div className={styles.metaRow}>
-                          {item.is_preview_candidate ? (
-                            <span className={styles.previewBadge}>Preview</span>
-                          ) : (
-                            <span />
-                          )}
-                          {item.original_url ? (
-                            <a
-                              className={styles.openLink}
-                              href={item.original_url}
-                              target="_blank"
-                              rel="noreferrer"
-                              onClick={(event) => event.stopPropagation()}
-                            >
-                              Öffnen
-                            </a>
+                        <div className={styles.cardBody}>
+                          <div className={styles.caption}>{cardLabel(item)}</div>
+                          {item.title?.trim() && item.caption?.trim() ? (
+                            <div className={styles.description}>{item.caption.trim()}</div>
                           ) : null}
+                          <div className={styles.badgeRow}>
+                            <span className={styles.categoryBadge}>{CATEGORY_LABELS[item.category]}</span>
+                            <span className={styles.statusBadge}>{reviewLabel(item)}</span>
+                            {item.review_state === 'confirmed' && item.visibility === 'oeffentlich' ? (
+                              <span className={styles.statusBadge}>Öffentlich</span>
+                            ) : null}
+                            {item.is_highlight ? (
+                              <span className={styles.highlightBadge}>Highlight</span>
+                            ) : null}
+                          </div>
+                          {formatLastActivity(item.last_activity_at) ? (
+                            <div className={styles.activity}>
+                              Letzte Aktivität:{' '}
+                              <time dateTime={item.last_activity_at ?? undefined}>
+                                {formatLastActivity(item.last_activity_at)}
+                              </time>
+                            </div>
+                          ) : null}
+                          <div className={styles.metaRow}>
+                            {item.is_preview_candidate ? (
+                              <span className={styles.previewBadge}>Preview</span>
+                            ) : (
+                              <span />
+                            )}
+                            {item.original_url ? (
+                              <a
+                                className={styles.openLink}
+                                href={item.original_url}
+                                target="_blank"
+                                rel="noreferrer"
+                                onClick={(event) => event.stopPropagation()}
+                              >
+                                Öffnen
+                              </a>
+                            ) : null}
+                          </div>
                         </div>
                       </button>
                       <div className={styles.metaRow}>

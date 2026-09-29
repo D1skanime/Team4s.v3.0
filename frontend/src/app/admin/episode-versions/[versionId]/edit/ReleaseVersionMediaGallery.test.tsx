@@ -58,3 +58,48 @@ describe('ReleaseVersionMediaGallery curation controls', () => {
     expect(onPreviewChange).not.toHaveBeenCalled()
   })
 })
+
+
+describe('ReleaseVersionMediaGallery presentation and ordering', () => {
+  it('keeps media metadata visible and reorders through the wrapper drag surface', () => {
+    const onReorder = vi.fn().mockResolvedValue(undefined)
+    const rendered = render(
+      <ReleaseVersionMediaGallery
+        items={[
+          item({
+            id: 1,
+            title: 'Titel des Bildes',
+            caption: 'Zusätzliche Beschreibung',
+            review_state: 'confirmed',
+            last_activity_at: '2026-09-28T12:34:00Z',
+          }),
+          item({ id: 2, caption: 'Zweites Bild', sort_order: 20 }),
+        ]}
+        selectedItemId={null}
+        onSelectItem={vi.fn()}
+        versionId={42}
+        onReorder={onReorder}
+        canReorder
+      />,
+    )
+
+    expect(screen.getByText('Titel des Bildes')).toBeTruthy()
+    expect(screen.getByText('Zusätzliche Beschreibung')).toBeTruthy()
+    expect(screen.getAllByText('Fansub Screenshot').length).toBeGreaterThan(0)
+    expect(screen.getByText('Bestätigt')).toBeTruthy()
+    expect(screen.getByText(/Letzte Aktivität:/)).toBeTruthy()
+
+    const dragTargets = rendered.container.querySelectorAll('[draggable="true"]')
+    expect(dragTargets).toHaveLength(2)
+    fireEvent.dragStart(dragTargets[0])
+    fireEvent.dragOver(dragTargets[1])
+    fireEvent.drop(dragTargets[1])
+
+    expect(onReorder).toHaveBeenCalledWith(42, {
+      items: [
+        { id: 1, sort_order: 10 },
+        { id: 2, sort_order: 20 },
+      ],
+    })
+  })
+})
