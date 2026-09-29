@@ -276,7 +276,6 @@ export function ReleaseVersionMediaGallery({
                             <div className={styles.description}>{item.caption.trim()}</div>
                           ) : null}
                           <div className={styles.badgeRow}>
-                            <span className={styles.categoryBadge}>{CATEGORY_LABELS[item.category]}</span>
                             <span className={styles.statusBadge}>{reviewLabel(item)}</span>
                             {item.review_state === 'confirmed' && item.visibility === 'oeffentlich' ? (
                               <span className={styles.statusBadge}>Öffentlich</span>

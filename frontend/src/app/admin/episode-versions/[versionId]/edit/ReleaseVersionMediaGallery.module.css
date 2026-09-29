@@ -101,20 +101,21 @@
 
 .thumb {
   width: 100%;
-  min-height: 170px;
+  aspect-ratio: 4 / 3;
+  min-height: 0;
   border-radius: calc(var(--radius-md) + 2px);
   overflow: hidden;
   background: color-mix(in srgb, var(--bg-secondary) 82%, transparent);
   display: grid;
   place-items: center;
-  padding: 0.75rem;
+  padding: 0;
 }
 
 .thumbImage {
   width: 100%;
-  height: auto;
-  max-height: 210px;
-  object-fit: contain;
+  height: 100%;
+  max-height: none;
+  object-fit: cover;
   display: block;
 }
 
@@ -141,13 +142,13 @@
 .cardBody {
   min-width: 0;
   display: grid;
-  gap: 0.42rem;
+  gap: 0.52rem;
 }
 
 .description {
   color: var(--text-secondary);
-  font-size: 0.78rem;
-  line-height: 1.35;
+  font-size: 0.82rem;
+  line-height: 1.45;
   display: -webkit-box;
   -webkit-box-orient: vertical;
   -webkit-line-clamp: 3;
@@ -161,23 +162,17 @@
   align-items: center;
 }
 
-.categoryBadge,
 .statusBadge,
 .highlightBadge {
   display: inline-flex;
   align-items: center;
   max-width: 100%;
   border-radius: 999px;
-  padding: 0.2rem 0.48rem;
-  font-size: 0.67rem;
+  padding: 0.28rem 0.62rem;
+  font-size: 0.7rem;
   font-weight: 700;
   line-height: 1.25;
   white-space: normal;
-}
-
-.categoryBadge {
-  background: color-mix(in srgb, var(--text-secondary) 10%, white);
-  color: var(--text-secondary);
 }
 
 .statusBadge {

@@ -86,7 +86,6 @@ describe('ReleaseVersionMediaGallery presentation and ordering', () => {
 
     expect(screen.getByText('Titel des Bildes')).toBeTruthy()
     expect(screen.getByText('Zusätzliche Beschreibung')).toBeTruthy()
-    expect(screen.getAllByText('Fansub Screenshot').length).toBeGreaterThan(0)
     expect(screen.getByText('Bestätigt')).toBeTruthy()
     expect(screen.getByText(/Letzte Aktivität:/)).toBeTruthy()
     expect(screen.getByRole('button', { name: 'Bearbeiten' })).toBeTruthy()
