@@ -469,9 +469,7 @@ export function ReleaseVersionMediaSection({
                   }}
                   data-drop-target={dragOverMediaId === item.id ? 'true' : undefined}
                 >
-                  <button type="button" className={styles.mediaCardOpen} draggable={canReorderMedia}
-                    onDragStart={(event) => { event.stopPropagation(); event.dataTransfer.effectAllowed = "move"; event.dataTransfer.setData("text/plain", String(item.id)); setDraggedMediaId(item.id) }}
-                    onClick={() => openEditSheet(item)} aria-label={getAssetName(item, contextTitle) + ' ' + ((item.can_update ?? canUpdateMedia) ? 'bearbeiten' : 'ansehen') + (item.is_preview_candidate ? ', aktuelles Vorschaubild' : '')}>
+                  <div className={styles.mediaCardOpen}>
                     <span className={styles.mediaThumb}>
                       {item.thumbnail_url || item.original_url ? (
                         <img draggable={false} src={item.thumbnail_url ?? item.original_url ?? ''} alt="" />
@@ -502,7 +500,8 @@ export function ReleaseVersionMediaSection({
                         </span>
                       ) : null}
                     </span>
-                  </button>
+                  </div>
+                  <Button type="button" className={styles.mediaPreviewAction} variant="subtle" size="sm" onClick={() => openEditSheet(item)} aria-label={getAssetName(item, contextTitle) + ' ' + ((item.can_update ?? canUpdateMedia) ? 'bearbeiten' : 'ansehen') + (item.is_preview_candidate ? ', aktuelles Vorschaubild' : '')}>{'Öffnen'}</Button>
                   {CATEGORY_ALLOWS_PREVIEW[item.category] && (item.can_update ?? canUpdateMedia) ? (
                     <Button type="button" className={styles.mediaPreviewAction} variant={item.is_preview_candidate ? 'success' : 'subtle'} size="sm" leftIcon={<Star size={14} aria-hidden="true" />} loading={previewSavingId === item.id} aria-pressed={item.is_preview_candidate} onClick={() => void handlePreviewChange(item, !item.is_preview_candidate)}>
                       {item.is_preview_candidate ? 'Vorschau entfernen' : 'Als Vorschau wählen'}

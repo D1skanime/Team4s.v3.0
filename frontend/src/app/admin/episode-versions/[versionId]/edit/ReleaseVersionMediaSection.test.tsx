@@ -284,9 +284,9 @@ describe('ReleaseVersionMediaSection Phase 90 upload redesign', () => {
     const media = makeMediaState({ items: [makeItem({ title, caption, last_activity_at: '2026-09-14T12:59:00Z' })] })
     renderSection(media)
     const opener = screen.getByRole('button', { name: `${title} bearbeiten` })
-    expect(within(opener).getByText(title)).not.toBeNull()
-    expect(within(opener).getByText(caption.trim())).not.toBeNull()
-    expect(opener.querySelector('time')?.dateTime).toBe('2026-09-14T12:59:00Z')
+    expect(screen.getByText(title)).not.toBeNull()
+    expect(screen.getByText(caption.trim())).not.toBeNull()
+    expect(opener.parentElement?.querySelector('time')?.dateTime).toBe('2026-09-14T12:59:00Z')
     fireEvent.click(opener)
     const dialog = within(screen.getByRole('dialog', { name: 'Medium bearbeiten' }))
     expect(dialog.getByLabelText('Titel')).toHaveProperty('value', title)
@@ -338,7 +338,7 @@ describe('ReleaseVersionMediaSection Phase 90 upload redesign', () => {
     expect(screen.queryByText('Aktive Kategorie')).toBeNull()
     for (const item of items) {
       const opener = screen.getByRole('button', { name: new RegExp(`${item.title} bearbeiten`) })
-      expect(within(opener).getByText(item.category === 'screenshot' ? 'Screenshot' : 'Typesetting / Karaoke')).not.toBeNull()
+      expect(within(opener.parentElement!).getByText(item.category === 'screenshot' ? 'Screenshot' : 'Typesetting / Karaoke')).not.toBeNull()
     }
     const categories = within(screen.getByRole('group', { name: 'Medienkategorie' }))
     for (const option of CATEGORY_OPTIONS) {
