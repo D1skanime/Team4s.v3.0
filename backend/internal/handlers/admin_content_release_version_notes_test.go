@@ -7,6 +7,7 @@ import (
 
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
+	"team4s.v3/backend/internal/permissions"
 )
 
 func TestAdminContentReleaseVersionNotes_ContributorGuardSourceInvariants(t *testing.T) {
@@ -35,4 +36,15 @@ func TestAdminContentReleaseVersionNotes_GroupScopedEditGuardSourceInvariants(t 
 	assert.Contains(t, content, "GetReleaseVersionNoteMemberRole")
 	assert.Contains(t, content, "Du darfst nur Notizen deiner Gruppe bearbeiten.")
 	assert.Contains(t, content, "memberRoles[i].CanEdit = canEdit")
+}
+
+func TestCanManageAllReleaseVersionNotes_ProjectLeadIsMemberScoped(t *testing.T) {
+	assert.False(t, canManageAllReleaseVersionNotes(permissions.Result{
+		Allowed: true,
+		MatchedRole: permissions.RoleProjectLead,
+	}), "project leads must not receive all-member note visibility")
+	assert.True(t, canManageAllReleaseVersionNotes(permissions.Result{
+		Allowed: true,
+		MatchedRole: permissions.RoleFansubLead,
+	}), "fansub admins retain all-member note visibility")
 }

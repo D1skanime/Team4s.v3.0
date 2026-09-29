@@ -36,8 +36,7 @@ type bulkUpsertReleaseVersionNotesRequest struct {
 
 func canManageAllReleaseVersionNotes(result permissions.Result) bool {
 	return result.ReasonCode == permissions.ReasonPlatformAdmin ||
-		result.MatchedRole == permissions.RoleFansubLead ||
-		result.MatchedRole == permissions.RoleProjectLead
+		result.MatchedRole == permissions.RoleFansubLead
 }
 
 func filterReleaseVersionNotesByMember(notes []repository.ReleaseVersionNote, memberID int64) []repository.ReleaseVersionNote {
