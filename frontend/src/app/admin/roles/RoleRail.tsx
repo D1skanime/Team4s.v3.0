@@ -71,13 +71,15 @@ function RoleRow({ role, isSelected, onSelectRole }: RoleRowProps) {
  *
  * Gruppiert `roles` in "Globale Rollen" (role_kind === 'global_app_role') und
  * "Gruppenrollen" (alle anderen) -- Reihenfolge innerhalb jeder Gruppe bleibt die von der
- * API gelieferte Reihenfolge. Jede Zeile ist EIN einziger Button (kein zweites
+ * alphabetischer Reihenfolge nach dem deutschen Anzeigenamen. Jede Zeile ist EIN einziger Button (kein zweites
  * fokussierbares Element), trägt aria-current und data-role-code (für das
  * Scroll-into-View in RolesClient.tsx, GAP-05).
  */
 export function RoleRail({ roles, selectedRoleCode, onSelectRole, railRef }: RoleRailProps) {
   const globalRoles = roles.filter((r) => r.role_kind === 'global_app_role')
-  const groupRoles = roles.filter((r) => r.role_kind !== 'global_app_role')
+  const groupRoles = roles
+    .filter((r) => r.role_kind !== 'global_app_role')
+    .sort((a, b) => a.label_de.localeCompare(b.label_de, 'de'))
 
   return (
     <div className={styles.rail}>

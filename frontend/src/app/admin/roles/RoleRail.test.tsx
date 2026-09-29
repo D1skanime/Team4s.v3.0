@@ -56,6 +56,14 @@ describe('RoleRail', () => {
     expect(within(list).getByText('Co-Leader')).toBeTruthy()
   })
 
+  it('sortiert Gruppenrollen alphabetisch nach ihrem deutschen Anzeigenamen', () => {
+    const alpha: RoleEntry = { ...coLeader, role_code: 'alpha', label_de: 'Alpha' }
+    const zulu: RoleEntry = { ...coLeader, role_code: 'zulu', label_de: 'Zulu' }
+    render(<RoleRail roles={[zulu, alpha]} selectedRoleCode={null} onSelectRole={vi.fn()} />)
+    const buttons = screen.getAllByRole('button')
+    expect(buttons.map((button) => button.textContent?.trim())).toEqual(['Alpha–', 'Zulu–'])
+  })
+
   it('rendert pro Rollenzeile genau ein role="button"-Element, gesamte Zeile klickbar', () => {
     const onSelectRole = vi.fn()
     render(<RoleRail roles={[coLeader]} selectedRoleCode={null} onSelectRole={onSelectRole} />)
