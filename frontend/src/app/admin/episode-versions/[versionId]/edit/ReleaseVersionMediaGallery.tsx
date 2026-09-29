@@ -238,9 +238,11 @@ export function ReleaseVersionMediaGallery({
                       }}
                       onDragEnd={handleDragEnd}
                     >
-                      <button
-                        type="button"
+                      <div
+                        role="button"
+                        tabIndex={0}
                         draggable={false}
+                        aria-label={cardLabel(item) + ' ' + (canEdit ? 'bearbeiten' : 'ansehen')}
                         className={[
                           styles.card,
                           selectedItemId === item.id ? styles.cardActive : '',
@@ -248,6 +250,12 @@ export function ReleaseVersionMediaGallery({
                           .filter(Boolean)
                           .join(' ')}
                         onClick={() => onSelectItem(item)}
+                        onKeyDown={(event) => {
+                          if (event.key === 'Enter' || event.key === ' ') {
+                            event.preventDefault()
+                            onSelectItem(item)
+                          }
+                        }}
                         onMouseEnter={() => handleMouseEnter(item)}
                         onMouseLeave={() => handleMouseLeave(item)}
                       >
@@ -305,7 +313,7 @@ export function ReleaseVersionMediaGallery({
                             ) : null}
                           </div>
                         </div>
-                      </button>
+                      </div>
                       <div className={styles.metaRow}>
                         {onPreviewChange && CATEGORY_ALLOWS_PREVIEW[item.category] ? (
                           <button
