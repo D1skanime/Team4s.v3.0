@@ -428,7 +428,7 @@ func (r *ReleaseDetailPublicRepository) ListReleaseVersionImagesCursor(
 			rvm.sort_order,
 			uploader_author.name AS author_name
 			,rvm.is_preview_candidate
-			,highlight.id IS NOT NULL AS is_highlight
+			,highlight.release_version_media_id IS NOT NULL AS is_highlight
 			,highlight.highlight_order
 		FROM release_version_media rvm
 		LEFT JOIN release_version_media_highlights highlight ON highlight.release_version_media_id = rvm.id

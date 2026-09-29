@@ -28,7 +28,7 @@ func TestPublicReleaseImageCursorCarriesIndependentHighlightStateAndKeepsPreview
 	content := string(raw) + string(groupRaw)
 	for _, fragment := range []string{
 		"LEFT JOIN release_version_media_highlights highlight",
-		"highlight.id IS NOT NULL AS is_highlight",
+		"highlight.release_version_media_id IS NOT NULL AS is_highlight",
 		"highlight.highlight_order",
 		"rvm_preview.is_preview_candidate = TRUE",
 	} {
