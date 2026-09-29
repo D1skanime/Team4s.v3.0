@@ -838,11 +838,6 @@ func (h *AdminContentHandler) PatchReleaseVersionMedia(c *gin.Context) {
 		writePermissionInternalError(c, err, "Media-Berechtigung konnte nicht geprüft werden.")
 		return
 	}
-	if !result.Allowed {
-		auditPermissionDenied(c, h.auditLogRepo, identity, "release_version_media.update.denied", nil, "release_version_media", &relationID, permissions.ActionReleaseVersionMediaUpdate, result)
-		writePermissionDenied(c, result)
-		return
-	}
 
 	relationMeta, err := h.mediaRepo.GetReleaseVersionMediaRelation(c.Request.Context(), relationID)
 	if errors.Is(err, repository.ErrNotFound) {
@@ -857,21 +852,6 @@ func (h *AdminContentHandler) PatchReleaseVersionMedia(c *gin.Context) {
 		c.JSON(http.StatusNotFound, gin.H{"error": gin.H{"message": "relation gehoert nicht zu dieser release version"}})
 		return
 	}
-	canMutate, err := h.canMutateReleaseVersionMediaRelation(
-		c, actor, relationID, relationMeta.UploadedByUserID, identity.UserID,
-		permissions.ActionReleaseVersionMediaUpdate, result,
-	)
-	if err != nil {
-		writeInternalErrorResponse(c, "interner serverfehler", err, "Media-Rechte konnten nicht geladen werden.")
-		return
-	}
-	if !canMutate {
-		ownerResult := releaseVersionMediaOwnerMismatchResult()
-		auditPermissionDenied(c, h.auditLogRepo, identity, "release_version_media.update.denied", nil, "release_version_media", &relationID, permissions.ActionReleaseVersionMediaUpdate, ownerResult)
-		writePermissionDenied(c, ownerResult)
-		return
-	}
-
 	var rawBody map[string]interface{}
 	if err := c.ShouldBindJSON(&rawBody); err != nil {
 		c.JSON(http.StatusBadRequest, gin.H{"error": gin.H{"message": "ungültige json body"}})
@@ -911,6 +891,37 @@ func (h *AdminContentHandler) PatchReleaseVersionMedia(c *gin.Context) {
 			return
 		}
 		expectedRevision = &revision
+	}
+
+	previewOnly := isPreviewCandidate != nil && !titleSet && !captionSet && categoryPatch.Category == nil
+	authorizationAction := permissions.ActionReleaseVersionMediaUpdate
+	authorizationResult := result
+	if previewOnly {
+		authorizationAction = permissions.ActionReleaseVersionMediaHighlight
+		authorizationResult, err = h.permissionSvc.CanForReleaseVersionMedia(c.Request.Context(), actor, authorizationAction, relationID)
+		if err != nil {
+			writePermissionInternalError(c, err, "Media-Berechtigung konnte nicht geprüft werden.")
+			return
+		}
+	}
+	if !authorizationResult.Allowed {
+		auditPermissionDenied(c, h.auditLogRepo, identity, "release_version_media.update.denied", nil, "release_version_media", &relationID, authorizationAction, authorizationResult)
+		writePermissionDenied(c, authorizationResult)
+		return
+	}
+	canMutate, err := h.canMutateReleaseVersionMediaRelation(
+		c, actor, relationID, relationMeta.UploadedByUserID, identity.UserID,
+		authorizationAction, authorizationResult,
+	)
+	if err != nil {
+		writeInternalErrorResponse(c, "interner serverfehler", err, "Media-Rechte konnten nicht geladen werden.")
+		return
+	}
+	if !canMutate {
+		ownerResult := releaseVersionMediaOwnerMismatchResult()
+		auditPermissionDenied(c, h.auditLogRepo, identity, "release_version_media.update.denied", nil, "release_version_media", &relationID, authorizationAction, ownerResult)
+		writePermissionDenied(c, ownerResult)
+		return
 	}
 
 	if rvmPreviewGuardBlocked(isPreviewCandidate, relationMeta.IsPreviewCandidate, relationMeta.Category, categoryPatch.Category) {

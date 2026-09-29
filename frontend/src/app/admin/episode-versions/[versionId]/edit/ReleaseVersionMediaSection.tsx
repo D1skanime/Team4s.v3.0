@@ -146,8 +146,10 @@ export function ReleaseVersionMediaSection({
   const uploadStarted = media.uploadItems.length > 0
   const canChooseFiles = canUploadMedia && versionId > 0 && !isBusy && !uploadStarted
   const canUpload = canChooseFiles && selectedDrafts.length > 0
-  const canEditPreviewCandidate = selectedItem ? CATEGORY_ALLOWS_PREVIEW[selectedItem.category] : false
   const canEditSelectedItem = Boolean(selectedItem && (selectedItem.can_update ?? canUpdateMedia))
+  const canEditPreviewCandidate = selectedItem
+    ? CATEGORY_ALLOWS_PREVIEW[selectedItem.category] && (canEditSelectedItem || canManageHighlights)
+    : false
   const canDeleteSelectedItem = Boolean(selectedItem && (selectedItem.can_delete ?? (canDeleteMedia || canDeleteOwnMedia)))
   const isRejectedEditable = Boolean(selectedItem?.review_state === 'rejected' && canEditSelectedItem)
   const hasStagedChanges = Boolean(stagedReplaceFile) ||
@@ -355,7 +357,8 @@ export function ReleaseVersionMediaSection({
   }
 
   async function handlePreviewChange(item: ReleaseVersionMediaItem, nextValue: boolean) {
-    if (!(item.can_update ?? canUpdateMedia) || !CATEGORY_ALLOWS_PREVIEW[item.category]) return
+    if (!(item.can_update ?? canUpdateMedia) && !canManageHighlights) return
+    if (!CATEGORY_ALLOWS_PREVIEW[item.category]) return
     setPreviewSavingId(item.id)
     setEditError(null)
     try {
@@ -505,7 +508,7 @@ export function ReleaseVersionMediaSection({
                     </span>
                   </div>
                   <Button type="button" className={styles.mediaPreviewAction} variant="subtle" size="sm" onClick={() => openEditSheet(item)} aria-label={getAssetName(item, contextTitle) + ' ' + ((item.can_update ?? canUpdateMedia) ? 'bearbeiten' : 'ansehen') + (item.is_preview_candidate ? ', aktuelles Vorschaubild' : '')}>{'Öffnen'}</Button>
-                  {CATEGORY_ALLOWS_PREVIEW[item.category] && (item.can_update ?? canUpdateMedia) ? (
+                  {CATEGORY_ALLOWS_PREVIEW[item.category] && ((item.can_update ?? canUpdateMedia) || canManageHighlights) ? (
                     <Button type="button" className={styles.mediaPreviewAction} variant={item.is_preview_candidate ? 'success' : 'subtle'} size="sm" leftIcon={<Star size={14} aria-hidden="true" />} loading={previewSavingId === item.id} aria-pressed={item.is_preview_candidate} onClick={() => void handlePreviewChange(item, !item.is_preview_candidate)}>
                       {item.is_preview_candidate ? 'Vorschau entfernen' : 'Als Vorschau wählen'}
                     </Button>
@@ -717,7 +720,7 @@ export function ReleaseVersionMediaSection({
                   type="checkbox"
                   checked={editPreviewCandidate}
                   onChange={(event) => void handlePreviewChange(selectedItem, event.target.checked)}
-                  disabled={!canEditSelectedItem}
+                  disabled={!canEditSelectedItem && !canManageHighlights}
                 />
                 <span>Als Vorschau markieren</span>
               </label>
