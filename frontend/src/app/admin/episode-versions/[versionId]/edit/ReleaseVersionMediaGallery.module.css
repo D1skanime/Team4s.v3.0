@@ -224,6 +224,53 @@
   text-decoration: none;
 }
 
+.actionButton {
+  min-width: 0;
+  min-height: 2.15rem;
+  border: 1px solid color-mix(in srgb, var(--accent-primary) 26%, var(--text-secondary));
+  border-radius: calc(var(--radius-sm) + 4px);
+  padding: 0.38rem 0.62rem;
+  background: color-mix(in srgb, var(--bg-card) 92%, var(--accent-primary) 8%);
+  color: var(--text-primary);
+  font: inherit;
+  font-size: 0.72rem;
+  font-weight: 750;
+  line-height: 1.2;
+  text-align: center;
+  cursor: pointer;
+  transition:
+    background-color 140ms ease,
+    border-color 140ms ease,
+    color 140ms ease,
+    box-shadow 140ms ease,
+    transform 140ms ease;
+}
+
+.actionButton:hover {
+  border-color: color-mix(in srgb, var(--accent-primary) 55%, transparent);
+  background: color-mix(in srgb, var(--accent-primary) 12%, var(--bg-card));
+  color: var(--accent-primary);
+  transform: translateY(-1px);
+}
+
+.actionButton:focus-visible {
+  outline: 3px solid color-mix(in srgb, var(--accent-primary) 24%, transparent);
+  outline-offset: 2px;
+}
+
+.actionButtonActive {
+  border-color: color-mix(in srgb, #d97706 52%, transparent);
+  background: color-mix(in srgb, #f59e0b 18%, var(--bg-card));
+  color: #92400e;
+  box-shadow: 0 8px 18px -14px rgba(146, 64, 14, 0.7);
+}
+
+.actionButtonActive:hover {
+  border-color: color-mix(in srgb, #d97706 72%, transparent);
+  background: color-mix(in srgb, #f59e0b 26%, var(--bg-card));
+  color: #78350f;
+}
+
 /* Floating hover preview card */
 .hoverPreview {
   position: absolute;

@@ -306,7 +306,7 @@ export function ReleaseVersionMediaGallery({
                         {onPreviewChange && CATEGORY_ALLOWS_PREVIEW[item.category] ? (
                           <button
                             type="button"
-                            className={styles.openLink}
+                            className={styles.actionButton}
                             aria-pressed={item.is_preview_candidate}
                             onClick={(event) => {
                               event.stopPropagation()
@@ -319,7 +319,10 @@ export function ReleaseVersionMediaGallery({
                         {canManageHighlights && onHighlightChange ? (
                           <button
                             type="button"
-                            className={styles.openLink}
+                            className={[
+                              styles.actionButton,
+                              item.is_highlight ? styles.actionButtonActive : '',
+                            ].filter(Boolean).join(' ')}
                             aria-pressed={item.is_highlight}
                             onClick={(event) => {
                               event.stopPropagation()
