@@ -8,7 +8,6 @@ import { CATEGORY_ALLOWS_PREVIEW, ReleaseVersionMediaCategory, ReleaseVersionMed
 import { Badge, Button, Drawer, FormField, Input, Textarea, useConfirmDialog } from '@/components/ui'
 import { UploadFileDraft, useReleaseVersionMedia, UseReleaseVersionMediaResult } from './useReleaseVersionMedia'
 import { ReleaseVersionMediaUploadQueue } from './ReleaseVersionMediaUploadQueue'
-import { ReleaseVersionMediaGallery } from './ReleaseVersionMediaGallery'
 import { ReleaseVersionMediaReplaceControls } from './ReleaseVersionMediaReplaceControls'
 import { RELEASE_REVIEW_REJECTION_CATEGORY_LABELS } from '../../../fansubs/releaseReviewPresentation'
 import { CATEGORY_OPTIONS, buildLocalPreviewURL, buildSelectedItemSavePayload, fileKey, isTerminalStatus, resolveEditDrawerPrimaryLabel } from './ReleaseVersionMediaSection.helpers'
@@ -94,6 +93,8 @@ export function ReleaseVersionMediaSection({
   const [editError, setEditError] = useState<string | null>(null)
   const [previewSavingId, setPreviewSavingId] = useState<number | null>(null)
   const [toast, setToast] = useState<string | null>(null)
+  const [draggedMediaId, setDraggedMediaId] = useState<number | null>(null)
+  const [dragOverMediaId, setDragOverMediaId] = useState<number | null>(null)
   const fileInputRef = useRef<HTMLInputElement | null>(null)
   const replaceFileInputRef = useRef<HTMLInputElement | null>(null)
 
@@ -159,6 +160,29 @@ export function ReleaseVersionMediaSection({
 
   function showToast(message: string) {
     setToast(message)
+  }
+
+  function handleMediaDrop(targetId: number) {
+    if (!canReorderMedia || draggedMediaId == null || draggedMediaId === targetId) {
+      setDraggedMediaId(null)
+      setDragOverMediaId(null)
+      return
+    }
+    const ordered = [...visibleItems].sort((a, b) => a.sort_order - b.sort_order)
+    const dragged = ordered.find((item) => item.id === draggedMediaId)
+    const withoutDragged = ordered.filter((item) => item.id !== draggedMediaId)
+    const targetIndex = withoutDragged.findIndex((item) => item.id === targetId)
+    if (!dragged || targetIndex < 0) {
+      setDraggedMediaId(null)
+      setDragOverMediaId(null)
+      return
+    }
+    withoutDragged.splice(targetIndex, 0, dragged)
+    void media.reorderItems(versionId, {
+      items: withoutDragged.map((item, index) => ({ id: item.id, sort_order: (index + 1) * 10 })),
+    })
+    setDraggedMediaId(null)
+    setDragOverMediaId(null)
   }
 
   function openEditSheet(item: ReleaseVersionMediaItem) {
@@ -417,75 +441,81 @@ export function ReleaseVersionMediaSection({
       {media.highlightError ? <div className={styles.errorBox}>Highlight-Fehler: {media.highlightError}</div> : null}
       {media.highlightReorderError ? <div className={styles.errorBox}>Highlight-Reorder-Fehler: {media.highlightReorderError}</div> : null}
 
-      {visibleItems.length > 0 && (canReorderMedia || canManageHighlights) ? (
-        <ReleaseVersionMediaGallery
-          items={visibleItems}
-          selectedItemId={selectedItemId}
-          onSelectItem={openEditSheet}
-          versionId={versionId}
-          canReorder={canReorderMedia}
-          canManageHighlights={canManageHighlights}
-          canEditItem={(item) => Boolean(item.can_update ?? canUpdateMedia)}
-          onPreviewChange={(mediaId, nextValue) => {
-            const item = persistedItems.find((candidate) => candidate.id === mediaId)
-            return item ? handlePreviewChange(item, nextValue) : Promise.resolve()
-          }}
-          onHighlightChange={handleHighlightChange}
-        />
-      ) : null}
-
-      {visibleItems.length > 0 && !(canReorderMedia || canManageHighlights) ? (
-        <h3 className={styles.categoryTitle}>Vorhandene Medien · {visibleItems.length}</h3>
-      ) : null}
-
-      {visibleItems.length > 0 && !(canReorderMedia || canManageHighlights) ? (
-        <div className={styles.mediaGrid}>
-          {visibleItems.map((item) => {
-            const badge = statusBadge(item)
-            const lastActivity = formatLastActivity(item.last_activity_at)
-            return (
-              <div key={item.id} className={`${styles.mediaCard} ${item.is_preview_candidate ? styles.mediaCardPreview : ''}`}>
-                <button type="button" className={styles.mediaCardOpen} onClick={() => openEditSheet(item)} aria-label={`${getAssetName(item, contextTitle)} ${(item.can_update ?? canUpdateMedia) ? 'bearbeiten' : 'ansehen'}${item.is_preview_candidate ? ', aktuelles Vorschaubild' : ''}`}>
-                  <span className={styles.mediaThumb}>
-                    {item.thumbnail_url || item.original_url ? (
-                      <img src={item.thumbnail_url ?? item.original_url ?? ''} alt="" />
-                    ) : (
-                      <ImageIcon size={22} aria-hidden="true" />
-                    )}
-                    {item.is_preview_candidate ? (
-                      <Badge variant="success" className={styles.previewBadge}>
-                        <Star size={13} aria-hidden="true" />
-                        Aktuelles Vorschaubild
-                      </Badge>
-                    ) : null}
-                  </span>
-                  <span className={styles.mediaCardBody}>
-                    <span className={styles.mediaName}>{getAssetName(item, contextTitle)}</span>
-                    <span className={styles.mediaMeta}>
-                      <Badge variant="muted" className={styles.mediaCategory}>{categoryLabel(item.category)}</Badge>
-                      <Badge variant={badge.variant} className={`${badge.className} ${styles.mediaStatus}`}>{badge.label}</Badge>
-                      {item.review_state === 'confirmed' && item.visibility === 'oeffentlich' ? (
-                        <Badge variant="success" className={styles.mediaStatus}>Öffentlich</Badge>
+      {visibleItems.length > 0 ? (
+        <>
+          <h3 className={styles.categoryTitle}>Vorhandene Medien · {visibleItems.length}</h3>
+          <div className={styles.mediaGrid}>
+            {[...visibleItems].sort((a, b) => a.sort_order - b.sort_order).map((item) => {
+              const badge = statusBadge(item)
+              const lastActivity = formatLastActivity(item.last_activity_at)
+              return (
+                <div
+                  key={item.id}
+                  className={styles.mediaCard + ' ' + (item.is_preview_candidate ? styles.mediaCardPreview : '')}
+                  draggable={canReorderMedia}
+                  onDragStart={() => setDraggedMediaId(item.id)}
+                  onDragOver={(event) => {
+                    if (!canReorderMedia) return
+                    event.preventDefault()
+                    setDragOverMediaId(item.id)
+                  }}
+                  onDrop={(event) => {
+                    event.preventDefault()
+                    handleMediaDrop(item.id)
+                  }}
+                  onDragEnd={() => {
+                    setDraggedMediaId(null)
+                    setDragOverMediaId(null)
+                  }}
+                  data-drop-target={dragOverMediaId === item.id ? 'true' : undefined}
+                >
+                  <button type="button" className={styles.mediaCardOpen} onClick={() => openEditSheet(item)} aria-label={getAssetName(item, contextTitle) + ' ' + ((item.can_update ?? canUpdateMedia) ? 'bearbeiten' : 'ansehen') + (item.is_preview_candidate ? ', aktuelles Vorschaubild' : '')}>
+                    <span className={styles.mediaThumb}>
+                      {item.thumbnail_url || item.original_url ? (
+                        <img src={item.thumbnail_url ?? item.original_url ?? ''} alt="" />
+                      ) : (
+                        <ImageIcon size={22} aria-hidden="true" />
+                      )}
+                      {item.is_preview_candidate ? (
+                        <Badge variant="success" className={styles.previewBadge}>
+                          <Star size={13} aria-hidden="true" />
+                          Aktuelles Vorschaubild
+                        </Badge>
                       ) : null}
                     </span>
-                    {item.title && item.caption ? <span className={`${styles.helper} ${styles.mediaCaption}`}>{item.caption}</span> : null}
-                    {lastActivity ? (
-                      <span className={`${styles.helper} ${styles.mediaActivity}`}>
-                        Letzte Aktivität:
-                        <time dateTime={item.last_activity_at ?? undefined}>{lastActivity}</time>
+                    <span className={styles.mediaCardBody}>
+                      <span className={styles.mediaName}>{getAssetName(item, contextTitle)}</span>
+                      <span className={styles.mediaMeta}>
+                        <Badge variant="muted" className={styles.mediaCategory}>{categoryLabel(item.category)}</Badge>
+                        <Badge variant={badge.variant} className={badge.className + ' ' + styles.mediaStatus}>{badge.label}</Badge>
+                        {item.review_state === 'confirmed' && item.visibility === 'oeffentlich' ? (
+                          <Badge variant="success" className={styles.mediaStatus}>Öffentlich</Badge>
+                        ) : null}
                       </span>
-                    ) : null}
-                  </span>
-                </button>
-                {CATEGORY_ALLOWS_PREVIEW[item.category] && (item.can_update ?? canUpdateMedia) ? (
-                  <Button type="button" className={styles.mediaPreviewAction} variant={item.is_preview_candidate ? 'success' : 'subtle'} size="sm" leftIcon={<Star size={14} aria-hidden="true" />} loading={previewSavingId === item.id} aria-pressed={item.is_preview_candidate} onClick={() => void handlePreviewChange(item, !item.is_preview_candidate)}>
-                    {item.is_preview_candidate ? 'Vorschau entfernen' : 'Als Vorschau wählen'}
-                  </Button>
-                ) : null}
-              </div>
-            )
-          })}
-        </div>
+                      {item.title && item.caption ? <span className={styles.helper + ' ' + styles.mediaCaption}>{item.caption}</span> : null}
+                      {lastActivity ? (
+                        <span className={styles.helper + ' ' + styles.mediaActivity}>
+                          Letzte Aktivität:
+                          <time dateTime={item.last_activity_at ?? undefined}>{lastActivity}</time>
+                        </span>
+                      ) : null}
+                    </span>
+                  </button>
+                  {CATEGORY_ALLOWS_PREVIEW[item.category] && (item.can_update ?? canUpdateMedia) ? (
+                    <Button type="button" className={styles.mediaPreviewAction} variant={item.is_preview_candidate ? 'success' : 'subtle'} size="sm" leftIcon={<Star size={14} aria-hidden="true" />} loading={previewSavingId === item.id} aria-pressed={item.is_preview_candidate} onClick={() => void handlePreviewChange(item, !item.is_preview_candidate)}>
+                      {item.is_preview_candidate ? 'Vorschau entfernen' : 'Als Vorschau wählen'}
+                    </Button>
+                  ) : null}
+                  {canManageHighlights && media.setHighlight ? (
+                    <Button type="button" className={styles.mediaPreviewAction} variant={item.is_highlight ? 'success' : 'subtle'} size="sm" leftIcon={<Star size={14} aria-hidden="true" />} aria-pressed={item.is_highlight} onClick={() => void handleHighlightChange(item.id, !item.is_highlight)}>
+                      {item.is_highlight ? 'Highlight entfernen' : 'Als Highlight markieren'}
+                    </Button>
+                  ) : null}
+                </div>
+              )
+            })}
+          </div>
+        </>
       ) : null}
 
       {!canUploadMedia && canViewMedia ? (
