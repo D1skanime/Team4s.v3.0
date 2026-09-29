@@ -214,7 +214,7 @@ func (appAuthCapabilityCacheLoader) LoadRoleCapabilities(_ context.Context) (map
 		permissions.ActionReleaseVersionMediaUpload, permissions.ActionReleaseVersionMediaUpdate,
 		permissions.ActionReleaseVersionMediaDelete, permissions.ActionReleaseVersionMediaDeleteOwn,
 		permissions.ActionReleaseVersionMediaReorder, permissions.ActionReleaseVersionMediaHighlight,
-		permissions.ActionReleaseVersionNotesWrite, permissions.ActionReleaseVersionSegmentsManage,
+		permissions.ActionReleaseVersionNotesWrite, permissions.ActionReleaseVersionNotesViewAll, permissions.ActionReleaseVersionSegmentsManage,
 		permissions.ActionReviewTextDecide, permissions.ActionReviewImageDecide, permissions.ActionReviewContributionDecide,
 		// Phase-137 Plan 06 (D07/D10): permissions.allKnownActions now also requires
 		// ActionUserGroupCapabilityOverrideManage, migration 0150's fansub_lead-only

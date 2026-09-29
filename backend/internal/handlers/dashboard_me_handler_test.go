@@ -322,7 +322,7 @@ func (dashboardAttentionCacheLoader) LoadRoleCapabilities(_ context.Context) (ma
 			permissions.ActionReleaseVersionMediaUpload, permissions.ActionReleaseVersionMediaUpdate,
 			permissions.ActionReleaseVersionMediaDelete, permissions.ActionReleaseVersionMediaDeleteOwn,
 			permissions.ActionReleaseVersionMediaReorder, permissions.ActionReleaseVersionMediaHighlight,
-			permissions.ActionReleaseVersionNotesWrite, permissions.ActionReleaseVersionSegmentsManage,
+			permissions.ActionReleaseVersionNotesWrite, permissions.ActionReleaseVersionNotesViewAll, permissions.ActionReleaseVersionSegmentsManage,
 			permissions.ActionReviewTextDecide, permissions.ActionReviewImageDecide, permissions.ActionReviewContributionDecide,
 			permissions.ActionUserGroupCapabilityOverrideManage,
 		},

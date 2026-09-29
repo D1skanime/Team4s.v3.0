@@ -18,6 +18,7 @@ const CATEGORY_LABEL_MAP: Record<string, string> = {
   projekt: 'Projekt',
   rechteverwaltung: 'Rechteverwaltung',
   release: 'Release',
+  veroeffentlichungen: 'Veröffentlichungen',
   review: 'Review',
 }
 
@@ -45,6 +46,7 @@ const CATEGORY_ORDER = [
   'projekt',
   'rechteverwaltung',
   'release',
+  'veroeffentlichungen',
   'review',
 ]
 

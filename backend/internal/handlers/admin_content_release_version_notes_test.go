@@ -39,12 +39,15 @@ func TestAdminContentReleaseVersionNotes_GroupScopedEditGuardSourceInvariants(t 
 }
 
 func TestCanManageAllReleaseVersionNotes_ProjectLeadIsMemberScoped(t *testing.T) {
-	assert.False(t, canManageAllReleaseVersionNotes(permissions.Result{
+	assert.True(t, canManageAllReleaseVersionNotes(permissions.Result{
 		Allowed: true,
 		MatchedRole: permissions.RoleProjectLead,
-	}), "project leads must not receive all-member note visibility")
+	}), "all-member visibility must follow the dedicated capability, not the role name")
 	assert.True(t, canManageAllReleaseVersionNotes(permissions.Result{
 		Allowed: true,
 		MatchedRole: permissions.RoleFansubLead,
 	}), "fansub admins retain all-member note visibility")
+	assert.False(t, canManageAllReleaseVersionNotes(permissions.Result{
+		Allowed: false,
+	}), "denied all-member capability must keep notes member-scoped")
 }

@@ -52,6 +52,7 @@ const (
 	ActionReleaseVersionMediaReorder         Action = "release_version_media.reorder"
 	ActionReleaseVersionMediaHighlight       Action = "release_version_media.highlight"
 	ActionReleaseVersionNotesWrite           Action = "release_version.notes.write"
+	ActionReleaseVersionNotesViewAll         Action = "release_version.notes.view_all"
 	ActionReleaseVersionSegmentsManage       Action = "release_version.segments.manage"
 	ActionReleaseVersionMetadataUpdate       Action = "release_version.metadata.update"
 	ActionReviewTextDecide                   Action = "review.text.decide"
@@ -255,6 +256,7 @@ var allKnownActions = []Action{
 	ActionReleaseVersionMediaReorder,
 	ActionReleaseVersionMediaHighlight,
 	ActionReleaseVersionNotesWrite,
+	ActionReleaseVersionNotesViewAll,
 	ActionReleaseVersionSegmentsManage,
 	ActionReleaseVersionMetadataUpdate,
 	ActionReviewTextDecide,

@@ -778,6 +778,7 @@ func (reviewServiceCacheLoaderStub) LoadRoleCapabilities(context.Context) (map[s
 			permissions.ActionReleaseVersionMediaDelete,
 			permissions.ActionReleaseVersionMediaDeleteOwn,
 			permissions.ActionReleaseVersionNotesWrite,
+			permissions.ActionReleaseVersionNotesViewAll,
 			permissions.ActionReleaseVersionSegmentsManage,
 			permissions.ActionReviewTextDecide,
 			permissions.ActionReviewImageDecide,

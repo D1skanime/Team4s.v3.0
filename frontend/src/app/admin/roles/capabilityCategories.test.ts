@@ -23,6 +23,10 @@ describe('categoryDisplayLabel', () => {
     expect(categoryDisplayLabel('release')).toBe('Release')
   })
 
+  it('mappt "veroeffentlichungen" auf "Veröffentlichungen"', () => {
+    expect(categoryDisplayLabel('veroeffentlichungen')).toBe('Veröffentlichungen')
+  })
+
   it('gibt Default-Anzeigenamen bei unbekannter Kategorie zurück (kein Crash)', () => {
     const result = categoryDisplayLabel('unbekannt_xyz')
     expect(typeof result).toBe('string')

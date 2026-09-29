@@ -35,8 +35,7 @@ type bulkUpsertReleaseVersionNotesRequest struct {
 }
 
 func canManageAllReleaseVersionNotes(result permissions.Result) bool {
-	return result.ReasonCode == permissions.ReasonPlatformAdmin ||
-		result.MatchedRole == permissions.RoleFansubLead
+	return result.Allowed || result.ReasonCode == permissions.ReasonPlatformAdmin
 }
 
 func filterReleaseVersionNotesByMember(notes []repository.ReleaseVersionNote, memberID int64) []repository.ReleaseVersionNote {
@@ -71,14 +70,20 @@ func (h *AdminContentHandler) requireReleaseVersionNoteAccess(c *gin.Context) (r
 		return releaseVersionNoteAccess{}, false
 	}
 
-	result, err := h.permissionSvc.CanForReleaseVersion(c.Request.Context(), actor, permissions.ActionReleaseVersionNotesWrite, versionID)
+	writeResult, err := h.permissionSvc.CanForReleaseVersion(c.Request.Context(), actor, permissions.ActionReleaseVersionNotesWrite, versionID)
 	if err != nil {
 		writePermissionInternalError(c, err, "Notiz-Berechtigung konnte nicht geprüft werden.")
 		return releaseVersionNoteAccess{}, false
 	}
-	if !result.Allowed {
-		auditPermissionDenied(c, h.auditLogRepo, identity, "release_version_note.write.denied", nil, "release_version", &versionID, permissions.ActionReleaseVersionNotesWrite, result)
-		writePermissionDenied(c, result)
+	if !writeResult.Allowed {
+		auditPermissionDenied(c, h.auditLogRepo, identity, "release_version_note.write.denied", nil, "release_version", &versionID, permissions.ActionReleaseVersionNotesWrite, writeResult)
+		writePermissionDenied(c, writeResult)
+		return releaseVersionNoteAccess{}, false
+	}
+
+	allNotesResult, err := h.permissionSvc.CanForReleaseVersion(c.Request.Context(), actor, permissions.ActionReleaseVersionNotesViewAll, versionID)
+	if err != nil {
+		writePermissionInternalError(c, err, "Notiz-Sichtbarkeit konnte nicht geprüft werden.")
 		return releaseVersionNoteAccess{}, false
 	}
 
@@ -86,7 +91,7 @@ func (h *AdminContentHandler) requireReleaseVersionNoteAccess(c *gin.Context) (r
 		identity:     identity,
 		actor:        actor,
 		versionID:    versionID,
-		canManageAll: canManageAllReleaseVersionNotes(result),
+		canManageAll: canManageAllReleaseVersionNotes(allNotesResult),
 	}
 
 	memberID, found, err := h.releaseVersionNotesRepo.ResolveMemberIDForAppUser(c.Request.Context(), identity.AppUserID)
