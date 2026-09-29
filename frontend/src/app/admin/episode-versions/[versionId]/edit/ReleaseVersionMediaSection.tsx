@@ -469,10 +469,12 @@ export function ReleaseVersionMediaSection({
                   }}
                   data-drop-target={dragOverMediaId === item.id ? 'true' : undefined}
                 >
-                  <button type="button" className={styles.mediaCardOpen} onClick={() => openEditSheet(item)} aria-label={getAssetName(item, contextTitle) + ' ' + ((item.can_update ?? canUpdateMedia) ? 'bearbeiten' : 'ansehen') + (item.is_preview_candidate ? ', aktuelles Vorschaubild' : '')}>
+                  <button type="button" className={styles.mediaCardOpen} draggable={canReorderMedia}
+                    onDragStart={(event) => { event.stopPropagation(); event.dataTransfer.effectAllowed = "move"; event.dataTransfer.setData("text/plain", String(item.id)); setDraggedMediaId(item.id) }}
+                    onClick={() => openEditSheet(item)} aria-label={getAssetName(item, contextTitle) + ' ' + ((item.can_update ?? canUpdateMedia) ? 'bearbeiten' : 'ansehen') + (item.is_preview_candidate ? ', aktuelles Vorschaubild' : '')}>
                     <span className={styles.mediaThumb}>
                       {item.thumbnail_url || item.original_url ? (
-                        <img src={item.thumbnail_url ?? item.original_url ?? ''} alt="" />
+                        <img draggable={false} src={item.thumbnail_url ?? item.original_url ?? ''} alt="" />
                       ) : (
                         <ImageIcon size={22} aria-hidden="true" />
                       )}
@@ -647,9 +649,9 @@ export function ReleaseVersionMediaSection({
           <div className={styles.sheetStack}>
             <div className={styles.editPreview}>
               {stagedReplacePreviewURL ? (
-                <img src={stagedReplacePreviewURL} alt="" />
+                <img draggable={false} src={stagedReplacePreviewURL} alt="" />
               ) : selectedItem.original_url || selectedItem.thumbnail_url ? (
-                <img src={selectedItem.original_url ?? selectedItem.thumbnail_url ?? ''} alt="" />
+                <img draggable={false} src={selectedItem.original_url ?? selectedItem.thumbnail_url ?? ''} alt="" />
               ) : (
                 <ImageIcon size={28} aria-hidden="true" />
               )}
