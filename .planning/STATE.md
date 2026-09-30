@@ -2,16 +2,16 @@
 gsd_state_version: 1.0
 milestone: v1.4
 milestone_name: Coverage
-status: verifying
+status: executing
 stopped_at: Phase 171 context gathered
-last_updated: "2026-09-30T14:22:24.295Z"
-last_activity: 2026-09-29
+last_updated: "2026-09-30T15:16:27.561Z"
+last_activity: 2026-09-30
 progress:
   total_phases: 44
   completed_phases: 36
-  total_plans: 388
+  total_plans: 392
   completed_plans: 361
-  percent: 93
+  percent: 92
 ---
 
 # Quick Task 260925-6qe — Anime-Identitätskarte kompakt (Phase 168)
@@ -288,7 +288,7 @@ Abschluss" entry below for the full closing record.
 
 Phase: 170
 Plan: Implementation slice complete
-Status: Verification complete with named pre-existing suite failures
+Status: Ready to execute
 Completed: removed stale public timeline range access, repaired nullable highlight responses, batched release-version-media rights projection, hardened full-list media reorder, and synchronized the focused admin contract.
 Next: resolve or explicitly accept the pre-existing full-suite failures, then complete Phase 169 live actor/refresh/responsive UAT; Phase 166 remains open.
 
@@ -395,7 +395,7 @@ timing flakiness, not a Phase 149 regression, and not yet root-caused.
 v1.4 is extended by the additive phases 165-170 and is not currently fully closed. Phase 166
 remains open, Phase 169 still has its live UAT plan outstanding, and Phase 170 is implemented
 with focused verification complete plus named pre-existing full-suite failures.
-Last activity: 2026-09-29
+Last activity: 2026-09-30
 
 ## Accumulated Context
 

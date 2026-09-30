@@ -2189,7 +2189,7 @@ Plans:
 **Depends on:** Phase 168
 **Verbindliche Quellen:** .planning/phases/169-release-medienrechte-projektleiter-preview-highlights-und-bi/169-CONTEXT.md, 169-RESEARCH.md
 **UI hint:** yes
-**Plans:** 4/5 plans executed
+**Plans:** 4/5 plans complete
 
 Plans:
 
@@ -2209,3 +2209,28 @@ Plans:
 **Wave 4** *(blocked on Wave 3 completion)*
 
 - [ ] 169-05-PLAN.md — Live Actor-, Refresh- und Responsive-UAT
+
+### Phase 170: Release-Media Stabilisierung, Contract Cleanup und Legacy-Drift
+
+**Goal:** Die Release-Media-Architektur aus Phase 169 bleibt unverändert bestehen, während stale Timeline-DTO-Zugriffe entfernt, Highlight-/Reorder-Contracts gehärtet, Media-Listenrechte batchweise projiziert und die tatsächlichen Tests-/GSD-Status synchronisiert werden.
+**Depends on:** Phase 169
+**Status:** Implementierung abgeschlossen; fokussierte Media-Tests grün. Vollständige Suiten enthalten benannte, vorbestehende Fehler außerhalb dieses Diffs.
+**Scope:** Keine neuen Features, keine neue Media-Relation und keine Verschiebung von Highlight-Daten aus `release_version_media_highlights`.
+
+Erledigt:
+
+- `start_episode`-Zugriff aus dem öffentlichen Older-Releases-Timeline-Code entfernt; Range-Felder bleiben ausschließlich im Definitions-/Admin-Modell.
+- Highlight-Responses liefern `highlight_order` immer, beim Entfernen ausdrücklich `null`.
+- `ListReleaseVersionMedia` lädt Contributor-Gruppen gesammelt und löst Effective Rights höchstens einmal pro unterschiedlicher Gruppe auf.
+- Media-Reorder validiert IDs/Orders, verlangt die vollständige aktive Liste und normalisiert die gespeicherte Reihenfolge serverseitig.
+- `shared/contracts/admin-content.yaml` und die Backend-Antwort sind synchronisiert; Phase-169-Preview/Highlight-Orthogonalität und Public-Visibility-Projektion bleiben unverändert.
+
+### Phase 171: 171 Kara-Segmente in Release-Media und Public Story integrieren
+
+**Goal:** [To be planned]
+**Requirements**: TBD
+**Depends on:** Phase 170
+**Plans:** 0/4 plans executed
+
+Plans:
+- [ ] TBD (run /gsd-plan-phase 171 to break down)
