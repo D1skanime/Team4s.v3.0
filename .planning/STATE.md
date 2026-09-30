@@ -2,12 +2,12 @@
 gsd_state_version: 1.0
 milestone: v1.4
 milestone_name: Coverage
-status: executing
-stopped_at: Completed 169-04-PLAN.md
-last_updated: "2026-09-28T19:17:16.801Z"
-last_activity: 2026-09-28
+status: verifying
+stopped_at: Phase 171 context gathered
+last_updated: "2026-09-30T14:22:24.295Z"
+last_activity: 2026-09-29
 progress:
-  total_phases: 42
+  total_phases: 44
   completed_phases: 36
   total_plans: 388
   completed_plans: 361
@@ -286,11 +286,11 @@ Abschluss" entry below for the full closing record.
 
 ## Current Position
 
-Phase: 169
-Plan: 4 of 5 (completed)
-Status: Ready to execute
-Completed: additive release-version media highlights, independent preview state, scoped project-lead curation rights, and the secured admin highlight/reorder API with synchronized contracts.
-Next: execute .planning/phases/169-release-medienrechte-projektleiter-preview-highlights-und-bi/169-03-PLAN.md
+Phase: 170
+Plan: Implementation slice complete
+Status: Verification complete with named pre-existing suite failures
+Completed: removed stale public timeline range access, repaired nullable highlight responses, batched release-version-media rights projection, hardened full-list media reorder, and synchronized the focused admin contract.
+Next: resolve or explicitly accept the pre-existing full-suite failures, then complete Phase 169 live actor/refresh/responsive UAT; Phase 166 remains open.
 
 ## Vorherige Position (Phase 153, abgeschlossen)
 
@@ -392,9 +392,10 @@ full frontend `vitest` runs during 149-06 showed a single non-reproducible faili
 reruns of the only suspect file were green 3/3) — classified as pre-existing Docker-parallelism
 timing flakiness, not a Phase 149 regression, and not yet root-caused.
 
-v1.4 remains complete; Phase 149 was appended additively (same pattern as 143-148), no new
-milestone was created.
-Last activity: 2026-09-28
+v1.4 is extended by the additive phases 165-170 and is not currently fully closed. Phase 166
+remains open, Phase 169 still has its live UAT plan outstanding, and Phase 170 is implemented
+with focused verification complete plus named pre-existing full-suite failures.
+Last activity: 2026-09-29
 
 ## Accumulated Context
 
@@ -1394,10 +1395,10 @@ untruncated list lives in `.planning/todos/pending/`.
 
 ## Session Continuity
 
-Last session: 2026-09-28T19:17:16.787Z
-Stopped at: Completed 169-04-PLAN.md
+Last session: 2026-09-30T14:22:24.278Z
+Stopped at: Phase 171 context gathered
 Last activity: 2026-09-28 - Completed Phase 169 Plan 169-01
 Resume file: 
-None
+.planning/phases/171-171-kara-segmente-in-release-media-und-public-story-integrie/171-CONTEXT.md
 
 Plans 151-02/03/04 have implementation summaries. Plans 151-01 and 151-05 remain open until final artwork/composition review, complete browser evidence and independent verification; their missing summaries are intentional. No requirement or phase has been falsely marked complete.
