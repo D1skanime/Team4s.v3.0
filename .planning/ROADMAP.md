@@ -2230,10 +2230,10 @@ Erledigt:
 **Goal:** [To be planned]
 **Requirements**: TBD
 **Depends on:** Phase 170
-**Plans:** 1/4 plans executed
+**Plans:** 2/4 plans executed
 
 Plans:
 - [x] 171-01-PLAN.md — establish the canonical typed release-version story order and contracts
 - [ ] 171-02-PLAN.md — integrate Kara into the existing ReleaseVersionMedia admin list with immediate refresh
-- [ ] 171-03-PLAN.md — render the mixed public story with timeline anchors and permission-aware playback
+- [x] 171-03-PLAN.md — render the mixed public story with timeline anchors and permission-aware playback
 - [ ] 171-04-PLAN.md — run cross-surface automated and live verification
