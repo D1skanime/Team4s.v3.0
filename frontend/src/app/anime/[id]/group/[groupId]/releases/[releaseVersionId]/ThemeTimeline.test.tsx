@@ -359,3 +359,22 @@ describe('ThemeTimeline Phase 105 streaming and cleanup', () => {
     expect(load).toHaveBeenCalled()
   })
 })
+
+
+describe('ThemeTimeline story anchors', () => {
+  it('scrolls ready timeline targets to the matching mixed-story Kara card', () => {
+    const target = document.createElement('article')
+    target.id = 'release-story-kara-7'
+    target.scrollIntoView = vi.fn()
+    document.body.appendChild(target)
+    renderTimeline()
+    fireEvent.click(screen.getByTestId('kara-hit-target-7'))
+    expect(target.scrollIntoView).toHaveBeenCalledWith({ behavior: 'smooth', block: 'center' })
+    target.remove()
+  })
+
+  it('does not expose an unavailable timeline target', () => {
+    renderTimeline({ segments: [segments[2]] })
+    expect(screen.queryByTestId('kara-hit-target-9')).toBeNull()
+  })
+})

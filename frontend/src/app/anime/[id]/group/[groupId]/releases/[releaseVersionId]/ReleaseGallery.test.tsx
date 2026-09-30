@@ -5,7 +5,7 @@ import { fireEvent, render, screen, waitFor, within } from '@testing-library/rea
 import { beforeEach, describe, expect, it, vi } from 'vitest'
 
 import * as api from '@/lib/api'
-import type { PublicReleaseImage } from '@/types/releaseDetail'
+import type { PublicReleaseImage, PublicReleaseSegment, PublicReleaseStoryItem } from '@/types/releaseDetail'
 
 import { ReleaseGallery } from './ReleaseGallery'
 
@@ -178,5 +178,46 @@ describe('ReleaseGallery', () => {
     expect(document.querySelectorAll('[data-testid^="release-image-card-"]').length).toBe(6)
     fireEvent.click(screen.getByRole('button', { name: 'Vollständige Beschreibung 1 öffnen' }))
     expect(within(screen.getByRole('dialog')).getByAltText('Fansub Screenshot').getAttribute('src')).toContain('/original-1.jpg')
+  })
+})
+
+
+describe('ReleaseGallery mixed public story', () => {
+  it('renders canonical media and Kara order with fallback preview and public play affordance', () => {
+    const segment: PublicReleaseSegment = {
+      theme_segment_id: 42,
+      name: 'Moonlight OP',
+      type: 'OP',
+      start_seconds: 10,
+      end_seconds: 90,
+      duration_seconds: 80,
+      readiness: 'ready',
+      participants: [],
+      preview_url: null,
+    }
+    const story: PublicReleaseStoryItem[] = [
+      { type: 'media', id: 2, sort_order: 0, image: image(2) },
+      { type: 'kara', id: 42, sort_order: 1, segment },
+      { type: 'media', id: 1, sort_order: 2, image: image(1) },
+    ]
+    render(
+      <ReleaseGallery
+        animeID={1}
+        groupID={2}
+        releaseVersionID={3}
+        initialImages={[image(1)]}
+        story={story}
+        categoryTotals={{ screenshot: 2, typesetting_karaoke: 0, fun_outtake: 0, other: 0 }}
+      />,
+    )
+
+    const cards = [...document.querySelector('[data-testid="release-image-grid"]')!.children]
+    expect(cards.map(card => card.getAttribute('data-testid'))).toEqual([
+      'release-image-card-2',
+      'release-kara-card-42',
+      'release-image-card-1',
+    ])
+    expect(screen.getByRole('img', { name: 'Preview für Moonlight OP' }).getAttribute('src')).toContain('thumb-1.jpg')
+    expect(screen.getByRole('link', { name: 'Anmelden zum Abspielen' }).getAttribute('href')).toBe('/login')
   })
 })

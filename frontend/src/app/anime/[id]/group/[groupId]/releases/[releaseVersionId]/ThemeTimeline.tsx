@@ -20,6 +20,7 @@ interface ThemeTimelineProps {
   episodeNumber?: string
   /** Projekt-Pfad im Fansub-Projektkontext (Phase 155), fuer Mitwirkenden-Links (P156-14). */
   projectPath?: string | null
+  showSegmentCards?: boolean
 }
 
 type SegmentGeometry = {
@@ -129,6 +130,7 @@ export function ThemeTimeline({
   autoPlayInitial = false,
   episodeNumber,
   projectPath,
+  showSegmentCards = true,
 }: ThemeTimelineProps) {
   const session = useAuthSession()
   const hasSession = session.isClientInitialized && (session.hasAccessToken || session.hasRefreshToken)
@@ -166,6 +168,13 @@ export function ThemeTimeline({
     setStreamSegmentID(segment.theme_segment_id)
     setStreamAttempt((attempt) => attempt + 1)
   }, [hasSession, stopCurrentStream])
+
+  const jumpToSegment = useCallback((segmentID: number) => {
+    const target = document.getElementById(`release-story-kara-${segmentID}`)
+    target?.scrollIntoView({ behavior: 'smooth', block: 'center' })
+    target?.classList.add(styles.storyTargeted)
+    window.setTimeout(() => target?.classList.remove(styles.storyTargeted), 900)
+  }, [])
 
   const selectSegment = (segment: PublicReleaseSegment) => {
     if (!hasSession || segment.readiness !== 'ready') return
@@ -207,7 +216,7 @@ export function ThemeTimeline({
           <div className={styles.track} aria-hidden="true" />
           {geometries.map((geometry) => {
             const { segment } = geometry
-            const playable = hasSession && segment.readiness === 'ready'
+            const targetable = segment.readiness === 'ready'
             const selected = selectedSegmentID === segment.theme_segment_id
             const style = geometryStyle(geometry)
             return (
@@ -218,17 +227,15 @@ export function ThemeTimeline({
                   style={{ left: `${geometry.leftPercent}%`, width: `${geometry.widthPercent}%` }}
                   aria-hidden="true"
                 />
-                {playable ? (
-                  <button
-                    type="button"
-                    className={`${styles.hitTarget} ${selected ? styles.hitTargetSelected : ''}`}
-                    data-testid={`kara-hit-target-${segment.theme_segment_id}`}
-                    style={{ minWidth: '44px', minHeight: '44px' }}
-                    aria-label={`${segmentTypeDisplayLabel(segment.type)} ${segment.name}, ${clock(segment.start_seconds)} bis ${clock(segment.end_seconds)}, Dauer ${clock(segment.duration_seconds)}`}
-                    aria-current={selected ? 'true' : undefined}
-                    onClick={() => playSegment(segment)}
-                  />
-                ) : null}
+                {targetable ? <button
+                  type="button"
+                  className={styles.hitTarget + ' ' + (selected ? styles.hitTargetSelected : '')}
+                  data-testid={'kara-hit-target-' + segment.theme_segment_id}
+                  style={{ minWidth: '44px', minHeight: '44px' }}
+                  aria-label={segmentTypeDisplayLabel(segment.type) + ' ' + segment.name + ', ' + clock(segment.start_seconds) + ' bis ' + clock(segment.end_seconds) + ', Dauer ' + clock(segment.duration_seconds)}
+                  aria-current={selected ? 'true' : undefined}
+                  onClick={() => jumpToSegment(segment.theme_segment_id)}
+                /> : null}
                 <span
                   className={segmentClassName(segment, styles.outsideLabel)}
                   data-testid={`kara-outside-label-${segment.theme_segment_id}`}
@@ -244,7 +251,7 @@ export function ThemeTimeline({
         </div>
       </div>
 
-      <div className={styles.segmentCards}>
+      {showSegmentCards ? <div className={styles.segmentCards}>
         {segments.map((segment) => {
           const playable = hasSession && segment.readiness === 'ready'
           const selected = selectedSegmentID === segment.theme_segment_id
@@ -287,7 +294,7 @@ export function ThemeTimeline({
             </Card>
           )
         })}
-      </div>
+      </div> : null}
 
       <span className={styles.liveRegion} aria-live="polite">
         {selectedSegment ? `Kara ${selectedSegment.name} ausgewählt` : ''}

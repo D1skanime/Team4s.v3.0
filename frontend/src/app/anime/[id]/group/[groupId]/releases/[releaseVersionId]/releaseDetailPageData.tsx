@@ -117,8 +117,9 @@ export async function ReleaseDetailPageContent({ animeID, groupID, releaseVersio
       autoPlayInitial={autoplayInitialKara}
       episodeNumber={detail.episode_number}
       projectPath={canonicalProjectPath}
+      showSegmentCards={false}
     />
-    <ReleaseGallery animeID={animeID} groupID={groupID} releaseVersionID={releaseVersionID} initialImages={detail.images} categoryTotals={detail.image_category_totals} groups={detail.groups} />
+    <ReleaseGallery animeID={animeID} groupID={groupID} releaseVersionID={releaseVersionID} initialImages={detail.images} story={detail.story} categoryTotals={detail.image_category_totals} groups={detail.groups} episodeNumber={detail.episode_number} />
     <ReleaseTechnicalDetails {...detail} />
     <ContributorsRow contributors={detail.contributors} groups={detail.groups} />
     <ReleaseEpisodePlayer releaseVersionID={releaseVersionID} title={detail.title} />
