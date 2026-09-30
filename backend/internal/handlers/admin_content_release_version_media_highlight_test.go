@@ -61,3 +61,9 @@ func TestReleaseVersionMediaDTOIncludesIndependentHighlightFields(t *testing.T) 
 	require.Contains(t, string(payload), "\"highlight_order\":3")
 	require.False(t, strings.Contains(string(payload), "\"is_highlight\":false"))
 }
+
+func TestReleaseVersionMediaHighlightResponseAlwaysIncludesNullableOrder(t *testing.T) {
+	payload, err := json.Marshal(releaseVersionMediaHighlightResponse(false, 0))
+	require.NoError(t, err)
+	require.JSONEq(t, `{"status":"updated","is_highlight":false,"highlight_order":null}`, string(payload))
+}

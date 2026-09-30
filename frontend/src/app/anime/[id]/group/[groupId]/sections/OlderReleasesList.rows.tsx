@@ -38,9 +38,10 @@ function segmentDisplayLabel(type: string): string {
 }
 
 function startingSegments(episode: EpisodeReleaseSummary): ReleaseTimelineSegment[] {
-  return (episode.timeline_segments ?? []).filter((segment) => (
-    segment.start_episode == null || segment.start_episode === episode.episode_number
-  ))
+  // The release-list projection already scopes timeline_segments to this episode.
+  // Range fields belong to the admin segment-definition model and are not part of
+  // this public DTO anymore.
+  return episode.timeline_segments ?? []
 }
 
 function karaGroup(segmentType: string): string {

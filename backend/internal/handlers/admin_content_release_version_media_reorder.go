@@ -63,7 +63,27 @@ func (h *AdminContentHandler) ReorderReleaseVersionMedia(c *gin.Context) {
 
 	reorderItems := make([]repository.ReleaseVersionMediaReorderItem, len(body.Items))
 	relationIDs := make([]int64, len(body.Items))
+	seenIDs := make(map[int64]struct{}, len(body.Items))
+	seenOrders := make(map[int]struct{}, len(body.Items))
 	for i, item := range body.Items {
+		if item.ID <= 0 {
+			c.JSON(http.StatusBadRequest, gin.H{"error": gin.H{"message": "ungültige relation id"}})
+			return
+		}
+		if item.SortOrder < 0 {
+			c.JSON(http.StatusBadRequest, gin.H{"error": gin.H{"message": "sort_order muss nicht-negativ sein"}})
+			return
+		}
+		if _, exists := seenIDs[item.ID]; exists {
+			c.JSON(http.StatusBadRequest, gin.H{"error": gin.H{"message": "relation darf nicht doppelt vorkommen"}})
+			return
+		}
+		if _, exists := seenOrders[item.SortOrder]; exists {
+			c.JSON(http.StatusBadRequest, gin.H{"error": gin.H{"message": "sort_order darf nicht doppelt vorkommen"}})
+			return
+		}
+		seenIDs[item.ID] = struct{}{}
+		seenOrders[item.SortOrder] = struct{}{}
 		reorderItems[i] = repository.ReleaseVersionMediaReorderItem{
 			RelationID: item.ID,
 			SortOrder:  item.SortOrder,
@@ -78,6 +98,30 @@ func (h *AdminContentHandler) ReorderReleaseVersionMedia(c *gin.Context) {
 		}
 		writeInternalErrorResponse(c, "interner serverfehler", err, "Relationen konnten nicht validiert werden.")
 		return
+	}
+	currentItems, err := h.mediaRepo.ListReleaseVersionMedia(c.Request.Context(), versionID)
+	if err != nil {
+		writeInternalErrorResponse(c, "interner serverfehler", err, "Aktuelle Medienreihenfolge konnte nicht geladen werden.")
+		return
+	}
+	if len(currentItems) != len(reorderItems) {
+		c.JSON(http.StatusConflict, gin.H{"error": gin.H{"message": "die vollständige medienliste ist erforderlich"}})
+		return
+	}
+	currentIDs := make(map[int64]struct{}, len(currentItems))
+	for _, item := range currentItems {
+		currentIDs[item.ID] = struct{}{}
+	}
+	for _, relationID := range relationIDs {
+		if _, exists := currentIDs[relationID]; !exists {
+			c.JSON(http.StatusNotFound, gin.H{"error": gin.H{"message": "eine oder mehrere relationen gehoeren nicht zu dieser release version"}})
+			return
+		}
+	}
+	// The server owns the canonical spacing. Keep the request field for compatibility,
+	// but never persist client-chosen gaps or ordering values.
+	for i := range reorderItems {
+		reorderItems[i].SortOrder = (i + 1) * 10
 	}
 
 	// Metas aller Relationen in einem Zug laden statt pro Bild.

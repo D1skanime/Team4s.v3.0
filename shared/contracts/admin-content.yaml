@@ -748,6 +748,7 @@ endpoints:
     notes:
       - Uses the dedicated release_version_media.reorder action.
       - Preview state and highlight state are not changed.
+      - The request must contain the complete active relation list exactly once; the server normalizes sort_order to canonical gaps of 10.
 
   - name: admin-release-version-media-highlight
     method: PUT
@@ -1538,7 +1539,7 @@ types:
     sort_order: int32
     is_preview_candidate: boolean
     is_highlight: boolean
-    highlight_order: int32 | null (present when highlighted)
+    highlight_order: int32 | null (always present; null when unhighlighted)
     visibility: "string | null (optional, enum: intern | oeffentlich)"
     review_status: "string | null (optional, enum: in_pruefung | freigegeben | abgelehnt | archiviert | entfernt)"
     source_revision: int64 | null

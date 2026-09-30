@@ -726,6 +726,72 @@ func (h *AdminContentHandler) annotateReleaseVersionMediaItemPermissions(
 	return nil
 }
 
+// annotateReleaseVersionMediaItemPermissionsBatch resolves contributor-group rights once per
+// distinct group and projects those in-memory decisions onto every media relation in the list.
+// The central permissions.Service remains the authority; this only removes repeated relation
+// resolution from the list projection.
+func (h *AdminContentHandler) annotateReleaseVersionMediaItemPermissionsBatch(
+	c *gin.Context,
+	actor permissions.Actor,
+	currentLegacyUserID int64,
+	items []repository.ReleaseVersionMediaItem,
+	updateResult permissions.Result,
+) error {
+	relationIDs := make([]int64, 0, len(items))
+	for _, item := range items {
+		relationIDs = append(relationIDs, item.ID)
+	}
+
+	groupsByRelation, err := h.mediaRepo.ListReleaseVersionMediaContributorGroupIDsByRelation(c.Request.Context(), relationIDs)
+	if err != nil {
+		return err
+	}
+	groupIDs := make([]int64, 0)
+	seenGroups := make(map[int64]struct{})
+	for _, groupIDsForRelation := range groupsByRelation {
+		for _, groupID := range groupIDsForRelation {
+			if _, seen := seenGroups[groupID]; seen {
+				continue
+			}
+			seenGroups[groupID] = struct{}{}
+			groupIDs = append(groupIDs, groupID)
+		}
+	}
+
+	groupRights := make(map[int64]*permissions.GroupRightsResolution, len(groupIDs))
+	for _, groupID := range groupIDs {
+		resolved, err := h.permissionSvc.ResolveGroupRights(c.Request.Context(), actor, groupID)
+		if err != nil {
+			return err
+		}
+		groupRights[groupID] = resolved
+	}
+
+	platformBypass := actor.IsPlatformAdmin || updateResult.ReasonCode == permissions.ReasonPlatformAdmin
+	for i := range items {
+		items[i].UploadedByCurrentUser = releaseVersionMediaUploadedByCurrentUser(items[i].UploadedByUserID, currentLegacyUserID)
+		canUpdateByGroup := platformBypass
+		canDeleteByGroup := platformBypass
+		for _, groupID := range groupsByRelation[items[i].ID] {
+			rights := groupRights[groupID]
+			if rights == nil {
+				continue
+			}
+			canUpdateByGroup = canUpdateByGroup || rights.Can(permissions.ActionReleaseVersionMediaUpdate).Allowed
+			canDeleteByGroup = canDeleteByGroup || rights.Can(permissions.ActionReleaseVersionMediaDelete).Allowed
+			if items[i].UploadedByCurrentUser {
+				canDeleteByGroup = canDeleteByGroup || rights.Can(permissions.ActionReleaseVersionMediaDeleteOwn).Allowed
+			}
+		}
+		items[i].CanUpdate = evaluateReleaseVersionMediaRelationMutation(
+			actor, updateResult, items[i].UploadedByUserID, currentLegacyUserID,
+			permissions.ActionReleaseVersionMediaUpdate, canUpdateByGroup,
+		)
+		items[i].CanDelete = canDeleteByGroup
+	}
+	return nil
+}
+
 // ListReleaseVersionMedia handles GET /api/v1/admin/release-versions/:versionId/media.
 // Returns scoped, non-deleted media for a release version with populated URLs.
 func (h *AdminContentHandler) ListReleaseVersionMedia(c *gin.Context) {
@@ -769,7 +835,7 @@ func (h *AdminContentHandler) ListReleaseVersionMedia(c *gin.Context) {
 		writePermissionInternalError(c, err, "Media-Berechtigung konnte nicht geprüft werden.")
 		return
 	}
-	if err := h.annotateReleaseVersionMediaItemPermissions(c, actor, identity.UserID, items, updateResult); err != nil {
+	if err := h.annotateReleaseVersionMediaItemPermissionsBatch(c, actor, identity.UserID, items, updateResult); err != nil {
 		writeInternalErrorResponse(c, "interner serverfehler", err, "Media-Rechte konnten nicht geladen werden.")
 		return
 	}

@@ -26,6 +26,14 @@ func parseReleaseVersionMediaMutationIDs(c *gin.Context) (int64, int64, bool) {
 	return versionID, relationID, true
 }
 
+func releaseVersionMediaHighlightResponse(highlighted bool, highlightOrder int) gin.H {
+	response := gin.H{"status": "updated", "is_highlight": highlighted, "highlight_order": nil}
+	if highlighted {
+		response["highlight_order"] = highlightOrder
+	}
+	return response
+}
+
 func (h *AdminContentHandler) SetReleaseVersionMediaHighlight(c *gin.Context) {
 	identity, actor, ok := permissionActorFromContext(c)
 	if !ok {
@@ -115,11 +123,7 @@ func (h *AdminContentHandler) SetReleaseVersionMediaHighlight(c *gin.Context) {
 		})
 	}
 
-	response := gin.H{"status": "updated", "is_highlight": highlighted}
-	if highlighted {
-		response["highlight_order"] = highlightOrder
-	}
-	c.JSON(http.StatusOK, response)
+	c.JSON(http.StatusOK, releaseVersionMediaHighlightResponse(highlighted, highlightOrder))
 }
 
 func (h *AdminContentHandler) ReorderReleaseVersionMediaHighlights(c *gin.Context) {
