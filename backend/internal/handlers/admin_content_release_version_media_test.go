@@ -858,7 +858,7 @@ func TestReleaseVersionMedia_ReorderRequiresVersionOwnership(t *testing.T) {
 	h := newRVMExecHandler(pool, t.TempDir())
 
 	t.Run("cross-version relation id is rejected", func(t *testing.T) {
-		body := bytes.NewBufferString(fmt.Sprintf(`{"items":[{"id":%d,"sort_order":10}]}`, rvmExecForeignRelationID))
+		body := bytes.NewBufferString(fmt.Sprintf(`{"items":[{"type":"media","media_id":%d,"sort_order":10}]}`, rvmExecForeignRelationID))
 		req := httptest.NewRequest(http.MethodPost, "/release-versions/41/media/reorder", body)
 		req.Header.Set("Content-Type", "application/json")
 		c, rec := replaceRVMContext(req, gin.Params{{Key: "versionId", Value: "41"}}, rvmExecPlatformAdminIdentity())
@@ -871,7 +871,7 @@ func TestReleaseVersionMedia_ReorderRequiresVersionOwnership(t *testing.T) {
 
 	t.Run("same-version reorder succeeds", func(t *testing.T) {
 		relationID := rvmExecUploadOne(t, h, "screenshot")
-		body := bytes.NewBufferString(fmt.Sprintf(`{"items":[{"id":%d,"sort_order":50}]}`, relationID))
+		body := bytes.NewBufferString(fmt.Sprintf(`{"items":[{"type":"media","media_id":%d,"sort_order":50}]}`, relationID))
 		req := httptest.NewRequest(http.MethodPost, "/release-versions/41/media/reorder", body)
 		req.Header.Set("Content-Type", "application/json")
 		c, rec := replaceRVMContext(req, gin.Params{{Key: "versionId", Value: "41"}}, rvmExecPlatformAdminIdentity())

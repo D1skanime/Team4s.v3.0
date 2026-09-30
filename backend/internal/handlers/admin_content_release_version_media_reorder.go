@@ -4,30 +4,30 @@ import (
 	"errors"
 	"net/http"
 	"strconv"
+	"strings"
 
+	"team4s.v3/backend/internal/models"
 	"team4s.v3/backend/internal/permissions"
 	"team4s.v3/backend/internal/repository"
 
 	"github.com/gin-gonic/gin"
 )
 
-type rvmReorderItem struct {
-	ID        int64 `json:"id"`
-	SortOrder int   `json:"sort_order"`
+type releaseVersionStoryOrderRequestItem struct {
+	Type           string `json:"type"`
+	MediaID        *int64 `json:"media_id"`
+	ThemeSegmentID *int64 `json:"theme_segment_id"`
+	SortOrder      int    `json:"sort_order"`
 }
 
 type rvmReorderBody struct {
-	Items []rvmReorderItem `json:"items"`
+	Items []releaseVersionStoryOrderRequestItem `json:"items"`
 }
 
 // ReorderReleaseVersionMedia handles POST /api/v1/admin/release-versions/:versionId/media/reorder.
 //
-// The relation-meta and contributor-group resolution are bundled once for the whole request
-// instead of loading each relation and each group per image: the metas are fetched with one
-// batched loader, the contributor groups with a second batched loader, and each distinct group
-// permission is evaluated exactly once (memoized in groupAllowed). The authorization decision per
-// relation is delegated to the shared evaluateReleaseVersionMediaRelationMutation helper so the
-// ownership gate and permission gate stay identical to the per-item PATCH/DELETE path.
+// The route remains the existing release-version media reorder seam; its request now carries
+// typed media/Kara story items while the permission gate stays release-version scoped.
 func (h *AdminContentHandler) ReorderReleaseVersionMedia(c *gin.Context) {
 	identity, actor, ok := permissionActorFromContext(c)
 	if !ok {
@@ -61,135 +61,53 @@ func (h *AdminContentHandler) ReorderReleaseVersionMedia(c *gin.Context) {
 		return
 	}
 
-	reorderItems := make([]repository.ReleaseVersionMediaReorderItem, len(body.Items))
-	relationIDs := make([]int64, len(body.Items))
-	seenIDs := make(map[int64]struct{}, len(body.Items))
+	reorderItems := make([]repository.ReleaseVersionStoryOrderItem, len(body.Items))
+	seenItems := make(map[repository.ReleaseVersionStoryOrderKey]struct{}, len(body.Items))
 	seenOrders := make(map[int]struct{}, len(body.Items))
 	for i, item := range body.Items {
-		if item.ID <= 0 {
-			c.JSON(http.StatusBadRequest, gin.H{"error": gin.H{"message": "ungültige relation id"}})
+		if item.Type != string(models.ReleaseVersionStoryItemMedia) && item.Type != string(models.ReleaseVersionStoryItemKara) {
+			c.JSON(http.StatusBadRequest, gin.H{"error": gin.H{"message": "ungültiger story-item-typ"}})
+			return
+		}
+		if (item.Type == string(models.ReleaseVersionStoryItemMedia)) == (item.MediaID == nil) ||
+			(item.Type == string(models.ReleaseVersionStoryItemKara)) == (item.ThemeSegmentID == nil) ||
+			(item.Type == string(models.ReleaseVersionStoryItemMedia) && item.ThemeSegmentID != nil) ||
+			(item.Type == string(models.ReleaseVersionStoryItemKara) && item.MediaID != nil) {
+			c.JSON(http.StatusBadRequest, gin.H{"error": gin.H{"message": "story-item-verweis passt nicht zum typ"}})
+			return
+		}
+		if (item.MediaID != nil && *item.MediaID <= 0) || (item.ThemeSegmentID != nil && *item.ThemeSegmentID <= 0) {
+			c.JSON(http.StatusBadRequest, gin.H{"error": gin.H{"message": "ungültige story-item-id"}})
 			return
 		}
 		if item.SortOrder < 0 {
 			c.JSON(http.StatusBadRequest, gin.H{"error": gin.H{"message": "sort_order muss nicht-negativ sein"}})
 			return
 		}
-		if _, exists := seenIDs[item.ID]; exists {
-			c.JSON(http.StatusBadRequest, gin.H{"error": gin.H{"message": "relation darf nicht doppelt vorkommen"}})
-			return
-		}
 		if _, exists := seenOrders[item.SortOrder]; exists {
 			c.JSON(http.StatusBadRequest, gin.H{"error": gin.H{"message": "sort_order darf nicht doppelt vorkommen"}})
 			return
 		}
-		seenIDs[item.ID] = struct{}{}
 		seenOrders[item.SortOrder] = struct{}{}
-		reorderItems[i] = repository.ReleaseVersionMediaReorderItem{
-			RelationID: item.ID,
-			SortOrder:  item.SortOrder,
+		reorderItems[i] = repository.ReleaseVersionStoryOrderItem{
+			ReleaseVersionID:      versionID,
+			ItemType:              models.ReleaseVersionStoryItemType(item.Type),
+			ReleaseVersionMediaID: item.MediaID,
+			ThemeSegmentID:        item.ThemeSegmentID,
+			SortOrder:             item.SortOrder,
 		}
-		relationIDs[i] = item.ID
-	}
-
-	if err := h.mediaRepo.ValidateReleaseVersionMediaOwnership(c.Request.Context(), versionID, relationIDs); err != nil {
-		if errors.Is(err, repository.ErrNotFound) || errors.Is(err, repository.ErrOwnershipMismatch) {
-			c.JSON(http.StatusNotFound, gin.H{"error": gin.H{"message": "eine oder mehrere relationen gehoeren nicht zu dieser release version"}})
+		key := repository.StoryOrderKeyForRequest(reorderItems[i])
+		if _, exists := seenItems[key]; exists {
+			c.JSON(http.StatusBadRequest, gin.H{"error": gin.H{"message": "story-item darf nicht doppelt vorkommen"}})
 			return
 		}
-		writeInternalErrorResponse(c, "interner serverfehler", err, "Relationen konnten nicht validiert werden.")
+		seenItems[key] = struct{}{}
+	}
+
+	if _, err := h.mediaRepo.ListReleaseVersionStoryOrder(c.Request.Context(), versionID); err != nil {
+		writeInternalErrorResponse(c, "interner serverfehler", err, "Aktuelle Story-Reihenfolge konnte nicht geladen werden.")
 		return
 	}
-	currentItems, err := h.mediaRepo.ListReleaseVersionMedia(c.Request.Context(), versionID)
-	if err != nil {
-		writeInternalErrorResponse(c, "interner serverfehler", err, "Aktuelle Medienreihenfolge konnte nicht geladen werden.")
-		return
-	}
-	if len(currentItems) != len(reorderItems) {
-		c.JSON(http.StatusConflict, gin.H{"error": gin.H{"message": "die vollständige medienliste ist erforderlich"}})
-		return
-	}
-	currentIDs := make(map[int64]struct{}, len(currentItems))
-	for _, item := range currentItems {
-		currentIDs[item.ID] = struct{}{}
-	}
-	for _, relationID := range relationIDs {
-		if _, exists := currentIDs[relationID]; !exists {
-			c.JSON(http.StatusNotFound, gin.H{"error": gin.H{"message": "eine oder mehrere relationen gehoeren nicht zu dieser release version"}})
-			return
-		}
-	}
-	// The server owns the canonical spacing. Keep the request field for compatibility,
-	// but never persist client-chosen gaps or ordering values.
-	for i := range reorderItems {
-		reorderItems[i].SortOrder = (i + 1) * 10
-	}
-
-	// Metas aller Relationen in einem Zug laden statt pro Bild.
-	metas, err := h.mediaRepo.ListReleaseVersionMediaRelationMetas(c.Request.Context(), relationIDs)
-	if err != nil {
-		writeInternalErrorResponse(c, "interner serverfehler", err, "Relationen konnten nicht validiert werden.")
-		return
-	}
-	// Verhaltensgarantie: eine fehlende Meta ergibt dieselbe 404 wie der fruehere per-Bild
-	// ErrNotFound-Zweig. Nach der Ownership-Validierung ist das nur eine defensive Absicherung.
-	if len(metas) != len(relationIDs) {
-		c.JSON(http.StatusNotFound, gin.H{"error": gin.H{"message": "eine oder mehrere relationen gehoeren nicht zu dieser release version"}})
-		return
-	}
-	uploadedByByRelation := make(map[int64]*int64, len(metas))
-	for i := range metas {
-		uploadedByByRelation[metas[i].RelationID] = metas[i].UploadedByUserID
-	}
-
-	// Platform-Admins ueberspringen die Gruppen-Aufloesung genau wie der Einzelpfad, damit keine
-	// zusaetzlichen Gruppen-Queries laufen, die es zuvor nicht gab.
-	platformBypass := actor.IsPlatformAdmin || result.ReasonCode == permissions.ReasonPlatformAdmin
-
-	groupsByRelation := map[int64][]int64{}
-	if !platformBypass {
-		groupsByRelation, err = h.mediaRepo.ListReleaseVersionMediaContributorGroupIDsByRelation(c.Request.Context(), relationIDs)
-		if err != nil {
-			writeInternalErrorResponse(c, "interner serverfehler", err, "Relationen konnten nicht validiert werden.")
-			return
-		}
-	}
-
-	// Pro eindeutiger Gruppe wird die Permission genau einmal aufgeloest und memoisiert.
-	groupAllowed := make(map[int64]bool)
-
-	for _, relationID := range relationIDs {
-		anyGroupAllowed := false
-		if !platformBypass {
-			for _, groupID := range groupsByRelation[relationID] {
-				allowed, seen := groupAllowed[groupID]
-				if !seen {
-					groupResult, err := h.permissionSvc.CanForFansubGroup(c.Request.Context(), actor, permissions.ActionReleaseVersionMediaUpdate, groupID)
-					if err != nil {
-						writeInternalErrorResponse(c, "interner serverfehler", err, "Relationen konnten nicht validiert werden.")
-						return
-					}
-					allowed = groupResult.Allowed
-					groupAllowed[groupID] = allowed
-				}
-				if allowed {
-					anyGroupAllowed = true
-					break
-				}
-			}
-		}
-
-		canMutate := evaluateReleaseVersionMediaRelationMutation(
-			actor, result, uploadedByByRelation[relationID], identity.UserID,
-			permissions.ActionReleaseVersionMediaReorder, anyGroupAllowed,
-		)
-		if !canMutate {
-			ownerResult := releaseVersionMediaOwnerMismatchResult()
-			auditPermissionDenied(c, h.auditLogRepo, identity, "release_version_media.reorder.denied", nil, "release_version", &versionID, permissions.ActionReleaseVersionMediaReorder, ownerResult)
-			writePermissionDenied(c, ownerResult)
-			return
-		}
-	}
-
 	tx, err := h.mediaRepo.BeginTx(c.Request.Context())
 	if err != nil {
 		writeInternalErrorResponse(c, "interner serverfehler", err, "Transaktion konnte nicht gestartet werden.")
@@ -197,7 +115,19 @@ func (h *AdminContentHandler) ReorderReleaseVersionMedia(c *gin.Context) {
 	}
 	defer tx.Rollback(c.Request.Context()) //nolint:errcheck
 
-	if err := h.mediaRepo.ReorderReleaseVersionMedia(c.Request.Context(), tx, reorderItems); err != nil {
+	if err := h.mediaRepo.ReorderReleaseVersionStoryOrder(c.Request.Context(), tx, versionID, reorderItems); err != nil {
+		if errors.Is(err, repository.ErrOwnershipMismatch) {
+			c.JSON(http.StatusNotFound, gin.H{"error": gin.H{"message": "eine oder mehrere story-items gehoeren nicht zu dieser release version"}})
+			return
+		}
+		if strings.Contains(err.Error(), "complete") {
+			c.JSON(http.StatusConflict, gin.H{"error": gin.H{"message": "die vollständige story-liste ist erforderlich"}})
+			return
+		}
+		if strings.Contains(err.Error(), "unsupported") || strings.Contains(err.Error(), "more than once") {
+			c.JSON(http.StatusBadRequest, gin.H{"error": gin.H{"message": "ungültige story-reihenfolge"}})
+			return
+		}
 		writeInternalErrorResponse(c, "interner serverfehler", err, "Reorder fehlgeschlagen.")
 		return
 	}

@@ -397,7 +397,7 @@ func (r *ReleaseDetailPublicRepository) imagesQuery() string {
 		  AND ma.status = 'ready'
 		  AND v.name = 'public'
 		  AND rs.code = 'approved'
-		ORDER BY CASE WHEN highlight.release_version_media_id IS NOT NULL THEN 0 ELSE 1 END ASC, rvm.category ASC, highlight.highlight_order ASC NULLS LAST, rvm.sort_order ASC, rvm.id ASC
+		ORDER BY rvm.sort_order ASC, rvm.id ASC
 	`, uploaderAuthorNameJoin)
 }
 
@@ -463,4 +463,96 @@ func (r *ReleaseDetailPublicRepository) countNotes(ctx context.Context, releaseV
 		return 0, fmt.Errorf("release detail: count notes for version %d: %w", releaseVersionID, err)
 	}
 	return count, nil
+}
+
+func (r *ReleaseDetailPublicRepository) loadPublicReleaseStory(
+	ctx context.Context,
+	releaseVersionID int64,
+	images []PublicReleaseImage,
+	segments []PublicReleaseSegment,
+) ([]PublicReleaseStoryItem, error) {
+	imageByID := make(map[int64]*PublicReleaseImage, len(images))
+	for i := range images {
+		imageByID[images[i].ID] = &images[i]
+	}
+	segmentByID := make(map[int64]*PublicReleaseSegment, len(segments))
+	for i := range segments {
+		segmentByID[segments[i].ThemeSegmentID] = &segments[i]
+	}
+
+	rows, err := r.db.Query(ctx, `
+		SELECT item_type, release_version_media_id, theme_segment_id, sort_order
+		FROM release_version_story_order
+		WHERE release_version_id = $1
+		ORDER BY sort_order ASC, item_type ASC, COALESCE(release_version_media_id, theme_segment_id) ASC
+	`, releaseVersionID)
+	if err != nil {
+		return nil, fmt.Errorf("release detail: load story order for version %d: %w", releaseVersionID, err)
+	}
+	defer rows.Close()
+
+	story := make([]PublicReleaseStoryItem, 0, len(images)+len(segments))
+	seenImages := make(map[int64]struct{}, len(images))
+	seenSegments := make(map[int64]struct{}, len(segments))
+	for rows.Next() {
+		var itemType string
+		var mediaID, segmentID *int64
+		var sortOrder int
+		if err := rows.Scan(&itemType, &mediaID, &segmentID, &sortOrder); err != nil {
+			return nil, fmt.Errorf("release detail: scan story order for version %d: %w", releaseVersionID, err)
+		}
+		item := PublicReleaseStoryItem{Type: itemType, SortOrder: sortOrder}
+		switch itemType {
+		case "media":
+			if mediaID == nil {
+				continue
+			}
+			image, ok := imageByID[*mediaID]
+			if !ok {
+				continue
+			}
+			item.ID = *mediaID
+			item.Image = image
+			seenImages[*mediaID] = struct{}{}
+		case "kara":
+			if segmentID == nil {
+				continue
+			}
+			segment, ok := segmentByID[*segmentID]
+			if !ok {
+				continue
+			}
+			item.ID = *segmentID
+			item.Segment = segment
+			seenSegments[*segmentID] = struct{}{}
+		default:
+			continue
+		}
+		story = append(story, item)
+	}
+	if err := rows.Err(); err != nil {
+		return nil, fmt.Errorf("release detail: iterate story order for version %d: %w", releaseVersionID, err)
+	}
+
+	nextOrder := 0
+	if len(story) > 0 {
+		nextOrder = story[len(story)-1].SortOrder
+	}
+	for i := range images {
+		if _, ok := seenImages[images[i].ID]; ok {
+			continue
+		}
+		nextOrder += 10
+		image := images[i]
+		story = append(story, PublicReleaseStoryItem{Type: "media", ID: image.ID, SortOrder: nextOrder, Image: &image})
+	}
+	for i := range segments {
+		if _, ok := seenSegments[segments[i].ThemeSegmentID]; ok {
+			continue
+		}
+		nextOrder += 10
+		segment := segments[i]
+		story = append(story, PublicReleaseStoryItem{Type: "kara", ID: segment.ThemeSegmentID, SortOrder: nextOrder, Segment: &segment})
+	}
+	return story, nil
 }

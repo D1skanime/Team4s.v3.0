@@ -16586,7 +16586,21 @@ components:
           type: array
           minItems: 1
           items:
-            $ref: "#/components/schemas/ReleaseVersionMediaReorderItem"
+            $ref: "#/components/schemas/ReleaseVersionStoryOrderItem"
+    ReleaseVersionStoryOrderItem:
+      oneOf:
+        - type: object
+          required: [type, media_id, sort_order]
+          properties:
+            type: {type: string, enum: [media]}
+            media_id: {type: integer, format: int64, minimum: 1}
+            sort_order: {type: integer, format: int32, minimum: 0}
+        - type: object
+          required: [type, theme_segment_id, sort_order]
+          properties:
+            type: {type: string, enum: [kara]}
+            theme_segment_id: {type: integer, format: int64, minimum: 1}
+            sort_order: {type: integer, format: int32, minimum: 0}
     ReleaseVersionMediaHighlightRequest:
       type: object
       required: [highlighted]
@@ -17424,6 +17438,21 @@ components:
           minimum: 0
           nullable: true
           description: Independent public highlight order; null when the relation is not highlighted.
+    PublicReleaseStoryItem:
+      type: object
+      required: [type, id, sort_order]
+      properties:
+        type: {type: string, enum: [media, kara]}
+        id: {type: integer, format: int64}
+        sort_order: {type: integer, format: int32}
+        image:
+          allOf:
+            - $ref: "#/components/schemas/PublicReleaseImage"
+          nullable: true
+        segment:
+          allOf:
+            - $ref: "#/components/schemas/PublicReleaseSegment"
+          nullable: true
     PublicReleaseNote:
       type: object
       required: [id, member_id, member_name, member_avatar_url, role_label, body_html, created_at]
@@ -17466,6 +17495,7 @@ components:
         - subtitle_tracks
         - image_category_totals
         - segments
+        - story
         - images_count
         - notes_count
         - contributors_count
@@ -17537,6 +17567,11 @@ components:
           type: array
           items:
             $ref: "#/components/schemas/PublicReleaseSegment"
+        story:
+          type: array
+          description: Canonical mixed release-version story order; highlights remain metadata on media items.
+          items:
+            $ref: "#/components/schemas/PublicReleaseStoryItem"
         previous:
           allOf:
             - $ref: "#/components/schemas/PublicReleaseNavigationTarget"

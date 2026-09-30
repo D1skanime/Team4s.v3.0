@@ -63,6 +63,14 @@ export interface PublicReleaseSubtitleTrack {
   default: boolean;
 }
 
+export interface PublicReleaseStoryItem {
+  type: "media" | "kara";
+  id: number;
+  sort_order: number;
+  image?: PublicReleaseImage;
+  segment?: PublicReleaseSegment;
+}
+
 export interface PublicReleaseSegment {
   theme_segment_id: number;
   name: string;
@@ -111,6 +119,7 @@ export interface ReleaseDetailResponse {
   preview_image: PublicReleaseImage | null;
   image_category_totals: Record<ReleaseVersionMediaCategory, number>;
   segments: PublicReleaseSegment[];
+  story: PublicReleaseStoryItem[];
   previous: PublicReleaseNavigationTarget | null;
   next: PublicReleaseNavigationTarget | null;
   images_count: number;

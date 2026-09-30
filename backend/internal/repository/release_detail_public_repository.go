@@ -114,6 +114,16 @@ type PublicReleaseSegment struct {
 	AppliesThroughEpisode *string `json:"applies_through_episode,omitempty"`
 	AppliesFromEpisode    *string `json:"applies_from_episode,omitempty"`
 }
+
+// PublicReleaseStoryItem is the single mixed public projection. Image and
+// segment payloads retain their domain ownership; the order row owns neither.
+type PublicReleaseStoryItem struct {
+	Type      string                `json:"type"`
+	ID        int64                 `json:"id"`
+	SortOrder int                   `json:"sort_order"`
+	Image     *PublicReleaseImage   `json:"image,omitempty"`
+	Segment   *PublicReleaseSegment `json:"segment,omitempty"`
+}
 type PublicReleaseNavigationTarget struct {
 	ReleaseVersionID int64   `json:"release_version_id"`
 	EpisodeNumber    string  `json:"episode_number"`
@@ -146,6 +156,7 @@ type PublicReleaseDetail struct {
 	PreviewImage        *PublicReleaseImage              `json:"preview_image"`
 	ImageCategoryTotals PublicReleaseImageCategoryTotals `json:"image_category_totals"`
 	Segments            []PublicReleaseSegment           `json:"segments"`
+	Story               []PublicReleaseStoryItem         `json:"story"`
 	Previous            *PublicReleaseNavigationTarget   `json:"previous"`
 	Next                *PublicReleaseNavigationTarget   `json:"next"`
 	ImagesCount         int64                            `json:"images_count"`
@@ -222,6 +233,10 @@ func (r *ReleaseDetailPublicRepository) GetPublicReleaseDetail(
 	if err != nil {
 		return nil, err
 	}
+	story, err := r.loadPublicReleaseStory(ctx, releaseVersionID, images, segments)
+	if err != nil {
+		return nil, err
+	}
 	previous, next, err := r.loadAdjacentReleases(ctx, animeID, groupID, releaseVersionID, header.Version)
 	if err != nil {
 		return nil, err
@@ -250,7 +265,7 @@ func (r *ReleaseDetailPublicRepository) GetPublicReleaseDetail(
 		ReleaseDate:      header.ReleaseDate,
 		DurationSeconds:  technical.DurationSeconds, Resolution: technical.Resolution, Container: technical.Container,
 		VideoCodec: technical.VideoCodec, AudioCodec: technical.AudioCodec, AudioLanguage: technical.AudioLanguage,
-		SubtitleTracks: tracks, SubtitleType: technical.SubtitleType, PreviewImage: preview, ImageCategoryTotals: categoryTotals, Segments: segments,
+		SubtitleTracks: tracks, SubtitleType: technical.SubtitleType, PreviewImage: preview, ImageCategoryTotals: categoryTotals, Segments: segments, Story: story,
 		Previous: previous, Next: next,
 		ImagesCount:       imagesCount,
 		NotesCount:        notesCount,

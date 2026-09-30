@@ -110,13 +110,12 @@ export interface ReleaseVersionMediaPatchRequest {
   review_status?: ReleaseVersionMediaReviewStatus
 }
 
-export interface ReleaseVersionMediaReorderItem {
-  id: number
-  sort_order: number
-}
+export type ReleaseVersionStoryOrderItem =
+  | { type: 'media'; media_id: number; sort_order: number }
+  | { type: 'kara'; theme_segment_id: number; sort_order: number }
 
 export interface ReleaseVersionMediaReorderRequest {
-  items: ReleaseVersionMediaReorderItem[]
+  items: ReleaseVersionStoryOrderItem[]
 }
 
 export interface ReleaseVersionMediaHighlightRequest {

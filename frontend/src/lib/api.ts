@@ -7892,6 +7892,7 @@ export async function deleteSegmentAsset(
 }
 
 // --- Release-Version Media ---
+// Reorder accepts the canonical mixed media/Kara story order; auth remains centralized in authorizedFetch.
 
 export async function getReleaseVersionMedia(
   versionId: number,

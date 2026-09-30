@@ -748,7 +748,8 @@ endpoints:
     notes:
       - Uses the dedicated release_version_media.reorder action.
       - Preview state and highlight state are not changed.
-      - The request must contain the complete active relation list exactly once; the server normalizes sort_order to canonical gaps of 10.
+      - The request must contain the complete typed media/Kara story list exactly once; the server normalizes sort_order to canonical gaps of 10.
+      - Media and Kara remain owned by release_version_media and theme_segment_assignments; the order relation owns neither.
 
   - name: admin-release-version-media-highlight
     method: PUT
@@ -1570,9 +1571,11 @@ types:
     error_code: string (optional)
     message: string (optional)
   ReleaseVersionMediaReorderRequest:
-    items: ReleaseVersionMediaReorderItem[]
-  ReleaseVersionMediaReorderItem:
-    id: int64
+    items: ReleaseVersionStoryOrderItem[]
+  ReleaseVersionStoryOrderItem:
+    type: media | kara
+    media_id: int64 (required when type=media)
+    theme_segment_id: int64 (required when type=kara)
     sort_order: int32
   ReleaseVersionMediaHighlightRequest:
     highlighted: boolean (required)
