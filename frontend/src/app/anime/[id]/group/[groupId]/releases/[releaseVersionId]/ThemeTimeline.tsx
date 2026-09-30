@@ -170,7 +170,8 @@ export function ThemeTimeline({
   }, [hasSession, stopCurrentStream])
 
   const jumpToSegment = useCallback((segmentID: number) => {
-    const target = document.getElementById(`release-story-kara-${segmentID}`)
+    window.dispatchEvent(new CustomEvent('release-story-reveal', { detail: { segmentId: segmentID } }))
+    const target = document.getElementById('release-story-kara-' + segmentID)
     target?.scrollIntoView({ behavior: 'smooth', block: 'center' })
     target?.classList.add(styles.storyTargeted)
     window.setTimeout(() => target?.classList.remove(styles.storyTargeted), 900)

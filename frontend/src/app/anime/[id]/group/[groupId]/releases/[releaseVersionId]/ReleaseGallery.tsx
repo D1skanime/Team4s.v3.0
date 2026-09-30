@@ -2,7 +2,7 @@
 
 import { Lock, Maximize2, Play } from 'lucide-react'
 import Image from 'next/image'
-import { useState } from 'react'
+import { useEffect, useState } from 'react'
 
 import { Badge, Button, SectionHeader } from '@/components/ui'
 import { FansubMediaLightbox, type PublicImageLightboxItem } from '@/components/fansubs/FansubMediaLightbox'
@@ -54,6 +54,18 @@ export function ReleaseGallery({ animeID, groupID, releaseVersionID, initialImag
   const [error, setError] = useState<string | null>(null)
   const { collapsedLimit, expanded, expand } = useResponsiveGalleryReveal()
   const total = Math.max(Object.values(categoryTotals).reduce((sum, value) => sum + value, 0), story.length)
+  useEffect(() => {
+    function revealStoryTarget(event: Event) {
+      const segmentID = (event as CustomEvent<{ segmentId?: number }>).detail?.segmentId
+      if (segmentID == null || !story.some((item) => item.type === 'kara' && item.segment?.theme_segment_id === segmentID)) return
+      expand()
+      window.requestAnimationFrame(() => {
+        document.getElementById('release-story-kara-' + segmentID)?.scrollIntoView({ behavior: 'smooth', block: 'center' })
+      })
+    }
+    window.addEventListener('release-story-reveal', revealStoryTarget)
+    return () => window.removeEventListener('release-story-reveal', revealStoryTarget)
+  }, [expand, story])
   if (!total) return null
 
   const visibleCount = expanded ? Math.max(items.length, story.length) : Math.min(collapsedLimit, Math.max(items.length, story.length))
