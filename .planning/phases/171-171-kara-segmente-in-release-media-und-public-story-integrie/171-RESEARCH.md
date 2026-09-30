@@ -106,4 +106,3 @@ Diese Pfade behandeln Kara als eigene Fachlichkeit. Die Phase darf Kara nicht in
 - `.planning/sketches/MANIFEST.md`
 - `.planning/sketches/008-public-release-story/index.html`
 - `.planning/sketches/009-admin-release-story-order/index.html`
-

@@ -114,4 +114,3 @@ Keine — die Diskussion blieb innerhalb der Phase.
 
 *Phase: 171-Kara-Segmente in Release-Media und Public Story integrieren*
 *Context gathered: 2026-09-30*
-

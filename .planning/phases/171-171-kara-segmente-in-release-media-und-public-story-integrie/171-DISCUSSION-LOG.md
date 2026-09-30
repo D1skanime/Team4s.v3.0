@@ -17,7 +17,7 @@
 | 2 | Medien und Kara getrennt speichern und nur gemeinsam anzeigen | |
 | 3 | Kara anhand von Zeitinformationen zwischen Bildern einsortieren | |
 
-**User's choice:** 1  
+**User's choice:** 1
 **Notes:** Die Public Story soll dieselbe Reihenfolge übernehmen.
 
 ## Sichtbarkeit nach dem Erstellen
@@ -28,7 +28,7 @@
 | 2 | Erst nach Reload oder erneutem Öffnen anzeigen | |
 | 3 | Erst nach zusätzlichem Speichern der Reihenfolge aufnehmen | |
 
-**User's choice:** 1  
+**User's choice:** 1
 **Notes:** Der neue Kara-Eintrag soll direkt erscheinen.
 
 ## Public-Story-Darstellung
@@ -39,7 +39,7 @@
 | 2 | Highlights unabhängig davon zuerst hervorheben | |
 | 3 | Highlights zusätzlich wiederholen | |
 
-**User's choice:** 1  
+**User's choice:** 1
 **Notes:** Highlights bleiben an ihrer Position und behalten ihre Hervorhebung.
 
 ## Kara-Playback und Berechtigungen
@@ -50,12 +50,12 @@
 | 2 | Play für alle anzeigen und Playback serverseitig entscheiden | ✓ |
 | 3 | Play für alle anzeigen, Playback nur für eingeloggte Nutzer | |
 
-**User's choice:** 2  
+**User's choice:** 2
 **Notes:** Login- und Berechtigungshinweise werden von der bestehenden Auth-/Playback-Logik getragen.
 
 ## Timeline-Integration
 
-**User's choice:** Freitext  
+**User's choice:** Freitext
 **Notes:** Wie im Sketch: kein separater Kara-Bereich; die bestehende Timeline bleibt erhalten, wird nur verschoben/dargestellt, und ein Klick auf einen Kara-Timeline-Eintrag springt direkt zur zugehörigen Kara-Karte.
 
 ## the agent's Discretion
@@ -67,4 +67,3 @@
 ## Deferred Ideas
 
 Keine.
-
