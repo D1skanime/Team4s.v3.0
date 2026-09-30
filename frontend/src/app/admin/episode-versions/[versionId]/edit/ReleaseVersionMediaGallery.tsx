@@ -171,7 +171,8 @@ export function ReleaseVersionMediaGallery({
 
     // Assign new sort_order values (gap of 10 to match backend convention)
     const reorderItems = reordered.map((item, index) => ({
-      id: item.id,
+      type: "media" as const,
+      media_id: item.id,
       sort_order: (index + 1) * 10,
     }))
 

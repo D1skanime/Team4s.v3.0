@@ -4,7 +4,10 @@
  */
 
 import { UploadQueueItem } from './useReleaseVersionMedia'
+import type { AdminThemeSegment } from '@/types/admin'
 import {
+  ReleaseVersionAdminStoryItem,
+  ReleaseVersionKaraStoryItem,
   ReleaseVersionMediaCategory,
   ReleaseVersionMediaItem,
   ReleaseVersionMediaPatchRequest,
@@ -13,6 +16,72 @@ import { ReplaceReleaseVersionMediaFileOptions } from '@/lib/api'
 import styles from './ReleaseVersionMediaSection.module.css'
 
 // ─── Kategorie-Optionen (Surface 4, D-08) ───────────────────────────────────
+
+export function storyItemKey(item: ReleaseVersionAdminStoryItem): string {
+  return item.type === 'media' ? 'media:' + item.media.id : 'kara:' + item.segment.id
+}
+
+export function sortStoryItems(items: ReleaseVersionAdminStoryItem[]): ReleaseVersionAdminStoryItem[] {
+  return [...items].sort((a, b) => a.sort_order - b.sort_order || storyItemKey(a).localeCompare(storyItemKey(b)))
+}
+
+export function buildStoryReorderRequest(items: ReleaseVersionAdminStoryItem[]) {
+  return {
+    items: sortStoryItems(items).map((item, index) =>
+      item.type === 'media'
+        ? { type: 'media' as const, media_id: item.media.id, sort_order: (index + 1) * 10 }
+        : { type: 'kara' as const, theme_segment_id: item.segment.id, sort_order: (index + 1) * 10 },
+    ),
+  }
+}
+
+export function getKaraCategoryLabel(segment: AdminThemeSegment): string {
+  const normalized = segment.theme_type_name.trim().toLocaleLowerCase()
+  if (normalized.includes('op')) return 'Opening'
+  if (normalized.includes('ed')) return 'Ending'
+  if (normalized.includes('insert')) return 'Insert'
+  if (normalized.includes('outro')) return 'Outro'
+  return segment.theme_type_name.trim() || 'Kara'
+}
+
+export function formatKaraDuration(segment: AdminThemeSegment): string | null {
+  if (!segment.start_time || !segment.end_time) return null
+  return segment.start_time + '–' + segment.end_time
+}
+
+export function formatKaraEpisodeHint(segment: AdminThemeSegment): string | null {
+  const assigned = segment.assigned_episodes?.map((episode) => episode.episode_number).filter(Boolean)
+  if (assigned && assigned.length > 0) return 'Folge ' + [...new Set(assigned)].join(', ')
+  if (segment.start_episode != null || segment.end_episode != null) {
+    return 'Folge ' + (segment.start_episode ?? '—') + '–' + (segment.end_episode ?? '—')
+  }
+  return null
+}
+
+export function getKaraStatusLabel(segment: AdminThemeSegment): string {
+  if (segment.render_status === 'ready') return 'Erzeugt'
+  if (segment.render_status === 'queued' || segment.render_status === 'rendering') return 'Wird vorbereitet'
+  if (segment.render_status === 'failed' || segment.render_status === 'stale') return 'Nicht bereit'
+  if (segment.source_type === 'release_asset' && segment.source_ref) return 'Asset hinterlegt'
+  return 'Quelle offen'
+}
+
+export function createKaraStoryItem(
+  segment: AdminThemeSegment,
+  mediaItems: ReleaseVersionMediaItem[],
+  sortOrder: number,
+): ReleaseVersionKaraStoryItem {
+  const fallback =
+    mediaItems.find((item) => item.is_preview_candidate && item.thumbnail_url) ??
+    mediaItems.find((item) => item.thumbnail_url)
+  return {
+    type: 'kara',
+    segment,
+    sort_order: sortOrder,
+    thumbnail_url: fallback?.thumbnail_url ?? null,
+    thumbnail_is_fallback: Boolean(fallback),
+  }
+}
 
 export const CATEGORY_OPTIONS = [
   { value: 'screenshot', label: 'Screenshot' },

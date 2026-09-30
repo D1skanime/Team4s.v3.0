@@ -1,10 +1,10 @@
 'use client'
 
-import { useCallback, useEffect, useRef, useState } from 'react'
-import { ApiError, getReleaseVersionCapabilities, deleteReleaseVersionMediaItem, getReleaseVersionMedia, patchReleaseVersionMediaItem, replaceReleaseVersionMediaFile, reorderReleaseVersionMedia, reorderReleaseVersionMediaHighlights, setReleaseVersionMediaHighlight, uploadReleaseVersionMedia } from '@/lib/api'
+import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
+import { ApiError, getAnimeSegments, getReleaseVersionCapabilities, deleteReleaseVersionMediaItem, getReleaseVersionMedia, patchReleaseVersionMediaItem, replaceReleaseVersionMediaFile, reorderReleaseVersionMedia, reorderReleaseVersionMediaHighlights, setReleaseVersionMediaHighlight, uploadReleaseVersionMedia } from '@/lib/api'
 import { useCancellableSlugState } from '@/hooks/useCancellableSlugState'
-import { CATEGORY_ALLOWS_PREVIEW, ReleaseVersionMediaCategory, ReleaseVersionCapabilities, ReleaseVersionMediaItem, ReleaseVersionMediaListResponse, ReleaseVersionCapabilitiesResponse, ReleaseVersionMediaPatchRequest, ReleaseVersionMediaReorderRequest, ReleaseVersionMediaHighlightReorderRequest } from '@/types/releaseVersionMedia'
-import { buildReplaceMediaFileRequest, fileKey } from './ReleaseVersionMediaSection.helpers'
+import { CATEGORY_ALLOWS_PREVIEW, ReleaseVersionMediaCategory, ReleaseVersionCapabilities, ReleaseVersionMediaItem, ReleaseVersionMediaListResponse, ReleaseVersionCapabilitiesResponse, ReleaseVersionMediaPatchRequest, ReleaseVersionMediaReorderRequest, ReleaseVersionMediaHighlightReorderRequest, ReleaseVersionAdminStoryItem, ReleaseVersionStoryOrderItem } from '@/types/releaseVersionMedia'
+import { buildReplaceMediaFileRequest, createKaraStoryItem, fileKey, sortStoryItems } from './ReleaseVersionMediaSection.helpers'
 
 export interface UploadFileDraft {
   file: File
@@ -30,6 +30,12 @@ export interface UploadRunResult {
   allSucceeded: boolean
 }
 
+interface StoryContext {
+  animeId: number | null
+  groupId: number | null
+  version: string | null
+}
+
 interface UploadConfig {
   category: ReleaseVersionMediaCategory
   versionId: number
@@ -37,6 +43,7 @@ interface UploadConfig {
 
 export interface UseReleaseVersionMediaResult {
   items: ReleaseVersionMediaItem[]
+  storyItems?: ReleaseVersionAdminStoryItem[]
   isLoading: boolean
   error: string | null
   reload: () => void
@@ -68,7 +75,7 @@ function applyReorderToItems(
   current: ReleaseVersionMediaItem[],
   body: ReleaseVersionMediaReorderRequest,
 ): ReleaseVersionMediaItem[] {
-  const orderMap = new Map(body.items.map((item) => [item.id, item.sort_order]))
+  const orderMap = new Map(body.items.filter((item): item is Extract<typeof item, { type: 'media' }> => 'type' in item && item.type === 'media').map((item) => [(item.media_id), item.sort_order]))
 
   return sortMediaItems(
     current.map((item) => {
@@ -88,8 +95,10 @@ function readUploadError(error: unknown, fallback: string): string {
   return fallback
 }
 
-export function useReleaseVersionMedia(versionId: number | null): UseReleaseVersionMediaResult {
+export function useReleaseVersionMedia(versionId: number | null, storyContext?: StoryContext): UseReleaseVersionMediaResult {
   const [items, setItems] = useState<ReleaseVersionMediaItem[]>([])
+  const [segments, setSegments] = useState<import('@/types/admin').AdminThemeSegment[]>([])
+  const [storyItems, setStoryItems] = useState<ReleaseVersionAdminStoryItem[]>([])
   const [error, setError] = useState<string | null>(null)
   const [uploadItems, setUploadItems] = useState<UploadQueueItem[]>([])
   const [patchError, setPatchError] = useState<string | null>(null)
@@ -104,10 +113,12 @@ export function useReleaseVersionMedia(versionId: number | null): UseReleaseVers
   const [appliedKey, setAppliedKey] = useState<string | null>(null)
   const lastUploadConfigRef = useRef<UploadConfig | null>(null)
   const itemsRef = useRef<ReleaseVersionMediaItem[]>([])
+  const storyItemsRef = useRef<ReleaseVersionAdminStoryItem[]>([])
 
   useEffect(() => {
     itemsRef.current = items
-  }, [items])
+    storyItemsRef.current = storyItems
+  }, [items, storyItems])
 
   const reload = useCallback(() => {
     setReloadKey((k) => k + 1)
@@ -317,14 +328,28 @@ export function useReleaseVersionMedia(versionId: number | null): UseReleaseVers
   const reorderItems = useCallback(
     async (targetVersionId: number, body: ReleaseVersionMediaReorderRequest) => {
       const previousItems = itemsRef.current
-      const optimisticItems = applyReorderToItems(previousItems, body)
+      const previousStoryItems = storyItemsRef.current
+      const orderByKey = new Map(body.items.map((item) => [
+        'type' in item ? (item.type === 'media' ? 'media:' + item.media_id : 'kara:' + item.theme_segment_id) : 'media:' + item.id,
+        item.sort_order,
+      ]))
+      const optimisticStoryItems = sortStoryItems(previousStoryItems.map((item) => ({
+        ...item,
+        sort_order: orderByKey.get(item.type === 'media' ? 'media:' + item.media.id : 'kara:' + item.segment.id) ?? item.sort_order,
+      })))
+      const optimisticItems = sortMediaItems(previousItems.map((item) => ({
+        ...item,
+        sort_order: orderByKey.get('media:' + item.id) ?? item.sort_order,
+      })))
 
       setReorderError(null)
+      setStoryItems(optimisticStoryItems)
       setItems(optimisticItems)
 
       try {
         await reorderReleaseVersionMedia(targetVersionId, body)
       } catch (reorderItemsError) {
+        setStoryItems(previousStoryItems)
         setItems(previousItems)
         setReorderError(
           readUploadError(reorderItemsError, 'Reihenfolge konnte nicht gespeichert werden.'),
@@ -405,14 +430,24 @@ export function useReleaseVersionMedia(versionId: number | null): UseReleaseVers
 
   const canFetch = versionId !== null
   const requestKey = canFetch ? `${versionId}:${reloadKey}` : ''
-  const fetcher = useCallback(
-    () => Promise.all([
+  const fetcher = useCallback(async () => {
+    const [mediaResponse, capabilitiesResponseData] = await Promise.all([
       getReleaseVersionMedia(versionId as number),
       getReleaseVersionCapabilities(versionId as number),
-    ]),
-    [versionId],
-  )
-  const { state } = useCancellableSlugState<[ReleaseVersionMediaListResponse, ReleaseVersionCapabilitiesResponse]>({
+    ])
+    const segmentResponse =
+      storyContext?.animeId != null
+        ? await getAnimeSegments(
+            storyContext.animeId,
+            storyContext.groupId,
+            storyContext.version,
+            undefined,
+            versionId,
+          )
+        : { data: [] }
+    return [mediaResponse, capabilitiesResponseData, segmentResponse] as [ReleaseVersionMediaListResponse, ReleaseVersionCapabilitiesResponse, { data: import('@/types/admin').AdminThemeSegment[] }]
+  }, [storyContext?.animeId, storyContext?.groupId, storyContext?.version, versionId])
+  const { state } = useCancellableSlugState<[ReleaseVersionMediaListResponse, ReleaseVersionCapabilitiesResponse, { data: import('@/types/admin').AdminThemeSegment[] }]>({
     requestKey,
     enabled: canFetch,
     fetcher,
@@ -428,6 +463,8 @@ export function useReleaseVersionMedia(versionId: number | null): UseReleaseVers
     if (appliedKey !== null || items.length > 0 || capabilities !== null || error !== null || capabilitiesError !== null) {
       setAppliedKey(null)
       setItems([])
+      setSegments([])
+      setStoryItems([])
       setError(null)
       setCapabilities(null)
       setCapabilitiesError(null)
@@ -435,8 +472,14 @@ export function useReleaseVersionMedia(versionId: number | null): UseReleaseVers
   } else if (state.key === requestKey && state.key !== appliedKey) {
     if (state.status === 'success') {
       setAppliedKey(state.key)
-      const [mediaResponse, capabilitiesResponseData] = state.data!
-      setItems(sortMediaItems(Array.isArray(mediaResponse.data) ? mediaResponse.data : []))
+      const [mediaResponse, capabilitiesResponseData, segmentResponse] = state.data!
+      const nextItems = sortMediaItems(Array.isArray(mediaResponse.data) ? mediaResponse.data : [])
+      const nextSegments = Array.isArray(segmentResponse.data) ? segmentResponse.data : []
+      setItems(nextItems)
+      setSegments(nextSegments)
+      const mediaStoryItems = nextItems.map((media) => ({ type: 'media' as const, media, sort_order: media.sort_order }))
+      const karaStoryItems = nextSegments.map((segment, index) => createKaraStoryItem(segment, nextItems, (nextItems.at(-1)?.sort_order ?? 0) + (index + 1) * 10))
+      setStoryItems(sortStoryItems([...mediaStoryItems, ...karaStoryItems]))
       setCapabilities(capabilitiesResponseData.data)
       setError(null)
       setCapabilitiesError(null)
@@ -452,6 +495,7 @@ export function useReleaseVersionMedia(versionId: number | null): UseReleaseVers
 
   return {
     items,
+    storyItems,
     isLoading,
     error,
     reload,

@@ -99,8 +99,8 @@ describe('ReleaseVersionMediaGallery presentation and ordering', () => {
 
     expect(onReorder).toHaveBeenCalledWith(42, {
       items: [
-        { id: 1, sort_order: 10 },
-        { id: 2, sort_order: 20 },
+        { type: 'media', media_id: 1, sort_order: 10 },
+        { type: 'media', media_id: 2, sort_order: 20 },
       ],
     })
   })

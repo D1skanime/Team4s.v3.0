@@ -3,14 +3,14 @@
 import { ChangeEvent, DragEvent, KeyboardEvent, useEffect, useMemo, useRef, useState } from 'react'
 import { ImageIcon, Star, Trash2 } from 'lucide-react'
 
-import { CATEGORY_ALLOWS_PREVIEW, ReleaseVersionMediaCategory, ReleaseVersionMediaItem } from '@/types/releaseVersionMedia'
+import { CATEGORY_ALLOWS_PREVIEW, ReleaseVersionAdminStoryItem, ReleaseVersionMediaCategory, ReleaseVersionMediaItem } from '@/types/releaseVersionMedia'
 
 import { Badge, Button, Drawer, FormField, Input, Textarea, useConfirmDialog } from '@/components/ui'
 import { UploadFileDraft, useReleaseVersionMedia, UseReleaseVersionMediaResult } from './useReleaseVersionMedia'
 import { ReleaseVersionMediaUploadQueue } from './ReleaseVersionMediaUploadQueue'
 import { ReleaseVersionMediaReplaceControls } from './ReleaseVersionMediaReplaceControls'
 import { RELEASE_REVIEW_REJECTION_CATEGORY_LABELS } from '../../../fansubs/releaseReviewPresentation'
-import { CATEGORY_OPTIONS, buildLocalPreviewURL, buildSelectedItemSavePayload, fileKey, isTerminalStatus, resolveEditDrawerPrimaryLabel } from './ReleaseVersionMediaSection.helpers'
+import { CATEGORY_OPTIONS, buildLocalPreviewURL, buildSelectedItemSavePayload, buildStoryReorderRequest, fileKey, formatKaraDuration, formatKaraEpisodeHint, getKaraCategoryLabel, getKaraStatusLabel, isTerminalStatus, resolveEditDrawerPrimaryLabel } from './ReleaseVersionMediaSection.helpers'
 import styles from './ReleaseVersionMediaSection.module.css'
 
 interface ReleaseVersionMediaSectionProps {
@@ -20,6 +20,7 @@ interface ReleaseVersionMediaSectionProps {
   fansubGroupName?: string
   releaseVersionLabel?: string
   mediaState?: UseReleaseVersionMediaResult
+  storyContext?: { animeId: number | null; groupId: number | null; version: string | null }
 }
 
 function categoryLabel(category: ReleaseVersionMediaCategory): string {
@@ -71,8 +72,9 @@ export function ReleaseVersionMediaSection({
   versionId,
   contextTitle = 'Episode-Version',
   mediaState,
+  storyContext,
 }: ReleaseVersionMediaSectionProps) {
-  const internalMedia = useReleaseVersionMedia(versionId)
+  const internalMedia = useReleaseVersionMedia(versionId, storyContext)
   const media = mediaState ?? internalMedia
   const persistedItems = useMemo(() => (Array.isArray(media.items) ? media.items : []), [media.items])
   const { confirm, confirmDialog } = useConfirmDialog()
@@ -170,6 +172,21 @@ export function ReleaseVersionMediaSection({
       setDragOverMediaId(null)
       return
     }
+    const storyItems = media.storyItems ?? []
+    if (storyItems.length > 0) {
+      const draggedKey = draggedMediaId < 0 ? 'kara:' + -draggedMediaId : 'media:' + draggedMediaId
+      const targetKey = targetId < 0 ? 'kara:' + -targetId : 'media:' + targetId
+      const dragged = storyItems.find((item) => item.type === 'media' ? 'media:' + item.media.id === draggedKey : 'kara:' + item.segment.id === draggedKey)
+      const withoutDragged = storyItems.filter((item) => (item.type === 'media' ? 'media:' + item.media.id : 'kara:' + item.segment.id) !== draggedKey)
+      const targetIndex = withoutDragged.findIndex((item) => (item.type === 'media' ? 'media:' + item.media.id : 'kara:' + item.segment.id) === targetKey)
+      if (dragged && targetIndex >= 0) {
+        withoutDragged.splice(targetIndex, 0, dragged)
+        void media.reorderItems(versionId, buildStoryReorderRequest(withoutDragged))
+      }
+      setDraggedMediaId(null)
+      setDragOverMediaId(null)
+      return
+    }
     const ordered = [...visibleItems].sort((a, b) => a.sort_order - b.sort_order)
     const dragged = ordered.find((item) => item.id === draggedMediaId)
     const withoutDragged = ordered.filter((item) => item.id !== draggedMediaId)
@@ -181,7 +198,7 @@ export function ReleaseVersionMediaSection({
     }
     withoutDragged.splice(targetIndex, 0, dragged)
     void media.reorderItems(versionId, {
-      items: withoutDragged.map((item, index) => ({ id: item.id, sort_order: (index + 1) * 10 })),
+      items: withoutDragged.map((item, index) => ({ type: "media" as const, media_id: item.id, sort_order: (index + 1) * 10 })),
     })
     setDraggedMediaId(null)
     setDragOverMediaId(null)
@@ -444,11 +461,57 @@ export function ReleaseVersionMediaSection({
       {media.highlightError ? <div className={styles.errorBox}>Highlight-Fehler: {media.highlightError}</div> : null}
       {media.highlightReorderError ? <div className={styles.errorBox}>Highlight-Reorder-Fehler: {media.highlightReorderError}</div> : null}
 
-      {visibleItems.length > 0 ? (
+      {visibleItems.length > 0 || (media.storyItems?.length ?? 0) > 0 ? (
         <>
           <h3 className={styles.categoryTitle}>Vorhandene Medien · {visibleItems.length}</h3>
           <div className={styles.mediaGrid}>
-            {[...visibleItems].sort((a, b) => a.sort_order - b.sort_order).map((item) => {
+            {(media.storyItems ?? visibleItems.map((item) => ({ type: 'media' as const, media: item, sort_order: item.sort_order }))).sort((a, b) => a.sort_order - b.sort_order).map((storyItem) => {
+              if (storyItem.type === 'kara') {
+                const segment = storyItem.segment
+                const category = getKaraCategoryLabel(segment)
+                const duration = formatKaraDuration(segment)
+                const episodeHint = formatKaraEpisodeHint(segment)
+                return (
+                  <div
+                    key={'kara-' + segment.id}
+                    className={styles.mediaCard}
+                    draggable={canReorderMedia}
+                    onDragStart={() => setDraggedMediaId(-segment.id)}
+                    onDragOver={(event) => {
+                      if (!canReorderMedia) return
+                      event.preventDefault()
+                      setDragOverMediaId(-segment.id)
+                    }}
+                    onDrop={(event) => {
+                      event.preventDefault()
+                      handleMediaDrop(-segment.id)
+                    }}
+                    onDragEnd={() => {
+                      setDraggedMediaId(null)
+                      setDragOverMediaId(null)
+                    }}
+                    data-drop-target={dragOverMediaId === -segment.id ? 'true' : undefined}
+                    data-testid={'admin-kara-card-' + segment.id}
+                  >
+                    <div className={styles.mediaCardOpen}>
+                      <span className={styles.mediaThumb}>
+                        {storyItem.thumbnail_url ? <img draggable={false} src={storyItem.thumbnail_url} alt="" /> : <ImageIcon size={22} aria-hidden="true" />}
+                      </span>
+                      <span className={styles.mediaCardBody}>
+                        <span className={styles.mediaName}>{(segment.theme_title || segment.library_segment_name || segment.theme_type_name)}</span>
+                        <span className={styles.mediaMeta}>
+                          <Badge variant="muted" className={styles.mediaCategory}>{category}</Badge>
+                          <Badge variant="muted" className={styles.mediaStatus}>{getKaraStatusLabel(segment)}</Badge>
+                        </span>
+                        {duration ? <span className={styles.helper}>Dauer {duration}</span> : null}
+                        {episodeHint ? <span className={styles.helper}>{episodeHint}</span> : null}
+                        <span className={styles.helper}>Kara-Segment - nur Orientierung</span>
+                      </span>
+                    </div>
+                  </div>
+                )
+              }
+              const item = storyItem.media
               const badge = statusBadge(item)
               const lastActivity = formatLastActivity(item.last_activity_at)
               const uploaderName = item.uploaded_by_display_name?.trim() || 'Unbekannt'

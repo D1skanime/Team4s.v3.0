@@ -850,6 +850,7 @@ export function EpisodeVersionEditorPage() {
                   contextTitle={
                     `${episodeNumber != null ? `Episode ${padEpisodeNumber(episodeNumber)}` : 'Episode'}${groupName ? ` · ${groupName}` : ''}${segmentVersion ? ` ${segmentVersion}` : ''}`
                   }
+                  storyContext={{ animeId: segmentAnimeId, groupId: segmentGroupId, version: segmentVersion }}
                 />
               </section>
             ) : null}

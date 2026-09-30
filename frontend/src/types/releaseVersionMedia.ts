@@ -72,6 +72,18 @@ export interface ReleaseVersionMediaListResponse {
 }
 
 /** Per-file result from the batch POST endpoint, in the same order as multipart files[]. */
+export interface ReleaseVersionKaraStoryItem {
+  type: 'kara'
+  segment: import('@/types/admin').AdminThemeSegment
+  sort_order: number
+  thumbnail_url: string | null
+  thumbnail_is_fallback: boolean
+}
+
+export type ReleaseVersionAdminStoryItem =
+  | { type: 'media'; media: ReleaseVersionMediaItem; sort_order: number }
+  | ReleaseVersionKaraStoryItem
+
 export interface ReleaseVersionMediaUploadResult {
   client_file_name: string
   status: 'ready' | 'processing' | 'failed'
@@ -113,6 +125,7 @@ export interface ReleaseVersionMediaPatchRequest {
 export type ReleaseVersionStoryOrderItem =
   | { type: 'media'; media_id: number; sort_order: number }
   | { type: 'kara'; theme_segment_id: number; sort_order: number }
+  | { id: number; sort_order: number }
 
 export interface ReleaseVersionMediaReorderRequest {
   items: ReleaseVersionStoryOrderItem[]
