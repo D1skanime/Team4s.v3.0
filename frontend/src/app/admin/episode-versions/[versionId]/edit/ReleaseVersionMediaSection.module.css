@@ -611,3 +611,69 @@
   flex: 0 0 auto;
   accent-color: var(--accent-primary);
 }
+
+/* Phase 171 admin story card alignment */
+.mediaGrid {
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 0.9rem;
+}
+.mediaThumb {
+  aspect-ratio: 16 / 9;
+}
+.karaCard {
+  border-left: 4px solid #179b70;
+  background: #eff8f5;
+}
+.karaCard[data-kara-category="insert"] {
+  border-left-color: #8b45d3;
+  background: #f6effa;
+}
+.karaCard[data-kara-category="ending"] {
+  border-left-color: #168fca;
+  background: #eff7fb;
+}
+.karaCard[data-kara-category="outro"] {
+  border-left-color: #168fca;
+  background: #eff7fb;
+}
+.karaCard .mediaName {
+  margin-bottom: 0;
+}
+.karaCard .mediaCardBody {
+  gap: 0.45rem;
+}
+.karaCard .mediaMeta {
+  justify-content: flex-start;
+}
+.karaFooter {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.5rem;
+  border-top: 1px solid color-mix(in srgb, #179b70 24%, transparent);
+  padding-top: 0.55rem;
+}
+.karaCard[data-kara-category="insert"] .karaFooter {
+  border-top-color: color-mix(in srgb, #8b45d3 24%, transparent);
+}
+.karaCard[data-kara-category="ending"] .karaFooter,
+.karaCard[data-kara-category="outro"] .karaFooter {
+  border-top-color: color-mix(in srgb, #168fca 24%, transparent);
+}
+.karaStoryLabel {
+  color: var(--text-secondary);
+  font-size: 0.72rem;
+  font-weight: 850;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+}
+.karaOrderHint {
+  color: var(--text-secondary);
+  font-size: 0.72rem;
+  text-align: right;
+}
+@container release-media (min-width: 59rem) {
+  .mediaGrid {
+    grid-template-columns: repeat(4, minmax(0, 1fr));
+  }
+}

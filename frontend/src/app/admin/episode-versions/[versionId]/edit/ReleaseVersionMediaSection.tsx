@@ -148,6 +148,8 @@ export function ReleaseVersionMediaSection({
   const uploadStarted = media.uploadItems.length > 0
   const canChooseFiles = canUploadMedia && versionId > 0 && !isBusy && !uploadStarted
   const canUpload = canChooseFiles && selectedDrafts.length > 0
+  const storyCount = media.storyItems?.length ?? visibleItems.length
+  const karaCount = media.storyItems?.filter((item) => item.type === 'kara').length ?? 0
   const canEditSelectedItem = Boolean(selectedItem && (selectedItem.can_update ?? canUpdateMedia))
   const canEditPreviewCandidate = selectedItem
     ? CATEGORY_ALLOWS_PREVIEW[selectedItem.category] && (canEditSelectedItem || canManageHighlights)
@@ -463,7 +465,7 @@ export function ReleaseVersionMediaSection({
 
       {visibleItems.length > 0 || (media.storyItems?.length ?? 0) > 0 ? (
         <>
-          <h3 className={styles.categoryTitle}>Vorhandene Medien · {visibleItems.length}</h3>
+          <h3 className={styles.categoryTitle}>Vorhandene Medien · {storyCount}{karaCount > 0 ? ' (' + karaCount + ' Kara-Segmente)' : ''}</h3>
           <div className={styles.mediaGrid}>
             {(media.storyItems ?? visibleItems.map((item) => ({ type: 'media' as const, media: item, sort_order: item.sort_order }))).sort((a, b) => a.sort_order - b.sort_order).map((storyItem) => {
               if (storyItem.type === 'kara') {
@@ -474,7 +476,8 @@ export function ReleaseVersionMediaSection({
                 return (
                   <div
                     key={'kara-' + segment.id}
-                    className={styles.mediaCard}
+                    className={styles.mediaCard + ' ' + styles.karaCard}
+                    data-kara-category={category.toLowerCase()}
                     draggable={canReorderMedia}
                     onDragStart={() => setDraggedMediaId(-segment.id)}
                     onDragOver={(event) => {
@@ -505,7 +508,11 @@ export function ReleaseVersionMediaSection({
                         </span>
                         {duration ? <span className={styles.helper}>Dauer {duration}</span> : null}
                         {episodeHint ? <span className={styles.helper}>{episodeHint}</span> : null}
-                        <span className={styles.helper}>Kara-Segment - nur Orientierung</span>
+                        <span className={styles.helper}>Kara-Segment · nur Orientierung</span>
+                        <span className={styles.karaFooter}>
+                          <span className={styles.karaStoryLabel}>Story</span>
+                          <span className={styles.karaOrderHint}>Per Drag-and-drop verschieben</span>
+                        </span>
                       </span>
                     </div>
                   </div>
