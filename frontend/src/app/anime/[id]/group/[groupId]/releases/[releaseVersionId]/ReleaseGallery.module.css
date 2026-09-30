@@ -144,3 +144,115 @@
     padding: 0;
   }
 }
+
+
+/* Sketch card details: square top edge, colored category chip, uploader chip. */
+.card,
+.featuredCard,
+.karaCard {
+  border-top-left-radius: 0;
+  border-top-right-radius: 0;
+}
+.imageCategory {
+  justify-self: start;
+  margin: 9px 13px 8px;
+  padding: 5px 10px;
+  border: 1px solid;
+  border-radius: 0;
+  font-size: 10px;
+  font-weight: 900;
+  letter-spacing: .04em;
+  text-transform: uppercase;
+}
+.imageCategory[data-category="screenshot"] {
+  color: #346497;
+  background: #e8f1ff;
+  border-color: #aac8e8;
+}
+.imageCategory[data-category="typesetting_karaoke"] {
+  color: #8140bf;
+  background: #f0e7fb;
+  border-color: #c4a6e5;
+}
+.imageCategory[data-category="fun_outtake"] {
+  color: #bd6729;
+  background: #fff0e5;
+  border-color: #e7b48e;
+}
+.imageCategory[data-category="other"] {
+  color: #557080;
+  background: #edf3f6;
+  border-color: #b9cbd3;
+}
+.uploaderChip {
+  display: inline-flex;
+  width: fit-content;
+  max-width: 100%;
+  padding: 7px 11px;
+  border-radius: 0;
+  background: rgba(220, 239, 231, .88);
+  color: #176d51;
+  font-size: 12px;
+  font-weight: 900;
+  overflow-wrap: anywhere;
+}
+.karaCategory {
+  justify-self: start;
+  width: fit-content;
+  margin: 9px 13px 8px;
+  padding: 5px 10px;
+  border: 1px solid;
+  border-radius: 0;
+  font-size: 10px;
+  font-weight: 900;
+  letter-spacing: .04em;
+  text-transform: uppercase;
+}
+.karaCategory[data-kara-type="opening"] {
+  color: #168158;
+  background: #e1f3ee;
+  border-color: #9bcfbe;
+}
+.karaCategory[data-kara-type="insert"] {
+  color: #8140bf;
+  background: #f0e7fb;
+  border-color: #c4a6e5;
+}
+.karaCategory[data-kara-type="ending"] {
+  color: #1682b5;
+  background: #e4f3fb;
+  border-color: #98cce3;
+}
+.karaCard .karaContent {
+  padding-top: 0;
+}
+@media (max-width: 600px) {
+  .imageCategory,
+  .karaCategory {
+    margin-top: 9px;
+  }
+}
+
+
+/* Kara follows the same vertical card rhythm as release images. */
+.karaCard {
+  display: block;
+  padding: 0;
+  overflow: hidden;
+  border-radius: 0 0 10px 10px;
+}
+.karaPreviewWrap {
+  width: 100%;
+}
+.karaPreview,
+.karaPlaceholder {
+  display: block;
+  width: 100%;
+  aspect-ratio: 16 / 9;
+  min-height: 0;
+  border-radius: 0;
+  object-fit: cover;
+}
+.karaContent {
+  padding: 0 13px 13px;
+}

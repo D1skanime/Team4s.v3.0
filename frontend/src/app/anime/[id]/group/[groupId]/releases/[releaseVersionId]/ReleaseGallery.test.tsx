@@ -43,7 +43,7 @@ describe('ReleaseGallery', () => {
     expect(document.querySelectorAll('[data-testid^="release-image-card-"]').length).toBe(6)
     expect(screen.queryByRole('button', { name: /Weitere/ })).toBeNull()
     expect(screen.getAllByText('Fansub Screenshot')).toHaveLength(6)
-    expect(screen.getByText('Hochgeladen von Uploader 1')).toBeTruthy()
+    expect(screen.getByText('Uploaded von Uploader 1')).toBeTruthy()
   })
 
   it('keeps the viewport contract at two tablet columns and at most three desktop columns', () => {

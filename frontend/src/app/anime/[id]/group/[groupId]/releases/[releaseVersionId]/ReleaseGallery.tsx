@@ -14,6 +14,18 @@ import { CATEGORY_LABELS, RELEASE_VERSION_MEDIA_CATEGORIES, type ReleaseVersionM
 import { useResponsiveGalleryReveal } from './responsiveGalleryReveal'
 import styles from './ReleaseGallery.module.css'
 
+const KARA_TYPE_LABELS: Record<string, string> = {
+  op: 'Opening',
+  opening: 'Opening',
+  insert: 'Insert',
+  ed: 'Ending',
+  ending: 'Ending',
+}
+
+function karaTypeLabel(type: string): string {
+  return KARA_TYPE_LABELS[type.trim().toLowerCase()] ?? type
+}
+
 interface Props {
   animeID: number
   groupID: number
@@ -130,14 +142,14 @@ export function ReleaseGallery({ animeID, groupID, releaseVersionID, initialImag
           <span className={styles.maximize} aria-hidden="true"><Maximize2 size={16} /></span>
         </span>
       </Button>
-      <Badge variant="muted" className={styles.imageCategory}>{CATEGORY_LABELS[image.category]}</Badge>
+      <Badge variant="muted" className={styles.imageCategory} data-category={image.category}>{CATEGORY_LABELS[image.category]}</Badge>
       <div className={styles.meta}>
         <p className={styles.caption}>{image.title?.trim() ? <strong>{title}</strong> : title}</p>
         {image.title?.trim() && image.caption?.trim() ? <p className={styles.caption}>{image.caption}</p> : null}
         <div className={styles.metaRow}>
           {image.is_preview_candidate ? <Badge variant="info">Vorschau</Badge> : null}
           {image.is_highlight ? <Badge variant="success">Highlight</Badge> : null}
-          <span>Hochgeladen von {image.author_name ?? 'Unbekannt'}</span>
+          <span className={styles.uploaderChip}>Uploaded von {image.author_name ?? 'Unbekannt'}</span>
           {sourceGroupName ? <span>{sourceGroupName}</span> : null}
         </div>
       </div>
@@ -153,8 +165,8 @@ export function ReleaseGallery({ animeID, groupID, releaseVersionID, initialImag
           : <div className={styles.karaPlaceholder} aria-hidden="true" />}
         <KaraStoryPlayback segment={segment} releaseVersionID={releaseVersionID} />
       </div>
+      <Badge variant="muted" className={styles.karaCategory} data-kara-type={karaTypeLabel(segment.type).toLowerCase()}>{karaTypeLabel(segment.type)}</Badge>
       <div className={styles.karaContent}>
-        <Badge variant="muted">{segment.type}</Badge>
         <h3>{segment.name}</h3>
         <p className={styles.karaDuration}>Dauer {formatDuration(segment.duration_seconds)}</p>
         {segment.applies_through_episode ? <Badge variant="muted">Gilt auch für Folge {episodeNumber}–{segment.applies_through_episode}</Badge> : null}
