@@ -21,6 +21,7 @@ interface ThemeTimelineProps {
   /** Projekt-Pfad im Fansub-Projektkontext (Phase 155), fuer Mitwirkenden-Links (P156-14). */
   projectPath?: string | null
   showSegmentCards?: boolean
+  showHeading?: boolean
 }
 
 type SegmentGeometry = {
@@ -131,6 +132,7 @@ export function ThemeTimeline({
   episodeNumber,
   projectPath,
   showSegmentCards = true,
+  showHeading = true,
 }: ThemeTimelineProps) {
   const session = useAuthSession()
   const hasSession = session.isClientInitialized && (session.hasAccessToken || session.hasRefreshToken)
@@ -204,7 +206,7 @@ export function ThemeTimeline({
 
   return (
     <section id="op-ed-middle" className={styles.timelineSection} data-release-atmosphere-band="true">
-      <SectionHeader title="Karas" underline />
+      {showHeading ? <SectionHeader title="Karas" underline /> : null}
 
       <div className={styles.desktopTimeline} aria-label="Kara-Zeitleiste der Episode">
         <div className={styles.timelineAnchors} aria-label="Gesamte Episodendauer">

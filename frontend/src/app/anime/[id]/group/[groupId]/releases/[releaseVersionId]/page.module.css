@@ -376,3 +376,40 @@
   font-size: 12px;
   color: var(--color-text-secondary);
 }
+
+.storyStage {
+  display: grid;
+  gap: 22px;
+  min-width: 0;
+  padding: 26px;
+  border: 1px solid rgba(255, 255, 255, .82);
+  border-radius: 25px;
+  background: rgba(255, 255, 255, .54);
+  box-shadow: 0 12px 30px rgba(30, 49, 78, .12);
+  backdrop-filter: blur(14px);
+  -webkit-backdrop-filter: blur(14px);
+}
+.storyTitle {
+  margin: 0;
+  padding-bottom: 14px;
+  border-bottom: 2px solid #a91535;
+  color: var(--color-text-primary);
+  font-size: 22px;
+  line-height: 1.2;
+}
+.storyStage > section {
+  padding: 0;
+  border: 0;
+  border-radius: 0;
+  background: transparent;
+  box-shadow: none;
+  -webkit-backdrop-filter: none;
+  backdrop-filter: none;
+}
+
+@media (max-width: 600px) {
+.storyStage {
+  padding: 14px 12px 18px;
+  border-radius: 16px;
+}
+}

@@ -23,6 +23,7 @@ interface Props {
   categoryTotals: Record<ReleaseVersionMediaCategory, number>
   groups?: PublicReleaseGroup[]
   episodeNumber?: string
+  embedded?: boolean
 }
 
 function mergeImages(previous: PublicReleaseImage[], incoming: PublicReleaseImage[]): PublicReleaseImage[] {
@@ -47,7 +48,7 @@ function toLightboxItem(image: PublicReleaseImage): PublicImageLightboxItem {
   }
 }
 
-export function ReleaseGallery({ animeID, groupID, releaseVersionID, initialImages, story = [], categoryTotals, groups = [], episodeNumber }: Props) {
+export function ReleaseGallery({ animeID, groupID, releaseVersionID, initialImages, story = [], categoryTotals, groups = [], episodeNumber, embedded = false }: Props) {
   const [items, setItems] = useState(() => mergeImages([], initialImages))
   const [activeImageID, setActiveImageID] = useState<number | null>(null)
   const [loading, setLoading] = useState(false)
@@ -80,8 +81,8 @@ export function ReleaseGallery({ animeID, groupID, releaseVersionID, initialImag
     : [...legacyHighlights, ...legacyRegular]
   const fallbackStory: PublicReleaseStoryItem[] = legacyOrderedImages.map((image, index) => ({ type: 'media', id: image.id, sort_order: index, image }))
   const storyItems = story.length > 0 ? story : fallbackStory
-  const visibleItems = storyItems.slice(0, visibleCount)
-  const remaining = Math.max(0, total - visibleItems.length)
+  const visibleItems = story.length > 0 ? storyItems : storyItems.slice(0, visibleCount)
+  const remaining = story.length > 0 ? 0 : Math.max(0, total - visibleItems.length)
 
   async function revealAll() {
     if (loading) return
@@ -122,20 +123,20 @@ export function ReleaseGallery({ animeID, groupID, releaseVersionID, initialImag
     const src = image.thumbnail_url ?? image.original_url
     const title = image.title?.trim() || image.caption?.trim() || CATEGORY_LABELS[image.category]
     const sourceGroupName = image.fansub_group_id ? groupNamesByID.get(image.fansub_group_id) : null
-    return <article key={image.id} data-testid={`release-image-card-${image.id}`} className={`${styles.card} ${featured ? styles.featuredCard : ''}`}>
+    return <article key={image.id} data-testid={`release-image-card-${image.id}`} className={`${styles.card} ${featured || image.is_highlight ? styles.featuredCard : ''}`}>
       <Button type="button" variant="ghost" className={styles.imageButton} aria-label={`${title} öffnen`} onClick={() => setActiveImageID(image.id)}>
         <span className={styles.imageShell}>
           {src ? <Image src={src} alt={title} className={styles.image} fill sizes="(max-width: 600px) 45vw, (max-width: 900px) 40vw, 28vw" unoptimized /> : <span className={styles.imagePlaceholder} aria-hidden="true" />}
           <span className={styles.maximize} aria-hidden="true"><Maximize2 size={16} /></span>
         </span>
       </Button>
+      <Badge variant="muted" className={styles.imageCategory}>{CATEGORY_LABELS[image.category]}</Badge>
       <div className={styles.meta}>
         <p className={styles.caption}>{image.title?.trim() ? <strong>{title}</strong> : title}</p>
         {image.title?.trim() && image.caption?.trim() ? <p className={styles.caption}>{image.caption}</p> : null}
         <div className={styles.metaRow}>
           {image.is_preview_candidate ? <Badge variant="info">Vorschau</Badge> : null}
           {image.is_highlight ? <Badge variant="success">Highlight</Badge> : null}
-          <Badge variant="muted">{CATEGORY_LABELS[image.category]}</Badge>
           <span>Hochgeladen von {image.author_name ?? 'Unbekannt'}</span>
           {sourceGroupName ? <span>{sourceGroupName}</span> : null}
         </div>
@@ -146,9 +147,12 @@ export function ReleaseGallery({ animeID, groupID, releaseVersionID, initialImag
   const renderKara = (segment: PublicReleaseSegment) => {
     const previewUrl = segment.preview_url ?? featuredImage?.thumbnail_url ?? featuredImage?.original_url
     return <article id={'release-story-kara-' + segment.theme_segment_id} key={'kara-' + segment.theme_segment_id} data-testid={'release-kara-card-' + segment.theme_segment_id} className={styles.karaCard}>
-      {previewUrl
-        ? <Image src={previewUrl} alt={'Preview für ' + segment.name} className={styles.karaPreview} width={640} height={360} unoptimized />
-        : <div className={styles.karaPlaceholder} aria-hidden="true" />}
+      <div className={styles.karaPreviewWrap}>
+        {previewUrl
+          ? <Image src={previewUrl} alt={'Preview für ' + segment.name} className={styles.karaPreview} width={640} height={360} unoptimized />
+          : <div className={styles.karaPlaceholder} aria-hidden="true" />}
+        <KaraStoryPlayback segment={segment} releaseVersionID={releaseVersionID} />
+      </div>
       <div className={styles.karaContent}>
         <Badge variant="muted">{segment.type}</Badge>
         <h3>{segment.name}</h3>
@@ -156,7 +160,6 @@ export function ReleaseGallery({ animeID, groupID, releaseVersionID, initialImag
         {segment.applies_through_episode ? <Badge variant="muted">Gilt auch für Folge {episodeNumber}–{segment.applies_through_episode}</Badge> : null}
         <div className={styles.karaParticipants}>{segment.participants.length} Mitwirkende</div>
       </div>
-      <KaraStoryPlayback segment={segment} releaseVersionID={releaseVersionID} />
     </article>
   }
 
@@ -164,12 +167,12 @@ export function ReleaseGallery({ animeID, groupID, releaseVersionID, initialImag
     .filter(category => categoryTotals[category] > 0)
     .map(category => ({ category, label: CATEGORY_LABELS[category], count: categoryTotals[category] }))
 
-  return <section id="galerie" className={styles.section} data-release-atmosphere-band="true">
-    <SectionHeader title="Bilder aus dem Release" description={`${total} Bilder · Einblicke in die Entstehung dieses Releases`} underline />
-    <p className={styles.storyIntro}>Screenshots, Typesetting, Karaoke, Qualitätsprüfung und kleine Outtakes erzählen die Geschichte hinter diesem Release.</p>
-    <div className={styles.categorySummary} aria-label="Kategorien der Release-Bilder">
+  return <section id="galerie" className={styles.section + (embedded ? ' ' + styles.embeddedSection : '')} data-release-atmosphere-band="true">
+    {embedded ? null : <SectionHeader title="Bilder aus dem Release" description={total + ' Bilder · Einblicke in die Entstehung dieses Releases'} underline />}
+    {embedded ? null : <p className={styles.storyIntro}>Screenshots, Typesetting, Karaoke, Qualitätsprüfung und kleine Outtakes erzählen die Geschichte hinter diesem Release.</p>}
+    {embedded ? null : <div className={styles.categorySummary} aria-label="Kategorien der Release-Bilder">
       {categorySummary.map(({ category, label, count }) => <Badge key={category} variant="muted">{label} · {count}</Badge>)}
-    </div>
+    </div>}
     {error ? <p className={styles.error}>{error}</p> : null}
     <div className={styles.storyGroups + ' ' + styles.grid} data-testid="release-image-grid">
       {visibleItems.map((item, index) => item.type === 'kara' && item.segment

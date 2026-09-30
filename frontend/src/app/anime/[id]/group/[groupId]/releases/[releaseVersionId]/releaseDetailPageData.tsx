@@ -109,17 +109,21 @@ export async function ReleaseDetailPageContent({ animeID, groupID, releaseVersio
       animeLogoFallbackUrl={animeLogoFallbackUrl}
     />
     <ReleaseNotesList animeID={animeID} groupID={groupID} releaseVersionID={releaseVersionID} initialNotes={detail.notes} totalCount={detail.notes_count} groups={detail.groups} />
-    <ThemeTimeline
-      releaseVersionID={releaseVersionID}
-      episodeDurationSeconds={detail.duration_seconds}
-      segments={detail.segments}
-      initialSegmentID={initialKaraSegmentID}
-      autoPlayInitial={autoplayInitialKara}
-      episodeNumber={detail.episode_number}
-      projectPath={canonicalProjectPath}
-      showSegmentCards={false}
-    />
-    <ReleaseGallery animeID={animeID} groupID={groupID} releaseVersionID={releaseVersionID} initialImages={detail.images} story={detail.story} categoryTotals={detail.image_category_totals} groups={detail.groups} episodeNumber={detail.episode_number} />
+    <section className={styles.storyStage} data-release-atmosphere-band="true">
+      <h2 className={styles.storyTitle}>Eine Geschichte des Releases</h2>
+      <ThemeTimeline
+        releaseVersionID={releaseVersionID}
+        episodeDurationSeconds={detail.duration_seconds}
+        segments={detail.segments}
+        initialSegmentID={initialKaraSegmentID}
+        autoPlayInitial={autoplayInitialKara}
+        episodeNumber={detail.episode_number}
+        projectPath={canonicalProjectPath}
+        showSegmentCards={false}
+        showHeading={false}
+      />
+      <ReleaseGallery animeID={animeID} groupID={groupID} releaseVersionID={releaseVersionID} initialImages={detail.images} story={detail.story} categoryTotals={detail.image_category_totals} groups={detail.groups} episodeNumber={detail.episode_number} embedded />
+    </section>
     <ReleaseTechnicalDetails {...detail} />
     <ContributorsRow contributors={detail.contributors} groups={detail.groups} />
     <ReleaseEpisodePlayer releaseVersionID={releaseVersionID} title={detail.title} />

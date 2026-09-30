@@ -42,3 +42,105 @@
   .karaCard { grid-template-columns: minmax(0, 1fr); }
   .karaPlayButton { grid-column: 1; width: fit-content; max-width: 100%; }
 }
+
+.embeddedSection {
+  padding: 0;
+  border: 0;
+  border-radius: 0;
+  background: transparent;
+  box-shadow: none;
+}
+.embeddedSection .grid {
+  gap: var(--space-4, 16px);
+}
+
+@media (min-width: 601px) {
+  .featuredCard {
+    grid-column: span 2;
+  }
+}
+
+.imageCategory {
+  justify-self: start;
+  width: fit-content;
+  margin: 0;
+  border-radius: 8px;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+}
+.karaPreviewWrap {
+  position: relative;
+  min-width: 0;
+}
+.karaPreviewWrap .karaPlayButton {
+  position: absolute;
+  left: 50%;
+  top: 50%;
+  z-index: 1;
+  transform: translate(-50%, -50%);
+  white-space: nowrap;
+}
+.karaPreviewWrap .karaUnavailable {
+  position: absolute;
+  left: 50%;
+  bottom: 10px;
+  z-index: 1;
+  transform: translateX(-50%);
+  padding: 4px 8px;
+  border-radius: 6px;
+  background: rgb(255 255 255 / 82%);
+}
+.karaPreviewWrap .karaPlayer {
+  position: absolute;
+  inset: 0;
+  z-index: 2;
+  background: var(--surface-sunken);
+}
+.karaPreviewWrap .karaPlayer video {
+  width: 100%;
+  height: 100%;
+  object-fit: contain;
+}
+@media (max-width: 600px) {
+  .imageCategory {
+    margin-top: 0;
+  }
+}
+
+
+/* Public story sketch alignment: one mixed three-column flow. */
+.card {
+  overflow: hidden;
+  border: 1px solid color-mix(in srgb, var(--color-border, #dce5f2) 88%, transparent);
+  border-radius: 17px;
+  background: rgba(255, 255, 255, .54);
+  box-shadow: 0 4px 14px rgba(30, 49, 78, .08);
+  backdrop-filter: blur(10px);
+  -webkit-backdrop-filter: blur(10px);
+}
+.imageButton {
+  border-radius: 0;
+}
+.meta {
+  padding: 0 13px 13px;
+}
+.featuredCard {
+  display: block;
+  grid-template-columns: none;
+  padding: 0;
+  border-radius: 17px;
+}
+.featuredCard .imageShell {
+  aspect-ratio: 16 / 7;
+}
+.featuredCard .meta {
+  padding: 0 13px 13px;
+}
+@media (max-width: 600px) {
+  .card {
+    border-radius: 14px;
+  }
+  .featuredCard {
+    padding: 0;
+  }
+}
