@@ -2146,6 +2146,160 @@ paths:
       description: Requires release_version.segments.manage for body.release_version_id. Same-segment repeat is idempotent.
         A different assigned segment of the same canonical OP or ED family returns409 segment_assignment_conflict;
         no existing assignment is replaced.
+  /api/v1/admin/anime/{id}/segments/{segmentId}/preview-image:
+    post:
+      tags:
+      - Admin
+      summary: Upload a manual preview image for a segment
+      operationId: adminUploadSegmentPreviewImage
+      security:
+      - bearerAuth: []
+      parameters:
+      - *id001
+      - name: segmentId
+        in: path
+        required: true
+        schema:
+          type: integer
+          format: int64
+          minimum: 1
+      - *id002
+      requestBody:
+        required: true
+        content:
+          multipart/form-data:
+            schema:
+              type: object
+              required:
+              - file
+              properties:
+                file:
+                  type: string
+                  format: binary
+      responses:
+        '200':
+          description: Segment with the newly uploaded manual preview image attached (preview_source becomes manual)
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/AdminAnimeSegmentResponse'
+        '400': *id003
+        '401': *id004
+        '403': *id005
+        '404': *id006
+        '500': *id008
+      description: Requires release_version.segments.manage. Stored immediately as visibility=public/review_status=approved,
+        same as other segment asset uploads. Replaces any previous manual preview image (best-effort cleanup); never
+        touched by a later render.
+  /api/v1/admin/anime/{id}/segments/{segmentId}/preview-image/candidates:
+    get:
+      tags:
+      - Admin
+      summary: List selectable release images for the segment preview image picker
+      operationId: adminGetSegmentPreviewImageCandidates
+      security:
+      - bearerAuth: []
+      parameters:
+      - *id001
+      - name: segmentId
+        in: path
+        required: true
+        schema:
+          type: integer
+          format: int64
+          minimum: 1
+      - *id002
+      responses:
+        '200':
+          description: Public, approved release images from release versions this segment is assigned to
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/AdminSegmentPreviewImageCandidatesResponse'
+        '401': *id004
+        '403': *id005
+        '404': *id006
+        '500': *id008
+      description: Requires release_version.segments.manage. Only already-public, approved images of release versions
+        the segment is currently assigned to are listed.
+  /api/v1/admin/anime/{id}/segments/{segmentId}/preview-image/attach:
+    post:
+      tags:
+      - Admin
+      summary: Attach an existing release image as the segment's manual preview image
+      operationId: adminAttachSegmentPreviewImage
+      security:
+      - bearerAuth: []
+      parameters:
+      - *id001
+      - name: segmentId
+        in: path
+        required: true
+        schema:
+          type: integer
+          format: int64
+          minimum: 1
+      - *id002
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/AdminSegmentPreviewImageAttachRequest'
+      responses:
+        '200':
+          description: Segment with the attached release image as its new manual preview image (preview_source becomes
+            manual)
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/AdminAnimeSegmentResponse'
+        '400': *id003
+        '401': *id004
+        '403': *id005
+        '404': &id009
+          description: Segment not found, or media_asset_id does not belong to a public, approved image of a release
+            version this segment is assigned to
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '500': *id008
+      description: Requires release_version.segments.manage. Ownership of media_asset_id is re-verified server-side;
+        a foreign or unassigned asset always returns 404. Replaces any previous manual preview image (best-effort
+        cleanup, skipped if the old asset is still referenced elsewhere).
+  /api/v1/admin/anime/{id}/segments/{segmentId}/preview-image/reset:
+    post:
+      tags:
+      - Admin
+      summary: Clear the manual preview image choice and fall back to automatic
+      operationId: adminResetSegmentPreviewImage
+      security:
+      - bearerAuth: []
+      parameters:
+      - *id001
+      - name: segmentId
+        in: path
+        required: true
+        schema:
+          type: integer
+          format: int64
+          minimum: 1
+      - *id002
+      responses:
+        '200':
+          description: Segment with the manual preview image cleared; preview_source falls back to auto or fallback
+            without requiring a new render
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/AdminAnimeSegmentResponse'
+        '401': *id004
+        '403': *id005
+        '404': *id006
+        '500': *id008
+      description: Requires release_version.segments.manage. Removing the manual choice never triggers a new render;
+        the existing manual > auto > fallback precedence takes over immediately.
   /api/v1/admin/anime/{id}/themes/{themeId}:
     patch:
       tags:
@@ -12311,6 +12465,18 @@ components:
           type: array
           items:
             $ref: '#/components/schemas/AdminThemeSegmentAssignmentEpisode'
+        preview_url:
+          type: string
+          nullable: true
+          description: Server-resolved preview image URL for this segment (manual > auto > fallback precedence).
+        preview_source:
+          type: string
+          nullable: true
+          enum:
+          - manual
+          - auto
+          - fallback
+          description: Origin of the resolved preview_url.
     AdminThemeSegmentAssignmentEpisode:
       type: object
       required:
@@ -12391,6 +12557,38 @@ components:
       properties:
         data:
           $ref: '#/components/schemas/AdminThemeSegment'
+    AdminSegmentPreviewImageCandidate:
+      type: object
+      required:
+      - media_asset_id
+      - thumbnail_url
+      - release_version_label
+      properties:
+        media_asset_id:
+          type: integer
+          format: int64
+        thumbnail_url:
+          type: string
+        release_version_label:
+          type: string
+    AdminSegmentPreviewImageCandidatesResponse:
+      type: object
+      required:
+      - data
+      properties:
+        data:
+          type: array
+          items:
+            $ref: '#/components/schemas/AdminSegmentPreviewImageCandidate'
+    AdminSegmentPreviewImageAttachRequest:
+      type: object
+      required:
+      - media_asset_id
+      properties:
+        media_asset_id:
+          type: integer
+          format: int64
+          minimum: 1
     AdminThemeSegmentMutationResponse:
       type: object
       required:

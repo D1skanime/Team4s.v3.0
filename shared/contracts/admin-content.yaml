@@ -591,6 +591,123 @@ endpoints:
       status: 200
       type: AdminAnimeSegmentResponse
 
+  - name: admin-segment-preview-image-upload
+    method: POST
+    path: /api/v1/admin/anime/:id/segments/:segmentId/preview-image
+    auth:
+      required: true
+      header:
+        name: Authorization
+        format: Bearer <signed token>
+      notes:
+        - Requires release_version.segments.manage (Phase 172, D-03/D-11 "Bild hochladen").
+        - Stored immediately as visibility=public/review_status=approved, same as existing segment asset uploads; no review step.
+        - Replaces any previous manual preview image; old asset is best-effort cleaned up unless still referenced elsewhere.
+    path_params:
+      - name: id
+        type: int64
+        minimum: 1
+      - name: segmentId
+        type: int64
+        minimum: 1
+    query_params:
+      - name: release_variant_id
+        type: int64
+        minimum: 1
+        required: false
+    request_body:
+      required: true
+      type: multipart/form-data
+      field: file
+    response:
+      status: 200
+      type: AdminAnimeSegmentResponse
+
+  - name: admin-segment-preview-image-candidates
+    method: GET
+    path: /api/v1/admin/anime/:id/segments/:segmentId/preview-image/candidates
+    auth:
+      required: true
+      header:
+        name: Authorization
+        format: Bearer <signed token>
+      notes:
+        - Requires release_version.segments.manage (Phase 172, D-11 "Aus Release-Bildern wählen").
+        - Lists only already-public, approved images of release versions this segment is currently assigned to.
+    path_params:
+      - name: id
+        type: int64
+        minimum: 1
+      - name: segmentId
+        type: int64
+        minimum: 1
+    query_params:
+      - name: release_variant_id
+        type: int64
+        minimum: 1
+        required: false
+    response:
+      status: 200
+      type: AdminSegmentPreviewImageCandidatesResponse
+
+  - name: admin-segment-preview-image-attach
+    method: POST
+    path: /api/v1/admin/anime/:id/segments/:segmentId/preview-image/attach
+    auth:
+      required: true
+      header:
+        name: Authorization
+        format: Bearer <signed token>
+      notes:
+        - Requires release_version.segments.manage (Phase 172, D-11 "Aus Release-Bildern wählen").
+        - Ownership of media_asset_id is re-verified server-side; a foreign or unassigned asset always returns 404 (not 403).
+        - Replaces any previous manual preview image; old asset is best-effort cleaned up unless still referenced elsewhere.
+    path_params:
+      - name: id
+        type: int64
+        minimum: 1
+      - name: segmentId
+        type: int64
+        minimum: 1
+    query_params:
+      - name: release_variant_id
+        type: int64
+        minimum: 1
+        required: false
+    request_body:
+      required: true
+      type: AdminSegmentPreviewImageAttachRequest
+    response:
+      status: 200
+      type: AdminAnimeSegmentResponse
+
+  - name: admin-segment-preview-image-reset
+    method: POST
+    path: /api/v1/admin/anime/:id/segments/:segmentId/preview-image/reset
+    auth:
+      required: true
+      header:
+        name: Authorization
+        format: Bearer <signed token>
+      notes:
+        - Requires release_version.segments.manage (Phase 172, D-11 "Automatisches Bild verwenden").
+        - Clears the manual preview choice; preview_source falls back to auto or fallback without requiring a new render (D-08).
+    path_params:
+      - name: id
+        type: int64
+        minimum: 1
+      - name: segmentId
+        type: int64
+        minimum: 1
+    query_params:
+      - name: release_variant_id
+        type: int64
+        minimum: 1
+        required: false
+    response:
+      status: 200
+      type: AdminAnimeSegmentResponse
+
   - name: admin-segment-episode-override-delete
     method: DELETE
     path: /api/v1/admin/anime/:id/segments/:segmentId/assignments/:releaseVersionId/override
@@ -1728,6 +1845,10 @@ types:
     title: string | null (optional)
   AdminAnimeSegmentResponse:
     data: AdminThemeSegment
+  AdminSegmentPreviewImageCandidatesResponse:
+    data: AdminSegmentPreviewImageCandidate[]
+  AdminSegmentPreviewImageAttachRequest:
+    media_asset_id: "int64 (required, minimum: 1)"
   AdminThemeSegmentAssignmentEpisode:
     release_version_id: int64
     episode_number: string
@@ -1779,6 +1900,12 @@ types:
     has_episode_override: boolean
     assigned_episodes: AdminThemeSegmentAssignmentEpisode[] (optional; includes optional override_start_time and override_end_time when has_override is true)
     origin_release_version_id: int64 | null
+    preview_url: string | null
+    preview_source: string | null (one of manual | auto | fallback; null when no preview image exists yet)
+  AdminSegmentPreviewImageCandidate:
+    media_asset_id: int64
+    thumbnail_url: string
+    release_version_label: string
   AdminAnimeTheme:
     id: int64
     anime_id: int64
