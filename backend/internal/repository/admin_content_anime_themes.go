@@ -510,6 +510,9 @@ func (r *AdminContentRepository) ListAnimeSegments(ctx context.Context, animeID 
 	if err := r.hydrateSegmentLibraryMetadataList(ctx, segments); err != nil {
 		return nil, err
 	}
+	if err := r.hydrateSegmentPreviewMetadataList(ctx, segments, currentReleaseVersionID); err != nil {
+		return nil, err
+	}
 	if err := r.hydrateSegmentAssignmentMetadataList(ctx, segments); err != nil {
 		return nil, err
 	}
@@ -1144,6 +1147,9 @@ func loadSegmentByID(ctx context.Context, r *AdminContentRepository, segID int64
 		return nil, err
 	}
 	if err := r.hydrateSegmentLibraryMetadata(ctx, &seg); err != nil {
+		return nil, err
+	}
+	if err := r.hydrateSegmentPreviewMetadata(ctx, &seg, currentReleaseVersionID); err != nil {
 		return nil, err
 	}
 	// Single-item writes/readbacks need the same authoritative sparse assignment

@@ -13,11 +13,20 @@ import (
 )
 
 type AdminContentRepository struct {
-	db *pgxpool.Pool
+	db              *pgxpool.Pool
+	mediaStorageDir string
 }
 
-func NewAdminContentRepository(db *pgxpool.Pool) *AdminContentRepository {
-	return &AdminContentRepository{db: db}
+// NewAdminContentRepository erzeugt das Repository. mediaStorageDir ist optional
+// (variadic, wie NewMediaRepository/NewMediaService es bereits handhaben) und wird
+// fuer die Phase-172-Segment-Vorschaubild-Auflösung (publicMediaURLForPath) benoetigt
+// -- ein Pflichtparameter wuerde alle bestehenden Aufrufer brechen.
+func NewAdminContentRepository(db *pgxpool.Pool, mediaStorageDir ...string) *AdminContentRepository {
+	dir := ""
+	if len(mediaStorageDir) > 0 {
+		dir = strings.TrimSpace(mediaStorageDir[0])
+	}
+	return &AdminContentRepository{db: db, mediaStorageDir: dir}
 }
 
 func (r *AdminContentRepository) animeExists(ctx context.Context, animeID int64) (bool, error) {

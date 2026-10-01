@@ -235,6 +235,11 @@ ALTER TABLE theme_segments ADD COLUMN IF NOT EXISTS contributors_initialized_at 
 		// ListThemeSegmentContributorCandidates/GetThemeSegmentContributorMemberIDs in
 		// diesem isolierten Testschema schreiben und lesen.
 		"0162_theme_segment_contributors.up.sql",
+		// 0177 (Phase 172, Plan 172-01, D-01/D-08): theme_segments.preview_media_asset_id/
+		// auto_preview_media_asset_id -- ohne diese Migration fehlen die Spalten, gegen die
+		// hydrateSegmentPreviewMetadata/resolveThemeSegmentPreviewAsset in diesem isolierten
+		// Testschema lesen und schreiben.
+		"0177_theme_segment_preview_images.up.sql",
 	} {
 		ApplySQLFile(t, pool, phase117MigrationPath(t, migration))
 	}

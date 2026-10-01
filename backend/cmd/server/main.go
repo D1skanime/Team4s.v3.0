@@ -123,7 +123,7 @@ func main() {
 	)
 	watchlistRepo := repository.NewWatchlistRepository(dbPool)
 	watchlistHandler := handlers.NewWatchlistHandler(watchlistRepo)
-	adminContentRepo := repository.NewAdminContentRepository(dbPool)
+	adminContentRepo := repository.NewAdminContentRepository(dbPool, cfg.MediaStorageDir)
 	if cfg.SegmentRenderEnabled {
 		if reset, err := adminContentRepo.RequeueInterruptedThemeSegmentRenders(ctx); err != nil {
 			log.Printf("Segment-Render-Recovery beim Start fehlgeschlagen: %v", err)
