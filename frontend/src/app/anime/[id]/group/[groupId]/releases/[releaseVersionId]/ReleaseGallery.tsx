@@ -146,9 +146,12 @@ export function ReleaseGallery({ animeID, groupID, releaseVersionID, initialImag
     const previewUrl = segment.preview_url
     return <article id={'release-story-kara-' + segment.theme_segment_id} key={'kara-' + segment.theme_segment_id} data-testid={'release-kara-card-' + segment.theme_segment_id} data-kara-type={segmentTypeDisplayLabel(segment.type).toLowerCase()} className={styles.karaCard}>
       <div className={styles.karaPreviewWrap}>
-        {previewUrl
-          ? <Image src={previewUrl} alt={'Preview für ' + segment.name} className={styles.karaPreview} width={640} height={360} unoptimized />
-          : <div className={styles.karaPlaceholder} aria-hidden="true" />}
+        {/* Gleicher 16:9-Rahmen wie die normalen Bildkarten (imageShell + fill). */}
+        <span className={styles.imageShell}>
+          {previewUrl
+            ? <Image src={previewUrl} alt={'Preview für ' + segment.name} className={styles.image} fill sizes="(max-width: 600px) 45vw, (max-width: 900px) 40vw, 28vw" unoptimized />
+            : <span className={styles.imagePlaceholder} aria-hidden="true" />}
+        </span>
         <KaraStoryPlayback segment={segment} releaseVersionID={releaseVersionID} loginHref={buildFansubReleasePlaybackLoginHref({ animeID, groupID, releaseVersionID, segmentID: segment.theme_segment_id, canonicalProjectPath: projectPath })} />
       </div>
       <div className={styles.karaBadges}>
