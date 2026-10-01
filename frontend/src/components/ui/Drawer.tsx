@@ -15,9 +15,10 @@ export interface DrawerProps {
   children: ReactNode
   footer?: ReactNode
   variant?: 'side' | 'responsiveSheet'
+  size?: 'md' | 'lg'
 }
 
-export function Drawer({ open, onClose, title, description, children, footer, variant = 'side' }: DrawerProps) {
+export function Drawer({ open, onClose, title, description, children, footer, variant = 'side', size = 'md' }: DrawerProps) {
   if (!open) {
     return null
   }
@@ -31,7 +32,13 @@ export function Drawer({ open, onClose, title, description, children, footer, va
     >
       <div className={styles.overlay} aria-hidden="true" />
       <button type="button" className={styles.overlayClose} aria-label="Drawer schließen" onClick={onClose} />
-      <aside className={classNames(styles.drawerPanel, variant === 'responsiveSheet' && styles.drawerPanelSheet)}>
+      <aside
+        className={classNames(
+          styles.drawerPanel,
+          variant === 'responsiveSheet' && styles.drawerPanelSheet,
+          size === 'lg' && styles.drawerPanelLg,
+        )}
+      >
         <div className={styles.drawerHeader}>
           <div>
             <h3 className={styles.dialogTitle} id="ui-drawer-title">{title}</h3>

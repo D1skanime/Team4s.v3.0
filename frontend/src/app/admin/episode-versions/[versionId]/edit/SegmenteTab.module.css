@@ -160,74 +160,6 @@
   font-size: 14px;
 }
 
-/* Side panel overlay */
-.panelOverlay {
-  position: fixed;
-  inset: 0;
-  background: rgba(0, 0, 0, 0.4);
-  /* Globale Ebenen: Seitenpanel = Drawer-Ebene, damit Modals (z. B. Release-Bild-Picker) darueber liegen. */
-  z-index: var(--z-drawer);
-}
-
-.panel {
-  container-type: inline-size;
-  container-name: segment-editor;
-  position: fixed;
-  right: 0;
-  top: 0;
-  height: 100%;
-  /* Desktop bekommt genug Arbeitsfläche für Felder, Mitwirkende und Vorschau.
-     Auf schmalen Viewports greift die 100vw-Grenze weiterhin ohne Seiten-Overflow. */
-  width: min(760px, 100vw);
-  max-width: 100vw;
-  background: #ffffff;
-  box-shadow: -4px 0 24px rgba(0, 0, 0, 0.12);
-  z-index: calc(var(--z-drawer) + 1);
-  padding: 1.5rem;
-  overflow-x: hidden;
-  overflow-y: auto;
-  display: flex;
-  flex-direction: column;
-  gap: 0;
-}
-
-.panelHeader {
-  position: sticky;
-  top: 0;
-  z-index: 1;
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  margin: -1.5rem -1.5rem 1.25rem;
-  padding: 1.5rem;
-  background: #ffffff;
-  border-bottom: 1px solid #f0f0f3;
-}
-
-.panelTitle {
-  margin: 0;
-  font-size: 1.1rem;
-  font-weight: 600;
-}
-
-.panelCloseButton {
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  width: 32px;
-  height: 32px;
-  border: 1px solid #e1e1e6;
-  border-radius: 6px;
-  background: transparent;
-  color: #6b6b70;
-  cursor: pointer;
-}
-
-.panelCloseButton:hover {
-  background: #f0f0f3;
-  color: #1c1c1e;
-}
-
 .panelField {
   min-width: 0;
   display: flex;
@@ -263,10 +195,6 @@
 
 .panelField > select {
   width: min(100%, 360px);
-}
-
-.panel :global(.sectionDescription) {
-  max-width: none;
 }
 
 .panelFieldRow {
@@ -315,61 +243,6 @@
   color: var(--text-primary);
   font-size: 14px;
   line-height: 1.5;
-}
-
-.panelActions {
-  position: sticky;
-  bottom: 0;
-  z-index: 1;
-  display: flex;
-  gap: 10px;
-  margin: 1.5rem -1.5rem -1.5rem;
-  padding: 1rem 1.5rem 1.5rem;
-  background: #ffffff;
-  border-top: 1px solid #f0f0f3;
-}
-
-.panelSaveButton {
-  flex: 1;
-  /* Runde-5-Drawer-Overflow-Haertung: .panelActions ist ein ROW-Flex-Container (anders als
-     .panelFieldRow-Kinder ist hier flex-direction row der Default), daher greift die implizite
-     Flex-Item-Mindestbreite (min-width:auto) auf dieser Achse -- min-width:0 schuetzt vorsorglich,
-     falls der Button-Text (z. B. "Speichert...") je laenger wird als hier vorgesehen. */
-  min-width: 0;
-  min-height: 40px;
-  border: none;
-  border-radius: 6px;
-  background: #ff6a3d;
-  color: #ffffff;
-  font-size: 14px;
-  font-weight: 500;
-  cursor: pointer;
-}
-
-.panelSaveButton:hover {
-  background: color-mix(in srgb, var(--color-success, #16a34a) 82%, #000000);
-}
-
-.panelSaveButton:disabled {
-  opacity: 0.6;
-  cursor: not-allowed;
-}
-
-.panelCancelButton {
-  flex: 1;
-  min-width: 0;
-  min-height: 40px;
-  border: 1px solid #e1e1e6;
-  border-radius: 6px;
-  background: #ffffff;
-  color: #1c1c1e;
-  font-size: 14px;
-  font-weight: 500;
-  cursor: pointer;
-}
-
-.panelCancelButton:hover {
-  background: #f0f0f3;
 }
 
 /* Suggestions bar */
@@ -744,20 +617,6 @@
    bestehende Tests pruefen weiterhin unveraendert die Tabellen-Variante. Ab Tablet-Breite
    greift wieder das normale <table>-Layout. */
 @media (max-width: 640px) {
-  .panel {
-    padding: 1rem;
-  }
-
-  .panelHeader {
-    margin: -1rem -1rem 1rem;
-    padding: 1rem;
-  }
-
-  .panelActions {
-    margin: 1rem -1rem -1rem;
-    padding: 0.75rem 1rem 1rem;
-  }
-
   .tableWrapper {
     /* overflow-x wird bewusst NICHT ueberschrieben (bleibt beim geerbten "auto" der
        @/components/ui-Table-Primitive) -- sobald die Zeilen unten als Karten fliessen

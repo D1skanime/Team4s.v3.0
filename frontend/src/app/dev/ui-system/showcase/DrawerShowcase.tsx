@@ -1,5 +1,7 @@
 'use client'
 
+import { useState } from 'react'
+
 import { Button, Drawer, Table, TableBody, TableCell, TableRow, Tabs } from '@/components/ui'
 
 import styles from '../page.module.css'
@@ -10,18 +12,37 @@ interface DrawerShowcaseProps {
 }
 
 export function DrawerShowcase({ open, onClose }: DrawerShowcaseProps) {
+  const [size, setSize] = useState<'md' | 'lg'>('md')
+
   return (
     <Drawer
       open={open}
       onClose={onClose}
       title="Release-Details"
       description="Der Drawer bleibt global, soll sich aber wie eine konzentrierte seitliche Arbeitsfläche statt wie ein nacktes Standardsheet anfühlen."
+      size={size}
       footer={(
         <>
           <Button variant="secondary" onClick={onClose}>Schließen</Button>
         </>
       )}
     >
+      <div className={styles.stack}>
+        <Button
+          type="button"
+          variant={size === 'md' ? 'secondary' : 'ghost'}
+          onClick={() => setSize('md')}
+        >
+          Normal (620px)
+        </Button>
+        <Button
+          type="button"
+          variant={size === 'lg' ? 'secondary' : 'ghost'}
+          onClick={() => setSize('lg')}
+        >
+          Groß (760px)
+        </Button>
+      </div>
       <Tabs
         items={[
           {

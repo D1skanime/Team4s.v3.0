@@ -1451,6 +1451,10 @@
   border-left-color: color-mix(in srgb, var(--accent-primary) 18%, var(--border-subtle));
 }
 
+.drawerPanelLg {
+  width: min(760px, 100vw);
+}
+
 .drawerPanel::before {
   content: '';
   position: absolute;

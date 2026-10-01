@@ -1,9 +1,8 @@
 'use client'
 
 import { useEffect, useState } from 'react'
-import { X } from 'lucide-react'
 
-import { FormField, Select, useConfirmDialog } from '@/components/ui'
+import { Button, Drawer, FormField, Select, useConfirmDialog } from '@/components/ui'
 import type {
   AdminThemeSegment,
   AdminSegmentSourceType,
@@ -267,17 +266,20 @@ export function SegmentEditPanel({
 
   return (
     <>
-      <div className={styles.panelOverlay} onClick={onClose} />
-      <div className={styles.panel}>
-        <div className={styles.panelHeader}>
-          <h3 className={styles.panelTitle}>
-            {editingSegment ? 'Segment bearbeiten' : 'Neues Segment hinzufügen'}
-          </h3>
-          <button type="button" className={styles.panelCloseButton} onClick={onClose}>
-            <X size={16} />
-          </button>
-        </div>
-
+      <Drawer
+        open
+        onClose={onClose}
+        size="lg"
+        title={editingSegment ? 'Segment bearbeiten' : 'Neues Segment hinzufügen'}
+        footer={(
+          <>
+            <Button type="button" variant="secondary" onClick={onClose}>Abbrechen</Button>
+            <Button type="button" variant="primary" onClick={handleSaveClick} disabled={saveDisabled}>
+              {isSaving || isSavingOverride ? 'Speichert...' : 'Speichern'}
+            </Button>
+          </>
+        )}
+      >
         {formError ? <div className={styles.panelError}>{formError}</div> : null}
 
         <SegmentBasicFieldsSection
@@ -395,16 +397,7 @@ export function SegmentEditPanel({
           onAssetDelete={onAssetDelete}
           onAttachReuseCandidate={onAttachReuseCandidate}
         />
-
-        <div className={styles.panelActions}>
-          <button type="button" className={styles.panelCancelButton} onClick={onClose}>
-            Abbrechen
-          </button>
-          <button type="button" className={styles.panelSaveButton} onClick={handleSaveClick} disabled={saveDisabled}>
-            {isSaving || isSavingOverride ? 'Speichert...' : 'Speichern'}
-          </button>
-        </div>
-      </div>
+      </Drawer>
       {confirmDialog}
     </>
   )
