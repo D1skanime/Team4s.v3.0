@@ -481,17 +481,17 @@ export function useReleaseVersionMedia(versionId: number | null, storyContext?: 
       setSegments(nextSegments)
       const mediaByID = new Map(nextItems.map((media) => [media.id, media]))
       const segmentsByID = new Map(nextSegments.map((segment) => [segment.id, segment]))
-      const persistedStoryItems = (mediaResponse.story_order ?? []).flatMap((entry) => {
+      const persistedStoryItems = (mediaResponse.story_order ?? []).reduce<ReleaseVersionAdminStoryItem[]>((story, entry) => {
         if (entry.type === 'media' && entry.media_id != null) {
           const media = mediaByID.get(entry.media_id)
-          return media ? [{ type: 'media' as const, media, sort_order: entry.sort_order }] : []
+          if (media) story.push({ type: 'media', media, sort_order: entry.sort_order })
         }
         if (entry.type === 'kara' && entry.theme_segment_id != null) {
           const segment = segmentsByID.get(entry.theme_segment_id)
-          return segment ? [createKaraStoryItem(segment, nextItems, entry.sort_order)] : []
+          if (segment) story.push(createKaraStoryItem(segment, nextItems, entry.sort_order))
         }
-        return []
-      })
+        return story
+      }, [])
       const expectedStoryItemCount = nextItems.length + nextSegments.length
       if (persistedStoryItems.length === expectedStoryItemCount) {
         setStoryItems(sortStoryItems(persistedStoryItems))

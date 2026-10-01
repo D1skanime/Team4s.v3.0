@@ -1,6 +1,6 @@
 'use client'
 
-import { ChangeEvent, DragEvent, KeyboardEvent, useEffect, useMemo, useRef, useState } from 'react'
+import { ChangeEvent, DragEvent, KeyboardEvent, MouseEvent as ReactMouseEvent, useEffect, useMemo, useRef, useState } from 'react'
 import { ImageIcon, Star, Trash2 } from 'lucide-react'
 
 import { CATEGORY_ALLOWS_PREVIEW, ReleaseVersionAdminStoryItem, ReleaseVersionMediaCategory, ReleaseVersionMediaItem } from '@/types/releaseVersionMedia'
@@ -166,6 +166,24 @@ export function ReleaseVersionMediaSection({
 
   function showToast(message: string) {
     setToast(message)
+  }
+
+  function handleMediaDragStart(event: DragEvent<HTMLDivElement>, itemId: number) {
+    if (!canReorderMedia) return
+    event.stopPropagation()
+    event.dataTransfer.effectAllowed = 'move'
+    event.dataTransfer.setData('text/plain', String(itemId))
+    setDraggedMediaId(itemId)
+  }
+
+  function handleMediaPointerStart(event: ReactMouseEvent<HTMLDivElement>, itemId: number) {
+    if (!canReorderMedia || event.button !== 0) return
+    setDraggedMediaId(itemId)
+  }
+
+  function handleMediaPointerEnd(itemId: number) {
+    if (draggedMediaId == null) return
+    handleMediaDrop(itemId)
   }
 
   function handleMediaDrop(targetId: number) {
@@ -479,7 +497,7 @@ export function ReleaseVersionMediaSection({
                     className={styles.mediaCard + ' ' + styles.karaCard}
                     data-kara-category={category.toLowerCase()}
                     draggable={canReorderMedia}
-                    onDragStart={() => setDraggedMediaId(-segment.id)}
+                    onDragStart={(event) => handleMediaDragStart(event, -segment.id)}
                     onDragOver={(event) => {
                       if (!canReorderMedia) return
                       event.preventDefault()
@@ -496,7 +514,13 @@ export function ReleaseVersionMediaSection({
                     data-drop-target={dragOverMediaId === -segment.id ? 'true' : undefined}
                     data-testid={'admin-kara-card-' + segment.id}
                   >
-                    <div className={styles.mediaCardOpen}>
+                    <div
+                      className={styles.mediaCardOpen}
+                      draggable={canReorderMedia}
+                      onDragStart={(event) => handleMediaDragStart(event, -segment.id)}
+                      onMouseDown={(event) => handleMediaPointerStart(event, -segment.id)}
+                      onMouseUp={() => handleMediaPointerEnd(-segment.id)}
+                    >
                       <span className={styles.mediaThumb}>
                         {storyItem.thumbnail_url ? <img draggable={false} src={storyItem.thumbnail_url} alt="" /> : <ImageIcon size={22} aria-hidden="true" />}
                       </span>
@@ -528,7 +552,7 @@ export function ReleaseVersionMediaSection({
                   key={item.id}
                   className={styles.mediaCard + ' ' + (item.is_preview_candidate ? styles.mediaCardPreview : '')}
                   draggable={canReorderMedia}
-                  onDragStart={() => setDraggedMediaId(item.id)}
+                  onDragStart={(event) => handleMediaDragStart(event, item.id)}
                   onDragOver={(event) => {
                     if (!canReorderMedia) return
                     event.preventDefault()
@@ -544,7 +568,13 @@ export function ReleaseVersionMediaSection({
                   }}
                   data-drop-target={dragOverMediaId === item.id ? 'true' : undefined}
                 >
-                  <div className={styles.mediaCardOpen}>
+                  <div
+                    className={styles.mediaCardOpen}
+                    draggable={canReorderMedia}
+                    onDragStart={(event) => handleMediaDragStart(event, item.id)}
+                    onMouseDown={(event) => handleMediaPointerStart(event, item.id)}
+                    onMouseUp={() => handleMediaPointerEnd(item.id)}
+                  >
                     <span className={styles.mediaThumb}>
                       {item.thumbnail_url || item.original_url ? (
                         <img draggable={false} src={item.thumbnail_url ?? item.original_url ?? ''} alt="" />
