@@ -2246,7 +2246,7 @@ Plans:
 **Goal:** Jedes Kara-Segment hat ein garantiert vorhandenes, ueber Admin-Media-Liste und Public-Release-Story identisch aufgeloestes Vorschaubild — automatisch aus dem Render bei ~35% der Segmentdauer erzeugt und auf der Segment-Seite manuell per Upload oder Release-Bild-Uebernahme ersetzbar, ohne Review-Pruefung.
 **Requirements**: D-01, D-02, D-03, D-04, D-05, D-06, D-07, D-08, D-09, D-10, D-11, D-12, D-13
 **Depends on:** Phase 171
-**Plans:** 4/10 plans executed
+**Plans:** 5/10 plans executed
 
 Plans:
 **Wave 1**
@@ -2261,7 +2261,7 @@ Plans:
 **Wave 3** *(blocked on Wave 2 completion)*
 
 - [x] 172-04-PLAN.md — render-worker auto-extraction hook + upload-path 35% offset fix
-- [ ] 172-05-PLAN.md — 4 new admin preview-image HTTP endpoints in a dedicated handler file
+- [x] 172-05-PLAN.md — 4 new admin preview-image HTTP endpoints in a dedicated handler file
 
 **Wave 4** *(blocked on Wave 3 completion)*
 
