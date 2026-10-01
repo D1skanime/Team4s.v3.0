@@ -350,3 +350,22 @@
 .karaCard .participantsDisclosure {
   border-top-color: color-mix(in srgb, var(--segment-color) 28%, transparent);
 }
+
+
+/* A highlight owns the full grid row, while its content stays vertical. */
+@media (min-width: 601px) {
+  .featuredCard {
+    grid-column: 1 / -1;
+    display: block;
+    padding: 0;
+  }
+  .featuredCard .imageShell {
+    aspect-ratio: 16 / 7;
+  }
+  .featuredCard .imageCategory {
+    margin-left: 13px;
+  }
+  .featuredCard .meta {
+    padding: 0 13px 13px;
+  }
+}
