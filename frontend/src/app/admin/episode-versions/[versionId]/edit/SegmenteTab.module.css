@@ -26,7 +26,7 @@
 .toolbarSubtitle {
   margin: 4px 0 0;
   font-size: 14px;
-  color: #6b6b70;
+  color: var(--text-muted);
 }
 
 .addButton {
@@ -37,22 +37,22 @@
   padding: 0 14px;
   border-radius: 6px;
   border: none;
-  background: var(--color-success, #16a34a);
-  color: #ffffff;
+  background: var(--color-success);
+  color: var(--surface-card);
   font-size: 14px;
   font-weight: 500;
   cursor: pointer;
 }
 
 .addButton:hover {
-  background: #e85a2d;
+  background: var(--accent-deep);
 }
 
 .tableWrapper {
   overflow-x: auto;
-  border: 1px solid #e1e1e6;
+  border: 1px solid var(--color-border);
   border-radius: 12px;
-  background: #ffffff;
+  background: var(--surface-card);
 }
 
 .table {
@@ -61,7 +61,7 @@
 }
 
 .tableHeader {
-  background: #f9f9f9;
+  background: var(--surface-sunken);
 }
 
 .tableHeader th {
@@ -69,15 +69,15 @@
   text-align: left;
   font-size: 13px;
   font-weight: 600;
-  color: #6b6b70;
-  border-bottom: 1px solid #e1e1e6;
+  color: var(--text-muted);
+  border-bottom: 1px solid var(--color-border);
   white-space: nowrap;
 }
 
 .tableRow td {
   padding: 10px 14px;
   font-size: 14px;
-  border-bottom: 1px solid #f0f0f3;
+  border-bottom: 1px solid var(--color-border);
   vertical-align: middle;
 }
 
@@ -86,7 +86,7 @@
 }
 
 .tableRow:hover td {
-  background: #fafafa;
+  background: var(--surface-sunken);
 }
 
 .badge {
@@ -98,34 +98,36 @@
   letter-spacing: 0.02em;
 }
 
+/* Kategorie-Farbcodierung je Segment-Typ: bewusst feste Hex-Werte statt Tokens, da kein
+   passendes globales Token für diese Typ-Unterscheidung existiert. */
 .badgeOp {
   background: #16a34a;
-  color: #ffffff;
+  color: var(--surface-card);
 }
 
 .badgeEd {
   background: #7c3aed;
-  color: #ffffff;
+  color: var(--surface-card);
 }
 
 .badgeIn {
   background: #ea580c;
-  color: #ffffff;
+  color: var(--surface-card);
 }
 
 .badgePv {
   background: #6b7280;
-  color: #ffffff;
+  color: var(--surface-card);
 }
 
 .badgeDefault {
   background: #2563eb;
-  color: #ffffff;
+  color: var(--surface-card);
 }
 
 .emptyState {
   text-align: center;
-  color: #6b6b70;
+  color: var(--text-muted);
   padding: 2rem;
   font-size: 14px;
 }
@@ -141,30 +143,7 @@
 .panelField label {
   font-size: 13px;
   font-weight: 500;
-  color: #1c1c1e;
-}
-
-.panelField input,
-.panelField select {
-  width: 100%;
-  min-height: 40px;
-  padding: 8px 12px;
-  border: 1px solid #e1e1e6;
-  border-radius: 8px;
-  background: #ffffff;
-  color: #1c1c1e;
-  font-size: 14px;
-  box-sizing: border-box;
-}
-
-.panelField input:focus,
-.panelField select:focus {
-  outline: none;
-  border-color: #ff6a3d;
-}
-
-.panelField > select {
-  width: min(100%, 360px);
+  color: var(--text-primary);
 }
 
 .panelFieldRow {
@@ -198,8 +177,8 @@
 .panelError {
   padding: 8px 12px;
   border-radius: 6px;
-  border: 1px solid #dc3545;
-  color: #dc3545;
+  border: 1px solid var(--color-error);
+  color: var(--color-error);
   font-size: 13px;
   margin-bottom: 0.75rem;
 }
@@ -218,9 +197,9 @@
 /* Suggestions bar */
 .suggestionsBar {
   padding: 12px 16px;
-  border: 1px solid #d1fae5;
+  border: 1px solid color-mix(in srgb, var(--color-success) 35%, var(--color-border));
   border-radius: 10px;
-  background: #f0fdf4;
+  background: color-mix(in srgb, var(--color-success) 10%, var(--surface-card));
   display: flex;
   flex-direction: column;
   gap: 10px;
@@ -229,7 +208,7 @@
 .suggestionsLabel {
   font-size: 13px;
   font-weight: 600;
-  color: #166534;
+  color: var(--color-success);
 }
 
 .suggestionsList {
@@ -243,9 +222,9 @@
   align-items: center;
   gap: 10px;
   padding: 8px 10px;
-  border: 1px solid #bbf7d0;
+  border: 1px solid color-mix(in srgb, var(--color-success) 35%, var(--color-border));
   border-radius: 8px;
-  background: #ffffff;
+  background: var(--surface-card);
   /* Mobile-first Haertung (Runde 5): flex-wrap laesst Badge/Meta/Button auf eine eigene Zeile
      umbrechen statt zu ueberlaufen, falls der Meta-Text trotz min-width:0 unten nicht genug
      schrumpfen kann (z. B. ein einzelnes langes, leerzeichenloses Token). */
@@ -257,13 +236,13 @@
   min-width: 0;
   overflow-wrap: break-word;
   font-size: 13px;
-  color: #374151;
+  color: var(--text-muted);
   font-family: monospace;
 }
 
 /* Active row highlight */
 .tableRowActive td {
-  background: #f0fdf4 !important;
+  background: color-mix(in srgb, var(--color-success) 10%, var(--surface-card)) !important;
 }
 
 
@@ -271,7 +250,7 @@
 .sourceHelpText {
   margin: 0;
   font-size: 12px;
-  color: #6b6b70;
+  color: var(--text-muted);
   line-height: 1.4;
   /* Mobile-first Haertung (Runde 5): schuetzt vorsorglich gegen ein einzelnes, leerzeichenloses
      langes Token (Dateiname, ID, o. ae.) in einem der vielen dynamischen Hinweistexte im Drawer. */
@@ -281,10 +260,10 @@
 /* Segment Asset Section */
 .assetSection {
   margin-bottom: 0.75rem;
-  border: 1px solid #e1e1e6;
+  border: 1px solid var(--color-border);
   border-radius: 8px;
   padding: 12px;
-  background: #f9f9f9;
+  background: var(--surface-sunken);
   display: flex;
   flex-direction: column;
   gap: 8px;
@@ -296,7 +275,7 @@
   gap: 6px;
   font-size: 13px;
   font-weight: 600;
-  color: #1c1c1e;
+  color: var(--text-primary);
 }
 
 .renderStatus {
@@ -306,20 +285,20 @@
   min-height: 22px;
   align-items: center;
   padding: 0 7px;
-  border: 1px solid #d8e0f0;
+  border: 1px solid var(--color-border);
   border-radius: 4px;
-  background: #f7f9fd;
-  color: #374151;
+  background: var(--surface-sunken);
+  color: var(--text-muted);
   font-size: 11px;
   font-weight: 600;
 }
 
 .previewSection {
   margin-bottom: 0.75rem;
-  border: 1px solid #d8e0f0;
+  border: 1px solid var(--color-border);
   border-radius: 8px;
   padding: 12px;
-  background: #f7f9fd;
+  background: var(--surface-sunken);
   display: flex;
   flex-direction: column;
   gap: 8px;
@@ -329,18 +308,18 @@
   width: 100%;
   max-height: 220px;
   border-radius: 6px;
-  background: #111111;
+  background: var(--text-strong);
 }
 
 .previewStatus {
   min-height: 44px;
   display: flex;
   align-items: center;
-  border: 1px solid #d8e0f0;
+  border: 1px solid var(--color-border);
   border-radius: 6px;
-  background: #ffffff;
+  background: var(--surface-card);
   padding: 0 12px;
-  color: #374151;
+  color: var(--text-muted);
   font-size: 13px;
   font-weight: 600;
 }
@@ -357,14 +336,14 @@
   gap: 6px;
   font-size: 13px;
   font-weight: 500;
-  color: #1c1c1e;
+  color: var(--text-primary);
   word-break: break-all;
 }
 
 .assetExistingPath {
   margin: 0;
   font-size: 11px;
-  color: #6b6b70;
+  color: var(--text-muted);
   font-family: monospace;
   word-break: break-all;
 }
@@ -378,21 +357,21 @@
 .assetUploadFormats {
   margin: 0;
   font-size: 12px;
-  color: #6b6b70;
+  color: var(--text-muted);
 }
 
 .assetHintSave {
   margin: 0;
   font-size: 12px;
-  color: #6b6b70;
+  color: var(--text-muted);
   font-style: italic;
 }
 
 .assetError {
   padding: 6px 10px;
   border-radius: 6px;
-  border: 1px solid #dc3545;
-  color: #dc3545;
+  border: 1px solid var(--color-error);
+  color: var(--color-error);
   font-size: 12px;
 }
 
@@ -400,9 +379,9 @@
 .timelineContainer {
   margin-top: 1.5rem;
   padding: 1rem;
-  border: 1px solid #e1e1e6;
+  border: 1px solid var(--color-border);
   border-radius: 12px;
-  background: #ffffff;
+  background: var(--surface-card);
 }
 
 .timelineHeader {
@@ -412,21 +391,21 @@
   margin-bottom: 10px;
   font-size: 14px;
   font-weight: 600;
-  color: #1c1c1e;
+  color: var(--text-primary);
 }
 
 .timelineLabels {
   display: flex;
   justify-content: space-between;
   font-size: 11px;
-  color: #6b6b70;
+  color: var(--text-muted);
   margin-bottom: 4px;
 }
 
 .timelineSpurLabel {
   font-size: 11px;
   font-weight: 600;
-  color: #6b6b70;
+  color: var(--text-muted);
   margin-bottom: 3px;
   text-transform: uppercase;
   letter-spacing: 0.04em;
@@ -435,7 +414,7 @@
 .timelineTrack {
   position: relative;
   height: 32px;
-  background: #f0f0f3;
+  background: var(--surface-sunken);
   border-radius: 4px;
   overflow: hidden;
 }
@@ -451,7 +430,7 @@
   justify-content: center;
   font-size: 10px;
   font-weight: 700;
-  color: #ffffff;
+  color: var(--surface-card);
   overflow: hidden;
   white-space: nowrap;
   min-width: 2%;
@@ -462,14 +441,14 @@
   position: absolute;
   top: 4px;
   height: calc(100% - 8px);
-  background: #d1d5db;
+  background: var(--surface-sunken);
   border-radius: 3px;
   display: flex;
   align-items: center;
   justify-content: center;
   font-size: 10px;
   font-weight: 600;
-  color: #6b7280;
+  color: var(--text-muted);
   overflow: hidden;
   white-space: nowrap;
   pointer-events: none;
@@ -484,7 +463,7 @@
 }
 
 .timelineUntimedLabel {
-  color: #6b6b70;
+  color: var(--text-muted);
   font-size: 11px;
   font-weight: 700;
   text-transform: uppercase;
@@ -497,9 +476,9 @@
   min-height: 24px;
   max-width: 100%;
   padding: 0 0.55rem;
-  border: 1px solid #d8d8df;
+  border: 1px solid var(--color-border);
   border-radius: 999px;
-  background: #ffffff;
+  background: var(--surface-card);
   font-size: 12px;
   font-weight: 700;
   overflow: hidden;
@@ -543,9 +522,9 @@
     width: 100%;
     box-sizing: border-box;
     margin-bottom: 12px;
-    border: 1px solid #e1e1e6;
+    border: 1px solid var(--color-border);
     border-radius: 12px;
-    background: #ffffff;
+    background: var(--surface-card);
     overflow: hidden;
   }
 
@@ -569,7 +548,7 @@
     flex-shrink: 0;
     font-weight: 600;
     font-size: 12px;
-    color: #6b6b70;
+    color: var(--text-muted);
     padding-top: 2px;
   }
 
