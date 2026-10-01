@@ -77,6 +77,12 @@ type AdminThemeSegment struct {
 	LibraryIdentity        *string    `json:"library_identity_status,omitempty"`
 	LibraryOwnership       *string    `json:"library_ownership_scope,omitempty"`
 	LibraryAttachSource    *string    `json:"library_attach_source,omitempty"`
+	// PreviewURL/PreviewSource sind die serverseitig aufgeloeste Segment-Vorschau
+	// (Phase 172, D-08/D-09): Rangfolge manuell > automatisch > Ersatzbild, einheitlich
+	// ueber resolveThemeSegmentPreviewAsset fuer Admin-Liste und Admin-Einzelabruf.
+	// PreviewSource ist "manual" | "auto" | "fallback".
+	PreviewURL             *string    `json:"preview_url,omitempty"`
+	PreviewSource          *string    `json:"preview_source,omitempty"`
 	CreatedAt              time.Time  `json:"created_at"`
 
 	// Zuweisungs-/Override-Uebersicht fuer geteilte Kara-Segmente (Phase 117, D-01/D-03).
@@ -304,4 +310,15 @@ type SegmentLibraryCandidate struct {
 
 type SegmentLibraryAttachInput struct {
 	AssetID int64 `json:"asset_id"`
+}
+
+// AdminSegmentPreviewImageCandidate repraesentiert ein waehlbares Bild im
+// "Aus Release-Bildern wählen"-Picker (Phase 172, D-11): ein oeffentliches,
+// freigegebenes Bild einer Release-Version, der das Segment zugewiesen ist.
+// Feldreihenfolge exakt wie UI-SPEC-Datenvertrag { media_asset_id, thumbnail_url,
+// release_version_label }.
+type AdminSegmentPreviewImageCandidate struct {
+	MediaAssetID        int64  `json:"media_asset_id"`
+	ThumbnailURL        string `json:"thumbnail_url"`
+	ReleaseVersionLabel string `json:"release_version_label"`
 }
