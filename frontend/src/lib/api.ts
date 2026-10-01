@@ -52,6 +52,7 @@ import {
   AdminAnimeSegmentsResponse,
   AdminSegmentLibraryAttachRequest,
   AdminSegmentLibraryCandidatesResponse,
+  AdminSegmentPreviewImageCandidatesResponse,
   AdminSegmentSuggestionsResponse,
   AdminThemeSegment,
   AdminThemeSegmentCreateRequest,
@@ -7889,6 +7890,180 @@ export async function deleteSegmentAsset(
       parsed.details,
     );
   }
+}
+
+/**
+ * Laedt ein Bild als manuelles Segment-Vorschaubild hoch (Phase 172, D-11 "Bild hochladen").
+ * Sendet multipart/form-data mit dem Feld "file". Gibt das aktualisierte Segment mit neu
+ * aufgelöster `preview_url`/`preview_source` zurück.
+ */
+export async function uploadSegmentPreviewImage(
+  animeId: number,
+  segmentId: number,
+  file: File,
+  authToken?: string,
+  releaseVariantId?: number | null,
+): Promise<{ data: AdminThemeSegment }> {
+  const API_BASE_URL = getApiBaseUrl();
+  const formData = new FormData();
+  formData.append("file", file);
+  const params = new URLSearchParams();
+  if (releaseVariantId != null)
+    params.set("release_variant_id", String(releaseVariantId));
+  const qs = params.toString() ? `?${params.toString()}` : "";
+
+  const response = await authorizedFetch(
+    `${API_BASE_URL}/api/v1/admin/anime/${animeId}/segments/${segmentId}/preview-image${qs}`,
+    {
+      method: "POST",
+      headers: withAuthHeader({}, authToken),
+      retryAuth401: false,
+      body: formData,
+    },
+  );
+
+  if (!response.ok) {
+    const parsed = await parseApiErrorPayload(
+      response,
+      `API request failed: ${response.status}`,
+    );
+    throw new ApiError(
+      response.status,
+      parsed.message,
+      null,
+      parsed.code,
+      parsed.details,
+    );
+  }
+
+  return response.json() as Promise<{ data: AdminThemeSegment }>;
+}
+
+/**
+ * Laedt die waehlbaren Release-Bilder fuer den "Aus Release-Bildern wählen"-Picker des
+ * Segment-Vorschaubilds (Phase 172, D-11).
+ */
+export async function getSegmentPreviewImageCandidates(
+  animeId: number,
+  segmentId: number,
+  authToken?: string,
+  releaseVariantId?: number | null,
+): Promise<AdminSegmentPreviewImageCandidatesResponse> {
+  const API_BASE_URL = getApiBaseUrl();
+  const params = new URLSearchParams();
+  if (releaseVariantId != null)
+    params.set("release_variant_id", String(releaseVariantId));
+  const qs = params.toString() ? `?${params.toString()}` : "";
+
+  const response = await authorizedFetch(
+    `${API_BASE_URL}/api/v1/admin/anime/${animeId}/segments/${segmentId}/preview-image/candidates${qs}`,
+    {
+      authToken,
+      cache: "no-store",
+    },
+  );
+
+  if (!response.ok) {
+    const parsed = await parseApiErrorPayload(
+      response,
+      `API request failed: ${response.status}`,
+    );
+    throw new ApiError(
+      response.status,
+      parsed.message,
+      null,
+      parsed.code,
+      parsed.details,
+    );
+  }
+
+  return response.json() as Promise<AdminSegmentPreviewImageCandidatesResponse>;
+}
+
+/**
+ * Uebernimmt ein bereits oeffentliches, freigegebenes Release-Bild als neues manuelles
+ * Segment-Vorschaubild (Phase 172, D-11 "Aus Release-Bildern wählen"). Gibt das
+ * aktualisierte Segment zurück.
+ */
+export async function attachSegmentPreviewImage(
+  animeId: number,
+  segmentId: number,
+  payload: { media_asset_id: number },
+  authToken?: string,
+  releaseVariantId?: number | null,
+): Promise<{ data: AdminThemeSegment }> {
+  const API_BASE_URL = getApiBaseUrl();
+  const params = new URLSearchParams();
+  if (releaseVariantId != null)
+    params.set("release_variant_id", String(releaseVariantId));
+  const qs = params.toString() ? `?${params.toString()}` : "";
+  const response = await authorizedFetch(
+    `${API_BASE_URL}/api/v1/admin/anime/${animeId}/segments/${segmentId}/preview-image/attach${qs}`,
+    {
+      method: "POST",
+      headers: withAuthHeader(
+        { "Content-Type": "application/json" },
+        authToken,
+      ),
+      body: JSON.stringify(payload),
+    },
+  );
+
+  if (!response.ok) {
+    const parsed = await parseApiErrorPayload(
+      response,
+      `API request failed: ${response.status}`,
+    );
+    throw new ApiError(
+      response.status,
+      parsed.message,
+      null,
+      parsed.code,
+      parsed.details,
+    );
+  }
+
+  return response.json() as Promise<{ data: AdminThemeSegment }>;
+}
+
+/**
+ * Entfernt die manuelle Wahl des Segment-Vorschaubilds (Phase 172, D-11 "Automatisches Bild
+ * verwenden") -- das Segment faellt danach auf die Rangfolge automatisch > Ersatzbild zurück.
+ */
+export async function resetSegmentPreviewImage(
+  animeId: number,
+  segmentId: number,
+  authToken?: string,
+  releaseVariantId?: number | null,
+): Promise<{ data: AdminThemeSegment }> {
+  const API_BASE_URL = getApiBaseUrl();
+  const params = new URLSearchParams();
+  if (releaseVariantId != null)
+    params.set("release_variant_id", String(releaseVariantId));
+  const qs = params.toString() ? `?${params.toString()}` : "";
+  const response = await authorizedFetch(
+    `${API_BASE_URL}/api/v1/admin/anime/${animeId}/segments/${segmentId}/preview-image/reset${qs}`,
+    {
+      method: "POST",
+      headers: withAuthHeader({}, authToken),
+    },
+  );
+
+  if (!response.ok) {
+    const parsed = await parseApiErrorPayload(
+      response,
+      `API request failed: ${response.status}`,
+    );
+    throw new ApiError(
+      response.status,
+      parsed.message,
+      null,
+      parsed.code,
+      parsed.details,
+    );
+  }
+
+  return response.json() as Promise<{ data: AdminThemeSegment }>;
 }
 
 // --- Release-Version Media ---

@@ -993,6 +993,13 @@ export interface AdminThemeSegment {
     override_start_time?: string | null
     override_end_time?: string | null
   }[]
+  /**
+   * Serverseitig aufgelöste Vorschaubild-URL des Segments (Phase 172, D-09) -- Rangfolge
+   * manuell > automatisch > Ersatzbild. `null`, wenn (noch) kein Vorschaubild existiert.
+   */
+  preview_url?: string | null
+  /** Herkunft der aufgelösten `preview_url` (Phase 172, D-08/D-09). */
+  preview_source?: 'manual' | 'auto' | 'fallback' | null
   created_at: string
 }
 
@@ -1139,6 +1146,22 @@ export interface AdminSegmentLibraryCandidate {
 
 export interface AdminSegmentLibraryCandidatesResponse {
   data: AdminSegmentLibraryCandidate[]
+}
+
+/**
+ * Ein waehlbares Release-Bild fuer den "Aus Release-Bildern wählen"-Picker des
+ * Segment-Vorschaubilds (Phase 172, D-11). Nur bereits oeffentliche, freigegebene Bilder
+ * zugewiesener Release-Versionen werden gelistet.
+ */
+export interface AdminSegmentPreviewImageCandidate {
+  media_asset_id: number
+  thumbnail_url: string
+  release_version_label: string
+}
+
+/** API-Response für GET .../segments/:segmentId/preview-image/candidates. */
+export interface AdminSegmentPreviewImageCandidatesResponse {
+  data: AdminSegmentPreviewImageCandidate[]
 }
 
 export interface AdminSegmentLibraryAttachRequest {
