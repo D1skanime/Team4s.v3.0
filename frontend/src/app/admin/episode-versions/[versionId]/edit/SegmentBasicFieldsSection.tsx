@@ -1,7 +1,7 @@
 'use client'
 
 import { useState } from 'react'
-import { Select } from '@/components/ui'
+import { Input, Select } from '@/components/ui'
 import type { EpisodeVersionChapterHint } from '@/types/episodeVersion'
 import type { GenericSegmentThemeOption } from './useReleaseSegments'
 import type { FormState } from './SegmentEditPanel'
@@ -112,7 +112,7 @@ export function SegmentBasicFieldsSection({
     <>
       <div className={styles.panelField}>
         <label htmlFor="segment-type">Typ</label>
-        <select
+        <Select
           id="segment-type"
           value={formState.themeKind}
           onChange={(e) => onFormChange({ themeKind: e.target.value })}
@@ -123,12 +123,12 @@ export function SegmentBasicFieldsSection({
               {option.label}
             </option>
           ))}
-        </select>
+        </Select>
       </div>
 
       <div className={styles.panelField}>
         <label htmlFor="segment-name">Name (optional)</label>
-        <input
+        <Input
           id="segment-name"
           type="text"
           placeholder="z. B. Naruto OP 1"
@@ -153,7 +153,7 @@ export function SegmentBasicFieldsSection({
       <div className={styles.panelFieldRow}>
         <div className={styles.panelField}>
           <label htmlFor="seg-ep-start">Von</label>
-          <input
+          <Input
             id="seg-ep-start"
             type="number"
             min="1"
@@ -164,7 +164,7 @@ export function SegmentBasicFieldsSection({
         </div>
         <div className={styles.panelField}>
           <label htmlFor="seg-ep-end">Bis</label>
-          <input
+          <Input
             id="seg-ep-end"
             type="number"
             min="1"
@@ -227,7 +227,7 @@ export function SegmentBasicFieldsSection({
       <div className={styles.panelFieldRow}>
         <div className={styles.panelField}>
           <label htmlFor="seg-time-start">Start</label>
-          <input
+          <Input
             id="seg-time-start"
             type="text"
             inputMode="numeric"
@@ -238,7 +238,7 @@ export function SegmentBasicFieldsSection({
               const parsed = parseFlexibleTimeInput(e.target.value)
               if (parsed != null) onFormChange({ startTime: formatTimeInput(parsed) })
             }}
-            style={isStartTimeError ? { borderColor: '#c0392b' } : undefined}
+            invalid={isStartTimeError}
           />
           {showChapterHints && chapters.length > 0 ? markerSelect('start') : null}
           {isStartTimeError ? (
@@ -247,7 +247,7 @@ export function SegmentBasicFieldsSection({
         </div>
         <div className={styles.panelField}>
           <label htmlFor="seg-time-end">Ende</label>
-          <input
+          <Input
             id="seg-time-end"
             type="text"
             inputMode="numeric"
@@ -260,7 +260,7 @@ export function SegmentBasicFieldsSection({
               const clamped = effectiveDuration != null ? Math.min(parsed, effectiveDuration) : parsed
               onFormChange({ endTime: formatTimeInput(clamped) })
             }}
-            style={isEndTimeError ? { borderColor: '#c0392b' } : undefined}
+            invalid={isEndTimeError}
           />
           {showChapterHints && chapters.length > 0 ? markerSelect('end') : null}
           {isEndTimeError ? (

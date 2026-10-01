@@ -18,6 +18,7 @@ import { renderStatusLabel } from './SegmenteTab.formHelpers'
 import { SegmentAssignmentsRow } from './SegmentAssignmentsRow'
 import {
   Badge,
+  Button,
   DisclosureIndicator,
   Table,
   TableBody,
@@ -100,13 +101,14 @@ export function SegmentsListSection({
                   {formatEpisodeRange(s.start_episode, s.end_episode)}
                   {s.start_time && s.end_time ? ` · ${formatDuration(s.start_time, s.end_time)}` : ''}
                 </span>
-                <button
+                <Button
                   type="button"
-                  className={styles.suggestionAdoptButton}
+                  variant="success"
+                  size="sm"
                   onClick={() => onAdoptSuggestion(s)}
                 >
                   Übernehmen
-                </button>
+                </Button>
               </div>
             ))}
           </div>
@@ -168,16 +170,18 @@ export function SegmentsListSection({
                             <Badge variant="warning">Zeit hier überschrieben</Badge>
                           ) : null}
                           <span>{[...new Set((segment.assigned_episodes ?? []).map((episode) => episode.episode_number))].join(', ') || '—'}</span>
-                          <button
+                          <Button
                             type="button"
-                            className={styles.actionButton}
+                            variant="ghost"
+                            size="sm"
+                            iconOnly
                             aria-label="Zugewiesene Folgen anzeigen/ausblenden"
                             onClick={() =>
                               setOpenAssignmentsFor(openAssignmentsFor === segment.id ? null : segment.id)
                             }
                           >
                             <DisclosureIndicator open={assignmentsOpen} variant="button" size="sm" />
-                          </button>
+                          </Button>
                         </div>
                       </TableCell>
                       <TableCell data-label="Zeitbereich" style={{ fontFamily: 'monospace', fontSize: 12 }}>
@@ -217,9 +221,11 @@ export function SegmentsListSection({
                       <TableCell data-label="Aktionen">
                         <div style={{ display: 'flex', alignItems: 'center', gap: 4 }}>
                           {segment.playback_source_kind && segment.playback_source_kind !== 'uploaded_asset' && segment.render_status !== 'ready' ? (
-                            <button
+                            <Button
                               type="button"
-                              className={styles.actionButton}
+                              variant="ghost"
+                              size="sm"
+                              iconOnly
                               title="Segment vorbereiten"
                               disabled={
                                 renderingSegmentId === segment.id ||
@@ -229,25 +235,29 @@ export function SegmentsListSection({
                               onClick={() => onRenderSegment(segment)}
                             >
                               <RefreshCw size={14} />
-                            </button>
+                            </Button>
                           ) : null}
-                          <button
+                          <Button
                             type="button"
-                            className={styles.actionButton}
+                            variant="ghost"
+                            size="sm"
+                            iconOnly
                             title="Bearbeiten"
                             onClick={() => onEditSegment(segment)}
                           >
                             <Pencil size={14} />
-                          </button>
-                          <button
+                          </Button>
+                          <Button
                             type="button"
-                            className={`${styles.actionButton} ${styles.actionButtonDanger}`}
+                            variant="danger"
+                            size="sm"
+                            iconOnly
                             title="Segment löschen"
                             aria-label="Segment löschen"
                             onClick={() => onDeleteSegment(segment)}
                           >
                             <Trash2 size={14} />
-                          </button>
+                          </Button>
                         </div>
                       </TableCell>
                     </TableRow>

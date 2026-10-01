@@ -3,6 +3,7 @@
 import { useRef } from 'react'
 import { Upload, FileVideo, XCircle } from 'lucide-react'
 
+import { Button, Input, Select } from '@/components/ui'
 import type { AdminThemeSegment, AdminSegmentSourceType, AdminSegmentLibraryCandidate } from '@/types/admin'
 import type { FormState } from './SegmentEditPanel'
 import {
@@ -65,7 +66,7 @@ export function SegmentAssetSection({
       {/* Source type selector — the episode stream is the default; upload is explicit fallback */}
       <div className={styles.panelField}>
         <label htmlFor="seg-source-type">Provenance / Fallback-Wahl</label>
-        <select
+        <Select
           id="seg-source-type"
           value={formState.sourceType}
           onChange={(e) => onFormChange({ sourceType: e.target.value as AdminSegmentSourceType })}
@@ -73,7 +74,7 @@ export function SegmentAssetSection({
           <option value="none">Episode-Version / Stream (Standard)</option>
           <option value="release_asset">Hochgeladener Fallback (eigene Datei)</option>
           <option value="jellyfin_theme">Serien-Theme (Legacy)</option>
-        </select>
+        </Select>
         {formState.sourceType === 'none' ? (
           <p className={styles.sourceHelpText}>Standard: Playback läuft über den Stream der aktuellen Episode-Version. Kein Upload erforderlich.</p>
         ) : formState.sourceType === 'release_asset' ? (
@@ -104,15 +105,16 @@ export function SegmentAssetSection({
                   {provenanceDetails ? ` · ${provenanceDetails}` : ''}
                 </p>
               ) : null}
-              <button
+              <Button
                 type="button"
-                className={styles.assetDeleteButton}
-                onClick={() => onAssetDelete()}
+                variant="danger"
+                size="sm"
+                leftIcon={<XCircle size={13} />}
                 disabled={isDeletingAsset}
+                onClick={() => onAssetDelete()}
               >
-                <XCircle size={13} />
                 {isDeletingAsset ? 'Entfernt...' : 'Datei entfernen'}
-              </button>
+              </Button>
             </div>
           ) : editingSegment ? (
             <div style={{ display: 'grid', gap: 12 }}>
@@ -144,15 +146,16 @@ export function SegmentAssetSection({
                         <span className={styles.sourceHelpText}>
                           Aktiv verwendet: {candidate.active_assignment_count} · Herkunft: {candidate.asset_attach_source}
                         </span>
-                        <button
+                        <Button
                           type="button"
-                          className={styles.assetUploadButton}
+                          variant="secondary"
+                          size="sm"
+                          leftIcon={<FileVideo size={13} />}
                           disabled={isAttachingReuse}
                           onClick={() => onAttachReuseCandidate(candidate)}
                         >
-                          <FileVideo size={13} />
                           {isAttachingReuse ? 'Verknüpft...' : 'Dieses Library-Asset verwenden'}
-                        </button>
+                        </Button>
                       </div>
                     ))}
                   </div>
@@ -164,56 +167,62 @@ export function SegmentAssetSection({
 
               <div className={styles.assetUploadArea}>
                 <p className={styles.assetUploadFormats}>Erlaubte Formate: MP4, WebM, MKV, MP3, AAC, FLAC, OGG, OPUS, M4A &middot; Max. 150 MB</p>
-                <input
+                <Input
                   ref={fileInputRef}
                   type="file"
                   accept=".mp4,.webm,.mkv,.mp3,.aac,.flac,.ogg,.opus,.m4a,video/mp4,video/webm,video/x-matroska,audio/mpeg,audio/aac,audio/flac,audio/ogg,audio/mp4"
-                  className={styles.assetFileInput}
-                  id="segment-asset-file"
+                  hidden
+                  aria-label="Neue Segment-Datei auswählen"
                   disabled={isUploading}
                   onChange={(e) => {
                     const file = e.target.files?.[0]
                     if (file) {
                       onAssetUpload(file)
-                      if (fileInputRef.current) fileInputRef.current.value = ''
                     }
+                    e.target.value = ''
                   }}
                 />
-                <label
-                  htmlFor="segment-asset-file"
-                  className={`${styles.assetUploadButton} ${isUploading ? styles.assetUploadButtonBusy : ''}`}
+                <Button
+                  type="button"
+                  variant="secondary"
+                  size="sm"
+                  leftIcon={<Upload size={13} />}
+                  disabled={isUploading}
+                  onClick={() => fileInputRef.current?.click()}
                 >
-                  <Upload size={13} />
                   {isUploading ? 'Wird hochgeladen...' : 'Neue Datei auswählen und hochladen'}
-                </label>
+                </Button>
               </div>
             </div>
           ) : (
             <div style={{ display: 'grid', gap: 12 }}>
               <div className={styles.assetUploadArea}>
                 <p className={styles.assetUploadFormats}>Erlaubte Formate: MP4, WebM, MKV, MP3, AAC, FLAC, OGG, OPUS, M4A &middot; Max. 150 MB</p>
-                <input
+                <Input
                   ref={fileInputRef}
                   type="file"
                   accept=".mp4,.webm,.mkv,.mp3,.aac,.flac,.ogg,.opus,.m4a,video/mp4,video/webm,video/x-matroska,audio/mpeg,audio/aac,audio/flac,audio/ogg,audio/mp4"
-                  className={styles.assetFileInput}
-                  id="segment-asset-file-create"
+                  hidden
+                  aria-label="Datei für neues Segment auswählen"
                   disabled={isSaving}
                   onChange={(e) => {
                     const file = e.target.files?.[0]
                     if (file) {
                       onPendingUploadFileChange(file)
-                      if (fileInputRef.current) fileInputRef.current.value = ''
                     }
+                    e.target.value = ''
                   }}
                 />
-                <label
-                  htmlFor="segment-asset-file-create"
-                  className={`${styles.assetUploadButton} ${isSaving ? styles.assetUploadButtonBusy : ''}`}
+                <Button
+                  type="button"
+                  variant="secondary"
+                  size="sm"
+                  leftIcon={<Upload size={13} />}
+                  disabled={isSaving}
+                  onClick={() => fileInputRef.current?.click()}
                 >
-                  <Upload size={13} />
                   Datei für neues Segment auswählen
-                </label>
+                </Button>
                 {pendingUploadFile ? (
                   <div className={styles.assetExisting} style={{ marginTop: 10 }}>
                     <div className={styles.assetExistingLabel}>
@@ -223,15 +232,16 @@ export function SegmentAssetSection({
                     <p className={styles.sourceHelpText}>
                       Das Segment wird erstellt und die Datei direkt danach automatisch hochgeladen.
                     </p>
-                    <button
+                    <Button
                       type="button"
-                      className={styles.assetDeleteButton}
-                      onClick={() => onPendingUploadFileChange(null)}
+                      variant="danger"
+                      size="sm"
+                      leftIcon={<XCircle size={13} />}
                       disabled={isSaving}
+                      onClick={() => onPendingUploadFileChange(null)}
                     >
-                      <XCircle size={13} />
                       Auswahl entfernen
-                    </button>
+                    </Button>
                   </div>
                 ) : (
                   <p className={styles.assetHintSave}>
