@@ -333,6 +333,10 @@ func (f *fakeAttachLibraryAssetThemeRepo) MarkThemeSegmentRenderCacheFailed(ctx 
 	return nil
 }
 
+func (f *fakeAttachLibraryAssetThemeRepo) SetThemeSegmentAutoPreview(ctx context.Context, segmentID int64, mediaAssetID int64) (*int64, error) {
+	return &mediaAssetID, nil
+}
+
 // TestAttachSegmentLibraryAsset_QueuesRenderForAllAssignedReleaseVersions ist der
 // Regressionstest fuer RESEARCH.md Risk 5 (Plan 117-04 Task 2/3): vor diesem Plan loeste
 // AttachSegmentLibraryAsset ueberhaupt keinen Render-Invalidierungslauf aus, obwohl es die
