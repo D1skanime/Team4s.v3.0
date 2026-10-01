@@ -154,6 +154,12 @@ func registerAdminRoutes(v1 *gin.RouterGroup, auth gin.HandlerFunc, deps adminRo
 	v1.POST("/admin/anime/:id/segments/:segmentId/reuse", auth, deps.adminContentHandler.AttachSegmentLibraryAsset)
 	v1.POST("/admin/anime/:id/segments/:segmentId/asset", auth, deps.adminContentHandler.UploadSegmentAsset)
 	v1.DELETE("/admin/anime/:id/segments/:segmentId/asset", auth, deps.adminContentHandler.DeleteSegmentAsset)
+	// Phase 172, Plan 172-05 (D-11): manuelle Vorschaubild-Pflege pro Kara-Segment (Upload,
+	// Kandidaten-Liste aus Release-Bildern, Attach, Reset auf Automatisch).
+	v1.POST("/admin/anime/:id/segments/:segmentId/preview-image", auth, deps.adminContentHandler.UploadSegmentPreviewImage)
+	v1.GET("/admin/anime/:id/segments/:segmentId/preview-image/candidates", auth, deps.adminContentHandler.GetSegmentPreviewImageCandidates)
+	v1.POST("/admin/anime/:id/segments/:segmentId/preview-image/attach", auth, deps.adminContentHandler.AttachSegmentPreviewImage)
+	v1.POST("/admin/anime/:id/segments/:segmentId/preview-image/reset", auth, deps.adminContentHandler.ResetSegmentPreviewImage)
 	// Phase 117: Zuweisung eines geteilten Kara-Segments zu einer weiteren Release-Version (D-03)
 	// und Per-Release-Version-Zeit-Override (D-01).
 	v1.POST("/admin/anime/:id/segments/:segmentId/assignments", auth, deps.adminContentHandler.AssignAnimeSegment)
