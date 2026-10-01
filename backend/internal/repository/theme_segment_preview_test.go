@@ -18,6 +18,7 @@ import (
 
 	"team4s.v3/backend/internal/testsupport"
 
+	"github.com/jackc/pgx/v5/pgxpool"
 	"github.com/stretchr/testify/require"
 )
 
@@ -239,4 +240,245 @@ CREATE TABLE media_files (
 
 	require.Equal(t, *list[0].PreviewURL, *single.PreviewURL,
 		"D-09: Admin-Liste und Admin-Einzelabruf muessen fuer dasselbe Segment dieselbe preview_url liefern")
+}
+
+func TestAttachSegmentPreviewImageFromReleaseVersion_RejectsForeignAsset(t *testing.T) {
+	pool := testsupport.OpenPhase117Postgres(t)
+	ctx := context.Background()
+	f := setupPreviewWriteFixture(t, pool)
+
+	// Das Bild gehoert zu foreignReleaseID -- einer Release-Version, der das Segment NICHT
+	// zugewiesen ist (D-11 Acceptance: "Fremde -> 404/403").
+	const foreignAssetID int64 = 5001
+	createApprovedImageAssetForReleaseVersion(t, pool, foreignAssetID, "foreign.jpg", f.publicVisibilityID, f.approvedReviewStatusID, f.foreignReleaseID)
+
+	repo := NewAdminContentRepository(pool)
+	oldValue, err := repo.AttachSegmentPreviewImageFromReleaseVersion(ctx, f.themeSegmentID, foreignAssetID)
+	require.ErrorIs(t, err, ErrNotFound, "ein Bild einer NICHT zugewiesenen Release-Version muss ErrNotFound liefern")
+	require.Nil(t, oldValue)
+
+	var manualAssetID *int64
+	require.NoError(t, pool.QueryRow(ctx, `SELECT preview_media_asset_id FROM theme_segments WHERE id = $1`, f.themeSegmentID).Scan(&manualAssetID))
+	require.Nil(t, manualAssetID, "ein abgelehnter Versuch darf preview_media_asset_id NIE setzen")
+}
+
+func TestAttachSegmentPreviewImageFromReleaseVersion_RejectsUnapproved(t *testing.T) {
+	pool := testsupport.OpenPhase117Postgres(t)
+	ctx := context.Background()
+	f := setupPreviewWriteFixture(t, pool)
+
+	// Das Bild gehoert zur ZUGEWIESENEN Release-Version, ist aber review_status='pending'
+	// statt 'approved' -- muss trotz korrekter Zuweisung abgelehnt werden.
+	const unapprovedAssetID int64 = 5002
+	_, err := pool.Exec(ctx, `
+		INSERT INTO media_assets (id, file_path, status, visibility_id, review_status_id)
+		VALUES ($1, 'unapproved.jpg', 'ready', $2, $3)
+	`, unapprovedAssetID, f.publicVisibilityID, f.pendingReviewStatusID)
+	require.NoError(t, err)
+	_, err = pool.Exec(ctx, `
+		INSERT INTO release_version_media (id, release_version_id, media_asset_id, sort_order)
+		VALUES ($1, $2, $3, 0)
+	`, unapprovedAssetID+200000, f.assignedReleaseID, unapprovedAssetID)
+	require.NoError(t, err)
+
+	repo := NewAdminContentRepository(pool)
+	oldValue, err := repo.AttachSegmentPreviewImageFromReleaseVersion(ctx, f.themeSegmentID, unapprovedAssetID)
+	require.ErrorIs(t, err, ErrNotFound, "ein nicht freigegebenes Bild muss trotz korrekter Zuweisung ErrNotFound liefern")
+	require.Nil(t, oldValue)
+}
+
+func TestSetThemeSegmentAutoPreview_NeverTouchesManualColumn(t *testing.T) {
+	pool := testsupport.OpenPhase117Postgres(t)
+	ctx := context.Background()
+	f := setupPreviewWriteFixture(t, pool)
+
+	const manualAssetID int64 = 6001
+	const autoAssetID int64 = 6002
+	createApprovedImageAssetForReleaseVersion(t, pool, manualAssetID, "manual.jpg", f.publicVisibilityID, f.approvedReviewStatusID, f.assignedReleaseID)
+	createApprovedImageAssetForReleaseVersion(t, pool, autoAssetID, "auto.jpg", f.publicVisibilityID, f.approvedReviewStatusID, f.assignedReleaseID)
+
+	repo := NewAdminContentRepository(pool)
+	_, err := repo.SetThemeSegmentManualPreview(ctx, f.themeSegmentID, manualAssetID)
+	require.NoError(t, err)
+
+	oldAutoValue, err := repo.SetThemeSegmentAutoPreview(ctx, f.themeSegmentID, autoAssetID)
+	require.NoError(t, err)
+	require.Nil(t, oldAutoValue, "vor dem ersten Render gibt es keinen vorherigen automatischen Wert")
+
+	var manualAfter, autoAfter *int64
+	require.NoError(t, pool.QueryRow(ctx, `
+		SELECT preview_media_asset_id, auto_preview_media_asset_id FROM theme_segments WHERE id = $1
+	`, f.themeSegmentID).Scan(&manualAfter, &autoAfter))
+	require.NotNil(t, manualAfter, "D-08: SetThemeSegmentAutoPreview darf die manuelle Wahl NIE loeschen")
+	require.Equal(t, manualAssetID, *manualAfter, "D-08: die manuelle Spalte muss unveraendert bleiben")
+	require.NotNil(t, autoAfter)
+	require.Equal(t, autoAssetID, *autoAfter)
+}
+
+func TestResetThemeSegmentManualPreview_ReturnsOldValue(t *testing.T) {
+	pool := testsupport.OpenPhase117Postgres(t)
+	ctx := context.Background()
+	f := setupPreviewWriteFixture(t, pool)
+
+	const manualAssetID int64 = 7001
+	createApprovedImageAssetForReleaseVersion(t, pool, manualAssetID, "to-reset.jpg", f.publicVisibilityID, f.approvedReviewStatusID, f.assignedReleaseID)
+
+	repo := NewAdminContentRepository(pool)
+	_, err := repo.SetThemeSegmentManualPreview(ctx, f.themeSegmentID, manualAssetID)
+	require.NoError(t, err)
+
+	oldValue, err := repo.ResetThemeSegmentManualPreview(ctx, f.themeSegmentID)
+	require.NoError(t, err)
+	require.NotNil(t, oldValue, "Reset muss den vorherigen manuellen Wert fuer Aufraeum-Entscheidungen des Aufrufers liefern")
+	require.Equal(t, manualAssetID, *oldValue)
+
+	var manualAfter *int64
+	require.NoError(t, pool.QueryRow(ctx, `SELECT preview_media_asset_id FROM theme_segments WHERE id = $1`, f.themeSegmentID).Scan(&manualAfter))
+	require.Nil(t, manualAfter, "preview_media_asset_id muss nach Reset NULL sein")
+}
+
+func TestListSegmentPreviewImageCandidates_EmptyForUnassignedSegment(t *testing.T) {
+	pool := testsupport.OpenPhase117Postgres(t)
+	ctx := context.Background()
+	setupPreviewSchema(t, pool)
+
+	// Ein Segment OHNE jede theme_segment_assignments-Zeile.
+	_, err := pool.Exec(ctx, `INSERT INTO anime (id) VALUES (1)`)
+	require.NoError(t, err)
+	_, err = pool.Exec(ctx, `INSERT INTO theme_types (id, name) VALUES (1, 'OP1')`)
+	require.NoError(t, err)
+	_, err = pool.Exec(ctx, `INSERT INTO themes (id, anime_id, theme_type_id) VALUES (1, 1, 1)`)
+	require.NoError(t, err)
+	_, err = pool.Exec(ctx, `INSERT INTO theme_segments (id, theme_id) VALUES (1, 1)`)
+	require.NoError(t, err)
+
+	repo := NewAdminContentRepository(pool)
+	candidates, err := repo.ListSegmentPreviewImageCandidates(ctx, 1, "")
+	require.NoError(t, err)
+	require.NotNil(t, candidates, "leere Zuweisungsliste muss eine leere, NICHT nil, Kandidatenliste liefern")
+	require.Empty(t, candidates)
+}
+
+// setupPreviewSchema legt die fuer alle Plan-172-03-Schreibpfad-Tests gemeinsame
+// Schema-Erweiterung an (review_statuses inkl. 'approved' UND 'pending', media_files,
+// release_version_media) -- gleiches Muster wie TestResolveThemeSegmentPreviewAsset oben.
+func setupPreviewSchema(t *testing.T, pool *pgxpool.Pool) {
+	t.Helper()
+	ctx := context.Background()
+	_, err := pool.Exec(ctx, `
+CREATE TABLE review_statuses (id BIGSERIAL PRIMARY KEY, code VARCHAR(40) NOT NULL UNIQUE);
+INSERT INTO review_statuses (code) VALUES ('approved'), ('pending');
+ALTER TABLE media_assets
+    ADD COLUMN status VARCHAR(20) NOT NULL DEFAULT 'ready',
+    ADD COLUMN visibility_id BIGINT REFERENCES visibilities(id),
+    ADD COLUMN review_status_id BIGINT REFERENCES review_statuses(id);
+CREATE TABLE media_files (
+    id BIGINT PRIMARY KEY,
+    media_id BIGINT NOT NULL REFERENCES media_assets(id),
+    variant VARCHAR(20),
+    path TEXT NOT NULL,
+    status VARCHAR(20) NOT NULL DEFAULT 'ready'
+);
+CREATE TABLE release_version_media (
+    id BIGINT PRIMARY KEY,
+    release_version_id BIGINT NOT NULL REFERENCES release_versions(id),
+    media_asset_id BIGINT NOT NULL REFERENCES media_assets(id),
+    deleted_at TIMESTAMPTZ,
+    is_preview_candidate BOOLEAN NOT NULL DEFAULT false,
+    sort_order INT NOT NULL DEFAULT 0
+);
+`)
+	require.NoError(t, err)
+}
+
+// setupPreviewWriteFixture baut auf setupPreviewSchema auf und legt eine gemeinsame
+// Anime/Gruppe/Folge/Release-Kette mit ZWEI Release-Versionen an: assignedReleaseID ist dem
+// Segment ueber theme_segment_assignments zugewiesen, foreignReleaseID NICHT -- genau das
+// Minimum, um D-11s Ownership-Gate zu beweisen.
+func setupPreviewWriteFixture(t *testing.T, pool *pgxpool.Pool) previewWriteFixtureIDs {
+	t.Helper()
+	ctx := context.Background()
+	setupPreviewSchema(t, pool)
+
+	var publicVisibilityID int64
+	require.NoError(t, pool.QueryRow(ctx, `SELECT id FROM visibilities WHERE name = 'public'`).Scan(&publicVisibilityID))
+	var approvedReviewStatusID int64
+	require.NoError(t, pool.QueryRow(ctx, `SELECT id FROM review_statuses WHERE code = 'approved'`).Scan(&approvedReviewStatusID))
+	var pendingReviewStatusID int64
+	require.NoError(t, pool.QueryRow(ctx, `SELECT id FROM review_statuses WHERE code = 'pending'`).Scan(&pendingReviewStatusID))
+
+	const (
+		animeID          = int64(1)
+		fansubGroupID    = int64(1)
+		themeTypeID      = int64(1)
+		themeID          = int64(1)
+		themeSegmentID   = int64(1)
+		episodeID        = int64(1)
+		fansubReleaseID  = int64(1)
+		assignedReleaseID = int64(10)
+		foreignReleaseID  = int64(20)
+	)
+
+	_, err := pool.Exec(ctx, `INSERT INTO anime (id) VALUES ($1)`, animeID)
+	require.NoError(t, err)
+	_, err = pool.Exec(ctx, `INSERT INTO fansub_groups (id) VALUES ($1)`, fansubGroupID)
+	require.NoError(t, err)
+	_, err = pool.Exec(ctx, `INSERT INTO episodes (id, anime_id, sort_index, episode_number) VALUES ($1, $2, 1, '1')`, episodeID, animeID)
+	require.NoError(t, err)
+	_, err = pool.Exec(ctx, `INSERT INTO fansub_releases (id, episode_id) VALUES ($1, $2)`, fansubReleaseID, episodeID)
+	require.NoError(t, err)
+	_, err = pool.Exec(ctx, `
+		INSERT INTO release_versions (id, release_id, version) VALUES ($1, $3, 'v1'), ($2, $3, 'v1')
+	`, assignedReleaseID, foreignReleaseID, fansubReleaseID)
+	require.NoError(t, err)
+	_, err = pool.Exec(ctx, `INSERT INTO theme_types (id, name) VALUES ($1, 'OP1')`, themeTypeID)
+	require.NoError(t, err)
+	_, err = pool.Exec(ctx, `INSERT INTO themes (id, anime_id, theme_type_id) VALUES ($1, $2, $3)`, themeID, animeID, themeTypeID)
+	require.NoError(t, err)
+	_, err = pool.Exec(ctx, `INSERT INTO theme_segments (id, theme_id) VALUES ($1, $2)`, themeSegmentID, themeID)
+	require.NoError(t, err)
+	_, err = pool.Exec(ctx, `
+		INSERT INTO theme_segment_assignments (theme_segment_id, release_version_id) VALUES ($1, $2)
+	`, themeSegmentID, assignedReleaseID)
+	require.NoError(t, err)
+
+	return previewWriteFixtureIDs{
+		publicVisibilityID:     publicVisibilityID,
+		approvedReviewStatusID: approvedReviewStatusID,
+		pendingReviewStatusID:  pendingReviewStatusID,
+		themeSegmentID:         themeSegmentID,
+		assignedReleaseID:      assignedReleaseID,
+		foreignReleaseID:       foreignReleaseID,
+	}
+}
+
+// previewWriteFixtureIDs haelt die von setupPreviewWriteFixture angelegten IDs fuer den
+// Zugriff der Test-Funktionen (schlankere Alternative zu previewWriteFixture oben, die ein
+// generisches Pool-Interface vermeidet).
+type previewWriteFixtureIDs struct {
+	publicVisibilityID     int64
+	approvedReviewStatusID int64
+	pendingReviewStatusID  int64
+	themeSegmentID         int64
+	assignedReleaseID      int64
+	foreignReleaseID       int64
+}
+
+// createApprovedImageAssetForReleaseVersion legt ein oeffentliches, freigegebenes Bild an und
+// haengt es per release_version_media an releaseVersionID -- das Muster, das jeder
+// D-11-Ownership-Test braucht, um ein "echtes" (zugewiesenes ODER fremdes) Kandidatenbild zu
+// erzeugen.
+func createApprovedImageAssetForReleaseVersion(t *testing.T, pool *pgxpool.Pool, assetID int64, path string, visibilityID int64, reviewStatusID int64, releaseVersionID int64) {
+	t.Helper()
+	ctx := context.Background()
+	_, err := pool.Exec(ctx, `
+		INSERT INTO media_assets (id, file_path, status, visibility_id, review_status_id)
+		VALUES ($1, $2, 'ready', $3, $4)
+	`, assetID, path, visibilityID, reviewStatusID)
+	require.NoError(t, err)
+	_, err = pool.Exec(ctx, `
+		INSERT INTO release_version_media (id, release_version_id, media_asset_id, sort_order)
+		VALUES ($1, $2, $3, 0)
+	`, assetID+300000, releaseVersionID, assetID)
+	require.NoError(t, err)
 }
