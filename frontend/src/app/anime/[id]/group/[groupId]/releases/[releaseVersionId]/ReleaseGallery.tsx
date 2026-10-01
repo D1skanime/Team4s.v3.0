@@ -11,6 +11,7 @@ import { useAuthSession } from '@/lib/useAuthSession'
 import type { PublicReleaseGroup, PublicReleaseImage, PublicReleaseSegment, PublicReleaseStoryItem } from '@/types/releaseDetail'
 import { CATEGORY_LABELS, RELEASE_VERSION_MEDIA_CATEGORIES, type ReleaseVersionMediaCategory } from '@/types/releaseVersionMedia'
 
+import { ParticipantsDisclosure } from './ThemeTimelineSegmentDetails'
 import { useResponsiveGalleryReveal } from './responsiveGalleryReveal'
 import styles from './ReleaseGallery.module.css'
 
@@ -36,6 +37,7 @@ interface Props {
   groups?: PublicReleaseGroup[]
   episodeNumber?: string
   embedded?: boolean
+  projectPath?: string | null
 }
 
 function mergeImages(previous: PublicReleaseImage[], incoming: PublicReleaseImage[]): PublicReleaseImage[] {
@@ -60,7 +62,7 @@ function toLightboxItem(image: PublicReleaseImage): PublicImageLightboxItem {
   }
 }
 
-export function ReleaseGallery({ animeID, groupID, releaseVersionID, initialImages, story = [], categoryTotals, groups = [], episodeNumber, embedded = false }: Props) {
+export function ReleaseGallery({ animeID, groupID, releaseVersionID, initialImages, story = [], categoryTotals, groups = [], episodeNumber, embedded = false, projectPath }: Props) {
   const [items, setItems] = useState(() => mergeImages([], initialImages))
   const [activeImageID, setActiveImageID] = useState<number | null>(null)
   const [loading, setLoading] = useState(false)
@@ -158,7 +160,7 @@ export function ReleaseGallery({ animeID, groupID, releaseVersionID, initialImag
 
   const renderKara = (segment: PublicReleaseSegment) => {
     const previewUrl = segment.preview_url ?? featuredImage?.thumbnail_url ?? featuredImage?.original_url
-    return <article id={'release-story-kara-' + segment.theme_segment_id} key={'kara-' + segment.theme_segment_id} data-testid={'release-kara-card-' + segment.theme_segment_id} className={styles.karaCard}>
+    return <article id={'release-story-kara-' + segment.theme_segment_id} key={'kara-' + segment.theme_segment_id} data-testid={'release-kara-card-' + segment.theme_segment_id} data-kara-type={karaTypeLabel(segment.type).toLowerCase()} className={styles.karaCard}>
       <div className={styles.karaPreviewWrap}>
         {previewUrl
           ? <Image src={previewUrl} alt={'Preview für ' + segment.name} className={styles.karaPreview} width={640} height={360} unoptimized />
@@ -170,7 +172,7 @@ export function ReleaseGallery({ animeID, groupID, releaseVersionID, initialImag
         <h3>{segment.name}</h3>
         <p className={styles.karaDuration}>Dauer {formatDuration(segment.duration_seconds)}</p>
         {segment.applies_through_episode ? <Badge variant="muted">Gilt auch für Folge {episodeNumber}–{segment.applies_through_episode}</Badge> : null}
-        <div className={styles.karaParticipants}>{segment.participants.length} Mitwirkende</div>
+        {segment.participants.length > 0 ? <ParticipantsDisclosure segment={segment} projectPath={projectPath} /> : null}
       </div>
     </article>
   }

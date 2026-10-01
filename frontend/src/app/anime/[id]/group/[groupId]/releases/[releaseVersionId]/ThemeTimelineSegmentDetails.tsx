@@ -31,7 +31,7 @@ function clock(seconds: number | null): string {
   return `${minutes.toString().padStart(2, '0')}:${rest.toString().padStart(2, '0')}`
 }
 
-function ParticipantsDisclosure({ segment, projectPath }: { segment: PublicReleaseSegment; projectPath?: string | null }) {
+export function ParticipantsDisclosure({ segment, projectPath }: { segment: PublicReleaseSegment; projectPath?: string | null }) {
   return (
     <details className={styles.participantsDisclosure}>
       <summary className={styles.participantsSummary}>

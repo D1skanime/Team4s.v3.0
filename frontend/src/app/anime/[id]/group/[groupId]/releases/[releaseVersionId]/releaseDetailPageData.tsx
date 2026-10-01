@@ -122,7 +122,7 @@ export async function ReleaseDetailPageContent({ animeID, groupID, releaseVersio
         showSegmentCards={false}
         showHeading={false}
       />
-      <ReleaseGallery animeID={animeID} groupID={groupID} releaseVersionID={releaseVersionID} initialImages={detail.images} story={detail.story} categoryTotals={detail.image_category_totals} groups={detail.groups} episodeNumber={detail.episode_number} embedded />
+      <ReleaseGallery animeID={animeID} groupID={groupID} releaseVersionID={releaseVersionID} initialImages={detail.images} story={detail.story} categoryTotals={detail.image_category_totals} groups={detail.groups} episodeNumber={detail.episode_number} projectPath={canonicalProjectPath} embedded />
     </section>
     <ReleaseTechnicalDetails {...detail} />
     <ContributorsRow contributors={detail.contributors} groups={detail.groups} />

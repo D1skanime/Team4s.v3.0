@@ -288,6 +288,7 @@
 /* Highlights use the editorial one-row layout from the public sketch. */
 @media (min-width: 601px) {
   .featuredCard {
+    grid-column: 1 / -1;
     display: grid;
     grid-template-columns: minmax(0, 42%) minmax(0, 1fr);
     grid-template-rows: auto 1fr;
@@ -322,4 +323,30 @@
   .featuredCard .meta {
     padding: 0 13px 13px;
   }
+}
+
+
+.karaCard {
+  --segment-color: var(--accent-primary);
+}
+.karaCard[data-kara-type="opening"] {
+  --segment-color: #179b70;
+  border-color: #9bcfbe;
+  border-left-color: #179b70;
+  background: rgba(229, 241, 237, .68);
+}
+.karaCard[data-kara-type="insert"] {
+  --segment-color: #8b45d3;
+  border-color: #c4a6e5;
+  border-left-color: #8b45d3;
+  background: rgba(240, 232, 245, .68);
+}
+.karaCard[data-kara-type="ending"] {
+  --segment-color: #168fca;
+  border-color: #98cce3;
+  border-left-color: #168fca;
+  background: rgba(226, 237, 244, .68);
+}
+.karaCard .participantsDisclosure {
+  border-top-color: color-mix(in srgb, var(--segment-color) 28%, transparent);
 }
