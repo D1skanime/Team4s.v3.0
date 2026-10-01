@@ -164,16 +164,46 @@ func (r *AdminContentRepository) hydrateSegmentPreviewMetadata(ctx context.Conte
 // themeSegmentPreviewSchemaAvailable prueft, ob das fuer die Vorschaubild-Aufloesung
 // benoetigte Schema (media_files-Tabelle + media_assets.status-Spalte) vorhanden ist.
 func (r *AdminContentRepository) themeSegmentPreviewSchemaAvailable(ctx context.Context) (bool, error) {
-	hasMediaFiles, err := r.hasTable(ctx, "media_files")
-	if err != nil || !hasMediaFiles {
-		return hasMediaFiles, err
-	}
-	return r.hasColumn(ctx, "media_assets", "status")
+	return themeSegmentPreviewSchemaAvailableOnPool(ctx, r.db)
 }
 
 func (r *AdminContentRepository) hasColumn(ctx context.Context, tableName, columnName string) (bool, error) {
+	return hasColumnOnPool(ctx, r.db, tableName, columnName)
+}
+
+// themeSegmentPreviewSchemaAvailableOnPool ist die *pgxpool.Pool-Variante von
+// themeSegmentPreviewSchemaAvailable, damit auch ReleaseDetailPublicRepository
+// (loadReleaseSegments, Plan 172-02) denselben Feature-Detection-Guard nutzen kann wie
+// AdminContentRepository -- ohne diesen Guard wuerde jede Phase-117-Testfixture, die das
+// Vorschaubild-Schema nicht modelliert (z.B. segment_origin_query_budget_test.go, Plan
+// 156-09), mit "relation media_files does not exist" abbrechen, sobald loadReleaseSegments
+// die Vorschaubild-Aufloesung aufruft.
+func themeSegmentPreviewSchemaAvailableOnPool(ctx context.Context, db *pgxpool.Pool) (bool, error) {
+	hasMediaFiles, err := hasTableOnPool(ctx, db, "media_files")
+	if err != nil || !hasMediaFiles {
+		return hasMediaFiles, err
+	}
+	return hasColumnOnPool(ctx, db, "media_assets", "status")
+}
+
+func hasTableOnPool(ctx context.Context, db *pgxpool.Pool, tableName string) (bool, error) {
 	var exists bool
-	if err := r.db.QueryRow(ctx, `
+	if err := db.QueryRow(ctx, `
+		SELECT EXISTS(
+			SELECT 1
+			FROM information_schema.tables
+			WHERE table_schema = current_schema()
+			  AND table_name = $1
+		)
+	`, tableName).Scan(&exists); err != nil {
+		return false, fmt.Errorf("detect table %s: %w", tableName, err)
+	}
+	return exists, nil
+}
+
+func hasColumnOnPool(ctx context.Context, db *pgxpool.Pool, tableName, columnName string) (bool, error) {
+	var exists bool
+	if err := db.QueryRow(ctx, `
 		SELECT EXISTS(
 			SELECT 1
 			FROM information_schema.columns
@@ -185,6 +215,173 @@ func (r *AdminContentRepository) hasColumn(ctx context.Context, tableName, colum
 		return false, fmt.Errorf("detect column %s.%s: %w", tableName, columnName, err)
 	}
 	return exists, nil
+}
+
+// resolveThemeSegmentPreviewAssetsBatch ist die Mehrfach-Segment-Variante von
+// resolveThemeSegmentPreviewAsset, fuer EINEN gemeinsamen fallbackReleaseVersionID
+// (loadReleaseSegments ruft sie immer fuer genau EINE betrachtete Release-Version auf --
+// alle Segmente dieses Aufrufs teilen sich dieselbe Folge, also auch denselben
+// Ersatzbild-Kontext). Behavioral identisch zu N Einzelaufrufen von
+// resolveThemeSegmentPreviewAsset (dieselben SQL-Praedikate: ma.status='ready',
+// media_files.variant='original'/NULL fuer manuell/automatisch, die exakte
+// is_preview_candidate-Korrelationsabfrage fuer das Ersatzbild) -- aber in konstant
+// <=2 zusaetzlichen Queries statt N, um den von Plan 156-09 (segment_origin_query_budget_
+// test.go, P156-16/P156-17/T-156-17) erzwungenen konstanten Query-Budget nicht zu
+// verletzen. manualAssetIDs/autoAssetIDs muessen gleich lang sein (ein Paar pro Segment,
+// in derselben Reihenfolge); das Ergebnis hat dieselbe Laenge.
+func resolveThemeSegmentPreviewAssetsBatch(
+	ctx context.Context,
+	db *pgxpool.Pool,
+	manualAssetIDs []*int64,
+	autoAssetIDs []*int64,
+	fallbackReleaseVersionID int64,
+) ([]*string, error) {
+	if len(manualAssetIDs) != len(autoAssetIDs) {
+		return nil, fmt.Errorf("resolve theme segment preview assets batch: manual/auto length mismatch (%d vs %d)", len(manualAssetIDs), len(autoAssetIDs))
+	}
+	result := make([]*string, len(manualAssetIDs))
+
+	idSet := make(map[int64]struct{})
+	for _, id := range manualAssetIDs {
+		if id != nil {
+			idSet[*id] = struct{}{}
+		}
+	}
+	for _, id := range autoAssetIDs {
+		if id != nil {
+			idSet[*id] = struct{}{}
+		}
+	}
+
+	pathByAssetID := make(map[int64]string, len(idSet))
+	if len(idSet) > 0 {
+		ids := make([]int64, 0, len(idSet))
+		for id := range idSet {
+			ids = append(ids, id)
+		}
+		rows, err := db.Query(ctx, `
+			SELECT ma.id, COALESCE(mf.path, ma.file_path)
+			FROM media_assets ma
+			LEFT JOIN media_files mf ON mf.media_id = ma.id
+				AND (mf.variant = 'original' OR mf.variant IS NULL)
+				AND mf.status = 'ready'
+			WHERE ma.id = ANY($1) AND ma.status = 'ready'
+			ORDER BY ma.id ASC, mf.id ASC
+		`, ids)
+		if err != nil {
+			return nil, fmt.Errorf("resolve theme segment preview assets batch manual/auto: %w", err)
+		}
+		for rows.Next() {
+			var assetID int64
+			var path string
+			if scanErr := rows.Scan(&assetID, &path); scanErr != nil {
+				rows.Close()
+				return nil, fmt.Errorf("resolve theme segment preview assets batch manual/auto scan: %w", scanErr)
+			}
+			// Erste Zeile pro Asset gewinnt (ORDER BY ma.id, mf.id ASC -- analog zu
+			// resolveThemeSegmentPreviewAsset's LIMIT 1).
+			if _, exists := pathByAssetID[assetID]; !exists {
+				pathByAssetID[assetID] = path
+			}
+		}
+		rowsErr := rows.Err()
+		rows.Close()
+		if rowsErr != nil {
+			return nil, fmt.Errorf("resolve theme segment preview assets batch manual/auto iterate: %w", rowsErr)
+		}
+	}
+
+	needsFallback := false
+	for i := range result {
+		if id := manualAssetIDs[i]; id != nil {
+			if path, ok := pathByAssetID[*id]; ok {
+				p := path
+				result[i] = &p
+				continue
+			}
+		}
+		if id := autoAssetIDs[i]; id != nil {
+			if path, ok := pathByAssetID[*id]; ok {
+				p := path
+				result[i] = &p
+				continue
+			}
+		}
+		needsFallback = true
+	}
+
+	if !needsFallback || fallbackReleaseVersionID <= 0 {
+		return result, nil
+	}
+
+	var fallbackPath *string
+	if err := db.QueryRow(ctx, `
+		SELECT COALESCE(mf_thumb.path, mf_orig.path, ma.file_path)
+		FROM release_version_media rvm_preview
+		JOIN media_assets ma ON ma.id = rvm_preview.media_asset_id
+		LEFT JOIN media_files mf_thumb ON mf_thumb.media_id = ma.id AND mf_thumb.variant = 'thumb' AND mf_thumb.status = 'ready'
+		LEFT JOIN media_files mf_orig ON mf_orig.media_id = ma.id AND (mf_orig.variant = 'original' OR mf_orig.variant IS NULL) AND mf_orig.status = 'ready'
+		JOIN visibilities v_preview ON v_preview.id = ma.visibility_id
+		JOIN review_statuses rs_preview ON rs_preview.id = ma.review_status_id
+		WHERE rvm_preview.release_version_id = $1
+		  AND rvm_preview.deleted_at IS NULL
+		  AND rvm_preview.is_preview_candidate = TRUE
+		  AND ma.status = 'ready'
+		  AND v_preview.name = 'public'
+		  AND rs_preview.code = 'approved'
+		ORDER BY rvm_preview.sort_order ASC, rvm_preview.id ASC
+		LIMIT 1
+	`, fallbackReleaseVersionID).Scan(&fallbackPath); err != nil && !errors.Is(err, pgx.ErrNoRows) {
+		return nil, fmt.Errorf("resolve theme segment preview assets batch fallback: %w", err)
+	}
+
+	if fallbackPath == nil {
+		return result, nil
+	}
+	for i := range result {
+		if result[i] == nil {
+			p := *fallbackPath
+			result[i] = &p
+		}
+	}
+	return result, nil
+}
+
+// applyThemeSegmentPreviewURLs setzt item.PreviewURL fuer jedes Element von items (Plan
+// 172-02, D-09/loadReleaseSegments) ueber resolveThemeSegmentPreviewAssetsBatch --
+// ausgelagert aus release_detail_public_repository_helpers.go, damit die Public-Release-
+// Detailseite denselben Feature-Detection-Guard (themeSegmentPreviewSchemaAvailableOnPool)
+// und dieselbe Batch-Aufloesung nutzt wie der Rest dieser Datei, ohne
+// release_detail_public_repository_helpers.go weiter ueber das CLAUDE.md-450-Zeilen-Limit
+// hinauswachsen zu lassen. items, manualAssetIDs und autoAssetIDs muessen gleich lang sein
+// (ein Tripel pro Segment, in derselben Reihenfolge); mutiert items in-place.
+func applyThemeSegmentPreviewURLs(
+	ctx context.Context,
+	db *pgxpool.Pool,
+	items []PublicReleaseSegment,
+	manualAssetIDs []*int64,
+	autoAssetIDs []*int64,
+	fallbackReleaseVersionID int64,
+	mediaStorageDir string,
+) error {
+	available, err := themeSegmentPreviewSchemaAvailableOnPool(ctx, db)
+	if err != nil {
+		return fmt.Errorf("detect preview schema: %w", err)
+	}
+	if !available {
+		return nil
+	}
+
+	previewPaths, err := resolveThemeSegmentPreviewAssetsBatch(ctx, db, manualAssetIDs, autoAssetIDs, fallbackReleaseVersionID)
+	if err != nil {
+		return fmt.Errorf("resolve segment previews: %w", err)
+	}
+	for i, previewPath := range previewPaths {
+		if previewPath != nil {
+			items[i].PreviewURL = publicMediaURLForPath(*previewPath, mediaStorageDir)
+		}
+	}
+	return nil
 }
 
 // hydrateSegmentPreviewMetadataList wendet hydrateSegmentPreviewMetadata auf jedes

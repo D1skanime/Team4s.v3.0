@@ -49,7 +49,22 @@ import (
 // and one bundled query for AppliesThroughEpisode -- observed and pinned
 // below. Update this constant ONLY for an intentional, documented loader
 // change.
-const phase156SegmentOriginConstantQueryBudget = 4
+//
+// Phase 172, Plan 172-02 (D-09): bumped 4 -> 5. loadReleaseSegments now also resolves
+// preview_url via the shared theme_segment_preview.go resolution (manual > auto >
+// fallback, same contract as the admin read paths from Plan 172-01), replacing the old
+// theme_segment_playback_sources join chain. This adds exactly ONE extra query in THIS
+// test's fixture: the schema-availability guard query (themeSegmentPreviewSchemaAvailable
+// OnPool, same feature-detection convention Plan 172-01 already established for the admin
+// hydration path) -- this test's isolated schema does not model media_files/
+// media_assets.status at all, so the guard short-circuits to "unavailable" after its own
+// single query and the rest of the preview resolution (manual/auto batch query, fallback
+// query) never runs. Where the schema IS available, resolveThemeSegmentPreviewAssetsBatch
+// still resolves ALL segments of one release version in a SHARED, constant <=2 further
+// queries regardless of segment count (never N+1 per segment) -- see
+// TestLoadReleaseSegments_PreviewResolution/TestLoadReleaseSegments_SharedSegmentSameImage
+// AcrossAssignments in release_detail_public_repository_helpers_test.go for that coverage.
+const phase156SegmentOriginConstantQueryBudget = 5
 
 // openTracedPoolOnSameSchema opens a SECOND *pgxpool.Pool against the same DSN
 // and the exact isolated schema that fixturePool (opened via
