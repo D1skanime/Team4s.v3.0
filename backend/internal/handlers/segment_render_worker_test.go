@@ -39,6 +39,16 @@ type fakeSegmentStreamThemeRepo struct {
 	readyInputs     []models.ThemeSegmentRenderCacheReadyInput
 	claimCalled     bool
 	failureMessages []string
+
+	// autoPreviewOldValue/autoPreviewErr steuern den Rueckgabewert von
+	// SetThemeSegmentAutoPreview; autoPreviewCalls erlaubt Plan 172-04s Tests, den Render-
+	// Worker-Auto-Preview-Write zu verifizieren (Phase 172, D-04/D-08).
+	autoPreviewOldValue *int64
+	autoPreviewErr      error
+	autoPreviewCalls    []struct {
+		SegmentID    int64
+		MediaAssetID int64
+	}
 }
 
 func (f *fakeSegmentStreamThemeRepo) GetThemeSegmentRenderSource(ctx context.Context, segmentID int64, releaseVersionID int64) (*models.ThemeSegmentRenderSource, error) {
@@ -109,6 +119,17 @@ func (f *fakeSegmentStreamThemeRepo) MarkThemeSegmentRenderCacheFailed(ctx conte
 	f.failureCodes = append(f.failureCodes, errorCode)
 	f.failureMessages = append(f.failureMessages, errorMessage)
 	return nil
+}
+
+func (f *fakeSegmentStreamThemeRepo) SetThemeSegmentAutoPreview(ctx context.Context, segmentID int64, mediaAssetID int64) (*int64, error) {
+	f.autoPreviewCalls = append(f.autoPreviewCalls, struct {
+		SegmentID    int64
+		MediaAssetID int64
+	}{SegmentID: segmentID, MediaAssetID: mediaAssetID})
+	if f.autoPreviewErr != nil {
+		return nil, f.autoPreviewErr
+	}
+	return f.autoPreviewOldValue, nil
 }
 
 func segmentRenderTestSource() *models.ThemeSegmentRenderSource {

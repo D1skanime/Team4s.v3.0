@@ -111,6 +111,14 @@ type adminThemeRepository interface {
 	ListFansubAnimeReleasesPage(ctx context.Context, fansubGroupID int64, animeID int64, page int, perPage int) ([]models.AdminFansubReleaseSummary, int64, error)
 	GetCanonicalFansubAnimeReleaseSummary(ctx context.Context, fansubGroupID int64, animeID int64) (*models.CanonicalFansubAnimeReleaseResponse, error)
 	GetAdminReleaseByID(ctx context.Context, releaseID int64) (*models.AdminFansubReleaseSummary, error)
+	// SetThemeSegmentManualPreview/ResetThemeSegmentManualPreview/
+	// AttachSegmentPreviewImageFromReleaseVersion/ListSegmentPreviewImageCandidates (Phase 172,
+	// Plan 172-03, D-08/D-11): die vier manuellen Vorschaubild-Schreibpfade (Upload/
+	// Picker-Attach/Reset) plus der Picker-Kandidatenlisten-Lesepfad.
+	SetThemeSegmentManualPreview(ctx context.Context, segmentID int64, mediaAssetID int64) (*int64, error)
+	ResetThemeSegmentManualPreview(ctx context.Context, segmentID int64) (*int64, error)
+	AttachSegmentPreviewImageFromReleaseVersion(ctx context.Context, segmentID int64, mediaAssetID int64) (*int64, error)
+	ListSegmentPreviewImageCandidates(ctx context.Context, segmentID int64, mediaStorageDir string) ([]models.AdminSegmentPreviewImageCandidate, error)
 }
 
 // adminContentRelationRepository definiert den Datenbankzugriff für Anime-Relationen im Admin-Bereich.

@@ -32,6 +32,9 @@ type segmentStreamThemeRepository interface {
 	ClaimNextQueuedThemeSegmentRender(ctx context.Context) (*models.ThemeSegmentRenderCache, error)
 	MarkThemeSegmentRenderCacheReady(ctx context.Context, input models.ThemeSegmentRenderCacheReadyInput) error
 	MarkThemeSegmentRenderCacheFailed(ctx context.Context, cacheKey string, errorCode string, errorMessage string) error
+	// SetThemeSegmentAutoPreview (Phase 172, Plan 172-03, D-04/D-08): der Render-Worker-
+	// Schreibpfad fuer das automatische Vorschaubild -- ruehrt preview_media_asset_id NIE an.
+	SetThemeSegmentAutoPreview(ctx context.Context, segmentID int64, mediaAssetID int64) (*int64, error)
 }
 
 // parseOptionalReleaseVersionIDQuery liest einen optionalen release_version_id

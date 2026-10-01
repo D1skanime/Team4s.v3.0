@@ -198,6 +198,18 @@ func (s *fansubReleaseThemeRepoStub) GetAdminReleaseByID(ctx context.Context, re
 	}
 	return nil, repository.ErrNotFound
 }
+func (s *fansubReleaseThemeRepoStub) SetThemeSegmentManualPreview(ctx context.Context, segmentID int64, mediaAssetID int64) (*int64, error) {
+	return nil, nil
+}
+func (s *fansubReleaseThemeRepoStub) ResetThemeSegmentManualPreview(ctx context.Context, segmentID int64) (*int64, error) {
+	return nil, nil
+}
+func (s *fansubReleaseThemeRepoStub) AttachSegmentPreviewImageFromReleaseVersion(ctx context.Context, segmentID int64, mediaAssetID int64) (*int64, error) {
+	return nil, nil
+}
+func (s *fansubReleaseThemeRepoStub) ListSegmentPreviewImageCandidates(ctx context.Context, segmentID int64, mediaStorageDir string) ([]models.AdminSegmentPreviewImageCandidate, error) {
+	return nil, nil
+}
 
 // --------- Handler route/source presence tests ---------
 

@@ -136,6 +136,9 @@ func (f *rangeAutoAssignThemeRepo) MarkThemeSegmentRenderCacheReady(ctx context.
 func (f *rangeAutoAssignThemeRepo) MarkThemeSegmentRenderCacheFailed(ctx context.Context, cacheKey string, errorCode string, errorMessage string) error {
 	return nil
 }
+func (f *rangeAutoAssignThemeRepo) SetThemeSegmentAutoPreview(ctx context.Context, segmentID int64, mediaAssetID int64) (*int64, error) {
+	return nil, nil
+}
 
 // TestCreateAnimeSegment_RangeAutoAssignsAllEpisodesInRange beweist, dass ein neu angelegtes
 // Segment mit einem Episodenbereich (start_episode/end_episode) beim Speichern AUTOMATISCH allen

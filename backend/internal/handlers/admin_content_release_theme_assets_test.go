@@ -193,6 +193,18 @@ func (s *releaseThemeAssetRepoStub) GetCanonicalFansubAnimeReleaseSummary(contex
 func (s *releaseThemeAssetRepoStub) GetAdminReleaseByID(context.Context, int64) (*models.AdminFansubReleaseSummary, error) {
 	return nil, repository.ErrNotFound
 }
+func (s *releaseThemeAssetRepoStub) SetThemeSegmentManualPreview(context.Context, int64, int64) (*int64, error) {
+	return nil, nil
+}
+func (s *releaseThemeAssetRepoStub) ResetThemeSegmentManualPreview(context.Context, int64) (*int64, error) {
+	return nil, nil
+}
+func (s *releaseThemeAssetRepoStub) AttachSegmentPreviewImageFromReleaseVersion(context.Context, int64, int64) (*int64, error) {
+	return nil, nil
+}
+func (s *releaseThemeAssetRepoStub) ListSegmentPreviewImageCandidates(context.Context, int64, string) ([]models.AdminSegmentPreviewImageCandidate, error) {
+	return nil, nil
+}
 
 // openReleaseThemeAssetMediaFixture provisions a real, schema-isolated Postgres fixture with
 // just enough production-shaped schema for MediaRepository.CreateMediaAsset/InsertMediaFile/
