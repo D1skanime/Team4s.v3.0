@@ -2246,7 +2246,7 @@ Plans:
 **Goal:** Jedes Kara-Segment hat ein garantiert vorhandenes, ueber Admin-Media-Liste und Public-Release-Story identisch aufgeloestes Vorschaubild — automatisch aus dem Render bei ~35% der Segmentdauer erzeugt und auf der Segment-Seite manuell per Upload oder Release-Bild-Uebernahme ersetzbar, ohne Review-Pruefung.
 **Requirements**: D-01, D-02, D-03, D-04, D-05, D-06, D-07, D-08, D-09, D-10, D-11, D-12, D-13
 **Depends on:** Phase 171
-**Plans:** 6/10 plans executed
+**Plans:** 7/10 plans executed
 
 Plans:
 **Wave 1**
@@ -2266,7 +2266,7 @@ Plans:
 **Wave 4** *(blocked on Wave 3 completion)*
 
 - [x] 172-06-PLAN.md — one-off backfill binary for existing finished renders (Release 27)
-- [ ] 172-07-PLAN.md — frontend types/api.ts functions + OpenAPI/admin-content contract sync
+- [x] 172-07-PLAN.md — frontend types/api.ts functions + OpenAPI/admin-content contract sync
 
 **Wave 5** *(blocked on Wave 4 completion)*
 
