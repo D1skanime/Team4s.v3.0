@@ -488,7 +488,7 @@ export function useReleaseVersionMedia(versionId: number | null, storyContext?: 
         }
         if (entry.type === 'kara' && entry.theme_segment_id != null) {
           const segment = segmentsByID.get(entry.theme_segment_id)
-          if (segment) story.push(createKaraStoryItem(segment, nextItems, entry.sort_order))
+          if (segment) story.push(createKaraStoryItem(segment, entry.sort_order))
         }
         return story
       }, [])
@@ -497,7 +497,7 @@ export function useReleaseVersionMedia(versionId: number | null, storyContext?: 
         setStoryItems(sortStoryItems(persistedStoryItems))
       } else {
         const mediaStoryItems = nextItems.map((media) => ({ type: 'media' as const, media, sort_order: media.sort_order }))
-        const karaStoryItems = nextSegments.map((segment, index) => createKaraStoryItem(segment, nextItems, (nextItems.at(-1)?.sort_order ?? 0) + (index + 1) * 10))
+        const karaStoryItems = nextSegments.map((segment, index) => createKaraStoryItem(segment, (nextItems.at(-1)?.sort_order ?? 0) + (index + 1) * 10))
         setStoryItems(sortStoryItems([...mediaStoryItems, ...karaStoryItems]))
       }
       setCapabilities(capabilitiesResponseData.data)

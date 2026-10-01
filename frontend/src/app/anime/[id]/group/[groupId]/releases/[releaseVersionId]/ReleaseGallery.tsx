@@ -142,7 +142,8 @@ export function ReleaseGallery({ animeID, groupID, releaseVersionID, initialImag
   }
 
   const renderKara = (segment: PublicReleaseSegment) => {
-    const previewUrl = segment.preview_url ?? '/covers/placeholder.jpg'
+    // D-10: Ersatzbild loest das Backend auf; fehlt es ganz, greift der Platzhalter unten.
+    const previewUrl = segment.preview_url
     return <article id={'release-story-kara-' + segment.theme_segment_id} key={'kara-' + segment.theme_segment_id} data-testid={'release-kara-card-' + segment.theme_segment_id} data-kara-type={segmentTypeDisplayLabel(segment.type).toLowerCase()} className={styles.karaCard}>
       <div className={styles.karaPreviewWrap}>
         {previewUrl

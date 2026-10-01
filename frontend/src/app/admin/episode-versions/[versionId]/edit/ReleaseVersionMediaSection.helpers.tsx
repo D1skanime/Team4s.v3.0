@@ -80,20 +80,15 @@ export function getKaraStatusLabel(segment: AdminThemeSegment): string {
   return 'Quelle offen'
 }
 
-export function createKaraStoryItem(
-  segment: AdminThemeSegment,
-  mediaItems: ReleaseVersionMediaItem[],
-  sortOrder: number,
-): ReleaseVersionKaraStoryItem {
-  const fallback =
-    mediaItems.find((item) => item.is_preview_candidate && item.thumbnail_url) ??
-    mediaItems.find((item) => item.thumbnail_url)
+export function createKaraStoryItem(segment: AdminThemeSegment, sortOrder: number): ReleaseVersionKaraStoryItem {
+  // D-09/D-10: das Vorschaubild kommt aufgeloest vom Backend (manuell > automatisch > Ersatzbild);
+  // keine eigene Ersatzbild-Heuristik im Frontend.
   return {
     type: 'kara',
     segment,
     sort_order: sortOrder,
-    thumbnail_url: fallback?.thumbnail_url ?? null,
-    thumbnail_is_fallback: Boolean(fallback),
+    thumbnail_url: segment.preview_url ?? null,
+    thumbnail_is_fallback: segment.preview_source === 'fallback',
   }
 }
 

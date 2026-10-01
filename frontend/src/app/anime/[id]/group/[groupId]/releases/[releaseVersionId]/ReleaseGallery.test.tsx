@@ -284,7 +284,8 @@ describe('ReleaseGallery mixed public story', () => {
       'release-kara-card-42',
       'release-image-card-1',
     ])
-    expect(screen.getByRole('img', { name: 'Preview für Moonlight OP' }).getAttribute('src')).toBe('/covers/placeholder.jpg')
+    // D-10: ohne aufgeloestes Backend-Vorschaubild kein hartcodiertes Ersatzbild, sondern der Platzhalter.
+    expect(screen.queryByRole('img', { name: 'Preview für Moonlight OP' })).toBeNull()
     expect(screen.getByRole('link', { name: 'Anmelden zum Abspielen' }).getAttribute('href')).toBe('/login?next=%2Fanime%2F1%2Fgroup%2F2%2Freleases%2F3%3Fkara%3D42%26autoplay%3D1%23op-ed-middle')
   })
 
