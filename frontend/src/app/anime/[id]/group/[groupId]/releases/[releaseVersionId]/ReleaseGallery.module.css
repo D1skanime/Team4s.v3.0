@@ -256,3 +256,70 @@
 .karaContent {
   padding: 0 13px 13px;
 }
+
+
+/* Remove shared control sizing from media cards. */
+.card {
+  align-items: start;
+  align-content: start;
+  gap: 0;
+}
+.imageButton {
+  display: block;
+  height: auto;
+  min-height: 0 !important;
+  padding: 0 !important;
+  line-height: 0;
+}
+.imageShell {
+  line-height: 0;
+  vertical-align: top;
+}
+.imageCategory {
+  display: inline-flex !important;
+  align-self: start;
+  min-height: 0 !important;
+  height: auto !important;
+  padding: 5px 10px !important;
+  line-height: 1 !important;
+}
+
+
+/* Highlights use the editorial one-row layout from the public sketch. */
+@media (min-width: 601px) {
+  .featuredCard {
+    display: grid;
+    grid-template-columns: minmax(0, 42%) minmax(0, 1fr);
+    grid-template-rows: auto 1fr;
+    gap: 0 18px;
+    padding: 14px;
+    align-items: start;
+  }
+  .featuredCard .imageButton {
+    grid-column: 1;
+    grid-row: 1;
+  }
+  .featuredCard .imageShell {
+    aspect-ratio: 16 / 9;
+  }
+  .featuredCard .imageCategory {
+    grid-column: 1;
+    grid-row: 2;
+    margin-left: 0;
+  }
+  .featuredCard .meta {
+    grid-column: 2;
+    grid-row: 1 / span 2;
+    padding: 0;
+    align-self: center;
+  }
+}
+@media (max-width: 600px) {
+  .featuredCard {
+    display: block;
+    padding: 0;
+  }
+  .featuredCard .meta {
+    padding: 0 13px 13px;
+  }
+}
