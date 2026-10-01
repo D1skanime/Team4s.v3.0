@@ -369,3 +369,38 @@
     padding: 0 13px 13px;
   }
 }
+
+
+/* Public sketch: play control is an icon overlay, and the continuation hint
+   shares the compact category-chip row. */
+.karaPlayButton {
+  display: grid;
+  place-items: center;
+  width: 48px;
+  height: 48px;
+  min-width: 48px;
+  min-height: 48px !important;
+  padding: 0 !important;
+  border-radius: 999px;
+}
+.karaBadges {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 8px;
+  padding: 10px 13px 0;
+}
+.karaBadges .karaCategory,
+.karaBadges .karaApplies {
+  margin: 0;
+}
+.karaApplies {
+  border-radius: 4px;
+}
+.featuredCard .caption {
+  display: block;
+  overflow: visible;
+  -webkit-line-clamp: unset;
+  font-size: 15px;
+  line-height: 1.6;
+}

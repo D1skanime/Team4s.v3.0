@@ -1,6 +1,6 @@
 'use client'
 
-import { Lock, Maximize2, Play } from 'lucide-react'
+import { Lock, Play } from 'lucide-react'
 import Image from 'next/image'
 import { useEffect, useState } from 'react'
 
@@ -84,7 +84,6 @@ export function ReleaseGallery({ animeID, groupID, releaseVersionID, initialImag
   if (!total) return null
 
   const visibleCount = expanded ? Math.max(items.length, story.length) : Math.min(collapsedLimit, Math.max(items.length, story.length))
-  const groupNamesByID = new Map(groups.map(group => [group.id, group.name]))
   const featuredImage = items.find(image => image.is_preview_candidate) ?? items[0] ?? null
   const legacyHighlights = items
     .filter(image => image.is_highlight && image.id !== featuredImage?.id)
@@ -136,12 +135,10 @@ export function ReleaseGallery({ animeID, groupID, releaseVersionID, initialImag
   const renderImage = (image: PublicReleaseImage, featured = false) => {
     const src = image.thumbnail_url ?? image.original_url
     const title = image.title?.trim() || image.caption?.trim() || CATEGORY_LABELS[image.category]
-    const sourceGroupName = image.fansub_group_id ? groupNamesByID.get(image.fansub_group_id) : null
     return <article key={image.id} data-testid={`release-image-card-${image.id}`} className={`${styles.card} ${featured || image.is_highlight ? styles.featuredCard : ''}`}>
       <Button type="button" variant="ghost" className={styles.imageButton} aria-label={`${title} öffnen`} onClick={() => setActiveImageID(image.id)}>
         <span className={styles.imageShell}>
           {src ? <Image src={src} alt={title} className={styles.image} fill sizes="(max-width: 600px) 45vw, (max-width: 900px) 40vw, 28vw" unoptimized /> : <span className={styles.imagePlaceholder} aria-hidden="true" />}
-          <span className={styles.maximize} aria-hidden="true"><Maximize2 size={16} /></span>
         </span>
       </Button>
       <Badge variant="muted" className={styles.imageCategory} data-category={image.category}>{CATEGORY_LABELS[image.category]}</Badge>
@@ -149,17 +146,14 @@ export function ReleaseGallery({ animeID, groupID, releaseVersionID, initialImag
         <p className={styles.caption}>{image.title?.trim() ? <strong>{title}</strong> : title}</p>
         {image.title?.trim() && image.caption?.trim() ? <p className={styles.caption}>{image.caption}</p> : null}
         <div className={styles.metaRow}>
-          {image.is_preview_candidate ? <Badge variant="info">Vorschau</Badge> : null}
-          {image.is_highlight ? <Badge variant="success">Highlight</Badge> : null}
           <span className={styles.uploaderChip}>Uploaded von {image.author_name ?? 'Unbekannt'}</span>
-          {sourceGroupName ? <span>{sourceGroupName}</span> : null}
         </div>
       </div>
     </article>
   }
 
   const renderKara = (segment: PublicReleaseSegment) => {
-    const previewUrl = segment.preview_url ?? featuredImage?.thumbnail_url ?? featuredImage?.original_url
+    const previewUrl = segment.preview_url ?? '/covers/placeholder.jpg'
     return <article id={'release-story-kara-' + segment.theme_segment_id} key={'kara-' + segment.theme_segment_id} data-testid={'release-kara-card-' + segment.theme_segment_id} data-kara-type={karaTypeLabel(segment.type).toLowerCase()} className={styles.karaCard}>
       <div className={styles.karaPreviewWrap}>
         {previewUrl
@@ -167,11 +161,13 @@ export function ReleaseGallery({ animeID, groupID, releaseVersionID, initialImag
           : <div className={styles.karaPlaceholder} aria-hidden="true" />}
         <KaraStoryPlayback segment={segment} releaseVersionID={releaseVersionID} />
       </div>
-      <Badge variant="muted" className={styles.karaCategory} data-kara-type={karaTypeLabel(segment.type).toLowerCase()}>{karaTypeLabel(segment.type)}</Badge>
+      <div className={styles.karaBadges}>
+        <Badge variant="muted" className={styles.karaCategory} data-kara-type={karaTypeLabel(segment.type).toLowerCase()}>{karaTypeLabel(segment.type)}</Badge>
+        {segment.applies_through_episode ? <Badge variant="muted" className={styles.karaApplies}>Gilt auch für Folge {episodeNumber}–{segment.applies_through_episode}</Badge> : null}
+      </div>
       <div className={styles.karaContent}>
         <h3>{segment.name}</h3>
         <p className={styles.karaDuration}>Dauer {formatDuration(segment.duration_seconds)}</p>
-        {segment.applies_through_episode ? <Badge variant="muted">Gilt auch für Folge {episodeNumber}–{segment.applies_through_episode}</Badge> : null}
         {segment.participants.length > 0 ? <ParticipantsDisclosure segment={segment} projectPath={projectPath} /> : null}
       </div>
     </article>
@@ -218,7 +214,7 @@ function KaraStoryPlayback({ segment, releaseVersionID }: { segment: PublicRelea
   if (segment.readiness !== 'ready') return <span className={styles.karaUnavailable}>Noch nicht abspielbar</span>
   if (!session.isClientInitialized) return null
   if (!hasSession) {
-    return <Button href="/login" variant="secondary" leftIcon={<Lock size={16} aria-hidden="true" />} className={styles.karaPlayButton}>Anmelden zum Abspielen</Button>
+    return <Button href="/login" variant="secondary" aria-label="Anmelden zum Abspielen" className={styles.karaPlayButton}><Lock size={20} aria-hidden="true" /></Button>
   }
   if (playing) {
     return <div className={styles.karaPlayer}>
@@ -233,5 +229,5 @@ function KaraStoryPlayback({ segment, releaseVersionID }: { segment: PublicRelea
       {playbackError ? <p className={styles.karaPlaybackError}>Dieses Kara-Segment konnte nicht abgespielt werden. Bitte versuche es erneut.</p> : null}
     </div>
   }
-  return <Button leftIcon={<Play size={16} aria-hidden="true" />} className={styles.karaPlayButton} onClick={() => { setPlaybackError(false); setPlaying(true) }}>Kara abspielen</Button>
+  return <Button aria-label="Kara abspielen" className={styles.karaPlayButton} onClick={() => { setPlaybackError(false); setPlaying(true) }}><Play size={20} aria-hidden="true" /></Button>
 }

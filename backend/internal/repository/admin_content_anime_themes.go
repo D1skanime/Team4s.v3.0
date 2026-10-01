@@ -461,6 +461,11 @@ func (r *AdminContentRepository) ListAnimeSegments(ctx context.Context, animeID 
 		args = append(args, version)
 		argIdx++
 	}
+	if currentReleaseVersionID > 0 {
+		query += fmt.Sprintf(" AND EXISTS (SELECT 1 FROM theme_segment_assignments tsa WHERE tsa.theme_segment_id = ts.id AND tsa.release_version_id = $%d)", argIdx)
+		args = append(args, currentReleaseVersionID)
+		argIdx++
+	}
 
 	query += " ORDER BY ts.id"
 

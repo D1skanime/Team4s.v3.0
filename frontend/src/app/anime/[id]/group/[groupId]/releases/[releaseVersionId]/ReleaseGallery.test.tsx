@@ -75,8 +75,8 @@ describe('ReleaseGallery', () => {
     expect(screen.getByTestId('release-image-grid').children).toHaveLength(2)
     expect(screen.queryByTestId('release-image-groups')).toBeNull()
     expect(screen.queryByText('Herkunftsgruppe')).toBeNull()
-    expect(screen.getByText('C-Subs')).toBeTruthy()
-    expect(screen.getByText('D-Subs')).toBeTruthy()
+    expect(screen.queryByText('C-Subs')).toBeNull()
+    expect(screen.queryByText('D-Subs')).toBeNull()
   })
 
   it('uses the responsive source for mobile two-item reveal and remaining label', async () => {
@@ -135,8 +135,8 @@ describe('ReleaseGallery', () => {
       'release-image-card-10',
       'release-image-card-12',
     ])
-    expect(screen.getByText('Vorschau')).toBeTruthy()
-    expect(screen.getAllByText('Highlight')).toHaveLength(2)
+    expect(screen.queryByText('Vorschau')).toBeNull()
+    expect(screen.queryByText('Highlight')).toBeNull()
   })
 
   it('does not repeat a caption that is identical to the category title in the lightbox', () => {
@@ -217,7 +217,7 @@ describe('ReleaseGallery mixed public story', () => {
       'release-kara-card-42',
       'release-image-card-1',
     ])
-    expect(screen.getByRole('img', { name: 'Preview für Moonlight OP' }).getAttribute('src')).toContain('thumb-1.jpg')
+    expect(screen.getByRole('img', { name: 'Preview für Moonlight OP' }).getAttribute('src')).toBe('/covers/placeholder.jpg')
     expect(screen.getByRole('link', { name: 'Anmelden zum Abspielen' }).getAttribute('href')).toBe('/login')
   })
 })

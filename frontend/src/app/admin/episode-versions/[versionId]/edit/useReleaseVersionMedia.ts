@@ -474,7 +474,9 @@ export function useReleaseVersionMedia(versionId: number | null, storyContext?: 
       setAppliedKey(state.key)
       const [mediaResponse, capabilitiesResponseData, segmentResponse] = state.data!
       const nextItems = sortMediaItems(Array.isArray(mediaResponse.data) ? mediaResponse.data : [])
-      const nextSegments = Array.isArray(segmentResponse.data) ? segmentResponse.data : []
+      const nextSegments = Array.isArray(segmentResponse.data)
+        ? segmentResponse.data.filter((segment) => (segment.assigned_release_version_ids ?? []).includes(versionId as number))
+        : []
       setItems(nextItems)
       setSegments(nextSegments)
       const mediaStoryItems = nextItems.map((media) => ({ type: 'media' as const, media, sort_order: media.sort_order }))
