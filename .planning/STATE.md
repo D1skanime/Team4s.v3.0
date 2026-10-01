@@ -3,14 +3,14 @@ gsd_state_version: 1.0
 milestone: v1.4
 milestone_name: Coverage
 status: executing
-stopped_at: Phase 172 UI-SPEC approved
-last_updated: "2026-10-01T17:01:18.224Z"
+stopped_at: Completed 172-01-PLAN.md
+last_updated: "2026-10-01T17:23:49.990Z"
 last_activity: 2026-10-01
 progress:
   total_phases: 37
   completed_phases: 32
   total_plans: 322
-  completed_plans: 311
+  completed_plans: 312
   percent: 86
 ---
 
@@ -287,8 +287,8 @@ Abschluss" entry below for the full closing record.
 ## Current Position
 
 Phase: 172 (kara-vorschaubild-pro-segment-automatisch-aus-dem-render-fra) — EXECUTING
-Plan: 1 of 10
-Status: Executing Phase 172
+Plan: 2 of 10
+Status: Ready to execute
 Completed: removed stale public timeline range access, repaired nullable highlight responses, batched release-version-media rights projection, hardened full-list media reorder, and synchronized the focused admin contract.
 Next: resolve or explicitly accept the pre-existing full-suite failures, then complete Phase 169 live actor/refresh/responsive UAT; Phase 166 remains open.
 
@@ -858,6 +858,8 @@ Last activity: 2026-10-01
 - [Phase 169]: Release-version curation uses existing highlight endpoints with independent preview and highlight state.
 - [Phase 169]: Public release image projections expose independent gated highlights while PreviewImage and group thumbnails remain is_preview_candidate-only.
 - [Phase 169]: The current public ReleaseGallery seam is extended; no parallel ReleaseDetailClient seam is introduced.
+- [Phase 172]: Plan 172-01: zwei nullable FK-Spalten (preview_media_asset_id/auto_preview_media_asset_id) auf theme_segments statt einer Spalte + Source-Enum (CONTEXT.md-Praeferenz, D-08: manuelle Wahl darf beim Render nie verloren gehen)
+- [Phase 172]: Plan 172-01: resolveThemeSegmentPreviewAsset nimmt die Fallback-Release-Version als Parameter statt sie intern zu berechnen, da sie je Aufrufstelle unterschiedlich ist
 
 ### Pending Todos
 
@@ -1394,13 +1396,14 @@ untruncated list lives in `.planning/todos/pending/`.
 | Phase 169 P03 | 24 | 2 tasks | 12 files |
 | Phase 169 P04 | 18min | 2 tasks | 9 files |
 | Phase 171 P03 | 35min | 3 tasks tasks | 7 files files |
+| Phase 172 P01 | 50min | 2 tasks | 10 files |
 
 ## Session Continuity
 
-Last session: 2026-10-01T15:50:34.266Z
-Stopped at: Phase 172 UI-SPEC approved
+Last session: 2026-10-01T17:23:49.975Z
+Stopped at: Completed 172-01-PLAN.md
 Last activity: 2026-09-28 - Completed Phase 169 Plan 169-01
 Resume file: 
-.planning/phases/172-kara-vorschaubild-pro-segment-automatisch-aus-dem-render-fra/172-UI-SPEC.md
+None
 
 Plans 151-02/03/04 have implementation summaries. Plans 151-01 and 151-05 remain open until final artwork/composition review, complete browser evidence and independent verification; their missing summaries are intentional. No requirement or phase has been falsely marked complete.

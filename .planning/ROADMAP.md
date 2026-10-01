@@ -2246,12 +2246,12 @@ Plans:
 **Goal:** Jedes Kara-Segment hat ein garantiert vorhandenes, ueber Admin-Media-Liste und Public-Release-Story identisch aufgeloestes Vorschaubild — automatisch aus dem Render bei ~35% der Segmentdauer erzeugt und auf der Segment-Seite manuell per Upload oder Release-Bild-Uebernahme ersetzbar, ohne Review-Pruefung.
 **Requirements**: D-01, D-02, D-03, D-04, D-05, D-06, D-07, D-08, D-09, D-10, D-11, D-12, D-13
 **Depends on:** Phase 171
-**Plans:** 10 plans
+**Plans:** 1/10 plans executed
 
 Plans:
 **Wave 1**
 
-- [ ] 172-01-PLAN.md — migration + shared manual>auto>fallback preview resolution, wired into admin list/single reads
+- [x] 172-01-PLAN.md — migration + shared manual>auto>fallback preview resolution, wired into admin list/single reads
 
 **Wave 2** *(blocked on Wave 1 completion)*
 
