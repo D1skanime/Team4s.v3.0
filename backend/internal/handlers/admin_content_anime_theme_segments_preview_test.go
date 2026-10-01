@@ -7,6 +7,8 @@ import (
 	"mime/multipart"
 	"net/http"
 	"net/http/httptest"
+	"os"
+	"path/filepath"
 	"testing"
 
 	"team4s.v3/backend/internal/middleware"
@@ -16,6 +18,7 @@ import (
 	"team4s.v3/backend/internal/services"
 
 	"github.com/gin-gonic/gin"
+	"github.com/jackc/pgx/v5/pgxpool"
 	"github.com/stretchr/testify/require"
 )
 
@@ -44,6 +47,12 @@ type segmentPreviewThemeRepoFake struct {
 
 	listCandidatesFunc   func(ctx context.Context, segmentID int64, mediaStorageDir string) ([]models.AdminSegmentPreviewImageCandidate, error)
 	listCandidatesCalled bool
+
+	// isExclusiveFunc (Code-Review-Fix D-11 Datenverlust): steuert, ob cleanupOldPreviewAsset ein
+	// ersetztes altes Asset als aufraeumbar ansieht. nil -> Standardverhalten "exklusiv" (true),
+	// damit bestehende Tests, die kein altes Asset simulieren, unveraendert bleiben.
+	isExclusiveFunc    func(ctx context.Context, mediaAssetID int64, excludeSegmentID int64) (bool, error)
+	isExclusiveCalledWith []int64
 }
 
 func (f *segmentPreviewThemeRepoFake) GetAnimeSegmentByID(ctx context.Context, animeID int64, segmentID int64, currentReleaseVersionID int64) (*models.AdminThemeSegment, error) {
@@ -90,6 +99,14 @@ func (f *segmentPreviewThemeRepoFake) ListSegmentPreviewImageCandidates(ctx cont
 		return f.listCandidatesFunc(ctx, segmentID, mediaStorageDir)
 	}
 	return []models.AdminSegmentPreviewImageCandidate{}, nil
+}
+
+func (f *segmentPreviewThemeRepoFake) IsMediaAssetExclusiveSegmentPreview(ctx context.Context, mediaAssetID int64, excludeSegmentID int64) (bool, error) {
+	f.isExclusiveCalledWith = append(f.isExclusiveCalledWith, mediaAssetID)
+	if f.isExclusiveFunc != nil {
+		return f.isExclusiveFunc(ctx, mediaAssetID, excludeSegmentID)
+	}
+	return true, nil
 }
 
 // segmentPreviewDeniedIdentity/segmentPreviewAdminIdentity: a non-platform-admin (forced through
@@ -335,6 +352,111 @@ func TestResetSegmentPreviewImage_ClearsManual(t *testing.T) {
 	require.NoError(t, json.Unmarshal(rec.Body.Bytes(), &resp))
 	require.NotNil(t, resp.Data.PreviewSource)
 	require.NotEqual(t, "manual", *resp.Data.PreviewSource)
+}
+
+// insertOldPreviewMediaAssetFixture legt ein reales media_assets/media_files-Paar (plus
+// zugehoerige Datei auf der Platte) an, um ein "durch eine neue Wahl ersetztes altes
+// Vorschaubild-Asset" in den beiden cleanupOldPreviewAsset-Regressionstests unten zu simulieren
+// (Code-Review Phase 172, D-11 Datenverlust-Fix).
+func insertOldPreviewMediaAssetFixture(t *testing.T, pool *pgxpool.Pool) (assetID int64, diskPath string) {
+	t.Helper()
+	ctx := context.Background()
+	diskPath = filepath.Join(t.TempDir(), "old-preview.png")
+	require.NoError(t, os.WriteFile(diskPath, buildMinimalPNGWithDimensions(t, 10, 10), 0o644))
+
+	require.NoError(t, pool.QueryRow(ctx, `
+		INSERT INTO media_assets (media_type_id, file_path, mime_type, format, visibility_id, review_status_id, created_at)
+		VALUES (
+			2, $1, 'image/png', 'png',
+			(SELECT id FROM visibilities WHERE name = 'public'),
+			(SELECT id FROM review_statuses WHERE code = 'approved'),
+			NOW()
+		)
+		RETURNING id
+	`, diskPath).Scan(&assetID))
+	_, err := pool.Exec(ctx, `INSERT INTO media_files (media_id, variant, path, size) VALUES ($1, 'original', $2, 0)`, assetID, diskPath)
+	require.NoError(t, err)
+	return assetID, diskPath
+}
+
+// TestResetSegmentPreviewImage_KeepsAssetStillReferencedElsewhere ist der Datenverlust-
+// Regressionstest aus dem Code-Review: wenn IsMediaAssetExclusiveSegmentPreview meldet, dass das
+// alte manuelle Asset noch anderswo existiert (z.B. release_version_media oder ein anderes
+// Segment), darf cleanupOldPreviewAsset weder die Datei noch die media_assets-Zeile loeschen --
+// genau das fehlende Gate, das vorher IMMER geloescht hat (attach Release-Bild -> reset wuerde
+// sonst die Release-Bild-Datei entfernen und die rvm-Zeile verwaist zuruecklassen).
+func TestResetSegmentPreviewImage_KeepsAssetStillReferencedElsewhere(t *testing.T) {
+	gin.SetMode(gin.TestMode)
+	pool := openReleaseThemeAssetMediaFixture(t)
+	oldAssetID, diskPath := insertOldPreviewMediaAssetFixture(t, pool)
+
+	auto := "auto"
+	fake := &segmentPreviewThemeRepoFake{
+		segment:            &models.AdminThemeSegment{ID: 42, AnimeID: 7},
+		segmentAfterMutate: &models.AdminThemeSegment{ID: 42, AnimeID: 7, PreviewSource: &auto},
+		resetManualPreviewFunc: func(ctx context.Context, segmentID int64) (*int64, error) {
+			return &oldAssetID, nil
+		},
+		isExclusiveFunc: func(ctx context.Context, mediaAssetID int64, excludeSegmentID int64) (bool, error) {
+			return false, nil // still referenced elsewhere -> must NOT be cleaned up
+		},
+	}
+	handler := &AdminContentHandler{
+		themeRepo: fake,
+		mediaRepo: repository.NewMediaRepository(pool, ""),
+	}
+
+	req := httptest.NewRequest(http.MethodPost, "/api/v1/admin/anime/7/segments/42/preview-image/reset", nil)
+	c, rec := segmentPreviewContext(req, "7", "42", segmentPreviewAdminIdentity())
+
+	handler.ResetSegmentPreviewImage(c)
+
+	require.Equal(t, http.StatusOK, rec.Code, rec.Body.String())
+	require.Equal(t, []int64{oldAssetID}, fake.isExclusiveCalledWith)
+
+	var stillExists int
+	require.NoError(t, pool.QueryRow(context.Background(), `SELECT COUNT(*) FROM media_assets WHERE id = $1`, oldAssetID).Scan(&stillExists))
+	require.Equal(t, 1, stillExists, "old media_assets row must survive while still referenced elsewhere")
+	_, statErr := os.Stat(diskPath)
+	require.NoError(t, statErr, "old file on disk must survive while still referenced elsewhere")
+}
+
+// TestResetSegmentPreviewImage_DeletesExclusiveOldAsset proves the inverse/original behavior is
+// preserved: when IsMediaAssetExclusiveSegmentPreview confirms the old asset exists ONLY as this
+// segment's manual preview, cleanupOldPreviewAsset still removes both the file and the row.
+func TestResetSegmentPreviewImage_DeletesExclusiveOldAsset(t *testing.T) {
+	gin.SetMode(gin.TestMode)
+	pool := openReleaseThemeAssetMediaFixture(t)
+	oldAssetID, diskPath := insertOldPreviewMediaAssetFixture(t, pool)
+
+	auto := "auto"
+	fake := &segmentPreviewThemeRepoFake{
+		segment:            &models.AdminThemeSegment{ID: 42, AnimeID: 7},
+		segmentAfterMutate: &models.AdminThemeSegment{ID: 42, AnimeID: 7, PreviewSource: &auto},
+		resetManualPreviewFunc: func(ctx context.Context, segmentID int64) (*int64, error) {
+			return &oldAssetID, nil
+		},
+		isExclusiveFunc: func(ctx context.Context, mediaAssetID int64, excludeSegmentID int64) (bool, error) {
+			return true, nil // exclusively owned by this segment -> safe to clean up
+		},
+	}
+	handler := &AdminContentHandler{
+		themeRepo: fake,
+		mediaRepo: repository.NewMediaRepository(pool, ""),
+	}
+
+	req := httptest.NewRequest(http.MethodPost, "/api/v1/admin/anime/7/segments/42/preview-image/reset", nil)
+	c, rec := segmentPreviewContext(req, "7", "42", segmentPreviewAdminIdentity())
+
+	handler.ResetSegmentPreviewImage(c)
+
+	require.Equal(t, http.StatusOK, rec.Code, rec.Body.String())
+
+	var stillExists int
+	require.NoError(t, pool.QueryRow(context.Background(), `SELECT COUNT(*) FROM media_assets WHERE id = $1`, oldAssetID).Scan(&stillExists))
+	require.Equal(t, 0, stillExists, "exclusively-owned old media_assets row must be deleted")
+	_, statErr := os.Stat(diskPath)
+	require.True(t, os.IsNotExist(statErr), "exclusively-owned old file must be removed from disk")
 }
 
 // TestGetSegmentPreviewImageCandidates_PassesThrough proves the handler passes the fake repo's

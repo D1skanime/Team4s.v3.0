@@ -79,8 +79,24 @@ func parseSegmentPreviewPathParams(c *gin.Context) (animeID int64, segmentID int
 // Vorschaubild-Asset best-effort auf (Datei(en) + media_assets-Zeile). Die vorausgehende
 // Mutation ist zu diesem Zeitpunkt bereits erfolgreich -- jeder Fehler wird NUR geloggt, nie an
 // den Aufrufer zurueckgegeben (gleiches Prinzip wie registerSegmentAutoPreview, D-06-analog).
-func (h *AdminContentHandler) cleanupOldPreviewAsset(ctx context.Context, oldAssetID *int64, newAssetID int64, logContext string) {
-	if oldAssetID == nil || *oldAssetID == newAssetID || h.mediaRepo == nil {
+//
+// Datenverlust-Fix (Code-Review Phase 172): ein per "Aus Release-Bildern wählen" uebernommenes
+// altes Bild gehoert ggf. noch zu release_version_media (oder einem anderen Segment) -- IMMER
+// loeschen wuerde dessen Datei(en) entfernen und DeleteMediaAsset anschliessend an der RESTRICT-
+// FK release_version_media_media_asset_id_fkey scheitern lassen, waehrend die Release-Zeile mit
+// fehlender Datei zurueckbleibt. Vor jedem Aufraeumen wird daher IsMediaAssetExclusiveSegmentPreview
+// gefragt, ob das alte Asset ausschliesslich als Segment-Vorschaubild existiert.
+func (h *AdminContentHandler) cleanupOldPreviewAsset(ctx context.Context, oldAssetID *int64, newAssetID int64, segmentID int64, logContext string) {
+	if oldAssetID == nil || *oldAssetID == newAssetID || h.mediaRepo == nil || h.themeRepo == nil {
+		return
+	}
+	exclusive, err := h.themeRepo.IsMediaAssetExclusiveSegmentPreview(ctx, *oldAssetID, segmentID)
+	if err != nil {
+		log.Printf("%s: exklusivitaetspruefung fuer altes asset fehlgeschlagen (old_asset_id=%d): %v", logContext, *oldAssetID, err)
+		return
+	}
+	if !exclusive {
+		log.Printf("%s: altes asset wird noch anderswo referenziert, kein aufraeumen (old_asset_id=%d)", logContext, *oldAssetID)
 		return
 	}
 	paths, err := h.mediaRepo.ListMediaFilePaths(ctx, *oldAssetID)
@@ -172,7 +188,7 @@ func (h *AdminContentHandler) UploadSegmentPreviewImage(c *gin.Context) {
 		writeInternalErrorResponse(c, "interner serverfehler", err, "Vorschaubild konnte nicht als manuelle Wahl gesetzt werden.")
 		return
 	}
-	h.cleanupOldPreviewAsset(c.Request.Context(), oldAssetID, asset.ID, "segment preview upload")
+	h.cleanupOldPreviewAsset(c.Request.Context(), oldAssetID, asset.ID, segmentID, "segment preview upload")
 
 	updated, err := h.themeRepo.GetAnimeSegmentByID(c.Request.Context(), animeID, segmentID, releaseVariantID)
 	if err != nil {
@@ -245,7 +261,7 @@ func (h *AdminContentHandler) AttachSegmentPreviewImage(c *gin.Context) {
 		writeInternalErrorResponse(c, "interner serverfehler", err, "Vorschaubild konnte nicht übernommen werden.")
 		return
 	}
-	h.cleanupOldPreviewAsset(c.Request.Context(), oldAssetID, req.MediaAssetID, "segment preview attach")
+	h.cleanupOldPreviewAsset(c.Request.Context(), oldAssetID, req.MediaAssetID, segmentID, "segment preview attach")
 
 	updated, err := h.themeRepo.GetAnimeSegmentByID(c.Request.Context(), animeID, segmentID, releaseVariantID)
 	if err != nil {
@@ -279,7 +295,7 @@ func (h *AdminContentHandler) ResetSegmentPreviewImage(c *gin.Context) {
 		writeInternalErrorResponse(c, "interner serverfehler", err, "Manuelles Vorschaubild konnte nicht zurückgesetzt werden.")
 		return
 	}
-	h.cleanupOldPreviewAsset(c.Request.Context(), oldAssetID, 0, "segment preview reset")
+	h.cleanupOldPreviewAsset(c.Request.Context(), oldAssetID, 0, segmentID, "segment preview reset")
 
 	updated, err := h.themeRepo.GetAnimeSegmentByID(c.Request.Context(), animeID, segmentID, releaseVariantID)
 	if err != nil {

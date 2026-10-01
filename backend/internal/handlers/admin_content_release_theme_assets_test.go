@@ -205,6 +205,9 @@ func (s *releaseThemeAssetRepoStub) AttachSegmentPreviewImageFromReleaseVersion(
 func (s *releaseThemeAssetRepoStub) ListSegmentPreviewImageCandidates(context.Context, int64, string) ([]models.AdminSegmentPreviewImageCandidate, error) {
 	return nil, nil
 }
+func (s *releaseThemeAssetRepoStub) IsMediaAssetExclusiveSegmentPreview(context.Context, int64, int64) (bool, error) {
+	return true, nil
+}
 
 // openReleaseThemeAssetMediaFixture provisions a real, schema-isolated Postgres fixture with
 // just enough production-shaped schema for MediaRepository.CreateMediaAsset/InsertMediaFile/

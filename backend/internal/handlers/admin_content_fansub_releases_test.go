@@ -210,6 +210,9 @@ func (s *fansubReleaseThemeRepoStub) AttachSegmentPreviewImageFromReleaseVersion
 func (s *fansubReleaseThemeRepoStub) ListSegmentPreviewImageCandidates(ctx context.Context, segmentID int64, mediaStorageDir string) ([]models.AdminSegmentPreviewImageCandidate, error) {
 	return nil, nil
 }
+func (s *fansubReleaseThemeRepoStub) IsMediaAssetExclusiveSegmentPreview(ctx context.Context, mediaAssetID int64, excludeSegmentID int64) (bool, error) {
+	return true, nil
+}
 
 // --------- Handler route/source presence tests ---------
 

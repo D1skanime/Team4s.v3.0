@@ -104,16 +104,23 @@ func (s *MediaService) SaveSegmentAsset(ctx SegmentAssetContext, originalName st
 	return result, nil
 }
 
-// probeVideoDuration ermittelt die Videodauer in Sekunden via ffprobe -- exakt das
-// getVideoMetadata-Muster aus media_upload_video.go:181-205, aber ausschliesslich die Dauer
-// liefernd (kein width/height-Bedarf an dieser Stelle).
+// probeVideoDuration ermittelt die Videodauer in Sekunden via ffprobe.
+//
+// Code-Review-Fix (Phase 172): zwei Bugs behoben.
+//  1. ffprobePath wurde per strings.Replace(ffmpegPath, "ffmpeg", "ffprobe", 1) abgeleitet --
+//     das ersetzt das ERSTE Vorkommen von "ffmpeg" im GESAMTEN Pfad, nicht nur im Dateinamen
+//     (z.B. "/opt/ffmpeg-static/bin/ffmpeg" wuerde faelschlich zu
+//     "/opt/ffprobe-static/bin/ffmpeg"). Jetzt wird nur der Dateiname im selben Verzeichnis
+//     ersetzt: filepath.Dir(ffmpegPath) + "ffprobe".
+//  2. stream=duration lieferte bei MKV-Containern oft "N/A" (die Dauer steht dort meist nur im
+//     Format-Header, nicht im Video-Stream selbst), wodurch der 35%-Offset (D-05) still auf 0
+//     zurueckfiel. format=duration liest die Container-Dauer und ist robuster.
 func (s *MediaService) probeVideoDuration(videoPath string) (float64, error) {
-	ffprobePath := strings.Replace(s.ffmpegPath, "ffmpeg", "ffprobe", 1)
+	ffprobePath := filepath.Join(filepath.Dir(s.ffmpegPath), "ffprobe")
 	cmd := exec.Command(
 		ffprobePath,
 		"-v", "error",
-		"-select_streams", "v:0",
-		"-show_entries", "stream=duration",
+		"-show_entries", "format=duration",
 		"-of", "default=noprint_wrappers=1:nokey=1",
 		videoPath,
 	)
@@ -210,6 +217,24 @@ func (s *MediaService) ExtractImageFrame(videoPath string, offsetSeconds float64
 		Width:       &width,
 		Height:      &height,
 	}, nil
+}
+
+// ExtractSegmentUploadAutoPreview extrahiert bei ca. 35% der Videodauer (D-05) einen
+// EIGENSTAENDIGEN Vorschaubild-Frame unter destRelPath, getrennt von saveSegmentVideoPreview's
+// eigenem Thumb (das weiterhin als 'thumb'-media_files-Variante des Video-Assets registriert
+// wird). Code-Review-Fix (Phase 172, doppelter Dateibesitz): vorher registrierte der Video-
+// Upload-Pfad denselben von saveSegmentVideoPreview erzeugten Datei-Pfad ZWEIMAL -- einmal als
+// Video-Thumb, einmal (ueber registerSegmentAutoPreview) als eigenstaendiges Auto-Vorschaubild-
+// Asset. Beide media_assets-Zeilen zeigten dann auf dieselbe physische Datei; ein spaeteres
+// Aufraeumen des einen Assets riss das andere mit. ExtractImageFrame erzeugt hier bewusst eine
+// zweite, unabhaengige Kopie. Faellt bei fehlgeschlagener Dauer-Ermittlung auf Offset 0 zurueck
+// (D-06), analog saveSegmentVideoPreview.
+func (s *MediaService) ExtractSegmentUploadAutoPreview(videoPath string, destRelPath string) (*MediaVariantSaveResult, error) {
+	offsetSeconds := 0.0
+	if duration, err := s.probeVideoDuration(videoPath); err == nil && duration > 0 {
+		offsetSeconds = duration * 0.35
+	}
+	return s.ExtractImageFrame(videoPath, offsetSeconds, destRelPath)
 }
 
 func sanitizeSegmentPathComponent(value string) string {

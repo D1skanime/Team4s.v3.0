@@ -164,6 +164,18 @@ CREATE TABLE media_files (
     path TEXT NOT NULL,
     status VARCHAR(20) NOT NULL DEFAULT 'ready'
 );
+-- Code-Review-Fix (Phase 172): resolveThemeSegmentPreviewAsset's manuelles Eligibility-Gate
+-- (manualPreviewAssetEligibilitySQL) prueft IMMER, ob das manuelle Asset ueber eine (nicht
+-- geloeschte) release_version_media-Zeile kommt -- diese Tabelle muss daher existieren, genau
+-- wie in der Produktionsdatenbank, auch wenn dieser Test selbst keine rvm-Zeile anlegt.
+CREATE TABLE release_version_media (
+    id BIGINT PRIMARY KEY,
+    release_version_id BIGINT NOT NULL REFERENCES release_versions(id),
+    media_asset_id BIGINT NOT NULL REFERENCES media_assets(id),
+    deleted_at TIMESTAMPTZ,
+    is_preview_candidate BOOLEAN NOT NULL DEFAULT false,
+    sort_order INT NOT NULL DEFAULT 0
+);
 `)
 	require.NoError(t, err)
 
@@ -481,4 +493,136 @@ func createApprovedImageAssetForReleaseVersion(t *testing.T, pool *pgxpool.Pool,
 		VALUES ($1, $2, $3, 0)
 	`, assetID+300000, releaseVersionID, assetID)
 	require.NoError(t, err)
+}
+
+// --- Code-Review-Fix (Phase 172): IsMediaAssetExclusiveSegmentPreview + manuelles
+// Eligibility-Gate in resolveThemeSegmentPreviewAsset. ---
+
+// TestIsMediaAssetExclusiveSegmentPreview beweist den D-11-Datenverlust-Fix: cleanupOldPreviewAsset
+// darf ein ersetztes altes Asset NUR aufraeumen, wenn es weder von release_version_media noch von
+// einem ANDEREN Segment (preview_media_asset_id/auto_preview_media_asset_id) weiterhin referenziert
+// wird.
+func TestIsMediaAssetExclusiveSegmentPreview(t *testing.T) {
+	pool := testsupport.OpenPhase117Postgres(t)
+	ctx := context.Background()
+	f := setupPreviewWriteFixture(t, pool)
+	repo := NewAdminContentRepository(pool)
+
+	t.Run("ohne jede Referenz ist das Asset exklusiv", func(t *testing.T) {
+		const assetID int64 = 8001
+		_, err := pool.Exec(ctx, `
+			INSERT INTO media_assets (id, file_path, status, visibility_id, review_status_id)
+			VALUES ($1, 'orphan.jpg', 'ready', $2, $3)
+		`, assetID, f.publicVisibilityID, f.approvedReviewStatusID)
+		require.NoError(t, err)
+
+		exclusive, err := repo.IsMediaAssetExclusiveSegmentPreview(ctx, assetID, f.themeSegmentID)
+		require.NoError(t, err)
+		require.True(t, exclusive)
+	})
+
+	t.Run("von release_version_media referenziert ist NICHT exklusiv, auch wenn deleted_at gesetzt ist", func(t *testing.T) {
+		const assetID int64 = 8002
+		createApprovedImageAssetForReleaseVersion(t, pool, assetID, "rvm-owned.jpg", f.publicVisibilityID, f.approvedReviewStatusID, f.assignedReleaseID)
+
+		exclusive, err := repo.IsMediaAssetExclusiveSegmentPreview(ctx, assetID, f.themeSegmentID)
+		require.NoError(t, err)
+		require.False(t, exclusive, "die RESTRICT-FK auf release_version_media wuerde DeleteMediaAsset ohnehin scheitern lassen -- NIE loeschen")
+
+		_, err = pool.Exec(ctx, `UPDATE release_version_media SET deleted_at = NOW() WHERE media_asset_id = $1`, assetID)
+		require.NoError(t, err)
+		exclusive, err = repo.IsMediaAssetExclusiveSegmentPreview(ctx, assetID, f.themeSegmentID)
+		require.NoError(t, err)
+		require.False(t, exclusive, "soft-deleted rvm-Zeilen bleiben als FK-Referenz bestehen -- die physische Zeile existiert noch")
+	})
+
+	t.Run("von einem ANDEREN Segment als Preview genutzt ist NICHT exklusiv", func(t *testing.T) {
+		const assetID int64 = 8003
+		const otherSegmentID int64 = 8103
+		_, err := pool.Exec(ctx, `
+			INSERT INTO media_assets (id, file_path, status, visibility_id, review_status_id)
+			VALUES ($1, 'shared-auto.jpg', 'ready', $2, $3)
+		`, assetID, f.publicVisibilityID, f.approvedReviewStatusID)
+		require.NoError(t, err)
+		_, err = pool.Exec(ctx, `INSERT INTO theme_segments (id, theme_id, auto_preview_media_asset_id) VALUES ($1, (SELECT theme_id FROM theme_segments WHERE id = $2), $3)`, otherSegmentID, f.themeSegmentID, assetID)
+		require.NoError(t, err)
+
+		exclusive, err := repo.IsMediaAssetExclusiveSegmentPreview(ctx, assetID, f.themeSegmentID)
+		require.NoError(t, err)
+		require.False(t, exclusive, "ein anderes Segment nutzt dieses Asset weiterhin als auto_preview_media_asset_id")
+
+		// Das AUSSCHLIESSENDE Segment selbst darf nicht mitzaehlen.
+		exclusiveForOtherSegment, err := repo.IsMediaAssetExclusiveSegmentPreview(ctx, assetID, otherSegmentID)
+		require.NoError(t, err)
+		require.True(t, exclusiveForOtherSegment, "excludeSegmentID darf nicht als fremde Referenz gegen sich selbst zaehlen")
+	})
+}
+
+// TestResolveThemeSegmentPreviewAsset_ManualGateRequiresPublicApprovedAndNotDeletedRvm beweist
+// den zweiten D-11-Fix: ein manuelles Vorschaubild, das (a) nicht mehr public/approved ist ODER
+// (b) ueber eine inzwischen (soft-)geloeschte release_version_media-Zeile kam, darf NICHT mehr
+// aufgeloest werden -- die Rangfolge faellt stattdessen auf automatisch/Ersatzbild zurueck
+// (D-08/D-10), statt ein abgelehntes/internes/entferntes Release-Bild weiterhin oeffentlich als
+// Kara-Vorschau zu zeigen.
+func TestResolveThemeSegmentPreviewAsset_ManualGateRequiresPublicApprovedAndNotDeletedRvm(t *testing.T) {
+	pool := testsupport.OpenPhase117Postgres(t)
+	ctx := context.Background()
+	f := setupPreviewWriteFixture(t, pool)
+
+	t.Run("review_status wechselt von approved auf pending -> faellt auf auto zurueck", func(t *testing.T) {
+		const manualAssetID int64 = 9001
+		const autoAssetID int64 = 9002
+		createApprovedImageAssetForReleaseVersion(t, pool, manualAssetID, "was-approved.jpg", f.publicVisibilityID, f.approvedReviewStatusID, f.assignedReleaseID)
+		createApprovedImageAssetForReleaseVersion(t, pool, autoAssetID, "fallback-auto.jpg", f.publicVisibilityID, f.approvedReviewStatusID, f.assignedReleaseID)
+
+		manual, auto := manualAssetID, autoAssetID
+		path, source, err := resolveThemeSegmentPreviewAsset(ctx, pool, &manual, &auto, 0)
+		require.NoError(t, err)
+		require.Equal(t, "manual", source)
+		require.Equal(t, "was-approved.jpg", *path)
+
+		_, err = pool.Exec(ctx, `UPDATE media_assets SET review_status_id = $1 WHERE id = $2`, f.pendingReviewStatusID, manualAssetID)
+		require.NoError(t, err)
+
+		path, source, err = resolveThemeSegmentPreviewAsset(ctx, pool, &manual, &auto, 0)
+		require.NoError(t, err)
+		require.Equal(t, "auto", source, "ein nicht mehr freigegebenes manuelles Bild darf nicht mehr aufgeloest werden")
+		require.Equal(t, "fallback-auto.jpg", *path)
+	})
+
+	t.Run("rvm-Zeile wird soft-deleted -> faellt auf auto zurueck", func(t *testing.T) {
+		const manualAssetID int64 = 9003
+		const autoAssetID int64 = 9004
+		createApprovedImageAssetForReleaseVersion(t, pool, manualAssetID, "attached-release-image.jpg", f.publicVisibilityID, f.approvedReviewStatusID, f.assignedReleaseID)
+		createApprovedImageAssetForReleaseVersion(t, pool, autoAssetID, "fallback-auto-2.jpg", f.publicVisibilityID, f.approvedReviewStatusID, f.assignedReleaseID)
+
+		manual, auto := manualAssetID, autoAssetID
+		path, source, err := resolveThemeSegmentPreviewAsset(ctx, pool, &manual, &auto, 0)
+		require.NoError(t, err)
+		require.Equal(t, "manual", source)
+		require.Equal(t, "attached-release-image.jpg", *path)
+
+		_, err = pool.Exec(ctx, `UPDATE release_version_media SET deleted_at = NOW() WHERE media_asset_id = $1`, manualAssetID)
+		require.NoError(t, err)
+
+		path, source, err = resolveThemeSegmentPreviewAsset(ctx, pool, &manual, &auto, 0)
+		require.NoError(t, err)
+		require.Equal(t, "auto", source, "ein aus einer entfernten Release-Version uebernommenes Bild darf nicht mehr aufgeloest werden")
+		require.Equal(t, "fallback-auto-2.jpg", *path)
+	})
+
+	t.Run("direkt hochgeladenes manuelles Bild ohne rvm-Zeile bleibt unberuehrt", func(t *testing.T) {
+		const manualAssetID int64 = 9005
+		_, err := pool.Exec(ctx, `
+			INSERT INTO media_assets (id, file_path, status, visibility_id, review_status_id)
+			VALUES ($1, 'direct-upload.jpg', 'ready', $2, $3)
+		`, manualAssetID, f.publicVisibilityID, f.approvedReviewStatusID)
+		require.NoError(t, err)
+
+		manual := manualAssetID
+		path, source, err := resolveThemeSegmentPreviewAsset(ctx, pool, &manual, nil, 0)
+		require.NoError(t, err)
+		require.Equal(t, "manual", source, "ein direkt hochgeladenes Bild hat keine rvm-Zeile und darf vom NOT EXISTS-Zweig weiterhin zugelassen werden")
+		require.Equal(t, "direct-upload.jpg", *path)
+	})
 }

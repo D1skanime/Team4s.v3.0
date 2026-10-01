@@ -119,6 +119,10 @@ type adminThemeRepository interface {
 	ResetThemeSegmentManualPreview(ctx context.Context, segmentID int64) (*int64, error)
 	AttachSegmentPreviewImageFromReleaseVersion(ctx context.Context, segmentID int64, mediaAssetID int64) (*int64, error)
 	ListSegmentPreviewImageCandidates(ctx context.Context, segmentID int64, mediaStorageDir string) ([]models.AdminSegmentPreviewImageCandidate, error)
+	// IsMediaAssetExclusiveSegmentPreview (Phase 172, Code-Review-Fix, D-11): Datenverlust-Schutz
+	// vor cleanupOldPreviewAsset -- ein ersetztes altes Asset wird nur geloescht, wenn es NICHT
+	// von release_version_media oder einem anderen Segment weiterhin referenziert wird.
+	IsMediaAssetExclusiveSegmentPreview(ctx context.Context, mediaAssetID int64, excludeSegmentID int64) (bool, error)
 }
 
 // adminContentRelationRepository definiert den Datenbankzugriff für Anime-Relationen im Admin-Bereich.

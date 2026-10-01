@@ -22,6 +22,26 @@ import (
 // auto_preview_media_asset_id. fallbackReleaseVersionID (<=0 bedeutet "kein Ersatzbild-
 // Kontext bekannt") steuert, welche Release-Version fuer das Ersatzbild herangezogen wird,
 // WENN weder manuell noch automatisch aufgeloest werden kann.
+// manualPreviewAssetEligibilitySQL (Code-Review-Fix Phase 172): das manuelle Vorschaubild darf
+// NUR verwendet werden, wenn es weiterhin oeffentlich/freigegeben ist (visibility=public,
+// review_status=approved) UND -- falls es ueber "Aus Release-Bildern wählen" (rvm-Herkunft)
+// uebernommen wurde -- die uebernommene release_version_media-Zeile nicht inzwischen (soft-)
+// geloescht wurde. Ohne dieses Gate bliebe ein spaeter abgelehntes/intern gestelltes/entferntes
+// Release-Bild weiterhin oeffentlich als Kara-Vorschaubild sichtbar -- die Rangfolge faellt in
+// diesem Fall stattdessen auf automatisch > Ersatzbild zurueck (D-08/D-10). NUR fuer manuell
+// gilt dieses Gate; automatische Vorschaubilder (vom Render-Worker/Upload-Pfad erzeugt, siehe
+// registerSegmentAutoPreview) sind bei Erzeugung bereits public/approved und folgen keiner
+// rvm-Herkunft.
+const manualPreviewAssetEligibilitySQL = `
+	ma.status = 'ready'
+	AND v.name = 'public'
+	AND rs.code = 'approved'
+	AND (
+		NOT EXISTS (SELECT 1 FROM release_version_media rvm_elig WHERE rvm_elig.media_asset_id = ma.id)
+		OR EXISTS (SELECT 1 FROM release_version_media rvm_elig WHERE rvm_elig.media_asset_id = ma.id AND rvm_elig.deleted_at IS NULL)
+	)
+`
+
 func resolveThemeSegmentPreviewAsset(
 	ctx context.Context,
 	db *pgxpool.Pool,
@@ -38,7 +58,9 @@ func resolveThemeSegmentPreviewAsset(
 				LEFT JOIN media_files mf ON mf.media_id = ma.id
 					AND (mf.variant = 'original' OR mf.variant IS NULL)
 					AND mf.status = 'ready'
-				WHERE ma.id = $1 AND ma.status = 'ready'
+				JOIN visibilities v ON v.id = ma.visibility_id
+				JOIN review_statuses rs ON rs.id = ma.review_status_id
+				WHERE ma.id = $1 AND `+manualPreviewAssetEligibilitySQL+`
 				ORDER BY mf.id ASC
 				LIMIT 1
 			) AS manual_path,
@@ -241,47 +263,77 @@ func resolveThemeSegmentPreviewAssetsBatch(
 	}
 	result := make([]*string, len(manualAssetIDs))
 
-	idSet := make(map[int64]struct{})
+	manualIDSet := make(map[int64]struct{})
 	for _, id := range manualAssetIDs {
 		if id != nil {
-			idSet[*id] = struct{}{}
+			manualIDSet[*id] = struct{}{}
 		}
 	}
+	autoIDSet := make(map[int64]struct{})
 	for _, id := range autoAssetIDs {
 		if id != nil {
-			idSet[*id] = struct{}{}
+			autoIDSet[*id] = struct{}{}
 		}
 	}
 
-	pathByAssetID := make(map[int64]string, len(idSet))
-	if len(idSet) > 0 {
-		ids := make([]int64, 0, len(idSet))
-		for id := range idSet {
-			ids = append(ids, id)
+	manualPathByAssetID := make(map[int64]string, len(manualIDSet))
+	autoPathByAssetID := make(map[int64]string, len(autoIDSet))
+	if len(manualIDSet) > 0 || len(autoIDSet) > 0 {
+		manualIDs := make([]int64, 0, len(manualIDSet))
+		for id := range manualIDSet {
+			manualIDs = append(manualIDs, id)
 		}
+		autoIDs := make([]int64, 0, len(autoIDSet))
+		for id := range autoIDSet {
+			autoIDs = append(autoIDs, id)
+		}
+
+		// Code-Review-Fix (Phase 172): manuell und automatisch werden getrennt aufgeloest (zwei
+		// UNION-ALL-Zweige IN EINEM Query-Aufruf, um das pinned Query-Budget von
+		// segment_origin_query_budget_test.go nicht zu verletzen), weil NUR die manuelle Rolle
+		// das public/approved/nicht-rvm-geloescht-Gate (manualPreviewAssetEligibilitySQL) tragen
+		// darf -- ein Asset, das fuer EIN Segment manuell (und damit gate-pflichtig) und fuer ein
+		// ANDERES Segment automatisch (gate-frei) referenziert wird, muss in beiden Rollen korrekt
+		// behandelt werden.
 		rows, err := db.Query(ctx, `
-			SELECT ma.id, COALESCE(mf.path, ma.file_path)
+			SELECT ma.id, COALESCE(mf.path, ma.file_path), TRUE AS is_manual
 			FROM media_assets ma
 			LEFT JOIN media_files mf ON mf.media_id = ma.id
 				AND (mf.variant = 'original' OR mf.variant IS NULL)
 				AND mf.status = 'ready'
-			WHERE ma.id = ANY($1) AND ma.status = 'ready'
-			ORDER BY ma.id ASC, mf.id ASC
-		`, ids)
+			JOIN visibilities v ON v.id = ma.visibility_id
+			JOIN review_statuses rs ON rs.id = ma.review_status_id
+			WHERE ma.id = ANY($1) AND `+manualPreviewAssetEligibilitySQL+`
+			UNION ALL
+			SELECT ma.id, COALESCE(mf.path, ma.file_path), FALSE AS is_manual
+			FROM media_assets ma
+			LEFT JOIN media_files mf ON mf.media_id = ma.id
+				AND (mf.variant = 'original' OR mf.variant IS NULL)
+				AND mf.status = 'ready'
+			WHERE ma.id = ANY($2) AND ma.status = 'ready'
+			ORDER BY id ASC
+		`, manualIDs, autoIDs)
 		if err != nil {
 			return nil, fmt.Errorf("resolve theme segment preview assets batch manual/auto: %w", err)
 		}
 		for rows.Next() {
 			var assetID int64
 			var path string
-			if scanErr := rows.Scan(&assetID, &path); scanErr != nil {
+			var isManual bool
+			if scanErr := rows.Scan(&assetID, &path, &isManual); scanErr != nil {
 				rows.Close()
 				return nil, fmt.Errorf("resolve theme segment preview assets batch manual/auto scan: %w", scanErr)
 			}
-			// Erste Zeile pro Asset gewinnt (ORDER BY ma.id, mf.id ASC -- analog zu
-			// resolveThemeSegmentPreviewAsset's LIMIT 1).
-			if _, exists := pathByAssetID[assetID]; !exists {
-				pathByAssetID[assetID] = path
+			// Erste Zeile pro (Asset, Rolle) gewinnt -- analog zu resolveThemeSegmentPreviewAsset's
+			// LIMIT 1.
+			if isManual {
+				if _, exists := manualPathByAssetID[assetID]; !exists {
+					manualPathByAssetID[assetID] = path
+				}
+			} else {
+				if _, exists := autoPathByAssetID[assetID]; !exists {
+					autoPathByAssetID[assetID] = path
+				}
 			}
 		}
 		rowsErr := rows.Err()
@@ -294,14 +346,14 @@ func resolveThemeSegmentPreviewAssetsBatch(
 	needsFallback := false
 	for i := range result {
 		if id := manualAssetIDs[i]; id != nil {
-			if path, ok := pathByAssetID[*id]; ok {
+			if path, ok := manualPathByAssetID[*id]; ok {
 				p := path
 				result[i] = &p
 				continue
 			}
 		}
 		if id := autoAssetIDs[i]; id != nil {
-			if path, ok := pathByAssetID[*id]; ok {
+			if path, ok := autoPathByAssetID[*id]; ok {
 				p := path
 				result[i] = &p
 				continue

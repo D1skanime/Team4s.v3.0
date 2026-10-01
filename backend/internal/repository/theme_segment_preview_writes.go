@@ -126,6 +126,39 @@ func (r *AdminContentRepository) AttachSegmentPreviewImageFromReleaseVersion(ctx
 	return r.SetThemeSegmentManualPreview(ctx, segmentID, mediaAssetID)
 }
 
+// IsMediaAssetExclusiveSegmentPreview prueft, BEVOR ein ersetztes altes Vorschaubild-Asset
+// aufgeraeumt wird (Datei(en) + media_assets-Zeile, siehe cleanupOldPreviewAsset in
+// admin_content_anime_theme_segments_preview.go), ob dieses Asset ausschliesslich als
+// Segment-Vorschaubild existiert. Liefert false, wenn das Asset entweder (a) von
+// release_version_media referenziert wird -- unabhaengig von deleted_at, denn die
+// release_version_media_media_asset_id_fkey-Constraint ist RESTRICT und blockiert ein
+// physisches Loeschen auch bei soft-deleted Zeilen -- oder (b) von einem ANDEREN Segment
+// (!= excludeSegmentID) weiterhin als preview_media_asset_id/auto_preview_media_asset_id
+// genutzt wird. Beides war vor diesem Fix nicht geprueft: ein per "Aus Release-Bildern
+// wählen" uebernommenes fremdes Bild wurde beim naechsten Attach/Reset/Upload hart von der
+// Platte geloescht, obwohl die Release-Version es noch referenzierte (Datenverlust-Bug,
+// Code-Review Phase 172).
+func (r *AdminContentRepository) IsMediaAssetExclusiveSegmentPreview(ctx context.Context, mediaAssetID int64, excludeSegmentID int64) (bool, error) {
+	if mediaAssetID <= 0 {
+		return false, nil
+	}
+
+	var referencedElsewhere bool
+	if err := r.db.QueryRow(ctx, `
+		SELECT
+			EXISTS(SELECT 1 FROM release_version_media rvm WHERE rvm.media_asset_id = $1)
+			OR EXISTS(
+				SELECT 1 FROM theme_segments ts
+				WHERE ts.id != $2
+				  AND (ts.preview_media_asset_id = $1 OR ts.auto_preview_media_asset_id = $1)
+			)
+	`, mediaAssetID, excludeSegmentID).Scan(&referencedElsewhere); err != nil {
+		return false, fmt.Errorf("check media asset exclusivity asset=%d exclude_segment=%d: %w", mediaAssetID, excludeSegmentID, err)
+	}
+
+	return !referencedElsewhere, nil
+}
+
 // ListSegmentPreviewImageCandidates liefert die waehlbaren Bilder fuer den "Aus
 // Release-Bildern wählen"-Picker (D-11): alle oeffentlichen, freigegebenen Bilder der
 // Release-Versionen, denen das Segment ueber ListThemeSegmentAssignments zugewiesen ist.

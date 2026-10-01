@@ -243,6 +243,19 @@ CREATE TABLE media_files (
     path TEXT NOT NULL,
     status VARCHAR(20) NOT NULL DEFAULT 'ready'
 );
+-- Code-Review-Fix (Phase 172): resolveThemeSegmentPreviewAssetsBatch's manuelles
+-- Eligibility-Gate prueft IMMER, ob das manuelle Asset ueber eine (nicht geloeschte)
+-- release_version_media-Zeile kommt -- diese Tabelle muss daher existieren, genau wie in der
+-- Produktionsdatenbank, auch wenn dieser Test selbst keine rvm-Zeile fuer das manuelle Asset
+-- anlegt.
+CREATE TABLE release_version_media (
+    id BIGINT PRIMARY KEY,
+    release_version_id BIGINT NOT NULL REFERENCES release_versions(id),
+    media_asset_id BIGINT NOT NULL REFERENCES media_assets(id),
+    deleted_at TIMESTAMPTZ,
+    is_preview_candidate BOOLEAN NOT NULL DEFAULT false,
+    sort_order INT NOT NULL DEFAULT 0
+);
 `)
 	require.NoError(t, err)
 
