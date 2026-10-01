@@ -4,7 +4,7 @@ milestone: v1.4
 milestone_name: Coverage
 status: executing
 stopped_at: Phase 172 UI-SPEC approved
-last_updated: "2026-10-01T16:58:50.558Z"
+last_updated: "2026-10-01T17:01:18.224Z"
 last_activity: 2026-10-01
 progress:
   total_phases: 37
@@ -280,15 +280,15 @@ Phase 135 and any future roadmap entries continue from here.
 See: .planning/PROJECT.md (updated 2026-08-13)
 
 **Core value:** Team4s presents fansub history and collaboration credibly while keeping identity, visibility, ownership, and permissions correct.
-**Current focus:** Milestone complete
+**Current focus:** Phase 172 — kara-vorschaubild-pro-segment-automatisch-aus-dem-render-fra
 2026-09-18 after the client's live UAT approval ("1 passt, 2 löschen") — see the "Phase 164
 Abschluss" entry below for the full closing record.
 
 ## Current Position
 
-Phase: 171
-Plan: Not started
-Status: Ready to execute
+Phase: 172 (kara-vorschaubild-pro-segment-automatisch-aus-dem-render-fra) — EXECUTING
+Plan: 1 of 10
+Status: Executing Phase 172
 Completed: removed stale public timeline range access, repaired nullable highlight responses, batched release-version-media rights projection, hardened full-list media reorder, and synchronized the focused admin contract.
 Next: resolve or explicitly accept the pre-existing full-suite failures, then complete Phase 169 live actor/refresh/responsive UAT; Phase 166 remains open.
 
