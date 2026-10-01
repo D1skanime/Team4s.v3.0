@@ -3,14 +3,14 @@ gsd_state_version: 1.0
 milestone: v1.4
 milestone_name: Coverage
 status: executing
-stopped_at: Completed 172-05-PLAN.md
-last_updated: "2026-10-01T19:22:05.657Z"
+stopped_at: Completed 172-06-PLAN.md
+last_updated: "2026-10-01T20:09:03.088Z"
 last_activity: 2026-10-01
 progress:
   total_phases: 37
   completed_phases: 32
   total_plans: 322
-  completed_plans: 316
+  completed_plans: 317
   percent: 86
 ---
 
@@ -287,7 +287,7 @@ Abschluss" entry below for the full closing record.
 ## Current Position
 
 Phase: 172 (kara-vorschaubild-pro-segment-automatisch-aus-dem-render-fra) — EXECUTING
-Plan: 6 of 10
+Plan: 7 of 10
 Status: Ready to execute
 Completed: removed stale public timeline range access, repaired nullable highlight responses, batched release-version-media rights projection, hardened full-list media reorder, and synchronized the focused admin contract.
 Next: resolve or explicitly accept the pre-existing full-suite failures, then complete Phase 169 live actor/refresh/responsive UAT; Phase 166 remains open.
@@ -864,6 +864,7 @@ Last activity: 2026-10-01
 - [Phase 172]: Split new segment-preview write methods into a new theme_segment_preview_writes.go file instead of growing theme_segment_preview.go past the CLAUDE.md 450-line limit
 - [Phase 172]: 172-04: registerSegmentAutoPreview shared helper creates an independent media_assets image row and writes only auto_preview_media_asset_id; manual preview_media_asset_id is never touched — Keeps auto-write path and manual-write path (172-03) structurally separate, matching D-08
 - [Phase 172]: 172-04: split media_service.go (pre-existing 565 lines, grew past 450 with Task 1) into media_service.go + new media_service_segment.go — CLAUDE.md 450-line production-file ceiling; pure file-organization split, no behavior change
+- [Phase 172]: Preview-Backfill verwendet die echten Server-Env-Var-Namen (MEDIA_STORAGE_DIR/SEGMENT_RENDER_DIR) statt migrate-covers' MEDIA_TARGET_DIR-Konvention, damit der Live-Lauf gegen den echten Container ohne Anpassung funktioniert. — Verifiziert durch echten Lauf gegen team4s_v2: Segmente 3-9 (inkl. Release 27/7-8-9) haben jetzt echte automatische Vorschaubilder.
 
 ### Pending Todos
 
@@ -1405,11 +1406,12 @@ untruncated list lives in `.planning/todos/pending/`.
 | Phase 172 P03 | 65min | 2 tasks | 7 files |
 | Phase 172 P04 | 110min | 2 tasks | 7 files |
 | Phase 172 P05 | 40min | 2 tasks | 3 files |
+| Phase 172 P06 | 70min | 2 tasks | 3 files |
 
 ## Session Continuity
 
-Last session: 2026-10-01T19:22:05.633Z
-Stopped at: Completed 172-05-PLAN.md
+Last session: 2026-10-01T20:09:03.069Z
+Stopped at: Completed 172-06-PLAN.md
 Last activity: 2026-09-28 - Completed Phase 169 Plan 169-01
 Resume file: 
 None
