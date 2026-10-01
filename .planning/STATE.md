@@ -395,7 +395,7 @@ timing flakiness, not a Phase 149 regression, and not yet root-caused.
 v1.4 is extended by the additive phases 165-170 and is not currently fully closed. Phase 166
 remains open, Phase 169 still has its live UAT plan outstanding, and Phase 170 is implemented
 with focused verification complete plus named pre-existing full-suite failures.
-Last activity: 2026-10-01
+Last activity: 2026-10-01 - Completed quick task 261001-trj: Segment-Bearbeitungspanel auf globale UI-Primitives umstellen
 
 ## Accumulated Context
 
@@ -886,6 +886,7 @@ Last activity: 2026-10-01
 
 | # | Description | Date | Commit | Directory |
 |---|-------------|------|--------|-----------|
+| 261001-trj | Segment-Bearbeitungspanel auf globale UI-Primitives umstellen (Drawer, Button/Input/Select/Textarea, Token-Farben) | 2026-10-01 | 56b10ebb | [261001-trj-segment-bearbeitungspanel-auf-globale-ui](./quick/261001-trj-segment-bearbeitungspanel-auf-globale-ui/) |
 | 260928-6qr | Gruppen-Media-Upload an globales Upload-UI angeglichen, mit sichtbarem Drag-and-drop und Mehrfachauswahl | 2026-09-28 | pending | [260928-6qr-group-media-upload-ui](./quick/260928-6qr-group-media-upload-ui/) |
 | 260928-6qs | Release-Kopfaktionen und kompakte OP-/ED-Karaoke-Karten | 2026-09-28 | pending | [260928-6qs-release-kopf-und-karaoke-karten](./quick/260928-6qs-release-kopf-und-karaoke-karten/) |
 | 260928-6qt | OP-/ED-Theme-Karten im Release-Detail zweispaltig kompakt | 2026-09-28 | pending | [260928-6qt-theme-karten-zweispaltig](./quick/260928-6qt-theme-karten-zweispaltig/) |
