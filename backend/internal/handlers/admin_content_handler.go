@@ -116,6 +116,7 @@ type adminThemeRepository interface {
 	// Plan 172-03, D-08/D-11): die vier manuellen Vorschaubild-Schreibpfade (Upload/
 	// Picker-Attach/Reset) plus der Picker-Kandidatenlisten-Lesepfad.
 	SetThemeSegmentManualPreview(ctx context.Context, segmentID int64, mediaAssetID int64) (*int64, error)
+	AssignUploadedSegmentPreviewImage(ctx context.Context, animeID int64, segmentID int64, mediaAssetID int64) (*int64, error)
 	ResetThemeSegmentManualPreview(ctx context.Context, segmentID int64) (*int64, error)
 	AttachSegmentPreviewImageFromReleaseVersion(ctx context.Context, segmentID int64, mediaAssetID int64) (*int64, error)
 	ListSegmentPreviewImageCandidates(ctx context.Context, segmentID int64, mediaStorageDir string) ([]models.AdminSegmentPreviewImageCandidate, error)
@@ -219,6 +220,7 @@ type AdminContentHandler struct {
 	aniSearchEpisodes               adminAniSearchEpisodeFetcher
 	assetSearchService              adminAnimeAssetSearchService
 	mediaService                    *services.MediaService
+	generatedImageStore             generatedAnimeImageStore
 	fansubNotesRepo                 *repository.FansubNotesRepository
 	projectNoteCreditSvc            projectNoteCreditService
 	releaseVersionNotesRepo         *repository.ReleaseVersionNotesRepository

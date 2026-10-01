@@ -134,12 +134,46 @@ func autoPreviewAssetID(t *testing.T, pool *pgxpool.Pool, segmentID int64) *int6
 	return id
 }
 
-func backfillTestConfig(renderDir, storageDir, ffmpegBinary string) Config {
+// backfillTestImageStore ersetzt den globalen Anime-Upload-Pfad (StoreGeneratedAnimeImage,
+// dort separat bewiesen): kopiert den extrahierten Frame in storageDir und legt die
+// media_assets/media_files-Zeilen im Fixture-Schema an. animeIDs protokolliert die Aufrufe.
+type backfillTestImageStore struct {
+	pool       *pgxpool.Pool
+	storageDir string
+	animeIDs   []int64
+}
+
+func (s *backfillTestImageStore) StoreGeneratedAnimeImage(ctx context.Context, sourcePath string, animeID int64, assetType string) (int64, error) {
+	s.animeIDs = append(s.animeIDs, animeID)
+	data, err := os.ReadFile(sourcePath)
+	if err != nil {
+		return 0, err
+	}
+	dest := filepath.Join(s.storageDir, "anime", fmt.Sprint(animeID), assetType, fmt.Sprintf("frame-%d.jpg", len(s.animeIDs)))
+	if err := os.MkdirAll(filepath.Dir(dest), 0o755); err != nil {
+		return 0, err
+	}
+	if err := os.WriteFile(dest, data, 0o644); err != nil {
+		return 0, err
+	}
+	var id int64
+	if err := s.pool.QueryRow(ctx, `
+		INSERT INTO media_assets (media_type_id, file_path, mime_type, format, created_at)
+		VALUES (2, $1, 'image/jpeg', 'image', NOW()) RETURNING id
+	`, dest).Scan(&id); err != nil {
+		return 0, err
+	}
+	_, err = s.pool.Exec(ctx, `INSERT INTO media_files (media_id, variant, path, size) VALUES ($1, 'original', $2, 0)`, id, dest)
+	return id, err
+}
+
+func backfillTestConfig(pool *pgxpool.Pool, renderDir, storageDir, ffmpegBinary string) Config {
 	return Config{
 		SegmentRenderDir: renderDir,
 		MediaStorageDir:  storageDir,
 		FFmpegPath:       ffmpegBinary,
 		DryRun:           false,
+		ImageStore:       &backfillTestImageStore{pool: pool, storageDir: storageDir},
 	}
 }
 
@@ -159,13 +193,14 @@ func TestRunBackfill_PopulatesAutoPreviewForReadySegment(t *testing.T) {
 	insertReadyRenderCache(t, pool, segmentID, "cache-7", outputRel, 4, time.Now())
 
 	storageDir := t.TempDir()
-	cfg := backfillTestConfig(renderDir, storageDir, ffmpegBinary)
+	cfg := backfillTestConfig(pool, renderDir, storageDir, ffmpegBinary)
 
 	stats, err := runBackfill(context.Background(), pool, cfg)
 	require.NoError(t, err)
 	require.Equal(t, 1, stats.TotalCandidates)
 	require.Equal(t, 1, stats.ProcessedOK)
 	require.Equal(t, 0, stats.Failed)
+	require.Equal(t, []int64{segmentID + 1000}, cfg.ImageStore.(*backfillTestImageStore).animeIDs, "frame must be stored for the segment's anime as segment_preview")
 
 	assetID := autoPreviewAssetID(t, pool, segmentID)
 	require.NotNil(t, assetID, "segment should now have an automatic preview asset")
@@ -200,7 +235,7 @@ func TestRunBackfill_IdempotentOnSecondRun(t *testing.T) {
 	insertReadyRenderCache(t, pool, segmentID, "cache-8", outputRel, 4, time.Now())
 
 	storageDir := t.TempDir()
-	cfg := backfillTestConfig(renderDir, storageDir, ffmpegBinary)
+	cfg := backfillTestConfig(pool, renderDir, storageDir, ffmpegBinary)
 
 	firstStats, err := runBackfill(context.Background(), pool, cfg)
 	require.NoError(t, err)
@@ -249,7 +284,7 @@ func TestRunBackfill_PicksLatestCompletedRender(t *testing.T) {
 	insertReadyRenderCache(t, pool, segmentID, "cache-9-older", olderRel, 4, older)
 
 	storageDir := t.TempDir()
-	cfg := backfillTestConfig(renderDir, storageDir, ffmpegBinary)
+	cfg := backfillTestConfig(pool, renderDir, storageDir, ffmpegBinary)
 
 	stats, err := runBackfill(context.Background(), pool, cfg)
 	require.NoError(t, err)

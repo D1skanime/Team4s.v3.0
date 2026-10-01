@@ -54,6 +54,7 @@ func Phase6AnimeAssetLifecyclePolicy() models.AssetLifecyclePolicy {
 			"logo":             "logo",
 			"background":       "background",
 			"background_video": "video",
+			"segment_preview":  "preview",
 		},
 		RequiredFolders: []string{"cover", "banner", "logo", "background", "background_video"},
 	}

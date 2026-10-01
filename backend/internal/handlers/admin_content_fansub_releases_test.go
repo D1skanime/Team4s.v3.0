@@ -204,6 +204,9 @@ func (s *fansubReleaseThemeRepoStub) SetThemeSegmentManualPreview(ctx context.Co
 func (s *fansubReleaseThemeRepoStub) ResetThemeSegmentManualPreview(ctx context.Context, segmentID int64) (*int64, error) {
 	return nil, nil
 }
+func (s *fansubReleaseThemeRepoStub) AssignUploadedSegmentPreviewImage(ctx context.Context, animeID int64, segmentID int64, mediaAssetID int64) (*int64, error) {
+	return nil, nil
+}
 func (s *fansubReleaseThemeRepoStub) AttachSegmentPreviewImageFromReleaseVersion(ctx context.Context, segmentID int64, mediaAssetID int64) (*int64, error) {
 	return nil, nil
 }

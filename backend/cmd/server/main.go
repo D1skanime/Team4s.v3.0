@@ -256,6 +256,16 @@ func main() {
 		// Discovery-Snapshot, damit nicht jeder Seitenaufruf die komplette Bibliothek
 		// erneut von Jellyfin abfragt. redisClient ist bereits oben initialisiert.
 		WithDiscoveryCacheDeps(handlers.NewRedisDiscoveryCache(redisClient))
+	// Globaler Anime-Uploader (POST /admin/upload). Vor dem Render-Worker gebaut, weil
+	// automatische Kara-Vorschaubilder (Phase 172) ueber denselben Ablagepfad gespeichert werden.
+	assetLifecycleRepo := repository.NewAssetLifecycleRepository(dbPool)
+	assetLifecycleService := services.NewAssetLifecycleService(assetLifecycleRepo, cfg.MediaStorageDir)
+	mediaUploadRepo := repository.NewMediaUploadRepository(dbPool)
+	mediaUploadHandler := handlers.NewMediaUploadHandler(mediaUploadRepo, cfg.MediaStorageDir, cfg.MediaPublicBaseURL, cfg.FFmpegPath).
+		WithLifecycleService(assetLifecycleService).
+		WithAdminAuthz(authzRepo, cfg.AuthAdminRoleName).
+		WithSegmentPreviewAuthorizer(adminContentHandler.AuthorizeSegmentPreviewUpload)
+	adminContentHandler.WithGeneratedImageStore(mediaUploadHandler)
 	if cfg.SegmentRenderEnabled {
 		// context.Background() statt des Startup-Contexts: der Worker läuft für die gesamte
 		// Prozesslaufzeit, unabhängig vom kurzen 10s-Timeout, der nur den Boot-Vorgang begrenzt.
@@ -320,13 +330,6 @@ func main() {
 		JellyfinBaseURL:    cfg.JellyfinBaseURL,
 		JellyfinStreamPath: cfg.JellyfinStreamPathTemplate,
 	})
-	assetLifecycleRepo := repository.NewAssetLifecycleRepository(dbPool)
-	assetLifecycleService := services.NewAssetLifecycleService(assetLifecycleRepo, cfg.MediaStorageDir)
-	mediaUploadRepo := repository.NewMediaUploadRepository(dbPool)
-	mediaUploadHandler := handlers.NewMediaUploadHandler(mediaUploadRepo, cfg.MediaStorageDir, cfg.MediaPublicBaseURL, cfg.FFmpegPath).
-		WithLifecycleService(assetLifecycleService).
-		WithAdminAuthz(authzRepo, cfg.AuthAdminRoleName)
-
 	// Periodic release-version-media cleanup job (stale processing, missing files, soft-delete).
 	// Runs every 10 minutes in a background goroutine; best-effort, never stops the server.
 	rvmCleanupSvc := services.NewRVMCleanupService(mediaRepo, cfg.MediaStorageDir)

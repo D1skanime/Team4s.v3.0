@@ -154,9 +154,9 @@ func registerAdminRoutes(v1 *gin.RouterGroup, auth gin.HandlerFunc, deps adminRo
 	v1.POST("/admin/anime/:id/segments/:segmentId/reuse", auth, deps.adminContentHandler.AttachSegmentLibraryAsset)
 	v1.POST("/admin/anime/:id/segments/:segmentId/asset", auth, deps.adminContentHandler.UploadSegmentAsset)
 	v1.DELETE("/admin/anime/:id/segments/:segmentId/asset", auth, deps.adminContentHandler.DeleteSegmentAsset)
-	// Phase 172, Plan 172-05 (D-11): manuelle Vorschaubild-Pflege pro Kara-Segment (Upload,
-	// Kandidaten-Liste aus Release-Bildern, Attach, Reset auf Automatisch).
-	v1.POST("/admin/anime/:id/segments/:segmentId/preview-image", auth, deps.adminContentHandler.UploadSegmentPreviewImage)
+	// Phase 172 (D-11): manuelle Vorschaubild-Pflege pro Kara-Segment. Hochgeladen wird ueber den
+	// globalen Uploader (POST /admin/upload, asset_type=segment_preview); PUT ordnet das Bild zu.
+	v1.PUT("/admin/anime/:id/segments/:segmentId/preview-image", auth, deps.adminContentHandler.AssignSegmentPreviewImage)
 	v1.GET("/admin/anime/:id/segments/:segmentId/preview-image/candidates", auth, deps.adminContentHandler.GetSegmentPreviewImageCandidates)
 	v1.POST("/admin/anime/:id/segments/:segmentId/preview-image/attach", auth, deps.adminContentHandler.AttachSegmentPreviewImage)
 	v1.POST("/admin/anime/:id/segments/:segmentId/preview-image/reset", auth, deps.adminContentHandler.ResetSegmentPreviewImage)

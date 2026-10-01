@@ -4,7 +4,6 @@ import (
 	"bytes"
 	"context"
 	"encoding/json"
-	"mime/multipart"
 	"net/http"
 	"net/http/httptest"
 	"os"
@@ -15,7 +14,6 @@ import (
 	"team4s.v3/backend/internal/models"
 	"team4s.v3/backend/internal/permissions"
 	"team4s.v3/backend/internal/repository"
-	"team4s.v3/backend/internal/services"
 
 	"github.com/gin-gonic/gin"
 	"github.com/jackc/pgx/v5/pgxpool"
@@ -38,6 +36,9 @@ type segmentPreviewThemeRepoFake struct {
 
 	setManualPreviewFunc   func(ctx context.Context, segmentID int64, mediaAssetID int64) (*int64, error)
 	setManualPreviewCalled bool
+
+	assignUploadedFunc       func(ctx context.Context, animeID int64, segmentID int64, mediaAssetID int64) (*int64, error)
+	assignUploadedCalledWith []int64
 
 	resetManualPreviewFunc   func(ctx context.Context, segmentID int64) (*int64, error)
 	resetManualPreviewCalled bool
@@ -73,6 +74,14 @@ func (f *segmentPreviewThemeRepoFake) SetThemeSegmentManualPreview(ctx context.C
 	f.setManualPreviewCalled = true
 	if f.setManualPreviewFunc != nil {
 		return f.setManualPreviewFunc(ctx, segmentID, mediaAssetID)
+	}
+	return nil, nil
+}
+
+func (f *segmentPreviewThemeRepoFake) AssignUploadedSegmentPreviewImage(ctx context.Context, animeID int64, segmentID int64, mediaAssetID int64) (*int64, error) {
+	f.assignUploadedCalledWith = append(f.assignUploadedCalledWith, animeID, segmentID, mediaAssetID)
+	if f.assignUploadedFunc != nil {
+		return f.assignUploadedFunc(ctx, animeID, segmentID, mediaAssetID)
 	}
 	return nil, nil
 }
@@ -135,21 +144,6 @@ func segmentPreviewContext(req *http.Request, animeID, segmentID string, identit
 	return c, recorder
 }
 
-func segmentPreviewUploadRequest(t *testing.T, fileBytes []byte) *http.Request {
-	t.Helper()
-	var body bytes.Buffer
-	w := multipart.NewWriter(&body)
-	part, err := w.CreateFormFile("file", "preview.png")
-	require.NoError(t, err)
-	_, err = part.Write(fileBytes)
-	require.NoError(t, err)
-	require.NoError(t, w.Close())
-
-	req := httptest.NewRequest(http.MethodPost, "/api/v1/admin/anime/7/segments/42/preview-image", &body)
-	req.Header.Set("Content-Type", w.FormDataContentType())
-	return req
-}
-
 func segmentPreviewJSONRequest(method, target string, payload any) *http.Request {
 	body, _ := json.Marshal(payload)
 	req := httptest.NewRequest(method, target, bytes.NewReader(body))
@@ -163,51 +157,55 @@ type segmentPreviewDataEnvelope struct {
 	} `json:"data"`
 }
 
-// TestUploadSegmentPreviewImage_Success proves, via a real Postgres-backed mediaRepo and a real
-// MediaService writing to a tmp dir, that a genuine multipart upload creates a public/approved
-// media asset (D-03) and sets it as the segment's manual preview (D-11), then returns the
-// re-fetched segment with preview_source=manual (proving the handler's step-7 re-fetch, not a
-// static stub value).
-func TestUploadSegmentPreviewImage_Success(t *testing.T) {
+// TestAssignSegmentPreviewImage_Success proves that PUT .../preview-image assigns a media asset
+// uploaded through the global uploader (asset_type=segment_preview) as manual preview: the repo
+// receives anime, segment and media id, and the handler returns the re-fetched segment.
+func TestAssignSegmentPreviewImage_Success(t *testing.T) {
 	gin.SetMode(gin.TestMode)
-	pool := openReleaseThemeAssetMediaFixture(t)
-
 	manual := "manual"
 	fake := &segmentPreviewThemeRepoFake{
 		segment:            &models.AdminThemeSegment{ID: 42, AnimeID: 7},
 		segmentAfterMutate: &models.AdminThemeSegment{ID: 42, AnimeID: 7, PreviewSource: &manual},
 	}
-	handler := &AdminContentHandler{
-		themeRepo:    fake,
-		mediaRepo:    repository.NewMediaRepository(pool, ""),
-		mediaService: services.NewMediaService(t.TempDir(), ""),
-	}
+	handler := &AdminContentHandler{themeRepo: fake}
 
-	pngBytes := buildMinimalPNGWithDimensions(t, 100, 100)
-	req := segmentPreviewUploadRequest(t, pngBytes)
+	req := segmentPreviewJSONRequest(http.MethodPut, "/api/v1/admin/anime/7/segments/42/preview-image", adminSegmentPreviewImageAssignRequest{MediaID: 4711})
 	c, rec := segmentPreviewContext(req, "7", "42", segmentPreviewAdminIdentity())
 
-	handler.UploadSegmentPreviewImage(c)
+	handler.AssignSegmentPreviewImage(c)
 
 	require.Equal(t, http.StatusOK, rec.Code, rec.Body.String())
-	require.True(t, fake.setManualPreviewCalled)
+	require.Equal(t, []int64{7, 42, 4711}, fake.assignUploadedCalledWith)
 
 	var resp segmentPreviewDataEnvelope
 	require.NoError(t, json.Unmarshal(rec.Body.Bytes(), &resp))
 	require.NotNil(t, resp.Data.PreviewSource)
 	require.Equal(t, "manual", *resp.Data.PreviewSource)
-
-	var mediaCount int
-	require.NoError(t, pool.QueryRow(context.Background(),
-		`SELECT COUNT(*) FROM media_assets ma JOIN visibilities v ON v.id = ma.visibility_id JOIN review_statuses rs ON rs.id = ma.review_status_id WHERE v.name = 'public' AND rs.code = 'approved'`,
-	).Scan(&mediaCount))
-	require.Equal(t, 1, mediaCount)
 }
 
-// TestUploadSegmentPreviewImage_Forbidden proves a real permission denial (via
-// requireSegmentManage's genuine resolver path, not a simulated 403) returns 403 BEFORE any
-// mutation -- SetThemeSegmentManualPreview is never called.
-func TestUploadSegmentPreviewImage_Forbidden(t *testing.T) {
+// TestAssignSegmentPreviewImage_ForeignAsset404 proves that an asset which was not uploaded as
+// segment_preview for this anime (repo signals ErrNotFound) surfaces as 404.
+func TestAssignSegmentPreviewImage_ForeignAsset404(t *testing.T) {
+	gin.SetMode(gin.TestMode)
+	fake := &segmentPreviewThemeRepoFake{
+		segment: &models.AdminThemeSegment{ID: 42, AnimeID: 7},
+		assignUploadedFunc: func(ctx context.Context, animeID int64, segmentID int64, mediaAssetID int64) (*int64, error) {
+			return nil, repository.ErrNotFound
+		},
+	}
+	handler := &AdminContentHandler{themeRepo: fake}
+
+	req := segmentPreviewJSONRequest(http.MethodPut, "/api/v1/admin/anime/7/segments/42/preview-image", adminSegmentPreviewImageAssignRequest{MediaID: 999})
+	c, rec := segmentPreviewContext(req, "7", "42", segmentPreviewAdminIdentity())
+
+	handler.AssignSegmentPreviewImage(c)
+
+	require.Equal(t, http.StatusNotFound, rec.Code, rec.Body.String())
+}
+
+// TestAssignSegmentPreviewImage_Forbidden proves a real permission denial returns 403 before
+// any mutation -- AssignUploadedSegmentPreviewImage is never called.
+func TestAssignSegmentPreviewImage_Forbidden(t *testing.T) {
 	gin.SetMode(gin.TestMode)
 	variantID := int64(55)
 	fake := &segmentPreviewThemeRepoFake{
@@ -215,18 +213,41 @@ func TestUploadSegmentPreviewImage_Forbidden(t *testing.T) {
 	}
 	handler := &AdminContentHandler{
 		themeRepo:     fake,
-		mediaRepo:     &repository.MediaRepository{},
-		mediaService:  services.NewMediaService(t.TempDir(), ""),
 		permissionSvc: permissions.NewService(releaseThemeAssetDeniedResolverStub{}),
 	}
 
-	req := segmentPreviewUploadRequest(t, buildMinimalPNGWithDimensions(t, 10, 10))
+	req := segmentPreviewJSONRequest(http.MethodPut, "/api/v1/admin/anime/7/segments/42/preview-image", adminSegmentPreviewImageAssignRequest{MediaID: 4711})
 	c, rec := segmentPreviewContext(req, "7", "42", segmentPreviewDeniedIdentity())
 
-	handler.UploadSegmentPreviewImage(c)
+	handler.AssignSegmentPreviewImage(c)
 
 	require.Equal(t, http.StatusForbidden, rec.Code, rec.Body.String())
-	require.False(t, fake.setManualPreviewCalled, "SetThemeSegmentManualPreview darf vor einer 403-Antwort nie aufgerufen werden")
+	require.Empty(t, fake.assignUploadedCalledWith, "AssignUploadedSegmentPreviewImage darf vor einer 403-Antwort nie aufgerufen werden")
+}
+
+// TestAuthorizeSegmentPreviewUpload_UsesSegmentPermission proves the global uploader's
+// segment_preview branch: allowed segment editors get their identity back, denied users get 403.
+func TestAuthorizeSegmentPreviewUpload_UsesSegmentPermission(t *testing.T) {
+	gin.SetMode(gin.TestMode)
+	variantID := int64(55)
+	newHandler := func(resolver permissions.Resolver) *AdminContentHandler {
+		return &AdminContentHandler{
+			themeRepo:     &segmentPreviewThemeRepoFake{segment: &models.AdminThemeSegment{ID: 42, AnimeID: 7, PlaybackVariantID: &variantID}},
+			permissionSvc: permissions.NewService(resolver),
+		}
+	}
+
+	denied := newHandler(releaseThemeAssetDeniedResolverStub{})
+	c, rec := segmentPreviewContext(httptest.NewRequest(http.MethodPost, "/api/v1/admin/upload", nil), "", "", segmentPreviewDeniedIdentity())
+	_, ok := denied.AuthorizeSegmentPreviewUpload(c, 7, 42, 0)
+	require.False(t, ok)
+	require.Equal(t, http.StatusForbidden, rec.Code, rec.Body.String())
+
+	admin := newHandler(releaseThemeAssetDeniedResolverStub{})
+	c, _ = segmentPreviewContext(httptest.NewRequest(http.MethodPost, "/api/v1/admin/upload", nil), "", "", segmentPreviewAdminIdentity())
+	identity, ok := admin.AuthorizeSegmentPreviewUpload(c, 7, 42, 0)
+	require.True(t, ok)
+	require.Equal(t, int64(9302), identity.UserID)
 }
 
 // TestGetSegmentPreviewImageCandidates_Forbidden proves the candidate-list read path is gated

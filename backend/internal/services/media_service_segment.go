@@ -176,65 +176,47 @@ func (s *MediaService) saveSegmentVideoPreview(videoPath string) (*MediaVariantS
 	}, nil
 }
 
+// previewFrameMaxWidth begrenzt die Breite eines extrahierten Vorschaubild-Frames. Die Ablage
+// (Original + 300px-Thumb) uebernimmt danach der globale Anime-Upload-Pfad.
+const previewFrameMaxWidth = 1280
+
 // ExtractImageFrame extrahiert einen Frame bei einem explizit uebergebenen Offset (in Sekunden)
-// aus einem beliebigen Video und speichert ihn unter s.storageDir/destRelPath -- NICHT neben dem
-// Quellvideo, damit die Datei unter der regulaeren Media-Storage-Struktur (und damit /media-
-// Auslieferung sowie einheitlichem Aufraeumen) liegt. Genutzt vom Render-Worker-Hook (Phase 172,
-// D-04), wo die Segmentdauer bereits bekannt ist und kein ffprobe-Aufruf noetig ist. 640px Breite
-// (statt der 480px von saveSegmentVideoPreview), da dieses Bild direkt als oeffentliches
-// Kara-Vorschaubild angezeigt wird (passend zur width={640} in ReleaseGallery.tsx).
-func (s *MediaService) ExtractImageFrame(videoPath string, offsetSeconds float64, destRelPath string) (*MediaVariantSaveResult, error) {
-	destPath := filepath.Join(s.storageDir, destRelPath)
+// und schreibt ihn als JPEG nach destPath (temporaere Datei). Die dauerhafte Ablage erfolgt
+// anschliessend ueber den globalen Anime-Upload-Pfad (Phase 172, D-04).
+func (s *MediaService) ExtractImageFrame(videoPath string, offsetSeconds float64, destPath string) error {
 	if err := os.MkdirAll(filepath.Dir(destPath), 0o755); err != nil {
-		return nil, fmt.Errorf("create preview directory: %w", err)
+		return fmt.Errorf("create frame directory: %w", err)
 	}
 	tempPNG := destPath + ".tmp.png"
 	defer os.Remove(tempPNG)
 
 	cmd := exec.Command(s.ffmpegPath, "-i", videoPath, "-ss", fmt.Sprintf("%.2f", offsetSeconds), "-frames:v", "1", "-f", "image2", "-y", tempPNG)
 	if err := cmd.Run(); err != nil {
-		return nil, fmt.Errorf("ffmpeg frame extraction failed: %w", err)
+		return fmt.Errorf("ffmpeg frame extraction failed: %w", err)
 	}
 	img, err := imaging.Open(tempPNG)
 	if err != nil {
-		return nil, fmt.Errorf("open extracted frame: %w", err)
+		return fmt.Errorf("open extracted frame: %w", err)
 	}
-	resized := imaging.Resize(img, 640, 0, imaging.Lanczos)
-	if err := imaging.Save(resized, destPath, imaging.JPEGQuality(86)); err != nil {
-		return nil, fmt.Errorf("save frame: %w", err)
+	if img.Bounds().Dx() > previewFrameMaxWidth {
+		img = imaging.Resize(img, previewFrameMaxWidth, 0, imaging.Lanczos)
 	}
-	stat, err := os.Stat(destPath)
-	if err != nil {
-		return nil, err
+	if err := imaging.Save(img, destPath, imaging.JPEGQuality(88)); err != nil {
+		return fmt.Errorf("save frame: %w", err)
 	}
-	bounds := resized.Bounds()
-	width, height := bounds.Dx(), bounds.Dy()
-	return &MediaVariantSaveResult{
-		Filename:    filepath.Base(destRelPath),
-		StoragePath: destPath,
-		MimeType:    "image/jpeg",
-		SizeBytes:   stat.Size(),
-		Width:       &width,
-		Height:      &height,
-	}, nil
+	return nil
 }
 
 // ExtractSegmentUploadAutoPreview extrahiert bei ca. 35% der Videodauer (D-05) einen
-// EIGENSTAENDIGEN Vorschaubild-Frame unter destRelPath, getrennt von saveSegmentVideoPreview's
-// eigenem Thumb (das weiterhin als 'thumb'-media_files-Variante des Video-Assets registriert
-// wird). Code-Review-Fix (Phase 172, doppelter Dateibesitz): vorher registrierte der Video-
-// Upload-Pfad denselben von saveSegmentVideoPreview erzeugten Datei-Pfad ZWEIMAL -- einmal als
-// Video-Thumb, einmal (ueber registerSegmentAutoPreview) als eigenstaendiges Auto-Vorschaubild-
-// Asset. Beide media_assets-Zeilen zeigten dann auf dieselbe physische Datei; ein spaeteres
-// Aufraeumen des einen Assets riss das andere mit. ExtractImageFrame erzeugt hier bewusst eine
-// zweite, unabhaengige Kopie. Faellt bei fehlgeschlagener Dauer-Ermittlung auf Offset 0 zurueck
-// (D-06), analog saveSegmentVideoPreview.
-func (s *MediaService) ExtractSegmentUploadAutoPreview(videoPath string, destRelPath string) (*MediaVariantSaveResult, error) {
+// EIGENSTAENDIGEN Vorschaubild-Frame nach destPath -- getrennt vom Video-Thumb aus
+// saveSegmentVideoPreview, damit kein Dateibesitz geteilt wird. Faellt bei fehlgeschlagener
+// Dauer-Ermittlung auf Offset 0 zurueck (D-06).
+func (s *MediaService) ExtractSegmentUploadAutoPreview(videoPath string, destPath string) error {
 	offsetSeconds := 0.0
 	if duration, err := s.probeVideoDuration(videoPath); err == nil && duration > 0 {
 		offsetSeconds = duration * 0.35
 	}
-	return s.ExtractImageFrame(videoPath, offsetSeconds, destRelPath)
+	return s.ExtractImageFrame(videoPath, offsetSeconds, destPath)
 }
 
 func sanitizeSegmentPathComponent(value string) string {

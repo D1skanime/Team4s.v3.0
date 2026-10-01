@@ -626,3 +626,69 @@ func TestResolveThemeSegmentPreviewAsset_ManualGateRequiresPublicApprovedAndNotD
 		require.Equal(t, "direct-upload.jpg", *path)
 	})
 }
+
+// TestAssignUploadedSegmentPreviewImage beweist die Zuordnung eines ueber den globalen Uploader
+// (asset_type=segment_preview -> media_type 'preview') hochgeladenen Bildes: nur Vorschaubild-
+// Assets DIESES Anime werden akzeptiert, danach sind sie oeffentlich/freigegeben (D-03) und als
+// manuelle Wahl gesetzt. Fremde Anime, andere Medientypen und automatische Vorschaubilder -> ErrNotFound.
+func TestAssignUploadedSegmentPreviewImage(t *testing.T) {
+	pool := testsupport.OpenPhase117Postgres(t)
+	ctx := context.Background()
+	f := setupPreviewWriteFixture(t, pool)
+	repo := NewAdminContentRepository(pool)
+
+	_, err := pool.Exec(ctx, `
+CREATE TABLE IF NOT EXISTS media_types (id BIGINT PRIMARY KEY, name TEXT NOT NULL UNIQUE);
+INSERT INTO media_types (id, name) VALUES (101, 'preview'), (102, 'image') ON CONFLICT DO NOTHING;
+ALTER TABLE media_assets ADD COLUMN IF NOT EXISTS media_type_id BIGINT;
+ALTER TABLE media_assets ADD COLUMN IF NOT EXISTS modified_at TIMESTAMPTZ;
+CREATE TABLE IF NOT EXISTS anime_media (anime_id BIGINT NOT NULL, media_id BIGINT NOT NULL, sort_order INT DEFAULT 0);
+`)
+	require.NoError(t, err)
+
+	insertAsset := func(assetID, mediaTypeID, animeID int64) {
+		t.Helper()
+		_, err := pool.Exec(ctx, `INSERT INTO media_assets (id, file_path, status, media_type_id) VALUES ($1, 'upload.jpg', 'ready', $2)`, assetID, mediaTypeID)
+		require.NoError(t, err)
+		_, err = pool.Exec(ctx, `INSERT INTO anime_media (anime_id, media_id) VALUES ($1, $2)`, animeID, assetID)
+		require.NoError(t, err)
+	}
+
+	t.Run("hochgeladenes Vorschaubild dieses Anime wird zugeordnet und freigegeben", func(t *testing.T) {
+		insertAsset(9001, 101, 1)
+
+		oldValue, err := repo.AssignUploadedSegmentPreviewImage(ctx, 1, f.themeSegmentID, 9001)
+		require.NoError(t, err)
+		require.Nil(t, oldValue)
+
+		var manualID *int64
+		require.NoError(t, pool.QueryRow(ctx, `SELECT preview_media_asset_id FROM theme_segments WHERE id = $1`, f.themeSegmentID).Scan(&manualID))
+		require.NotNil(t, manualID)
+		require.Equal(t, int64(9001), *manualID)
+
+		var visibilityID, reviewStatusID int64
+		require.NoError(t, pool.QueryRow(ctx, `SELECT visibility_id, review_status_id FROM media_assets WHERE id = 9001`).Scan(&visibilityID, &reviewStatusID))
+		require.Equal(t, f.publicVisibilityID, visibilityID)
+		require.Equal(t, f.approvedReviewStatusID, reviewStatusID)
+	})
+
+	t.Run("Vorschaubild eines anderen Anime wird abgelehnt", func(t *testing.T) {
+		insertAsset(9002, 101, 2)
+		_, err := repo.AssignUploadedSegmentPreviewImage(ctx, 1, f.themeSegmentID, 9002)
+		require.ErrorIs(t, err, ErrNotFound)
+	})
+
+	t.Run("anderer Medientyp wird abgelehnt", func(t *testing.T) {
+		insertAsset(9003, 102, 1)
+		_, err := repo.AssignUploadedSegmentPreviewImage(ctx, 1, f.themeSegmentID, 9003)
+		require.ErrorIs(t, err, ErrNotFound)
+	})
+
+	t.Run("automatisches Vorschaubild eines Segments wird abgelehnt", func(t *testing.T) {
+		insertAsset(9004, 101, 1)
+		_, err := pool.Exec(ctx, `UPDATE theme_segments SET auto_preview_media_asset_id = 9004 WHERE id = $1`, f.themeSegmentID)
+		require.NoError(t, err)
+		_, err = repo.AssignUploadedSegmentPreviewImage(ctx, 1, f.themeSegmentID, 9004)
+		require.ErrorIs(t, err, ErrNotFound)
+	})
+}

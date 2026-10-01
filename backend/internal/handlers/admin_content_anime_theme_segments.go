@@ -3,7 +3,6 @@ package handlers
 import (
 	"context"
 	"errors"
-	"fmt"
 	"io"
 	"log"
 	"net/http"
@@ -18,7 +17,6 @@ import (
 	"team4s.v3/backend/internal/services"
 
 	"github.com/gin-gonic/gin"
-	"github.com/google/uuid"
 )
 
 const (
@@ -869,17 +867,15 @@ func (h *AdminContentHandler) UploadSegmentAsset(c *gin.Context) {
 		}
 	}
 
-	// Phase 172, D-05: bei einem Video-Upload (saveResult.Variants nicht leer, siehe
-	// media_service.go saveSegmentVideoPreview) wird zusaetzlich ein EIGENSTAENDIGER
-	// Vorschaubild-Frame extrahiert -- NICHT der bereits als Video-Thumb registrierte
-	// saveResult.Variants[0] wiederverwendet (Code-Review-Fix: doppelter Dateibesitz, siehe
-	// ExtractSegmentUploadAutoPreview-Kommentar).
+	// Phase 172, D-05: bei einem Video-Upload wird ein EIGENSTAENDIGER Vorschaubild-Frame
+	// extrahiert und ueber den globalen Anime-Upload-Pfad abgelegt (kein geteilter Dateibesitz
+	// mit dem Video-Thumb saveResult.Variants[0]).
 	if len(saveResult.Variants) > 0 && h.mediaService != nil {
-		autoPreviewRelPath := filepath.ToSlash(filepath.Join("segments", "previews", fmt.Sprintf("segment_%d", segmentID), uuid.New().String()+".jpg"))
-		if variant, extractErr := h.mediaService.ExtractSegmentUploadAutoPreview(saveResult.CreateInput.StoragePath, autoPreviewRelPath); extractErr != nil {
+		framePath := segmentPreviewFramePath(segmentID)
+		if extractErr := h.mediaService.ExtractSegmentUploadAutoPreview(saveResult.CreateInput.StoragePath, framePath); extractErr != nil {
 			log.Printf("segment asset upload: auto-preview-extraktion fehlgeschlagen (segment_id=%d): %v", segmentID, extractErr)
 		} else {
-			h.registerSegmentAutoPreview(c.Request.Context(), segmentID, *variant)
+			h.registerSegmentAutoPreview(c.Request.Context(), segmentID, animeID, framePath)
 		}
 	}
 

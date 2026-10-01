@@ -63,6 +63,38 @@ func (r *AdminContentRepository) SetThemeSegmentManualPreview(ctx context.Contex
 	return setThemeSegmentPreviewColumn(ctx, r.db, segmentID, "preview_media_asset_id", &v)
 }
 
+// AssignUploadedSegmentPreviewImage ordnet ein ueber den globalen Anime-Upload
+// (POST /admin/upload, asset_type=segment_preview -> media_type 'preview') hochgeladenes Bild
+// als manuelles Vorschaubild zu (D-11). Akzeptiert nur Assets dieses Anime (anime_media), die
+// weder einem Release gehoeren noch als automatisches Vorschaubild genutzt werden -- sonst
+// ErrNotFound. Setzt das Asset auf oeffentlich/freigegeben (D-03: keine Review-Pruefung).
+func (r *AdminContentRepository) AssignUploadedSegmentPreviewImage(ctx context.Context, animeID int64, segmentID int64, mediaAssetID int64) (*int64, error) {
+	if animeID <= 0 || segmentID <= 0 || mediaAssetID <= 0 {
+		return nil, ErrNotFound
+	}
+
+	tag, err := r.db.Exec(ctx, `
+		UPDATE media_assets ma
+		SET visibility_id = (SELECT id FROM visibilities WHERE name = 'public'),
+		    review_status_id = (SELECT id FROM review_statuses WHERE code = 'approved'),
+		    modified_at = NOW()
+		WHERE ma.id = $1
+		  AND ma.status = 'ready'
+		  AND EXISTS (SELECT 1 FROM media_types mt WHERE mt.id = ma.media_type_id AND mt.name = 'preview')
+		  AND EXISTS (SELECT 1 FROM anime_media am WHERE am.media_id = ma.id AND am.anime_id = $2)
+		  AND NOT EXISTS (SELECT 1 FROM release_version_media rvm WHERE rvm.media_asset_id = ma.id)
+		  AND NOT EXISTS (SELECT 1 FROM theme_segments ts WHERE ts.auto_preview_media_asset_id = ma.id)
+	`, mediaAssetID, animeID)
+	if err != nil {
+		return nil, fmt.Errorf("assign uploaded theme segment preview anime=%d segment=%d asset=%d: %w", animeID, segmentID, mediaAssetID, err)
+	}
+	if tag.RowsAffected() == 0 {
+		return nil, ErrNotFound
+	}
+
+	return r.SetThemeSegmentManualPreview(ctx, segmentID, mediaAssetID)
+}
+
 // ResetThemeSegmentManualPreview setzt preview_media_asset_id auf NULL ("Automatisches Bild
 // verwenden", D-11) und ruehrt auto_preview_media_asset_id NICHT an. Liefert den vorherigen
 // manuellen Wert zurueck, damit der Aufrufer das zuvor manuell gewaehlte Asset aufraeumen kann.

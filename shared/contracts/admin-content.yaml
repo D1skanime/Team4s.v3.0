@@ -591,8 +591,8 @@ endpoints:
       status: 200
       type: AdminAnimeSegmentResponse
 
-  - name: admin-segment-preview-image-upload
-    method: POST
+  - name: admin-segment-preview-image-assign
+    method: PUT
     path: /api/v1/admin/anime/:id/segments/:segmentId/preview-image
     auth:
       required: true
@@ -601,8 +601,9 @@ endpoints:
         format: Bearer <signed token>
       notes:
         - Requires release_version.segments.manage (Phase 172, D-03/D-11 "Bild hochladen").
-        - Stored immediately as visibility=public/review_status=approved, same as existing segment asset uploads; no review step.
-        - Replaces any previous manual preview image; old asset is best-effort cleaned up unless still referenced elsewhere.
+        - Upload happens through the global uploader POST /api/v1/admin/upload (asset_type=segment_preview, segment_id); this call only assigns the uploaded media asset.
+        - Accepts only preview images uploaded for this anime that are neither release media nor an automatic preview; otherwise 404.
+        - Sets the asset to visibility=public/review_status=approved (no review step) and replaces any previous manual preview; the old asset is best-effort cleaned up unless still referenced elsewhere.
     path_params:
       - name: id
         type: int64
@@ -617,8 +618,11 @@ endpoints:
         required: false
     request_body:
       required: true
-      type: multipart/form-data
-      field: file
+      type: application/json
+      fields:
+        - name: media_id
+          type: int64
+          minimum: 1
     response:
       status: 200
       type: AdminAnimeSegmentResponse

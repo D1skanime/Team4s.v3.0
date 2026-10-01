@@ -59,6 +59,7 @@ var (
 		"video":            "background_video",
 		"background_video": "background_video",
 		"theme_video":      "theme_video",
+		"segment_preview":  "segment_preview",
 	}
 )
 
@@ -77,6 +78,9 @@ type MediaUploadHandler struct {
 	// Guard bewusst fail-closed und antwortet mit 500 statt Zugriff zu gewaehren.
 	authzRepo     any
 	adminRoleName string
+	// segmentPreviewAuthorizer ersetzt den Plattform-Admin-Guard ausschliesslich fuer
+	// asset_type=segment_preview (Phase 172): wer das Segment bearbeiten darf, darf hochladen.
+	segmentPreviewAuthorizer SegmentPreviewUploadAuthorizer
 }
 
 func NewMediaUploadHandler(repo repository.MediaUploadRepoTx, storageDir, baseURL, ffmpegPath string) *MediaUploadHandler {
@@ -109,7 +113,7 @@ func (h *MediaUploadHandler) requireAdmin(c *gin.Context) (middleware.AuthIdenti
 
 // Upload handles POST /api/admin/upload
 func (h *MediaUploadHandler) Upload(c *gin.Context) {
-	identity, ok := h.requireAdmin(c)
+	identity, ok := h.authorizeUpload(c)
 	if !ok {
 		return
 	}
@@ -271,6 +275,8 @@ func mediaTypeForUploadAsset(assetType string) string {
 		return "poster"
 	case "background_video":
 		return "video"
+	case "segment_preview":
+		return "preview"
 	default:
 		return strings.TrimSpace(strings.ToLower(assetType))
 	}

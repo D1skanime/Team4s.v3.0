@@ -3,30 +3,28 @@ package handlers
 import (
 	"context"
 	"errors"
-	"io"
 	"log"
 	"net/http"
+	"os"
+	"path/filepath"
 	"strconv"
 
-	"team4s.v3/backend/internal/models"
+	"team4s.v3/backend/internal/middleware"
 	"team4s.v3/backend/internal/repository"
-	"team4s.v3/backend/internal/services"
 
 	"github.com/gin-gonic/gin"
 )
 
-// Phase 172, Plan 172-05 (D-03/D-11): die vier manuellen Vorschaubild-Endpunkte fuer
-// Kara-Segmente (Upload, Kandidaten-Liste, Attach eines Release-Bildes, Reset auf
-// Automatisch). Ausgelagert in eine eigene Datei, da admin_content_anime_theme_segments.go
-// bereits bei 955 Zeilen liegt (CLAUDE.md 450-Zeilen-Limit). Jeder Handler folgt exakt dem
-// Parameter-Parse/Permission-Gate/Domain-Body/Response-Schema von
-// UploadSegmentAsset/AttachSegmentLibraryAsset (siehe admin_content_anime_theme_segments.go).
+// Phase 172 (D-03/D-11): die manuellen Vorschaubild-Endpunkte fuer Kara-Segmente
+// (Zuordnung eines ueber den globalen Uploader hochgeladenen Bildes, Kandidaten-Liste,
+// Attach eines Release-Bildes, Reset auf Automatisch). Ausgelagert in eine eigene Datei, da
+// admin_content_anime_theme_segments.go bereits bei 955 Zeilen liegt (450-Zeilen-Limit).
+// Hochgeladen wird ausschliesslich ueber POST /admin/upload (asset_type=segment_preview).
 
-// resolveSegmentPreviewContext buendelt die gemeinsamen Schritte 1-5 aller vier neuen
-// Vorschaubild-Handler: Pfad-Parameter parsen, Segment fuer den Berechtigungskontext laden,
-// requireSegmentManage pruefen -- BEVOR irgendeine Mutation oder ein Lesezugriff auf
-// Vorschaubild-Daten stattfindet (Acceptance: "Ohne Segment-Recht -> 403" fuer alle vier
-// Endpunkte). Liefert ok=false, wenn die Response bereits geschrieben wurde (400/404/403/500).
+// resolveSegmentPreviewContext buendelt die gemeinsamen Schritte aller Vorschaubild-Handler:
+// Pfad-Parameter parsen, Segment laden, requireSegmentManage pruefen -- BEVOR irgendeine
+// Mutation oder ein Lesezugriff stattfindet. Liefert ok=false, wenn die Response bereits
+// geschrieben wurde (400/404/403/500).
 func (h *AdminContentHandler) resolveSegmentPreviewContext(c *gin.Context) (animeID int64, segmentID int64, releaseVariantID int64, ok bool) {
 	animeID, segmentID, parsedErr := parseSegmentPreviewPathParams(c)
 	if parsedErr {
@@ -39,23 +37,64 @@ func (h *AdminContentHandler) resolveSegmentPreviewContext(c *gin.Context) (anim
 		return 0, 0, 0, false
 	}
 
+	releaseVariantID, ok = h.authorizeSegmentPreview(c, animeID, segmentID, releaseVariantID)
+	if !ok {
+		return 0, 0, 0, false
+	}
+	return animeID, segmentID, releaseVariantID, true
+}
+
+// authorizeSegmentPreview laedt das Segment fuer den Berechtigungskontext und prueft
+// requireSegmentManage. Geteilt von den Vorschaubild-Endpunkten und dem segment_preview-Zweig
+// des globalen Uploaders (AuthorizeSegmentPreviewUpload).
+func (h *AdminContentHandler) authorizeSegmentPreview(c *gin.Context, animeID, segmentID, releaseVariantID int64) (int64, bool) {
+	if h.themeRepo == nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"error": gin.H{"message": "segment vorschaubild service nicht verfügbar"}})
+		return 0, false
+	}
 	seg, err := h.themeRepo.GetAnimeSegmentByID(c.Request.Context(), animeID, segmentID, releaseVariantID)
 	if errors.Is(err, repository.ErrNotFound) {
 		c.JSON(http.StatusNotFound, gin.H{"error": gin.H{"message": "segment nicht gefunden"}})
-		return 0, 0, 0, false
+		return 0, false
 	}
 	if err != nil {
 		writeInternalErrorResponse(c, "interner serverfehler", err, "Segment konnte nicht geladen werden.")
-		return 0, 0, 0, false
+		return 0, false
 	}
 	if releaseVariantID == 0 {
 		releaseVariantID = segmentPlaybackVariantID(seg)
 	}
 	if !h.requireSegmentManage(c, releaseVariantID) {
-		return 0, 0, 0, false
+		return 0, false
 	}
+	return releaseVariantID, true
+}
 
-	return animeID, segmentID, releaseVariantID, true
+// AuthorizeSegmentPreviewUpload ist der Rechte-Zweig des globalen Uploaders fuer
+// asset_type=segment_preview (MediaUploadHandler.WithSegmentPreviewAuthorizer): wer das
+// Segment bearbeiten darf, darf dafuer ein Vorschaubild hochladen.
+func (h *AdminContentHandler) AuthorizeSegmentPreviewUpload(c *gin.Context, animeID, segmentID, releaseVariantID int64) (middleware.AuthIdentity, bool) {
+	if _, ok := h.authorizeSegmentPreview(c, animeID, segmentID, releaseVariantID); !ok {
+		return middleware.AuthIdentity{}, false
+	}
+	identity, ok := middleware.CommentAuthIdentityFromContext(c)
+	if !ok {
+		c.JSON(http.StatusUnauthorized, gin.H{"error": gin.H{"message": "anmeldung erforderlich"}})
+		return middleware.AuthIdentity{}, false
+	}
+	return identity, true
+}
+
+// generatedAnimeImageStore legt serverseitig erzeugte Bilder ueber den globalen
+// Anime-Upload-Pfad ab (MediaUploadHandler.StoreGeneratedAnimeImage).
+type generatedAnimeImageStore interface {
+	StoreGeneratedAnimeImage(ctx context.Context, sourcePath string, animeID int64, assetType string) (int64, error)
+}
+
+// WithGeneratedImageStore verdrahtet den globalen Ablagepfad fuer automatische Vorschaubilder.
+func (h *AdminContentHandler) WithGeneratedImageStore(store generatedAnimeImageStore) *AdminContentHandler {
+	h.generatedImageStore = store
+	return h
 }
 
 // parseSegmentPreviewPathParams parst :id/:segmentId; schreibt bei Fehler bereits die
@@ -76,16 +115,12 @@ func parseSegmentPreviewPathParams(c *gin.Context) (animeID int64, segmentID int
 }
 
 // cleanupOldPreviewAsset raeumt ein durch eine neue manuelle/automatische Wahl ersetztes altes
-// Vorschaubild-Asset best-effort auf (Datei(en) + media_assets-Zeile). Die vorausgehende
-// Mutation ist zu diesem Zeitpunkt bereits erfolgreich -- jeder Fehler wird NUR geloggt, nie an
-// den Aufrufer zurueckgegeben (gleiches Prinzip wie registerSegmentAutoPreview, D-06-analog).
+// Vorschaubild-Asset best-effort auf (Dateien, leerer Asset-Ordner, media_assets-Zeile). Die
+// vorausgehende Mutation ist bereits erfolgreich -- Fehler werden NUR geloggt.
 //
-// Datenverlust-Fix (Code-Review Phase 172): ein per "Aus Release-Bildern wählen" uebernommenes
-// altes Bild gehoert ggf. noch zu release_version_media (oder einem anderen Segment) -- IMMER
-// loeschen wuerde dessen Datei(en) entfernen und DeleteMediaAsset anschliessend an der RESTRICT-
-// FK release_version_media_media_asset_id_fkey scheitern lassen, waehrend die Release-Zeile mit
-// fehlender Datei zurueckbleibt. Vor jedem Aufraeumen wird daher IsMediaAssetExclusiveSegmentPreview
-// gefragt, ob das alte Asset ausschliesslich als Segment-Vorschaubild existiert.
+// Datenverlust-Schutz: ein per "Aus Release-Bildern wählen" uebernommenes altes Bild gehoert
+// weiterhin zu release_version_media (oder einem anderen Segment). Vor jedem Aufraeumen wird
+// daher IsMediaAssetExclusiveSegmentPreview gefragt.
 func (h *AdminContentHandler) cleanupOldPreviewAsset(ctx context.Context, oldAssetID *int64, newAssetID int64, segmentID int64, logContext string) {
 	if oldAssetID == nil || *oldAssetID == newAssetID || h.mediaRepo == nil || h.themeRepo == nil {
 		return
@@ -107,88 +142,44 @@ func (h *AdminContentHandler) cleanupOldPreviewAsset(ctx context.Context, oldAss
 		if removeErr := removeFileQuietly(p); removeErr != nil {
 			log.Printf("%s: alte datei konnte nicht entfernt werden (path=%s): %v", logContext, p, removeErr)
 		}
+		// Kanonisches Layout media/anime/<id>/segment_preview/<uuid>/: leeren Asset-Ordner mitnehmen.
+		_ = os.Remove(filepath.Dir(p))
 	}
 	if deleteErr := h.mediaRepo.DeleteMediaAsset(ctx, *oldAssetID); deleteErr != nil {
 		log.Printf("%s: altes media asset konnte nicht geloescht werden (old_asset_id=%d): %v", logContext, *oldAssetID, deleteErr)
 	}
 }
 
-// UploadSegmentPreviewImage verarbeitet POST
-// /api/v1/admin/anime/:id/segments/:segmentId/preview-image. Speichert ein hochgeladenes Bild
-// als neues manuelles Vorschaubild des Segments (D-11 "Bild hochladen"). Wie bestehende
-// Segment-Dateien ist das Ergebnis sofort oeffentlich/freigegeben, ohne Review (D-03).
-func (h *AdminContentHandler) UploadSegmentPreviewImage(c *gin.Context) {
-	if h.themeRepo == nil || h.mediaRepo == nil || h.mediaService == nil {
-		c.JSON(http.StatusInternalServerError, gin.H{"error": gin.H{"message": "segment vorschaubild service nicht verfügbar"}})
-		return
-	}
+type adminSegmentPreviewImageAssignRequest struct {
+	MediaID int64 `json:"media_id"`
+}
 
+// AssignSegmentPreviewImage verarbeitet PUT /api/v1/admin/anime/:id/segments/:segmentId/preview-image.
+// Ordnet ein zuvor ueber den globalen Uploader (POST /admin/upload, asset_type=segment_preview)
+// hochgeladenes Bild als manuelles Vorschaubild zu -- analog PUT /admin/anime/:id/assets/cover.
+// Das Bild ist danach ohne Review sofort oeffentlich (D-03).
+func (h *AdminContentHandler) AssignSegmentPreviewImage(c *gin.Context) {
 	animeID, segmentID, releaseVariantID, ok := h.resolveSegmentPreviewContext(c)
 	if !ok {
 		return
 	}
 
-	fileHeader, err := c.FormFile("file")
-	if err != nil {
-		badRequest(c, "datei fehlt (field: file)")
-		return
-	}
-	file, err := fileHeader.Open()
-	if err != nil {
-		writeInternalErrorResponse(c, "interner serverfehler", err, "Datei konnte nicht gelesen werden.")
-		return
-	}
-	defer file.Close()
-
-	data, err := io.ReadAll(file)
-	if err != nil {
-		writeInternalErrorResponse(c, "interner serverfehler", err, "Datei konnte nicht gelesen werden.")
+	var req adminSegmentPreviewImageAssignRequest
+	if err := c.ShouldBindJSON(&req); err != nil || req.MediaID <= 0 {
+		badRequest(c, "ungültiger request body")
 		return
 	}
 
-	saveResult, err := h.mediaService.SaveUpload(models.MediaKindImage, fileHeader.Filename, data)
+	oldAssetID, err := h.themeRepo.AssignUploadedSegmentPreviewImage(c.Request.Context(), animeID, segmentID, req.MediaID)
+	if errors.Is(err, repository.ErrNotFound) {
+		c.JSON(http.StatusNotFound, gin.H{"error": gin.H{"message": "bild wurde nicht als vorschaubild für diesen anime hochgeladen"}})
+		return
+	}
 	if err != nil {
-		var validationErr *services.MediaValidationError
-		if errors.As(err, &validationErr) {
-			badRequest(c, validationErr.Message)
-			return
-		}
-		writeInternalErrorResponse(c, "interner serverfehler", err, "Vorschaubild konnte nicht gespeichert werden.")
+		writeInternalErrorResponse(c, "interner serverfehler", err, "Vorschaubild konnte nicht zugeordnet werden.")
 		return
 	}
-
-	// D-03: ein manuell hochgeladenes Vorschaubild ist ohne Review sofort oeffentlich, exakt wie
-	// bestehende Segment-Dateien (UploadSegmentAsset, admin_content_anime_theme_segments.go).
-	publicVisibility := "public"
-	approvedReview := "approved"
-	saveResult.CreateInput.VisibilityCode = &publicVisibility
-	saveResult.CreateInput.ReviewStatusCode = &approvedReview
-
-	asset, err := h.mediaRepo.CreateMediaAsset(c.Request.Context(), saveResult.CreateInput)
-	if err != nil {
-		_ = removeFileQuietly(saveResult.CreateInput.StoragePath)
-		writeInternalErrorResponse(c, "interner serverfehler", err, "Vorschaubild-Asset konnte nicht gespeichert werden.")
-		return
-	}
-	if err := h.mediaRepo.InsertMediaFile(c.Request.Context(), asset.ID, "original", saveResult.CreateInput.StoragePath, saveResult.CreateInput.SizeBytes); err != nil {
-		_ = h.mediaRepo.DeleteMediaAsset(c.Request.Context(), asset.ID)
-		_ = removeFileQuietly(saveResult.CreateInput.StoragePath)
-		writeInternalErrorResponse(c, "interner serverfehler", err, "Vorschaubild-Datei konnte nicht registriert werden.")
-		return
-	}
-
-	oldAssetID, err := h.themeRepo.SetThemeSegmentManualPreview(c.Request.Context(), segmentID, asset.ID)
-	if err != nil {
-		_ = h.mediaRepo.DeleteMediaAsset(c.Request.Context(), asset.ID)
-		_ = removeFileQuietly(saveResult.CreateInput.StoragePath)
-		if errors.Is(err, repository.ErrNotFound) {
-			c.JSON(http.StatusNotFound, gin.H{"error": gin.H{"message": "segment nicht gefunden"}})
-			return
-		}
-		writeInternalErrorResponse(c, "interner serverfehler", err, "Vorschaubild konnte nicht als manuelle Wahl gesetzt werden.")
-		return
-	}
-	h.cleanupOldPreviewAsset(c.Request.Context(), oldAssetID, asset.ID, segmentID, "segment preview upload")
+	h.cleanupOldPreviewAsset(c.Request.Context(), oldAssetID, req.MediaID, segmentID, "segment preview assign")
 
 	updated, err := h.themeRepo.GetAnimeSegmentByID(c.Request.Context(), animeID, segmentID, releaseVariantID)
 	if err != nil {
@@ -203,11 +194,6 @@ func (h *AdminContentHandler) UploadSegmentPreviewImage(c *gin.Context) {
 // waehlbaren, bereits oeffentlichen Release-Bilder fuer den "Aus Release-Bildern
 // wählen"-Picker (D-11).
 func (h *AdminContentHandler) GetSegmentPreviewImageCandidates(c *gin.Context) {
-	if h.themeRepo == nil {
-		c.JSON(http.StatusInternalServerError, gin.H{"error": gin.H{"message": "segment vorschaubild service nicht verfügbar"}})
-		return
-	}
-
 	_, segmentID, _, ok := h.resolveSegmentPreviewContext(c)
 	if !ok {
 		return
@@ -234,13 +220,8 @@ type adminSegmentPreviewImageAttachRequest struct {
 // oeffentliches, freigegebenes Bild einer zugewiesenen Release-Version als neues manuelles
 // Vorschaubild (D-11). Die Ownership wird serverseitig in
 // AttachSegmentPreviewImageFromReleaseVersion erneut verifiziert -- ein fremdes/nicht
-// zugewiesenes media_asset_id liefert IMMER 404 (Acceptance "Fremde -> 404/403").
+// zugewiesenes media_asset_id liefert IMMER 404.
 func (h *AdminContentHandler) AttachSegmentPreviewImage(c *gin.Context) {
-	if h.themeRepo == nil {
-		c.JSON(http.StatusInternalServerError, gin.H{"error": gin.H{"message": "segment vorschaubild service nicht verfügbar"}})
-		return
-	}
-
 	animeID, segmentID, releaseVariantID, ok := h.resolveSegmentPreviewContext(c)
 	if !ok {
 		return
@@ -276,11 +257,6 @@ func (h *AdminContentHandler) AttachSegmentPreviewImage(c *gin.Context) {
 // ("Automatisches Bild verwenden", D-11) -- das Segment faellt danach auf die bestehende
 // Rangfolge automatisch > Ersatzbild zurueck (D-08), ohne dass ein neuer Render noetig ist.
 func (h *AdminContentHandler) ResetSegmentPreviewImage(c *gin.Context) {
-	if h.themeRepo == nil {
-		c.JSON(http.StatusInternalServerError, gin.H{"error": gin.H{"message": "segment vorschaubild service nicht verfügbar"}})
-		return
-	}
-
 	animeID, segmentID, releaseVariantID, ok := h.resolveSegmentPreviewContext(c)
 	if !ok {
 		return

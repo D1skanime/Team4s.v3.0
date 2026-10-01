@@ -4,7 +4,6 @@ import (
 	"bytes"
 	"context"
 	"errors"
-	"fmt"
 	"log"
 	"net/http"
 	"os"
@@ -17,8 +16,6 @@ import (
 	"team4s.v3/backend/internal/models"
 	"team4s.v3/backend/internal/repository"
 	"team4s.v3/backend/internal/services"
-
-	"github.com/google/uuid"
 )
 
 // segmentRenderWorkerPollInterval bestimmt, wie oft der Hintergrund-Worker nach neuen
@@ -229,11 +226,11 @@ func (h *AdminContentHandler) executeSegmentRender(
 	// lassen (deshalb kein "return err" in diesem Block) -- nur Logging.
 	if h.mediaService != nil {
 		offsetSeconds := float64(durationSeconds) * 0.35
-		relPath := filepath.ToSlash(filepath.Join("segments", "previews", fmt.Sprintf("segment_%d", cache.ThemeSegmentID), uuid.New().String()+".jpg"))
-		if variant, extractErr := h.mediaService.ExtractImageFrame(outputPath, offsetSeconds, relPath); extractErr != nil {
+		framePath := segmentPreviewFramePath(cache.ThemeSegmentID)
+		if extractErr := h.mediaService.ExtractImageFrame(outputPath, offsetSeconds, framePath); extractErr != nil {
 			log.Printf("segment render worker: auto-preview-extraktion fehlgeschlagen (segment_id=%d): %v", cache.ThemeSegmentID, extractErr)
 		} else {
-			h.registerSegmentAutoPreview(ctx, cache.ThemeSegmentID, *variant)
+			h.registerSegmentAutoPreview(ctx, cache.ThemeSegmentID, source.AnimeID, framePath)
 		}
 	}
 

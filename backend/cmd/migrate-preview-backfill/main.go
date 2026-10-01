@@ -33,6 +33,8 @@ type Config struct {
 	MediaStorageDir  string
 	FFmpegPath       string
 	DryRun           bool
+	// ImageStore ersetzt in Tests den globalen Anime-Upload-Pfad (nil = echter Pfad).
+	ImageStore previewImageStore
 }
 
 func main() {

@@ -1778,6 +1778,18 @@ paths:
                   type: string
                   nullable: true
                   description: "Reviewstatus-Code (z.B. 'approved', 'in_review'). Backend setzt Default wenn leer."
+                segment_id:
+                  type: integer
+                  format: int64
+                  minimum: 1
+                  nullable: true
+                  description: "Pflicht fuer asset_type=segment_preview (Phase 172). Rechtepruefung ueber release_version.segments.manage statt Plattform-Admin."
+                release_variant_id:
+                  type: integer
+                  format: int64
+                  minimum: 1
+                  nullable: true
+                  description: "Optional fuer asset_type=segment_preview: Release-Version fuer die Segment-Rechtepruefung."
             encoding:
               file:
                 contentType: image/jpeg, image/png, image/webp, image/gif, video/mp4, video/webm
@@ -2147,11 +2159,12 @@ paths:
         A different assigned segment of the same canonical OP or ED family returns409 segment_assignment_conflict;
         no existing assignment is replaced.
   /api/v1/admin/anime/{id}/segments/{segmentId}/preview-image:
-    post:
+    put:
       tags:
       - Admin
-      summary: Upload a manual preview image for a segment
-      operationId: adminUploadSegmentPreviewImage
+      summary: Assign an uploaded image as manual segment preview
+      operationId: adminAssignSegmentPreviewImage
+      description: Ordnet ein ueber POST /api/v1/admin/upload (asset_type=segment_preview) hochgeladenes Bild als manuelles Vorschaubild zu. Kein eigener Upload-Endpunkt.
       security:
       - bearerAuth: []
       parameters:
@@ -2167,18 +2180,19 @@ paths:
       requestBody:
         required: true
         content:
-          multipart/form-data:
+          application/json:
             schema:
               type: object
               required:
-              - file
+              - media_id
               properties:
-                file:
-                  type: string
-                  format: binary
+                media_id:
+                  type: integer
+                  format: int64
+                  minimum: 1
       responses:
         '200':
-          description: Segment with the newly uploaded manual preview image attached (preview_source becomes manual)
+          description: Segment with the assigned manual preview image (preview_source becomes manual)
           content:
             application/json:
               schema:
@@ -12603,11 +12617,13 @@ components:
           nullable: true
     AdminUploadAssetType:
       type: string
-      enum: [poster, banner, logo, gallery, background, video, background_video]
+      enum: [poster, banner, logo, gallery, background, video, background_video, segment_preview]
       description: |
         Accepted upload labels. `poster`, `gallery`, and `video` are aliases that normalize to
         `cover`, `background`, and `background_video` internally while still using the shared
-        `/api/v1/admin/upload` seam.
+        `/api/v1/admin/upload` seam. `segment_preview` (Phase 172) stores a Kara preview image
+        under media/anime/<id>/segment_preview/ (media_type preview); it requires `segment_id` and
+        is authorized via release_version.segments.manage instead of platform admin.
     AdminAnimeAssetOwnership:
       type: string
       enum: [manual, provider]

@@ -79,34 +79,26 @@ func TestSaveSegmentVideoPreview_ExtractsAt35Percent(t *testing.T) {
 	}
 }
 
-// TestExtractImageFrame_WritesUnderDestRelPath beweist, dass ExtractImageFrame das Ergebnis unter
-// s.storageDir/destRelPath ablegt, NICHT neben dem Quellvideo -- der Render-Worker-Hook (D-04)
-// benoetigt diese Trennung, damit Vorschaubilder in der regulaeren Media-Storage-Struktur landen.
-func TestExtractImageFrame_WritesUnderDestRelPath(t *testing.T) {
+// TestExtractImageFrame_WritesFrameToDestPath beweist, dass ExtractImageFrame den Frame als
+// lesbares JPEG genau nach destPath schreibt und nichts neben dem Quellvideo erzeugt. Die
+// dauerhafte Ablage uebernimmt danach der globale Anime-Upload-Pfad (Phase 172).
+func TestExtractImageFrame_WritesFrameToDestPath(t *testing.T) {
 	ffmpegBinary := requireFFmpeg(t)
 
 	sourceDir := t.TempDir()
 	videoPath := filepath.Join(sourceDir, "source.mp4")
 	generateFourColorFixture(t, ffmpegBinary, videoPath)
 
-	storageDir := t.TempDir()
-	svc := NewMediaService(storageDir, "http://localhost:8092", ffmpegBinary)
+	svc := NewMediaService(t.TempDir(), "http://localhost:8092", ffmpegBinary)
 
-	destRelPath := filepath.Join("segments", "previews", "segment_1", "frame.jpg")
-	result, err := svc.ExtractImageFrame(videoPath, 1.4, destRelPath)
-	if err != nil {
+	destPath := filepath.Join(t.TempDir(), "frames", "frame.jpg")
+	if err := svc.ExtractImageFrame(videoPath, 1.4, destPath); err != nil {
 		t.Fatalf("ExtractImageFrame: %v", err)
 	}
-
-	expectedPath := filepath.Join(storageDir, destRelPath)
-	if result.StoragePath != expectedPath {
-		t.Fatalf("expected StoragePath %q, got %q", expectedPath, result.StoragePath)
-	}
-	if _, err := imaging.Open(expectedPath); err != nil {
-		t.Fatalf("expected extracted frame at %q: %v", expectedPath, err)
+	if _, err := imaging.Open(destPath); err != nil {
+		t.Fatalf("expected extracted frame at %q: %v", destPath, err)
 	}
 
-	// Beweis, dass NICHTS neben dem Quellvideo erzeugt wurde.
 	neighborPath := videoPath + ".preview.jpg"
 	if _, err := imaging.Open(neighborPath); err == nil {
 		t.Fatalf("unexpected file written next to source video: %s", neighborPath)

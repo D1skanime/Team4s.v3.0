@@ -199,6 +199,9 @@ func (s *releaseThemeAssetRepoStub) SetThemeSegmentManualPreview(context.Context
 func (s *releaseThemeAssetRepoStub) ResetThemeSegmentManualPreview(context.Context, int64) (*int64, error) {
 	return nil, nil
 }
+func (s *releaseThemeAssetRepoStub) AssignUploadedSegmentPreviewImage(context.Context, int64, int64, int64) (*int64, error) {
+	return nil, nil
+}
 func (s *releaseThemeAssetRepoStub) AttachSegmentPreviewImageFromReleaseVersion(context.Context, int64, int64) (*int64, error) {
 	return nil, nil
 }
