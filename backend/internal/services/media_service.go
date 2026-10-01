@@ -15,6 +15,7 @@ import (
 	"os"
 	"os/exec"
 	"path/filepath"
+	"strconv"
 	"strings"
 	"time"
 
@@ -348,12 +349,44 @@ func (s *MediaService) SaveSegmentAsset(ctx SegmentAssetContext, originalName st
 	return result, nil
 }
 
+// probeVideoDuration ermittelt die Videodauer in Sekunden via ffprobe -- exakt das
+// getVideoMetadata-Muster aus media_upload_video.go:181-205, aber ausschliesslich die Dauer
+// liefernd (kein width/height-Bedarf an dieser Stelle).
+func (s *MediaService) probeVideoDuration(videoPath string) (float64, error) {
+	ffprobePath := strings.Replace(s.ffmpegPath, "ffmpeg", "ffprobe", 1)
+	cmd := exec.Command(
+		ffprobePath,
+		"-v", "error",
+		"-select_streams", "v:0",
+		"-show_entries", "stream=duration",
+		"-of", "default=noprint_wrappers=1:nokey=1",
+		videoPath,
+	)
+	output, err := cmd.Output()
+	if err != nil {
+		return 0, fmt.Errorf("ffprobe duration probe failed: %w", err)
+	}
+	duration, err := strconv.ParseFloat(strings.TrimSpace(string(output)), 64)
+	if err != nil {
+		return 0, fmt.Errorf("parse ffprobe duration: %w", err)
+	}
+	return duration, nil
+}
+
+// saveSegmentVideoPreview extrahiert einen Frame bei ca. 35% der Videodauer (Phase 172, D-05) statt
+// bei Sekunde 0 -- schlaegt die Dauer-Ermittlung fehl, faellt die Funktion defensiv auf Offset 0
+// zurueck statt den gesamten Segment-Asset-Upload scheitern zu lassen (D-06).
 func (s *MediaService) saveSegmentVideoPreview(videoPath string) (*MediaVariantSaveResult, error) {
 	previewPath := videoPath + ".preview.jpg"
 	tempPNG := previewPath + ".tmp.png"
 	defer os.Remove(tempPNG)
 
-	cmd := exec.Command(s.ffmpegPath, "-i", videoPath, "-ss", "0", "-frames:v", "1", "-f", "image2", "-y", tempPNG)
+	offsetSeconds := 0.0
+	if duration, err := s.probeVideoDuration(videoPath); err == nil && duration > 0 {
+		offsetSeconds = duration * 0.35
+	}
+
+	cmd := exec.Command(s.ffmpegPath, "-i", videoPath, "-ss", fmt.Sprintf("%.2f", offsetSeconds), "-frames:v", "1", "-f", "image2", "-y", tempPNG)
 	if err := cmd.Run(); err != nil {
 		return nil, fmt.Errorf("ffmpeg preview extraction failed: %w", err)
 	}
@@ -374,6 +407,49 @@ func (s *MediaService) saveSegmentVideoPreview(videoPath string) (*MediaVariantS
 	return &MediaVariantSaveResult{
 		Filename:    filepath.Base(previewPath),
 		StoragePath: previewPath,
+		MimeType:    "image/jpeg",
+		SizeBytes:   stat.Size(),
+		Width:       &width,
+		Height:      &height,
+	}, nil
+}
+
+// ExtractImageFrame extrahiert einen Frame bei einem explizit uebergebenen Offset (in Sekunden)
+// aus einem beliebigen Video und speichert ihn unter s.storageDir/destRelPath -- NICHT neben dem
+// Quellvideo, damit die Datei unter der regulaeren Media-Storage-Struktur (und damit /media-
+// Auslieferung sowie einheitlichem Aufraeumen) liegt. Genutzt vom Render-Worker-Hook (Phase 172,
+// D-04), wo die Segmentdauer bereits bekannt ist und kein ffprobe-Aufruf noetig ist. 640px Breite
+// (statt der 480px von saveSegmentVideoPreview), da dieses Bild direkt als oeffentliches
+// Kara-Vorschaubild angezeigt wird (passend zur width={640} in ReleaseGallery.tsx).
+func (s *MediaService) ExtractImageFrame(videoPath string, offsetSeconds float64, destRelPath string) (*MediaVariantSaveResult, error) {
+	destPath := filepath.Join(s.storageDir, destRelPath)
+	if err := os.MkdirAll(filepath.Dir(destPath), 0o755); err != nil {
+		return nil, fmt.Errorf("create preview directory: %w", err)
+	}
+	tempPNG := destPath + ".tmp.png"
+	defer os.Remove(tempPNG)
+
+	cmd := exec.Command(s.ffmpegPath, "-i", videoPath, "-ss", fmt.Sprintf("%.2f", offsetSeconds), "-frames:v", "1", "-f", "image2", "-y", tempPNG)
+	if err := cmd.Run(); err != nil {
+		return nil, fmt.Errorf("ffmpeg frame extraction failed: %w", err)
+	}
+	img, err := imaging.Open(tempPNG)
+	if err != nil {
+		return nil, fmt.Errorf("open extracted frame: %w", err)
+	}
+	resized := imaging.Resize(img, 640, 0, imaging.Lanczos)
+	if err := imaging.Save(resized, destPath, imaging.JPEGQuality(86)); err != nil {
+		return nil, fmt.Errorf("save frame: %w", err)
+	}
+	stat, err := os.Stat(destPath)
+	if err != nil {
+		return nil, err
+	}
+	bounds := resized.Bounds()
+	width, height := bounds.Dx(), bounds.Dy()
+	return &MediaVariantSaveResult{
+		Filename:    filepath.Base(destRelPath),
+		StoragePath: destPath,
 		MimeType:    "image/jpeg",
 		SizeBytes:   stat.Size(),
 		Width:       &width,
