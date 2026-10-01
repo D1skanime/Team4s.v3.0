@@ -3,15 +3,15 @@ gsd_state_version: 1.0
 milestone: v1.4
 milestone_name: Coverage
 status: executing
-stopped_at: Completed Phase 171 Plan 04
-last_updated: "2026-10-01T15:30:00.000Z"
+stopped_at: Phase 172 UI-SPEC approved
+last_updated: "2026-10-01T16:58:50.558Z"
 last_activity: 2026-10-01
 progress:
-  total_phases: 44
-  completed_phases: 37
-  total_plans: 392
-  completed_plans: 365
-  percent: 93
+  total_phases: 37
+  completed_phases: 32
+  total_plans: 322
+  completed_plans: 311
+  percent: 86
 ---
 
 # Quick Task 260925-6qe — Anime-Identitätskarte kompakt (Phase 168)
@@ -1397,10 +1397,10 @@ untruncated list lives in `.planning/todos/pending/`.
 
 ## Session Continuity
 
-Last session: 2026-09-30T21:21:42.840Z
-Stopped at: Completed Phase 171 Plan 03
+Last session: 2026-10-01T15:50:34.266Z
+Stopped at: Phase 172 UI-SPEC approved
 Last activity: 2026-09-28 - Completed Phase 169 Plan 169-01
 Resume file: 
-None
+.planning/phases/172-kara-vorschaubild-pro-segment-automatisch-aus-dem-render-fra/172-UI-SPEC.md
 
 Plans 151-02/03/04 have implementation summaries. Plans 151-01 and 151-05 remain open until final artwork/composition review, complete browser evidence and independent verification; their missing summaries are intentional. No requirement or phase has been falsely marked complete.

@@ -2180,6 +2180,7 @@ Plans:
 **Plans:** 0 plans
 
 Plans:
+
 - [ ] TBD (run /gsd-plan-phase 168 to break down)
 
 ### Phase 169: Release-Medienrechte: Projektleiter, Preview, Highlights und Bildreihenfolge
@@ -2234,6 +2235,7 @@ Erledigt:
 **Plans:** 4/4 plans complete
 
 Plans:
+
 - [x] 171-01-PLAN.md — establish the canonical typed release-version story order and contracts
 - [x] 171-02-PLAN.md — integrate Kara into the existing ReleaseVersionMedia admin list with immediate refresh
 - [x] 171-03-PLAN.md — render the mixed public story with timeline anchors and permission-aware playback
@@ -2247,13 +2249,30 @@ Plans:
 **Plans:** 10 plans
 
 Plans:
+**Wave 1**
+
 - [ ] 172-01-PLAN.md — migration + shared manual>auto>fallback preview resolution, wired into admin list/single reads
+
+**Wave 2** *(blocked on Wave 1 completion)*
+
 - [ ] 172-02-PLAN.md — switch public release-detail segment reads onto the same shared resolution
 - [ ] 172-03-PLAN.md — admin write paths (set/reset/attach/list-candidates) + interface + fake updates
+
+**Wave 3** *(blocked on Wave 2 completion)*
+
 - [ ] 172-04-PLAN.md — render-worker auto-extraction hook + upload-path 35% offset fix
 - [ ] 172-05-PLAN.md — 4 new admin preview-image HTTP endpoints in a dedicated handler file
+
+**Wave 4** *(blocked on Wave 3 completion)*
+
 - [ ] 172-06-PLAN.md — one-off backfill binary for existing finished renders (Release 27)
 - [ ] 172-07-PLAN.md — frontend types/api.ts functions + OpenAPI/admin-content contract sync
+
+**Wave 5** *(blocked on Wave 4 completion)*
+
 - [ ] 172-08-PLAN.md — segment-panel preview-image UI (upload/picker/reset)
 - [ ] 172-09-PLAN.md — remove frontend fallback logic + kara-card deep link to segment tab
+
+**Wave 6** *(blocked on Wave 5 completion)*
+
 - [ ] 172-10-PLAN.md — live UAT on Release 27 (desktop + mobile)
