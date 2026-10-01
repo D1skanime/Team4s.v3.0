@@ -67,8 +67,16 @@ export type ReleaseReviewRejectionCategory =
   | 'rights.unclear'
   | 'other'
 
+export interface ReleaseVersionStoryOrderResponseItem {
+  type: 'media' | 'kara'
+  media_id?: number
+  theme_segment_id?: number
+  sort_order: number
+}
+
 export interface ReleaseVersionMediaListResponse {
   data: ReleaseVersionMediaItem[]
+  story_order?: ReleaseVersionStoryOrderResponseItem[]
 }
 
 /** Per-file result from the batch POST endpoint, in the same order as multipart files[]. */

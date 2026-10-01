@@ -849,7 +849,27 @@ func (h *AdminContentHandler) ListReleaseVersionMedia(c *gin.Context) {
 		}
 	}
 
-	c.JSON(http.StatusOK, gin.H{"data": items})
+	storyOrder, err := h.mediaRepo.ListReleaseVersionStoryOrder(c.Request.Context(), versionID)
+	if err != nil {
+		writeInternalErrorResponse(c, "interner serverfehler", err, "Story-Reihenfolge konnte nicht geladen werden.")
+		return
+	}
+	storyOrderResponse := make([]gin.H, 0, len(storyOrder))
+	for _, item := range storyOrder {
+		entry := gin.H{
+			"type":       string(item.ItemType),
+			"sort_order": item.SortOrder,
+		}
+		if item.ReleaseVersionMediaID != nil {
+			entry["media_id"] = *item.ReleaseVersionMediaID
+		}
+		if item.ThemeSegmentID != nil {
+			entry["theme_segment_id"] = *item.ThemeSegmentID
+		}
+		storyOrderResponse = append(storyOrderResponse, entry)
+	}
+
+	c.JSON(http.StatusOK, gin.H{"data": items, "story_order": storyOrderResponse})
 }
 
 func (h *AdminContentHandler) loadReleaseVersionMediaResponseItem(

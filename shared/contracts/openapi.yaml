@@ -16490,14 +16490,34 @@ components:
         original_url:
           type: string
           nullable: true
+    ReleaseVersionStoryOrderResponseItem:
+      type: object
+      required: [type, sort_order]
+      properties:
+        type:
+          type: string
+          enum: [media, kara]
+        media_id:
+          type: integer
+          format: int64
+        theme_segment_id:
+          type: integer
+          format: int64
+        sort_order:
+          type: integer
+          minimum: 0
     ReleaseVersionMediaListResponse:
       type: object
-      required: [data]
+      required: [data, story_order]
       properties:
         data:
           type: array
           items:
             $ref: "#/components/schemas/ReleaseVersionMediaItem"
+        story_order:
+          type: array
+          items:
+            $ref: "#/components/schemas/ReleaseVersionStoryOrderResponseItem"
     ReleaseVersionMediaItemResponse:
       type: object
       required: [data]
