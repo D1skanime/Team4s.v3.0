@@ -6,6 +6,7 @@ import (
 	"io"
 	"net/http"
 	"os"
+	"path/filepath"
 	"strconv"
 	"strings"
 
@@ -96,9 +97,14 @@ func (h *MediaUploadHandler) StoreGeneratedAnimeImage(ctx context.Context, sourc
 	}
 
 	req := models.UploadRequest{EntityType: "anime", EntityID: animeID, AssetType: normalized}
-	provisioning, err := h.ensureProvisioning(ctx, 0, req)
-	if err != nil {
-		return 0, err
+	// Serverseitig erzeugte Bilder haben keinen Benutzer, der Lifecycle-Audit verlangt aber einen
+	// Akteur. Daher ohne Provisionierungs-Audit direkt in das kanonische Anime-Verzeichnis --
+	// identisch zum ensureProvisioning-Pfad ohne Lifecycle-Service.
+	provisioning := &models.ProvisioningResult{
+		EntityType:         req.EntityType,
+		EntityID:           req.EntityID,
+		RequestedAssetType: normalized,
+		RootPath:           filepath.Join(h.mediaStorageDir, req.EntityType, strconv.FormatInt(animeID, 10)),
 	}
 
 	mediaID := uuid.New().String()

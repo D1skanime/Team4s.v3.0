@@ -3,6 +3,7 @@ package handlers
 import (
 	"bytes"
 	"context"
+	"errors"
 	"mime/multipart"
 	"net/http"
 	"net/http/httptest"
@@ -161,7 +162,8 @@ func TestMediaUploadHandler_OtherAssetTypesStayAdminOnly(t *testing.T) {
 func TestMediaUploadHandler_StoreGeneratedAnimeImage(t *testing.T) {
 	repo := &numericIDMediaUploadRepo{MockMediaUploadRepository: NewMockMediaUploadRepository()}
 	storageDir := t.TempDir()
-	handler := NewMediaUploadHandler(repo, storageDir, "http://localhost", "/usr/bin/ffmpeg")
+	// Der Lifecycle-Audit verlangt einen Benutzer; serverseitig erzeugte Bilder duerfen ihn daher nie aufrufen.
+	handler := NewMediaUploadHandler(repo, storageDir, "http://localhost", "/usr/bin/ffmpeg").WithLifecycleService(rejectingUploadLifecycle{})
 
 	framePath := filepath.Join(t.TempDir(), "frame.png")
 	require.NoError(t, os.WriteFile(framePath, testPNGBytes(t), 0o644))
@@ -180,4 +182,11 @@ func TestMediaUploadHandler_StoreGeneratedAnimeImage(t *testing.T) {
 		require.NoError(t, statErr, "variant %s must exist on disk", file.Variant)
 	}
 	require.True(t, repo.joinTable["anime"][123])
+}
+
+// rejectingUploadLifecycle bildet den echten Lifecycle-Audit nach, der ohne Benutzer (actor 0) scheitert.
+type rejectingUploadLifecycle struct{}
+
+func (rejectingUploadLifecycle) EnsureCanonicalLayout(ctx context.Context, actorUserID int64, entityType string, entityID int64, assetType string) (*models.ProvisioningResult, error) {
+	return nil, errors.New("asset lifecycle audit fehlgeschlagen: actor user id is required")
 }
