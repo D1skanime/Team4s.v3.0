@@ -12,18 +12,18 @@ import "strings"
 // Konsumenten-Plaene gelandet sind, darf keine SQL-LIKE-Klassifikation und
 // keine Frontend-Typwelt mehr parallel existieren.
 //
-// Die Praezedenz (OP vor ED vor INSERT vor KARA vor dem UPPER(themeTypeName)-
-// Fallback) ist ein 1:1-Port der ersetzten SQL-CASE-Anweisung -- identische
-// Substring-Semantik, identische Top-nach-unten-Auswertungsreihenfolge.
+// Die Praezedenz (OP vor INSERT vor ED vor KARA vor dem UPPER(themeTypeName)-
+// Fallback) stellt sicher, dass zusammengesetzte Insert-Namen wie
+// "Insert-Lied" nicht wegen des Teilstrings "ed" als ED klassifiziert werden.
 func CanonicalSegmentType(themeTypeName string) string {
 	lower := strings.ToLower(themeTypeName)
 	switch {
 	case strings.Contains(lower, "op") || strings.Contains(lower, "opening"):
 		return "OP"
-	case strings.Contains(lower, "ed") || strings.Contains(lower, "ending") || strings.Contains(lower, "outro"):
-		return "ED"
 	case strings.Contains(lower, "insert"):
 		return "INSERT"
+	case strings.Contains(lower, "ed") || strings.Contains(lower, "ending") || strings.Contains(lower, "outro"):
+		return "ED"
 	case strings.Contains(lower, "kara"):
 		return "KARA"
 	default:

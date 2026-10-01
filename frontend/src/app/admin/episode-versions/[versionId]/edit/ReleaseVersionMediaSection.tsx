@@ -1,7 +1,7 @@
 'use client'
 
-import { ChangeEvent, DragEvent, KeyboardEvent, PointerEvent as ReactPointerEvent, useEffect, useMemo, useRef, useState } from 'react'
-import { ImageIcon, Star, Trash2 } from 'lucide-react'
+import { ChangeEvent, DragEvent, KeyboardEvent, useEffect, useMemo, useRef, useState } from 'react'
+import { ArrowDown, ArrowUp, GripVertical, ImageIcon, Star, Trash2 } from 'lucide-react'
 
 import { CATEGORY_ALLOWS_PREVIEW, ReleaseVersionAdminStoryItem, ReleaseVersionMediaCategory, ReleaseVersionMediaItem } from '@/types/releaseVersionMedia'
 
@@ -10,7 +10,7 @@ import { UploadFileDraft, useReleaseVersionMedia, UseReleaseVersionMediaResult }
 import { ReleaseVersionMediaUploadQueue } from './ReleaseVersionMediaUploadQueue'
 import { ReleaseVersionMediaReplaceControls } from './ReleaseVersionMediaReplaceControls'
 import { RELEASE_REVIEW_REJECTION_CATEGORY_LABELS } from '../../../fansubs/releaseReviewPresentation'
-import { CATEGORY_OPTIONS, buildLocalPreviewURL, buildSelectedItemSavePayload, buildStoryReorderRequest, fileKey, formatKaraDuration, formatKaraEpisodeHint, getKaraCategoryLabel, getKaraStatusLabel, isTerminalStatus, resolveEditDrawerPrimaryLabel } from './ReleaseVersionMediaSection.helpers'
+import { CATEGORY_OPTIONS, buildLocalPreviewURL, buildSelectedItemSavePayload, buildStoryReorderRequest, fileKey, formatKaraDuration, formatKaraEpisodeHint, getKaraCategoryLabel, getKaraStatusLabel, isTerminalStatus, moveStoryItem, resolveEditDrawerPrimaryLabel, sortStoryItems, storyItemKey } from './ReleaseVersionMediaSection.helpers'
 import styles from './ReleaseVersionMediaSection.module.css'
 
 interface ReleaseVersionMediaSectionProps {
@@ -95,8 +95,8 @@ export function ReleaseVersionMediaSection({
   const [editError, setEditError] = useState<string | null>(null)
   const [previewSavingId, setPreviewSavingId] = useState<number | null>(null)
   const [toast, setToast] = useState<string | null>(null)
-  const [draggedMediaId, setDraggedMediaId] = useState<number | null>(null)
-  const [dragOverMediaId, setDragOverMediaId] = useState<number | null>(null)
+  const [draggedStoryKey, setDraggedStoryKey] = useState<string | null>(null)
+  const [dragOverStoryKey, setDragOverStoryKey] = useState<string | null>(null)
   const fileInputRef = useRef<HTMLInputElement | null>(null)
   const replaceFileInputRef = useRef<HTMLInputElement | null>(null)
 
@@ -168,65 +168,42 @@ export function ReleaseVersionMediaSection({
     setToast(message)
   }
 
-  function handleMediaDragStart(event: DragEvent<HTMLDivElement>, itemId: number) {
+  function handleMediaDragStart(event: DragEvent<HTMLDivElement>, itemKey: string) {
     if (!canReorderMedia) return
     event.stopPropagation()
     event.dataTransfer.effectAllowed = 'move'
-    event.dataTransfer.setData('text/plain', String(itemId))
-    setDraggedMediaId(itemId)
+    event.dataTransfer.setData('text/plain', itemKey)
+    setDraggedStoryKey(itemKey)
   }
 
-  function handleMediaPointerStart(event: ReactPointerEvent<HTMLDivElement>, itemId: number) {
-    if (!canReorderMedia || event.button !== 0) return
-    setDraggedMediaId(itemId)
+  function finishMediaDrag() {
+    setDraggedStoryKey(null)
+    setDragOverStoryKey(null)
   }
 
-  function handleMediaPointerOver(itemId: number) {
-    if (!canReorderMedia || draggedMediaId == null || draggedMediaId === itemId) return
-    setDragOverMediaId(itemId)
-  }
-
-  function handleMediaPointerEnd(itemId: number) {
-    if (draggedMediaId == null) return
-    handleMediaDrop(itemId)
-  }
-
-  function handleMediaDrop(targetId: number) {
-    if (!canReorderMedia || draggedMediaId == null || draggedMediaId === targetId) {
-      setDraggedMediaId(null)
-      setDragOverMediaId(null)
+  function handleMediaDrop(targetKey: string) {
+    if (!canReorderMedia || draggedStoryKey == null || draggedStoryKey === targetKey) {
+      finishMediaDrag()
       return
     }
-    const storyItems = media.storyItems ?? []
-    if (storyItems.length > 0) {
-      const draggedKey = draggedMediaId < 0 ? 'kara:' + -draggedMediaId : 'media:' + draggedMediaId
-      const targetKey = targetId < 0 ? 'kara:' + -targetId : 'media:' + targetId
-      const dragged = storyItems.find((item) => item.type === 'media' ? 'media:' + item.media.id === draggedKey : 'kara:' + item.segment.id === draggedKey)
-      const withoutDragged = storyItems.filter((item) => (item.type === 'media' ? 'media:' + item.media.id : 'kara:' + item.segment.id) !== draggedKey)
-      const targetIndex = withoutDragged.findIndex((item) => (item.type === 'media' ? 'media:' + item.media.id : 'kara:' + item.segment.id) === targetKey)
-      if (dragged && targetIndex >= 0) {
-        withoutDragged.splice(targetIndex, 0, dragged)
-        void media.reorderItems(versionId, buildStoryReorderRequest(withoutDragged))
-      }
-      setDraggedMediaId(null)
-      setDragOverMediaId(null)
+    const ordered = sortStoryItems(media.storyItems ?? visibleItems.map((item) => ({ type: 'media' as const, media: item, sort_order: item.sort_order })))
+    const fromIndex = ordered.findIndex((item) => storyItemKey(item) === draggedStoryKey)
+    const targetIndex = ordered.findIndex((item) => storyItemKey(item) === targetKey)
+    if (fromIndex < 0 || targetIndex < 0) {
+      finishMediaDrag()
       return
     }
-    const ordered = [...visibleItems].sort((a, b) => a.sort_order - b.sort_order)
-    const dragged = ordered.find((item) => item.id === draggedMediaId)
-    const withoutDragged = ordered.filter((item) => item.id !== draggedMediaId)
-    const targetIndex = withoutDragged.findIndex((item) => item.id === targetId)
-    if (!dragged || targetIndex < 0) {
-      setDraggedMediaId(null)
-      setDragOverMediaId(null)
-      return
-    }
-    withoutDragged.splice(targetIndex, 0, dragged)
-    void media.reorderItems(versionId, {
-      items: withoutDragged.map((item, index) => ({ type: "media" as const, media_id: item.id, sort_order: (index + 1) * 10 })),
-    })
-    setDraggedMediaId(null)
-    setDragOverMediaId(null)
+    void media.reorderItems(versionId, buildStoryReorderRequest(moveStoryItem(ordered, fromIndex, targetIndex)))
+    finishMediaDrag()
+  }
+
+  function moveStoryByOffset(itemKey: string, offset: number) {
+    if (!canReorderMedia) return
+    const ordered = sortStoryItems(media.storyItems ?? visibleItems.map((item) => ({ type: 'media' as const, media: item, sort_order: item.sort_order })))
+    const fromIndex = ordered.findIndex((item) => storyItemKey(item) === itemKey)
+    const nextIndex = fromIndex + offset
+    if (fromIndex < 0 || nextIndex < 0 || nextIndex >= ordered.length) return
+    void media.reorderItems(versionId, buildStoryReorderRequest(moveStoryItem(ordered, fromIndex, nextIndex)))
   }
 
   function openEditSheet(item: ReleaseVersionMediaItem) {
@@ -502,33 +479,35 @@ export function ReleaseVersionMediaSection({
                     className={styles.mediaCard + ' ' + styles.karaCard}
                     data-kara-category={category.toLowerCase()}
                     draggable={canReorderMedia}
-                    onDragStart={(event) => handleMediaDragStart(event, -segment.id)}
+                    onDragStart={(event) => handleMediaDragStart(event, 'kara:' + segment.id)}
                     onDragOver={(event) => {
                       if (!canReorderMedia) return
                       event.preventDefault()
-                      setDragOverMediaId(-segment.id)
+                      setDragOverStoryKey('kara:' + segment.id)
                     }}
                     onDrop={(event) => {
                       event.preventDefault()
-                      handleMediaDrop(-segment.id)
+                      handleMediaDrop('kara:' + segment.id)
                     }}
                     onDragEnd={() => {
-                      setDraggedMediaId(null)
-                      setDragOverMediaId(null)
+                      finishMediaDrag()
                     }}
-                    data-drop-target={dragOverMediaId === -segment.id ? 'true' : undefined}
+                    data-drop-target={dragOverStoryKey === 'kara:' + segment.id ? 'true' : undefined}
                     data-testid={'admin-kara-card-' + segment.id}
-                    onPointerEnter={() => handleMediaPointerOver(-segment.id)}
-                    onPointerMove={() => handleMediaPointerOver(-segment.id)}
-                    onPointerUp={() => handleMediaPointerEnd(-segment.id)}
-                    onPointerCancel={() => { setDraggedMediaId(null); setDragOverMediaId(null) }}
                   >
                     <div
                       className={styles.mediaCardOpen}
                       draggable={canReorderMedia}
-                      onDragStart={(event) => handleMediaDragStart(event, -segment.id)}
-                      onPointerDown={(event) => handleMediaPointerStart(event, -segment.id)}
+                      onDragStart={(event) => handleMediaDragStart(event, 'kara:' + segment.id)}
+
                     >
+                      {canReorderMedia ? (
+                        <span className={styles.storyDragControls}>
+                          <GripVertical size={16} aria-hidden="true" />
+                          <Button type="button" variant="subtle" size="sm" aria-label="Nach oben verschieben" onClick={() => moveStoryByOffset('kara:' + segment.id, -1)}><ArrowUp size={14} aria-hidden="true" /></Button>
+                          <Button type="button" variant="subtle" size="sm" aria-label="Nach unten verschieben" onClick={() => moveStoryByOffset('kara:' + segment.id, 1)}><ArrowDown size={14} aria-hidden="true" /></Button>
+                        </span>
+                      ) : null}
                       <span className={styles.mediaThumb}>
                         {storyItem.thumbnail_url ? <img draggable={false} src={storyItem.thumbnail_url} alt="" /> : <ImageIcon size={22} aria-hidden="true" />}
                       </span>
@@ -560,32 +539,34 @@ export function ReleaseVersionMediaSection({
                   key={item.id}
                   className={styles.mediaCard + ' ' + (item.is_preview_candidate ? styles.mediaCardPreview : '')}
                   draggable={canReorderMedia}
-                  onDragStart={(event) => handleMediaDragStart(event, item.id)}
+                  onDragStart={(event) => handleMediaDragStart(event, 'media:' + item.id)}
                   onDragOver={(event) => {
                     if (!canReorderMedia) return
                     event.preventDefault()
-                    setDragOverMediaId(item.id)
+                    setDragOverStoryKey('media:' + item.id)
                   }}
                   onDrop={(event) => {
                     event.preventDefault()
-                    handleMediaDrop(item.id)
+                    handleMediaDrop('media:' + item.id)
                   }}
                   onDragEnd={() => {
-                    setDraggedMediaId(null)
-                    setDragOverMediaId(null)
+                    finishMediaDrag()
                   }}
-                  data-drop-target={dragOverMediaId === item.id ? 'true' : undefined}
-                  onPointerEnter={() => handleMediaPointerOver(item.id)}
-                  onPointerMove={() => handleMediaPointerOver(item.id)}
-                  onPointerUp={() => handleMediaPointerEnd(item.id)}
-                  onPointerCancel={() => { setDraggedMediaId(null); setDragOverMediaId(null) }}
+                  data-drop-target={dragOverStoryKey === 'media:' + item.id ? 'true' : undefined}
                 >
                   <div
                     className={styles.mediaCardOpen}
                     draggable={canReorderMedia}
-                    onDragStart={(event) => handleMediaDragStart(event, item.id)}
-                    onPointerDown={(event) => handleMediaPointerStart(event, item.id)}
+                    onDragStart={(event) => handleMediaDragStart(event, 'media:' + item.id)}
+
                   >
+                    {canReorderMedia ? (
+                      <span className={styles.storyDragControls}>
+                        <GripVertical size={16} aria-hidden="true" />
+                        <Button type="button" variant="subtle" size="sm" aria-label="Nach oben verschieben" onClick={() => moveStoryByOffset('media:' + item.id, -1)}><ArrowUp size={14} aria-hidden="true" /></Button>
+                        <Button type="button" variant="subtle" size="sm" aria-label="Nach unten verschieben" onClick={() => moveStoryByOffset('media:' + item.id, 1)}><ArrowDown size={14} aria-hidden="true" /></Button>
+                      </span>
+                    ) : null}
                     <span className={styles.mediaThumb}>
                       {item.thumbnail_url || item.original_url ? (
                         <img draggable={false} src={item.thumbnail_url ?? item.original_url ?? ''} alt="" />

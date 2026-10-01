@@ -1,18 +1,22 @@
 'use client'
 
-import { Lock, Play } from 'lucide-react'
+import { Play } from 'lucide-react'
 import type { CSSProperties } from 'react'
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
 
 import { Button, Card, SectionHeader } from '@/components/ui'
 import { useAuthSession } from '@/lib/useAuthSession'
+import { buildFansubReleasePlaybackLoginHref } from '@/lib/fansubProjectRoutes'
 import type { PublicReleaseSegment } from '@/types/releaseDetail'
 
 import { segmentTypeDisplayLabel, SelectionSurface } from './ThemeTimelineSegmentDetails'
 import styles from './ThemeTimeline.module.css'
+import galleryStyles from './ReleaseGallery.module.css'
 
 interface ThemeTimelineProps {
   releaseVersionID: number
+  animeID?: number
+  groupID?: number
   episodeDurationSeconds: number | null
   segments: PublicReleaseSegment[]
   initialSegmentID?: number | null
@@ -125,6 +129,8 @@ function segmentClassName(segment: PublicReleaseSegment, baseClass: string): str
 
 export function ThemeTimeline({
   releaseVersionID,
+  animeID,
+  groupID,
   episodeDurationSeconds,
   segments,
   initialSegmentID = null,
@@ -153,6 +159,13 @@ export function ThemeTimeline({
   const activeStreamSegment = hasSession
     ? segments.find((segment) => segment.theme_segment_id === streamSegmentID && segment.readiness === 'ready') ?? null
     : null
+  const loginHrefForSegment = (segmentID: number) => {
+    if (animeID != null && groupID != null) {
+      return buildFansubReleasePlaybackLoginHref({ animeID, groupID, releaseVersionID, segmentID, canonicalProjectPath: projectPath })
+    }
+    const target = `${window.location.pathname}?kara=${segmentID}&autoplay=1#op-ed-middle`
+    return `/login?next=${encodeURIComponent(target)}`
+  }
 
   const stopCurrentStream = useCallback(() => {
     const player = videoRef.current ?? lastVideoRef.current
@@ -164,6 +177,7 @@ export function ThemeTimeline({
 
   const playSegment = useCallback((segment: PublicReleaseSegment) => {
     if (!hasSession || segment.readiness !== 'ready') return
+    window.dispatchEvent(new CustomEvent('release-playback-start', { detail: { segmentId: segment.theme_segment_id, source: 'timeline' } }))
     stopCurrentStream()
     setPlaybackError(false)
     setSelectedSegmentID(segment.theme_segment_id)
@@ -175,14 +189,22 @@ export function ThemeTimeline({
     window.dispatchEvent(new CustomEvent('release-story-reveal', { detail: { segmentId: segmentID } }))
     const target = document.getElementById('release-story-kara-' + segmentID)
     target?.scrollIntoView({ behavior: 'smooth', block: 'center' })
-    target?.classList.add(styles.storyTargeted)
-    window.setTimeout(() => target?.classList.remove(styles.storyTargeted), 900)
+    target?.classList.add(galleryStyles.storyTargeted)
+    window.setTimeout(() => target?.classList.remove(galleryStyles.storyTargeted), 900)
   }, [])
 
   const selectSegment = (segment: PublicReleaseSegment) => {
     if (!hasSession || segment.readiness !== 'ready') return
     setSelectedSegmentID(segment.theme_segment_id)
   }
+
+  useEffect(() => {
+    if (!validInitialSegmentID) return
+    const timeout = window.setTimeout(() => {
+      window.dispatchEvent(new CustomEvent('release-story-reveal', { detail: { segmentId: validInitialSegmentID } }))
+    }, 0)
+    return () => window.clearTimeout(timeout)
+  }, [validInitialSegmentID])
 
   useEffect(() => {
     if (initialPlaybackHandled.current || !autoPlayInitial || !validInitialSegmentID) return
@@ -192,6 +214,19 @@ export function ThemeTimeline({
     const timeout = window.setTimeout(() => playSegment(initialSegment), 0)
     return () => window.clearTimeout(timeout)
   }, [autoPlayInitial, hasSession, playSegment, segments, validInitialSegmentID])
+
+  useEffect(() => {
+    function stopForGalleryPlayback(event: Event) {
+      const detail = (event as CustomEvent<{ source?: 'gallery' | 'timeline' }>).detail
+      if (detail?.source !== 'gallery') return
+      stopCurrentStream()
+      setPlaybackError(false)
+      setStreamSegmentID(null)
+    }
+
+    window.addEventListener('release-playback-start', stopForGalleryPlayback)
+    return () => window.removeEventListener('release-playback-start', stopForGalleryPlayback)
+  }, [stopCurrentStream])
 
   useEffect(() => {
     if (hasSession || streamSegmentID === null) return
@@ -219,7 +254,7 @@ export function ThemeTimeline({
           <div className={styles.track} aria-hidden="true" />
           {geometries.map((geometry) => {
             const { segment } = geometry
-            const targetable = segment.readiness === 'ready'
+            const targetable = true
             const selected = selectedSegmentID === segment.theme_segment_id
             const style = geometryStyle(geometry)
             return (
@@ -275,9 +310,9 @@ export function ThemeTimeline({
               ) : null}
               {session.isClientInitialized && !hasSession && segment.readiness === 'ready' ? (
                 <Button
-                  href="/login"
+                  href={loginHrefForSegment(segment.theme_segment_id)}
                   variant="secondary"
-                  leftIcon={<Lock size={16} aria-hidden="true" data-testid={'kara-login-lock-' + segment.theme_segment_id} />}
+                  leftIcon={<Play size={16} aria-hidden="true" />}
                   className={styles.playButton + ' ' + styles.cardActionButton}
                 >
                   Anmelden zum Abspielen

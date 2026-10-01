@@ -113,6 +113,8 @@ export async function ReleaseDetailPageContent({ animeID, groupID, releaseVersio
       <h2 className={styles.storyTitle}>Eine Geschichte des Releases</h2>
       <ThemeTimeline
         releaseVersionID={releaseVersionID}
+        animeID={animeID}
+        groupID={groupID}
         episodeDurationSeconds={detail.duration_seconds}
         segments={detail.segments}
         initialSegmentID={initialKaraSegmentID}

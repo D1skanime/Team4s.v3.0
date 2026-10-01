@@ -1,31 +1,20 @@
 'use client'
 
-import { Lock, Play } from 'lucide-react'
+import { Play } from 'lucide-react'
 import Image from 'next/image'
-import { useEffect, useState } from 'react'
+import { useEffect, useRef, useState } from 'react'
 
 import { Badge, Button, SectionHeader } from '@/components/ui'
 import { FansubMediaLightbox, type PublicImageLightboxItem } from '@/components/fansubs/FansubMediaLightbox'
 import { getGroupReleaseImages } from '@/lib/api'
+import { buildFansubReleasePlaybackLoginHref } from '@/lib/fansubProjectRoutes'
 import { useAuthSession } from '@/lib/useAuthSession'
 import type { PublicReleaseGroup, PublicReleaseImage, PublicReleaseSegment, PublicReleaseStoryItem } from '@/types/releaseDetail'
 import { CATEGORY_LABELS, RELEASE_VERSION_MEDIA_CATEGORIES, type ReleaseVersionMediaCategory } from '@/types/releaseVersionMedia'
 
-import { ParticipantsDisclosure } from './ThemeTimelineSegmentDetails'
+import { ParticipantsDisclosure, segmentTypeDisplayLabel } from './ThemeTimelineSegmentDetails'
 import { useResponsiveGalleryReveal } from './responsiveGalleryReveal'
 import styles from './ReleaseGallery.module.css'
-
-const KARA_TYPE_LABELS: Record<string, string> = {
-  op: 'Opening',
-  opening: 'Opening',
-  insert: 'Insert',
-  ed: 'Ending',
-  ending: 'Ending',
-}
-
-function karaTypeLabel(type: string): string {
-  return KARA_TYPE_LABELS[type.trim().toLowerCase()] ?? type
-}
 
 interface Props {
   animeID: number
@@ -94,8 +83,8 @@ export function ReleaseGallery({ animeID, groupID, releaseVersionID, initialImag
     : [...legacyHighlights, ...legacyRegular]
   const fallbackStory: PublicReleaseStoryItem[] = legacyOrderedImages.map((image, index) => ({ type: 'media', id: image.id, sort_order: index, image }))
   const storyItems = story.length > 0 ? story : fallbackStory
-  const visibleItems = story.length > 0 ? storyItems : storyItems.slice(0, visibleCount)
-  const remaining = story.length > 0 ? 0 : Math.max(0, total - visibleItems.length)
+  const visibleItems = storyItems.slice(0, visibleCount)
+  const remaining = Math.max(0, storyItems.length - visibleItems.length, total - visibleItems.length)
 
   async function revealAll() {
     if (loading) return
@@ -154,21 +143,25 @@ export function ReleaseGallery({ animeID, groupID, releaseVersionID, initialImag
 
   const renderKara = (segment: PublicReleaseSegment) => {
     const previewUrl = segment.preview_url ?? '/covers/placeholder.jpg'
-    return <article id={'release-story-kara-' + segment.theme_segment_id} key={'kara-' + segment.theme_segment_id} data-testid={'release-kara-card-' + segment.theme_segment_id} data-kara-type={karaTypeLabel(segment.type).toLowerCase()} className={styles.karaCard}>
+    return <article id={'release-story-kara-' + segment.theme_segment_id} key={'kara-' + segment.theme_segment_id} data-testid={'release-kara-card-' + segment.theme_segment_id} data-kara-type={segmentTypeDisplayLabel(segment.type).toLowerCase()} className={styles.karaCard}>
       <div className={styles.karaPreviewWrap}>
         {previewUrl
           ? <Image src={previewUrl} alt={'Preview für ' + segment.name} className={styles.karaPreview} width={640} height={360} unoptimized />
           : <div className={styles.karaPlaceholder} aria-hidden="true" />}
-        <KaraStoryPlayback segment={segment} releaseVersionID={releaseVersionID} />
+        <KaraStoryPlayback segment={segment} releaseVersionID={releaseVersionID} loginHref={buildFansubReleasePlaybackLoginHref({ animeID, groupID, releaseVersionID, segmentID: segment.theme_segment_id, canonicalProjectPath: projectPath })} />
       </div>
       <div className={styles.karaBadges}>
-        <Badge variant="muted" className={styles.karaCategory} data-kara-type={karaTypeLabel(segment.type).toLowerCase()}>{karaTypeLabel(segment.type)}</Badge>
+        <Badge variant="muted" className={styles.karaCategory} data-kara-type={segmentTypeDisplayLabel(segment.type).toLowerCase()}>{segmentTypeDisplayLabel(segment.type)}</Badge>
         {segment.applies_through_episode ? <Badge variant="muted" className={styles.karaApplies}>Gilt auch für Folge {episodeNumber}–{segment.applies_through_episode}</Badge> : null}
       </div>
       <div className={styles.karaContent}>
         <h3>{segment.name}</h3>
         <p className={styles.karaDuration}>Dauer {formatDuration(segment.duration_seconds)}</p>
-        {segment.participants.length > 0 ? <ParticipantsDisclosure segment={segment} projectPath={projectPath} /> : null}
+        {segment.participants.length > 0 && (!segment.applies_from_episode || segment.applies_from_episode === episodeNumber) ? (
+          <ParticipantsDisclosure segment={segment} projectPath={projectPath} />
+        ) : segment.participants.length > 0 && segment.applies_from_episode ? (
+          <span className={styles.participantsHint}>Mitwirkende siehe Folge {segment.applies_from_episode}</span>
+        ) : null}
       </div>
     </article>
   }
@@ -205,21 +198,37 @@ function formatDuration(seconds: number | null): string {
   return Math.floor(safe / 60).toString().padStart(2, '0') + ':' + (safe % 60).toString().padStart(2, '0')
 }
 
-function KaraStoryPlayback({ segment, releaseVersionID }: { segment: PublicReleaseSegment; releaseVersionID: number }) {
+function KaraStoryPlayback({ segment, releaseVersionID, loginHref }: { segment: PublicReleaseSegment; releaseVersionID: number; loginHref: string }) {
   const session = useAuthSession()
   const hasSession = session.isClientInitialized && (session.hasAccessToken || session.hasRefreshToken)
   const [playing, setPlaying] = useState(false)
   const [playbackError, setPlaybackError] = useState(false)
+  const videoRef = useRef<HTMLVideoElement | null>(null)
+
+  useEffect(() => {
+    function stopForOtherPlayback(event: Event) {
+      const detail = (event as CustomEvent<{ segmentId?: number; source?: 'gallery' | 'timeline' }>).detail
+      if (detail?.source !== 'timeline' && detail?.segmentId === segment.theme_segment_id) return
+      videoRef.current?.pause()
+      videoRef.current?.removeAttribute('src')
+      videoRef.current?.load()
+      setPlaying(false)
+    }
+
+    window.addEventListener('release-playback-start', stopForOtherPlayback)
+    return () => window.removeEventListener('release-playback-start', stopForOtherPlayback)
+  }, [segment.theme_segment_id])
 
   if (segment.readiness !== 'ready') return <span className={styles.karaUnavailable}>Noch nicht abspielbar</span>
   if (!session.isClientInitialized) return null
   if (!hasSession) {
-    return <Button href="/login" variant="secondary" aria-label="Anmelden zum Abspielen" className={styles.karaPlayButton}><Lock size={20} aria-hidden="true" /></Button>
+    return <Button href={loginHref} variant="secondary" aria-label="Anmelden zum Abspielen" className={styles.karaPlayButton}><Play size={20} aria-hidden="true" /></Button>
   }
   if (playing) {
     return <div className={styles.karaPlayer}>
       <video
         src={'/api/segments/' + segment.theme_segment_id + '/stream?release_version_id=' + releaseVersionID}
+        ref={videoRef}
         controls
         autoPlay
         playsInline
@@ -229,5 +238,9 @@ function KaraStoryPlayback({ segment, releaseVersionID }: { segment: PublicRelea
       {playbackError ? <p className={styles.karaPlaybackError}>Dieses Kara-Segment konnte nicht abgespielt werden. Bitte versuche es erneut.</p> : null}
     </div>
   }
-  return <Button aria-label="Kara abspielen" className={styles.karaPlayButton} onClick={() => { setPlaybackError(false); setPlaying(true) }}><Play size={20} aria-hidden="true" /></Button>
+  return <Button aria-label="Kara abspielen" className={styles.karaPlayButton} onClick={() => {
+    window.dispatchEvent(new CustomEvent('release-playback-start', { detail: { segmentId: segment.theme_segment_id, source: 'gallery' } }))
+    setPlaybackError(false)
+    setPlaying(true)
+  }}><Play size={20} aria-hidden="true" /></Button>
 }

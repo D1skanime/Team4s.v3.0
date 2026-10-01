@@ -15,13 +15,16 @@ import styles from './ThemeTimeline.module.css'
 // einen bereits feststehenden Wert auf einen deutschen Anzeigetext ab.
 const SEGMENT_TYPE_DISPLAY_LABEL: Record<string, string> = {
   OP: 'Opening',
+  OPENING: 'Opening',
   ED: 'Ending',
+  ENDING: 'Ending',
   INSERT: 'Insert',
   KARA: 'Karaoke',
 }
 
 export function segmentTypeDisplayLabel(type: string): string {
-  return SEGMENT_TYPE_DISPLAY_LABEL[type] ?? type
+  const normalized = type.trim().toUpperCase()
+  return SEGMENT_TYPE_DISPLAY_LABEL[normalized] ?? type
 }
 
 function clock(seconds: number | null): string {

@@ -2227,13 +2227,14 @@ Erledigt:
 
 ### Phase 171: 171 Kara-Segmente in Release-Media und Public Story integrieren
 
-**Goal:** [To be planned]
-**Requirements**: TBD
+**Goal:** Kara-Segmente sind sicher in die Release-Media-Reihenfolge integriert und werden als gemischte öffentliche Story mit Timeline-Navigation und autorisiertem Playback dargestellt.
+**Requirements**: D-01, D-02, D-05, D-09, D-11, D-12, D-14, D-15, D-16
 **Depends on:** Phase 170
-**Plans:** 2/4 plans executed
+**Status:** Abgeschlossen; automatisierte Checks und menschliche Live-UAT für Release 27 bestanden.
+**Plans:** 4/4 plans complete
 
 Plans:
 - [x] 171-01-PLAN.md — establish the canonical typed release-version story order and contracts
-- [ ] 171-02-PLAN.md — integrate Kara into the existing ReleaseVersionMedia admin list with immediate refresh
+- [x] 171-02-PLAN.md — integrate Kara into the existing ReleaseVersionMedia admin list with immediate refresh
 - [x] 171-03-PLAN.md — render the mixed public story with timeline anchors and permission-aware playback
-- [ ] 171-04-PLAN.md — run cross-surface automated and live verification
+- [x] 171-04-PLAN.md — run cross-surface automated and live verification

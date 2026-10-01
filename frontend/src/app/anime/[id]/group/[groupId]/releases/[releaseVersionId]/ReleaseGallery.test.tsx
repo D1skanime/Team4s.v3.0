@@ -7,6 +7,11 @@ import { beforeEach, describe, expect, it, vi } from 'vitest'
 import * as api from '@/lib/api'
 import type { PublicReleaseImage, PublicReleaseSegment, PublicReleaseStoryItem } from '@/types/releaseDetail'
 
+const authSession = vi.hoisted(() => ({
+  value: { hasAccessToken: false, hasRefreshToken: false, isClientInitialized: true },
+}))
+vi.mock('@/lib/useAuthSession', () => ({ useAuthSession: () => authSession.value }))
+
 import { ReleaseGallery } from './ReleaseGallery'
 
 vi.mock('next/image', () => ({ default: (props: Record<string, unknown>) => {
@@ -35,7 +40,7 @@ function image(id: number, category: PublicReleaseImage['category'] = 'screensho
 const totals = { screenshot: 7, typesetting_karaoke: 1, fun_outtake: 1, other: 0 }
 
 describe('ReleaseGallery', () => {
-  beforeEach(() => { viewport = 'desktop'; listeners.clear(); installMatchMedia(); vi.restoreAllMocks() })
+  beforeEach(() => { viewport = 'desktop'; listeners.clear(); authSession.value = { hasAccessToken: false, hasRefreshToken: false, isClientInitialized: true }; vi.restoreAllMocks(); vi.spyOn(HTMLMediaElement.prototype, 'pause').mockImplementation(() => undefined); vi.spyOn(HTMLMediaElement.prototype, 'load').mockImplementation(() => undefined); installMatchMedia() })
 
   it('renders one six-item desktop grid with metadata and no zero reveal', () => {
     render(<ReleaseGallery animeID={1} groupID={2} releaseVersionID={3} initialImages={[1,2,3,4,5,6].map(id => image(id))} categoryTotals={{ screenshot: 6, typesetting_karaoke: 0, fun_outtake: 0, other: 0 }} />)
@@ -182,8 +187,70 @@ describe('ReleaseGallery', () => {
 })
 
 
+describe('ReleaseGallery Kara contributor ownership', () => {
+  it('shows contributors only on the originating episode', () => {
+    const segment: PublicReleaseSegment = {
+      theme_segment_id: 77,
+      name: 'Opening',
+      type: 'OP',
+      start_seconds: 0,
+      end_seconds: 60,
+      duration_seconds: 60,
+      readiness: 'ready',
+      applies_from_episode: '1',
+      applies_through_episode: '12',
+      participants: [{ member_id: 5, name: 'Mina', member_slug: 'mina', role_label: 'Typesetting', role_codes: ['typesetting'], segment_role_label: 'Typesetting', avatar_url: null }],
+      preview_url: null,
+    }
+    const story: PublicReleaseStoryItem[] = [{ type: 'kara', id: 77, sort_order: 0, segment }]
+    const props = {
+      animeID: 1,
+      groupID: 2,
+      releaseVersionID: 3,
+      initialImages: [] as PublicReleaseImage[],
+      story,
+      categoryTotals: { screenshot: 0, typesetting_karaoke: 0, fun_outtake: 0, other: 0 },
+    }
+
+    const { rerender } = render(<ReleaseGallery {...props} episodeNumber="1" />)
+    expect(screen.getByText('Mitwirkende')).toBeTruthy()
+    expect(screen.queryByText(/Mitwirkende siehe Folge/)).toBeNull()
+
+    rerender(<ReleaseGallery {...props} episodeNumber="2" />)
+    expect(screen.queryByText('Mitwirkende')).toBeNull()
+    expect(screen.getByText('Mitwirkende siehe Folge 1')).toBeTruthy()
+  })
+})
+
 describe('ReleaseGallery mixed public story', () => {
+  it('collapses a canonical story on mobile and reveals the rest on demand', () => {
+    viewport = 'mobile'
+    const story: PublicReleaseStoryItem[] = [1, 2, 3, 4, 5, 6].map((id, index) => ({
+      type: 'media' as const,
+      id,
+      sort_order: index,
+      image: image(id),
+    }))
+    render(
+      <ReleaseGallery
+        animeID={1}
+        groupID={2}
+        releaseVersionID={3}
+        initialImages={story.map(item => item.image!)}
+        story={story}
+        categoryTotals={{ screenshot: 6, typesetting_karaoke: 0, fun_outtake: 0, other: 0 }}
+      />,
+    )
+
+    expect(document.querySelectorAll('[data-testid^="release-image-card-"]')).toHaveLength(2)
+    expect(screen.getByRole('button', { name: 'Weitere 4 Bilder anzeigen' })).toBeTruthy()
+    fireEvent.click(screen.getByRole('button', { name: 'Weitere 4 Bilder anzeigen' }))
+    expect(document.querySelectorAll('[data-testid^="release-image-card-"]')).toHaveLength(6)
+    expect(screen.queryByRole('button', { name: /Weitere/ })).toBeNull()
+  })
+
   it('renders canonical media and Kara order with fallback preview and public play affordance', () => {
+    viewport = 'desktop'
     const segment: PublicReleaseSegment = {
       theme_segment_id: 42,
       name: 'Moonlight OP',
@@ -218,6 +285,74 @@ describe('ReleaseGallery mixed public story', () => {
       'release-image-card-1',
     ])
     expect(screen.getByRole('img', { name: 'Preview für Moonlight OP' }).getAttribute('src')).toBe('/covers/placeholder.jpg')
-    expect(screen.getByRole('link', { name: 'Anmelden zum Abspielen' }).getAttribute('href')).toBe('/login')
+    expect(screen.getByRole('link', { name: 'Anmelden zum Abspielen' }).getAttribute('href')).toBe('/login?next=%2Fanime%2F1%2Fgroup%2F2%2Freleases%2F3%3Fkara%3D42%26autoplay%3D1%23op-ed-middle')
+  })
+
+  it('stops another gallery video when a Kara card starts playback', () => {
+    authSession.value = { hasAccessToken: true, hasRefreshToken: false, isClientInitialized: true }
+    const segments: PublicReleaseSegment[] = [41, 42].map((id) => ({
+      theme_segment_id: id,
+      name: 'Kara ' + id,
+      type: 'KARA',
+      start_seconds: 0,
+      end_seconds: 30,
+      duration_seconds: 30,
+      readiness: 'ready',
+      participants: [],
+      preview_url: null,
+    }))
+    const story: PublicReleaseStoryItem[] = segments.map((segment, index) => ({
+      type: 'kara' as const,
+      id: segment.theme_segment_id,
+      sort_order: index,
+      segment,
+    }))
+
+    render(
+      <ReleaseGallery
+        animeID={1}
+        groupID={2}
+        releaseVersionID={3}
+        initialImages={[]}
+        story={story}
+        categoryTotals={{ screenshot: 0, typesetting_karaoke: 0, fun_outtake: 0, other: 0 }}
+      />,
+    )
+
+    fireEvent.click(screen.getAllByRole('button', { name: 'Kara abspielen' })[0])
+    expect(document.querySelectorAll('video')).toHaveLength(1)
+
+    fireEvent.click(screen.getByRole('button', { name: 'Kara abspielen' }))
+    expect(document.querySelectorAll('video')).toHaveLength(1)
+    expect(document.querySelector('video')?.getAttribute('aria-label')).toBe('Kara: Kara 42')
+  })
+
+  it('uses the shared Karaoke label for KARA story cards', () => {
+    const segment: PublicReleaseSegment = {
+      theme_segment_id: 99,
+      name: 'Kara Segment',
+      type: 'KARA',
+      start_seconds: 0,
+      end_seconds: 30,
+      duration_seconds: 30,
+      readiness: 'unavailable',
+      participants: [],
+      preview_url: null,
+    }
+    const story: PublicReleaseStoryItem[] = [{ type: 'kara', id: 99, sort_order: 0, segment }]
+
+    render(
+      <ReleaseGallery
+        animeID={1}
+        groupID={2}
+        releaseVersionID={3}
+        initialImages={[]}
+        story={story}
+        categoryTotals={{ screenshot: 0, typesetting_karaoke: 0, fun_outtake: 0, other: 0 }}
+      />,
+    )
+
+    expect(screen.getByText('Karaoke')).toBeTruthy()
+    expect(screen.queryByText('KARA')).toBeNull()
   })
 })

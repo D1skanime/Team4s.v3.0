@@ -6,6 +6,7 @@ import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
 import type { PublicReleaseSegment } from '@/types/releaseDetail'
 
 import styles from './ThemeTimeline.module.css'
+import galleryStyles from './ReleaseGallery.module.css'
 
 const session = vi.hoisted(() => ({
   value: { hasAccessToken: false, hasRefreshToken: false, isClientInitialized: true },
@@ -68,6 +69,8 @@ function renderTimeline(overrides: Partial<ComponentProps<typeof ThemeTimeline>>
   return render(
     <ThemeTimeline
       releaseVersionID={12}
+      animeID={1}
+      groupID={2}
       episodeDurationSeconds={1_400}
       segments={segments}
       {...overrides}
@@ -103,9 +106,11 @@ describe('ThemeTimeline Phase 105 session matrix', () => {
     expect(screen.queryByRole('button', { name: /Kara abspielen/i })).toBeNull()
     expect(screen.queryAllByRole('button', { name: /^Abspielen$/i })).toHaveLength(0)
     expect(screen.getAllByRole('link', { name: 'Anmelden zum Abspielen' })).toHaveLength(2)
-    expect(screen.getAllByRole('link', { name: 'Anmelden zum Abspielen' }).every(link => link.getAttribute('href') === '/login')).toBe(true)
-    expect(screen.getByTestId('kara-login-lock-7')).toBeTruthy()
-    expect(screen.getByTestId('kara-login-lock-8')).toBeTruthy()
+    expect(screen.getAllByRole('link', { name: 'Anmelden zum Abspielen' }).map(link => link.getAttribute('href'))).toEqual([
+      '/login?next=%2Fanime%2F1%2Fgroup%2F2%2Freleases%2F12%3Fkara%3D7%26autoplay%3D1%23op-ed-middle',
+      '/login?next=%2Fanime%2F1%2Fgroup%2F2%2Freleases%2F12%3Fkara%3D8%26autoplay%3D1%23op-ed-middle',
+    ])
+    expect(screen.getAllByRole('link', { name: 'Anmelden zum Abspielen' }).every(link => link.querySelector('svg'))).toBe(true)
     expect(screen.getByText('Noch nicht abspielbar')).toBeTruthy()
     await waitFor(() => expect(document.querySelector('video')).toBeNull())
   })
@@ -132,11 +137,18 @@ describe('ThemeTimeline Phase 105 session matrix', () => {
     expect(document.querySelector('video')).toBeNull()
   })
 
+  it('keeps the unavailable timeline segment clickable for the release-story jump', () => {
+    renderTimeline()
+    expect(screen.getByTestId('kara-hit-target-9')).toBeTruthy()
+    fireEvent.click(screen.getByTestId('kara-hit-target-9'))
+  })
+
   it('shows an unavailable segment as static session copy without a disabled button', () => {
     setSession(true, false)
     renderTimeline()
     expect(screen.getByText('Noch nicht abspielbar')).not.toBeNull()
-    expect(screen.queryByRole('button', { name: /Silent Insert/ })).toBeNull()
+    expect(screen.getAllByRole('button', { name: /^Kara abspielen$/ })).toHaveLength(2)
+    expect(screen.getByTestId('kara-hit-target-9')).toBeTruthy()
   })
 })
 
@@ -258,6 +270,17 @@ describe('ThemeTimeline Phase 105 geometry and selection', () => {
     await waitFor(() => expect(screen.getAllByRole('button', { pressed: true })).toHaveLength(1))
     expect(document.querySelector('video')).toBeNull()
   })
+
+  it('dispatches a story reveal for a Deep-Link even when autoplay is enabled', async () => {
+    const reveal = vi.fn()
+    window.addEventListener('release-story-reveal', reveal)
+    renderTimeline({ initialSegmentID: 7, autoPlayInitial: true })
+
+    await waitFor(() => expect(reveal).toHaveBeenCalledWith(expect.objectContaining({
+      detail: { segmentId: 7 },
+    })))
+    window.removeEventListener('release-story-reveal', reveal)
+  })
 })
 
 describe('ThemeTimeline Phase 156-08 project-context member links', () => {
@@ -341,14 +364,14 @@ describe('ThemeTimeline Phase 105 streaming and cleanup', () => {
     fireEvent.click(playbackActions()[0])
 
     setSession(false, false)
-    view.rerender(<ThemeTimeline releaseVersionID={12} episodeDurationSeconds={1_400} segments={segments} />)
+    view.rerender(<ThemeTimeline releaseVersionID={12} animeID={1} groupID={2} episodeDurationSeconds={1_400} segments={segments} />)
     expect(document.querySelector('video')).toBeNull()
     expect(pause).toHaveBeenCalled()
     expect(removeAttribute).toHaveBeenCalledWith('src')
     expect(load).toHaveBeenCalled()
 
     setSession(true, false)
-    view.rerender(<ThemeTimeline releaseVersionID={12} episodeDurationSeconds={1_400} segments={segments} />)
+    view.rerender(<ThemeTimeline releaseVersionID={12} animeID={1} groupID={2} episodeDurationSeconds={1_400} segments={segments} />)
     fireEvent.click(playbackActions()[0])
     pause.mockClear()
     removeAttribute.mockClear()
@@ -370,11 +393,12 @@ describe('ThemeTimeline story anchors', () => {
     renderTimeline()
     fireEvent.click(screen.getByTestId('kara-hit-target-7'))
     expect(target.scrollIntoView).toHaveBeenCalledWith({ behavior: 'smooth', block: 'center' })
+    expect(target.classList.contains(galleryStyles.storyTargeted)).toBe(true)
     target.remove()
   })
 
-  it('does not expose an unavailable timeline target', () => {
+  it('exposes an unavailable timeline target for story navigation', () => {
     renderTimeline({ segments: [segments[2]] })
-    expect(screen.queryByTestId('kara-hit-target-9')).toBeNull()
+    expect(screen.getByTestId('kara-hit-target-9')).toBeTruthy()
   })
 })

@@ -1,6 +1,7 @@
 "use client";
 
 import { jellyfinSourceKey } from "@/lib/jellyfinSourceIdentity";
+import { buildFansubReleaseHref } from "@/lib/fansubProjectRoutes";
 
 import { useEffect, useMemo, useState } from "react";
 import Link from "next/link";
@@ -263,6 +264,15 @@ export function EpisodeVersionEditorPage() {
           ? `/admin/anime/${editor.contextData.version.anime_id}/edit`
           : "/admin/anime");
 
+  const publicReleaseHref =
+    segmentAnimeId != null && segmentGroupId != null && version?.id != null
+      ? buildFansubReleaseHref({
+          animeID: segmentAnimeId,
+          groupID: segmentGroupId,
+          releaseVersionID: version.id,
+        })
+      : null;
+
   const animeHref = editor.contextData
     ? `/admin/anime/${editor.contextData.version.anime_id}/edit`
     : "/admin/anime";
@@ -439,6 +449,17 @@ export function EpisodeVersionEditorPage() {
                       Notizen / Beiträge
                     </button>
                   ) : null}
+                  {publicReleaseHref ? (
+                    <Link
+                      href={publicReleaseHref}
+                      className={styles.tab}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      aria-label="Öffentliche Release-Seite in neuem Tab öffnen"
+                    >
+                      Öffentliche Release-Seite
+                    </Link>
+                  ) : null}
                 </>
               ) : shouldRenderAdminTabs ? (
                 <>
@@ -507,6 +528,17 @@ export function EpisodeVersionEditorPage() {
                   >
                     Notizen / Beiträge
                   </button>
+                  {publicReleaseHref ? (
+                    <Link
+                      href={publicReleaseHref}
+                      className={styles.tab}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      aria-label="Öffentliche Release-Seite in neuem Tab öffnen"
+                    >
+                      Öffentliche Release-Seite
+                    </Link>
+                  ) : null}
                 </>
                 ) : null}
               </div>

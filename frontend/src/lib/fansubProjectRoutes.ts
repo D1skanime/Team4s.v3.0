@@ -19,6 +19,18 @@ export function buildFansubReleaseHref(params: { animeID: number; groupID: numbe
     : buildTechnicalFansubReleasePath(params.animeID, params.groupID, params.releaseVersionID)
 }
 
+export function buildFansubReleasePlaybackLoginHref(params: {
+  animeID: number
+  groupID: number
+  releaseVersionID: number
+  segmentID: number
+  canonicalProjectPath?: string | null
+}): string {
+  const releaseHref = buildFansubReleaseHref(params)
+  const target = `${releaseHref}?kara=${params.segmentID}&autoplay=1#op-ed-middle`
+  return `/login?next=${encodeURIComponent(target)}`
+}
+
 export function buildPublicFansubProjectHref(params: {
   project: PublicFansubProject
   groupId: number

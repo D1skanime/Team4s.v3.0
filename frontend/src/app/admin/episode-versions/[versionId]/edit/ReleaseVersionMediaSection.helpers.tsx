@@ -21,6 +21,20 @@ export function storyItemKey(item: ReleaseVersionAdminStoryItem): string {
   return item.type === 'media' ? 'media:' + item.media.id : 'kara:' + item.segment.id
 }
 
+export function moveStoryItem(
+  items: ReleaseVersionAdminStoryItem[],
+  fromIndex: number,
+  toIndex: number,
+): ReleaseVersionAdminStoryItem[] {
+  if (fromIndex < 0 || toIndex < 0 || fromIndex >= items.length || toIndex >= items.length || fromIndex === toIndex) {
+    return items
+  }
+  const next = [...items]
+  const [moved] = next.splice(fromIndex, 1)
+  next.splice(toIndex, 0, moved)
+  return next.map((item, index) => ({ ...item, sort_order: (index + 1) * 10 }))
+}
+
 export function sortStoryItems(items: ReleaseVersionAdminStoryItem[]): ReleaseVersionAdminStoryItem[] {
   return [...items].sort((a, b) => a.sort_order - b.sort_order || storyItemKey(a).localeCompare(storyItemKey(b)))
 }

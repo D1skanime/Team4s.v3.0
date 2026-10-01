@@ -677,3 +677,16 @@
     grid-template-columns: repeat(4, minmax(0, 1fr));
   }
 }
+
+.storyDragControls {
+  display: flex;
+  align-items: center;
+  gap: 0.25rem;
+  padding: 0.45rem 0.55rem 0;
+  color: var(--text-muted);
+}
+
+.storyDragControls svg:first-child {
+  margin-right: auto;
+  cursor: grab;
+}

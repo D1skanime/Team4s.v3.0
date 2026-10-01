@@ -480,5 +480,3 @@
     transition: none;
   }
 }
-
-.storyTargeted { outline: 3px solid color-mix(in srgb, var(--color-primary) 70%, transparent); outline-offset: 4px; transition: outline-color 180ms ease; }
