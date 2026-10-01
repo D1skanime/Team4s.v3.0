@@ -1,6 +1,6 @@
 'use client'
 
-import { ChangeEvent, DragEvent, KeyboardEvent, MouseEvent as ReactMouseEvent, useEffect, useMemo, useRef, useState } from 'react'
+import { ChangeEvent, DragEvent, KeyboardEvent, PointerEvent as ReactPointerEvent, useEffect, useMemo, useRef, useState } from 'react'
 import { ImageIcon, Star, Trash2 } from 'lucide-react'
 
 import { CATEGORY_ALLOWS_PREVIEW, ReleaseVersionAdminStoryItem, ReleaseVersionMediaCategory, ReleaseVersionMediaItem } from '@/types/releaseVersionMedia'
@@ -176,9 +176,15 @@ export function ReleaseVersionMediaSection({
     setDraggedMediaId(itemId)
   }
 
-  function handleMediaPointerStart(event: ReactMouseEvent<HTMLDivElement>, itemId: number) {
+  function handleMediaPointerStart(event: ReactPointerEvent<HTMLDivElement>, itemId: number) {
     if (!canReorderMedia || event.button !== 0) return
+    event.preventDefault()
     setDraggedMediaId(itemId)
+  }
+
+  function handleMediaPointerOver(itemId: number) {
+    if (!canReorderMedia || draggedMediaId == null || draggedMediaId === itemId) return
+    setDragOverMediaId(itemId)
   }
 
   function handleMediaPointerEnd(itemId: number) {
@@ -513,13 +519,16 @@ export function ReleaseVersionMediaSection({
                     }}
                     data-drop-target={dragOverMediaId === -segment.id ? 'true' : undefined}
                     data-testid={'admin-kara-card-' + segment.id}
+                    onPointerEnter={() => handleMediaPointerOver(-segment.id)}
+                    onPointerMove={() => handleMediaPointerOver(-segment.id)}
+                    onPointerUp={() => handleMediaPointerEnd(-segment.id)}
+                    onPointerCancel={() => { setDraggedMediaId(null); setDragOverMediaId(null) }}
                   >
                     <div
                       className={styles.mediaCardOpen}
                       draggable={canReorderMedia}
                       onDragStart={(event) => handleMediaDragStart(event, -segment.id)}
-                      onMouseDown={(event) => handleMediaPointerStart(event, -segment.id)}
-                      onMouseUp={() => handleMediaPointerEnd(-segment.id)}
+                      onPointerDown={(event) => handleMediaPointerStart(event, -segment.id)}
                     >
                       <span className={styles.mediaThumb}>
                         {storyItem.thumbnail_url ? <img draggable={false} src={storyItem.thumbnail_url} alt="" /> : <ImageIcon size={22} aria-hidden="true" />}
@@ -567,13 +576,16 @@ export function ReleaseVersionMediaSection({
                     setDragOverMediaId(null)
                   }}
                   data-drop-target={dragOverMediaId === item.id ? 'true' : undefined}
+                  onPointerEnter={() => handleMediaPointerOver(item.id)}
+                  onPointerMove={() => handleMediaPointerOver(item.id)}
+                  onPointerUp={() => handleMediaPointerEnd(item.id)}
+                  onPointerCancel={() => { setDraggedMediaId(null); setDragOverMediaId(null) }}
                 >
                   <div
                     className={styles.mediaCardOpen}
                     draggable={canReorderMedia}
                     onDragStart={(event) => handleMediaDragStart(event, item.id)}
-                    onMouseDown={(event) => handleMediaPointerStart(event, item.id)}
-                    onMouseUp={() => handleMediaPointerEnd(item.id)}
+                    onPointerDown={(event) => handleMediaPointerStart(event, item.id)}
                   >
                     <span className={styles.mediaThumb}>
                       {item.thumbnail_url || item.original_url ? (
