@@ -2238,3 +2238,13 @@ Plans:
 - [x] 171-02-PLAN.md — integrate Kara into the existing ReleaseVersionMedia admin list with immediate refresh
 - [x] 171-03-PLAN.md — render the mixed public story with timeline anchors and permission-aware playback
 - [x] 171-04-PLAN.md — run cross-surface automated and live verification
+
+### Phase 172: Kara-Vorschaubild pro Segment: automatisch aus dem Render (Frame bei ca. 35 %) und manuell auf der Segment-Seite ersetzbar (Upload oder Übernahme eines Release-Bildes), keine Review-Prüfung, einheitliche preview_url für Admin-Media-Liste und Public-Release-Story
+
+**Goal:** [To be planned]
+**Requirements**: TBD
+**Depends on:** Phase 171
+**Plans:** 0 plans
+
+Plans:
+- [ ] TBD (run /gsd-plan-phase 172 to break down)
