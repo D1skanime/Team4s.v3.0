@@ -2241,10 +2241,19 @@ Plans:
 
 ### Phase 172: Kara-Vorschaubild pro Segment: automatisch aus dem Render (Frame bei ca. 35 %) und manuell auf der Segment-Seite ersetzbar (Upload oder Übernahme eines Release-Bildes), keine Review-Prüfung, einheitliche preview_url für Admin-Media-Liste und Public-Release-Story
 
-**Goal:** [To be planned]
-**Requirements**: TBD
+**Goal:** Jedes Kara-Segment hat ein garantiert vorhandenes, ueber Admin-Media-Liste und Public-Release-Story identisch aufgeloestes Vorschaubild — automatisch aus dem Render bei ~35% der Segmentdauer erzeugt und auf der Segment-Seite manuell per Upload oder Release-Bild-Uebernahme ersetzbar, ohne Review-Pruefung.
+**Requirements**: D-01, D-02, D-03, D-04, D-05, D-06, D-07, D-08, D-09, D-10, D-11, D-12, D-13
 **Depends on:** Phase 171
-**Plans:** 0 plans
+**Plans:** 10 plans
 
 Plans:
-- [ ] TBD (run /gsd-plan-phase 172 to break down)
+- [ ] 172-01-PLAN.md — migration + shared manual>auto>fallback preview resolution, wired into admin list/single reads
+- [ ] 172-02-PLAN.md — switch public release-detail segment reads onto the same shared resolution
+- [ ] 172-03-PLAN.md — admin write paths (set/reset/attach/list-candidates) + interface + fake updates
+- [ ] 172-04-PLAN.md — render-worker auto-extraction hook + upload-path 35% offset fix
+- [ ] 172-05-PLAN.md — 4 new admin preview-image HTTP endpoints in a dedicated handler file
+- [ ] 172-06-PLAN.md — one-off backfill binary for existing finished renders (Release 27)
+- [ ] 172-07-PLAN.md — frontend types/api.ts functions + OpenAPI/admin-content contract sync
+- [ ] 172-08-PLAN.md — segment-panel preview-image UI (upload/picker/reset)
+- [ ] 172-09-PLAN.md — remove frontend fallback logic + kara-card deep link to segment tab
+- [ ] 172-10-PLAN.md — live UAT on Release 27 (desktop + mobile)
