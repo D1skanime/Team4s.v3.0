@@ -867,6 +867,12 @@ func (h *AdminContentHandler) UploadSegmentAsset(c *gin.Context) {
 		}
 	}
 
+	// Phase 172, D-05: der von SaveSegmentAsset bereits erzeugte Video-Preview-Frame (bei ~35%,
+	// siehe media_service.go saveSegmentVideoPreview) zaehlt als automatisches Vorschaubild.
+	if len(saveResult.Variants) > 0 {
+		h.registerSegmentAutoPreview(c.Request.Context(), segmentID, saveResult.Variants[0])
+	}
+
 	relPath := saveResult.CreateInput.Filename
 	sourceLabel := fileHeader.Filename
 	updated, patchErr := h.themeRepo.BindUploadedSegmentAsset(

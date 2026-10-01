@@ -4,6 +4,7 @@ import (
 	"bytes"
 	"context"
 	"errors"
+	"fmt"
 	"log"
 	"net/http"
 	"os"
@@ -16,6 +17,8 @@ import (
 	"team4s.v3/backend/internal/models"
 	"team4s.v3/backend/internal/repository"
 	"team4s.v3/backend/internal/services"
+
+	"github.com/google/uuid"
 )
 
 // segmentRenderWorkerPollInterval bestimmt, wie oft der Hintergrund-Worker nach neuen
@@ -218,6 +221,20 @@ func (h *AdminContentHandler) executeSegmentRender(
 		_ = os.Remove(outputPath)
 		log.Printf("segment render worker: mark ready fehlgeschlagen (cache_key=%s): %v", cache.CacheKey, err)
 		return err
+	}
+
+	// Phase 172, D-04/D-06: automatische Vorschaubild-Extraktion NACH dem erfolgreichen Render.
+	// durationSeconds (die gerade gerenderte Clip-Laenge) ist bereits oben berechnet -- kein
+	// ffprobe-Aufruf noetig. Ein Fehlschlag hier darf executeSegmentRender NIEMALS fehlschlagen
+	// lassen (deshalb kein "return err" in diesem Block) -- nur Logging.
+	if h.mediaService != nil {
+		offsetSeconds := float64(durationSeconds) * 0.35
+		relPath := filepath.ToSlash(filepath.Join("segments", "previews", fmt.Sprintf("segment_%d", cache.ThemeSegmentID), uuid.New().String()+".jpg"))
+		if variant, extractErr := h.mediaService.ExtractImageFrame(outputPath, offsetSeconds, relPath); extractErr != nil {
+			log.Printf("segment render worker: auto-preview-extraktion fehlgeschlagen (segment_id=%d): %v", cache.ThemeSegmentID, extractErr)
+		} else {
+			h.registerSegmentAutoPreview(ctx, cache.ThemeSegmentID, *variant)
+		}
 	}
 
 	log.Printf("segment render worker: render abgeschlossen (segment_id=%d, cache_key=%s)", cache.ThemeSegmentID, cache.CacheKey)

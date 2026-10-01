@@ -7,6 +7,7 @@ import (
 	"net/http"
 	"net/http/httptest"
 	"os"
+	"os/exec"
 	"path/filepath"
 	"strings"
 	"team4s.v3/backend/internal/services"
@@ -16,8 +17,10 @@ import (
 	"team4s.v3/backend/internal/middleware"
 	"team4s.v3/backend/internal/models"
 	"team4s.v3/backend/internal/repository"
+	"team4s.v3/backend/internal/testsupport"
 
 	"github.com/gin-gonic/gin"
+	"github.com/jackc/pgx/v5/pgxpool"
 )
 
 // fakeSegmentStreamThemeRepo implementiert segmentStreamThemeRepository (und via eingebettetem
@@ -566,5 +569,262 @@ func TestSegmentSourceIdentityUnboundBeforeCacheLookup(t *testing.T) {
 				t.Fatal("read persisted a runtime binding")
 			}
 		})
+	}
+}
+
+// --- Phase 172, Plan 172-04: D-04/D-06/D-07/D-08 auto-preview wiring tests ---
+
+// requireFFmpegBinary resolves the real installed ffmpeg binary or aborts the test -- the
+// project's established real-ffmpeg test convention (segment_render_service_test.go,
+// media_service_test.go), not a mock.
+func requireFFmpegBinary(t *testing.T) string {
+	t.Helper()
+	binary, err := exec.LookPath("ffmpeg")
+	if err != nil {
+		t.Fatal("installed FFmpeg is required for this test")
+	}
+	return binary
+}
+
+// generateAutoPreviewFixtureVideo erzeugt ein echtes 10-Sekunden-Video (1 fps), damit der
+// D-04-Hook (ExtractImageFrame bei ~35% der Segmentdauer) gegen eine ausreichend lange Datei
+// laufen kann -- segmentRenderTestSource() liefert eine 20-Sekunden-Segmentdauer, 35% davon
+// sind 7s, also deutlich innerhalb der 10 Sekunden.
+func generateAutoPreviewFixtureVideo(t *testing.T, ffmpegBinary, outputPath string) {
+	t.Helper()
+	cmd := exec.Command(ffmpegBinary, "-y", "-f", "lavfi", "-i", "color=c=blue:s=16x16:d=10:r=1", "-pix_fmt", "yuv420p", outputPath)
+	if output, err := cmd.CombinedOutput(); err != nil {
+		t.Fatalf("generate auto-preview fixture video: %v\n%s", err, output)
+	}
+}
+
+// writeCopyOutputFFmpegFixture erzeugt ein Shell-Skript, das als segmentRenderFFmpegPath den
+// eigentlichen ffmpeg-Render-Aufruf ersetzt: es kopiert eine vorbereitete, echte Fixture-
+// Videodatei an die Zielposition (das letzte Argument -- BuildFFmpegSegmentArgs legt OutputPath
+// immer als letztes Element ab). Dadurch landet nach einem "erfolgreichen" Render ein echtes
+// Video an outputPath, gegen das der D-04-Hook (ExtractImageFrame) echt laufen kann, ohne eine
+// echte Jellyfin-Quelle/Netzwerk-Transcodierung zu benoetigen.
+func writeCopyOutputFFmpegFixture(t *testing.T, dir, fixtureVideoPath string) string {
+	t.Helper()
+	binary := filepath.Join(dir, "ffmpeg-copy-fixture")
+	// POSIX-sh "shift until one arg left" idiom to isolate the last positional argument
+	// (BuildFFmpegSegmentArgs always places OutputPath last) without relying on eval/$#
+	// expansion ordering pitfalls.
+	script := "#!/bin/sh\nwhile [ \"$#\" -gt 1 ]; do shift; done\ncp \"" + fixtureVideoPath + "\" \"$1\"\nexit 0\n"
+	if err := os.WriteFile(binary, []byte(script), 0700); err != nil {
+		t.Fatal(err)
+	}
+	return binary
+}
+
+// newAutoPreviewJellyfinSource baut Source+Jellyfin-Stub-Server fuer einen einzelnen Item
+// "item" mit Media-Source "B" (keine Untertitel) -- identisch zum bereits etablierten Muster in
+// TestSegmentRenderWorkerSelectedVideoAndSubtitleSingleRead, nur ohne Subtitle-Streams, damit die
+// Fixture-ffmpeg-Kopie keine Subtitle-Argumente beruecksichtigen muss. Liefert die erwartete
+// SourceFingerprint ("jellyfin:4:item:B" -- "4" ist len("item")) gleich mit.
+func newAutoPreviewJellyfinSource(t *testing.T) (*httptest.Server, *models.ThemeSegmentRenderSource, string) {
+	t.Helper()
+	server := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		if r.URL.Path == "/Items" {
+			w.Write([]byte(`{"Items":[{"Id":"item","Path":"/A","MediaSources":[{"Id":"B","Path":"/B","MediaStreams":[]}]}]}`))
+			return
+		}
+		t.Errorf("unexpected request %s", r.URL.Path)
+	}))
+	item, provider := "item", "jellyfin"
+	source := segmentRenderTestSource()
+	source.SourceKind = "episode_version"
+	source.StreamExternalID = &item
+	source.StreamProvider = &provider
+	source.JellyfinSource = &models.JellyfinSourceSnapshot{Version: 1, MediaSourceID: "B", SourcePath: "/B"}
+	return server, source, "jellyfin:4:item:B"
+}
+
+// openSegmentPreviewAutoMediaFixture erweitert das gemeinsame Phase-117-Fixture (bereits mit
+// Migration 0177 / theme_segments.auto_preview_media_asset_id, siehe testsupport.OpenPhase117Postgres)
+// um das minimale media_assets/media_types/review_statuses/media_files-Schema, das die ECHTE
+// *repository.MediaRepository (CreateMediaAsset/InsertMediaFile/ListMediaFilePaths/DeleteMediaAsset)
+// fuer registerSegmentAutoPreview benoetigt -- analog zum Muster in
+// admin_content_release_theme_assets_test.go (openReleaseThemeAssetMediaFixture), nur auf der
+// Phase-117-Basis statt Phase-106, weil wir zugleich theme_segments brauchen.
+func openSegmentPreviewAutoMediaFixture(t *testing.T) *pgxpool.Pool {
+	t.Helper()
+	pool := testsupport.OpenPhase117Postgres(t)
+	ctx := context.Background()
+	_, err := pool.Exec(ctx, `
+ALTER TABLE media_assets ALTER COLUMN id ADD GENERATED BY DEFAULT AS IDENTITY;
+ALTER TABLE media_assets
+    ADD COLUMN media_type_id BIGINT,
+    ADD COLUMN mime_type TEXT,
+    ADD COLUMN format TEXT,
+    ADD COLUMN visibility_id BIGINT REFERENCES visibilities(id),
+    ADD COLUMN review_status_id BIGINT,
+    ADD COLUMN created_at TIMESTAMPTZ;
+
+CREATE TABLE media_types (id BIGINT PRIMARY KEY, name TEXT NOT NULL UNIQUE);
+INSERT INTO media_types (id, name) VALUES (1, 'video'), (2, 'image');
+
+CREATE TABLE review_statuses (id BIGINT PRIMARY KEY, code TEXT NOT NULL UNIQUE);
+INSERT INTO review_statuses (id, code) VALUES (1, 'approved'), (2, 'in_review');
+
+CREATE TABLE media_files (
+    media_id BIGINT NOT NULL,
+    variant TEXT NOT NULL,
+    path TEXT NOT NULL,
+    width INT NOT NULL DEFAULT 0,
+    height INT NOT NULL DEFAULT 0,
+    size BIGINT NOT NULL DEFAULT 0
+);
+`)
+	if err != nil {
+		t.Fatalf("prepare auto-preview media fixture schema: %v", err)
+	}
+	return pool
+}
+
+// TestExecuteSegmentRender_AutoPreview beweist D-04: nach einem erfolgreichen Render ruft
+// executeSegmentRender registerSegmentAutoPreview genau einmal mit der erwarteten SegmentID und
+// einer echten, soeben angelegten media_asset-ID auf (echte Postgres-Fixture + echtes ffmpeg fuer
+// die Frame-Extraktion -- kein Mock des eigentlichen Verhaltens).
+func TestExecuteSegmentRender_AutoPreview(t *testing.T) {
+	ffmpegBinary := requireFFmpegBinary(t)
+	pool := openSegmentPreviewAutoMediaFixture(t)
+
+	server, source, fingerprint := newAutoPreviewJellyfinSource(t)
+	defer server.Close()
+
+	dir := t.TempDir()
+	fixtureVideo := filepath.Join(dir, "fixture-source.mp4")
+	generateAutoPreviewFixtureVideo(t, ffmpegBinary, fixtureVideo)
+	renderFFmpegBinary := writeCopyOutputFFmpegFixture(t, dir, fixtureVideo)
+	storageDir := t.TempDir()
+
+	repo := &fakeSegmentStreamThemeRepo{source: source}
+	h := &AdminContentHandler{
+		themeRepo:               repo,
+		jellyfinBaseURL:         server.URL,
+		jellyfinAPIKey:          "fixture",
+		httpClient:              server.Client(),
+		segmentRenderDir:        dir,
+		segmentRenderFFmpegPath: renderFFmpegBinary,
+		mediaService:            services.NewMediaService(storageDir, "http://localhost:8092", ffmpegBinary),
+		mediaRepo:               repository.NewMediaRepository(pool, "http://localhost:8092"),
+	}
+
+	cache := &models.ThemeSegmentRenderCache{CacheKey: "cached-B", ThemeSegmentID: 42, SourceFingerprint: fingerprint}
+	if err := h.executeSegmentRender(context.Background(), cache, source); err != nil {
+		t.Fatalf("executeSegmentRender: %v", err)
+	}
+
+	if len(repo.readyInputs) != 1 {
+		t.Fatalf("expected render to succeed, readyInputs=%v failureCodes=%v", repo.readyInputs, repo.failureCodes)
+	}
+	if len(repo.autoPreviewCalls) != 1 {
+		t.Fatalf("expected exactly one auto-preview registration, got %d (failureCodes=%v)", len(repo.autoPreviewCalls), repo.failureCodes)
+	}
+	call := repo.autoPreviewCalls[0]
+	if call.SegmentID != 42 {
+		t.Fatalf("expected auto-preview for segment 42, got %d", call.SegmentID)
+	}
+	if call.MediaAssetID <= 0 {
+		t.Fatalf("expected a positive media asset id, got %d", call.MediaAssetID)
+	}
+}
+
+// TestExecuteSegmentRender_ExtractionFailureDoesNotFailRender beweist D-06: schlaegt die
+// Frame-Extraktion fehl (hier: ein nicht existierender ffmpeg-Pfad im MediaService), liefert
+// executeSegmentRender trotzdem Erfolg (nil) -- der Render selbst wird durch einen Fehler in der
+// Auto-Preview-Erzeugung niemals ruiniert.
+func TestExecuteSegmentRender_ExtractionFailureDoesNotFailRender(t *testing.T) {
+	server, source, fingerprint := newAutoPreviewJellyfinSource(t)
+	defer server.Close()
+
+	dir := t.TempDir()
+	// Render-Skript muss "erfolgreich" sein (Exit 0), damit MarkThemeSegmentRenderCacheReady
+	// erreicht wird -- es muss aber keine echte Videodatei schreiben, da die Extraktion ohnehin
+	// an einem kaputten ffmpeg-Pfad scheitert, bevor irgendeine Datei gelesen wird.
+	renderBinary := filepath.Join(dir, "ffmpeg-noop-success")
+	if err := os.WriteFile(renderBinary, []byte("#!/bin/sh\nexit 0\n"), 0700); err != nil {
+		t.Fatal(err)
+	}
+
+	repo := &fakeSegmentStreamThemeRepo{source: source}
+	h := &AdminContentHandler{
+		themeRepo:               repo,
+		jellyfinBaseURL:         server.URL,
+		jellyfinAPIKey:          "fixture",
+		httpClient:              server.Client(),
+		segmentRenderDir:        dir,
+		segmentRenderFFmpegPath: renderBinary,
+		mediaService:            services.NewMediaService(t.TempDir(), "http://localhost:8092", "/nonexistent/ffmpeg-binary"),
+	}
+
+	cache := &models.ThemeSegmentRenderCache{CacheKey: "cached-B", ThemeSegmentID: 42, SourceFingerprint: fingerprint}
+	if err := h.executeSegmentRender(context.Background(), cache, source); err != nil {
+		t.Fatalf("executeSegmentRender must succeed even when auto-preview extraction fails: %v", err)
+	}
+
+	if len(repo.readyInputs) != 1 {
+		t.Fatalf("expected render to still succeed, readyInputs=%v failureCodes=%v", repo.readyInputs, repo.failureCodes)
+	}
+	if len(repo.autoPreviewCalls) != 0 {
+		t.Fatalf("expected no auto-preview registration when extraction fails, got %d", len(repo.autoPreviewCalls))
+	}
+}
+
+// TestExecuteSegmentRender_PreservesManualPreview beweist D-07/D-08-Verdrahtung auf
+// Handler-Ebene: ein Render, bei dem bereits zuvor ein automatisches Vorschaubild existierte
+// (autoPreviewOldValue), erzeugt bei erfolgreichem Abschluss ein NEUES, eigenstaendiges Asset --
+// die Spaltentrennung selbst (auto_preview_media_asset_id vs. preview_media_asset_id wird NIE
+// beruehrt) ist bereits auf Repository-Ebene real-DB-bewiesen
+// (TestSetThemeSegmentAutoPreview_NeverTouchesManualColumn, Plan 172-03); dieser Test beweist nur,
+// dass der Render-Worker-Hook ausschliesslich SetThemeSegmentAutoPreview aufruft (die einzige vom
+// Fake implementierte Schreibmethode -- jeder Aufruf einer manuellen Vorschaubild-Methode wuerde
+// hier wegen des nil-eingebetteten adminThemeRepository-Felds zu einem Panic fuehren, nicht
+// stillschweigend durchlaufen) und dass D-07 (das jeweils neueste Render gewinnt) eine
+// tatsaechlich NEUE Asset-ID erzeugt statt die alte wiederzuverwenden.
+func TestExecuteSegmentRender_PreservesManualPreview(t *testing.T) {
+	ffmpegBinary := requireFFmpegBinary(t)
+	pool := openSegmentPreviewAutoMediaFixture(t)
+
+	server, source, fingerprint := newAutoPreviewJellyfinSource(t)
+	defer server.Close()
+
+	dir := t.TempDir()
+	fixtureVideo := filepath.Join(dir, "fixture-source.mp4")
+	generateAutoPreviewFixtureVideo(t, ffmpegBinary, fixtureVideo)
+	renderFFmpegBinary := writeCopyOutputFFmpegFixture(t, dir, fixtureVideo)
+	storageDir := t.TempDir()
+
+	previousAutoAssetID := int64(999)
+	repo := &fakeSegmentStreamThemeRepo{source: source, autoPreviewOldValue: &previousAutoAssetID}
+	h := &AdminContentHandler{
+		themeRepo:               repo,
+		jellyfinBaseURL:         server.URL,
+		jellyfinAPIKey:          "fixture",
+		httpClient:              server.Client(),
+		segmentRenderDir:        dir,
+		segmentRenderFFmpegPath: renderFFmpegBinary,
+		mediaService:            services.NewMediaService(storageDir, "http://localhost:8092", ffmpegBinary),
+		mediaRepo:               repository.NewMediaRepository(pool, "http://localhost:8092"),
+	}
+
+	cache := &models.ThemeSegmentRenderCache{CacheKey: "cached-B", ThemeSegmentID: 42, SourceFingerprint: fingerprint}
+	if err := h.executeSegmentRender(context.Background(), cache, source); err != nil {
+		t.Fatalf("executeSegmentRender: %v", err)
+	}
+
+	if len(repo.autoPreviewCalls) != 1 {
+		t.Fatalf("expected exactly one auto-preview registration, got %d", len(repo.autoPreviewCalls))
+	}
+	call := repo.autoPreviewCalls[0]
+	if call.SegmentID != 42 {
+		t.Fatalf("expected auto-preview for segment 42, got %d", call.SegmentID)
+	}
+	if call.MediaAssetID == previousAutoAssetID {
+		t.Fatalf("expected a NEW media asset id (D-07: latest render wins), got the stale previous id %d", previousAutoAssetID)
+	}
+	if call.MediaAssetID <= 0 {
+		t.Fatalf("expected a positive media asset id, got %d", call.MediaAssetID)
 	}
 }
