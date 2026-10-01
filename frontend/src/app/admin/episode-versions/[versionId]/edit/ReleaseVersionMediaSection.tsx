@@ -178,7 +178,6 @@ export function ReleaseVersionMediaSection({
 
   function handleMediaPointerStart(event: ReactPointerEvent<HTMLDivElement>, itemId: number) {
     if (!canReorderMedia || event.button !== 0) return
-    event.preventDefault()
     setDraggedMediaId(itemId)
   }
 
