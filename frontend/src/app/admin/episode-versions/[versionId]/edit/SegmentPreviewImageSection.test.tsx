@@ -80,12 +80,13 @@ describe('SegmentPreviewImageSection', () => {
     expect(screen.getByText('Standardbild')).not.toBeNull()
   })
 
-  it('Klick auf die Dropzone triggert das versteckte Datei-Input', () => {
+  it('Bild hochladen oeffnet die Dateiauswahl des globalen Uploaders, ohne eigene Dropzone', () => {
     render(<SegmentPreviewImageSection {...baseProps()} />)
     const input = screen.getByLabelText('Vorschaubild-Datei auswählen') as HTMLInputElement
     const clickSpy = vi.spyOn(input, 'click')
-    fireEvent.click(screen.getByRole('button', { name: 'Bild hierher ziehen oder klicken zum Hochladen' }))
+    fireEvent.click(screen.getByRole('button', { name: 'Bild hochladen' }))
     expect(clickSpy).toHaveBeenCalled()
+    expect(screen.queryByText('Bild hierher ziehen oder klicken zum Hochladen')).toBeNull()
   })
 
   it('ruft onPreviewUpload mit der ausgewaehlten Datei auf', () => {

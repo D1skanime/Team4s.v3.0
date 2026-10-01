@@ -16,6 +16,7 @@ import {
 import { SegmentEditPanel, type FormState } from './SegmentEditPanel'
 import { SegmentsListSection } from './SegmentsListSection'
 import { useSegmentAssetHandlers } from './useSegmentAssetHandlers'
+import { useSegmentPreviewImageHandlers } from './useSegmentPreviewImageHandlers'
 import { useSegmentContributors } from './useSegmentContributors'
 import { getAnimeSegmentSuggestions, setAnimeSegmentOrigin, uploadSegmentAsset } from '@/lib/api'
 import { useAuthSession } from '@/lib/useAuthSession'
@@ -108,6 +109,8 @@ export function SegmenteTab({ animeId, groupId, version, episodeNumber, duration
     setFormState,
     reload,
   })
+
+  const previewImageProps = useSegmentPreviewImageHandlers({ animeId, releaseVariantId, hasAuthSession, editingSegment, setEditingSegment, reload }).sectionProps
 
   // A draft must never silently move to another persisted variant.
   useEffect(() => {
@@ -413,6 +416,7 @@ export function SegmenteTab({ animeId, groupId, version, episodeNumber, duration
           uploadError={uploadError}
           reuseCandidates={reuseCandidates}
           reuseError={reuseError}
+          previewImage={previewImageProps}
           previewStreamHref={buildSegmentPreviewStreamHref(editingSegment, releaseVariantId)}
           currentReleaseVersionId={releaseVariantId ?? null}
           onRemoveOverride={() => void handleRemoveOverride()}

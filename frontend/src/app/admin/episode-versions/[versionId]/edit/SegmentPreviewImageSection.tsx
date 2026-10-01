@@ -1,10 +1,9 @@
 'use client'
 
-import { useRef, useState } from 'react'
-import type { DragEvent, KeyboardEvent } from 'react'
+import { useRef } from 'react'
 import { ImageIcon, RefreshCw, Upload } from 'lucide-react'
 
-import { Badge, Button } from '@/components/ui'
+import { Badge, Button, Input } from '@/components/ui'
 import type { AdminSegmentPreviewImageCandidate, AdminThemeSegment } from '@/types/admin'
 import { SegmentPreviewImagePicker } from './SegmentPreviewImagePicker'
 import styles from './SegmentPreviewImageSection.module.css'
@@ -37,11 +36,10 @@ export interface SegmentPreviewImageSectionProps {
 }
 
 /**
- * D-11-Sektion "Vorschaubild" im Segment-Panel: aktuelles Bild + Herkunfts-Badge, Upload-
- * Dropzone, Trigger für den Release-Bild-Picker, "Automatisches Bild verwenden" (Phase 172,
- * Plan 172-08, UI-SPEC Screen 1). Rendert NICHTS, solange kein gespeichertes Segment existiert
- * (UI-SPEC Design-Entscheidung 3) -- State/Handler kommen vollständig aus
- * useSegmentPreviewImageHandlers, instanziiert in SegmenteTab.tsx.
+ * D-11-Sektion "Vorschaubild" im Segment-Panel: aktuelles Bild + Herkunfts-Badge, Dateiauswahl
+ * fuer den globalen Uploader, Release-Bild-Picker und "Automatisches Bild verwenden" (Phase 172).
+ * Rendert NICHTS, solange kein gespeichertes Segment existiert. State/Handler kommen aus
+ * useSegmentPreviewImageHandlers (sectionProps).
  */
 export function SegmentPreviewImageSection({
   editingSegment,
@@ -62,32 +60,12 @@ export function SegmentPreviewImageSection({
   onDismissSuccess,
 }: SegmentPreviewImageSectionProps) {
   const fileInputRef = useRef<HTMLInputElement>(null)
-  const [isDragging, setIsDragging] = useState(false)
 
   if (!editingSegment) {
     return null
   }
 
   const badge = editingSegment.preview_source ? BADGE_BY_SOURCE[editingSegment.preview_source] : null
-
-  function handleFiles(files: FileList | null) {
-    const file = files?.[0]
-    if (file) onPreviewUpload(file)
-    if (fileInputRef.current) fileInputRef.current.value = ''
-  }
-
-  function handleDropzoneKeyDown(event: KeyboardEvent<HTMLDivElement>) {
-    if (event.key === 'Enter' || event.key === ' ') {
-      event.preventDefault()
-      fileInputRef.current?.click()
-    }
-  }
-
-  function handleDrop(event: DragEvent<HTMLDivElement>) {
-    event.preventDefault()
-    setIsDragging(false)
-    handleFiles(event.dataTransfer.files)
-  }
 
   return (
     <div className={styles.section}>
@@ -109,52 +87,29 @@ export function SegmentPreviewImageSection({
         {badge ? <Badge variant={badge.variant}>{badge.label}</Badge> : null}
       </div>
 
-      <div
-        className={isDragging ? `${styles.dropzone} ${styles.dropzoneDragging}` : styles.dropzone}
-        role="button"
-        tabIndex={0}
-        aria-label="Bild hierher ziehen oder klicken zum Hochladen"
-        onClick={() => fileInputRef.current?.click()}
-        onKeyDown={handleDropzoneKeyDown}
-        onDragOver={(event) => {
-          event.preventDefault()
-          setIsDragging(true)
-        }}
-        onDragEnter={(event) => {
-          event.preventDefault()
-          setIsDragging(true)
-        }}
-        onDragLeave={() => setIsDragging(false)}
-        onDrop={handleDrop}
-      >
-        <span className={styles.dropzoneText}>Bild hierher ziehen oder klicken zum Hochladen</span>
+      <div className={styles.actionsRow}>
         <Button
           type="button"
           variant="secondary"
           size="sm"
           leftIcon={<Upload size={14} />}
           loading={isUploadingPreview}
-          onClick={(event) => {
-            event.stopPropagation()
-            fileInputRef.current?.click()
-          }}
+          onClick={() => fileInputRef.current?.click()}
         >
           Bild hochladen
         </Button>
-        <input
+        <Input
           ref={fileInputRef}
           type="file"
           accept={ACCEPTED_MIME}
-          className={styles.hiddenInput}
+          hidden
           aria-label="Vorschaubild-Datei auswählen"
-          onChange={(event) => handleFiles(event.target.files)}
+          onChange={(event) => {
+            const file = event.target.files?.[0]
+            if (file) onPreviewUpload(file)
+            event.target.value = ''
+          }}
         />
-      </div>
-
-      <p className={styles.helpText}>Erlaubte Formate: JPG, PNG, WEBP · Max. 15 MB</p>
-      <p className={styles.helpText}>Wird sofort übernommen und ist ohne Freigabe öffentlich sichtbar.</p>
-
-      <div className={styles.actionsRow}>
         <Button
           type="button"
           variant="secondary"
@@ -177,6 +132,9 @@ export function SegmentPreviewImageSection({
           </Button>
         ) : null}
       </div>
+
+      <p className={styles.helpText}>Erlaubte Formate: JPG, PNG, WEBP · Max. 50 MB</p>
+      <p className={styles.helpText}>Wird sofort übernommen und ist ohne Freigabe öffentlich sichtbar.</p>
 
       {successMessage ? (
         <div className={styles.statusRow}>

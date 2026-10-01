@@ -23,6 +23,8 @@ import {
 import { SegmentBasicFieldsSection } from './SegmentBasicFieldsSection'
 import { SegmentOverrideField } from './SegmentOverrideField'
 import { SegmentPlaybackPreviewSection } from './SegmentPlaybackPreviewSection'
+import { SegmentPreviewImageSection } from './SegmentPreviewImageSection'
+import type { SegmentPreviewImageSectionProps } from './SegmentPreviewImageSection'
 import { SegmentAssetSection } from './SegmentAssetSection'
 import { SegmentContributorsField } from './SegmentContributorsField'
 import styles from './SegmenteTab.module.css'
@@ -55,6 +57,10 @@ interface SegmentEditPanelProps {
   uploadError: string | null
   reuseCandidates: AdminSegmentLibraryCandidate[]
   reuseError: string | null
+  /** D-11 Vorschaubild-Sektion: alle State-Werte + Handler aus useSegmentPreviewImageHandlers,
+   * gebündelt statt einzeln durchgereicht, um das Datei-Zeilenlimit (CLAUDE.md, 450 Zeilen)
+   * einzuhalten. */
+  previewImage: Omit<SegmentPreviewImageSectionProps, 'editingSegment'>
   previewStreamHref?: string | null
   currentReleaseVersionId: number | null
   onRemoveOverride: () => void
@@ -93,6 +99,7 @@ export function SegmentEditPanel({
   uploadError,
   reuseCandidates,
   reuseError,
+  previewImage,
   previewStreamHref,
   currentReleaseVersionId,
   onRemoveOverride,
@@ -367,6 +374,8 @@ export function SegmentEditPanel({
           previewStreamHref={previewStreamHref ?? null}
           renderStatus={renderStatus}
         />
+
+        <SegmentPreviewImageSection editingSegment={editingSegment} {...previewImage} />
 
         <SegmentAssetSection
           formState={formState}

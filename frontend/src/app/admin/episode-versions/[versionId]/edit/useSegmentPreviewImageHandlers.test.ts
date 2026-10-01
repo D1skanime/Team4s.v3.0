@@ -3,7 +3,8 @@ import { act, renderHook } from '@testing-library/react'
 import { beforeEach, describe, expect, it, vi } from 'vitest'
 
 const api = vi.hoisted(() => ({
-  uploadSegmentPreviewImage: vi.fn(),
+  uploadAdminAnimeMedia: vi.fn(),
+  assignSegmentPreviewImage: vi.fn(),
   getSegmentPreviewImageCandidates: vi.fn(),
   attachSegmentPreviewImage: vi.fn(),
   resetSegmentPreviewImage: vi.fn(),
@@ -68,7 +69,8 @@ describe('useSegmentPreviewImageHandlers', () => {
 
   it('laedt ein neues Vorschaubild hoch, aktualisiert das Segment und zeigt eine Erfolgsmeldung', async () => {
     const updated = segment({ preview_url: 'https://x/preview.jpg', preview_source: 'manual' })
-    api.uploadSegmentPreviewImage.mockResolvedValue({ data: updated })
+    api.uploadAdminAnimeMedia.mockResolvedValue({ id: '4711', status: 'completed', url: 'x' })
+    api.assignSegmentPreviewImage.mockResolvedValue({ data: updated })
     const { result, setEditingSegment, reload } = setup()
 
     const file = new File(['img'], 'preview.jpg', { type: 'image/jpeg' })
@@ -76,7 +78,14 @@ describe('useSegmentPreviewImageHandlers', () => {
       await result.current.handlePreviewUpload(file)
     })
 
-    expect(api.uploadSegmentPreviewImage).toHaveBeenCalledWith(1, 7, file, undefined, null)
+    expect(api.uploadAdminAnimeMedia).toHaveBeenCalledWith({
+      animeID: 1,
+      assetType: 'segment_preview',
+      file,
+      segmentID: 7,
+      releaseVariantID: null,
+    })
+    expect(api.assignSegmentPreviewImage).toHaveBeenCalledWith(1, 7, 4711, undefined, null)
     expect(reload).toHaveBeenCalledTimes(1)
     expect(setEditingSegment).toHaveBeenCalledWith(updated)
     expect(result.current.isUploadingPreview).toBe(false)
@@ -85,7 +94,7 @@ describe('useSegmentPreviewImageHandlers', () => {
   })
 
   it('zeigt bei fehlgeschlagenem Upload die generische Fehlermeldung inklusive Serverdetail', async () => {
-    api.uploadSegmentPreviewImage.mockRejectedValue(new Error('Datei zu groß.'))
+    api.uploadAdminAnimeMedia.mockRejectedValue(new Error('Datei zu groß.'))
     const { result } = setup()
 
     await act(async () => {
@@ -97,7 +106,7 @@ describe('useSegmentPreviewImageHandlers', () => {
   })
 
   it('zeigt bei 403 die feste Berechtigungsmeldung statt des generischen Textes', async () => {
-    api.uploadSegmentPreviewImage.mockRejectedValue(new ApiError(403, 'forbidden'))
+    api.uploadAdminAnimeMedia.mockRejectedValue(new ApiError(403, 'forbidden'))
     const { result } = setup()
 
     await act(async () => {

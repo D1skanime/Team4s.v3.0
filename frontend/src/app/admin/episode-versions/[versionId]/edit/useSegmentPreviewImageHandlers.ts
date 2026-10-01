@@ -4,12 +4,14 @@ import { useEffect, useRef, useState } from 'react'
 
 import {
   ApiError,
+  assignSegmentPreviewImage,
   attachSegmentPreviewImage,
   getSegmentPreviewImageCandidates,
   resetSegmentPreviewImage,
-  uploadSegmentPreviewImage,
+  uploadAdminAnimeMedia,
 } from '@/lib/api'
 import type { AdminSegmentPreviewImageCandidate, AdminThemeSegment } from '@/types/admin'
+import type { SegmentPreviewImageSectionProps } from './SegmentPreviewImageSection'
 
 const SUCCESS_MESSAGE_TIMEOUT_MS = 4000
 
@@ -86,7 +88,16 @@ export function useSegmentPreviewImageHandlers({
     setIsUploadingPreview(true)
     setPreviewUploadError(null)
     try {
-      const res = await uploadSegmentPreviewImage(animeId, editingSegment.id, file, undefined, releaseVariantId)
+      // Globaler Uploader (POST /admin/upload, asset_type=segment_preview), danach Zuordnung zum
+      // Segment -- analog Cover-Upload + Cover-Zuordnung. Kein eigener Upload-Endpunkt.
+      const uploaded = await uploadAdminAnimeMedia({
+        animeID: animeId,
+        assetType: 'segment_preview',
+        file,
+        segmentID: editingSegment.id,
+        releaseVariantID: releaseVariantId,
+      })
+      const res = await assignSegmentPreviewImage(animeId, editingSegment.id, Number(uploaded.id), undefined, releaseVariantId)
       await reload()
       setEditingSegment(res.data)
       showSuccessMessage('Vorschaubild hochgeladen und übernommen.')
@@ -156,7 +167,27 @@ export function useSegmentPreviewImageHandlers({
     }
   }
 
+  // Fertige Props fuer SegmentPreviewImageSection, damit SegmenteTab nur ein Objekt durchreicht.
+  const sectionProps: Omit<SegmentPreviewImageSectionProps, 'editingSegment'> = {
+    isUploadingPreview,
+    previewUploadError,
+    isPickerOpen,
+    pickerCandidates,
+    isLoadingPickerCandidates,
+    pickerError,
+    isAttachingPreview,
+    isResettingPreview,
+    successMessage,
+    onPreviewUpload: (file) => void handlePreviewUpload(file),
+    onOpenPreviewPicker: () => void handleOpenPreviewPicker(),
+    onClosePreviewPicker: handleClosePreviewPicker,
+    onAttachPreviewCandidate: (candidate) => void handleAttachPreviewCandidate(candidate),
+    onResetPreview: () => void handleResetPreview(),
+    onDismissSuccess: dismissSuccessMessage,
+  }
+
   return {
+    sectionProps,
     isUploadingPreview,
     previewUploadError,
     isPickerOpen,

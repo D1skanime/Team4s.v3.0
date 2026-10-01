@@ -27,7 +27,7 @@
   margin: 0;
   font-size: 12px;
   font-weight: 400;
-  color: #6b6b70;
+  color: var(--text-muted);
 }
 
 .previewRow {
@@ -55,47 +55,16 @@
   align-items: center;
   justify-content: center;
   gap: var(--space-1);
-  color: #6b6b70;
+  color: var(--text-muted);
   font-size: 12px;
   font-weight: 400;
-}
-
-.dropzone {
-  display: flex;
-  flex-wrap: wrap;
-  align-items: center;
-  gap: var(--space-2);
-  padding: var(--space-3);
-  border: 1px dashed var(--border-color);
-  border-radius: 8px;
-  background: var(--surface-card);
-  cursor: pointer;
-}
-
-.dropzoneDragging {
-  border-color: #4a7dff;
-  background: #f0f4ff;
-}
-
-.dropzoneText {
-  font-size: 13px;
-  color: #6b6b70;
-}
-
-.hiddenInput {
-  position: absolute;
-  width: 1px;
-  height: 1px;
-  opacity: 0;
-  overflow: hidden;
-  pointer-events: none;
 }
 
 .helpText {
   margin: 0;
   font-size: 12px;
   font-weight: 400;
-  color: #6b6b70;
+  color: var(--text-muted);
 }
 
 .actionsRow {
@@ -115,7 +84,7 @@
   margin: 0;
   font-size: 14px;
   font-weight: 400;
-  color: #1a7f37;
+  color: var(--color-success);
 }
 
 .errorMessage {

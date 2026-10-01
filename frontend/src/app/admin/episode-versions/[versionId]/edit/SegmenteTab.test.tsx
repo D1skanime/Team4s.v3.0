@@ -788,11 +788,31 @@ describe('SegmentEditPanel Start-only Override (Gap 3)', () => {
   })
 })
 
+// Vorschaubild-Sektion rendert bei editingSegment=null nichts; die Props sind hier nur Pflichtfelder.
+const previewImageStub = {
+  isUploadingPreview: false,
+  previewUploadError: null,
+  isPickerOpen: false,
+  pickerCandidates: [],
+  isLoadingPickerCandidates: false,
+  pickerError: null,
+  isAttachingPreview: false,
+  isResettingPreview: false,
+  successMessage: null,
+  onPreviewUpload: vi.fn(),
+  onOpenPreviewPicker: vi.fn(),
+  onClosePreviewPicker: vi.fn(),
+  onAttachPreviewCandidate: vi.fn(),
+  onResetPreview: vi.fn(),
+  onDismissSuccess: vi.fn(),
+}
+
 describe('SegmentEditPanel validation', () => {
   it('deaktiviert Speichern, wenn Episoden- oder Zeitbereich fehlen', () => {
     render(
       <SegmentEditPanel
         editingSegment={null}
+        previewImage={previewImageStub}
         formState={{
           themeKind: 'op',
           themeTitle: '',
@@ -848,6 +868,7 @@ describe('SegmentEditPanel validation', () => {
     render(
       <SegmentEditPanel
         editingSegment={null}
+        previewImage={previewImageStub}
         formState={{
           themeKind: 'op',
           themeTitle: '',

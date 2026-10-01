@@ -5388,12 +5388,16 @@ export async function unignoreAdminJellyfinDiscoveryItem(
 
 interface AdminAnimeMediaUploadOptions {
   animeID: number;
-  assetType: AdminAnimeUploadAssetType;
+  /** "segment_preview": Kara-Vorschaubild (Phase 172), erfordert segmentID. */
+  assetType: AdminAnimeUploadAssetType | "segment_preview";
   file: File;
   authToken?: string;
   onProgress?: (percent: number) => void;
   visibilityCode?: string;
   reviewStatusCode?: string;
+  /** Nur fuer assetType "segment_preview": Rechtepruefung ueber das Segment statt Plattform-Admin. */
+  segmentID?: number;
+  releaseVariantID?: number | null;
 }
 
 export async function uploadAdminAnimeMedia(
@@ -5417,6 +5421,8 @@ export async function uploadAdminAnimeMedia(
       body.set("file", options.file);
       if (options.visibilityCode) body.set("visibility_code", options.visibilityCode);
       if (options.reviewStatusCode) body.set("review_status_code", options.reviewStatusCode);
+      if (options.segmentID != null) body.set("segment_id", String(options.segmentID));
+      if (options.releaseVariantID != null) body.set("release_variant_id", String(options.releaseVariantID));
       return body;
     },
   });
@@ -7893,20 +7899,19 @@ export async function deleteSegmentAsset(
 }
 
 /**
- * Laedt ein Bild als manuelles Segment-Vorschaubild hoch (Phase 172, D-11 "Bild hochladen").
- * Sendet multipart/form-data mit dem Feld "file". Gibt das aktualisierte Segment mit neu
- * aufgelöster `preview_url`/`preview_source` zurück.
+ * Ordnet ein ueber den globalen Uploader (uploadAdminAnimeMedia, assetType "segment_preview")
+ * hochgeladenes Bild als manuelles Segment-Vorschaubild zu (Phase 172, D-11) -- analog zur
+ * Cover-Zuordnung. Gibt das aktualisierte Segment mit neu aufgelöster
+ * `preview_url`/`preview_source` zurück.
  */
-export async function uploadSegmentPreviewImage(
+export async function assignSegmentPreviewImage(
   animeId: number,
   segmentId: number,
-  file: File,
+  mediaId: number,
   authToken?: string,
   releaseVariantId?: number | null,
 ): Promise<{ data: AdminThemeSegment }> {
   const API_BASE_URL = getApiBaseUrl();
-  const formData = new FormData();
-  formData.append("file", file);
   const params = new URLSearchParams();
   if (releaseVariantId != null)
     params.set("release_variant_id", String(releaseVariantId));
@@ -7915,10 +7920,10 @@ export async function uploadSegmentPreviewImage(
   const response = await authorizedFetch(
     `${API_BASE_URL}/api/v1/admin/anime/${animeId}/segments/${segmentId}/preview-image${qs}`,
     {
-      method: "POST",
-      headers: withAuthHeader({}, authToken),
+      method: "PUT",
+      headers: withAuthHeader({ "Content-Type": "application/json" }, authToken),
       retryAuth401: false,
-      body: formData,
+      body: JSON.stringify({ media_id: mediaId }),
     },
   );
 
