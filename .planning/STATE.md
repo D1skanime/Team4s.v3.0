@@ -3,14 +3,14 @@ gsd_state_version: 1.0
 milestone: v1.4
 milestone_name: Coverage
 status: executing
-stopped_at: Completed 172-02-PLAN.md
-last_updated: "2026-10-01T17:49:18.916Z"
+stopped_at: Completed 172-03-PLAN.md
+last_updated: "2026-10-01T18:10:40.100Z"
 last_activity: 2026-10-01
 progress:
   total_phases: 37
   completed_phases: 32
   total_plans: 322
-  completed_plans: 313
+  completed_plans: 314
   percent: 86
 ---
 
@@ -287,7 +287,7 @@ Abschluss" entry below for the full closing record.
 ## Current Position
 
 Phase: 172 (kara-vorschaubild-pro-segment-automatisch-aus-dem-render-fra) — EXECUTING
-Plan: 3 of 10
+Plan: 4 of 10
 Status: Ready to execute
 Completed: removed stale public timeline range access, repaired nullable highlight responses, batched release-version-media rights projection, hardened full-list media reorder, and synchronized the focused admin contract.
 Next: resolve or explicitly accept the pre-existing full-suite failures, then complete Phase 169 live actor/refresh/responsive UAT; Phase 166 remains open.
@@ -861,6 +861,7 @@ Last activity: 2026-10-01
 - [Phase 172]: Plan 172-01: zwei nullable FK-Spalten (preview_media_asset_id/auto_preview_media_asset_id) auf theme_segments statt einer Spalte + Source-Enum (CONTEXT.md-Praeferenz, D-08: manuelle Wahl darf beim Render nie verloren gehen)
 - [Phase 172]: Plan 172-01: resolveThemeSegmentPreviewAsset nimmt die Fallback-Release-Version als Parameter statt sie intern zu berechnen, da sie je Aufrufstelle unterschiedlich ist
 - [Phase 172]: Batched preview resolution (resolveThemeSegmentPreviewAssetsBatch) instead of per-segment calls, to keep loadReleaseSegments' query count constant — A literal per-row resolveThemeSegmentPreviewAsset call would have reintroduced N+1 and broken the pre-existing Plan 156-09 constant-query-budget test
+- [Phase 172]: Split new segment-preview write methods into a new theme_segment_preview_writes.go file instead of growing theme_segment_preview.go past the CLAUDE.md 450-line limit
 
 ### Pending Todos
 
@@ -1399,11 +1400,12 @@ untruncated list lives in `.planning/todos/pending/`.
 | Phase 171 P03 | 35min | 3 tasks tasks | 7 files files |
 | Phase 172 P01 | 50min | 2 tasks | 10 files |
 | Phase 172 P02 | 70min | 1 tasks | 5 files |
+| Phase 172 P03 | 65min | 2 tasks | 7 files |
 
 ## Session Continuity
 
-Last session: 2026-10-01T17:49:18.896Z
-Stopped at: Completed 172-02-PLAN.md
+Last session: 2026-10-01T18:10:40.076Z
+Stopped at: Completed 172-03-PLAN.md
 Last activity: 2026-09-28 - Completed Phase 169 Plan 169-01
 Resume file: 
 None
