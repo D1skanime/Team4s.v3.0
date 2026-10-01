@@ -75,6 +75,12 @@ export function useSegmentPreviewImageHandlers({
     successTimerRef.current = setTimeout(() => setSuccessMessage(null), SUCCESS_MESSAGE_TIMEOUT_MS)
   }
 
+  /** Manuelles Schließen des Erfolgshinweises (UI-SPEC Design-Entscheidung 10, Schließen-Button). */
+  function dismissSuccessMessage() {
+    if (successTimerRef.current) clearTimeout(successTimerRef.current)
+    setSuccessMessage(null)
+  }
+
   async function handlePreviewUpload(file: File) {
     if (!animeId || !editingSegment || !hasAuthSession) return
     setIsUploadingPreview(true)
@@ -165,5 +171,6 @@ export function useSegmentPreviewImageHandlers({
     handleClosePreviewPicker,
     handleAttachPreviewCandidate,
     handleResetPreview,
+    dismissSuccessMessage,
   }
 }

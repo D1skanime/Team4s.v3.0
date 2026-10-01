@@ -197,4 +197,19 @@ describe('useSegmentPreviewImageHandlers', () => {
       vi.useRealTimers()
     }
   })
+
+  it('blendet die Erfolgsmeldung beim manuellen Schliessen sofort aus (UI-SPEC Design-Entscheidung 10)', async () => {
+    api.resetSegmentPreviewImage.mockResolvedValue({ data: segment({ preview_source: 'auto' }) })
+    const { result } = setup()
+
+    await act(async () => {
+      await result.current.handleResetPreview()
+    })
+    expect(result.current.successMessage).not.toBeNull()
+
+    act(() => {
+      result.current.dismissSuccessMessage()
+    })
+    expect(result.current.successMessage).toBeNull()
+  })
 })
