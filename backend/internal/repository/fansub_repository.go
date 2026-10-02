@@ -323,17 +323,37 @@ func (r *FansubRepository) GetPublicProfileBySlug(ctx context.Context, slug stri
 // profile does not need). It leaves all four unused counts and Links at their
 // zero values -- callers that need the full admin-hydrated group must keep
 // using GetGroupBySlug/GetGroupByID instead.
+//
+// logo_url/banner_url prefer the group's own 'display' media_files variant
+// (D-02) over the stored column when one exists, via two LEFT JOIN LATERALs
+// keyed on the row's own logo_id/banner_id -- the same already-authorized FKs
+// the stored URL already resolved from. SVG logos (no display row ever
+// generated, per 173-04) and pre-backfill groups fall back to the unchanged
+// stored column.
 func (r *FansubRepository) getPublicGroupBase(ctx context.Context, slug string) (*models.FansubGroup, error) {
 	query := `
 		SELECT
 			id, slug, name, logo_id, banner_id, logo_url, banner_url,
 			founded_year, dissolved_year, closed_year, status, 'group' AS group_type, website_url, discord_url, irc_url, country,
-			created_at, updated_at
+			created_at, updated_at,
+			logo_display.path AS logo_display_path,
+			banner_display.path AS banner_display_path
 		FROM fansub_groups
+		LEFT JOIN LATERAL (
+			SELECT path FROM media_files
+			WHERE media_id = fansub_groups.logo_id AND variant = 'display' AND status = 'ready'
+			ORDER BY id ASC LIMIT 1
+		) logo_display ON true
+		LEFT JOIN LATERAL (
+			SELECT path FROM media_files
+			WHERE media_id = fansub_groups.banner_id AND variant = 'display' AND status = 'ready'
+			ORDER BY id ASC LIMIT 1
+		) banner_display ON true
 		WHERE slug = $1
 	`
 
 	var item models.FansubGroup
+	var logoDisplayPath, bannerDisplayPath *string
 	if err := r.db.QueryRow(ctx, query, slug).Scan(
 		&item.ID,
 		&item.Slug,
@@ -353,10 +373,23 @@ func (r *FansubRepository) getPublicGroupBase(ctx context.Context, slug string) 
 		&item.Country,
 		&item.CreatedAt,
 		&item.UpdatedAt,
+		&logoDisplayPath,
+		&bannerDisplayPath,
 	); errors.Is(err, pgx.ErrNoRows) {
 		return nil, ErrNotFound
 	} else if err != nil {
 		return nil, fmt.Errorf("get fansub group %q: %w", slug, err)
+	}
+
+	if logoDisplayPath != nil {
+		if resolved := publicMediaURLForPath(*logoDisplayPath, r.mediaStorageDir); resolved != nil {
+			item.LogoURL = resolved
+		}
+	}
+	if bannerDisplayPath != nil {
+		if resolved := publicMediaURLForPath(*bannerDisplayPath, r.mediaStorageDir); resolved != nil {
+			item.BannerURL = resolved
+		}
 	}
 
 	return &item, nil
