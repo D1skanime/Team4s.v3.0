@@ -254,6 +254,8 @@ export interface PublicMemberMembership {
 /** Public background image (allow-list, D-01): nur Anzeige-URL, keine source_original_url. */
 export interface PublicMemberProfileBackgroundImage {
   public_url: string
+  /** Display-Variante (173-10/D-02); faellt serverseitig auf public_url zurueck, wenn keine existiert. */
+  display_url?: string
 }
 
 /** Standardisierter Fehler-Envelope (D-04); eine Form fuer alle 404/500-Antworten. */
@@ -295,6 +297,8 @@ export interface PublicMemberProfileData {
   profile_visibility: ProfileVisibility
   avatar?: {
     public_url: string
+    /** Display-Variante (173-10/D-02); faellt serverseitig auf public_url zurueck, wenn keine existiert. */
+    display_url?: string
   } | null
   background_image?: PublicMemberProfileBackgroundImage | null
   memberships: PublicMemberMembership[]
