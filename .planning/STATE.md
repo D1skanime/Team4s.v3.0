@@ -3,14 +3,14 @@ gsd_state_version: 1.0
 milestone: v1.4
 milestone_name: Coverage
 status: executing
-stopped_at: Completed 173-08-PLAN.md
-last_updated: "2026-10-02T16:29:46.953Z"
+stopped_at: Completed 173-09-PLAN.md
+last_updated: "2026-10-02T16:51:50.563Z"
 last_activity: 2026-10-02
 progress:
   total_phases: 38
   completed_phases: 32
   total_plans: 338
-  completed_plans: 321
+  completed_plans: 322
   percent: 84
 ---
 
@@ -287,7 +287,7 @@ Abschluss" entry below for the full closing record.
 ## Current Position
 
 Phase: 173 (ffentliche-bildqualit-t-zus-tzliche-display-variante-backend) — EXECUTING
-Plan: 4 of 16
+Plan: 5 of 16
 Status: Ready to execute
 Completed: removed stale public timeline range access, repaired nullable highlight responses, batched release-version-media rights projection, hardened full-list media reorder, and synchronized the focused admin contract.
 Next: resolve or explicitly accept the pre-existing full-suite failures, then complete Phase 169 live actor/refresh/responsive UAT; Phase 166 remains open.
@@ -874,6 +874,7 @@ Last activity: 2026-10-02
 - [Phase 173]: Display variant is always re-encoded as JPEG (quality 88) regardless of source mimetype, no new encoder dependency
 - [Phase 173]: GIF and WebP originals share one raw-bytes EXIF-strip branch since both hit the same imaging encode limitation
 - [Phase 173]: Site 2 keeps its existing thumb-first thumbnail_path COALESCE untouched; display_url is a separate COALESCE column — Preserves admin-adjacent thumb-first semantics per plan instruction
+- [Phase ?]: 173-09: Fix-in-place display priority (no new field) for four non-split read sites -- Kara fallback, anime cover/banner/logo, fansub project banner
 
 ### Pending Todos
 
@@ -1421,11 +1422,12 @@ untruncated list lives in `.planning/todos/pending/`.
 | Phase 173 P01 | 40min | 2 tasks | 3 files |
 | Phase 173 P02 | 55min | 1 tasks | 3 files |
 | Phase 173 P08 | 30min | 1 tasks | 10 files |
+| Phase 173 P09 | 65min | 2 tasks | 6 files |
 
 ## Session Continuity
 
-Last session: 2026-10-02T16:29:46.933Z
-Stopped at: Completed 173-08-PLAN.md
+Last session: 2026-10-02T16:51:50.544Z
+Stopped at: Completed 173-09-PLAN.md
 Last activity: 2026-09-28 - Completed Phase 169 Plan 169-01
 Resume file: 
 None
