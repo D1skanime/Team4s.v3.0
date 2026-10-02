@@ -141,6 +141,149 @@ CREATE TABLE release_version_media (
 		require.Equal(t, "fallback", source)
 		require.Nil(t, path, "Release-Version 20 hat kein Bild -- die Funktion darf keinen Pfad erfinden")
 	})
+
+	// Plan 173-09 (REQ-173-22/REQ-173-23): die Kara-Ersatzbild-Aufloesung muss die 'display'-
+	// Variante vor 'thumb'/'original' bevorzugen, sobald eine 'display'-Zeile existiert -- das
+	// ist die exakte Pixelierungs-Quelle, die CONTEXT.md unter theme_segment_preview.go:97-101
+	// benennt.
+	t.Run("Ersatzbild hat display UND thumb -- display gewinnt (Plan 173-09)", func(t *testing.T) {
+		const fallbackAssetID int64 = 1006
+		_, err := pool.Exec(ctx, `
+			INSERT INTO media_assets (id, file_path, status, visibility_id, review_status_id)
+			VALUES ($1, 'release-fallback-legacy.jpg', 'ready', $2, $3)
+		`, fallbackAssetID, publicVisibilityID, approvedReviewStatusID)
+		require.NoError(t, err)
+		_, err = pool.Exec(ctx, `
+			INSERT INTO media_files (id, media_id, variant, path, status) VALUES
+				($1, $2, 'thumb', 'release-fallback-thumb.jpg', 'ready'),
+				($3, $2, 'display', 'release-fallback-display.jpg', 'ready')
+		`, fallbackAssetID+100000, fallbackAssetID, fallbackAssetID+200000)
+		require.NoError(t, err)
+		_, err = pool.Exec(ctx, `INSERT INTO release_versions (id, release_id, version) VALUES (30, 1, 'v1')`)
+		require.NoError(t, err)
+		_, err = pool.Exec(ctx, `
+			INSERT INTO release_version_media (id, release_version_id, media_asset_id, is_preview_candidate, sort_order)
+			VALUES (9002, 30, $1, TRUE, 0)
+		`, fallbackAssetID)
+		require.NoError(t, err)
+
+		path, source, err := resolveThemeSegmentPreviewAsset(ctx, pool, nil, nil, 30)
+		require.NoError(t, err)
+		require.Equal(t, "fallback", source)
+		require.NotNil(t, path)
+		require.Equal(t, "release-fallback-display.jpg", *path, "display muss vor thumb bevorzugt werden")
+	})
+
+	// Regressionsschutz: ohne display-Zeile (vor dem 173-01/02-Backfill) muss die Rangfolge
+	// unveraendert thumb > original bleiben.
+	t.Run("Ersatzbild hat NUR thumb und original, kein display -- thumb gewinnt wie bisher", func(t *testing.T) {
+		const fallbackAssetID int64 = 1007
+		_, err := pool.Exec(ctx, `
+			INSERT INTO media_assets (id, file_path, status, visibility_id, review_status_id)
+			VALUES ($1, 'release-fallback-prebackfill.jpg', 'ready', $2, $3)
+		`, fallbackAssetID, publicVisibilityID, approvedReviewStatusID)
+		require.NoError(t, err)
+		_, err = pool.Exec(ctx, `
+			INSERT INTO media_files (id, media_id, variant, path, status) VALUES
+				($1, $2, 'original', 'release-fallback-prebackfill-original.jpg', 'ready'),
+				($3, $2, 'thumb', 'release-fallback-prebackfill-thumb.jpg', 'ready')
+		`, fallbackAssetID+100000, fallbackAssetID, fallbackAssetID+200000)
+		require.NoError(t, err)
+		_, err = pool.Exec(ctx, `INSERT INTO release_versions (id, release_id, version) VALUES (40, 1, 'v1')`)
+		require.NoError(t, err)
+		_, err = pool.Exec(ctx, `
+			INSERT INTO release_version_media (id, release_version_id, media_asset_id, is_preview_candidate, sort_order)
+			VALUES (9003, 40, $1, TRUE, 0)
+		`, fallbackAssetID)
+		require.NoError(t, err)
+
+		path, source, err := resolveThemeSegmentPreviewAsset(ctx, pool, nil, nil, 40)
+		require.NoError(t, err)
+		require.Equal(t, "fallback", source)
+		require.NotNil(t, path)
+		require.Equal(t, "release-fallback-prebackfill-thumb.jpg", *path, "ohne display-Zeile muss thumb weiterhin vor original gewinnen (Pre-Backfill-Paritaet)")
+	})
+}
+
+// TestResolveThemeSegmentPreviewAssetsBatch_FallbackPrefersDisplayOverThumb beweist Plan
+// 173-09's zweite Behavior-Anforderung: der Batch-Resolver (resolveThemeSegmentPreviewAssetsBatch,
+// verwendet von loadReleaseSegments) muss fuer dasselbe Ersatzbild-Szenario zum IDENTISCHEN
+// Ergebnis kommen wie der Einzelaufruf-Resolver oben -- beide Code-Pfade duerfen sich nie
+// unterscheiden.
+func TestResolveThemeSegmentPreviewAssetsBatch_FallbackPrefersDisplayOverThumb(t *testing.T) {
+	pool := testsupport.OpenPhase117Postgres(t)
+	ctx := context.Background()
+
+	_, err := pool.Exec(ctx, `
+CREATE TABLE review_statuses (id BIGSERIAL PRIMARY KEY, code VARCHAR(40) NOT NULL UNIQUE);
+INSERT INTO review_statuses (code) VALUES ('approved');
+ALTER TABLE media_assets
+    ADD COLUMN status VARCHAR(20) NOT NULL DEFAULT 'ready',
+    ADD COLUMN visibility_id BIGINT REFERENCES visibilities(id),
+    ADD COLUMN review_status_id BIGINT REFERENCES review_statuses(id);
+CREATE TABLE media_files (
+    id BIGINT PRIMARY KEY,
+    media_id BIGINT NOT NULL REFERENCES media_assets(id),
+    variant VARCHAR(20),
+    path TEXT NOT NULL,
+    status VARCHAR(20) NOT NULL DEFAULT 'ready'
+);
+CREATE TABLE release_version_media (
+    id BIGINT PRIMARY KEY,
+    release_version_id BIGINT NOT NULL REFERENCES release_versions(id),
+    media_asset_id BIGINT NOT NULL REFERENCES media_assets(id),
+    deleted_at TIMESTAMPTZ,
+    is_preview_candidate BOOLEAN NOT NULL DEFAULT false,
+    sort_order INT NOT NULL DEFAULT 0
+);
+`)
+	require.NoError(t, err)
+
+	var publicVisibilityID int64
+	require.NoError(t, pool.QueryRow(ctx, `SELECT id FROM visibilities WHERE name = 'public'`).Scan(&publicVisibilityID))
+	var approvedReviewStatusID int64
+	require.NoError(t, pool.QueryRow(ctx, `SELECT id FROM review_statuses WHERE code = 'approved'`).Scan(&approvedReviewStatusID))
+
+	_, err = pool.Exec(ctx, `INSERT INTO anime (id) VALUES (1)`)
+	require.NoError(t, err)
+	_, err = pool.Exec(ctx, `INSERT INTO fansub_groups (id) VALUES (1)`)
+	require.NoError(t, err)
+	_, err = pool.Exec(ctx, `INSERT INTO episodes (id, anime_id, sort_index, episode_number) VALUES (1, 1, 1, '1')`)
+	require.NoError(t, err)
+	_, err = pool.Exec(ctx, `INSERT INTO fansub_releases (id, episode_id) VALUES (1, 1)`)
+	require.NoError(t, err)
+	_, err = pool.Exec(ctx, `INSERT INTO release_versions (id, release_id, version) VALUES (50, 1, 'v1')`)
+	require.NoError(t, err)
+
+	const fallbackAssetID int64 = 2006
+	_, err = pool.Exec(ctx, `
+		INSERT INTO media_assets (id, file_path, status, visibility_id, review_status_id)
+		VALUES ($1, 'batch-fallback-legacy.jpg', 'ready', $2, $3)
+	`, fallbackAssetID, publicVisibilityID, approvedReviewStatusID)
+	require.NoError(t, err)
+	_, err = pool.Exec(ctx, `
+		INSERT INTO media_files (id, media_id, variant, path, status) VALUES
+			($1, $2, 'thumb', 'batch-fallback-thumb.jpg', 'ready'),
+			($3, $2, 'display', 'batch-fallback-display.jpg', 'ready')
+	`, fallbackAssetID+100000, fallbackAssetID, fallbackAssetID+200000)
+	require.NoError(t, err)
+	_, err = pool.Exec(ctx, `
+		INSERT INTO release_version_media (id, release_version_id, media_asset_id, is_preview_candidate, sort_order)
+		VALUES (9201, 50, $1, TRUE, 0)
+	`, fallbackAssetID)
+	require.NoError(t, err)
+
+	results, err := resolveThemeSegmentPreviewAssetsBatch(ctx, pool, []*int64{nil}, []*int64{nil}, 50)
+	require.NoError(t, err)
+	require.Len(t, results, 1)
+	require.NotNil(t, results[0])
+	require.Equal(t, "batch-fallback-display.jpg", *results[0], "Batch-Resolver muss display vor thumb bevorzugen, identisch zum Einzelaufruf-Resolver")
+
+	singlePath, singleSource, err := resolveThemeSegmentPreviewAsset(ctx, pool, nil, nil, 50)
+	require.NoError(t, err)
+	require.Equal(t, "fallback", singleSource)
+	require.NotNil(t, singlePath)
+	require.Equal(t, *results[0], *singlePath, "Einzelaufruf- und Batch-Resolver muessen fuer dasselbe Szenario identische Pfade liefern")
 }
 
 // TestListAnimeSegments_PreviewHydration beweist D-09: ListAnimeSegments und
