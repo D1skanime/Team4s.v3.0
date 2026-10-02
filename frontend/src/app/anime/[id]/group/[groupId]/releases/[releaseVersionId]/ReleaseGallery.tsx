@@ -124,10 +124,19 @@ export function ReleaseGallery({ animeID, groupID, releaseVersionID, initialImag
   const renderImage = (image: PublicReleaseImage, featured = false) => {
     const src = image.display_url ?? image.thumbnail_url ?? image.original_url
     const title = image.title?.trim() || image.caption?.trim() || CATEGORY_LABELS[image.category]
-    return <article key={image.id} data-testid={`release-image-card-${image.id}`} className={`${styles.card} ${featured || image.is_highlight ? styles.featuredCard : ''}`}>
+    const isFeaturedCard = featured || image.is_highlight
+    // 173-16 Task 0: derived from ReleaseGallery.module.css's actual breakpoints --
+    // .grid is 1 column at <=600px, 2 columns at 601-900px, 3 columns at >=901px
+    // (verified via the "viewport contract" test above); a featured/highlight
+    // card always spans the full grid row (grid-column: 1/-1) regardless of
+    // column count, so it is always ~100vw-ish, not a fraction of a column.
+    const sizes = isFeaturedCard
+      ? '(max-width: 600px) 100vw, 66vw'
+      : '(max-width: 600px) 100vw, (max-width: 900px) 50vw, 33vw'
+    return <article key={image.id} data-testid={`release-image-card-${image.id}`} className={`${styles.card} ${isFeaturedCard ? styles.featuredCard : ''}`}>
       <Button type="button" variant="ghost" className={styles.imageButton} aria-label={`${title} öffnen`} onClick={() => setActiveImageID(image.id)}>
         <span className={styles.imageShell}>
-          {src ? <ResponsiveImage src={src} alt={title} className={styles.image} fill sizes="(max-width: 600px) 45vw, (max-width: 900px) 40vw, 28vw" quality={85} /> : <span className={styles.imagePlaceholder} aria-hidden="true" />}
+          {src ? <ResponsiveImage src={src} alt={title} className={styles.image} fill sizes={sizes} quality={85} /> : <span className={styles.imagePlaceholder} aria-hidden="true" />}
         </span>
       </Button>
       <Badge variant="muted" className={styles.imageCategory} data-category={image.category}>{CATEGORY_LABELS[image.category]}</Badge>
@@ -149,7 +158,10 @@ export function ReleaseGallery({ animeID, groupID, releaseVersionID, initialImag
         {/* Gleicher 16:9-Rahmen wie die normalen Bildkarten (imageShell + fill). */}
         <span className={styles.imageShell}>
           {previewUrl
-            ? <ResponsiveImage src={previewUrl} alt={'Preview für ' + segment.name} className={styles.image} fill sizes="(max-width: 600px) 45vw, (max-width: 900px) 40vw, 28vw" quality={85} />
+            // 173-16 Task 0: the Kara preview card occupies one plain grid cell
+            // (never grid-column: 1/-1 like a featured card), so it uses the same
+            // corrected "normal card" sizes ladder as renderImage above.
+            ? <ResponsiveImage src={previewUrl} alt={'Preview für ' + segment.name} className={styles.image} fill sizes="(max-width: 600px) 100vw, (max-width: 900px) 50vw, 33vw" quality={85} />
             : <span className={styles.imagePlaceholder} aria-hidden="true" />}
         </span>
         <KaraStoryPlayback segment={segment} releaseVersionID={releaseVersionID} loginHref={buildFansubReleasePlaybackLoginHref({ animeID, groupID, releaseVersionID, segmentID: segment.theme_segment_id, canonicalProjectPath: projectPath })} />
