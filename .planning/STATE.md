@@ -2,8 +2,8 @@
 gsd_state_version: 1.0
 milestone: v1.4
 milestone_name: Coverage
-status: executing
-stopped_at: Completed 172-07-PLAN.md
+status: complete
+stopped_at: Phase 172 abgeschlossen (Live-UAT 2026-10-02)
 last_updated: "2026-10-01T20:18:46.285Z"
 last_activity: 2026-10-01
 progress:
@@ -286,9 +286,9 @@ Abschluss" entry below for the full closing record.
 
 ## Current Position
 
-Phase: 172 (kara-vorschaubild-pro-segment-automatisch-aus-dem-render-fra) — EXECUTING
-Plan: 8 of 10
-Status: Ready to execute
+Phase: 172 (kara-vorschaubild-pro-segment-automatisch-aus-dem-render-fra) — COMPLETE
+Plan: 10 of 10
+Status: Phase 172 am 2026-10-02 live abgenommen (Desktop + Mobile)
 Completed: removed stale public timeline range access, repaired nullable highlight responses, batched release-version-media rights projection, hardened full-list media reorder, and synchronized the focused admin contract.
 Next: resolve or explicitly accept the pre-existing full-suite failures, then complete Phase 169 live actor/refresh/responsive UAT; Phase 166 remains open.
 

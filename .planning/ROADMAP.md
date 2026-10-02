@@ -2246,7 +2246,7 @@ Plans:
 **Goal:** Jedes Kara-Segment hat ein garantiert vorhandenes, ueber Admin-Media-Liste und Public-Release-Story identisch aufgeloestes Vorschaubild — automatisch aus dem Render bei ~35% der Segmentdauer erzeugt und auf der Segment-Seite manuell per Upload oder Release-Bild-Uebernahme ersetzbar, ohne Review-Pruefung.
 **Requirements**: D-01, D-02, D-03, D-04, D-05, D-06, D-07, D-08, D-09, D-10, D-11, D-12, D-13
 **Depends on:** Phase 171
-**Plans:** 7/10 plans executed
+**Plans:** 10/10 plans executed — abgeschlossen 2026-10-02 (Live-UAT bestanden, siehe 172-UAT.md)
 
 Plans:
 **Wave 1**
@@ -2270,9 +2270,9 @@ Plans:
 
 **Wave 5** *(blocked on Wave 4 completion)*
 
-- [ ] 172-08-PLAN.md — segment-panel preview-image UI (upload/picker/reset)
-- [ ] 172-09-PLAN.md — remove frontend fallback logic + kara-card deep link to segment tab
+- [x] 172-08-PLAN.md — segment-panel preview-image UI (upload/picker/reset)
+- [x] 172-09-PLAN.md — remove frontend fallback logic + kara-card deep link to segment tab
 
 **Wave 6** *(blocked on Wave 5 completion)*
 
-- [ ] 172-10-PLAN.md — live UAT on Release 27 (desktop + mobile)
+- [x] 172-10-PLAN.md — live UAT on Release 27 (desktop + mobile)
