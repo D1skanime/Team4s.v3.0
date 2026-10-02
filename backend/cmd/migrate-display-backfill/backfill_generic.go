@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"log"
 	"os"
+	"path"
 	"path/filepath"
 	"strings"
 
@@ -71,6 +72,7 @@ func fetchGenericDisplayCandidates(ctx context.Context, db *pgxpool.Pool) ([]gen
 		JOIN media_files mf_orig ON mf_orig.media_id = ma.id AND mf_orig.variant = 'original' AND mf_orig.status = 'ready'
 		LEFT JOIN media_files mf_display ON mf_display.media_id = ma.id AND mf_display.variant = 'display'
 		WHERE mf_display.id IS NULL
+		  AND ma.mime_type LIKE 'image/%'
 		ORDER BY ma.id
 	`)
 	if err != nil {
@@ -121,7 +123,8 @@ func fetchGenericDisplayCandidates(ctx context.Context, db *pgxpool.Pool) ([]gen
 // loser's cleanup only ever touches ITS OWN uniquely-named temp file, never the winner's
 // already-renamed final file (T-173-07-01).
 func processGenericDisplayCandidate(ctx context.Context, db *pgxpool.Pool, cfg Config, candidate genericDisplayCandidate) error {
-	data, err := os.ReadFile(candidate.OriginalPath)
+	originalDiskPath := resolveStoredMediaDiskPath(cfg.MediaStorageDir, candidate.OriginalPath)
+	data, err := os.ReadFile(originalDiskPath)
 	if err != nil {
 		return fmt.Errorf("read original file: %w", err)
 	}
@@ -131,10 +134,16 @@ func processGenericDisplayCandidate(ctx context.Context, db *pgxpool.Pool, cfg C
 		return fmt.Errorf("generate display variant: %w", err)
 	}
 
-	destDir := filepath.Dir(candidate.OriginalPath)
-	originalBase := filepath.Base(candidate.OriginalPath)
+	destDir := filepath.Dir(originalDiskPath)
+	originalBase := filepath.Base(originalDiskPath)
 	originalBaseNoExt := strings.TrimSuffix(originalBase, filepath.Ext(originalBase))
 	finalPath := filepath.Join(destDir, originalBaseNoExt+"_display."+ext)
+	// Gespeicherter Pfad folgt derselben Form wie der des Originals (z. B. "/media/..."-URL-Form
+	// oder absoluter Speicherpfad), damit die bestehenden Lesepfade beide Varianten gleich auflösen.
+	storedDisplayPath := path.Join(path.Dir(candidate.OriginalPath), originalBaseNoExt+"_display."+ext)
+	if strings.HasPrefix(candidate.OriginalPath, cfg.MediaStorageDir) {
+		storedDisplayPath = finalPath
+	}
 	tempPath := filepath.Join(destDir, fmt.Sprintf(".display-backfill-%d-%s.%s", candidate.MediaAssetID, uuid.New().String(), ext))
 	if err := os.WriteFile(tempPath, displayData, 0o644); err != nil {
 		return fmt.Errorf("write temp display file: %w", err)
@@ -144,7 +153,7 @@ func processGenericDisplayCandidate(ctx context.Context, db *pgxpool.Pool, cfg C
 		INSERT INTO media_files (media_id, variant, path, width, height, size, status)
 		SELECT $1, 'display', $2, $3, $4, $5, 'ready'
 		WHERE NOT EXISTS (SELECT 1 FROM media_files WHERE media_id = $1 AND variant = 'display')
-	`, candidate.MediaAssetID, finalPath, width, height, int64(len(displayData)))
+	`, candidate.MediaAssetID, storedDisplayPath, width, height, int64(len(displayData)))
 	if err != nil {
 		removeFileQuietly(tempPath)
 		return fmt.Errorf("insert display media_files row: %w", err)
@@ -162,4 +171,22 @@ func processGenericDisplayCandidate(ctx context.Context, db *pgxpool.Pool, cfg C
 	}
 
 	return nil
+}
+
+// resolveStoredMediaDiskPath übersetzt einen in media_files.path gespeicherten Pfad in einen
+// Dateipfad: "/media/..."-URL-Form und relative Pfade liegen unter storageDir, absolute
+// Speicherpfade (z. B. "/app/media/...") werden unverändert genutzt.
+func resolveStoredMediaDiskPath(storageDir, stored string) string {
+	trimmed := strings.TrimSpace(stored)
+	cleanStorage := filepath.Clean(storageDir)
+	if filepath.IsAbs(trimmed) && strings.HasPrefix(filepath.Clean(trimmed), cleanStorage+string(filepath.Separator)) {
+		return trimmed
+	}
+	if strings.HasPrefix(trimmed, "/media/") {
+		return filepath.Join(cleanStorage, filepath.FromSlash(strings.TrimPrefix(trimmed, "/media/")))
+	}
+	if !filepath.IsAbs(trimmed) {
+		return filepath.Join(cleanStorage, filepath.FromSlash(trimmed))
+	}
+	return trimmed
 }
