@@ -33,6 +33,11 @@ describe('ResponsiveImage profile-media configuration', () => {
     expect(hasLocalMatch(localPatterns, '/media/admin/private/original.jpg')).toBe(false)
   })
 
+  it('allows public fansub group media (D-09/173-04) without widening the allow-list beyond it', () => {
+    expect(hasLocalMatch(localPatterns, '/media/fansub/42/logo-xyz.png')).toBe(true)
+    expect(hasLocalMatch(localPatterns, '/media/admin/private/original.jpg')).toBe(false)
+  })
+
   it('allows only the configured Team4s API media namespace for responsive group logos', () => {
     const runtimeBase = process.env.NEXT_PUBLIC_API_URL || 'http://192.168.235.196:18092'
     const allowedFile = new URL('/api/v1/media/files/group-logo.png', runtimeBase)
@@ -58,6 +63,7 @@ describe('ResponsiveImage profile-media configuration', () => {
     const qualities = nextConfig.images?.qualities ?? []
 
     expect(qualities).toContain(75)
+    expect(qualities).toContain(85)
     for (const quality of qualities) {
       expect(quality).toBeGreaterThanOrEqual(1)
       expect(quality).toBeLessThanOrEqual(100)
