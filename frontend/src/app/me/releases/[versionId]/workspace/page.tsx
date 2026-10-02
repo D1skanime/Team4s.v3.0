@@ -319,6 +319,7 @@ function MeReleaseWorkspacePage() {
             versionId={version.id}
             fansubGroupName={groupName}
             releaseVersionLabel={releaseVersionLabel}
+            storyContext={{ animeId: version.anime_id, groupId: selectedGroup?.id ?? null, version: version.release_version?.trim() || 'v1' }}
           />
         </Card>
       ),
