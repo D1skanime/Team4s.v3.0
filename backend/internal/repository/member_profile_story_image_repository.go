@@ -4,26 +4,53 @@ import (
 	"context"
 	"errors"
 	"fmt"
+	"strings"
 
 	"github.com/jackc/pgx/v5"
 
 	"team4s.v3/backend/internal/models"
 )
 
-// InsertStoryImageAsset schreibt einen neuen media_assets-Eintrag mit owner_member_id.
+// InsertStoryImageAsset schreibt einen neuen media_assets-Eintrag mit owner_member_id
+// (file_path = Anzeige-Datei, unveraenderte Feldbedeutung von FilePath). Wenn
+// input.OriginalFilePath gesetzt ist (NEUE Uploads ab Phase 173-06, D-15), wird zusaetzlich
+// eine media_files variant='original'-Zeile mit dem echten 1:1-Original angelegt -- beide
+// Inserts laufen in EINER Transaktion, damit niemals eine Anzeige-Datei ohne verzeichnetes
+// Original (oder umgekehrt) in der DB landet. Bestehende (Vor-Phase) Story-Bild-Zeilen haben
+// kein media_files-Kind und bleiben von diesem Codepfad komplett unberuehrt (D-15: "ein
+// echtes Original existiert fuer sie nicht mehr" -- 173-07s Backfill-CLI ergaenzt fuer sie
+// stattdessen eine 'display'-Zeile, die ihre vorhandene Datei wiederverwendet).
 // Gibt die neue ID zurueck.
 func (r *MemberProfileRepository) InsertStoryImageAsset(
 	ctx context.Context,
 	input models.StoryImageUploadInput,
 ) (int64, error) {
+	tx, err := r.db.BeginTx(ctx, pgx.TxOptions{})
+	if err != nil {
+		return 0, fmt.Errorf("begin insert story image asset tx: %w", err)
+	}
+	defer tx.Rollback(ctx)
+
 	var id int64
-	err := r.db.QueryRow(ctx, `
+	if err := tx.QueryRow(ctx, `
 		INSERT INTO media_assets (file_path, mime_type, format, status, owner_member_id, created_at)
 		VALUES ($1, $2, 'image', 'ready', $3, NOW())
 		RETURNING id
-	`, input.FilePath, input.MimeType, input.OwnerMemberID).Scan(&id)
-	if err != nil {
+	`, input.FilePath, input.MimeType, input.OwnerMemberID).Scan(&id); err != nil {
 		return 0, fmt.Errorf("insert story image asset for member %d: %w", input.OwnerMemberID, err)
+	}
+
+	if strings.TrimSpace(input.OriginalFilePath) != "" {
+		if _, err := tx.Exec(ctx, `
+			INSERT INTO media_files (media_id, variant, path, width, height, size)
+			VALUES ($1, 'original', $2, $3, $4, $5)
+		`, id, input.OriginalFilePath, input.OriginalWidth, input.OriginalHeight, input.OriginalSizeBytes); err != nil {
+			return 0, fmt.Errorf("insert story image original media file for asset %d: %w", id, err)
+		}
+	}
+
+	if err := tx.Commit(ctx); err != nil {
+		return 0, fmt.Errorf("commit insert story image asset tx: %w", err)
 	}
 	return id, nil
 }
