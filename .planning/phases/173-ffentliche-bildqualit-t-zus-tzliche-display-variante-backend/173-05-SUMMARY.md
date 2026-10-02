@@ -181,3 +181,37 @@ None -- no external service configuration required. `vips-tools`/`vipsthumbnail`
 ---
 *Phase: 173-ffentliche-bildqualit-t-zus-tzliche-display-variante-backend*
 *Completed: 2026-10-02*
+
+## Self-Check: PASSED
+
+- FOUND: backend/Dockerfile
+- FOUND: backend/Dockerfile.dev
+- FOUND: backend/internal/config/config.go
+- FOUND: backend/cmd/server/main.go
+- FOUND: backend/internal/services/animated_webp_display.go
+- FOUND: backend/internal/services/animated_webp_display_test.go
+- FOUND: backend/internal/services/media_service.go
+- FOUND: backend/internal/services/media_service_display_variant.go
+- FOUND: backend/internal/services/media_service_animated_webp_test.go
+- FOUND: backend/internal/handlers/image_animated_webp.go
+- FOUND: backend/internal/handlers/image_animated_webp_test.go
+- FOUND: backend/internal/handlers/media_upload.go
+- FOUND: backend/internal/handlers/media_upload_image.go
+- FOUND: backend/internal/handlers/media_upload_segment_preview.go
+- FOUND: backend/internal/handlers/admin_content_release_version_media.go
+- FOUND: backend/internal/handlers/admin_content_release_version_media_display.go
+- FOUND: backend/internal/handlers/admin_content_release_version_media_replace.go
+- FOUND: backend/internal/handlers/fansub_media_upload.go
+- FOUND: backend/internal/repository/anime_assets.go
+- FOUND: backend/internal/repository/anime_assets_legacy_cover_original_test.go
+- FOUND: backend/internal/handlers/app_profile.go
+- FOUND: backend/internal/handlers/app_profile_display.go
+- FOUND: backend/internal/handlers/app_auth.go
+- FOUND: backend/internal/models/media.go
+- FOUND: backend/internal/models/member_profile.go
+- FOUND: backend/internal/repository/member_profile_own_repository.go
+- FOUND: backend/internal/repository/member_profile_ensure_repository.go
+- FOUND: backend/internal/repository/member_profile_avatar_background_display_test.go
+- FOUND commit: 05ad9947
+- FOUND commit: cb6ace01
+- FOUND commit: 2ef0498c
