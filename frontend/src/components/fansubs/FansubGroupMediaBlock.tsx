@@ -1,10 +1,10 @@
 'use client'
 
 import { useState } from 'react'
-import Image from 'next/image'
 import { Maximize2 } from 'lucide-react'
 
 import { Button, EmptyState } from '@/components/ui'
+import { ResponsiveImage } from '@/components/ui/ResponsiveImage'
 import { resolveApiUrl } from '@/lib/api'
 import { getFansubMediaCategoryLabel } from '@/lib/fansub-labels'
 import type { PublicFansubMediaItem } from '@/types/fansub'
@@ -92,7 +92,7 @@ export function FansubGroupMediaBlock({ media, onSelect }: FansubGroupMediaBlock
     <div className={styles.compactStack}>
       <div className={styles.mediaItemGrid}>
         {visibleItems.map((item, globalIndex) => {
-          const imageUrl = item.thumbnail_url || item.original_url
+          const imageUrl = item.display_url || item.thumbnail_url || item.original_url
           const resolvedImageUrl = imageUrl ? resolveApiUrl(imageUrl) : null
           const showImage = Boolean(resolvedImageUrl) && isImage(item)
           const title = item.title?.trim() || item.caption?.trim() || item.media_type
@@ -109,14 +109,14 @@ export function FansubGroupMediaBlock({ media, onSelect }: FansubGroupMediaBlock
                   onClick={() => openLightbox(globalIndex)}
                 >
                   <div className={styles.mediaThumbFrame}>
-                    <Image
+                    <ResponsiveImage
                       src={resolvedImageUrl}
                       alt=""
                       fill
                       sizes={MEDIA_IMAGE_SIZES}
                       loading="lazy"
                       className={styles.mediaImage}
-                      unoptimized
+                      quality={85}
                     />
                     <span className={styles.mediaMaximize} aria-hidden="true">
                       <Maximize2 size={14} />
