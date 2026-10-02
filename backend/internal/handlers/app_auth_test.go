@@ -101,6 +101,11 @@ type profileRepoStub struct {
 
 	storyAssetByIDResp *models.StoryImageAssetRef
 	storyAssetByIDErr  error
+
+	insertStoryImageResp    int64
+	insertStoryImageErr     error
+	insertStoryImageCalls   int
+	lastInsertStoryImageArg models.StoryImageUploadInput
 }
 
 func (s *profileRepoStub) GetOwnProfile(_ context.Context, _ int64) (*models.MemberProfile, error) {
@@ -128,8 +133,10 @@ func (s *profileRepoStub) AttachUploadedBackground(_ context.Context, _ int64, i
 	return s.attachResp, s.attachErr
 }
 
-func (s *profileRepoStub) InsertStoryImageAsset(_ context.Context, _ models.StoryImageUploadInput) (int64, error) {
-	return 0, nil
+func (s *profileRepoStub) InsertStoryImageAsset(_ context.Context, input models.StoryImageUploadInput) (int64, error) {
+	s.insertStoryImageCalls++
+	s.lastInsertStoryImageArg = input
+	return s.insertStoryImageResp, s.insertStoryImageErr
 }
 
 func (s *profileRepoStub) GetStoryImageAssetsByMember(_ context.Context, _ int64) ([]models.StoryImageAssetRef, error) {

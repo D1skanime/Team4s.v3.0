@@ -182,6 +182,11 @@ type MemberProfileBgImage struct {
 
 // StoryImageUploadInput haelt die Pflichtfelder fuer einen neuen media_assets-Eintrag
 // fuer ein Story-Bild (analog MemberProfileAvatarUploadInput).
+// FilePath/MimeType/SizeBytes/Width/Height beschreiben weiterhin "die Datei, die gerendert
+// wird" (unveraenderte Feldbedeutung -- jetzt die auf <=1920px gekappte Anzeige-Datei statt
+// der vormaligen 1600px-Datei). OriginalFilePath/Width/Height/SizeBytes (Phase 173-06, D-15)
+// tragen das NEU eingefuehrte echte 1:1-Original; bleibt leer, wird keine media_files
+// variant='original'-Zeile angelegt (siehe InsertStoryImageAsset).
 type StoryImageUploadInput struct {
 	FilePath      string
 	MimeType      string
@@ -189,6 +194,11 @@ type StoryImageUploadInput struct {
 	Width         int
 	Height        int
 	OwnerMemberID int64
+
+	OriginalFilePath  string
+	OriginalWidth     int
+	OriginalHeight    int
+	OriginalSizeBytes int64
 }
 
 // StoryImageAssetRef ist die schlanke Referenz fuer den Referenz-Diff im Cleanup-on-Save.

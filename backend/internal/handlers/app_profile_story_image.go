@@ -32,9 +32,13 @@ const storyImageMaxSize = 10 * 1024 * 1024 // 10 MB (D-17)
 
 // UploadOwnProfileStoryImage implementiert POST /api/v1/me/profile/story-images.
 // Pflichtfeld: multipart "image" (jpg/png/webp, max 10 MB).
-// Validierungen: MIME-Allowlist (D-16), Groessenlimit (D-17), Pixel-Bomb-Guard (D-19),
-// EXIF-Strip via imaging.Save (D-19), Resize auf max 1600px.
-// Pfad: /media/profile/{memberID}/story/{uuid}/original.{ext} (D-08).
+// Validierungen: MIME-Allowlist (D-16), Groessenlimit (D-17), Pixel-Bomb-Guard (D-19).
+// Schreibt ZWEI Dateien (D-15-Fix, Phase 173-06): ein echtes 1:1-Original
+// (/media/profile/{memberID}/story/{uuid}/original.{ext}, EXIF-Strip via imaging.Save,
+// NIE verkleinert) und eine Anzeige-Datei (.../display.jpg, lange Kante <=1920px, nie
+// hochskaliert) -- media_assets.file_path zeigt weiterhin auf die Anzeige-Datei, damit
+// das eingebettete <img src> im gerenderten Story-HTML unveraendert bleibt. Vorher gab es
+// nur eine auf 1600px verkleinerte Datei, die faelschlich als "Original" bezeichnet wurde.
 func (h *AppAuthHandler) UploadOwnProfileStoryImage(c *gin.Context) {
 	identity, ok := middleware.CommentAuthIdentityFromContext(c)
 	if !ok {
@@ -120,10 +124,13 @@ func (h *AppAuthHandler) UploadOwnProfileStoryImage(c *gin.Context) {
 	ext := imageExtFromMime(mimeType)
 	mediaID := uuid.New().String()
 	relativeDir := fmt.Sprintf("/media/profile/%d/story/%s", profile.MemberID, mediaID)
-	filename := "original." + ext
-	relativePath := relativeDir + "/" + filename
+	originalFilename := "original." + ext
+	originalRelativePath := relativeDir + "/" + originalFilename
+	displayFilename := "display.jpg"
+	displayRelativePath := relativeDir + "/" + displayFilename
 	absoluteDir := filepath.Join(h.mediaStorageDir, "profile", fmt.Sprintf("%d", profile.MemberID), "story", mediaID)
-	absolutePath := filepath.Join(absoluteDir, filename)
+	originalAbsolutePath := filepath.Join(absoluteDir, originalFilename)
+	displayAbsolutePath := filepath.Join(absoluteDir, displayFilename)
 
 	if err := os.MkdirAll(absoluteDir, 0755); err != nil {
 		writeInternalErrorResponse(c, "interner serverfehler", err, "Story-Bild-Verzeichnis konnte nicht erstellt werden.")
@@ -144,33 +151,55 @@ func (h *AppAuthHandler) UploadOwnProfileStoryImage(c *gin.Context) {
 		return
 	}
 
-	// Resize auf max 1600px Breite (D-19)
-	if cfg.Width > 1600 {
-		img = imaging.Resize(img, 1600, 0, imaging.Lanczos)
-	}
-
-	// EXIF-Strip: imaging.Save re-enkodiert ohne EXIF-Metadaten (D-19)
-	if err := imaging.Save(img, absolutePath); err != nil {
+	// Echtes 1:1-Original (D-15-Fix): EXIF-Strip via imaging.Save-Re-Encode auf dem
+	// UNVERAENDERTEN dekodierten Bild -- kein Resize mehr. Vorher wurde hier faelschlich
+	// bereits auf 1600px verkleinert und das Ergebnis als "Original" bezeichnet; ein
+	// echtes Original existierte nie.
+	if err := imaging.Save(img, originalAbsolutePath); err != nil {
 		_ = os.RemoveAll(absoluteDir)
-		writeInternalErrorResponse(c, "interner serverfehler", err, "Story-Bild konnte nicht gespeichert werden.")
+		writeInternalErrorResponse(c, "interner serverfehler", err, "Story-Bild (Original) konnte nicht gespeichert werden.")
 		return
 	}
 
-	sizeBytes, err := fileSize(absolutePath)
+	originalSizeBytes, err := fileSize(originalAbsolutePath)
 	if err != nil {
 		_ = os.RemoveAll(absoluteDir)
-		writeInternalErrorResponse(c, "interner serverfehler", err, "Story-Bild-Groesse konnte nicht bestimmt werden.")
+		writeInternalErrorResponse(c, "interner serverfehler", err, "Story-Bild-Groesse (Original) konnte nicht bestimmt werden.")
 		return
 	}
 
-	// media_assets INSERT mit owner_member_id (D-08, D-03)
+	// Anzeige-Datei: lange Kante <=1920px, nie hochskaliert -- spielt dieselbe Rolle wie die
+	// vormalige 1600px-Datei. media_assets.file_path zeigt weiterhin auf diese Datei, damit
+	// das eingebettete <img src> im gerenderten Story-HTML unveraendert bleibt.
+	displayWidth, displayHeight, err := capLongEdgeAndSaveJPEG(img, storyImageDisplayLongEdge, storyImageDisplayJPEGQuality, displayAbsolutePath)
+	if err != nil {
+		_ = os.RemoveAll(absoluteDir)
+		writeInternalErrorResponse(c, "interner serverfehler", err, "Story-Bild (Anzeige) konnte nicht gespeichert werden.")
+		return
+	}
+
+	displaySizeBytes, err := fileSize(displayAbsolutePath)
+	if err != nil {
+		_ = os.RemoveAll(absoluteDir)
+		writeInternalErrorResponse(c, "interner serverfehler", err, "Story-Bild-Groesse (Anzeige) konnte nicht bestimmt werden.")
+		return
+	}
+
+	// media_assets INSERT mit owner_member_id (D-08, D-03): FilePath/Width/Height/SizeBytes
+	// bleiben die Anzeige-Datei (unveraenderte Feldbedeutung); OriginalFilePath/Width/Height/
+	// SizeBytes tragen das neue echte 1:1-Original (D-15), das InsertStoryImageAsset als
+	// eigene media_files variant='original'-Zeile anlegt.
 	newAssetID, err := h.profileRepo.InsertStoryImageAsset(c.Request.Context(), models.StoryImageUploadInput{
-		FilePath:      relativePath,
-		MimeType:      mimeType,
-		SizeBytes:     sizeBytes,
-		Width:         cfg.Width,
-		Height:        cfg.Height,
-		OwnerMemberID: profile.MemberID,
+		FilePath:          displayRelativePath,
+		MimeType:          "image/jpeg",
+		SizeBytes:         displaySizeBytes,
+		Width:             displayWidth,
+		Height:            displayHeight,
+		OwnerMemberID:     profile.MemberID,
+		OriginalFilePath:  originalRelativePath,
+		OriginalWidth:     cfg.Width,
+		OriginalHeight:    cfg.Height,
+		OriginalSizeBytes: originalSizeBytes,
 	})
 	if err != nil {
 		_ = os.RemoveAll(absoluteDir)
@@ -194,16 +223,17 @@ func (h *AppAuthHandler) UploadOwnProfileStoryImage(c *gin.Context) {
 			Action:            "member_profile.story_image.upload",
 			Outcome:           "success",
 			Payload: map[string]any{
-				"mime_type":      mimeType,
-				"size_bytes":     sizeBytes,
-				"media_asset_id": newAssetID,
+				"mime_type":           mimeType,
+				"original_size_bytes": originalSizeBytes,
+				"display_size_bytes":  displaySizeBytes,
+				"media_asset_id":      newAssetID,
 			},
 		})
 	}
 
 	c.JSON(http.StatusCreated, gin.H{"data": gin.H{
 		"media_asset_id": newAssetID,
-		"public_url":     strings.TrimRight(h.mediaBaseURL, "/") + relativePath,
+		"public_url":     strings.TrimRight(h.mediaBaseURL, "/") + displayRelativePath,
 	}})
 }
 

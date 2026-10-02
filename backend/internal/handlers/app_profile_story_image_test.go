@@ -9,11 +9,13 @@ import (
 	"context"
 	"encoding/base64"
 	"encoding/json"
+	"image"
 	"mime/multipart"
 	"net/http"
 	"net/http/httptest"
 	"os"
 	"path/filepath"
+	"strings"
 	"testing"
 
 	"team4s.v3/backend/internal/middleware"
@@ -185,6 +187,146 @@ func buildMinimalPNGWithDimensions(t *testing.T, width, height uint32) []byte {
 	return buf
 }
 
+// --- D-15-Fix: echtes 1:1-Original + gekappte Anzeige-Datei (Phase 173-06 Task 1) ---
+
+// collectStoryImageSavedFiles sammelt alle Datei-Pfade (keine Verzeichnisse) unter tmpDir.
+func collectStoryImageSavedFiles(t *testing.T, tmpDir string) []string {
+	t.Helper()
+	var files []string
+	err := filepath.Walk(tmpDir, func(path string, info os.FileInfo, err error) error {
+		if err != nil {
+			return err
+		}
+		if !info.IsDir() {
+			files = append(files, path)
+		}
+		return nil
+	})
+	require.NoError(t, err)
+	return files
+}
+
+// findStoryImageFileByPrefix findet in files den ersten Pfad, dessen Basisname mit prefix beginnt.
+func findStoryImageFileByPrefix(files []string, prefix string) (string, bool) {
+	for _, f := range files {
+		if strings.HasPrefix(filepath.Base(f), prefix) {
+			return f, true
+		}
+	}
+	return "", false
+}
+
+// decodedStoryImageDims dekodiert die Datei unter path und gibt (Breite, Hoehe) zurueck.
+func decodedStoryImageDims(t *testing.T, path string) (int, int) {
+	t.Helper()
+	f, err := os.Open(path)
+	require.NoError(t, err)
+	defer f.Close()
+	cfg, _, err := image.DecodeConfig(f)
+	require.NoError(t, err)
+	return cfg.Width, cfg.Height
+}
+
+// TestUploadOwnProfileStoryImage_StoresTrueOriginalAndCappedDisplay prueft D-15: ein Upload
+// mit 3000x2000 muss ZWEI Dateien schreiben -- ein unveraendertes 3000x2000-Original und eine
+// auf <=1920px lange Kante gekappte display.jpg -- und media_assets.file_path (FilePath im
+// InsertStoryImageAsset-Input) muss auf die Anzeige-Datei zeigen, nicht das Original.
+func TestUploadOwnProfileStoryImage_StoresTrueOriginalAndCappedDisplay(t *testing.T) {
+	gin.SetMode(gin.TestMode)
+
+	tmpDir := t.TempDir()
+	profileStub := &profileRepoStub{
+		getResp: &models.MemberProfile{MemberID: 5, AppUserID: 10},
+	}
+	handler := &AppAuthHandler{
+		profileRepo:     profileStub,
+		mediaStorageDir: tmpDir,
+		mediaBaseURL:    "http://localhost:8092",
+	}
+
+	pngBytes := newSizedPNGBytes(t, 3000, 2000)
+	c, recorder := makeStoryImageMultipartContext(t, "image", "big.png", "image/png", pngBytes, defaultStoryTestIdentity())
+
+	handler.UploadOwnProfileStoryImage(c)
+
+	require.Equal(t, http.StatusCreated, recorder.Code, "body: %s", recorder.Body.String())
+
+	files := collectStoryImageSavedFiles(t, tmpDir)
+	require.Len(t, files, 2, "Upload muss genau 2 Dateien schreiben (Original + Anzeige)")
+
+	originalPath, ok := findStoryImageFileByPrefix(files, "original.")
+	require.True(t, ok, "original.<ext> muss existieren")
+	displayPath, ok := findStoryImageFileByPrefix(files, "display.")
+	require.True(t, ok, "display.jpg muss existieren")
+	assert.Equal(t, "display.jpg", filepath.Base(displayPath))
+
+	origW, origH := decodedStoryImageDims(t, originalPath)
+	assert.Equal(t, 3000, origW, "echtes Original darf NICHT verkleinert werden (D-15)")
+	assert.Equal(t, 2000, origH, "echtes Original darf NICHT verkleinert werden (D-15)")
+
+	dispW, dispH := decodedStoryImageDims(t, displayPath)
+	assert.LessOrEqual(t, dispW, 1920, "Anzeige-Datei muss auf <=1920px lange Kante gekappt sein")
+	assert.Less(t, dispH, origH, "Anzeige-Datei muss kleiner als das Original sein, wenn dieses >1920px ist")
+
+	require.Equal(t, 1, profileStub.insertStoryImageCalls)
+	assert.Contains(t, profileStub.lastInsertStoryImageArg.FilePath, "display.jpg",
+		"FilePath (media_assets.file_path) muss auf die Anzeige-Datei zeigen")
+	assert.NotContains(t, profileStub.lastInsertStoryImageArg.FilePath, "/original.",
+		"FilePath darf NICHT auf das Original zeigen (D-15-Fix: file_path-Slot unveraendert fuer den Renderer)")
+	assert.Contains(t, profileStub.lastInsertStoryImageArg.OriginalFilePath, "/original.",
+		"OriginalFilePath muss auf das echte 1:1-Original zeigen")
+	assert.Equal(t, 3000, profileStub.lastInsertStoryImageArg.OriginalWidth,
+		"OriginalWidth muss die unveraenderte Original-Breite (vor jedem Resize) sein")
+	assert.Equal(t, 2000, profileStub.lastInsertStoryImageArg.OriginalHeight)
+	assert.NotZero(t, profileStub.lastInsertStoryImageArg.OriginalSizeBytes)
+}
+
+// TestUploadOwnProfileStoryImage_SmallImageOriginalAndDisplayBothUnresized prueft, dass ein
+// Upload UNTERHALB beider Caps (alter 1600px- und neuer 1920px-Cap) das echte Original NIE
+// verkleinert UND die Anzeige-Datei ebenfalls nicht hochskaliert -- beide bleiben 1200x800,
+// nur re-enkodiert.
+func TestUploadOwnProfileStoryImage_SmallImageOriginalAndDisplayBothUnresized(t *testing.T) {
+	gin.SetMode(gin.TestMode)
+
+	tmpDir := t.TempDir()
+	profileStub := &profileRepoStub{
+		getResp: &models.MemberProfile{MemberID: 5, AppUserID: 10},
+	}
+	handler := &AppAuthHandler{
+		profileRepo:     profileStub,
+		mediaStorageDir: tmpDir,
+		mediaBaseURL:    "http://localhost:8092",
+	}
+
+	pngBytes := newSizedPNGBytes(t, 1200, 800)
+	c, recorder := makeStoryImageMultipartContext(t, "image", "small.png", "image/png", pngBytes, defaultStoryTestIdentity())
+
+	handler.UploadOwnProfileStoryImage(c)
+
+	require.Equal(t, http.StatusCreated, recorder.Code, "body: %s", recorder.Body.String())
+
+	files := collectStoryImageSavedFiles(t, tmpDir)
+	require.Len(t, files, 2)
+
+	originalPath, ok := findStoryImageFileByPrefix(files, "original.")
+	require.True(t, ok)
+	displayPath, ok := findStoryImageFileByPrefix(files, "display.")
+	require.True(t, ok)
+
+	origW, origH := decodedStoryImageDims(t, originalPath)
+	assert.Equal(t, 1200, origW)
+	assert.Equal(t, 800, origH)
+
+	dispW, dispH := decodedStoryImageDims(t, displayPath)
+	assert.Equal(t, 1200, dispW, "unterhalb des Caps darf die Anzeige-Datei nicht skaliert werden")
+	assert.Equal(t, 800, dispH, "unterhalb des Caps darf die Anzeige-Datei nicht skaliert werden")
+
+	assert.Equal(t, 1200, profileStub.lastInsertStoryImageArg.OriginalWidth)
+	assert.Equal(t, 800, profileStub.lastInsertStoryImageArg.OriginalHeight)
+	assert.Equal(t, 1200, profileStub.lastInsertStoryImageArg.Width)
+	assert.Equal(t, 800, profileStub.lastInsertStoryImageArg.Height)
+}
+
 // --- EXIF-Strip-Test (D-19) ---
 
 // TestStoryImageUploadExifStrip prueft, dass hochgeladene JPEGs serverseitig
@@ -270,9 +412,9 @@ func TestUpdateOwnProfileIDOR(t *testing.T) {
 
 	// Profil gehoert Member 5 (AppUserID 10), aber das Asset gehoert Member 99 (fremder Owner)
 	profileStub := &profileRepoStub{
-		getResp: &models.MemberProfile{MemberID: 5, AppUserID: 10},
+		getResp:    &models.MemberProfile{MemberID: 5, AppUserID: 10},
 		updateResp: &models.MemberProfile{MemberID: 5, AppUserID: 10},
-		updateErr: nil,
+		updateErr:  nil,
 	}
 	handler := &AppAuthHandler{
 		profileRepo: profileStub,
