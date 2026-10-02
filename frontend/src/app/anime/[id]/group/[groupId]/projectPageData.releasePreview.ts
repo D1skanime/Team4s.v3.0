@@ -86,7 +86,7 @@ export function buildPublicReleasePreview({
   const imagePreviews = detailImages
     .slice(0, 4)
     .map((image) => {
-      const src = image.thumbnail_url ?? image.original_url;
+      const src = image.display_url ?? image.thumbnail_url ?? image.original_url;
       if (!src) return null;
       const categoryLabel = CATEGORY_LABELS[image.category as ReleaseVersionMediaCategory] ?? "Bild";
       return {

@@ -1,10 +1,10 @@
 'use client'
 
-import Image from 'next/image'
 import { Eye, FileText, Image as ImageIcon, Play, Users } from 'lucide-react'
 import type { CSSProperties } from 'react'
 
 import { Badge, Button, Card, EmptyState, SectionHeader } from '@/components/ui'
+import { ResponsiveImage } from '@/components/ui/ResponsiveImage'
 
 import styles from './PublicReleaseBlock.module.css'
 
@@ -193,13 +193,13 @@ function FeaturedRelease({ release, fallbackImageUrl }: { release: PublicRelease
       <div className={styles.featuredGrid}>
         <div className={styles.featuredImageFrame}>
           {release.heroImage || fallbackImageUrl ? (
-            <Image
+            <ResponsiveImage
               src={release.heroImage?.src ?? fallbackImageUrl ?? ''}
               alt={release.heroImage?.alt ?? `Vorschau für ${release.episodeLabel}`}
               fill
               sizes="(max-width: 760px) 100vw, 420px"
               className={styles.featuredImage}
-              unoptimized
+              quality={85}
             />
           ) : null}
         </div>
@@ -233,13 +233,13 @@ function FeaturedRelease({ release, fallbackImageUrl }: { release: PublicRelease
 
                 return (
                   <div key={image.id} className={styles.previewTile}>
-                    <Image
+                    <ResponsiveImage
                       src={image.src}
                       alt={image.alt}
                       fill
                       sizes="140px"
                       className={styles.previewImage}
-                      unoptimized
+                      quality={85}
                     />
                     {showCompactLabel ? (
                       <Badge variant="muted" className={styles.previewLabel}>
