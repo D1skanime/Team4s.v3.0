@@ -1,32 +1,20 @@
 package handlers
 
 import (
+	"bytes"
 	"context"
 	"fmt"
 	"image"
-	"image/jpeg"
-	"log"
+	"io"
 	"mime/multipart"
-	"os"
-	"os/exec"
 	"path/filepath"
-	"strings"
 	"time"
 
 	"team4s.v3/backend/internal/models"
 	"team4s.v3/backend/internal/repository"
+	"team4s.v3/backend/internal/services"
 
 	"github.com/disintegration/imaging"
-)
-
-// displayMaxEdge begrenzt die lange Kante der statischen "display"-Variante (JPEG-Re-Encode,
-// nie hochskaliert). displayAnimatedMaxEdge begrenzt dieselbe Kante fuer die animierte
-// WebP-"display"-Variante, die aus animierten GIFs erzeugt wird. displayJPEGQuality ist die
-// JPEG-Qualitaet der statischen Variante (D-01: "hohe Qualitaet (WebP oder JPEG >= 88)").
-const (
-	displayMaxEdge         = 1920
-	displayAnimatedMaxEdge = 960
-	displayJPEGQuality     = 88
 )
 
 // imageExtFromMime gibt die Dateiendung (ohne Punkt) für einen Bild-MIME-Typ zurück.
@@ -54,7 +42,15 @@ func (h *MediaUploadHandler) processImage(
 	actorUserID int64,
 	provisioning *models.ProvisioningResult,
 ) (*models.UploadResponse, error) {
-	img, format, err := image.Decode(file)
+	// Rohe Bytes werden EINMAL gelesen und fuer Dekodierung, EXIF/XMP-Entfernung (WebP) und
+	// echte Animations-Erkennung (GIF) wiederverwendet (Phase 173 Review-Korrektur -- vorher
+	// wurde direkt vom multipart.File dekodiert und isAnimatedGIF gab unconditional true zurueck).
+	data, err := io.ReadAll(file)
+	if err != nil {
+		return nil, fmt.Errorf("datei lesen: %w", err)
+	}
+
+	img, format, err := image.Decode(bytes.NewReader(data))
 	if err != nil {
 		return nil, fmt.Errorf("bild konnte nicht dekodiert werden: %w", err)
 	}
@@ -67,7 +63,7 @@ func (h *MediaUploadHandler) processImage(
 	originalFilename := "original." + ext
 	// imaging.Save kann WebP nicht encodieren (nur decodieren) -- der Thumb wird fuer
 	// WebP-Quellen daher als JPEG re-encodiert statt mit einer .webp-Endung zu scheitern.
-	// Das Original bleibt davon unberuehrt (siehe webp-Zweig unten: rohe Bytes).
+	// Das Original bleibt davon unberuehrt (siehe webp-Zweig unten: rohe, EXIF/XMP-bereinigte Bytes).
 	thumbExt := ext
 	if mimeType == "image/webp" {
 		thumbExt = "jpg"
@@ -76,21 +72,23 @@ func (h *MediaUploadHandler) processImage(
 
 	originalPath := filepath.Join(storagePath, originalFilename)
 	originalRelPath := h.buildRelativePath(req.EntityType, req.EntityID, req.AssetType, mediaID, originalFilename)
-	isAnimatedGIF := format == "gif" && h.isAnimatedGIF(file)
+	isAnimatedGIF := format == "gif" && services.IsAnimatedGIFData(data)
 	switch {
 	case isAnimatedGIF:
 		originalPath = filepath.Join(storagePath, "original.gif")
 		originalRelPath = h.buildRelativePath(req.EntityType, req.EntityID, req.AssetType, mediaID, "original.gif")
-		file.Seek(0, 0)
-		if err := h.saveFile(file, originalPath); err != nil {
+		if err := h.writeBytes(data, originalPath); err != nil {
 			return nil, fmt.Errorf("original gif speichern: %w", err)
 		}
 	case mimeType == "image/webp":
-		// WebP ist mit imaging.Save nicht encodierbar (nur decodierbar) -- die rohen
-		// hochgeladenen Bytes bleiben daher unveraendert erhalten statt silently als JPEG
-		// re-encodiert und mit .jpg umbenannt zu werden.
-		file.Seek(0, 0)
-		if err := h.saveFile(file, originalPath); err != nil {
+		// WebP ist mit imaging.Save nicht encodierbar (nur dekodierbar) -- die rohen
+		// hochgeladenen Bytes bleiben daher (minus EXIF/XMP, D-06/D-15) unveraendert erhalten
+		// statt silently als JPEG re-encodiert und mit .jpg umbenannt zu werden.
+		stripped, stripErr := services.StripWebPMetadata(data)
+		if stripErr != nil {
+			return nil, fmt.Errorf("webp exif/xmp entfernen: %w", stripErr)
+		}
+		if err := h.writeBytes(stripped, originalPath); err != nil {
 			return nil, fmt.Errorf("original webp speichern: %w", err)
 		}
 	default:
@@ -123,13 +121,15 @@ func (h *MediaUploadHandler) processImage(
 		Height:  thumbBounds.Dy(),
 	})
 
-	// "display"-Variante: fuer statische Bilder (inkl. WebP-Original, s.o.) immer als JPEG
-	// re-encodiert; fuer animierte GIFs als animiertes WebP via ffmpeg (nicht-fatal bei
-	// fehlendem/fehlschlagendem ffmpeg -- original+thumb bleiben in jedem Fall erhalten).
+	// "display"-Variante: fuer animierte GIFs als animiertes WebP via ffmpeg (Rueckfall bei
+	// fehlendem/fehlschlagendem ffmpeg: Original-GIF unveraendert, NIE ein statisches Bild fuer
+	// eine Animation, D-19); fuer alle anderen statischen Bilder (inkl. WebP-Original, s.o.)
+	// ueber die gemeinsame EncodeStaticDisplayVariant-Funktion (PNG bei Transparenz, sonst JPEG,
+	// D-18) -- dieselbe Funktion, die Release-Version-Media/Fansub-Media nutzen.
 	var displaySize int64
 	if isAnimatedGIF {
 		displayRelPath, displayWidth, displayHeight, ok := h.generateAnimatedDisplayVariant(
-			req, mediaID, storagePath, originalPath,
+			req, mediaID, storagePath, data,
 		)
 		if ok {
 			displayPath := filepath.Join(storagePath, "display.webp")
@@ -142,13 +142,13 @@ func (h *MediaUploadHandler) processImage(
 			})
 		}
 	} else {
-		displayRelPath, displayWidth, displayHeight, err := h.generateStaticDisplayVariant(
+		displayRelPath, displayExt, displayWidth, displayHeight, err := h.generateStaticDisplayVariant(
 			req, mediaID, storagePath, img, originalWidth, originalHeight,
 		)
 		if err != nil {
 			return nil, err
 		}
-		displayPath := filepath.Join(storagePath, "display.jpg")
+		displayPath := filepath.Join(storagePath, "display."+displayExt)
 		displaySize, _ = h.getFileSize(displayPath)
 		files = append(files, models.UploadFileInfo{
 			Variant: "display",
@@ -228,122 +228,59 @@ func (h *MediaUploadHandler) processImage(
 	}, nil
 }
 
-// generateStaticDisplayVariant erzeugt die "display"-Variante fuer statische Bilder (JPEG,
-// lange Kante <= displayMaxEdge, nie hochskaliert) -- unabhaengig vom Quell-Mimetyp immer als
-// JPEG re-encodiert (D-01, keine neue Encoder-Abhaengigkeit).
+// writeBytes speichert data unveraendert unter path ab (kein Re-Encode).
+func (h *MediaUploadHandler) writeBytes(data []byte, path string) error {
+	return h.saveFile(bytes.NewReader(data), path)
+}
+
+// generateStaticDisplayVariant erzeugt die "display"-Variante fuer statische Bilder ueber die
+// gemeinsame services.EncodeStaticDisplayVariant-Funktion (lange Kante <= DisplayMaxLongEdge,
+// nie hochskaliert; PNG bei Transparenz, sonst JPEG >= DisplayJPEGQuality) -- Phase 173
+// Review-Korrektur: vorher eine eigene, immer-JPEG-Implementierung hier dupliziert.
 func (h *MediaUploadHandler) generateStaticDisplayVariant(
 	req models.UploadRequest,
 	mediaID string,
 	storagePath string,
 	img image.Image,
 	originalWidth, originalHeight int,
-) (relPath string, width int, height int, err error) {
-	display := img
-	longEdge := originalWidth
-	if originalHeight > longEdge {
-		longEdge = originalHeight
-	}
-	if longEdge > displayMaxEdge {
-		if originalWidth >= originalHeight {
-			display = imaging.Resize(img, displayMaxEdge, 0, imaging.Lanczos)
-		} else {
-			display = imaging.Resize(img, 0, displayMaxEdge, imaging.Lanczos)
-		}
+) (relPath string, ext string, width int, height int, err error) {
+	data, encExt, _, w, hgt, encErr := services.EncodeStaticDisplayVariant(img, originalWidth, originalHeight)
+	if encErr != nil {
+		return "", "", 0, 0, fmt.Errorf("display speichern: %w", encErr)
 	}
 
-	displayFilename := "display.jpg"
+	displayFilename := "display." + encExt
 	displayPath := filepath.Join(storagePath, displayFilename)
 	displayRelPath := h.buildRelativePath(req.EntityType, req.EntityID, req.AssetType, mediaID, displayFilename)
 
-	out, createErr := os.Create(displayPath)
-	if createErr != nil {
-		return "", 0, 0, fmt.Errorf("display datei anlegen: %w", createErr)
-	}
-	defer out.Close()
-	if encErr := jpeg.Encode(out, display, &jpeg.Options{Quality: displayJPEGQuality}); encErr != nil {
-		return "", 0, 0, fmt.Errorf("display speichern: %w", encErr)
+	if writeErr := h.writeBytes(data, displayPath); writeErr != nil {
+		return "", "", 0, 0, fmt.Errorf("display datei anlegen: %w", writeErr)
 	}
 
-	displayBounds := display.Bounds()
-	return displayRelPath, displayBounds.Dx(), displayBounds.Dy(), nil
+	return displayRelPath, encExt, w, hgt, nil
 }
 
 // generateAnimatedDisplayVariant erzeugt die "display"-Variante fuer animierte GIFs (animiertes
-// WebP, lange Kante <= displayAnimatedMaxEdge). Schlaegt die Erzeugung fehl (kein ffmpeg
-// konfiguriert, Konvertierung schlaegt fehl), wird das nicht-fatal behandelt -- der Upload
-// liefert weiterhin original + thumb, nur ohne zusaetzliche "display"-Zeile (ok=false).
+// WebP, lange Kante <= services.DisplayAnimatedMaxEdge). Schlaegt die Erzeugung fehl (kein
+// ffmpeg konfiguriert, Konvertierung schlaegt fehl), wird das nicht-fatal behandelt -- der
+// Upload liefert weiterhin original + thumb, nur ohne zusaetzliche "display"-Zeile (ok=false).
 func (h *MediaUploadHandler) generateAnimatedDisplayVariant(
 	req models.UploadRequest,
 	mediaID string,
 	storagePath string,
-	originalGIFPath string,
+	originalGIFData []byte,
 ) (relPath string, width int, height int, ok bool) {
 	displayFilename := "display.webp"
 	displayPath := filepath.Join(storagePath, displayFilename)
 	displayRelPath := h.buildRelativePath(req.EntityType, req.EntityID, req.AssetType, mediaID, displayFilename)
 
-	if err := GenerateAnimatedWebPDisplay(h.ffmpegPath, originalGIFPath, displayPath); err != nil {
-		log.Printf("media_upload: animierte display-variante konnte nicht erzeugt werden (nicht-fatal): %v", err)
-		return "", 0, 0, false
-	}
-
-	cfg, probeErr := decodeImageConfigFile(displayPath)
-	if probeErr != nil {
-		log.Printf("media_upload: display-webp-dimensionen konnten nicht ermittelt werden (nicht-fatal): %v", probeErr)
-		return "", 0, 0, false
-	}
-
-	return displayRelPath, cfg.Width, cfg.Height, true
-}
-
-// decodeImageConfigFile oeffnet path und liest nur die Bild-Dimensionen (kein Vollbild-Decode) --
-// genutzt, um die Breite/Hoehe einer gerade von ffmpeg erzeugten animierten WebP-Datei zu
-// ermitteln (golang.org/x/image/webp kann Frame 0 fuer die Dimensions-Ermittlung lesen, auch
-// wenn es die Animation selbst nicht abspielen kann).
-func decodeImageConfigFile(path string) (image.Config, error) {
-	f, err := os.Open(path)
+	webpData, w, hgt, err := services.GenerateAnimatedWebPDisplayFromBytes(h.ffmpegPath, originalGIFData)
 	if err != nil {
-		return image.Config{}, err
+		return "", 0, 0, false
 	}
-	defer f.Close()
-	cfg, _, err := image.DecodeConfig(f)
-	return cfg, err
-}
-
-// GenerateAnimatedWebPDisplay erzeugt aus einer animierten GIF-Quelle (srcGIFPath) eine
-// animierte WebP-"display"-Variante (destWebPPath): Endlosschleife, lange Kante begrenzt auf
-// displayAnimatedMaxEdge, nie hochskaliert. Exportiert, damit der Phase-173-Backfill-CLI
-// (173-07) denselben Pfad fuer bereits auf Platte liegende Dateien wiederverwenden kann.
-//
-// Sicherheitsmuster: fester Argument-Vektor (exec.Command), keine Shell, keine String-
-// Interpolation von Dateinamen in einen einzelnen Kommandostring -- identisch zum bereits
-// geprueften Muster in media_service_segment.go (ExtractImageFrame).
-func GenerateAnimatedWebPDisplay(ffmpegPath, srcGIFPath, destWebPPath string) error {
-	if strings.TrimSpace(ffmpegPath) == "" {
-		return fmt.Errorf("ffmpeg ist nicht konfiguriert")
+	if err := h.writeBytes(webpData, displayPath); err != nil {
+		return "", 0, 0, false
 	}
-	scaleFilter := fmt.Sprintf(
-		"scale='min(%d,iw)':'min(%d,ih)':force_original_aspect_ratio=decrease:flags=lanczos",
-		displayAnimatedMaxEdge, displayAnimatedMaxEdge,
-	)
-	cmd := exec.Command(
-		ffmpegPath, "-y",
-		"-i", srcGIFPath,
-		"-loop", "0",
-		"-vf", scaleFilter,
-		"-vcodec", "libwebp_anim",
-		destWebPPath,
-	)
-	if output, err := cmd.CombinedOutput(); err != nil {
-		return fmt.Errorf("ffmpeg animierte webp-erzeugung fehlgeschlagen: %w (%s)", err, strings.TrimSpace(string(output)))
-	}
-	return nil
-}
 
-func (h *MediaUploadHandler) isAnimatedGIF(file multipart.File) bool {
-	return true
-}
-
-func (h *MediaUploadHandler) saveAsWebP(img image.Image, path string) error {
-	return imaging.Save(img, path)
+	return displayRelPath, w, hgt, true
 }

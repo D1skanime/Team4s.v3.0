@@ -29,6 +29,7 @@ import (
 	"team4s.v3/backend/internal/models"
 	"team4s.v3/backend/internal/permissions"
 	"team4s.v3/backend/internal/repository"
+	"team4s.v3/backend/internal/services"
 
 	"github.com/disintegration/imaging"
 	"github.com/gabriel-vasile/mimetype"
@@ -251,7 +252,7 @@ func (h *AdminContentHandler) ReplaceReleaseVersionMediaFile(c *gin.Context) {
 		c.JSON(http.StatusUnprocessableEntity, gin.H{"error": gin.H{"message": "thumbnail konnte nicht erzeugt werden", "error_code": "THUMBNAIL_FAILED"}})
 		return
 	}
-	displayData, displayWidth, displayHeight, err := generateRVMDisplay(data, mimeType)
+	displayData, displayExt, _, displayWidth, displayHeight, err := generateRVMDisplay(data, mimeType, h.rvmFFmpegPath())
 	if err != nil {
 		c.JSON(http.StatusUnprocessableEntity, gin.H{"error": gin.H{"message": "display-variante konnte nicht erzeugt werden", "error_code": "DISPLAY_FAILED"}})
 		return
@@ -265,7 +266,7 @@ func (h *AdminContentHandler) ReplaceReleaseVersionMediaFile(c *gin.Context) {
 	assetDir := filepath.Join(h.mediaStorageDir, "release-version", versionIDStr, assetUUID)
 	originalPath := filepath.Join(assetDir, "original."+ext)
 	thumbPath := filepath.Join(assetDir, "thumb.jpg")
-	displayPath := rvmReplaceDisplayPath(assetDir)
+	displayPath := rvmReplaceDisplayPath(assetDir, displayExt)
 
 	if err := os.MkdirAll(assetDir, 0o755); err != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{"error": gin.H{"message": "verzeichnis konnte nicht erstellt werden", "error_code": "STORAGE_FAILED"}})
@@ -276,6 +277,18 @@ func (h *AdminContentHandler) ReplaceReleaseVersionMediaFile(c *gin.Context) {
 		if err := os.WriteFile(originalPath, data, 0o644); err != nil {
 			_ = removeFileQuietly(originalPath)
 			c.JSON(http.StatusInternalServerError, gin.H{"error": gin.H{"message": "original (gif) konnte nicht gespeichert werden", "error_code": "STORAGE_FAILED"}})
+			return
+		}
+	} else if mimeType == "image/webp" {
+		stripped, stripErr := services.StripWebPMetadata(data)
+		if stripErr != nil {
+			_ = removeFileQuietly(originalPath)
+			c.JSON(http.StatusInternalServerError, gin.H{"error": gin.H{"message": "webp exif/xmp konnte nicht entfernt werden", "error_code": "STORAGE_FAILED"}})
+			return
+		}
+		if err := os.WriteFile(originalPath, stripped, 0o644); err != nil {
+			_ = removeFileQuietly(originalPath)
+			c.JSON(http.StatusInternalServerError, gin.H{"error": gin.H{"message": "original (webp) konnte nicht gespeichert werden", "error_code": "STORAGE_FAILED"}})
 			return
 		}
 	} else {

@@ -1379,23 +1379,28 @@ func TestReleaseVersionMedia_WebPOriginalKeepsRealBytes(t *testing.T) {
 // testability shape (TestGenerateGIFThumbnail above).
 func TestGenerateStaticDisplayVariant(t *testing.T) {
 	// Empty input must return an error, not panic.
-	result, width, height, err := GenerateStaticDisplayVariant([]byte{}, "image/png")
+	result, ext, mimeType, width, height, err := GenerateStaticDisplayVariant([]byte{}, "image/png", "")
 	assert.Error(t, err, "empty png data must return error")
 	assert.Nil(t, result)
+	assert.Empty(t, ext)
+	assert.Empty(t, mimeType)
 	assert.Zero(t, width)
 	assert.Zero(t, height)
 
-	// A real small PNG must decode, re-encode as JPEG, and report its unscaled dimensions.
+	// A real small PNG must decode, re-encode as JPEG (opaque, no alpha), and report its
+	// unscaled dimensions.
 	small := newSizedPNGBytes(t, 300, 200)
-	data, w, h, err := GenerateStaticDisplayVariant(small, "image/png")
+	data, ext2, mimeType2, w, h, err := GenerateStaticDisplayVariant(small, "image/png", "")
 	require.NoError(t, err)
 	assert.NotEmpty(t, data)
+	assert.Equal(t, "jpg", ext2)
+	assert.Equal(t, "image/jpeg", mimeType2)
 	assert.Equal(t, 300, w)
 	assert.Equal(t, 200, h)
 
 	// A large PNG must be capped to rvmDisplayLongEdge (1920) on its long edge.
 	large := newSizedPNGBytes(t, 3000, 1500)
-	data2, w2, h2, err := GenerateStaticDisplayVariant(large, "image/png")
+	data2, _, _, w2, h2, err := GenerateStaticDisplayVariant(large, "image/png", "")
 	require.NoError(t, err)
 	assert.NotEmpty(t, data2)
 	assert.Equal(t, 1920, w2)

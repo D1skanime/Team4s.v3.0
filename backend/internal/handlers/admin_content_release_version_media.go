@@ -22,6 +22,7 @@ import (
 	"team4s.v3/backend/internal/models"
 	"team4s.v3/backend/internal/permissions"
 	"team4s.v3/backend/internal/repository"
+	"team4s.v3/backend/internal/services"
 
 	"github.com/disintegration/imaging"
 	"github.com/gabriel-vasile/mimetype"
@@ -401,7 +402,7 @@ func (h *AdminContentHandler) processOneRVMFile(
 		return rvmFileResult{ClientFileName: clientName, Status: "failed",
 			ErrorCode: "THUMBNAIL_FAILED", Message: "thumbnail konnte nicht erzeugt werden"}
 	}
-	displayData, displayWidth, displayHeight, err := generateRVMDisplay(data, mimeType)
+	displayData, displayExt, _, displayWidth, displayHeight, err := generateRVMDisplay(data, mimeType, h.rvmFFmpegPath())
 	if err != nil {
 		log.Printf("rvm display error for %s: %v", clientName, err)
 		return rvmFileResult{ClientFileName: clientName, Status: "failed",
@@ -414,7 +415,7 @@ func (h *AdminContentHandler) processOneRVMFile(
 	assetDir := filepath.Join(h.mediaStorageDir, "release-version", versionIDStr, assetUUID)
 	originalPath := filepath.Join(assetDir, "original."+ext)
 	thumbPath := filepath.Join(assetDir, "thumb.jpg")
-	displayPath := filepath.Join(assetDir, "display.jpg")
+	displayPath := filepath.Join(assetDir, "display."+displayExt)
 
 	if err := os.MkdirAll(assetDir, 0o755); err != nil {
 		return rvmFileResult{ClientFileName: clientName, Status: "failed",
@@ -423,10 +424,23 @@ func (h *AdminContentHandler) processOneRVMFile(
 
 	// EXIF-Strip für JPEG und PNG: imaging.Save re-enkodiert das Bild ohne Metadaten.
 	// GIF bleibt raw, weil imaging die Animation nicht erhalten kann. WebP bleibt ebenfalls
-	// raw, weil imaging.Save WebP nicht enkodieren kann (nur dekodieren) -- ohne diesen Zweig
-	// würde das WebP-Original fehlschlagen bzw. fälschlich re-enkodiert werden.
-	if mimeType == "image/gif" || mimeType == "image/webp" {
+	// raw (imaging.Save kann WebP nicht enkodieren, nur dekodieren), aber EXIF/XMP-Chunks werden
+	// verlustfrei aus dem RIFF-Container entfernt (D-06/D-15) statt die rohen Bytes 1:1 zu
+	// behalten.
+	if mimeType == "image/gif" {
 		if err := os.WriteFile(originalPath, data, 0o644); err != nil {
+			_ = removeFileQuietly(originalPath)
+			return rvmFileResult{ClientFileName: clientName, Status: "failed",
+				ErrorCode: "STORAGE_FAILED", Message: "original konnte nicht gespeichert werden"}
+		}
+	} else if mimeType == "image/webp" {
+		stripped, stripErr := services.StripWebPMetadata(data)
+		if stripErr != nil {
+			_ = removeFileQuietly(originalPath)
+			return rvmFileResult{ClientFileName: clientName, Status: "failed",
+				ErrorCode: "STORAGE_FAILED", Message: "webp exif/xmp konnte nicht entfernt werden"}
+		}
+		if err := os.WriteFile(originalPath, stripped, 0o644); err != nil {
 			_ = removeFileQuietly(originalPath)
 			return rvmFileResult{ClientFileName: clientName, Status: "failed",
 				ErrorCode: "STORAGE_FAILED", Message: "original konnte nicht gespeichert werden"}
@@ -575,7 +589,7 @@ func (h *AdminContentHandler) processOneRVMFile(
 
 	thumbRelPath := strings.Join([]string{"release-version", versionIDStr, assetUUID, "thumb.jpg"}, "/")
 	thumbURL := "/media/" + thumbRelPath
-	displayRelPath := strings.Join([]string{"release-version", versionIDStr, assetUUID, "display.jpg"}, "/")
+	displayRelPath := strings.Join([]string{"release-version", versionIDStr, assetUUID, "display." + displayExt}, "/")
 	displayURL := "/media/" + displayRelPath
 
 	return rvmFileResult{
