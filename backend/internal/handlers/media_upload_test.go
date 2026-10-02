@@ -7,11 +7,13 @@ import (
 	"encoding/json"
 	"image"
 	"image/color"
+	"image/gif"
 	"image/png"
 	"mime/multipart"
 	"net/http"
 	"net/http/httptest"
 	"os"
+	"os/exec"
 	"path/filepath"
 	"strings"
 	"testing"
@@ -390,6 +392,48 @@ func testStaticWebPBytes(t *testing.T) []byte {
 	return data
 }
 
+// newAnimatedGIFBytes erzeugt ein animiertes GIF (3 Vollfarb-Frames) mit den angegebenen
+// Pixel-Massen -- genutzt, um die animierte WebP-"display"-Konvertierung ueber echtes ffmpeg
+// zu beweisen.
+func newAnimatedGIFBytes(t *testing.T, width, height int) []byte {
+	t.Helper()
+
+	palette := []color.Color{
+		color.RGBA{R: 255, A: 255},
+		color.RGBA{G: 255, A: 255},
+		color.RGBA{B: 255, A: 255},
+	}
+	anim := &gif.GIF{}
+	for frameIdx := range palette {
+		frame := image.NewPaletted(image.Rect(0, 0, width, height), palette)
+		for y := 0; y < height; y++ {
+			for x := 0; x < width; x++ {
+				frame.SetColorIndex(x, y, uint8(frameIdx))
+			}
+		}
+		anim.Image = append(anim.Image, frame)
+		anim.Delay = append(anim.Delay, 10)
+	}
+
+	var buf bytes.Buffer
+	if err := gif.EncodeAll(&buf, anim); err != nil {
+		t.Fatalf("encode animated gif: %v", err)
+	}
+	return buf.Bytes()
+}
+
+// requireFFmpegForDisplayTests liefert den Pfad zur installierten ffmpeg-Binary oder bricht den
+// Test ab -- identisches Muster zu requireFFmpegBinary (segment_render_worker_test.go) bzw.
+// requireFFmpeg (internal/services/media_service_test.go).
+func requireFFmpegForDisplayTests(t *testing.T) string {
+	t.Helper()
+	binary, err := exec.LookPath("ffmpeg")
+	if err != nil {
+		t.Fatal("installed FFmpeg is required for this test")
+	}
+	return binary
+}
+
 func newMediaUploadRequestWithFile(t *testing.T, entityType, entityID, assetType, filename string, content []byte) *http.Request {
 	t.Helper()
 
@@ -512,6 +556,84 @@ func TestMediaUploadHandler_UploadPreservesWebPOriginalExtensionAndBytes(t *test
 		assert.Greater(t, display.Width, 0)
 		assert.Greater(t, display.Height, 0)
 	}
+}
+
+// TestMediaUploadHandler_AnimatedDisplayGeneratesAnimatedWebP beweist: ein animiertes
+// GIF-Upload erzeugt eine "display"-Zeile, deren Bytes per isAnimatedWebP (VP8X+ANIM-Flag) als
+// animiertes WebP erkannt werden.
+func TestMediaUploadHandler_AnimatedDisplayGeneratesAnimatedWebP(t *testing.T) {
+	ffmpegBinary := requireFFmpegForDisplayTests(t)
+	repo := NewMockMediaUploadRepository()
+	tmpDir := t.TempDir()
+	handler := newAdminMediaUploadHandler(repo, tmpDir, "http://localhost", ffmpegBinary)
+
+	req := newMediaUploadRequestWithFile(t, "anime", "123", "poster", "anim.gif", newAnimatedGIFBytes(t, 320, 240))
+	w := performAuthorizedUpload(t, handler, req)
+	assert.Equal(t, http.StatusOK, w.Code)
+
+	var payload models.UploadResponse
+	assert.NoError(t, json.Unmarshal(w.Body.Bytes(), &payload))
+
+	display, ok := findUploadFile(payload.Files, "display")
+	if !assert.True(t, ok, "display-variante fehlt fuer animiertes gif") {
+		return
+	}
+	assert.True(t, strings.HasSuffix(display.Path, "/display.webp"), display.Path)
+
+	diskPath := diskPathForRelPath(tmpDir, display.Path)
+	onDisk, err := os.ReadFile(diskPath)
+	assert.NoError(t, err)
+	assert.True(t, len(onDisk) >= 21, "display.webp zu kurz fuer header-pruefung")
+	assert.True(t, isAnimatedWebP(onDisk), "erzeugtes display.webp muss als animiert erkannt werden")
+}
+
+// TestMediaUploadHandler_AnimatedDisplayCapsLongEdge beweist: die animierte WebP-Variante
+// begrenzt die lange Kante auf 960px, auch wenn die Quelle groesser ist.
+func TestMediaUploadHandler_AnimatedDisplayCapsLongEdge(t *testing.T) {
+	ffmpegBinary := requireFFmpegForDisplayTests(t)
+	repo := NewMockMediaUploadRepository()
+	tmpDir := t.TempDir()
+	handler := newAdminMediaUploadHandler(repo, tmpDir, "http://localhost", ffmpegBinary)
+
+	req := newMediaUploadRequestWithFile(t, "anime", "123", "poster", "anim-large.gif", newAnimatedGIFBytes(t, 1200, 800))
+	w := performAuthorizedUpload(t, handler, req)
+	assert.Equal(t, http.StatusOK, w.Code)
+
+	var payload models.UploadResponse
+	assert.NoError(t, json.Unmarshal(w.Body.Bytes(), &payload))
+
+	display, ok := findUploadFile(payload.Files, "display")
+	if !assert.True(t, ok, "display-variante fehlt fuer grosses animiertes gif") {
+		return
+	}
+	assert.LessOrEqual(t, display.Width, 960)
+	assert.LessOrEqual(t, display.Height, 960)
+	assert.Equal(t, 960, display.Width)
+	assert.Equal(t, 640, display.Height)
+}
+
+// TestMediaUploadHandler_AnimatedDisplayDegradesGracefullyWithoutFFmpeg beweist: fehlt ffmpeg
+// (leerer ffmpegPath), schlaegt nur die optionale display-Erzeugung fehl -- der Gesamt-Upload
+// (original + thumb) bleibt erfolgreich (HTTP 200), analog zum nicht-fatalen Verhalten von
+// saveSegmentVideoPreview bei fehlgeschlagener Preview-Erzeugung.
+func TestMediaUploadHandler_AnimatedDisplayDegradesGracefullyWithoutFFmpeg(t *testing.T) {
+	repo := NewMockMediaUploadRepository()
+	tmpDir := t.TempDir()
+	handler := newAdminMediaUploadHandler(repo, tmpDir, "http://localhost", "")
+
+	req := newMediaUploadRequestWithFile(t, "anime", "123", "poster", "anim.gif", newAnimatedGIFBytes(t, 320, 240))
+	w := performAuthorizedUpload(t, handler, req)
+	assert.Equal(t, http.StatusOK, w.Code)
+
+	var payload models.UploadResponse
+	assert.NoError(t, json.Unmarshal(w.Body.Bytes(), &payload))
+
+	_, hasOriginal := findUploadFile(payload.Files, "original")
+	_, hasThumb := findUploadFile(payload.Files, "thumb")
+	_, hasDisplay := findUploadFile(payload.Files, "display")
+	assert.True(t, hasOriginal)
+	assert.True(t, hasThumb)
+	assert.False(t, hasDisplay, "ohne ffmpeg darf keine display-zeile entstehen")
 }
 
 type mockAssetLifecycleStore struct {
