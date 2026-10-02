@@ -1,6 +1,7 @@
 package handlers
 
 import (
+	"bytes"
 	"context"
 	"encoding/json"
 	"errors"
@@ -63,6 +64,7 @@ var profileBackgroundAllowedImageMimeTypes = map[string]bool{
 	"image/jpeg": true,
 	"image/png":  true,
 	"image/webp": true,
+	"image/gif":  true,
 }
 
 const (
@@ -410,6 +412,13 @@ func (h *AppAuthHandler) UploadOwnProfileAvatar(c *gin.Context) {
 		writeInternalErrorResponse(c, "interner serverfehler", err, "Avatar-Datei konnte nicht vorbereitet werden.")
 		return
 	}
+	// Rohe Bytes werden EINMAL gelesen und fuer Original-Speicherung UND Display-Erzeugung
+	// wiederverwendet (173-05 Task 1) -- analog zum Muster aus media_upload_image.go.
+	croppedData, err := io.ReadAll(croppedFile)
+	if err != nil {
+		writeInternalErrorResponse(c, "interner serverfehler", err, "Avatar-Datei konnte nicht gelesen werden.")
+		return
+	}
 
 	sourceFile, err := sourceHeader.Open()
 	if err != nil {
@@ -454,19 +463,21 @@ func (h *AppAuthHandler) UploadOwnProfileAvatar(c *gin.Context) {
 		return
 	}
 
+	var decodedAvatarImg image.Image
 	if shouldCopyAvatarDisplayFile(mimeType) {
-		if err := copyMultipartFileToPath(croppedFile, absolutePath); err != nil {
+		if err := os.WriteFile(absolutePath, croppedData, 0o644); err != nil {
 			_ = os.RemoveAll(absoluteDir)
 			writeInternalErrorResponse(c, "interner serverfehler", err, "Avatar konnte nicht gespeichert werden.")
 			return
 		}
 	} else {
-		img, _, err := image.Decode(croppedFile)
+		img, _, err := image.Decode(bytes.NewReader(croppedData))
 		if err != nil {
 			_ = os.RemoveAll(absoluteDir)
 			c.JSON(http.StatusBadRequest, gin.H{"error": gin.H{"message": "bild konnte nicht gelesen werden"}})
 			return
 		}
+		decodedAvatarImg = img
 		if err := imaging.Save(img, absolutePath); err != nil {
 			_ = os.RemoveAll(absoluteDir)
 			writeInternalErrorResponse(c, "interner serverfehler", err, "Avatar konnte nicht gespeichert werden.")
@@ -493,7 +504,7 @@ func (h *AppAuthHandler) UploadOwnProfileAvatar(c *gin.Context) {
 		return
 	}
 
-	updatedProfile, err := h.profileRepo.AttachUploadedAvatar(c.Request.Context(), identity.AppUserID, models.MemberProfileAvatarUploadInput{
+	avatarUploadInput := models.MemberProfileAvatarUploadInput{
 		FilePath:        relativePath,
 		SourceFilePath:  relativeSourcePath,
 		PublicURL:       strings.TrimRight(h.mediaBaseURL, "/") + relativePath,
@@ -503,7 +514,23 @@ func (h *AppAuthHandler) UploadOwnProfileAvatar(c *gin.Context) {
 		SourceSizeBytes: sourceSizeBytes,
 		Width:           &width,
 		Height:          &height,
-	})
+	}
+	// Display-Variante ist eine Qualitaetsverbesserung, kein Hart-Erfordernis fuer den Upload
+	// (173-05 Task 1): ein Fehler hier blockiert den Avatar-Upload nicht, es fehlt nur die
+	// zusaetzliche "display"-Zeile (Fallback auf das Original greift lesend, 173-05 Task 2).
+	if displayFilename, displayWidth, displayHeight, ok := h.generateProfileImageDisplayVariant(
+		croppedData, mimeType, decodedAvatarImg, absoluteDir,
+	); ok {
+		displaySizeBytes, sizeErr := fileSize(filepath.Join(absoluteDir, displayFilename))
+		if sizeErr == nil {
+			avatarUploadInput.DisplayFilePath = relativeDir + "/" + displayFilename
+			avatarUploadInput.DisplayWidth = &displayWidth
+			avatarUploadInput.DisplayHeight = &displayHeight
+			avatarUploadInput.DisplaySizeBytes = displaySizeBytes
+		}
+	}
+
+	updatedProfile, err := h.profileRepo.AttachUploadedAvatar(c.Request.Context(), identity.AppUserID, avatarUploadInput)
 	if err != nil {
 		_ = os.RemoveAll(absoluteDir)
 		writeInternalErrorResponse(c, "interner serverfehler", err, "Avatar konnte nicht verknüpft werden.")
@@ -574,6 +601,29 @@ func (h *AppAuthHandler) UploadOwnProfileBackground(c *gin.Context) {
 		writeInternalErrorResponse(c, "interner serverfehler", err, "Hintergrundbild konnte nicht vorbereitet werden.")
 		return
 	}
+	// Rohe Bytes werden EINMAL gelesen und fuer Original-Speicherung UND Display-Erzeugung
+	// wiederverwendet (173-05 Task 1, analog zum Avatar-Upload).
+	uploadData, err := io.ReadAll(uploadFile)
+	if err != nil {
+		writeInternalErrorResponse(c, "interner serverfehler", err, "Hintergrundbild konnte nicht gelesen werden.")
+		return
+	}
+	// D-06/D-18/D-20/D-22 (Orchestrator-Ergaenzung): bei einem bereits zugeschnittenen Upload
+	// (Frontend liefert cropped_file + source_original) ist die zugeschnittene Datei bereits das
+	// endgueltige Bild -- sie bleibt roh erhalten (inkl. Animation bei GIF/WebP), statt via
+	// imaging neu encodiert zu werden (imaging kann WebP ueberhaupt nicht encodieren und wuerde
+	// eine Animation ohnehin auf ein Standbild reduzieren). Der Nicht-zugeschnitten-Pfad (volles
+	// Bild -> Fill auf die feste Banner-Groesse) aendert die Pixel ohnehin, daher existiert dort
+	// kein "echtes Original" mehr zu erhalten; WebP wird in diesem Zweig als JPEG gespeichert
+	// (gleiche Begruendung wie media_upload_image.go's WebP-Thumb-Re-Encode), GIF bleibt ueber
+	// den nativen image/gif-Encoder statisch (Frame 0, Animation verloren -- bekannte Einschraenkung,
+	// siehe deferred-items.md).
+	rawCopyBackground := isCroppedUpload && (mimeType == "image/gif" || mimeType == "image/webp")
+	if rawCopyBackground {
+		ext = avatarSourceExtFromMime(mimeType)
+	} else if mimeType == "image/webp" {
+		ext = "jpg"
+	}
 
 	sourceFile, err := sourceHeader.Open()
 	if err != nil {
@@ -617,24 +667,34 @@ func (h *AppAuthHandler) UploadOwnProfileBackground(c *gin.Context) {
 		return
 	}
 
-	img, _, err := image.Decode(uploadFile)
-	if err != nil {
-		_ = os.RemoveAll(absoluteDir)
-		c.JSON(http.StatusBadRequest, gin.H{"error": gin.H{"message": "bild konnte nicht gelesen werden"}})
-		return
-	}
-	outputImage := img
+	var decodedBackgroundImg image.Image
 	outputWidth := width
 	outputHeight := height
-	if !isCroppedUpload {
-		outputImage = imaging.Fill(img, profileBackgroundBannerWidth, profileBackgroundBannerHeight, imaging.Center, imaging.Lanczos)
-		outputWidth = profileBackgroundBannerWidth
-		outputHeight = profileBackgroundBannerHeight
-	}
-	if err := imaging.Save(outputImage, absolutePath); err != nil {
-		_ = os.RemoveAll(absoluteDir)
-		writeInternalErrorResponse(c, "interner serverfehler", err, "Hintergrundbild konnte nicht gespeichert werden.")
-		return
+	if rawCopyBackground {
+		if err := os.WriteFile(absolutePath, uploadData, 0o644); err != nil {
+			_ = os.RemoveAll(absoluteDir)
+			writeInternalErrorResponse(c, "interner serverfehler", err, "Hintergrundbild konnte nicht gespeichert werden.")
+			return
+		}
+	} else {
+		img, _, decErr := image.Decode(bytes.NewReader(uploadData))
+		if decErr != nil {
+			_ = os.RemoveAll(absoluteDir)
+			c.JSON(http.StatusBadRequest, gin.H{"error": gin.H{"message": "bild konnte nicht gelesen werden"}})
+			return
+		}
+		outputImage := img
+		if !isCroppedUpload {
+			outputImage = imaging.Fill(img, profileBackgroundBannerWidth, profileBackgroundBannerHeight, imaging.Center, imaging.Lanczos)
+			outputWidth = profileBackgroundBannerWidth
+			outputHeight = profileBackgroundBannerHeight
+		}
+		decodedBackgroundImg = outputImage
+		if err := imaging.Save(outputImage, absolutePath); err != nil {
+			_ = os.RemoveAll(absoluteDir)
+			writeInternalErrorResponse(c, "interner serverfehler", err, "Hintergrundbild konnte nicht gespeichert werden.")
+			return
+		}
 	}
 	if err := copyMultipartFileToPath(sourceFile, absoluteSourcePath); err != nil {
 		_ = os.RemoveAll(absoluteDir)
@@ -660,7 +720,7 @@ func (h *AppAuthHandler) UploadOwnProfileBackground(c *gin.Context) {
 	if ext == "jpg" {
 		storedMimeType = "image/jpeg"
 	}
-	updatedProfile, err := h.profileRepo.AttachUploadedBackground(c.Request.Context(), identity.AppUserID, models.MemberProfileBackgroundUploadInput{
+	backgroundUploadInput := models.MemberProfileBackgroundUploadInput{
 		FilePath:        relativePath,
 		SourceFilePath:  relativeSourcePath,
 		PublicURL:       strings.TrimRight(h.mediaBaseURL, "/") + relativePath,
@@ -670,7 +730,31 @@ func (h *AppAuthHandler) UploadOwnProfileBackground(c *gin.Context) {
 		SourceSizeBytes: sourceSizeBytes,
 		Width:           &outputWidth,
 		Height:          &outputHeight,
-	})
+	}
+	// Display-Basis ist IMMER das, was tatsaechlich als "original" gespeichert wurde (D-22-
+	// Prinzip: display spiegelt das gerenderte Bild, kein zweiter unabhaengiger Zuschnitt). Im
+	// Fill-Zweig (!isCroppedUpload, animierte Quellen verlieren dort ohnehin die Animation) wird
+	// NICHT die rohe hochgeladene Animation an die Display-Erzeugung weitergereicht, sondern nil
+	// -- sonst wuerde eine animierte Display-Variante aus unzugeschnittenen Rohdaten entstehen,
+	// die nicht zum tatsaechlich gespeicherten, bereits auf Banner-Masse zugeschnittenen
+	// statischen Original passt.
+	displayRawData := []byte(nil)
+	if rawCopyBackground {
+		displayRawData = uploadData
+	}
+	if displayFilename, displayWidth, displayHeight, ok := h.generateProfileImageDisplayVariant(
+		displayRawData, mimeType, decodedBackgroundImg, absoluteDir,
+	); ok {
+		displaySizeBytes, sizeErr := fileSize(filepath.Join(absoluteDir, displayFilename))
+		if sizeErr == nil {
+			backgroundUploadInput.DisplayFilePath = relativeDir + "/" + displayFilename
+			backgroundUploadInput.DisplayWidth = &displayWidth
+			backgroundUploadInput.DisplayHeight = &displayHeight
+			backgroundUploadInput.DisplaySizeBytes = displaySizeBytes
+		}
+	}
+
+	updatedProfile, err := h.profileRepo.AttachUploadedBackground(c.Request.Context(), identity.AppUserID, backgroundUploadInput)
 	if err != nil {
 		_ = os.RemoveAll(absoluteDir)
 		writeInternalErrorResponse(c, "interner serverfehler", err, "Hintergrundbild konnte nicht verknüpft werden.")

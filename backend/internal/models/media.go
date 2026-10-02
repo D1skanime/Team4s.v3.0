@@ -17,6 +17,7 @@ type MediaAsset struct {
 	Filename          string    `json:"filename"`
 	PublicURL         string    `json:"public_url"`
 	SourceOriginalURL string    `json:"source_original_url,omitempty"`
+	DisplayURL        string    `json:"display_url,omitempty"`
 	MimeType          string    `json:"mime_type"`
 	SizeBytes         int64     `json:"size_bytes"`
 	Width             *int      `json:"width,omitempty"`

@@ -60,6 +60,17 @@ type AppAuthHandler struct {
 	keycloakAccountURL string
 	appPublicURL       string
 	fansubRepo         fansubGroupNameStore
+	ffmpegPath         string
+	vipsThumbnailPath  string
+}
+
+// WithMediaToolPaths verdrahtet ffmpeg/vipsthumbnail-CLI-Pfade fuer die animierte Display-
+// Variante von Avatar-/Hintergrundbild-Uploads (173-05 Task 0, D-19/D-20/D-21). Builder-Stil,
+// damit der bestehende positionsbasierte NewAppAuthHandler-Konstruktor unveraendert bleibt.
+func (h *AppAuthHandler) WithMediaToolPaths(ffmpegPath, vipsThumbnailPath string) *AppAuthHandler {
+	h.ffmpegPath = strings.TrimSpace(ffmpegPath)
+	h.vipsThumbnailPath = strings.TrimSpace(vipsThumbnailPath)
+	return h
 }
 
 func NewAppAuthHandler(

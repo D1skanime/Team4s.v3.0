@@ -231,6 +231,15 @@ func (r *MemberProfileRepository) AttachUploadedAvatar(
 		}
 	}
 
+	if displayPath := strings.TrimSpace(input.DisplayFilePath); displayPath != "" {
+		if _, err := tx.Exec(ctx, `
+			INSERT INTO media_files (media_id, variant, path, width, height, size)
+			VALUES ($1, 'display', $2, COALESCE($3, 0), COALESCE($4, 0), $5)
+		`, mediaID, displayPath, input.DisplayWidth, input.DisplayHeight, input.DisplaySizeBytes); err != nil {
+			return nil, fmt.Errorf("insert avatar display media file: %w", err)
+		}
+	}
+
 	if _, err := tx.Exec(ctx, `
 		UPDATE members
 		SET avatar_media_id = $2,
@@ -319,6 +328,15 @@ func (r *MemberProfileRepository) AttachUploadedBackground(
 			VALUES ($1, 'source_original', $2, 0, 0, $3)
 		`, mediaID, strings.TrimSpace(input.SourceFilePath), input.SourceSizeBytes); err != nil {
 			return nil, fmt.Errorf("insert profile background source media file: %w", err)
+		}
+	}
+
+	if displayPath := strings.TrimSpace(input.DisplayFilePath); displayPath != "" {
+		if _, err := tx.Exec(ctx, `
+			INSERT INTO media_files (media_id, variant, path, width, height, size)
+			VALUES ($1, 'display', $2, COALESCE($3, 0), COALESCE($4, 0), $5)
+		`, mediaID, displayPath, input.DisplayWidth, input.DisplayHeight, input.DisplaySizeBytes); err != nil {
+			return nil, fmt.Errorf("insert profile background display media file: %w", err)
 		}
 	}
 

@@ -137,27 +137,35 @@ type MemberProfileUpdateInput struct {
 }
 
 type MemberProfileAvatarUploadInput struct {
-	FilePath        string
-	SourceFilePath  string
-	PublicURL       string
-	MimeType        string
-	SourceMimeType  string
-	SizeBytes       int64
-	SourceSizeBytes int64
-	Width           *int
-	Height          *int
+	FilePath         string
+	SourceFilePath   string
+	PublicURL        string
+	MimeType         string
+	SourceMimeType   string
+	SizeBytes        int64
+	SourceSizeBytes  int64
+	Width            *int
+	Height           *int
+	DisplayFilePath  string
+	DisplayWidth     *int
+	DisplayHeight    *int
+	DisplaySizeBytes int64
 }
 
 type MemberProfileBackgroundUploadInput struct {
-	FilePath        string
-	SourceFilePath  string
-	PublicURL       string
-	MimeType        string
-	SourceMimeType  string
-	SizeBytes       int64
-	SourceSizeBytes int64
-	Width           *int
-	Height          *int
+	FilePath         string
+	SourceFilePath   string
+	PublicURL        string
+	MimeType         string
+	SourceMimeType   string
+	SizeBytes        int64
+	SourceSizeBytes  int64
+	Width            *int
+	Height           *int
+	DisplayFilePath  string
+	DisplayWidth     *int
+	DisplayHeight    *int
+	DisplaySizeBytes int64
 }
 
 type MemberProfileAvatar struct {
@@ -168,6 +176,7 @@ type MemberProfileBgImage struct {
 	ID                int64  `json:"-"`
 	PublicURL         string `json:"public_url"`
 	SourceOriginalURL string `json:"source_original_url,omitempty"`
+	DisplayURL        string `json:"display_url,omitempty"`
 	StoragePath       string `json:"-"`
 }
 

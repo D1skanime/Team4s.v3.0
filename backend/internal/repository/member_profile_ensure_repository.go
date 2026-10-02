@@ -46,6 +46,7 @@ func (r *MemberProfileRepository) ensureProfileBaseTx(ctx context.Context, tx pg
 		avatarID                        *int64
 		avatarPath                      *string
 		avatarSourcePath                *string
+		avatarDisplayPath               *string
 		avatarMimeType                  *string
 		avatarCreatedAt                 *time.Time
 		avatarWidth                     *int
@@ -54,6 +55,7 @@ func (r *MemberProfileRepository) ensureProfileBaseTx(ctx context.Context, tx pg
 		backgroundID                    *int64
 		backgroundPath                  *string
 		backgroundSourcePath            *string
+		backgroundDisplayPath           *string
 		backgroundCreatedAt             *time.Time
 		memberCreatedAt                 *time.Time
 		memberUpdatedAt                 *time.Time
@@ -106,6 +108,7 @@ func (r *MemberProfileRepository) ensureProfileBaseTx(ctx context.Context, tx pg
 			m.avatar_media_id,
 			ma.file_path,
 			mf_source.path,
+			mf_display.path,
 			ma.mime_type,
 			ma.created_at,
 			NULLIF(mf.width, 0),
@@ -114,6 +117,7 @@ func (r *MemberProfileRepository) ensureProfileBaseTx(ctx context.Context, tx pg
 			m.background_media_id,
 			bg.file_path,
 			bg_source.path,
+			bg_display.path,
 			bg.created_at,
 			m.created_at,
 			m.updated_at
@@ -152,8 +156,10 @@ func (r *MemberProfileRepository) ensureProfileBaseTx(ctx context.Context, tx pg
 		LEFT JOIN media_assets ma ON ma.id = m.avatar_media_id
 		LEFT JOIN media_files mf ON mf.media_id = ma.id AND mf.variant = 'original'
 		LEFT JOIN media_files mf_source ON mf_source.media_id = ma.id AND mf_source.variant = 'source_original'
+		LEFT JOIN media_files mf_display ON mf_display.media_id = ma.id AND mf_display.variant = 'display' AND mf_display.status = 'ready'
 		LEFT JOIN media_assets bg ON bg.id = m.background_media_id
 		LEFT JOIN media_files bg_source ON bg_source.media_id = bg.id AND bg_source.variant = 'source_original'
+		LEFT JOIN media_files bg_display ON bg_display.media_id = bg.id AND bg_display.variant = 'display' AND bg_display.status = 'ready'
 		WHERE au.id = $1
 		FOR UPDATE OF au
 	`, appUserID).Scan(
@@ -188,6 +194,7 @@ func (r *MemberProfileRepository) ensureProfileBaseTx(ctx context.Context, tx pg
 		&row.avatarID,
 		&row.avatarPath,
 		&row.avatarSourcePath,
+		&row.avatarDisplayPath,
 		&row.avatarMimeType,
 		&row.avatarCreatedAt,
 		&row.avatarWidth,
@@ -196,6 +203,7 @@ func (r *MemberProfileRepository) ensureProfileBaseTx(ctx context.Context, tx pg
 		&row.backgroundID,
 		&row.backgroundPath,
 		&row.backgroundSourcePath,
+		&row.backgroundDisplayPath,
 		&row.backgroundCreatedAt,
 		&row.memberCreatedAt,
 		&row.memberUpdatedAt,
@@ -284,11 +292,20 @@ func (r *MemberProfileRepository) ensureProfileBaseTx(ctx context.Context, tx pg
 		if row.avatarSourcePath != nil {
 			sourceOriginalURL = r.publicURLForPath(strings.TrimSpace(*row.avatarSourcePath))
 		}
+		avatarPublicURL := r.publicURLForPath(strings.TrimSpace(*row.avatarPath))
+		// 173-05 Task 2: display_url faellt auf das Original zurueck, solange kein 'display'-
+		// media_files-Eintrag existiert (Vor-Migration-/Vor-Backfill-Zeilen) -- NIE leer, sobald
+		// ueberhaupt ein Avatar existiert.
+		avatarDisplayURL := avatarPublicURL
+		if row.avatarDisplayPath != nil {
+			avatarDisplayURL = r.publicURLForPath(strings.TrimSpace(*row.avatarDisplayPath))
+		}
 		profile.Avatar = &models.MediaAsset{
 			ID:                *row.avatarID,
 			Filename:          filepath.Base(strings.TrimSpace(*row.avatarPath)),
-			PublicURL:         r.publicURLForPath(strings.TrimSpace(*row.avatarPath)),
+			PublicURL:         avatarPublicURL,
 			SourceOriginalURL: sourceOriginalURL,
+			DisplayURL:        avatarDisplayURL,
 			MimeType:          strings.TrimSpace(valueOrDefault(row.avatarMimeType, "")),
 			SizeBytes:         valueOrZeroInt64(row.avatarSize),
 			Width:             row.avatarWidth,
@@ -302,10 +319,16 @@ func (r *MemberProfileRepository) ensureProfileBaseTx(ctx context.Context, tx pg
 		if row.backgroundSourcePath != nil {
 			sourceOriginalURL = r.publicURLForPath(strings.TrimSpace(*row.backgroundSourcePath))
 		}
+		backgroundPublicURL := r.publicURLForPath(strings.TrimSpace(*row.backgroundPath))
+		backgroundDisplayURL := backgroundPublicURL
+		if row.backgroundDisplayPath != nil {
+			backgroundDisplayURL = r.publicURLForPath(strings.TrimSpace(*row.backgroundDisplayPath))
+		}
 		profile.BackgroundImage = &models.MemberProfileBgImage{
 			ID:                *row.backgroundID,
-			PublicURL:         r.publicURLForPath(strings.TrimSpace(*row.backgroundPath)),
+			PublicURL:         backgroundPublicURL,
 			SourceOriginalURL: sourceOriginalURL,
+			DisplayURL:        backgroundDisplayURL,
 			StoragePath:       strings.TrimSpace(*row.backgroundPath),
 		}
 	}
