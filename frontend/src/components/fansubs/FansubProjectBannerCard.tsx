@@ -1,7 +1,7 @@
-import Image from 'next/image'
 import Link from 'next/link'
 
 import { Badge } from '@/components/ui'
+import { ResponsiveImage } from '@/components/ui/ResponsiveImage'
 import { resolveApiUrl } from '@/lib/api'
 import { buildPublicFansubProjectHref } from '@/lib/fansubProjectRoutes'
 import type { PublicFansubProject } from '@/types/fansub'
@@ -42,14 +42,14 @@ export function FansubProjectBannerCard({
     >
       <div className={styles.bannerFrame}>
         {resolvedImageUrl ? (
-          <Image
+          <ResponsiveImage
             src={resolvedImageUrl}
             alt={project.title}
             fill
             sizes={BANNER_IMAGE_SIZES}
             loading="lazy"
             className={styles.bannerImage}
-            unoptimized
+            quality={85}
           />
         ) : (
           <div className={styles.bannerSkeleton} aria-hidden="true" />

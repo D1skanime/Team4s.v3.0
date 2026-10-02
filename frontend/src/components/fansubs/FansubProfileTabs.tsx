@@ -1,11 +1,11 @@
 'use client'
 
-import Image from 'next/image'
 import Link from 'next/link'
 import { useMemo, useState } from 'react'
 
 import { AnimeListItem } from '@/types/anime'
 import { Button } from '@/components/ui'
+import { ResponsiveImage } from '@/components/ui/ResponsiveImage'
 import { FansubGroup, FansubMember } from '@/types/fansub'
 import { buildFansubFactSummary } from '@/lib/fansub-summary'
 
@@ -217,7 +217,7 @@ export function FansubProfileTabs({ group, members, projects }: FansubProfileTab
             <p className={styles.empty}>Kein Archiv-Link hinterlegt.</p>
           )}
           {group.banner_url ? (
-            <Image src={group.banner_url} alt="" className={styles.banner} width={760} height={240} unoptimized />
+            <ResponsiveImage src={group.banner_url} alt="" className={styles.banner} width={760} height={240} quality={85} />
           ) : (
             <p className={styles.empty}>Keine Archiv-Screenshots vorhanden.</p>
           )}

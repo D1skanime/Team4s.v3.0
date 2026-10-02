@@ -1,6 +1,6 @@
 'use client'
 
-import Image from 'next/image'
+import { ResponsiveImage } from '@/components/ui/ResponsiveImage'
 
 import styles from './FansubBannerDisplay.module.css'
 
@@ -13,13 +13,13 @@ export function FansubBannerDisplay({ bannerURL, altText }: FansubBannerDisplayP
   return (
     <div className={styles.bannerShell}>
       <div className={styles.bannerImage}>
-        <Image
+        <ResponsiveImage
           src={bannerURL}
           alt={altText ?? ''}
           className={styles.bannerImageElement}
           width={1200}
           height={180}
-          unoptimized
+          quality={85}
           priority
         />
       </div>

@@ -23,7 +23,9 @@ describe('FansubMediaSection', () => {
     const html = renderToStaticMarkup(<FansubGroupMediaBlock media={[mediaRow()]} />)
 
     expect(html).toContain('visible_group_media')
-    expect(html).toContain('/media/group-gallery-thumb.jpg')
+    // ResponsiveImage routes through the Next.js image optimizer (173-14), so the raw
+    // path now appears URL-encoded inside the generated /_next/image src/srcSet.
+    expect(html).toContain(encodeURIComponent('/media/group-gallery-thumb.jpg'))
   })
 
   it('zeigt Empty State wenn keine public-profile Medien geliefert werden', () => {
