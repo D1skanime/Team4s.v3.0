@@ -222,3 +222,73 @@ build an automated apply-all-migrations-from-scratch fixture bootstrap) and add 
 `DELETE`-before-`INSERT` self-cleanup helpers to `fansub_public_profile_load_path_test.go`/
 `fansub_public_profile_query_budget_test.go`, mirroring the pattern this plan's and 173-08's new
 test files already use.
+
+## 173-16 Task 1: full backend-suite gate — pre-existing, environment-only failures (out of scope)
+
+**Found during:** Task 1's full-suite gate (`go test ./...` against the running `team4sv30-backend`
+container, no DSN/service env vars set beyond what Compose already provides).
+
+**Symptom:** 5 of the backend's ~17 packages report `FAIL`: `internal/handlers`, `internal/migrations`,
+`internal/models`, `internal/repository`, `internal/services`. Every individual failing test traces
+to one of these pre-existing, environment-only causes — **none** touch a file this phase's 16 plans
+modified (verified via `git log --oneline da77f954..HEAD -- <file>` per group below; `da77f954` is
+the phase's first commit):
+
+1. **Missing live-Postgres DSN env vars** (`TEAM4S_PHASE128_TEST_DSN`, `TEAM4S_PHASE134_MIGRATION_DSN`,
+   etc.) — the large majority of `internal/repository`/`internal/migrations` failures. These tests
+   fail-fast with an explicit `"... is required for Phase-NNN PostgreSQL tests"` message; they are
+   designed to skip/fail without a manually-exported DSN pointing at a scratch database, which this
+   close-out session did not set up (out of scope for an image-display-variant phase).
+2. **Missing fixture files inside the container** (`docs/audits/2026-09-15-jellyfin12/fixtures/*.json`
+   not present under the Compose-Watch-synced `/app`) — `internal/handlers`' three `11eyes*` Jellyfin
+   import tests. Already documented identically in 173-01's own SUMMARY.
+3. **Duplicate YAML key in `shared/contracts/openapi.yaml`** (`line 2205: mapping key "description"
+   already defined at line 2167`) — `internal/handlers`' `TestPhase136ContractParity`,
+   `TestPublicMemberProfileMatchesOpenAPIAllowList`, `TestPublicBadgeNextTierEnumParity`, and
+   `internal/models`' `TestJellyfinSourceContractSchemas`. Already documented identically in 173-01's
+   SUMMARY; confirmed the duplicate key's line range is untouched by any 173-* OpenAPI edit (173-11
+   only ever appended `display_url` properties, never touched line 2167/2205's pre-existing content).
+4. **Live-DB migration drift predating Phase 173** (`role_capabilities` missing the
+   `release_version_media.reorder` row added by migration `0172`, numbered — and landed — before
+   Phase 173 started) — `internal/repository`'s `TestPhase141RevokedDelegationImmediateEffect` and
+   `internal/services`' `TestPhase137EffectiveRightsOverrideMutationConcurrentConflictSerializes`/
+   `TestPhase141ReviewDecisionRemainsAuthoritativeUnderConcurrentRevoke` fail at permission-cache
+   startup with `"Action \"release_version_media.reorder\" fehlt in role_capabilities ... Startup
+   abgebrochen"`. `backend/internal/permissions/` and `database/migrations/` have zero commits in
+   `da77f954..HEAD` — this is the live dev database simply never having had migration `0172`'s seed
+   row applied, unrelated to any Phase 173 write path.
+5. **Unreachable test-only HTTP server / stale Keycloak test credentials** (`dial tcp
+   192.168.235.196:18093: connect: connection refused`, `invalid_grant` for `sheppert@team4s.local`)
+   — `internal/repository`'s seven `TestPhase134Matrix*` tests. These assume a second, dedicated test
+   server bound to port `18093` and working Keycloak password-grant credentials for the `sheppert`
+   fixture user, neither of which this session's environment provides. `backend/internal/handlers/
+   app_auth.go`'s PHASE-173 diff only adds `WithMediaToolPaths` (ffmpeg/vips path wiring, see 173-05's
+   SUMMARY) — it does not touch anything these tests exercise.
+6. **Stale cross-file substring test, already tracked** — `internal/repository`'s
+   `TestFansubRepository_PublicProfileSourceInvariants` (the `"FROM anime_media am"` check against
+   `fansub_repository.go`) is the SAME finding already logged above under "173-09: pre-existing
+   `TestFansubRepository_PublicProfileSourceInvariants` source-text gap" — re-confirmed here as part
+   of the full-suite gate, not a new regression.
+7. **Unrelated pre-existing logic/fixture gaps**, confirmed via `git log` to be outside every file this
+   phase touched: `TestEvaluateMemberMutationConflictBlocksLastActiveManager`
+   (`fansub_group_app_members_repository.go`, last touched by Phase 135),
+   `TestMemberClaimsRepositoryBlocksAlreadyAssignedMembers` and the `member_claims_memorial_guard_test.go`
+   trio (D-15 claim-memorial-guard feature, not yet implemented — unrelated feature gap), and the
+   `TestArchive*`/`TestMemberPointTotals*`/`TestLoadContributionBadges*`/`TestGetOwnDashboardPostgres*`/
+   `TestLoadBadgeProgress*`/`TestLoadPublicBadges*`/`TestLoadRoleVolume*` families, all gated behind
+   `TEAM4S_PHASE128_TEST_DSN` (see cause 1).
+
+**Why out of scope for 173-16:** Task 1's own scope is verification, not infrastructure repair; fixing
+any of these would mean either committing credentials/DSNs for a shared dev Postgres instance,
+applying a Phase-172 migration against the persistent dev database outside any phase's write path, or
+starting an unrelated second test-only HTTP server — all squarely outside this image-display-variant
+phase's `<files_modified>` and `<threat_model>`. `cd backend && go build ./...` is clean; every
+Phase-173-authored test (`backend/cmd/migrate-display-backfill/...`, the ~20 new `*_display_test.go`/
+`*_test.go` files listed in 173-01 through 173-10's own SUMMARYs) passes or cleanly self-skips without
+a DSN, confirmed individually in each plan's own SUMMARY.
+
+**Suggested follow-up:** A dedicated environment/fixture-maintenance task should (a) export the
+documented `TEAM4S_PHASE*_TEST_DSN` vars against a disposable scratch Postgres for a fully-green CI-
+style run, (b) apply migration `0172` (and confirm no other pending migrations) against the shared dev
+database, (c) fix the duplicate `description` key in `shared/contracts/openapi.yaml`, and (d) either
+start the `:18093` test server or retire the `TestPhase134Matrix*` suite's dependency on it.
