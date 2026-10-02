@@ -1,0 +1,48 @@
+/* Kompakte Mobile-Zeitleiste (Sketch 008): nur aktiv, wenn die Kara-Karten
+   bereits in der Release-Story stehen (showSegmentCards=false). */
+.legend {
+  display: none;
+}
+
+@media (max-width: 639px) {
+  .compactVisible.compactVisible {
+    display: grid;
+  }
+
+  .compactStage.compactStage {
+    --track-top: 8px;
+  }
+
+  .compactHidden.compactHidden {
+    display: none;
+  }
+
+  .legend {
+    display: grid;
+    gap: 8px;
+    margin: 4px 0 0;
+    padding: 0;
+    list-style: none;
+  }
+
+  .legendItem {
+    display: grid;
+    gap: 2px;
+    min-width: 0;
+    padding: 7px 10px;
+    border-left: 3px solid var(--segment-color);
+    background: color-mix(in srgb, var(--segment-color) 7%, var(--surface-card));
+    font-size: 12px;
+    line-height: 1.35;
+  }
+
+  .legendItem strong {
+    color: var(--text-primary);
+    overflow-wrap: anywhere;
+  }
+
+  .legendItem span {
+    color: var(--segment-color);
+    font-variant-numeric: tabular-nums;
+  }
+}

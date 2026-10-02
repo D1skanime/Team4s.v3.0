@@ -11,6 +11,7 @@ import type { PublicReleaseSegment } from '@/types/releaseDetail'
 
 import { segmentTypeDisplayLabel, SelectionSurface } from './ThemeTimelineSegmentDetails'
 import styles from './ThemeTimeline.module.css'
+import mobileStyles from './ThemeTimelineMobile.module.css'
 import galleryStyles from './ReleaseGallery.module.css'
 
 interface ThemeTimelineProps {
@@ -238,19 +239,22 @@ export function ThemeTimeline({
   useEffect(() => () => stopCurrentStream(), [stopCurrentStream])
 
   if (segments.length === 0) return null
+  // Ohne eigene Kara-Karten (Story-Seite) bleibt die Zeitleiste mobil sichtbar (Sketch 008).
+  const compactMobile = !showSegmentCards
+  const mobileClass = (name: keyof typeof mobileStyles) => (compactMobile ? ` ${mobileStyles[name]}` : '')
 
   return (
     <section id="op-ed-middle" className={styles.timelineSection} data-release-atmosphere-band="true">
       {showHeading ? <SectionHeader title="Karas" underline /> : null}
 
-      <div className={styles.desktopTimeline} aria-label="Kara-Zeitleiste der Episode">
+      <div className={styles.desktopTimeline + mobileClass('compactVisible')} aria-label="Kara-Zeitleiste der Episode">
         <div className={styles.timelineAnchors} aria-label="Gesamte Episodendauer">
           <time data-testid="kara-timeline-anchor" data-edge="start"><span>Start</span>{clock(0)}</time>
           <span>Gesamte Episode</span>
           <time data-testid="kara-timeline-anchor" data-edge="end"><span>Ende</span>{clock(duration)}</time>
         </div>
 
-        <div className={styles.trackStage} style={{ '--label-lane-count': labelLaneCount } as CSSProperties}>
+        <div className={styles.trackStage + mobileClass('compactStage')} style={{ '--label-lane-count': labelLaneCount } as CSSProperties}>
           <div className={styles.track} aria-hidden="true" />
           {geometries.map((geometry) => {
             const { segment } = geometry
@@ -275,7 +279,7 @@ export function ThemeTimeline({
                   onClick={() => jumpToSegment(segment.theme_segment_id)}
                 /> : null}
                 <span
-                  className={segmentClassName(segment, styles.outsideLabel)}
+                  className={segmentClassName(segment, styles.outsideLabel) + mobileClass('compactHidden')}
                   data-testid={`kara-outside-label-${segment.theme_segment_id}`}
                   data-lane={geometry.labelLane}
                   data-alignment={geometry.labelAlignment}
@@ -287,6 +291,14 @@ export function ThemeTimeline({
             )
           })}
         </div>
+        {compactMobile ? <ol className={mobileStyles.legend} data-testid="kara-mobile-legend">
+          {segments.map((segment) => (
+            <li key={segment.theme_segment_id} className={segmentClassName(segment, mobileStyles.legendItem)}>
+              <strong>{segment.name}</strong>
+              <span>{segmentTypeDisplayLabel(segment.type)} · {clock(segment.start_seconds)}–{clock(segment.end_seconds)}</span>
+            </li>
+          ))}
+        </ol> : null}
       </div>
 
       {showSegmentCards ? <div className={styles.segmentCards}>
