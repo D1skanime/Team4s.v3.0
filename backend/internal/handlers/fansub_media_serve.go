@@ -42,6 +42,18 @@ func (h *FansubHandler) ServeMediaFile(c *gin.Context) {
 		return
 	}
 
+	// D-17: Assets, die bereits in den neuen /media/fansub/<group_id>/...-Namensraum migriert
+	// wurden (neuer Upload seit Phase 173-04 ODER spaeterer Backfill 173-07), werden per
+	// dauerhaftem 301-Redirect auf die neue URL weitergeleitet statt die Bytes direkt
+	// auszuliefern -- alte/geteilte Links bleiben gueltig, es gibt kein Dual-Serving auf Dauer.
+	// Der Redirect-Ziel-Wert kommt ausschliesslich aus asset.PublicURL (serverseitig aus dem
+	// bereits gespeicherten Storage-Pfad abgeleitet), niemals aus Request-Parametern -- kein
+	// Open-Redirect moeglich (T-173-04-03).
+	if strings.HasPrefix(asset.PublicURL, "/media/fansub/") {
+		c.Redirect(http.StatusMovedPermanently, asset.PublicURL)
+		return
+	}
+
 	if _, err := os.Stat(asset.StoragePath); err != nil {
 		if os.IsNotExist(err) {
 			c.JSON(http.StatusNotFound, gin.H{"error": gin.H{"message": "datei nicht gefunden"}})

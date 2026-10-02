@@ -199,7 +199,7 @@ func (h *FansubHandler) saveFansubMediaUpload(
 	filename string,
 	data []byte,
 ) (*services.MediaSaveResult, bool) {
-	saveResult, err := h.mediaService.SaveUpload(kind, filename, data)
+	saveResult, err := h.mediaService.SaveUpload(kind, filename, data, fansubID)
 	if err != nil {
 		var validationErr *services.MediaValidationError
 		if errors.As(err, &validationErr) {
@@ -263,6 +263,13 @@ func (h *FansubHandler) persistFansubMediaAsset(
 		c.JSON(http.StatusInternalServerError, gin.H{"error": gin.H{"message": "upload fehlgeschlagen"}})
 		return nil, false
 	}
+	if err := h.persistFansubMediaDisplayVariants(c.Request.Context(), asset.ID, saveResult.Variants); err != nil {
+		_ = h.mediaRepo.DeleteMediaAsset(c.Request.Context(), asset.ID)
+		_ = removeFileQuietly(asset.StoragePath)
+		log.Printf("fansub media upload: insert display media file failed (user_id=%d, fansub_id=%d, media_id=%d): %v", userID, fansubID, asset.ID, err)
+		c.JSON(http.StatusInternalServerError, gin.H{"error": gin.H{"message": "upload fehlgeschlagen"}})
+		return nil, false
+	}
 	if sourceResult != nil && strings.TrimSpace(sourceResult.StoragePath) != "" && sourceResult.StoragePath != asset.StoragePath {
 		if err := h.mediaRepo.InsertMediaFile(c.Request.Context(), asset.ID, "source_original", sourceResult.StoragePath, sourceResult.SizeBytes); err != nil {
 			_ = h.mediaRepo.DeleteMediaAsset(c.Request.Context(), asset.ID)
@@ -305,6 +312,7 @@ type fansubGroupMediaFileResult struct {
 	PreviewURL     string `json:"preview_url,omitempty"`
 	ThumbnailURL   string `json:"thumbnail_url,omitempty"`
 	OriginalURL    string `json:"original_url,omitempty"`
+	DisplayURL     string `json:"display_url,omitempty"`
 	ErrorCode      string `json:"error_code,omitempty"`
 	Message        string `json:"message,omitempty"`
 }
@@ -437,7 +445,7 @@ func (h *FansubHandler) processOneFansubGroupMediaFile(
 	if len(data) > rvmMaxFileSizeBytes {
 		return fansubGroupMediaFileResult{ClientFileName: clientName, Status: "failed", ErrorCode: "FILE_TOO_LARGE", Message: "bild ist zu groß (max 15MB)"}
 	}
-	saveResult, err := h.mediaService.SaveUpload(models.MediaKindImage, clientName, data)
+	saveResult, err := h.mediaService.SaveUpload(models.MediaKindImage, clientName, data, fansubID)
 	if err != nil {
 		var validationErr *services.MediaValidationError
 		if errors.As(err, &validationErr) {
@@ -458,22 +466,28 @@ func (h *FansubHandler) processOneFansubGroupMediaFile(
 		_ = removeFileQuietly(thumbPath)
 		return fansubGroupMediaFileResult{ClientFileName: clientName, Status: "failed", ErrorCode: "STORAGE_FAILED", Message: "thumbnail konnte nicht gespeichert werden"}
 	}
+	displayVariant := firstFansubDisplayVariant(saveResult.Variants)
+	cleanupGroupMediaFiles := func() {
+		_ = removeFileQuietly(saveResult.CreateInput.StoragePath)
+		_ = removeFileQuietly(thumbPath)
+		if displayVariant != nil {
+			_ = removeFileQuietly(displayVariant.StoragePath)
+		}
+	}
 	saveResult.CreateInput.VisibilityCode = &visibilityCode
 	saveResult.CreateInput.ReviewStatusCode = &reviewStatusCode
 
 	ctx := c.Request.Context()
 	tx, err := h.mediaRepo.BeginTx(ctx)
 	if err != nil {
-		_ = removeFileQuietly(saveResult.CreateInput.StoragePath)
-		_ = removeFileQuietly(thumbPath)
+		cleanupGroupMediaFiles()
 		return fansubGroupMediaFileResult{ClientFileName: clientName, Status: "failed", ErrorCode: "DB_FAILED", Message: "transaktion konnte nicht gestartet werden"}
 	}
 	defer tx.Rollback(ctx)
 
 	mediaAsset, err := h.mediaRepo.CreateMediaAssetWithStatusTx(ctx, tx, saveResult.CreateInput, "processing")
 	if err != nil {
-		_ = removeFileQuietly(saveResult.CreateInput.StoragePath)
-		_ = removeFileQuietly(thumbPath)
+		cleanupGroupMediaFiles()
 		return fansubGroupMediaFileResult{ClientFileName: clientName, Status: "failed", ErrorCode: "DB_FAILED", Message: "media asset konnte nicht erstellt werden"}
 	}
 	width, height := 0, 0
@@ -484,14 +498,25 @@ func (h *FansubHandler) processOneFansubGroupMediaFile(
 		height = *saveResult.CreateInput.Height
 	}
 	if err := h.mediaRepo.InsertMediaFileWithStatus(ctx, tx, mediaAsset.ID, "original", saveResult.CreateInput.StoragePath, width, height, int64(len(data)), "processing"); err != nil {
-		_ = removeFileQuietly(saveResult.CreateInput.StoragePath)
-		_ = removeFileQuietly(thumbPath)
+		cleanupGroupMediaFiles()
 		return fansubGroupMediaFileResult{ClientFileName: clientName, Status: "failed", ErrorCode: "DB_FAILED", Message: "media file konnte nicht erstellt werden"}
 	}
 	if err := h.mediaRepo.InsertMediaFileWithStatus(ctx, tx, mediaAsset.ID, "thumb", thumbPath, thumbWidth, thumbHeight, int64(len(thumbData)), "processing"); err != nil {
-		_ = removeFileQuietly(saveResult.CreateInput.StoragePath)
-		_ = removeFileQuietly(thumbPath)
+		cleanupGroupMediaFiles()
 		return fansubGroupMediaFileResult{ClientFileName: clientName, Status: "failed", ErrorCode: "DB_FAILED", Message: "thumbnail file konnte nicht erstellt werden"}
+	}
+	if displayVariant != nil {
+		displayWidth, displayHeight := 0, 0
+		if displayVariant.Width != nil {
+			displayWidth = *displayVariant.Width
+		}
+		if displayVariant.Height != nil {
+			displayHeight = *displayVariant.Height
+		}
+		if err := h.mediaRepo.InsertMediaFileWithStatus(ctx, tx, mediaAsset.ID, "display", displayVariant.StoragePath, displayWidth, displayHeight, displayVariant.SizeBytes, "processing"); err != nil {
+			cleanupGroupMediaFiles()
+			return fansubGroupMediaFileResult{ClientFileName: clientName, Status: "failed", ErrorCode: "DB_FAILED", Message: "display file konnte nicht erstellt werden"}
+		}
 	}
 	uploadedBy := uploadedByUserID
 	if err := h.mediaRepo.CreateFansubGroupMediaAsset(ctx, tx, repository.FansubGroupMediaCreateInput{
@@ -501,32 +526,33 @@ func (h *FansubHandler) processOneFansubGroupMediaFile(
 		SortOrder:        sortOrder,
 		UploadedByUserID: &uploadedBy,
 	}); err != nil {
-		_ = removeFileQuietly(saveResult.CreateInput.StoragePath)
-		_ = removeFileQuietly(thumbPath)
+		cleanupGroupMediaFiles()
 		return fansubGroupMediaFileResult{ClientFileName: clientName, Status: "failed", ErrorCode: "DB_FAILED", Message: "gruppenmedium konnte nicht erstellt werden"}
 	}
 	if err := h.mediaRepo.UpdateMediaAssetStatusRVMTx(ctx, tx, mediaAsset.ID, "ready"); err != nil {
-		_ = removeFileQuietly(saveResult.CreateInput.StoragePath)
-		_ = removeFileQuietly(thumbPath)
+		cleanupGroupMediaFiles()
 		return fansubGroupMediaFileResult{ClientFileName: clientName, Status: "failed", ErrorCode: "DB_FAILED", Message: "media asset status konnte nicht gesetzt werden"}
 	}
 	if err := h.mediaRepo.UpdateMediaFileStatusRVMTx(ctx, tx, mediaAsset.ID, "ready"); err != nil {
-		_ = removeFileQuietly(saveResult.CreateInput.StoragePath)
-		_ = removeFileQuietly(thumbPath)
+		cleanupGroupMediaFiles()
 		return fansubGroupMediaFileResult{ClientFileName: clientName, Status: "failed", ErrorCode: "DB_FAILED", Message: "media file status konnte nicht gesetzt werden"}
 	}
 	if err := tx.Commit(ctx); err != nil {
-		_ = removeFileQuietly(saveResult.CreateInput.StoragePath)
-		_ = removeFileQuietly(thumbPath)
+		cleanupGroupMediaFiles()
 		return fansubGroupMediaFileResult{ClientFileName: clientName, Status: "failed", ErrorCode: "DB_FAILED", Message: "transaktion konnte nicht committed werden"}
 	}
 
 	thumbURL := groupMediaFileProxyURL(thumbPath)
+	displayURL := ""
+	if displayVariant != nil {
+		displayURL = groupMediaFileProxyURL(displayVariant.StoragePath)
+	}
 	return fansubGroupMediaFileResult{
 		ClientFileName: clientName,
 		Status:         "ready",
 		MediaAssetID:   &mediaAsset.ID,
 		PreviewURL:     thumbURL,
+		DisplayURL:     displayURL,
 		ThumbnailURL:   thumbURL,
 		OriginalURL:    saveResult.CreateInput.PublicURL,
 	}

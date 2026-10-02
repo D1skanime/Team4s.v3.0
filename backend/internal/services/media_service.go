@@ -10,16 +10,20 @@ import (
 	_ "image/jpeg"
 	_ "image/png"
 	"io/fs"
+	"log"
 	"net/http"
 	"net/url"
 	"os"
 	"path/filepath"
+	"strconv"
 	"strings"
 	"time"
 
 	"team4s.v3/backend/internal/models"
 
 	"github.com/gabriel-vasile/mimetype"
+
+	_ "golang.org/x/image/webp"
 )
 
 // MediaSaveResult enthält das Ergebnis einer erfolgreichen Medien-Speicheroperation,
@@ -31,8 +35,10 @@ type MediaSaveResult struct {
 }
 
 // MediaVariantSaveResult beschreibt eine gespeicherte Datei-Variante zu einem
-// bestehenden Media-Asset, z.B. die interne source_original-Datei.
+// bestehenden Media-Asset, z.B. die interne source_original-Datei oder (seit Phase 173) die
+// automatisch von SaveUpload erzeugte "display"-Variante.
 type MediaVariantSaveResult struct {
+	Variant     string // z.B. "source_original", "display"
 	Filename    string
 	StoragePath string
 	PublicURL   string
@@ -88,9 +94,35 @@ func NewMediaService(storageDir, publicBaseURL string, ffmpegPath ...string) *Me
 	}
 }
 
+// FFmpegPath gibt den konfigurierten ffmpeg-Binärpfad zurück (leer = nicht konfiguriert).
+// Exportiert, damit handlers-seitige Aufrufer (RVM-Upload/Replace, Fansub-Gruppenmedien), die
+// bereits einen *services.MediaService referenzieren, denselben Pfad für ihre eigene
+// animierte-GIF-Display-Erzeugung (services.GenerateAnimatedWebPDisplayFromBytes) wiederverwenden
+// können, statt eine zweite Konfigurationsquelle zu benötigen.
+func (s *MediaService) FFmpegPath() string {
+	return s.ffmpegPath
+}
+
+// isSaveUploadPathWithinBase prüft, dass ein aufgelöster absoluter Pfad innerhalb von base
+// liegt. Lokale Entsprechung des handlers-Pakets isUploadPathWithinBase (services kann
+// handlers nicht importieren, um einen Importzyklus zu vermeiden).
+func isSaveUploadPathWithinBase(base string, target string) (bool, error) {
+	rel, err := filepath.Rel(filepath.Clean(base), filepath.Clean(target))
+	if err != nil {
+		return false, err
+	}
+	if rel == ".." || strings.HasPrefix(rel, ".."+string(os.PathSeparator)) {
+		return false, nil
+	}
+	return true, nil
+}
+
 // SaveUpload validiert und speichert einen Medien-Upload für die angegebene MediaKind.
-// Gibt ein MediaSaveResult mit Dateiinformationen zurück oder einen MediaValidationError bei ungültigen Daten.
-func (s *MediaService) SaveUpload(kind models.MediaKind, originalName string, data []byte) (*MediaSaveResult, error) {
+// groupID > 0 namespaced Fansub-Branding-/Gruppenmedien-Uploads (Logo, Banner, Bild) unter
+// <storageDir>/fansub/<groupID>/... (D-09) statt flach im Media-Root; groupID <= 0 behält das
+// bisherige flache Layout bei. Gibt ein MediaSaveResult mit Dateiinformationen zurück oder
+// einen MediaValidationError bei ungültigen Daten.
+func (s *MediaService) SaveUpload(kind models.MediaKind, originalName string, data []byte, groupID int64) (*MediaSaveResult, error) {
 	if len(data) == 0 {
 		return nil, &MediaValidationError{Message: "datei ist leer"}
 	}
@@ -116,10 +148,28 @@ func (s *MediaService) SaveUpload(kind models.MediaKind, originalName string, da
 		return nil, err
 	}
 
+	// D-06/D-15: WebP-Originale behalten ihre echten Bytes, aber ohne EXIF/XMP-Metadaten.
+	if detectedMime == "image/webp" {
+		stripped, stripErr := StripWebPMetadata(data)
+		if stripErr != nil {
+			return nil, fmt.Errorf("webp exif/xmp entfernen: %w", stripErr)
+		}
+		data = stripped
+	}
+
 	width, height := decodeImageDimensions(data)
 	ext := extensionFromMime(detectedMime)
 	filename := buildFilename(kind, ext)
-	absolutePath := filepath.Join(s.storageDir, filename)
+
+	namespaced := groupID > 0 && (kind == models.MediaKindLogo || kind == models.MediaKindBanner || kind == models.MediaKindImage)
+	relativeDir := ""
+	if namespaced {
+		relativeDir = filepath.Join("fansub", strconv.FormatInt(groupID, 10))
+	}
+	absolutePath := filepath.Join(s.storageDir, relativeDir, filename)
+	if ok, err := isSaveUploadPathWithinBase(s.storageDir, absolutePath); err != nil || !ok {
+		return nil, fmt.Errorf("ungültige pfadangabe für media upload")
+	}
 
 	if err := os.MkdirAll(filepath.Dir(absolutePath), 0o755); err != nil {
 		return nil, fmt.Errorf("create media directory: %w", err)
@@ -129,6 +179,9 @@ func (s *MediaService) SaveUpload(kind models.MediaKind, originalName string, da
 	}
 
 	publicURL := fmt.Sprintf("%s/api/v1/media/files/%s", s.publicBaseURL, url.PathEscape(filename))
+	if namespaced {
+		publicURL = fmt.Sprintf("%s/media/%s/%s", s.publicBaseURL, filepath.ToSlash(relativeDir), url.PathEscape(filename))
+	}
 
 	result := &MediaSaveResult{
 		CreateInput: models.MediaAssetCreateInput{
@@ -146,8 +199,74 @@ func (s *MediaService) SaveUpload(kind models.MediaKind, originalName string, da
 		result.GIFLargeHint = true
 	}
 
+	if variant := s.buildDisplayVariant(detectedMime, data, filepath.Dir(absolutePath)); variant != nil {
+		result.Variants = append(result.Variants, *variant)
+	}
+
 	_ = originalName
 	return result, nil
+}
+
+// buildDisplayVariant erzeugt (sofern moeglich) die "display"-Variante fuer einen Upload nach
+// D-18/D-19: SVG wird nie rasterisiert (keine Pixel-Dimensionen); animierte GIFs bleiben als
+// animiertes WebP animiert (Rueckfall: Original-GIF unveraendert, falls ffmpeg fehlschlaegt);
+// alle anderen statischen Bilder nutzen die gemeinsame EncodeStaticDisplayVariant-Funktion
+// (PNG bei Transparenz, sonst JPEG). Fehler hier sind nicht fatal fuer den Upload selbst -- der
+// Aufrufer bekommt original/thumb in jedem Fall, nur ohne zusaetzliche "display"-Zeile.
+func (s *MediaService) buildDisplayVariant(detectedMime string, data []byte, dir string) *MediaVariantSaveResult {
+	if detectedMime == "image/svg+xml" {
+		return nil
+	}
+
+	if detectedMime == "image/gif" && IsAnimatedGIFData(data) {
+		webpData, w, h, err := GenerateAnimatedWebPDisplayFromBytes(s.ffmpegPath, data)
+		if err == nil {
+			return s.writeDisplayVariant(webpData, "display.webp", "image/webp", &w, &h, dir)
+		}
+		log.Printf("media upload: animierte display-variante konnte nicht erzeugt werden, original bleibt display (nicht-fatal): %v", err)
+		cfg, _, cfgErr := image.DecodeConfig(bytes.NewReader(data))
+		if cfgErr != nil {
+			return nil
+		}
+		w, h = cfg.Width, cfg.Height
+		return s.writeDisplayVariant(data, "display.gif", "image/gif", &w, &h, dir)
+	}
+
+	decoded, _, err := image.Decode(bytes.NewReader(data))
+	if err != nil {
+		log.Printf("media upload: display-quelle konnte nicht dekodiert werden (nicht-fatal): %v", err)
+		return nil
+	}
+	bounds := decoded.Bounds()
+	displayData, ext, mimeType, w, h, encErr := EncodeStaticDisplayVariant(decoded, bounds.Dx(), bounds.Dy())
+	if encErr != nil {
+		log.Printf("media upload: display-variante konnte nicht erzeugt werden (nicht-fatal): %v", encErr)
+		return nil
+	}
+	return s.writeDisplayVariant(displayData, "display."+ext, mimeType, &w, &h, dir)
+}
+
+func (s *MediaService) writeDisplayVariant(data []byte, filename, mimeType string, width, height *int, dir string) *MediaVariantSaveResult {
+	displayPath := filepath.Join(dir, filename)
+	if err := os.WriteFile(displayPath, data, fs.FileMode(0o644)); err != nil {
+		log.Printf("media upload: display-variante konnte nicht gespeichert werden (nicht-fatal): %v", err)
+		return nil
+	}
+	rel, relErr := filepath.Rel(s.storageDir, displayPath)
+	publicURL := ""
+	if relErr == nil {
+		publicURL = fmt.Sprintf("%s/media/%s", s.publicBaseURL, filepath.ToSlash(rel))
+	}
+	return &MediaVariantSaveResult{
+		Variant:     "display",
+		Filename:    filename,
+		StoragePath: displayPath,
+		PublicURL:   publicURL,
+		MimeType:    mimeType,
+		SizeBytes:   int64(len(data)),
+		Width:       width,
+		Height:      height,
+	}
 }
 
 // SaveUploadSourceOriginal validiert und speichert die unbearbeitete Quelle zu

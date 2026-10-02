@@ -44,6 +44,6 @@ func (r *MediaRepository) GetMediaFileByFilename(ctx context.Context, filename s
 
 	item.StoragePath = r.resolveReadableStoragePath(item.StoragePath)
 	item.Filename = mediaFilename(item.StoragePath)
-	item.PublicURL = r.buildPublicURL(item.Filename)
+	item.PublicURL = r.buildPublicURLForAsset(item.StoragePath, item.Filename)
 	return &item, nil
 }

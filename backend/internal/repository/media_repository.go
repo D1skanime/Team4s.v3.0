@@ -145,7 +145,7 @@ func (r *MediaRepository) CreateMediaAsset(
 		return nil, fmt.Errorf("create media asset: load media type %q: %w", mediaTypeName, err)
 	}
 
-	publicURL := r.buildPublicURL(filename)
+	publicURL := r.buildPublicURLForAsset(storagePath, filename)
 	var item models.MediaAsset
 	if input.VisibilityCode != nil && input.ReviewStatusCode != nil {
 		// Sub-SELECT-INSERT: visibility_id und review_status_id per Lookup-Tabellen aufgelöst (Lock K)
@@ -215,7 +215,7 @@ func (r *MediaRepository) GetMediaAssetByID(ctx context.Context, mediaID int64) 
 
 	item.StoragePath = r.resolveReadableStoragePath(item.StoragePath)
 	item.Filename = mediaFilename(item.StoragePath)
-	item.PublicURL = r.buildPublicURL(item.Filename)
+	item.PublicURL = r.buildPublicURLForAsset(item.StoragePath, item.Filename)
 	return &item, nil
 }
 
@@ -247,7 +247,7 @@ func (r *MediaRepository) GetMediaAssetByFilename(ctx context.Context, filename 
 
 	item.StoragePath = r.resolveReadableStoragePath(item.StoragePath)
 	item.Filename = mediaFilename(item.StoragePath)
-	item.PublicURL = r.buildPublicURL(item.Filename)
+	item.PublicURL = r.buildPublicURLForAsset(item.StoragePath, item.Filename)
 	return &item, nil
 }
 
@@ -469,6 +469,38 @@ func (r *MediaRepository) buildPublicURL(filename string) string {
 		return "/api/v1/media/files/" + url.PathEscape(trimmed)
 	}
 	return r.publicBaseURL + "/api/v1/media/files/" + url.PathEscape(trimmed)
+}
+
+// fansubNamespacedPublicURL gibt die "/media/..."-Public-URL fuer einen Storage-Pfad zurueck,
+// der bereits im Phase-173-Fansub-Namensraum liegt (<storageDir>/fansub/<group_id>/<filename>),
+// oder "" wenn storagePath NICHT in diesem Namensraum liegt (D-09/D-17). Dieser Pfad wird direkt
+// vom statischen /media-Mount ausgeliefert (siehe cmd/server/main.go StaticFS), nicht ueber die
+// Legacy-Route /api/v1/media/files/:filename.
+func (r *MediaRepository) fansubNamespacedPublicURL(storagePath string) string {
+	trimmed := strings.TrimSpace(storagePath)
+	if trimmed == "" || strings.TrimSpace(r.storageDir) == "" {
+		return ""
+	}
+	rel, err := filepath.Rel(r.storageDir, trimmed)
+	if err != nil {
+		return ""
+	}
+	rel = filepath.ToSlash(rel)
+	if rel == ".." || strings.HasPrefix(rel, "../") || !strings.HasPrefix(rel, "fansub/") {
+		return ""
+	}
+	return "/media/" + rel
+}
+
+// buildPublicURLForAsset ist die bevorzugte Public-URL-Konstruktion fuer Media-Assets: nutzt den
+// neuen namespaced /media/fansub/<group_id>/... Pfad, wenn storagePath bereits dorthin migriert
+// wurde (neuer Upload ODER Backfill), sonst die Legacy-Route (unveraendertes Verhalten fuer alle
+// nicht-Fansub-Assets und noch nicht migrierte Fansub-Assets).
+func (r *MediaRepository) buildPublicURLForAsset(storagePath, filename string) string {
+	if u := r.fansubNamespacedPublicURL(storagePath); u != "" {
+		return u
+	}
+	return r.buildPublicURL(filename)
 }
 
 func (r *MediaRepository) resolveReadableStoragePath(raw string) string {
