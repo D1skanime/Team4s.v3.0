@@ -101,12 +101,20 @@ describe('MembershipsSection', () => {
     expect(container.querySelector('section[class*="cardInteractive"]')).not.toBeNull()
     expect(container.querySelector('img')?.getAttribute('src')).toBe('resolved:/api/v1/media/files/logo.png')
     expect(container.querySelector('img')?.getAttribute('alt')).toBe('AnimeOwnage Logo')
+    // 173-16 Task 0a: this test's resolveApiUrl mock produces an opaque
+    // "resolved:/api/v1/media/files/logo.png" value that matches neither
+    // images.localPatterns nor remotePatterns (no real host/protocol), so
+    // ResponsiveImage now correctly renders unoptimized to avoid next/image's
+    // own E426 crash for this exact legacy flat-media-path shape -- the real
+    // live-UAT finding this plan's Task 0a fixes. In real production with a
+    // configured NEXT_PUBLIC_API_URL, resolveApiUrl returns a full absolute
+    // URL that DOES match the configured API-media remotePattern instead.
     expect(nextImageRenderMock).toHaveBeenCalledWith(expect.objectContaining({
       width: 52,
       height: 52,
       sizes: '52px',
       loading: 'lazy',
-      unoptimized: false,
+      unoptimized: true,
     }))
     // D-06: server-authoritative label rendered; raw code never printed as text.
     expect(screen.getAllByText('Gruppenleitung')).toHaveLength(1)
