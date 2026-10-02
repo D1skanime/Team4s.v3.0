@@ -102,7 +102,7 @@ func TestBuildFFmpegSegmentArgsMapsVideoAudioAndBurnsSubtitle(t *testing.T) {
 		"-c:v libx264",
 		"-pix_fmt yuv420p",
 		"-c:a aac",
-		"-vf subtitles='/work/ep01.ass'",
+		"-vf setpts=PTS+10/TB,subtitles='/work/ep01.ass',setpts=PTS-STARTPTS",
 		"/cache/clip.mp4",
 	}
 	for _, fragment := range required {

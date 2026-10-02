@@ -143,10 +143,13 @@ func BuildFFmpegSegmentArgs(input SegmentRenderCommandInput) ([]string, error) {
 	}
 	args = append(args, "-i", strings.TrimSpace(input.StreamURL))
 	if strings.TrimSpace(input.SubtitleFilePath) != "" {
-		filter := "subtitles=" + escapeFFmpegSubtitlePath(input.SubtitleFilePath)
+		subtitleFilter := "subtitles=" + escapeFFmpegSubtitlePath(input.SubtitleFilePath)
 		if strings.TrimSpace(input.SubtitleFontsDir) != "" {
-			filter += ":fontsdir=" + escapeFFmpegSubtitlePath(input.SubtitleFontsDir)
+			subtitleFilter += ":fontsdir=" + escapeFFmpegSubtitlePath(input.SubtitleFontsDir)
 		}
+		// Input-Seeking (-ss vor -i) setzt die Zeitstempel auf 0 zurueck; ohne Rueckverschiebung
+		// wuerde der Filter die ASS-Zeilen ab Folgenbeginn statt ab Segmentstart einbrennen.
+		filter := fmt.Sprintf("setpts=PTS+%d/TB,%s,setpts=PTS-STARTPTS", input.StartSeconds, subtitleFilter)
 		args = append(args, "-vf", filter)
 	}
 	args = append(args,
