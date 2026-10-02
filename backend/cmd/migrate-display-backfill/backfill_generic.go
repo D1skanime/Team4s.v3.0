@@ -1,0 +1,165 @@
+package main
+
+import (
+	"context"
+	"fmt"
+	"log"
+	"os"
+	"path/filepath"
+	"strings"
+
+	"team4s.v3/backend/internal/handlers"
+
+	"github.com/google/uuid"
+	"github.com/jackc/pgx/v5/pgxpool"
+)
+
+// genericDisplayCandidate is one media_asset that already has a 'ready' 'original' media_files
+// row but no 'display' row yet -- covers every media_files-table-driven asset type uniformly
+// (anime/profile-avatar/background/segment-preview/release-version-media/fansub-logo-banner/
+// fansub-group-media): they all share the exact same media_assets/media_files shape, so one query
+// and one processing function covers all of them.
+type genericDisplayCandidate struct {
+	MediaAssetID   int64
+	OriginalPath   string
+	OriginalWidth  int
+	OriginalHeight int
+	MimeType       string
+}
+
+// runGenericDisplayBackfill implements Task 1: for every media_asset with a ready 'original' but
+// no 'display' row, generate one via the exact same shared display-variant generator every live
+// write path in this phase already uses (handlers.GenerateStaticDisplayVariant, 173-02/173-04/
+// 173-05) -- so a backfilled display row is byte-for-byte what a fresh upload would have produced
+// for the same source image, including D-18 (transparency stays PNG), D-19/D-20/D-21 (animated
+// GIF/WebP display variants stay animated via ffmpeg/vipsthumbnail).
+func runGenericDisplayBackfill(ctx context.Context, db *pgxpool.Pool, cfg Config) (*BackfillStats, error) {
+	stats := &BackfillStats{}
+
+	candidates, err := fetchGenericDisplayCandidates(ctx, db)
+	if err != nil {
+		return nil, fmt.Errorf("fetch generic display candidates: %w", err)
+	}
+	stats.TotalCandidates = len(candidates)
+	log.Printf("generic display backfill: found %d media_asset(s) missing a display variant\n", stats.TotalCandidates)
+
+	for _, candidate := range candidates {
+		if cfg.DryRun {
+			stats.ProcessedOK++
+			log.Printf("DRY RUN: would generate display variant for media_asset %d\n", candidate.MediaAssetID)
+			continue
+		}
+		if err := processGenericDisplayCandidate(ctx, db, cfg, candidate); err != nil {
+			log.Printf("FAILED media_asset %d: %v\n", candidate.MediaAssetID, err)
+			stats.Failed++
+			continue
+		}
+		stats.ProcessedOK++
+		log.Printf("OK: media_asset %d\n", candidate.MediaAssetID)
+	}
+
+	return stats, nil
+}
+
+// fetchGenericDisplayCandidates is the primary idempotency guard (a snapshot of "missing
+// display" at query time) -- processGenericDisplayCandidate's race-safe INSERT below is the
+// second, concurrency-safe guard on top of this snapshot.
+func fetchGenericDisplayCandidates(ctx context.Context, db *pgxpool.Pool) ([]genericDisplayCandidate, error) {
+	rows, err := db.Query(ctx, `
+		SELECT DISTINCT ON (ma.id) ma.id, mf_orig.path, mf_orig.width, mf_orig.height, ma.mime_type
+		FROM media_assets ma
+		JOIN media_files mf_orig ON mf_orig.media_id = ma.id AND mf_orig.variant = 'original' AND mf_orig.status = 'ready'
+		LEFT JOIN media_files mf_display ON mf_display.media_id = ma.id AND mf_display.variant = 'display'
+		WHERE mf_display.id IS NULL
+		ORDER BY ma.id
+	`)
+	if err != nil {
+		return nil, fmt.Errorf("query generic display candidates: %w", err)
+	}
+	defer rows.Close()
+
+	var candidates []genericDisplayCandidate
+	for rows.Next() {
+		var c genericDisplayCandidate
+		var width, height *int
+		if err := rows.Scan(&c.MediaAssetID, &c.OriginalPath, &width, &height, &c.MimeType); err != nil {
+			return nil, fmt.Errorf("scan generic display candidate: %w", err)
+		}
+		if width != nil {
+			c.OriginalWidth = *width
+		}
+		if height != nil {
+			c.OriginalHeight = *height
+		}
+		candidates = append(candidates, c)
+	}
+	if err := rows.Err(); err != nil {
+		return nil, fmt.Errorf("iterate generic display candidates: %w", err)
+	}
+	return candidates, nil
+}
+
+// processGenericDisplayCandidate reads the original file from disk, generates its display
+// variant via handlers.GenerateStaticDisplayVariant (the exact same helper 173-02/173-04/173-05's
+// live write paths call -- NOT a reimplementation), and registers it with a race-safe INSERT.
+// Errors are returned (never fatal) so a single broken asset cannot abort the batch.
+//
+// Filename note: the final path is derived from the ORIGINAL's own (already-unique) basename,
+// not a fixed "display.<ext>" literal. Every live write path (segment-preview, admin uploads)
+// gives each upload its own dedicated directory, so a fixed name never collides there -- but the
+// pre-existing flat layout this backfill specifically targets (legacy fansub media, legacy story
+// images) stores MANY different assets' files side by side in the SAME directory with no
+// per-asset subdirectory. A fixed "display.<ext>" name would silently collide between them
+// (asset A's and asset B's display file both resolving to the exact same path); deriving the
+// name from the original's own unique basename avoids this entirely while still being completely
+// deterministic.
+//
+// Concurrency note: the generated bytes are first written to a PER-CALL-UNIQUE temp path, and
+// only renamed into the final deterministic path AFTER this call's INSERT has won the WHERE NOT
+// EXISTS race. Two concurrent callers racing on the same candidate (same media_asset, same
+// deterministic final path) therefore never write to, or clean up, each other's file -- the
+// loser's cleanup only ever touches ITS OWN uniquely-named temp file, never the winner's
+// already-renamed final file (T-173-07-01).
+func processGenericDisplayCandidate(ctx context.Context, db *pgxpool.Pool, cfg Config, candidate genericDisplayCandidate) error {
+	data, err := os.ReadFile(candidate.OriginalPath)
+	if err != nil {
+		return fmt.Errorf("read original file: %w", err)
+	}
+
+	displayData, ext, _, width, height, err := handlers.GenerateStaticDisplayVariant(data, candidate.MimeType, cfg.FFmpegPath, cfg.VipsThumbnailPath)
+	if err != nil {
+		return fmt.Errorf("generate display variant: %w", err)
+	}
+
+	destDir := filepath.Dir(candidate.OriginalPath)
+	originalBase := filepath.Base(candidate.OriginalPath)
+	originalBaseNoExt := strings.TrimSuffix(originalBase, filepath.Ext(originalBase))
+	finalPath := filepath.Join(destDir, originalBaseNoExt+"_display."+ext)
+	tempPath := filepath.Join(destDir, fmt.Sprintf(".display-backfill-%d-%s.%s", candidate.MediaAssetID, uuid.New().String(), ext))
+	if err := os.WriteFile(tempPath, displayData, 0o644); err != nil {
+		return fmt.Errorf("write temp display file: %w", err)
+	}
+
+	tag, err := db.Exec(ctx, `
+		INSERT INTO media_files (media_id, variant, path, width, height, size, status)
+		SELECT $1, 'display', $2, $3, $4, $5, 'ready'
+		WHERE NOT EXISTS (SELECT 1 FROM media_files WHERE media_id = $1 AND variant = 'display')
+	`, candidate.MediaAssetID, finalPath, width, height, int64(len(displayData)))
+	if err != nil {
+		removeFileQuietly(tempPath)
+		return fmt.Errorf("insert display media_files row: %w", err)
+	}
+	if tag.RowsAffected() == 0 {
+		// A concurrent backfill run (or a live upload) already created a display row for this
+		// asset between our candidate snapshot and this INSERT -- clean up our own temp file
+		// (never the winner's final file) and treat this as a lost race, not a hard batch failure.
+		removeFileQuietly(tempPath)
+		return fmt.Errorf("media_asset %d already received a display variant concurrently", candidate.MediaAssetID)
+	}
+
+	if err := os.Rename(tempPath, finalPath); err != nil {
+		return fmt.Errorf("install display file into final location: %w", err)
+	}
+
+	return nil
+}
