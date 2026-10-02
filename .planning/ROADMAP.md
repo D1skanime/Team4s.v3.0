@@ -2276,3 +2276,13 @@ Plans:
 **Wave 6** *(blocked on Wave 5 completion)*
 
 - [x] 172-10-PLAN.md — live UAT on Release 27 (desktop + mobile)
+
+### Phase 173: Öffentliche Bildqualität: zusätzliche Display-Variante (Backend) als Quelle für die Next.js-Bildoptimierung auf allen Public-Seiten, Original bleibt 1:1 und erscheint nur per Klick, Admin/Bearbeitung behält Thumbnails, eigener Media-Namensraum mit Musterliste und Test für Fansub-/Gruppenbilder, animierte GIFs bekommen eine animierte Display-Variante, Backfill für Bestandsbilder
+
+**Goal:** [To be planned]
+**Requirements**: TBD
+**Depends on:** Phase 172
+**Plans:** 0 plans
+
+Plans:
+- [ ] TBD (run /gsd-plan-phase 173 to break down)

@@ -401,6 +401,7 @@ Last activity: 2026-10-01 - Completed quick task 261001-trj: Segment-Bearbeitung
 
 ### Roadmap Evolution
 
+- Phase 173 added (2026-10-02): Öffentliche Bildqualität — zusätzliche Display-Variante (Backend) als Quelle für die Next.js-Bildoptimierung auf allen Public-Seiten, Original bleibt 1:1 und erscheint nur per Klick, Admin/Bearbeitung behält Thumbnails, eigener Media-Namensraum mit Musterliste und Test für Fansub-/Gruppenbilder, animierte GIFs bekommen eine animierte Display-Variante, Backfill für Bestandsbilder. Depends on Phase 172. Nur add-phase — noch nicht geplant.
 - Phase 172 added (2026-10-01): Kara-Vorschaubild pro Segment — automatisch aus dem Render (Frame bei ca. 35 %), manuell auf der Segment-Seite ersetzbar (Upload oder Übernahme eines Release-Bildes), keine Review-Prüfung, einheitliche preview_url für Admin-Media-Liste und Public-Release-Story. Depends on Phase 171. Nur add-phase — noch nicht geplant.
 - Phase 169 added: Release-Medienrechte: Projektleiter, Preview, Highlights und Bildreihenfolge.\n
 - Phase 160 angelegt (2026-09-15): Öffentliche Anime-Detailseite nachschärfen — Tags anzeigen, Gruppenlinks klar benennen, Coop sichtbar machen. Depends on Phase 159; erst planen, wenn die separate Jellyfin-Reparatur abgeschlossen ist. Befunde/Entscheidungen in `160-LIVE-UAT-BEFUNDE.md` (mehrere Punkte dort noch offen, Klärung in discuss-phase). Menschliche Abnahme 158/159 bleibt bis zur Umsetzung dieser Phase offen. Nur add-phase — kein discuss-phase, kein plan-phase, keine Codeänderung.
