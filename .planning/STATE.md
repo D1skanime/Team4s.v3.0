@@ -3,14 +3,14 @@ gsd_state_version: 1.0
 milestone: v1.4
 milestone_name: Coverage
 status: executing
-stopped_at: Completed 173-13-PLAN.md
-last_updated: "2026-10-02T20:13:31.200Z"
+stopped_at: Completed 173-07-PLAN.md
+last_updated: "2026-10-02T20:52:36.525Z"
 last_activity: 2026-10-02
 progress:
   total_phases: 38
   completed_phases: 32
   total_plans: 338
-  completed_plans: 329
+  completed_plans: 330
   percent: 84
 ---
 
@@ -287,7 +287,7 @@ Abschluss" entry below for the full closing record.
 ## Current Position
 
 Phase: 173 (ffentliche-bildqualit-t-zus-tzliche-display-variante-backend) — EXECUTING
-Plan: 12 of 16
+Plan: 13 of 16
 Status: Ready to execute
 Completed: removed stale public timeline range access, repaired nullable highlight responses, batched release-version-media rights projection, hardened full-list media reorder, and synchronized the focused admin contract.
 Next: resolve or explicitly accept the pre-existing full-suite failures, then complete Phase 169 live actor/refresh/responsive UAT; Phase 166 remains open.
@@ -884,6 +884,8 @@ Last activity: 2026-10-02
 - [Phase 173-11]: Corrected PublicReleaseMediaItem frontend location from plan-listed groupAsset.ts to the actual groupContributors.ts
 - [Phase 173]: Story-image uploads now store a true 1:1 original (media_files variant=original) separately from the 1920px-capped display file (media_assets.file_path), via 173-05's capLongEdgeAndSaveJPEG; pre-existing rows left untouched for 173-07's backfill — D-15/D-06 contradiction: the old 1600px-capped file was mislabeled 'original' with no true original ever stored
 - [Phase 173]: ResponsiveImage imported directly from @/components/ui/ResponsiveImage (not the barrel) in ReleaseGallery/PublicReleaseBlock/HeroSection — index.ts barrel does not re-export ResponsiveImage; matches every other existing consumer in the codebase
+- [Phase 173]: 173-07: display backfill derives the display filename from the original's own basename (not a fixed display.<ext>), since pre-existing flat-stored assets share one directory and a fixed name would collide
+- [Phase 173]: 173-07: generic backfill's race-safe write uses a per-call-unique temp file renamed into place only after winning the INSERT race, so a losing concurrent racer never clobbers the winner's file
 
 ### Pending Todos
 
@@ -1439,11 +1441,12 @@ untruncated list lives in `.planning/todos/pending/`.
 | Phase 173 P11 | 8min | 1 tasks | 5 files |
 | Phase 173 P06 | 50min | 2 tasks | 7 files |
 | Phase 173 P13 | 25min | 3 tasks | 4 files |
+| Phase 173 P07 | 95min | 3 tasks | 10 files |
 
 ## Session Continuity
 
-Last session: 2026-10-02T20:13:31.176Z
-Stopped at: Completed 173-13-PLAN.md
+Last session: 2026-10-02T20:52:36.503Z
+Stopped at: Completed 173-07-PLAN.md
 Last activity: 2026-09-28 - Completed Phase 169 Plan 169-01
 Resume file: 
 None
