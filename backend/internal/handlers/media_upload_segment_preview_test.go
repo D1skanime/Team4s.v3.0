@@ -158,7 +158,9 @@ func TestMediaUploadHandler_OtherAssetTypesStayAdminOnly(t *testing.T) {
 }
 
 // TestMediaUploadHandler_StoreGeneratedAnimeImage beweist, dass automatisch erzeugte
-// Vorschaubilder denselben kanonischen Ablagepfad wie Uploads nutzen (original + thumb).
+// Vorschaubilder denselben kanonischen Ablagepfad wie Uploads nutzen (original + thumb +
+// display -- Phase 173-01 fuegt die display-Variante ueber denselben processImage-Pfad hinzu,
+// den StoreGeneratedAnimeImage intern aufruft).
 func TestMediaUploadHandler_StoreGeneratedAnimeImage(t *testing.T) {
 	repo := &numericIDMediaUploadRepo{MockMediaUploadRepository: NewMockMediaUploadRepository()}
 	storageDir := t.TempDir()
@@ -175,7 +177,7 @@ func TestMediaUploadHandler_StoreGeneratedAnimeImage(t *testing.T) {
 	asset := repo.assets["4701"]
 	require.NotNil(t, asset)
 	require.Equal(t, "preview", asset.MediaType)
-	require.Len(t, repo.files["4701"], 2)
+	require.Len(t, repo.files["4701"], 3)
 	for _, file := range repo.files["4701"] {
 		require.True(t, strings.HasPrefix(file.Path, "/media/anime/123/segment_preview/"), file.Path)
 		_, statErr := os.Stat(filepath.Join(storageDir, strings.TrimPrefix(file.Path, "/media/")))

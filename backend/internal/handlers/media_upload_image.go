@@ -4,7 +4,9 @@ import (
 	"context"
 	"fmt"
 	"image"
+	"image/jpeg"
 	"mime/multipart"
+	"os"
 	"path/filepath"
 	"time"
 
@@ -12,6 +14,14 @@ import (
 	"team4s.v3/backend/internal/repository"
 
 	"github.com/disintegration/imaging"
+)
+
+// displayMaxEdge begrenzt die lange Kante der statischen "display"-Variante (JPEG-Re-Encode,
+// nie hochskaliert). displayJPEGQuality ist die JPEG-Qualitaet der statischen Variante
+// (D-01: "hohe Qualitaet (WebP oder JPEG >= 88)").
+const (
+	displayMaxEdge     = 1920
+	displayJPEGQuality = 88
 )
 
 // imageExtFromMime gibt die Dateiendung (ohne Punkt) für einen Bild-MIME-Typ zurück.
@@ -22,8 +32,9 @@ func imageExtFromMime(mimeType string) string {
 		return "png"
 	case "image/gif":
 		return "gif"
+	case "image/webp":
+		return "webp"
 	default:
-		// WebP is decode-only in this upload path for now; imaging.Save cannot encode it.
 		return "jpg"
 	}
 }
@@ -49,19 +60,38 @@ func (h *MediaUploadHandler) processImage(
 
 	ext := imageExtFromMime(mimeType)
 	originalFilename := "original." + ext
-	thumbFilename := "thumb." + ext
+	// imaging.Save kann WebP nicht encodieren (nur decodieren) -- der Thumb wird fuer
+	// WebP-Quellen daher als JPEG re-encodiert statt mit einer .webp-Endung zu scheitern.
+	// Das Original bleibt davon unberuehrt (siehe webp-Zweig unten: rohe Bytes).
+	thumbExt := ext
+	if mimeType == "image/webp" {
+		thumbExt = "jpg"
+	}
+	thumbFilename := "thumb." + thumbExt
 
 	originalPath := filepath.Join(storagePath, originalFilename)
 	originalRelPath := h.buildRelativePath(req.EntityType, req.EntityID, req.AssetType, mediaID, originalFilename)
-	if format == "gif" && h.isAnimatedGIF(file) {
+	isAnimatedGIF := format == "gif" && h.isAnimatedGIF(file)
+	switch {
+	case isAnimatedGIF:
 		originalPath = filepath.Join(storagePath, "original.gif")
 		originalRelPath = h.buildRelativePath(req.EntityType, req.EntityID, req.AssetType, mediaID, "original.gif")
 		file.Seek(0, 0)
 		if err := h.saveFile(file, originalPath); err != nil {
 			return nil, fmt.Errorf("original gif speichern: %w", err)
 		}
-	} else if err := imaging.Save(img, originalPath); err != nil {
-		return nil, fmt.Errorf("original speichern: %w", err)
+	case mimeType == "image/webp":
+		// WebP ist mit imaging.Save nicht encodierbar (nur decodierbar) -- die rohen
+		// hochgeladenen Bytes bleiben daher unveraendert erhalten statt silently als JPEG
+		// re-encodiert und mit .jpg umbenannt zu werden.
+		file.Seek(0, 0)
+		if err := h.saveFile(file, originalPath); err != nil {
+			return nil, fmt.Errorf("original webp speichern: %w", err)
+		}
+	default:
+		if err := imaging.Save(img, originalPath); err != nil {
+			return nil, fmt.Errorf("original speichern: %w", err)
+		}
 	}
 
 	originalSize, _ := h.getFileSize(originalPath)
@@ -87,6 +117,27 @@ func (h *MediaUploadHandler) processImage(
 		Width:   thumbBounds.Dx(),
 		Height:  thumbBounds.Dy(),
 	})
+
+	// "display"-Variante: fuer statische Bilder (inkl. WebP-Original, s.o.) immer als JPEG
+	// re-encodiert. Animierte GIFs erhalten ihre eigene display-Erzeugung (animiertes WebP)
+	// in einem Folge-Task -- hier bleibt es bewusst bei original+thumb fuer den GIF-Zweig.
+	var displaySize int64
+	if !isAnimatedGIF {
+		displayRelPath, displayWidth, displayHeight, err := h.generateStaticDisplayVariant(
+			req, mediaID, storagePath, img, originalWidth, originalHeight,
+		)
+		if err != nil {
+			return nil, err
+		}
+		displayPath := filepath.Join(storagePath, "display.jpg")
+		displaySize, _ = h.getFileSize(displayPath)
+		files = append(files, models.UploadFileInfo{
+			Variant: "display",
+			Path:    displayRelPath,
+			Width:   displayWidth,
+			Height:  displayHeight,
+		})
+	}
 
 	usePathFallback, err := h.shouldUseAnimePosterPathFallback(ctx, req)
 	if err != nil {
@@ -121,8 +172,11 @@ func (h *MediaUploadHandler) processImage(
 		}
 		for _, fileInfo := range files {
 			size := thumbSize
-			if fileInfo.Variant == "original" {
+			switch fileInfo.Variant {
+			case "original":
 				size = originalSize
+			case "display":
+				size = displaySize
 			}
 			if err := txRepo.CreateMediaFile(ctx, &models.UploadMediaFile{
 				MediaID: asset.ID,
@@ -153,6 +207,46 @@ func (h *MediaUploadHandler) processImage(
 		URL:          h.buildPublicURL(originalRelPath),
 		Provisioning: provisioning,
 	}, nil
+}
+
+// generateStaticDisplayVariant erzeugt die "display"-Variante fuer statische Bilder (JPEG,
+// lange Kante <= displayMaxEdge, nie hochskaliert) -- unabhaengig vom Quell-Mimetyp immer als
+// JPEG re-encodiert (D-01, keine neue Encoder-Abhaengigkeit).
+func (h *MediaUploadHandler) generateStaticDisplayVariant(
+	req models.UploadRequest,
+	mediaID string,
+	storagePath string,
+	img image.Image,
+	originalWidth, originalHeight int,
+) (relPath string, width int, height int, err error) {
+	display := img
+	longEdge := originalWidth
+	if originalHeight > longEdge {
+		longEdge = originalHeight
+	}
+	if longEdge > displayMaxEdge {
+		if originalWidth >= originalHeight {
+			display = imaging.Resize(img, displayMaxEdge, 0, imaging.Lanczos)
+		} else {
+			display = imaging.Resize(img, 0, displayMaxEdge, imaging.Lanczos)
+		}
+	}
+
+	displayFilename := "display.jpg"
+	displayPath := filepath.Join(storagePath, displayFilename)
+	displayRelPath := h.buildRelativePath(req.EntityType, req.EntityID, req.AssetType, mediaID, displayFilename)
+
+	out, createErr := os.Create(displayPath)
+	if createErr != nil {
+		return "", 0, 0, fmt.Errorf("display datei anlegen: %w", createErr)
+	}
+	defer out.Close()
+	if encErr := jpeg.Encode(out, display, &jpeg.Options{Quality: displayJPEGQuality}); encErr != nil {
+		return "", 0, 0, fmt.Errorf("display speichern: %w", encErr)
+	}
+
+	displayBounds := display.Bounds()
+	return displayRelPath, displayBounds.Dx(), displayBounds.Dy(), nil
 }
 
 func (h *MediaUploadHandler) isAnimatedGIF(file multipart.File) bool {

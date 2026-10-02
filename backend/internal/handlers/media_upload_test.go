@@ -3,6 +3,7 @@
 import (
 	"bytes"
 	"context"
+	"encoding/hex"
 	"encoding/json"
 	"image"
 	"image/color"
@@ -332,7 +333,7 @@ func TestImageExtFromMime(t *testing.T) {
 		{mimeType: "image/png", want: "png"},
 		{mimeType: "image/gif", want: "gif"},
 		{mimeType: "image/jpeg", want: "jpg"},
-		{mimeType: "image/webp", want: "jpg"},
+		{mimeType: "image/webp", want: "webp"},
 		{mimeType: "image/avif", want: "jpg"},
 	}
 
@@ -340,6 +341,176 @@ func TestImageExtFromMime(t *testing.T) {
 		t.Run(tt.mimeType, func(t *testing.T) {
 			assert.Equal(t, tt.want, imageExtFromMime(tt.mimeType))
 		})
+	}
+}
+
+// findUploadFile sucht eine Variante in payload.Files (z. B. "display", "thumb", "original").
+func findUploadFile(files []models.UploadFileInfo, variant string) (models.UploadFileInfo, bool) {
+	for _, f := range files {
+		if f.Variant == variant {
+			return f, true
+		}
+	}
+	return models.UploadFileInfo{}, false
+}
+
+func diskPathForRelPath(tmpDir, relPath string) string {
+	return filepath.Join(tmpDir, filepath.FromSlash(strings.TrimPrefix(relPath, "/media/")))
+}
+
+// newSizedPNGBytes erzeugt ein deterministisches PNG mit den angegebenen Pixel-Massen, fuer
+// Tests der display-Variante (kein Upscale unterhalb des Caps, Kappung bei 1920px darueber).
+func newSizedPNGBytes(t *testing.T, width, height int) []byte {
+	t.Helper()
+
+	var body bytes.Buffer
+	img := image.NewRGBA(image.Rect(0, 0, width, height))
+	for y := 0; y < height; y++ {
+		for x := 0; x < width; x++ {
+			img.Set(x, y, color.RGBA{R: uint8(x % 256), G: uint8(y % 256), B: 128, A: 255})
+		}
+	}
+	if err := png.Encode(&body, img); err != nil {
+		t.Fatalf("encode sized png: %v", err)
+	}
+	return body.Bytes()
+}
+
+// testStaticWebPBytes ist ein live mit ffmpeg erzeugtes, gueltiges 4x4-WebP (VP8-Chunk, nicht
+// animiert) -- fest kodiert, damit der WebP-Originalerhaltungstest nicht selbst von einer
+// installierten ffmpeg-Binary abhaengt. golang.org/x/image/webp dekodiert es (bounds 4x4) und
+// mimetype.Detect erkennt es als "image/webp".
+func testStaticWebPBytes(t *testing.T) []byte {
+	t.Helper()
+	const hexBytes = "5249464654000000574542505650382048000000f001009d012a04000400020034258802744c8001d5a11f8000fee6e8f047defb597cf0605fa58fa6247c4f8d12dbff37ffc407cfff95daa365bcf78393151d3f7b17cfff912c0000"
+	data, err := hex.DecodeString(hexBytes)
+	if err != nil {
+		t.Fatalf("decode static webp fixture: %v", err)
+	}
+	return data
+}
+
+func newMediaUploadRequestWithFile(t *testing.T, entityType, entityID, assetType, filename string, content []byte) *http.Request {
+	t.Helper()
+
+	var body bytes.Buffer
+	writer := multipart.NewWriter(&body)
+	assert.NoError(t, writer.WriteField("entity_type", entityType))
+	assert.NoError(t, writer.WriteField("entity_id", entityID))
+	assert.NoError(t, writer.WriteField("asset_type", assetType))
+
+	fileWriter, err := writer.CreateFormFile("file", filename)
+	if err != nil {
+		t.Fatalf("create form file: %v", err)
+	}
+	if _, err := fileWriter.Write(content); err != nil {
+		t.Fatalf("write file bytes: %v", err)
+	}
+	if err := writer.Close(); err != nil {
+		t.Fatalf("close multipart writer: %v", err)
+	}
+
+	req := httptest.NewRequest(http.MethodPost, "/admin/upload", &body)
+	req.Header.Set("Content-Type", writer.FormDataContentType())
+	return req
+}
+
+// TestMediaUploadHandler_DisplayVariantNoUpscale beweist: ein Quellbild unterhalb des
+// 1920px-Caps wird NICHT hochskaliert, nur re-encodiert (Breite/Hoehe bleiben identisch).
+func TestMediaUploadHandler_DisplayVariantNoUpscale(t *testing.T) {
+	repo := NewMockMediaUploadRepository()
+	tmpDir := t.TempDir()
+	handler := newAdminMediaUploadHandler(repo, tmpDir, "http://localhost", "/usr/bin/ffmpeg")
+
+	req := newMediaUploadRequestWithFile(t, "anime", "123", "poster", "small.png", newSizedPNGBytes(t, 400, 300))
+	w := performAuthorizedUpload(t, handler, req)
+	assert.Equal(t, http.StatusOK, w.Code)
+
+	var payload models.UploadResponse
+	assert.NoError(t, json.Unmarshal(w.Body.Bytes(), &payload))
+
+	display, ok := findUploadFile(payload.Files, "display")
+	if assert.True(t, ok, "display-variante fehlt in payload.Files") {
+		assert.Equal(t, 400, display.Width)
+		assert.Equal(t, 300, display.Height)
+		assert.True(t, strings.HasSuffix(display.Path, "/display.jpg"), display.Path)
+	}
+}
+
+// TestMediaUploadHandler_DisplayVariantCapsLongEdgeLandscape beweist: ein Querformat-Quellbild
+// oberhalb des Caps wird auf 1920px Breite begrenzt, Hoehe proportional skaliert.
+func TestMediaUploadHandler_DisplayVariantCapsLongEdgeLandscape(t *testing.T) {
+	repo := NewMockMediaUploadRepository()
+	tmpDir := t.TempDir()
+	handler := newAdminMediaUploadHandler(repo, tmpDir, "http://localhost", "/usr/bin/ffmpeg")
+
+	req := newMediaUploadRequestWithFile(t, "anime", "123", "poster", "wide.png", newSizedPNGBytes(t, 2400, 1200))
+	w := performAuthorizedUpload(t, handler, req)
+	assert.Equal(t, http.StatusOK, w.Code)
+
+	var payload models.UploadResponse
+	assert.NoError(t, json.Unmarshal(w.Body.Bytes(), &payload))
+
+	display, ok := findUploadFile(payload.Files, "display")
+	if assert.True(t, ok, "display-variante fehlt in payload.Files") {
+		assert.Equal(t, 1920, display.Width)
+		assert.Equal(t, 960, display.Height)
+	}
+}
+
+// TestMediaUploadHandler_DisplayVariantCapsLongEdgePortrait beweist: die Kappung greift bei der
+// jeweils groesseren Dimension, nicht pauschal bei der Breite.
+func TestMediaUploadHandler_DisplayVariantCapsLongEdgePortrait(t *testing.T) {
+	repo := NewMockMediaUploadRepository()
+	tmpDir := t.TempDir()
+	handler := newAdminMediaUploadHandler(repo, tmpDir, "http://localhost", "/usr/bin/ffmpeg")
+
+	req := newMediaUploadRequestWithFile(t, "anime", "123", "poster", "tall.png", newSizedPNGBytes(t, 1200, 2400))
+	w := performAuthorizedUpload(t, handler, req)
+	assert.Equal(t, http.StatusOK, w.Code)
+
+	var payload models.UploadResponse
+	assert.NoError(t, json.Unmarshal(w.Body.Bytes(), &payload))
+
+	display, ok := findUploadFile(payload.Files, "display")
+	if assert.True(t, ok, "display-variante fehlt in payload.Files") {
+		assert.Equal(t, 960, display.Width)
+		assert.Equal(t, 1920, display.Height)
+	}
+}
+
+// TestMediaUploadHandler_UploadPreservesWebPOriginalExtensionAndBytes beweist D-06/D-07: ein
+// WebP-Upload wird NICHT silently als JPEG re-encodiert und auf .jpg umbenannt -- original.webp
+// behaelt Endung und RIFF/WEBP-Bytes. Die display-Variante existiert trotzdem (JPEG-Re-Encode).
+func TestMediaUploadHandler_UploadPreservesWebPOriginalExtensionAndBytes(t *testing.T) {
+	repo := NewMockMediaUploadRepository()
+	tmpDir := t.TempDir()
+	handler := newAdminMediaUploadHandler(repo, tmpDir, "http://localhost", "/usr/bin/ffmpeg")
+
+	req := newMediaUploadRequestWithFile(t, "anime", "123", "poster", "cover.webp", testStaticWebPBytes(t))
+	w := performAuthorizedUpload(t, handler, req)
+	assert.Equal(t, http.StatusOK, w.Code)
+
+	var payload models.UploadResponse
+	assert.NoError(t, json.Unmarshal(w.Body.Bytes(), &payload))
+
+	original, ok := findUploadFile(payload.Files, "original")
+	if assert.True(t, ok) {
+		assert.True(t, strings.HasSuffix(original.Path, "/original.webp"), original.Path)
+
+		diskPath := diskPathForRelPath(tmpDir, original.Path)
+		onDisk, err := os.ReadFile(diskPath)
+		assert.NoError(t, err)
+		assert.True(t, len(onDisk) >= 12, "original.webp zu kurz")
+		assert.Equal(t, "RIFF", string(onDisk[0:4]))
+		assert.Equal(t, "WEBP", string(onDisk[8:12]))
+	}
+
+	display, ok := findUploadFile(payload.Files, "display")
+	if assert.True(t, ok, "display-variante fehlt fuer webp-original") {
+		assert.True(t, strings.HasSuffix(display.Path, "/display.jpg"), display.Path)
+		assert.Greater(t, display.Width, 0)
+		assert.Greater(t, display.Height, 0)
 	}
 }
 
