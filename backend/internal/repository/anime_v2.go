@@ -185,10 +185,19 @@ func (r *AnimeRepository) getByIDV2(ctx context.Context, id int64, includeDisabl
 		FROM anime
 		LEFT JOIN anime_types at ON at.id = anime.anime_type_id
 		LEFT JOIN LATERAL (
-			SELECT ma.file_path
+			SELECT COALESCE(poster_display.path, ma.file_path) AS file_path
 			FROM anime_media am
 			JOIN media_assets ma ON ma.id = am.media_id
 			JOIN media_types mt ON mt.id = ma.media_type_id
+			LEFT JOIN LATERAL (
+				SELECT path
+				FROM media_files
+				WHERE media_id = ma.id
+				  AND variant = 'display'
+				  AND status = 'ready'
+				ORDER BY id ASC
+				LIMIT 1
+			) poster_display ON true
 			WHERE am.anime_id = anime.id
 			  AND mt.name = 'poster'
 			ORDER BY am.sort_order ASC, ma.id ASC
@@ -203,9 +212,8 @@ func (r *AnimeRepository) getByIDV2(ctx context.Context, id int64, includeDisabl
 				SELECT mf.path
 				FROM media_files mf
 				WHERE mf.media_id = ma.id
-				  AND (mf.variant = 'original' OR mf.variant IS NULL)
 				  AND (mf.status = 'ready' OR mf.status IS NULL)
-				ORDER BY CASE WHEN mf.variant = 'original' THEN 0 ELSE 1 END, mf.id ASC
+				ORDER BY CASE WHEN mf.variant = 'display' THEN 0 WHEN mf.variant = 'original' OR mf.variant IS NULL THEN 1 ELSE 2 END, mf.id ASC
 				LIMIT 1
 			) anime_banner_file ON true
 			WHERE am.anime_id = anime.id

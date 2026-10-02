@@ -6,6 +6,15 @@ const publicProjectBannerSelectSQL = `COALESCE(
 				anime_banner.path,
 				NULLIF(BTRIM(a.banner_resolved_url), ''),
 				(
+					SELECT bmf_display.path
+					FROM media_files bmf_display
+					WHERE bmf_display.media_id = a.banner_asset_id
+					  AND bmf_display.variant = 'display'
+					  AND bmf_display.status = 'ready'
+					ORDER BY bmf_display.id ASC
+					LIMIT 1
+				),
+				(
 					SELECT bmf.path
 					FROM media_files bmf
 					WHERE bmf.media_id = a.banner_asset_id
@@ -25,9 +34,8 @@ const publicProjectBannerJoinSQL = `LEFT JOIN LATERAL (
 				SELECT mf.path
 				FROM media_files mf
 				WHERE mf.media_id = ma.id
-				  AND (mf.variant = 'original' OR mf.variant IS NULL)
 				  AND (mf.status = 'ready' OR mf.status IS NULL)
-				ORDER BY CASE WHEN mf.variant = 'original' THEN 0 ELSE 1 END, mf.id ASC
+				ORDER BY CASE WHEN mf.variant = 'display' THEN 0 WHEN mf.variant = 'original' OR mf.variant IS NULL THEN 1 ELSE 2 END, mf.id ASC
 				LIMIT 1
 			) anime_banner_file ON true
 			WHERE am.anime_id = a.id

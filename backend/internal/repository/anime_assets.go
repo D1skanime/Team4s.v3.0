@@ -70,12 +70,20 @@ func (r *AnimeAssetRepository) GetResolvedAssets(ctx context.Context, animeID in
 			a.banner_provider_key,
 			banner_mf.path
 		FROM anime a
-		LEFT JOIN media_files cover_mf
-			ON cover_mf.media_id = a.cover_asset_id
-			AND (cover_mf.variant = 'original' OR cover_mf.variant IS NULL)
-		LEFT JOIN media_files banner_mf
-			ON banner_mf.media_id = a.banner_asset_id
-			AND (banner_mf.variant = 'original' OR banner_mf.variant IS NULL)
+		LEFT JOIN LATERAL (
+			SELECT path, id
+			FROM media_files
+			WHERE media_id = a.cover_asset_id
+			ORDER BY CASE WHEN variant = 'display' THEN 0 WHEN variant = 'original' OR variant IS NULL THEN 1 ELSE 2 END, id ASC
+			LIMIT 1
+		) cover_mf ON true
+		LEFT JOIN LATERAL (
+			SELECT path, id
+			FROM media_files
+			WHERE media_id = a.banner_asset_id
+			ORDER BY CASE WHEN variant = 'display' THEN 0 WHEN variant = 'original' OR variant IS NULL THEN 1 ELSE 2 END, id ASC
+			LIMIT 1
+		) banner_mf ON true
 		WHERE a.id = $1
 		ORDER BY cover_mf.id ASC NULLS LAST, banner_mf.id ASC NULLS LAST
 		LIMIT 1
@@ -130,9 +138,13 @@ func (r *AnimeAssetRepository) GetResolvedAssets(ctx context.Context, animeID in
 			aba.updated_at,
 			mf.path
 		FROM anime_background_assets aba
-		LEFT JOIN media_files mf
-			ON mf.media_id = aba.media_asset_id
-			AND (mf.variant = 'original' OR mf.variant IS NULL)
+		LEFT JOIN LATERAL (
+			SELECT path, id
+			FROM media_files
+			WHERE media_id = aba.media_asset_id
+			ORDER BY CASE WHEN variant = 'display' THEN 0 WHEN variant = 'original' OR variant IS NULL THEN 1 ELSE 2 END, id ASC
+			LIMIT 1
+		) mf ON true
 		WHERE aba.anime_id = $1
 		ORDER BY aba.sort_order ASC, aba.id ASC, mf.id ASC
 	`, animeID)
@@ -208,7 +220,7 @@ func (r *AnimeAssetRepository) getResolvedAssetsV2(ctx context.Context, animeID 
 			FROM media_files
 			WHERE media_id = ma.id
 			ORDER BY
-				CASE WHEN variant = 'original' THEN 0 ELSE 1 END,
+				CASE WHEN variant = 'display' THEN 0 WHEN variant = 'original' THEN 1 ELSE 2 END,
 				id ASC
 			LIMIT 1
 		) mf ON true
@@ -483,7 +495,7 @@ func removeAnimePosterAssetsV2(
 			FROM media_files
 			WHERE media_id = ma.id
 			ORDER BY
-				CASE WHEN variant = 'original' THEN 0 ELSE 1 END,
+				CASE WHEN variant = 'display' THEN 0 WHEN variant = 'original' THEN 1 ELSE 2 END,
 				id ASC
 			LIMIT 1
 		) mf ON true
@@ -585,7 +597,7 @@ func syncLegacyAnimeCoverImageV2(
 			FROM media_files
 			WHERE media_id = ma.id
 			ORDER BY
-				CASE WHEN variant = 'original' THEN 0 ELSE 1 END,
+				CASE WHEN variant = 'display' THEN 0 WHEN variant = 'original' THEN 1 ELSE 2 END,
 				id ASC
 			LIMIT 1
 		) mf ON true
