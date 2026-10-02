@@ -2296,20 +2296,20 @@ die bewusst bei der bestehenden `imageDisplay.ts`-Pipeline bleiben (D-16). Die v
 Public-UI-Abnahme (D-13) erfolgt live innerhalb dieser Phase, nicht als Folgephase.
 **Requirements**: [REQ-173-01 … REQ-173-31]
 **Depends on:** Phase 172
-**Plans:** 7/16 plans executed
+**Plans:** 9/16 plans executed
 
 Plans:
 - [x] 173-01-PLAN.md — globaler Uploader: statische + animierte display-Variante (processImage)
 - [x] 173-02-PLAN.md — RVM-Display-Helper + Release-Version-Media-Upload-Verdrahtung
 - [x] 173-03-PLAN.md — Release-Version-Media-Replace-Verdrahtung
 - [x] 173-04-PLAN.md — Fansub-Namensraum + Display (Logo/Banner/Gruppenmedien) + Legacy-Redirect
-- [ ] 173-05-PLAN.md — Avatar/Hintergrund-Display-Variante + display_url im eigenen Profil
+- [x] 173-05-PLAN.md — Avatar/Hintergrund-Display-Variante + display_url im eigenen Profil
 - [ ] 173-06-PLAN.md — Story-Bild: echtes Original + Display-Variante (D-15)
 - [ ] 173-07-PLAN.md — idempotentes Backfill-Kommando (Display + Namensraum-Migration)
 - [x] 173-08-PLAN.md — öffentliche display_url-Projektion an 4 bestehenden Lesestellen
 - [x] 173-09-PLAN.md — Backend-Lesepräferenz „display vor original": Kara-Vorschau + Anime-/Projekt-Banner
 - [ ] 173-10-PLAN.md — Backend-Lesepräferenz: Fansub-Gruppen-Logo/-Banner + öffentliches Mitgliederprofil
-- [ ] 173-11-PLAN.md — OpenAPI/Frontend-Typen-Sync für die 4 display_url-DTOs
+- [x] 173-11-PLAN.md — OpenAPI/Frontend-Typen-Sync für die 4 display_url-DTOs
 - [x] 173-12-PLAN.md — next.config.mjs (Fansub-Namensraum + quality 85) + ResponsiveImage-Config-Test
 - [ ] 173-13-PLAN.md — Komponenten-Verdrahtung: ReleaseGallery/PublicReleaseBlock/HeroSection
 - [ ] 173-14-PLAN.md — Komponenten-Verdrahtung: FansubGroupMediaBlock/-Banner/-ProfileTabs/-ProjectBannerCard
