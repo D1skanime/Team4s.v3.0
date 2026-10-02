@@ -112,3 +112,17 @@ None — no external service configuration required.
 ---
 *Phase: 173-ffentliche-bildqualit-t-zus-tzliche-display-variante-backend*
 *Completed: 2026-10-02*
+
+## Self-Check: PASSED
+
+- FOUND: backend/internal/handlers/app_profile_story_image_display.go
+- FOUND: backend/internal/handlers/app_profile_story_image.go
+- FOUND: backend/internal/handlers/app_profile_story_image_test.go
+- FOUND: backend/internal/handlers/app_auth_test.go
+- FOUND: backend/internal/models/member_profile.go
+- FOUND: backend/internal/repository/member_profile_story_image_repository.go
+- FOUND: backend/internal/repository/member_profile_story_image_original_test.go
+- FOUND: .planning/phases/173-ffentliche-bildqualit-t-zus-tzliche-display-variante-backend/deferred-items.md
+- FOUND commit: 7ef8ed23
+- FOUND commit: d057dd8d
+- FOUND commit: 5c4f59fe

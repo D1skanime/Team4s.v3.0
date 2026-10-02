@@ -138,3 +138,32 @@ implement the accept-and-resize path using `vipsthumbnail "<path>[n=-1]" -s
 960x960 -o display.webp` per D-21, with the same original-on-failure fallback this plan already
 established for animated GIFs, and (4) narrow the existing rejection to `asset_type=
 segment_preview` only as D-20 specifies.
+
+## 173-06: pre-existing WebP story-image original-encode gap (out of scope, unchanged by this plan)
+
+**Found during:** Task 1 implementation, while re-reading `imaging.Save(img, originalAbsolutePath)`
+for the true-original write path.
+
+**Symptom:** `storyImageAllowedMimeTypes` allows `image/webp`. When a WebP story image is
+uploaded, `imageExtFromMime("image/webp")` returns `"webp"`, so `originalFilename` is
+`original.webp`. `imaging.Save` (github.com/disintegration/imaging) can decode WebP but cannot
+**encode** it (confirmed via `io.go` in the vendored module — no WebP case in its encoder
+dispatch, matching 173-01's identical finding for the global uploader's WebP thumb path). Saving
+to a `.webp` destination would fail with `imaging: unsupported image format`, producing a 500 on
+any WebP story-image upload.
+
+**Why out of scope for 173-06:** This is **pre-existing** behavior, not introduced or worsened by
+this plan — the prior code already called `imaging.Save(img, absolutePath)` with the exact same
+`.webp`-extension destination for the (then single) story-image file. This plan's Task 1 action
+text explicitly instructs preserving "the same mechanism as today" for the original write
+(`imaging.Save` re-encode, no resize) — fixing the WebP encoder gap would mean changing that
+mechanism (e.g. decoupling `originalExt` from `ext` and raw-copying WebP bytes, mirroring 173-01's
+`thumbExt`/173-05's `shouldCopyAvatarDisplayFile` pattern), which is a materially larger change
+than this plan's narrow D-15 scope (true-original + capped-display split) and was not requested by
+the plan or the orchestrator. No test in this plan's `<behavior>` block exercises WebP story-image
+uploads, so this gap is neither newly caused nor newly verified by this plan's diff.
+
+**Suggested follow-up:** A small follow-up plan should raw-copy WebP story-image uploads (keeping
+`.webp` original bytes exact, matching 173-01's global-uploader pattern and 173-05's avatar/
+background pattern) instead of routing them through `imaging.Save`, and add a regression test
+(`TestUploadOwnProfileStoryImage_WebPOriginalPreservesBytes` or similar) proving the 500 is gone.
