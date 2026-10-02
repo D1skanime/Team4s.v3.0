@@ -24,6 +24,7 @@ export interface PublicReleaseImage {
   category: ReleaseVersionMediaCategory;
   thumbnail_url: string | null;
   original_url: string | null;
+  display_url?: string | null;
   /** Optional plain-text title of the release-version medium; separate from caption. */
   title?: string | null;
   caption: string | null;

@@ -64,6 +64,7 @@ export interface ReleaseReviewImageContent {
   caption?: string | null
   thumbnail_url?: string | null
   original_url: string
+  display_url?: string | null
 }
 
 export interface ReleaseReviewPriorRejection {

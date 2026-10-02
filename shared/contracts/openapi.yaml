@@ -10675,6 +10675,7 @@ components:
         caption: {type: string}
         thumbnail_url: {type: string}
         original_url: {type: string}
+        display_url: {type: string, nullable: true}
     ReleaseReviewPriorRejection:
       type: object
       nullable: true
@@ -14879,6 +14880,9 @@ components:
         original_url:
           type: string
           nullable: true
+        display_url:
+          type: string
+          nullable: true
         title:
           type: string
           nullable: true
@@ -17584,6 +17588,9 @@ components:
         thumbnail_url:
           type: string
           nullable: true
+        display_url:
+          type: string
+          nullable: true
         title:
           type: string
           nullable: true
@@ -17646,6 +17653,9 @@ components:
           type: string
           nullable: true
         original_url:
+          type: string
+          nullable: true
+        display_url:
           type: string
           nullable: true
         title:
