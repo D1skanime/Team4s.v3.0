@@ -3,8 +3,8 @@ gsd_state_version: 1.0
 milestone: v1.4
 milestone_name: Coverage
 status: executing
-stopped_at: Completed 173-04-PLAN.md
-last_updated: "2026-10-02T18:05:39.704Z"
+stopped_at: Completed 173-05-PLAN.md
+last_updated: "2026-10-02T19:17:49.314Z"
 last_activity: 2026-10-02
 progress:
   total_phases: 38
@@ -287,7 +287,7 @@ Abschluss" entry below for the full closing record.
 ## Current Position
 
 Phase: 173 (ffentliche-bildqualit-t-zus-tzliche-display-variante-backend) — EXECUTING
-Plan: 8 of 16
+Plan: 9 of 16
 Status: Ready to execute
 Completed: removed stale public timeline range access, repaired nullable highlight responses, batched release-version-media rights projection, hardened full-list media reorder, and synchronized the focused admin contract.
 Next: resolve or explicitly accept the pre-existing full-suite failures, then complete Phase 169 live actor/refresh/responsive UAT; Phase 166 remains open.
@@ -879,6 +879,8 @@ Last activity: 2026-10-02
 - [Phase ?]: Used a dedicated /media/fansub/** localPatterns entry (not a widened /media/** wildcard) to preserve the narrow-allowlist discipline already established for anime/profile/release-version namespaces.
 - [Phase 173]: Replace-handler display-variant wiring mirrors upload-handler (173-02) exactly; DisplayURL not added to replace response since it returns ReleaseVersionMediaItem, not rvmFileResult
 - [Phase 173]: SaveUpload gained groupID namespacing and display-variant generation together (173-04); shared services.EncodeStaticDisplayVariant/StripWebPMetadata/animated-GIF helpers now back every write path (global uploader, RVM upload/replace, fansub media)
+- [Phase 173]: D-20/D-21 implemented in 173-05 Task 0: vips-tools added, animated WebP accepted outside Kara preview with vipsthumbnail-based display generation; legacy anime.cover_image reverted to original-first to avoid misclassifying it as orphaned
+- [Phase 173]: 173-05 Task 1: avatar/background display variant generation stays animated for animated GIF/WebP sources per orchestrator D-19/D-20/D-22 addendum; non-cropped animated background uploads still lose animation (documented limitation, deferred)
 
 ### Pending Todos
 
@@ -1430,11 +1432,12 @@ untruncated list lives in `.planning/todos/pending/`.
 | Phase 173 P12 | 6min | 1 tasks | 2 files |
 | Phase 173 P03 | 50min | 1 tasks | 3 files |
 | Phase 173 P04 | 240min | 4 tasks | 14 files |
+| Phase 173 P05 | 150min | 3 tasks | 33 files |
 
 ## Session Continuity
 
-Last session: 2026-10-02T18:05:39.680Z
-Stopped at: Completed 173-04-PLAN.md
+Last session: 2026-10-02T19:17:49.291Z
+Stopped at: Completed 173-05-PLAN.md
 Last activity: 2026-09-28 - Completed Phase 169 Plan 169-01
 Resume file: 
 None

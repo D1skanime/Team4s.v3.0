@@ -80,6 +80,30 @@ non-fatal fallback to the unchanged original on failure (never a static frame fo
 The original deferred-items entry below is kept for historical context on why it was deferred in
 173-04; it no longer reflects the current state of the codebase.
 
+## 173-05 Task 1: non-cropped animated profile-background uploads lose animation (known limitation)
+
+**Scope:** `UploadOwnProfileBackground` now raw-copies cropped GIF/WebP uploads (preserving
+animation and exact bytes, matching the avatar flow's `shouldCopyAvatarDisplayFile` pattern) and
+rejects/accepts per `profileBackgroundAllowedImageMimeTypes` (now including GIF). This only
+covers the **cropped** upload path (`isCroppedUpload == true`, the common frontend flow where a
+`cropped_file` is already sized correctly).
+
+**What was NOT changed:** when a background is uploaded **without** cropping
+(`isCroppedUpload == false`), the handler still runs `imaging.Fill` to force the image onto the
+fixed 1920x384 banner box. `imaging.Fill` decodes via the Go standard library's single-frame
+`image.Decode` (frame 0 only for GIF, and WebP cannot be re-encoded by `imaging` at all), so an
+animated GIF/WebP background uploaded through the non-cropped path loses its animation and is
+stored as a static image (WebP additionally degrades to JPEG, since `imaging` cannot encode
+WebP). This mirrors a pre-existing limitation of the Fill-crop code path, not a regression.
+
+**Why deferred:** implementing an animation-preserving crop-to-fixed-banner-size operation would
+require a dedicated per-frame vips/ffmpeg pipeline (crop + resize every frame of an animated
+source while reassembling the animation), which is a materially larger scope than this plan's
+display-variant generation work.
+
+**Suggested follow-up:** a dedicated later plan could add a `vipsthumbnail`/`ffmpeg`-based
+animated crop-to-fill operation for the non-cropped profile-background upload path specifically.
+
 **Scope:** Task 0's action text asks for (a) narrowing the existing animated-WebP upload
 rejection to `asset_type=segment_preview` only (D-20) and (b) accepting animated WebP for all
 other asset types/write paths, producing an animated `display` variant via `vipsthumbnail
