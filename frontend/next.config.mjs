@@ -37,6 +37,10 @@ const nextConfig = {
       { pathname: '/media/anime/**', search: '' },
       { pathname: '/media/profile/**', search: '' },
       { pathname: '/media/release-version/**', search: '' },
+      // D-09/173-04: dedicated namespace for the new fansub group media
+      // (logo/banner-style assets), narrowed the same way as the other
+      // namespaces above -- not a blanket /media/** wildcard.
+      { pathname: '/media/fansub/**', search: '' },
     ],
     remotePatterns: [
       new URL('http://127.0.0.1:3101/api/v1/media/phase120-project-cover.png'),
@@ -59,7 +63,10 @@ const nextConfig = {
     dangerouslyAllowLocalIP: process.env.NODE_ENV !== 'production' || process.env.PHASE120_IMAGE_PROBE === '1',
     // Explicit quality allow-list (75 is Next.js 16's own default when unset),
     // making the bound a config-level guarantee rather than an implicit default.
-    qualities: [75],
+    // 85 (D-02) is the quality floor the display variant is encoded at; the
+    // 173-13/173-14/173-15 component-wiring plans pass quality={85} explicitly
+    // on ResponsiveImage for display-sourced public images.
+    qualities: [75, 85],
   },
   turbopack: {
     root: path.resolve(__dirname),
