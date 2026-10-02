@@ -4,6 +4,7 @@ import type { CSSProperties } from "react";
 
 import { Breadcrumbs } from "@/components/navigation/Breadcrumbs";
 import { AdjacentNavigation } from "@/components/ui";
+import { ResponsiveImage } from "@/components/ui/ResponsiveImage";
 import type { FansubProjectNavigation } from "@/lib/fansubProjectNavigation";
 import type { FansubGroupSummary } from "@/types/fansub";
 import type { GroupDetail } from "@/types/group";
@@ -90,29 +91,52 @@ export function HeroSection({
           <div className={styles.heroCard}>
             {heroImageUrl && heroImageIsBanner ? (
               <div className={styles.heroBannerWrap}>
-                <Image
-                  src={heroImageUrl}
-                  alt={`${anime.title} Banner`}
-                  width={1200}
-                  height={200}
-                  className={styles.heroBannerImg}
-                  unoptimized={heroImageUrl.includes("/api/")}
-                  priority
-                />
+                {heroImageUrl.includes("/api/") ? (
+                  <Image
+                    src={heroImageUrl}
+                    alt={`${anime.title} Banner`}
+                    width={1200}
+                    height={200}
+                    className={styles.heroBannerImg}
+                    unoptimized
+                    priority
+                  />
+                ) : (
+                  <ResponsiveImage
+                    src={heroImageUrl}
+                    alt={`${anime.title} Banner`}
+                    width={1200}
+                    height={200}
+                    className={styles.heroBannerImg}
+                    quality={85}
+                    priority
+                  />
+                )}
               </div>
             ) : null}
 
             <div className={styles.heroBody}>
               {!heroImageIsBanner ? (
                 heroImageUrl ? (
-                  <Image
-                    src={heroImageUrl}
-                    alt={anime.title}
-                    width={240}
-                    height={340}
-                    className={styles.poster}
-                    unoptimized={heroImageUrl.includes("/api/")}
-                  />
+                  heroImageUrl.includes("/api/") ? (
+                    <Image
+                      src={heroImageUrl}
+                      alt={anime.title}
+                      width={240}
+                      height={340}
+                      className={styles.poster}
+                      unoptimized
+                    />
+                  ) : (
+                    <ResponsiveImage
+                      src={heroImageUrl}
+                      alt={anime.title}
+                      width={240}
+                      height={340}
+                      className={styles.poster}
+                      quality={85}
+                    />
+                  )
                 ) : (
                   <div className={styles.posterPlaceholder}>
                     <span className={styles.posterInitial}>
