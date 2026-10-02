@@ -1257,6 +1257,14 @@ func (r *AdminContentRepository) hydrateSegmentPlaybackMetadata(ctx context.Cont
 		return err
 	} else if ok {
 		var status string
+		// Render-Caches sind pro Release-Version: ohne diesen Filter zeigt der Editor den Status
+		// einer fremden Release-Version (z. B. "bereit" von Folge 3 auf Folge 2).
+		releaseVersionFilter := ""
+		renderArgs := []interface{}{seg.ID}
+		if currentReleaseVersionID > 0 {
+			releaseVersionFilter = " AND release_version_id = $2"
+			renderArgs = append(renderArgs, currentReleaseVersionID)
+		}
 		if err := r.db.QueryRow(ctx, `
 			SELECT
 				id,
@@ -1267,7 +1275,7 @@ func (r *AdminContentRepository) hydrateSegmentPlaybackMetadata(ctx context.Cont
 				completed_at
 			FROM theme_segment_render_cache
 			WHERE theme_segment_id = $1
-			  AND invalidated_at IS NULL
+			  AND invalidated_at IS NULL`+releaseVersionFilter+`
 			ORDER BY
 				CASE status
 					WHEN 'ready' THEN 0
@@ -1280,7 +1288,7 @@ func (r *AdminContentRepository) hydrateSegmentPlaybackMetadata(ctx context.Cont
 				updated_at DESC,
 				id DESC
 			LIMIT 1
-		`, seg.ID).Scan(
+		`, renderArgs...).Scan(
 			&seg.RenderCacheID,
 			&seg.RenderCacheKey,
 			&status,

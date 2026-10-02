@@ -95,7 +95,22 @@ func (r *AdminContentRepository) UpsertThemeSegmentRenderCacheQueued(
 		strings.TrimSpace(input.SourceFingerprint),
 		strings.TrimSpace(input.RenderProfile),
 	)
-	return scanThemeSegmentRenderCache(row)
+	cache, err := scanThemeSegmentRenderCache(row)
+	if err != nil {
+		return nil, err
+	}
+	// Abgeloeste Fehlversuche derselben Segment/Release-Version (alter Cache-Key) entfernen,
+	// sonst konkurrieren sie in der Statusanzeige mit dem neuen Render.
+	if _, err := r.db.Exec(ctx, `
+		DELETE FROM theme_segment_render_cache
+		WHERE theme_segment_id = $1
+		  AND release_version_id IS NOT DISTINCT FROM $2
+		  AND cache_key <> $3
+		  AND status IN ('failed', 'stale')
+	`, input.ThemeSegmentID, input.ReleaseVersionID, strings.TrimSpace(input.CacheKey)); err != nil {
+		return nil, err
+	}
+	return cache, nil
 }
 
 func (r *AdminContentRepository) GetThemeSegmentRenderCacheByKey(
