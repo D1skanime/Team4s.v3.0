@@ -536,6 +536,67 @@ describe('MemberProfileHero', () => {
     })
   })
 
+  describe('173-15: display-preferring avatarDisplayURL/backgroundDisplayURL, D-07-safe', () => {
+    it('renders the backdrop from backgroundDisplayURL (not backgroundImageURL) when both are provided and distinct', () => {
+      const { container } = render(
+        <MemberProfileHero
+          profile={makePublicProfile()}
+          backgroundImageURL="/media/profile/3/background/current/original.jpg"
+          backgroundDisplayURL="/media/profile/3/background/current/display.jpg"
+          isPublicView={true}
+        />,
+      )
+
+      const background = container.querySelector('img[alt=""]')
+      expect(background?.getAttribute('src')).toBe('/media/profile/3/background/current/display.jpg')
+    })
+
+    it('renders the non-animated avatar from avatarDisplayURL (not avatarURL) when both are provided and distinct', () => {
+      render(
+        <MemberProfileHero
+          profile={makePublicProfile()}
+          avatarURL="/media/profile/3/avatar/current/original.jpg"
+          avatarDisplayURL="/media/profile/3/avatar/current/display.jpg"
+          isPublicView={true}
+        />,
+      )
+
+      const avatar = screen.getByRole('img', { name: 'Ballelboy Avatar' })
+      expect(avatar.getAttribute('src')).toBe('/media/profile/3/avatar/current/display.jpg')
+    })
+
+    it('D-07: an animated GIF avatarURL still renders the TRUE ORIGINAL unoptimized, never avatarDisplayURL, even when avatarDisplayURL is also provided', () => {
+      render(
+        <MemberProfileHero
+          profile={makePublicProfile()}
+          avatarURL="/media/profile/3/avatar/current/original.gif"
+          avatarDisplayURL="/media/profile/3/avatar/current/display.jpg"
+          isPublicView={true}
+        />,
+      )
+
+      const avatar = screen.getByRole('img', { name: 'Ballelboy Avatar' })
+      expect(avatar.getAttribute('src')).toBe('/media/profile/3/avatar/current/original.gif')
+      expect(avatar.getAttribute('data-unoptimized')).toBe('true')
+    })
+
+    it('omits avatarDisplayURL/backgroundDisplayURL entirely (the /me/profile own-profile call shape) and renders byte-for-byte identical to avatarURL/backgroundImageURL', () => {
+      const { container } = render(
+        <MemberProfileHero
+          profile={makePublicProfile()}
+          avatarURL="/media/profile/3/avatar/current/original.jpg"
+          backgroundImageURL="/media/profile/3/background/current/original.jpg"
+          isPublicView={true}
+        />,
+      )
+
+      const background = container.querySelector('img[alt=""]')
+      const avatar = screen.getByRole('img', { name: 'Ballelboy Avatar' })
+      expect(background?.getAttribute('src')).toBe('/media/profile/3/background/current/original.jpg')
+      expect(avatar.getAttribute('src')).toBe('/media/profile/3/avatar/current/original.jpg')
+    })
+  })
+
   it('shows the total points hero metric for a public profile with real points (D-02)', () => {
     render(
       <MemberProfileHero
