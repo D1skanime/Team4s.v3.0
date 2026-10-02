@@ -51,6 +51,8 @@ export async function ReleaseDetailPageContent({ animeID, groupID, releaseVersio
   try {
     detail = await getGroupReleaseDetail(animeID, groupID, releaseVersionID)
   } catch (error) {
+    // Diagnose fuer sporadische Dev-404 ohne Backend-Request (Phase-172-UAT).
+    console.error('[release-detail] load failed', { animeID, groupID, releaseVersionID, status: error instanceof ApiError ? error.status : null, message: error instanceof Error ? error.message : String(error) })
     if (error instanceof ApiError && error.status === 404) return notFound()
     return <main className={styles.page}><p className={styles.backLink}><Link href={canonicalProjectPath ?? `/anime/${animeID}/group/${groupID}`}>Zurück zum Fansub-Projekt</Link></p><div className={styles.errorBox}>Release konnte nicht geladen werden. Bitte versuche es erneut oder kehre zum Fansub-Projekt zurück.</div></main>
   }
