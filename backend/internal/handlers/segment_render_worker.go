@@ -162,6 +162,13 @@ func (h *AdminContentHandler) executeSegmentRender(
 	if subtitle.SubtitleFilePath != "" {
 		defer func(path string) { _ = os.Remove(path) }(subtitle.SubtitleFilePath)
 	}
+	subtitleFontsDir := ""
+	if subtitle.SubtitleFilePath != "" && selected != nil {
+		subtitleFontsDir = h.downloadSegmentSubtitleFonts(ctx, selected.JellyfinItemID, selected.Snapshot.MediaSourceID, selected.MediaAttachments, segmentSubtitleTempDir(h.segmentRenderDir))
+	}
+	if subtitleFontsDir != "" {
+		defer func(dir string) { _ = os.RemoveAll(dir) }(subtitleFontsDir)
+	}
 
 	streamURL := *source.StreamURL
 	var httpHeaders http.Header
@@ -181,6 +188,7 @@ func (h *AdminContentHandler) executeSegmentRender(
 		StreamURL:        streamURL,
 		HTTPHeaders:      httpHeaders,
 		SubtitleFilePath: subtitle.SubtitleFilePath,
+		SubtitleFontsDir: subtitleFontsDir,
 		OutputPath:       outputPath,
 		StartSeconds:     *source.StartOffsetSeconds,
 		DurationSeconds:  durationSeconds,

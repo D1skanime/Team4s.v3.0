@@ -4,7 +4,8 @@ ARG AIR_VERSION=v1.65.3
 
 # The backend image pipeline uses pure-Go imaging. FFmpeg/FFprobe remain
 # available so prepared segment flows behave like the production runtime.
-RUN apk add --no-cache ffmpeg \
+# fontconfig + Fallback-Fonts: ohne Systemschriften rendert libass ASS-Untertitel unsichtbar.
+RUN apk add --no-cache ffmpeg fontconfig font-dejavu font-noto font-noto-cjk \
     && go install github.com/air-verse/air@${AIR_VERSION}
 
 WORKDIR /app

@@ -26,6 +26,8 @@ type resolvedJellyfinMediaSource struct {
 	VideoQuality    *string
 	DurationSeconds *int32
 	MediaStreams    []jellyfinMediaStream
+	// Font-Anhaenge fuer den Segment-Render (nur Laufzeit, nie im Snapshot gespeichert).
+	MediaAttachments []jellyfinMediaAttachment
 }
 
 // jellyfinMediaSourceConflict deliberately excludes private paths and upstream
@@ -146,6 +148,7 @@ func resolveJellyfinMediaSourceSelection(item jellyfinEpisodeItem, selector stri
 		}
 		result.Snapshot.SourceFileNameUnique = matches == 1
 	}
+	result.MediaAttachments = source.MediaAttachments
 	if source.MediaStreams == nil {
 		// Retention happens only after the stored ID or unique stored full path
 		// selected this logical binding. A lost A binding can never retain tracks on B.

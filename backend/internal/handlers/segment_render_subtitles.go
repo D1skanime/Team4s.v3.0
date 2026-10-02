@@ -332,7 +332,8 @@ func (h *AdminContentHandler) CleanupOrphanedSegmentSubtitles(maxAge time.Durati
 	cutoff := time.Now().Add(-maxAge)
 	removed := 0
 	for _, entry := range entries {
-		if entry.IsDir() || !strings.HasSuffix(entry.Name(), ".ass") {
+		isFontDir := entry.IsDir() && strings.HasPrefix(entry.Name(), segmentFontDirPrefix)
+		if !isFontDir && (entry.IsDir() || !strings.HasSuffix(entry.Name(), ".ass")) {
 			continue
 		}
 		info, err := entry.Info()
@@ -341,6 +342,12 @@ func (h *AdminContentHandler) CleanupOrphanedSegmentSubtitles(maxAge time.Durati
 		}
 		path, ok := resolveControlledFilePath(dir, entry.Name())
 		if !ok {
+			continue
+		}
+		if isFontDir {
+			if err := os.RemoveAll(path); err == nil {
+				removed++
+			}
 			continue
 		}
 		if err := os.Remove(path); err == nil {

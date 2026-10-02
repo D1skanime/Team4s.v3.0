@@ -220,13 +220,14 @@ export function SegmentsListSection({
                       </TableCell>
                       <TableCell data-label="Aktionen">
                         <div style={{ display: 'flex', alignItems: 'center', gap: 4 }}>
-                          {segment.playback_source_kind && segment.playback_source_kind !== 'uploaded_asset' && segment.render_status !== 'ready' ? (
+                          {segment.playback_source_kind && segment.playback_source_kind !== 'uploaded_asset' ? (
                             <Button
                               type="button"
                               variant="ghost"
                               size="sm"
                               iconOnly
-                              title="Segment vorbereiten"
+                              title={segment.render_status === 'ready' ? 'Neu rendern' : 'Segment vorbereiten'}
+                              aria-label={segment.render_status === 'ready' ? 'Neu rendern' : 'Segment vorbereiten'}
                               disabled={
                                 renderingSegmentId === segment.id ||
                                 segment.render_status === 'queued' ||

@@ -64,6 +64,8 @@ type jellyfinMediaSource struct {
 	DefaultAudioStreamIndex *int32 `json:"DefaultAudioStreamIndex"`
 	// nil means omitted/null; an explicitly empty array is complete.
 	MediaStreams []jellyfinMediaStream `json:"MediaStreams"`
+	// Eingebettete Anhaenge (u. a. Fansub-Fonts fuer ASS-Karaoke).
+	MediaAttachments []jellyfinMediaAttachment `json:"MediaAttachments"`
 }
 
 // jellyfinMediaStream repräsentiert einen Medien-Stream (Video, Audio, Untertitel) innerhalb einer Jellyfin-Episode.

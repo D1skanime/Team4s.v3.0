@@ -18,7 +18,8 @@ WORKDIR /app
 
 # Runtime shared library for govips dynamic linking, plus FFmpeg/FFprobe
 # for prepared OP/ED/Kara segment clips.
-RUN apk add --no-cache vips ffmpeg
+# fontconfig + Fallback-Fonts: ohne Systemschriften rendert libass ASS-Untertitel unsichtbar.
+RUN apk add --no-cache vips ffmpeg fontconfig font-dejavu font-noto font-noto-cjk
 
 COPY --from=builder /app/server ./server
 COPY --from=builder /app/migrate ./migrate

@@ -27,6 +27,7 @@ type SegmentRenderCommandInput struct {
 	StreamURL        string
 	HTTPHeaders      http.Header // Server-only provider headers, never part of browser DTOs.
 	SubtitleFilePath string
+	SubtitleFontsDir string // eingebettete Quell-Fonts (MKV-Anhaenge) fuer libass
 	OutputPath       string
 	StartSeconds     int32
 	DurationSeconds  int32
@@ -142,7 +143,11 @@ func BuildFFmpegSegmentArgs(input SegmentRenderCommandInput) ([]string, error) {
 	}
 	args = append(args, "-i", strings.TrimSpace(input.StreamURL))
 	if strings.TrimSpace(input.SubtitleFilePath) != "" {
-		args = append(args, "-vf", "subtitles="+escapeFFmpegSubtitlePath(input.SubtitleFilePath))
+		filter := "subtitles=" + escapeFFmpegSubtitlePath(input.SubtitleFilePath)
+		if strings.TrimSpace(input.SubtitleFontsDir) != "" {
+			filter += ":fontsdir=" + escapeFFmpegSubtitlePath(input.SubtitleFontsDir)
+		}
+		args = append(args, "-vf", filter)
 	}
 	args = append(args,
 		"-map", "0:v:0",
