@@ -94,9 +94,10 @@ func resolveThemeSegmentPreviewAsset(
 
 	var fallbackPath *string
 	if err := db.QueryRow(ctx, `
-		SELECT COALESCE(mf_thumb.path, mf_orig.path, ma.file_path)
+		SELECT COALESCE(mf_display.path, mf_thumb.path, mf_orig.path, ma.file_path)
 		FROM release_version_media rvm_preview
 		JOIN media_assets ma ON ma.id = rvm_preview.media_asset_id
+		LEFT JOIN media_files mf_display ON mf_display.media_id = ma.id AND mf_display.variant = 'display' AND mf_display.status = 'ready'
 		LEFT JOIN media_files mf_thumb ON mf_thumb.media_id = ma.id AND mf_thumb.variant = 'thumb' AND mf_thumb.status = 'ready'
 		LEFT JOIN media_files mf_orig ON mf_orig.media_id = ma.id AND (mf_orig.variant = 'original' OR mf_orig.variant IS NULL) AND mf_orig.status = 'ready'
 		JOIN visibilities v_preview ON v_preview.id = ma.visibility_id
@@ -368,9 +369,10 @@ func resolveThemeSegmentPreviewAssetsBatch(
 
 	var fallbackPath *string
 	if err := db.QueryRow(ctx, `
-		SELECT COALESCE(mf_thumb.path, mf_orig.path, ma.file_path)
+		SELECT COALESCE(mf_display.path, mf_thumb.path, mf_orig.path, ma.file_path)
 		FROM release_version_media rvm_preview
 		JOIN media_assets ma ON ma.id = rvm_preview.media_asset_id
+		LEFT JOIN media_files mf_display ON mf_display.media_id = ma.id AND mf_display.variant = 'display' AND mf_display.status = 'ready'
 		LEFT JOIN media_files mf_thumb ON mf_thumb.media_id = ma.id AND mf_thumb.variant = 'thumb' AND mf_thumb.status = 'ready'
 		LEFT JOIN media_files mf_orig ON mf_orig.media_id = ma.id AND (mf_orig.variant = 'original' OR mf_orig.variant IS NULL) AND mf_orig.status = 'ready'
 		JOIN visibilities v_preview ON v_preview.id = ma.visibility_id
