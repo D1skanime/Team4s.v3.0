@@ -37,6 +37,13 @@ export function MemberProfileContent({
 }: MemberProfileContentProps) {
   const avatarURL = resolveApiUrl(profile.avatar?.public_url || '')
   const backgroundImageURL = resolveApiUrl(profile.background_image?.public_url || '')
+  // Display-preferring sources (173-15/D-02): fall back to the true original public_url when
+  // no display variant exists yet. avatarURL/backgroundImageURL above stay untouched -- they
+  // carry the TRUE ORIGINAL that MemberProfileHero's animated-avatar detection inspects.
+  const avatarDisplayURL = resolveApiUrl(profile.avatar?.display_url || profile.avatar?.public_url || '')
+  const backgroundDisplayURL = resolveApiUrl(
+    profile.background_image?.display_url || profile.background_image?.public_url || '',
+  )
   const publicBadges = profile.public_badges ?? []
   // Phase 150 (D-12 #1): höchster erreichter Punkt-Meilenstein kommt jetzt direkt aus der
   // "points"-Familie in profile.badge_progress (serverautoritativ, kein eigenes
@@ -101,6 +108,8 @@ export function MemberProfileContent({
           profile={profile}
           avatarURL={avatarURL}
           backgroundImageURL={backgroundImageURL}
+          avatarDisplayURL={avatarDisplayURL}
+          backgroundDisplayURL={backgroundDisplayURL}
           isPublicView={true}
           isVerified={profile.is_verified}
           publicBadges={publicBadges}

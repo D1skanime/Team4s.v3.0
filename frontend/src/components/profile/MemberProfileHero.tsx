@@ -20,6 +20,17 @@ type MemberProfileHeroProps = {
   profile: MemberProfileData | PublicMemberProfileData
   avatarURL?: string
   backgroundImageURL?: string
+  /**
+   * Display-preferring source for the non-animated avatar branch (173-15/D-02). Purely
+   * additive and optional -- when absent (the /me/profile own-profile caller, unchanged by
+   * this plan), effectiveAvatarURL below falls back to avatarURL, so rendering stays
+   * byte-for-byte identical. NEVER read by the isAnimatedAvatar derivation or the animated
+   * branch -- those must keep inspecting avatarURL (the true original) so D-07's
+   * animated-avatar preservation is never silently broken.
+   */
+  avatarDisplayURL?: string
+  /** Display-preferring source for the backdrop background (173-15/D-02); same fallback rule. */
+  backgroundDisplayURL?: string
   isPublicView?: boolean
   isSaving?: boolean
   canSave?: boolean
@@ -137,6 +148,8 @@ export function MemberProfileHero({
   profile,
   avatarURL = '',
   backgroundImageURL = '',
+  avatarDisplayURL,
+  backgroundDisplayURL,
   isPublicView = false,
   isSaving = false,
   canSave = false,
@@ -167,6 +180,15 @@ export function MemberProfileHero({
     : { avatarURL, animated: isGifAvatarURL(avatarURL) }
   if (resolvedWebpProbeState !== webpProbeState) setWebpProbeState(resolvedWebpProbeState)
   const isAnimatedAvatar = resolvedWebpProbeState.animated
+
+  // Display-preferring sources (173-15/D-02). Fall back to the true original when the new
+  // props are absent (the /me/profile own-profile caller, unchanged by this plan) -- that
+  // caller never passes avatarDisplayURL/backgroundDisplayURL, so effectiveAvatarURL ===
+  // avatarURL and rendering stays byte-for-byte identical. The animated-avatar branch and
+  // isAnimatedAvatar derivation above intentionally keep reading avatarURL, never
+  // effectiveAvatarURL, so D-07's animated-original preservation cannot silently regress.
+  const effectiveAvatarURL = avatarDisplayURL || avatarURL
+  const effectiveBackgroundURL = backgroundDisplayURL || backgroundImageURL
 
   // Wave-safe default: while the async WebP probe is pending, keep rendering the normal
   // ResponsiveImage branch (never speculatively swap to the unoptimized branch) -- no
@@ -244,12 +266,13 @@ export function MemberProfileHero({
         {backgroundImageURL ? (
           <div className={styles.heroBackdrop} aria-hidden="true">
             <ResponsiveImage
-              src={backgroundImageURL}
+              src={effectiveBackgroundURL}
               alt=""
               fill
               sizes="(max-width: 760px) calc(100vw - 24px), (max-width: 1099px) calc(100vw - 48px), 1360px"
               loading="eager"
               fetchPriority="high"
+              quality={85}
             />
           </div>
         ) : null}
@@ -266,12 +289,13 @@ export function MemberProfileHero({
             />
           ) : avatarURL ? (
             <ResponsiveImage
-              src={avatarURL}
+              src={effectiveAvatarURL}
               alt={`${avatarLabel} Avatar`}
               width={140}
               height={140}
               sizes="(max-width: 760px) 100px, (max-width: 1099px) 120px, 140px"
               loading="eager"
+              quality={85}
             />
           ) : (
             <span aria-hidden="true">
