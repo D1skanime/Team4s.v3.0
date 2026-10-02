@@ -133,7 +133,7 @@ export function SegmentPreviewImageSection({
         ) : null}
       </div>
 
-      <p className={styles.helpText}>Erlaubte Formate: JPG, PNG, WEBP · Max. 50 MB</p>
+      <p className={styles.helpText}>Erlaubte Formate: JPG, PNG, WEBP (nicht animiert) · Max. 50 MB</p>
       <p className={styles.helpText}>Wird sofort übernommen und ist ohne Freigabe öffentlich sichtbar.</p>
 
       {successMessage ? (

@@ -213,11 +213,8 @@ func (h *AdminContentHandler) ReplaceReleaseVersionMediaFile(c *gin.Context) {
 	if idx := strings.Index(mimeType, ";"); idx >= 0 {
 		mimeType = strings.TrimSpace(mimeType[:idx])
 	}
-	if !rvmAllowedMIMETypes[mimeType] {
-		c.JSON(http.StatusUnprocessableEntity, gin.H{"error": gin.H{
-			"message":    fmt.Sprintf("nicht erlaubter dateityp: %s", mimeType),
-			"error_code": "INVALID_MIME_TYPE",
-		}})
+	if message, code, rejected := rvmFileRejection(mimeType, data); rejected {
+		c.JSON(http.StatusUnprocessableEntity, gin.H{"error": gin.H{"message": message, "error_code": code}})
 		return
 	}
 

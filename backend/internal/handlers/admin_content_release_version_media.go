@@ -367,10 +367,8 @@ func (h *AdminContentHandler) processOneRVMFile(
 		mimeType = strings.TrimSpace(mimeType[:idx])
 	}
 
-	if !rvmAllowedMIMETypes[mimeType] {
-		return rvmFileResult{ClientFileName: clientName, Status: "failed",
-			ErrorCode: "INVALID_MIME_TYPE",
-			Message:   fmt.Sprintf("nicht erlaubter dateityp: %s", mimeType)}
+	if message, code, rejected := rvmFileRejection(mimeType, data); rejected {
+		return rvmFileResult{ClientFileName: clientName, Status: "failed", ErrorCode: code, Message: message}
 	}
 
 	meta, err := inspectRVMImage(data, mimeType)

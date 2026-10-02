@@ -324,6 +324,9 @@ func (h *MediaUploadHandler) validateFile(file multipart.File, size int64) (stri
 
 	// Check if it's an allowed image type
 	if allowedImageMimeTypes[mimeType] {
+		if mimeType == "image/webp" && isAnimatedWebP(buffer[:n]) {
+			return "", "", fmt.Errorf("%s", animatedWebPMessage)
+		}
 		if size > maxImageSize {
 			return "", "", fmt.Errorf("bild zu gross (max %d MB)", maxImageSize/(1024*1024))
 		}
