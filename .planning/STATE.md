@@ -3,14 +3,14 @@ gsd_state_version: 1.0
 milestone: v1.4
 milestone_name: Coverage
 status: executing
-stopped_at: Completed 173-01-PLAN.md
-last_updated: "2026-10-02T15:47:39.238Z"
+stopped_at: Completed 173-02-PLAN.md
+last_updated: "2026-10-02T16:01:26.657Z"
 last_activity: 2026-10-02
 progress:
   total_phases: 38
   completed_phases: 32
   total_plans: 338
-  completed_plans: 319
+  completed_plans: 320
   percent: 84
 ---
 
@@ -287,7 +287,7 @@ Abschluss" entry below for the full closing record.
 ## Current Position
 
 Phase: 173 (ffentliche-bildqualit-t-zus-tzliche-display-variante-backend) — EXECUTING
-Plan: 2 of 16
+Plan: 3 of 16
 Status: Ready to execute
 Completed: removed stale public timeline range access, repaired nullable highlight responses, batched release-version-media rights projection, hardened full-list media reorder, and synchronized the focused admin contract.
 Next: resolve or explicitly accept the pre-existing full-suite failures, then complete Phase 169 live actor/refresh/responsive UAT; Phase 166 remains open.
@@ -871,6 +871,8 @@ Last activity: 2026-10-02
 - [Phase 173]: Display variant for static images is always JPEG quality 88 regardless of source mimetype (D-01 discretion, no new encoder dependency)
 - [Phase 173]: WebP thumb/display encoding re-encodes to JPEG since imaging cannot encode WebP; only the original variant preserves raw WebP bytes
 - [Phase 173]: Animated-GIF display generation failure (missing/misconfigured ffmpeg) is treated as non-fatal, matching saveSegmentVideoPreview's posture
+- [Phase 173]: Display variant is always re-encoded as JPEG (quality 88) regardless of source mimetype, no new encoder dependency
+- [Phase 173]: GIF and WebP originals share one raw-bytes EXIF-strip branch since both hit the same imaging encode limitation
 
 ### Pending Todos
 
@@ -1416,11 +1418,12 @@ untruncated list lives in `.planning/todos/pending/`.
 | Phase 172 P06 | 70min | 2 tasks | 3 files |
 | Phase 172 P07 | 25min | 2 tasks | 4 files |
 | Phase 173 P01 | 40min | 2 tasks | 3 files |
+| Phase 173 P02 | 55min | 1 tasks | 3 files |
 
 ## Session Continuity
 
-Last session: 2026-10-02T15:47:39.208Z
-Stopped at: Completed 173-01-PLAN.md
+Last session: 2026-10-02T16:01:26.632Z
+Stopped at: Completed 173-02-PLAN.md
 Last activity: 2026-09-28 - Completed Phase 169 Plan 169-01
 Resume file: 
 None
