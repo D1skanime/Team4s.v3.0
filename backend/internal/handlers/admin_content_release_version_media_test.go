@@ -13,6 +13,7 @@ import (
 	"mime/multipart"
 	"net/http"
 	"net/http/httptest"
+	"os"
 	"strconv"
 	"strings"
 	"testing"
@@ -309,6 +310,11 @@ func newRVMExecHandler(pool *pgxpool.Pool, tmpDir string) *AdminContentHandler {
 		permissionSvc:   permissions.NewService(releaseVersionMediaDeniedResolverStub{}), // unused for platform-admin calls; only load-bearing for denied-actor calls
 		mediaRepo:       repository.NewMediaRepository(pool, ""),
 		mediaStorageDir: tmpDir,
+		// auditLogRepo must be non-nil: UploadReleaseVersionMedia calls h.auditLogRepo.Write
+		// unconditionally for every "ready" result. repository.NewAuditLogRepository(nil) is
+		// the established nil-safe no-op pattern used elsewhere in this package's tests
+		// (see contribution_proposals_me_test.go) — Write short-circuits when its db is nil.
+		auditLogRepo: repository.NewAuditLogRepository(nil),
 	}
 }
 
@@ -1255,4 +1261,143 @@ func TestReleaseVersionMedia_UploadReturnsAuthoritativeSourceRevision(t *testing
 	).Scan(&persistedRevision))
 	assert.Equal(t, persistedRevision, *resp.Results[0].SourceRevision,
 		"the response's source_revision must be the authoritative value the review lifecycle repository actually persisted")
+}
+
+// ---------------------------------------------------------------------------
+// 173-02 — display-variant generation (generateRVMDisplay / GenerateStaticDisplayVariant)
+// ---------------------------------------------------------------------------
+
+// rvmQueryMediaFile reads the persisted media_files row for a given relation/variant directly,
+// bypassing ListReleaseVersionMedia (whose JOIN query is unrelated pre-existing, out-of-scope
+// debt against this package's minimal test fixture schema — see deferred-items.md).
+func rvmQueryMediaFile(t *testing.T, pool *pgxpool.Pool, relationID int64, variant string) (path string, width, height int) {
+	t.Helper()
+	require.NoError(t, pool.QueryRow(context.Background(), `
+		SELECT mf.path, mf.width, mf.height
+		FROM media_files mf
+		JOIN release_version_media rvm ON rvm.media_asset_id = mf.media_id
+		WHERE rvm.id = $1 AND mf.variant = $2
+	`, relationID, variant).Scan(&path, &width, &height))
+	return path, width, height
+}
+
+// TestReleaseVersionMedia_DisplayVariantNoUpscale proves a real end-to-end upload of a
+// small (300x200) image produces a "display" media_files row whose width/height exactly match
+// the original — never upscaled.
+func TestReleaseVersionMedia_DisplayVariantNoUpscale(t *testing.T) {
+	gin.SetMode(gin.TestMode)
+	pool := openRVMExecFixture(t)
+	h := newRVMExecHandler(pool, t.TempDir())
+
+	req := rvmUploadMultipartRequest(t, "/release-versions/41/media", "screenshot", map[string][]byte{"small.png": newSizedPNGBytes(t, 300, 200)})
+	c, rec := replaceRVMContext(req, gin.Params{{Key: "versionId", Value: "41"}}, rvmExecPlatformAdminIdentity())
+	h.UploadReleaseVersionMedia(c)
+	require.Equal(t, http.StatusOK, rec.Code, rec.Body.String())
+
+	var resp struct {
+		Results []rvmFileResult `json:"results"`
+	}
+	require.NoError(t, json.Unmarshal(rec.Body.Bytes(), &resp))
+	require.Len(t, resp.Results, 1)
+	require.Equal(t, "ready", resp.Results[0].Status, rec.Body.String())
+	require.NotNil(t, resp.Results[0].ReleaseVersionMediaID)
+	assert.NotEmpty(t, resp.Results[0].DisplayURL, "a ready upload must carry a display_url")
+
+	_, width, height := rvmQueryMediaFile(t, pool, *resp.Results[0].ReleaseVersionMediaID, "display")
+	assert.Equal(t, 300, width, "a small image's display variant must not be upscaled")
+	assert.Equal(t, 200, height, "a small image's display variant must not be upscaled")
+}
+
+// TestReleaseVersionMedia_DisplayVariantCapsLongEdge proves a real end-to-end upload of a
+// large (3000x1500) image produces a "display" media_files row whose long edge is capped at
+// exactly rvmDisplayLongEdge (1920), with the aspect ratio preserved.
+func TestReleaseVersionMedia_DisplayVariantCapsLongEdge(t *testing.T) {
+	gin.SetMode(gin.TestMode)
+	pool := openRVMExecFixture(t)
+	h := newRVMExecHandler(pool, t.TempDir())
+
+	req := rvmUploadMultipartRequest(t, "/release-versions/41/media", "screenshot", map[string][]byte{"large.png": newSizedPNGBytes(t, 3000, 1500)})
+	c, rec := replaceRVMContext(req, gin.Params{{Key: "versionId", Value: "41"}}, rvmExecPlatformAdminIdentity())
+	h.UploadReleaseVersionMedia(c)
+	require.Equal(t, http.StatusOK, rec.Code, rec.Body.String())
+
+	var resp struct {
+		Results []rvmFileResult `json:"results"`
+	}
+	require.NoError(t, json.Unmarshal(rec.Body.Bytes(), &resp))
+	require.Len(t, resp.Results, 1)
+	require.Equal(t, "ready", resp.Results[0].Status, rec.Body.String())
+	require.NotNil(t, resp.Results[0].ReleaseVersionMediaID)
+
+	_, width, height := rvmQueryMediaFile(t, pool, *resp.Results[0].ReleaseVersionMediaID, "display")
+	assert.Equal(t, 1920, width, "the long (3000px) edge must be capped at rvmDisplayLongEdge")
+	assert.Equal(t, 960, height, "the short edge must scale proportionally (3000x1500 -> 1920x960)")
+}
+
+// TestReleaseVersionMedia_WebPOriginalKeepsRealBytes is a regression test for the pre-existing
+// bug fixed in this plan: a WebP-mimetype upload's original file on disk must start with the
+// real RIFF/WEBP magic bytes, not be silently re-encoded to JPEG (which imaging.Save would do,
+// since it can decode but not encode WebP). Before the fix, the EXIF-strip branch at
+// processOneRVMFile only special-cased image/gif, so WebP originals hit imaging.Save and either
+// failed outright or produced non-WebP bytes under the .webp extension.
+func TestReleaseVersionMedia_WebPOriginalKeepsRealBytes(t *testing.T) {
+	gin.SetMode(gin.TestMode)
+	pool := openRVMExecFixture(t)
+	h := newRVMExecHandler(pool, t.TempDir())
+
+	// makeWebPBytes (above) is a header-only VP8L fixture that fails full pixel decode
+	// ("invalid Huffman tree") -- generateRVMThumbnail/generateRVMDisplay need a genuinely
+	// decodable image, not just valid magic bytes, so this test reuses the fully decodable
+	// static WebP fixture already established in media_upload_test.go (same package).
+	webpBytes := testStaticWebPBytes(t)
+	req := rvmUploadMultipartRequest(t, "/release-versions/41/media", "screenshot", map[string][]byte{"shot.webp": webpBytes})
+	c, rec := replaceRVMContext(req, gin.Params{{Key: "versionId", Value: "41"}}, rvmExecPlatformAdminIdentity())
+	h.UploadReleaseVersionMedia(c)
+	require.Equal(t, http.StatusOK, rec.Code, rec.Body.String())
+
+	var resp struct {
+		Results []rvmFileResult `json:"results"`
+	}
+	require.NoError(t, json.Unmarshal(rec.Body.Bytes(), &resp))
+	require.Len(t, resp.Results, 1)
+	require.Equal(t, "ready", resp.Results[0].Status, rec.Body.String())
+	require.NotNil(t, resp.Results[0].ReleaseVersionMediaID)
+
+	originalPath, _, _ := rvmQueryMediaFile(t, pool, *resp.Results[0].ReleaseVersionMediaID, "original")
+	require.NotEmpty(t, originalPath)
+	onDisk, err := os.ReadFile(originalPath)
+	require.NoError(t, err)
+	require.GreaterOrEqual(t, len(onDisk), 12)
+	assert.Equal(t, "RIFF", string(onDisk[0:4]), "a WebP original must keep its real RIFF container magic bytes")
+	assert.Equal(t, "WEBP", string(onDisk[8:12]), "a WebP original must keep its real WEBP magic bytes")
+	assert.Equal(t, webpBytes, onDisk, "a WebP original must be stored byte-for-byte, not re-encoded")
+}
+
+// TestGenerateStaticDisplayVariant proves GenerateStaticDisplayVariant (the exported wrapper
+// around generateRVMDisplay for the Phase 173 backfill CLI, 173-07) is directly unit-testable
+// as a pure function, without any Gin/HTTP context — matching generateRVMThumbnail's existing
+// testability shape (TestGenerateGIFThumbnail above).
+func TestGenerateStaticDisplayVariant(t *testing.T) {
+	// Empty input must return an error, not panic.
+	result, width, height, err := GenerateStaticDisplayVariant([]byte{}, "image/png")
+	assert.Error(t, err, "empty png data must return error")
+	assert.Nil(t, result)
+	assert.Zero(t, width)
+	assert.Zero(t, height)
+
+	// A real small PNG must decode, re-encode as JPEG, and report its unscaled dimensions.
+	small := newSizedPNGBytes(t, 300, 200)
+	data, w, h, err := GenerateStaticDisplayVariant(small, "image/png")
+	require.NoError(t, err)
+	assert.NotEmpty(t, data)
+	assert.Equal(t, 300, w)
+	assert.Equal(t, 200, h)
+
+	// A large PNG must be capped to rvmDisplayLongEdge (1920) on its long edge.
+	large := newSizedPNGBytes(t, 3000, 1500)
+	data2, w2, h2, err := GenerateStaticDisplayVariant(large, "image/png")
+	require.NoError(t, err)
+	assert.NotEmpty(t, data2)
+	assert.Equal(t, 1920, w2)
+	assert.Equal(t, 960, h2)
 }

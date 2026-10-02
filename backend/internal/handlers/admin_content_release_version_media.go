@@ -71,6 +71,7 @@ type rvmFileResult struct {
 	ReleaseVersionMediaID *int64 `json:"release_version_media_id,omitempty"`
 	SourceRevision        *int64 `json:"source_revision,omitempty"`
 	ThumbnailURL          string `json:"thumbnail_url,omitempty"`
+	DisplayURL            string `json:"display_url,omitempty"`
 	ErrorCode             string `json:"error_code,omitempty"`
 	Message               string `json:"message,omitempty"`
 }
@@ -400,6 +401,12 @@ func (h *AdminContentHandler) processOneRVMFile(
 		return rvmFileResult{ClientFileName: clientName, Status: "failed",
 			ErrorCode: "THUMBNAIL_FAILED", Message: "thumbnail konnte nicht erzeugt werden"}
 	}
+	displayData, displayWidth, displayHeight, err := generateRVMDisplay(data, mimeType)
+	if err != nil {
+		log.Printf("rvm display error for %s: %v", clientName, err)
+		return rvmFileResult{ClientFileName: clientName, Status: "failed",
+			ErrorCode: "DISPLAY_FAILED", Message: "display-variante konnte nicht erzeugt werden"}
+	}
 
 	assetUUID := uuid.New().String()
 	ext := imageExtFromMimeRVM(mimeType)
@@ -407,19 +414,22 @@ func (h *AdminContentHandler) processOneRVMFile(
 	assetDir := filepath.Join(h.mediaStorageDir, "release-version", versionIDStr, assetUUID)
 	originalPath := filepath.Join(assetDir, "original."+ext)
 	thumbPath := filepath.Join(assetDir, "thumb.jpg")
+	displayPath := filepath.Join(assetDir, "display.jpg")
 
 	if err := os.MkdirAll(assetDir, 0o755); err != nil {
 		return rvmFileResult{ClientFileName: clientName, Status: "failed",
 			ErrorCode: "STORAGE_FAILED", Message: "verzeichnis konnte nicht erstellt werden"}
 	}
 
-	// EXIF-Strip für JPEG, PNG und WebP: imaging.Save re-enkodiert das Bild
-	// ohne Metadaten. GIF bleibt raw, weil imaging die Animation nicht erhalten kann.
-	if mimeType == "image/gif" {
+	// EXIF-Strip für JPEG und PNG: imaging.Save re-enkodiert das Bild ohne Metadaten.
+	// GIF bleibt raw, weil imaging die Animation nicht erhalten kann. WebP bleibt ebenfalls
+	// raw, weil imaging.Save WebP nicht enkodieren kann (nur dekodieren) -- ohne diesen Zweig
+	// würde das WebP-Original fehlschlagen bzw. fälschlich re-enkodiert werden.
+	if mimeType == "image/gif" || mimeType == "image/webp" {
 		if err := os.WriteFile(originalPath, data, 0o644); err != nil {
 			_ = removeFileQuietly(originalPath)
 			return rvmFileResult{ClientFileName: clientName, Status: "failed",
-				ErrorCode: "STORAGE_FAILED", Message: "original (gif) konnte nicht gespeichert werden"}
+				ErrorCode: "STORAGE_FAILED", Message: "original konnte nicht gespeichert werden"}
 		}
 	} else {
 		decoded, _, err := image.Decode(bytes.NewReader(data))
@@ -438,8 +448,16 @@ func (h *AdminContentHandler) processOneRVMFile(
 	if err := os.WriteFile(thumbPath, thumbData, 0o644); err != nil {
 		_ = removeFileQuietly(originalPath)
 		_ = removeFileQuietly(thumbPath)
+		_ = removeFileQuietly(displayPath)
 		return rvmFileResult{ClientFileName: clientName, Status: "failed",
 			ErrorCode: "STORAGE_FAILED", Message: "thumbnail konnte nicht gespeichert werden"}
+	}
+	if err := os.WriteFile(displayPath, displayData, 0o644); err != nil {
+		_ = removeFileQuietly(originalPath)
+		_ = removeFileQuietly(thumbPath)
+		_ = removeFileQuietly(displayPath)
+		return rvmFileResult{ClientFileName: clientName, Status: "failed",
+			ErrorCode: "STORAGE_FAILED", Message: "display-variante konnte nicht gespeichert werden"}
 	}
 
 	ctx := c.Request.Context()
@@ -447,6 +465,7 @@ func (h *AdminContentHandler) processOneRVMFile(
 	if err != nil {
 		_ = removeFileQuietly(originalPath)
 		_ = removeFileQuietly(thumbPath)
+		_ = removeFileQuietly(displayPath)
 		return rvmFileResult{ClientFileName: clientName, Status: "failed",
 			ErrorCode: "DB_FAILED", Message: "transaktion konnte nicht gestartet werden"}
 	}
@@ -471,20 +490,30 @@ func (h *AdminContentHandler) processOneRVMFile(
 	if err != nil {
 		_ = removeFileQuietly(originalPath)
 		_ = removeFileQuietly(thumbPath)
+		_ = removeFileQuietly(displayPath)
 		return rvmFileResult{ClientFileName: clientName, Status: "failed",
 			ErrorCode: "DB_FAILED", Message: "media asset konnte nicht erstellt werden"}
 	}
 	if err := h.mediaRepo.InsertMediaFileWithStatus(ctx, tx, mediaAsset.ID, "original", originalPath, meta.Width, meta.Height, int64(len(data)), "processing"); err != nil {
 		_ = removeFileQuietly(originalPath)
 		_ = removeFileQuietly(thumbPath)
+		_ = removeFileQuietly(displayPath)
 		return rvmFileResult{ClientFileName: clientName, Status: "failed",
 			ErrorCode: "DB_FAILED", Message: "media file (original) konnte nicht erstellt werden"}
 	}
 	if err := h.mediaRepo.InsertMediaFileWithStatus(ctx, tx, mediaAsset.ID, "thumb", thumbPath, thumbWidth, thumbHeight, int64(len(thumbData)), "processing"); err != nil {
 		_ = removeFileQuietly(originalPath)
 		_ = removeFileQuietly(thumbPath)
+		_ = removeFileQuietly(displayPath)
 		return rvmFileResult{ClientFileName: clientName, Status: "failed",
 			ErrorCode: "DB_FAILED", Message: "media file (thumb) konnte nicht erstellt werden"}
+	}
+	if err := h.mediaRepo.InsertMediaFileWithStatus(ctx, tx, mediaAsset.ID, "display", displayPath, displayWidth, displayHeight, int64(len(displayData)), "processing"); err != nil {
+		_ = removeFileQuietly(originalPath)
+		_ = removeFileQuietly(thumbPath)
+		_ = removeFileQuietly(displayPath)
+		return rvmFileResult{ClientFileName: clientName, Status: "failed",
+			ErrorCode: "DB_FAILED", Message: "media file (display) konnte nicht erstellt werden"}
 	}
 
 	uploadedBy := uploadedByUserID
@@ -501,6 +530,7 @@ func (h *AdminContentHandler) processOneRVMFile(
 	if err != nil {
 		_ = removeFileQuietly(originalPath)
 		_ = removeFileQuietly(thumbPath)
+		_ = removeFileQuietly(displayPath)
 		return rvmFileResult{ClientFileName: clientName, Status: "failed",
 			ErrorCode: "DB_FAILED", Message: "release version media konnte nicht erstellt werden"}
 	}
@@ -515,6 +545,7 @@ func (h *AdminContentHandler) processOneRVMFile(
 	if err != nil {
 		_ = removeFileQuietly(originalPath)
 		_ = removeFileQuietly(thumbPath)
+		_ = removeFileQuietly(displayPath)
 		return rvmFileResult{ClientFileName: clientName, Status: "failed",
 			ErrorCode: "DB_FAILED", Message: "Review-Lifecycle konnte nicht erstellt werden"}
 	}
@@ -522,12 +553,14 @@ func (h *AdminContentHandler) processOneRVMFile(
 	if err := h.mediaRepo.UpdateMediaAssetStatusRVMTx(ctx, tx, mediaAsset.ID, "ready"); err != nil {
 		_ = removeFileQuietly(originalPath)
 		_ = removeFileQuietly(thumbPath)
+		_ = removeFileQuietly(displayPath)
 		return rvmFileResult{ClientFileName: clientName, Status: "failed",
 			ErrorCode: "DB_FAILED", Message: "media asset status konnte nicht auf ready gesetzt werden"}
 	}
 	if err := h.mediaRepo.UpdateMediaFileStatusRVMTx(ctx, tx, mediaAsset.ID, "ready"); err != nil {
 		_ = removeFileQuietly(originalPath)
 		_ = removeFileQuietly(thumbPath)
+		_ = removeFileQuietly(displayPath)
 		return rvmFileResult{ClientFileName: clientName, Status: "failed",
 			ErrorCode: "DB_FAILED", Message: "media file status konnte nicht auf ready gesetzt werden"}
 	}
@@ -535,12 +568,15 @@ func (h *AdminContentHandler) processOneRVMFile(
 	if err := tx.Commit(ctx); err != nil {
 		_ = removeFileQuietly(originalPath)
 		_ = removeFileQuietly(thumbPath)
+		_ = removeFileQuietly(displayPath)
 		return rvmFileResult{ClientFileName: clientName, Status: "failed",
 			ErrorCode: "DB_FAILED", Message: "transaktion konnte nicht committed werden"}
 	}
 
 	thumbRelPath := strings.Join([]string{"release-version", versionIDStr, assetUUID, "thumb.jpg"}, "/")
 	thumbURL := "/media/" + thumbRelPath
+	displayRelPath := strings.Join([]string{"release-version", versionIDStr, assetUUID, "display.jpg"}, "/")
+	displayURL := "/media/" + displayRelPath
 
 	return rvmFileResult{
 		ClientFileName:        clientName,
@@ -549,6 +585,7 @@ func (h *AdminContentHandler) processOneRVMFile(
 		ReleaseVersionMediaID: &relationID,
 		SourceRevision:        &lifecycle.SourceRevision,
 		ThumbnailURL:          thumbURL,
+		DisplayURL:            displayURL,
 	}
 }
 
