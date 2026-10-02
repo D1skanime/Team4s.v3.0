@@ -159,3 +159,43 @@ it('154-03/P154-06: a second onError does not change behavior further -- no retr
   expect(image.getAttribute('src')).toBe('/media/profile/3/avatar/current/display.png')
   expect(image.getAttribute('src')).not.toContain('source_original_url')
 })
+
+// 173-16 Task 0a: live-UAT finding -- GET /fansubs/new-subs threw a real HTTP 500
+// (E426: "Invalid src prop ... does not match images.localPatterns") because
+// pre-backfill legacy data still has flat `/media/image_*.jpg` paths outside the
+// configured allow-list. A src next/image would reject must render unoptimized
+// instead of letting the page crash (D-10).
+it.each([
+  ['/media/image_1788047813685_example.jpg'],
+  ['/api/v1/media/files/logo_example.png'],
+  ['/api/v1/media/image?item_id=series-1&kind=primary&provider=jellyfin'],
+])(
+  '173-16 Task 0a: renders %s unoptimized instead of letting next/image throw E426/E231',
+  async (src) => {
+    const { ResponsiveImage } = await vi.importActual<typeof import('./ResponsiveImage')>(
+      './ResponsiveImage',
+    )
+    render(<ResponsiveImage src={src} alt="Beispielbild" width={100} height={100} />)
+
+    const image = screen.getByRole('img', { name: 'Beispielbild' })
+    expect(image.getAttribute('data-unoptimized')).toBe('true')
+    expect(nextImageRenderMock.mock.calls.at(-1)?.[0]?.unoptimized).toBe(true)
+  },
+)
+
+it.each([
+  ['/media/release-version/1/asset/display.jpg'],
+  ['/media/fansub/42/logo-xyz_display.png'],
+])(
+  '173-16 Task 0a: keeps optimizing %s (covered by images.localPatterns)',
+  async (src) => {
+    const { ResponsiveImage } = await vi.importActual<typeof import('./ResponsiveImage')>(
+      './ResponsiveImage',
+    )
+    render(<ResponsiveImage src={src} alt="Beispielbild" width={100} height={100} />)
+
+    const image = screen.getByRole('img', { name: 'Beispielbild' })
+    expect(image.getAttribute('data-unoptimized')).toBe('false')
+    expect(nextImageRenderMock.mock.calls.at(-1)?.[0]?.unoptimized).toBe(false)
+  },
+)
