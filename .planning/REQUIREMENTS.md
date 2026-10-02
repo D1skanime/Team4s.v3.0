@@ -664,3 +664,65 @@ importierter Releases, keine Fuzzy-Automatik (Vorschläge werden nie automatisch
 | REQ-167-21 | Phase 167 | Planned |
 | REQ-167-22 | Phase 167 | Planned |
 | REQ-167-23 | Phase 167 | Planned |
+
+## Phase 173 — Öffentliche Bildqualität: zusätzliche Display-Variante (Backend) (2026-10-02)
+
+Source: decisions D-01 through D-17 in `173-CONTEXT.md`, verified file:line findings in
+`173-RESEARCH.md` (live-verified FFmpeg animated-WebP behaviour, 6 write-path insertion points,
+Phase-172-Rückbau-Beleg), exact analogs in `173-PATTERNS.md`, Dimension-8-Testplan in
+`173-VALIDATION.md`. One requirement per distinct behavior derived from D-01..D-17 — see
+`.planning/phases/173-ffentliche-bildqualit-t-zus-tzliche-display-variante-backend/173-0{1..9}-PLAN.md`
+for the plan-level mapping. Scopegrenze aus `173-CONTEXT.md`/`173-PATTERNS.md`: kein neuer
+Upload-Endpunkt/Uploader/Dropzone (D-14), `image_animated_webp.go` und
+`frontend/src/lib/server/imageDisplay.ts`/`imageDisplayContract.ts` bleiben unangetastet (D-08/D-16),
+Review-Workflow und Bildbearbeitung/Cropping-UI sind nicht Teil der Phase. Die Umstellung ALLER
+öffentlichen Public-Komponenten (Galerie, Hero, Kara-Vorschau, Fansub-Banner, Anime-Cover) auf
+`display_url` als tatsächliche Bildquelle (D-02/D-03's Komponenten-Verdrahtung) ist beim Scoping
+dieser Backend-Phase bewusst ausgeklammert und wird als Folgephase empfohlen (siehe PLANNING-Rückmeldung);
+REQ-173-21 deckt nur die auf dieser Phase erreichbare, backend-seitige Teilmenge von D-13 ab.
+
+- [x] **REQ-173-01**: Jeder der sechs bestehenden öffentlichen Bild-Schreibpfade (globaler Uploader inkl. Segment-Auto-Preview, Release-Version-Media-Upload, -Replace, Fansub-Gruppenmedien, Fansub-Logo/-Banner, Profil-Avatar/-Hintergrund/-Story) erzeugt zusätzlich zur bestehenden Variante `thumb`/`original` eine neue Variante `display` (D-01).
+- [x] **REQ-173-02**: Die `display`-Erzeugung skaliert nie hoch: Bilder, deren lange Kante bereits ≤1920px ist, bleiben unskaliert (nur ggf. neu kodiert) (D-01).
+- [x] **REQ-173-03**: Statische `display`-Bilder werden mit JPEG-Qualität ≥88 (oder einem qualitativ gleichwertigen Format) kodiert (D-01).
+- [x] **REQ-173-04**: Animierte GIF-Uploads erzeugen eine animierte `display`-Variante als animiertes WebP via FFmpeg (lange Kante ≤960px, Endlosschleife), zusätzlich zu einem statischen `thumb` aus Frame 0 (D-07).
+- [x] **REQ-173-05**: Animierte-WebP-Uploads werden weiterhin unverändert abgelehnt; `image_animated_webp.go` erhält keine Code-Änderung (FFmpeg kann animiertes WebP live-verifiziert nicht zurückdekodieren) (D-08).
+- [x] **REQ-173-06**: Das Original wird an jedem Schreibpfad immer gespeichert und bleibt die Quelle aller Varianten; EXIF/GPS werden entfernt, wo verlustfrei möglich, sonst ist Neu-Kodierung zulässig (D-06).
+- [x] **REQ-173-07**: WebP-Uploads werden nie mehr als `.jpg` abgelegt — das Original behält sein tatsächliches Byte-Format/seine Dateiendung (D-06).
+- [x] **REQ-173-08**: Profil-Story-Bild-Uploads speichern künftig ein echtes 1:1-Original (EXIF/GPS entfernt) zusätzlich zur `display`-Variante; bestehende 1600px-Story-Bilder bleiben unverändert und erhalten per Backfill nur eine zusätzliche `display`-Variante (D-15).
+- [x] **REQ-173-09**: Öffentliche API-Antworten liefern zusätzlich zu `thumbnail_url`/`original_url` ein `display_url`-Feld mit serverseitiger Fallback-Kette (`display` → `original`) (D-05).
+- [x] **REQ-173-10**: OpenAPI-Vertrag (`shared/contracts/`) und Frontend-TypeScript-Typen bleiben überall synchron, wo ein öffentliches DTO bereits `thumbnail_url`/`original_url` führt und nun `display_url` erhält (D-05).
+- [x] **REQ-173-11**: Admin-/Bearbeitungsoberflächen (Release-Review-Queue, Admin-Uploader) ändern ihr Verhalten nicht und bleiben bei `thumb`; betroffene DTOs erhalten höchstens eine Typ-Erweiterung, keine UI-Umstellung (D-04).
+- [x] **REQ-173-12**: Fansub-Logos, -Banner und Gruppenmedien erhalten für neue Uploads einen eigenen Media-Namensraum `/media/fansub/<group_id>/...` statt flacher Ablage (D-09).
+- [x] **REQ-173-13**: `frontend/next.config.mjs` `images.localPatterns` erhält eine eigene Zeile für den neuen `/media/fansub/**`-Namensraum (D-09).
+- [x] **REQ-173-14**: Ein automatisierter Test (`ResponsiveImage.config.test.ts`) belegt, dass jede vom Backend erzeugte öffentliche Bild-URL-Form (inkl. des neuen Fansub-Namensraums) von `localPatterns`/`remotePatterns` erfasst ist (D-10).
+- [x] **REQ-173-15**: Bestehende Fansub-Medien-URLs (`/api/v1/media/files/...`, flache `/media/...`-Pfade) liefern nach der Namensraum-Migration dauerhaft HTTP 301 auf den neuen Pfad — kein Dual-Serving (D-17).
+- [x] **REQ-173-16**: Ein idempotentes Backfill-Kommando erzeugt die `display`-Variante für alle Bestandsbilder aller betroffenen Asset-Typen, ohne je ein Original zu überschreiben oder zu löschen, und ist wiederholt ausführbar (D-11).
+- [x] **REQ-173-17**: Dasselbe Backfill-Kommando migriert bestehende Fansub-Logo-/Banner-/Gruppenmedien-Dateien in den neuen Namensraum und aktualisiert ihre gespeicherten Pfade, ebenfalls idempotent (D-09/D-11).
+- [x] **REQ-173-18**: `frontend/src/lib/server/imageDisplay.ts` und `imageDisplayContract.ts` (separate, nicht-persistierte Jellyfin/Backdrop-Pipeline aus Phase 159-04) erhalten in dieser Phase keine Änderung (D-16).
+- [x] **REQ-173-19**: Es entsteht kein neuer HTTP-Endpunkt, Uploader oder Dropzone/Upload-UI; jede `display`-Erzeugung geschieht inline in den sechs bestehenden Schreibpfaden oder im Backfill-Kommando — geteilte Bildverarbeitung darf nur als einfache Funktion/interner Service-Call extrahiert werden, nie als neue Route (D-14).
+- [x] **REQ-173-20**: Jede neue `display`-Erzeugung erfolgt erst NACH dem bereits bestehenden 40-Megapixel-Dekompressionsbomben-Schutz, niemals davor (Sicherheits-Constraint aus `173-RESEARCH.md` Security Domain).
+- [x] **REQ-173-21**: Eine Live-Verifikation auf `:3300` bestätigt den Backend-Vertrag für `display_url`, den neuen Namensraum, die Redirects und den erfolgreichen Backfill-Lauf gegen echte Daten; die vollständige visuelle Public-UI-Abnahme aus D-13 (Galerie-Schärfe, `_next/image` als Quelle in allen Public-Komponenten) wird als eigene Folgephase empfohlen, da sie Komponenten-Verdrahtung ohne bestehende Pattern-Grundlage voraussetzt (D-13, scope-begrenzt).
+
+| Requirement | Phase | Status |
+|---|---|---|
+| REQ-173-01 | Phase 173 | Planned |
+| REQ-173-02 | Phase 173 | Planned |
+| REQ-173-03 | Phase 173 | Planned |
+| REQ-173-04 | Phase 173 | Planned |
+| REQ-173-05 | Phase 173 | Planned |
+| REQ-173-06 | Phase 173 | Planned |
+| REQ-173-07 | Phase 173 | Planned |
+| REQ-173-08 | Phase 173 | Planned |
+| REQ-173-09 | Phase 173 | Planned |
+| REQ-173-10 | Phase 173 | Planned |
+| REQ-173-11 | Phase 173 | Planned |
+| REQ-173-12 | Phase 173 | Planned |
+| REQ-173-13 | Phase 173 | Planned |
+| REQ-173-14 | Phase 173 | Planned |
+| REQ-173-15 | Phase 173 | Planned |
+| REQ-173-16 | Phase 173 | Planned |
+| REQ-173-17 | Phase 173 | Planned |
+| REQ-173-18 | Phase 173 | Planned |
+| REQ-173-19 | Phase 173 | Planned |
+| REQ-173-20 | Phase 173 | Planned |
+| REQ-173-21 | Phase 173 | Planned |

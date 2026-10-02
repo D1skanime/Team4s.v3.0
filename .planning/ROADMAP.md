@@ -2279,10 +2279,26 @@ Plans:
 
 ### Phase 173: Öffentliche Bildqualität: zusätzliche Display-Variante (Backend) als Quelle für die Next.js-Bildoptimierung auf allen Public-Seiten, Original bleibt 1:1 und erscheint nur per Klick, Admin/Bearbeitung behält Thumbnails, eigener Media-Namensraum mit Musterliste und Test für Fansub-/Gruppenbilder, animierte GIFs bekommen eine animierte Display-Variante, Backfill für Bestandsbilder
 
-**Goal:** [To be planned]
-**Requirements**: TBD
+**Goal:** Jeder der sechs bestehenden Bild-Schreibpfade (globaler Uploader, Release-Version-Media
+Upload/Replace, Fansub-Gruppenmedien, Fansub-Logo/-Banner, Profil-Avatar/-Hintergrund/-Story)
+erzeugt zusätzlich eine `display`-Variante (max. 1920px lange Kante, nie hochskaliert, inkl.
+animiertem WebP für animierte GIFs), öffentliche APIs liefern `display_url` mit
+Original-Fallback, Fansub-Medien bekommen einen eigenen `/media/fansub/<group_id>/...`-Namensraum
+mit dauerhaftem Redirect von alten URLs, und ein idempotentes Backfill-Kommando bringt
+Bestandsbilder auf den gleichen Stand — ohne neuen Upload-Endpunkt. Die vollständige
+Umstellung der Public-Komponenten auf `display_url` (sichtbare Galerie-Schärfe) ist bewusst als
+Folgephase ausgeklammert (siehe 173-09-SUMMARY.md).
+**Requirements**: [REQ-173-01 … REQ-173-21]
 **Depends on:** Phase 172
-**Plans:** 0 plans
+**Plans:** 9 plans
 
 Plans:
-- [ ] TBD (run /gsd-plan-phase 173 to break down)
+- [ ] 173-01-PLAN.md — globaler Uploader: statische + animierte display-Variante (processImage)
+- [ ] 173-02-PLAN.md — RVM-Display-Helper + Release-Version-Media-Upload-Verdrahtung
+- [ ] 173-03-PLAN.md — Release-Version-Media-Replace-Verdrahtung
+- [ ] 173-04-PLAN.md — Fansub-Namensraum + Display (Logo/Banner/Gruppenmedien) + Legacy-Redirect
+- [ ] 173-05-PLAN.md — Avatar/Hintergrund-Display-Variante + display_url im eigenen Profil
+- [ ] 173-06-PLAN.md — Story-Bild: echtes Original + Display-Variante (D-15)
+- [ ] 173-07-PLAN.md — idempotentes Backfill-Kommando (Display + Namensraum-Migration)
+- [ ] 173-08-PLAN.md — öffentliche display_url-Projektion + OpenAPI/Typen + next.config.mjs
+- [ ] 173-09-PLAN.md — Vollständigkeitsprüfung: Testsuite, D-14/D-16-Gate, Live-Backend-Verifikation
