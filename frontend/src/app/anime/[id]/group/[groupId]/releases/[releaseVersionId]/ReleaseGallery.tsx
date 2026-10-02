@@ -1,10 +1,10 @@
 'use client'
 
 import { Play } from 'lucide-react'
-import Image from 'next/image'
 import { useEffect, useRef, useState } from 'react'
 
 import { Badge, Button, Modal, SectionHeader } from '@/components/ui'
+import { ResponsiveImage } from '@/components/ui/ResponsiveImage'
 import { FansubMediaLightbox, type PublicImageLightboxItem } from '@/components/fansubs/FansubMediaLightbox'
 import { getGroupReleaseImages } from '@/lib/api'
 import { buildFansubReleasePlaybackLoginHref } from '@/lib/fansubProjectRoutes'
@@ -122,12 +122,12 @@ export function ReleaseGallery({ animeID, groupID, releaseVersionID, initialImag
     ? null
     : lightboxItems.findIndex(item => item.id === activeImageID)
   const renderImage = (image: PublicReleaseImage, featured = false) => {
-    const src = image.thumbnail_url ?? image.original_url
+    const src = image.display_url ?? image.thumbnail_url ?? image.original_url
     const title = image.title?.trim() || image.caption?.trim() || CATEGORY_LABELS[image.category]
     return <article key={image.id} data-testid={`release-image-card-${image.id}`} className={`${styles.card} ${featured || image.is_highlight ? styles.featuredCard : ''}`}>
       <Button type="button" variant="ghost" className={styles.imageButton} aria-label={`${title} öffnen`} onClick={() => setActiveImageID(image.id)}>
         <span className={styles.imageShell}>
-          {src ? <Image src={src} alt={title} className={styles.image} fill sizes="(max-width: 600px) 45vw, (max-width: 900px) 40vw, 28vw" unoptimized /> : <span className={styles.imagePlaceholder} aria-hidden="true" />}
+          {src ? <ResponsiveImage src={src} alt={title} className={styles.image} fill sizes="(max-width: 600px) 45vw, (max-width: 900px) 40vw, 28vw" quality={85} /> : <span className={styles.imagePlaceholder} aria-hidden="true" />}
         </span>
       </Button>
       <Badge variant="muted" className={styles.imageCategory} data-category={image.category}>{CATEGORY_LABELS[image.category]}</Badge>
@@ -149,7 +149,7 @@ export function ReleaseGallery({ animeID, groupID, releaseVersionID, initialImag
         {/* Gleicher 16:9-Rahmen wie die normalen Bildkarten (imageShell + fill). */}
         <span className={styles.imageShell}>
           {previewUrl
-            ? <Image src={previewUrl} alt={'Preview für ' + segment.name} className={styles.image} fill sizes="(max-width: 600px) 45vw, (max-width: 900px) 40vw, 28vw" unoptimized />
+            ? <ResponsiveImage src={previewUrl} alt={'Preview für ' + segment.name} className={styles.image} fill sizes="(max-width: 600px) 45vw, (max-width: 900px) 40vw, 28vw" quality={85} />
             : <span className={styles.imagePlaceholder} aria-hidden="true" />}
         </span>
         <KaraStoryPlayback segment={segment} releaseVersionID={releaseVersionID} loginHref={buildFansubReleasePlaybackLoginHref({ animeID, groupID, releaseVersionID, segmentID: segment.theme_segment_id, canonicalProjectPath: projectPath })} />
