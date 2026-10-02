@@ -167,3 +167,58 @@ uploads, so this gap is neither newly caused nor newly verified by this plan's d
 `.webp` original bytes exact, matching 173-01's global-uploader pattern and 173-05's avatar/
 background pattern) instead of routing them through `imaging.Save`, and add a regression test
 (`TestUploadOwnProfileStoryImage_WebPOriginalPreservesBytes` or similar) proving the 500 is gone.
+
+## 173-10: pre-existing stale `team4s_phase152_test` fixture schema + non-idempotent tests (out of scope)
+
+**Found during:** Task 1/Task 2 verification (`go test ./internal/repository/... -v` against
+`TEAM4S_PHASE152_TEST_DSN`/`TEAM4S_PHASE128_TEST_DSN`, run inside a throwaway
+`golang:1.25-alpine` container bind-mounting `./backend` and `./database` -- no local `go`
+toolchain and no bind-mount of `./backend` into `team4sv30-backend`, same workaround 173-08
+documented).
+
+**Symptom 1 (schema staleness, fixed in-place):** `team4s_phase152_test` (a disposable,
+full-real-schema fixture DB, `pg_dump --schema-only` of `team4s_v2` taken at some earlier
+point) was missing `release_version_media.title` (added by migration `0163`, after the fixture
+was captured). `GetPublicMemberProfileByID`'s `loadLatestContributions` call failed with
+`column rvm.title does not exist` for ANY member profile load, not just ones touched by this
+plan. Applied `ALTER TABLE release_version_media ADD COLUMN IF NOT EXISTS title TEXT NULL;`
+directly against the disposable fixture DB (no constraint re-added, since no caller in this
+repo asserts the length-200 CHECK against this fixture) -- matches CLAUDE.md's "test data is
+disposable; reset/reseed rather than add compatibility code" convention. This DB remains
+missing `fansub_groups.kuerzel`/`normalized_kuerzel` (added by a later migration, Phase 167);
+`GetGroupBySlug` (the ADMIN path, untouched by this plan) still fails against it with `column
+"kuerzel" does not exist` -- see Symptom 2.
+
+**Symptom 2 (pre-existing, NOT fixed):** `TestFansubPublicProfileLoadPath_AdminGetGroupBySlugUnaffected`
+(from 152-03, unrelated to this plan's `getPublicGroupBase` edit) fails with `column "kuerzel"
+does not exist` because it calls the ADMIN path `GetGroupBySlug`, which this plan does not
+touch. Reproduces identically before and after this plan's diff. Not fixed: adding `kuerzel`/
+`normalized_kuerzel` to this shared fixture is a larger, unrelated schema-staleness fix that a
+dedicated fixture-refresh plan should own (ideally by re-capturing the `pg_dump --schema-only`
+snapshot from current `team4s_v2` rather than hand-patching individual columns).
+
+**Symptom 3 (pre-existing, NOT fixed):** Several `fansub_public_profile_load_path_test.go`/
+`fansub_public_profile_query_budget_test.go`/`member_profile_repository_postgres_test.go`-style
+tests seed fixed, hardcoded IDs (e.g. `groupID=1520001`) with NO `DELETE`-before-`INSERT`
+cleanup, unlike this plan's own new test files (which follow 173-08's defensive-cleanup
+precedent). Re-running the suite twice against the same persistent fixture DB without an
+external reset between runs produces `duplicate key value violates unique constraint` failures
+that are pure test-harness non-idempotency, not product bugs. Cleaned up the specific leftover
+rows this session's repeated verification runs produced (fansub_groups/members/media_assets/etc.
+IDs in the `15200xx`-`15203xx` and `1520900`-`1520902` ranges) so the fixture DB is left in the
+same clean state it was found in; did not add cleanup code to the pre-existing test files
+themselves (out of scope -- those files are untouched by this plan's diff).
+
+**Why out of scope for 173-10:** None of these three issues are caused by, or specific to, this
+plan's two tasks (`getPublicGroupBase` display-preference, `GetPublicMemberProfileByID`
+`display_url`). Symptom 1 blocked ALL member-profile-loading tests regardless of plan, so it was
+patched in-place (a safe, additive, disposable-fixture ALTER) to unblock this plan's own new
+Postgres-backed tests; Symptoms 2 and 3 are pre-existing, reproduce with or without this plan's
+diff, and touch files/tables this plan's diff does not modify.
+
+**Suggested follow-up:** A dedicated fixture-maintenance plan should refresh
+`team4s_phase152_test`'s schema snapshot from a current `team4s_v2` `pg_dump --schema-only` (or
+build an automated apply-all-migrations-from-scratch fixture bootstrap) and add shared
+`DELETE`-before-`INSERT` self-cleanup helpers to `fansub_public_profile_load_path_test.go`/
+`fansub_public_profile_query_budget_test.go`, mirroring the pattern this plan's and 173-08's new
+test files already use.
