@@ -4,7 +4,7 @@ import { Play } from 'lucide-react'
 import Image from 'next/image'
 import { useEffect, useRef, useState } from 'react'
 
-import { Badge, Button, SectionHeader } from '@/components/ui'
+import { Badge, Button, Modal, SectionHeader } from '@/components/ui'
 import { FansubMediaLightbox, type PublicImageLightboxItem } from '@/components/fansubs/FansubMediaLightbox'
 import { getGroupReleaseImages } from '@/lib/api'
 import { buildFansubReleasePlaybackLoginHref } from '@/lib/fansubProjectRoutes'
@@ -228,23 +228,32 @@ function KaraStoryPlayback({ segment, releaseVersionID, loginHref }: { segment: 
   if (!hasSession) {
     return <Button href={loginHref} variant="secondary" aria-label="Anmelden zum Abspielen" className={styles.karaPlayButton}><Play size={20} aria-hidden="true" /></Button>
   }
-  if (playing) {
-    return <div className={styles.karaPlayer}>
-      <video
-        src={'/api/segments/' + segment.theme_segment_id + '/stream?release_version_id=' + releaseVersionID}
-        ref={videoRef}
-        controls
-        autoPlay
-        playsInline
-        aria-label={'Kara: ' + segment.name}
-        onError={() => setPlaybackError(true)}
-      />
-      {playbackError ? <p className={styles.karaPlaybackError}>Dieses Kara-Segment konnte nicht abgespielt werden. Bitte versuche es erneut.</p> : null}
-    </div>
+  function closePlayer() {
+    videoRef.current?.pause()
+    setPlaying(false)
   }
-  return <Button aria-label="Kara abspielen" className={styles.karaPlayButton} onClick={() => {
-    window.dispatchEvent(new CustomEvent('release-playback-start', { detail: { segmentId: segment.theme_segment_id, source: 'gallery' } }))
-    setPlaybackError(false)
-    setPlaying(true)
-  }}><Play size={20} aria-hidden="true" /></Button>
+
+  // Abspielen im globalen Modal statt in der kleinen Kartenflaeche: gross, ueber allem und mit
+  // funktionierendem Vollbild (die Karte schneidet ihren Inhalt per overflow ab).
+  return <>
+    <Button aria-label="Kara abspielen" className={styles.karaPlayButton} onClick={() => {
+      window.dispatchEvent(new CustomEvent('release-playback-start', { detail: { segmentId: segment.theme_segment_id, source: 'gallery' } }))
+      setPlaybackError(false)
+      setPlaying(true)
+    }}><Play size={20} aria-hidden="true" /></Button>
+    <Modal open={playing} onClose={closePlayer} title={segment.name} description={'Kara · ' + segmentTypeDisplayLabel(segment.type)} size="lg">
+      {playbackError
+        ? <p className={styles.karaPlaybackError} role="alert">Dieses Kara-Segment konnte nicht abgespielt werden. Bitte versuche es erneut.</p>
+        : <video
+            className={styles.karaModalVideo}
+            src={'/api/segments/' + segment.theme_segment_id + '/stream?release_version_id=' + releaseVersionID}
+            ref={videoRef}
+            controls
+            autoPlay
+            playsInline
+            aria-label={'Kara: ' + segment.name}
+            onError={() => setPlaybackError(true)}
+          />}
+    </Modal>
+  </>
 }

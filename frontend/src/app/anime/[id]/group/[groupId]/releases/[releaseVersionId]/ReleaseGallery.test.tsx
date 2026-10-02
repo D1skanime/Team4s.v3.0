@@ -323,9 +323,11 @@ describe('ReleaseGallery mixed public story', () => {
     fireEvent.click(screen.getAllByRole('button', { name: 'Kara abspielen' })[0])
     expect(document.querySelectorAll('video')).toHaveLength(1)
 
-    fireEvent.click(screen.getByRole('button', { name: 'Kara abspielen' }))
+    fireEvent.click(screen.getAllByRole('button', { name: 'Kara abspielen' })[1])
     expect(document.querySelectorAll('video')).toHaveLength(1)
     expect(document.querySelector('video')?.getAttribute('aria-label')).toBe('Kara: Kara 42')
+    // Abspielen im globalen Modal (nicht in der Karte), damit Groesse und Vollbild funktionieren.
+    expect(screen.getByRole('dialog').contains(document.querySelector('video'))).toBe(true)
   })
 
   it('uses the shared Karaoke label for KARA story cards', () => {
