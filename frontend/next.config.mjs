@@ -1,22 +1,14 @@
 import path from 'node:path'
 import { fileURLToPath } from 'node:url'
 
+import {
+  LOCAL_IMAGE_PATTERNS,
+  FIXED_REMOTE_IMAGE_URLS,
+  configuredApiMediaPatterns,
+} from './src/lib/images/publicImagePatterns.mjs'
+
 const __filename = fileURLToPath(import.meta.url)
 const __dirname = path.dirname(__filename)
-
-function configuredApiMediaPatterns() {
-  const publicApiURL = (process.env.NEXT_PUBLIC_API_URL || '').trim()
-  if (!publicApiURL) return []
-
-  const mediaOrigin = new URL(publicApiURL)
-
-  return [{
-    protocol: mediaOrigin.protocol.slice(0, -1),
-    hostname: mediaOrigin.hostname,
-    port: mediaOrigin.port,
-    pathname: '/api/v1/media/**',
-  }]
-}
 
 /** @type {import('next').NextConfig} */
 const nextConfig = {
@@ -24,28 +16,15 @@ const nextConfig = {
     formats: ['image/webp'],
     deviceSizes: [640, 1080, 1480, 1920],
     imageSizes: [64, 96, 128, 160, 192, 256, 512],
-    localPatterns: [
-      { pathname: '/__phase120-image-probe/alpha-badge.png', search: '' },
-      { pathname: '/member-achievement-badges/**', search: '' },
-      { pathname: '/history-event-badges-transparent/**', search: '' },
-      { pathname: '/covers/**', search: '' },
-      // T-143-07-01: narrowed from a blanket /media/** wildcard to the explicit set of
-      // legitimate namespaces the app actually serves (confirmed via a repo-wide grep of
-      // backend PublicURL construction, 143-07-PLAN.md Task 2) -- /media/admin/** (or any
-      // other future namespace) is deliberately excluded so it can never be optimized/served
-      // through the public image endpoint.
-      { pathname: '/media/anime/**', search: '' },
-      { pathname: '/media/profile/**', search: '' },
-      { pathname: '/media/release-version/**', search: '' },
-      // D-09/173-04: dedicated namespace for the new fansub group media
-      // (logo/banner-style assets), narrowed the same way as the other
-      // namespaces above -- not a blanket /media/** wildcard.
-      { pathname: '/media/fansub/**', search: '' },
-    ],
+    // 173-16 Task 0a: localPatterns/remotePatterns now come from the shared
+    // `publicImagePatterns.mjs` data module -- the SAME data
+    // `ResponsiveImage.tsx` reads to pre-check a `src` before next/image's own
+    // SSR validation would throw E426/E231, instead of a second
+    // hand-maintained allow-list drifting out of sync with this one.
+    localPatterns: LOCAL_IMAGE_PATTERNS,
     remotePatterns: [
-      new URL('http://127.0.0.1:3101/api/v1/media/phase120-project-cover.png'),
-      new URL('http://127.0.0.1:3101/api/v1/media/phase120-group-logo.png'),
-      ...configuredApiMediaPatterns(),
+      ...FIXED_REMOTE_IMAGE_URLS.map((url) => new URL(url)),
+      ...configuredApiMediaPatterns(process.env.NEXT_PUBLIC_API_URL),
     ],
     // The deterministic probe origin is loopback-only and still constrained
     // by the two exact URL patterns above.
