@@ -117,6 +117,23 @@ describe('ReleaseGallery', () => {
     expect(dialog.querySelector('b, em')).toBeNull()
   })
 
+  it('173-16 Task 0: gives normal cards a one-column-mobile sizes ladder matching the actual grid breakpoints', () => {
+    // A decoy preview candidate keeps image 1 from becoming the implicit
+    // items[0] featured fallback, so this asserts the true "regular card" sizes.
+    const featuredDecoy = { ...image(99), is_preview_candidate: true }
+    const regular = { ...image(1), title: 'Reguläres Bild' }
+    render(<ReleaseGallery animeID={1} groupID={2} releaseVersionID={3} initialImages={[featuredDecoy, regular]} categoryTotals={{ screenshot: 2, typesetting_karaoke: 0, fun_outtake: 0, other: 0 }} />)
+    const card = screen.getByTestId('release-image-card-1')
+    expect(within(card).getByRole('img').getAttribute('sizes')).toBe('(max-width: 600px) 100vw, (max-width: 900px) 50vw, 33vw')
+  })
+
+  it('173-16 Task 0: gives the featured/highlight card a full-row sizes ladder (grid-column: 1/-1 spans every column)', () => {
+    const featured = { ...image(2), title: 'Highlight-Bild', is_preview_candidate: true }
+    render(<ReleaseGallery animeID={1} groupID={2} releaseVersionID={3} initialImages={[featured]} categoryTotals={{ screenshot: 1, typesetting_karaoke: 0, fun_outtake: 0, other: 0 }} />)
+    const card = screen.getByTestId('release-image-card-2')
+    expect(within(card).getByRole('img').getAttribute('sizes')).toBe('(max-width: 600px) 100vw, 66vw')
+  })
+
   it('opens the clicked image by ID after the featured image changes the visual order', () => {
     const regular = { ...image(1), title: 'Reguläres Bild' }
     const featured = { ...image(2), title: 'Highlight-Bild', is_preview_candidate: true }
