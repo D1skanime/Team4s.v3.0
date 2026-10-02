@@ -81,6 +81,7 @@ const releaseReviewQueueBaseSQL = `
 		       lifecycle.submitted_at, lifecycle.last_activity_at, lifecycle.decided_at,
 		       note.title AS note_title, note.body_html AS note_html, media.caption,
 		       thumb.path AS thumbnail_path, original.path AS original_path,
+		       COALESCE(display.path, original.path) AS display_path,
 		       CONCAT_WS(' ', COALESCE(anime.title_de, anime.title_en, anime.title, ''),
 		           episode.episode_number::text, version.version,
 		           COALESCE(NULLIF(TRIM(member.display_name), ''), member.nickname, '')) AS search_text
@@ -115,6 +116,15 @@ const releaseReviewQueueBaseSQL = `
 			ORDER BY media_file.id
 			LIMIT 1
 		) original ON TRUE
+		LEFT JOIN LATERAL (
+			SELECT media_file.path
+			FROM media_files media_file
+			WHERE media_file.media_id = media.media_asset_id
+			  AND media_file.variant = 'display'
+			  AND media_file.status = 'ready'
+			ORDER BY media_file.id
+			LIMIT 1
+		) display ON TRUE
 	)`
 
 // ReleaseReviewPriorRejection carries the outcome of a rejection decision on the

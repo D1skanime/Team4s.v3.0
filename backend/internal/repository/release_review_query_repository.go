@@ -70,6 +70,10 @@ type ReleaseReviewImageContent struct {
 	Caption      string `json:"caption,omitempty"`
 	ThumbnailURL string `json:"thumbnail_url,omitempty"`
 	OriginalURL  string `json:"original_url"`
+	// DisplayURL is the server-computed display->original fallback (D-05), added
+	// for type-parity with the public DTOs (D-04) -- the admin review UI itself
+	// continues to render ThumbnailURL and does not consume this field.
+	DisplayURL string `json:"display_url,omitempty"`
 }
 
 type ReleaseReviewDetail struct {
@@ -207,15 +211,15 @@ func (r *ReleaseReviewQueryRepository) Detail(
 	}
 	var detail ReleaseReviewDetail
 	var key ReleaseReviewSortKey
-	var noteTitle, noteHTML, caption, thumbPath, originalPath *string
+	var noteTitle, noteHTML, caption, thumbPath, originalPath, displayPath *string
 	var priorRejection releaseReviewPriorRejectionScan
 	targets := releaseReviewQueueScanTargets(&detail.ReleaseReviewQueueItem, &key)
-	targets = append(targets, &noteTitle, &noteHTML, &caption, &thumbPath, &originalPath)
+	targets = append(targets, &noteTitle, &noteHTML, &caption, &thumbPath, &originalPath, &displayPath)
 	targets = append(targets, priorRejection.targets()...)
 	err = r.db.QueryRow(ctx, releaseReviewQueueBaseSQL+`
 		SELECT `+releaseReviewQueueColumns+`,
 		       source.note_title, source.note_html, source.caption,
-		       source.thumbnail_path, source.original_path,
+		       source.thumbnail_path, source.original_path, source.display_path,
 		       `+releaseReviewPriorRejectionColumns+`
 		FROM review_sources source
 		`+releaseReviewPriorRejectionJoinSQL+`
@@ -241,6 +245,7 @@ func (r *ReleaseReviewQueryRepository) Detail(
 		detail.Image = &ReleaseReviewImageContent{
 			Caption: stringValue(caption), ThumbnailURL: releaseReviewMediaURL(thumbPath),
 			OriginalURL: releaseReviewMediaURL(originalPath),
+			DisplayURL:  releaseReviewMediaURL(displayPath),
 		}
 	}
 	detail.PriorRejection = priorRejection.build(actorAppUserID)

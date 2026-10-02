@@ -137,3 +137,79 @@ func TestReleaseVersionMediaTitlePublicProjections(t *testing.T) {
 	require.Equal(t, &wantTitle, recent[0].Title)
 	require.Equal(t, wantCaption, recent[0].Caption)
 }
+
+// TestDisplayURLFallback_LoadImagesAndGroupReleaseMedia proves D-05's read-side
+// display->original fallback chain (173-08, Sites 1 and 2): a media_asset
+// carrying BOTH a display and an original media_files row serves display_url
+// from the display path, while a media_asset carrying ONLY an original (the
+// pre-173-01 backfill state, no display row yet) still serves a non-nil
+// display_url that falls back to the original path.
+func TestDisplayURLFallback_LoadImagesAndGroupReleaseMedia(t *testing.T) {
+	pool := openReleaseVersionMediaReplaceFixture(t)
+	ctx := context.Background()
+	_, err := pool.Exec(ctx, `
+ ALTER TABLE users ADD COLUMN username TEXT;
+ ALTER TABLE app_users ADD COLUMN display_name TEXT, ADD COLUMN preferred_username TEXT;
+ ALTER TABLE members ADD COLUMN display_name TEXT, ADD COLUMN nickname TEXT, ADD COLUMN user_id BIGINT;
+ CREATE TABLE anime (id BIGINT PRIMARY KEY, title TEXT, title_de TEXT, title_en TEXT);
+ CREATE TABLE episodes (id BIGINT PRIMARY KEY, anime_id BIGINT, episode_number TEXT, sort_index INT);
+ CREATE TABLE fansub_releases (id BIGINT PRIMARY KEY, episode_id BIGINT);
+ ALTER TABLE release_versions ADD COLUMN release_id BIGINT, ADD COLUMN version TEXT, ADD COLUMN title TEXT;
+ CREATE TABLE media_types (id BIGINT PRIMARY KEY, name TEXT);
+ ALTER TABLE media_assets ADD COLUMN media_type_id BIGINT, ADD COLUMN mime_type TEXT, ADD COLUMN file_path TEXT, ADD COLUMN caption TEXT;
+ INSERT INTO anime VALUES (1,'Fixture Anime',NULL,NULL);
+ INSERT INTO episodes VALUES (2,1,'02',2);
+ INSERT INTO fansub_releases VALUES (3,2);
+ UPDATE release_versions SET release_id=3,version='v1' WHERE id=41;
+ INSERT INTO media_types VALUES (1,'image');
+ UPDATE media_assets SET media_type_id=1,mime_type='image/png',file_path='/media/title.png';
+ -- 703 (already ready/public/approved in the base fixture, release_version_media 602):
+ -- gets BOTH a display row and an original row.
+ INSERT INTO media_files (media_id,variant,path,status) VALUES
+   (703,'original','/media/title.png','ready'),
+   (703,'thumb','/media/title-thumb.jpg','ready'),
+   (703,'display','/media/title-display.jpg','ready');
+ -- A second, ready/public/approved asset with ONLY an original row (pre-173-01
+ -- backfill state, no display row yet) attached to a new relation on the same version.
+ INSERT INTO media_assets(id, status, visibility_id, review_status_id, media_type_id, mime_type, file_path)
+   VALUES (705, 'ready', 2, 2, 1, 'image/png', '/media/legacy.png');
+ INSERT INTO media_files (media_id,variant,path,status) VALUES
+   (705,'original','/media/legacy-original.png','ready');
+ INSERT INTO release_version_media(id, release_version_id, fansub_group_id, media_asset_id, category, uploaded_by_user_id)
+   VALUES (604, 41, 21, 705, 'screenshot', 2001);
+ `)
+	require.NoError(t, err)
+
+	detail := NewReleaseDetailPublicRepository(pool, "")
+	images, err := detail.loadImages(ctx, 41)
+	require.NoError(t, err)
+	require.Len(t, images, 2)
+	byRelationID := make(map[int64]PublicReleaseImage, len(images))
+	for _, image := range images {
+		byRelationID[image.ID] = image
+	}
+
+	withDisplay := byRelationID[602]
+	require.NotNil(t, withDisplay.DisplayURL, "display_url must never be nil when a display row exists")
+	require.Contains(t, *withDisplay.DisplayURL, "title-display.jpg")
+
+	withoutDisplay := byRelationID[604]
+	require.NotNil(t, withoutDisplay.OriginalURL)
+	require.NotNil(t, withoutDisplay.DisplayURL, "display_url must never be nil as long as an original exists, even pre-backfill")
+	require.Equal(t, *withoutDisplay.OriginalURL, *withoutDisplay.DisplayURL,
+		"no display row yet -> display_url must fall back to original_url")
+
+	group, err := NewGroupReleaseMediaRepository(pool, "").GetPublicReleaseMedia(ctx, 1, 21)
+	require.NoError(t, err)
+	require.Len(t, group.Items, 2)
+	byItemID := make(map[int64]PublicReleaseMediaItem, len(group.Items))
+	for _, item := range group.Items {
+		byItemID[item.ID] = item
+	}
+
+	require.NotNil(t, byItemID[602].DisplayURL)
+	require.Contains(t, *byItemID[602].DisplayURL, "title-display.jpg")
+	require.NotNil(t, byItemID[604].DisplayURL)
+	require.Equal(t, *byItemID[604].ThumbnailURL, *byItemID[604].DisplayURL,
+		"group-release-media's existing thumb-first COALESCE already falls back to original for 604; display_path must match the same fallback result pre-backfill")
+}

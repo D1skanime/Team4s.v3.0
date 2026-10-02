@@ -25,9 +25,13 @@ func NewGroupReleaseMediaRepository(db *pgxpool.Pool, mediaStorageDir string) *G
 type PublicReleaseMediaItem struct {
 	ID           int64   `json:"id"`
 	ThumbnailURL *string `json:"thumbnail_url"`
-	Title        *string `json:"title"`
-	Caption      *string `json:"caption"`
-	MediaType    string  `json:"media_type"`
+	// DisplayURL is the server-computed display->original fallback (D-05), the
+	// read-side twin of rvmFileResult.DisplayURL (173-02). Never nil as long as an
+	// original exists.
+	DisplayURL *string `json:"display_url,omitempty"`
+	Title      *string `json:"title"`
+	Caption    *string `json:"caption"`
+	MediaType  string  `json:"media_type"`
 }
 
 // GroupReleaseMediaResponse ist die Antwort für GET /anime/:id/group/:groupId/release-media.
@@ -51,12 +55,14 @@ func (r *GroupReleaseMediaRepository) GetPublicReleaseMedia(ctx context.Context,
 			rvm.id AS item_id,
 			COALESCE(mt.name, ma.mime_type, 'media') AS media_type,
 			rvm.title, rvm.caption,
-			COALESCE(mf_thumb.path, mf_orig.path, ma.file_path) AS thumbnail_path
+			COALESCE(mf_thumb.path, mf_orig.path, ma.file_path) AS thumbnail_path,
+			COALESCE(mf_display.path, mf_orig.path, ma.file_path) AS display_path
 		FROM release_version_media rvm
 		JOIN media_assets ma ON ma.id = rvm.media_asset_id
 		LEFT JOIN media_types mt ON mt.id = ma.media_type_id
 		LEFT JOIN media_files mf_thumb ON mf_thumb.media_id = ma.id AND mf_thumb.variant = 'thumb' AND mf_thumb.status = 'ready'
 		LEFT JOIN media_files mf_orig ON mf_orig.media_id = ma.id AND (mf_orig.variant = 'original' OR mf_orig.variant IS NULL) AND mf_orig.status = 'ready'
+		LEFT JOIN media_files mf_display ON mf_display.media_id = ma.id AND mf_display.variant = 'display' AND mf_display.status = 'ready'
 		JOIN visibilities v ON v.id = ma.visibility_id
 		JOIN review_statuses rs ON rs.id = ma.review_status_id
 		JOIN release_versions rv ON rv.id = rvm.release_version_id
@@ -82,18 +88,23 @@ func (r *GroupReleaseMediaRepository) GetPublicReleaseMedia(ctx context.Context,
 		var (
 			item          PublicReleaseMediaItem
 			thumbnailPath *string
+			displayPath   *string
 		)
 		if err := rows.Scan(
 			&item.ID,
 			&item.MediaType,
 			&item.Title, &item.Caption,
 			&thumbnailPath,
+			&displayPath,
 		); err != nil {
 			return nil, fmt.Errorf("group release media: scan: %w", err)
 		}
 
 		if thumbnailPath != nil {
 			item.ThumbnailURL = publicMediaURLForPath(*thumbnailPath, r.mediaStorageDir)
+		}
+		if displayPath != nil {
+			item.DisplayURL = publicMediaURLForPath(*displayPath, r.mediaStorageDir)
 		}
 
 		resp.Items = append(resp.Items, item)

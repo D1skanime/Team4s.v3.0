@@ -113,7 +113,11 @@ type PublicFansubMediaItem struct {
 	MimeType     string  `json:"mime_type"`
 	ThumbnailURL *string `json:"thumbnail_url,omitempty"`
 	OriginalURL  *string `json:"original_url,omitempty"`
-	Title        *string `json:"title,omitempty"`
+	// DisplayURL is the server-computed display->original fallback (D-05), the
+	// public read-side twin of fansubGroupMediaFileResult.DisplayURL (173-04).
+	// Never nil as long as an original exists.
+	DisplayURL *string `json:"display_url,omitempty"`
+	Title      *string `json:"title,omitempty"`
 	Description  *string `json:"description,omitempty"`
 	Category     string  `json:"category"`
 }

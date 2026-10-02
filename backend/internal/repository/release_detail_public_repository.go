@@ -53,7 +53,12 @@ type PublicReleaseImage struct {
 	Category      string  `json:"category"`
 	ThumbnailURL  *string `json:"thumbnail_url"`
 	OriginalURL   *string `json:"original_url"`
-	Title         *string `json:"title"`
+	// DisplayURL is the server-computed display->original fallback (D-05): the
+	// re-encoded display variant when ready, otherwise the original -- never nil
+	// as long as an original exists. Read-side twin of rvmFileResult.DisplayURL
+	// (173-02, upload time) and fansubGroupMediaFileResult.DisplayURL (173-04).
+	DisplayURL *string `json:"display_url,omitempty"`
+	Title      *string `json:"title"`
 	Caption       *string `json:"caption"`
 	// AuthorName ist der aufgeloeste Anzeigename des Hochladers (release_version_media.uploaded_by_user_id),
 	// nil wenn kein Hochlader hinterlegt oder kein Anzeigename ermittelbar ist (AO4-18 Autor-Chip).

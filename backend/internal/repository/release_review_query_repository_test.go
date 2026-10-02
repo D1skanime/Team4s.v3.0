@@ -203,6 +203,48 @@ func TestReleaseReviewQueueRepositoryFiltersCountsDetailAndStablePages(t *testin
 	assert.NotEqual(t, first.Items[0].ID, next.ID)
 }
 
+// TestReleaseReviewDetailImageDisplayURLFallback proves Site 3's additive
+// DisplayURL field (173-08, D-05 type-parity per D-04): a review source whose
+// media_asset has BOTH a display and an original media_files row surfaces
+// Image.DisplayURL pointing at the display path, while a source with ONLY an
+// original (pre-173-01/02 backfill state, no display row yet) still surfaces a
+// non-empty Image.DisplayURL that falls back to the original path. The existing
+// Image.ThumbnailURL assertion elsewhere in this file is unchanged by this test
+// -- proving the addition is additive, not a behavior change for the review flow.
+func TestReleaseReviewDetailImageDisplayURLFallback(t *testing.T) {
+	pool := openReleaseReviewQueryFixture(t)
+	ctx := context.Background()
+
+	// 701 (relation 601, category screenshot) already has 'original'+'thumb'
+	// rows from the base fixture; add a 'display' row on top of it.
+	_, err := pool.Exec(ctx, `
+		INSERT INTO media_files(id, media_id, variant, path, status) VALUES
+			(806, 701, 'display', '/app/media/review/701/display.jpg', 'ready');
+	`)
+	require.NoError(t, err)
+
+	repo := NewReleaseReviewQueryRepository(pool)
+
+	withDisplayID, err := EncodeReleaseReviewID(ReleaseVersionMediaReviewSourceType, 601)
+	require.NoError(t, err)
+	withDisplay, err := repo.Detail(ctx, 21, withDisplayID, []string{string(ReviewKindImage)}, 0, nil)
+	require.NoError(t, err)
+	require.NotNil(t, withDisplay.Image)
+	assert.Contains(t, withDisplay.Image.DisplayURL, "/display.jpg")
+	assert.Contains(t, withDisplay.Image.ThumbnailURL, "/thumb.png", "unchanged pre-existing ThumbnailURL behavior")
+
+	// 702 (relation 602, category other) only has an 'original' row (no thumb,
+	// no display) -- the pre-173-01 backfill state.
+	withoutDisplayID, err := EncodeReleaseReviewID(ReleaseVersionMediaReviewSourceType, 602)
+	require.NoError(t, err)
+	withoutDisplay, err := repo.Detail(ctx, 21, withoutDisplayID, []string{string(ReviewKindImage)}, 0, nil)
+	require.NoError(t, err)
+	require.NotNil(t, withoutDisplay.Image)
+	require.NotEmpty(t, withoutDisplay.Image.OriginalURL)
+	assert.Equal(t, withoutDisplay.Image.OriginalURL, withoutDisplay.Image.DisplayURL,
+		"no display row yet -> display_url must fall back to original_url")
+}
+
 func openReleaseReviewQueryFixture(t *testing.T) *pgxpool.Pool {
 	t.Helper()
 	pool := testsupport.OpenPhase107Postgres(t)

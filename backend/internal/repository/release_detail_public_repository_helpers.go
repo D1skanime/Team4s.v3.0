@@ -349,8 +349,9 @@ func (r *ReleaseDetailPublicRepository) loadImages(ctx context.Context, releaseV
 			item          PublicReleaseImage
 			thumbnailPath *string
 			originalPath  *string
+			displayPath   *string
 		)
-		if err := rows.Scan(&item.ID, &item.FansubGroupID, &item.Category, &item.Title, &item.Caption, &thumbnailPath, &originalPath, &item.AuthorName, &item.IsPreviewCandidate, &item.IsHighlight, &item.HighlightOrder); err != nil {
+		if err := rows.Scan(&item.ID, &item.FansubGroupID, &item.Category, &item.Title, &item.Caption, &thumbnailPath, &originalPath, &displayPath, &item.AuthorName, &item.IsPreviewCandidate, &item.IsHighlight, &item.HighlightOrder); err != nil {
 			return nil, fmt.Errorf("release detail: scan image row: %w", err)
 		}
 		if thumbnailPath != nil {
@@ -358,6 +359,9 @@ func (r *ReleaseDetailPublicRepository) loadImages(ctx context.Context, releaseV
 		}
 		if originalPath != nil {
 			item.OriginalURL = publicMediaURLForPath(*originalPath, r.mediaStorageDir)
+		}
+		if displayPath != nil {
+			item.DisplayURL = publicMediaURLForPath(*displayPath, r.mediaStorageDir)
 		}
 		items = append(items, item)
 	}
@@ -400,6 +404,7 @@ func (r *ReleaseDetailPublicRepository) imagesQuery() string {
 			rvm.title, rvm.caption,
 			COALESCE(mf_thumb.path, '') AS thumbnail_path,
 			COALESCE(mf_orig.path, ma.file_path, '') AS original_path,
+			COALESCE(mf_display.path, mf_orig.path, ma.file_path, '') AS display_path,
 			uploader_author.name AS author_name
 			,rvm.is_preview_candidate
 			,highlight.release_version_media_id IS NOT NULL AS is_highlight
@@ -409,6 +414,7 @@ func (r *ReleaseDetailPublicRepository) imagesQuery() string {
 		JOIN media_assets ma ON ma.id = rvm.media_asset_id
 		LEFT JOIN media_files mf_thumb ON mf_thumb.media_id = ma.id AND mf_thumb.variant = 'thumb' AND mf_thumb.status = 'ready'
 		LEFT JOIN media_files mf_orig ON mf_orig.media_id = ma.id AND (mf_orig.variant = 'original' OR mf_orig.variant IS NULL) AND mf_orig.status = 'ready'
+		LEFT JOIN media_files mf_display ON mf_display.media_id = ma.id AND mf_display.variant = 'display' AND mf_display.status = 'ready'
 		JOIN visibilities v ON v.id = ma.visibility_id
 		JOIN review_statuses rs ON rs.id = ma.review_status_id
 		%s

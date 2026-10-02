@@ -535,6 +535,7 @@ func (r *FansubRepository) listPublicFansubMedia(ctx context.Context, groupID in
 			ma.mime_type,
 			COALESCE(mf_thumb.path, mf_orig.path, ma.file_path) AS thumbnail_path,
 			COALESCE(mf_orig.path, mf_thumb.path, ma.file_path) AS original_path,
+			COALESCE(mf_display.path, mf_orig.path, mf_thumb.path, ma.file_path) AS display_path,
 			fgm.title,
 			fgm.description,
 			fgm.category
@@ -543,6 +544,7 @@ func (r *FansubRepository) listPublicFansubMedia(ctx context.Context, groupID in
 		LEFT JOIN media_types mt ON mt.id = ma.media_type_id
 		LEFT JOIN media_files mf_thumb ON mf_thumb.media_id = ma.id AND mf_thumb.variant = 'thumb' AND mf_thumb.status = 'ready'
 		LEFT JOIN media_files mf_orig ON mf_orig.media_id = ma.id AND (mf_orig.variant = 'original' OR mf_orig.variant IS NULL) AND mf_orig.status = 'ready'
+		LEFT JOIN media_files mf_display ON mf_display.media_id = ma.id AND mf_display.variant = 'display' AND mf_display.status = 'ready'
 		JOIN visibilities v ON v.id = ma.visibility_id
 		JOIN review_statuses rs ON rs.id = ma.review_status_id
 		WHERE fgm.group_id = $1
@@ -565,6 +567,7 @@ func (r *FansubRepository) listPublicFansubMedia(ctx context.Context, groupID in
 			item          models.PublicFansubMediaItem
 			thumbnailPath *string
 			originalPath  *string
+			displayPath   *string
 		)
 		if err := rows.Scan(
 			&item.ID,
@@ -573,6 +576,7 @@ func (r *FansubRepository) listPublicFansubMedia(ctx context.Context, groupID in
 			&item.MimeType,
 			&thumbnailPath,
 			&originalPath,
+			&displayPath,
 			&item.Title,
 			&item.Description,
 			&item.Category,
@@ -584,6 +588,9 @@ func (r *FansubRepository) listPublicFansubMedia(ctx context.Context, groupID in
 		}
 		if originalPath != nil {
 			item.OriginalURL = publicMediaURLForPath(*originalPath, r.mediaStorageDir)
+		}
+		if displayPath != nil {
+			item.DisplayURL = publicMediaURLForPath(*displayPath, r.mediaStorageDir)
 		}
 		media = append(media, item)
 	}
