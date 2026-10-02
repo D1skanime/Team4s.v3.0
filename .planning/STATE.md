@@ -3,14 +3,14 @@ gsd_state_version: 1.0
 milestone: v1.4
 milestone_name: Coverage
 status: executing
-stopped_at: Completed 173-10-PLAN.md
-last_updated: "2026-10-02T21:21:45.872Z"
+stopped_at: Completed 173-14-PLAN.md
+last_updated: "2026-10-02T21:28:01.199Z"
 last_activity: 2026-10-02
 progress:
   total_phases: 38
   completed_phases: 32
   total_plans: 338
-  completed_plans: 331
+  completed_plans: 332
   percent: 84
 ---
 
@@ -287,7 +287,7 @@ Abschluss" entry below for the full closing record.
 ## Current Position
 
 Phase: 173 (ffentliche-bildqualit-t-zus-tzliche-display-variante-backend) — EXECUTING
-Plan: 14 of 16
+Plan: 15 of 16
 Status: Ready to execute
 Completed: removed stale public timeline range access, repaired nullable highlight responses, batched release-version-media rights projection, hardened full-list media reorder, and synchronized the focused admin contract.
 Next: resolve or explicitly accept the pre-existing full-suite failures, then complete Phase 169 live actor/refresh/responsive UAT; Phase 166 remains open.
@@ -888,6 +888,7 @@ Last activity: 2026-10-02
 - [Phase 173]: 173-07: generic backfill's race-safe write uses a per-call-unique temp file renamed into place only after winning the INSERT race, so a losing concurrent racer never clobbers the winner's file
 - [Phase 173]: Reused the free function publicMediaURLForPath (already in fansub_repository.go) for the fansub-group display-preference site instead of inventing a plan-named r.publicURLForPath method that does not exist on FansubRepository.
 - [Phase 173]: Patched the disposable team4s_phase152_test fixture DB in-place (ADD COLUMN release_version_media.title) rather than editing a migration, since the fixture is throwaway test data per CLAUDE.md's reset/reseed convention.
+- [Phase 173]: 173-14: fansub public media/banner components switched from raw next/image unoptimized to ResponsiveImage (quality 85), FansubGroupMediaBlock additionally prefers display_url — Imported ResponsiveImage via its direct file path (matches existing codebase convention, not re-exported from @/components/ui barrel); fixed a pre-existing test assertion that expected the raw unoptimized path now that the optimizer is correctly engaged
 
 ### Pending Todos
 
@@ -1445,11 +1446,12 @@ untruncated list lives in `.planning/todos/pending/`.
 | Phase 173 P13 | 25min | 3 tasks | 4 files |
 | Phase 173 P07 | 95min | 3 tasks | 10 files |
 | Phase 173 P10 | 55min | 2 tasks | 6 files |
+| Phase 173 P14 | 5min | 2 tasks | 5 files |
 
 ## Session Continuity
 
-Last session: 2026-10-02T21:21:33.677Z
-Stopped at: Completed 173-10-PLAN.md
+Last session: 2026-10-02T21:28:01.176Z
+Stopped at: Completed 173-14-PLAN.md
 Last activity: 2026-09-28 - Completed Phase 169 Plan 169-01
 Resume file: 
 None
