@@ -6,10 +6,12 @@ import (
 	"encoding/json"
 	"image"
 	"image/color"
+	"image/gif"
 	"image/png"
 	"mime/multipart"
 	"net/http"
 	"net/http/httptest"
+	"os"
 	"path/filepath"
 	"strings"
 	"testing"
@@ -275,4 +277,90 @@ func TestUploadFansubGroupMedia_NamespacesAndCreatesDisplayVariant(t *testing.T)
 	).Scan(&displayPath, &displayWidth, &displayHeight))
 	assert.Equal(t, 1920, displayWidth, "the long (3000px) edge must be capped at DisplayMaxLongEdge")
 	assert.Equal(t, 960, displayHeight)
+}
+
+func newAnimatedGIFBytesForFansubTest(t *testing.T, frames int) []byte {
+	t.Helper()
+	pal := color.Palette{color.Black, color.White, color.RGBA{R: 255, A: 255}}
+	g := &gif.GIF{}
+	for i := 0; i < frames; i++ {
+		img := image.NewPaletted(image.Rect(0, 0, 8, 8), pal)
+		for y := 0; y < 8; y++ {
+			for x := 0; x < 8; x++ {
+				img.SetColorIndex(x, y, uint8((x+y+i)%len(pal)))
+			}
+		}
+		g.Image = append(g.Image, img)
+		g.Delay = append(g.Delay, 10)
+	}
+	var buf bytes.Buffer
+	require.NoError(t, gif.EncodeAll(&buf, g))
+	return buf.Bytes()
+}
+
+// TestUploadFansubMedia_CroppedAnimatedBannerDisplayStaysAnimated proves D-22 (regression
+// protection for the existing crop flow): when a banner upload carries BOTH a cropped "file"
+// (what gets stored/displayed) and a separate uncropped "source_file", the display variant must
+// be derived from the CROPPED file and, if that cropped file is an animated GIF, stay animated --
+// never a static frame, and never derived from the (differently-animated) source_file.
+func TestUploadFansubMedia_CroppedAnimatedBannerDisplayStaysAnimated(t *testing.T) {
+	ffmpegBinary := requireFFmpegForDisplayTests(t)
+	pool := openFansubMediaUploadFixture(t)
+	storageDir := t.TempDir()
+	h := newFansubExecHandler(pool, storageDir)
+	h.mediaService = services.NewMediaService(storageDir, "", ffmpegBinary)
+
+	croppedAnimated := newAnimatedGIFBytesForFansubTest(t, 3)
+	uncroppedSource := opaquePNGBytesForFansubTest(t, 50, 50) // a deliberately DIFFERENT, static source
+
+	var body bytes.Buffer
+	writer := multipart.NewWriter(&body)
+	require.NoError(t, writer.WriteField("kind", "banner"))
+	filePart, err := writer.CreateFormFile("file", "banner.gif")
+	require.NoError(t, err)
+	_, err = filePart.Write(croppedAnimated)
+	require.NoError(t, err)
+	sourcePart, err := writer.CreateFormFile("source_file", "source.png")
+	require.NoError(t, err)
+	_, err = sourcePart.Write(uncroppedSource)
+	require.NoError(t, err)
+	require.NoError(t, writer.Close())
+
+	req := httptest.NewRequest(http.MethodPost, "/api/v1/admin/fansubs/55/media", &body)
+	req.Header.Set("Content-Type", writer.FormDataContentType())
+	c, rec := fansubUploadContext(req, fansubUploadPlatformAdminIdentity())
+
+	h.UploadFansubMedia(c)
+	require.Equal(t, http.StatusCreated, rec.Code, rec.Body.String())
+
+	var resp struct {
+		Data struct {
+			Media struct {
+				ID int64 `json:"id"`
+			} `json:"media"`
+		} `json:"data"`
+	}
+	require.NoError(t, json.Unmarshal(rec.Body.Bytes(), &resp))
+	mediaID := resp.Data.Media.ID
+	require.NotZero(t, mediaID)
+
+	var displayPath string
+	require.NoError(t, pool.QueryRow(context.Background(),
+		`SELECT path FROM media_files WHERE media_id = $1 AND variant = 'display'`, mediaID,
+	).Scan(&displayPath))
+	assert.True(t, strings.HasSuffix(displayPath, ".webp"), "the display variant of a cropped animated GIF must be an animated webp, not a static frame")
+
+	onDisk, err := os.ReadFile(displayPath)
+	require.NoError(t, err)
+	assert.GreaterOrEqual(t, countANMFChunksForFansubTest(onDisk), 2, "the display webp must contain at least 2 ANMF frames")
+
+	var sourceCount int
+	require.NoError(t, pool.QueryRow(context.Background(),
+		`SELECT COUNT(*) FROM media_files WHERE media_id = $1 AND variant = 'source_original'`, mediaID,
+	).Scan(&sourceCount))
+	assert.Equal(t, 1, sourceCount, "the uncropped source_original must still be persisted unchanged, separate from the display")
+}
+
+func countANMFChunksForFansubTest(data []byte) int {
+	return bytes.Count(data, []byte("ANMF"))
 }
