@@ -454,7 +454,7 @@ func (h *FansubHandler) processOneFansubGroupMediaFile(
 		log.Printf("fansub group media upload: save failed (fansub_id=%d): %v", fansubID, err)
 		return fansubGroupMediaFileResult{ClientFileName: clientName, Status: "failed", ErrorCode: "STORAGE_FAILED", Message: "datei konnte nicht gespeichert werden"}
 	}
-	thumbData, thumbWidth, thumbHeight, err := generateRVMThumbnail(data, saveResult.CreateInput.MimeType)
+	thumbData, thumbWidth, thumbHeight, err := generateRVMThumbnail(data, saveResult.CreateInput.MimeType, h.mediaService.VipsThumbnailPath())
 	if err != nil {
 		_ = removeFileQuietly(saveResult.CreateInput.StoragePath)
 		log.Printf("fansub group media thumbnail error for %s: %v", clientName, err)

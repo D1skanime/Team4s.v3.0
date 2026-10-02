@@ -13,7 +13,7 @@ func TestFansubGroupMediaUploadStoresThumbnailVariant(t *testing.T) {
 	}
 	source := string(content)
 
-	if !strings.Contains(source, "generateRVMThumbnail(data, saveResult.CreateInput.MimeType)") {
+	if !strings.Contains(source, "generateRVMThumbnail(data, saveResult.CreateInput.MimeType,") {
 		t.Fatal("Gruppenmedia-Upload muss die bestehende Thumbnail-Erzeugung wiederverwenden")
 	}
 	if !strings.Contains(source, `InsertMediaFileWithStatus(ctx, tx, mediaAsset.ID, "thumb"`) {

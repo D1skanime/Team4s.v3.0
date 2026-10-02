@@ -29,10 +29,13 @@ func TestIsAnimatedWebP(t *testing.T) {
 	}
 }
 
-func TestRVMFileRejectionAnimatedWebP(t *testing.T) {
-	message, code, rejected := rvmFileRejection("image/webp", webpHeader("VP8X", 0x02))
-	if !rejected || code != "ANIMATED_WEBP_UNSUPPORTED" || message != animatedWebPMessage {
-		t.Fatalf("animiertes WebP muss mit klarer Meldung abgelehnt werden: %q %q %v", message, code, rejected)
+// TestRVMFileRejectionAcceptsAnimatedWebP belegt D-20 (Nutzervorgabe 2026-10-02): Release-Version-
+// Media kennt keinen asset_type=segment_preview (das Kara-Vorschaubild laeuft ausschliesslich
+// ueber den globalen Uploader, media_upload.go), daher darf animiertes WebP hier nicht mehr
+// abgelehnt werden -- weder animiert noch statisch.
+func TestRVMFileRejectionAcceptsAnimatedWebP(t *testing.T) {
+	if _, _, rejected := rvmFileRejection("image/webp", webpHeader("VP8X", 0x02)); rejected {
+		t.Fatal("animiertes WebP muss ausserhalb des Kara-Vorschaubilds erlaubt sein (D-20)")
 	}
 	if _, _, rejected := rvmFileRejection("image/webp", webpHeader("VP8 ", 0x00)); rejected {
 		t.Fatal("statisches WebP muss erlaubt bleiben")

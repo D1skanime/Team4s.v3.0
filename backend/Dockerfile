@@ -17,9 +17,10 @@ FROM alpine:3.20
 WORKDIR /app
 
 # Runtime shared library for govips dynamic linking, plus FFmpeg/FFprobe
-# for prepared OP/ED/Kara segment clips.
+# for prepared OP/ED/Kara segment clips. vips-tools (D-21) adds the vipsthumbnail CLI, used to
+# generate animated WebP/GIF "display" variants that keep every frame.
 # fontconfig + Fallback-Fonts: ohne Systemschriften rendert libass ASS-Untertitel unsichtbar.
-RUN apk add --no-cache vips ffmpeg fontconfig font-dejavu font-noto font-noto-cjk
+RUN apk add --no-cache vips vips-tools ffmpeg fontconfig font-dejavu font-noto font-noto-cjk
 
 COPY --from=builder /app/server ./server
 COPY --from=builder /app/migrate ./migrate

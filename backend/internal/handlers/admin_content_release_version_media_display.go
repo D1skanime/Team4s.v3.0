@@ -19,10 +19,13 @@ import (
 // via services.IsAnimatedGIFData) produces an animated WebP display variant through
 // services.GenerateAnimatedWebPDisplayFromBytes; if ffmpeg is unavailable/fails, the display
 // falls back to the ORIGINAL animated GIF bytes unchanged (never a static frame-0 image for an
-// animation). ffmpegPath is threaded in by the caller (AdminContentHandler/FansubHandler both
-// already hold a *services.MediaService with the configured path via its exported FFmpegPath()
-// accessor).
-func generateRVMDisplay(data []byte, mimeType string, ffmpegPath string) (displayData []byte, ext string, displayMimeType string, width int, height int, err error) {
+// animation). D-20/D-21: an animated WebP gets the equivalent treatment via vipsthumbnail
+// (services.GenerateAnimatedDisplayViaVips) instead of ffmpeg, since ffmpeg cannot decode
+// animated WebP (173-RESEARCH.md) and golang.org/x/image/webp cannot decode ANMF frames at all.
+// ffmpegPath/vipsThumbnailPath are threaded in by the caller (AdminContentHandler/FansubHandler
+// both already hold a *services.MediaService with the configured paths via its exported
+// FFmpegPath()/VipsThumbnailPath() accessors).
+func generateRVMDisplay(data []byte, mimeType string, ffmpegPath string, vipsThumbnailPath string) (displayData []byte, ext string, displayMimeType string, width int, height int, err error) {
 	if mimeType == "image/gif" {
 		if services.IsAnimatedGIFData(data) {
 			if webpData, w, h, animErr := services.GenerateAnimatedWebPDisplayFromBytes(ffmpegPath, data); animErr == nil {
@@ -48,6 +51,20 @@ func generateRVMDisplay(data []byte, mimeType string, ffmpegPath string) (displa
 		src := decoded.Image[0]
 		bounds := src.Bounds()
 		return encodeStaticRVMDisplay(src, bounds.Dx(), bounds.Dy())
+	}
+
+	if mimeType == "image/webp" && services.IsAnimatedWebPData(data) {
+		if webpData, w, h, animErr := services.GenerateAnimatedDisplayViaVips(vipsThumbnailPath, data, ".webp", services.DisplayAnimatedMaxEdge); animErr == nil {
+			return webpData, "webp", "image/webp", w, h, nil
+		}
+		// D-20/D-21: vipsthumbnail nicht verfuegbar/fehlgeschlagen -- Animation bleibt erhalten,
+		// indem das unveraenderte Original-WebP als display zurueckgegeben wird (niemals ein
+		// statisches Frame-0-Bild fuer eine Animation).
+		cfg, _, cfgErr := image.DecodeConfig(bytes.NewReader(data))
+		if cfgErr != nil {
+			return nil, "", "", 0, 0, fmt.Errorf("webp dimensionen ermitteln: %w", cfgErr)
+		}
+		return data, "webp", "image/webp", cfg.Width, cfg.Height, nil
 	}
 
 	decoded, _, decErr := image.Decode(bytes.NewReader(data))
@@ -76,12 +93,25 @@ func (h *AdminContentHandler) rvmFFmpegPath() string {
 	return h.mediaService.FFmpegPath()
 }
 
+// rvmVipsThumbnailPath returns the configured vipsthumbnail path from h.mediaService, or "" if
+// mediaService is nil (same nil-safety rationale as rvmFFmpegPath).
+func (h *AdminContentHandler) rvmVipsThumbnailPath() string {
+	if h.mediaService == nil {
+		return ""
+	}
+	return h.mediaService.VipsThumbnailPath()
+}
+
 // GenerateStaticDisplayVariant is an exported wrapper around generateRVMDisplay so the Phase 173
 // backfill CLI (backend/cmd/migrate-display-backfill, package main, plan 173-07) can generate the
 // same display variant for already-on-disk release-version-media originals without duplicating
 // the resize/encode logic. generateRVMDisplay itself stays package-private since its only other
 // in-repo callers (admin_content_release_version_media.go, admin_content_release_version_media_replace.go,
 // fansub_media_upload.go) live in this same package.
-func GenerateStaticDisplayVariant(data []byte, mimeType string, ffmpegPath string) ([]byte, string, string, int, int, error) {
-	return generateRVMDisplay(data, mimeType, ffmpegPath)
+//
+// Signature note (173-05 Task 0): gained a vipsThumbnailPath parameter alongside ffmpegPath for
+// animated-WebP display generation (D-20/D-21) -- the not-yet-built 173-07 backfill CLI must call
+// this with both paths, not the ffmpegPath-only signature from 173-04's summary.
+func GenerateStaticDisplayVariant(data []byte, mimeType string, ffmpegPath string, vipsThumbnailPath string) ([]byte, string, string, int, int, error) {
+	return generateRVMDisplay(data, mimeType, ffmpegPath, vipsThumbnailPath)
 }

@@ -5,6 +5,7 @@ import (
 	"log"
 	"net/http"
 	"os"
+	"os/exec"
 	"os/signal"
 	"strings"
 	"syscall"
@@ -47,6 +48,15 @@ func main() {
 		log.Printf("ffmpeg available at %s", cfg.FFmpegPath)
 	}
 
+	// Check vipsthumbnail availability (D-21: animated WebP/GIF "display" variants that keep
+	// every frame). Non-fatal -- display generation degrades to the unchanged original on
+	// failure/absence, same posture as the ffmpeg check above.
+	if err := exec.Command(cfg.VipsThumbnailPath, "--version").Run(); err != nil {
+		log.Printf("warning: vipsthumbnail not available at %s: %v (animated display variants will fall back to the original)", cfg.VipsThumbnailPath, err)
+	} else {
+		log.Printf("vipsthumbnail available at %s", cfg.VipsThumbnailPath)
+	}
+
 	router := gin.New()
 	router.Use(gin.Logger(), gin.Recovery(), corsMiddleware(cfg.CORSAllowedOrigins))
 
@@ -84,7 +94,8 @@ func main() {
 	episodeHandler := handlers.NewEpisodeHandler(episodeRepo)
 	fansubRepo := repository.NewFansubRepository(dbPool, cfg.MediaStorageDir)
 	mediaRepo := repository.NewMediaRepository(dbPool, cfg.MediaPublicBaseURL, cfg.MediaStorageDir)
-	mediaService := services.NewMediaService(cfg.MediaStorageDir, cfg.MediaPublicBaseURL, cfg.FFmpegPath)
+	mediaService := services.NewMediaService(cfg.MediaStorageDir, cfg.MediaPublicBaseURL, cfg.FFmpegPath).
+		WithVipsThumbnailPath(cfg.VipsThumbnailPath)
 	pointService := services.NewPointService(dbPool)
 	releaseCrewService := services.NewReleaseCrewService(dbPool, pointService)
 	episodeVersionRepo := repository.NewEpisodeVersionRepository(dbPool, releaseCrewService)
@@ -205,7 +216,7 @@ func main() {
 		cfg.KeycloakAccountURL,
 		cfg.AppPublicURL,
 		fansubRepo,
-	)
+	).WithMediaToolPaths(cfg.FFmpegPath, cfg.VipsThumbnailPath)
 	adminBootstrapUserIDs := resolveAdminBootstrapUserIDs(cfg)
 	if err := bootstrapAdminRoleAssignments(ctx, authzRepo, cfg.AuthAdminRoleName, adminBootstrapUserIDs); err != nil {
 		if isUndefinedTableError(err) {
@@ -262,6 +273,7 @@ func main() {
 	assetLifecycleService := services.NewAssetLifecycleService(assetLifecycleRepo, cfg.MediaStorageDir)
 	mediaUploadRepo := repository.NewMediaUploadRepository(dbPool)
 	mediaUploadHandler := handlers.NewMediaUploadHandler(mediaUploadRepo, cfg.MediaStorageDir, cfg.MediaPublicBaseURL, cfg.FFmpegPath).
+		WithVipsThumbnailPath(cfg.VipsThumbnailPath).
 		WithLifecycleService(assetLifecycleService).
 		WithAdminAuthz(authzRepo, cfg.AuthAdminRoleName).
 		WithSegmentPreviewAuthorizer(adminContentHandler.AuthorizeSegmentPreviewUpload)

@@ -43,21 +43,42 @@ func (h *MediaUploadHandler) processImage(
 	provisioning *models.ProvisioningResult,
 ) (*models.UploadResponse, error) {
 	// Rohe Bytes werden EINMAL gelesen und fuer Dekodierung, EXIF/XMP-Entfernung (WebP) und
-	// echte Animations-Erkennung (GIF) wiederverwendet (Phase 173 Review-Korrektur -- vorher
+	// echte Animations-Erkennung (GIF/WebP) wiederverwendet (Phase 173 Review-Korrektur -- vorher
 	// wurde direkt vom multipart.File dekodiert und isAnimatedGIF gab unconditional true zurueck).
 	data, err := io.ReadAll(file)
 	if err != nil {
 		return nil, fmt.Errorf("datei lesen: %w", err)
 	}
 
-	img, format, err := image.Decode(bytes.NewReader(data))
-	if err != nil {
-		return nil, fmt.Errorf("bild konnte nicht dekodiert werden: %w", err)
-	}
+	// D-20/D-21: animiertes WebP wird NICHT mehr ueber image.Decode behandelt --
+	// golang.org/x/image/webp kann ANMF-Animationsframes nicht dekodieren (nur VP8/VP8L auf
+	// oberster RIFF-Ebene) und wuerde hier fehlschlagen. Breite/Hoehe kommen stattdessen aus dem
+	// VP8X-Chunk per image.DecodeConfig (funktioniert unabhaengig vom Animations-Flag); Thumb und
+	// Display werden weiter unten ueber vipsthumbnail erzeugt (services.ExtractFirstFrameViaVips /
+	// services.GenerateAnimatedDisplayViaVips).
+	isAnimatedWebPUpload := mimeType == "image/webp" && services.IsAnimatedWebPData(data)
 
-	bounds := img.Bounds()
-	originalWidth := bounds.Dx()
-	originalHeight := bounds.Dy()
+	var img image.Image
+	var format string
+	var originalWidth, originalHeight int
+	if isAnimatedWebPUpload {
+		cfg, _, cfgErr := image.DecodeConfig(bytes.NewReader(data))
+		if cfgErr != nil {
+			return nil, fmt.Errorf("animiertes webp dimensionen ermitteln: %w", cfgErr)
+		}
+		format = "webp"
+		originalWidth, originalHeight = cfg.Width, cfg.Height
+	} else {
+		decoded, decFormat, decErr := image.Decode(bytes.NewReader(data))
+		if decErr != nil {
+			return nil, fmt.Errorf("bild konnte nicht dekodiert werden: %w", decErr)
+		}
+		img = decoded
+		format = decFormat
+		bounds := img.Bounds()
+		originalWidth = bounds.Dx()
+		originalHeight = bounds.Dy()
+	}
 
 	ext := imageExtFromMime(mimeType)
 	originalFilename := "original." + ext
@@ -107,18 +128,33 @@ func (h *MediaUploadHandler) processImage(
 
 	thumbPath := filepath.Join(storagePath, thumbFilename)
 	thumbRelPath := h.buildRelativePath(req.EntityType, req.EntityID, req.AssetType, mediaID, thumbFilename)
-	thumb := imaging.Resize(img, thumbWidth, 0, imaging.Lanczos)
-	if err := imaging.Save(thumb, thumbPath); err != nil {
-		return nil, fmt.Errorf("thumbnail speichern: %w", err)
+	var thumbFinalWidth, thumbFinalHeight int
+	if isAnimatedWebPUpload {
+		// golang.org/x/image/webp kann Frame 0 einer Animation nicht extrahieren (s.o.) --
+		// vipsthumbnail ohne "[n=-1]" laedt standardmaessig nur den ersten Frame.
+		jpegData, w, hgt, thumbErr := services.ExtractFirstFrameViaVips(h.vipsThumbnailPath, data, ".webp", thumbWidth)
+		if thumbErr != nil {
+			return nil, fmt.Errorf("thumbnail speichern: %w", thumbErr)
+		}
+		if writeErr := h.writeBytes(jpegData, thumbPath); writeErr != nil {
+			return nil, fmt.Errorf("thumbnail speichern: %w", writeErr)
+		}
+		thumbFinalWidth, thumbFinalHeight = w, hgt
+	} else {
+		thumb := imaging.Resize(img, thumbWidth, 0, imaging.Lanczos)
+		if err := imaging.Save(thumb, thumbPath); err != nil {
+			return nil, fmt.Errorf("thumbnail speichern: %w", err)
+		}
+		thumbBounds := thumb.Bounds()
+		thumbFinalWidth, thumbFinalHeight = thumbBounds.Dx(), thumbBounds.Dy()
 	}
 
-	thumbBounds := thumb.Bounds()
 	thumbSize, _ := h.getFileSize(thumbPath)
 	files = append(files, models.UploadFileInfo{
 		Variant: "thumb",
 		Path:    thumbRelPath,
-		Width:   thumbBounds.Dx(),
-		Height:  thumbBounds.Dy(),
+		Width:   thumbFinalWidth,
+		Height:  thumbFinalHeight,
 	})
 
 	// "display"-Variante: fuer animierte GIFs als animiertes WebP via ffmpeg (Rueckfall bei
@@ -127,7 +163,8 @@ func (h *MediaUploadHandler) processImage(
 	// ueber die gemeinsame EncodeStaticDisplayVariant-Funktion (PNG bei Transparenz, sonst JPEG,
 	// D-18) -- dieselbe Funktion, die Release-Version-Media/Fansub-Media nutzen.
 	var displaySize int64
-	if isAnimatedGIF {
+	switch {
+	case isAnimatedGIF:
 		displayRelPath, displayWidth, displayHeight, ok := h.generateAnimatedDisplayVariant(
 			req, mediaID, storagePath, data,
 		)
@@ -141,7 +178,21 @@ func (h *MediaUploadHandler) processImage(
 				Height:  displayHeight,
 			})
 		}
-	} else {
+	case isAnimatedWebPUpload:
+		displayRelPath, displayWidth, displayHeight, ok := h.generateAnimatedWebPDisplayVariant(
+			req, mediaID, storagePath, data,
+		)
+		if ok {
+			displayPath := filepath.Join(storagePath, "display.webp")
+			displaySize, _ = h.getFileSize(displayPath)
+			files = append(files, models.UploadFileInfo{
+				Variant: "display",
+				Path:    displayRelPath,
+				Width:   displayWidth,
+				Height:  displayHeight,
+			})
+		}
+	default:
 		displayRelPath, displayExt, displayWidth, displayHeight, err := h.generateStaticDisplayVariant(
 			req, mediaID, storagePath, img, originalWidth, originalHeight,
 		)
@@ -275,6 +326,33 @@ func (h *MediaUploadHandler) generateAnimatedDisplayVariant(
 	displayRelPath := h.buildRelativePath(req.EntityType, req.EntityID, req.AssetType, mediaID, displayFilename)
 
 	webpData, w, hgt, err := services.GenerateAnimatedWebPDisplayFromBytes(h.ffmpegPath, originalGIFData)
+	if err != nil {
+		return "", 0, 0, false
+	}
+	if err := h.writeBytes(webpData, displayPath); err != nil {
+		return "", 0, 0, false
+	}
+
+	return displayRelPath, w, hgt, true
+}
+
+// generateAnimatedWebPDisplayVariant erzeugt die "display"-Variante fuer animierte WebP-Uploads
+// (D-20/D-21, lange Kante <= services.DisplayAnimatedMaxEdge) via vipsthumbnail statt ffmpeg
+// (ffmpeg kann animiertes WebP laut 173-RESEARCH.md nicht dekodieren). Schlaegt die Erzeugung
+// fehl (vipsthumbnail nicht konfiguriert/fehlgeschlagen), wird das nicht-fatal behandelt -- der
+// Upload liefert weiterhin original + thumb, nur ohne zusaetzliche "display"-Zeile (ok=false),
+// identisch zum Nicht-Fatal-Muster von generateAnimatedDisplayVariant.
+func (h *MediaUploadHandler) generateAnimatedWebPDisplayVariant(
+	req models.UploadRequest,
+	mediaID string,
+	storagePath string,
+	originalWebPData []byte,
+) (relPath string, width int, height int, ok bool) {
+	displayFilename := "display.webp"
+	displayPath := filepath.Join(storagePath, displayFilename)
+	displayRelPath := h.buildRelativePath(req.EntityType, req.EntityID, req.AssetType, mediaID, displayFilename)
+
+	webpData, w, hgt, err := services.GenerateAnimatedDisplayViaVips(h.vipsThumbnailPath, originalWebPData, ".webp", services.DisplayAnimatedMaxEdge)
 	if err != nil {
 		return "", 0, 0, false
 	}

@@ -483,6 +483,14 @@ func removeAnimePosterAssetsV2(
 	animeID int64,
 	schema animeV2SchemaInfo,
 ) (*models.AnimeAssetRemovalResult, error) {
+	// 173-05 Task 0 (Regressionsfix): "original zuerst" statt "display zuerst" -- der hier
+	// aufgeloeste Pfad fliesst in result.RemovedPaths und (ueber syncLegacyAnimeCoverImageV2) in
+	// die Legacy-Spalte anime.cover_image, gegen die resolveOrphanedLocalCoverImageV2 per exaktem
+	// String-Vergleich media_assets.file_path = cover_image prueft. media_assets.file_path
+	// speichert IMMER den Original-Pfad (nie den display-Pfad), daher haette eine
+	// Display-Praeferenz hier cover_image staendig als "verwaist" fehlklassifiziert und zu
+	// faelschlicher Loeschung gefuehrt. Display-Praeferenz bleibt ausschliesslich in
+	// Public-Lesepfaden (z. B. getResolvedAssetsV2) erhalten.
 	rows, err := tx.Query(ctx, `
 		SELECT
 			ma.id,
@@ -495,7 +503,7 @@ func removeAnimePosterAssetsV2(
 			FROM media_files
 			WHERE media_id = ma.id
 			ORDER BY
-				CASE WHEN variant = 'display' THEN 0 WHEN variant = 'original' THEN 1 ELSE 2 END,
+				CASE WHEN variant = 'original' THEN 0 WHEN variant = 'display' THEN 1 ELSE 2 END,
 				id ASC
 			LIMIT 1
 		) mf ON true
@@ -588,6 +596,9 @@ func syncLegacyAnimeCoverImageV2(
 		return nil
 	}
 
+	// 173-05 Task 0 (Regressionsfix): "original zuerst", s. ausfuehrlichen Kommentar in
+	// removeAnimePosterAssetsV2 -- dieselbe Begruendung gilt hier, da beide Funktionen dieselbe
+	// Legacy-Spalte anime.cover_image gegen media_assets.file_path (immer Original-Pfad) abgleichen.
 	var coverPath string
 	if err := tx.QueryRow(ctx, `
 		SELECT COALESCE(mf.path, ma.file_path)
@@ -597,7 +608,7 @@ func syncLegacyAnimeCoverImageV2(
 			FROM media_files
 			WHERE media_id = ma.id
 			ORDER BY
-				CASE WHEN variant = 'display' THEN 0 WHEN variant = 'original' THEN 1 ELSE 2 END,
+				CASE WHEN variant = 'original' THEN 0 WHEN variant = 'display' THEN 1 ELSE 2 END,
 				id ASC
 			LIMIT 1
 		) mf ON true

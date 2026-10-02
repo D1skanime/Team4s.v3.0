@@ -186,7 +186,7 @@ func TestMediaUploadHandler_ValidateFile(t *testing.T) {
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
 			reader := bytes.NewReader(tt.content)
-			mimeType, format, err := handler.validateFile(mockMultipartFile{reader}, tt.size)
+			mimeType, format, err := handler.validateFile(mockMultipartFile{reader}, tt.size, "cover")
 
 			if tt.expectError {
 				assert.Error(t, err)
@@ -840,6 +840,54 @@ func TestMediaUploadHandler_MainFileStaysWithinLineBudget(t *testing.T) {
 func newAdminMediaUploadHandler(repo repository.MediaUploadRepoTx, storageDir, baseURL, ffmpegPath string) *MediaUploadHandler {
 	return NewMediaUploadHandler(repo, storageDir, baseURL, ffmpegPath).
 		WithAdminAuthz(stubRoleChecker{appUserIsAdmin: true, legacyIsAdmin: true}, "admin")
+}
+
+// newAdminMediaUploadHandlerWithVips ist newAdminMediaUploadHandler plus verdrahtetem
+// vipsthumbnail-Pfad (D-21), fuer Tests der animierten-WebP-Thumbnail-/Display-Erzeugung.
+func newAdminMediaUploadHandlerWithVips(repo repository.MediaUploadRepoTx, storageDir, baseURL, ffmpegPath, vipsThumbnailPath string) *MediaUploadHandler {
+	return newAdminMediaUploadHandler(repo, storageDir, baseURL, ffmpegPath).
+		WithVipsThumbnailPath(vipsThumbnailPath)
+}
+
+// requireVipsThumbnailForDisplayTests liefert den Pfad zur installierten vipsthumbnail-Binary
+// oder bricht den Test ab -- identisches Muster zu requireFFmpegForDisplayTests.
+func requireVipsThumbnailForDisplayTests(t *testing.T) string {
+	t.Helper()
+	binary, err := exec.LookPath("vipsthumbnail")
+	if err != nil {
+		t.Fatal("installed vipsthumbnail (vips-tools) is required for this test")
+	}
+	return binary
+}
+
+// newAnimatedWebPBytes erzeugt ein animiertes WebP (3 Vollfarb-Frames) mit den angegebenen
+// Pixel-Massen via ffmpeg (libwebp_anim) -- genutzt, um D-20/D-21 (animiertes WebP bleibt
+// animiert, Display-Erzeugung ueber vipsthumbnail) zu beweisen, ohne eine grosse Binaer-Fixture
+// einzuchecken.
+func newAnimatedWebPBytes(t *testing.T, ffmpegBinary string, width, height int) []byte {
+	t.Helper()
+
+	gifData := newAnimatedGIFBytes(t, width, height)
+	tmpDir := t.TempDir()
+	srcPath := filepath.Join(tmpDir, "src.gif")
+	if err := os.WriteFile(srcPath, gifData, 0o644); err != nil {
+		t.Fatalf("animated gif source schreiben: %v", err)
+	}
+	destPath := filepath.Join(tmpDir, "out.webp")
+
+	cmd := exec.Command(ffmpegBinary, "-y", "-i", srcPath, "-loop", "0", "-vcodec", "libwebp_anim", destPath)
+	if output, err := cmd.CombinedOutput(); err != nil {
+		t.Fatalf("animiertes webp per ffmpeg erzeugen: %v (%s)", err, string(output))
+	}
+
+	data, err := os.ReadFile(destPath)
+	if err != nil {
+		t.Fatalf("erzeugtes animiertes webp lesen: %v", err)
+	}
+	if !isAnimatedWebP(data) {
+		t.Fatal("per ffmpeg erzeugtes webp wurde nicht als animiert erkannt -- test-fixture ungueltig")
+	}
+	return data
 }
 
 func newMediaUploadRequest(t *testing.T) *http.Request {

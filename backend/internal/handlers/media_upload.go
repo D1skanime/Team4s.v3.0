@@ -68,11 +68,12 @@ type mediaUploadLifecycle interface {
 }
 
 type MediaUploadHandler struct {
-	repo            repository.MediaUploadRepoTx
-	lifecycle       mediaUploadLifecycle
-	mediaStorageDir string
-	mediaBaseURL    string
-	ffmpegPath      string
+	repo              repository.MediaUploadRepoTx
+	lifecycle         mediaUploadLifecycle
+	mediaStorageDir   string
+	mediaBaseURL      string
+	ffmpegPath        string
+	vipsThumbnailPath string
 	// authzRepo/adminRoleName speisen den zentralen Plattform-Admin-Guard
 	// (requirePlatformAdminIdentity). Ohne gesetzte Abhaengigkeit bleibt der
 	// Guard bewusst fail-closed und antwortet mit 500 statt Zugriff zu gewaehren.
@@ -94,6 +95,13 @@ func NewMediaUploadHandler(repo repository.MediaUploadRepoTx, storageDir, baseUR
 
 func (h *MediaUploadHandler) WithLifecycleService(lifecycle mediaUploadLifecycle) *MediaUploadHandler {
 	h.lifecycle = lifecycle
+	return h
+}
+
+// WithVipsThumbnailPath verdrahtet den konfigurierten vipsthumbnail-CLI-Pfad (D-21), genutzt von
+// processImage fuer animierte WebP-Thumbnail-/Display-Erzeugung.
+func (h *MediaUploadHandler) WithVipsThumbnailPath(path string) *MediaUploadHandler {
+	h.vipsThumbnailPath = strings.TrimSpace(path)
 	return h
 }
 
@@ -162,7 +170,7 @@ func (h *MediaUploadHandler) Upload(c *gin.Context) {
 	defer file.Close()
 
 	// Validate file
-	mimeType, format, err := h.validateFile(file, fileHeader.Size)
+	mimeType, format, err := h.validateFile(file, fileHeader.Size, req.AssetType)
 	if err != nil {
 		log.Printf("media_upload: validation failed: %v", err)
 		h.writeUploadError(c, http.StatusBadRequest, err.Error(), "media_upload.validation_failed", "")
@@ -309,8 +317,11 @@ func (h *MediaUploadHandler) writeUploadError(c *gin.Context, status int, messag
 	c.JSON(status, gin.H{"error": errorPayload})
 }
 
-// validateFile validates file type and size using magic bytes
-func (h *MediaUploadHandler) validateFile(file multipart.File, size int64) (string, string, error) {
+// validateFile validates file type and size using magic bytes. assetType is the already-
+// normalized asset_type from the request (see normalizeUploadAssetType) -- D-20 narrows the
+// animated-WebP rejection to asset_type=segment_preview (Kara-Vorschaubild) only; every other
+// asset type accepts animated WebP and gets an animated "display" variant via vipsthumbnail.
+func (h *MediaUploadHandler) validateFile(file multipart.File, size int64, assetType string) (string, string, error) {
 	// Read first 512 bytes for MIME detection
 	buffer := make([]byte, 512)
 	n, err := file.Read(buffer)
@@ -324,7 +335,7 @@ func (h *MediaUploadHandler) validateFile(file multipart.File, size int64) (stri
 
 	// Check if it's an allowed image type
 	if allowedImageMimeTypes[mimeType] {
-		if mimeType == "image/webp" && isAnimatedWebP(buffer[:n]) {
+		if mimeType == "image/webp" && assetType == "segment_preview" && isAnimatedWebP(buffer[:n]) {
 			return "", "", fmt.Errorf("%s", animatedWebPMessage)
 		}
 		if size > maxImageSize {

@@ -1,31 +1,33 @@
 package handlers
 
 import (
-	"bytes"
 	"fmt"
+
+	"team4s.v3/backend/internal/services"
 )
 
-// animatedWebPMessage ist die Antwort fuer animierte WebP-Dateien: weder der Go-Decoder
-// (golang.org/x/image/webp) noch ffmpeg koennen sie lesen, daher klare Ablehnung statt 500.
-const animatedWebPMessage = "Animierte WebP-Dateien werden nicht unterstützt. Bitte JPG, PNG oder ein nicht animiertes WebP hochladen."
+// animatedWebPMessage ist die Antwort fuer animierte WebP-Dateien beim Kara-Vorschaubild
+// (asset_type=segment_preview). D-20 (Nutzervorgabe 2026-10-02): diese Ablehnung gilt NUR noch
+// fuer segment_preview -- alle anderen Bildpfade (Release-Galerie, Fansub-/Gruppenmedien,
+// Avatare, Profil-Bilder) akzeptieren animierte WebP und erzeugen eine animierte "display"-
+// Variante via vipsthumbnail (D-21, services.GenerateAnimatedDisplayViaVips).
+const animatedWebPMessage = "Animierte WebP-Dateien werden für Kara-Vorschaubilder nicht unterstützt. Bitte JPG, PNG oder ein nicht animiertes WebP hochladen."
 
-// isAnimatedWebP erkennt animierte WebP-Dateien am Dateikopf: RIFF/WEBP-Container mit
-// VP8X-Chunk und gesetztem Animations-Flag (Bit 0x02 im Flag-Byte, Offset 20).
+// isAnimatedWebP erkennt animierte WebP-Dateien am Dateikopf. Duenner Wrapper um die zentrale
+// services.IsAnimatedWebPData-Implementierung (geteilt mit der Display-/Thumb-Erzeugung).
 func isAnimatedWebP(head []byte) bool {
-	if len(head) < 21 || !bytes.Equal(head[0:4], []byte("RIFF")) || !bytes.Equal(head[8:12], []byte("WEBP")) {
-		return false
-	}
-	return bytes.Equal(head[12:16], []byte("VP8X")) && head[20]&0x02 != 0
+	return services.IsAnimatedWebPData(head)
 }
 
-// rvmFileRejection prueft Dateityp und animierte WebP-Dateien fuer Release-Medien (Upload und
-// Ersetzen). rejected=false bedeutet: Datei ist erlaubt.
+// rvmFileRejection prueft den Dateityp fuer Release-Medien (Upload und Ersetzen). Animierte WebP
+// werden seit D-20 NICHT mehr abgelehnt: Release-Version-Media kennt keinen asset_type=
+// segment_preview (das Kara-Vorschaubild laeuft ausschliesslich ueber den globalen Uploader,
+// media_upload.go), die Ablehnung galt hier also schon immer ueber die eigentliche
+// Zielgruppe (Kara) hinaus. rejected=false bedeutet: Datei ist erlaubt.
 func rvmFileRejection(mimeType string, data []byte) (message string, code string, rejected bool) {
+	_ = data
 	if !rvmAllowedMIMETypes[mimeType] {
 		return fmt.Sprintf("nicht erlaubter dateityp: %s", mimeType), "INVALID_MIME_TYPE", true
-	}
-	if mimeType == "image/webp" && isAnimatedWebP(data) {
-		return animatedWebPMessage, "ANIMATED_WEBP_UNSUPPORTED", true
 	}
 	return "", "", false
 }

@@ -10,7 +10,6 @@ import (
 	_ "image/jpeg"
 	_ "image/png"
 	"io/fs"
-	"log"
 	"net/http"
 	"net/url"
 	"os"
@@ -60,9 +59,10 @@ func (e *MediaValidationError) Error() string {
 
 // MediaService verwaltet das Speichern und Validieren von Medien-Uploads auf dem Dateisystem.
 type MediaService struct {
-	storageDir    string
-	publicBaseURL string
-	ffmpegPath    string
+	storageDir        string
+	publicBaseURL     string
+	ffmpegPath        string
+	vipsThumbnailPath string
 }
 
 type ReleaseThemeVideoStorageContext struct {
@@ -101,6 +101,20 @@ func NewMediaService(storageDir, publicBaseURL string, ffmpegPath ...string) *Me
 // können, statt eine zweite Konfigurationsquelle zu benötigen.
 func (s *MediaService) FFmpegPath() string {
 	return s.ffmpegPath
+}
+
+// WithVipsThumbnailPath verdrahtet den konfigurierten vipsthumbnail-CLI-Pfad (D-21), genutzt
+// von buildDisplayVariant fuer animierte WebP-Display-Varianten. Builder-Stil wie die uebrigen
+// With*-Konfigurationsmethoden in diesem Package.
+func (s *MediaService) WithVipsThumbnailPath(path string) *MediaService {
+	s.vipsThumbnailPath = strings.TrimSpace(path)
+	return s
+}
+
+// VipsThumbnailPath gibt den konfigurierten vipsthumbnail-Pfad zurueck (leer = nicht
+// konfiguriert) -- analoger Zweck zu FFmpegPath() fuer handlers-seitige Aufrufer.
+func (s *MediaService) VipsThumbnailPath() string {
+	return s.vipsThumbnailPath
 }
 
 // isSaveUploadPathWithinBase prüft, dass ein aufgelöster absoluter Pfad innerhalb von base
@@ -207,67 +221,7 @@ func (s *MediaService) SaveUpload(kind models.MediaKind, originalName string, da
 	return result, nil
 }
 
-// buildDisplayVariant erzeugt (sofern moeglich) die "display"-Variante fuer einen Upload nach
-// D-18/D-19: SVG wird nie rasterisiert (keine Pixel-Dimensionen); animierte GIFs bleiben als
-// animiertes WebP animiert (Rueckfall: Original-GIF unveraendert, falls ffmpeg fehlschlaegt);
-// alle anderen statischen Bilder nutzen die gemeinsame EncodeStaticDisplayVariant-Funktion
-// (PNG bei Transparenz, sonst JPEG). Fehler hier sind nicht fatal fuer den Upload selbst -- der
-// Aufrufer bekommt original/thumb in jedem Fall, nur ohne zusaetzliche "display"-Zeile.
-func (s *MediaService) buildDisplayVariant(detectedMime string, data []byte, dir string) *MediaVariantSaveResult {
-	if detectedMime == "image/svg+xml" {
-		return nil
-	}
-
-	if detectedMime == "image/gif" && IsAnimatedGIFData(data) {
-		webpData, w, h, err := GenerateAnimatedWebPDisplayFromBytes(s.ffmpegPath, data)
-		if err == nil {
-			return s.writeDisplayVariant(webpData, "display.webp", "image/webp", &w, &h, dir)
-		}
-		log.Printf("media upload: animierte display-variante konnte nicht erzeugt werden, original bleibt display (nicht-fatal): %v", err)
-		cfg, _, cfgErr := image.DecodeConfig(bytes.NewReader(data))
-		if cfgErr != nil {
-			return nil
-		}
-		w, h = cfg.Width, cfg.Height
-		return s.writeDisplayVariant(data, "display.gif", "image/gif", &w, &h, dir)
-	}
-
-	decoded, _, err := image.Decode(bytes.NewReader(data))
-	if err != nil {
-		log.Printf("media upload: display-quelle konnte nicht dekodiert werden (nicht-fatal): %v", err)
-		return nil
-	}
-	bounds := decoded.Bounds()
-	displayData, ext, mimeType, w, h, encErr := EncodeStaticDisplayVariant(decoded, bounds.Dx(), bounds.Dy())
-	if encErr != nil {
-		log.Printf("media upload: display-variante konnte nicht erzeugt werden (nicht-fatal): %v", encErr)
-		return nil
-	}
-	return s.writeDisplayVariant(displayData, "display."+ext, mimeType, &w, &h, dir)
-}
-
-func (s *MediaService) writeDisplayVariant(data []byte, filename, mimeType string, width, height *int, dir string) *MediaVariantSaveResult {
-	displayPath := filepath.Join(dir, filename)
-	if err := os.WriteFile(displayPath, data, fs.FileMode(0o644)); err != nil {
-		log.Printf("media upload: display-variante konnte nicht gespeichert werden (nicht-fatal): %v", err)
-		return nil
-	}
-	rel, relErr := filepath.Rel(s.storageDir, displayPath)
-	publicURL := ""
-	if relErr == nil {
-		publicURL = fmt.Sprintf("%s/media/%s", s.publicBaseURL, filepath.ToSlash(rel))
-	}
-	return &MediaVariantSaveResult{
-		Variant:     "display",
-		Filename:    filename,
-		StoragePath: displayPath,
-		PublicURL:   publicURL,
-		MimeType:    mimeType,
-		SizeBytes:   int64(len(data)),
-		Width:       width,
-		Height:      height,
-	}
-}
+// buildDisplayVariant/writeDisplayVariant live in media_service_display_variant.go (450-line budget).
 
 // SaveUploadSourceOriginal validiert und speichert die unbearbeitete Quelle zu
 // einem Fansub-Branding-Upload. Die Datei wird nicht öffentlich verlinkt, aber

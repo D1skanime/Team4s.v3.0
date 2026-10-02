@@ -47,6 +47,7 @@ type Config struct {
 	MediaStorageDir              string   // Lokales Verzeichnis für hochgeladene Mediendateien
 	MediaPublicBaseURL           string   // Öffentliche Basis-URL für die Medienauslieferung
 	FFmpegPath                   string   // Dateipfad zur FFmpeg-Binärdatei
+	VipsThumbnailPath            string   // Dateipfad zur vipsthumbnail-Binärdatei (D-21: animierte WebP/GIF-Display-Varianten)
 	SegmentRenderEnabled         bool     // Aktiviert die Vorbereitung technischer Segment-Clips
 	SegmentRenderDir             string   // Verzeichnis für technische Segment-Render-Caches
 	SegmentRenderMaxSeconds      int      // Maximale Dauer automatisch gerenderter Segmente
@@ -77,6 +78,7 @@ func Load() Config {
 	mediaStorageDir := strings.TrimSpace(getEnv("MEDIA_STORAGE_DIR", "./storage/media"))
 	segmentRenderDir := strings.TrimSpace(getEnv("SEGMENT_RENDER_DIR", filepath.Join(mediaStorageDir, "derived", "segments")))
 	ffmpegPath := strings.TrimSpace(getEnv("FFMPEG_PATH", "/usr/bin/ffmpeg"))
+	vipsThumbnailPath := strings.TrimSpace(getEnv("VIPSTHUMBNAIL_PATH", "/usr/bin/vipsthumbnail"))
 
 	return Config{
 		Port:                         getEnv("PORT", "8092"),
@@ -121,6 +123,7 @@ func Load() Config {
 		// erreichbar, sobald Frontend und Backend nicht denselben Host/Port teilen.
 		MediaPublicBaseURL:       strings.TrimSpace(getEnv("MEDIA_PUBLIC_BASE_URL", "")),
 		FFmpegPath:               ffmpegPath,
+		VipsThumbnailPath:        vipsThumbnailPath,
 		SegmentRenderEnabled:     getEnvBool("SEGMENT_RENDER_ENABLED", true),
 		SegmentRenderDir:         segmentRenderDir,
 		SegmentRenderMaxSeconds:  getEnvInt("SEGMENT_RENDER_MAX_SECONDS", 240),

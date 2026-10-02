@@ -85,7 +85,7 @@ func (h *MediaUploadHandler) StoreGeneratedAnimeImage(ctx context.Context, sourc
 	if err != nil {
 		return 0, fmt.Errorf("erzeugtes bild prüfen: %w", err)
 	}
-	mimeType, format, err := h.validateFile(file, info.Size())
+	mimeType, format, err := h.validateFile(file, info.Size(), normalized)
 	if err != nil {
 		return 0, err
 	}

@@ -247,12 +247,12 @@ func (h *AdminContentHandler) ReplaceReleaseVersionMediaFile(c *gin.Context) {
 		return
 	}
 
-	thumbData, thumbWidth, thumbHeight, err := generateRVMThumbnail(data, mimeType)
+	thumbData, thumbWidth, thumbHeight, err := generateRVMThumbnail(data, mimeType, h.rvmVipsThumbnailPath())
 	if err != nil {
 		c.JSON(http.StatusUnprocessableEntity, gin.H{"error": gin.H{"message": "thumbnail konnte nicht erzeugt werden", "error_code": "THUMBNAIL_FAILED"}})
 		return
 	}
-	displayData, displayExt, _, displayWidth, displayHeight, err := generateRVMDisplay(data, mimeType, h.rvmFFmpegPath())
+	displayData, displayExt, _, displayWidth, displayHeight, err := generateRVMDisplay(data, mimeType, h.rvmFFmpegPath(), h.rvmVipsThumbnailPath())
 	if err != nil {
 		c.JSON(http.StatusUnprocessableEntity, gin.H{"error": gin.H{"message": "display-variante konnte nicht erzeugt werden", "error_code": "DISPLAY_FAILED"}})
 		return

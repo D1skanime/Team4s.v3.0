@@ -409,14 +409,14 @@ func TestPatchReleaseVersionMediaResponseKeepsActorPermissions(t *testing.T) {
 // with the expected signature and returns an error for empty input.
 func TestGenerateGIFThumbnail(t *testing.T) {
 	// Empty input must return error, not panic
-	result, width, height, err := generateRVMThumbnail([]byte{}, "image/gif")
+	result, width, height, err := generateRVMThumbnail([]byte{}, "image/gif", "")
 	assert.Error(t, err, "empty gif data must return error")
 	assert.Nil(t, result)
 	assert.Zero(t, width)
 	assert.Zero(t, height)
 
 	// Empty input for non-GIF must also return error, not panic
-	result2, width2, height2, err2 := generateRVMThumbnail([]byte{}, "image/jpeg")
+	result2, width2, height2, err2 := generateRVMThumbnail([]byte{}, "image/jpeg", "")
 	assert.Error(t, err2, "empty jpeg data must return error")
 	assert.Nil(t, result2)
 	assert.Zero(t, width2)
@@ -427,7 +427,7 @@ func TestGenerateGIFThumbnail(t *testing.T) {
 // a non-empty JPEG thumbnail and that width/height are populated.
 func TestReleaseVersionMedia_ThumbnailFromJPEG(t *testing.T) {
 	data := makeJPEGBytes(t)
-	thumbData, w, h, err := generateRVMThumbnail(data, "image/jpeg")
+	thumbData, w, h, err := generateRVMThumbnail(data, "image/jpeg", "")
 	require.NoError(t, err, "JPEG thumbnail generation must succeed")
 	assert.NotEmpty(t, thumbData, "thumbnail bytes must not be empty")
 	assert.Greater(t, w, 0, "thumbnail width must be > 0")
@@ -438,7 +438,7 @@ func TestReleaseVersionMedia_ThumbnailFromJPEG(t *testing.T) {
 // a non-empty thumbnail.
 func TestReleaseVersionMedia_ThumbnailFromPNG(t *testing.T) {
 	data := makePNGBytes(t)
-	thumbData, w, h, err := generateRVMThumbnail(data, "image/png")
+	thumbData, w, h, err := generateRVMThumbnail(data, "image/png", "")
 	require.NoError(t, err, "PNG thumbnail generation must succeed")
 	assert.NotEmpty(t, thumbData)
 	assert.Greater(t, w, 0)
@@ -458,7 +458,7 @@ func TestReleaseVersionMedia_ThumbnailFromAnimatedGIF_OriginalPreservesFrames(t 
 	assert.Equal(t, 5, originalFrameCount, "original GIF must have 5 frames before thumbnail generation")
 
 	// Generate thumbnail
-	thumbData, w, h, err := generateRVMThumbnail(gifData, "image/gif")
+	thumbData, w, h, err := generateRVMThumbnail(gifData, "image/gif", "")
 	require.NoError(t, err, "animated GIF thumbnail generation must succeed")
 	assert.NotEmpty(t, thumbData, "GIF thumbnail bytes must not be empty")
 	assert.Greater(t, w, 0)
@@ -1379,7 +1379,7 @@ func TestReleaseVersionMedia_WebPOriginalKeepsRealBytes(t *testing.T) {
 // testability shape (TestGenerateGIFThumbnail above).
 func TestGenerateStaticDisplayVariant(t *testing.T) {
 	// Empty input must return an error, not panic.
-	result, ext, mimeType, width, height, err := GenerateStaticDisplayVariant([]byte{}, "image/png", "")
+	result, ext, mimeType, width, height, err := GenerateStaticDisplayVariant([]byte{}, "image/png", "", "")
 	assert.Error(t, err, "empty png data must return error")
 	assert.Nil(t, result)
 	assert.Empty(t, ext)
@@ -1390,7 +1390,7 @@ func TestGenerateStaticDisplayVariant(t *testing.T) {
 	// A real small PNG must decode, re-encode as JPEG (opaque, no alpha), and report its
 	// unscaled dimensions.
 	small := newSizedPNGBytes(t, 300, 200)
-	data, ext2, mimeType2, w, h, err := GenerateStaticDisplayVariant(small, "image/png", "")
+	data, ext2, mimeType2, w, h, err := GenerateStaticDisplayVariant(small, "image/png", "", "")
 	require.NoError(t, err)
 	assert.NotEmpty(t, data)
 	assert.Equal(t, "jpg", ext2)
@@ -1400,7 +1400,7 @@ func TestGenerateStaticDisplayVariant(t *testing.T) {
 
 	// A large PNG must be capped to rvmDisplayLongEdge (1920) on its long edge.
 	large := newSizedPNGBytes(t, 3000, 1500)
-	data2, _, _, w2, h2, err := GenerateStaticDisplayVariant(large, "image/png", "")
+	data2, _, _, w2, h2, err := GenerateStaticDisplayVariant(large, "image/png", "", "")
 	require.NoError(t, err)
 	assert.NotEmpty(t, data2)
 	assert.Equal(t, 1920, w2)

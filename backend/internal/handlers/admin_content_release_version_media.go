@@ -114,8 +114,19 @@ func inspectRVMImage(data []byte, mimeType string) (*rvmImageMetadata, error) {
 }
 
 // generateRVMThumbnail creates a static JPEG thumbnail from image data.
-// Animated GIFs keep their original animation in storage; the thumbnail uses frame 0.
-func generateRVMThumbnail(data []byte, mimeType string) ([]byte, int, int, error) {
+// Animated GIFs/WebP keep their original animation in storage; the thumbnail uses frame 0.
+// vipsThumbnailPath is required for animated WebP (D-20/D-21): golang.org/x/image/webp cannot
+// decode ANMF animation frames at all (unlike GIF, which the stdlib fully supports via
+// gif.DecodeAll), so frame-0 extraction goes through vipsthumbnail instead.
+func generateRVMThumbnail(data []byte, mimeType string, vipsThumbnailPath string) ([]byte, int, int, error) {
+	if mimeType == "image/webp" && services.IsAnimatedWebPData(data) {
+		jpegData, w, h, err := services.ExtractFirstFrameViaVips(vipsThumbnailPath, data, ".webp", rvmThumbnailWidth)
+		if err != nil {
+			return nil, 0, 0, fmt.Errorf("animiertes webp frame 0 laden: %w", err)
+		}
+		return jpegData, w, h, nil
+	}
+
 	var src image.Image
 
 	if mimeType == "image/gif" {
@@ -396,13 +407,13 @@ func (h *AdminContentHandler) processOneRVMFile(
 			Message:   fmt.Sprintf("gif hat zu viele frames: %d (max %d)", meta.GIFFrames, rvmMaxGIFFrames)}
 	}
 
-	thumbData, thumbWidth, thumbHeight, err := generateRVMThumbnail(data, mimeType)
+	thumbData, thumbWidth, thumbHeight, err := generateRVMThumbnail(data, mimeType, h.rvmVipsThumbnailPath())
 	if err != nil {
 		log.Printf("rvm thumbnail error for %s: %v", clientName, err)
 		return rvmFileResult{ClientFileName: clientName, Status: "failed",
 			ErrorCode: "THUMBNAIL_FAILED", Message: "thumbnail konnte nicht erzeugt werden"}
 	}
-	displayData, displayExt, _, displayWidth, displayHeight, err := generateRVMDisplay(data, mimeType, h.rvmFFmpegPath())
+	displayData, displayExt, _, displayWidth, displayHeight, err := generateRVMDisplay(data, mimeType, h.rvmFFmpegPath(), h.rvmVipsThumbnailPath())
 	if err != nil {
 		log.Printf("rvm display error for %s: %v", clientName, err)
 		return rvmFileResult{ClientFileName: clientName, Status: "failed",

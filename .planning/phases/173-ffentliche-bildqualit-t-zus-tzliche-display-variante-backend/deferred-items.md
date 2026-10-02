@@ -66,7 +66,19 @@ or replace the source-text assertion with a real-DB behavioral test per CLAUDE.m
 convention (the newly-added `TestListPublicFansubProjects_BannerPrefersDisplayOverOriginal` in
 this plan is one such example already covering the same query).
 
-## 173-04 Task 0: D-20/D-21 (animated WebP accept + libvips resize) explicitly deferred
+## 173-04 Task 0: D-20/D-21 (animated WebP accept + libvips resize) explicitly deferred — RESOLVED in 173-05 Task 0
+
+**Status update (173-05 Task 0, 2026-10-02):** `vips-tools` (CLI `vipsthumbnail`) has been added to
+both `backend/Dockerfile` and `backend/Dockerfile.dev`; the dev backend container was rebuilt
+and `vipsthumbnail -8.18.2` confirmed present and working (verified against real animated GIF/
+WebP fixtures: all frames preserved via `[n=-1]`, never-upscale via the `WxH>` geometry suffix).
+Animated WebP is now accepted everywhere except `asset_type=segment_preview` (D-20): the global
+uploader (`media_upload_image.go`), release-version-media upload/replace, and fansub logo/banner/
+group-media (`MediaService.SaveUpload`) all generate an animated `display` variant via the new
+`services.GenerateAnimatedDisplayViaVips`/`services.ExtractFirstFrameViaVips` helpers, with a
+non-fatal fallback to the unchanged original on failure (never a static frame for an animation).
+The original deferred-items entry below is kept for historical context on why it was deferred in
+173-04; it no longer reflects the current state of the codebase.
 
 **Scope:** Task 0's action text asks for (a) narrowing the existing animated-WebP upload
 rejection to `asset_type=segment_preview` only (D-20) and (b) accepting animated WebP for all
