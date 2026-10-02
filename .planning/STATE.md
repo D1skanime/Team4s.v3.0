@@ -3,14 +3,14 @@ gsd_state_version: 1.0
 milestone: v1.4
 milestone_name: Coverage
 status: executing
-stopped_at: 173-16 Task 2 approved; Task 3 (backup+DRY_RUN backfill+live-UAT) checklist handed to orchestrator for joint execution with user
-last_updated: "2026-10-02T23:03:17.868Z"
+stopped_at: Phase 173 complete (16/16) — Coverage milestone not yet complete (Phase 166 not started, Phase 169 missing live UAT)
+last_updated: 2026-10-02T23:49:29.043Z
 last_activity: 2026-10-02
 progress:
   total_phases: 38
   completed_phases: 32
   total_plans: 338
-  completed_plans: 333
+  completed_plans: 388
   percent: 84
 ---
 
@@ -280,17 +280,17 @@ Phase 135 and any future roadmap entries continue from here.
 See: .planning/PROJECT.md (updated 2026-08-13)
 
 **Core value:** Team4s presents fansub history and collaboration credibly while keeping identity, visibility, ownership, and permissions correct.
-**Current focus:** Phase 173 — ffentliche-bildqualit-t-zus-tzliche-display-variante-backend
+**Current focus:** Phase 173 complete — next: Phase 169 live UAT (169-05), then Phase 166 (not started)
 2026-09-18 after the client's live UAT approval ("1 passt, 2 löschen") — see the "Phase 164
 Abschluss" entry below for the full closing record.
 
 ## Current Position
 
-Phase: 173 (ffentliche-bildqualit-t-zus-tzliche-display-variante-backend) — EXECUTING
-Plan: 16 of 16
-Status: Ready to execute
-Completed: removed stale public timeline range access, repaired nullable highlight responses, batched release-version-media rights projection, hardened full-list media reorder, and synchronized the focused admin contract.
-Next: resolve or explicitly accept the pre-existing full-suite failures, then complete Phase 169 live actor/refresh/responsive UAT; Phase 166 remains open.
+Phase: 173 (ffentliche-bildqualit-t-zus-tzliche-display-variante-backend) — COMPLETE (16/16, closed 2026-10-03)
+Plan: Not started
+Status: Ready to plan
+Completed: Phase 173 — six public image write paths gained a `display` variant, public read sites and components prefer it over thumb/original, a fansub media namespace + redirect, an idempotent backfill run against the live database, and a full live D-13 UAT (desktop+mobile, transparency, animation, performance) all passed.
+Next: Phase 169's remaining plan (169-05, live actor/refresh/responsive UAT) is still open; Phase 166 (Film-Content-Flow) has not been started. The Coverage milestone is NOT complete.
 
 ## Vorherige Position (Phase 153, abgeschlossen)
 
