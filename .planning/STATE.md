@@ -2,16 +2,16 @@
 gsd_state_version: 1.0
 milestone: v1.4
 milestone_name: Coverage
-status: complete
-stopped_at: Phase 172 abgeschlossen (Live-UAT 2026-10-02)
-last_updated: "2026-10-01T20:18:46.285Z"
-last_activity: 2026-10-01
+status: executing
+stopped_at: Completed 173-01-PLAN.md
+last_updated: "2026-10-02T15:47:39.238Z"
+last_activity: 2026-10-02
 progress:
-  total_phases: 37
+  total_phases: 38
   completed_phases: 32
-  total_plans: 322
-  completed_plans: 318
-  percent: 86
+  total_plans: 338
+  completed_plans: 319
+  percent: 84
 ---
 
 # Quick Task 260925-6qe — Anime-Identitätskarte kompakt (Phase 168)
@@ -280,15 +280,15 @@ Phase 135 and any future roadmap entries continue from here.
 See: .planning/PROJECT.md (updated 2026-08-13)
 
 **Core value:** Team4s presents fansub history and collaboration credibly while keeping identity, visibility, ownership, and permissions correct.
-**Current focus:** Phase 172 — kara-vorschaubild-pro-segment-automatisch-aus-dem-render-fra
+**Current focus:** Phase 173 — ffentliche-bildqualit-t-zus-tzliche-display-variante-backend
 2026-09-18 after the client's live UAT approval ("1 passt, 2 löschen") — see the "Phase 164
 Abschluss" entry below for the full closing record.
 
 ## Current Position
 
-Phase: 172 (kara-vorschaubild-pro-segment-automatisch-aus-dem-render-fra) — COMPLETE
-Plan: 10 of 10
-Status: Phase 172 am 2026-10-02 live abgenommen (Desktop + Mobile)
+Phase: 173 (ffentliche-bildqualit-t-zus-tzliche-display-variante-backend) — EXECUTING
+Plan: 2 of 16
+Status: Ready to execute
 Completed: removed stale public timeline range access, repaired nullable highlight responses, batched release-version-media rights projection, hardened full-list media reorder, and synchronized the focused admin contract.
 Next: resolve or explicitly accept the pre-existing full-suite failures, then complete Phase 169 live actor/refresh/responsive UAT; Phase 166 remains open.
 
@@ -395,7 +395,7 @@ timing flakiness, not a Phase 149 regression, and not yet root-caused.
 v1.4 is extended by the additive phases 165-170 and is not currently fully closed. Phase 166
 remains open, Phase 169 still has its live UAT plan outstanding, and Phase 170 is implemented
 with focused verification complete plus named pre-existing full-suite failures.
-Last activity: 2026-10-01 - Completed quick task 261001-trj: Segment-Bearbeitungspanel auf globale UI-Primitives umstellen
+Last activity: 2026-10-02
 
 ## Accumulated Context
 
@@ -868,6 +868,9 @@ Last activity: 2026-10-01 - Completed quick task 261001-trj: Segment-Bearbeitung
 - [Phase 172]: Preview-Backfill verwendet die echten Server-Env-Var-Namen (MEDIA_STORAGE_DIR/SEGMENT_RENDER_DIR) statt migrate-covers' MEDIA_TARGET_DIR-Konvention, damit der Live-Lauf gegen den echten Container ohne Anpassung funktioniert. — Verifiziert durch echten Lauf gegen team4s_v2: Segmente 3-9 (inkl. Release 27/7-8-9) haben jetzt echte automatische Vorschaubilder.
 - [Phase ?]: 172-07: Reused AdminAnimeSegmentResponse for all 4 preview-image endpoint responses in openapi.yaml (verified real Go handlers return {data: updated}, no range_sync)
 - [Phase 172]: 172-07: Added &id009 404 anchor for the attach endpoint's distinct foreign-asset rejection (vs existing segment-not-found anchor)
+- [Phase 173]: Display variant for static images is always JPEG quality 88 regardless of source mimetype (D-01 discretion, no new encoder dependency)
+- [Phase 173]: WebP thumb/display encoding re-encodes to JPEG since imaging cannot encode WebP; only the original variant preserves raw WebP bytes
+- [Phase 173]: Animated-GIF display generation failure (missing/misconfigured ffmpeg) is treated as non-fatal, matching saveSegmentVideoPreview's posture
 
 ### Pending Todos
 
@@ -1412,11 +1415,12 @@ untruncated list lives in `.planning/todos/pending/`.
 | Phase 172 P05 | 40min | 2 tasks | 3 files |
 | Phase 172 P06 | 70min | 2 tasks | 3 files |
 | Phase 172 P07 | 25min | 2 tasks | 4 files |
+| Phase 173 P01 | 40min | 2 tasks | 3 files |
 
 ## Session Continuity
 
-Last session: 2026-10-01T20:18:46.265Z
-Stopped at: Completed 172-07-PLAN.md
+Last session: 2026-10-02T15:47:39.208Z
+Stopped at: Completed 173-01-PLAN.md
 Last activity: 2026-09-28 - Completed Phase 169 Plan 169-01
 Resume file: 
 None

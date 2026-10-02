@@ -2296,10 +2296,10 @@ die bewusst bei der bestehenden `imageDisplay.ts`-Pipeline bleiben (D-16). Die v
 Public-UI-Abnahme (D-13) erfolgt live innerhalb dieser Phase, nicht als Folgephase.
 **Requirements**: [REQ-173-01 … REQ-173-31]
 **Depends on:** Phase 172
-**Plans:** 16 plans
+**Plans:** 1/16 plans executed
 
 Plans:
-- [ ] 173-01-PLAN.md — globaler Uploader: statische + animierte display-Variante (processImage)
+- [x] 173-01-PLAN.md — globaler Uploader: statische + animierte display-Variante (processImage)
 - [ ] 173-02-PLAN.md — RVM-Display-Helper + Release-Version-Media-Upload-Verdrahtung
 - [ ] 173-03-PLAN.md — Release-Version-Media-Replace-Verdrahtung
 - [ ] 173-04-PLAN.md — Fansub-Namensraum + Display (Logo/Banner/Gruppenmedien) + Legacy-Redirect
