@@ -4,12 +4,19 @@
 **Files analyzed:** 9 modified handler/service files + 1 new CLI package (3 files) + 1 shared-query pattern for `display_url`
 **Analogs found:** 9 / 9 (every target file has at least one in-repo analog; 2 targets have no *existing* display/thumb analog in their own file and must copy a sibling file's helper instead — flagged below)
 
-Scope note: this phase is backend-only (see phase directory suffix "-backend"). No new HTTP
-route/handler file is in scope — D-14 explicitly forbids a new endpoint. All "files to
-modify" below are existing files; the only wholly new file is the backfill CLI package
-(`backend/cmd/migrate-display-backfill/`). Frontend `next.config.mjs`/`localPatterns`/
-`ResponsiveImage` changes belong to a later, Next.js-focused phase per the phase title split
-and are intentionally NOT classified here.
+Scope note: this phase's directory suffix ("-backend") reflects its ORIGINAL scope before the
+2026-10-02 revision. **Corrected per that revision:** the phase now covers backend write/read
+paths AND the frontend component wiring that consumes them (plans 173-13/173-14/173-15), plus the
+`next.config.mjs`/`localPatterns`/`ResponsiveImage` config (plan 173-12) and the OpenAPI/TS type
+sync (plan 173-11) — none of these "belong to a later phase" anymore; that framing was removed
+because it left the actual reported bug (pixelated public images) unfixed. No new HTTP
+route/handler file is in scope — D-14 explicitly forbids a new endpoint, in the backend write
+paths AND in every frontend-wiring plan (no new API calls are introduced, only existing-field
+consumption changes). All "files to modify" below (this file's classification table) covers only
+the ORIGINAL backend-only file set; the file-level classification for 173-08's narrowed scope,
+173-09/173-10's additional backend "prefer display" sites, and 173-11/173-12/173-13/173-14/173-15's
+frontend work is documented directly in each of those plans' own `<interfaces>` sections, not
+re-derived here.
 
 ## File Classification
 

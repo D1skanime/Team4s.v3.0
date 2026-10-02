@@ -671,15 +671,27 @@ Source: decisions D-01 through D-17 in `173-CONTEXT.md`, verified file:line find
 `173-RESEARCH.md` (live-verified FFmpeg animated-WebP behaviour, 6 write-path insertion points,
 Phase-172-Rückbau-Beleg), exact analogs in `173-PATTERNS.md`, Dimension-8-Testplan in
 `173-VALIDATION.md`. One requirement per distinct behavior derived from D-01..D-17 — see
-`.planning/phases/173-ffentliche-bildqualit-t-zus-tzliche-display-variante-backend/173-0{1..9}-PLAN.md`
+`.planning/phases/173-ffentliche-bildqualit-t-zus-tzliche-display-variante-backend/173-{01..16}-PLAN.md`
 for the plan-level mapping. Scopegrenze aus `173-CONTEXT.md`/`173-PATTERNS.md`: kein neuer
 Upload-Endpunkt/Uploader/Dropzone (D-14), `image_animated_webp.go` und
 `frontend/src/lib/server/imageDisplay.ts`/`imageDisplayContract.ts` bleiben unangetastet (D-08/D-16),
-Review-Workflow und Bildbearbeitung/Cropping-UI sind nicht Teil der Phase. Die Umstellung ALLER
-öffentlichen Public-Komponenten (Galerie, Hero, Kara-Vorschau, Fansub-Banner, Anime-Cover) auf
-`display_url` als tatsächliche Bildquelle (D-02/D-03's Komponenten-Verdrahtung) ist beim Scoping
-dieser Backend-Phase bewusst ausgeklammert und wird als Folgephase empfohlen (siehe PLANNING-Rückmeldung);
-REQ-173-21 deckt nur die auf dieser Phase erreichbare, backend-seitige Teilmenge von D-13 ab.
+Review-Workflow und Bildbearbeitung/Cropping-UI sind nicht Teil der Phase.
+
+**Revision 2026-10-02:** die ursprüngliche Planung hatte die Umstellung ALLER öffentlichen
+Public-Komponenten auf `display_url` (D-02/D-03's Komponenten-Verdrahtung) fälschlich als
+Folgephase ausgeklammert und REQ-173-21 entsprechend "scope-begrenzt" formuliert — das ließ den
+eigentlich gemeldeten Fehler (verpixelte Public-Bilder) ungelöst und wurde vom Nutzer explizit
+nicht genehmigt. Diese Revision erweitert die Phase (Pläne 173-08 bis 173-16) um: die
+Komponenten-Verdrahtung aller zehn in `173-CONTEXT.md`s `<findings>` genannten Public-Stellen
+(REQ-173-26/28/29), zusätzliche Backend-Stellen, die beim Nachverfolgen jeder Komponente bis zur
+Quelle gefunden wurden (Kara-Vorschau, Anime-Cover/-Banner, Fansub-Gruppen-/Projekt-Banner,
+öffentliches Mitgliederprofil — REQ-173-22 bis REQ-173-25), die D-03-Bestätigung (REQ-173-27), die
+D-04-Bestätigung dass Admin/`/me/**` unberührt bleiben (REQ-173-30), und eine vollständige
+Live-Abnahme (REQ-173-31). REQ-173-21 ist entsprechend umformuliert (nicht mehr
+"scope-begrenzt") und deckt nur noch den Backend-Vertragsteil von D-13 ab; REQ-173-31 deckt D-13
+vollständig ab. Zwei eng begründete, dokumentierte Ausnahmen bleiben bewusst beim bestehenden
+`imageDisplay.ts`-Pfad (D-16, unverändert): `AnimeMediaProvider.tsx` und
+`app/anime/[id]/page.tsx`s Poster — siehe 173-09/173-13 für die Begründung.
 
 - [x] **REQ-173-01**: Jeder der sechs bestehenden öffentlichen Bild-Schreibpfade (globaler Uploader inkl. Segment-Auto-Preview, Release-Version-Media-Upload, -Replace, Fansub-Gruppenmedien, Fansub-Logo/-Banner, Profil-Avatar/-Hintergrund/-Story) erzeugt zusätzlich zur bestehenden Variante `thumb`/`original` eine neue Variante `display` (D-01).
 - [x] **REQ-173-02**: Die `display`-Erzeugung skaliert nie hoch: Bilder, deren lange Kante bereits ≤1920px ist, bleiben unskaliert (nur ggf. neu kodiert) (D-01).
@@ -701,7 +713,17 @@ REQ-173-21 deckt nur die auf dieser Phase erreichbare, backend-seitige Teilmenge
 - [x] **REQ-173-18**: `frontend/src/lib/server/imageDisplay.ts` und `imageDisplayContract.ts` (separate, nicht-persistierte Jellyfin/Backdrop-Pipeline aus Phase 159-04) erhalten in dieser Phase keine Änderung (D-16).
 - [x] **REQ-173-19**: Es entsteht kein neuer HTTP-Endpunkt, Uploader oder Dropzone/Upload-UI; jede `display`-Erzeugung geschieht inline in den sechs bestehenden Schreibpfaden oder im Backfill-Kommando — geteilte Bildverarbeitung darf nur als einfache Funktion/interner Service-Call extrahiert werden, nie als neue Route (D-14).
 - [x] **REQ-173-20**: Jede neue `display`-Erzeugung erfolgt erst NACH dem bereits bestehenden 40-Megapixel-Dekompressionsbomben-Schutz, niemals davor (Sicherheits-Constraint aus `173-RESEARCH.md` Security Domain).
-- [x] **REQ-173-21**: Eine Live-Verifikation auf `:3300` bestätigt den Backend-Vertrag für `display_url`, den neuen Namensraum, die Redirects und den erfolgreichen Backfill-Lauf gegen echte Daten; die vollständige visuelle Public-UI-Abnahme aus D-13 (Galerie-Schärfe, `_next/image` als Quelle in allen Public-Komponenten) wird als eigene Folgephase empfohlen, da sie Komponenten-Verdrahtung ohne bestehende Pattern-Grundlage voraussetzt (D-13, scope-begrenzt).
+- [x] **REQ-173-21**: Eine Live-Verifikation auf `:3300` bestätigt den Backend-Vertrag für `display_url`, den neuen Namensraum, die Redirects und den erfolgreichen Backfill-Lauf gegen echte Daten (D-13, Backend-Vertragsteil — die vollständige visuelle Abnahme ist REQ-173-31).
+- [x] **REQ-173-22**: Die Kara-Segment-Ersatzbild-Auflösung (`theme_segment_preview.go`, Einzel- UND Batch-Resolver) bevorzugt beim Lesen die `display`-Variante vor `thumb`/`original`, unter demselben `preview_url`-Feld (D-02).
+- [x] **REQ-173-23**: Anime-Cover/-Banner/-Logo (persistierte Assets + Detail-Query, V1- und V2-Schema) und der Fansub-Projekt-Banner bevorzugen beim Lesen `display` vor `original`, unter denselben `cover_image`/`banner_url`-Feldern (D-02).
+- [x] **REQ-173-24**: Das öffentliche Fansub-Gruppenprofil (`getPublicGroupBase`) bevorzugt beim Lesen `display` vor dem gespeicherten `logo_url`/`banner_url`-Originalpfad, unter denselben Feldnamen (D-02).
+- [x] **REQ-173-25**: Das öffentliche Mitgliederprofil (`GetPublicMemberProfileByID`) liefert ein neues `display_url`-Feld für Avatar und Hintergrundbild mit serverseitigem Fallback auf das unveränderte `public_url` (Original); die bestehende Animated-Avatar-Ausnahme (D-07) bleibt durch Konstruktion erhalten (D-02/D-05).
+- [x] **REQ-173-26**: `ReleaseGallery.tsx` (Galerie-Grid + Kara-Vorschau), `PublicReleaseBlock.tsx` (heroImage/Preview-Kacheln) und `HeroSection.tsx` (selbst-gehosteter Zweig) konsumieren die bevorzugte Quelle über `ResponsiveImage`/`next/image` ohne `unoptimized`; der dokumentierte Jellyfin-/API-Proxy-Zweig in `HeroSection.tsx` bleibt unverändert bei `unoptimized` (D-02).
+- [x] **REQ-173-27**: Klick auf ein Galerie-/Lightbox-Bild (ReleaseGallery, FansubGroupMediaBlock) zeigt weiterhin das Original; ungeklickt wird nie das Original geladen — die bestehende Lightbox-Logik bleibt unverändert (D-03).
+- [x] **REQ-173-28**: `FansubGroupMediaBlock.tsx`, `FansubBannerDisplay.tsx`, `FansubProfileTabs.tsx` und `FansubProjectBannerCard.tsx` konsumieren die bevorzugte Quelle über `ResponsiveImage` ohne `unoptimized` (D-02).
+- [x] **REQ-173-29**: Das öffentliche Mitgliederprofil (Avatar/Hintergrund) konsumiert `display_url` über `ResponsiveImage`; der bestehende animierte Avatar bleibt bewusst beim Original + `unoptimized`, und die `/me/profile`-Bearbeitungsoberfläche bleibt unverändert (D-02/D-04/D-07).
+- [x] **REQ-173-30**: Admin-/Bearbeitungsoberflächen (`/admin/**`, `/me/**`) bleiben über die GESAMTE Phase (Backend-Schreibpfade UND alle Komponenten-Verdrahtungspläne) nachweislich unberührt — belegt durch `git diff --stat` ohne Treffer in diesen Verzeichnissen (D-04).
+- [x] **REQ-173-31**: Eine vollständige Live-Abnahme auf `:3300`/`:3000` bestätigt D-13 auf Desktop UND Mobile-Emulation (375 px, DPR 3): sichtbare Schärfe, `_next/image` mit `display` als Netzwerk-Quelle (mit den zwei dokumentierten `imageDisplay.ts`-Ausnahmen), Original erst nach Klick, kein horizontaler Überlauf, plus RAM/CPU-Messung bei kaltem Cache (D-13, vollständig).
 
 | Requirement | Phase | Status |
 |---|---|---|
@@ -726,3 +748,13 @@ REQ-173-21 deckt nur die auf dieser Phase erreichbare, backend-seitige Teilmenge
 | REQ-173-19 | Phase 173 | Planned |
 | REQ-173-20 | Phase 173 | Planned |
 | REQ-173-21 | Phase 173 | Planned |
+| REQ-173-22 | Phase 173 | Planned |
+| REQ-173-23 | Phase 173 | Planned |
+| REQ-173-24 | Phase 173 | Planned |
+| REQ-173-25 | Phase 173 | Planned |
+| REQ-173-26 | Phase 173 | Planned |
+| REQ-173-27 | Phase 173 | Planned |
+| REQ-173-28 | Phase 173 | Planned |
+| REQ-173-29 | Phase 173 | Planned |
+| REQ-173-30 | Phase 173 | Planned |
+| REQ-173-31 | Phase 173 | Planned |

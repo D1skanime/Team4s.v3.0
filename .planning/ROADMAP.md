@@ -2285,12 +2285,18 @@ erzeugt zusätzlich eine `display`-Variante (max. 1920px lange Kante, nie hochsk
 animiertem WebP für animierte GIFs), öffentliche APIs liefern `display_url` mit
 Original-Fallback, Fansub-Medien bekommen einen eigenen `/media/fansub/<group_id>/...`-Namensraum
 mit dauerhaftem Redirect von alten URLs, und ein idempotentes Backfill-Kommando bringt
-Bestandsbilder auf den gleichen Stand — ohne neuen Upload-Endpunkt. Die vollständige
-Umstellung der Public-Komponenten auf `display_url` (sichtbare Galerie-Schärfe) ist bewusst als
-Folgephase ausgeklammert (siehe 173-09-SUMMARY.md).
-**Requirements**: [REQ-173-01 … REQ-173-21]
+Bestandsbilder auf den gleichen Stand — ohne neuen Upload-Endpunkt. **Erweitert per Revision
+2026-10-02:** zusätzlich bevorzugen alle weiteren betroffenen Lesepfade (Kara-Vorschau,
+Anime-Cover/-Banner, Fansub-Gruppen-/Projekt-Banner, öffentliches Mitgliederprofil) serverseitig
+`display` vor `thumb`/`original`, und ALLE zehn in `173-CONTEXT.md` genannten Public-Komponenten
+(Galerie, Hero, Kara, Fansub-Banner/-Logo/-Medien, Mitgliederprofil-Avatar/-Hintergrund)
+konsumieren diese Quelle über `ResponsiveImage`/`next/image` ohne `unoptimized` — mit zwei
+dokumentierten, begründeten Ausnahmen (`AnimeMediaProvider.tsx`, `app/anime/[id]/page.tsx`-Poster),
+die bewusst bei der bestehenden `imageDisplay.ts`-Pipeline bleiben (D-16). Die volle visuelle
+Public-UI-Abnahme (D-13) erfolgt live innerhalb dieser Phase, nicht als Folgephase.
+**Requirements**: [REQ-173-01 … REQ-173-31]
 **Depends on:** Phase 172
-**Plans:** 9 plans
+**Plans:** 16 plans
 
 Plans:
 - [ ] 173-01-PLAN.md — globaler Uploader: statische + animierte display-Variante (processImage)
@@ -2300,5 +2306,12 @@ Plans:
 - [ ] 173-05-PLAN.md — Avatar/Hintergrund-Display-Variante + display_url im eigenen Profil
 - [ ] 173-06-PLAN.md — Story-Bild: echtes Original + Display-Variante (D-15)
 - [ ] 173-07-PLAN.md — idempotentes Backfill-Kommando (Display + Namensraum-Migration)
-- [ ] 173-08-PLAN.md — öffentliche display_url-Projektion + OpenAPI/Typen + next.config.mjs
-- [ ] 173-09-PLAN.md — Vollständigkeitsprüfung: Testsuite, D-14/D-16-Gate, Live-Backend-Verifikation
+- [ ] 173-08-PLAN.md — öffentliche display_url-Projektion an 4 bestehenden Lesestellen
+- [ ] 173-09-PLAN.md — Backend-Lesepräferenz „display vor original": Kara-Vorschau + Anime-/Projekt-Banner
+- [ ] 173-10-PLAN.md — Backend-Lesepräferenz: Fansub-Gruppen-Logo/-Banner + öffentliches Mitgliederprofil
+- [ ] 173-11-PLAN.md — OpenAPI/Frontend-Typen-Sync für die 4 display_url-DTOs
+- [ ] 173-12-PLAN.md — next.config.mjs (Fansub-Namensraum + quality 85) + ResponsiveImage-Config-Test
+- [ ] 173-13-PLAN.md — Komponenten-Verdrahtung: ReleaseGallery/PublicReleaseBlock/HeroSection
+- [ ] 173-14-PLAN.md — Komponenten-Verdrahtung: FansubGroupMediaBlock/-Banner/-ProfileTabs/-ProjectBannerCard
+- [ ] 173-15-PLAN.md — Komponenten-Verdrahtung: öffentliches Mitgliederprofil Avatar/Hintergrund
+- [ ] 173-16-PLAN.md — Vollständigkeitsprüfung: Testsuite, D-04/D-14/D-16-Gates, volle Live-UAT (D-13)
