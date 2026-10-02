@@ -107,3 +107,7 @@ None - no external service configuration required.
 ---
 *Phase: 173-ffentliche-bildqualit-t-zus-tzliche-display-variante-backend*
 *Completed: 2026-10-02*
+
+## Self-Check: PASSED
+
+All 5 claimed files found on disk; commits `5e616365` and `7b43ebec` found in git log.
