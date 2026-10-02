@@ -251,6 +251,11 @@ func (h *AdminContentHandler) ReplaceReleaseVersionMediaFile(c *gin.Context) {
 		c.JSON(http.StatusUnprocessableEntity, gin.H{"error": gin.H{"message": "thumbnail konnte nicht erzeugt werden", "error_code": "THUMBNAIL_FAILED"}})
 		return
 	}
+	displayData, displayWidth, displayHeight, err := generateRVMDisplay(data, mimeType)
+	if err != nil {
+		c.JSON(http.StatusUnprocessableEntity, gin.H{"error": gin.H{"message": "display-variante konnte nicht erzeugt werden", "error_code": "DISPLAY_FAILED"}})
+		return
+	}
 
 	// Write to a NEW assetUUID directory — never the relation's existing asset directory — so
 	// the old file can be enqueued for cleanup instead of overwritten in place (Zielbild 4).
@@ -260,6 +265,7 @@ func (h *AdminContentHandler) ReplaceReleaseVersionMediaFile(c *gin.Context) {
 	assetDir := filepath.Join(h.mediaStorageDir, "release-version", versionIDStr, assetUUID)
 	originalPath := filepath.Join(assetDir, "original."+ext)
 	thumbPath := filepath.Join(assetDir, "thumb.jpg")
+	displayPath := rvmReplaceDisplayPath(assetDir)
 
 	if err := os.MkdirAll(assetDir, 0o755); err != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{"error": gin.H{"message": "verzeichnis konnte nicht erstellt werden", "error_code": "STORAGE_FAILED"}})
@@ -289,13 +295,23 @@ func (h *AdminContentHandler) ReplaceReleaseVersionMediaFile(c *gin.Context) {
 	if err := os.WriteFile(thumbPath, thumbData, 0o644); err != nil {
 		_ = removeFileQuietly(originalPath)
 		_ = removeFileQuietly(thumbPath)
+		_ = removeFileQuietly(displayPath)
 		c.JSON(http.StatusInternalServerError, gin.H{"error": gin.H{"message": "thumbnail konnte nicht gespeichert werden", "error_code": "STORAGE_FAILED"}})
+		return
+	}
+
+	if err := os.WriteFile(displayPath, displayData, 0o644); err != nil {
+		_ = removeFileQuietly(originalPath)
+		_ = removeFileQuietly(thumbPath)
+		_ = removeFileQuietly(displayPath)
+		c.JSON(http.StatusInternalServerError, gin.H{"error": gin.H{"message": "display-variante konnte nicht gespeichert werden", "error_code": "STORAGE_FAILED"}})
 		return
 	}
 
 	cleanupNewFiles := func() {
 		_ = removeFileQuietly(originalPath)
 		_ = removeFileQuietly(thumbPath)
+		_ = removeFileQuietly(displayPath)
 	}
 
 	ctx := c.Request.Context()
@@ -364,6 +380,11 @@ func (h *AdminContentHandler) ReplaceReleaseVersionMediaFile(c *gin.Context) {
 	if err := h.mediaRepo.InsertMediaFileWithStatus(ctx, tx, mediaAsset.ID, "thumb", thumbPath, thumbWidth, thumbHeight, int64(len(thumbData)), "processing"); err != nil {
 		cleanupNewFiles()
 		writeInternalErrorResponse(c, "interner serverfehler", err, "media file (thumb) konnte nicht erstellt werden.")
+		return
+	}
+	if err := h.mediaRepo.InsertMediaFileWithStatus(ctx, tx, mediaAsset.ID, "display", displayPath, displayWidth, displayHeight, int64(len(displayData)), "processing"); err != nil {
+		cleanupNewFiles()
+		writeInternalErrorResponse(c, "interner serverfehler", err, "media file (display) konnte nicht erstellt werden.")
 		return
 	}
 

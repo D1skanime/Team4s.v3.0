@@ -6,9 +6,11 @@ import (
 	"image"
 	"image/color"
 	"image/png"
+	"io/fs"
 	"mime/multipart"
 	"net/http"
 	"net/http/httptest"
+	"os"
 	"path/filepath"
 	"runtime"
 	"testing"
@@ -21,6 +23,7 @@ import (
 
 	"github.com/gin-gonic/gin"
 	"github.com/jackc/pgx/v5/pgxpool"
+	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 )
 
@@ -53,10 +56,13 @@ func openReplaceRVMHandlerFixture(t *testing.T) *pgxpool.Pool {
 	ctx := context.Background()
 	_, err := pool.Exec(ctx, `
 		CREATE TABLE users (
-			id BIGINT PRIMARY KEY
+			id BIGINT PRIMARY KEY,
+			username TEXT NULL
 		);
 		ALTER TABLE app_users
-			ADD COLUMN legacy_user_id BIGINT NULL REFERENCES users(id);
+			ADD COLUMN legacy_user_id BIGINT NULL REFERENCES users(id),
+			ADD COLUMN display_name TEXT NULL,
+			ADD COLUMN preferred_username TEXT NULL;
 		CREATE UNIQUE INDEX uq_replace_rvm_app_users_legacy
 			ON app_users(legacy_user_id) WHERE legacy_user_id IS NOT NULL;
 		CREATE TABLE release_version_groups (
@@ -101,6 +107,13 @@ func openReplaceRVMHandlerFixture(t *testing.T) *pgxpool.Pool {
 		-- release_version_note_review_lifecycle table has a hard FK to it.
 		CREATE TABLE release_version_notes (
 			id BIGINT PRIMARY KEY
+		);
+		-- 0172_release_version_media_highlights.up.sql's table: ListReleaseVersionMedia's
+		-- highlight LEFT JOIN (called by loadReleaseVersionMediaResponseItem at the end of a
+		-- successful replace) fails with 42P01 without it, pre-dating this plan's changes.
+		CREATE TABLE release_version_media_highlights (
+			release_version_media_id BIGINT PRIMARY KEY,
+			highlight_order INT NOT NULL DEFAULT 0
 		);
 		CREATE TABLE release_version_media (
  title TEXT NULL,
@@ -182,11 +195,19 @@ func tinyValidPNGBytes(t *testing.T) []byte {
 
 func replaceRVMMultipartRequest(t *testing.T, target string) *http.Request {
 	t.Helper()
+	return replaceRVMMultipartRequestWithFileBytes(t, target, tinyValidPNGBytes(t))
+}
+
+// replaceRVMMultipartRequestWithFileBytes is replaceRVMMultipartRequest with a caller-supplied
+// file payload, so display-variant tests (173-03) can exercise a large, genuinely-decodable PNG
+// instead of the default 2x2 fixture.
+func replaceRVMMultipartRequestWithFileBytes(t *testing.T, target string, fileBytes []byte) *http.Request {
+	t.Helper()
 	var body bytes.Buffer
 	w := multipart.NewWriter(&body)
 	part, err := w.CreateFormFile("file", "replacement.png")
 	require.NoError(t, err)
-	_, err = part.Write(tinyValidPNGBytes(t))
+	_, err = part.Write(fileBytes)
 	require.NoError(t, err)
 	require.NoError(t, w.Close())
 
@@ -262,6 +283,11 @@ func TestReplaceReleaseVersionMediaFileRequiresUpdatePermission(t *testing.T) {
 			permissionSvc:   permissions.NewService(releaseVersionMediaDeniedResolverStub{}), // unused: IsPlatformAdmin bypasses the resolver entirely
 			mediaRepo:       repository.NewMediaRepository(pool, ""),
 			mediaStorageDir: t.TempDir(),
+			// Nil-safe (AuditLogRepository.Write no-ops when its db is nil): without this, the
+			// handler's unconditional post-commit audit-log write at the end of a successful
+			// replace nil-pointer-panics, the same pre-existing gap 173-02 fixed in
+			// newRVMExecHandler for the upload-path fixture.
+			auditLogRepo: repository.NewAuditLogRepository(nil),
 		}
 		req := replaceRVMMultipartRequest(t, "/release-versions/41/media/601/file")
 		c, rec := replaceRVMContext(req,
@@ -293,6 +319,109 @@ func TestReplaceReleaseVersionMediaFileRequiresUpdatePermission(t *testing.T) {
 		).Scan(&reviewState))
 		require.Equal(t, "pending", reviewState, "SubmitMedia must have bumped the review lifecycle back to pending")
 	})
+}
+
+// TestReplaceReleaseVersionMediaFile_DisplayVariant proves (173-03) that a real end-to-end
+// file replace produces a "display" media_files row with the same 1920px-long-edge-cap,
+// never-upscale, JPEG>=88 contract 173-02 already proved for the upload path — this time
+// through ReplaceReleaseVersionMediaFile's generateRVMDisplay call site.
+func TestReplaceReleaseVersionMediaFile_DisplayVariant(t *testing.T) {
+	gin.SetMode(gin.TestMode)
+	pool := openReplaceRVMHandlerFixture(t)
+	h := &AdminContentHandler{
+		permissionSvc:   permissions.NewService(releaseVersionMediaDeniedResolverStub{}), // unused: IsPlatformAdmin bypasses the resolver entirely
+		mediaRepo:       repository.NewMediaRepository(pool, ""),
+		mediaStorageDir: t.TempDir(),
+		auditLogRepo:    repository.NewAuditLogRepository(nil),
+	}
+
+	req := replaceRVMMultipartRequestWithFileBytes(t, "/release-versions/41/media/601/file", newSizedPNGBytes(t, 3000, 1500))
+	c, rec := replaceRVMContext(req,
+		gin.Params{{Key: "versionId", Value: "41"}, {Key: "relationId", Value: "601"}},
+		replaceRVMPlatformAdminIdentity(),
+	)
+
+	h.ReplaceReleaseVersionMediaFile(c)
+
+	require.Equal(t, http.StatusOK, rec.Code, rec.Body.String())
+
+	var newMediaAssetID int64
+	require.NoError(t, pool.QueryRow(context.Background(),
+		`SELECT media_asset_id FROM release_version_media WHERE id = 601`,
+	).Scan(&newMediaAssetID))
+
+	displayPath, width, height := rvmQueryMediaFile(t, pool, 601, "display")
+	assert.NotEmpty(t, displayPath, "replace must persist a display media_files row")
+	assert.Equal(t, 1920, width, "the long (3000px) edge must be capped at rvmDisplayLongEdge")
+	assert.Equal(t, 960, height, "the short edge must scale proportionally (3000x1500 -> 1920x960)")
+
+	onDisk, err := os.Stat(displayPath)
+	require.NoError(t, err, "display.jpg must actually exist on disk at the persisted path")
+	assert.False(t, onDisk.IsDir())
+}
+
+// openReplaceRVMHandlerFixtureWithDisplayInsertBlocked extends openReplaceRVMHandlerFixture
+// with a CHECK constraint that rejects any media_files insert carrying variant='display' —
+// a deliberate post-write DB failure simulating InsertMediaFileWithStatus's "display" call
+// failing after original.*, thumb.jpg, AND display.jpg have already been written to disk,
+// proving cleanupNewFiles() removes all three (not just original/thumb).
+func openReplaceRVMHandlerFixtureWithDisplayInsertBlocked(t *testing.T) *pgxpool.Pool {
+	t.Helper()
+	pool := openReplaceRVMHandlerFixture(t)
+	_, err := pool.Exec(context.Background(), `
+		ALTER TABLE media_files
+			ADD CONSTRAINT chk_replace_rvm_block_display_insert CHECK (variant <> 'display');
+	`)
+	require.NoError(t, err)
+	return pool
+}
+
+// TestReplaceReleaseVersionMediaFile_DisplayInsertFailureCleansUpAllNewFiles proves (173-03)
+// that when the "display" media_files insert fails after original/thumb/display have all been
+// written to the new asset directory, cleanupNewFiles() removes every one of the three new
+// files — no orphaned display.jpg (or original/thumb) survives a failed replace.
+func TestReplaceReleaseVersionMediaFile_DisplayInsertFailureCleansUpAllNewFiles(t *testing.T) {
+	gin.SetMode(gin.TestMode)
+	pool := openReplaceRVMHandlerFixtureWithDisplayInsertBlocked(t)
+	storageDir := t.TempDir()
+	h := &AdminContentHandler{
+		permissionSvc:   permissions.NewService(releaseVersionMediaDeniedResolverStub{}), // unused: IsPlatformAdmin bypasses the resolver entirely
+		mediaRepo:       repository.NewMediaRepository(pool, ""),
+		mediaStorageDir: storageDir,
+		auditLogRepo:    repository.NewAuditLogRepository(nil),
+	}
+
+	req := replaceRVMMultipartRequest(t, "/release-versions/41/media/601/file")
+	c, rec := replaceRVMContext(req,
+		gin.Params{{Key: "versionId", Value: "41"}, {Key: "relationId", Value: "601"}},
+		replaceRVMPlatformAdminIdentity(),
+	)
+
+	h.ReplaceReleaseVersionMediaFile(c)
+
+	require.Equal(t, http.StatusInternalServerError, rec.Code, rec.Body.String())
+
+	// The relation must still point at the OLD media_asset_id (701) — the failed replace must
+	// not have taken effect.
+	var mediaAssetID int64
+	require.NoError(t, pool.QueryRow(context.Background(),
+		`SELECT media_asset_id FROM release_version_media WHERE id = 601`,
+	).Scan(&mediaAssetID))
+	assert.Equal(t, int64(701), mediaAssetID, "a failed replace must not swap in a new media_asset_id")
+
+	// No file (original, thumb, or display) from the failed replace attempt may survive on
+	// disk under the new asset directory.
+	var leakedFiles []string
+	require.NoError(t, filepath.WalkDir(storageDir, func(path string, d fs.DirEntry, err error) error {
+		if err != nil {
+			return err
+		}
+		if !d.IsDir() {
+			leakedFiles = append(leakedFiles, path)
+		}
+		return nil
+	}))
+	assert.Empty(t, leakedFiles, "cleanupNewFiles() must remove original/thumb/display.jpg after a failed display insert, got: %v", leakedFiles)
 }
 
 // TestReplaceReleaseVersionMediaFileRejectsNoAuth is already a real httptest call — no change.
