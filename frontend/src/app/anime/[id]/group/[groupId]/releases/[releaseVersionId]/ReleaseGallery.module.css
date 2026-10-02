@@ -25,7 +25,7 @@
 .error { color: var(--color-error); margin: 0; }
 @media (min-width: 901px) { .grid { grid-template-columns: repeat(3, minmax(0, 1fr)); } }
 @media (min-width: 1200px) { .grid { grid-template-columns: repeat(3, minmax(0, 1fr)); gap: var(--space-5, 24px); } }
-@media (max-width: 600px) { .grid { gap: var(--space-2, 8px); } .featuredCard { grid-template-columns: 1fr; padding: 0; border: 0; background: transparent; } .featuredCard .meta { padding-right: 0; } .metaRow { align-items: flex-start; } }
+@media (max-width: 600px) { .grid { grid-template-columns: minmax(0, 1fr); gap: var(--space-2, 8px); } .featuredCard { grid-template-columns: 1fr; padding: 0; border: 0; background: transparent; } .featuredCard .meta { padding-right: 0; } .metaRow { align-items: flex-start; } }
 
 .karaCard { position: relative; display: grid; grid-template-columns: minmax(0, 1.1fr) minmax(0, 1fr); gap: 16px; align-items: center; min-width: 0; padding: 12px; border: 1px solid color-mix(in srgb, var(--accent-primary) 32%, transparent); border-left: 4px solid var(--accent-primary); border-radius: var(--radius-md); background: color-mix(in srgb, var(--accent-primary) 7%, rgba(255,255,255,.7)); scroll-margin-block: 24px; transition: box-shadow 180ms ease, transform 180ms ease; }
 .karaCard.storyTargeted { box-shadow: 0 0 0 4px color-mix(in srgb, var(--accent-primary) 35%, transparent); transform: translateY(-2px); }
