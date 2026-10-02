@@ -16,22 +16,24 @@ var (
 )
 
 type publicMemberProfileBaseRow struct {
-	memberID            int64
-	publicSlug          string
-	fansubName          string
-	bio                 *string
-	memberStoryHTML     *string
-	activeFromDate      *string
-	activeUntilDate     *string
-	activeFromYear      *int32
-	activeUntilYear     *int32
-	isCurrentlyActive   bool
-	noindex             bool
-	isVerified          bool
-	profileStatus       string
-	profileVisibility   *string
-	avatarPath          *string
-	backgroundImagePath *string
+	memberID              int64
+	publicSlug            string
+	fansubName            string
+	bio                   *string
+	memberStoryHTML       *string
+	activeFromDate        *string
+	activeUntilDate       *string
+	activeFromYear        *int32
+	activeUntilYear       *int32
+	isCurrentlyActive     bool
+	noindex               bool
+	isVerified            bool
+	profileStatus         string
+	profileVisibility     *string
+	avatarPath            *string
+	backgroundImagePath   *string
+	avatarDisplayPath     *string
+	backgroundDisplayPath *string
 }
 
 type MemberProfileRepository struct {

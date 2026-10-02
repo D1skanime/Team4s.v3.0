@@ -170,6 +170,13 @@ type MemberProfileBackgroundUploadInput struct {
 
 type MemberProfileAvatar struct {
 	PublicURL string `json:"public_url"`
+	// DisplayURL (173-10, D-02) is a purely additive display-variant URL,
+	// server-side fallback-chained to PublicURL when no display row exists
+	// yet. PublicURL itself is NEVER swapped to the display variant: an
+	// animated (GIF/animated-WebP) avatar's true original must stay reachable
+	// under public_url so the frontend's extension-based animated-avatar
+	// detection (D-07) keeps working unmodified.
+	DisplayURL string `json:"display_url,omitempty"`
 }
 
 type MemberProfileBgImage struct {
@@ -320,6 +327,10 @@ type PublicMemberPreviousContribution struct {
 // nur die Anzeige-URL, keine source_original_url / storage_path (D-01).
 type PublicMemberProfileBackgroundImage struct {
 	PublicURL string `json:"public_url"`
+	// DisplayURL (173-10, D-02) mirrors MemberProfileAvatar.DisplayURL: purely
+	// additive, server-side fallback-chained to PublicURL when no display row
+	// exists yet. PublicURL itself is never swapped.
+	DisplayURL string `json:"display_url,omitempty"`
 }
 
 // PublicMemberKnownFor (Phase 132 D-06/D-07) is the server-computed "Schwerpunkte"

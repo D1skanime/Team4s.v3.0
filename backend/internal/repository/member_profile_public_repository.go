@@ -65,17 +65,29 @@ func (r *MemberProfileRepository) GetPublicMemberProfileByID(ctx context.Context
 			COALESCE(m.profile_status, 'active') AS profile_status,
 			m.profile_visibility,
 			avatar.file_path AS avatar_path,
-			background.file_path AS background_image_path
+			background.file_path AS background_image_path,
+			avatar_display.path AS avatar_display_path,
+			background_display.path AS background_image_display_path
 		FROM members m
 		LEFT JOIN media_assets avatar ON avatar.id = m.avatar_media_id
 		LEFT JOIN media_assets background ON background.id = m.background_media_id
+		LEFT JOIN LATERAL (
+			SELECT path FROM media_files
+			WHERE media_id = m.avatar_media_id AND variant = 'display' AND status = 'ready'
+			ORDER BY id ASC LIMIT 1
+		) avatar_display ON true
+		LEFT JOIN LATERAL (
+			SELECT path FROM media_files
+			WHERE media_id = m.background_media_id AND variant = 'display' AND status = 'ready'
+			ORDER BY id ASC LIMIT 1
+		) background_display ON true
 		WHERE m.id = $1
 	`, memberID).Scan(
 		&row.memberID, &row.publicSlug, &row.fansubName, &row.bio, &row.memberStoryHTML,
 		&row.activeFromDate, &row.activeUntilDate, &row.activeFromYear, &row.activeUntilYear,
 		&row.isCurrentlyActive, &row.noindex,
 		&row.isVerified, &row.profileStatus, &row.profileVisibility, &row.avatarPath,
-		&row.backgroundImagePath,
+		&row.backgroundImagePath, &row.avatarDisplayPath, &row.backgroundDisplayPath,
 	)
 	if errors.Is(err, pgx.ErrNoRows) {
 		return nil, ErrNotFound
@@ -111,6 +123,24 @@ func (r *MemberProfileRepository) GetPublicMemberProfileByID(ctx context.Context
 	}
 	if row.backgroundImagePath != nil && strings.TrimSpace(*row.backgroundImagePath) != "" {
 		profile.BackgroundImage = &models.PublicMemberProfileBackgroundImage{PublicURL: r.publicURLForPath(strings.TrimSpace(*row.backgroundImagePath))}
+	}
+	// DisplayURL (173-10, D-02): purely additive, server-side fallback to the
+	// unchanged PublicURL (true original) when no display row exists yet.
+	// PublicURL itself is never swapped -- the animated-avatar extension-based
+	// detection (D-07) must keep working against the true original.
+	if profile.Avatar != nil {
+		if row.avatarDisplayPath != nil && strings.TrimSpace(*row.avatarDisplayPath) != "" {
+			profile.Avatar.DisplayURL = r.publicURLForPath(strings.TrimSpace(*row.avatarDisplayPath))
+		} else {
+			profile.Avatar.DisplayURL = profile.Avatar.PublicURL
+		}
+	}
+	if profile.BackgroundImage != nil {
+		if row.backgroundDisplayPath != nil && strings.TrimSpace(*row.backgroundDisplayPath) != "" {
+			profile.BackgroundImage.DisplayURL = r.publicURLForPath(strings.TrimSpace(*row.backgroundDisplayPath))
+		} else {
+			profile.BackgroundImage.DisplayURL = profile.BackgroundImage.PublicURL
+		}
 	}
 	var loadErr error
 	richMemberships, loadErr := r.loadMemberships(ctx, row.memberID, 0, row.isVerified, false)
