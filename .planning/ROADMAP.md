@@ -2296,7 +2296,7 @@ die bewusst bei der bestehenden `imageDisplay.ts`-Pipeline bleiben (D-16). Die v
 Public-UI-Abnahme (D-13) erfolgt live innerhalb dieser Phase, nicht als Folgephase.
 **Requirements**: [REQ-173-01 … REQ-173-31]
 **Depends on:** Phase 172
-**Plans:** 10/16 plans executed
+**Plans:** 11/16 plans executed
 
 Plans:
 - [x] 173-01-PLAN.md — globaler Uploader: statische + animierte display-Variante (processImage)
@@ -2311,7 +2311,7 @@ Plans:
 - [ ] 173-10-PLAN.md — Backend-Lesepräferenz: Fansub-Gruppen-Logo/-Banner + öffentliches Mitgliederprofil
 - [x] 173-11-PLAN.md — OpenAPI/Frontend-Typen-Sync für die 4 display_url-DTOs
 - [x] 173-12-PLAN.md — next.config.mjs (Fansub-Namensraum + quality 85) + ResponsiveImage-Config-Test
-- [ ] 173-13-PLAN.md — Komponenten-Verdrahtung: ReleaseGallery/PublicReleaseBlock/HeroSection
+- [x] 173-13-PLAN.md — Komponenten-Verdrahtung: ReleaseGallery/PublicReleaseBlock/HeroSection
 - [ ] 173-14-PLAN.md — Komponenten-Verdrahtung: FansubGroupMediaBlock/-Banner/-ProfileTabs/-ProjectBannerCard
 - [ ] 173-15-PLAN.md — Komponenten-Verdrahtung: öffentliches Mitgliederprofil Avatar/Hintergrund
 - [ ] 173-16-PLAN.md — Vollständigkeitsprüfung: Testsuite, D-04/D-14/D-16-Gates, volle Live-UAT (D-13)
