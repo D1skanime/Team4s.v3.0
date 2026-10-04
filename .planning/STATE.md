@@ -4,13 +4,13 @@ milestone: v1.4
 milestone_name: Coverage
 status: executing
 stopped_at: 173-16 Task 2 approved; Task 3 (backup+DRY_RUN backfill+live-UAT) checklist handed to orchestrator for joint execution with user
-last_updated: "2026-10-04T08:07:04.827Z"
+last_updated: "2026-10-04T21:25:42.711Z"
 last_activity: 2026-10-04
 progress:
   total_phases: 39
   completed_phases: 33
   total_plans: 364
-  completed_plans: 334
+  completed_plans: 335
   percent: 85
 ---
 
@@ -280,14 +280,14 @@ Phase 135 and any future roadmap entries continue from here.
 See: .planning/PROJECT.md (updated 2026-08-13)
 
 **Core value:** Team4s presents fansub history and collaboration credibly while keeping identity, visibility, ownership, and permissions correct.
-**Current focus:** Phase 173 complete — next: Phase 169 live UAT (169-05), then Phase 166 (not started)
+**Current focus:** Phase 174 — modularisierung-wartbarkeits-refactoring-hotspot-analyse-api
 2026-09-18 after the client's live UAT approval ("1 passt, 2 löschen") — see the "Phase 164
 Abschluss" entry below for the full closing record.
 
 ## Current Position
 
-Phase: 173 (ffentliche-bildqualit-t-zus-tzliche-display-variante-backend) — COMPLETE (16/16, closed 2026-10-03)
-Plan: Not started
+Phase: 174 (modularisierung-wartbarkeits-refactoring-hotspot-analyse-api) — EXECUTING
+Plan: 2 of 26
 Status: Ready to execute
 Completed: Phase 173 — six public image write paths gained a `display` variant, public read sites and components prefer it over thumb/original, a fansub media namespace + redirect, an idempotent backfill run against the live database, and a full live D-13 UAT (desktop+mobile, transparency, animation, performance) all passed.
 Next: Phase 169's remaining plan (169-05, live actor/refresh/responsive UAT) is still open; Phase 166 (Film-Content-Flow) has not been started. The Coverage milestone is NOT complete.
@@ -892,6 +892,9 @@ Last activity: 2026-10-04
 - [Phase 173]: 173-14: fansub public media/banner components switched from raw next/image unoptimized to ResponsiveImage (quality 85), FansubGroupMediaBlock additionally prefers display_url — Imported ResponsiveImage via its direct file path (matches existing codebase convention, not re-exported from @/components/ui barrel); fixed a pre-existing test assertion that expected the raw unoptimized path now that the optimizer is correctly engaged
 - [Phase 173-15]: Shared MemberProfileHero.tsx gains optional avatarDisplayURL/backgroundDisplayURL props, defaulting to the existing avatarURL/backgroundImageURL -- default-safe for the untouched /me/profile caller — Keeps D-07's animated-avatar detection (reads avatarURL, never the new display-preferring prop) safe by construction rather than convention
 - [Phase 173]: 173-16 Task 2 (structural review: no new route/endpoint/dropzone, admin/me untouched) approved by the human user via the orchestrator session on 2026-10-02. Task 3 (backup + DRY_RUN backfill + real backfill + full live D-13 UAT) explicitly deferred to joint execution between the orchestrator and the human user, not run autonomously by the executor.
+- [Phase 174]: P1 hotspot lock for Phase 174 matches CONTEXT.md's named candidates plus RESEARCH.md's one justified extension (admin_content_release_version_media.go, already partially split into 6 sibling files)
+- [Phase 174]: 174-01: TestFansubRepository_PublicProfileSourceInvariants verdict is safe-to-fix-test, not a real regression (Phase 173's intentional display-variant SQL rewrite made the fragment assertion stale)
+- [Phase 174]: 174-01 D-07 analysis found 2 genuine merge-candidates (Pagination page-window math, byte-identical formatDate cluster) and 1 real behavioral-drift bug in getTypeBadgeLabel's OUTRO case, flagged not silently merged
 
 ### Pending Todos
 
@@ -1451,13 +1454,14 @@ untruncated list lives in `.planning/todos/pending/`.
 | Phase 173 P10 | 55min | 2 tasks | 6 files |
 | Phase 173 P14 | 5min | 2 tasks | 5 files |
 | Phase 173 P15 | 32min | 2 tasks | 4 files |
+| Phase 174 P01 | 150min | 5 tasks | 10 files |
 
 ## Session Continuity
 
-Last session: 2026-10-02T23:03:17.848Z
+Last session: 2026-10-04T21:25:42.690Z
 Stopped at: 173-16 Task 2 approved; Task 3 (backup+DRY_RUN backfill+live-UAT) checklist handed to orchestrator for joint execution with user
 Last activity: 2026-09-28 - Completed Phase 169 Plan 169-01
 Resume file: 
-173-16-PLAN.md (Task 3)
+None
 
 Plans 151-02/03/04 have implementation summaries. Plans 151-01 and 151-05 remain open until final artwork/composition review, complete browser evidence and independent verification; their missing summaries are intentional. No requirement or phase has been falsely marked complete.
