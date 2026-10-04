@@ -3,15 +3,15 @@ gsd_state_version: 1.0
 milestone: v1.4
 milestone_name: Coverage
 status: executing
-stopped_at: Phase 173 complete (16/16) — Coverage milestone not yet complete (Phase 166 not started, Phase 169 missing live UAT)
-last_updated: 2026-10-02T23:49:29.043Z
-last_activity: 2026-10-02
+stopped_at: 173-16 Task 2 approved; Task 3 (backup+DRY_RUN backfill+live-UAT) checklist handed to orchestrator for joint execution with user
+last_updated: "2026-10-04T08:07:04.827Z"
+last_activity: 2026-10-04
 progress:
-  total_phases: 38
-  completed_phases: 32
-  total_plans: 338
-  completed_plans: 388
-  percent: 84
+  total_phases: 39
+  completed_phases: 33
+  total_plans: 364
+  completed_plans: 334
+  percent: 85
 ---
 
 # Quick Task 260925-6qe — Anime-Identitätskarte kompakt (Phase 168)
@@ -288,7 +288,7 @@ Abschluss" entry below for the full closing record.
 
 Phase: 173 (ffentliche-bildqualit-t-zus-tzliche-display-variante-backend) — COMPLETE (16/16, closed 2026-10-03)
 Plan: Not started
-Status: Ready to plan
+Status: Ready to execute
 Completed: Phase 173 — six public image write paths gained a `display` variant, public read sites and components prefer it over thumb/original, a fansub media namespace + redirect, an idempotent backfill run against the live database, and a full live D-13 UAT (desktop+mobile, transparency, animation, performance) all passed.
 Next: Phase 169's remaining plan (169-05, live actor/refresh/responsive UAT) is still open; Phase 166 (Film-Content-Flow) has not been started. The Coverage milestone is NOT complete.
 
@@ -395,7 +395,7 @@ timing flakiness, not a Phase 149 regression, and not yet root-caused.
 v1.4 is extended by the additive phases 165-170 and is not currently fully closed. Phase 166
 remains open, Phase 169 still has its live UAT plan outstanding, and Phase 170 is implemented
 with focused verification complete plus named pre-existing full-suite failures.
-Last activity: 2026-10-02
+Last activity: 2026-10-04
 
 ## Accumulated Context
 
