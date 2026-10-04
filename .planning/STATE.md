@@ -401,6 +401,7 @@ Last activity: 2026-10-02
 
 ### Roadmap Evolution
 
+- Phase 174 added (2026-10-04): Modularisierung & Wartbarkeits-Refactoring — Hotspot-Analyse, api.ts-Aufteilung mit kompatiblem Barrel, P1-Frontend-/Backend-/CSS-Hotspots verhaltenserhaltend modularisieren, Abschlussaudit vorher/nachher. Nur add-phase — noch nicht geplant.
 - Phase 173 added (2026-10-02): Öffentliche Bildqualität — zusätzliche Display-Variante (Backend) als Quelle für die Next.js-Bildoptimierung auf allen Public-Seiten, Original bleibt 1:1 und erscheint nur per Klick, Admin/Bearbeitung behält Thumbnails, eigener Media-Namensraum mit Musterliste und Test für Fansub-/Gruppenbilder, animierte GIFs bekommen eine animierte Display-Variante, Backfill für Bestandsbilder. Depends on Phase 172. Nur add-phase — noch nicht geplant.
 - Phase 172 added (2026-10-01): Kara-Vorschaubild pro Segment — automatisch aus dem Render (Frame bei ca. 35 %), manuell auf der Segment-Seite ersetzbar (Upload oder Übernahme eines Release-Bildes), keine Review-Prüfung, einheitliche preview_url für Admin-Media-Liste und Public-Release-Story. Depends on Phase 171. Nur add-phase — noch nicht geplant.
 - Phase 169 added: Release-Medienrechte: Projektleiter, Preview, Highlights und Bildreihenfolge.\n

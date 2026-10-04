@@ -2315,3 +2315,13 @@ Plans:
 - [x] 173-14-PLAN.md — Komponenten-Verdrahtung: FansubGroupMediaBlock/-Banner/-ProfileTabs/-ProjectBannerCard
 - [x] 173-15-PLAN.md — Komponenten-Verdrahtung: öffentliches Mitgliederprofil Avatar/Hintergrund
 - [x] 173-16-PLAN.md — Vollständigkeitsprüfung: Testsuite, D-04/D-14/D-16-Gates, volle Live-UAT (D-13)
+
+### Phase 174: Modularisierung & Wartbarkeits-Refactoring: Hotspot-Analyse, api.ts-Aufteilung mit kompatiblem Barrel, P1-Frontend-/Backend-/CSS-Hotspots verhaltenserhaltend modularisieren, Abschlussaudit vorher/nachher
+
+**Goal:** [To be planned]
+**Requirements**: TBD
+**Depends on:** Phase 173
+**Plans:** 0 plans
+
+Plans:
+- [ ] TBD (run /gsd-plan-phase 174 to break down)
