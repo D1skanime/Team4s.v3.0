@@ -130,3 +130,10 @@ None - no external service configuration required. (The Keycloak `admin` test-ac
 ---
 *Phase: 174-modularisierung-wartbarkeits-refactoring-hotspot-analyse-api*
 *Completed: 2026-10-04*
+
+## Self-Check: PASSED
+
+- FOUND: `174-HOTSPOTS.md`
+- FOUND: `visual-baseline/before/BASELINE-NOTES.md`
+- FOUND: `174-01-SUMMARY.md`
+- FOUND commits: `0aa8b177`, `77e268aa`, `f1881134`, `f496097e`, `e0aa572f`
