@@ -49,8 +49,8 @@ now carries the real, final plan IDs and wave numbers for the complete 26-plan s
 
 | Task ID | Plan | Wave | Requirement | Threat Ref | Secure Behavior | Test Type | Automated Command | File Exists | Status |
 |---------|------|------|-------------|------------|-----------------|-----------|-------------------|-------------|--------|
-| 174-01-T1/T2/T3 | 174-01 | 1 | D-05/D-06/D-07/D-19 | T-174-01-01 | `174-HOTSPOTS.md` produced with baseline measurements, pre-existing test-failure enumeration, P1/P2/P3 verdicts, D-07 verdicts | analysis (no code change) | n/a (artifact-existence + grep-section checks) | ✅ written in 174-01 | ⬜ pending |
-| 174-02-T1/T2/T3 | 174-02 | 2 | D-08/D-09/D-10/D-11/D-12 | T-174-02-01/02 | `client.ts` carve-out + barrel-collision decision + canary test proving both `vi.mock` patterns survive | unit/integration | `npx tsc --noEmit && npx eslint . && npx vitest run` | ✅ written in 174-02 | ⬜ pending |
+| 174-01-T1/T2/T3/T4/T5 | 174-01 | 1 | D-05/D-06/D-07/D-17/D-18/D-19/D-21 | T-174-01-01/02 | `174-HOTSPOTS.md` produced with baseline measurements, pre-existing test-failure enumeration, P1/P2/P3 verdicts, D-07 verdicts, Welle-4 endpoint query-count baseline (T3); mandatory `visual-baseline/before/` screenshots committed (T4) | analysis (no code change) | n/a (artifact-existence + grep-section checks) | ✅ written in 174-01 | ⬜ pending |
+| 174-02-T1/T2/T3 | 174-02 | 2 | D-08/D-09/D-10/D-11/D-12 | T-174-02-01/02 | `client.ts` carve-out + barrel-collision decision + 4 isolated canary tests (real import, literal-factory mock, importActual partial mock, namespace-import spyOn) proving every `@/lib/api` mock pattern this repo uses survives the split | unit/integration | `npx tsc --noEmit && npx eslint . && npx vitest run` | ✅ written in 174-02 | ⬜ pending |
 | 174-03-T1/T2/T3 | 174-03 | 3 | D-08/D-09/D-11/D-12 | T-174-02-01 | Admin anime/segments/episodes/users/fansub-members buckets relocated, barrel-wired | unit/integration | `npx tsc --noEmit && npx eslint . && npx vitest run` | ✅ written in 174-03 | ⬜ pending |
 | 174-04-T1/T2/T3 | 174-04 | 4 | D-08/D-09/D-11/D-12 | T-174-02-01 | Fansubs/episodes/members/projects/contributions buckets relocated | unit/integration | `npx tsc --noEmit && npx eslint . && npx vitest run` | ✅ written in 174-04 | ⬜ pending |
 | 174-05-T1/T2/T3 | 174-05 | 5 | D-08/D-09/D-11/D-12 | T-174-02-01/02 | Auth/permissions/reviews/history/search buckets relocated with verified zero-logic-change on auth/session cluster | unit/integration | `npx tsc --noEmit && npx eslint . && npx vitest run` | ✅ written in 174-05 | ⬜ pending |
@@ -69,10 +69,10 @@ now carries the real, final plan IDs and wave numbers for the complete 26-plan s
 | 174-18-T1/T2/T3 | 174-18 | 12 | D-15/D-17/D-02 | T-174-04-04/02 | `admin_content_anime_themes.go` split into 5 sibling files, 174-15's suite unchanged | integration (real Postgres) | `go test ./internal/repository/... ./internal/handlers/... -run "AdminContentAnimeTheme\|AdminContentAnimeSegment" -v` | ✅ written in 174-18 | ⬜ pending |
 | 174-19-T1/T2 | 174-19 | 11 | D-15/D-07/D-17/D-02 | T-174-04-05 | `anime_assets.go` split by asset type, legacy/V2 pairs co-located (not merged) | integration (real Postgres) | `go build ./... && go test ./internal/repository/... -run TestAnimeAsset -v` | ✅ written in 174-19 | ⬜ pending |
 | 174-20-T1/T2/T3 | 174-20 | 11 | D-16/D-17/D-02 | T-174-04-01/02 | `admin_content_release_version_media.go` remaining clusters split into 6 siblings, permission-annotation cluster diff-verified | integration | `go test ./internal/handlers/... -run "ReleaseVersionMedia" -v` | ✅ written in 174-20 | ⬜ pending |
-| 174-21-T1/T2 | 174-21 | 13 | D-17/D-21 | T-174-04-02 | Welle-4 before/after query-count measurement across all D-17 risk areas touched | integration (live measurement) | `go test ./... -v` | ✅ written in 174-21 | ⬜ pending |
+| 174-21-T1/T2 | 174-21 | 13 | D-17/D-21 | T-174-04-02 | Welle-4 AFTER query-count re-measurement for the same 4 endpoints, compared directly against 174-01 Task 3's recorded BEFORE baseline — no git checkout | integration (live measurement) | `go test ./... -v` | ✅ written in 174-21 | ⬜ pending |
 | 174-22-T1/T2/T3 | 174-22 | 14 | D-18/D-02 | — | `FansubEdit.module.css` split via grep-verified single-owner classification | unit/integration | `npx tsc --noEmit && npx eslint . && npx vitest run` | ✅ written in 174-22 | ⬜ pending |
 | 174-23-T1/T2 | 174-23 | 14 | D-18/D-02 | — | `ui.module.css` split via grep-verified single-owner classification | unit/integration | `npx tsc --noEmit && npx eslint . && npx vitest run` | ✅ written in 174-23 | ⬜ pending |
-| 174-24-T1 | 174-24 | 15 | D-18 | — | Manual visual-equality UAT for both Welle-5 CSS splits | manual (human-check) | browser tunnel verification, no automated command | ✅ written in 174-24 | ⬜ pending |
+| 174-24-T1/T2 | 174-24 | 15 | D-18 | — | `visual-baseline/after/` captured with parameters identical to 174-01's `before/` set (T1, automated); human pairwise comparison + live UAT for both Welle-5 CSS splits (T2) | automated capture + manual (human-check) | T1: screenshot-count parity check; T2: browser tunnel + before/after pair verification, no automated command | ✅ written in 174-24 | ⬜ pending |
 | 174-25-T1/T2 | 174-25 | 16 | D-23/D-24/D-21 | — | `174-REPORT.md` closing audit: before/after re-measurement, hotspot outcomes, D-24 exceptions, follow-up recommendations | integration (re-measurement) | re-run 174-01's measurement commands + grep-section checks on `174-REPORT.md` | ✅ written in 174-25 | ⬜ pending |
 | 174-26-T1/T2 | 174-26 | 17 | D-01/D-19/D-21/D-23 | T-174-06-02 | Final combined automated gate + live 7-flow human UAT across the complete Phase 174 change set | integration + manual (human-check) | `npx tsc --noEmit && npx eslint . && npx vitest run && docker compose build team4sv30-frontend` (+ backend `go build ./... && go test ./...`) | ✅ written in 174-26 | ⬜ pending |
 
@@ -89,9 +89,11 @@ rather than deferred:
   runs strictly before **174-14**'s structural split of the same file (Wave 10, `depends_on: ["174-09"]`).
 - [x] A repository-level test file for `admin_content_anime_themes.go` — covered by **174-15**
   (Wave 11), which runs strictly before **174-18**'s structural split (Wave 12, `depends_on: ["174-15"]`).
-- [x] One canary Vitest test exercising a real (non-mocked) import through the future `@/lib/api`
-  barrel — covered by **174-02** Task 3 (Wave 2), the first Welle-2 plan, before any domain-group
-  migration begins.
+- [x] Four isolated canary Vitest tests — real (non-mocked) import, literal-factory `vi.mock`,
+  `vi.importActual` partial mock, and namespace-import `vi.spyOn` — exercising every mock pattern
+  actually used against the future `@/lib/api` barrel, each in its own file so hoisted `vi.mock`
+  calls cannot collide — covered by **174-02** Task 3 (Wave 2), the first Welle-2 plan, before any
+  domain-group migration begins.
 - [x] An enumerated list of pre-existing baseline test failures — covered by **174-01** Task 1
   (Wave 1), which runs before every other plan in the phase.
 
@@ -101,7 +103,7 @@ rather than deferred:
 
 | Behavior | Requirement | Why Manual | Test Instructions |
 |----------|-------------|------------|-------------------|
-| CSS module split preserves visual equality (D-18) | D-18 | No automated visual-regression tooling exists in this repo; specificity/cascade-order changes from module splitting are a rendering property, not a unit-testable one | **174-24**: before/after screenshot comparison in browser via the `:3300`/`:3000` tunnel, per CONTEXT.md's "Verifikation" protocol |
+| CSS module split preserves visual equality (D-18) | D-18 | No automated visual-regression tooling exists in this repo (and none is added — no new `pixelmatch`-style dependency); specificity/cascade-order changes from module splitting are a rendering property, not a unit-testable one | **174-01** Task 4 captures mandatory `visual-baseline/before/` screenshots (desktop/mobile Fansub-Edit, `/dev/ui-system`, representative hover/focus/disabled states) with documented reproduction parameters; **174-24** Task 1 re-captures identical `visual-baseline/after/` shots, Task 2 is the human pairwise comparison + live UAT via the `:3300`/`:3000` tunnel, per CONTEXT.md's "Verifikation" protocol |
 | Effective-rights/permissions behavior stays byte-for-byte identical through Welle-4 repository/handler splits touching rights-adjacent code (D-01, D-04) | D-01/D-04 | Byte-for-byte SQL/logic equivalence across a file move is a structural diff property better caught by manual before/after comparison than by unit tests alone | **174-17** Task 1 (public-profile cluster) and **174-20** Task 2 (permission-annotation cluster): explicit manual diff of moved function bodies against pre-move versions, documented in each plan's SUMMARY |
 | Barrel re-export does not silently resolve a caller to a different implementation when two similarly-named functions land in different domain buckets (D-10) | D-10 | Import-resolution correctness across a full-repo split is a structural property | **174-08** Task 1: full-repo export-diff against git history, confirming the same name resolves to the same implementation after all of Welle 2 |
 | Combined end-to-end system behavior across every Phase 174 change | D-01/D-19 | No single plan's automated suite exercises every touched flow together | **174-26** Task 2: live 7-flow human UAT after the final combined automated gate |
