@@ -3,14 +3,14 @@ gsd_state_version: 1.0
 milestone: v1.4
 milestone_name: Coverage
 status: executing
-stopped_at: 173-16 Task 2 approved; Task 3 (backup+DRY_RUN backfill+live-UAT) checklist handed to orchestrator for joint execution with user
-last_updated: "2026-10-04T21:25:42.711Z"
+stopped_at: Completed 174-02-PLAN.md
+last_updated: "2026-10-04T23:48:17.615Z"
 last_activity: 2026-10-04
 progress:
   total_phases: 39
   completed_phases: 33
   total_plans: 364
-  completed_plans: 335
+  completed_plans: 336
   percent: 85
 ---
 
@@ -895,6 +895,8 @@ Last activity: 2026-10-04
 - [Phase 174]: P1 hotspot lock for Phase 174 matches CONTEXT.md's named candidates plus RESEARCH.md's one justified extension (admin_content_release_version_media.go, already partially split into 6 sibling files)
 - [Phase 174]: 174-01: TestFansubRepository_PublicProfileSourceInvariants verdict is safe-to-fix-test, not a real regression (Phase 173's intentional display-variant SQL rewrite made the fragment assertion stale)
 - [Phase 174]: 174-01 D-07 analysis found 2 genuine merge-candidates (Pagination page-window math, byte-identical formatDate cluster) and 1 real behavioral-drift bug in getTypeBadgeLabel's OUTRO case, flagged not silently merged
+- [Phase 174]: Barrel layout locked: api.ts stays the permanent barrel file re-exporting ./api/client, verified empirically via tsc --noEmit byte-identical to pre-change baseline
+- [Phase 174]: 174-02 Task 2 scope expanded after tracing authorizedFetch's real dependency graph: full self-contained auth/session closure moved to client.ts ahead of 174-05's planned auth.ts split (follow-up note left for 174-05)
 
 ### Pending Todos
 
@@ -1455,11 +1457,12 @@ untruncated list lives in `.planning/todos/pending/`.
 | Phase 173 P14 | 5min | 2 tasks | 5 files |
 | Phase 173 P15 | 32min | 2 tasks | 4 files |
 | Phase 174 P01 | 150min | 5 tasks | 10 files |
+| Phase 174 P02 | 90min | 3 tasks | 8 files |
 
 ## Session Continuity
 
-Last session: 2026-10-04T21:25:42.690Z
-Stopped at: 173-16 Task 2 approved; Task 3 (backup+DRY_RUN backfill+live-UAT) checklist handed to orchestrator for joint execution with user
+Last session: 2026-10-04T23:48:17.593Z
+Stopped at: Completed 174-02-PLAN.md
 Last activity: 2026-09-28 - Completed Phase 169 Plan 169-01
 Resume file: 
 None

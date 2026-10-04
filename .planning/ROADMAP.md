@@ -2326,7 +2326,7 @@ fachlicher Grenzen entflochten, mit Vorher/Nachher-Audit und dokumentierten offe
 fuer Folgephasen.
 **Requirements**: D-01 - D-24 (Decision-Coverage via `174-CONTEXT.md`, kein REQUIREMENTS.md-Mapping vorhanden)
 **Depends on:** Phase 173
-**Plans:** 1/26 plans executed
+**Plans:** 2/26 plans executed
 
 **Plan-time read first**: `174-CONTEXT.md` (24 locked decisions), `174-RESEARCH.md` (real measurements), `174-PATTERNS.md` (closest-analog split shapes already live in-repo), `174-HOTSPOTS.md` (Welle-1 output, produced by 174-01).
 
@@ -2337,7 +2337,7 @@ Plans:
 
 **Wave 2** *(blocked on Wave 1)*
 
-- [ ] 174-02-PLAN.md — Welle 2: api.ts-Barrel-Grundlage — Client-Infrastruktur-Carve-out + Canary-Test
+- [x] 174-02-PLAN.md — Welle 2: api.ts-Barrel-Grundlage — Client-Infrastruktur-Carve-out + Canary-Test
 
 **Wave 3** *(blocked on Wave 2)*
 
