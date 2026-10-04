@@ -204,3 +204,47 @@ CONTEXT.md's D-07 text names 9 distinct sub-areas inside one comma-separated lis
 
 Every P1 verdict above was re-read against D-04's six named non-goal categories: **(1)** new design system, **(2)** frontend/repository re-architecture (microservices/DDD/CQRS), **(3)** new state-management library, **(4)** fetch/ORM/routing-library swap, **(5)** new test framework, **(6)** new permission architecture. **None of the P1 verdicts proposes any of these.** Every P1 recommendation is explicitly a split/move/rename of existing code along an already-proven, already-live in-repo pattern (barrel re-export, same-struct multi-file split, facade+impl+sub-hooks, or single-owner CSS-module extraction) — no new abstraction layer, no new library, no architectural shift. This holds specifically for the two candidates where D-04 compliance is least obvious on the surface: the `api.ts` barrel split (D-08-mandated) reuses the *exact* `components/ui/index.ts` barrel mechanism already live in this codebase, not a new module system; and the `useAdminAnimeCreateController.ts` facade+sub-hooks split reuses the *exact* `useEpisodeManager.ts`/`internal/episode-manager/*` shape already live in the same directory family, not a new state-management approach.
 
+---
+
+## Welle-4 Endpoint Query-Count Baseline (pre-174-16)
+
+Captures the BEFORE half of the D-17/D-21 obligation 174-21 (Welle 4's closing checkpoint) must compare against, measured now — before any Welle-4 split — so 174-21 never needs a historical `git checkout`/stash/worktree to get a "before" number; it reads this section directly.
+
+### Measurement method (fixed — 174-21 must repeat identically)
+
+`pg_stat_statements` is **available but not in `shared_preload_libraries`** (confirmed live: `SHOW shared_preload_libraries;` → empty; `SELECT * FROM pg_available_extensions WHERE name='pg_stat_statements'` → `installed_version` empty), so it is unusable without a DB restart — not used. Instead, used statement logging on the already-running DB, no product-code change:
+
+```sql
+ALTER SYSTEM SET log_statement = 'all';
+SELECT pg_reload_conf();
+-- (call the endpoint, read docker compose logs team4sv30-db, then:)
+ALTER SYSTEM RESET log_statement;
+SELECT pg_reload_conf();
+```
+
+For each endpoint: called 3 times with the identical, real path-param values below; counted lines matching `LOG:  statement:` or `LOG:  execute stmtcache` in the `team4sv30-db` container's logs for the window immediately following each call, **excluding** two independently-confirmed, request-unrelated noise sources also visible in the log stream during this session: (a) the connection-pool's own periodic `-- ping` health probe, and (b) a genuine, unrelated background job (`theme_segment_render_cache` `UPDATE ... FOR UPDATE SKIP LOCKED` polling loop) that fires on its own fixed interval regardless of HTTP traffic — both confirmed via direct content inspection of the log stream (the render-cache poller's queries are clearly distinguishable by table name, not an artifact of my own requests). The **minimum of the 3 repeats** is recorded per endpoint, per this task's own instruction, to further suppress any residual noise. `log_statement` was reset to its default (`none`) immediately after, confirmed via `SHOW log_statement` → `none`.
+
+Auth: two of the four endpoints are public (no token needed). The other two require an authenticated `platform_admin`. Since `KEYCLOAK_ENABLED=true` in this live environment, the `scripts/smoke-admin-content.ps1`-style HMAC bootstrap-token flow does **not** work against protected routes (confirmed by reading `backend/cmd/server/main.go`: `authMiddleware` is `CurrentUserMiddleware` — a real Keycloak-JWT verifier — whenever `cfg.KeycloakEnabled` is true, not the HMAC-token `CommentAuthMiddlewareWithState` the bootstrap flow targets). Obtained a real Keycloak access token instead via the realm's direct grant against the seeded `admin` user (`app_user_id=1`, `platform_admin`; its Keycloak password was unknown in this session and was reset once via `kcadm.sh set-password`, the same kind of local-dev credential provisioning `scripts/provision-phase134-matrix-db.sh` already does routinely — no product file changed).
+
+### Endpoints and real path-param values used
+
+| D-17 risk area | Endpoint | Real path params | Measurement method |
+|---|---|---|---|
+| Contributions / Member Profile Projects | `GET /api/v1/fansub-slugs/:slug/public-profile` | `slug=strawhat-subs` (real seeded fansub group) | Statement-log counting, no auth needed |
+| Anime Assets | `GET /api/v1/anime/:id/backdrops` | `id=2` (real seeded anime, "11eyes") | Statement-log counting, no auth needed |
+| Themes | `GET /api/v1/admin/anime/:id/themes` | `id=2` | Statement-log counting, Keycloak Bearer token (`platform_admin`) |
+| Release Crew/Media | `GET /api/v1/admin/release-versions/:versionId/media` | `versionId=27` (real seeded release version) | Statement-log counting, Keycloak Bearer token (`platform_admin`) |
+
+**Episodes and Imports:** no concrete, currently-registered endpoint overlaps a Welle-4-touched file (`fansub_repository.go`, `admin_content_anime_themes.go`, `anime_assets.go`, `admin_content_release_version_media.go`) for either of these two D-17-named risk areas — explicitly noted here rather than inventing a forced mapping, per this task's instruction.
+
+### Measured BEFORE query counts (minimum of 3 repeats each)
+
+| Endpoint | Run 1 | Run 2 | Run 3 | **BEFORE (min)** |
+|---|---|---|---|---|
+| `GET /api/v1/fansub-slugs/strawhat-subs/public-profile` | 8 | 8 | 8 | **8** |
+| `GET /api/v1/anime/2/backdrops` | 9 | 8 | 8 | **8** |
+| `GET /api/v1/admin/anime/2/themes` | 8 | 8 | 8 | **8** |
+| `GET /api/v1/admin/release-versions/27/media` | 14 | 13 | 13 | **13** |
+
+174-21 must re-run this exact methodology post-Welle-4-split against these same 4 endpoints (same URLs/path-params, same statement-log-counting method, same noise exclusions) and confirm no endpoint's AFTER count exceeds its BEFORE count above. No production file changed as a result of this measurement (`git status --short -- backend/` is clean — confirmed after the `ALTER SYSTEM RESET` revert).
+
