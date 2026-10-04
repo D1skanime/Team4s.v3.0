@@ -279,3 +279,12 @@ Welle 4 liegt jetzt konkret und checkout-frei vor; 174-09 exportiert nichts mehr
 Wave-/Dependency-/YAML-/Tag-Konsistenz über alle 26 Pläne wurde verifiziert. Die unter "Verbleibende
 Risiken" genannten Punkte sind Restrisiken der Ausführung selbst (Datenverfügbarkeit, DB-Extension,
 Abdeckungstiefe), keine Planungsfehler mehr.
+
+
+---
+
+## Nachkorrektur (Review durch Orchestrator, 2026-10-04)
+
+- **174-07 Task-Verify:** `grep -c "^export"` war immer grün (Re-Exporte zählen mit) und bewies nicht „nur noch Barrel-Zeilen“. Ersetzt durch Zählung aller `^export`-Zeilen, die KEIN `export * from` sind, mit Erwartung 0 (exit-code-robust).
+- **174-01 Task 3 / 174-21:** Falscher Compose-Service (`postgres`) und nicht gesetzte `$POSTGRES_USER/$POSTGRES_DB` korrigiert auf `team4sv30-db`, `-U team4s -d team4s_v2`. `pg_stat_statements` ist installierbar, aber nicht in `shared_preload_libraries` → ohne DB-Neustart unbrauchbar. Feste, in beiden Plänen identische Messmethode ergänzt: temporär `log_statement=all` per `ALTER SYSTEM` + `pg_reload_conf()`, Endpoint einmal aufrufen, Statement-Zeilen im DB-Log zählen (3 Läufe, Minimum), danach immer `ALTER SYSTEM RESET`. Kein Produktcode-Eingriff zur Messung nötig.
+- Übrige `grep -c`-Prüfungen ohne `|| true` erwarten ≥1 Treffer (positive Checks) und sind korrekt.
