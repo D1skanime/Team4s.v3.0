@@ -10,6 +10,11 @@ const srcRoot = path.join(frontendRoot, 'src')
 
 const centralClientAllowlist = new Set([
   'src/lib/api.ts',
+  // 174-02: shared API-client/token infrastructure (resolveApiUrl, ApiError,
+  // apiClientFetch, authorizedFetch, auth-header/base-URL/token-storage helpers)
+  // physically moved behind the `@/lib/api` barrel into this sibling file. The
+  // central-client boundary itself did not change — it now spans both files.
+  'src/lib/api/client.ts',
 ])
 
 const keycloakAuthAllowlist = new Set([
@@ -242,10 +247,16 @@ describe('Phase 49 no-token ownership boundaries', () => {
 
   it('keeps Keycloak ID tokens out of Team4s API bearer mapping', () => {
     const apiSource = fs.readFileSync(path.join(srcRoot, 'lib', 'api.ts'), 'utf8')
+    // 174-02: toRuntimeAuthData (the function this guard actually protects) moved
+    // behind the barrel into client.ts — scan both files so the guard keeps
+    // covering the real implementation's current location.
+    const clientSource = fs.readFileSync(path.join(srcRoot, 'lib', 'api', 'client.ts'), 'utf8')
 
-    expect(apiSource).not.toMatch(/access_token:\s*accessTokenData\.idToken/)
-    expect(apiSource).not.toMatch(/getCurrentUserWithBearerToken\(tokenBundle\.idToken\)/)
-    expect(apiSource).not.toMatch(/return tokenBundle\.idToken/)
+    for (const source of [apiSource, clientSource]) {
+      expect(source).not.toMatch(/access_token:\s*accessTokenData\.idToken/)
+      expect(source).not.toMatch(/getCurrentUserWithBearerToken\(tokenBundle\.idToken\)/)
+      expect(source).not.toMatch(/return tokenBundle\.idToken/)
+    }
   })
 
   it('keeps docs and tests out of production boundary scans while making those allowlists explicit', () => {
