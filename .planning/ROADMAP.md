@@ -2318,10 +2318,92 @@ Plans:
 
 ### Phase 174: Modularisierung & Wartbarkeits-Refactoring: Hotspot-Analyse, api.ts-Aufteilung mit kompatiblem Barrel, P1-Frontend-/Backend-/CSS-Hotspots verhaltenserhaltend modularisieren, Abschlussaudit vorher/nachher
 
-**Goal:** [To be planned]
-**Requirements**: TBD
+**Goal:** Team4s' groesste Wartbarkeits-Hotspots (voran `frontend/src/lib/api.ts` mit 371 Exports,
+drei Frontend-Controller/Komponenten-Monolithen, vier Backend-Repository-/Handler-Dateien und zwei
+CSS-Sammelmodule) sind verhaltenserhaltend in nachvollziehbare, testbare Module aufgeteilt -- erst
+systematisch analysiert (Hotspot-Liste, Prioritaet, Baseline), dann gezielt entlang echter
+fachlicher Grenzen entflochten, mit Vorher/Nachher-Audit und dokumentierten offenen P2/P3-Kandidaten
+fuer Folgephasen.
+**Requirements**: D-01 - D-24 (Decision-Coverage via `174-CONTEXT.md`, kein REQUIREMENTS.md-Mapping vorhanden)
 **Depends on:** Phase 173
-**Plans:** 0 plans
+**Plans:** 26 plans across 17 waves
+
+**Plan-time read first**: `174-CONTEXT.md` (24 locked decisions), `174-RESEARCH.md` (real measurements), `174-PATTERNS.md` (closest-analog split shapes already live in-repo), `174-HOTSPOTS.md` (Welle-1 output, produced by 174-01).
 
 Plans:
-- [ ] TBD (run /gsd-plan-phase 174 to break down)
+**Wave 1**
+
+- [ ] 174-01-PLAN.md — Welle 1: Hotspot-Analyse, Baseline-Messung, P1/P2/P3-Priorisierung, D-07-Verdikte (`174-HOTSPOTS.md`)
+
+**Wave 2** *(blocked on Wave 1)*
+
+- [ ] 174-02-PLAN.md — Welle 2: api.ts-Barrel-Grundlage — Client-Infrastruktur-Carve-out + Canary-Test
+
+**Wave 3** *(blocked on Wave 2)*
+
+- [ ] 174-03-PLAN.md — Welle 2: Admin-Anime/Segmente/Episoden/Users/Fansub-Members-Module
+
+**Wave 4** *(blocked on Wave 3)*
+
+- [ ] 174-04-PLAN.md — Welle 2: Fansubs/Episoden/Members/Projects/Contributions-Module
+
+**Wave 5** *(blocked on Wave 4)*
+
+- [ ] 174-05-PLAN.md — Welle 2: Auth/Permissions/Reviews/History/Search-Module
+
+**Wave 6** *(blocked on Wave 3-5)*
+
+- [ ] 174-06-PLAN.md — Welle 2: Media/Assets-Bucket nach Konsumenten-Domäne trianiert (kein neues Media-Gottmodul)
+
+**Wave 7** *(blocked on Wave 6)*
+
+- [ ] 174-07-PLAN.md — Welle 2: verbleibende "other/unclear"-Funktionen per Import-Site-Grep verteilt
+
+**Wave 8** *(blocked on Wave 7)*
+
+- [ ] 174-08-PLAN.md — Welle 2 Abschluss: Export-Parität, 0 neue Zyklen, Prod-Build
+
+**Wave 9** *(blocked on Wave 8)*
+
+- [ ] 174-09-PLAN.md — Welle 3: Characterization-Tests für `fansubs/create/page.tsx` (D-20)
+- [ ] 174-10-PLAN.md — Welle 3: `useAdminAnimeCreateController`-Split Teil 1 (Facade/Impl + Jellyfin/AniSearch-Sub-Hooks)
+- [ ] 174-12-PLAN.md — Welle 3: `GroupMediaReviewSection`-Split Teil 1 (Hook-Extraktion)
+
+**Wave 10** *(blocked on Wave 9)*
+
+- [ ] 174-11-PLAN.md — Welle 3: `useAdminAnimeCreateController`-Split Teil 2 (Asset-Staging + Submit)
+- [ ] 174-13-PLAN.md — Welle 3: `GroupMediaReviewSection`-Split Teil 2 (5 Sektions-Komponenten)
+- [ ] 174-14-PLAN.md — Welle 3: `fansubs/create/page.tsx`-Split (Action-Hook + 3 Sektionen)
+
+**Wave 11** *(blocked on Wave 10)*
+
+- [ ] 174-15-PLAN.md — Welle 4: Characterization-Tests für `admin_content_anime_themes.go` (D-20)
+- [ ] 174-16-PLAN.md — Welle 4: `fansub_repository.go`-Split Teil 1 (Groups/Links/Aliases)
+- [ ] 174-19-PLAN.md — Welle 4: `anime_assets.go`-Split nach Asset-Typ (Legacy/V2-Paare erhalten)
+- [ ] 174-20-PLAN.md — Welle 4: `admin_content_release_version_media.go` — verbleibende Cluster aufgeteilt
+
+**Wave 12** *(blocked on Wave 11)*
+
+- [ ] 174-17-PLAN.md — Welle 4: `fansub_repository.go`-Split Teil 2 (Public-Profile/Members/Merge) + Baseline-Test-Resolution
+- [ ] 174-18-PLAN.md — Welle 4: `admin_content_anime_themes.go`-Split (5 Sibling-Dateien)
+
+**Wave 13** *(blocked on Wave 12)*
+
+- [ ] 174-21-PLAN.md — Welle 4 Abschluss: N+1/Query-Count-Verifikationsgate (D-17)
+
+**Wave 14** *(blocked on Wave 13)*
+
+- [ ] 174-22-PLAN.md — Welle 5: `FansubEdit.module.css`-Split (grep-verifizierte Single-Owner-Klassen)
+- [ ] 174-23-PLAN.md — Welle 5: `ui.module.css`-Split (grep-verifizierte Single-Owner-Klassen)
+
+**Wave 15** *(blocked on Wave 14)*
+
+- [ ] 174-24-PLAN.md — Welle 5: manuelle visuelle Gleichheitsprüfung (Checkpoint)
+
+**Wave 16** *(blocked on Wave 15)*
+
+- [ ] 174-25-PLAN.md — Welle 6: Abschlussaudit + `174-REPORT.md`
+
+**Wave 17** *(blocked on Wave 16)*
+
+- [ ] 174-26-PLAN.md — Welle 6: finales kombiniertes Gate + Live-UAT über alle 7 Kernflows (Checkpoint)
