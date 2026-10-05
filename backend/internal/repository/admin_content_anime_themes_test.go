@@ -134,3 +134,170 @@ func TestAdminContentAnimeThemes_ThemeCRUD(t *testing.T) {
 		require.ErrorIs(t, err, repository.ErrNotFound)
 	})
 }
+
+// TestAdminContentAnimeThemes_SegmentCRUD beweist gegen eine echte, isolierte
+// Postgres-Instanz das aktuelle Verhalten des Segment-Clusters' Kern-CRUD
+// (ListAnimeSegments, CreateAnimeSegment, UpdateAnimeSegment, DeleteAnimeSegment)
+// sowie des direkt daran haengenden GetAnimeSegmentByID und der Segment-Library-
+// Lesemethoden (ListSegmentLibraryCandidates, IsReusableSegmentAsset) in deren
+// dokumentiertem "Tabellen fehlen -> leeres/falsches Ergebnis statt Fehler"-Fallback
+// -- Characterization Test fuer Plan 174-15 (D-20/D-19), damit 174-18 die
+// Segment-Cluster-Aufteilung mit einem echten Repository-Ebene-Regressionssignal
+// vornehmen kann.
+//
+// currentReleaseVersionID bleibt in diesem Test durchgehend 0 (kein Editor-Kontext):
+// der echte, geteilte Mehr-Release-Versionen-Pfad inkl. Playback-Hydration ist
+// bereits von admin_content_anime_theme_segments_hydration_integration_test.go
+// abgedeckt; dieser Test fokussiert das CRUD/Filter-Verhalten selbst.
+//
+// Skips cleanly when TEAM4S_PHASE117_TEST_DSN is unset.
+func TestAdminContentAnimeThemes_SegmentCRUD(t *testing.T) {
+	pool := testsupport.OpenPhase117Postgres(t)
+	ctx := context.Background()
+	repo := repository.NewAdminContentRepository(pool)
+
+	const (
+		animeID       = int64(1)
+		openingTypeID = int64(1)
+		themeID       = int64(1)
+		groupOneID    = int64(1)
+		groupTwoID    = int64(2)
+	)
+
+	_, err := pool.Exec(ctx, `INSERT INTO anime (id) VALUES ($1)`, animeID)
+	require.NoError(t, err)
+	_, err = pool.Exec(ctx, `INSERT INTO fansub_groups (id) VALUES ($1), ($2)`, groupOneID, groupTwoID)
+	require.NoError(t, err)
+	_, err = pool.Exec(ctx, `INSERT INTO theme_types (id, name) VALUES ($1, 'OP1')`, openingTypeID)
+	require.NoError(t, err)
+	_, err = pool.Exec(ctx, `INSERT INTO themes (id, anime_id, theme_type_id) VALUES ($1, $2, $3)`, themeID, animeID, openingTypeID)
+	require.NoError(t, err)
+
+	t.Run("ListAnimeSegments liefert ErrNotFound fuer einen nicht existierenden Anime", func(t *testing.T) {
+		_, err := repo.ListAnimeSegments(ctx, int64(999999), 0, "", 0)
+		require.ErrorIs(t, err, repository.ErrNotFound)
+	})
+
+	t.Run("ListAnimeSegments liefert eine leere Liste, solange kein Segment existiert", func(t *testing.T) {
+		segments, err := repo.ListAnimeSegments(ctx, animeID, 0, "", 0)
+		require.NoError(t, err)
+		require.Empty(t, segments)
+	})
+
+	t.Run("CreateAnimeSegment liefert ErrNotFound fuer ein Theme, das zu einem anderen Anime gehoert", func(t *testing.T) {
+		_, _, err := repo.CreateAnimeSegment(ctx, int64(999999), models.AdminThemeSegmentCreateInput{
+			ThemeID: themeID,
+			Version: "v1",
+		}, 0)
+		require.ErrorIs(t, err, repository.ErrNotFound)
+	})
+
+	startTimeOne := "00:00:10"
+	endTimeOne := "00:00:40"
+	segmentOne, syncResultOne, err := repo.CreateAnimeSegment(ctx, animeID, models.AdminThemeSegmentCreateInput{
+		ThemeID:       themeID,
+		FansubGroupID: ptrInt64(groupOneID),
+		Version:       "v1",
+		StartTime:     &startTimeOne,
+		EndTime:       &endTimeOne,
+	}, 0)
+	t.Run("CreateAnimeSegment legt ein Segment mit den angegebenen Feldern an", func(t *testing.T) {
+		require.NoError(t, err)
+		require.Nil(t, syncResultOne, "ohne Episodenbereich darf kein impliziter Range-Sync laufen")
+		require.NotZero(t, segmentOne.ID)
+		require.Equal(t, themeID, segmentOne.ThemeID)
+		require.Equal(t, animeID, segmentOne.AnimeID)
+		require.NotNil(t, segmentOne.FansubGroupID)
+		require.Equal(t, groupOneID, *segmentOne.FansubGroupID)
+		require.Equal(t, "v1", segmentOne.Version)
+		require.NotNil(t, segmentOne.StartTime)
+		require.Equal(t, startTimeOne, *segmentOne.StartTime)
+	})
+
+	startTimeTwo := "00:01:00"
+	endTimeTwo := "00:01:30"
+	segmentTwo, _, err := repo.CreateAnimeSegment(ctx, animeID, models.AdminThemeSegmentCreateInput{
+		ThemeID:       themeID,
+		FansubGroupID: ptrInt64(groupTwoID),
+		Version:       "v2",
+		StartTime:     &startTimeTwo,
+		EndTime:       &endTimeTwo,
+	}, 0)
+	require.NoError(t, err)
+
+	t.Run("ListAnimeSegments ohne Filter liefert beide angelegten Segmente", func(t *testing.T) {
+		segments, err := repo.ListAnimeSegments(ctx, animeID, 0, "", 0)
+		require.NoError(t, err)
+		require.Len(t, segments, 2)
+	})
+
+	t.Run("ListAnimeSegments filtert nach fansub_group_id", func(t *testing.T) {
+		segments, err := repo.ListAnimeSegments(ctx, animeID, groupOneID, "", 0)
+		require.NoError(t, err)
+		require.Len(t, segments, 1)
+		require.Equal(t, segmentOne.ID, segments[0].ID)
+	})
+
+	t.Run("ListAnimeSegments filtert nach version", func(t *testing.T) {
+		segments, err := repo.ListAnimeSegments(ctx, animeID, 0, "v2", 0)
+		require.NoError(t, err)
+		require.Len(t, segments, 1)
+		require.Equal(t, segmentTwo.ID, segments[0].ID)
+	})
+
+	t.Run("GetAnimeSegmentByID liefert das Segment, wenn es zum angegebenen Anime gehoert", func(t *testing.T) {
+		got, err := repo.GetAnimeSegmentByID(ctx, animeID, segmentOne.ID, 0)
+		require.NoError(t, err)
+		require.Equal(t, segmentOne.ID, got.ID)
+	})
+
+	t.Run("GetAnimeSegmentByID liefert ErrNotFound, wenn das Segment zu einem anderen Anime gehoert", func(t *testing.T) {
+		_, err := repo.GetAnimeSegmentByID(ctx, int64(999999), segmentOne.ID, 0)
+		require.ErrorIs(t, err, repository.ErrNotFound)
+	})
+
+	t.Run("UpdateAnimeSegment aktualisiert die Version, Aenderung ist nach frischem Read sichtbar", func(t *testing.T) {
+		newVersion := "v1-remux"
+		_, err := repo.UpdateAnimeSegment(ctx, segmentOne.ID, models.AdminThemeSegmentPatchInput{
+			Version: &newVersion,
+		})
+		require.NoError(t, err)
+
+		got, err := repo.GetAnimeSegmentByID(ctx, animeID, segmentOne.ID, 0)
+		require.NoError(t, err)
+		require.Equal(t, newVersion, got.Version)
+	})
+
+	t.Run("UpdateAnimeSegment auf nicht existierender ID liefert ErrNotFound", func(t *testing.T) {
+		newVersion := "ghost"
+		_, err := repo.UpdateAnimeSegment(ctx, int64(999999), models.AdminThemeSegmentPatchInput{Version: &newVersion})
+		require.ErrorIs(t, err, repository.ErrNotFound)
+	})
+
+	t.Run("ListSegmentLibraryCandidates liefert eine leere Liste, wenn die Segment-Library-Tabellen fehlen", func(t *testing.T) {
+		candidates, err := repo.ListSegmentLibraryCandidates(ctx, animeID, groupOneID, "op", "")
+		require.NoError(t, err)
+		require.Empty(t, candidates)
+	})
+
+	t.Run("IsReusableSegmentAsset liefert false, wenn die Segment-Library-Tabellen fehlen", func(t *testing.T) {
+		reusable, err := repo.IsReusableSegmentAsset(ctx, "some/source/ref.mp4")
+		require.NoError(t, err)
+		require.False(t, reusable)
+	})
+
+	t.Run("DeleteAnimeSegment entfernt das Segment, danach liefert ListAnimeSegments nur noch das verbleibende Segment", func(t *testing.T) {
+		err := repo.DeleteAnimeSegment(ctx, segmentTwo.ID)
+		require.NoError(t, err)
+
+		segments, err := repo.ListAnimeSegments(ctx, animeID, 0, "", 0)
+		require.NoError(t, err)
+		require.Len(t, segments, 1)
+		require.Equal(t, segmentOne.ID, segments[0].ID)
+	})
+
+	t.Run("DeleteAnimeSegment auf einer bereits geloeschten ID liefert ErrNotFound", func(t *testing.T) {
+		err := repo.DeleteAnimeSegment(ctx, segmentTwo.ID)
+		require.ErrorIs(t, err, repository.ErrNotFound)
+	})
+}
