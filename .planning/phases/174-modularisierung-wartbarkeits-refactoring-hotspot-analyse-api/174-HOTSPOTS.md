@@ -248,3 +248,22 @@ Auth: two of the four endpoints are public (no token needed). The other two requ
 
 174-21 must re-run this exact methodology post-Welle-4-split against these same 4 endpoints (same URLs/path-params, same statement-log-counting method, same noise exclusions) and confirm no endpoint's AFTER count exceeds its BEFORE count above. No production file changed as a result of this measurement (`git status --short -- backend/` is clean — confirmed after the `ALTER SYSTEM RESET` revert).
 
+## Welle-4 Endpoint Query-Count AFTER Measurement (174-21, post-174-16..174-20)
+
+Re-ran the identical methodology recorded above (statement-log counting on the live `team4sv30-db` container, no `pg_stat_statements` — still unusable, re-confirmed via `SELECT * FROM pg_available_extensions WHERE name='pg_stat_statements'` → `installed_version` empty) against the same 4 endpoints, same real path-param values (`strawhat-subs`, anime `id=2`, release version `id=27` — all three rows still exist in the live DB, confirmed by direct `SELECT` before measuring; no substitution needed).
+
+**Auth:** AFTER measurement for the two admin-protected endpoints used a real Keycloak direct-grant access token for the same `admin` platform-admin identity 174-01's BEFORE measurement used (`grant_type=password`, `client_id=team4s-frontend`, `username=admin`, `password=123` — password already reset by the user for this purpose per the 2026-10-05 directive; no Keycloak credential was touched by this plan). The two public endpoints needed no token, matching 174-01.
+
+**Measurement refinement:** this run counted both `LOG:  statement:` and `LOG:  execute stmtcache_...` lines (174-01's own documented method includes both patterns), using precise per-call millisecond timestamp windows (recorded immediately before/after each `curl`, ±50ms pad) rather than second-granularity `docker compose logs --since`, to avoid an initial undercount from second-level time truncation. Same two noise sources as 174-01 excluded by direct content inspection: the connection-pool `-- ping` probe and the `theme_segment_render_cache` background poller's `UPDATE ... FOR UPDATE SKIP LOCKED` polling query — both confirmed present in the log stream during this session, unrelated to the measured HTTP calls.
+
+All 3 repeats per endpoint were perfectly stable (zero variance across runs), so the minimum equals every individual run.
+
+| Endpoint | Run 1 | Run 2 | Run 3 | **AFTER (min)** | **BEFORE (min)** | Delta |
+|---|---|---|---|---|---|---|
+| `GET /api/v1/fansub-slugs/strawhat-subs/public-profile` | 8 | 8 | 8 | **8** | 8 | 0 |
+| `GET /api/v1/anime/2/backdrops` | 8 | 8 | 8 | **8** | 8 | 0 |
+| `GET /api/v1/admin/anime/2/themes` | 7 | 7 | 7 | **7** | 8 | **-1 (improved)** |
+| `GET /api/v1/admin/release-versions/27/media` | 13 | 13 | 13 | **13** | 13 | 0 |
+
+**Result: no endpoint regressed.** Three endpoints are query-count-neutral; the themes endpoint shows a one-query improvement (8→7), consistent with 174-18's `admin_content_anime_themes.go` split having removed a redundant query somewhere in the extracted theme-CRUD path rather than introducing one. All HTTP calls returned `200`. `log_statement` was reset to its original value (`none`) immediately after the final repeat, confirmed via `SHOW log_statement` → `none`. No production file changed as a result of this measurement.
+
