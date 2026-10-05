@@ -2326,7 +2326,7 @@ fachlicher Grenzen entflochten, mit Vorher/Nachher-Audit und dokumentierten offe
 fuer Folgephasen.
 **Requirements**: D-01 - D-24 (Decision-Coverage via `174-CONTEXT.md`, kein REQUIREMENTS.md-Mapping vorhanden)
 **Depends on:** Phase 173
-**Plans:** 15/26 plans executed
+**Plans:** 16/26 plans executed
 
 **Plan-time read first**: `174-CONTEXT.md` (24 locked decisions), `174-RESEARCH.md` (real measurements), `174-PATTERNS.md` (closest-analog split shapes already live in-repo), `174-HOTSPOTS.md` (Welle-1 output, produced by 174-01).
 
@@ -2378,7 +2378,7 @@ Plans:
 **Wave 11** *(blocked on Wave 10)*
 
 - [x] 174-15-PLAN.md — Welle 4: Characterization-Tests für `admin_content_anime_themes.go` (D-20)
-- [ ] 174-16-PLAN.md — Welle 4: `fansub_repository.go`-Split Teil 1 (Groups/Links/Aliases)
+- [x] 174-16-PLAN.md — Welle 4: `fansub_repository.go`-Split Teil 1 (Groups/Links/Aliases)
 - [ ] 174-19-PLAN.md — Welle 4: `anime_assets.go`-Split nach Asset-Typ (Legacy/V2-Paare erhalten)
 - [ ] 174-20-PLAN.md — Welle 4: `admin_content_release_version_media.go` — verbleibende Cluster aufgeteilt
 

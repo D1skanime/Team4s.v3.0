@@ -3,14 +3,14 @@ gsd_state_version: 1.0
 milestone: v1.4
 milestone_name: Coverage
 status: executing
-stopped_at: Completed 174-15-PLAN.md
-last_updated: "2026-10-05T14:55:01.230Z"
+stopped_at: Completed 174-16-PLAN.md
+last_updated: "2026-10-05T15:18:51.583Z"
 last_activity: 2026-10-05
 progress:
   total_phases: 39
   completed_phases: 33
   total_plans: 364
-  completed_plans: 349
+  completed_plans: 350
   percent: 85
 ---
 
@@ -287,7 +287,7 @@ Abschluss" entry below for the full closing record.
 ## Current Position
 
 Phase: 174 (modularisierung-wartbarkeits-refactoring-hotspot-analyse-api) — EXECUTING
-Plan: 2 of 26
+Plan: 3 of 26
 Status: Ready to execute
 Completed: Phase 173 — six public image write paths gained a `display` variant, public read sites and components prefer it over thumb/original, a fansub media namespace + redirect, an idempotent backfill run against the live database, and a full live D-13 UAT (desktop+mobile, transparency, animation, performance) all passed.
 Next: Phase 169's remaining plan (169-05, live actor/refresh/responsive UAT) is still open; Phase 166 (Film-Content-Flow) has not been started. The Coverage milestone is NOT complete.
@@ -915,6 +915,8 @@ Last activity: 2026-10-05
 - [Phase 174-13]: GroupMediaReviewDetailDrawer.tsx bundles the Drawer and delete-confirm Modal in one file since the Modal is the direct consequence of the Drawer's danger-zone action
 - [Phase ?]: 174-14: Reordered execution so pure-helper/types extraction happens before hook/section extraction (both need a shared importable module); added 3 new section files to the eslint native-element ratchet list (pure relocation, same precedent as 156-14)
 - [Phase 174]: 174-15: reused the existing Phase-117 real-Postgres fixture and repository_test package convention for admin_content_anime_themes characterization tests instead of building a new harness; scoped Segment-cluster coverage to the 4 required core CRUD methods plus GetAnimeSegmentByID and the two library-read fallback methods
+- [Phase 174]: 174-16: shared helpers (populateCountMap, applyLegacyLinkProjection) between a moved Groups-cluster method and the unmoved public-profile cluster stay in the first-created sibling file (fansub_repository_groups.go); the unmoved cluster calls them via same-package reference
+- [Phase 174]: 174-16: the D-17 ANY($1) alias-normalization batch pattern belongs to GetMergePreview's populateAliasMergePreview (Merge cluster), not the 7-method Alias CRUD cluster -- left untouched in fansub_repository.go for 174-17
 
 ### Pending Todos
 
@@ -1488,11 +1490,12 @@ untruncated list lives in `.planning/todos/pending/`.
 | Phase 174 P13 | 17min | 3 tasks | 6 files |
 | Phase 174 P14 | 35min | 5 tasks | 9 files |
 | Phase 174 P15 | 30min | 2 tasks | 1 files |
+| Phase 174 P16 | 25min | 3 tasks | 5 files |
 
 ## Session Continuity
 
-Last session: 2026-10-05T14:55:01.210Z
-Stopped at: Completed 174-15-PLAN.md
+Last session: 2026-10-05T15:18:51.560Z
+Stopped at: Completed 174-16-PLAN.md
 Last activity: 2026-09-28 - Completed Phase 169 Plan 169-01
 Resume file: 
 None
