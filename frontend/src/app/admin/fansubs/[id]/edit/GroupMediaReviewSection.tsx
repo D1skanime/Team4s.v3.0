@@ -1,15 +1,13 @@
 'use client'
 
 import { useEffect, useMemo, useRef, useState, type DragEvent, type PointerEvent } from 'react'
-import { Archive, Ban, Check, Edit3, GripVertical, Save, UploadCloud, X } from 'lucide-react'
+import { Archive, Save, UploadCloud, X } from 'lucide-react'
 import Image from 'next/image'
 
 import {
-  Badge,
   Button,
   Card,
   Drawer,
-  EmptyState,
   ErrorState,
   FormField,
   getErrorStateCopy,
@@ -35,6 +33,8 @@ import styles from './GroupMediaReviewSection.module.css'
 import { useGroupMediaReviewActions } from './useGroupMediaReviewActions'
 import { GroupMediaReviewUploadPanel } from './GroupMediaReviewUploadPanel'
 import { GroupMediaReviewFilterBar } from './GroupMediaReviewFilterBar'
+import { GroupMediaReviewGrid } from './GroupMediaReviewGrid'
+import { GroupMediaReviewBulkActionBar } from './GroupMediaReviewBulkActionBar'
 
 interface GroupMediaReviewSectionProps {
   fansubId: number
@@ -103,27 +103,11 @@ function itemToDraft(item: FansubGroupMediaItem): MediaDraft {
   }
 }
 
-function getCategoryLabel(value: FansubGroupMediaCategory): string {
-  return CATEGORY_OPTIONS.find((option) => option.value === value)?.label ?? 'Sonstiges'
-}
-
-function getReviewStatusOption(value: FansubMediaReviewStatus) {
-  return REVIEW_STATUS_OPTIONS.find((option) => option.value === value) ?? REVIEW_STATUS_OPTIONS[0]
-}
-
-function getVisibilityLabel(value: FansubMediaVisibility): string {
-  return VISIBILITY_OPTIONS.find((option) => option.value === value)?.label ?? 'Intern'
-}
-
 function formatDate(value: string | null | undefined): string {
   if (!value) return ''
   const date = new Date(value)
   if (Number.isNaN(date.getTime())) return ''
   return new Intl.DateTimeFormat('de-DE', { day: '2-digit', month: '2-digit', year: 'numeric' }).format(date)
-}
-
-function getOverviewImageURL(item: FansubGroupMediaItem): string {
-  return item.thumbnail_url || item.preview_url || item.original_url || ''
 }
 
 function getDetailImageURL(item: FansubGroupMediaItem): string {
@@ -621,244 +605,49 @@ function GroupMediaReviewSectionInner({
           <p className={styles.reorderHint}>Reihenfolge kann nur in der Gesamtansicht geändert werden.</p>
         ) : null}
 
-        {mediaItems.length === 0 ? (
-          <EmptyState
-            title="Keine Medien vorhanden"
-            description="Für diese Gruppe sind noch keine Medien angelegt."
-          />
-        ) : filteredMediaItems.length === 0 ? (
-          <EmptyState
-            title="Keine Treffer"
-            description="Passe Filter oder Suche an, um weitere Medien zu sehen."
-          />
-        ) : (
-          <div className={styles.mediaReviewGrid}>
-            {visibleMediaItems.map((item) => {
-              const persisted = itemToDraft(item)
-              const reviewStatus = getReviewStatusOption(persisted.review_status)
-              const isEditing = editingMediaId === item.id
-              const isSelected = selectedMediaIds.has(item.id)
-              const isSavingItem = saving[item.id] ?? false
-              const canEditItem = canUpdate || (canUpdateOwn && item.uploaded_by_current_user)
-              const isDragging = draggedMediaId === item.id
-              const isDropTarget = dragOverMediaId === item.id && draggedMediaId !== null && draggedMediaId !== item.id
-              const overviewImageURL = getOverviewImageURL(item)
-              const displayTitle = getMediaDisplayTitle(item)
-              const uploaderLine = getUploaderLine(item)
-
-              return (
-                <Card
-                  key={item.id}
-                  variant="nested"
-                  data-media-card-id={item.id}
-                  className={classNames(
-                    styles.mediaCard,
-                    isSelected && styles.mediaCardSelected,
-                    isDragging && styles.mediaCardDragging,
-                    isDropTarget && styles.mediaCardDropTarget,
-                  )}
-                  tabIndex={0}
-                  onDragOver={(event) => handleDragOver(event, item)}
-                  onDrop={(event) => void handleReorderDrop(event, item)}
-                  onDragLeave={() => {
-                    if (dragOverMediaId === item.id) setDragOverMediaId(null)
-                  }}
-                  onClick={(event) => {
-                    const target = event.target as HTMLElement
-                    if (target.closest('button, input, label, a, select, textarea')) return
-                    startEditing(item)
-                  }}
-                  onKeyDown={(event) => {
-                    if (event.key !== 'Enter' && event.key !== ' ') return
-                    const target = event.target as HTMLElement
-                    if (target.closest('button, input, label, a, select, textarea')) return
-                    event.preventDefault()
-                    startEditing(item)
-                  }}
-                >
-                  <div className={styles.selectionRow}>
-                    {canReview ? (
-                      <label className={styles.selectionControl}>
-                        <Input
-                          type="checkbox"
-                          className={classNames(styles.selectionCheckbox, 'media-checkbox')}
-                          checked={isSelected}
-                          disabled={isBulkSaving}
-                          onChange={() => toggleMediaSelection(item.id)}
-                          aria-label={`${displayTitle} auswählen`}
-                        />
-                        <span>{isSelected ? 'Ausgewählt' : 'Auswählen'}</span>
-                      </label>
-                    ) : (
-                      <span />
-                    )}
-                    {canReorder ? (
-                      <button
-                        type="button"
-                        draggable={canReorderMedia}
-                        className={styles.dragHandle}
-                        aria-label={`${displayTitle} verschieben`}
-                        title={
-                          canReorderMedia
-                            ? 'Reihenfolge ändern'
-                            : 'Reihenfolge kann nur in der Gesamtansicht geändert werden'
-                        }
-                        disabled={!canReorderMedia}
-                        onClick={(event) => event.stopPropagation()}
-                        onKeyDown={(event) => event.stopPropagation()}
-                        onDragStart={(event) => handleDragStart(event, item)}
-                        onDragEnd={handleDragEnd}
-                        onPointerDown={(event) => handlePointerDragStart(event, item)}
-                        onPointerMove={handlePointerDragMove}
-                        onPointerUp={(event) => void handlePointerDragEnd(event)}
-                        onPointerCancel={handleDragEnd}
-                      >
-                        <GripVertical size={16} aria-hidden="true" />
-                      </button>
-                    ) : null}
-                  </div>
-
-                  {!item.owner_consistent ? (
-                    <div className={styles.ownerFlagRow}>
-                      <Badge variant="warning">Owner-Zuordnung prüfen</Badge>
-                    </div>
-                  ) : null}
-
-                  <div className={styles.mediaCompactRow}>
-                    <button
-                      type="button"
-                      className={styles.previewFrame}
-                      onClick={() => startEditing(item)}
-                      aria-label={`${displayTitle} öffnen`}
-                    >
-                      {overviewImageURL && !failedPreviewIds[item.id] ? (
-                        <Image
-                          src={resolveApiUrl(overviewImageURL)}
-                          alt={persisted.alt_text || displayTitle}
-                          fill
-                          sizes="96px"
-                          unoptimized
-                          loading="lazy"
-                          onError={() => setFailedPreviewIds((prev) => ({ ...prev, [item.id]: true }))}
-                        />
-                      ) : (
-                        <span>Keine Vorschau</span>
-                      )}
-                    </button>
-
-                    <div className={styles.mediaSummary}>
-                      <div className={styles.mediaTitleRow}>
-                        <h3>{displayTitle}</h3>
-                        <Badge variant="neutral">{getCategoryLabel(persisted.category)}</Badge>
-                      </div>
-                      <div className={styles.badgeRow}>
-                        <Badge variant={reviewStatus.variant}>{reviewStatus.label}</Badge>
-                        <Badge variant="info">{getVisibilityLabel(persisted.visibility)}</Badge>
-                      </div>
-                      <p className={styles.mediaMetaLine}>{uploaderLine}</p>
-                    </div>
-
-                    <div className={styles.compactActions}>
-                      {canReview ? (
-                        <>
-                          {persisted.review_status !== 'freigegeben' ? (
-                            <Button
-                              variant="success"
-                              size="sm"
-                              iconOnly
-                              leftIcon={<Check size={16} />}
-                              aria-label={`${displayTitle} freigeben`}
-                              title="Freigeben"
-                              disabled={isSavingItem || isBulkSaving}
-                              onClick={() => void handleQuickReview(item, 'freigegeben')}
-                            />
-                          ) : null}
-                          <Button
-                            variant="danger"
-                            size="sm"
-                            iconOnly
-                            leftIcon={<Ban size={16} />}
-                            aria-label={`${displayTitle} ablehnen`}
-                            title="Ablehnen"
-                            disabled={isSavingItem || isBulkSaving}
-                            onClick={() => void handleQuickReview(item, 'abgelehnt')}
-                          />
-                        </>
-                      ) : null}
-                      {canEditItem ? (
-                        <Button
-                          variant={isEditing ? 'secondary' : 'primary'}
-                          size="sm"
-                          iconOnly
-                          leftIcon={isEditing ? <X size={16} /> : <Edit3 size={16} />}
-                          aria-label={`${displayTitle} bearbeiten`}
-                          title={isEditing ? 'Schließen' : 'Bearbeiten'}
-                          disabled={isBulkSaving}
-                          onClick={() => (isEditing ? cancelEditing(item) : startEditing(item))}
-                        />
-                      ) : null}
-                    </div>
-                  </div>
-
-                  {saveErrors[item.id] ? <p className={styles.inlineCardError} role="alert">{saveErrors[item.id]}</p> : null}
-                </Card>
-              )
-            })}
-          </div>
-        )}
-
-        {remainingMediaCount > 0 ? (
-          <div className={styles.loadMoreRow}>
-            <Button
-              variant="secondary"
-              size="sm"
-              onClick={() => setVisibleLimit((current) => current + LOAD_MORE_MEDIA_COUNT)}
-            >
-              Weitere Medien anzeigen ({remainingMediaCount})
-            </Button>
-          </div>
-        ) : null}
+        <GroupMediaReviewGrid
+          totalMediaItemsCount={mediaItems.length}
+          filteredMediaItemsCount={filteredMediaItems.length}
+          visibleMediaItems={visibleMediaItems}
+          remainingMediaCount={remainingMediaCount}
+          onLoadMore={() => setVisibleLimit((current) => current + LOAD_MORE_MEDIA_COUNT)}
+          selectedMediaIds={selectedMediaIds}
+          editingMediaId={editingMediaId}
+          saving={saving}
+          saveErrors={saveErrors}
+          failedPreviewIds={failedPreviewIds}
+          setFailedPreviewIds={setFailedPreviewIds}
+          draggedMediaId={draggedMediaId}
+          dragOverMediaId={dragOverMediaId}
+          setDragOverMediaId={setDragOverMediaId}
+          canUpdate={canUpdate}
+          canUpdateOwn={canUpdateOwn}
+          canReview={canReview}
+          canReorder={canReorder}
+          canReorderMedia={canReorderMedia}
+          isBulkSaving={isBulkSaving}
+          toggleMediaSelection={toggleMediaSelection}
+          startEditing={startEditing}
+          cancelEditing={cancelEditing}
+          handleQuickReview={handleQuickReview}
+          handleDragOver={handleDragOver}
+          handleReorderDrop={handleReorderDrop}
+          handleDragStart={handleDragStart}
+          handleDragEnd={handleDragEnd}
+          handlePointerDragStart={handlePointerDragStart}
+          handlePointerDragMove={handlePointerDragMove}
+          handlePointerDragEnd={handlePointerDragEnd}
+        />
       </Card>
 
       {shouldShowBulkActionBar ? (
-        <div className={styles.bulkActionBar} role="region" aria-label="Bulk-Aktionen für Medienauswahl">
-          <div className={styles.bulkSummary}>
-            <strong>{selectedCount} ausgewählt</strong>
-            <span>Prüfstatus für die aktuelle Auswahl ändern</span>
-          </div>
-          {bulkError ? <p className={styles.bulkError} role="alert">{bulkError}</p> : null}
-          <div className={styles.bulkActions}>
-            <Button
-              variant="success"
-              size="sm"
-              leftIcon={<Check size={16} />}
-              loading={bulkSavingStatus === 'freigegeben'}
-              disabled={isBulkSaving}
-              onClick={() => void handleBulkReview('freigegeben')}
-            >
-              Freigeben
-            </Button>
-            <Button
-              variant="danger"
-              size="sm"
-              leftIcon={<Ban size={16} />}
-              loading={bulkSavingStatus === 'abgelehnt'}
-              disabled={isBulkSaving}
-              onClick={() => void handleBulkReview('abgelehnt')}
-            >
-              Ablehnen
-            </Button>
-            <Button
-              variant="secondary"
-              size="sm"
-              leftIcon={<X size={16} />}
-              disabled={isBulkSaving}
-              onClick={clearSelection}
-            >
-              Abbrechen
-            </Button>
-          </div>
-        </div>
+        <GroupMediaReviewBulkActionBar
+          selectedMediaIds={selectedMediaIds}
+          bulkSavingStatus={bulkSavingStatus}
+          bulkError={bulkError}
+          handleBulkReview={handleBulkReview}
+          clearSelection={clearSelection}
+        />
       ) : null}
 
       <Drawer
