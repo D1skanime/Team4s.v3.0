@@ -1,0 +1,7 @@
+.stateInline {
+  margin: 0;
+  padding: var(--space-2) 0;
+  color: var(--text-soft);
+  font-size: 0.9rem;
+  line-height: 1.5;
+}

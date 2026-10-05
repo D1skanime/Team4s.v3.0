@@ -2,7 +2,12 @@ import { Inbox } from 'lucide-react'
 import type { ReactNode } from 'react'
 
 import { classNames } from './classNames'
-import styles from './ui.module.css'
+import ownStyles from './EmptyState.module.css'
+import sharedStyles from './ui.module.css'
+
+const styles = new Proxy({} as Record<string, string>, {
+  get: (_target, prop: string) => ownStyles[prop as keyof typeof ownStyles] ?? sharedStyles[prop as keyof typeof sharedStyles],
+})
 
 type EmptyStateVariant = 'default' | 'withAction' | 'compact' | 'inline'
 

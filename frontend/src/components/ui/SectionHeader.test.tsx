@@ -24,7 +24,7 @@ describe('SectionHeader', () => {
   })
 
   it('keeps the underline color owned by the global ui-line token', () => {
-    const css = readFileSync('src/components/ui/ui.module.css', 'utf8')
+    const css = readFileSync('src/components/ui/SectionHeader.module.css', 'utf8')
     const underlineRule = css.match(/\.sectionHeaderUnderline\s*\{[^}]+\}/)?.[0]
 
     expect(underlineRule).toContain('border-bottom: 2px solid var(--ui-line)')

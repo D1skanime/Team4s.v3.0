@@ -1,7 +1,7 @@
 import { ChevronDown, ChevronRight } from 'lucide-react'
 
 import { classNames } from './classNames'
-import styles from './ui.module.css'
+import styles from './DisclosureIndicator.module.css'
 
 export interface DisclosureIndicatorProps {
   open?: boolean

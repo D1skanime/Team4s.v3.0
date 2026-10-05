@@ -1,0 +1,21 @@
+.pagination {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  flex-wrap: wrap;
+}
+
+.paginationSummary {
+  margin-right: 10px;
+  color: var(--text-soft);
+  font-size: 13px;
+}
+
+.pageButton {
+  min-width: 40px;
+}
+
+.pageButtonActive {
+  border-color: var(--border-accent);
+  background: color-mix(in srgb, var(--accent-primary) 10%, white);
+}

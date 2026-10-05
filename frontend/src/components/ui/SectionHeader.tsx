@@ -1,6 +1,11 @@
 import type { ReactNode } from 'react'
 
-import styles from './ui.module.css'
+import ownStyles from './SectionHeader.module.css'
+import sharedStyles from './ui.module.css'
+
+const styles = new Proxy({} as Record<string, string>, {
+  get: (_target, prop: string) => ownStyles[prop as keyof typeof ownStyles] ?? sharedStyles[prop as keyof typeof sharedStyles],
+})
 
 export interface SectionHeaderProps {
   eyebrow?: string

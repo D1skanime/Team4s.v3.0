@@ -4,7 +4,7 @@ import { useId, useState } from 'react'
 import type { ReactNode } from 'react'
 
 import { classNames } from './classNames'
-import styles from './ui.module.css'
+import styles from './Accordion.module.css'
 
 export interface AccordionItemDef {
   id: string

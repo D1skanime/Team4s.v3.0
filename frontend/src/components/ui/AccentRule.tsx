@@ -1,5 +1,5 @@
 import { classNames } from './classNames'
-import styles from './ui.module.css'
+import styles from './AccentRule.module.css'
 
 export interface AccentRuleProps {
   thickness?: 'hairline' | 'thin' | 'medium' | 'strong'

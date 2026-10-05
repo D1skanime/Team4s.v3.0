@@ -1,7 +1,7 @@
 import type { HTMLAttributes, ReactNode } from 'react'
 
 import { classNames } from './classNames'
-import styles from './ui.module.css'
+import styles from './Toolbar.module.css'
 
 export interface ToolbarProps extends HTMLAttributes<HTMLDivElement> {
   leading?: ReactNode

@@ -3,7 +3,7 @@
 import type { AnchorHTMLAttributes, ButtonHTMLAttributes, MouseEvent, ReactNode } from 'react'
 
 import { classNames } from './classNames'
-import styles from './ui.module.css'
+import styles from './Button.module.css'
 
 type ButtonVariant = 'primary' | 'secondary' | 'ghost' | 'subtle' | 'danger' | 'success' | 'text'
 type ButtonSize = 'sm' | 'md' | 'lg'

@@ -1,0 +1,19 @@
+.accentRule {
+  display: block;
+  width: 100%;
+  height: 2px;
+  border-radius: 999px;
+  background: var(--ui-line);
+}
+
+.accentRuleHairline {
+  height: 1px;
+}
+
+.accentRuleMedium {
+  height: 3px;
+}
+
+.accentRuleStrong {
+  height: 4px;
+}

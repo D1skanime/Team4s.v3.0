@@ -1,0 +1,90 @@
+.sectionHeader {
+  display: flex;
+  justify-content: space-between;
+  gap: 16px;
+  align-items: flex-start;
+  flex-wrap: wrap;
+}
+
+/* Opt-in: Wein-Header-Linie des Design-Systems unter dem Section-Header */
+.sectionHeaderUnderline {
+  padding-bottom: 14px;
+  margin-bottom: 18px;
+  border-bottom: 2px solid var(--ui-line);
+}
+
+.sectionHeader {
+  gap: 14px 20px;
+}
+
+.sectionHeaderContent {
+  display: grid;
+  min-width: 0;
+}
+
+.sectionHeaderContent {
+  gap: 1px;
+}
+
+.sectionHeaderActions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+  align-items: center;
+  justify-content: flex-end;
+}
+
+.sectionTitle {
+  margin: 0;
+  color: var(--text-strong);
+}
+
+.sectionTitle {
+  font-size: 1rem;
+  line-height: 1.15;
+  letter-spacing: -0.015em;
+}
+
+/* Optional icon/counter slots inside the header's own title row (157-15, GAP-03 F1): kept
+   deliberately outside the mobile .sectionHeader column-wrap rule below so the counter never
+   wraps onto its own line, and inside the same top-level element as .sectionHeaderUnderline so
+   the underline still spans the full header width. */
+.sectionHeaderTitleRow {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.sectionHeaderIcon {
+  flex-shrink: 0;
+  display: inline-flex;
+  color: var(--text-primary);
+}
+
+.sectionHeaderCounter {
+  flex-shrink: 0;
+  /* Matches .sectionTitle's line-height (not the inherited 1.5 body default) so the flex-centered
+     counter's own line box is the same height as the heading's -- otherwise align-items: center
+     visibly offsets the two baselines by a few pixels even though both sit in the same row. */
+  line-height: 1.15;
+}
+
+.sectionDescription {
+  margin: 8px 0 0;
+  max-width: 72ch;
+  color: #657086;
+}
+
+.sectionDescription {
+  margin-top: 6px;
+  font-size: 0.92rem;
+  line-height: 1.5;
+  max-width: 58ch;
+}
+
+@media (max-width: 767px) {
+  .sectionHeader {
+    flex-direction: column;
+    align-items: stretch;
+  }
+}

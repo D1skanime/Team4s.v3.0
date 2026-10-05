@@ -1,7 +1,7 @@
 import Image from 'next/image'
 
 import { classNames } from './classNames'
-import styles from './ui.module.css'
+import styles from './AvatarStack.module.css'
 
 export interface AvatarStackItem {
   id: string | number

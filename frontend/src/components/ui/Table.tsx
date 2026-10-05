@@ -1,7 +1,7 @@
 import type { HTMLAttributes, ReactNode, TableHTMLAttributes, TdHTMLAttributes, ThHTMLAttributes } from 'react'
 
 import { classNames } from './classNames'
-import styles from './ui.module.css'
+import styles from './Table.module.css'
 
 type TableVariant = 'default' | 'compact' | 'selectable' | 'withActions'
 

@@ -5,7 +5,12 @@ import type { ReactNode } from 'react'
 
 import { Button } from './Button'
 import { classNames } from './classNames'
-import styles from './ui.module.css'
+import ownStyles from './Drawer.module.css'
+import sharedStyles from './ui.module.css'
+
+const styles = new Proxy({} as Record<string, string>, {
+  get: (_target, prop: string) => ownStyles[prop as keyof typeof ownStyles] ?? sharedStyles[prop as keyof typeof sharedStyles],
+})
 
 export interface DrawerProps {
   open: boolean

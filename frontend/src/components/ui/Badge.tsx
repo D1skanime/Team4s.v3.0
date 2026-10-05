@@ -1,7 +1,7 @@
 import type { HTMLAttributes } from 'react'
 
 import { classNames } from './classNames'
-import styles from './ui.module.css'
+import styles from './Badge.module.css'
 
 type BadgeVariant = 'neutral' | 'success' | 'warning' | 'danger' | 'info' | 'muted'
 

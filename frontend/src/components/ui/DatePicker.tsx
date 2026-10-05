@@ -5,7 +5,12 @@ import { useEffect, useMemo, useRef, useState } from 'react'
 import { ChevronLeft, ChevronRight, CalendarDays } from 'lucide-react'
 
 import { classNames } from './classNames'
-import styles from './ui.module.css'
+import ownStyles from './DatePicker.module.css'
+import sharedStyles from './ui.module.css'
+
+const styles = new Proxy({} as Record<string, string>, {
+  get: (_target, prop: string) => ownStyles[prop as keyof typeof ownStyles] ?? sharedStyles[prop as keyof typeof sharedStyles],
+})
 
 type DatePickerProps = {
   id: string

@@ -1,7 +1,7 @@
 import type { HTMLAttributes, ReactNode } from 'react'
 
 import { classNames } from './classNames'
-import styles from './ui.module.css'
+import styles from './ActionBar.module.css'
 
 export interface ActionBarProps extends HTMLAttributes<HTMLDivElement> {
   leading?: ReactNode

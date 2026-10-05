@@ -3,7 +3,7 @@
 import type { ButtonHTMLAttributes } from 'react'
 
 import { classNames } from './classNames'
-import styles from './ui.module.css'
+import styles from './Switch.module.css'
 
 export interface SwitchProps extends Omit<ButtonHTMLAttributes<HTMLButtonElement>, 'onChange' | 'onClick' | 'type'> {
   checked: boolean

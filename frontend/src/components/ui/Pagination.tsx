@@ -4,7 +4,7 @@ import { useMemo } from 'react'
 
 import { Button } from './Button'
 import { classNames } from './classNames'
-import styles from './ui.module.css'
+import styles from './Pagination.module.css'
 
 export interface PaginationProps {
   currentPage: number

@@ -2,7 +2,7 @@ import type { ReactNode } from 'react'
 
 import { Button } from './Button'
 import { classNames } from './classNames'
-import styles from './ui.module.css'
+import styles from './HeroMetrics.module.css'
 
 export interface HeroMetricItem {
   label: string

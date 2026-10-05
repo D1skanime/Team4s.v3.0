@@ -1,6 +1,6 @@
 import type { ReactNode } from 'react'
 
-import styles from './ui.module.css'
+import styles from './FormField.module.css'
 
 export interface FormFieldProps {
   label?: string

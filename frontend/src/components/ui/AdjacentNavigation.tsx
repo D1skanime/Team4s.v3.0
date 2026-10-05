@@ -2,7 +2,7 @@ import Link from 'next/link'
 import { ChevronLeft, ChevronRight } from 'lucide-react'
 
 import { classNames } from './classNames'
-import styles from './ui.module.css'
+import styles from './AdjacentNavigation.module.css'
 
 export interface AdjacentNavigationItem {
   href: string

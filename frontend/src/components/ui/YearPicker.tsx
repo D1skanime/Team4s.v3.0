@@ -4,7 +4,7 @@ import { useEffect, useMemo, useRef, useState } from 'react'
 import type { CSSProperties } from 'react'
 import { createPortal } from 'react-dom'
 
-import styles from './ui.module.css'
+import styles from './YearPicker.module.css'
 
 const YEARS_PER_PAGE = 12
 

@@ -4,7 +4,7 @@ import { useId, useState } from 'react'
 import type { ReactNode } from 'react'
 
 import { classNames } from './classNames'
-import styles from './ui.module.css'
+import styles from './Tabs.module.css'
 
 export interface TabItem {
   id: string

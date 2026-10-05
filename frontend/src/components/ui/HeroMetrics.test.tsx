@@ -4,7 +4,7 @@ import { fireEvent, render, screen } from '@testing-library/react'
 import { describe, expect, it, vi } from 'vitest'
 
 import { HeroMetrics } from './HeroMetrics'
-import styles from './ui.module.css'
+import styles from './Button.module.css'
 
 describe('HeroMetrics', () => {
   it('ordnet Bezeichnungen vor den hervorgehobenen Werten an', () => {
@@ -67,7 +67,7 @@ describe('HeroMetrics', () => {
   // visible keyboard focus ring. The live, real-browser proof of the same affordance runs in
   // shot-projectmember.mjs.
   it('gives .buttonText a permanent (non-hover-only) underline affordance and a focus-visible ring (F2)', () => {
-    const css = readFileSync('src/components/ui/ui.module.css', 'utf8')
+    const css = readFileSync('src/components/ui/Button.module.css', 'utf8')
     const baseRule = css.match(/\.buttonText\s*\{[^}]+\}/)?.[0]
     const focusVisibleRule = css.match(/\.buttonText:focus-visible\s*\{[^}]+\}/)?.[0]
 

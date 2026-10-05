@@ -1,0 +1,207 @@
+.button {
+  --button-bg: color-mix(in srgb, var(--surface-card) 92%, transparent);
+  --button-border: var(--border-subtle);
+  --button-text: var(--text-body);
+  --button-shadow: var(--shadow-xs);
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 10px;
+  min-height: var(--control-height-md);
+  padding: 0 16px;
+  border-radius: 8px;
+  border: 1px solid var(--button-border);
+  background: var(--button-bg);
+  color: var(--button-text);
+  font-size: 14px;
+  font-weight: 700;
+  line-height: 1;
+  text-decoration: none;
+  cursor: pointer;
+  transition:
+    transform 120ms ease,
+    box-shadow 120ms ease,
+    border-color 120ms ease,
+    background-color 120ms ease,
+    color 120ms ease;
+  box-shadow: var(--button-shadow);
+}
+
+.button:hover {
+  transform: translateY(-1px);
+  box-shadow: var(--shadow-sm);
+}
+
+.button:focus-visible {
+  box-shadow: var(--focus-ring);
+}
+
+.buttonPrimary {
+  --button-bg:
+    linear-gradient(180deg, rgba(255, 255, 255, 0.16) 0%, rgba(255, 255, 255, 0.05) 24%, rgba(255, 255, 255, 0) 26%),
+    linear-gradient(to bottom, var(--button-primary-start) 0%, var(--button-primary-mid) 45%, var(--button-primary-end) 100%);
+  --button-border: color-mix(in srgb, var(--button-primary-end) 74%, #24396f 26%);
+  --button-text: #f8fbff;
+  --button-shadow: 0 5px 14px rgba(67, 99, 180, 0.18), inset 0 1px 0 rgba(255, 255, 255, 0.18);
+}
+
+.buttonPrimary:hover {
+  border-color: color-mix(in srgb, var(--button-primary-end) 72%, #24396f 28%);
+  box-shadow: 0 7px 18px rgba(67, 99, 180, 0.22), inset 0 1px 0 rgba(255, 255, 255, 0.2);
+}
+
+.buttonPrimary:focus-visible {
+  box-shadow:
+    0 7px 18px rgba(67, 99, 180, 0.22),
+    inset 0 1px 0 rgba(255, 255, 255, 0.2),
+    0 0 0 3px rgba(122, 160, 240, 0.2);
+}
+
+.buttonSecondary {
+  --button-bg:
+    linear-gradient(180deg, rgba(255, 255, 255, 0.12) 0%, rgba(255, 255, 255, 0.04) 22%, rgba(255, 255, 255, 0) 24%),
+    linear-gradient(to bottom, var(--button-secondary-start) 0%, var(--button-secondary-mid) 45%, var(--button-secondary-end) 100%);
+  --button-border: color-mix(in srgb, var(--button-secondary-end) 74%, black 26%);
+  --button-text: #f7f9ff;
+  --button-shadow: 0 5px 14px rgba(42, 53, 86, 0.18), inset 0 1px 0 rgba(255, 255, 255, 0.16);
+}
+
+.buttonSecondary:hover {
+  border-color: color-mix(in srgb, var(--button-secondary-end) 72%, black 28%);
+  box-shadow: 0 6px 16px rgba(42, 53, 86, 0.2), inset 0 1px 0 rgba(255, 255, 255, 0.18);
+}
+
+.buttonGhost {
+  --button-bg: transparent;
+  --button-border: transparent;
+  --button-text: color-mix(in srgb, var(--accent-primary) 42%, var(--text-body) 58%);
+  box-shadow: none;
+}
+
+.buttonGhost:hover {
+  background: color-mix(in srgb, var(--accent-primary) 14%, white);
+  color: color-mix(in srgb, var(--accent-primary) 52%, var(--text-strong) 48%);
+}
+
+.buttonSubtle {
+  --button-bg: color-mix(in srgb, var(--accent-primary) 14%, white);
+  --button-border: color-mix(in srgb, var(--accent-primary) 20%, white);
+  --button-text: color-mix(in srgb, var(--accent-primary) 46%, var(--text-body) 54%);
+  box-shadow: none;
+}
+
+.buttonSubtle:hover {
+  --button-bg: color-mix(in srgb, var(--accent-primary) 19%, white);
+  --button-border: color-mix(in srgb, var(--accent-primary) 28%, white);
+}
+
+.buttonDanger {
+  --button-bg:
+    linear-gradient(180deg, rgba(255, 255, 255, 0.16) 0%, rgba(255, 255, 255, 0.05) 24%, rgba(255, 255, 255, 0) 26%),
+    linear-gradient(to bottom, var(--button-danger-start) 0%, var(--button-danger-mid) 45%, var(--button-danger-end) 100%);
+  --button-border: color-mix(in srgb, var(--button-danger-end) 74%, black 26%);
+  --button-text: #fff8fb;
+  --button-shadow: 0 5px 14px rgba(58, 14, 35, 0.22), inset 0 1px 0 rgba(255, 255, 255, 0.18);
+}
+
+.buttonDanger:hover {
+  border-color: color-mix(in srgb, var(--button-danger-end) 72%, black 28%);
+  box-shadow: 0 7px 18px rgba(58, 14, 35, 0.24), inset 0 1px 0 rgba(255, 255, 255, 0.2);
+}
+
+.buttonSuccess {
+  --button-bg:
+    linear-gradient(180deg, rgba(255, 255, 255, 0.16) 0%, rgba(255, 255, 255, 0.05) 24%, rgba(255, 255, 255, 0) 26%),
+    linear-gradient(to bottom, var(--button-success-start) 0%, var(--button-success-mid) 45%, var(--button-success-end) 100%);
+  --button-border: color-mix(in srgb, var(--button-success-end) 74%, #1b5d4a 26%);
+  --button-text: #f7fffb;
+  --button-shadow: 0 5px 14px rgba(47, 155, 121, 0.16), inset 0 1px 0 rgba(255, 255, 255, 0.18);
+}
+
+.buttonSuccess:hover {
+  border-color: color-mix(in srgb, var(--button-success-end) 72%, #1b5d4a 28%);
+  box-shadow: 0 7px 18px rgba(47, 155, 121, 0.2), inset 0 1px 0 rgba(255, 255, 255, 0.2);
+}
+
+.buttonText {
+  display: inline;
+  min-height: auto;
+  padding: 0;
+  margin: 0;
+  border: none;
+  border-radius: 0;
+  background: none;
+  box-shadow: none;
+  font-size: inherit;
+  font-weight: inherit;
+  line-height: inherit;
+  color: inherit;
+  /* GAP-03 F2 (157-15): a permanent, hover-independent affordance -- the underline must be
+     visible before any hover/focus interaction, not just appear on :hover. */
+  text-decoration: underline;
+  text-decoration-color: color-mix(in srgb, var(--accent-primary) 45%, transparent);
+  text-underline-offset: 3px;
+}
+
+.buttonText:hover {
+  transform: none;
+  box-shadow: none;
+  background: none;
+  color: color-mix(in srgb, var(--accent-primary) 52%, var(--text-strong) 48%);
+  text-decoration: underline;
+  text-decoration-color: currentColor;
+}
+
+.buttonText:focus-visible {
+  outline: none;
+  box-shadow: var(--focus-ring);
+  border-radius: 4px;
+}
+
+.buttonIcon {
+  width: var(--control-height-md);
+  min-width: var(--control-height-md);
+  padding: 0;
+}
+
+.buttonSmall {
+  min-height: var(--control-height-sm);
+  padding: 0 12px;
+  border-radius: 7px;
+  font-size: 13px;
+}
+
+.buttonLarge {
+  min-height: var(--control-height-lg);
+  padding: 0 18px;
+  border-radius: 10px;
+  font-size: 15px;
+}
+
+.buttonBlock {
+  width: 100%;
+}
+
+.buttonDisabled,
+.button:disabled,
+.button[aria-disabled="true"] {
+  opacity: 0.56;
+  cursor: not-allowed;
+  transform: none;
+  box-shadow: none;
+}
+
+.buttonSpinner {
+  width: 14px;
+  height: 14px;
+  border: 2px solid color-mix(in srgb, currentColor 24%, transparent);
+  border-top-color: currentColor;
+  border-radius: 999px;
+  animation: ui-spin 900ms linear infinite;
+}
+
+@keyframes ui-spin {
+  to {
+    transform: rotate(360deg);
+  }
+}

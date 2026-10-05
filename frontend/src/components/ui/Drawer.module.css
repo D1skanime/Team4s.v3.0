@@ -1,0 +1,158 @@
+.drawerWrap {
+  position: fixed;
+  inset: 0;
+  z-index: var(--z-modal);
+  display: flex;
+}
+
+.drawerWrap {
+  justify-content: flex-end;
+}
+
+.drawerPanel {
+  position: relative;
+  z-index: 1;
+  border: 1px solid var(--border-subtle);
+  background: linear-gradient(180deg, rgba(255, 255, 255, 0.98) 0%, rgba(250, 247, 243, 0.98) 100%);
+  box-shadow: var(--shadow-lg);
+}
+
+.drawerPanel {
+  width: min(620px, 100%);
+  height: 100%;
+  padding: 0;
+  border-radius: 28px 0 0 28px;
+  display: grid;
+  grid-template-rows: auto minmax(0, 1fr) auto;
+  overflow: hidden;
+  z-index: var(--z-drawer);
+  border-left-color: color-mix(in srgb, var(--accent-primary) 18%, var(--border-subtle));
+}
+
+.drawerPanelLg {
+  width: min(760px, 100vw);
+}
+
+.drawerPanel::before {
+  content: '';
+  position: absolute;
+  inset: 0 auto 0 0;
+  width: 4px;
+  background: linear-gradient(180deg, color-mix(in srgb, var(--accent-primary) 72%, white), #7c3c4f 58%, color-mix(in srgb, var(--surface-sunken) 82%, white));
+}
+
+.drawerWrapSheet {
+  align-items: center;
+  justify-content: center;
+  padding: 24px;
+}
+
+.drawerPanelSheet {
+  width: min(760px, calc(100vw - 48px));
+  height: min(680px, calc(100dvh - 48px));
+  max-height: calc(100dvh - 48px);
+  border-radius: 22px;
+  border-left-color: var(--border-subtle);
+}
+
+.drawerPanelSheet::before {
+  display: none;
+}
+
+.drawerHeader,
+.drawerFooter {
+  display: flex;
+  justify-content: space-between;
+  gap: 12px;
+  align-items: flex-start;
+  flex-wrap: wrap;
+}
+
+.drawerHeader {
+  flex-wrap: nowrap;
+  padding: 24px 24px 18px 28px;
+  border-bottom: 1px solid color-mix(in srgb, var(--border-subtle) 88%, white);
+  background: linear-gradient(180deg, rgba(255, 255, 255, 0.98) 0%, rgba(248, 245, 239, 0.96) 100%);
+}
+
+.drawerHeader > div {
+  min-width: 0;
+  flex: 1 1 auto;
+}
+
+.drawerBody {
+  min-height: 0;
+  overflow: auto;
+  padding: 22px 24px 24px 28px;
+  display: grid;
+  gap: 18px;
+  align-content: start;
+  background: linear-gradient(180deg, rgba(250, 247, 243, 0.94) 0%, rgba(255, 255, 255, 0.98) 100%);
+}
+
+.drawerFooter {
+  padding: 18px 24px 24px 28px;
+  border-top: 1px solid color-mix(in srgb, var(--border-subtle) 88%, white);
+  background: linear-gradient(180deg, rgba(250, 247, 243, 0.98) 0%, rgba(255, 255, 255, 0.98) 100%);
+  box-shadow: 0 -10px 24px rgba(24, 23, 21, 0.04);
+}
+
+@media (max-width: 767px) {
+  .drawerHeader,
+  .drawerFooter {
+    flex-direction: column;
+    align-items: stretch;
+  }
+
+  .drawerPanel {
+    border-radius: 20px 0 0 20px;
+  }
+
+  .drawerHeader {
+    padding: 18px 18px 14px 22px;
+  }
+
+  .drawerBody {
+    padding: 16px 18px 18px 22px;
+  }
+
+  .drawerFooter {
+    padding: 14px 18px 18px 22px;
+  }
+}
+
+@media (max-width: 759px) {
+  .drawerWrapSheet {
+    align-items: flex-end;
+    justify-content: center;
+    padding: 12px 0 0;
+  }
+
+  .drawerPanelSheet {
+    width: 100%;
+    height: auto;
+    max-height: 88vh;
+    border-radius: 22px 22px 0 0;
+    border-right: 0;
+    border-bottom: 0;
+    border-left: 0;
+  }
+
+  .drawerPanelSheet .drawerHeader {
+    flex-direction: row;
+    align-items: flex-start;
+    flex-wrap: nowrap;
+    padding: 16px 16px 12px;
+  }
+
+  .drawerPanelSheet .drawerBody {
+    padding: 14px 16px 16px;
+  }
+
+  .drawerPanelSheet .drawerFooter {
+    flex-direction: row;
+    align-items: center;
+    justify-content: flex-end;
+    padding: 12px 16px 16px;
+  }
+}
