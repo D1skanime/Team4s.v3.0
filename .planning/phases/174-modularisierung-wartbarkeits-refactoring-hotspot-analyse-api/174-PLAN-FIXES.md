@@ -290,3 +290,5 @@ Abdeckungstiefe), keine Planungsfehler mehr.
 - Übrige `grep -c`-Prüfungen ohne `|| true` erwarten ≥1 Treffer (positive Checks) und sind korrekt.
 
 - **Auth 174-21/174-24 (2026-10-05):** In 174-01 wurde mangels Vorgabe das Passwort des KC-Users `admin` per kcadm zurückgesetzt. Beide Pläne verwenden jetzt verbindlich den Test-User `timer`; Passwort-Resets/Rechtevergabe an anderen Usern sind verboten, fehlende Rechte werden als Checkpoint gemeldet.
+
+- **174-14 Task 2b (D-25, 2026-10-05):** Die 16 reinen Helfer werden 1:1 in das routeninterne Modul `adminFansubCreateHelpers.ts` verschoben (gemeinsam genutzt von page, Actions-Hook und Sektionen) und dort direkt per Unit-Test abgesichert (keine Oberfläche, keine Timer, < 5 s). Ersetzt die in 174-09 entfernten instabilen Klick-Tests für Alias-Sortierung, Patch-Payload und Link-Abgleich auf Logik-Ebene.
