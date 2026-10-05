@@ -64,6 +64,7 @@ keine DB-Migrationen (außer bei nachgewiesenem technischem Fehler).
 - **D-24:** Neue/geänderte Produktionsdateien halten die 450-Zeilen-Regel ein, wo die Aufteilung fachlich trägt; wo eine Datei bewusst größer bleibt, im Report begründen (keine stillen neuen Ausnahmen).
 
 ### Testen von Admin-Klickabläufen (Nachtrag 2026-10-05, Nutzerentscheidung)
+- **D-25 (Prinzip, Nutzer):** Automatische Tests prüfen, ob die Funktion hinter einem Button das tut, was sie soll (richtige API mit richtigen Daten, richtige Zustandsänderung, richtiger Fehlerpfad) — auf Funktions-/Hook-Ebene, ohne Seite zu rendern oder zu klicken. UI-Verhalten (sichtbar, klickbar, Reihenfolge, Darstellung) wird live geprüft.
 - **D-25:** Admin-Klickabläufe in der UI (Formulare bedienen, Aliase/Links/Uploads, Speichern, Drag & Drop, Dialoge) werden **live vom Nutzer abgenommen** (Checkliste `174-UAT-CHECKLIST.md`, Abnahme nach Welle 3 und nach Welle 5), nicht durch neue Klick-Simulationstests. Neue automatisierte Tests nur für stabile, deterministische Logik (reine Funktionen, Payload-/Mapping-Verhalten, Repository-Ebene). Bestehende Tests bleiben unverändert und müssen grün bleiben (D-03). Ein neuer Charakterisierungstest, der gegen den unveränderten Code nicht grün oder nicht deterministisch ist, wird nicht aufgenommen, sondern als UAT-Punkt geführt.
 
 ### Claude's Discretion
