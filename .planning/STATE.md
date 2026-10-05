@@ -3,14 +3,14 @@ gsd_state_version: 1.0
 milestone: v1.4
 milestone_name: Coverage
 status: executing
-stopped_at: Completed 174-08-PLAN.md
-last_updated: "2026-10-05T03:13:10.429Z"
+stopped_at: Completed 174-10-PLAN.md
+last_updated: "2026-10-05T11:09:05.161Z"
 last_activity: 2026-10-05
 progress:
   total_phases: 39
   completed_phases: 33
   total_plans: 364
-  completed_plans: 342
+  completed_plans: 344
   percent: 85
 ---
 
@@ -907,6 +907,7 @@ Last activity: 2026-10-05
 - [Phase 174]: Split members-me.ts from members.ts to keep self-service /me functions under the 450-line budget instead of invoking a D-24 cohesion exception — 174-07
 - [Phase 174]: createAnimeComment has zero production consumers; placed in new comments.ts by endpoint-domain reasoning and documented as known-unused rather than dropped or force-fit — 174-07
 - [Phase 174]: client.ts tightened: 4 module-private helpers (ParsedApiErrorPayload, writeBrowserCookie, isAuthRelatedError, ensureFreshRuntimeSession) un-exported to close an unintended barrel surface leak found by the Welle-2 export-parity audit — Welle-2 export-diff against the pre-split baseline found 0 dropped names, 18 legitimate D-09 shared-infra additions, and 4 additions with zero cross-file consumers anywhere in frontend/src; un-exporting the 4 restores closer parity with the none-added must-have without breaking any real import
+- [Phase 174]: 174-10: moved resolveAniSearchCandidateSearchFeedback into useAniSearchIntakeActions.ts alongside its only caller, re-exported one-directionally from the impl file to avoid an impl<->sub-hook import cycle while keeping the facade's public re-export path unchanged
 
 ### Pending Todos
 
@@ -1474,11 +1475,12 @@ untruncated list lives in `.planning/todos/pending/`.
 | Phase 174 P06 | 95min | 3 tasks | 11 files |
 | Phase 174 P07 | 85min | 2 tasks | 12 files |
 | Phase 174 P08 | 75min | 2 tasks | 1 files |
+| Phase 174 P10 | 13min | 3 tasks | 5 files |
 
 ## Session Continuity
 
-Last session: 2026-10-05T03:13:10.398Z
-Stopped at: Completed 174-08-PLAN.md
+Last session: 2026-10-05T11:09:05.140Z
+Stopped at: Completed 174-10-PLAN.md
 Last activity: 2026-09-28 - Completed Phase 169 Plan 169-01
 Resume file: 
 None
