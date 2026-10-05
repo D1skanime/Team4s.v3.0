@@ -80,6 +80,12 @@ const publicNoAuthFetchAllowlist = new Set([
   // API this boundary test protects, so it belongs in the no-auth allowlist alongside
   // MemberAvatarCard.tsx's equivalent same-origin media fetch above.
   'src/components/profile/MemberProfileHero.tsx',
+  // 174-06: deleteUploadedCoverFile's fetch('/api/admin/upload-cover', ...) targets
+  // the Next.js app's own same-origin route handler (frontend/src/app/api/admin/
+  // upload-cover/route.ts), not the central Team4s backend API this boundary test
+  // protects -- same pre-existing shape it had inside api.ts before this file's
+  // relocation (174-03/174-04/174-05 precedent: physical relocation, same boundary).
+  'src/lib/api/admin/anime-assets.ts',
 ])
 
 const docsAllowlist = new Set([

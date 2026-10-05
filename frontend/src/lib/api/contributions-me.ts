@@ -13,6 +13,7 @@ import {
   apiClientFetch,
   ApiError,
   authorizedFetch,
+  authorizedUploadXhr,
   getApiBaseUrl,
   parseApiErrorPayload,
 } from "./client";
@@ -214,6 +215,39 @@ export async function getMySuggestions(): Promise<MeSuggestionsResponse> {
   }
 
   return response.json() as Promise<MeSuggestionsResponse>;
+}
+
+// 174-06: relocated from api.ts's media/assets bucket (not a generic
+// "media.ts" upload -- target_type/target_id/category are member-suggestion
+// fields, same shape as submitSuggestion/getMySuggestions above, and its
+// sole call site is ReportFormMedia.tsx's member-authored report flow).
+export interface UploadMediaSuggestionOptions {
+  file: File;
+  fields: {
+    target_type: string;
+    target_id: string;
+    category: string;
+  };
+  onProgress?: (percent: number) => void;
+}
+
+export async function uploadMediaSuggestion(
+  options: UploadMediaSuggestionOptions,
+): Promise<void> {
+  const API_BASE_URL = getApiBaseUrl();
+  return authorizedUploadXhr<void>({
+    endpoint: `${API_BASE_URL}/api/v1/me/suggestions/media`,
+    retryEligibility: "never",
+    onProgress: options.onProgress,
+    buildBody: () => {
+      const body = new FormData();
+      body.set("file", options.file);
+      body.set("target_type", options.fields.target_type);
+      body.set("target_id", options.fields.target_id);
+      body.set("category", options.fields.category);
+      return body;
+    },
+  });
 }
 
 export async function searchAnimeForProposal(

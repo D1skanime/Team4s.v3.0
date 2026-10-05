@@ -12,7 +12,10 @@ import type {
 import type {
   GroupAssetsResponse,
 } from "@/types/groupAsset";
-import type { GroupThemesResponse } from "@/types/groupContributors";
+import type {
+  GroupReleaseMediaResponse,
+  GroupThemesResponse,
+} from "@/types/groupContributors";
 import type {
   GroupDetailResponse,
   GroupReleaseCountResponse,
@@ -370,4 +373,32 @@ export async function detachAnimeFansub(
     );
     throw new ApiError(response.status, message);
   }
+}
+
+// --- Öffentliche Gruppen-Projektions-Endpunkte (Phase 75) ---
+// 174-06: relocated from api.ts's media/assets bucket (zero production call
+// sites -- its sibling getGroupThemes/getGroupReleases/getGroupAssets are
+// also projection endpoints in this file; projectPageData.test.ts asserts it
+// is intentionally never called from the group project page per Phase 155's
+// dead-fetch cleanup, D-01 behavior-preservation keeps the function itself).
+
+export async function getGroupReleaseMedia(
+  animeID: number,
+  groupID: number,
+): Promise<GroupReleaseMediaResponse> {
+  const API_BASE_URL = getApiBaseUrl();
+  const response = await authorizedFetch(
+    `${API_BASE_URL}/api/v1/anime/${animeID}/group/${groupID}/release-media`,
+    { cache: "no-store" },
+  );
+
+  if (!response.ok) {
+    const message = await parseApiError(
+      response,
+      `API request failed: ${response.status}`,
+    );
+    throw new ApiError(response.status, message);
+  }
+
+  return response.json() as Promise<GroupReleaseMediaResponse>;
 }
