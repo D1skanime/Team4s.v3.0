@@ -1,7 +1,7 @@
 'use client'
 
 import { useEffect, useMemo, useRef, useState, type DragEvent, type PointerEvent } from 'react'
-import { Archive, Ban, Check, Edit3, Filter, GripVertical, Save, UploadCloud, X } from 'lucide-react'
+import { Archive, Ban, Check, Edit3, GripVertical, Save, UploadCloud, X } from 'lucide-react'
 import Image from 'next/image'
 
 import {
@@ -33,6 +33,8 @@ import { classNames } from '@/components/ui/classNames'
 
 import styles from './GroupMediaReviewSection.module.css'
 import { useGroupMediaReviewActions } from './useGroupMediaReviewActions'
+import { GroupMediaReviewUploadPanel } from './GroupMediaReviewUploadPanel'
+import { GroupMediaReviewFilterBar } from './GroupMediaReviewFilterBar'
 
 interface GroupMediaReviewSectionProps {
   fansubId: number
@@ -569,215 +571,50 @@ function GroupMediaReviewSectionInner({
       {toast ? <p className={styles.toastSuccess} role="status">{toast}</p> : null}
 
       {shouldShowUploadPanel ? (
-        <Card
-          variant="section"
-          className={styles.uploadPanel}
-          header={
-            <SectionHeader
-              title="Medien hochladen"
-              description="Neue Bilder werden der Gruppe zugeordnet und erscheinen anschließend in der Übersicht."
-            />
-          }
-        >
-          <div className={styles.uploadControls}>
-            <FormField label="Kategorie">
-              <Select
-                value={uploadCategory}
-                onChange={(event) => setUploadCategory(event.target.value as FansubGroupMediaCategory)}
-              >
-                {CATEGORY_OPTIONS.map((option) => (
-                  <option key={option.value} value={option.value}>{option.label}</option>
-                ))}
-              </Select>
-            </FormField>
-
-            <FormField label="Dateien">
-              <div
-                className={classNames(styles.dropZone, isUploadDragging && styles.dropZoneActive)}
-                role="button"
-                tabIndex={0}
-                aria-label="Bilder auswählen oder hier ablegen"
-                onClick={() => fileInputRef.current?.click()}
-                onKeyDown={(event) => {
-                  if (event.key === 'Enter' || event.key === ' ') {
-                    event.preventDefault()
-                    fileInputRef.current?.click()
-                  }
-                }}
-                onDragEnter={(event) => {
-                  event.preventDefault()
-                  setIsUploadDragging(true)
-                }}
-                onDragOver={(event) => event.preventDefault()}
-                onDragLeave={(event) => {
-                  if (event.currentTarget === event.target) setIsUploadDragging(false)
-                }}
-                onDrop={handleUploadDrop}
-              >
-                <Input
-                  id="group-media-file-input"
-                  ref={fileInputRef}
-                  type="file"
-                  multiple
-                  accept="image/png,image/jpeg,image/webp,image/gif"
-                  className={styles.fileInput}
-                  onChange={(event) => handleSelectedFiles(Array.from(event.currentTarget.files ?? []))}
-                />
-                <div className={styles.dropZoneIcon} aria-hidden="true"><UploadCloud size={22} /></div>
-                <div className={styles.dropZoneCopy}>
-                  <p className={styles.dropZoneTitle}>Bilder auswählen oder hier ablegen</p>
-                  <p className={styles.fileHint}>Mehrere Dateien gleichzeitig möglich</p>
-                </div>
-                <Button
-                  type="button"
-                  variant="secondary"
-                  size="sm"
-                  leftIcon={<UploadCloud size={16} />}
-                  onClick={(event) => {
-                    event.stopPropagation()
-                    fileInputRef.current?.click()
-                  }}
-                >
-                  Dateien auswählen
-                </Button>
-                <p className={styles.fileHint}>PNG, JPG, WebP oder GIF. Die Auswahl wird nach erfolgreichem Upload zurückgesetzt.</p>
-              </div>
-            </FormField>
-          </div>
-
-          {selectedFiles.length > 0 ? (
-            <div className={styles.fileSelection} role="status">
-              <div className={styles.fileSelectionHeader}>
-                <strong>{selectedFiles.length} {selectedFiles.length === 1 ? 'Bild ausgewählt' : 'Bilder ausgewählt'}</strong>
-              </div>
-              <div className={styles.filePreviewGrid} aria-label="Bildvorschauen">
-                {selectedFilePreviews.map(({ file, url }) => (
-                  <figure
-                    className={styles.filePreview}
-                    key={`${file.name}-${file.lastModified}-${file.size}`}
-                  >
-                    {url ? (
-                      <Image
-                        src={url}
-                        alt={`Vorschau: ${file.name}`}
-                        fill
-                        unoptimized
-                        sizes="(max-width: 600px) 50vw, 140px"
-                      />
-                    ) : null}
-                    <figcaption title={file.name}>{file.name}</figcaption>
-                  </figure>
-                ))}
-              </div>
-            </div>
-          ) : null}
-          {uploadProgress !== null ? <p className={styles.fileHint}>Upload: {Math.round(uploadProgress)}%</p> : null}
-          {uploadError ? <p className={styles.inlineError} role="alert">{uploadError}</p> : null}
-
-          <div className={styles.cardFooterActions}>
-            <Button
-              variant="primary"
-              size="sm"
-              leftIcon={<UploadCloud size={16} />}
-              loading={uploadProgress !== null}
-              disabled={selectedFiles.length === 0 || uploadProgress !== null}
-              onClick={() => void handleUpload()}
-            >
-              Bilder hochladen
-            </Button>
-          </div>
-        </Card>
+        <GroupMediaReviewUploadPanel
+          fileInputRef={fileInputRef}
+          uploadCategory={uploadCategory}
+          setUploadCategory={setUploadCategory}
+          isUploadDragging={isUploadDragging}
+          setIsUploadDragging={setIsUploadDragging}
+          selectedFiles={selectedFiles}
+          selectedFilePreviews={selectedFilePreviews}
+          uploadProgress={uploadProgress}
+          uploadError={uploadError}
+          handleSelectedFiles={handleSelectedFiles}
+          handleUploadDrop={handleUploadDrop}
+          handleUpload={handleUpload}
+        />
       ) : null}
 
       <Card
         variant="section"
         className={styles.managementPanel}
       >
-        <div className={styles.managementToolbar}>
-          <div className={styles.managementSummary}>
-            <h2>Medienübersicht</h2>
-            <p className={styles.resultSummary}>
-              <span className={styles.desktopSummary}>
-                {filteredMediaItems.length} von {mediaItems.length} Medien sichtbar · {visibleMediaItems.length} geladen, {remainingMediaCount} weitere per Klick
-              </span>
-              <span className={styles.mobileSummary}>
-                {visibleMediaItems.length} geladen · {remainingMediaCount} weitere
-              </span>
-            </p>
-          </div>
-          <div className={styles.managementActions}>
-            {activeFilterCount > 0 ? (
-              <Button variant="ghost" size="sm" onClick={resetFilters}>
-                Filter zurücksetzen ({activeFilterCount})
-              </Button>
-            ) : null}
-            {canReview ? (
-              <Button
-                variant="ghost"
-                size="sm"
-                disabled={filteredMediaItems.length === 0 || isBulkSaving}
-                onClick={toggleAllFilteredSelection}
-              >
-                {allFilteredSelected ? 'Auswahl abbrechen' : 'Alle auswählen'}
-              </Button>
-            ) : null}
-            <Button
-              variant="secondary"
-              size="sm"
-              className={styles.filterToggleButton}
-              leftIcon={<Filter size={16} />}
-              onClick={() => setIsFilterOpen((current) => !current)}
-              aria-expanded={isFilterOpen}
-            >
-              Filter
-            </Button>
-          </div>
-        </div>
-
-        <div className={classNames(styles.filterBar, isFilterOpen && styles.filterBarOpen)}>
-          <FormField label="Kategorie">
-            <Select value={categoryFilter} onChange={(event) => setCategoryFilter(event.target.value as CategoryFilter)}>
-              <option value="all">Alle Kategorien</option>
-              {CATEGORY_OPTIONS.map((option) => (
-                <option key={option.value} value={option.value}>{option.label}</option>
-              ))}
-            </Select>
-          </FormField>
-
-          <FormField label="Prüfstatus">
-            <Select value={statusFilter} onChange={(event) => setStatusFilter(event.target.value as ReviewStatusFilter)}>
-              <option value="all">Alle Status</option>
-              {REVIEW_STATUS_OPTIONS.map((option) => (
-                <option key={option.value} value={option.value}>{option.label}</option>
-              ))}
-            </Select>
-          </FormField>
-
-          <FormField label="Sichtbarkeit">
-            <Select value={visibilityFilter} onChange={(event) => setVisibilityFilter(event.target.value as VisibilityFilter)}>
-              <option value="all">Alle Sichtbarkeiten</option>
-              {VISIBILITY_OPTIONS.map((option) => (
-                <option key={option.value} value={option.value}>{option.label}</option>
-              ))}
-            </Select>
-          </FormField>
-
-          <FormField label="Sortierung">
-            <Select value={sortMode} onChange={(event) => setSortMode(event.target.value as SortMode)}>
-              <option value="sort_order">Gespeicherte Reihenfolge</option>
-              <option value="created_desc">Neueste zuerst</option>
-              <option value="created_asc">Älteste zuerst</option>
-            </Select>
-          </FormField>
-
-          <FormField label="Suche">
-            <Input
-              value={searchTerm}
-              placeholder="Titel oder Beschreibung"
-              onChange={(event) => setSearchTerm(event.target.value)}
-            />
-          </FormField>
-        </div>
+        <GroupMediaReviewFilterBar
+          filteredMediaItemsCount={filteredMediaItems.length}
+          totalMediaItemsCount={mediaItems.length}
+          visibleMediaItemsCount={visibleMediaItems.length}
+          remainingMediaCount={remainingMediaCount}
+          activeFilterCount={activeFilterCount}
+          resetFilters={resetFilters}
+          canReview={canReview}
+          isBulkSaving={isBulkSaving}
+          allFilteredSelected={allFilteredSelected}
+          toggleAllFilteredSelection={toggleAllFilteredSelection}
+          isFilterOpen={isFilterOpen}
+          setIsFilterOpen={setIsFilterOpen}
+          categoryFilter={categoryFilter}
+          setCategoryFilter={setCategoryFilter}
+          statusFilter={statusFilter}
+          setStatusFilter={setStatusFilter}
+          visibilityFilter={visibilityFilter}
+          setVisibilityFilter={setVisibilityFilter}
+          sortMode={sortMode}
+          setSortMode={setSortMode}
+          searchTerm={searchTerm}
+          setSearchTerm={setSearchTerm}
+        />
 
         {reorderError ? <p className={styles.inlineError} role="alert">{reorderError}</p> : null}
         {canUpdate && !isCanonicalReorderView ? (
