@@ -2326,7 +2326,7 @@ fachlicher Grenzen entflochten, mit Vorher/Nachher-Audit und dokumentierten offe
 fuer Folgephasen.
 **Requirements**: D-01 - D-24 (Decision-Coverage via `174-CONTEXT.md`, kein REQUIREMENTS.md-Mapping vorhanden)
 **Depends on:** Phase 173
-**Plans:** 13/26 plans executed
+**Plans:** 14/26 plans executed
 
 **Plan-time read first**: `174-CONTEXT.md` (24 locked decisions), `174-RESEARCH.md` (real measurements), `174-PATTERNS.md` (closest-analog split shapes already live in-repo), `174-HOTSPOTS.md` (Welle-1 output, produced by 174-01).
 
@@ -2373,7 +2373,7 @@ Plans:
 
 - [x] 174-11-PLAN.md — Welle 3: `useAdminAnimeCreateController`-Split Teil 2 (Asset-Staging + Submit)
 - [x] 174-13-PLAN.md — Welle 3: `GroupMediaReviewSection`-Split Teil 2 (5 Sektions-Komponenten)
-- [ ] 174-14-PLAN.md — Welle 3: `fansubs/create/page.tsx`-Split (Action-Hook + 3 Sektionen)
+- [x] 174-14-PLAN.md — Welle 3: `fansubs/create/page.tsx`-Split (Action-Hook + 3 Sektionen)
 
 **Wave 11** *(blocked on Wave 10)*
 
