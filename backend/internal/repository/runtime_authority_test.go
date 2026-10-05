@@ -103,7 +103,14 @@ func TestAnimeV2UpdatePathRoutesThroughSchemaAwareWriter(t *testing.T) {
 }
 
 func TestAnimeAssetCompatibilityUsesV2CoverHelpersWhenLegacySlotsAreGone(t *testing.T) {
-	assetContent := readRepositorySource(t, "anime_assets.go")
+	// 174-19: anime_assets.go was split by asset type into sibling files
+	// (anime_assets_cover.go, anime_assets_banner_logo.go, anime_assets_background.go,
+	// anime_assets_provider.go). The legacy/V2 fragments this test asserts on are now
+	// distributed across those files plus the retained core file, so the source under
+	// test is their concatenation rather than a single filename.
+	assetContent := readRepositorySource(t, "anime_assets.go") +
+		readRepositorySource(t, "anime_assets_cover.go") +
+		readRepositorySource(t, "anime_assets_banner_logo.go")
 	assetNormalized := strings.ToLower(assetContent)
 
 	required := []string{
