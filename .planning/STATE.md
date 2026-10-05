@@ -3,14 +3,14 @@ gsd_state_version: 1.0
 milestone: v1.4
 milestone_name: Coverage
 status: executing
-stopped_at: Completed 174-05-PLAN.md
-last_updated: "2026-10-05T01:52:10.822Z"
+stopped_at: Completed 174-06-PLAN.md
+last_updated: "2026-10-05T02:26:24.584Z"
 last_activity: 2026-10-05
 progress:
   total_phases: 39
   completed_phases: 33
   total_plans: 364
-  completed_plans: 339
+  completed_plans: 340
   percent: 85
 ---
 
@@ -903,6 +903,7 @@ Last activity: 2026-10-05
 - [Phase 174-04]: Cross-bucket same-wave dependencies resolve via direct sibling import (e.g. contributions-me.ts imports getAnimeList from ./fansubs-core), never through the api.ts barrel itself — Importing from the barrel inside a module the barrel re-exports would create a self-import cycle (D-11)
 - [Phase ?]: 174-05: Did not re-move 5 auth/session functions already relocated to client.ts by 174-02 (plan interface list was stale against a pre-174-02 commit)
 - [Phase ?]: 174-05: permissions.ts (~620 lines) and history.ts (~1030 lines) kept as single D-24 cohesion-exception files per the plan's locked artifact-path lock, matching 174-03's fansub-members.ts precedent
+- [Phase 174-06]: Media/asset bucket triaged by real grep evidence; getGroupReleaseMedia and uploadMediaSuggestion placed in existing sibling files (fansubs-groups.ts/contributions-me.ts) rather than the plan's abbreviated 4-destination menu — Sibling-function grouping is stronger evidence than the plan's illustrative destination list; only 1/46 functions was genuinely shared, confirming the god-module risk was avoided
 
 ### Pending Todos
 
@@ -1467,11 +1468,12 @@ untruncated list lives in `.planning/todos/pending/`.
 | Phase 174 P03 | 70min | 3 tasks | 12 files |
 | Phase 174 P04 | 100min | 3 tasks | 9 files |
 | Phase 174 P05 | 48min | 3 tasks | 7 files |
+| Phase 174 P06 | 95min | 3 tasks | 11 files |
 
 ## Session Continuity
 
-Last session: 2026-10-05T01:52:10.802Z
-Stopped at: Completed 174-05-PLAN.md
+Last session: 2026-10-05T02:26:24.568Z
+Stopped at: Completed 174-06-PLAN.md
 Last activity: 2026-09-28 - Completed Phase 169 Plan 169-01
 Resume file: 
 None
