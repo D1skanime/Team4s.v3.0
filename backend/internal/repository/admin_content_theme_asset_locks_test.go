@@ -7,7 +7,7 @@ import (
 )
 
 func TestThemeAssetUploadLocks_SourceInvariants(t *testing.T) {
-	src, err := os.ReadFile("admin_content_anime_themes.go")
+	src, err := os.ReadFile("admin_content_release_theme_assets.go")
 	if err != nil {
 		t.Fatalf("repository source nicht lesbar: %v", err)
 	}

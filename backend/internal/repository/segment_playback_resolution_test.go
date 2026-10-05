@@ -62,7 +62,7 @@ func TestParseSegmentClockSeconds_VariousFormats(t *testing.T) {
 // snapshot query no longer hardcodes NULL::INTEGER AS duration_seconds.
 // Acceptance criteria: the query resolves duration_seconds from release_variants.
 func TestLoadThemeSegmentPlaybackSnapshotTx_NoNullDurationHardcode(t *testing.T) {
-	content := readSegmentSourceFile(t, "admin_content_anime_themes.go")
+	content := readSegmentSourceFile(t, "admin_content_anime_segments_playback.go")
 
 	if strings.Contains(content, "NULL::INTEGER AS duration_seconds") {
 		t.Fatal("snapshot query still hardcodes NULL::INTEGER AS duration_seconds — must resolve from release_variants")
@@ -72,7 +72,7 @@ func TestLoadThemeSegmentPlaybackSnapshotTx_NoNullDurationHardcode(t *testing.T)
 // TestLoadThemeSegmentPlaybackSnapshotTx_ContainsReleaseVariantJoins follows the
 // playback snapshot through the shared owned variant/source selector.
 func TestLoadThemeSegmentPlaybackSnapshotTx_ContainsReleaseVariantJoins(t *testing.T) {
-	snapshot := readSegmentSourceFile(t, "admin_content_anime_themes.go")
+	snapshot := readSegmentSourceFile(t, "admin_content_anime_segments_playback.go")
 	if !strings.Contains(snapshot, "resolveThemeSegmentReleaseVariantTx(ctx, tx, segmentID, releaseVersionID)") {
 		t.Fatal("playback snapshot must resolve its requested release version")
 	}
@@ -104,7 +104,7 @@ func TestLoadThemeSegmentPlaybackSnapshotTx_ContainsReleaseVariantJoins(t *testi
 // the sync function contains episode_version as a playback source kind.
 // Task 2 acceptance: episode_version|uploaded_asset|jellyfin_theme all appear in syncThemeSegmentPlaybackSourceTx.
 func TestSyncThemeSegmentPlaybackSourceTx_ContainsAllPlaybackKinds(t *testing.T) {
-	content := readSegmentSourceFile(t, "admin_content_anime_themes.go")
+	content := readSegmentSourceFile(t, "admin_content_anime_segments_playback.go")
 
 	requiredKinds := []string{
 		"episode_version",
@@ -122,7 +122,7 @@ func TestSyncThemeSegmentPlaybackSourceTx_ContainsAllPlaybackKinds(t *testing.T)
 // the upsert statement rebuilds all playback columns including release_variant_id, jellyfin_item_id,
 // and duration_seconds.
 func TestSyncThemeSegmentPlaybackSourceTx_UpsertContainsPlaybackColumns(t *testing.T) {
-	content := readSegmentSourceFile(t, "admin_content_anime_themes.go")
+	content := readSegmentSourceFile(t, "admin_content_anime_segments_playback.go")
 
 	// These column names are used in the INSERT / DO UPDATE SET inside syncThemeSegmentPlaybackSourceTx.
 	requiredColumns := []string{
@@ -140,10 +140,10 @@ func TestSyncThemeSegmentPlaybackSourceTx_UpsertContainsPlaybackColumns(t *testi
 // TestGetSegmentReleaseDuration_MethodDeclared verifies that the new repository method
 // GetSegmentReleaseDuration is declared so the interface contract can be satisfied.
 func TestGetSegmentReleaseDuration_MethodDeclared(t *testing.T) {
-	content := readSegmentSourceFile(t, "admin_content_anime_themes.go")
+	content := readSegmentSourceFile(t, "admin_content_release_theme_assets.go")
 
 	if !strings.Contains(content, "func (r *AdminContentRepository) GetSegmentReleaseDuration(") {
-		t.Fatal("GetSegmentReleaseDuration method not found in admin_content_anime_themes.go")
+		t.Fatal("GetSegmentReleaseDuration method not found in admin_content_release_theme_assets.go")
 	}
 }
 

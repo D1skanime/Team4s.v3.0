@@ -172,7 +172,7 @@ func TestAdminAnimeSegments_NoParallelMediaOwnershipShortcuts(t *testing.T) {
 		t.Skip("cannot determine test file path")
 	}
 	handlerSrc := readSegmentHandlerSource(t)
-	repoBytes, err := os.ReadFile(filepath.Join(filepath.Dir(thisFile), "..", "repository", "admin_content_anime_themes.go"))
+	repoBytes, err := os.ReadFile(filepath.Join(filepath.Dir(thisFile), "..", "repository", "admin_content_anime_segments_playback.go"))
 	if err != nil {
 		t.Fatalf("read repository source: %v", err)
 	}

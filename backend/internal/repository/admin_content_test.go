@@ -682,7 +682,16 @@ func TestAdminContentRepository_DeleteSource_ClearsAnimeTagsLinks(t *testing.T) 
 }
 
 func TestAdminContentRepository_SegmentLibrarySourceContainsLookupAndAttachSeams(t *testing.T) {
-	content := readRepositorySource(t, "admin_content_anime_themes.go")
+	// 174-18 split admin_content_anime_themes.go: the lookup/attach seams
+	// (ListSegmentLibraryCandidates/AttachSegmentLibraryAsset) now live in
+	// admin_content_anime_segments_library.go, while the anime_source_links
+	// lookup they call (loadStableSegmentAnimeSource/Tx) moved into the
+	// playback-sync cluster (admin_content_anime_segments_playback.go) per
+	// the plan's explicit cluster assignment. Concatenating both files keeps
+	// this assertion about the cooperating seam intact (D-03 import-path
+	// exception).
+	content := readRepositorySource(t, "admin_content_anime_segments_library.go") +
+		"\n" + readRepositorySource(t, "admin_content_anime_segments_playback.go")
 	normalized := strings.ToLower(content)
 
 	requiredFragments := []string{
@@ -702,7 +711,7 @@ func TestAdminContentRepository_SegmentLibrarySourceContainsLookupAndAttachSeams
 }
 
 func TestAdminContentRepository_SegmentLibrarySourceProtectsReusableCleanup(t *testing.T) {
-	content := readRepositorySource(t, "admin_content_anime_themes.go")
+	content := readRepositorySource(t, "admin_content_anime_segments_library.go")
 	normalized := strings.ToLower(content)
 
 	if !strings.Contains(normalized, "isreusablesegmentasset") {
