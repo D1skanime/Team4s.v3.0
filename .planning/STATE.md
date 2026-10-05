@@ -3,14 +3,14 @@ gsd_state_version: 1.0
 milestone: v1.4
 milestone_name: Coverage
 status: executing
-stopped_at: Completed 174-11-PLAN.md
-last_updated: "2026-10-05T11:40:12.726Z"
+stopped_at: Completed 174-13-PLAN.md
+last_updated: "2026-10-05T11:55:58.100Z"
 last_activity: 2026-10-05
 progress:
   total_phases: 39
   completed_phases: 33
   total_plans: 364
-  completed_plans: 346
+  completed_plans: 347
   percent: 85
 ---
 
@@ -287,7 +287,7 @@ Abschluss" entry below for the full closing record.
 ## Current Position
 
 Phase: 174 (modularisierung-wartbarkeits-refactoring-hotspot-analyse-api) — EXECUTING
-Plan: 2 of 26
+Plan: 3 of 26
 Status: Ready to execute
 Completed: Phase 173 — six public image write paths gained a `display` variant, public read sites and components prefer it over thumb/original, a fansub media namespace + redirect, an idempotent backfill run against the live database, and a full live D-13 UAT (desktop+mobile, transparency, animation, performance) all passed.
 Next: Phase 169's remaining plan (169-05, live actor/refresh/responsive UAT) is still open; Phase 166 (Film-Content-Flow) has not been started. The Coverage milestone is NOT complete.
@@ -910,6 +910,9 @@ Last activity: 2026-10-05
 - [Phase 174]: 174-10: moved resolveAniSearchCandidateSearchFeedback into useAniSearchIntakeActions.ts alongside its only caller, re-exported one-directionally from the impl file to avoid an impl<->sub-hook import cycle while keeping the facade's public re-export path unchanged
 - [Phase ?]: 174-11: extractAniSearchCreateConflict moved into useCreateSubmitAction.ts alongside its only caller, re-exported from the impl file to avoid a circular import while keeping the facade's re-export list unchanged
 - [Phase ?]: 174-11: toggleAssetCandidateSelection stayed in the impl file (pure sync state setter, not a named async-handler cluster in this plan's scope)
+- [Phase 174-13]: Kept reorder-error/hint paragraphs in the orchestrator rather than folding into GroupMediaReviewGrid.tsx to avoid artificial fragmentation of single-line conditionals (D-02)
+- [Phase 174-13]: GroupMediaReviewGrid.tsx owns the full empty-state/grid/load-more region as one cohesive List unit instead of a 6th file
+- [Phase 174-13]: GroupMediaReviewDetailDrawer.tsx bundles the Drawer and delete-confirm Modal in one file since the Modal is the direct consequence of the Drawer's danger-zone action
 
 ### Pending Todos
 
@@ -1480,11 +1483,12 @@ untruncated list lives in `.planning/todos/pending/`.
 | Phase 174 P10 | 13min | 3 tasks | 5 files |
 | Phase 174 P12 | 9min | 3 tasks | 2 files |
 | Phase 174 P11 | 42min | 3 tasks | 4 files |
+| Phase 174 P13 | 17min | 3 tasks | 6 files |
 
 ## Session Continuity
 
-Last session: 2026-10-05T11:40:12.705Z
-Stopped at: Completed 174-11-PLAN.md
+Last session: 2026-10-05T11:55:58.081Z
+Stopped at: Completed 174-13-PLAN.md
 Last activity: 2026-09-28 - Completed Phase 169 Plan 169-01
 Resume file: 
 None
