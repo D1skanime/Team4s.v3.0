@@ -6,18 +6,18 @@ Vor jeder Runde: `docker restart team4sv30-frontend` (HMR greift nicht), dann St
 
 ## Nach Welle 3 (Frontend-Hotspots)
 
-### Fansub anlegen – `/admin/fansubs/create`
-- [ ] Erstanzeige: alle Formularfelder vorhanden, Alias-Liste leer
-- [ ] Name tippen → Slug wird automatisch abgeleitet (Umlaute/Sonderzeichen wie bisher)
-- [ ] Ungültigen Slug manuell eingeben → Fehlertext wie bisher; vorhandenen Slug → Konflikt-Hinweis
-- [ ] Speichern mit fehlenden/ungültigen Pflichtangaben → Fehlermeldung, nichts wird angelegt
-- [ ] Speichern erfolgreich → Erfolgsmeldung, Gruppe angelegt
-- [ ] Danach Alias hinzufügen → erscheint in der Liste, Sortierung wie bisher
-- [ ] Alias entfernen → verschwindet
-- [ ] Community-Link hinzufügen/ändern/entfernen, ungültige URL → Fehlertext
-- [ ] Logo-, Banner-, Hintergrund-Upload
-- [ ] Zweites Speichern (Änderung nach dem Anlegen) → Änderungen und Links korrekt übernommen
-- [ ] Ungespeicherte Änderung + Seite verlassen → Browser-Warnung wie bisher
+### Fansub anlegen – `/admin/fansubs/create` — ✅ abgenommen 2026-10-05 (Nutzer; nach Fix BUG-174-01)
+- [x] Erstanzeige: alle Formularfelder vorhanden, Alias-Liste leer
+- [x] Name tippen → Slug wird automatisch abgeleitet (Umlaute/Sonderzeichen wie bisher)
+- [x] Ungültigen Slug manuell eingeben → Fehlertext wie bisher; vorhandenen Slug → Konflikt-Hinweis
+- [x] Speichern mit fehlenden/ungültigen Pflichtangaben → Fehlermeldung, nichts wird angelegt
+- [x] Speichern erfolgreich → Erfolgsmeldung, Gruppe angelegt
+- [x] Danach Alias hinzufügen → erscheint in der Liste, Sortierung wie bisher
+- [x] Alias entfernen → verschwindet
+- [x] Community-Link hinzufügen/ändern/entfernen, ungültige URL → Fehlertext
+- [x] Logo-, Banner-, Hintergrund-Upload
+- [x] Zweites Speichern (Änderung nach dem Anlegen) → Änderungen und Links korrekt übernommen
+- [x] Ungespeicherte Änderung + Seite verlassen → Browser-Warnung wie bisher
 
 ### Fansub bearbeiten → Medien prüfen – `/admin/fansubs/[id]/edit`
 - [ ] Medienliste lädt, Filter funktionieren
