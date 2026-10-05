@@ -99,6 +99,14 @@ const LEGACY_NO_RESTRICTED_SYNTAX_FILES = [
   'src/app/admin/fansubs/\\[id\\]/edit/ReleaseThemeAssetsSection.tsx',
   'src/app/admin/fansubs/\\[id\\]/edit/ReleaseThemeDrawerSection.tsx',
   'src/app/admin/fansubs/create/page.tsx',
+  // 174-14: reine Code-Verschiebung aus dem bereits gelisteten
+  // admin/fansubs/create/page.tsx (D-14-Split in Aliases-/Links-/Media-
+  // Section-Komponenten) -- keine neuen nativen Elemente, nur relokierte
+  // Altlast. Bewusste, dokumentierte Ergaenzung (174-14-SUMMARY.md), keine
+  // stille Editierung. Gleiches Muster wie die 156-14-Ergaenzung oben.
+  'src/app/admin/fansubs/create/AdminFansubCreateAliasesSection.tsx',
+  'src/app/admin/fansubs/create/AdminFansubCreateLinksSection.tsx',
+  'src/app/admin/fansubs/create/AdminFansubCreateMediaSection.tsx',
   'src/app/admin/fansubs/merge/page.tsx',
   'src/app/admin/fansubs/page.tsx',
   'src/app/anime/\\[id\\]/group/\\[groupId\\]/releases/page.tsx',

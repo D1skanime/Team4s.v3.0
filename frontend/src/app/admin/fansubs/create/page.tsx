@@ -2,32 +2,16 @@
 
 import Image from "next/image";
 import Link from "next/link";
-import { FormEvent, useEffect, useMemo, useRef, useState } from "react";
-import { ExternalLink, Plus, Save, Trash2, X } from "lucide-react";
+import { useEffect, useMemo, useRef, useState } from "react";
+import { Save, X } from "lucide-react";
 
-import {
-  ApiError,
-  createFansubAlias,
-  createFansubGroup,
-  createFansubLink,
-  deleteFansubAlias,
-  deleteFansubLink,
-  getFansubAliases,
-  getFansubByID,
-  getFansubList,
-  updateFansubGroup,
-  updateFansubLink,
-} from "@/lib/api";
+import { getFansubList } from "@/lib/api";
 import { PlatformAdminGate } from "@/components/auth/PlatformAdminGate";
 import { YearPicker, useConfirmDialog } from "@/components/ui";
 import { useAuthSession } from "@/lib/useAuthSession";
 import {
   FansubAlias,
   FansubGroup,
-  FansubGroupLink,
-  FansubGroupLinkType,
-  FansubGroupCreateRequest,
-  FansubGroupPatchRequest,
   FansubGroupType,
   FansubStatus,
 } from "@/types/fansub";
@@ -35,267 +19,31 @@ import {
   buildFansubLogoFallback,
   buildMediaPreviewURL,
   EditableMediaValue,
-  MediaUpload,
 } from "@/components/admin/MediaUpload";
 
 import sharedStyles from "../../admin.module.css";
 import fansubEditStyles from "../[id]/edit/FansubEdit.module.css";
+import {
+  CommunityLinkDraft,
+  FormState,
+  createEmptyLink,
+  emptyForm,
+  isAbsoluteURL,
+  isValidSlug,
+  parseYear,
+  slugify,
+} from "./adminFansubCreateHelpers";
+import { useAdminFansubCreateActions } from "./useAdminFansubCreateActions";
+import { AdminFansubCreateAliasesSection } from "./AdminFansubCreateAliasesSection";
+import { AdminFansubCreateLinksSection } from "./AdminFansubCreateLinksSection";
+import { AdminFansubCreateMediaSection } from "./AdminFansubCreateMediaSection";
 
 const styles = { ...sharedStyles, ...fansubEditStyles };
 
 const STATUS_OPTIONS: FansubStatus[] = ["active", "inactive", "dissolved"];
 
-const LINK_TYPE_OPTIONS: FansubGroupLinkType[] = [
-  "website",
-  "discord",
-  "twitter",
-  "github",
-  "irc",
-];
 const YEAR_MIN = 1900;
 const YEAR_MAX = new Date().getFullYear();
-const URL_PROTOCOLS = new Set(["http:", "https:", "irc:", "ircs:"]);
-
-type FormState = {
-  name: string;
-  slug: string;
-  status: FansubStatus;
-  groupType: FansubGroupType;
-  country: string;
-  foundedYear: string;
-  dissolvedYear: string;
-};
-
-type CommunityLinkDraft = {
-  key: string;
-  id: number | null;
-  link_type: FansubGroupLinkType;
-  name: string;
-  url: string;
-};
-
-function slugify(value: string): string {
-  return value
-    .toLowerCase()
-    .replace(/[^a-z0-9]+/g, "-")
-    .replace(/^-+/, "")
-    .replace(/-+$/, "");
-}
-
-function isValidSlug(value: string): boolean {
-  return /^[a-z0-9]+(?:-[a-z0-9]+)*$/.test(value);
-}
-
-function parseYear(value: string): number | null | typeof Number.NaN {
-  const trimmed = value.trim();
-  if (!trimmed) return null;
-  const parsed = Number.parseInt(trimmed, 10);
-  return Number.isInteger(parsed) ? parsed : Number.NaN;
-}
-
-function toOptional(value: string): string | null {
-  const trimmed = value.trim();
-  return trimmed ? trimmed : null;
-}
-
-function isAbsoluteURL(value: string): boolean {
-  if (!value.trim()) return false;
-  try {
-    const parsed = new URL(value.trim());
-    return URL_PROTOCOLS.has(parsed.protocol.toLowerCase());
-  } catch {
-    return false;
-  }
-}
-
-function mapGroupToForm(group: FansubGroup): FormState {
-  return {
-    name: group.name || "",
-    slug: group.slug || "",
-    status: group.status,
-    groupType: "group",
-    country: group.country || "",
-    foundedYear: group.founded_year ? String(group.founded_year) : "",
-    dissolvedYear: group.dissolved_year ? String(group.dissolved_year) : "",
-  };
-}
-
-function mapGroupMedia(group: FansubGroup): {
-  logo: EditableMediaValue | null;
-  banner: EditableMediaValue | null;
-} {
-  const logo = group.logo_url
-    ? { id: group.logo_id ?? null, publicURL: group.logo_url }
-    : null;
-  const banner = group.banner_url
-    ? { id: group.banner_id ?? null, publicURL: group.banner_url }
-    : null;
-  return { logo, banner };
-}
-
-function legacyLinksFromGroup(group: FansubGroup): FansubGroupLink[] {
-  const links: FansubGroupLink[] = [];
-  if (group.website_url) {
-    links.push({
-      id: -1,
-      group_id: group.id,
-      link_type: "website",
-      name: null,
-      url: group.website_url,
-      created_at: group.updated_at,
-    });
-  }
-  if (group.discord_url) {
-    links.push({
-      id: -2,
-      group_id: group.id,
-      link_type: "discord",
-      name: null,
-      url: group.discord_url,
-      created_at: group.updated_at,
-    });
-  }
-  if (group.irc_url) {
-    links.push({
-      id: -3,
-      group_id: group.id,
-      link_type: "irc",
-      name: null,
-      url: group.irc_url,
-      created_at: group.updated_at,
-    });
-  }
-  return links;
-}
-
-function mapGroupLinks(group: FansubGroup): CommunityLinkDraft[] {
-  const links =
-    group.links && group.links.length > 0
-      ? group.links
-      : legacyLinksFromGroup(group);
-  return links.length > 0
-    ? links.map((link, index) => ({
-        key: `${link.id}-${index}`,
-        id: link.id,
-        link_type: link.link_type,
-        name: link.name || "",
-        url: link.url || "",
-      }))
-    : [createEmptyLink("draft-link-initial")];
-}
-
-function emptyForm(): FormState {
-  return {
-    name: "",
-    slug: "",
-    status: "active",
-    groupType: "group",
-    country: "",
-    foundedYear: "",
-    dissolvedYear: "",
-  };
-}
-
-function createEmptyLink(key: string): CommunityLinkDraft {
-  return { key, id: null, link_type: "website", name: "", url: "" };
-}
-
-function errMessage(error: unknown): string {
-  return error instanceof ApiError
-    ? `(${error.status}) ${error.message}`
-    : "Anfrage fehlgeschlagen.";
-}
-
-function formToCreatePayload(form: FormState): FansubGroupCreateRequest {
-  const founded = parseYear(form.foundedYear);
-  const dissolved = parseYear(form.dissolvedYear);
-  return {
-    name: form.name.trim(),
-    slug: form.slug.trim(),
-    status: form.status,
-    group_type: form.groupType,
-    country: toOptional(form.country),
-    founded_year: founded === null ? null : founded,
-    dissolved_year: dissolved === null ? null : dissolved,
-  };
-}
-
-function formToPatchPayload(
-  form: FormState,
-  logo: EditableMediaValue | null,
-  banner: EditableMediaValue | null,
-): FansubGroupPatchRequest {
-  const founded = parseYear(form.foundedYear);
-  const dissolved = parseYear(form.dissolvedYear);
-  return {
-    name: form.name.trim(),
-    slug: form.slug.trim(),
-    status: form.status,
-    group_type: form.groupType,
-    country: toOptional(form.country),
-    founded_year: founded === null ? null : founded,
-    dissolved_year: dissolved === null ? null : dissolved,
-    logo_id: logo?.id ?? null,
-    banner_id: banner?.id ?? null,
-    logo_url: logo?.publicURL?.trim() ? logo.publicURL.trim() : null,
-    banner_url: banner?.publicURL?.trim() ? banner.publicURL.trim() : null,
-  };
-}
-
-function sortAliases(values: string[]): string[] {
-  return [...values].sort((a, b) => a.localeCompare(b, "de"));
-}
-
-async function syncFansubLinks(
-  fansubID: number,
-  initialLinks: CommunityLinkDraft[],
-  currentLinks: CommunityLinkDraft[],
-): Promise<void> {
-  const initialById = new Map(
-    initialLinks
-      .filter((item) => item.id != null && item.id > 0)
-      .map((item) => [item.id as number, item]),
-  );
-  const currentById = new Map(
-    currentLinks
-      .filter((item) => item.id != null && item.id > 0)
-      .map((item) => [item.id as number, item]),
-  );
-
-  for (const [id] of initialById) {
-    if (!currentById.has(id)) {
-      await deleteFansubLink(fansubID, id);
-    }
-  }
-
-  for (const link of currentLinks) {
-    const url = link.url.trim();
-    const name = link.name.trim();
-    if (!url && !name) continue;
-    if (link.id != null && link.id > 0) {
-      const previous = initialById.get(link.id);
-      if (
-        !previous ||
-        previous.link_type !== link.link_type ||
-        previous.name.trim() !== name ||
-        previous.url.trim() !== url
-      ) {
-        await updateFansubLink(fansubID, link.id, {
-          link_type: link.link_type,
-          name: name || null,
-          url,
-        });
-      }
-      continue;
-    }
-
-    await createFansubLink(fansubID, {
-      link_type: link.link_type,
-      name: name || null,
-      url,
-    });
-  }
-}
 
 function AdminFansubCreateContent() {
   const nextDraftLinkKeyRef = useRef(1);
@@ -466,143 +214,38 @@ function AdminFansubCreateContent() {
     return () => window.removeEventListener("beforeunload", onUnload);
   }, [dirty]);
 
-  async function refreshCreatedState(fansubID: number): Promise<void> {
-    const [groupResponse, aliasResponse] = await Promise.all([
-      getFansubByID(fansubID),
-      getFansubAliases(fansubID),
-    ]);
-    const nextGroup = groupResponse.data;
-    const nextForm = mapGroupToForm(nextGroup);
-    const nextMedia = mapGroupMedia(nextGroup);
-    const nextLinks = mapGroupLinks(nextGroup);
-    const nextAliases = aliasResponse.data.sort((a, b) =>
-      a.alias.localeCompare(b.alias, "de"),
-    );
-
-    setCreatedGroup(nextGroup);
-    setForm(nextForm);
-    setInitialForm(nextForm);
-    setLogoMedia(nextMedia.logo);
-    setBannerMedia(nextMedia.banner);
-    setInitialLogoMedia(nextMedia.logo);
-    setInitialBannerMedia(nextMedia.banner);
-    setLinks(nextLinks);
-    setInitialLinks(nextLinks);
-    setAliases(nextAliases);
-    setAliasDrafts(nextAliases.map((item) => item.alias));
-    setInitialAliasDrafts(nextAliases.map((item) => item.alias));
-    setManualSlug(nextForm.slug !== slugify(nextForm.name));
-
-  }
-
-  const addAlias = async () => {
-    const value = aliasInput.trim();
-    if (!value) return;
-    if (
-      aliasDrafts.some((item) => item.toLowerCase() === value.toLowerCase())
-    ) {
-      setAliasError("Tag existiert bereits.");
-      return;
-    }
-
-    setAliasBusy(true);
-    setAliasError(null);
-    try {
-      if (!createdGroup || !hasRuntimeAuthToken) {
-        setAliasDrafts((current) => sortAliases([...current, value]));
-        setAliasInput("");
-        return;
-      }
-
-      const response = await createFansubAlias(createdGroup.id, {
-        alias: value,
-      });
-      const nextAliases = [...aliases, response.data].sort((a, b) =>
-        a.alias.localeCompare(b.alias, "de"),
-      );
-      const nextDrafts = nextAliases.map((item) => item.alias);
-      setAliases(nextAliases);
-      setAliasDrafts(nextDrafts);
-      setInitialAliasDrafts(nextDrafts);
-      setAliasInput("");
-      setToast("Tag hinzugefuegt.");
-    } catch (nextError) {
-      setError(errMessage(nextError));
-    } finally {
-      setAliasBusy(false);
-    }
-  };
-
-  const removeAlias = async (aliasValue: string) => {
-    if (!createdGroup || !hasRuntimeAuthToken) {
-      setAliasDrafts((current) =>
-        current.filter((item) => item !== aliasValue),
-      );
-      return;
-    }
-
-    const alias = aliases.find((item) => item.alias === aliasValue);
-    if (!alias) {
-      setAliasDrafts((current) =>
-        current.filter((item) => item !== aliasValue),
-      );
-      return;
-    }
-
-    setAliasBusy(true);
-    setAliasError(null);
-    try {
-      await deleteFansubAlias(createdGroup.id, alias.id);
-      const nextAliases = aliases.filter((item) => item.id !== alias.id);
-      const nextDrafts = nextAliases.map((item) => item.alias);
-      setAliases(nextAliases);
-      setAliasDrafts(nextDrafts);
-      setInitialAliasDrafts(nextDrafts);
-      setToast("Tag entfernt.");
-    } catch (nextError) {
-      setError(errMessage(nextError));
-    } finally {
-      setAliasBusy(false);
-    }
-  };
-
-  const save = async (event: FormEvent<HTMLFormElement>) => {
-    event.preventDefault();
-    if (!hasRuntimeAuthToken || invalid) return;
-
-    setSaving(true);
-    setError(null);
-    try {
-      if (!createdGroup) {
-        const createResponse = await createFansubGroup(
-          formToCreatePayload(form),
-        );
-        const fansubID = createResponse.data.id;
-
-        for (const alias of aliasDrafts) {
-          await createFansubAlias(fansubID, { alias });
-        }
-
-        await syncFansubLinks(fansubID, [], links);
-        await refreshCreatedState(fansubID);
-        setToast(
-          "Fansub angelegt. Medien können jetzt direkt ueber den DB-Asset-Flow hochgeladen werden.",
-        );
-      } else {
-        await updateFansubGroup(
-          createdGroup.id,
-          formToPatchPayload(form, logoMedia, bannerMedia),
-        );
-        await syncFansubLinks(createdGroup.id, initialLinks, links);
-        await refreshCreatedState(createdGroup.id);
-        setToast("Änderungen gespeichert.");
-      }
-    } catch (nextError) {
-      setError(errMessage(nextError));
-    } finally {
-      setSaving(false);
-    }
-  };
+  const { addAlias, removeAlias, save } = useAdminFansubCreateActions({
+    createdGroup,
+    setCreatedGroup,
+    form,
+    setForm,
+    setInitialForm,
+    aliases,
+    setAliases,
+    aliasDrafts,
+    setAliasDrafts,
+    setInitialAliasDrafts,
+    aliasInput,
+    setAliasInput,
+    setAliasError,
+    setAliasBusy,
+    links,
+    setLinks,
+    initialLinks,
+    setInitialLinks,
+    logoMedia,
+    setLogoMedia,
+    setInitialLogoMedia,
+    bannerMedia,
+    setBannerMedia,
+    setInitialBannerMedia,
+    setManualSlug,
+    setSaving,
+    hasRuntimeAuthToken,
+    invalid,
+    setError,
+    setToast,
+  });
 
   const logoFallback = buildFansubLogoFallback(form.name);
   const bannerPreviewURL = buildMediaPreviewURL(bannerMedia);
@@ -915,245 +558,40 @@ function AdminFansubCreateContent() {
                 </div>
               </details>
 
-              <details className={styles.fansubEditSection} open>
-                <summary className={styles.fansubEditSectionSummary}>
-                  Tags
-                </summary>
-                <div className={styles.fansubEditSectionBody}>
-                  <p className={styles.fansubEditHint}>
-                    Alternative Gruppennamen. Vor dem ersten Speichern werden
-                    sie lokal gesammelt und danach in dieselbe Alias-Tabelle
-                    geschrieben wie im Edit-Flow.
-                  </p>
-                  <div className={styles.inputRow}>
-                    <input
-                      value={aliasInput}
-                      onChange={(event) => {
-                        setAliasInput(event.target.value);
-                        setAliasError(null);
-                      }}
-                      onKeyDown={(event) => {
-                        if (event.key === "Enter") {
-                          event.preventDefault();
-                          void addAlias();
-                        }
-                      }}
-                    />
-                    <button
-                      type="button"
-                      className={styles.buttonSecondary}
-                      onClick={() => void addAlias()}
-                      disabled={aliasBusy}
-                    >
-                      Hinzufügen
-                    </button>
-                  </div>
-                  {aliasError ? (
-                    <p className={styles.fansubEditInlineError}>{aliasError}</p>
-                  ) : null}
-                  <div className={styles.chipBox}>
-                    <div className={styles.chipRow}>
-                      {aliasDrafts.map((alias) => (
-                        <button
-                          key={alias}
-                          type="button"
-                          className={`${styles.chip} ${styles.aliasChipDanger}`}
-                          onClick={() => void removeAlias(alias)}
-                          disabled={aliasBusy}
-                        >
-                          {alias} x
-                        </button>
-                      ))}
-                    </div>
-                  </div>
-                </div>
-              </details>
+              <AdminFansubCreateAliasesSection
+                aliasDrafts={aliasDrafts}
+                aliasInput={aliasInput}
+                setAliasInput={setAliasInput}
+                setAliasError={setAliasError}
+                aliasError={aliasError}
+                aliasBusy={aliasBusy}
+                addAlias={addAlias}
+                removeAlias={removeAlias}
+              />
             </div>
 
             <div className={styles.fansubEditRightColumn}>
-              <details className={styles.fansubEditSection} open>
-                <summary className={styles.fansubEditSectionSummary}>
-                  Media
-                </summary>
-                <div className={styles.fansubEditSectionBody}>
-                  {createdGroup ? (
-                    <div className={styles.fansubEditMediaGrid}>
-                      <MediaUpload
-                        type="logo"
-                        fansubID={createdGroup.id}
-                        groupName={form.name.trim() || createdGroup.name}
-                        value={logoMedia}
-                        disabled={!hasRuntimeAuthToken || saving}
-                        onBusyChange={(isBusy) =>
-                          setMediaBusy((current) => ({
-                            ...current,
-                            logo: isBusy,
-                          }))
-                        }
-                        onChange={(nextValue) => {
-                          setLogoMedia(nextValue);
-                          setInitialLogoMedia(nextValue);
-                          setToast(
-                            nextValue?.publicURL
-                              ? "Logo aktualisiert."
-                              : "Logo entfernt.",
-                          );
-                        }}
-                      />
-                      <MediaUpload
-                        type="banner"
-                        fansubID={createdGroup.id}
-                        groupName={form.name.trim() || createdGroup.name}
-                        value={bannerMedia}
-                        disabled={!hasRuntimeAuthToken || saving}
-                        onBusyChange={(isBusy) =>
-                          setMediaBusy((current) => ({
-                            ...current,
-                            banner: isBusy,
-                          }))
-                        }
-                        onChange={(nextValue) => {
-                          setBannerMedia(nextValue);
-                          setInitialBannerMedia(nextValue);
-                          setToast(
-                            nextValue?.publicURL
-                              ? "Banner aktualisiert."
-                              : "Banner entfernt.",
-                          );
-                        }}
-                      />
-                    </div>
-                  ) : (
-                    <p className={styles.fansubEditHint}>
-                      Logo und Banner laufen hier ueber denselben
-                      DB-/Media-Asset-Flow wie im Edit-Screen. Nach dem ersten
-                      Speichern wird der Upload direkt in dieser Ansicht
-                      freigeschaltet.
-                    </p>
-                  )}
-                </div>
-              </details>
+              <AdminFansubCreateMediaSection
+                createdGroup={createdGroup}
+                formName={form.name}
+                hasRuntimeAuthToken={hasRuntimeAuthToken}
+                saving={saving}
+                logoMedia={logoMedia}
+                setLogoMedia={setLogoMedia}
+                setInitialLogoMedia={setInitialLogoMedia}
+                bannerMedia={bannerMedia}
+                setBannerMedia={setBannerMedia}
+                setInitialBannerMedia={setInitialBannerMedia}
+                setMediaBusy={setMediaBusy}
+                setToast={setToast}
+              />
 
-              <details className={styles.fansubEditSection} open>
-                <summary className={styles.fansubEditSectionSummary}>
-                  Community Links
-                </summary>
-                <div className={styles.fansubEditSectionBody}>
-                  <div className={styles.fansubEditLinksHeader}>
-                    <p className={styles.fansubEditHint}>
-                      Generische Link-Zeilen für Website, Discord, Twitter,
-                      GitHub und IRC.
-                    </p>
-                    <button
-                      type="button"
-                      className={styles.buttonSecondary}
-                      onClick={() =>
-                        setLinks((current) => [...current, createDraftLink()])
-                      }
-                    >
-                      <Plus size={14} />
-                      Link
-                    </button>
-                  </div>
-                  <div className={styles.fansubEditLinksList}>
-                    {links.map((link, index) => {
-                      const url = link.url.trim();
-                      const urlError = linkErrors[index];
-                      return (
-                        <div
-                          key={link.key}
-                          className={styles.fansubEditLinkRow}
-                        >
-                          <select
-                            value={link.link_type}
-                            onChange={(event) =>
-                              setLinks((current) =>
-                                current.map((item) =>
-                                  item.key === link.key
-                                    ? {
-                                        ...item,
-                                        link_type: event.target
-                                          .value as FansubGroupLinkType,
-                                      }
-                                    : item,
-                                ),
-                              )
-                            }
-                          >
-                            {LINK_TYPE_OPTIONS.map((option) => (
-                              <option key={option} value={option}>
-                                {option}
-                              </option>
-                            ))}
-                          </select>
-                          <input
-                            value={link.name}
-                            onChange={(event) =>
-                              setLinks((current) =>
-                                current.map((item) =>
-                                  item.key === link.key
-                                    ? { ...item, name: event.target.value }
-                                    : item,
-                                ),
-                              )
-                            }
-                            placeholder="Name (optional)"
-                          />
-                          <div
-                            className={`${styles.fansubEditLinkInput} ${urlError ? styles.fansubEditLinkInputInvalid : ""}`}
-                          >
-                            <input
-                              value={link.url}
-                              onChange={(event) =>
-                                setLinks((current) =>
-                                  current.map((item) =>
-                                    item.key === link.key
-                                      ? { ...item, url: event.target.value }
-                                      : item,
-                                  ),
-                                )
-                              }
-                              placeholder="https://..."
-                            />
-                            {url && !urlError ? (
-                              <button
-                                type="button"
-                                className={styles.fansubEditPreviewLinkButton}
-                                onClick={() =>
-                                  window.open(url, "_blank", "noreferrer")
-                                }
-                              >
-                                <ExternalLink size={14} />
-                              </button>
-                            ) : null}
-                          </div>
-                          <button
-                            type="button"
-                            className={`${styles.buttonSecondary} ${styles.buttonDanger}`}
-                            onClick={() =>
-                              setLinks((current) =>
-                                current.length === 1
-                                  ? [createDraftLink()]
-                                  : current.filter(
-                                      (item) => item.key !== link.key,
-                                    ),
-                              )
-                            }
-                          >
-                            <Trash2 size={14} />
-                          </button>
-                          {urlError ? (
-                            <p className={styles.fansubEditInlineError}>
-                              {urlError}
-                            </p>
-                          ) : null}
-                        </div>
-                      );
-                    })}
-                  </div>
-                </div>
-              </details>
-
+              <AdminFansubCreateLinksSection
+                links={links}
+                setLinks={setLinks}
+                linkErrors={linkErrors}
+                createDraftLink={createDraftLink}
+              />
             </div>
           </div>
         </form>
