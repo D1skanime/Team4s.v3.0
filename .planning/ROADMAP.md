@@ -2326,7 +2326,7 @@ fachlicher Grenzen entflochten, mit Vorher/Nachher-Audit und dokumentierten offe
 fuer Folgephasen.
 **Requirements**: D-01 - D-24 (Decision-Coverage via `174-CONTEXT.md`, kein REQUIREMENTS.md-Mapping vorhanden)
 **Depends on:** Phase 173
-**Plans:** 22/26 plans executed
+**Plans:** 23/26 plans executed
 
 **Plan-time read first**: `174-CONTEXT.md` (24 locked decisions), `174-RESEARCH.md` (real measurements), `174-PATTERNS.md` (closest-analog split shapes already live in-repo), `174-HOTSPOTS.md` (Welle-1 output, produced by 174-01).
 
@@ -2394,7 +2394,7 @@ Plans:
 **Wave 14** *(blocked on Wave 13)*
 
 - [x] 174-22-PLAN.md — Welle 5: `FansubEdit.module.css`-Split (grep-verifizierte Single-Owner-Klassen)
-- [ ] 174-23-PLAN.md — Welle 5: `ui.module.css`-Split (grep-verifizierte Single-Owner-Klassen)
+- [x] 174-23-PLAN.md — Welle 5: `ui.module.css`-Split (grep-verifizierte Single-Owner-Klassen)
 
 **Wave 15** *(blocked on Wave 14)*
 
