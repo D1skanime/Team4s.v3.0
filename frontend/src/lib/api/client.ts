@@ -185,7 +185,7 @@ export class ApiError extends Error {
   }
 }
 
-export interface ParsedApiErrorPayload {
+interface ParsedApiErrorPayload {
   message: string;
   code: string | null;
   details: string | null;
@@ -269,7 +269,7 @@ function isSecureBrowserContext(): boolean {
  * (auch Löschungen via Max-Age=0 laufen hier durch) — Seiten/Komponenten
  * greifen nie direkt auf document.cookie zu.
  */
-export function writeBrowserCookie(
+function writeBrowserCookie(
   name: string,
   value: string,
   maxAgeSeconds: number,
@@ -706,7 +706,7 @@ export function toRuntimeAuthData(
   };
 }
 
-export function isAuthRelatedError(parsed: ParsedApiErrorPayload): boolean {
+function isAuthRelatedError(parsed: ParsedApiErrorPayload): boolean {
   const haystack = [parsed.message, parsed.code, parsed.details]
     .filter(
       (value): value is string =>
@@ -809,7 +809,7 @@ export async function refreshRuntimeSession(): Promise<string> {
   return runtimeSessionRefreshPromise;
 }
 
-export async function ensureFreshRuntimeSession(): Promise<string> {
+async function ensureFreshRuntimeSession(): Promise<string> {
   if (!shouldRefreshRuntimeSession()) {
     return resolveAuthToken();
   }
