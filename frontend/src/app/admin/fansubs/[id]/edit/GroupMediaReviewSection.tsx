@@ -1,22 +1,15 @@
 'use client'
 
 import { useEffect, useMemo, useRef, useState, type DragEvent, type PointerEvent } from 'react'
-import { Archive, Save, UploadCloud, X } from 'lucide-react'
-import Image from 'next/image'
+import { UploadCloud, X } from 'lucide-react'
 
 import {
   Button,
   Card,
-  Drawer,
   ErrorState,
-  FormField,
   getErrorStateCopy,
-  Input,
   LoadingState,
-  Modal,
   SectionHeader,
-  Select,
-  Textarea,
   Toolbar,
 } from '@/components/ui'
 import {
@@ -24,7 +17,6 @@ import {
   FansubGroupMediaItem,
   FansubMediaReviewStatus,
   FansubMediaVisibility,
-  resolveApiUrl,
 } from '@/lib/api'
 import type { FansubGroupCapabilities } from '@/types/fansub'
 import { classNames } from '@/components/ui/classNames'
@@ -35,6 +27,7 @@ import { GroupMediaReviewUploadPanel } from './GroupMediaReviewUploadPanel'
 import { GroupMediaReviewFilterBar } from './GroupMediaReviewFilterBar'
 import { GroupMediaReviewGrid } from './GroupMediaReviewGrid'
 import { GroupMediaReviewBulkActionBar } from './GroupMediaReviewBulkActionBar'
+import { GroupMediaReviewDetailDrawer } from './GroupMediaReviewDetailDrawer'
 
 interface GroupMediaReviewSectionProps {
   fansubId: number
@@ -67,30 +60,6 @@ const INITIAL_VISIBLE_MEDIA_COUNT = 40
 const LOAD_MORE_MEDIA_COUNT = 40
 const POINTER_REORDER_THRESHOLD_PX = 6
 
-const CATEGORY_OPTIONS: Array<{ value: FansubGroupMediaCategory; label: string }> = [
-  { value: 'gallery', label: 'Galerie' },
-  { value: 'history_screenshot', label: 'Historische Screenshots' },
-  { value: 'old_website', label: 'Alte Webseite' },
-  { value: 'forum', label: 'Forum' },
-  { value: 'irc_chat', label: 'IRC / Chat' },
-  { value: 'event_meeting', label: 'Event / Treffen' },
-  { value: 'artwork_fanart', label: 'Artwork / Fanart' },
-  { value: 'other', label: 'Sonstiges' },
-]
-
-const REVIEW_STATUS_OPTIONS: Array<{ value: FansubMediaReviewStatus; label: string; variant: 'neutral' | 'success' | 'warning' | 'danger' | 'info' | 'muted' }> = [
-  { value: 'in_pruefung', label: 'In Prüfung', variant: 'warning' },
-  { value: 'freigegeben', label: 'Freigegeben', variant: 'success' },
-  { value: 'abgelehnt', label: 'Abgelehnt', variant: 'danger' },
-  { value: 'archiviert', label: 'Archiviert', variant: 'muted' },
-  { value: 'entfernt', label: 'Entfernt', variant: 'muted' },
-]
-
-const VISIBILITY_OPTIONS: Array<{ value: FansubMediaVisibility; label: string }> = [
-  { value: 'intern', label: 'Intern' },
-  { value: 'oeffentlich', label: 'Öffentlich' },
-]
-
 function itemToDraft(item: FansubGroupMediaItem): MediaDraft {
   return {
     visibility: item.visibility ?? 'intern',
@@ -108,10 +77,6 @@ function formatDate(value: string | null | undefined): string {
   const date = new Date(value)
   if (Number.isNaN(date.getTime())) return ''
   return new Intl.DateTimeFormat('de-DE', { day: '2-digit', month: '2-digit', year: 'numeric' }).format(date)
-}
-
-function getDetailImageURL(item: FansubGroupMediaItem): string {
-  return item.original_url || item.preview_url || item.thumbnail_url || ''
 }
 
 function getMediaDisplayTitle(item: FansubGroupMediaItem): string {
@@ -139,12 +104,6 @@ function getMediaDisplayTitle(item: FansubGroupMediaItem): string {
     default:
       return `Gruppenbild${suffix}`
   }
-}
-
-function getUploaderLine(item: FansubGroupMediaItem): string {
-  const uploader = item.uploaded_by_display_name?.trim() || 'Unbekannt'
-  const createdAt = formatDate(item.created_at)
-  return createdAt ? `Hochgeladen von ${uploader} am ${createdAt}` : `Hochgeladen von ${uploader}`
 }
 
 export function GroupMediaReviewSection({
@@ -650,197 +609,24 @@ function GroupMediaReviewSectionInner({
         />
       ) : null}
 
-      <Drawer
-        open={editingItem !== null}
-        onClose={() => {
-          if (editingItem) cancelEditing(editingItem)
-        }}
-        title={editingItem ? getMediaDisplayTitle(editingItem) : 'Medium bearbeiten'}
-        description={editingItem ? getUploaderLine(editingItem) : undefined}
-        footer={
-          editingItem ? (
-            <div className={styles.drawerActions}>
-              <Button
-                variant="ghost"
-                size="sm"
-                className={styles.drawerCancelButton}
-                leftIcon={<X size={16} />}
-                disabled={saving[editingItem.id] ?? false}
-                onClick={() => cancelEditing(editingItem)}
-              >
-                {canUpdate || (canUpdateOwn && editingItem.uploaded_by_current_user) ? 'Abbrechen' : 'Schließen'}
-              </Button>
-              {canUpdate || (canUpdateOwn && editingItem.uploaded_by_current_user) ? (
-                <Button
-                  variant="success"
-                  size="sm"
-                  leftIcon={<Save size={16} />}
-                  disabled={saving[editingItem.id] ?? false}
-                  onClick={() => void handleSave(editingItem)}
-                >
-                  Änderungen speichern
-                </Button>
-              ) : null}
-            </div>
-          ) : null
-        }
-      >
-        {editingItem ? (
-          <div className={styles.drawerDetail}>
-            {(() => {
-              const draft = drafts[editingItem.id] ?? itemToDraft(editingItem)
-              const persisted = itemToDraft(editingItem)
-              const detailImageURL = getDetailImageURL(editingItem)
-              const displayTitle = getMediaDisplayTitle(editingItem)
-
-              return (
-                <>
-                  <div className={styles.detailPreviewFrame}>
-                    {detailImageURL && !failedDetailIds[editingItem.id] ? (
-                      <Image
-                        src={resolveApiUrl(detailImageURL)}
-                        alt={persisted.alt_text || displayTitle}
-                        fill
-                        sizes="(max-width: 700px) 100vw, 720px"
-                        unoptimized
-                        loading="lazy"
-                        onError={() => setFailedDetailIds((prev) => ({ ...prev, [editingItem.id]: true }))}
-                      />
-                    ) : (
-                      <span>Keine große Vorschau</span>
-                    )}
-                  </div>
-
-                  <div className={styles.detailGrid}>
-                    <FormField label="Titel">
-                      <Input
-                        value={draft.title}
-                        disabled={!(canUpdate || (canUpdateOwn && editingItem.uploaded_by_current_user))}
-                        onChange={(event) => updateDraft(editingItem.id, 'title', event.target.value)}
-                      />
-                    </FormField>
-
-                    <FormField label="Alternativtext">
-                      <Input
-                        value={draft.alt_text}
-                        disabled={!(canUpdate || (canUpdateOwn && editingItem.uploaded_by_current_user))}
-                        onChange={(event) => updateDraft(editingItem.id, 'alt_text', event.target.value)}
-                      />
-                    </FormField>
-                  </div>
-
-                  <FormField label="Beschreibung">
-                    <Textarea
-                      className={styles.descriptionTextarea}
-                      value={draft.description}
-                      disabled={!(canUpdate || (canUpdateOwn && editingItem.uploaded_by_current_user))}
-                      rows={4}
-                      onChange={(event) => updateDraft(editingItem.id, 'description', event.target.value)}
-                    />
-                  </FormField>
-
-                  <div className={styles.detailGrid}>
-                    <FormField label="Kategorie">
-                      <Select
-                        value={draft.category}
-                        disabled={!canUpdate}
-                        onChange={(event) => updateDraft(editingItem.id, 'category', event.target.value as FansubGroupMediaCategory)}
-                      >
-                        {CATEGORY_OPTIONS.map((option) => (
-                          <option key={option.value} value={option.value}>{option.label}</option>
-                        ))}
-                      </Select>
-                    </FormField>
-                  </div>
-
-                  <div className={styles.detailGrid}>
-                    <FormField label="Sichtbarkeit">
-                      <Select
-                        value={draft.visibility}
-                        disabled={!canUpdate}
-                        onChange={(event) => updateDraft(editingItem.id, 'visibility', event.target.value as FansubMediaVisibility)}
-                      >
-                        {VISIBILITY_OPTIONS.map((option) => (
-                          <option key={option.value} value={option.value}>{option.label}</option>
-                        ))}
-                      </Select>
-                    </FormField>
-
-                    <FormField label="Prüfstatus">
-                      <Select
-                        value={draft.review_status}
-                        disabled={!canReview}
-                        onChange={(event) => updateDraft(editingItem.id, 'review_status', event.target.value as FansubMediaReviewStatus)}
-                      >
-                        {REVIEW_STATUS_OPTIONS.map((option) => (
-                          <option key={option.value} value={option.value}>{option.label}</option>
-                        ))}
-                      </Select>
-                    </FormField>
-                  </div>
-
-                  {saveErrors[editingItem.id] ? <p className={styles.inlineError} role="alert">{saveErrors[editingItem.id]}</p> : null}
-
-                  {canDeleteMediaItem(editingItem) ? (
-                    <div className={styles.dangerZone}>
-                      <div className={styles.dangerZoneText}>
-                        <strong>Aus Gruppenmedien entfernen</strong>
-                        <p>Entfernt die Zuordnung aus dieser Gruppenverwaltung. Datei und Asset werden nicht endgültig gelöscht.</p>
-                      </div>
-                      <Button
-                        variant="danger"
-                        size="sm"
-                        leftIcon={<Archive size={16} />}
-                        disabled={saving[editingItem.id] ?? false}
-                        onClick={() => setPendingDeleteItem(editingItem)}
-                      >
-                        Aus Gruppenmedien entfernen
-                      </Button>
-                    </div>
-                  ) : null}
-                </>
-              )
-            })()}
-          </div>
-        ) : null}
-      </Drawer>
-
-      <Modal
-        open={pendingDeleteItem !== null}
-        onClose={() => {
-          if (!pendingDeleteItem || saving[pendingDeleteItem.id]) return
-          setPendingDeleteItem(null)
-        }}
-        title="Medium aus Gruppenmedien entfernen"
-        description="Die Zuordnung wird aus der Gruppenverwaltung entfernt. Datei und Asset werden nicht endgültig gelöscht."
-        footer={
-          <div className={styles.modalActions}>
-            <Button
-              variant="secondary"
-              size="sm"
-              disabled={pendingDeleteItem ? saving[pendingDeleteItem.id] ?? false : false}
-              onClick={() => setPendingDeleteItem(null)}
-            >
-              Abbrechen
-            </Button>
-            <Button
-              variant="danger"
-              size="sm"
-              leftIcon={<Archive size={16} />}
-              loading={pendingDeleteItem ? saving[pendingDeleteItem.id] ?? false : false}
-              onClick={() => {
-                if (pendingDeleteItem) void handleDelete(pendingDeleteItem)
-              }}
-            >
-              Aus Gruppenmedien entfernen
-            </Button>
-          </div>
-        }
-      >
-        <p className={styles.modalText}>
-          {pendingDeleteItem ? `${getMediaDisplayTitle(pendingDeleteItem)} wird aus den Gruppenmedien entfernt.` : ''}
-        </p>
-      </Modal>
+      <GroupMediaReviewDetailDrawer
+        editingItem={editingItem}
+        drafts={drafts}
+        saveErrors={saveErrors}
+        saving={saving}
+        canUpdate={canUpdate}
+        canUpdateOwn={canUpdateOwn}
+        canReview={canReview}
+        failedDetailIds={failedDetailIds}
+        setFailedDetailIds={setFailedDetailIds}
+        pendingDeleteItem={pendingDeleteItem}
+        setPendingDeleteItem={setPendingDeleteItem}
+        updateDraft={updateDraft}
+        cancelEditing={cancelEditing}
+        handleSave={handleSave}
+        handleDelete={handleDelete}
+        canDeleteMediaItem={canDeleteMediaItem}
+      />
     </div>
   )
 }
