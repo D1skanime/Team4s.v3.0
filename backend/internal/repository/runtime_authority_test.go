@@ -110,7 +110,8 @@ func TestAnimeAssetCompatibilityUsesV2CoverHelpersWhenLegacySlotsAreGone(t *test
 	// test is their concatenation rather than a single filename.
 	assetContent := readRepositorySource(t, "anime_assets.go") +
 		readRepositorySource(t, "anime_assets_cover.go") +
-		readRepositorySource(t, "anime_assets_banner_logo.go")
+		readRepositorySource(t, "anime_assets_banner_logo.go") +
+		readRepositorySource(t, "anime_assets_background.go")
 	assetNormalized := strings.ToLower(assetContent)
 
 	required := []string{

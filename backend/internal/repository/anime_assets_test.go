@@ -73,7 +73,9 @@ func TestProviderAnimeMediaMetadata_NeverReturnsEmptyMimeType(t *testing.T) {
 }
 
 func TestApplyProviderBackgroundsV2LocksOnlyNonNullableRows(t *testing.T) {
-	content := readRepositorySource(t, "anime_assets.go")
+	// 174-19: applyProviderBackgroundsV2 moved from anime_assets.go into the
+	// anime_assets_background.go asset-type sibling file.
+	content := readRepositorySource(t, "anime_assets_background.go")
 	normalized := strings.ToLower(content)
 
 	if !strings.Contains(normalized, "for update of am, ma") {
