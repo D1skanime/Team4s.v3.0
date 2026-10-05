@@ -375,10 +375,14 @@ func openDashboardGroupMediaAttentionHandlerFixture(t *testing.T) *pgxpool.Pool 
 	return pool
 }
 
-// TestAttachPendingGroupMediaReviewAttentionUsesReviewActionNotGroupEdit proves Criterion
-// 3's permission-action fix: a user who holds review rights (permissions.ActionReviewImageDecide)
-// but NOT permissions.ActionFansubGroupEdit must still see a pending group-media review item.
-func TestAttachPendingGroupMediaReviewAttentionUsesReviewActionNotGroupEdit(t *testing.T) {
+// TestAttachPendingGroupMediaReviewAttentionRequiresGroupEdit proves BUG-174-02's
+// decision (user, 2026-10-05): the dashboard announces a pending group-media review only to
+// actors who can actually decide it, i.e. who hold permissions.ActionFansubGroupEdit -- the
+// right UpdateFansubMediaReview enforces. A reviewer with only
+// permissions.ActionReviewImageDecide must NOT see the item (it reversed Plan 143-09's
+// review-action gate, which announced reviews the endpoint then rejected); a fansub_lead
+// with group-edit rights must see it.
+func TestAttachPendingGroupMediaReviewAttentionRequiresGroupEdit(t *testing.T) {
 	gin.SetMode(gin.TestMode)
 	loadDashboardAttentionTestCache(t)
 
@@ -386,14 +390,17 @@ func TestAttachPendingGroupMediaReviewAttentionUsesReviewActionNotGroupEdit(t *t
 	ctx := context.Background()
 	_, err := pool.Exec(ctx, `
 		INSERT INTO review_statuses(id, code) VALUES (1, 'in_review');
-		INSERT INTO fansub_groups(id, name) VALUES (21, 'Alpha');
-		INSERT INTO media_assets(id, review_status_id) VALUES (701, 1);
-		INSERT INTO fansub_group_media(id, group_id, media_id, deleted_at) VALUES (1, 21, 701, NULL);
+		INSERT INTO fansub_groups(id, name) VALUES (21, 'Alpha'), (22, 'Beta');
+		INSERT INTO media_assets(id, review_status_id) VALUES (701, 1), (702, 1);
+		INSERT INTO fansub_group_media(id, group_id, media_id, deleted_at) VALUES (1, 21, 701, NULL), (2, 22, 702, NULL);
 	`)
 	require.NoError(t, err)
 
 	resolver := &dashboardAttentionResolverStub{
-		roles:        map[int64][]string{21: {"quality_checker"}}, // review rights only, no fansub_lead/edit
+		roles: map[int64][]string{
+			21: {"quality_checker"}, // review rights only, no fansub_lead/edit -> must not see it
+			22: {"fansub_lead"},     // holds fansub_group.edit -> must see it
+		},
 		membershipID: 901, memberID: 101,
 	}
 	h := &DashboardMeHandler{
@@ -407,8 +414,9 @@ func TestAttachPendingGroupMediaReviewAttentionUsesReviewActionNotGroupEdit(t *t
 
 	require.NoError(t, h.attachPendingGroupMediaReviewAttention(c, identity, data))
 	require.Len(t, data.PendingGroupMediaReviews, 1,
-		"a reviewer without fansub_group.edit must still see the item once the permission check is corrected to the review action")
-	assert.EqualValues(t, 21, data.PendingGroupMediaReviews[0].FansubGroupID)
+		"only the group where the actor holds fansub_group.edit may be announced")
+	assert.EqualValues(t, 22, data.PendingGroupMediaReviews[0].FansubGroupID,
+		"a reviewer with only review.image.decide (group 21) must not see an item the review endpoint would reject")
 }
 
 // openDashboardReleaseReviewAttentionHandlerFixture is a trimmed duplicate of

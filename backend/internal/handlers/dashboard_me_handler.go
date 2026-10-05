@@ -202,10 +202,13 @@ func (h *DashboardMeHandler) attachPendingClaimAttention(
 
 // attachPendingGroupMediaReviewAttention delegates the group-media candidate list to
 // reviewQueryRepo (Criterion 3, Plan 143-09) and keeps only the permission-filtering loop
-// here. The gate is permissions.ActionReviewImageDecide -- the actual review-decision
-// right -- not the too-broad group-edit right this plan corrects away from; permission
-// checks are memoized per distinct fansub group, matching attachPendingClaimAttention's
-// existing map shape (never once per row).
+// here. The gate is permissions.ActionFansubGroupEdit -- the same right
+// UpdateFansubMediaReview enforces for a review_status change and that
+// can_review_group_media reports -- so the dashboard only announces group-media reviews
+// the actor can actually decide (BUG-174-02; Plan 143-09 had used ActionReviewImageDecide,
+// which showed items to reviewers the review endpoint then rejects). Permission checks are
+// memoized per distinct fansub group, matching attachPendingClaimAttention's existing map
+// shape (never once per row).
 func (h *DashboardMeHandler) attachPendingGroupMediaReviewAttention(c *gin.Context, identity middleware.AuthIdentity, data *repository.OwnDashboardData) error {
 	if h.reviewQueryRepo == nil || h.permissionSvc == nil || data == nil {
 		return nil
@@ -221,7 +224,7 @@ func (h *DashboardMeHandler) attachPendingGroupMediaReviewAttention(c *gin.Conte
 		allowed, checked := allowedByGroup[item.FansubGroupID]
 		if !checked {
 			result, err := h.permissionSvc.CanForFansubGroup(
-				c.Request.Context(), actor, permissions.ActionReviewImageDecide, item.FansubGroupID,
+				c.Request.Context(), actor, permissions.ActionFansubGroupEdit, item.FansubGroupID,
 			)
 			if err != nil {
 				return err
