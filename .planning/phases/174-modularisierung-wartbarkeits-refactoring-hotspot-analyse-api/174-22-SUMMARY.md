@@ -185,3 +185,10 @@ Dieser Test hatte bereits VOR 174-22 einen fest codierten Zeilen-Verweis (`line:
 ---
 *Phase: 174-modularisierung-wartbarkeits-refactoring-hotspot-analyse-api*
 *Completed: 2026-10-05*
+
+## Self-Check: PASSED
+
+- All 15 new `.module.css` files verified present on disk (spot-checked `AnimeProjectNotesSection.module.css`, `FansubAppMemberEditorPanel.module.css`, `RoleToggleGroup.module.css`)
+- `FansubEdit.module.css` present and reduced as described
+- `FansubEditClient.module.css` correctly absent (reverted deviation)
+- Commits `12b307bf`, `91d9d4da`, `2d789c0b` all found in `git log --oneline --all`

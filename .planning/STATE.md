@@ -3,14 +3,14 @@ gsd_state_version: 1.0
 milestone: v1.4
 milestone_name: Coverage
 status: executing
-stopped_at: Completed 174-18-PLAN.md
-last_updated: "2026-10-05T18:12:27.976Z"
+stopped_at: Completed 174-22-PLAN.md
+last_updated: "2026-10-05T21:08:15.607Z"
 last_activity: 2026-10-05
 progress:
   total_phases: 39
   completed_phases: 33
   total_plans: 364
-  completed_plans: 355
+  completed_plans: 356
   percent: 85
 ---
 
@@ -923,6 +923,8 @@ Last activity: 2026-10-05
 - [Phase 174]: 174-17: completed the D-15 split of fansub_repository.go (2657 lines pre-174-16 to 37 lines) across 8 sibling files; merge cluster sub-split into core+duplicates files per D-24 — File's single largest cluster (~900 lines) needed a budget-driven sub-split to stay well under the 450-line project ceiling
 - [Phase 174]: 174-18: admin_content_anime_themes.go deleted outright (0 methods/types remained) rather than kept as an empty stub after the 5-file D-15 split (themes_core/segments_crud/segments_library/segments_playback/release_theme_assets)
 - [Phase 174]: 174-18: 4 pre-existing source-string-assertion tests repointed to the new sibling filenames under the D-03 import-path exception; one test now concatenates segments_library.go+segments_playback.go because its assertion spans the plan's own cluster boundary (loadStableSegmentAnimeSource)
+- [Phase 174]: 174-22: Konsumenten-Audit fuer FansubEdit.module.css auf den gesamten frontend/src-Baum erweitert (Prop-Drilling + admin/fansubs/create/-Route), nicht nur auf die 22 im Plan genannten Dateien — Textmatch des Importstatements allein haette mehrere echt genutzte Klassen faelschlich als tot/single-owner klassifiziert
+- [Phase 174]: 174-22: 5 grep-bestaetigte Single-Owner-Klassen bleiben wegen Compound-Selector-Verzahnung mit geteilten Klassen bewusst in FansubEdit.module.css — CSS Modules haeschen Klassennamen pro Datei; ein Split haette den Selector lautlos wirkungslos gemacht
 
 ### Pending Todos
 
@@ -1501,11 +1503,12 @@ untruncated list lives in `.planning/todos/pending/`.
 | Phase 174 P20 | 13min | 3 tasks | 8 files |
 | Phase 174 P17 | 12min | 3 tasks | 7 files |
 | Phase 174 P18 | 75min | 3 tasks | 9 files |
+| Phase 174 P22 | 90min | 3 tasks | 32 files |
 
 ## Session Continuity
 
-Last session: 2026-10-05T17:43:31.356Z
-Stopped at: Completed 174-18-PLAN.md
+Last session: 2026-10-05T21:08:15.586Z
+Stopped at: Completed 174-22-PLAN.md
 Last activity: 2026-09-28 - Completed Phase 169 Plan 169-01
 Resume file: 
 None
