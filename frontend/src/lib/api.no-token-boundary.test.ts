@@ -37,6 +37,10 @@ const centralClientAllowlist = new Set([
   // behind the barrel into this sibling file — already plain `fetch(` (no auth)
   // before this relocation, same boundary as fansubs-core.ts's public reads above.
   'src/lib/api/history.ts',
+  // 174-05: getSearch/getSearchSuggestions' public, unauthenticated global-search
+  // fetches moved behind the barrel into this sibling file — already plain
+  // `fetch(` (no auth) before this relocation.
+  'src/lib/api/search.ts',
 ])
 
 const keycloakAuthAllowlist = new Set([
