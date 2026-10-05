@@ -44,9 +44,12 @@ func TestApplyLegacyLinkProjection_UsesCanonicalLinks(t *testing.T) {
 }
 
 func TestFansubRepository_PublicProfileSourceInvariants(t *testing.T) {
-	src, err := os.ReadFile("fansub_repository.go")
+	// Moved by 174-17 (D-15 split) from fansub_repository.go to
+	// fansub_repository_public_profile.go -- pure import-path adjustment, zero
+	// behavior change (174-16's precedent for this same test pattern).
+	src, err := os.ReadFile("fansub_repository_public_profile.go")
 	if err != nil {
-		t.Fatalf("read fansub repository: %v", err)
+		t.Fatalf("read fansub repository public profile file: %v", err)
 	}
 	content := string(src)
 
@@ -75,9 +78,18 @@ func TestFansubRepository_PublicProfileSourceInvariants(t *testing.T) {
 		"fgm.category",
 		"ORDER BY fgm.sort_order ASC",
 		"LEFT JOIN LATERAL",
-		"FROM anime_media am",
-		"mt.name = 'banner'",
-		"banner_resolved_url",
+		// Fixed per 174-HOTSPOTS.md's explicit verdict (RESEARCH.md Open
+		// Question 1): "FROM anime_media am", "mt.name = 'banner'", and
+		// "banner_resolved_url" were stale fragments from a pre-Phase-173
+		// banner-sourcing SQL shape. Phase 173 (öffentliche Bildqualität
+		// zusätzliche Display-Variante Backend, completed 2026-10-02)
+		// intentionally replaced that shape with the media_files/
+		// variant='display' LATERAL-join pattern below -- an already-shipped,
+		// already-tested rewrite, not a latent bug. Updated to track the
+		// current, correct SQL shape.
+		"FROM fansub_groups",
+		"variant = 'display'",
+		"banner_display.path AS banner_display_path",
 		"r.ListGroupLinks(ctx, group.ID)",
 		"CommunityLinks",
 	} {
