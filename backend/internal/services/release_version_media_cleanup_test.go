@@ -452,7 +452,7 @@ func TestRVMUploadStorageKeyUniqueness(t *testing.T) {
 // inside the same transaction before setting the new preview flag.
 // This structural assertion proves the single-preview contract without a live DB.
 func TestRVMPreviewAssignmentIsExclusive(t *testing.T) {
-	src, err := os.ReadFile("../handlers/admin_content_release_version_media.go")
+	src, err := os.ReadFile("../handlers/admin_content_release_version_media_patch.go")
 	assert.NoError(t, err, "handler file must be readable from services test")
 	if err != nil {
 		t.SkipNow()
