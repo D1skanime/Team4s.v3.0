@@ -54,10 +54,9 @@ export function AdminFansubCreateMediaSection({
               value={logoMedia}
               disabled={!hasRuntimeAuthToken || saving}
               onBusyChange={(isBusy) =>
-                setMediaBusy((current) => ({
-                  ...current,
-                  logo: isBusy,
-                }))
+                setMediaBusy((current) =>
+                  current.logo === isBusy ? current : { ...current, logo: isBusy },
+                )
               }
               onChange={(nextValue) => {
                 setLogoMedia(nextValue);
@@ -76,10 +75,9 @@ export function AdminFansubCreateMediaSection({
               value={bannerMedia}
               disabled={!hasRuntimeAuthToken || saving}
               onBusyChange={(isBusy) =>
-                setMediaBusy((current) => ({
-                  ...current,
-                  banner: isBusy,
-                }))
+                setMediaBusy((current) =>
+                  current.banner === isBusy ? current : { ...current, banner: isBusy },
+                )
               }
               onChange={(nextValue) => {
                 setBannerMedia(nextValue);
