@@ -1,6 +1,6 @@
 'use client'
 
-import { useCallback, useEffect, useMemo, useRef, useState, type DragEvent, type PointerEvent } from 'react'
+import { useEffect, useMemo, useRef, useState, type DragEvent, type PointerEvent } from 'react'
 import { Archive, Ban, Check, Edit3, Filter, GripVertical, Save, UploadCloud, X } from 'lucide-react'
 import Image from 'next/image'
 
@@ -22,22 +22,17 @@ import {
   Toolbar,
 } from '@/components/ui'
 import {
-  ApiError,
   FansubGroupMediaCategory,
   FansubGroupMediaItem,
   FansubMediaReviewStatus,
   FansubMediaVisibility,
-  deleteFansubGroupMedia,
-  listFansubGroupMedia,
-  patchFansubMediaReview,
-  reorderFansubGroupMedia,
   resolveApiUrl,
-  uploadFansubGroupMedia,
 } from '@/lib/api'
 import type { FansubGroupCapabilities } from '@/types/fansub'
 import { classNames } from '@/components/ui/classNames'
 
 import styles from './GroupMediaReviewSection.module.css'
+import { useGroupMediaReviewActions } from './useGroupMediaReviewActions'
 
 interface GroupMediaReviewSectionProps {
   fansubId: number
@@ -68,7 +63,6 @@ type PointerReorderState = {
 
 const INITIAL_VISIBLE_MEDIA_COUNT = 40
 const LOAD_MORE_MEDIA_COUNT = 40
-const SORT_ORDER_STEP = 1000
 const POINTER_REORDER_THRESHOLD_PX = 6
 
 const CATEGORY_OPTIONS: Array<{ value: FansubGroupMediaCategory; label: string }> = [
@@ -94,12 +88,6 @@ const VISIBILITY_OPTIONS: Array<{ value: FansubMediaVisibility; label: string }>
   { value: 'intern', label: 'Intern' },
   { value: 'oeffentlich', label: 'Öffentlich' },
 ]
-
-function readErrorMessage(error: unknown, fallback: string): string {
-  if (error instanceof ApiError) return error.message
-  if (error instanceof Error) return error.message
-  return fallback
-}
 
 function itemToDraft(item: FansubGroupMediaItem): MediaDraft {
   return {
@@ -244,28 +232,6 @@ function GroupMediaReviewSectionInner({
   const canDeleteOwn = Boolean(capabilities?.can_delete_own_group_media || canDeleteAll)
   const canReorder = Boolean(capabilities?.can_reorder_group_media || canUpdate)
 
-  const loadMedia = useCallback(async () => {
-    try {
-      setIsLoading(true)
-      setLoadError(null)
-      const items = await listFansubGroupMedia(fansubId, undefined)
-      setMediaItems(items)
-      setDrafts(Object.fromEntries(items.map((item) => [item.id, itemToDraft(item)])))
-    } catch (err) {
-      setLoadError(
-        getErrorStateCopy(err, {
-          defaultDescription: 'Medien konnten nicht geladen werden.',
-        }),
-      )
-    } finally {
-      setIsLoading(false)
-    }
-  }, [fansubId])
-
-  useEffect(() => {
-    void loadMedia()
-  }, [loadMedia])
-
   const selectedFilePreviews = useMemo(
     () => selectedFiles.map((file) => ({
       file,
@@ -310,6 +276,8 @@ function GroupMediaReviewSectionInner({
   }, [categoryFilter, mediaItems, searchTerm, sortMode, statusFilter, visibilityFilter])
 
   useEffect(() => {
+    // Setzt das Ladelimit bei Filteraenderung zurueck auf den Anfangswert.
+    // eslint-disable-next-line react-hooks/set-state-in-effect
     setVisibleLimit(INITIAL_VISIBLE_MEDIA_COUNT)
   }, [categoryFilter, searchTerm, sortMode, statusFilter, visibilityFilter])
 
@@ -349,11 +317,66 @@ function GroupMediaReviewSectionInner({
     filteredMediaItems.length > 0 && filteredMediaItems.every((item) => selectedMediaIds.has(item.id))
 
   useEffect(() => {
+    // Entfernt Auswahl-IDs, die nach einer Filteraenderung nicht mehr sichtbar sind.
+    // eslint-disable-next-line react-hooks/set-state-in-effect
     setSelectedMediaIds((current) => {
       const next = new Set(Array.from(current).filter((id) => filteredMediaIdSet.has(id)))
       return next.size === current.size ? current : next
     })
   }, [filteredMediaIdSet])
+
+  const {
+    loadMedia,
+    handleUpload,
+    handleSave,
+    handleQuickReview,
+    handleBulkReview,
+    handleReorderDrop,
+    handlePointerDragEnd,
+    handleDelete,
+  } = useGroupMediaReviewActions({
+    fansubId,
+    mediaItems,
+    setMediaItems,
+    setIsLoading,
+    setLoadError,
+    drafts,
+    setDrafts,
+    setSaveErrors,
+    setSaving,
+    selectedFiles,
+    uploadCategory,
+    setUploadProgress,
+    setUploadError,
+    setToast,
+    setEditingMediaId,
+    resetUploadForm,
+    setIsUploadOpen,
+    canUpdate,
+    canUpdateOwn,
+    canReview,
+    selectedMediaIds,
+    filteredMediaIdSet,
+    setSelectedMediaIds,
+    setBulkSavingStatus,
+    setBulkError,
+    updateMediaReviewStatus,
+    canReorderMedia,
+    setReorderError,
+    setReorderSaving,
+    draggedMediaId,
+    dragOverMediaId,
+    handleDragEnd,
+    pointerReorderRef,
+    getPointerTargetMediaId,
+    canDeleteMediaItem,
+    editingMediaId,
+    setPendingDeleteItem,
+  })
+
+  useEffect(() => {
+    void loadMedia()
+  }, [loadMedia])
 
   function updateDraft<K extends keyof MediaDraft>(mediaId: number, field: K, value: MediaDraft[K]) {
     setDrafts((prev) => ({
@@ -451,132 +474,6 @@ function GroupMediaReviewSectionInner({
     setEditingMediaId(null)
   }
 
-  async function handleUpload() {
-    if (selectedFiles.length === 0) return
-    setUploadError(null)
-    setUploadProgress(0)
-    try {
-      const response = await uploadFansubGroupMedia({
-        fansubID: fansubId,
-        files: selectedFiles,
-        category: uploadCategory,
-        visibilityCode: 'private',
-        reviewStatusCode: 'in_review',
-        onProgress: setUploadProgress,
-      })
-      const failed = response.results.filter((result) => result.status === 'failed')
-      if (failed.length > 0) {
-        setUploadError(failed.map((result) => `${result.client_file_name}: ${result.message ?? 'Upload fehlgeschlagen'}`).join('\n'))
-      } else {
-        resetUploadForm()
-        setToast('Medien hochgeladen. Auswahl wurde zurückgesetzt.')
-        setIsUploadOpen(false)
-      }
-      await loadMedia()
-    } catch (err) {
-      setUploadError(readErrorMessage(err, 'Upload fehlgeschlagen.'))
-    } finally {
-      setUploadProgress(null)
-      setTimeout(() => setToast(null), 3500)
-    }
-  }
-
-  async function handleSave(item: FansubGroupMediaItem) {
-    const draft = drafts[item.id]
-    if (!draft || !(canUpdate || (canUpdateOwn && item.uploaded_by_current_user))) return
-    setSaveErrors((prev) => ({ ...prev, [item.id]: '' }))
-    setSaving((prev) => ({ ...prev, [item.id]: true }))
-
-    try {
-      const textMetadata = {
-        title: draft.title.trim() || null,
-        description: draft.description.trim() || null,
-        alt_text: draft.alt_text.trim() || null,
-      }
-      const patch = canUpdate
-        ? {
-            visibility: draft.visibility,
-            category: draft.category,
-            ...textMetadata,
-            ...(canReview ? { review_status: draft.review_status } : {}),
-          }
-        : textMetadata
-      await patchFansubMediaReview(fansubId, item.id, patch, undefined)
-      setToast('Änderungen gespeichert.')
-      setEditingMediaId(null)
-      await loadMedia()
-      setTimeout(() => setToast(null), 3500)
-    } catch (err) {
-      setSaveErrors((prev) => ({
-        ...prev,
-        [item.id]: readErrorMessage(err, 'Änderungen konnten nicht gespeichert werden.'),
-      }))
-    } finally {
-      setSaving((prev) => ({ ...prev, [item.id]: false }))
-    }
-  }
-
-  async function handleQuickReview(item: FansubGroupMediaItem, reviewStatus: FansubMediaReviewStatus) {
-    if (!canReview) return
-    setSaveErrors((prev) => ({ ...prev, [item.id]: '' }))
-    setSaving((prev) => ({ ...prev, [item.id]: true }))
-
-    try {
-      await patchFansubMediaReview(fansubId, item.id, { review_status: reviewStatus }, undefined)
-      updateMediaReviewStatus([item.id], reviewStatus)
-      setToast(reviewStatus === 'freigegeben' ? 'Medium freigegeben.' : 'Medium abgelehnt.')
-      setTimeout(() => setToast(null), 3500)
-    } catch (err) {
-      setSaveErrors((prev) => ({
-        ...prev,
-        [item.id]: readErrorMessage(err, 'Prüfstatus konnte nicht aktualisiert werden.'),
-      }))
-    } finally {
-      setSaving((prev) => ({ ...prev, [item.id]: false }))
-    }
-  }
-
-  async function handleBulkReview(reviewStatus: FansubMediaReviewStatus) {
-    if (!canReview || selectedMediaIds.size === 0) return
-    const targetIds = Array.from(selectedMediaIds).filter((id) => filteredMediaIdSet.has(id))
-    if (targetIds.length === 0) return
-
-    setBulkError(null)
-    setBulkSavingStatus(reviewStatus)
-
-    const results = await Promise.all(
-      targetIds.map(async (mediaId) => {
-        try {
-          await patchFansubMediaReview(fansubId, mediaId, { review_status: reviewStatus }, undefined)
-          return { mediaId, ok: true as const }
-        } catch (err) {
-          return { mediaId, ok: false as const, message: readErrorMessage(err, 'Prüfstatus konnte nicht aktualisiert werden.') }
-        }
-      }),
-    )
-
-    const successfulIds = results.filter((result) => result.ok).map((result) => result.mediaId)
-    const failed = results.filter((result) => !result.ok)
-    if (successfulIds.length > 0) {
-      updateMediaReviewStatus(successfulIds, reviewStatus)
-    }
-
-    if (failed.length === 0) {
-      setSelectedMediaIds(new Set())
-      setToast(
-        reviewStatus === 'freigegeben'
-          ? `${successfulIds.length} Medien freigegeben.`
-          : `${successfulIds.length} Medien abgelehnt.`,
-      )
-      setTimeout(() => setToast(null), 3500)
-    } else {
-      setSelectedMediaIds(new Set(failed.map((result) => result.mediaId)))
-      setBulkError(`${failed.length} von ${targetIds.length} Medien konnten nicht aktualisiert werden. ${failed[0]?.message ?? ''}`.trim())
-    }
-
-    setBulkSavingStatus(null)
-  }
-
   function handleDragStart(event: DragEvent<HTMLButtonElement>, item: FansubGroupMediaItem) {
     if (!canReorderMedia) return
     event.stopPropagation()
@@ -597,63 +494,6 @@ function GroupMediaReviewSectionInner({
     pointerReorderRef.current = null
     setDraggedMediaId(null)
     setDragOverMediaId(null)
-  }
-
-  async function applyMediaReorder(sourceMediaId: number, targetMediaId: number) {
-    if (!canReorderMedia || sourceMediaId === targetMediaId) {
-      return
-    }
-
-    const previousItems = mediaItems
-    const sourceIndex = previousItems.findIndex((item) => item.id === sourceMediaId)
-    const targetIndex = previousItems.findIndex((item) => item.id === targetMediaId)
-    if (sourceIndex === -1 || targetIndex === -1) return
-
-    const reorderedItems = [...previousItems]
-    const [movedItem] = reorderedItems.splice(sourceIndex, 1)
-    reorderedItems.splice(targetIndex, 0, movedItem)
-    const normalizedItems = reorderedItems.map((item, index) => ({
-      ...item,
-      sort_order: (index + 1) * SORT_ORDER_STEP,
-    }))
-
-    setReorderError(null)
-    setReorderSaving(true)
-    setMediaItems(normalizedItems)
-    setDrafts((current) => {
-      const next = { ...current }
-      normalizedItems.forEach((item) => {
-        if (next[item.id]) {
-          next[item.id] = { ...next[item.id], sort_order: item.sort_order }
-        }
-      })
-      return next
-    })
-
-    try {
-      await reorderFansubGroupMedia(fansubId, { mediaIds: normalizedItems.map((item) => item.id) }, undefined)
-      setToast('Reihenfolge gespeichert.')
-      setTimeout(() => setToast(null), 3500)
-    } catch (err) {
-      setMediaItems(previousItems)
-      setDrafts(Object.fromEntries(previousItems.map((item) => [item.id, itemToDraft(item)])))
-      setReorderError(readErrorMessage(err, 'Reihenfolge konnte nicht gespeichert werden.'))
-    } finally {
-      setReorderSaving(false)
-    }
-  }
-
-  async function handleReorderDrop(event: DragEvent<HTMLElement>, targetItem: FansubGroupMediaItem) {
-    if (!canReorderMedia || draggedMediaId === null || draggedMediaId === targetItem.id) {
-      handleDragEnd()
-      return
-    }
-    event.preventDefault()
-    event.stopPropagation()
-
-    const sourceMediaId = draggedMediaId
-    handleDragEnd()
-    await applyMediaReorder(sourceMediaId, targetItem.id)
   }
 
   function getPointerTargetMediaId(event: PointerEvent<HTMLButtonElement>): number | null {
@@ -691,41 +531,6 @@ function GroupMediaReviewSectionInner({
 
     const targetMediaId = getPointerTargetMediaId(event)
     setDragOverMediaId(targetMediaId !== null && targetMediaId !== pointerState.mediaId ? targetMediaId : null)
-  }
-
-  async function handlePointerDragEnd(event: PointerEvent<HTMLButtonElement>) {
-    const pointerState = pointerReorderRef.current
-    if (!pointerState || pointerState.pointerId !== event.pointerId) return
-    event.preventDefault()
-    event.stopPropagation()
-    event.currentTarget.releasePointerCapture(event.pointerId)
-
-    const targetMediaId = dragOverMediaId ?? getPointerTargetMediaId(event)
-    const sourceMediaId = pointerState.mediaId
-    handleDragEnd()
-    if (targetMediaId !== null && targetMediaId !== sourceMediaId) {
-      await applyMediaReorder(sourceMediaId, targetMediaId)
-    }
-  }
-
-  async function handleDelete(item: FansubGroupMediaItem) {
-    if (!canDeleteMediaItem(item)) return
-    setSaving((prev) => ({ ...prev, [item.id]: true }))
-    try {
-      await deleteFansubGroupMedia(fansubId, item.id)
-      setToast('Medium aus den Gruppenmedien entfernt.')
-      setPendingDeleteItem(null)
-      if (editingMediaId === item.id) setEditingMediaId(null)
-      await loadMedia()
-      setTimeout(() => setToast(null), 3500)
-    } catch (err) {
-      setSaveErrors((prev) => ({
-        ...prev,
-        [item.id]: readErrorMessage(err, 'Medium konnte nicht aus den Gruppenmedien entfernt werden.'),
-      }))
-    } finally {
-      setSaving((prev) => ({ ...prev, [item.id]: false }))
-    }
   }
 
   if (isLoading) {
