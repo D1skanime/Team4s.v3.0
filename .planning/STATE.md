@@ -2,15 +2,15 @@
 gsd_state_version: 1.0
 milestone: v1.4
 milestone_name: Coverage
-status: completed
-stopped_at: Completed 174-04-PLAN.md
-last_updated: "2026-10-05T00:59:25.384Z"
+status: executing
+stopped_at: Completed 174-05-PLAN.md
+last_updated: "2026-10-05T01:52:10.822Z"
 last_activity: 2026-10-05
 progress:
   total_phases: 39
   completed_phases: 33
   total_plans: 364
-  completed_plans: 338
+  completed_plans: 339
   percent: 85
 ---
 
@@ -287,8 +287,8 @@ Abschluss" entry below for the full closing record.
 ## Current Position
 
 Phase: 174 (modularisierung-wartbarkeits-refactoring-hotspot-analyse-api) — EXECUTING
-Plan: 4 of 26
-Status: Completed 174-04-PLAN.md; ready to execute 174-05
+Plan: 2 of 26
+Status: Ready to execute
 Completed: Phase 173 — six public image write paths gained a `display` variant, public read sites and components prefer it over thumb/original, a fansub media namespace + redirect, an idempotent backfill run against the live database, and a full live D-13 UAT (desktop+mobile, transparency, animation, performance) all passed.
 Next: Phase 169's remaining plan (169-05, live actor/refresh/responsive UAT) is still open; Phase 166 (Film-Content-Flow) has not been started. The Coverage milestone is NOT complete.
 
@@ -901,6 +901,8 @@ Last activity: 2026-10-05
 - [Phase 174]: 174-03: parsePayloadApiError and authorizedUploadXhr relocated to client.ts (not named in plan interfaces) to avoid api.ts<->admin/* import cycle — both needed by moving admin/anime-core.ts and admin/anime-release-assets.ts functions AND by functions staying in api.ts
 - [Phase 174-04]: D-24 sub-split: when a bucket exceeds 450 lines, split by sub-concern and re-export all sub-files from the api.ts barrel — Applied to fansubs/groups (39 fns -> 4 files) and contributions (21 fns -> 2 files), following the 174-03 admin/anime precedent
 - [Phase 174-04]: Cross-bucket same-wave dependencies resolve via direct sibling import (e.g. contributions-me.ts imports getAnimeList from ./fansubs-core), never through the api.ts barrel itself — Importing from the barrel inside a module the barrel re-exports would create a self-import cycle (D-11)
+- [Phase ?]: 174-05: Did not re-move 5 auth/session functions already relocated to client.ts by 174-02 (plan interface list was stale against a pre-174-02 commit)
+- [Phase ?]: 174-05: permissions.ts (~620 lines) and history.ts (~1030 lines) kept as single D-24 cohesion-exception files per the plan's locked artifact-path lock, matching 174-03's fansub-members.ts precedent
 
 ### Pending Todos
 
@@ -1464,11 +1466,12 @@ untruncated list lives in `.planning/todos/pending/`.
 | Phase 174 P02 | 90min | 3 tasks | 8 files |
 | Phase 174 P03 | 70min | 3 tasks | 12 files |
 | Phase 174 P04 | 100min | 3 tasks | 9 files |
+| Phase 174 P05 | 48min | 3 tasks | 7 files |
 
 ## Session Continuity
 
-Last session: 2026-10-05T00:59:25.356Z
-Stopped at: Completed 174-04-PLAN.md
+Last session: 2026-10-05T01:52:10.802Z
+Stopped at: Completed 174-05-PLAN.md
 Last activity: 2026-09-28 - Completed Phase 169 Plan 169-01
 Resume file: 
 None
