@@ -115,9 +115,14 @@ func TestPublicAnimeSlugSQL_FallsBackWhenStoredSlugIsBlank(t *testing.T) {
 // listProjectionHistorical), and must never reference the legacy
 // fansub_members table.
 func TestAttachGroupCounts_MembersCountMatchesCountVisibleTeamMembers(t *testing.T) {
-	src, err := os.ReadFile("fansub_repository.go")
+	// 174-16 moved attachGroupCounts/attachGroupLinks into
+	// fansub_repository_groups.go (same package/receiver, D-15 split) -- this
+	// is a pure import-path adjustment of the self-inspection assertion below,
+	// not a behavior change. See 174-HOTSPOTS.md's precedent analysis of the
+	// same class of breakage in Phase 143's member_claims_repository.go split.
+	src, err := os.ReadFile("fansub_repository_groups.go")
 	if err != nil {
-		t.Fatalf("read fansub repository: %v", err)
+		t.Fatalf("read fansub repository groups: %v", err)
 	}
 	content := string(src)
 
@@ -157,9 +162,13 @@ func TestAttachGroupCounts_MembersCountMatchesCountVisibleTeamMembers(t *testing
 // page's "Anime-Projekte" figure the way the pre-existing AnimeRelationsCount
 // batch does (that batch has no anime.status filter at all).
 func TestAttachGroupCounts_ProjectsCountExcludesDisabledAnime(t *testing.T) {
-	src, err := os.ReadFile("fansub_repository.go")
+	// 174-16 moved attachGroupCounts/attachGroupLinks into
+	// fansub_repository_groups.go (same package/receiver, D-15 split) -- this
+	// is a pure import-path adjustment of the self-inspection assertion below,
+	// not a behavior change.
+	src, err := os.ReadFile("fansub_repository_groups.go")
 	if err != nil {
-		t.Fatalf("read fansub repository: %v", err)
+		t.Fatalf("read fansub repository groups: %v", err)
 	}
 	content := string(src)
 
@@ -186,9 +195,12 @@ func TestAttachGroupCounts_ProjectsCountExcludesDisabledAnime(t *testing.T) {
 }
 
 func TestFansubRepository_DeleteGroupCleansRestrictedChildrenFirst(t *testing.T) {
-	src, err := os.ReadFile("fansub_repository.go")
+	// 174-16 moved DeleteGroup into fansub_repository_groups.go (same
+	// package/receiver, D-15 split) -- this is a pure import-path adjustment
+	// of the self-inspection assertion below, not a behavior change.
+	src, err := os.ReadFile("fansub_repository_groups.go")
 	if err != nil {
-		t.Fatalf("read fansub repository: %v", err)
+		t.Fatalf("read fansub repository groups: %v", err)
 	}
 	content := string(src)
 
