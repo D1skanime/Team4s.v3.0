@@ -3,14 +3,14 @@ gsd_state_version: 1.0
 milestone: v1.4
 milestone_name: Coverage
 status: executing
-stopped_at: Completed 174-02-PLAN.md
-last_updated: "2026-10-04T23:48:17.615Z"
-last_activity: 2026-10-04
+stopped_at: Completed 174-03-PLAN.md
+last_updated: "2026-10-05T00:14:28.595Z"
+last_activity: 2026-10-05
 progress:
   total_phases: 39
   completed_phases: 33
   total_plans: 364
-  completed_plans: 336
+  completed_plans: 337
   percent: 85
 ---
 
@@ -287,7 +287,7 @@ Abschluss" entry below for the full closing record.
 ## Current Position
 
 Phase: 174 (modularisierung-wartbarkeits-refactoring-hotspot-analyse-api) — EXECUTING
-Plan: 2 of 26
+Plan: 3 of 26
 Status: Ready to execute
 Completed: Phase 173 — six public image write paths gained a `display` variant, public read sites and components prefer it over thumb/original, a fansub media namespace + redirect, an idempotent backfill run against the live database, and a full live D-13 UAT (desktop+mobile, transparency, animation, performance) all passed.
 Next: Phase 169's remaining plan (169-05, live actor/refresh/responsive UAT) is still open; Phase 166 (Film-Content-Flow) has not been started. The Coverage milestone is NOT complete.
@@ -395,7 +395,7 @@ timing flakiness, not a Phase 149 regression, and not yet root-caused.
 v1.4 is extended by the additive phases 165-170 and is not currently fully closed. Phase 166
 remains open, Phase 169 still has its live UAT plan outstanding, and Phase 170 is implemented
 with focused verification complete plus named pre-existing full-suite failures.
-Last activity: 2026-10-04
+Last activity: 2026-10-05
 
 ## Accumulated Context
 
@@ -897,6 +897,8 @@ Last activity: 2026-10-04
 - [Phase 174]: 174-01 D-07 analysis found 2 genuine merge-candidates (Pagination page-window math, byte-identical formatDate cluster) and 1 real behavioral-drift bug in getTypeBadgeLabel's OUTRO case, flagged not silently merged
 - [Phase 174]: Barrel layout locked: api.ts stays the permanent barrel file re-exporting ./api/client, verified empirically via tsc --noEmit byte-identical to pre-change baseline
 - [Phase 174]: 174-02 Task 2 scope expanded after tracing authorizedFetch's real dependency graph: full self-contained auth/session closure moved to client.ts ahead of 174-05's planned auth.ts split (follow-up note left for 174-05)
+- [Phase 174]: 174-03: admin-anime bucket sub-split into 6 files (core/jellyfin/relations/themes/taxonomy/release-assets) per D-24; fansub-members.ts kept single-file per plan artifact lock (~750 lines, D-24 exception) — 42-function anime bucket would exceed 450 lines in one file; fansub-members plan locked it as one artifact
+- [Phase 174]: 174-03: parsePayloadApiError and authorizedUploadXhr relocated to client.ts (not named in plan interfaces) to avoid api.ts<->admin/* import cycle — both needed by moving admin/anime-core.ts and admin/anime-release-assets.ts functions AND by functions staying in api.ts
 
 ### Pending Todos
 
@@ -1458,11 +1460,12 @@ untruncated list lives in `.planning/todos/pending/`.
 | Phase 173 P15 | 32min | 2 tasks | 4 files |
 | Phase 174 P01 | 150min | 5 tasks | 10 files |
 | Phase 174 P02 | 90min | 3 tasks | 8 files |
+| Phase 174 P03 | 70min | 3 tasks | 12 files |
 
 ## Session Continuity
 
-Last session: 2026-10-04T23:48:17.593Z
-Stopped at: Completed 174-02-PLAN.md
+Last session: 2026-10-05T00:13:45.457Z
+Stopped at: Completed 174-03-PLAN.md
 Last activity: 2026-09-28 - Completed Phase 169 Plan 169-01
 Resume file: 
 None
