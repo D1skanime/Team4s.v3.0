@@ -15,9 +15,7 @@ import { useAuthSession } from "@/lib/useAuthSession";
 import {
   createAdminAnimeFromJellyfinDraft,
   getAdminTagTokens,
-  loadAdminAnimeCreateAniSearchDraft,
   searchAdminAnimeCreateAssetCandidates,
-  searchAdminAnimeCreateAniSearchCandidates,
 } from "@/lib/api/admin-anime-intake";
 import { AnimeStatus, ContentType } from "@/types/anime";
 import type {
@@ -41,13 +39,11 @@ import {
   CREATE_REDIRECT_DELAY_MS,
   createManualAnimeAndRedirect,
   formatCreatePageError,
-  resolveCreateAniSearchDraftMergeInputs,
   resolveJellyfinReviewVisibility,
   resolveSourceActionState,
 } from "../createPageHelpers";
 import type { CreateAssetUploadDraftValue } from "../createAssetUploadPlan";
 import {
-  applyCreateAniSearchControllerResult,
   buildCreateAniSearchConflictState,
   type CreateAniSearchConflictState,
   type CreateAniSearchDraftState,
@@ -83,6 +79,7 @@ import {
 } from "../../utils/anime-helpers";
 import { resolveJellyfinIntakeAssetUrl } from "../../utils/jellyfin-intake-assets";
 import { useJellyfinIntakeActions } from "./admin-anime-create/useJellyfinIntakeActions";
+import { useAniSearchIntakeActions } from "./admin-anime-create/useAniSearchIntakeActions";
 
 const DEFAULT_GENRE_LIMIT = 40;
 const DEFAULT_TAG_LIMIT = 40;
@@ -157,34 +154,10 @@ export function resolveCreateCoverState(params: {
   };
 }
 
-export function resolveAniSearchCandidateSearchFeedback(
-  response: AdminAnimeAniSearchSearchCandidateResponse,
-): {
-  candidates: AdminAnimeAniSearchSearchCandidate[];
-  errorMessage: string | null;
-  successMessage: string | null;
-} {
-  const candidates = Array.isArray(response.data) ? response.data : [];
-
-  if (candidates.length === 0) {
-    return {
-      candidates,
-      errorMessage:
-        "Keine AniSearch-Treffer gefunden. Bitte prüfe den Titel oder nutze die ID direkt.",
-      successMessage: null,
-    };
-  }
-
-  return {
-    candidates,
-    errorMessage: null,
-    successMessage: `${candidates.length} AniSearch-Treffer gefunden. Wähle jetzt den passenden Eintrag aus.`,
-  };
-}
-
-type AdminAnimeAniSearchSearchCandidateResponse = {
-  data: AdminAnimeAniSearchSearchCandidate[];
-};
+// D-13 (174-10): moved to the AniSearch-intake sub-hook alongside its only
+// caller (handleAniSearchCandidateSearch); re-exported here so the facade's
+// existing re-export path stays unchanged for callers/tests.
+export { resolveAniSearchCandidateSearchFeedback } from "./admin-anime-create/useAniSearchIntakeActions";
 
 export interface UseAdminAnimeCreateControllerOptions {
   /** D-10/D-11: markiert den Create-Vorgang als Discovery-gestuetzt (aus dem Bibliotheks-Hand-off). */
@@ -960,122 +933,33 @@ export function useAdminAnimeCreateController(
     setSuccessMessage("Jellyfin-Auswahl verworfen. Der Anime wurde noch nicht erstellt.");
   }
 
-  async function loadAniSearchDraftByID(anisearchID: string) {
-    clearMessages();
-    clearAniSearchState();
-    setLastRequest(null);
-    setLastResponse(null);
-
-    if (!anisearchID) {
-      setAniSearchErrorMessage("Bitte zuerst eine AniSearch-ID eingeben.");
-      return;
-    }
-
-    if (!hasAuthToken) {
-      setAniSearchErrorMessage(
-        "Anmeldung erforderlich. Bitte zuerst anmelden.",
-      );
-      return;
-    }
-
-    const requestPayload = {
-      anisearch_id: anisearchID,
-      draft: resolveCreateAniSearchDraftMergeInputs({
-        currentDraft: manualDraftValues,
-        jellyfinSnapshot: jellyfinDraftSnapshot,
-        jellyfinHydratedSnapshot: jellyfinHydratedDraftSnapshot,
-      }).requestDraft,
-    };
-
-    try {
-      setIsLoadingAniSearchDraft(true);
-      setLastRequest(JSON.stringify(requestPayload, null, 2));
-
-      const response = await loadAdminAnimeCreateAniSearchDraft(requestPayload);
-      const resolved = applyCreateAniSearchControllerResult({
-        currentDraft: manualDraftValues,
-        jellyfinSnapshot: jellyfinDraftSnapshot,
-        jellyfinHydratedSnapshot: jellyfinHydratedDraftSnapshot,
-        result: response.data,
-      });
-
-      setLastResponse(JSON.stringify(response, null, 2));
-
-      if (resolved.redirect) {
-        // D-23-Fix: keine automatische Vollseiten-Navigation mehr hier — der
-        // Konflikt wird nur noch als Zustand gesetzt, damit
-        // AniSearchDuplicateDecision tatsaechlich rendern kann, statt von der
-        // Navigation ueberholt zu werden (live reproduziert, AniSearch-ID
-        // 2788 -> Naruto #4). Der komplette Draft-State
-        // (manualDraftValues/jellyfinDraftSnapshot) bleibt unangetastet.
-        setAniSearchConflict(resolved.redirect);
-        return;
-      }
-
-      applyManualDraftValues(resolved.nextDraft);
-      setAniSearchDraftResult(resolved.draftResult);
-      setShowValidationSummary(false);
-    } catch (error) {
-      setAniSearchErrorMessage(
-        formatCreatePageError(error, "AniSearch-Daten konnten nicht geladen werden."),
-      );
-      } finally {
-        setIsLoadingAniSearchDraft(false);
-      }
-    }
-
-  async function handleAniSearchDraftLoad() {
-    await loadAniSearchDraftByID(createAniSearchID.trim());
-  }
-
-  async function handleAniSearchCandidateSearch() {
-    clearMessages();
-    clearAniSearchState();
-    setLastRequest(null);
-    setLastResponse(null);
-
-    const query = createAniSearchSearchQuery.trim();
-    if (!query) {
-      setAniSearchErrorMessage("Bitte zuerst einen AniSearch-Titel eingeben.");
-      return;
-    }
-
-    if (!hasAuthToken) {
-      setAniSearchErrorMessage(
-        "Anmeldung erforderlich. Bitte zuerst anmelden.",
-      );
-      return;
-    }
-
-    try {
-      setIsSearchingAniSearchCandidates(true);
-      const response = await searchAdminAnimeCreateAniSearchCandidates(
-        query,
-        { limit: 12 },
-      );
-      const feedback = resolveAniSearchCandidateSearchFeedback(response);
-      setLastResponse(JSON.stringify(response, null, 2));
-      setAniSearchCandidates(feedback.candidates);
-      setAniSearchErrorMessage(feedback.errorMessage);
-      if (feedback.successMessage) {
-        setSuccessMessage(feedback.successMessage);
-      }
-    } catch (error) {
-      setAniSearchErrorMessage(
-        formatCreatePageError(error, "AniSearch-Treffer konnten nicht geladen werden."),
-      );
-    } finally {
-      setIsSearchingAniSearchCandidates(false);
-    }
-  }
-
-  async function handleAniSearchCandidateSelect(
-    candidate: AdminAnimeAniSearchSearchCandidate,
-  ) {
-    setCreateAniSearchID(candidate.anisearch_id);
-    setCreateAniSearchSearchQuery(candidate.title);
-    await loadAniSearchDraftByID(candidate.anisearch_id);
-  }
+  const {
+    handleAniSearchDraftLoad,
+    handleAniSearchCandidateSearch,
+    handleAniSearchCandidateSelect,
+  } = useAniSearchIntakeActions({
+    hasAuthToken,
+    manualDraftValues,
+    jellyfinDraftSnapshot,
+    jellyfinHydratedDraftSnapshot,
+    createAniSearchID,
+    createAniSearchSearchQuery,
+    setLastRequest,
+    setLastResponse,
+    setAniSearchErrorMessage,
+    setIsLoadingAniSearchDraft,
+    setAniSearchConflict,
+    setAniSearchDraftResult,
+    setShowValidationSummary,
+    setIsSearchingAniSearchCandidates,
+    setAniSearchCandidates,
+    setSuccessMessage,
+    setCreateAniSearchID,
+    setCreateAniSearchSearchQuery,
+    clearMessages,
+    clearAniSearchState,
+    applyManualDraftValues,
+  });
 
   const assetSearchPageLimit = activeAssetSearchKind === "background" ? 12 : 8;
 
