@@ -22,6 +22,7 @@ import type {
 
 import sharedStyles from '../../../admin.module.css'
 import fansubEditStyles from './FansubEdit.module.css'
+import ownStyles from './GroupMembersHistTable.module.css'
 
 const styles = { ...sharedStyles, ...fansubEditStyles }
 
@@ -179,7 +180,7 @@ function HistoricalMemberCard({
           </div>
         </div>
         {canManageHistoricalMembers ? (
-          <div className={styles.fansubEditHistoricalMemberHeaderActions}>
+          <div className={ownStyles.fansubEditHistoricalMemberHeaderActions}>
             <Button
               variant="ghost"
               size="sm"
@@ -212,7 +213,7 @@ function HistoricalMemberCard({
               <Badge
                 key={`historical-role-${role.id}`}
                 variant="info"
-                className={styleNames(styles.fansubEditRoleBadge, styles.fansubEditHistoricalRoleBadge)}
+                className={styleNames(ownStyles.fansubEditRoleBadge, ownStyles.fansubEditHistoricalRoleBadge)}
                 data-color-key={presentationForRole(roles, role.role_code).colorKey}
                 title={`${formatRoleZeitraum(role)} · ${formatRoleDuration(role)}`}
               >
@@ -228,21 +229,21 @@ function HistoricalMemberCard({
 
       {canManageClaims
         ? (pendingClaimsByMember.get(member.member_id) ?? []).map((claim) => (
-            <div key={`pending-claim-${claim.id}`} className={styleNames(styles.fansubEditMemberCompactBody, styles.fansubEditMemberCompactActionBody)}>
-              <div className={styles.fansubEditClaimRequest}>
-                <div className={styles.fansubEditClaimRequestInfo}>
-                  <span className={styles.fansubEditClaimRequestLabel}>
+            <div key={`pending-claim-${claim.id}`} className={styleNames(styles.fansubEditMemberCompactBody, ownStyles.fansubEditMemberCompactActionBody)}>
+              <div className={ownStyles.fansubEditClaimRequest}>
+                <div className={ownStyles.fansubEditClaimRequestInfo}>
+                  <span className={ownStyles.fansubEditClaimRequestLabel}>
                     <Link2 size={13} aria-hidden="true" />
                     Verknüpfungs-Antrag
                   </span>
-                  <p className={styles.fansubEditClaimRequestText}>
+                  <p className={ownStyles.fansubEditClaimRequestText}>
                     Ein Nutzer möchte diesen Eintrag als eigenes Profil verknüpfen.
                   </p>
                   {claim.note?.trim() ? (
-                    <p className={styles.fansubEditClaimRequestNote}>{claim.note.trim()}</p>
+                    <p className={ownStyles.fansubEditClaimRequestNote}>{claim.note.trim()}</p>
                   ) : null}
                 </div>
-                <div className={styles.fansubEditClaimRequestActions}>
+                <div className={ownStyles.fansubEditClaimRequestActions}>
                   <Button
                     variant="success"
                     size="sm"
@@ -265,18 +266,18 @@ function HistoricalMemberCard({
           ))
         : null}
       {canManageClaims && member.app_username ? (
-        <div className={styleNames(styles.fansubEditMemberCompactBody, styles.fansubEditMemberCompactActionBody)}>
-          <div className={styles.fansubEditLinkedAccount}>
-            <div className={styles.fansubEditLinkedAccountInfo}>
-              <span className={styles.fansubEditLinkedAccountLabel}>
+        <div className={styleNames(styles.fansubEditMemberCompactBody, ownStyles.fansubEditMemberCompactActionBody)}>
+          <div className={ownStyles.fansubEditLinkedAccount}>
+            <div className={ownStyles.fansubEditLinkedAccountInfo}>
+              <span className={ownStyles.fansubEditLinkedAccountLabel}>
                 <Link2 size={13} aria-hidden="true" />
                 Account verknüpft
               </span>
-              <p className={styles.fansubEditLinkedAccountText}>
+              <p className={ownStyles.fansubEditLinkedAccountText}>
                 Verknüpft mit <strong>{member.app_username}</strong> · bereit zur Übernahme als aktives Mitglied.
               </p>
             </div>
-            <div className={styles.fansubEditLinkedAccountActions}>
+            <div className={ownStyles.fansubEditLinkedAccountActions}>
               <Button
                 variant="success"
                 size="sm"
@@ -290,7 +291,7 @@ function HistoricalMemberCard({
         </div>
       ) : null}
       {canCreateClaimInvitation && !member.app_username ? (
-        <div className={styleNames(styles.fansubEditMemberCompactBody, styles.fansubEditMemberCompactActionBody)}>
+        <div className={styleNames(styles.fansubEditMemberCompactBody, ownStyles.fansubEditMemberCompactActionBody)}>
           <Toolbar
             leading={<span className={styles.fansubEditHint}>Noch kein Team4s-Account verknüpft</span>}
             trailing={(
@@ -305,7 +306,7 @@ function HistoricalMemberCard({
             )}
           />
           {invite ? (
-            <div className={styles.fansubEditClaimInviteLinkRow}>
+            <div className={ownStyles.fansubEditClaimInviteLinkRow}>
               <Input
                 id={`hist-claim-invite-link-${member.id}`}
                 type="text"
@@ -325,7 +326,7 @@ function HistoricalMemberCard({
             </div>
           ) : null}
           {!invite && activeInvitation ? (
-            <div className={styles.fansubEditClaimPendingInviteRow}>
+            <div className={ownStyles.fansubEditClaimPendingInviteRow}>
               <Badge variant="muted">Aktive Einladung bis {formatDate(activeInvitation.expires_at)}</Badge>
               <Button
                 variant="danger"

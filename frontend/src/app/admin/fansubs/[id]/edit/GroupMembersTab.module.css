@@ -1,0 +1,10 @@
+.fansubEditEmbeddedMembershipSurface {
+  display: grid;
+  gap: 1rem;
+  min-width: 0;
+}
+.fansubEditHistoricalMembersSurface {
+  display: grid;
+  gap: 10px;
+  min-width: 0;
+}

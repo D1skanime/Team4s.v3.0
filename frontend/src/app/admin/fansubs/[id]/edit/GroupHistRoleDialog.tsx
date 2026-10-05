@@ -16,6 +16,7 @@ import { type HistFansubGroupMember } from '@/types/fansub'
 
 import sharedStyles from '../../../admin.module.css'
 import fansubEditStyles from './FansubEdit.module.css'
+import ownStyles from './GroupHistRoleDialog.module.css'
 
 const styles = { ...sharedStyles, ...fansubEditStyles }
 
@@ -137,7 +138,7 @@ export function GroupHistRoleDialog({
           </Select>
         </FormField>
 
-        <div className={styles.fansubEditMembershipModalGrid}>
+        <div className={ownStyles.fansubEditMembershipModalGrid}>
           <FormField label="Eintrittsdatum" htmlFor="member-role-started-date">
             <DatePicker
               id="member-role-started-date"

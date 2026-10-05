@@ -1,0 +1,35 @@
+.fansubEditMembershipDeleteText {
+  margin: 0;
+  color: var(--text-secondary);
+  line-height: 1.5;
+}
+.fansubEditInlineRolePanel {
+  display: grid;
+  gap: 0.75rem;
+  border: 1px solid color-mix(in srgb, var(--accent-primary) 18%, transparent);
+  border-radius: var(--radius-sm);
+  background: color-mix(in srgb, var(--bg-secondary) 80%, var(--bg-card));
+  padding: 0.8rem;
+}
+.fansubEditInlineRoleHeader {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 0.75rem;
+  flex-wrap: wrap;
+}
+.fansubEditInlineRoleHeader h3 {
+  margin: 0;
+}
+.fansubEditInlineRoleHeader p {
+  margin: 0;
+}
+.fansubEditInlineRoleHeader h3 {
+  color: var(--text-primary);
+  font-size: 0.98rem;
+}
+.fansubEditInlineRoleHeader p {
+  color: var(--text-muted);
+  font-size: 0.84rem;
+  line-height: 1.4;
+}

@@ -1,0 +1,23 @@
+@media (max-width: 720px) {
+.fansubEditMembershipModalGrid {
+    grid-template-columns: 1fr;
+  }
+}
+.fansubEditMembershipModalGrid > * {
+  align-self: start;
+  min-height: 0;
+}
+.fansubEditMembershipModalGrid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  align-items: start;
+  align-content: start;
+  grid-auto-rows: max-content;
+  gap: 0.9rem;
+}
+@media (max-width: 767px) {
+.fansubEditMembershipModalGrid button {
+    align-self: start;
+    height: auto;
+  }
+}

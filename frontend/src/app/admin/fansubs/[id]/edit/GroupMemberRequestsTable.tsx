@@ -17,6 +17,7 @@ import type { MemberRequestRow } from '@/types/profile'
 
 import sharedStyles from '../../../admin.module.css'
 import fansubEditStyles from './FansubEdit.module.css'
+import ownStyles from './GroupMemberRequestsTable.module.css'
 
 const styles = { ...sharedStyles, ...fansubEditStyles }
 
@@ -80,7 +81,7 @@ export function GroupMemberRequestsTable({
                 />
               </TableCell>
               <TableCell>
-                <div className={styles.fansubEditTableRowActions}>
+                <div className={ownStyles.fansubEditTableRowActions}>
                   <Button
                     size="sm"
                     variant="success"

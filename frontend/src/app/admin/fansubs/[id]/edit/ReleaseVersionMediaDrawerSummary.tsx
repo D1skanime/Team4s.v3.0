@@ -3,7 +3,7 @@
 import Link from 'next/link'
 import { useReleaseVersionMedia } from '@/app/admin/episode-versions/[versionId]/edit/useReleaseVersionMedia'
 import { CATEGORY_LABELS, ReleaseVersionMediaCategory, RELEASE_VERSION_MEDIA_CATEGORIES } from '@/types/releaseVersionMedia'
-import styles from './FansubEdit.module.css'
+import styles from './ReleaseVersionMediaDrawerSummary.module.css'
 
 interface ReleaseVersionMediaDrawerSummaryProps {
   versionId: number

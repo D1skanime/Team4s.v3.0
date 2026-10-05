@@ -19,6 +19,7 @@ import { findDuplicateMemberMatches, type InlineMemberRoleDraft } from './useGro
 
 import sharedStyles from '../../../admin.module.css'
 import fansubEditStyles from './FansubEdit.module.css'
+import ownStyles from './GroupMemberFormModals.module.css'
 
 const styles = { ...sharedStyles, ...fansubEditStyles }
 
@@ -202,8 +203,8 @@ export function GroupMemberFormModals({
             </Select>
           </FormField>
 
-          <section className={styles.fansubEditInlineRolePanel} aria-label="Frühere Funktionen">
-            <div className={styles.fansubEditInlineRoleHeader}>
+          <section className={ownStyles.fansubEditInlineRolePanel} aria-label="Frühere Funktionen">
+            <div className={ownStyles.fansubEditInlineRoleHeader}>
               <div>
                 <h3>Frühere Funktionen</h3>
                 <p>Historische Rollen mit Eintritts- und optionalem Austrittsdatum.</p>
@@ -297,7 +298,7 @@ export function GroupMemberFormModals({
           <ErrorState title="Mitglied konnte nicht gelöscht werden" description={deleteError} />
         ) : null}
         {deleteTarget ? (
-          <p className={styles.fansubEditMembershipDeleteText}>
+          <p className={ownStyles.fansubEditMembershipDeleteText}>
             <strong>{deleteTarget.display_name}</strong> aus der historischen Mitgliederliste entfernen.
           </p>
         ) : null}
@@ -328,7 +329,7 @@ export function GroupMemberFormModals({
             <ErrorState title="Rolle konnte nicht gelöscht werden" description={roleDeleteError} />
           ) : null}
           {roleDeleteTarget ? (
-            <p className={styles.fansubEditMembershipDeleteText}>
+            <p className={ownStyles.fansubEditMembershipDeleteText}>
               Rolle <strong>{roleDeleteTarget.role_label ?? roleLabelForCode(roleDeleteTarget.role_code)}</strong> von {roleDeleteTarget.member_display_name} entfernen.
             </p>
           ) : null}

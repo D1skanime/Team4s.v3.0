@@ -234,11 +234,18 @@ describe('restored role-accent formulas across Phase 148 (Plan 148-02, Task 2)',
   })
 
   describe('FansubEdit.module.css role-toggle and historical-role label (read-only reference; not modified by this plan)', () => {
-    const cssText = readModule('src/app/admin/fansubs/[id]/edit/FansubEdit.module.css')
+    // Phase 174 Plan 22 (174-22, D-18 CSS split, grep-verified single-owner extraction) moved
+    // `.fansubEditMemberRoleToggle`/`.fansubEditMemberRoleToggleSelected` into
+    // `FansubAppMemberEditorPanel.module.css` and `.fansubEditHistoricalRoleBadge` into
+    // `GroupMembersHistTable.module.css` - both are single-owner classes of those components,
+    // verbatim-moved with byte-identical declarations. This is a pure import-path adjustment
+    // (D-03 exception): the formulas and their known-gap hex lists below are unchanged.
+    const memberEditorPanelCssText = readModule('src/app/admin/fansubs/[id]/edit/FansubAppMemberEditorPanel.module.css')
+    const groupMembersHistTableCssText = readModule('src/app/admin/fansubs/[id]/edit/GroupMembersHistTable.module.css')
 
     it('unselected toggle: raw role-accent as text and border color vs --surface-card - flags the highest-risk row per UI-SPEC', () => {
-      expect(cssText).toMatch(/\.fansubEditMemberRoleToggle\s*\{[^}]*border:\s*1px solid var\(--role-accent\);/)
-      expect(cssText).toMatch(/\.fansubEditMemberRoleToggle\s*\{[^}]*color:\s*var\(--role-accent\);/)
+      expect(memberEditorPanelCssText).toMatch(/\.fansubEditMemberRoleToggle\s*\{[^}]*border:\s*1px solid var\(--role-accent\);/)
+      expect(memberEditorPanelCssText).toMatch(/\.fansubEditMemberRoleToggle\s*\{[^}]*color:\s*var\(--role-accent\);/)
       const failing = ROLE_COLOR_KEYS.filter((colorKey) => contrast(hexRgb(colorKey), surfaceCard) < 4.5)
       // UI-SPEC calls this the phase's highest-risk row and mandates explicit per-hex flagging
       // rather than silently forcing a pass; any fix must stay within the formula and must not
@@ -247,14 +254,14 @@ describe('restored role-accent formulas across Phase 148 (Plan 148-02, Task 2)',
     })
 
     it('selected toggle: white #fff text on solid role-accent fill - flags the same highest-risk hexes', () => {
-      expect(cssText).toMatch(/\.fansubEditMemberRoleToggleSelected\s*\{[^}]*background:\s*var\(--role-accent\);/)
-      expect(cssText).toMatch(/\.fansubEditMemberRoleToggleSelected\s*\{[^}]*color:\s*#fff;/)
+      expect(memberEditorPanelCssText).toMatch(/\.fansubEditMemberRoleToggleSelected\s*\{[^}]*background:\s*var\(--role-accent\);/)
+      expect(memberEditorPanelCssText).toMatch(/\.fansubEditMemberRoleToggleSelected\s*\{[^}]*color:\s*#fff;/)
       const failing = ROLE_COLOR_KEYS.filter((colorKey) => contrast(white, hexRgb(colorKey)) < 4.5)
       expect(failing, 'selected-toggle known-gap hex list').toEqual(['#c26a2e', '#6b7f2a'])
     })
 
     it('historical-role small label (74% role-accent mix + --text-secondary) vs --surface-card - flags the one known-gap hex', () => {
-      const [pct] = extractMixPercents(cssText, 'role-accent', 'var\\(--text-secondary\\)')
+      const [pct] = extractMixPercents(groupMembersHistTableCssText, 'role-accent', 'var\\(--text-secondary\\)')
       expect(pct, 'the historical-role small label must be a role-accent/--text-secondary color-mix').toBeDefined()
       const failing = ROLE_COLOR_KEYS.filter((colorKey) => {
         const label = mix(hexRgb(colorKey), textSecondary, pct)

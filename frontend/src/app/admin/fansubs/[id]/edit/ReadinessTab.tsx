@@ -25,10 +25,7 @@ import type { HistFansubGroupMember } from '@/types/fansub'
 import type { AdminFansubAnimeEntry } from '@/types/admin'
 
 import { PublicPreviewPanel } from './PublicPreviewPanel'
-import sharedStyles from '../../../admin.module.css'
-import fansubEditStyles from './FansubEdit.module.css'
-
-const styles = { ...sharedStyles, ...fansubEditStyles }
+import ownStyles from './ReadinessTab.module.css'
 
 // Minimale Props-Schnittstelle für die Felder, die ReadinessTab tatsächlich nutzt.
 // Ermöglicht Test-Fixtures ohne exakten FansubStatus/FansubGroupType-Cast.
@@ -205,7 +202,7 @@ export function ReadinessTab({ fansubId, group }: ReadinessTabProps) {
   const allSatisfied = readinessItems.every((item) => item.satisfied)
 
   return (
-    <div className={styles.readinessTabRoot}>
+    <div className={ownStyles.readinessTabRoot}>
       <SectionHeader
         title="Veröffentlichung & Pflegezustand"
         description="So sieht die öffentliche Fansub-Seite für anonyme Besucher aus. Die Checkliste zeigt, was noch zu pflegen ist – sie blockiert nichts und schaltet nichts frei."
@@ -243,9 +240,9 @@ export function ReadinessTab({ fansubId, group }: ReadinessTabProps) {
         ) : null}
 
         {!loading && !error && (
-          <div className={styles.readinessList}>
+          <div className={ownStyles.readinessList}>
             {readinessItems.map((item) => (
-              <div key={item.key} className={styles.readinessItem}>
+              <div key={item.key} className={ownStyles.readinessItem}>
                 <Badge
                   variant={item.satisfied ? 'success' : 'warning'}
                   aria-label={item.satisfied ? 'Status: erfüllt' : 'Status: fehlt'}
@@ -260,7 +257,7 @@ export function ReadinessTab({ fansubId, group }: ReadinessTabProps) {
                     </>
                   )}
                 </Badge>
-                <span className={styles.readinessItemLabel}>{item.label}</span>
+                <span className={ownStyles.readinessItemLabel}>{item.label}</span>
                 {!item.satisfied ? (
                   <Button
                     variant="subtle"
@@ -277,13 +274,13 @@ export function ReadinessTab({ fansubId, group }: ReadinessTabProps) {
         )}
       </Card>
 
-      <hr className={styles.readinessSectionDivider} />
+      <hr className={ownStyles.readinessSectionDivider} />
 
       <Card variant="section">
         <h3>Offene Posten (zur Kenntnisnahme)</h3>
-        <div className={styles.readinessList}>
+        <div className={ownStyles.readinessList}>
           {infoItems.map((item) => (
-            <div key={item.key} className={styles.readinessItem}>
+            <div key={item.key} className={ownStyles.readinessItem}>
               <Badge variant="info" aria-label="Information">
                 <Info size={12} aria-hidden="true" /> {item.label}
               </Badge>

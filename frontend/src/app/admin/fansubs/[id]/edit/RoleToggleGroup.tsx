@@ -1,6 +1,7 @@
 import { contributionRoleDefinitions } from './contributionRoles'
 import { useRoleCatalog } from '@/providers/RoleCatalogProvider'
 import styles from './FansubEdit.module.css'
+import ownStyles from './RoleToggleGroup.module.css'
 
 interface RoleToggleGroupProps {
   selectedCodes: string[]
@@ -19,8 +20,8 @@ export function RoleToggleGroup({ selectedCodes, onToggle, ariaLabel }: RoleTogg
           <button
             key={role.code}
             type="button"
-            className={`${styles.contributionRoleToggle} ${
-              active ? styles.contributionRoleToggleActive : ''
+            className={`${ownStyles.contributionRoleToggle} ${
+              active ? ownStyles.contributionRoleToggleActive : ''
             }`}
             aria-pressed={active}
             onClick={() => onToggle(role.code)}

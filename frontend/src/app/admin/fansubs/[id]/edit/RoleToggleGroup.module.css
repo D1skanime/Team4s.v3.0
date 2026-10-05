@@ -1,0 +1,22 @@
+.contributionRoleToggle {
+  border: 1px solid color-mix(in srgb, var(--text-secondary) 16%, transparent);
+  border-radius: var(--radius-sm);
+  background: color-mix(in srgb, var(--bg-secondary) 88%, white);
+  color: var(--text-secondary);
+  cursor: pointer;
+  min-height: 44px;
+  padding: 0.46rem 0.78rem;
+  font-size: 0.82rem;
+  font-weight: 700;
+  line-height: 1.15;
+  transition: background 160ms ease, border-color 160ms ease, color 160ms ease;
+}
+.contributionRoleToggle:hover {
+  border-color: color-mix(in srgb, #82122c 28%, transparent);
+  color: var(--text-primary);
+}
+.contributionRoleToggleActive {
+  border-color: color-mix(in srgb, #82122c 42%, transparent);
+  background: color-mix(in srgb, #82122c 12%, white);
+  color: #5f1328;
+}

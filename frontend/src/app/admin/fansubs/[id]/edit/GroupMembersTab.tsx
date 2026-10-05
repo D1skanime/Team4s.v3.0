@@ -18,6 +18,7 @@ import { labelForRole } from '@/lib/roleCatalog'
 
 import sharedStyles from '../../../admin.module.css'
 import fansubEditStyles from './FansubEdit.module.css'
+import ownStyles from './GroupMembersTab.module.css'
 import { GroupHistRoleDialog } from './GroupHistRoleDialog'
 import { GroupMemberFormModals } from './GroupMemberFormModals'
 import { GroupMemberRequestsTable } from './GroupMemberRequestsTable'
@@ -105,7 +106,7 @@ export function GroupMembersTab({
   const tab = useGroupMembersTab({ fansubId, onActionsChange, onActiveAppMembersChanged, historyRoleOptions })
 
   return (
-    <section className={embedded ? styles.fansubEditEmbeddedMembershipSurface : styles.fansubEditMembershipSurface}>
+    <section className={embedded ? ownStyles.fansubEditEmbeddedMembershipSurface : styles.fansubEditMembershipSurface}>
       <SectionHeader
         eyebrow={embedded ? undefined : 'Historische Mitglieder'}
         title="Historische Mitglieder"
@@ -154,7 +155,7 @@ export function GroupMembersTab({
       ) : null}
 
       {!tab.loading && !tab.error ? (
-        <div className={styles.fansubEditHistoricalMembersSurface}>
+        <div className={ownStyles.fansubEditHistoricalMembersSurface}>
           <GroupMembersHistTable
             members={tab.members.filter((historicalMember) => !historicalMember.active_app_member_id)}
             rolesByMember={tab.rolesByMember}
