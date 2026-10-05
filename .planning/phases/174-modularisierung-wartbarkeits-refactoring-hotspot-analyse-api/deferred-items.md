@@ -19,3 +19,15 @@ scope-boundary rule; not fixed here.
   - Verified via `grep` that none of the `tsc --noEmit` output lines reference
     `admin-anime-create`, `useAdminAnimeCreateController`, or any file in this
     plan's `files_modified` list.
+
+## 174-11
+
+- `npx tsc --noEmit` reports the same pre-existing, unrelated errors as 174-10
+  (stale `.next/dev/types/...` `PageProps` artifacts, `ReleaseDetailHero.test.tsx`
+  missing-`previous`). Confirmed via `grep` that none reference
+  `admin-anime-create`, `useAdminAnimeCreateController`, `useAssetStagingActions`,
+  or `useCreateSubmitAction`.
+- `npx eslint src/app/admin/anime/create/internal/` reports a pre-existing
+  `resetStagedAssets' is defined but never used` warning (line unchanged by
+  this plan; confirmed present in the pre-174-11 file via a before/after
+  comparison). Not fixed — out of scope for this plan's files_modified diff.
