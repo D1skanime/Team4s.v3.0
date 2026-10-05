@@ -592,6 +592,45 @@ export async function parseApiError(
   return parsed.message;
 }
 
+/**
+ * Synchrone Variante von parseApiErrorPayload fuer bereits geparste Payloads
+ * (z. B. XHR-Upload-Responses, die schon als `unknown` vorliegen statt als
+ * `Response`). Wird sowohl von `authorizedUploadXhr` (hier, Upload-Retry-Pfad)
+ * als auch von conflict-aware Error-Buildern in Domaenen-Modulen verwendet
+ * (z. B. `admin/anime-core.ts`s `buildCreateAnimeConflictAwareApiError`) — D-09:
+ * genau einmal zentral, nicht dupliziert.
+ */
+export function parsePayloadApiError(
+  payload: unknown,
+  fallback: string,
+): ParsedApiErrorPayload {
+  if (!payload || typeof payload !== "object") {
+    return {
+      message: fallback,
+      code: null,
+      details: null,
+    };
+  }
+
+  const error = (
+    payload as {
+      error?: { message?: unknown; code?: unknown; details?: unknown };
+    }
+  ).error;
+  const message =
+    typeof error?.message === "string" && error.message.trim()
+      ? error.message
+      : fallback;
+  const code =
+    typeof error?.code === "string" && error.code.trim() ? error.code : null;
+  const details =
+    typeof error?.details === "string" && error.details.trim()
+      ? error.details
+      : null;
+
+  return { message, code, details };
+}
+
 export function getRuntimeRefreshToken(): string {
   if (typeof window === "undefined") {
     return "";
@@ -910,4 +949,147 @@ export async function refreshAuthToken(
   }
 
   return response.json() as Promise<AuthTokenResponse>;
+}
+
+type UploadRetryEligibility =
+  | "never"
+  | "auth-before-persistence"
+  | "idempotent";
+
+interface AuthorizedUploadXhrOptions<T> {
+  endpoint: string;
+  method?: "POST" | "PUT";
+  buildBody: () => FormData;
+  onProgress?: (percent: number) => void;
+  retryEligibility: UploadRetryEligibility;
+  parsePayload?: (payload: unknown) => T;
+}
+
+interface UploadXhrResult {
+  status: number;
+  payload: unknown;
+}
+
+function parseUploadXhrPayload(responseText: string): unknown {
+  try {
+    return JSON.parse(responseText);
+  } catch {
+    return null;
+  }
+}
+
+function sendAuthorizedUploadXhrOnce<T>(
+  options: AuthorizedUploadXhrOptions<T>,
+  token: string,
+): Promise<UploadXhrResult> {
+  return new Promise<UploadXhrResult>((resolve, reject) => {
+    const xhr = new XMLHttpRequest();
+    xhr.open(options.method ?? "POST", options.endpoint, true);
+    if (token) {
+      xhr.setRequestHeader("Authorization", `Bearer ${token}`);
+    }
+
+    xhr.upload.onprogress = (event) => {
+      if (!options.onProgress || !event.lengthComputable) return;
+      const percent = Math.max(
+        0,
+        Math.min(100, Math.round((event.loaded / event.total) * 100)),
+      );
+      options.onProgress(percent);
+    };
+
+    xhr.onerror = () => {
+      reject(new ApiError(0, "Netzwerkfehler beim Upload."));
+    };
+
+    xhr.onload = () => {
+      resolve({
+        status: xhr.status,
+        payload: parseUploadXhrPayload(xhr.responseText),
+      });
+    };
+
+    options.onProgress?.(0);
+    xhr.send(options.buildBody());
+  });
+}
+
+/**
+ * Zentraler XHR-Upload-Wrapper mit Auth-Refresh-on-401-Retry (gleiches Muster
+ * wie `authorizedFetch`). Wird von mehreren Domaenen-Modulen verwendet (admin
+ * anime/release-theme-assets, fansub media, release version media, story
+ * images, suggestions) — D-09: genau einmal zentral, nicht dupliziert.
+ */
+export async function authorizedUploadXhr<T>(
+  options: AuthorizedUploadXhrOptions<T>,
+): Promise<T> {
+  if (typeof window === "undefined") {
+    throw new ApiError(500, "Upload ist nur im Browser verfügbar.");
+  }
+
+  await ensureFreshRuntimeSession();
+  const initialToken = resolveAuthToken();
+  const initialResult = await sendAuthorizedUploadXhrOnce(
+    options,
+    initialToken,
+  );
+  if (initialResult.status >= 200 && initialResult.status < 300) {
+    options.onProgress?.(100);
+    return options.parsePayload
+      ? options.parsePayload(initialResult.payload)
+      : (initialResult.payload as T);
+  }
+
+  const parsed = parsePayloadApiError(
+    initialResult.payload,
+    `API request failed: ${initialResult.status}`,
+  );
+  const canRetry =
+    initialResult.status === 401 &&
+    isAuthRelatedError(parsed) &&
+    options.retryEligibility !== "never" &&
+    getRuntimeRefreshToken().trim().length > 0;
+
+  if (!canRetry) {
+    if (initialResult.status === 401 && options.retryEligibility === "never") {
+      throw new ApiError(
+        initialResult.status,
+        "Anmeldung abgelaufen. Bitte erneut anmelden und den Upload wiederholen.",
+        null,
+        parsed.code,
+        parsed.details,
+      );
+    }
+    throw new ApiError(
+      initialResult.status,
+      parsed.message,
+      null,
+      parsed.code,
+      parsed.details,
+    );
+  }
+
+  const refreshedToken = await refreshRuntimeSession();
+  const retryResult = await sendAuthorizedUploadXhrOnce(
+    options,
+    refreshedToken,
+  );
+  if (retryResult.status >= 200 && retryResult.status < 300) {
+    options.onProgress?.(100);
+    return options.parsePayload
+      ? options.parsePayload(retryResult.payload)
+      : (retryResult.payload as T);
+  }
+
+  const retryParsed = parsePayloadApiError(
+    retryResult.payload,
+    `API request failed: ${retryResult.status}`,
+  );
+  throw new ApiError(
+    retryResult.status,
+    retryParsed.message,
+    null,
+    retryParsed.code,
+    retryParsed.details,
+  );
 }
