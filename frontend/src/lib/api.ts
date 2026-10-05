@@ -11,13 +11,6 @@ import {
   AdminThemeSegmentRenderResponse,
 } from "@/types/admin";
 import {
-  AuthIssueRequest,
-  AuthRevokeRequest,
-  AuthTokenData,
-  AuthTokenResponse,
-  CurrentUserResponse,
-} from "@/types/auth";
-import {
   MemberProfileResponse,
   MemberSearchResult,
 } from "@/types/profile";
@@ -29,14 +22,8 @@ import {
   FansubGroupListResponse,
   FansubMediaKind,
   FansubMediaUploadResponse,
-  HistGroupMemberRole,
-  HistGroupMemberRoleListResponse,
-  HistGroupMemberRoleResponse,
-  CreateMemberRoleRequest,
-  UpdateMemberRoleRequest,
   ReplaceReleaseCrewRequest,
   ReplaceReleaseCrewResponse,
-  FansubGroupRoleItem,
 } from "@/types/fansub";
 import {
   PaginatedWatchlistResponse,
@@ -51,7 +38,6 @@ import {
   ReleaseVersionMediaHighlightReorderRequest,
   ReleaseVersionMediaUploadResponse,
   ReleaseVersionMediaItem,
-  ReleaseVersionCapabilitiesResponse,
 } from "@/types/releaseVersionMedia";
 import {
   EpisodeReleaseSummary,
@@ -72,14 +58,8 @@ import {
 } from "@/types/fansubNotes";
 import {
   ReleaseVersionNote,
-  MemberRoleForVersion,
   BulkUpsertReleaseVersionNotesRequest,
 } from "@/types/releaseVersionNotes";
-import {
-  exchangeKeycloakCode,
-  isKeycloakEnabled,
-  logoutFromKeycloak,
-} from "@/lib/keycloakAuth";
 import type {
   MemberBadgesResponse,
   MembershipsResponse,
@@ -103,7 +83,7 @@ import type {
   ReleaseImagesCursorPage,
   PublicReleaseNote,
 } from "@/types/releaseDetail";
-import type { CapabilityOverrideAuditItem, CapabilityOverrideImpactPreview, CapabilityOverrideMutationRequest, CapabilityOverrideMutationResult, EffectiveRightState, PublicRoleDefinitionOption, RoleAssignmentImpactPreview, RoleCapabilityMatrix, RoleCapabilityMutationResult, RoleDefinitionContext, RoleDefinitionOption, RoleHolderEntry } from "@/types/admin-capability";
+import type { CapabilityOverrideImpactPreview, RoleAssignmentImpactPreview } from "@/types/admin-capability";
 import type { ReviewDelegationMutationRequest, ReviewDelegationMutationResult, ReviewDelegationRow } from "@/types/admin-review-delegation";
 import type {
   ReleaseReviewCountParams,
@@ -125,26 +105,10 @@ import {
   apiClientFetch,
   authorizedFetch,
   authorizedUploadXhr,
-  clearAuthSession,
-  clearLegacyTokenStorage,
   getApiBaseUrl,
-  getCurrentUserWithBearerToken,
-  getRuntimeRefreshToken,
-  getRuntimeSessionMeta,
-  normalizeCurrentUserResponse,
   parseApiError,
   parseApiErrorPayload,
-  persistAuthSession,
-  readBrowserCookie,
-  resolveAuthToken,
-  refreshRuntimeSession,
-  toRuntimeAuthData,
   withAuthHeader,
-  AUTH_DISPLAY_NAME,
-  AUTH_DISPLAY_NAME_COOKIE_NAME,
-} from "./api/client";
-import type {
-  RuntimeSessionSwitchEvent,
 } from "./api/client";
 import { getFansubList } from "./api/fansubs-core";
 
@@ -168,13 +132,8 @@ export * from "./api/members";
 export * from "./api/projects";
 export * from "./api/contributions-admin";
 export * from "./api/contributions-me";
-
-export interface AuthSessionSnapshot {
-  accountIdentity: number | null;
-  hasAccessToken: boolean;
-  hasRefreshToken: boolean;
-  displayName: string;
-}
+export * from "./api/auth";
+export * from "./api/permissions";
 
 interface WatchlistListParams {
   page?: number;
@@ -281,160 +240,6 @@ export async function getSearchSuggestions(
   }
 
   return response.json() as Promise<SearchSuggestionsResponse>;
-}
-
-export function parseRuntimeSessionSwitchEvent(
-  raw: string,
-): RuntimeSessionSwitchEvent | null {
-  if (!raw.trim()) {
-    return null;
-  }
-
-  try {
-    const parsed = JSON.parse(raw) as Partial<RuntimeSessionSwitchEvent>;
-    if (
-      parsed.type !== "session-switch" ||
-      !Number.isFinite(parsed.timestamp) ||
-      !Number.isFinite(parsed.previous_app_user_id) ||
-      !Number.isFinite(parsed.next_app_user_id) ||
-      Number(parsed.previous_app_user_id) <= 0 ||
-      Number(parsed.next_app_user_id) <= 0
-    ) {
-      return null;
-    }
-
-    return {
-      type: "session-switch",
-      timestamp: Number(parsed.timestamp),
-      previous_app_user_id: Number(parsed.previous_app_user_id),
-      next_app_user_id: Number(parsed.next_app_user_id),
-    };
-  } catch {
-    return null;
-  }
-}
-
-// parsePayloadApiError moved to ./api/client (174-03): shared infra used both
-// here (authorizedUploadXhr, also relocated) and by admin/anime-core.ts's
-// buildCreateAnimeConflictAwareApiError — D-09, not duplicated.
-// parseAniSearchEditConflictPayload, parseAniSearchCreateConflictPayload, and
-// buildCreateAnimeConflictAwareApiError moved to ./api/admin/anime-core.ts
-// (174-03), alongside createAdminAnime/updateAdminAnime, their only callers.
-
-export function getRuntimeAuthToken(): string {
-  const runtimeToken = resolveAuthToken();
-  return runtimeToken.trim();
-}
-
-export function getRuntimeDisplayName(): string {
-  if (typeof window === "undefined") {
-    return AUTH_DISPLAY_NAME;
-  }
-
-  clearLegacyTokenStorage();
-  const displayName = readBrowserCookie(AUTH_DISPLAY_NAME_COOKIE_NAME).trim();
-  return displayName || AUTH_DISPLAY_NAME;
-}
-
-export function hasRuntimeAuthToken(): boolean {
-  return getRuntimeAuthToken().length > 0;
-}
-
-export function getAuthSessionSnapshot(): AuthSessionSnapshot {
-  const accessToken = getRuntimeAuthToken();
-  const refreshToken = getRuntimeRefreshToken();
-
-  return {
-    hasAccessToken: accessToken.length > 0,
-    hasRefreshToken: refreshToken.length > 0,
-    displayName: getRuntimeDisplayName(),
-    accountIdentity: getRuntimeSessionMeta()?.app_user_id ?? null,
-  };
-}
-
-async function revokePreviousRuntimeSession(
-  refreshToken: string,
-): Promise<void> {
-  const trimmedRefreshToken = refreshToken.trim();
-  if (!trimmedRefreshToken) {
-    return;
-  }
-
-  try {
-    if (isKeycloakEnabled()) {
-      await logoutFromKeycloak(trimmedRefreshToken);
-    } else {
-      await revokeAuthToken({ refresh_token: trimmedRefreshToken });
-    }
-  } catch {
-    // Best effort only; local session has already moved on.
-  }
-}
-
-async function prepareRuntimeSessionSwitch(
-  nextAuthData: AuthTokenData,
-): Promise<void> {
-  const previousSession = getRuntimeSessionMeta();
-  const previousRefreshToken = getRuntimeRefreshToken();
-  const nextAppUserId = Number(nextAuthData.app_user_id || 0);
-
-  if (
-    !previousSession ||
-    previousSession.app_user_id <= 0 ||
-    nextAppUserId <= 0 ||
-    previousSession.app_user_id === nextAppUserId
-  ) {
-    return;
-  }
-
-  clearAuthSession({ broadcast: false });
-  await revokePreviousRuntimeSession(previousRefreshToken);
-}
-
-export async function persistResolvedAuthSession(
-  authData: AuthTokenData,
-): Promise<void> {
-  await prepareRuntimeSessionSwitch(authData);
-  persistAuthSession(authData);
-}
-
-export async function resolveCurrentUserFromAuthSession(): Promise<CurrentUserResponse> {
-  return getCurrentUser();
-}
-
-export async function completeKeycloakAuthCallback(
-  code: string,
-  state: string,
-): Promise<CurrentUserResponse> {
-  const tokenBundle = await exchangeKeycloakCode(code, state);
-  const me = await getCurrentUserWithBearerToken(tokenBundle.accessToken);
-  await persistResolvedAuthSession(toRuntimeAuthData(tokenBundle, me.data));
-  return me;
-}
-
-export async function refreshActiveAuthSession(): Promise<CurrentUserResponse | null> {
-  const refreshedToken = await refreshRuntimeSession();
-
-  if (isKeycloakEnabled()) {
-    return getCurrentUserWithBearerToken(refreshedToken);
-  }
-
-  return null;
-}
-
-export async function logoutActiveAuthSession(): Promise<void> {
-  const refreshToken = getRuntimeRefreshToken();
-  clearAuthSession();
-
-  try {
-    if (isKeycloakEnabled()) {
-      await logoutFromKeycloak(refreshToken || undefined);
-    } else {
-      await revokeAuthToken(refreshToken ? { refresh_token: refreshToken } : {});
-    }
-  } catch {
-    // Remote revocation is best effort; the local browser session is already gone.
-  }
 }
 
 interface FansubMediaUploadOptions {
@@ -887,87 +692,6 @@ export async function removeWatchlistEntry(
     );
     throw new ApiError(response.status, message);
   }
-}
-
-export async function issueAuthToken(
-  payload: AuthIssueRequest = {},
-  authToken?: string | null,
-): Promise<AuthTokenResponse> {
-  const API_BASE_URL = getApiBaseUrl();
-  const issueKey = (payload.issue_key || "").trim();
-  const headers =
-    authToken === null ? {} : withAuthHeader({}, authToken || undefined);
-  if (issueKey) {
-    headers["X-Auth-Issue-Key"] = issueKey;
-  }
-
-  const response = await fetch(`${API_BASE_URL}/api/v1/auth/issue`, {
-    method: "POST",
-    headers,
-  });
-
-  if (!response.ok) {
-    const message = await parseApiError(
-      response,
-      `API request failed: ${response.status}`,
-    );
-    throw new ApiError(response.status, message);
-  }
-
-  return response.json() as Promise<AuthTokenResponse>;
-}
-
-export async function revokeAuthToken(
-  payload: AuthRevokeRequest = {},
-  authToken?: string,
-): Promise<void> {
-  const API_BASE_URL = getApiBaseUrl();
-  const headers = withAuthHeader(
-    {
-      "Content-Type": "application/json",
-    },
-    authToken,
-  );
-
-  const response = await fetch(`${API_BASE_URL}/api/v1/auth/revoke`, {
-    method: "POST",
-    headers,
-    body: JSON.stringify(payload),
-  });
-
-  if (!response.ok) {
-    const message = await parseApiError(
-      response,
-      `API request failed: ${response.status}`,
-    );
-    throw new ApiError(response.status, message);
-  }
-}
-
-export async function getCurrentUser(
-  authToken?: string,
-): Promise<CurrentUserResponse> {
-  const API_BASE_URL = getApiBaseUrl();
-  const response = await authorizedFetch(`${API_BASE_URL}/api/v1/me`, {
-    authToken,
-  });
-
-  if (!response.ok) {
-    const parsed = await parseApiErrorPayload(
-      response,
-      `API request failed: ${response.status}`,
-    );
-    throw new ApiError(
-      response.status,
-      parsed.message,
-      null,
-      parsed.code,
-      parsed.details,
-    );
-  }
-
-  const payload = (await response.json()) as CurrentUserResponse;
-  return normalizeCurrentUserResponse(payload);
 }
 
 /**
@@ -2274,36 +1998,6 @@ export async function getReleaseVersionMedia(
   return response.json() as Promise<ReleaseVersionMediaListResponse>;
 }
 
-export async function getReleaseVersionCapabilities(
-  versionId: number,
-  authToken?: string,
-): Promise<ReleaseVersionCapabilitiesResponse> {
-  const API_BASE_URL = getApiBaseUrl();
-  const response = await authorizedFetch(
-    `${API_BASE_URL}/api/v1/admin/release-versions/${versionId}/capabilities`,
-    {
-      authToken,
-      cache: "no-store",
-    },
-  );
-
-  if (!response.ok) {
-    const parsed = await parseApiErrorPayload(
-      response,
-      `API request failed: ${response.status}`,
-    );
-    throw new ApiError(
-      response.status,
-      parsed.message,
-      null,
-      parsed.code,
-      parsed.details,
-    );
-  }
-
-  return response.json() as Promise<ReleaseVersionCapabilitiesResponse>;
-}
-
 export interface UploadReleaseVersionMediaOptions {
   versionId: number;
   category: ReleaseVersionMediaCategory;
@@ -3166,16 +2860,6 @@ type RawReleaseVersionNote = {
   RejectionReason?: string | null;
 };
 
-type RawMemberRoleForVersion = {
-  MemberID: number;
-  MemberName: string;
-  RoleID: number;
-  RoleCode: string;
-  RoleName: string;
-  RoleLabel: string;
-  CanEdit?: boolean;
-};
-
 function decodeReleaseVersionBodyJson(value: unknown): unknown | null {
   if (value == null) return null;
   if (typeof value !== "string") return value;
@@ -3232,20 +2916,6 @@ function mapReleaseVersionNote(raw: RawReleaseVersionNote): ReleaseVersionNote {
   };
 }
 
-function mapMemberRoleForVersion(
-  raw: RawMemberRoleForVersion,
-): MemberRoleForVersion {
-  return {
-    memberId: raw.MemberID,
-    memberName: raw.MemberName,
-    roleId: raw.RoleID,
-    roleCode: raw.RoleCode,
-    roleName: raw.RoleName ?? raw.RoleCode,
-    roleLabel: raw.RoleLabel,
-    canEdit: raw.CanEdit ?? true,
-  };
-}
-
 export async function listReleaseVersionNotes(
   versionId: number,
   authToken?: string,
@@ -3274,36 +2944,6 @@ export async function listReleaseVersionNotes(
 
   const json = (await response.json()) as { data: RawReleaseVersionNote[] };
   return json.data.map(mapReleaseVersionNote);
-}
-
-export async function getMemberRolesForVersion(
-  versionId: number,
-  authToken?: string,
-): Promise<MemberRoleForVersion[]> {
-  const API_BASE_URL = getApiBaseUrl();
-  const response = await authorizedFetch(
-    `${API_BASE_URL}/api/v1/admin/release-versions/${versionId}/member-roles`,
-    {
-      headers: withAuthHeader({}, authToken),
-    },
-  );
-
-  if (!response.ok) {
-    const parsed = await parseApiErrorPayload(
-      response,
-      `API request failed: ${response.status}`,
-    );
-    throw new ApiError(
-      response.status,
-      parsed.message,
-      null,
-      parsed.code,
-      parsed.details,
-    );
-  }
-
-  const json = (await response.json()) as { data: RawMemberRoleForVersion[] };
-  return json.data.map(mapMemberRoleForVersion);
 }
 
 export async function bulkUpsertReleaseVersionNotes(
@@ -3362,178 +3002,6 @@ export async function deleteReleaseVersionNote(
   const API_BASE_URL = getApiBaseUrl();
   const response = await authorizedFetch(
     `${API_BASE_URL}/api/v1/admin/release-versions/${versionId}/notes/${noteId}`,
-    {
-      method: "DELETE",
-      authToken,
-    },
-  );
-
-  if (!response.ok) {
-    const parsed = await parseApiErrorPayload(
-      response,
-      `API request failed: ${response.status}`,
-    );
-    throw new ApiError(
-      response.status,
-      parsed.message,
-      null,
-      parsed.code,
-      parsed.details,
-    );
-  }
-}
-
-// --- Gruppen-Mitglieder ---
-
-/** Vereinheitlichte Personenliste (hist + App) für Mitwirkenden-Zuordnung (D-02, D-14).
- * Endpoint: GET /api/v1/admin/fansubs/:id/unified-members */
-
-// ─── Standard-Team (default-crew) ─────────────────────────────────────────────
-
-/** Lädt die Standard-Team-Einträge einer Fansub-Gruppe (D-04, D-14).
- * Endpoint: GET /api/v1/admin/fansubs/:id/default-crew */
-
-/** Legt einen Standard-Team-Eintrag an oder aktualisiert ihn idempotent (D-04, D-14).
- * Endpoint: PUT /api/v1/admin/fansubs/:id/default-crew */
-
-/** Löscht einen Standard-Team-Eintrag (D-04, D-14).
- * Endpoint: DELETE /api/v1/admin/fansubs/:id/default-crew/:memberId/:roleCode */
-
-/** Wendet das Standard-Team auf leere Projekte an (D-04, D-14).
- * Endpoint: POST /api/v1/admin/fansubs/:id/default-crew/apply
- * @param animeIds Optionale Liste von Anime-IDs; leer = alle leeren Projekte der Gruppe */
-
-// --- Mitglieder-Rollen ---
-
-function normalizeHistGroupMemberRole(raw: Record<string, unknown>): HistGroupMemberRole {
-  return {
-    id: Number(raw.id ?? raw.ID),
-    fansub_group_member_id: Number(
-      raw.fansub_group_member_id ?? raw.HistFansubGroupMemberID,
-    ),
-    member_display_name: String(raw.member_display_name ?? raw.MemberDisplayName ?? ""),
-    role_code: String(raw.role_code ?? raw.RoleCode ?? ""),
-    role_label: (raw.role_label ?? raw.RoleLabel ?? null) as string | null,
-    started_date: (raw.started_date ?? raw.StartedDate ?? null) as string | null,
-    ended_date: (raw.ended_date ?? raw.EndedDate ?? null) as string | null,
-    note: (raw.note ?? raw.SourceNote ?? null) as string | null,
-    status: (raw.status ?? raw.Status) as HistGroupMemberRole["status"],
-    created_at: String(raw.created_at ?? raw.CreatedAt ?? ""),
-  };
-}
-
-export async function listMemberRoles(
-  fansubId: number,
-  memberId: number,
-  authToken?: string,
-): Promise<HistGroupMemberRoleListResponse> {
-  const API_BASE_URL = getApiBaseUrl();
-  const response = await authorizedFetch(
-    `${API_BASE_URL}/api/v1/admin/fansubs/${fansubId}/member-roles?member_id=${memberId}`,
-    { authToken },
-  );
-
-  if (!response.ok) {
-    const parsed = await parseApiErrorPayload(
-      response,
-      `API request failed: ${response.status}`,
-    );
-    throw new ApiError(
-      response.status,
-      parsed.message,
-      null,
-      parsed.code,
-      parsed.details,
-    );
-  }
-
-  const payload = (await response.json()) as { data?: Record<string, unknown>[] };
-  return {
-    data: (payload.data ?? []).map(normalizeHistGroupMemberRole),
-  };
-}
-
-export async function createMemberRole(
-  fansubId: number,
-  body: CreateMemberRoleRequest,
-  authToken?: string,
-): Promise<HistGroupMemberRoleResponse> {
-  const API_BASE_URL = getApiBaseUrl();
-  const response = await authorizedFetch(
-    `${API_BASE_URL}/api/v1/admin/fansubs/${fansubId}/member-roles`,
-    {
-      method: "POST",
-      authToken,
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify(body),
-    },
-  );
-
-  if (!response.ok) {
-    const parsed = await parseApiErrorPayload(
-      response,
-      `API request failed: ${response.status}`,
-    );
-    throw new ApiError(
-      response.status,
-      parsed.message,
-      null,
-      parsed.code,
-      parsed.details,
-    );
-  }
-
-  const payload = (await response.json()) as { data: Record<string, unknown> };
-  return {
-    data: normalizeHistGroupMemberRole(payload.data),
-  };
-}
-
-export async function updateMemberRole(
-  fansubId: number,
-  roleId: number,
-  body: UpdateMemberRoleRequest,
-  authToken?: string,
-): Promise<HistGroupMemberRoleResponse> {
-  const API_BASE_URL = getApiBaseUrl();
-  const response = await authorizedFetch(
-    `${API_BASE_URL}/api/v1/admin/fansubs/${fansubId}/member-roles/${roleId}`,
-    {
-      method: "PATCH",
-      authToken,
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify(body),
-    },
-  );
-
-  if (!response.ok) {
-    const parsed = await parseApiErrorPayload(
-      response,
-      `API request failed: ${response.status}`,
-    );
-    throw new ApiError(
-      response.status,
-      parsed.message,
-      null,
-      parsed.code,
-      parsed.details,
-    );
-  }
-
-  const payload = (await response.json()) as { data: Record<string, unknown> };
-  return {
-    data: normalizeHistGroupMemberRole(payload.data),
-  };
-}
-
-export async function deleteMemberRole(
-  fansubId: number,
-  roleId: number,
-  authToken?: string,
-): Promise<void> {
-  const API_BASE_URL = getApiBaseUrl();
-  const response = await authorizedFetch(
-    `${API_BASE_URL}/api/v1/admin/fansubs/${fansubId}/member-roles/${roleId}`,
     {
       method: "DELETE",
       authToken,
@@ -4084,128 +3552,6 @@ export async function uploadOwnProfileStoryImage(
   });
 }
 
-// --- Capability-Verwaltung (Phase 87) ---
-
-/**
- * Lädt die vollständige Rollen×Actions-Capability-Matrix.
- * GET /api/v1/admin/role-capabilities
- */
-export async function listRoleCapabilities(): Promise<RoleCapabilityMatrix> {
-  const API_BASE_URL = getApiBaseUrl()
-  const response = await authorizedFetch(
-    `${API_BASE_URL}/api/v1/admin/role-capabilities`,
-    { cache: 'no-store' },
-  )
-
-  if (!response.ok) {
-    const parsed = await parseApiErrorPayload(
-      response,
-      `API request failed: ${response.status}`,
-    )
-    throw new ApiError(
-      response.status,
-      parsed.message,
-      null,
-      parsed.code,
-      parsed.details,
-    )
-  }
-
-  // Der Endpunkt liefert die Matrix gemäß Contract direkt (kein data-Envelope).
-  const body = (await response.json()) as RoleCapabilityMatrix
-  return body
-}
-
-/**
- * Lädt alle gruppen-skopierten Inhaber einer echten Gruppenrolle (Plan 138-01, D-07):
- * "wer besitzt diese Rolle?" für role_definitions-Gruppenrollen (fansub_lead, co_leader,
- * encoder, ...). Globale App-Rollen (platform_admin/content_admin/user) werden hier NICHT
- * unterstützt — sie haben bereits eine funktionierende Antwort über
- * `/admin/users?role=<code>`.
- * GET /api/v1/admin/role-holders/:roleCode
- */
-export async function listRoleHolders(roleCode: string): Promise<RoleHolderEntry[]> {
-  const response = await apiClientFetch(
-    `/api/v1/admin/role-holders/${encodeURIComponent(roleCode)}`,
-    { cache: "no-store" },
-  )
-  if (!response.ok) {
-    const parsed = await parseApiErrorPayload(
-      response,
-      `API request failed: ${response.status}`,
-    )
-    throw new ApiError(response.status, parsed.message, null, parsed.code, parsed.details)
-  }
-  const resp = (await response.json()) as { data: RoleHolderEntry[] }
-  return resp.data as RoleHolderEntry[]
-}
-
-/**
- * Vergibt eine Capability an eine Rolle.
- * PUT /api/v1/admin/role-capabilities/:roleCode/:actionCode
- */
-export async function grantRoleCapability(
-  roleCode: string,
-  actionCode: string,
-): Promise<RoleCapabilityMutationResult> {
-  const API_BASE_URL = getApiBaseUrl()
-  const response = await authorizedFetch(
-    `${API_BASE_URL}/api/v1/admin/role-capabilities/${encodeURIComponent(roleCode)}/${encodeURIComponent(actionCode)}`,
-    {
-      method: 'PUT',
-      headers: { 'Content-Type': 'application/json' },
-    },
-  )
-
-  if (!response.ok) {
-    const parsed = await parseApiErrorPayload(
-      response,
-      `API request failed: ${response.status}`,
-    )
-    throw new ApiError(
-      response.status,
-      parsed.message,
-      null,
-      parsed.code,
-      parsed.details,
-    )
-  }
-
-  return response.json() as Promise<RoleCapabilityMutationResult>
-}
-
-/**
- * Entzieht einer Rolle eine Capability.
- * DELETE /api/v1/admin/role-capabilities/:roleCode/:actionCode
- * Bei 409 (Lockout-Guard): wirft ApiError mit status=409 und code="lockout_guard".
- */
-export async function revokeRoleCapability(
-  roleCode: string,
-  actionCode: string,
-): Promise<RoleCapabilityMutationResult> {
-  const API_BASE_URL = getApiBaseUrl()
-  const response = await authorizedFetch(
-    `${API_BASE_URL}/api/v1/admin/role-capabilities/${encodeURIComponent(roleCode)}/${encodeURIComponent(actionCode)}`,
-    { method: 'DELETE' },
-  )
-
-  if (!response.ok) {
-    const parsed = await parseApiErrorPayload(
-      response,
-      `API request failed: ${response.status}`,
-    )
-    throw new ApiError(
-      response.status,
-      parsed.message,
-      null,
-      parsed.code,
-      parsed.details,
-    )
-  }
-
-  return response.json() as Promise<RoleCapabilityMutationResult>
-}
-
 /**
  * Read-only Vorschau der Rechte-Auswirkung einer hypothetischen Capability-Vergabe/-Entziehung
  * für EINE Aktion auf EINER Rolle, über ALLE aktuellen echten Rolleninhaber dieser Rolle hinweg
@@ -4244,31 +3590,6 @@ export async function getRoleCapabilityImpactPreview(
   return payload.data
 }
 
-/**
- * Lädt den vollständigen provenienzfähigen Effective-Rights-Katalog eines Nutzers in EINER
- * Fansub-Gruppe (Phase 137 Resolver, Plan 138-06/UADM-01). Ersetzt das alte zwei-Boolean-
- * Heuristik-Endpoint für die Rechte-Inspektion vollständig.
- * GET /api/v1/admin/fansubs/:id/app-members/:appUserId/effective-rights
- */
-export async function getEffectiveRights(
-  fansubGroupId: number,
-  appUserId: number,
-): Promise<EffectiveRightState[]> {
-  const response = await apiClientFetch(
-    `/api/v1/admin/fansubs/${fansubGroupId}/app-members/${appUserId}/effective-rights`,
-    { cache: "no-store" },
-  )
-  if (!response.ok) {
-    const parsed = await parseApiErrorPayload(
-      response,
-      `API request failed: ${response.status}`,
-    )
-    throw new ApiError(response.status, parsed.message, null, parsed.code, parsed.details)
-  }
-  const resp = (await response.json()) as { data: EffectiveRightState[] }
-  return resp.data
-}
-
 /** Lädt die drei spezialisierten Prüf-/Freigabe-Rechte einer Gruppenmitgliedschaft. */
 export async function getReviewDelegations(
   fansubGroupId: number,
@@ -4303,218 +3624,6 @@ export async function mutateReviewDelegation(
   }
   const resp = (await response.json()) as { data: ReviewDelegationMutationResult }
   return resp.data
-}
-
-/**
- * Setzt/entfernt einen persönlichen Capability-Override für einen Nutzer in einer Fansub-
- * Gruppe (Phase 137 EffectiveRightsService.MutateOverride, Plan 138-06/UADM-01).
- * PUT /api/v1/admin/fansubs/:id/app-members/:appUserId/capability-overrides
- */
-export async function mutateCapabilityOverride(
-  fansubGroupId: number,
-  appUserId: number,
-  body: CapabilityOverrideMutationRequest,
-): Promise<CapabilityOverrideMutationResult> {
-  const API_BASE_URL = getApiBaseUrl()
-  const response = await authorizedFetch(
-    `${API_BASE_URL}/api/v1/admin/fansubs/${fansubGroupId}/app-members/${appUserId}/capability-overrides`,
-    {
-      method: 'PUT',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify(body),
-    },
-  )
-  if (!response.ok) {
-    const parsed = await parseApiErrorPayload(
-      response,
-      `API request failed: ${response.status}`,
-    )
-    throw new ApiError(response.status, parsed.message, null, parsed.code, parsed.details)
-  }
-  const resp = (await response.json()) as { data: CapabilityOverrideMutationResult }
-  return resp.data
-}
-
-/**
- * Lädt die Override-Historie eines Nutzers in einer Fansub-Gruppe (Phase 137 append-only
- * Audit-Trail, Plan 138-06/UADM-01).
- * GET /api/v1/admin/fansubs/:id/app-members/:appUserId/capability-overrides/history?limit=&offset=
- */
-export async function listOverrideHistory(
-  fansubGroupId: number,
-  appUserId: number,
-  limit = 25,
-  offset = 0,
-): Promise<CapabilityOverrideAuditItem[]> {
-  const response = await apiClientFetch(
-    `/api/v1/admin/fansubs/${fansubGroupId}/app-members/${appUserId}/capability-overrides/history?limit=${limit}&offset=${offset}`,
-    { cache: "no-store" },
-  )
-  if (!response.ok) {
-    const parsed = await parseApiErrorPayload(
-      response,
-      `API request failed: ${response.status}`,
-    )
-    throw new ApiError(response.status, parsed.message, null, parsed.code, parsed.details)
-  }
-  const resp = (await response.json()) as { data: CapabilityOverrideAuditItem[] }
-  return resp.data
-}
-
-/**
- * Lädt die Rollenliste für historische Mitgliedsfunktionen einer Fansub-Gruppe.
- * GET /api/v1/admin/fansubs/:fansubId/role-definitions?context=group_history
- * Gibt historische Funktionsrollen wie Übersetzung, Timing und Encoding zurück.
- * Diese Auswahl dokumentiert Archivdaten und vergibt keine aktiven App-Rechte.
- */
-export async function listGroupHistoryRoleDefinitions(
-  fansubId: number | string,
-): Promise<RoleDefinitionOption[]> {
-  const API_BASE_URL = getApiBaseUrl()
-  const response = await authorizedFetch(
-    `${API_BASE_URL}/api/v1/admin/fansubs/${encodeURIComponent(String(fansubId))}/role-definitions?context=group_history`,
-    { cache: 'no-store' },
-  )
-
-  if (!response.ok) {
-    const parsed = await parseApiErrorPayload(
-      response,
-      `API request failed: ${response.status}`,
-    )
-    throw new ApiError(
-      response.status,
-      parsed.message,
-      null,
-      parsed.code,
-      parsed.details,
-    )
-  }
-
-  const payload = (await response.json()) as { data?: RoleDefinitionOption[] }
-  return payload.data ?? []
-}
-
-/**
- * listFansubGroupRoleDefinitions lädt die zuweisbaren Gruppenrollen (Kontext fansub_group)
- * eines Fansubs — Quelle für den App-Mitglied-Add-Flow (Gap G1, D-12).
- * GET /api/v1/admin/fansubs/:fansubId/role-definitions?context=fansub_group
- * Member-scoped (ActionFansubGroupMembersView): für Fansub-Leitungen erreichbar und liefert
- * techadmin, gfxler und die übrigen zuweisbaren Gruppenrollen inklusive Label und Sortierung.
- */
-export async function listFansubGroupRoleDefinitions(
-  fansubId: number | string,
-): Promise<RoleDefinitionOption[]> {
-  const API_BASE_URL = getApiBaseUrl()
-  const response = await authorizedFetch(
-    `${API_BASE_URL}/api/v1/admin/fansubs/${encodeURIComponent(String(fansubId))}/role-definitions?context=fansub_group`,
-    { cache: 'no-store' },
-  )
-
-  if (!response.ok) {
-    const parsed = await parseApiErrorPayload(
-      response,
-      `API request failed: ${response.status}`,
-    )
-    throw new ApiError(
-      response.status,
-      parsed.message,
-      null,
-      parsed.code,
-      parsed.details,
-    )
-  }
-
-  const payload = (await response.json()) as { data?: RoleDefinitionOption[] }
-  return payload.data ?? []
-}
-
-/** Public presentation-only role catalog. Authorization remains backend-owned. */
-const ROLE_DEFINITION_CONTEXTS = new Set<RoleDefinitionContext>([
-  'fansub_group',
-  'anime_contribution',
-  'group_history',
-])
-
-function parsePublicRoleDefinitions(
-  payload: unknown,
-  requestedContext: RoleDefinitionContext,
-): PublicRoleDefinitionOption[] {
-  const isCompleteRole = (row: unknown): row is PublicRoleDefinitionOption => {
-    if (typeof row !== 'object' || row === null || Array.isArray(row)) return false
-
-    const candidate = row as Record<string, unknown>
-    const contexts = candidate.contexts
-    return typeof candidate.code === 'string'
-      && candidate.code.length > 0
-      && typeof candidate.label_de === 'string'
-      && candidate.label_de.length > 0
-      && Array.isArray(contexts)
-      && contexts.length > 0
-      && contexts.every((item) => typeof item === 'string' && ROLE_DEFINITION_CONTEXTS.has(item as RoleDefinitionContext))
-      && contexts.includes(requestedContext)
-      && typeof candidate.sort_order === 'number'
-      && Number.isInteger(candidate.sort_order)
-      && typeof candidate.assignable === 'boolean'
-      && typeof candidate.color_key === 'string'
-      && candidate.color_key.length > 0
-      && typeof candidate.icon_key === 'string'
-      && candidate.icon_key.length > 0
-      && typeof candidate.operative_capability_count === 'number'
-      && Number.isInteger(candidate.operative_capability_count)
-      && candidate.operative_capability_count >= 0
-      && typeof candidate.has_operative_capabilities === 'boolean'
-  }
-
-  if (!Array.isArray(payload) || !payload.every(isCompleteRole)) {
-    throw new ApiError(502, 'Rollenkatalog konnte nicht geladen werden.', null, 'ROLE_CATALOG_CONTRACT_ERROR')
-  }
-  return payload
-}
-
-export async function listRoleDefinitions(
-  context: RoleDefinitionContext,
-): Promise<PublicRoleDefinitionOption[]> {
-  const response = await apiClientFetch(
-    `/api/v1/role-definitions?context=${encodeURIComponent(context)}`,
-    { cache: 'no-store' },
-  )
-  if (!response.ok) {
-    const parsed = await parseApiErrorPayload(response, `API request failed: ${response.status}`)
-    throw new ApiError(response.status, parsed.message, null, parsed.code, parsed.details)
-  }
-  const payload = (await response.json()) as unknown
-  return parsePublicRoleDefinitions(payload, context)
-}
-
-/**
- * listFansubGroupRoles lädt alle zuweisbaren Gruppenrollen vom Backend.
- * GET /api/v1/admin/fansub-group-roles
- * Erfordert Platform-Admin-Identität. Liefert techadmin, gfxler und alle
- * anderen assignable role_definitions.
- */
-export async function listFansubGroupRoles(): Promise<FansubGroupRoleItem[]> {
-  const API_BASE_URL = getApiBaseUrl()
-  const response = await authorizedFetch(
-    `${API_BASE_URL}/api/v1/admin/fansub-group-roles`,
-    { cache: 'no-store' },
-  )
-
-  if (!response.ok) {
-    const parsed = await parseApiErrorPayload(
-      response,
-      `API request failed: ${response.status}`,
-    )
-    throw new ApiError(
-      response.status,
-      parsed.message,
-      null,
-      parsed.code,
-      parsed.details,
-    )
-  }
-
-  const payload = (await response.json()) as { data?: FansubGroupRoleItem[] }
-  return payload.data ?? []
 }
 
 // setMemberMemorial markiert ein Member-Profil als Gedenkprofil (profile_status='memorial').

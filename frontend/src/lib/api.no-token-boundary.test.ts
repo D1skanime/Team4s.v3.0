@@ -26,6 +26,13 @@ const centralClientAllowlist = new Set([
   'src/lib/api/fansubs-core.ts',
   'src/lib/api/fansubs-groups.ts',
   'src/lib/api/contributions-me.ts',
+  // 174-05: auth/session token issuance/refresh/revoke (issueAuthToken,
+  // revokeAuthToken) and the Keycloak-callback/session-switch orchestration
+  // (getRuntimeAuthToken/getRuntimeRefreshToken reads, persistResolvedAuthSession's
+  // revokePreviousRuntimeSession) physically moved behind the `@/lib/api` barrel
+  // into this sibling file. The central-client boundary itself did not change —
+  // it now spans this file too, same as client.ts.
+  'src/lib/api/auth.ts',
 ])
 
 const keycloakAuthAllowlist = new Set([
