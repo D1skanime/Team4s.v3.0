@@ -2,15 +2,15 @@
 gsd_state_version: 1.0
 milestone: v1.4
 milestone_name: Coverage
-status: executing
-stopped_at: Completed 174-03-PLAN.md
-last_updated: "2026-10-05T00:14:28.595Z"
+status: completed
+stopped_at: Completed 174-04-PLAN.md
+last_updated: "2026-10-05T00:59:25.384Z"
 last_activity: 2026-10-05
 progress:
   total_phases: 39
   completed_phases: 33
   total_plans: 364
-  completed_plans: 337
+  completed_plans: 338
   percent: 85
 ---
 
@@ -287,8 +287,8 @@ Abschluss" entry below for the full closing record.
 ## Current Position
 
 Phase: 174 (modularisierung-wartbarkeits-refactoring-hotspot-analyse-api) — EXECUTING
-Plan: 3 of 26
-Status: Ready to execute
+Plan: 4 of 26
+Status: Completed 174-04-PLAN.md; ready to execute 174-05
 Completed: Phase 173 — six public image write paths gained a `display` variant, public read sites and components prefer it over thumb/original, a fansub media namespace + redirect, an idempotent backfill run against the live database, and a full live D-13 UAT (desktop+mobile, transparency, animation, performance) all passed.
 Next: Phase 169's remaining plan (169-05, live actor/refresh/responsive UAT) is still open; Phase 166 (Film-Content-Flow) has not been started. The Coverage milestone is NOT complete.
 
@@ -899,6 +899,8 @@ Last activity: 2026-10-05
 - [Phase 174]: 174-02 Task 2 scope expanded after tracing authorizedFetch's real dependency graph: full self-contained auth/session closure moved to client.ts ahead of 174-05's planned auth.ts split (follow-up note left for 174-05)
 - [Phase 174]: 174-03: admin-anime bucket sub-split into 6 files (core/jellyfin/relations/themes/taxonomy/release-assets) per D-24; fansub-members.ts kept single-file per plan artifact lock (~750 lines, D-24 exception) — 42-function anime bucket would exceed 450 lines in one file; fansub-members plan locked it as one artifact
 - [Phase 174]: 174-03: parsePayloadApiError and authorizedUploadXhr relocated to client.ts (not named in plan interfaces) to avoid api.ts<->admin/* import cycle — both needed by moving admin/anime-core.ts and admin/anime-release-assets.ts functions AND by functions staying in api.ts
+- [Phase 174-04]: D-24 sub-split: when a bucket exceeds 450 lines, split by sub-concern and re-export all sub-files from the api.ts barrel — Applied to fansubs/groups (39 fns -> 4 files) and contributions (21 fns -> 2 files), following the 174-03 admin/anime precedent
+- [Phase 174-04]: Cross-bucket same-wave dependencies resolve via direct sibling import (e.g. contributions-me.ts imports getAnimeList from ./fansubs-core), never through the api.ts barrel itself — Importing from the barrel inside a module the barrel re-exports would create a self-import cycle (D-11)
 
 ### Pending Todos
 
@@ -1461,11 +1463,12 @@ untruncated list lives in `.planning/todos/pending/`.
 | Phase 174 P01 | 150min | 5 tasks | 10 files |
 | Phase 174 P02 | 90min | 3 tasks | 8 files |
 | Phase 174 P03 | 70min | 3 tasks | 12 files |
+| Phase 174 P04 | 100min | 3 tasks | 9 files |
 
 ## Session Continuity
 
-Last session: 2026-10-05T00:13:45.457Z
-Stopped at: Completed 174-03-PLAN.md
+Last session: 2026-10-05T00:59:25.356Z
+Stopped at: Completed 174-04-PLAN.md
 Last activity: 2026-09-28 - Completed Phase 169 Plan 169-01
 Resume file: 
 None
