@@ -19,19 +19,25 @@ Vor jeder Runde: `docker restart team4sv30-frontend` (HMR greift nicht), dann St
 - [x] Zweites Speichern (Änderung nach dem Anlegen) → Änderungen und Links korrekt übernommen
 - [x] Ungespeicherte Änderung + Seite verlassen → Browser-Warnung wie bisher
 
-### Fansub bearbeiten → Medien prüfen – `/admin/fansubs/[id]/edit`
-- [ ] Medienliste lädt, Filter funktionieren
-- [ ] Hochladen (Upload-Feld) → neues Medium erscheint
-- [ ] Detail-Seitenleiste öffnen, bearbeiten, speichern
-- [ ] Schnellprüfung (einzeln) und Sammelprüfung (mehrere markiert)
-- [ ] Sortieren per Drag & Drop → Reihenfolge bleibt nach Neuladen erhalten
-- [ ] Löschen mit Bestätigungsdialog
+### Fansub bearbeiten → Medien prüfen – `/admin/fansubs/[id]/edit` — ✅ abgenommen 2026-10-05 (Nutzer)
+- [x] Medienliste lädt, Filter funktionieren
+- [x] Hochladen (Upload-Feld) → neues Medium erscheint
+- [x] Detail-Seitenleiste öffnen, bearbeiten, speichern
+- [x] Schnellprüfung (einzeln) und Sammelprüfung (mehrere markiert)
+- [x] Sortieren per Drag & Drop → Reihenfolge bleibt nach Neuladen erhalten
+- [x] Löschen mit Bestätigungsdialog
 
-### Anime anlegen – `/admin/anime/create`
-- [ ] Jellyfin-Suche → Kandidat prüfen → übernehmen (Felder werden befüllt)
-- [ ] AniSearch-Suche → Kandidat wählen / Entwurf per ID laden
-- [ ] Cover-Upload; Bild-/Asset-Suche, „mehr laden“, Kandidat übernehmen
-- [ ] Anlegen/Speichern → Weiterleitung bzw. Erfolgsmeldung wie bisher; Konflikt-Fall (AniSearch bereits vorhanden) wie bisher
+### Anime anlegen – `/admin/anime/create` — ✅ abgenommen 2026-10-05 (Nutzer)
+- [x] Jellyfin-Suche → Kandidat prüfen → übernehmen (Felder werden befüllt)
+- [x] AniSearch-Suche → Kandidat wählen / Entwurf per ID laden
+- [x] Cover-Upload; Bild-/Asset-Suche, „mehr laden“, Kandidat übernehmen
+- [x] Anlegen/Speichern → Weiterleitung bzw. Erfolgsmeldung wie bisher; Konflikt-Fall (AniSearch bereits vorhanden) wie bisher
+
+## Nach Welle 4 (Backend)
+- [ ] Segmente/Themes: Anime-Themes anlegen/bearbeiten, Segment anlegen/bearbeiten, Bibliotheks-Asset zuordnen, Abspielen/Vorschau
+- [ ] Fansub-Gruppe: öffentliche Profilseite, Mitglieder, Aliase/Links, Zusammenführen (Merge)
+- [ ] Anime-Assets: Cover/Banner/Logo/Hintergrund anzeigen und ersetzen
+- [ ] Release-Version-Medien: Liste, Upload, Ersetzen, Kategorie/Highlight, Reihenfolge
 
 ## Nach Welle 5 (CSS)
 Siehe 174-24 (Vorher/Nachher-Screenshots) – zusätzlich kurzer Sichtcheck Fansub-Edit Desktop + Mobile.
