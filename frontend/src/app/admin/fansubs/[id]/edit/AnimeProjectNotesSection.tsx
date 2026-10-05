@@ -17,6 +17,7 @@ import type { AnimeFansubProjectNote } from '@/types/fansubNotes'
 import sharedStyles from '../../../admin.module.css'
 import editorScaffoldStyles from '../../../../../components/editor/EditorScaffold.module.css'
 import fansubEditStyles from './FansubEdit.module.css'
+import ownStyles from './AnimeProjectNotesSection.module.css'
 
 import {
   AnimeProjectNoteForm,
@@ -224,28 +225,28 @@ function AnimeProjectNotesSectionBody({
         ) : null}
 
         {!loading && !error && animes.length > 0 ? (
-          <div className={styles.fansubEditAnimeProjectNotesList}>
+          <div className={ownStyles.fansubEditAnimeProjectNotesList}>
             {animes.map((anime) => {
               const expanded = expandedAnimeIds.has(anime.id)
               return (
-                <article key={anime.id} className={styles.fansubEditAnimeProjectNotesCard}>
+                <article key={anime.id} className={ownStyles.fansubEditAnimeProjectNotesCard}>
                   <Button
                     variant="ghost"
-                    className={styles.fansubEditAnimeProjectNotesHeaderButton}
+                    className={ownStyles.fansubEditAnimeProjectNotesHeaderButton}
                     onClick={() => toggleAnime(anime.id)}
                     aria-expanded={expanded}
                     aria-label={expanded ? `${anime.title} einklappen` : `${anime.title} ausklappen`}
                   >
-                    <div className={styles.fansubEditAnimeProjectNotesBody}>
-                      <p className={styles.fansubEditAnimeProjectNotesEyebrow}>Anime-Projekttext</p>
-                      <h3 className={styles.fansubEditAnimeProjectNotesTitle}>
+                    <div className={ownStyles.fansubEditAnimeProjectNotesBody}>
+                      <p className={ownStyles.fansubEditAnimeProjectNotesEyebrow}>Anime-Projekttext</p>
+                      <h3 className={ownStyles.fansubEditAnimeProjectNotesTitle}>
                         Projekttext für {anime.title}
                       </h3>
-                      <p className={styles.fansubEditAnimeProjectNotesHint}>
+                      <p className={ownStyles.fansubEditAnimeProjectNotesHint}>
                         Eintrag öffnen, um den Projekttext, Status und die Sichtbarkeit für diesen Anime zu pflegen.
                       </p>
                     </div>
-                    <div className={styles.fansubEditAnimeProjectNotesMeta}>
+                    <div className={ownStyles.fansubEditAnimeProjectNotesMeta}>
                       <span>1 Editor</span>
                       <span className={styles.fansubEditAnimeToggle} aria-hidden="true">
                         {expanded ? <ChevronDown size={24} /> : <ChevronRight size={24} />}
@@ -253,7 +254,7 @@ function AnimeProjectNotesSectionBody({
                     </div>
                   </Button>
                   {expanded ? (
-                    <div className={styles.fansubEditAnimeProjectNotesCardBody}>
+                    <div className={ownStyles.fansubEditAnimeProjectNotesCardBody}>
                       <AnimeProjectNoteWorkspace
                         fansubId={fansubId}
                         anime={anime}

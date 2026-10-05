@@ -1,0 +1,99 @@
+.fansubEditMemberChoiceList {
+  gap: 0.65rem;
+}
+.fansubEditMemberChoiceButton {
+  align-self: start;
+  min-height: 52px;
+  height: auto;
+}
+.fansubEditCandidateResults {
+  display: grid;
+  gap: 0.45rem;
+}
+.fansubEditCandidateResult {
+  display: flex;
+  width: 100%;
+  align-items: center;
+  justify-content: space-between;
+  border: 1px solid color-mix(in srgb, var(--text-secondary) 12%, transparent);
+  border-radius: var(--radius-sm);
+  background: color-mix(in srgb, var(--bg-primary) 92%, transparent);
+  color: var(--text-primary);
+  cursor: pointer;
+  padding: 0.7rem 0.8rem;
+  text-align: left;
+  transition:
+    border-color 0.16s ease,
+    box-shadow 0.16s ease,
+    transform 0.16s ease;
+}
+.fansubEditCandidateResult:hover {
+  border-color: color-mix(in srgb, var(--accent-primary) 32%, transparent);
+  box-shadow: 0 12px 24px -22px color-mix(in srgb, var(--accent-primary) 55%, transparent);
+  outline: none;
+  transform: translateY(-1px);
+}
+.fansubEditCandidateResult:focus-visible {
+  border-color: color-mix(in srgb, var(--accent-primary) 32%, transparent);
+  box-shadow: 0 12px 24px -22px color-mix(in srgb, var(--accent-primary) 55%, transparent);
+  outline: none;
+  transform: translateY(-1px);
+}
+.fansubEditCandidateResult span {
+  display: grid;
+  gap: 0.16rem;
+}
+.fansubEditCandidateResult strong {
+  font-size: 0.95rem;
+}
+.fansubEditCandidateResult small {
+  color: var(--text-muted);
+  font-size: 0.78rem;
+  font-weight: 700;
+}
+.fansubEditCandidateResultSelected {
+  border-color: color-mix(in srgb, var(--accent-primary) 44%, transparent);
+  background: color-mix(in srgb, var(--accent-primary) 9%, var(--bg-primary));
+  box-shadow: inset 3px 0 0 color-mix(in srgb, var(--accent-primary) 72%, transparent);
+}
+.fansubEditCandidateSelection {
+  display: grid;
+  gap: 0.15rem;
+  border: 1px solid color-mix(in srgb, var(--color-success) 22%, transparent);
+  border-radius: var(--radius-sm);
+  background: color-mix(in srgb, var(--color-success) 8%, var(--bg-primary));
+  padding: 0.7rem 0.8rem;
+}
+.fansubEditCandidateSelection span {
+  color: var(--text-muted);
+  font-size: 0.72rem;
+  font-weight: 800;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+}
+.fansubEditCandidateSelection strong {
+  color: var(--text-primary);
+  font-size: 0.96rem;
+}
+.fansubEditRoleOption {
+  --role-bg: rgba(240, 246, 255, 0.98);
+  --role-border: rgba(89, 122, 176, 0.22);
+  border-color: var(--role-border);
+  color: var(--role-accent);
+}
+.fansubEditRoleOptionSelected {
+  background: var(--role-bg);
+  border-color: var(--role-accent);
+  outline: 2px solid color-mix(in srgb, var(--role-accent) 34%, transparent);
+  outline-offset: 1px;
+  box-shadow:
+    inset 0 1px 0 color-mix(in srgb, white 45%, transparent),
+    0 10px 18px -14px color-mix(in srgb, var(--role-accent) 58%, transparent);
+  font-weight: 800;
+}
+@media (max-width: 767px) {
+.fansubEditMemberChoiceButton {
+    min-height: 54px;
+    max-height: 64px;
+  }
+}

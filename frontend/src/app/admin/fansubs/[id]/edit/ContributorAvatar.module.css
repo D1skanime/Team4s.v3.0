@@ -1,0 +1,21 @@
+.contributorAvatar {
+  width: 32px;
+  height: 32px;
+  border-radius: var(--radius-md);
+  object-fit: cover;
+  flex-shrink: 0;
+}
+.contributorAvatarInitials {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 32px;
+  height: 32px;
+  border-radius: var(--radius-md);
+  background: var(--surface-sunken);
+  color: var(--text-soft);
+  font-size: 12px;
+  font-weight: 400;
+  user-select: none;
+  flex-shrink: 0;
+}

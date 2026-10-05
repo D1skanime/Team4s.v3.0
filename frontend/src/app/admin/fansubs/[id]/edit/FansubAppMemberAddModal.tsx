@@ -20,6 +20,7 @@ import {
 
 import sharedStyles from '../../../admin.module.css'
 import fansubEditStyles from './FansubEdit.module.css'
+import ownStyles from './FansubAppMemberAddModal.module.css'
 import type { HistoricalIdentityOption } from './GroupMembersTab'
 
 const styles = { ...sharedStyles, ...fansubEditStyles }
@@ -51,11 +52,11 @@ export function FansubAppMemberChoiceModal({
       title="Mitglied hinzufügen"
       description="Wähle, ob du App-Zugriff vergibst oder einen historischen Eintrag anlegst."
     >
-      <div className={`${styles.fansubEditMembershipModalStack} ${styles.fansubEditMemberChoiceList}`}>
+      <div className={`${styles.fansubEditMembershipModalStack} ${ownStyles.fansubEditMemberChoiceList}`}>
         <Button
           variant="primary"
           fullWidth
-          className={styles.fansubEditMemberChoiceButton}
+          className={ownStyles.fansubEditMemberChoiceButton}
           onClick={onAppMemberFlow}
           disabled={!canManageMembers && !canCreateInvitation}
         >
@@ -64,7 +65,7 @@ export function FansubAppMemberChoiceModal({
         <Button
           variant="secondary"
           fullWidth
-          className={styles.fansubEditMemberChoiceButton}
+          className={ownStyles.fansubEditMemberChoiceButton}
           onClick={onHistoricalMemberFlow}
           disabled={!canManageMembers || !hasHistoricalActions}
         >
@@ -176,7 +177,7 @@ export function FansubAppMemberAddModal({
             ) : null}
 
             {candidateResults.length > 0 ? (
-              <div className={styles.fansubEditCandidateResults} aria-label="Gefundene Fansub-Mitglieder">
+              <div className={ownStyles.fansubEditCandidateResults} aria-label="Gefundene Fansub-Mitglieder">
                 {candidateResults.map((candidate) => {
                   if (!candidate?.app_user_id) return null
                   const selected = String(candidate.app_user_id) === selectedCandidateId
@@ -184,7 +185,7 @@ export function FansubAppMemberAddModal({
                     <button
                       key={candidate.app_user_id}
                       type="button"
-                      className={styleNames(styles.fansubEditCandidateResult, selected && styles.fansubEditCandidateResultSelected)}
+                      className={styleNames(ownStyles.fansubEditCandidateResult, selected && ownStyles.fansubEditCandidateResultSelected)}
                       aria-pressed={selected}
                       onClick={() => onCandidateSelect(candidate)}
                     >
@@ -199,7 +200,7 @@ export function FansubAppMemberAddModal({
             ) : null}
 
             {selectedCandidate ? (
-              <div className={styles.fansubEditCandidateSelection} role="status">
+              <div className={ownStyles.fansubEditCandidateSelection} role="status">
                 <span>Ausgewähltes Profil</span>
                 <strong>{selectedCandidate.fansub_name}</strong>
               </div>
@@ -239,7 +240,7 @@ export function FansubAppMemberAddModal({
                         key={option.code}
                         variant={selected ? 'secondary' : 'ghost'}
                         size="sm"
-                        className={styleNames(styles.fansubEditRoleOption, selected && styles.fansubEditRoleOptionSelected)}
+                        className={styleNames(ownStyles.fansubEditRoleOption, selected && ownStyles.fansubEditRoleOptionSelected)}
                         data-color-key={presentationForRole(roles, option.code).colorKey}
                         aria-pressed={selected}
                         onClick={() => onToggleRole(option.code)}
@@ -300,7 +301,7 @@ export function FansubAppMemberAddModal({
                       key={`invite-${option.code}`}
                       variant={selected ? 'secondary' : 'ghost'}
                       size="sm"
-                      className={styleNames(styles.fansubEditRoleOption, selected && styles.fansubEditRoleOptionSelected)}
+                      className={styleNames(ownStyles.fansubEditRoleOption, selected && ownStyles.fansubEditRoleOptionSelected)}
                       data-color-key={presentationForRole(roles, option.code).colorKey}
                       aria-pressed={selected}
                       onClick={() => onToggleInviteRole(option.code)}

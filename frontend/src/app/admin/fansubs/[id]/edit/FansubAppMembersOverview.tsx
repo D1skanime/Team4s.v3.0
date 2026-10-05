@@ -27,6 +27,7 @@ import { useRoleCatalog } from '@/providers/RoleCatalogProvider'
 
 import sharedStyles from '../../../admin.module.css'
 import fansubEditStyles from './FansubEdit.module.css'
+import ownStyles from './FansubAppMembersOverview.module.css'
 import { useFansubEditMediaQuery } from './hooks/useFansubEditViewport'
 
 const styles = { ...sharedStyles, ...fansubEditStyles }
@@ -231,7 +232,7 @@ export function FansubAppMembersOverview({
                       </p>
                     ) : null}
                     {mediaPermissionCount > 0 ? (
-                      <Badge variant="muted" className={styles.fansubEditMemberExtraRightsChip}>
+                      <Badge variant="muted" className={ownStyles.fansubEditMemberExtraRightsChip}>
                         {mediaPermissionCount} Zusatzrecht{mediaPermissionCount === 1 ? '' : 'e'}
                       </Badge>
                     ) : null}
@@ -244,10 +245,10 @@ export function FansubAppMembersOverview({
         </>
       ) : null}
 
-      <Card variant="nestedFlat" className={styles.fansubEditMembershipAssignCard}>
+      <Card variant="nestedFlat" className={ownStyles.fansubEditMembershipAssignCard}>
         <div>
-          <p className={styles.fansubEditBasicEyebrow}>Einladungen</p>
-          <h4 className={styles.fansubEditMembershipSubtitle}>Offene Gruppeneinladungen</h4>
+          <p className={ownStyles.fansubEditBasicEyebrow}>Einladungen</p>
+          <h4 className={ownStyles.fansubEditMembershipSubtitle}>Offene Gruppeneinladungen</h4>
           <p className={styles.fansubEditHint}>
             Lade neue Mitglieder per E-Mail ein. Der Einladungslink wird per E-Mail zugestellt.
           </p>
@@ -342,13 +343,13 @@ export function FansubAppMembersOverview({
               </Table>
               </div>
               {useMobileCards && invitations.length > 0 ? (
-                <div className={styles.fansubEditMembersMobileList} aria-label="Offene Einladungen">
+                <div className={ownStyles.fansubEditMembersMobileList} aria-label="Offene Einladungen">
                   {invitations.map((invitation) => {
                     const invitedFansubName = invitation.member?.fansub_name?.trim()
                     const invitationBusy = busyKey === `invitation:${invitation.id}`
                     return (
                       <article className={styles.fansubEditMemberMobileCard} key={`mobile-invitation-${invitation.id}`}>
-                        <div className={styles.fansubEditMemberMobileHeader}>
+                        <div className={ownStyles.fansubEditMemberMobileHeader}>
                           <div>
                             <strong>{invitedFansubName || invitation.email}</strong>
                             {invitedFansubName ? <span>{invitation.email}</span> : null}
@@ -357,7 +358,7 @@ export function FansubAppMembersOverview({
                             {formatInvitationStatusLabel(invitation.status)}
                           </Badge>
                         </div>
-                        <div className={styles.fansubEditMemberMobileBlock}>
+                        <div className={ownStyles.fansubEditMemberMobileBlock}>
                           <span>Rollen nach Annahme</span>
                           <div className={styles.chipRow}>
                             {invitation.invited_role_codes.map((role) => (
@@ -372,12 +373,12 @@ export function FansubAppMembersOverview({
                             ))}
                           </div>
                         </div>
-                        <div className={styles.fansubEditMemberMobileBlock}>
+                        <div className={ownStyles.fansubEditMemberMobileBlock}>
                           <span>Läuft ab</span>
                           <strong>{formatDateTime(invitation.expires_at)}</strong>
                         </div>
                         {canCancelInvitation ? (
-                          <div className={styles.fansubEditMemberMobileActions}>
+                          <div className={ownStyles.fansubEditMemberMobileActions}>
                             <Button
                               variant="danger"
                               disabled={invitationBusy}

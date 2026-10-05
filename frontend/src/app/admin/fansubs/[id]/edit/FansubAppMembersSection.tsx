@@ -42,6 +42,7 @@ import { orderForContext } from '@/lib/roleCatalog'
 
 import sharedStyles from '../../../admin.module.css'
 import fansubEditStyles from './FansubEdit.module.css'
+import ownStyles from './FansubAppMembersSection.module.css'
 import { FansubAppMemberAddModal, FansubAppMemberChoiceModal } from './FansubAppMemberAddModal'
 import { FansubAppMemberEditorPanel, type FansubAppMemberEditorTab } from './FansubAppMemberEditorPanel'
 import { FansubAppMembersOverview } from './FansubAppMembersOverview'
@@ -502,12 +503,12 @@ export function FansubAppMembersSection({ hasAccessToken = false, fansubId, clai
 
   return (
     <Card variant="section" className={styles.fansubEditMembershipSurface}>
-      <div className={styles.fansubEditMembershipIntro}>
+      <div className={ownStyles.fansubEditMembershipIntro}>
         <div>
           <p className={styles.fansubEditHint}>Wer zur Fansubgruppe gehört und welche Aufgaben die Person übernimmt.</p>
         </div>
-        <div className={styles.fansubEditMembershipHeaderActions}>
-          <div className={styles.fansubEditBasicStatusCard}>
+        <div className={ownStyles.fansubEditMembershipHeaderActions}>
+          <div className={ownStyles.fansubEditBasicStatusCard}>
             <span>Mitglieder</span>
             <strong>{members.length} Mitglied{members.length === 1 ? '' : 'er'}</strong>
             <p>{activeMemberCount} aktiv, {members.length - activeMemberCount} deaktiviert</p>
@@ -525,7 +526,7 @@ export function FansubAppMembersSection({ hasAccessToken = false, fansubId, clai
       </div>
 
       {!hasAccessToken ? (
-        <div className={styles.fansubEditMembershipEmpty}>
+        <div className={ownStyles.fansubEditMembershipEmpty}>
           <strong>Keine aktive Admin-Session</strong>
           <p className={styles.fansubEditHint}>Für die Mitgliederverwaltung bitte zuerst anmelden.</p>
         </div>

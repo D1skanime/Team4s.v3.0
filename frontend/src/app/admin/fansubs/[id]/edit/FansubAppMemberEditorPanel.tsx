@@ -19,6 +19,7 @@ import {
 
 import sharedStyles from '../../../admin.module.css'
 import fansubEditStyles from './FansubEdit.module.css'
+import ownStyles from './FansubAppMemberEditorPanel.module.css'
 import type { InlineMemberRoleDraft } from './useGroupMembersTab'
 
 const styles = { ...sharedStyles, ...fansubEditStyles }
@@ -102,10 +103,10 @@ export function FansubAppMemberEditorPanel({
         : 'Rollen und Medienrechte für dieses Mitglied setzen.'
       }
       footer={editorMember ? (
-        <div className={styles.fansubEditMemberEditorFooter}>
+        <div className={ownStyles.fansubEditMemberEditorFooter}>
           <Button
             variant="ghost"
-            className={styles.fansubEditMemberEditorCancelButton}
+            className={ownStyles.fansubEditMemberEditorCancelButton}
             disabled={isBusy}
             onClick={onClose}
           >
@@ -122,13 +123,13 @@ export function FansubAppMemberEditorPanel({
       ) : null}
     >
       {editorMember ? (
-        <div className={styles.fansubEditMemberEditor}>
-          <div className={styles.fansubEditMemberEditorTabs} role="tablist" aria-label="Bearbeitungsbereiche">
+        <div className={ownStyles.fansubEditMemberEditor}>
+          <div className={ownStyles.fansubEditMemberEditorTabs} role="tablist" aria-label="Bearbeitungsbereiche">
             <button
               type="button"
               className={styleNames(
-                styles.fansubEditMemberEditorTab,
-                memberEditorTab === 'roles' && styles.fansubEditMemberEditorTabActive,
+                ownStyles.fansubEditMemberEditorTab,
+                memberEditorTab === 'roles' && ownStyles.fansubEditMemberEditorTabActive,
               )}
               role="tab"
               aria-selected={memberEditorTab === 'roles'}
@@ -140,8 +141,8 @@ export function FansubAppMemberEditorPanel({
             <button
               type="button"
               className={styleNames(
-                styles.fansubEditMemberEditorTab,
-                memberEditorTab === 'media' && styles.fansubEditMemberEditorTabActive,
+                ownStyles.fansubEditMemberEditorTab,
+                memberEditorTab === 'media' && ownStyles.fansubEditMemberEditorTabActive,
               )}
               role="tab"
               aria-selected={memberEditorTab === 'media'}
@@ -153,8 +154,8 @@ export function FansubAppMemberEditorPanel({
             <button
               type="button"
               className={styleNames(
-                styles.fansubEditMemberEditorTab,
-                memberEditorTab === 'history' && styles.fansubEditMemberEditorTabActive,
+                ownStyles.fansubEditMemberEditorTab,
+                memberEditorTab === 'history' && ownStyles.fansubEditMemberEditorTabActive,
               )}
               role="tab"
               aria-selected={memberEditorTab === 'history'}
@@ -169,10 +170,10 @@ export function FansubAppMemberEditorPanel({
             <section id="fansub-member-editor-roles" className={styles.fansubEditMemberEditorPanel} aria-label="Aktive Rolle in der Fansubgruppe">
               <p className={styles.fansubEditHint}>Aktive Rollen bestimmen, was dieses Mitglied ab jetzt in der Gruppe tun darf.</p>
               {roleOptionsError ? <ErrorState title="Rollen konnten nicht geladen werden" description={roleOptionsError} /> : null}
-              <div className={styles.fansubEditMemberRoleGroups}>
+              <div className={ownStyles.fansubEditMemberRoleGroups}>
                 {roleOptions.length > 0 ? (
-                  <section className={styles.fansubEditMemberRoleGroup} aria-label="Zuweisbare Rollen">
-                    <div className={styles.fansubEditMemberRoleGrid}>
+                  <section className={ownStyles.fansubEditMemberRoleGroup} aria-label="Zuweisbare Rollen">
+                    <div className={ownStyles.fansubEditMemberRoleGrid}>
                       {roleOptions.map((option) => {
                         const enabled = memberRoleDraft.includes(option.code)
                         const presentation = presentationForRole(roleOptions, option.code)
@@ -181,9 +182,9 @@ export function FansubAppMemberEditorPanel({
                             key={option.code}
                             type="button"
                             className={styleNames(
-                              styles.fansubEditMemberRoleToggle,
+                              ownStyles.fansubEditMemberRoleToggle,
                               ROLE_CATALOG_CHIP_CLASS,
-                              enabled && styles.fansubEditMemberRoleToggleSelected,
+                              enabled && ownStyles.fansubEditMemberRoleToggleSelected,
                             )}
                             data-color-key={presentation.colorKey}
                             aria-pressed={enabled}
@@ -207,7 +208,7 @@ export function FansubAppMemberEditorPanel({
           {memberEditorTab === 'media' ? (
             <section id="fansub-member-editor-media" className={styles.fansubEditMemberEditorPanel} aria-label="Medienrechte">
               <p className={styles.fansubEditHint}>Diese Rechte gelten zusätzlich zu den Rollen dieses Mitglieds.</p>
-              <div className={styles.fansubEditMediaSwitchList}>
+              <div className={ownStyles.fansubEditMediaSwitchList}>
                 {MEDIA_PERMISSION_OPTIONS.map((option) => {
                   const enabled = mediaPermissionDraft[option.key]
                   return (
@@ -216,14 +217,14 @@ export function FansubAppMemberEditorPanel({
                       type="button"
                       role="switch"
                       aria-checked={enabled}
-                      className={styleNames(styles.fansubEditMediaSwitchRow, enabled && styles.fansubEditMediaSwitchRowActive)}
+                      className={styleNames(ownStyles.fansubEditMediaSwitchRow, enabled && ownStyles.fansubEditMediaSwitchRowActive)}
                       onClick={() => onToggleMediaPermission(option.key)}
                     >
                       <span>
                         <strong>{option.label}</strong>
                         <small>{option.description}</small>
                       </span>
-                      <span className={styles.fansubEditMediaSwitchTrack} aria-hidden="true">
+                      <span className={ownStyles.fansubEditMediaSwitchTrack} aria-hidden="true">
                         <span />
                       </span>
                     </button>
@@ -245,9 +246,9 @@ export function FansubAppMemberEditorPanel({
                   description="Für dieses App-Mitglied fehlt die Member-ID, deshalb können keine historischen Rollen angelegt werden."
                 />
               ) : null}
-              <div className={styles.fansubEditMemberHistoryRoleCard}>
+              <div className={ownStyles.fansubEditMemberHistoryRoleCard}>
                 {historicalRoleDrafts.map((role, index) => (
-                  <div className={styleNames(styles.fansubEditInlineRoleRow, styles.fansubEditMemberHistoryRoleRow)} key={role.id}>
+                  <div className={styleNames(styles.fansubEditInlineRoleRow, ownStyles.fansubEditMemberHistoryRoleRow)} key={role.id}>
                   <FormField label={`Rolle ${index + 1}`} htmlFor={`app-member-history-role-${role.id}`} required>
                     <Select
                       id={`app-member-history-role-${role.id}`}
@@ -292,7 +293,7 @@ export function FansubAppMemberEditorPanel({
                     type="button"
                     variant="ghost"
                     size="sm"
-                    className={styles.fansubEditDangerOutlineButton}
+                    className={ownStyles.fansubEditDangerOutlineButton}
                     onClick={() => onRemoveHistoricalRole(role.id)}
                     disabled={!canManageHistoricalRoles || historicalRoleDrafts.length <= 1}
                   >

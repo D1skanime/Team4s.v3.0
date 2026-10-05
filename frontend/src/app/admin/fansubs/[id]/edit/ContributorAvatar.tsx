@@ -1,6 +1,6 @@
 'use client'
 
-import styles from './FansubEdit.module.css'
+import styles from './ContributorAvatar.module.css'
 
 interface ContributorAvatarProps {
   name: string

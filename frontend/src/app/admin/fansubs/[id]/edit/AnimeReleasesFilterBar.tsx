@@ -3,6 +3,7 @@
 import { Button } from '@/components/ui'
 
 import styles from './FansubEdit.module.css'
+import ownStyles from './AnimeReleasesFilterBar.module.css'
 
 export type CockpitFilter = 'all' | 'no-contributions' | 'no-note'
 
@@ -19,7 +20,7 @@ export function AnimeReleasesFilterBar({ activeFilter, onFilterChange }: AnimeRe
         size="sm"
         aria-pressed={activeFilter === 'all'}
         onClick={() => onFilterChange('all')}
-        className={activeFilter === 'all' ? styles.filterChipActive : undefined}
+        className={activeFilter === 'all' ? ownStyles.filterChipActive : undefined}
       >
         Alle
       </Button>
@@ -28,7 +29,7 @@ export function AnimeReleasesFilterBar({ activeFilter, onFilterChange }: AnimeRe
         size="sm"
         aria-pressed={activeFilter === 'no-contributions'}
         onClick={() => onFilterChange('no-contributions')}
-        className={activeFilter === 'no-contributions' ? styles.filterChipActive : undefined}
+        className={activeFilter === 'no-contributions' ? ownStyles.filterChipActive : undefined}
       >
         Mitwirkende fehlen
       </Button>
@@ -37,7 +38,7 @@ export function AnimeReleasesFilterBar({ activeFilter, onFilterChange }: AnimeRe
         size="sm"
         aria-pressed={activeFilter === 'no-note'}
         onClick={() => onFilterChange('no-note')}
-        className={activeFilter === 'no-note' ? styles.filterChipActive : undefined}
+        className={activeFilter === 'no-note' ? ownStyles.filterChipActive : undefined}
       >
         Einblick fehlt
       </Button>

@@ -1,0 +1,64 @@
+.fansubEditMembershipIntro {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 1.25rem;
+  flex-wrap: wrap;
+}
+.fansubEditMembershipHeaderActions {
+  display: flex;
+  align-items: flex-start;
+  justify-content: flex-end;
+  gap: 0.75rem;
+  flex-wrap: wrap;
+}
+@media (max-width: 399px) {
+.fansubEditMembershipHeaderActions {
+    width: 100%;
+    flex-direction: column;
+    align-items: stretch;
+  }
+}
+@media (max-width: 399px) {
+.fansubEditMembershipHeaderActions > button {
+    width: 100%;
+  }
+}
+@media (max-width: 399px) {
+.fansubEditMembershipHeaderActions > a {
+    width: 100%;
+  }
+}
+.fansubEditMembershipEmpty {
+  display: grid;
+  gap: 0.7rem;
+}
+.fansubEditBasicStatusCard {
+  display: grid;
+  gap: 0.18rem;
+  padding: 0.85rem 0.95rem;
+  border: 1px solid color-mix(in srgb, var(--text-secondary) 12%, transparent);
+  border-radius: calc(var(--radius-md) + 2px);
+  background:
+    linear-gradient(180deg, color-mix(in srgb, var(--bg-card) 99%, #fff), color-mix(in srgb, var(--bg-secondary) 90%, transparent)),
+    color-mix(in srgb, var(--bg-card) 96%, transparent);
+  box-shadow:
+    inset 0 1px 0 color-mix(in srgb, white 54%, transparent),
+    0 12px 24px -24px rgba(17, 24, 39, 0.16);
+}
+.fansubEditBasicStatusCard span {
+  color: var(--text-muted);
+  font-size: 0.76rem;
+  font-weight: 700;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+}
+.fansubEditBasicStatusCard strong {
+  font-size: 1.05rem;
+  line-height: 1.25;
+}
+.fansubEditBasicStatusCard p {
+  margin: 0;
+  color: var(--text-secondary);
+  font-size: 0.84rem;
+}

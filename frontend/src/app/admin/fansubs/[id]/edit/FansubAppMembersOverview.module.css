@@ -1,0 +1,84 @@
+.fansubEditMembershipSubtitle {
+  margin: 0;
+}
+.fansubEditMembershipAssignCard {
+  display: grid;
+  gap: 0.7rem;
+}
+.fansubEditBasicEyebrow {
+  margin: 0 0 0.2rem;
+  color: var(--text-muted);
+  font-size: 0.72rem;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+.fansubEditMembersMobileList {
+  display: none;
+}
+.fansubEditMemberMobileHeader {
+  display: grid;
+  grid-template-columns: auto minmax(0, 1fr) auto;
+  align-items: center;
+  gap: 10px;
+}
+.fansubEditMemberMobileHeader > div:nth-child(2) {
+  display: grid;
+  min-width: 0;
+  gap: 2px;
+}
+.fansubEditMemberMobileHeader strong {
+  overflow-wrap: anywhere;
+}
+.fansubEditMemberMobileHeader span {
+  overflow-wrap: anywhere;
+}
+.fansubEditMemberMobileHeader span {
+  color: var(--text-secondary);
+  font-size: 0.84rem;
+}
+.fansubEditMemberMobileBlock > span {
+  color: var(--text-secondary);
+  font-size: 0.84rem;
+}
+.fansubEditMemberMobileBlock {
+  display: grid;
+  gap: 6px;
+  min-width: 0;
+}
+.fansubEditMemberMobileActions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  align-items: center;
+}
+.fansubEditMemberExtraRightsChip {
+  white-space: nowrap;
+}
+@media (max-width: 767px) {
+.fansubEditMembersMobileList {
+    display: grid;
+    gap: 10px;
+  }
+}
+@media (max-width: 767px) {
+.fansubEditMemberMobileHeader {
+    grid-template-columns: auto minmax(0, 1fr);
+  }
+}
+@media (max-width: 767px) {
+.fansubEditMemberMobileHeader > :last-child {
+    justify-self: start;
+  }
+}
+@media (max-width: 767px) {
+.fansubEditMemberMobileActions {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+}
+@media (max-width: 767px) {
+.fansubEditMemberMobileActions > * {
+    min-height: 44px;
+  }
+}
