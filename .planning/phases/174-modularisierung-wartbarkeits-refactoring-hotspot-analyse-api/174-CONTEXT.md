@@ -63,6 +63,9 @@ keine DB-Migrationen (außer bei nachgewiesenem technischem Fehler).
 - **D-23:** Welle 6 Abschlussaudit: erneut messen (größte Dateien, größte Funktionen, Exports/Modul, Tests, Build, Query Counts, Dependency-Zyklen) und vorher/nachher vergleichen. Abschlussbericht `174-REPORT.md` mit: analysierte Hotspots, refactorte Bereiche, bewusst nicht refactorte Bereiche (mit Begründung), alte/neue Dateigrößen, neue Modulstruktur, Tests, Performance, Query Counts, offene technische Schulden, Empfehlungen für Folgephasen.
 - **D-24:** Neue/geänderte Produktionsdateien halten die 450-Zeilen-Regel ein, wo die Aufteilung fachlich trägt; wo eine Datei bewusst größer bleibt, im Report begründen (keine stillen neuen Ausnahmen).
 
+### Testen von Admin-Klickabläufen (Nachtrag 2026-10-05, Nutzerentscheidung)
+- **D-25:** Admin-Klickabläufe in der UI (Formulare bedienen, Aliase/Links/Uploads, Speichern, Drag & Drop, Dialoge) werden **live vom Nutzer abgenommen** (Checkliste `174-UAT-CHECKLIST.md`, Abnahme nach Welle 3 und nach Welle 5), nicht durch neue Klick-Simulationstests. Neue automatisierte Tests nur für stabile, deterministische Logik (reine Funktionen, Payload-/Mapping-Verhalten, Repository-Ebene). Bestehende Tests bleiben unverändert und müssen grün bleiben (D-03). Ein neuer Charakterisierungstest, der gegen den unveränderten Code nicht grün oder nicht deterministisch ist, wird nicht aufgenommen, sondern als UAT-Punkt geführt.
+
 ### Claude's Discretion
 - Konkrete Modulgrenzen, Dateinamen und Reihenfolge innerhalb der Wellen — abgeleitet aus Welle-1-Analyse.
 - Welche Kandidaten P1/P2/P3 werden (P2/P3 werden in dieser Phase nicht umgesetzt, nur dokumentiert).
