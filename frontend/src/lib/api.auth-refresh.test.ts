@@ -158,7 +158,17 @@ function readCookie(name: string): string {
 }
 
 const currentDir = path.dirname(fileURLToPath(import.meta.url))
-const apiSource = fs.readFileSync(path.join(currentDir, 'api.ts'), 'utf8')
+// 174-04: the public-member/project-member read helpers this guard checks
+// (getMemberProfile, getMemberProjects, getProjectMemberSummary,
+// getProjectMemberNotes, getProjectMemberMedia) moved behind the `@/lib/api`
+// barrel into these sibling files. The guard now searches all of them so it
+// keeps covering the real implementations at their current location.
+const apiSourceFiles = [
+  path.join(currentDir, 'api.ts'),
+  path.join(currentDir, 'api', 'members.ts'),
+  path.join(currentDir, 'api', 'projects.ts'),
+]
+const apiSource = apiSourceFiles.map((filePath) => fs.readFileSync(filePath, 'utf8')).join('\n')
 
 function exportedFunctionSource(name: string): string {
   const marker = `export async function ${name}(`

@@ -15,6 +15,17 @@ const centralClientAllowlist = new Set([
   // physically moved behind the `@/lib/api` barrel into this sibling file. The
   // central-client boundary itself did not change — it now spans both files.
   'src/lib/api/client.ts',
+  // 174-04: fansubs/groups and contributions/suggestions/proposals domain
+  // buckets moved behind the `@/lib/api` barrel into these sibling files
+  // (both further D-24 sub-split by sub-concern across
+  // fansubs-core.ts/fansubs-groups.ts and contributions-me.ts). All already
+  // used plain `fetch(` for public, no-auth, server-cacheable reads (e.g.
+  // getAnimeList's public branch, getFansubList, getGroupReleases,
+  // getFansubContributions, getAnimeContributions) before this relocation —
+  // the central-client boundary did not change, it now spans these files too.
+  'src/lib/api/fansubs-core.ts',
+  'src/lib/api/fansubs-groups.ts',
+  'src/lib/api/contributions-me.ts',
 ])
 
 const keycloakAuthAllowlist = new Set([
