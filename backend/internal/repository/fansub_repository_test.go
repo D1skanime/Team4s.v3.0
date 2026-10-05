@@ -243,9 +243,12 @@ func TestFansubRepository_DeleteGroupCleansRestrictedChildrenFirst(t *testing.T)
 // can build its Fansub-Story preview from this one response without a
 // per-slug getFansubBySlug fanout.
 func TestListAnimeFansubs_SummaryIncludesFansubStoryFacts(t *testing.T) {
-	src, err := os.ReadFile("fansub_repository.go")
+	// Moved by 174-17 (D-15 split) from fansub_repository.go to
+	// fansub_repository_anime_links.go -- pure import-path adjustment, zero
+	// behavior change (174-16's precedent for this same test pattern).
+	src, err := os.ReadFile("fansub_repository_anime_links.go")
 	if err != nil {
-		t.Fatalf("read fansub repository: %v", err)
+		t.Fatalf("read fansub repository anime links file: %v", err)
 	}
 	content := string(src)
 
