@@ -3,14 +3,14 @@ gsd_state_version: 1.0
 milestone: v1.4
 milestone_name: Coverage
 status: executing
-stopped_at: Completed 174-20-PLAN.md
-last_updated: "2026-10-05T15:55:45.009Z"
+stopped_at: Completed 174-17-PLAN.md
+last_updated: "2026-10-05T16:16:33.137Z"
 last_activity: 2026-10-05
 progress:
   total_phases: 39
   completed_phases: 33
   total_plans: 364
-  completed_plans: 352
+  completed_plans: 353
   percent: 85
 ---
 
@@ -287,7 +287,7 @@ Abschluss" entry below for the full closing record.
 ## Current Position
 
 Phase: 174 (modularisierung-wartbarkeits-refactoring-hotspot-analyse-api) — EXECUTING
-Plan: 5 of 26
+Plan: 2 of 26
 Status: Ready to execute
 Completed: Phase 173 — six public image write paths gained a `display` variant, public read sites and components prefer it over thumb/original, a fansub media namespace + redirect, an idempotent backfill run against the live database, and a full live D-13 UAT (desktop+mobile, transparency, animation, performance) all passed.
 Next: Phase 169's remaining plan (169-05, live actor/refresh/responsive UAT) is still open; Phase 166 (Film-Content-Flow) has not been started. The Coverage milestone is NOT complete.
@@ -919,6 +919,8 @@ Last activity: 2026-10-05
 - [Phase 174]: 174-16: the D-17 ANY($1) alias-normalization batch pattern belongs to GetMergePreview's populateAliasMergePreview (Merge cluster), not the 7-method Alias CRUD cluster -- left untouched in fansub_repository.go for 174-17
 - [Phase 174]: 174-19: anime_assets.go split by asset type (cover/banner+logo/background/background_video), legacy+V2 pairs co-located per RESEARCH.md Pitfall 4; generic V2 dispatch helpers shared across 3+ asset types moved to anime_assets_provider.go; CLAUDE.md's 450-line ceiling forced a further 3-way background split and a resolve-helpers extraction beyond the plan's literal 5-file list — Keeps hotspot modular without merging legacy/V2 schema-migration logic; respects project file-size constraint
 - [Phase 174]: 174-20: split upload cluster into upload.go + upload_process.go to satisfy CLAUDE.md's 450-line modularity ceiling — Literal plan instruction to move the upload cluster verbatim into one file would have produced a 557-line file, exceeding the project's hard file-size constraint
+- [Phase 174]: 174-17: resolved TestFansubRepository_PublicProfileSourceInvariants (stale fragments from a pre-Phase-173 SQL shape) and fixed the fragment list to match the current media_files/variant='display' LATERAL-join pattern — 174-01's documented verdict in 174-HOTSPOTS.md: safe-to-fix-test, not a real regression
+- [Phase 174]: 174-17: completed the D-15 split of fansub_repository.go (2657 lines pre-174-16 to 37 lines) across 8 sibling files; merge cluster sub-split into core+duplicates files per D-24 — File's single largest cluster (~900 lines) needed a budget-driven sub-split to stay well under the 450-line project ceiling
 
 ### Pending Todos
 
@@ -1495,11 +1497,12 @@ untruncated list lives in `.planning/todos/pending/`.
 | Phase 174 P16 | 25min | 3 tasks | 5 files |
 | Phase 174 P19 | 48min | 2 tasks | 10 files |
 | Phase 174 P20 | 13min | 3 tasks | 8 files |
+| Phase 174 P17 | 12min | 3 tasks | 7 files |
 
 ## Session Continuity
 
-Last session: 2026-10-05T15:55:44.987Z
-Stopped at: Completed 174-20-PLAN.md
+Last session: 2026-10-05T16:16:33.118Z
+Stopped at: Completed 174-17-PLAN.md
 Last activity: 2026-09-28 - Completed Phase 169 Plan 169-01
 Resume file: 
 None
