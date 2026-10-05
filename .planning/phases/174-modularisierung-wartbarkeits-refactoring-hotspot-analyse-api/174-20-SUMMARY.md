@@ -120,3 +120,8 @@ None - no external service configuration required.
 ---
 *Phase: 174-modularisierung-wartbarkeits-refactoring-hotspot-analyse-api*
 *Completed: 2026-10-05*
+
+## Self-Check: PASSED
+
+All 8 created/modified files verified present on disk; all 4 commit hashes
+(0ef264cd, 0730ca22, fa404e24, 0530c108) verified present in `git log`.
