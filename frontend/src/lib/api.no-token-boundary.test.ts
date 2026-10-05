@@ -33,6 +33,10 @@ const centralClientAllowlist = new Set([
   // into this sibling file. The central-client boundary itself did not change —
   // it now spans this file too, same as client.ts.
   'src/lib/api/auth.ts',
+  // 174-05: searchArchive's public, unauthenticated `/api/v1/archiv` fetch moved
+  // behind the barrel into this sibling file — already plain `fetch(` (no auth)
+  // before this relocation, same boundary as fansubs-core.ts's public reads above.
+  'src/lib/api/history.ts',
 ])
 
 const keycloakAuthAllowlist = new Set([
