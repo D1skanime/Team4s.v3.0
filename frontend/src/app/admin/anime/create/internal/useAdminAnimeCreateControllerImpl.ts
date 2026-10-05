@@ -4,26 +4,21 @@
 // from page.tsx so the page can stay below the 700-line guardrail while the
 // mutable create, asset, and Jellyfin state remains in one readable place.
 
-import { ChangeEvent, FormEvent, useEffect, useMemo, useRef, useState } from "react";
+import { ChangeEvent, useEffect, useMemo, useRef, useState } from "react";
 
 import {
   ApiError,
-  createAdminAnime,
   getAdminGenreTokens,
 } from "@/lib/api";
 import { useAuthSession } from "@/lib/useAuthSession";
 import {
-  createAdminAnimeFromJellyfinDraft,
   getAdminTagTokens,
-  searchAdminAnimeCreateAssetCandidates,
 } from "@/lib/api/admin-anime-intake";
 import { AnimeStatus, ContentType } from "@/types/anime";
 import type {
-  AdminAnimeAniSearchCreateConflictResult,
   AdminAnimeAniSearchSearchCandidate,
   AdminAnimeAssetKind,
   AdminAnimeAssetSearchCandidate,
-  AdminAnimeCreateRequest,
   AdminAnimeJellyfinIntakePreviewResult,
   AdminJellyfinIntakeAssetSlots,
   AnimeType,
@@ -32,26 +27,16 @@ import type {
 } from "@/types/admin";
 
 import {
-  appendCreateSourceLinkageToPayload,
-  buildAssistedCreateRedirectPath,
-  buildCreateSuccessMessage,
-  buildManualCreateRedirectPath,
-  CREATE_REDIRECT_DELAY_MS,
-  createManualAnimeAndRedirect,
-  formatCreatePageError,
   resolveJellyfinReviewVisibility,
   resolveSourceActionState,
 } from "../createPageHelpers";
 import type { CreateAssetUploadDraftValue } from "../createAssetUploadPlan";
 import {
-  buildCreateAniSearchConflictState,
   type CreateAniSearchConflictState,
   type CreateAniSearchDraftState,
 } from "../createAniSearchControllerHelpers";
 import {
-  stageRemoteCreateAssetCandidate,
   stageManualCreateAsset,
-  uploadCreatedAnimeAssets,
 } from "../createAssetUploadPlan";
 import {
   CreateManualStagedAssets,
@@ -73,13 +58,14 @@ import { useJellyfinIntake } from "../../hooks/useJellyfinIntake";
 import { deriveJellyfinIntakeSearchState } from "../../hooks/useJellyfinIntake";
 import {
   normalizeOptionalString,
-  parsePositiveInt,
   splitGenreTokens,
   splitTagTokens,
 } from "../../utils/anime-helpers";
 import { resolveJellyfinIntakeAssetUrl } from "../../utils/jellyfin-intake-assets";
 import { useJellyfinIntakeActions } from "./admin-anime-create/useJellyfinIntakeActions";
 import { useAniSearchIntakeActions } from "./admin-anime-create/useAniSearchIntakeActions";
+import { useAssetStagingActions } from "./admin-anime-create/useAssetStagingActions";
+import { useCreateSubmitAction } from "./admin-anime-create/useCreateSubmitAction";
 
 const DEFAULT_GENRE_LIMIT = 40;
 const DEFAULT_TAG_LIMIT = 40;
@@ -87,22 +73,6 @@ type CreateSearchableAssetKind = Extract<
   AdminAnimeAssetKind,
   "cover" | "banner" | "logo" | "background"
 >;
-
-/**
- * D-20/165-03: erkennt einen save-time AniSearch-Dublettenkonflikt (409 mit
- * `mode: "redirect"`) an einem gefangenen Fehler aus `createAdminAnime`/
- * `createAdminAnimeFromJellyfinDraft`, statt ihn generisch als Fehlertext
- * anzuzeigen. Gibt `null` zurück für jeden anderen Fehler (falscher Status,
- * kein ApiError, oder ein Konflikt vom Edit-Format `mode: "conflict"`).
- */
-export function extractAniSearchCreateConflict(
-  error: unknown,
-): AdminAnimeAniSearchCreateConflictResult | null {
-  if (!(error instanceof ApiError)) return null;
-  if (error.status !== 409) return null;
-  if (!error.conflict || error.conflict.mode !== "redirect") return null;
-  return error.conflict;
-}
 
 function countIncomingDraftAssets(
   assetSlots: AdminJellyfinIntakeAssetSlots | null,
@@ -158,6 +128,11 @@ export function resolveCreateCoverState(params: {
 // caller (handleAniSearchCandidateSearch); re-exported here so the facade's
 // existing re-export path stays unchanged for callers/tests.
 export { resolveAniSearchCandidateSearchFeedback } from "./admin-anime-create/useAniSearchIntakeActions";
+
+// D-13 (174-11): moved to the submit sub-hook alongside its only caller
+// (submitCreate); re-exported here so the facade's existing re-export path
+// stays unchanged for callers/tests.
+export { extractAniSearchCreateConflict } from "./admin-anime-create/useCreateSubmitAction";
 
 export interface UseAdminAnimeCreateControllerOptions {
   /** D-10/D-11: markiert den Create-Vorgang als Discovery-gestuetzt (aus dem Bibliotheks-Hand-off). */
@@ -278,6 +253,12 @@ export function useAdminAnimeCreateController(
   useEffect(() => {
     if (!hasAuthToken) return;
 
+    // 174-11: unverändertes Lade-Verhalten (Setzen des Ladeflags vor dem
+    // Fetch) — vom react-hooks/set-state-in-effect-Linter erst nach der
+    // 174-10/174-11-Verschlankung dieses Hooks neu erkannt, kein
+    // Verhaltens-Fix. Etablierte Unterdrueckung wie in
+    // useUserListFilters.ts/useFansubEditGroupLoad.ts.
+    // eslint-disable-next-line react-hooks/set-state-in-effect
     setIsLoadingGenreTokens(true);
     setGenreTokensError(null);
     getAdminGenreTokens({ limit: 1000 })
@@ -295,6 +276,9 @@ export function useAdminAnimeCreateController(
   useEffect(() => {
     if (!hasAuthToken) return;
 
+    // 174-11: siehe Kommentar oben bei getAdminGenreTokens — gleiches,
+    // unveraendertes Muster.
+    // eslint-disable-next-line react-hooks/set-state-in-effect
     setIsLoadingTagTokens(true);
     setTagTokensError(null);
     getAdminTagTokens({ limit: 1000 })
@@ -658,168 +642,38 @@ export function useAdminAnimeCreateController(
     });
   }
 
-  /**
-   * submitCreate: eigentliche Create-Logik ohne FormEvent-Abhaengigkeit, aufgerufen vom
-   * regulaeren Formular-Submit (handleCreateSubmit). D-30 (165-18): es gibt keinen
-   * "Trotzdem neu anlegen"-Retry mehr -- ein save-time-Konflikt (409) zeigt nur noch
-   * denselben AniSearchDuplicateDecision-Block (verbinden/wechseln), kein dritter
-   * Bestätigungs-Pfad.
-   */
-  async function submitCreate() {
-    clearMessages();
-    setLastRequest(null);
-    setLastResponse(null);
-    setShowValidationSummary(true);
-    if (createRedirectTimeoutRef.current !== null) {
-      window.clearTimeout(createRedirectTimeoutRef.current);
-      createRedirectTimeoutRef.current = null;
-    }
-
-    if (!hasAuthToken) {
-      setErrorMessage(
-        "Anmeldung erforderlich. Bitte zuerst anmelden.",
-      );
-      return;
-    }
-    if (!manualDraftState.canSubmit) {
-      setErrorMessage("Titel und Cover sind erforderlich");
-      return;
-    }
-
-    const payload: AdminAnimeCreateRequest = {
-      title: createTitle.trim(),
-      type: createType,
-      content_type: createContentType,
-      status: createStatus,
-    };
-
-    if (!stagedCover?.file && coverState.payloadCoverImage) {
-      payload.cover_image = coverState.payloadCoverImage;
-    }
-
-    if (jellyfinAssetSlots?.banner?.present && jellyfinAssetSlots.banner.url && !stagedAssets.banner) {
-      payload.banner_image = jellyfinAssetSlots.banner.url;
-    }
-    if (jellyfinAssetSlots?.logo?.present && jellyfinAssetSlots.logo.url && !stagedAssets.logo) {
-      payload.logo_image = jellyfinAssetSlots.logo.url;
-    }
-    if (jellyfinAssetSlots?.background_video?.present && jellyfinAssetSlots.background_video.url && stagedAssets.background_video.length === 0) {
-      payload.background_video_url = jellyfinAssetSlots.background_video.url;
-    }
-    const jellyfinBackgroundURLs = (jellyfinAssetSlots?.backgrounds ?? [])
-      .filter((slot) => slot.present && slot.url)
-      .map((slot) => slot.url as string);
-    if (jellyfinBackgroundURLs.length > 0) {
-      payload.background_image_urls = jellyfinBackgroundURLs;
-    }
-
-    if (createYear.trim()) {
-      const year = parsePositiveInt(createYear);
-      if (!year) {
-        setErrorMessage("year muss groesser als 0 sein");
-        return;
-      }
-      payload.year = year;
-    }
-
-    if (createMaxEpisodes.trim()) {
-      const maxEpisodes = parsePositiveInt(createMaxEpisodes);
-      if (!maxEpisodes) {
-        setErrorMessage("max_episodes muss groesser als 0 sein");
-        return;
-      }
-      payload.max_episodes = maxEpisodes;
-    }
-
-    payload.title_de = normalizeOptionalString(createTitleDE);
-    payload.title_en = normalizeOptionalString(createTitleEN);
-    payload.genre = normalizeOptionalString(createGenreValue);
-    if (createTagTokens.length > 0) payload.tags = [...createTagTokens];
-    payload.description = normalizeOptionalString(createDescription);
-
-    try {
-      setIsSubmittingCreate(true);
-      setLastRequest(JSON.stringify(payload, null, 2));
-
-      const response = await createManualAnimeAndRedirect(
-        appendCreateSourceLinkageToPayload(payload, {
-          aniSearchDraftResult,
-          jellyfinPreview,
-        }),
-        {
-          createAdminAnime: jellyfinPreview
-            ? createAdminAnimeFromJellyfinDraft
-            : createAdminAnime,
-          setLocationHref: () => undefined,
-        },
-      );
-
-      await uploadCreatedAnimeAssets(
-        response.data.id,
-        {
-          cover: stagedCover,
-          banner: stagedAssets.banner,
-          logo: stagedAssets.logo,
-          background: stagedAssets.background,
-          background_video: stagedAssets.background_video,
-        },
-      );
-
-      setSuccessMessage(buildCreateSuccessMessage(response));
-      setLastResponse(JSON.stringify(response, null, 2));
-      createRedirectTimeoutRef.current = window.setTimeout(() => {
-        window.location.href = isDiscoveryFlow
-          ? buildAssistedCreateRedirectPath(
-              response.data.id,
-              createType,
-              discoveryReturnURL,
-            )
-          : buildManualCreateRedirectPath(response.data.id);
-      }, CREATE_REDIRECT_DELAY_MS);
-    } catch (error) {
-      const conflict = extractAniSearchCreateConflict(error);
-      if (conflict) {
-        // D-20 zweiter Auslösepunkt: derselbe AniSearchDuplicateDecision-Block
-        // erscheint erneut (mit Kontextzeile), statt den generischen Fehlerpfad
-        // zu nehmen — alle bereits erfassten Draft-Felder bleiben unangetastet.
-        setAniSearchConflict({
-          ...buildCreateAniSearchConflictState(conflict),
-          viaSaveTimeRecheck: true,
-        });
-        return;
-      }
-
-      setErrorMessage(
-        formatCreatePageError(error, "Anime konnte nicht erstellt werden."),
-      );
-    } finally {
-      setIsSubmittingCreate(false);
-    }
-  }
-
-  async function handleCreateSubmit(event: FormEvent<HTMLFormElement>) {
-    event.preventDefault();
-    await submitCreate();
-  }
-
-  async function handleCoverUpload(file: File) {
-    clearMessages();
-    clearAniSearchMessage();
-    setIsUploadingCover(true);
-
-    try {
-      resetStagedCover();
-      const staged = stageManualCreateAsset(file);
-      setStagedCover(staged);
-      setCreateCoverImage(staged.draftValue);
-      setShowValidationSummary(false);
-      setSuccessMessage(`Cover vorbereitet: ${file.name}`);
-    } catch (error) {
-      setErrorMessage(formatCreatePageError(error, "Cover Upload fehlgeschlagen."));
-    } finally {
-      setIsUploadingCover(false);
-    }
-  }
+  const { handleCreateSubmit } = useCreateSubmitAction({
+    hasAuthToken,
+    isDiscoveryFlow,
+    discoveryReturnURL,
+    manualDraftCanSubmit: manualDraftState.canSubmit,
+    createTitle,
+    createType,
+    createContentType,
+    createStatus,
+    createYear,
+    createMaxEpisodes,
+    createTitleDE,
+    createTitleEN,
+    createGenreValue,
+    createTagTokens,
+    createDescription,
+    stagedCover,
+    stagedAssets,
+    coverPayloadCoverImage: coverState.payloadCoverImage,
+    jellyfinAssetSlots,
+    aniSearchDraftResult,
+    jellyfinPreview,
+    createRedirectTimeoutRef,
+    setIsSubmittingCreate,
+    setErrorMessage,
+    setSuccessMessage,
+    setLastRequest,
+    setLastResponse,
+    setShowValidationSummary,
+    setAniSearchConflict,
+    clearMessages,
+  });
 
   function handleSingleAssetInputChange(
     kind: CreateSingleAssetKind,
@@ -963,95 +817,41 @@ export function useAdminAnimeCreateController(
 
   const assetSearchPageLimit = activeAssetSearchKind === "background" ? 12 : 8;
 
-  async function handleAssetCandidateSearch() {
-    clearMessages();
-    setAssetSearchErrorMessage(null);
-    setAssetSearchHasMore(false);
-    setLastRequest(null);
-    setLastResponse(null);
-
-    const query = assetSearchQuery.trim();
-    if (!activeAssetSearchKind) {
-      setAssetSearchErrorMessage("Bitte zuerst einen Asset-Slot wählen.");
-      return;
-    }
-    if (!query) {
-      setAssetSearchErrorMessage("Bitte zuerst einen Suchbegriff eingeben.");
-      return;
-    }
-
-    if (!hasAuthToken) {
-      setAssetSearchErrorMessage(
-        "Anmeldung erforderlich. Bitte zuerst anmelden.",
-      );
-      return;
-    }
-
-    try {
-      setIsSearchingAssetCandidates(true);
-      setAssetSearchPage(1);
-      const response = await searchAdminAnimeCreateAssetCandidates(
-        {
-          asset_kind: activeAssetSearchKind,
-          query,
-          limit: assetSearchPageLimit,
-          page: 1,
-        },
-      );
-      setLastResponse(JSON.stringify(response, null, 2));
-      setAssetSearchCandidates(response.data);
-      setAssetSearchSelectedIDs([]);
-      setAssetSearchHasMore(response.data.length >= assetSearchPageLimit);
-      if (response.data.length === 0) {
-        setAssetSearchErrorMessage(
-          "Keine passenden Assets gefunden. Bitte prüfe Titel oder Quelle.",
-        );
-        return;
-      }
-      setSuccessMessage(
-        `${response.data.length} Asset-Treffer gefunden. Wähle jetzt die passenden Bilder aus.`,
-      );
-    } catch (error) {
-      setAssetSearchErrorMessage(
-        formatCreatePageError(error, "Asset-Treffer konnten nicht geladen werden."),
-      );
-    } finally {
-      setIsSearchingAssetCandidates(false);
-    }
-  }
-
-  async function handleLoadMoreAssets() {
-    if (!activeAssetSearchKind || isSearchingAssetCandidates) return;
-    const query = assetSearchQuery.trim();
-    if (!query) return;
-    if (!hasAuthToken) return;
-
-    const nextPage = assetSearchPage + 1;
-    try {
-      setIsSearchingAssetCandidates(true);
-      setAssetSearchErrorMessage(null);
-      const response = await searchAdminAnimeCreateAssetCandidates(
-        {
-          asset_kind: activeAssetSearchKind,
-          query,
-          limit: assetSearchPageLimit,
-          page: nextPage,
-        },
-      );
-      setAssetSearchPage(nextPage);
-      setAssetSearchCandidates((current) => [...current, ...response.data]);
-      setAssetSearchHasMore(response.data.length >= assetSearchPageLimit);
-      if (response.data.length === 0) {
-        setAssetSearchErrorMessage("Keine weiteren Treffer gefunden.");
-      }
-    } catch (error) {
-      setAssetSearchErrorMessage(
-        formatCreatePageError(error, "Weitere Treffer konnten nicht geladen werden."),
-      );
-    } finally {
-      setIsSearchingAssetCandidates(false);
-    }
-  }
+  const {
+    handleCoverUpload,
+    handleAssetCandidateSearch,
+    handleLoadMoreAssets,
+    handleAssetCandidateAdoption,
+  } = useAssetStagingActions({
+    activeAssetSearchKind,
+    assetSearchQuery,
+    assetSearchCandidates,
+    assetSearchSelectedIDs,
+    assetSearchPage,
+    isSearchingAssetCandidates,
+    hasAuthToken,
+    assetSearchPageLimit,
+    setAssetSearchErrorMessage,
+    setAssetSearchHasMore,
+    setLastRequest,
+    setLastResponse,
+    setIsSearchingAssetCandidates,
+    setAssetSearchPage,
+    setAssetSearchCandidates,
+    setAssetSearchSelectedIDs,
+    setIsAdoptingAssetCandidates,
+    setIsUploadingCover,
+    setStagedCover,
+    setStagedAssets,
+    setCreateCoverImage,
+    setShowValidationSummary,
+    setSuccessMessage,
+    setErrorMessage,
+    clearMessages,
+    clearAniSearchMessage,
+    resetStagedCover,
+    closeAssetSearch,
+  });
 
   function toggleAssetCandidateSelection(candidateID: string) {
     if (activeAssetSearchKind === "background") {
@@ -1066,72 +866,6 @@ export function useAdminAnimeCreateController(
     setAssetSearchSelectedIDs((current) =>
       current[0] === candidateID ? [] : [candidateID],
     );
-  }
-
-  async function handleAssetCandidateAdoption() {
-    clearMessages();
-    setAssetSearchErrorMessage(null);
-
-    if (!activeAssetSearchKind) {
-      setAssetSearchErrorMessage("Bitte zuerst einen Asset-Slot wählen.");
-      return;
-    }
-    if (assetSearchSelectedIDs.length === 0) {
-      setAssetSearchErrorMessage("Bitte zuerst mindestens einen Treffer auswählen.");
-      return;
-    }
-
-    const selectedCandidates = assetSearchCandidates.filter((candidate) =>
-      assetSearchSelectedIDs.includes(candidate.id),
-    );
-
-    try {
-      setIsAdoptingAssetCandidates(true);
-      const stagedCandidates = await Promise.all(
-        selectedCandidates.map((candidate) =>
-          stageRemoteCreateAssetCandidate(candidate),
-        ),
-      );
-
-      if (activeAssetSearchKind === "cover") {
-        resetStagedCover();
-        const [nextCover] = stagedCandidates;
-        if (nextCover) {
-          setStagedCover(nextCover);
-          setCreateCoverImage(nextCover.draftValue);
-        }
-      } else if (activeAssetSearchKind === "background") {
-        setStagedAssets((current) => ({
-          ...current,
-          background: [...current.background, ...stagedCandidates],
-        }));
-      } else {
-        const [nextAsset] = stagedCandidates;
-        if (nextAsset) {
-          setStagedAssets((current) => {
-            revokeStagedAssetPreview(current[activeAssetSearchKind]);
-            return { ...current, [activeAssetSearchKind]: nextAsset };
-          });
-        }
-      }
-
-      setShowValidationSummary(false);
-      setSuccessMessage(
-        activeAssetSearchKind === "background"
-          ? `${stagedCandidates.length} Background(s) vorgemerkt.`
-          : `${activeAssetSearchKind} erfolgreich vorgemerkt.`,
-      );
-      closeAssetSearch();
-    } catch (error) {
-      setAssetSearchErrorMessage(
-        formatCreatePageError(
-          error,
-          "Das gewählte Asset konnte nicht übernommen werden.",
-        ),
-      );
-    } finally {
-      setIsAdoptingAssetCandidates(false);
-    }
   }
 
   return {
