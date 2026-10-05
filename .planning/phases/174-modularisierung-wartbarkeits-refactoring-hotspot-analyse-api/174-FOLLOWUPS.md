@@ -12,6 +12,13 @@ Neue Funde während 174 hier anhängen.
 - Schritt 2 (mittel): alle Leser der Spalte `anime.cover_image` auf `anime_media` umstellen (29 Backend-Dateien, u. a. anime.go, anime_v2.go, watchlist, fansub_project_resolver, AniSearch-Import, Anime anlegen/löschen); `syncLegacyAnimeCoverImageV2` danach überflüssig.
 - Schritt 3: Spalte per Migration entfernen, API-Feld `cover_image` im Vertrag prüfen (55 Frontend-Stellen, teils nur Feldname).
 
+### F-11 README neu schreiben (direkt nach 174, zusammen mit Push) — Nutzerwunsch 2026-10-05
+- README = Eingangstür, nicht technisch, Deutsch: (1) Was ist Team4s, (2) Stack-Übersicht (Frontend/Backend, PostgreSQL, Redis, Keycloak, Mailpit), (3) Installation in wenigen Schritten (Docker Compose, .env aus .env.example mit Pflichtwerten, Migrationen, Keycloak-Realm + Admin-User, Funktionsprüfung), (4) Erste Schritte als Admin (Login/Plattform-Admin prüfen, Fansub-Gruppe anlegen, Mitglieder einladen → Mailpit, Anime anlegen manuell/Jellyfin/AniSearch, Release mit Medien freigeben), (5) Links auf weiterführende Doku.
+- Platzhalter für Produkt-Screenshots/-Videos vorsehen (später ergänzen).
+- Technischer Inhalt des heutigen README (Ports, Smoke-Checks, Migrationen, Contracts, Auth) aktualisiert nach `docs/ENTWICKLUNG.md` verschieben; veraltet: GSD-Container-Skript, Fast-Refresh-Behauptung, Ports, auth/issue-Dev-Key, AUTH_ADMIN_ROLE_NAME.
+- Vorher am echten Stand prüfen: Keycloak-Einrichtung (Realm-Import/Skript/manuell) und wie der erste Plattform-Admin entsteht; Anleitung möglichst einmal frisch durchspielen.
+- Danach Push nach GitHub (main ist Stand 2026-10-05 76+ Commits voraus) — nur auf ausdrückliche Nutzeranweisung.
+
 ## Bugs / Inkonsistenzen
 
 - **F-02** `getTypeBadgeLabel`: `SegmenteTab.helpers.tsx` vs. `segmenteTabUtils.ts` liefern für OUTRO unterschiedliche Labels (`OUT` vs. `PV`) — fachlich klären, dann eine Implementierung (174-HOTSPOTS D-07).
