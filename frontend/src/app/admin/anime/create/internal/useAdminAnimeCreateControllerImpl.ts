@@ -42,7 +42,6 @@ import {
   createManualAnimeAndRedirect,
   formatCreatePageError,
   resolveCreateAniSearchDraftMergeInputs,
-  resolveJellyfinPreviewBaseDraft,
   resolveJellyfinReviewVisibility,
   resolveSourceActionState,
 } from "../createPageHelpers";
@@ -83,6 +82,7 @@ import {
   splitTagTokens,
 } from "../../utils/anime-helpers";
 import { resolveJellyfinIntakeAssetUrl } from "../../utils/jellyfin-intake-assets";
+import { useJellyfinIntakeActions } from "./admin-anime-create/useJellyfinIntakeActions";
 
 const DEFAULT_GENRE_LIMIT = 40;
 const DEFAULT_TAG_LIMIT = 40;
@@ -888,54 +888,25 @@ export function useAdminAnimeCreateController(
     refMap[kind].current?.click();
   }
 
-  async function handleJellyfinSearch() {
-    clearMessages();
-    clearAniSearchMessage();
-    setAniSearchConflict(null);
-
-    try {
-      await jellyfinIntake.search();
-      if (jellyfinIntake.candidates.length === 0) {
-        setSuccessMessage(
-          "Jellyfin-Suche abgeschlossen. Falls keine Karten erscheinen, prüfe Titel oder Ordnernamen.",
-        );
-      }
-    } catch (error) {
-      setErrorMessage(
-        formatCreatePageError(error, "Jellyfin-Daten konnten nicht geladen werden."),
-      );
-    }
-  }
-
-  async function handleJellyfinCandidateReview(candidateID: string) {
-    clearMessages();
-    clearAniSearchMessage();
-    setAniSearchConflict(null);
-    jellyfinIntake.reviewCandidate(candidateID);
-
-    try {
-      const preview = await jellyfinIntake.loadPreview(candidateID);
-      if (!preview) {
-        setErrorMessage("Jellyfin-Vorschau konnte nicht geladen werden.");
-        return;
-      }
-
-      setJellyfinDraftSnapshot(
-        resolveJellyfinPreviewBaseDraft(manualDraftValues, jellyfinDraftSnapshot),
-      );
-
-      setJellyfinPreview(preview);
-      setHasAdoptedJellyfinPreview(false);
-      setShowValidationSummary(false);
-      setSuccessMessage(
-        `Jellyfin-Vorschau für ${preview.jellyfin_series_name} geladen. Uebernimm den Ordner erst explizit, wenn er wirklich passt.`,
-      );
-    } catch (error) {
-      setErrorMessage(
-        formatCreatePageError(error, "Jellyfin-Vorschau konnte nicht geladen werden."),
-      );
-    }
-  }
+  const { handleJellyfinSearch, handleJellyfinCandidateReview, handleJellyfinCandidateAdopt } =
+    useJellyfinIntakeActions({
+      jellyfinIntake,
+      manualDraftValues,
+      jellyfinDraftSnapshot,
+      aniSearchDraftResult,
+      setJellyfinDraftSnapshot,
+      setJellyfinPreview,
+      setHasAdoptedJellyfinPreview,
+      setShowValidationSummary,
+      setJellyfinHydratedDraftSnapshot,
+      setJellyfinAssetSlots,
+      setSuccessMessage,
+      setErrorMessage,
+      setAniSearchConflict,
+      clearMessages,
+      clearAniSearchMessage,
+      applyManualDraftValues,
+    });
 
   function handleJellyfinCandidateSelect(candidateID: string) {
     clearMessages();
@@ -945,46 +916,6 @@ export function useAdminAnimeCreateController(
     setSuccessMessage(
       "Treffer ausgewählt. Lade jetzt die Jellyfin-Vorschau, wenn dieser Ordner wirklich passt.",
     );
-  }
-
-  async function handleJellyfinCandidateAdopt(candidateID: string) {
-    clearMessages();
-    clearAniSearchMessage();
-    setAniSearchConflict(null);
-    jellyfinIntake.reviewCandidate(candidateID);
-
-    try {
-      const preview = await jellyfinIntake.loadPreview(candidateID);
-      if (!preview) {
-        setErrorMessage("Jellyfin-Vorschau konnte nicht geladen werden.");
-        return;
-      }
-
-      const nextSnapshot = resolveJellyfinPreviewBaseDraft(
-        manualDraftValues,
-        jellyfinDraftSnapshot,
-      );
-      setJellyfinDraftSnapshot(nextSnapshot);
-      setJellyfinPreview(preview);
-
-      const hydrated = hydrateManualDraftFromJellyfinPreview(
-        manualDraftValues,
-        preview,
-        aniSearchDraftResult ? { mode: "fill" } : undefined,
-      );
-      applyManualDraftValues(hydrated.draft);
-      setJellyfinHydratedDraftSnapshot(buildManualCreateDraftSnapshot(hydrated.draft));
-      setJellyfinAssetSlots(hydrated.assetSlots);
-      setHasAdoptedJellyfinPreview(true);
-      setShowValidationSummary(false);
-      setSuccessMessage(
-        `${preview.jellyfin_series_name} wurde als Jellyfin-Quelle übernommen.`,
-      );
-    } catch (error) {
-      setErrorMessage(
-        formatCreatePageError(error, "Jellyfin-Quelle konnte nicht übernommen werden."),
-      );
-    }
   }
 
   function handleRemoveJellyfinAsset(target: JellyfinDraftAssetTarget) {
