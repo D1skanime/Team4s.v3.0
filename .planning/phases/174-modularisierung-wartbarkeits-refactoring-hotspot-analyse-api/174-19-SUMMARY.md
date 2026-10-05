@@ -138,10 +138,23 @@ Each task was committed atomically:
 None - no external service configuration required.
 
 ## Next Phase Readiness
-- `anime_assets.go` and all 6 new sibling files are each at or under the 450-line modularity ceiling; no further split of this hotspot is outstanding.
+- `anime_assets.go` and all 7 new sibling files are each at or under the 450-line modularity ceiling; no further split of this hotspot is outstanding.
 - Every legacy/V2 method pair across all 4 asset types (cover, banner, logo, background, background_video) remains intact, co-located, and unmodified -- the schema-migration-in-progress duality RESEARCH.md flagged as explicitly out of scope (D-01/D-04) was not touched.
 - No blockers. Build and the asset-scoped test suite are green; no documented pre-existing failures intersect this plan's files.
 
 ---
 *Phase: 174-modularisierung-wartbarkeits-refactoring-hotspot-analyse-api*
 *Completed: 2026-10-05*
+
+## Self-Check: PASSED
+
+- FOUND: backend/internal/repository/anime_assets.go
+- FOUND: backend/internal/repository/anime_assets_cover.go
+- FOUND: backend/internal/repository/anime_assets_banner_logo.go
+- FOUND: backend/internal/repository/anime_assets_background.go
+- FOUND: backend/internal/repository/anime_assets_background_video.go
+- FOUND: backend/internal/repository/anime_assets_background_reconcile.go
+- FOUND: backend/internal/repository/anime_assets_provider.go
+- FOUND: backend/internal/repository/anime_assets_resolve.go
+- FOUND commit: 94368d62 (Task 1)
+- FOUND commit: b82581c1 (Task 2)
