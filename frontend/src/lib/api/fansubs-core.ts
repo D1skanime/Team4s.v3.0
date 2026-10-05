@@ -11,7 +11,9 @@ import type {
   AnimeRelationsResponse,
   PaginatedAnimeResponse,
 } from "@/types/anime";
+import type { DomainProjectionResponse } from "@/types/domain-projection";
 import {
+  apiClientFetch,
   ApiError,
   authorizedFetch,
   getApiBaseUrl,
@@ -227,6 +229,15 @@ export async function getFansubList(
   return response.json() as Promise<FansubGroupListResponse>;
 }
 
+/**
+ * Gibt alle Fansub-Gruppen für den Gruppen-Filter der Archiv-Seite zurück.
+ * Kein Auth erforderlich (GET /api/v1/fansubs ist öffentlich, D-14).
+ * Alias für getFansubList ohne Parameter für den Gruppen-Filter-Dropdown.
+ */
+export async function getFansubs(): Promise<FansubGroupListResponse> {
+  return getFansubList()
+}
+
 export async function getFansubByID(id: number): Promise<FansubGroupResponse> {
   const API_BASE_URL = getApiBaseUrl();
   const response = await authorizedFetch(
@@ -345,4 +356,30 @@ export async function resolveFansubProject(
   }
 
   return response.json() as Promise<FansubProjectResolutionResponse>;
+}
+
+export async function getFansubGroupDomainProjection(
+  groupID: number,
+): Promise<DomainProjectionResponse> {
+  const API_BASE_URL = getApiBaseUrl();
+  const response = await apiClientFetch(
+    `${API_BASE_URL}/api/v1/fansubs/${groupID}/domain-projection`,
+    { cache: "no-store" },
+  );
+
+  if (!response.ok) {
+    const parsed = await parseApiErrorPayload(
+      response,
+      `API request failed: ${response.status}`,
+    );
+    throw new ApiError(
+      response.status,
+      parsed.message,
+      null,
+      parsed.code,
+      parsed.details,
+    );
+  }
+
+  return response.json() as Promise<DomainProjectionResponse>;
 }

@@ -41,6 +41,17 @@ const centralClientAllowlist = new Set([
   // fetches moved behind the barrel into this sibling file — already plain
   // `fetch(` (no auth) before this relocation.
   'src/lib/api/search.ts',
+  // 174-07: getMemberPointRanking's public, unauthenticated member-point-ranking
+  // fetch moved behind the barrel into this sibling file — already plain
+  // `fetch(` (no auth) before this relocation, same boundary as fansubs-core.ts's
+  // public reads above.
+  'src/lib/api/members.ts',
+  // 174-07: getGroupReleaseDetail/getGroupReleaseListCursor/getGroupReleaseImages'
+  // public, unauthenticated group-release reads moved behind the barrel into
+  // this sibling file — already plain `fetch(` (no auth) before this
+  // relocation (release story/gallery/list data must not depend on auth
+  // preflight), same boundary as fansubs-core.ts's public reads above.
+  'src/lib/api/releases.ts',
 ])
 
 const keycloakAuthAllowlist = new Set([

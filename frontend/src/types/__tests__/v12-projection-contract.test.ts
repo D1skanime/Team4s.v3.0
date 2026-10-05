@@ -171,11 +171,17 @@ const openapi = readFileSync(
 ).replace(/\r\n/g, "\n");
 // 174-06: getMediaOwnershipProjection physically moved behind the `@/lib/api`
 // barrel into api/media.ts (the truly-shared-mechanics file for the
-// media/assets triage) -- getFansubGroupDomainProjection stays in api.ts.
-// Concatenate both so this guard keeps covering the real implementation.
+// media/assets triage).
+// 174-07: getFansubGroupDomainProjection physically moved behind the
+// `@/lib/api` barrel into api/fansubs-core.ts (grep-evidence triage of
+// api.ts's "other/unclear" bucket -- its only consumer is the public
+// fansubs/[slug] page, same public-fansub-read boundary as the rest of
+// fansubs-core.ts). Concatenate all three so this guard keeps covering the
+// real implementation's current location.
 const apiClientSource = [
   readFileSync(new URL("../../lib/api.ts", import.meta.url), "utf8"),
   readFileSync(new URL("../../lib/api/media.ts", import.meta.url), "utf8"),
+  readFileSync(new URL("../../lib/api/fansubs-core.ts", import.meta.url), "utf8"),
 ]
   .join("\n")
   .replace(/\r\n/g, "\n");

@@ -22,6 +22,12 @@ import type {
   ReplaceReleaseCrewRequest,
   ReplaceReleaseCrewResponse,
 } from "@/types/fansub";
+import type {
+  ReleaseDetailResponse,
+  CursorPage,
+  ReleaseImagesCursorPage,
+} from "@/types/releaseDetail";
+import type { EpisodeReleaseSummary } from "@/types/group";
 import {
   apiClientFetch,
   ApiError,
@@ -31,6 +37,8 @@ import {
   parseApiError,
   parseApiErrorPayload,
 } from "./client";
+import { buildCursorQuery } from "./history";
+import type { CursorQueryOpts } from "./history";
 
 export async function getReleaseAssets(
   releaseID: number,
@@ -52,6 +60,98 @@ export async function getReleaseAssets(
   }
 
   return response.json() as Promise<ReleaseAssetsResponse>;
+}
+
+// --- Public Group Release Reads (174-07) ---
+// getGroupReleaseDetail/getGroupReleaseImages/getGroupReleaseListCursor/
+// getReleasePlaybackAccess triaged out of api.ts's "other/unclear" bucket --
+// all hit /api/v1/.../releases/... or /release-versions/... endpoints,
+// confirmed release-consuming via grep call-site evidence (anime/[id]/group/
+// [groupId]/... release detail/gallery/list pages, ReleaseEpisodePlayer.tsx).
+
+export async function getGroupReleaseDetail(
+  animeID: number,
+  groupID: number,
+  releaseVersionID: number,
+): Promise<ReleaseDetailResponse> {
+  const API_BASE_URL = getApiBaseUrl();
+  // Public release story and Karaoke data must not depend on auth preflight.
+  const response = await fetch(
+    `${API_BASE_URL}/api/v1/anime/${animeID}/group/${groupID}/releases/${releaseVersionID}`,
+    { cache: "no-store" },
+  );
+
+  if (!response.ok) {
+    const message = await parseApiError(
+      response,
+      `API request failed: ${response.status}`,
+    );
+    throw new ApiError(response.status, message);
+  }
+
+  return response.json() as Promise<ReleaseDetailResponse>;
+}
+
+export interface ReleasePlaybackAccess {
+  can_play: boolean;
+  stream_ready: boolean;
+}
+
+export async function getReleasePlaybackAccess(releaseVersionID: number): Promise<ReleasePlaybackAccess> {
+  const response = await apiClientFetch(`/api/v1/release-versions/${releaseVersionID}/playback-access`, {
+    cache: "no-store",
+  });
+  if (!response.ok) {
+    const message = await parseApiError(response, `API request failed: ${response.status}`);
+    throw new ApiError(response.status, message);
+  }
+  const payload = await response.json() as { data: ReleasePlaybackAccess };
+  return payload.data;
+}
+
+export async function getGroupReleaseListCursor(
+  animeID: number,
+  groupID: number,
+  opts: CursorQueryOpts = {},
+): Promise<CursorPage<EpisodeReleaseSummary>> {
+  const API_BASE_URL = getApiBaseUrl();
+  const query = buildCursorQuery(opts);
+  const url = `${API_BASE_URL}/api/v1/anime/${animeID}/group/${groupID}/release-list${query ? `?${query}` : ""}`;
+  const response = await fetch(url, {
+    cache: "no-store",
+  });
+
+  if (!response.ok) {
+    const message = await parseApiError(
+      response,
+      `API request failed: ${response.status}`,
+    );
+    throw new ApiError(response.status, message);
+  }
+
+  return response.json() as Promise<CursorPage<EpisodeReleaseSummary>>;
+}
+
+export async function getGroupReleaseImages(
+  animeID: number,
+  groupID: number,
+  releaseVersionID: number,
+  opts: CursorQueryOpts = {},
+): Promise<ReleaseImagesCursorPage> {
+  const API_BASE_URL = getApiBaseUrl();
+  const query = buildCursorQuery(opts);
+  const url = `${API_BASE_URL}/api/v1/anime/${animeID}/group/${groupID}/releases/${releaseVersionID}/images${query ? `?${query}` : ""}`;
+  const response = await fetch(url, { cache: "no-store" });
+
+  if (!response.ok) {
+    const message = await parseApiError(
+      response,
+      `API request failed: ${response.status}`,
+    );
+    throw new ApiError(response.status, message);
+  }
+
+  return response.json() as Promise<ReleaseImagesCursorPage>;
 }
 
 // --- Release-Version Media ---
