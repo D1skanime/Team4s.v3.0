@@ -2407,3 +2407,13 @@ Plans:
 **Wave 17** *(blocked on Wave 16)*
 
 - [x] 174-26-PLAN.md — Welle 6: finales kombiniertes Gate + Live-UAT über alle 7 Kernflows (Checkpoint)
+
+### Phase 175: Inventur Doppelungen nach Fachaufgaben: pro Fachaufgabe alle UI-Flächen, Endpunkte, Rechteprüfungen und Datenwege erfassen, Parallelsysteme und Rechte-Inkonsistenzen belegen, Zusammenführungs-Phasen (Bildanzeige, Suche, Uploader, Release-Bearbeitung u. a.) zuschneiden — reine Analyse, keine Code-Änderungen
+
+**Goal:** [To be planned]
+**Requirements**: TBD
+**Depends on:** Phase 174
+**Plans:** 0 plans
+
+Plans:
+- [ ] TBD (run /gsd-plan-phase 175 to break down)
