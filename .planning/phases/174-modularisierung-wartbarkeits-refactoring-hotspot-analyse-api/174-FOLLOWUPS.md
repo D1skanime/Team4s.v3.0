@@ -7,6 +7,12 @@ Grundsatz (Nutzer): Doppelte Seiten/Parallelimplementierungen für dieselbe Fach
 
 ## Priorität hoch
 
+### F-16 Einheitliches Suchverhalten — PRIORITÄT HOCH (Nutzer 2026-10-06: „unbedingt“)
+- Globale Suchbibliothek (`/suche`, `backend/internal/repository/search_anime.go`/`search_fansub.go`/`search_suggestions.go`): `f_unaccent` + `pg_trgm`, akzent-/umlaut-unabhängig, tippfehlertolerant, feste Ranking-Stufen, indexgestützt.
+- Daneben 7 einzeln gebaute Browser-Filter mit `toLowerCase().includes()` (keine Umlaut-Faltung, keine Toleranz, kein Ranking): `admin/groups/AdminGroupsClient.tsx`, `admin/fansubs/page.tsx`, `admin/fansubs/merge/page.tsx`, `admin/fansubs/[id]/edit/GroupMediaReviewSection.tsx` (Medien prüfen), `admin/anime/hooks/internal/useAnimePatchImpl.ts`, `admin/anime/create/internal/useAdminAnimeCreateControllerImpl.ts`, `anime/[id]/group/[groupId]/projectPageData.ts`. Beispiel: „uber“ findet „Über“ nicht.
+- Ziel: (a) eine gemeinsame Frontend-Filter-Hilfe mit derselben Normalisierung wie die Suchbibliothek (Umlaute/Akzente/ß), alle Stellen umstellen, mit Logik-Unit-Tests; (b) potenziell große Listen (Fansub-Liste, Merge, Gruppen) auf die Backend-Suchbibliothek umstellen.
+- Teil der empfohlenen Inventur „Doppelungen nach Fachaufgaben“ (Upload, Release bearbeiten, Prüfen/Freigeben, Einladen, Notizen, Suchen/Filtern).
+
 ### F-15 Ein globaler Uploader statt Parallel-Upload-Systemen — PRIORITÄT HOCH (Nutzer 2026-10-06: „wirkt wie eigenes System, darf nicht sein“)
 - Release-Medien (`ReleaseVersionMediaUploadQueue`, `uploadReleaseVersionMedia`, eigene Backend-Verarbeitung inkl. Display/WebP) und Fansub-Gruppenmedien (`GroupMediaReviewUploadPanel`, `uploadFansubGroupMedia`, `mediaService.SaveUpload`) sind getrennte Systeme; gemeinsam nur `authorizedUploadXhr`.
 - Gruppenmedien-Defizite (vorbestehend vor 174, 1:1 verschoben in 174-13): keine Titel/Beschreibung beim Upload, neue Dateiauswahl ERSETZT die bisherige statt sie zu ergänzen.
@@ -31,6 +37,9 @@ Grundsatz (Nutzer): Doppelte Seiten/Parallelimplementierungen für dieselbe Fach
 - Vorher am echten Stand prüfen: Keycloak-Einrichtung (Realm-Import/Skript/manuell) und wie der erste Plattform-Admin entsteht; Anleitung möglichst einmal frisch durchspielen.
 - Danach Push nach GitHub (main ist Stand 2026-10-05 76+ Commits voraus) — nur auf ausdrückliche Nutzeranweisung.
 
+
+### F-17 Inventur „Doppelungen nach Fachaufgaben“ (vor F-13/F-15/F-16 zuschneiden)
+- Je Fachaufgabe zählen: wie viele UIs, Endpunkte, Rechteprüfungen existieren (Medien hochladen, Release bearbeiten, Bild prüfen/freigeben, Mitglied einladen, Notiz schreiben, Suchen/Filtern …). Ergebnis: vollständige Doppelungsliste als Grundlage der Zusammenführungs-Phasen. Hintergrund: 174-Welle-1 (D-07) fand nur doppelte Funktionen, nicht doppelte Systeme; die Systeme fielen erst in der Live-UAT auf.
 
 ## Bugs / Inkonsistenzen
 
