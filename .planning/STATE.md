@@ -2,8 +2,8 @@
 gsd_state_version: 1.0
 milestone: v1.4
 milestone_name: Coverage
-status: Phase 174 closed 2026-10-06 — final combined automated gate green (zero new regressions vs. 174-25's `174-REPORT.md` baseline) and live human UAT approved across all 7 end-to-end flows (174-26). `174-REPORT.md` (174-25) remains the authoritative closing report; its Recommendations-for-Follow-up-Phases list (F-01 first) is the suggested next work.
-stopped_at: Completed 174-26-PLAN.md (Phase 174 CLOSED)
+status: Phase 174 closed 2026-10-06 — final combined automated gate green (zero new regressions vs. 174-25's `174-REPORT.md` baseline) and live human UAT approved across all 7 end-to-end flows (174-26). `174-REPORT.md` (174-25) remains the authoritative closing report; its Recommendations-for-Follow-up-Phases list (F-01 first) is the suggested next work. Retroactive closing gates backfilled 2026-10-06: `174-REVIEW.md` (status: issues_found, 0 critical/1 warning/1 info, no blockers) and `174-VERIFICATION.md` (status: human_needed — all codebase/automated truths independently re-verified; 2 already user-approved UAT Gegenprobe items from `174-UAT-CHECKLIST.md` flagged for a live re-confirmation pass).
+stopped_at: Completed 174-26-PLAN.md (Phase 174 CLOSED); 174-REVIEW.md + 174-VERIFICATION.md backfilled 2026-10-06, awaiting instruction on human_needed items
 last_updated: "2026-10-06T11:56:30.629Z"
 last_activity: 2026-10-06
 progress:
@@ -288,7 +288,7 @@ Abschluss" entry below for the full closing record.
 
 Phase: 174 (modularisierung-wartbarkeits-refactoring-hotspot-analyse-api) — COMPLETE (26/26 plans)
 Plan: 26 of 26
-Status: Phase 174 closed 2026-10-06 — final combined automated gate green (zero new regressions vs. 174-25's `174-REPORT.md` baseline) and live human UAT approved across all 7 end-to-end flows (174-26). `174-REPORT.md` (174-25) remains the authoritative closing report; its Recommendations-for-Follow-up-Phases list (F-01 first) is the suggested next work.
+Status: Phase 174 closed 2026-10-06 — final combined automated gate green (zero new regressions vs. 174-25's `174-REPORT.md` baseline) and live human UAT approved across all 7 end-to-end flows (174-26). `174-REPORT.md` (174-25) remains the authoritative closing report; its Recommendations-for-Follow-up-Phases list (F-01 first) is the suggested next work. Retroactive closing gates backfilled 2026-10-06: code review `174-REVIEW.md` (issues_found, 0 critical/1 warning/1 info) and goal verification `174-VERIFICATION.md` (human_needed — 2 UAT Gegenprobe items need live re-confirmation).
 Completed: Phase 174 — `frontend/src/lib/api.ts` (11,508 lines/371 exports) collapsed to a 34-line barrel over 36 domain modules; `useAdminAnimeCreateController.ts`, `GroupMediaReviewSection.tsx`, and `admin/fansubs/create/page.tsx` decomposed into sub-hooks/section components; `fansub_repository.go`, `admin_content_anime_themes.go`, `anime_assets.go`, and `admin_content_release_version_media.go` split into domain-scoped sibling files; `FansubEdit.module.css` and `ui.module.css` split along grep-verified single-owner class boundaries — all behavior-preserving per D-01, zero new dependency cycles, zero new N+1, full test-suite parity, final gate + live UAT both green/approved.
 Next: Phase 169's remaining plan (169-05, live actor/refresh/responsive UAT) is still open; Phase 166 (Film-Content-Flow) has not been started. The Coverage milestone is NOT complete.
 
