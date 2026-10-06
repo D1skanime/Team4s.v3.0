@@ -973,9 +973,9 @@ export function useAdminAnimeCreateController(
         addCreateTagTokens(createTagDraft);
         setCreateTagDraft("");
       },
-        addGenreSuggestion: addCreateGenreTokens,
-        addTagSuggestion: addCreateTagTokens,
-        clearAniSearchState,
+      addGenreSuggestion: addCreateGenreTokens,
+      addTagSuggestion: addCreateTagTokens,
+      clearAniSearchState,
       closeAssetSearch,
       handleAssetCandidateAdoption,
       handleAssetCandidateSearch,
@@ -1022,12 +1022,12 @@ export function useAdminAnimeCreateController(
         setSuccessMessage(
           "Jellyfin-Suche wieder geöffnet.",
         );
-        },
+      },
       setAssetSearchQuery,
       setJellyfinQuery: jellyfinIntake.setQuery,
       setAniSearchID: setCreateAniSearchID,
       setAniSearchSearchQuery: setCreateAniSearchSearchQuery,
-        setContentType: setCreateContentType,
+      setContentType: setCreateContentType,
       setCoverImage: (value: string) => {
         resetStagedCover();
         setCreateCoverImage(value);

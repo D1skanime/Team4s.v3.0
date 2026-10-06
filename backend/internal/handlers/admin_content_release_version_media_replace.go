@@ -418,17 +418,23 @@ func (h *AdminContentHandler) ReplaceReleaseVersionMediaFile(c *gin.Context) {
 		return
 	}
 
-	if !isReleaseVersionMediaUploader(relationMeta.UploadedByUserID, identity.UserID) {
-		// Edit by a non-uploader with update-all rights: keep the current review state (BUG-174-04).
-	} else if _, err := repository.NewReleaseReviewLifecycleRepository(tx).SubmitMedia(
-		ctx,
-		repository.ReleaseReviewSubmissionInput{
-			SourceID:         relationID,
-			ActorAppUserID:   identity.AppUserID,
-			ExpectedRevision: expectedRevision,
-			LastActivityAt:   time.Now().UTC(),
-		},
-	); err != nil {
+	// Replacing the file changes the reviewed content, so the medium always goes back into
+	// review. The uploader re-submits it as before; a non-uploader with update-all rights
+	// (e.g. a lead) resets it to pending while the original submitter stays recorded
+	// (BUG-174-04 / WR-03, user decision 2026-10-06: option 2).
+	lifecycleRepo := repository.NewReleaseReviewLifecycleRepository(tx)
+	resubmitInput := repository.ReleaseReviewSubmissionInput{
+		SourceID:         relationID,
+		ActorAppUserID:   identity.AppUserID,
+		ExpectedRevision: expectedRevision,
+		LastActivityAt:   time.Now().UTC(),
+	}
+	if isReleaseVersionMediaUploader(relationMeta.UploadedByUserID, identity.UserID) {
+		_, err = lifecycleRepo.SubmitMedia(ctx, resubmitInput)
+	} else {
+		_, err = lifecycleRepo.ResubmitMediaKeepingSubmitter(ctx, resubmitInput)
+	}
+	if err != nil {
 		cleanupNewFiles()
 		if errors.Is(err, repository.ErrConflict) {
 			c.JSON(http.StatusConflict, gin.H{"error": gin.H{

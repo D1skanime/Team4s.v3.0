@@ -1,9 +1,10 @@
 ---
 phase: 174-modularisierung-wartbarkeits-refactoring-hotspot-analyse-api
 verified: 2026-10-06T14:10:00Z
-status: human_needed
-score: 25/25 decisions (D-01..D-25) independently corroborated; 1 pre-existing item needs explicit human re-confirmation
+status: passed
+score: 25/25 decisions (D-01..D-25) independently corroborated; human verification items confirmed by user 2026-10-06
 overrides_applied: 0
+human_verified: 2026-10-06 (Nutzer: „Die Gegenproben BUG-174-02 und BUG-174-05 gelten als menschlich abgenommen.“)
 human_verification:
   - test: "Re-confirm BUG-174-02 Gegenprobe live in the browser (timer's dashboard no longer shows 'Gruppenbild prüfen' for New-Subs; platform-admin/leadership still sees and can approve it)."
     expected: "Matches 174-UAT-CHECKLIST.md's recorded 2026-10-06 sign-off."
@@ -131,3 +132,22 @@ One procedural note (not a goal-blocking gap): `174-REVIEW.md` exists on disk bu
 
 *Verified: 2026-10-06T14:10:00Z*
 *Verifier: Claude (gsd-verifier)*
+
+---
+
+## Menschliche Bestätigung und Live-Gegenproben (2026-10-06)
+
+Der Nutzer hat beide `human_verification`-Punkte abgenommen („Die bereits erfolgte Live-Abnahme zusammen mit den aktuellen API-/DB-Gegenproben reicht mir als Nachweis.“). Gegenproben des Orchestrators am Live-Stack:
+
+- **BUG-174-02:** `GET /api/v1/me/dashboard` als `timer` → `pending_group_media_reviews: []`; `GET /api/v1/admin/fansubs/1/capabilities` als `timer` → `can_review_group_media=false`, `can_edit_group=false`; als Plattform-Admin `admin` → `[{fansub_group_id: 1, New-Subs, count: 1}]`, DB: genau 1 Gruppenmedium `in_review` in Gruppe 1.
+- **BUG-174-05:** öffentliches Profil `new-subs` liefert `banner_url=/media/fansub/1/banner_…_display.jpg`, `logo_url=/media/fansub/1/logo_…_display.png`; alle `media_files`-Display-Pfade unter `/fansub/` sind eindeutig (je 1 Referenz).
+
+Nach Behebung der Review-Befunde (siehe 174-REVIEW „Auflösung der Befunde“) wurde der Gate-Lauf wiederholt:
+
+## Gate-Lauf nach Befund-Behebung (2026-10-06)
+
+- **Backend:** `go build ./...` + `go vet ./...` grün. Volle Suite aus vollständiger Repo-Kopie vorher (Commit `adeace30`) und nachher: jeweils **62 rote Tests, identische Liste** (alle dokumentierte Vorbestands-Kategorien; im reinen `backend/`-Mount des Containers fehlen zusätzlich `docs/audits/...`-Fixtures und Frontend-Vertragsdateien → dort 65, Umgebungsartefakt). Neue Tests `TestReleaseMediaReplaceByLeadResetsConfirmedReviewKeepingSubmitter` + `TestReleaseMediaResubmitKeepingSubmitterWithoutLifecycleIsNoop` grün.
+- **Frontend:** `tsc --noEmit` nur die 7 bekannten Fehler (`ReleaseDetailHero.test.tsx` ×6, generierte `.next`-Typen ×1); `eslint .` 4 Fehler / 304 Warnungen wie Baseline; `vitest run` 3.249 grün, 7 rot = die 6 dokumentierten Baseline-Fehler + `AnimeProjectNotesSection.test.tsx` (im Einzellauf 3/3 grün, Datei in diesem Lauf unberührt → wackelig unter Volllast, F-24).
+- **Production-Build:** `docker compose build --no-cache team4sv30-frontend` erfolgreich; Backend neu gebaut, `/health` ok; Smoke `/admin/anime/create`, `/admin/episode-versions/27/edit`, `/admin/fansubs/1/edit`, `/fansubs/new-subs` → 200.
+
+**Ergebnis: passed.**

@@ -66,6 +66,12 @@ Grundsatz (Nutzer): Doppelte Seiten/Parallelimplementierungen für dieselbe Fach
 
 - **F-20** Toten CSS aus `FansubEdit.module.css` entfernen: ≈ 220 von 301 Klassen werden von keiner Komponente gesetzt (48 kommen im Frontend nirgends vor). Nach Bildvergleich löschen, danach 37 Einzel-Klassen zu ihren Nutzern verschieben; echter Kern = 9 breit geteilte + 35 Paar-Klassen (174-REPORT „Abschlussaudit: bewusst gemeinsam verbliebene Cluster“).
 
+- **F-21** (Review WR-01) Doppelte `getAdminTagTokens`: `frontend/src/lib/api/admin/anime-taxonomy.ts` und `frontend/src/lib/api/admin-anime-intake.ts` — beide bereits vor 174 vorhanden (api.ts:6743 bzw. admin-anime-intake.ts:196), unterschiedliches Auth-/Fehler-Handling; nach D-07 nicht blind zusammenführen, sondern Semantik klären und eine Fassung behalten (Teil von F-17).
+- **F-22** (Review WR-02) Quelltext-Inspektionstests (`os.ReadFile` + `strings.Contains` auf Produktionsdateien, z. B. `backend/internal/services/release_version_media_cleanup_test.go` `TestRVMPreviewAssignmentIsExclusive`, `segment_playback_resolution_test.go`, `admin_content_theme_asset_locks_test.go`, `segment_validation_test.go`) durch Verhaltenstests ersetzen; 174 hat nur Dateipfade nachgezogen (D-03).
+- **F-23** (Review IN-03) Regel `original.<ext>` → `display.<ext>` doppelt implementiert: `backend/internal/services/media_service_display_variant.go` (`displayVariantFileName`, BUG-174-05) und `backend/internal/handlers/admin_content_release_version_media_replace_display.go` (`rvmReplaceDisplayPath`, Phase 173) — auf eine Stelle zusammenführen.
+
+- **F-24** Wackeliger Test `frontend/src/app/admin/fansubs/[id]/edit/AnimeProjectNotesSection.test.tsx` („verwendet übergebene Anime-Props ohne zusätzlichen Admin-Anime-Load“): im vollen Vitest-Lauf rot, einzeln 3/3 grün (Gate 2026-10-06) — Zeit-/Lastabhängigkeit beheben.
+
 ## Wartbarkeit (Refactoring-Folgephasen)
 - **F-07** Doppelte Logik zusammenführen: Pagination-Fensterberechnung (2 Komponenten), `formatDate` (4 identische Kopien) — 174-HOTSPOTS D-07.
 - **F-08** P2-Hotspots aus 174-HOTSPOTS (18 Dateien, u. a. `types/admin.ts`, `EpisodeVersionEditorPage.tsx`, `fansubs/merge/page.tsx` ohne Tests, `media_repository.go`, `anisearch_client.go`).

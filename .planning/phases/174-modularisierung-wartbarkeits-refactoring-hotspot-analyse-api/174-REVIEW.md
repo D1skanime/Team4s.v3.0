@@ -211,7 +211,9 @@ findings:
   warning: 3
   info: 4
   total: 7
-status: issues_found
+  open: 0
+resolution: "WR-03, IN-01, IN-02 behoben; WR-01, WR-02, IN-03 als vorbestehend in 174-FOLLOWUPS (F-21/F-22/F-23); IN-04 akzeptiert (D-25)"
+status: clean
 ---
 
 # Phase 174: Code Review Report
@@ -482,3 +484,23 @@ clear count-based message instead of relying on test-runner timeout behavior.
 _Reviewed: 2026-10-06T13:44:23Z_
 _Reviewer: Claude (gsd-code-reviewer)_
 _Depth: standard_
+
+---
+
+## Auflösung der Befunde (2026-10-06, Nutzerentscheidung)
+
+| ID | Schwere | Ergebnis | Nachweis |
+|---|---|---|---|
+| WR-01 | warning | **Nachfolge F-21** — Dopplung bestand vor 174 (`api.ts:6743` + `admin-anime-intake.ts:196`), abweichendes Auth-/Fehler-Handling; keine Regression | 174-FOLLOWUPS F-21 |
+| WR-02 | warning | **Nachfolge F-22** — Quelltext-Inspektionstest vorbestehend; 174 hat nur den Pfad nachgezogen (D-03) | 174-FOLLOWUPS F-22 |
+| WR-03 | warning | **Behoben (Option 2):** Ersetzen durch Nicht-Hochlader setzt den Review-Lifecycle auf `pending` zurück, Revision +1, Einreicher bleibt der ursprüngliche Hochlader, Revisionsschutz wie bei `SubmitMedia`, Audit-Ereignis `source.resubmitted` mit handelnder Person; Metadaten-Edits behalten den Status | `repository/release_review_lifecycle_resubmit.go` (`ResubmitMediaKeepingSubmitter`), `handlers/admin_content_release_version_media_replace.go`; Tests `services/release_review_resubmit_keeping_submitter_test.go` (2 grün) |
+| IN-01 | info | **Behoben** — nur Einrückung (`git diff -w` leer) | `useAdminAnimeCreateControllerImpl.ts` |
+| IN-02 | info | **Behoben** — `if Hochlader → SubmitMedia, sonst → ResubmitMediaKeepingSubmitter`, keine Logikänderung am Hochlader-Pfad | `admin_content_release_version_media_replace.go` |
+| IN-03 | info | **Nachfolge F-23** — Regel teils aus Phase 173 | 174-FOLLOWUPS F-23 |
+| IN-04 | info | **Akzeptiert** — Fix sitzt in UI-Komponente, gemäß D-25 live abgenommen | 174-UAT-CHECKLIST (BUG-174-01) |
+
+## Gate-Lauf nach Befund-Behebung (2026-10-06)
+
+- **Backend:** `go build ./...` + `go vet ./...` grün. Volle Suite aus vollständiger Repo-Kopie vorher (Commit `adeace30`) und nachher: jeweils **62 rote Tests, identische Liste** (alle dokumentierte Vorbestands-Kategorien; im reinen `backend/`-Mount des Containers fehlen zusätzlich `docs/audits/...`-Fixtures und Frontend-Vertragsdateien → dort 65, Umgebungsartefakt). Neue Tests `TestReleaseMediaReplaceByLeadResetsConfirmedReviewKeepingSubmitter` + `TestReleaseMediaResubmitKeepingSubmitterWithoutLifecycleIsNoop` grün.
+- **Frontend:** `tsc --noEmit` nur die 7 bekannten Fehler (`ReleaseDetailHero.test.tsx` ×6, generierte `.next`-Typen ×1); `eslint .` 4 Fehler / 304 Warnungen wie Baseline; `vitest run` 3.249 grün, 7 rot = die 6 dokumentierten Baseline-Fehler + `AnimeProjectNotesSection.test.tsx` (im Einzellauf 3/3 grün, Datei in diesem Lauf unberührt → wackelig unter Volllast, F-24).
+- **Production-Build:** `docker compose build --no-cache team4sv30-frontend` erfolgreich; Backend neu gebaut, `/health` ok; Smoke `/admin/anime/create`, `/admin/episode-versions/27/edit`, `/admin/fansubs/1/edit`, `/fansubs/new-subs` → 200.
