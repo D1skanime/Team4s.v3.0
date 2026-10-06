@@ -7,6 +7,12 @@ Grundsatz (Nutzer): Doppelte Seiten/Parallelimplementierungen für dieselbe Fach
 
 ## Priorität hoch
 
+### F-15 Ein globaler Uploader statt Parallel-Upload-Systemen — PRIORITÄT HOCH (Nutzer 2026-10-06: „wirkt wie eigenes System, darf nicht sein“)
+- Release-Medien (`ReleaseVersionMediaUploadQueue`, `uploadReleaseVersionMedia`, eigene Backend-Verarbeitung inkl. Display/WebP) und Fansub-Gruppenmedien (`GroupMediaReviewUploadPanel`, `uploadFansubGroupMedia`, `mediaService.SaveUpload`) sind getrennte Systeme; gemeinsam nur `authorizedUploadXhr`.
+- Gruppenmedien-Defizite (vorbestehend vor 174, 1:1 verschoben in 174-13): keine Titel/Beschreibung beim Upload, neue Dateiauswahl ERSETZT die bisherige statt sie zu ergänzen.
+- Ziel: ein wiederverwendbarer Upload-Baustein (Warteschlange: sammeln statt ersetzen, Titel/Beschreibung pro Datei, Retry) für alle Medienflächen; Backend-Bildverarbeitung auf einen Weg zusammenführen.
+- Inventur weiterer Upload-Wege: `uploadAdminAnimeMedia`, `uploadSegmentAsset`, `uploadAdminReleaseThemeAsset*`, `uploadFansubMedia` (Logo/Banner), `uploadOwnProfile*`, `uploadMediaSuggestion`, `uploadPendingStoryImages` — je prüfen, ob auf den globalen Baustein umstellbar.
+
 ### F-13 Release-Bearbeitung zusammenführen — PRIORITÄT HOCH (Nutzer 2026-10-06: „unbedingt flicken, doppelte UI kostet“)
 - Zwei Rahmen-Seiten für dasselbe: `/admin/episode-versions/[id]/edit` (`EpisodeVersionEditorPage.tsx` 966 Z. + `useEpisodeVersionEditor`) und `/me/releases/[id]/workspace` (`page.tsx` 448 Z., seit Phase 82). Inhaltsbausteine (Media, Notizen, Segmente, Metadaten-Felder) und Endpunkte (`getEpisodeVersionEditorContext`, `updateEpisodeVersion`) sind bereits gemeinsam; doppelt sind Laden/Formularzustand/Speichern, Tabs, Vor/Zurück-Navigation, Kopf.
 - Ziel: EINE rechtebasierte Release-Bearbeitungsseite (`ReleaseVersionCapabilities` steuert Sichtbarkeit), erreichbar von Dashboard, Meine Projekte und Fansub-Edit; alte Workspace-URL leitet weiter; Admin ohne Mitgliederprofil kein 404 mehr.
