@@ -39,6 +39,8 @@ Grundsatz (Nutzer): Doppelte Seiten/Parallelimplementierungen für dieselbe Fach
 - BUG-174-01 Endlosschleife Fansub-Anlegeseite nach erstem Speichern — behoben, live abgenommen.
 - BUG-174-02 Dashboard „Gruppenbild prüfen“ ohne Prüfrecht — behoben; **Gegenprobe nach Backend-Rebuild offen** (174-UAT-CHECKLIST).
 
+- **F-14** 8 RVM-Handler-Integrationstests scheitern mit `db_schema_mismatch` gegen die Phase-107-Test-DB (vorbestehend; u. a. TestRVMTitlePatchPersistsIndependentMetadata, Reorder/SoftDelete/Category) — Test-Fixture-Schema nachziehen. Zusätzlich: Revisions-Konfliktschutz für Nicht-Hochlader-Edits an Release-Medien (seit BUG-174-04 ohne SubmitMedia) prüfen.
+
 ## Wartbarkeit (Refactoring-Folgephasen)
 - **F-07** Doppelte Logik zusammenführen: Pagination-Fensterberechnung (2 Komponenten), `formatDate` (4 identische Kopien) — 174-HOTSPOTS D-07.
 - **F-08** P2-Hotspots aus 174-HOTSPOTS (18 Dateien, u. a. `types/admin.ts`, `EpisodeVersionEditorPage.tsx`, `fansubs/merge/page.tsx` ohne Tests, `media_repository.go`, `anisearch_client.go`).
