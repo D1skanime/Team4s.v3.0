@@ -34,7 +34,7 @@ Vor jeder Runde: `docker restart team4sv30-frontend` (HMR greift nicht), dann St
 - [x] Anlegen/Speichern → Weiterleitung bzw. Erfolgsmeldung wie bisher; Konflikt-Fall (AniSearch bereits vorhanden) wie bisher
 
 ## Nach Welle 4 (Backend)
-- [ ] Segmente/Themes: Anime-Themes anlegen/bearbeiten, Segment anlegen/bearbeiten, Bibliotheks-Asset zuordnen, Abspielen/Vorschau
+- [x] (✅ abgenommen 2026-10-06, Nutzer) Segmente/Themes: Anime-Themes anlegen/bearbeiten, Segment anlegen/bearbeiten, Bibliotheks-Asset zuordnen, Abspielen/Vorschau
 - [ ] Fansub-Gruppe: öffentliche Profilseite, Mitglieder, Aliase/Links, Zusammenführen (Merge)
 - [ ] Anime-Assets: Cover/Banner/Logo/Hintergrund anzeigen und ersetzen
 - [ ] Release-Version-Medien: Liste, Upload, Ersetzen, Kategorie/Highlight, Reihenfolge
