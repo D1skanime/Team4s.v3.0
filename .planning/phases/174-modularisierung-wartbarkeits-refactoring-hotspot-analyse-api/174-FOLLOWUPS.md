@@ -7,6 +7,12 @@ Grundsatz (Nutzer): Doppelte Seiten/Parallelimplementierungen für dieselbe Fach
 
 ## Priorität hoch
 
+### F-18 Eine einheitliche Bildanzeige (Viewer/Lightbox) überall — PRIORITÄT HOCH (Nutzer 2026-10-06)
+- Je nach Seite öffnet ein Klick aufs Bild eine andere Anzeige. Gefundene Einzel-Implementierungen: `anime/[id]/group/[groupId]/releases/[releaseVersionId]/ReleaseGallery.tsx` (öffentliche Release-Galerie), `episodes/[id]/components/ScreenshotGallery/ScreenshotGallery.tsx`, `components/fansubs/FansubMediaLightbox.tsx` (+ `FansubGroupMediaBlock.tsx`), `components/fansubs/projectMember/ProjectMemberMediaViewer.tsx` (+ `ProjectMemberMediaGallery.tsx`), `components/groups/GroupAssetsExperience.tsx`; Admin-Detaildialoge (`ReleaseVersionMediaSection`-Modal „Medium bearbeiten“, `ReleaseVersionMediaDetailPanel.tsx`, `GroupMediaReviewDetailDrawer.tsx`) mit eigener Bildbühne.
+- Ziel: EIN Viewer-Baustein in `@/components/ui` (Bühne, Display sofort + Original nachladen, Pfeile/Tastatur/Wischen, Zoom, Texte/Kategorie/Uploader), überall eingesetzt; Admin-Bearbeitungsdialoge nutzen dieselbe Bildbühne + eigenes Formular. Danach ALLE alten Viewer-Implementierungen entfernen (kein Nebeneinander).
+- Design-Grundlage: Sketch `.planning/sketches/010-galerie-detailansicht` (Stand 2026-10-03, „winner: null“, uncommitted/fremd — nicht anfassen, nur als Input). Der Sketch behandelt nur die öffentliche Release-Galerie; die Vereinheitlichung + Altlasten-Entfernung ist zusätzlicher Scope.
+- Gehört in die Inventur F-17 (Fachaufgabe „Bild ansehen“).
+
 ### F-16 Einheitliches Suchverhalten — PRIORITÄT HOCH (Nutzer 2026-10-06: „unbedingt“)
 - Globale Suchbibliothek (`/suche`, `backend/internal/repository/search_anime.go`/`search_fansub.go`/`search_suggestions.go`): `f_unaccent` + `pg_trgm`, akzent-/umlaut-unabhängig, tippfehlertolerant, feste Ranking-Stufen, indexgestützt.
 - Daneben 7 einzeln gebaute Browser-Filter mit `toLowerCase().includes()` (keine Umlaut-Faltung, keine Toleranz, kein Ranking): `admin/groups/AdminGroupsClient.tsx`, `admin/fansubs/page.tsx`, `admin/fansubs/merge/page.tsx`, `admin/fansubs/[id]/edit/GroupMediaReviewSection.tsx` (Medien prüfen), `admin/anime/hooks/internal/useAnimePatchImpl.ts`, `admin/anime/create/internal/useAdminAnimeCreateControllerImpl.ts`, `anime/[id]/group/[groupId]/projectPageData.ts`. Beispiel: „uber“ findet „Über“ nicht.
