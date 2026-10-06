@@ -64,8 +64,10 @@ Grundsatz (Nutzer): Doppelte Seiten/Parallelimplementierungen für dieselbe Fach
 
 - **F-19** Mobil (~375 px) auf `/admin/fansubs/[id]/edit`: der sticky „Speichern“-Button überdeckt Formularfelder (z. B. „Gruppentyp“). Bereits im BEFORE-Screenshot vorhanden (nicht durch 174 verursacht), gefunden beim 174-24-Vergleich.
 
+- **F-20** Toten CSS aus `FansubEdit.module.css` entfernen: ≈ 220 von 301 Klassen werden von keiner Komponente gesetzt (48 kommen im Frontend nirgends vor). Nach Bildvergleich löschen, danach 37 Einzel-Klassen zu ihren Nutzern verschieben; echter Kern = 9 breit geteilte + 35 Paar-Klassen (174-REPORT „Abschlussaudit: bewusst gemeinsam verbliebene Cluster“).
+
 ## Wartbarkeit (Refactoring-Folgephasen)
 - **F-07** Doppelte Logik zusammenführen: Pagination-Fensterberechnung (2 Komponenten), `formatDate` (4 identische Kopien) — 174-HOTSPOTS D-07.
 - **F-08** P2-Hotspots aus 174-HOTSPOTS (18 Dateien, u. a. `types/admin.ts`, `EpisodeVersionEditorPage.tsx`, `fansubs/merge/page.tsx` ohne Tests, `media_repository.go`, `anisearch_client.go`).
-- **F-09** Nach 174 noch > 450 Zeilen (D-24): `lib/api/client.ts` 1095, `lib/api/history.ts` 1020, `lib/api/admin/fansub-members.ts` 757, `lib/api/permissions.ts` 610, `useAdminAnimeCreateControllerImpl.ts` 1054, `GroupMediaReviewSection.tsx` 632, `fansubs/create/page.tsx` 610 (+ Welle-4/5-Ergebnisse ergänzen).
+- **F-09** (Abschlussaudit: nicht künstlich trennbar sind `permissions.ts`, `history.ts`, die Annahme-Flows in `fansub-members.ts` und die Lookups in `admin_content_release_theme_assets.go`) Nach 174 noch > 450 Zeilen (D-24): `lib/api/client.ts` 1095, `lib/api/history.ts` 1020, `lib/api/admin/fansub-members.ts` 757, `lib/api/permissions.ts` 610, `useAdminAnimeCreateControllerImpl.ts` 1054, `GroupMediaReviewSection.tsx` 632, `fansubs/create/page.tsx` 610 (+ Welle-4/5-Ergebnisse ergänzen).
 - **F-10** Optional: wenige echte Playwright-End-to-End-Tests für Kern-Admin-Abläufe (echte Seite + echtes Backend), statt Klick-Simulation (D-25).

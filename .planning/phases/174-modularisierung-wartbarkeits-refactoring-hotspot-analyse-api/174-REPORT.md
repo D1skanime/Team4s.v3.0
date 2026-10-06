@@ -213,7 +213,60 @@ Every new/changed production file from this phase's execution that stays over 45
 
 | File | Lines | Plan | Justification |
 |---|---|---|---|
-| `frontend/src/app/admin/fansubs/[id]/edit/FansubEdit.module.css` | 3,379 (down from 4,568) | 174-22 | This is `174-HOTSPOTS.md`'s own pre-approved P1 verdict — the file is explicitly designated the directory's shared catch-all. Remaining content is grep-confirmed either shared (33 classes), used by 15 files outside the originally-declared 22-consumer universe (132 classes), compound-selector-entangled (5 classes — splitting would silently disable the CSS rule due to CSS-Modules per-file class-name hashing), or dead-but-undeleted (119 classes, per D-01 behavior preservation). Full class-by-class audit trail recorded in 174-22-SUMMARY.md. |
+| `frontend/src/app/admin/fansubs/[id]/edit/FansubEdit.module.css` | 3,379 (down from 4,568) | 174-22 | **Superseded by the closing audit below: ~220 of 301 classes are set by no component (likely dead CSS) -> F-20.** Original note: This is `174-HOTSPOTS.md`'s own pre-approved P1 verdict — the file is explicitly designated the directory's shared catch-all. Remaining content is grep-confirmed either shared (33 classes), used by 15 files outside the originally-declared 22-consumer universe (132 classes), compound-selector-entangled (5 classes — splitting would silently disable the CSS rule due to CSS-Modules per-file class-name hashing), or dead-but-undeleted (119 classes, per D-01 behavior preservation). Full class-by-class audit trail recorded in 174-22-SUMMARY.md. |
+
+---
+
+
+## Abschlussaudit: bewusst gemeinsam verbliebene Cluster (ergänzt 2026-10-06)
+
+Gemessen am Stand nach 174-26 per Skript (Exporte/Funktionen/Klassen → nutzende Dateien, Tests ausgenommen).
+Leitfrage je Datei: Welche Cluster stecken darin, wer nutzt sie, und wäre eine weitere Trennung künstlich?
+Wo eine Trennung **nicht** künstlich wäre, steht das ausdrücklich da — dann ist es offene Schuld (F-09/F-20), keine Ausnahme.
+
+### Frontend API-Module
+
+| Datei | Cluster → Nutzer | Urteil |
+|---|---|---|
+| `lib/api/client.ts` (1.095 Z., 36 Exporte) | Transport-Infrastruktur (Fetch-Wrapper, Auth-Refresh, Fehler-Parsing, Base-URL, Upload-XHR): 19 Exporte → 68 Dateien; gemeinsame Typen/Helfer: 15 → 134 Dateien; `me`/`auth/refresh`: nur intern von `auth.ts` genutzt | **Gemeinsam richtig.** Das ist die eine zentrale Infrastruktur (D-09), die jedes Fachmodul nutzt. Eine Aufteilung in 2–3 Infra-Dateien (Session-Refresh, Upload-XHR, Fehler) wäre möglich, brächte aber kaum Nutzen: kein Nutzer würde dadurch weniger koppeln. |
+| `lib/api/history.ts` (1.020 Z., 30 Exporte) | Fansub-Notizen/Historie (Admin): 15 → 5 Dateien, alle im Fansub-Edit; Release-Version-Notizen: 3 → 1 Datei (`ReleaseVersionNotesTab`); öffentliche Projekt-Notizen: 2 → 2 Dateien; Archiv: 1 → 2; gemeinsame Mapper/Typen: 7+2 → `fansubs-members.ts`, `releases.ts`, `GroupHistorySection` | **Trennung wäre nicht künstlich.** Release-Notizen und öffentliche Projekt-Notizen haben eigene Nutzer und gehören fachlich zu Releases/Projekten. Nur die gemeinsamen Mapper verbinden die Cluster. → offene Schuld (F-09). |
+| `lib/api/admin/fansub-members.ts` (757 Z., 23 Exporte) | Mitglieder/Claims: 18 → 11 Dateien (Fansub-Edit + `admin/claims`); Mitgliedsanfragen: 3 → 3 Dateien; Einladung annehmen: 1 → `invitations/accept`; Claim-Einladung annehmen: 1 → `claim-invitations/accept` | **Kern gemeinsam richtig** (eine Nutzergruppe: Fansub-Mitgliederverwaltung). Die zwei öffentlichen Annahme-Flows haben eigene Nutzer außerhalb des Admin-Bereichs → Auslagern wäre nicht künstlich, aber klein (F-09). |
+| `lib/api/permissions.ts` (610 Z., 17 Exporte) | Gruppenrechte: 9 → 9 Dateien (Fansub-Edit, `admin/users`); Rollen-Fähigkeiten: 3 → 7 Dateien (`admin/roles`, `admin/changes`, `admin/claims`); Release-Version-Fähigkeiten: 2 → 4 Dateien (Release-Editor, Workspace, Media-Hook); Rolleninhaber: 1 → 3; Rollendefinitionen: 1 → 2 (`layout.tsx`, `archiv`); Gruppenrollen: 1 → 1 | **Trennung wäre nicht künstlich.** Vier Cluster mit klar verschiedenen Nutzergruppen; v. a. Release-Version-Fähigkeiten gehören zu Releases. Die frühere Begründung „Plan sah keine Aufteilung vor“ war prozessual, nicht fachlich → offene Schuld (F-09). |
+
+### Frontend Komponenten/Hooks
+
+| Datei | Was gemeinsam bleibt → Nutzer | Urteil |
+|---|---|---|
+| `useAdminAnimeCreateControllerImpl.ts` (1.054 Z.) | gesamter Zustand (~40 `useState`/`useRef`) + Komposition der 4 Teil-Hooks → genutzt nur über die Fassade von der Anime-Anlegeseite | **Weitere Trennung künstlich.** Die Abläufe sind bereits ausgelagert; der Rest ist Zustandsbesitz. Zustand auf mehrere Hooks zu verteilen ändert Render-Verhalten (D-14/D-21) ohne fachlichen Gewinn. |
+| `GroupMediaReviewSection.tsx` (632 Z.) | Zustand, abgeleitete Filter/Sortierung, Rechte-Berechnung (an einer Stelle!) → 5 Bereichs-Komponenten + Logik-Hook | **Weitere Trennung künstlich.** Die Rechte-Berechnung bewusst an einer Stelle zu halten ist ein Vorteil (Live-UAT-Nachweis). Weiteres Zerlegen ergäbe Mini-Komponenten (D-02). |
+| `admin/fansubs/create/page.tsx` (610 Z.) | Zustand, Effekte (Slug-Prüfung, Unload-Warnung), Kernfelder + Speichern-Zeile → 3 Bereichs-Komponenten, Actions-Hook, Helfer-Modul | **Weitere Trennung künstlich.** Die Seite ist jetzt der erkennbare Orchestrator; Logik und Hilfsfunktionen sind ausgelagert und getestet. |
+
+### Backend (Repository-Dateien über 450 Zeilen)
+
+| Datei | Cluster → Aufrufer | Urteil |
+|---|---|---|
+| `fansub_repository_groups.go` (705 Z., 14 Funktionen) | Gruppen-CRUD (6) → `handlers/fansub_groups.go`; `GetGroupByID` → 4 Handler-Dateien; private Hydratoren (`scanFansubGroup`, `attachGroupCounts`, `attachGroupLinks`, `hydrateFansubGroup`, `firstLinkURL`) nur intern; `populateCountMap`/`applyLegacyLinkProjection` zusätzlich von `fansub_repository_public_profile.go` | **Gemeinsam richtig.** Ein Aufrufer-Handler, die Hydratoren gehören zu ihren Lesefunktionen. Nur die 2 auch vom Public-Profil genutzten Helfer könnten in eine kleine Helfer-Datei — kosmetisch. |
+| `admin_content_anime_segments_crud.go` (694 Z., 9) | Segment-CRUD → `admin_content_anime_theme_segments.go`, `admin_content_handler.go`; `GetAnimeSegmentByID` → 7 Segment-Handler; Quell-Codec (`encode/hydrateThemeSegmentSource`) + `loadSegmentByID` → auch Library | **Gemeinsam richtig.** Ein Fachcluster (Segment-Stammdaten); Codec liegt beim Hauptnutzer. |
+| `admin_content_anime_segments_library.go` (570 Z., 8) | Bibliotheks-Kandidaten, Zuordnen/Lösen, Upload-Bindung → dieselben 2 Segment-Handler; Metadaten-Hydratoren → CRUD | **Gemeinsam richtig.** Ein Fachcluster. |
+| `admin_content_anime_segments_playback.go` (535 Z., 11) | Abspielquellen-Abgleich (transaktionskritisch), Snapshot, stabile Anime-Quelle → CRUD, Library, `theme_segment_playback_resolution.go`, Segment-Handler | **Weitere Trennung künstlich und riskant.** Entscheidungsbaum und Transaktions-Helfer gehören zusammen. |
+| `admin_content_release_theme_assets.go` (472 Z., 11) | Release-Theme-Assets (6) → `admin_content_release_theme_assets.go`-Handler; allgemeine Fansub-Release-Lookups (`GetFansubRelease`, `ListFansubAnime`, `GetCanonicalFansubAnimeRelease`) → `admin_content_handler.go`; `GetSegmentReleaseDuration` → 3 Segment-Handler | **Teilweise falsch einsortiert.** `GetSegmentReleaseDuration` gehört fachlich zu Segmenten, die Release-Lookups sind allgemein. Verschieben wäre nicht künstlich, aber klein (F-09). |
+
+### CSS: `FansubEdit.module.css` (3.379 Z., 301 Klassen, von 23 Dateien importiert)
+
+| Gruppe | Anzahl | Nutzer |
+|---|---|---|
+| Echt breit geteilt (≥ 3 Dateien) | 9 Klassen | `fansubEditHint` (12), `chipRow` (6), `fansubEditSectionBody` (6), `fansubEditSection`/`…Summary`/`errorBox` (je 5), `fansubEditInlineError`/`fansubEditMembershipModalActions`/`…Stack` (je 3) |
+| Von 2 Dateien genutzt | 35 Klassen | meist Paare wie Fansub-Anlegen ↔ Fansub-Edit-Basisdaten |
+| Von genau 1 Datei genutzt | 37 Klassen | v. a. `page.tsx` (29), `FansubAppMembersOverview` (17), `AnimeContributionModal`/`ReleaseContributionDrawer` (je 16), `GroupMembersHistTable` (13) |
+| **Von keiner Komponente gesetzt** | **220 Klassen (73 %)** | 144 davon nur in Kombi-/Kind-Selektoren, 76 weder gesetzt noch kombiniert; 48 kommen im gesamten Frontend nicht einmal als Text vor |
+
+**Urteil — korrigiert die frühere D-24-Begründung („gemeinsamer Sammelbehälter“):** Weiteres *Aufteilen* wäre künstlich, aber aus einem anderen Grund als bisher angegeben: Der Großteil der Datei ist sehr wahrscheinlich **toter Alt-CSS** (Klassen, die keine Komponente mehr setzt — Regeln, die nur greifen, wenn ihre Klasse gesetzt ist, sind ebenfalls tot). Der echte gemeinsame Kern sind 9 breit geteilte Klassen plus die 35 Paar-Klassen. Richtige Folgearbeit ist **Entfernen** (nach Sichtprüfung/Bildvergleich), nicht Aufteilen → **F-20**. Danach wären die 37 Einzel-Klassen in die Module ihrer Nutzer zu verschieben, was dann nicht mehr künstlich ist.
+
+### Zusammenfassung
+
+- **Gemeinsam richtig, weitere Trennung künstlich:** `client.ts`, die drei Frontend-Orchestratoren, `fansub_repository_groups.go`, die drei Segment-Repository-Dateien.
+- **Trennung nicht künstlich → offene Schuld (F-09):** `permissions.ts` (4 Nutzergruppen), `history.ts` (Release-/Projekt-Notizen), Annahme-Flows in `fansub-members.ts`, Lookups in `admin_content_release_theme_assets.go`.
+- **Eigentliches Problem ist Altlast, nicht Größe → F-20:** `FansubEdit.module.css` (≈ 220 von 301 Klassen ungenutzt).
 
 ---
 
@@ -304,6 +357,9 @@ Per the user's explicit 2026-10-05 PFLICHT instruction, every item from `174-FOL
 
 17. **F-14 (carried forward)** — 8 release-version-media handler integration tests fail with `db_schema_mismatch` against the Phase-107 test DB (pre-existing; e.g. `TestRVMTitlePatchPersistsIndependentMetadata`, reorder/soft-delete/category tests): bring the test fixture schema up to date. Also review whether non-uploader edits of release media (no longer routed through `SubmitMedia` since BUG-174-04) need their own revision-conflict guard.
 18. **F-19 (UI polish)** — on mobile (~375 px) the sticky “Speichern” button on `/admin/fansubs/[id]/edit` covers form fields (e.g. “Gruppentyp”); already present in the BEFORE baseline, found during the 174-24 comparison.
+
+19. **F-20 — Remove dead CSS from `FansubEdit.module.css`** (closing audit: ~220 of 301 classes are set by no component; 48 appear nowhere in the frontend). Remove after a visual comparison, then move the 37 single-user classes into the modules of the files that use them; the real shared core is 9 broadly shared + 35 pair classes.
+20. **F-09 refinement (closing audit):** splits that would NOT be artificial — `lib/api/permissions.ts` (4 consumer groups; release-version capabilities belong to releases), `lib/api/history.ts` (release-version and public project notes), the two public invitation-accept flows in `lib/api/admin/fansub-members.ts`, and the general release lookups + `GetSegmentReleaseDuration` in `admin_content_release_theme_assets.go`.
 
 ### BUGS — status (all items from `174-BUGS.md`)
 
