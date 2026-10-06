@@ -213,7 +213,7 @@ func (s *MediaService) SaveUpload(kind models.MediaKind, originalName string, da
 		result.GIFLargeHint = true
 	}
 
-	if variant := s.buildDisplayVariant(detectedMime, data, filepath.Dir(absolutePath)); variant != nil {
+	if variant := s.buildDisplayVariant(detectedMime, data, absolutePath); variant != nil {
 		result.Variants = append(result.Variants, *variant)
 	}
 

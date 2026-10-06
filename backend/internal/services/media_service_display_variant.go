@@ -8,6 +8,7 @@ import (
 	"log"
 	"os"
 	"path/filepath"
+	"strings"
 )
 
 // buildDisplayVariant erzeugt (sofern moeglich) die "display"-Variante fuer einen Upload nach
@@ -22,7 +23,8 @@ import (
 //
 // Ausgelagert aus media_service.go (173-05 Task 0): media_service.go lag bereits bei 494 Zeilen
 // (CLAUDE.md-Limit 450), die animierte-WebP-Erweiterung haette es auf 531 Zeilen wachsen lassen.
-func (s *MediaService) buildDisplayVariant(detectedMime string, data []byte, dir string) *MediaVariantSaveResult {
+func (s *MediaService) buildDisplayVariant(detectedMime string, data []byte, originalPath string) *MediaVariantSaveResult {
+	dir := filepath.Dir(originalPath)
 	if detectedMime == "image/svg+xml" {
 		return nil
 	}
@@ -30,7 +32,7 @@ func (s *MediaService) buildDisplayVariant(detectedMime string, data []byte, dir
 	if detectedMime == "image/gif" && IsAnimatedGIFData(data) {
 		webpData, w, h, err := GenerateAnimatedWebPDisplayFromBytes(s.ffmpegPath, data)
 		if err == nil {
-			return s.writeDisplayVariant(webpData, "display.webp", "image/webp", &w, &h, dir)
+			return s.writeDisplayVariant(webpData, displayVariantFileName(originalPath, "webp"), "image/webp", &w, &h, dir)
 		}
 		log.Printf("media upload: animierte display-variante konnte nicht erzeugt werden, original bleibt display (nicht-fatal): %v", err)
 		cfg, _, cfgErr := image.DecodeConfig(bytes.NewReader(data))
@@ -38,7 +40,7 @@ func (s *MediaService) buildDisplayVariant(detectedMime string, data []byte, dir
 			return nil
 		}
 		w, h = cfg.Width, cfg.Height
-		return s.writeDisplayVariant(data, "display.gif", "image/gif", &w, &h, dir)
+		return s.writeDisplayVariant(data, displayVariantFileName(originalPath, "gif"), "image/gif", &w, &h, dir)
 	}
 
 	if detectedMime == "image/webp" && IsAnimatedWebPData(data) {
@@ -49,7 +51,7 @@ func (s *MediaService) buildDisplayVariant(detectedMime string, data []byte, dir
 		// animierten-GIF-Zweig oben.
 		webpData, w, h, err := GenerateAnimatedDisplayViaVips(s.vipsThumbnailPath, data, ".webp", DisplayAnimatedMaxEdge)
 		if err == nil {
-			return s.writeDisplayVariant(webpData, "display.webp", "image/webp", &w, &h, dir)
+			return s.writeDisplayVariant(webpData, displayVariantFileName(originalPath, "webp"), "image/webp", &w, &h, dir)
 		}
 		log.Printf("media upload: animierte webp-display-variante konnte nicht erzeugt werden, original bleibt display (nicht-fatal): %v", err)
 		cfg, _, cfgErr := image.DecodeConfig(bytes.NewReader(data))
@@ -57,7 +59,7 @@ func (s *MediaService) buildDisplayVariant(detectedMime string, data []byte, dir
 			return nil
 		}
 		w, h = cfg.Width, cfg.Height
-		return s.writeDisplayVariant(data, "display.webp", "image/webp", &w, &h, dir)
+		return s.writeDisplayVariant(data, displayVariantFileName(originalPath, "webp"), "image/webp", &w, &h, dir)
 	}
 
 	decoded, _, err := image.Decode(bytes.NewReader(data))
@@ -71,7 +73,7 @@ func (s *MediaService) buildDisplayVariant(detectedMime string, data []byte, dir
 		log.Printf("media upload: display-variante konnte nicht erzeugt werden (nicht-fatal): %v", encErr)
 		return nil
 	}
-	return s.writeDisplayVariant(displayData, "display."+ext, mimeType, &w, &h, dir)
+	return s.writeDisplayVariant(displayData, displayVariantFileName(originalPath, ext), mimeType, &w, &h, dir)
 }
 
 func (s *MediaService) writeDisplayVariant(data []byte, filename, mimeType string, width, height *int, dir string) *MediaVariantSaveResult {
@@ -95,4 +97,19 @@ func (s *MediaService) writeDisplayVariant(data []byte, filename, mimeType strin
 		Width:       width,
 		Height:      height,
 	}
+}
+
+// displayVariantFileName names the display variant after its original so several originals in
+// one shared directory never overwrite each other's display file. Fansub logo/banner/group media
+// all live in media/fansub/<group_id>/ -- a fixed "display.<ext>" let a later gallery upload
+// replace the group banner's public image (BUG-174-05). Per-asset directories whose original is
+// "original.<ext>" keep the established "display.<ext>" name; every other original gets
+// "<original-name>_display.<ext>", the scheme migrate-display-backfill already uses.
+func displayVariantFileName(originalPath string, ext string) string {
+	base := filepath.Base(originalPath)
+	stem := strings.TrimSuffix(base, filepath.Ext(base))
+	if stem == "" || stem == "original" {
+		return "display." + ext
+	}
+	return stem + "_display." + ext
 }
