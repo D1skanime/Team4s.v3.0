@@ -41,5 +41,7 @@ Vor jeder Runde: `docker restart team4sv30-frontend` (HMR greift nicht), dann St
 
 - [ ] BUG-174-02 Gegenprobe nach Backend-Rebuild: timer-Dashboard ohne „Gruppenbild prüfen“ für New-Subs; Plattform-Admin sieht den Eintrag und kann freigeben
 
+- [ ] BUG-174-05 Gegenprobe: /fansubs/new-subs zeigt das selbst gesetzte Banner; danach ein weiteres Galeriebild hochladen → Banner bleibt unverändert
+
 ## Nach Welle 5 (CSS)
 Siehe 174-24 (Vorher/Nachher-Screenshots) – zusätzlich kurzer Sichtcheck Fansub-Edit Desktop + Mobile.
