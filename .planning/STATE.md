@@ -2,16 +2,16 @@
 gsd_state_version: 1.0
 milestone: v1.4
 milestone_name: Coverage
-status: executing
-stopped_at: Completed 174-25-PLAN.md
-last_updated: "2026-10-06T09:37:54.441Z"
+status: Phase 174 closed 2026-10-06 — final combined automated gate green (zero new regressions vs. 174-25's `174-REPORT.md` baseline) and live human UAT approved across all 7 end-to-end flows (174-26). `174-REPORT.md` (174-25) remains the authoritative closing report; its Recommendations-for-Follow-up-Phases list (F-01 first) is the suggested next work.
+stopped_at: Completed 174-26-PLAN.md (Phase 174 CLOSED)
+last_updated: "2026-10-06T11:56:30.629Z"
 last_activity: 2026-10-06
 progress:
   total_phases: 39
-  completed_phases: 33
+  completed_phases: 34
   total_plans: 364
-  completed_plans: 359
-  percent: 85
+  completed_plans: 360
+  percent: 87
 ---
 
 # Quick Task 260925-6qe — Anime-Identitätskarte kompakt (Phase 168)
@@ -286,10 +286,10 @@ Abschluss" entry below for the full closing record.
 
 ## Current Position
 
-Phase: 174 (modularisierung-wartbarkeits-refactoring-hotspot-analyse-api) — EXECUTING
-Plan: 25 of 26
-Status: Executing Phase 174 — Wave 16 complete (174-25 closing report done), Welle-6 wave 17 remains (174-26, the final human checkpoint)
-Completed: Phase 173 — six public image write paths gained a `display` variant, public read sites and components prefer it over thumb/original, a fansub media namespace + redirect, an idempotent backfill run against the live database, and a full live D-13 UAT (desktop+mobile, transparency, animation, performance) all passed.
+Phase: 174 (modularisierung-wartbarkeits-refactoring-hotspot-analyse-api) — COMPLETE (26/26 plans)
+Plan: 26 of 26
+Status: Phase 174 closed 2026-10-06 — final combined automated gate green (zero new regressions vs. 174-25's `174-REPORT.md` baseline) and live human UAT approved across all 7 end-to-end flows (174-26). `174-REPORT.md` (174-25) remains the authoritative closing report; its Recommendations-for-Follow-up-Phases list (F-01 first) is the suggested next work.
+Completed: Phase 174 — `frontend/src/lib/api.ts` (11,508 lines/371 exports) collapsed to a 34-line barrel over 36 domain modules; `useAdminAnimeCreateController.ts`, `GroupMediaReviewSection.tsx`, and `admin/fansubs/create/page.tsx` decomposed into sub-hooks/section components; `fansub_repository.go`, `admin_content_anime_themes.go`, `anime_assets.go`, and `admin_content_release_version_media.go` split into domain-scoped sibling files; `FansubEdit.module.css` and `ui.module.css` split along grep-verified single-owner class boundaries — all behavior-preserving per D-01, zero new dependency cycles, zero new N+1, full test-suite parity, final gate + live UAT both green/approved.
 Next: Phase 169's remaining plan (169-05, live actor/refresh/responsive UAT) is still open; Phase 166 (Film-Content-Flow) has not been started. The Coverage milestone is NOT complete.
 
 ## Vorherige Position (Phase 153, abgeschlossen)
@@ -928,6 +928,7 @@ Last activity: 2026-10-06
 - [Phase 174]: Proxy-basierter CSS-Modul-Merge statt Objekt-Spread fuer kombinierte styles-Objekte — {...sharedStyles, ...ownStyles} verliert unter Vitest alle Klassen (CSS-Modul-Mock hat keine enumerable Keys); ein echter Proxy mit get-Trap funktioniert in Vitest und im Produktions-Build korrekt
 - [Phase 174]: 174-25 closing report identified 7 D-24 exceptions not previously flagged by their originating plan's own SUMMARY (admin/fansubs/create/page.tsx, GroupMediaReviewSection.tsx, fansub_repository_groups.go) — closing a real gap in the phase's own self-reporting discipline
 - [Phase 174]: 174-25 corrected 174-FOLLOWUPS.md's stale Gegenprobe-offen note for BUG-174-02/BUG-174-05 against 174-UAT-CHECKLIST.md's 2026-10-06 user approval, and folded all 18 F-01..F-18 items plus all 5 BUG-174-xx items into the closing report's Recommendations section with F-01 (remove legacy image store) recommended first, per the user's 2026-10-05 PFLICHT instruction
+- [Phase 174]: Final combined gate (174-26) re-confirmed zero regressions vs. 174-25's baseline; live human UAT approved across all 7 Phase 174 flows, closing the phase. — Checkpoint gate="blocking" honored exactly (stopped, returned 7-step verification to orchestrator) rather than fabricating approval; resumed only once the user's real, explicit 2026-10-06 sign-off was relayed.
 
 ### Pending Todos
 
@@ -1509,11 +1510,12 @@ untruncated list lives in `.planning/todos/pending/`.
 | Phase 174 P22 | 90min | 3 tasks | 32 files |
 | Phase 174 P23 | 110min | 2 tasks tasks | 55 files files |
 | Phase 174 P25 | ~85min | 2 tasks | 1 files |
+| Phase 174 P26 | 115min | 2 tasks | 1 files |
 
 ## Session Continuity
 
-Last session: 2026-10-06T09:37:54.418Z
-Stopped at: Completed 174-25-PLAN.md
+Last session: 2026-10-06T11:56:27.418Z
+Stopped at: Completed 174-26-PLAN.md (Phase 174 CLOSED)
 Last activity: 2026-09-28 - Completed Phase 169 Plan 169-01
 Resume file: 
 None
