@@ -43,5 +43,10 @@ Vor jeder Runde: `docker restart team4sv30-frontend` (HMR greift nicht), dann St
 
 - [x] BUG-174-05 Gegenprobe: /fansubs/new-subs zeigt das selbst gesetzte Banner; danach ein weiteres Galeriebild hochladen → Banner bleibt unverändert
 
-## Nach Welle 5 (CSS)
+## Nach Welle 5 (CSS) — ✅ abgenommen 2026-10-06 (Nutzer)
 Siehe 174-24 (Vorher/Nachher-Screenshots) – zusätzlich kurzer Sichtcheck Fansub-Edit Desktop + Mobile.
+- [x] Fansub-Edit Desktop/375px: Layout identisch, einzige Abweichung ist eine Datenänderung (Banner/Logo)
+- [x] 5 Zustandspaare (Button hover/focus/disabled, Input focus, Select focus) byte-identisch
+- [x] `/dev/ui-system`: einzige Abweichung ist Aufnahmerauschen, kein sichtbarer Unterschied
+
+Nebenbefund (nicht behoben, bereits im BEFORE vorhanden): auf Mobil überdeckt der sticky Speichern-Button das Feld Gruppentyp. Siehe `.planning/todos/pending/2026-10-06-mobile-sticky-save-button-ueberdeckt-gruppentyp.md`.

@@ -39,16 +39,22 @@ key-decisions:
   - "Extended the fullPage-screenshot settle time from BASELINE-NOTES.md's literal 1500ms to 4500ms (desktop) after discovering a Chromium fullPage-capture compositing race: the logo/banner <img> elements were confirmed loaded (complete=true, correct naturalWidth, opacity:1, visibility:visible) well before 1500ms, and a non-fullPage viewport screenshot at 1500ms painted them correctly, but the fullPage capture at 1500ms still rendered them as empty frames. This is a capture-script timing fix, not a product/CSS change."
   - "No fansub-group-id substitution needed — group id 1 (new-subs) is still the correct seeded row"
 
-requirements-completed: []
+requirements-completed: [D-18, D-19]
 
 # Metrics
 duration: ~70min
-completed: IN PROGRESS — Task 1 complete, Task 2 (human sign-off) pending
+completed: "2026-10-06"
 ---
 
-# Phase 174 Plan 24: Welle-5 Visual-Equality Checkpoint Summary (PARTIAL — Task 2 pending)
+# Phase 174 Plan 24: Welle-5 Visual-Equality Checkpoint Summary
 
-**Task 1 complete: AFTER screenshots captured and compared against the 174-01 BEFORE baseline — zero CSS regressions found (5/8 shots byte-identical, the other 3 show only real data changes). Task 2 (the blocking human-verify checkpoint, D-18's actual verification mechanism) is pending and requires explicit user sign-off before this plan or Welle 5 can be considered closed.**
+**Task 1: AFTER screenshots captured and compared against the 174-01 BEFORE baseline — zero CSS regressions found (5/8 shots byte-identical, the other 3 show only real data changes). Task 2 (the blocking human-verify checkpoint, D-18's actual verification mechanism): user approved 2026-10-06 — Fansub-Edit Desktop/375px layout identical, only banner/logo as a data change; 5 state pairs byte-identical; ui-system difference is capture noise only. Welle 5 (174-22, 174-23, 174-24) is closed.**
+
+## Task 2: Human Sign-Off
+
+- **Result:** ✅ approved 2026-10-06 (Nutzer)
+- **Verdict:** Fansub-Edit Desktop/375px Layout identisch, nur Banner/Logo als Datenänderung; 5 Zustandspaare (`button-hover`, `button-focus`, `button-disabled`, `input-focus`, `select-focus`) byte-identisch; `ui-system-desktop` Differenz ist reines Aufnahmerauschen.
+- **Side finding (not a regression, logged as follow-up, not fixed in this plan):** on mobile, the sticky save button overlaps the "Gruppentyp" field — already present in the BEFORE baseline, so pre-existing and unrelated to the 174-22/174-23 CSS splits. Tracked in `.planning/todos/pending/2026-10-06-mobile-sticky-save-button-ueberdeckt-gruppentyp.md`.
 
 ## Performance
 
@@ -68,9 +74,7 @@ completed: IN PROGRESS — Task 1 complete, Task 2 (human sign-off) pending
 ## Task Commits
 
 1. **Task 1: Capture visual-baseline/after/** - `eb580710` (docs)
-2. **Task 2: Live visual-equality UAT** - **NOT STARTED** (`checkpoint:human-verify gate="blocking"`, requires explicit human sign-off; cannot be auto-approved or simulated)
-
-**Plan metadata:** this SUMMARY committed as a checkpoint-state snapshot; a further `docs(174-24): record Welle-5 visual-equality UAT approval` commit (or discrepancy-fix commits) will follow once the user responds to the checkpoint.
+2. **Task 2: Live visual-equality UAT** - approved by user 2026-10-06 (checkpoint sign-off, recorded in `docs(174): record Welle-5 live UAT approval`)
 
 ## Files Created/Modified
 
@@ -107,18 +111,13 @@ None beyond the deviation above. No CSS regression was found in Task 1's own evi
 
 None — no external service configuration required. The Keycloak `admin`/`123` credential used matches the one the orchestrator/plan context already specified for this capture.
 
-## Next Phase Readiness — BLOCKED ON CHECKPOINT
+## Next Phase Readiness — COMPLETE
 
-This plan is **not complete**. Task 2 is a `checkpoint:human-verify gate="blocking"` task that requires the user to:
-1. Review the before/after screenshot pairs in `visual-baseline/before/` and `visual-baseline/after/` (and this SUMMARY's content-difference classification above).
-2. Optionally spot-check the live admin fansub-edit page and `/dev/ui-system` via the documented tunnel, per the plan's `<how-to-verify>` steps 3-5.
-3. Respond "approved", or describe specific visual discrepancies (citing the specific before/after pair) to fix before Welle 6 starts.
-
-Until that response is received, Welle 5 (174-22, 174-23, 174-24) remains open, STATE.md's plan pointer has NOT been advanced past 174-24, and ROADMAP.md/REQUIREMENTS.md have NOT been updated for D-18/D-19 — those updates are deferred to the orchestrator once sign-off (or discrepancy fixes) land.
+Plan 174-24 is complete. User approved the Task 2 checkpoint 2026-10-06: all before/after pairs match (layout-identical; the only differences are a documented data change and capture noise). Welle 5 (174-22, 174-23, 174-24) is closed. The one side finding (mobile sticky save button overlapping the Gruppentyp field) is pre-existing in the BEFORE baseline and logged as a follow-up backlog item rather than fixed here.
 
 ---
 *Phase: 174-modularisierung-wartbarkeits-refactoring-hotspot-analyse-api*
-*Status: Task 1 complete 2026-10-06; Task 2 pending human checkpoint response*
+*Status: Complete 2026-10-06 — Task 1 and Task 2 (human sign-off) both done*
 
 ## Self-Check: PASSED
 
