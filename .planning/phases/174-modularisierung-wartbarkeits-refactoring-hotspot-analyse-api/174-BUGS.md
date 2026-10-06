@@ -19,3 +19,10 @@
 - **Nutzerentscheidung:** Gruppenmedien freigeben darf nur, wer das Recht dazu hat; das Dashboard kündigt nur an, was man auch entscheiden kann (Option 1, keine Rechte-Ausweitung).
 - **Fix:** Dashboard-Filter auf `permissions.ActionFansubGroupEdit` umgestellt; bestehender Test aus 143-09, der die alte Entscheidung festschrieb, bewusst umgedreht und um den Positivfall (fansub_lead sieht den Eintrag) erweitert (`TestAttachPendingGroupMediaReviewAttentionRequiresGroupEdit`). Dashboard-Handler-Tests grün.
 - **Live wirksam:** erst nach Backend-Rebuild (`docker compose up -d --build team4sv30-backend`), sinnvoll nach Abschluss von Welle 4. Danach Gegenprobe als timer: Eintrag weg; als Plattform-Admin/Gruppenleitung: Eintrag da und Prüfen funktioniert.
+
+## BUG-174-03: Release-Medien-Galerie zeigt nach Löschen/Bearbeiten veralteten Stand (behoben)
+
+- **Gefunden:** Live-UAT Welle 4, 2026-10-06 (Nutzer + Orchestrator als d1sk): „testgz“ in Release-Version 27 gelöscht → Toast „Medium entfernt.“, Server `DELETE …/media/3` 200, DB `deleted_at` gesetzt, Kategorie-Zähler sinkt — die Karte bleibt aber bis zum Neuladen sichtbar.
+- **Ursache (vorbestehend seit Phase 171, Kara in der Story):** Die Galerie rendert `storyItems`; `deleteItem`, `patchItem`, `replaceItem` und `setHighlight` in `useReleaseVersionMedia.ts` aktualisieren nur `items`. Uploads waren nicht betroffen (lösen `reload()` aus).
+- **Fix:** Hook liefert `storyItems` jetzt aus dem aktuellen `items`-Stand abgeleitet (gelöschte Medien fallen raus, geänderte werden ersetzt; Kara-Einträge unverändert). Zwei Logik-Tests (Löschen, Bearbeiten) auf Hook-Ebene ergänzt; 3 betroffene Testdateien grün (64 Tests).
+- **Nebenbeobachtung:** Löschen-Klick im Bearbeiten-Dialog kann ins Leere gehen, solange das Vorschaubild noch lädt (Dialog verschiebt sich) — kein Defekt, nur Layout-Sprung; bei F-Liste als UX-Hinweis.

@@ -319,6 +319,29 @@ describe('useReleaseVersionMedia preview reconciliation', () => {
     await waitFor(() => expect(result.current.items.find(entry => entry.id === 2)?.caption).toBeNull())
   })
 
+  it('entfernt ein geloeschtes Medium sofort auch aus der Galerie-Liste (storyItems)', async () => {
+    api.deleteReleaseVersionMediaItem.mockResolvedValue(undefined)
+    const { result } = renderHook(() => useReleaseVersionMedia(1))
+    await waitFor(() => expect(result.current.storyItems).toHaveLength(2))
+
+    await act(async () => { await result.current.deleteItem(2) })
+
+    expect(api.deleteReleaseVersionMediaItem).toHaveBeenCalledWith(1, 2)
+    expect(result.current.items.map(entry => entry.id)).toEqual([1])
+    expect((result.current.storyItems ?? []).map(entry => (entry.type === 'media' ? entry.media.id : null))).toEqual([1])
+  })
+
+  it('zeigt eine Medienaenderung sofort auch in der Galerie-Liste (storyItems)', async () => {
+    const { result } = renderHook(() => useReleaseVersionMedia(1))
+    await waitFor(() => expect(result.current.storyItems).toHaveLength(2))
+
+    api.patchReleaseVersionMediaItem.mockResolvedValueOnce({ ...item(2, false), caption: 'Neu' })
+    await act(async () => { await result.current.patchItem(2, { caption: 'Neu' }) })
+
+    const storyMedia = (result.current.storyItems ?? []).find(entry => entry.type === 'media' && entry.media.id === 2)
+    expect(storyMedia?.type === 'media' ? storyMedia.media.caption : undefined).toBe('Neu')
+  })
+
   it('reload() loest genau ein weiteres Ladepaar aus; Mutationsfunktionen loesen keine zusaetzliche Ladeoperation aus', async () => {
     const { result } = renderHook(() => useReleaseVersionMedia(1))
     await waitFor(() => expect(result.current.items).toHaveLength(2))

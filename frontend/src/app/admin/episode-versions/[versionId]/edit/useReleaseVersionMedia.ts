@@ -513,9 +513,21 @@ export function useReleaseVersionMedia(versionId: number | null, storyContext?: 
 
   const isLoading = canFetch && (state.key !== requestKey || state.status === 'loading')
 
+  // The gallery renders storyItems, but patch/replace/delete/highlight only update `items`.
+  // Project every media story entry onto the current item (and drop deleted ones) so the
+  // gallery never shows stale data until the next reload (BUG-174-03).
+  const syncedStoryItems = useMemo(() => {
+    const itemsByID = new Map(items.map((item) => [item.id, item]))
+    return storyItems.flatMap((entry): ReleaseVersionAdminStoryItem[] => {
+      if (entry.type !== 'media') return [entry]
+      const current = itemsByID.get(entry.media.id)
+      return current ? [current === entry.media ? entry : { ...entry, media: current }] : []
+    })
+  }, [items, storyItems])
+
   return {
     items,
-    storyItems,
+    storyItems: syncedStoryItems,
     isLoading,
     error,
     reload,
