@@ -33,15 +33,15 @@ Vor jeder Runde: `docker restart team4sv30-frontend` (HMR greift nicht), dann St
 - [x] Cover-Upload; Bild-/Asset-Suche, „mehr laden“, Kandidat übernehmen
 - [x] Anlegen/Speichern → Weiterleitung bzw. Erfolgsmeldung wie bisher; Konflikt-Fall (AniSearch bereits vorhanden) wie bisher
 
-## Nach Welle 4 (Backend)
+## Nach Welle 4 (Backend) — ✅ abgenommen 2026-10-06 (Nutzer, inkl. Gegenproben BUG-174-02…05)
 - [x] (✅ abgenommen 2026-10-06, Nutzer) Segmente/Themes: Anime-Themes anlegen/bearbeiten, Segment anlegen/bearbeiten, Bibliotheks-Asset zuordnen, Abspielen/Vorschau
-- [ ] Fansub-Gruppe: öffentliche Profilseite, Mitglieder, Aliase/Links, Zusammenführen (Merge)
-- [ ] Anime-Assets: Cover/Banner/Logo/Hintergrund anzeigen und ersetzen
-- [ ] Release-Version-Medien: Liste, Upload, Ersetzen, Kategorie/Highlight, Reihenfolge
+- [x] Fansub-Gruppe: öffentliche Profilseite, Mitglieder, Aliase/Links, Zusammenführen (Merge)
+- [x] Anime-Assets: Cover/Banner/Logo/Hintergrund anzeigen und ersetzen
+- [x] Release-Version-Medien: Liste, Upload, Ersetzen, Kategorie/Highlight, Reihenfolge
 
-- [ ] BUG-174-02 Gegenprobe nach Backend-Rebuild: timer-Dashboard ohne „Gruppenbild prüfen“ für New-Subs; Plattform-Admin sieht den Eintrag und kann freigeben
+- [x] BUG-174-02 Gegenprobe nach Backend-Rebuild: timer-Dashboard ohne „Gruppenbild prüfen“ für New-Subs; Plattform-Admin sieht den Eintrag und kann freigeben
 
-- [ ] BUG-174-05 Gegenprobe: /fansubs/new-subs zeigt das selbst gesetzte Banner; danach ein weiteres Galeriebild hochladen → Banner bleibt unverändert
+- [x] BUG-174-05 Gegenprobe: /fansubs/new-subs zeigt das selbst gesetzte Banner; danach ein weiteres Galeriebild hochladen → Banner bleibt unverändert
 
 ## Nach Welle 5 (CSS)
 Siehe 174-24 (Vorher/Nachher-Screenshots) – zusätzlich kurzer Sichtcheck Fansub-Edit Desktop + Mobile.
