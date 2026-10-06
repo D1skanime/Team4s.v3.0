@@ -19,6 +19,11 @@ Neue Funde während 174 hier anhängen.
 - Vorher am echten Stand prüfen: Keycloak-Einrichtung (Realm-Import/Skript/manuell) und wie der erste Plattform-Admin entsteht; Anleitung möglichst einmal frisch durchspielen.
 - Danach Push nach GitHub (main ist Stand 2026-10-05 76+ Commits voraus) — nur auf ausdrückliche Nutzeranweisung.
 
+### F-13 Release-Bearbeitung zusammenführen (Nutzerverdacht bestätigt 2026-10-06)
+- Zwei Rahmen-Seiten für dasselbe: `/admin/episode-versions/[id]/edit` (`EpisodeVersionEditorPage.tsx` 966 Z. + `useEpisodeVersionEditor`) und `/me/releases/[id]/workspace` (`page.tsx` 448 Z., seit Phase 82). Inhaltsbausteine (Media, Notizen, Segmente, Metadaten-Felder) und Endpunkte (`getEpisodeVersionEditorContext`, `updateEpisodeVersion`) sind bereits gemeinsam; doppelt sind Laden/Formularzustand/Speichern, Tabs, Vor/Zurück-Navigation, Kopf.
+- Ziel: EINE rechtebasierte Release-Bearbeitungsseite (`ReleaseVersionCapabilities` steuert Sichtbarkeit), erreichbar von Dashboard, Meine Projekte und Fansub-Edit; alte Workspace-URL leitet weiter; Admin ohne Mitgliederprofil kein 404 mehr.
+- Ändert Routen/Links/Abläufe → eigene Phase mit UX-Abnahme (nicht 174).
+
 ## Bugs / Inkonsistenzen
 
 - **F-02** `getTypeBadgeLabel`: `SegmenteTab.helpers.tsx` vs. `segmenteTabUtils.ts` liefern für OUTRO unterschiedliche Labels (`OUT` vs. `PV`) — fachlich klären, dann eine Implementierung (174-HOTSPOTS D-07).
