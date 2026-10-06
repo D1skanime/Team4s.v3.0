@@ -26,3 +26,11 @@
 - **Ursache (vorbestehend seit Phase 171, Kara in der Story):** Die Galerie rendert `storyItems`; `deleteItem`, `patchItem`, `replaceItem` und `setHighlight` in `useReleaseVersionMedia.ts` aktualisieren nur `items`. Uploads waren nicht betroffen (lösen `reload()` aus).
 - **Fix:** Hook liefert `storyItems` jetzt aus dem aktuellen `items`-Stand abgeleitet (gelöschte Medien fallen raus, geänderte werden ersetzt; Kara-Einträge unverändert). Zwei Logik-Tests (Löschen, Bearbeiten) auf Hook-Ebene ergänzt; 3 betroffene Testdateien grün (64 Tests).
 - **Nebenbeobachtung:** Löschen-Klick im Bearbeiten-Dialog kann ins Leere gehen, solange das Vorschaubild noch lädt (Dialog verschiebt sich) — kein Defekt, nur Layout-Sprung; bei F-Liste als UX-Hinweis.
+
+## BUG-174-04: Leitung kann Titel/Beschreibung fremder Release-Bilder nicht speichern (behoben)
+
+- **Gefunden:** Live-UAT Welle 4, 2026-10-06 (Nutzer als d1sk = Gruppenleitung New-Subs): Titel für Bild 9 (hochgeladen von Qc) ergänzt → „Die Einreicher-Zuordnung ist nicht mehr eindeutig.“ (`PATCH …/media/9` 422), Änderung verworfen.
+- **Ursache (vorbestehend seit Phase 107.1, 2026-07-23):** Jede inhaltliche Änderung (nicht nur Vorschau-Flag) reicht das Medium per `SubmitMedia` neu zur Prüfung ein; `SubmitMedia` verlangt, dass der Speichernde der Hochlader ist. Damit konnte niemand außer dem Hochlader Release-Bilder bearbeiten/ersetzen, obwohl `release_version_media.update` (alle) das erlaubt. 174-20 hat die Handler nur byte-identisch verschoben (23/23 Funktionen geprüft).
+- **Nutzerentscheidung (Option 1):** Leitung korrigiert ohne neue Prüfung — neu eingereicht wird nur, wenn der Hochlader selbst speichert; Edits durch Berechtigte mit „Bearbeiten (alle)“ behalten den Prüfstatus.
+- **Fix:** `isReleaseVersionMediaUploader` (Hochlader-Vergleich über Legacy-User-ID) steuert die Neu-Einreichung in Patch- und Replace-Handler; Unit-Test `TestIsReleaseVersionMediaUploader`. RVM-Handlertests vorher/nachher identisch (40 grün).
+- **Folgehinweis:** Für Nicht-Hochlader-Edits greift der Revisions-Konfliktschutz aus `SubmitMedia` nicht; bei Bedarf eigenen Revisions-Check ergänzen (F-Liste).

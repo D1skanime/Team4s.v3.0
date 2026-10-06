@@ -205,7 +205,7 @@ func (h *AdminContentHandler) PatchReleaseVersionMedia(c *gin.Context) {
 		writeInternalErrorResponse(c, "interner serverfehler", err, "Patch fehlgeschlagen.")
 		return
 	}
-	if !previewOnly {
+	if !previewOnly && isReleaseVersionMediaUploader(relationMeta.UploadedByUserID, identity.UserID) {
 		if _, err := repository.NewReleaseReviewLifecycleRepository(tx).SubmitMedia(
 			c.Request.Context(),
 			repository.ReleaseReviewSubmissionInput{

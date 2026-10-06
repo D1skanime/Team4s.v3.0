@@ -233,3 +233,12 @@ func (h *AdminContentHandler) annotateReleaseVersionMediaItemPermissionsBatch(
 	}
 	return nil
 }
+
+// isReleaseVersionMediaUploader reports whether the acting legacy user uploaded the relation.
+// Only the uploader's own edits re-submit a release medium to the review lifecycle; an edit
+// by someone holding update-all rights (e.g. group/project lead) keeps the current review
+// state, because SubmitMedia attributes the submission to the uploader and would otherwise
+// reject the whole save (BUG-174-04, user decision 2026-10-06: option 1).
+func isReleaseVersionMediaUploader(uploadedByUserID *int64, actorLegacyUserID int64) bool {
+	return uploadedByUserID != nil && actorLegacyUserID > 0 && *uploadedByUserID == actorLegacyUserID
+}

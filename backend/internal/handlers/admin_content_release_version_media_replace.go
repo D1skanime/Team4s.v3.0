@@ -418,7 +418,9 @@ func (h *AdminContentHandler) ReplaceReleaseVersionMediaFile(c *gin.Context) {
 		return
 	}
 
-	if _, err := repository.NewReleaseReviewLifecycleRepository(tx).SubmitMedia(
+	if !isReleaseVersionMediaUploader(relationMeta.UploadedByUserID, identity.UserID) {
+		// Edit by a non-uploader with update-all rights: keep the current review state (BUG-174-04).
+	} else if _, err := repository.NewReleaseReviewLifecycleRepository(tx).SubmitMedia(
 		ctx,
 		repository.ReleaseReviewSubmissionInput{
 			SourceID:         relationID,
