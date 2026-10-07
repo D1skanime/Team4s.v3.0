@@ -3,13 +3,12 @@
 // as a single artifact (frontend/src/lib/api/history.ts, 21 re-verified functions)
 // without offering a sub-split escape hatch, mirroring 174-03's fansub-members.ts
 // D-24 exception (which cites the 174-02 client.ts precedent). The size comes from
-// five near-identical raw-DTO-to-domain-type mapper pairs (fansub group notes, member
-// group stories, anime-fansub project notes, release-version notes, member-story
-// context) that must travel with their sole callers to satisfy D-09 (no duplication);
-// splitting them into separate files would scatter each note/story CRUD group across
-// multiple files for no cohesion benefit.
+// near-identical raw-DTO-to-domain-type mapper pairs (fansub group notes,
+// anime-fansub project notes, release-version notes) that must travel with their
+// sole callers to satisfy D-09 (no duplication); splitting them into separate files
+// would scatter each note CRUD group across multiple files for no cohesion benefit.
 import { ReleaseVersionMediaCategory } from "@/types/releaseVersionMedia";
-import { FansubGroupNote, MemberGroupStory, MemberStoryContext, MemberStoryContextMember, MemberStoryContextRole, AnimeFansubProjectNote, CreateFansubGroupNoteRequest, UpdateFansubGroupNoteRequest, CreateMemberGroupStoryRequest, UpdateMemberGroupStoryRequest, UpsertAnimeFansubProjectNoteRequest } from "@/types/fansubNotes";
+import { FansubGroupNote, AnimeFansubProjectNote, CreateFansubGroupNoteRequest, UpdateFansubGroupNoteRequest, UpsertAnimeFansubProjectNoteRequest } from "@/types/fansubNotes";
 import { ReleaseVersionNote, BulkUpsertReleaseVersionNotesRequest } from "@/types/releaseVersionNotes";
 import { type GroupProjectNoteResponse } from "@/types/groupContributors";
 import { type CursorPage, type PublicReleaseNote } from "@/types/releaseDetail";
@@ -102,28 +101,6 @@ type RawFansubGroupNote = {
   DeletedAt: string | null;
 };
 
-export type RawMemberGroupStory = {
-  ID: number;
-  FansubGroupID: number;
-  MemberID: number;
-  RoleID: number | null;
-  Title: string;
-  BodyMarkdown?: string | null;
-  BodyHTML: string;
-  BodyJSON: unknown | null;
-  BodyText: string;
-  EditorType: string;
-  ContentSchemaVersion: number;
-  Visibility: "public" | "internal";
-  Status: "draft" | "published" | "archived" | "deleted";
-  SortOrder: number;
-  CreatedByUserID: number | null;
-  UpdatedByUserID: number | null;
-  CreatedAt: string;
-  UpdatedAt: string | null;
-  DeletedAt: string | null;
-};
-
 type RawAnimeFansubProjectNote = {
   ID: number;
   AnimeID: number;
@@ -145,45 +122,10 @@ type RawAnimeFansubProjectNote = {
   DeletedAt: string | null;
 };
 
-type RawMemberStoryContextMember = {
-  ID: number;
-  Nickname: string;
-};
-
-type RawMemberStoryContextRole = {
-  ID: number;
-  Name: string;
-  Label: string;
-};
-
 function mapFansubGroupNote(raw: RawFansubGroupNote): FansubGroupNote {
   return {
     id: raw.ID,
     fansubGroupId: raw.FansubGroupID,
-    title: raw.Title,
-    bodyMarkdown: raw.BodyMarkdown ?? null,
-    bodyHtml: raw.BodyHTML,
-    bodyJson: decodeReleaseVersionBodyJson(raw.BodyJSON),
-    bodyText: raw.BodyText,
-    editorType: raw.EditorType,
-    contentSchemaVersion: raw.ContentSchemaVersion,
-    visibility: raw.Visibility,
-    status: raw.Status,
-    sortOrder: raw.SortOrder,
-    createdByUserId: raw.CreatedByUserID,
-    updatedByUserId: raw.UpdatedByUserID,
-    createdAt: raw.CreatedAt,
-    updatedAt: raw.UpdatedAt,
-    deletedAt: raw.DeletedAt,
-  };
-}
-
-export function mapMemberGroupStory(raw: RawMemberGroupStory): MemberGroupStory {
-  return {
-    id: raw.ID,
-    fansubGroupId: raw.FansubGroupID,
-    memberId: raw.MemberID,
-    roleId: raw.RoleID,
     title: raw.Title,
     bodyMarkdown: raw.BodyMarkdown ?? null,
     bodyHtml: raw.BodyHTML,
@@ -224,25 +166,6 @@ function mapAnimeFansubProjectNote(
     createdAt: raw.CreatedAt,
     updatedAt: raw.UpdatedAt,
     deletedAt: raw.DeletedAt,
-  };
-}
-
-function mapMemberStoryContextMember(
-  raw: RawMemberStoryContextMember,
-): MemberStoryContextMember {
-  return {
-    id: raw.ID,
-    nickname: raw.Nickname,
-  };
-}
-
-function mapMemberStoryContextRole(
-  raw: RawMemberStoryContextRole,
-): MemberStoryContextRole {
-  return {
-    id: raw.ID,
-    name: raw.Name,
-    label: raw.Label,
   };
 }
 
@@ -371,163 +294,6 @@ export async function deleteFansubGroupNote(
   const API_BASE_URL = getApiBaseUrl();
   const response = await authorizedFetch(
     `${API_BASE_URL}/api/v1/admin/fansubs/${fansubId}/notes/${noteId}`,
-    {
-      method: "DELETE",
-      headers: withAuthHeader({}, authToken),
-    },
-  );
-
-  if (!response.ok) {
-    const parsed = await parseApiErrorPayload(
-      response,
-      `API request failed: ${response.status}`,
-    );
-    throw new ApiError(
-      response.status,
-      parsed.message,
-      null,
-      parsed.code,
-      parsed.details,
-    );
-  }
-}
-
-export async function getMemberGroupStoryContext(
-  fansubId: number,
-  authToken?: string,
-): Promise<MemberStoryContext> {
-  const API_BASE_URL = getApiBaseUrl();
-  const response = await authorizedFetch(
-    `${API_BASE_URL}/api/v1/admin/fansubs/${fansubId}/member-stories/context`,
-    {
-      headers: withAuthHeader({}, authToken),
-    },
-  );
-
-  if (!response.ok) {
-    const parsed = await parseApiErrorPayload(
-      response,
-      `API request failed: ${response.status}`,
-    );
-    throw new ApiError(
-      response.status,
-      parsed.message,
-      null,
-      parsed.code,
-      parsed.details,
-    );
-  }
-
-  const json = (await response.json()) as {
-    data: {
-      members: RawMemberStoryContextMember[];
-      roles: RawMemberStoryContextRole[];
-    };
-  };
-
-  return {
-    members: json.data.members.map(mapMemberStoryContextMember),
-    roles: json.data.roles.map(mapMemberStoryContextRole),
-  };
-}
-
-export async function createMemberGroupStory(
-  fansubId: number,
-  data: CreateMemberGroupStoryRequest,
-  authToken?: string,
-): Promise<MemberGroupStory> {
-  const API_BASE_URL = getApiBaseUrl();
-  const payload = {
-    member_id: data.memberId,
-    role_id: data.roleId ?? null,
-    title: data.title,
-    body_json: data.bodyJson,
-    visibility: data.visibility,
-    status: data.status,
-    sort_order: data.sortOrder ?? 0,
-  };
-  const response = await authorizedFetch(
-    `${API_BASE_URL}/api/v1/admin/fansubs/${fansubId}/member-stories`,
-    {
-      method: "POST",
-      headers: withAuthHeader(
-        { "Content-Type": "application/json" },
-        authToken,
-      ),
-      body: JSON.stringify(payload),
-    },
-  );
-
-  if (!response.ok) {
-    const parsed = await parseApiErrorPayload(
-      response,
-      `API request failed: ${response.status}`,
-    );
-    throw new ApiError(
-      response.status,
-      parsed.message,
-      null,
-      parsed.code,
-      parsed.details,
-    );
-  }
-
-  const json = (await response.json()) as { data: RawMemberGroupStory };
-  return mapMemberGroupStory(json.data);
-}
-
-export async function updateMemberGroupStory(
-  fansubId: number,
-  storyId: number,
-  data: UpdateMemberGroupStoryRequest,
-  authToken?: string,
-): Promise<MemberGroupStory> {
-  const API_BASE_URL = getApiBaseUrl();
-  const payload = {
-    title: data.title,
-    body_json: data.bodyJson,
-    visibility: data.visibility,
-    status: data.status,
-    sort_order: data.sortOrder,
-  };
-  const response = await authorizedFetch(
-    `${API_BASE_URL}/api/v1/admin/fansubs/${fansubId}/member-stories/${storyId}`,
-    {
-      method: "PATCH",
-      headers: withAuthHeader(
-        { "Content-Type": "application/json" },
-        authToken,
-      ),
-      body: JSON.stringify(payload),
-    },
-  );
-
-  if (!response.ok) {
-    const parsed = await parseApiErrorPayload(
-      response,
-      `API request failed: ${response.status}`,
-    );
-    throw new ApiError(
-      response.status,
-      parsed.message,
-      null,
-      parsed.code,
-      parsed.details,
-    );
-  }
-
-  const json = (await response.json()) as { data: RawMemberGroupStory };
-  return mapMemberGroupStory(json.data);
-}
-
-export async function deleteMemberGroupStory(
-  fansubId: number,
-  storyId: number,
-  authToken?: string,
-): Promise<void> {
-  const API_BASE_URL = getApiBaseUrl();
-  const response = await authorizedFetch(
-    `${API_BASE_URL}/api/v1/admin/fansubs/${fansubId}/member-stories/${storyId}`,
     {
       method: "DELETE",
       headers: withAuthHeader({}, authToken),

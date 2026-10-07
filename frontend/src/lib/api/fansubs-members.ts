@@ -1,10 +1,9 @@
 // D-24 sub-split (see fansubs-core.ts): fansub member CRUD, including the
 // unified/hist group-member listing and generic group-member CRUD.
-// 174-07: activateClaimedMember (member-claim activation) and
-// listMemberGroupStories (admin member-stories read) joined this file --
-// both hit /api/v1/admin/fansubs/:id/... member-scoped endpoints, confirmed
-// via grep call-site evidence (ClaimDecisionImpactPanel.tsx,
-// useGroupMembersClaimActions.ts for the former; test-only for the latter).
+// 174-07: activateClaimedMember (member-claim activation) joined this file --
+// it hits the /api/v1/admin/fansubs/:id/... member-scoped endpoint family,
+// confirmed via grep call-site evidence (ClaimDecisionImpactPanel.tsx,
+// useGroupMembersClaimActions.ts).
 import type {
   CreateGroupMemberRequest,
   FansubMemberCreateRequest,
@@ -16,7 +15,6 @@ import type {
   UnifiedGroupMember,
   UpdateGroupMemberRequest,
 } from "@/types/fansub";
-import type { MemberGroupStory } from "@/types/fansubNotes";
 import {
   ApiError,
   authorizedFetch,
@@ -25,8 +23,6 @@ import {
   parseApiErrorPayload,
   withAuthHeader,
 } from "./client";
-import { mapMemberGroupStory } from "./history";
-import type { RawMemberGroupStory } from "./history";
 
 export async function getFansubMembers(
   fansubID: number,
@@ -162,38 +158,6 @@ export async function activateClaimedMember(
     );
     throw new ApiError(response.status, parsed.message, null, parsed.code);
   }
-}
-
-// ---- Member Group Stories ----
-
-export async function listMemberGroupStories(
-  fansubId: number,
-  authToken?: string,
-): Promise<MemberGroupStory[]> {
-  const API_BASE_URL = getApiBaseUrl();
-  const response = await authorizedFetch(
-    `${API_BASE_URL}/api/v1/admin/fansubs/${fansubId}/member-stories`,
-    {
-      headers: withAuthHeader({}, authToken),
-    },
-  );
-
-  if (!response.ok) {
-    const parsed = await parseApiErrorPayload(
-      response,
-      `API request failed: ${response.status}`,
-    );
-    throw new ApiError(
-      response.status,
-      parsed.message,
-      null,
-      parsed.code,
-      parsed.details,
-    );
-  }
-
-  const json = (await response.json()) as { data: RawMemberGroupStory[] };
-  return json.data.map(mapMemberGroupStory);
 }
 
 export async function listGroupMembers(
