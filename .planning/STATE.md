@@ -2,16 +2,16 @@
 gsd_state_version: 1.0
 milestone: v1.4
 milestone_name: Coverage
-status: Phase 174 closed 2026-10-06 — final combined automated gate green (zero new regressions vs. 174-25's `174-REPORT.md` baseline) and live human UAT approved across all 7 end-to-end flows (174-26). `174-REPORT.md` (174-25) remains the authoritative closing report; its Recommendations-for-Follow-up-Phases list (F-01 first) is the suggested next work. Retroactive closing gates backfilled 2026-10-06: `174-REVIEW.md` (status: issues_found, 0 critical/1 warning/1 info, no blockers) and `174-VERIFICATION.md` (status: human_needed — all codebase/automated truths independently re-verified; 2 already user-approved UAT Gegenprobe items from `174-UAT-CHECKLIST.md` flagged for a live re-confirmation pass).
-stopped_at: Completed 174-26-PLAN.md (Phase 174 CLOSED); 174-REVIEW.md + 174-VERIFICATION.md backfilled 2026-10-06, awaiting instruction on human_needed items
-last_updated: "2026-10-06T11:56:30.629Z"
-last_activity: 2026-10-06
+status: executing
+stopped_at: Completed 175-01-PLAN.md
+last_updated: "2026-10-07T08:03:33.791Z"
+last_activity: 2026-10-07
 progress:
-  total_phases: 39
+  total_phases: 40
   completed_phases: 34
-  total_plans: 364
-  completed_plans: 360
-  percent: 87
+  total_plans: 373
+  completed_plans: 361
+  percent: 85
 ---
 
 # Quick Task 260925-6qe — Anime-Identitätskarte kompakt (Phase 168)
@@ -280,15 +280,15 @@ Phase 135 and any future roadmap entries continue from here.
 See: .planning/PROJECT.md (updated 2026-08-13)
 
 **Core value:** Team4s presents fansub history and collaboration credibly while keeping identity, visibility, ownership, and permissions correct.
-**Current focus:** Phase 174 — modularisierung-wartbarkeits-refactoring-hotspot-analyse-api
+**Current focus:** Phase 175 — inventur-doppelungen-nach-fachaufgaben-pro-fachaufgabe-alle-
 2026-09-18 after the client's live UAT approval ("1 passt, 2 löschen") — see the "Phase 164
 Abschluss" entry below for the full closing record.
 
 ## Current Position
 
-Phase: 174 (modularisierung-wartbarkeits-refactoring-hotspot-analyse-api) — COMPLETE (26/26 plans)
-Plan: 26 of 26
-Status: Phase 174 closed 2026-10-06 — final combined automated gate green (zero new regressions vs. 174-25's `174-REPORT.md` baseline) and live human UAT approved across all 7 end-to-end flows (174-26). `174-REPORT.md` (174-25) remains the authoritative closing report; its Recommendations-for-Follow-up-Phases list (F-01 first) is the suggested next work. Retroactive closing gates backfilled 2026-10-06: code review `174-REVIEW.md` (issues_found, 0 critical/1 warning/1 info) and goal verification `174-VERIFICATION.md` (human_needed — 2 UAT Gegenprobe items need live re-confirmation).
+Phase: 175 (inventur-doppelungen-nach-fachaufgaben-pro-fachaufgabe-alle-) — EXECUTING
+Plan: 2 of 9
+Status: Ready to execute
 Completed: Phase 174 — `frontend/src/lib/api.ts` (11,508 lines/371 exports) collapsed to a 34-line barrel over 36 domain modules; `useAdminAnimeCreateController.ts`, `GroupMediaReviewSection.tsx`, and `admin/fansubs/create/page.tsx` decomposed into sub-hooks/section components; `fansub_repository.go`, `admin_content_anime_themes.go`, `anime_assets.go`, and `admin_content_release_version_media.go` split into domain-scoped sibling files; `FansubEdit.module.css` and `ui.module.css` split along grep-verified single-owner class boundaries — all behavior-preserving per D-01, zero new dependency cycles, zero new N+1, full test-suite parity, final gate + live UAT both green/approved.
 Next: Phase 169's remaining plan (169-05, live actor/refresh/responsive UAT) is still open; Phase 166 (Film-Content-Flow) has not been started. The Coverage milestone is NOT complete.
 
@@ -395,7 +395,7 @@ timing flakiness, not a Phase 149 regression, and not yet root-caused.
 v1.4 is extended by the additive phases 165-170 and is not currently fully closed. Phase 166
 remains open, Phase 169 still has its live UAT plan outstanding, and Phase 170 is implemented
 with focused verification complete plus named pre-existing full-suite failures.
-Last activity: 2026-10-06
+Last activity: 2026-10-07
 
 ## Accumulated Context
 
@@ -930,6 +930,8 @@ Last activity: 2026-10-06
 - [Phase 174]: 174-25 closing report identified 7 D-24 exceptions not previously flagged by their originating plan's own SUMMARY (admin/fansubs/create/page.tsx, GroupMediaReviewSection.tsx, fansub_repository_groups.go) — closing a real gap in the phase's own self-reporting discipline
 - [Phase 174]: 174-25 corrected 174-FOLLOWUPS.md's stale Gegenprobe-offen note for BUG-174-02/BUG-174-05 against 174-UAT-CHECKLIST.md's 2026-10-06 user approval, and folded all 18 F-01..F-18 items plus all 5 BUG-174-xx items into the closing report's Recommendations section with F-01 (remove legacy image store) recommended first, per the user's 2026-10-05 PFLICHT instruction
 - [Phase 174]: Final combined gate (174-26) re-confirmed zero regressions vs. 174-25's baseline; live human UAT approved across all 7 Phase 174 flows, closing the phase. — Checkpoint gate="blocking" honored exactly (stopped, returned 7-step verification to orchestrator) rather than fabricating approval; resumed only once the user's real, explicit 2026-10-06 sign-off was relayed.
+- [Phase 175]: Release-Medien ist Vorbild (Queue sammelt statt ersetzt, Titel/Caption pro Datei), Gruppenmedien-Upload wird Altlast — 174-FOLLOWUPS F-15, verifiziert anhand Quelltext
+- [Phase 175]: FansubMediaLightbox ist Vorbild fuer den kuenftigen gemeinsamen Bild-Viewer; ReleaseGallery/FansubGroupMediaBlock nutzen es bereits, ReleaseVersionMediaDetailPanel.tsx ist toter Code — 174-FOLLOWUPS F-18, verifiziert anhand Quelltext statt uebernommen
 
 ### Pending Todos
 
@@ -1512,11 +1514,12 @@ untruncated list lives in `.planning/todos/pending/`.
 | Phase 174 P23 | 110min | 2 tasks tasks | 55 files files |
 | Phase 174 P25 | ~85min | 2 tasks | 1 files |
 | Phase 174 P26 | 115min | 2 tasks | 1 files |
+| Phase 175 P01 | 140min | 2 tasks | 4 files |
 
 ## Session Continuity
 
-Last session: 2026-10-06T11:56:27.418Z
-Stopped at: Completed 174-26-PLAN.md (Phase 174 CLOSED)
+Last session: 2026-10-07T08:03:33.764Z
+Stopped at: Completed 175-01-PLAN.md
 Last activity: 2026-09-28 - Completed Phase 169 Plan 169-01
 Resume file: 
 None
