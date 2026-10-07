@@ -2445,7 +2445,7 @@ Plans:
 **Goal:** Alle 23 in 176-CONTEXT.md entschiedenen offenen Bugs und Altlasten aus Phase 174/175 sind behoben oder bewusst bereinigt entfernt -- in fünf voneinander getrennten, nacheinander abgeschlossenen Arbeitspaketen (A-E), ohne neue Features oder Parallelsystem-Zusammenführungen.
 **Requirements**: Kein REQUIREMENTS.md-Mapping -- Decision-Coverage via D-01 bis D-23 in `176-CONTEXT.md` (jede Plan-Datei trägt die zutreffenden D-IDs in ihren must_haves).
 **Depends on:** Phase 175
-**Plans:** 3/15 plans executed
+**Plans:** 4/15 plans executed
 
   - Wave 1: 176-01 (Paket A -- Member-Group-Story-Entfernung, D-16)
   - Wave 2: 176-02 (Paket B -- Theme-Typ-Kürzel aus DB, D-01)
@@ -2472,7 +2472,7 @@ Plans:
 
 **Wave 4** *(blocked on Wave 3 completion)*
 
-- [ ] 176-04-PLAN.md — Bestandsdaten-Bereinigung mit blockierendem Nutzer-Checkpoint nach Backup (D-23).
+- [x] 176-04-PLAN.md — Bestandsdaten-Bereinigung mit blockierendem Nutzer-Checkpoint nach Backup (D-23).
 
 **Wave 5** *(blocked on Wave 4 completion)*
 
