@@ -23,3 +23,34 @@ Logged per the Scope Boundary rule rather than fixed.
 
 None of these relate to `theme_types.kuerzel`, segment badge derivation, or the deleted
 `segmenteTabUtils.ts`. Not fixed as part of 176-02.
+
+## 176-05
+
+Pre-existing, out-of-scope failures observed while running `go test ./internal/handlers/...`
+during 176-05 execution. None touch files modified by this plan
+(`member_claim_invitations_handler.go`/`_test.go`, `fansub_group_members.go`,
+`admin_routes.go`, `memorial_guard.go`, `member_claims_submit_repository.go`,
+`member_claim_invitations_repository.go`). Logged per the Scope Boundary rule rather
+than fixed.
+
+1. `TestEpisodeImport11eyesEnumeratesEveryPhysicalSource`,
+   `Test11eyesSourceSelection_AllActualItemsAndPermutations`,
+   `TestJellyfinSourceBatch11eyes_OneCollectionNoAlternativeDiscovery` -- all fail with
+   `open ../../../docs/audits/2026-09-15-jellyfin12/fixtures/11eyes-series.json: no such
+   file or directory` / `11eyes-episode1.json`. Missing fixture files in a docs/audits
+   directory, unrelated to member-claim-invitation or fansub-member code.
+2. `TestPhase136ContractParity/group_capability_response`,
+   `TestPublicMemberProfileMatchesOpenAPIAllowList`,
+   `TestPublicBadgeNextTierEnumParity` -- all fail with
+   `yaml: unmarshal errors: line 2205: mapping key "description" already defined at line
+   2167` while parsing `shared/contracts/openapi.yaml`. A pre-existing duplicate-key bug
+   in the shared OpenAPI contract file, unrelated to this plan's backend-only scope.
+
+Also observed in `internal/repository`: `TestClaimSubmitBlockedForMemorialProfile` was
+already failing before this plan touched any file -- it reads
+`member_claims_repository.go` for memorial-guard fragments, but the guarded code has
+lived in `member_claims_submit_repository.go` since an earlier phase split that file out.
+The stale filename reference is a pre-existing bug unrelated to the D-21 extraction done
+in 176-05 Task 3 (see `176-05-SUMMARY.md` for how the sibling invitations-path fragment
+tests were replaced with real behavior tests on the new shared `checkMemorialNotClaimable`
+helper instead of being left broken by the extraction).

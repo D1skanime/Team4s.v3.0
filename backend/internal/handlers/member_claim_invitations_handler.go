@@ -1,6 +1,7 @@
 package handlers
 
 import (
+	"context"
 	"errors"
 	"net/http"
 	"strings"
@@ -11,15 +12,26 @@ import (
 	"github.com/gin-gonic/gin"
 )
 
+// memberClaimInvitationStore ist die schmale Repo-Schnittstelle, die
+// MemberClaimInvitationsHandler benötigt. *repository.MemberClaimInvitationRepository
+// erfüllt diese Signatur bereits; die Abstraktion existiert nur, damit Tests einen
+// echten Fake-Repo statt der Postgres-Implementierung einsetzen können (CLAUDE.md Teststil).
+type memberClaimInvitationStore interface {
+	ListInvitationsForMember(ctx context.Context, memberID int64) ([]repository.MemberClaimInvitationRow, error)
+	CreateInvitation(ctx context.Context, memberID int64, fansubGroupID int64, createdByAppUserID int64) (*repository.CreateInvitationResult, error)
+	AcceptInvitation(ctx context.Context, tokenRaw string, acceptedByAppUserID int64) error
+	CancelInvitation(ctx context.Context, invitationID int64, memberID int64, fansubGroupID int64, cancelledByAppUserID int64) error
+}
+
 type MemberClaimInvitationsHandler struct {
-	invitationsRepo *repository.MemberClaimInvitationRepository
+	invitationsRepo memberClaimInvitationStore
 	permissionSvc   *permissions.Service
 	auditLogRepo    auditLogWriter
 	appPublicURL    string
 }
 
 func NewMemberClaimInvitationsHandler(
-	invitationsRepo *repository.MemberClaimInvitationRepository,
+	invitationsRepo memberClaimInvitationStore,
 	permissionSvc *permissions.Service,
 	auditLogRepo auditLogWriter,
 	appPublicURL string,
@@ -142,12 +154,20 @@ func (h *MemberClaimInvitationsHandler) CreateClaimInvitation(c *gin.Context) {
 }
 
 func (h *MemberClaimInvitationsHandler) AcceptClaimInvitation(c *gin.Context) {
-	identity, ok := requireMeIdentity(c)
+	identity, actor, ok := permissionActorFromContext(c)
 	if !ok {
 		return
 	}
 	if h.invitationsRepo == nil {
 		internalError(c, "interner serverfehler")
+		return
+	}
+
+	// D-17: ein deaktivierter app-user darf eine Claim-Einladung nicht annehmen —
+	// derselbe Check, den AcceptFansubInvitation bereits erzwingt (app_auth_invitations.go).
+	result := h.permissionSvc.CanAcceptInvitation(actor)
+	if !result.Allowed {
+		writePermissionDenied(c, result)
 		return
 	}
 
