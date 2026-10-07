@@ -2439,3 +2439,13 @@ Plans:
 **Wave 3** *(blocked on Wave 2 completion)*
 
 - [x] 175-09-PLAN.md — 175-ROADMAP-PROPOSAL.md synthetisieren + D-09-Nutzer-Checkpoint (Phasenzuschnitt bestätigen, keine ROADMAP.md-Anlage in dieser Phase).
+
+### Phase 176: Bug- und Altlasten-Sammelphase: offene 174-Followups (F-02 OUT-Kürzel aus DB, F-03 Umlaute, F-04 native Felder, F-05 doppelte anime_contributions, F-06 rote Tests/openapi-Duplikat, F-12, F-14, F-19, F-21–F-24) plus Rechte-/Sicherheitsbefunde aus Phase 175 (Claim-Invite-Accept ohne disabled-Prüfung, Notizen-Tab-Gate, Legacy-Member-Delete-Endpunkt) und Entfernung der Member-Group-Story-Altlast — Risiko mittel, intern in geblockte Pakete getrennt
+
+**Goal:** [To be planned]
+**Requirements**: TBD
+**Depends on:** Phase 175
+**Plans:** 0 plans
+
+Plans:
+- [ ] TBD (run /gsd-plan-phase 176 to break down)

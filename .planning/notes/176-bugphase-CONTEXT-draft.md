@@ -1,5 +1,12 @@
 # Phase 176 (Entwurf): Bug- und Altlasten-Sammelphase aus Phase 174 — Context
 
+> **Übernommen in `.planning/phases/176-bug-und-altlasten-sammelphase-offene-174-followups-f-02-out-/176-CONTEXT.md` (2026-10-07).**
+> Dieser Entwurf ist das Ausgangsmaterial; die finale CONTEXT.md ergänzt ihn um die
+> verbindlichen Punkte aus `175-ROADMAP-PROPOSAL.md` (Nutzer-Bestätigung) und
+> `175-USER-DECISIONS.md` (u. a. Member-Group-Story-Entfernung, Rechte-/Sicherheitsfixes
+> 5.3/6.1/6.2/8.4, Ausführungsregeln). Für die Planung bitte die finale CONTEXT.md verwenden,
+> nicht diesen Entwurf.
+
 **Stand:** Entwurf 2026-10-07, wird nach Abschluss von Phase 175 angelegt und um deren Rechte-Befunde ergänzt.
 **Quelle:** Nutzerauftrag 2026-10-06/07; Einträge aus `174-FOLLOWUPS.md`.
 
