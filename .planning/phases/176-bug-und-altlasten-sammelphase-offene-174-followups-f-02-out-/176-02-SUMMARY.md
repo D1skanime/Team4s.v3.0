@@ -50,7 +50,7 @@ requirements-completed: []
 
 # Metrics
 duration: ~19min (Tasks 1-2) + ~45min (Live-UAT checkpoint fix round)
-completed: 2026-10-07 (partial - awaiting second human checkpoint re-verification)
+completed: 2026-10-07
 ---
 
 # Phase 176 Plan 02: Theme-Segment-Badge aus DB-Kuerzel Summary
@@ -62,7 +62,7 @@ completed: 2026-10-07 (partial - awaiting second human checkpoint re-verificatio
 - **Duration:** ~19 min (Tasks 1-2)
 - **Started:** 2026-10-07T13:10:26Z
 - **Completed:** 2026-10-07T13:28:48Z (Tasks 1-2; Task 3 checkpoint still open)
-- **Tasks:** 2 of 3 completed (Task 3 is a blocking human-verify checkpoint)
+- **Tasks:** 3 of 3 completed (Task 3's blocking human-verify checkpoint approved 2026-10-07)
 - **Files modified:** 13 (4 backend/migration, 9 frontend/test)
 
 ## Accomplishments
@@ -79,9 +79,9 @@ completed: 2026-10-07 (partial - awaiting second human checkpoint re-verificatio
 2. **Task 2: Switch SegmenteTab badge/color/spur derivation to the DB kuerzel and delete the dead utils file** - `81d7e491` (feat)
 3. **Live-UAT checkpoint fix: give Outro its own backend slot, derive segment type from kuerzel** - `5f8966b4` (fix, Rule 1 deviation)
 
-**Plan metadata commit:** pending (will follow this SUMMARY commit, per sequential-executor protocol)
+**Plan metadata commit:** follows this SUMMARY commit, per sequential-executor protocol.
 
-_Task 3 ("Checkpoint: Live-UAT segment badge labels (D-01)") is a blocking `checkpoint:human-verify` gate. It was first presented after Tasks 1-2 and returned NOT approved with a real defect (see Deviations below); the fix is committed and the checkpoint is being re-presented below — see CHECKPOINT REACHED._
+_Task 3 ("Checkpoint: Live-UAT segment badge labels (D-01)") is a blocking `checkpoint:human-verify` gate. It was first presented after Tasks 1-2 and returned NOT approved with a real defect (see Deviations below); the fix was committed and the checkpoint was re-presented — the user approved it on 2026-10-07 (see "Checkpoint Approval" above)._
 
 ## Files Created/Modified
 
@@ -183,12 +183,29 @@ None - no external service configuration required.
 
 ## Next Phase Readiness
 
-Tasks 1 and 2 are complete, committed, and verified (`go build`/`go vet`/`go test ./internal/repository/... -run Segment`, live-DB `psql` check, `npx tsc --noEmit`, `npx vitest run` on the folder — 15 files / 331 tests passing). The Live-UAT checkpoint fix (commit `5f8966b4`) is also complete, committed, and verified (see Deviations #5). **Task 3 is a blocking `checkpoint:human-verify` gate, now being re-presented** after the reported defect was fixed — requiring a second live browser UAT round at `http://127.0.0.1:3300/admin/episode-versions/{versionId}/edit` (Segmente tab) to confirm (a) OP/ED/IN badges are still visually unchanged and Outro shows "OUT" (the original scope), and (b) saving a new Outro segment on a release version that already has an ED segment now succeeds, while a second Outro on the same release version still correctly conflicts. This plan is NOT complete until that checkpoint is resolved by a human and a continuation agent finishes the plan (final metadata commit, STATE.md/ROADMAP.md updates).
+All 3 tasks are complete, committed, and verified: Tasks 1-2 (`go build`/`go vet`/`go test ./internal/repository/... -run Segment`, live-DB `psql` check, `npx tsc --noEmit`, `npx vitest run` on the folder — 15 files / 331 tests passing), the Live-UAT checkpoint fix (commit `5f8966b4`, see Deviations #5), and Task 3's blocking `checkpoint:human-verify` gate (approved by the human user 2026-10-07 on the re-presented round, confirming both OP/ED/IN unchanged + Outro -> "OUT" and the new Outro-save/second-Outro-conflict backend behavior). Phase 176 can proceed to plan 176-03.
 
 ---
 *Phase: 176-bug-und-altlasten-sammelphase-offene-174-followups-f-02-out-*
-*Completed: partial (2/3 tasks; Live-UAT checkpoint fix round complete, awaiting second checkpoint re-verification) - 2026-10-07*
+*Completed: 2026-10-07*
 
 ## Self-Check: PASSED
 
 All 9 files listed under "Files Created/Modified" for the Live-UAT checkpoint fix round were confirmed present on disk, and all 3 referenced commit hashes (`d1672bd7`, `81d7e491`, `5f8966b4`) were confirmed present in `git log --oneline --all`.
+
+## Checkpoint Approval
+
+**Task 3 ("Checkpoint: Live-UAT segment badge labels (D-01)") — APPROVED by the human user on 2026-10-07**, on the re-presented round (after the Rule 1 backend fix in commit `5f8966b4`).
+
+User response: "approved — Live-UAT 176-02 bestanden (Nutzer 2026-10-07): OP/ED/IN unverändert, Outro speicherbar neben ED mit Badge OUT, zweites Outro wird abgelehnt."
+
+Confirmed via live browser verification at `http://127.0.0.1:3300/admin/episode-versions/{versionId}/edit` (Segmente tab):
+- OP/ED/IN segment badges render unchanged (no visual regression for the 3 pre-existing types).
+- A new Outro segment can now be saved alongside an existing ED segment on the same release version, rendering badge "OUT" (previously blocked by the backend's name-guessed ED-slot conflict, fixed by commit `5f8966b4`).
+- A second Outro segment on the same release version is correctly rejected (OUT now has its own exclusive per-release-version slot, per the user's binding decision recorded in Deviation #5).
+
+This closes the plan. All 3 tasks (2 auto + 1 checkpoint) are now complete.
+
+## Plan Status: COMPLETE
+
+Completed: 2026-10-07
