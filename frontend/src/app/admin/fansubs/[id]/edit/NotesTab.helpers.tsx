@@ -82,10 +82,12 @@ export function GroupNotePreview({
   draft,
   onEdit,
   onDelete,
+  canEditNotes = true,
 }: {
   draft: GroupNoteDraft
   onEdit: () => void
   onDelete: () => void
+  canEditNotes?: boolean
 }) {
   return (
     <section className={styles.editorCard}>
@@ -108,14 +110,16 @@ export function GroupNotePreview({
         <p className={styles.editorPreviewText}>{previewText(draft.bodyText)}</p>
       )}
 
-      <div className={styles.editorActionBar}>
-        <button type="button" className={styles.button} onClick={onEdit}>
-          <Pencil size={14} />Bearbeiten
-        </button>
-        <button type="button" className={`${styles.buttonSecondary} ${styles.editorGhostButton}`} onClick={onDelete}>
-          <Trash2 size={14} />Löschen
-        </button>
-      </div>
+      {canEditNotes ? (
+        <div className={styles.editorActionBar}>
+          <button type="button" className={styles.button} onClick={onEdit}>
+            <Pencil size={14} />Bearbeiten
+          </button>
+          <button type="button" className={`${styles.buttonSecondary} ${styles.editorGhostButton}`} onClick={onDelete}>
+            <Trash2 size={14} />Löschen
+          </button>
+        </div>
+      ) : null}
     </section>
   )
 }
@@ -125,11 +129,13 @@ export function GroupNoteEditor({
   onUpdate,
   onSave,
   onDelete,
+  canEditNotes = true,
 }: {
   draft: GroupNoteDraft
   onUpdate: (partial: Partial<GroupNoteDraft>) => void
   onSave: () => void
   onDelete: () => void
+  canEditNotes?: boolean
 }) {
   return (
     <section className={styles.editorCard}>
@@ -194,20 +200,22 @@ export function GroupNoteEditor({
         </div>
       </div>
 
-      <div className={styles.editorActionBar}>
-        <Button
-          variant="success"
-          className={styles.editorPrimaryAction}
-          leftIcon={<Save size={14} />}
-          onClick={onSave}
-          disabled={draft.saving || draft.deleting}
-        >
-          {draft.saving ? 'Speichern...' : 'Speichern'}
-        </Button>
-        <button type="button" className={`${styles.buttonSecondary} ${styles.editorGhostButton}`} onClick={onDelete} disabled={draft.saving || draft.deleting}>
-          <Trash2 size={14} />{draft.id != null ? (draft.deleting ? 'Löschen...' : 'Löschen') : 'Verwerfen'}
-        </button>
-      </div>
+      {canEditNotes ? (
+        <div className={styles.editorActionBar}>
+          <Button
+            variant="success"
+            className={styles.editorPrimaryAction}
+            leftIcon={<Save size={14} />}
+            onClick={onSave}
+            disabled={draft.saving || draft.deleting}
+          >
+            {draft.saving ? 'Speichern...' : 'Speichern'}
+          </Button>
+          <button type="button" className={`${styles.buttonSecondary} ${styles.editorGhostButton}`} onClick={onDelete} disabled={draft.saving || draft.deleting}>
+            <Trash2 size={14} />{draft.id != null ? (draft.deleting ? 'Löschen...' : 'Löschen') : 'Verwerfen'}
+          </button>
+        </div>
+      ) : null}
     </section>
   )
 }

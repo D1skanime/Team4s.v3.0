@@ -127,7 +127,14 @@ export function FansubEditSecondaryTabs({
     <>
       {activeMainTab === "notes" ? (
         <>
-          <NotesTab fansubId={fansubID} />
+          <NotesTab
+            fansubId={fansubID}
+            canEditNotes={
+              isPlatformAdmin ||
+              Boolean(capabilities?.can_edit_group) ||
+              Boolean(capabilities?.can_edit_notes)
+            }
+          />
           <GroupHistorySection
             fansubGroupId={fansubID}
             foundingOnly={!isPlatformAdmin && !capabilities?.can_edit_group && Boolean(capabilities?.can_edit_founding_history)}

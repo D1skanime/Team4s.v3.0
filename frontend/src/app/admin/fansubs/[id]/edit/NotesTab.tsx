@@ -60,9 +60,10 @@ function groupNoteFromApi(note: FansubGroupNote): GroupNoteDraft {
 
 interface NotesTabProps {
   fansubId: number
+  canEditNotes?: boolean
 }
 
-export function NotesTab({ fansubId }: NotesTabProps) {
+export function NotesTab({ fansubId, canEditNotes = true }: NotesTabProps) {
   const { hasAccessToken, hasRefreshToken, isClientInitialized } = useAuthSession()
   const hasActiveSession = hasAccessToken || hasRefreshToken
   const { confirm, confirmDialog } = useConfirmDialog()
@@ -194,6 +195,7 @@ export function NotesTab({ fansubId }: NotesTabProps) {
               onUpdate={(partial) => updateGroupNote(draft.key, partial)}
               onSave={() => { void saveGroupNote(draft.key) }}
               onDelete={() => { void deleteGroupNote(draft.key) }}
+              canEditNotes={canEditNotes}
             />
           ) : (
             <GroupNotePreview
@@ -201,25 +203,28 @@ export function NotesTab({ fansubId }: NotesTabProps) {
               draft={draft}
               onEdit={() => openGroupNoteEditor(draft.key)}
               onDelete={() => { void deleteGroupNote(draft.key) }}
+              canEditNotes={canEditNotes}
             />
           )
         ))}
         {groupNotes.length === 0 && (
           <p className={styles.fansubEditHint}>Noch keine Gruppennotizen vorhanden.</p>
         )}
-        <button
-          type="button"
-          className={styles.buttonSecondary}
-          onClick={() => {
-            const nextDraft = normalizeGroupNoteDraft(emptyGroupNoteDraft())
-            setGroupNotes((prev) => [...prev, nextDraft])
-            openGroupNoteEditor(nextDraft.key)
-          }}
-          style={{ marginTop: '0.5rem' }}
-        >
-          <Plus size={14} />
-          Neue Gruppennotiz hinzufügen
-        </button>
+        {canEditNotes ? (
+          <button
+            type="button"
+            className={styles.buttonSecondary}
+            onClick={() => {
+              const nextDraft = normalizeGroupNoteDraft(emptyGroupNoteDraft())
+              setGroupNotes((prev) => [...prev, nextDraft])
+              openGroupNoteEditor(nextDraft.key)
+            }}
+            style={{ marginTop: '0.5rem' }}
+          >
+            <Plus size={14} />
+            Neue Gruppennotiz hinzufügen
+          </button>
+        ) : null}
       </section>
       {confirmDialog}
     </div>
