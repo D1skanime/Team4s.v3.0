@@ -3,14 +3,14 @@ gsd_state_version: 1.0
 milestone: v1.4
 milestone_name: Coverage
 status: executing
-stopped_at: Completed 175-09-PLAN.md (Phase 175 complete, 9/9 plans)
-last_updated: "2026-10-07T12:14:08.742Z"
+stopped_at: Completed 176-01-PLAN.md
+last_updated: "2026-10-07T13:10:06.463Z"
 last_activity: 2026-10-07
 progress:
   total_phases: 41
   completed_phases: 35
   total_plans: 388
-  completed_plans: 369
+  completed_plans: 370
   percent: 85
 ---
 
@@ -280,14 +280,14 @@ Phase 135 and any future roadmap entries continue from here.
 See: .planning/PROJECT.md (updated 2026-08-13)
 
 **Core value:** Team4s presents fansub history and collaboration credibly while keeping identity, visibility, ownership, and permissions correct.
-**Current focus:** Milestone complete
+**Current focus:** Phase 176 — bug-und-altlasten-sammelphase-offene-174-followups-f-02-out-
 2026-09-18 after the client's live UAT approval ("1 passt, 2 löschen") — see the "Phase 164
 Abschluss" entry below for the full closing record.
 
 ## Current Position
 
-Phase: 175
-Plan: Not started
+Phase: 176 (bug-und-altlasten-sammelphase-offene-174-followups-f-02-out-) — EXECUTING
+Plan: 2 of 15
 Status: Ready to execute
 Completed: Phase 174 — `frontend/src/lib/api.ts` (11,508 lines/371 exports) collapsed to a 34-line barrel over 36 domain modules; `useAdminAnimeCreateController.ts`, `GroupMediaReviewSection.tsx`, and `admin/fansubs/create/page.tsx` decomposed into sub-hooks/section components; `fansub_repository.go`, `admin_content_anime_themes.go`, `anime_assets.go`, and `admin_content_release_version_media.go` split into domain-scoped sibling files; `FansubEdit.module.css` and `ui.module.css` split along grep-verified single-owner class boundaries — all behavior-preserving per D-01, zero new dependency cycles, zero new N+1, full test-suite parity, final gate + live UAT both green/approved.
 Next: Separater, nachgelagerter Schritt außerhalb von Phase 175 legt die bestätigten Phasen 176-183 in `ROADMAP.md` an (nicht Teil von 175-09, D-09). Daneben weiterhin offen: Phase 169's remaining plan (169-05, live actor/refresh/responsive UAT); Phase 166 (Film-Content-Flow) has not been started. The Coverage milestone is NOT complete.
@@ -948,6 +948,7 @@ Last activity: 2026-10-07
 - [Phase 175-08]: 175-PERMISSION-MATRIX.md: Fachaufgaben 7/11 ohne Rechte-Aktionspaare bewusst ohne Tabellenzeile geführt (bestätigter Negativbefund statt fabrizierter Zeile); Fachaufgabe-10-Stichprobe auf Doppelzählung geprüft, nur 2 nicht anderswo belegte Aktionen eigenständig aufgenommen
 - [Phase 175-09]: Nutzer bestaetigte Phasenzuschnitt mit Aenderungen: Bugfix-Sammelphase=Phase 176 (Risiko mittel, 5 intern geblockte Pakete), F-15 gesplittet in Phase 179 (Media-Backend/Rechte) + Phase 180 (Upload-Frontend/-Workflow, abhaengig von 179), Phase 181 (Release-Bearbeitung) laeuft sequenziell zu 179/180, neue Phase 182 (Bildspeicher F-01) ergaenzt, finale bestaetigte Reihenfolge 176-183.
 - [Phase 175-09]: Phase 175 legt selbst keine ROADMAP.md-Phasen an (D-09) - Anlage der Phasen 176-183 erfolgt in einem separaten, nachgelagerten Schritt ausserhalb dieser Phase.
+- [Phase 176]: 0178 adds a new forward-only DROP migration instead of deleting historical 0062/0068 migrations — preserves append-only migration-history immutability per CLAUDE.md while still achieving D-16's goal of a permanently removed table
 
 ### Pending Todos
 
@@ -1539,11 +1540,12 @@ untruncated list lives in `.planning/todos/pending/`.
 | Phase 175 P07 | 15min | 1 tasks | 1 files |
 | Phase 175 P08 | 45min | 1 tasks | 1 files |
 | Phase 175 P09 | 35min | 2 tasks | 2 files |
+| Phase 176 P01 | 20min | 2 tasks | 15 files |
 
 ## Session Continuity
 
-Last session: 2026-10-07T10:14:23.999Z
-Stopped at: Completed 175-09-PLAN.md (Phase 175 complete, 9/9 plans)
+Last session: 2026-10-07T13:10:06.443Z
+Stopped at: Completed 176-01-PLAN.md
 Last activity: 2026-09-28 - Completed Phase 169 Plan 169-01
 Resume file: 
 None
