@@ -3,14 +3,14 @@ gsd_state_version: 1.0
 milestone: v1.4
 milestone_name: Coverage
 status: executing
-stopped_at: Completed 175-04-PLAN.md
-last_updated: "2026-10-07T08:44:20.762Z"
+stopped_at: Completed 175-05-PLAN.md
+last_updated: "2026-10-07T08:57:50.959Z"
 last_activity: 2026-10-07
 progress:
   total_phases: 40
   completed_phases: 34
   total_plans: 373
-  completed_plans: 364
+  completed_plans: 365
   percent: 85
 ---
 
@@ -287,7 +287,7 @@ Abschluss" entry below for the full closing record.
 ## Current Position
 
 Phase: 175 (inventur-doppelungen-nach-fachaufgaben-pro-fachaufgabe-alle-) — EXECUTING
-Plan: 5 of 9
+Plan: 6 of 9
 Status: Ready to execute
 Completed: Phase 174 — `frontend/src/lib/api.ts` (11,508 lines/371 exports) collapsed to a 34-line barrel over 36 domain modules; `useAdminAnimeCreateController.ts`, `GroupMediaReviewSection.tsx`, and `admin/fansubs/create/page.tsx` decomposed into sub-hooks/section components; `fansub_repository.go`, `admin_content_anime_themes.go`, `anime_assets.go`, and `admin_content_release_version_media.go` split into domain-scoped sibling files; `FansubEdit.module.css` and `ui.module.css` split along grep-verified single-owner class boundaries — all behavior-preserving per D-01, zero new dependency cycles, zero new N+1, full test-suite parity, final gate + live UAT both green/approved.
 Next: Phase 169's remaining plan (169-05, live actor/refresh/responsive UAT) is still open; Phase 166 (Film-Content-Flow) has not been started. The Coverage milestone is NOT complete.
@@ -938,6 +938,9 @@ Last activity: 2026-10-07
 - [Phase 175-03]: Rechte-Resolver (permissions.Service) bleibt einziger Resolver — 9-Aktionen-Stichprobe fand 0 Anzeige/Durchsetzung-String-Abweichungen, bestätigt 174-HOTSPOTS D-07 — Fachaufgabe 10 inventory
 - [Phase 175]: member_claims table reused for Claims (link existing historical member) and Mitgliedsanfragen (request new member creation) under two independent rights models — documented, not merged in this read-only phase
 - [Phase 175]: member_group_stories is a fully-built, zero-UI-consumer dead feature; classified as orphaned rather than duplicate — candidate for 175-ROADMAP-PROPOSAL to either build its UI or remove it
+- [Phase 175]: Löschen/Aufräumen (Fachaufgabe 8): 3 fachlich unterschiedliche Daten-Semantiken dokumentiert (Hard-Delete, Soft-Delete via deleted_at, Status-Tombstone ohne Soft-Delete) statt eines generischen Löschen-Begriffs — Bei einer künftigen Zusammenführung der Lösch-Mechanismen müssen die drei Semantiken unterschiedlich behandelt werden
+- [Phase 175]: Legacy-Lösch-Endpunkt DELETE /fansubs/:id/members/:memberId als Entfernungs-Kandidat markiert (toter Code, kein Frontend-Aufrufer, abweichende strengere Rechte-Logik als aktiver Pfad) — Verhindert, dass der tote Pfad bei einer Zusammenführung versehentlich als zweite Wahrheit erhalten bleibt
+- [Phase 175]: Anime anlegen/importieren (Fachaufgabe 9): 174-REPORT.md-Verdikt bestätigt — manuell/Jellyfin/AniSearch teilen sich EINEN POST /admin/anime-Endpunkt über 4 komponierte Sub-Hooks, kein Duplikat — Eigene Fundstellen-Nachverfolgung bis zur identischen POST-URL statt unbelegter Übernahme des Vorgänger-Reports
 
 ### Pending Todos
 
@@ -1524,11 +1527,12 @@ untruncated list lives in `.planning/todos/pending/`.
 | Phase 175 P02 | 110min | 2 tasks | 4 files |
 | Phase 175 P03 | 25min | 2 tasks | 4 files |
 | Phase 175 P04 | 95min | 2 tasks | 4 files |
+| Phase 175 P05 | ~45min | 2 tasks | 4 files |
 
 ## Session Continuity
 
-Last session: 2026-10-07T08:44:20.733Z
-Stopped at: Completed 175-04-PLAN.md
+Last session: 2026-10-07T08:57:50.938Z
+Stopped at: Completed 175-05-PLAN.md
 Last activity: 2026-09-28 - Completed Phase 169 Plan 169-01
 Resume file: 
 None
