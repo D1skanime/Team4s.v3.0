@@ -2413,7 +2413,7 @@ Plans:
 **Goal:** Für jede der 12 in D-02 benannten Fachaufgaben (Medien hochladen, Bild ansehen, Release bearbeiten, Prüfen & Freigeben, Mitglieder einladen/Claims, Notizen schreiben, Suchen & Filtern, Löschen/Aufräumen, Anime anlegen/importieren, Rechte anzeigen vs. durchsetzen, Status-/Label-Darstellung, Benachrichtigung/Hinweise) liegt eine fundstellenbelegte, per Skript reproduzierbare Inventur aller UI-Flächen, Frontend-API-Funktionen, Backend-Endpunkte, Anzeige- und Durchsetzungs-Rechte, Datenhaltung und Verhaltensabweichungen vor; jede Rechte-Inkonsistenz ist in einer konsolidierten Matrix markiert; ein vom Auftraggeber bestätigter Zuschnitt der Zusammenführungs-Folgephasen (Bildanzeige, Suche, Uploader, Release-Bearbeitung u. a.) liegt vor — reine Analyse, keine Code-Änderung (D-01).
 **Requirements**: D-01 - D-10 (Decision-Coverage via `175-CONTEXT.md`, kein REQUIREMENTS.md-Mapping vorhanden)
 **Depends on:** Phase 174
-**Plans:** 6/9 plans executed
+**Plans:** 7/9 plans executed
 
   - Wave 1: 175-01 (Fachaufgabe 1 Medien hochladen + 2 Bild ansehen), 175-02 (Fachaufgabe 3 Release bearbeiten + 7 Suchen & Filtern), 175-03 (Fachaufgabe 4 Prüfen & Freigeben + 10 Rechte anzeigen vs. durchsetzen), 175-04 (Fachaufgabe 5 Mitglieder einladen/Claims + 6 Notizen schreiben), 175-05 (Fachaufgabe 8 Löschen/Aufräumen + 9 Anime anlegen/importieren), 175-06 (Fachaufgabe 11 Status-/Label-Darstellung + 12 Benachrichtigung/Hinweise)
   - Wave 2: 175-07 (175-INVENTORY.md aus allen 12 Fragmenten), 175-08 (175-PERMISSION-MATRIX.md aus allen 12 Fragmenten)
@@ -2433,7 +2433,7 @@ Plans:
 
 **Wave 2** *(blocked on Wave 1 completion)*
 
-- [ ] 175-07-PLAN.md — 175-INVENTORY.md aus den 12 Fachaufgaben-Fragmenten zusammenführen, zusätzliche Fachaufgaben prüfen.
+- [x] 175-07-PLAN.md — 175-INVENTORY.md aus den 12 Fachaufgaben-Fragmenten zusammenführen, zusätzliche Fachaufgaben prüfen.
 - [ ] 175-08-PLAN.md — 175-PERMISSION-MATRIX.md: konsolidierte Anzeige- vs. Durchsetzungs-Rechte-Tabelle aus den 12 Fragmenten.
 
 **Wave 3** *(blocked on Wave 2 completion)*

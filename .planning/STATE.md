@@ -3,14 +3,14 @@ gsd_state_version: 1.0
 milestone: v1.4
 milestone_name: Coverage
 status: executing
-stopped_at: Completed 175-06-PLAN.md
-last_updated: "2026-10-07T09:10:03.520Z"
+stopped_at: Completed 175-07-PLAN.md
+last_updated: "2026-10-07T09:19:45.495Z"
 last_activity: 2026-10-07
 progress:
   total_phases: 40
   completed_phases: 34
   total_plans: 373
-  completed_plans: 366
+  completed_plans: 367
   percent: 85
 ---
 
@@ -287,7 +287,7 @@ Abschluss" entry below for the full closing record.
 ## Current Position
 
 Phase: 175 (inventur-doppelungen-nach-fachaufgaben-pro-fachaufgabe-alle-) — EXECUTING
-Plan: 7 of 9
+Plan: 8 of 9
 Status: Ready to execute
 Completed: Phase 174 — `frontend/src/lib/api.ts` (11,508 lines/371 exports) collapsed to a 34-line barrel over 36 domain modules; `useAdminAnimeCreateController.ts`, `GroupMediaReviewSection.tsx`, and `admin/fansubs/create/page.tsx` decomposed into sub-hooks/section components; `fansub_repository.go`, `admin_content_anime_themes.go`, `anime_assets.go`, and `admin_content_release_version_media.go` split into domain-scoped sibling files; `FansubEdit.module.css` and `ui.module.css` split along grep-verified single-owner class boundaries — all behavior-preserving per D-01, zero new dependency cycles, zero new N+1, full test-suite parity, final gate + live UAT both green/approved.
 Next: Phase 169's remaining plan (169-05, live actor/refresh/responsive UAT) is still open; Phase 166 (Film-Content-Flow) has not been started. The Coverage milestone is NOT complete.
@@ -943,6 +943,7 @@ Last activity: 2026-10-07
 - [Phase 175]: Anime anlegen/importieren (Fachaufgabe 9): 174-REPORT.md-Verdikt bestätigt — manuell/Jellyfin/AniSearch teilen sich EINEN POST /admin/anime-Endpunkt über 4 komponierte Sub-Hooks, kein Duplikat — Eigene Fundstellen-Nachverfolgung bis zur identischen POST-URL statt unbelegter Übernahme des Vorgänger-Reports
 - [Phase 175]: F-02 OUTRO-Bug durch eigenen Code-Vergleich bestätigt, plus 2 neue same-input-different-output-Label-Funde (Fansub-Medien-Kategorie, Claim-Status) und 3 tote Parallel-Implementierungen (segmenteTabUtils.ts, ReleaseVersionMediaGallery.tsx, MessageToast.tsx) entdeckt
 - [Phase 175]: Dashboard-Attention: alle 4 attachPending*-Funktionen re-verifiziert, 0 neue Rechte-Abweichungen; kein zentrales Toast-System existiert (48 Ad-hoc errorBox/successBox-Implementierungen); genau 1 Mail-Typ im Backend, bereits gehärtet
+- [Phase 175-07]: Keine zusätzliche (13.) Fachaufgabe ergänzt — fünf quergeprüfte Kandidaten (Fansub-Gruppen-CRUD, Episoden-Anlegen, Rollenmatrix, Mail/Toast, searchArchive) sind bereits Teil einer der 12 D-02-Fachaufgaben, kein eigenständiger Parallel-Build-Fund.
 
 ### Pending Todos
 
@@ -1531,11 +1532,12 @@ untruncated list lives in `.planning/todos/pending/`.
 | Phase 175 P04 | 95min | 2 tasks | 4 files |
 | Phase 175 P05 | ~45min | 2 tasks | 4 files |
 | Phase 175 P06 | ~50min | 2 tasks | 4 files |
+| Phase 175 P07 | 15min | 1 tasks | 1 files |
 
 ## Session Continuity
 
-Last session: 2026-10-07T09:10:03.497Z
-Stopped at: Completed 175-06-PLAN.md
+Last session: 2026-10-07T09:19:31.881Z
+Stopped at: Completed 175-07-PLAN.md
 Last activity: 2026-09-28 - Completed Phase 169 Plan 169-01
 Resume file: 
 None
