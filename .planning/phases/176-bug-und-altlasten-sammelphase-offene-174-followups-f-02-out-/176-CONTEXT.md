@@ -78,8 +78,12 @@ durch den Nutzer, nur die Trennung selbst ist verbindlich).
   `user_group_capability_overrides`), damit die 8 RVM-Handler-Tests und die
   Review-Decision-Tests wieder echt laufen; Revisionsschutz für Nicht-Hochlader-Metadaten-Edits an
   Release-Medien prüfen und ggf. ergänzen.
-- **D-07 F-19 Mobil-Speichern (Paket E):** sticky „Speichern" auf `/admin/fansubs/[id]/edit` darf
-  auf ~375 px keine Felder verdecken; Live-Abnahme Mobil.
+- **D-07 F-19 Sticky-Speichern-Überlapp (Nutzer 2026-10-07, Paket E):** `/admin/fansubs/[id]/edit`
+  ist primär für Tablet und Desktop gedacht — F-19 ist nur ein kleiner Mitnahme-Fix, keine eigene
+  Mobil-UI-Planung: der sticky „Speichern"-Button darf auf schmalen Viewports keine Felder
+  verdecken (minimaler CSS-Fix, z. B. ausreichender Abstand unten bzw. nicht-sticky unter einer
+  Breite). Keine UI-SPEC für diesen Punkt. Live-Abnahme primär Tablet/Desktop, dazu ein kurzer
+  Mobil-Gegencheck (kein vollständiger Mobil-Durchlauf).
 - **D-08 F-21 `getAdminTagTokens` (Paket E):** Semantik der zwei Fassungen klären, eine behalten,
   die andere entfernen, Aufrufer umstellen.
 - **D-09 F-22 Quelltext-Tests (Paket E):** Tests mit `os.ReadFile`+`strings.Contains` auf
