@@ -25,9 +25,17 @@ key-files:
     - database/migrations/0179_theme_types_kuerzel.up.sql
     - database/migrations/0179_theme_types_kuerzel.down.sql
     - .planning/phases/176-bug-und-altlasten-sammelphase-offene-174-followups-f-02-out-/deferred-items.md
+    - backend/internal/repository/theme_segment_assignment_slots_outro_kuerzel_integration_test.go
   modified:
     - backend/internal/models/admin_anime_themes.go
     - backend/internal/repository/admin_content_anime_segments_crud.go
+    - backend/internal/repository/admin_content_anime_themes_core.go
+    - backend/internal/repository/episode_import_repository_release_autoassign.go
+    - backend/internal/repository/group_repository_cursor_timeline.go
+    - backend/internal/repository/release_detail_public_repository_helpers.go
+    - backend/internal/repository/theme_segment_assignment_slots.go
+    - backend/internal/repository/theme_segment_type.go
+    - backend/internal/testsupport/phase117_postgres.go
     - frontend/src/types/admin.ts
     - frontend/src/app/admin/episode-versions/[versionId]/edit/SegmenteTab.helpers.tsx
     - frontend/src/app/admin/episode-versions/[versionId]/edit/SegmentsListSection.tsx
@@ -36,12 +44,13 @@ key-files:
 key-decisions:
   - "Rewrote getTypeBadgeClass/getTypeBadgeLabel/getTypeColor/isUpperSpur to switch on the exact kuerzel value (OP/ED/IN/OUT) rather than keep a .toUpperCase().includes() fallback, per the plan's must_haves.truths; this required rewriting most of the pre-existing getTypeBadgeLabel test cases (display-name-style inputs no longer apply once the function only receives real kuerzel values), beyond the single Outro assertion the plan's action text called out explicitly"
   - "Updated SegmentsListSection.tsx (not in the plan's files_modified list) to pass theme_type_kuerzel instead of theme_type_name -- it is a second production caller of the same shared helpers in SegmenteTab.helpers.tsx and would otherwise keep using the old, now name-guessing-free function incorrectly (Rule 3 - blocking/correctness fix)"
+  - "Live-UAT checkpoint fix (2026-10-07, Rule 1): the backend still derived segment type from theme_types.name via substring-guessing (CanonicalSegmentType), which mapped Outro onto the ED slot and caused a real 409 on save. Added CanonicalSegmentTypeFromKuerzel and routed every backend classification call site through it; per the user's binding decision, OP/ED/OUT are each their own exclusive per-release-version slot while IN stays unrestricted"
 
 requirements-completed: []
 
 # Metrics
-duration: ~19min (Tasks 1-2 only; checkpoint pending)
-completed: 2026-10-07 (partial - awaiting human checkpoint)
+duration: ~19min (Tasks 1-2) + ~45min (Live-UAT checkpoint fix round)
+completed: 2026-10-07 (partial - awaiting second human checkpoint re-verification)
 ---
 
 # Phase 176 Plan 02: Theme-Segment-Badge aus DB-Kuerzel Summary
@@ -68,10 +77,11 @@ completed: 2026-10-07 (partial - awaiting human checkpoint)
 
 1. **Task 1: Add theme_types.kuerzel and wire it through the segment repository/model** - `d1672bd7` (feat)
 2. **Task 2: Switch SegmenteTab badge/color/spur derivation to the DB kuerzel and delete the dead utils file** - `81d7e491` (feat)
+3. **Live-UAT checkpoint fix: give Outro its own backend slot, derive segment type from kuerzel** - `5f8966b4` (fix, Rule 1 deviation)
 
 **Plan metadata commit:** pending (will follow this SUMMARY commit, per sequential-executor protocol)
 
-_Task 3 ("Checkpoint: Live-UAT segment badge labels (D-01)") is a blocking `checkpoint:human-verify` gate and has not been attempted — see CHECKPOINT REACHED below._
+_Task 3 ("Checkpoint: Live-UAT segment badge labels (D-01)") is a blocking `checkpoint:human-verify` gate. It was first presented after Tasks 1-2 and returned NOT approved with a real defect (see Deviations below); the fix is committed and the checkpoint is being re-presented below — see CHECKPOINT REACHED._
 
 ## Files Created/Modified
 
@@ -88,6 +98,18 @@ _Task 3 ("Checkpoint: Live-UAT segment badge labels (D-01)") is a blocking `chec
 - `frontend/src/app/admin/episode-versions/[versionId]/edit/SegmentPreviewImageSection.test.tsx` - local `segment()` fixture gains `theme_type_kuerzel`
 - `frontend/src/app/admin/episode-versions/[versionId]/edit/useSegmentPreviewImageHandlers.test.ts` - local `segment()` fixture gains `theme_type_kuerzel`
 - `.planning/phases/176-.../deferred-items.md` - logs 6 unrelated, pre-existing frontend test failures discovered while running the full suite
+
+**Live-UAT checkpoint fix round (commit `5f8966b4`):**
+
+- `backend/internal/repository/theme_segment_type.go` - adds `CanonicalSegmentTypeFromKuerzel(kuerzel, themeTypeName string) string`, the new kuerzel-driven classifier (OP/ED/IN->INSERT/OUT, falling back to the legacy `CanonicalSegmentType` name-guess when kuerzel is unset)
+- `backend/internal/repository/theme_segment_assignment_slots.go` - `segmentAssignmentSlotType` now takes `(kuerzel, name string)` and returns OP/ED/OUT as independent slots (previously only OP/ED); `segmentAssignmentTypeTx` and `segmentAssignmentConflictsTx` select/scan `COALESCE(tt.kuerzel, '')` alongside `tt.name`
+- `backend/internal/repository/admin_content_anime_themes_core.go` - the theme type-change conflict check (`UpdateAdminAnimeTheme`) now reads and compares kuerzel-derived old/new slot types, not name-derived ones
+- `backend/internal/repository/episode_import_repository_release_autoassign.go` - `autoAssignThemeSegmentsForNewReleaseVersion`'s candidate/occupancy queries and slot classification now use kuerzel
+- `backend/internal/repository/group_repository_cursor_timeline.go` - `attachReleaseTimelineSegments`'s public project-timeline `Type` field now derives via `CanonicalSegmentTypeFromKuerzel`
+- `backend/internal/repository/release_detail_public_repository_helpers.go` - `loadReleaseSegments`'s public release-detail `Type` field now derives via `CanonicalSegmentTypeFromKuerzel`
+- `backend/internal/repository/admin_content_anime_segments_crud.go` - fixed a latent NULL-scan crash: the 3 `theme_type_kuerzel` SELECTs added by Task 1 now use `COALESCE(tt.kuerzel, '')` (a plain, non-pointer `string` destination cannot scan a NULL kuerzel)
+- `backend/internal/testsupport/phase117_postgres.go` - added a nullable `kuerzel` column to the shared Phase-117 test fixture's `theme_types` table so production queries selecting `tt.kuerzel` compile and run against the test schema
+- `backend/internal/repository/theme_segment_assignment_slots_outro_kuerzel_integration_test.go` (new) - 6 integration tests for the Outro/ED independence, Outro's own 409, IN's unrestricted slot, the ED->Outro retype conflict check, and both public projections reporting "OUT"
 
 ## Decisions Made
 
@@ -130,10 +152,18 @@ _Task 3 ("Checkpoint: Live-UAT segment badge labels (D-01)") is a blocking `chec
 - **Verification:** `npx tsc --noEmit` shows no errors related to `AdminThemeSegment`/`theme_type_kuerzel`; `npx vitest run` on the folder passes (19 + 11 + 9 tests).
 - **Committed in:** `81d7e491`
 
+**5. [Rule 1 - Bug, found via Live-UAT checkpoint] Backend still derived segment type from `theme_types.name`, causing a real 409 when saving a new Outro segment**
+- **Found during:** Task 3's checkpoint (first presentation) — the human tester attempted to save a new Outro-type segment on a release version that already had an ED segment, via `http://127.0.0.1:3300`, and got `409 "Für die gewählten Folgen ist bereits ein Segment desselben Typs zugewiesen."` The user had already diagnosed the root cause before reporting it back.
+- **Issue:** This plan's Tasks 1-2 only switched the *frontend* badge/color/spur derivation to `theme_types.kuerzel` (D-01's stated scope). The *backend* classification function, `CanonicalSegmentType` (`theme_segment_type.go`), was out of this plan's original `files_modified` list and continued deriving type by substring-guessing on `theme_types.name` — its existing precedence rule mapped any name containing `"outro"` onto `"ED"` (same bucket as Ending themes), so `segmentAssignmentSlotType` treated a new Outro segment as if it were an ED segment and correctly-but-wrongly reported an ED-slot conflict against the real ED segment on the same release version. The same name-guessing also meant the two public projections (project timeline, release detail page) would have shown Outro's public `Type` as `"ED"`, not `"OUT"`.
+- **Fix:** Added `CanonicalSegmentTypeFromKuerzel(kuerzel, themeTypeName string) string` as the new kuerzel-driven classifier (OP/ED/IN->`"INSERT"`/OUT->`"OUT"`, falling back to the legacy name-guess only when kuerzel is unset — preserving behavior for any theme_types row without a seeded kuerzel) and routed every backend call site through it: `segmentAssignmentSlotType`/`segmentAssignmentTypeTx`/`segmentAssignmentConflictsTx` (the 409 conflict check itself), the theme type-change conflict check in `admin_content_anime_themes_core.go`, release-version auto-assignment in `episode_import_repository_release_autoassign.go`, and both public projections (`group_repository_cursor_timeline.go`, `release_detail_public_repository_helpers.go`). Per the user's binding 2026-10-07 decision, also changed the exclusivity rule itself: OP, ED, and OUT (Outro) are now each their OWN exclusive slot (max 1 per release version, independent of each other) instead of Outro sharing ED's slot; IN (Insert) remains unrestricted (multiple per release version), unchanged. Along the way, also fixed a latent NULL-scan crash in `admin_content_anime_segments_crud.go`'s `theme_type_kuerzel` SELECTs (added by Task 1; a plain non-pointer Go `string` destination cannot scan a NULL `kuerzel` column, which surfaced once integration tests were actually run against a real Postgres instance) and added a nullable `kuerzel` column to the shared Phase-117 test fixture schema so production queries selecting `tt.kuerzel` compile and run against it.
+- **Files modified:** `theme_segment_type.go`, `theme_segment_assignment_slots.go`, `admin_content_anime_themes_core.go`, `episode_import_repository_release_autoassign.go`, `group_repository_cursor_timeline.go`, `release_detail_public_repository_helpers.go`, `admin_content_anime_segments_crud.go`, `testsupport/phase117_postgres.go`, plus a new integration test file (`theme_segment_assignment_slots_outro_kuerzel_integration_test.go`)
+- **Verification:** `go build ./... && go vet ./...` clean; `go test ./internal/repository/...` with `TEAM4S_PHASE117_TEST_DSN` set against the live backend container's DB passes for all segment/theme/auto-assign tests plus the 6 new Outro-specific tests (0 new failures vs. the documented pre-existing baseline of unrelated schema-drift/missing-DSN/unreachable-Keycloak failures); `npx vitest run` on the folder still passes (15 files / 331 tests, unaffected since this was a backend-only fix); backend container rebuilt (`docker compose up -d --build team4sv30-backend`) and frontend container restarted (`docker restart team4sv30-frontend`), both confirmed healthy; live `psql` re-confirms `theme_types.kuerzel` is still `OP`/`ED`/`IN`/`OUT` for ids 4/6/8/9.
+- **Committed in:** `5f8966b4`
+
 ---
 
-**Total deviations:** 4 auto-fixed (2 Rule 1 bug/test-correctness, 2 Rule 3 blocking/consistency)
-**Impact on plan:** All auto-fixes were necessary to keep the build and test suite green while faithfully implementing the plan's stated `must_haves.truths` (full removal of name-guessing). No scope creep beyond what was required for correctness and compilation.
+**Total deviations:** 5 auto-fixed (3 Rule 1 bug/test-correctness, 2 Rule 3 blocking/consistency)
+**Impact on plan:** All auto-fixes were necessary to keep the build and test suite green while faithfully implementing the plan's stated `must_haves.truths` (full removal of name-guessing) and, after the Live-UAT checkpoint, to close the backend half of the same D-01 scope that the original plan's `files_modified` list did not cover. No scope creep beyond what was required for correctness, compilation, and the user's explicit checkpoint-reported defect.
 
 ## Issues Encountered
 
@@ -153,8 +183,12 @@ None - no external service configuration required.
 
 ## Next Phase Readiness
 
-Tasks 1 and 2 are complete, committed, and verified (`go build`/`go vet`/`go test ./internal/repository/... -run Segment`, live-DB `psql` check, `npx tsc --noEmit`, `npx vitest run` on the folder — 15 files / 331 tests passing). **Task 3 is a blocking `checkpoint:human-verify` gate** requiring live browser UAT at `http://127.0.0.1:3300/admin/episode-versions/{versionId}/edit` (Segmente tab) to confirm OP/ED/IN badges are visually unchanged and an Outro segment now shows "OUT". This plan is NOT complete until that checkpoint is resolved by a human and a continuation agent finishes the plan (final metadata commit, STATE.md/ROADMAP.md updates).
+Tasks 1 and 2 are complete, committed, and verified (`go build`/`go vet`/`go test ./internal/repository/... -run Segment`, live-DB `psql` check, `npx tsc --noEmit`, `npx vitest run` on the folder — 15 files / 331 tests passing). The Live-UAT checkpoint fix (commit `5f8966b4`) is also complete, committed, and verified (see Deviations #5). **Task 3 is a blocking `checkpoint:human-verify` gate, now being re-presented** after the reported defect was fixed — requiring a second live browser UAT round at `http://127.0.0.1:3300/admin/episode-versions/{versionId}/edit` (Segmente tab) to confirm (a) OP/ED/IN badges are still visually unchanged and Outro shows "OUT" (the original scope), and (b) saving a new Outro segment on a release version that already has an ED segment now succeeds, while a second Outro on the same release version still correctly conflicts. This plan is NOT complete until that checkpoint is resolved by a human and a continuation agent finishes the plan (final metadata commit, STATE.md/ROADMAP.md updates).
 
 ---
 *Phase: 176-bug-und-altlasten-sammelphase-offene-174-followups-f-02-out-*
-*Completed: partial (2/3 tasks) - 2026-10-07*
+*Completed: partial (2/3 tasks; Live-UAT checkpoint fix round complete, awaiting second checkpoint re-verification) - 2026-10-07*
+
+## Self-Check: PASSED
+
+All 9 files listed under "Files Created/Modified" for the Live-UAT checkpoint fix round were confirmed present on disk, and all 3 referenced commit hashes (`d1672bd7`, `81d7e491`, `5f8966b4`) were confirmed present in `git log --oneline --all`.
