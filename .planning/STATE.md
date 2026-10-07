@@ -3,14 +3,14 @@ gsd_state_version: 1.0
 milestone: v1.4
 milestone_name: Coverage
 status: executing
-stopped_at: Completed 176-04-PLAN.md
-last_updated: "2026-10-07T20:50:47.179Z"
+stopped_at: Completed 176-05-PLAN.md
+last_updated: "2026-10-07T21:07:37.152Z"
 last_activity: 2026-10-07
 progress:
   total_phases: 41
   completed_phases: 35
   total_plans: 388
-  completed_plans: 373
+  completed_plans: 374
   percent: 85
 ---
 
@@ -287,7 +287,7 @@ Abschluss" entry below for the full closing record.
 ## Current Position
 
 Phase: 176 (bug-und-altlasten-sammelphase-offene-174-followups-f-02-out-) — EXECUTING
-Plan: 5 of 15
+Plan: 6 of 15
 Status: Ready to execute
 Completed: Phase 174 — `frontend/src/lib/api.ts` (11,508 lines/371 exports) collapsed to a 34-line barrel over 36 domain modules; `useAdminAnimeCreateController.ts`, `GroupMediaReviewSection.tsx`, and `admin/fansubs/create/page.tsx` decomposed into sub-hooks/section components; `fansub_repository.go`, `admin_content_anime_themes.go`, `anime_assets.go`, and `admin_content_release_version_media.go` split into domain-scoped sibling files; `FansubEdit.module.css` and `ui.module.css` split along grep-verified single-owner class boundaries — all behavior-preserving per D-01, zero new dependency cycles, zero new N+1, full test-suite parity, final gate + live UAT both green/approved.
 Next: Separater, nachgelagerter Schritt außerhalb von Phase 175 legt die bestätigten Phasen 176-183 in `ROADMAP.md` an (nicht Teil von 175-09, D-09). Daneben weiterhin offen: Phase 169's remaining plan (169-05, live actor/refresh/responsive UAT); Phase 166 (Film-Content-Flow) has not been started. The Coverage milestone is NOT complete.
@@ -954,6 +954,8 @@ Last activity: 2026-10-07
 - [Phase ?]: 176-03: open question flagged for 176-04 -- whether 'project_lead' should be excluded from release-version crew-snapshot inheritance (not decided, scoped out).
 - [Phase 176]: D-23 geschlossen als no-cleanup-needed: Live-DB-Dry-Run fand 0 Duplikat-Kandidaten (strikt + breit); 176-03s Zaehlfehler-Befund bestaetigt. Keine anime_contributions-Zeile geloescht.
 - [Phase 176]: Nutzer-Freigabe (2026-10-07) Option 1 'Projektleiter nur aufs Projekt' als Scope-Erweiterung von 176-04 Task 3: project_lead wird nicht mehr in release-scoped anime_contributions gespiegelt (projectScopeOnlyRoleCodes), totes getProjectLeadRolesForVersion entfernt statt eingebunden, 12 Bestandsdaten-Rollenzeilen fuer timer/anime1/group1 bereinigt (nur project_lead-Rolle entfernt, Zeilen/timer-Rolle unveraendert).
+- [Phase 176-05]: Narrowed MemberClaimInvitationsHandler.invitationsRepo to a memberClaimInvitationStore interface so the D-17 disabled-user-check fix could be proven with a real httptest + fake-repo test (CLAUDE.md Teststil), matching the existing fansubGroupInvitationStore convention — Enables real test execution instead of source-fragment assertions; no caller changes needed since the concrete repository already satisfies the interface
+- [Phase 176-05]: checkMemorialNotClaimable takes an already-queried profileStatus string rather than a DBTX handle; each call site keeps its own pool/tx handle for the SELECT, only the decide-and-audit logic is shared — AuditLogRepository.Write always uses its own internal handle, so a DBTX parameter in the shared guard would have been unused
 
 ### Pending Todos
 
@@ -1549,11 +1551,12 @@ untruncated list lives in `.planning/todos/pending/`.
 | Phase 176 P02 | 64min | 3 tasks | 17 files |
 | Phase 176 P03 | 95min | 2 tasks | 2 files |
 | Phase 176 P04 | 4h51min | 3 tasks | 3 files |
+| Phase 176 P05 | 35min | 3 tasks | 8 files |
 
 ## Session Continuity
 
-Last session: 2026-10-07T20:50:47.150Z
-Stopped at: Completed 176-04-PLAN.md
+Last session: 2026-10-07T21:07:37.129Z
+Stopped at: Completed 176-05-PLAN.md
 Last activity: 2026-09-28 - Completed Phase 169 Plan 169-01
 Resume file: 
 
