@@ -54,3 +54,12 @@ The stale filename reference is a pre-existing bug unrelated to the D-21 extract
 in 176-05 Task 3 (see `176-05-SUMMARY.md` for how the sibling invitations-path fragment
 tests were replaced with real behavior tests on the new shared `checkMemorialNotClaimable`
 helper instead of being left broken by the extraction).
+
+Same stale-filename root cause also makes `TestMemberClaimsRepositoryBlocksAlreadyAssignedMembers`
+(`member_claims_repository_test.go`) fail with `Should not be: -1` -- it looks for
+`func (r *MemberClaimsRepository) SubmitClaim` inside `member_claims_repository.go`,
+which has lived in `member_claims_submit_repository.go` since commit `8bd28db6`
+("refactor(143-02): split member_claims_repository.go by responsibility"), long before
+176-05. Confirmed pre-existing and unrelated to the memorial-guard extraction (the
+`member_already_assigned` / `claim_status = 'verified'` logic this test targets was not
+touched by Task 3). Not fixed, per Scope Boundary.

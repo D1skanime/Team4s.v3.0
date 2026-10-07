@@ -45,27 +45,9 @@ func (r *MemberClaimsRepository) SubmitClaim(ctx context.Context, input SubmitCl
 			HTTPStatus: 409,
 		}
 	}
-	if profileStatus == "memorial" {
-		// denied-Audit schreiben (D-15). Fehlertolerant via _ = (blockiert den Fehler-Return nicht).
-		// Action-Key "member_claim.memorial_blocked" als String-Literal (D-15-Stub-Erzwingung).
-		_ = func() error {
-			if r.auditLogRepo == nil {
-				return nil
-			}
-			return r.auditLogRepo.Write(ctx, AuditLogEntry{
-				ActorAppUserID: &input.AppUserID,
-				EventType:      "member_claim.memorial_blocked",
-				TargetType:     "member",
-				TargetID:       &input.MemberID,
-				Action:         "submit_claim",
-				Outcome:        "denied",
-			})
-		}()
-		return nil, &ClaimMutationError{
-			Code:       "memorial_not_claimable",
-			Message:    "Dieses Profil wird als Gedenkprofil geführt und kann nicht beansprucht werden.",
-			HTTPStatus: 409,
-		}
+	// D-21: gemeinsamer Memorial-Guard, siehe memorial_guard.go.
+	if guardErr := checkMemorialNotClaimable(ctx, r.auditLogRepo, input.MemberID, &input.AppUserID, "submit_claim", profileStatus); guardErr != nil {
+		return nil, guardErr
 	}
 
 	row := r.db.QueryRow(ctx, `

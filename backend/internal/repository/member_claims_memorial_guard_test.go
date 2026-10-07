@@ -1,114 +1,111 @@
 package repository
 
 import (
-	"strings"
+	"context"
 	"testing"
+
+	"github.com/jackc/pgx/v5"
+	"github.com/jackc/pgx/v5/pgconn"
 )
 
-// TestClaimSubmitBlockedForMemorialProfile: Source-Fragment-Test gegen member_claims_repository.go.
-// Prüft, dass SubmitClaim die profile_status-Abfrage, den Code memorial_not_claimable und HTTP 409 enthält.
-// RED: Diese Fragmente fehlen noch in member_claims_repository.go.
-func TestClaimSubmitBlockedForMemorialProfile(t *testing.T) {
-	content := readRepositorySource(t, "member_claims_repository.go")
-	normalized := strings.ToLower(content)
+// fakeMemorialGuardDBTX ist ein echtes In-Memory-Fake für DBTX (CLAUDE.md Teststil --
+// kein Source-Fragment-Test). Nur Exec wird von AuditLogRepository.Write tatsächlich
+// aufgerufen; QueryRow wird vom Guard nicht benötigt und muss hier nicht funktionieren.
+type fakeMemorialGuardDBTX struct {
+	execCalls int
+	lastArgs  []any
+}
 
-	requiredFragments := []string{
-		"profile_status",
-		"memorial_not_claimable",
-		"409",
+func (f *fakeMemorialGuardDBTX) Exec(_ context.Context, _ string, args ...any) (pgconn.CommandTag, error) {
+	f.execCalls++
+	f.lastArgs = args
+	return pgconn.CommandTag{}, nil
+}
+
+func (f *fakeMemorialGuardDBTX) QueryRow(_ context.Context, _ string, _ ...any) pgx.Row {
+	return nil
+}
+
+// TestCheckMemorialNotClaimableBlocksMemorialProfile (D-21): die gemeinsame Guard-Funktion
+// liefert für ein Gedenkprofil den ClaimMutationError mit Code/HTTPStatus und schreibt
+// genau einen Audit-Eintrag mit dem vom Aufrufer übergebenen Action-String -- real
+// ausgeführt über ein In-Memory-Fake-DBTX statt per Quelltext-Fragment-Prüfung.
+func TestCheckMemorialNotClaimableBlocksMemorialProfile(t *testing.T) {
+	fakeDB := &fakeMemorialGuardDBTX{}
+	auditLogRepo := NewAuditLogRepository(fakeDB)
+
+	actorAppUserID := int64(11)
+	err := checkMemorialNotClaimable(context.Background(), auditLogRepo, 42, &actorAppUserID, "submit_claim", "memorial")
+
+	if err == nil {
+		t.Fatal("expected ClaimMutationError for memorial profile, got nil")
 	}
-	for _, fragment := range requiredFragments {
-		if !strings.Contains(normalized, fragment) {
-			t.Fatalf("member_claims_repository.go fehlt erwartetes Fragment %q — Guard gegen memorial-Profile noch nicht implementiert", fragment)
-		}
+	if err.Code != "memorial_not_claimable" {
+		t.Fatalf("expected Code memorial_not_claimable, got %q", err.Code)
+	}
+	if err.HTTPStatus != 409 {
+		t.Fatalf("expected HTTPStatus 409, got %d", err.HTTPStatus)
+	}
+	if fakeDB.execCalls != 1 {
+		t.Fatalf("expected exactly 1 audit write, got %d", fakeDB.execCalls)
+	}
+	// args order matches audit_logs.go's Write(): actor, legacy_actor, event_type, scope_type,
+	// scope_id, target_type, target_id, action_name, outcome, reason_code, payload.
+	if got := fakeDB.lastArgs[2]; got != "member_claim.memorial_blocked" {
+		t.Fatalf("expected event_type member_claim.memorial_blocked, got %v", got)
+	}
+	if got := fakeDB.lastArgs[7]; got != "submit_claim" {
+		t.Fatalf("expected action submit_claim (caller-supplied), got %v", got)
+	}
+	if got := fakeDB.lastArgs[8]; got != "denied" {
+		t.Fatalf("expected outcome denied, got %v", got)
 	}
 }
 
-// TestClaimAcceptInvitationBlockedForMemorialProfile: Source-Fragment-Test gegen member_claim_invitations_repository.go.
-// Prüft, dass AcceptInvitation die profile_status-Abfrage, den Code memorial_not_claimable und HTTP 409 enthält.
-// RED: Diese Fragmente fehlen noch in member_claim_invitations_repository.go.
-func TestClaimAcceptInvitationBlockedForMemorialProfile(t *testing.T) {
-	content := readRepositorySource(t, "member_claim_invitations_repository.go")
-	normalized := strings.ToLower(content)
+// TestCheckMemorialNotClaimableAllowsNonMemorialProfile (D-21): für ein nicht-memorial
+// Profil liefert die Guard-Funktion nil und schreibt keinen Audit-Eintrag.
+func TestCheckMemorialNotClaimableAllowsNonMemorialProfile(t *testing.T) {
+	fakeDB := &fakeMemorialGuardDBTX{}
+	auditLogRepo := NewAuditLogRepository(fakeDB)
 
-	requiredFragments := []string{
-		"profile_status",
-		"memorial_not_claimable",
-		"409",
+	err := checkMemorialNotClaimable(context.Background(), auditLogRepo, 42, nil, "accept_invitation", "active")
+
+	if err != nil {
+		t.Fatalf("expected nil for non-memorial profile, got %+v", err)
 	}
-	for _, fragment := range requiredFragments {
-		if !strings.Contains(normalized, fragment) {
-			t.Fatalf("member_claim_invitations_repository.go fehlt erwartetes Fragment %q — Guard gegen memorial-Profile noch nicht implementiert (Fallstrick 3: zweiter Claim-Pfad!)", fragment)
-		}
+	if fakeDB.execCalls != 0 {
+		t.Fatalf("expected 0 audit writes for non-memorial profile, got %d", fakeDB.execCalls)
 	}
 }
 
-// TestClaimBlockWritesDeniedAudit: Source-Fragment-Assertion, dass BEIDE Claim-Pfade
-// den denied-Audit-Action-Key "member_claim.memorial_blocked" UND den Outcome "denied" enthalten.
-// Erzwingt für Plan 02 Task 2, dass das denied-Audit in beiden Repositories als String-Literal erscheint.
-// RED: Diese Fragmente fehlen noch in den Repository-Dateien (D-15).
-func TestClaimBlockWritesDeniedAudit(t *testing.T) {
-	claimsContent := readRepositorySource(t, "member_claims_repository.go")
-	claimsNormalized := strings.ToLower(claimsContent)
-
-	invitationsContent := readRepositorySource(t, "member_claim_invitations_repository.go")
-	invitationsNormalized := strings.ToLower(invitationsContent)
-
-	deniedAuditFragments := []string{
-		"member_claim.memorial_blocked",
-		"denied",
-	}
-
-	// Prüfe member_claims_repository.go (SubmitClaim-Pfad)
-	for _, fragment := range deniedAuditFragments {
-		if !strings.Contains(claimsNormalized, fragment) {
-			t.Fatalf("member_claims_repository.go fehlt denied-Audit-Fragment %q — D-15 Claim-Block-Audit nicht implementiert (SubmitClaim-Pfad)", fragment)
-		}
-	}
-
-	// Prüfe member_claim_invitations_repository.go (AcceptInvitation-Pfad)
-	for _, fragment := range deniedAuditFragments {
-		if !strings.Contains(invitationsNormalized, fragment) {
-			t.Fatalf("member_claim_invitations_repository.go fehlt denied-Audit-Fragment %q — D-15 Claim-Block-Audit nicht implementiert (AcceptInvitation-Pfad, Fallstrick 3)", fragment)
-		}
-	}
-}
-
-// TestClaimBlockDeniedAuditOutcomeColocated: Stellt sicher, dass der Outcome "denied"
-// nicht nur irgendwo in der Datei, sondern direkt im memorial_blocked-Audit-Block
-// beider Claim-Pfade gesetzt wird (D-15). Re-Audit nannte die Outcome-"denied"-Prüfung
-// explizit; ein reines Datei-weites Vorkommen würde ein versehentlich auf "allowed"
-// gesetztes Block-Outcome nicht erkennen. Diese Assertion bindet beide Literale
-// (EventType + Outcome) an dieselbe Guard-Region.
-func TestClaimBlockDeniedAuditOutcomeColocated(t *testing.T) {
+// TestCheckMemorialNotClaimablePreservesActionPerCallSite (D-21): beide Call-Sites
+// (SubmitClaim via "submit_claim", AcceptInvitation via "accept_invitation") behalten
+// ihren eigenen Action-String, obwohl beide denselben gemeinsamen Guard aufrufen.
+func TestCheckMemorialNotClaimablePreservesActionPerCallSite(t *testing.T) {
 	cases := []struct {
-		filename string
-		path     string
+		name           string
+		action         string
+		actorAppUserID *int64
 	}{
-		{"member_claims_repository.go", "SubmitClaim"},
-		{"member_claim_invitations_repository.go", "AcceptInvitation (zweiter Pfad)"},
+		{name: "submit_claim path", action: "submit_claim", actorAppUserID: int64Ptr(7)},
+		{name: "accept_invitation path", action: "accept_invitation", actorAppUserID: nil},
 	}
 
 	for _, tc := range cases {
-		content := readRepositorySource(t, tc.filename)
+		t.Run(tc.name, func(t *testing.T) {
+			fakeDB := &fakeMemorialGuardDBTX{}
+			auditLogRepo := NewAuditLogRepository(fakeDB)
 
-		// Letztes Vorkommen verwenden — das EventType-Literal taucht zuerst im
-		// Erläuterungs-Kommentar und dann im eigentlichen Struct-Literal auf.
-		idx := strings.LastIndex(content, `EventType:`)
-		if idx < 0 || !strings.Contains(content, "member_claim.memorial_blocked") {
-			t.Fatalf("%s: EventType \"member_claim.memorial_blocked\" fehlt — denied-Audit nicht implementiert (%s)", tc.filename, tc.path)
-		}
-
-		// Region ab dem Struct-Literal bis ~12 Zeilen weiter (der Audit-Block-Aufruf).
-		region := content[idx:]
-		if len(region) > 400 {
-			region = region[:400]
-		}
-		if !strings.Contains(region, "member_claim.memorial_blocked") {
-			t.Fatalf("%s: kein memorial_blocked-Audit-Struct-Literal gefunden (%s)", tc.filename, tc.path)
-		}
-		if !strings.Contains(region, `Outcome:        "denied"`) && !strings.Contains(region, `Outcome:    "denied"`) {
-			t.Fatalf("%s: Outcome \"denied\" steht nicht im memorial_blocked-Audit-Block (%s) — D-15 verlangt Outcome 'denied' direkt am Block.\nRegion:\n%s", tc.filename, tc.path, region)
-		}
+			err := checkMemorialNotClaimable(context.Background(), auditLogRepo, 99, tc.actorAppUserID, tc.action, "memorial")
+			if err == nil {
+				t.Fatal("expected ClaimMutationError, got nil")
+			}
+			if got := fakeDB.lastArgs[7]; got != tc.action {
+				t.Fatalf("expected action %q, got %v", tc.action, got)
+			}
+			if got := fakeDB.lastArgs[0]; got != tc.actorAppUserID {
+				t.Fatalf("expected actor %v, got %v", tc.actorAppUserID, got)
+			}
+		})
 	}
 }
