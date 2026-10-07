@@ -30,3 +30,29 @@ func CanonicalSegmentType(themeTypeName string) string {
 		return strings.ToUpper(themeTypeName)
 	}
 }
+
+// CanonicalSegmentTypeFromKuerzel is the kuerzel-driven segment type classifier added by
+// the 2026-10-07 D-01 backend follow-up (Live-UAT checkpoint fix on 176-02): theme_types.kuerzel
+// (OP/ED/IN/OUT, Migration 0179) is now the single source of truth for every live theme_types
+// row, replacing CanonicalSegmentType's substring-guessing at all its call sites. A present
+// kuerzel wins and maps to the SAME public vocabulary the old name-guessing already produced
+// for OP/ED (unchanged) and IN (mapped to "INSERT", the pre-existing public contract value --
+// NOT the raw "IN" kuerzel, to avoid an unrelated public-contract break) -- except OUT, which is
+// the actual bug fix: Outro now gets its own "OUT" value instead of colliding with ED (the old
+// name-guess treated "outro" as a substring match for "ed"). A missing/unseeded kuerzel (test
+// fixtures that only set theme_types.name, or any future row inserted before a kuerzel
+// backfill) falls back to the legacy name-guessing above, so pre-existing behavior and tests
+// for those rows stay unchanged.
+func CanonicalSegmentTypeFromKuerzel(kuerzel, themeTypeName string) string {
+	switch strings.ToUpper(strings.TrimSpace(kuerzel)) {
+	case "OP":
+		return "OP"
+	case "ED":
+		return "ED"
+	case "IN":
+		return "INSERT"
+	case "OUT":
+		return "OUT"
+	}
+	return CanonicalSegmentType(themeTypeName)
+}

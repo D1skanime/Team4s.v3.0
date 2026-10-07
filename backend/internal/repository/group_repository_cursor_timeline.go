@@ -48,6 +48,7 @@ func (r *GroupRepository) attachReleaseTimelineSegments(
 			tsa.release_version_id AS release_version_id,
 			ts.id AS segment_id,
 			tt.name AS segment_type_name,
+			COALESCE(tt.kuerzel, '') AS segment_type_kuerzel,
 			COALESCE(NULLIF(BTRIM(t.title), ''), tt.name) AS title,
 			ts.start_time::text AS start_time,
 			ts.end_time::text AS end_time,
@@ -76,14 +77,16 @@ func (r *GroupRepository) attachReleaseTimelineSegments(
 	segmentIDs := make([]int64, 0)
 	for rows.Next() {
 		var (
-			releaseID     int64
-			segment       models.ReleaseTimelineSegment
-			themeTypeName string
+			releaseID        int64
+			segment          models.ReleaseTimelineSegment
+			themeTypeName    string
+			themeTypeKuerzel string
 		)
 		if err := rows.Scan(
 			&releaseID,
 			&segment.ID,
 			&themeTypeName,
+			&themeTypeKuerzel,
 			&segment.Title,
 			&segment.StartTime,
 			&segment.EndTime,
@@ -93,7 +96,7 @@ func (r *GroupRepository) attachReleaseTimelineSegments(
 		); err != nil {
 			return fmt.Errorf("scan release timeline segment: %w", err)
 		}
-		segment.Type = CanonicalSegmentType(themeTypeName)
+		segment.Type = CanonicalSegmentTypeFromKuerzel(themeTypeKuerzel, themeTypeName)
 
 		scanned = append(scanned, scannedTimelineSegment{releaseID: releaseID, segment: segment})
 		if !segmentIDSeen[segment.ID] {

@@ -118,7 +118,12 @@ CREATE TABLE media_assets (
 );
 CREATE TABLE theme_types (
     id BIGINT PRIMARY KEY,
-    name TEXT NOT NULL
+    name TEXT NOT NULL,
+    -- kuerzel (Migration 0179, nullable here): production always has it seeded for the
+    -- 4 real theme_types rows; test fixtures across this file intentionally insert rows
+    -- WITHOUT a kuerzel to exercise CanonicalSegmentTypeFromKuerzel's legacy name-guessing
+    -- fallback (176-02 checkpoint fix, 2026-10-07) -- do not backfill it here.
+    kuerzel VARCHAR(8)
 );
 CREATE TABLE themes (
     id BIGINT PRIMARY KEY,

@@ -206,8 +206,8 @@ func (r *AdminContentRepository) UpdateAdminAnimeTheme(ctx context.Context, them
 	if err := lockSegmentAssignmentAnimeTx(ctx, tx, animeID); err != nil {
 		return err
 	}
-	var oldTypeName string
-	if err := tx.QueryRow(ctx, `SELECT tt.name FROM themes t JOIN theme_types tt ON tt.id=t.theme_type_id WHERE t.id=$1`, themeID).Scan(&oldTypeName); err != nil {
+	var oldKuerzel, oldTypeName string
+	if err := tx.QueryRow(ctx, `SELECT COALESCE(tt.kuerzel, ''), tt.name FROM themes t JOIN theme_types tt ON tt.id=t.theme_type_id WHERE t.id=$1`, themeID).Scan(&oldKuerzel, &oldTypeName); err != nil {
 		return err
 	}
 	tag, err := tx.Exec(ctx, query, args...)
@@ -223,11 +223,11 @@ func (r *AdminContentRepository) UpdateAdminAnimeTheme(ctx context.Context, them
 	}
 
 	if input.ThemeTypeID != nil {
-		var newTypeName string
-		if err := tx.QueryRow(ctx, `SELECT name FROM theme_types WHERE id=$1`, *input.ThemeTypeID).Scan(&newTypeName); err != nil {
+		var newKuerzel, newTypeName string
+		if err := tx.QueryRow(ctx, `SELECT COALESCE(kuerzel, ''), name FROM theme_types WHERE id=$1`, *input.ThemeTypeID).Scan(&newKuerzel, &newTypeName); err != nil {
 			return err
 		}
-		if segmentAssignmentSlotType(oldTypeName) != segmentAssignmentSlotType(newTypeName) {
+		if segmentAssignmentSlotType(oldKuerzel, oldTypeName) != segmentAssignmentSlotType(newKuerzel, newTypeName) {
 			rows, err := tx.Query(ctx, `SELECT id FROM theme_segments WHERE theme_id=$1`, themeID)
 			if err != nil {
 				return err
@@ -236,7 +236,7 @@ func (r *AdminContentRepository) UpdateAdminAnimeTheme(ctx context.Context, them
 			if err != nil {
 				return err
 			}
-			if err := validateSegmentAssignmentTypeChangeTx(ctx, tx, ids, segmentAssignmentSlotType(newTypeName)); err != nil {
+			if err := validateSegmentAssignmentTypeChangeTx(ctx, tx, ids, segmentAssignmentSlotType(newKuerzel, newTypeName)); err != nil {
 				return err
 			}
 		}

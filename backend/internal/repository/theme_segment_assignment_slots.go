@@ -37,33 +37,41 @@ func lockSegmentAssignmentDomainTx(ctx context.Context, tx pgx.Tx, segmentID int
 	return animeID, lockSegmentAssignmentAnimeTx(ctx, tx, animeID)
 }
 
-func segmentAssignmentSlotType(name string) string {
-	kind := CanonicalSegmentType(name)
-	if kind == "OP" || kind == "ED" {
-		return kind
+// segmentAssignmentSlotType derives the exclusive "one per release version" slot key for a
+// segment's type. Per the 2026-10-07 Live-UAT checkpoint decision (user, binding): OP, ED, and
+// OUT (Outro) are each their own slot -- at most one per release version, independently of each
+// other. IN (Insert) and anything else classified via CanonicalSegmentTypeFromKuerzel/
+// CanonicalSegmentType has NO slot and returns "" (unrestricted, multiple allowed). This
+// replaces the pre-fix behavior where Outro had no dedicated kuerzel and the ED name-guess
+// ("outro" contains "ed") silently aliased it onto the ED slot.
+func segmentAssignmentSlotType(kuerzel, name string) string {
+	switch CanonicalSegmentTypeFromKuerzel(kuerzel, name) {
+	case "OP", "ED", "OUT":
+		return CanonicalSegmentTypeFromKuerzel(kuerzel, name)
 	}
 	return ""
 }
 
 func segmentAssignmentTypeTx(ctx context.Context, tx pgx.Tx, segmentID int64) (string, error) {
-	var name string
-	err := tx.QueryRow(ctx, `SELECT tt.name FROM theme_segments s JOIN themes t ON t.id=s.theme_id JOIN theme_types tt ON tt.id=t.theme_type_id WHERE s.id=$1`, segmentID).Scan(&name)
+	var kuerzel, name string
+	err := tx.QueryRow(ctx, `SELECT COALESCE(tt.kuerzel, ''), tt.name FROM theme_segments s JOIN themes t ON t.id=s.theme_id JOIN theme_types tt ON tt.id=t.theme_type_id WHERE s.id=$1`, segmentID).Scan(&kuerzel, &name)
 	if errors.Is(err, pgx.ErrNoRows) {
 		return "", ErrNotFound
 	}
-	return segmentAssignmentSlotType(name), err
+	return segmentAssignmentSlotType(kuerzel, name), err
 }
 
 // One batched occupancy read. Classification uses the public projection's existing
-// canonical function, not another SQL alias registry. Existing same-segment rows are
-// excluded, making repeated assignment idempotent even for historical duplicate data.
+// kuerzel-driven canonical function (CanonicalSegmentTypeFromKuerzel), not another SQL alias
+// registry. Existing same-segment rows are excluded, making repeated assignment idempotent even
+// for historical duplicate data.
 func segmentAssignmentConflictsTx(ctx context.Context, tx pgx.Tx, segmentIDs []int64, slotType string, releaseVersionIDs []int64) ([]models.ThemeSegmentAssignmentConflict, error) {
 	conflicts := make([]models.ThemeSegmentAssignmentConflict, 0)
 	if slotType == "" || len(releaseVersionIDs) == 0 {
 		return conflicts, nil
 	}
 	rows, err := tx.Query(ctx, `
-        SELECT a.release_version_id, COALESCE(e.episode_number, ''), a.theme_segment_id, tt.name
+        SELECT a.release_version_id, COALESCE(e.episode_number, ''), a.theme_segment_id, COALESCE(tt.kuerzel, ''), tt.name
         FROM theme_segment_assignments a
         JOIN theme_segments s ON s.id=a.theme_segment_id
         JOIN themes t ON t.id=s.theme_id
@@ -80,11 +88,11 @@ func segmentAssignmentConflictsTx(ctx context.Context, tx pgx.Tx, segmentIDs []i
 	seen := make(map[int64]bool)
 	for rows.Next() {
 		var conflict models.ThemeSegmentAssignmentConflict
-		var name string
-		if err := rows.Scan(&conflict.ReleaseVersionID, &conflict.EpisodeNumber, &conflict.ExistingSegmentID, &name); err != nil {
+		var kuerzel, name string
+		if err := rows.Scan(&conflict.ReleaseVersionID, &conflict.EpisodeNumber, &conflict.ExistingSegmentID, &kuerzel, &name); err != nil {
 			return nil, err
 		}
-		if segmentAssignmentSlotType(name) == slotType && !seen[conflict.ReleaseVersionID] {
+		if segmentAssignmentSlotType(kuerzel, name) == slotType && !seen[conflict.ReleaseVersionID] {
 			conflicts = append(conflicts, conflict)
 			seen[conflict.ReleaseVersionID] = true
 		}

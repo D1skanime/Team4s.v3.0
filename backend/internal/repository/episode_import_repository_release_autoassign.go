@@ -12,7 +12,7 @@ import (
 // resolved from the actual release version; equal group/version/range alone never
 // makes a segment from another anime eligible.
 const autoAssignThemeSegmentsForNewReleaseVersionQuery = `
-    SELECT ts.id, tt.name
+    SELECT ts.id, COALESCE(tt.kuerzel, ''), tt.name
     FROM theme_segments ts
     JOIN themes t ON t.id=ts.theme_id
     JOIN theme_types tt ON tt.id=t.theme_type_id
@@ -64,12 +64,12 @@ func autoAssignThemeSegmentsForNewReleaseVersion(ctx context.Context, tx pgx.Tx,
 	toAssign := make([]int64, 0)
 	for rows.Next() {
 		var id int64
-		var name string
-		if err := rows.Scan(&id, &name); err != nil {
+		var kuerzel, name string
+		if err := rows.Scan(&id, &kuerzel, &name); err != nil {
 			rows.Close()
 			return err
 		}
-		if slot := segmentAssignmentSlotType(name); slot != "" {
+		if slot := segmentAssignmentSlotType(kuerzel, name); slot != "" {
 			slots[slot] = append(slots[slot], id)
 		} else {
 			toAssign = append(toAssign, id)
@@ -80,18 +80,18 @@ func autoAssignThemeSegmentsForNewReleaseVersion(ctx context.Context, tx pgx.Tx,
 	if err != nil {
 		return err
 	}
-	existingRows, err := tx.Query(ctx, `SELECT tt.name FROM theme_segment_assignments a JOIN theme_segments s ON s.id=a.theme_segment_id JOIN themes t ON t.id=s.theme_id JOIN theme_types tt ON tt.id=t.theme_type_id WHERE a.release_version_id=$1`, releaseVersionID)
+	existingRows, err := tx.Query(ctx, `SELECT COALESCE(tt.kuerzel, ''), tt.name FROM theme_segment_assignments a JOIN theme_segments s ON s.id=a.theme_segment_id JOIN themes t ON t.id=s.theme_id JOIN theme_types tt ON tt.id=t.theme_type_id WHERE a.release_version_id=$1`, releaseVersionID)
 	if err != nil {
 		return err
 	}
 	occupied := make(map[string]bool)
 	for existingRows.Next() {
-		var name string
-		if err := existingRows.Scan(&name); err != nil {
+		var kuerzel, name string
+		if err := existingRows.Scan(&kuerzel, &name); err != nil {
 			existingRows.Close()
 			return err
 		}
-		occupied[segmentAssignmentSlotType(name)] = true
+		occupied[segmentAssignmentSlotType(kuerzel, name)] = true
 	}
 	err = existingRows.Err()
 	existingRows.Close()
