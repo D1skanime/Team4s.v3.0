@@ -2,16 +2,16 @@
 gsd_state_version: 1.0
 milestone: v1.4
 milestone_name: Coverage
-status: executing
-stopped_at: Completed 175-07-PLAN.md
-last_updated: "2026-10-07T09:28:21.902Z"
+status: Phase 175 abgeschlossen — alle 9 Pläne (175-01..175-09) haben SUMMARY-Dateien. 175-09 synthetisierte `175-ROADMAP-PROPOSAL.md` und schloss mit einem Nutzer-Checkpoint ab; der Nutzer hat am 2026-10-07 mit "approved with changes" bestätigt (sechs verbindliche Änderungen, siehe `175-09-SUMMARY.md` und den Abschnitt "Nutzer-Bestätigung" in `175-ROADMAP-PROPOSAL.md`). Phase 175 selbst legt keine neuen ROADMAP.md-Phasen an (D-09) — die bestätigte Reihenfolge 176 Bugfix-Sammelphase, 177 Bild-Viewer (F-18), 178 Suchen & Filtern (F-16), 179 Media-Backend/Rechte (F-15 Teil 1), 180 Upload-Frontend/-Workflow (F-15 Teil 2), 181 Release-Bearbeitung (F-13), 182 Bildspeicher (F-01), 183 Status-/Label-Konsolidierung ist ein Vorschlagsergebnis für einen separaten, nachgelagerten Anlage-Schritt.
+stopped_at: Completed 175-09-PLAN.md (Phase 175 complete, 9/9 plans)
+last_updated: "2026-10-07T10:14:24.020Z"
 last_activity: 2026-10-07
 progress:
   total_phases: 40
-  completed_phases: 34
+  completed_phases: 35
   total_plans: 373
-  completed_plans: 368
-  percent: 85
+  completed_plans: 369
+  percent: 88
 ---
 
 # Quick Task 260925-6qe — Anime-Identitätskarte kompakt (Phase 168)
@@ -286,11 +286,11 @@ Abschluss" entry below for the full closing record.
 
 ## Current Position
 
-Phase: 175 (inventur-doppelungen-nach-fachaufgaben-pro-fachaufgabe-alle-) — EXECUTING
-Plan: 9 of 9
-Status: Ready to execute
+Phase: 175 (inventur-doppelungen-nach-fachaufgaben-pro-fachaufgabe-alle-) — COMPLETE
+Plan: 9 of 9 (175-09 done)
+Status: Phase 175 abgeschlossen — alle 9 Pläne (175-01..175-09) haben SUMMARY-Dateien. 175-09 synthetisierte `175-ROADMAP-PROPOSAL.md` und schloss mit einem Nutzer-Checkpoint ab; der Nutzer hat am 2026-10-07 mit "approved with changes" bestätigt (sechs verbindliche Änderungen, siehe `175-09-SUMMARY.md` und den Abschnitt "Nutzer-Bestätigung" in `175-ROADMAP-PROPOSAL.md`). Phase 175 selbst legt keine neuen ROADMAP.md-Phasen an (D-09) — die bestätigte Reihenfolge 176 Bugfix-Sammelphase, 177 Bild-Viewer (F-18), 178 Suchen & Filtern (F-16), 179 Media-Backend/Rechte (F-15 Teil 1), 180 Upload-Frontend/-Workflow (F-15 Teil 2), 181 Release-Bearbeitung (F-13), 182 Bildspeicher (F-01), 183 Status-/Label-Konsolidierung ist ein Vorschlagsergebnis für einen separaten, nachgelagerten Anlage-Schritt.
 Completed: Phase 174 — `frontend/src/lib/api.ts` (11,508 lines/371 exports) collapsed to a 34-line barrel over 36 domain modules; `useAdminAnimeCreateController.ts`, `GroupMediaReviewSection.tsx`, and `admin/fansubs/create/page.tsx` decomposed into sub-hooks/section components; `fansub_repository.go`, `admin_content_anime_themes.go`, `anime_assets.go`, and `admin_content_release_version_media.go` split into domain-scoped sibling files; `FansubEdit.module.css` and `ui.module.css` split along grep-verified single-owner class boundaries — all behavior-preserving per D-01, zero new dependency cycles, zero new N+1, full test-suite parity, final gate + live UAT both green/approved.
-Next: Phase 169's remaining plan (169-05, live actor/refresh/responsive UAT) is still open; Phase 166 (Film-Content-Flow) has not been started. The Coverage milestone is NOT complete.
+Next: Separater, nachgelagerter Schritt außerhalb von Phase 175 legt die bestätigten Phasen 176-183 in `ROADMAP.md` an (nicht Teil von 175-09, D-09). Daneben weiterhin offen: Phase 169's remaining plan (169-05, live actor/refresh/responsive UAT); Phase 166 (Film-Content-Flow) has not been started. The Coverage milestone is NOT complete.
 
 ## Vorherige Position (Phase 153, abgeschlossen)
 
@@ -945,6 +945,8 @@ Last activity: 2026-10-07
 - [Phase 175]: Dashboard-Attention: alle 4 attachPending*-Funktionen re-verifiziert, 0 neue Rechte-Abweichungen; kein zentrales Toast-System existiert (48 Ad-hoc errorBox/successBox-Implementierungen); genau 1 Mail-Typ im Backend, bereits gehärtet
 - [Phase 175-07]: Keine zusätzliche (13.) Fachaufgabe ergänzt — fünf quergeprüfte Kandidaten (Fansub-Gruppen-CRUD, Episoden-Anlegen, Rollenmatrix, Mail/Toast, searchArchive) sind bereits Teil einer der 12 D-02-Fachaufgaben, kein eigenständiger Parallel-Build-Fund.
 - [Phase 175-08]: 175-PERMISSION-MATRIX.md: Fachaufgaben 7/11 ohne Rechte-Aktionspaare bewusst ohne Tabellenzeile geführt (bestätigter Negativbefund statt fabrizierter Zeile); Fachaufgabe-10-Stichprobe auf Doppelzählung geprüft, nur 2 nicht anderswo belegte Aktionen eigenständig aufgenommen
+- [Phase 175-09]: Nutzer bestaetigte Phasenzuschnitt mit Aenderungen: Bugfix-Sammelphase=Phase 176 (Risiko mittel, 5 intern geblockte Pakete), F-15 gesplittet in Phase 179 (Media-Backend/Rechte) + Phase 180 (Upload-Frontend/-Workflow, abhaengig von 179), Phase 181 (Release-Bearbeitung) laeuft sequenziell zu 179/180, neue Phase 182 (Bildspeicher F-01) ergaenzt, finale bestaetigte Reihenfolge 176-183.
+- [Phase 175-09]: Phase 175 legt selbst keine ROADMAP.md-Phasen an (D-09) - Anlage der Phasen 176-183 erfolgt in einem separaten, nachgelagerten Schritt ausserhalb dieser Phase.
 
 ### Pending Todos
 
@@ -1535,11 +1537,12 @@ untruncated list lives in `.planning/todos/pending/`.
 | Phase 175 P06 | ~50min | 2 tasks | 4 files |
 | Phase 175 P07 | 15min | 1 tasks | 1 files |
 | Phase 175 P08 | 45min | 1 tasks | 1 files |
+| Phase 175 P09 | 35min | 2 tasks | 2 files |
 
 ## Session Continuity
 
-Last session: 2026-10-07T09:27:37.732Z
-Stopped at: Completed 175-07-PLAN.md
+Last session: 2026-10-07T10:14:23.999Z
+Stopped at: Completed 175-09-PLAN.md (Phase 175 complete, 9/9 plans)
 Last activity: 2026-09-28 - Completed Phase 169 Plan 169-01
 Resume file: 
 None
