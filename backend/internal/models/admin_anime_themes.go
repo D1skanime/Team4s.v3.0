@@ -38,7 +38,10 @@ type AdminThemeSegment struct {
 	AnimeID       int64   `json:"anime_id"`
 	ThemeTitle    *string `json:"theme_title"`
 	ThemeTypeName string  `json:"theme_type_name"`
-	FansubGroupID *int64  `json:"fansub_group_id"`
+	// ThemeTypeKuerzel ist die feste Kurzform (OP/ED/IN/OUT) aus theme_types.kuerzel
+	// (D-01, Migration 0179) -- ersetzt Name-Guessing in der Frontend-Badge-Logik.
+	ThemeTypeKuerzel string `json:"theme_type_kuerzel"`
+	FansubGroupID    *int64 `json:"fansub_group_id"`
 	// OriginReleaseVersionID ist die stabile, administrativ korrigierbare Herkunfts-Referenz
 	// des Segments (Phase 156, Workstream C -- Migration 0161). nil bedeutet "Origin nicht
 	// bestimmt" (kein Fehler), z.B. bei einem Segment ohne jede Zuweisung.
