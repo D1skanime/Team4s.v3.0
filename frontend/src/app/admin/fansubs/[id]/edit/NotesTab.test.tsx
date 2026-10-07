@@ -180,4 +180,28 @@ describe('NotesTab', () => {
       expect(screen.queryByPlaceholderText(/titel der notiz/i)).toBeNull()
     })
   })
+
+  it('versteckt Mutationskontrollen, wenn canEditNotes=false ist, zeigt aber Lesezugriff', async () => {
+    getAuthSessionSnapshotMock.mockReturnValue({ hasAccessToken: true, hasRefreshToken: true, displayName: 'FoundingOnlyEditor' })
+    listFansubGroupNotesMock.mockResolvedValue([makeGroupNote()])
+
+    render(<NotesTab fansubId={8} canEditNotes={false} />)
+
+    expect(await screen.findByText('Wie alles begann')).not.toBeNull()
+    expect(screen.queryByRole('button', { name: /neue gruppennotiz hinzufügen/i })).toBeNull()
+    expect(screen.queryByRole('button', { name: /bearbeiten/i })).toBeNull()
+    expect(screen.queryByRole('button', { name: /löschen/i })).toBeNull()
+  })
+
+  it('zeigt alle Mutationskontrollen unverändert, wenn canEditNotes=true ist', async () => {
+    getAuthSessionSnapshotMock.mockReturnValue({ hasAccessToken: true, hasRefreshToken: true, displayName: 'LocalAdmin' })
+    listFansubGroupNotesMock.mockResolvedValue([makeGroupNote()])
+
+    render(<NotesTab fansubId={8} canEditNotes={true} />)
+
+    expect(await screen.findByText('Wie alles begann')).not.toBeNull()
+    expect(screen.getByRole('button', { name: /neue gruppennotiz hinzufügen/i })).not.toBeNull()
+    expect(screen.getByRole('button', { name: /bearbeiten/i })).not.toBeNull()
+    expect(screen.getByRole('button', { name: /löschen/i })).not.toBeNull()
+  })
 })
