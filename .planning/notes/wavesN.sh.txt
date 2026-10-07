@@ -1,0 +1,52 @@
+#!/bin/bash
+# Usage: waves174.sh <from> <to>  -- runs /gsd-execute-phase $PHASE --wave N sequentially, stops on problems
+PHASE=$1; FROM=$2; TO=$3
+cd /home/d1sk/team4s
+D=$(ls -d .planning/phases/$PHASE-*)
+STATUS=/tmp/waves${PHASE}.status
+echo "start $(date -u +%FT%TZ) waves $FROM..$TO" > $STATUS
+# prints: none | error:<text> | ok   (only parses top-level result events)
+check_result() {
+  python3 - "$1" <<'EOF'
+import json, sys
+last = None
+for l in open(sys.argv[1]):
+    try: e = json.loads(l)
+    except Exception: continue
+    if e.get("type") == "result": last = e
+# a result only counts if it came after the last write/commit touching a SUMMARY file
+if last is not None:
+    lines = open(sys.argv[1]).read().splitlines()
+    ri = max(i for i, l in enumerate(lines) if '"type":"result"' in l or '"type": "result"' in l)
+    si = max([i for i, l in enumerate(lines) if '-SUMMARY.md' in l and '"tool_use"' in l] or [-1])
+    if si > ri: last = None
+if last is None: print("none")
+elif last.get("is_error"): print("error:" + str(last.get("result") or last.get("errors"))[:200].replace("\n", " "))
+else: print("ok")
+EOF
+}
+for W in $(seq $FROM $TO); do
+  PLANS=$(grep -l "^wave: $W\$" $D/$PHASE-*-PLAN.md | xargs -n1 basename | sed 's/-PLAN.md//')
+  printf '/gsd-execute-phase %s --wave %s\n' "$PHASE" "$W" > /tmp/msg-wave.txt
+  LOG=/tmp/gsd${PHASE}-w$W-$(date -u +%H%M).log
+  bash /tmp/gsdrun.sh /tmp/msg-wave.txt $LOG >/dev/null
+  echo "wave $W started ($PLANS) $(date -u +%T)" >> $STATUS
+  last=0; still=0; outcome=timeout
+  for i in $(seq 1 240); do
+    sleep 60
+    r=$(check_result $LOG)
+    if [ "$r" != none ]; then
+      if [ "${r%%:*}" = error ]; then outcome="$r"; break; fi
+      ok=1; for p in $PLANS; do [ -f $D/$p-SUMMARY.md ] || ok=0; done
+      # ok result without SUMMARY = orchestrator yielded to a background executor -> keep waiting
+      if [ $ok = 1 ] && [ -z "$(git status --short -- frontend backend shared database)" ]; then outcome=done; break; fi
+    fi
+    s=$(stat -c %s $LOG); if [ "$s" = "$last" ]; then still=$((still+1)); else still=0; fi; last=$s
+    if [ $still -ge 30 ]; then outcome=stall; break; fi
+  done
+  kill $(cat /tmp/gsd173.holder) 2>/dev/null; sleep 2; kill $(cat /tmp/gsd173.pid) 2>/dev/null
+  echo "wave $W $outcome $(date -u +%T)" >> $STATUS
+  [ "$outcome" = done ] || { echo "STOP" >> $STATUS; exit 1; }
+  if [ -n "$(git status --short -- frontend backend shared database)" ]; then echo "dirty tree after wave $W" >> $STATUS; echo STOP >> $STATUS; exit 1; fi
+done
+echo "ALL DONE" >> $STATUS
