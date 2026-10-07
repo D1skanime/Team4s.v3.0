@@ -135,3 +135,8 @@ None - no external service configuration required.
 ---
 *Phase: 176-bug-und-altlasten-sammelphase-offene-174-followups-f-02-out-*
 *Completed: 2026-10-07*
+
+## Self-Check: PASSED
+
+All 10 created/modified files confirmed present on disk; all 4 commit hashes
+(`54df5ad4`, `d24417c2`, `9d28ef37`, `4d4ab62d`) confirmed present in `git log`.
