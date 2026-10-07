@@ -2,16 +2,16 @@
 gsd_state_version: 1.0
 milestone: v1.4
 milestone_name: Coverage
-status: milestone_complete
-stopped_at: Milestone complete (Phase 175 was final phase)
-last_updated: 2026-10-07T10:20:17.445Z
+status: executing
+stopped_at: Completed 175-09-PLAN.md (Phase 175 complete, 9/9 plans)
+last_updated: "2026-10-07T12:14:08.742Z"
 last_activity: 2026-10-07
 progress:
-  total_phases: 40
+  total_phases: 41
   completed_phases: 35
-  total_plans: 373
-  completed_plans: 423
-  percent: 88
+  total_plans: 388
+  completed_plans: 369
+  percent: 85
 ---
 
 # Quick Task 260925-6qe — Anime-Identitätskarte kompakt (Phase 168)
@@ -288,7 +288,7 @@ Abschluss" entry below for the full closing record.
 
 Phase: 175
 Plan: Not started
-Status: Milestone complete
+Status: Ready to execute
 Completed: Phase 174 — `frontend/src/lib/api.ts` (11,508 lines/371 exports) collapsed to a 34-line barrel over 36 domain modules; `useAdminAnimeCreateController.ts`, `GroupMediaReviewSection.tsx`, and `admin/fansubs/create/page.tsx` decomposed into sub-hooks/section components; `fansub_repository.go`, `admin_content_anime_themes.go`, `anime_assets.go`, and `admin_content_release_version_media.go` split into domain-scoped sibling files; `FansubEdit.module.css` and `ui.module.css` split along grep-verified single-owner class boundaries — all behavior-preserving per D-01, zero new dependency cycles, zero new N+1, full test-suite parity, final gate + live UAT both green/approved.
 Next: Separater, nachgelagerter Schritt außerhalb von Phase 175 legt die bestätigten Phasen 176-183 in `ROADMAP.md` an (nicht Teil von 175-09, D-09). Daneben weiterhin offen: Phase 169's remaining plan (169-05, live actor/refresh/responsive UAT); Phase 166 (Film-Content-Flow) has not been started. The Coverage milestone is NOT complete.
 
