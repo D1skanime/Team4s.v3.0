@@ -16,6 +16,36 @@ const (
 	SnapshotModeUninitialized = "uninitialized"
 )
 
+// projectScopeOnlyRoleCodes lists anime_contribution_roles.role_code values that
+// represent project-wide leadership rather than per-release work. A role in this
+// set is intentionally NEVER mirrored from the project-wide confirmed crew
+// (anime_contributions.release_version_id IS NULL) into any release-version-scoped
+// snapshot row -- it applies to the whole project only, not to one release/episode.
+//
+// Decided by explicit user approval 2026-10-07 ("Projektleiter nur aufs Projekt" /
+// Option 1), as a scope expansion of 176-04 Task 3 following 176-03's flagged open
+// question (176-03-SUMMARY.md, "Open question for 176-04"). role_definitions has no
+// schema-level column for this distinction (confirmed during 176-04); a single,
+// centrally-named constant here is used instead of scattered string checks. Add a
+// role_code here only when it is semantically project-wide, never release-specific.
+var projectScopeOnlyRoleCodes = map[string]struct{}{
+	"project_lead": {},
+}
+
+// filterOutProjectScopeOnlyRoles removes any role_code in projectScopeOnlyRoleCodes
+// from a crew row's role list before that row is mirrored into a release-version-
+// scoped snapshot. See projectScopeOnlyRoleCodes for why.
+func filterOutProjectScopeOnlyRoles(roleCodes []string) []string {
+	filtered := make([]string, 0, len(roleCodes))
+	for _, roleCode := range roleCodes {
+		if _, excluded := projectScopeOnlyRoleCodes[roleCode]; excluded {
+			continue
+		}
+		filtered = append(filtered, roleCode)
+	}
+	return filtered
+}
+
 type releaseCrewDBTX interface {
 	DBTX
 	Query(ctx context.Context, sql string, args ...any) (pgx.Rows, error)
@@ -346,6 +376,14 @@ func (r *ReleaseCrewSnapshotRepository) SeedInheritedInTx(
 	return replaceReleaseCrewInTx(ctx, tx, releaseVersionID, fansubGroupID, SnapshotModeInherited, projectRows)
 }
 
+// loadConfirmedProjectCrew reads the anime-wide confirmed "project crew" row
+// (release_version_id IS NULL) and returns it ready to be mirrored into
+// release-version-scoped snapshot rows. Any role_code in projectScopeOnlyRoleCodes
+// (e.g. "project_lead") is filtered out here -- those roles stay on the
+// project-wide row only and are never copied into a release-scoped row. A
+// member whose confirmed project roles are ENTIRELY project-scope-only (nothing
+// left after filtering) is dropped from the result so no empty-role row is
+// mirrored.
 func loadConfirmedProjectCrew(ctx context.Context, tx releaseCrewDBTX, animeID, fansubGroupID int64) ([]ReleaseCrewRow, error) {
 	rows, err := tx.Query(ctx, `
 		SELECT ac.member_id, ARRAY_AGG(acr.role_code ORDER BY acr.role_code)
@@ -367,6 +405,10 @@ func loadConfirmedProjectCrew(ctx context.Context, tx releaseCrewDBTX, animeID, 
 		var row ReleaseCrewRow
 		if err := rows.Scan(&row.MemberID, &row.RoleCodes); err != nil {
 			return nil, fmt.Errorf("load confirmed project crew: scan: %w", err)
+		}
+		row.RoleCodes = filterOutProjectScopeOnlyRoles(row.RoleCodes)
+		if len(row.RoleCodes) == 0 {
+			continue
 		}
 		result = append(result, row)
 	}

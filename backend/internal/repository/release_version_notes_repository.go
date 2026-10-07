@@ -263,6 +263,20 @@ func (r *ReleaseVersionNotesRepository) ResolveContributorRoleID(
 // A release-specific assignment is an explicit complete crew override. It must not
 // be combined with project-wide roles, otherwise a member could act with a role
 // that was intentionally replaced for this release.
+//
+// "project_lead" is never part of step 1's release-specific set as of 176-04
+// (release_crew_snapshot_repository.go's projectScopeOnlyRoleCodes stops
+// mirroring it into release-scoped anime_contributions rows), so a release
+// override never silently drops the project lead -- it was never there to
+// begin with. The formerly dead getProjectLeadRolesForVersion helper (sourced
+// project_lead from the anime-wide row only) was removed instead of wired in:
+// wiring it into this function would have required merging project-wide roles
+// back into a release's override set, which TestGetMemberRolesForVersion_
+// ReleaseAssignmentsOverrideProjectRoles explicitly forbids (a release
+// assignment must fully replace, not merge with, the project-wide set).
+// ListReleaseVersionMemberRoleGroupIDs already falls back to the anime-wide
+// row (release_version_id IS NULL) for any role_code, including
+// "project_lead", so that validation path needs no change.
 func (r *ReleaseVersionNotesRepository) GetMemberRolesForVersion(
 	ctx context.Context,
 	releaseVersionID int64,
@@ -351,54 +365,6 @@ func (r *ReleaseVersionNotesRepository) getMemberRolesForVersionStep(
 	}
 	if err := rows.Err(); err != nil {
 		return nil, fmt.Errorf("iterate member_roles_for_version rows: %w", err)
-	}
-	return items, nil
-}
-
-func (r *ReleaseVersionNotesRepository) getProjectLeadRolesForVersion(
-	ctx context.Context,
-	releaseVersionID int64,
-) ([]MemberRoleForVersion, error) {
-	rows, err := r.db.Query(ctx, `
-		SELECT DISTINCT ac.member_id, m.nickname AS member_name,
-		       cr.id AS role_id, acr.role_code, rd.label_de AS role_label,
-		       rd.sort_order AS role_sort_order
-		FROM anime_contributions ac
-		JOIN members m ON m.id = ac.member_id
-		JOIN anime_contribution_roles acr ON acr.anime_contribution_id = ac.id
-		JOIN role_definitions rd ON rd.code = acr.role_code
-		JOIN contributor_roles cr ON cr.name = rd.code
-		JOIN release_versions rv ON rv.id = $1
-		JOIN fansub_releases fr ON fr.id = rv.release_id
-		JOIN episodes e ON e.id = fr.episode_id
-		WHERE ac.release_version_id IS NULL
-		  AND ac.anime_id = e.anime_id
-		  AND acr.role_code = 'project_lead'
-		  AND ac.fansub_group_id IN (
-		      SELECT fansub_group_id FROM release_version_groups WHERE release_version_id = $1
-		  )
-		ORDER BY role_sort_order ASC, role_label ASC, member_name ASC
-	`, releaseVersionID)
-	if err != nil {
-		return nil, fmt.Errorf("get project lead roles for version %d: %w", releaseVersionID, err)
-	}
-	defer rows.Close()
-
-	var items []MemberRoleForVersion
-	for rows.Next() {
-		var mr MemberRoleForVersion
-		var roleSortOrder int
-		if err := rows.Scan(
-			&mr.MemberID, &mr.MemberName,
-			&mr.RoleID, &mr.RoleCode, &mr.RoleLabel,
-			&roleSortOrder,
-		); err != nil {
-			return nil, fmt.Errorf("scan project_lead member_roles_for_version row: %w", err)
-		}
-		items = append(items, mr)
-	}
-	if err := rows.Err(); err != nil {
-		return nil, fmt.Errorf("iterate project_lead member_roles_for_version rows: %w", err)
 	}
 	return items, nil
 }

@@ -314,3 +314,169 @@ func TestReleaseCrewSnapshot_SyncInheritedForProjectInTxIsIdempotentAcrossRepeat
 	thirdCount := countReleaseCrew176ConfirmedRows(t, pool, versionID, groupID)
 	require.Equal(t, firstCount, thirdCount, "row count must stay stable across a third repeated sync")
 }
+
+// --- "Projektleiter nur aufs Projekt" (176-04 Task 3, user-approved scope -----
+// expansion, 2026-10-07, Option 1) -------------------------------------------
+//
+// 176-03 flagged, as an explicitly NOT-decided open question, whether
+// "project_lead" should keep being mirrored from the anime-wide confirmed
+// project crew row into every release-version-scoped snapshot. The user
+// approved Option 1 ("Projektleiter nur aufs Projekt") on 2026-10-07 as a
+// scope addition to this plan's Task 3. These three tests prove the resulting
+// behavior against the real Phase-117 Postgres fixture, mirroring the style
+// of TestReleaseCrewSnapshot_SyncInheritedForProjectInTxIsIdempotentAcrossRepeatedCalls
+// above.
+
+func fetchReleaseCrew176RoleCodesForMember(t testing.TB, pool *pgxpool.Pool, releaseVersionID, groupID, memberID int64) []string {
+	t.Helper()
+	rows, err := pool.Query(context.Background(), `
+		SELECT acr.role_code
+		FROM anime_contributions ac
+		JOIN anime_contribution_roles acr ON acr.anime_contribution_id = ac.id
+		WHERE ac.release_version_id = $1 AND ac.fansub_group_id = $2 AND ac.member_id = $3
+		  AND ac.status = 'confirmed'
+		ORDER BY acr.role_code
+	`, releaseVersionID, groupID, memberID)
+	require.NoError(t, err)
+	defer rows.Close()
+	var codes []string
+	for rows.Next() {
+		var code string
+		require.NoError(t, rows.Scan(&code))
+		codes = append(codes, code)
+	}
+	require.NoError(t, rows.Err())
+	return codes
+}
+
+func fetchReleaseCrew176ProjectWideRoleCodes(t testing.TB, pool *pgxpool.Pool, animeID, groupID, memberID int64) []string {
+	t.Helper()
+	rows, err := pool.Query(context.Background(), `
+		SELECT acr.role_code
+		FROM anime_contributions ac
+		JOIN anime_contribution_roles acr ON acr.anime_contribution_id = ac.id
+		WHERE ac.anime_id = $1 AND ac.fansub_group_id = $2 AND ac.member_id = $3
+		  AND ac.release_version_id IS NULL AND ac.status = 'confirmed'
+		ORDER BY acr.role_code
+	`, animeID, groupID, memberID)
+	require.NoError(t, err)
+	defer rows.Close()
+	var codes []string
+	for rows.Next() {
+		var code string
+		require.NoError(t, rows.Scan(&code))
+		codes = append(codes, code)
+	}
+	require.NoError(t, rows.Err())
+	return codes
+}
+
+// TestReleaseCrewSnapshot_ProjectLeadDoesNotMirrorToReleaseScopedRows proves
+// that a project roster carrying "project_lead" + "timer" syncs to an
+// inherited release version with only "timer" -- "project_lead" must not
+// appear on the release-scoped row.
+func TestReleaseCrewSnapshot_ProjectLeadDoesNotMirrorToReleaseScopedRows(t *testing.T) {
+	pool := testsupport.OpenPhase117Postgres(t)
+	prepareReleaseCrew176Schema(t, pool)
+	ctx := context.Background()
+
+	const (
+		animeID        = int64(176041010)
+		groupID        = int64(176041020)
+		memberID       = int64(176041030)
+		episodeID      = int64(176041040)
+		releaseID      = int64(176041050)
+		versionID      = int64(176041060)
+		contributionID = int64(176041070)
+	)
+
+	seedReleaseCrew176Anime(t, pool, animeID)
+	seedReleaseCrew176FansubGroup(t, pool, groupID, "176-04-project-lead-group")
+	seedReleaseCrew176Member(t, pool, memberID, "176-04-project-lead-member")
+	seedReleaseCrew176ReleaseVersion(t, pool, episodeID, releaseID, versionID, animeID, groupID)
+	seedReleaseCrew176ConfirmedProjectMember(t, pool, contributionID, animeID, groupID, memberID, []string{"timer", "project_lead"})
+	seedReleaseCrew176Snapshot(t, pool, versionID, groupID, SnapshotModeInherited)
+
+	repo := NewReleaseCrewSnapshotRepository(pool)
+	_, err := repo.SyncInheritedForProjectInTx(ctx, pool, animeID, groupID)
+	require.NoError(t, err)
+
+	releaseScopedRoles := fetchReleaseCrew176RoleCodesForMember(t, pool, versionID, groupID, memberID)
+	require.Equal(t, []string{"timer"}, releaseScopedRoles,
+		"release-scoped row must carry only 'timer', never the mirrored 'project_lead'")
+}
+
+// TestReleaseCrewSnapshot_ProjectLeadRetainedOnProjectWideRow proves the
+// anime-wide "project crew" row (release_version_id IS NULL) -- the SOURCE
+// read by loadConfirmedProjectCrew -- keeps "project_lead" untouched. Only the
+// release-scoped MIRROR drops it, not the project-wide row itself.
+func TestReleaseCrewSnapshot_ProjectLeadRetainedOnProjectWideRow(t *testing.T) {
+	pool := testsupport.OpenPhase117Postgres(t)
+	prepareReleaseCrew176Schema(t, pool)
+	ctx := context.Background()
+
+	const (
+		animeID        = int64(176041110)
+		groupID        = int64(176041120)
+		memberID       = int64(176041130)
+		episodeID      = int64(176041140)
+		releaseID      = int64(176041150)
+		versionID      = int64(176041160)
+		contributionID = int64(176041170)
+	)
+
+	seedReleaseCrew176Anime(t, pool, animeID)
+	seedReleaseCrew176FansubGroup(t, pool, groupID, "176-04-project-wide-group")
+	seedReleaseCrew176Member(t, pool, memberID, "176-04-project-wide-member")
+	seedReleaseCrew176ReleaseVersion(t, pool, episodeID, releaseID, versionID, animeID, groupID)
+	seedReleaseCrew176ConfirmedProjectMember(t, pool, contributionID, animeID, groupID, memberID, []string{"timer", "project_lead"})
+	seedReleaseCrew176Snapshot(t, pool, versionID, groupID, SnapshotModeInherited)
+
+	repo := NewReleaseCrewSnapshotRepository(pool)
+	_, err := repo.SyncInheritedForProjectInTx(ctx, pool, animeID, groupID)
+	require.NoError(t, err)
+
+	projectWideRoles := fetchReleaseCrew176ProjectWideRoleCodes(t, pool, animeID, groupID, memberID)
+	require.Equal(t, []string{"project_lead", "timer"}, projectWideRoles,
+		"the anime-wide project row must retain project_lead -- only the release-scoped mirror drops it")
+}
+
+// TestReleaseCrewSnapshot_ProjectLeadExclusionIsIdempotentAcrossRepeatedSyncs
+// proves re-running the sync does not re-add "project_lead" to the
+// release-scoped row, nor duplicate the remaining "timer" row, across 3
+// repeated calls with an unchanged confirmed project crew.
+func TestReleaseCrewSnapshot_ProjectLeadExclusionIsIdempotentAcrossRepeatedSyncs(t *testing.T) {
+	pool := testsupport.OpenPhase117Postgres(t)
+	prepareReleaseCrew176Schema(t, pool)
+	ctx := context.Background()
+
+	const (
+		animeID        = int64(176041210)
+		groupID        = int64(176041220)
+		memberID       = int64(176041230)
+		episodeID      = int64(176041240)
+		releaseID      = int64(176041250)
+		versionID      = int64(176041260)
+		contributionID = int64(176041270)
+	)
+
+	seedReleaseCrew176Anime(t, pool, animeID)
+	seedReleaseCrew176FansubGroup(t, pool, groupID, "176-04-idempotent-exclusion-group")
+	seedReleaseCrew176Member(t, pool, memberID, "176-04-idempotent-exclusion-member")
+	seedReleaseCrew176ReleaseVersion(t, pool, episodeID, releaseID, versionID, animeID, groupID)
+	seedReleaseCrew176ConfirmedProjectMember(t, pool, contributionID, animeID, groupID, memberID, []string{"timer", "project_lead"})
+	seedReleaseCrew176Snapshot(t, pool, versionID, groupID, SnapshotModeInherited)
+
+	repo := NewReleaseCrewSnapshotRepository(pool)
+
+	for i := 0; i < 3; i++ {
+		_, err := repo.SyncInheritedForProjectInTx(ctx, pool, animeID, groupID)
+		require.NoError(t, err)
+
+		rowCount := countReleaseCrew176ConfirmedRows(t, pool, versionID, groupID)
+		require.Equal(t, 1, rowCount, "repeated sync %d must not duplicate the release-scoped row", i+1)
+
+		roles := fetchReleaseCrew176RoleCodesForMember(t, pool, versionID, groupID, memberID)
+		require.Equal(t, []string{"timer"}, roles, "repeated sync %d must not re-add project_lead to the release-scoped row", i+1)
+	}
+}
