@@ -20,7 +20,7 @@ import (
 
 // openFansubNotesHandlerFixture provisions a real, schema-isolated Postgres fixture
 // (testsupport.OpenPhase107Postgres's SKIP-not-FAIL convention) with just enough
-// production-shaped schema for fansub_group_notes, member_group_stories, and
+// production-shaped schema for fansub_group_notes and
 // anime_fansub_project_notes/anime_fansub_groups to prove real route-context
 // propagation through FansubNotesRepository — CLAUDE.md's Teststil rule forbids
 // substituting a fake here because AdminContentHandler.fansubNotesRepo is a
@@ -81,31 +81,7 @@ func openFansubNotesHandlerFixture(t *testing.T) *pgxpool.Pool {
 			updated_at TIMESTAMPTZ NULL,
 			deleted_at TIMESTAMPTZ NULL
 		);
-		CREATE TABLE member_group_stories (
-			id BIGINT PRIMARY KEY,
-			fansub_group_id BIGINT NOT NULL REFERENCES fansub_groups(id) ON DELETE CASCADE,
-			member_id BIGINT NOT NULL REFERENCES members(id),
-			role_id BIGINT NULL,
-			title TEXT NOT NULL DEFAULT '',
-			body_markdown TEXT NOT NULL DEFAULT '',
-			body_html TEXT NOT NULL DEFAULT '',
-			body_json JSONB NOT NULL DEFAULT '{}'::jsonb,
-			body_text TEXT NOT NULL DEFAULT '',
-			editor_type TEXT NOT NULL DEFAULT 'tiptap',
-			content_schema_version INT NOT NULL DEFAULT 1,
-			visibility TEXT NOT NULL DEFAULT 'internal',
-			status TEXT NOT NULL DEFAULT 'draft',
-			sort_order INT NOT NULL DEFAULT 0,
-			created_by_user_id BIGINT NULL REFERENCES users(id),
-			updated_by_user_id BIGINT NULL REFERENCES users(id),
-			deleted_by_user_id BIGINT NULL REFERENCES users(id),
-			created_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
-			updated_at TIMESTAMPTZ NULL,
-			deleted_at TIMESTAMPTZ NULL
-		);
-
 		INSERT INTO fansub_groups(id) VALUES (41), (42);
-		INSERT INTO members(id) VALUES (501);
 
 		-- Valid anime/fansub pairing for the GET happy-path and invalid-pairing negative case
 		-- deliberately omits anime_id 999.
@@ -117,11 +93,6 @@ func openFansubNotesHandlerFixture(t *testing.T) *pgxpool.Pool {
 			(91, 41, 'Alte Notiz', 'internal', 'draft'),
 			(92, 41, 'Zu loeschende Notiz', 'internal', 'draft'),
 			(93, 42, 'Fremde Notiz', 'internal', 'draft');
-
-		INSERT INTO member_group_stories(id, fansub_group_id, member_id, title, visibility, status) VALUES
-			(95, 41, 501, 'Alte Geschichte', 'internal', 'draft'),
-			(96, 41, 501, 'Zu loeschende Geschichte', 'internal', 'draft'),
-			(97, 42, 501, 'Fremde Geschichte', 'internal', 'draft');
 	`)
 	require.NoError(t, err)
 	return pool
@@ -182,10 +153,10 @@ func (s *projectNoteDeleteArgsCaptureStub) Delete(_ context.Context, noteID, ani
 }
 
 // fansubNotesAdminRoleCheckerStub grants every platform-admin/legacy-admin authz check.
-// UpdateMemberGroupStory/DeleteMemberGroupStory (unlike the fansub_group_notes handlers)
-// gate through requireAdmin -> requirePlatformAdminIdentity, which type-asserts h.authzRepo
-// against the richer AppUserHasGlobalRole shape before falling back to UserHasRole; this stub
-// implements both so the fansubNotesPlatformAdminIdentity() actor genuinely clears the gate
+// UpdateFansubGroupNote/DeleteFansubGroupNote gate through requireAdmin ->
+// requirePlatformAdminIdentity, which type-asserts h.authzRepo against the richer
+// AppUserHasGlobalRole shape before falling back to UserHasRole; this stub implements
+// both so the fansubNotesPlatformAdminIdentity() actor genuinely clears the gate
 // instead of hitting requirePlatformAdminIdentity's nil-roleChecker 500 fallback.
 type fansubNotesAdminRoleCheckerStub struct{}
 
@@ -260,7 +231,7 @@ func TestAdminContentFansubNotes_ProjectNoteSourceInvariants(t *testing.T) {
 
 // TestAdminContentFansubNotes_ScopedWriteSourceInvariants proves, via real httptest calls
 // against a real Postgres-backed fansubNotesRepo, that UpdateFansubGroupNote/
-// DeleteFansubGroupNote/UpdateMemberGroupStory/DeleteMemberGroupStory all scope their
+// DeleteFansubGroupNote all scope their
 // mutation to the fansub group ID taken from the route: a request naming the correct row ID
 // but the WRONG fansub group in the route succeeds as a 404 (repository.ErrNotFound), which
 // is only possible if the route's fansubID genuinely reaches the repository's WHERE clause —
@@ -305,39 +276,6 @@ func TestAdminContentFansubNotes_ScopedWriteSourceInvariants(t *testing.T) {
 		var deletedAt *string
 		require.NoError(t, pool.QueryRow(context.Background(),
 			`SELECT deleted_at::text FROM fansub_group_notes WHERE id = 92`,
-		).Scan(&deletedAt))
-		require.NotNil(t, deletedAt)
-	})
-
-	t.Run("UpdateMemberGroupStory scopes to the route fansub group", func(t *testing.T) {
-		body := []byte(`{"title":"Neue Geschichte"}`)
-
-		c, rec := fansubNotesHandlerContext(http.MethodPatch, "/api/v1/admin/fansubs/41/member-stories/95", body,
-			gin.Params{{Key: "id", Value: "41"}, {Key: "storyId", Value: "95"}}, identity)
-		handler.UpdateMemberGroupStory(c)
-		require.Equal(t, http.StatusOK, rec.Code, rec.Body.String())
-		require.Contains(t, rec.Body.String(), "Neue Geschichte")
-
-		wrongGroupC, wrongGroupRec := fansubNotesHandlerContext(http.MethodPatch, "/api/v1/admin/fansubs/42/member-stories/95", body,
-			gin.Params{{Key: "id", Value: "42"}, {Key: "storyId", Value: "95"}}, identity)
-		handler.UpdateMemberGroupStory(wrongGroupC)
-		require.Equal(t, http.StatusNotFound, wrongGroupRec.Code, wrongGroupRec.Body.String())
-	})
-
-	t.Run("DeleteMemberGroupStory scopes to the route fansub group", func(t *testing.T) {
-		wrongGroupC, wrongGroupRec := fansubNotesHandlerContext(http.MethodDelete, "/api/v1/admin/fansubs/42/member-stories/96", nil,
-			gin.Params{{Key: "id", Value: "42"}, {Key: "storyId", Value: "96"}}, identity)
-		handler.DeleteMemberGroupStory(wrongGroupC)
-		require.Equal(t, http.StatusNotFound, wrongGroupRec.Code, wrongGroupRec.Body.String())
-
-		c, rec := fansubNotesHandlerContext(http.MethodDelete, "/api/v1/admin/fansubs/41/member-stories/96", nil,
-			gin.Params{{Key: "id", Value: "41"}, {Key: "storyId", Value: "96"}}, identity)
-		handler.DeleteMemberGroupStory(c)
-		require.Equal(t, http.StatusNoContent, rec.Code, rec.Body.String())
-
-		var deletedAt *string
-		require.NoError(t, pool.QueryRow(context.Background(),
-			`SELECT deleted_at::text FROM member_group_stories WHERE id = 96`,
 		).Scan(&deletedAt))
 		require.NotNil(t, deletedAt)
 	})

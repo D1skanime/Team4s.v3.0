@@ -58,8 +58,8 @@ type UpdateFansubGroupNoteRequest struct {
 	SortOrder    *int
 }
 
-// FansubNotesRepository provides CRUD operations for fansub_group_notes,
-// member_group_stories, and anime_fansub_project_notes.
+// FansubNotesRepository provides CRUD operations for fansub_group_notes
+// and anime_fansub_project_notes.
 type FansubNotesRepository struct {
 	db *pgxpool.Pool
 }

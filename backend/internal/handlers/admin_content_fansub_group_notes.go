@@ -14,7 +14,7 @@ import (
 )
 
 // requireFansubGroupNoteWriteAccess kapselt die Berechtigungsprüfung für
-// fansub_group_notes und member_group_stories. MVP: Admin-only.
+// fansub_group_notes. MVP: Admin-only.
 // Eigene Funktion ermöglicht spätere Erweiterung ohne Änderung an Call-Sites.
 func (h *AdminContentHandler) requireFansubGroupNoteWriteAccess(c *gin.Context) (middleware.AuthIdentity, bool) {
 	identity, actor, ok := permissionActorFromContext(c)

@@ -20,15 +20,4 @@ func TestFansubNotesRepository_ScopedMutationSourceInvariants(t *testing.T) {
 		"group-note delete signature must include the fansub parent id")
 	assert.True(t, strings.Contains(groupContent, "AND fansub_group_id = $2"),
 		"group-note mutations must scope SQL writes to the fansub parent id")
-
-	storySrc, err := os.ReadFile("member_group_stories_repository.go")
-	require.NoError(t, err)
-	storyContent := string(storySrc)
-
-	assert.True(t, strings.Contains(storyContent, "UpdateMemberGroupStory(\n\tctx context.Context,\n\tstoryID int64,\n\tfansubGroupID int64,"),
-		"member-story update signature must include the fansub parent id")
-	assert.True(t, strings.Contains(storyContent, "DeleteMemberGroupStory(\n\tctx context.Context,\n\tstoryID int64,\n\tfansubGroupID int64,"),
-		"member-story delete signature must include the fansub parent id")
-	assert.True(t, strings.Contains(storyContent, "AND fansub_group_id = $2"),
-		"member-story mutations must scope SQL writes to the fansub parent id")
 }
