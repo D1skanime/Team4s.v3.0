@@ -6,13 +6,9 @@ import type { AdminThemeSegment } from '@/types/admin'
 
 import {
   getTypeBadgeLabel,
-  calcDuration,
   formatEpisodeRange,
   resolveSourceLabel,
   isSegmentActiveForEpisode,
-} from './segmenteTabUtils'
-
-import {
   parseFlexibleTimeInput,
   formatTimeInput,
   isCurrentEpisodeAssigned,
@@ -130,6 +126,7 @@ function makeSegment(overrides: Partial<AdminThemeSegment> = {}): AdminThemeSegm
     anime_id: 1,
     theme_title: null,
     theme_type_name: 'OP1',
+    theme_type_kuerzel: 'OP',
     fansub_group_id: null,
     version: 'v1',
     start_episode: null,
@@ -1181,61 +1178,33 @@ describe('SegmentEditPanel Origin/Mitwirkende bei Ein-Folgen-Segmenten (GAP-08)'
 
 // ---------------------------------------------------------------------------
 // getTypeBadgeLabel
+//
+// D-01 (176-CONTEXT.md): getTypeBadgeLabel now derives its label from the fixed
+// theme_types.kuerzel value (DB-driven, Migration 0179) instead of guessing from
+// a free-text theme_type_name. These cases exercise the real kuerzel inputs
+// ('OP'/'ED'/'IN'/'OUT') the segment repository now returns; the "Outro" case
+// previously asserted the now-deleted dead-code utils file's wrong guess ("PV")
+// -- this is corrected to "OUT", the deliberate D-01 behavior fix.
 // ---------------------------------------------------------------------------
 describe('getTypeBadgeLabel', () => {
-  it('gibt "OP" für "OP1"', () => {
-    expect(getTypeBadgeLabel('OP1')).toBe('OP')
+  it('gibt "OP" für kuerzel "OP"', () => {
+    expect(getTypeBadgeLabel('OP')).toBe('OP')
   })
 
-  it('gibt "OP" für "Opening 1"', () => {
-    expect(getTypeBadgeLabel('Opening 1')).toBe('OP')
+  it('gibt "ED" für kuerzel "ED"', () => {
+    expect(getTypeBadgeLabel('ED')).toBe('ED')
   })
 
-  it('gibt "ED" für "ED2"', () => {
-    expect(getTypeBadgeLabel('ED2')).toBe('ED')
+  it('gibt "IN" für kuerzel "IN"', () => {
+    expect(getTypeBadgeLabel('IN')).toBe('IN')
   })
 
-  it('gibt "ED" für "ED2" direkt', () => {
-    expect(getTypeBadgeLabel('ED2')).toBe('ED')
+  it('gibt "OUT" für kuerzel "OUT" (Outro)', () => {
+    expect(getTypeBadgeLabel('OUT')).toBe('OUT')
   })
 
-  it('gibt "IN" für "Insert"', () => {
-    expect(getTypeBadgeLabel('Insert')).toBe('IN')
-  })
-
-  it('gibt "PV" für "PV"', () => {
-    expect(getTypeBadgeLabel('PV')).toBe('PV')
-  })
-
-  it('gibt "PV" für "Outro"', () => {
-    expect(getTypeBadgeLabel('Outro')).toBe('PV')
-  })
-
-  it('gibt den Original-String bei unbekanntem Typ zurück', () => {
+  it('gibt den Original-Wert bei unbekanntem Kuerzel zurück', () => {
     expect(getTypeBadgeLabel('Special')).toBe('Special')
-  })
-})
-
-// ---------------------------------------------------------------------------
-// calcDuration
-// ---------------------------------------------------------------------------
-describe('calcDuration', () => {
-  it('berechnet Dauer zwischen 00:00:30 und 00:01:45 als "(01:15)"', () => {
-    expect(calcDuration('00:00:30', '00:01:45')).toBe('(01:15)')
-  })
-
-  it('gibt "(00:00)" zurück wenn Start und Ende gleich sind', () => {
-    expect(calcDuration('00:00:00', '00:00:00')).toBe('(00:00)')
-  })
-
-  it('berechnet typische OP-Laenge von 90 Sekunden korrekt', () => {
-    expect(calcDuration('00:00:00', '00:01:30')).toBe('(01:30)')
-  })
-
-  it('berechnet Dauer ueber eine Stunde korrekt', () => {
-    expect(calcDuration('00:00:00', '01:00:00')).toBe('(00:00)')
-    // Stunde wird nicht abgeschnitten — eigentlich 60 Minuten
-    // formatSeconds liefert HH:MM:SS; .slice(3) gibt MM:SS -> 00:00 für 0sec
   })
 })
 
@@ -1283,9 +1252,9 @@ describe('resolveSourceLabel', () => {
     expect(resolveSourceLabel(segment)).toBe('Mein Theme')
   })
 
-  it('mappt source_type "release_asset" auf "Release-Asset" (kein label)', () => {
+  it('mappt source_type "release_asset" ohne Datei/Label auf "Release-Asset (Upload fehlt)"', () => {
     const segment = makeSegment({ source_type: 'release_asset' })
-    expect(resolveSourceLabel(segment)).toBe('Release-Asset')
+    expect(resolveSourceLabel(segment)).toBe('Release-Asset (Upload fehlt)')
   })
 
   it('nutzt source_label wenn bei release_asset gesetzt', () => {

@@ -928,6 +928,10 @@ export interface AdminThemeSegment {
   anime_id: number
   theme_title: string | null
   theme_type_name: string
+  /** Feste Kurzform (OP/ED/IN/OUT) aus theme_types.kuerzel (D-01, Migration 0179) --
+   *  maßgeblich für Badge-Label/Farbe/Upper-Spur-Klassifizierung, ersetzt Name-Guessing
+   *  auf theme_type_name. */
+  theme_type_kuerzel: string
   fansub_group_id: number | null
   version: string
   start_episode: number | null

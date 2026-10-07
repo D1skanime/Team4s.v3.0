@@ -52,6 +52,7 @@ function segment(overrides: Partial<AdminThemeSegment> = {}): AdminThemeSegment 
     theme_id: 71,
     theme_title: 'Opening B',
     theme_type_name: 'OP Kara',
+    theme_type_kuerzel: 'OP',
     fansub_group_id: 2,
     version: 'v1',
     start_episode: 1,

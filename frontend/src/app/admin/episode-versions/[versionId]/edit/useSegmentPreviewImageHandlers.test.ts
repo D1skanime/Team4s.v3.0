@@ -31,6 +31,7 @@ function segment(overrides: Partial<AdminThemeSegment> = {}): AdminThemeSegment 
     anime_id: 1,
     theme_title: null,
     theme_type_name: 'OP',
+    theme_type_kuerzel: 'OP',
     fansub_group_id: null,
     version: 'v1',
     start_episode: 1,

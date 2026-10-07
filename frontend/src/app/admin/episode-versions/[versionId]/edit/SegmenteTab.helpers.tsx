@@ -4,37 +4,57 @@ import styles from './SegmenteTab.module.css'
 
 // --- Badge and display helpers ---
 
-export function getTypeBadgeClass(typeNameRaw: string): string {
-  const typeName = typeNameRaw.toUpperCase()
-  if (typeName.includes('OP')) return styles.badgeOp
-  if (typeName.includes('ED')) return styles.badgeEd
-  if (typeName.includes('INSERT') || typeName.includes('IN')) return styles.badgeIn
-  if (typeName.includes('OUTRO') || typeName.includes('PV')) return styles.badgePv
-  return styles.badgeDefault
+// D-01 (176-CONTEXT.md): Badge-Klasse/Label/Farbe/Upper-Spur werden aus der festen,
+// DB-gehaltenen Kurzform (theme_types.kuerzel -- Migration 0179) abgeleitet, nicht mehr
+// per Name-Guessing (.toUpperCase().includes(...)) auf theme_type_name. Unbekannte/leere
+// Kuerzel (z.B. Alt-/Testdaten ohne Migration) fallen auf einen neutralen Default.
+export function getTypeBadgeClass(kuerzel: string): string {
+  switch (kuerzel) {
+    case 'OP':
+      return styles.badgeOp
+    case 'ED':
+      return styles.badgeEd
+    case 'IN':
+      return styles.badgeIn
+    case 'OUT':
+      return styles.badgePv
+    default:
+      return styles.badgeDefault
+  }
 }
 
-export function getTypeBadgeLabel(typeName: string): string {
-  const upper = typeName.toUpperCase()
-  if (upper.includes('OP')) return 'OP'
-  if (upper.includes('ED')) return 'ED'
-  if (upper.includes('INSERT') || (upper.includes('IN') && !upper.includes('INTRO'))) return 'IN'
-  if (upper.includes('OUTRO')) return 'OUT'
-  if (upper.includes('PV')) return 'PV'
-  return typeName
+export function getTypeBadgeLabel(kuerzel: string): string {
+  switch (kuerzel) {
+    case 'OP':
+      return 'OP'
+    case 'ED':
+      return 'ED'
+    case 'IN':
+      return 'IN'
+    case 'OUT':
+      return 'OUT'
+    default:
+      return kuerzel
+  }
 }
 
-export function getTypeColor(typeName: string): string {
-  const upper = typeName.toUpperCase()
-  if (upper.includes('OP')) return '#16a34a'
-  if (upper.includes('ED')) return '#7c3aed'
-  if (upper.includes('INSERT') || upper.includes('IN')) return '#ea580c'
-  if (upper.includes('OUTRO') || upper.includes('PV')) return '#6b7280'
-  return '#2563eb'
+export function getTypeColor(kuerzel: string): string {
+  switch (kuerzel) {
+    case 'OP':
+      return '#16a34a'
+    case 'ED':
+      return '#7c3aed'
+    case 'IN':
+      return '#ea580c'
+    case 'OUT':
+      return '#6b7280'
+    default:
+      return '#2563eb'
+  }
 }
 
-export function isUpperSpur(typeName: string): boolean {
-  const upper = typeName.toUpperCase()
-  return upper.includes('INSERT') || upper.includes('IN') || upper.includes('PV') || upper.includes('OUTRO')
+export function isUpperSpur(kuerzel: string): boolean {
+  return kuerzel === 'IN' || kuerzel === 'OUT'
 }
 
 // --- Time helpers ---
@@ -320,11 +340,11 @@ export function SegmentTimeline({ segments, totalDurationSeconds }: SegmentTimel
     totalDurationSeconds != null && totalDurationSeconds > segmentMaxEnd
       ? totalDurationSeconds
       : segmentMaxEnd
-  const upperSegments = timedSegments.filter((s) => isUpperSpur(s.theme_type_name))
-  const lowerSegments = timedSegments.filter((s) => !isUpperSpur(s.theme_type_name))
+  const upperSegments = timedSegments.filter((s) => isUpperSpur(s.theme_type_kuerzel))
+  const lowerSegments = timedSegments.filter((s) => !isUpperSpur(s.theme_type_kuerzel))
 
-  const opSegments = lowerSegments.filter((s) => s.theme_type_name.toUpperCase().includes('OP'))
-  const edSegments = lowerSegments.filter((s) => s.theme_type_name.toUpperCase().includes('ED'))
+  const opSegments = lowerSegments.filter((s) => s.theme_type_kuerzel === 'OP')
+  const edSegments = lowerSegments.filter((s) => s.theme_type_kuerzel === 'ED')
   const opMaxEnd = opSegments.length > 0 ? Math.max(...opSegments.map((s) => parseTimeToSeconds(s.end_time!))) : null
   const edMinStart = edSegments.length > 0 ? Math.min(...edSegments.map((s) => parseTimeToSeconds(s.start_time!))) : null
 
@@ -333,7 +353,7 @@ export function SegmentTimeline({ segments, totalDurationSeconds }: SegmentTimel
     const endSec = parseTimeToSeconds(segment.end_time!)
     const leftPct = maxEnd > 0 ? (startSec / maxEnd) * 100 : 0
     const widthPct = Math.max(2, ((endSec - startSec) / maxEnd) * 100)
-    const color = getTypeColor(segment.theme_type_name)
+    const color = getTypeColor(segment.theme_type_kuerzel)
     return (
       <div
         key={segment.id}
@@ -341,7 +361,7 @@ export function SegmentTimeline({ segments, totalDurationSeconds }: SegmentTimel
         style={{ left: `${leftPct}%`, width: `${widthPct}%`, background: color }}
         title={`${segment.theme_type_name}: ${segment.start_time} \u2013 ${segment.end_time}`}
       >
-        {getTypeBadgeLabel(segment.theme_type_name)}
+        {getTypeBadgeLabel(segment.theme_type_kuerzel)}
       </div>
     )
   }
@@ -394,10 +414,10 @@ function UntimedSegmentList({ segments }: UntimedSegmentListProps) {
         <span
           key={segment.id}
           className={styles.timelineUntimedChip}
-          style={{ borderColor: getTypeColor(segment.theme_type_name), color: getTypeColor(segment.theme_type_name) }}
+          style={{ borderColor: getTypeColor(segment.theme_type_kuerzel), color: getTypeColor(segment.theme_type_kuerzel) }}
           title={`${segment.theme_type_name}: Start/Ende fehlen`}
         >
-          {getTypeBadgeLabel(segment.theme_type_name)}
+          {getTypeBadgeLabel(segment.theme_type_kuerzel)}
           {segment.theme_title?.trim() ? ` · ${segment.theme_title.trim()}` : ''}
         </span>
       ))}

@@ -93,8 +93,8 @@ export function SegmentsListSection({
           <div className={styles.suggestionsList}>
             {suggestions.map((s) => (
               <div key={s.id} className={styles.suggestionItem}>
-                <span className={`${styles.badge} ${getTypeBadgeClass(s.theme_type_name)}`}>
-                  {getTypeBadgeLabel(s.theme_type_name)}
+                <span className={`${styles.badge} ${getTypeBadgeClass(s.theme_type_kuerzel)}`}>
+                  {getTypeBadgeLabel(s.theme_type_kuerzel)}
                 </span>
                 <span className={styles.suggestionMeta}>
                   {s.theme_title?.trim() ? `${s.theme_title} · ` : ''}
@@ -156,8 +156,8 @@ export function SegmentsListSection({
                       className={`${styles.tableRow} ${isActive ? styles.tableRowActive : ''}`}
                     >
                       <TableCell data-label="Typ">
-                        <span className={`${styles.badge} ${getTypeBadgeClass(segment.theme_type_name)}`}>
-                          {getTypeBadgeLabel(segment.theme_type_name)}
+                        <span className={`${styles.badge} ${getTypeBadgeClass(segment.theme_type_kuerzel)}`}>
+                          {getTypeBadgeLabel(segment.theme_type_kuerzel)}
                         </span>
                       </TableCell>
                       <TableCell data-label="Name" style={{ fontSize: 13, color: '#6b6b70' }}>
