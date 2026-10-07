@@ -203,6 +203,24 @@ func loadReleaseCrewUnitsInTx(ctx context.Context, tx releaseCrewDBTX, releaseVe
 	return result, rows.Err()
 }
 
+// replaceReleaseCrewInTx deletes and re-inserts every confirmed
+// anime_contributions row for one (release_version_id, fansub_group_id)
+// pair. One anime_contributions row per release version in inherited mode
+// is INTENTIONAL -- do not mistake this for duplication. A project's
+// anime-wide confirmed contribution (release_version_id IS NULL) is
+// deliberately mirrored into a separate, release-version-scoped row for
+// every release version so each release's crew snapshot can later diverge
+// independently (SnapshotModeIndependent via ReplaceInTx) while inherited
+// releases (SnapshotModeInherited) stay in sync via SyncInheritedForProjectInTx.
+// See 176-CONTEXT.md D-02 / 176-03-SUMMARY.md for the investigation that
+// ruled out accidental duplication (174-FOLLOWUPS.md F-05's "9 doppelte"
+// finding was a miscount that did not group by release_version_id -- every
+// one of those rows is a distinct, legitimate record). The DELETE-then-
+// INSERT shape below is idempotent per release_version_id: re-running it
+// with an unchanged `requested` crew list replaces the existing rows
+// in-place rather than accumulating new ones (proven by
+// TestSyncInheritedForProjectInTx_IsIdempotentAcrossRepeatedCalls in
+// release_crew_snapshot_repository_test.go).
 func replaceReleaseCrewInTx(
 	ctx context.Context,
 	tx releaseCrewDBTX,
