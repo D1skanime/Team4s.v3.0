@@ -2442,10 +2442,54 @@ Plans:
 
 ### Phase 176: Bug- und Altlasten-Sammelphase: offene 174-Followups (F-02 OUT-Kürzel aus DB, F-03 Umlaute, F-04 native Felder, F-05 doppelte anime_contributions, F-06 rote Tests/openapi-Duplikat, F-12, F-14, F-19, F-21–F-24) plus Rechte-/Sicherheitsbefunde aus Phase 175 (Claim-Invite-Accept ohne disabled-Prüfung, Notizen-Tab-Gate, Legacy-Member-Delete-Endpunkt) und Entfernung der Member-Group-Story-Altlast — Risiko mittel, intern in geblockte Pakete getrennt
 
-**Goal:** [To be planned]
-**Requirements**: TBD
+**Goal:** Alle 23 in 176-CONTEXT.md entschiedenen offenen Bugs und Altlasten aus Phase 174/175 sind behoben oder bewusst bereinigt entfernt -- in fünf voneinander getrennten, nacheinander abgeschlossenen Arbeitspaketen (A-E), ohne neue Features oder Parallelsystem-Zusammenführungen.
+**Requirements**: Kein REQUIREMENTS.md-Mapping -- Decision-Coverage via D-01 bis D-23 in `176-CONTEXT.md` (jede Plan-Datei trägt die zutreffenden D-IDs in ihren must_haves).
 **Depends on:** Phase 175
-**Plans:** 0 plans
+**Plans:** 15 plans across 7 waves
+
+  - Wave 1: 176-01 (Paket A -- Member-Group-Story-Entfernung, D-16)
+  - Wave 2: 176-02 (Paket B -- Theme-Typ-Kürzel aus DB, D-01)
+  - Wave 3: 176-03 (Paket C -- anime_contributions Diagnose + Code-Fix, D-02)
+  - Wave 4: 176-04 (Paket C -- Bestandsdaten-Bereinigung-Checkpoint, D-23)
+  - Wave 5: 176-05 (Paket D -- Backend-Rechtefixes D-17/D-19/D-21), 176-06 (Paket D -- Notizen-Tab-Gate, D-18)
+  - Wave 6: 176-07 (D-03/D-04 Fansub-Anlegeseite), 176-08 (D-05 rote Tests/openapi), 176-09 (D-06 Test-Fixture), 176-10 (D-07 Sticky-Button), 176-11 (D-08 getAdminTagTokens), 176-12 (D-09 Quelltext-Tests), 176-13 (D-10/D-20), 176-14 (D-11/D-12)
+  - Wave 7: 176-15 (phasenweites Prüfketten-Gate + finale Live-Abnahme, D-13)
+
+**Plan-time read first**: `.planning/phases/176-bug-und-altlasten-sammelphase-offene-174-followups-f-02-out-/176-CONTEXT.md`, `176-PATTERNS.md`.
 
 Plans:
-- [ ] TBD (run /gsd-plan-phase 176 to break down)
+**Wave 1**
+
+- [ ] 176-01-PLAN.md — Member-Group-Story-Altlast vollständig entfernen (D-16).
+
+**Wave 2** *(blocked on Wave 1 completion)*
+
+- [ ] 176-02-PLAN.md — Theme-Typ-Kürzel aus der Datenbank statt Namens-Raten (D-01).
+
+**Wave 3** *(blocked on Wave 2 completion)*
+
+- [ ] 176-03-PLAN.md — anime_contributions-Duplikate: Ursachendiagnose + Code-Fix ohne Checkpoint (D-02).
+
+**Wave 4** *(blocked on Wave 3 completion)*
+
+- [ ] 176-04-PLAN.md — Bestandsdaten-Bereinigung mit blockierendem Nutzer-Checkpoint nach Backup (D-23).
+
+**Wave 5** *(blocked on Wave 4 completion)*
+
+- [ ] 176-05-PLAN.md — Rechte-/Sicherheitsfixes: Claim-Invite disabled-Check, Legacy-Member-Delete entfernen, Memorial-Guard zusammenführen (D-17, D-19, D-21).
+- [ ] 176-06-PLAN.md — Notizen-Tab-Gate/Buttons mit foundingOnly-Pendant absichern (D-18).
+
+**Wave 6** *(blocked on Wave 5 completion)*
+
+- [ ] 176-07-PLAN.md — Fansub-Anlegeseite: Umlaute + native Felder auf UI-Primitives (D-03, D-04).
+- [ ] 176-08-PLAN.md — 6 bekannte rote Frontend-Tests + openapi.yaml-Duplikat beheben (D-05).
+- [ ] 176-09-PLAN.md — Phase-107-Test-Fixture um Capability-Registry-Schema nachziehen (D-06).
+- [ ] 176-10-PLAN.md — Sticky-Speichern-Button-Überlapp auf schmalen Viewports beheben (D-07).
+- [ ] 176-11-PLAN.md — getAdminTagTokens-Dopplung klären und konsolidieren (D-08).
+- [ ] 176-12-PLAN.md — Quelltext-Inspektionstests durch Verhaltenstests ersetzen (D-09).
+- [ ] 176-13-PLAN.md — displayVariantFileName/rvmReplaceDisplayPath zusammenführen + tote review_status_id-Spalte entfernen (D-10, D-20).
+- [ ] 176-14-PLAN.md — CSS-Proxy-Merge-Muster in 16 Dateien + wackeligen Test deflaken (D-11, D-12).
+
+**Wave 7** *(blocked on Wave 6 completion)*
+
+- [ ] 176-15-PLAN.md — Phasenweites Prüfketten-Gate: Vorher/Nachher-Vergleich, Prod-Build, finale Live-Abnahme (D-13).
