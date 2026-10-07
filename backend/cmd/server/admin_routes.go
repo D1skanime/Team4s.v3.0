@@ -130,7 +130,6 @@ func registerAdminRoutes(v1 *gin.RouterGroup, auth gin.HandlerFunc, deps adminRo
 	v1.PATCH("/fansubs/:id/aliases/:aliasId/reassign", auth, deps.fansubHandler.ReassignFansubAlias)
 	v1.POST("/fansubs/:id/members", auth, deps.fansubHandler.CreateFansubMember)
 	v1.PATCH("/fansubs/:id/members/:memberId", auth, deps.fansubHandler.UpdateFansubMember)
-	v1.DELETE("/fansubs/:id/members/:memberId", auth, deps.fansubHandler.DeleteFansubMember)
 	v1.POST("/anime/:id/fansubs/:fansubId", auth, deps.fansubHandler.AttachAnimeFansub)
 	v1.DELETE("/anime/:id/fansubs/:fansubId", auth, deps.fansubHandler.DetachAnimeFansub)
 	v1.POST("/anime/:id/episodes/:episodeNumber/versions", auth, deps.fansubHandler.CreateEpisodeVersion)
