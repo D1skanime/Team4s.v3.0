@@ -1,6 +1,20 @@
 -- Reverts migration 0178 (drop member_group_stories).
 -- Recreates the table in its final shape by combining 0062's base CREATE TABLE with
 -- 0068's TipTap column additions into a single reversible CREATE TABLE statement.
+--
+-- WR-06 (176-REVIEW): this migration rollback is schema-only. The entire backend handler
+-- surface (admin_content_member_stories.go), repository
+-- (member_group_stories_repository.go, member_group_story_context_repository.go), and
+-- frontend API/UI surface for this table were deleted in the SAME phase as the 0178 up
+-- migration (commits a272acdc/e7481732). Running `migrate down` on this file alone recreates
+-- an empty table that nothing in the current codebase can read or write -- it is not a
+-- functional rollback by itself. To actually restore the Member-Group-Story feature, also
+-- revert commits a272acdc and e7481732 (or re-implement equivalent code against this
+-- recreated schema). This is intentional: down migrations in this codebase exist for
+-- emergency schema rollback of their paired up migration, not for restoring a deleted
+-- feature's application code -- but that tradeoff is only safe to rely on if it is written
+-- down here, not just in commit messages someone under time pressure may not have time to go
+-- find.
 CREATE TABLE IF NOT EXISTS member_group_stories (
     id                  BIGSERIAL PRIMARY KEY,
     fansub_group_id     BIGINT NOT NULL REFERENCES fansub_groups(id) ON DELETE CASCADE,
