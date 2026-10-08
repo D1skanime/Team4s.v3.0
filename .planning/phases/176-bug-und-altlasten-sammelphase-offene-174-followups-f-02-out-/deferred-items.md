@@ -63,3 +63,19 @@ which has lived in `member_claims_submit_repository.go` since commit `8bd28db6`
 176-05. Confirmed pre-existing and unrelated to the memorial-guard extraction (the
 `member_already_assigned` / `claim_status = 'verified'` logic this test targets was not
 touched by Task 3). Not fixed, per Scope Boundary.
+
+## 176-12
+
+Pre-existing, out-of-scope failure observed while running `go test ./internal/services/...`
+during 176-12 execution. Does not touch any file modified by this plan
+(`release_version_media_cleanup_test.go`, `segment_validation_test.go`,
+`admin_content_theme_asset_locks_test.go`, `segment_playback_resolution_test.go`).
+
+1. `TestPhase137EffectiveRightsOverrideMutationConcurrentConflictSerializes`
+   (`effective_rights_concurrency_test.go`) fails even run in isolation with
+   `permission cache: Action "release_version_media.reorder" fehlt in role_capabilities
+   und ist keine standalone-Action — Startup abgebrochen`. A pre-existing permission
+   capability-registry gap (the `release_version_media.reorder` action is missing from
+   `role_capabilities`), unrelated to this plan's D-09 test-style remediation. Confirmed
+   unrelated via `git log` on the test file (last touched in unrelated commits `824e29b4`/
+   `96185b9b`, long before 176). Not fixed, per Scope Boundary.
