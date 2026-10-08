@@ -5,14 +5,16 @@ import (
 	"errors"
 	"os"
 	"path/filepath"
-	"strings"
 	"testing"
 	"time"
 
 	"github.com/google/uuid"
+	"github.com/jackc/pgx/v5/pgxpool"
 	"github.com/stretchr/testify/assert"
+	"github.com/stretchr/testify/require"
 
 	"team4s.v3/backend/internal/repository"
+	"team4s.v3/backend/internal/testsupport"
 )
 
 // newUUID is a local wrapper used by TestRVMUploadStorageKeyUniqueness to
@@ -447,25 +449,121 @@ func TestRVMUploadStorageKeyUniqueness(t *testing.T) {
 	assert.Len(t, seen, 100, "100 sequential UUID calls must all be unique")
 }
 
-// TestRVMPreviewAssignmentIsExclusive verifies that the PATCH handler enforces
-// max-one-preview per release-version by calling ClearPreviewCandidateForVersion
-// inside the same transaction before setting the new preview flag.
-// This structural assertion proves the single-preview contract without a live DB.
+// openRVMPreviewExclusivityFixture provisions the minimal real-Postgres schema
+// (release_versions from the shared Phase-107 prerequisites, plus media_assets/
+// release_version_media hand-rolled here) needed to exercise the two real
+// repository methods (ClearPreviewCandidateForVersion, PatchReleaseVersionMedia)
+// the PATCH handler (admin_content_release_version_media_patch.go) composes inside
+// one transaction to enforce the max-one-preview rule (D-15).
+func openRVMPreviewExclusivityFixture(t *testing.T) *pgxpool.Pool {
+	t.Helper()
+	pool := testsupport.OpenPhase107Postgres(t)
+	ctx := context.Background()
+	_, err := pool.Exec(ctx, `
+		CREATE TABLE users (id BIGINT PRIMARY KEY);
+		CREATE TABLE media_types (id BIGSERIAL PRIMARY KEY, name TEXT NOT NULL UNIQUE);
+		CREATE TABLE media_assets (
+			id BIGSERIAL PRIMARY KEY,
+			media_type_id BIGINT NOT NULL REFERENCES media_types(id),
+			file_path TEXT NOT NULL,
+			mime_type TEXT NOT NULL,
+			format TEXT NOT NULL,
+			status TEXT NOT NULL DEFAULT 'ready',
+			created_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
+		);
+		CREATE TABLE release_version_media (
+			id BIGSERIAL PRIMARY KEY,
+			release_version_id BIGINT NOT NULL REFERENCES release_versions(id),
+			fansub_group_id BIGINT NULL REFERENCES fansub_groups(id),
+			media_asset_id BIGINT NOT NULL REFERENCES media_assets(id),
+			category TEXT NOT NULL,
+			title TEXT NULL,
+			caption TEXT NULL,
+			sort_order INT NOT NULL DEFAULT 0,
+			is_preview_candidate BOOLEAN NOT NULL DEFAULT false,
+			uploaded_by_user_id BIGINT NULL REFERENCES users(id),
+			created_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
+			updated_at TIMESTAMPTZ NULL,
+			deleted_at TIMESTAMPTZ NULL,
+			deleted_by_user_id BIGINT NULL REFERENCES users(id)
+		);
+		INSERT INTO release_versions(id) VALUES (41);
+		INSERT INTO media_types(name) VALUES ('image');
+		INSERT INTO media_assets(id, media_type_id, file_path, mime_type, format, status)
+			VALUES (9001, 1, '/tmp/a.png', 'image/png', 'image', 'ready'),
+			       (9002, 1, '/tmp/b.png', 'image/png', 'image', 'ready');
+	`)
+	require.NoError(t, err)
+	return pool
+}
+
+// rvmPreviewExclusivityQueryFlag reads the real, persisted is_preview_candidate
+// value for a relation directly from Postgres.
+func rvmPreviewExclusivityQueryFlag(t *testing.T, pool *pgxpool.Pool, relationID int64) bool {
+	t.Helper()
+	var isPreview bool
+	require.NoError(t, pool.QueryRow(context.Background(),
+		`SELECT is_preview_candidate FROM release_version_media WHERE id = $1`, relationID,
+	).Scan(&isPreview))
+	return isPreview
+}
+
+// rvmPreviewExclusivityAssign replays the exact orchestration
+// admin_content_release_version_media_patch.go's PatchReleaseVersionMedia performs when
+// isPreviewCandidate is true: clear every other relation's preview flag for the same
+// release version, then patch the target relation, all inside one transaction.
+func rvmPreviewExclusivityAssign(t *testing.T, repo *repository.MediaRepository, releaseVersionID, relationID int64) {
+	t.Helper()
+	ctx := context.Background()
+	tx, err := repo.BeginTx(ctx)
+	require.NoError(t, err)
+	defer tx.Rollback(ctx) //nolint:errcheck
+
+	require.NoError(t, repo.ClearPreviewCandidateForVersion(ctx, tx, releaseVersionID, relationID))
+	isPreview := true
+	require.NoError(t, repo.PatchReleaseVersionMedia(ctx, tx, relationID, repository.ReleaseVersionMediaPatchInput{
+		IsPreviewCandidate: &isPreview,
+	}))
+	require.NoError(t, tx.Commit(ctx))
+}
+
+// TestRVMPreviewAssignmentIsExclusive proves, by actually calling the real
+// ClearPreviewCandidateForVersion + PatchReleaseVersionMedia repository methods against
+// real Postgres (the same two calls, in the same order, that
+// admin_content_release_version_media_patch.go's PatchReleaseVersionMedia issues inside one
+// transaction), that assigning a second relation as the preview candidate on a release
+// version genuinely clears the first relation's flag — exactly one relation ends up with
+// is_preview_candidate=true, verified by reading the real persisted row state, not by
+// reading the handler's source text (D-15 max-one-preview).
 func TestRVMPreviewAssignmentIsExclusive(t *testing.T) {
-	src, err := os.ReadFile("../handlers/admin_content_release_version_media_patch.go")
-	assert.NoError(t, err, "handler file must be readable from services test")
-	if err != nil {
-		t.SkipNow()
+	pool := openRVMPreviewExclusivityFixture(t)
+	repo := repository.NewMediaRepository(pool, "")
+	ctx := context.Background()
+
+	createRelation := func(assetID int64) int64 {
+		tx, err := repo.BeginTx(ctx)
+		require.NoError(t, err)
+		defer tx.Rollback(ctx) //nolint:errcheck
+		id, err := repo.CreateReleaseVersionMediaAsset(ctx, tx, repository.ReleaseVersionMediaCreateInput{
+			ReleaseVersionID: 41,
+			MediaAssetID:     assetID,
+			Category:         "screenshot",
+		})
+		require.NoError(t, err)
+		require.NoError(t, tx.Commit(ctx))
+		return id
 	}
-	content := string(src)
+	relationA := createRelation(9001)
+	relationB := createRelation(9002)
 
-	// ClearPreviewCandidateForVersion must be called in the PATCH path
-	assert.Contains(t, content, "ClearPreviewCandidateForVersion",
-		"PATCH handler must call ClearPreviewCandidateForVersion to enforce max-one-preview")
+	rvmPreviewExclusivityAssign(t, repo, 41, relationA)
+	require.True(t, rvmPreviewExclusivityQueryFlag(t, pool, relationA),
+		"the first assigned relation must genuinely become the active preview")
 
-	// It must be called before PatchReleaseVersionMedia inside the transaction
-	clearIdx := strings.Index(content, "ClearPreviewCandidateForVersion")
-	patchIdx := strings.Index(content, "PatchReleaseVersionMedia(c.Request.Context(), tx,")
-	assert.Less(t, clearIdx, patchIdx,
-		"ClearPreviewCandidateForVersion must be called before PatchReleaseVersionMedia in the tx path")
+	rvmPreviewExclusivityAssign(t, repo, 41, relationB)
+
+	assert.False(t, rvmPreviewExclusivityQueryFlag(t, pool, relationA),
+		"assigning relationB as preview must clear relationA's real persisted flag (D-15 max-one-preview)")
+	assert.True(t, rvmPreviewExclusivityQueryFlag(t, pool, relationB),
+		"relationB must genuinely be the active preview after assignment")
 }

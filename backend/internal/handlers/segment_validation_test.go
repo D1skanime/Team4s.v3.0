@@ -1,11 +1,21 @@
 package handlers
 
 import (
+	"bytes"
+	"context"
+	"net/http"
+	"net/http/httptest"
 	"os"
 	"path/filepath"
 	"runtime"
 	"strings"
 	"testing"
+
+	"github.com/gin-gonic/gin"
+	"github.com/stretchr/testify/require"
+
+	"team4s.v3/backend/internal/middleware"
+	"team4s.v3/backend/internal/models"
 )
 
 // TestValidateSegmentTimes_StartAfterEnd verifies that start_time >= end_time is always rejected.
@@ -112,33 +122,73 @@ func TestParseClockToSeconds_VariousFormats(t *testing.T) {
 	}
 }
 
-// TestCreateUpdateAnimeSegment_SharedValidationSeamExists verifies that both
-// CreateAnimeSegment and UpdateAnimeSegment call the shared validateSegmentTimes function.
+// fakeSegmentValidationThemeRepo implements only the one adminThemeRepository method
+// UpdateAnimeSegment calls before validateSegmentTimes runs (GetAnimeSegmentByID, to load
+// the existing segment) -- the rest of the interface stays deliberately nil-embedded, since
+// a rejected (invalid-times) request never reaches any other repository call in either
+// handler. CreateAnimeSegment needs no methods at all for the invalid-times path: it rejects
+// before ever touching the repository (unless fansub_group_id is set, which this test's
+// request body omits).
+type fakeSegmentValidationThemeRepo struct {
+	adminThemeRepository
+
+	existingSegment *models.AdminThemeSegment
+}
+
+func (f *fakeSegmentValidationThemeRepo) GetAnimeSegmentByID(_ context.Context, _ int64, _ int64, _ int64) (*models.AdminThemeSegment, error) {
+	return f.existingSegment, nil
+}
+
+// segmentValidationHandlerContext builds a real gin.Context/httptest.ResponseRecorder pair
+// with a platform-admin identity, so requireSegmentManage's permission check short-circuits
+// to allowed without needing a permission service or release-variant lookups -- isolating
+// the test to the validateSegmentTimes seam itself.
+func segmentValidationHandlerContext(method, target string, body []byte) (*gin.Context, *httptest.ResponseRecorder) {
+	recorder := httptest.NewRecorder()
+	c, _ := gin.CreateTestContext(recorder)
+	c.Request = httptest.NewRequest(method, target, bytes.NewReader(body))
+	c.Request.Header.Set("Content-Type", "application/json")
+	c.Set("auth_identity", middleware.AuthIdentity{
+		UserID: 7, AppUserID: 71, IsPlatformAdmin: true, DisplayName: "Admin",
+	})
+	return c, recorder
+}
+
+// TestCreateUpdateAnimeSegment_SharedValidationSeamExists proves, by actually invoking the
+// real CreateAnimeSegment and UpdateAnimeSegment handlers with the identical invalid
+// start_time >= end_time pair, that both reject it the same way (400 + the same German
+// validation message) through the shared validateSegmentTimes seam -- not by reading the
+// handler's own source text for the function's name.
 func TestCreateUpdateAnimeSegment_SharedValidationSeamExists(t *testing.T) {
-	_, thisFile, _, ok := runtime.Caller(0)
-	if !ok {
-		t.Skip("cannot determine test file path")
-	}
-	content, err := os.ReadFile(filepath.Join(filepath.Dir(thisFile), "admin_content_anime_theme_segments.go"))
-	if err != nil {
-		t.Fatalf("read handler source: %v", err)
-	}
-	src := string(content)
+	gin.SetMode(gin.TestMode)
+	const wantMessage = "start_time muss vor end_time liegen"
 
-	// Both CreateAnimeSegment and UpdateAnimeSegment must reference validateSegmentTimes.
-	if !strings.Contains(src, "validateSegmentTimes") {
-		t.Fatal("admin_content_anime_theme_segments.go: validateSegmentTimes not found — shared validation seam missing")
-	}
+	t.Run("CreateAnimeSegment rejects start_time >= end_time", func(t *testing.T) {
+		h := &AdminContentHandler{themeRepo: &fakeSegmentValidationThemeRepo{}}
+		body := []byte(`{"theme_id":1,"version":"v1","start_time":"00:01:00","end_time":"00:00:30"}`)
+		c, rec := segmentValidationHandlerContext(http.MethodPost, "/api/v1/admin/anime/61/segments", body)
+		c.Params = gin.Params{{Key: "id", Value: "61"}}
 
-	// The handler must reference duration_seconds or runtime in context of validation.
-	if !strings.Contains(src, "duration_seconds") && !strings.Contains(src, "releaseDuration") {
-		t.Fatal("admin_content_anime_theme_segments.go: no runtime/duration_seconds reference in segment handlers")
-	}
+		h.CreateAnimeSegment(c)
 
-	// badRequest must be referenced near validation (end_time/start_time guard).
-	if !strings.Contains(src, "badRequest") {
-		t.Fatal("admin_content_anime_theme_segments.go: badRequest not found — 400 responses missing")
-	}
+		require.Equal(t, http.StatusBadRequest, rec.Code, rec.Body.String())
+		require.Contains(t, rec.Body.String(), wantMessage,
+			"CreateAnimeSegment must reject start_time >= end_time via the real validateSegmentTimes seam")
+	})
+
+	t.Run("UpdateAnimeSegment rejects the identical start_time >= end_time pair", func(t *testing.T) {
+		existing := &models.AdminThemeSegment{ID: 91, AnimeID: 61, ThemeID: 1, Version: "v1"}
+		h := &AdminContentHandler{themeRepo: &fakeSegmentValidationThemeRepo{existingSegment: existing}}
+		body := []byte(`{"start_time":"00:01:00","end_time":"00:00:30"}`)
+		c, rec := segmentValidationHandlerContext(http.MethodPatch, "/api/v1/admin/anime/61/segments/91", body)
+		c.Params = gin.Params{{Key: "id", Value: "61"}, {Key: "segmentId", Value: "91"}}
+
+		h.UpdateAnimeSegment(c)
+
+		require.Equal(t, http.StatusBadRequest, rec.Code, rec.Body.String())
+		require.Contains(t, rec.Body.String(), wantMessage,
+			"UpdateAnimeSegment must reject the SAME start_time >= end_time pair via the identical shared seam")
+	})
 }
 
 func TestAdminAnimeSegments_UsesCapabilityWithoutRuntimeRoleHardcode(t *testing.T) {
