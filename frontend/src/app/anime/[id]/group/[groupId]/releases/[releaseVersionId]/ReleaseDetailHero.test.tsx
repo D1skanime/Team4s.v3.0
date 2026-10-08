@@ -5,7 +5,7 @@ import { ReleaseDetailHero } from './ReleaseDetailHero'
 import { ReleaseTechnicalDetails } from './ReleaseTechnicalDetails'
 
 afterEach(cleanup)
-const base = { animeID:9, groupID:2, episode_number:'7', episode_title:'Schnee', title:'Winter-Release', version:'2', groups:[{id:2,slug:'c',name:'C-Subs',logo_url:null},{id:3,slug:'d',name:'Honto',logo_url:null}], release_date:'2026-01-02', duration_seconds:1440, resolution:'1080p', container:'MKV', video_codec:'AV1', audio_codec:'AAC', audio_language:'Japanisch', subtitle_tracks:[{language:'Deutsch',label:'Vollständig',format:'ASS',forced:false,default:true},{language:'Deutsch',label:'Signs & Songs',format:'ASS',forced:true,default:false}], preview_image:null, next:{release_version_id:88,episode_number:'8',episode_title:null,version:'2',group_id:2}, images_count:0, notes_count:2, contributors_count:3, animeLogoFallbackUrl:null }
+const base = { animeID:9, groupID:2, episode_number:'7', episode_title:'Schnee', title:'Winter-Release', version:'2', groups:[{id:2,slug:'c',name:'C-Subs',logo_url:null},{id:3,slug:'d',name:'Honto',logo_url:null}], release_date:'2026-01-02', duration_seconds:1440, resolution:'1080p', container:'MKV', video_codec:'AV1', audio_codec:'AAC', audio_language:'Japanisch', subtitle_tracks:[{language:'Deutsch',label:'Vollständig',format:'ASS',forced:false,default:true},{language:'Deutsch',label:'Signs & Songs',format:'ASS',forced:true,default:false}], preview_image:null, previous:null, next:{release_version_id:88,episode_number:'8',episode_title:null,version:'2',group_id:2}, images_count:0, notes_count:2, contributors_count:3, animeLogoFallbackUrl:null }
 
 describe('ReleaseDetailHero', () => {
   it('renders an independent text-only identity without preview or logo', () => {

@@ -71,7 +71,7 @@ describe('ProjectMemberPage', () => {
     expect(html).toContain('Übersetzung')
     // Hero-Absprünge (D-16 + allgemeines Profil)
     expect(html).toContain('href="/members/csubs-leader"')
-    expect(html).toContain('Vollständiges Memberprofil')
+    expect(html).toContain('Vollständiges Fansubberprofil')
     expect(html).toContain('Zurück zum Projekt')
     // Summary-Werte + Sektionsanker
     expect(html).toContain('Textbeiträge')

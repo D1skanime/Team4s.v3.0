@@ -2164,7 +2164,11 @@ paths:
       - Admin
       summary: Assign an uploaded image as manual segment preview
       operationId: adminAssignSegmentPreviewImage
-      description: Ordnet ein ueber POST /api/v1/admin/upload (asset_type=segment_preview) hochgeladenes Bild als manuelles Vorschaubild zu. Kein eigener Upload-Endpunkt.
+      description: |-
+        Ordnet ein ueber POST /api/v1/admin/upload (asset_type=segment_preview) hochgeladenes Bild als manuelles Vorschaubild zu. Kein eigener Upload-Endpunkt.
+        Requires release_version.segments.manage. Stored immediately as visibility=public/review_status=approved,
+        same as other segment asset uploads. Replaces any previous manual preview image (best-effort cleanup); never
+        touched by a later render.
       security:
       - bearerAuth: []
       parameters:
@@ -2202,9 +2206,6 @@ paths:
         '403': *id005
         '404': *id006
         '500': *id008
-      description: Requires release_version.segments.manage. Stored immediately as visibility=public/review_status=approved,
-        same as other segment asset uploads. Replaces any previous manual preview image (best-effort cleanup); never
-        touched by a later render.
   /api/v1/admin/anime/{id}/segments/{segmentId}/preview-image/candidates:
     get:
       tags:
