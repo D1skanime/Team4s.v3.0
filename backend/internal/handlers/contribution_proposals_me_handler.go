@@ -29,7 +29,7 @@ type ProposalRepository interface {
 
 // RolesRepository ist das Interface für die Rollenvalidierung im Handler.
 type RolesRepository interface {
-	RoleCodeExistsForContext(ctx context.Context, code, contextName string) (bool, error)
+	RoleCodeIsAssignableForContext(ctx context.Context, code, contextName string) (bool, error)
 }
 
 // MemberResolver loest eine app_user_id in eine verifiedMemberID auf.
@@ -206,17 +206,17 @@ func (h *ContributionProposalsMeHandler) CreateProposal(c *gin.Context) {
 		}
 	}
 
-	// Rollenvalidierung — jede role_code muss im anime_contribution-Kontext gueltig sein.
+	// Rollenvalidierung — jede role_code muss im anime_contribution-Kontext gueltig UND
+	// zuweisbar sein (role_definitions.assignable = true). Nicht zuweisbare Rollen wie
+	// admin/other (seit Migration 0148) dürfen über den Vorschlags-Endpunkt nicht gewählt werden.
 	for _, code := range req.RoleCodes {
-		valid, err := h.rolesRepo.RoleCodeExistsForContext(c.Request.Context(), code, "anime_contribution")
+		assignable, err := h.rolesRepo.RoleCodeIsAssignableForContext(c.Request.Context(), code, "anime_contribution")
 		if err != nil {
 			internalError(c, "interner Serverfehler")
 			return
 		}
-		if !valid {
-			c.JSON(http.StatusUnprocessableEntity, gin.H{
-				"error": gin.H{"message": "ungültiger Rollencode: " + code},
-			})
+		if !assignable {
+			badRequest(c, "Diese Rolle kann nicht zugewiesen werden: "+code)
 			return
 		}
 	}

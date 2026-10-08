@@ -523,7 +523,7 @@ func main() {
 		WithPermissionSvc(permissionSvc)
 	reviewHandler := handlers.NewContributionReviewHandler(animeContributionsRepo, permissionSvc, auditLogRepo).WithReleaseCrewService(releaseCrewService)
 	defaultCrewRepo := repository.NewFansubDefaultCrewRepository(dbPool)
-	defaultCrewHandler := handlers.NewFansubDefaultCrewHandler(defaultCrewRepo, animeContributionsRepo, permissionSvc, auditLogRepo)
+	defaultCrewHandler := handlers.NewFansubDefaultCrewHandler(defaultCrewRepo, animeContributionsRepo, histGroupMemberRolesRepo, permissionSvc, auditLogRepo)
 	// Phase 78: Gruppenmedien-Review — GET-Liste + PATCH Sichtbarkeit/Reviewstatus (Lock K/G/D-08/D-09)
 	fansubMediaReviewHandler := handlers.NewFansubMediaReviewHandler(mediaRepo, permissionSvc, auditLogRepo)
 	// Phase 80: Globale User-Verwaltung + Rechte-Zentrale

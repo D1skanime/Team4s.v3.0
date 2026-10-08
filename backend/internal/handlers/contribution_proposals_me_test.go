@@ -43,7 +43,7 @@ type rolesRepoStub struct {
 	err    error
 }
 
-func (s *rolesRepoStub) RoleCodeExistsForContext(ctx context.Context, code, contextName string) (bool, error) {
+func (s *rolesRepoStub) RoleCodeIsAssignableForContext(ctx context.Context, code, contextName string) (bool, error) {
 	return s.exists, s.err
 }
 
@@ -425,6 +425,38 @@ func TestCreateProposal_NoReleaseVersionSkipsCheck(t *testing.T) {
 	}
 	if checker.called {
 		t.Fatalf("erwartet KEINEN Beteiligungs-Check ohne release_version_id")
+	}
+}
+
+// TestCreateProposal_RejectsNonAssignableRole prüft (176 scope addition 1), dass
+// CreateProposal einen 400 mit deutscher Meldung (echte Umlaute) liefert, wenn
+// RoleCodeIsAssignableForContext eine Rolle als nicht zuweisbar meldet — der Fall für
+// admin/other, die seit Migration 0148 weiterhin im anime_contribution-Kontext gelistet,
+// aber assignable=false sind.
+func TestCreateProposal_RejectsNonAssignableRole(t *testing.T) {
+	gin.SetMode(gin.TestMode)
+	h := buildTestProposalHandler(
+		&proposalRepoStub{createResult: &repository.AnimeContributionRow{ID: 7, Status: "proposed"}},
+		&rolesRepoStub{exists: false},
+		&memberResolverStub{memberID: 10},
+		&ownershipCheckerStub{ownerMemberID: 10},
+	)
+	recorder := httptest.NewRecorder()
+	c, _ := gin.CreateTestContext(recorder)
+	c.Request = httptest.NewRequest(http.MethodPost, "/api/v1/me/contribution-proposals",
+		strings.NewReader(`{"fansub_group_id":1,"anime_id":2,"fansub_group_member_id":3,"role_codes":["admin"]}`))
+	c.Request.Header.Set("Content-Type", "application/json")
+	setTestAuthIdentity(c, 42)
+	h.CreateProposal(c)
+	if recorder.Code != http.StatusBadRequest {
+		t.Fatalf("erwartet 400, bekommen %d (%s)", recorder.Code, recorder.Body.String())
+	}
+	var body map[string]any
+	json.Unmarshal(recorder.Body.Bytes(), &body)
+	errMap, _ := body["error"].(map[string]any)
+	msg, _ := errMap["message"].(string)
+	if !strings.Contains(msg, "nicht zugewiesen werden") {
+		t.Fatalf("erwartet Ablehnungs-Meldung für nicht zuweisbare Rolle, bekommen %q", msg)
 	}
 }
 

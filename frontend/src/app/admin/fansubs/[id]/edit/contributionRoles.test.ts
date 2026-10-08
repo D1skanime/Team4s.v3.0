@@ -33,6 +33,23 @@ const catalog: RoleDefinitionOption[] = [
     contexts: ['fansub_group'],
     sort_order: 1,
   },
+  // Produktionsstand (Migration 0148_role_catalog_uat_corrections): admin/other bleiben im
+  // anime_contribution-Kontext gelistet, sind aber assignable=false und duerfen deshalb in
+  // keinem Mitwirkende-/Crew-Picker auswaehlbar sein (176 scope addition 1).
+  {
+    code: 'admin',
+    label_de: 'Administration',
+    contexts: ['anime_contribution', 'group_history'],
+    sort_order: 5,
+    assignable: false,
+  },
+  {
+    code: 'other',
+    label_de: 'Sonstiges',
+    contexts: ['anime_contribution'],
+    sort_order: 6,
+    assignable: false,
+  },
 ]
 
 describe('admin anime contribution roles', () => {
@@ -61,6 +78,24 @@ describe('admin anime contribution roles', () => {
       'Karaoke FX',
       'Typesetting',
       'Invented Role',
+    ])
+  })
+
+  it('never offers non-assignable roles (admin/other) as picker options, even though they are listed for anime_contribution', () => {
+    const codes = contributionRoleDefinitions(catalog).map((role) => role.code)
+    expect(codes).not.toContain('admin')
+    expect(codes).not.toContain('other')
+  })
+
+  it('still resolves the label of an already-stored non-assignable role code (display must not break)', () => {
+    expect(roleLabels(catalog, ['admin', 'other'])).toEqual(['Administration', 'Sonstiges'])
+  })
+
+  it('keeps assignable roles selectable alongside the admin/other exclusion', () => {
+    expect(contributionRoleDefinitions(catalog)).toEqual([
+      { code: 'translator', label_de: 'Übersetzung' },
+      { code: 'karaoke_fx', label_de: 'Karaoke FX' },
+      { code: 'typer', label_de: 'Typesetting' },
     ])
   })
 })

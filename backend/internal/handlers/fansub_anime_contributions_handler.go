@@ -232,18 +232,14 @@ func (h *FansubAnimeContributionsHandler) CreateAnimeContribution(c *gin.Context
 	}
 
 	for _, code := range req.RoleCodes {
-		valid, err := h.rolesRepo.RoleCodeExistsForContext(c.Request.Context(), code, "anime_contribution")
+		assignable, err := h.rolesRepo.RoleCodeIsAssignableForContext(c.Request.Context(), code, "anime_contribution")
 		if err != nil {
 			log.Printf("anime contributions create: role validation error (code=%s): %v", code, err)
 			internalError(c, "interner serverfehler")
 			return
 		}
-		if !valid {
-			c.JSON(http.StatusUnprocessableEntity, gin.H{
-				"error": gin.H{
-					"message": fmt.Sprintf("ungültiger role_code für anime_contribution-Kontext: %s", code),
-				},
-			})
+		if !assignable {
+			badRequest(c, fmt.Sprintf("Diese Rolle kann nicht zugewiesen werden: %s", code))
 			return
 		}
 	}
@@ -362,18 +358,14 @@ func (h *FansubAnimeContributionsHandler) UpdateAnimeContribution(c *gin.Context
 
 	if req.RoleCodes != nil && len(*req.RoleCodes) > 0 {
 		for _, code := range *req.RoleCodes {
-			valid, err := h.rolesRepo.RoleCodeExistsForContext(c.Request.Context(), code, "anime_contribution")
+			assignable, err := h.rolesRepo.RoleCodeIsAssignableForContext(c.Request.Context(), code, "anime_contribution")
 			if err != nil {
 				log.Printf("anime contributions update: role validation error (code=%s): %v", code, err)
 				internalError(c, "interner serverfehler")
 				return
 			}
-			if !valid {
-				c.JSON(http.StatusUnprocessableEntity, gin.H{
-					"error": gin.H{
-						"message": fmt.Sprintf("ungültiger role_code für anime_contribution-Kontext: %s", code),
-					},
-				})
+			if !assignable {
+				badRequest(c, fmt.Sprintf("Diese Rolle kann nicht zugewiesen werden: %s", code))
 				return
 			}
 		}

@@ -328,6 +328,27 @@ func (r *HistGroupMemberRolesRepository) RoleCodeExistsForContext(ctx context.Co
 	return exists, nil
 }
 
+// RoleCodeIsAssignableForContext prüft, ob ein role_code im angegebenen Kontext sowohl
+// existiert als auch zuweisbar ist (role_definitions.assignable = true). Nicht zuweisbare
+// Rollen (z. B. admin/other seit Migration 0148_role_catalog_uat_corrections) dürfen über
+// Crew-/Contribution-Schreibpfade nicht zugewiesen werden, obwohl sie weiterhin im Kontext
+// gelistet sind — das erhält die Anzeige bereits gespeicherter Zuweisungen (Anzeige-Labels
+// bleiben über role_definitions auflösbar), ohne die Rollen aus den Picker-Optionen oder neuen
+// Zuweisungen entfernen zu müssen, indem die Zeile selbst gelöscht würde.
+func (r *HistGroupMemberRolesRepository) RoleCodeIsAssignableForContext(ctx context.Context, roleCode string, contextName string) (bool, error) {
+	var assignable bool
+	err := r.db.QueryRow(ctx, `
+		SELECT assignable FROM role_definitions WHERE code = $1 AND $2 = ANY(contexts)
+	`, roleCode, contextName).Scan(&assignable)
+	if err != nil {
+		if errors.Is(err, pgx.ErrNoRows) {
+			return false, nil
+		}
+		return false, fmt.Errorf("check role code assignable for context: %w", err)
+	}
+	return assignable, nil
+}
+
 func (r *HistGroupMemberRolesRepository) Create(ctx context.Context, input HistGroupMemberRoleInput) (*HistGroupMemberRoleRow, error) {
 	var row HistGroupMemberRoleRow
 	err := r.db.QueryRow(ctx, `

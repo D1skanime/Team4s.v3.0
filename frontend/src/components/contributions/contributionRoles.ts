@@ -6,10 +6,19 @@ import type { RoleDefinition } from './ProposalForm'
 export function contributionRoleDefinitions(
   catalog: readonly RoleDefinitionOption[],
 ): RoleDefinition[] {
-  return orderForContext(catalog, 'anime_contribution').map(({ code, label_de }) => ({
-    code,
-    label_de,
-  }))
+  // Nicht zuweisbare Rollen (role_definitions.assignable = false, z. B. "admin"/"other" seit
+  // Migration 0148_role_catalog_uat_corrections) duerfen in keinem Mitwirkende-/Crew-Picker
+  // auswaehlbar sein (176 scope addition 1). Diese Funktion ist die einzige zentrale Quelle
+  // fuer anime_contribution-Picker-Optionen (RoleToggleGroup, ProposalForm via
+  // MyProposalsSection, DefaultCrewManager) -- Anzeige-Labels bereits gespeicherter Rollen
+  // laufen bewusst NICHT durch diesen Filter (siehe labelForRole/roleLabels, die weiterhin
+  // den vollen, ungefilterten Katalog erhalten).
+  return orderForContext(catalog, 'anime_contribution')
+    .filter((role) => role.assignable !== false)
+    .map(({ code, label_de }) => ({
+      code,
+      label_de,
+    }))
 }
 
 export function normalizeRoleCodes(

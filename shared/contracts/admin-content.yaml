@@ -1752,7 +1752,7 @@ types:
     data: AnimeCoverage[]
   UpsertAnimeContributionRequest:
     fansub_group_member_id: int64 (required, minimum: 1)
-    role_codes: string[] (required, min_items: 1, role_context: anime_contribution)
+    role_codes: string[] (required, min_items: 1, role_context: anime_contribution, must be assignable=true in role_definitions — 400 if a code like admin/other is not assignable)
     started_year: int32 | null
     ended_year: int32 | null
     note: string | null
@@ -1761,7 +1761,7 @@ types:
     release_version_id: int64 | null
     status: string (required, enum: draft, proposed, confirmed, disputed, hidden)
   UpdateAnimeContributionRequest:
-    role_codes: string[] (optional, role_context: anime_contribution)
+    role_codes: string[] (optional, role_context: anime_contribution, must be assignable=true in role_definitions — 400 if a code like admin/other is not assignable)
     started_year: int32 | null
     ended_year: int32 | null
     note: string | null

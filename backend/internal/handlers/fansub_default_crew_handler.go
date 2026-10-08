@@ -15,6 +15,7 @@ import (
 type FansubDefaultCrewHandler struct {
 	defaultCrewRepo   *repository.FansubDefaultCrewRepository
 	contributionsRepo *repository.AnimeContributionsRepository
+	rolesRepo         *repository.HistGroupMemberRolesRepository
 	permissionSvc     *permissions.Service
 	auditLogRepo      *repository.AuditLogRepository
 }
@@ -23,12 +24,14 @@ type FansubDefaultCrewHandler struct {
 func NewFansubDefaultCrewHandler(
 	defaultCrewRepo *repository.FansubDefaultCrewRepository,
 	contributionsRepo *repository.AnimeContributionsRepository,
+	rolesRepo *repository.HistGroupMemberRolesRepository,
 	permissionSvc *permissions.Service,
 	auditLogRepo *repository.AuditLogRepository,
 ) *FansubDefaultCrewHandler {
 	return &FansubDefaultCrewHandler{
 		defaultCrewRepo:   defaultCrewRepo,
 		contributionsRepo: contributionsRepo,
+		rolesRepo:         rolesRepo,
 		permissionSvc:     permissionSvc,
 		auditLogRepo:      auditLogRepo,
 	}
@@ -113,6 +116,22 @@ func (h *FansubDefaultCrewHandler) PutDefaultCrew(c *gin.Context) {
 	if req.RoleCode == "" {
 		badRequest(c, "role_code ist erforderlich")
 		return
+	}
+
+	// Rollenvalidierung — role_code muss im anime_contribution-Kontext gueltig UND zuweisbar
+	// sein (role_definitions.assignable = true). Nicht zuweisbare Rollen wie admin/other
+	// (seit Migration 0148) dürfen nicht in die Stamm-Crew übernommen werden.
+	if h.rolesRepo != nil {
+		assignable, err := h.rolesRepo.RoleCodeIsAssignableForContext(c.Request.Context(), req.RoleCode, "anime_contribution")
+		if err != nil {
+			log.Printf("default crew put: role validation error (role=%s): %v", req.RoleCode, err)
+			internalError(c, "interner serverfehler")
+			return
+		}
+		if !assignable {
+			badRequest(c, "Diese Rolle kann nicht zugewiesen werden: "+req.RoleCode)
+			return
+		}
 	}
 
 	// Cross-Group-Guard: member_id muss zur Gruppe gehören (T-82-02-05).

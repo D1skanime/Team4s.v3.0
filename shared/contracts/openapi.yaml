@@ -10878,6 +10878,10 @@ components:
           type: array
           items:
             type: string
+          description: >-
+            Each code must resolve to a role_definitions row that is both in the
+            anime_contribution context and assignable=true (400 otherwise — e.g.
+            admin/other are permanently non-assignable since migration 0148).
         started_year:
           type: integer
           nullable: true

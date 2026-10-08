@@ -11,6 +11,7 @@ import {
 } from '@/lib/api'
 import type { DefaultCrewEntry, UnifiedGroupMember } from '@/types/fansub'
 import { ROLE_CATALOG_CHIP_CLASS, labelForRole, presentationForRole } from '@/lib/roleCatalog'
+import { contributionRoleDefinitions } from '@/components/contributions/contributionRoles'
 import { useRoleCatalog } from '@/providers/RoleCatalogProvider'
 import {
   Badge,
@@ -28,7 +29,11 @@ type Props = {
 
 export function DefaultCrewManager({ fansubId, members }: Props) {
   const { roles: contributionRoles, error: roleCatalogError } = useRoleCatalog('anime_contribution')
-  const crewRoleOptions = contributionRoles.filter((role) => role.code !== 'fansub_lead')
+  // contributionRoleDefinitions filtert bereits nicht zuweisbare Rollen (admin/other) heraus —
+  // dieselbe zentrale Quelle wie der Mitwirkende-Dialog (RoleToggleGroup), siehe
+  // contributionRoles.ts (176 scope addition 1). fansub_lead bleibt zusaetzlich ausgeschlossen,
+  // weil die Stamm-Crew keine Gruppenleitung manuell zuweist.
+  const crewRoleOptions = contributionRoleDefinitions(contributionRoles).filter((role) => role.code !== 'fansub_lead')
   const [crew, setCrew] = useState<DefaultCrewEntry[]>([])
   const [loading, setLoading] = useState(false)
   const [loadError, setLoadError] = useState<string | null>(null)
