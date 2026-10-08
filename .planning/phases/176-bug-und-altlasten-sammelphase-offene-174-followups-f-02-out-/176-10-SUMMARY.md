@@ -29,7 +29,7 @@ key-decisions:
 
 requirements-completed: []
 
-duration: ~10min (through Task 1; checkpoint pending)
+duration: ~10min (Task 1) + checkpoint approval
 completed: 2026-10-08
 ---
 
@@ -37,15 +37,23 @@ completed: 2026-10-08
 
 **Reserved 80px of bottom padding on the mobile fansub-edit form container so the sticky "Speichern" action bar never covers the last field at <=900px; desktop/tablet layout untouched — one-line CSS diff.**
 
-## Status: PAUSED AT CHECKPOINT
+## Status: COMPLETE
 
-Task 1 is complete and committed. The plan's final task is a `checkpoint:human-verify` (blocking gate) requiring live Tablet/Desktop regression confirmation and a brief mobile spot-check per the user's explicit D-07 scoping (176-CONTEXT.md). Per executor instructions, this checkpoint is NOT resolved automatically — it is returned to the orchestrator/user for live verification.
+Task 1 is complete and committed. The plan's final task, a `checkpoint:human-verify` (blocking gate), was approved live by the user on 2026-10-08.
+
+### Checkpoint Approval
+
+- **Date:** 2026-10-08
+- **Tester role:** Fansub-Admin
+- **Route tested:** `/admin/fansubs/[id]/edit?tab=basic`
+- **Result:** "approved — Live-UAT 176-10 bestanden (Nutzer 2026-10-08, als Fansub-Admin): Der Sticky-Speichern-Balken auf /admin/fansubs/[id]/edit?tab=basic verdeckt nichts."
+- **Outcome:** Both checkpoint criteria confirmed live — the desktop/tablet sticky bar and layout are unaffected, and the mobile sticky "Speichern" bar no longer covers the last form field when scrolled to the bottom. The 80px bottom-padding reservation was accepted as-is; no adjustment to `FansubEdit.module.css:2681` was required.
 
 ## Performance
 
-- **Duration (Task 1 only):** ~10 min
+- **Duration (Task 1):** ~10 min
 - **Completed:** 2026-10-08
-- **Tasks:** 1/2 completed (Task 2 is the pending checkpoint)
+- **Tasks:** 2/2 completed (Task 2 checkpoint approved live 2026-10-08)
 - **Files modified:** 1
 
 ## Accomplishments
@@ -60,7 +68,7 @@ Each task was committed atomically:
 
 1. **Task 1: Reserve bottom spacing for the sticky mobile action bar** - `90ee1714` (fix)
 
-Task 2 (`checkpoint:human-verify`) has not been executed — it requires live human verification and is intentionally not resolved by this executor run.
+Task 2 (`checkpoint:human-verify`) — approved live by the user on 2026-10-08 (see Checkpoint Approval above). No code change resulted from the checkpoint; it is a verification gate only.
 
 ## Files Created/Modified
 
@@ -85,16 +93,11 @@ None — no external service configuration required.
 
 ## Next Phase Readiness
 
-**BLOCKED on checkpoint approval.** This plan cannot be marked complete until a human performs the live-UAT verification described in the plan's Task 2 checkpoint:
-
-1. Open `http://127.0.0.1:3300/admin/fansubs/{id}/edit` at Tablet (~820px) and Desktop (>1200px) widths and confirm the desktop sticky Speichern bar and overall layout are pixel-identical to before this change.
-2. Resize to <=900px, scroll the fansub edit form to the bottom, and confirm the last form field is fully visible above the sticky Speichern bar (not partially hidden). Adjust the 80px value in `FansubEdit.module.css:2681` if devtools measurement shows it is insufficient or excessive.
-
-Once approved, a continuation agent should resume at Task 2, record the resolution, complete the plan's STATE.md/ROADMAP.md updates, and create the final plan-metadata commit.
+**Complete.** The checkpoint was approved live by the user on 2026-10-08 (Fansub-Admin role, `/admin/fansubs/[id]/edit?tab=basic`). D-07 (176-CONTEXT.md F-19) is closed; the 80px bottom-padding reservation is final and required no adjustment.
 
 ---
 *Phase: 176-bug-und-altlasten-sammelphase-offene-174-followups-f-02-out-*
-*Completed: pending (paused at checkpoint, 2026-10-08)*
+*Completed: 2026-10-08*
 
 ## Self-Check: PASSED
 
