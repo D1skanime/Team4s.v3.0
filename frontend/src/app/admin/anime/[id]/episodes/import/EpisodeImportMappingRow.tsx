@@ -72,6 +72,9 @@ export function EpisodeImportMappingRowCard({
         {!hideFileInfo ? (
           <>
             <strong className={styles.fileName}>{label}</strong>
+            {row.display_path ? (
+              <span className={styles.filePath}>{row.display_path}</span>
+            ) : null}
           </>
         ) : null}
         {(row.target_episode_numbers ?? []).length > 1 ? (

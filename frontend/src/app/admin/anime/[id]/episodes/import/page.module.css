@@ -550,6 +550,15 @@
   white-space: nowrap;
 }
 
+.filePath {
+  font-size: 11px;
+  color: #8a7e6e;
+  font-weight: 400;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
 .multiEpisodeHint {
   font-size: 11px;
   color: #8060d7;
