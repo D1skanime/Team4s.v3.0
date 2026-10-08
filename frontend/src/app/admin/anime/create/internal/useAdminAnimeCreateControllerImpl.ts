@@ -9,11 +9,9 @@ import { ChangeEvent, useEffect, useMemo, useRef, useState } from "react";
 import {
   ApiError,
   getAdminGenreTokens,
+  getAdminTagTokens,
 } from "@/lib/api";
 import { useAuthSession } from "@/lib/useAuthSession";
-import {
-  getAdminTagTokens,
-} from "@/lib/api/admin-anime-intake";
 import { AnimeStatus, ContentType } from "@/types/anime";
 import type {
   AdminAnimeAniSearchSearchCandidate,

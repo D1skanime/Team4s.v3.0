@@ -929,11 +929,13 @@ describe("AdminAnimeCreatePage", () => {
 
   // Payload shape: the create payload must include tags as a separate array
   // and must not collapse tags into the genre string.
-  it("getAdminTagTokens is used for tag suggestion loading (import from admin-anime-intake)", async () => {
-    // Verify the helper is importable from the intake module — this proves
-    // the page can use the dedicated tag token loader.
-    const intakeModule = await import("@/lib/api/admin-anime-intake");
-    expect(typeof intakeModule.getAdminTagTokens).toBe("function");
+  it("getAdminTagTokens is used for tag suggestion loading (import from the @/lib/api barrel)", async () => {
+    // 176-11/D-08: the duplicate getAdminTagTokens in admin-anime-intake.ts
+    // was removed; the canonical, barrel-exported implementation lives in
+    // anime-taxonomy.ts and is re-exported via @/lib/api, matching the
+    // sibling getAdminGenreTokens pattern.
+    const apiModule = await import("@/lib/api");
+    expect(typeof apiModule.getAdminTagTokens).toBe("function");
   });
 
   it("keeps the first pre-preview draft snapshot as the restore baseline", () => {

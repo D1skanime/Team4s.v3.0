@@ -75,11 +75,14 @@ vi.mock('@/lib/api', () => ({
   ApiError: MockApiError,
   createAdminAnime: apiMocks.createAdminAnime,
   getAdminGenreTokens: apiMocks.getAdminGenreTokens,
+  // 176-11/D-08: getAdminTagTokens is barrel-exported from anime-taxonomy.ts,
+  // not from admin-anime-intake.ts (the now-removed duplicate) -- mock it
+  // here to match the controller's real import path.
+  getAdminTagTokens: intakeMocks.getAdminTagTokens,
 }))
 
 vi.mock('@/lib/api/admin-anime-intake', () => ({
   createAdminAnimeFromJellyfinDraft: intakeMocks.createAdminAnimeFromJellyfinDraft,
-  getAdminTagTokens: intakeMocks.getAdminTagTokens,
   loadAdminAnimeCreateAniSearchDraft: intakeMocks.loadAdminAnimeCreateAniSearchDraft,
   searchAdminAnimeCreateAssetCandidates: intakeMocks.searchAdminAnimeCreateAssetCandidates,
   searchAdminAnimeCreateAniSearchCandidates: intakeMocks.searchAdminAnimeCreateAniSearchCandidates,
