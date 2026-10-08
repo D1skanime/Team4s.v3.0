@@ -167,20 +167,3 @@ func (r *FansubRepository) UpdateMember(
 
 	return &item, nil
 }
-
-func (r *FansubRepository) DeleteMember(ctx context.Context, fansubID, memberID int64) error {
-	commandTag, err := r.db.Exec(
-		ctx,
-		`DELETE FROM fansub_members WHERE id = $1 AND fansub_group_id = $2`,
-		memberID,
-		fansubID,
-	)
-	if err != nil {
-		return fmt.Errorf("delete fansub member %d: %w", memberID, err)
-	}
-	if commandTag.RowsAffected() == 0 {
-		return ErrNotFound
-	}
-
-	return nil
-}
