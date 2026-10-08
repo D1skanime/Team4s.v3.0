@@ -2678,7 +2678,7 @@
 
 @media (max-width: 900px) {
 .fansubEditForm {
-    padding: 0.65rem;
+    padding: 0.65rem 0.65rem 80px 0.65rem;
   }
 .fansubEditAnimeLandscape {
     width: 140px;
