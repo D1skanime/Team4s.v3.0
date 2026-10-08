@@ -27,7 +27,10 @@ import {
   GroupNotePreview,
 } from './NotesTab.helpers'
 
-const styles = { ...sharedStyles, ...fansubEditStyles }
+const styles = new Proxy({} as Record<string, string>, {
+  get: (_target, prop: string) =>
+    fansubEditStyles[prop as keyof typeof fansubEditStyles] ?? sharedStyles[prop as keyof typeof sharedStyles],
+})
 
 function errMessage(error: unknown): string {
   return error instanceof ApiError ? `(${error.status}) ${error.message}` : 'Anfrage fehlgeschlagen.'

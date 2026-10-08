@@ -30,7 +30,10 @@ import fansubEditStyles from './FansubEdit.module.css'
 import ownStyles from './FansubAppMembersOverview.module.css'
 import { useFansubEditMediaQuery } from './hooks/useFansubEditViewport'
 
-const styles = { ...sharedStyles, ...fansubEditStyles }
+const styles = new Proxy({} as Record<string, string>, {
+  get: (_target, prop: string) =>
+    fansubEditStyles[prop as keyof typeof fansubEditStyles] ?? sharedStyles[prop as keyof typeof sharedStyles],
+})
 
 const MEDIA_PERMISSION_KEYS: Array<keyof FansubGroupMediaPermissions> = [
   'can_upload', 'can_delete_own', 'can_delete_all', 'can_reorder',

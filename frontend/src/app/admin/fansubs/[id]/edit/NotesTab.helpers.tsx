@@ -9,7 +9,12 @@ import sharedStyles from '../../../admin.module.css'
 import editorScaffoldStyles from '../../../../../components/editor/EditorScaffold.module.css'
 import fansubEditStyles from './FansubEdit.module.css'
 
-const styles = { ...sharedStyles, ...fansubEditStyles, ...editorScaffoldStyles }
+const styles = new Proxy({} as Record<string, string>, {
+  get: (_target, prop: string) =>
+    editorScaffoldStyles[prop as keyof typeof editorScaffoldStyles] ??
+    fansubEditStyles[prop as keyof typeof fansubEditStyles] ??
+    sharedStyles[prop as keyof typeof sharedStyles],
+})
 
 export const VISIBILITY_OPTIONS: Array<{ value: 'public' | 'internal'; label: string }> = [
   { value: 'public', label: 'Öffentlich' },

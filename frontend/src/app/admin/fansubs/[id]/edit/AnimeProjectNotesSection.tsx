@@ -26,7 +26,12 @@ import {
 } from './AnimeProjectNoteForm'
 import type { AnimeEntry } from './AnimeProjectNoteForm'
 
-const styles = { ...sharedStyles, ...fansubEditStyles, ...editorScaffoldStyles }
+const styles = new Proxy({} as Record<string, string>, {
+  get: (_target, prop: string) =>
+    editorScaffoldStyles[prop as keyof typeof editorScaffoldStyles] ??
+    fansubEditStyles[prop as keyof typeof fansubEditStyles] ??
+    sharedStyles[prop as keyof typeof sharedStyles],
+})
 
 function previewText(value?: string | null): string {
   const normalized = (value || '').replace(/\s+/g, ' ').trim()

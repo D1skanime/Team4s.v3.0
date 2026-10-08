@@ -49,7 +49,10 @@ import { FansubAppMembersOverview } from './FansubAppMembersOverview'
 import { GroupMembersTab, mergeHistoricalRoleOptions, type GroupMembersTabActions } from './GroupMembersTab'
 import { CURRENT_YEAR, EMPTY_INLINE_ROLE_DRAFT, YEAR_MIN, type InlineMemberRoleDraft } from './useGroupMembersTab'
 
-const styles = { ...sharedStyles, ...fansubEditStyles }
+const styles = new Proxy({} as Record<string, string>, {
+  get: (_target, prop: string) =>
+    fansubEditStyles[prop as keyof typeof fansubEditStyles] ?? sharedStyles[prop as keyof typeof sharedStyles],
+})
 
 type FansubAppMembersSectionProps = {
   hasAccessToken?: boolean

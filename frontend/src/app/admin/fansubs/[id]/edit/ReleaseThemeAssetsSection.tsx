@@ -16,7 +16,10 @@ import { AdminAnimeTheme, AdminReleaseThemeAsset } from '@/types/admin'
 import sharedStyles from '../../../admin.module.css'
 import opEdStyles from './FansubOpEdSection.module.css'
 
-const styles = { ...sharedStyles, ...opEdStyles }
+const styles = new Proxy({} as Record<string, string>, {
+  get: (_target, prop: string) =>
+    opEdStyles[prop as keyof typeof opEdStyles] ?? sharedStyles[prop as keyof typeof sharedStyles],
+})
 
 interface ReleaseThemeAssetsSectionProps {
   fansubID: number

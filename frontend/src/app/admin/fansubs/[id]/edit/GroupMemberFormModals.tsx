@@ -21,7 +21,10 @@ import sharedStyles from '../../../admin.module.css'
 import fansubEditStyles from './FansubEdit.module.css'
 import ownStyles from './GroupMemberFormModals.module.css'
 
-const styles = { ...sharedStyles, ...fansubEditStyles }
+const styles = new Proxy({} as Record<string, string>, {
+  get: (_target, prop: string) =>
+    fansubEditStyles[prop as keyof typeof fansubEditStyles] ?? sharedStyles[prop as keyof typeof sharedStyles],
+})
 
 export type MemberFormFields = {
   displayName: string

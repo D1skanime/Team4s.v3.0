@@ -25,7 +25,10 @@ import { GroupMemberRequestsTable } from './GroupMemberRequestsTable'
 import { GroupMembersHistTable } from './GroupMembersHistTable'
 import { normalizeInviteLink, useGroupMembersTab } from './useGroupMembersTab'
 
-const styles = { ...sharedStyles, ...fansubEditStyles }
+const styles = new Proxy({} as Record<string, string>, {
+  get: (_target, prop: string) =>
+    fansubEditStyles[prop as keyof typeof fansubEditStyles] ?? sharedStyles[prop as keyof typeof sharedStyles],
+})
 
 export function mergeHistoricalRoleOptions(options: RoleDefinitionOption[]): RoleDefinitionOption[] {
   const byCode = new Map<string, RoleDefinitionOption>()

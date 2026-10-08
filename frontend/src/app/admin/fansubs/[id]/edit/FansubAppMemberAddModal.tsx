@@ -23,7 +23,10 @@ import fansubEditStyles from './FansubEdit.module.css'
 import ownStyles from './FansubAppMemberAddModal.module.css'
 import type { HistoricalIdentityOption } from './GroupMembersTab'
 
-const styles = { ...sharedStyles, ...fansubEditStyles }
+const styles = new Proxy({} as Record<string, string>, {
+  get: (_target, prop: string) =>
+    fansubEditStyles[prop as keyof typeof fansubEditStyles] ?? sharedStyles[prop as keyof typeof sharedStyles],
+})
 
 // Add-Choice-Modal
 type FansubAppMemberChoiceModalProps = {

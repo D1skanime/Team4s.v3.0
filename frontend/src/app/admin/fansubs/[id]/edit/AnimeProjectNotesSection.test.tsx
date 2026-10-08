@@ -216,4 +216,22 @@ describe('AnimeProjectNotesSection', () => {
 
     expect(await screen.findByText(/diese gruppe hat noch keine anime-zuordnungen/i)).not.toBeNull()
   })
+
+  it('loest eine Klasse auf, die ausschliesslich aus dem gemergten (nicht dem Basis-)Stilobjekt stammt (Proxy-Merge-Beweis)', async () => {
+    // `fansubEditAnimeToggle` existiert ausschliesslich in FansubEdit.module.css (fansubEditStyles),
+    // nicht in admin.module.css (sharedStyles) oder EditorScaffold.module.css (editorScaffoldStyles).
+    // Ein `{ ...sharedStyles, ...fansubEditStyles, ...editorScaffoldStyles }`-Objekt-Spread wuerde unter
+    // Vitest/jsdom (CSS-Modul-Mock ohne enumerable Keys) lautlos `undefined` liefern; der Proxy-Merge
+    // muss den echten, nur-eigenen Klassennamen durchreichen.
+    render(
+      <AnimeProjectNotesSection
+        fansubId={5}
+        hasAccessToken
+        animes={[{ id: 22, title: 'Bleach' }]}
+      />,
+    )
+
+    const toggleIcon = document.querySelector('[class*="fansubEditAnimeToggle"]')
+    expect(toggleIcon).not.toBeNull()
+  })
 })

@@ -9,7 +9,10 @@ import sharedStyles from '../../../admin.module.css'
 import opEdStyles from './FansubOpEdSection.module.css'
 import { ReleaseThemeAssetsSection } from './ReleaseThemeAssetsSection'
 
-const styles = { ...sharedStyles, ...opEdStyles }
+const styles = new Proxy({} as Record<string, string>, {
+  get: (_target, prop: string) =>
+    opEdStyles[prop as keyof typeof opEdStyles] ?? sharedStyles[prop as keyof typeof sharedStyles],
+})
 
 interface FansubOpEdSectionProps {
   fansubID: number
