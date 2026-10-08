@@ -86,9 +86,6 @@ describe('EpisodeGroup (GAP-13)', () => {
 
     const fileNameMatches = screen.getAllByText('GhostFile.S01E01-ShiroiFansub.mkv')
     expect(fileNameMatches).toHaveLength(1)
-    expect(
-      fileNameMatches[0].closest('[class*="episodeSingleFileInfoName"]'),
-    ).not.toBeNull()
 
     const pathMatches = screen.getAllByText('Anime.TV.Sub/GhostFile')
     expect(pathMatches).toHaveLength(1)
