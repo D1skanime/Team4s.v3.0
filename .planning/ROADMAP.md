@@ -2493,3 +2493,13 @@ Plans:
 **Wave 7** *(blocked on Wave 6 completion)*
 
 - [x] 176-15-PLAN.md — Phasenweites Prüfketten-Gate: Vorher/Nachher-Vergleich, Prod-Build, finale Live-Abnahme (D-13).
+
+### Phase 177: Einheitlicher Bild-Viewer (F-18): ein gemeinsamer Viewer-Baustein auf Basis von FansubMediaLightbox statt sechs eigenständiger Implementierungen, erweitert um Zoom, Touch-Swipe, Display→Original-Progressive-Load, Metadaten-Overlay und Prefetch; ScreenshotGallery-Lightbox, ProjectMemberMediaViewer, GroupAssetsExperience-Bildanteil und toter ReleaseVersionMediaDetailPanel werden abgelöst
+
+**Goal:** [To be planned]
+**Requirements**: TBD
+**Depends on:** Phase 176
+**Plans:** 0 plans
+
+Plans:
+- [ ] TBD (run /gsd-plan-phase 177 to break down)
