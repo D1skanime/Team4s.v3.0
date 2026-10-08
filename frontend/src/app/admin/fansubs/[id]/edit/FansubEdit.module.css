@@ -1635,21 +1635,6 @@
   padding: 0.75rem;
 }
 
-.fansubEditReleaseCardHeader {
-  display: grid;
-  grid-template-columns: auto minmax(0, 1fr) auto auto;
-  align-items: center;
-  gap: 0.7rem;
-  width: 100%;
-  min-height: 56px;
-  border: 0;
-  background: color-mix(in srgb, #fff 86%, #fbf7f1);
-  color: inherit;
-  cursor: pointer;
-  padding: 0.75rem;
-  text-align: left;
-}
-
 .fansubEditReleaseEpisodeBadge {
   display: inline-flex;
   align-items: center;
@@ -1861,26 +1846,6 @@
 .fansubEditReleaseCardList {
     grid-template-columns: 1fr;
     padding: 0.6rem;
-  }
-.fansubEditReleaseCardHeader {
-    grid-template-columns: auto minmax(0, 1fr) auto;
-    grid-template-areas:
-      "badge title disclosure"
-      "chips chips chips";
-    align-items: start;
-  }
-.fansubEditReleaseEpisodeBadge {
-    grid-area: badge;
-  }
-.fansubEditReleaseCardTitle {
-    grid-area: title;
-  }
-.fansubEditReleaseCardChips {
-    grid-area: chips;
-    justify-content: flex-start;
-  }
-.fansubEditReleaseCardDisclosure {
-    grid-area: disclosure;
   }
 .fansubEditReleaseCardActions {
     display: grid;
