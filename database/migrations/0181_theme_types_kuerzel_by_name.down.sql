@@ -1,0 +1,3 @@
+-- Reverts migration 0181. 0181 only re-asserts the same kuerzel values 0179 already
+-- set (now keyed on name instead of id); there is nothing distinct to roll back
+-- without also reverting 0179, so this is intentionally a no-op.
