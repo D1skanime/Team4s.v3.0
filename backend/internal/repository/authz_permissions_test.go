@@ -132,6 +132,11 @@ func TestPhase107AuthzRepositoryReviewCapabilityResolutionFromDatabase(t *testin
 	// historical-member actions) -- LoadCache's D-10 completeness check would reject that
 	// partial catalog. Matches review_service_test.go's reviewServiceCacheLoaderStub
 	// precedent in this same codebase.
+	// WR-05 (176-REVIEW): snapshot/restore the package-level cache instead of leaving this
+	// test's narrower stub in place for whatever test runs next in the same binary --
+	// isolation via t.Cleanup, not via enumerating every other test's required grants here.
+	previousCache := permissions.SnapshotLoadedCacheForTests()
+	t.Cleanup(func() { permissions.RestoreLoadedCacheForTests(previousCache) })
 	require.NoError(t, permissions.NewService(nil).LoadCache(
 		context.Background(), authzRepositoryReviewCapabilityCacheLoaderStub{},
 	))
@@ -177,13 +182,12 @@ func TestPhase107AuthzRepositoryReviewCapabilityResolutionFromDatabase(t *testin
 // the three review.*.decide actions, matching this fixture's own 0134-seeded
 // role_capabilities rows) PLUS ActionFansubGroupMembersManage -- permissions.loadedCache is a
 // single package-level variable LoadCache replaces wholesale, shared by every test in this
-// package's binary (not scoped to this test), so omitting a grant another already-passing
-// test in this same package depends on (fansub_group_app_members_repository_test.go's
-// TestEvaluateMemberMutationConflictBlocksLastActiveManager, via memberRolesGrantManagement
-// -> permissions.RoleAllowsAction) silently breaks that unrelated test the moment this stub
-// runs first and leaves its narrower grant set behind. Every other canonical action is
-// parked under an unused role, matching review_service_test.go's reviewServiceCacheLoaderStub
-// precedent.
+// package's binary (not scoped to this test). WR-05 (176-REVIEW): the call site above now
+// snapshots the cache before loading this stub and restores it via t.Cleanup, so this
+// narrower grant set no longer leaks into whichever unrelated test runs next -- the grant set
+// below only needs to cover what THIS test exercises, not every other test file's
+// requirements. Every other canonical action is parked under an unused role, matching
+// review_service_test.go's reviewServiceCacheLoaderStub precedent.
 type authzRepositoryReviewCapabilityCacheLoaderStub struct{}
 
 func (authzRepositoryReviewCapabilityCacheLoaderStub) LoadRoleCapabilities(
