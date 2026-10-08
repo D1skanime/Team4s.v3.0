@@ -4,7 +4,7 @@ milestone: v1.4
 milestone_name: Coverage
 status: verifying
 stopped_at: 176-15 Task 1 complete; checkpoint (final live-UAT sign-off) awaiting human verification
-last_updated: "2026-10-08T11:54:32.143Z"
+last_updated: "2026-10-08T12:18:11.779Z"
 last_activity: 2026-10-08
 progress:
   total_phases: 41
@@ -286,9 +286,9 @@ Abschluss" entry below for the full closing record.
 
 ## Current Position
 
-Phase: 176 (bug-und-altlasten-sammelphase-offene-174-followups-f-02-out-) — EXECUTING
-Plan: 15 of 15
-Status: Phase complete — ready for verification
+Phase: 176 (bug-und-altlasten-sammelphase-offene-174-followups-f-02-out-) — EXECUTED
+Plan: 15 of 15 (176-15 complete: Task 1 fresh before/after regression gate + final consolidated live-UAT checkpoint approved by Nutzer 2026-10-08 — all 10 Prüfpunkte inkl. 5 Zusatzpunkte abgenommen)
+Status: All 15/15 plans executed — phase-level verification/closure is a later orchestrator step, not yet performed
 Completed: Phase 174 — `frontend/src/lib/api.ts` (11,508 lines/371 exports) collapsed to a 34-line barrel over 36 domain modules; `useAdminAnimeCreateController.ts`, `GroupMediaReviewSection.tsx`, and `admin/fansubs/create/page.tsx` decomposed into sub-hooks/section components; `fansub_repository.go`, `admin_content_anime_themes.go`, `anime_assets.go`, and `admin_content_release_version_media.go` split into domain-scoped sibling files; `FansubEdit.module.css` and `ui.module.css` split along grep-verified single-owner class boundaries — all behavior-preserving per D-01, zero new dependency cycles, zero new N+1, full test-suite parity, final gate + live UAT both green/approved.
 Next: Separater, nachgelagerter Schritt außerhalb von Phase 175 legt die bestätigten Phasen 176-183 in `ROADMAP.md` an (nicht Teil von 175-09, D-09). Daneben weiterhin offen: Phase 169's remaining plan (169-05, live actor/refresh/responsive UAT); Phase 166 (Film-Content-Flow) has not been started. The Coverage milestone is NOT complete.
 
@@ -966,6 +966,7 @@ Last activity: 2026-10-08
 - [Phase 176-13]: D-10: displayVariantFileName in services exportiert statt neuer Wrapper; D-20: Migration 0180 entfernt review_status_id/FK/Index von anime_contributions reversibel
 - [Phase 176]: D-12/D-11 (176-14): Alle 16 admin/fansubs/[id]/edit-Dateien nutzen jetzt den Proxy-Style-Merge statt Objekt-Spread; getAdminFansubAnime-Assertion in AnimeProjectNotesSection.test.tsx ans Testende verschoben, um suite-load-Flackern deterministisch zu beheben.
 - [Phase 176]: Measured a fresh baseline (not just the plan's pre-recorded numbers) for the D-13 before/after regression gate, surfacing one additional pre-existing frontend test failure beyond the documented 6 -- also confirmed fixed by HEAD. — D-13's own threat-model mitigation (T-176-15-01) requires fresh evidence, not reuse of self-reported plan results.
+- [Phase 176-15]: Skip-Delta 672->701 (+29) aufgeklaert: alle 30 neuen Skips (netto +29, 1 Test strukturell in 2 Subtests gesplittet) stammen aus 176-02/176-04/176-07/176-09/176-12/176-13s eigenen neuen, auf Phase-DSN-Fixtures (TEAM4S_PHASE107/117/145/167_TEST_DSN) gateten Integrationstests -- keine stille neue Luecke. Gegen frische Disposable-DBs liefen alle 30 real und gruen. — Nutzer-Hinweis zur Verifikation vor Phasenabschluss: Backend-Skips stiegen von 672 auf 701, Aufschluesselung mit echten Testlaeufen gegen verfuegbare Test-DB verlangt statt theoretischer Erklaerung.
 
 ### Pending Todos
 

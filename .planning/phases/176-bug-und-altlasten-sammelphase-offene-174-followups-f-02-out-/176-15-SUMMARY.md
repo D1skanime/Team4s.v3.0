@@ -26,23 +26,24 @@ key-decisions:
   - "Placed the temporary baseline backend copy at container path /app-baseline (not /tmp/app-baseline) so migration-fixture relative paths (../../../database/migrations) resolve to the same mounted /database/migrations the live /app copy uses -- the first attempt at /tmp/app-baseline produced 67 false-positive 'missing migration file' failures that were purely a path artifact, not real baseline failures."
   - "Measured a real baseline frontend vitest run (symlinking /app-baseline/node_modules -> /app/node_modules, package.json/lock unchanged between baseline and HEAD) rather than trusting only the plan's documented 'confirmed live during planning' numbers -- this surfaced one additional pre-existing failure (cssCustomProperties.guard.test.ts, a stale line-number cross-reference) beyond the 6 named in D-05, which is also fixed by HEAD. Documented as a more-complete baseline, not a discrepancy."
   - "Verified the true production backend/Dockerfile (multi-stage, no override) builds clean from scratch in addition to the dev-stack 'docker compose build --no-cache' (which merges docker-compose.override.yml and uses Dockerfile.dev for the backend) -- both exit 0."
+  - "Post-checkpoint-approval, investigated the Nutzer's named skip-delta concern (672 -> 701) via go test -json action-count parsing (reproduces the plan's own numbers exactly) plus a skip-name set-diff against the baseline worktree: all 30 new skip names (net +29, 1 restructured into 2 subtests) trace to this phase's own 176-02/04/07/09/12 DSN-gated integration tests, and all 30 pass green against freshly created disposable team4s_phase<N>_test_<ts> databases (dropped after use) -- 0 unexplained skips."
 
 requirements-completed: []
 
-duration: 45min
+duration: 45min + ~55min skip-delta investigation (Task 2 resume)
 completed: 2026-10-08
 ---
 
 # Phase 176 Plan 15: Final before/after regression gate and live-UAT checkpoint Summary
 
-**Fresh before/after suite comparison (baseline commit `4e9d891e` vs HEAD `87af9f9b`) proves every tracked metric improved or stayed clean -- 0 newly-broken tests, 4 backend + 7 frontend pre-existing failures fixed, 1 openapi.yaml duplicate key removed, 6 pre-existing ReleaseDetailHero tsc errors resolved -- plus a clean no-cache production build for both images.**
+**Fresh before/after suite comparison (baseline commit `4e9d891e` vs HEAD `87af9f9b`) proves every tracked metric improved or stayed clean -- 0 newly-broken tests, 4 backend + 7 frontend pre-existing failures fixed, 1 openapi.yaml duplicate key removed, 6 pre-existing ReleaseDetailHero tsc errors resolved, plus a clean no-cache production build for both images; final live-UAT checkpoint approved 2026-10-08 (all 10 points + 5 extra-scope items) and the user's 672->701 skip-delta follow-up fully traced to this phase's own new DSN-gated tests, all verified green against disposable fixture databases.**
 
 ## Performance
 
-- **Duration:** ~45 min
+- **Duration:** ~45 min (Task 1) + ~55 min (Task 2 resume: skip-delta investigation + close-out)
 - **Started:** 2026-10-08T11:20:00Z (approx.)
-- **Completed:** 2026-10-08T11:52:00Z
-- **Tasks:** 1 of 2 (Task 1 complete; checkpoint task returned to orchestrator per plan instructions)
+- **Completed:** 2026-10-08 (Task 1 ~11:52 UTC; checkpoint approved + skip-delta investigation + close-out same day)
+- **Tasks:** 2 of 2 (Task 1 complete; checkpoint approved; skip-delta investigation requested by the Nutzer's approval message completed before close-out)
 - **Files modified:** 0 production files (verification-only task); this SUMMARY.md is the sole artifact
 
 ## Accomplishments
@@ -115,6 +116,84 @@ None.
 - The temporary worktree was removed with `git worktree remove /tmp/team4s-176-baseline --force` immediately after all baseline runs completed; confirmed gone via `git worktree list`. No Docker Compose or dev server was ever pointed at the temporary checkout -- only `go build`/`go vet`/`go test` and `npx tsc`/`npx vitest` ran against it, reusing the already-running containers' toolchains as the plan's `<baseline_commit>` instructions suggested.
 - The live `team4sv30-backend`/`team4sv30-frontend` containers were never restarted or disrupted by this comparison; both responded `200` on `/health` and `/` immediately after.
 
+## Skip-Delta Investigation (Backend 672 -> 701, +29) -- Nutzer-Hinweis 2026-10-08
+
+The checkpoint-approval message that closed this plan's Task 2 included one explicit, binding
+follow-up before the phase could be finalized (quoted verbatim): *"Backend-Skips stiegen von 672
+auf 701 -- bitte aufschlüsseln, welche neuen Tests übersprungen werden und ob sie mit verfügbarer
+Test-DB ... tatsächlich laufen und grün sind; Ergebnis im Abschlussbericht nennen."* This section is
+that breakdown, backed by fresh test runs (not theory).
+
+**Methodology:** Re-ran `go test ./... -json` against the baseline worktree (`4e9d891e`, already
+re-used from Task 1's cleanup-before-removal window) and against HEAD inside `team4sv30-backend`,
+and parsed the JSON event stream (`Action: "pass"/"fail"/"skip"` per `Test`) rather than counting
+`--- SKIP:` lines from `-v` text output, because the plan's own documented numbers (2496/672/73 and
+2505/701/69) only reproduce exactly from the JSON action-count method -- confirmed byte-for-byte:
+baseline `{pass: 2496, skip: 672, fail: 73}` (3241 total), HEAD `{pass: 2505, skip: 701, fail: 69}`
+(3275 total), matching this plan's own before/after table exactly.
+
+**Set-difference result:** Comparing the sorted set of skipped `package::test[/subtest]` names
+between baseline and HEAD: **30 skip names are new at HEAD, 1 skip name present at baseline is gone
+at HEAD** (net +29, matching 701-672 exactly). The "gone" one is not a fixed test -- it is
+`TestReleaseVersionMedia_ReorderRequiresVersionOwnership`, whose single skip at baseline was
+restructured into two named subtests at HEAD (`cross-version_relation_id_is_rejected`,
+`same-version_reorder_succeeds`) by 176-12's behavior-test rewrite, a pure Go-test-structure change
+with no coverage lost.
+
+**Category breakdown of the 30 new skips (all gated on `t.Skipf` when a `TEAM4S_PHASE*_TEST_DSN` env
+var is unset -- the project's standard opt-in Postgres-fixture pattern, see
+`backend/internal/testsupport/phase106_postgres.go`):**
+
+| Gate env var | New-skip count | Introduced by (git blame of the test file) | What it tests |
+|---|---|---|---|
+| `TEAM4S_PHASE117_TEST_DSN` | 20 | `af55927d` test(176-12), `5f8966b4` fix(176-02) | Outro-slot independence from ED (D-01 regression coverage), release-crew-snapshot project-lead-scope-only exclusion (176-04/D-23), segment-playback-resolution and theme-asset-upload-lock real-behavior tests (176-12/D-09 source-grep replacement) |
+| `TEAM4S_PHASE107_TEST_DSN` | 5 | `fefda9e6`/`af55927d` test(176-12) | `TestPatchReleaseVersionMediaNonUploaderRevisionConflictProtection`, the 2 reorder-ownership subtests, `TestRVMPreviewAssignmentIsExclusive`, and `TestPhase141ReviewDecisionRemainsAuthoritativeUnderConcurrentRevoke` (this last one is **not new coverage** -- it is one of this plan's own documented "4 fixed tests": at baseline it FAILED on the `release_version_media.reorder` capability-registry gap; 176-09's capability-registry fix lets it now reach the env-gated skip cleanly instead of crashing, i.e. a fail-to-skip conversion that is itself part of the already-reported improvement, not a new gap) |
+| `TEAM4S_PHASE167_TEST_DSN` | 4 | `abbbefc5` feat(176) | `phase176_fansub_create_kuerzel_test.go`'s 4 cases for the new Kürzel-conflict-detection logic added by 176-07 (D-03/D-04 Fansub-Anlegeseite) |
+| `TEAM4S_PHASE145_TEST_DSN` | 1 | `7c75b80a` fix(176) | `TestRoleCodeIsAssignableForContext`, covering the assignable-roles-only picker fix (176's role-picker D-06-adjacent hardening) |
+
+**Every one of the 30 new skips traces to a test file this phase's own plans (176-02, 176-04,
+176-07, 176-09, 176-12) added or rewrote -- none are pre-existing tests that silently started
+skipping, and none reference a phase this plan's scope does not already touch.**
+
+**Live verification against disposable test databases (not just theory):** For each of the four
+env vars above, created a throwaway Postgres database on `team4sv30-db` following the exact naming
+convention the fixtures themselves enforce (`team4s_phase<N>_test_<suffix>`, matching e.g.
+`phase117DatabasePattern` in `phase117_postgres.go`) -- `team4s_phase107_test_1791461607`,
+`_phase117_test_1791461607`, `_phase145_test_1791461607`, `_phase167_test_1791461607` -- pointed the
+matching `TEAM4S_PHASE*_TEST_DSN` at each, and re-ran `go test ./... -json` with all four set
+simultaneously inside `team4sv30-backend`.
+
+- **26 of 30** passed immediately.
+- **4 of 30** (`TestFansubGroupCreateKuerzel_SetsFreshKuerzel/EmptyKuerzelBecomesNull/
+  ConflictsWithExistingKuerzel/ConflictsWithExistingAlias`) failed on the first attempt with
+  `ERROR: text search dictionary "public.unaccent" does not exist` -- this was a gap in the fresh
+  disposable database I created (a plain `CREATE DATABASE` has no extensions), not a defect in the
+  176-07 code or test: `phase167_postgres.go`'s `createPhase167Prerequisites` installs an
+  `f_unaccent` wrapper that calls `public.unaccent`, which requires the `unaccent` extension to
+  already exist in that database (the project's long-lived disposable Phase-167 fixture DBs already
+  have it from an earlier manual setup; a brand-new one does not). Ran
+  `CREATE EXTENSION IF NOT EXISTS unaccent;` against the fresh database and re-ran just those 4
+  tests -- **all 4 then passed** (`PASS ok team4s.v3/backend/internal/repository 0.164s`).
+
+**Result: all 30 of the 30 new skips run and pass green when given their required disposable test
+database -- 0 failures, 0 remaining unexplained skips in the +29 delta.** None of the +29 delta is
+"genuinely environment-gated" in the sense of needing live Keycloak/Jellyfin/external fixtures that
+cannot be reproduced locally -- every one is a self-contained Postgres-fixture test that this
+developer environment can and did satisfy on demand. (The 28 other, non-DSN-gated skips already
+present at both baseline and HEAD -- Wave-3 stub placeholders like
+`TestVerifyClaimAlreadyVerified`/`TestMemberClaimsRepositoryRejectClaim`, and `test_helpers.go`'s
+generic "Integration tests require test database setup" group-repository tests -- are unchanged
+pre-existing debt, not part of this phase's +29 delta, and out of this investigation's scope.)
+
+**Cleanup:** all four disposable databases dropped immediately after the verification run
+(`DROP DATABASE team4s_phase<N>_test_1791461607` x4, confirmed absent via `\l` against
+`team4sv30-db` afterward); the `/app-baseline` container copy and the `/tmp/team4s-176-baseline` git
+worktree (re-used for this investigation's baseline-vs-HEAD skip-set diff) were both re-removed
+(confirmed via `git worktree list` showing only the `main` worktree, and
+`docker exec team4sv30-backend ls /app-baseline` returning "No such file or directory"); the live
+`team4sv30-backend`/`team4sv30-frontend`/`team4sv30-db` containers were never restarted and answered
+200 on `/health`/`/` throughout.
+
 ## Decisions Made
 
 - Used `/app-baseline` (sibling of `/app`, not `/tmp/app-baseline`) inside each container as the copy target so pre-existing test-internal relative paths resolve correctly without modifying any test file -- see Methodology Notes above.
@@ -134,11 +213,27 @@ None - plan executed exactly as written for Task 1. No Rule 1-4 auto-fixes were 
 
 None - no external service configuration required.
 
+## Final Checkpoint Approval
+
+**Approved 2026-10-08** by the Nutzer, verbatim: *"approved — finale Live-UAT Phase 176 bestanden
+(Nutzer 2026-10-08): alle 10 Punkte inkl. der 5 Zusatzpunkte geprüft (Rollen-Picker ohne
+Administration/Sonstiges, Kürzel-Feld + Aliase auf Anlegeseite inkl. Konfliktmeldung, kein
+Typ-Feld, Land/Status/Link-Typen deutsch, eine Alias-Fläche, Release-Karten ohne Überlappung).
+Bitte 176-15 und die Phase regulär abschließen (Code-Review, Verifikation, Tracking)."* -- all 10
+how-to-verify points of this plan's checkpoint (segment-editor badges D-01, fansub-create-page
+fields D-04, sticky-save-bar D-07, notes-tab-gate D-18, general smoke pass) plus the 5 extra-scope
+live-UAT items (role picker without Administration/Sonstiges, Kürzel field + aliases with conflict
+messaging, no dead type field, German country/status/link-type labels, release-card overlap fix)
+were confirmed working together on the live running instance. The user's accompanying
+skip-delta question (672 -> 701) is answered in full above, before this plan is closed, per their
+explicit instruction ("bitte aufschlüsseln ... Ergebnis im Abschlussbericht nennen").
+
 ## Next Phase Readiness
 
 - Task 1's automated, numbers-backed gate is green: every tracked metric improved or stayed unchanged (never worse) outside the one explicitly-flagged pre-existing out-of-scope item.
-- The final checkpoint (consolidated live-UAT sign-off) is now presented to the orchestrator per this plan's structure -- it requires a human to click through the live running instance and cannot be auto-resolved. See the CHECKPOINT REACHED section of the completion report for the full how-to-verify list (D-01/D-04/D-07/D-18 plus all 5 extra-scope items' recommended live-UAT additions).
-- Once the checkpoint is approved (or issues are reported and triaged), Phase 176 as a whole can be declared complete.
+- The final checkpoint (consolidated live-UAT sign-off) is approved (see above) -- all 15/15 plans of Phase 176 are now executed.
+- The Nutzer's skip-delta follow-up (672 -> 701) is fully investigated and documented above: all +29 are traced to this phase's own new DSN-gated integration tests and proven to pass green against disposable fixture databases.
+- Phase-level verification/closure (code review, independent re-verification, requirements/tracking reconciliation) remains a later orchestrator step, not performed by this plan.
 
 ## Self-Check: PASSED
 
@@ -147,6 +242,7 @@ None - no external service configuration required.
 - Temporary container copies (`/app-baseline` in both `team4sv30-backend` and `team4sv30-frontend`) -- confirmed removed via `docker exec ... ls /app-baseline` style checks during cleanup (directories no longer present).
 - `docker images | grep team4s` -- confirmed no stray verification image left behind (`team4s-backend-prod-verify` was built then `docker rmi`'d; only the phase's normal `team4s-team4sv30-backend`/`team4s-team4sv30-frontend` images and one unrelated pre-existing `team4s-backend-test` image remain).
 - Live containers (`team4sv30-backend`, `team4sv30-frontend`) -- confirmed still running their pre-existing images, untouched by the `--no-cache` builds (`docker compose build` does not restart running containers); both answered `200` on `/health` and `/` after all verification work completed.
+- Skip-delta investigation (Task 2 resume): the 4 disposable databases (`team4s_phase107/117/145/167_test_1791461607`) -- confirmed dropped via `psql \l | grep phase` against `team4sv30-db` (only pre-existing, unrelated persistent phase-fixture databases from earlier plans remain). The re-used `/tmp/team4s-176-baseline` worktree and `/app-baseline` container copy -- confirmed removed again via `git worktree list` and `docker exec team4sv30-backend ls /app-baseline` ("No such file or directory"). `team4sv30-backend`/`team4sv30-frontend`/`team4sv30-db` -- confirmed `200`/healthy after the investigation's test runs.
 
 ---
 *Phase: 176-bug-und-altlasten-sammelphase-offene-174-followups-f-02-out-*
