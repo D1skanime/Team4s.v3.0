@@ -924,3 +924,172 @@ Add to the 176 closing UAT:
    the create page.
 5. No backend call/curl is needed for any of the above — this scope addition's changes
    are frontend-only and are already covered by the full passing vitest suite.
+
+## Scope Addition 5: Release-Karten-CSS-Konflikt beheben
+
+**User report (2026-10-08, verbatim decision):** On `/admin/fansubs/[id]/edit?tab=releases`
+(desktop and narrow), the "Notizen & Bilder öffnen" button in every release card header lay
+on top of the text and covered "New-Subs · Versionen: 1" / "N Personen". Live measurement:
+`.fansubEditReleaseHeaderActions` had width 0 and its `nowrap` button overflowed. User's
+hypothesis: two conflicting `.fansubEditReleaseCardHeader` rules in `FansubEdit.module.css`
+— a newer one (`grid-template-columns: minmax(0,1fr) auto`) and an older one further below
+that overrides it (`display:grid; grid-template-columns: auto minmax(0,1fr) auto auto;` plus
+button-like background/cursor/padding). Decision: clean up/merge so the header becomes
+content + a trailing action column, preserve the narrow-viewport (<=760px) stacking, verify
+whether the old rule is still needed before deleting it, and sweep the same file for other
+duplicate selectors.
+
+### What was found
+
+- **Re-grepped the file fresh** (4 prior agents in this session had already edited it,
+  so none of the prompt's line numbers were trusted). Confirmed exactly 4 physical
+  occurrences of `.fansubEditReleaseCardHeader`: a correct base rule (then at line 984:
+  `grid-template-columns: minmax(0, 1fr) auto; gap: 0.75rem; align-items: center;`), its
+  own `@media (max-width: 760px)` override directly below it (then line 1017: stacks to
+  `1fr`), an old orphaned base rule further down (then line 1638: `display:grid;
+  grid-template-columns: auto minmax(0, 1fr) auto auto; ... min-height:56px; border:0;
+  background: color-mix(...); cursor:pointer; padding:0.75rem; text-align:left;`), and that
+  old rule's own `@media (max-width: 760px)` override (then line 1865: `grid-template-
+  columns: auto minmax(0,1fr) auto; grid-template-areas: "badge title disclosure" "chips
+  chips chips";`).
+- **Cross-referenced against the real JSX** (`ReleaseRowDetails.tsx:140-209`): the actual
+  DOM for a release card header is `<div class="fansubEditReleaseCardHeader">` with exactly
+  two direct children — `<button class="fansubEditReleaseCardToggle">` (containing the
+  episode badge, title, meta, and disclosure chevron as its own nested spans) and
+  `<div class="fansubEditReleaseHeaderActions">` (the "Notizen & Medien öffnen"/version-tools
+  button). This matches the **new** rule's 2-column content+action-column model exactly.
+  The **old** rule's 4-column model plus baked-in `cursor:pointer`/`background`/`padding`
+  only makes sense if the header `<div>` itself were the clickable element with badge/title/
+  disclosure as its own direct children — a structure that predates
+  `.fansubEditReleaseCardToggle` being split out as its own nested button. Confirmed the
+  old rule is the dead one: because it is later in the file, its conflicting
+  `grid-template-columns` (and the old `@media` block's `grid-template-areas`) won the
+  cascade over the correct rule for the one property that actually caused the bug —
+  collapsing `.fansubEditReleaseHeaderActions` into an unused 4th auto-sized grid track,
+  reproducing the user's exact "width 0, button overflows" measurement at both desktop and
+  narrow width (the narrow bug exists because the old rule has its *own* `@media
+  (max-width: 760px)` override that also comes later than the correct one's, so it wins at
+  narrow width too).
+- **Checked whether the old rule was needed by anything else before deleting it:** grepped
+  all `.tsx` files under `frontend/src/app/admin/fansubs/[id]/edit/` for
+  `fansubEditReleaseCardHeader` — only one consumer exists (`ReleaseRowDetails.tsx`'s single
+  release-card header div), and it already matches the new rule's shape. No other card
+  variant or toggle depends on the old rule's 4-column/button-styled-header structure.
+  Safe to delete entirely, not rename+keep.
+- **Full duplicate-selector sweep of the whole file** (3341 lines): counted every top-level
+  selector occurrence and manually inspected every selector appearing 3+ times, plus spot-
+  checked the 2x ones that weren't an obvious base+single-media-query pair. Findings:
+  - `.fansubEditReleaseCardHeader` (4x) — the conflict above; fixed.
+  - `.fansubEditReleaseEpisodeBadge`, `.fansubEditReleaseCardTitle`,
+    `.fansubEditReleaseCardDisclosure` (3x each) — one real, non-conflicting base style
+    definition each (colors/sizing for the badge/title/disclosure spans, still rendered by
+    the current JSX inside `.fansubEditReleaseCardToggle`), plus one correct `grid-area`
+    assignment in the *kept* narrow media block and one now-removed duplicate `grid-area`
+    assignment that lived inside the *deleted* old media block (identical value, purely
+    redundant — removed along with the rest of the dead block, no behavior change).
+  - `.fansubEditReleaseCardChips` (3x: one base style rule + two `grid-area: chips`
+    assignments) — confirmed via repo-wide grep that this class is **never referenced in
+    any `.tsx` file**, anywhere in `frontend/src`. It is fully dead/unused CSS, but it is a
+    single non-conflicting definition (not a cascade conflict causing a visible bug), so
+    deleting it is a separate, lower-value cleanup rather than part of this fix. Left in
+    place and logged below as a deferred finding rather than removed, to keep this fix's
+    diff scoped to the reported overlap bug and its directly-entangled dead duplicates.
+  - `.fansubEditReleaseRow` (4x: two non-overlapping base-property blocks — layout props
+    then interaction props — plus two legitimate breakpoint overrides at
+    `min-width:900px` and `max-width:720px`) — no conflicting properties between the two
+    base blocks; stylistically unusual (same selector declared twice at the same cascade
+    level with no media wrapper) but not a bug. Logged as a minor/cosmetic deferred finding.
+  - `.fansubEditThemeUploadActions`, `.fansubEditSectionSummary`, `.fansubEditMainTabRow`,
+    `.fansubEditReleaseCardList` (3x each) — all are one base rule plus legitimate,
+    non-overlapping breakpoint overrides at different/complementary media queries (e.g.
+    `.fansubEditSectionSummary` has disjoint `max-width` vs `min-width:901px` blocks;
+    `.fansubEditReleaseCardList` has disjoint `max-width:760px` vs
+    `min-width:761px/max-width:1180px` blocks). No conflicts, no action needed.
+  - All remaining 2x selectors checked were a single base rule plus a single media-query
+    override — the normal, expected pattern, not a conflict.
+
+### What was changed
+
+**Frontend only — pure CSS, no logic/behavior change:**
+- `frontend/src/app/admin/fansubs/[id]/edit/FansubEdit.module.css`: deleted the orphaned
+  old `.fansubEditReleaseCardHeader` base rule (4-column grid with baked-in button styling)
+  and, from within its `@media (max-width: 760px)` block, deleted the old rule's
+  `grid-template-areas` override plus its four now-pointless duplicate `grid-area`
+  single-line assignments for `.fansubEditReleaseEpisodeBadge`/`.fansubEditReleaseCardTitle`/
+  `.fansubEditReleaseCardChips`/`.fansubEditReleaseCardDisclosure` (identical values to the
+  ones already correctly declared in the kept, earlier media block — removing them changes
+  nothing visually, just removes dead duplication). Deliberately preserved the three
+  unrelated sibling rules that shared the same `@media (max-width: 760px)` block
+  (`.fansubEditReleaseCardList`, `.fansubEditReleaseCardActions`,
+  `.fansubEditReleaseThemeList`) — all three are still used by the current JSX and were
+  not part of the conflict.
+- Net result: `.fansubEditReleaseCardHeader` now has exactly one base rule
+  (`grid-template-columns: minmax(0, 1fr) auto; gap: 0.75rem; align-items: center;`) and one
+  narrow-viewport override (`grid-template-columns: 1fr; align-items: stretch;`) — header =
+  content (toggle button, `minmax(0,1fr)`) + action column (`auto`) at desktop/tablet width,
+  full-width stacking at <=760px, exactly matching the two real DOM children.
+- 35 lines removed, 0 lines added. No other files touched.
+
+### Verification performed
+
+- Re-grepped `.fansubEditReleaseCardHeader` post-edit: exactly 2 occurrences remain (base +
+  its own narrow-viewport override), both belonging to the correct/kept rule.
+- Verified brace balance across the whole 3341-line file with a small Node script (open/close
+  count matches, zero premature closes) — confirmed no stray `{`/`}` introduced by the edit.
+- Confirmed the three sibling rules sharing the deleted-from media block
+  (`.fansubEditReleaseCardList`, `.fansubEditReleaseCardActions`,
+  `.fansubEditReleaseThemeList`) survived intact and unchanged.
+- `docker exec team4sv30-frontend npx vitest run src/app/admin/fansubs` — 44 test files
+  passed, 353 tests passed (expected: pure CSS change, no test file touched).
+- `docker exec team4sv30-frontend npx tsc --noEmit` — clean.
+- Backend untouched, no rebuild needed. Frontend restarted: `docker restart
+  team4sv30-frontend` → compiled cleanly, `curl http://192.168.235.196:3000/admin/fansubs/1/edit?tab=releases`
+  returns 200, container logs show a clean 200 render with no errors.
+- **Live-verified the actual served CSS, not just the source file:** fetched the compiled
+  `/_next/static/css/app/admin/fansubs/%5Bid%5D/edit/page.css` bundle from the running dev
+  server and extracted every rule for the hashed class
+  `FansubEdit_fansubEditReleaseCardHeader__E_kLG` — confirmed only two rules exist in the
+  bytes actually sent to the browser: `{ grid-template-columns: minmax(0, 1fr) auto; gap:
+  0.75rem; align-items: center; }` (base) and `{ grid-template-columns: 1fr; align-items:
+  stretch; }` (narrow-viewport). The old 4-column/button-styled rule is completely absent
+  from the live bundle.
+
+### Files changed
+
+- `frontend/src/app/admin/fansubs/[id]/edit/FansubEdit.module.css`
+
+`.planning/sketches/` was not touched.
+
+### Deferred (not fixed, logged for a future pass — low-risk, out of this fix's scope)
+
+- `.fansubEditReleaseCardChips` (base rule + 2 `grid-area` assignments) is fully dead/unused
+  CSS — confirmed via repo-wide grep that no `.tsx` file anywhere references this class.
+  Not a cascade conflict (single consistent definition, no bug), so left in place to keep
+  this fix's diff scoped to the reported overlap bug.
+- `.fansubEditReleaseRow` is declared as two separate non-conflicting base-level blocks
+  (layout properties, then interaction properties) with no media-query wrapper between them
+  — stylistically redundant but not a bug (no overlapping properties, no visual effect).
+  Could be merged into one block in a future cleanup pass.
+
+### Recommended live-UAT additions for the phase's final checkpoint (176-15)
+
+Add to the 176 closing UAT:
+1. Open `/admin/fansubs/{id}/edit?tab=releases` at desktop width: confirm the "Notizen &
+   Medien öffnen" (or version-tools) button sits to the right of each release card's text,
+   not overlapping "New-Subs · Versionen: N" / "N Personen" / theme-status text.
+2. Resize the browser to <=760px (or use device emulation): confirm each release card's
+   header stacks to full width (episode badge/title/chevron on top, the action button
+   below, full-width) with no overlap at any point during the resize.
+3. Confirm the episode-expand toggle (clicking the badge/title area) still expands/collapses
+   the release card's segment/theme details exactly as before — this fix only touched
+   layout CSS on the header container, not the toggle button's own click handler.
+4. No backend call is needed for any of the above — this is a pure CSS fix, verified via
+   the live compiled CSS bundle and a full passing frontend test run (no render tests
+   needed new changes).
+
+**This is the 5th and final scope addition for Phase 176's pre-176-15 batch.** All five
+user-authorized scope additions (Rollen-Picker assignable-Filter, Kürzel-Feld +
+Aliase-Umbenennung, Gruppentyp entfernen + Land/Status eindeutschen, Doppelte
+Alias-Fläche entfernen, Release-Karten-CSS-Konflikt) are now complete and committed.
+176-15's Prüfkette gate can proceed, incorporating all five "Recommended live-UAT
+additions" sections above into its closing UAT pass.
