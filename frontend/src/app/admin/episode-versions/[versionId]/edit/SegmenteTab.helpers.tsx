@@ -17,7 +17,7 @@ export function getTypeBadgeClass(kuerzel: string): string {
     case 'IN':
       return styles.badgeIn
     case 'OUT':
-      return styles.badgePv
+      return styles.badgeOut
     default:
       return styles.badgeDefault
   }
