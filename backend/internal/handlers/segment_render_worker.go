@@ -128,7 +128,7 @@ func (h *AdminContentHandler) executeSegmentRender(
 	}
 
 	if source.StartOffsetSeconds == nil || source.EndOffsetSeconds == nil {
-		_ = themeRepo.MarkThemeSegmentRenderCacheFailed(ctx, cache.CacheKey, "segment_source_missing", "Segment hat keine gueltige Render-Quelle.")
+		_ = themeRepo.MarkThemeSegmentRenderCacheFailed(ctx, cache.CacheKey, "segment_source_missing", "Segment hat keine gültige Render-Quelle.")
 		return errors.New("segment render worker: incomplete render source")
 	}
 
@@ -146,7 +146,7 @@ func (h *AdminContentHandler) executeSegmentRender(
 	outputRel := cache.CacheKey + ".mp4"
 	outputPath, ok := resolveControlledFilePath(h.segmentRenderDir, outputRel)
 	if !ok {
-		_ = themeRepo.MarkThemeSegmentRenderCacheFailed(ctx, cache.CacheKey, "invalid_output_path", "Segment-Renderpfad ist ungueltig.")
+		_ = themeRepo.MarkThemeSegmentRenderCacheFailed(ctx, cache.CacheKey, "invalid_output_path", "Segment-Renderpfad ist ungültig.")
 		return errors.New("segment render worker: invalid output path")
 	}
 	if err := os.MkdirAll(filepath.Dir(outputPath), 0o755); err != nil {

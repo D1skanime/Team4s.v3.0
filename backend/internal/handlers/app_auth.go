@@ -179,11 +179,11 @@ func (h *AppAuthHandler) HandleKeycloakBackchannelLogout(c *gin.Context) {
 	issuer := h.keycloakVerifier.IssuerURL()
 
 	if err := h.stateRepo.RevokeOIDCSession(c.Request.Context(), issuer, claims.Session, ttl); err != nil {
-		c.JSON(http.StatusServiceUnavailable, gin.H{"error": gin.H{"message": "logout-status voruebergehend nicht verfuegbar"}})
+		c.JSON(http.StatusServiceUnavailable, gin.H{"error": gin.H{"message": "logout-status vorübergehend nicht verfügbar"}})
 		return
 	}
 	if err := h.stateRepo.RevokeOIDCSubject(c.Request.Context(), issuer, claims.Subject, ttl); err != nil {
-		c.JSON(http.StatusServiceUnavailable, gin.H{"error": gin.H{"message": "logout-status voruebergehend nicht verfuegbar"}})
+		c.JSON(http.StatusServiceUnavailable, gin.H{"error": gin.H{"message": "logout-status vorübergehend nicht verfügbar"}})
 		return
 	}
 	if h.appAuthRepo != nil && strings.TrimSpace(claims.Subject) != "" {

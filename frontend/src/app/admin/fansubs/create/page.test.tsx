@@ -316,12 +316,11 @@ describe("AdminFansubCreatePage — Speicher-Verhalten", () => {
       slug: "erfolgsgruppe",
     });
 
-    // Bekannte, vorbestehende Sprachqualitätsabweichung ("ueber" statt "über")
-    // wird hier unverändert charakterisiert statt stillschweigend "verbessert"
-    // (D-01) — siehe SUMMARY.md "Known Issues".
+    // D-03 (Phase 176-07): die zuvor dokumentierte ASCII-Umlaut-Abweichung
+    // ("ueber" statt "über") ist jetzt korrigiert.
     expect(
       await screen.findByText(
-        "Fansub angelegt. Medien können jetzt direkt ueber den DB-Asset-Flow hochgeladen werden.",
+        "Fansub angelegt. Medien können jetzt direkt über den DB-Asset-Flow hochgeladen werden.",
       ),
     ).toBeTruthy();
   });

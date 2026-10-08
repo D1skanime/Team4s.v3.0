@@ -18,8 +18,8 @@ const (
 	commentAuthBearerPrefix        = "Bearer "
 	commentAuthIdentityContextKey  = "auth_identity"
 	commentAuthRequiredMessage     = "anmeldung erforderlich"
-	commentAuthInvalidTokenMessage = "ungueltiges zugriffstoken"
-	commentAuthStateErrorMessage   = "auth-status voruebergehend nicht verfuegbar"
+	commentAuthInvalidTokenMessage = "ungültiges zugriffstoken"
+	commentAuthStateErrorMessage   = "auth-status vorübergehend nicht verfügbar"
 )
 
 var localBypassIdentity *AuthIdentity

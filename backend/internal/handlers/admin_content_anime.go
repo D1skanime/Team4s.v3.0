@@ -134,7 +134,7 @@ func (h *AdminContentHandler) UpdateAnime(c *gin.Context) {
 	}
 	if err != nil {
 		log.Printf("admin_content update_anime: repo error (user_id=%d, anime_id=%d): %v", identity.UserID, id, err)
-		writeInternalErrorResponse(c, "interner serverfehler", err, "Anime konnte nicht gespeichert werden. Der Bearbeitungs-Pfad oder das Datenbank-Schema ist noch nicht vollstaendig synchron.")
+		writeInternalErrorResponse(c, "interner serverfehler", err, "Anime konnte nicht gespeichert werden. Der Bearbeitungs-Pfad oder das Datenbank-Schema ist noch nicht vollständig synchron.")
 		return
 	}
 

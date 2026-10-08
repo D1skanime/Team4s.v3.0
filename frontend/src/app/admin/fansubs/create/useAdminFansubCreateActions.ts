@@ -157,7 +157,7 @@ export function useAdminFansubCreateActions({
       setAliasDrafts(nextDrafts);
       setInitialAliasDrafts(nextDrafts);
       setAliasInput("");
-      setToast("Tag hinzugefuegt.");
+      setToast("Tag hinzugefügt.");
     } catch (nextError) {
       setError(errMessage(nextError));
     } finally {
@@ -218,7 +218,7 @@ export function useAdminFansubCreateActions({
         await syncFansubLinks(fansubID, [], links);
         await refreshCreatedState(fansubID);
         setToast(
-          "Fansub angelegt. Medien können jetzt direkt ueber den DB-Asset-Flow hochgeladen werden.",
+          "Fansub angelegt. Medien können jetzt direkt über den DB-Asset-Flow hochgeladen werden.",
         );
       } else {
         await updateFansubGroup(

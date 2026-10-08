@@ -224,7 +224,7 @@ describe("useAdminFansubCreateActions", () => {
       expect(setAliasDrafts).toHaveBeenCalledWith(["Alt", "Neu"]);
       expect(setInitialAliasDrafts).toHaveBeenCalledWith(["Alt", "Neu"]);
       expect(setAliasInput).toHaveBeenCalledWith("");
-      expect(setToast).toHaveBeenCalledWith("Tag hinzugefuegt.");
+      expect(setToast).toHaveBeenCalledWith("Tag hinzugefügt.");
     });
 
     it("API failure: sets the error message via errMessage and resets the busy flag", async () => {
@@ -306,7 +306,7 @@ describe("useAdminFansubCreateActions", () => {
       expect(getFansubByIDMock).toHaveBeenCalledWith(77);
       expect(getFansubAliasesMock).toHaveBeenCalledWith(77);
       expect(setToast).toHaveBeenCalledWith(
-        "Fansub angelegt. Medien können jetzt direkt ueber den DB-Asset-Flow hochgeladen werden.",
+        "Fansub angelegt. Medien können jetzt direkt über den DB-Asset-Flow hochgeladen werden.",
       );
       expect(setSaving).toHaveBeenLastCalledWith(false);
     });

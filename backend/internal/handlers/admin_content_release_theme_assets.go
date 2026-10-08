@@ -301,7 +301,7 @@ func (h *AdminContentHandler) UploadReleaseThemeAsset(c *gin.Context) {
 	); err != nil {
 		_ = h.mediaRepo.DeleteMediaAsset(c.Request.Context(), mediaAsset.ID)
 		_ = removeFileQuietly(mediaAsset.StoragePath)
-		writeInternalErrorResponse(c, "interner serverfehler", err, "Media-Dateigroesse konnte nicht gespeichert werden.")
+		writeInternalErrorResponse(c, "interner serverfehler", err, "Media-Dateigröße konnte nicht gespeichert werden.")
 		return
 	}
 
@@ -466,7 +466,7 @@ func (h *AdminContentHandler) UploadReleaseThemeAssetForRelease(c *gin.Context) 
 	); err != nil {
 		_ = h.mediaRepo.DeleteMediaAsset(c.Request.Context(), mediaAsset.ID)
 		_ = removeFileQuietly(mediaAsset.StoragePath)
-		writeInternalErrorResponse(c, "interner serverfehler", err, "Media-Dateigroesse konnte nicht gespeichert werden.")
+		writeInternalErrorResponse(c, "interner serverfehler", err, "Media-Dateigröße konnte nicht gespeichert werden.")
 		return
 	}
 
