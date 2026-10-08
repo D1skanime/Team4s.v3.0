@@ -81,30 +81,45 @@ CREATE TABLE member_claims (
     CONSTRAINT uq_member_claims_member_user UNIQUE (member_id, app_user_id),
     CONSTRAINT chk_member_claims_status CHECK (claim_status IN ('pending', 'verified', 'rejected'))
 );
-CREATE TABLE action_definitions (
-    code TEXT PRIMARY KEY,
-    label_de TEXT NOT NULL,
-    category TEXT,
-    sort_order INT NOT NULL DEFAULT 0
-);
-CREATE TABLE role_definitions (
-    code TEXT PRIMARY KEY,
-    label_de TEXT NOT NULL,
-    contexts TEXT[] NOT NULL DEFAULT '{}',
-    sort_order INT NOT NULL DEFAULT 0
-);
-CREATE TABLE role_capabilities (
-    role_code TEXT NOT NULL REFERENCES role_definitions(code) ON DELETE CASCADE,
-    action_code TEXT NOT NULL REFERENCES action_definitions(code) ON DELETE CASCADE,
-    PRIMARY KEY (role_code, action_code)
-);
-INSERT INTO role_definitions (code, label_de, contexts, sort_order)
-VALUES ('fansub_lead', 'Fansub-Leitung', ARRAY['fansub_group'], 1);`
+-- Minimal stand-in required before migration 0085's Step 4 ALTER TABLE
+-- hist_group_member_roles ADD CONSTRAINT fk_hist_group_member_roles_role_code
+-- FOREIGN KEY (role_code) REFERENCES role_definitions(code) -- mirrors
+-- phase137_postgres.go's identical precedent for the same migration step.
+CREATE TABLE hist_group_member_roles (role_code TEXT);`
 	if err := validatePhase106SQL(sql); err != nil {
 		t.Fatal(err)
 	}
 	if _, err := pool.Exec(context.Background(), sql); err != nil {
 		t.Fatalf("create Phase-107 prerequisites: %v", err)
+	}
+	// D-06 (176-09): action_definitions/role_definitions/role_capabilities used to be
+	// hand-rolled stub tables here with zero role_capabilities rows and no
+	// user_group_capability_overrides/user_group_capability_override_history tables at
+	// all. permissions.Service.ResolveGroupRights' GroupRightsOverridesResolver path
+	// (AuthzRepository.ResolveActorUserOverrides) queries user_group_capability_overrides
+	// unconditionally for every CanForFansubGroup/CanReviewForFansubGroup check, so every
+	// real-Postgres consumer of this fixture that did not hand-roll its own copy of that
+	// table failed with "relation \"user_group_capability_overrides\" does not exist".
+	// This now runs the same real migration chain phase137_postgres.go already proved for
+	// the identical capability-registry schema (role_definitions, action_definitions,
+	// role_capabilities, user_group_capability_overrides, user_group_capability_override_history),
+	// applied ADDITIVELY on top of the hand-rolled identity tables above -- schema
+	// extension, not replacement, per D-06's explicit constraint.
+	for _, migration := range []string{
+		// role_definitions (fansub_lead, assignable/reserved metadata).
+		"0085_role_definitions_seed.up.sql",
+		"0100_role_definitions_fansub_lead.up.sql",
+		// action_definitions + role_capabilities creation and seed (fansub_lead gets
+		// fansub_group.members.manage here -- the exact grant GrantDelegation/
+		// RevokeDelegation's authorization step checks).
+		"0108_capability_registry.up.sql",
+		"0112_role_model_cleanup.up.sql",
+		// Phase-136: user_overridable catalog flag + override/history schema.
+		"0146_capability_policy_catalog.up.sql",
+		// Phase-137 Plan 01: management capability + pilot overridable set.
+		"0150_effective_rights_overrides.up.sql",
+	} {
+		ApplySQLFile(t, pool, phase107MigrationPath(t, migration))
 	}
 	for _, migration := range []string{
 		"0131_member_point_foundation.up.sql",

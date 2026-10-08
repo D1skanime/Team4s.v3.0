@@ -43,20 +43,11 @@ func openPhase107ReviewServicePostgres(t *testing.T) *reviewServicePostgresFixtu
 			decision TEXT NOT NULL,
 			PRIMARY KEY (source_type, stable_key, source_revision)
 		);
-		-- Minimal Phase-137 user-override table (migration 0146's runtime shape):
-		-- permissions.Service.ResolveGroupRights' GroupRightsOverridesResolver path
-		-- (AuthzRepository.ResolveActorUserOverrides -> LoadCurrentOverrides) queries
-		-- this table unconditionally; it predates this fixture and was missing here,
-		-- which made every real-Postgres GrantDelegation/RevokeDelegation call in this
-		-- file fail with "relation \"user_group_capability_overrides\" does not exist"
-		-- (found while adding Plan 141-01's real-Postgres concurrency test).
-		CREATE TABLE user_group_capability_overrides (
-			app_user_id BIGINT NOT NULL REFERENCES app_users(id) ON DELETE CASCADE,
-			fansub_group_id BIGINT NOT NULL REFERENCES fansub_groups(id) ON DELETE CASCADE,
-			action_code TEXT NOT NULL,
-			effect TEXT NOT NULL CHECK (effect IN ('allow', 'deny')),
-			PRIMARY KEY (app_user_id, fansub_group_id, action_code)
-		);
+		-- user_group_capability_overrides (migration 0146's real runtime shape) now comes
+		-- from testsupport.OpenPhase107Postgres itself (176-09/D-06: phase107_postgres.go
+		-- runs the real capability-registry migration chain) -- no local stand-in needed
+		-- here anymore; a second CREATE TABLE would conflict with the one the fixture
+		-- already created.
 		INSERT INTO members(id) VALUES (101), (102), (103), (104), (105);
 		INSERT INTO app_users(id, status) VALUES
 			(11, 'active'), (12, 'active'), (13, 'active'), (14, 'active'), (15, 'active'),
@@ -98,6 +89,7 @@ func (f *reviewServicePostgresFixture) count(t *testing.T, query string, args ..
 }
 
 func TestPhase107ReviewServiceGrantRevokeDelegationNoOpAudit(t *testing.T) {
+	ensureReviewServicePermissionsCacheLoaded(t)
 	fx := openPhase107ReviewServicePostgres(t)
 	ctx := context.Background()
 	service := NewReviewService(fx.pool, nil)
@@ -196,6 +188,7 @@ func TestPhase107ReviewServicePlatformAdminDelegationAndInactiveTarget(t *testin
 }
 
 func TestPhase107ReviewServiceDelegationRollbackOnMandatoryAuditFailure(t *testing.T) {
+	ensureReviewServicePermissionsCacheLoaded(t)
 	fx := openPhase107ReviewServicePostgres(t)
 	ctx := context.Background()
 	if _, err := fx.pool.Exec(ctx, `
@@ -427,6 +420,7 @@ func TestPhase107ReviewServiceRejectsPlatformAdminDecisionWithoutTargetAttributi
 }
 
 func TestPhase107ReviewServiceRejectValidationAndSelfReview(t *testing.T) {
+	ensureReviewServicePermissionsCacheLoaded(t)
 	fx := openPhase107ReviewServicePostgres(t)
 	adapter := &reviewFixtureAdapter{targets: make(map[string]ReviewTarget)}
 	service := NewReviewService(fx.pool, map[string]ReviewTargetAdapter{"fixture": adapter})
@@ -561,6 +555,7 @@ func TestPhase107ReviewServicePlatformAdminOverrideAndWorkCredits(t *testing.T) 
 }
 
 func TestPhase107ReviewServiceFirstDecisionWinsConcurrent(t *testing.T) {
+	ensureReviewServicePermissionsCacheLoaded(t)
 	fx := openPhase107ReviewServicePostgres(t)
 	submitter := int64(12)
 	beneficiary := int64(102)
@@ -650,6 +645,7 @@ func TestPhase107ReviewServiceAdapterRegistryIsCopiedAndUnknownFailsBeforeBegin(
 }
 
 func TestPhase107ReviewServiceGrantRevokeDecisionLockOrder(t *testing.T) {
+	ensureReviewServicePermissionsCacheLoaded(t)
 	fx := openPhase107ReviewServicePostgres(t)
 	ctx := context.Background()
 	submitter := int64(12)
@@ -736,15 +732,26 @@ func ensureReviewServicePermissionsCacheLoaded(t *testing.T) {
 }
 
 // reviewServiceCacheLoaderStub satisfies LoadCache's D-10 "every known action appears in
-// >=1 role" catalog check while granting exactly what this file's delegation-changing tests
-// need: RoleFansubLead -> ActionFansubGroupMembersManage. Every other canonical action is
-// parked under an unused role, matching effective_rights_service_test.go's precedent.
+// >=1 role" catalog check while granting exactly what this file's delegation- and
+// decision-authorizing tests need: RoleFansubLead -> ActionFansubGroupMembersManage (the
+// grant GrantDelegation/RevokeDelegation's authorization step checks) plus the three
+// review.*.decide actions (matching migration 0134's real fansub_lead seed -- the grant
+// Decide() checks for a non-admin, non-delegated reviewer). 176-09/D-06: this stub was
+// previously missing both review.*.decide here (every Decide()-calling test below with a
+// plain fansub_lead actor and no prior delegation was denied) and up to date coverage of
+// allKnownActions (ActionReleaseVersionMediaReorder/ActionReleaseVersionMediaHighlight were
+// added to permissions.go after this stub was written, tripping LoadCache's D-10 check the
+// moment this stub is actually exercised). Every other canonical action is parked under an
+// unused role, matching effective_rights_service_test.go's precedent.
 type reviewServiceCacheLoaderStub struct{}
 
 func (reviewServiceCacheLoaderStub) LoadRoleCapabilities(context.Context) (map[string][]permissions.Action, error) {
 	return map[string][]permissions.Action{
 		permissions.RoleFansubLead: {
 			permissions.ActionFansubGroupMembersManage,
+			permissions.ActionReviewTextDecide,
+			permissions.ActionReviewImageDecide,
+			permissions.ActionReviewContributionDecide,
 		},
 		"_review_service_test_unused_role": {
 			permissions.ActionFansubGroupEdit,
@@ -777,12 +784,11 @@ func (reviewServiceCacheLoaderStub) LoadRoleCapabilities(context.Context) (map[s
 			permissions.ActionReleaseVersionMediaUpdate,
 			permissions.ActionReleaseVersionMediaDelete,
 			permissions.ActionReleaseVersionMediaDeleteOwn,
+			permissions.ActionReleaseVersionMediaReorder,
+			permissions.ActionReleaseVersionMediaHighlight,
 			permissions.ActionReleaseVersionNotesWrite,
 			permissions.ActionReleaseVersionNotesViewAll,
 			permissions.ActionReleaseVersionSegmentsManage,
-			permissions.ActionReviewTextDecide,
-			permissions.ActionReviewImageDecide,
-			permissions.ActionReviewContributionDecide,
 			permissions.ActionUserGroupCapabilityOverrideManage,
 		},
 		// Phase 145: permissions.validateMembershipBaselineRegistryPresence fail-closed-rejects
@@ -889,6 +895,7 @@ func TestPhase141ReviewDecisionRemainsAuthoritativeUnderConcurrentRevoke(t *test
 }
 
 func TestPhase107ReviewServiceCreditSlotsAcrossRevisionsAndIndependentSources(t *testing.T) {
+	ensureReviewServicePermissionsCacheLoaded(t)
 	fx := openPhase107ReviewServicePostgres(t)
 	submitter := int64(12)
 	beneficiary := int64(102)

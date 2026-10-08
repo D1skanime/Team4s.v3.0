@@ -106,12 +106,35 @@ func TestPhase107AuthzRepositoryReviewCapabilityResolutionFromDatabase(t *testin
 	repo := NewAuthzRepository(pool).WithDB(tx)
 	capabilities, err := repo.LoadRoleCapabilities(context.Background())
 	require.NoError(t, err)
-	assert.ElementsMatch(t, []permissions.Action{
+	// 176-09/D-06: testsupport.OpenPhase107Postgres now provisions role_capabilities via
+	// the real migration chain (0085/0100/0108/0112/0146/0150), so fansub_lead legitimately
+	// carries its full real production grant set (fansub_group.members.manage etc.) here,
+	// not just the three review actions this migration 0134 ApplySQLFile call adds on top.
+	// Subset (not exact-match) is the correct assertion: this test's actual subject is that
+	// the three review actions ARE present for fansub_lead, not that they are the ONLY
+	// actions present.
+	assert.Subset(t, capabilities[permissions.RoleFansubLead], []permissions.Action{
 		permissions.ActionReviewTextDecide,
 		permissions.ActionReviewImageDecide,
 		permissions.ActionReviewContributionDecide,
-	}, capabilities[permissions.RoleFansubLead])
+	})
 	assert.NotContains(t, capabilities, permissions.RolePlatformAdmin)
+
+	// 176-09/D-06: CanReviewForFansubGroup's role-grant step (roleAllows) reads
+	// permissions' package-level cache, not the DB directly -- this test must load it
+	// itself instead of depending on some unrelated test file in this package happening to
+	// run first and leave a sufficiently-covering cache behind (previously untested: the
+	// SQL error this plan fixes above always short-circuited this test before reaching this
+	// call). A dedicated minimal stub (not this fixture's own real, partially-migrated
+	// role_capabilities table) is used deliberately: this fixture only runs the
+	// capability-registry migration slice phase107_postgres.go needs (0085/0100/0108/0112/
+	// 0146/0150), which does not cover every allKnownActions entry (e.g. migration 0116's
+	// historical-member actions) -- LoadCache's D-10 completeness check would reject that
+	// partial catalog. Matches review_service_test.go's reviewServiceCacheLoaderStub
+	// precedent in this same codebase.
+	require.NoError(t, permissions.NewService(nil).LoadCache(
+		context.Background(), authzRepositoryReviewCapabilityCacheLoaderStub{},
+	))
 
 	service := permissions.NewService(repo)
 	lead, err := service.CanReviewForFansubGroup(
@@ -146,6 +169,80 @@ func TestPhase107AuthzRepositoryReviewCapabilityResolutionFromDatabase(t *testin
 	assert.False(t, notGranted.Allowed)
 	require.NoError(t, tx.Rollback(context.Background()))
 	require.NoError(t, pool.Ping(context.Background()), "WithDB must not own the pool lifecycle")
+}
+
+// authzRepositoryReviewCapabilityCacheLoaderStub satisfies LoadCache's D-10 "every known
+// action appears in >=1 role" catalog check while granting what
+// TestPhase107AuthzRepositoryReviewCapabilityResolutionFromDatabase needs (RoleFansubLead ->
+// the three review.*.decide actions, matching this fixture's own 0134-seeded
+// role_capabilities rows) PLUS ActionFansubGroupMembersManage -- permissions.loadedCache is a
+// single package-level variable LoadCache replaces wholesale, shared by every test in this
+// package's binary (not scoped to this test), so omitting a grant another already-passing
+// test in this same package depends on (fansub_group_app_members_repository_test.go's
+// TestEvaluateMemberMutationConflictBlocksLastActiveManager, via memberRolesGrantManagement
+// -> permissions.RoleAllowsAction) silently breaks that unrelated test the moment this stub
+// runs first and leaves its narrower grant set behind. Every other canonical action is
+// parked under an unused role, matching review_service_test.go's reviewServiceCacheLoaderStub
+// precedent.
+type authzRepositoryReviewCapabilityCacheLoaderStub struct{}
+
+func (authzRepositoryReviewCapabilityCacheLoaderStub) LoadRoleCapabilities(
+	context.Context,
+) (map[string][]permissions.Action, error) {
+	return map[string][]permissions.Action{
+		permissions.RoleFansubLead: {
+			permissions.ActionFansubGroupMembersManage,
+			permissions.ActionReviewTextDecide,
+			permissions.ActionReviewImageDecide,
+			permissions.ActionReviewContributionDecide,
+		},
+		"_authz_permissions_test_unused_role": {
+			permissions.ActionFansubGroupEdit,
+			permissions.ActionFansubGroupLinksManage,
+			permissions.ActionFansubGroupMembersView,
+			permissions.ActionFansubGroupHistoricalMembersManage,
+			permissions.ActionFansubGroupHistoricalRolesManage,
+			permissions.ActionFansubGroupHistoricalMembersLink,
+			permissions.ActionFansubGroupInvitationsView,
+			permissions.ActionFansubGroupInvitationsCreate,
+			permissions.ActionFansubGroupInvitationsCancel,
+			permissions.ActionFansubGroupNotesWrite,
+			permissions.ActionFansubGroupMediaView,
+			permissions.ActionFansubGroupMediaUpload,
+			permissions.ActionFansubGroupMediaUpdate,
+			permissions.ActionFansubGroupMediaUpdateOwn,
+			permissions.ActionFansubGroupMediaReorder,
+			permissions.ActionFansubGroupMediaDelete,
+			permissions.ActionFansubGroupPageGeneralEdit,
+			permissions.ActionFansubGroupPageTechnicalLinksEdit,
+			permissions.ActionFansubGroupPageFoundingHistoryEdit,
+			permissions.ActionFansubGroupLinksUpdate,
+			permissions.ActionAnimeFansubProjectNotesWrite,
+			permissions.ActionAnimeFansubProjectTimelineUpdate,
+			permissions.ActionReleaseVersionMetadataUpdate,
+			permissions.ActionReleaseView,
+			permissions.ActionReleaseVersionView,
+			permissions.ActionReleaseVersionMediaView,
+			permissions.ActionReleaseVersionMediaUpload,
+			permissions.ActionReleaseVersionMediaUpdate,
+			permissions.ActionReleaseVersionMediaDelete,
+			permissions.ActionReleaseVersionMediaDeleteOwn,
+			permissions.ActionReleaseVersionMediaReorder,
+			permissions.ActionReleaseVersionMediaHighlight,
+			permissions.ActionReleaseVersionNotesWrite,
+			permissions.ActionReleaseVersionNotesViewAll,
+			permissions.ActionReleaseVersionSegmentsManage,
+			permissions.ActionUserGroupCapabilityOverrideManage,
+		},
+		// Phase 145: permissions.validateMembershipBaselineRegistryPresence fail-closed-rejects
+		// any LoadCache call missing the reserved RoleMembershipBaseline (group_member) entry's
+		// 3 baseline actions.
+		permissions.RoleMembershipBaseline: {
+			permissions.ActionFansubGroupMembersView,
+			permissions.ActionFansubGroupMediaView,
+			permissions.ActionFansubGroupMediaUpload,
+		},
+	}, nil
 }
 
 func TestPhase107AuthzRepositoryVerifiedActorMemberIdentityWithoutMembership(t *testing.T) {

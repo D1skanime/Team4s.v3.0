@@ -717,13 +717,11 @@ func TestPhase141RevokedDelegationImmediateEffect(t *testing.T) {
 			role TEXT NOT NULL,
 			PRIMARY KEY (fansub_group_member_id, role)
 		);
-		CREATE TABLE user_group_capability_overrides (
-			app_user_id BIGINT NOT NULL REFERENCES app_users(id) ON DELETE CASCADE,
-			fansub_group_id BIGINT NOT NULL REFERENCES fansub_groups(id) ON DELETE CASCADE,
-			action_code TEXT NOT NULL,
-			effect TEXT NOT NULL CHECK (effect IN ('allow', 'deny')),
-			PRIMARY KEY (app_user_id, fansub_group_id, action_code)
-		);
+		-- user_group_capability_overrides (migration 0146's real runtime shape) now comes
+		-- from testsupport.OpenPhase107Postgres itself (176-09/D-06: phase107_postgres.go
+		-- runs the real capability-registry migration chain) -- no local stand-in needed
+		-- here anymore; a second CREATE TABLE would conflict with the one the fixture
+		-- already created.
 		INSERT INTO users(id) VALUES (1003);
 		INSERT INTO app_users(id, status, legacy_user_id) VALUES (13, 'active', 1003);
 		INSERT INTO members(id, nickname, display_name) VALUES (103, 'Delegierte', 'Delegierte Drei');

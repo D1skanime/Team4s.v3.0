@@ -26,6 +26,17 @@ type releaseReviewSubmissionFixture struct {
 
 func openReleaseReviewSubmissionFixture(t *testing.T) *releaseReviewSubmissionFixture {
 	t.Helper()
+	// 176-09/D-06: this fixture's Decide() calls authorize non-admin, non-delegated
+	// fansub_lead reviewers through permissions.Service's package-level role-capability
+	// cache (review_service_test.go's reviewServiceCacheLoaderStub, loaded exactly once
+	// via its own sync.Once). Fixing phase107_postgres.go's missing
+	// user_group_capability_overrides schema (this same plan) unblocked the SQL layer for
+	// every consumer below this fixture, but surfaced this file's own pre-existing,
+	// independent gap: nothing in this file's test chain ever loaded that cache, so every
+	// Decide() call here was always denied too (same root cause as the two named D-06
+	// tests, just one layer deeper -- confirmed via live reproduction before this line was
+	// added).
+	ensureReviewServicePermissionsCacheLoaded(t)
 
 	pool := testsupport.OpenPhase107Postgres(t)
 	_, file, _, ok := runtime.Caller(0)
