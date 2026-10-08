@@ -205,16 +205,41 @@ func (h *AdminContentHandler) PatchReleaseVersionMedia(c *gin.Context) {
 		writeInternalErrorResponse(c, "interner serverfehler", err, "Patch fehlgeschlagen.")
 		return
 	}
-	if !previewOnly && isReleaseVersionMediaUploader(relationMeta.UploadedByUserID, identity.UserID) {
-		if _, err := repository.NewReleaseReviewLifecycleRepository(tx).SubmitMedia(
-			c.Request.Context(),
-			repository.ReleaseReviewSubmissionInput{
-				SourceID:         relationID,
-				ActorAppUserID:   identity.AppUserID,
-				ExpectedRevision: expectedRevision,
-				LastActivityAt:   time.Now().UTC(),
-			},
+	if !previewOnly {
+		if isReleaseVersionMediaUploader(relationMeta.UploadedByUserID, identity.UserID) {
+			if _, err := repository.NewReleaseReviewLifecycleRepository(tx).SubmitMedia(
+				c.Request.Context(),
+				repository.ReleaseReviewSubmissionInput{
+					SourceID:         relationID,
+					ActorAppUserID:   identity.AppUserID,
+					ExpectedRevision: expectedRevision,
+					LastActivityAt:   time.Now().UTC(),
+				},
+			); err != nil {
+				if errors.Is(err, repository.ErrConflict) {
+					c.JSON(http.StatusConflict, gin.H{"error": gin.H{
+						"message":    "Das Medium wurde zwischenzeitlich geändert.",
+						"error_code": "SOURCE_REVISION_CONFLICT",
+					}})
+					return
+				}
+				if errors.Is(err, repository.ErrNotFound) || errors.Is(err, repository.ErrValidation) {
+					c.JSON(http.StatusUnprocessableEntity, gin.H{"error": gin.H{
+						"message":    "Die Einreicher-Zuordnung ist nicht mehr eindeutig.",
+						"error_code": "SOURCE_ATTRIBUTION_INVALID",
+					}})
+					return
+				}
+				writeInternalErrorResponse(c, "interner serverfehler", err, "Review-Lifecycle konnte nicht aktualisiert werden.")
+				return
+			}
+		} else if err := repository.NewReleaseReviewLifecycleRepository(tx).CheckMediaRevisionConflict(
+			c.Request.Context(), relationID, expectedRevision,
 		); err != nil {
+			// D-06 (176-09, F-14 Folgehinweis / BUG-174-04): a non-uploader's metadata-only
+			// edit never calls SubmitMedia (BUG-174-04, Option 1 -- no re-review on
+			// non-uploader corrections), so it never got SubmitMedia's optimistic-concurrency
+			// check either. This restores just the conflict check, without reopening review.
 			if errors.Is(err, repository.ErrConflict) {
 				c.JSON(http.StatusConflict, gin.H{"error": gin.H{
 					"message":    "Das Medium wurde zwischenzeitlich geändert.",
@@ -222,14 +247,7 @@ func (h *AdminContentHandler) PatchReleaseVersionMedia(c *gin.Context) {
 				}})
 				return
 			}
-			if errors.Is(err, repository.ErrNotFound) || errors.Is(err, repository.ErrValidation) {
-				c.JSON(http.StatusUnprocessableEntity, gin.H{"error": gin.H{
-					"message":    "Die Einreicher-Zuordnung ist nicht mehr eindeutig.",
-					"error_code": "SOURCE_ATTRIBUTION_INVALID",
-				}})
-				return
-			}
-			writeInternalErrorResponse(c, "interner serverfehler", err, "Review-Lifecycle konnte nicht aktualisiert werden.")
+			writeInternalErrorResponse(c, "interner serverfehler", err, "Revisionsprüfung fehlgeschlagen.")
 			return
 		}
 	}

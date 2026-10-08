@@ -113,10 +113,13 @@ func openRVMExecFixture(t *testing.T) *pgxpool.Pool {
 	ctx := context.Background()
 	_, err := pool.Exec(ctx, `
 		CREATE TABLE users (
-			id BIGINT PRIMARY KEY
+			id BIGINT PRIMARY KEY,
+			username TEXT NULL
 		);
 		ALTER TABLE app_users
-			ADD COLUMN legacy_user_id BIGINT NULL REFERENCES users(id);
+			ADD COLUMN legacy_user_id BIGINT NULL REFERENCES users(id),
+			ADD COLUMN display_name TEXT NULL,
+			ADD COLUMN preferred_username TEXT NULL;
 		CREATE UNIQUE INDEX uq_exec_rvm_app_users_legacy
 			ON app_users(legacy_user_id) WHERE legacy_user_id IS NOT NULL;
 		CREATE TABLE release_version_groups (
@@ -168,6 +171,47 @@ func openRVMExecFixture(t *testing.T) *pgxpool.Pool {
 			updated_at TIMESTAMPTZ NULL,
 			deleted_at TIMESTAMPTZ NULL,
 			deleted_by_user_id BIGINT NULL REFERENCES users(id)
+		);
+		-- Migration 0174's real-schema shape, minimal: no test in this file exercises a
+		-- 'kara' story-order item, so theme_segments/theme_segment_assignments only need to
+		-- exist to satisfy release_version_story_order's FK columns -- zero rows ever
+		-- inserted into either.
+		ALTER TABLE release_version_media
+			ADD CONSTRAINT uq_exec_rvm_id_version UNIQUE (id, release_version_id);
+		CREATE TABLE theme_segments (
+			id BIGINT PRIMARY KEY,
+			start_time INT NULL
+		);
+		CREATE TABLE theme_segment_assignments (
+			theme_segment_id BIGINT NOT NULL REFERENCES theme_segments(id) ON DELETE CASCADE,
+			release_version_id BIGINT NOT NULL REFERENCES release_versions(id) ON DELETE CASCADE,
+			CONSTRAINT uq_exec_theme_segment_assignments_segment_version UNIQUE (theme_segment_id, release_version_id)
+		);
+		CREATE TABLE release_version_story_order (
+			release_version_id       BIGINT NOT NULL REFERENCES release_versions(id) ON DELETE CASCADE,
+			item_type                VARCHAR(10) NOT NULL,
+			release_version_media_id BIGINT NULL,
+			theme_segment_id         BIGINT NULL,
+			sort_order               INT NOT NULL,
+			CONSTRAINT pk_exec_release_version_story_order
+				PRIMARY KEY (release_version_id, item_type, sort_order),
+			CONSTRAINT uq_exec_release_version_story_order_position
+				UNIQUE (release_version_id, sort_order),
+			CONSTRAINT chk_exec_release_version_story_order_type
+				CHECK (item_type IN ('media', 'kara')),
+			CONSTRAINT chk_exec_release_version_story_order_target
+				CHECK (
+					(item_type = 'media' AND release_version_media_id IS NOT NULL AND theme_segment_id IS NULL)
+					OR (item_type = 'kara' AND release_version_media_id IS NULL AND theme_segment_id IS NOT NULL)
+				),
+			CONSTRAINT fk_exec_story_order_media_same_version
+				FOREIGN KEY (release_version_media_id, release_version_id)
+				REFERENCES release_version_media (id, release_version_id)
+				ON DELETE CASCADE,
+			CONSTRAINT fk_exec_story_order_kara_same_version
+				FOREIGN KEY (theme_segment_id, release_version_id)
+				REFERENCES theme_segment_assignments (theme_segment_id, release_version_id)
+				ON DELETE CASCADE
 		);
 		CREATE TABLE release_version_media_highlights (
 			release_version_media_id BIGINT PRIMARY KEY REFERENCES release_version_media(id) ON DELETE CASCADE,
@@ -815,6 +859,111 @@ func TestPatchReleaseVersionMediaAllowsCategoryChange(t *testing.T) {
 	// non-preview-allowed category — proven directly by TestReleaseVersionMedia_PreviewRejectedForFunOuttake.
 }
 
+// rvmExecSecondLeadIdentity seeds a second, distinct app_user/legacy-user pair in the given
+// fixture pool and returns a platform-admin identity for it. IsPlatformAdmin:true is used
+// deliberately (matching rvmExecPlatformAdminIdentity's own established convention) so this
+// identity's edit authorization is proven without depending on permissions' fragile,
+// order-dependent package-level role->action cache — the only thing this identity needs to be
+// genuinely distinct for is isReleaseVersionMediaUploader's legacy-user-id comparison, which
+// reads straight off the request identity and the relation's uploaded_by_user_id column, not
+// off any role grant.
+func rvmExecSecondLeadIdentity(t *testing.T, pool *pgxpool.Pool) middleware.AuthIdentity {
+	t.Helper()
+	_, err := pool.Exec(context.Background(), `
+		INSERT INTO users(id) VALUES (2002);
+		INSERT INTO app_users(id, status, legacy_user_id) VALUES (12, 'active', 2002);
+	`)
+	require.NoError(t, err)
+	return middleware.AuthIdentity{
+		UserID:          2002,
+		AppUserID:       12,
+		AppUserStatus:   models.AppUserStatusActive,
+		IsPlatformAdmin: true,
+		DisplayName:     "Leitung",
+	}
+}
+
+// rvmExecMediaLifecycleSnapshot reads the current source_revision/review_state/caption for a
+// relation directly, to prove metadata-edit side effects (or their absence) without depending
+// on the PATCH response alone.
+func rvmExecMediaLifecycleSnapshot(t *testing.T, pool *pgxpool.Pool, relationID int64) (revision int64, reviewState, caption string) {
+	t.Helper()
+	require.NoError(t, pool.QueryRow(context.Background(), `
+		SELECT lifecycle.source_revision, lifecycle.review_state, COALESCE(rvm.caption, '')
+		FROM release_version_media_review_lifecycle lifecycle
+		JOIN release_version_media rvm ON rvm.id = lifecycle.release_version_media_id
+		WHERE lifecycle.release_version_media_id = $1
+	`, relationID).Scan(&revision, &reviewState, &caption))
+	return revision, reviewState, caption
+}
+
+// TestPatchReleaseVersionMediaNonUploaderRevisionConflictProtection closes D-06's second clause
+// (176-09, F-14 "Folgehinweis" / BUG-174-04): BUG-174-04 (user decision, Option 1) deliberately
+// keeps non-uploader metadata edits out of SubmitMedia so correcting a caption/category never
+// re-opens review — but that decision's implementation also silently dropped SubmitMedia's
+// optimistic-concurrency check for exactly that path. This proves, via two real end-to-end PATCH
+// calls against a real Postgres fixture (not source-text inspection), that a non-uploader's
+// stale source_revision is now rejected with a genuine 409 SOURCE_REVISION_CONFLICT and leaves
+// the relation completely untouched, while a non-uploader's correctly-matched source_revision
+// still succeeds without bumping the revision or touching review_state (BUG-174-04 stays intact).
+func TestPatchReleaseVersionMediaNonUploaderRevisionConflictProtection(t *testing.T) {
+	gin.SetMode(gin.TestMode)
+	pool := openRVMExecFixture(t)
+	h := newRVMExecHandler(pool, t.TempDir())
+
+	relationID := rvmExecUploadOne(t, h, "screenshot")
+	lead := rvmExecSecondLeadIdentity(t, pool)
+
+	revisionBefore, stateBefore, captionBefore := rvmExecMediaLifecycleSnapshot(t, pool, relationID)
+	require.EqualValues(t, 1, revisionBefore, "upload must have created lifecycle revision 1")
+
+	t.Run("stale source_revision from a non-uploader is rejected and changes nothing", func(t *testing.T) {
+		staleRevision := revisionBefore + 98
+		body := bytes.NewBufferString(fmt.Sprintf(`{"caption":"von leitung gesetzt","source_revision":%d}`, staleRevision))
+		req := httptest.NewRequest(http.MethodPatch, fmt.Sprintf("/release-versions/41/media/%d", relationID), body)
+		req.Header.Set("Content-Type", "application/json")
+		c, rec := replaceRVMContext(req,
+			gin.Params{{Key: "versionId", Value: "41"}, {Key: "relationId", Value: strconv.FormatInt(relationID, 10)}},
+			lead)
+
+		h.PatchReleaseVersionMedia(c)
+
+		require.Equal(t, http.StatusConflict, rec.Code, rec.Body.String())
+		var errBody struct {
+			Error struct {
+				ErrorCode string `json:"error_code"`
+			} `json:"error"`
+		}
+		require.NoError(t, json.Unmarshal(rec.Body.Bytes(), &errBody))
+		assert.Equal(t, "SOURCE_REVISION_CONFLICT", errBody.Error.ErrorCode)
+
+		revisionAfter, stateAfter, captionAfter := rvmExecMediaLifecycleSnapshot(t, pool, relationID)
+		assert.Equal(t, revisionBefore, revisionAfter, "a rejected non-uploader edit must not change the revision")
+		assert.Equal(t, stateBefore, stateAfter, "a rejected non-uploader edit must not change the review state")
+		assert.Equal(t, captionBefore, captionAfter, "a rejected non-uploader edit must not persist its caption")
+	})
+
+	t.Run("matching source_revision from a non-uploader succeeds without bumping revision or review state", func(t *testing.T) {
+		body := bytes.NewBufferString(fmt.Sprintf(`{"caption":"von leitung korrigiert","source_revision":%d}`, revisionBefore))
+		req := httptest.NewRequest(http.MethodPatch, fmt.Sprintf("/release-versions/41/media/%d", relationID), body)
+		req.Header.Set("Content-Type", "application/json")
+		c, rec := replaceRVMContext(req,
+			gin.Params{{Key: "versionId", Value: "41"}, {Key: "relationId", Value: strconv.FormatInt(relationID, 10)}},
+			lead)
+
+		h.PatchReleaseVersionMedia(c)
+
+		require.Equal(t, http.StatusOK, rec.Code, rec.Body.String())
+
+		revisionAfter, stateAfter, captionAfter := rvmExecMediaLifecycleSnapshot(t, pool, relationID)
+		assert.Equal(t, revisionBefore, revisionAfter,
+			"BUG-174-04 (Option 1): a non-uploader's metadata edit must never bump the revision")
+		assert.Equal(t, stateBefore, stateAfter,
+			"BUG-174-04 (Option 1): a non-uploader's metadata edit must never change the review state")
+		assert.Equal(t, "von leitung korrigiert", captionAfter, "the accepted edit must still persist")
+	})
+}
+
 // ---------------------------------------------------------------------------
 // TestReleaseVersionMedia_SoftDelete — delete visibility
 // ---------------------------------------------------------------------------
@@ -860,10 +1009,21 @@ func TestReleaseVersionMedia_SoftDeleteExcludesFromList(t *testing.T) {
 // proves ValidateReleaseVersionMediaOwnership is load-bearing, not by grepping its call sites.
 func TestReleaseVersionMedia_ReorderRequiresVersionOwnership(t *testing.T) {
 	gin.SetMode(gin.TestMode)
-	pool := openRVMExecFixture(t)
-	h := newRVMExecHandler(pool, t.TempDir())
 
 	t.Run("cross-version relation id is rejected", func(t *testing.T) {
+		// Each subtest gets its own fresh fixture/pool: ReorderReleaseVersionStoryOrder
+		// requires the submitted item list to be the SAME LENGTH as version 41's current
+		// story order before it even reaches the per-item ownership check
+		// (repository.ErrOwnershipMismatch) -- submitting only the foreign item against an
+		// otherwise-empty version 41 trips the "complete list" length guard first (409),
+		// never the ownership check this subtest means to prove, and sharing one pool
+		// across subtests would let this subtest's own upload leak into the next one's
+		// count. Uploading one real item to version 41 first makes the submitted list's
+		// length match version 41's current count (1), so substituting the foreign
+		// relation's id genuinely exercises the per-item ownership mismatch path instead.
+		pool := openRVMExecFixture(t)
+		h := newRVMExecHandler(pool, t.TempDir())
+		rvmExecUploadOne(t, h, "screenshot")
 		body := bytes.NewBufferString(fmt.Sprintf(`{"items":[{"type":"media","media_id":%d,"sort_order":10}]}`, rvmExecForeignRelationID))
 		req := httptest.NewRequest(http.MethodPost, "/release-versions/41/media/reorder", body)
 		req.Header.Set("Content-Type", "application/json")
@@ -876,6 +1036,8 @@ func TestReleaseVersionMedia_ReorderRequiresVersionOwnership(t *testing.T) {
 	})
 
 	t.Run("same-version reorder succeeds", func(t *testing.T) {
+		pool := openRVMExecFixture(t)
+		h := newRVMExecHandler(pool, t.TempDir())
 		relationID := rvmExecUploadOne(t, h, "screenshot")
 		body := bytes.NewBufferString(fmt.Sprintf(`{"items":[{"type":"media","media_id":%d,"sort_order":50}]}`, relationID))
 		req := httptest.NewRequest(http.MethodPost, "/release-versions/41/media/reorder", body)
